@@ -30,14 +30,9 @@
 extern CMfcEmbedApp theApp;
 
 
-NS_IMETHODIMP
-CUnknownContentTypeHandler::ShowProgressDialog(nsIHelperAppLauncher *aLauncher, nsISupports *aContext ) {
-    return NS_ERROR_NOT_IMPLEMENTED;
-}
-
 // Show the helper app launch confirmation dialog as instructed.
 NS_IMETHODIMP
-CUnknownContentTypeHandler::Show( nsIHelperAppLauncher *aLauncher, nsISupports *aContext ) {
+CUnknownContentTypeHandler::Show( nsIHelperAppLauncher *aLauncher, nsISupports *aContext, PRBool aForced ) {
 
     // we always want to download it.
     // later on, we may want to say, "hey, we have no clue how to handle this, do you want to
@@ -50,7 +45,7 @@ CUnknownContentTypeHandler::Show( nsIHelperAppLauncher *aLauncher, nsISupports *
 
 // prompt the user for a file name to save the unknown content to as instructed
 NS_IMETHODIMP
-CUnknownContentTypeHandler::PromptForSaveToFile(nsISupports * aWindowContext, const PRUnichar * aDefaultFile, const PRUnichar * aSuggestedFileExtension, nsILocalFile ** aNewFile)
+CUnknownContentTypeHandler::PromptForSaveToFile(nsIHelperAppLauncher *aLauncher, nsISupports * aWindowContext, const PRUnichar * aDefaultFile, const PRUnichar * aSuggestedFileExtension, nsILocalFile ** aNewFile)
 {
 // change this to 0 to use the mozilla file picker
 #if 1
