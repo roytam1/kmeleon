@@ -51,6 +51,7 @@
 #define IDR_SECURITY_LOCK               183
 #define IDD_PREFERENCES_PRIVACY         183
 #define IDR_SECURITY_UNLOCK             184
+#define IDD_PREFERENCES_LANGUAGE        184
 #define IDR_SECURITY_BROKEN             185
 #define IDS_NOSECURITY_INFO             186
 #define IDS_ENCRYPTION_HIGH_GRADE       187
@@ -82,10 +83,13 @@
 #define IDC_CHECK_PROXY_TYPE            1022
 #define IDC_EDIT_PROXY_NO_PROXY         1023
 #define IDC_CHECK_JAVASCRIPT            1024
+#define IDC_EDIT_FTP_PROXY_PORT         1024
 #define IDC_CHECK_COOKIES               1025
+#define IDC_EDIT_SSL_PROXY_PORT         1025
 #define IDC_CHECK_IMAGES                1026
+#define IDC_EDIT_GOPHER_PROXY_PORT      1026
 #define IDC_CHECK_JAVA                  1027
-#define IDC_CHECK_CSS                   1028
+#define IDC_EDIT_SOCKS_PROXY_PORT       1027
 #define IDC_IMAGES_ALL                  1030
 #define IDC_CHECK_ANIMATIONS            1031
 #define IDC_IMAGES_SITE                 1032
@@ -128,6 +132,7 @@
 #define IDC_BUTTON2                     1054
 #define IDC_RADIO1                      1054
 #define IDC_RADIO_CACHE                 1054
+#define IDC_RADIO_NEWWINDOW             1054
 #define IDC_EDIT_ADDRESS                1055
 #define IDC_BUTTON3                     1055
 #define IDC_RADIO2                      1055
@@ -142,6 +147,18 @@
 #define IDC_VERSION                     1059
 #define IDC_EDIT_USERAGENT              1060
 #define IDC_TAB1                        1063
+#define IDC_BUTTON1                     1064
+#define IDC_BUTTON_CLEAR_MEM_CACHE      1065
+#define IDC_RADIO5                      1066
+#define IDC_EDIT_PROXY_AUTO             1068
+#define IDC_RADIO_SOCKS                 1069
+#define IDC_RADIO_PROXY                 1070
+#define IDC_RADIO7                      1071
+#define IDC_RADIO8                      1072
+#define IDC_BUTTON_COOKIES              1073
+#define IDC_COMBO1                      1074
+#define IDC_COMBO2                      1075
+#define IDC_BUTTON_CLEAR_DISK_CACHE     1076
 #define IDC_CONTAINER                   1110
 #define IDC_EDIT_TOOLBAR_BACKGROUND     1111
 #define IDC_EDIT_SETTINGS_DIR           1111
@@ -152,9 +169,13 @@
 #define IDC_EDIT_HTTP_PROXY             1115
 #define IDC_EDIT_PLUGINS_DIR            1115
 #define IDC_CHECK_TOOLBAR_BACKGROUND    1116
+#define IDC_EDIT_FTP_PROXY              1116
 #define IDC_BUTTON_BROWSE               1117
+#define IDC_EDIT_SSL_PROXY              1117
 #define IDC_LIST_PLUGINS                1118
+#define IDC_EDIT_GOPHER_PROXY           1118
 #define IDC_BUTTON_CONFIG               1119
+#define IDC_EDIT_SOCKS_PROXY            1119
 #define IDC_KMELEON_HOME                1120
 #define IDC_BUTTON_ENABLE               1120
 #define IDC_KMELEON_FORUM               1121
@@ -207,7 +228,7 @@
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        191
 #define _APS_NEXT_COMMAND_VALUE         32801
-#define _APS_NEXT_CONTROL_VALUE         1064
+#define _APS_NEXT_CONTROL_VALUE         1077
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

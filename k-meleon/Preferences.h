@@ -64,18 +64,26 @@ public:
    // -- yummy proxies
    int proxyType;
 
-   CString proxyHttp;
-   int proxyHttpPort;
-
-   CString proxyNoProxy;
+   CString  proxyHTTP;
+   int      proxyHTTPPort;
+   CString  proxyFTP;
+   int      proxyFTPPort;
+   CString  proxySSL;
+   int      proxySSLPort;
+   CString  proxyGopher;
+   int      proxyGopherPort;
+   CString  proxySOCKS;
+   int      proxySOCKSPort;
+   int      proxySOCKSRadio;   // 0 = version 4, 1 = version 5
+   int      proxySOCKSVersion;
+   CString  proxyAutoURL;
+   CString  proxyNoProxy;
 
 
    // -- cache
    int cacheMemory;
    int cacheDisk;
-   /* Disabled
    CString cacheDir;
-   */
    int cacheCheckFrequency;
 
    
@@ -83,8 +91,8 @@ public:
    int iCookiesEnabled;
    int iImagesEnabled;
 
+   int bJavaEnabled;
    int bJavascriptEnabled;
-   int bCSSEnabled;
    int bAnimationsEnabled;
 
 
@@ -128,6 +136,9 @@ protected:
 
    virtual BOOL OnInitDialog();
 
+   afx_msg void OnEditCookies();
+   afx_msg void OnClearDiskCache();
+   afx_msg void OnClearMemCache();
    afx_msg void OnBrowse();
    afx_msg void OnComboChanged();
 

@@ -97,7 +97,7 @@ void CPreferences::Load() {
       // -- General preferences
 
       _GetBool(_T("kmeleon.general.startHome"), bStartHome, true);
-      _GetString(_T("kmeleon.general.homePage"), homePage, _T("http://www.kmeleon.org"));
+      _GetString(_T("kmeleon.general.homePage"), homePage, _T("http://kmeleon.sourceforge.net"));
 
       _GetString(_T("kmeleon.general.searchEngine"), searchEngine, _T("http://www.google.com/keyword/"));
 
@@ -140,15 +140,11 @@ void CPreferences::Load() {
 
 
      // -- Cache
-
-
-      /* Disabled...cache should probably stay inside the profile dir
       _GetString(_T("browser.cache.directory"), cacheDir, _T(""));
       if (cacheDir.IsEmpty())
          cacheDir = settingsDir + "cache\\";
       else if (cacheDir[cacheDir.GetLength() - 1] != '\\')
          cacheDir += '\\';
-      */
 
       _GetInt(_T("browser.cache.disk.capacity"), cacheDisk, 4096);
       _GetInt(_T("browser.cache.memory.capacity"), cacheMemory, 1024);
@@ -157,9 +153,22 @@ void CPreferences::Load() {
       // -- Proxies      
       
       
-      _GetString(_T("network.proxy.http"), proxyHttp, _T("proxy"));
-      _GetInt(_T("network.proxy.http_port"), proxyHttpPort, 80);
+      _GetString  (_T("network.proxy.http"),          proxyHTTP,     "");
+      _GetInt     (_T("network.proxy.http_port"),     proxyHTTPPort, 0);
+      _GetString  (_T("network.proxy.ftp"),           proxyFTP,     "");
+      _GetInt     (_T("network.proxy.ftp_port"),      proxyFTPPort,  0);
+      _GetString  (_T("network.proxy.ssl"),           proxySSL,     "");
+      _GetInt     (_T("network.proxy.ssl_port"),      proxySSLPort, 0);
+      _GetString  (_T("network.proxy.gopher"),        proxyGopher,     "");
+      _GetInt     (_T("network.proxy.gopher_port"),   proxyGopherPort, 0);
+      _GetString  (_T("network.proxy.socks"),         proxySOCKS,     "");
+      _GetInt     (_T("network.proxy.socks_port"),    proxySOCKSPort, 0);
+      _GetInt     (_T("network.proxy.socks_version"), proxySOCKSVersion, 5);
 
+      if (proxySOCKSVersion == 5) proxySOCKSRadio = 1;    // the radio button state
+      else proxySOCKSRadio = 0;
+
+      _GetString(_T("network.proxy.autoconfig_url"), proxyAutoURL, "");
       _GetString(_T("network.proxy.no_proxies_on"), proxyNoProxy, _T("localhost"));
 
       _GetInt(_T("network.proxy.type"), proxyType, 0);
@@ -168,7 +177,7 @@ void CPreferences::Load() {
       // -- Advanced     
       
       _GetBool(_T("javascript.enabled"), bJavascriptEnabled, true);
-      _GetBool(_T("css.allow"), bCSSEnabled, true);
+      _GetBool(_T("security.enable_java"), bJavaEnabled, true);
 
       // 0 = Always, 1 = site, 2 = never
       _GetInt(_T("network.cookie.cookieBehavior"), iCookiesEnabled, 0);
@@ -246,9 +255,7 @@ void CPreferences::Save() {
 
      // -- Cache
 
-      /* Disabled
       rv = prefs->SetCharPref(_T("browser.cache.directory"), cacheDir);
-      */
       rv = prefs->SetIntPref(_T("browser.cache.disk.capacity"), cacheDisk);
 
       rv = prefs->SetIntPref(_T("browser.cache.memory.capacity"), cacheMemory);
@@ -256,9 +263,23 @@ void CPreferences::Save() {
 
       // -- Proxies
 
-      rv = prefs->SetCharPref(_T("network.proxy.http"), proxyHttp);
-      rv = prefs->SetIntPref(_T("network.proxy.http_port"), proxyHttpPort);
+      rv = prefs->SetCharPref(_T("network.proxy.http"),        proxyHTTP);
+      rv = prefs->SetIntPref (_T("network.proxy.http_port"),   proxyHTTPPort);
+      rv = prefs->SetCharPref(_T("network.proxy.ftp"),         proxyFTP);
+      rv = prefs->SetIntPref (_T("network.proxy.ftp_port"),    proxyFTPPort);
+      rv = prefs->SetCharPref(_T("network.proxy.ssl"),         proxySSL);
+      rv = prefs->SetIntPref (_T("network.proxy.ssl_port"),    proxySSLPort);
+      rv = prefs->SetCharPref(_T("network.proxy.gopher"),      proxyGopher);
+      rv = prefs->SetIntPref (_T("network.proxy.gopher_port"), proxyGopherPort);
+      rv = prefs->SetCharPref(_T("network.proxy.socks"),       proxySOCKS);
+      rv = prefs->SetIntPref (_T("network.proxy.socks_port"),  proxySOCKSPort);
 
+      if (proxySOCKSRadio == 1) proxySOCKSVersion = 5;    // the radio button state
+      else proxySOCKSVersion = 4;
+      rv = prefs->SetIntPref (_T("network.proxy.socks_version"),  proxySOCKSVersion);
+
+
+      rv = prefs->SetCharPref(_T("network.proxy.autoconfig_url"), proxyAutoURL);
       rv = prefs->SetCharPref(_T("network.proxy.no_proxies_on"), proxyNoProxy);
 
       rv = prefs->SetIntPref(_T("network.proxy.type"), proxyType);
@@ -266,7 +287,7 @@ void CPreferences::Save() {
       //  -- Advanced
 
       rv = prefs->SetBoolPref(_T("javascript.enabled"), bJavascriptEnabled);
-      rv = prefs->SetBoolPref(_T("css.allow"), bCSSEnabled);
+      rv = prefs->SetBoolPref(_T("security.enable_java"), bJavaEnabled);
 
       rv = prefs->SetIntPref(_T("network.cookie.cookieBehavior"), iCookiesEnabled);
       rv = prefs->SetIntPref(_T("network.image.imageBehavior"), iImagesEnabled);
