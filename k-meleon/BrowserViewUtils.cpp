@@ -107,7 +107,7 @@ void CBrowserView::GetPageTitle(CString& title)
 
    PRUnichar *aTitle;
    mpBrowserFrameGlue->GetBrowserFrameTitle(&aTitle);
-   title = W2A(aTitle);
+   title = W2T(aTitle);
 }
 
 NS_IMETHODIMP CBrowserView::URISaveAs(nsIURI* aURI, bool bDocument)

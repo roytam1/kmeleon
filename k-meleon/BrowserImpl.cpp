@@ -442,7 +442,7 @@ NS_IMETHODIMP CBrowserImpl::OnShowTooltip(PRInt32 x, PRInt32 y, const PRUnichar 
       return NS_ERROR_FAILURE;
 
 
-   char *text = W2A(tipText);
+   char *text = W2T(tipText);
 
    m_pBrowserFrameGlue->ShowTooltip(x, y, text);
 
