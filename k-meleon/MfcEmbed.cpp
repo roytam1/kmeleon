@@ -243,7 +243,7 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
 
    // this calls our modified create function, the winSize rect uses CreateWindowEx style x, y, cx, cy
    // rather than the MFC style left, top, right, bottom
-   if (!pFrame->Create(NULL, strTitle, style, winSize, NULL, MAKEINTRESOURCE(IDR_MAINFRAME), 0L, NULL))
+   if (!pFrame->Create(NULL, strTitle, style, winSize, NULL, NULL, 0L, NULL))
 		return NULL;
 
    pFrame->SetIcon(LoadIcon(IDR_MAINFRAME), true);
