@@ -531,7 +531,7 @@ END_MESSAGE_MAP()
 void CProgressDialog::Cancel() {
 
    if (mObserver)
-      mObserver->Observe(nsnull, "oncancel", nsnull);
+      mObserver->Observe(nsnull, "OnCancel", nsnull);
 
    if (mPersist)
       mPersist->CancelSave();
