@@ -83,7 +83,7 @@ void Create(HWND parent){
 }
 
 void Config(HWND parent){
-	MessageBox(parent, "This plugin brought to you by the letter H", "History plugin", 0);
+	MessageBox(parent, "This plugin has no user configurable options", "History plugin", 0);
 }
 
 void Quit(){
