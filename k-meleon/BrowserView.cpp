@@ -163,6 +163,8 @@ CBrowserView::CBrowserView()
 
    m_iGetNodeHack = 0;
    m_pGetNode = NULL;
+
+   m_panning = FALSE;
 }
 
 CBrowserView::~CBrowserView()
@@ -493,7 +495,6 @@ void CBrowserView::OnEditURL( NMHDR * pNotifyStruct, LRESULT * result )
 {
    *result = 0;
 }
-
 // A new URL was entered in the URL bar
 // Get the URL's text from the Urlbar's (ComboBox's) EditControl 
 // and navigate to that URL
@@ -998,6 +999,7 @@ void CBrowserView::OnUpdateViewStatusBar(CCmdUI* pCmdUI)
 
 void CBrowserView::OnFilePrintPreview()                                         
 {
+
    nsCOMPtr<nsIWebBrowserPrint> print(do_GetInterface(mWebBrowser));
    if(print) {
       // Get the printer settings
@@ -1005,6 +1007,7 @@ void CBrowserView::OnFilePrintPreview()
          print->GetNewPrintSettings(getter_AddRefs(m_PrintSettings));
 
       print->PrintPreview(m_PrintSettings, nsnull);
+   
    }
 }
 
