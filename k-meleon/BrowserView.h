@@ -152,6 +152,7 @@ protected:
    BOOL m_InPrintPreview;
    char **m_tempFileList;
    int m_tempFileCount;
+    int id_mouse;
   
    CFindDialog* m_pFindDlg;
    CPrintProgressDialog* m_pPrintProgressDlg;
@@ -239,6 +240,7 @@ protected:
    afx_msg void OnOpenFrame();
    afx_msg void OnOpenFrameInBackground();
    afx_msg void OnOpenFrameInNewWindow();   
+   afx_msg void OnMouseAction();
 
    afx_msg void OnEditURL( NMHDR * pNotifyStruct, LRESULT * result );
    afx_msg void OnDragURL( NMHDR * pNotifyStruct, LRESULT * result );

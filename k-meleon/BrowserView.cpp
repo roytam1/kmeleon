@@ -149,6 +149,7 @@ BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
    ON_COMMAND(ID_LINK_KMELEON_FAQ, OnKmeleonFAQ)
    ON_COMMAND(ID_LINK_KMELEON_MANUAL, OnKmeleonManual)
    ON_COMMAND(ID_LINK_ABOUT_PLUGINS, OnAboutPlugins)
+   ON_COMMAND(ID_MOUSE_ACTION, OnMouseAction)
 	ON_WM_ACTIVATE()
 	ON_MESSAGE(UWM_REFRESHTOOLBARITEM, RefreshToolBarItem)
 
@@ -1374,6 +1375,28 @@ void CBrowserView::OnKmeleonManual()
 void CBrowserView::OnAboutPlugins()
 {
    OpenURL(ABOUT_PLUGINS_URL);
+}
+
+void CBrowserView::OnMouseAction()
+{
+    nsresult rv = NS_OK;
+    nsCOMPtr<nsIURI> currentURI;
+    rv = mWebNav->GetCurrentURI(getter_AddRefs(currentURI));
+    if(!NS_FAILED(rv) && currentURI) {
+        POINT pt;
+        ::GetCursorPos(&pt);
+        
+        HWND hWnd;
+        hWnd = ::GetFocus();
+
+        if (hWnd && ::IsChild(m_hWnd, hWnd)) {
+            m_iGetNodeHack = 2;
+            ::SendMessage(hWnd, WM_CONTEXTMENU, (WPARAM) hWnd, MAKELONG(pt.x, pt.y));
+            ::PostMessage(mpBrowserFrame->m_hWnd, WM_COMMAND, (WPARAM)id_mouse, (LPARAM)0);
+        }
+
+        id_mouse = 0;
+    }
 }
 
 void CBrowserView::OnAppAbout()

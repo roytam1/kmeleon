@@ -266,6 +266,7 @@
 #define ID_FILE_SAVE_FRAME_AS           32815
 #define ID_VIEW_PAGE_INFO               32816
 #define ID_VIEW_FRAME_INFO              32817
+#define ID_MOUSE_ACTION                 32818
 #define IDS_FAILED_TO_CREATE_BROWSER    61204
 #define IDS_NEW_PLUGIN_FOUND            61205
 #define IDS_PLUGIN_NO_OPTIONS           61206

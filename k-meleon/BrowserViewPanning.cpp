@@ -29,6 +29,13 @@ extern CMfcEmbedApp theApp;
 */
 int CBrowserView::OnMouseActivate(CWnd* pDesktopWnd, UINT nHitTest, UINT message)
 {
+   int id;
+   id = theApp.accel.CheckMouse(message);
+   if (id) {
+     PostMessage(WM_COMMAND, (WPARAM)ID_MOUSE_ACTION, (LPARAM)id);
+     id_mouse = id;
+     return TRUE;
+   }
    switch (message) {
    case WM_LBUTTONDOWN:
    case WM_RBUTTONDOWN:
@@ -43,7 +50,7 @@ int CBrowserView::OnMouseActivate(CWnd* pDesktopWnd, UINT nHitTest, UINT message
       }
       return TRUE;
    }
-   
+
    return CWnd::OnMouseActivate(pDesktopWnd, nHitTest, message);
 }
 
