@@ -351,6 +351,18 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags,
 
    METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
 
+   nsAutoString strUrlUcs2;
+   nsAutoString strImgSrcUcs2;
+   nsAutoString strFrameURL;
+
+   // Reset the value from the last invocation
+   // (A new value will be set after we determine it below)
+   //
+   pThis->m_wndBrowserView.SetCtxMenuLinkUrl(strUrlUcs2);
+   pThis->m_wndBrowserView.SetCtxMenuImageSrc(strImgSrcUcs2);
+   pThis->m_wndBrowserView.SetCurrentFrameURL(strFrameURL);
+
+   
 /*
   !!BAD HACK!!  !!BAD HACK!!  !!BAD HACK!!  !!BAD HACK!!  !!BAD HACK!!
 
@@ -386,11 +398,6 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags,
       // BrowserView will be invoked and the value of the URL
       // will be accesible in the view
       
-      // Reset the value from the last invocation
-      // (A new value will be set after we determine it below)
-      //
-      nsAutoString strUrlUcs2;
-      pThis->m_wndBrowserView.SetCtxMenuLinkUrl(strUrlUcs2);
 
       // Get the URL from the link. This is two step process
       // 1. We first get the nsIDOMHTMLAnchorElement
@@ -428,9 +435,6 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags,
       else
          menuType = _T("ImagePopup");
 
-      nsAutoString strImgSrcUcs2;
-      pThis->m_wndBrowserView.SetCtxMenuImageSrc(strImgSrcUcs2); // Clear it
-
       // Get the IMG SRC
       nsresult rv = NS_OK;
       nsCOMPtr<nsIDOMHTMLImageElement> imgElement(do_QueryInterface(aNode, &rv));
@@ -466,10 +470,7 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags,
       }
       
       bContentHasFrames = TRUE;
-      
-      nsAutoString strFrameURL;
-      pThis->m_wndBrowserView.SetCurrentFrameURL(strFrameURL); // Clear it
-      
+            
       //Determine the current Frame URL
       //
       nsresult rv = NS_OK;
