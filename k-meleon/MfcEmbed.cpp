@@ -349,7 +349,7 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
    // Load the window title from the string resource table
    CString strTitle;
    strTitle.LoadString(IDR_MAINFRAME);
-   
+
    // save the current band sizes before creating new window
    // this way the new window will "inherit" the current settings
    if (m_pMostRecentBrowserFrame && 
@@ -360,7 +360,7 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
    if (chromeMask == 0) {
        chromeMask = nsIWebBrowserChrome::CHROME_ALL;
    } 
-   else
+   else if (x==-1 && y==-1 && cx==-1 && cy==-1)
        openedByGecko = 1;
 
    LONG style = WS_OVERLAPPEDWINDOW;
@@ -383,23 +383,36 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
 
    style &= ~WS_VISIBLE;
    
-   RECT winSize;   
-   winSize.left   = CW_USEDEFAULT;
-   winSize.top    = CW_USEDEFAULT;
-   winSize.bottom = CW_USEDEFAULT;
-   winSize.right  = CW_USEDEFAULT;
+   RECT winSize;
+   SystemParametersInfo(SPI_GETWORKAREA, NULL, &winSize, 0);
 
-   if (x>0 && y>0 && cx>100 && cy>100 || 
-       ((style & WS_POPUP) && x==-1 && y==-1 && cx==-1 && cy==-1)) {
-       winSize.left = x;
-       winSize.top = y;
-       winSize.right = cx;
-       winSize.bottom = cy;
+   if (x>0 && y>0 && cx>0 && cy>0) {
+       if (style & WS_POPUP) {
+           winSize.left = x;
+           winSize.top = y;
+           winSize.right = x + cx;
+           winSize.bottom = y + cy;
+           AdjustWindowRectEx(&winSize, style, chromeMask & (nsIWebBrowserChrome::CHROME_MENUBAR), 0);
+           winSize.right = winSize.right - winSize.left;
+           winSize.bottom = winSize.bottom - winSize.top;
+       }
+       else {
+           winSize.left = x;
+           winSize.top = y;
+           winSize.right = cx;
+           winSize.bottom = cy;
+       }
    }
    else {
-       if (preferences.windowHeight > 0 && preferences.windowWidth > 0) {
+       if (!(style & WS_POPUP) && 
+           preferences.windowHeight > 0 && preferences.windowWidth > 0) {
            winSize.right  = preferences.windowWidth;
            winSize.bottom = preferences.windowHeight;         
+
+           RECT screen;
+           SystemParametersInfo(SPI_GETWORKAREA, NULL, &screen, 0);
+           int screenWidth   = screen.right - screen.left;
+           int screenHeight  = screen.bottom - screen.top;
 
            if (preferences.windowYPos > 0 && preferences.windowXPos > 0) {
                winSize.left = preferences.windowXPos;
@@ -408,21 +421,16 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
                if (m_pMostRecentBrowserFrame && 
                    !(m_pMostRecentBrowserFrame->m_style & WS_POPUP)) {
 
+                   int offset        = GetSystemMetrics(SM_CYSIZE);
+                   offset           += GetSystemMetrics(SM_CXBORDER);
+
                    WINDOWPLACEMENT wp;
                    wp.length = sizeof(WINDOWPLACEMENT);
                    m_pMostRecentBrowserFrame->GetWindowPlacement(&wp);
 
-                   // if the window is not maximized, let's use use GetWindowRect, which works      
+                   // if the window is not maximized, let's use use GetWindowRect, which works
                    if (wp.showCmd == SW_SHOWNORMAL)
                        m_pMostRecentBrowserFrame->GetWindowRect(&wp.rcNormalPosition);
-        
-                   int offset        = GetSystemMetrics(SM_CYSIZE);
-                   offset           += GetSystemMetrics(SM_CXBORDER);
-
-                   RECT screen;
-                   SystemParametersInfo(SPI_GETWORKAREA, NULL, &screen, 0);
-                   int screenWidth   = screen.right - screen.left;
-                   int screenHeight  = screen.bottom - screen.top;
       
                    winSize.left   = wp.rcNormalPosition.left + offset;
                    winSize.top    = wp.rcNormalPosition.top + offset;
@@ -446,12 +454,32 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
       
                    // if we're going to be positioned right on top of the current window,
                    // move to the top corner
-                   if ( ((winSize.left - wp.rcNormalPosition.left) < offset) &&
-                        ((winSize.top - wp.rcNormalPosition.top) < offset) ) {
+                   if ( ((winSize.left - wp.rcNormalPosition.left) < offset/3) &&
+                        ((winSize.top - wp.rcNormalPosition.top) < offset/3) ) {
                        winSize.left = screen.left;
                        winSize.top = screen.top;
                    }
                }
+               else {
+                   // don't create windows larger than the screen
+                   if (winSize.right > screenWidth)
+                       winSize.right = screenWidth;
+                   if (winSize.bottom > screenHeight)
+                       winSize.bottom = screenHeight;
+
+                   // make sure the window isn't going to run off the screen
+                   if (screen.right - (winSize.left + winSize.right) < 0)
+                       winSize.left = screen.right - winSize.right;
+                   if (screen.bottom - (winSize.top + winSize.bottom) < 0) 
+                       winSize.top = screen.bottom - winSize.bottom;
+               }
+           }
+           else {
+               // don't create windows larger than the screen
+               if (winSize.right > screenWidth)
+                   winSize.right = screenWidth;
+               if (winSize.bottom > screenHeight)
+                   winSize.bottom = screenHeight;
            }
        }
    }
@@ -899,7 +927,7 @@ NS_IMETHODIMP CMfcEmbedApp::CreateChromeWindow(nsIWebBrowserChrome *parent,
    NS_ENSURE_ARG_POINTER(_retval);
    *_retval = 0;
    
-   CBrowserFrame *pBrowserFrame = CreateNewBrowserFrame(chromeFlags);
+   CBrowserFrame *pBrowserFrame = CreateNewBrowserFrame(chromeFlags, -1, -1, -1, -1, PR_FALSE);
    if(pBrowserFrame) {
       *_retval = NS_STATIC_CAST(nsIWebBrowserChrome *, pBrowserFrame->GetBrowserImpl());
       NS_ADDREF(*_retval);
