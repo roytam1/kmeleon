@@ -354,19 +354,22 @@ KMELEON_PLUGIN kmeleonPlugin *GetKmeleonPlugin() {
 }
 
 KMELEON_PLUGIN int DrawBitmap(DRAWITEMSTRUCT *dis) {
+  int top = (dis->rcItem.bottom - dis->rcItem.top - 16) / 2;
+  top += dis->rcItem.top;
+
   if (GetMenuState((HMENU)dis->hwndItem, dis->itemID, MF_BYCOMMAND) & MF_POPUP){
     if (dis->itemState & ODS_SELECTED){
-      ImageList_Draw(m_himSystem, m_iFolderIcon, dis->hDC, dis->rcItem.left, dis->rcItem.top, ILD_FOCUS );
+      ImageList_Draw(m_himSystem, m_iFolderIcon, dis->hDC, dis->rcItem.left, top, ILD_TRANSPARENT | ILD_FOCUS );
     }else{
-      ImageList_Draw(m_himSystem, m_iFolderIcon, dis->hDC, dis->rcItem.left, dis->rcItem.top, ILD_TRANSPARENT);
+      ImageList_Draw(m_himSystem, m_iFolderIcon, dis->hDC, dis->rcItem.left, top, ILD_TRANSPARENT);
     }
     return 18;
   }
   if (dis->itemID >= nFirstFavoriteCommand && dis->itemID < (nFirstFavoriteCommand + MAX_FAVORITES)){
     if (dis->itemState & ODS_SELECTED){
-      ImageList_Draw(m_himSystem, m_URLIcons[dis->itemID - nFirstFavoriteCommand], dis->hDC, dis->rcItem.left, dis->rcItem.top, ILD_FOCUS);
+      ImageList_Draw(m_himSystem, m_URLIcons[dis->itemID - nFirstFavoriteCommand], dis->hDC, dis->rcItem.left, top, ILD_TRANSPARENT | ILD_FOCUS);
     }else{
-      ImageList_Draw(m_himSystem, m_URLIcons[dis->itemID - nFirstFavoriteCommand], dis->hDC, dis->rcItem.left, dis->rcItem.top, ILD_TRANSPARENT);
+      ImageList_Draw(m_himSystem, m_URLIcons[dis->itemID - nFirstFavoriteCommand], dis->hDC, dis->rcItem.left, top, ILD_TRANSPARENT);
     }
 
     return 18;
