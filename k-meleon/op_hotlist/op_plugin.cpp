@@ -88,6 +88,9 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
       else if (stricmp(subject, "AddLink") == 0) {
          addLink((char *)data1, (char *)data2);
       }
+      else if (stricmp(subject, "FindNick") == 0) {
+         findNick((char *)data1, (char *)data2);
+      }
       else return 0;
       
       return 1;
@@ -196,6 +199,10 @@ int Init(){
    nDropdownCommand = kPlugin.kFuncs->GetCommandIDs(1);
    kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_REBAR_ENABLED, &bRebarEnabled, &bRebarEnabled);
    kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_HOTLIST_RESYNCH, &bResynchHotlist, &bResynchHotlist);
+   kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_TOOLBAR_FOLDER, gToolbarFolder, (char*)"");
+   kPlugin.kFuncs->GetPreference(PREF_INT, PREFERENCE_MENU_MAXLEN, &gMaxMenuLength, &gMaxMenuLength);
+   kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_MENU_AUTOLEN, &gMenuAutoDetect, &gMenuAutoDetect);
+   if (gMaxMenuLength < 1) gMaxMenuLength = 20;
    
    getHotlistFile();
    bEmpty = true;

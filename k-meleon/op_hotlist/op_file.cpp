@@ -34,6 +34,8 @@
 #  define MAX(a,b) ((a)>(b)?(a):(b))
 #endif
 
+static bool found_tb = false;
+
 int ParseHotlistFolder(char **p, CBookmarkNode &node) 
 {
    char *q = NULL;
@@ -63,11 +65,18 @@ int ParseHotlistFolder(char **p, CBookmarkNode &node)
    
    if (szName[0]) {
       CBookmarkNode * newNode = 
-         new CBookmarkNode(0, szName, "", BOOKMARK_FOLDER, 0);
+         new CBookmarkNode(0, szName, "", "", BOOKMARK_FOLDER, 0);
       if (newNode) {
          node.AddChild(newNode);
          
          size += ParseHotlist(p, *newNode);
+         
+         if ( !found_tb &&
+              ((strcmp(szName, gToolbarFolder) == 0)))
+            {
+               newNode->flags |= BOOKMARK_FLAG_TB;
+               found_tb = true;
+            }
       }
    }
    
@@ -78,6 +87,7 @@ int ParseHotlistUrl(char **p, CBookmarkNode &node)
 {
    char *q = NULL;
    char szName[HOTLIST_TITLE_LEN] = {0};
+   char szNick[HOTLIST_TITLE_LEN] = {0};
    char szURL[INTERNET_MAX_URL_LENGTH] = {0};
    
    while (*p && **p && (q = strchr(*p, '\n')) != NULL) {
@@ -94,20 +104,20 @@ int ParseHotlistUrl(char **p, CBookmarkNode &node)
          szName[HOTLIST_TITLE_LEN-1] = 0;
       }
       
-      else if (strnicmp(*p, "SHORT NAME=", 11) == 0 && *((*p)+11) != 0) {
-         *p += 11;
-         while (*p && **p && isspace(**p))
-            (*p)++;
-         strncpy(szName, *p, HOTLIST_TITLE_LEN);
-         szName[HOTLIST_TITLE_LEN-1] = 0;
-      }
-      
       else if (strnicmp(*p, "NICKNAME=", 9) == 0 && *((*p)+9) != 0) {
          *p += 9;
          while (*p && **p && isspace(**p))
             (*p)++;
-         strncpy(szName, *p, HOTLIST_TITLE_LEN);
-         szName[HOTLIST_TITLE_LEN-1] = 0;
+         strncpy(szNick, *p, HOTLIST_TITLE_LEN);
+         szNick[HOTLIST_TITLE_LEN-1] = 0;
+      }
+      
+      else if (strnicmp(*p, "SHORT NAME=", 11) == 0 && *((*p)+11) != 0) {
+         *p += 11;
+         while (*p && **p && isspace(**p))
+            (*p)++;
+         strncpy(szNick, *p, HOTLIST_TITLE_LEN);
+         szNick[HOTLIST_TITLE_LEN-1] = 0;
       }
       
       else if (strnicmp(*p, "URL=", 4) == 0) {
@@ -127,7 +137,7 @@ int ParseHotlistUrl(char **p, CBookmarkNode &node)
    if (szURL[0]) {
       int id = kPlugin.kFuncs->GetCommandIDs(1);
       CBookmarkNode * newNode = 
-         new CBookmarkNode(id, szName[0] ? szName : szURL, szURL, BOOKMARK_BOOKMARK, 0, 0, 0);
+         new CBookmarkNode(id, szName[0] ? szName : szURL, szURL, szNick, BOOKMARK_BOOKMARK, 0, 0, 0);
       if (newNode) {
          node.AddChild(newNode);
          return 1;
