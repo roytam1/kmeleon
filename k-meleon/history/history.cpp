@@ -34,6 +34,9 @@
 
 #define PLUGIN_NAME "History Plugin"
 
+#define _T(x) x
+#define PREFERENCE_HISTORY_LENGTH _T("kmeleon.plugins.history.length")
+static INT nHistoryLength = 20;
 
 /*
 BOOL APIENTRY DllMain( HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved ) {
@@ -103,7 +106,11 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
 
 
 int Init(){
-	ID_HISTORY = kPlugin.kFuncs->GetCommandIDs(20);
+   kPlugin.kFuncs->GetPreference(PREF_INT,  PREFERENCE_HISTORY_LENGTH, &nHistoryLength, &nHistoryLength);
+	if (nHistoryLength<0)
+		nHistoryLength = 0;
+
+	ID_HISTORY = kPlugin.kFuncs->GetCommandIDs(nHistoryLength);
 	return true;
 }
 
@@ -185,8 +192,8 @@ void CreateBackMenu (HWND hWndParent, UINT button) {
 		return;
 	}
 
-   if (index>20)
-      limit = index-20;
+   if (index>nHistoryLength)
+      limit = index-nHistoryLength;
    else limit=0;
 
    HMENU menu = CreatePopupMenu();
@@ -214,8 +221,8 @@ void CreateForwardMenu (HWND hWndParent, UINT button) {
 
 	HMENU menu = CreatePopupMenu();
 
-   if (count-index > 20)
-      limit = index+20;
+   if (count-index > nHistoryLength)
+      limit = index+nHistoryLength;
    else limit=count;
 
    int x=0;
@@ -243,12 +250,12 @@ void UpdateHistoryMenu (HWND hWndParent) {
 		return;
 
 	// Clear the existing history menu 
-	for (i=ID_HISTORY;i<ID_HISTORY+20;i++)
+	for (i=ID_HISTORY;i<ID_HISTORY+nHistoryLength;i++)
 		DeleteMenu(ghMenu, i, MF_BYCOMMAND);
 
 	// Add the local history to the menu
 	if (!kPlugin.kFuncs->GetMozillaSessionHistory (&titles, &count, &index)) return;
-	if (count > 20) count = 20;
+	if (count > nHistoryLength) count = nHistoryLength;
 
 	for (i=count-1;i>=0;i--) {
 		CondenseMenuText(buf, titles[i], (count-1 - i) );
@@ -315,7 +322,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 		case WM_COMMAND:
 			WORD command;
 			command = LOWORD(wParam);
-			if ((command >= ID_HISTORY) && (command < ID_HISTORY+20)) {
+			if ((command >= ID_HISTORY) && (command < ID_HISTORY+nHistoryLength)) {
 				kPlugin.kFuncs->GotoHistoryIndex(command-ID_HISTORY);
 				return true;
 			}
@@ -324,7 +331,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 		{
 			int command = LOWORD(wParam);
 
-			if ((command >= ID_HISTORY) && (command < ID_HISTORY+20)) {
+			if ((command >= ID_HISTORY) && (command < ID_HISTORY+nHistoryLength)) {
 				char **titles;
 				int count, index;
 				if (kPlugin.kFuncs->GetMozillaSessionHistory (&titles, &count, &index)) {
