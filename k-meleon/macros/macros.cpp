@@ -447,6 +447,10 @@ public:
 	  if (pos >= strData.length())
      return 0;
 	  while(++pos <= strData.length()-1) {
+       if(strData.at(pos) == '\\' && lastchar == '\\') {
+         lastchar = 0;
+         continue;
+       }
 		 if(strData.at(pos) == '"' && lastchar != '\\') {
 			instr = (instr) ? false : true;
 			lastchar = '"';
@@ -853,7 +857,7 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
          }
 	question = params[0];
 	title = params[1];
-   instring = params[2];
+	instring = params[2];
 	int ok = DialogBox(kPlugin.hDllInstance,
 		  MAKEINTRESOURCE(IDD_PROMPT), hWnd, (DLGPROC)PromptDlgProc);
 	PostMessage(hWnd, WM_NULL, 0, 0);
@@ -1485,11 +1489,17 @@ std::string EvalExpression(HWND hWnd,std::string exp) {
    // this could be a comma seperated list of expressions
    if(exp.find_first_of(',') != std::string::npos) {
       if(exp.at(0) == '"') instr = true;
-      for(i=1;i<exp.length();++i) {
-         if(exp.at(i) == '"' && exp.at(i-1) != '\\') {
+      char lastchar = exp.at(0);
+      for(i=1; i<exp.length(); ++i) {
+         if(exp.at(i) == '\\' && lastchar == '\\') {
+            lastchar = 0;
+            continue;
+         }
+         if(exp.at(i) == '"' && lastchar != '\\') {
             instr = (instr) ? false : true;
             continue;
          }
+         lastchar = exp.at(i);
          if(!instr) {
             if(exp.at(i) == '(') {
                ++lparen;
@@ -1715,12 +1725,18 @@ std::string EvalExpression(HWND hWnd,std::string exp) {
    if(exp.find_first_of('(') != std::string::npos) {
       if(exp.at(0) == '"') instr = true;
       else if(exp.at(0) == '(') { lpos=0;++lparen; }
-
+		
+      char lastchar = exp.at(0);
       for(i=1; i<exp.length(); ++i) {
-         if(exp.at(i) == '"' && exp.at(i-1) != '\\') {
+         if(exp.at(i) == '\\' && lastchar == '\\') {
+            lastchar = 0;
+            continue;
+         }
+         if(exp.at(i) == '"' && lastchar != '\\') {
             instr = (instr) ? false : true;
             continue;
          }
+         lastchar = exp.at(i);
          if(!instr) {
             if(exp.at(i) == '(') {
                if(lpos == NOTFOUND) lpos = i;
@@ -1772,7 +1788,7 @@ std::string EvalExpression(HWND hWnd,std::string exp) {
       int isGlobal = 0;
       std::string val = GetGlobalVarVal(hWnd, (char*)exp.c_str(), &isGlobal);
       if (isGlobal)
-         return protectString((char*)val.c_str());
+         return protectString( (char*)val.c_str() );
 
       // if the variable exists return the value
       int thisvarid = FindVar((char*)exp.c_str());
