@@ -23,10 +23,6 @@
 
 typedef unsigned int uint;
 
-//#if defined(__cplusplus) && __cplusplus
-// extern "C" {
-//#endif
-
 char *stristr(const char *String, const char *Pattern)
 {
       char *pptr, *sptr, *start;
@@ -71,7 +67,3 @@ char *stristr(const char *String, const char *Pattern)
       }
       return(NULL);
 }
-
-//#if defined(__cplusplus) && __cplusplus
-// }
-//#endif
