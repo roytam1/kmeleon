@@ -288,6 +288,8 @@ protected:
    afx_msg void OnSysColorChange();
 	afx_msg void RefreshToolBarItem(WPARAM ItemID, LPARAM unused);
    afx_msg void ToggleToolBar(UINT uID);
+   afx_msg void ToggleToolbarLock();
+   afx_msg void OnUpdateToggleToolbarLock(CCmdUI* pCmdUI);
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };

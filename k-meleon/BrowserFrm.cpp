@@ -85,6 +85,8 @@ BEGIN_MESSAGE_MAP(CBrowserFrame, CFrameWnd)
    ON_WM_SYSCOLORCHANGE()
 	ON_MESSAGE(UWM_REFRESHTOOLBARITEM, RefreshToolBarItem)
    ON_COMMAND_RANGE(TOOLBAR_MENU_START_ID, TOOLBAR_MENU_END_ID, ToggleToolBar)
+   ON_COMMAND(ID_TOOLBARS_LOCK, ToggleToolbarLock)
+   ON_UPDATE_COMMAND_UI(ID_TOOLBARS_LOCK, OnUpdateToggleToolbarLock)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -94,6 +96,8 @@ static UINT indicators[] =
 	ID_PROG_BAR,               // For the Progress Bar
    ID_SEPARATOR
 };
+
+#define PREF_TOOLBAND_LOCKED "kmeleon.general.toolbars_locked"
 
 /////////////////////////////////////////////////////////////////////////////
 // CBrowserFrame construction/destruction
@@ -153,7 +157,7 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct){
 		return -1;
 
    // tell all our plugins that we were created
-   theApp.plugins.OnCreate(this->m_hWnd);
+   theApp.plugins.SendMessage("*", "* OnCreate", "Create", (long)this->m_hWnd);
 
 	// Pass "this" to the View for later callbacks
 	// and/or access to any public data members, if needed
@@ -190,18 +194,18 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct){
 //   m_wndUrlBar.SetImageList(&m_toolbarHotImageList);
 
    // Create the animation control..
-   if (!m_wndAnimate.Create(WS_CHILD | WS_VISIBLE, CRect(0, 0, 10, 10), this, AFX_IDW_TOOLBAR + 2))
+   if (!m_wndAnimate.Create(WS_CHILD | WS_VISIBLE, CRect(0, 0, 10, 10), this, ID_THROBBER))
 	{
       TRACE0("Failed to create animation\n");
 		return -1;      // fail to create
 	}
-  if (!m_wndAnimate.Open(theApp.preferences.settingsDir + "Throbber.avi")){
+   if (!m_wndAnimate.Open(theApp.preferences.settingsDir + "Throbber.avi")){
       m_wndAnimate.Open("Throbber.avi");
-  }
+   }
 
 	// Create a ReBar window to which the toolbar and UrlBar 
 	// will be added
-	if (!m_wndReBar.Create(this))
+	if (!m_wndReBar.Create(this, RBS_DBLCLKTOGGLE | RBS_VARHEIGHT | RBS_BANDBORDERS))
 	{
 		TRACE0("Failed to create ReBar\n");
 		return -1;      // fail to create
@@ -212,7 +216,7 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct){
    m_wndReBar.AddBar(&m_wndAnimate, NULL, NULL, RBBS_FIXEDSIZE | RBBS_FIXEDBMP);
 
    m_wndReBar.RegisterBand(m_wndUrlBar.m_hWnd,  "URL Bar", true);
-//   m_wndReBar.RegisterBand(m_wndAnimate.m_hWnd, "Throbber");
+   m_wndReBar.RegisterBand(m_wndAnimate.m_hWnd, "Throbber", false);
 
    //--------------------------------------------------------------
 	// Set up min/max sizes and ideal sizes for pieces of the rebar:
@@ -232,9 +236,11 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct){
    rbbi.cx = 200;
 	rebarControl->SetBandInfo (0, &rbbi);
 
-   theApp.plugins.DoRebars(m_wndReBar.GetReBarCtrl().m_hWnd);
+   theApp.plugins.SendMessage("*", "* OnCreate", "DoRebar", (long)m_wndReBar.GetReBarCtrl().m_hWnd);
 
    m_wndReBar.RestoreBandSizes();
+
+   m_wndReBar.LockBars(theApp.preferences.GetBool(PREF_TOOLBAND_LOCKED, false));
 
    LoadBackImage();
    SetBackImage();
@@ -537,6 +543,19 @@ void CBrowserFrame::RefreshToolBarItem(WPARAM ItemID, LPARAM unused)
 void CBrowserFrame::ToggleToolBar(UINT uID)
 {
    m_wndReBar.ToggleVisibility(uID - TOOLBAR_MENU_START_ID);
+}
+
+void CBrowserFrame::ToggleToolbarLock()
+{
+   BOOL locked = theApp.preferences.GetBool(PREF_TOOLBAND_LOCKED, false);
+   locked = !locked;
+   theApp.preferences.SetBool(PREF_TOOLBAND_LOCKED, locked);
+   m_wndReBar.LockBars(locked);
+}
+
+void CBrowserFrame::OnUpdateToggleToolbarLock(CCmdUI* pCmdUI)
+{
+   pCmdUI->SetCheck(theApp.preferences.GetBool(PREF_TOOLBAND_LOCKED, false));
 }
 
 /*
