@@ -832,7 +832,7 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
          else if(strcmpi(params[2].c_str(),"STOP")==0) icon=MB_ICONSTOP;         
          else if(strcmpi(params[2].c_str(),"QUESTION")==0) icon=MB_ICONQUESTION;         
 
-         MessageBox(NULL,params[0].c_str(),params[1].c_str(), MB_OK|icon);
+         MessageBox(hWnd,params[0].c_str(),params[1].c_str(), MB_OK|icon|MB_TASKMODAL);
          return "";
       }
       CMD(confirm) {
@@ -850,7 +850,7 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
          else if(strcmpi(params[3].c_str(),"STOP")==0) icon=MB_ICONSTOP;         
          else if(strcmpi(params[3].c_str(),"QUESTION")==0) icon=MB_ICONQUESTION;         
 
-         int result = MessageBox(NULL,params[0].c_str(),params[1].c_str(), buttons|icon);
+         int result = MessageBox(hWnd,params[0].c_str(),params[1].c_str(), buttons|icon|MB_TASKMODAL);
          if(result == IDOK) return "OK";
          if(result == IDYES) return "YES";
          if(result == IDNO) return "NO";
@@ -1002,7 +1002,7 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
             kFuncs->SendMessage((char*)params[0].c_str(), PLUGIN_NAME, (char*)params[1].c_str(), (long) params[2].c_str(), (long) &cRetval);
             std::string strRet;
             strRet = protectString( cRetval ? cRetval : "" );
-            if (cRetval) free(cRetval);
+	    if (cRetval) free(cRetval);
             return strRet;
          }
          else if (preftype == PREF_INT) {
