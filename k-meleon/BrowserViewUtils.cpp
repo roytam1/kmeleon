@@ -23,6 +23,7 @@
 */
 
 #include "stdafx.h"
+#include "nsEscape.h"
 
 #include "UnknownContentTypeHandler.h"
 
@@ -63,6 +64,10 @@ BOOL CBrowserView::OpenViewSourceWindow(const char* pUrl)
 	    nsCOMPtr<nsIWebBrowserPersist> persist(do_QueryInterface(mWebBrowser));
 	    if(persist)
 	    {
+	        char *tmp = strdup(nsUnescape(tempfile.GetBuffer(0)));
+                tempfile = tmp;
+                free(tmp);
+
 		nsCOMPtr<nsILocalFile> file;
 		NS_NewNativeLocalFile(nsDependentCString(T2A(tempfile.GetBuffer(0))), TRUE, getter_AddRefs(file));
 		
@@ -96,7 +101,19 @@ BOOL CBrowserView::OpenViewSourceWindow(const char* pUrl)
     PRUint32 chromeFlags =  nsIWebBrowserChrome::CHROME_WINDOW_BORDERS |
 	                    nsIWebBrowserChrome::CHROME_TITLEBAR |
 	                    nsIWebBrowserChrome::CHROME_WINDOW_RESIZE;
-    CBrowserFrame* pFrm = CreateNewBrowserFrame(); //chromeFlags);
+
+    RECT screen;
+    SystemParametersInfo(SPI_GETWORKAREA, NULL, &screen, 0);
+
+    int screenWidth   = screen.right - screen.left;
+    int screenHeight  = screen.bottom - screen.top;
+
+    int x = screen.left + screenWidth / 20;
+    int y = screen.top + screenHeight / 20;
+    int w = 15*screenWidth / 20;
+    int h = 18*screenHeight/20;
+
+    CBrowserFrame* pFrm = CreateNewBrowserFrame(chromeFlags, x, y, w, h);
     if(!pFrm)
 	return FALSE;
 
@@ -281,6 +298,7 @@ NS_IMETHODIMP CBrowserView::URISaveAs(nsIURI* aURI, bool bDocument)
             else
                return NS_ERROR_FAILURE;
 	 }
+
          CProgressDialog *progress = new CProgressDialog(FALSE);
       
          progress->InitPersist(aURI, file, persist, TRUE);
