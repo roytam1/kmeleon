@@ -67,8 +67,8 @@ extern CMfcEmbedApp theApp;
 static char THIS_FILE[] = __FILE__;
 #endif
 
-static const char* KMELEON_HOMEPAGE_URL = "http://kmeleon.sourceforge.net";
-static const char* KMELEON_FORUM_URL = "http://kmeleon.sourceforge.net/forum";
+static const char* KMELEON_HOMEPAGE_URL = "http://kmeleon.sourceforge.net/";
+static const char* KMELEON_FORUM_URL = "http://kmeleon.sourceforge.net/forum/";
 
 // Register message for FindDialog communication                                                                                
 static UINT WM_FINDMSG = ::RegisterWindowMessage(FINDMSGSTRING);
