@@ -47,7 +47,7 @@ void Quit();
 HGLOBAL GetMenu();
 void DoMenu(HMENU menu, char *param);
 void DoRebar(HWND rebarWnd);
-void OnMessage(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam);
+LPARAM OnMessage(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 kmeleonPlugin kPlugin = {
   KMEL_PLUGIN_VER,
@@ -170,14 +170,16 @@ void DoRebar(HWND rebarWnd){
   SendMessage(rebarWnd, RB_MAXIMIZEBAND, (WPARAM)bandPos, (LPARAM)true);
 }
 
-void OnMessage(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam){
+LPARAM OnMessage(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam){
   if (message == WM_COMMAND){
     WORD command = LOWORD(wParam);
     if (command >= commandIDs && command < (commandIDs + numCommands)){
       HWND hwndWinamp = FindWindow("Winamp v1.x",NULL);
       SendMessage(hwndWinamp, WM_COMMAND, commandTable[command - commandIDs], 0);
+      return true;
     }
   }
+  return false;
 }
 
 // so it doesn't munge the function name
