@@ -53,7 +53,7 @@ NS_IMETHODIMP
 CUnknownContentTypeHandler::PromptForSaveToFile(nsISupports * aWindowContext, const PRUnichar * aDefaultFile, const PRUnichar * aSuggestedFileExtension, nsILocalFile ** aNewFile)
 {
 // change this to 0 to use the mozilla file picker
-#if 0
+#if 1
    USES_CONVERSION;
 
    CString filter = W2T(aSuggestedFileExtension);
@@ -71,7 +71,10 @@ CUnknownContentTypeHandler::PromptForSaveToFile(nsISupports * aWindowContext, co
 
    defaultFile = theApp.preferences.saveDir + defaultFile;
 
-   CFileDialog cf(FALSE, W2T(aSuggestedFileExtension), defaultFile, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, filter, (CWnd *)theApp.m_pMostRecentBrowserFrame);
+   char *ext = W2T(aSuggestedFileExtension);
+   if (*ext == '.')
+     ext++;
+   CFileDialog cf(FALSE, ext, defaultFile, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, filter, (CWnd *)theApp.m_pMostRecentBrowserFrame);
    if(cf.DoModal() == IDOK){
       NS_ENSURE_ARG_POINTER(aNewFile);
 
@@ -82,7 +85,7 @@ CUnknownContentTypeHandler::PromptForSaveToFile(nsISupports * aWindowContext, co
 
          NS_ENSURE_TRUE(file, NS_ERROR_FAILURE);
 
-         file->InitWithPath(pathName);
+         file->InitWithPath(NS_ConvertASCIItoUCS2(pathName));
 
          NS_ADDREF(*aNewFile = file);
 
