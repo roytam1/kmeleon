@@ -845,8 +845,10 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
 	int ok = DialogBox(kPlugin.hDllInstance,
 		  MAKEINTRESOURCE(IDD_PROMPT), hWnd, (DLGPROC)PromptDlgProc);
 	PostMessage(hWnd, WM_NULL, 0, 0);
-	if (ok == IDOK)
-	  return answer;
+	if (ok == IDOK) {
+	   answer = protectString( (char*)answer.c_str() );
+	   return answer;
+	}
 	else 
          return "";
       }
