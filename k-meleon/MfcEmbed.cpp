@@ -491,7 +491,7 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
       else pFrame->ShowWindow(SW_SHOW);
       pFrame->UpdateWindow();
    }
-   
+
    // Add to the list of BrowserFrame windows
    m_FrameWndLst.AddHead(pFrame);
    
@@ -529,6 +529,7 @@ void CMfcEmbedApp::OnNewBrowser()
    CBrowserFrame *pBrowserFrame = CreateNewBrowserFrame();
    
    if(pBrowserFrame) {
+
       //Load the new window start page into the browser view
       pBrowserFrame->SetFocus();
       pBrowserFrame->m_wndUrlBar.MaintainFocus();
@@ -546,7 +547,10 @@ void CMfcEmbedApp::OnNewBrowser()
          pBrowserFrame->m_wndBrowserView.OpenURL("about:blank");
          break;
       case PREF_NEW_WINDOW_URL:
-         pBrowserFrame->m_wndBrowserView.OpenURL(preferences.newWindowURL);
+         if (preferences.newWindowURL.IsEmpty())
+            pBrowserFrame->m_wndBrowserView.OpenURL("about:blank");
+         else
+            pBrowserFrame->m_wndBrowserView.OpenURL(preferences.newWindowURL);
          break;
       }
    }
