@@ -50,7 +50,6 @@ int Init();
 void Create(HWND parent);
 void Config(HWND parent);
 void Quit();
-HGLOBAL GetMenu();
 void DoMenu(HMENU menu, char *param);
 void DoRebar(HWND rebarWnd);
 
@@ -488,7 +487,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
          return true;
       }
       if (command >= nFirstFavoriteCommand && command < (nFirstFavoriteCommand + MAX_FAVORITES)){
-         kPlugin.kf->NavigateTo((char *)(LPCTSTR)m_astrFavoriteURLs.GetAt(command - nFirstFavoriteCommand), 0);
+         kPlugin.kf->NavigateTo((char *)(LPCTSTR)m_astrFavoriteURLs.GetAt(command - nFirstFavoriteCommand), OPEN_NORMAL);
          return true;
       }
    }

@@ -57,7 +57,6 @@ int Init();
 void Create(HWND parent);
 void Config(HWND parent);
 void Quit();
-HGLOBAL GetMenu();
 void DoMenu(HMENU menu, char *param);
 void DoRebar(HWND rebarWnd);
 
@@ -449,7 +448,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
          return true;
       }
       if (command >= nFirstBookmarkCommand && command < (nFirstBookmarkCommand + MAX_BOOKMARKS)){
-         kPlugin.kf->NavigateTo((char *)urlVector[command-nFirstBookmarkCommand].c_str(), false);
+         kPlugin.kf->NavigateTo((char *)urlVector[command-nFirstBookmarkCommand].c_str(), OPEN_NORMAL);
          return true;
       }
    }
