@@ -1,5 +1,7 @@
 // used by both the Accel Parser and the Menu Parser
 
+#include "KmeleonMessages.h"
+
 #ifndef DEFINEMAP_ADD
 #define DEFINEMAP_ADD(entry) defineMap[#entry] = entry;
 #endif
