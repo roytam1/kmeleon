@@ -312,7 +312,7 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
    // this way the new window will "inherit" the current settings
    if (m_pMostRecentBrowserFrame)
       m_pMostRecentBrowserFrame->m_wndReBar.SaveBandSizes();
-   
+
    // Now, create the browser frame
 	CBrowserFrame* pFrame = new CBrowserFrame(chromeMask);
 

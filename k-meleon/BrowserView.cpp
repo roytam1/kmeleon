@@ -145,6 +145,7 @@ CBrowserView::CBrowserView()
    m_pFindDlg = NULL;
    m_pPrintProgressDlg = NULL; 
    m_bCurrentlyPrinting = NULL;
+   m_SecurityState = SECURITY_STATE_INSECURE;
 
    m_tempFileCount = 0;
 }
@@ -590,7 +591,7 @@ void CBrowserView::OnNavReload()
 void CBrowserView::OnNavStop() 
 {	
 	if(mWebNav)
-		mWebNav->Stop();
+		mWebNav->Stop(nsIWebNavigation::STOP_ALL);
 }
 
 void CBrowserView::OnUpdateNavStop(CCmdUI* pCmdUI)
@@ -1429,3 +1430,21 @@ int CBrowserView::GetCurrentURI(char *sURI) {
       strcpy(sURI, uriString.get());
    return len;
 }
+
+ 
+
+void CBrowserView::ShowSecurityInfo()                                           
+{
+   HWND hParent = mpBrowserFrame->m_hWnd;
+
+   if(m_SecurityState == SECURITY_STATE_INSECURE) { 
+      CString csMsg;
+      csMsg.LoadString(IDS_NOSECURITY_INFO);
+
+      ::MessageBox(hParent, csMsg, "MfcEmbed", MB_OK);
+
+      return;
+   }                                                                           
+   ::MessageBox(hParent, "To Be Continued.", "K-Meleon", MB_OK);
+}
+

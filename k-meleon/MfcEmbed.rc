@@ -550,6 +550,10 @@ IDI_OFF                 ICON    DISCARDABLE     "res\\off.ico"
 IDI_OFFCHECK            ICON    DISCARDABLE     "res\\offcheck.ico"
 IDI_ONCHECK             ICON    DISCARDABLE     "res\\oncheck.ico"
 IDI_ON                  ICON    DISCARDABLE     "res\\on.ico"
+IDR_SECURITY_LOCK       ICON    DISCARDABLE     "res\\ssecur.ico"
+IDR_SECURITY_UNLOCK     ICON    DISCARDABLE     "res\\sinsecur.ico"
+IDR_SECURITY_BROKEN     ICON    DISCARDABLE     "res\\broken.ico"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //

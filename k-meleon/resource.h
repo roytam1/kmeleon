@@ -46,7 +46,14 @@
 #define IDI_OFFCHECK                    179
 #define IDI_ONCHECK                     180
 #define IDD_DIALOG_OPEN                 181
-#define IDD_PROGRESS                    184
+#define IDD_PROGRESS                    182
+#define IDR_SECURITY_LOCK               183
+#define IDR_SECURITY_UNLOCK             184
+#define IDR_SECURITY_BROKEN             185
+#define IDS_NOSECURITY_INFO             186
+#define IDS_ENCRYPTION_HIGH_GRADE       187
+#define IDS_ENCRYPTION_LOW_GRADE        188
+#define IDS_ENCRYPTION_NONE             189
 #define ID_URL_BAR                      1001
 #define ID_PROG_BAR                     1002
 #define IDC_PROMPT_ANSWER               1003
@@ -168,7 +175,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        185
+#define _APS_NEXT_RESOURCE_VALUE        190
 #define _APS_NEXT_COMMAND_VALUE         32801
 #define _APS_NEXT_CONTROL_VALUE         1053
 #define _APS_NEXT_SYMED_VALUE           101

@@ -94,6 +94,18 @@ protected:
 };
 
 
+// CMyStatusBar class
+class CMyStatusBar : public CStatusBar
+{
+public:
+	CMyStatusBar();
+	virtual ~CMyStatusBar();
+protected:
+	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
+	DECLARE_MESSAGE_MAP()
+};
+
+
 class CBrowserFrame : public CFrameWnd
 {	
 public:
@@ -106,7 +118,7 @@ public:
    inline CBrowserImpl *GetBrowserImpl() { return m_wndBrowserView.mpBrowserImpl; }
 
    CToolBarEx      m_wndToolBar;
-	CStatusBar      m_wndStatusBar;
+	CMyStatusBar    m_wndStatusBar;
 	CProgressCtrl   m_wndProgressBar;
 	CUrlBar         m_wndUrlBar;
 	CReBarEx        m_wndReBar;
@@ -121,6 +133,9 @@ public:
 	// The view inside which the embedded browser will
 	// be displayed in
 	CBrowserView   m_wndBrowserView;
+
+   void UpdateSecurityStatus(PRInt32 aState);
+   void ShowSecurityInfo();
 
 	// This specifies what UI elements this frame will sport
 	// w.r.t. toolbar, statusbar, urlbar etc.

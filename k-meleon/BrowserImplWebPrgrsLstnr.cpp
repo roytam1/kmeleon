@@ -130,9 +130,11 @@ CBrowserImpl::OnStatusChange(nsIWebProgress* aWebProgress,
 
 
 NS_IMETHODIMP 
-CBrowserImpl::OnSecurityChange(nsIWebProgress *aWebProgress, 
-                               nsIRequest *aRequest, 
+CBrowserImpl::OnSecurityChange(nsIWebProgress *aWebProgress,
+                               nsIRequest *aRequest,
                                PRInt32 state)
 {
-   return NS_ERROR_NOT_IMPLEMENTED;
+   m_pBrowserFrameGlue->UpdateSecurityStatus(state);
+
+   return NS_OK;
 }
