@@ -52,7 +52,8 @@ void CBrowserView::OnTimer(UINT nIDEvent)
    switch(nIDEvent){
    case 0x1:
       if(m_panning) {
-         nsCOMPtr<nsIScrollable> s(do_QueryInterface(mWebBrowser));
+         nsCOMPtr<nsIDOMWindow> s;
+	 mWebBrowser->GetContentDOMWindow(getter_AddRefs(s)); 
 
          if(!s) return;
 
@@ -61,22 +62,22 @@ void CBrowserView::OnTimer(UINT nIDEvent)
 
          int scroll_x,scroll_y;
 
-         s->GetCurScrollPos(s->ScrollOrientation_X,&scroll_x);
-         s->GetCurScrollPos(s->ScrollOrientation_Y,&scroll_y);
+         s->GetScrollX(&scroll_x);
+         s->GetScrollY(&scroll_y);
 
-         int dx = (p.x-m_panningPoint.x)/5;
-         int dy = (p.y-m_panningPoint.y)/5;
+         int dx = (p.x-m_panningPoint.x)/10;
+         int dy = (p.y-m_panningPoint.y)/10;
 
          if(dy!=0) {
-            if(dy>0)	scroll_y += dy*dy+7; // dy=1 => 8, which is the smallest number that makes it stcroll (it's in NS "twips", not pixels, apparently)
-            else scroll_y -= dy*dy+7;
-            s->SetCurScrollPosEx(scroll_x,scroll_y);
+            if(dy>0)	scroll_y += dy*dy; 
+            else scroll_y -= dy*dy;
+            s->ScrollTo(scroll_x,scroll_y);
          }
 
          if(dx!=0) {
-            if(dx>0)	scroll_x += dx*dx+7;
-            else scroll_x -= dx*dx+7;
-            s->SetCurScrollPosEx(scroll_x,scroll_y);
+            if(dx>0)	scroll_x += dx*dx;
+            else scroll_x -= dx*dx;
+            s->ScrollTo(scroll_x,scroll_y);
          }
 
          int cursor;
