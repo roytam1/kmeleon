@@ -45,23 +45,40 @@ int Init();
 void Create(HWND parent);
 void Config(HWND parent);
 void Quit();
-void DoMenu(HMENU menu, char *param);
 void DoRebar(HWND rebarWnd);
 
-pluginFunctions pFuncs = {
-   Init,
-   Create,
-   Config,
-   Quit,
-   NULL,
-   DoRebar
-};
+long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2);
 
 kmeleonPlugin kPlugin = {
    KMEL_PLUGIN_VER,
    PLUGIN_NAME,
-   &pFuncs
+   DoMessage
 };
+
+long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2)
+{
+   if (to[0] == '*' || stricmp(to, kPlugin.dllname) == 0) {
+      if (stricmp(subject, "Init") == 0) {
+         Init();
+      }
+      else if (stricmp(subject, "Create") == 0) {
+         Create((HWND)data1);
+      }
+      else if (stricmp(subject, "Config") == 0) {
+         Config((HWND)data1);
+      }
+      else if (stricmp(subject, "Quit") == 0) {
+         Quit();
+      }
+      else if (stricmp(subject, "DoRebar") == 0) {
+         DoRebar((HWND)data1);
+      }
+      else return 0;
+
+      return 1;
+   }
+   return 0;
+}
 
 HMENU m_menu;
 
@@ -110,7 +127,7 @@ void DoRebar(HWND rebarWnd) {
    SetWindowText(hwndTB, MENU_NAME);
 
    // Register the band name and child hwnd
-   kPlugin.kf->RegisterBand(hwndTB, MENU_NAME, false);
+   kPlugin.kFuncs->RegisterBand(hwndTB, MENU_NAME, false);
 
    SendMessage(hwndTB, TB_SETIMAGELIST, 0, (LPARAM)NULL);
 

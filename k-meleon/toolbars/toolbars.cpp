@@ -23,6 +23,8 @@
 #include <commctrl.h>
 #include <stdlib.h>
 
+#define PLUGIN_NAME "Toolbar Control Plugin"
+
 #define KMELEON_PLUGIN_EXPORTS
 #include "..\kmeleon_plugin.h"
 #include "..\utils.h"
@@ -36,33 +38,45 @@
 /* Begin K-Meleon Plugin Header */
 
 int  Init();
-void Create(HWND parent);
 void Config(HWND parent);
 void Quit();
-void DoMenu(HMENU menu, char *param);
 void DoRebar(HWND rebarWnd);
-int  DoAccel(char *param);
 int  GetConfigFiles(configFileType **configFiles);
 
-
-pluginFunctions pFunc = {
-   Init,
-   NULL,
-   Config,
-   Quit,
-   NULL,
-   DoRebar,
-   NULL,
-   GetConfigFiles   
-};
+long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2);
 
 kmeleonPlugin kPlugin = {
    KMEL_PLUGIN_VER,
-   "Toolbar Control Plugin",
-   &pFunc
+   PLUGIN_NAME,
+   DoMessage
 };
 
 /* End K-Meleon Plugin Header */
+
+long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2)
+{
+   if (to[0] == '*' || stricmp(to, kPlugin.dllname) == 0) {
+      if (stricmp(subject, "Init") == 0) {
+         Init();
+      }
+      else if (stricmp(subject, "Config") == 0) {
+         Config((HWND)data1);
+      }
+      else if (stricmp(subject, "Quit") == 0) {
+         Quit();
+      }
+      else if (stricmp(subject, "DoRebar") == 0) {
+         DoRebar((HWND)data1);
+      }
+      else if (stricmp(subject, "GetConfigFiles") == 0) {
+         *(int *)data2 = GetConfigFiles((configFileType**)data1);
+      }
+      else return 0;
+
+      return 1;
+   }
+   return 0;
+}
 
 struct s_button {
    char *sName;
@@ -105,7 +119,7 @@ char gszConfigDir[MAX_PATH];
 
 int Init() {
    char szConfigFile[MAX_PATH];
-   kPlugin.kf->GetPreference(PREF_STRING, "kmeleon.general.settingsDir", gszConfigDir, "");
+   kPlugin.kFuncs->GetPreference(PREF_STRING, "kmeleon.general.settingsDir", gszConfigDir, "");
    if (! *gszConfigDir)
       return 0;
    strcpy(szConfigFile, gszConfigDir);
@@ -117,7 +131,7 @@ int Init() {
 
 void Config(HWND hWndParent) {
    char cfgPath[MAX_PATH];
-   kPlugin.kf->GetPreference(PREF_STRING, _T("kmeleon.general.settingsDir"), cfgPath, "");
+   kPlugin.kFuncs->GetPreference(PREF_STRING, _T("kmeleon.general.settingsDir"), cfgPath, "");
    strcat(cfgPath, "toolbars.cfg");
    ShellExecute(NULL, NULL, "notepad.exe", cfgPath, NULL, SW_SHOW);
 }
@@ -126,7 +140,7 @@ configFileType g_configFiles[1];
 int GetConfigFiles(configFileType **configFiles)
 {
    char cfgPath[MAX_PATH];
-   kPlugin.kf->GetPreference(PREF_STRING, _T("kmeleon.general.settingsDir"), cfgPath, "");
+   kPlugin.kFuncs->GetPreference(PREF_STRING, _T("kmeleon.general.settingsDir"), cfgPath, "");
 
    strcpy(g_configFiles[0].file, cfgPath);
    strcat(g_configFiles[0].file, "toolbars.cfg");
@@ -184,7 +198,7 @@ void DoRebar(HWND rebarWnd) {
       if (toolbar->iButtonCount == 0) continue;
 
       // Create the toolbar control to be added.
-      HWND hwndTB = kPlugin.kf->CreateToolbar(GetParent(rebarWnd), CCS_NODIVIDER | CCS_NOPARENTALIGN | CCS_NORESIZE | TBSTYLE_FLAT | TBSTYLE_TRANSPARENT | TBSTYLE_TOOLTIPS);
+      HWND hwndTB = kPlugin.kFuncs->CreateToolbar(GetParent(rebarWnd), CCS_NODIVIDER | CCS_NOPARENTALIGN | CCS_NORESIZE | TBSTYLE_FLAT | TBSTYLE_TRANSPARENT | TBSTYLE_TOOLTIPS);
       if (!hwndTB){
          MessageBox(NULL, "Failed to create toolbar", "K-Meleon Toolbar Plugin", MB_OK);
          return;
@@ -243,7 +257,7 @@ void DoRebar(HWND rebarWnd) {
 
 
       // Register the band name and child hwnd
-      kPlugin.kf->RegisterBand(hwndTB, toolbar->sTitle);
+      kPlugin.kFuncs->RegisterBand(hwndTB, toolbar->sTitle);
 
       REBARBANDINFO rbBand;
       rbBand.cbSize = sizeof(REBARBANDINFO);  // Required
@@ -420,7 +434,7 @@ void LoadToolbars(char *filename) {
                char *plugin = p;
                p = strchr(param, ')');
                if (p) *p =0;
-               curButton->iID = kPlugin.kf->GetAccel(plugin, param);
+               kPlugin.kFuncs->SendMessage(plugin, PLUGIN_NAME, "DoAccel", (long)param, &curButton->iID);
             }
             
             // check for numeric value
