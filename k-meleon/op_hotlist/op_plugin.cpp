@@ -367,17 +367,18 @@ void DoRebar(HWND rebarWnd) {
          MessageBox(NULL, TOOLBAND_FAILED_TO_CREATE, NULL, 0);
          return;
       }
-      
-      wpOrigTBWndProc = (WNDPROC) SetWindowLong(hWndTB, 
-         GWL_WNDPROC, (LONG) WndTBSubclassProc);
 
+      SetWindowText(hWndTB, TOOLBAND_NAME);
+   
+      //SendMessage(hWndTB, TB_SETEXTENDEDSTYLE, 0, TBSTYLE_EX_DRAWDDARROWS);
+   
       if (pNewTB) {
          pNewTB->hWndTB = hWndTB;
-         pNewTB = NULL;
+         if (gImagelist && bButtonIcons)
+            SendMessage(hWndTB, TB_SETIMAGELIST, 0, (LPARAM)gImagelist);
+         else
+            SendMessage(hWndTB, TB_SETIMAGELIST, 0, (LPARAM)NULL);
       }
-
-      // Register the band name and child hwnd
-      kPlugin.kFuncs->RegisterBand(hWndTB, TOOLBAND_NAME);
       
       BuildRebar(hWndTB);
 
@@ -400,6 +401,15 @@ void DoRebar(HWND rebarWnd) {
       rbBand.cxIdeal    = 100;
       rbBand.cx         = rbBand.cxIdeal;
       
+      if (nButtonMinWidth > 0)
+         wpOrigTBWndProc = (WNDPROC) SetWindowLong(hWndTB, 
+            GWL_WNDPROC, (LONG) WndTBSubclassProc);
+
+      pNewTB = NULL;
+
+      // Register the band name and child hwnd
+      kPlugin.kFuncs->RegisterBand(hWndTB, TOOLBAND_NAME);
+      
       // Add the band that has the toolbar.
       SendMessage(rebarWnd, RB_INSERTBAND, (WPARAM)-1, (LPARAM)&rbBand);
    }
@@ -409,7 +419,7 @@ extern "C" {
    KMELEON_PLUGIN kmeleonPlugin *GetKmeleonPlugin() {
       return &kPlugin;
    }
-   
+   /*   
    KMELEON_PLUGIN int DrawBitmap(DRAWITEMSTRUCT *dis) {
       if (dis==NULL || gImagelist==NULL) return 0;
       int top = (dis->rcItem.bottom - dis->rcItem.top - 16) / 2;
@@ -426,4 +436,5 @@ extern "C" {
       }
       return 0;
    }
+   */
 }
