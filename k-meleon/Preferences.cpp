@@ -115,18 +115,16 @@ void CPreferences::Load() {
       _GetString(_T("kmeleon.general.settingsDir"), settingsDir, _T(""));
       _GetString(_T("kmeleon.general.pluginsDir"), pluginsDir, _T(""));
       if (settingsDir.IsEmpty()) {
+
          nsCOMPtr<nsIFile> profileDir;
          rv = NS_GetSpecialDirectory(NS_APP_USER_PROFILE_50_DIR, getter_AddRefs(profileDir));
          NS_ASSERTION(profileDir, "NS_APP_USER_PROFILE_50_DIR is not defined");
 
          if (NS_SUCCEEDED(rv)){
-            nsCOMPtr<nsILocalFile> localFile(do_QueryInterface(profileDir));
-            NS_ASSERTION(localFile, "Cannot get nsILocalFile from profile dir");
 
-            nsXPIDLCString descriptorString;
-            rv = localFile->GetPersistentDescriptor(getter_Copies(descriptorString));
-
-            settingsDir = descriptorString;
+            nsCAutoString pathBuf;
+            rv = profileDir->GetNativePath(pathBuf);
+            settingsDir = pathBuf.get();
          }
       }
       if (settingsDir[settingsDir.GetLength() - 1] != '\\')
