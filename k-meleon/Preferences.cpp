@@ -42,10 +42,19 @@ CPreferences::Load() {
   homePage = theApp.GetProfileString(_T("General"), _T("HomePage"), _T("http://www.kmeleon.org"));
 
   settingsDir = theApp.GetProfileString(_T("General"), _T("SettingsDir"));
-  if (!settingsDir.IsEmpty()){
-    if (settingsDir[settingsDir.GetLength()] != '\\'){
-      settingsDir += '\\';
-    }
+  if (settingsDir.IsEmpty()){
+    //  a better way to do this would be to query mozilla
+	  char filename[255];
+    char *p;
+	  GetModuleFileName(AfxGetInstanceHandle(), filename, sizeof(filename));
+	  p = filename + lstrlen(filename);
+  	while (p >= filename && *p != '\\') p--;
+    *p = 0;
+
+    settingsDir = filename;
+  }
+  if (settingsDir[settingsDir.GetLength()-1] != '\\'){
+    settingsDir += '\\';
   }
 }
 
