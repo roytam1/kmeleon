@@ -53,7 +53,7 @@ BOOL APIENTRY DllMain( HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
 }
 */
 
-int Init();
+int Load();
 void Create(HWND parent);
 void Config(HWND parent);
 void Quit();
@@ -90,8 +90,8 @@ HIMAGELIST gImagelist;
 long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2)
 {
    if (to[0] == '*' || stricmp(to, kPlugin.dllname) == 0) {
-      if (stricmp(subject, "Init") == 0) {
-         Init();
+      if (stricmp(subject, "Load") == 0) {
+         Load();
       }
       else if (stricmp(subject, "Create") == 0) {
          Create((HWND)data1);
@@ -120,56 +120,10 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
 
 
 
-// look for filename first in the skinsDir, then in the settingsDir
-// check for the filename in skinsDir, and copy the path into szSkinFile
-// if it's not there, just assume it's in settingsDir, and copy that path
-
-void FindSkinFile( char *szSkinFile, char *filename ) {
-
-   char szTmpSkinDir[MAX_PATH];
-   char szTmpSkinName[MAX_PATH];
-   char szTmpSkinFile[MAX_PATH] = "";
-
-   if (!szSkinFile || !filename || !*filename)
-      return;
-
-   kPlugin.kFuncs->GetPreference(PREF_STRING, "kmeleon.general.skinsDir", szTmpSkinDir, (char*)"");
-   kPlugin.kFuncs->GetPreference(PREF_STRING, "kmeleon.general.skinsCurrent", szTmpSkinName, (char*)"");
-
-   if (*szTmpSkinDir && *szTmpSkinName) {
-      strcpy(szTmpSkinFile, szTmpSkinDir);
-
-      int len = strlen(szTmpSkinFile);
-      if (szTmpSkinFile[len-1] != '\\')
-         strcat(szTmpSkinFile, "\\");
-
-      strcat(szTmpSkinFile, szTmpSkinName);
-      len = strlen(szTmpSkinFile);
-      if (szTmpSkinFile[len-1] != '\\')
-         strcat(szTmpSkinFile, "\\");
-
-      strcat(szTmpSkinFile, filename);
-
-      WIN32_FIND_DATA FindData;
-
-      HANDLE hFile = FindFirstFile(szTmpSkinFile, &FindData);
-      if(hFile != INVALID_HANDLE_VALUE) {   
-         FindClose(hFile);
-         strcpy( szSkinFile, szTmpSkinFile );
-         return;
-      }
-   }
-
-   // it wasn't in the skinsDir, assume settingsDir
-   kPlugin.kFuncs->GetPreference(PREF_STRING, "kmeleon.general.settingsDir", szSkinFile, (char*)"");
-   if (! *szSkinFile)      // no settingsDir, bad
-      strcpy(szSkinFile, filename);
-   else
-      strcat(szSkinFile, filename);
-}
+#include "../findskin.cpp"
 
 
-int Init(){
+int Load(){
    kPlugin.kFuncs->GetPreference(PREF_INT,  PREFERENCE_HISTORY_LENGTH, &nHistoryLength, &nHistoryLength);
    if (nHistoryLength<0)
       nHistoryLength = 0;

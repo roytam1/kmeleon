@@ -112,9 +112,9 @@ BEGIN
 END
 
 
-IDB_IMAGES              BITMAP  DISCARDABLE     "bitmap1.bmp"
+// IDB_IMAGES              BITMAP  DISCARDABLE     "bitmap1.bmp"
 IDC_DRAG_CURSOR         CURSOR  DISCARDABLE     "cursor1.cur"
-IDB_ICON                ICON    DISCARDABLE     "icon1.ico"
+// IDB_ICON                ICON    DISCARDABLE     "icon1.ico"
 
 
 IDD_SMARTBOOKMARK DIALOG DISCARDABLE  0, 0, 250, 58

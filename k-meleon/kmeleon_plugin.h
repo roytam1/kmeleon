@@ -47,7 +47,6 @@ typedef struct {
    char *url;
 } kmeleonDocInfo;
 
-
 typedef struct {
    char *image;
    char *link;
@@ -60,6 +59,8 @@ enum PREFTYPE {
    PREF_INT,
    PREF_STRING
 };
+
+struct kmeleonPlugin;
 
 typedef struct {
    long (*SendMessage)(const char *to, const char *from, const char *subject, long data1, long data2);
@@ -127,6 +128,16 @@ typedef struct {
 
    void (*SetCheck)(int id, BOOL mark=TRUE);
 
+   struct kmeleonPlugin * (*Load)(char *kplugin);
+
+   void (*ClearCache)(int cache=0); /* STORE_ANYWHERE (nsICache.h) */
+
+   void (*BroadcastMessage)(UINT Msg, WPARAM wParam, LPARAM lParam);
+
+   void (*ParseAccel)(char *str);
+
+   void (*DelPreference)(char *preference);
+
 } kmeleonFunctions;
 
 /*
@@ -144,7 +155,7 @@ typedef struct {
 
 */
 
-typedef struct {
+typedef struct kmeleonPlugin {
   // Filled in by the plugin
 	int version;
 	char *description;

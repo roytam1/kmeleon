@@ -111,86 +111,6 @@ BOOL  gbDrawn = TRUE;      // after the menu is drawn, we should reset iMaxText 
 BOOL  gbMeasureAccel = TRUE; // win98 workaround - win98 automatically adjusts measuremenuitem for the width of the accel
 
 
-// look for filename first in the settingsDir,
-// then skinsDir\CurrentSkin,
-// then skinsDir\default
-// if it's not anywhere, return settingsDir
-
-void FindSkinFile( char *szSkinFile, char *filename ) {
-
-   WIN32_FIND_DATA FindData;
-   HANDLE hFile;
-   
-   char szTmpSkinDir[MAX_PATH];
-   char szTmpSkinName[MAX_PATH];
-   char szTmpSkinFile[MAX_PATH] = "";
-
-   if (!szSkinFile || !filename || !*filename)
-      return;
-
-   // check for the file in the settingsDir
-   kPlugin.kFuncs->GetPreference(PREF_STRING, "kmeleon.general.settingsDir", szTmpSkinFile, (char*)"");
-   if (*szTmpSkinFile) {
-      strcat(szTmpSkinFile, filename);
-
-      hFile = FindFirstFile(szTmpSkinFile, &FindData);
-      if(hFile != INVALID_HANDLE_VALUE) {   
-         FindClose(hFile);
-         strcpy( szSkinFile, szTmpSkinFile );
-         return;
-      }
-   }
-   
-
-   // it wasn't in settingsDir, check the current skin   
-
-   kPlugin.kFuncs->GetPreference(PREF_STRING, "kmeleon.general.skinsDir", szTmpSkinDir, (char*)"");
-   kPlugin.kFuncs->GetPreference(PREF_STRING, "kmeleon.general.skinsCurrent", szTmpSkinName, (char*)"");
-
-   if (*szTmpSkinDir && *szTmpSkinName) {
-
-      int len = strlen(szTmpSkinDir);
-      if (szTmpSkinDir[len-1] != '\\')
-         strcat(szTmpSkinDir, "\\");
-
-      len = strlen(szTmpSkinName);
-      if (szTmpSkinName[len-1] != '\\')
-         strcat(szTmpSkinName, "\\");
-
-      strcpy(szTmpSkinFile, szTmpSkinDir);
-      strcat(szTmpSkinFile, szTmpSkinName);
-      strcat(szTmpSkinFile, filename);
-
-      hFile = FindFirstFile(szTmpSkinFile, &FindData);
-      if(hFile != INVALID_HANDLE_VALUE) {   
-         FindClose(hFile);
-         strcpy( szSkinFile, szTmpSkinFile );
-         return;
-      }
-
-
-      // it wasn't in the current skin directory, check the default
-
-      strcpy(szTmpSkinFile, szTmpSkinDir);
-      strcat(szTmpSkinFile, "default\\");
-      strcat(szTmpSkinFile, filename);
-
-      hFile = FindFirstFile(szTmpSkinFile, &FindData);
-      if(hFile != INVALID_HANDLE_VALUE) {   
-         FindClose(hFile);
-         strcpy( szSkinFile, szTmpSkinFile );
-         return;
-      }
-   }
-
-   // it wasn't anywhere, return the path to the settingsDir, in case the file is being created
-   kPlugin.kFuncs->GetPreference(PREF_STRING, "kmeleon.general.settingsDir", szSkinFile, (char*)"");
-   if (! *szSkinFile)      // no settingsDir, bad
-      strcpy(szSkinFile, filename);
-   else
-      strcat(szSkinFile, filename);
-}
-
 
 long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2)
 {
@@ -233,6 +153,9 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
 }
 
 
+#include "../findskin.cpp"
+
+
 void ParseConfig(char *buffer) {
    hImageList = ImageList_Create(BMP_WIDTH, BMP_HEIGHT, ILC_MASK | ILC_COLOR8, 32, 256);
 
@@ -242,60 +165,80 @@ void ParseConfig(char *buffer) {
 #include "../definemap.cpp"
 
    BOOL currentBitmap = false;
-	int index = 0;
-
-	char *p;
-	while ((p = strtok(NULL, "\n")) != NULL) {
-
+   int index = 0;
+   
+   char *p;
+   while ((p = strtok(NULL, "\n")) != NULL) {
+      
       // ignore the comments
-		if (*p == '#') {
-			continue;
-		}
-		else if (!currentBitmap) {
-			char *b = strchr(p, '{');
-			if (b) {
-				*b = 0;
-				TrimWhiteSpace(p);
-				p = SkipWhiteSpace(p);
-
+      if (*p == '#') {
+         continue;
+      }
+      else if (!currentBitmap) {
+         char *b = strchr(p, '{');
+         if (b) {
+            *b = 0;
+            TrimWhiteSpace(p);
+            p = SkipWhiteSpace(p);
+            
             HBITMAP bitmap;
             // if it's relative to the root (ie: c:\blah or \blah or /blah
-				if (*p == '/' || *p == '\\' || *(p+1) == ':') {
-					bitmap = (HBITMAP)LoadImage(NULL, p, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE);
-				}
+            if (*p == '/' || *p == '\\' || *(p+1) == ':') {
+               bitmap = (HBITMAP)LoadImage(NULL, p, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE);
+            }
             // else it's relative to the settings directory (just plain blah)
-				else {
-					char bmpPath[MAX_PATH];
+            else {
+               char bmpPath[MAX_PATH];
                FindSkinFile(bmpPath, p);
-					bitmap = (HBITMAP)LoadImage(NULL, bmpPath, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE);
-				}
+               bitmap = (HBITMAP)LoadImage(NULL, bmpPath, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE);
+            }
             ImageList_AddMasked(hImageList, bitmap, RGB(255, 0, 255));
-
+            
             DeleteObject(bitmap);
-
+            
             currentBitmap = true;
-			}
-		}
-		else {
-			if ( strchr( p, '}' )) {
+         }
+      }
+      else {
+         if ( strchr( p, '}' )) {
             currentBitmap = false;
             index = ImageList_GetImageCount(hImageList);
-				continue;
-			}
-
-			TrimWhiteSpace(p);
-			p = SkipWhiteSpace(p);
-
-			int id;
-			defineMapIt = defineMap.find(std::string(p));
-			if ( defineMapIt != defineMap.end() )
-				id = defineMapIt->second;
-			else
-				id = 0;
-			bmpMap[id] = index;
-			index++;
-		}
-	}
+            continue;
+         }
+         
+         TrimWhiteSpace(p);
+         p = SkipWhiteSpace(p);
+         
+         int id;
+         defineMapIt = defineMap.find(std::string(p));
+         if ( defineMapIt != defineMap.end() )
+            id = defineMapIt->second;
+         else {
+            // check for call to other plugin
+            char *op;
+            op = strchr(p, '(');
+            if (op) {
+               *op = 0;
+               char *param = op+1;
+               char *plugin = p;
+               p = strchr(param, ')');
+               if (p) *p =0;
+               p = strchr(param, ',');
+               if (p) *p =0;
+               kPlugin.kFuncs->SendMessage(plugin, PLUGIN_NAME, "DoAccel", (long)param, (long)&id);
+            }
+            else {
+               id = kPlugin.kFuncs->GetID(p);
+               if (!id)
+                  id = atoi(p);
+            }
+            if (id < 0)
+               id = 0;
+         }
+         bmpMap[id] = index;
+         index++;
+      }
+   }
 }
 
 int Init() {
@@ -421,11 +364,11 @@ void DoMenu(HMENU menu, char *param){
 }
 
 int DrawBitmap(DRAWITEMSTRUCT *dis) {
-	BmpMapT::iterator bmpMapIt;
-	bmpMapIt = bmpMap.find(dis->itemID);
-
-	// Load the corresponding bitmap
-	if (bmpMapIt != bmpMap.end()){
+   BmpMapT::iterator bmpMapIt;
+   bmpMapIt = bmpMap.find(dis->itemID);
+   
+   // Load the corresponding bitmap
+   if (bmpMapIt != bmpMap.end()){
       int top = (dis->rcItem.bottom - dis->rcItem.top - BMP_HEIGHT) / 2;
       top += dis->rcItem.top;
 
@@ -439,7 +382,7 @@ int DrawBitmap(DRAWITEMSTRUCT *dis) {
          ImageList_Draw(hImageList, bmpMapIt->second, dis->hDC, dis->rcItem.left+BMP_PADDING_LEFT, top, ILD_TRANSPARENT);
 
       return BMP_WIDTH;
-	}
+   }
    else if (dis->itemState & ODS_CHECKED) {
 
       // the check mark is only 6x6, so we need to offset its drawing position
@@ -530,25 +473,25 @@ void DrawMenuItem(DRAWITEMSTRUCT *dis) {
    char *string = (char *)dis->itemData;
 
    if (!*string) {
-		RECT rc;
+      RECT rc;
       rc.bottom   = dis->rcItem.bottom;
       rc.left     = dis->rcItem.left;
       rc.right    = dis->rcItem.right;
-		rc.top      = dis->rcItem.top + ((rc.bottom-dis->rcItem.top)>>1); // vertical center
-		DrawEdge(dis->hDC, &rc, EDGE_ETCHED, BF_TOP);   // draw separator line
+      rc.top      = dis->rcItem.top + ((rc.bottom-dis->rcItem.top)>>1); // vertical center
+      DrawEdge(dis->hDC, &rc, EDGE_ETCHED, BF_TOP);   // draw separator line
       return;
    }
-
-	// Draw the highlight rectangle
-	SetBkMode(dis->hDC, TRANSPARENT);
-	if (dis->itemState & ODS_SELECTED) {
-		FillRect(dis->hDC, &dis->rcItem, GetSysColorBrush(COLOR_HIGHLIGHT));
-		SetTextColor(dis->hDC, GetSysColor(COLOR_HIGHLIGHTTEXT));
-	}
-	else {
-		FillRect(dis->hDC, &dis->rcItem, GetSysColorBrush(COLOR_MENU));
-	}
-
+   
+   // Draw the highlight rectangle
+   SetBkMode(dis->hDC, TRANSPARENT);
+   if (dis->itemState & ODS_SELECTED) {
+      FillRect(dis->hDC, &dis->rcItem, GetSysColorBrush(COLOR_HIGHLIGHT));
+      SetTextColor(dis->hDC, GetSysColor(COLOR_HIGHLIGHTTEXT));
+   }
+   else {
+      FillRect(dis->hDC, &dis->rcItem, GetSysColorBrush(COLOR_MENU));
+   }
+   
    DRAWBITMAPPROC DrawProc;
    menuMap::iterator menuIter = menus.find(menu);
    if (menuIter != menus.end()){
@@ -559,53 +502,53 @@ void DrawMenuItem(DRAWITEMSTRUCT *dis) {
    dis->rcItem.left = MARGIN_LEFT + 1; // start drawing text at the pixel after our margin
 
    RECT rcTab;
-
-	char *tab = strrchr(string, '\t');
-	int itemLen, tabLen;
-
+   
+   char *tab = strrchr(string, '\t');
+   int itemLen, tabLen;
+   
    if (tab) {
-		itemLen = tab - string;
+      itemLen = tab - string;
       tab++;
-		tabLen = strlen(tab);
-
+      tabLen = strlen(tab);
+      
       rcTab.top = dis->rcItem.top;
       rcTab.left = dis->rcItem.right - giMaxAccelWidth - MARGIN_RIGHT;
       rcTab.right = dis->rcItem.right;
       rcTab.bottom = dis->rcItem.bottom;
-	}
-	else {
-		itemLen = strlen(string);
-		tabLen = 0;
-	}
-	if (dis->itemState & ODS_GRAYED) {
-		// setup pen to draw selected, grayed text
-		if (dis->itemState & ODS_SELECTED) {
-			SetTextColor(dis->hDC, GetSysColor(COLOR_MENU));
-		}
-		// Draw shadow for unselected grayed items
-		else {
-			dis->rcItem.left += 1;
-			dis->rcItem.top += 1;
-
-			SetTextColor(dis->hDC, GetSysColor(COLOR_HIGHLIGHTTEXT));
-
-			DrawText(dis->hDC, string, itemLen, &dis->rcItem, DT_SINGLELINE | DT_VCENTER | DT_NOCLIP );
-			if (tab) {
-				DrawText(dis->hDC, tab, tabLen, &rcTab, DT_SINGLELINE | DT_VCENTER | DT_NOCLIP );
-			}
-
-			dis->rcItem.left -= 1;
-			dis->rcItem.top -= 1;
-      
-			// set pen to draw normal text colour
-			SetTextColor(dis->hDC, GetSysColor(COLOR_GRAYTEXT));
-		}
-	}
-
-	DrawText(dis->hDC, string, itemLen, &dis->rcItem, DT_SINGLELINE | DT_VCENTER | DT_NOCLIP );
-	if (tab) {
-		DrawText(dis->hDC, tab, tabLen, &rcTab, DT_SINGLELINE | DT_VCENTER | DT_NOCLIP );
-	}
+   }
+   else {
+      itemLen = strlen(string);
+      tabLen = 0;
+   }
+   if (dis->itemState & ODS_GRAYED) {
+      // setup pen to draw selected, grayed text
+      if (dis->itemState & ODS_SELECTED) {
+         SetTextColor(dis->hDC, GetSysColor(COLOR_MENU));
+      }
+      // Draw shadow for unselected grayed items
+      else {
+         dis->rcItem.left += 1;
+         dis->rcItem.top += 1;
+         
+         SetTextColor(dis->hDC, GetSysColor(COLOR_HIGHLIGHTTEXT));
+         
+         DrawText(dis->hDC, string, itemLen, &dis->rcItem, DT_SINGLELINE | DT_VCENTER | DT_NOCLIP );
+         if (tab) {
+            DrawText(dis->hDC, tab, tabLen, &rcTab, DT_SINGLELINE | DT_VCENTER | DT_NOCLIP );
+         }
+         
+         dis->rcItem.left -= 1;
+         dis->rcItem.top -= 1;
+         
+         // set pen to draw normal text colour
+         SetTextColor(dis->hDC, GetSysColor(COLOR_GRAYTEXT));
+      }
+   }
+   
+   DrawText(dis->hDC, string, itemLen, &dis->rcItem, DT_SINGLELINE | DT_VCENTER | DT_NOCLIP );
+   if (tab) {
+      DrawText(dis->hDC, tab, tabLen, &rcTab, DT_SINGLELINE | DT_VCENTER | DT_NOCLIP );
+   }
 }
 
 void MeasureMenuItem(MEASUREITEMSTRUCT *mis, HDC hDC) {

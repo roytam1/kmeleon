@@ -157,7 +157,6 @@ void findNick(char *nick, char **url)
    }
 }
 
-
 // Build Menu
 void BuildMenu(HMENU menu, CBookmarkNode *node, BOOL isContinuation)
 {
@@ -476,16 +475,16 @@ void OpenURL(char *url)
     kPlugin.kFuncs->NavigateTo(url, OPEN_NORMAL);
 }
 
+void Destroy(HWND hWnd){
+  if (find_TB(hWnd))
+    remove_TB(hWnd);
+}
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
    // store these in static vars so that the BeginHotTrack call can access them
    static NMTOOLBAR tbhdr;
    static NMHDR hdr;
    
-   if (message == WM_CLOSE) {
-      if (find_TB(hWnd))
-         remove_TB(hWnd);
-   }
    if (message == WM_SETFOCUS) {
       hWndFront = hWnd;
    }

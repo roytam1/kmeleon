@@ -51,6 +51,7 @@
 #include "AccelParser.h"
 #include "KmeleonConst.h"
 #include "CmdLine.h"
+#include "MostRecentUrls.h"
 
 #include "resource.h"       // main symbols
 
@@ -86,6 +87,7 @@ public:
 	void RemoveFrameFromList(CBrowserFrame* pFrm);
    void RegisterWindow(CDialog *window);
    void UnregisterWindow(CDialog *window);
+    void BroadcastMessage(UINT Msg, WPARAM wParam, LPARAM lParam);
 
    nsresult SetOffline(BOOL offline);
 
@@ -121,6 +123,8 @@ public:
 
    // Implementation
 public:
+   HANDLE m_hMutex;
+   CMostRecentUrls *m_MRUList;
    //{{AFX_MSG(CMfcEmbedApp)
    afx_msg void OnNewBrowser();
    afx_msg void OnManageProfiles();

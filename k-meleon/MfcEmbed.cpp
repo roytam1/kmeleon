@@ -246,6 +246,8 @@ BOOL CMfcEmbedApp::InitInstance()
     NSGetStaticModuleInfo = app_getModuleInfo;
 #endif
 
+   m_hMutex = CreateMutex(NULL, FALSE, NULL);
+
    // parse the command line
    cmdline.Initialize(m_lpCmdLine);
    
@@ -261,7 +263,7 @@ BOOL CMfcEmbedApp::InitInstance()
    // eventually, we should handle this through DDE
    if (m_bAlreadyRunning) {
       // find the hidden window
-      if (HWND hwndPrev = FindWindowEx(NULL, NULL, HIDDEN_WINDOW_CLASS, NULL) ) {
+      if (HWND hwndPrev = ::FindWindowEx(NULL, NULL, HIDDEN_WINDOW_CLASS, NULL) ) {
          // Ignore all command-line options when already open
          cmdline.GetSwitch("-P", NULL, TRUE);  
          cmdline.GetSwitch("-chrome", NULL, TRUE);
@@ -326,10 +328,13 @@ BOOL CMfcEmbedApp::InitInstance()
    InitializePrefs();
    SetOffline(theApp.preferences.bOffline);
 
-   plugins.FindAndLoad();
+   m_MRUList = new CMostRecentUrls();
 
+   plugins.FindAndLoad();
+   plugins.SendMessage("*", "* Plugin Manager", "Init");
    InitializeMenusAccels();
-   
+   plugins.SendMessage("*", "* Plugin Manager", "Setup");
+
 
    RefreshPlugins(PR_FALSE);
    
@@ -340,16 +345,35 @@ BOOL CMfcEmbedApp::InitInstance()
    wc.hInstance = AfxGetInstanceHandle();
    wc.lpszClassName = HIDDEN_WINDOW_CLASS;
 
+   if (!(m_hMainIcon = (HICON)LoadImage( NULL, theApp.preferences.settingsDir + "main.ico", IMAGE_ICON, 0,0, LR_DEFAULTSIZE | LR_LOADFROMFILE ))) {
+      CString tmp = theApp.preferences.skinsCurrent;
+      while (tmp.GetLength()>0) {
+         if (tmp.GetAt( tmp.GetLength()-1 ) != '\\')
+            tmp = tmp + "\\";
+         if ((m_hMainIcon = (HICON)LoadImage( NULL, theApp.preferences.skinsDir + tmp + "main.ico", IMAGE_ICON, 0,0, LR_DEFAULTSIZE | LR_LOADFROMFILE )))
+            break;
+         tmp = tmp.Left( tmp.GetLength()-2 );
+      }
+      if (tmp.GetLength()<1) {
+         if (!(m_hMainIcon = (HICON)LoadImage( NULL, theApp.preferences.skinsDir + "default\\main.ico", IMAGE_ICON, 0,0, LR_DEFAULTSIZE | LR_LOADFROMFILE )))
+            m_hMainIcon = LoadIcon( IDR_MAINFRAME );
+      }
+   }
 
-   if (!(m_hMainIcon = (HICON)LoadImage( NULL, theApp.preferences.settingsDir + "main.ico", IMAGE_ICON, 0,0, LR_DEFAULTSIZE | LR_LOADFROMFILE )))
-       if (!(m_hMainIcon = (HICON)LoadImage( NULL, theApp.preferences.skinsDir + theApp.preferences.skinsCurrent + "main.ico", IMAGE_ICON, 0,0, LR_DEFAULTSIZE | LR_LOADFROMFILE )))
-           if (!(m_hMainIcon = (HICON)LoadImage( NULL, theApp.preferences.skinsDir + "default\\main.ico", IMAGE_ICON, 0,0, LR_DEFAULTSIZE | LR_LOADFROMFILE )))
-               m_hMainIcon = LoadIcon( IDR_MAINFRAME );
-
-   if (!(m_hSmallIcon = (HICON)LoadImage( NULL, theApp.preferences.settingsDir + "main.ico", IMAGE_ICON, 16,16, LR_LOADFROMFILE )))
-       if (!(m_hSmallIcon = (HICON)LoadImage( NULL, theApp.preferences.skinsDir + theApp.preferences.skinsCurrent + "main.ico", IMAGE_ICON, 16,16, LR_LOADFROMFILE )))
+   if (!(m_hSmallIcon = (HICON)LoadImage( NULL, theApp.preferences.settingsDir + "main.ico", IMAGE_ICON, 16,16, LR_LOADFROMFILE ))) {
+      CString tmp = theApp.preferences.skinsCurrent;
+      while (tmp.GetLength()>0) {
+         if (tmp.GetAt( tmp.GetLength()-1 ) != '\\')
+            tmp = tmp + "\\";
+         if ((m_hSmallIcon = (HICON)LoadImage( NULL, theApp.preferences.skinsDir + tmp + "main.ico", IMAGE_ICON, 16,16, LR_LOADFROMFILE )))
+             break;
+         tmp = tmp.Left( tmp.GetLength()-2 );
+      }
+      if (tmp.GetLength()<1) {
            if (!(m_hSmallIcon = (HICON)LoadImage( NULL, theApp.preferences.skinsDir + "default\\main.ico", IMAGE_ICON, 16,16, LR_LOADFROMFILE )))
                m_hSmallIcon = LoadIcon( IDR_MAINFRAME );
+      }
+   }
 
    wc.hIcon=m_hMainIcon;
    AfxRegisterClass( &wc );
@@ -416,6 +440,12 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
                                                    PRInt32 cx, PRInt32 cy,
                                                    PRBool bShowWindow)
 {
+   DWORD dwWaitResult; 
+   dwWaitResult = WaitForSingleObject( m_hMutex, 1000L);
+   if (dwWaitResult != WAIT_OBJECT_0) {
+     return NULL;
+   }
+
    // Load the window title from the string resource table
    CString strTitle;
    strTitle.LoadString(IDR_MAINFRAME);
@@ -430,7 +460,7 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
    if (chromeMask == 0) {
        chromeMask = nsIWebBrowserChrome::CHROME_ALL;
    } 
-   else if (x==-1 && y==-1 && cx==-1 && cy==-1)
+   else if (x==-1 && y==-1 && cx==-1 && cy==-1 && !bShowWindow)
        openedByGecko = 1;
 
    LONG style = WS_OVERLAPPEDWINDOW;
@@ -612,8 +642,10 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
       pOldRecentFrame = pFrame;
 
 
-   if (!pFrame->Create(BROWSER_WINDOW_CLASS, strTitle, style, winSize, NULL, NULL, 0L, NULL))
+   if (!pFrame->Create(BROWSER_WINDOW_CLASS, strTitle, style, winSize, NULL, NULL, 0L, NULL)) {
+       ReleaseMutex(m_hMutex);
       return NULL;
+   }
 
    pFrame->SetIcon(m_hMainIcon, true);
    pFrame->SetIcon(m_hSmallIcon, false);
@@ -644,16 +676,17 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
        pFrame->SetActiveWindow();
        pFrame->SetFocus();
        pFrame->UpdateWindow();
+       pFrame->m_created = true;
    }
 
    // Add to the list of BrowserFrame windows
    m_FrameWndLst.AddHead(pFrame);
    
-   pFrame->m_created = true;
    pFrame->m_ignoreMoveResize = (openedByGecko && !(style & WS_POPUP)) ? 2 : 0;
    
    theApp.m_pMostRecentBrowserFrame = pOldRecentFrame;
    
+   ReleaseMutex(m_hMutex);
    return pFrame;
 }
 
@@ -686,7 +719,7 @@ void CMfcEmbedApp::OnNewBrowser()
 
       //Load the new window start page into the browser view
       pBrowserFrame->SetFocus();
-      pBrowserFrame->m_wndUrlBar.MaintainFocus();
+      // pBrowserFrame->m_wndUrlBar.MaintainFocus();
       switch (preferences.iNewWindowOpenAs) {
       case PREF_NEW_WINDOW_CURRENT:
          if (sURI) {
@@ -728,20 +761,30 @@ void CMfcEmbedApp::RemoveFrameFromList(CBrowserFrame* pFrm)
    if(IsClipboardFormatAvailable(CF_TEXT)) {
        if(OpenClipboard(NULL)) {
            HANDLE hcb = GetClipboardData(CF_TEXT);
-           LPVOID pData = GlobalLock(hcb);
-           char *pszData = (char*)malloc(strlen((char*)pData) + 1);
-           strcpy(pszData, (LPSTR)pData);
-           GlobalUnlock(hcb);
+           if (hcb) {
+               LPVOID pData = GlobalLock(hcb);
+               if (pData) {
+                   char *pszData = (char*)malloc(strlen((char*)pData) + 1);
+                   if (pszData) {
+                       strcpy(pszData, (LPSTR)pData);
+                       GlobalUnlock(hcb);
 
-           EmptyClipboard();
+                       EmptyClipboard();
 
-           HGLOBAL hData = GlobalAlloc(GMEM_DDESHARE|GMEM_MOVEABLE,strlen(pszData) + 1);
-           pData = GlobalLock(hData);
-           strcpy((LPSTR)pData, pszData);
-           GlobalUnlock(hData);
-           SetClipboardData(CF_TEXT, hData);
+                       HGLOBAL hData = GlobalAlloc(GMEM_DDESHARE|GMEM_MOVEABLE,strlen(pszData) + 1);
+                       if (hData) {
+                           pData = GlobalLock(hData);
+                           if (pData) {
+                               strcpy((LPSTR)pData, pszData);
+                               GlobalUnlock(hData);
+                               SetClipboardData(CF_TEXT, hData);
 
-           CloseClipboard();
+                               CloseClipboard();
+                           }
+                       }
+                   }
+               }
+           }
        }
    }
    
@@ -771,6 +814,17 @@ void CMfcEmbedApp::RemoveFrameFromList(CBrowserFrame* pFrm)
             m_pMainWnd = NULL;
          }
       }
+   }
+}
+
+void CMfcEmbedApp::BroadcastMessage(UINT Msg, WPARAM wParam, LPARAM lParam)
+{
+   CBrowserFrame* pBrowserFrame = NULL;
+   POSITION pos = m_FrameWndLst.GetHeadPosition();
+   while( pos != NULL ) {
+      pBrowserFrame = (CBrowserFrame *) m_FrameWndLst.GetNext(pos);
+      if(pBrowserFrame)
+         pBrowserFrame->SendMessage(Msg, wParam, lParam);
    }
 }
 
@@ -810,18 +864,21 @@ int CMfcEmbedApp::ExitInstance()
       delete (CHiddenWnd *) m_pMainWnd;
       m_pMainWnd = NULL;
    }
-   
-   m_ProfileMgr->ShutDownCurrentProfile( theApp.preferences.bGuestAccount );
-   if (m_ProfileMgr) delete m_ProfileMgr;
+
+   delete m_MRUList;
    
    // unload the plugins before we terminate embedding,
    // this way plugins can still call the preference functions
-   plugins.UnLoadAll();
+   plugins.SendMessage("*", "* Plugin Manager", "Quit");
 
    preferences.Save();
    preferences.SaveDlgPrefs();
    
+   m_ProfileMgr->ShutDownCurrentProfile( theApp.preferences.bGuestAccount );
+   if (m_ProfileMgr) delete m_ProfileMgr;
+   
    NS_TermEmbedding();
+   plugins.UnLoadAll();
    
    return 1;
 }
@@ -1049,7 +1106,7 @@ NS_IMETHODIMP CMfcEmbedApp::Observe(nsISupports *aSubject, const char *aTopic, c
          }
          
          browser->SetFocus();
-         browser->m_wndUrlBar.MaintainFocus();
+         // browser->m_wndUrlBar.MaintainFocus();
          browser->m_wndBrowserView.LoadHomePage();
       }
    }

@@ -101,6 +101,7 @@ int ReadFavorites(char *szRoot, char *szPath, CBookmarkNode &newFavoritesNode);
 void BuildMenu(HMENU menu, CBookmarkNode *node, BOOL isContinuation);
 void RebuildMenu();
 void BuildRebar(HWND hWndTB);
+void CopyRebar(HWND hWndNewTB, HWND hWndOldTB);
 void RebuildRebarMenu(HWND hWndTB);
 int ParseFavorites(char **bmFileBuffer, CBookmarkNode &node);
 int SaveFavoritesEntry(FILE *bmFile, CBookmarkNode *node);

@@ -16,17 +16,28 @@
 *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
+#ifndef __MOSTRECENTURLS_H__
+#define __MOSTRECENTURLS_H__
+
 class CMostRecentUrls {
 public:
 
    CMostRecentUrls();
    virtual ~CMostRecentUrls();
 
+   void LoadURLs();
+   void SaveURLs();
+   void DeleteURLs();
+   void RefreshURLs();
+
    char * GetURL(int aInx);
    void AddURL(const char * aURL);
    inline int GetURLCount() { return m_URLCount; }
 
 protected:
+   HANDLE m_hMutex;
    char ** m_URLs;
    int    m_URLCount, m_maxURLs;
 };
+
+#endif

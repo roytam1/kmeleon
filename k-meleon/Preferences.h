@@ -50,6 +50,7 @@ public:
 
    CString searchEngine;
  
+   int iSaveType;
    CString saveDir;
    CString settingsDir;
    CString pluginsDir;
@@ -234,15 +235,6 @@ protected:
   afx_msg void OnSelChange(NMHDR *nmHdr, LRESULT *result);
 
   DECLARE_MESSAGE_MAP()
-};
-
-
-class CPreferencePageMozConfigs: public CPreferencePageConfigs {
-public:
-  CPreferencePageMozConfigs();
-protected:
-  void SaveFile(const char *);
-  virtual BOOL OnInitDialog();
 };
 
 

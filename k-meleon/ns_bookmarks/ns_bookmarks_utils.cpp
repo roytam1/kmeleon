@@ -348,11 +348,11 @@ static void create_backup(const char *file, int num=2)
    bBackedUp = 1;
 }
 
-void Save(const char *file)
+void SaveBM(const char *file)
 {
    if (!gBookmarkRoot.child && !gBookmarkRoot.next) {
       if (MessageBox(NULL, "The bookmarks tree is empty.\nDo you really want to erase all your bookmarks?", PLUGIN_NAME ": WARNING" , MB_YESNO|MB_ICONEXCLAMATION) != IDYES) {
-         Load(gBookmarkFile);
+         LoadBM(gBookmarkFile);
          if (!gBookmarkRoot.child && !gBookmarkRoot.next) {
             MessageBox(NULL, "Unable to recover old bookmarks.", PLUGIN_NAME ": BUG WARNING" , MB_OK|MB_ICONSTOP);
             return;
@@ -666,7 +666,7 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
    return;
 }
 
-void Load(const char *file) 
+void LoadBM(const char *file) 
 {
    DWORD dwWaitResult; 
    dwWaitResult = WaitForSingleObject( ghMutex, 1000L);
@@ -813,6 +813,36 @@ void BuildMenu(HMENU menu, CBookmarkNode *node, BOOL isContinuation)
    kPlugin.kFuncs->SendMessage("bmpmenu", PLUGIN_NAME, "SetOwnerDrawn", (long)menu, (long)DrawBitmap);
 }
 
+void CopyRebar(HWND hWndNewTB, HWND hWndOldTB)
+{
+  int i = 0;
+  TBBUTTON button;
+
+  SetWindowText(hWndNewTB, TOOLBAND_NAME);
+  SendMessage(hWndNewTB, TB_SETIMAGELIST, 0, (LPARAM)gImagelist);
+  SendMessage(hWndNewTB, TB_SETBUTTONWIDTH, 0, MAKELONG(0, 100));
+
+  while (SendMessage(hWndOldTB, TB_GETBUTTON, i, (LPARAM)&button)) {
+    LONG lResult = SendMessage(hWndOldTB, TB_GETBUTTONTEXT, (WPARAM) button.idCommand, NULL);
+    if (lResult >= 0) {
+      char *szTmp = new char[lResult + 2];
+      SendMessage(hWndOldTB, TB_GETBUTTONTEXT, (WPARAM) button.idCommand, (LPARAM) szTmp);
+      szTmp[lResult+1] = 0;
+
+      int stringID = SendMessage(hWndNewTB, TB_ADDSTRING, (WPARAM)NULL, (LPARAM) szTmp);
+      button.iString = stringID;
+      SendMessage(hWndNewTB, TB_INSERTBUTTON, (WPARAM)-1, (LPARAM)&button);
+
+      delete szTmp;
+    }
+    else
+      SendMessage(hWndNewTB, TB_INSERTBUTTON, (WPARAM)-1, (LPARAM)&button);
+
+    ++i;
+  }
+}
+
+
 // Build Rebar
 void BuildRebar(HWND hWndTB)
 {
@@ -886,6 +916,7 @@ void Rebuild() {
    // and rebuild
    BuildMenu(gMenuBookmarks, gBookmarkRoot.FindSpecialNode(BOOKMARK_FLAG_BM), false);
 
+#if 0
    // need to rebuild the rebar, too, in case it had submenus (whose ids are now invalid)
    if (ghWndTB) {
       // delete the old rebar
@@ -893,6 +924,7 @@ void Rebuild() {
       // and rebuild
       BuildRebar(ghWndTB);
    }
+#endif
 
 // FIXME - Is this needed?  Hm, if anywhere, in WndProc, below, in the nAddCommand/nAddToolbarCommand/nEditCommand cases...  but then it's still only one window, and the others don't get the call, so...   heck, it works without it.  It will stay until someone complains.  :)
 //   DrawMenuBar(hWnd);
@@ -912,7 +944,7 @@ int addLink(char *url, char *title, int flag)
       free(pszUrl);
    if (pszTxt)
       free(pszTxt);
-   Save(gBookmarkFile);
+   SaveBM(gBookmarkFile);
    
    Rebuild();
 

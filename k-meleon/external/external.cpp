@@ -28,7 +28,7 @@
 
 #define _T(x) x
 
-int Init();
+int Load();
 void Create(HWND parent);
 void Config(HWND parent);
 void Close(HWND parent);
@@ -45,8 +45,8 @@ kmeleonPlugin kPlugin = {
 long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2)
 {
    if (to[0] == '*' || stricmp(to, kPlugin.dllname) == 0) {
-      if (stricmp(subject, "Init") == 0) {
-         Init();
+      if (stricmp(subject, "Load") == 0) {
+         Load();
       }
       else if (stricmp(subject, "Create") == 0) {
          Create((HWND)data1);
@@ -77,7 +77,7 @@ BOOL APIENTRY DllMain(HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserv
 
 kmeleonFunctions *kFuncs;
 
-int Init() {
+int Load() {
    kFuncs = kPlugin.kFuncs;
    return 1;
 }

@@ -120,15 +120,23 @@ int CMenuParser::Parse(char *p)
          menus.Lookup(CString(p), popup);
          if (popup){
 	    int n = popup->GetMenuItemCount();
-	    for (int i=1; i <= n; i++) {
+	    for (int i=0; i < n; i++) {
+	       MENUITEMINFO info;
+	       info.cbSize = sizeof (MENUITEMINFO);
+	       info.fMask = MIIM_SUBMENU;
+	       popup->GetMenuItemInfo( i, &info, TRUE );
+
 	       UINT id = popup->GetMenuItemID( i );
-	       if (id > 1) {
-		  CString str;
-		  if (popup->GetMenuString(i, str, MF_BYPOSITION) > 0)
+
+	       CString str;
+	       if (popup->GetMenuString(i, str, MF_BYPOSITION) > 0) {
+		  if (info.hSubMenu) 
+		     currentMenu->AppendMenu(MF_POPUP | MF_STRING, (UINT)info.hSubMenu, str);
+		  else
 		     currentMenu->AppendMenu(MF_STRING, id, str);
 	       }
-	       else if (id == 0) {
-		  currentMenu->AppendMenu(MF_SEPARATOR);
+	       else {
+		 currentMenu->AppendMenu(MF_SEPARATOR);
 	       }
 	    }
 	 }

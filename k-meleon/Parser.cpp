@@ -79,6 +79,52 @@ char * CParser::strtok (char * string, const char * control)
 #endif
 }
 
+int ifplugin(char *p)
+{
+  char *q;
+
+  if (!p || !*p)
+    return 0;
+
+  q = strchr(p, '&');
+  if (q) {
+    *q = 0;
+    q++;
+    while (*q && (*q=='&' || isspace(*q)))
+      q++;
+    return ifplugin(p) && ifplugin(q);
+  }
+  else {
+    q = strchr(p, '|');
+    if (q) {
+      *q = 0;
+      q++;
+      while (*q && (*q=='|' || isspace(*q)))
+	q++;
+      return ifplugin(p) || ifplugin(q);
+    }
+    else {
+      while ( *p && isspace(*p) )
+	p++;
+      int loaded = 1;
+      if (*p=='!')
+	loaded = 0;
+      while ( *p && !isalpha(*p) )
+	p++;
+      char *plugin = p;
+      while ( *p && isalpha(*p) )
+	p++;
+      *p = 0;
+      kmeleonPlugin * kPlugin = theApp.plugins.Load(plugin);
+      if (!kPlugin || !kPlugin->loaded)
+	return !loaded;
+      else
+	return loaded;
+    }
+  }
+  return 0;
+}
+
 CParser::Load(CString &filename)
 {
    CFile *file;
@@ -107,7 +153,25 @@ CParser::Load(CString &filename)
 
    char *p = strtok(buffer, "\r\n");
    while (p){
+      while (p && *p && isspace(*p))
+         p++;
+
       if (p[0] == '#'){
+      }
+      else if (pauseParsing > 0){
+	if (p[0] == '%'){
+	  if (strnicmp(p+1, "ifplugin", 8) == 0) {
+	    pauseParsing++;
+          }
+          else if (strnicmp(p+1, "else", 4) == 0) {
+	    if (pauseParsing == 1) {
+	      pauseParsing = 0;
+	    }
+          }
+          else if (strnicmp(p+1, "endif", 5) == 0) {
+             pauseParsing--;
+          }
+	}
       }
       else if (p[0] == '%'){
          if (strnicmp(p+1, "strict", 6) == 0){
@@ -117,20 +181,13 @@ CParser::Load(CString &filename)
             LOG_VERBOSE();
          }
          else if (strnicmp(p+1, "ifplugin", 8) == 0) {
-            char *plugin = p+9;
-            kmeleonPlugin * kPlugin = theApp.plugins.Load(plugin);
-            if (!kPlugin || !kPlugin->loaded) {
-               pauseParsing = 1;
-            }
+	   pauseParsing = !ifplugin(p+9);
          }
-         else if (strcmpi(p+1, "endif") == 0) {
-            pauseParsing = 0;
+         else if (strnicmp(p+1, "else", 4) == 0) {
+	   pauseParsing = 1;
          }
-         else if (strcmpi(p+1, "else") == 0) {
-            pauseParsing = !pauseParsing;
+         else if (strnicmp(p+1, "endif", 5) == 0) {
          }
-      }
-      else if (pauseParsing){
       }
       else {
          Parse(p);

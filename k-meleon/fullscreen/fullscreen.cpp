@@ -42,12 +42,13 @@
 #include "..\kmeleon_plugin.h"
 
 
-int Init();
+int Load();
 void Create(HWND parent);
 void Config(HWND parent);
 void Quit();
 void DoMenu(HMENU menu, char *param);
 void DoRebar(HWND rebarWnd);
+void Destroy(HWND hWnd);
 
 long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2);
 
@@ -62,8 +63,8 @@ kmeleonFunctions *kFuncs;
 long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2)
 {
    if (to[0] == '*' || stricmp(to, kPlugin.dllname) == 0) {
-      if (stricmp(subject, "Init") == 0) {
-         Init();
+      if (stricmp(subject, "Load") == 0) {
+         Load();
       }
       else if (stricmp(subject, "Create") == 0) {
          Create((HWND)data1);
@@ -82,6 +83,9 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
       }
       else if (stricmp(subject, "DoAccel") == 0) {
           *(int *)data2 = DoAccel((char *)data1);
+      }
+      else if (stricmp(subject, "Destroy") == 0) {
+         Destroy((HWND)data1);
       }
       else return 0;
 
@@ -160,7 +164,7 @@ BOOL APIENTRY DllMain(HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserv
    return TRUE;
 }
 
-int Init(){
+int Load(){
    kPlugin.kFuncs->GetPreference(PREF_BOOL, _T("kmeleon.plugins.fullscreen.hide_rebar"), &bHideReBar, (void *)"1");
    kPlugin.kFuncs->GetPreference(PREF_BOOL, _T("kmeleon.plugins.fullscreen.hide_statusbar"), &bHideStatusBar, (void *)"1");
    kPlugin.kFuncs->GetPreference(PREF_BOOL, _T("kmeleon.plugins.fullscreen.auto"), &bAutoFullscreen, (void *)&bAutoFullscreen);
@@ -201,6 +205,11 @@ int DoAccel(char *param) {
 }
 
 void DoRebar(HWND rebarWnd) {
+}
+
+void Destroy(HWND hWnd) {
+  if (find_FS(hWnd))
+    remove_FS(hWnd);
 }
 
 void HideClutter(HWND hWndParent, FS *fs) {
@@ -251,12 +260,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
          lpMMI->ptMaxTrackSize.x  = lpMMI->ptMaxSize.x;
          return false;
       }
-      break;
-
-   case WM_CLOSE:
-
-      if (find_FS(hWnd))
-         remove_FS(hWnd);
       break;
 
    case WM_COMMAND:

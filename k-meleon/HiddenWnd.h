@@ -53,12 +53,12 @@ private:
 
 
 	//{{AFX_MSG(CHiddenWnd)
-	afx_msg void OnCreate(LPCREATESTRUCT lpCreateStruct);
+	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
    afx_msg void OnClose();
-   afx_msg void OnSetPersist(WPARAM flags, LPARAM lParam);
-   afx_msg void OnCopyData(CWnd* pWnd, COPYDATASTRUCT* pCopyDataStruct);
-   afx_msg void OnNewWindow(WPARAM wParam, LPARAM lParam);
-   afx_msg void OnShowBrowser(char *URI, LPARAM lParam);
+   afx_msg LRESULT OnSetPersist(WPARAM flags, LPARAM lParam);
+   afx_msg BOOL OnCopyData(CWnd* pWnd, COPYDATASTRUCT* pCopyDataStruct);
+   afx_msg LRESULT OnNewWindow(WPARAM wParam, LPARAM lParam);
+   afx_msg LRESULT OnShowBrowser(char *URI, LPARAM lParam);
 	//}}AFX_MSG
 
 	DECLARE_MESSAGE_MAP()

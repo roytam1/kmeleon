@@ -24,6 +24,7 @@
 #include "stdafx.h"
 #include "nsEscape.h"
 #include "nsIFileURL.h"
+#include <wininet.h>
 
 #include "UnknownContentTypeHandler.h"
 
@@ -70,11 +71,35 @@ CUnknownContentTypeHandler::PromptForSaveToFile(nsIHelperAppLauncher *aLauncher,
    char *ext = W2T(aSuggestedFileExtension);
    if (*ext == '.')
      ext++;
-   CFileDialog cf(FALSE, ext, defaultFile, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, filter, (CWnd *)theApp.m_pMostRecentBrowserFrame);
-   if(cf.DoModal() == IDOK){
+
+   char lpszFilter[1024];
+   strcpy(lpszFilter, filter);
+   for (int i=0; lpszFilter[i]; ) {
+     if (lpszFilter[i] == '|')
+       lpszFilter[i] = '\0';
+     i++;
+   }
+
+   OPENFILENAME ofn;
+   char *szFileName = new char[INTERNET_MAX_URL_LENGTH];
+
+   memset(&ofn, 0, sizeof(ofn));
+   memset(szFileName, 0, INTERNET_MAX_URL_LENGTH);
+   strcat(szFileName, defaultFile);
+   ofn.lStructSize = sizeof(ofn);
+   ofn.lpstrFilter = lpszFilter;
+   ofn.lpstrFile = szFileName;
+   ofn.nMaxFile = INTERNET_MAX_URL_LENGTH;
+   ofn.Flags = OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
+   ofn.lpstrInitialDir = theApp.preferences.saveDir;
+   ofn.lpstrDefExt = ext;
+
+   if( ::GetSaveFileName(&ofn) ) {
       NS_ENSURE_ARG_POINTER(aNewFile);
 
-      CString pathName = cf.GetPathName();
+      CString pathName = szFileName;
+      delete szFileName;
+      szFileName = NULL;
 
       if (!pathName.IsEmpty()){
          nsCOMPtr<nsILocalFile> file(do_CreateInstance("@mozilla.org/file/local;1"));
@@ -97,6 +122,9 @@ CUnknownContentTypeHandler::PromptForSaveToFile(nsIHelperAppLauncher *aLauncher,
          return NS_OK;
       }
    }
+
+   if (szFileName)
+      delete szFileName;
 
    return NS_ERROR_FAILURE;
 #else
@@ -314,7 +342,8 @@ CProgressDialog::CProgressDialog(BOOL bAuto) {
    if (m_bAuto) {   
       m_bWindow = TRUE; 
       Create(IDD_PROGRESS, GetDesktopWindow());
-      CheckDlgButton(IDC_CLOSE_WHEN_DONE, m_bClose);
+      CheckDlgButton(IDC_CLOSE_WHEN_DONE, TRUE);
+      GetDlgItem(IDC_CLOSE_WHEN_DONE)->EnableWindow(FALSE);
       theApp.RegisterWindow(this);
    }
    else
@@ -338,7 +367,7 @@ NS_IMETHODIMP CProgressDialog::OnStateChange(nsIWebProgress *aWebProgress,
 
    if (m_bViewer && aStateFlags & nsIWebProgressListener::STATE_STOP) {
 
-      char *command = new char[strlen(mViewer) + strlen(mFilePath) +2];
+      char *command = new char[strlen(mViewer) + strlen(mFilePath) +4];
       
       strcpy(command, mViewer);
       strcat(command, " \"");                              //append " filename" to the viewer command
@@ -358,13 +387,14 @@ NS_IMETHODIMP CProgressDialog::OnStateChange(nsIWebProgress *aWebProgress,
    }
 
 
-   if (!m_bWindow)   // if there's no window, there's no need to update it :)
+   if (!m_bWindow)    // if there's no window, there's no need to update it :)
       return NS_OK;
 
    if (aStateFlags & nsIWebProgressListener::STATE_STOP){
       if (IsDlgButtonChecked(IDC_CLOSE_WHEN_DONE)) {
          Close();
-         theApp.preferences.SetBool("kmeleon.general.CloseDownloadDialog", true);
+         if (!m_bAuto)
+            theApp.preferences.SetBool("kmeleon.general.CloseDownloadDialog", true);
       }
       else
       {
@@ -542,8 +572,12 @@ END_MESSAGE_MAP()
 void CProgressDialog::Cancel() {
    Close();
 
-   if (mPersist)
+   if (mPersist) {
       mPersist->CancelSave();
+      if (mFilePath) {
+        DeleteFile(mFilePath);
+      }
+   }
 
    if (mObserver) {
      mObserver->Observe(nsnull, "OnCancel", nsnull);

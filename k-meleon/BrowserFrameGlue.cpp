@@ -91,6 +91,11 @@ void CBrowserFrame::BrowserFrameGlueObj::UpdateBusyState(PRBool aBusy)
     pThis->m_wndBrowserView.UpdateBusyState(aBusy);
     if (!aBusy)
         pThis->PostMessage(UWM_UPDATEBUSYSTATE, 0, 0);
+
+    CString szUrl;
+    pThis->m_wndUrlBar.GetEnteredURL(szUrl);
+    if (strcmp(szUrl, "about:blank")==0)
+       pThis->m_wndUrlBar.MaintainFocus();
 }
 
 // Called from the OnLocationChange() method in the nsIWebProgressListener 
@@ -107,7 +112,7 @@ void CBrowserFrame::BrowserFrameGlueObj::UpdateCurrentURI(nsIURI *aLocation)
         USES_CONVERSION;
         nsCAutoString uriString;
         aLocation->GetSpec(uriString);
-        pThis->m_wndUrlBar.SetCurrentURL(A2CT(uriString.get()));
+        pThis->m_wndUrlBar.SetCurrentURL(W2CT(NS_ConvertUTF8toUCS2(uriString).get()));
     }
 }
 
@@ -355,6 +360,15 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowBrowserFrame(PRBool aShow)
       
     if(aShow)
     {
+        if (pThis->IsIconic())
+            return;
+
+        if (!pThis->IsWindowVisible()) {
+            if (pThis->m_created)
+                return;
+            pThis->m_created = true;
+        }
+
         pThis->ShowWindow(SW_SHOW);
         // pThis->SetActiveWindow();
         pThis->UpdateWindow();
@@ -373,6 +387,11 @@ void CBrowserFrame::BrowserFrameGlueObj::GetBrowserFrameVisibility(PRBool *aVisi
    CWnd *pWnd = GetActiveWindow();
    if (pWnd && pWnd->m_hWnd != pThis->m_hWnd)
    {
+      *aVisible = PR_FALSE;
+      return;
+   }
+
+   if (pThis->IsIconic() || !pThis->IsWindowVisible()) {
       *aVisible = PR_FALSE;
       return;
    }
@@ -652,7 +671,16 @@ BUILD_CTX_MENU:
       
       RECT desktopRect;
       SystemParametersInfo(SPI_GETWORKAREA, NULL, &desktopRect, 0);
-      int menuHeight = (ctxMenu->GetMenuItemCount() * GetSystemMetrics(SM_CYMENUSIZE));
+      int menuHeight = 0;
+      int i;
+      MENUITEMINFO info;
+      for (i=0; i<ctxMenu->GetMenuItemCount(); i++) {
+          ctxMenu->GetMenuItemInfo(i, &info, TRUE);
+          if (info.fType & MFT_SEPARATOR)
+              menuHeight += 0;
+          else
+              menuHeight += GetSystemMetrics(SM_CYMENUSIZE);
+      }
       if ( (int)(cursorPos.y - offset) < (int)(desktopRect.bottom - menuHeight) ){
          // we only do this if we're not too close to the bottom of the screen
          cursorPos.y -= offset;
@@ -704,7 +732,7 @@ void CBrowserFrame::BrowserFrameGlueObj::FocusNextElement() {
 
    nsCOMPtr<nsIWebBrowserFocus> focus(do_GetInterface(pThis->m_wndBrowserView.mWebBrowser));
    if(focus) {
-      pThis->m_wndUrlBar.MaintainFocus();   
+      // pThis->m_wndUrlBar.MaintainFocus();   
       ::SetFocus(pThis->m_wndUrlBar.m_hwndEdit);
    }
 }
@@ -714,7 +742,8 @@ void CBrowserFrame::BrowserFrameGlueObj::FocusPrevElement() {
 
    nsCOMPtr<nsIWebBrowserFocus> focus(do_GetInterface(pThis->m_wndBrowserView.mWebBrowser));
    if(focus) {
-      pThis->m_wndUrlBar.MaintainFocus();
+      // pThis->m_wndUrlBar.MaintainFocus();
       ::SetFocus(pThis->m_wndUrlBar.m_hwndEdit);
    }
 }
+
