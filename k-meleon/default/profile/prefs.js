@@ -1,6 +1,7 @@
 # Mozilla User Preferences
 // This is a generated file!
 
+user_pref("general.useragent.vendor", "K-Meleon");
 user_pref("kmeleon.plugins.bmpmenu.load", true);
 user_pref("kmeleon.plugins.bookmarks.load", true);
 user_pref("kmeleon.plugins.external.load", true);
