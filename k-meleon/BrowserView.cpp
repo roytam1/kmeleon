@@ -184,6 +184,8 @@ CBrowserView::CBrowserView()
 
    m_panning = FALSE;
    m_InPrintPreview = FALSE;
+
+   maccel_pan = FALSE;
 }
 
 CBrowserView::~CBrowserView()
@@ -1393,10 +1395,15 @@ void CBrowserView::OnMouseAction()
         if (hWnd && ::IsChild(m_hWnd, hWnd)) {
             m_iGetNodeHack = 2;
             ::SendMessage(hWnd, WM_CONTEXTMENU, (WPARAM) hWnd, MAKELONG(pt.x, pt.y));
-            ::PostMessage(mpBrowserFrame->m_hWnd, WM_COMMAND, (WPARAM)id_mouse, (LPARAM)0);
+            if (mCtxMenuLinkUrl.Length() > 0)
+                ::PostMessage(mpBrowserFrame->m_hWnd, WM_COMMAND, (WPARAM)maccel_cmd, (LPARAM)0);
+            else if (!m_panning && maccel_key==WM_MBUTTONDOWN) {
+                maccel_pan=1;
+                StartPanning();
+            }
         }
 
-        id_mouse = 0;
+        maccel_cmd = 0;
     }
 }
 
