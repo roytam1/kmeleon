@@ -52,7 +52,7 @@ typedef struct {
    UINT (*GetCommandIDs)(int num);
 
    // changing windowstate will open the url in a current, new, or background window
-   void (*NavigateTo)(char *url, int windowState);
+   void (*NavigateTo)(const char *url, int windowState);
 
    kmeleonDocInfo * (*GetDocInfo)(HWND mainWnd);
 
