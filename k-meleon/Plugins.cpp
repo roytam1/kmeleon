@@ -419,6 +419,7 @@ int CommandAtPoint(int command, WORD x, WORD y) {
    case ID_VIEW_IMAGE:
    case ID_SAVE_IMAGE_AS:
    case ID_COPY_IMAGE_LOCATION:
+   case ID_COPY_IMAGE_CONTENT:
       if (!pBrowserView->mCtxMenuImgSrc.Length())
          return 0;
       break;

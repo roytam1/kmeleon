@@ -271,6 +271,7 @@
 #define ID_MOUSE_ACTION                 32818
 #define ID_NAV_GO                       32819
 #define ID_OFFLINE                      32820
+#define ID_COPY_IMAGE_CONTENT           32821
 #define IDS_FAILED_TO_CREATE_BROWSER    61204
 #define IDS_NEW_PLUGIN_FOUND            61205
 #define IDS_PLUGIN_NO_OPTIONS           61206
