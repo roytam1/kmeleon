@@ -28,6 +28,7 @@
 
 #include <stdio.h>
 #include <sys/stat.h>
+#include <wininet.h>    // for INTERNET_MAX_URL_LENGTH
 
 #ifndef MAX
 #  define MAX(a,b) ((a)>(b)?(a):(b))
@@ -75,7 +76,7 @@ int ParseHotlistUrl(char **p, CBookmarkNode &node)
 {
    char *q = NULL;
    char szName[HOTLIST_TITLE_LEN] = {0};
-   char szURL[HOTLIST_TITLE_LEN] = {0};
+   char szURL[INTERNET_MAX_URL_LENGTH] = {0};
    
    while (*p && **p && (q = strchr(*p, '\n')) != NULL) {
       *q++ = 0;
@@ -108,8 +109,8 @@ int ParseHotlistUrl(char **p, CBookmarkNode &node)
       }
       
       else if (strnicmp(*p, "URL=", 4) == 0) {
-         strncpy(szURL, *p+4, HOTLIST_TITLE_LEN);
-         szURL[HOTLIST_TITLE_LEN-1] = 0;
+         strncpy(szURL, *p+4, INTERNET_MAX_URL_LENGTH);
+         szURL[INTERNET_MAX_URL_LENGTH-1] = 0;
       }
       
       else if (**p == '#' || **p == '-') {

@@ -20,11 +20,12 @@
 #define __OP_HOTLIST_H__
 
 #ifndef COMPILING_RC
-
-#include "BookmarkNode.h"
-#include "stdio.h"
-#include "../kmeleon_plugin.h"
+#  include "BookmarkNode.h"
+#  include <stdio.h>
+#  include "../kmeleon_plugin.h"
 #endif
+
+#include <wininet.h>    // for INTERNET_MAX_URL_LENGTH
 #include <commctrl.h>
 
 #define IDD_CONFIG                      101
@@ -98,7 +99,7 @@ WHERE UINT nFirstHotlistPosition;
 
 WHERE char *lpszHotlistFile;
 
-#define HOTLIST_TITLE_LEN 64
+#define HOTLIST_TITLE_LEN INTERNET_MAX_URL_LENGTH
 WHERE char gHotlistTitle[HOTLIST_TITLE_LEN];
 
 WHERE HMENU gMenuHotlist;

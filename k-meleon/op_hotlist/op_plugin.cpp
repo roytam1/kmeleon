@@ -199,8 +199,10 @@ int Init(){
    
    gImagelist = ImageList_Create(16, 15, ILC_MASK, 4, 4);
    HBITMAP bitmap = LoadBitmap(kPlugin.hDllInstance, MAKEINTRESOURCE(IDB_IMAGES));
-   ImageList_AddMasked(gImagelist, bitmap, RGB(192, 192, 192));
-   DeleteObject(bitmap);
+   if (gImagelist && bitmap)
+      ImageList_AddMasked(gImagelist, bitmap, RGB(192, 192, 192));
+   if (bitmap)
+      DeleteObject(bitmap);
    
    return true;
 }

@@ -92,7 +92,7 @@ void BuildMenu(HMENU menu, CBookmarkNode *node, BOOL isContinuation)
 // Build Rebar
 void BuildRebar(HWND hWndTB)
 {
-   if (!bRebarEnabled || !hWndTB)
+   if (!bRebarEnabled || !hWndTB || !gImagelist)
       return;
    
    CBookmarkNode *toolbarNode = &gHotlistRoot;
