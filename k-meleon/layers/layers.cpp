@@ -620,7 +620,7 @@ void BuildRebar(HWND hWndTB, HWND hWndParent)
       while (pLayer && i<MAX_LAYERS) {
          int nTextLength = nButtonWidth < 0 ? -nButtonWidth : 256;
          nTextLength = nTextLength > 4 ? nTextLength : 4;
-         char buf[nTextLength + 1];
+         char *buf = new char[nTextLength + 1];
          buf[0] = 0;
          int len = 0;
          
@@ -646,6 +646,8 @@ void BuildRebar(HWND hWndTB, HWND hWndParent)
                   }
                }
             }
+
+			delete buf;
          }
          
          addRebarButton(hWndTB, buf, i, pLayer->hWnd == pFrame->hWndFront );
@@ -701,7 +703,7 @@ void readMenu() {
          fread(buf, sizeof(char), size, fp);
 
          pa = getLine(buf, &line);
-         while (pa && strncasecmp(line, "layerbuttonpopup", 16))
+         while (pa && strnicmp(line, "layerbuttonpopup", 16))
             pa = getLine(pa, &line);
 
          if (pa) {
@@ -1002,10 +1004,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                      kmeleonDocInfo *dInfo;
                      dInfo = kPlugin.kFuncs->GetDocInfo(hWnd);
                      if (dInfo && dInfo->url) {
-                        char cTmp[12 + strlen(dInfo->url)+1];
+                        char *cTmp = new char[12 + strlen(dInfo->url)+1];
                         strcpy(cTmp, "view-source:");
                         strcat(cTmp, dInfo->url);
                         kPlugin.kFuncs->NavigateTo(cTmp, OPEN_BACKGROUND);
+						delete cTmp;
                         return 0;
                      }
                   }
