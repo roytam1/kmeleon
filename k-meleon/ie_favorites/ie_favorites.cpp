@@ -27,7 +27,7 @@
 #define KMELEON_PLUGIN_EXPORTS
 #include "../kmeleon_plugin.h"
 
-#define MAX_FAVORITES 255
+#define MAX_FAVORITES 512
 
 /*
 // MFC handles this for us (how nice)
