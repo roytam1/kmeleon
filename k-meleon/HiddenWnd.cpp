@@ -194,9 +194,10 @@ void CHiddenWnd::ShowBrowser(char *URI) {
 
       if (URI && *URI) {
          // if the URI is in quotes, strip them off
-         if (URI[0] == '"') {
+         int len = strlen(URI);
+         if (URI[0] == '"' && URI[len-1] == '"') {
+            URI[len-1] = 0;
             URI++;
-            URI[strlen(URI)-1] = 0;
          }
          browser->m_wndBrowserView.OpenURL(URI);
       }
