@@ -154,6 +154,8 @@ protected:
    afx_msg void OnDropFiles( HDROP );
 	afx_msg void OnUrlSelectedInUrlBar();
 	afx_msg void OnNewUrlEnteredInUrlBar();
+   afx_msg void OnUrlKillFocus();
+   afx_msg void OnUrlEditChange();
    afx_msg void OnSelectUrl();
 	afx_msg void OnFileOpen();
 	afx_msg void OnFileSaveAs();

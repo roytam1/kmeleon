@@ -82,16 +82,15 @@ BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
    ON_WM_MOUSEACTIVATE()
    ON_WM_DROPFILES()
 	ON_CBN_SELENDOK(ID_URL_BAR, OnUrlSelectedInUrlBar)
-	ON_COMMAND(IDOK, OnNewUrlEnteredInUrlBar)
+   ON_CBN_KILLFOCUS(ID_URL_BAR, OnUrlKillFocus)
+   ON_CBN_EDITCHANGE(ID_URL_BAR, OnUrlEditChange)
+   ON_COMMAND(IDOK, OnNewUrlEnteredInUrlBar)
    ON_COMMAND(ID_SELECT_URL, OnSelectUrl)
 	ON_COMMAND(ID_FILE_OPEN, OnFileOpen)
 	ON_COMMAND(ID_FILE_SAVE_AS, OnFileSaveAs)
-   ON_COMMAND(ID_FILE_PRINT, OnFilePrint) 
 	ON_COMMAND(ID_FILE_CLOSE, OnFileClose)
 	ON_COMMAND(ID_VIEW_SOURCE, OnViewSource)
 	ON_COMMAND(ID_VIEW_INFO, OnViewInfo)
-   ON_UPDATE_COMMAND_UI(ID_FILE_PRINT, OnUpdateFilePrint)
-   ON_UPDATE_COMMAND_UI(ID_VIEW_STATUS_BAR, OnUpdateViewStatusBar)
 	ON_COMMAND(ID_NAV_BACK, OnNavBack)
 	ON_COMMAND(ID_NAV_FORWARD, OnNavForward)
 	ON_COMMAND(ID_NAV_SEARCH, OnNavSearch)
@@ -110,21 +109,24 @@ BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
 	ON_COMMAND(ID_VIEW_IMAGE, OnViewImageInNewWindow)
 	ON_COMMAND(ID_SAVE_LINK_AS, OnSaveLinkAs)
 	ON_COMMAND(ID_SAVE_IMAGE_AS, OnSaveImageAs)
-   ON_COMMAND(ID_LINK_KMELEON_HOME, OnKmeleonHome)
-   ON_COMMAND(ID_LINK_KMELEON_FORUM, OnKmeleonForum)
    ON_COMMAND(ID_EDIT_FIND, OnShowFindDlg)
+   ON_COMMAND(ID_FILE_PRINT, OnFilePrint) 
+   ON_UPDATE_COMMAND_UI(ID_FILE_PRINT, OnUpdateFilePrint)
+   ON_UPDATE_COMMAND_UI(ID_VIEW_STATUS_BAR, OnUpdateViewStatusBar)
    ON_COMMAND(ID_EDIT_FINDNEXT, OnFindNext)
    ON_COMMAND(ID_EDIT_FINDPREV, OnFindPrev)
-	ON_COMMAND(ID_APP_ABOUT, OnAppAbout)
-	ON_COMMAND(ID_WINDOW_NEXT, OnWindowNext)
-	ON_COMMAND(ID_WINDOW_PREV, OnWindowPrev)
    ON_REGISTERED_MESSAGE(WM_FINDMSG, OnFindMsg) 
+   ON_COMMAND(ID_LINK_KMELEON_HOME, OnKmeleonHome)
+   ON_COMMAND(ID_LINK_KMELEON_FORUM, OnKmeleonForum)
    ON_UPDATE_COMMAND_UI(ID_NAV_BACK, OnUpdateNavBack)
 	ON_UPDATE_COMMAND_UI(ID_NAV_FORWARD, OnUpdateNavForward)
 	ON_UPDATE_COMMAND_UI(ID_NAV_STOP, OnUpdateNavStop)
 	ON_UPDATE_COMMAND_UI(ID_EDIT_CUT, OnUpdateCut)
 	ON_UPDATE_COMMAND_UI(ID_EDIT_COPY, OnUpdateCopy)
 	ON_UPDATE_COMMAND_UI(ID_EDIT_PASTE, OnUpdatePaste)
+	ON_COMMAND(ID_APP_ABOUT, OnAppAbout)
+	ON_COMMAND(ID_WINDOW_NEXT, OnWindowNext)
+	ON_COMMAND(ID_WINDOW_PREV, OnWindowPrev)
 	ON_WM_ACTIVATE()
 	ON_MESSAGE(UWM_REFRESHTOOLBARITEM, RefreshToolBarItem)
 	//}}AFX_MSG_MAP
@@ -372,7 +374,7 @@ void CBrowserView::OnDropFiles( HDROP drop ){
 //
 void CBrowserView::OnNewUrlEnteredInUrlBar()
 {
-	// Get the currently entered URL
+   // Get the currently entered URL
 	CString strUrl;
 	mpBrowserFrame->m_wndUrlBar.GetEnteredURL(strUrl);
 
@@ -390,8 +392,7 @@ void CBrowserView::OnNewUrlEnteredInUrlBar()
 //
 void CBrowserView::OnUrlSelectedInUrlBar()
 {
-	CString strUrl;
-	
+   CString strUrl;	
 	mpBrowserFrame->m_wndUrlBar.GetSelectedURL(strUrl);
 
    if(IsViewSourceUrl(strUrl))
@@ -401,7 +402,16 @@ void CBrowserView::OnUrlSelectedInUrlBar()
 }
 
 void CBrowserView::OnSelectUrl(){
-  mpBrowserFrame->m_wndUrlBar.SetFocus();
+   mpBrowserFrame->m_wndUrlBar.SetFocus();
+}
+
+void CBrowserView::OnUrlKillFocus() {
+   if (mpBrowserFrame->m_wndUrlBar.CheckFocus())
+      mpBrowserFrame->m_wndUrlBar.ReturnFocus();
+}
+
+void CBrowserView::OnUrlEditChange() {
+   mpBrowserFrame->m_wndUrlBar.EditChanged(TRUE);
 }
 
 BOOL CBrowserView::IsViewSourceUrl(CString& strUrl) {
@@ -720,7 +730,7 @@ void CBrowserView::OnFileOpen()
 }
 
 void CBrowserView::OnFileClose() {
-   mpBrowserFrame->OnClose();
+   mpBrowserFrame->PostMessage(WM_CLOSE);
 }
 
 void CBrowserView::GetBrowserWindowTitle(nsCString& title)
@@ -1230,11 +1240,11 @@ void CBrowserView::OnUpdateFilePrint(CCmdUI* pCmdUI)
 void CBrowserView::UpdateBusyState(PRBool aBusy) {
 	mbDocumentLoading = aBusy;
 
-	if (mbDocumentLoading){
-		mpBrowserFrame->m_wndAnimate.Play(0, -1, -1);
-	}
-	else {
-		mpBrowserFrame->m_wndAnimate.Stop();
+	if (mbDocumentLoading)
+		mpBrowserFrame->m_wndAnimate.Play(0, -1, -1);   
+
+   else {
+      mpBrowserFrame->m_wndAnimate.Stop();
 		mpBrowserFrame->m_wndAnimate.Seek(0);
   }
 }
@@ -1440,6 +1450,5 @@ void CBrowserView::ShowSecurityInfo()
 
       return;
    }                                                                           
-   ::MessageBox(hParent, "To Be Continued.", "K-Meleon", MB_OK);
+   ::MessageBox(hParent, "This page is secure.", "K-Meleon", MB_OK);
 }
-

@@ -43,41 +43,46 @@
 extern CMfcEmbedApp theApp;
 
 
-// A simple UrlBar class...
-class CUrlBar : public CComboBoxEx {
-public:
-   int Create(DWORD style, RECT &rect, CWnd *parentWnd, UINT id){
-      int ret = CComboBoxEx::Create(style | CBS_AUTOHSCROLL, rect, parentWnd, id);
 
+class CUrlBar : public CComboBoxEx {
+
+public:
+   int Create(DWORD style, RECT &rect, CWnd *parentWnd, UINT id) {
+      int ret = CComboBoxEx::Create(style | CBS_AUTOHSCROLL, rect, parentWnd, id);
+      
       COMBOBOXEXITEM ci;
       ci.mask = CBEIF_IMAGE;
       ci.iItem = -1;
       ci.iImage = 15;
       SetItem(&ci);
-
+      
+      m_preserveUrlBarFocus = FALSE;
+      m_changed = FALSE;
+      m_changing = FALSE;
+      
       return ret;
    }
-	inline GetEnteredURL(CString& url) {
+   inline GetEnteredURL(CString& url) {
       GetEditCtrl()->GetWindowText(url);
-	}
-	inline GetSelectedURL(CString& url) {
+   }
+   inline GetSelectedURL(CString& url) {
       GetLBText(GetCurSel(), url);
-	}
-	inline SetCurrentURL(LPCTSTR pUrl) {
-      CComboBoxEx test;
-		SetWindowText(pUrl);
-	}
-	inline AddURLToList(CString& url, bool bAddToMRUList = true) {
+   }   
+   inline SetCurrentURL(LPCTSTR pUrl) {
+      SetWindowText(pUrl);
+      m_changed = FALSE;
+   }   
+   inline AddURLToList(CString& url, bool bAddToMRUList = true) {
       COMBOBOXEXITEM ci;
-		ci.mask = CBEIF_TEXT | CBEIF_IMAGE | CBEIF_SELECTEDIMAGE;
+      ci.mask = CBEIF_TEXT | CBEIF_IMAGE | CBEIF_SELECTEDIMAGE;
       ci.iItem = 0;
       ci.iImage = 15;
       ci.iSelectedImage = 15;
-		ci.pszText = (LPTSTR)(LPCTSTR)url;
-		InsertItem(&ci);
-
+      ci.pszText = (LPTSTR)(LPCTSTR)url;
+      InsertItem(&ci);
+      
       if(bAddToMRUList) {
-		   m_MRUList.AddURL((LPTSTR)(LPCTSTR)url);
+         m_MRUList.AddURL((LPTSTR)(LPCTSTR)url);
          ResetContent();
          LoadMRUList();
       }
@@ -87,12 +92,33 @@ public:
          CString urlStr(_T(m_MRUList.GetURL(i)));
          AddURLToList(urlStr, false);
       }
+   }   
+   void SetFocus() {
+      CComboBoxEx::SetFocus();
+      m_preserveUrlBarFocus = TRUE;
+   }   
+   BOOL CheckFocus() {
+      return m_preserveUrlBarFocus;
+   }   
+   inline UnsetFocus() {
+      m_preserveUrlBarFocus = FALSE;
+   }   
+   void ReturnFocus() {
+      m_preserveUrlBarFocus = FALSE;
+      CComboBoxEx::SetFocus();
+      if (m_changed)
+         GetEditCtrl()->SetSel(-1, 0);
    }
-
+   inline EditChanged(BOOL state) {
+      m_changed = state;
+   }
+   
 protected:
    CMostRecentUrls m_MRUList;
+   BOOL m_preserveUrlBarFocus;
+   BOOL m_changed;
+   BOOL m_changing;
 };
-
 
 // CMyStatusBar class
 class CMyStatusBar : public CStatusBar
@@ -142,7 +168,6 @@ public:
 	PRUint32 m_chromeMask;
 
    BOOL m_created; // set after we are created
-   BOOL m_preserveUrlBarFocus;
 
 protected:
 	//
@@ -185,7 +210,6 @@ public:
 	// ClassWizard generated virtual function overrides
 	//{{AFX_VIRTUAL(CBrowserFrame)
 	public:
-	afx_msg void OnClose();
 	virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
 	virtual BOOL OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERINFO* pHandlerInfo);
 	//}}AFX_VIRTUAL
@@ -201,6 +225,7 @@ public:
 // Generated message map functions
 protected:
 	//{{AFX_MSG(CBrowserFrame)
+	afx_msg void OnClose();
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	afx_msg void OnSetFocus(CWnd *pOldWnd);
 	afx_msg void OnSize(UINT nType, int cx, int cy);

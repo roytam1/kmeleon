@@ -399,11 +399,7 @@ void CBrowserFrame::OnSetFocus(CWnd* pOldWnd)
 void CBrowserFrame::OnActivate(UINT nState, CWnd* pWndOther, BOOL bMinimized) {
    CFrameWnd::OnActivate(nState, pWndOther, bMinimized);
 
-   // since setting the focus when the window is created (but before the page is loaded)
-   // doesn't seem to do anything, we'll skip it, so we don't take the focus away from
-   // the UrlBar
-   if (m_created)
-      m_wndBrowserView.Activate(nState, pWndOther, bMinimized);
+   m_wndBrowserView.Activate(nState, pWndOther, bMinimized);
 }
 
 
