@@ -272,7 +272,7 @@ LPARAM OnMessage(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam){
     }
     if (command == nAddCommand){
       //AppendMenu(mainMenu, MF_STRING, nFirstFavoriteCommand, "New Item");
-      MessageBox(NULL, "Many things we must do\nTo satisfy you\n\nAdding favorites is one\nSonn it will be done\n", "A poem", 0);
+      MessageBox(NULL, "Many things we must do\nTo satisfy you\n\nAdding favorites is one\nSoon it will be done\n", "A poem by BinaryC", 0);
       return true;
     }
     if (command >= nFirstFavoriteCommand && command < (nFirstFavoriteCommand + MAX_FAVORITES)){
