@@ -478,11 +478,13 @@ void CBrowserFrame::OnSize(UINT nType, int cx, int cy) {
   // Get the ItemRect of the status bar's Pane 0
   // That's where the progress bar will be located
   RECT rc;
-  m_wndStatusBar.GetItemRect(m_wndStatusBar.CommandToIndex(ID_PROG_BAR), &rc);
+  if (m_wndStatusBar.m_hWnd)
+     m_wndStatusBar.GetItemRect(m_wndStatusBar.CommandToIndex(ID_PROG_BAR), &rc);
 
   // Move the progress bar into it's correct location
   //
-  m_wndProgressBar.MoveWindow(&rc);
+  if (m_wndProgressBar.m_hWnd)
+     m_wndProgressBar.MoveWindow(&rc);
 
   if (nType == SIZE_MAXIMIZED){
     theApp.preferences.bMaximized = true;
