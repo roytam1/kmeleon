@@ -366,6 +366,30 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags,
     pThis->m_wndBrowserView.SetCtxMenuLinkUrl(empty);
     pThis->m_wndBrowserView.SetCurrentFrameURL(empty);
 
+
+/*
+  !!BAD HACK!!  !!BAD HACK!!  !!BAD HACK!!  !!BAD HACK!!  !!BAD HACK!!
+
+  The bGetElementHack flag is part of the GetElementFromPoint function.
+  Basically, there's no easy way that I've found to get the link
+  information by point from mozilla, so as a workaround, the function
+  simply sends a contextmenu notifier with the point we want.  It's
+  our job here to make sure the context menu doesn't get shown.
+  
+  !!BAD HACK!!  !!BAD HACK!!  !!BAD HACK!!  !!BAD HACK!!  !!BAD HACK!!
+*/
+
+   nsCOMPtr<nsIDOMNode> node;
+   aInfo->GetTargetNode(getter_AddRefs(node));
+
+   
+   if (pThis->m_wndBrowserView.m_iGetNodeHack == 1) {
+      pThis->m_wndBrowserView.m_iGetNodeHack = 0;
+      pThis->m_wndBrowserView.m_pGetNode = node;
+      return;
+   }
+
+
     if(aContextFlags & nsIContextMenuListener2::CONTEXT_DOCUMENT)
     {
         nIDResource = IDR_CTXMENU_DOCUMENT;
@@ -511,6 +535,15 @@ BUILD_CTX_MENU:
             break;
         }
     }
+
+
+   /*  !!BAD HACK!!  !!BAD HACK!!  !!BAD HACK!!  !!BAD HACK!!  */
+   if (pThis->m_wndBrowserView.m_iGetNodeHack == 2) {
+      pThis->m_wndBrowserView.m_iGetNodeHack = 0;
+      pThis->m_wndBrowserView.m_pGetNode = node;
+      return;
+   }
+
 
    CMenu *ctxMenu = theApp.menus.GetMenu(menuType);
    if(ctxMenu)
