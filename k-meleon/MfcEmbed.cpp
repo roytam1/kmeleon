@@ -223,21 +223,22 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
    // Now, create the browser frame
 	CBrowserFrame* pFrame = new CBrowserFrame(chromeMask);
 
-   // Restore previous window size if -1
-   if (cx==-1 && cy==-1) {
-      cx = preferences.width;
-      cy = preferences.height;
-      x = CW_USEDEFAULT;
-      y = CW_USEDEFAULT;
+   // restore the saved window size
+   RECT winSize;
+   winSize.top    = CW_USEDEFAULT;
+   winSize.left   = CW_USEDEFAULT;
+   if (preferences.width != -1 && preferences.height != -1) {
+      // since MFC determines the window size as top-bottom and left-right,
+      // the CW_USEDEFAULT ensures that it it will properly size the window to our width and
+      // height...windows versions other than Win2k are able to do this with or without CW_USEDEFAULT,
+      // so it's best for us to use it
+      winSize.right  = CW_USEDEFAULT + preferences.width;
+      winSize.bottom = CW_USEDEFAULT + preferences.height;
    }
-
-   // Setup a CRect with the requested window dimensions
-	CRect winSize(x, y, cx, cy);
-
-	// Use the Windows default if size is still -1
-   if(cx == -1 && cy == -1)
-		winSize = CFrameWnd::rectDefault;
-
+   else {
+      winSize.right  = CW_USEDEFAULT;
+      winSize.bottom = CW_USEDEFAULT;
+   }
 
    LONG style = WS_OVERLAPPEDWINDOW;
    if (preferences.bMaximized) style |= WS_MAXIMIZE;
