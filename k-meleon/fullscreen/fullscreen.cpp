@@ -67,14 +67,18 @@ RECT rectFullScreenWindowRect;
 BOOL bFullScreen=0;
 INT id_fullscreen;
 
+int iCount=0;
+HWND ghWndParent = NULL;
+WNDPROC KMeleonWndProc;
+
 BOOL APIENTRY DllMain(HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved ) {
    switch (ul_reason_for_call) {
       case DLL_PROCESS_ATTACH:
          ghInstance = (HINSTANCE) hModule;
-      case DLL_THREAD_ATTACH:
-      case DLL_THREAD_DETACH:
-      case DLL_PROCESS_DETACH:
-      break;
+         break;
+//      case DLL_THREAD_ATTACH:
+//      case DLL_THREAD_DETACH:
+//      case DLL_PROCESS_DETACH:
    }
    return TRUE;
 }
@@ -85,8 +89,6 @@ int Init(){
 	id_fullscreen = kPlugin.kf->GetCommandIDs(1);
    return true;
 }
-
-WNDPROC KMeleonWndProc;
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
@@ -145,6 +147,9 @@ void HideClutter(HWND hWndParent) {
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 
    switch (message) {
+   case WM_DESTROY:
+      SetWindowLong(hWnd, GWL_WNDPROC, (LONG)KMeleonWndProc);
+      break;
    case WM_GETMINMAXINFO:
       if (bFullScreen) {       
          MINMAXINFO *lpMMI;
@@ -162,7 +167,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
       if (command == id_fullscreen) {
 
          WINDOWPLACEMENT wpNew;
-
          if (!bFullScreen) {
 
             RECT rectDesktop;

@@ -44,7 +44,7 @@ WNDPROC KMeleonWndProc;
 int DrawBitmap(DRAWITEMSTRUCT *dis);
 
 void DrawCheckMark(HDC pDC,int x,int y,COLORREF color);
-void SetOwnerDrawn(HMENU menu, DRAWBITMAPPROC DrawProc);
+void SetOwnerDrawn(HMENU menu, DRAWBITMAPPROC DrawProc, BOOL topLevel);
 void UnSetOwnerDrawn(HMENU menu);
 
 int Init();
@@ -240,17 +240,31 @@ void Quit(){
 void DoMenu(HMENU menu, char *param){
    // only do this the first time
    if (bFirstRun) {
+
+      // WinNT4 is unhappy when we subclass the top level menus, it's probably a bug in
+      // the way we do it now (since it worked before the recent changes), this is a bad
+      // workaround, and needs to be fixed better.
+      
+      // Don't ownerdraw the top level menu items (File, Edit, View, etc)
+      // We can't actually be sure that this is going to be that menu.
+      // Perhaps someone who only want menuicons on the File menu will decide
+      // to move the bmpmenu() call from the top level menu into the file menu...
+      // In that circumstance, none of the entries under "File" will be ownerdrawn...oops
+
+      BOOL topLevel = TRUE;
+
       DRAWBITMAPPROC DrawProc = NULL;
       if (*param) {
          HINSTANCE plugin = LoadLibrary(param);
          if (plugin) {
             DrawProc = (DRAWBITMAPPROC)GetProcAddress(plugin, "DrawBitmap");
+            topLevel = FALSE;  // plugin menus probably won't be top level
          }
       }
       if (!DrawProc) {
          DrawProc = DrawBitmap;
       }
-      SetOwnerDrawn(menu, DrawProc);
+      SetOwnerDrawn(menu, DrawProc, topLevel);
    }
 }
 
@@ -533,7 +547,7 @@ void StringToOwnerDrawn(HMENU menu, int i, UINT flags, UINT id){
    ModifyMenu(menu, i, MF_BYPOSITION | MF_OWNERDRAW | flags, id, mmi.dwTypeData);
 }
 
-void SetOwnerDrawn(HMENU menu, DRAWBITMAPPROC DrawProc){
+void SetOwnerDrawn(HMENU menu, DRAWBITMAPPROC DrawProc, BOOL topLevel){
    menuMap::iterator menuIter = menus.find(menu);
    if (menuIter != menus.end()){
       // if this menu already has a DrawProc, just exit now
@@ -549,8 +563,9 @@ void SetOwnerDrawn(HMENU menu, DRAWBITMAPPROC DrawProc){
       state = GetMenuState(menu, i, MF_BYPOSITION);
       if (state & MF_POPUP) {
          HMENU subMenu = GetSubMenu(menu, i);
-         SetOwnerDrawn(subMenu, DrawProc);
-         StringToOwnerDrawn(menu, i, MF_POPUP, (UINT)subMenu);
+         SetOwnerDrawn(subMenu, DrawProc, FALSE);
+         if (!topLevel)
+            StringToOwnerDrawn(menu, i, MF_POPUP, (UINT)subMenu);
       }
       else if (state == 0) {
          StringToOwnerDrawn(menu, i, 0, GetMenuItemID(menu, i));
