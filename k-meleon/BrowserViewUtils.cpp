@@ -292,6 +292,8 @@ void CBrowserView::OpenURL(const char* pUrl)
 
 void CBrowserView::OpenURL(const PRUnichar* pUrl)
 {
+   CString str = pUrl;
+   mpBrowserFrame->m_wndUrlBar.SetCurrentURL((char*)str.GetBuffer(0));
    mWebNav->LoadURI(pUrl,                              // URI string
                     nsIWebNavigation::LOAD_FLAGS_NONE, // Load flags
                     nsnull,                            // Refering URI
