@@ -258,8 +258,8 @@ protected:
     afx_msg void OnMouseAction();
 
     afx_msg void OnEditURL( NMHDR * pNotifyStruct, LRESULT * result );
-    afx_msg void OnDragURL( NMHDR * pNotifyStruct, LRESULT * result );
-    afx_msg void OnDropFiles( HDROP );
+    //afx_msg void OnDragURL( NMHDR * pNotifyStruct, LRESULT * result );
+    //afx_msg void OnDropFiles( HDROP );
 	//}}AFX_MSG
 	
 	DECLARE_MESSAGE_MAP()
