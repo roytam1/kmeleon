@@ -396,7 +396,7 @@ int BuildFavoritesMenu(char * strPath, HMENU mainMenu)
 
          subPath = new char[pathLen + strlen(wfd.cFileName) + 2];
          strcpy(subPath, strPath);
-         strcat(subPath, wfd.cFileName);
+         strcat(subPath, wfd.cFileName);         
          strcat(subPath, "/");
 
          dirsArray.push_back(subPath);
@@ -427,9 +427,13 @@ int BuildFavoritesMenu(char * strPath, HMENU mainMenu)
             // shrink the string
             CondenseString(wfd.cFileName, 40);
             // escape &
-            EscapeAmpersands(wfd.cFileName);
-
-            gFavorites.InsertAt(nPos, wfd.cFileName);
+            char *escaped = EscapeAmpersands(wfd.cFileName);
+            if (escaped) {
+               gFavorites.InsertAt(nPos, escaped);
+               delete escaped;
+            }
+            else
+               gFavorites.InsertAt(nPos, wfd.cFileName);
 
             /*
             HACK HACK HACK
@@ -485,7 +489,13 @@ int BuildFavoritesMenu(char * strPath, HMENU mainMenu)
       if(gNumFavorites < MAX_FAVORITES && BuildFavoritesMenu(subPath, subMenu))	{
          // only insert a submenu if there are in fact .URL files in the subdirectory
          subPath[strlen(subPath)-1] = 0; // chop off the trailing slash
-         InsertMenu(mainMenu, nFirstFavoriteCommand, MF_BYCOMMAND | MF_POPUP | MF_STRING, (UINT)subMenu, subPath);
+         char *escaped = EscapeAmpersands(subPath);
+         if (escaped) {
+            InsertMenu(mainMenu, nFirstFavoriteCommand, MF_BYCOMMAND | MF_POPUP | MF_STRING, (UINT)subMenu, escaped);
+            delete escaped;
+         }
+         else
+            InsertMenu(mainMenu, nFirstFavoriteCommand, MF_BYCOMMAND | MF_POPUP | MF_STRING, (UINT)subMenu, subPath);
       }else{
          DestroyMenu(subMenu);
       }
