@@ -220,6 +220,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
       switch (cds->dwData) {
       case CD_NAVIGATETO:
          kFuncs->NavigateTo((char *) cds->lpData+1, ((char *) cds->lpData)[0] );
+         return 0;
+
       case CD_GETID:
          int id;
          id = kFuncs->GetID((char *) cds->lpData);
