@@ -179,7 +179,7 @@ END
 
 IDR_MAINFRAME ACCELERATORS PRELOAD MOVEABLE PURE 
 BEGIN
-    "N",            ID_FILE_NEW,            VIRTKEY, CONTROL
+    "N",            ID_FILE_NEWWINDOW,      VIRTKEY, CONTROL
     "O",            ID_FILE_OPEN,           VIRTKEY, CONTROL
     "S",            ID_FILE_SAVE,           VIRTKEY, CONTROL
     "P",            ID_FILE_PRINT,          VIRTKEY, CONTROL
