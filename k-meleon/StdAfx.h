@@ -87,6 +87,9 @@
 #include "nsIDOMHTMLAnchorElement.h"
 #include "nsIScriptGlobalObject.h"
 #include "nsIDOMWindowInternal.h"
+#include "nsIDOMDocument.h"
+#include "nsIDOMHTMLDocument.h"
+#include "nsIDOMHTMLFrameSetElement.h"
 
 // embed_base: 
 #include "nsEmbedAPI.h"

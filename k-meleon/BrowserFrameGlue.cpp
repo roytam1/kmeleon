@@ -376,7 +376,28 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags,
       // Get the URL from the link. This is two step process
       // 1. We first get the nsIDOMHTMLAnchorElement
       // 2. We then get the URL associated with the link
+
       nsresult rv = NS_OK;
+      
+      // Search for an anchor element
+      nsCOMPtr<nsIDOMHTMLAnchorElement> linkElement;
+      nsCOMPtr<nsIDOMNode> node = aNode;
+      while (node)
+      {
+         linkElement = do_QueryInterface(node);
+         if (linkElement)
+            break;
+         
+         nsCOMPtr<nsIDOMNode> parentNode;
+         node->GetParentNode(getter_AddRefs(parentNode));
+         node = parentNode;
+      }
+      if (!linkElement)
+         return;
+      
+
+
+/*
       nsCOMPtr<nsIDOMHTMLAnchorElement> linkElement(do_QueryInterface(aNode, &rv));
       if(NS_FAILED(rv)){
          nsCOMPtr<nsIDOMNode> parentNode;
@@ -386,6 +407,7 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags,
             return;
          }
       }
+*/
 
       rv = linkElement->GetHref(strUrlUcs2);
       if(NS_FAILED(rv))
@@ -416,6 +438,49 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags,
 
       pThis->m_wndBrowserView.SetCtxMenuImageSrc(strImgSrcUcs2); // Set the new Img Src
    }
+
+
+    // Determine if we need to add the Frame related context menu items
+    // such as "View Frame Source" etc.
+    //
+    BOOL bContentHasFrames = FALSE;
+    if(pThis->m_wndBrowserView.ViewContentContainsFrames())
+    {
+
+       if(aContextFlags & nsIContextMenuListener::CONTEXT_LINK) {
+          if(aContextFlags & nsIContextMenuListener::CONTEXT_IMAGE)
+             menuType = _T("FrameImageLinkPopup");
+          else
+             menuType = _T("FrameLinkPopup");
+       }
+       else {
+          if(aContextFlags & nsIContextMenuListener::CONTEXT_IMAGE)
+             menuType = _T("FrameImagePopup");
+          else
+             menuType = _T("FrameDocumentPopup");
+       }
+       
+       bContentHasFrames = TRUE;
+       
+       nsAutoString strFrameURL;
+        pThis->m_wndBrowserView.SetCurrentFrameURL(strFrameURL); // Clear it
+
+        //Determine the current Frame URL
+        //
+        nsresult rv = NS_OK;
+        nsCOMPtr<nsIDOMDocument> domDoc;
+        rv = aNode->GetOwnerDocument(getter_AddRefs(domDoc));
+
+        if(NS_SUCCEEDED(rv)) {
+           nsCOMPtr<nsIDOMHTMLDocument> htmlDoc(do_QueryInterface(domDoc, &rv));
+           if(NS_SUCCEEDED(rv)) {
+              rv = htmlDoc->GetURL(strFrameURL);
+              if(NS_SUCCEEDED(rv)) {
+                 pThis->m_wndBrowserView.SetCurrentFrameURL(strFrameURL); //Set it to the new URL
+              }
+           }
+        }
+    }
 
    CMenu *ctxMenu = theApp.menus.GetMenu(menuType);
    if(ctxMenu)
@@ -476,9 +541,22 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowTooltip(PRInt32 x, PRInt32 y, const
       
       CDC *dc = pThis->m_tooltip.GetWindowDC(); //  CreateCompatibleDC(NULL);
       CSize size = dc->GetTextExtent(text);      
+      size.cx += 10; // padding
+      size.cy += 2;  // padding
       
       pThis->m_tooltip.SetWindowText(text);
-      pThis->m_tooltip.SetWindowPos(NULL, point.x, point.y, size.cx+10, size.cy+2, SWP_NOZORDER | SWP_DRAWFRAME);
+
+
+      // keep the tooltip from running off the window
+      CRect rect;
+      pThis->GetWindowRect(&rect);
+      pThis->ScreenToClient(&rect);
+      if ( point.x + size.cx > rect.right)
+         point.x = rect.right - size.cx;
+      if (point.y + size.cy > rect.bottom)
+         point.y = rect.bottom - size.cy;
+
+      pThis->m_tooltip.SetWindowPos(NULL, point.x, point.y, size.cx, size.cy, SWP_NOZORDER | SWP_DRAWFRAME);
       pThis->m_tooltip.ShowWindow(SW_SHOW);
    } else {
       pThis->m_tooltip.ShowWindow(SW_HIDE);

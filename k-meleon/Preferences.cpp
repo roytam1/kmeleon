@@ -78,8 +78,11 @@ void CPreferences::Load() {
       _GetBool(_T("kmeleon.display.hideTaskBarButtons"), bHideTaskBarButtons, false);
       
       _GetBool(_T("kmeleon.display.maximized"), bMaximized, true);
-      _GetInt(_T("kmeleon.display.width"), width, -1);
-      _GetInt(_T("kmeleon.display.height"), height, -1);
+
+      _GetInt(_T("kmeleon.display.width"), windowWidth, -1);
+      _GetInt(_T("kmeleon.display.height"), windowHeight, -1);
+      _GetInt(_T("kmeleon.display.XPos"), windowXPos, -1);
+      _GetInt(_T("kmeleon.display.YPos"), windowYPos, -1);
 
       _GetBool(_T("kmeleon.display.backgroundImageEnabled"), bToolbarBackground, true);
 
@@ -228,8 +231,10 @@ void CPreferences::Save() {
       // -- Display settings
 
       rv = prefs->SetBoolPref(_T("kmeleon.display.maximized"), bMaximized);
-      rv = prefs->SetIntPref(_T("kmeleon.display.width"), width);
-      rv = prefs->SetIntPref(_T("kmeleon.display.height"), height);
+      rv = prefs->SetIntPref(_T("kmeleon.display.width"), windowWidth);
+      rv = prefs->SetIntPref(_T("kmeleon.display.height"), windowHeight);
+      rv = prefs->SetIntPref(_T("kmeleon.display.XPos"), windowXPos);
+      rv = prefs->SetIntPref(_T("kmeleon.display.YPos"), windowYPos);
       rv = prefs->SetBoolPref(_T("kmeleon.display.backgroundImageEnabled"), bToolbarBackground);
       rv = prefs->SetCharPref(_T("kmeleon.display.backgroundImage"), toolbarBackground);
 

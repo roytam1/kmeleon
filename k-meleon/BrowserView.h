@@ -95,6 +95,9 @@ public:
 	void SetCtxMenuImageSrc(nsAutoString& strImgSrc);
 	nsAutoString mCtxMenuImgSrc;
 
+   void SetCurrentFrameURL(nsAutoString& strcCurrentFrameURL);
+   nsString mCtxMenuCurrentFrameURL;
+
    void Activate(UINT nState, CWnd* pWndOther, BOOL bMinimized);
 
    BOOL OpenViewSourceWindow(const char* pUrl);  
@@ -108,7 +111,9 @@ public:
 
    int m_SecurityState;
    void ShowSecurityInfo();
-   
+
+   BOOL ViewContentContainsFrames();
+
    void StartPanning();
    void StopPanning();
    BOOL m_panning;
@@ -203,6 +208,8 @@ protected:
 	afx_msg void OnAppAbout();
 	afx_msg void OnWindowNext();
 	afx_msg void OnWindowPrev();
+   afx_msg void OnViewFrameSource();
+   afx_msg void OnOpenFrameInNewWindow();   
 
    afx_msg void OnEditURL( NMHDR * pNotifyStruct, LRESULT * result );
    afx_msg void OnDragURL( NMHDR * pNotifyStruct, LRESULT * result );

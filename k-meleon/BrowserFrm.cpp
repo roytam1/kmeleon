@@ -148,6 +148,54 @@ void CBrowserFrame::OnClose()
    theApp.RemoveFrameFromList(this);
 }
 
+
+
+
+
+
+/*
+
+  This is identical to the MFC CFrameWnd::Create function
+  except that the rect structure passed to it contains
+  x, y, cx, cx values instead of left, top, right, bottom
+  and the menu is loaded differently
+  
+*/
+
+BOOL CBrowserFrame::Create(LPCTSTR lpszClassName,
+                           LPCTSTR lpszWindowName,
+                           DWORD dwStyle,
+                           const RECT& rect,
+                           CWnd* pParentWnd,
+                           LPCTSTR lpszMenuName,
+                           DWORD dwExStyle,
+                           CCreateContext* pContext)
+{
+   HMENU hMenu = NULL;
+   CMenu *menu = theApp.menus.GetMenu(_T("Main"));
+   if (menu){
+      hMenu = menu->m_hMenu;
+   }
+   else {
+      MessageBox("No Menu");
+   }
+   
+   m_strTitle = lpszWindowName;    // save title for later
+   
+   if (!CreateEx(dwExStyle, lpszClassName, lpszWindowName, dwStyle,
+      rect.left, rect.top, rect.right, rect.bottom,
+      pParentWnd->GetSafeHwnd(), hMenu, (LPVOID)pContext))
+   {
+      TRACE0("Warning: failed to create CFrameWnd.\n");
+      if (hMenu != NULL)
+         DestroyMenu(hMenu);
+      return FALSE;
+   }
+   
+   return TRUE;
+}
+
+
 // This is where the UrlBar, ToolBar, StatusBar, ProgressBar
 // get created
 // 
@@ -460,8 +508,10 @@ void CBrowserFrame::OnSize(UINT nType, int cx, int cy)
          theApp.preferences.bMaximized = false;
 
          GetWindowRect(&rc);
-         theApp.preferences.width = rc.right - rc.left;
-         theApp.preferences.height = rc.bottom - rc.top;
+         theApp.preferences.windowWidth = rc.right - rc.left;
+         theApp.preferences.windowHeight = rc.bottom - rc.top;
+         theApp.preferences.windowXPos = rc.left;
+         theApp.preferences.windowYPos = rc.top;
       }
    }
 }
@@ -558,47 +608,6 @@ void CBrowserFrame::OnUpdateToggleToolbarLock(CCmdUI* pCmdUI)
    pCmdUI->SetCheck(theApp.preferences.GetBool(PREF_TOOLBAND_LOCKED, false));
 }
 
-/*
-
-   This is identical to the MFC CFrameWnd::Create function
-   except that the rect structure passed to it contains
-   x, y, cx, cx values instead of left, top, right, bottom
-   and the menu is loaded differently
-
-*/
-
-BOOL CBrowserFrame::Create(LPCTSTR lpszClassName,
-	LPCTSTR lpszWindowName,
-	DWORD dwStyle,
-	const RECT& rect,
-	CWnd* pParentWnd,
-	LPCTSTR lpszMenuName,
-	DWORD dwExStyle,
-	CCreateContext* pContext)
-{
-	HMENU hMenu = NULL;
-   CMenu *menu = theApp.menus.GetMenu(_T("Main"));
-   if (menu){
-      hMenu = menu->m_hMenu;
-   }
-   else {
-      MessageBox("No Menu");
-   }
-
-	m_strTitle = lpszWindowName;    // save title for later
-
-	if (!CreateEx(dwExStyle, lpszClassName, lpszWindowName, dwStyle,
-		rect.left, rect.top, rect.right, rect.bottom,
-		pParentWnd->GetSafeHwnd(), hMenu, (LPVOID)pContext))
-	{
-		TRACE0("Warning: failed to create CFrameWnd.\n");
-		if (hMenu != NULL)
-			DestroyMenu(hMenu);
-		return FALSE;
-	}
-
-	return TRUE;
-}
 
 // create a linked list of CToolBarEx controls, return the hwnd
 HWND CBrowserFrame::CreateToolbar(UINT style) {
