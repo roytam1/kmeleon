@@ -202,6 +202,8 @@ void SetPreference(enum PREFTYPE type, char *preference, void *val, BOOL update)
 void DelPreference(char *preference)
 {
    theApp.preferences.Clear(preference);
+   theApp.preferences.Flush();
+   theApp.preferences.Load();
 }
 
 void SetStatusBarText(const char *s) {

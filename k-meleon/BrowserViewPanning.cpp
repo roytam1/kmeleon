@@ -109,11 +109,14 @@ void CBrowserView::OnTimer(UINT nIDEvent)
                   // get the DOMNode at the point
                   nsCOMPtr<nsIDOMNode> aNode;
                   aNode = GetNodeAtPoint(m_panningPoint.x, m_panningPoint.y, TRUE);
+                  if (aNode) {
+		    nsCOMPtr<nsIDOMDocument> ownerdoc;
+		    aNode->GetOwnerDocument(getter_AddRefs(ownerdoc));
                   
-                  nsCOMPtr<nsIDOMDocument> ownerdoc;
-                  aNode->GetOwnerDocument(getter_AddRefs(ownerdoc));
-                  
-                  s = FindDOMWindow(s, ownerdoc);
+		    if (ownerdoc)
+		      s = FindDOMWindow(s, ownerdoc);
+		  }
+
                   if(!s) return;
                }
             }
