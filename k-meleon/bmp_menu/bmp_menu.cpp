@@ -23,7 +23,7 @@
 #include "../Utils.h"
 #include <afxres.h>
 
-
+#define PLUGIN_NAME "Bitmapped Menus"
 
 #pragma warning( disable : 4786 ) // C4786 bitches about the std::map template name expanding beyond 255 characters
 #include <map>
@@ -41,8 +41,6 @@ int     SPACE_BETWEEN = 0; // the space between the text and the accelerator, se
 #define MARGIN_LEFT BMP_WIDTH + BMP_PADDING_LEFT + BMP_PADDING_RIGHT
 #define MARGIN_RIGHT 16
 
-typedef int (*DRAWBITMAPPROC)(DRAWITEMSTRUCT *dis);
-
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 WNDPROC KMeleonWndProc;
 
@@ -59,22 +57,39 @@ void Quit();
 void DoMenu(HMENU menu, char *param);
 int GetConfigFiles(configFileType **configFiles);
 
-pluginFunctions pFunc = {
-   Init,
-   Create,
-   Config,
-   Quit,
-   DoMenu,
-   NULL, // no rebar
-   NULL, // no accels
-   GetConfigFiles
-};
+long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2);
 
 kmeleonPlugin kPlugin = {
    KMEL_PLUGIN_VER,
-   "Bitmapped Menus",
-   &pFunc
+   PLUGIN_NAME,
+   DoMessage
 };
+
+long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2)
+{
+   if (to[0] == '*' || stricmp(to, kPlugin.dllname) == 0) {
+      if (stricmp(subject, "Init") == 0) {
+         Init();
+      }
+      else if (stricmp(subject, "Create") == 0) {
+         Create((HWND)data1);
+      }
+      else if (stricmp(subject, "Config") == 0) {
+         Config((HWND)data1);
+      }
+      else if (stricmp(subject, "Quit") == 0) {
+         Quit();
+      }
+      else if (stricmp(subject, "DoMenu") == 0) {
+         DoMenu((HMENU)data1, (char *)data2);
+      }
+      else return 0;
+
+      return 1;
+   }
+   return 0;
+}
+
 
 /*
 # sample config
@@ -191,7 +206,7 @@ void ParseConfig(char *buffer) {
 int Init() {
    bFirstRun = TRUE;
 
-   kPlugin.kf->GetPreference(PREF_STRING, "kmeleon.general.settingsDir", settingsPath, "");
+   kPlugin.kFuncs->GetPreference(PREF_STRING, "kmeleon.general.settingsDir", settingsPath, "");
 
    // Check for Win98
    OSVERSIONINFO     osVersion;
