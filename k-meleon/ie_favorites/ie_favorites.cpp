@@ -440,6 +440,18 @@ void DoRebar(HWND rebarWnd){
 
 int BuildFavoritesMenu(char * strPath, HMENU mainMenu)
 {
+   // screen height
+   int cy = GetSystemMetrics(SM_CYSCREEN);
+   // menu line height
+//   int cmenu = GetSystemMetrics(SM_CYMENU);
+   // if bmp_menu is enabled, the menu items will actually be at least 18 pixels... but this system call won't reflect that
+   // in any case, SM_CYMENU gets the height of the menu bar, not a menu item
+   // for now we'll just assume bmp_menu is enabled and they're 18 pixels...
+#define cmenu 18
+// space to allow above menu for title bar, menu bar (assuming maximized window), and extra frame junk
+#define MENUPADDING 50
+   int maxLength = (int)((cy-MENUPADDING)/cmenu);
+
    const int nStart = gNumFavorites;
    int nPos;
 
@@ -466,7 +478,15 @@ int BuildFavoritesMenu(char * strPath, HMENU mainMenu)
 
    int tooMany = false;
 
+   int count = GetMenuItemCount(mainMenu);
+
    do {
+      if (count++ == maxLength) {
+         HMENU childMenu = CreatePopupMenu();
+         AppendMenu(mainMenu, MF_STRING|MF_POPUP, (UINT)childMenu, "[more]");
+         mainMenu = childMenu;   // and continue on, populating the new menu
+         count = 0;
+      }
       if(wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
          // ignore the current and parent directory entries
          if(lstrcmp(wfd.cFileName, _T(".")) == 0 || lstrcmp(wfd.cFileName, _T("..")) == 0)
