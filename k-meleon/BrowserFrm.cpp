@@ -107,8 +107,8 @@ CBrowserFrame::CBrowserFrame(PRUint32 chromeMask)
    m_created = false;
    m_setURLBarFocus = false;
 
-   if(!theApp.m_pMostRecentBrowserFrame)
-      theApp.m_pMostRecentBrowserFrame = this;
+//   if(!theApp.m_pMostRecentBrowserFrame)
+   theApp.m_pMostRecentBrowserFrame = this;
 
 }
 
