@@ -94,58 +94,23 @@ ID_BLARG2
 }
 */
 
-class CBmpEntry{
-public:
-  HBITMAP m_bitmap;
-  int m_index;
-  int canDelete;
+HIMAGELIST hImageList;
 
-public:
-  CBmpEntry(){
-    m_bitmap = NULL;
-    m_index = 0;
-    canDelete = true;
-  }
-  CBmpEntry(HBITMAP bitmap, int index){
-    m_bitmap = bitmap;
-    m_index = index;
-    canDelete = true;
-  }
-  CBmpEntry(const CBmpEntry &other){
-    m_bitmap = other.m_bitmap;
-    m_index = other.m_index;
-    canDelete = true;
-  }
-  CBmpEntry &operator= (CBmpEntry &other){
-    m_bitmap = other.m_bitmap;
-    m_index = other.m_index;
-    other.canDelete = false;
-    // the copier is responsible for deleting the bitmap now
-
-    return *this;
-  }
-  ~CBmpEntry(){
-    if (m_index == 0 && canDelete && m_bitmap){
-      // only delete the object once
-      DeleteObject(m_bitmap);
-    }
-  }
-};
-
-typedef std::map<short, CBmpEntry> BmpMapT;
+typedef std::map<short, int> BmpMapT;
 BmpMapT bmpMap;
 // this maps command ids to the bitmap/index
 
 typedef std::map<std::string, int> DefineMapT;
 
 void ParseConfig(char *buffer){
+  hImageList = ImageList_Create(16, 16, ILC_MASK | ILC_COLOR8, 32, 256);
 
 	DefineMapT defineMap;
 	#define DEFINEMAP_ADD(entry) defineMap[std::string(#entry)] = entry;
 	#include "../definemap.cpp"
 	DefineMapT::iterator defineMapIt;
-
-	HBITMAP currentBitmap = NULL;
+  
+  BOOL currentBitmap = false;
 	int index = 0;
 
 	char *p;
@@ -160,21 +125,27 @@ void ParseConfig(char *buffer){
 				TrimWhiteSpace(p);
 				p = SkipWhiteSpace(p);
 
+        HBITMAP bitmap;
 				if (strchr(p, ':') || *p == '/' || *p == '\\') {
-					currentBitmap = (HBITMAP)LoadImage(NULL, p, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS);
+					bitmap = (HBITMAP)LoadImage(NULL, p, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE);
 				}
 				else {
 					char bmpPath[MAX_PATH];
 					strcpy(bmpPath, szPath);
 					strcat(bmpPath, p);
-					currentBitmap = (HBITMAP)LoadImage(NULL, bmpPath, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS);
+					bitmap = (HBITMAP)LoadImage(NULL, bmpPath, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE);
 				}
+        ImageList_AddMasked(hImageList, bitmap, RGB(192, 192, 192));
+
+        DeleteObject(bitmap);
+
+        currentBitmap = true;
 			}
 		}
 		else {
 			if ( strchr( p, '}' )) {
-				currentBitmap = NULL;
-				index = 0;
+        currentBitmap = false;
+        index = ImageList_GetImageCount(hImageList);
 				continue;
 			}
 
@@ -190,7 +161,7 @@ void ParseConfig(char *buffer){
 			else {
 				id = 0;
 			}
-			bmpMap[id] = CBmpEntry(currentBitmap, index);
+			bmpMap[id] = index;
 			index++;
 		}
 	}
@@ -251,6 +222,7 @@ void Config(HWND parent){
 }
 
 void Quit(){
+  ImageList_Destroy(hImageList);
 }
 
 void DoMenu(HMENU menu, char *param){
@@ -285,19 +257,17 @@ int DrawBitmap(DRAWITEMSTRUCT *dis) {
 
 	// Load the corresponding bitmap
 	if (bmpMapIt != bmpMap.end()){
-
-		HBITMAP hBmp = bmpMapIt->second.m_bitmap;
-
-		HDC bmpDC = CreateCompatibleDC(dis->hDC);
-		SelectObject(bmpDC, hBmp);
-
-		int width = 16;
-		int height = GetSystemMetrics(SM_CYMENUSIZE);
-		BitBlt(dis->hDC, dis->rcItem.left, dis->rcItem.top, width, height, bmpDC, bmpMapIt->second.m_index * 16, 0, SRCCOPY);
-		//TransparentBlt(dis->hDC, dis->rcItem.left, dis->rcItem.top, width, height, bmpDC, 0, 0, width, height, GetPixel(bmpDC, 0,0));
-
-		DeleteDC(bmpDC);
-
+    int top = (dis->rcItem.bottom - dis->rcItem.top - 16) / 2;
+    top += dis->rcItem.top;
+    if (dis->itemState & ODS_GRAYED){
+      ImageList_DrawEx(hImageList, bmpMapIt->second, dis->hDC, dis->rcItem.left+1, top, 0, 0, CLR_NONE, GetSysColor(COLOR_3DFACE), ILD_BLEND  | ILD_TRANSPARENT);
+    }
+    else if (dis->itemState & ODS_SELECTED){
+      ImageList_Draw(hImageList, bmpMapIt->second, dis->hDC, dis->rcItem.left+1, top, ILD_TRANSPARENT);
+    }
+    else{
+      ImageList_Draw(hImageList, bmpMapIt->second, dis->hDC, dis->rcItem.left+1, top, ILD_TRANSPARENT);
+    }
 		return LEFT_SPACE;
 	}
   return 0;
@@ -350,14 +320,6 @@ void DrawMenuItem(DRAWITEMSTRUCT *dis) {
 
 	BOOL hasBitmap = false;
 
-  if (mdt->DrawBitmap){
-    int space = mdt->DrawBitmap(dis);
-    if (space > 0){
-      dis->rcItem.left += space;
-      hasBitmap = true;
-    }
-  }
-
 	// Draw the hilight rectangle
 	SetBkMode(dis->hDC, TRANSPARENT);
 	if (dis->itemState & ODS_SELECTED) {
@@ -368,10 +330,19 @@ void DrawMenuItem(DRAWITEMSTRUCT *dis) {
 		FillRect(dis->hDC, &dis->rcItem, GetSysColorBrush(COLOR_3DFACE));
 	}
 
+  if (mdt->DrawBitmap){
+    int space = mdt->DrawBitmap(dis);
+    if (space > 0){
+      dis->rcItem.left += space;
+      hasBitmap = true;
+    }
+  }
+
 	if (!hasBitmap){
 		dis->rcItem.left += LEFT_SPACE;
 	}
-	dis->rcItem.left += 2;
+
+  dis->rcItem.left += 2;
 
 	char *tab = strrchr(string, '\t');
 	int leftLen, rightLen;
