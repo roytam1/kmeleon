@@ -301,7 +301,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
             rectFullScreenWindowRect = rectWindow;
             wpNew = fs->wpOld;
 
-            wpNew.showCmd = SW_SHOWNORMAL;
+            if (fs->wpOld.showCmd!=SW_SHOWMINIMIZED)
+               wpNew.showCmd = SW_SHOWNORMAL;
             wpNew.rcNormalPosition = rectWindow;
 
             HideClutter(hWnd, fs);
