@@ -87,18 +87,6 @@ int CPlugins::OnUpdate(UINT command)
    return false;
 }
 
-void CPlugins::OnCreate(HWND wnd)
-{
-   POSITION pos = pluginList.GetStartPosition();
-   kmeleonPlugin * kPlugin;
-   CString s;
-   while (pos) {
-      pluginList.GetNextAssoc( pos, s, kPlugin);
-      if (kPlugin->loaded && kPlugin->pf->Create) 
-         kPlugin->pf->Create(wnd);
-   }
-}
-
 void NavigateTo(const char *url, int windowState)
 {
    CBrowserFrame *mainFrame = theApp.m_pMostRecentBrowserFrame;
@@ -250,31 +238,47 @@ void RegisterBand(HWND hWnd, char *name, int visibleOnMenu)
    theApp.m_pMostRecentBrowserFrame->m_wndReBar.RegisterBand(hWnd, name, visibleOnMenu);
 }
 
-int GetAccel(char *plugin, char *params) {
-   kmeleonPlugin * kPlugin = theApp.plugins.Load(plugin);
-   
-   if (kPlugin && kPlugin->loaded) {
-      if (kPlugin->pf->DoAccel) {
-         return kPlugin->pf->DoAccel(params);
-      }
-      else
-         return 0;
-   }
-   else
-      return -1;
-}
-
 // This lets a plugin create a toolbar within the current browser frame
 // the advantage of having K-Meleon create the toolbar is that it will
 // be handled through MFC, which will handle the button states through
 // UPDATE_UI calls
 HWND CreateToolbar(HWND hWnd, UINT style) {
    CBrowserFrame *browserFrm = (CBrowserFrame *)CWnd::FromHandle(hWnd);
-   return browserFrm->CreateToolbar(style);
+
+   if (browserFrm)
+      return browserFrm->CreateToolbar(style);
+   else
+      return NULL;
 }
 
+long CPlugins::SendMessage(const char *to, const char *from, const char *subject, long data1, long data2)
+{
+   long retVal = 0;
+
+   POSITION pos = pluginList.GetStartPosition();
+   kmeleonPlugin * kPlugin;
+   CString s;
+   while (pos) {
+      pluginList.GetNextAssoc( pos, s, kPlugin);
+      if (kPlugin->loaded && kPlugin->DoMessage) {
+         retVal += kPlugin->DoMessage(to, from, subject, data1, data2);
+      }
+   }
+   return retVal;
+}
+
+long SendMessage(const char *to, const char *from, const char *subject, long data1, long data2)
+{
+   // * is reserved for internal k-meleon messages.  plugins may not use it
+   if (from[0] == '*') {
+      return 0;
+   }
+
+   return theApp.plugins.SendMessage(to, from, subject, data1, data2);
+}
 
 kmeleonFunctions kmelFuncs = {
+   SendMessage,
    GetCommandIDs,
    NavigateTo,
    GetDocInfo,
@@ -283,13 +287,11 @@ kmeleonFunctions kmelFuncs = {
    GetMozillaSessionHistory,
    GotoHistoryIndex,
    RegisterBand,
-   GetAccel,
    CreateToolbar
 };
 
 BOOL CPlugins::TestLoad(const char *file, const char *description)
 {
-
    char preference[128] = "kmeleon.plugins.";
    strcat(preference, file);
    strcat(preference, ".load");
@@ -308,7 +310,6 @@ BOOL CPlugins::TestLoad(const char *file, const char *description)
       theApp.preferences.SetBool(preference, load);
    }
    return load;
-
 }
 
 kmeleonPlugin * CPlugins::Load(char *file)
@@ -367,43 +368,60 @@ kmeleonPlugin * CPlugins::Load(char *file)
 
    if (!kpg) {
       FreeLibrary(plugin);
-      return 0;
+      return NULL;
    }
 
    kPlugin = kpg();
 
    if (!kPlugin) {
       FreeLibrary(plugin);
-      return 0;
+      return NULL;
    }
 
    kPlugin->hParentInstance = AfxGetInstanceHandle();
    kPlugin->hDllInstance = plugin;
-   kPlugin->kf = &kmelFuncs;
+   kPlugin->kFuncs = &kmelFuncs;
 
    // truncate the .dll extension in noPath
    if (dot)
       *dot = 0;
 
-   // If the plugin is enabled, get its functions and call init   
-   if (( kPlugin->loaded=TestLoad(noPath, kPlugin->description))) {
-      kPlugin->pf->Init();
-   }
-   // otherwise, make a copy of the descripion, and unload it
-   else {
-      kmeleonPlugin *temp = new kmeleonPlugin;
-      char *sBuf = new char[strlen(kPlugin->description)+1];
-      temp->description = sBuf;
-      strcpy(temp->description, kPlugin->description);
-      temp->loaded = false;
-      FreeLibrary(plugin);
-      kPlugin=temp;
-   }
-
    // save the filename
    char *name = new char[strlen(noPath)+1];
    strcpy(name, noPath);
    kPlugin->dllname=name;
+
+   int loaded = kPlugin->loaded=TestLoad(noPath, kPlugin->description);
+
+   if (kPlugin->version < KMEL_PLUGIN_VER_MAJOR) {
+      CString error;
+      error.Format(IDS_OLD_PLUGIN, kPlugin->description);
+
+      AfxMessageBox(error);
+
+      loaded = false;
+   }
+
+   // If the plugin is enabled, tell it to Init
+   if ( loaded ) {
+      kPlugin->DoMessage(kPlugin->dllname, "* Plugin Manager", "Init", 0, 0);
+   }
+   // otherwise, make a copy of the descripion, and unload it
+   else {
+      kmeleonPlugin *temp = new kmeleonPlugin;
+
+      char *sBuf = new char[strlen(kPlugin->description)+1];
+      temp->description = sBuf;
+      strcpy(temp->description, kPlugin->description);
+
+      temp->dllname = name;
+
+      temp->loaded = false;
+
+      kPlugin=temp;
+
+      FreeLibrary(plugin);
+   }
 
    pluginList.SetAt(noPath, kPlugin);
    
@@ -439,6 +457,8 @@ int CPlugins::FindAndLoad(const char *pattern)
 
 void CPlugins::UnLoadAll()
 {
+   SendMessage("*", "* Plugin Manager", "Quit");
+
    POSITION pos = pluginList.GetStartPosition();
    kmeleonPlugin * kPlugin;
    CString s;
@@ -447,7 +467,6 @@ void CPlugins::UnLoadAll()
       if (kPlugin) {
          delete kPlugin->dllname;
          if (kPlugin->loaded) {
-            kPlugin->pf->Quit();
             FreeLibrary(kPlugin->hDllInstance);
          }
          else  { // the plugin was disabled, delete the copied description
@@ -460,18 +479,6 @@ void CPlugins::UnLoadAll()
    currentCmdID = PLUGIN_COMMAND_START_ID;
 }
 
-void CPlugins::DoRebars(HWND rebarWnd)
-{
-   POSITION pos = pluginList.GetStartPosition();
-   kmeleonPlugin * kPlugin;
-   CString s;
-   while (pos) {
-      pluginList.GetNextAssoc( pos, s, kPlugin);
-      if (kPlugin->loaded && kPlugin->pf->DoRebar)
-         kPlugin->pf->DoRebar(rebarWnd);
-   }
-}
-
 int CPlugins::GetConfigFiles(configFileType *configFiles, int maxFiles)
 {
    int numFiles = 0;
@@ -480,9 +487,11 @@ int CPlugins::GetConfigFiles(configFileType *configFiles, int maxFiles)
    CString s;
    while (pos) {
       pluginList.GetNextAssoc( pos, s, kPlugin);
-      if (kPlugin->loaded && kPlugin->pf->GetConfigFiles) {
+
+      if (kPlugin->loaded && kPlugin->DoMessage) {
          configFileType *tempConfigFiles;
-         int numTempConfigFiles = kPlugin->pf->GetConfigFiles(&tempConfigFiles);
+         int numTempConfigFiles=0;
+         kPlugin->DoMessage(kPlugin->dllname, "* Plugin Manager", "GetConfigFiles", (long)&tempConfigFiles, (long)&numTempConfigFiles);
          int i = 0;
          while (numFiles < maxFiles && i < numTempConfigFiles) {
             memcpy(&configFiles[numFiles++], &tempConfigFiles[i++], sizeof(configFileType));

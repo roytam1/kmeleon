@@ -44,10 +44,9 @@ public:
 
    int FindAndLoad(const char *pattern = "*.dll");
    kmeleonPlugin * Load(char *file);
-   void OnCreate(HWND wnd);
-   //LRESULT OnMessage(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam);
    int  OnUpdate(UINT command);
-   void DoRebars(HWND rebarWnd);
+
+   long SendMessage(const char *to, const char *from, const char *subject, long data1=0, long data2=0);
 
    int GetConfigFiles(configFileType *configFiles, int maxFiles);
 };

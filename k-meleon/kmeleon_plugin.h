@@ -19,6 +19,10 @@
 #ifndef __KMELEON_PLUGIN_H__
 #define __KMELEON_PLUGIN_H__
 
+#define KMEL_PLUGIN_VER_MAJOR 0x0200
+#define KMEL_PLUGIN_VER_MINOR 0x0001
+#define KMEL_PLUGIN_VER KMEL_PLUGIN_VER_MAJOR | KMEL_PLUGIN_VER_MINOR
+
 #ifdef KMELEON_PLUGIN_EXPORTS
 #define KMELEON_PLUGIN __declspec(dllexport)
 #else
@@ -47,6 +51,8 @@ enum PREFTYPE {
 };
 
 typedef struct {
+   long (*SendMessage)(const char *to, const char *from, const char *subject, long data1, long data2);
+
    // this function allocates <num> successive ids for the plugin, then returns the first one.
    // use it to get an unused command id.  this way plugins won't step on others toes.
    UINT (*GetCommandIDs)(int num);
@@ -67,9 +73,6 @@ typedef struct {
    // Register a rebar band
    void (*RegisterBand) (HWND hWnd, char *name, int visibleOnMenu = true);
 
-   // Query another plugin's accelerators
-   int   (*GetAccel) (char *plugin, char *param);
-
    /*
    CCS_NODIVIDER | CCS_NOPARENTALIGN | CCS_NORESIZE | //CCS_ADJUSTABLE |
    TBSTYLE_FLAT | TBSTYLE_TRANSPARENT | TBSTYLE_LIST | TBSTYLE_TOOLTIPS
@@ -89,6 +92,8 @@ typedef struct {
 
 } kmeleonFunctions;
 
+/*
+
 typedef struct {
    int   (*Init)    ();
    void  (*Create)  (HWND parent);
@@ -100,24 +105,25 @@ typedef struct {
    int   (*GetConfigFiles)(configFileType **configFiles);
 } pluginFunctions;
 
+*/
+
 typedef struct {
   // Filled in by the plugin
 	int version;
 	char *description;
 
-   pluginFunctions *pf;
+   long  (*DoMessage)(const char *to, const char *from, const char *subject, long data1, long data2);
 
   // Filled in by k-meleon
 	HINSTANCE hParentInstance;
 	HINSTANCE hDllInstance;
 
-   kmeleonFunctions *kf;
+   kmeleonFunctions *kFuncs;
+
    char *dllname;
    BOOL loaded;
 
 } kmeleonPlugin;
-
-#define KMEL_PLUGIN_VER 0x10
 
 typedef kmeleonPlugin * (*KmeleonPluginGetter)();
 
