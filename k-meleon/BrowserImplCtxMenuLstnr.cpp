@@ -26,6 +26,10 @@
 #include "BrowserImpl.h"
 #include "IBrowserFrameGlue.h"
 
+
+#include "nsIDOMEvent.h"
+#include "nsIDOMEventTarget.h"
+
 //*****************************************************************************
 // CBrowserImpl::nsIContextMenuListener
 //*****************************************************************************   

@@ -222,7 +222,7 @@
 #define IDC_SCALE                       1128
 #define IDC_SCALE_TXT                   1129
 #define IDC_PRT_BGIMAGES                1130
-#define IDC_FIND_EDIT                   1131
+#define IDC_FIND_EDIT                   1152
 #define ID_NAV_BACK                     32773
 #define ID_NAV_FORWARD                  32774
 #define ID_NAV_HOME                     32775
@@ -254,6 +254,9 @@
 #define ID_TOOLBARS_LOCK                32803
 #define ID_VIEW_FRAME_SOURCE            32804
 #define ID_OPEN_FRAME_IN_NEW_WINDOW     32805
+#define ID_OPEN_LINK                    32806
+#define ID_OPEN_FRAME                   32807
+#define ID_OPEN_FRAME_IN_BACKGROUND     32808
 #define IDS_FAILED_TO_CREATE_BROWSER    61204
 #define IDS_NEW_PLUGIN_FOUND            61205
 #define IDS_PLUGIN_NO_OPTIONS           61206

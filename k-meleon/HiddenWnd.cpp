@@ -36,7 +36,7 @@ BOOL CHiddenWnd::PreCreateWindow(CREATESTRUCT& cs) {
 
    if( !CFrameWnd::PreCreateWindow(cs) )
 		return FALSE;
-   cs.lpszClass = theApp.GetMainWindowClassName();
+   cs.lpszClass = HIDDEN_WINDOW_CLASS;
 
    return TRUE;
 }

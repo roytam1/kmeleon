@@ -118,8 +118,8 @@ NS_IMETHODIMP CBrowserView::URISaveAs(nsIURI* aURI, bool bDocument)
 
 	// Get the "path" portion (see nsIURI.h for more info
 	// on various parts of a URI)
-	nsXPIDLCString path;
-	aURI->GetPath(getter_Copies(path));
+	nsCAutoString path;
+	aURI->GetPath(path);
 
    char sDefault[] = "default.htm";
    char *pFileName = sDefault;
@@ -153,7 +153,7 @@ NS_IMETHODIMP CBrowserView::URISaveAs(nsIURI* aURI, bool bDocument)
       }
    }
    else {
-   	aURI->GetHost(getter_Copies(path));
+   	aURI->GetHost(path);
       if (strlen(path.get()) >= 1) {
    	   pBuf = new char[strlen(path.get()) + 5];  // +5 for ".htm" to be safely appended, if necessary
          strcpy(pBuf, path.get());
@@ -289,25 +289,27 @@ void CBrowserView::OpenURLInNewWindow(const PRUnichar* pUrl, BOOL bBackground)
 
 	// Note that OpenURL() is overloaded - one takes a "char *"
 	// and the other a "PRUniChar *". We're using the "PRUnichar *"
-	// version here
+	// version here 
 
    pFrm->m_wndBrowserView.OpenURL(pUrl);
 
    // show the window
    if (bBackground)
-         pFrm->SetWindowPos(&wndBottom, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | SWP_SHOWWINDOW);
+      pFrm->ShowWindow(SW_MINIMIZE);
+//      pFrm->SetWindowPos(&wndBottom, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | SWP_SHOWWINDOW);
+         /* Show the window minimized, instead of on the bottom, because mozilla freaks out if we put it on the bottom */
+
    else
       pFrm->ShowWindow(SW_SHOW);
-  
 }
 
 
 void CBrowserView::LoadHomePage()
 {
-  if (theApp.preferences.bStartHome)
-    OnNavHome();
-  else
-    OpenURL("about:blank");
+   if (theApp.preferences.bStartHome)
+      OnNavHome();
+   else
+      OpenURL("about:blank");
 }
 
 
@@ -326,7 +328,7 @@ void CBrowserView::UpdateBusyState(PRBool aBusy)
 {
 	mbDocumentLoading = aBusy;
 
-	if (mbDocumentLoading){
+   if (mbDocumentLoading){
 		mpBrowserFrame->m_wndAnimate.Play(0, -1, -1);
 	}
 	else {
@@ -344,6 +346,12 @@ void CBrowserView::SetCtxMenuImageSrc(nsAutoString& strImgSrc)
 {
 	mCtxMenuImgSrc = strImgSrc;
 }
+
+void CBrowserView::SetCurrentFrameURL(nsAutoString& strCurrentFrameURL)
+{
+	mCtxMenuCurrentFrameURL = strCurrentFrameURL;
+}
+
 
 char * CBrowserView::GetTempFile()
 {
@@ -389,8 +397,8 @@ int CBrowserView::GetCurrentURI(char *sURI)
       return 0;
 
    // Get the uri string associated with the nsIURI object
-	nsXPIDLCString uriString;
-	rv = currentURI->GetSpec(getter_Copies(uriString));
+	nsCAutoString uriString;
+	rv = currentURI->GetSpec(uriString);
 	if(NS_FAILED(rv))
 		return 0;
 
@@ -410,4 +418,69 @@ void CBrowserView::ShowSecurityInfo()
       // TEMPORARY.  this should be replaced with something more permanent
       AfxMessageBox("This page has been transferred over a secure connection.");
    }
+}
+
+/*
+
+   The GetNodeAtPoint function is a really gross hack.
+   Essentially, Mozilla doesn't expose any way for us to
+   get information about the DOM given a specific point.
+   As a workaround, we simply tell mozilla to post a context
+   menu, and then trap it right before the menu pops up.
+
+   This becomes even worse when we find that mozilla ignores
+   the coordinates specified in the window message and, instead,
+   calls GetMessagePos, which means that we need to call
+   SetCursorPos() so that windows will attach the coordinates we
+   want to the message we send to mozilla.
+
+   Even worse, windows doesn't seem to immediately process the
+   SetCursorPos() function, so we muck about with the message
+   queue for a bit to let windows figure out that the cursor
+   has changed positions.
+
+   The bPrepareMenu flag determines whether or not the global
+   variables that get set in preparation for use by identifiers
+   like ID_OPEN_LINK_IN_NEW_WINDOW
+
+*/
+
+nsIDOMNode *CBrowserView::GetNodeAtPoint(int x, int y, BOOL bPrepareMenu) {
+
+	// Make sure a page is actually being displayed
+   nsresult rv = NS_OK;
+   nsCOMPtr<nsIURI> currentURI;
+   rv = mWebNav->GetCurrentURI(getter_AddRefs(currentURI));
+   if(NS_FAILED(rv) || !currentURI)
+      return NULL;
+
+   m_iGetNodeHack = bPrepareMenu ? 2 : 1;
+
+   HWND hWnd = ::GetFocus();  
+   if (!::IsChild(m_hWnd, hWnd)) {
+      SetFocus();
+      hWnd = ::GetFocus();
+   }
+
+   POINT pt;
+   ::GetCursorPos(&pt);
+   ::ShowCursor(FALSE);
+   ::SetCursorPos(x, y);
+
+   // swing throught the message pump a bit, so that windows can process
+   // the cursor movement (important, because mozilla uses GetMessagePos to
+   // determine where the mouse was clicked)
+   MSG msg;
+   while (::PeekMessage(&msg,0,0,0,PM_NOREMOVE)) { 
+      if (!theApp.PumpMessage()) { 
+         ::PostQuitMessage(0);  break; 
+      }
+   } 
+   
+   ::SendMessage(hWnd, WM_CONTEXTMENU, (WPARAM) hWnd, MAKELONG(x, y));
+   ::SetCursorPos(pt.x, pt.y);
+   ::ShowCursor(TRUE);
+
+   return m_pGetNode;
+
 }

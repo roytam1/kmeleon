@@ -193,7 +193,7 @@ int CPrintSetupDialog::GetPaperSizeIndex(const CString& aStr)
 void CPrintSetupDialog::GetPaperSizeInfo(short& aUnit, double& aWidth, double& aHeight)
 {
   if (gPaperSize[m_PaperSizeInx].mIsUserDefined) {
-    aUnit   = m_IsInches < 1?nsIPrintSettings::kPaperSizeInches:nsIPrintSettings::kPaperSizeMillimeters;
+    aUnit   = m_IsInches == 0?nsIPrintSettings::kPaperSizeInches:nsIPrintSettings::kPaperSizeMillimeters;
     aWidth  = m_PaperWidth;
     aHeight = m_PaperHeight;
   } else {

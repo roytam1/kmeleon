@@ -94,9 +94,7 @@ CMfcEmbedApp::CMfcEmbedApp()
    
    mRefCnt = 1; // Start at one - nothing is going to addref this object
    m_pMostRecentBrowserFrame  = NULL;
-   m_toolbarControlsMenu = NULL;
-     
-   m_sMainWindowClassName = _T("KMeleon");
+   m_toolbarControlsMenu = NULL;     
 }
 
 CMfcEmbedApp theApp;
@@ -159,9 +157,6 @@ nsresult CMfcEmbedApp::OverrideComponents()
    return rv;
 }
 
-LPCTSTR CMfcEmbedApp::GetMainWindowClassName() {
-   return   m_sMainWindowClassName;
-}
 
 // Initialize our MFC application and also init
 // the Gecko embedding APIs
@@ -188,7 +183,7 @@ BOOL CMfcEmbedApp::InitInstance()
    // eventually, we should handle this through DDE
    if (m_bAlreadyRunning) {
       // find the hidden window
-      if (HWND hwndPrev = FindWindowEx(NULL, NULL, GetMainWindowClassName(), NULL) ) {
+      if (HWND hwndPrev = FindWindowEx(NULL, NULL, HIDDEN_WINDOW_CLASS, NULL) ) {
          if(*m_lpCmdLine) {
             COPYDATASTRUCT copyData;
             copyData.cbData = strlen(m_lpCmdLine)+1;
@@ -247,6 +242,26 @@ BOOL CMfcEmbedApp::InitInstance()
 
    InitializeMenusAccels();
    
+
+   
+   
+   
+   //	Register the hidden window class
+   WNDCLASS wc = { 0 };
+   wc.lpfnWndProc =  AfxWndProc;
+   wc.hInstance = AfxGetInstanceHandle();
+   wc.lpszClassName = HIDDEN_WINDOW_CLASS;
+   wc.hIcon = LoadIcon( IDR_MAINFRAME );
+   AfxRegisterClass( &wc );
+   
+
+   //	Register the browser window class
+   wc.lpszClassName = BROWSER_WINDOW_CLASS;
+   AfxRegisterClass( &wc );
+   
+   
+   
+   
    // the hidden window will take care of creating the first
    // browser window for us
    if(!CreateHiddenWindow()){
@@ -254,7 +269,7 @@ BOOL CMfcEmbedApp::InitInstance()
       NS_TermEmbedding();
       return FALSE;
    }
-   
+
    return TRUE;
 }
 
@@ -426,7 +441,7 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
       pOldRecentFrame = pFrame;
 
 
-   if (!pFrame->Create(NULL, strTitle, style, winSize, m_pMainWnd, NULL, 0L, NULL))
+   if (!pFrame->Create(BROWSER_WINDOW_CLASS, strTitle, style, winSize, m_pMainWnd, NULL, 0L, NULL))
       return NULL;
    
    pFrame->SetIcon(LoadIcon(IDR_MAINFRAME), true);
@@ -466,6 +481,7 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
 
 void CMfcEmbedApp::OnNewBrowser()
 {
+
    char *sURI = NULL;
    if (preferences.iNewWindowOpenAs == PREF_NEW_WINDOW_CURRENT) {
       // check that the current window has a URI loaded
@@ -509,6 +525,7 @@ void CMfcEmbedApp::OnNewBrowser()
          break;
       }
    }
+
 }
 
 // This gets called anytime a BrowserFrameWindow is
@@ -669,15 +686,6 @@ BOOL CMfcEmbedApp::InitializeProfiles() {
 // switches
 BOOL CMfcEmbedApp::CreateHiddenWindow()
 {
-   //	Register the main window class
-   WNDCLASS wc = { 0 };
-   wc.style = CS_DBLCLKS | CS_HREDRAW | CS_VREDRAW;
-   wc.lpfnWndProc =  AfxWndProc;
-   wc.hInstance = AfxGetInstanceHandle();
-   wc.lpszClassName = m_sMainWindowClassName;
-   wc.hIcon = LoadIcon( IDR_MAINFRAME );
-   AfxRegisterClass( &wc );
-   
    CFrameWnd *hiddenWnd = new CHiddenWnd;
    if(!hiddenWnd)
       return FALSE;
@@ -686,9 +694,10 @@ BOOL CMfcEmbedApp::CreateHiddenWindow()
    m_pMainWnd = hiddenWnd;
    
    RECT bounds = { -10, -10, -1, -1 };
-   hiddenWnd->Create(m_sMainWindowClassName, "K-Meleon hidden window", 0, bounds, NULL, NULL, 0, NULL);
+   hiddenWnd->Create(HIDDEN_WINDOW_CLASS, "K-Meleon hidden window", 0, bounds, NULL, NULL, 0, NULL);
 
    return TRUE;
+
 }
 
 nsresult CMfcEmbedApp::InitializePrefs(){
@@ -867,7 +876,7 @@ void CMfcEmbedApp::InitializeDefineMap() {
 }
 
 int CMfcEmbedApp::GetID(char *strID) {
-   int val;
+   int val = 0;
    defineMap.Lookup(strID, val);
    return val;
 }

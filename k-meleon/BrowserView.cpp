@@ -103,6 +103,7 @@ BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
 	ON_COMMAND(ID_EDIT_SELECT_NONE, OnSelectNone)
 	ON_COMMAND(ID_COPY_LINK_LOCATION, OnCopyLinkLocation)
 	ON_COMMAND(ID_COPY_IMAGE_LOCATION, OnCopyImageLocation)
+	ON_COMMAND(ID_OPEN_LINK, OnOpenLink)
 	ON_COMMAND(ID_OPEN_LINK_IN_NEW_WINDOW, OnOpenLinkInNewWindow)
 	ON_COMMAND(ID_OPEN_LINK_IN_BACKGROUND, OnOpenLinkInBackground)
 	ON_COMMAND(ID_VIEW_IMAGE, OnViewImageInNewWindow)
@@ -113,7 +114,9 @@ BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
    ON_COMMAND(ID_FILE_PRINTPREVIEW, OnFilePrintPreview)
    ON_COMMAND(ID_FILE_PRINTSETUP, OnFilePrintSetup)
    ON_COMMAND(ID_VIEW_FRAME_SOURCE, OnViewFrameSource)
+   ON_COMMAND(ID_OPEN_FRAME, OnOpenFrame)
    ON_COMMAND(ID_OPEN_FRAME_IN_NEW_WINDOW, OnOpenFrameInNewWindow)
+   ON_COMMAND(ID_OPEN_FRAME_IN_BACKGROUND, OnOpenFrameInBackground)
    ON_COMMAND(ID_EDIT_FINDNEXT, OnFindNext)
    ON_COMMAND(ID_EDIT_FINDPREV, OnFindPrev)
    ON_REGISTERED_MESSAGE(WM_FINDMSG, OnFindMsg) 
@@ -157,6 +160,9 @@ CBrowserView::CBrowserView()
    m_SecurityState = SECURITY_STATE_INSECURE;
 
    m_tempFileCount = 0;
+
+   m_iGetNodeHack = 0;
+   m_pGetNode = NULL;
 }
 
 CBrowserView::~CBrowserView()
@@ -268,17 +274,11 @@ HRESULT CBrowserView::CreateBrowser()
 
    nsWeakPtr weakling( dont_AddRef(NS_GetWeakReference(NS_STATIC_CAST(nsIWebProgressListener*, mpBrowserImpl))));
    (void)mWebBrowser->AddWebBrowserListener(weakling, NS_GET_IID(nsIWebProgressListener));
-
-   // Get the printer settings
-   nsCOMPtr<nsIWebBrowserPrint> print(do_GetInterface(mWebBrowser));
-   if (print) {
-      print->GetPrintSettings(getter_AddRefs(m_PrintSettings));
-   }
-
-	// Finally, show the web browser window
+   
+   // Finally, show the web browser window
 	mBaseWindow->SetVisibility(PR_TRUE);
 
-	return S_OK;
+   return S_OK;
 }
 
 HRESULT CBrowserView::DestroyBrowser()
@@ -335,15 +335,10 @@ void CBrowserView::SetBrowserFrameGlue(PBROWSERFRAMEGLUE pBrowserFrameGlue)
 	mpBrowserFrameGlue = pBrowserFrameGlue;
 }
 
-void CBrowserView::SetCurrentFrameURL(nsAutoString& strCurrentFrameURL)
-{
-	mCtxMenuCurrentFrameURL = strCurrentFrameURL;
-}
-
 void CBrowserView::Activate(UINT nState, CWnd* pWndOther, BOOL bMinimized)
 {
    nsCOMPtr<nsIWebBrowserFocus> focus(do_GetInterface(mWebBrowser));
-   if(!focus)      
+   if(!focus)
       return;
 
    switch(nState) {
@@ -405,10 +400,22 @@ void CBrowserView::OnViewFrameSource()
     OpenViewSourceWindow(viewSrcUrl.get());
 }
 
+void CBrowserView::OnOpenFrame()
+{
+	if(mCtxMenuCurrentFrameURL.Length())
+		OpenURL(mCtxMenuCurrentFrameURL.get());
+}
+
 void CBrowserView::OnOpenFrameInNewWindow()
 {
 	if(mCtxMenuCurrentFrameURL.Length())
 		OpenURLInNewWindow(mCtxMenuCurrentFrameURL.get());
+}
+
+void CBrowserView::OnOpenFrameInBackground()
+{
+	if(mCtxMenuCurrentFrameURL.Length())
+		OpenURLInNewWindow(mCtxMenuCurrentFrameURL.get(), true);
 }
 
 void CBrowserView::OnDropFiles( HDROP drop )
@@ -552,8 +559,8 @@ void CBrowserView::OnViewSource()
       return;
 
    // Get the uri string associated with the nsIURI object
-   nsXPIDLCString uriString;
-   rv = currentURI->GetSpec(getter_Copies(uriString));
+   nsCAutoString uriString;
+   rv = currentURI->GetSpec(uriString);
    if(NS_FAILED(rv))
       return;
 
@@ -620,7 +627,10 @@ void CBrowserView::OnUpdateNavForward(CCmdUI* pCmdUI)
 
 void CBrowserView::OnNavHome()
 {
-   OpenURL(theApp.preferences.homePage);
+   if (!theApp.preferences.homePage.IsEmpty())
+      OpenURL(theApp.preferences.homePage);
+   else
+      OpenURL("about:blank");
 }
 
 // this should probably go in BrowserViewUtils.cpp, but I don't want to add a function prototype :)
@@ -648,6 +658,14 @@ BOOL CALLBACK SearchProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
    return false;
 }
+
+struct s_element {
+   char *image;
+   char *link;
+   char *frame;
+   char *page;
+};
+s_element *GetElementAtPoint(int x, int y);
 
 void CBrowserView::OnNavSearch()
 {
@@ -873,6 +891,12 @@ void CBrowserView::OnCopyLinkLocation()
 	CloseClipboard();
 }
 
+void CBrowserView::OnOpenLink()
+{
+	if(mCtxMenuLinkUrl.Length())
+		OpenURL(mCtxMenuLinkUrl.get());
+}
+
 void CBrowserView::OnOpenLinkInNewWindow()
 {
 	if(mCtxMenuLinkUrl.Length())
@@ -942,26 +966,27 @@ void CBrowserView::OnFilePrint()
   else
 	NS_ASSERTION(PR_FALSE, "Could not get preferences service");
 
-  nsCOMPtr<nsIDOMWindow> domWindow;
-	mWebBrowser->GetContentDOMWindow(getter_AddRefs(domWindow));
-  if(domWindow) {
-	  nsCOMPtr<nsIWebBrowserPrint> print(do_GetInterface(mWebBrowser));
-	  if(print)
-	  {
-      CPrintProgressDialog  dlg(mWebBrowser, domWindow, m_PrintSettings);
+  nsCOMPtr<nsIWebBrowserPrint> print(do_GetInterface(mWebBrowser));
+	if(print)
+	{
 
-	    nsCOMPtr<nsIURI> currentURI;
-	    nsresult rv = mWebNav->GetCurrentURI(getter_AddRefs(currentURI));
-      if(NS_SUCCEEDED(rv) || currentURI) 
-      {
-	      nsXPIDLCString path;
-	      currentURI->GetPath(getter_Copies(path));
-        dlg.SetURI(path.get());
-      }
-      m_bCurrentlyPrinting = TRUE;
-      dlg.DoModal();
-      m_bCurrentlyPrinting = FALSE;
+   // Get the printer settings
+   if (!m_PrintSettings)
+      print->GetNewPrintSettings(getter_AddRefs(m_PrintSettings));
+
+    CPrintProgressDialog  dlg(mWebBrowser, m_PrintSettings);
+
+	  nsCOMPtr<nsIURI> currentURI;
+	  nsresult rv = mWebNav->GetCurrentURI(getter_AddRefs(currentURI));
+    if(NS_SUCCEEDED(rv) || currentURI) 
+    {
+	    nsCAutoString path;
+	    currentURI->GetPath(path);
+      dlg.SetURI(path.get());
     }
+    m_bCurrentlyPrinting = TRUE;
+    dlg.DoModal();
+    m_bCurrentlyPrinting = FALSE;
   }
 }
 
@@ -977,16 +1002,16 @@ void CBrowserView::OnUpdateViewStatusBar(CCmdUI* pCmdUI)
  
 
 void CBrowserView::OnFilePrintPreview()                                         
-{                                                                                 
-   nsCOMPtr<nsIDOMWindow> domWindow;   
-   mWebBrowser->GetContentDOMWindow(getter_AddRefs(domWindow));                   
-   if(domWindow) {                                                                     
-      nsCOMPtr<nsIWebBrowserPrint> print(do_GetInterface(mWebBrowser));               
-      if(print) {                                                                                  
-         print->PrintPreview(domWindow, m_PrintSettings);                                   
-      }                                                                                 
-   }                                                                                
-}                                                                               
+{
+   nsCOMPtr<nsIWebBrowserPrint> print(do_GetInterface(mWebBrowser));
+   if(print) {
+      // Get the printer settings
+      if (!m_PrintSettings)
+         print->GetNewPrintSettings(getter_AddRefs(m_PrintSettings));
+
+      print->PrintPreview(m_PrintSettings);
+   }
+}
 
 static float GetFloatFromStr(const char* aStr, float aMaxVal = 1.0)             
 {                                                                               
@@ -1009,7 +1034,13 @@ static PRUnichar* GetUnicodeFromCString(const CString& aStr)
 
 void CBrowserView::OnFilePrintSetup()
 {
-  CPrintSetupDialog  dlg(m_PrintSettings);
+
+   // Get the printer settings
+   nsCOMPtr<nsIWebBrowserPrint> print(do_GetInterface(mWebBrowser));
+	if(print && !m_PrintSettings)
+      print->GetNewPrintSettings(getter_AddRefs(m_PrintSettings));
+   
+   CPrintSetupDialog  dlg(m_PrintSettings);
   if (dlg.DoModal() == IDOK && m_PrintSettings != NULL) {
     m_PrintSettings->SetMarginTop(GetFloatFromStr(dlg.m_TopMargin));
     m_PrintSettings->SetMarginLeft(GetFloatFromStr(dlg.m_LeftMargin));
