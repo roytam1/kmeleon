@@ -82,7 +82,8 @@ ID_BLARG2
 char settingsPath[MAX_PATH];
 
 std::vector<HMENU> menus;
-int refCount;
+
+BOOL bFirstRun;
 
 HIMAGELIST hImageList;
 
@@ -92,8 +93,6 @@ BmpMapT bmpMap;
 
 // maps "ID_BLAH" to ID_BLAH
 typedef std::map<std::string, int> DefineMapT;
-
-BOOL bFirstRun=TRUE;
 
 
 void ParseConfig(char *buffer) {
@@ -163,6 +162,8 @@ void ParseConfig(char *buffer) {
 }
 
 int Init() {
+   bFirstRun = TRUE;
+
    kPlugin.kf->GetPreference(PREF_STRING, "kmeleon.general.settingsDir", settingsPath, "");
 
    char cfgPath[MAX_PATH];
@@ -192,6 +193,8 @@ int Init() {
 void Create(HWND parent){
 	KMeleonWndProc = (WNDPROC) GetWindowLong(parent, GWL_WNDPROC);
 	SetWindowLong(parent, GWL_WNDPROC, (LONG)WndProc);
+
+   bFirstRun=FALSE;
 }
 
 void Config(HWND parent){
@@ -219,8 +222,6 @@ void Quit(){
 void DoMenu(HMENU menu, char *param){
    // only do this the first time
    if (bFirstRun) {
-      bFirstRun = FALSE;
-
       menus.push_back(menu);
       if (*param) {
          HINSTANCE plugin = LoadLibrary(param);
