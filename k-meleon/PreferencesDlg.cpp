@@ -493,7 +493,7 @@ void CPreferencePageConfigs::SaveFile(const char *filename)
          nsCOMPtr<nsIPref> prefs(do_GetService(NS_PREF_CONTRACTID, &rv));
          if (NS_SUCCEEDED(rv)) {
             nsCOMPtr<nsILocalFile> prefFile(do_CreateInstance(NS_LOCAL_FILE_CONTRACTID));
-            rv = prefFile->InitWithPath(filename);
+            rv = prefFile->InitWithPath(nsDependentCString(filename));
 
             prefs->ReadUserPrefs(prefFile);
             theApp.preferences.Load();

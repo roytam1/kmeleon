@@ -18,7 +18,7 @@
  * Rights Reserved.
  *
  * Contributor(s): 
- *   Chak Nanga <chak@netscape.com> 
+ *   Chak Nanga <chak@netscape.com>    
  */
 
 // File Overview....
@@ -286,7 +286,7 @@ HRESULT CBrowserView::DestroyBrowser()
 
    DeleteTempFiles();   
 
-   if(mBaseWindow)
+         if(mBaseWindow)
 	{
 		mBaseWindow->Destroy();
       mBaseWindow = nsnull;
@@ -337,6 +337,7 @@ void CBrowserView::SetBrowserFrameGlue(PBROWSERFRAMEGLUE pBrowserFrameGlue)
 
 void CBrowserView::Activate(UINT nState, CWnd* pWndOther, BOOL bMinimized)
 {
+
    nsCOMPtr<nsIWebBrowserFocus> focus(do_GetInterface(mWebBrowser));
    if(!focus)
       return;
@@ -499,6 +500,7 @@ void CBrowserView::OnEditURL( NMHDR * pNotifyStruct, LRESULT * result )
 //
 void CBrowserView::OnNewUrlEnteredInUrlBar()
 {
+
    mpBrowserFrame->m_wndUrlBar.EditChanged(FALSE);
    SetFocus();
    
@@ -595,6 +597,7 @@ void CBrowserView::OnUpdateNavBack(CCmdUI* pCmdUI)
 
 	// Buttons get "stuck" down after selecting
 	// a menu item, this fixes them
+
 	if (m_refreshBackButton) {
 		pCmdUI->Enable(FALSE);
 		pCmdUI->Enable(TRUE);
@@ -658,14 +661,6 @@ BOOL CALLBACK SearchProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
    return false;
 }
-
-struct s_element {
-   char *image;
-   char *link;
-   char *frame;
-   char *page;
-};
-s_element *GetElementAtPoint(int x, int y);
 
 void CBrowserView::OnNavSearch()
 {

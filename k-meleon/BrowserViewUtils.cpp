@@ -47,7 +47,7 @@ BOOL CBrowserView::OpenViewSourceWindow(const char* pUrl)
          if(persist)
          {
             nsCOMPtr<nsILocalFile> file;
-            NS_NewLocalFile(T2A(tempfile), TRUE, getter_AddRefs(file));
+            NS_NewLocalFile(nsDependentCString(T2A(tempfile)), TRUE, getter_AddRefs(file));
 
 
             persist->SaveDocument(nsnull, file, nsnull, nsnull, 0, 0);
@@ -228,12 +228,12 @@ NS_IMETHODIMP CBrowserView::URISaveAs(nsIURI* aURI, bool bDocument)
       if(persist)
       {
          nsCOMPtr<nsILocalFile> file;
-         NS_NewLocalFile(T2A(pStrFullPath), TRUE, getter_AddRefs(file));
+         NS_NewLocalFile(nsDependentCString(T2A(pStrFullPath)), TRUE, getter_AddRefs(file));
 
          nsCOMPtr<nsILocalFile> dataPath;
          if (pStrDataPath)
          {
-            NS_NewLocalFile(pStrDataPath, TRUE, getter_AddRefs(dataPath));
+            NS_NewLocalFile(nsDependentCString(pStrDataPath), TRUE, getter_AddRefs(dataPath));
          }
 
          if (bDocument)

@@ -36,16 +36,16 @@ extern CMfcEmbedApp theApp;
 
 // WARNING: These hard coded names need to go away. They need to
 // come from localizable resources
-#define APP_REGISTRY_NAME "profiles.dat"
+#define APP_REGISTRY_NAME           NS_LITERAL_CSTRING("profiles.dat")
 
-#define PROFILE_ROOT_DIR_NAME       "Profiles"
-#define DEFAULTS_DIR_NAME           "defaults"
-#define DEFAULTS_PREF_DIR_NAME      "pref"
-#define DEFAULTS_PROFILE_DIR_NAME   "profile"
-#define RES_DIR_NAME                "res"
-#define CHROME_DIR_NAME             "chrome"
-#define PLUGINS_DIR_NAME            "plugins"
-#define SEARCH_DIR_NAME             "searchplugins" 
+#define PROFILE_ROOT_DIR_NAME       NS_LITERAL_CSTRING("Profiles")
+#define DEFAULTS_DIR_NAME           NS_LITERAL_CSTRING("defaults")
+#define DEFAULTS_PREF_DIR_NAME      NS_LITERAL_CSTRING("pref")
+#define DEFAULTS_PROFILE_DIR_NAME   NS_LITERAL_CSTRING("profile")
+#define RES_DIR_NAME                NS_LITERAL_CSTRING("res")
+#define CHROME_DIR_NAME             NS_LITERAL_CSTRING("chrome")
+#define PLUGINS_DIR_NAME            NS_LITERAL_CSTRING("plugins")
+#define SEARCH_DIR_NAME             NS_LITERAL_CSTRING("searchplugins")
 
 
 //*****************************************************************************
@@ -85,7 +85,7 @@ winEmbedFileLocProvider::GetFile(const char *prop, PRBool *persistant, nsIFile *
    {
       if (theApp.cmdline.m_sProfilesDir) {
          nsCOMPtr<nsILocalFile> tempPath(do_CreateInstance(NS_LOCAL_FILE_CONTRACTID));
-         rv = tempPath->InitWithPath(theApp.cmdline.m_sProfilesDir);
+         rv = tempPath->InitWithPath(nsDependentCString(theApp.cmdline.m_sProfilesDir));
          if (NS_FAILED(rv)) return rv;
          getter_AddRefs(localFile = tempPath);
          if (NS_FAILED(rv)) return rv;
@@ -100,7 +100,7 @@ winEmbedFileLocProvider::GetFile(const char *prop, PRBool *persistant, nsIFile *
    {
       if (theApp.cmdline.m_sProfilesDir) {
          nsCOMPtr<nsILocalFile> tempPath(do_CreateInstance(NS_LOCAL_FILE_CONTRACTID));
-         rv = tempPath->InitWithPath(theApp.cmdline.m_sProfilesDir);
+         rv = tempPath->InitWithPath(nsDependentCString(theApp.cmdline.m_sProfilesDir));
          if (NS_FAILED(rv)) return rv;
          getter_AddRefs(localFile = tempPath);
          if (NS_FAILED(rv)) return rv;
@@ -281,7 +281,7 @@ NS_METHOD winEmbedFileLocProvider::GetDefaultUserProfileRoot(nsILocalFile **aLoc
    
    if (theApp.cmdline.m_sProfilesDir) {
       nsCOMPtr<nsILocalFile> tempPath(do_CreateInstance(NS_LOCAL_FILE_CONTRACTID));
-      rv = tempPath->InitWithPath(theApp.cmdline.m_sProfilesDir);
+      rv = tempPath->InitWithPath(nsDependentCString(theApp.cmdline.m_sProfilesDir));
       if (NS_FAILED(rv)) return rv;
       getter_AddRefs(localDir = tempPath);
       if (NS_FAILED(rv)) return rv;

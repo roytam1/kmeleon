@@ -68,7 +68,7 @@ NS_IMETHODIMP
 CUnknownContentTypeHandler::PromptForSaveToFile(nsISupports * aWindowContext, const PRUnichar * aDefaultFile, const PRUnichar * aSuggestedFileExtension, nsILocalFile ** aNewFile)
 {
 // change this to 0 to use the mozilla file picker
-#if 1
+#if 0
    USES_CONVERSION;
 
    CString filter = W2T(aSuggestedFileExtension);
@@ -464,17 +464,17 @@ void CProgressDialog::SetLauncher(nsIHelperAppLauncher *aLauncher){
    // mStartTime = timestarted; //PR_Now();
 
 	nsCAutoString uri;
-   char *filepath;
+   nsCAutoString filepath;
 
 	pUri->GetSpec (uri);
-	pFile->GetPath (&filepath);
+	pFile->GetPath (filepath);
 
    SetDlgItemText(IDC_SOURCE, uri.get());
-   SetDlgItemText(IDC_DESTINATION, filepath);
+   SetDlgItemText(IDC_DESTINATION, filepath.get());
 
-   char *file = strrchr(filepath, '\\')+1;
+   char *file = strrchr(filepath.get(), '\\')+1;
    mFileName = strdup(file);
-   mFilePath = strdup(filepath);
+   mFilePath = strdup(filepath.get());
    
 }
 
