@@ -103,6 +103,35 @@ nsresult CProfileMgr::StartUp()
     return NS_OK;
 }
 
+BOOL CProfileMgr::SetCurrentProfile(const char *profile) {
+   nsresult rv;
+
+   nsCOMPtr<nsIProfile> profileService = 
+      do_GetService(NS_PROFILE_CONTRACTID, &rv);
+   if (NS_FAILED(rv)) return FALSE;
+
+   rv = profileService->SetCurrentProfile(NS_ConvertASCIItoUCS2(profile).get());
+   if (NS_FAILED(rv)) return FALSE;
+
+   return TRUE;
+}
+
+BOOL CProfileMgr::SetMostRecentProfile() {
+   nsresult rv;
+
+   nsCOMPtr<nsIProfile> profileService = 
+      do_GetService(NS_PROFILE_CONTRACTID, &rv);
+   if (NS_FAILED(rv)) return FALSE;
+
+   nsXPIDLString   currProfileName;
+   rv = profileService->GetCurrentProfile(getter_Copies(currProfileName));
+   if (NS_FAILED(rv)) return FALSE;
+   rv = profileService->SetCurrentProfile(currProfileName);
+   if (NS_FAILED(rv)) return FALSE;
+
+   return TRUE;
+}
+
 nsresult CProfileMgr::DoManageProfilesDialog(PRBool bAtStartUp)
 {
     CProfilesDlg    dialog;

@@ -42,6 +42,8 @@ class CProfileMgr
     virtual nsresult    StartUp();
     virtual nsresult    DoManageProfilesDialog(PRBool bAtStartUp);
         // If bAtStartUp is TRUE, a profile must be selected.
+    BOOL                SetCurrentProfile(const char *profile);
+    BOOL                SetMostRecentProfile();
     
   protected:
       
