@@ -137,6 +137,7 @@ int ID_START    = -1;
 int ID_END      = -1;
 int iMacroCount = 0;
 int iVarCount   = 0;
+int bStartup    = 1;
 
 #define BEGIN_CMD_TEST if (0) {}
 #define CMD_TEST(CMD)  else if (stricmp(cmd, #CMD) == 0) { cmdVal = ##CMD; }
@@ -203,10 +204,6 @@ int Init() {
    ID_START = kFuncs->GetCommandIDs(iMacroCount);
    ID_END = ID_START+iMacroCount-1;
 
-   int index = FindMacro("OnInit");
-   if (index != NOTFOUND)
-      ExecuteMacro(NULL, index);
-
    return 1;
 }
 
@@ -218,7 +215,12 @@ void Create(HWND hWndParent) {
 	KMeleonWndProc = (WNDPROC) GetWindowLong(hWndParent, GWL_WNDPROC);
 	SetWindowLong(hWndParent, GWL_WNDPROC, (LONG)WndProc);
 
-   int index = FindMacro("OnCreate");
+   int index = FindMacro("OnStartup");
+   if (bStartup && index != NOTFOUND)
+      ExecuteMacro(hWndParent, index);
+   bStartup = 0;
+
+   index = FindMacro("OnOpenWindow");
    if (index != NOTFOUND)
       ExecuteMacro(hWndParent, index);
 }
@@ -2113,6 +2115,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
    case WM_COMMAND:
       if ( (LOWORD(wParam) >= ID_START) && (LOWORD(wParam) <= ID_END) )
          ExecuteMacro(hWnd, LOWORD(wParam)-ID_START);
+      break;
+   case WM_CLOSE:
+      {
+         int index = FindMacro("OnCloseWindow");
+         if (index != NOTFOUND)
+            ExecuteMacro(hWnd, index);
+      }
+      break;
+   case UWM_UPDATESESSIONHISTORY:
+      {
+         int index = FindMacro("OnLoad");
+         if (index != NOTFOUND)
+            ExecuteMacro(hWnd, index);
+      }
+      break;
    }
 
    return CallWindowProc(KMeleonWndProc, hWnd, message, wParam, lParam);
