@@ -135,6 +135,10 @@ SOURCE=..\Utils.h
 
 SOURCE=.\bitmap1.bmp
 # End Source File
+# Begin Source File
+
+SOURCE=.\cursor1.cur
+# End Source File
 # End Group
 # Begin Source File
 
