@@ -130,7 +130,7 @@ public:
 	//{{AFX_VIRTUAL(CBrowserFrame)
 	virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
 	virtual BOOL OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERINFO* pHandlerInfo);
-  virtual LRESULT WindowProc( UINT message, WPARAM wParam, LPARAM lParam );
+  //virtual LRESULT WindowProc( UINT message, WPARAM wParam, LPARAM lParam );
 	//}}AFX_VIRTUAL
 
 // Implementation

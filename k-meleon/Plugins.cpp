@@ -67,7 +67,8 @@ int CPlugins::OnUpdate(UINT command){
   return false;
 }
 
-//  TODO: when a plugin calls GetCommandIDs, register it, then only send them those messages
+#if 0
+// The new way of doing things is for the plugin to subclass our window
 LRESULT CPlugins::OnMessage(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam){
   /*
   if (!OnUpdate(command)){
@@ -88,6 +89,19 @@ LRESULT CPlugins::OnMessage(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam
     }
   }
   return result;
+}
+#endif
+
+void CPlugins::OnCreate(HWND wnd){
+  POSITION pos = pluginList.GetStartPosition();
+  kmeleonPlugin * kPlugin;
+  CString s;
+  while (pos){
+    pluginList.GetNextAssoc( pos, s, kPlugin);
+    if (kPlugin && kPlugin->Create){
+      kPlugin->Create(wnd);
+    }
+  }
 }
 
 void NavigateTo(char *url, int newWindow){

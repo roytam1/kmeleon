@@ -23,8 +23,6 @@
 
 class CMenuParser {
 protected:
-  CFile *menuFile;
-
   CMap<CString, LPCSTR, CMenu *, CMenu *&> menus;
 
 public:

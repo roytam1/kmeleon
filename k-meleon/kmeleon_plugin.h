@@ -35,14 +35,16 @@ typedef struct {
 	int version;
 	char *description;
 	int (*Init)();
-	void (*Config)(HWND parent);
+	void (*Create)(HWND parent);
+  void (*Config)(HWND parent);
 	void (*Quit)();
   void (*DoMenu)(HMENU menu, char *param);
   void (*DoRebar)(HWND rebarWnd);
 
-  LRESULT (*OnMessage)(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam);
-
   // Filled in by k-meleon
+	HINSTANCE hParentInstance;
+	HINSTANCE hDllInstance;
+
   // this function allocates <num> successive ids for the plugin, then returns the first one.
   // use it to get an unused command id.  this way plugins won't step on others toes.
   UINT (*GetCommandIDs)(int num);
@@ -50,9 +52,6 @@ typedef struct {
   void (*NavigateTo)(char *url, int newWindow);
 
   kmeleonDocInfo * (*GetDocInfo)(HWND mainWnd);
-
-	HINSTANCE hParentInstance;
-	HINSTANCE hDllInstance;
 } kmeleonPlugin;
 
 #define KMEL_PLUGIN_VER 0x10

@@ -119,6 +119,8 @@ protected:
 	afx_msg void OnUrlSelectedInUrlBar();
 	afx_msg void OnNewUrlEnteredInUrlBar();
 
+  afx_msg void OnSelectUrl();
+
 	// ToolBar/Menu command handlers
 	//
 	afx_msg void OnFileOpen();

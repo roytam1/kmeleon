@@ -122,10 +122,12 @@ void CBrowserFrame::OnClose()
 // This is where the UrlBar, ToolBar, StatusBar, ProgressBar
 // get created
 //
-int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
-{
+int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct){
 	if (CFrameWnd::OnCreate(lpCreateStruct) == -1)
 		return -1;
+
+  // tell all our plugins that we were created
+  theApp.plugins.OnCreate(this->m_hWnd);
 
 	// Pass "this" to the View for later callbacks
 	// and/or access to any public data members, if needed
@@ -276,13 +278,16 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 	SetupFrameChrome(); 
 
+  m_wndUrlBar.SetFocus();
+
 	return 0;
 }
 
 void CBrowserFrame::SetupFrameChrome()
 {
-	if(m_chromeMask == nsIWebBrowserChrome::CHROME_ALL)
+  if(m_chromeMask == nsIWebBrowserChrome::CHROME_ALL){
 		return;
+  }
 
 	if(! (m_chromeMask & nsIWebBrowserChrome::CHROME_MENUBAR) )
 		SetMenu(NULL); // Hide the MenuBar
@@ -320,8 +325,9 @@ BOOL CBrowserFrame::PreCreateWindow(CREATESTRUCT& cs)
   // this function is actually called twice per window.
   // the first time hInstance is 0
   if (cs.hInstance){
-    if (theApp.menus.GetMenu("Main")){
-      cs.hMenu = theApp.menus.GetMenu("Main")->m_hMenu;
+    CMenu *menu = theApp.menus.GetMenu(_T("Main"));
+    if (menu){
+      cs.hMenu = menu->m_hMenu;
     }
   }
 
@@ -336,6 +342,7 @@ void CBrowserFrame::OnSetFocus(CWnd* pOldWnd)
 	m_wndBrowserView.mBaseWindow->SetFocus();
 }
 
+/*
 LRESULT CBrowserFrame::WindowProc( UINT message, WPARAM wParam, LPARAM lParam ){
   LRESULT result = theApp.plugins.OnMessage( this->m_hWnd, message, wParam, lParam );
 
@@ -346,6 +353,7 @@ LRESULT CBrowserFrame::WindowProc( UINT message, WPARAM wParam, LPARAM lParam ){
   else
     return result;
 }
+*/
 
 BOOL CBrowserFrame::OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERINFO* pHandlerInfo)
 {
@@ -365,8 +373,7 @@ BOOL CBrowserFrame::OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERIN
 
 // Needed to properly position/resize the progress bar
 //
-void CBrowserFrame::OnSize(UINT nType, int cx, int cy) 
-{
+void CBrowserFrame::OnSize(UINT nType, int cx, int cy) {
   CFrameWnd::OnSize(nType, cx, cy);
 
   // Get the ItemRect of the status bar's Pane 1
@@ -378,7 +385,11 @@ void CBrowserFrame::OnSize(UINT nType, int cx, int cy)
   //
   m_wndProgressBar.MoveWindow(&rc);
 
-  theApp.preferences.bMaximized = IsZoomed();
+  if (nType == SIZE_MAXIMIZED){
+    theApp.preferences.bMaximized = true;
+  }else if (nType == SIZE_RESTORED){
+    theApp.preferences.bMaximized = false;
+  }
 }
 
 /////////////////////////////////////////////////////////////////////////////

@@ -86,6 +86,7 @@
 #define ID_SAVE_IMAGE_AS                32788
 #define ID_COPY_LINK_LOCATION           32789
 #define ID_PREFERENCES                  32790
+#define ID_SELECT_URL                   32790
 #define ID_MANAGE_PROFILES              32791
 #define ID_LINK_KMELEON_HOME            32800
 #define ID_LINK_KMELEON_FORUM           32801
@@ -96,7 +97,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        155
-#define _APS_NEXT_COMMAND_VALUE         32790
+#define _APS_NEXT_COMMAND_VALUE         32791
 #define _APS_NEXT_CONTROL_VALUE         1024
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

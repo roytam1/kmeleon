@@ -193,6 +193,7 @@ END
 IDR_MAINFRAME ACCELERATORS PRELOAD MOVEABLE PURE 
 BEGIN
     "C",            ID_EDIT_COPY,           VIRTKEY, CONTROL, NOINVERT
+    "D",            ID_SELECT_URL,          VIRTKEY, ALT, NOINVERT
     "N",            ID_NEW_BROWSER,         VIRTKEY, CONTROL, NOINVERT
     "O",            ID_FILE_OPEN,           VIRTKEY, CONTROL, NOINVERT
     "R",            ID_NAV_RELOAD,          VIRTKEY, CONTROL, NOINVERT
@@ -201,6 +202,7 @@ BEGIN
     VK_BACK,        ID_EDIT_UNDO,           VIRTKEY, ALT, NOINVERT
     VK_DELETE,      ID_EDIT_CUT,            VIRTKEY, SHIFT, NOINVERT
     VK_ESCAPE,      ID_NAV_STOP,            VIRTKEY, NOINVERT
+    VK_F4,          ID_APP_EXIT,            VIRTKEY, CONTROL, ALT, NOINVERT
     VK_F6,          ID_NEXT_PANE,           VIRTKEY, NOINVERT
     VK_F6,          ID_PREV_PANE,           VIRTKEY, SHIFT, NOINVERT
     VK_INSERT,      ID_EDIT_COPY,           VIRTKEY, CONTROL, NOINVERT
@@ -504,13 +506,6 @@ IDC_PAN_UPLEFT          CURSOR  DISCARDABLE     "res\\Cursor_15.cur"
 IDC_PAN_DOWNLEFT        CURSOR  DISCARDABLE     "res\\Cursor_17.cur"
 IDC_PAN_UPRIGHT         CURSOR  DISCARDABLE     "res\\Cursor_14.cur"
 IDC_PAN_DOWNRIGHT       CURSOR  DISCARDABLE     "res\\Cursor_16.cur"
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// TEXT
-//
-
-IDR_MENU_TEXT           TEXT    DISCARDABLE     "res\\menus.cfg"
 
 /////////////////////////////////////////////////////////////////////////////
 //

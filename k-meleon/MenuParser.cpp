@@ -58,27 +58,127 @@ void TranslateTabs(char *buffer){
   }
 }
 
-#define ERROR_BOX_1(msg, var1) \
-   { char err[255]; \
-     sprintf(err, msg, var1); \
-     MessageBox(NULL, err, "Error", 0); \
+void TrimWhiteSpace(char *string){
+  char *p;
+  for ( p = string + strlen(string) - 1; p >= string; p-- ){
+    if (*p == ' ' || *p == '\t'){
+      *p = 0;
+    }else{
+      break;
+    }
+  }
+}
+
+char *SkipWhiteSpace(char *string){
+  char *p;
+  for (p = string; *p; p++){
+    if (*p != ' ' && *p != '\t'){
+      return p;
+    }
+  }
+  return string;
+}
+
+BOOL CALLBACK MenuLogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam){
+  if (uMsg == WM_INITDIALOG){
+    CString *log = (CString *)lParam;
+    SetDlgItemText(hwndDlg, IDC_CREDITS, *log);
+    SetWindowText(hwndDlg, _T("Menu Log"));
+    return true;
+  }else if (uMsg == WM_COMMAND){
+    if (LOWORD(wParam) == IDOK){
+      EndDialog(hwndDlg, 0);
+    }
+  }
+  return false;
+}
+
+
+class CMenuLog {
+protected:
+  CString log;
+  int error;
+public:
+  CMenuLog(){
+    error = 0;
+  };
+  ~CMenuLog(){
+    if (error)
+      DialogBoxParam(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDD_ABOUTBOX), NULL, MenuLogProc, (LPARAM)&log);
+  };
+
+  void WriteString(const char *string){
+    log += string;
+  }
+
+  void Error(){
+    error = 1;
+  }
+};
+
+#if 0
+#define LOG_1(msg, var1)       \
+   if (log) {                  \
+     char err[255];            \
+     sprintf(err, msg, var1);  \
+     log->WriteString(err);    \
+     log->WriteString("\r\n"); \
    }
 
-#define ERROR_BOX_2(msg, var1, var2) \
-   { char err[255]; \
+#define LOG_2(msg, var1, var2)      \
+   if (log) {                       \
+     char err[255];                 \
      sprintf(err, msg, var1, var2); \
-     MessageBox(NULL, err, "Error", 0); \
+     log->WriteString(err);         \
+     log->WriteString("\r\n");      \
+   }
+#else
+#define LOG_1(a, b)
+#define LOG_2(a, b, c)
+#endif
+
+#define LOG_ERROR_1(msg, var1)   \
+  if (log) {                     \
+     log->Error();               \
+     char err[255];              \
+     sprintf(err, msg, var1);    \
+     log->WriteString("*** ");    \
+     log->WriteString(err);      \
+     log->WriteString("\r\n");   \
+   }
+
+#define LOG_ERROR_2(msg, var1, var2)   \
+  if (log) {                     \
+     log->Error();               \
+     char err[255];              \
+     sprintf(err, msg, var1, var2);    \
+     log->WriteString("*** ");    \
+     log->WriteString(err);      \
+     log->WriteString("\r\n");   \
    }
 
 #define DEFINEMAP_ADD(entry) defineMap[#entry] = entry;
 
 int CMenuParser::Load(CString &filename){
+  CFile *menuFile;
   TRY {
     menuFile = new CFile(filename, CFile::modeRead);
   }
   CATCH (CFileException, e) {
     menuFile = NULL;
     return 0;
+  }
+  END_CATCH
+
+  CMenuLog *log;
+  TRY {
+    log = new CMenuLog(); //("menu.log", CFile::modeWrite | CFile::modeCreate);
+    log->WriteString("Menu File: ");
+    log->WriteString(filename);
+    log->WriteString("\r\n\r\n");
+  }
+  CATCH (CFileException, e) {
+    log = NULL;
   }
   END_CATCH
 
@@ -124,107 +224,114 @@ int CMenuParser::Load(CString &filename){
   DEFINEMAP_ADD(ID_LINK_KMELEON_HOME)
   DEFINEMAP_ADD(ID_LINK_KMELEON_FORUM)
 
-  char *currentMenuName = NULL;
   CMenu *currentMenu = NULL;
 
   char *p = strtok(buffer, "\r\n");
   while (p){
-    if (*p == '#'){
+    if (p[0] == '#'){
     }
-    else if (strnicmp(p, _T("MenuDef"), 7) == 0){
-      p+=8;
-      currentMenuName = NULL;
-      currentMenu = new CMenu();
+    else if (!currentMenu){
+      // There can only be 2 things outside a menu:
+      //   comments, and the beginning of a menu block
+      char *cb = strchr(p, '{');
+      if (cb){
+        *cb = 0;
 
-      if (strstr(p, _T("Popup"))){
-        currentMenu->CreatePopupMenu();
-      }else{
-        currentMenu->CreateMenu();
-      }
-      CMenu *popup = NULL;
-      if (menus.Lookup(CString(p), popup)){
-        popup->DestroyMenu();
-        delete popup;
-      }
-      menus[p] = currentMenu;
-    }
-    else if (strnicmp(p, _T(":EndMenu"), 8) == 0){
-    }
-    else if (strnicmp(p, _T("Popup "), 6) == 0){
-      if (currentMenuName || currentMenu){
-        MessageBox(NULL, "Found Popup before :EndPopup", "", 0);
-      }
-      else{
-        p += 6; // jump past "Popup "
-        currentMenuName = p;
+        p = SkipWhiteSpace(p);
+        TrimWhiteSpace(p);
+
         currentMenu = new CMenu();
-        currentMenu->CreatePopupMenu();
 
+        if (strstr(p, _T("Popup"))){
+          currentMenu->CreatePopupMenu();
+        }else{
+          currentMenu->CreateMenu();
+        }
         CMenu *popup = NULL;
         if (menus.Lookup(CString(p), popup)){
           popup->DestroyMenu();
           delete popup;
         }
         menus[p] = currentMenu;
+
+        LOG_1("Created Menu %s", p);
       }
     }
-    else if (strnicmp(p, _T(":EndPopup"), 9) == 0){
-      currentMenu = NULL;
-      currentMenuName = NULL;
-    }
-    else if (strnicmp(p, _T(":Popup "), 6) == 0){
-      p += 7;
-      CMenu *popup = NULL;
-      menus.Lookup(CString(p), popup);
-      if (popup){
-        currentMenu->AppendMenu(MF_POPUP | MF_STRING, (UINT)popup->m_hMenu, p);
-      }
-    }
-    else if (strnicmp(p, _T(":Seperator"), 10) == 0){
-      currentMenu->AppendMenu(MF_SEPARATOR);
-    }
-    else if (strnicmp(p, _T(":Plugin "), 8) == 0){
-      p+=8;
-      char *e = strrchr(p, '=');
-      if (e){
-        *e = 0;
-        e++;
-        kmeleonPlugin * kPlugin = theApp.plugins.Load(e);
-        if (kPlugin) {
-          if (kPlugin->DoMenu){
-            kPlugin->DoMenu(currentMenu->GetSafeHmenu(), p);
-          }else{
-            ERROR_BOX_1( "plugin %s has no menu", e);
-          }
+    else{
+      p = SkipWhiteSpace(p);
+      TrimWhiteSpace(p);
+
+      if (p[0] == ':'){
+        p ++;
+        CMenu *popup = NULL;
+        menus.Lookup(CString(p), popup);
+        if (popup){
+          currentMenu->AppendMenu(MF_POPUP | MF_STRING, (UINT)popup->m_hMenu, p);
+          LOG_1("Added popup %s", p);
         }else{
-          ERROR_BOX_1( "Could not load plugin %s", e )
+          LOG_ERROR_1("Popup %s not found!", p);
         }
       }
-    }
-    else if (*p == ':'){
-      // unknown command
-    }
-    else {
-      if (!currentMenu){
-        MessageBox(NULL, "Found Menu item with no menu!", "", 0);
+      else if (p[0] == '-'){
+        currentMenu->AppendMenu(MF_SEPARATOR);
+        LOG_1("Added Seperator", 0);
+      }
+      else if (p[0] == '}'){
+        currentMenu = NULL;
+        LOG_1("Ended Menu", 0);
       }
       else {
-        char *e = strrchr(p, '=');
-        if (e){
-          *e = 0;
-          e++;
-          int val;
-          if (!defineMap.Lookup(e, val)){
-            val = atoi(e);
+        // it's either a plugin or a menu item
+        char *op = strchr(p, '(');
+        if (op){ // if there's an open parenthesis, we'll assume it's a plugin
+          char *parameter = op + 1;
+          char *cp = strrchr(parameter, ')');
+          if (cp) *cp = 0;
+          *op = 0;
+
+          TrimWhiteSpace(p);
+
+          kmeleonPlugin * kPlugin = theApp.plugins.Load(p);
+
+          if (kPlugin) {
+            if (kPlugin->DoMenu){
+              kPlugin->DoMenu(currentMenu->GetSafeHmenu(), parameter);
+
+              LOG_2("Called plugin %s with parameter %s", p, parameter);
+            }else{
+              LOG_ERROR_1( "Plugin %s has no menu", p);
+            }
+          }else{
+            LOG_ERROR_2( "Could not load plugin %s\r\n\twith parameter %s", p, parameter );
           }
-          currentMenu->AppendMenu(MF_STRING, val, p);
+        }
+        else {
+          char *e = strrchr(p, '=');
+          if (e){
+            *e = 0;
+            e = SkipWhiteSpace(e+1);
+            int val;
+            if (!defineMap.Lookup(e, val)){
+              val = atoi(e);
+            }
+            TrimWhiteSpace(p);
+            currentMenu->AppendMenu(MF_STRING, val, p);
+
+            LOG_2("Added menu item %s with command %d", p, val);
+          }
+          else {
+            LOG_ERROR_1("I don't know what to do with %s", p);
+          }
         }
       }
-    }
+    } // currentMenu
     p = strtok(NULL, "\r\n");
-  };
+  } // while
 
   delete [] buffer;
+
+  delete menuFile;
+  delete log;
 
   return 1;
 }

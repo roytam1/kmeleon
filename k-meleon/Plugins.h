@@ -42,8 +42,9 @@ public:
 
   int FindAndLoad(char *pattern);
   kmeleonPlugin * Load(const char *pattern);
-  
-  LRESULT OnMessage(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam);
+
+  void OnCreate(HWND wnd);
+  //LRESULT OnMessage(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam);
   int  OnUpdate(UINT command);
 
   void DoRebars(HWND rebarWnd);

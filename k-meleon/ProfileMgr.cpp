@@ -56,10 +56,10 @@ CProfileMgr::~CProfileMgr()
 nsresult CProfileMgr::StartUp()
 {
     nsresult rv;
-         
+
     NS_WITH_SERVICE(nsIProfile, profileService, NS_PROFILE_CONTRACTID, &rv);
     if (NS_FAILED(rv)) return rv;
-        
+
     PRInt32 profileCount;
     rv = profileService->GetProfileCount(&profileCount);
     if (NS_FAILED(rv)) return rv;
@@ -77,10 +77,10 @@ nsresult CProfileMgr::StartUp()
     {
         // Use our flag here to check for whether to show profile mgr UI. If the flag
         // says don't show it, just start with the last used profile.
-        
+
         PRBool showIt;
         rv = GetShowDialogOnStart(&showIt);
-                        
+
         if (NS_FAILED(rv) || (profileCount > 1 && showIt))
         {
             DoManageProfilesDialog(TRUE);
@@ -89,7 +89,7 @@ nsresult CProfileMgr::StartUp()
         {
             // GetCurrentProfile returns the profile which was last used but is not nescesarily
             // active. Call SetCurrentProfile to make it installed and active.
-            
+
             nsXPIDLString   currProfileName;
             rv = profileService->GetCurrentProfile(getter_Copies(currProfileName));
             if (NS_FAILED(rv)) return rv;

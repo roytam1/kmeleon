@@ -148,9 +148,6 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
   if(x == -1 && y == -1 && cx == -1 && cy == -1){
 		winSize = CFrameWnd::rectDefault;
   }
-  if (preferences.bMaximized && chromeMask == nsIWebBrowserChrome::CHROME_ALL) {
-      style |= WS_MAXIMIZE;
-  }
 
 	// Load the window title from the string resource table
 	CString strTitle;
@@ -171,9 +168,12 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
 	pFrame->LoadAccelTable(MAKEINTRESOURCE(IDR_MAINFRAME));
 
 	// Show the window...
-	if(bShowWindow)
-	{
-		pFrame->ShowWindow(SW_SHOW);
+	if(bShowWindow){
+    if (preferences.bMaximized)
+      pFrame->ShowWindow(SW_SHOWMAXIMIZED);
+    else
+      pFrame->ShowWindow(SW_SHOW);
+
 		pFrame->UpdateWindow();
 	}
 
@@ -265,24 +265,24 @@ void CMfcEmbedApp::OnPreferences (){
 
 void CMfcEmbedApp::OnManageProfiles()
 {
-    m_ProfileMgr->DoManageProfilesDialog(PR_FALSE);
+  m_ProfileMgr->DoManageProfilesDialog(PR_FALSE);
 }
 
 BOOL CMfcEmbedApp::InitializeProfiles()
 {
-    m_ProfileMgr = new CProfileMgr;
-    if (!m_ProfileMgr)
-        return FALSE;
+  m_ProfileMgr = new CProfileMgr;
+  if (!m_ProfileMgr)
+    return FALSE;
 
-    m_ProfileMgr->StartUp();
+  m_ProfileMgr->StartUp();
 
-	nsresult rv;
-    NS_WITH_SERVICE(nsIObserverService, observerService, NS_OBSERVERSERVICE_CONTRACTID, &rv);
-    observerService->AddObserver(this, PROFILE_APPROVE_CHANGE_TOPIC);
-    observerService->AddObserver(this, PROFILE_CHANGE_TEARDOWN_TOPIC);
-    observerService->AddObserver(this, PROFILE_AFTER_CHANGE_TOPIC);
+  nsresult rv;
+  NS_WITH_SERVICE(nsIObserverService, observerService, NS_OBSERVERSERVICE_CONTRACTID, &rv);
+  observerService->AddObserver(this, PROFILE_APPROVE_CHANGE_TOPIC);
+  observerService->AddObserver(this, PROFILE_CHANGE_TEARDOWN_TOPIC);
+  observerService->AddObserver(this, PROFILE_AFTER_CHANGE_TOPIC);
 
-	return TRUE;
+  return TRUE;
 }
 
 // When the profile switch happens, all open browser windows need to be 
@@ -303,8 +303,7 @@ BOOL CMfcEmbedApp::CreateHiddenWindow()
   return TRUE;
 }
 
-nsresult CMfcEmbedApp::InitializePrefs()
-{
+nsresult CMfcEmbedApp::InitializePrefs(){
   preferences.Load();
 
   nsresult rv;
@@ -312,26 +311,9 @@ nsresult CMfcEmbedApp::InitializePrefs()
   NS_ASSERTION(NS_SUCCEEDED(rv), "Could not initialize cache prefs");
 
   if (!menus.Load(preferences.settingsDir + MENU_CONFIG_FILE)){
-    HMODULE module = AfxGetInstanceHandle();
-    HRSRC res = FindResource(module, MAKEINTRESOURCE(IDR_MENU_TEXT), "TEXT");
-    HGLOBAL menuRes = LoadResource(module, res);
-    char * menuText = (char *)LockResource(menuRes);
-    if (!menuText)
-      return rv;
-    TRY {
-      CFile menuFile((LPCTSTR)(preferences.settingsDir + MENU_CONFIG_FILE), CFile::modeWrite | CFile::modeCreate);
-      menuFile.WriteHuge(menuText, strlen(menuText));
-      menuFile.Close();
-
-      // try again
-      if (!menus.Load(preferences.settingsDir + MENU_CONFIG_FILE)){
-        MessageBox(NULL, "Could not find " MENU_CONFIG_FILE, NULL, 0);
-      }
-    }
-    CATCH (CFileException, e) {
-    }
-    END_CATCH
-    FreeResource(menuRes);
+    // we used to create the file if it didn't exist
+    // but now it should be copied automagically from defaults when the profile is created
+    MessageBox(NULL, "Could not find " MENU_CONFIG_FILE, NULL, 0);
   }
 
   return rv;

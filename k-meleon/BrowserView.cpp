@@ -99,6 +99,8 @@ BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
 	ON_COMMAND(ID_SAVE_LINK_AS, OnSaveLinkAs)
 	ON_COMMAND(ID_SAVE_IMAGE_AS, OnSaveImageAs)
 
+  ON_COMMAND(ID_SELECT_URL, OnSelectUrl)
+
   ON_COMMAND(ID_LINK_KMELEON_HOME, OnKmeleonHome)
   ON_COMMAND(ID_LINK_KMELEON_FORUM, OnKmeleonForum)
 
@@ -232,11 +234,10 @@ HRESULT CBrowserView::CreateBrowser()
   */
 
   // Register the BrowserImpl object to receive progress messages
-	// These callbacks will be used to update the status/progress bars
-	nsCOMPtr<nsIWebProgressListener> listener = NS_STATIC_CAST(nsIWebProgressListener*, mpBrowserImpl);
-    nsCOMPtr<nsISupports> supports = do_QueryInterface(listener);
-    (void)mWebBrowser->AddWebBrowserListener(supports, 
-							    NS_GET_IID(nsIWebProgressListener));
+  // These callbacks will be used to update the status/progress bars
+  nsCOMPtr<nsIWebProgressListener> listener = NS_STATIC_CAST(nsIWebProgressListener*, mpBrowserImpl);
+  nsCOMPtr<nsISupports> supports = do_QueryInterface(listener);
+  (void)mWebBrowser->AddWebBrowserListener(supports, NS_GET_IID(nsIWebProgressListener));
 
 	// Finally, show the web browser window
 	mBaseWindow->SetVisibility(PR_TRUE);
@@ -300,7 +301,13 @@ void CBrowserView::OnDropFiles( HDROP drop ){
   char *filename = new char[size];
   DragQueryFile(drop, 0, filename, size);
 
-  OpenURL(filename);
+  if (stricmp(filename + (size-5), _T(".url")) == 0){
+    char tempUrl[1024];
+    ::GetPrivateProfileString(_T("InternetShortcut"), _T("Url"), filename, tempUrl, 1023, filename);
+    OpenURL(tempUrl);
+  }else{
+    OpenURL(filename);
+  }
 
   delete filename;
   DragFinish(drop);
@@ -337,6 +344,10 @@ void CBrowserView::OnUrlSelectedInUrlBar()
 	OpenURL(strUrl.GetBuffer(0));
 }
 
+void CBrowserView::OnSelectUrl(){
+  mpBrowserFrame->m_wndUrlBar.SetFocus();
+}
+
 void CBrowserView::OnViewSource() 
 {
 	if(! mWebNav)
@@ -364,7 +375,8 @@ void CBrowserView::OnViewSource()
 	// the appropriate chromeFlags
 	PRUint32 chromeFlags =  nsIWebBrowserChrome::CHROME_WINDOW_BORDERS |
 							nsIWebBrowserChrome::CHROME_TITLEBAR |
-							nsIWebBrowserChrome::CHROME_WINDOW_RESIZE;
+							nsIWebBrowserChrome::CHROME_WINDOW_RESIZE |
+              nsIWebBrowserChrome::CHROME_MENUBAR;
 	CBrowserFrame* pFrm = CreateNewBrowserFrame(chromeFlags);
 	if(!pFrm)
 		return;
@@ -622,7 +634,7 @@ CBrowserFrame* CBrowserView::CreateNewBrowserFrame(PRUint32 chromeMask,
 	if(!pApp)
 		return NULL;
 
-	return pApp->CreateNewBrowserFrame(chromeMask, x, y, cx, cy, bShowWindow);
+  return pApp->CreateNewBrowserFrame(chromeMask, x, y, cx, cy, bShowWindow);
 }
 
 void CBrowserView::OpenURLInNewWindow(const PRUnichar* pUrl){
