@@ -85,10 +85,6 @@ BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
 	ON_COMMAND(ID_VIEW_INFO, OnViewInfo)
 	ON_COMMAND(ID_NAV_BACK, OnNavBack)
 	ON_COMMAND(ID_NAV_FORWARD, OnNavForward)
-
-	ON_MESSAGE(TB_LBUTTONHOLD, OnTBLButtonHold)
-	ON_MESSAGE(TB_RBUTTONDOWN, OnTBRButtonDown)
-
 	ON_COMMAND(ID_NAV_SEARCH, OnNavSearch)
 	ON_COMMAND(ID_NAV_HOME, OnNavHome)
 	ON_COMMAND(ID_NAV_RELOAD, OnNavReload)
@@ -114,7 +110,6 @@ BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
 	ON_WM_ACTIVATE()
 	//}}AFX_MSG_MAP
 
-	ON_COMMAND_RANGE(ID_GO_HISTORY, ID_GO_HISTORY+20, OnGoHistory)
 	
 END_MESSAGE_MAP()
 
@@ -143,7 +138,6 @@ int CBrowserView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	CreateBrowser();
 
   DragAcceptFiles();
-
 	return 0;
 }
 
@@ -423,59 +417,14 @@ void CBrowserView::OnNavForward()
 		mWebNav->GoForward();
 }
 
-// Jeff Doozan - 28 Feb, 2001
-
-void CBrowserView::OnTBRButtonDown(WPARAM controlID, LPARAM lParam) {
-	switch(controlID) {
-		case ID_NAV_BACK:
-			TRACE0("ID_NAV_BACK right click\n");
-			CreateBackMenu(TPM_RIGHTBUTTON);
-			break;
-		case ID_NAV_FORWARD:
-			TRACE0("ID_NAV_FORWARD right click\n");
-			CreateForwardMenu(TPM_RIGHTBUTTON);
-			break;
-	}
-}
-
-void CBrowserView::OnTBLButtonHold(DWORD buttonID, DWORD unused) {
-	CBrowserFrame	*mainFrame		= (CBrowserFrame *) theApp.m_pMainWnd->GetActiveWindow();
-
-	switch (buttonID) {
-		case ID_NAV_BACK:
-			TRACE0("ID_NAV_BACK held\n");
-			CreateBackMenu(TPM_LEFTBUTTON);
-			break;
-		case ID_NAV_FORWARD:
-			TRACE0("ID_NAV_FORWARD held\n");
-			CreateForwardMenu(TPM_LEFTBUTTON);
-			break;
-	}
-}
-
-void CBrowserView::OnGoHistory(UINT nID) {
-
-	CBrowserFrame	*mainFrame		= (CBrowserFrame *) theApp.m_pMainWnd->GetActiveWindow();
-
-	if(mainFrame->m_wndBrowserView.mWebNav)
-		mainFrame->m_wndBrowserView.mWebNav->GotoIndex(nID-ID_GO_HISTORY);
-}
-
-// end Jeff Doozan
-
 void CBrowserView::OnUpdateNavBack(CCmdUI* pCmdUI)
 {
 	PRBool canGoBack = PR_FALSE;
 
-	// Jeff Doozan
 	// Buttons get "stuck" down after selecting
-	// a menu item, this fixes thim
-	if (m_unPressBack) {
-		pCmdUI->Enable(FALSE);
-		pCmdUI->Enable(TRUE);
-		m_unPressBack=0;
-	}
-    
+	// a menu item, this fixes them
+//	pCmdUI->Enable(FALSE);
+
 	if (mWebNav)
         mWebNav->GetCanGoBack(&canGoBack);
 
@@ -486,14 +435,9 @@ void CBrowserView::OnUpdateNavForward(CCmdUI* pCmdUI)
 {
 	PRBool canGoFwd = PR_FALSE;
 
-	// Jeff Doozan
 	// Buttons get "stuck" down after selecting
 	// a menu item, this fixes thim
-	if (m_unPressForward) {
-		pCmdUI->Enable(FALSE);
-		pCmdUI->Enable(TRUE);
-		m_unPressForward=0;
-	}
+//	pCmdUI->Enable(FALSE);
 
     if (mWebNav)
         mWebNav->GetCanGoForward(&canGoFwd);
@@ -839,7 +783,7 @@ void CBrowserView::OnSaveLinkAs()
 		"Text Files (*.txt)|*.txt|" 
 	    "All Files (*.*)|*.*||";
 
-	const char *pFileName = fileName.Length() ? fileName.get() + slash+1: NULL;
+const char *pFileName = fileName.Length() ? fileName.get() + slash+1 : NULL;
 
 	CFileDialog cf(FALSE, "htm", pFileName, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
 		lpszFilter, this);
@@ -881,7 +825,7 @@ void CBrowserView::OnSaveImageAs()
 	// Now, use this file name in a File Save As dlg...
 
 	char *lpszFilter = "All Files (*.*)|*.*||";
-	const char *pFileName = fileName.Length() ? fileName.get() + slash+1 : NULL;
+	const char *pFileName = fileName.Length() ? fileName.get() + slash+1: NULL;
 
 	CFileDialog cf(FALSE, NULL, pFileName, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
 		lpszFilter, this);
@@ -929,7 +873,7 @@ void CBrowserView::UpdateBusyState(PRBool aBusy)
 
 	// UpdateGoMenu is also called in CBrowserFrame::BrowserFrameGlueObj::UpdateCurrentURI
 	// but only the page url is available at that time, this will overwrite it with the title
-	UpdateGoMenu();
+//	UpdateGoMenu();
   }
 }
 
@@ -1038,189 +982,3 @@ BOOL CBrowserView::PreTranslateMessage(MSG* pMsg) {
 	
 	return CWnd::PreTranslateMessage(pMsg);
 }
-
-
-// Jeff Doozan - 28 Feb, 2001
-
-void CBrowserView::CreateBackMenu (UINT button) {
-	int index, count, i;
-	char **titles, buf[47];
-
-	if (!MozillaSessionHistory (&titles, &count, &index)) {
-		return;
-	}
-
-	CMenu menu, submenu;
-
-	CBrowserFrame *mainFrame = (CBrowserFrame *)theApp.m_pMainWnd->GetActiveWindow();
-
-	menu.CreateMenu();
-	submenu.CreatePopupMenu();
-
-	int x=0;
-	for (i = index - 1; i >= 0; i--) {
-		CondenseMenuText(buf, titles[i], x++);
-		submenu.AppendMenu(MF_STRING, i+1, buf);
-	}
-
-	CRect rc;
-	WPARAM ButtonID = mainFrame->m_wndToolBar.CommandToIndex(ID_NAV_BACK);
-	mainFrame->m_wndToolBar.GetItemRect(ButtonID, &rc);
-	mainFrame->m_wndToolBar.ClientToScreen(&rc);
-	DWORD SelectionMade = submenu.TrackPopupMenu( TPM_LEFTALIGN | button | TPM_NONOTIFY | TPM_RETURNCMD, rc.left, rc.bottom, this, &rc);
-
-	submenu.Detach();
-	submenu.DestroyMenu();
-	menu.DestroyMenu();
-
-	FreeStringArray (titles, count);
-
-	m_unPressBack=true;
-	
-	if (SelectionMade > 0) {
-		if(mainFrame->m_wndBrowserView.mWebNav)
-			mainFrame->m_wndBrowserView.mWebNav->GotoIndex(SelectionMade-1);
-	}
-}
-
-void CBrowserView::CreateForwardMenu (UINT button) {
-	int index, count, i;
-	char **titles, buf[47];
-	CBrowserFrame	*mainFrame		= (CBrowserFrame *) theApp.m_pMainWnd->GetActiveWindow();
-
-	if (!MozillaSessionHistory (&titles, &count, &index)) {
-		return;
-	}
-
-	CMenu menu, submenu;
-
-	menu.CreateMenu();
-	submenu.CreatePopupMenu();
-
-	int x=0;
-	for (i = index + 1; i < count; i++) {
-		CondenseMenuText(buf, titles[i], x++);
-		submenu.AppendMenu(MF_STRING, i+1, buf);
-	}
-
-	CRect rc;
-	WPARAM ButtonID = mainFrame->m_wndToolBar.CommandToIndex(ID_NAV_FORWARD);
-	mainFrame->m_wndToolBar.GetItemRect(ButtonID, &rc);
-	mainFrame->m_wndToolBar.ClientToScreen(&rc);
-	DWORD SelectionMade = submenu.TrackPopupMenu( TPM_LEFTALIGN | button | TPM_NONOTIFY | TPM_RETURNCMD, rc.left, rc.bottom, this, &rc);
-
-	submenu.Detach();
-	submenu.DestroyMenu();
-	menu.DestroyMenu();
-
-	FreeStringArray (titles, count);
-
-	m_unPressForward=true;
-
-	if (SelectionMade > 0) {
-		if(mainFrame->m_wndBrowserView.mWebNav)
-			mainFrame->m_wndBrowserView.mWebNav->GotoIndex(SelectionMade-1);
-	}
-}
-
-int CBrowserView::MozillaSessionHistory (char **titles[], int *count, int *index) {
-	nsresult result;
-
-	CBrowserFrame	*mainFrame		= (CBrowserFrame *) theApp.m_pMainWnd->GetActiveWindow();
-
-	nsCOMPtr<nsISHistory> h;
-	result = mainFrame->m_wndBrowserView.mWebNav->GetSessionHistory (getter_AddRefs (h));
-	if (!NS_SUCCEEDED (result) || (!h)) return FALSE;
-
-	h->GetCount (count);
-	h->GetIndex (index);
-
-	char **t = (char **) new char[*count * sizeof(char *)];
-
-	nsCOMPtr<nsISHEntry> he;
-	PRUnichar *title;
-	for (PRInt32 i = 0; i < *count; i++) {
-
-		result = h->GetEntryAtIndex (i, PR_FALSE, getter_AddRefs (he));
-		if (!NS_SUCCEEDED(result) || (!he)) return FALSE;
-
-		result = he->GetTitle (&title);
-		if (!NS_SUCCEEDED(result) || (!title)) return FALSE;
-
-		// The title is in 16-bit unicode, this converts it to 8bit (UTF)
-
-		int len;
-		len = WideCharToMultiByte(CP_ACP, 0, title, -1, 0, 0, NULL, NULL);
-		char *s = new(char[len+1]);
-		len = WideCharToMultiByte(CP_ACP, 0, title, -1, s, len, NULL, NULL);
-		s[len]=0;
-
-		t[i] = s;
-
-	}
-	*titles = t;
-	return TRUE;
-}
-
-void CBrowserView::UpdateGoMenu () {
-	int index, count, i;
-	char **titles;
-	char buf[47];  //  3 spaces for "&# " 20 for beginning of title 3 for "..." 20 for end of title
-
-	CBrowserFrame	*mainFrame = (CBrowserFrame *) theApp.m_pMainWnd->GetActiveWindow();
-
-	if (!mainFrame)
-		return;
-
-	CMenu *pTopMenu = mainFrame->GetMenu(), *pGoMenu =0; // top menu handler 
-
-	if (!pTopMenu)
-		return;
-
-	// find the "&Go" submenu
-	// since menus are easily changeable via menus.cfg, this may lead to the history
-	// being appended to the wrong menu, or not being appended at all....
-	for (i = 0; i < (int) pTopMenu->GetMenuItemCount(); i++) { 
-		MENUITEMINFO mi;
-		char buf[129];
-		mi.cbSize = sizeof(MENUITEMINFO);
-		mi.fMask = MIIM_TYPE;
-		mi.dwTypeData=buf;
-		mi.cch=128;
-
-		if (pTopMenu->GetMenuItemInfo(i, &mi, TRUE))
-			if (strcmp( (char *) mi.dwTypeData, "&Go") == 0)
-				pGoMenu = pTopMenu->GetSubMenu(i);
-	}
-
-	if (!pGoMenu)
-		return;
-
-	// Clear the existing history menu 
-	count = pGoMenu->GetMenuItemCount()-1;
-	i = count;
-	while (i && (pGoMenu->GetMenuItemID(i) >= ID_GO_HISTORY)) {
-		pGoMenu->DeleteMenu(i, MF_BYPOSITION); 
-		i--;
-	}
-
-	// the ID_GO_HISTORY is needed so that the separator is later deleted in the above routine
-	pGoMenu->AppendMenu(MF_SEPARATOR, ID_GO_HISTORY, "");  // add a separator
-
-	// Add the local history to the menu
-	if (!MozillaSessionHistory (&titles, &count, &index)) {
-		return;
-	}
-	for (i=count-1;i>=0;i--) {
-
-		CondenseMenuText(buf, titles[i], (count-1 - i) );
-
-		if (i == index)
-			pGoMenu->AppendMenu(MF_ENABLED | MF_STRING | MF_CHECKED, ID_GO_HISTORY+i, buf);
-		else
-			pGoMenu->AppendMenu(MF_ENABLED | MF_STRING, ID_GO_HISTORY+i, buf);
-	}
-
-	FreeStringArray (titles, count);	
-}
-// end Jeff Doozan

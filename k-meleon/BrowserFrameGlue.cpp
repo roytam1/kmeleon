@@ -106,7 +106,7 @@ void CBrowserFrame::BrowserFrameGlueObj::UpdateCurrentURI(nsIURI *aLocation)
 	// this will be updated later when OnUpdateBusy state is called
 	// because the page title is not yet available
 
-	pThis->m_wndBrowserView.UpdateGoMenu();
+//	pThis->m_wndBrowserView.UpdateGoMenu();
 }
 
 void CBrowserFrame::BrowserFrameGlueObj::GetBrowserFrameTitle(PRUnichar **aTitle)

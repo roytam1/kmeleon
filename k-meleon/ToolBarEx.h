@@ -25,10 +25,7 @@
 // ToolBarEx.h : header file
 //
 
-
-#define	TB_LBUTTONHOLD	WM_APP + 120
-#define	TB_RBUTTONDOWN	WM_APP + 121
-
+#include "ToolBarExMessages.h"
 
 /////////////////////////////////////////////////////////////////////////////
 // CToolBarEx window
@@ -59,8 +56,12 @@ protected:
 	//{{AFX_MSG(CToolBarEx)
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
 	afx_msg void OnLButtonUp(UINT nFlags, CPoint point);
+	afx_msg void OnMButtonDown(UINT nFlags, CPoint point);
+	afx_msg void OnMButtonUp(UINT nFlags, CPoint point);
 	afx_msg void OnRButtonDown(UINT nFlags, CPoint point);
+	afx_msg void OnRButtonUp(UINT nFlags, CPoint point);
 	afx_msg void OnTimer(UINT nIDEvent);
+	afx_msg int GetButtonIDFromPoint(CPoint *point);
 	//}}AFX_MSG
 
 	DECLARE_MESSAGE_MAP()

@@ -48,6 +48,9 @@ public:
   int  OnUpdate(UINT command);
 
   void DoRebars(HWND rebarWnd);
+
+	int GetMozillaSessionHistory (char **titles[], int *count, int *index);
+
 };
 
 #endif // __PLUGINS_H__

@@ -50,6 +50,10 @@ typedef struct {
   void (*GetPreference)(enum PREFTYPE type, char *preference, void *ret, void *defaultVal);
   // sets the preference
   void (*SetPreference)(enum PREFTYPE type, char *preference, void *val);
+
+	int (*GetMozillaSessionHistory)(char **titles[], int *count, int *index);
+	void (*GotoHistoryIndex)(UINT index);
+	HWND (*GetToolbarWnd)();
 } kmeleonFunctions;
 
 typedef struct {

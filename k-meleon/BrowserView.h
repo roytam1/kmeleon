@@ -71,11 +71,6 @@ public:
 	void SetBrowserFrameGlue(PBROWSERFRAMEGLUE pBrowserFrameGlue);
 	PBROWSERFRAMEGLUE mpBrowserFrameGlue;
 
-	void CreateBackMenu (UINT button);
-	void CreateForwardMenu (UINT button);
-	int MozillaSessionHistory(char **titles[], int *count, int *index);
-	void UpdateGoMenu ();
-
 	// Pointer to the object which implements
 	// the inerfaces required by Mozilla embedders
 	//
@@ -109,10 +104,6 @@ public:
   virtual BOOL PreTranslateMessage(MSG* pMsg);
 	//}}AFX_VIRTUAL
 
-protected:
-	BOOL m_unPressBack;
-	BOOL m_unPressForward;
-
 	// Generated message map functions
 protected:
 	//{{AFX_MSG(CBrowserView)
@@ -131,10 +122,6 @@ protected:
 	afx_msg void OnViewInfo();
 	afx_msg void OnNavBack();
 	afx_msg void OnNavForward();
-
-	afx_msg void OnTBLButtonHold(DWORD buttonID, DWORD unused);
-	afx_msg void OnTBRButtonDown(WPARAM controlID, LPARAM lParam);
-
 	afx_msg void OnNavSearch();
 	afx_msg void OnNavHome();
 	afx_msg void OnNavReload();
@@ -158,7 +145,6 @@ protected:
 	afx_msg void OnUpdateCopy(CCmdUI* pCmdUI);
 	afx_msg void OnUpdatePaste(CCmdUI* pCmdUI);
 	//}}AFX_MSG
-	void OnGoHistory(UINT nID);
 	DECLARE_MESSAGE_MAP()
 };
 

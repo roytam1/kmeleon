@@ -26,8 +26,8 @@ extern CMfcEmbedApp theApp;
 #include "BrowserView.h"
 #include "BrowserFrm.h"
 
-#include "Plugins.h"
 #include "kmeleon_plugin.h"
+#include "Plugins.h"
 
 #define START_ID 2000
 
@@ -158,12 +158,69 @@ void SetPreference(enum PREFTYPE type, char *preference, void *val){
   }
 }
 
+int GetMozillaSessionHistory (char **titles[], int *count, int *index) {
+
+	nsresult result;
+
+	CBrowserFrame	*mainFrame		= (CBrowserFrame *) theApp.m_pMainWnd->GetActiveWindow();
+	if (!mainFrame)	return FALSE;
+
+	nsCOMPtr<nsISHistory> h;
+	result = mainFrame->m_wndBrowserView.mWebNav->GetSessionHistory(getter_AddRefs (h));
+	if (!NS_SUCCEEDED (result) || (!h)) return FALSE;
+
+	h->GetCount (count);
+	h->GetIndex (index);
+
+	char **t = (char **) new char[*count * sizeof(char *)];
+
+	nsCOMPtr<nsISHEntry> he;
+	PRUnichar *title;
+	for (PRInt32 i = 0; i < *count; i++) {
+
+		result = h->GetEntryAtIndex (i, PR_FALSE, getter_AddRefs (he));
+		if (!NS_SUCCEEDED(result) || (!he)) return FALSE;
+
+		result = he->GetTitle (&title);
+		if (!NS_SUCCEEDED(result) || (!title)) return FALSE;
+
+		// The title is in 16-bit unicode, this converts it to 8bit (UTF)
+
+		int len;
+		len = WideCharToMultiByte(CP_ACP, 0, title, -1, 0, 0, NULL, NULL);
+		char *s = new(char[len+1]);
+		len = WideCharToMultiByte(CP_ACP, 0, title, -1, s, len, NULL, NULL);
+		s[len]=0;
+
+		t[i] = s;
+
+	}
+	*titles = t;
+	return TRUE;
+}
+
+void GotoHistoryIndex(UINT index) {
+	CBrowserFrame	*mainFrame		= (CBrowserFrame *) theApp.m_pMainWnd->GetActiveWindow();
+	if (mainFrame)
+		mainFrame->m_wndBrowserView.mWebNav->GotoIndex(index);
+}
+
+HWND GetToolbarWnd() {
+	CBrowserFrame	*mainFrame		= (CBrowserFrame *) theApp.m_pMainWnd->GetActiveWindow();
+	if (mainFrame)
+		return mainFrame->m_wndToolBar.m_hWnd;
+	else return NULL;
+}
+
 kmeleonFunctions kmelFuncs = {
   GetCommandIDs,
   NavigateTo,
   GetDocInfo,
   GetPreference,
-  SetPreference
+  SetPreference,
+  GetMozillaSessionHistory,
+  GotoHistoryIndex,
+  GetToolbarWnd
 };
 
 kmeleonPlugin * CPlugins::Load(const char *file){
@@ -242,4 +299,3 @@ void CPlugins::DoRebars(HWND rebarWnd){
     }
   }
 }
-
