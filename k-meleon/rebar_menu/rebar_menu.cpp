@@ -22,11 +22,6 @@
 
 #include "commctrl.h"
 
-#pragma warning( disable : 4786 ) // C4786 bitches about the std::map template name expanding beyond 255 characters
-#include <map>
-#include <string>
-#include <vector>
-
 #define KMELEON_PLUGIN_EXPORTS
 #include "../kmeleon_plugin.h"
 #include "../Utils.h"
@@ -54,7 +49,6 @@ int Init();
 void Create(HWND parent);
 void Config(HWND parent);
 void Quit();
-HGLOBAL GetMenu();
 void DoMenu(HMENU menu, char *param);
 void DoRebar(HWND rebarWnd);
 
@@ -81,13 +75,12 @@ int Init(){
    return true;
 }
 
-typedef std::map<HWND, void *> WndProcMap;
-WndProcMap KMeleonWndProcs;
+WNDPROC KMeleonWndProc;
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 void Create(HWND parent){
-   KMeleonWndProcs[parent] = (void *) GetWindowLong(parent, GWL_WNDPROC);
+   KMeleonWndProc = (WNDPROC) GetWindowLong(parent, GWL_WNDPROC);
    SetWindowLong(parent, GWL_WNDPROC, (LONG)WndProc);
 }
 
@@ -126,6 +119,8 @@ void DoRebar(HWND rebarWnd){
    }
 
    SendMessage(hwndTB, TB_SETIMAGELIST, 0, (LPARAM)NULL);
+
+   kPlugin.kf->RegisterToolBar(hwndTB, "Menu");
 
    int stringID;
 
@@ -234,61 +229,42 @@ LRESULT CALLBACK MsgHook(int code, WPARAM wParam, LPARAM lParam){
 }
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
-   WndProcMap::iterator WndProcIterator;
-   if (message == WM_NCDESTROY){
-      WndProcIterator = KMeleonWndProcs.find(hWnd); 
+   if (message == WM_NOTIFY){
+      NMHDR *hdr = (LPNMHDR)lParam;
+      if (hdr->code == TBN_DROPDOWN){
+         NMTOOLBAR *tbhdr = (LPNMTOOLBAR)lParam;
+         if (IsMenu((HMENU)(tbhdr->iItem-SUBMENU_OFFSET))){
+            ghToolbarWnd = tbhdr->hdr.hwndFrom;
+            giCurrentItem = tbhdr->iItem;
 
-      if (WndProcIterator != KMeleonWndProcs.end()){
-         SetWindowLong(hWnd, GWL_WNDPROC, (LONG)WndProcIterator->second);
+            int lastItem;
 
-         LRESULT result = CallWindowProc((WNDPROC)WndProcIterator->second, hWnd, message, wParam, lParam);
+            do {
+               gbContinueMenu = false;
 
-         KMeleonWndProcs.erase(WndProcIterator);
+               SendMessage(ghToolbarWnd, TB_PRESSBUTTON, giCurrentItem, MAKELONG(true, 0));
+               ghhookMsg = SetWindowsHookEx(WH_MSGFILTER, MsgHook, kPlugin.hDllInstance, GetCurrentThreadId());
 
-         return result;
-      }
+               RECT rc;
+               WPARAM index = SendMessage(ghToolbarWnd, TB_COMMANDTOINDEX, giCurrentItem, 0);
+               SendMessage(ghToolbarWnd, TB_GETITEMRECT, index, (LPARAM) &rc);
+               POINT pt = { rc.left, rc.bottom };
+               ClientToScreen(ghToolbarWnd, &pt);
+
+               // the hook may change this, so we need to save it for the TB_PRESSBUTTON
+               lastItem = giCurrentItem; 
+
+               TrackPopupMenu((HMENU)(giCurrentItem-SUBMENU_OFFSET), TPM_LEFTALIGN, pt.x, pt.y, 0, hWnd, NULL);
+
+               UnhookWindowsHookEx(ghhookMsg);
+               SendMessage(ghToolbarWnd, TB_PRESSBUTTON, lastItem, MAKELONG(false, 0));
+            } while (gbContinueMenu);
+
+            return DefWindowProc(hWnd, message, wParam, lParam);
+         }
+      }     
    }
-   else if (message == WM_NOTIFY){
-     NMHDR *hdr = (LPNMHDR)lParam;
-     if (hdr->code == TBN_DROPDOWN){
-       NMTOOLBAR *tbhdr = (LPNMTOOLBAR)lParam;
-       if (IsMenu((HMENU)(tbhdr->iItem-SUBMENU_OFFSET))){
-         ghToolbarWnd = tbhdr->hdr.hwndFrom;
-         giCurrentItem = tbhdr->iItem;
-
-         int lastItem;
-
-         do {
-            gbContinueMenu = false;
-
-            SendMessage(ghToolbarWnd, TB_PRESSBUTTON, giCurrentItem, MAKELONG(true, 0));
-            ghhookMsg = SetWindowsHookEx(WH_MSGFILTER, MsgHook, kPlugin.hDllInstance, GetCurrentThreadId());
-
-            RECT rc;
-            WPARAM index = SendMessage(ghToolbarWnd, TB_COMMANDTOINDEX, giCurrentItem, 0);
-            SendMessage(ghToolbarWnd, TB_GETITEMRECT, index, (LPARAM) &rc);
-            POINT pt = { rc.left, rc.bottom };
-            ClientToScreen(ghToolbarWnd, &pt);
-
-            // the hook may change this, so we need to save it for the TB_PRESSBUTTON
-            lastItem = giCurrentItem; 
-
-            TrackPopupMenu((HMENU)(giCurrentItem-SUBMENU_OFFSET), TPM_LEFTALIGN, pt.x, pt.y, 0, hWnd, NULL);
-
-            UnhookWindowsHookEx(ghhookMsg);
-            SendMessage(ghToolbarWnd, TB_PRESSBUTTON, lastItem, MAKELONG(false, 0));
-         } while (gbContinueMenu);
-
-         return DefWindowProc(hWnd, message, wParam, lParam);
-       }
-     }     
-   }
-   WndProcIterator = KMeleonWndProcs.find(hWnd);
-
-   if (WndProcIterator != KMeleonWndProcs.end()){
-      return CallWindowProc((WNDPROC)WndProcIterator->second, hWnd, message, wParam, lParam);
-   }
-   return 0;
+   return CallWindowProc(KMeleonWndProc, hWnd, message, wParam, lParam);
 }
 
 // so it doesn't munge the function name

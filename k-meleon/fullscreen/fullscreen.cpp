@@ -27,9 +27,6 @@
 
 #include "resource.h"
 
-#pragma warning( disable : 4786 ) // C4786 bitches about the std::map template name expanding beyond 255 characters
-#include <map>
-
 #define _T(x) x
 
 #define KMELEON_PLUGIN_EXPORTS

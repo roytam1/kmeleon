@@ -28,9 +28,6 @@
 #include <windows.h>
 #include <commctrl.h>
 
-#pragma warning( disable : 4786 ) // C4786 bitches about the std::map template name expanding beyond 255 characters
-#include <map>
-
 #define KMELEON_PLUGIN_EXPORTS
 #include "../kmeleon_plugin.h"
 
