@@ -335,6 +335,8 @@ int Init(){
    kPlugin.kFuncs->GetPreference(PREF_INT,  PREFERENCE_BUTTON_MAXWIDTH, &nButtonMaxWidth, &nButtonMaxWidth);
    bButtonIcons = true;
    kPlugin.kFuncs->GetPreference(PREF_BOOL,  PREFERENCE_BUTTON_ICONS, &bButtonIcons, &bButtonIcons);
+
+   ghMutex = CreateMutex(NULL, FALSE, "HotlistFileMutex");
    
    getHotlistFile();
    bEmpty = true;

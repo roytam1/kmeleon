@@ -287,7 +287,7 @@ static void SaveBookmarks(FILE *bmFile, CBookmarkNode *node)
 
 static BOOL bBackedUp = 0;
 
-static void create_backup(const char *file)
+static void create_backup(const char *file, int num=2)
 {
    int i;
    char buf[MAX_PATH];
@@ -297,7 +297,7 @@ static void create_backup(const char *file)
       return;
 
    /* rotate the old backups */
-   for (i=2; i>=1; i--) {
+   for (i=num; i>=1; i--) {
       sprintf(buf, "%s.bak%d", file, i);
       sprintf(buf2, "%s.bak%d", file, i+1);
       unlink(buf2);
@@ -306,7 +306,10 @@ static void create_backup(const char *file)
 
    sprintf(buf, "%s.bak1", file);
    unlink(buf);
-   rename(file, buf);
+   if (num)
+     rename(file, buf);
+   else
+     unlink(file);
 
    bBackedUp = 1;
 }
@@ -329,11 +332,29 @@ void Save(const char *file)
       }
    }
 
-#if 0
-   create_backup(file);
-#endif
+   DWORD dwWaitResult;
+   dwWaitResult = WaitForSingleObject( ghMutex, 1000L);
+   if (dwWaitResult == WAIT_TIMEOUT) {
+     MessageBox(NULL, "Unable to get MutEx for bookmarks file.\\nFile not saved.", PLUGIN_NAME ": WARNING" , MB_OK|MB_ICONSTOP);
+     return;
+   }
 
-   FILE *bmFile = fopen(file, "w");
+   char buf[MAX_PATH];
+   strcpy(buf, file);
+   char *p, *q;
+   p = strrchr(buf, '/');
+   q = strrchr(buf, '\\');
+   if (!q || p>q) q = p;
+   p = strrchr(buf, '.');
+   if (!p || q>p)
+     strcat(buf, "XXXXXX");
+   else if (p)
+     strcat(p, "XXXXXX");
+   else
+     strcat(buf, "XXXXXX");
+   p = mktemp(buf);
+
+   FILE *bmFile = fopen(buf, "w");
    if (bmFile){
       fprintf(bmFile, "%s\n", BOOKMARK_TAG);
       fprintf(bmFile, "%s\n", KMELEON_TAG);
@@ -348,6 +369,13 @@ void Save(const char *file)
       SaveBookmarks(bmFile, &gBookmarkRoot);
 
       fclose(bmFile);
+
+#if 0
+   create_backup(file);
+#endif
+
+      unlink(file);
+      rename(buf, file);
    }
 
    gGeneratedByUs = true;
@@ -355,6 +383,8 @@ void Save(const char *file)
 
    /* this is to support both NS 4 and NS 6 style bookmarks */
    kPlugin.kFuncs->SetPreference(PREF_STRING, PREFERENCE_TOOLBAR_FOLDER, (void *)gBookmarkRoot.FindSpecialNode(BOOKMARK_FLAG_TB)->text.c_str());
+
+   ReleaseMutex(ghMutex);
 }
 
 
@@ -562,6 +592,13 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
 
 void Load(const char *file) 
 {
+   DWORD dwWaitResult; 
+   dwWaitResult = WaitForSingleObject( ghMutex, 1000L);
+   if (dwWaitResult == WAIT_TIMEOUT) {
+     MessageBox(NULL, "Unable to get MutEx for bookmarks file.\\nFile not loaded.", PLUGIN_NAME ": WARNING" , MB_OK|MB_ICONSTOP);
+     return;
+   }
+
    FILE *bmFile = fopen(file, "r");
    if (bmFile){
       long bmFileSize = FileSize(bmFile);
@@ -577,6 +614,8 @@ void Load(const char *file)
       }
       fclose(bmFile);
    }
+
+   ReleaseMutex(ghMutex);
 }
 
 void findNick(char *nick, char *url)

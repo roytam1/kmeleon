@@ -229,5 +229,6 @@ WHERE int nHSize, nHRes;
 
 WHERE HWND ghWndEdit;
 WHERE HIMAGELIST gImagelist; // the one and only imagelist...
+WHERE HANDLE ghMutex;
 
 #endif
