@@ -283,7 +283,9 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct){
 	}
 
 	//Add the UrlBar and Throbber windows to the rebar
-	m_wndReBar.AddBar(&m_wndUrlBar, "URL:");
+	char szTitle[256] = "URL:";
+	theApp.preferences.GetString("kmeleon.toolband.URL Bar.title", (char*)&szTitle, (char*)&szTitle);
+	m_wndReBar.AddBar(&m_wndUrlBar, szTitle);
    m_wndReBar.AddBar(&m_wndAnimate, NULL, NULL, RBBS_FIXEDSIZE | RBBS_FIXEDBMP);
 
    m_wndReBar.RegisterBand(m_wndUrlBar.m_hWnd,  "URL Bar", true);
