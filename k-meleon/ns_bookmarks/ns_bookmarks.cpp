@@ -437,10 +437,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
       }
       if (command == nAddCommand){
          kmeleonDocInfo *dInfo = kPlugin.kf->GetDocInfo(hWnd);
-         urlVector.push_back((std::string)dInfo->url);
-         titleVector.push_back((std::string)dInfo->title);
-         AppendMenu(m_menuBookmarks, MF_STRING, nFirstBookmarkCommand+urlVector.size()-1, dInfo->title);
-         DrawMenuBar(hWnd);
+         if (dInfo) {
+            urlVector.push_back((std::string)dInfo->url);
+            titleVector.push_back((std::string)dInfo->title);
+            AppendMenu(m_menuBookmarks, MF_STRING, nFirstBookmarkCommand+urlVector.size()-1, dInfo->title);
+            DrawMenuBar(hWnd);
+         }
          return true;
       }
       if (command == nEditCommand){
