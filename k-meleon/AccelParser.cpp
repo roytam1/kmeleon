@@ -103,18 +103,12 @@ int CAccelParser::Parse(char *p)
 
          TrimWhiteSpace(e);
 
-         kmeleonPlugin * kPlugin = theApp.plugins.Load(e);
-
-         if (kPlugin && kPlugin->loaded) {
-            if (kPlugin->pf->DoAccel) {
-               command = kPlugin->pf->DoAccel(parameter);
-               LOG_2("Called plugin %s with parameter %s", e, parameter);
-            }
-            else
-               LOG_ERROR_2( "Plugin %s has no accelerator %s", e, parameter);
+         if (theApp.plugins.SendMessage(e, "* AccelParser", "DoAccel", (long)parameter, (long)&command)) {
+            LOG_2("Called plugin %s with parameter %s", e, parameter);
          }
-         else
-            LOG_ERROR_2( "Could not load plugin %s\r\n\twith parameter %s", e, parameter );
+         else {
+            LOG_ERROR_2( "Plugin %s has no accelerator %s", e, parameter);
+         }
       }
       
       else if (!defineMap.Lookup(e, command)) {
