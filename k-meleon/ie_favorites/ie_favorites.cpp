@@ -284,6 +284,8 @@ void DoMenu(HMENU menu, char *param){
    }
 }
 
+#define SUBMENU_OFFSET 5000 // this is here to distinguish between submenus and menu items, which may have the same id
+
 void DoRebar(HWND rebarWnd){
    DWORD dwStyle = 0x40 | /*the 40 gets rid of an ugly border on top.  I have no idea what flag it corresponds to...*/
       CCS_NOPARENTALIGN | CCS_NORESIZE | //CCS_ADJUSTABLE |
@@ -361,7 +363,7 @@ void DoRebar(HWND rebarWnd){
 
         TBBUTTON button;
         button.iBitmap = m_iFolderIcon;
-        button.idCommand = (int)mInfo.hSubMenu;
+        button.idCommand = (int)mInfo.hSubMenu+SUBMENU_OFFSET;
         button.fsState = TBSTATE_ENABLED;
         button.fsStyle = TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE | TBSTYLE_DROPDOWN;
         //button.bReserved = NULL;
@@ -383,7 +385,7 @@ void DoRebar(HWND rebarWnd){
 
            TBBUTTON button;
            button.iBitmap = m_URLIcons[index];
-           button.idCommand = nFirstFavoriteCommand + index;
+           button.idCommand = mInfo.wID;
            button.fsState = TBSTATE_ENABLED;
            button.fsStyle = TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE;
            //button.bReserved = NULL;
@@ -415,6 +417,41 @@ void DoRebar(HWND rebarWnd){
 
    // Add the band that has the toolbar.
    SendMessage(rebarWnd, RB_INSERTBAND, (WPARAM)-1, (LPARAM)&rbBand);
+}
+
+BOOL gbContinueMenu;
+int giCurrentItem; 
+HWND ghToolbarWnd;
+HHOOK ghhookMsg;
+LRESULT CALLBACK MsgHook(int code, WPARAM wParam, LPARAM lParam){
+   if (code == MSGF_MENU){
+      MSG *msg = (MSG *)lParam;
+      if (msg->message == WM_MOUSEMOVE){
+         POINT mouse;
+         mouse.x = LOWORD(msg->lParam);
+         mouse.y = HIWORD(msg->lParam);
+
+         if (ghToolbarWnd){
+            ScreenToClient(ghToolbarWnd, &mouse);
+            int ndx = SendMessage(ghToolbarWnd, TB_HITTEST, 0, (LPARAM)&mouse);
+
+            if (ndx >= 0){
+               TBBUTTON button;
+               SendMessage(ghToolbarWnd, TB_GETBUTTON, ndx, (LPARAM)&button);
+               if (giCurrentItem != button.idCommand && IsMenu((HMENU)(button.idCommand-SUBMENU_OFFSET))){
+                  SendMessage(msg->hwnd, WM_CANCELMODE, 0, 0);
+
+                  // this basically tells the loop, "we would like to enter a new menu loop with this item:"
+                  giCurrentItem = button.idCommand;
+                  gbContinueMenu = true;
+
+                  return true;
+               }
+            }
+         }
+      }
+   }
+   return CallNextHookEx(ghhookMsg, code, wParam, lParam);
 }
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
@@ -456,10 +493,34 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
      NMHDR *hdr = (LPNMHDR)lParam;
      if (hdr->code == TBN_DROPDOWN){
        NMTOOLBAR *tbhdr = (LPNMTOOLBAR)lParam;
-       if (IsMenu((HMENU)tbhdr->iItem)){
-         POINT cursor;
-         GetCursorPos(&cursor);
-         TrackPopupMenu((HMENU)tbhdr->iItem, TPM_LEFTALIGN, cursor.x, cursor.y, 0, hWnd, NULL);
+       if (IsMenu((HMENU)(tbhdr->iItem-SUBMENU_OFFSET))){
+         ghToolbarWnd = tbhdr->hdr.hwndFrom;
+         giCurrentItem = tbhdr->iItem;
+
+         int lastItem;
+
+         do {
+            gbContinueMenu = false;
+
+            SendMessage(ghToolbarWnd, TB_PRESSBUTTON, giCurrentItem, MAKELONG(true, 0));
+            ghhookMsg = SetWindowsHookEx(WH_MSGFILTER, MsgHook, kPlugin.hDllInstance, GetCurrentThreadId());
+
+            RECT rc;
+            WPARAM index = SendMessage(ghToolbarWnd, TB_COMMANDTOINDEX, giCurrentItem, 0);
+            SendMessage(ghToolbarWnd, TB_GETITEMRECT, index, (LPARAM) &rc);
+            POINT pt = { rc.left, rc.bottom };
+            ClientToScreen(ghToolbarWnd, &pt);
+
+            // the hook may change this, so we need to save it for the TB_PRESSBUTTON
+            lastItem = giCurrentItem; 
+
+            TrackPopupMenu((HMENU)(giCurrentItem-SUBMENU_OFFSET), TPM_LEFTALIGN, pt.x, pt.y, 0, hWnd, NULL);
+
+            UnhookWindowsHookEx(ghhookMsg);
+            SendMessage(ghToolbarWnd, TB_PRESSBUTTON, lastItem, MAKELONG(false, 0));
+         } while (gbContinueMenu);
+
+         return DefWindowProc(hWnd, message, wParam, lParam);
        }
      }
    }
