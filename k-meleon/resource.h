@@ -252,6 +252,8 @@
 #define ID_FILE_PRINTPREVIEW            32801
 #define ID_FILE_PRINTSETUP              32802
 #define ID_TOOLBARS_LOCK                32803
+#define ID_VIEW_FRAME_SOURCE            32804
+#define ID_OPEN_FRAME_IN_NEW_WINDOW     32805
 #define IDS_FAILED_TO_CREATE_BROWSER    61204
 #define IDS_NEW_PLUGIN_FOUND            61205
 #define IDS_PLUGIN_NO_OPTIONS           61206
@@ -274,7 +276,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        192
-#define _APS_NEXT_COMMAND_VALUE         32804
+#define _APS_NEXT_COMMAND_VALUE         32806
 #define _APS_NEXT_CONTROL_VALUE         1078
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
