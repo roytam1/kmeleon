@@ -1441,7 +1441,7 @@ void CBrowserView::ShowSecurityInfo()
       CString csMsg;
       csMsg.LoadString(IDS_NOSECURITY_INFO);
 
-      ::MessageBox(hParent, csMsg, "MfcEmbed", MB_OK);
+      ::MessageBox(hParent, csMsg, "K-Meleon", MB_OK);
 
       return;
    }                                                                           
