@@ -141,7 +141,7 @@ void CBrowserFrame::OnClose()
 
    theApp.RemoveFrameFromList(this);
 
-   ShowWindow(SW_HIDE);
+//   ShowWindow(SW_HIDE);
    DestroyWindow();
 }
 
