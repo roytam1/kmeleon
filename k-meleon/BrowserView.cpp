@@ -1013,7 +1013,7 @@ void CBrowserView::OnFilePrintPreview()
             return;
       }
       if (!m_InPrintPreview) {
-         if (NS_SUCCEEDED(print->PrintPreview(m_PrintSettings)))
+         if (NS_SUCCEEDED(print->PrintPreview(m_PrintSettings, nsnull, nsnull)))
             m_InPrintPreview = TRUE;
       }
       else {
