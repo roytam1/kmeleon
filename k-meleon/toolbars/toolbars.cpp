@@ -30,6 +30,7 @@
 #include "..\utils.h"
 #include "..\KMeleonConst.h"
 
+
 #include <afxres.h>
 #include "..\resource.h"
 
@@ -57,7 +58,7 @@ kmeleonPlugin kPlugin = {
 long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2)
 {
    if (to[0] == '*' || stricmp(to, kPlugin.dllname) == 0) {
-      if (stricmp(subject, "MenusInited") == 0) {
+      if (stricmp(subject, "Init") == 0) {
          Init();
       }
       else if (stricmp(subject, "Create") == 0) {
@@ -432,23 +433,23 @@ void LoadToolbars(char *filename) {
             }
          }
       }
-
+      
       // button data
       else {
          
          switch (iBuildState) {
          case ID:
-
+            
             curButton->menu = NULL;
-
+            
             char *pipe;
             pipe = strchr(p, '|');
             if (pipe) {
                *pipe = 0;
-
+               
                TrimWhiteSpace(pipe+1);
-
-               curButton->menu = kPlugin.kFuncs->GetMenu(SkipWhiteSpace(pipe+1));
+               
+//               curButton->menu = kPlugin.kFuncs->GetMenu(SkipWhiteSpace(pipe+1));
             }
             
             // check for call to other plugin
@@ -463,19 +464,14 @@ void LoadToolbars(char *filename) {
                kPlugin.kFuncs->SendMessage(plugin, PLUGIN_NAME, "DoAccel", (long)param, (long)&curButton->iID);
             }
             
-            // check for numeric value
-            else if (p[0] >= '0' && p[0] <='9')
-               curButton->iID = atoi(p);
+            else {
+               curButton->iID = kPlugin.kFuncs->GetID(p);
+               if (!curButton->iID)
+                  curButton->iID = atoi(p);
+            }
             
-            
-            // check for defined value
-#define DEFINEMAP_ADD(VAR) \
-   else if (!strcmp(#VAR, p)) \
-            curButton->iID = VAR;
+            iBuildState++;
 
-#include "../definemap.cpp"
-
-               iBuildState++;
             break;
             //            case DESC:
             //               curButton->sToolTip = new char[strlen(p) + 1];
