@@ -47,25 +47,26 @@ BEGIN_MESSAGE_MAP(CPreferencesDlg, CDialog)
 END_MESSAGE_MAP()
 
 CPreferencesDlg::OnInitDialog(){
-  CDialog::OnInitDialog();
+   CDialog::OnInitDialog();
 
-  UpdateData(true);
+   UpdateData(true);
 
-  RECT rect;
-  m_list.SetParent(this);
-	m_list.GetClientRect(&rect);
+   RECT rect;
+   m_list.SetParent(this);
+   m_list.GetClientRect(&rect);
 
- 	m_list.InsertColumn(0, "Blah", LVCFMT_LEFT, rect.right);
+   m_list.InsertColumn(0, "Blah", LVCFMT_LEFT, rect.right);
 
-  AddItem(_T("General"), IDD_PREFERENCES_GENERAL);
-  AddItem(_T("Display"), IDD_PREFERENCES_DISPLAY);
-  AddItem(_T("Proxy"),   IDD_PREFERENCES_PROXY);
-  AddItem(_T("Paranoia"),IDD_PREFERENCES_PARANOIA);
-  AddItem(_T("Plugins"), IDD_PREFERENCES_PLUGINS);
+   AddItem(_T("General"), IDD_PREFERENCES_GENERAL);
+   AddItem(_T("Display"), IDD_PREFERENCES_DISPLAY);
+   AddItem(_T("Menus"),   IDD_PREFERENCES_MENUS);
+   AddItem(_T("Proxy"),   IDD_PREFERENCES_PROXY);
+   AddItem(_T("Paranoia"),IDD_PREFERENCES_PARANOIA);
+   AddItem(_T("Plugins"), IDD_PREFERENCES_PLUGINS);
 
-  m_list.SetItemState(0, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
+   m_list.SetItemState(0, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
 
-	return TRUE;  // return TRUE  unless you set the focus to a control
+   return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
 CPreferencesDlg::~CPreferencesDlg(){
@@ -125,7 +126,11 @@ void CPreferencesDlg::ShowPage(UINT idd){
   }
   if (idd == IDD_PREFERENCES_PLUGINS){
     page = new CPreferencePagePlugins;
-  }else{
+  }
+  else if (idd == IDD_PREFERENCES_MENUS){
+     page = new CPreferencePageMenus;
+  }
+  else{
     page = new CPreferencePage;
   }
   
@@ -150,7 +155,7 @@ void CPreferencesDlg::ShowPage(UINT idd){
 /**/
 
 BOOL CPreferencePage::OnInitDialog(){
-  CDialog::OnInitDialog();
+   CDialog::OnInitDialog();
 
 	return FALSE;  // return TRUE  unless you set the focus to a control
 }
@@ -214,26 +219,26 @@ void CPreferencePage::OnCancel(){
 /**/
 
 BOOL CPreferencePagePlugins::OnInitDialog(){
-  CDialog::OnInitDialog();
+   CDialog::OnInitDialog();
 
-  RECT rect;
-  m_pluginList.SetParent(this);
-	m_pluginList.GetClientRect(&rect);
+   RECT rect;
+   m_pluginList.SetParent(this);
+   m_pluginList.GetClientRect(&rect);
 
  	m_pluginList.InsertColumn(0, "Blah", LVCFMT_LEFT, rect.right);
 
-  POSITION pos = theApp.plugins.pluginList.GetStartPosition();
-  kmeleonPlugin * kPlugin;
-  CString s;
-  int i=0;
-  while (pos){
-    theApp.plugins.pluginList.GetNextAssoc( pos, s, kPlugin);
+   POSITION pos = theApp.plugins.pluginList.GetStartPosition();
+   kmeleonPlugin * kPlugin;
+   CString s;
+   int i=0;
+   while (pos){
+      theApp.plugins.pluginList.GetNextAssoc( pos, s, kPlugin);
 
-    int item = m_pluginList.GetItemCount();
+      int item = m_pluginList.GetItemCount();
 
-    m_pluginList.InsertItem(item, kPlugin->description, 0);
-  }
-  m_pluginList.SetItemState(0, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
+      m_pluginList.InsertItem(item, kPlugin->description, 0);
+   }
+   m_pluginList.SetItemState(0, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
 
 	return FALSE;  // return TRUE  unless you set the focus to a control
 }
@@ -276,3 +281,113 @@ void CPreferencePagePlugins::OnConfig() {
     item--;
   }
 }
+
+/**/
+
+BOOL CPreferencePageMenus::OnInitDialog(){
+   CDialog::OnInitDialog();
+
+   ShowFile("menus.cfg");
+   m_nCurrentFile = 0;
+
+	return FALSE;  // return TRUE  unless you set the focus to a control
+}
+
+void CPreferencePageMenus::OnDestroy(){
+   if (SendDlgItemMessage(IDC_EDIT1, EM_GETMODIFY)){
+      if (m_nCurrentFile == 0){
+         SaveFile("menus.cfg");
+      }
+      else if (m_nCurrentFile == 1){
+         SaveFile("accel.cfg");
+      }
+   }
+}
+
+void CPreferencePageMenus::OnHelp(){
+   if (m_nCurrentFile == 0){
+      MessageBox(
+         "Start a comment with a # as the first thing on the line \n\
+         Start a menu with MenuName { \n\
+         End a menu with } \n\
+         Use : to insert a submenu (that you defined earlier) \n\
+         To insert a plugin, use pluginname.dll(parameters) \n\
+         To insert a menu item, use MenuItem \\t AccelKey = ID",
+         "menus.cfg Syntax");
+   }
+   else if (m_nCurrentFile == 1){
+      MessageBox(
+         "Start a comment with a # as the first thing on the line \n\
+         To define an accelerator, use Modifier Key = ID \n\
+         Where Modifier is CTRL, ALT, or SHIFT",
+         "menus.cfg Syntax");
+   }
+}
+
+void CPreferencePageMenus::SaveFile(char *filename){
+   if (MessageBox("Do you wish to save your changes?", filename, MB_YESNO) == IDNO){
+      return;
+   }
+   CFile file;
+   if (file.Open(theApp.preferences.settingsDir + filename, CFile::modeWrite)){
+      UpdateData();
+      file.Write(m_fileText, m_fileText.GetLength());
+   }
+   else{
+      MessageBox("Error opening file");
+   }
+   file.Close();
+}
+
+void CPreferencePageMenus::ShowFile(char *filename){
+   CFile file;
+   if (file.Open(theApp.preferences.settingsDir + filename, CFile::modeRead)){
+      int length = file.GetLength();
+      char *buffer = new char[length+1];
+      buffer[file.Read(buffer, length)] = 0;
+
+      m_fileText = buffer;
+
+      delete [] buffer;
+
+      UpdateData(FALSE);
+   }
+   else{
+      MessageBox("Error opening file");
+   }
+   file.Close();
+   m_currentFile = filename;
+}
+
+void CPreferencePageMenus::OnMenus(){
+   if (SendDlgItemMessage(IDC_EDIT1, EM_GETMODIFY))
+      SaveFile(m_currentFile);
+   ShowFile("menus.cfg");
+   m_nCurrentFile = 0;
+
+   SendDlgItemMessage(IDC_EDIT1, EM_SETMODIFY, 0);
+}
+
+void CPreferencePageMenus::OnAccel(){
+   if (SendDlgItemMessage(IDC_EDIT1, EM_GETMODIFY))
+      SaveFile(m_currentFile);
+   ShowFile("accel.cfg");
+   m_nCurrentFile = 1;
+
+   SendDlgItemMessage(IDC_EDIT1, EM_SETMODIFY, 0);
+}
+
+void CPreferencePageMenus::DoDataExchange(CDataExchange* pDX){
+   CDialog::DoDataExchange(pDX);
+	//{{AFX_DATA_MAP(CPreferencePagePlugins)
+   DDX_Text(pDX, IDC_EDIT1, m_fileText);
+   //}}AFX_DATA_MAP
+}
+
+BEGIN_MESSAGE_MAP(CPreferencePageMenus, CPreferencePage)
+	//{{AFX_MSG_MAP(CPreferencePageMenus)
+   ON_BN_CLICKED(IDC_BUTTON_HELP, OnHelp)
+   ON_BN_CLICKED(IDC_BUTTON_MENUS, OnMenus)
+   ON_BN_CLICKED(IDC_BUTTON_ACCEL, OnAccel)
+   //}}AFX_MSG_MAP
+END_MESSAGE_MAP()

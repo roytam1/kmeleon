@@ -105,6 +105,26 @@ protected:
   DECLARE_MESSAGE_MAP()
 };
 
+class CPreferencePageMenus: public CPreferencePage {
+protected:
+  CString m_fileText;
+  int m_nCurrentFile;
+  char * m_currentFile;
+
+  virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV support
+
+  virtual BOOL OnInitDialog();
+  afx_msg void OnDestroy();
+
+  void ShowFile(char *);
+  void SaveFile(char *);
+
+  afx_msg void OnHelp();
+  afx_msg void OnMenus();
+  afx_msg void OnAccel();
+
+  DECLARE_MESSAGE_MAP()
+};
 
 class CPreferencesDlg : public CDialog{
   friend CPreferencePage;

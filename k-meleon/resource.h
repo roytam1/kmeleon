@@ -30,6 +30,7 @@
 #define IDD_PREFERENCES_PLUGINS         158
 #define IDD_PREFERENCES_PARANOIA        159
 #define IDC_PAN_DOWN                    160
+#define IDD_PREFERENCES_MENUS           160
 #define IDC_PAN_UP                      161
 #define IDC_PAN_RIGHT                   163
 #define IDC_PAN_LEFT                    164
@@ -67,6 +68,11 @@
 #define IDC_CHECK_CSS                   1028
 #define IDC_EDIT_VERSION                1029
 #define IDC_CHECK_ANIMATIONS            1031
+#define IDC_EDIT1                       1033
+#define IDC_BUTTON_MENUS                1035
+#define IDC_BUTTON_ACCEL                1036
+#define IDC_BUTTON_HELP                 1037
+#define IDC_BUTTON2                     1039
 #define IDC_CONTAINER                   1110
 #define IDC_EDIT_TOOLBAR_BACKGROUND     1111
 #define IDC_EDIT_SETTINGS_DIR           1111
@@ -109,7 +115,7 @@
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        158
 #define _APS_NEXT_COMMAND_VALUE         32791
-#define _APS_NEXT_CONTROL_VALUE         1033
+#define _APS_NEXT_CONTROL_VALUE         1040
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
