@@ -1190,9 +1190,11 @@ std::string EvalExpression(HWND hWnd,std::string exp) {
                }
             }
             else if(exp.at(i) == '.') { // concat
-               lval = strTrim(exp.substr(0,i));
-               rval = strTrim(exp.substr(i+1));
-               return "\"" + strVal(EvalExpression(hWnd,lval)) + strVal(EvalExpression(hWnd,rval)) + "\"";
+               lval = strVal(EvalExpression(hWnd, strTrim(exp.substr(0,i))));
+               rval = strVal(EvalExpression(hWnd, strTrim(exp.substr(i+1))));
+               return "\"" + lval + rval.c_str() + "\"";
+               // yes, the .c_str() is actually necessary.  Without it, the
+               // final " isn't appended...  don't ask me why.
             }
          }
       }
