@@ -54,6 +54,7 @@ public:
    
    int Create(DWORD style, RECT &rect, CWnd *parentWnd, UINT id) {
       int ret = CComboBoxEx::Create(style | CBS_AUTOHSCROLL, rect, parentWnd, id);
+      SetExtendedStyle(CBES_EX_CASESENSITIVE, CBES_EX_CASESENSITIVE);
       
       COMBOBOXEXITEM ci;
       ci.mask = CBEIF_IMAGE;
