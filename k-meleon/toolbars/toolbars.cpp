@@ -272,8 +272,7 @@ void Create(HWND parent){
 
 void Config(HWND hWndParent) {
    char cfgPath[MAX_PATH];
-   kPlugin.kFuncs->GetPreference(PREF_STRING, _T("kmeleon.general.settingsDir"), cfgPath, (char*)"");
-   strcat(cfgPath, "toolbars.cfg");
+   FindSkinFile(cfgPath, "toolbars.cfg");
    ShellExecute(NULL, NULL, "notepad.exe", cfgPath, NULL, SW_SHOW);
 }
 
