@@ -421,7 +421,6 @@ void CBrowserView::OnNavForward()
 
 
 void CBrowserView::RefreshToolBarItem(WPARAM ItemID, LPARAM unused) {
-	MessageBox("Moo");
 	switch (ItemID) {
 		case ID_NAV_BACK:
 			m_refreshBackButton = TRUE;
