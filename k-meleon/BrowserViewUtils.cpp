@@ -387,12 +387,9 @@ void CBrowserView::ShowSecurityInfo()
    HWND hParent = mpBrowserFrame->m_hWnd;
 
    if(m_SecurityState == SECURITY_STATE_INSECURE) { 
-      CString csMsg;
-      csMsg.LoadString(IDS_NOSECURITY_INFO);
-
-      ::MessageBox(hParent, csMsg, "K-Meleon", MB_OK);
-
-      return;
-   }                                                                           
-   ::MessageBox(hParent, "This page has been transferred over a secure connection.", "K-Meleon", MB_OK);
+      AfxMessageBox(IDS_NOSECURITY_INFO);
+   } else {
+      // TEMPORARY.  this should be replaced with something more permanent
+      AfxMessageBox("This page has been transferred over a secure connection.");
+   }
 }

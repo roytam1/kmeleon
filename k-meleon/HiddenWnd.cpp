@@ -184,7 +184,7 @@ void CHiddenWnd::ShowBrowser(char *URI) {
       browser = theApp.CreateNewBrowserFrame();
 
       if (!browser) {
-         MessageBox("Could not create browser frame");
+         AfxMessageBox(IDS_FAILED_TO_CREATE_BROWSER);
          return;
       }
 

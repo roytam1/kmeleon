@@ -266,13 +266,15 @@ BOOL CPlugins::TestLoad(const char *file, const char *description)
    
    int load = theApp.preferences.GetBool(preference, -1);
    if (load == -1) {
-      char buf[256] = "A new plugin was found:\n\n";
-      strcat(buf, description);
-      strcat(buf, "\n\nWould you like to load this plugin now?");
+      CString message;
 
-      if (MessageBox(NULL, buf, "Plugin found", MB_YESNO) == IDYES)
+      message.Format(IDS_NEW_PLUGIN_FOUND, description);
+
+      if (MessageBox(NULL, message, "Plugin found", MB_YESNO) == IDYES)
          load = 1;
-      else load = 0;
+      else
+         load = 0;
+
       theApp.preferences.SetBool(preference, load);
    }
    return load;

@@ -58,22 +58,22 @@
 
 // docshell: 
 #include "nsIDocShell.h"
-#include "nsIWebNavigation.h"
 #include "nsIDocShellTreeOwner.h"
+#include "nsIWebNavigation.h"
 #include "nsIDocShellTreeItem.h"
 
 // dom: 
-#include "nsIDOMHTMLAnchorElement.h"
-#include "nsIDOMNode.h"
 #include "nsIDOMNamedNodeMap.h"
+#include "nsIDOMNode.h"
 #include "nsIDOMHTMLImageElement.h"
-#include "nsIScriptGlobalObject.h"
 #include "nsIDOMWindow.h"
+#include "nsIDOMHTMLAnchorElement.h"
+#include "nsIScriptGlobalObject.h"
 #include "nsIDOMWindowInternal.h"
 
 // embed_base: 
-#include "nsIWindowCreator.h"
 #include "nsEmbedAPI.h"
+#include "nsIWindowCreator.h"
 
 // exthandler: 
 #include "nsIExternalHelperAppService.h"
@@ -94,17 +94,18 @@
 #include "nsIPrintListener.h"
 
 // necko: 
-#include "nsIPrompt.h"
 #include "nsIHTTPChannel.h"
-#include "nsIURI.h"
-#include "nsIRequestObserver.h"
 #include "nsIChannel.h"
 #include "nsNetUtil.h"
+#include "nsIPrompt.h"
+#include "nsIURI.h"
+#include "nsIRequestObserver.h"
 
 // pref: 
 #include "nsIPref.h"
 
 // profile: 
+#include "nsIProfile.h"
 #include "nsIProfileChangeStatus.h"
 
 // shistory: 
@@ -113,8 +114,8 @@
 #include "nsISHEntry.h"
 
 // string: 
-#include "nsReadableUtils.h"
 #include "nsXPIDLString.h"
+#include "nsReadableUtils.h"
 #include "nsString.h"
 
 // uriloader: 
@@ -125,18 +126,18 @@
 #include "nsIWalletService.h"
 
 // webBrowser_core: 
-#include "nsIWebBrowserChrome.h"
-#include "nsITooltipListener.h"
 #include "nsITooltipTextProvider.h"
-#include "nsCTooltipTextProvider.h"
 #include "nsIWebBrowserPersist.h"
 #include "nsIWebBrowser.h"
-#include "nsIWebBrowserFocus.h"
-#include "nsCWebBrowser.h"
-#include "nsIWebBrowserChromeFocus.h"
 #include "nsIContextMenuListener.h"
 #include "nsIWebBrowserPrint.h"
 #include "nsIEmbeddingSiteWindow.h"
+#include "nsIWebBrowserChrome.h"
+#include "nsITooltipListener.h"
+#include "nsIWebBrowserFocus.h"
+#include "nsCTooltipTextProvider.h"
+#include "nsCWebBrowser.h"
+#include "nsIWebBrowserChromeFocus.h"
 
 // webshell: 
 #include "nsIClipboardCommands.h"
@@ -151,13 +152,14 @@
 #include "nsIWindowWatcher.h"
 
 // xpcom: 
-#include "nsAppDirectoryServiceDefs.h"
-#include "nsWeakReference.h"
 #include "nsIGenericFactory.h"
-#include "nsIObserver.h"
+#include "nsWeakReference.h"
 #include "nsIInterfaceRequestor.h"
 #include "nsVoidArray.h"
+#include "nsIServiceManager.h"
 #include "nsError.h"
+#include "nsAppDirectoryServiceDefs.h"
+#include "nsIObserver.h"
 #include "nsIObserverService.h"
 #include "nsCOMPtr.h"
 

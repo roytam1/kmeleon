@@ -279,10 +279,10 @@ NS_IMETHODIMP CProgressDialog::OnStateChange(nsIWebProgress *aWebProgress, nsIRe
       }
       else
       {
-         char statusText[50];
+         CString statusText;
          PRInt64 now = PR_Now ();
          PRInt64 timeSpent = now - mStartTime;
-         sprintf(statusText, "Done! Downloaded %.2f KBytes in %d seconds", ((double)mTotalBytes)/1024, (int)(timeSpent/1000000.0l));
+         statusText.Format(IDS_DOWNLOAD_DONE, ((double)mTotalBytes)/1024, (int)(timeSpent/1000000.0l));
          SetDlgItemText(IDC_STATUS, statusText);
 
          SetDlgItemText(IDCANCEL, "Close");
@@ -312,8 +312,8 @@ NS_IMETHODIMP CProgressDialog::OnProgressChange(nsIWebProgress *aWebProgress, ns
 
       int percent = (int)(((float)aCurTotalProgress / (float)aMaxTotalProgress) * 100.0f);
 
-      char progressString[50];
-      sprintf(progressString, "Downloaded %d%% (%.2f K of %.2f KBytes)", percent, ((double)aCurTotalProgress)/1024, ((double)aMaxTotalProgress)/1024);
+      CString progressString;
+      progressString.Format(IDS_DOWNLOAD_PROGRESS, percent, ((double)aCurTotalProgress)/1024, ((double)aMaxTotalProgress)/1024);
       SetDlgItemText(IDC_STATUS, progressString);
 
       PRInt64 now = PR_Now ();
@@ -356,8 +356,6 @@ NS_IMETHODIMP CProgressDialog::OnProgressChange(nsIWebProgress *aWebProgress, ns
 		if (speed) {
          PRInt32 remaining = (PRInt32)((aMaxTotalProgress - aCurTotalProgress)/speed +.5);
 
-         char timeString[50];
-
          int remainHours=0, remainMin=0, remainSec=0, remainTemp;
          remainTemp = remaining;
          
@@ -371,22 +369,23 @@ NS_IMETHODIMP CProgressDialog::OnProgressChange(nsIWebProgress *aWebProgress, ns
          }
          remainSec = remainTemp;
 	
+         CString timeString;
          if (remainHours)
-            sprintf(timeString, "Time Left: %d:%02d:%02d", remainHours, remainMin, remainSec);
+            timeString.Format(IDS_TIMELEFT_HOURS, remainHours, remainMin, remainSec);
          else if (remainMin) {
             if (remainMin == 1)
-               sprintf(timeString, "Time Left: %d Minute, %0d Seconds", remainMin, remainSec);
+               timeString.Format(IDS_TIMELEFT_MINUTE, remainSec);
             else
-               sprintf(timeString, "Time Left: %d Minutes, %0d Seconds", remainMin, remainSec);
+               timeString.Format(IDS_TIMELEFT_MINUTES, remainMin, remainSec);
          }
          else
-            sprintf(timeString, "Time Left: %d Seconds", remainSec);
+            timeString.Format(IDS_TIMELEFT_SECONDS, remainSec);
 
          SetDlgItemText(IDC_TIME_LEFT, timeString);
       }
 
-      char titleString[255];
-      sprintf(titleString, "%d%% of %s", percent, mFileName);
+      CString titleString;
+      titleString.Format(IDS_PERCENT_OF_FILE, percent, mFileName);
       SetWindowText(titleString);
 
       HWND progressBar;
