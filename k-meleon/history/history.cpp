@@ -286,7 +286,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 		case WM_COMMAND:
 			WORD command;
 			command = LOWORD(wParam);
-			if ((command >= ID_HISTORY) && (command <= ID_HISTORY+20)) {
+			if ((command >= ID_HISTORY) && (command < ID_HISTORY+20)) {
 				kPlugin.kf->GotoHistoryIndex(command-ID_HISTORY);
 				return true;
 			}
