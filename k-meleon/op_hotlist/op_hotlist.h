@@ -30,8 +30,18 @@ void quicksort(char *a, size_t n, size_t es, cmp_t *cmp, unsigned int flag);
 #include <wininet.h>    // for INTERNET_MAX_URL_LENGTH
 #include <commctrl.h>
 
+
+#define ID_CREATE                       501
+#define ID_SEARCH                       502
 #define IDD_CONFIG                      101
+#define IDD_INSTALL                     102
 #define IDC_REBARENABLED                1000
+#define IDC_HOTLIST_FILE                1001
+#define IDC_BROWSE                      1002
+#define IDC_MAX_MENU_LENGTH             1003
+#define IDC_MIN_TB_SIZE                 1004
+#define IDC_MAX_TB_SIZE                 1005
+#define IDC_MENU_AUTODETECT             1006
 #define TOOLBAND_NAME "Hotlist"
 #define TOOLBAND_FAILED_TO_CREATE "Failed to create hotlist toolbar"
 #define PLUGIN_NAME "Opera Hotlist Plugin"
@@ -111,6 +121,7 @@ WHERE WNDPROC wpOrigTBWndProc;
 WHERE BOOL bRebarEnabled;
 WHERE BOOL bResynchHotlist;
 WHERE BOOL bCreate;
+WHERE BOOL bIgnore;
 WHERE CHAR gHotlistFile[MAX_PATH];
 WHERE CHAR gToolbarFolder[MAX_PATH];
 
