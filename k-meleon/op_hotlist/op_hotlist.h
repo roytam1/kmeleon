@@ -20,9 +20,10 @@
 #define __OP_HOTLIST_H__
 
 #ifndef COMPILING_RC
+
 #include "BookmarkNode.h"
 #include "stdio.h"
-#include "kmeleon_plugin.h"
+#include "../kmeleon_plugin.h"
 #endif
 #include <commctrl.h>
 

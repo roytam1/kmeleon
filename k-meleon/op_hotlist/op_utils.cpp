@@ -24,10 +24,10 @@
 #endif
 
 #include "op_hotlist.h"
-#include "kmeleon_plugin.h"
+#include "../kmeleon_plugin.h"
 #include "..\\rebar_menu\\hot_tracking.h"
 
-#include "Utils.h"
+#include "../Utils.h"
 #include <sys/stat.h>
 #include <errno.h>
 

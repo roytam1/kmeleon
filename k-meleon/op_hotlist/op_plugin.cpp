@@ -24,8 +24,8 @@
 #endif
 
 #define KMELEON_PLUGIN_EXPORTS
-#include "kmeleon_plugin.h"
-#include "Utils.h"
+#include "../kmeleon_plugin.h"
+#include "../Utils.h"
 #include <errno.h>
 
 #define WHERE

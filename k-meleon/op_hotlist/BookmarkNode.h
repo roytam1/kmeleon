@@ -21,6 +21,7 @@
 
 #include <time.h>
 #include <string>
+#include <windows.h>
 
 const int BOOKMARK_BOOKMARK = 0;  // this node is a real bookmark, all fields valid
 const int BOOKMARK_FOLDER   = 1;  // "children" is not empty.  url is not used

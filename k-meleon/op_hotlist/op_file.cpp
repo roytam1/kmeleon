@@ -22,9 +22,9 @@
 #endif
 
 #include "op_hotlist.h"
-#include "kmeleon_plugin.h"
+#include "../kmeleon_plugin.h"
 
-#include "Utils.h"
+#include "../Utils.h"
 
 #include <stdio.h>
 #include <sys/stat.h>
@@ -45,7 +45,7 @@ int ParseHotlistFolder(char **p, CBookmarkNode &node)
       while (isspace(**p))
          (*p)++;
       
-      if (strncasecmp(*p, "NAME=", 5) == 0) {
+      if (strnicmp(*p, "NAME=", 5) == 0) {
          strncpy(szName, *p+5, HOTLIST_TITLE_LEN);
          szName[HOTLIST_TITLE_LEN-1] = 0;
       }
@@ -83,7 +83,7 @@ int ParseHotlistUrl(char **p, CBookmarkNode &node)
       while (*p && **p && isspace(**p))
          (*p)++;
       
-      if (strncasecmp(*p, "NAME=", 5) == 0 && szName[0] == 0) {
+      if (strnicmp(*p, "NAME=", 5) == 0 && szName[0] == 0) {
          *p += 5;
          while (*p && **p && isspace(**p))
             (*p)++;
@@ -91,7 +91,7 @@ int ParseHotlistUrl(char **p, CBookmarkNode &node)
          szName[HOTLIST_TITLE_LEN-1] = 0;
       }
       
-      else if (strncasecmp(*p, "SHORT NAME=", 11) == 0 && *((*p)+11) != 0) {
+      else if (strnicmp(*p, "SHORT NAME=", 11) == 0 && *((*p)+11) != 0) {
          *p += 11;
          while (*p && **p && isspace(**p))
             (*p)++;
@@ -99,7 +99,7 @@ int ParseHotlistUrl(char **p, CBookmarkNode &node)
          szName[HOTLIST_TITLE_LEN-1] = 0;
       }
       
-      else if (strncasecmp(*p, "NICKNAME=", 9) == 0 && *((*p)+9) != 0) {
+      else if (strnicmp(*p, "NICKNAME=", 9) == 0 && *((*p)+9) != 0) {
          *p += 9;
          while (*p && **p && isspace(**p))
             (*p)++;
@@ -107,7 +107,7 @@ int ParseHotlistUrl(char **p, CBookmarkNode &node)
          szName[HOTLIST_TITLE_LEN-1] = 0;
       }
       
-      else if (strncasecmp(*p, "URL=", 4) == 0) {
+      else if (strnicmp(*p, "URL=", 4) == 0) {
          strncpy(szURL, *p+4, HOTLIST_TITLE_LEN);
          szURL[HOTLIST_TITLE_LEN-1] = 0;
       }
@@ -143,10 +143,10 @@ int ParseHotlist(char **p, CBookmarkNode &node)
       while (*p && **p && isspace(**p))
          (*p)++;
       
-      if (strncasecmp(*p, "#FOLDER", 7) == 0) {
+      if (strnicmp(*p, "#FOLDER", 7) == 0) {
          size += ParseHotlistFolder(&q, node);
       }
-      else if (strncasecmp(*p, "#URL", 4) == 0) {
+      else if (strnicmp(*p, "#URL", 4) == 0) {
          size += ParseHotlistUrl(&q, node);
       }
       else if (**p == '-') {
