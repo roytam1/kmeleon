@@ -1,4 +1,4 @@
-/*
+         /*
 *  Copyright (C) 2001 Jeff Doozan
 *
 *  This program is free software; you can redistribute it and/or modify
@@ -29,28 +29,19 @@ CAboutDlg::CAboutDlg() : CDialog(CAboutDlg::IDD)
 {
    m_credits = _QUOTE(
       \r\n
-      K-Meleon - Copyright 2000-2001\r\n
+      K-Meleon - Copyright 2000-2002\r\n
       \r\n
       Uses the Gecko rendering engine by the Mozilla Group\r\n
       Based on MfcEmbed\r\n
       \r\n
-      Current Contributors:\r\n
-   );
-   // switches position every 10 seconds
-   if ((int)(time(NULL)/10) %2 == 1){
-      m_credits += _QUOTE(
-         Jeff Doozan <jeff@tcbnetworks.com>\r\n
-         Brian Harris <binaryc@teamreaction.com>\r\n
-      );
-   }else{
-      m_credits += _QUOTE(
-         Brian Harris <binaryc@teamreaction.com>\r\n
-         Jeff Doozan <jeff@tcbnetworks.com>\r\n
-      );
-   }
-
-   m_credits += _QUOTE(
-      Tuncer M. Ayaz <tma@users.sf.net>\r\n
+      Core Developers:\r\n
+      Jeff Doozan <jeff@tcbnetworks.com>\r\n
+      Brian Harris <binaryc@teamreaction.com>\r\n
+      Mark Liffiton <liffiton@simons-rock.edu>\r\n
+      \r\n
+      Plugin Developers:\r\n
+      Ulf Erikson <ulferikson@fastmail.fm>\r\n
+      Rob Johnson <rob@rob-johnson.net>\r\n
       \r\n
       Project Documentation:\r\n
       Andrew Mutch <amutch@tln.lib.mi.us>\r\n
