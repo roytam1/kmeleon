@@ -95,11 +95,23 @@ LINK32=link.exe
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
+SOURCE=..\rebar_menu\hot_tracking.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\ns_bookmarks.cpp
 # End Source File
 # Begin Source File
 
 SOURCE=.\ns_bookmarks.rc
+# End Source File
+# Begin Source File
+
+SOURCE=.\ns_bookmarks_edit.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\ns_bookmarks_utils.cpp
 # End Source File
 # Begin Source File
 
@@ -117,7 +129,23 @@ SOURCE=..\Utils.cpp
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
 # Begin Source File
 
+SOURCE=.\BookmarkNode.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\defines.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\REBAR_MENU\\hot_tracking.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\kmeleon_plugin.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ns_bookmarks_functions.h
 # End Source File
 # Begin Source File
 
@@ -134,6 +162,10 @@ SOURCE=..\Utils.h
 # Begin Source File
 
 SOURCE=.\bitmap1.bmp
+# End Source File
+# Begin Source File
+
+SOURCE=.\bmp00001.bmp
 # End Source File
 # Begin Source File
 

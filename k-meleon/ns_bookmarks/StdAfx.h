@@ -18,7 +18,14 @@
 
 #include <windows.h>
 
-// TODO: reference additional headers your program requires here
+#include "commctrl.h"
+#include "commdlg.h"
+
+#include <time.h>
+
+#pragma warning( disable : 4786 ) // C4786 bitches about the std template names expanding beyond 255 characters
+#include <string>
+#include <vector>
 
 //{{AFX_INSERT_LOCATION}}
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.
