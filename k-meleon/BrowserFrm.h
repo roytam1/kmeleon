@@ -230,6 +230,8 @@ protected:
    afx_msg void OnSysColorChange();
 	afx_msg void RefreshToolBarItem(WPARAM ItemID, LPARAM unused);
    afx_msg void ToggleToolBar(UINT uID);
+   afx_msg void OnEditURL( NMHDR * pNotifyStruct, LRESULT * result );
+   afx_msg void OnDragURL( NMHDR * pNotifyStruct, LRESULT * result );
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };

@@ -85,6 +85,8 @@ BEGIN_MESSAGE_MAP(CBrowserFrame, CFrameWnd)
    ON_WM_SYSCOLORCHANGE()
 	ON_MESSAGE(UWM_REFRESHTOOLBARITEM, RefreshToolBarItem)
    ON_COMMAND_RANGE(TOOLBAR_MENU_START_ID, TOOLBAR_MENU_END_ID, ToggleToolBar)
+   ON_NOTIFY(CBEN_BEGINEDIT, ID_URL_BAR, OnEditURL)
+   ON_NOTIFY(CBEN_DRAGBEGIN, ID_URL_BAR, OnDragURL)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -192,14 +194,15 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct){
       TRACE0("Failed to create toolbar\n");
 		return -1;      // fail to create
    }
-   // back, forward, stop, reload, home, search
-   UINT buttons[6] = {
+   // back, forward, stop, reload, home, search, print
+   UINT buttons[7] = {
       ID_NAV_BACK,
       ID_NAV_FORWARD,
       ID_NAV_STOP,
       ID_NAV_RELOAD,
       ID_NAV_HOME,
-      ID_NAV_SEARCH
+      ID_NAV_SEARCH,
+      ID_FILE_PRINT
    };
 
    HBITMAP bitmap;
@@ -216,7 +219,7 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct){
    DeleteObject(bitmap);
    m_wndToolBar.GetToolBarCtrl().SetHotImageList(&m_toolbarHotImageList);
 
-   m_wndToolBar.SetButtons(buttons, 6);
+   m_wndToolBar.SetButtons(buttons, 7);
 
    m_wndUrlBar.SetImageList(&m_toolbarHotImageList);
 
@@ -243,8 +246,8 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct){
 	m_wndReBar.AddBar(&m_wndUrlBar, "URL:");
    m_wndReBar.AddBar(&m_wndAnimate, NULL, NULL, RBBS_FIXEDSIZE | RBBS_FIXEDBMP);
 
-   m_wndReBar.RegisterBand(m_wndToolBar.m_hWnd, "Tool Bar");
-   m_wndReBar.RegisterBand(m_wndUrlBar.m_hWnd,  "URL Bar");
+   m_wndReBar.RegisterBand(m_wndToolBar.m_hWnd, "Tool Bar", true);
+   m_wndReBar.RegisterBand(m_wndUrlBar.m_hWnd,  "URL Bar", true);
 //   m_wndReBar.RegisterBand(m_wndAnimate.m_hWnd, "Throbber");
 
    //--------------------------------------------------------------
@@ -402,6 +405,48 @@ void CBrowserFrame::OnActivate(UINT nState, CWnd* pWndOther, BOOL bMinimized) {
    m_wndBrowserView.Activate(nState, pWndOther, bMinimized);
 }
 
+
+void CBrowserFrame::OnEditURL( NMHDR * pNotifyStruct, LRESULT * result )
+{
+   *result = 0;
+}
+
+void CBrowserFrame::OnDragURL( NMHDR * pNotifyStruct, LRESULT * result )
+{
+   *result = 0;
+
+   //HGLOBAL hURL = GlobalAlloc(GHND, m_wndBrowserView.GetCurrentURI(NULL));
+   HGLOBAL hURL = GlobalAlloc(GHND, 255);
+   char *url = (char *)GlobalLock(hURL);
+   m_wndBrowserView.GetCurrentURI(url);
+   GlobalUnlock(hURL);
+
+   HGLOBAL hFileDescriptor = GlobalAlloc(GHND, sizeof(FILEGROUPDESCRIPTOR));
+   FILEGROUPDESCRIPTOR *fgd = (FILEGROUPDESCRIPTOR *)GlobalLock(hFileDescriptor);
+   fgd->cItems = 1;
+   fgd->fgd[0].dwFlags = FD_FILESIZE | FD_LINKUI;
+   fgd->fgd[0].nFileSizeLow = 255;
+   GetWindowText(fgd->fgd[0].cFileName, 255);
+   GlobalUnlock(hFileDescriptor);
+
+   HGLOBAL hFileContents = GlobalAlloc(GHND, 255);
+   char *contents = (char *)GlobalLock(hFileContents);
+   strcpy(contents, "[InternetShortcut]\r\nURL=");
+   strcat(contents, url);
+   strcat(contents, "\r\n");
+   GlobalUnlock(hFileContents);
+
+   COleDataSource datasource;
+   datasource.CacheGlobalData(::RegisterClipboardFormat(CFSTR_FILECONTENTS), hFileContents);
+   datasource.CacheGlobalData(::RegisterClipboardFormat(CFSTR_FILEDESCRIPTOR), hFileDescriptor);
+   datasource.CacheGlobalData(::RegisterClipboardFormat(CFSTR_SHELLURL), hURL);
+   datasource.CacheGlobalData(CF_TEXT, hURL);
+   datasource.DoDragDrop();
+
+   GlobalFree(hURL);
+   GlobalFree(hFileDescriptor);
+   GlobalFree(hFileContents);
+}
 
 #define IS_SECURE(state) ((state & 0xFFFF) == nsIWebProgressListener::STATE_IS_SECURE)
 
