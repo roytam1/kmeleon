@@ -1,5 +1,5 @@
 /*
-*  Copyright (C) 2000 Brian Harris
+*  Copyright (C) 2000 Brian Harris, Mark Liffiton
 *
 *  This program is free software; you can redistribute it and/or modify
 *  it under the terms of the GNU General Public License as published by
@@ -550,6 +550,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
    else if (message == WM_DEFERHOTTRACK) {
       BeginHotTrack(&tbhdr, kPlugin.hDllInstance, hWnd);
       return true;
+   }
+   else if (message == WM_MENUSELECT) {
+      if (CBookmarkNode *node = gBookmarkRoot.FindNode(LOWORD(wParam))) {
+         kPlugin.kFuncs->SetStatusBarText(node->url.c_str());
+         return true;
+      }
+// this would be a hack to clean the status bar for separators, popups
+// (they work (clear the status bar) for CMenu-added separators/popups,
+// but not when they are added via standard win32 calls...)
+//      else {
+//         kPlugin.kFuncs->SetStatusBarText("");
+//      }
    }
    return CallWindowProc(KMeleonWndProc, hWnd, message, wParam, lParam);
 }
