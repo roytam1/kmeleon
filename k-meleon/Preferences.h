@@ -53,6 +53,9 @@ public:
 
    int bDisableResize;
 
+   // true if we should hide the taskbar buttons
+   int bHideTaskBarButtons;
+
    // true if the window should default to maximized
    int bMaximized;
 
@@ -128,6 +131,7 @@ public:
    int GetString(const char *preference, char * retValue, char * defaultVal);
 
    void Clear(const char *preference);
+   void DeleteBranch(const char *startingAt);
 };
 
 class CPreferencePage : public CDialog {

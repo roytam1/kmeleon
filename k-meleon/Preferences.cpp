@@ -74,6 +74,8 @@ void CPreferences::Load() {
 
 
       // -- Display settings
+
+      _GetBool(_T("kmeleon.display.hideTaskBarButtons"), bHideTaskBarButtons, false);
       
       _GetBool(_T("kmeleon.display.maximized"), bMaximized, true);
       _GetInt(_T("kmeleon.display.width"), width, -1);
@@ -400,3 +402,12 @@ void CPreferences::Clear(const char *preference) {
       prefs->ClearUserPref(preference);
    }   
 }
+
+void CPreferences::DeleteBranch(const char *startingAt) {
+   nsresult rv;
+   nsCOMPtr<nsIPref> prefs(do_GetService(NS_PREF_CONTRACTID, &rv));
+   if (NS_SUCCEEDED(rv)) {
+      prefs->DeleteBranch(startingAt);
+   }
+}
+
