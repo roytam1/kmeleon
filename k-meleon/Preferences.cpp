@@ -144,10 +144,6 @@ void CPreferences::Load() {
       _GetInt(_T("browser.cache.memory_cache_size"), cacheMemory, 1024);
       _GetInt(_T("browser.cache.check_doc_frequency"), cacheCheckFrequency, 0);
 
-      // if cache size is set to 0, then disable it
-      bCacheDiskEnabled = (cacheDisk == 0) ? false : true;
-      bCacheMemoryEnabled = (cacheMemory == 0) ? false : true;
-
       // -- Proxies      
       
       
@@ -220,13 +216,6 @@ void CPreferences::Save() {
       rv = prefs->SetIntPref(_T("browser.cache.disk_cache_size"), cacheDisk);
       rv = prefs->SetIntPref(_T("browser.cache.memory_cache_size"), cacheMemory);
       rv = prefs->SetIntPref(_T("browser.cache.check_doc_frequency"), cacheCheckFrequency);
-
-      // if cache size is set to 0, then disable it
-      bCacheDiskEnabled = (cacheDisk == 0) ? false : true;
-      bCacheMemoryEnabled = (cacheMemory == 0) ? false : true;
-
-      rv = prefs->SetBoolPref(_T("browser.cache.disk.enable"), bCacheDiskEnabled);
-      rv = prefs->SetBoolPref(_T("browser.cache.memory.enable"),bCacheMemoryEnabled);
 
       // -- Proxies
 

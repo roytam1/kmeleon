@@ -61,9 +61,7 @@ public:
 
    // -- cache
    int cacheMemory;
-   int bCacheMemoryEnabled;
    int cacheDisk;
-   int bCacheDiskEnabled;
    /* Disabled
    CString cacheDir;
    */
