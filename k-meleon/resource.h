@@ -257,6 +257,8 @@
 #define ID_OPEN_LINK                    32806
 #define ID_OPEN_FRAME                   32807
 #define ID_OPEN_FRAME_IN_BACKGROUND     32808
+#define ID_FONT_INCREASE                32809
+#define ID_FONT_DECREASE                32810
 #define IDS_FAILED_TO_CREATE_BROWSER    61204
 #define IDS_NEW_PLUGIN_FOUND            61205
 #define IDS_PLUGIN_NO_OPTIONS           61206
