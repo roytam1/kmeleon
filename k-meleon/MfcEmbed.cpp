@@ -296,10 +296,10 @@ BOOL CMfcEmbedApp::InitInstance()
    InitializeMenusAccels();
    
 
+
    
    
-   
-   //	Register the hidden window class
+   // Register the hidden window class
    WNDCLASS wc = { 0 };
    wc.lpfnWndProc =  AfxWndProc;
    wc.hInstance = AfxGetInstanceHandle();
@@ -320,7 +320,7 @@ BOOL CMfcEmbedApp::InitInstance()
    AfxRegisterClass( &wc );
    
 
-   //	Register the browser window class
+   // Register the browser window class
    wc.lpszClassName = BROWSER_WINDOW_CLASS;
    AfxRegisterClass( &wc );
    
@@ -418,9 +418,19 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
 
    style &= ~WS_VISIBLE;
    
-   RECT winSize;
-   SystemParametersInfo(SPI_GETWORKAREA, NULL, &winSize, 0);
+   RECT screen;
+   SystemParametersInfo(SPI_GETWORKAREA, NULL, &screen, 0);
 
+   int screenWidth   = screen.right - screen.left;
+   int screenHeight  = screen.bottom - screen.top;
+
+   RECT winSize = CFrameWnd::rectDefault;
+
+   winSize.left = screen.left + screenWidth / 40;
+   winSize.top = screen.top + screenHeight / 40;
+   winSize.right = 15*screenWidth / 20;
+   winSize.bottom = 18*screenHeight/20;
+           
    if (x>0 && y>0 && cx>0 && cy>0) {
        if (style & WS_POPUP) {
            winSize.left = x;
@@ -430,24 +440,43 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
            AdjustWindowRectEx(&winSize, style, chromeMask & (nsIWebBrowserChrome::CHROME_MENUBAR), 0);
            winSize.right = winSize.right - winSize.left;
            winSize.bottom = winSize.bottom - winSize.top;
+
+           // don't create windows larger than the screen
+           if (winSize.right > screenWidth)
+               winSize.right = screenWidth;
+           if (winSize.bottom > screenHeight)
+               winSize.bottom = screenHeight;
+           
+           // make sure the window isn't going to run off the screen
+           if (screen.right - (winSize.left + winSize.right) < 0)
+               winSize.left = screen.right - winSize.right;
+           if (screen.bottom - (winSize.top + winSize.bottom) < 0) 
+               winSize.top = screen.bottom - winSize.bottom;
        }
        else {
            winSize.left = x;
            winSize.top = y;
            winSize.right = cx;
            winSize.bottom = cy;
+
+           // don't create windows larger than the screen
+           if (winSize.right > screenWidth)
+               winSize.right = screenWidth;
+           if (winSize.bottom > screenHeight)
+               winSize.bottom = screenHeight;
+           
+           // make sure the window isn't going to run off the screen
+           if (screen.right - (winSize.left + winSize.right) < 0)
+               winSize.left = screen.right - winSize.right;
+           if (screen.bottom - (winSize.top + winSize.bottom) < 0) 
+               winSize.top = screen.bottom - winSize.bottom;
        }
    }
    else {
-       if (!(style & WS_POPUP) && 
-           preferences.windowHeight > 0 && preferences.windowWidth > 0) {
+       if (!(style & WS_POPUP)) {
+         if (preferences.windowHeight > 0 && preferences.windowWidth > 0) {
            winSize.right  = preferences.windowWidth;
            winSize.bottom = preferences.windowHeight;         
-
-           RECT screen;
-           SystemParametersInfo(SPI_GETWORKAREA, NULL, &screen, 0);
-           int screenWidth   = screen.right - screen.left;
-           int screenHeight  = screen.bottom - screen.top;
 
            if (preferences.windowYPos > 0 && preferences.windowXPos > 0) {
                winSize.left = preferences.windowXPos;
@@ -489,8 +518,8 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
       
                    // if we're going to be positioned right on top of the current window,
                    // move to the top corner
-                   if ( ((winSize.left - wp.rcNormalPosition.left) < offset/3) &&
-                        ((winSize.top - wp.rcNormalPosition.top) < offset/3) ) {
+                   if ( (abs(winSize.left - wp.rcNormalPosition.left) < offset/3) &&
+                        (abs(winSize.top - wp.rcNormalPosition.top) < offset/3) ) {
                        winSize.left = screen.left;
                        winSize.top = screen.top;
                    }
@@ -516,6 +545,18 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
                if (winSize.bottom > screenHeight)
                    winSize.bottom = screenHeight;
            }
+         }
+         else {
+           winSize.left = screen.left + screenWidth / 20;
+           winSize.top = screen.top + screenHeight / 20;
+           winSize.right = 15*screenWidth / 20;
+           winSize.bottom = 18*screenHeight/20;
+
+           preferences.windowXPos   = winSize.left;
+           preferences.windowYPos   = winSize.top;
+           preferences.windowWidth  = winSize.right;
+           preferences.windowHeight = winSize.bottom;
+         }
        }
    }
 
@@ -538,7 +579,7 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
 
    if (!pFrame->Create(BROWSER_WINDOW_CLASS, strTitle, style, winSize, NULL, NULL, 0L, NULL))
       return NULL;
-   
+
    pFrame->SetIcon(m_hMainIcon, true);
    pFrame->SetIcon(m_hSmallIcon, false);
    
@@ -924,11 +965,11 @@ NS_IMETHODIMP CMfcEmbedApp::Observe(nsISupports *aSubject, const char *aTopic, c
          
          
       /* Unloading a plugin that has subclassed a browser window crashes us, even if the
-      subclassed window has been closed...I don't really know why, so I'll save this 
-      as something to debug later, and just not unload plugins (which will cause problems
-      when switching profiles, but since this feature caused kmeleon .4 to crash and *nobody*
-      submitted a bug report, I have a feeling this isn't a commonly used feature.
-         */
+         subclassed window has been closed...I don't really know why, so I'll save this 
+         as something to debug later, and just not unload plugins (which will cause problems
+         when switching profiles, but since this feature caused kmeleon .4 to crash and *nobody*
+         submitted a bug report, I have a feeling this isn't a commonly used feature.
+      */
          //         plugins.UnLoadAll();
          menus.Destroy();
          InitializePrefs();
