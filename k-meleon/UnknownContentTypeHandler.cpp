@@ -29,7 +29,6 @@
 #include "MfcEmbed.h"
 extern CMfcEmbedApp theApp;
 
-
 // HandleUnknownContentType (from nsIUnknownContentTypeHandler) implementation.
 // XXX We can get the content type from the channel now so that arg could be dropped.
 
@@ -96,7 +95,15 @@ CUnknownContentTypeHandler::PromptForSaveToFile(nsISupports * aWindowContext, co
    filter += W2T(aSuggestedFileExtension);
    filter += "|All Files|*.*||";
 
-   CFileDialog cf(FALSE, W2T(aSuggestedFileExtension), W2T(aDefaultFile), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, filter, (CWnd *)theApp.m_pMostRecentBrowserFrame);
+   CString defaultFile = W2T(aDefaultFile);
+   // unmunge the filename
+   defaultFile.Replace("%20", " ");
+   defaultFile.Replace("%27", "\'");
+   defaultFile.Replace("%28", "(");
+   defaultFile.Replace("%29", ")");
+   defaultFile.Replace("%2C", ",");
+
+   CFileDialog cf(FALSE, W2T(aSuggestedFileExtension), defaultFile, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, filter, (CWnd *)theApp.m_pMostRecentBrowserFrame);
    if(cf.DoModal() == IDOK){
       NS_ENSURE_ARG_POINTER(aNewFile);
 
@@ -167,7 +174,7 @@ CUnknownContentTypeHandler::PromptForSaveToFile(nsISupports * aWindowContext, co
          }
       }
    }
-   return NS_OK;
+   return rv;
 #endif
 }
 
@@ -299,7 +306,7 @@ NS_IMETHODIMP CProgressDialog::OnStateChange(nsIWebProgress *aWebProgress, nsIRe
          char statusText[50];
          PRInt64 now = PR_Now ();
          PRInt64 timeSpent = now - mStartTime;
-         sprintf(statusText, "Done! Downloaded %.2f KBytes in %d seconds", mTotalBytes/1024 +.5, (int)(timeSpent/1000000.0l));
+         sprintf(statusText, "Done! Downloaded %.2f KBytes in %d seconds", ((double)mTotalBytes)/1024, (int)(timeSpent/1000000.0l));
          SetDlgItemText(IDC_STATUS, statusText);
 
          SetDlgItemText(IDCANCEL, "Close");
@@ -330,7 +337,7 @@ NS_IMETHODIMP CProgressDialog::OnProgressChange(nsIWebProgress *aWebProgress, ns
       int percent = (int)(((float)aCurTotalProgress / (float)aMaxTotalProgress) * 100.0f);
 
       char progressString[50];
-      sprintf(progressString, "Downloaded %d%% (%.2f of %.2f KBytes)", percent, aCurTotalProgress/1024 +.5, aMaxTotalProgress/1024 +.5);
+      sprintf(progressString, "Downloaded %d%% (%.2f K of %.2f KBytes)", percent, ((double)aCurTotalProgress)/1024, ((double)aMaxTotalProgress)/1024);
       SetDlgItemText(IDC_STATUS, progressString);
 
       PRInt64 now = PR_Now ();
@@ -367,12 +374,14 @@ NS_IMETHODIMP CProgressDialog::OnProgressChange(nsIWebProgress *aWebProgress, ns
 
          // while we're at it, save the file size
          mTotalBytes = aMaxTotalProgress;
+
       }
 
 		if (speed) {
          PRInt32 remaining = (PRInt32)((aMaxTotalProgress - aCurTotalProgress)/speed +.5);
 
          char timeString[50];
+
          int remainHours=0, remainMin=0, remainSec=0, remainTemp;
          remainTemp = remaining;
          
