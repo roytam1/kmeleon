@@ -25,6 +25,7 @@
 #include "../kmeleon_plugin.h"
 
 #include "../Utils.h"
+#include "BookmarkNode.h"
 
 #include <stdio.h>
 #include <sys/stat.h>
@@ -41,6 +42,11 @@ int ParseHotlistFolder(char **p, CBookmarkNode &node)
    char *q = NULL;
    int size = 0;
    char szName[HOTLIST_TITLE_LEN] = {0};
+   char szNick[HOTLIST_TITLE_LEN] = {0};
+   char szTmp[HOTLIST_STRING_LEN] = {0};
+   char szDesc[HOTLIST_STRING_LEN] = {0};
+   time_t addDate=0, lastVisit=0;
+   long order=LONG_MAX;
    
    while (p && *p && **p && (q = strchr(*p, '\n')) != NULL) {
       *q++ = 0;
@@ -52,6 +58,46 @@ int ParseHotlistFolder(char **p, CBookmarkNode &node)
          strncpy(szName, *p+5, HOTLIST_TITLE_LEN);
          szName[HOTLIST_TITLE_LEN-1] = 0;
       }
+
+      else if (strnicmp(*p, "CREATED=", 8) == 0) {
+         strncpy(szTmp, *p+8, HOTLIST_STRING_LEN);
+         szTmp[HOTLIST_STRING_LEN-1] = 0;
+	 addDate = atol(szTmp);
+      }
+
+      else if (strnicmp(*p, "VISITED=", 8) == 0) {
+         strncpy(szTmp, *p+8, HOTLIST_STRING_LEN);
+         szTmp[HOTLIST_STRING_LEN-1] = 0;
+	 lastVisit = atol(szTmp);
+      }
+
+      else if (strnicmp(*p, "ORDER=", 6) == 0) {
+         strncpy(szTmp, *p+6, HOTLIST_STRING_LEN);
+         szTmp[HOTLIST_STRING_LEN-1] = 0;
+	 order = atol(szTmp);
+      }
+
+      else if (strnicmp(*p, "DESCRIPTION=", 12) == 0) {
+         strncpy(szDesc, *p+12, HOTLIST_STRING_LEN);
+         szDesc[HOTLIST_STRING_LEN-1] = 0;
+      }
+      
+      else if (strnicmp(*p, "NICKNAME=", 9) == 0 && *((*p)+9) != 0) {
+         *p += 9;
+         while (*p && **p && isspace(**p))
+            (*p)++;
+         strncpy(szNick, *p, HOTLIST_TITLE_LEN);
+         szNick[HOTLIST_TITLE_LEN-1] = 0;
+      }
+      
+      else if (strnicmp(*p, "SHORT NAME=", 11) == 0 && *((*p)+11) != 0) {
+         *p += 11;
+         while (*p && **p && isspace(**p))
+            (*p)++;
+         strncpy(szNick, *p, HOTLIST_TITLE_LEN);
+         szNick[HOTLIST_TITLE_LEN-1] = 0;
+      }
+
       else if (**p == 0 || **p == '#' || **p == '-') {
          if (**p) {
             *(q-1) = '\n';
@@ -65,7 +111,7 @@ int ParseHotlistFolder(char **p, CBookmarkNode &node)
    
    if (szName[0]) {
       CBookmarkNode * newNode = 
-         new CBookmarkNode(0, szName, "", "", BOOKMARK_FOLDER, 0);
+         new CBookmarkNode(0, szName, "", szNick, szDesc, BOOKMARK_FOLDER, addDate, lastVisit, 0, order);
       if (newNode) {
          node.AddChild(newNode);
          
@@ -89,6 +135,10 @@ int ParseHotlistUrl(char **p, CBookmarkNode &node)
    char szName[HOTLIST_TITLE_LEN] = {0};
    char szNick[HOTLIST_TITLE_LEN] = {0};
    char szURL[INTERNET_MAX_URL_LENGTH] = {0};
+   char szTmp[HOTLIST_STRING_LEN] = {0};
+   char szDesc[HOTLIST_STRING_LEN] = {0};
+   time_t addDate=0, lastVisit=0;
+   long order=LONG_MAX;
    
    while (*p && **p && (q = strchr(*p, '\n')) != NULL) {
       *q++ = 0;
@@ -102,6 +152,34 @@ int ParseHotlistUrl(char **p, CBookmarkNode &node)
             (*p)++;
          strncpy(szName, *p, HOTLIST_TITLE_LEN);
          szName[HOTLIST_TITLE_LEN-1] = 0;
+      }
+      
+      else if (strnicmp(*p, "URL=", 4) == 0) {
+         strncpy(szURL, *p+4, INTERNET_MAX_URL_LENGTH);
+         szURL[INTERNET_MAX_URL_LENGTH-1] = 0;
+      }
+
+      else if (strnicmp(*p, "CREATED=", 8) == 0) {
+         strncpy(szTmp, *p+8, HOTLIST_STRING_LEN);
+         szTmp[HOTLIST_STRING_LEN-1] = 0;
+	 addDate = atol(szTmp);
+      }
+
+      else if (strnicmp(*p, "VISITED=", 8) == 0) {
+         strncpy(szTmp, *p+8, HOTLIST_STRING_LEN);
+         szTmp[HOTLIST_STRING_LEN-1] = 0;
+	 lastVisit = atol(szTmp);
+      }
+
+      else if (strnicmp(*p, "ORDER=", 6) == 0) {
+         strncpy(szTmp, *p+6, HOTLIST_STRING_LEN);
+         szTmp[HOTLIST_STRING_LEN-1] = 0;
+	 order = atol(szTmp);
+      }
+
+      else if (strnicmp(*p, "DESCRIPTION=", 12) == 0) {
+         strncpy(szDesc, *p+12, HOTLIST_STRING_LEN);
+         szDesc[HOTLIST_STRING_LEN-1] = 0;
       }
       
       else if (strnicmp(*p, "NICKNAME=", 9) == 0 && *((*p)+9) != 0) {
@@ -120,11 +198,6 @@ int ParseHotlistUrl(char **p, CBookmarkNode &node)
          szNick[HOTLIST_TITLE_LEN-1] = 0;
       }
       
-      else if (strnicmp(*p, "URL=", 4) == 0) {
-         strncpy(szURL, *p+4, INTERNET_MAX_URL_LENGTH);
-         szURL[INTERNET_MAX_URL_LENGTH-1] = 0;
-      }
-      
       else if (**p == '#' || **p == '-') {
          *(q-1) = '\n';
          q = *p;
@@ -137,7 +210,7 @@ int ParseHotlistUrl(char **p, CBookmarkNode &node)
    if (szURL[0]) {
       int id = kPlugin.kFuncs->GetCommandIDs(1);
       CBookmarkNode * newNode = 
-         new CBookmarkNode(id, szName[0] ? szName : szURL, szURL, szNick, BOOKMARK_BOOKMARK, 0, 0, 0);
+         new CBookmarkNode(id, szName[0] ? szName : szURL, szURL, szNick, szDesc, BOOKMARK_BOOKMARK, addDate, lastVisit, 0, order);
       if (newNode) {
          node.AddChild(newNode);
          return 1;
@@ -228,13 +301,13 @@ int ReloadHotlist() {
 int SaveHotlistEntry(FILE *bmFile, CBookmarkNode *node)
 {
    fprintf(bmFile, "#URL%s", EOL);
-   fprintf(bmFile, "\tNAME=%s%s", node->text.c_str(), EOL);
-   fprintf(bmFile, "\tURL=%s%s", node->url.c_str(), EOL);
+   fprintf(bmFile, "\tNAME=%s%s", (char*)node->text.c_str(), EOL);
+   fprintf(bmFile, "\tURL=%s%s", (char*)node->url.c_str(), EOL);
    fprintf(bmFile, "\tCREATED=%ld%s", node->addDate, EOL);
    fprintf(bmFile, "\tVISITED=%ld%s", node->lastVisit, EOL);
-   fprintf(bmFile, "\tORDER=%d%s", 0, EOL);
-   fprintf(bmFile, "\tDESCRIPTION=%s%s", (char*)"", EOL);
-   fprintf(bmFile, "\tSHORT NAME=%s%s", (char*)"", EOL);
+   fprintf(bmFile, "\tORDER=%ld%s", node->order, EOL);
+   fprintf(bmFile, "\tDESCRIPTION=%s%s", (char*)node->desc.c_str(), EOL);
+   fprintf(bmFile, "\tSHORT NAME=%s%s", (char*)node->nick.c_str(), EOL);
    
    return 0;
 }
@@ -249,10 +322,10 @@ int SaveHotlist(FILE *bmFile, CBookmarkNode *node)
          fprintf(bmFile, "#FOLDER%s", EOL);
          fprintf(bmFile, "\tNAME=%s%s", child->text.c_str(), EOL);
          fprintf(bmFile, "\tCREATED=%ld%s", child->addDate, EOL);
-         fprintf(bmFile, "\tVISITED=%s%s", (char*)"", EOL);
-         fprintf(bmFile, "\tORDER=%s%s", (char*)"", EOL);
-         fprintf(bmFile, "\tDESCRIPTION=%s%s", (char*)"", EOL);
-         fprintf(bmFile, "\tSHORT NAME=%s%s", (char*)"", EOL);
+         fprintf(bmFile, "\tVISITED=%ld%s", child->lastVisit, EOL);
+         fprintf(bmFile, "\tORDER=%ld%s", child->order, EOL);
+         fprintf(bmFile, "\tDESCRIPTION=%s%s", (char*)child->desc.c_str(), EOL);
+         fprintf(bmFile, "\tSHORT NAME=%s%s", (char*)child->nick.c_str(), EOL);
          fprintf(bmFile, "%s", EOL);
          SaveHotlist(bmFile, child);
          fprintf(bmFile, "-%s", EOL);

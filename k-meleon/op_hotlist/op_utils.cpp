@@ -170,7 +170,7 @@ int addLink(char *url, char *title)
 
    CBookmarkNode *newNode = new 
       CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), 
-                    title ? (*title ? title : url) : url, url, "",
+                    title ? (*title ? title : url) : url, url, "", "",
                     BOOKMARK_BOOKMARK, time(NULL));
    if (!newNode)
       return false;
@@ -309,7 +309,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
    }
    else if (message == WM_NOTIFY) {
       hdr = *((LPNMHDR)lParam);
-      if (hdr.code == TBN_DROPDOWN) {
+      if ((long)hdr.code == TBN_DROPDOWN) {
          tbhdr = *((LPNMTOOLBAR)lParam);
          
          /*
