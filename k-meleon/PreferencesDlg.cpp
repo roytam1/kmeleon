@@ -381,31 +381,25 @@ BOOL CPreferencePageMenus::OnInitDialog(){
 }
 
 CPreferencePageMenus::~CPreferencePageMenus() {
+   /*
+   Note: this does no good since IDC_EDIT1 has been destroyed
+   already, we need to find a better place to put this
+
    if (SendDlgItemMessage(IDC_EDIT1, EM_GETMODIFY)){
       if (m_nCurrentFile == 0)
          SaveFile("menus.cfg");
       else if (m_nCurrentFile == 1)
          SaveFile("accel.cfg");
    }
+   */
 }
 
 void CPreferencePageMenus::OnHelp(){
    if (m_nCurrentFile == 0){
-      MessageBox(
-         "Start a comment with a # as the first thing on the line \n\
-         Start a menu with MenuName { \n\
-         End a menu with } \n\
-         Use : to insert a submenu (that you defined earlier) \n\
-         To insert a plugin, use pluginname.dll(parameters) \n\
-         To insert a menu item, use MenuItem \\t AccelKey = ID",
-         "menus.cfg Syntax");
+      MessageBox("Somewhere on kmeleon.org there should be a help file.  Eventually, the information will be here too.");
    }
    else if (m_nCurrentFile == 1){
-      MessageBox(
-         "Start a comment with a # as the first thing on the line \n\
-         To define an accelerator, use Modifier Key = ID \n\
-         Where Modifier is CTRL, ALT, or SHIFT",
-         "menus.cfg Syntax");
+      MessageBox("Somewhere on kmeleon.org there should be a help file.  Eventually, the information will be here too.");
    }
 }
 
@@ -414,7 +408,8 @@ void CPreferencePageMenus::SaveFile(char *filename){
       return;
    }
    CFile file;
-   if (file.Open(theApp.preferences.settingsDir + filename, CFile::modeWrite)){
+   if (file.Open(theApp.preferences.settingsDir + filename, CFile::typeBinary | CFile::modeWrite)){
+      /* binary is so Write treats cr/lf as 2 characters */
       UpdateData();
       file.Write(m_fileText, m_fileText.GetLength());
    }
