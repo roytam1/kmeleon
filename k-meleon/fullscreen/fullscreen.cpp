@@ -103,7 +103,6 @@ void DoMenu(HMENU menu, char *param) {
 }
 
 int DoAccel(char *param) {
-   MessageBox(NULL, "Accel", param, MB_OK);
    return id_fullscreen;
 }
 
