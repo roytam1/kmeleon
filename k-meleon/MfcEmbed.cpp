@@ -139,6 +139,8 @@ BOOL CMfcEmbedApp::InitInstance()
          pBrowserFrame->m_wndBrowserView.OpenURL(cmdInfo.m_strFileName);
       else
          pBrowserFrame->m_wndBrowserView.LoadHomePage();
+
+         pBrowserFrame->m_wndUrlBar.SetFocus();
    }
 
 	return TRUE;

@@ -138,8 +138,8 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct){
    if (CFrameWnd::OnCreate(lpCreateStruct) == -1)
 		return -1;
 
-  // tell all our plugins that we were created
-  theApp.plugins.OnCreate(this->m_hWnd);
+   // tell all our plugins that we were created
+   theApp.plugins.OnCreate(this->m_hWnd);
 
 	// Pass "this" to the View for later callbacks
 	// and/or access to any public data members, if needed
@@ -176,47 +176,47 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct){
 
 	// Create the toolbar with Back, Fwd, Stop, etc. buttons..
 	if (!m_wndToolBar.CreateEx (this, 0x40 | /*CCS_NOPARENTALIGN | CCS_NORESIZE | */ TBSTYLE_FLAT | TBSTYLE_TRANSPARENT | TBSTYLE_AUTOSIZE | TBSTYLE_TOOLTIPS) )
-  {
-		TRACE0("Failed to create toolbar\n");
+   {
+      TRACE0("Failed to create toolbar\n");
 		return -1;      // fail to create
-	}
-  // back, forward, stop, reload, home, search
-  UINT buttons[6] = {
-    ID_NAV_BACK,
-    ID_NAV_FORWARD,
-    ID_NAV_STOP,
-    ID_NAV_RELOAD,
-    ID_NAV_HOME,
-    ID_NAV_SEARCH
-  };
+   }
+   // back, forward, stop, reload, home, search
+   UINT buttons[6] = {
+      ID_NAV_BACK,
+      ID_NAV_FORWARD,
+      ID_NAV_STOP,
+      ID_NAV_RELOAD,
+      ID_NAV_HOME,
+      ID_NAV_SEARCH
+   };
 
-  HBITMAP bitmap;
+   HBITMAP bitmap;
 
-  m_toolbarColdImageList.Create(16, 16, ILC_MASK, 16, 32);
-  bitmap = (HBITMAP)LoadImage(NULL, theApp.preferences.settingsDir + "Tool1.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-  ImageList_AddMasked(m_toolbarColdImageList.m_hImageList, bitmap, RGB(192, 192, 192));
-  DeleteObject(bitmap);
-  m_wndToolBar.GetToolBarCtrl().SetImageList(&m_toolbarColdImageList);
+   m_toolbarColdImageList.Create(16, 16, ILC_MASK, 16, 32);
+   bitmap = (HBITMAP)LoadImage(NULL, theApp.preferences.settingsDir + "Tool1.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+   ImageList_AddMasked(m_toolbarColdImageList.m_hImageList, bitmap, RGB(192, 192, 192));
+   DeleteObject(bitmap);
+   m_wndToolBar.GetToolBarCtrl().SetImageList(&m_toolbarColdImageList);
 
-  m_toolbarHotImageList.Create(16, 16, ILC_MASK, 16, 32);
-  bitmap = (HBITMAP)LoadImage(NULL, theApp.preferences.settingsDir + "Tool2.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-  ImageList_AddMasked(m_toolbarHotImageList.m_hImageList, bitmap, RGB(192, 192, 192));
-  DeleteObject(bitmap);
-  m_wndToolBar.GetToolBarCtrl().SetHotImageList(&m_toolbarHotImageList);
+   m_toolbarHotImageList.Create(16, 16, ILC_MASK, 16, 32);
+   bitmap = (HBITMAP)LoadImage(NULL, theApp.preferences.settingsDir + "Tool2.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+   ImageList_AddMasked(m_toolbarHotImageList.m_hImageList, bitmap, RGB(192, 192, 192));
+   DeleteObject(bitmap);
+   m_wndToolBar.GetToolBarCtrl().SetHotImageList(&m_toolbarHotImageList);
 
-  m_wndToolBar.SetButtons(buttons, 6);
+   m_wndToolBar.SetButtons(buttons, 6);
 
-  m_wndUrlBar.SetImageList(&m_toolbarHotImageList);
+   m_wndUrlBar.SetImageList(&m_toolbarHotImageList);
 
 
-  // Create the animation control..
-	if (!m_wndAnimate.Create(WS_CHILD | WS_VISIBLE, CRect(0, 0, 10, 10), this, AFX_IDW_TOOLBAR + 2))
+   // Create the animation control..
+   if (!m_wndAnimate.Create(WS_CHILD | WS_VISIBLE, CRect(0, 0, 10, 10), this, AFX_IDW_TOOLBAR + 2))
 	{
-		TRACE0("Failed to create animation\n");
+      TRACE0("Failed to create animation\n");
 		return -1;      // fail to create
 	}
   if (!m_wndAnimate.Open(theApp.preferences.settingsDir + "Throbber.avi")){
-    m_wndAnimate.Open("Throbber.avi");
+      m_wndAnimate.Open("Throbber.avi");
   }
 
 	// Create a ReBar window to which the toolbar and UrlBar 
@@ -301,8 +301,6 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct){
 
 	SetupFrameChrome(); 
 
-   m_wndUrlBar.SetFocus();
-
 	return 0;
 }
 
@@ -332,54 +330,55 @@ void CBrowserFrame::SaveBandSizes(){
 }
 
 void CBrowserFrame::RestoreBandSizes(){
-  REBARBANDINFO rbbi;
-  rbbi.cbSize = sizeof(rbbi);
+   REBARBANDINFO rbbi;
+   rbbi.cbSize = sizeof(rbbi);
+   CReBarCtrl *rebarControl = &m_wndReBar.GetReBarCtrl();
+   int bandCount = rebarControl->GetBandCount();
+   int i;
 
-  CReBarCtrl *rebarControl = &m_wndReBar.GetReBarCtrl();
-  int bandCount = rebarControl->GetBandCount();
-  int i;
-  for ( i=0; i < bandCount; i++){
-    rbbi.fMask = RBBIM_ID;
-    rbbi.wID = BAND_BASE_ID + i;
-    rebarControl->SetBandInfo(i, &rbbi);
-  }
-  BOOL barbreak;
-  char tempPref[256] = _T("kmeleon.toolband"); // 16 chars
-  for ( i=0; i < bandCount; i++){
-    rbbi.fMask = 0;
-    rbbi.wID = BAND_BASE_ID + i;
+   for (i=0; i < bandCount; i++) {
+      rbbi.fMask = RBBIM_ID;
+      rbbi.wID = BAND_BASE_ID + i;
+      rebarControl->SetBandInfo(i, &rbbi);
+   }
 
-    sprintf(tempPref + 16, _T("%i.break"), rbbi.wID);
-    barbreak = theApp.preferences.GetInt(tempPref, 0);
-    if (barbreak){
-      rbbi.fMask |= RBBIM_STYLE;
-      rebarControl->GetBandInfo(i, &rbbi);
-      rbbi.fStyle |= RBBS_BREAK;
-    }
+   BOOL barbreak;
+   char tempPref[256] = _T("kmeleon.toolband"); // 16 chars
+   for ( i=0; i < bandCount; i++){
+      rbbi.fMask = 0;
+      rbbi.wID = BAND_BASE_ID + i;
 
-    sprintf(tempPref + 16, _T("%i.size"), rbbi.wID);
-    rbbi.cx = theApp.preferences.GetInt(tempPref, 0);
-    if (rbbi.cx > 0)
-      rbbi.fMask |= RBBIM_SIZE;
-
-    sprintf(tempPref + 16, _T("%i.ndx"), rbbi.wID);
-    int ndx = theApp.preferences.GetInt(tempPref, -1);
-    if (ndx >= 0){
-      // find us
-      int current;
-      for (current = 0; current < bandCount; current++){
-        REBARBANDINFO rbsearch;
-        rbsearch.cbSize = sizeof(rbbi);
-        rbsearch.fMask = RBBIM_ID;
-        rebarControl->GetBandInfo(current, &rbsearch);
-        if (rbsearch.wID == rbbi.wID){
-          rebarControl->MoveBand(current, ndx);
-          rebarControl->SetBandInfo(ndx, &rbbi);
-          break;
-        }
+      sprintf(tempPref + 16, _T("%i.break"), rbbi.wID);
+      barbreak = theApp.preferences.GetInt(tempPref, 0);
+      if (barbreak){
+         rbbi.fMask |= RBBIM_STYLE;
+         rebarControl->GetBandInfo(i, &rbbi);
+         rbbi.fStyle |= RBBS_BREAK;
       }
-    }
-  }
+
+      sprintf(tempPref + 16, _T("%i.size"), rbbi.wID);
+      rbbi.cx = theApp.preferences.GetInt(tempPref, 0);
+      if (rbbi.cx > 0)
+         rbbi.fMask |= RBBIM_SIZE;
+
+      sprintf(tempPref + 16, _T("%i.ndx"), rbbi.wID);
+      int ndx = theApp.preferences.GetInt(tempPref, -1);
+      if (ndx >= 0) {
+         // find us
+         int current;
+         for (current = 0; current < bandCount; current++) {
+            REBARBANDINFO rbsearch;
+            rbsearch.cbSize = sizeof(rbbi);
+            rbsearch.fMask = RBBIM_ID;
+            rebarControl->GetBandInfo(current, &rbsearch);
+            if (rbsearch.wID == rbbi.wID) {
+               rebarControl->MoveBand(current, ndx);
+               rebarControl->SetBandInfo(ndx, &rbbi);
+               break;
+            }
+         }
+      }
+   }
 }
 
 

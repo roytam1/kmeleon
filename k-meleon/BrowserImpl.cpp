@@ -330,7 +330,7 @@ NS_IMETHODIMP CBrowserImpl::SetFocus()
 	if(! m_pBrowserFrameGlue)
 		return NS_ERROR_FAILURE;
 
-	m_pBrowserFrameGlue->SetFocus();
+   m_pBrowserFrameGlue->SetFocus();
 
 	return NS_OK;
 }

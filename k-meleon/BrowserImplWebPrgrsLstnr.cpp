@@ -107,8 +107,10 @@ CBrowserImpl::OnStatusChange(nsIWebProgress* aWebProgress,
    if(! m_pBrowserFrameGlue)
       return NS_ERROR_FAILURE;
 
+/* Disabled...closing kmeleon while loading a webpage will lead to an access violation/crash
+              because m_pBrowserFrameGlue has become invalid, yet OnStatusChange() is still called
    m_pBrowserFrameGlue->UpdateStatusBarText(aMessage);
-
+*/
    return NS_OK;
 }
 
