@@ -397,8 +397,8 @@ static BOOL bHotlistBak = 0;
 static void backup_hotlist(char *file)
 {
    int i;
-   char buf[PATH_MAX];
-   char buf2[PATH_MAX];
+   char buf[MAX_PATH];
+   char buf2[MAX_PATH];
    
    /* rotate the old hotlists */
    for (i=8; i>=1; i--) {

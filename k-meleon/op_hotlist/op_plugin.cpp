@@ -373,7 +373,7 @@ void Create(HWND parent){
 // Preferences Dialog function
 BOOL CALLBACK PrefDlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
    int nTmp;
-   char szTmp[PATH_MAX+1];
+   char szTmp[MAX_PATH+1];
    static int sorting;
    static int rebuild;
    
