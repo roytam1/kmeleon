@@ -63,6 +63,7 @@ CPreferencesDlg::OnInitDialog(){
    AddItem(_T("Proxy"),   IDD_PREFERENCES_PROXY);
    AddItem(_T("Advanced"),IDD_PREFERENCES_ADVANCED);
    AddItem(_T("Cache"),   IDD_PREFERENCES_CACHE);
+   AddItem(_T("Privacy"), IDD_PREFERENCES_PRIVACY);
    AddItem(_T("Plugins"), IDD_PREFERENCES_PLUGINS);
 
    m_list.SetItemState(0, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
@@ -207,18 +208,21 @@ void CPreferencePage::DoDataExchange(CDataExchange* pDX){
       /* Disabled
       DDX_Text(pDX, IDC_EDIT_CACHE_DIRECTORY, theApp.preferences.cacheDir);
       */
-      DDX_Radio(pDX, IDC_RADIO_ONCE, theApp.preferences.cacheCheckFrequency);
+      DDX_Radio(pDX, IDC_RADIO_CACHE, theApp.preferences.cacheCheckFrequency);
       break;
     case IDD_PREFERENCES_ADVANCED:
-      DDX_Check(pDX, IDC_CHECK_JAVA, theApp.preferences.bJavaEnabled);
       DDX_Check(pDX, IDC_CHECK_JAVASCRIPT, theApp.preferences.bJavascriptEnabled);
       DDX_Check(pDX, IDC_CHECK_CSS, theApp.preferences.bCSSEnabled);
       DDX_Check(pDX, IDC_CHECK_ANIMATIONS, theApp.preferences.bAnimationsEnabled);
-
       DDX_Radio(pDX, IDC_IMAGES_ALL, theApp.preferences.iImagesEnabled);
-      DDX_Radio(pDX, IDC_COOKIES_ALL, theApp.preferences.iCookiesEnabled);
-      
-      DDX_CBString(pDX, IDC_COMBO_USERAGENT, theApp.preferences.userAgent);
+      DDX_Radio(pDX, IDC_COOKIES_ALL, theApp.preferences.iCookiesEnabled);      
+      DDX_Text(pDX, IDC_EDIT_HTTP, theApp.preferences.httpVersion);
+      break;
+   case IDD_PREFERENCES_PRIVACY:
+      DDX_Check(pDX, IDC_CHECK_LOAD, theApp.preferences.bDisablePopupsOnLoad);
+      DDX_Check(pDX, IDC_CHECK_RESTRICT, theApp.preferences.bRestrictPopups);
+      DDX_Text(pDX, IDC_EDIT_RESTRICT, theApp.preferences.restrictedPopupSites);
+      DDX_Text(pDX, IDC_EDIT_USERAGENT, theApp.preferences.userAgent);
       break;
   }
   //}}AFX_DATA_MAP
