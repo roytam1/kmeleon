@@ -55,6 +55,7 @@ const char *FileNoPath(const char *filepath){
    }
 }
 
+
 UINT currentID = START_ID;
 UINT GetCommandIDs(int num) {
    UINT freeID = currentID;
@@ -236,7 +237,19 @@ kmeleonPlugin * CPlugins::Load(const char *file){
       return kPlugin; // it's already loaded
    }
 
-   HINSTANCE plugin = LoadLibrary(file);
+   HINSTANCE plugin;
+
+   int x=strlen(file);
+   while (x>0 && file[x] != '\\' && file[x] != '/') x--;
+
+   if (x==0) {       // if pattern does not contain \ or / we need to prepend pluginsDir
+      char buf[MAX_PATH];
+      strcpy(buf, theApp.preferences.pluginsDir);
+      strcat(buf, file);
+      plugin = LoadLibrary(buf);    // load the full path
+   }
+   else plugin = LoadLibrary(file);
+   
    KmeleonPluginGetter kpg = (KmeleonPluginGetter)GetProcAddress(plugin, "GetKmeleonPlugin");
 
    if (!kpg){
