@@ -19,6 +19,8 @@
 
 #include "StdAfx.h"
 
+#include <io.h>
+
 #include "MfcEmbed.h"
 extern CMfcEmbedApp theApp;
 
@@ -538,6 +540,22 @@ void CPreferencePageConfigs::SaveFile(const char *filename)
    CFile file;
    if (file.Open(filename, CFile::modeCreate | CFile::modeWrite | CFile::typeBinary)) {
       /* binary is so Write treats cr/lf as 2 characters */
+
+      if (m_converted) {
+ 	 LPTSTR p = m_fileText.GetBuffer( m_fileText.GetLength() );
+	 LPTSTR q = p;
+	 while (*p) {
+	    while (*p && *p != '\r')
+	       *(q++) = *(p++);
+	    if (*p == '\r') {
+	       p++;
+	    }
+	 }
+	 *q = 0;
+	 m_fileText.ReleaseBuffer();
+	 m_converted = FALSE;
+      }
+
       file.Write(m_fileText, m_fileText.GetLength());
       file.Close();
    }
@@ -547,10 +565,35 @@ void CPreferencePageConfigs::SaveFile(const char *filename)
 
 void CPreferencePageConfigs::ShowFile(const char *filename){
    CFile file;
-   if (file.Open(filename, CFile::modeRead | CFile::typeBinary)){
+   if (file.Open(filename, CFile::modeRead)){
       int length = file.GetLength();
       char *buffer = new char[length+1];
       buffer[file.Read(buffer, length)] = 0;
+
+      char *p = strchr(buffer, '\n');
+      if (p && *(p-1)!='\r') {
+	int i = 1;
+	while ( (p = strchr(p+1, '\n')) )
+	  i++;
+	char *buffer2 = new char[length+i+1];
+	char *q = buffer2;
+	p = buffer;
+	while (*p) {
+	  while (*p && *p != '\n')
+	    *(q++) = *(p++);
+	  if (*p == '\n') {
+	    *(q++) = '\r';
+	    *(q++) = *(p++);
+	  }	    
+	}
+	*q = 0;
+	delete [] buffer;
+	buffer = buffer2;
+	
+	m_converted = TRUE;
+      }
+      else
+	m_converted = FALSE;
 
       m_fileText = buffer;
 
@@ -606,7 +649,8 @@ CPreferencePageMozConfigs::CPreferencePageMozConfigs() {
    nsCOMPtr<nsIObserverService> observerService;
    observerService = do_GetService("@mozilla.org/observer-service;1");
    if (observerService) {
-     observerService->NotifyObservers(nsnull, "profile-before-change", nsnull);      
+     observerService->NotifyObservers(nsnull, "profile-before-change", nsnull);
+     observerService->NotifyObservers(nsnull, "profile-do-change", nsnull);
    }
 }
 
@@ -628,10 +672,35 @@ BOOL CPreferencePageMozConfigs::OnInitDialog(){
 	return FALSE;  // return TRUE  unless you set the focus to a control
 }
 
-CPreferencePageMozConfigs::~CPreferencePageMozConfigs() {
+void CPreferencePageMozConfigs::SaveFile(const char *filename){
    nsCOMPtr<nsIObserverService> observerService;
    observerService = do_GetService("@mozilla.org/observer-service;1");
    if (observerService) {
-     observerService->NotifyObservers(nsnull, "profile-do-change", nsnull);      
+     char buf[MAX_PATH];
+     strcpy(buf, filename);
+     char *p, *q;
+     p = strrchr(buf, '/');
+     q = strrchr(buf, '\\');
+     if (!q || p>q) q = p;
+     p = strrchr(buf, '.');
+     if (!p || q>p)
+       strcat(buf, "XXXXXX");
+     else if (p)
+       strcat(p, "XXXXXX");
+     else
+       strcat(buf, "XXXXXX");
+     p = mktemp(buf);
+
+     observerService->NotifyObservers(nsnull, "profile-before-change", nsnull);
+
+     CPreferencePageConfigs::SaveFile(buf);
+     FILE *hFile = fopen(buf, "r");
+     if (hFile) {
+       fclose(hFile);
+       unlink(filename);
+       rename(buf, filename);
+     }
+
+     observerService->NotifyObservers(nsnull, "profile-do-change", nsnull);
    }
 }

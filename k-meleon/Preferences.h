@@ -208,6 +208,7 @@ protected:
 class CPreferencePageConfigs: public CPreferencePage {
 protected:
   CString m_fileText;
+  BOOL m_converted;
 
   CTabCtrl m_tabCtrl;
 
@@ -236,8 +237,8 @@ protected:
 class CPreferencePageMozConfigs: public CPreferencePageConfigs {
 public:
   CPreferencePageMozConfigs();
-  ~CPreferencePageMozConfigs();
 protected:
+  void SaveFile(const char *);
   virtual BOOL OnInitDialog();
 };
 
