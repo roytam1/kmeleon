@@ -32,6 +32,8 @@ public:
    BOOL GetVisibility(int index);
    void SetVisibility(int index, BOOL visibility);
 
+   void LockBars(BOOL lock);
+
 public:
    HMENU m_menu;
 
