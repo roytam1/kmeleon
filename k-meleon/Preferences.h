@@ -51,6 +51,10 @@ public:
    CString settingsDir;
    CString pluginsDir;
 
+   CString skinsDir;
+   CString skinsCurrent;
+   CString skinsPath;
+
    int bDisableResize;
 
    // true if we should hide the taskbar buttons
