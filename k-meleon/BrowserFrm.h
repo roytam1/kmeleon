@@ -85,9 +85,19 @@ public:
     inline void GetEnteredURL(CString& url) {
         GetEditCtrl()->GetWindowText(url);
     }
-    inline void GetSelectedURL(CString& url) {
-        GetLBText(GetCurSel(), url);
-        m_bSelected = TRUE;
+    inline void SetSelected(BOOL aSelected) {
+        m_bSelected = aSelected;
+    }
+    inline BOOL GetSelectedURL(CString& url) {
+        if (!m_bSelected) {
+          int nIndex = GetCurSel();
+          if (nIndex != LB_ERR) {
+              GetLBText(nIndex, url);
+              m_bSelected = TRUE;
+              return TRUE;
+          }
+        }
+        return FALSE;
     }   
     inline void SetCurrentURL(LPCTSTR pUrl) {
         if (!m_changed) {
@@ -107,50 +117,62 @@ public:
         InsertItem(&ci);
       
         if(bAddToMRUList) {
-            m_MRUList.AddURL((LPTSTR)(LPCTSTR)url);
-            ResetContent();
-            LoadMRUList();
+            theApp.m_MRUList->AddURL((LPTSTR)(LPCTSTR)url);
+            theApp.m_MRUList->SaveURLs();
+            theApp.BroadcastMessage(UWM_REFRESHMRULIST, 0, 0);
         }
     }
+    inline void RefreshMRUList() {
+        ResetContent();
+        LoadMRUList();
+    }
     inline void LoadMRUList() {
-        for (int i=m_MRUList.GetURLCount()-1;i>=0;i--) {
+        for (int i=theApp.m_MRUList->GetURLCount()-1;i>=0;i--) {
             USES_CONVERSION;
-            CString urlStr(A2CT(m_MRUList.GetURL(i)));
+            CString urlStr(A2CT(theApp.m_MRUList->GetURL(i)));
             AddURLToList(urlStr, false);
         }
-    }   
+    }
+    int SetSoftFocus() {
+        if (IsIconic() || !IsWindowVisible())
+	        return 0;
+        HWND toplevelWnd = m_hWnd;
+        while (::GetParent(toplevelWnd))
+            toplevelWnd = ::GetParent(toplevelWnd);
+        if (toplevelWnd != ::GetForegroundWindow() || 
+            toplevelWnd != ::GetActiveWindow())
+            return 0;
+        SetFocus();
+        return 1;
+    }
     void MaintainFocus() {
-        if (m_bFocusEnabled) {
-            // SetFocus();
-            m_preserveUrlBarFocus = TRUE;
-            m_iFocusCount = 0;
-        }
-    }   
+       if (m_bFocusEnabled) {
+          if (SetSoftFocus()) {
+             m_preserveUrlBarFocus = TRUE;
+             m_iFocusCount = 2;
+          }
+       }
+    }
     BOOL CheckFocus() {
         return m_preserveUrlBarFocus;
-    }   
+    }
     void ReturnFocus(BOOL bDocumentLoading) {
-        // SetFocus();
-        if (m_changed)
-            GetEditCtrl()->SetSel(-1, 0);
-
-        // mozilla always tries to steal focus twice
-        if (++m_iFocusCount >= 2)
-            m_preserveUrlBarFocus = FALSE;
+        if (m_preserveUrlBarFocus && --m_iFocusCount >= 0) {
+            if (!SetSoftFocus())
+                EndFocus();
+        }
+        else {
+            EndFocus();
+        }
     }
     void EndFocus() {
         m_preserveUrlBarFocus = FALSE;
     }
     inline void EditChanged(BOOL state) {
-        if (m_bSelected) {
-            m_changed = FALSE;
-            m_bSelected = FALSE;
-        }
-        else m_changed = state;
+        m_changed = state;
     }
 
 protected:
-    CMostRecentUrls m_MRUList;
     BOOL m_preserveUrlBarFocus;
     BOOL m_changed;
     BOOL m_bSelected;
@@ -234,6 +256,7 @@ public:
     inline CBrowserImpl *GetBrowserImpl() { return m_wndBrowserView.mpBrowserImpl; }
 
     HMENU           m_hMenu;
+    HICON           m_hSecurityIcon;
     CMyStatusBar    m_wndStatusBar;
     CProgressCtrl   m_wndProgressBar;
     CUrlBar         m_wndUrlBar;
@@ -297,6 +320,8 @@ public:
     void SaveWindowPos();
     void RestoreWindowPos(PRInt32 *x, PRInt32 *y, PRInt32 *cx, PRInt32 *cy);
 
+    void SetSoftFocus();
+
 // Overrides
     // ClassWizard generated virtual function overrides
     //{{AFX_VIRTUAL(CBrowserFrame)
@@ -323,7 +348,8 @@ protected:
     // afx_msg void OnMove(int x, int y);
     afx_msg void OnActivate(UINT nState, CWnd* pWndOther, BOOL bMinimized);
     afx_msg void OnSysColorChange();
-    afx_msg void RefreshToolBarItem(WPARAM ItemID, LPARAM unused);
+    afx_msg LRESULT RefreshToolBarItem(WPARAM ItemID, LPARAM unused);
+    afx_msg LRESULT RefreshMRUList(WPARAM ItemID, LPARAM unused);
     afx_msg void ToggleToolBar(UINT uID);
     afx_msg void ToggleToolbarLock();
     afx_msg void OnUpdateToggleToolbarLock(CCmdUI* pCmdUI);

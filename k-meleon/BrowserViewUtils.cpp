@@ -24,6 +24,7 @@
 
 #include "stdafx.h"
 #include "nsEscape.h"
+#include <wininet.h>
 
 #include "nsIContentViewer.h"
 #include "nsIMarkupDocumentViewer.h" 
@@ -128,7 +129,7 @@ BOOL CBrowserView::OpenViewSourceWindow(const char* pUrl)
     return TRUE;
 }
 
-void CBrowserView::RefreshToolBarItem(WPARAM ItemID, LPARAM unused)
+LRESULT CBrowserView::RefreshToolBarItem(WPARAM ItemID, LPARAM unused)
 {
 	switch (ItemID) {
 		case ID_NAV_BACK:
@@ -138,6 +139,8 @@ void CBrowserView::RefreshToolBarItem(WPARAM ItemID, LPARAM unused)
 			m_refreshForwardButton = TRUE;
 			break;
 	}
+
+	return 0;
 }
 
 void CBrowserView::GetPageTitle(CString& title)
@@ -159,6 +162,7 @@ BOOL MultiSave(nsIURI* aURI, nsILocalFile* file) {
    persist->SaveURI(aURI, nsnull, nsnull, nsnull, nsnull, file);
    return TRUE;
 }
+
 
 NS_IMETHODIMP CBrowserView::URISaveAs(nsIURI* aURI, bool bDocument)
 {
@@ -236,17 +240,44 @@ NS_IMETHODIMP CBrowserView::URISaveAs(nsIURI* aURI, bool bDocument)
       strcat(lpszFilter, "Web Page, HTML Only (*.htm;*.html)|*.htm;*.html|");
       if (bDocument)
         strcat(lpszFilter, "Web Page, Complete (*.htm;*.html)|*.htm;*.html|");
-      strcat(lpszFilter,"Text File (*.txt)|*.txt|"
-        "All Files (*.*)|*.*||");
+      // strcat(lpszFilter,"Text File (*.txt)|*.txt|");
+      strcat(lpszFilter,"All Files (*.*)|*.*||");
+
+   for (int i=0; lpszFilter[i]; ) {
+     if (lpszFilter[i] == '|')
+       lpszFilter[i] = '\0';
+     i++;
+   }
+
+   nsCString fileName;
+   GetBrowserWindowTitle(fileName); // Suggest the window title as the filename
   
-   CFileDialog cf(FALSE, extension, pFileName, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
-					lpszFilter, this);
+   OPENFILENAME ofn;
+   char *szFileName = new char[INTERNET_MAX_URL_LENGTH];
 
-   cf.m_ofn.lpstrInitialDir = theApp.preferences.saveDir;
+   memset(&ofn, 0, sizeof(ofn));
+   memset(szFileName, 0, INTERNET_MAX_URL_LENGTH);
+   strcat(szFileName, pFileName);
+   ofn.lStructSize = sizeof(ofn);
+   ofn.lpstrFilter = lpszFilter;
+   ofn.lpstrFile = szFileName;
+   if (bDocument && strstr(extension, "htm")) {
+     const char *pszTitle = fileName.get();
+     if (theApp.preferences.iSaveType == 3 && pszTitle && *pszTitle)
+       strcpy(szFileName, pszTitle);
+     ofn.nFilterIndex = theApp.preferences.iSaveType == 3 ? 3 : 2;
+   }
+   ofn.nMaxFile = INTERNET_MAX_URL_LENGTH;
+   ofn.Flags = OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
+   ofn.lpstrInitialDir = theApp.preferences.saveDir;
+   ofn.lpstrDefExt = extension;
 
-   if(cf.DoModal() == IDOK) {
-		CString strFullPath = cf.GetPathName();            // Will be like: c:\tmp\junk.htm
-      theApp.preferences.saveDir = cf.GetPathName();
+    if( ::GetSaveFileName(&ofn) ) {
+      CString strFullPath = szFileName;
+      delete szFileName;
+      szFileName = NULL;
+
+      theApp.preferences.saveDir = strFullPath;
       int idxSlash;
       idxSlash = theApp.preferences.saveDir.ReverseFind('\\');
       theApp.preferences.saveDir = theApp.preferences.saveDir.Mid(0, idxSlash+1);
@@ -254,7 +285,9 @@ NS_IMETHODIMP CBrowserView::URISaveAs(nsIURI* aURI, bool bDocument)
       BOOL bSaveAll = FALSE;
       CString strDataPath;
       char *pStrDataPath = NULL;
-      if(bDocument && cf.m_ofn.nFilterIndex == 3) {
+      if (bDocument)
+	theApp.preferences.iSaveType = ofn.nFilterIndex;
+      if(bDocument && ofn.nFilterIndex == 3) {
          // cf.m_ofn.nFilterIndex == 3 indicates
          // user want to save the complete document including
          // all frames, images, scripts, stylesheets etc.
@@ -317,23 +350,27 @@ NS_IMETHODIMP CBrowserView::URISaveAs(nsIURI* aURI, bool bDocument)
 
    if (pBuf)
       delete pBuf;
+   if (szFileName)
+      delete szFileName;
 
    return NS_OK;
 }
 
-void CBrowserView::OpenURL(const char* pUrl)
+void CBrowserView::OpenURL(const char* pUrl, nsIURI *refURI)
 {
-   OpenURL(NS_ConvertASCIItoUCS2(pUrl).get());                                 
+  OpenURL(NS_ConvertASCIItoUCS2(pUrl).get(), refURI);
 }
 
-void CBrowserView::OpenURL(const PRUnichar* pUrl)
+void CBrowserView::OpenURL(const PRUnichar* pUrl, nsIURI *refURI)
 {
    CString str = pUrl;
    mpBrowserFrame->m_wndUrlBar.SetCurrentURL((char*)str.GetBuffer(0));
+   mpBrowserFrame->m_wndUrlBar.EditChanged(FALSE);
+
    if(mWebNav)
        mWebNav->LoadURI(pUrl,                          // URI string
                     nsIWebNavigation::LOAD_FLAGS_NONE, // Load flags
-                    nsnull,                            // Refering URI
+                    refURI,                            // Refering URI
                     nsnull,                            // Post data
                     nsnull);                           // Extra headers
 }
@@ -350,12 +387,12 @@ CBrowserFrame* CBrowserView::CreateNewBrowserFrame(PRUint32 chromeMask,
     return pApp->CreateNewBrowserFrame(chromeMask, x, y, cx, cy, bShowWindow);
 }
 
-void CBrowserView::OpenURLInNewWindow(const char* pUrl, BOOL bBackground)
+void CBrowserView::OpenURLInNewWindow(const char* pUrl, BOOL bBackground, nsIURI *refURI )
 {
-    OpenURLInNewWindow(NS_ConvertASCIItoUCS2(pUrl).get(), bBackground);
+    OpenURLInNewWindow(NS_ConvertASCIItoUCS2(pUrl).get(), bBackground, refURI);
 }
 
-void CBrowserView::OpenURLInNewWindow(const PRUnichar* pUrl, BOOL bBackground)
+void CBrowserView::OpenURLInNewWindow(const PRUnichar* pUrl, BOOL bBackground, nsIURI *refURI)
 {
     if(!pUrl)
         return; 
@@ -371,7 +408,7 @@ void CBrowserView::OpenURLInNewWindow(const PRUnichar* pUrl, BOOL bBackground)
     // and the other a "PRUniChar *". We're using the "PRUnichar *"
     // version here 
 
-    pFrm->m_wndBrowserView.OpenURL(pUrl);
+    pFrm->m_wndBrowserView.OpenURL(pUrl, refURI);
 
 
    /* Show the window minimized, instead of on the bottom, because mozilla freaks out if we put it on the bottom */
@@ -389,7 +426,10 @@ void CBrowserView::OpenURLInNewWindow(const PRUnichar* pUrl, BOOL bBackground)
    
     // show the window
     else
+    {
 	pFrm->ShowWindow(SW_SHOW);
+        pFrm->SetFocus();
+    }
 }
 
 void CBrowserView::LoadHomePage()

@@ -119,6 +119,7 @@ void CPreferences::Load() {
       _GetBool(_T("kmeleon.general.sourceEnabled"), bSourceUseExternalCommand, false);
       _GetString(_T("kmeleon.general.sourceCommand"), sourceCommand, _T(""));
 
+      _GetInt(_T("kmeleon.general.saveType"), iSaveType, 0);
       _GetString(_T("kmeleon.general.saveDir"), saveDir, _T(""));   
       _GetString(_T("kmeleon.general.settingsDir"), settingsDir, _T(""));
       _GetString(_T("kmeleon.general.pluginsDir"), pluginsDir, _T(""));
@@ -387,6 +388,7 @@ void CPreferences::Save() {
        rv = prefs->SetIntPref(_T("kmeleon.display.YPos"), windowYPos);
      }
 
+       rv = prefs->SetIntPref(_T("kmeleon.general.saveType"), iSaveType);
        rv = prefs->SetBoolPref(_T("kmeleon.display.backgroundImageEnabled"), bToolbarBackground);
        rv = prefs->SetCharPref(_T("kmeleon.display.backgroundImage"), toolbarBackground);
 

@@ -49,7 +49,7 @@ LRESULT CALLBACK WndProc (
 
 void * KMeleonWndProc;
 
-int Init();
+int Load();
 void Create(HWND parent);
 void Config(HWND parent);
 void Quit();
@@ -67,8 +67,8 @@ kmeleonPlugin kPlugin = {
 long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2)
 {
     if (to[0] == '*' || stricmp(to, kPlugin.dllname) == 0) {
-        if (stricmp(subject, "Init") == 0) {
-            Init();
+        if (stricmp(subject, "Load") == 0) {
+            Load();
         }
         else if (stricmp(subject, "Create") == 0) {
             Create((HWND)data1);
@@ -97,7 +97,7 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
 
 UINT id_defercapture;
 
-int Init(){
+int Load(){
     id_defercapture = kPlugin.kFuncs->GetCommandIDs(1);
     return true;
 }

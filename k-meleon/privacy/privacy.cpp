@@ -21,6 +21,7 @@
 #include "privacy_res.h"
 
 #define KMELEON_PLUGIN_EXPORTS
+#include "..\KMeleonConst.h"
 #include "..\kmeleon_plugin.h"
 #include "..\Utils.h"
 
@@ -80,10 +81,11 @@ BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 void * KMeleonWndProc;
 
-INT Init();
+INT Load();
 void Create(HWND parent);
 void Config(HWND parent);
 void Quit();
+void Exit();
 void DoMenu(HMENU menu, char *param);
 LONG DoMessage(LPCTSTR to, LPCTSTR from, LPCTSTR subject, LONG data1, LONG data2);
 void DoRebar(HWND rebarWnd);
@@ -191,6 +193,24 @@ void EmptyDirectory(LPCTSTR sDirectory)
 // Clear the cache
 void ClearCache()
 {
+/* from nsICache.h */
+enum
+{
+	STORE_ANYWHERE	      = 0,
+	STORE_IN_MEMORY	      = 1,
+	STORE_ON_DISK	      = 2,
+	STORE_ON_DISK_AS_FILE = 3
+};
+
+    kFuncs->ClearCache(STORE_ANYWHERE);
+    kFuncs->ClearCache(STORE_IN_MEMORY);
+    kFuncs->ClearCache(STORE_ON_DISK);
+    kFuncs->ClearCache(STORE_ON_DISK_AS_FILE);
+}
+
+// Clear the cache
+void RemoveCache()
+{
     TCHAR cacheDir[MAX_PATH];
     strcpy(cacheDir, cacheParentDir);
     strcat(cacheDir, "Cache\\");
@@ -215,6 +235,7 @@ void ClearMRU()
         sprintf(PrefName, "%s%i", PREFERENCE_MRU_URL, i);
         kFuncs->SetPreference(PREF_STRING, PrefName, (void*)"");
     }
+    kFuncs->BroadcastMessage(UWM_REFRESHMRULIST, 0, 0);
 }
 
 // Process the Shutdown tasks
@@ -227,7 +248,10 @@ void DoShutdownTasks()
     if (prefClearMRU & PRV_ONSHUTDOWN)
         ClearMRU();
     if (prefClearCache & PRV_ONSHUTDOWN)
+    {
         ClearCache();
+        RemoveCache();
+    }
     if (prefClearSignon & PRV_ONSHUTDOWN)
         ClearSignon();
 }
@@ -241,8 +265,11 @@ void DoStartupTasks()
         ClearMRU();
     if (prefClearHistory & PRV_ONSTARTUP)
         ClearHistory();
-    if (prefClearCache & PRV_ONSTARTUP)
+    if (prefClearCache & PRV_ONSTARTUP) 
+    {
         ClearCache();
+        RemoveCache();
+    }
     if (prefClearSignon & PRV_ONSTARTUP)
         ClearSignon();
 }
@@ -254,7 +281,7 @@ void DoStartupTasks()
     MessageBox(hMainWindow, s, "", 0);
 }*/
 
-INT Init()
+INT Load()
 {
     kFuncs = kPlugin.kFuncs;
     InitGlobals();
@@ -277,6 +304,11 @@ void Config(HWND parent)
 }
 
 void Quit()
+{
+    DoShutdownTasks();
+}
+
+void Exit()
 {
     DoShutdownTasks();
 }
@@ -349,8 +381,8 @@ LONG DoMessage(LPCTSTR to, LPCTSTR from, LPCTSTR subject, LONG data1, LONG data2
 {
    if (to[0] == '*' || stricmp(to, kPlugin.dllname) == 0)
    {
-      if (stricmp(subject, "Init") == 0) {
-         Init();
+      if (stricmp(subject, "Load") == 0) {
+         Load();
       }
       else if (stricmp(subject, "Create") == 0) {
          Create((HWND)data1);
@@ -360,6 +392,9 @@ LONG DoMessage(LPCTSTR to, LPCTSTR from, LPCTSTR subject, LONG data1, LONG data2
       }
       else if (stricmp(subject, "Quit") == 0) {
          Quit();
+      }
+      else if (stricmp(subject, "Exit") == 0) {
+         Exit();
       }
       else if (stricmp(subject, "DoMenu") == 0) {
          DoMenu((HMENU)data1, (LPTSTR)data2);

@@ -65,8 +65,8 @@ nsresult CProfileMgr::StartUp()
 {
     nsresult rv;
 
-   nsCOMPtr<nsIProfile> profileService = 
-      do_GetService(NS_PROFILE_CONTRACTID, &rv);
+    nsCOMPtr<nsIProfile> profileService = 
+             do_GetService(NS_PROFILE_CONTRACTID, &rv);
     if (NS_FAILED(rv)) return rv;
 
     PRInt32 profileCount;
@@ -81,6 +81,7 @@ nsresult CProfileMgr::StartUp()
         if (NS_FAILED(rv)) return rv;
         rv = profileService->SetCurrentProfile(newProfileName.get());
         if (NS_FAILED(rv)) return rv;
+	SetShowDialogOnStart(FALSE);
     }
     else
     {
@@ -90,9 +91,11 @@ nsresult CProfileMgr::StartUp()
         PRBool showIt;
         rv = GetShowDialogOnStart(&showIt);
 
-        if (NS_FAILED(rv) || (profileCount > 1 && showIt))
+        if (NS_FAILED(rv) || showIt)
         {
-            DoManageProfilesDialog(TRUE);
+            rv = DoManageProfilesDialog(TRUE);
+	    if (NS_FAILED(rv))
+	      exit(1);
         }
         else
         {
@@ -173,6 +176,8 @@ nsresult CProfileMgr::DoManageProfilesDialog(PRBool bAtStartUp)
          if (bAtStartUp)
             rv = profileService->SetCurrentProfile(dialog.m_SelectedProfile.get());
    }
+   else if (bAtStartUp)
+     return NS_ERROR_FAILURE;
    return NS_OK;
 }
     

@@ -104,7 +104,7 @@ LRESULT APIENTRY WndTBSubclassProc(
           (wParam == SIZE_MAXIMIZED || wParam == SIZE_RESTORED)) {
          TB *tmpTB = find_TB(hwnd);
          if (tmpTB && tmpTB->hWnd)
-            PostMessage(tmpTB->hWnd, WM_COMMAND, nUpdateTB, 0);
+            SendMessage(tmpTB->hWnd, WM_COMMAND, nUpdateTB, 0);
       }
    }
    break;
@@ -198,7 +198,7 @@ void RebuildMenu() {
    TB *ptr = root;
    while (ptr) {
      RebuildRebarMenu( ptr->hWndTB );
-     PostMessage(ptr->hWnd, WM_COMMAND, nUpdateTB, 0);
+     SendMessage(ptr->hWnd, WM_COMMAND, nUpdateTB, 0);
      ptr = ptr->next;
    }
 }
@@ -237,7 +237,7 @@ int setTBButtonWidth(HWND hWndTB)
      if (width < nMinWidth) width = nMinWidth;
    }
    
-   PostMessage(hWndTB, TB_SETBUTTONWIDTH, 0, 
+   SendMessage(hWndTB, TB_SETBUTTONWIDTH, 0, 
                MAKELONG(nMaxWidth >= 0 ? width : 0, 
                         nMaxWidth >= 0 ? width : 0));
    
@@ -416,16 +416,17 @@ void OpenURL(char *url)
 }
 
 
+void Destroy(HWND hWnd){
+  if (find_TB(hWnd))
+    remove_TB(hWnd);
+}
+
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
    // store these in static vars so that the BeginHotTrack call can access them
    static NMTOOLBAR tbhdr;
    static NMHDR hdr;
    
-   if (message == WM_CLOSE) {
-     if (find_TB(hWnd))
-       remove_TB(hWnd);
-   }
-   else if (message == WM_COMMAND) {
+   if (message == WM_COMMAND) {
       WORD command = LOWORD(wParam);
       
       if (command == nConfigCommand){
@@ -433,6 +434,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
          return 1;
       }
       else if (command == nUpdateTB){
+#if 0
          TB *tmpTB = find_TB(hWnd);
          if (tmpTB && tmpTB->hWndTB) {
             WINDOWPLACEMENT wp = {0};
@@ -442,6 +444,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
                    wp.showCmd == SW_SHOWMAXIMIZED)
                   UpdateRebarMenu( tmpTB->hWndTB );
          }
+#endif
          return 1;
       }
       else if (command == nAddCommand ||

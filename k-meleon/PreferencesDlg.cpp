@@ -26,6 +26,7 @@ extern CMfcEmbedApp theApp;
 
 #include "Preferences.h"
 #include "Plugins.h"
+#include <wininet.h>
 
 CPreferencesDlg::CPreferencesDlg() : CDialog(IDD) {
   page = NULL;
@@ -65,7 +66,6 @@ CPreferencesDlg::OnInitDialog(){
    AddItem(_T("Cache"),   IDD_PREFERENCES_CACHE);
    AddItem(_T("Proxy"),   IDD_PREFERENCES_PROXY);
    AddItem(_T("Configs"), IDD_PREFERENCES_CONFIGS);
-   AddItem(_T("Settings"), IDD_PREFERENCES_MOZCONFIGS);
    AddItem(_T("Plugins"), IDD_PREFERENCES_PLUGINS);
 
    m_list.SetItemState(0, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
@@ -136,9 +136,6 @@ void CPreferencesDlg::ShowPage(UINT idd){
 
   else if (idd == IDD_PREFERENCES_CONFIGS)
      page = new CPreferencePageConfigs;
-
-  else if (idd == IDD_PREFERENCES_MOZCONFIGS)
-     page = new CPreferencePageMozConfigs;
 
   else
     page = new CPreferencePage;
@@ -307,25 +304,36 @@ void CPreferencePage::OnClearDiskCache() {
       do_GetService(NS_CACHESERVICE_CONTRACTID, &rv);
    if (NS_FAILED(rv)) return;
 
+   CacheService->EvictEntries(nsICache::STORE_ANYWHERE);
+   CacheService->EvictEntries(nsICache::STORE_IN_MEMORY);
    CacheService->EvictEntries(nsICache::STORE_ON_DISK);
    CacheService->EvictEntries(nsICache::STORE_ON_DISK_AS_FILE);
 }
 
 void CPreferencePage::OnBrowse() {
    CString oldstr;
-   CFileDialog fDlg(TRUE);
+   OPENFILENAME ofn;
+   char *szFileName = new char[INTERNET_MAX_URL_LENGTH];
+
+   memset(&ofn, 0, sizeof(ofn));
+   memset(szFileName, 0, INTERNET_MAX_URL_LENGTH);
+   ofn.lStructSize = sizeof(ofn);
+   ofn.lpstrFile = szFileName;
+   ofn.nMaxFile = INTERNET_MAX_URL_LENGTH;
+   ofn.Flags = OFN_HIDEREADONLY;
+
    switch (idd){
       case IDD_PREFERENCES_DISPLAY:
-         fDlg.m_ofn.lpstrFilter = "Bitmaps\0*.bmp\0";
-         fDlg.DoModal();
-         theApp.preferences.toolbarBackground = fDlg.GetPathName();
+         ofn.lpstrFilter = "Bitmaps\0*.bmp\0\0";
+	 ::GetOpenFileName(&ofn);
+         theApp.preferences.toolbarBackground = szFileName;
          UpdateData(FALSE);
          break;
       case IDD_PREFERENCES_GENERAL:
-         fDlg.m_ofn.lpstrFilter = "Executable Files\0*.exe\0";
-         fDlg.DoModal();
+         ofn.lpstrFilter = "Executable Files\0*.exe\0\0";
+	 ::GetOpenFileName(&ofn);
          oldstr = theApp.preferences.sourceCommand;
-         theApp.preferences.sourceCommand = fDlg.GetPathName();
+         theApp.preferences.sourceCommand = szFileName;
 	 if (theApp.preferences.sourceCommand != "") {
 	   if (oldstr != theApp.preferences.sourceCommand)
 	     theApp.preferences.bSourceUseExternalCommand = TRUE;
@@ -337,6 +345,8 @@ void CPreferencePage::OnBrowse() {
          UpdateData(FALSE);
          break;
    }
+
+   delete szFileName;
 }
 
 void CPreferencePage::OnComboChanged() {
@@ -511,12 +521,18 @@ BOOL CPreferencePageConfigs::OnInitDialog(){
    AddTab("Menus", theApp.preferences.settingsDir + "menus.cfg", "");
    AddTab("Accelerators", theApp.preferences.settingsDir + "accel.cfg", "");
 
+   AddTab("Prefs.js", theApp.preferences.profileDir + "prefs.js", "");
+   AddTab("User.js", theApp.preferences.profileDir + "user.js", "");
+   AddTab("userContent.css", theApp.preferences.profileDir + "chrome\\userContent.css", "");
+
+#if 0
    configFileType pluginConfigFiles[10];
    int numConfigFiles = theApp.plugins.GetConfigFiles(pluginConfigFiles, 10);
    int i;
    for (i=0; i<numConfigFiles; i++) {
       AddTab(pluginConfigFiles[i].label, pluginConfigFiles[i].file, pluginConfigFiles[i].helpUrl);
    }
+#endif
 
    ShowFile(m_configFiles[0]);
 
@@ -668,77 +684,3 @@ BEGIN_MESSAGE_MAP(CPreferencePageConfigs, CPreferencePage)
    ON_NOTIFY(TCN_SELCHANGE, IDC_TAB1, OnSelChange)
    //}}AFX_MSG_MAP
 END_MESSAGE_MAP()
-
-/**/
-
-CPreferencePageMozConfigs::CPreferencePageMozConfigs() {
-#if 0
-   nsCOMPtr<nsIObserverService> observerService;
-   observerService = do_GetService("@mozilla.org/observer-service;1");
-   if (observerService) {
-     observerService->NotifyObservers(nsnull, "profile-before-change", nsnull);
-     observerService->NotifyObservers(nsnull, "profile-do-change", nsnull);
-     observerService->NotifyObservers(nsnull, "profile-after-change", nsnull);
-     observerService->NotifyObservers(nsnull, "profile-initial-state", nsnull);
-   }
-#endif
-}
-
-BOOL CPreferencePageMozConfigs::OnInitDialog(){
-   CDialog::OnInitDialog();
-
-   CEdit *editBox = (CEdit *)GetDlgItem(IDC_EDIT1);
-   editBox->SetTabStops(6);
-
-   AddTab("Prefs.js", theApp.preferences.profileDir + "prefs.js", "");
-   AddTab("User.js", theApp.preferences.profileDir + "user.js", "");
-   AddTab("userContent.css", theApp.preferences.profileDir + "chrome\\userContent.css", "");
-#if 0
-   AddTab("Cookies", theApp.preferences.profileDir + "cookies.txt", "");
-   AddTab("Permissions", theApp.preferences.profileDir + "cookperm.txt", "");
-   AddTab("History", theApp.preferences.profileDir + "history.txt", "");
-#endif
-
-   ShowFile(m_configFiles[0]);
-
-	return FALSE;  // return TRUE  unless you set the focus to a control
-}
-
-void CPreferencePageMozConfigs::SaveFile(const char *filename){
-#if 0
-   nsCOMPtr<nsIObserverService> observerService;
-   observerService = do_GetService("@mozilla.org/observer-service;1");
-   if (observerService) {
-     char buf[MAX_PATH];
-     strcpy(buf, filename);
-     char *p, *q;
-     p = strrchr(buf, '/');
-     q = strrchr(buf, '\\');
-     if (!q || p>q) q = p;
-     p = strrchr(buf, '.');
-     if (!p || q>p)
-       strcat(buf, "XXXXXX");
-     else if (p)
-       strcat(p, "XXXXXX");
-     else
-       strcat(buf, "XXXXXX");
-     p = mktemp(buf);
-
-     observerService->NotifyObservers(nsnull, "profile-before-change", nsnull);
-
-     CPreferencePageConfigs::SaveFile(buf);
-     FILE *hFile = fopen(buf, "r");
-     if (hFile) {
-       fclose(hFile);
-       unlink(filename);
-       rename(buf, filename);
-     }
-
-     observerService->NotifyObservers(nsnull, "profile-do-change", nsnull);
-     observerService->NotifyObservers(nsnull, "profile-after-change", nsnull);
-     observerService->NotifyObservers(nsnull, "profile-initial-state", nsnull);
-   }
-#else
-   CPreferencePageConfigs::SaveFile(filename);
-#endif
-}

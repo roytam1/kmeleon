@@ -198,6 +198,11 @@ void SetPreference(enum PREFTYPE type, char *preference, void *val, BOOL update)
    }
 }
 
+void DelPreference(char *preference)
+{
+   theApp.preferences.Clear(preference);
+}
+
 void SetStatusBarText(const char *s) {
    theApp.m_pMostRecentBrowserFrame->m_wndStatusBar.SetPaneText(0, s);
 }
@@ -563,6 +568,28 @@ void SetCheck(int id, BOOL mark) {
   theApp.menus.SetCheck(id, mark);
 }
 
+void ClearCache(int cache) {
+   nsresult rv;
+
+   nsCOMPtr<nsICacheService> CacheService =
+      do_GetService(NS_CACHESERVICE_CONTRACTID, &rv);
+   if (NS_FAILED(rv)) return;
+
+   CacheService->EvictEntries(cache);
+}
+
+void BroadcastMessage(UINT Msg, WPARAM wParam, LPARAM lParam) {
+  theApp.BroadcastMessage(Msg, wParam, lParam);
+}
+
+void ParseAccel(char *str) {
+  theApp.accel.Parse(str);
+}
+
+kmeleonPlugin * Load(char *kplugin) {
+  return theApp.plugins.Load(kplugin);
+}
+
 long CPlugins::SendMessage(const char *to, const char *from, const char *subject, long data1, long data2)
 {
    long retVal = 0;
@@ -610,7 +637,12 @@ kmeleonFunctions kmelFuncs = {
    GetBrowserviewRect,
    GetMenu,
    SetForceCharset,
-   SetCheck
+   SetCheck,
+   Load,
+   ClearCache,
+   BroadcastMessage,
+   ParseAccel,
+   DelPreference
 };
 
 BOOL CPlugins::TestLoad(const char *file, const char *description)
@@ -776,13 +808,13 @@ int CPlugins::FindAndLoad(const char *pattern)
          i++;
       filepath.UnlockBuffer();
    }
-   SendMessage("*", "* Plugin Manager", "Init");
+   //   SendMessage("*", "* Plugin Manager", "Init");
    return i;
 }
 
 void CPlugins::UnLoadAll()
 {
-   SendMessage("*", "* Plugin Manager", "Quit");
+   SendMessage("*", "* Plugin Manager", "Exit");
 
    POSITION pos = pluginList.GetStartPosition();
    kmeleonPlugin * kPlugin;

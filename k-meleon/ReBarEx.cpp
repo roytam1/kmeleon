@@ -155,10 +155,15 @@ void CReBarEx::ToggleVisibility(int index) {
       SetVisibility(index, !GetVisibility(index));
 }
 
+#define PREF_TOOLBAND_LOCKED "kmeleon.general.toolbars_locked"
+
 void CReBarEx::SaveBandSizes() {
    int x, index;
    char tempPref[256] = _T("kmeleon.toolband."); // 17 chars
 
+   BOOL locked = theApp.preferences.GetBool(PREF_TOOLBAND_LOCKED, false);
+   if (locked)
+      return;
 
    REBARBANDINFO rbbi;
    rbbi.cbSize = sizeof(rbbi);

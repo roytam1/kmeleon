@@ -83,13 +83,13 @@ NS_IMETHODIMP CBrowserImpl::OnStateChange(nsIWebProgress *progress,
     return NS_OK;
   }
 
-  if ((progressStateFlags & STATE_START) && (progressStateFlags & STATE_IS_DOCUMENT))
+  if ((progressStateFlags & STATE_START) && (progressStateFlags & STATE_IS_NETWORK))
   {
     // Navigation has begun
     m_pBrowserFrameGlue->UpdateBusyState(PR_TRUE);
   }
 
-  if ((progressStateFlags & STATE_STOP) && (progressStateFlags & STATE_IS_DOCUMENT))
+  if ((progressStateFlags & STATE_STOP) && (progressStateFlags & STATE_IS_NETWORK))
   {
     // We've completed the navigation
 

@@ -41,7 +41,7 @@ BOOL CHiddenWnd::PreCreateWindow(CREATESTRUCT& cs) {
    return TRUE;
 }
 
-void CHiddenWnd::OnCreate(LPCREATESTRUCT lpCreateStruct) {
+int CHiddenWnd::OnCreate(LPCREATESTRUCT lpCreateStruct) {
 
    // Check if the tray control is running, and get the persist setting from it
    QueryPersistFlags();
@@ -50,11 +50,11 @@ void CHiddenWnd::OnCreate(LPCREATESTRUCT lpCreateStruct) {
    else
       ShowBrowser(theApp.m_lpCmdLine);
 
-   CFrameWnd::OnCreate(lpCreateStruct);
+   return CFrameWnd::OnCreate(lpCreateStruct);
 }
 
 void CHiddenWnd::QueryPersistFlags() {
-   HWND hwndLoader = FindWindowEx(NULL, NULL, "KMeleon Tray Control", NULL);
+   HWND hwndLoader = ::FindWindowEx(NULL, NULL, "KMeleon Tray Control", NULL);
    if (hwndLoader) {
       LRESULT flags = ::SendMessage(hwndLoader, UWM_PERSIST_GET, NULL, NULL);
 
@@ -85,7 +85,7 @@ void CHiddenWnd::OnClose() {
    }
 
    // make sure the loader hasn't exited without notifying us
-   HWND hwndLoader = FindWindowEx(NULL, NULL, "KMeleon Tray Control", NULL);
+   HWND hwndLoader = ::FindWindowEx(NULL, NULL, "KMeleon Tray Control", NULL);
    if (!hwndLoader)
       CFrameWnd::OnClose();
 
@@ -106,7 +106,7 @@ void CHiddenWnd::OnClose() {
    }
 }
 
-void CHiddenWnd::OnSetPersist(WPARAM flags, LPARAM lParam) {
+LRESULT CHiddenWnd::OnSetPersist(WPARAM flags, LPARAM lParam) {
    BOOL bNewStayResident = (flags & PERSIST_BROWSER);
    BOOL bNewPreloadWindow = (flags & PERSIST_WINDOW);
    BOOL bNewPreloadStartPage = (flags & PERSIST_STARTPAGE);
@@ -154,10 +154,14 @@ void CHiddenWnd::OnSetPersist(WPARAM flags, LPARAM lParam) {
    m_bStayResident = bNewStayResident;
    m_bPreloadWindow = bNewPreloadWindow;
    m_bPreloadStartPage = bNewPreloadStartPage;
+
+   return 0;
 }
 
-void CHiddenWnd::OnShowBrowser(char *URI, LPARAM lParam) {
+LRESULT CHiddenWnd::OnShowBrowser(char *URI, LPARAM lParam) {
    ShowBrowser(URI);
+
+   return 0;
 }
 
 void CHiddenWnd::ShowBrowser(char *URI) {
@@ -172,7 +176,7 @@ void CHiddenWnd::ShowBrowser(char *URI) {
       }
       else {
          m_pHiddenBrowser->SetFocus();
-         m_pHiddenBrowser->m_wndUrlBar.MaintainFocus();
+         // m_pHiddenBrowser->m_wndUrlBar.MaintainFocus();
          if (!m_bPreloadStartPage)
             m_pHiddenBrowser->m_wndBrowserView.LoadHomePage();
       }
@@ -203,7 +207,7 @@ void CHiddenWnd::ShowBrowser(char *URI) {
       }
       else {
          browser->SetFocus();
-         browser->m_wndUrlBar.MaintainFocus();
+         // browser->m_wndUrlBar.MaintainFocus();
          browser->m_wndBrowserView.LoadHomePage();
       }
    }
@@ -253,12 +257,16 @@ BOOL CHiddenWnd::StayResident() {
 
 // This is called from another instance of Kmeleon (via the UWM_NEWWINDOW message),
 // when no command line paramaters have been specified
-void CHiddenWnd::OnNewWindow(WPARAM wParam, LPARAM lParam) {
+LRESULT CHiddenWnd::OnNewWindow(WPARAM wParam, LPARAM lParam) {
    ShowBrowser();
+
+   return 0;
 }
 
 // This is called from another instance of Kmeleon,
 // and contains any command line parameters specified
-void CHiddenWnd::OnCopyData(CWnd* pWnd, COPYDATASTRUCT* pCopyDataStruct) {
+BOOL CHiddenWnd::OnCopyData(CWnd* pWnd, COPYDATASTRUCT* pCopyDataStruct) {
    ShowBrowser((char *) pCopyDataStruct->lpData);
+
+   return true;
 }

@@ -93,6 +93,7 @@ BEGIN_MESSAGE_MAP(CBrowserFrame, CFrameWnd)
     ON_WM_ACTIVATE()
     ON_WM_SYSCOLORCHANGE()
     ON_MESSAGE(UWM_REFRESHTOOLBARITEM, RefreshToolBarItem)
+    ON_MESSAGE(UWM_REFRESHMRULIST, RefreshMRUList)
     ON_COMMAND_RANGE(TOOLBAR_MENU_START_ID, TOOLBAR_MENU_END_ID, ToggleToolBar)
     ON_COMMAND(ID_TOOLBARS_LOCK, ToggleToolbarLock)
     ON_UPDATE_COMMAND_UI(ID_TOOLBARS_LOCK, OnUpdateToggleToolbarLock)
@@ -121,10 +122,13 @@ CBrowserFrame::CBrowserFrame(PRUint32 chromeMask, LONG style = 0)
     m_style = style;
     m_created = FALSE;
     m_ignoreFocus = 2;
+    m_hSecurityIcon = NULL;
 }
 
 CBrowserFrame::~CBrowserFrame()
 {
+    if (m_hSecurityIcon)
+        DestroyIcon(m_hSecurityIcon);
 }
 
 BOOL CBrowserFrame::PreTranslateMessage(MSG* pMsg)
@@ -144,6 +148,11 @@ BOOL CBrowserFrame::PreTranslateMessage(MSG* pMsg)
 
 void CBrowserFrame::OnClose()
 {
+   DWORD dwWaitResult; 
+   dwWaitResult = WaitForSingleObject( theApp.m_hMutex, 1000L);
+   if (dwWaitResult != WAIT_OBJECT_0) {
+     return;
+   }
 
    // tell all our plugins that we are closing
    theApp.plugins.SendMessage("*", "* OnClose", "Close", (long)m_hWnd);
@@ -200,6 +209,9 @@ void CBrowserFrame::OnClose()
         }
     }
 
+   // tell all our plugins that we are closing
+   theApp.plugins.SendMessage("*", "* OnClose", "Destroy", (long)m_hWnd);
+
    DestroyWindow();
    theApp.RemoveFrameFromList(this);
 }
@@ -244,11 +256,13 @@ BOOL CBrowserFrame::Create(LPCTSTR lpszClassName,
       if (m_hMenu != NULL)
          DestroyMenu(m_hMenu);
       m_hMenu = NULL;
+       ReleaseMutex(theApp.m_hMutex);
       return FALSE;
    }
 
    theApp.menus.SetCheck(ID_OFFLINE, theApp.preferences.bOffline);
        
+       ReleaseMutex(theApp.m_hMutex);
    return TRUE;
 }
 
@@ -297,18 +311,29 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
     m_wndUrlBar.LoadMRUList();  
 //   m_wndUrlBar.SetImageList(&m_toolbarHotImageList);
 
+    BOOL bThrobber = TRUE;
     // Create the animation control..
     if (!m_wndAnimate.Create(WS_CHILD | WS_VISIBLE, CRect(0, 0, 10, 10), this, ID_THROBBER))
     {
         TRACE0("Failed to create animation\n");
-        return -1;      // fail to create
+        bThrobber = FALSE;
     }
 
 
-    if (!m_wndAnimate.Open(theApp.preferences.settingsDir + "Throbber.avi"))
-        if (!m_wndAnimate.Open(theApp.preferences.skinsDir + theApp.preferences.skinsCurrent + "Throbber.avi"))
+    if (bThrobber && !m_wndAnimate.Open(theApp.preferences.settingsDir + "Throbber.avi")) {
+        CString tmp = theApp.preferences.skinsCurrent;
+        while (tmp.GetLength()>0) {
+            if (tmp.GetAt( tmp.GetLength()-1 ) != '\\')
+                tmp = tmp + "\\";
+            if (m_wndAnimate.Open(theApp.preferences.skinsDir + tmp + "Throbber.avi"))
+                break;
+            tmp = tmp.Left( tmp.GetLength()-2 );
+        }
+        if (tmp.GetLength()<1) {
             if (!m_wndAnimate.Open(theApp.preferences.skinsDir + "default\\Throbber.avi"))
-                m_wndAnimate.Open("Throbber.avi");
+                bThrobber = FALSE;
+        }
+    }
 
     // Create a ReBar window to which the toolbar and UrlBar 
     // will be added
@@ -322,10 +347,12 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
     char szTitle[256] = "URL:";
     theApp.preferences.GetString("kmeleon.display.URLbarTitle", (char*)&szTitle, (char*)&szTitle);
     m_wndReBar.AddBar(&m_wndUrlBar, szTitle);
-    m_wndReBar.AddBar(&m_wndAnimate, NULL, NULL, RBBS_FIXEDSIZE | RBBS_FIXEDBMP);
+    if (bThrobber)
+        m_wndReBar.AddBar(&m_wndAnimate, NULL, NULL, RBBS_FIXEDSIZE | RBBS_FIXEDBMP);
 
     m_wndReBar.RegisterBand(m_wndUrlBar.m_hWnd,  "URL Bar", true);
-    m_wndReBar.RegisterBand(m_wndAnimate.m_hWnd, "Throbber", false);
+    if (bThrobber)
+        m_wndReBar.RegisterBand(m_wndAnimate.m_hWnd, "Throbber", false);
 
     //--------------------------------------------------------------
     // Set up min/max sizes and ideal sizes for pieces of the rebar:
@@ -607,9 +634,16 @@ void CBrowserFrame::UpdateSecurityStatus(PRInt32 aState)
    }
 
    CStatusBarCtrl& sb = m_wndStatusBar.GetStatusBarCtrl();
+   HICON hTmpSecurityIcon = 
+    (HICON)::LoadImage(AfxGetResourceHandle(),
+       MAKEINTRESOURCE(iResID), IMAGE_ICON, 16,16,LR_LOADMAP3DCOLORS);
    sb.SetIcon(2, //2 is the pane index of the status bar where the lock icon will be shown
-       (HICON)::LoadImage(AfxGetResourceHandle(),
-       MAKEINTRESOURCE(iResID), IMAGE_ICON, 16,16,LR_LOADMAP3DCOLORS));
+       hTmpSecurityIcon);
+   if (m_hSecurityIcon)
+       DestroyIcon(m_hSecurityIcon);
+   m_hSecurityIcon = hTmpSecurityIcon;
+
+   m_wndStatusBar.RedrawWindow();
 }
 
 void CBrowserFrame::ShowSecurityInfo()
@@ -706,8 +740,9 @@ void CBrowserFrame::LoadBackImage ()
         m_bmpBack.DeleteObject ();
 
     HBITMAP hbmp;
+    CString file;
 
-    CString file = theApp.preferences.settingsDir + "Back.bmp";
+    file = theApp.preferences.toolbarBackground;
     hbmp = (HBITMAP) ::LoadImage (AfxGetResourceHandle (),
         file,
         IMAGE_BITMAP,
@@ -715,12 +750,29 @@ void CBrowserFrame::LoadBackImage ()
         LR_LOADMAP3DCOLORS | LR_LOADFROMFILE);
 
     if (!hbmp) {
-        file = theApp.preferences.skinsDir + theApp.preferences.skinsCurrent + "Back.bmp";
+        file = theApp.preferences.settingsDir + "Back.bmp";
         hbmp = (HBITMAP) ::LoadImage (AfxGetResourceHandle (),
             file,
             IMAGE_BITMAP,
             0, 0,
             LR_LOADMAP3DCOLORS | LR_LOADFROMFILE);
+    }
+
+    if (!hbmp) {
+        CString tmp = theApp.preferences.skinsCurrent;
+        while (tmp.GetLength()>0) {
+            if (tmp.GetAt( tmp.GetLength()-1 ) != '\\')
+                tmp = tmp + "\\";
+            file = theApp.preferences.skinsDir + tmp + "Back.bmp";
+            hbmp = (HBITMAP) ::LoadImage (AfxGetResourceHandle (),
+                file,
+                IMAGE_BITMAP,
+                0, 0,
+                LR_LOADMAP3DCOLORS | LR_LOADFROMFILE);
+            if (hbmp)
+                break;
+            tmp = tmp.Left( tmp.GetLength()-2 );
+        }
     }
 
     if (!hbmp) {
@@ -735,10 +787,32 @@ void CBrowserFrame::LoadBackImage ()
     m_bmpBack.Attach (hbmp);
 }
 
-void CBrowserFrame::RefreshToolBarItem(WPARAM ItemID, LPARAM unused)
+LRESULT CBrowserFrame::RefreshToolBarItem(WPARAM ItemID, LPARAM unused)
 {
     // Drop this through to BrowserView
     m_wndBrowserView.RefreshToolBarItem(ItemID, unused);
+
+    return 0;
+}
+
+LRESULT CBrowserFrame::RefreshMRUList(WPARAM ItemID, LPARAM unused)
+{
+    theApp.m_MRUList->RefreshURLs();
+    m_wndUrlBar.RefreshMRUList();
+
+    return 0;
+}
+
+void CBrowserFrame::SetSoftFocus() {
+   if (IsIconic() || !IsWindowVisible())
+      return;
+   HWND toplevelWnd = m_hWnd;
+   while (::GetParent(toplevelWnd))
+      toplevelWnd = ::GetParent(toplevelWnd);
+   if (toplevelWnd != ::GetForegroundWindow() || 
+      toplevelWnd != ::GetActiveWindow())
+      return;
+   SetFocus();
 }
 
 void CBrowserFrame::ToggleToolBar(UINT uID)
@@ -749,6 +823,8 @@ void CBrowserFrame::ToggleToolBar(UINT uID)
 void CBrowserFrame::ToggleToolbarLock()
 {
     BOOL locked = theApp.preferences.GetBool(PREF_TOOLBAND_LOCKED, false);
+    if (!locked)
+        m_wndReBar.SaveBandSizes();
     locked = !locked;
     theApp.preferences.SetBool(PREF_TOOLBAND_LOCKED, locked);
     m_wndReBar.LockBars(locked);

@@ -62,16 +62,17 @@ public:
 	// Some helper methods
 	HRESULT CreateBrowser();
 	HRESULT DestroyBrowser();
-	void OpenURL(const char* pUrl);
-	void OpenURL(const PRUnichar* pUrl);
+	void OpenURL(const char* pUrl, nsIURI *refURI=nsnull);
+	void OpenURL(const PRUnichar* pUrl, nsIURI *refURI=nsnull);
 	char* CBrowserView::NicknameLookup(char* pUrl);
+    void OpenSingleURL(char *urls);
     void OpenMultiURL(char *urls);
 	CBrowserFrame* CreateNewBrowserFrame(PRUint32 chromeMask = nsIWebBrowserChrome::CHROME_ALL, 
 							PRInt32 x = -1, PRInt32 y = -1, 
 							PRInt32 cx = -1, PRInt32 cy = -1,
 							PRBool bShowWindow = PR_TRUE);
-	void OpenURLInNewWindow(const char* pUrl, BOOL bBackground=FALSE);
-    void OpenURLInNewWindow(const PRUnichar* pUrl, BOOL bBackground=FALSE);
+	void OpenURLInNewWindow(const char* pUrl, BOOL bBackground=FALSE, nsIURI *refURI=nsnull);
+    void OpenURLInNewWindow(const PRUnichar* pUrl, BOOL bBackground=FALSE, nsIURI *refURI=nsnull);
 	void LoadHomePage();
 
 	void GetPageTitle(CString& title);
@@ -142,7 +143,7 @@ public:
     CPoint m_panningPoint;
     nsCOMPtr<nsIDOMWindow> s;
   
-	void RefreshToolBarItem(WPARAM ItemID, LPARAM unused);
+	afx_msg LRESULT RefreshToolBarItem(WPARAM ItemID, LPARAM unused);
 
     char * GetTempFile();
     void DeleteTempFiles();
@@ -197,6 +198,9 @@ protected:
     afx_msg void OnTimer(UINT nIDEvent);
     afx_msg int OnMouseActivate(CWnd* pDesktopWnd, UINT nHitTest, UINT message);
 	afx_msg void OnUrlSelectedInUrlBar();
+	afx_msg void OnUrlSelectedInUrlBarOk();
+	afx_msg void OnUrlSelectedInUrlBarCancel();
+	afx_msg void OnUrlBarDropDown();
 	afx_msg void OnNewUrlEnteredInUrlBar();
     afx_msg void OnUrlKillFocus();
     afx_msg void OnUrlEditChange();

@@ -569,7 +569,7 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
    case WM_INITDIALOG:
       {
          if (bookmarksEdited) {
-            Save(gBookmarkFile);
+            SaveBM(gBookmarkFile);
          }
 
          hEditWnd = hDlg;
@@ -1003,7 +1003,7 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
             case IDOK:
                if (bookmarksEdited) {
                   gBookmarkRoot = workingBookmarks;
-                  Save(gBookmarkFile);
+                  SaveBM(gBookmarkFile);
 
                   Rebuild();
                }

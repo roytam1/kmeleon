@@ -26,7 +26,7 @@
 #include <limits.h>
 
 #include "history.h"
-#include "../op_hotlist/stristr.c"
+char *stristr(const char *String, const char *Pattern);
 
 const int HISTORY_FOLDER   = 0;  // "children" is not empty.  url is not used
 const int HISTORY_SEPARATOR= 1;  // this node is a separator, url, title, and children are not used

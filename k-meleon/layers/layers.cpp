@@ -31,6 +31,7 @@
 
 #include <stdlib.h>
 #include <ctype.h>
+#include <time.h>
 
 #define KMELEON_PLUGIN_EXPORTS
 #include "../kmeleon_plugin.h"
@@ -45,6 +46,7 @@
 #define IMAGE_LAYER_BUTTON 0
 
 #define PLUGIN_NAME  "Layered Windows Plugin"
+#define PLUGIN_JUNK  953
 
 
 static BOOL bRebarEnabled  =   1;
@@ -56,6 +58,7 @@ static BOOL nButtonStyle   =   2;
 static BOOL bCloseWindow   =   0;
 static BOOL bCatchOpenWindow   =   0;
 static BOOL bCatchCloseWindow   =   0;
+static long lastTime;
 
 #define BS_GRAYED  1
 #define BS_PRESSED 2
@@ -75,7 +78,9 @@ static BOOL bCatchCloseWindow   =   0;
 #define PREFERENCE_CATCH_WINDOW  _T("kmeleon.plugins.layers.catch")
 #define PREFERENCE_CATCHOPEN_WINDOW  _T("kmeleon.plugins.layers.catchOpen")
 #define PREFERENCE_CATCHCLOSE_WINDOW  _T("kmeleon.plugins.layers.catchClose")
-
+#define PREFERENCE_ONOPENOPTION  _T("kmeleon.plugins.layers.onOpenOption")
+#define PREFERENCE_ONCLOSEOPTION  _T("kmeleon.plugins.layers.onCloseOption")
+#define PREFERENCE_CONFIRMCLOSE  _T("kmeleon.plugins.layers.confirmClose")
 
 BOOL APIENTRY DllMain (
         HANDLE hModule,
@@ -92,9 +97,10 @@ LRESULT CALLBACK WndProc (
 
 void * KMeleonWndProc;
 
-int Init();
+int Load();
 void Create(HWND parent, LPCREATESTRUCT pCS);
 void Config(HWND parent);
+void Destroy(HWND hWnd);
 void Quit();
 void DoMenu(HMENU menu, char *param);
 long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2);
@@ -107,10 +113,13 @@ kmeleonPlugin kPlugin = {
    DoMessage
 };
 
+enum {New, Busy, Done, Closed};
+
 struct layer {
    HWND hWnd;
    HWND hWndTB;
    BOOL popup;
+   INT  state;
    struct layer *next;
 };
 
@@ -180,14 +189,17 @@ struct frame *getFrameByString(char *sz) {
 long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2)
 {
    if (to[0] == '*' || stricmp(to, kPlugin.dllname) == 0) {
-      if (stricmp(subject, "Init") == 0) {
-         Init();
+      if (stricmp(subject, "Load") == 0) {
+         Load();
       }
       else if (stricmp(subject, "Create") == 0) {
          Create((HWND)data1, (LPCREATESTRUCT)data2);
       }
       else if (stricmp(subject, "Config") == 0) {
          Config((HWND)data1);
+      }
+      else if (stricmp(subject, "Destroy") == 0) {
+         Destroy((HWND)data1);
       }
       else if (stricmp(subject, "Quit") == 0) {
          Quit();
@@ -268,10 +280,16 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
             *cPtr = 0;
          }
       }
-      else if (stricmp(subject, "ReplaceLayersInWindow") == 0) {
+      else if (stricmp(subject, "ReplaceLayersInWindow") == 0 ||
+               stricmp(subject, "AddLayersToWindow") == 0) {
          struct frame *pFrame = find_frame(ghCurHwnd);
          char *cPtr = (char *)data1;
          
+         gwpOld.length = sizeof (WINDOWPLACEMENT);
+         GetWindowPlacement(ghCurHwnd, &gwpOld);
+         if (gwpOld.showCmd != SW_SHOWMAXIMIZED)
+           gwpOld.showCmd = SW_RESTORE;
+
          if (data1 && data2 && *(char*)data2) {
             pFrame = getFrameByString((char *)data1);
             cPtr = (char *)data2;
@@ -279,12 +297,24 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
 
          if (cPtr && pFrame) {
             struct layer *pLayer = pFrame->layer;
-
+            int iNextLayer = 0;
+            if (pLayer)
+              ghCurHwnd = pLayer->hWnd;
+            gwpOld.length = sizeof (WINDOWPLACEMENT);
+            GetWindowPlacement(ghCurHwnd, &gwpOld);
+            
+            if (stricmp(subject, "AddLayersToWindow") == 0) {
+               while (pLayer) {
+                  iNextLayer++;
+                  pLayer = pLayer->next;
+               }
+            }
+            
             while (pLayer && cPtr && *cPtr) {
                char *p = strchr(cPtr, '\t');
                if (p)
                   *p = 0;
-	       if (*cPtr) 
+               if (*cPtr) 
                   kPlugin.kFuncs->NavigateTo(cPtr, OPEN_NORMAL, pLayer->hWnd);
                if (p)
                   cPtr = p+1;
@@ -313,11 +343,13 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
             }
 
             while (pLayer) {
-               PostMessage(pLayer->hWnd, WM_COMMAND, id_close_layer, 0);
+               PostMessage(pLayer->hWnd, WM_COMMAND, id_close_layer, MAKELPARAM(PLUGIN_JUNK,-1));
                pLayer = pLayer->next;
             }
-
-            PostMessage(ghCurHwnd, WM_COMMAND, id_layer, 0);
+            if (pFrame)
+              pFrame->hWndFront = ghCurHwnd;
+            curLayer = -1;
+            PostMessage(ghCurHwnd, WM_COMMAND, id_layer+iNextLayer, 0);
          }
       }
       else return 0;
@@ -361,16 +393,20 @@ struct frame *add_frame(HWND hWnd) {
    return newframe;
 }
 
-int add_layer(HWND hWnd, HWND parent) {
+int add_layer(HWND hWnd, HWND parent, int flag=0) {
    struct frame *pFrame = find_frame(parent);
    if (pFrame) {
       struct layer *newlayer = (struct layer*)calloc(1, sizeof(struct layer));
       newlayer->hWnd = hWnd;
       newlayer->next = NULL;
       struct layer *pLayer = pFrame->layer;
-      while (pLayer->next) {
+      while (pLayer->next && 
+             (flag==0 ||
+              flag==1 && pLayer->hWnd!=parent)) {
          pLayer = pLayer->next;
       }
+      if (pLayer->next)
+         newlayer->next = pLayer->next;
       pLayer->next = newlayer;
       return 1;
    }
@@ -470,7 +506,7 @@ struct frame *del_layer(HWND hWnd) {
    return pFrame;
 }
 
-void CondenseMenuText(char *buf, char *title, int index) {
+void CondenseMenuText(char *buf, int len, char *title, int index) {
    if ( (index >= 0) && (index <10) ) {
       buf[0] = '&';
       buf[1] = index + '0';
@@ -480,63 +516,18 @@ void CondenseMenuText(char *buf, char *title, int index) {
       memcpy(buf, "   ", 3);
    
    char *p = fixString(title, 0);
-   strncpy(buf+3, p, BUF_SIZE + 3 + BUF_SIZE);
+   strncpy(buf+3, p, len-4);
+   buf[len-1] = 0;
    delete p;
 }
 
 
-// look for filename first in the skinsDir, then in the settingsDir
-// check for the filename in skinsDir, and copy the path into szSkinFile
-// if it's not there, just assume it's in settingsDir, and copy that path
-
-void FindSkinFile( char *szSkinFile, char *filename ) {
-
-   char szTmpSkinDir[MAX_PATH];
-   char szTmpSkinName[MAX_PATH];
-   char szTmpSkinFile[MAX_PATH] = "";
-
-   if (!szSkinFile || !filename || !*filename)
-      return;
-
-   kPlugin.kFuncs->GetPreference(PREF_STRING, "kmeleon.general.skinsDir", szTmpSkinDir, (char*)"");
-   kPlugin.kFuncs->GetPreference(PREF_STRING, "kmeleon.general.skinsCurrent", szTmpSkinName, (char*)"");
-
-   if (*szTmpSkinDir && *szTmpSkinName) {
-      strcpy(szTmpSkinFile, szTmpSkinDir);
-
-      int len = strlen(szTmpSkinFile);
-      if (szTmpSkinFile[len-1] != '\\')
-         strcat(szTmpSkinFile, "\\");
-
-      strcat(szTmpSkinFile, szTmpSkinName);
-      len = strlen(szTmpSkinFile);
-      if (szTmpSkinFile[len-1] != '\\')
-         strcat(szTmpSkinFile, "\\");
-
-      strcat(szTmpSkinFile, filename);
-
-      WIN32_FIND_DATA FindData;
-
-      HANDLE hFile = FindFirstFile(szTmpSkinFile, &FindData);
-      if(hFile != INVALID_HANDLE_VALUE) {   
-         FindClose(hFile);
-         strcpy( szSkinFile, szTmpSkinFile );
-         return;
-      }
-   }
-
-   // it wasn't in the skinsDir, assume settingsDir
-   kPlugin.kFuncs->GetPreference(PREF_STRING, "kmeleon.general.settingsDir", szSkinFile, (char*)"");
-   if (! *szSkinFile)      // no settingsDir, bad
-      strcpy(szSkinFile, filename);
-   else
-      strcat(szSkinFile, filename);
-}
+#include "../findskin.cpp"
 
 
 int nHSize, nHRes;
 
-int Init(){
+int Load(){
    HDC hdcScreen = CreateDC("DISPLAY", NULL, NULL, NULL); 
    nHSize = GetDeviceCaps(hdcScreen, HORZSIZE);
    nHRes = GetDeviceCaps(hdcScreen, HORZRES);
@@ -602,7 +593,6 @@ int Init(){
    return true;
 }
 
-
 void Create(HWND parent, LPCREATESTRUCT pCS){
    KMeleonWndProc = (void *) GetWindowLong(parent, GWL_WNDPROC);
    SetWindowLong(parent, GWL_WNDPROC, (LONG)WndProc);
@@ -618,12 +608,20 @@ void Create(HWND parent, LPCREATESTRUCT pCS){
    if (!prevHwnd && bCatchOpenWindow && !popup && ghCurHwnd) {
      struct layer *pParentLayer = find_layer( ghCurHwnd );
      if (pParentLayer && !pParentLayer->popup) {
+       struct frame *pFrame = find_frame(ghCurHwnd);
+       if (pFrame)
+	 ghCurHwnd = pFrame->hWndFront;
        prevHwnd = ghCurHwnd;
        ghParent = ghCurHwnd;
      }
    }
-   int found = add_layer(parent, prevHwnd);
+   enum OnOpenOptions { OpenLast, OpenNext };
+   int iOnOpenOption = OpenLast;
+   kPlugin.kFuncs->GetPreference(PREF_INT, PREFERENCE_ONOPENOPTION, &iOnOpenOption, &iOnOpenOption);
+
+   int found = add_layer(parent, prevHwnd, numLayers > 0 ? OpenLast : iOnOpenOption);
    struct layer *pNewLayer = find_layer( parent );
+   pNewLayer->state = New;
    if (pNewLayer && popup)
      pNewLayer->popup = 1;
 
@@ -632,10 +630,12 @@ void Create(HWND parent, LPCREATESTRUCT pCS){
          gwpOld.length = sizeof (WINDOWPLACEMENT);
          GetWindowPlacement(ghParent, &gwpOld);
          if (gwpOld.showCmd != SW_SHOWMAXIMIZED)
-            gwpOld.showCmd = SW_NORMAL;
+           gwpOld.showCmd = SW_RESTORE;
          find_frame(parent)->hWndLast = ghParent;
          if (!bBack) {
-            find_frame(parent)->hWndFront = parent;
+            struct frame *pFrame = find_frame(parent);
+	    ghParent = pFrame->hWndFront;
+            pFrame->hWndFront = parent;
             MoveWindow(parent, 
                        gwpOld.rcNormalPosition.left, gwpOld.rcNormalPosition.top, 
                        gwpOld.rcNormalPosition.right - gwpOld.rcNormalPosition.left, 
@@ -659,10 +659,10 @@ void Create(HWND parent, LPCREATESTRUCT pCS){
       PostMessage(parent, WM_COMMAND, id_resize, (LPARAM)&gwpOld);
    }
    
-   if (numLayers > 0) {
+   if (numLayers > 0)
       numLayers--;
-   }
-   else {
+
+   if (numLayers == 0) {
       if (bCatchOpenWindow) {
          if (!bBack || !ghParent || !found)
             ghParent = parent;
@@ -704,6 +704,24 @@ BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 
 void Config(HWND hWndParent){
    DialogBoxParam(kPlugin.hDllInstance ,MAKEINTRESOURCE(IDD_CONFIG), hWndParent, (DLGPROC)DlgProc, 0);
+}
+
+void Destroy(HWND hWnd){
+  struct frame *pFrame;
+  struct layer *pLayer;
+
+  pFrame = find_frame(hWnd);
+  if (pFrame) {
+    HWND hWndTmp = NULL;
+    pLayer = pFrame->layer;
+    if (pLayer->hWnd == hWnd)
+      pLayer = pLayer->next;
+    if (pLayer)
+      hWndTmp = pLayer->hWnd;
+    del_layer(hWnd);
+    if (!ghCurHwnd || ghCurHwnd==hWnd)
+      ghCurHwnd = hWndTmp;
+  }
 }
 
 void Quit(){
@@ -900,6 +918,11 @@ void BuildRebar(HWND hWndTB, HWND hWndParent)
       struct layer *pLayer = pFrame->layer;
       int i = 0;
       while (pLayer && i<MAX_LAYERS) {
+         while (pLayer && pLayer->state==Closed)
+            pLayer = pLayer->next;
+         if (!pLayer)
+            break;
+         
          int nTextLength = nMaxWidth < 0 ? -nMaxWidth : 256;
          nTextLength = nTextLength > 4 ? nTextLength : 4;
          char *buf = new char[nTextLength + 1];
@@ -1070,11 +1093,14 @@ void UpdateLayersMenu (HWND hWndParent) {
          int i = 0;
          curLayer = -1;
          while (pLayer && i<MAX_LAYERS) {
-            char buf[3 + BUF_SIZE + 3 + BUF_SIZE + 1];
+#define TOT_SIZE 3 + BUF_SIZE + 3 + BUF_SIZE + 1
+            char buf[TOT_SIZE];
+            for (int j=0; j<TOT_SIZE; j++)
+               buf[j] = 0;
             kmeleonDocInfo *dInfo = kPlugin.kFuncs->GetDocInfo(pLayer->hWnd);
             if (pLayer->hWnd == pFrame->hWndFront)
                curLayer = i;
-            CondenseMenuText(buf, dInfo ? dInfo->title : (char*)"", i );
+            CondenseMenuText(buf, TOT_SIZE, dInfo ? dInfo->title : (char*)"", i );
             AppendMenu(ghMenu, MF_ENABLED | MF_STRING | 
                        (i == curLayer ? MF_CHECKED : 0), 
                        id_layer+i , buf);
@@ -1100,7 +1126,7 @@ void UpdateRebarMenu(struct layer *pLayer)
 
 void ShowMenuUnderButton(HWND hWndParent, HMENU hMenu, UINT uMouseButton, int iID) {
    // Find the toolbar
-   HWND hReBar = FindWindowEx(GetActiveWindow(), NULL, REBARCLASSNAME, NULL);
+   HWND hReBar = FindWindowEx(GetForegroundWindow(), NULL, REBARCLASSNAME, NULL);
    int uBandCount = SendMessage(hReBar, RB_GETBANDCOUNT, 0, 0);  
    int x = 0;
    BOOL bFound = FALSE;
@@ -1141,6 +1167,7 @@ void ShowMenuUnderButton(HWND hWndParent, HMENU hMenu, UINT uMouseButton, int iI
    }
 }
 
+
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
    struct frame *pFrame;
    struct layer *pLayer;
@@ -1148,7 +1175,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
    if (!bIgnore)
       
       switch (message) {
-         
+
          case UWM_UPDATESESSIONHISTORY:
          case WM_SETFOCUS:
             if (bIgnore)
@@ -1158,9 +1185,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                break;
             if (message == WM_SETFOCUS) {
                if (hWnd != pFrame->hWndFront) {
-                  ShowWindowAsync(hWnd, SW_HIDE);
-                  PostMessage(pFrame->hWndFront, WM_COMMAND, id_resize, (LPARAM)0);
-                  break;
+                     ShowWindowAsync(hWnd, SW_HIDE);
+                     PostMessage(pFrame->hWndFront, WM_COMMAND, id_resize, (LPARAM)0);
+                     break;
                }
                ghCurHwnd = hWnd;
             }
@@ -1190,6 +1217,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
          case WM_CLOSE:
             if (bIgnore)
                break;
+            pLayer = find_layer(hWnd);
+            if (!pLayer || pLayer->state == Closed)
+               break;
             pFrame = find_frame(hWnd);
             if (pFrame) {
                bIgnore = true;
@@ -1198,17 +1228,57 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                  bDoClose = 1;
                  bCaught = 1;
                  bIgnore = false;
-                 PostMessage(hWnd, WM_COMMAND, id_close_layer, 0);
-                 return 1;
+                 PostMessage(hWnd, WM_COMMAND, id_close_layer, MAKELPARAM(PLUGIN_JUNK,-1));
+                 return 0;
                }
                else {
+                  int layers = 0;
+
+                  pLayer = pFrame->layer;
+                  while (pLayer) {
+                     layers++;
+                     pLayer = pLayer->next;
+                  }
+                  
+                  if (layers > 1) {
+                     BOOL bConfirmClose = FALSE;
+                     kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_CONFIRMCLOSE, &bConfirmClose, &bConfirmClose);
+                     
+                     if (bConfirmClose) {
+                        CHAR *szMessage = new char[2048];
+                        CHAR szLayers[10];
+                        itoa(layers, szLayers, 10);
+                        strcpy(szMessage, "There are ");
+                        strcat(szMessage, szLayers);
+                        strcat(szMessage, " layers open in this window.\r\n"
+                               "Do you want to close all of them?");
+                        int ret = MessageBox(hWnd, szMessage, "Confirm Close", MB_YESNOCANCEL | MB_ICONWARNING);
+                        delete szMessage;
+                        if (ret == IDCANCEL) {
+                           bIgnore = false;
+                           return 0;
+                        }
+                        if (ret == IDNO) {
+                           pLayer = find_layer(hWnd);
+                           if (pLayer)
+                              pLayer->state = Closed;
+                           PostMessage(hWnd, WM_COMMAND, id_close_layer, MAKELPARAM(PLUGIN_JUNK,-1));
+                           bIgnore = false;
+                           return 0;
+                        }
+                     }
+
+                     kPlugin.kFuncs->SendMessage("macros", PLUGIN_NAME, "CloseFrame", (long)hWnd, (long)layers);
+
+                  }
+                  
                   pLayer = pFrame->layer;
                   while (pLayer) {
                      HWND hWndTmp = pLayer->hWnd;
-                     pFrame = del_layer(pLayer->hWnd);
+                     pLayer->state = Closed;
+                     pLayer = pLayer->next;
                      if (hWndTmp != hWnd)
                         CallWindowProc((WNDPROC)KMeleonWndProc, hWndTmp, WM_CLOSE, 0, 0);
-                     pLayer = pFrame ? pFrame->layer : NULL;
                   }
                }
                bIgnore = false;
@@ -1234,7 +1304,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
             if ((command >= id_layer) && 
                 (command < id_layer+MAX_LAYERS)) {
                
-               PostMessage(hWnd, WM_COMMAND, id_close_layer, command);
+               PostMessage(hWnd, WM_COMMAND, id_close_layer, MAKELPARAM(PLUGIN_JUNK,command));
                break;
             }
             break;
@@ -1247,6 +1317,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
             if ((command == id_open_link_front) || 
                 (command == id_open_link_back)) {
                
+               SetActiveWindow(hWnd);
+               BringWindowToTop(hWnd);
+
                ghParent = hWnd;
                bBack = (command == id_open_link_back);
                bLayer = 1;
@@ -1262,9 +1335,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
             }
 
             else if (command == ID_VIEW_SOURCE) {
+               BOOL bExternalViewer = FALSE;
+               kPlugin.kFuncs->GetPreference(PREF_BOOL, "kmeleon.general.sourceEnabled", &bExternalViewer, &bExternalViewer);
                kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_CATCHOPEN_WINDOW, &bCatchOpenWindow, &bCatchOpenWindow);
                
-               if (bCatchOpenWindow) {
+               if (bCatchOpenWindow && !bExternalViewer) {
                   ghParent = hWnd;
                   bBack = 0;
                   bLayer = 1;
@@ -1309,7 +1384,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                   gwpOld.length = sizeof (WINDOWPLACEMENT);
                   GetWindowPlacement(newframe->hWndFront, &gwpOld);
                   if (gwpOld.showCmd == SW_HIDE || gwpOld.showCmd == SW_SHOWMINIMIZED) {
-                     gwpOld.showCmd = SW_NORMAL;
+                    gwpOld.showCmd = SW_RESTORE;
                      PostMessage(newframe->hWndFront, WM_COMMAND, id_resize, (LPARAM)&gwpOld);
                   } 
                   else {
@@ -1342,12 +1417,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                   gwpOld.length = sizeof (WINDOWPLACEMENT);
                   GetWindowPlacement(hWnd, &gwpOld);
                   if (gwpOld.showCmd != SW_SHOWMAXIMIZED)
-                     gwpOld.showCmd = SW_NORMAL;
+                    gwpOld.showCmd = SW_RESTORE;
                   pFrame = find_frame(pLayer->hWnd);
                   pFrame->hWndLast = pFrame->hWndFront;
                   pFrame->hWndFront = pLayer->hWnd;
                   UpdateRebarMenu( find_layer(pFrame->hWndFront) );
                   UpdateRebarMenu( find_layer(pFrame->hWndLast) );
+                  ghCurHwnd = pFrame->hWndFront;
                   PostMessage(pFrame->hWndFront, WM_COMMAND, id_resize, (LPARAM)&gwpOld);
                   ShowWindowAsync(pFrame->hWndLast, SW_HIDE);
                }
@@ -1363,11 +1439,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                   gwpOld.length = sizeof (WINDOWPLACEMENT);
                   GetWindowPlacement(hWnd, &gwpOld);
                   if (gwpOld.showCmd != SW_SHOWMAXIMIZED)
-                     gwpOld.showCmd = SW_NORMAL;
+                    gwpOld.showCmd = SW_RESTORE;
                   pFrame->hWndFront = pFrame->hWndLast;
                   pFrame->hWndLast = hWnd;
                   UpdateRebarMenu( find_layer(pFrame->hWndFront) );
                   UpdateRebarMenu( find_layer(pFrame->hWndLast) );
+                  ghCurHwnd = pFrame->hWndFront;
                   PostMessage(pFrame->hWndFront, WM_COMMAND, id_resize, (LPARAM)&gwpOld);
                   ShowWindowAsync(pFrame->hWndLast, SW_HIDE);
                }
@@ -1426,9 +1503,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                      command == id_close_others ||
                      command == id_close_frame) {
 
-               pFrame = find_frame(hWnd);
+               if (lParam >= 0) {
+                  if (hWnd != GetForegroundWindow()) // || hWnd != GetActiveWindow())
+                     // if (GetForegroundWindow() == GetActiveWindow())
+                     if (find_frame(GetForegroundWindow()))
+                        hWnd = GetForegroundWindow();
+               }
                
-               if (lParam) {
+               if (lParam > 0) {
+                  pFrame = find_frame(hWnd);
                   if (pFrame) {
                      int i = lParam - id_layer;
                      pLayer = pFrame->layer;
@@ -1437,20 +1520,25 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                         i--;
                      }
                      if (pLayer) {
-                        SendMessage(hWnd, WM_COMMAND, lParam, 0);
-                        PostMessage(pLayer->hWnd, WM_COMMAND, command, 0);
-                        return 0;
+                        SendMessage(hWnd, WM_COMMAND, lParam, -1);
+                        PostMessage(pLayer->hWnd, WM_COMMAND, command, -1);
+			return 0;
                      }
                   }
                }
+
+               pFrame = find_frame(hWnd);
                
                if (pFrame) {
                   
                   if (command == id_close_all) {
                      gwpOld.length = sizeof (WINDOWPLACEMENT);
-                     GetWindowPlacement(hWnd, &gwpOld);
+                     if (find_frame(GetForegroundWindow()))
+                       GetWindowPlacement(GetForegroundWindow(), &gwpOld);
+                     else
+                       GetWindowPlacement(hWnd, &gwpOld);
                      if (gwpOld.showCmd != SW_SHOWMAXIMIZED)
-                        gwpOld.showCmd = SW_NORMAL;
+                       gwpOld.showCmd = SW_RESTORE;
                      bFront = 1;
                      bLayer = 0;
                      ghParent = NULL;
@@ -1462,13 +1550,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                   pLayer = pFrame->layer;
                   while (pLayer) {
                      if (pLayer->hWnd == hWnd) {
+                        if (command != id_close_others)
+                           pLayer->state = Closed;
                         pLayer = pLayer->next;
                         if (!pLayer)
                            break;
                      }
+                     pLayer->state = Closed;
                      HWND hWndTmp = pLayer->hWnd;
                      if (hWndTmp != hWnd) {
-                        pFrame = del_layer(pLayer->hWnd);
                         CallWindowProc((WNDPROC)KMeleonWndProc, hWndTmp, WM_CLOSE, 0, 0);
                      }
                      pLayer = pFrame ? pFrame->layer : NULL;
@@ -1477,8 +1567,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                   if (command == id_close_others) {
                      WINDOWPLACEMENT wpTmp;
                      wpTmp.length = sizeof (WINDOWPLACEMENT);
-                     GetWindowPlacement(hWnd, &wpTmp);
+                     if (find_frame(GetForegroundWindow()))
+                       GetWindowPlacement(GetForegroundWindow(), &wpTmp);
+                     else
+                       GetWindowPlacement(hWnd, &wpTmp);
                      SetWindowPlacement(hWnd, &wpTmp);
+                     ghCurHwnd = hWnd;
                      PostMessage(hWnd, WM_COMMAND, id_resize, (LPARAM)0);
                      if (pFrame && pFrame->hWndFront)
                         UpdateLayersMenu(pFrame->hWndFront);
@@ -1486,7 +1580,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                         UpdateRebarMenu(pFrame->layer);
                   }
                   else if (command != id_close_others) {
-                     pFrame = del_layer(hWnd);
                      PostMessage(hWnd, WM_CLOSE, 0, 0);
                   }
                }
@@ -1494,6 +1587,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
             
             else if (command == id_close_layer) {
 
+               if (LOWORD(lParam)==PLUGIN_JUNK) {
+                 WORD minone = -1;
+                 lParam = HIWORD(lParam);
+                 if (lParam==minone) lParam = -1;
+               } else {
+                 lParam = 0;
+               }
+
+               if (lParam >= 0) {
+                  if (hWnd != GetForegroundWindow()) // || hWnd != GetActiveWindow())
+                     // if (GetForegroundWindow() == GetActiveWindow())
+                     if (find_frame(GetForegroundWindow()))
+                        hWnd = GetForegroundWindow();
+               }
+               
                if (lParam > 0) {
                   pFrame = find_frame(hWnd);
                   if (pFrame) {
@@ -1504,11 +1612,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                         i--;
                      }
                      if (pLayer) {
-                        PostMessage(pLayer->hWnd, WM_COMMAND, id_close_layer, 0);
-                        return 0;
+                        pLayer->state = Closed;
+                        PostMessage(pLayer->hWnd, WM_COMMAND, id_close_layer, MAKELPARAM(PLUGIN_JUNK,-1));
                      }
                   }
+                  return 0;
                }
+               
+               pLayer = find_layer(hWnd);
+               if (pLayer)
+                  pLayer->state = Closed;
                
                int newLayer = 0;
                pLayer = find_prev_layer(hWnd);
@@ -1516,27 +1629,63 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_CLOSE_WINDOW, &bCloseWindow, &bCloseWindow);
                if ((!pLayer || pLayer->hWnd==hWnd) && !bCloseWindow && !bDoClose) {
                   gwpOld.length = sizeof (WINDOWPLACEMENT);
-                  GetWindowPlacement(hWnd, &gwpOld);
+                  if (find_frame(GetForegroundWindow()))
+                     GetWindowPlacement(GetForegroundWindow(), &gwpOld);
+                  else
+                     GetWindowPlacement(hWnd, &gwpOld);
                   if (gwpOld.showCmd != SW_SHOWMAXIMIZED)
-                     gwpOld.showCmd = SW_NORMAL;
+                    gwpOld.showCmd = SW_RESTORE;
                   bFront = 1;
                   bLayer = 0;
                   ghParent = NULL;
+                  ghCurHwnd = NULL;
                   newLayer = 1;
+                  bDoClose = 0;
+                  if (pLayer)
+                     pLayer->state = Closed;
                   kPlugin.kFuncs->NavigateTo((char*)"", OPEN_BACKGROUND);
+                  if (bCaught)
+                     CallWindowProc((WNDPROC)KMeleonWndProc, hWnd, WM_CLOSE, 0, 0);
+                  else
+                     PostMessage(hWnd, WM_CLOSE, 0, 0);
+                  bCaught = 0;
+                  return 1;
                }
                bDoClose = 0;
                
-               pFrame = del_layer(hWnd);
+               pFrame = find_frame(hWnd);
+               
+               HWND hWndNext = NULL;
+               enum OnCloseOptions { FocusLast, FocusPrevious, FocusNext };
+               int iOnCloseOption = FocusLast;
+               kPlugin.kFuncs->GetPreference(PREF_INT, PREFERENCE_ONCLOSEOPTION, &iOnCloseOption, &iOnCloseOption);
+               if (iOnCloseOption == FocusPrevious) {
+                  if (pFrame->layer->hWnd == hWnd && pFrame->layer->next)
+                     hWndNext = pFrame->layer->next->hWnd;
+                  else
+                     hWndNext = pLayer->hWnd;
+               }
+               else if (iOnCloseOption == FocusNext && find_next_layer(hWnd)) {
+                  hWndNext = find_next_layer(hWnd)->hWnd;
+                  if (hWndNext == pFrame->layer->hWnd)
+                     hWndNext = find_prev_layer(hWnd)->hWnd;
+               }
+               else {
+                  if (pFrame)
+                     hWndNext = (pFrame->hWndLast && pFrame->hWndLast != hWnd) ? 
+                       pFrame->hWndLast : pLayer->hWnd;
+               }
+
                if (pFrame && pLayer && pLayer->hWnd!=hWnd) {
                   int closebg = (pFrame->hWndFront != hWnd);
                   gwpOld.length = sizeof (WINDOWPLACEMENT);
-                  GetWindowPlacement(hWnd, &gwpOld);
+                  if (find_frame(GetForegroundWindow()))
+                     GetWindowPlacement(GetForegroundWindow(), &gwpOld);
+                  else
+                     GetWindowPlacement(hWnd, &gwpOld);
                   if (gwpOld.showCmd != SW_SHOWMAXIMIZED)
-                     gwpOld.showCmd = SW_NORMAL;
-                  pFrame->hWndFront = closebg ? pFrame->hWndFront :
-                     (pFrame->hWndLast && pFrame->hWndLast != hWnd ? 
-                      pFrame->hWndLast : pLayer->hWnd);
+                    gwpOld.showCmd = SW_RESTORE;
+                  pFrame->hWndFront = closebg ? pFrame->hWndFront : hWndNext;
                   pFrame->hWndLast = closebg ? 
                      (pFrame->hWndLast != hWnd ? pFrame->hWndLast : NULL) :
                      NULL;
@@ -1545,6 +1694,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                      ghParent = pFrame->hWndFront;
                   UpdateRebarMenu( find_layer(pFrame->hWndFront) );
                   UpdateRebarMenu( find_layer(hWnd) );
+                  ghCurHwnd = pFrame->hWndFront;                  
                   PostMessage(pFrame->hWndFront, WM_COMMAND, id_resize, (LPARAM)&gwpOld);
                   if (bCaught)
                      CallWindowProc((WNDPROC)KMeleonWndProc, hWnd, WM_CLOSE, 0, 0);
@@ -1578,7 +1728,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                      gwpOld.length = sizeof (WINDOWPLACEMENT);
                      GetWindowPlacement(hWnd, &gwpOld);
                      if (gwpOld.showCmd != SW_SHOWMAXIMIZED)
-                        gwpOld.showCmd = SW_NORMAL;
+                       gwpOld.showCmd = SW_RESTORE;
                      pFrame->hWndLast = pFrame->hWndFront;
                      pFrame->hWndFront = pLayer->hWnd;
                      UpdateRebarMenu( find_layer(pFrame->hWndFront) );
@@ -1587,6 +1737,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                      ShowWindowAsync(pFrame->hWndLast, SW_HIDE);
                   }
                }
+               else {
+                 if (clock()-lastTime < 250) {
+                   PostMessage(hWnd, WM_COMMAND, id_close_layer, MAKELPARAM(PLUGIN_JUNK,command));
+                 }
+               }
+               lastTime = clock();
                return 1;
             }
             
@@ -1594,9 +1750,25 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                WINDOWPLACEMENT *wpNew = (WINDOWPLACEMENT*)lParam;
                if (wpNew)
                   SetWindowPlacement(hWnd, wpNew);
-               if (!wpNew || (wpNew->showCmd == SW_SHOWNORMAL || 
+
+               if (!wpNew || (wpNew->showCmd == SW_RESTORE || 
                               wpNew->showCmd == SW_SHOWMAXIMIZED)) {
+
+		 pFrame = find_frame(hWnd);
+		 if (pFrame) {
+		   if (pFrame->hWndFront!=hWnd) {
+		     pFrame->hWndFront=hWnd;
+		   }
+		 }
+
                   BringWindowToTop(hWnd);
+		  ghCurHwnd = hWnd;
+               }
+               
+               pLayer = find_layer(hWnd);
+               if (pLayer) {
+                 if (pLayer->state==New)
+                   pLayer->state=Done;
                }
                return 1;
             }

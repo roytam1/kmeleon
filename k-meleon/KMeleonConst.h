@@ -19,6 +19,7 @@
 #define UWM_UPDATESESSIONHISTORY       WM_APP + 110
 #define UWM_REFRESHTOOLBARITEM         WM_APP + 111
 #define UWM_UPDATEBUSYSTATE            WM_APP + 112
+#define UWM_REFRESHMRULIST             WM_APP + 113
 
 #define UWM_NEWWINDOW                  WM_APP + 115
 
@@ -37,7 +38,6 @@
 #define TB_LBUTTONUP	                  WM_APP + 126
 #define TB_MBUTTONUP	                  WM_APP + 127
 #define TB_RBUTTONUP	                  WM_APP + 128
-
 
 #define PLUGIN_COMMAND_START_ID        5000
 #define PLUGIN_REBAR_START_ID          200

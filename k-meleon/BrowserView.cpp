@@ -93,7 +93,10 @@ BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
     ON_WM_SIZE()
     ON_WM_TIMER()
     ON_WM_MOUSEACTIVATE()
-    // ON_CBN_SELENDOK(ID_URL_BAR, OnUrlSelectedInUrlBar)
+    ON_CBN_DROPDOWN(ID_URL_BAR, OnUrlBarDropDown)
+    ON_CBN_SELENDCANCEL(ID_URL_BAR, OnUrlSelectedInUrlBarCancel)
+    ON_CBN_SELENDOK(ID_URL_BAR, OnUrlSelectedInUrlBarOk)
+    ON_CBN_CLOSEUP(ID_URL_BAR, OnUrlSelectedInUrlBar)
     ON_CBN_KILLFOCUS(ID_URL_BAR, OnUrlKillFocus)
     ON_CBN_EDITCHANGE(ID_URL_BAR, OnUrlEditChange)
     ON_COMMAND(IDOK, OnNewUrlEnteredInUrlBar)
@@ -438,6 +441,58 @@ void CBrowserView::OnUrlEditChange()
    mpBrowserFrame->m_wndUrlBar.EditChanged(TRUE);
 }
 
+void CBrowserView::OpenSingleURL(char *url)
+{
+    char szOpenURLcmd[80];
+
+    theApp.preferences.GetString("kmeleon.general.openurl", szOpenURLcmd, "");
+
+    if (*szOpenURLcmd) {
+        char *plugin = szOpenURLcmd;
+        char *parameter = strchr(szOpenURLcmd, '(');
+        if (parameter) {
+            *parameter++ = 0;
+            char *close = strchr(parameter, ')');
+            if (close) {
+                *close = 0;
+                
+                if (theApp.plugins.SendMessage(plugin, "* kmeleon.exe", parameter, (long)url, 0))
+                    return;
+            }
+        }
+
+        int idOpen = theApp.GetID(szOpenURLcmd);
+
+        if (!idOpen) {
+            char *plugin = szOpenURLcmd;
+            char *parameter = strchr(szOpenURLcmd, '(');
+            if (parameter) {
+                *parameter++ = 0;
+                char *close = strchr(parameter, ')');
+                if (close)
+                    *close = 0;
+            }
+      
+            theApp.plugins.SendMessage(plugin, "* kmeleon.exe", "DoAccel", (long) parameter, (long)&idOpen);
+        }
+
+
+        switch (idOpen) {
+        case ID_OPEN_LINK:
+            OpenURL(url);
+            return;
+        case ID_OPEN_LINK_IN_BACKGROUND:
+            OpenURLInNewWindow(url);
+            return;
+        case ID_OPEN_LINK_IN_NEW_WINDOW:
+            OpenURLInNewWindow(url);
+            return;
+        }
+    }
+
+    OpenURL(url, OPEN_NORMAL);
+}
+
 void CBrowserView::OpenMultiURL(char *urls)
 {
     char szOpenURLcmd[80];
@@ -453,7 +508,7 @@ void CBrowserView::OpenMultiURL(char *urls)
             if (close) {
                 *close = 0;
                 
-                if (theApp.plugins.SendMessage(plugin, "kmeleon.exe", parameter, (long)urls, 0))
+                if (theApp.plugins.SendMessage(plugin, "* kmeleon.exe", parameter, (long)urls, 0))
                     return;
             }
         }
@@ -530,26 +585,52 @@ void CBrowserView::OnNewUrlEnteredInUrlBar()
        if (strchr(pUrl, '\t'))
            OpenMultiURL(pUrl);
        else
-           OpenURL(pUrl);
+           OpenSingleURL(pUrl);
 
        free(pUrl);
    }
 }
 
+void CBrowserView::OnUrlBarDropDown()
+{
+}
+
+void CBrowserView::OnUrlSelectedInUrlBarOk()
+{
+    mpBrowserFrame->m_wndUrlBar.EditChanged(FALSE);
+    mpBrowserFrame->m_wndUrlBar.SetSelected(FALSE);
+}
+
+void CBrowserView::OnUrlSelectedInUrlBarCancel()
+{
+    mpBrowserFrame->m_wndUrlBar.EditChanged(FALSE);
+    mpBrowserFrame->m_wndUrlBar.SetSelected(TRUE);
+}
+
 // A URL has  been selected from the UrlBar's dropdown list
-/*
 void CBrowserView::OnUrlSelectedInUrlBar()
 {
    CString strUrl;  
 
-   mpBrowserFrame->m_wndUrlBar.GetSelectedURL(strUrl);   
+   if (!mpBrowserFrame->m_wndUrlBar.GetSelectedURL(strUrl))
+      return;
+
+   mpBrowserFrame->m_wndUrlBar.RefreshMRUList();
    
    if(IsViewSourceUrl(strUrl))
       OpenViewSourceWindow(strUrl.GetBuffer(0));
-   else 
-      OpenURL(strUrl.GetBuffer(0));
+   else {
+       char *pUrl = NicknameLookup((char*)strUrl.GetBuffer(0));
+
+       // Navigate to that URL
+       if (strchr(pUrl, '\t'))
+           OpenMultiURL(pUrl);
+       else
+           OpenSingleURL(pUrl);
+
+       free(pUrl);
+   }
 }
-*/
 
 void CBrowserView::OnViewSource()
 {
@@ -770,14 +851,22 @@ void CBrowserView::OnSelectNone()
 void CBrowserView::OnFileOpen()
 {
     TCHAR *lpszFilter =
-        "HTML Files Only (*.htm;*.html)|*.htm;*.html|"
-        "All Files (*.*)|*.*||";
+        "HTML Files Only (*.htm;*.html)\0*.htm;*.html\0"
+        "All Files (*.*)\0*.*\0\0";
 
-    CFileDialog cf(TRUE, NULL, NULL, OFN_NOVALIDATE | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,   lpszFilter, this);
-    cf.m_ofn.lpstrTitle = "Select a file or type in a URL";
+    OPENFILENAME ofn;
+    char *szFileName = new char[INTERNET_MAX_URL_LENGTH];
 
-    if(cf.DoModal() == IDOK) {
-        CString strFullPath = cf.GetPathName(); // Will be like: c:\tmp\junk.htm
+    memset(&ofn, 0, sizeof(ofn));
+    memset(szFileName, 0, INTERNET_MAX_URL_LENGTH);
+    ofn.lStructSize = sizeof(ofn);
+    ofn.lpstrFilter = lpszFilter;
+    ofn.lpstrFile = szFileName;
+    ofn.nMaxFile = INTERNET_MAX_URL_LENGTH;
+    ofn.Flags = OFN_HIDEREADONLY | OFN_NOVALIDATE;
+
+    if( ::GetOpenFileName(&ofn) ) {
+        CString strFullPath = szFileName;
 
         FILE *test = fopen(strFullPath, "r");
 
@@ -794,8 +883,10 @@ void CBrowserView::OnFileOpen()
         if (strchr(strFullPath.GetBuffer(0), '\t'))
             OpenMultiURL(strFullPath.GetBuffer(0));
         else
-            OpenURL(strFullPath);
+            OpenSingleURL(strFullPath.GetBuffer(0));
     }
+
+    delete szFileName;
 }
 
 void CBrowserView::GetBrowserWindowTitle(nsCString& title)
@@ -856,26 +947,54 @@ void CBrowserView::OnCopyLinkLocation()
 
 void CBrowserView::OnOpenLink()
 {
-    if(mCtxMenuLinkUrl.Length())
-        OpenURL(mCtxMenuLinkUrl.get());
+    if(!mCtxMenuLinkUrl.Length())
+        return;
+    
+    nsCOMPtr<nsIURI> currentURI;
+    nsresult rv = mWebNav->GetCurrentURI(getter_AddRefs(currentURI));
+	if(NS_FAILED(rv))
+        currentURI=NULL;
+
+    OpenURL(mCtxMenuLinkUrl.get(), currentURI);
 }
 
 void CBrowserView::OnOpenLinkInNewWindow()
 {
-    if(mCtxMenuLinkUrl.Length())
-        OpenURLInNewWindow(mCtxMenuLinkUrl.get());
+    if(!mCtxMenuLinkUrl.Length())
+        return;
+    
+    nsCOMPtr<nsIURI> currentURI;
+    nsresult rv = mWebNav->GetCurrentURI(getter_AddRefs(currentURI));
+	if(NS_FAILED(rv))
+        currentURI=NULL;
+
+    OpenURLInNewWindow(mCtxMenuLinkUrl.get(), false, currentURI);
 }
 
 void CBrowserView::OnOpenLinkInBackground()
 {
-    if(mCtxMenuLinkUrl.Length())
-        OpenURLInNewWindow(mCtxMenuLinkUrl.get(), true);
+    if(!mCtxMenuLinkUrl.Length())
+        return;
+    
+    nsCOMPtr<nsIURI> currentURI;
+    nsresult rv = mWebNav->GetCurrentURI(getter_AddRefs(currentURI));
+	if(NS_FAILED(rv))
+        currentURI=NULL;
+
+    OpenURLInNewWindow(mCtxMenuLinkUrl.get(), true, currentURI);
 }
 
 void CBrowserView::OnViewImageInNewWindow()
 {
-    if(mCtxMenuImgSrc.Length())
-        OpenURLInNewWindow(mCtxMenuImgSrc.get());
+    if(!mCtxMenuImgSrc.get())
+        return;
+    
+    nsCOMPtr<nsIURI> currentURI;
+    nsresult rv = mWebNav->GetCurrentURI(getter_AddRefs(currentURI));
+	if(NS_FAILED(rv))
+        currentURI=NULL;
+
+    OpenURLInNewWindow(mCtxMenuImgSrc.get(), false, currentURI);
 }
 
 void CBrowserView::OnUpdateViewImage(CCmdUI *pCmdUI)
@@ -1156,20 +1275,41 @@ void CBrowserView::OnViewFrameSource()
 
 void CBrowserView::OnOpenFrame()
 {
-    if(mCtxMenuCurrentFrameURL.Length())
-        OpenURL(mCtxMenuCurrentFrameURL.get());
+    if(!mCtxMenuCurrentFrameURL.Length())
+        return;
+    
+    nsCOMPtr<nsIURI> currentURI;
+    nsresult rv = mWebNav->GetCurrentURI(getter_AddRefs(currentURI));
+	if(NS_FAILED(rv))
+        currentURI=NULL;
+
+    OpenURL(mCtxMenuCurrentFrameURL.get(), currentURI);
 }
 
 void CBrowserView::OnOpenFrameInNewWindow()
 {
-    if(mCtxMenuCurrentFrameURL.Length())
-        OpenURLInNewWindow(mCtxMenuCurrentFrameURL.get());
+    if(!mCtxMenuCurrentFrameURL.Length())
+        return;
+    
+    nsCOMPtr<nsIURI> currentURI;
+    nsresult rv = mWebNav->GetCurrentURI(getter_AddRefs(currentURI));
+	if(NS_FAILED(rv))
+        currentURI=NULL;
+
+    OpenURLInNewWindow(mCtxMenuCurrentFrameURL.get(), false, currentURI);
 }
 
 void CBrowserView::OnOpenFrameInBackground()
 {
-    if(mCtxMenuCurrentFrameURL.Length())
-        OpenURLInNewWindow(mCtxMenuCurrentFrameURL.get(), true);
+    if(!mCtxMenuCurrentFrameURL.Length())
+        return;
+    
+    nsCOMPtr<nsIURI> currentURI;
+    nsresult rv = mWebNav->GetCurrentURI(getter_AddRefs(currentURI));
+	if(NS_FAILED(rv))
+        currentURI=NULL;
+
+    OpenURLInNewWindow(mCtxMenuCurrentFrameURL.get(), true, currentURI);
 }
 
 /* ** */
@@ -1251,9 +1391,13 @@ void CBrowserView::OnDragURL( NMHDR * pNotifyStruct, LRESULT * result )
 // this should probably go in BrowserViewUtils.cpp, but I don't want to add a function prototype :)
 BOOL CALLBACK SearchProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-   static CString *search;
+   static CString *search = NULL;
 
    if (uMsg == WM_INITDIALOG) {
+       if (search) {
+           EndDialog(hwndDlg, false);
+           return TRUE;
+       }
       search = (CString *)lParam;
       ::SetFocus(::GetDlgItem(hwndDlg, IDC_SEARCH_QUERY));
       return false;
@@ -1264,10 +1408,13 @@ BOOL CALLBACK SearchProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
          char buffer[256];
          ::GetDlgItemText(hwndDlg, IDC_SEARCH_QUERY, buffer, 255);
          *search = buffer;
+         search = NULL;
          EndDialog(hwndDlg, true);
       }
-      else if (LOWORD(wParam) == IDCANCEL)
+      else if (LOWORD(wParam) == IDCANCEL) {
+         search = NULL;
          EndDialog(hwndDlg, false);
+      }
       return true;
    }
 
@@ -1407,7 +1554,7 @@ void CBrowserView::OnCopyImageContent()
 
 void CBrowserView::OnUpdateViewStatusBar(CCmdUI* pCmdUI)
 {
-    HWND hWndStatus = FindWindowEx(GetParent()->GetSafeHwnd(), NULL, STATUSCLASSNAME, NULL);
+    HWND hWndStatus = ::FindWindowEx(GetParent()->GetSafeHwnd(), NULL, STATUSCLASSNAME, NULL);
     pCmdUI->SetCheck(::IsWindowVisible(hWndStatus));
 }
 
@@ -1496,7 +1643,7 @@ void CBrowserView::OnKmeleonManual()
 
 void CBrowserView::OnAboutPlugins()
 {
-   OpenURL(ABOUT_PLUGINS_URL);
+   OpenURLInNewWindow(ABOUT_PLUGINS_URL);
 }
 
 void CBrowserView::OnMouseAction()

@@ -17,15 +17,16 @@
 */
 
 // functions exposed to kmeleon
-int  Init();
+int  Load();
 void Create(HWND parent);
 void Config(HWND parent);
+void Close(HWND hWnd);
 void Quit();
 void DoMenu(HMENU menu, char *param);
 void DoRebar(HWND rebarWnd);
 int  DoAccel(char *param);
-void Save(const char *file);
-void Load(const char *file);
+void SaveBM(const char *file);
+void LoadBM(const char *file);
 
 // Window Procs
 BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -38,6 +39,7 @@ BOOL BrowseForBookmarks(char *file);
 void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node);
 void BuildMenu(HMENU menu, CBookmarkNode *node, BOOL isContinuation);
 void BuildRebar(HWND hWndTB);
+void CopyRebar(HWND hWndNewTB, HWND hWndOldTB);
 void Rebuild();
 int addLink(char *url, char *title, int flag);
 void findNick(char *nick, char **url);

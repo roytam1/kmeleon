@@ -74,7 +74,7 @@ int BuildFavoritesMenu(char * strPath, HMENU mainMenu);
 
 BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-int Init();
+int Load();
 void Create(HWND parent);
 void Config(HWND parent);
 void Quit();
@@ -95,8 +95,8 @@ kmeleonPlugin kPlugin = {
 long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2)
 {
    if (to[0] == '*' || stricmp(to, kPlugin.dllname) == 0) {
-      if (stricmp(subject, "Init") == 0) {
-         Init();
+      if (stricmp(subject, "Load") == 0) {
+         Load();
       }
       else if (stricmp(subject, "Create") == 0) {
          Create((HWND)data1);
@@ -124,7 +124,7 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
 }
 
 
-int Init()
+int Load()
 {
    nConfigCommand = kPlugin.kFuncs->GetCommandIDs(1);
    nAddCommand = kPlugin.kFuncs->GetCommandIDs(1);

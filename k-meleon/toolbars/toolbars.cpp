@@ -38,9 +38,10 @@
 
 /* Begin K-Meleon Plugin Header */
 
-int  Init();
+int  Setup();
 void Create(HWND parent);
 void Config(HWND parent);
+void Destroy(HWND hWnd);
 void Quit();
 void DoRebar(HWND rebarWnd);
 int GetToolbarID(char *sName);
@@ -66,14 +67,17 @@ kmeleonPlugin kPlugin = {
 long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2)
 {
    if (to[0] == '*' || stricmp(to, kPlugin.dllname) == 0) {
-      if (stricmp(subject, "Init") == 0) {
-         Init();
+      if (stricmp(subject, "Setup") == 0) {
+         Setup();
       }
       else if (stricmp(subject, "Create") == 0) {
          Create((HWND)data1);
       }
       else if (stricmp(subject, "Config") == 0) {
          Config((HWND)data1);
+      }
+      else if (stricmp(subject, "Destroy") == 0) {
+         Destroy((HWND)data1);
       }
       else if (stricmp(subject, "Quit") == 0) {
          Quit();
@@ -152,88 +156,11 @@ BOOL APIENTRY DllMain(HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserv
    return TRUE;
 }
 
-// look for filename first in the settingsDir,
-// then skinsDir\CurrentSkin,
-// then skinsDir\default
-// if it's not anywhere, return settingsDir
 
-void FindSkinFile( char *szSkinFile, char *filename ) {
-
-   WIN32_FIND_DATA FindData;
-   HANDLE hFile;
-   
-   char szTmpSkinDir[MAX_PATH];
-   char szTmpSkinName[MAX_PATH];
-   char szTmpSkinFile[MAX_PATH] = "";
-
-   if (!szSkinFile || !filename || !*filename)
-      return;
-
-   // check for the file in the settingsDir
-   kPlugin.kFuncs->GetPreference(PREF_STRING, "kmeleon.general.settingsDir", szTmpSkinFile, (char*)"");
-   if (*szTmpSkinFile) {
-      strcat(szTmpSkinFile, filename);
-
-      hFile = FindFirstFile(szTmpSkinFile, &FindData);
-      if(hFile != INVALID_HANDLE_VALUE) {   
-         FindClose(hFile);
-         strcpy( szSkinFile, szTmpSkinFile );
-         return;
-      }
-   }
-   
-
-   // it wasn't in settingsDir, check the current skin   
-
-   kPlugin.kFuncs->GetPreference(PREF_STRING, "kmeleon.general.skinsDir", szTmpSkinDir, (char*)"");
-   kPlugin.kFuncs->GetPreference(PREF_STRING, "kmeleon.general.skinsCurrent", szTmpSkinName, (char*)"");
-
-   if (*szTmpSkinDir && *szTmpSkinName) {
-
-      int len = strlen(szTmpSkinDir);
-      if (szTmpSkinDir[len-1] != '\\')
-         strcat(szTmpSkinDir, "\\");
-
-      len = strlen(szTmpSkinName);
-      if (szTmpSkinName[len-1] != '\\')
-         strcat(szTmpSkinName, "\\");
-
-      strcpy(szTmpSkinFile, szTmpSkinDir);
-      strcat(szTmpSkinFile, szTmpSkinName);
-      strcat(szTmpSkinFile, filename);
-
-      hFile = FindFirstFile(szTmpSkinFile, &FindData);
-      if(hFile != INVALID_HANDLE_VALUE) {   
-         FindClose(hFile);
-         strcpy( szSkinFile, szTmpSkinFile );
-         return;
-      }
+#include "../findskin.cpp"
 
 
-      // it wasn't in the current skin directory, check the default
-
-      strcpy(szTmpSkinFile, szTmpSkinDir);
-      strcat(szTmpSkinFile, "default\\");
-      strcat(szTmpSkinFile, filename);
-
-      hFile = FindFirstFile(szTmpSkinFile, &FindData);
-      if(hFile != INVALID_HANDLE_VALUE) {   
-         FindClose(hFile);
-         strcpy( szSkinFile, szTmpSkinFile );
-         return;
-      }
-   }
-
-   // it wasn't anywhere, return the path to the settingsDir, in case the file is being created
-   kPlugin.kFuncs->GetPreference(PREF_STRING, "kmeleon.general.settingsDir", szSkinFile, (char*)"");
-   if (! *szSkinFile)      // no settingsDir, bad
-      strcpy(szSkinFile, filename);
-   else
-      strcat(szSkinFile, filename);
-}
-
-
-int Init() {
+int Setup() {
    char szConfigFile[MAX_PATH];
 
    FindSkinFile(szConfigFile, "toolbars.cfg");
@@ -290,6 +217,31 @@ int GetConfigFiles(configFileType **configFiles)
    return 1;
 }
 
+void Destroy(HWND hWnd) {
+   s_toolbar *toolbar = toolbar_head;
+   s_toolbar *prevToolbar = NULL;
+   while (toolbar) {
+      if (toolbar->hwndWindow == hWnd) {
+         s_toolbar *tempbar = toolbar;
+         if (prevToolbar) {
+            while (toolbar) {
+               prevToolbar->nextWindow = toolbar->nextWindow;
+               prevToolbar = prevToolbar->next;
+               toolbar = toolbar->next;
+            }
+         }
+         else {
+            toolbar_head = toolbar->nextWindow;
+         }
+         delete tempbar;
+         break;
+      }
+      else {
+         prevToolbar = toolbar;
+         toolbar = toolbar->nextWindow;
+      }
+   }
+}
 
 void Quit() {
    s_toolbar *tempbar, *toolbar = toolbar_head;
@@ -355,7 +307,7 @@ void DoRebar(HWND rebarWnd) {
 
             buttons[i].dwData = 0;
             buttons[i].fsState = TBSTATE_ENABLED;
-            buttons[i].fsStyle = TBSTYLE_BUTTON | (button->menu?TBSTYLE_DROPDOWN:0);
+            buttons[i].fsStyle = TBSTYLE_BUTTON; // | (button->menu?TBSTYLE_DROPDOWN:0);
             buttons[i].bReserved[0] = 0;
          }
          else {
@@ -378,13 +330,13 @@ void DoRebar(HWND rebarWnd) {
 
       // if no images were specified, then we'll be using text buttons
       if (!toolbar->hot) {
-         char buf[1024]; // you'd have to be crazy to use more than 1K worth of toolbar text on a single toolbar       
+         char buf[4096]; // you'd have to be crazy to use more than 1K worth of toolbar text on a single toolbar       
          int buflen = 0;
          button = toolbar->pButtonHead;
          while (button) {
             if (button->sName != NULL) {
                int len = strlen(button->sName);
-               if (buflen + len > 1024) break;
+               if (buflen + len > 4096) break;
                strcpy(buf+buflen, button->sName);
                buflen += len;
             }
@@ -482,6 +434,53 @@ Sample ToolBar(16,16) {                # (width, height) is optional, defaults t
 
 */
 
+
+int ifplugin(char *p)
+{
+  char *q;
+
+  if (!p || !*p)
+    return 0;
+
+  q = strchr(p, '&');
+  if (q) {
+    *q = 0;
+    q++;
+    while (*q && (*q=='&' || isspace(*q)))
+      q++;
+    return ifplugin(p) && ifplugin(q);
+  }
+  else {
+    q = strchr(p, '|');
+    if (q) {
+      *q = 0;
+      q++;
+      while (*q && (*q=='|' || isspace(*q)))
+	q++;
+      return ifplugin(p) || ifplugin(q);
+    }
+    else {
+      while ( *p && isspace(*p) )
+	p++;
+      int loaded = 1;
+      if (*p=='!')
+	loaded = 0;
+      while ( *p && !isalpha(*p) )
+	p++;
+      char *plugin = p;
+      while ( *p && isalpha(*p) )
+	p++;
+      *p = 0;
+      kmeleonPlugin * plug = kPlugin.kFuncs->Load(plugin);
+      if (!plug || !plug->loaded)
+	return !loaded;
+      else
+	return loaded;
+    }
+  }
+  return 0;
+}
+
 void LoadToolbars(char *filename) {
    HANDLE configFile;
 
@@ -500,6 +499,8 @@ void LoadToolbars(char *filename) {
    s_button  *curButton = NULL;
    int iBuildState = TOOLBAR;
 
+   int pauseParsing = 0;
+
    char *p = strtok(buf, "\r\n");
    while (p) {
 
@@ -510,6 +511,32 @@ void LoadToolbars(char *filename) {
 
       // empty line
       else if (p[0] == 0) {}
+
+      else if (pauseParsing > 0){
+	if (p[0] == '%'){
+	  if (strnicmp(p+1, "ifplugin", 8) == 0) {
+	    pauseParsing++;
+          }
+          else if (strnicmp(p+1, "else", 4) == 0) {
+	    if (pauseParsing == 1) {
+	      pauseParsing = 0;
+	    }
+          }
+          else if (strnicmp(p+1, "endif", 5) == 0) {
+             pauseParsing--;
+          }
+	}
+      }
+      else if (p[0] == '%'){
+        if (strnicmp(p+1, "ifplugin", 8) == 0) {
+            pauseParsing = !ifplugin(p+9);
+         }
+         else if (strnicmp(p+1, "else", 4) == 0) {
+	   pauseParsing = 1;
+         }
+         else if (strnicmp(p+1, "endif", 5) == 0) {
+         }
+      }
       
       // end block
       else if (p[0] == '}') {
@@ -613,7 +640,6 @@ void LoadToolbars(char *filename) {
          case ID:
             
 
-/*            
             // ID_NAME|MENU
             
             // get the menu associated with the button
@@ -627,7 +653,6 @@ void LoadToolbars(char *filename) {
                TrimWhiteSpace(pipe+1);
                curButton->menu = kPlugin.kFuncs->GetMenu(SkipWhiteSpace(pipe+1));
             }
-*/
             
             // check for call to other plugin
             char *op;
@@ -657,7 +682,7 @@ void LoadToolbars(char *filename) {
 
             break;
          case DESC:
-               if (strcmp(p, "\"\"") != 0) {
+	   if (strcmp(p, "\"\"") != 0) {
                   curButton->sToolTip = new char[strlen(p) + 1];
                   if (strlen(p)>1 && p[0] == '\"' && p[strlen(p)-1] == '\"') {
                     strcpy(curButton->sToolTip, p+1);
@@ -665,7 +690,7 @@ void LoadToolbars(char *filename) {
                   }
                   else
                     strcpy(curButton->sToolTip, p);
-               }
+		  }
                iBuildState++;
                break;
          case HOT:
@@ -1200,52 +1225,73 @@ int  IsButtonChecked(char *sParams) {
 
 
 
-LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
-
-/*
-   if (message == TB_LBUTTONHOLD) {
-
-   }
-
-   else if (message == WM_NOTIFY){
-
-      LPNMHDR lpNmhdr = (LPNMHDR) lParam;
-
-      if (lpNmhdr->code == TBN_DROPDOWN) {
-
-         LPNMTOOLBAR lpnmtb = (LPNMTOOLBAR) lParam;
-         
-         s_toolbar   *toolbar = toolbar_head;
-         s_button    *button;
-
-         while (toolbar) {
-            if (toolbar->iButtonCount == 0) continue;
-
-            button = toolbar->pButtonTail;
-            while (button) {
-               if (button->iID == lpnmtb->iItem && button->menu) {
-
-                  RECT rc;
-                  WPARAM index = SendMessage(lpnmtb->hdr.hwndFrom, TB_COMMANDTOINDEX, lpnmtb->iItem, 0);
-                  SendMessage(lpnmtb->hdr.hwndFrom, TB_GETITEMRECT, index, (LPARAM) &rc);
-                  POINT pt = { rc.left, rc.bottom };
-                  ClientToScreen(lpnmtb->hdr.hwndFrom, &pt);
-
-                  int iSel = TrackPopupMenu(button->menu, TPM_RIGHTALIGN | TPM_NONOTIFY | TPM_RETURNCMD, pt.x, pt.y, 0, hWnd, NULL);
-                  if (iSel)
-                     SendMessage(hWnd, WM_COMMAND, 0, iSel);
-
-                  return TBDDRET_DEFAULT;
-               }
-               button = button->prev;
-            }
-            toolbar = toolbar->next;
-         }
+void ShowMenuUnderButton(HWND hWndParent, HMENU hMenu, UINT uMouseButton, int iID) {
+   // Find the toolbar
+   HWND hReBar = FindWindowEx(GetActiveWindow(), NULL, REBARCLASSNAME, NULL);
+   int uBandCount = SendMessage(hReBar, RB_GETBANDCOUNT, 0, 0);  
+   int x = 0;
+   BOOL bFound = FALSE;
+   REBARBANDINFO rb;
+   rb.cbSize = sizeof(REBARBANDINFO);
+   rb.fMask = RBBIM_CHILD;
+   while (x < uBandCount && !bFound) {
+      
+      if (!SendMessage(hReBar, RB_GETBANDINFO, (WPARAM) x++, (LPARAM) &rb))
+         continue;
+      
+      // toolbar hwnd
+      HWND tb = rb.hwndChild;
+      RECT rc;
+      
+      int ButtonID = SendMessage(tb, TB_COMMANDTOINDEX, iID, 0);
+      if (ButtonID < 0)
+         continue;
+      if (ButtonID == 0) {
+         TBBUTTON button;
+         SendMessage(tb, TB_GETBUTTON, 0, (LPARAM) &button);
+         if (button.idCommand != iID)
+            continue;
       }
-*/
+      
+      SendMessage(tb, TB_GETITEMRECT, ButtonID, (LPARAM) &rc);
+      POINT pt = { rc.left, rc.bottom };
+      ClientToScreen(tb, &pt);
+      DWORD SelectionMade = TrackPopupMenu(hMenu, TPM_LEFTALIGN | uMouseButton | TPM_RETURNCMD, pt.x, pt.y, 0, hWndParent, &rc);
 
-   
-   if (message == WM_NOTIFY){
+      SendMessage(tb, TB_SETSTATE, (WPARAM) iID, (LPARAM) MAKELONG (TBSTATE_ENABLED , 0));
+      PostMessage(hWndParent, UWM_REFRESHTOOLBARITEM, (WPARAM) iID, 0);
+      
+      if (SelectionMade > 0)
+	PostMessage(hWndParent, WM_COMMAND, (WPARAM) SelectionMade, iID);
+      
+      bFound = TRUE;
+   }
+}
+
+LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
+  if (message == TB_RBUTTONDOWN || message == TB_LBUTTONHOLD) {
+    int command = LOWORD(wParam);
+    s_toolbar   *pToolbar = toolbar_head;
+    s_button    *pButton;
+    
+    while (pToolbar) {
+      if (pToolbar->iButtonCount == 0) continue;
+      
+      pButton = pToolbar->pButtonTail;
+      while (pButton) {
+	if (pButton->iID == command && pButton->menu) {
+	  UINT button = (message == TB_RBUTTONDOWN) ? TPM_RIGHTBUTTON : TPM_LEFTBUTTON;
+	  ShowMenuUnderButton(hWnd, pButton->menu, button, pButton->iID);
+	  return 0;
+
+	}
+	pButton = pButton->prev;
+      }
+      pToolbar = pToolbar->next;
+    }
+  }
+
+  else if (message == WM_NOTIFY){
 
       LPNMHDR lpNmhdr = (LPNMHDR) lParam;
       if (lpNmhdr->code == TTN_NEEDTEXT) {
@@ -1271,32 +1317,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
          }
 
       }
-   }
-   else if (message == WM_CLOSE) {
-
-	  s_toolbar *toolbar = toolbar_head;
-	  s_toolbar *prevToolbar = NULL;
-	  while (toolbar) {
-		 if (toolbar->hwndWindow == hWnd) {
-			s_toolbar *tempbar = toolbar;
-			if (prevToolbar) {
-			   while (toolbar) {
-				  prevToolbar->nextWindow = toolbar->nextWindow;
-				  prevToolbar = prevToolbar->next;
-				  toolbar = toolbar->next;
-			   }
-			}
-			else {
-			   toolbar_head = toolbar->nextWindow;
-			}
-			delete tempbar;
-			break;
-		 }
-		 else {
-			prevToolbar = toolbar;
-			toolbar = toolbar->nextWindow;
-		 }
-	  }
    }
 
    return CallWindowProc(KMeleonWndProc, hWnd, message, wParam, lParam);

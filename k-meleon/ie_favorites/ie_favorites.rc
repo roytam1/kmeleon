@@ -51,4 +51,5 @@ BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,109,169,50,14
 END
 
-IDB_IMAGES              BITMAP  DISCARDABLE     "bitmap1.bmp"
+// IDB_IMAGES              BITMAP  DISCARDABLE     "bitmap1.bmp"
+

@@ -29,6 +29,7 @@
 #include "..\\KMeleonConst.h"
 #include "..\\utils.h"
 #include "macros.h"
+#include <afxres.h>     // for ID_APP_EXIT
 
 #define _T(x) x
 
@@ -59,9 +60,11 @@ char*        FindVarName(int id);
 int          GetConfigFiles(configFileType **configFiles);
 std::string  GetVarVal(int varid);
 std::string  GetGlobalVarVal(HWND hWnd, char *name, int *found);
-int          Init();
+int          Load();
 int          IntVal(std::string input);
 void         LoadMacros(char *filename);
+void         Close(HWND hWnd);
+void         CloseFrame(HWND hWnd, LONG windows);
 void         Quit();
 void         SetOption(std::string option);
 void         SetVarExp(int varid, std::string value);
@@ -80,8 +83,8 @@ kmeleonPlugin kPlugin = {
 long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2)
 {  
    if (to[0] == '*' || stricmp(to, kPlugin.dllname) == 0) {
-      if (stricmp(subject, "Init") == 0) {
-         Init();
+      if (stricmp(subject, "Load") == 0) {
+         Load();
       }
       else if (stricmp(subject, "Create") == 0) {
          Create((HWND)data1);
@@ -91,6 +94,12 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
       }
       else if (stricmp(subject, "Quit") == 0) {
          Quit();
+      }
+      else if (stricmp(subject, "Close") == 0) {
+         Close((HWND)data1);
+      }
+      else if (stricmp(subject, "CloseFrame") == 0) {
+         CloseFrame((HWND)data1, data2);
       }
       else if (stricmp(subject, "DoMenu") == 0) {
          DoMenu((HMENU)data1, (char *)data2);
@@ -151,6 +160,7 @@ enum commands {
    openbg,           // open url in new background window
    setpref,          // set a preference
    getpref,
+   delpref,
    togglepref,       // toggle a preference between values
    exec,             // run a program
    id,               // send a command id to the current window
@@ -192,7 +202,7 @@ BOOL APIENTRY DllMain(HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserv
 
 
 
-int Init() {
+int Load() {
    kFuncs = kPlugin.kFuncs;
 
    char szMacroFile[MAX_PATH];
@@ -248,6 +258,18 @@ int GetConfigFiles(configFileType **configFiles)
    *configFiles = g_configFiles;
 
    return 1;
+}
+
+void Close(HWND hWnd) {
+  int index = FindMacro("OnCloseWindow");
+  if (index != NOTFOUND)
+    ExecuteMacro(hWnd, index);
+}
+
+void CloseFrame(HWND hWnd, LONG windows) {
+  int index = FindMacro("OnCloseGroup");
+  if (index != NOTFOUND)
+    ExecuteMacro(hWnd, index);
 }
 
 void Quit() {
@@ -389,6 +411,14 @@ void DoMenu(HMENU menu, char *param) {
 
 int DoAccel(char *param) {
    if (*param) {
+      char *string = strchr(param, ',');
+      if (string) {
+         *string = 0;
+         do {
+            string++;
+         } while (*string==' ' || *string=='\t');
+      }
+
       int id = -1;
 
       char *arg = strchr(param, '(');
@@ -426,6 +456,7 @@ int FindCommand(char *cmd) {
       CMD_TEST(openbg)
       CMD_TEST(setpref)
       CMD_TEST(getpref)
+      CMD_TEST(delpref)
       CMD_TEST(togglepref)
       CMD_TEST(exec)
       CMD_TEST(id)
@@ -812,6 +843,17 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
             else return "false";
          }
          return "";
+      }
+      CMD(delpref)   {
+         enum PREFTYPE preftype;
+
+         if (nparam != 1) {  // setpref( $0 )
+            parseError(WRONGARGS, "delpref", data, 1, nparam);
+            return "";
+         }
+
+         char *pref = (char*)params[0].c_str();
+         kFuncs->DelPreference(pref);
       }
       CMD(togglepref) {
          enum PREFTYPE preftype;
@@ -2371,7 +2413,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 
    switch (message) {
    case WM_COMMAND:
-     if (LOWORD(wParam)==wm_deferopenmsg) {
+     if (LOWORD(wParam)==ID_APP_EXIT) {
+       int index = FindMacro("OnWMAppExit");
+       if (bStartup && index != NOTFOUND)
+	 ExecuteMacro(hWnd, index);
+     }
+#if 0
+     else if (LOWORD(wParam)==WM_CLOSE) {
+       int index = FindMacro("OnWMClose");
+       if (bStartup && index != NOTFOUND)
+	 ExecuteMacro(hWnd, index);
+     }
+#endif
+     else if (LOWORD(wParam)==wm_deferopenmsg) {
        int index = FindMacro("OnStartup");
        if (bStartup && index != NOTFOUND)
 	 ExecuteMacro(hWnd, index);
@@ -2386,13 +2440,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
      else
          arglist.execute(hWnd, LOWORD(wParam));
      break;
-   case WM_CLOSE:
-      {
-         int index = FindMacro("OnCloseWindow");
-         if (index != NOTFOUND)
-            ExecuteMacro(hWnd, index);
-      }
-      break;
    case UWM_UPDATEBUSYSTATE:
       {
          int index = FindMacro("OnLoad");

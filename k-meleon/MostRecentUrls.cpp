@@ -25,12 +25,24 @@
 extern CMfcEmbedApp theApp;
 
 CMostRecentUrls::CMostRecentUrls() {
+  m_hMutex = CreateMutex(NULL, FALSE, NULL);
+  LoadURLs();
+}
+
+void CMostRecentUrls::LoadURLs() {
+
+  DWORD dwWaitResult; 
+  do {
+    dwWaitResult = WaitForSingleObject( m_hMutex, 1000L);
+    Sleep(1);
+  } while (dwWaitResult != WAIT_OBJECT_0);
 
    m_maxURLs = theApp.preferences.GetInt("kmeleon.MRU.maxURLs", 16); 
    if (m_maxURLs <= 0) {
       m_maxURLs=0;
       m_URLCount=0;
       m_URLs=NULL;
+      ReleaseMutex(m_hMutex);
       return;
    }
 
@@ -56,10 +68,24 @@ CMostRecentUrls::CMostRecentUrls() {
    // nullify the empty entries
    for(;y<m_maxURLs;y++)
       m_URLs[y] = NULL;
+
+   ReleaseMutex(m_hMutex);
 }
 
 CMostRecentUrls::~CMostRecentUrls() {
-   if (m_maxURLs < 1) return;
+  SaveURLs();
+  DeleteURLs();
+}
+
+void CMostRecentUrls::SaveURLs() {
+
+   if (m_maxURLs < 1)  return;
+
+  DWORD dwWaitResult; 
+  do {
+    dwWaitResult = WaitForSingleObject( m_hMutex, 1000L);
+    Sleep(1);
+  } while (dwWaitResult != WAIT_OBJECT_0);
 
    char sPref[20] = "kmeleon.MRU.URL", sBuf[5];
    char *sCount = sPref + strlen(sPref);
@@ -75,11 +101,24 @@ CMostRecentUrls::~CMostRecentUrls() {
 	y++;
       }
    }
-   
-   for (x=0;x<m_maxURLs;x++)
+
+   ReleaseMutex(m_hMutex);
+}
+
+void CMostRecentUrls::DeleteURLs() {
+
+  DWORD dwWaitResult; 
+  do {
+    dwWaitResult = WaitForSingleObject( m_hMutex, 1000L);
+    Sleep(1);
+  } while (dwWaitResult != WAIT_OBJECT_0);
+
+   for (int x=0;x<m_maxURLs;x++)
       if(m_URLs[x]) delete m_URLs[x];
 
    delete m_URLs;
+
+   ReleaseMutex(m_hMutex);
 }
 
 char * CMostRecentUrls::GetURL(int aInx) {
@@ -87,9 +126,20 @@ char * CMostRecentUrls::GetURL(int aInx) {
     return NULL;
 }
 
+void CMostRecentUrls::RefreshURLs() {
+  DeleteURLs();
+  LoadURLs();
+}
+
 void CMostRecentUrls::AddURL(const char * aURL) {
 
    if (m_maxURLs<1) return;
+
+  DWORD dwWaitResult; 
+  do {
+    dwWaitResult = WaitForSingleObject( m_hMutex, 1000L);
+    Sleep(1);
+  } while (dwWaitResult != WAIT_OBJECT_0);
 
    // check list for previous entry
    for (int x=0; x<m_URLCount-1; x++)	{
@@ -117,4 +167,6 @@ void CMostRecentUrls::AddURL(const char * aURL) {
 
 	// add the new url
    m_URLs[0] = _strdup(aURL);
+
+   ReleaseMutex(m_hMutex);
 }

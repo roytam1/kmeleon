@@ -60,6 +60,7 @@ HIMAGELIST gImagelist; // the one and only imagelist...
 
 HMENU gMenuBookmarks;
 HWND ghWndTB;
+HWND ghWndTBParent;
 HWND hWndFront;
 HWND ghWndEdit;
 HANDLE ghMutex;
@@ -89,14 +90,17 @@ kmeleonPlugin kPlugin = {
 long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2)
 {
    if (to[0] == '*' || stricmp(to, kPlugin.dllname) == 0) {
-      if (stricmp(subject, "Init") == 0) {
-         Init();
+      if (stricmp(subject, "Load") == 0) {
+         Load();
       }
       else if (stricmp(subject, "Config") == 0) {
          Config((HWND)data1);
       }
       else if (stricmp(subject, "Create") == 0) {
          Create((HWND)data1);
+      }
+      else if (stricmp(subject, "Close") == 0) {
+         Close((HWND)data1);
       }
       else if (stricmp(subject, "Quit") == 0) {
          Quit();
@@ -123,55 +127,11 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
    return 0;
 }
 
-// look for filename first in the skinsDir, then in the settingsDir
-// check for the filename in skinsDir, and copy the path into szSkinFile
-// if it's not there, just assume it's in settingsDir, and copy that path
 
-void FindSkinFile( char *szSkinFile, char *filename ) {
+#include "../findskin.cpp"
 
-   char szTmpSkinDir[MAX_PATH];
-   char szTmpSkinName[MAX_PATH];
-   char szTmpSkinFile[MAX_PATH] = "";
 
-   if (!szSkinFile || !filename || !*filename)
-      return;
-
-   kPlugin.kFuncs->GetPreference(PREF_STRING, "kmeleon.general.skinsDir", szTmpSkinDir, (char*)"");
-   kPlugin.kFuncs->GetPreference(PREF_STRING, "kmeleon.general.skinsCurrent", szTmpSkinName, (char*)"");
-
-   if (*szTmpSkinDir && *szTmpSkinName) {
-      strcpy(szTmpSkinFile, szTmpSkinDir);
-
-      int len = strlen(szTmpSkinFile);
-      if (szTmpSkinFile[len-1] != '\\')
-         strcat(szTmpSkinFile, "\\");
-
-      strcat(szTmpSkinFile, szTmpSkinName);
-      len = strlen(szTmpSkinFile);
-      if (szTmpSkinFile[len-1] != '\\')
-         strcat(szTmpSkinFile, "\\");
-
-      strcat(szTmpSkinFile, filename);
-
-      WIN32_FIND_DATA FindData;
-
-      HANDLE hFile = FindFirstFile(szTmpSkinFile, &FindData);
-      if(hFile != INVALID_HANDLE_VALUE) {   
-         FindClose(hFile);
-         strcpy( szSkinFile, szTmpSkinFile );
-         return;
-      }
-   }
-
-   // it wasn't in the skinsDir, assume settingsDir
-   kPlugin.kFuncs->GetPreference(PREF_STRING, "kmeleon.general.settingsDir", szSkinFile, (char*)"");
-   if (! *szSkinFile)      // no settingsDir, bad
-      strcpy(szSkinFile, filename);
-   else
-      strcat(szSkinFile, filename);
-}
-
-int Init(){
+int Load(){
    nConfigCommand = kPlugin.kFuncs->GetCommandIDs(1);
    nAddCommand = kPlugin.kFuncs->GetCommandIDs(1);
    nAddToolbarCommand = kPlugin.kFuncs->GetCommandIDs(1);
@@ -189,7 +149,7 @@ int Init(){
       strcat(gBookmarkFile, BOOKMARKS_DEFAULT_FILENAME);
    }
 
-   FILE *bmFile = fopen(gBookmarkFile, "r");
+   FILE *bmFile = fopen(gBookmarkFile, "a");
    if (bmFile)
       fclose(bmFile);
    else {
@@ -270,6 +230,12 @@ void Create(HWND parent){
    SetWindowLong(parent, GWL_WNDPROC, (LONG)WndProc);
 }
 
+void Close(HWND hWnd) {
+  if (ghWndTB && ghWndTBParent==hWnd) {
+    ghWndTB = NULL;
+  }
+}
+
 void Quit(){
    hWndFront = NULL;
    if (ghWndEdit)
@@ -277,7 +243,7 @@ void Quit(){
    ImageList_Destroy(gImagelist);
 
    if (gBookmarksModified) {
-      Save(gBookmarkFile);
+      SaveBM(gBookmarkFile);
    }
 }
 
@@ -322,7 +288,7 @@ void DoMenu(HMENU menu, char *param){
    else {
       gMenuBookmarks = menu;
 
-      Load(gBookmarkFile);
+      LoadBM(gBookmarkFile);
 
       nFirstBookmarkPosition = GetMenuItemCount(menu);
 
@@ -356,27 +322,44 @@ void DoRebar(HWND rebarWnd) {
       CCS_NOPARENTALIGN | CCS_NORESIZE | //CCS_ADJUSTABLE |
       TBSTYLE_FLAT | TBSTYLE_TRANSPARENT | TBSTYLE_LIST | TBSTYLE_TOOLTIPS;
 
+   if (!ghWndTB) {
+     // Create the toolbar control to be added.
+     ghWndTB = CreateWindowEx(0, TOOLBARCLASSNAME, "",
+        WS_CHILD | dwStyle,
+        0,0,0,0,
+        rebarWnd, (HMENU)/*id*/200,
+        kPlugin.hDllInstance, NULL
+        );
+     ghWndTBParent = GetParent(rebarWnd);
+
+     if (!ghWndTB){
+       MessageBox(NULL, TOOLBAND_FAILED_TO_CREATE, NULL, 0);
+       return;
+     }
+
+     BuildRebar(ghWndTB);
+   }
+
    // Create the toolbar control to be added.
-   ghWndTB = CreateWindowEx(0, TOOLBARCLASSNAME, "",
+   HWND hWndTmp = CreateWindowEx(0, TOOLBARCLASSNAME, "",
       WS_CHILD | dwStyle,
       0,0,0,0,
       rebarWnd, (HMENU)/*id*/200,
       kPlugin.hDllInstance, NULL
       );
 
-
-   // Register the band name and child hwnd
-   kPlugin.kFuncs->RegisterBand(ghWndTB, TOOLBAND_NAME);
-
-   if (!ghWndTB){
-      MessageBox(NULL, TOOLBAND_FAILED_TO_CREATE, NULL, 0);
-      return;
+   if (!hWndTmp){
+     MessageBox(NULL, TOOLBAND_FAILED_TO_CREATE, NULL, 0);
+     return;
    }
 
-   BuildRebar(ghWndTB);
+   CopyRebar(hWndTmp, ghWndTB);
+
+   // Register the band name and child hwnd
+   kPlugin.kFuncs->RegisterBand(hWndTmp, TOOLBAND_NAME);
 
    // Get the height of the toolbar.
-   DWORD dwBtnSize = SendMessage(ghWndTB, TB_GETBUTTONSIZE, 0,0);
+   DWORD dwBtnSize = SendMessage(hWndTmp, TB_GETBUTTONSIZE, 0,0);
 
    REBARBANDINFO rbBand;
    rbBand.cbSize = sizeof(REBARBANDINFO);  // Required
@@ -386,7 +369,7 @@ void DoRebar(HWND rebarWnd) {
 
    rbBand.fStyle = RBBS_CHILDEDGE | RBBS_FIXEDBMP | RBBS_VARIABLEHEIGHT;
    rbBand.lpText     = PLUGIN_NAME;
-   rbBand.hwndChild  = ghWndTB;
+   rbBand.hwndChild  = hWndTmp;
    rbBand.cxMinChild = 0;
    rbBand.cyMinChild = HIWORD(dwBtnSize);
    rbBand.cyIntegral = 1;

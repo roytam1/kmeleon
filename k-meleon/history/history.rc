@@ -63,5 +63,5 @@ BEGIN
     END
 END
 
-IDB_IMAGES              BITMAP  DISCARDABLE     "bitmap1.bmp"
-IDB_ICON                ICON    DISCARDABLE     "icon1.ico"
+// IDB_IMAGES              BITMAP  DISCARDABLE     "bitmap1.bmp"
+// IDB_ICON                ICON    DISCARDABLE     "icon1.ico"

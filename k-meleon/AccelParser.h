@@ -35,8 +35,6 @@ protected:
 
   HACCEL accelTable;
 
-  int Parse(char *p);
-
 public:
   CAccelParser();
   CAccelParser(CString &filename);
@@ -44,6 +42,8 @@ public:
   ~CAccelParser();
 
   int Load(CString &filename);
+
+  int Parse(char *p);
 
   HACCEL GetTable();
 
