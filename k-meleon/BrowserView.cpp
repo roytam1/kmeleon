@@ -86,6 +86,7 @@ BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
 	ON_COMMAND(ID_NAV_BACK, OnNavBack)
 	ON_COMMAND(ID_NAV_FORWARD, OnNavForward)
 	ON_COMMAND(ID_NAV_HOME, OnNavHome)
+  ON_COMMAND(ID_NAV_SEARCH, OnNavSearch)
 	ON_COMMAND(ID_NAV_RELOAD, OnNavReload)
 	ON_COMMAND(ID_NAV_STOP, OnNavStop)
 	ON_COMMAND(ID_EDIT_CUT, OnCut)
@@ -328,9 +329,6 @@ void CBrowserView::OnNewUrlEnteredInUrlBar()
 
 	// Add what was just entered into the UrlBar
 	mpBrowserFrame->m_wndUrlBar.AddURLToList(strUrl);
-
-  // then steal focus
-  mBaseWindow->SetFocus();
 }
 
 // A URL has  been selected from the UrlBar's dropdown list
@@ -443,9 +441,36 @@ void CBrowserView::OnUpdateNavForward(CCmdUI* pCmdUI)
 	pCmdUI->Enable(canGoFwd);
 }
 
-void CBrowserView::OnNavHome() 
-{
-  OpenURL(theApp.preferences.homePage);	
+void CBrowserView::OnNavHome(){
+  OpenURL(theApp.preferences.homePage);
+}
+
+BOOL CALLBACK SearchProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam){
+  static CString *search;
+  if (uMsg == WM_INITDIALOG){
+    search = (CString *)lParam;
+    SetDlgItemText(hwndDlg, IDC_PROMPT_TEXT, "Enter search query.");
+    SetWindowText(hwndDlg, _T("Search"));
+    ::SetFocus(::GetDlgItem(hwndDlg, IDC_PROMPT_ANSWER));
+    return false;
+  }else if (uMsg == WM_COMMAND){
+    if (LOWORD(wParam) == IDOK){
+      char buffer[256];
+      ::GetDlgItemText(hwndDlg, IDC_PROMPT_ANSWER, buffer, 255);
+      *search = buffer;
+      EndDialog(hwndDlg, true);
+    }else if (LOWORD(wParam) == IDCANCEL){
+      EndDialog(hwndDlg, false);
+    }
+    return true;
+  }
+  return false;
+}
+
+void CBrowserView::OnNavSearch(){
+  CString search;
+  if (DialogBoxParam(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDD_PROMPT_DIALOG), m_hWnd, SearchProc, (LPARAM)&search))
+    OpenURL(theApp.preferences.searchEngine + search);
 }
 
 void CBrowserView::OnNavReload() 
@@ -465,16 +490,24 @@ void CBrowserView::OnUpdateNavStop(CCmdUI* pCmdUI)
 	pCmdUI->Enable(mbDocumentLoading);
 }
 
-void CBrowserView::OnCut()
-{
+void CBrowserView::OnCut(){
+  if (mpBrowserFrame->m_wndUrlBar.IsChild(GetFocus())){
+    mpBrowserFrame->m_wndUrlBar.Cut();
+    return;
+  }
+
 	nsCOMPtr<nsIClipboardCommands> clipCmds = do_GetInterface(mWebBrowser);
 
 	if(clipCmds)
 		clipCmds->CutSelection();
 }
 
-void CBrowserView::OnUpdateCut(CCmdUI* pCmdUI)
-{
+void CBrowserView::OnUpdateCut(CCmdUI* pCmdUI){
+  if (mpBrowserFrame->m_wndUrlBar.IsChild(GetFocus())){
+    DWORD selPosition = mpBrowserFrame->m_wndUrlBar.GetEditSel();
+    pCmdUI->Enable(LOWORD(selPosition) != HIWORD(selPosition));
+    return;
+  }
 	PRBool canCutSelection = PR_FALSE;
 
 	nsCOMPtr<nsIClipboardCommands> clipCmds = do_GetInterface(mWebBrowser);
@@ -484,16 +517,24 @@ void CBrowserView::OnUpdateCut(CCmdUI* pCmdUI)
 	pCmdUI->Enable(canCutSelection);
 }
 
-void CBrowserView::OnCopy()
-{
+void CBrowserView::OnCopy(){
+  if (mpBrowserFrame->m_wndUrlBar.IsChild(GetFocus())){
+    mpBrowserFrame->m_wndUrlBar.Copy();
+    return;
+  }
+
 	nsCOMPtr<nsIClipboardCommands> clipCmds = do_GetInterface(mWebBrowser);
 
 	if(clipCmds)
 		clipCmds->CopySelection();
 }
 
-void CBrowserView::OnUpdateCopy(CCmdUI* pCmdUI)
-{
+void CBrowserView::OnUpdateCopy(CCmdUI* pCmdUI){
+  if (mpBrowserFrame->m_wndUrlBar.IsChild(GetFocus())){
+    DWORD selPosition = mpBrowserFrame->m_wndUrlBar.GetEditSel();
+    pCmdUI->Enable(LOWORD(selPosition) != HIWORD(selPosition));
+    return;
+  }
 	PRBool canCopySelection = PR_FALSE;
 
 	nsCOMPtr<nsIClipboardCommands> clipCmds = do_GetInterface(mWebBrowser);
@@ -503,16 +544,23 @@ void CBrowserView::OnUpdateCopy(CCmdUI* pCmdUI)
 	pCmdUI->Enable(canCopySelection);
 }
 
-void CBrowserView::OnPaste()
-{
-	nsCOMPtr<nsIClipboardCommands> clipCmds = do_GetInterface(mWebBrowser);
+void CBrowserView::OnPaste(){
+  if (mpBrowserFrame->m_wndUrlBar.IsChild(GetFocus())){
+    mpBrowserFrame->m_wndUrlBar.Paste();
+    return;
+  }
+  
+  nsCOMPtr<nsIClipboardCommands> clipCmds = do_GetInterface(mWebBrowser);
 
 	if(clipCmds)
 		clipCmds->Paste();
 }
 
-void CBrowserView::OnUpdatePaste(CCmdUI* pCmdUI)
-{
+void CBrowserView::OnUpdatePaste(CCmdUI* pCmdUI){
+  if (mpBrowserFrame->m_wndUrlBar.IsChild(GetFocus())){
+    pCmdUI->Enable();
+    return;
+  }
 	PRBool canPaste = PR_FALSE;
 
 	nsCOMPtr<nsIClipboardCommands> clipCmds = do_GetInterface(mWebBrowser);
