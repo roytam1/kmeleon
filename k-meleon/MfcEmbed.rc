@@ -61,15 +61,6 @@ END
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// Bitmap
-//
-
-IDB_TOOLBAR_HOT         BITMAP  DISCARDABLE     "res\\Tool2.bmp"
-IDB_TOOLBAR_COLD        BITMAP  DISCARDABLE     "res\\Tool1.bmp"
-IDB_BACK                BITMAP  DISCARDABLE     "res\\back.bmp"
-
-/////////////////////////////////////////////////////////////////////////////
-//
 // Menu
 //
 
@@ -384,7 +375,7 @@ END
 IDD_PREFERENCES_PARANOIA DIALOGEX 0, 0, 233, 154
 STYLE WS_CHILD
 EXSTYLE WS_EX_CLIENTEDGE | WS_EX_CONTROLPARENT
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     CONTROL         "Java",IDC_CHECK_JAVA,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,5,5,31,10
@@ -516,13 +507,6 @@ BEGIN
 END
 #endif    // APSTUDIO_INVOKED
 
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// AVI
-//
-
-IDR_MFCAVI              AVI     DISCARDABLE     "res\\out.avi"
 
 /////////////////////////////////////////////////////////////////////////////
 //

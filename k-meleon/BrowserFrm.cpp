@@ -181,27 +181,34 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct){
     ID_NAV_SEARCH
   };
 
-  m_toolbarColdImageList.Create(IDB_TOOLBAR_COLD, 16, 3, RGB(255, 0, 255));
+  HBITMAP bitmap;
+
+  m_toolbarColdImageList.Create(16, 16, ILC_MASK, 16, 32);
+  bitmap = (HBITMAP)LoadImage(NULL, theApp.preferences.settingsDir + "Tool1.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+  ImageList_AddMasked(m_toolbarColdImageList.m_hImageList, bitmap, RGB(192, 192, 192));
+  DeleteObject(bitmap);
   m_wndToolBar.GetToolBarCtrl().SetImageList(&m_toolbarColdImageList);
 
-  m_toolbarHotImageList.Create(IDB_TOOLBAR_HOT, 16, 8, RGB(255, 0, 255));
+  m_toolbarHotImageList.Create(16, 16, ILC_MASK, 16, 32);
+  bitmap = (HBITMAP)LoadImage(NULL, theApp.preferences.settingsDir + "Tool2.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+  ImageList_AddMasked(m_toolbarHotImageList.m_hImageList, bitmap, RGB(192, 192, 192));
+  DeleteObject(bitmap);
   m_wndToolBar.GetToolBarCtrl().SetHotImageList(&m_toolbarHotImageList);
-/*
-  m_toolbarDisabledImageList.Create(IDB_TOOLBAR_DISABLED, 16, 8, RGB(255, 0, 255));
-  m_wndToolBar.GetToolBarCtrl().SetDisabledImageList(&m_toolbarDisabledImageList);
-*/
+
   m_wndToolBar.SetButtons(buttons, 6);
 
   m_wndUrlBar.SetImageList(&m_toolbarHotImageList);
 
 
   // Create the animation control..
-	if (!m_wndAnimate.Create(WS_CHILD | WS_VISIBLE, CRect(0, 0, 10, 10), this, AFX_IDW_TOOLBAR + 2) ||
-    !m_wndAnimate.Open(IDR_MFCAVI))
+	if (!m_wndAnimate.Create(WS_CHILD | WS_VISIBLE, CRect(0, 0, 10, 10), this, AFX_IDW_TOOLBAR + 2))
 	{
-		TRACE0("Failed to create aimation\n");
+		TRACE0("Failed to create animation\n");
 		return -1;      // fail to create
 	}
+  if (!m_wndAnimate.Open(theApp.preferences.settingsDir + "Throbber.avi")){
+    m_wndAnimate.Open("Throbber.avi");
+  }
 
 	// Create a ReBar window to which the toolbar and UrlBar 
 	// will be added
@@ -523,25 +530,19 @@ void CBrowserFrame::LoadBackImage ()
 	// Load control bars background image:
 	//------------------------------------
 
-	if (m_bmpBack.GetSafeHandle () != NULL)
-	{
+	if (m_bmpBack.GetSafeHandle () != NULL)	{
 		m_bmpBack.DeleteObject ();
 	}
 
   HBITMAP hbmp;
   if (theApp.preferences.toolbarBackground.IsEmpty()){
-    hbmp = (HBITMAP) ::LoadImage (AfxGetResourceHandle (),
-			MAKEINTRESOURCE (IDB_BACK),
-			IMAGE_BITMAP,
-			0, 0,
-			LR_LOADMAP3DCOLORS | LR_LOADTRANSPARENT);
-	}else{
-    hbmp = (HBITMAP) ::LoadImage (AfxGetResourceHandle (),
-			theApp.preferences.toolbarBackground,
-			IMAGE_BITMAP,
-			0, 0,
-			LR_LOADMAP3DCOLORS | LR_LOADFROMFILE);
+    theApp.preferences.toolbarBackground = theApp.preferences.settingsDir + "Back.bmp";
 	}
+  hbmp = (HBITMAP) ::LoadImage (AfxGetResourceHandle (),
+    theApp.preferences.toolbarBackground,
+    IMAGE_BITMAP,
+    0, 0,
+    LR_LOADMAP3DCOLORS | LR_LOADFROMFILE);
 
 	m_bmpBack.Attach (hbmp);
 }
