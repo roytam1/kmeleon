@@ -96,6 +96,8 @@ public:
    int m_iGetNodeHack;
    nsCOMPtr<nsIDOMNode> m_pGetNode;
    
+   nsIDOMWindow *FindDOMWindow(nsIDOMWindow *window, nsIDOMDocument *document);
+
    void SetCtxMenuLinkUrl(nsAutoString& strLinkUrl);
 	nsAutoString mCtxMenuLinkUrl;
 

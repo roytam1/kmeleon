@@ -61,15 +61,62 @@ int CBrowserView::OnMouseActivate(CWnd* pDesktopWnd, UINT nHitTest, UINT message
    return CWnd::OnMouseActivate(pDesktopWnd, nHitTest, message);
 }
 
+nsIDOMWindow *CBrowserView::FindDOMWindow(nsIDOMWindow *window, nsIDOMDocument *document) {
+  nsCOMPtr<nsIDOMDocument> windoc;
+  window->GetDocument(getter_AddRefs(windoc));
+  if (windoc == document)
+    return window;
+
+  nsCOMPtr<nsIDOMWindowCollection> frameset;
+  window->GetFrames(getter_AddRefs(frameset));
+
+  if (frameset) {
+    PRUint32 length;
+    frameset->GetLength(&length);
+    
+    if (length) {
+      for (int i=0; i<length; i++) {
+	nsCOMPtr<nsIDOMWindow> tmpwin;
+	frameset->Item(i, getter_AddRefs(tmpwin));
+	tmpwin = FindDOMWindow(tmpwin, document);
+	if (tmpwin)
+	  return tmpwin;
+      }
+    }
+  }
+
+  return NULL;
+}
+
 void CBrowserView::OnTimer(UINT nIDEvent)
 {
    switch(nIDEvent){
    case 0x1:
       if(m_panning) {
          nsCOMPtr<nsIDOMWindow> s;
-	 mWebBrowser->GetContentDOMWindow(getter_AddRefs(s)); 
+         mWebBrowser->GetContentDOMWindow(getter_AddRefs(s)); 
 
          if(!s) return;
+
+	 nsCOMPtr<nsIDOMWindowCollection> frameset;
+	 s->GetFrames(getter_AddRefs(frameset));
+
+	 if (frameset) {
+	   PRUint32 length;
+	   frameset->GetLength(&length);
+
+	   if (length) {
+	     // get the DOMNode at the point
+	     nsCOMPtr<nsIDOMNode> aNode;
+	     aNode = GetNodeAtPoint(m_panningPoint.x, m_panningPoint.y, TRUE);
+
+	     nsCOMPtr<nsIDOMDocument> ownerdoc;
+	     aNode->GetOwnerDocument(getter_AddRefs(ownerdoc));
+
+	     s = FindDOMWindow(s, ownerdoc);
+	     if(!s) return;
+	   }
+	 }
 
          POINT p;
          GetCursorPos(&p);

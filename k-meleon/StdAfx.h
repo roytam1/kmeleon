@@ -88,6 +88,7 @@
 #include "nsIDOMNode.h"
 #include "nsIDOMHTMLImageElement.h"
 #include "nsIDOMWindow.h"
+#include "nsIDOMWindowCollection.h"
 #include "nsIDOMHTMLAnchorElement.h"
 #include "nsIScriptGlobalObject.h"
 #include "nsIDOMWindowInternal.h"
