@@ -25,6 +25,8 @@
 #include <commctrl.h>
 #include <afxres.h>
 
+#include "resource.h"
+
 #pragma warning( disable : 4786 ) // C4786 bitches about the std::map template name expanding beyond 255 characters
 #include <map>
 
@@ -87,7 +89,7 @@ void Create(HWND hWndParent) {
 }
 
 void Config(HWND hWndParent) {
-	DialogBoxParam(ghInstance ,"IDD_PREFS", NULL, (DLGPROC)DlgProc, NULL);
+	DialogBoxParam(ghInstance ,MAKEINTRESOURCE(IDD_PREFS), hWndParent, (DLGPROC)DlgProc, NULL);
 }
 
 void Quit(){
@@ -100,8 +102,8 @@ void DoRebar(HWND rebarWnd) {
 }
 
 void HideClutter(HWND hWndParent) {
-   hReBar = FindWindowEx(hWndParent, NULL, "ReBarWindow32", NULL);
-   hStatusBar = FindWindowEx(hWndParent, NULL, "msctls_statusbar32", NULL);
+   hReBar = FindWindowEx(hWndParent, NULL, REBARCLASSNAME, NULL);
+   hStatusBar = FindWindowEx(hWndParent, NULL, STATUSCLASSNAME, NULL);
 
    if (bFullScreen) {
       if (hReBar) {
@@ -152,7 +154,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
             GetWindowPlacement(hWnd, &wpOld);
   
             GetWindowRect(GetDesktopWindow(), &rectDesktop );
-            AdjustWindowRectEx(&rectDesktop, GetWindowLong(hWnd, GWL_STYLE), TRUE, GetWindowLong(hWnd, GWL_EXSTYLE));
+            AdjustWindowRectEx(&rectDesktop, GetWindowLong(hWnd, GWL_STYLE), (GetMenu(hWnd)?true:false), GetWindowLong(hWnd, GWL_EXSTYLE));
 
             rectFullScreenWindowRect = rectDesktop;
             wpNew = wpOld;

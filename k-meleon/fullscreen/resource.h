@@ -20,3 +20,4 @@
 #define IDC_HIDESTATUSBAR               1001
 #define ID_OK							1002
 #define ID_CANCEL						1003
+#define IDD_PREFS                101
