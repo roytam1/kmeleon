@@ -131,7 +131,7 @@ void CreateBackMenu (UINT button) {
 	DestroyMenu(submenu);
 	DestroyMenu(menu);
 
-	PostMessage(GetActiveWindow(), WM_REFRESHTOOLBARITEM, ButtonID, 0);
+	PostMessage(GetActiveWindow(), WM_REFRESHTOOLBARITEM, (WPARAM) ID_NAV_BACK, 0);
 
 	FreeStringArray (titles, count-1);
 
@@ -162,7 +162,7 @@ void CreateForwardMenu (UINT button) {
 
 	RECT rc;
 	HWND tb = kPlugin.kf->GetToolbarWnd();
-	WPARAM ButtonID = ::SendMessage(tb, TB_COMMANDTOINDEX, ID_NAV_BACK, 0);
+	WPARAM ButtonID = ::SendMessage(tb, TB_COMMANDTOINDEX, ID_NAV_FORWARD, 0);
 	::SendMessage(tb, TB_GETITEMRECT, ButtonID, (LPARAM) &rc);
 	POINT pt = { rc.left, rc.bottom };
 	::ClientToScreen(tb, &pt);
@@ -171,7 +171,7 @@ void CreateForwardMenu (UINT button) {
 	DestroyMenu(submenu);
 	DestroyMenu(menu);
 
-	PostMessage(GetActiveWindow(), WM_REFRESHTOOLBARITEM, ButtonID, 0);
+	PostMessage(GetActiveWindow(), WM_REFRESHTOOLBARITEM, ID_NAV_FORWARD, 0);
 
 	FreeStringArray (titles, count-1);
 
@@ -294,8 +294,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 				return true;
 			}
 			break;
-//		case WM_REFRESHTOOLBARITEM:
-//			MessageBox(NULL, "Hmmmm", "o", MB_OK);
 	}
 	
 	WndProcMap::iterator WndProcIterator;
