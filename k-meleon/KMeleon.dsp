@@ -186,6 +186,10 @@ SOURCE=.\MostRecentUrls.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\Parser.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\Plugins.cpp
 # End Source File
 # Begin Source File
@@ -290,6 +294,10 @@ SOURCE=.\MenuParser.h
 # Begin Source File
 
 SOURCE=.\MfcEmbed.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Parser.h
 # End Source File
 # Begin Source File
 
