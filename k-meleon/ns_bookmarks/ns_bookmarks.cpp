@@ -146,6 +146,10 @@ void Create(HWND parent){
 void Quit(){
    //  the menu should have been destroyed by kmeleon...
    ImageList_Destroy(gImagelist);
+
+   if (gBookmarksModified) {
+      Save(gBookmarkFile);
+   }
 }
 
 void Config(HWND hWndParent){
