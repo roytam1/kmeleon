@@ -81,7 +81,7 @@ typedef struct {
    // sets the status bar text
    void (*SetStatusBarText)(const char *s);
 
-   int (*GetMozillaSessionHistory)(char **titles[], int *count, int *index);
+   int (*GetMozillaSessionHistory)(char **titles[], char **urls[], int *count, int *index);
 	void (*GotoHistoryIndex)(UINT index);
 
    // Register a rebar band

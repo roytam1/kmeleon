@@ -346,12 +346,12 @@ void ShowMenuUnderButton(HWND hWndParent, HMENU hMenu, UINT uMouseButton, int iI
       SendMessage(tb, TB_GETITEMRECT, ButtonID, (LPARAM) &rc);
       POINT pt = { rc.left, rc.bottom };
       ClientToScreen(tb, &pt);
-      DWORD SelectionMade = TrackPopupMenu(hMenu, TPM_LEFTALIGN | uMouseButton | TPM_NONOTIFY | TPM_RETURNCMD, pt.x, pt.y, 0, hWndParent, &rc);
+      DWORD SelectionMade = TrackPopupMenu(hMenu, TPM_LEFTALIGN | uMouseButton | TPM_RETURNCMD, pt.x, pt.y, 0, hWndParent, &rc);
       
       PostMessage(hWndParent, UWM_REFRESHTOOLBARITEM, (WPARAM) iID, 0);
       
       if (SelectionMade > 0)
-         kPlugin.kFuncs->GotoHistoryIndex(SelectionMade-1);
+         kPlugin.kFuncs->GotoHistoryIndex(SelectionMade-ID_HISTORY);
       
       bFound = TRUE;
    }
@@ -359,9 +359,9 @@ void ShowMenuUnderButton(HWND hWndParent, HMENU hMenu, UINT uMouseButton, int iI
 
 void CreateBackMenu (HWND hWndParent, UINT button) {
    int index, count, i, limit;
-   char **titles, buf[47];
+   char **titles, **urls, buf[47];
    
-   if (!kPlugin.kFuncs->GetMozillaSessionHistory (&titles, &count, &index)) {
+   if (!kPlugin.kFuncs->GetMozillaSessionHistory (&titles, &urls, &count, &index)) {
       return;
    }
    
@@ -374,7 +374,7 @@ void CreateBackMenu (HWND hWndParent, UINT button) {
    int x=0;
    for (i = index - 1; i >= limit; i--) {
       CondenseMenuText(buf, titles[i], x++);
-      AppendMenu(menu, MF_STRING, i+1, buf);
+      AppendMenu(menu, MF_STRING, ID_HISTORY+i, buf);
    }
    
    ShowMenuUnderButton(hWndParent, menu, button, ID_NAV_BACK);
@@ -386,9 +386,9 @@ void CreateBackMenu (HWND hWndParent, UINT button) {
 void CreateForwardMenu (HWND hWndParent, UINT button) {
    
    int index, count, i, limit;
-   char **titles, buf[47];
+   char **titles, **urls, buf[47];
    
-   if (!kPlugin.kFuncs->GetMozillaSessionHistory (&titles, &count, &index)) {
+   if (!kPlugin.kFuncs->GetMozillaSessionHistory (&titles, &urls, &count, &index)) {
       return;
    }
    
@@ -401,7 +401,7 @@ void CreateForwardMenu (HWND hWndParent, UINT button) {
    int x=0;
    for (i = index + 1; i < limit; i++) {
       CondenseMenuText(buf, titles[i], x++);
-      AppendMenu(menu, MF_STRING, i+1, buf);
+      AppendMenu(menu, MF_STRING, ID_HISTORY+i, buf);
    }
    
    ShowMenuUnderButton(hWndParent, menu, button, ID_NAV_FORWARD);
@@ -412,7 +412,7 @@ void CreateForwardMenu (HWND hWndParent, UINT button) {
 
 void UpdateHistoryMenu (HWND hWndParent) {
    int index, count, i;
-   char **titles;
+   char **titles, **urls;
    char buf[47];  //  3 spaces for "&# " 20 for beginning of title 3 for "..." 20 for end of title
    
    MenuList *tmpMenu = gMenuList;
@@ -427,7 +427,7 @@ void UpdateHistoryMenu (HWND hWndParent) {
          DeleteMenu(ghMenu, i, MF_BYCOMMAND);
       
       // Add the local history to the menu
-      if (!kPlugin.kFuncs->GetMozillaSessionHistory (&titles, &count, &index)) return;
+      if (!kPlugin.kFuncs->GetMozillaSessionHistory (&titles, &urls, &count, &index)) return;
       if (count > nHistoryLength) count = nHistoryLength;
       
       for (i=count-1;i>=0;i--) {
@@ -523,12 +523,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
    case WM_MENUSELECT:
       {
          int command = LOWORD(wParam);
-         
+
          if ((command >= ID_HISTORY) && (command < ID_HISTORY+nHistoryLength)) {
-            char **titles;
+            char **titles, **urls;
             int count, index;
-            if (kPlugin.kFuncs->GetMozillaSessionHistory (&titles, &count, &index)) {
-               kPlugin.kFuncs->SetStatusBarText(titles[command - ID_HISTORY]);
+            if (kPlugin.kFuncs->GetMozillaSessionHistory (&titles, &urls, &count, &index)) {
+               kPlugin.kFuncs->SetStatusBarText(urls[command - ID_HISTORY]);
                return true;
             }
          }
