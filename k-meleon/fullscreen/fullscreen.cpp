@@ -14,7 +14,12 @@
 *  You should have received a copy of the GNU General Public License
 *  along with this program; if not, write to the Free Software
 *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+
+*  Patch to add multiple window support thanks to Ulf Erikson
+
 */
+
+
 
 #include "fullscreen.h"
 #include "resource.h"
@@ -25,7 +30,8 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <commctrl.h>
-#include <afxres.h>
+// #include <afxres.h>
+#include <stdlib.h>
 
 #include "resource.h"
 
@@ -84,16 +90,62 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
 }
 
 
-HWND hReBar, hStatusBar;
-BOOL bHideReBar, bHideStatusBar, bMaximized;
-BOOL bReBarVisible, bStatusBarVisible;
+BOOL bHideReBar, bHideStatusBar;
 
 HINSTANCE ghInstance;
 
-WINDOWPLACEMENT wpOld;
 RECT rectFullScreenWindowRect;
-BOOL bFullScreen=0;
 INT id_fullscreen;
+
+struct fullscreen {
+  HWND hWnd;
+  HWND hReBar, hStatusBar;
+  BOOL bMaximized;
+  BOOL bReBarVisible, bStatusBarVisible;
+
+  WINDOWPLACEMENT wpOld;
+  BOOL bFullScreen;
+
+  struct fullscreen *next;
+};
+typedef struct fullscreen FS;
+
+static FS *root;
+
+static FS *create_FS(HWND hWnd) {
+  FS *ptr = (FS*)calloc(1, sizeof(struct fullscreen));
+  if (ptr) {
+    ptr->hWnd = hWnd;
+    ptr->next = root;
+    root = ptr;
+  }
+  return ptr;
+}
+
+static FS *find_FS(HWND hWnd) {
+  FS *ptr = root;
+  while (ptr && ptr->hWnd != hWnd)
+    ptr = ptr->next;
+  return ptr;
+}
+
+static void remove_FS(HWND hWnd) {
+
+   FS *prev = NULL, *ptr = root;
+   while (ptr && (ptr->hWnd != hWnd)) {
+      prev = ptr;
+      ptr = ptr->next;
+   }
+
+   if (ptr) {
+      if (prev)
+         prev->next = ptr->next;
+      else
+         root = ptr->next;
+
+      free(ptr);
+   }
+}
 
 BOOL APIENTRY DllMain(HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved ) {
    switch (ul_reason_for_call) {
@@ -108,8 +160,8 @@ BOOL APIENTRY DllMain(HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserv
 }
 
 int Init(){
-   kPlugin.kFuncs->GetPreference(PREF_BOOL, _T("kmeleon.plugins.fullscreen.hide_rebar"), &bHideReBar, "1");
-   kPlugin.kFuncs->GetPreference(PREF_BOOL, _T("kmeleon.plugins.fullscreen.hide_statusbar"), &bHideStatusBar, "1");
+   kPlugin.kFuncs->GetPreference(PREF_BOOL, _T("kmeleon.plugins.fullscreen.hide_rebar"), &bHideReBar, (void *)"1");
+   kPlugin.kFuncs->GetPreference(PREF_BOOL, _T("kmeleon.plugins.fullscreen.hide_statusbar"), &bHideStatusBar, (void *)"1");
 	id_fullscreen = kPlugin.kFuncs->GetCommandIDs(1);
    return true;
 }
@@ -124,10 +176,12 @@ void Create(HWND hWndParent) {
 }
 
 void Config(HWND hWndParent) {
-	DialogBoxParam(ghInstance ,MAKEINTRESOURCE(IDD_PREFS), hWndParent, (DLGPROC)DlgProc, NULL);
+	DialogBoxParam(ghInstance ,MAKEINTRESOURCE(IDD_PREFS), hWndParent, (DLGPROC)DlgProc, (LPARAM)NULL);
 }
 
 void Quit(){
+  while (root)
+    remove_FS(root->hWnd);
 }
 
 void DoMenu(HMENU menu, char *param) {
@@ -143,27 +197,27 @@ int DoAccel(char *param) {
 void DoRebar(HWND rebarWnd) {
 }
 
-void HideClutter(HWND hWndParent) {
-   hReBar = FindWindowEx(hWndParent, NULL, REBARCLASSNAME, NULL);
-   hStatusBar = FindWindowEx(hWndParent, NULL, STATUSCLASSNAME, NULL);
+void HideClutter(HWND hWndParent, FS *fs) {
+   fs->hReBar = FindWindowEx(hWndParent, NULL, REBARCLASSNAME, NULL);
+   fs->hStatusBar = FindWindowEx(hWndParent, NULL, STATUSCLASSNAME, NULL);
 
-   if (bFullScreen) {
+   if (fs->bFullScreen) {
       WINDOWPLACEMENT wp;
       wp.length = sizeof(wp);
       GetWindowPlacement(hWndParent, &wp);
-      bMaximized = (wp.showCmd == SW_SHOWMAXIMIZED);
-      if (hReBar) {
-         bReBarVisible = IsWindowVisible(hReBar);     // save intitial visibility state
-         ShowWindow(hReBar, !bHideReBar);             // hide/unhide rebar
+      fs->bMaximized = (wp.showCmd == SW_SHOWMAXIMIZED);
+      if (fs->hReBar) {
+         fs->bReBarVisible = IsWindowVisible(fs->hReBar);     // save intitial visibility state
+         ShowWindow(fs->hReBar, !bHideReBar);             // hide/unhide rebar
       }
-      if (hStatusBar) {
-         bStatusBarVisible = IsWindowVisible(hStatusBar);
-         ShowWindow(hStatusBar, !bHideStatusBar);
+      if (fs->hStatusBar) {
+         fs->bStatusBarVisible = IsWindowVisible(fs->hStatusBar);
+         ShowWindow(fs->hStatusBar, !bHideStatusBar);
       }
    }
    else {
-      if (hReBar) ShowWindow(hReBar, bReBarVisible);
-      if (hStatusBar) ShowWindow(hStatusBar, bStatusBarVisible);
+      if (fs->hReBar) ShowWindow(fs->hReBar, fs->bReBarVisible);
+      if (fs->hStatusBar) ShowWindow(fs->hStatusBar, fs->bStatusBarVisible);
    }
 }
 
@@ -174,7 +228,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 
    switch (message) {
    case WM_GETMINMAXINFO:
-      if (bFullScreen) {       
+
+      FS *fs;
+      fs = find_FS(hWnd);
+      if (!fs)
+         fs = create_FS(hWnd);
+
+      if (fs->bFullScreen) {       
          MINMAXINFO *lpMMI;
 
          lpMMI = (MINMAXINFO FAR *) lParam;
@@ -185,40 +245,53 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
          lpMMI->ptMaxTrackSize.x  = lpMMI->ptMaxSize.x;
          return false;
       }
+      break;
+
+   case WM_CLOSE:
+
+      if (find_FS(hWnd))
+         remove_FS(hWnd);
+      break;
+
    case WM_COMMAND:
       WORD command = LOWORD(wParam);
       if (command == id_fullscreen) {
 
          WINDOWPLACEMENT wpNew;
 
-         if (!bFullScreen) {
+         FS *fs = find_FS(hWnd);
+         if (!fs)
+            fs = create_FS(hWnd);
+
+         if (!fs->bFullScreen) {
 
             RECT rectDesktop;
-            bFullScreen=TRUE;
+            fs->bFullScreen=TRUE;
 
-            wpOld.length = sizeof (wpOld);
-            GetWindowPlacement(hWnd, &wpOld);
+            fs->wpOld.length = sizeof (fs->wpOld);
+            GetWindowPlacement(hWnd, &fs->wpOld);
   
             GetWindowRect(GetDesktopWindow(), &rectDesktop );
             AdjustWindowRectEx(&rectDesktop, GetWindowLong(hWnd, GWL_STYLE), (GetMenu(hWnd)?true:false), GetWindowLong(hWnd, GWL_EXSTYLE));
 
             rectFullScreenWindowRect = rectDesktop;
-            wpNew = wpOld;
+            wpNew = fs->wpOld;
 
             wpNew.showCmd = SW_SHOWNORMAL;
             wpNew.rcNormalPosition = rectDesktop;
 
-            HideClutter(hWnd);
+            HideClutter(hWnd, fs);
          }
          else  {
-            bFullScreen=FALSE;
-            wpNew = wpOld;
-            HideClutter(hWnd);
-            if (bMaximized) ShowWindow(hWnd, SW_MAXIMIZE);
+            fs->bFullScreen=FALSE;
+            wpNew = fs->wpOld;
+            HideClutter(hWnd, fs);
+            if (fs->bMaximized) ShowWindow(hWnd, SW_MAXIMIZE);
          }
          SetWindowPlacement (hWnd, &wpNew);
          return true;
       }
+      break;
    }
 
    return CallWindowProc(KMeleonWndProc, hWnd, message, wParam, lParam);
@@ -248,7 +321,7 @@ BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
          }
          break;
       case WM_CLOSE:
-			EndDialog(hWnd, NULL);
+			EndDialog(hWnd, (LPARAM)NULL);
 			break;
 		default:
 			return FALSE;
