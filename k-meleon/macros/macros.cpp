@@ -2169,7 +2169,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
             ExecuteMacro(hWnd, index);
       }
       break;
-   case UWM_UPDATESESSIONHISTORY:
+   case UWM_UPDATEBUSYSTATE:
       {
          int index = FindMacro("OnLoad");
          if (index != NOTFOUND)
