@@ -107,8 +107,12 @@ int CMenuParser::Load(CString &filename){
                pauseParsing = 1;
             }
          }
-         else if (strcmpi(p+1, "endif") == 0)
+         else if (strcmpi(p+1, "endif") == 0) {
             pauseParsing = 0;
+         }
+         else if (strcmpi(p+1, "else") == 0) {
+            pauseParsing = !pauseParsing;
+         }
       }
       else if (pauseParsing) {
       }
