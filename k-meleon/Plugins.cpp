@@ -134,15 +134,13 @@ static kmeleonDocInfo kDocInfo;
 kmeleonDocInfo * GetDocInfo(HWND mainWnd) {
    CBrowserFrame *frame = (CBrowserFrame *)CWnd::FromHandle(mainWnd);
 
-   return NULL;
-
    if (!frame){
       return NULL;
    }
 
    CString url;
    frame->m_wndUrlBar.GetEnteredURL(url);
-   if (strlen(url) >= MAX_URL)
+   if (url.GetLength() >= MAX_URL)
       return NULL;
 
    CString title;
