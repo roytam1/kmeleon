@@ -465,6 +465,12 @@ int GetGlobalVar(enum PREFTYPE type, char *preference, void *ret) {
          retLen = pBrowserView->mCtxMenuCurrentFrameURL.Length();
          if (ret) pBrowserView->mCtxMenuCurrentFrameURL.ToCString((char*)ret , retLen+1);
       }
+      if (!stricmp(preference, "TITLE")) {
+         CString title;
+         pBrowserView->GetPageTitle(title);
+         retLen = title.GetLength();
+         if (ret) strcpy((char *)ret, title);
+      }
       break;
    }
     
