@@ -43,7 +43,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 1
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "COMPONENTS_EXPORTS" /Yu"stdafx.h" /FD /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /I "\projects\mozilla\mozilla\dist\WIN32_O.OBJ\include" /I "\projects\mozilla\mozilla\dist\include" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "COMPONENTS_EXPORTS" /FR /Yu"stdafx.h" /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /I "\projects\mozilla\mozilla\dist\WIN32_O.OBJ\include" /I "\projects\mozilla\mozilla\dist\include" /D "NDEBUG" /D "XP_WIN" /D "XP_WIN32" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "COMPONENTS_EXPORTS" /FR /Yu"stdafx.h" /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
@@ -71,7 +71,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /I "\projects\mozilla\mozilla\dist\WIN32_O.OBJ\include" /I "\projects\mozilla\mozilla\dist\include" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "COMPONENTS_EXPORTS" /FR /Yu"stdafx.h" /FD /c
-# ADD CPP /nologo /MT /W3 /GX /ZI /Od /I "\projects\mozilla\mozilla\dist\WIN32_O.OBJ\include" /I "\projects\mozilla\mozilla\dist\include" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "COMPONENTS_EXPORTS" /FR /Yu"stdafx.h" /FD /c
+# ADD CPP /nologo /MT /W3 /GX /ZI /Od /I "\projects\mozilla\mozilla\dist\WIN32_O.OBJ\include" /I "\projects\mozilla\mozilla\dist\include" /D "_DEBUG" /D "XP_WIN" /D "XP_WIN32" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "COMPONENTS_EXPORTS" /FR /Yu"stdafx.h" /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
@@ -94,19 +94,6 @@ LINK32=link.exe
 # Begin Group "Source Files"
 
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
-# Begin Source File
-
-SOURCE=.\About.cpp
-
-!IF  "$(CFG)" == "components - Win32 Release"
-
-!ELSEIF  "$(CFG)" == "components - Win32 Debug"
-
-# SUBTRACT CPP /YX /Yc /Yu
-
-!ENDIF 
-
-# End Source File
 # Begin Source File
 
 SOURCE=.\Dialogs.cpp

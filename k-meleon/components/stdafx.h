@@ -41,5 +41,36 @@
 
 //{{AFX_INSERT_LOCATION}}
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.
+//}}AFX_INSERT_LOCATION}}
+
+// Please don't change the line below, I have a perl script that depends on it being here :)
+// - BEGIN MOZILLA INCLUDES -
+// Additional include directories: 
+// /projects/mozilla/mozilla/dist/include/dom, /projects/mozilla/mozilla/dist/include/string, /projects/mozilla/mozilla/dist/include/webBrowser_core, /projects/mozilla/mozilla/dist/include/windowwatcher, /projects/mozilla/mozilla/dist/include/xpcom, 
+
+// dom: 
+#include "nsIDOMWindow.h"
+
+// string: 
+#include "nsString.h"
+#include "nsReadableUtils.h"
+
+// webBrowser_core: 
+#include "nsIWebBrowserChrome.h"
+#include "nsIEmbeddingSiteWindow.h"
+
+// windowwatcher: 
+#include "nsIPromptService.h"
+#include "nsIWindowWatcher.h"
+
+// xpcom: 
+#include "nsCOMPtr.h"
+#include "nsIServiceManager.h"
+#include "nsIFactory.h"
+#include "nsError.h"
+#include "nsMemory.h"
+
+// - END MOZILLA INCLUDES -
+// Please don't change the line above, I have a perl script that depends on it being here :)
 
 #endif //_STDAFX_H
