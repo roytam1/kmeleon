@@ -34,10 +34,12 @@ int SessionSize=0;
 char **pHistory;
 kmeleonDocInfo kDocInfo;
 
-CPlugins::CPlugins() {
+CPlugins::CPlugins()
+{
 }
 
-CPlugins::~CPlugins(){
+CPlugins::~CPlugins()
+{
    if (SessionSize) {
       for (int i=0; i<SessionSize; i++)
          delete pHistory[i];
@@ -55,7 +57,8 @@ CPlugins::~CPlugins(){
 
 // returns a pointer to the char after the last \ or /
 // also strips the .dll
-const char *FileNoPath(const char *filepath){
+const char *FileNoPath(const char *filepath)
+{
    char *d = strrchr(filepath, '.');
    if (d && strcmpi(d, ".dll") == 0){
       *d = 0;
@@ -76,33 +79,37 @@ const char *FileNoPath(const char *filepath){
 
 
 UINT currentCmdID = PLUGIN_COMMAND_START_ID;
-UINT GetCommandIDs(int num) {
+UINT GetCommandIDs(int num)
+{
    UINT freeID = currentCmdID;
    currentCmdID += num;
    return freeID;
 }
 
-int CPlugins::OnUpdate(UINT command){
+int CPlugins::OnUpdate(UINT command)
+{
    if (command >= 2000 && command <= currentCmdID)
       return true;
    return false;
 }
 
-void CPlugins::OnCreate(HWND wnd){
+void CPlugins::OnCreate(HWND wnd)
+{
    POSITION pos = pluginList.GetStartPosition();
    kmeleonPlugin * kPlugin;
    CString s;
-   while (pos){
+   while (pos) {
       pluginList.GetNextAssoc( pos, s, kPlugin);
       if (kPlugin->loaded && kPlugin->pf->Create) 
          kPlugin->pf->Create(wnd);
    }
 }
 
-void NavigateTo(char *url, int windowState){
+void NavigateTo(char *url, int windowState)
+{
    CBrowserFrame *mainFrame = theApp.m_pMostRecentBrowserFrame;
 
-   if (!mainFrame){
+   if (!mainFrame) {
       return;
    }
 
@@ -119,10 +126,11 @@ void NavigateTo(char *url, int windowState){
    }
 }
 
-kmeleonDocInfo * GetDocInfo(HWND mainWnd) {
+kmeleonDocInfo * GetDocInfo(HWND mainWnd)
+{
    CBrowserFrame *frame = (CBrowserFrame *)CWnd::FromHandle(mainWnd);
 
-   if (!frame){
+   if (!frame) {
       return NULL;
    }
 
@@ -136,8 +144,7 @@ kmeleonDocInfo * GetDocInfo(HWND mainWnd) {
       url = NULL;
 
    CString title;
-   frame->GetWindowText(title);
-   title.Replace(" (K-Meleon)", "");
+   frame->m_wndBrowserView.GetPageTitle(title);
    char *doctitle = new char[title.GetLength()+1];
    strcpy(doctitle, title);
 
@@ -153,8 +160,9 @@ kmeleonDocInfo * GetDocInfo(HWND mainWnd) {
    return &kDocInfo;
 }
 
-void GetPreference(enum PREFTYPE type, char *preference, void *ret, void *defVal) {
-   switch (type){
+void GetPreference(enum PREFTYPE type, char *preference, void *ret, void *defVal)
+{
+   switch (type) {
    case PREF_BOOL:
       *(int *)ret = theApp.preferences.GetBool(preference, *(int *)defVal);
       break;
@@ -167,8 +175,9 @@ void GetPreference(enum PREFTYPE type, char *preference, void *ret, void *defVal
    }
 }
 
-void SetPreference(enum PREFTYPE type, char *preference, void *val) {
-   switch (type){
+void SetPreference(enum PREFTYPE type, char *preference, void *val)
+{
+   switch (type) {
       case PREF_BOOL:
          theApp.preferences.SetBool(preference, *(int *)val);
          break;
@@ -182,8 +191,8 @@ void SetPreference(enum PREFTYPE type, char *preference, void *val) {
 }
 
 
-int GetMozillaSessionHistory (char ***titles, int *count, int *index) {
-
+int GetMozillaSessionHistory (char ***titles, int *count, int *index)
+{
    nsresult result;
    int i;
 
@@ -231,13 +240,15 @@ int GetMozillaSessionHistory (char ***titles, int *count, int *index) {
 	return TRUE;
 }
 
-void GotoHistoryIndex(UINT index) {
+void GotoHistoryIndex(UINT index)
+{
 	CBrowserFrame	*mainFrame = theApp.m_pMostRecentBrowserFrame;
 	if (mainFrame)
 		mainFrame->m_wndBrowserView.mWebNav->GotoIndex(index);
 }
 
-void RegisterBand(HWND hWnd, char *name, int visibleOnMenu) {
+void RegisterBand(HWND hWnd, char *name, int visibleOnMenu)
+{
    theApp.m_pMostRecentBrowserFrame->m_wndReBar.RegisterBand(hWnd, name, visibleOnMenu);
 }
 
@@ -252,7 +263,8 @@ kmeleonFunctions kmelFuncs = {
    RegisterBand
 };
 
-BOOL CPlugins::TestLoad(const char *file, const char *description) {
+BOOL CPlugins::TestLoad(const char *file, const char *description)
+{
 
    char preference[128] = "kmeleon.plugins.";
    strcat(preference, file);
@@ -273,13 +285,13 @@ BOOL CPlugins::TestLoad(const char *file, const char *description) {
 
 }
 
-kmeleonPlugin * CPlugins::Load(char *file){
-  
+kmeleonPlugin * CPlugins::Load(char *file)
+{  
    file = SkipWhiteSpace(file);
    TrimWhiteSpace(file);
 
    kmeleonPlugin * kPlugin;
-   if (pluginList.Lookup(FileNoPath(file), kPlugin)){
+   if (pluginList.Lookup(FileNoPath(file), kPlugin)) {
       return kPlugin; // it's already loaded
    }
 
@@ -298,14 +310,14 @@ kmeleonPlugin * CPlugins::Load(char *file){
 
    KmeleonPluginGetter kpg = (KmeleonPluginGetter)GetProcAddress(plugin, "GetKmeleonPlugin");
 
-   if (!kpg){
+   if (!kpg) {
       FreeLibrary(plugin);
       return 0;
    }
 
    kPlugin = kpg();
 
-   if (!kPlugin){
+   if (!kPlugin) {
       FreeLibrary(plugin);
       return 0;
    }
@@ -340,7 +352,8 @@ kmeleonPlugin * CPlugins::Load(char *file){
    return kPlugin;
 }
 
-int CPlugins::FindAndLoad(const char *pattern = "*.dll"){
+int CPlugins::FindAndLoad(const char *pattern)
+{
    CString filepath;
    CFileFind finder;
    BOOL bWorking;
@@ -366,13 +379,14 @@ int CPlugins::FindAndLoad(const char *pattern = "*.dll"){
    return i;
 }
 
-void CPlugins::UnLoadAll(){
+void CPlugins::UnLoadAll()
+{
    POSITION pos = pluginList.GetStartPosition();
    kmeleonPlugin * kPlugin;
    CString s;
    while (pos) {
       pluginList.GetNextAssoc(pos, s, kPlugin);
-      if (kPlugin){
+      if (kPlugin) {
          delete kPlugin->dllname;
          if (kPlugin->loaded) {
             kPlugin->pf->Quit();
@@ -388,7 +402,8 @@ void CPlugins::UnLoadAll(){
    currentCmdID = PLUGIN_COMMAND_START_ID;
 }
 
-void CPlugins::DoRebars(HWND rebarWnd){
+void CPlugins::DoRebars(HWND rebarWnd)
+{
    POSITION pos = pluginList.GetStartPosition();
    kmeleonPlugin * kPlugin;
    CString s;

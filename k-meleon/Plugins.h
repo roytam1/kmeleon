@@ -42,7 +42,7 @@ public:
 
    BOOL TestLoad(const char *file, const char *description);
 
-   int FindAndLoad(const char *pattern);
+   int FindAndLoad(const char *pattern = "*.dll");
    kmeleonPlugin * Load(char *file);
    void OnCreate(HWND wnd);
    //LRESULT OnMessage(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam);
