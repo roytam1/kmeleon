@@ -392,17 +392,20 @@ VS_VERSION_INFO VERSIONINFO
 BEGIN
     BLOCK "StringFileInfo"
     BEGIN
-        BLOCK "040904B0"
+        BLOCK "040904b0"
         BEGIN
-            VALUE "CompanyName", "\0"
-            VALUE "FileDescription", "MfcEmbed MFC Application\0"
+            VALUE "Comments", "\0"
+            VALUE "CompanyName", "http://kmeleon.org\0"
+            VALUE "FileDescription", "K-Meleon webbrowser\0"
             VALUE "FileVersion", "1, 0, 0, 1\0"
             VALUE "InternalName", "MfcEmbed\0"
             VALUE "LegalCopyright", "Copyright (C) 2001\0"
             VALUE "LegalTrademarks", "\0"
-            VALUE "OriginalFilename", "MfcEmbed.EXE\0"
-            VALUE "ProductName", "MfcEmbed Application\0"
-            VALUE "ProductVersion", "1, 0, 0, 1\0"
+            VALUE "OriginalFilename", "k-meleon.exe\0"
+            VALUE "PrivateBuild", "\0"
+            VALUE "ProductName", "K-Meleon\0"
+            VALUE "ProductVersion", "0.3.x\0"
+            VALUE "SpecialBuild", "\0"
         END
     END
     BLOCK "VarFileInfo"
