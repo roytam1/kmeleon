@@ -88,7 +88,7 @@ void Create(HWND parent){
 }
 
 void Config(HWND parent){
-   MessageBox(parent, "This plugin brought to you by the letter R", "Rebar Menu plugin", 0);
+   MessageBox(parent, "This plugin has no user configurable options.", "Rebar Menu Plugin", 0);
 }
 
 void Quit(){
