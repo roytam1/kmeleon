@@ -60,7 +60,7 @@ public:
    void OpenURLInNewWindow(const PRUnichar* pUrl, BOOL bBackground=FALSE);
 	void LoadHomePage();
 
-	void GetBrowserWindowTitle(nsCString& title);
+	void GetPageTitle(CString& title);
 	
 	// Called by the CBrowserFrame after it creates the view
 	// Essentially a back pointer to the BrowserFrame
@@ -151,7 +151,6 @@ protected:
 	afx_msg void OnSize( UINT, int, int );
    afx_msg void OnTimer(UINT nIDEvent);
    afx_msg int OnMouseActivate(CWnd* pDesktopWnd, UINT nHitTest, UINT message);
-   afx_msg void OnDropFiles( HDROP );
 	afx_msg void OnUrlSelectedInUrlBar();
 	afx_msg void OnNewUrlEnteredInUrlBar();
    afx_msg void OnUrlKillFocus();
@@ -198,6 +197,10 @@ protected:
 	afx_msg void OnAppAbout();
 	afx_msg void OnWindowNext();
 	afx_msg void OnWindowPrev();
+
+   afx_msg void OnEditURL( NMHDR * pNotifyStruct, LRESULT * result );
+   afx_msg void OnDragURL( NMHDR * pNotifyStruct, LRESULT * result );
+   afx_msg void OnDropFiles( HDROP );
 	//}}AFX_MSG
 	
 	DECLARE_MESSAGE_MAP()

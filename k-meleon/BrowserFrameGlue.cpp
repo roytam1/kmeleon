@@ -107,8 +107,13 @@ void CBrowserFrame::BrowserFrameGlueObj::GetBrowserFrameTitle(PRUnichar **aTitle
 {
    METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
 
-      CString title;
+   CString title;
    pThis->GetWindowText(title);
+
+   CString appTitle;
+   appTitle.LoadString(AFX_IDS_APP_TITLE);
+
+   title.Replace(" (" + appTitle + ')', "");
 
    if(!title.IsEmpty())
    {
@@ -123,10 +128,10 @@ void CBrowserFrame::BrowserFrameGlueObj::SetBrowserFrameTitle(const PRUnichar *a
 {
    METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
 
-      USES_CONVERSION;
+   USES_CONVERSION;
 
-   CString cs;
-   cs.LoadString(AFX_IDS_APP_TITLE);
+   CString appTitle;
+   appTitle.LoadString(AFX_IDS_APP_TITLE);
 
    CString title = W2T(aTitle);
 
@@ -134,7 +139,7 @@ void CBrowserFrame::BrowserFrameGlueObj::SetBrowserFrameTitle(const PRUnichar *a
       pThis->m_wndUrlBar.GetEnteredURL(title);
    }
 
-   title += " (" + cs + ')';
+   title += " (" + appTitle + ')';
    pThis->SetWindowText(title);
 
    pThis->PostMessage(UWM_UPDATESESSIONHISTORY, 0, 0);

@@ -65,8 +65,8 @@ extern CMfcEmbedApp theApp;
 static char THIS_FILE[] = __FILE__;
 #endif
 
-static const char* KMELEON_HOMEPAGE_URL = "http://www.kmeleon.org";
-static const char* KMELEON_FORUM_URL = "http://www.kmeleon.org/forum/";
+static const char* KMELEON_HOMEPAGE_URL = "http://kmeleon.org";
+static const char* KMELEON_FORUM_URL = "http://kmeleon.org/forum/";
 
 // Register message for FindDialog communication                                                                                
 static UINT WM_FINDMSG = ::RegisterWindowMessage(FINDMSGSTRING);
@@ -78,7 +78,6 @@ BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
 	ON_WM_SIZE()
    ON_WM_TIMER()
    ON_WM_MOUSEACTIVATE()
-   ON_WM_DROPFILES()
 	ON_CBN_SELENDOK(ID_URL_BAR, OnUrlSelectedInUrlBar)
    ON_CBN_KILLFOCUS(ID_URL_BAR, OnUrlKillFocus)
    ON_CBN_EDITCHANGE(ID_URL_BAR, OnUrlEditChange)
@@ -127,6 +126,10 @@ BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
 	ON_COMMAND(ID_WINDOW_PREV, OnWindowPrev)
 	ON_WM_ACTIVATE()
 	ON_MESSAGE(UWM_REFRESHTOOLBARITEM, RefreshToolBarItem)
+
+   ON_NOTIFY(CBEN_BEGINEDIT, ID_URL_BAR, OnEditURL)
+   ON_NOTIFY(CBEN_DRAGBEGIN, ID_URL_BAR, OnDragURL)
+   ON_WM_DROPFILES()
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -367,6 +370,63 @@ void CBrowserView::OnDropFiles( HDROP drop )
 
    delete filename;
    DragFinish(drop);
+}
+
+void CBrowserView::OnDragURL( NMHDR * pNotifyStruct, LRESULT * result )
+{
+   USES_CONVERSION;
+   *result = 0;
+
+   DWORD currentURISize = GetCurrentURI(NULL);
+   const DWORD extraFileSize = 26; // size of [InternetShortcut]\r\nURL=...\r\n
+
+   HGLOBAL hURL = GlobalAlloc(GHND, currentURISize);
+   char *url = (char *)GlobalLock(hURL);
+   GetCurrentURI(url);
+   GlobalUnlock(hURL);
+
+   HGLOBAL hFileDescriptor = GlobalAlloc(GHND, sizeof(FILEGROUPDESCRIPTOR));
+   FILEGROUPDESCRIPTOR *fgd = (FILEGROUPDESCRIPTOR *)GlobalLock(hFileDescriptor);
+   fgd->cItems = 1;
+   fgd->fgd[0].dwFlags = FD_FILESIZE | FD_LINKUI;
+   fgd->fgd[0].nFileSizeLow = currentURISize+extraFileSize;
+
+   CString title;
+   GetPageTitle(title);
+   strncpy(fgd->fgd[0].cFileName, title, 250);
+   strcat(fgd->fgd[0].cFileName, ".url");
+   
+   GlobalUnlock(hFileDescriptor);
+
+   HGLOBAL hFileContents = GlobalAlloc(GHND, currentURISize+extraFileSize);
+   char *contents = (char *)GlobalLock(hFileContents);
+   strcpy(contents, "[InternetShortcut]\r\nURL=");
+   strcat(contents, url);
+   strcat(contents, "\r\n");
+   GlobalUnlock(hFileContents);
+
+   UINT cfFileDescriptor = ::RegisterClipboardFormat(CFSTR_FILEDESCRIPTOR);
+   UINT cfFileContents = ::RegisterClipboardFormat(CFSTR_FILECONTENTS);
+   UINT cfShellURL = ::RegisterClipboardFormat(CFSTR_SHELLURL);
+
+   FORMATETC fmetc = { cfFileContents, NULL, DVASPECT_CONTENT, 0, TYMED_FILE };
+
+   COleDataSource datasource;
+   // Note: order is important here!
+   datasource.CacheGlobalData(cfFileContents, hFileContents, &fmetc);
+   datasource.CacheGlobalData(cfFileDescriptor, hFileDescriptor);
+   datasource.CacheGlobalData(cfShellURL, hURL);
+   datasource.CacheGlobalData(CF_TEXT, hURL);
+   datasource.DoDragDrop();
+
+   GlobalFree(hURL);
+   GlobalFree(hFileDescriptor);
+   GlobalFree(hFileContents);
+}
+
+void CBrowserView::OnEditURL( NMHDR * pNotifyStruct, LRESULT * result )
+{
+   *result = 0;
 }
 
 // A new URL was entered in the URL bar

@@ -85,8 +85,6 @@ BEGIN_MESSAGE_MAP(CBrowserFrame, CFrameWnd)
    ON_WM_SYSCOLORCHANGE()
 	ON_MESSAGE(UWM_REFRESHTOOLBARITEM, RefreshToolBarItem)
    ON_COMMAND_RANGE(TOOLBAR_MENU_START_ID, TOOLBAR_MENU_END_ID, ToggleToolBar)
-   ON_NOTIFY(CBEN_BEGINEDIT, ID_URL_BAR, OnEditURL)
-   ON_NOTIFY(CBEN_DRAGBEGIN, ID_URL_BAR, OnDragURL)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -359,8 +357,7 @@ BOOL CBrowserFrame::PreCreateWindow(CREATESTRUCT& cs)
 	if(! (m_chromeMask & nsIWebBrowserChrome::CHROME_TITLEBAR) )
 		cs.style &= ~WS_CAPTION; // No caption		
 
-	if(! (m_chromeMask & nsIWebBrowserChrome::CHROME_WINDOW_RESIZE) )
-	{
+	if(! (m_chromeMask & nsIWebBrowserChrome::CHROME_WINDOW_RESIZE) ) {
 		// Can't resize this window
 		cs.style &= ~WS_SIZEBOX;
 		cs.style &= ~WS_THICKFRAME;
@@ -369,17 +366,6 @@ BOOL CBrowserFrame::PreCreateWindow(CREATESTRUCT& cs)
 	}
 
 	cs.lpszClass = AfxRegisterWndClass(0);
-
-   // this function is actually called twice per window.
-   // the first time hInstance is 0
-   if (cs.hInstance){
-      CMenu *menu = theApp.menus.GetMenu(_T("Main"));
-      if (menu){
-         cs.hMenu = menu->m_hMenu;
-      }
-      else
-         MessageBox("No Menu");
-   }
 
 	return TRUE;
 }
@@ -405,52 +391,10 @@ void CBrowserFrame::OnActivate(UINT nState, CWnd* pWndOther, BOOL bMinimized) {
    m_wndBrowserView.Activate(nState, pWndOther, bMinimized);
 }
 
-
-void CBrowserFrame::OnEditURL( NMHDR * pNotifyStruct, LRESULT * result )
-{
-   *result = 0;
-}
-
-void CBrowserFrame::OnDragURL( NMHDR * pNotifyStruct, LRESULT * result )
-{
-   *result = 0;
-
-   //HGLOBAL hURL = GlobalAlloc(GHND, m_wndBrowserView.GetCurrentURI(NULL));
-   HGLOBAL hURL = GlobalAlloc(GHND, 255);
-   char *url = (char *)GlobalLock(hURL);
-   m_wndBrowserView.GetCurrentURI(url);
-   GlobalUnlock(hURL);
-
-   HGLOBAL hFileDescriptor = GlobalAlloc(GHND, sizeof(FILEGROUPDESCRIPTOR));
-   FILEGROUPDESCRIPTOR *fgd = (FILEGROUPDESCRIPTOR *)GlobalLock(hFileDescriptor);
-   fgd->cItems = 1;
-   fgd->fgd[0].dwFlags = FD_FILESIZE | FD_LINKUI;
-   fgd->fgd[0].nFileSizeLow = 255;
-   GetWindowText(fgd->fgd[0].cFileName, 255);
-   GlobalUnlock(hFileDescriptor);
-
-   HGLOBAL hFileContents = GlobalAlloc(GHND, 255);
-   char *contents = (char *)GlobalLock(hFileContents);
-   strcpy(contents, "[InternetShortcut]\r\nURL=");
-   strcat(contents, url);
-   strcat(contents, "\r\n");
-   GlobalUnlock(hFileContents);
-
-   COleDataSource datasource;
-   datasource.CacheGlobalData(::RegisterClipboardFormat(CFSTR_FILECONTENTS), hFileContents);
-   datasource.CacheGlobalData(::RegisterClipboardFormat(CFSTR_FILEDESCRIPTOR), hFileDescriptor);
-   datasource.CacheGlobalData(::RegisterClipboardFormat(CFSTR_SHELLURL), hURL);
-   datasource.CacheGlobalData(CF_TEXT, hURL);
-   datasource.DoDragDrop();
-
-   GlobalFree(hURL);
-   GlobalFree(hFileDescriptor);
-   GlobalFree(hFileContents);
-}
-
 #define IS_SECURE(state) ((state & 0xFFFF) == nsIWebProgressListener::STATE_IS_SECURE)
 
-void CBrowserFrame::UpdateSecurityStatus(PRInt32 aState) {
+void CBrowserFrame::UpdateSecurityStatus(PRInt32 aState)
+{
    int iResID = nsIWebProgressListener::STATE_IS_INSECURE;
 
    if(IS_SECURE(aState)) {
@@ -472,7 +416,8 @@ void CBrowserFrame::UpdateSecurityStatus(PRInt32 aState) {
    MAKEINTRESOURCE(iResID), IMAGE_ICON, 16,16,0));
 }
 
-void CBrowserFrame::ShowSecurityInfo() {
+void CBrowserFrame::ShowSecurityInfo()
+{
    m_wndBrowserView.ShowSecurityInfo();
 }
 
@@ -486,7 +431,8 @@ BEGIN_MESSAGE_MAP(CMyStatusBar, CStatusBar)
    //}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
-void CMyStatusBar::OnLButtonDown(UINT nFlags, CPoint point) {
+void CMyStatusBar::OnLButtonDown(UINT nFlags, CPoint point)
+{
    // Check to see if the mouse click was within the
    // padlock icon pane(at pane index 2) of the status bar...
 
@@ -520,7 +466,8 @@ BOOL CBrowserFrame::OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERIN
 
 // Needed to properly position/resize the progress bar
 //
-void CBrowserFrame::OnSize(UINT nType, int cx, int cy) {
+void CBrowserFrame::OnSize(UINT nType, int cx, int cy)
+{
    CFrameWnd::OnSize(nType, cx, cy);
  
    // Get the ItemRect of the status bar's Pane 0
@@ -619,14 +566,15 @@ void CBrowserFrame::LoadBackImage ()
    m_bmpBack.Attach (hbmp);
 }
 
-void CBrowserFrame::RefreshToolBarItem(WPARAM ItemID, LPARAM unused) {
-
+void CBrowserFrame::RefreshToolBarItem(WPARAM ItemID, LPARAM unused)
+{
 	// Drop this through to BrowserView
 	m_wndBrowserView.RefreshToolBarItem(ItemID, unused);
 
 }
 
-void CBrowserFrame::ToggleToolBar(UINT uID) {
+void CBrowserFrame::ToggleToolBar(UINT uID)
+{
    m_wndReBar.ToggleVisibility(uID - TOOLBAR_MENU_START_ID);
 }
 
@@ -635,6 +583,7 @@ void CBrowserFrame::ToggleToolBar(UINT uID) {
    This is identical to the MFC CFrameWnd::Create function
    except that the rect structure passed to it contains
    x, y, cx, cx values instead of left, top, right, bottom
+   and the menu is loaded differently
 
 */
 
@@ -648,17 +597,13 @@ BOOL CBrowserFrame::Create(LPCTSTR lpszClassName,
 	CCreateContext* pContext)
 {
 	HMENU hMenu = NULL;
-	if (lpszMenuName != NULL)
-	{
-		// load in a menu that will get destroyed when window gets destroyed
-		HINSTANCE hInst = AfxFindResourceHandle(lpszMenuName, RT_MENU);
-		if ((hMenu = ::LoadMenu(hInst, lpszMenuName)) == NULL)
-		{
-			TRACE0("Warning: failed to load menu for CFrameWnd.\n");
-			PostNcDestroy();            // perhaps delete the C++ object
-			return FALSE;
-		}
-	}
+   CMenu *menu = theApp.menus.GetMenu(_T("Main"));
+   if (menu){
+      hMenu = menu->m_hMenu;
+   }
+   else {
+      MessageBox("No Menu");
+   }
 
 	m_strTitle = lpszWindowName;    // save title for later
 
