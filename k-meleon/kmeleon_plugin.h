@@ -16,6 +16,9 @@
 *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
+
+#include <windows.h>
+
 #ifndef __KMELEON_PLUGIN_H__
 #define __KMELEON_PLUGIN_H__
 
@@ -110,6 +113,8 @@ typedef struct {
    kmeleonPointInfo *(*GetInfoAtPoint) (int x, int y);
 
    int (* CommandAtPoint) (int command, WORD x, WORD y);
+
+   BOOL (*GetGlobalVar) (enum PREFTYPE type, char *preference, void *ret);
 
 } kmeleonFunctions;
 

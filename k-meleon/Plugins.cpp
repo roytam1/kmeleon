@@ -432,6 +432,45 @@ int CommandAtPoint(int command, WORD x, WORD y) {
    return 1;
 }
 
+int GetGlobalVar(enum PREFTYPE type, char *preference, void *ret) {
+
+   int retLen = 0;
+
+   CBrowserView *pBrowserView;  
+   pBrowserView = &theApp.m_pMostRecentBrowserFrame->m_wndBrowserView;
+
+
+   if (!pBrowserView)
+      return retLen;
+
+
+
+   
+   switch (type) {
+   case PREF_STRING:
+      if (!stricmp(preference, "URL")) {
+         retLen = pBrowserView->GetCurrentURI(NULL);
+         if (ret)
+            pBrowserView->GetCurrentURI((char *)ret);
+      }
+      if (!stricmp(preference, "LinkURL")) {
+         retLen = pBrowserView->mCtxMenuLinkUrl.Length();
+         if (ret) pBrowserView->mCtxMenuLinkUrl.ToCString((char*)ret , retLen+1);
+      }
+      if (!stricmp(preference, "ImageURL")) {
+         retLen = pBrowserView->mCtxMenuImgSrc.Length();
+         if (ret) pBrowserView->mCtxMenuImgSrc.ToCString((char*)ret , retLen+1);
+      }
+      if (!stricmp(preference, "FrameURL")) {
+         retLen = pBrowserView->mCtxMenuCurrentFrameURL.Length();
+         if (ret) pBrowserView->mCtxMenuCurrentFrameURL.ToCString((char*)ret , retLen+1);
+      }
+      break;
+   }
+    
+   return retLen;
+}
+
 
 long CPlugins::SendMessage(const char *to, const char *from, const char *subject, long data1, long data2)
 {
@@ -473,7 +512,8 @@ kmeleonFunctions kmelFuncs = {
    CreateToolbar,
    GetID,
    GetInfoAtPoint,
-   CommandAtPoint
+   CommandAtPoint,
+   GetGlobalVar
 };
 
 BOOL CPlugins::TestLoad(const char *file, const char *description)

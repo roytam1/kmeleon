@@ -1872,13 +1872,27 @@ std::string GetVarVal(int varid)
 
 };
 
+std::string sGlobalVar;
+
 std::string GetGlobalVarVal(HWND hWnd, char *name, int *found)
 {
    *found = 0;
    if (name == NULL)
       return "";
    
-   *found = 1;
+   
+   int retLen = kPlugin.kFuncs->GetGlobalVar(PREF_STRING, name, NULL);
+   if (retLen) {
+      *found = 1;
+      char *retVal = new char[retLen+1];
+      kPlugin.kFuncs->GetGlobalVar(PREF_STRING, name, retVal);
+      sGlobalVar = retVal;
+      delete retVal;
+      return sGlobalVar;
+   }
+
+
+/*
    if (strcmp(name, "URL") == 0) {
       kmeleonDocInfo *dInfo = kPlugin.kFuncs->GetDocInfo(hWnd);
       if (dInfo && dInfo->url) {
@@ -1887,19 +1901,9 @@ std::string GetGlobalVarVal(HWND hWnd, char *name, int *found)
       else 
          return "";
    }
+*/
    
-   else if (strcmp(name, "FrameURL") == 0) {
-      return "";
-   }
-   
-   else if (strcmp(name, "LinkURL") == 0) {
-      return "";
-   }
-   
-   else if (strcmp(name, "ImageURL") == 0) {
-      return "";
-   }
-   
+  
    *found = 0;
    return "";
 }
@@ -1995,7 +1999,7 @@ int BoolVal(std::string input) {
    return true;
 }
 
-std::string strVal(std::string input, int bOnlyQuotes = 0) {
+std::string strVal(std::string input, int bOnlyQuotes) {
 
    if(input.length() < 1) {
       return input;
