@@ -186,6 +186,7 @@ CBrowserView::CBrowserView()
    m_InPrintPreview = FALSE;
 
    maccel_pan = FALSE;
+   s = NULL;
 }
 
 CBrowserView::~CBrowserView()

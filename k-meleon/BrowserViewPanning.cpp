@@ -93,31 +93,32 @@ void CBrowserView::OnTimer(UINT nIDEvent)
    switch(nIDEvent){
    case 0x1:
       if(m_panning) {
-         nsCOMPtr<nsIDOMWindow> s;
-         mWebBrowser->GetContentDOMWindow(getter_AddRefs(s)); 
-
-         if(!s) return;
-
-	 nsCOMPtr<nsIDOMWindowCollection> frameset;
-	 s->GetFrames(getter_AddRefs(frameset));
-
-	 if (frameset) {
-	   PRUint32 length;
-	   frameset->GetLength(&length);
-
-	   if (length) {
-	     // get the DOMNode at the point
-	     nsCOMPtr<nsIDOMNode> aNode;
-	     aNode = GetNodeAtPoint(m_panningPoint.x, m_panningPoint.y, TRUE);
-
-	     nsCOMPtr<nsIDOMDocument> ownerdoc;
-	     aNode->GetOwnerDocument(getter_AddRefs(ownerdoc));
-
-	     s = FindDOMWindow(s, ownerdoc);
-	     if(!s) return;
-	   }
-	 }
-
+         if(!s) {
+            mWebBrowser->GetContentDOMWindow(getter_AddRefs(s)); 
+            
+            if(!s) return;
+            
+            nsCOMPtr<nsIDOMWindowCollection> frameset;
+            s->GetFrames(getter_AddRefs(frameset));
+            
+            if (frameset) {
+               PRUint32 length;
+               frameset->GetLength(&length);
+               
+               if (length) {
+                  // get the DOMNode at the point
+                  nsCOMPtr<nsIDOMNode> aNode;
+                  aNode = GetNodeAtPoint(m_panningPoint.x, m_panningPoint.y, TRUE);
+                  
+                  nsCOMPtr<nsIDOMDocument> ownerdoc;
+                  aNode->GetOwnerDocument(getter_AddRefs(ownerdoc));
+                  
+                  s = FindDOMWindow(s, ownerdoc);
+                  if(!s) return;
+               }
+            }
+         }
+         
          POINT p;
          GetCursorPos(&p);
 
@@ -169,22 +170,24 @@ void CBrowserView::OnTimer(UINT nIDEvent)
 
 void CBrowserView::StartPanning()
 {
-	m_panning = 1;
-	m_panningQuick = theApp.preferences.GetBool("kmeleon.general.quickAutoscroll", FALSE);
-	GetCursorPos(&m_panningPoint);
-	SetCapture();
-	SetTimer(0x1,20,NULL);
-
-	SetFocus();
+   s = NULL;
+   m_panning = 1;
+   m_panningQuick = theApp.preferences.GetBool("kmeleon.general.quickAutoscroll", FALSE);
+   GetCursorPos(&m_panningPoint);
+   SetCapture();
+   SetTimer(0x1,20,NULL);
+   
+   SetFocus();
 }
 
 void CBrowserView::StopPanning()
 {
    SetCursor(LoadCursor(NULL,IDC_ARROW));   // return to the normal cursor
-	ReleaseCapture();
-	KillTimer(0x1);
-	m_panning = 0;
-	maccel_pan = 0;
+   ReleaseCapture();
+   KillTimer(0x1);
+   m_panning = 0;
+   maccel_pan = 0;
+   s = NULL;
 }
 
 BOOL CBrowserView::PreTranslateMessage(MSG* pMsg)
