@@ -116,7 +116,7 @@ int CMenuParser::Parse(char *p)
       }
       else if (p[0] == '-'){
          currentMenu->AppendMenu(MF_SEPARATOR);
-         LOG_1("Added Seperator", 0);
+         LOG_1("Added Separator", 0);
       }
       else if (p[0] == '}') {
          currentMenu = NULL;
