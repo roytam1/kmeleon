@@ -267,9 +267,10 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct){
       TRACE0("Failed to create animation\n");
 		return -1;      // fail to create
 	}
-   if (!m_wndAnimate.Open(theApp.preferences.settingsDir + "Throbber.avi")){
-      m_wndAnimate.Open("Throbber.avi");
-   }
+
+   if (!m_wndAnimate.Open(theApp.preferences.skinsPath + "Throbber.avi"))
+      if (!m_wndAnimate.Open(theApp.preferences.settingsDir + "Throbber.avi"))
+         m_wndAnimate.Open("Throbber.avi");
 
 	// Create a ReBar window to which the toolbar and UrlBar 
 	// will be added
@@ -354,7 +355,7 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct){
 	SetupFrameChrome();
 
    // Create the tooltip window
-   m_wndToolTip.Create(this);
+   m_wndToolTip.Create(&m_wndBrowserView);
 
    return 0;
 }
