@@ -51,7 +51,7 @@ kmeleonPlugin kPlugin = {
 };
 
 HWND hReBar, hStatusBar;
-BOOL bHideReBar, bHideStatusBar;
+BOOL bHideReBar, bHideStatusBar, bMaximized;
 BOOL bReBarVisible, bStatusBarVisible;
 
 HINSTANCE ghInstance;
@@ -59,6 +59,7 @@ HINSTANCE ghInstance;
 WINDOWPLACEMENT wpOld;
 RECT rectFullScreenWindowRect;
 BOOL bFullScreen=0;
+INT id_fullscreen;
 
 BOOL APIENTRY DllMain(HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved ) {
    switch (ul_reason_for_call) {
@@ -75,6 +76,7 @@ BOOL APIENTRY DllMain(HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserv
 int Init(){
    kPlugin.kf->GetPreference(PREF_BOOL, _T("kmeleon.plugin.fullscreen.hide_rebar"), &bHideReBar, "1");
    kPlugin.kf->GetPreference(PREF_BOOL, _T("kmeleon.plugin.fullscreen.hide_statusbar"), &bHideStatusBar, "1");
+	id_fullscreen = kPlugin.kf->GetCommandIDs(1);
    return true;
 }
 
@@ -96,6 +98,7 @@ void Quit(){
 }
 
 void DoMenu(HMENU menu, char *param) {
+   AppendMenu(menu, MF_STRING, id_fullscreen, "&Full Screen");
 }
 
 void DoRebar(HWND rebarWnd) {
@@ -106,6 +109,10 @@ void HideClutter(HWND hWndParent) {
    hStatusBar = FindWindowEx(hWndParent, NULL, STATUSCLASSNAME, NULL);
 
    if (bFullScreen) {
+      WINDOWPLACEMENT wp;
+      wp.length = sizeof(wp);
+      GetWindowPlacement(hWndParent, &wp);
+      bMaximized = (wp.showCmd == SW_SHOWMAXIMIZED);
       if (hReBar) {
          bReBarVisible = IsWindowVisible(hReBar);     // save intitial visibility state
          ShowWindow(hReBar, !bHideReBar);             // hide/unhide rebar
@@ -141,7 +148,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
       }
    case WM_COMMAND:
       WORD command = LOWORD(wParam);
-      if (command == ID_FULLSCREEN) {
+      if ((command == ID_FULLSCREEN) || (command == id_fullscreen)) {
 
          WINDOWPLACEMENT wpNew;
 
@@ -168,6 +175,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
             bFullScreen=FALSE;
             wpNew = wpOld;
             HideClutter(hWnd);
+            if (bMaximized) ShowWindow(hWnd, SW_MAXIMIZE);
          }
          SetWindowPlacement (hWnd, &wpNew);
          return true;
