@@ -699,11 +699,20 @@ void CBrowserView::OnFileOpen()
         "HTML Files Only (*.htm;*.html)|*.htm;*.html|"
         "All Files (*.*)|*.*||";
 
-	CFileDialog cf(TRUE, NULL, NULL, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
+	CFileDialog cf(TRUE, NULL, NULL, OFN_NOVALIDATE | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
 					lpszFilter, this);
+   cf.m_ofn.lpstrTitle = "Select a file or type in a URL";
 	if(cf.DoModal() == IDOK)
 	{
 		CString strFullPath = cf.GetPathName(); // Will be like: c:\tmp\junk.htm
+      FILE *test = fopen(strFullPath, "r");
+      if (!test){
+         // if the file doesn't exist, they probably typed a url...
+         // so chop off the path (for some reason GetFileName doesn't work for us...
+         strFullPath = strFullPath.Mid(strFullPath.ReverseFind('\\')+1);
+      }else{
+         fclose(test);
+      }
 		OpenURL(strFullPath);
 	}
 }

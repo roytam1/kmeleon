@@ -342,6 +342,33 @@ BEGIN
                     IDC_STATIC,7,7,160,8
 END
 
+IDD_PROGRESS DIALOG DISCARDABLE  0, 0, 291, 100
+STYLE DS_MODALFRAME | WS_MINIMIZEBOX | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "Downloading..."
+FONT 8, "MS Sans Serif"
+BEGIN
+    PUSHBUTTON      "Cancel",IDCANCEL,234,79,50,14
+    CONTROL         "Progress1",IDC_DOWNLOAD_PROGRESS,"msctls_progress32",
+                    PBS_SMOOTH | WS_BORDER,7,61,277,8
+    EDITTEXT        IDC_SOURCE,40,7,244,14,ES_AUTOHSCROLL | ES_READONLY
+    EDITTEXT        IDC_DESTINATION,40,22,244,14,ES_AUTOHSCROLL | 
+                    ES_READONLY
+    LTEXT           "From:",IDC_STATIC,7,10,18,8
+    LTEXT           "To:",IDC_STATIC,7,25,12,8
+    LTEXT           "Status:",IDC_STATIC,7,39,23,8
+    CONTROL         "",IDC_STATUS,"Static",SS_LEFTNOWORDWRAP | WS_GROUP,40,
+                    39,244,8
+    CONTROL         "Time Left:",IDC_TIME_LEFT,"Static",SS_LEFTNOWORDWRAP | 
+                    WS_GROUP,7,50,202,8
+    CONTROL         "Speed:",IDC_SPEED,"Static",SS_LEFTNOWORDWRAP | WS_GROUP,
+                    209,50,75,8
+    CONTROL         "Close Dialog When Download Completes",
+                    IDC_CLOSE_WHEN_DONE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,40,83,145,10
+    PUSHBUTTON      "Open File",IDC_OPEN,40,79,50,14,NOT WS_VISIBLE
+END
+
 
 #ifndef _MAC
 /////////////////////////////////////////////////////////////////////////////
@@ -489,6 +516,22 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 55
         HORZGUIDE, 27
+    END
+
+    IDD_PROGRESS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 284
+        VERTGUIDE, 40
+        VERTGUIDE, 129
+        VERTGUIDE, 209
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 93
+        HORZGUIDE, 14
+        HORZGUIDE, 29
+        HORZGUIDE, 43
+        HORZGUIDE, 54
+        HORZGUIDE, 65
     END
 END
 #endif    // APSTUDIO_INVOKED

@@ -46,6 +46,7 @@
 #define IDI_OFFCHECK                    179
 #define IDI_ONCHECK                     180
 #define IDD_DIALOG_OPEN                 181
+#define IDD_PROGRESS                    184
 #define ID_URL_BAR                      1001
 #define ID_PROG_BAR                     1002
 #define IDC_PROMPT_ANSWER               1003
@@ -97,11 +98,19 @@
 #define IDC_RADIO_URL                   1041
 #define IDC_WRAP_AROUND                 1042
 #define IDC_SEARCH_BACKWARDS            1043
+#define IDC_DOWNLOAD_PROGRESS           1043
+#define IDC_DESTINATION                 1044
+#define IDC_STATUS                      1045
+#define IDC_SOURCE                      1046
+#define IDC_TIME_LEFT                   1047
 #define IDC_CHECK_SOURCE_ENABLED        1050
 #define IDC_RADIO_ONCE                  1050
+#define IDC_SPEED                       1050
 #define IDC_EDIT_SOURCE_COMMAND         1051
 #define IDC_RADIO_ALWAYS                1051
+#define IDC_CLOSE_WHEN_DONE             1051
 #define IDC_RADIO_NEVER                 1052
+#define IDC_OPEN                        1052
 #define IDC_BUTTON2                     1054
 #define IDC_EDIT_ADDRESS                1055
 #define IDC_BUTTON3                     1055
@@ -159,9 +168,9 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        184
+#define _APS_NEXT_RESOURCE_VALUE        185
 #define _APS_NEXT_COMMAND_VALUE         32801
-#define _APS_NEXT_CONTROL_VALUE         1043
+#define _APS_NEXT_CONTROL_VALUE         1053
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -29,6 +29,43 @@
 #include "MfcEmbed.h"
 extern CMfcEmbedApp theApp;
 
+class CProgressDialog : public CDialog,
+                        public nsIWebProgressListener,
+                        public nsSupportsWeakReference {
+public:
+   enum { IDD = IDD_PROGRESS };
+
+   NS_DECL_ISUPPORTS
+   NS_DECL_NSIWEBPROGRESSLISTENER
+
+   CProgressDialog();
+   virtual ~CProgressDialog();
+
+   virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+
+   void SetLauncher(nsIHelperAppLauncher *aLauncher);
+
+protected:
+   nsCOMPtr<nsIHelperAppLauncher> mLauncher;
+   
+   // this is used to calculate speed
+   PRInt64 mStartTime;
+
+   PRInt32 mTotalBytes;
+
+   int mDone;
+
+   char *mFileName;
+   char *mFilePath;
+
+   virtual void OnCancel( );
+   afx_msg void OnOpen();
+
+	DECLARE_MESSAGE_MAP()
+
+};
+
+
 // HandleUnknownContentType (from nsIUnknownContentTypeHandler) implementation.
 // XXX We can get the content type from the channel now so that arg could be dropped.
 
@@ -45,88 +82,6 @@ CUnknownContentTypeHandler::HandleUnknownContentType( nsIRequest *request,
     // this function never seems to get called...
     MessageBox(NULL, "CHandleUnknownContentType()", NULL, MB_OK);
 
-    /*
-    if ( request ) {
-        
-      aChannel = do_QueryInterface(request);
-
-        // Need root nsISupports for later JS_PushArguments call.
-        channel = do_QueryInterface( aChannel );
-
-        // Try to get HTTP channel.
-        nsCOMPtr<nsIHTTPChannel> httpChannel = do_QueryInterface( aChannel );
-        if ( httpChannel ) {
-            // Get content-disposition response header.
-            nsCOMPtr<nsIAtom> atom = dont_AddRef(NS_NewAtom( "content-disposition" ));
-            if ( atom ) {
-                nsXPIDLCString disp; 
-                rv = httpChannel->GetResponseHeader( atom, getter_Copies( disp ) );
-                if ( NS_SUCCEEDED( rv ) && disp ) {
-                    contentDisp = disp; // Save the response header to pass to dialog.
-                }
-            }
-        }
-
-        // Cancel input channel now.
-        rv = request->Cancel(NS_BINDING_ABORTED);
-        if ( NS_FAILED( rv ) ) {
-          NS_WARNING("Cancel failed");
-        }
-    }
-
-    if ( NS_SUCCEEDED( rv ) && channel && aContentType && aWindow ) {
-        // Open "Unknown content type" dialog.
-        // We pass in the channel, the content type, and the content disposition.
-        // Note that the "parent" browser window will be window.opener within the
-        // new dialog.
-    
-        // Get JS context from parent window.
-        nsCOMPtr<nsIScriptGlobalObject> sgo = do_QueryInterface( aWindow, &rv );
-        if ( NS_SUCCEEDED( rv ) && sgo ) {
-            nsCOMPtr<nsIScriptContext> context;
-            sgo->GetContext( getter_AddRefs( context ) );
-            if ( context ) {
-                JSContext *jsContext = (JSContext*)context->GetNativeContext();
-                if ( jsContext ) {
-                    void *stackPtr;
-                    jsval *argv = JS_PushArguments( jsContext,
-                                                    &stackPtr,
-                                                    "sss%ipss",
-                                                    "chrome://global/content/unknownContent.xul",
-                                                    "_blank",
-                                                    "chrome,titlebar",
-                                                    (const nsIID*)(&NS_GET_IID(nsIChannel)),
-                                                    (nsISupports*)channel.get(),
-                                                    aContentType,
-                                                    contentDisp.get() );
-                    if ( argv ) {
-                        nsCOMPtr<nsIDOMWindowInternal> newWindow;
-                        rv = aWindow->OpenDialog( jsContext, argv, 6, getter_AddRefs( newWindow ) );
-                        NS_ASSERTION(NS_SUCCEEDED(rv), "OpenDialog failed");
-                        JS_PopArguments( jsContext, stackPtr );
-                    } else {
-                        NS_ASSERTION(0, "JS_PushArguments failed");
-                        rv = NS_ERROR_FAILURE;
-                    }
-                } else {
-                    NS_ASSERTION(0, "GetNativeContext failed");
-                    rv = NS_ERROR_FAILURE;
-                }
-            } else {
-                NS_ASSERTION(0, "GetContext failed");
-                rv = NS_ERROR_FAILURE;
-            }
-        } else {
-            NS_ASSERTION(0, "QueryInterface (for nsIScriptGlobalObject) failed");
-        }
-    } else {
-        // If no error recorded so far, set one now.
-        if ( NS_SUCCEEDED( rv ) ) {
-            rv = NS_ERROR_NULL_POINTER;
-        }
-    }
-    */
-
     return rv;
 }
 
@@ -134,11 +89,16 @@ CUnknownContentTypeHandler::HandleUnknownContentType( nsIRequest *request,
 NS_IMETHODIMP
 CUnknownContentTypeHandler::ShowProgressDialog(nsIHelperAppLauncher *aLauncher, nsISupports *aContext ) {
 
-    // this is here because mozilla won't do anything untill we call this function
-    // eventually we should probably pop up a "file saving" box or something
-    aLauncher->SetWebProgressListener (NULL);
+   CProgressDialog *progressDialog = new CProgressDialog ();
+   progressDialog->Create(IDD_PROGRESS, CWnd::FromHandle(GetDesktopWindow()));
 
-    return NS_OK;
+   progressDialog->SetLauncher(aLauncher);
+
+   NS_ADDREF (progressDialog);
+   aLauncher->SetWebProgressListener (progressDialog);
+   NS_RELEASE (progressDialog);
+
+   return NS_OK;
 }
 
 // Show the helper app launch confirmation dialog as instructed.
@@ -331,4 +291,200 @@ nsresult NewUnknownContentHandlerFactory(nsIFactory** aFactory) {
 }
 
 
+/********************************************************************************************************
+file save progress dialog box
+********************************************************************************************************/
+
+
+NS_IMPL_ISUPPORTS2(CProgressDialog, nsIWebProgressListener, nsISupportsWeakReference)
+
+CProgressDialog::CProgressDialog() {
+  NS_INIT_ISUPPORTS();
+
+  mFileName = NULL;
+  mFilePath = NULL;
+
+  mStartTime = 0;
+
+  // assume we're done until we get data
+  // for small files, we'll be done before the box even pops up
+  mDone = true;
+}
+
+CProgressDialog::~CProgressDialog(){
+   if (mFileName)
+      delete mFileName;
+   if (mFilePath)
+      delete mFilePath;
+}
+
+/* void onStateChange (in nsIWebProgress aWebProgress, in nsIRequest aRequest, in long aStateFlags, in unsigned long aStatus); */
+NS_IMETHODIMP CProgressDialog::OnStateChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest, PRInt32 aStateFlags, PRUint32 aStatus){
+   if (aStateFlags & nsIWebProgressListener::STATE_STOP){
+      if (IsDlgButtonChecked(IDC_CLOSE_WHEN_DONE)){
+         mLauncher->CloseProgressWindow ();
+      }else{
+         char statusText[50];
+         PRInt64 now = PR_Now ();
+         PRInt64 timeSpent = now - mStartTime;
+         sprintf(statusText, "Done! Downloaded %.2f KBytes in %d seconds", mTotalBytes/1024 +.5, (int)(timeSpent/1000000.0l));
+         SetDlgItemText(IDC_STATUS, statusText);
+
+         SetDlgItemText(IDCANCEL, "Close");
+
+         GetDlgItem(IDC_OPEN)->ShowWindow(SW_SHOW);
+         GetDlgItem(IDC_CLOSE_WHEN_DONE)->ShowWindow(SW_HIDE);
+
+         mDone = true;
+      }
+   }else if (aStateFlags & nsIWebProgressListener::STATE_REDIRECTING){
+      SetDlgItemText(IDC_STATUS, "Redirecting...");
+   }else if (aStateFlags & nsIWebProgressListener::STATE_TRANSFERRING){
+      SetDlgItemText(IDC_STATUS, "Downloading...");
+   }else if (aStateFlags & nsIWebProgressListener::STATE_NEGOTIATING){
+      SetDlgItemText(IDC_STATUS, "Negotiating...");
+   }else if (aStateFlags & nsIWebProgressListener::STATE_START){
+      SetDlgItemText(IDC_STATUS, "Contacting...");
+   }
+   return NS_OK;
+}
+
+/* void onProgressChange (in nsIWebProgress aWebProgress, in nsIRequest aRequest, in long aCurSelfProgress, in long aMaxSelfProgress, in long aCurTotalProgress, in long aMaxTotalProgress); */
+NS_IMETHODIMP CProgressDialog::OnProgressChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest, PRInt32 aCurSelfProgress, PRInt32 aMaxSelfProgress, PRInt32 aCurTotalProgress, PRInt32 aMaxTotalProgress){
+   if (aMaxTotalProgress){
+      mDone = false;
+
+      int percent = (int)(((float)aCurTotalProgress / (float)aMaxTotalProgress) * 100.0f);
+
+      char progressString[50];
+      sprintf(progressString, "Downloaded %d%% (%.2f of %.2f KBytes)", percent, aCurTotalProgress/1024 +.5, aMaxTotalProgress/1024 +.5);
+      SetDlgItemText(IDC_STATUS, progressString);
+
+      PRInt64 now = PR_Now ();
+      PRInt64 timeSpent = now - mStartTime;
+      PRInt64 delta = aCurTotalProgress;
+
+      // given in bytes per second!
+      double speed = 0.0;
+
+      if (mStartTime > 0){
+         double timeSpent_seconds = ((double)timeSpent/1000000.0l);
+         if (timeSpent_seconds > 0)
+            speed = delta / timeSpent_seconds;
+         else
+            speed = 0;
+
+         double speed_kbs = speed/1024;
+
+         char speedString[50];
+         sprintf(speedString, "Speed: %.2f KBps ", speed_kbs);
+
+         SetDlgItemText(IDC_SPEED, speedString);
+      }else{
+         // mStartTime is 0, we should try to get a new start time
+         nsCOMPtr<nsIURI>  pUri;
+	      nsCOMPtr<nsIFile> pFile;
+
+         PRInt64 timestarted;
+         mLauncher->GetDownloadInfo(getter_AddRefs(pUri),
+            &timestarted,
+            getter_AddRefs(pFile));
+
+         mStartTime = timestarted;
+
+         // while we're at it, save the file size
+         mTotalBytes = aMaxTotalProgress;
+      }
+
+      if (speed){
+         PRInt32 remaining = (PRInt32)((aMaxTotalProgress - aCurTotalProgress)/speed +.5);
+
+         char timeString[50];
+         sprintf(timeString, "Time Left: %u Seconds", remaining );
+         SetDlgItemText(IDC_TIME_LEFT, timeString);
+      }
+
+      char titleString[255];
+      sprintf(titleString, "%d%% of %s", percent, mFileName);
+      SetWindowText(titleString);
+
+      HWND progressBar;
+      GetDlgItem(IDC_DOWNLOAD_PROGRESS, &progressBar);
+      ::SendMessage(progressBar, PBM_SETRANGE, 0, MAKELPARAM(0, 100)); 
+      ::SendMessage(progressBar, PBM_SETPOS, (WPARAM) percent, 0);
+    }
+   return NS_OK;
+}
+
+/* void onLocationChange (in nsIWebProgress aWebProgress, in nsIRequest aRequest, in nsIURI location); */
+NS_IMETHODIMP CProgressDialog::OnLocationChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest, nsIURI *location){
+    return NS_OK;
+}
+
+/* void onStatusChange (in nsIWebProgress aWebProgress, in nsIRequest aRequest, in nsresult aStatus, in wstring aMessage); */
+NS_IMETHODIMP CProgressDialog::OnStatusChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest, nsresult aStatus, const PRUnichar *aMessage){
+    return NS_OK;
+}
+
+/* void onSecurityChange (in nsIWebProgress aWebProgress, in nsIRequest aRequest, in long state); */
+NS_IMETHODIMP CProgressDialog::OnSecurityChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest, PRInt32 state){
+    return NS_OK;
+}
+
+void CProgressDialog::DoDataExchange(CDataExchange* pDX){
+	CDialog::DoDataExchange(pDX);
+}
+
+void CProgressDialog::SetLauncher(nsIHelperAppLauncher *aLauncher){
+   mLauncher = aLauncher;
+
+   nsCOMPtr<nsIURI>  pUri;
+	nsCOMPtr<nsIFile> pFile;
+
+   PRInt64 timestarted;
+   aLauncher->GetDownloadInfo(getter_AddRefs(pUri),
+      &timestarted,
+      getter_AddRefs(pFile));
+
+   // we don't set start time here, because it's rarely set by now.
+   // we'll set it later in OnProgressChange
+   // mStartTime = timestarted; //PR_Now();
+
+	char *uri;
+   char *filepath;
+
+	pUri->GetSpec (&uri);
+	pFile->GetPath (&filepath);
+
+   SetDlgItemText(IDC_SOURCE, uri);
+   SetDlgItemText(IDC_DESTINATION, filepath);
+
+   char *file = strrchr(filepath, '\\')+1;
+   mFileName = strdup(file);
+   mFilePath = strdup(filepath);
+   
+}
+
+BEGIN_MESSAGE_MAP(CProgressDialog, CDialog)
+	ON_COMMAND(IDC_OPEN, OnOpen)
+END_MESSAGE_MAP()
+
+void CProgressDialog::OnCancel() {
+   if (mDone){
+      DestroyWindow();
+   }else{
+      mLauncher->Cancel();
+      mLauncher->CloseProgressWindow ();
+   }
+}
+
+void CProgressDialog::OnOpen(){
+   char *directory = strdup(mFilePath);
+   char *last_slash = strrchr(directory, '\\');
+   *last_slash = 0;
+
+   ShellExecute(NULL, "open", mFilePath, "", directory, SW_SHOW);
+
+   delete directory;
+}
 

@@ -224,18 +224,17 @@ void CBrowserFrame::BrowserFrameGlueObj::SetBrowserFramePositionAndSize(PRInt32 
       SWP_NOACTIVATE | SWP_NOZORDER);
 }
 
-void CBrowserFrame::BrowserFrameGlueObj::SetFocus()
-{
+void CBrowserFrame::BrowserFrameGlueObj::SetFocus(){
    METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
 
-      pThis->SetFocus();
+   pThis->SetFocus();
 }
 
 void CBrowserFrame::BrowserFrameGlueObj::FocusAvailable(PRBool *aFocusAvail)
 {
    METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
 
-      HWND focusWnd = GetFocus()->m_hWnd;
+   HWND focusWnd = GetFocus()->m_hWnd;
 
    if ((focusWnd == pThis->m_hWnd) || ::IsChild(pThis->m_hWnd, focusWnd))
       *aFocusAvail = PR_TRUE;
