@@ -36,6 +36,7 @@ public:
    int id;
    std::string text;
    std::string url;
+   std::string nickname;
    int type;
    int flags;
    time_t addDate;
@@ -50,6 +51,7 @@ public:
       id = 0;
       text = "";
       url = "";
+      nickname = "";
       type = 0;
 	  flags = 0;
       next = NULL;
@@ -60,11 +62,12 @@ public:
       lastVisit = 0;
       lastModified = 0;
    }
-   inline CBookmarkNode(int id, const char *text, const char *url, int type, time_t addDate=0, time_t lastVisit=0, time_t lastModified=0)
+   inline CBookmarkNode(int id, const char *text, const char *url, const char *nick, int type, time_t addDate=0, time_t lastVisit=0, time_t lastModified=0)
    {
       this->id = id;
       this->text = text;
       this->url = url;
+      this->nickname = nick;
       this->type = type;
 	  this->flags = 0;
       this->next = NULL;
@@ -74,11 +77,12 @@ public:
       this->lastVisit = lastVisit;
       this->lastModified = lastModified;
    }
-   inline CBookmarkNode(int id, std::string &text, std::string &url, int type, time_t addDate=0, time_t lastVisit=0, time_t lastModified=0)
+   inline CBookmarkNode(int id, std::string &text, std::string &url, std::string &nick, int type, time_t addDate=0, time_t lastVisit=0, time_t lastModified=0)
    {
       this->id = id;
       this->text = text;
       this->url = url;
+      this->nickname = nick;
       this->type = type;
 	  this->flags = 0;
       this->next = NULL;
@@ -103,6 +107,7 @@ public:
       id = n2.id;
       text = n2.text;
       url = n2.url;
+      nickname = n2.nickname;
       type = n2.type;
       flags = n2.flags;
       addDate = n2.addDate;
@@ -221,6 +226,28 @@ public:
 //      // We couldn't find it.  Rather than returning null and risking a null pointer crash, return ourself
 //      return this;
       // Scratch that.  We return NULL and just fix anything that crashes.
+      return NULL;
+   }
+   CBookmarkNode *FindNick(char *nick)
+   {
+      CBookmarkNode *c;
+      for (c=child; c; c=c->next) {
+         if (c->type == BOOKMARK_SEPARATOR) {
+            continue;
+         }
+         else if (c->type == BOOKMARK_FOLDER) {
+            CBookmarkNode *retNode = c->FindNick(nick);
+
+            if (retNode) {
+               // found it in a sub-node
+               return retNode;
+            }
+         }
+         else if (strcmp((char*)c->nickname.c_str(), nick) == 0) {
+            // this is it!
+            return c;
+         }
+      }
       return NULL;
    }
    CBookmarkNode *FindSpecialNode(int flag)

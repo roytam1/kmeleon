@@ -62,6 +62,7 @@ void BuildRebar(HWND hWndTB);
 int ParseHotlist(char **bmFileBuffer, CBookmarkNode &node);
 int SaveHotlistEntry(FILE *bmFile, CBookmarkNode *node);
 int addLink(char *url, char *title);
+void findNick(char *nick, char *url);
 #endif
 
 void Config(HWND parent);
@@ -72,12 +73,15 @@ void Config(HWND parent);
 #define PREFERENCE_HOTLIST_FILE  _T("kmeleon.plugins.hotlist.hotlistFile")
 #define PREFERENCE_HOTLIST_RESYNCH  _T("kmeleon.plugins.hotlist.resynch")
 #define PREFERENCE_SETTINGS_DIR    "kmeleon.general.settingsDir"
+#define PREFERENCE_MENU_MAXLEN _T("kmeleon.plugins.hotlist.maxMenuLength")
+#define PREFERENCE_MENU_AUTOLEN _T("kmeleon.plugins.hotlist.menuAutoDetect")
+#define PREFERENCE_TOOLBAR_FOLDER _T("kmeleon.plugins.hotlist.toolbarFolder")
 
 
 // The globals
 
 #ifdef WHERE
-CBookmarkNode gHotlistRoot(0, "", "", BOOKMARK_FOLDER, 0);
+CBookmarkNode gHotlistRoot(0, "", "", "", BOOKMARK_FOLDER, 0);
 #else
 #define WHERE extern
 WHERE CBookmarkNode gHotlistRoot;
@@ -87,6 +91,7 @@ WHERE BOOL bRebarEnabled;
 WHERE BOOL bResynchHotlist;
 WHERE BOOL bCreate;
 WHERE CHAR gHotlistFile[MAX_PATH];
+WHERE CHAR gToolbarFolder[MAX_PATH];
 
 extern kmeleonPlugin kPlugin;
 

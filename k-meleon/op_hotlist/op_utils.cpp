@@ -37,6 +37,16 @@ extern void * KMeleonWndProc;
 #include <string.h>
 
 
+void findNick(char *nick, char *url)
+{
+  CBookmarkNode *retNode =   gHotlistRoot.FindNick(nick);
+
+  *url = 0;
+  if (retNode) {
+    strcpy(url, (char*)retNode->url.c_str());
+  }
+}
+
 
 // Build Menu
 void BuildMenu(HMENU menu, CBookmarkNode *node, BOOL isContinuation)
@@ -53,8 +63,7 @@ void BuildMenu(HMENU menu, CBookmarkNode *node, BOOL isContinuation)
    // space to allow above menu for title bar, menu bar (assuming maximized window), and extra frame junk
 #define MENUPADDING 50
    
-   //   int maxLength = (gMenuAutoDetect) ? (int)((cy-MENUPADDING)/cmenu) : gMaxMenuLength;
-   int maxLength = 100;
+   int maxLength = (gMenuAutoDetect) ? (int)((cy-MENUPADDING)/cmenu) : gMaxMenuLength;
    
    CBookmarkNode *child;
    int count = GetMenuItemCount(menu);
@@ -95,7 +104,7 @@ void BuildRebar(HWND hWndTB)
    if (!bRebarEnabled || !hWndTB || !gImagelist)
       return;
    
-   CBookmarkNode *toolbarNode = &gHotlistRoot;
+   CBookmarkNode *toolbarNode = gHotlistRoot.FindSpecialNode(BOOKMARK_FLAG_TB);
    
    SetWindowText(hWndTB, TOOLBAND_NAME);
    
@@ -161,7 +170,7 @@ int addLink(char *url, char *title)
 
    CBookmarkNode *newNode = new 
       CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), 
-                    title ? (*title ? title : url) : url, url, 
+                    title ? (*title ? title : url) : url, url, "",
                     BOOKMARK_BOOKMARK, time(NULL));
    if (!newNode)
       return false;
