@@ -106,11 +106,22 @@ BEGIN
     LTEXT           "",IDC_ADDED,35,205,78,10
     LTEXT           "Visited:",IDC_STATIC_VISITED,9,220,25,10
     LTEXT           "",IDC_LAST_VISIT,35,220,78,10
-    LTEXT           "Other:",IDC_STATIC_OTHER,119,205,25,10
-    LTEXT           "",IDC_OTHER,145,205,150,25
-    LTEXT           "Nick:",IDC_STATIC_NICK,119,220,25,10
-    EDITTEXT        IDC_NICK,145,220,150,12,ES_AUTOHSCROLL
+    LTEXT           "Nick:",IDC_STATIC_NICK,119,205,20,10
+    EDITTEXT        IDC_NICK,145,205,150,25,ES_AUTOHSCROLL
+    LTEXT           "Desc:",IDC_STATIC_DESC,119,220,20,10
+    EDITTEXT        IDC_DESC,145,220,150,12,ES_AUTOHSCROLL
     GROUPBOX        "Properties",IDC_STATIC_PROPERTIES,5,162,295,73
+END
+
+IDD_SMARTBOOKMARK DIALOG DISCARDABLE  0, 0, 250, 58
+STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+CAPTION "Prompt"
+FONT 8, "MS Sans Serif"
+BEGIN
+    EDITTEXT        IDC_INPUT, 7,20, 236,13, ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,130,39,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,189,39,50,14
+    LTEXT           "Search", IDC_SEARCHTEXT, 10,7, 230,13
 END
 
 
@@ -163,18 +174,23 @@ BEGIN
         MENUITEM "&Open in Current Browser Window", ID__OPEN
         MENUITEM "Open in Back&ground",         ID__OPEN_BACKGROUND
         MENUITEM SEPARATOR
-        MENUITEM "Sort Folder",                 ID__SORT
-        MENUITEM "Sort Folders Recursively",    ID__SORT_ALL
-        MENUITEM SEPARATOR
         MENUITEM "New &Folder",                 ID__NEW_FOLDER
         MENUITEM "New &Bookmark",               ID__NEW_BOOKMARK
         MENUITEM "New &Separator",              ID__NEW_SEPARATOR
+        MENUITEM SEPARATOR
+        POPUP "Sort"
+        BEGIN
+            MENUITEM "Sort Folder",                 ID__SORT
+            MENUITEM "Sort Folders Recursively",    ID__SORT_ALL
+        END
         MENUITEM SEPARATOR
         MENUITEM "Set as &Toolbar Folder",      ID__SETAS_TOOLBARFOLDER
         MENUITEM "Set as &New Bookmark Folder", ID__SETAS_NEWBOOKMARKFOLDER
         MENUITEM "Set as Bookmark &Menu",       ID__SETAS_BOOKMARKMENU
         MENUITEM SEPARATOR
         MENUITEM "&Delete",                     ID__BOOKMARK_DELETE
+        MENUITEM SEPARATOR
+        MENUITEM "&Zoom",                       ID__ZOOM
     END
 END
 

@@ -1,5 +1,6 @@
 /*
 *  Copyright (C) 2000 Brian Harris, Mark Liffiton
+*  Copyright (C) 2003 Ulf Erikson <ulferikson@fastmail.fm>
 *
 *  This program is free software; you can redistribute it and/or modify
 *  it under the terms of the GNU General Public License as published by
@@ -15,6 +16,13 @@
 *  along with this program; if not, write to the Free Software
 *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
+
+#ifdef __MINGW32__
+#  define _WIN32_IE 0x0500
+#  include <windows.h>
+#  include <commctrl.h>
+#  include "../missing.h"
+#endif
 
 #include "stdafx.h"
 #include "resource.h"
@@ -33,6 +41,18 @@
 
 #include "ns_bookmarks_functions.h"
 
+#define VK_OEM_MINUS 0xBD
+#define VK_OEM_PERIOD 0xBE
+#define VK_MINUS VK_OEM_MINUS
+#define VK_PERIOD VK_OEM_PERIOD
+
+extern kmeleonPlugin kPlugin;
+extern void * KMeleonWndProc;
+
+#define CUT 1
+#define KILL 1
+#define PASTE 1
+
 // Our functions
 
 static void FillTree(HWND hTree, HTREEITEM parent, CBookmarkNode &node);
@@ -41,18 +61,28 @@ static void OnRClick(HWND hTree);
 static void ImportFavorites(HWND hTree);
 static void BuildFavoritesTree(TCHAR *FavoritesPath, char* strPath, CBookmarkNode *newFavoritesNode);
 static void MoveItem(HWND hTree, HTREEITEM item, int mode);
-static void CreateNewObject(HWND hTree, HTREEITEM fromItem, int type);
+static void CreateNewObject(HWND hTree, HTREEITEM fromItem, int type, int mode=0);
 static void ChangeSpecialFolder(HWND hTree, HTREEITEM *htiOld, HTREEITEM htiNew, int flag);
-static void DeleteItem(HWND hTree, HTREEITEM item);
+static void DeleteItem(HWND hTree, HTREEITEM item, int mode=0);
+static void CopyItem(HWND hTree, HTREEITEM item);
 static void UpdateTitle(HWND hDlg, HTREEITEM item);
 static void UpdateURL(HWND hDlg, HTREEITEM item);
 static void UpdateNick(HWND hDlg, HTREEITEM item);
 
 // Local vars
 
+static CBookmarkNode *freeNode, *freeParentNode;
 static HCURSOR hCursorDrag;
 static BOOL bDragging;
 static HWND hEditWnd;
+static BOOL bTracking;
+
+#define SEARCH_LEN 256
+static char str[SEARCH_LEN];
+static int len;
+static int pos;
+static int circling;
+
 
 static CBookmarkNode workingBookmarks; // this will hold a copy of the bookmarks for us to fuck with
 static BOOL bookmarksEdited;    // separate from gBookmarksModified - only tracks changes within edit dialog
@@ -60,6 +90,8 @@ static BOOL bookmarksEdited;    // separate from gBookmarksModified - only track
 static HTREEITEM hTBitem;   // current toolbar folder treeview item
 static HTREEITEM hNBitem;   // current new bookmark folder treeview item
 static HTREEITEM hBMitem;   // current bookmark menu folder treeview item
+static BOOL zoom;
+static BOOL maximized;
 
 // Commonly used functions
 
@@ -96,10 +128,31 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
    }
 
    BOOL fEatKeystroke = false;
+   BOOL fakedKey = false;
    HWND hasFocus = GetFocus();
    HWND hTree = GetDlgItem(hEditWnd, IDC_TREE_BOOKMARK);
 
-   if (hasFocus == hTree) {
+   if (!(hasFocus == hTree ||
+         hasFocus == GetDlgItem(hEditWnd, IDC_TITLE) ||
+         hasFocus == GetDlgItem(hEditWnd, IDC_URL) ||
+         hasFocus == GetDlgItem(hEditWnd, IDC_NICK) ||
+         hasFocus == GetDlgItem(hEditWnd, IDC_DESC) ||
+         hasFocus == GetDlgItem(hEditWnd, IDOK) ||
+         hasFocus == GetDlgItem(hEditWnd, IDCANCEL) ||
+         hasFocus == GetDlgItem(hEditWnd, ID_IMPORT_FAVORITES) ||
+         hasFocus == GetDlgItem(hEditWnd, ID_KEYBINDINGS)))
+      return  CallNextHookEx(NULL, nCode, wParam, lParam);
+
+   int searching = 0;
+
+   if (wParam == VK_ESCAPE && !bTracking) {
+      fEatKeystroke = true;
+      if (len == 0)
+         SendMessage(GetDlgItem(hEditWnd, IDCANCEL), BM_CLICK, 0, 0);
+      else
+         len = 0;
+   }
+   else if (hasFocus == hTree) {
       HTREEITEM hItem = TreeView_GetSelection(hTree);
       if (hItem) {
          switch (wParam) {
@@ -179,37 +232,322 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
                }
             }
             break;
-         case 'D':
-            if (!(GetKeyState(VK_CONTROL) & 0x80))
-               break;
+         case VK_TAB:
+            {
+               if (len > 0) {
+                  wParam = str[len-1];
+		  wParam = toupper(wParam);
+		  if (wParam == '-') wParam = VK_MINUS;
+		  if (wParam == '.') wParam = VK_PERIOD; 
+                  fakedKey = true;
+                  goto search_again;
+               }
+               int idc_next = IDC_TITLE;
+               fEatKeystroke = true;
+               if (zoom)
+                  break;
+               if (GetKeyState(VK_SHIFT) & 0x80) {
+                  idc_next = IDCANCEL;
+                  SendMessage(GetDlgItem(hEditWnd, idc_next), BM_SETSTYLE, BS_DEFPUSHBUTTON, TRUE);
+               }
+	       else if (!IsWindowEnabled(GetDlgItem(hEditWnd, IDC_TITLE))) {
+                  idc_next = ID_KEYBINDINGS;
+                  SendMessage(GetDlgItem(hEditWnd, idc_next), BM_SETSTYLE, BS_DEFPUSHBUTTON, TRUE);
+	       }
+               SetFocus(GetDlgItem(hEditWnd, idc_next));
+               if (idc_next == IDC_TITLE)
+                  SendDlgItemMessage(hEditWnd, idc_next, EM_SETSEL, 0, -1);  // select all
+            }
+            break;
          case VK_DELETE:
             fEatKeystroke = true;
-            DeleteItem(hTree, hItem);
+            if (GetKeyState(VK_SHIFT) & 0x80) {
+               // Shift delete == Cut
+               DeleteItem(hTree, hItem, CUT);
+            } else if (GetKeyState(VK_CONTROL) & 0x80) {
+               // Ctrl delete == Kill
+               DeleteItem(hTree, hItem, KILL);
+            } else {
+               // Delete == Kill
+               DeleteItem(hTree, hItem);
+            }
             break;
-         case 'N':
-            if (!(GetKeyState(VK_CONTROL) & 0x80))
-               break;
          case VK_INSERT:
             fEatKeystroke = true;
-            CreateNewObject(hTree, hItem, BOOKMARK_BOOKMARK);
-            SetFocus(GetDlgItem(hEditWnd, IDC_TITLE));
-            SendDlgItemMessage(hEditWnd, IDC_TITLE, EM_SETSEL, 0, -1);
+            if (GetKeyState(VK_SHIFT) & 0x80) {
+               // Shift insert == Paste
+               if (freeNode)
+                  CreateNewObject(hTree, hItem, freeNode->type, PASTE);
+            } else if (GetKeyState(VK_CONTROL) & 0x80) {
+               // Ctrl insert == Copy
+               CopyItem(hTree, hItem);
+            } else {
+	       CreateNewObject(hTree, hItem, BOOKMARK_BOOKMARK);
+               if (!zoom) {
+                  SetFocus(GetDlgItem(hEditWnd, IDC_TITLE));
+                  SendDlgItemMessage(hEditWnd, IDC_TITLE, EM_SETSEL, 0, -1);
+               }
+            }
+            break;
+         case ' ':
+            {
+               CBookmarkNode *node = GetBookmarkNode(hTree, hItem);
+               if (node->type == BOOKMARK_FOLDER && len == 0) {
+                  fEatKeystroke = true;
+                  TreeView_Expand(hTree, hItem, TVE_TOGGLE);
+                  break;
+               }
+            }
+            // Fall through!
+         default:
+            {
+               if (GetKeyState(VK_CONTROL) & 0x80) {
+                  switch (wParam) {
+		  case 'D':
+                  case 'X':
+                     // Ctrl X == Cut
+                     DeleteItem(hTree, hItem, CUT);
+		     fEatKeystroke = true;
+                     break;
+                  case 'C':
+                     // Ctrl C == Copy
+                     CopyItem(hTree, hItem);
+		     fEatKeystroke = true;
+                     break;
+                  case 'V':
+                     // Ctrl V == Paste
+		     if (freeNode) {
+                        CreateNewObject(hTree, hItem, freeNode->type, PASTE);
+			fEatKeystroke = true;
+		     }
+                     break;
+                  case 'N':
+		    CreateNewObject(hTree, hItem, BOOKMARK_BOOKMARK);
+		    fEatKeystroke = true;
+		    break;
+                  case 'U':
+                     len = 0;
+		     fEatKeystroke = true;
+                     break;
+                  case 'G':
+                     if (len > 0) {
+                        wParam = str[len-1];
+                        wParam = toupper(wParam);
+			if (wParam == '-') wParam = VK_MINUS;
+			if (wParam == '.') wParam = VK_PERIOD; 
+                        fakedKey = true;
+                        goto search_again;
+                     }
+                     break;
+                  }
+                  break;
+               }
+               else if (GetKeyState(VK_MENU) & 0x80) {
+                  break;
+               }
+               else {
+                  switch (wParam) {
+                  case VK_F3:
+                     if (len > 0) {
+                        wParam = str[len-1];
+                        wParam = toupper(wParam);
+			if (wParam == '-') wParam = VK_MINUS;
+			if (wParam == '.') wParam = VK_PERIOD; 
+                        fakedKey = true;
+                        goto search_again;
+                     }
+                     break;
+                  }
+               }
+
+               if (wParam == VK_BACK && len > 0) {
+                  circling = 0;
+                  len--;
+               }
+               else if ( (wParam == ' ' || 
+                          (wParam >= '0' && wParam <= '9') || 
+                          (wParam >= 'A' && wParam <= 'Z')) && 
+                         len < (SEARCH_LEN-1) ) {
+                  str[len] = tolower(wParam);
+                  len++;
+               }
+               else if ( (wParam == VK_MINUS) && 
+                         len < (SEARCH_LEN-1) ) {
+                  str[len] = '-';
+                  len++;
+               }
+               else if ( wParam == VK_PERIOD && 
+                         len < (SEARCH_LEN-1) ) {
+                  str[len] = '.';
+                  len++;
+               }
+               else
+                  break;
+
+            search_again:
+               fEatKeystroke = true;
+               searching = 1;
+               str[len] = 0;
+               if (len > 0) {
+                  CBookmarkNode *node;
+
+                  int mypos = 0;
+                  int firstpos = -1;
+                  int searchfrom = pos;
+
+                  if (len == 1 && !fakedKey) {
+                     HTREEITEM hItem = TreeView_GetSelection(hTree);
+                     node = GetBookmarkNode(hTree, hItem);
+                     if (workingBookmarks.Index(searchfrom, node) == -1)
+                        searchfrom = pos;
+                     else
+                        pos = searchfrom;
+                  }
+
+                  int newpos = workingBookmarks.Search(str, searchfrom, mypos, firstpos, &node);
+
+                  if (fakedKey || newpos == -1 || 
+                      (circling && len > 1 && str[len-1] == str[len-2])) {
+                     if (fakedKey || (len > 1 && str[len-1] == str[len-2]))
+                        searchfrom++;
+                     if (!fakedKey)
+		       len--;
+                     str[len] = 0;
+                     mypos = 0;
+                     firstpos = -1;
+                     if (len > 0) {
+                        newpos = workingBookmarks.Search(str, searchfrom, mypos, firstpos, &node);
+                        if (!fakedKey && (newpos == pos || (len > 1 && str[len-1] == str[len-2]))) {
+                           circling = 1;
+                           while (len > 1 && str[len-1] == str[len-2])
+                              len--;
+                           str[len] = 0;
+                           mypos = 0;
+                           firstpos = -1;
+                           newpos = workingBookmarks.Search(str, searchfrom, mypos, firstpos, &node);
+                        }
+                     }
+                  }
+                  else 
+                     circling = 0;
+
+                  if (newpos == -1 || len == 0) {
+                     pos = 0;
+                     len = 0;
+                     str[len] = 0;
+                     searching = 0;
+                  }
+                  else {
+                     char tmp[SEARCH_LEN+32];
+                     strcpy(tmp, "Bookmarks -- Find: \"");
+                     strcat(tmp, str);
+                     strcat(tmp, "\"");
+                     SetWindowText( hEditWnd, tmp );
+
+                     HTREEITEM hItem = TreeView_GetRoot(hTree);
+                     int i = 0;
+                     while (hItem && i < newpos) {
+                        HTREEITEM hTmp = TreeView_GetChild(hTree, hItem);
+                        if (!hTmp)
+                           hTmp = TreeView_GetNextSibling(hTree, hItem);
+                        if (!hTmp) {
+                           HTREEITEM hTmp2 = TreeView_GetParent(hTree, hItem);
+                           while (!hTmp && hTmp2) {
+                              hTmp = TreeView_GetNextSibling(hTree, hTmp2);
+                              hTmp2 = TreeView_GetParent(hTree, hTmp2);
+                           }
+                        }
+                        hItem = hTmp;
+                        i++;
+                     }
+
+                     if (hItem) {
+                        TreeView_SelectItem(hTree, hItem);
+                        TreeView_EnsureVisible(hTree, hItem);
+                     }
+
+                     pos = newpos;
+                  }
+               }
+            }
             break;
          }
       }
    }
    else if (hasFocus == GetDlgItem(hEditWnd, IDC_TITLE) && wParam == VK_RETURN) {
       fEatKeystroke = true;
-      SetFocus(GetDlgItem(hEditWnd, IDC_URL));
-      SendDlgItemMessage(hEditWnd, IDC_URL, EM_SETSEL, 0, -1);  // select all
+      if (IsWindowEnabled(GetDlgItem(hEditWnd, IDC_URL))) {
+	SetFocus(GetDlgItem(hEditWnd, IDC_URL));
+	SendDlgItemMessage(hEditWnd, IDC_URL, EM_SETSEL, 0, -1);  // select all
+      }
+      else {
+         SetFocus(GetDlgItem(hEditWnd, IDC_TREE_BOOKMARK));
+      }
    }
-   else if (hasFocus == GetDlgItem(hEditWnd, IDC_URL) && wParam == VK_RETURN) {
+   else if (hasFocus == GetDlgItem(hEditWnd, IDOK) && wParam == VK_RETURN) {
+      SendMessage(GetDlgItem(hEditWnd, IDOK), BM_CLICK, 0, 0);
+   }
+   else if (hasFocus == GetDlgItem(hEditWnd, IDCANCEL) && wParam == VK_RETURN) {
+      SendMessage(GetDlgItem(hEditWnd, IDCANCEL), BM_CLICK, 0, 0);
+   }
+   else if (hasFocus == GetDlgItem(hEditWnd, ID_KEYBINDINGS) && wParam == VK_RETURN) {
+      SendMessage(GetDlgItem(hEditWnd, ID_KEYBINDINGS), BM_CLICK, 0, 0);
+   }
+   else if (hasFocus == GetDlgItem(hEditWnd, ID_IMPORT_FAVORITES) && wParam == VK_RETURN) {
+      SendMessage(GetDlgItem(hEditWnd, ID_IMPORT_FAVORITES), BM_CLICK, 0, 0);
+   }
+   else if ((hasFocus == GetDlgItem(hEditWnd, IDC_URL) ||
+             hasFocus == GetDlgItem(hEditWnd, IDC_DESC) ||
+             hasFocus == GetDlgItem(hEditWnd, IDC_NICK)) && 
+            wParam == VK_RETURN) {
       fEatKeystroke = true;
       SetFocus(GetDlgItem(hEditWnd, IDC_TREE_BOOKMARK));
    }
-   else if (hasFocus == GetDlgItem(hEditWnd, IDC_NICK) && wParam == VK_RETURN) {
-      fEatKeystroke = true;
-      SetFocus(GetDlgItem(hEditWnd, IDC_TREE_BOOKMARK));
+   else if (wParam == VK_TAB) {
+      int fields[] = {IDC_TREE_BOOKMARK, IDC_TITLE, IDC_URL, 
+                      IDC_NICK, IDC_DESC, 
+                      ID_KEYBINDINGS, ID_IMPORT_FAVORITES, 
+		      IDOK, IDCANCEL, IDC_TREE_BOOKMARK};
+      for (int i=1; fields[i]!=IDC_TREE_BOOKMARK; i++) {
+         if (GetDlgItem(hEditWnd, fields[i]) == hasFocus) {
+            int idc_next = fields[i + ((GetKeyState(VK_SHIFT) & 0x80) ? -1 : 1)];
+            if (idc_next == IDC_TREE_BOOKMARK || 
+                idc_next == IDOK || idc_next == IDCANCEL || 
+		idc_next == ID_KEYBINDINGS || idc_next == ID_IMPORT_FAVORITES ||
+                IsWindowEnabled(GetDlgItem(hEditWnd, idc_next))) {
+               fEatKeystroke = true;
+               if (fields[i] == IDOK || fields[i] == IDCANCEL ||
+		   fields[i] == ID_KEYBINDINGS || fields[i] == ID_IMPORT_FAVORITES)
+                  SendMessage(hasFocus, BM_SETSTYLE, BS_PUSHBUTTON, TRUE);
+               if (idc_next == IDOK || idc_next == IDCANCEL ||
+		   idc_next == ID_KEYBINDINGS || idc_next == ID_IMPORT_FAVORITES)
+                  SendMessage(GetDlgItem(hEditWnd, idc_next), BM_SETSTYLE, BS_DEFPUSHBUTTON, TRUE);
+               SetFocus(GetDlgItem(hEditWnd, idc_next));
+               if (idc_next != IDC_TREE_BOOKMARK && 
+                   idc_next != IDOK && idc_next != IDCANCEL && 
+                   idc_next != ID_KEYBINDINGS && idc_next != ID_IMPORT_FAVORITES)
+                  SendDlgItemMessage(hEditWnd, idc_next, EM_SETSEL, 0, -1);  // select all
+               break;
+            }
+            else {
+               if (fields[i] == IDOK || fields[i] == IDCANCEL ||
+		   fields[i] == ID_KEYBINDINGS || fields[i] == ID_IMPORT_FAVORITES)
+                  SendMessage(hasFocus, BM_SETSTYLE, BS_PUSHBUTTON, TRUE);
+               hasFocus = GetDlgItem(hEditWnd, idc_next);
+               i = 0;
+               continue;
+            }
+         }
+      }
+   }
+
+   if ((searching == 0 || len==0) && 
+       wParam != VK_SHIFT && wParam != VK_MENU && wParam != VK_CONTROL) {
+      len = 0;
+      pos = 0;
+      str[len] = 0;
+      SetWindowText( hEditWnd, "Bookmarks" );
+      circling = 0;
    }
 
    return(fEatKeystroke ? 1 : CallNextHookEx(NULL, nCode, wParam, lParam));
@@ -261,7 +599,11 @@ INT_PTR CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
          kPlugin.kFuncs->GetPreference(PREF_INT, PREFERENCE_EDIT_DLG_TOP, &dialogtop, &dialogtop);
          kPlugin.kFuncs->GetPreference(PREF_INT, PREFERENCE_EDIT_DLG_WIDTH, &dialogwidth, &dialogwidth);
          kPlugin.kFuncs->GetPreference(PREF_INT, PREFERENCE_EDIT_DLG_HEIGHT, &dialogheight, &dialogheight);
+         kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_EDIT_ZOOM, &zoom, &zoom);
+         kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_EDIT_MAX, &maximized, &maximized);
          SetWindowPos(hDlg, 0, dialogleft, dialogtop, dialogwidth, dialogheight, 0);
+         if (maximized)
+            ShowWindow(hDlg, SW_MAXIMIZE);
 
          hHook = SetWindowsHookEx(WH_KEYBOARD, KeyboardProc, NULL, GetCurrentThreadId());
       }
@@ -282,7 +624,7 @@ INT_PTR CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                SetDlgItemText(hDlg, IDC_NICK, "");
                SetDlgItemText(hDlg, IDC_ADDED, "");
                SetDlgItemText(hDlg, IDC_LAST_VISIT, "");
-               SetDlgItemText(hDlg, IDC_OTHER, "");
+               SetDlgItemText(hDlg, IDC_DESC, "");
                EnableWindow(GetDlgItem(hDlg, IDC_STATIC_TITLE), false);
                EnableWindow(GetDlgItem(hDlg, IDC_TITLE), false);
                EnableWindow(GetDlgItem(hDlg, IDC_STATIC_URL), false);
@@ -291,7 +633,8 @@ INT_PTR CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                EnableWindow(GetDlgItem(hDlg, IDC_NICK), false);
                EnableWindow(GetDlgItem(hDlg, IDC_STATIC_ADDED), false);
                EnableWindow(GetDlgItem(hDlg, IDC_STATIC_VISITED), false);
-               EnableWindow(GetDlgItem(hDlg, IDC_STATIC_OTHER), false);
+               EnableWindow(GetDlgItem(hDlg, IDC_STATIC_DESC), false);
+               EnableWindow(GetDlgItem(hDlg, IDC_DESC), false);
                EnableWindow(GetDlgItem(hDlg, IDC_STATIC_PROPERTIES), false);
                return true;   // a lazy-man's "else"
             }
@@ -313,8 +656,11 @@ INT_PTR CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                EnableWindow(GetDlgItem(hDlg, IDC_STATIC_NICK), true);
                EnableWindow(GetDlgItem(hDlg, IDC_NICK), true);
                EnableWindow(GetDlgItem(hDlg, IDC_STATIC_VISITED), true);
+               EnableWindow(GetDlgItem(hDlg, IDC_STATIC_DESC), true);
+               EnableWindow(GetDlgItem(hDlg, IDC_DESC), true);
                SetDlgItemText(hDlg, IDC_URL, newNode->url.c_str());
                SetDlgItemText(hDlg, IDC_NICK, newNode->nick.c_str());
+               SetDlgItemText(hDlg, IDC_DESC, newNode->desc.c_str());
 
                if (newNode->lastVisit) {
                   UnixTimeToSystemTime(newNode->lastVisit, &st);
@@ -338,6 +684,9 @@ INT_PTR CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                EnableWindow(GetDlgItem(hDlg, IDC_STATIC_NICK), false);
                EnableWindow(GetDlgItem(hDlg, IDC_NICK), false);
                EnableWindow(GetDlgItem(hDlg, IDC_STATIC_VISITED), false);
+               EnableWindow(GetDlgItem(hDlg, IDC_STATIC_DESC), true);
+               EnableWindow(GetDlgItem(hDlg, IDC_DESC), true);
+               SetDlgItemText(hDlg, IDC_DESC, newNode->desc.c_str());
             }
 
             UnixTimeToSystemTime(newNode->addDate, &st);
@@ -347,25 +696,6 @@ INT_PTR CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
             GetTimeFormat(GetThreadLocale(), (DWORD) NULL, &st, NULL, pszDate, 899);
             strcat(pszTmp, pszDate);
             SetDlgItemText(hDlg, IDC_ADDED, pszTmp);
-
-            strcpy(pszTmp, "");
-            if (newNode->flags & BOOKMARK_FLAG_TB) {
-               strcat(pszTmp, "Toolbar Folder\n");
-            }
-            if (newNode->flags & BOOKMARK_FLAG_NB) {
-               strcat(pszTmp, "New Bookmarks Folder\n");
-            }
-            if (newNode->flags & BOOKMARK_FLAG_BM) {
-               strcat(pszTmp, "Bookmark Menu\n");
-            }
-            if (pszTmp[0]) {
-               EnableWindow(GetDlgItem(hDlg, IDC_STATIC_OTHER), true);
-               SetDlgItemText(hDlg, IDC_OTHER, pszTmp);
-            }
-            else {
-               EnableWindow(GetDlgItem(hDlg, IDC_STATIC_OTHER), false);
-               SetDlgItemText(hDlg, IDC_OTHER, "");
-            }
          }
          // start a drag operation
          else if (nmtv->hdr.code == (UINT) TVN_BEGINDRAG){
@@ -392,17 +722,6 @@ INT_PTR CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                   kPlugin.kFuncs->NavigateTo(node->url.c_str(), OPEN_NORMAL);
                   TreeView_SelectItem(hTree, hItem);  // just to fire off a SELCHANGED notifier to update the status (last visited!)
 
-// don't necessarily want to exit, here...
-//                  if (bookmarksEdited && MessageBox(hDlg, BOOKMARKS_SAVE_CHANGES, PLUGIN_NAME, MB_YESNO) == IDYES) {
-//                     // save the changes
-//                     gBookmarkRoot = workingBookmarks;
-//                     Save(gBookmarkFile);
-//                     UnhookWindowsHookEx(hHook);
-//                     EndDialog(hDlg, 1);
-//                     return true;
-//                  }
-//                  UnhookWindowsHookEx(hHook);
-//                  EndDialog(hDlg, 0);
                   return true;
                }
             }
@@ -615,23 +934,33 @@ INT_PTR CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                   Rebuild();
                }
 
-               RECT DlgPos;
-               GetWindowRect(hDlg, &DlgPos);
-               kPlugin.kFuncs->SetPreference(PREF_INT, PREFERENCE_EDIT_DLG_LEFT, &DlgPos.left);
-               kPlugin.kFuncs->SetPreference(PREF_INT, PREFERENCE_EDIT_DLG_TOP, &DlgPos.top);
-               int temp;
-               temp = DlgPos.right - DlgPos.left;
-               kPlugin.kFuncs->SetPreference(PREF_INT, PREFERENCE_EDIT_DLG_WIDTH, &temp);
-               temp = DlgPos.bottom - DlgPos.top;
-               kPlugin.kFuncs->SetPreference(PREF_INT, PREFERENCE_EDIT_DLG_HEIGHT, &temp);
+               WINDOWPLACEMENT wp;
+               wp.length = sizeof(wp);
+               GetWindowPlacement(hDlg, &wp);
 
+               kPlugin.kFuncs->SetPreference(PREF_INT, PREFERENCE_EDIT_DLG_LEFT, &wp.rcNormalPosition.left);
+               kPlugin.kFuncs->SetPreference(PREF_INT, PREFERENCE_EDIT_DLG_TOP, &wp.rcNormalPosition.top);
+               int temp;
+               temp = wp.rcNormalPosition.right - wp.rcNormalPosition.left;
+               kPlugin.kFuncs->SetPreference(PREF_INT, PREFERENCE_EDIT_DLG_WIDTH, &temp);
+               temp = wp.rcNormalPosition.bottom - wp.rcNormalPosition.top;
+               kPlugin.kFuncs->SetPreference(PREF_INT, PREFERENCE_EDIT_DLG_HEIGHT, &temp);
+               kPlugin.kFuncs->SetPreference(PREF_BOOL, PREFERENCE_EDIT_ZOOM, &zoom);
+               temp = (wp.showCmd == SW_SHOWMAXIMIZED);
+               kPlugin.kFuncs->SetPreference(PREF_BOOL, PREFERENCE_EDIT_MAX, &temp);
 
                UnhookWindowsHookEx(hHook);
+               if (hWndFront)
+                  PostMessage(hWndFront, WM_COMMAND, wm_deferbringtotop, (LPARAM) NULL);
+               ghWndEdit = NULL;
                EndDialog(hDlg, 1);
                break;
 
             case IDCANCEL:
                UnhookWindowsHookEx(hHook);
+               if (hWndFront)
+                  PostMessage(hWndFront, WM_COMMAND, wm_deferbringtotop, (LPARAM) NULL);
+               ghWndEdit = NULL;
                EndDialog(hDlg, 0);
                break;
 
@@ -955,7 +1284,7 @@ static void MoveItem(HWND hTree, HTREEITEM item, int mode) {
    }
 }
 
-static void CreateNewObject(HWND hTree, HTREEITEM fromItem, int type) {
+static void CreateNewObject(HWND hTree, HTREEITEM fromItem, int type, int mode) {
    CBookmarkNode *newNode;
 
    TVINSERTSTRUCT tvis;
@@ -963,19 +1292,19 @@ static void CreateNewObject(HWND hTree, HTREEITEM fromItem, int type) {
 
    switch (type) {
    case BOOKMARK_BOOKMARK:
-      newNode = new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), "New Bookmark", "http://kmeleon.sourceforge.net/", "", "", BOOKMARK_BOOKMARK, time(NULL));
+      newNode = new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), "New Bookmark", "http://kmeleon.sourceforge.net/", "", "", "", BOOKMARK_BOOKMARK, time(NULL));
       tvis.itemex.pszText = "New Bookmark";
       tvis.itemex.iImage = IMAGE_BOOKMARK;
       tvis.itemex.iSelectedImage = IMAGE_BOOKMARK;
       break;
    case BOOKMARK_FOLDER:
-      newNode = new CBookmarkNode(0, "New Folder", "", "", "", BOOKMARK_FOLDER, time(NULL));
+      newNode = new CBookmarkNode(0, "New Folder", "", "", "", "", BOOKMARK_FOLDER, time(NULL));
       tvis.itemex.pszText = "New Folder";
       tvis.itemex.iImage = IMAGE_FOLDER_CLOSED;
       tvis.itemex.iSelectedImage = IMAGE_FOLDER_OPEN;
       break;
    case BOOKMARK_SEPARATOR:
-      newNode = new CBookmarkNode(0, "", "", "", "", BOOKMARK_SEPARATOR);
+      newNode = new CBookmarkNode(0, "", "", "", "", "", BOOKMARK_SEPARATOR);
       tvis.itemex.pszText = "---";
       tvis.itemex.iImage = IMAGE_BLANK;
       tvis.itemex.iSelectedImage = IMAGE_BLANK;
@@ -1065,7 +1394,20 @@ static void ChangeSpecialFolder(HWND hTree, HTREEITEM *htiOld, HTREEITEM htiNew,
    *htiOld = htiNew;
 }
 
-static void DeleteItem(HWND hTree, HTREEITEM item) {
+static void CopyItem(HWND hTree, HTREEITEM item) {
+   CBookmarkNode *node = GetBookmarkNode(hTree, item);
+   HTREEITEM parent = TreeView_GetParent(hTree, item);
+   if (parent) {
+      if (freeNode && freeParentNode)
+         freeParentNode->DeleteNode(freeNode);
+      
+      freeNode = new CBookmarkNode();
+      *freeNode = *node;
+      freeParentNode = GetBookmarkNode(hTree, parent);
+   }
+}
+
+static void DeleteItem(HWND hTree, HTREEITEM item, int mode) {
    CBookmarkNode *node, *parentNode;
 
    node = GetBookmarkNode(hTree, item);
@@ -1148,6 +1490,7 @@ static void UpdateNick(HWND hDlg, HTREEITEM item) {
    }
 }
 
+
 static void OnRClick(HWND hTree)
 {
    POINT mouse;
@@ -1164,7 +1507,39 @@ static void OnRClick(HWND hTree)
 
       HMENU topMenu = LoadMenu(kPlugin.hDllInstance, MAKEINTRESOURCE(IDR_CONTEXTMENU));
       HMENU contextMenu = GetSubMenu(topMenu, 0);
+
+      CBookmarkNode *node = GetBookmarkNode(hTree, hItem);
+      if (node && node->type != BOOKMARK_FOLDER) {
+         HTREEITEM htiParent = TreeView_GetParent(hTree, hItem);
+         if (htiParent)
+            node = GetBookmarkNode(hTree, htiParent);
+         else 
+            node = NULL;
+      }
+      
+      if (node && (node->flags & BOOKMARK_FLAG_TB))
+         CheckMenuItem(contextMenu, ID__SETAS_TOOLBARFOLDER, MF_BYCOMMAND | MF_CHECKED);
+      else
+         CheckMenuItem(contextMenu, ID__SETAS_TOOLBARFOLDER, MF_BYCOMMAND | MF_UNCHECKED);
+      if (node && (node->flags & BOOKMARK_FLAG_BM))
+         CheckMenuItem(contextMenu, ID__SETAS_BOOKMARKMENU, MF_BYCOMMAND | MF_CHECKED);
+      else
+         CheckMenuItem(contextMenu, ID__SETAS_BOOKMARKMENU, MF_BYCOMMAND | MF_UNCHECKED);
+      if (node && (node->flags & BOOKMARK_FLAG_NB))
+         CheckMenuItem(contextMenu, ID__SETAS_NEWBOOKMARKFOLDER, MF_BYCOMMAND | MF_CHECKED);
+      else
+         CheckMenuItem(contextMenu, ID__SETAS_NEWBOOKMARKFOLDER, MF_BYCOMMAND | MF_UNCHECKED);
+
+      MENUITEMINFO minfo = {0};
+      minfo.cbSize = sizeof(MENUITEMINFO);
+      minfo.fMask = MIIM_STRING;
+      minfo.dwTypeData = (char*) (zoom ? "Show properties" : "Hide properties");
+      minfo.cch = strlen((char*)minfo.dwTypeData);
+      SetMenuItemInfo(contextMenu, ID__ZOOM, FALSE, (LPMENUITEMINFO) &minfo);
+      
+      bTracking = TRUE;
       int command = TrackPopupMenu(contextMenu, TPM_RIGHTBUTTON | TPM_LEFTALIGN | TPM_RETURNCMD, mouse.x, mouse.y, 0, hTree, NULL);
+      bTracking = FALSE;
 
       switch (command) {
       case ID__OPEN:
@@ -1250,6 +1625,17 @@ static void OnRClick(HWND hTree)
             bookmarksEdited = true;
          }
          break;
+      case ID__ZOOM:
+         {
+            zoom = !zoom;
+
+            RECT rect;
+            GetClientRect(hEditWnd, &rect);            
+            OnSize(rect.bottom, rect.right);
+
+            TreeView_SelectItem(hTree, hItem);  // just to fire off a SELCHANGED notifier
+         }
+	 break;
       }
    }
 }
@@ -1265,7 +1651,7 @@ static void OnRClick(HWND hTree)
 #define EDITBOXES_TOP 85
 #define EDITBOXES_HEIGHT 12
 #define DATES_WIDTH 78
-#define OTHER_WIDTH 25
+#define DESC_WIDTH 25
 #define NICK_WIDTH 25
 
 #define convX(x) MulDiv((int)(x), buX, 4)
@@ -1279,36 +1665,61 @@ static void OnSize(int height, int width) {
    buY = rc.bottom;
    buX = rc.right;
 
-   // move help button
-   SetWindowPos(GetDlgItem(hEditWnd, ID_KEYBINDINGS), 0, BORDER, height-BORDER-convY(BUTTON_HEIGHT), 0, 0, SWP_NOSIZE);
-   // move import favorites button
-   SetWindowPos(GetDlgItem(hEditWnd, ID_IMPORT_FAVORITES), 0, BORDER*2+convX(HELP_WIDTH), height-BORDER-convY(BUTTON_HEIGHT), 0, 0, SWP_NOSIZE);
-   // move ok button
-   SetWindowPos(GetDlgItem(hEditWnd, IDOK), 0, width-BORDER*2-convX(CANCEL_WIDTH+OK_WIDTH), height-BORDER-convY(BUTTON_HEIGHT), 0, 0, SWP_NOSIZE);
+   // resize tree
+   SetWindowPos(GetDlgItem(hEditWnd, IDC_TREE_BOOKMARK), 0, 
+		zoom ? 0 : BORDER, 
+		zoom ? 0 : BORDER, 
+		zoom ? width : width-(BORDER*2), 
+		zoom ? height : height-BORDER*4-convY(BUTTON_HEIGHT+PROPERTIES_HEIGHT), 
+		0);
+
    // move cancel button
-   SetWindowPos(GetDlgItem(hEditWnd, IDCANCEL), 0, width-BORDER-convX(CANCEL_WIDTH), height-BORDER-convY(BUTTON_HEIGHT), 0, 0, SWP_NOSIZE);
+   SetWindowPos(GetDlgItem(hEditWnd, IDCANCEL), 0, 
+		width-BORDER-convX(CANCEL_WIDTH), 
+		zoom ? height + BORDER : height-BORDER-convY(BUTTON_HEIGHT), 
+		0, 0, SWP_NOSIZE);
+
+   // move ok button
+   SetWindowPos(GetDlgItem(hEditWnd, IDOK), 0, 
+		width-BORDER*2-convX(CANCEL_WIDTH+OK_WIDTH), 
+		zoom ? height + BORDER : height-BORDER-convY(BUTTON_HEIGHT), 
+		0, 0, SWP_NOSIZE);
+
+   // move import favorites button
+   SetWindowPos(GetDlgItem(hEditWnd, ID_IMPORT_FAVORITES), 0, 
+		BORDER*2+convX(HELP_WIDTH), 
+		zoom ? height + BORDER : height-BORDER-convY(BUTTON_HEIGHT), 
+		0, 0, SWP_NOSIZE);
+
+   // move help button
+   SetWindowPos(GetDlgItem(hEditWnd, ID_KEYBINDINGS), 0, 
+		BORDER, 
+		zoom ? height + BORDER : height-BORDER-convY(BUTTON_HEIGHT), 
+		0, 0, SWP_NOSIZE);
 
    // move/resize properties box
-   SetWindowPos(GetDlgItem(hEditWnd, IDC_STATIC_PROPERTIES), 0, BORDER, height-BORDER*2-convY(BUTTON_HEIGHT+PROPERTIES_HEIGHT), width-BORDER*2, convY(PROPERTIES_HEIGHT), 0);
-
-   // resize tree
-   SetWindowPos(GetDlgItem(hEditWnd, IDC_TREE_BOOKMARK), 0, BORDER, BORDER, width-(BORDER*2), height-BORDER*4-convY(BUTTON_HEIGHT+PROPERTIES_HEIGHT), 0);
+   SetWindowPos(GetDlgItem(hEditWnd, IDC_STATIC_PROPERTIES), 0, 
+		BORDER, 
+		zoom ? height + BORDER : height-BORDER*2-convY(BUTTON_HEIGHT+PROPERTIES_HEIGHT), 
+		width-BORDER*2, 
+		convY(PROPERTIES_HEIGHT), 
+		0);
 
    // move/resize properties widgets
-   SetWindowPos(GetDlgItem(hEditWnd, IDC_STATIC_TITLE), 0, BORDER*2, height-convY(EDITBOXES_TOP), 0, 0, SWP_NOSIZE);
-   SetWindowPos(GetDlgItem(hEditWnd, IDC_TITLE), 0, convX(EDITBOXES_LEFT), height-convY(EDITBOXES_TOP)-2, width-convX(EDITBOXES_LEFT)-BORDER*2, convY(EDITBOXES_HEIGHT), 0);
-   SetWindowPos(GetDlgItem(hEditWnd, IDC_STATIC_URL), 0, BORDER*2, height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*1.25), 0, 0, SWP_NOSIZE);
-   SetWindowPos(GetDlgItem(hEditWnd, IDC_URL), 0, convX(EDITBOXES_LEFT), height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*1.25)-2, width-convX(EDITBOXES_LEFT)-BORDER*2, convY(EDITBOXES_HEIGHT), 0);
-   SetWindowPos(GetDlgItem(hEditWnd, IDC_STATIC_ADDED), 0, BORDER*2, height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*2.5), 0, 0, SWP_NOSIZE);
-   SetWindowPos(GetDlgItem(hEditWnd, IDC_ADDED), 0, convX(EDITBOXES_LEFT)+5, height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*2.5), convX(DATES_WIDTH), convY(EDITBOXES_HEIGHT), 0);
-   SetWindowPos(GetDlgItem(hEditWnd, IDC_STATIC_VISITED), 0, BORDER*2, height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*3.75), 0, 0, SWP_NOSIZE);
-   SetWindowPos(GetDlgItem(hEditWnd, IDC_LAST_VISIT), 0, convX(EDITBOXES_LEFT)+5, height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*3.75), convX(DATES_WIDTH), convY(EDITBOXES_HEIGHT), 0);
+   SetWindowPos(GetDlgItem(hEditWnd, IDC_STATIC_TITLE), 0, BORDER*2, zoom ? height + BORDER : height-convY(EDITBOXES_TOP), 0, 0, SWP_NOSIZE);
+   SetWindowPos(GetDlgItem(hEditWnd, IDC_TITLE), 0, convX(EDITBOXES_LEFT), zoom ? height + BORDER : height-convY(EDITBOXES_TOP)-2, width-convX(EDITBOXES_LEFT)-BORDER*2, convY(EDITBOXES_HEIGHT), 0);
+   SetWindowPos(GetDlgItem(hEditWnd, IDC_STATIC_URL), 0, BORDER*2, zoom ? height + BORDER : height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*1.25), 0, 0, SWP_NOSIZE);
+   SetWindowPos(GetDlgItem(hEditWnd, IDC_URL), 0, convX(EDITBOXES_LEFT), zoom ? height + BORDER : height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*1.25)-2, width-convX(EDITBOXES_LEFT)-BORDER*2, convY(EDITBOXES_HEIGHT), 0);
+   SetWindowPos(GetDlgItem(hEditWnd, IDC_STATIC_ADDED), 0, BORDER*2, zoom ? height + BORDER : height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*2.5), 0, 0, SWP_NOSIZE);
+   SetWindowPos(GetDlgItem(hEditWnd, IDC_ADDED), 0, convX(EDITBOXES_LEFT)+5, zoom ? height + BORDER : height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*2.5), convX(DATES_WIDTH), convY(EDITBOXES_HEIGHT), 0);
+   SetWindowPos(GetDlgItem(hEditWnd, IDC_STATIC_VISITED), 0, BORDER*2, zoom ? height + BORDER : height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*3.75), 0, 0, SWP_NOSIZE);
+   SetWindowPos(GetDlgItem(hEditWnd, IDC_LAST_VISIT), 0, convX(EDITBOXES_LEFT)+5, zoom ? height + BORDER : height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*3.75), convX(DATES_WIDTH), convY(EDITBOXES_HEIGHT), 0);
 
-   SetWindowPos(GetDlgItem(hEditWnd, IDC_STATIC_OTHER), 0, convX(EDITBOXES_LEFT+DATES_WIDTH)+BORDER, height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*2.5), 0, 0, SWP_NOSIZE);
-   SetWindowPos(GetDlgItem(hEditWnd, IDC_OTHER), 0, convX(EDITBOXES_LEFT+DATES_WIDTH+OTHER_WIDTH)+BORDER, height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*2.5), width-convX(EDITBOXES_LEFT+DATES_WIDTH+OTHER_WIDTH)-BORDER*3, convY(EDITBOXES_HEIGHT), 0);
+   SetWindowPos(GetDlgItem(hEditWnd, IDC_STATIC_NICK), 0, convX(EDITBOXES_LEFT+DATES_WIDTH)+BORDER, zoom ? height + BORDER : height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*2.5), 0, 0, SWP_NOSIZE);
+   SetWindowPos(GetDlgItem(hEditWnd, IDC_NICK), 0, convX(EDITBOXES_LEFT+DATES_WIDTH+NICK_WIDTH)+BORDER, zoom ? height + BORDER : height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*2.5), width-convX(EDITBOXES_LEFT+DATES_WIDTH+NICK_WIDTH)-BORDER*3, convY(EDITBOXES_HEIGHT), 0);
 
-   SetWindowPos(GetDlgItem(hEditWnd, IDC_STATIC_NICK), 0, convX(EDITBOXES_LEFT+DATES_WIDTH)+BORDER, height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*3.75), 0, 0, SWP_NOSIZE);
-   SetWindowPos(GetDlgItem(hEditWnd, IDC_NICK), 0, convX(EDITBOXES_LEFT+DATES_WIDTH+NICK_WIDTH)+BORDER, height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*3.75)-2, width-convX(EDITBOXES_LEFT+DATES_WIDTH+NICK_WIDTH)-BORDER*3, convY(EDITBOXES_HEIGHT), 0);
+   SetWindowPos(GetDlgItem(hEditWnd, IDC_STATIC_DESC), 0, convX(EDITBOXES_LEFT+DATES_WIDTH)+BORDER, zoom ? height + BORDER : height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*3.75), 0, 0, SWP_NOSIZE);
+   SetWindowPos(GetDlgItem(hEditWnd, IDC_DESC), 0, convX(EDITBOXES_LEFT+DATES_WIDTH+DESC_WIDTH)+BORDER, zoom ? height + BORDER : height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*3.75)-2, width-convX(EDITBOXES_LEFT+DATES_WIDTH+DESC_WIDTH)-BORDER*3, convY(EDITBOXES_HEIGHT), 0);
 
    // eliminate those ugly artifacts (that show up on my machine, at least...)
    InvalidateRgn(hEditWnd, NULL, FALSE);
@@ -1335,6 +1746,7 @@ static void ImportFavorites(HWND hTree) {
 
    long rslt = ERROR_SUCCESS;
 
+#ifndef __MINGW32__
    // first try the correct way
    if (SHGetSpecialFolderLocation(NULL, CSIDL_FAVORITES, &idl) == NOERROR) {
       IMalloc *malloc;
@@ -1343,7 +1755,9 @@ static void ImportFavorites(HWND hTree) {
       malloc->Free(idl);
       malloc->Release();
    }  
-   else {
+   else 
+#endif
+   {
       // if the correct way failed, find out from the registry where the favorites are located.
       if(RegOpenKey(HKEY_CURRENT_USER, REG_USER_SHELL_FOLDERS, &hKey) == ERROR_SUCCESS) {
          dwSize = MAX_PATH;
@@ -1389,7 +1803,7 @@ static void ImportFavorites(HWND hTree) {
 /* new */
 
    // make new node for favorites (child off of WorkingBookmarks)
-   CBookmarkNode *newFavoritesNode = new CBookmarkNode(0, "Imported Favorites", "", "", "", BOOKMARK_FOLDER, time(NULL));
+   CBookmarkNode *newFavoritesNode = new CBookmarkNode(0, "Imported Favorites", "", "", "", "", BOOKMARK_FOLDER, time(NULL));
    workingBookmarks.AddChild(newFavoritesNode);
 
    BuildFavoritesTree(FavoritesPath, "", newFavoritesNode);
@@ -1447,7 +1861,7 @@ static void BuildFavoritesTree(TCHAR *FavoritesPath, char* strPath, CBookmarkNod
          strcat(subPath, "/");
 
          // make new node for favorites (child off of our current node)
-         CBookmarkNode *newFavoritesChildNode = new CBookmarkNode(0, wfd.cFileName, "", "", "", BOOKMARK_FOLDER, time(NULL));
+         CBookmarkNode *newFavoritesChildNode = new CBookmarkNode(0, wfd.cFileName, "", "", "", "", BOOKMARK_FOLDER, time(NULL));
          newFavoritesNode->AddChild(newFavoritesChildNode);
 
          // build the tree for this directory
@@ -1484,7 +1898,7 @@ static void BuildFavoritesTree(TCHAR *FavoritesPath, char* strPath, CBookmarkNod
             GetPrivateProfileString(_T("InternetShortcut"), _T("URL"), _T(""), url, INTERNET_MAX_URL_LENGTH, path);
 
             // insert node
-            newFavoritesNode->AddChild(new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), wfd.cFileName, url, "", "", BOOKMARK_BOOKMARK, time(NULL)));
+            newFavoritesNode->AddChild(new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), wfd.cFileName, url, "", "", "", BOOKMARK_BOOKMARK, time(NULL)));
 
             delete pszTemp;
             delete [] urlFile;

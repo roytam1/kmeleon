@@ -18,6 +18,13 @@
 // ns_bookmarks.cpp : Plugin that supports netscape-style boomarks
 //
 
+#ifdef __MINGW32__
+#  define _WIN32_IE 0x0500
+#  include <windows.h>
+#  include <commctrl.h>
+#  include "../missing.h"
+#endif
+
 #include "stdafx.h"
 #include "resource.h"
 
@@ -42,6 +49,7 @@ UINT nAddToolbarCommand;
 UINT nEditCommand;
 UINT nDropdownCommand;
 UINT nFirstBookmarkPosition;
+UINT wm_deferbringtotop;
 
 CHAR gBookmarkFile[MAX_PATH];
 CHAR gToolbarFolder[MAX_PATH];
@@ -52,6 +60,8 @@ HIMAGELIST gImagelist; // the one and only imagelist...
 
 HMENU gMenuBookmarks;
 HWND ghWndTB;
+HWND hWndFront;
+HWND ghWndEdit;
 
 BOOL gBookmarksModified = false;
 BOOL gGeneratedByUs = false;
@@ -65,7 +75,7 @@ int gMaxTBSize;
 
 WNDPROC KMeleonWndProc;
 
-CBookmarkNode gBookmarkRoot(0, "", "", "", "", BOOKMARK_FOLDER, 0);
+CBookmarkNode gBookmarkRoot(0, "", "", "", "", "", BOOKMARK_FOLDER, 0);
 
 long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2);
 
@@ -167,6 +177,7 @@ int Init(){
    nAddLinkCommand = kPlugin.kFuncs->GetCommandIDs(1);
    nEditCommand = kPlugin.kFuncs->GetCommandIDs(1);
    nDropdownCommand = kPlugin.kFuncs->GetCommandIDs(1);
+   wm_deferbringtotop = kPlugin.kFuncs->GetCommandIDs(1);
 
    kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_BOOKMARK_FILE, gBookmarkFile, (char*)"");
 

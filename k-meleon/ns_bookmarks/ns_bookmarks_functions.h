@@ -40,6 +40,7 @@ void BuildRebar(HWND hWndTB);
 void Rebuild();
 int addLink(char *url, char *title, int flag);
 void findNick(char *nick, char *url);
+char *stristr(const char *String, const char *Pattern);
 
 #define MENU_TO_COMMAND(x) (x+SUBMENU_OFFSET)
 #define COMMAND_TO_MENU(x) (HMENU)(x-SUBMENU_OFFSET)
@@ -50,6 +51,8 @@ extern HIMAGELIST gImagelist;
 
 extern HMENU gMenuBookmarks;
 extern HWND ghWndTB;
+extern HWND hWndFront;
+extern HWND ghWndEdit;
 
 extern UINT nConfigCommand;
 extern UINT nAddCommand;
@@ -58,6 +61,7 @@ extern UINT nAddToolbarCommand;
 extern UINT nEditCommand;
 extern UINT nDropdownCommand;
 extern UINT nFirstBookmarkPosition;
+extern UINT wm_deferbringtotop;
 
 extern CHAR gBookmarkFile[];
 extern CHAR gToolbarFolder[];
