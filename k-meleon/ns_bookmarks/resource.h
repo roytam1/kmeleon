@@ -10,6 +10,8 @@
 #define IDC_REBARENABLED                1000
 #define IDC_TREE_BOOKMARK               1034
 #define IDC_EDIT_URL                    1035
+#define IDC_BOOKMARKS_FILE              1039
+#define IDC_BROWSE                      1040
 #define ID_BOOKMARK_DELETE              32791
 #define ID_SET_TOOLBAR_FOLDER           32792
 
@@ -18,9 +20,9 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        164
+#define _APS_NEXT_RESOURCE_VALUE        165
 #define _APS_NEXT_COMMAND_VALUE         32793
-#define _APS_NEXT_CONTROL_VALUE         1039
+#define _APS_NEXT_CONTROL_VALUE         1042
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
