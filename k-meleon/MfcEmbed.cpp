@@ -1064,6 +1064,9 @@ NS_IMETHODIMP CMfcEmbedApp::CreateChromeWindow(nsIWebBrowserChrome *parent,
                                                PRUint32 chromeFlags,
                                                nsIWebBrowserChrome **_retval)
 {
+    if (theApp.preferences.GetBool("kmeleon.general.BlockAllChromeWindows", false))
+        return NS_ERROR_FAILURE;
+
    // XXX we're ignoring the "parent" parameter
    NS_ENSURE_ARG_POINTER(_retval);
    *_retval = 0;
