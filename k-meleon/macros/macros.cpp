@@ -20,8 +20,8 @@
 #include <windows.h>
 
 #define KMELEON_PLUGIN_EXPORTS
-#include "kmeleon_plugin.h"
-#include "utils.h"
+#include "..\kmeleon_plugin.h"
+#include "..\utils.h"
 
 
 #define NOTFOUND -1

@@ -18,7 +18,7 @@
 
 #include "fullscreen.h"
 #include "resource.h"
-#include "KmeleonConst.h"
+#include "..\KmeleonConst.h"
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -30,7 +30,7 @@
 #define _T(x) x
 
 #define KMELEON_PLUGIN_EXPORTS
-#include "kmeleon_plugin.h"
+#include "..\kmeleon_plugin.h"
 
 
 int Init();
