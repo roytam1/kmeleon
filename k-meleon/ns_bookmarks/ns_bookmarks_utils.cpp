@@ -185,23 +185,27 @@ int GlobalReplace(char *str, char *a, char *b) {
 
 char *EncodeString(const char *str) {
   char *pszStr = (char *)malloc(strlen(str) + INTERNET_MAX_URL_LENGTH);
-  strcpy(pszStr, str);
-  GlobalReplace(pszStr, "&",  "&amp;");
-  GlobalReplace(pszStr, "<",  "&lt;");
-  GlobalReplace(pszStr, ">",  "&gt;");
-  GlobalReplace(pszStr, "\"", "&quot;");
-  GlobalReplace(pszStr, "\'", "&apos;");
+  if (pszStr) {
+    strcpy(pszStr, str);
+    GlobalReplace(pszStr, "&",  "&amp;");
+    GlobalReplace(pszStr, "<",  "&lt;");
+    GlobalReplace(pszStr, ">",  "&gt;");
+    GlobalReplace(pszStr, "\"", "&quot;");
+    GlobalReplace(pszStr, "\'", "&apos;");
+  }
   return pszStr;
 }
 
 char *DecodeString(const char *str) {
   char *pszStr = (char *)malloc(strlen(str) + INTERNET_MAX_URL_LENGTH);
-  strcpy(pszStr, str);
-  GlobalReplace(pszStr, "&amp;",  "&");
-  GlobalReplace(pszStr, "&lt;",   "<");
-  GlobalReplace(pszStr, "&gt;",   ">");
-  GlobalReplace(pszStr, "&quot;", "\"");
-  GlobalReplace(pszStr, "&apos;", "\'");
+  if (pszStr) {
+    strcpy(pszStr, str);
+    GlobalReplace(pszStr, "&amp;",  "&");
+    GlobalReplace(pszStr, "&lt;",   "<");
+    GlobalReplace(pszStr, "&gt;",   ">");
+    GlobalReplace(pszStr, "&quot;", "\"");
+    GlobalReplace(pszStr, "&apos;", "\'");
+  }
   return pszStr;
 }
 
@@ -220,6 +224,7 @@ static void SaveBookmarks(FILE *bmFile, CBookmarkNode *node)
    for (child=node->child; child; child=child->next) {
       type = child->type;
       if (type == BOOKMARK_FOLDER){
+         char *psz;
          char szFolderFlags[256] = {0};
          if (child->flags & BOOKMARK_FLAG_GRP)
             strcat(szFolderFlags, "FOLDER_GROUP=\"true\" ");
@@ -229,9 +234,16 @@ static void SaveBookmarks(FILE *bmFile, CBookmarkNode *node)
             strcat(szFolderFlags, "NEWITEMHEADER ");
          if (child->flags & BOOKMARK_FLAG_BM)
             strcat(szFolderFlags, "MENUHEADER ");
-         fprintf(bmFile, "%s<DT><H3 %sADD_DATE=\"%d\">%s</H3>\n", szSpacer, szFolderFlags, child->addDate, child->text.c_str());
-         if (child->desc.c_str() != NULL && *(child->desc.c_str()) != 0)
-            fprintf(bmFile, "%s<DD>%s\n", szSpacer, child->desc.c_str());
+         psz = EncodeString(child->text.c_str());
+         fprintf(bmFile, "%s<DT><H3 %sADD_DATE=\"%d\">%s</H3>\n", szSpacer, szFolderFlags, child->addDate, psz ? psz : "");
+         if (psz) 
+            free(psz);
+         if (child->desc.c_str() != NULL && *(child->desc.c_str()) != 0) {
+            psz = EncodeString(child->desc.c_str());
+            fprintf(bmFile, "%s<DD>%s\n", szSpacer, psz ? psz : "");
+            if (psz) 
+               free(psz);
+         }
 
          if (strlen(szSpacer) < MAXSPACER) szSpacer[strlen(szSpacer)] = ' ';   // add a space
          SaveBookmarks(bmFile, child);
@@ -241,23 +253,31 @@ static void SaveBookmarks(FILE *bmFile, CBookmarkNode *node)
          fprintf(bmFile, "%s<HR>\n", szSpacer);
       }
       else if (type == BOOKMARK_BOOKMARK) {
+         char *psz;
          fprintf(bmFile, "%s<DT><A", szSpacer);
-         char *pszUrl = EncodeString(child->url.c_str());
-         fprintf(bmFile, " HREF=\"%s\"", pszUrl);
-	 free(pszUrl);
+         psz = EncodeString(child->url.c_str());
+         fprintf(bmFile, " HREF=\"%s\"", psz ? psz : "");
+         if (psz) 
+            free(psz);
          fprintf(bmFile, " ADD_DATE=\"%d\"", child->addDate);
          fprintf(bmFile, " LAST_VISIT=\"%d\"", child->lastVisit);
          fprintf(bmFile, " LAST_MODIFIED=\"%d\"", child->lastModified);
-         char *psz;
          psz = (char *) child->nick.c_str();
          if (psz && *psz)
             fprintf(bmFile, " SHORTCUTURL=\"%s\"", psz);
          psz = (char *) child->charset.c_str();
          if (psz && *psz)
             fprintf(bmFile, " LAST_CHARSET=\"%s\"", psz);
-         fprintf(bmFile, ">%s</A>\n", child->text.c_str());
-         if (child->desc.c_str() != NULL && *(child->desc.c_str()) != 0)
-            fprintf(bmFile, "%s<DD>%s\n", szSpacer, child->desc.c_str());
+         psz = EncodeString(child->text.c_str());
+         fprintf(bmFile, ">%s</A>\n", psz ? psz : "");
+         if (psz) 
+            free(psz);
+         if (child->desc.c_str() != NULL && *(child->desc.c_str()) != 0) {
+            psz = EncodeString(child->desc.c_str());
+            fprintf(bmFile, "%s<DD>%s\n", szSpacer, psz ? psz : "");
+            if (psz) 
+               free(psz);
+         }
       }
       // if it falls through, there's a problem, but we'll just ignore it for now.
    }
@@ -369,8 +389,11 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
             addDate = atol(d);
          }
 
-         CBookmarkNode * newNode = new CBookmarkNode(0, name, "", "", "", "", BOOKMARK_FOLDER, addDate);
+         char *pszTxt = DecodeString(name);
+         CBookmarkNode * newNode = new CBookmarkNode(0, pszTxt, "", "", "", "", BOOKMARK_FOLDER, addDate);
          node.AddChild(newNode);
+         if (pszTxt)
+            free(pszTxt);
          lastNode = newNode;
 
          ParseBookmarks(end, *newNode);
@@ -481,9 +504,13 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
             name = url;
 
          char *pszUrl = DecodeString(url);
-         lastNode = new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), name, pszUrl, nick, NULL, charset, BOOKMARK_BOOKMARK, addDate, lastVisit, lastModified);
+         char *pszTxt = DecodeString(name);
+         lastNode = new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), pszTxt, pszUrl, nick, NULL, charset, BOOKMARK_BOOKMARK, addDate, lastVisit, lastModified);
          node.AddChild(lastNode);
-	 free(pszUrl);
+         if (pszUrl)
+            free(pszUrl);
+         if (pszTxt)
+            free(pszTxt);
          
          if (nick)
             free(nick);
@@ -513,7 +540,10 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
          while (*e && *e!='\n')
             e++;
          *e = 0;
-         lastNode->desc = t+4;
+         e = DecodeString(t+4);
+         lastNode->desc = e ? e : "";
+         if (e)
+            free(e);
       }
       else if (strstr(p, KMELEON_TAG) != NULL) {
          gGeneratedByUs = true;
@@ -732,8 +762,13 @@ int addLink(char *url, char *title, int flag)
       return false;
 
    CBookmarkNode *addNode = gBookmarkRoot.FindSpecialNode(flag);
-   addNode->AddChild(new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), title ? (*title ? title : url) : url, url, "", "", "", BOOKMARK_BOOKMARK, time(NULL)));
-   
+   char *pszUrl = DecodeString(url);
+   char *pszTxt = DecodeString(title ? (*title ? title : url) : url);
+   addNode->AddChild(new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), pszTxt, pszUrl, "", "", "", BOOKMARK_BOOKMARK, time(NULL)));
+   if (pszUrl)
+      free(pszUrl);
+   if (pszTxt)
+      free(pszTxt);
    Save(gBookmarkFile);
    
    Rebuild();
