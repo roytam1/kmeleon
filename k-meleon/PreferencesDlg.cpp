@@ -57,13 +57,12 @@ CPreferencesDlg::OnInitDialog(){
 
    m_list.InsertColumn(0, "Blah", LVCFMT_LEFT, rect.right);
 
-   AddItem(_T("General"), IDD_PREFERENCES_GENERAL);
    AddItem(_T("Display"), IDD_PREFERENCES_DISPLAY);
-   AddItem(_T("Configs"), IDD_PREFERENCES_CONFIGS);
-   AddItem(_T("Proxy"),   IDD_PREFERENCES_PROXY);
-   AddItem(_T("Advanced"),IDD_PREFERENCES_ADVANCED);
-   AddItem(_T("Cache"),   IDD_PREFERENCES_CACHE);
+   AddItem(_T("General"), IDD_PREFERENCES_GENERAL);
    AddItem(_T("Privacy"), IDD_PREFERENCES_PRIVACY);
+   AddItem(_T("Cache"),   IDD_PREFERENCES_CACHE);
+   AddItem(_T("Proxy"),   IDD_PREFERENCES_PROXY);
+   AddItem(_T("Configs"), IDD_PREFERENCES_CONFIGS);
    AddItem(_T("Plugins"), IDD_PREFERENCES_PLUGINS);
 
    m_list.SetItemState(0, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
@@ -184,42 +183,49 @@ void CPreferencePage::DoDataExchange(CDataExchange* pDX){
 	//{{AFX_DATA_MAP(CPreferencePage)
   switch (idd){
     case IDD_PREFERENCES_DISPLAY:
+      DDX_Radio(pDX, IDC_RADIO_START_BLANK, theApp.preferences.bStartHome);
+      DDX_Text(pDX, IDC_EDIT_HOMEPAGE, theApp.preferences.homePage);
       DDX_Text(pDX, IDC_EDIT_TOOLBAR_BACKGROUND, theApp.preferences.toolbarBackground);
       DDX_Check(pDX, IDC_CHECK_TOOLBAR_BACKGROUND, theApp.preferences.bToolbarBackground);
-      DDX_Radio(pDX, IDC_RADIO_CURRENT, theApp.preferences.iNewWindowOpenAs);
+      DDX_Radio(pDX, IDC_RADIO_NEWWINDOW, theApp.preferences.iNewWindowOpenAs);
       DDX_Text(pDX, IDC_EDIT_URL, theApp.preferences.newWindowURL);
       break;
     case IDD_PREFERENCES_GENERAL:
-      DDX_Radio(pDX, IDC_RADIO_START_BLANK, theApp.preferences.bStartHome);
-      DDX_Text(pDX, IDC_EDIT_HOMEPAGE, theApp.preferences.homePage);
+      DDX_Check(pDX, IDC_CHECK_JAVASCRIPT, theApp.preferences.bJavascriptEnabled);
+      DDX_Check(pDX, IDC_CHECK_JAVA, theApp.preferences.bJavaEnabled);
+      DDX_Text(pDX, IDC_EDIT_HTTP, theApp.preferences.httpVersion);
       DDX_Text(pDX, IDC_EDIT_SETTINGS_DIR, theApp.preferences.settingsDir);
       DDX_Text(pDX, IDC_EDIT_PLUGINS_DIR, theApp.preferences.pluginsDir);
       DDX_Check(pDX, IDC_CHECK_SOURCE_ENABLED, theApp.preferences.bSourceUseExternalCommand);
       DDX_Text(pDX, IDC_EDIT_SOURCE_COMMAND, theApp.preferences.sourceCommand);
       break;
     case IDD_PREFERENCES_PROXY:
-      DDX_Text(pDX, IDC_EDIT_HTTP_PROXY, theApp.preferences.proxyHttp);
-      DDX_Text(pDX, IDC_EDIT_HTTP_PROXY_PORT, theApp.preferences.proxyHttpPort);
+      DDX_Text(pDX, IDC_EDIT_HTTP_PROXY,        theApp.preferences.proxyHTTP);
+      DDX_Text(pDX, IDC_EDIT_HTTP_PROXY_PORT,   theApp.preferences.proxyHTTPPort);
+      DDX_Text(pDX, IDC_EDIT_FTP_PROXY,         theApp.preferences.proxyFTP);
+      DDX_Text(pDX, IDC_EDIT_FTP_PROXY_PORT,    theApp.preferences.proxyFTPPort);
+      DDX_Text(pDX, IDC_EDIT_SSL_PROXY,         theApp.preferences.proxySSL);
+      DDX_Text(pDX, IDC_EDIT_SSL_PROXY_PORT,    theApp.preferences.proxySSLPort);
+      DDX_Text(pDX, IDC_EDIT_GOPHER_PROXY,      theApp.preferences.proxyGopher);
+      DDX_Text(pDX, IDC_EDIT_GOPHER_PROXY_PORT, theApp.preferences.proxyGopherPort);
+      DDX_Text(pDX, IDC_EDIT_SOCKS_PROXY,       theApp.preferences.proxySOCKS);
+      DDX_Text(pDX, IDC_EDIT_SOCKS_PROXY_PORT,  theApp.preferences.proxySOCKSPort);
+      DDX_Radio(pDX, IDC_RADIO_SOCKS,           theApp.preferences.proxySOCKSRadio);
+
+      DDX_Text(pDX, IDC_EDIT_PROXY_AUTO,  theApp.preferences.proxyAutoURL);
       DDX_Text(pDX, IDC_EDIT_PROXY_NO_PROXY, theApp.preferences.proxyNoProxy);
-      DDX_Check(pDX, IDC_CHECK_PROXY_TYPE, theApp.preferences.proxyType);
+      DDX_Radio(pDX, IDC_RADIO_PROXY, theApp.preferences.proxyType);
       break;
     case IDD_PREFERENCES_CACHE:
       DDX_Text(pDX, IDC_EDIT_MEMORY_CACHE, theApp.preferences.cacheMemory);
       DDX_Text(pDX, IDC_EDIT_DISK_CACHE, theApp.preferences.cacheDisk);
-      /* Disabled
       DDX_Text(pDX, IDC_EDIT_CACHE_DIRECTORY, theApp.preferences.cacheDir);
-      */
       DDX_Radio(pDX, IDC_RADIO_CACHE, theApp.preferences.cacheCheckFrequency);
       break;
-    case IDD_PREFERENCES_ADVANCED:
-      DDX_Check(pDX, IDC_CHECK_JAVASCRIPT, theApp.preferences.bJavascriptEnabled);
-      DDX_Check(pDX, IDC_CHECK_CSS, theApp.preferences.bCSSEnabled);
+   case IDD_PREFERENCES_PRIVACY:
       DDX_Check(pDX, IDC_CHECK_ANIMATIONS, theApp.preferences.bAnimationsEnabled);
       DDX_Radio(pDX, IDC_IMAGES_ALL, theApp.preferences.iImagesEnabled);
       DDX_Radio(pDX, IDC_COOKIES_ALL, theApp.preferences.iCookiesEnabled);      
-      DDX_Text(pDX, IDC_EDIT_HTTP, theApp.preferences.httpVersion);
-      break;
-   case IDD_PREFERENCES_PRIVACY:
       DDX_Check(pDX, IDC_CHECK_LOAD, theApp.preferences.bDisablePopupsOnLoad);
       DDX_Check(pDX, IDC_CHECK_RESTRICT, theApp.preferences.bRestrictPopups);
       DDX_Text(pDX, IDC_EDIT_RESTRICT, theApp.preferences.restrictedPopupSites);
@@ -232,9 +238,40 @@ void CPreferencePage::DoDataExchange(CDataExchange* pDX){
 BEGIN_MESSAGE_MAP(CPreferencePage, CDialog)
 	//{{AFX_MSG_MAP(CPreferencePage)
 	ON_BN_CLICKED(IDC_BUTTON_BROWSE, OnBrowse)
+	ON_BN_CLICKED(IDC_BUTTON_COOKIES, OnEditCookies)
+	ON_BN_CLICKED(IDC_BUTTON_CLEAR_MEM_CACHE, OnClearMemCache)
+	ON_BN_CLICKED(IDC_BUTTON_CLEAR_DISK_CACHE, OnClearDiskCache)
    ON_CBN_SELCHANGE(IDC_COMBO, OnComboChanged)
   //}}AFX_MSG_MAP
 END_MESSAGE_MAP()
+
+void CPreferencePage::OnClearMemCache() {
+   nsresult rv;
+
+   nsCOMPtr<nsICacheService> CacheService =
+      do_GetService(NS_CACHESERVICE_CONTRACTID, &rv);
+   if (NS_FAILED(rv)) return;
+
+   CacheService->EvictEntries(nsICache::STORE_IN_MEMORY);
+}
+
+void CPreferencePage::OnClearDiskCache() {
+   nsresult rv;
+
+   nsCOMPtr<nsICacheService> CacheService =
+      do_GetService(NS_CACHESERVICE_CONTRACTID, &rv);
+   if (NS_FAILED(rv)) return;
+
+   CacheService->EvictEntries(nsICache::STORE_ON_DISK);
+   CacheService->EvictEntries(nsICache::STORE_ON_DISK_AS_FILE);
+}
+
+void CPreferencePage::OnEditCookies() {
+   char cookiePath[MAX_PATH];
+   strcpy(cookiePath, theApp.preferences.settingsDir);
+   strcat(cookiePath, "cookies.txt");
+   ShellExecute(NULL, NULL, "notepad.exe", cookiePath, NULL, SW_SHOW);
+}
 
 void CPreferencePage::OnBrowse() {
    CFileDialog fDlg(TRUE);
