@@ -50,6 +50,7 @@ void FindSkinFile( char *szSkinFile, char *filename );
 // Global vars
 
 extern HIMAGELIST gImagelist;
+extern HANDLE ghMutex;
 
 extern HMENU gMenuBookmarks;
 extern HWND ghWndTB;

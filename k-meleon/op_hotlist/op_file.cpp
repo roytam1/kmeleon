@@ -309,6 +309,13 @@ int op_readFile(char *file) {
    found_bm = false;
    found_nb = false;
    
+   DWORD dwWaitResult;
+   dwWaitResult = WaitForSingleObject( ghMutex, 1000L);
+   if (dwWaitResult == WAIT_TIMEOUT) {
+      MessageBox(NULL, "Unable to get MutEx for hotlist file.\\nFile not loaded.", PLUGIN_NAME ": WARNING" , MB_OK|MB_ICONSTOP);
+      return ret;
+   }
+
    FILE *bmFile = fopen(file, "r");
    if (bmFile){
       long bmFileSize = FileSize(bmFile);
@@ -333,6 +340,7 @@ int op_readFile(char *file) {
       gHotlistModified = false;
    }
    
+   ReleaseMutex(ghMutex);
    return ret;
 }
 
@@ -411,14 +419,14 @@ int SaveHotlist(FILE *bmFile, CBookmarkNode *node)
 
 static BOOL bHotlistBak = 0;
 
-static void backup_hotlist(char *file)
+static void backup_hotlist(char *file, int num=2)
 {
    int i;
    char buf[MAX_PATH];
    char buf2[MAX_PATH];
    
    /* rotate the old hotlists */
-   for (i=8; i>=1; i--) {
+   for (i=num; i>=1; i--) {
       sprintf(buf, "%s.bak%d", file, i);
       sprintf(buf2, "%s.bak%d", file, i+1);
       unlink(buf2);
@@ -427,7 +435,10 @@ static void backup_hotlist(char *file)
 
    sprintf(buf, "%s.bak1", file);
    unlink(buf);
-   rename(file, buf);
+   if (num)
+      rename(file, buf);
+   else
+     unlink(file);
 
    bHotlistBak = 1;
 }
@@ -499,13 +510,29 @@ int op_writeFile(char *file) {
    int ret = -1;
 
    if (file && *file) {
-#if 1
-      if (!bHotlistBak) {
-         backup_hotlist(file);
+      DWORD dwWaitResult; 
+      dwWaitResult = WaitForSingleObject( ghMutex, 1000L);
+      if (dwWaitResult == WAIT_TIMEOUT) {
+         MessageBox(NULL, "Unable to get MutEx for hotlist file.\\nFile not saved.", PLUGIN_NAME ": WARNING" , MB_OK|MB_ICONSTOP);
+         return ret;
       }
-#endif
 
-      FILE *bmFile = fopen(file, "wb+");
+      char buf[MAX_PATH];
+      strcpy(buf, file);
+      char *p, *q;
+      p = strrchr(buf, '/');
+      q = strrchr(buf, '\\');
+      if (!q || p>q) q = p;
+      p = strrchr(buf, '.');
+      if (!p || q>p)
+         strcat(buf, "XXXXXX");
+      else if (p)
+         strcat(p, "XXXXXX");
+      else
+         strcat(buf, "XXXXXX");
+      p = mktemp(buf);
+      
+      FILE *bmFile = fopen(buf, "wb+");
       if (bmFile) {
          fprintf(bmFile, 
                  "Opera Hotlist version 2.0\r\n"
@@ -515,7 +542,16 @@ int op_writeFile(char *file) {
          fprintf(bmFile, "-\r\n");
          fclose(bmFile);
          gHotlistModified = false;
+#if 0
+         if (!bHotlistBak)
+            backup_hotlist(file);
+#endif
+         unlink(file);
+         rename(buf, file);
       }
+
+      ReleaseMutex(ghMutex);
    }
+
    return ret;
 }

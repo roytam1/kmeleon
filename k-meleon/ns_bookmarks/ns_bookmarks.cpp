@@ -62,6 +62,7 @@ HMENU gMenuBookmarks;
 HWND ghWndTB;
 HWND hWndFront;
 HWND ghWndEdit;
+HANDLE ghMutex;
 
 BOOL gBookmarksModified = false;
 BOOL gGeneratedByUs = false;
@@ -178,6 +179,8 @@ int Init(){
    nEditCommand = kPlugin.kFuncs->GetCommandIDs(1);
    nDropdownCommand = kPlugin.kFuncs->GetCommandIDs(1);
    wm_deferbringtotop = kPlugin.kFuncs->GetCommandIDs(1);
+
+   ghMutex = CreateMutex(NULL, FALSE, "BookmarksFileMutex");
 
    kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_BOOKMARK_FILE, gBookmarkFile, (char*)"");
 
