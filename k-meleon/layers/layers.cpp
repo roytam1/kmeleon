@@ -757,8 +757,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
             pFrame = find_frame(hWnd);
             if (!pFrame)
                break;
-            if (hWnd != pFrame->hWndFront && bCatchWindow) {
-               ghParent = hWnd;
+            if (hWnd != pFrame->hWndFront) {
+               ShowWindowAsync(hWnd, SW_HIDE);
+               PostMessage(pFrame->hWndFront, WM_SETFOCUS, 0, 0);
+               break;
             }
             if (message == UWM_UPDATESESSIONHISTORY ||
                 hWnd == pFrame->hWndFront) {
