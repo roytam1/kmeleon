@@ -65,7 +65,6 @@
 #include "ToolBarEx.h"
 #include "Utils.h"
 #include "KmeleonConst.h"
-#include "About.h"
 #include "kmeleon_plugin.h"
 #include <wininet.h>
 
@@ -82,6 +81,7 @@ static const char* KMELEON_FORUM_URL = "http://kmeleon.sourceforge.net/forum/";
 static const char* KMELEON_FAQ_URL = "http://kmeleon.sourceforge.net/docs/faq.php";
 static const char* KMELEON_MANUAL_URL = "http://kmeleon.sourceforge.net/manual/";
 static const char* ABOUT_PLUGINS_URL = "about:plugins";
+static const char* ABOUT_KMELEON = "about:";
 
 // Register message for FindDialog communication
 static UINT WM_FINDMSG = ::RegisterWindowMessage(FINDMSGSTRING);
@@ -1510,8 +1510,7 @@ void CBrowserView::OnMouseAction()
 
 void CBrowserView::OnAppAbout()
 {
-    CAboutDlg aboutDlg(this);
-    aboutDlg.DoModal();
+   OpenURLInNewWindow(ABOUT_KMELEON);
 }
 
 void CBrowserView::OnWindowNext()
