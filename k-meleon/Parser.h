@@ -2,7 +2,6 @@
 #define PARSER_H
 
 #define ENABLE_LOG
-#define LOG_FILE
 #include "Log.h"
 
 class CParser {
