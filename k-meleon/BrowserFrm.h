@@ -120,7 +120,7 @@ public:
     }   
     void MaintainFocus() {
         if (m_bFocusEnabled) {
-            SetFocus();
+            // SetFocus();
             m_preserveUrlBarFocus = TRUE;
             m_iFocusCount = 0;
         }
@@ -129,7 +129,7 @@ public:
         return m_preserveUrlBarFocus;
     }   
     void ReturnFocus(BOOL bDocumentLoading) {
-        SetFocus();
+        // SetFocus();
         if (m_changed)
             GetEditCtrl()->SetSel(-1, 0);
 
@@ -257,6 +257,7 @@ public:
     int m_ignoreMoveResize;
 
     BOOL m_created; // set after we are created
+    INT m_ignoreFocus;
 
     CToolBarList m_tbList;
     HWND CreateToolbar(UINT style);

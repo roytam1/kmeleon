@@ -627,6 +627,9 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
            pFrame->ShowWindow(SW_SHOWMAXIMIZED);
        else 
            pFrame->ShowWindow(SW_SHOW);
+       pFrame->BringWindowToTop();
+       pFrame->SetActiveWindow();
+       pFrame->SetFocus();
        pFrame->UpdateWindow();
    }
 

@@ -120,6 +120,7 @@ CBrowserFrame::CBrowserFrame(PRUint32 chromeMask, LONG style = 0)
     m_chromeMask = chromeMask;
     m_style = style;
     m_created = FALSE;
+    m_ignoreFocus = 2;
 }
 
 CBrowserFrame::~CBrowserFrame()
