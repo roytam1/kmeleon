@@ -23,8 +23,7 @@
 #include "BrowserImpl.h"
 #include "IBrowserFrameGlue.h"
 
-
-NS_IMETHODIMP CBrowserImpl::OnStartURIOpen(nsIURI* aURI, const char* aWindowTarget, PRBool* aAbortOpen)
+NS_IMETHODIMP CBrowserImpl::OnStartURIOpen(nsIURI* aURI, PRBool* aAbortOpen)
 {
    nsresult rv;
    
@@ -52,8 +51,8 @@ CBrowserImpl::GetProtocolHandler(nsIURI * aURI, nsIProtocolHandler **aProtocolHa
 }
 
 NS_IMETHODIMP 
-CBrowserImpl::DoContent(const char *aContentType, nsURILoadCommand aCommand, const char *aWindowTarget, 
-                             nsIRequest *request, nsIStreamListener **aContentHandler, PRBool *aAbortProcess)
+CBrowserImpl::DoContent(const char *aContentType, nsURILoadCommand aCommand,
+                        nsIRequest *request, nsIStreamListener **aContentHandler, PRBool *aAbortProcess)
 {
    /*
    NS_ENSURE_ARG_POINTER(aContentHandler);
@@ -70,7 +69,6 @@ CBrowserImpl::DoContent(const char *aContentType, nsURILoadCommand aCommand, con
 NS_IMETHODIMP 
 CBrowserImpl::IsPreferred(const char * aContentType,
                                nsURILoadCommand aCommand,
-                               const char * aWindowTarget,
                                char ** aDesiredContentType,
                                PRBool * aCanHandleContent)
 {
@@ -90,7 +88,6 @@ CBrowserImpl::IsPreferred(const char * aContentType,
 NS_IMETHODIMP 
 CBrowserImpl::CanHandleContent(const char * aContentType,
                                     nsURILoadCommand aCommand,
-                                    const char * aWindowTarget,
                                     char ** aDesiredContentType,
                                     PRBool * aCanHandleContent)
 
