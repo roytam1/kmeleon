@@ -142,7 +142,7 @@ void CPreferences::Load() {
       }
       else
          profileDir = appDir;
-
+      SetString("kmeleon.general.profileDir", profileDir.GetBuffer(0));
 
 
       if (settingsDir.IsEmpty())
