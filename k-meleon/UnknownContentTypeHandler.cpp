@@ -484,8 +484,8 @@ void CProgressDialog::OnOpen() {
 
 
 
-/* void init (in nsIURI aSource, in nsILocalFile aTarget, in wstring aDisplayName, in wstring openingWith, in long long startTime, in nsIWebBrowserPersist aPersist); */
-NS_IMETHODIMP CProgressDialog::Init(nsIURI *aSource, nsILocalFile *aTarget, const PRUnichar *aDisplayName, const PRUnichar *openingWith, PRInt64 startTime, nsIWebBrowserPersist *aPersist)
+/* void init (in nsIURI aSource, in nsILocalFile aTarget, in wstring aDisplayName, in nsIMIMEInfo aMIMEInfo, in long long startTime, in nsIWebBrowserPersist aPersist); */
+NS_IMETHODIMP CProgressDialog::Init(nsIURI *aSource, nsILocalFile *aTarget, const PRUnichar *aDisplayName, nsIMIMEInfo *aMIMEInfo, PRInt64 startTime, nsIWebBrowserPersist *aPersist)
 {
 	nsCAutoString uri;
    nsCAutoString filepath;
@@ -546,8 +546,8 @@ NS_IMETHODIMP CProgressDialog::GetStartTime(PRInt64 *aStartTime)
     return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-/* readonly attribute wstring openingWith; */
-NS_IMETHODIMP CProgressDialog::GetOpeningWith(PRUnichar * *aOpeningWith)
+/* readonly attribute nsIMIMEInfo MIMEInfo; */
+NS_IMETHODIMP CProgressDialog::GetMIMEInfo(nsIMIMEInfo * *aMIMEInfo)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }
