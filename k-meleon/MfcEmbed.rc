@@ -64,17 +64,17 @@ END
 // Dialog
 //
 
-IDD_ABOUTBOX DIALOG DISCARDABLE  0, 0, 228, 201
+IDD_ABOUTBOX DIALOG DISCARDABLE  0, 0, 228, 170
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "About K-Meleon"
 FONT 8, "MS Sans Serif"
 BEGIN
-    EDITTEXT        IDC_CREDITS,0,1,227,163,ES_CENTER | ES_MULTILINE | 
-                    ES_READONLY | WS_VSCROLL | NOT WS_TABSTOP
-    CTEXT           "Static",IDC_VERSION,0,188,227,12,WS_BORDER
-    PUSHBUTTON      "&OK",IDOK,83,168,61,16
-    PUSHBUTTON      "K-Meleon &Home",IDC_KMELEON_HOME,9,168,61,16,BS_FLAT
-    PUSHBUTTON      "K-Meleon &Forums",IDC_KMELEON_FORUM,156,168,61,16,
+    EDITTEXT        IDC_CREDITS,0,1,227,128,ES_CENTER | ES_MULTILINE | 
+                    ES_READONLY | NOT WS_TABSTOP
+    CTEXT           "Static",IDC_VERSION,0,156,227,12,WS_BORDER
+    PUSHBUTTON      "&OK",IDOK,83,135,61,16
+    PUSHBUTTON      "K-Meleon &Home",IDC_KMELEON_HOME,9,135,61,16,BS_FLAT
+    PUSHBUTTON      "K-Meleon &Forums",IDC_KMELEON_FORUM,156,135,61,16,
                     BS_FLAT
 END
 
@@ -156,7 +156,7 @@ END
 IDD_PREFERENCES_PROXY DIALOGEX 0, 0, 233, 154
 STYLE WS_CHILD
 EXSTYLE WS_EX_CLIENTEDGE | WS_EX_CONTROLPARENT
-FONT 8, "MS Sans Serif", 0, 0, 0x1
+FONT 8, "MS Sans Serif"
 BEGIN
     LTEXT           "HTTP:",IDC_STATIC,13,35,22,8
     EDITTEXT        IDC_EDIT_HTTP_PROXY,41,32,142,14,ES_AUTOHSCROLL
@@ -164,7 +164,7 @@ BEGIN
     LTEXT           "Do not use proxy servers for domains beginning with:",
                     IDC_STATIC,14,90,166,8
     EDITTEXT        IDC_EDIT_PROXY_NO_PROXY,13,102,209,22,ES_MULTILINE | 
-                    ES_AUTOHSCROLL | WS_VSCROLL
+                    ES_AUTOVSCROLL | ES_AUTOHSCROLL
     CONTROL         "Enable Proxies",IDC_CHECK_PROXY_TYPE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,41,55,65,10
     LTEXT           "Address of proxy server to use",IDC_STATIC,44,18,105,8
@@ -178,24 +178,24 @@ END
 IDD_PREFERENCES_GENERAL DIALOGEX 0, 0, 233, 154
 STYLE WS_CHILD
 EXSTYLE WS_EX_CLIENTEDGE | WS_EX_CONTROLPARENT
-FONT 8, "MS Sans Serif", 0, 0, 0x1
+FONT 8, "MS Sans Serif"
 BEGIN
-    LTEXT           "Home Page:",IDC_STATIC,4,7,45,8
-    EDITTEXT        IDC_EDIT_HOMEPAGE,49,4,180,14,ES_AUTOHSCROLL
-    LTEXT           "When K-Meleon Starts, Display:",IDC_STATIC,4,24,101,8
+    LTEXT           "Home Page:",IDC_STATIC,4,11,45,8
+    EDITTEXT        IDC_EDIT_HOMEPAGE,49,8,180,14,ES_AUTOHSCROLL
+    LTEXT           "When K-Meleon Starts, Display:",IDC_STATIC,4,28,101,8
     CONTROL         "Blank Page",IDC_RADIO_START_BLANK,"Button",
-                    BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,113,23,53,10
+                    BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,113,27,53,10
     CONTROL         "Home Page",IDC_RADIO_START_HOME,"Button",
-                    BS_AUTORADIOBUTTON,176,23,53,10
-    EDITTEXT        IDC_EDIT_SETTINGS_DIR,49,46,180,14,ES_AUTOHSCROLL
-    LTEXT           "Settings Dir:",IDC_STATIC,4,49,39,8
+                    BS_AUTORADIOBUTTON,176,27,53,10
+    EDITTEXT        IDC_EDIT_SETTINGS_DIR,49,57,180,14,ES_AUTOHSCROLL
+    LTEXT           "Settings Dir:",IDC_STATIC,4,60,39,8
     CONTROL         "View source with external command:",
                     IDC_CHECK_SOURCE_ENABLED,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,9,89,211,12
-    EDITTEXT        IDC_EDIT_SOURCE_COMMAND,49,104,180,14,ES_AUTOHSCROLL
-    PUSHBUTTON      "&Browse",IDC_BUTTON_BROWSE,12,104,35,14
-    EDITTEXT        IDC_EDIT_PLUGINS_DIR,49,66,180,14,ES_AUTOHSCROLL
-    LTEXT           "Plugins Dir:",IDC_STATIC,4,69,36,8
+                    WS_TABSTOP,9,108,211,12
+    EDITTEXT        IDC_EDIT_SOURCE_COMMAND,49,123,180,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "&Browse",IDC_BUTTON_BROWSE,12,123,35,14
+    EDITTEXT        IDC_EDIT_PLUGINS_DIR,49,77,180,14,ES_AUTOHSCROLL
+    LTEXT           "Plugins Dir:",IDC_STATIC,4,80,36,8
 END
 
 IDD_PREFERENCES_PLUGINS DIALOGEX 0, 0, 233, 154
@@ -215,17 +215,14 @@ END
 IDD_PREFERENCES_ADVANCED DIALOGEX 0, 0, 233, 154
 STYLE WS_CHILD
 EXSTYLE WS_EX_CLIENTEDGE | WS_EX_CONTROLPARENT
-FONT 8, "MS Sans Serif", 0, 0, 0x1
+FONT 8, "MS Sans Serif"
 BEGIN
-    CONTROL         "Enable Java",IDC_CHECK_JAVA,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,15,116,55,10
-    CONTROL         "Enable Javascript",IDC_CHECK_JAVASCRIPT,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,15,128,72,10
+    CONTROL         "Enable JavaScript",IDC_CHECK_JAVASCRIPT,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,15,116,73,10
     CONTROL         "Enable Style Sheets",IDC_CHECK_CSS,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,15,104,79,10
+                    BS_AUTOCHECKBOX,15,104,79,10
     CONTROL         "Enable Animated Images",IDC_CHECK_ANIMATIONS,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,15,69,94,10
-    LTEXT           "Identify Browser As:",IDC_STATIC,112,108,102,8
     CONTROL         "Accept all images",IDC_IMAGES_ALL,"Button",
                     BS_AUTORADIOBUTTON | WS_GROUP,22,29,71,10
     CONTROL         "Accept site images",IDC_IMAGES_SITE,"Button",
@@ -242,8 +239,8 @@ BEGIN
     LTEXT           "Cookie Acceptance",IDC_STATIC,122,16,81,9
     GROUPBOX        "",IDC_STATIC,5,3,223,84
     GROUPBOX        "",IDC_STATIC,5,90,223,58
-    COMBOBOX        IDC_COMBO_USERAGENT,110,119,110,78,CBS_DROPDOWN | 
-                    CBS_AUTOHSCROLL | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "HTTP Version:",IDC_STATIC,116,106,57,8
+    EDITTEXT        IDC_EDIT_HTTP,174,104,30,12,ES_AUTOHSCROLL
 END
 
 IDD_PREFERENCES_MENUS DIALOGEX 0, 0, 233, 154
@@ -281,22 +278,24 @@ END
 IDD_PREFERENCES_CACHE DIALOGEX 0, 0, 233, 154
 STYLE WS_CHILD
 EXSTYLE WS_EX_CLIENTEDGE | WS_EX_CONTROLPARENT
-FONT 8, "MS Sans Serif", 0, 0, 0x1
+FONT 8, "MS Sans Serif"
 BEGIN
     LTEXT           "Memory Cache",IDC_STATIC,5,17,52,10
-    LTEXT           "Disk Cache",IDC_STATIC,5,37,52,10
     LTEXT           "Cached data is compared to network data:",IDC_STATIC,5,
                     78,139,8
-    CONTROL         "&Once per session",IDC_RADIO_ONCE,"Button",
-                    BS_AUTORADIOBUTTON | WS_GROUP,15,93,80,10
-    CONTROL         "&Always",IDC_RADIO_ALWAYS,"Button",BS_AUTORADIOBUTTON,
-                    15,106,80,10
-    CONTROL         "&Never",IDC_RADIO_NEVER,"Button",BS_AUTORADIOBUTTON,15,
-                    119,80,10
-    EDITTEXT        IDC_EDIT_MEMORY_CACHE,66,15,41,13,ES_AUTOHSCROLL
+    LTEXT           "Disk Cache",IDC_STATIC,5,37,52,10
     EDITTEXT        IDC_EDIT_DISK_CACHE,66,35,41,13,ES_AUTOHSCROLL
-    LTEXT           "KBytes",IDC_STATIC,110,17,32,9
+    EDITTEXT        IDC_EDIT_MEMORY_CACHE,66,15,41,13,ES_AUTOHSCROLL
     LTEXT           "KBytes",IDC_STATIC,110,37,32,10
+    LTEXT           "KBytes",IDC_STATIC,110,17,32,9
+    CONTROL         "&Once per session",IDC_RADIO_CACHE,"Button",
+                    BS_AUTORADIOBUTTON | WS_GROUP,16,92,71,10
+    CONTROL         "&Always",IDC_RADIO2,"Button",BS_AUTORADIOBUTTON,16,104,
+                    38,10
+    CONTROL         "&Never",IDC_RADIO3,"Button",BS_AUTORADIOBUTTON,16,116,
+                    35,10
+    CONTROL         "&Automatically",IDC_RADIO4,"Button",BS_AUTORADIOBUTTON,
+                    15,128,57,10
 END
 
 IDD_ERRORBOX DIALOG DISCARDABLE  200, 200, 228, 149
@@ -370,6 +369,25 @@ BEGIN
     PUSHBUTTON      "Open File",IDC_OPEN,40,79,50,14,NOT WS_VISIBLE
 END
 
+IDD_PREFERENCES_PRIVACY DIALOGEX 0, 0, 233, 154
+STYLE WS_CHILD
+EXSTYLE WS_EX_CLIENTEDGE | WS_EX_CONTROLPARENT
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Identify Browser As:",IDC_STATIC,11,14,74,8
+    CONTROL         "Disable popup windows on page load/unload",
+                    IDC_CHECK_LOAD,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,13,
+                    60,166,10
+    GROUPBOX        "Popup Control",IDC_STATIC,3,44,226,104
+    CONTROL         "Disable popup windows on domains beginning with:",
+                    IDC_CHECK_RESTRICT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    13,76,205,9
+    EDITTEXT        IDC_EDIT_RESTRICT,11,93,208,38,ES_AUTOHSCROLL
+    LTEXT           "Use commas (,) to separate entries.",IDC_STATIC,12,134,
+                    192,10
+    EDITTEXT        IDC_EDIT_USERAGENT,89,13,130,13,ES_AUTOHSCROLL
+END
+
 
 #ifndef _MAC
 /////////////////////////////////////////////////////////////////////////////
@@ -422,8 +440,9 @@ GUIDELINES DESIGNINFO DISCARDABLE
 BEGIN
     IDD_ABOUTBOX, DIALOG
     BEGIN
+        RIGHTMARGIN, 227
+        BOTTOMMARGIN, 168
         HORZGUIDE, 123
-        HORZGUIDE, 176
     END
 
     IDD_PROFILES, DIALOG

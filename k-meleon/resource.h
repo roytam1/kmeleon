@@ -48,6 +48,7 @@
 #define IDD_DIALOG_OPEN                 181
 #define IDD_PROGRESS                    182
 #define IDR_SECURITY_LOCK               183
+#define IDD_PREFERENCES_PRIVACY         183
 #define IDR_SECURITY_UNLOCK             184
 #define IDR_SECURITY_BROKEN             185
 #define IDS_NOSECURITY_INFO             186
@@ -113,17 +114,30 @@
 #define IDC_CHECK_SOURCE_ENABLED        1050
 #define IDC_RADIO_ONCE                  1050
 #define IDC_SPEED                       1050
+#define IDC_RADIO_ONCE1                 1050
 #define IDC_EDIT_SOURCE_COMMAND         1051
 #define IDC_RADIO_ALWAYS                1051
 #define IDC_CLOSE_WHEN_DONE             1051
 #define IDC_RADIO_NEVER                 1052
 #define IDC_OPEN                        1052
+#define IDC_CHECK1                      1053
+#define IDC_RADIO_AUTO                  1053
+#define IDC_CHECK_LOAD                  1053
 #define IDC_BUTTON2                     1054
+#define IDC_RADIO1                      1054
+#define IDC_RADIO_CACHE                 1054
 #define IDC_EDIT_ADDRESS                1055
 #define IDC_BUTTON3                     1055
+#define IDC_RADIO2                      1055
+#define IDC_EDIT_USERAGENT              1055
 #define IDC_PROMPT_ADDRESS_TEXT         1056
 #define IDC_EDIT_MEMORY_CACHE           1056
+#define IDC_CHECK_RESTRICT              1056
+#define IDC_RADIO3                      1057
+#define IDC_EDIT_HTTP                   1057
 #define IDC_ERRORS                      1058
+#define IDC_RADIO4                      1058
+#define IDC_EDIT_RESTRICT               1058
 #define IDC_VERSION                     1059
 #define IDC_CONTAINER                   1110
 #define IDC_EDIT_TOOLBAR_BACKGROUND     1111
@@ -175,9 +189,9 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        190
+#define _APS_NEXT_RESOURCE_VALUE        191
 #define _APS_NEXT_COMMAND_VALUE         32801
-#define _APS_NEXT_CONTROL_VALUE         1053
+#define _APS_NEXT_CONTROL_VALUE         1059
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

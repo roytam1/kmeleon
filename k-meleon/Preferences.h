@@ -83,12 +83,21 @@ public:
    int iCookiesEnabled;
    int iImagesEnabled;
 
-   int bJavaEnabled;
    int bJavascriptEnabled;
    int bCSSEnabled;
    int bAnimationsEnabled;
 
+
+   CString httpVersion;
+
+
+   // -- Privacy
+
+   int bDisablePopupsOnLoad;
+   int bRestrictPopups;
+   CString restrictedPopupSites;
    CString userAgent;
+
 
    // -- functions
 

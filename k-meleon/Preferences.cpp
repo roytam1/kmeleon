@@ -150,8 +150,8 @@ void CPreferences::Load() {
          cacheDir += '\\';
       */
 
-      _GetInt(_T("browser.cache.disk_cache_size"), cacheDisk, 7680);
-      _GetInt(_T("browser.cache.memory_cache_size"), cacheMemory, 1024);
+      _GetInt(_T("browser.cache.disk.capacity"), cacheDisk, 4096);
+      _GetInt(_T("browser.cache.memory.capacity"), cacheMemory, 1024);
       _GetInt(_T("browser.cache.check_doc_frequency"), cacheCheckFrequency, 0);
 
       // -- Proxies      
@@ -168,7 +168,6 @@ void CPreferences::Load() {
       // -- Advanced     
       
       _GetBool(_T("javascript.enabled"), bJavascriptEnabled, true);
-      _GetBool(_T("security.enable_java"), bJavaEnabled, true);
       _GetBool(_T("css.allow"), bCSSEnabled, true);
 
       // 0 = Always, 1 = site, 2 = never
@@ -177,14 +176,32 @@ void CPreferences::Load() {
       // 0 = Always, 1 = site, 2 = never
       _GetInt(_T("network.image.imageBehavior"), iImagesEnabled, 0);
 
-      _GetString(_T("general.useragent.override"), userAgent, "");
+      _GetString(_T("network.http.version"), httpVersion, "");
 
       CString animationMode;
-      _GetString(_T("image.animation_mode"), animationMode, _T("normal"));
+      _GetString(_T("image.animation_mode"), animationMode, "");
       if (animationMode == _T("normal"))  // "once" "none" "normal"
          bAnimationsEnabled = true;
       else
          bAnimationsEnabled = false;
+
+
+      // -- Privacy
+
+      _GetString(_T("general.useragent.override"), userAgent, "");
+
+      CString restrictPopups;
+      _GetString(_T("capability.policy.restrictedpopups.Window.open"), restrictPopups, "");
+      if (restrictPopups == _T("noAccess"))
+         bRestrictPopups = TRUE;
+      else
+         bRestrictPopups = FALSE;
+         
+      _GetString(_T("capability.policy.restrictedpopups.sites"), restrictedPopupSites, "");
+
+      _GetBool(_T("dom.disable_open_during_load"), bDisablePopupsOnLoad, false);
+
+
    }
    else
       NS_ASSERTION(PR_FALSE, "Could not get preferences service");
@@ -232,8 +249,9 @@ void CPreferences::Save() {
       /* Disabled
       rv = prefs->SetCharPref(_T("browser.cache.directory"), cacheDir);
       */
-      rv = prefs->SetIntPref(_T("browser.cache.disk_cache_size"), cacheDisk);
-      rv = prefs->SetIntPref(_T("browser.cache.memory_cache_size"), cacheMemory);
+      rv = prefs->SetIntPref(_T("browser.cache.disk.capacity"), cacheDisk);
+
+      rv = prefs->SetIntPref(_T("browser.cache.memory.capacity"), cacheMemory);
       rv = prefs->SetIntPref(_T("browser.cache.check_doc_frequency"), cacheCheckFrequency);
 
       // -- Proxies
@@ -248,18 +266,30 @@ void CPreferences::Save() {
       //  -- Advanced
 
       rv = prefs->SetBoolPref(_T("javascript.enabled"), bJavascriptEnabled);
-      rv = prefs->SetBoolPref(_T("security.enable_java"), bJavaEnabled);
       rv = prefs->SetBoolPref(_T("css.allow"), bCSSEnabled);
 
       rv = prefs->SetIntPref(_T("network.cookie.cookieBehavior"), iCookiesEnabled);
       rv = prefs->SetIntPref(_T("network.image.imageBehavior"), iImagesEnabled);
-      if (!userAgent.IsEmpty()) prefs->SetCharPref(_T("general.useragent.override"), userAgent);
+      rv = prefs->SetCharPref(_T("network.http.version"), httpVersion);
 
       if (bAnimationsEnabled)    // "once" "none" "normal"
          rv = prefs->SetCharPref(_T("image.animation_mode"), _T("normal"));
       else
          rv = prefs->SetCharPref(_T("image.animation_mode"), _T("none"));
 
+
+      // -- Privacy
+
+      rv = prefs->SetCharPref(_T("general.useragent.override"), userAgent);
+      if (bRestrictPopups)
+         rv = prefs->SetCharPref(_T("capability.policy.restrictedpopups.Window.open"), "noAccess");
+      else
+         rv = prefs->SetCharPref(_T("capability.policy.restrictedpopups.Window.open"), "allAccess");
+      rv = prefs->SetCharPref(_T("capability.policy.restrictedpopups.sites"), restrictedPopupSites);
+
+      rv = prefs->SetBoolPref(_T("dom.disable_open_during_load"), bDisablePopupsOnLoad);
+
+      
       rv = prefs->SavePrefFile(nsnull);
    }
    else
