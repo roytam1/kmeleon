@@ -118,6 +118,10 @@ void CBrowserFrame::OnClose()
    // that's bad because our menu is shared between all windows
    SetMenu(NULL);
 
+   // Make sure we don't leave screen residue
+   if (m_wndBrowserView.mWebNav)
+      m_wndBrowserView.mWebNav->Stop(nsIWebNavigation::STOP_ALL);
+
    // the browserframeglue will be deleted soon, so we set it to null so it won't try to access it after it's deleted.
    m_wndBrowserView.SetBrowserFrameGlue(NULL);
 
