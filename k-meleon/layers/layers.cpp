@@ -1495,6 +1495,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                      bFront = 1;
                      bLayer = 0;
                      ghParent = NULL;
+                     ghCurHwnd = NULL;
                      kPlugin.kFuncs->NavigateTo((char*)"", OPEN_BACKGROUND);
                   }
                   
