@@ -33,7 +33,6 @@ CAboutDlg::CAboutDlg() : CDialog(CAboutDlg::IDD)
       \r\n
       Uses the Gecko rendering engine by the Mozilla Group\r\n
       Based on MfcEmbed\r\n
-      Corner animation stolen from Galeon\r\n
       \r\n
       Current Contributors:\r\n
    );
