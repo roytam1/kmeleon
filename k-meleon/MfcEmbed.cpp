@@ -239,6 +239,8 @@ BOOL CMfcEmbedApp::InitInstance()
    }
    
    // These have to be done in this order!
+   InitializeDefineMap();
+
    InitializePrefs();
 
    plugins.FindAndLoad();
@@ -312,11 +314,21 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
    // get the current window size/pos   
    RECT winSize;   
    if (m_pMostRecentBrowserFrame) {
-      CRect rect;
-      m_pMostRecentBrowserFrame->GetWindowRect(&rect);
-      
+
+      WINDOWPLACEMENT wp;
+      wp.length = sizeof(WINDOWPLACEMENT);
+      DWORD ret = ::GetWindowPlacement(m_pMostRecentBrowserFrame->m_hWnd, &wp);
+
+      // try to compensate for getwindowplacement
+      wp.rcNormalPosition.top += 28;      // for some reason, it always thinks the window
+      wp.rcNormalPosition.bottom += 28;   // is higher than it really is                                          
+
+      // if the window is not maximized, let's use use GetWindowRect, which works      
+      if (wp.showCmd == SW_SHOWNORMAL)
+         m_pMostRecentBrowserFrame->GetWindowRect(&wp.rcNormalPosition);
+        
       int offset        = GetSystemMetrics(SM_CYSIZE);
-      
+      offset           += GetSystemMetrics(SM_CXBORDER);
 
       RECT screen;
       SystemParametersInfo(SPI_GETWORKAREA, NULL, &screen, 0);
@@ -324,13 +336,13 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
       int screenHeight  = screen.bottom - screen.top;
       
       
-      winSize.left   = rect.left + offset;
-      winSize.top    = rect.top + offset;
+      winSize.left   = wp.rcNormalPosition.left + offset;
+      winSize.top    = wp.rcNormalPosition.top + offset;
 
       // the Create function is overloaded to treat "right" and "bottom" as
       // "width" and "height"
-      winSize.right  = rect.Width();
-      winSize.bottom = rect.Height();
+      winSize.right  = wp.rcNormalPosition.right - wp.rcNormalPosition.left;
+      winSize.bottom = wp.rcNormalPosition.bottom - wp.rcNormalPosition.top;
       
 
 
@@ -361,8 +373,8 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
       
       // if we're going to be positioned right on top of the current window,
       // move to the top corner
-      if ( ((winSize.left - rect.left) < offset) &&
-           ((winSize.top - rect.top) < offset) ) {
+      if ( ((winSize.left - wp.rcNormalPosition.left) < offset) &&
+           ((winSize.top - wp.rcNormalPosition.top) < offset) ) {
          winSize.left = screen.left;
          winSize.top = screen.top;
       }
@@ -581,6 +593,10 @@ int CMfcEmbedApp::ExitInstance()
    
    if (m_ProfileMgr) delete m_ProfileMgr;
    
+   // unload the plugins before we terminate embedding,
+   // this way plugins can still call the preference functions
+   plugins.UnLoadAll();
+
    preferences.Save();
    
    NS_TermEmbedding();
@@ -841,3 +857,17 @@ NS_IMETHODIMP CMfcEmbedApp::CreateChromeWindow(nsIWebBrowserChrome *parent,
    
 }
 
+
+
+// load the mapped values
+void CMfcEmbedApp::InitializeDefineMap() {
+
+#include "defineMap.cpp"
+
+}
+
+int CMfcEmbedApp::GetID(char *strID) {
+   int val;
+   defineMap.Lookup(strID, val);
+   return val;
+}

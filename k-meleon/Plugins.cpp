@@ -251,6 +251,11 @@ HWND CreateToolbar(HWND hWnd, UINT style) {
       return NULL;
 }
 
+int GetID(char *strID) {
+   return theApp.GetID(strID);
+}
+
+
 long CPlugins::SendMessage(const char *to, const char *from, const char *subject, long data1, long data2)
 {
    long retVal = 0;
@@ -287,7 +292,8 @@ kmeleonFunctions kmelFuncs = {
    GetMozillaSessionHistory,
    GotoHistoryIndex,
    RegisterBand,
-   CreateToolbar
+   CreateToolbar,
+   GetID
 };
 
 BOOL CPlugins::TestLoad(const char *file, const char *description)

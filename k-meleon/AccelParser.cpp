@@ -31,7 +31,6 @@ extern CMfcEmbedApp theApp;
 #define BEGIN_VK_TEST if (0){}
 #define VK_TEST(KEY)  else if (stricmp(p, #KEY) == 0){ key = VK_##KEY; }
 
-static CMap<CString, LPCSTR, int, int &> defineMap;
 
 CAccelParser::CAccelParser()
 {
@@ -39,7 +38,6 @@ CAccelParser::CAccelParser()
    numAccelerators = 0;
    memset(accelerators, 0, sizeof(ACCEL) * MAX_ACCEL);
 
-   #include "defineMap.cpp"
 }
 
 CAccelParser::CAccelParser(CString &filename)
@@ -47,8 +45,6 @@ CAccelParser::CAccelParser(CString &filename)
    accelTable = NULL;
    numAccelerators = 0;
    memset(accelerators, 0, sizeof(ACCEL) * MAX_ACCEL);
-
-   #include "defineMap.cpp"
 
    Load(filename);
 }
@@ -111,8 +107,10 @@ int CAccelParser::Parse(char *p)
          }
       }
       
-      else if (!defineMap.Lookup(e, command)) {
-         command = atoi(e);
+      else {
+         command = theApp.GetID(e);
+         if (!command)
+            command = atoi(e);
       }
 
       TrimWhiteSpace(p);

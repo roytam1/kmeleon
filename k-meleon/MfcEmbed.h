@@ -106,6 +106,8 @@ public:
    CBrowserFrame* m_pMostRecentBrowserFrame; // the most recently used frame
    CBrowserFrame* m_pOpenNewBrowserFrame; // used by OnNewBrowser to preserve an initilaized frame
 
+   int GetID(char *strID);
+
    // Implementation
 public:
    //{{AFX_MSG(CMfcEmbedApp)
@@ -123,6 +125,8 @@ private:
    nsresult    InitializePrefs();
    nsresult    InitializeMenusAccels();
    nsresult    InitializeWindowCreator();
+   void        InitializeDefineMap();
+
 
 private:
    CProfileMgr *m_ProfileMgr;
@@ -132,6 +136,8 @@ private:
    BOOL        m_bSwitchingProfiles;
    // used to process the rebar DrawToolbarMenu function, which must only
    // be called once, but must be called after the first window has been created
+
+   CMap<CString, LPCSTR, int, int &> defineMap;
 
 };
 
