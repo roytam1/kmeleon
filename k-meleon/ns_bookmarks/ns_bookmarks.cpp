@@ -318,21 +318,7 @@ void DoMenu(HMENU menu, char *param){
    else {
       gMenuBookmarks = menu;
 
-      FILE *bmFile = fopen(gBookmarkFile, "r");
-      if (bmFile){
-         long bmFileSize = FileSize(bmFile);
-
-         char *bmFileBuffer = new char[bmFileSize];
-         if (bmFileBuffer){
-            fread(bmFileBuffer, sizeof(char), bmFileSize, bmFile);
-
-            strtok(bmFileBuffer, "\n");
-            ParseBookmarks(bmFileBuffer, gBookmarkRoot);
-
-            delete [] bmFileBuffer;
-         }
-         fclose(bmFile);
-      }
+      Load(gBookmarkFile);
 
       nFirstBookmarkPosition = GetMenuItemCount(menu);
 

@@ -25,6 +25,7 @@ void DoMenu(HMENU menu, char *param);
 void DoRebar(HWND rebarWnd);
 int  DoAccel(char *param);
 void Save(const char *file);
+void Load(const char *file);
 
 // Window Procs
 BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
