@@ -313,7 +313,12 @@ public:
     root = NULL;
   }
   int add(char *macro, char *arg) {
-    class Node *ptr = new Node(macro, arg);
+    class Node *ptr = root;
+    while (ptr && (strcmp(ptr->macro.c_str(), macro) || strcmp(ptr->arg.c_str(), arg)))
+      ptr = ptr->next;
+    if (ptr)
+      return ptr->id;
+    ptr = new Node(macro, arg);
     if (root == NULL)
       min = max = ptr->id;
     if (max < ptr->id)
@@ -1689,7 +1694,7 @@ std::string EvalExpression(HWND hWnd,std::string exp) {
    }
 
    // while (expression) statement;
-   if (exp.find_first_of("while") == 0) {
+   if (strncmp(exp.c_str(), "while", 5) == 0) {
       int lpos, rpos;
       int lparen, rparen;
       bool instr;
