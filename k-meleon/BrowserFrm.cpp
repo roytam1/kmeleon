@@ -118,6 +118,50 @@ CBrowserFrame::~CBrowserFrame()
 
 BOOL CBrowserFrame::PreTranslateMessage(MSG* pMsg)
 {
+
+   /*
+
+   October 30, 2002 - Jeff
+
+   ATTENTION:
+
+      If you are a self-respecting coder, you WILL NOT want to
+      look at the lines below.  I warn you, turn away now, this
+      is GROSS!
+
+      Basically, there's a "race condition" somewhere in the mozilla
+      codebase.  If a certain type of window (trillian windows, IE
+      windows, dialog windows) is completely contained within the
+      browserview area, and that window is closed while the mouse is
+      over it, windows will send two messages that get picked up by 
+      mozilla the first message is something like:
+
+         "yo, moz, I moved the mouse" (WM_MOUSEMOVE)
+         to which moz says, "oh, I'd better do some repainting routines
+         then windows says:
+         "oh, and force a repaint, this window just closed"
+         then mozilla says,  no thanks, I don't think I need to repaint
+         just yet, I'm already working on it.
+      
+      Essentially, we need to make sure the "repaint the entire window"
+      message comes *BEFORE* the mousemove message, and we do this by,
+      I am ashamed to admit, using the Sleep() whenever WM_MOUSEMOVE
+      is caught.
+      
+      I know it's wrong, please don't tell my parents.
+
+
+  
+      Note:  The right way to do this involves hunting through all of
+      mozilla and finding the race condition.  We'll submit a bug report
+      and, hopefully, never have to see this again.
+
+   */
+
+
+   if(pMsg->message==WM_MOUSEMOVE)
+      Sleep(1);
+   
    if (pMsg->message==WM_KEYDOWN && pMsg->wParam == VK_TAB && pMsg->hwnd == m_wndUrlBar.m_hwndEdit) {
       
       nsCOMPtr<nsIWebBrowserFocus> focus(do_GetInterface(m_wndBrowserView.mWebBrowser));
