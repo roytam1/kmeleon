@@ -544,49 +544,111 @@ void CBrowserView::OnNewUrlEnteredInUrlBar()
    if(IsViewSourceUrl(strUrl))
       OpenViewSourceWindow(strUrl.GetBuffer(0));
    else {
-      strUrl = NicknameLookup((char*)strUrl.GetBuffer(0));
+      char *pUrl = NicknameLookup((char*)strUrl.GetBuffer(0));
+      strUrl = pUrl;
+      free(pUrl);
 
       // Navigate to that URL
-      OpenURL(strUrl.GetBuffer(0));
+      if (strchr(strUrl.GetBuffer(0), '\t'))
+          OpenMultiURL(strUrl.GetBuffer(0));
+      else
+          OpenURL(strUrl.GetBuffer(0));
    }
 }
 
 char* CBrowserView::NicknameLookup(char* pUrl)
 {
-   char *p, *q, *r;
-   char nickUrl[INTERNET_MAX_URL_LENGTH];
-   char custUrl[INTERNET_MAX_URL_LENGTH];
+    char *p, *q, *r;
+    char *nickUrl;
+    char *custUrl;
+    
+    // Check for a nickname
+    nickUrl = NULL;
+    p = pUrl;                           // get entered URL
+    p = SkipWhiteSpace(p);              // skip any leading spaces
+    q = strchr(p, ' ');                 // look for a space
+    
+    if (q)                              // if more than one word
+        *q = 0;                         // terminate first word
+    
+    theApp.plugins.SendMessage("*", "* FindNick", "FindNick", (long)p, (long)&nickUrl);
 
-   // Check for a nickname
-   *nickUrl = 0;
-   p = pUrl;                           // get entered URL
-   p = SkipWhiteSpace(p);              // skip any leading spaces
-   q = strchr(p, ' ');                 // look for a space
-
-   if (q)                              // if more than one word
-      *q = 0;                          // terminate first word
-
-   theApp.plugins.SendMessage("*", "* FindNick", "FindNick", (long)p, (long)&nickUrl);
-
-   if (q)                              // if more than one word
-      *q = ' ';                        // restore space
-
-   if (*nickUrl != 0) {
-      r = strstr(nickUrl, "%s");       // look for %s
-      if (r) {                         // if found
-         *r = 0;                       // terminate string up to %s
-         strcpy(custUrl, nickUrl);     // copy string before %s
-         if (q)                        // if more than one word
-            strcat(custUrl, q+1);      // copy second word
-         strcat(custUrl, r+2);         // copy string after %s
-         pUrl = custUrl;
-	  }
-      else
-         pUrl = nickUrl;
-   }
-
-  return pUrl;
+    if (q)                              // if more than one word
+        *q = ' ';                       // restore space
+    
+    if (nickUrl && *nickUrl != 0) {
+        r = strstr(nickUrl, "%s");       // look for %s
+        if (r) {                         // if found
+            *r = 0;                      // terminate string up to %s
+            char *custUrl = (char*)malloc(strlen(nickUrl+INTERNET_MAX_URL_LENGTH));
+            strcpy(custUrl, nickUrl);     // copy string before %s
+            if (q)                        // if more than one word
+                strcat(custUrl, q+1);     // copy second word
+            strcat(custUrl, r+2);         // copy string after %s
+            pUrl = custUrl;
+            free(nickUrl);
+        }
+        else
+            pUrl = nickUrl;
+    }
+    else 
+        pUrl = strdup(pUrl);
+    
+    return pUrl;
 } 
+
+void CBrowserView::OpenMultiURL(char *urls)
+{
+    char szOpenURLcmd[80];
+
+    theApp.preferences.GetString("kmeleon.general.opengroup", szOpenURLcmd, "");
+
+    if (*szOpenURLcmd) {
+        char *plugin = szOpenURLcmd;
+        char *parameter = strchr(szOpenURLcmd, '(');
+        if (parameter) {
+            *parameter++ = 0;
+            char *close = strchr(parameter, ')');
+            if (close) {
+                *close = 0;
+                
+                if (theApp.plugins.SendMessage(plugin, "kmeleon.exe", parameter, (long)urls, 0))
+                    return;
+            }
+        }
+
+        int idOpen = theApp.GetID(szOpenURLcmd);
+
+        char *p = urls;
+        while (p) {
+            char *q = strchr(p, '\t');
+            if (q) *q = 0;
+            if (!*p) return;
+
+            switch (idOpen) {
+            case ID_OPEN_LINK:
+                OpenURL(p);
+                break;
+            case ID_OPEN_LINK_IN_BACKGROUND:
+                OpenURLInNewWindow(p, TRUE);
+                break;
+            case ID_OPEN_LINK_IN_NEW_WINDOW:
+                OpenURLInNewWindow(p);
+                break;
+            default:
+                OpenURL(urls);
+                return;
+            }
+
+            if (q)
+                p = q+1;
+            else
+                return;
+        }
+    }
+
+    OpenURL(urls);
+}
 
 // A URL has  been selected from the UrlBar's dropdown list
 /*
@@ -885,11 +947,16 @@ void CBrowserView::OnFileOpen()
          // if the file doesn't exist, they probably typed a url...
          // so chop off the path (for some reason GetFileName doesn't work for us...
          strFullPath = strFullPath.Mid(strFullPath.ReverseFind('\\')+1);
-         strFullPath = NicknameLookup((char*)strFullPath.GetBuffer(0));
+         char *pUrl = NicknameLookup((char*)strFullPath.GetBuffer(0));
+         strFullPath = pUrl;
+         free(pUrl);
       }else{
          fclose(test);
       }
-		OpenURL(strFullPath);
+      if (strchr(strFullPath.GetBuffer(0), '\t'))
+         OpenMultiURL(strFullPath.GetBuffer(0));
+      else
+         OpenURL(strFullPath);
 	}
 }
 
