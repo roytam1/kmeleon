@@ -946,6 +946,7 @@ BEGIN
     IDS_PROFILE_BAD_CHARS   "Error: A profile name cannot contain the characters \\ or /."
     IDS_DOWNLOAD_DONE       "Done! Downloaded %.2f KBytes in %d seconds"
     IDS_DOWNLOAD_PROGRESS   "Downloaded %d%% (%.2f K of %.2f KBytes)"
+    IDS_DOWNLOAD_PROGRESS2  "Downloaded      (%.2f K of %.2f KBytes)"
     IDS_TIMELEFT_HOURS      "Time Left: %d:%02d:%02d"
     IDS_TIMELEFT_SECONDS    "Time Left: %d Seconds"
     IDS_TIMELEFT_MINUTES    "Time Left: %d Minutes, %0d Seconds"
