@@ -1,26 +1,30 @@
 Name K-Meleon
 ComponentText "This will install K-Meleon v0.3"
-DirText "Setup has determined the optimal location to install. If you would like to change the directory, do so now."
 LicenseText "K-Meleon is a GPL product based on Gecko(tm). Please read the license terms below before installing."
 LicenseData license.txt
 OutFile kmeleon03.exe
+UninstallText "This will uninstall K-Meleon from your computer."
+UninstallExeName Uninstall.exe
+DirText "Please select the directory you want to install K-Meleon in."
 InstallDir $PROGRAMFILES\K-Meleon
 EnabledBitmap checked.bmp
 DisabledBitmap unchecked.bmp
+SetOverwrite on
 
 InstType Standard
 
 Section "K-Meleon (required)"
 
 SetOutPath $INSTDIR
-SetOverwrite on
-#delete previous kmeleon instances
+# delete previous kmeleon instances
+# First trying to shut down running instances, the Window class is called: ?Mozilla:DNSWindowClass? Need to change that
+FindWindow "close" "Mozilla:DNSWindowClass" ""
 Delete $INSTDIR\*
 Delete $INSTDIR\components\*
 
 File k-meleon.exe
 File *.dll
-#next line needs to be changed to *.cfg when menus.txt is renamed
+# next line needs to be changed to *.cfg when menus.txt is renamed
 File menus.txt
 File ReadMe.txt
 
@@ -50,10 +54,20 @@ WriteRegStr HKEY_LOCAL_MACHINE "Software\Microsoft\Windows\CurrentVersion\Uninst
 Exec '"$WINDIR\notepad.exe" "$INSTDIR\ReadMe.txt"'
 ;Exec $INSTDIR\K-Meleon.exe
 
+#------------------------------------
+# Uninstall part begins here:
 Section Uninstall
+
+# First trying to shut down running instances, the Window class is called: ?Mozilla:DNSWindowClass? Need to change that!
+FindWindow "close" "Mozilla:DNSWindowClass" ""
 # delete all registry entries that Kmeleon does on install
-DeleteRegKey HKEY_CURRENT_USER "Software\K-Meleon\K-Meleon\General"
+DeleteRegValue HKEY_CURRENT_USER "Software\K-Meleon\K-Meleon\Display" "BackgroundImage"
+DeleteRegValue HKEY_CURRENT_USER "Software\K-Meleon\K-Meleon\Display" "BackgroundImageEnabled"
 DeleteRegKey HKEY_CURRENT_USER "Software\K-Meleon\K-Meleon\Display"
+DeleteRegValue HKEY_CURRENT_USER "Software\K-Meleon\K-Meleon\General" "HomePage"
+DeleteRegValue HKEY_CURRENT_USER "Software\K-Meleon\K-Meleon\General" "SettingsDir"
+DeleteRegValue HKEY_CURRENT_USER "Software\K-Meleon\K-Meleon\General" "StartHome"
+DeleteRegKey HKEY_CURRENT_USER "Software\K-Meleon\K-Meleon\General"
 DeleteRegKey HKEY_CURRENT_USER "Software\K-Meleon\K-Meleon"
 
 DeleteRegValue HKEY_LOCAL_MACHINE "Software\Microsoft\Windows\CurrentVersion\Uninstall\K-Meleon" "UninstallString"
