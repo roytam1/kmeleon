@@ -89,7 +89,7 @@ BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
 	ON_COMMAND(ID_VIEW_SOURCE, OnViewSource)
 	ON_COMMAND(ID_VIEW_INFO, OnViewInfo)
    ON_COMMAND(ID_FILE_PRINT, OnFilePrint) 
-//   ON_UPDATE_COMMAND_UI(ID_FILE_PRINT, OnUpdateFilePrint)
+   ON_UPDATE_COMMAND_UI(ID_FILE_PRINT, OnUpdateFilePrint)
 	ON_COMMAND(ID_NAV_BACK, OnNavBack)
 	ON_COMMAND(ID_NAV_FORWARD, OnNavForward)
 	ON_COMMAND(ID_NAV_SEARCH, OnNavSearch)
@@ -1032,9 +1032,6 @@ void CBrowserView::OnKmeleonForum()
 }
 
 void CBrowserView::OnShowFindDlg() {
-
-   PostMessage(WM_COMMAND, ID_FILE_PRINT, 0);
-   return;
 
 	// When the the user chooses the Find menu item
 	// and if a Find dlg. is already being shown
