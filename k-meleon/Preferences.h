@@ -44,6 +44,7 @@ public:
 
    CString homePage;
    int bStartHome;
+   BOOL bOffline;
 
    CString searchEngine;
  

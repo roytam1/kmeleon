@@ -112,6 +112,7 @@ BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
     ON_COMMAND(ID_FILE_SAVE_FRAME_AS, OnFileSaveFrameAs)
     ON_COMMAND(ID_NAV_STOP, OnNavStop)
     ON_COMMAND(ID_NAV_GO, OnNewUrlEnteredInUrlBar)
+    ON_COMMAND(ID_OFFLINE, OnToggleOffline)
     ON_COMMAND(ID_EDIT_CUT, OnCut)
     ON_COMMAND(ID_EDIT_COPY, OnCopy)
     ON_COMMAND(ID_EDIT_PASTE, OnPaste)
@@ -1564,4 +1565,18 @@ void CBrowserView::ChangeTextSize(PRInt32 change)
       sprintf(szStatus, "Text Zoom: %.0f", textzoom*10);
       mpBrowserFrame->m_wndStatusBar.SetPaneText(0, szStatus);
    }
+}
+
+void CBrowserView::OnToggleOffline()
+{
+    theApp.SetOffline(!theApp.preferences.bOffline);
+    HMENU hMenu = mpBrowserFrame->m_hMenu;
+    if (hMenu) {
+        CheckMenuItem( 
+            hMenu,
+            ID_OFFLINE, 
+            MF_BYCOMMAND | (theApp.preferences.bOffline ? MF_CHECKED : MF_UNCHECKED) );
+    }
+    mpBrowserFrame->m_wndStatusBar.SetPaneText(0, 
+       (theApp.preferences.bOffline ? "Offline" : "Online"));
 }

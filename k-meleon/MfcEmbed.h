@@ -87,6 +87,8 @@ public:
    void RegisterWindow(CDialog *window);
    void UnregisterWindow(CDialog *window);
 
+   nsresult SetOffline(BOOL offline);
+
    nsresult OverrideComponents();
 
 	// Overrides
