@@ -830,7 +830,7 @@ void CBrowserView::OnSaveLinkAs()
 
 	// The path may have the "/" char in it - strip those
 	nsCAutoString fileName(path);
-	fileName.StripChars("\\/");
+	int slash = fileName.RFindCharInSet("\\/");
 
 	// Now, use this file name in a File Save As dlg...
 
@@ -839,7 +839,7 @@ void CBrowserView::OnSaveLinkAs()
 		"Text Files (*.txt)|*.txt|" 
 	    "All Files (*.*)|*.*||";
 
-	const char *pFileName = fileName.Length() ? fileName.get() : NULL;
+	const char *pFileName = fileName.Length() ? fileName.get() + slash+1: NULL;
 
 	CFileDialog cf(FALSE, "htm", pFileName, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
 		lpszFilter, this);
@@ -876,12 +876,12 @@ void CBrowserView::OnSaveImageAs()
 
 	// The path may have the "/" char in it - strip those
 	nsCAutoString fileName(path);
-	fileName.StripChars("\\/");
+	int slash = fileName.RFindCharInSet("\\/");
 
 	// Now, use this file name in a File Save As dlg...
 
 	char *lpszFilter = "All Files (*.*)|*.*||";
-	const char *pFileName = fileName.Length() ? fileName.get() : NULL;
+	const char *pFileName = fileName.Length() ? fileName.get() + slash+1 : NULL;
 
 	CFileDialog cf(FALSE, NULL, pFileName, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
 		lpszFilter, this);

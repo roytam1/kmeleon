@@ -127,15 +127,7 @@ SOURCE=.\BrowserView.cpp
 # Begin Source File
 
 SOURCE=.\defineMap.cpp
-
-!IF  "$(CFG)" == "kmeleon - Win32 Release"
-
-!ELSEIF  "$(CFG)" == "kmeleon - Win32 Debug"
-
 # PROP Exclude_From_Build 1
-
-!ENDIF 
-
 # End Source File
 # Begin Source File
 
