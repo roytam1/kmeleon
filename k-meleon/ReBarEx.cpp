@@ -146,6 +146,8 @@ void CReBarEx::SaveBandSizes() {
    rbbi.cbSize = sizeof(rbbi);
    rbbi.fMask = RBBIM_SIZE | RBBIM_CHILD | RBBIM_ID | RBBIM_STYLE;
 
+   theApp.preferences.DeleteBranch("kmeleon.toolband.");
+
    int iSkipped = 0; // counter for unindexed bands (right now just the throbber)
 
    int count = GetReBarCtrl().GetBandCount();
@@ -175,36 +177,76 @@ void CReBarEx::RestoreBandSizes() {
    REBARBANDINFO rbbi;
    rbbi.cbSize = sizeof(rbbi);
 
-   char tempPref[256] = _T("kmeleon.toolband."); // 17 chars
+   char tempPref[256] = "kmeleon.toolband."; // 17 chars
+
+   // Note: Yes, I know it looks odd to go through the same array twice, but
+   //       we *HAVE* to move the bands around before setting their styles or else
+   //       they don't show up in the right order (took hours to figure this out :| )
+   for (x=0; x<m_iCount; x++) {
+      int barIndex = FindByIndex(x); // index of the bar on the Rebar
+
+      strcpy(tempPref + 17, m_index[x]->name);
+      int offset = strlen(m_index[x]->name) + 17;
+
+      strcpy(tempPref + offset, ".index");
+      int newIndex = theApp.preferences.GetInt(tempPref, -1);
+      if (newIndex >= 0) {
+         if (barIndex != -1 && barIndex != newIndex) {
+            GetReBarCtrl().MoveBand(barIndex, newIndex);
+         }
+      }
+   }
+
    BOOL barbreak;
    for (x=0; x<m_iCount; x++) {
-      int index = FindByIndex(x);
+      int barIndex = FindByIndex(x); // index of the bar on the Rebar
 
       rbbi.fMask = 0;
 
-      sprintf(tempPref + 17, _T("%s.break"), m_index[x]->name);
+      strcpy(tempPref + 17, m_index[x]->name);
+      int offset = strlen(m_index[x]->name) + 17;
+
+      strcpy(tempPref + offset, ".break");
       barbreak = theApp.preferences.GetInt(tempPref, 0);
       if (barbreak) {
          rbbi.fMask |= RBBIM_STYLE;
-         GetReBarCtrl().GetBandInfo(FindByIndex(x), &rbbi);
+         GetReBarCtrl().GetBandInfo(barIndex, &rbbi);
          rbbi.fStyle |= RBBS_BREAK;
       }
 
-      sprintf(tempPref + 17, _T("%s.size"), m_index[x]->name);
+      strcpy(tempPref + offset, ".size");
       rbbi.cx = theApp.preferences.GetInt(tempPref, 0);
       if (rbbi.cx > 0)
          rbbi.fMask |= RBBIM_SIZE;
 
-      sprintf(tempPref + 17, _T("%s.index"), m_index[x]->name);
-      int ndx = theApp.preferences.GetInt(tempPref, -1);
-      if (ndx >= 0)
-         if (index != -1) {
-            GetReBarCtrl().MoveBand(index, ndx);
-            GetReBarCtrl().SetBandInfo(ndx, &rbbi);
-         }
+      GetReBarCtrl().SetBandInfo(barIndex, &rbbi);
 
-      sprintf(tempPref + 17, _T("%s.visibility"), m_index[x]->name);
+      strcpy(tempPref + offset, ".visibility");
       if (!theApp.preferences.GetBool(tempPref, TRUE))
          SetVisibility(x, FALSE);
    }
 }
+
+void CReBarEx::LockBars(BOOL lock)
+{
+   int x;
+   REBARBANDINFO rbbi;
+   rbbi.cbSize = sizeof(rbbi);
+
+   for (x=0; x<m_iCount; x++) {
+      int barIndex = FindByIndex(x); // index of the bar on the Rebar
+
+      rbbi.fMask = RBBIM_STYLE;
+
+      GetReBarCtrl().GetBandInfo(barIndex, &rbbi);
+
+      if (lock)
+         rbbi.fStyle |= RBBS_NOGRIPPER;
+      else
+         rbbi.fStyle &= ~RBBS_NOGRIPPER;
+
+      GetReBarCtrl().SetBandInfo(barIndex, &rbbi);
+   }
+}
+
+
