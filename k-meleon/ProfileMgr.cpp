@@ -149,7 +149,8 @@ nsresult CProfileMgr::DoManageProfilesDialog(PRBool bAtStartUp)
       nsCOMPtr<nsIProfile> profileService = 
          do_GetService(NS_PROFILE_CONTRACTID, &rv);
       if (NS_SUCCEEDED(rv))
-         rv = profileService->SetCurrentProfile(dialog.m_SelectedProfile.get());
+         if (bAtStartUp)
+            rv = profileService->SetCurrentProfile(dialog.m_SelectedProfile.get());
    }
    return NS_OK;
 }
