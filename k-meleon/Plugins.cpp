@@ -184,7 +184,7 @@ void SetPreference(enum PREFTYPE type, char *preference, void *val, BOOL update)
    }
 }
 
-void SetStatusBarText(char *s) {
+void SetStatusBarText(const char *s) {
    theApp.m_pMostRecentBrowserFrame->m_wndStatusBar.SetPaneText(0, s);
 }
 
