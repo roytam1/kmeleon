@@ -80,7 +80,7 @@ struct s_toolbar {
 
    HIMAGELIST hot;
    HIMAGELIST cold;
-//   HIMAGELIST dead;
+   HIMAGELIST dead;
 
    int iButtonCount;
    int width, height;
@@ -149,9 +149,12 @@ void Quit() {
       if (toolbar->sTitle)
          delete toolbar->sTitle;
 
-      ImageList_Destroy(toolbar->hot);
-      ImageList_Destroy(toolbar->cold);
-//      ImageList_Destroy(toolbar->dead);
+      if (toolbar->hot)
+         ImageList_Destroy(toolbar->hot);
+      if (toolbar->cold)
+         ImageList_Destroy(toolbar->cold);
+      if (toolbar->dead)
+         ImageList_Destroy(toolbar->dead);
 
       button = toolbar->buttonHead;
       while (button) {
@@ -193,7 +196,7 @@ void DoRebar(HWND rebarWnd) {
       while (button) {
          buttons[i].iBitmap = i;
          buttons[i].idCommand = button->iID;
-         buttons[i].iString = 0;
+         buttons[i].iString = i;
 
          buttons[i].dwData = 0;
          buttons[i].fsState = TBSTATE_ENABLED;
@@ -204,9 +207,37 @@ void DoRebar(HWND rebarWnd) {
       }
       SendMessage(hwndTB, TB_BUTTONSTRUCTSIZE, (WPARAM) sizeof(TBBUTTON), 0);
       SendMessage(hwndTB, TB_ADDBUTTONS, i, (LPARAM) buttons);
-      SendMessage(hwndTB, TB_SETHOTIMAGELIST, 0, (LPARAM) toolbar->hot);
-      SendMessage(hwndTB, TB_SETIMAGELIST, 0, (LPARAM) toolbar->cold);
-//      SendMessage(hwndTB, TB_SETDISABLEDIMAGELIST, 0, (LPARAM) toolbar->dead);
+
+      // if no images were specified, then we'll be using text buttons
+      if (!toolbar->hot) {
+         char buf[1024]; // you'd have to be crazy to use more than 1K worth of toolbar text on a single toolbar       
+         int buflen = 0;
+         button = toolbar->buttonHead;
+         while (button) {
+            int len = strlen(button->sName);
+            if (buflen + len > 1024) break;
+            strcpy(buf+buflen, button->sName);
+            buflen += len;
+            buf[buflen] = 0;
+            buflen++;
+            button = button->next;
+         }
+         buf[buflen] = 0;
+         SendMessage(hwndTB, TB_ADDSTRING, 0, (LPARAM) buf);
+         SendMessage(hwndTB, TB_SETIMAGELIST, 0, (LPARAM) NULL);
+      }
+      else {
+         // if only one image was specified, set that as the default image
+         // instead of making it the "hot" image
+         if (!toolbar->cold)
+            SendMessage(hwndTB, TB_SETIMAGELIST, 0, (LPARAM) toolbar->hot);
+         else {
+            SendMessage(hwndTB, TB_SETHOTIMAGELIST, 0, (LPARAM) toolbar->hot);
+            SendMessage(hwndTB, TB_SETIMAGELIST, 0, (LPARAM) toolbar->cold);
+            if (toolbar->dead)
+               SendMessage(hwndTB, TB_SETDISABLEDIMAGELIST, 0, (LPARAM) toolbar->dead);
+         }
+      }
 
       SetWindowPos(hwndTB, NULL, 0, 0, 0, 0, SWP_FRAMECHANGED);
 
@@ -248,7 +279,7 @@ enum state {
 //   DESC,       // expecting a tooltip/description
    HOT,        // expecting theh hot image
    COLD,       // expecting the cold image
-//   DEAD    // expecting the disabled image
+   DEAD    // expecting the disabled image
 };
     
 
@@ -316,7 +347,15 @@ void LoadToolbars(char *filename) {
             TrimWhiteSpace(p);
 
 
-            int width=16, height=16;   // default 16x16, this changes if they're defined
+            int width, height;
+            if (iBuildState == TOOLBAR) {
+               width=16;
+               height=16;
+            }
+            else {
+               width = curToolbar->width;
+               height = curToolbar->height;
+            }
             char *pp, *val;
             if ((pp = strchr(p, '('))) {
                *pp = 0;
@@ -444,7 +483,7 @@ void LoadToolbars(char *filename) {
             //               break;
          case HOT:
          case COLD:
-            //            case DEAD:
+         case DEAD:
             char *file=p, *pp;
             int index=-1;
             
@@ -454,13 +493,22 @@ void LoadToolbars(char *filename) {
                index = atoi(pp);
             };
             
-            if (index == -1) index = 0; 
-            if (iBuildState == HOT)
+            if (index == -1) index = 0;   // set default image index
+            if (iBuildState == HOT) {
+               if (!curToolbar->hot)
+                  curToolbar->hot = ImageList_Create(curToolbar->width, curToolbar->height, ILC_MASK | ILC_COLORDDB, 0, 32);
                AddImageToList(curToolbar, curToolbar->hot, file, index, curButton->width, curButton->height);
-            else if (iBuildState == COLD)
+            }
+            else if (iBuildState == COLD) {
+               if (!curToolbar->cold)
+                  curToolbar->cold = ImageList_Create(curToolbar->width, curToolbar->height, ILC_MASK | ILC_COLORDDB, 0, 32);
                AddImageToList(curToolbar, curToolbar->cold, file, index, curButton->width, curButton->height);
-            //               else
-            //                  AddImageToList(curToolbar, curToolbar->dead, file, index, curButton->width, curButton->height);
+            }
+            else {
+               if (!curToolbar->dead)
+                  curToolbar->dead = ImageList_Create(curToolbar->width, curToolbar->height, ILC_MASK | ILC_COLORDDB, 0, 32);
+               AddImageToList(curToolbar, curToolbar->dead, file, index, curButton->width, curButton->height);
+            }
             
             iBuildState++;
             break;
@@ -486,9 +534,9 @@ s_toolbar *AddToolbar(char *name, int width, int height) {
    newToolbar->iButtonCount = 0;
    newToolbar->next = NULL;
 
-   newToolbar->hot  = ImageList_Create(width, height, ILC_MASK | ILC_COLORDDB, 0, 32);
-   newToolbar->cold = ImageList_Create(width, height, ILC_MASK | ILC_COLORDDB, 0, 32);
-//   newToolbar->dead = ImageList_Create(width, height, ILC_MASK | ILC_COLORDDB, 0, 32);
+   newToolbar->hot  = NULL;
+   newToolbar->cold = NULL;
+   newToolbar->dead = NULL;
    
    return newToolbar;
 }
@@ -545,11 +593,11 @@ void EndButton(s_toolbar *toolbar, s_button *button, int state) {
       DeleteObject(hbmpTemp);
 
       // draw the image into our compatible bitmap
-      ImageList_DrawEx(toolbar->hot, index, hdcNew, 0, 0, 0, 0, RGB(192, 192, 192), NULL, ILD_NORMAL);
+      ImageList_DrawEx(toolbar->hot, index, hdcNew, 0, 0, 0, 0, RGB(255, 0, 255), NULL, ILD_NORMAL);
 
       DeleteDC(hdcNew);
 
-      ImageList_AddMasked(toolbar->cold, hbmpNew, RGB(192, 192, 192));
+      ImageList_AddMasked(toolbar->cold, hbmpNew, RGB(255, 0, 255));
 
       DeleteObject(hbmpNew);
    }
@@ -591,7 +639,7 @@ void AddImageToList(s_toolbar *toolbar, HIMAGELIST list, char *file, int index, 
    SelectObject(hdcButton, hButton);
 
    // fill the button with the transparency
-   hBrush = CreateSolidBrush(RGB(192,192,192));
+   hBrush = CreateSolidBrush(RGB(255,0,255));
    SelectObject(hdcButton, hBrush);
    PatBlt(hdcButton, 0, 0, toolbar->width, toolbar->height, PATCOPY);
 
@@ -600,7 +648,7 @@ void AddImageToList(s_toolbar *toolbar, HIMAGELIST list, char *file, int index, 
    DeleteDC(hdcBitmap);
    DeleteDC(hdcButton);
    
-   ImageList_AddMasked(list, hButton, RGB(192,192,192));
+   ImageList_AddMasked(list, hButton, RGB(255,0,255));
 
    DeleteObject(hBrush);
    DeleteObject(hButton);
