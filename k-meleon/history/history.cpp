@@ -270,9 +270,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 
 	switch (message) {
 
-		case UWM_UPDATESESSIONHISTORY:
+		
+      case WM_SETFOCUS:
+      case UWM_UPDATESESSIONHISTORY:
 			UpdateHistoryMenu(hWnd);
-			return true;
+			break;
 		case TB_LBUTTONHOLD:
 			switch (wParam) {
 				case ID_NAV_BACK:
