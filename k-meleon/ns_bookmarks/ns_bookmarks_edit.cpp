@@ -46,6 +46,7 @@ static void ChangeSpecialFolder(HWND hTree, HTREEITEM *htiOld, HTREEITEM htiNew,
 static void DeleteItem(HWND hTree, HTREEITEM item);
 static void UpdateTitle(HWND hDlg, HTREEITEM item);
 static void UpdateURL(HWND hDlg, HTREEITEM item);
+static void UpdateNick(HWND hDlg, HTREEITEM item);
 
 // Local vars
 
@@ -77,7 +78,7 @@ static inline void UnixTimeToSystemTime(time_t t, LPSYSTEMTIME pst) {
    FILETIME ft1;
    FILETIME ft2;
 
-   ll = Int32x32To64(t, 10000000) + 116444736000000000;
+   ll = Int32x32To64(t, 10000000) + 116444736000000000LL;
    ft1.dwLowDateTime = (DWORD)ll;
    ft1.dwHighDateTime = ll >> 32;
 
@@ -204,11 +205,15 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
       fEatKeystroke = true;
       SetFocus(GetDlgItem(hEditWnd, IDC_TREE_BOOKMARK));
    }
+   else if (hasFocus == GetDlgItem(hEditWnd, IDC_NICK) && wParam == VK_RETURN) {
+      fEatKeystroke = true;
+      SetFocus(GetDlgItem(hEditWnd, IDC_TREE_BOOKMARK));
+   }
 
    return(fEatKeystroke ? 1 : CallNextHookEx(NULL, nCode, wParam, lParam));
 }
 
-CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+INT_PTR CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
    static HHOOK hHook;
    static bool bTimer = false;  // semi-crude hack to make scrolling smoother
@@ -264,7 +269,7 @@ CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
          NMTREEVIEW *nmtv = (NMTREEVIEW *)lParam;
 
          // Selection changed
-         if (nmtv->hdr.code == TVN_SELCHANGED){
+         if (nmtv->hdr.code == (UINT) TVN_SELCHANGED){
             // Put the new url/title into the box
             CBookmarkNode *newNode = (CBookmarkNode *)nmtv->itemNew.lParam;
 
@@ -272,6 +277,7 @@ CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                // root and separators have nothing
                SetDlgItemText(hDlg, IDC_TITLE, "");
                SetDlgItemText(hDlg, IDC_URL, "");
+               SetDlgItemText(hDlg, IDC_NICK, "");
                SetDlgItemText(hDlg, IDC_ADDED, "");
                SetDlgItemText(hDlg, IDC_LAST_VISIT, "");
                SetDlgItemText(hDlg, IDC_OTHER, "");
@@ -279,6 +285,8 @@ CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                EnableWindow(GetDlgItem(hDlg, IDC_TITLE), false);
                EnableWindow(GetDlgItem(hDlg, IDC_STATIC_URL), false);
                EnableWindow(GetDlgItem(hDlg, IDC_URL), false);
+               EnableWindow(GetDlgItem(hDlg, IDC_STATIC_NICK), false);
+               EnableWindow(GetDlgItem(hDlg, IDC_NICK), false);
                EnableWindow(GetDlgItem(hDlg, IDC_STATIC_ADDED), false);
                EnableWindow(GetDlgItem(hDlg, IDC_STATIC_VISITED), false);
                EnableWindow(GetDlgItem(hDlg, IDC_STATIC_OTHER), false);
@@ -300,15 +308,18 @@ CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
             if (newNode->type == BOOKMARK_BOOKMARK) {
                EnableWindow(GetDlgItem(hDlg, IDC_STATIC_URL), true);
                EnableWindow(GetDlgItem(hDlg, IDC_URL), true);
+               EnableWindow(GetDlgItem(hDlg, IDC_STATIC_NICK), true);
+               EnableWindow(GetDlgItem(hDlg, IDC_NICK), true);
                EnableWindow(GetDlgItem(hDlg, IDC_STATIC_VISITED), true);
                SetDlgItemText(hDlg, IDC_URL, newNode->url.c_str());
+               SetDlgItemText(hDlg, IDC_NICK, newNode->nick.c_str());
 
                if (newNode->lastVisit) {
                   UnixTimeToSystemTime(newNode->lastVisit, &st);
                   GetDateFormat(GetThreadLocale(), DATE_SHORTDATE, &st, NULL, pszDate, 899);
                   strcpy(pszTmp, pszDate);
                   strcat(pszTmp, " ");
-                  GetTimeFormat(GetThreadLocale(), NULL, &st, NULL, pszDate, 899);
+                  GetTimeFormat(GetThreadLocale(), (DWORD) NULL, &st, NULL, pszDate, 899);
                   strcat(pszTmp, pszDate);
                   SetDlgItemText(hDlg, IDC_LAST_VISIT, pszTmp);
                }
@@ -318,9 +329,12 @@ CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
             }
             else {
                SetDlgItemText(hDlg, IDC_URL, "");
+               SetDlgItemText(hDlg, IDC_NICK, "");
                SetDlgItemText(hDlg, IDC_LAST_VISIT, "");
                EnableWindow(GetDlgItem(hDlg, IDC_STATIC_URL), false);
                EnableWindow(GetDlgItem(hDlg, IDC_URL), false);
+               EnableWindow(GetDlgItem(hDlg, IDC_STATIC_NICK), false);
+               EnableWindow(GetDlgItem(hDlg, IDC_NICK), false);
                EnableWindow(GetDlgItem(hDlg, IDC_STATIC_VISITED), false);
             }
 
@@ -328,7 +342,7 @@ CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
             GetDateFormat(GetThreadLocale(), DATE_SHORTDATE, &st, NULL, pszDate, 899);
             strcpy(pszTmp, pszDate);
             strcat(pszTmp, " ");
-            GetTimeFormat(GetThreadLocale(), NULL, &st, NULL, pszDate, 899);
+            GetTimeFormat(GetThreadLocale(), (DWORD) NULL, &st, NULL, pszDate, 899);
             strcat(pszTmp, pszDate);
             SetDlgItemText(hDlg, IDC_ADDED, pszTmp);
 
@@ -352,7 +366,7 @@ CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
             }
          }
          // start a drag operation
-         else if (nmtv->hdr.code == TVN_BEGINDRAG){
+         else if (nmtv->hdr.code == (UINT) TVN_BEGINDRAG){
             TreeView_SelectItem(hTree, nmtv->itemNew.hItem);
             // don't move the root folder (thus, only move something if it has a parent)
             if (TreeView_GetParent(hTree, nmtv->itemNew.hItem)) {
@@ -361,7 +375,7 @@ CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                SetCapture(hDlg);
             }
          }
-         else if (nmtv->hdr.code == NM_DBLCLK){
+         else if (nmtv->hdr.code == (UINT) NM_DBLCLK){
             TVHITTESTINFO hti;
             GetCursorPos(&hti.pt);
             ScreenToClient(hTree, &hti.pt);
@@ -392,7 +406,7 @@ CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
             }
          }
          // right click...
-         else if (nmtv->hdr.code == NM_RCLICK){
+         else if (nmtv->hdr.code == (UINT) NM_RCLICK){
             OnRClick(hTree);
          }
          return true;
@@ -407,7 +421,7 @@ CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
          if (wParam < 2) {
             // scrolling, and wParam conveniently holds the direction
             bTimer = false;
-            SendMessage(hTree, WM_VSCROLL, wParam, NULL);
+            SendMessage(hTree, WM_VSCROLL, wParam, (LPARAM) NULL);
          }
          else if (wParam == 2) {
             // need to expand folder
@@ -579,6 +593,13 @@ CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                   UpdateURL(hDlg, hSelection);
                }
             }
+            else if (id == IDC_NICK && SendDlgItemMessage(hDlg, IDC_NICK, EM_GETMODIFY, 0, 0)) {
+               SendDlgItemMessage(hDlg, IDC_NICK, EM_SETMODIFY, FALSE, 0);
+               HTREEITEM hSelection = TreeView_GetSelection(hTree);
+               if (hSelection) {
+                  UpdateNick(hDlg, hSelection);
+               }
+            }
          }
          else if (HIWORD(wParam) == BN_CLICKED) {
             WORD id = LOWORD(wParam);
@@ -744,7 +765,7 @@ static void MoveItem(HWND hTree, HTREEITEM item, int mode) {
             tvis.hInsertAfter = TVI_FIRST;
          }
 
-         PostMessage(hTree, WM_VSCROLL, SB_LINEUP, NULL);
+         PostMessage(hTree, WM_VSCROLL, SB_LINEUP, (LPARAM) NULL);
       }
       else {
          TVITEMEX tvItem;
@@ -763,7 +784,7 @@ static void MoveItem(HWND hTree, HTREEITEM item, int mode) {
                tvis.hInsertAfter = TVI_FIRST;
             }
 
-            PostMessage(hTree, WM_VSCROLL, SB_LINEUP, NULL);
+            PostMessage(hTree, WM_VSCROLL, SB_LINEUP, (LPARAM) NULL);
          }
       }
 
@@ -801,7 +822,7 @@ static void MoveItem(HWND hTree, HTREEITEM item, int mode) {
             tvis.hInsertAfter = TVI_FIRST;
          }
 
-         PostMessage(hTree, WM_VSCROLL, SB_LINEDOWN, NULL);
+         PostMessage(hTree, WM_VSCROLL, SB_LINEDOWN, (LPARAM) NULL);
       }
       else {
          // if there is no next sibling, try moving it down a level (place it after its parent)
@@ -940,19 +961,19 @@ static void CreateNewObject(HWND hTree, HTREEITEM fromItem, int type) {
 
    switch (type) {
    case BOOKMARK_BOOKMARK:
-      newNode = new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), "New Bookmark", "http://kmeleon.sourceforge.net/", BOOKMARK_BOOKMARK, time(NULL));
+      newNode = new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), "New Bookmark", "http://kmeleon.sourceforge.net/", "", "", BOOKMARK_BOOKMARK, time(NULL));
       tvis.itemex.pszText = "New Bookmark";
       tvis.itemex.iImage = IMAGE_BOOKMARK;
       tvis.itemex.iSelectedImage = IMAGE_BOOKMARK;
       break;
    case BOOKMARK_FOLDER:
-      newNode = new CBookmarkNode(0, "New Folder", "", BOOKMARK_FOLDER, time(NULL));
+      newNode = new CBookmarkNode(0, "New Folder", "", "", "", BOOKMARK_FOLDER, time(NULL));
       tvis.itemex.pszText = "New Folder";
       tvis.itemex.iImage = IMAGE_FOLDER_CLOSED;
       tvis.itemex.iSelectedImage = IMAGE_FOLDER_OPEN;
       break;
    case BOOKMARK_SEPARATOR:
-      newNode = new CBookmarkNode(0, "", "", BOOKMARK_SEPARATOR);
+      newNode = new CBookmarkNode(0, "", "", "", "", BOOKMARK_SEPARATOR);
       tvis.itemex.pszText = "---";
       tvis.itemex.iImage = IMAGE_BLANK;
       tvis.itemex.iSelectedImage = IMAGE_BLANK;
@@ -1111,6 +1132,20 @@ static void UpdateURL(HWND hDlg, HTREEITEM item) {
    }
 }
 
+static void UpdateNick(HWND hDlg, HTREEITEM item) {
+   HWND hTree = GetDlgItem(hDlg, IDC_TREE_BOOKMARK);
+   CBookmarkNode *node = GetBookmarkNode(hTree, item);
+
+   if (node->type == BOOKMARK_BOOKMARK) {
+      char szBuffer[1024];
+      GetDlgItemText(hDlg, IDC_NICK, szBuffer, 1023);
+      if (node->nick.compare(szBuffer) != 0) {
+         node->nick = szBuffer;
+         bookmarksEdited = true;
+      }
+   }
+}
+
 static void OnRClick(HWND hTree)
 {
    POINT mouse;
@@ -1176,6 +1211,39 @@ static void OnRClick(HWND hTree)
       case ID__BOOKMARK_DELETE:
          DeleteItem(hTree, hItem);
          break;
+      case ID__SORT:
+      case ID__SORT_ALL:
+         {
+            CBookmarkNode *node = GetBookmarkNode(hTree, hItem);
+            if (!node) {
+               break;
+            }
+            if (node->type != BOOKMARK_FOLDER){
+               hItem = TreeView_GetParent(hTree, hItem);
+               node = GetBookmarkNode(hTree, hItem);
+               if (!node || node->type != BOOKMARK_FOLDER) {
+                  break;
+	       }
+	    }
+
+            TreeView_SelectItem(hTree, hItem);
+            HTREEITEM hChild = TreeView_GetChild(hTree, hItem);
+	    while (hChild) {
+	      TreeView_DeleteItem(hTree, hChild);
+	      hChild = TreeView_GetChild(hTree, hItem);
+	    }
+
+            int order = 21;
+            node->sort( (order << 1) | (command==ID__SORT_ALL) );
+
+	    FillTree(hTree, hItem, *node);
+
+            TreeView_Expand(hTree, hItem, TVE_EXPAND);
+            TreeView_SelectItem(hTree, hItem);
+
+            bookmarksEdited = true;
+         }
+         break;
       }
    }
 }
@@ -1192,9 +1260,10 @@ static void OnRClick(HWND hTree)
 #define EDITBOXES_HEIGHT 12
 #define DATES_WIDTH 78
 #define OTHER_WIDTH 25
+#define NICK_WIDTH 25
 
-#define convX(x) MulDiv(x, buX, 4)
-#define convY(y) MulDiv(y, buY, 8)
+#define convX(x) MulDiv((int)(x), buX, 4)
+#define convY(y) MulDiv((int)(y), buY, 8)
 
 static void OnSize(int height, int width) {
    int buX, buY;
@@ -1230,7 +1299,10 @@ static void OnSize(int height, int width) {
    SetWindowPos(GetDlgItem(hEditWnd, IDC_LAST_VISIT), 0, convX(EDITBOXES_LEFT)+5, height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*3.75), convX(DATES_WIDTH), convY(EDITBOXES_HEIGHT), 0);
 
    SetWindowPos(GetDlgItem(hEditWnd, IDC_STATIC_OTHER), 0, convX(EDITBOXES_LEFT+DATES_WIDTH)+BORDER, height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*2.5), 0, 0, SWP_NOSIZE);
-   SetWindowPos(GetDlgItem(hEditWnd, IDC_OTHER), 0, convX(EDITBOXES_LEFT+DATES_WIDTH+OTHER_WIDTH)+BORDER, height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*2.5), width-convX(EDITBOXES_LEFT+DATES_WIDTH+OTHER_WIDTH)-BORDER*3, convY(EDITBOXES_HEIGHT*2), 0);
+   SetWindowPos(GetDlgItem(hEditWnd, IDC_OTHER), 0, convX(EDITBOXES_LEFT+DATES_WIDTH+OTHER_WIDTH)+BORDER, height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*2.5), width-convX(EDITBOXES_LEFT+DATES_WIDTH+OTHER_WIDTH)-BORDER*3, convY(EDITBOXES_HEIGHT), 0);
+
+   SetWindowPos(GetDlgItem(hEditWnd, IDC_STATIC_NICK), 0, convX(EDITBOXES_LEFT+DATES_WIDTH)+BORDER, height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*3.75), 0, 0, SWP_NOSIZE);
+   SetWindowPos(GetDlgItem(hEditWnd, IDC_NICK), 0, convX(EDITBOXES_LEFT+DATES_WIDTH+NICK_WIDTH)+BORDER, height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*3.75)-2, width-convX(EDITBOXES_LEFT+DATES_WIDTH+NICK_WIDTH)-BORDER*3, convY(EDITBOXES_HEIGHT), 0);
 
    // eliminate those ugly artifacts (that show up on my machine, at least...)
    InvalidateRgn(hEditWnd, NULL, FALSE);
@@ -1311,7 +1383,7 @@ static void ImportFavorites(HWND hTree) {
 /* new */
 
    // make new node for favorites (child off of WorkingBookmarks)
-   CBookmarkNode *newFavoritesNode = new CBookmarkNode(0, "Imported Favorites", "", BOOKMARK_FOLDER, time(NULL));
+   CBookmarkNode *newFavoritesNode = new CBookmarkNode(0, "Imported Favorites", "", "", "", BOOKMARK_FOLDER, time(NULL));
    workingBookmarks.AddChild(newFavoritesNode);
 
    BuildFavoritesTree(FavoritesPath, "", newFavoritesNode);
@@ -1369,7 +1441,7 @@ static void BuildFavoritesTree(TCHAR *FavoritesPath, char* strPath, CBookmarkNod
          strcat(subPath, "/");
 
          // make new node for favorites (child off of our current node)
-         CBookmarkNode *newFavoritesChildNode = new CBookmarkNode(0, wfd.cFileName, "", BOOKMARK_FOLDER, time(NULL));
+         CBookmarkNode *newFavoritesChildNode = new CBookmarkNode(0, wfd.cFileName, "", "", "", BOOKMARK_FOLDER, time(NULL));
          newFavoritesNode->AddChild(newFavoritesChildNode);
 
          // build the tree for this directory
@@ -1406,7 +1478,7 @@ static void BuildFavoritesTree(TCHAR *FavoritesPath, char* strPath, CBookmarkNod
             GetPrivateProfileString(_T("InternetShortcut"), _T("URL"), _T(""), url, INTERNET_MAX_URL_LENGTH, path);
 
             // insert node
-            newFavoritesNode->AddChild(new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), wfd.cFileName, url, BOOKMARK_BOOKMARK, time(NULL)));
+            newFavoritesNode->AddChild(new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), wfd.cFileName, url, "", "", BOOKMARK_BOOKMARK, time(NULL)));
 
             delete pszTemp;
             delete [] urlFile;

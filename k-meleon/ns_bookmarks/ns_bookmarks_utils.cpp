@@ -32,6 +32,7 @@
 #include "ns_bookmarks_functions.h"
 
 extern WNDPROC KMeleonWndProc;
+extern BOOL bChevronEnabled;
 
 // Preferences Dialog function
 BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
@@ -106,7 +107,7 @@ BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
          }
          break;
       case WM_CLOSE:
-         EndDialog(hWnd, NULL);
+         EndDialog(hWnd, (INT_PTR) NULL);
          break;
       default:
          return false;
@@ -177,7 +178,19 @@ static void SaveBookmarks(FILE *bmFile, CBookmarkNode *node)
          fprintf(bmFile, "%s<HR>\n", szSpacer);
       }
       else if (type == BOOKMARK_BOOKMARK) {
-         fprintf(bmFile, "%s<DT><A HREF=\"%s\" ADD_DATE=\"%d\" LAST_VISIT=\"%d\" LAST_MODIFIED=\"%d\">%s</A>\n", szSpacer, child->url.c_str(), child->addDate, child->lastVisit, child->lastModified, child->text.c_str());
+         fprintf(bmFile, "<DT><A");
+         fprintf(bmFile, " HREF=\"%s\"", child->url.c_str());
+         fprintf(bmFile, " ADD_DATE=\"%d\"", child->addDate);
+         fprintf(bmFile, " LAST_VISIT=\"%d\"", child->lastVisit);
+         fprintf(bmFile, " LAST_MODIFIED=\"%d\"", child->lastModified);
+	 char *psz;
+	 psz = (char *) child->nick.c_str();
+	 if (psz && *psz)
+	   fprintf(bmFile, " SHORTCUTURL=\"%s\"", psz);
+	 psz = (char *) child->charset.c_str();
+	 if (psz && *psz)
+	   fprintf(bmFile, " LAST_CHARSET=\"%s\"", psz);
+         fprintf(bmFile, ">%s</A>\n", child->text.c_str());
       }
       // if it falls through, there's a problem, but we'll just ignore it for now.
    }
@@ -244,7 +257,7 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
             addDate = atol(d);
          }
 
-         CBookmarkNode * newNode = new CBookmarkNode(0, name, "", BOOKMARK_FOLDER, addDate);
+         CBookmarkNode * newNode = new CBookmarkNode(0, name, "", "", "", BOOKMARK_FOLDER, addDate);
          node.AddChild(newNode);
 
          ParseBookmarks(end, *newNode);
@@ -291,6 +304,8 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
          time_t addDate=0;
          time_t lastVisit=0;
          time_t lastModified=0;
+         char *nick = NULL;
+         char *charset = NULL;
 
          char *d;
          d = strstr(t, "ADD_DATE=\"");
@@ -307,6 +322,28 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
          if (d) {
             d+=15;
             lastModified = atol(d);
+         }
+         d = strstr(t, "SHORTCUTURL=\"");
+         if (d) {
+            d+=13;
+
+	    char *q = strchr(d, '\"');
+	    if (q) {
+	      *q = 0;
+	      nick = strdup(d);
+	      *q = '\"';
+	    }
+         }
+         d = strstr(t, "LAST_CHARSET=\"");
+         if (d) {
+            d+=14;
+
+	    char *q = strchr(d, '\"');
+	    if (q) {
+	      *q = 0;
+	      charset = strdup(d);
+	      *q = '\"';
+	    }
          }
 
          t = strchr(t, '>');
@@ -325,13 +362,18 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
          if (name[0] == 0)
             name = url;
 
-         node.AddChild(new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), name, url, BOOKMARK_BOOKMARK, addDate, lastVisit, lastModified));
+         node.AddChild(new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), name, url, nick, charset, BOOKMARK_BOOKMARK, addDate, lastVisit, lastModified));
+	 
+	 if (nick)
+	   free(nick);
+	 if (charset)
+	   free(charset);
       }
       else if ((t = strstr(p, "</DL>")) != NULL) {
          return;
       }
       else if ((t = strstr(p, "<HR>")) != NULL) {
-         node.AddChild(new CBookmarkNode(0, "", "", BOOKMARK_SEPARATOR));
+         node.AddChild(new CBookmarkNode(0, "", "", "", "", BOOKMARK_SEPARATOR));
       }
       else if ((t = strstr(p, "<TITLE>")) != NULL) {
          t+=7; // t now points to the title
@@ -349,6 +391,17 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
       }
    }
    return;
+}
+
+
+void findNick(char *nick, char *url)
+{
+   CBookmarkNode *retNode =   gBookmarkRoot.FindNick(nick);
+   
+   *url = 0;
+   if (retNode) {
+      strcpy(url, retNode->url.c_str());
+   }
 }
 
 // Build Menu
@@ -451,17 +504,19 @@ void BuildRebar(HWND hWndTB)
       SendMessage(hWndTB, TB_INSERTBUTTON, (WPARAM)-1, (LPARAM)&button);
    }
 
-   TBBUTTON button = {0};
-   button.fsState = TBSTATE_ENABLED;
-   button.fsStyle = TBSTYLE_SEP;
-   SendMessage(hWndTB, TB_INSERTBUTTON, (WPARAM)0, (LPARAM)&button);
+   if (bChevronEnabled) {
+      TBBUTTON button = {0};
+      button.fsState = TBSTATE_ENABLED;
+      button.fsStyle = TBSTYLE_SEP;
+      SendMessage(hWndTB, TB_INSERTBUTTON, (WPARAM)0, (LPARAM)&button);
 
-   button.iBitmap = IMAGE_CHEVRON;
-   button.idCommand = nDropdownCommand;
-   button.fsState = TBSTATE_ENABLED;
-   button.fsStyle = TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE | TBSTYLE_DROPDOWN;
-   button.iString = -1;
-   SendMessage(hWndTB, TB_INSERTBUTTON, (WPARAM)0, (LPARAM)&button);
+      button.iBitmap = IMAGE_CHEVRON;
+      button.idCommand = nDropdownCommand;
+      button.fsState = TBSTATE_ENABLED;
+      button.fsStyle = TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE | TBSTYLE_DROPDOWN;
+      button.iString = -1;
+      SendMessage(hWndTB, TB_INSERTBUTTON, (WPARAM)0, (LPARAM)&button);
+   }
 }
 
 void Rebuild() {
@@ -482,6 +537,22 @@ void Rebuild() {
 //   DrawMenuBar(hWnd);
 }
 
+
+int addLink(char *url, char *title, int flag)
+{
+   if (!url)
+      return false;
+
+   CBookmarkNode *addNode = gBookmarkRoot.FindSpecialNode(flag);
+   addNode->AddChild(new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), title ? (*title ? title : url) : url, url, "", "", BOOKMARK_BOOKMARK, time(NULL)));
+   
+   Save(gBookmarkFile);
+   
+   Rebuild();
+
+   return true;
+}
+
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
    // store these in static vars so that the BeginHotTrack call can access them
    static NMTOOLBAR tbhdr;
@@ -497,24 +568,27 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
       else if (command == nAddCommand) {
          kmeleonDocInfo *dInfo = kPlugin.kFuncs->GetDocInfo(hWnd);
          if (dInfo) {
-            CBookmarkNode *addNode = gBookmarkRoot.FindSpecialNode(BOOKMARK_FLAG_NB);
-            addNode->AddChild(new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), dInfo->title, dInfo->url, BOOKMARK_BOOKMARK, time(NULL)));
-
-            Save(gBookmarkFile);
-
-            Rebuild();
+            addLink(dInfo->url, dInfo->title, BOOKMARK_FLAG_NB);
+         }
+         return true;
+      }
+      else if (command == nAddLinkCommand) {
+         char *title = 0;
+         char *url = 0;
+         int retLen = kPlugin.kFuncs->GetGlobalVar(PREF_STRING, "LinkURL", NULL);
+         if (retLen) {
+            char *retVal = new char[retLen+1];
+            kPlugin.kFuncs->GetGlobalVar(PREF_STRING, "LinkURL", retVal);
+            url = title = retVal;
+            addLink(url, title, BOOKMARK_FLAG_NB);
+            delete retVal;
          }
          return true;
       }
       else if (command == nAddToolbarCommand) {
          kmeleonDocInfo *dInfo = kPlugin.kFuncs->GetDocInfo(hWnd);
          if (dInfo) {
-            CBookmarkNode *addNode = gBookmarkRoot.FindSpecialNode(BOOKMARK_FLAG_TB);
-            addNode->AddChild(new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), dInfo->title, dInfo->url, BOOKMARK_BOOKMARK, time(NULL)));
-
-            Save(gBookmarkFile);
-
-            Rebuild();
+            addLink(dInfo->url, dInfo->title, BOOKMARK_FLAG_TB);
          }
          return true;
       }
@@ -532,11 +606,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
    }
    else if (message == WM_NOTIFY) {
       hdr = *((LPNMHDR)lParam);
-      if (hdr.code == TBN_DROPDOWN) {
+      if (hdr.code == (UINT) TBN_DROPDOWN) {
          tbhdr = *((LPNMTOOLBAR)lParam);
 
          // this is the little down arrow thing
-         if (tbhdr.iItem == nDropdownCommand){
+         if (tbhdr.iItem == (int) nDropdownCommand){
             RECT rc;
             WPARAM index = 0;
             SendMessage(tbhdr.hdr.hwndFrom, TB_GETITEMRECT, index, (LPARAM) &rc);
@@ -553,7 +627,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
             }
 
             // post a message to defer exceution of BeginHotTrack
-            PostMessage(hWnd, WM_DEFERHOTTRACK, NULL, NULL);
+            PostMessage(hWnd, WM_DEFERHOTTRACK, (WPARAM) NULL, (LPARAM) NULL);
 
             return DefWindowProc(hWnd, message, wParam, lParam);
          }
