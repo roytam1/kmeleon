@@ -93,7 +93,7 @@ LRESULT CALLBACK WndProc (
 void * KMeleonWndProc;
 
 int Init();
-void Create(HWND parent);
+void Create(HWND parent, LPCREATESTRUCT pCS);
 void Config(HWND parent);
 void Quit();
 void DoMenu(HMENU menu, char *param);
@@ -183,7 +183,7 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
          Init();
       }
       else if (stricmp(subject, "Create") == 0) {
-         Create((HWND)data1);
+         Create((HWND)data1, (LPCREATESTRUCT)data2);
       }
       else if (stricmp(subject, "Config") == 0) {
          Config((HWND)data1);
@@ -589,11 +589,12 @@ int Init(){
 }
 
 
-void Create(HWND parent){
+void Create(HWND parent, LPCREATESTRUCT pCS){
    KMeleonWndProc = (void *) GetWindowLong(parent, GWL_WNDPROC);
    SetWindowLong(parent, GWL_WNDPROC, (LONG)WndProc);
 
-   int found = add_layer(parent, ghParent);
+   int popup = (pCS->style & WS_POPUP) != 0;
+   int found = add_layer(parent, popup ? NULL : ghParent);
    if (found && bLayer) {
       if (ghParent) {
          gwpOld.length = sizeof (WINDOWPLACEMENT);
@@ -603,6 +604,11 @@ void Create(HWND parent){
          find_frame(parent)->hWndLast = ghParent;
          if (!bBack) {
             find_frame(parent)->hWndFront = parent;
+            MoveWindow(parent, 
+                       gwpOld.rcNormalPosition.left, gwpOld.rcNormalPosition.top, 
+                       gwpOld.rcNormalPosition.right - gwpOld.rcNormalPosition.left, 
+                       gwpOld.rcNormalPosition.bottom - gwpOld.rcNormalPosition.top, 
+                       FALSE);
             PostMessage(parent, WM_COMMAND, id_resize, (LPARAM)&gwpOld);
             ShowWindowAsync( ghParent, SW_HIDE );
          }
