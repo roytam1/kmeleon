@@ -47,8 +47,11 @@ public:
    NS_DECL_NSIWEBPROGRESSLISTENER
    NS_DECL_NSIDOWNLOAD
 
-   CProgressDialog();
+   CProgressDialog(BOOL bAuto=TRUE);
    virtual ~CProgressDialog();
+
+   void InitViewer(nsIWebBrowserPersist *aPersist, char *pExternalViewer, char *pLocalFile);
+   void InitPersist(nsIURI *aSource, nsILocalFile *aTarget, nsIWebBrowserPersist *aPersist, BOOL bShowDialog);
 
    void Cancel();
    void Close();
@@ -60,6 +63,7 @@ public:
 
 protected:
    nsCOMPtr<nsIObserver> mObserver;
+   nsCOMPtr<nsIWebBrowserPersist> mPersist;
 
    // this is used to calculate speed
    PRInt64 mStartTime;
@@ -70,9 +74,16 @@ protected:
    PRInt32 mTotalBytes;
 
    int mDone;
+   BOOL m_bAuto;     // automatically invoked by a download
+   BOOL m_bClose;    // close the window when the download is finished
+   BOOL m_bWindow;   // display a progress window
+   BOOL m_bViewer;   // open the downloaded file in external viewer
+
+   nsCAutoString m_uri;
 
    char *mFileName;
    char *mFilePath;
+   char *mViewer;
 
    virtual void OnCancel();
    afx_msg void OnOpen();

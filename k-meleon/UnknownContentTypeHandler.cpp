@@ -262,15 +262,41 @@ nsresult NewUnknownContentHandlerFactory(nsIFactory** aFactory) {
 file save progress dialog box
 ********************************************************************************************************/
 
+
+
+/*
+
+   23 October, 2002
+
+   This class needs to be entirely reworked, it's pretty much a gross hack to
+   get us just what we need at the moment, when it's cleaned up, we'll actually
+   be able to do some better stuff.  We need an implementation that supports:
+
+      1) automatic (factory) downloads
+      2) manual (save link as) downloads
+      3) behind-the-scenes (view-source) downloads, with some sort of "file complete" callback or flag
+
+   -- Jeff
+
+*/
+
+
+
 // WeakReference not needed?
 //NS_IMPL_ISUPPORTS3(CProgressDialog, nsIWebProgressListener, nsISupportsWeakReference, nsIDownload)
 NS_IMPL_ISUPPORTS2(CProgressDialog, nsIDownload, nsIWebProgressListener)
 
-CProgressDialog::CProgressDialog() {
+CProgressDialog::CProgressDialog(BOOL bAuto) {
    NS_INIT_ISUPPORTS();
+
+   mObserver = NULL;
+   mPersist = NULL;
 
    mFileName = NULL;
    mFilePath = NULL;
+   mViewer = NULL;
+
+   m_bViewer = FALSE;
 
    mStartTime = 0;
 
@@ -278,12 +304,22 @@ CProgressDialog::CProgressDialog() {
    // for small files, we'll be done before the box even pops up
    mDone = true;
 
-   Create(IDD_PROGRESS, GetDesktopWindow());
 
-   BOOL bClose = theApp.preferences.GetBool("kmeleon.general.CloseDownloadDialog", true);
-   CheckDlgButton(IDC_CLOSE_WHEN_DONE, bClose);
-
-   theApp.RegisterWindow(this);
+   m_bClose = theApp.preferences.GetBool("kmeleon.general.CloseDownloadDialog", true);
+   
+   
+   // the instance was created automatically by a download
+   // if it's false, then we can expect an Attach() call to bind this to a persist object
+   // if it's true, then we'll pop up the download dialog here
+   m_bAuto = bAuto;
+   if (m_bAuto) {   
+      m_bWindow = TRUE; 
+      Create(IDD_PROGRESS, GetDesktopWindow());
+      CheckDlgButton(IDC_CLOSE_WHEN_DONE, m_bClose);
+      theApp.RegisterWindow(this);
+   }
+   else
+      m_bWindow = FALSE;
 }
 
 CProgressDialog::~CProgressDialog(){
@@ -291,6 +327,8 @@ CProgressDialog::~CProgressDialog(){
       delete mFileName;
    if (mFilePath)
       delete mFilePath;
+   if (mViewer)
+      delete mViewer;
 }
 
 /* void onStateChange (in nsIWebProgress aWebProgress, in nsIRequest aRequest, in long aStateFlags, in unsigned long aStatus); */
@@ -298,6 +336,31 @@ NS_IMETHODIMP CProgressDialog::OnStateChange(nsIWebProgress *aWebProgress,
                                           nsIRequest *aRequest, PRUint32 aStateFlags, 
                                           nsresult aStatus)
 {
+
+   if (m_bViewer && aStateFlags & nsIWebProgressListener::STATE_STOP) {
+
+      char *command = new char[strlen(mViewer) + strlen(mFilePath) +2];
+      
+      strcpy(command, mViewer);
+      strcat(command, " ");                              //append " filename" to the viewer command
+      strcat(command, mFilePath);
+      
+      STARTUPINFO si = { 0 };
+      PROCESS_INFORMATION pi;
+      si.cb = sizeof STARTUPINFO;
+      si.dwFlags = STARTF_USESHOWWINDOW;
+      si.wShowWindow = SW_SHOW;
+      
+      CreateProcess(0,command,0,0,0,0,0,0,&si,&pi);      // launch external viewer
+
+      delete command;
+      
+   }
+
+
+   if (!m_bWindow)   // if there's no window, there's no need to update it :)
+      return NS_OK;
+
    if (aStateFlags & nsIWebProgressListener::STATE_STOP){
       if (IsDlgButtonChecked(IDC_CLOSE_WHEN_DONE)) {
          Close();
@@ -333,6 +396,10 @@ NS_IMETHODIMP CProgressDialog::OnStateChange(nsIWebProgress *aWebProgress,
 
 /* void onProgressChange (in nsIWebProgress aWebProgress, in nsIRequest aRequest, in long aCurSelfProgress, in long aMaxSelfProgress, in long aCurTotalProgress, in long aMaxTotalProgress); */
 NS_IMETHODIMP CProgressDialog::OnProgressChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest, PRInt32 aCurSelfProgress, PRInt32 aMaxSelfProgress, PRInt32 aCurTotalProgress, PRInt32 aMaxTotalProgress){
+
+   if (!m_bWindow)   // if there's no window, there's no need to update it :)
+      return NS_OK;
+   
    if (aMaxTotalProgress && (
          PR_Now() > mLastUpdateTime + 100000.0l    // enforce a minimum delay between updates - gives a large speed increase for super-fast downloads which wasted CPU cycles updating the dialog constantly
          || aCurTotalProgress == aMaxTotalProgress // and be sure to catch the very last one, in case it would otherwise be skipped by the time check
@@ -441,7 +508,13 @@ BEGIN_MESSAGE_MAP(CProgressDialog, CDialog)
 END_MESSAGE_MAP()
 
 void CProgressDialog::Cancel() {
-   mObserver->Observe(nsnull, "oncancel", nsnull);
+
+   if (mObserver)
+      mObserver->Observe(nsnull, "oncancel", nsnull);
+
+   if (mPersist)
+      mPersist->CancelSave();
+
    Close();
 }
 
@@ -449,12 +522,16 @@ void CProgressDialog::Close() {
    theApp.UnregisterWindow(this);
    DestroyWindow();
 
-   // we need launcher to call CloseProgressWindow() and be properly disposed
-   nsresult rv;
-   nsCOMPtr<nsIHelperAppLauncher> launcher( do_QueryInterface(mObserver, &rv) );
-   if (rv == NS_OK) {
-      launcher->CloseProgressWindow();
+   if (m_bAuto) {
+      // we need launcher to call CloseProgressWindow() and be properly disposed
+      nsresult rv;
+      nsCOMPtr<nsIHelperAppLauncher> launcher( do_QueryInterface(mObserver, &rv) );
+      if (rv == NS_OK) {
+         launcher->CloseProgressWindow();
+      }
    }
+
+   m_bWindow = FALSE;
 }
 
 void CProgressDialog::OnCancel() {
@@ -480,6 +557,48 @@ void CProgressDialog::OnOpen() {
    ShellExecute(NULL, "open", mFilePath, "", directory, SW_SHOW);
 
    delete directory;
+}
+
+
+void CProgressDialog::InitViewer(nsIWebBrowserPersist *aPersist, char *pExternalViewer, char *pLocalFile) {
+
+   mPersist = aPersist;
+   mPersist->SetProgressListener(this);
+
+   mFilePath = strdup(pLocalFile);   
+   mViewer = strdup(pExternalViewer);
+
+   m_bViewer = TRUE;
+}
+
+void CProgressDialog::InitPersist(nsIURI *aSource, nsILocalFile *aTarget, nsIWebBrowserPersist *aPersist, BOOL bShowDialog) {
+   mPersist = aPersist;
+   mPersist->SetProgressListener(this);
+
+   m_bWindow = bShowDialog;
+
+   nsCAutoString uri;
+   nsCAutoString filepath;
+   
+   aSource->GetSpec(uri);
+   aTarget->GetNativePath(filepath);
+   
+   char *file = strrchr(filepath.get(), '\\')+1;
+   mFileName = strdup(file);
+   mFilePath = strdup(filepath.get());
+   
+   mStartTime = PR_Now();
+   mLastUpdateTime = 0;
+
+   if (m_bWindow) {
+      Create(IDD_PROGRESS, GetDesktopWindow());
+      CheckDlgButton(IDC_CLOSE_WHEN_DONE, m_bClose);
+      theApp.RegisterWindow(this);
+      
+      SetDlgItemText(IDC_SOURCE, uri.get());
+      SetDlgItemText(IDC_DESTINATION, filepath.get());      
+   }
+
 }
 
 
