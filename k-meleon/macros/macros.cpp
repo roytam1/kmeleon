@@ -176,7 +176,7 @@ int Init() {
 
    char szMacroFile[MAX_PATH];
 
-   kFuncs->GetPreference(PREF_STRING, "kmeleon.general.settingsDir", szMacroFile, "");
+   kFuncs->GetPreference(PREF_STRING, "kmeleon.general.settingsDir", szMacroFile, (void*)"");
 
    if (! *szMacroFile)
       return 0;
@@ -200,7 +200,7 @@ void Create(HWND hWndParent) {
 
 void Config(HWND hWndParent) {
    char cfgPath[MAX_PATH];
-   kFuncs->GetPreference(PREF_STRING, _T("kmeleon.general.settingsDir"), cfgPath, "");
+   kFuncs->GetPreference(PREF_STRING, _T("kmeleon.general.settingsDir"), cfgPath, (void*)"");
    strcat(cfgPath, "macros.cfg");
    ShellExecute(NULL, NULL, "notepad.exe", cfgPath, NULL, SW_SHOW);
 }
@@ -210,7 +210,7 @@ configFileType g_configFiles[1];
 int GetConfigFiles(configFileType **configFiles)
 {
    char cfgPath[MAX_PATH];
-   kFuncs->GetPreference(PREF_STRING, _T("kmeleon.general.settingsDir"), cfgPath, "");
+   kFuncs->GetPreference(PREF_STRING, _T("kmeleon.general.settingsDir"), cfgPath, (void*)"");
 
    strcpy(g_configFiles[0].file, cfgPath);
    strcat(g_configFiles[0].file, "macros.cfg");
@@ -386,78 +386,102 @@ void ExecuteMacro (HWND hWnd, int macro) {
 }
 
 // Thanks to Ulf Erikson for the tokenizer to clean things up in here...
-struct tokenizer {
+class Tokenizer {
+protected:
    std::string strData;
    int pos,lpos;
    char lastchar;
    bool instr;
-};
+public:
+   Tokenizer()           { resetTokenizer(""); }
+   Tokenizer(char *data) { resetTokenizer( data ); }
 
-void createTokenizer( struct tokenizer *t, char *data ) {
-   t->strData = data;
-   t->pos = t-> lpos = 0;
-   t->instr = false;
-   if(t->strData.length() > 0) {
-      if(t->strData.at(0) == '"') t->instr = true;
-      t->lastchar = t->strData.at(0);
+   void resetTokenizer(char *data ) {
+	  strData = data;
+	  pos = lpos = 0;
+	  instr = false;
+	  if(strData.length() > 0) {
+		 if(strData.at(0) == '"') instr = true;
+		 lastchar = strData.at(0);
    }
-   else t->lastchar = 0;
+	  else lastchar = 0;
 }
 
-int nextToken ( struct tokenizer *t, std::string *out ) {
-   if (t->pos >= t->strData.length())
+   int nextToken ( std::string *out ) {
+	  if (pos >= strData.length())
      return 0;
-   while(++t->pos <= t->strData.length()-1) {
-      if(t->strData.at(t->pos) == '"' && t->lastchar != '\\') {
-         t->instr = (t->instr) ? false : true;
-         t->lastchar = '"';
+	  while(++pos <= strData.length()-1) {
+		 if(strData.at(pos) == '"' && lastchar != '\\') {
+			instr = (instr) ? false : true;
+			lastchar = '"';
          continue;
       }
-      if(!t->instr) {
-         if(t->strData.at(t->pos) == ',') {
+		 if(!instr) {
+			if(strData.at(pos) == ',') {
             if (out)
-	            *out = strVal(t->strData.substr(t->lpos, t->pos-t->lpos));
-            t->lpos = t->pos+1;
-            t->lastchar = ',';
+				  *out = strVal(strData.substr(lpos, pos-lpos));
+			   lpos = pos+1;
+			   lastchar = ',';
             return 1;
          }
       }
-      t->lastchar = t->strData.at(t->pos);
+		 lastchar = strData.at(pos);
    }
    if (out)
-      *out = strVal(t->strData.substr(t->lpos));
+		 *out = strVal(strData.substr(lpos));
    return 1;
+}
+};
+
+static void parseError(int err, char *cmd, char *args, int data1=0, int data2=0) {
+   char title[256];
+   char msg[256];
+#define WRONGARGS 0
+#define WRONGTYPE 1
+
+   /* BUG! -- This should be snprintf. better check the length someway */
+   sprintf(title, "Invalid %s command", cmd);
+   switch (err) {
+   case WRONGARGS:
+	  sprintf(msg, "Wrong number of arguments - expected %d, found %d.\r\n\r\n"
+			  "%s(%s)",data1, data2, cmd, args);
+	  break;
+   case WRONGTYPE:
+	  sprintf(msg, "Invalid data type in %s command.\r\n\r\n"
+			  "%s(%s)", cmd, cmd, args);
+	  break;
+   }
+   MessageBox(NULL, msg, title, MB_OK);
 }
 
 std::string ExecuteCommand (HWND hWnd, int command, char *data) {
    const int nmaxparams = 5;  // maximum num of function parameters
    std::string params[nmaxparams];
-   struct tokenizer t;
+   class Tokenizer t(data);
    int nparam = 0;
 
-   createTokenizer( &t, data );
-   while (nparam<nmaxparams && nextToken( &t, &params[nparam] )) {
+   while (nparam<nmaxparams && t.nextToken( &params[nparam] )) {
       nparam++;
    }
 
    BEGIN_CMD_TEST
       CMD(open) {
          if (nparam != 1) {  // open( $0 )
-            MessageBox(NULL, "Wrong number of arguments - expected 1", "Invalid open command", MB_OK);
+			parseError(WRONGARGS, "open", data, 1, nparam);
             return "";
          }
          kFuncs->NavigateTo((char*)params[0].c_str(), OPEN_NORMAL);
       }
       CMD(opennew) {
          if (nparam != 1) {  // opennew( $0 )
-            MessageBox(NULL, "Wrong number of arguments - expected 1", "Invalid opennew command", MB_OK);
+            parseError(WRONGARGS, "opennew", data, 1, nparam);
             return "";
          }
          kFuncs->NavigateTo((char*)params[0].c_str(), OPEN_NEW);
       }
       CMD(openbg) {
          if (nparam != 1) {  // openbg( $0 )
-            MessageBox(NULL, "Wrong number of arguments - expected 1", "Invalid openbg command", MB_OK);
+            parseError(WRONGARGS, "openbg", data, 1, nparam);
             return "";
          }
          kFuncs->NavigateTo((char*)params[0].c_str(), OPEN_BACKGROUND);
@@ -466,7 +490,7 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
          enum PREFTYPE preftype;
 
          if (nparam != 3) {  // setpref( $0, $1, $2 )
-            MessageBox(NULL, "Wrong number of arguments - expected 3", "Invalid setpref command", MB_OK);
+            parseError(WRONGARGS, "setpref", data, 3, nparam);
             return "";
          }
 
@@ -474,7 +498,7 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
          else if (!strcmpi((char*)params[0].c_str(), "int")) preftype = PREF_INT;
          else if (!strcmpi((char*)params[0].c_str(), "string")) preftype = PREF_STRING;
          else {
-            MessageBox(NULL, "Invalid data type in setpref command", "Invalid setpref command", MB_OK);
+            parseError(WRONGTYPE, "setpref", data);
             return "";
          }
          char *pref = (char*)params[1].c_str();
@@ -506,7 +530,7 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
          enum PREFTYPE preftype;
 
          if(nparam != 2)  { // getpref( $0, $1 )
-            MessageBox(NULL, "Wrong number of arguments - expected 2", "Invalid getpref command", MB_OK);
+            parseError(WRONGARGS, "getpref", data, 2, nparam);
             return "";
          }
 
@@ -514,7 +538,7 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
          else if (!strcmpi((char*)params[0].c_str(), "int")) preftype = PREF_INT;
          else if (!strcmpi((char*)params[0].c_str(), "string")) preftype = PREF_STRING;
          else {
-            MessageBox(NULL, "Invalid data type in getpref command", "Invalid getpref command", MB_OK);
+			parseError(WRONGTYPE, "getpref", data);
             return "";
          }
 
@@ -548,14 +572,14 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
             else if (!strcmpi((char*)params[0].c_str(), "int")) preftype = PREF_INT;
             else if (!strcmpi((char*)params[0].c_str(), "string")) preftype = PREF_STRING;
             else {
-               MessageBox(NULL, "Invalid data type in togglepref command", "Invalid togglepref command", MB_OK);
+               parseError(WRONGTYPE, "togglepref", data);
                return "";
             }
          }
 
          if ((preftype == PREF_BOOL && nparam != 2) ||
             (preftype != PREF_BOOL && nparam < 3)) {
-            MessageBox(NULL, "Wrong number of arguments", "Invalid togglepref command", MB_OK);
+            parseError(WRONGARGS, "togglepref", data, (preftype==PREF_BOOL)?2:4, nparam);
             return "";
          }
 
@@ -574,19 +598,19 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
             }
          }
 
-         createTokenizer( &t, data );
-         nextToken( &t, NULL );  // params[0] == data type
-         nextToken( &t, NULL );  // params[1] == preference id
+         t.resetTokenizer( data );
+         t.nextToken( NULL );  // params[0] == data type
+         t.nextToken( NULL );  // params[1] == preference id
          char *prefdata = (char*)params[2].c_str();
 
          std::string str;
 
          BOOL bPrefWritten = FALSE;
-         while (!bPrefWritten && nextToken( &t, &str)) {
+         while (!bPrefWritten && t.nextToken( &str)) {
             char *param = (char*)str.c_str();
             if (preftype == PREF_STRING) {
                if (!strcmp(param, sVal)) {
-                  if (nextToken( &t, &str )) {
+                  if (t.nextToken( &str )) {
                      param = (char*)str.c_str();
                      kFuncs->SetPreference(preftype, pref, param, TRUE);
                   }
@@ -598,7 +622,7 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
             else if (preftype == PREF_INT) {
                int dataVal = atoi(param);
                if (dataVal == iVal) {
-                  if (nextToken( &t, &str )) {
+                  if (t.nextToken( &str )) {
                      param = (char*)str.c_str();
                      dataVal = atoi(param);
                   }
@@ -634,22 +658,18 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
          if (!cmd)
             cmd = atoi((char*)params[0].c_str());
 
-         SendMessage(hWnd, WM_COMMAND, cmd, NULL);
+         SendMessage(hWnd, WM_COMMAND, cmd, (LPARAM)NULL);
       }
       CMD(plugin) {
          int cmd;
-
-         char *comma = strchr(data, ',');
-         if (comma) {
-            *comma = 0;
-            char *param = SkipWhiteSpace(comma+1);
-            char *plugin = data;
-            kPlugin.kFuncs->SendMessage(plugin, PLUGIN_NAME, "DoAccel", (long)param, (long)&cmd);
-            // restore the comma
-            *comma = ',';
-
-            SendMessage(hWnd, WM_COMMAND, cmd, NULL);
-         }        
+         if (nparam != 2) {  // plugin( $0, $1 )
+            parseError(WRONGARGS, "plugin", data, 2, nparam);
+            return "";
+         }
+         char *plugin = (char*)params[0].c_str();
+         char *param  = (char*)params[1].c_str();
+         kPlugin.kFuncs->SendMessage(plugin, PLUGIN_NAME, "DoAccel", (long)param, (long)&cmd);
+         SendMessage(hWnd, WM_COMMAND, cmd, NULL);
       }
       CMD(alert) {
          // params are message,title,icon
@@ -781,7 +801,7 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
 void LoadMacros(char *filename) {
    HANDLE macroFile;
 
-   macroFile = CreateFile(filename, GENERIC_READ, 0, NULL, OPEN_ALWAYS, NULL, NULL);
+   macroFile = CreateFile(filename, GENERIC_READ, 0, NULL, OPEN_ALWAYS, (WPARAM)NULL, NULL);
    if (macroFile == INVALID_HANDLE_VALUE) {
       MessageBox(NULL, "Could not open file", filename, MB_OK);
       return;
