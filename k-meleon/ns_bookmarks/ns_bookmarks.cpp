@@ -93,6 +93,9 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
       else if (stricmp(subject, "DoMenu") == 0) {
          DoMenu((HMENU)data1, (char *)data2);
       }
+      else if (stricmp(subject, "DoAccel") == 0) {
+          *(int *)data2 = DoAccel((char *)data1);
+      }
       else return 0;
 
       return 1;
