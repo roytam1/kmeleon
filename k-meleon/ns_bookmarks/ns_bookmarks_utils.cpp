@@ -301,7 +301,10 @@ void BuildMenu(HMENU menu, CBookmarkNode &node)
          child->id = (UINT)childMenu; // we have to save off the HMENU for the rebar
       }
       else {
-         AppendMenu(menu, MF_STRING, nFirstBookmarkCommand + child->id, child->text.c_str());
+         char *pszTemp = _strdup(child->text.c_str());
+         CondenseString(pszTemp, 40);
+         AppendMenu(menu, MF_STRING, nFirstBookmarkCommand + child->id, pszTemp);
+         delete pszTemp;
       }
    }
 }
