@@ -24,7 +24,6 @@
 #include "config.h"
 #include "tray.h"
 #include "resource.h"
-#include "resrc1.h"
 
 
 UINT currentTrackPos;
