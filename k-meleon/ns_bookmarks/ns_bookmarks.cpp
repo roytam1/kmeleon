@@ -30,6 +30,7 @@
 
 #define KMELEON_PLUGIN_EXPORTS
 #include "../kmeleon_plugin.h"
+#include "../Utils.h"
 
 #define MAX_BOOKMARKS 512
 
@@ -92,7 +93,7 @@ int Init(){
    nFirstBookmarkCommand = kPlugin.kf->GetCommandIDs(MAX_BOOKMARKS);
 
    kPlugin.kf->GetPreference(PREF_STRING, _T("kmeleon.general.settingsDir"), szPath, "");
-   strcat(szPath, "bookmarks.html");
+   strcat(szPath, "bookmark.htm");
 
    return true;
 }
@@ -138,6 +139,10 @@ void ParseBookmarks(char *bmFileBuffer, HMENU menu){
          t = strchr(q+1, '>') + 1;
          q = strchr(t, '<');
          *q = 0;
+
+         if (strlen(t) > 40)
+            CondenseString(t, 40);
+
          AppendMenu(menu, MF_STRING, nFirstBookmarkCommand+position, t);
       }else if ((t = strstr(p, "</DL>")) != NULL){
          return;
