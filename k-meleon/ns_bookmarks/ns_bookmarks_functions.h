@@ -78,3 +78,7 @@ extern int gMaxTBSize;
 extern CBookmarkNode gBookmarkRoot;
 
 extern kmeleonPlugin kPlugin;
+
+extern "C" {
+   KMELEON_PLUGIN int DrawBitmap(DRAWITEMSTRUCT *dis);
+}

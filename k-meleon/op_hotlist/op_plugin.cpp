@@ -611,6 +611,7 @@ void DoMenu(HMENU menu, char *param){
          command = nEditCommand;
       if (command && string && *string && (!bIgnore || command == nConfigCommand)) {
          AppendMenu(menu, MF_STRING, command, string);
+         kPlugin.kFuncs->SendMessage("bmpmenu", PLUGIN_NAME, "SetOwnerDrawn", (long)menu, (long)DrawBitmap);
          return;
       }
       return;
@@ -739,12 +740,13 @@ extern "C" {
    KMELEON_PLUGIN kmeleonPlugin *GetKmeleonPlugin() {
       return &kPlugin;
    }
-   /*   
+
    KMELEON_PLUGIN int DrawBitmap(DRAWITEMSTRUCT *dis) {
       if (dis==NULL || gImagelist==NULL) return 0;
+
       int top = (dis->rcItem.bottom - dis->rcItem.top - 16) / 2;
       top += dis->rcItem.top;
-      
+
       if (GetMenuState((HMENU)dis->hwndItem, dis->itemID, 0) & MF_POPUP){
          if (dis->itemState & ODS_SELECTED){
             ImageList_Draw(gImagelist, IMAGE_FOLDER_OPEN, dis->hDC, dis->rcItem.left, top, ILD_TRANSPARENT | ILD_FOCUS );
@@ -754,7 +756,17 @@ extern "C" {
          }
          return 18;
       }
+// FIXME - This is probably way too slow to be useful.
+      if (gHotlistRoot.FindNode(LOWORD(dis->itemID))) {
+         if (dis->itemState & ODS_SELECTED){
+            ImageList_Draw(gImagelist, IMAGE_BOOKMARK, dis->hDC, dis->rcItem.left, top, ILD_TRANSPARENT | ILD_FOCUS);
+         }
+         else{
+            ImageList_Draw(gImagelist, IMAGE_BOOKMARK, dis->hDC, dis->rcItem.left, top, ILD_TRANSPARENT);
+         }
+
+         return 18;
+      }
       return 0;
    }
-   */
 }

@@ -313,6 +313,7 @@ void DoMenu(HMENU menu, char *param){
       }
       if (command) {
          AppendMenu(menu, MF_STRING, command, string);
+         kPlugin.kFuncs->SendMessage("bmpmenu", PLUGIN_NAME, "SetOwnerDrawn", (long)menu, (long)DrawBitmap);
       }
    }
    else {
@@ -417,17 +418,17 @@ extern "C" {
          }
          return 18;
       }
-// FIXME - make this work without nFirstBookmarkCommand and MAX_BOOKMARKS
-//      if (dis->itemID >= nFirstBookmarkCommand && dis->itemID < (nFirstBookmarkCommand + MAX_BOOKMARKS)){
-//         if (dis->itemState & ODS_SELECTED){
-//            ImageList_Draw(gImagelist, IMAGE_BOOKMARK, dis->hDC, dis->rcItem.left, top, ILD_TRANSPARENT | ILD_FOCUS);
-//         }
-//         else{
-//            ImageList_Draw(gImagelist, IMAGE_BOOKMARK, dis->hDC, dis->rcItem.left, top, ILD_TRANSPARENT);
-//         }
-//
-//         return 18;
-//      }
+// FIXME - This is probably way too slow to be useful.
+      if (gBookmarkRoot.FindNode(LOWORD(dis->itemID))) {
+         if (dis->itemState & ODS_SELECTED){
+            ImageList_Draw(gImagelist, IMAGE_BOOKMARK, dis->hDC, dis->rcItem.left, top, ILD_TRANSPARENT | ILD_FOCUS);
+         }
+         else{
+            ImageList_Draw(gImagelist, IMAGE_BOOKMARK, dis->hDC, dis->rcItem.left, top, ILD_TRANSPARENT);
+         }
+
+         return 18;
+      }
       return 0;
    }
 }
