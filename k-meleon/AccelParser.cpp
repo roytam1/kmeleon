@@ -42,6 +42,9 @@ extern CMfcEmbedApp theApp;
 #define VK_MINUS VK_OEM_MINUS
 #define VK_COMMA VK_OEM_COMMA
 #define VK_PERIOD VK_OEM_PERIOD
+#define VK_PERIOD VK_OEM_PERIOD
+#define VK_PAGE_UP VK_PRIOR
+#define VK_PAGE_DOWN VK_NEXT 
 
 CAccelParser::CAccelParser()
 {
@@ -181,6 +184,8 @@ int CAccelParser::Parse(char *p)
 
             VK_TEST(PRIOR)  // page up
             VK_TEST(NEXT)   // page down
+            VK_TEST(PAGE_UP)
+            VK_TEST(PAGE_DOWN) 
             VK_TEST(UP)
             VK_TEST(DOWN)
             VK_TEST(INSERT)
@@ -215,6 +220,7 @@ int CAccelParser::Parse(char *p)
             VK_TEST(CAPITAL)
             VK_TEST(MENU)
 
+	   /*
             VK_TEST(KANA)
             VK_TEST(JUNJA)
             VK_TEST(FINAL)
@@ -225,6 +231,7 @@ int CAccelParser::Parse(char *p)
             VK_TEST(NONCONVERT)
             VK_TEST(ACCEPT)
             VK_TEST(MODECHANGE)
+	   */
 
             VK_TEST(LWIN)
             VK_TEST(RWIN)
@@ -241,6 +248,7 @@ int CAccelParser::Parse(char *p)
             VK_TEST(NUMPAD8)
             VK_TEST(NUMPAD9)
 
+	   /*
             VK_TEST(F13)
             VK_TEST(F14)
             VK_TEST(F15)
@@ -253,6 +261,7 @@ int CAccelParser::Parse(char *p)
             VK_TEST(F22)
             VK_TEST(F23)
             VK_TEST(F24)
+	   */
 
             VK_TEST(NUMLOCK)
             VK_TEST(SCROLL)
