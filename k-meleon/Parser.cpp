@@ -11,8 +11,12 @@ extern CMfcEmbedApp theApp;
 // doesn't step on anyone's toes
 // there was a problem when a plugin tried to use strtok when loading
 
+// changed: we need to do this differently because the other version didn't
+// like international characters?!?
+
 char * CParser::strtok (char * string, const char * control)
 {
+#if 0
    char *str;
    const char *ctrl = control;
 
@@ -60,6 +64,19 @@ char * CParser::strtok (char * string, const char * control)
       return NULL;
    else
       return string;
+#else
+   if (string)
+      nextoken = string;
+
+   char *tok;
+   if ( (tok = strstr(nextoken, control)) ) {
+      *tok = 0;
+      char *ret = nextoken;
+      nextoken = tok + strlen(control);
+      return ret;
+   }
+   else return 0;
+#endif
 }
 
 CParser::Load(CString &filename)
