@@ -21,4 +21,3 @@
 
 #define  ID_EDIT_FINDNEXT        WM_APP + 112
 #define  ID_EDIT_FINDPREV        WM_APP + 113
-#define  ID_FULLSCREEN           WM_APP + 114

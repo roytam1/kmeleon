@@ -41,7 +41,8 @@ pluginFunctions pFunc = {
    Config,
    Quit,
    DoMenu,
-   DoRebar
+   DoRebar,
+   DoAccel
 };
 
 kmeleonPlugin kPlugin = {
@@ -101,6 +102,11 @@ void DoMenu(HMENU menu, char *param) {
    AppendMenu(menu, MF_STRING, id_fullscreen, "&Full Screen");
 }
 
+int DoAccel(char *param) {
+   MessageBox(NULL, "Accel", param, MB_OK);
+   return id_fullscreen;
+}
+
 void DoRebar(HWND rebarWnd) {
 }
 
@@ -148,7 +154,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
       }
    case WM_COMMAND:
       WORD command = LOWORD(wParam);
-      if ((command == ID_FULLSCREEN) || (command == id_fullscreen)) {
+      if (command == id_fullscreen) {
 
          WINDOWPLACEMENT wpNew;
 

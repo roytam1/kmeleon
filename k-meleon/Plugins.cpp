@@ -285,7 +285,7 @@ int CPlugins::FindAndLoad(char *pattern = "*.dll"){
    while (x>0 && pattern[x] != '\\' && pattern[x] != '/') x--;
 
    if (x==0) {       // if pattern does not contain \ or / we need to prepend pluginsDir
-      CString search = theApp.preferences.pluginsDir + "*.dll";
+      CString search = theApp.preferences.pluginsDir + pattern;
       bWorking = finder.FindFile(search);
    }
    else bWorking = finder.FindFile(pattern);

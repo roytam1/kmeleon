@@ -19,12 +19,99 @@
 #include "StdAfx.h"
 #include <afxtempl.h>
 
+#include "MfcEmbed.h"
+extern CMfcEmbedApp theApp;
+
 #include "AccelParser.h"
 #include "Utils.h"
 #include "resource.h"
 
+#include "Plugins.h"
+#include "kmeleon_plugin.h"
+
 #define BEGIN_VK_TEST if (0){}
 #define VK_TEST(KEY)  else if (stricmp(p, #KEY) == 0){ key = VK_##KEY; }
+
+
+
+BOOL CALLBACK AccelLogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam){
+   if (uMsg == WM_INITDIALOG) {
+      CString *log = (CString *)lParam;
+      SetDlgItemText(hwndDlg, IDC_CREDITS, *log);
+      SetWindowText(hwndDlg, _T("Accel Log"));
+      return true;
+   }
+   else if (uMsg == WM_COMMAND) {
+      if (LOWORD(wParam) == IDOK)
+         EndDialog(hwndDlg, 0);
+    return true;
+  }
+  return false;
+}
+
+class CAccelLog {
+protected:
+   CString log;
+   int error;
+public:
+   CAccelLog() {
+      error = 0;
+   };
+   ~CAccelLog() {
+      if (error)
+         DialogBoxParam(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDD_ABOUTBOX), NULL, AccelLogProc, (LPARAM)&log);
+   };
+
+   void WriteString(const char *string){
+      log += string;
+   }
+
+   void Error(){
+      error = 1;
+   }
+};
+
+#if 0
+#define LOG_1(msg, var1)       \
+   if (log) {                  \
+      char err[255];            \
+      sprintf(err, msg, var1);  \
+      log->WriteString(err);    \
+      log->WriteString("\r\n"); \
+   }
+
+#define LOG_2(msg, var1, var2)      \
+   if (log) {                       \
+      char err[255];                 \
+      sprintf(err, msg, var1, var2); \
+      log->WriteString(err);         \
+      log->WriteString("\r\n");      \
+   }
+#else
+#define LOG_1(a, b)
+#define LOG_2(a, b, c)
+#endif
+
+#define LOG_ERROR_1(msg, var1)   \
+   if (log) {                     \
+      log->Error();               \
+      char err[255];              \
+      sprintf(err, msg, var1);    \
+      log->WriteString("*** ");    \
+      log->WriteString(err);      \
+      log->WriteString("\r\n");   \
+   }
+
+#define LOG_ERROR_2(msg, var1, var2)   \
+   if (log) {                     \
+      log->Error();               \
+      char err[255];              \
+      sprintf(err, msg, var1, var2);    \
+      log->WriteString("*** ");    \
+      log->WriteString(err);      \
+      log->WriteString("\r\n");   \
+   }
+
 
 CAccelParser::CAccelParser(){
    accelTable = NULL;
@@ -59,11 +146,23 @@ int CAccelParser::Load(CString &filename){
    }
    CATCH (CFileException, e) {
       accelFile = NULL;
-      return false;
+      return 0;
    }
    END_CATCH
 
-      long length = accelFile->GetLength();
+   CAccelLog *log;
+   TRY {
+      log = new CAccelLog(); //("accel.log", CFile::modeWrite | CFile::modeCreate);
+      log->WriteString("Accel File: ");
+      log->WriteString(filename);
+      log->WriteString("\r\n\r\n");
+   }
+   CATCH (CFileException, e) {
+      log = NULL;
+   }
+   END_CATCH
+
+   long length = accelFile->GetLength();
    char *buffer = new char[length + 1];
    accelFile->Read(buffer, length);
    // force the terminating 0
@@ -74,6 +173,8 @@ int CAccelParser::Load(CString &filename){
    accelFile = NULL;
 
    CMap<CString, LPCSTR, int, int &> defineMap;
+
+
 #include "defineMap.cpp"
 
    char *e, *s;
@@ -94,7 +195,30 @@ int CAccelParser::Load(CString &filename){
             e = SkipWhiteSpace(e);
             TrimWhiteSpace(e);
 
-            if (!defineMap.Lookup(e, command)){
+            char *op = strchr(e, '(');
+            if (op) {                        // if there's an open parenthesis, we'll assume it's a plugin
+               char *parameter = op + 1;
+               char *cp = strrchr(parameter, ')');
+               if (cp) *cp = 0;
+               *op = 0;
+
+               TrimWhiteSpace(e);
+
+               kmeleonPlugin * kPlugin = theApp.plugins.Load(e);
+
+               if (kPlugin) {
+                  if (kPlugin->pf->DoAccel) {
+                     command = kPlugin->pf->DoAccel(parameter);
+                     LOG_2("Called plugin %s with parameter %s", e, parameter);
+                  }
+                  else
+                     LOG_ERROR_2( "Plugin %s has no accelerator %s", e, parameter);
+               }
+               else
+                  LOG_ERROR_2( "Could not load plugin %s\r\n\twith parameter %s", e, parameter );
+            }
+            
+            else if (!defineMap.Lookup(e, command)) {
                command = atoi(e);
             }
 

@@ -48,59 +48,59 @@ CMenuParser::~CMenuParser(){
   }
 }
 
+
 BOOL CALLBACK MenuLogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam){
-  if (uMsg == WM_INITDIALOG){
-    CString *log = (CString *)lParam;
-    SetDlgItemText(hwndDlg, IDC_CREDITS, *log);
-    SetWindowText(hwndDlg, _T("Menu Log"));
-    return true;
-  }else if (uMsg == WM_COMMAND){
-    if (LOWORD(wParam) == IDOK){
-      EndDialog(hwndDlg, 0);
-    }
+   if (uMsg == WM_INITDIALOG) {
+      CString *log = (CString *)lParam;
+      SetDlgItemText(hwndDlg, IDC_CREDITS, *log);
+      SetWindowText(hwndDlg, _T("Menu Log"));
+      return true;
+   }
+   else if (uMsg == WM_COMMAND) {
+      if (LOWORD(wParam) == IDOK)
+         EndDialog(hwndDlg, 0);
     return true;
   }
   return false;
 }
 
-
 class CMenuLog {
 protected:
-  CString log;
-  int error;
+   CString log;
+   int error;
 public:
-  CMenuLog(){
-    error = 0;
-  };
-  ~CMenuLog(){
-    if (error)
-      DialogBoxParam(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDD_ABOUTBOX), NULL, MenuLogProc, (LPARAM)&log);
-  };
+   CMenuLog() {
+      error = 0;
+   };
+   ~CMenuLog() {
+      if (error)
+         DialogBoxParam(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDD_ABOUTBOX), NULL, MenuLogProc, (LPARAM)&log);
+   };
 
-  void WriteString(const char *string){
-    log += string;
-  }
+   void WriteString(const char *string){
+      log += string;
+   }
 
-  void Error(){
-    error = 1;
-  }
+   void Error(){
+      error = 1;
+   }
 };
 
 #if 0
 #define LOG_1(msg, var1)       \
    if (log) {                  \
-     char err[255];            \
-     sprintf(err, msg, var1);  \
-     log->WriteString(err);    \
-     log->WriteString("\r\n"); \
+      char err[255];            \
+      sprintf(err, msg, var1);  \
+      log->WriteString(err);    \
+      log->WriteString("\r\n"); \
    }
 
 #define LOG_2(msg, var1, var2)      \
    if (log) {                       \
-     char err[255];                 \
-     sprintf(err, msg, var1, var2); \
-     log->WriteString(err);         \
-     log->WriteString("\r\n");      \
+      char err[255];                 \
+      sprintf(err, msg, var1, var2); \
+      log->WriteString(err);         \
+      log->WriteString("\r\n");      \
    }
 #else
 #define LOG_1(a, b)
@@ -108,47 +108,47 @@ public:
 #endif
 
 #define LOG_ERROR_1(msg, var1)   \
-  if (log) {                     \
-     log->Error();               \
-     char err[255];              \
-     sprintf(err, msg, var1);    \
-     log->WriteString("*** ");    \
-     log->WriteString(err);      \
-     log->WriteString("\r\n");   \
+   if (log) {                     \
+      log->Error();               \
+      char err[255];              \
+      sprintf(err, msg, var1);    \
+      log->WriteString("*** ");    \
+      log->WriteString(err);      \
+      log->WriteString("\r\n");   \
    }
 
 #define LOG_ERROR_2(msg, var1, var2)   \
-  if (log) {                     \
-     log->Error();               \
-     char err[255];              \
-     sprintf(err, msg, var1, var2);    \
-     log->WriteString("*** ");    \
-     log->WriteString(err);      \
-     log->WriteString("\r\n");   \
+   if (log) {                     \
+      log->Error();               \
+      char err[255];              \
+      sprintf(err, msg, var1, var2);    \
+      log->WriteString("*** ");    \
+      log->WriteString(err);      \
+      log->WriteString("\r\n");   \
    }
 
 int CMenuParser::Load(CString &filename){
-  CFile *menuFile;
-  TRY {
-    menuFile = new CFile(filename, CFile::modeRead);
-  }
-  CATCH (CFileException, e) {
-    menuFile = NULL;
-    return 0;
-  }
-  END_CATCH
+   CFile *menuFile;
+   TRY {
+      menuFile = new CFile(filename, CFile::modeRead);
+   }
+   CATCH (CFileException, e) {
+      menuFile = NULL;
+      return 0;
+   }
+   END_CATCH
 
-  CMenuLog *log;
-  TRY {
-    log = new CMenuLog(); //("menu.log", CFile::modeWrite | CFile::modeCreate);
-    log->WriteString("Menu File: ");
-    log->WriteString(filename);
-    log->WriteString("\r\n\r\n");
-  }
-  CATCH (CFileException, e) {
-    log = NULL;
-  }
-  END_CATCH
+   CMenuLog *log;
+   TRY {
+      log = new CMenuLog(); //("menu.log", CFile::modeWrite | CFile::modeCreate);
+      log->WriteString("Menu File: ");
+      log->WriteString(filename);
+      log->WriteString("\r\n\r\n");
+   }
+   CATCH (CFileException, e) {
+      log = NULL;
+   }
+   END_CATCH
 
   long length = menuFile->GetLength();
   char *buffer = new char[length + 1];

@@ -62,6 +62,7 @@ typedef struct {
 	void (*Quit)();
    void (*DoMenu)(HMENU menu, char *param);
    void (*DoRebar)(HWND rebarWnd);
+   int (*DoAccel)(char *param);
 } pluginFunctions;
 
 typedef struct {
