@@ -57,6 +57,8 @@
 #define IDS_ENCRYPTION_HIGH_GRADE       187
 #define IDS_ENCRYPTION_LOW_GRADE        188
 #define IDS_ENCRYPTION_NONE             189
+#define IDD_FILE_PRINTSETUP             190
+#define IDD_PRINTSETUP_DIALOG           191
 #define ID_URL_BAR                      1001
 #define ID_PROG_BAR                     1002
 #define IDC_PROMPT_ANSWER               1003
@@ -182,7 +184,15 @@
 #define IDC_BUTTON_ENABLE               1120
 #define IDC_KMELEON_FORUM               1121
 #define IDC_EDIT_URL                    1122
-#define IDC_FIND_EDIT                   1152
+#define IDC_LEFT_MARGIN_TXT             1123
+#define IDC_TOP_MARGIN_TXT              1124
+#define IDC_BOTTOM_MARGIN_TXT           1125
+#define IDC_RIGHT_MARGIN_TXT            1126
+#define IDC_PRT_BGCOLORS                1127
+#define IDC_SCALE                       1128
+#define IDC_SCALE_TXT                   1129
+#define IDC_PRT_BGIMAGES                1130
+#define IDC_FIND_EDIT                   1131
 #define ID_NAV_BACK                     32773
 #define ID_NAV_FORWARD                  32774
 #define ID_NAV_HOME                     32775
@@ -209,6 +219,8 @@
 #define ID_OPEN_LINK_IN_BACKGROUND      32798
 #define ID_WINDOW_NEXT                  32799
 #define ID_WINDOW_PREV                  32800
+#define ID_FILE_PRINTPREVIEW            32801
+#define ID_FILE_PRINTSETUP              32802
 #define IDS_FAILED_TO_CREATE_BROWSER    61204
 #define IDS_NEW_PLUGIN_FOUND            61205
 #define IDS_PLUGIN_NO_OPTIONS           61206
@@ -228,8 +240,8 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        191
-#define _APS_NEXT_COMMAND_VALUE         32801
+#define _APS_NEXT_RESOURCE_VALUE        192
+#define _APS_NEXT_COMMAND_VALUE         32803
 #define _APS_NEXT_CONTROL_VALUE         1078
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

@@ -56,6 +56,10 @@
 // Additional include directories: 
 // ../mozilla/mozilla/dist/include/nspr, ../mozilla/mozilla/dist/include/docshell, ../mozilla/mozilla/dist/include/dom, ../mozilla/mozilla/dist/include/embed_base, ../mozilla/mozilla/dist/include/exthandler, ../mozilla/mozilla/dist/include/find, ../mozilla/mozilla/dist/include/gfx, ../mozilla/mozilla/dist/include/helperAppDlg, ../mozilla/mozilla/dist/include/intl, ../mozilla/mozilla/dist/include/layout, ../mozilla/mozilla/dist/include/necko, ../mozilla/mozilla/dist/include/pref, ../mozilla/mozilla/dist/include/profile, ../mozilla/mozilla/dist/include/shistory, ../mozilla/mozilla/dist/include/string, ../mozilla/mozilla/dist/include/uriloader, ../mozilla/mozilla/dist/include/wallet, ../mozilla/mozilla/dist/include/webBrowser_core, ../mozilla/mozilla/dist/include/webshell, ../mozilla/mozilla/dist/include/widget, ../mozilla/mozilla/dist/include/windowwatcher, ../mozilla/mozilla/dist/include/xpcom, 
 
+// cache
+#include "nsICache.h"
+#include "nsICacheService.h"
+
 // docshell: 
 #include "nsIDocShell.h"
 #include "nsIDocShellTreeOwner.h"

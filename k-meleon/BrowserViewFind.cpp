@@ -160,6 +160,12 @@ LRESULT CBrowserView::OnFindMsg(WPARAM wParam, LPARAM lParam) {
 		PRBool didFind;
 		nsresult rv = finder->FindNext(&didFind);
       
+
+      
+      if(!didFind) {
+         MessageBox("Not found.");
+         dlg->SetFocus();
+      }                                                                       
       return (NS_SUCCEEDED(rv) && didFind);
 	}
 	return 0;

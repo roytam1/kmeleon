@@ -95,6 +95,7 @@ public:
    // list of download windows
    CObList m_MiscWndLst;
 
+
    CPlugins      plugins;
    CPreferences  preferences;
    CMenuParser   menus;
