@@ -273,17 +273,10 @@ void CondenseMenuText(char *buf, char *title, int index) {
 		memcpy(buf, "   ", 3);
 
 	len = strlen(title);
-	if (len > 43)  {
-      char *temp = new char[len];
+	if (len > 43)
+      CondenseString(title, 43);
 
-      strcpy (temp, title);
-      CondenseString(temp, 43);
-		strcpy(buf+3, temp);
-
-      delete temp;
-	}
-	else
-		strcpy(buf+3, title);
+   strcpy(buf+3, title);
 }
 
 
@@ -329,6 +322,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 	WndProcIterator = KMeleonWndProcs.find(hWnd);
 
 	return CallWindowProc((WNDPROC)WndProcIterator->second, hWnd, message, wParam, lParam);
+
 }
 
 
