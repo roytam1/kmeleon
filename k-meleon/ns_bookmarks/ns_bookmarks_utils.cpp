@@ -214,6 +214,8 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
 {
    char *p;
    char *t;
+   bool found_tb = false;
+
    while ((p = strtok(NULL, "\n")) != NULL){
       if ((t = strstr(p, "<DT><H3")) != NULL){
          t+=7;
@@ -242,10 +244,19 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
          ParseBookmarks(end, *newNode);
 
          // this is to support both NS 4 and NS 6 style bookmarks
-         if ( (strcmp(name, gToolbarFolder) == 0) ||
-              (strstr(t, _Q(PERSONAL_TOOLBAR_FOLDER="true"))) )
+         // FIXME - We should only allow one toolbar folder, eh?
+         //   Example: Two folders, same name, set first one as toolbar folder.
+         //             Pref saved w/ name only, though only one gets PERSONAL_TOOL...
+         //             Both given FLAG_TB when next parsed, because both match gToolbarFolder
+         //   Note: NS 4 has a bug (tee-hee!) - It just sets the first that matches to the toolbar.
+         //         So I'll just do the same for now.  First folder that matches gets it, no others.
+         //   But this should still be fixed (probably by just removing NS 4 compatibility...)
+         if ( !found_tb &&
+              ((strcmp(name, gToolbarFolder) == 0) ||
+              (strstr(t, _Q(PERSONAL_TOOLBAR_FOLDER="true")))) )
          {
             newNode->flags |= BOOKMARK_FLAG_TB;
+            found_tb = true;
          }
 
          // These are both NS 4 style - I don't know how Mozilla does it
@@ -358,7 +369,9 @@ void BuildMenu(HMENU menu, CBookmarkNode *node, BOOL isContinuation)
       else if (child->type == BOOKMARK_FOLDER) {
          HMENU childMenu = CreatePopupMenu();
          child->id = (UINT)childMenu; // we have to save off the HMENU for the rebar
-         AppendMenu(menu, MF_STRING|MF_POPUP, (UINT)childMenu, child->text.c_str());
+         char *pszTemp = _strdup(child->text.c_str());
+         CondenseString(pszTemp, 40);
+         AppendMenu(menu, MF_STRING|MF_POPUP, (UINT)childMenu, pszTemp);
          BuildMenu(childMenu, child, false);
       }
       else if (child->type == BOOKMARK_BOOKMARK) {
