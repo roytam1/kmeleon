@@ -272,13 +272,21 @@ void CBrowserView::OpenURLInNewWindow(const PRUnichar* pUrl, BOOL bBackground)
 
    pFrm->m_wndBrowserView.OpenURL(pUrl);
 
-   // show the window
-   if (bBackground)
-      pFrm->SetWindowPos(&wndBottom, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | SWP_SHOWWINDOW);
-   //      pFrm->ShowWindow(SW_MINIMIZE);
-   /* Show the window minimized, instead of on the bottom, because mozilla freaks out if we put it on the bottom */
-   /* As of Oct 30, 2002, this seems to be working again.  Good. */
 
+   /* Show the window minimized, instead of on the bottom, because mozilla freaks out if we put it on the bottom */
+   /* As of Oct 30, 2002, this seems to be working again.  Good. */  
+
+   /* Reverting to open minimized again hoping the statusbar reappears */
+   /* If the window is not maximized, and is opened on the bottom, the statusbar does not get drawn */
+
+   if (bBackground) {
+      if (theApp.preferences.bMaximized)
+         pFrm->SetWindowPos(&wndBottom, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | SWP_SHOWWINDOW);
+      else  
+         pFrm->ShowWindow(SW_MINIMIZE);
+   }
+   
+   // show the window
    else
       pFrm->ShowWindow(SW_SHOW);
 }
