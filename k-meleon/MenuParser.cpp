@@ -41,6 +41,7 @@ CMenuParser::~CMenuParser(){
     menus.GetNextAssoc( pos, s, m);
     if (m){
       m->DestroyMenu();
+      delete m;
     }
   }
 }
@@ -111,6 +112,10 @@ int CMenuParser::Load(CString &filename){
   DEFINEMAP_ADD(ID_EDIT_CUT)
   DEFINEMAP_ADD(ID_EDIT_COPY)
   DEFINEMAP_ADD(ID_EDIT_PASTE)
+  DEFINEMAP_ADD(ID_EDIT_SELECT_ALL)
+  DEFINEMAP_ADD(ID_EDIT_SELECT_NONE)
+  DEFINEMAP_ADD(ID_VIEW_IMAGE)
+  DEFINEMAP_ADD(ID_SAVE_IMAGE_AS)
   DEFINEMAP_ADD(ID_APP_EXIT)
   DEFINEMAP_ADD(ID_APP_ABOUT)
   DEFINEMAP_ADD(ID_OPEN_LINK_IN_NEW_WINDOW)
@@ -118,8 +123,6 @@ int CMenuParser::Load(CString &filename){
   DEFINEMAP_ADD(ID_MANAGE_PROFILES)
   DEFINEMAP_ADD(ID_LINK_KMELEON_HOME)
   DEFINEMAP_ADD(ID_LINK_KMELEON_FORUM)
-
-  //CMap<CString, LPCSTR, CMenu *, CMenu *&> menuMap;
 
   char *currentMenuName = NULL;
   CMenu *currentMenu = NULL;
@@ -138,6 +141,11 @@ int CMenuParser::Load(CString &filename){
       }else{
         currentMenu->CreateMenu();
       }
+      CMenu *popup = NULL;
+      if (menus.Lookup(CString(p), popup)){
+        popup->DestroyMenu();
+        delete popup;
+      }
       menus[p] = currentMenu;
     }
     else if (strnicmp(p, _T(":EndMenu"), 8) == 0){
@@ -151,11 +159,16 @@ int CMenuParser::Load(CString &filename){
         currentMenuName = p;
         currentMenu = new CMenu();
         currentMenu->CreatePopupMenu();
+
+        CMenu *popup = NULL;
+        if (menus.Lookup(CString(p), popup)){
+          popup->DestroyMenu();
+          delete popup;
+        }
         menus[p] = currentMenu;
       }
     }
     else if (strnicmp(p, _T(":EndPopup"), 9) == 0){
-      //menuMap[CString(currentMenuName)] = currentMenu;
       currentMenu = NULL;
       currentMenuName = NULL;
     }
@@ -211,18 +224,6 @@ int CMenuParser::Load(CString &filename){
     p = strtok(NULL, "\r\n");
   };
 
-  /*
-  POSITION pos = menuMap.GetStartPosition();
-  CMenu *m;
-  CString s;
-  while (pos){
-    menuMap.GetNextAssoc( pos, s, m);
-    if (m){
-      m->Detach();
-      m->DestroyMenu();
-    }
-  }
-  */
   delete [] buffer;
 
   return 1;
