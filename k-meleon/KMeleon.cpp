@@ -25,6 +25,8 @@
 #include "Mozilla.h"
 #include <wininet.h>
 
+#include "HiddenFrame.h"
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
@@ -41,7 +43,7 @@ BEGIN_MESSAGE_MAP(CKMeleonApp, CWinApp)
 		//    DO NOT EDIT what you see in these blocks of generated code!
 	//}}AFX_MSG_MAP
 	// Standard file based document commands
-	ON_COMMAND(ID_FILE_NEW, CWinApp::OnFileNew)
+	ON_COMMAND(ID_FILE_NEW, OnFileNew)
 	ON_COMMAND(ID_FILE_OPEN, CWinApp::OnFileOpen)
 	// Standard print setup command
 	ON_COMMAND(ID_FILE_PRINT_SETUP, CWinApp::OnFilePrintSetup)
@@ -52,7 +54,6 @@ END_MESSAGE_MAP()
 
 CKMeleonApp::CKMeleonApp()
 {
-  preferences = NULL;
 }
 
 CKMeleonApp::~CKMeleonApp()
@@ -63,6 +64,10 @@ CKMeleonApp::~CKMeleonApp()
 // The one and only CKMeleonApp object
 
 CKMeleonApp theApp;
+
+void CKMeleonApp::OnFileNew(){
+  CWinApp::OnFileNew();
+}
 
 /////////////////////////////////////////////////////////////////////////////
 // CKMeleonApp initialization
@@ -102,28 +107,35 @@ BOOL CKMeleonApp::InitInstance()
 
 	LoadStdProfileSettings();  // Load standard INI file options (including MRU)
 
-	SetRegistryBase (_T("Settings"));
+  preferences.Load();
+
+	//SetRegistryBase (_T("Settings"));
 
 	// Initialize all Managers for usage. They are automatically constructed
 	// if not yet present
-	InitKeyboardManager();
+	//InitKeyboardManager();
 
 	NS_InitEmbedding(nsnull,nsnull);
 
   plugins.FindAndLoad("kmeleon_*.dll");
 
+  if (!menus.Load(preferences.settingsDir + "\\menus.txt")){
+    MessageBox(NULL, "Ack! Menus.txt is bad!", NULL, 0);
+  }
+
 	// Register the application's document templates.  Document templates
 	//  serve as the connection between documents, frame windows and views.
-
+  /*
 	CSingleDocTemplate* pDocTemplate;
 	pDocTemplate = new CSingleDocTemplate(
 		IDR_MAINFRAME,
 		RUNTIME_CLASS(CKMeleonDoc),
 		RUNTIME_CLASS(CMainFrame),       // main SDI frame window
-		RUNTIME_CLASS(CMozilla));
+		RUNTIME_CLASS(CMozilla)
+    );
 	AddDocTemplate(pDocTemplate);
+  */
 
-  /*
 	CMultiDocTemplate* pDocTemplate;
 	pDocTemplate = new CMultiDocTemplate(
 		IDR_MAINFRAME,
@@ -132,11 +144,22 @@ BOOL CKMeleonApp::InitInstance()
 		RUNTIME_CLASS(CMozilla));
   AddDocTemplate(pDocTemplate);
 
-	// create main MDI Frame window
-	CFrameWnd* pMainFrame = new CFrameWnd;
-	if (!pMainFrame->LoadFrame(IDR_MAINFRAME))
+	// create main Frame window
+	m_pMainWnd = new CHiddenFrame;
+	if (!((CMDIFrameWnd *)m_pMainWnd)->LoadFrame(IDR_MAINFRAME))
 		return FALSE;
-	m_pMainWnd = pMainFrame;
+
+
+  /*
+  CMainFrame* pFrame = new CMainFrame;
+  m_pMainWnd = pFrame;
+  // create and load the frame with its resources
+  pFrame->LoadFrame(IDR_MAINFRAME,
+         WS_OVERLAPPEDWINDOW | FWS_ADDTOTITLE, NULL,
+         NULL);
+  // The one and only window has been initialized, so show and update it.
+  pFrame->ShowWindow(SW_SHOW);
+  pFrame->UpdateWindow();
   */
 
 	// Parse command line for standard shell commands, DDE, file open
@@ -147,20 +170,10 @@ BOOL CKMeleonApp::InitInstance()
 	if (!ProcessShellCommand(cmdInfo))
 		return FALSE;
 
-	CMainFrame *m=(CMainFrame *)m_pMainWnd;
-	CMozilla *p=(CMozilla *)m->GetActiveView();
-
-	p->createBrowser();
-
-  if (preferences->bStartHome){
-    p->Navigate(&preferences->homePage);
-  }else{
-    p->Navigate(&(CString)_T("about:blank"));
-  }
-
-	// The one and only window has been initialized, so show and update it.
+  /*
 	m_pMainWnd->ShowWindow(SW_SHOW);
 	m_pMainWnd->UpdateWindow();
+  */
 
 	return TRUE;
 }
@@ -241,8 +254,7 @@ void CKMeleonApp::OnAppAbout()
 // CKMeleonApp message handlers
 
 
-BOOL CAboutDlg::OnInitDialog() 
-{
+BOOL CAboutDlg::OnInitDialog() {
 	CDialog::OnInitDialog();
 	
 	m_btnMail.SetURLPrefix (_T("mailto:"));
@@ -263,20 +275,16 @@ BOOL CAboutDlg::OnInitDialog()
 	              // EXCEPTION: OCX Property Pages should return FALSE
 }
 
-int CKMeleonApp::ExitInstance() 
-{
-  if (preferences)
-    delete preferences;
-
+int CKMeleonApp::ExitInstance() {
 	NS_TermEmbedding();
 	BCGCBCleanUp ();
 	return CWinApp::ExitInstance();
 }
 
 BOOL CKMeleonApp::OnIdle( LONG count ){
-  CWinApp::OnIdle( count );
+  BOOL ret = CWinApp::OnIdle( count );
 
   NS_DoIdleEmbeddingStuff();
 
-  return true;
+  return ret;
 }
