@@ -21,6 +21,7 @@
 #include "stdafx.h"
 #include "../resource.h"
 #include "../Utils.h"
+#include <afxres.h>
 
 #pragma warning( disable : 4786 ) // C4786 bitches about the std::map template name expanding beyond 255 characters
 #include <map>
@@ -29,6 +30,8 @@
 
 #define KMELEON_PLUGIN_EXPORTS
 #include "../kmeleon_plugin.h"
+
+#define _T(x) x
 
 std::vector<HMENU> menus;
 int refCount;
@@ -136,57 +139,62 @@ BmpMapT bmpMap;
 typedef std::map<std::string, int> DefineMapT;
 
 void ParseConfig(char *buffer){
-  DefineMapT defineMap;
-#define DEFINEMAP_ADD(entry) defineMap[std::string(#entry)] = entry;
-#include "../definemap.cpp"
 
-  DefineMapT::iterator defineMapIt;
+	DefineMapT defineMap;
+	#define DEFINEMAP_ADD(entry) defineMap[std::string(#entry)] = entry;
+	#include "../definemap.cpp"
+	DefineMapT::iterator defineMapIt;
 
-  HBITMAP currentBitmap = NULL;
-  int index = 0;
 
-  char *p;
-  while ((p = strtok(NULL, "\n")) != NULL){
-    if (*p == '#'){
-      continue;
-    }
-    else if (!currentBitmap){
-      char *b = strchr(p, '{');
-      if (b){
-        *b = 0;
-        TrimWhiteSpace(p);
-        p = SkipWhiteSpace(p);
+	HBITMAP currentBitmap = NULL;
+	int index = 0;
 
-        if (strchr(p, ':') || *p == '/' || *p == '\\'){
-          currentBitmap = (HBITMAP)LoadImage(NULL, p, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS);
-        }else{
-          char bmpPath[MAX_PATH];
-          strcpy(bmpPath, szPath);
-          strcat(bmpPath, p);
-          currentBitmap = (HBITMAP)LoadImage(NULL, bmpPath, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS);
-        }
-      }
-    }else{
-      if (strchr(p, '}')){
-        currentBitmap = NULL;
-        index = 0;
-        continue;
-      }
-      TrimWhiteSpace(p);
-      p = SkipWhiteSpace(p);
+	char *p;
+	while ((p = strtok(NULL, "\n")) != NULL){
+		if (*p == '#'){
+			continue;
+		}
+		else if (!currentBitmap){
+			char *b = strchr(p, '{');
+			if (b) {
+				*b = 0;
+				TrimWhiteSpace(p);
+				p = SkipWhiteSpace(p);
 
-      int id;
+				if (strchr(p, ':') || *p == '/' || *p == '\\') {
+					currentBitmap = (HBITMAP)LoadImage(NULL, p, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS);
+				}
+				else {
+					char bmpPath[MAX_PATH];
+					strcpy(bmpPath, szPath);
+					strcat(bmpPath, p);
+					currentBitmap = (HBITMAP)LoadImage(NULL, bmpPath, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS);
+				}
+			}
+		}
+		else {
+			if ( strchr( p, '}' )) {
+				currentBitmap = NULL;
+				index = 0;
+				continue;
+			}
 
-      defineMapIt = defineMap.find(std::string(p));
-      if (defineMapIt != defineMap.end()){
-        id = defineMapIt->second;
-      }else{
-        id = 0;
-      }
-      bmpMap[id] = CBmpEntry(currentBitmap, index);
-      index++;
-    }
-  }
+			TrimWhiteSpace(p);
+			p = SkipWhiteSpace(p);
+
+			int id;
+
+			defineMapIt = defineMap.find(std::string(p));
+			if ( defineMapIt != defineMap.end() ) {
+				id = defineMapIt->second;
+			} 
+			else {
+				id = 0;
+			}
+			bmpMap[id] = CBmpEntry(currentBitmap, index);
+			index++;
+		}
+	}
 }
 
 int Init(){
@@ -252,105 +260,137 @@ void DoRebar(HWND rebarWnd){
 #define LEFT_SPACE 18
 
 int GetTabWidth(HMENU menu){
-  MENUITEMINFO mmi;
-  mmi.cbSize = sizeof(mmi);
+	MENUITEMINFO mmi;
+	mmi.cbSize = sizeof(mmi);
 
-  int maxChars = 0;
-  int state;
-  char *tab;
+	int maxChars = 0;
+	int state;
+	char *tab;
 
-  int count = ::GetMenuItemCount(menu);
-  int i;
-  for (i=0; i<count; i++){
-    state = ::GetMenuState(menu, i, MF_BYPOSITION);
-    if (state & MF_OWNERDRAW){
-      mmi.fMask = MIIM_DATA;
-      ::GetMenuItemInfo(menu, i, true, &mmi);
-      tab = strrchr((char *)mmi.dwItemData, '\t');
-      if (tab){
-        if ((tab - (char *)mmi.dwItemData) > maxChars){
-          maxChars = tab - (char *)mmi.dwItemData;
-        }
-      }
-    }
-  }
-  return maxChars*2;
+	int count = ::GetMenuItemCount(menu);
+	int i;
+	for (i=0; i<count; i++) {
+
+		state = ::GetMenuState(menu, i, MF_BYPOSITION);
+
+		if (state & MF_OWNERDRAW){
+			mmi.fMask = MIIM_DATA;
+			::GetMenuItemInfo(menu, i, true, &mmi);
+			tab = strrchr((char *)mmi.dwItemData, '\t');
+
+			if (tab) {
+				if ((tab - (char *)mmi.dwItemData) > maxChars) {
+					maxChars = tab - (char *)mmi.dwItemData;
+				}
+			}
+		}
+	}
+
+	return maxChars*2;
 }
 
-void DrawMenuItem(DRAWITEMSTRUCT *dis){
-  HMENU menu = (HMENU)dis->hwndItem;
+void DrawMenuItem(DRAWITEMSTRUCT *dis) {
 
-  MENUITEMINFO mmi;
-  mmi.cbSize = sizeof(mmi);
-  mmi.fMask = MIIM_DATA;
+	HMENU menu = (HMENU)dis->hwndItem;
 
-  ::GetMenuItemInfo(menu, dis->itemID, false, &mmi);
+	// make sure itemID is a valid int
+	dis->itemID = LOWORD(dis->itemID);
+	
+	MENUITEMINFO mmi;
+	mmi.cbSize = sizeof(mmi);
+	mmi.fMask = MIIM_DATA;
 
-  BOOL hasBitmap = false;
+	::GetMenuItemInfo(menu, dis->itemID, false, &mmi);
 
-  BmpMapT::iterator bmpMapIt;
-  bmpMapIt = bmpMap.find(dis->itemID);
-  if (bmpMapIt != bmpMap.end()){
-    HBITMAP hBmp = bmpMapIt->second.m_bitmap;
+	BOOL hasBitmap = false;
 
-    HDC bmpDC = CreateCompatibleDC(dis->hDC);
-    SelectObject(bmpDC, hBmp);
-    int width = 16;
-    int height = GetSystemMetrics(SM_CYMENUSIZE);
-    BitBlt(dis->hDC, dis->rcItem.left, dis->rcItem.top, width, height, bmpDC, bmpMapIt->second.m_index * 16, 0, SRCCOPY);
-    //TransparentBlt(dis->hDC, dis->rcItem.left, dis->rcItem.top, width, height, bmpDC, 0, 0, width, height, GetPixel(bmpDC, 0,0));
+	BmpMapT::iterator bmpMapIt;
+	bmpMapIt = bmpMap.find(dis->itemID);
 
-    DeleteDC(bmpDC);
 
-    hasBitmap = true;
+	// Load the corresponding bitmap
+	if (bmpMapIt != bmpMap.end()){
 
-    dis->rcItem.left += LEFT_SPACE;
-  }
+		HBITMAP hBmp = bmpMapIt->second.m_bitmap;
 
-  SetBkMode(dis->hDC, TRANSPARENT);
-  if (dis->itemState & ODS_SELECTED){
-    FillRect(dis->hDC, &dis->rcItem, GetSysColorBrush(COLOR_HIGHLIGHT));
-    SetTextColor(dis->hDC, GetSysColor(COLOR_HIGHLIGHTTEXT));
-  }else{
-    FillRect(dis->hDC, &dis->rcItem, GetSysColorBrush(COLOR_3DFACE));
-  }
-  if (!hasBitmap){
-    dis->rcItem.left += LEFT_SPACE;
-  }
-  char *tab = strrchr((char *)mmi.dwItemData, '\t');
-  int leftLen, rightLen;
-  if (tab){
-    leftLen = tab - ((char *)mmi.dwItemData);
-    rightLen = strlen(tab);
-  }else{
-     leftLen = strlen((char *)mmi.dwItemData);
-     rightLen = 0;
-  }
-  if (dis->itemState & ODS_DISABLED){
-    if (dis->itemState & ODS_GRAYED){
-      SetTextColor(dis->hDC, GetSysColor(COLOR_HIGHLIGHTTEXT));
+		HDC bmpDC = CreateCompatibleDC(dis->hDC);
+		SelectObject(bmpDC, hBmp);
 
-      dis->rcItem.left += 3;
-      dis->rcItem.top += 1;
-      DrawText(dis->hDC, (char *)mmi.dwItemData, leftLen, &dis->rcItem, DT_SINGLELINE | DT_VCENTER | DT_EXPANDTABS | DT_TABSTOP | (0<<8) /* 0 spaces/tab */ );
-      if (tab){
-        int tabWidth;
-        tabWidth = GetTabWidth(menu);
-        DrawText(dis->hDC, tab, rightLen, &dis->rcItem, DT_SINGLELINE | DT_VCENTER | DT_EXPANDTABS | DT_TABSTOP | (tabWidth<<8) );
-      }
-      dis->rcItem.left -= 3;
-      dis->rcItem.top -= 1;
+		int width = 16;
+		int height = GetSystemMetrics(SM_CYMENUSIZE);
+		BitBlt(dis->hDC, dis->rcItem.left, dis->rcItem.top, width, height, bmpDC, bmpMapIt->second.m_index * 16, 0, SRCCOPY);
+		//TransparentBlt(dis->hDC, dis->rcItem.left, dis->rcItem.top, width, height, bmpDC, 0, 0, width, height, GetPixel(bmpDC, 0,0));
+
+		DeleteDC(bmpDC);
+
+		hasBitmap = true;
+
+		dis->rcItem.left += LEFT_SPACE;
+	}
+
+
+	// Draw the hilight rectangle
+	SetBkMode(dis->hDC, TRANSPARENT);
+	if (dis->itemState & ODS_SELECTED) {
+		FillRect(dis->hDC, &dis->rcItem, GetSysColorBrush(COLOR_HIGHLIGHT));
+		SetTextColor(dis->hDC, GetSysColor(COLOR_HIGHLIGHTTEXT));
+	}
+	else {
+		FillRect(dis->hDC, &dis->rcItem, GetSysColorBrush(COLOR_3DFACE));
+	}
+
+	if (!hasBitmap){
+		dis->rcItem.left += LEFT_SPACE;
+	}
+	dis->rcItem.left += 2;
+
+	char *tab = strrchr((char *)mmi.dwItemData, '\t');
+	int leftLen, rightLen;
+	if (tab) {
+		leftLen = tab - ((char *)mmi.dwItemData);
+		rightLen = strlen(tab);
+	}
+	else {
+		leftLen = strlen((char *)mmi.dwItemData);
+		rightLen = 0;
+	}
+
+
+	if (dis->itemState & ODS_GRAYED) {
+
+		// setup pen to draw selected, grayed text
+		if (dis->itemState & ODS_SELECTED) {
+			SetTextColor(dis->hDC, GetSysColor(COLOR_GRAYTEXT));
+		}
+
+		// Draw shadow for unselected grayed items
+		else {
+			dis->rcItem.left += 1;
+			dis->rcItem.top += 1;
+
+			SetTextColor(dis->hDC, GetSysColor(COLOR_HIGHLIGHTTEXT));
+
+			DrawText(dis->hDC, (char *)mmi.dwItemData, leftLen, &dis->rcItem, DT_SINGLELINE | DT_VCENTER | DT_EXPANDTABS | DT_TABSTOP | (0<<8) /* 0 spaces/tab */ );
+			if (tab) {
+				int tabWidth;
+				tabWidth = GetTabWidth(menu);
+				DrawText(dis->hDC, tab, rightLen, &dis->rcItem, DT_SINGLELINE | DT_VCENTER | DT_EXPANDTABS | DT_TABSTOP | (tabWidth<<8) );
+			}
+
+			dis->rcItem.left -= 1;
+			dis->rcItem.top -= 1;
       
-      SetTextColor(dis->hDC, GetSysColor(COLOR_GRAYTEXT));
-    }
-  }
-  dis->rcItem.left += 2;
-  DrawText(dis->hDC, (char *)mmi.dwItemData, leftLen, &dis->rcItem, DT_SINGLELINE | DT_VCENTER | DT_EXPANDTABS | DT_TABSTOP | (0<<8) /* 0 spaces/tab */ );
-  if (tab){
-    int tabWidth;
-    tabWidth = GetTabWidth(menu);
-    DrawText(dis->hDC, tab, rightLen, &dis->rcItem, DT_SINGLELINE | DT_VCENTER | DT_EXPANDTABS | DT_TABSTOP | (tabWidth<<8) );
-  }
+			// set pen to draw normal text colour
+			SetTextColor(dis->hDC, GetSysColor(COLOR_GRAYTEXT));
+		}
+	}
+
+	DrawText(dis->hDC, (char *)mmi.dwItemData, leftLen, &dis->rcItem, DT_SINGLELINE | DT_VCENTER | DT_EXPANDTABS | DT_TABSTOP | (0<<8) /* 0 spaces/tab */ );
+	if (tab){
+		int tabWidth;
+		tabWidth = GetTabWidth(menu);
+		DrawText(dis->hDC, tab, rightLen, &dis->rcItem, DT_SINGLELINE | DT_VCENTER | DT_EXPANDTABS | DT_TABSTOP | (tabWidth<<8) );
+	}
 }
 
 void UnSetOwnerDrawn(HMENU menu){
@@ -379,6 +419,7 @@ void SetOwnerDrawn(HMENU menu){
   int count = ::GetMenuItemCount(menu);
   int i;
   int state;
+
   for (i=0; i<count; i++){
     state = ::GetMenuState(menu, i, MF_BYPOSITION);
     if (state & MF_POPUP){
