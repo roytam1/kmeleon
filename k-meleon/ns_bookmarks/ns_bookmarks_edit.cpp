@@ -445,7 +445,6 @@ static void OnRClick(HWND hTree)
          CBookmarkNode *node = (CBookmarkNode *)itemData.lParam;
          if (node->type == BOOKMARK_FOLDER){ // this is a submenu
             node->type = BOOKMARK_FOLDER_TB;
-            TreeView
          }
          else{ // this is an item, set the toolbar folder to it's parent
             HTREEITEM parent = TreeView_GetParent(hTree, item);
