@@ -188,7 +188,8 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
 
 	// Show the window...
 	if(bShowWindow) {
-      pFrame->ShowWindow(SW_SHOW);
+      if (preferences.bMaximized) pFrame->ShowWindow(SW_MAXIMIZE);
+      else pFrame->ShowWindow(SW_SHOW);
 		pFrame->UpdateWindow();
 	}
 
