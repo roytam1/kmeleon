@@ -114,6 +114,27 @@ int CMenuParser::Parse(char *p)
          else
             LOG_ERROR_1("Popup %s not found!", p);
       }
+      else if (p[0] == '!'){
+	 p ++;
+         CMenu *popup = NULL;
+         menus.Lookup(CString(p), popup);
+         if (popup){
+	    int n = popup->GetMenuItemCount();
+	    for (int i=1; i <= n; i++) {
+	       UINT id = popup->GetMenuItemID( i );
+	       if (id > 1) {
+		  CString str;
+		  if (popup->GetMenuString(i, str, MF_BYPOSITION) > 0)
+		     currentMenu->AppendMenu(MF_STRING, id, str);
+	       }
+	       else if (id == 0) {
+		  currentMenu->AppendMenu(MF_SEPARATOR);
+	       }
+	    }
+	 }
+	 else
+	    LOG_ERROR_1("Popup %s not found!", p);
+      }
       else if (p[0] == '-'){
          currentMenu->AppendMenu(MF_SEPARATOR);
          LOG_1("Added Separator", 0);
