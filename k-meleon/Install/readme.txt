@@ -16,14 +16,23 @@ K-Meleon is the Windows answer to Galeon. Thus, K-Meleon is a lite Web browser b
 standards-compliant. To make it simple, K-Meleon could be considered as the unbloated Mozilla 
 version for Windows.
 
-K-Meleon interface tries to mimic the IE MFC interface as much as possible. For comvenience, 
+K-Meleon interface tries to mimic the IE MFC interface as much as possible. For convenience, 
 it also uses the IE bookmarking system.
 
-K-Meleon is released under the GNU General Public License.
+K-Meleon is released under the GNU General Public License. 
+
+For more information and support, visit http://kmeleon.org and the 
+kmeleon forum at http://kmeleon.org/forum. The developers mailinglist can be reached at:
+mailto:kmeleon-dev@lists.sourceforge.net.
+
+The public PGP key (ID: 0x783D0587) to verify the authentity of releases can be found at: 
+http://kmeleon.sourcforge.net/publicPGP.txt
 
 
 ChangeLog:
 ----------
+since then
+ - Session cookies work
 v0.3 (02/13/01)
  - CTRL-N is now assignable as Accelerator key (Open in New Window now)
  - Plugin support for menus/toolbars
@@ -40,6 +49,7 @@ v0.3 (02/13/01)
  - Save complete page incl. images into a directory
  - Save images, download files with right mouse click
  - takes URL as command line option
+ - mailto: links open mail app
  - wording GNU General Public License fixed
  - new bugs introduced :-)
 

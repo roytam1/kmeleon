@@ -6,6 +6,7 @@ OutFile "kmeleon03.exe"
 UninstallText "This will uninstall K-Meleon from your computer."
 UninstallExeName "Uninstall.exe"
 DirText "Please select the directory you want to install K-Meleon in."
+InstallDirRegKey HKEY_CURRENT_USER "Software\K-Meleon\K-Meleon\General" "InstallDir"
 InstallDir "$PROGRAMFILES\K-Meleon"
 EnabledBitmap yes.bmp
 DisabledBitmap no.bmp
@@ -49,6 +50,9 @@ CreateShortCut "$SMPROGRAMS\K-Meleon.lnk" "$INSTDIR\K-Meleon.exe" "" "" 0
 CreateShortCut "$QUICKLAUNCH\K-Meleon.lnk" "$INSTDIR\K-Meleon.exe" "" "" 0
 
 Section -PostInstall
+# Adding the Installation directory which can be used to update k-meleon or by plugin installers
+WriteRegStr HKEY_CURRENT_USER "Software\K-Meleon\K-Meleon\General" "InstallDir" "$INSTDIR"
+# Adding uninstall info
 WriteRegStr HKEY_LOCAL_MACHINE "Software\Microsoft\Windows\CurrentVersion\Uninstall\K-Meleon" "DisplayName" "K-Meleon (remove only)"
 WriteRegStr HKEY_LOCAL_MACHINE "Software\Microsoft\Windows\CurrentVersion\Uninstall\K-Meleon" "UninstallString" '"$INSTDIR\Uninstall.exe"'
 ;Exec '"$WINDIR\notepad.exe" "$INSTDIR\ReadMe.txt"'
