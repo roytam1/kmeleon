@@ -454,7 +454,7 @@ int BuildFavoritesMenu(char * strPath, HMENU mainMenu)
 
          subPath = new char[pathLen + strlen(wfd.cFileName) + 2];
          strcpy(subPath, strPath);
-         strcat(subPath, wfd.cFileName);         
+         strcat(subPath, wfd.cFileName);
          strcat(subPath, "/");
 
          HMENU subMenu = CreatePopupMenu();
@@ -462,9 +462,8 @@ int BuildFavoritesMenu(char * strPath, HMENU mainMenu)
          // call this function recursively.
          if(gNumFavorites < MAX_FAVORITES && BuildFavoritesMenu(subPath, subMenu)) {
             // only insert a submenu if there are in fact .URL files in the subdirectory
-            subPath[strlen(subPath)-1] = 0; // chop off the trailing slash
             // condense the name and escape ampersands
-            char *pszTemp = fixString(subPath, 40);
+            char *pszTemp = fixString(wfd.cFileName, 40);
             AppendMenu(mainMenu, MF_BYCOMMAND | MF_POPUP | MF_STRING, (UINT)subMenu, pszTemp);
             delete pszTemp;
          } else{
