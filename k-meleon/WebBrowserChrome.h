@@ -28,9 +28,11 @@
 #include "nsIContentViewer.h"
 #include "nsIContentViewerFile.h"
 
-// when compiling with the new code, use this line instead
-//#include "nsIWebBrowserSiteWindow.h"
+#ifdef NEW_API
+#include "nsIWebBrowserSiteWindow.h"
+#else
 #include "nsIBaseWindow.h"
+#endif
 
 #include "nsIWebNavigation.h"
 #include "nsIWebProgressListener.h"
@@ -48,15 +50,17 @@
 class WebBrowserChrome   : public nsIWebBrowserChrome,
                            public nsIWebProgressListener,
 
-                           // when compiling with the new code, use this line instead
-                           //public nsIWebBrowserSiteWindow
+#ifdef NEW_API
+                           public nsIWebBrowserSiteWindow,
+#else
                            public nsIBaseWindow,
+#endif
 
                            public nsIContextMenuListener,
                            public nsIInterfaceRequestor,
                            public nsIURIContentListener,
                            public CPrompt //  BC -- implements all nsIPrompt stufs
-//                           public CUnknownFile // BC -- Unknown file stuff
+                           //public CUnknownFile // BC -- Unknown file stuff
 {
 public:
     WebBrowserChrome(nativeWindow nWindow, CMainFrame *parent);
@@ -69,9 +73,11 @@ public:
     NS_DECL_NSIURICONTENTLISTENER
     NS_DECL_NSIWEBPROGRESSLISTENER
 
-    // when compiling with the new code, use this line instead
-    //NS_DECL_NSIWEBBROWSERSITEWINDOW
+#ifdef NEW_API
+    NS_DECL_NSIWEBBROWSERSITEWINDOW
+#else
     NS_DECL_NSIBASEWINDOW
+#endif
 
     NS_DECL_NSICONTEXTMENULISTENER
     NS_DECL_NSIINTERFACEREQUESTOR

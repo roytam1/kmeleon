@@ -69,9 +69,11 @@ NS_INTERFACE_MAP_BEGIN(WebBrowserChrome)
    NS_INTERFACE_MAP_ENTRY(nsIWebBrowserChrome)
    NS_INTERFACE_MAP_ENTRY(nsIURIContentListener)
 
-   // Feb 2nd, the mozilla API changed.  when compiled with the new code switch these 2 comments
-   //NS_INTERFACE_MAP_ENTRY(nsIWebBrowserSiteWindow)
+#ifdef NEW_API
+   NS_INTERFACE_MAP_ENTRY(nsIWebBrowserSiteWindow)
+#else
    NS_INTERFACE_MAP_ENTRY(nsIBaseWindow)
+#endif
 
    NS_INTERFACE_MAP_ENTRY(nsIContextMenuListener)
    NS_INTERFACE_MAP_ENTRY(nsIWebProgressListener)  //optional
@@ -318,18 +320,17 @@ NS_IMETHODIMP WebBrowserChrome::OnSecurityChange(nsIWebProgress *aWebProgress, n
 // WebBrowserChrome::nsIBaseWindow
 //*****************************************************************************   
 
-// When using the new mozilla code, uncomment this block:
-/*
+#ifdef NEW_API
+
 NS_IMETHODIMP WebBrowserChrome::GetSiteWindow(void* siteWindow){
    NS_ENSURE_ARG_POINTER(siteWindow);
 
    *siteWindow = mNativeWindow;
    return NS_OK;
 }
-*/
 
-// When using the new mozilla code, comment out this block:
-///*
+#else  // old api below...
+
 NS_IMETHODIMP WebBrowserChrome::InitWindow(nativeWindow aParentNativeWindow,
    nsIWidget* parentWidget, PRInt32 x, PRInt32 y, PRInt32 cx, PRInt32 cy)   
 {
@@ -340,39 +341,7 @@ NS_IMETHODIMP WebBrowserChrome::Create(){
    NS_ASSERTION(PR_FALSE, "You can't call this");
    return NS_ERROR_UNEXPECTED;
 }
-//*/
 
-NS_IMETHODIMP WebBrowserChrome::Destroy(){
-  //NS_ASSERTION(PR_FALSE, "You can't call this");
-  return mBaseWindow->Destroy();
-}
-
-NS_IMETHODIMP WebBrowserChrome::SetPosition(PRInt32 x, PRInt32 y){
-    return mBaseWindow->SetPosition(x, y);
-}
-
-NS_IMETHODIMP WebBrowserChrome::GetPosition(PRInt32* x, PRInt32* y){
-    return mBaseWindow->GetPosition(x, y);
-}
-
-NS_IMETHODIMP WebBrowserChrome::SetSize(PRInt32 cx, PRInt32 cy, PRBool fRepaint)
-{
-    return mBaseWindow->SetSize(cx, cy, fRepaint);
-}
-
-NS_IMETHODIMP WebBrowserChrome::GetSize(PRInt32* cx, PRInt32* cy){
-    return mBaseWindow->GetSize(cx, cy);
-}
-
-NS_IMETHODIMP WebBrowserChrome::SetPositionAndSize(PRInt32 x, PRInt32 y, PRInt32 cx, PRInt32 cy, PRBool fRepaint){
-  return mBaseWindow->SetPositionAndSize(x, y, cx, cy, fRepaint);
-}
-
-NS_IMETHODIMP WebBrowserChrome::GetPositionAndSize(PRInt32* x, PRInt32* y, PRInt32* cx, PRInt32* cy){
-    return mBaseWindow->GetPositionAndSize(x, y, cx, cy);
-}
-
-///*
 NS_IMETHODIMP WebBrowserChrome::Repaint(PRBool aForce){
    return mBaseWindow->Repaint(aForce);
 }
@@ -417,7 +386,38 @@ NS_IMETHODIMP WebBrowserChrome::FocusAvailable(nsIBaseWindow* aCurrentFocus,
    PRBool* aTookFocus){
   return mBaseWindow->FocusAvailable(aCurrentFocus, aTookFocus);
 }
-//*/
+
+#endif // ifdef NEW_API
+
+NS_IMETHODIMP WebBrowserChrome::Destroy(){
+  //NS_ASSERTION(PR_FALSE, "You can't call this");
+  return mBaseWindow->Destroy();
+}
+
+NS_IMETHODIMP WebBrowserChrome::SetPosition(PRInt32 x, PRInt32 y){
+    return mBaseWindow->SetPosition(x, y);
+}
+
+NS_IMETHODIMP WebBrowserChrome::GetPosition(PRInt32* x, PRInt32* y){
+    return mBaseWindow->GetPosition(x, y);
+}
+
+NS_IMETHODIMP WebBrowserChrome::SetSize(PRInt32 cx, PRInt32 cy, PRBool fRepaint)
+{
+    return mBaseWindow->SetSize(cx, cy, fRepaint);
+}
+
+NS_IMETHODIMP WebBrowserChrome::GetSize(PRInt32* cx, PRInt32* cy){
+    return mBaseWindow->GetSize(cx, cy);
+}
+
+NS_IMETHODIMP WebBrowserChrome::SetPositionAndSize(PRInt32 x, PRInt32 y, PRInt32 cx, PRInt32 cy, PRBool fRepaint){
+  return mBaseWindow->SetPositionAndSize(x, y, cx, cy, fRepaint);
+}
+
+NS_IMETHODIMP WebBrowserChrome::GetPositionAndSize(PRInt32* x, PRInt32* y, PRInt32* cx, PRInt32* cy){
+    return mBaseWindow->GetPositionAndSize(x, y, cx, cy);
+}
 
 NS_IMETHODIMP WebBrowserChrome::SetFocus(){
    return mBaseWindow->SetFocus();
