@@ -280,6 +280,19 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
             *cPtr = 0;
          }
       }
+      else if (stricmp(subject, "AllLayersInWindow") == 0) {
+         struct frame *pFrame = find_frame(ghCurHwnd);
+         char *cPtr = (char *)data1;
+
+         if (cPtr && pFrame) {
+            struct layer *pLayer = pFrame->layer;
+	    int id = kPlugin.kFuncs->GetID(cPtr);
+	    while (pLayer) {
+	      PostMessage(pLayer->hWnd, WM_COMMAND, id, 0);
+	      pLayer = pLayer->next;
+	    }
+	 }
+      }
       else if (stricmp(subject, "ReplaceLayersInWindow") == 0 ||
                stricmp(subject, "AddLayersToWindow") == 0) {
          struct frame *pFrame = find_frame(ghCurHwnd);
@@ -346,12 +359,10 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
                PostMessage(pLayer->hWnd, WM_COMMAND, id_close_layer, MAKELPARAM(PLUGIN_JUNK,-1));
                pLayer = pLayer->next;
             }
-            if (stricmp(subject, "AddLayersToWindow") == 0) {
-              if (pFrame)
-                pFrame->hWndFront = ghCurHwnd;
-              curLayer = -1;
-              PostMessage(ghCurHwnd, WM_COMMAND, id_layer+iNextLayer, 0);
-            }
+            if (pFrame)
+              pFrame->hWndFront = ghCurHwnd;
+            curLayer = -1;
+            PostMessage(ghCurHwnd, WM_COMMAND, id_layer+iNextLayer, 0);
          }
       }
       else return 0;
