@@ -117,7 +117,7 @@ void DoRebar(HWND rebarWnd) {
    }
 
    // Register the band name and child hwnd
-   kPlugin.kf->RegisterBand(hwndTB, "Menu Bar");
+   kPlugin.kf->RegisterBand(hwndTB, "Menu Bar", false);
 
    m_menu = GetMenu(GetParent(rebarWnd));
    if (!m_menu){

@@ -45,7 +45,7 @@ void CReBarEx::MaximizeBand( UINT uBand ) {
 }
 */
 
-void CReBarEx::RegisterBand(HWND hWnd, char *name) {
+void CReBarEx::RegisterBand(HWND hWnd, char *name, int visibleOnMenu) {
 
    if (FindByName(name) != -1)
       return;
@@ -62,6 +62,7 @@ void CReBarEx::RegisterBand(HWND hWnd, char *name) {
    m_index[m_iCount]->hWnd = hWnd;
    m_index[m_iCount]->name = NULL;
    m_index[m_iCount]->visibility = TRUE;
+   m_index[m_iCount]->visibleOnMenu = visibleOnMenu;
 
    if (*name) {
       m_index[m_iCount]->name = new char[strlen(name)+1];
@@ -99,7 +100,7 @@ void CReBarEx::DrawToolBarMenu() {
    if (!m_menu) return;
 
    for (int x=0; x<m_iCount; x++) {
-      if (m_index[x]->name) {
+      if (m_index[x]->name && m_index[x]->visibleOnMenu) {
          if (m_index[x]->visibility)
             InsertMenu(m_menu, 0, MF_BYPOSITION | MF_CHECKED | MF_STRING, TOOLBAR_MENU_START_ID+x, m_index[x]->name);
          else

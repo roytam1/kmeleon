@@ -42,8 +42,8 @@ public:
 
    BOOL TestLoad(const char *file, const char *description);
 
-   int FindAndLoad(char *pattern);
-   kmeleonPlugin * Load(char *pattern);
+   int FindAndLoad(const char *pattern);
+   kmeleonPlugin * Load(char *file);
    void OnCreate(HWND wnd);
    //LRESULT OnMessage(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam);
    int  OnUpdate(UINT command);
