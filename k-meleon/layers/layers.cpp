@@ -46,7 +46,7 @@
 static BOOL bRebarEnabled  =   1;
 static char szTitle[MAX_PATH > 256 ? MAX_PATH : 256] = "Layers:";
 static int  nButtonMinWidth   =  10;
-static int  nButtonMaxWidth   =  35;
+static int  nButtonMaxWidth;  // 35;
 static BOOL bButtonNumbers =   0;
 static BOOL nButtonStyle   =   2;
 static BOOL bCloseWindow   =   0;
@@ -377,9 +377,13 @@ int Init(){
    kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_REBAR_ENABLED, &bRebarEnabled, &bRebarEnabled);
    kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_REBAR_TITLE, &szTitle, &szTitle);
    kPlugin.kFuncs->GetPreference(PREF_INT,  PREFERENCE_BUTTON_MINWIDTH, &nButtonMinWidth, &nButtonMinWidth);
-   kPlugin.kFuncs->GetPreference(PREF_INT,  PREFERENCE_BUTTON_WIDTH, &nButtonMaxWidth, &nButtonMaxWidth);
-   nButtonMaxWidth = nButtonMaxWidth > 0 ? nButtonMaxWidth * nHSize / nHRes : nButtonMaxWidth;
-   kPlugin.kFuncs->GetPreference(PREF_INT,  PREFERENCE_BUTTON_MAXWIDTH, &nButtonMaxWidth, &nButtonMaxWidth);
+   int tmpWidth = 0;
+   kPlugin.kFuncs->GetPreference(PREF_INT,  PREFERENCE_BUTTON_MAXWIDTH, &nButtonMaxWidth, &tmpWidth);
+   kPlugin.kFuncs->GetPreference(PREF_INT,  PREFERENCE_BUTTON_WIDTH, &tmpWidth, &tmpWidth);
+   if (tmpWidth && !nButtonMaxWidth)
+     nButtonMaxWidth = tmpWidth > 0 ? tmpWidth * nHSize / nHRes : tmpWidth;
+   else if (!nButtonMaxWidth)
+     nButtonMaxWidth = 35;
    kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_BUTTON_NUMBER, &bButtonNumbers, &bButtonNumbers);
    kPlugin.kFuncs->GetPreference(PREF_INT, PREFERENCE_BUTTON_STYLE, &nButtonStyle, &nButtonStyle);
    kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_CLOSE_WINDOW, &bCloseWindow, &bCloseWindow);
