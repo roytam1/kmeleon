@@ -109,6 +109,14 @@ public:
   // true if the window should default to maximized
   int bMaximized;
 
+  // -- yummy proxies
+  int proxyType;
+
+  CString proxyHttp;
+  int proxyHttpPort;
+
+  CString proxyNoProxy;
+
   // -- functions
 
   CPreferences();

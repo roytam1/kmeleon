@@ -55,6 +55,9 @@
 #define IDC_LOCALE_COMBO                1017
 #define IDC_NEW_NAME                    1018
 #define IDC_CREDITS                     1019
+#define IDC_EDIT_HTTP_PROXY_PORT        1021
+#define IDC_CHECK_PROXY_TYPE            1022
+#define IDC_EDIT_PROXY_NO_PROXY         1023
 #define IDC_CONTAINER                   1110
 #define IDC_EDIT_TOOLBAR_BACKGROUND     1111
 #define IDC_EDIT_SETTINGS_DIR           1111
@@ -62,6 +65,7 @@
 #define IDC_RADIO_START_BLANK           1113
 #define IDC_EDIT_HOMEPAGE               1114
 #define IDC_EDIT_PROXY                  1115
+#define IDC_EDIT_HTTP_PROXY             1115
 #define IDC_CHECK_TOOLBAR_BACKGROUND    1116
 #define IDC_BUTTON_BROWSE               1117
 #define IDC_LIST_PLUGINS                1118
@@ -93,7 +97,7 @@
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        155
 #define _APS_NEXT_COMMAND_VALUE         32790
-#define _APS_NEXT_CONTROL_VALUE         1020
+#define _APS_NEXT_CONTROL_VALUE         1024
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

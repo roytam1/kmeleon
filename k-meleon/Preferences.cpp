@@ -31,24 +31,30 @@ CPreferences::~CPreferences() {
 }
 
 #define GetBool(_pref, _value, _defaultValue) { \
-    PRBool tempBool; \
-    rv = prefs->GetBoolPref(_pref, &tempBool); \
-    if (NS_SUCCEEDED(rv)) \
-      _value = tempBool; \
-    else \
-      _value = _defaultValue; \
+    PRBool tempBool;                            \
+    rv = prefs->GetBoolPref(_pref, &tempBool);  \
+    if (NS_SUCCEEDED(rv))                       \
+      _value = tempBool;                        \
+    else                                        \
+      _value = _defaultValue;                   \
+  }
+
+#define GetInt(_pref, _value, _defaultValue) {  \
+    PRInt32 tempInt;                            \
+    rv = prefs->GetIntPref(_pref, &tempInt);    \
+    if (NS_SUCCEEDED(rv))                       \
+      _value = tempInt;                         \
+    else                                        \
+      _value = _defaultValue;                   \
   }
 
 #define GetString(_pref, _value, _defaultValue) { \
-    int bufLen; \
-    char *tempBuffer = NULL; \
-    rv = prefs->GetBinaryPref(_pref, tempBuffer, &bufLen); \
-    if (NS_SUCCEEDED(rv)){ \
-      _value = tempBuffer; \
-      delete tempBuffer; \
-    } \
-    else \
-      _value = _defaultValue; \
+    nsXPIDLCString tempString;                    \
+    rv = prefs->CopyCharPref(_pref, getter_Copies(tempString));  \
+    if (NS_SUCCEEDED(rv))                         \
+      _value = tempString;                        \
+    else                                          \
+      _value = _defaultValue;                     \
   }
 
 void CPreferences::Load() {
@@ -61,13 +67,6 @@ void CPreferences::Load() {
     rv = prefs->GetBoolPref("kmeleon.prefs_inited", &inited);
     if (NS_FAILED(rv) || !inited) {
       // Set up prefs for first run
-      rv = prefs->SetBoolPref(_T("kmeleon.display.maximized"), PR_TRUE);
-      rv = prefs->SetBoolPref(_T("kmeleon.display.backgroundImageEnabled"), PR_TRUE);
-      rv = prefs->SetCharPref(_T("kmeleon.display.backgroundImage"), "");
-
-      rv = prefs->SetBoolPref(_T("kmeleon.general.startHome"), PR_TRUE);
-      rv = prefs->SetCharPref(_T("kmeleon.general.homePage"), _T("http://www.kmeleon.org"));
-
       rv = prefs->SetBoolPref(_T("kmeleon.prefs_inited"), PR_TRUE);
       rv = prefs->SavePrefFile();
     }
@@ -84,19 +83,26 @@ void CPreferences::Load() {
       nsCOMPtr<nsIFile> profileDir;
       rv = NS_GetSpecialDirectory(NS_APP_USER_PROFILE_50_DIR, getter_AddRefs(profileDir));
       NS_ASSERTION(profileDir, "NS_APP_USER_PROFILE_50_DIR is not defined");
-      if (NS_FAILED(rv)) return;
+      if (NS_SUCCEEDED(rv)){
+        nsCOMPtr<nsILocalFile> localFile(do_QueryInterface(profileDir));
+        NS_ASSERTION(localFile, "Cannot get nsILocalFile from profile dir");
 
-      nsCOMPtr<nsILocalFile> localFile(do_QueryInterface(profileDir));
-      NS_ASSERTION(localFile, "Cannot get nsILocalFile from profile dir");
+        nsXPIDLCString descriptorString;
+        rv = localFile->GetPersistentDescriptor(getter_Copies(descriptorString));
 
-      nsXPIDLCString descriptorString;
-      rv = localFile->GetPersistentDescriptor(getter_Copies(descriptorString));
-
-      settingsDir = descriptorString;
+        settingsDir = descriptorString;
+      }
     }
     if (settingsDir[settingsDir.GetLength() - 1] != '\\'){
       settingsDir += '\\';
     }
+
+    GetString(_T("network.proxy.http"), proxyHttp, _T("proxy"));
+    GetInt(_T("network.proxy.http_port"), proxyHttpPort, 80);
+
+    GetString(_T("network.proxy.no_proxies_on"), proxyNoProxy, _T("localhost"));
+
+    GetInt(_T("network.proxy.type"), proxyType, 0);
   }
   else
     NS_ASSERTION(PR_FALSE, "Could not get preferences service");
@@ -114,6 +120,13 @@ void CPreferences::Save() {
     rv = prefs->SetCharPref(_T("kmeleon.general.homePage"), homePage);
 
     rv = prefs->SetCharPref(_T("kmeleon.general.settingsDir"), settingsDir);
+
+    rv = prefs->SetCharPref(_T("network.proxy.http"), proxyHttp);
+    rv = prefs->SetIntPref(_T("network.proxy.http_port"), proxyHttpPort);
+
+    rv = prefs->SetCharPref(_T("network.proxy.no_proxies_on"), proxyNoProxy);
+
+    rv = prefs->SetIntPref(_T("network.proxy.type"), proxyType);
 
     rv = prefs->SavePrefFile();
   }
@@ -260,6 +273,12 @@ void CPreferencePage::DoDataExchange(CDataExchange* pDX){
       DDX_Radio(pDX, IDC_RADIO_START_BLANK, theApp.preferences.bStartHome);
       DDX_Text(pDX, IDC_EDIT_HOMEPAGE, theApp.preferences.homePage);
       DDX_Text(pDX, IDC_EDIT_SETTINGS_DIR, theApp.preferences.settingsDir);
+      break;
+    case IDD_PREFERENCES_PROXY:
+      DDX_Text(pDX, IDC_EDIT_HTTP_PROXY, theApp.preferences.proxyHttp);
+      DDX_Text(pDX, IDC_EDIT_HTTP_PROXY_PORT, theApp.preferences.proxyHttpPort);
+      DDX_Text(pDX, IDC_EDIT_PROXY_NO_PROXY, theApp.preferences.proxyNoProxy);
+      DDX_Check(pDX, IDC_CHECK_PROXY_TYPE, theApp.preferences.proxyType);
       break;
   }
   //}}AFX_DATA_MAP
