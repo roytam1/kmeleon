@@ -314,9 +314,10 @@ void DoRebar(HWND rebarWnd){
       return;
    }
 
-   kPlugin.kf->RegisterToolBar(hwndTB, "IE Links");
+   // Register the band name and child hwnd
+    kPlugin.kf->RegisterBand(hwndTB, "Favorites");
 
-   SetWindowText(hwndTB, "Links");
+    SetWindowText(hwndTB, "Links");
 
    //SendMessage(hwndTB, TB_SETEXTENDEDSTYLE, 0, TBSTYLE_EX_DRAWDDARROWS);
 

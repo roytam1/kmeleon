@@ -234,7 +234,7 @@ void DoMenu(HMENU menu, char *param){
   }
 }
 
-void DoRebar(HWND rebarWnd){
+void DoRebar(HWND rebarWnd) {
 }
 
 #define BMP_MENU_VERSION 3333

@@ -272,7 +272,7 @@ void DoMenu(HMENU menu, char *param){
 
 #define SUBMENU_OFFSET 5000 // this is here to distinguish between submenus and menu items, which may have the same id otherwise
 
-void DoRebar(HWND rebarWnd){
+void DoRebar(HWND rebarWnd) {
    DWORD dwStyle = 0x40 | /*the 40 gets rid of an ugly border on top.  I have no idea what flag it corresponds to...*/
       CCS_NOPARENTALIGN | CCS_NORESIZE | //CCS_ADJUSTABLE |
       TBSTYLE_FLAT | TBSTYLE_TRANSPARENT | TBSTYLE_LIST | TBSTYLE_TOOLTIPS;
@@ -285,12 +285,14 @@ void DoRebar(HWND rebarWnd){
       kPlugin.hDllInstance, NULL
       );
 
+
+   // Register the band name and child hwnd
+   kPlugin.kf->RegisterBand(hwndTB, "Bookmarks");
+
    if (!hwndTB){
       MessageBox(NULL, "Failed to create bookmark toolbar", NULL, 0);
       return;
    }
-   kPlugin.kf->RegisterToolBar(hwndTB, "Bookmarks");
-
 
    if (!m_toolbarMenu){
       m_toolbarMenu = m_menuBookmarks;
@@ -388,6 +390,7 @@ void DoRebar(HWND rebarWnd){
 
    // Add the band that has the toolbar.
    SendMessage(rebarWnd, RB_INSERTBAND, (WPARAM)-1, (LPARAM)&rbBand);
+
 }
 
 CALLBACK EditProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);

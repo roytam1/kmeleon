@@ -149,8 +149,9 @@ void DoRebar(HWND rebarWnd){
       return;
    }
 
-   kPlugin.kf->RegisterToolBar(hwndTB, "Winamp");
-
+   // Register the band name and child hwnd
+    kPlugin.kf->RegisterBand(hwndTB, "Winamp");
+    
    //SetWindowText(hwndTB, "Winamp");
 
    SendMessage(hwndTB, TB_SETHOTIMAGELIST, 0, (LPARAM)himlHot);

@@ -18,7 +18,7 @@
 
 #include "fullscreen.h"
 #include "resource.h"
-#include "../KmeleonMessages.h"
+#include "KmeleonConst.h"
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -30,7 +30,15 @@
 #define _T(x) x
 
 #define KMELEON_PLUGIN_EXPORTS
-#include "../kmeleon_plugin.h"
+#include "kmeleon_plugin.h"
+
+
+int Init();
+void Create(HWND parent);
+void Config(HWND parent);
+void Quit();
+void DoMenu(HMENU menu, char *param);
+void DoRebar(HWND rebarWnd);
 
 pluginFunctions pFunc = {
    Init,

@@ -22,9 +22,8 @@ int Init();
 void Create(HWND parent);
 void Config(HWND parent);
 void Quit();
-HGLOBAL GetMenu();
 void DoMenu(HMENU menu, char *param);
-void DoRebar(HWND rebarWnd);
+void DoRebar(HWND rebarWnd, char *name);
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 

@@ -19,10 +19,9 @@
 
 //#include "stdafx.h"
 #include "history.h"
-#include "../Utils.h"
-#include "../ToolBarExMessages.h"
-#include "../resource.h"
-#include "../KmeleonMessages.h"
+#include "Utils.h"
+#include "KmeleonConst.h"
+#include "resource.h"
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>

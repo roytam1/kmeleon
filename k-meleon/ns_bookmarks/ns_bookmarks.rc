@@ -124,7 +124,7 @@ END
 // Cursor
 //
 
-IDC_DRAG_CURSOR         CURSOR  DISCARDABLE     "cursor1.cur"
+//IDC_DRAG_CURSOR         CURSOR  DISCARDABLE     "cursor1.cur"
 #endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
 

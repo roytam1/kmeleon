@@ -95,7 +95,7 @@ void Quit(){
 
 #define SUBMENU_OFFSET 5000 // this is here to distinguish between submenus and menu items, which may have the same id
 
-void DoRebar(HWND rebarWnd){
+void DoRebar(HWND rebarWnd) {
    DWORD dwStyle = 0x40 | /*the 40 gets rid of an ugly border on top.  I have no idea what flag it corresponds to...*/
       CCS_NOPARENTALIGN | CCS_NORESIZE | //CCS_ADJUSTABLE |
       TBSTYLE_FLAT | TBSTYLE_TRANSPARENT | TBSTYLE_LIST | TBSTYLE_TOOLTIPS;
@@ -108,6 +108,9 @@ void DoRebar(HWND rebarWnd){
       kPlugin.hDllInstance, NULL
       );
 
+   // Register the band name and child hwnd
+   kPlugin.kf->RegisterBand(hwndTB, "Menu Bar");
+
    if (!hwndTB){
       MessageBox(NULL, "Failed to create menu toolbar", NULL, 0);
       return;
@@ -119,8 +122,6 @@ void DoRebar(HWND rebarWnd){
    }
 
    SendMessage(hwndTB, TB_SETIMAGELIST, 0, (LPARAM)NULL);
-
-   kPlugin.kf->RegisterToolBar(hwndTB, "Menu");
 
    int stringID;
 
