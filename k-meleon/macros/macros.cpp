@@ -284,6 +284,62 @@ void Quit() {
 
 }
 
+std::string sGlobalArg;
+
+class ArgList {
+
+  class Node {
+  public:
+    int id;
+    std::string macro;
+    std::string arg;
+    class Node *next;
+    Node(char *macro, char *arg) {
+      this->macro = macro;
+      this->arg = arg;
+      id = kFuncs->GetCommandIDs(1);
+      next = NULL;
+    }
+  };
+
+protected:
+  int min;
+  int max;
+  class Node *root;
+
+public:
+  ArgList() {
+    root = NULL;
+  }
+  int add(char *macro, char *arg) {
+    class Node *ptr = new Node(macro, arg);
+    if (root == NULL)
+      min = max = ptr->id;
+    if (max < ptr->id)
+      max = ptr->id;
+    ptr->next = root;
+    root = ptr;
+    return ptr->id;
+  }
+  BOOL execute(HWND hWnd, int id) {
+    if (id < min || id > max)
+      return FALSE;
+    class Node *ptr = root;
+    while (ptr && ptr->id != id)
+      ptr = ptr->next;
+    if (ptr && ptr->id == id) {
+      int cmdid = FindMacro((char*)ptr->macro.c_str());
+      if (cmdid != NOTFOUND) {
+       sGlobalArg = ptr->arg;
+       ExecuteMacro(hWnd, cmdid);
+       sGlobalArg = "";
+       return TRUE;
+      }
+    }
+    return FALSE;
+  }
+} arglist;
+
 void DoMenu(HMENU menu, char *param) {
    if (*param) {
       char *string = strchr(param, ',');
@@ -294,23 +350,59 @@ void DoMenu(HMENU menu, char *param) {
          } while (*string==' ' || *string=='\t');
       }
 
-      int index = FindMacro(param);
-      if (index != NOTFOUND) {
-         if (macroList[index]->menuString)
-            AppendMenu(menu, MF_STRING, ID_START+index, string ? string : macroList[index]->menuString);
+      int id = -1;
+
+      char *arg = strchr(param, '(');
+      if (arg) {
+         *(arg++) = 0;
+         char *p = strchr(arg, ')');
+         if (p) {
+            *p = 0;
+            id = arglist.add(param, arg);
+         }
+      }
+
+      if (id == -1) {
+         int index = FindMacro(param);
+         if (index != NOTFOUND)
+            id = ID_START+index;
+      }
+
+      if (id != -1) {
+         if (string)
+            AppendMenu(menu, MF_STRING, id, string);
+         else if (macroList[index]->menuString)
+            AppendMenu(menu, MF_STRING, id, macroList[index]->menuString);
          else if (macroList[index]->macroName)
-            AppendMenu(menu, MF_STRING, ID_START+index, string ? string : macroList[index]->macroName);
+            AppendMenu(menu, MF_STRING, id, macroList[index]->macroName);
          else 
-            AppendMenu(menu, MF_STRING, ID_START+index, string ? string : "Untitled Macro");
+            AppendMenu(menu, MF_STRING, id, "Untitled Macro");
       }
    }
 }
 
 int DoAccel(char *param) {
    if (*param) {
-      int index = FindMacro(param);
-      if (index != NOTFOUND)
-         return ID_START+index;
+      int id = -1;
+
+      char *arg = strchr(param, '(');
+      if (arg) {
+         *(arg++) = 0;
+         char *p = strchr(arg, ')');
+         if (p) {
+            *p = 0;
+            id = arglist.add(param, arg);
+         }
+      }
+
+      if (id == -1) {
+         int index = FindMacro(param);
+         if (index != NOTFOUND)
+            id = ID_START+index;
+      }
+
+      if (id != -1)
+         return id;
    }
    return 0;
 }
@@ -1971,6 +2063,10 @@ std::string GetGlobalVarVal(HWND hWnd, char *name, int *found)
    if (name == NULL)
       return "";
    
+   if (strcmp(name, "ARG") == 0) {
+      *found = 1;
+      return sGlobalArg;
+   }
    
    int retLen = kPlugin.kFuncs->GetGlobalVar(PREF_STRING, name, NULL);
    if (retLen) {
@@ -2177,6 +2273,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
      }
      else if ( (LOWORD(wParam) >= ID_START) && (LOWORD(wParam) <= ID_END) )
          ExecuteMacro(hWnd, LOWORD(wParam)-ID_START);
+     else
+         arglist.execute(hWnd, LOWORD(wParam));
      break;
    case WM_CLOSE:
       {
