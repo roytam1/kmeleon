@@ -87,7 +87,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 xpcom.lib baseembed_s.lib /nologo /subsystem:windows /debug /machine:I386 /out:"..\mozilla\mozilla\dist\WIN32_o.OBJ\Embed\k-meleon.exe" /pdbtype:sept /libpath:"..\mozilla\mozilla\dist\WIN32_o.OBJ\lib"
+# ADD LINK32 xpcom.lib baseembed_s.lib /nologo /subsystem:windows /map /debug /machine:I386 /out:"..\mozilla\mozilla\dist\WIN32_o.OBJ\Embed\k-meleon.exe" /pdbtype:sept /libpath:"..\mozilla\mozilla\dist\WIN32_o.OBJ\lib"
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
 PostBuild_Desc=Updating Version
@@ -390,6 +390,10 @@ SOURCE=.\res\Cursor_17.cur
 # Begin Source File
 
 SOURCE=.\res\Cursor_27.cur
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\icon2.ico
 # End Source File
 # Begin Source File
 

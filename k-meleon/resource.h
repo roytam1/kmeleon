@@ -26,6 +26,7 @@
 #define IDD_PREFERENCES_DISPLAY         155
 #define IDD_PREFERENCES_PROXY           156
 #define IDD_PREFERENCES_GENERAL         157
+#define IDI_DOCUMENT                    157
 #define IDD_PREFERENCES_PLUGINS         158
 #define IDD_PREFERENCES_PARANOIA        159
 #define IDC_PAN_DOWN                    160
@@ -106,7 +107,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        157
+#define _APS_NEXT_RESOURCE_VALUE        158
 #define _APS_NEXT_COMMAND_VALUE         32791
 #define _APS_NEXT_CONTROL_VALUE         1033
 #define _APS_NEXT_SYMED_VALUE           101
