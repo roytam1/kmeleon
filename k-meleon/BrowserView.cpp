@@ -456,17 +456,13 @@ void CBrowserView::OnNewUrlEnteredInUrlBar()
 //
 void CBrowserView::OnUrlSelectedInUrlBar()
 {
-   mpBrowserFrame->m_wndUrlBar.EditChanged(FALSE);
-
    CString strUrl;	
-	mpBrowserFrame->m_wndUrlBar.GetSelectedURL(strUrl);
-
+   mpBrowserFrame->m_wndUrlBar.GetSelectedURL(strUrl);   
+   
    if(IsViewSourceUrl(strUrl))
       OpenViewSourceWindow(strUrl.GetBuffer(0));
    else 
    	OpenURL(strUrl.GetBuffer(0));
-
-   SetFocus();
 }
 
 void CBrowserView::OnSelectUrl()
@@ -478,8 +474,8 @@ void CBrowserView::OnUrlKillFocus()
 {
    if (mpBrowserFrame->m_wndUrlBar.CheckFocus())
       mpBrowserFrame->m_wndUrlBar.ReturnFocus();
-
-   mpBrowserFrame->m_wndUrlBar.EditChanged(FALSE);
+   else
+      mpBrowserFrame->m_wndUrlBar.EditChanged(FALSE);
 }
 
 void CBrowserView::OnUrlEditChange()
