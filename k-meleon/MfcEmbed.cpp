@@ -49,6 +49,7 @@
 #include "BrowserImpl.h"
 #include "kmeleonConst.h"
 #include "UnknownContentTypeHandler.h"
+#include "PromptService.h"
 #include "Utils.h"
 #include "Tooltips.h"
 
@@ -62,8 +63,8 @@ static char THIS_FILE[] = __FILE__;
 #define ACCEL_CONFIG_FILE "accel.cfg"
 
 // this is for overriding the Mozilla default PromptService component
-#include "components\PromptService.h"
-#define kComponentsLibname "kmeleonComponents.dll"
+//#define kComponentsLibname "kmeleonComponents.dll"
+
 #define NS_PROMPTSERVICE_CID \
 {0xa2112d6a, 0x0e28, 0x421f, {0xb4, 0x6a, 0x25, 0xc0, 0xb3, 0x8, 0xcb, 0xd0}}
 static NS_DEFINE_CID(kPromptServiceCID, NS_PROMPTSERVICE_CID);
@@ -119,46 +120,41 @@ nsresult CMfcEmbedApp::OverrideComponents()
    
    // replace Mozilla's default PromptService with our own, if the
    // expected override DLL is present
-   HMODULE overlib = ::LoadLibrary(kComponentsLibname);
-   if (overlib) {
-      InitPromptServiceType InitLib;
-      MakeFactoryType MakeFactory;
-      InitLib = reinterpret_cast<InitPromptServiceType>(::GetProcAddress(overlib, kPromptServiceInitFuncName));
-      MakeFactory = reinterpret_cast<MakeFactoryType>(::GetProcAddress(overlib, kPromptServiceFactoryFuncName));
-      
-      if (InitLib && MakeFactory) {
-         InitLib(overlib);
-         
-         nsCOMPtr<nsIFactory> promptFactory;
-         rv = MakeFactory(getter_AddRefs(promptFactory));
-         if (NS_SUCCEEDED(rv))
-            nsComponentManager::RegisterFactory(kPromptServiceCID,
-            "Prompt Service",
-            "@mozilla.org/embedcomp/prompt-service;1",
-            promptFactory,
-            PR_TRUE); // replace existing
-      } else
-         ::FreeLibrary(overlib);
+   /*
+   Brian - 1/8/01
+      Moved the prompt stuff back into the main exe since
+      it's a pain in the ass having it outside the exe
+   */
+
+   nsCOMPtr<nsIFactory> promptFactory;
+   rv = NS_NewPromptServiceFactory(getter_AddRefs(promptFactory));
+   if (NS_SUCCEEDED(rv)) {
+      nsComponentManager::RegisterFactory(kPromptServiceCID,
+         "Prompt Service",
+         "@mozilla.org/embedcomp/prompt-service;1",
+         promptFactory,
+         PR_TRUE);
    }
    
    nsCOMPtr<nsIFactory> helperAppDlgFactory;
    rv = NewUnknownContentHandlerFactory(getter_AddRefs(helperAppDlgFactory));
-   if (NS_SUCCEEDED(rv))
+   if (NS_SUCCEEDED(rv)) {
       nsComponentManager::RegisterFactory(kHelperAppLauncherDialogCID,
-      "Helper App Launcher Dialog",
-      "@mozilla.org/helperapplauncherdialog;1",
-      helperAppDlgFactory,
-      PR_TRUE); // replace existing
+         "Helper App Launcher Dialog",
+         "@mozilla.org/helperapplauncherdialog;1",
+         helperAppDlgFactory,
+         PR_TRUE); // replace existing
+   }
    
    nsCOMPtr<nsIFactory> tooltipTextProviderFactory;
    rv = NewTooltipTextProviderFactory(getter_AddRefs(tooltipTextProviderFactory));
-   if (NS_SUCCEEDED(rv))
+   if (NS_SUCCEEDED(rv)) {
       nsComponentManager::RegisterFactory(kTooltipTextProviderCID,
-      "Tooltip Text Provider",
-      "@mozilla.org/embedcomp/tooltiptextprovider;1",
-      tooltipTextProviderFactory,
-      PR_TRUE); // replace existing
-   
+         "Tooltip Text Provider",
+         "@mozilla.org/embedcomp/tooltiptextprovider;1",
+         tooltipTextProviderFactory,
+         PR_TRUE); // replace existing
+   }
    
    return rv;
 }
@@ -236,76 +232,18 @@ BOOL CMfcEmbedApp::InitInstance()
       return FALSE;
    }
    
-#if 1
    if(!InitializeProfiles()){
       ASSERT(FALSE);
       NS_TermEmbedding();
       return FALSE;
    }
-#else
-//   nsCOMPtr<nsIObserverService> observerService = 
-//      do_GetService(NS_OBSERVERSERVICE_CONTRACTID, &rv);
-
-
-//       nsCOMPtr<nsIDirectoryService> theDirService(do_CreateInstance(NS_DIRECTORY_SERVICE_CONTRACTID));
-//       theDirService->
-
-//      NS_WITH_SERVICE( nsIProperties, 
-//         directoryService, 
-//         NS_DIRECTORY_SERVICE_PROGID, 
-//         &rv);
-
-      nsCOMPtr<nsILocalFile> newPath;
-      nsCOMPtr<nsILocalFile> tempPath(do_CreateInstance(NS_LOCAL_FILE_CONTRACTID));
-      rv = tempPath->InitWithPath("c:\\kmeleon\\blah");
-      
-      newPath = tempPath;
-      
-      static NS_DEFINE_CID(kDirectoryServiceCID, NS_DIRECTORY_SERVICE_CID);
-      nsCOMPtr<nsIProperties> properties(do_GetService(kDirectoryServiceCID, &rv));
-      properties->Set(NS_APP_PREFS_50_DIR, newPath);
-      properties->Set(NS_APP_USER_PROFILE_50_DIR, newPath);
-
-      rv = newPath->AppendRelativePath("chrome");
-      properties->Set(NS_APP_USER_CHROME_DIR, newPath);
-
-      newPath = tempPath;
-      properties->Set(NS_APP_PREFS_50_FILE, tempPath);
-
-/*
-
-         sApp_PrefsDirectory50         = NS_NewAtom(NS_APP_PREFS_50_DIR);
-         sApp_PreferencesFile50        = NS_NewAtom(NS_APP_PREFS_50_FILE);
-        
-       // Profile:
-         sApp_UserProfileDirectory50   = NS_NewAtom(NS_APP_USER_PROFILE_50_DIR);
-        
-       // Application Directories:
-         sApp_UserChromeDirectory      = NS_NewAtom(NS_APP_USER_CHROME_DIR);
-         
-       // Aplication Files:
-         sApp_LocalStore50             = NS_NewAtom(NS_APP_LOCALSTORE_50_FILE);
-         sApp_History50                = NS_NewAtom(NS_APP_HISTORY_50_FILE);
-         sApp_UsersPanels50            = NS_NewAtom(NS_APP_USER_PANELS_50_FILE);
-         sApp_UsersMimeTypes50         = NS_NewAtom(NS_APP_USER_MIMETYPES_50_FILE);
-         
-       // Bookmarks:
-         sApp_BookmarksFile50          = NS_NewAtom(NS_APP_BOOKMARKS_50_FILE);
-         
-       // Search
-         sApp_SearchFile50             = NS_NewAtom(NS_APP_SEARCH_50_FILE);
-         
-       // MailNews
-         sApp_MailDirectory50          = NS_NewAtom(NS_APP_MAIL_50_DIR);
-         sApp_ImapMailDirectory50      = NS_NewAtom(NS_APP_IMAP_MAIL_50_DIR);
-         sApp_NewsDirectory50          = NS_NewAtom(NS_APP_NEWS_50_DIR);
-         sApp_MessengerFolderCache50   = NS_NewAtom(NS_APP_MESSENGER_FOLDER_CACHE_50_DIR);
-
-*/
-#endif
-      
+   
+   // These have to be done in this order!
    InitializePrefs();
+
    plugins.FindAndLoad();
+
+   InitializeMenusAccels();
    
    // the hidden window will take care of creating the first
    // browser window for us
@@ -404,10 +342,10 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
    
    if (preferences.bMaximized && (chromeMask & nsIWebBrowserChrome::CHROME_WINDOW_RESIZE))
       style |= WS_MAXIMIZE;
-   
+
    // this calls our modified create function, the winSize rect uses CreateWindowEx style x, y, cx, cy
    // rather than the MFC style left, top, right, bottom
-   if (!pFrame->Create(NULL, strTitle, style, winSize, NULL, NULL, 0L, NULL))
+   if (!pFrame->Create(NULL, strTitle, style, winSize, m_pMainWnd, NULL, 0L, NULL))
       return NULL;
    
    pFrame->SetIcon(LoadIcon(IDR_MAINFRAME), true);
@@ -422,7 +360,11 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
       pFrame->m_wndReBar.DrawToolBarMenu();
       m_bFirstWindowCreated = TRUE;
    }
-   
+
+   if (!preferences.bHideTaskBarButtons) {
+      pFrame->ModifyStyleEx(0, WS_EX_APPWINDOW);
+   }
+
    // Show the window...
    if(bShowWindow) {
       if (preferences.bMaximized) pFrame->ShowWindow(SW_MAXIMIZE);
@@ -580,7 +522,7 @@ BOOL CMfcEmbedApp::OnIdle(LONG lCount)
 {
    CWinApp::OnIdle(lCount);
    
-   NS_DoIdleEmbeddingStuff();
+   //NS_DoIdleEmbeddingStuff();
    
    return FALSE;
 }
@@ -653,29 +595,57 @@ BOOL CMfcEmbedApp::CreateHiddenWindow()
    CFrameWnd *hiddenWnd = new CHiddenWnd;
    if(!hiddenWnd)
       return FALSE;
-   
-   RECT bounds = { -10010, -10010, -10000, -10000 };
-   hiddenWnd->Create(NULL, "K-Meleon hidden window", WS_DISABLED, bounds, NULL, NULL, 0, NULL);
+
+   // do this before Create so the window spawned in Create will know who it's parent is
    m_pMainWnd = hiddenWnd;
    
+   RECT bounds = { -10, -10, -1, -1 };
+   hiddenWnd->Create(m_sMainWindowClassName, "K-Meleon hidden window", 0, bounds, NULL, NULL, 0, NULL);
+
    return TRUE;
 }
 
 nsresult CMfcEmbedApp::InitializePrefs(){
    preferences.Load();
    preferences.Save();
-   
-   if (!menus.Load(preferences.settingsDir + MENU_CONFIG_FILE)){
-      // we used to create the file if it didn't exist
-      // but now it should be copied automagically from defaults when the profile is created
-      MessageBox(NULL, "Could not find " MENU_CONFIG_FILE, NULL, 0);
-   }
-   if (!accel.Load(preferences.settingsDir + ACCEL_CONFIG_FILE)){
-      MessageBox(NULL, "Could not find " ACCEL_CONFIG_FILE, NULL, 0);
-   }
-   
+
    return TRUE;
-}   
+}
+
+nsresult CMfcEmbedApp::InitializeMenusAccels(){
+   nsresult nResult = TRUE;
+
+   CString filename;
+
+   filename = preferences.settingsDir + MENU_CONFIG_FILE;
+
+   if (!menus.Load(filename)){
+      MessageBox(NULL, "Could not find " MENU_CONFIG_FILE, NULL, 0);
+
+      if (!fopen(filename, "r")) {
+         // if it doesn't exist, create it
+         FILE *f = fopen(filename, "w");
+         fclose(f);
+      }
+
+      nResult = FALSE;
+   }
+
+
+   filename = preferences.settingsDir + ACCEL_CONFIG_FILE;
+   if (!accel.Load(filename)){
+      MessageBox(NULL, "Could not find " ACCEL_CONFIG_FILE, NULL, 0);
+
+      if (!fopen(filename, "r")) {
+         // if it doesn't exist, create it
+         FILE *f = fopen(filename, "w");
+         fclose(f);
+      }
+
+      nResult = FALSE;
+   }
+   return TRUE;
+}
 
 /* InitializeWindowCreator creates and hands off an object with a callback
 to a window creation function. This will be used by Gecko C++ code
@@ -715,7 +685,7 @@ NS_IMETHODIMP CMfcEmbedApp::Observe(nsISupports *aSubject, const char *aTopic, c
    if (nsCRT::strcmp(aTopic, "profile-approve-change") == 0)
    {
       // Ask the user if they want to
-      int result = MessageBox(NULL, "Do you want to close all windows in order to switch the profile?\nThis will cancel any files being downloaded.", "Confirm", MB_YESNO | MB_ICONQUESTION);
+      int result = AfxMessageBox(IDS_PROFILE_SWITCH, MB_YESNO | MB_ICONQUESTION, 0);
       if (result != IDYES)
       {
          nsCOMPtr<nsIProfileChangeStatus> status = do_QueryInterface(aSubject);
@@ -800,3 +770,4 @@ NS_IMETHODIMP CMfcEmbedApp::CreateChromeWindow(nsIWebBrowserChrome *parent,
    return NS_OK;
    
 }
+
