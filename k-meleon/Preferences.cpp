@@ -280,7 +280,11 @@ void CPreferences::Save() {
 
       // -- Privacy
 
-      rv = prefs->SetCharPref(_T("general.useragent.override"), userAgent);
+      if (!userAgent.IsEmpty())
+         rv = prefs->SetCharPref(_T("general.useragent.override"), userAgent);
+      else
+         rv = prefs->ClearUserPref(_T("general.useragent.override"));
+
       if (bRestrictPopups)
          rv = prefs->SetCharPref(_T("capability.policy.restrictedpopups.Window.open"), "noAccess");
       else
@@ -361,4 +365,12 @@ void CPreferences::SetString(const char *preference, char *value){
    if (NS_SUCCEEDED(rv)) {
       prefs->SetCharPref(preference, value);
    }
+}
+
+void CPreferences::Clear(const char *preference) {
+   nsresult rv;
+   nsCOMPtr<nsIPref> prefs(do_GetService(NS_PREF_CONTRACTID, &rv));
+   if (NS_SUCCEEDED(rv)) {
+      prefs->ClearUserPref(preference);
+   }   
 }
