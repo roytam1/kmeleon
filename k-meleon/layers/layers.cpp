@@ -148,7 +148,7 @@ INT id_layer;
 INT id_open_new_layer, id_open_link_front, id_open_link_back;
 INT id_close_layer, id_close_all, id_close_others;
 INT id_next_layer, id_prev_layer, id_last_layer;
-INT id_close_frame;
+INT id_open_frame, id_close_frame;
 INT id_config;
 INT id_resize;
 
@@ -340,6 +340,7 @@ int Init(){
    id_config = kPlugin.kFuncs->GetCommandIDs(1);
    id_close_layer = kPlugin.kFuncs->GetCommandIDs(1);
    id_close_all = kPlugin.kFuncs->GetCommandIDs(1);
+   id_open_frame = kPlugin.kFuncs->GetCommandIDs(1);
    id_close_frame = kPlugin.kFuncs->GetCommandIDs(1);
    id_close_others = kPlugin.kFuncs->GetCommandIDs(1);
    
@@ -392,7 +393,7 @@ void Create(HWND parent){
    
    kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_CATCH_WINDOW, &bCatchWindow, &bCatchWindow);
    if (bCatchWindow) {
-      if (!bBack || !ghParent)
+      if (!bBack || !ghParent || !found)
          ghParent = parent;
    }
    else
@@ -473,6 +474,9 @@ void DoMenu(HMENU menu, char *param){
       else if (stricmp(action, "Close") == 0){
          command = id_close_layer;
       }
+      else if (stricmp(action, "OpenWindow") == 0){
+         command = id_open_frame;
+      }
       else if (stricmp(action, "CloseWindow") == 0){
          command = id_close_frame;
       }
@@ -510,6 +514,8 @@ int DoAccel(char *param) {
       return id_last_layer;
    if (stricmp(param, "Config") == 0)
       return id_config;   
+   if (stricmp(param, "OpenWindow") == 0)
+      return id_open_frame;   
    if (stricmp(param, "CloseWindow") == 0)
       return id_close_frame;   
    if (stricmp(param, "Close") == 0)
@@ -751,13 +757,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
             pFrame = find_frame(hWnd);
             if (!pFrame)
                break;
+            if (hWnd != pFrame->hWndFront && bCatchWindow) {
+               ghParent = hWnd;
+            }
             if (message == UWM_UPDATESESSIONHISTORY ||
                 hWnd == pFrame->hWndFront) {
                UpdateLayersMenu(pFrame->hWndFront);
                if ( (pLayer = find_layer(pFrame->hWndFront)) == NULL)
                   break;
                UpdateRebarMenu(pLayer);
-            } 
+            }
             else {
                int i = id_layer;
                pLayer = pFrame->layer;
@@ -820,12 +829,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
             else if (command == id_config){
                Config(hWnd);
                return 1;
-            }
-
-            else if (command == ID_NEW_BROWSER) {
-                  ghParent = NULL;
-                  bBack = 0;
-                  bLayer = 0;
             }
 
             else if (command == ID_VIEW_SOURCE) {
@@ -934,11 +937,20 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                return 1;
             }
             
-            else if (command == id_open_new_layer) {
+            else if (command == id_open_new_layer ||
+                     command == id_open_frame) {
                
-               ghParent = hWnd;
-               bBack = 0;
-               bLayer = 1;
+               if (command == id_open_new_layer) {
+                  ghParent = hWnd;
+                  bBack = 0;
+                  bLayer = 1;
+               }
+               else {
+                  ghParent = NULL;
+                  bBack = 0;
+                  bLayer = 0;
+               }
+
                int iNewWindowOpenAs = 0;
                kPlugin.kFuncs->GetPreference(PREF_INT, "kmeleon.display.newWindowOpenAs",
                                              &iNewWindowOpenAs, &iNewWindowOpenAs);
@@ -950,23 +962,23 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                   
                   case PREF_NEW_WINDOW_CURRENT:
                      dInfo = kPlugin.kFuncs->GetDocInfo(hWnd);
-                     kPlugin.kFuncs->NavigateTo((dInfo && dInfo->url) ? dInfo->url : "", OPEN_BACKGROUND);
+                     kPlugin.kFuncs->NavigateTo((dInfo && dInfo->url) ? dInfo->url : "", command == id_open_new_layer ? OPEN_BACKGROUND : OPEN_NEW);
                      break;
                      
                   case PREF_NEW_WINDOW_HOME:
                      kPlugin.kFuncs->GetPreference(PREF_STRING, "kmeleon.general.homePage", 
                                                    &cRetval, &cRetval);
-                     kPlugin.kFuncs->NavigateTo(cRetval, OPEN_BACKGROUND);
+                     kPlugin.kFuncs->NavigateTo(cRetval, command == id_open_new_layer ? OPEN_BACKGROUND : OPEN_NEW);
                      break;
                      
                   case PREF_NEW_WINDOW_BLANK:
-                     kPlugin.kFuncs->NavigateTo("about:blank", OPEN_BACKGROUND);
+                     kPlugin.kFuncs->NavigateTo("about:blank", command == id_open_new_layer ? OPEN_BACKGROUND : OPEN_NEW);
                      break;
                      
                   case PREF_NEW_WINDOW_URL:
                      kPlugin.kFuncs->GetPreference(PREF_STRING, "kmeleon.display.newWindowURL", 
                                                    &cRetval, &cRetval);
-                     kPlugin.kFuncs->NavigateTo(cRetval, OPEN_BACKGROUND);
+                     kPlugin.kFuncs->NavigateTo(cRetval, command == id_open_new_layer ? OPEN_BACKGROUND : OPEN_NEW);
                      break;
                }
                
@@ -985,6 +997,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                      if (gwpOld.showCmd != SW_SHOWMAXIMIZED)
                         gwpOld.showCmd = SW_NORMAL;
                      bFront = 1;
+                     bLayer = 0;
+                     ghParent = NULL;
                      kPlugin.kFuncs->NavigateTo((char*)"", OPEN_BACKGROUND);
                   }
                   
@@ -1010,6 +1024,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
             }
             
             else if (command == id_close_layer) {
+               int newLayer = 0;
                pLayer = find_prev_layer(hWnd);
                
                kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_CLOSE_WINDOW, &bCloseWindow, &bCloseWindow);
@@ -1019,6 +1034,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                   if (gwpOld.showCmd != SW_SHOWMAXIMIZED)
                      gwpOld.showCmd = SW_NORMAL;
                   bFront = 1;
+                  bLayer = 0;
+                  ghParent = NULL;
+                  newLayer = 1;
                   kPlugin.kFuncs->NavigateTo((char*)"", OPEN_BACKGROUND);
                }
                bDoClose = 0;
@@ -1034,6 +1052,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                      pFrame->hWndLast && pFrame->hWndLast != hWnd ? 
                      pFrame->hWndLast : pLayer->hWnd;
                   pFrame->hWndLast = NULL;
+                  if (bCatchWindow && !newLayer)
+                     ghParent = pFrame->hWndFront;
                   UpdateRebarMenu( find_layer(pFrame->hWndFront) );
                   UpdateRebarMenu( find_layer(hWnd) );
                   PostMessage(pFrame->hWndFront, WM_COMMAND, id_resize, (LPARAM)wpOld);
@@ -1109,6 +1129,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                   kPlugin.kFuncs->SetStatusBarText("Return to the last active layer of current window");
                else if (id == id_close_all)
                   kPlugin.kFuncs->SetStatusBarText("Close all layers");
+               else if (id == id_open_frame)
+                  kPlugin.kFuncs->SetStatusBarText("Open a new browser window");
                else if (id == id_close_frame)
                   kPlugin.kFuncs->SetStatusBarText("Close window");
                else if (id == id_close_others)
