@@ -42,6 +42,7 @@
 #include "MenuParser.h"
 #include "AccelParser.h"
 #include "KmeleonConst.h"
+#include "CmdLine.h"
 
 #include "resource.h"       // main symbols
 
@@ -77,8 +78,6 @@ public:
 
    nsresult OverrideComponents();
 
-   int GetCommandLineSwitch(const char *pSwitch, char *pArgs, BOOL bRemove);
-
    LPCTSTR GetMainWindowClassName();
 
 	// Overrides
@@ -100,6 +99,7 @@ public:
    CPreferences  preferences;
    CMenuParser   menus;
    CAccelParser  accel;
+   CCmdLine      cmdline;
 
    HMENU          m_toolbarControlsMenu;
    CBrowserFrame* m_pMostRecentBrowserFrame; // the most recently used frame
