@@ -36,9 +36,9 @@ CAboutDlg::CAboutDlg() : CDialog(CAboutDlg::IDD)
       Corner animation stolen from Galeon\r\n
       \r\n
       Current Contributors:\r\n
+      Jeff Doozan <jeff@tcbnetworks.com>\r\n
       Brian Harris <binaryc@teamreaction.com>\r\n
       Sebastian Spaeth <Sebastian@SSpaeth.de>\r\n    
-      Jeff Doozan <jeff@tcbnetworks.com>\r\n
       \r\n
       Past Contributors:\r\n
       Christophe Thibault <christophe@nullsoft.com>\r\n

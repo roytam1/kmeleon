@@ -40,15 +40,11 @@ static char THIS_FILE[] = __FILE__;
 #define MBUTTON_TIMER 200
 #define RBUTTON_TIMER 300
 
-/////////////////////////////////////////////////////////////////////////////
-// CToolBarEx
 
-CToolBarEx::CToolBarEx()
-{
+CToolBarEx::CToolBarEx() {
 }
 
-CToolBarEx::~CToolBarEx()
-{
+CToolBarEx::~CToolBarEx() {
 }
 
 

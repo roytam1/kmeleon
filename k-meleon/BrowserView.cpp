@@ -57,7 +57,7 @@ extern CMfcEmbedApp theApp;
 #include "PrintProgressDialog.h"    
 #include "ToolBarEx.h"
 #include "Utils.h"
-#include "KmeleonMessages.h"
+#include "KmeleonConst.h"
 #include "About.h"
 
 #ifdef _DEBUG
@@ -321,10 +321,13 @@ void CBrowserView::Activate(UINT nState, CWnd* pWndOther, BOOL bMinimized) {
    nsCOMPtr<nsIWebBrowserFocus> focus(do_GetInterface(mWebBrowser));
    if(!focus)
       return;
-   
+
    switch(nState) {
    case WA_ACTIVE:
-      focus->Activate();
+      // don't activate it if the window is minimized
+      // this was sending a WM_SIZE message, which lost the bMaximized state
+      if(!bMinimized)
+         focus->Activate();
       break;
    case WA_INACTIVE:
       focus->Deactivate();
@@ -332,18 +335,6 @@ void CBrowserView::Activate(UINT nState, CWnd* pWndOther, BOOL bMinimized) {
    default:
       break;
    }
-
-   //  the context menus break if we don't do this ???
-   if (IsChild(GetFocus())){
-      mpBrowserFrame->SetFocus();
-   }
-
-   // switch the focus to the URLBar, if necessary
-   if (mpBrowserFrame->m_setURLBarFocus) {
-      mpBrowserFrame->m_wndUrlBar.SetFocus();
-      mpBrowserFrame->m_setURLBarFocus = false;
-   }
-
 }
 
 void CBrowserView::OnDropFiles( HDROP drop ){
@@ -1103,13 +1094,9 @@ void CBrowserView::OnFindNext() {
 
    if(!finder) return;
 
-	CString csSearchStr;
 	nsXPIDLString stringBuf;
-
    finder->GetSearchString(getter_Copies(stringBuf));
-   csSearchStr = stringBuf.get();
-
-   if (csSearchStr != "") {
+   if (stringBuf.get()[0]) {
       PRBool didFind;
 	   finder->FindNext(&didFind);
    }
@@ -1127,9 +1114,19 @@ void CBrowserView::OnFindPrev() {
 
    finder->GetFindBackwards(&rv);
    finder->SetFindBackwards(rv^2);  // reverse the find direction
-	finder->FindNext(&rv);
+
+	nsXPIDLString stringBuf;
+   finder->GetSearchString(getter_Copies(stringBuf));
+   if (stringBuf.get()[0]) {
+      PRBool didFind;
+	   finder->FindNext(&didFind);
+   }
+   else {
+      OnShowFindDlg();
+   }
+      
    finder->GetFindBackwards(&rv);
-   finder->SetFindBackwards(rv^2);  // reverse the find direction again
+   finder->SetFindBackwards(rv^2);  // reset the initial find direction
 }
 
 // This will be called whenever the user pushes the Find
@@ -1225,12 +1222,10 @@ void CBrowserView::UpdateBusyState(PRBool aBusy) {
 		mpBrowserFrame->m_wndAnimate.Stop();
 		mpBrowserFrame->m_wndAnimate.Seek(0);
 
-		// UWM_UPDATESESSIONHISTORY is also posted in in CBrowserFrame::BrowserFrameGlueObj::UpdateCurrentURI
-		// but only the page url is available at that time, this will overwrite it with the title
-		mpBrowserFrame->PostMessage(UWM_UPDATESESSIONHISTORY, 0, 0);
-
       // this is a stupid hack and will probably go away once mozilla is fixed
-      Activate(WA_ACTIVE, this, false);
+      // only activate when we are the active window
+      if (IsChild(GetFocus()))
+         Activate(WA_ACTIVE, this, false);
 	}
 }
 
@@ -1382,10 +1377,8 @@ void CBrowserView::OnWindowNext() {
    CBrowserFrame* pFrame;
 	POSITION pos = theApp.m_FrameWndLst.Find(mpBrowserFrame);
    theApp.m_FrameWndLst.GetNext(pos);
-   if (pos)
-      pFrame = (CBrowserFrame *) theApp.m_FrameWndLst.GetNext(pos);
-   else
-      pFrame = (CBrowserFrame *) theApp.m_FrameWndLst.GetHead();
+   if (pos)  pFrame = (CBrowserFrame *) theApp.m_FrameWndLst.GetNext(pos);
+   else      pFrame = (CBrowserFrame *) theApp.m_FrameWndLst.GetHead();
    
    pFrame->ActivateFrame();
 }
@@ -1394,10 +1387,8 @@ void CBrowserView::OnWindowPrev() {
    CBrowserFrame* pFrame;
 	POSITION pos = theApp.m_FrameWndLst.Find(mpBrowserFrame);
    theApp.m_FrameWndLst.GetPrev(pos);
-   if (pos)
-      pFrame = (CBrowserFrame *) theApp.m_FrameWndLst.GetPrev(pos);
-   else
-      pFrame = (CBrowserFrame *) theApp.m_FrameWndLst.GetTail();
+   if (pos)  pFrame = (CBrowserFrame *) theApp.m_FrameWndLst.GetPrev(pos);
+   else      pFrame = (CBrowserFrame *) theApp.m_FrameWndLst.GetTail();
    
    pFrame->ActivateFrame();
 }

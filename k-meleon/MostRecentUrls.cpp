@@ -42,12 +42,14 @@ CMostRecentUrls::CMostRecentUrls() {
    do {
       itoa(x, sBuf, 10);
       strcpy(sCount, sBuf);                              // create  "kmeleon.MRU.URL##" string
-      m_URLs[x] = new char[255];
+      m_URLs[x] = new char[1024];
       theApp.preferences.GetString(sPref, m_URLs[x], "");
-   } while ((m_URLs[x][0]) && (++x<m_maxURLs));
+   } while ((*m_URLs[x]) && (++x<m_maxURLs));
 
+   if (x<m_maxURLs)
+      delete m_URLs[x];
+   
    m_URLCount = x;
-
    for(;x<m_maxURLs;x++) m_URLs[x] = NULL;
 }
 

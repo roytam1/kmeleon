@@ -30,12 +30,8 @@ extern CMfcEmbedApp theApp;
 #include "Plugins.h"
 #include "Utils.h"
 
-#define START_ID 2000
-
-
 int SessionSize=0;
 char **pHistory;
-
 
 CPlugins::CPlugins() {
 }
@@ -65,15 +61,15 @@ const char *FileNoPath(const char *filepath){
 }
 
 
-UINT currentID = START_ID;
+UINT currentCmdID = PLUGIN_COMMAND_START_ID;
 UINT GetCommandIDs(int num) {
-   UINT freeID = currentID;
-   currentID += num;
+   UINT freeID = currentCmdID;
+   currentCmdID += num;
    return freeID;
 }
 
 int CPlugins::OnUpdate(UINT command){
-   if (command >= 2000 && command <= currentID)
+   if (command >= 2000 && command <= currentCmdID)
       return true;
    return false;
 }
@@ -203,7 +199,7 @@ int GetMozillaSessionHistory (char ***titles, int *count, int *index) {
       for (i=0; i<SessionSize; i++)
          delete pHistory[i];
    }
-   
+
    SessionSize = *count;
 
    delete pHistory;
@@ -212,7 +208,6 @@ int GetMozillaSessionHistory (char ***titles, int *count, int *index) {
 	nsCOMPtr<nsIHistoryEntry> he;
 	PRUnichar *title;
 	for (i=0; i < SessionSize; i++) {
-
 		result = h->GetEntryAtIndex(i, PR_FALSE, getter_AddRefs (he));
 		if (!NS_SUCCEEDED(result) || (!he)) return FALSE;
 
@@ -238,6 +233,10 @@ void GotoHistoryIndex(UINT index) {
 		mainFrame->m_wndBrowserView.mWebNav->GotoIndex(index);
 }
 
+void RegisterBand(HWND hWnd, char *name) {
+   theApp.m_pMostRecentBrowserFrame->m_wndReBar.RegisterBand(hWnd, name);
+}
+
 kmeleonFunctions kmelFuncs = {
    GetCommandIDs,
    NavigateTo,
@@ -245,7 +244,8 @@ kmeleonFunctions kmelFuncs = {
    GetPreference,
    SetPreference,
    GetMozillaSessionHistory,
-   GotoHistoryIndex
+   GotoHistoryIndex,
+   RegisterBand
 };
 
 kmeleonPlugin * CPlugins::Load(const char *file){
@@ -330,14 +330,14 @@ void CPlugins::UnLoadAll(){
       }
    }
    pluginList.RemoveAll();
-   currentID = START_ID;
+   currentCmdID = PLUGIN_COMMAND_START_ID;
 }
 
 void CPlugins::DoRebars(HWND rebarWnd){
    POSITION pos = pluginList.GetStartPosition();
    kmeleonPlugin * kPlugin;
    CString s;
-   while (pos){
+   while (pos) {
       pluginList.GetNextAssoc( pos, s, kPlugin);
       if (kPlugin && kPlugin->pf->DoRebar)
          kPlugin->pf->DoRebar(rebarWnd);

@@ -36,6 +36,12 @@
 #include "IBrowserFrameGlue.h"
 #include "MostRecentUrls.h"
 #include "ToolBarEx.h"
+#include "KmeleonConst.h"
+#include "ReBarEx.h"
+
+#include "MfcEmbed.h"
+extern CMfcEmbedApp theApp;
+
 
 // A simple UrlBar class...
 class CUrlBar : public CComboBoxEx {
@@ -99,18 +105,18 @@ protected:
 public:
    inline CBrowserImpl *GetBrowserImpl() { return m_wndBrowserView.mpBrowserImpl; }
 
-   CToolBarEx     m_wndToolBar;
-	CStatusBar     m_wndStatusBar;
-	CProgressCtrl  m_wndProgressBar;
-	CUrlBar        m_wndUrlBar;
-	CReBar         m_wndReBar;
-   CAnimateCtrl	m_wndAnimate;
+   CToolBarEx      m_wndToolBar;
+	CStatusBar      m_wndStatusBar;
+	CProgressCtrl   m_wndProgressBar;
+	CUrlBar         m_wndUrlBar;
+	CReBarEx        m_wndReBar;
+   CAnimateCtrl	 m_wndAnimate;
 
-   CImageList     m_toolbarHotImageList;
-   CImageList     m_toolbarColdImageList;
-   CImageList     m_toolbarDisabledImageList;
+   CImageList      m_toolbarHotImageList;
+   CImageList      m_toolbarColdImageList;
+   CImageList      m_toolbarDisabledImageList;
 
-   CBitmap        m_bmpBack;
+   CBitmap         m_bmpBack;
 
 	// The view inside which the embedded browser will
 	// be displayed in
@@ -148,10 +154,8 @@ public:
    void LoadBackImage ();
    void SetBackImage ();
 
-   void SaveBandSizes();
-   void RestoreBandSizes();
    void SaveWindowPos();
-   void CBrowserFrame::RestoreWindowPos(PRInt32 *x, PRInt32 *y, PRInt32 *cx, PRInt32 *cy);
+   void RestoreWindowPos(PRInt32 *x, PRInt32 *y, PRInt32 *cx, PRInt32 *cy);
 
    // Overrides
 	// ClassWizard generated virtual function overrides
@@ -179,9 +183,11 @@ protected:
    afx_msg void OnActivate(UINT nState, CWnd* pWndOther, BOOL bMinimized);
    afx_msg void OnSysColorChange();
 	afx_msg void RefreshToolBarItem(WPARAM ItemID, LPARAM unused);
+   afx_msg void ToggleToolBar(UINT uID);
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };
+
 
 /////////////////////////////////////////////////////////////////////////////
 

@@ -88,6 +88,7 @@ public:
    CMenuParser   menus;
    CAccelParser  accel;
 
+   HMENU          m_toolbarControlsMenu;
    CBrowserFrame* m_pMostRecentBrowserFrame;
 
    // Implementation

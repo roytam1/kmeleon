@@ -16,5 +16,33 @@
 *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
-#define  UWM_UPDATESESSIONHISTORY    WM_APP + 110
-#define  UWM_REFRESHTOOLBARITEM      WM_APP + 111
+#if _MSC_VER > 1000
+#pragma once
+#endif
+
+class CReBarEx : public CReBar {
+public:
+   CReBarEx();
+   ~CReBarEx();
+   void RegisterBand(HWND hWnd, char *name);
+   void DrawToolBarMenu();
+   void ToggleVisibility(int index);
+   void SaveBandSizes();
+   void RestoreBandSizes();
+   BOOL GetVisibility(int index);
+   void SetVisibility(int index, BOOL visibility);
+
+   HMENU m_menu;
+protected:
+   int FindByChild (HWND hWnd);
+   int FindByName  (char *name);
+   int FindByIndex (int index);
+
+   struct tbBand {
+      UINT uID;
+      char *name;
+      HWND hWnd;
+      BOOL visibility;
+   } **tbIndex;
+   int tbCount;
+};

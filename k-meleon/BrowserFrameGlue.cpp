@@ -49,7 +49,7 @@
 #include "BrowserFrm.h"
 #include "Dialogs.h"
 #include "MenuParser.h"
-#include "KmeleonMessages.h"
+#include "KmeleonConst.h"
 
 extern CMfcEmbedApp theApp;
 
@@ -102,10 +102,16 @@ void CBrowserFrame::BrowserFrameGlueObj::UpdateCurrentURI(nsIURI *aLocation){
       pThis->m_wndUrlBar.SetCurrentURL(uriString.get());
    }
 
-   // post notification that the session history is changing
-   // this will be updated later when OnUpdateBusy state is called
-   // because the page title has not yet loaded
-   pThis->PostMessage(UWM_UPDATESESSIONHISTORY, 0, 0);
+   if (pThis->IsChild(GetFocus())) {
+      // the context menus break if we don't do this ???
+      pThis->SetFocus();
+
+      // switch the focus to the URLBar, if necessary
+      if (pThis->m_setURLBarFocus) {
+         pThis->m_wndUrlBar.SetFocus();
+         pThis->m_setURLBarFocus = false;
+      }
+   }
 }
 
 void CBrowserFrame::BrowserFrameGlueObj::GetBrowserFrameTitle(PRUnichar **aTitle)
@@ -141,6 +147,8 @@ void CBrowserFrame::BrowserFrameGlueObj::SetBrowserFrameTitle(const PRUnichar *a
 
    title += " (" + cs + ')';
    pThis->SetWindowText(title);
+
+   pThis->PostMessage(UWM_UPDATESESSIONHISTORY, 0, 0);
 }
 
 void CBrowserFrame::BrowserFrameGlueObj::SetBrowserFrameSize(PRInt32 aCX, PRInt32 aCY)

@@ -198,6 +198,10 @@ SOURCE=.\ProfilesDlg.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\ReBarEx.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\StdAfx.cpp
 # ADD CPP /Yc"stdafx.h"
 # End Source File
@@ -253,6 +257,10 @@ SOURCE=.\kmeleon_plugin.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\KmeleonConst.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\MenuEx.h
 # End Source File
 # Begin Source File
@@ -282,6 +290,10 @@ SOURCE=.\ProfileMgr.h
 # Begin Source File
 
 SOURCE=.\ProfilesDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ReBarEx.h
 # End Source File
 # Begin Source File
 

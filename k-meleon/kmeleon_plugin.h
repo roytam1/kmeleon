@@ -32,43 +32,46 @@
 #define MAX_URL          1024
 
 typedef struct {
-  char title[256];
-  char url[MAX_URL];  
+   char title[256];
+   char url[MAX_URL];  
 } kmeleonDocInfo;
 
 enum PREFTYPE {
-  PREF_BOOL,
-  PREF_INT,
-  PREF_STRING
+   PREF_BOOL,
+   PREF_INT,
+   PREF_STRING
 };
 
 typedef struct {
-  // this function allocates <num> successive ids for the plugin, then returns the first one.
-  // use it to get an unused command id.  this way plugins won't step on others toes.
-  UINT (*GetCommandIDs)(int num);
+   // this function allocates <num> successive ids for the plugin, then returns the first one.
+   // use it to get an unused command id.  this way plugins won't step on others toes.
+   UINT (*GetCommandIDs)(int num);
 
-  // if newWindow, open in a new window, otherwise use the current window
-  void (*NavigateTo)(char *url, int windowState);
+   // changing windowstate will open the url in a current, new, or background window
+   void (*NavigateTo)(char *url, int windowState);
 
-  kmeleonDocInfo * (*GetDocInfo)(HWND mainWnd);
+   kmeleonDocInfo * (*GetDocInfo)(HWND mainWnd);
 
-  // gets the preference, stores it in ret, returns false if it didn't exist
-  void (*GetPreference)(enum PREFTYPE type, char *preference, void *ret, void *defaultVal);
-  // sets the preference
-  void (*SetPreference)(enum PREFTYPE type, char *preference, void *val);
+   // gets the preference, stores it in ret, returns false if it didn't exist
+   void (*GetPreference)(enum PREFTYPE type, char *preference, void *ret, void *defaultVal);
+   // sets the preference
+   void (*SetPreference)(enum PREFTYPE type, char *preference, void *val);
 
-	int (*GetMozillaSessionHistory)(char **titles[], int *count, int *index);
+   int (*GetMozillaSessionHistory)(char **titles[], int *count, int *index);
 	void (*GotoHistoryIndex)(UINT index);
+
+   // Register a rebar band, allocate and return a new bandID
+   void (*RegisterBand) (HWND hWnd, char *name);
 } kmeleonFunctions;
 
 typedef struct {
-   int (*Init)();
-   void (*Create)(HWND parent);
-   void (*Config)(HWND parent);
-	void (*Quit)();
-   void (*DoMenu)(HMENU menu, char *param);
-   void (*DoRebar)(HWND rebarWnd);
-   int (*DoAccel)(char *param);
+   int   (*Init)    ();
+   void  (*Create)  (HWND parent);
+   void  (*Config)  (HWND parent);
+	void  (*Quit)    ();
+   void  (*DoMenu)  (HMENU menu, char *param);
+   void  (*DoRebar) (HWND rebarWnd);
+   int   (*DoAccel) (char *param);
 } pluginFunctions;
 
 typedef struct {

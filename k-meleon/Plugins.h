@@ -38,19 +38,16 @@ public:
 	CPlugins();
 	~CPlugins();
 
-  void UnLoadAll();
+   void UnLoadAll();
 
-  int FindAndLoad(char *pattern);
-  kmeleonPlugin * Load(const char *pattern);
-
-  void OnCreate(HWND wnd);
-  //LRESULT OnMessage(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam);
-  int  OnUpdate(UINT command);
-
-  void DoRebars(HWND rebarWnd);
-
-	int GetMozillaSessionHistory (char ***titles, int *count, int *index);
-
+   int FindAndLoad(char *pattern);
+   kmeleonPlugin * Load(const char *pattern);
+   void OnCreate(HWND wnd);
+   //LRESULT OnMessage(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam);
+   int  OnUpdate(UINT command);
+   void DoRebars(HWND rebarWnd);
+   int GetMozillaSessionHistory (char ***titles, int *count, int *index);
+   void RegisterBand(HWND hWnd, char *name);
 };
 
 #endif // __PLUGINS_H__

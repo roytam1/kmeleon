@@ -223,6 +223,13 @@ int CMenuParser::Load(CString &filename){
             currentMenu = NULL;
             LOG_1("Ended Menu", 0);
          }
+         else if (p[0] == '@') {
+            p++;
+            p = SkipWhiteSpace(p);
+            TrimWhiteSpace(p);
+            if (strcmpi(p, "ToolBars") == 0) 
+               theApp.m_toolbarControlsMenu = currentMenu->GetSafeHmenu();
+         }
          else {
             // it's either a plugin or a menu item
             char *op = strchr(p, '(');

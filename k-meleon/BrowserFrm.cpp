@@ -59,13 +59,10 @@
 
 #include "stdafx.h"
 
-#include "MfcEmbed.h"
-extern CMfcEmbedApp theApp;
-
 #include "BrowserFrm.h"
 #include "BrowserView.h"
 #include "ToolBarEx.h"
-#include "KmeleonMessages.h"
+#include "KmeleonConst.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -87,6 +84,7 @@ BEGIN_MESSAGE_MAP(CBrowserFrame, CFrameWnd)
    ON_WM_ACTIVATE()
    ON_WM_SYSCOLORCHANGE()
 	ON_MESSAGE(UWM_REFRESHTOOLBARITEM, RefreshToolBarItem)
+   ON_COMMAND_RANGE(TOOLBAR_MENU_START_ID, TOOLBAR_MENU_END_ID, ToggleToolBar)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -95,8 +93,6 @@ static UINT indicators[] =
 	ID_SEPARATOR,            // For the Status line
 	ID_PROG_BAR            // For the Progress Bar
 };
-
-#define BAND_BASE_ID 200
 
 /////////////////////////////////////////////////////////////////////////////
 // CBrowserFrame construction/destruction
@@ -110,6 +106,10 @@ CBrowserFrame::CBrowserFrame(PRUint32 chromeMask)
 	m_chromeMask = chromeMask;
    m_created = false;
    m_setURLBarFocus = false;
+
+   if(!theApp.m_pMostRecentBrowserFrame)
+      theApp.m_pMostRecentBrowserFrame = this;
+
 }
 
 CBrowserFrame::~CBrowserFrame()
@@ -125,7 +125,7 @@ void CBrowserFrame::OnClose()
    // the browserframeglue will be deleted soon, so we set it to null so it won't try to access it after it's deleted.
    m_wndBrowserView.SetBrowserFrameGlue(NULL);
 
-   SaveBandSizes();
+   m_wndReBar.SaveBandSizes();
 
    if (theApp.m_pMostRecentBrowserFrame == this) {
       CBrowserFrame* pFrame;
@@ -137,12 +137,12 @@ void CBrowserFrame::OnClose()
 
       if (pFrame != this)  theApp.m_pMostRecentBrowserFrame = pFrame;
       else                 theApp.m_pMostRecentBrowserFrame = NULL;
-      // if only one frame exists, nullify the pointer
+      // if no other browser views exist, nullify the pointer
    }
 
    theApp.RemoveFrameFromList(this);
 
-   ShowWindow(FALSE);
+   ShowWindow(SW_HIDE);
    DestroyWindow();
 }
 
@@ -224,7 +224,6 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct){
 
    m_wndUrlBar.SetImageList(&m_toolbarHotImageList);
 
-
    // Create the animation control..
    if (!m_wndAnimate.Create(WS_CHILD | WS_VISIBLE, CRect(0, 0, 10, 10), this, AFX_IDW_TOOLBAR + 2))
 	{
@@ -248,18 +247,22 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct){
 	m_wndReBar.AddBar(&m_wndUrlBar, "URL:");
    m_wndReBar.AddBar(&m_wndAnimate, NULL, NULL, RBBS_FIXEDSIZE | RBBS_FIXEDBMP);
 
+   m_wndReBar.RegisterBand(m_wndToolBar.m_hWnd, "Tool Bar");
+   m_wndReBar.RegisterBand(m_wndUrlBar.m_hWnd,  "URL Bar");
+//   m_wndReBar.RegisterBand(m_wndAnimate.m_hWnd, "Throbber");
+
    //--------------------------------------------------------------
 	// Set up min/max sizes and ideal sizes for pieces of the rebar:
 	//--------------------------------------------------------------
    CReBarCtrl *rebarControl = &m_wndReBar.GetReBarCtrl();
   
-	REBARBANDINFO rbbi;
-
    // Address Bar
 	CRect rectAddress;
 	m_wndUrlBar.GetEditCtrl()->GetWindowRect(&rectAddress);
 
-	rbbi.fMask = RBBIM_CHILDSIZE | RBBIM_IDEALSIZE | RBBIM_SIZE;;
+   REBARBANDINFO rbbi;
+   rbbi.cbSize = sizeof(rbbi);
+	rbbi.fMask = RBBIM_CHILDSIZE | RBBIM_IDEALSIZE | RBBIM_SIZE;
    rbbi.cxMinChild = 0;
 	rbbi.cyMinChild = rectAddress.Height() + 7;
 	rbbi.cxIdeal = 200;
@@ -280,7 +283,9 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct){
 
    theApp.plugins.DoRebars(m_wndReBar.GetReBarCtrl().m_hWnd);
 
-   RestoreBandSizes();
+   m_wndReBar.DrawToolBarMenu();
+
+   m_wndReBar.RestoreBandSizes();
 
    LoadBackImage();
    SetBackImage();
@@ -318,83 +323,6 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct){
 	SetupFrameChrome(); 
 
 	return 0;
-}
-
-void CBrowserFrame::SaveBandSizes(){
-  REBARBANDINFO rbbi;
-  rbbi.cbSize = sizeof(rbbi);
-  rbbi.fMask = RBBIM_SIZE | RBBIM_ID | RBBIM_STYLE;
-
-  CReBarCtrl *rebarControl = &m_wndReBar.GetReBarCtrl();
-  int bandCount = rebarControl->GetBandCount();
-  int i;
-  char tempPref[256] = _T("kmeleon.toolband"); // 16 chars
-  for ( i=0; i < bandCount; i++){
-    rebarControl->GetBandInfo(i, &rbbi);
-
-    if (rbbi.wID){
-      sprintf(tempPref + 16, _T("%i.size"), rbbi.wID);
-      theApp.preferences.SetInt(tempPref, rbbi.cx);
-
-      sprintf(tempPref + 16, _T("%i.ndx"), rbbi.wID);
-      theApp.preferences.SetInt(tempPref, i);
-
-      sprintf(tempPref + 16, _T("%i.break"), rbbi.wID);
-      theApp.preferences.SetInt(tempPref, rbbi.fStyle & RBBS_BREAK);
-    }
-  }
-}
-
-void CBrowserFrame::RestoreBandSizes(){
-   REBARBANDINFO rbbi;
-   rbbi.cbSize = sizeof(rbbi);
-   CReBarCtrl *rebarControl = &m_wndReBar.GetReBarCtrl();
-   int bandCount = rebarControl->GetBandCount();
-   int i;
-
-   for (i=0; i < bandCount; i++) {
-      rbbi.fMask = RBBIM_ID;
-      rbbi.wID = BAND_BASE_ID + i;
-      rebarControl->SetBandInfo(i, &rbbi);
-   }
-
-   BOOL barbreak;
-   char tempPref[256] = _T("kmeleon.toolband"); // 16 chars
-   for ( i=0; i < bandCount; i++){
-      rbbi.fMask = 0;
-      rbbi.wID = BAND_BASE_ID + i;
-
-      sprintf(tempPref + 16, _T("%i.break"), rbbi.wID);
-      barbreak = theApp.preferences.GetInt(tempPref, 0);
-      if (barbreak){
-         rbbi.fMask |= RBBIM_STYLE;
-         rebarControl->GetBandInfo(i, &rbbi);
-         rbbi.fStyle |= RBBS_BREAK;
-      }
-
-      sprintf(tempPref + 16, _T("%i.size"), rbbi.wID);
-      rbbi.cx = theApp.preferences.GetInt(tempPref, 0);
-      if (rbbi.cx > 0)
-         rbbi.fMask |= RBBIM_SIZE;
-
-      sprintf(tempPref + 16, _T("%i.ndx"), rbbi.wID);
-      int ndx = theApp.preferences.GetInt(tempPref, -1);
-      if (ndx >= 0) {
-         // find us
-         int current;
-         for (current = 0; current < bandCount; current++) {
-            REBARBANDINFO rbsearch;
-            rbsearch.cbSize = sizeof(rbbi);
-            rbsearch.fMask = RBBIM_ID;
-            rebarControl->GetBandInfo(current, &rbsearch);
-            if (rbsearch.wID == rbbi.wID) {
-               rebarControl->MoveBand(current, ndx);
-               rebarControl->SetBandInfo(ndx, &rbbi);
-               break;
-            }
-         }
-      }
-   }
 }
 
 
@@ -456,10 +384,12 @@ void CBrowserFrame::OnSetFocus(CWnd* pOldWnd)
 	// forward focus to the browser window
 	m_wndBrowserView.SetFocus();
 
-   theApp.m_pMostRecentBrowserFrame = this;
+   if (theApp.m_pMostRecentBrowserFrame != this) {
+      theApp.m_pMostRecentBrowserFrame = this;
 
-	// update session history for the current window
-   PostMessage(UWM_UPDATESESSIONHISTORY, 0, 0);
+	   // update session history for the current window
+      PostMessage(UWM_UPDATESESSIONHISTORY, 0, 0);
+   }
 }
 
 void CBrowserFrame::OnActivate(UINT nState, CWnd* pWndOther, BOOL bMinimized) {
@@ -587,6 +517,9 @@ void CBrowserFrame::RefreshToolBarItem(WPARAM ItemID, LPARAM unused) {
 
 }
 
+void CBrowserFrame::ToggleToolBar(UINT uID) {
+   m_wndReBar.ToggleVisibility(uID - TOOLBAR_MENU_START_ID);
+}
 
 #ifdef _DEBUG
 void CBrowserFrame::AssertValid() const
