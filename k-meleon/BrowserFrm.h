@@ -91,7 +91,8 @@ public:
     }   
     inline void SetCurrentURL(LPCTSTR pUrl) {
         if (!m_changed) {
-            SetWindowText(pUrl);
+            if (strnicmp(pUrl, "javascript:", 11))
+                SetWindowText(pUrl);
             m_changed = FALSE;
         }
     }   
