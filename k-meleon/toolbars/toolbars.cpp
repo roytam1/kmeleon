@@ -43,6 +43,13 @@ void Create(HWND parent);
 void Config(HWND parent);
 void Quit();
 void DoRebar(HWND rebarWnd);
+int GetToolbarID(char *sName);
+void SetButtonImage(char *sParams);
+void EnableButton(char *sParams);
+int  IsButtonEnabled(char *sParams);
+void CheckButton(char *sParams);
+int  IsButtonChecked(char *sParams);
+
 int  GetConfigFiles(configFileType **configFiles);
 
 long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2);
@@ -52,6 +59,7 @@ kmeleonPlugin kPlugin = {
    PLUGIN_NAME,
    DoMessage
 };
+
 
 /* End K-Meleon Plugin Header */
 
@@ -76,6 +84,22 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
       else if (stricmp(subject, "GetConfigFiles") == 0) {
          *(int *)data2 = GetConfigFiles((configFileType**)data1);
       }
+      else if (stricmp(subject, "SetButtonImage") == 0) {
+         SetButtonImage((char *)data1);
+      }
+      else if (stricmp(subject, "EnabledButton") == 0) {
+         CheckButton((char *)data1);
+      }
+      else if (stricmp(subject, "IsButtonEnabled") == 0) {
+         *(int *)data2 = IsButtonChecked((char *)data1);
+      }
+      else if (stricmp(subject, "CheckButton") == 0) {
+         CheckButton((char *)data1);
+      }
+      else if (stricmp(subject, "IsButtonChecked") == 0) {
+         *(int *)data2 = IsButtonChecked((char *)data1);
+      }
+
       else return 0;
 
       return 1;
@@ -86,6 +110,7 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
 struct s_button {
    char *sName;
    char *sToolTip;
+   char *sImagePath;
    HMENU menu;
    int iID;
    int width, height;
@@ -95,6 +120,7 @@ struct s_button {
 struct s_toolbar {
 
    HWND hWnd;
+   WORD iID;
 
    char *sTitle;
 
@@ -105,14 +131,16 @@ struct s_toolbar {
    int iButtonCount;
    int width, height;
 
-   s_button *buttonHead;
+   s_button *pButtonHead;
+   s_button *pButtonTail;
    s_toolbar *next;
 };
 s_toolbar *toolbar_head = NULL;
+int giToolbarCount = 0;
 
 
 void LoadToolbars(char *filename);
-void AddImageToList(s_toolbar *toolbar, HIMAGELIST list, char *file, int index, int width, int height);
+void AddImageToList(s_toolbar *pToolbar, s_button *pButton, HIMAGELIST list, char *file);
 s_toolbar *AddToolbar(char *name, int width, int height);
 s_button  *AddButton(s_toolbar *toolbar, char *name, int width, int height);
 void EndButton(s_toolbar *toolbar, s_button *button, int state);
@@ -185,7 +213,7 @@ void Quit() {
       if (toolbar->dead)
          ImageList_Destroy(toolbar->dead);
 
-      button = toolbar->buttonHead;
+      button = toolbar->pButtonHead;
       while (button) {
          if (button->sName)
             delete button->sName;
@@ -213,14 +241,14 @@ void DoRebar(HWND rebarWnd) {
       if (toolbar->iButtonCount == 0) continue;
 
       // Create the toolbar control to be added.
-      HWND hwndTB = kPlugin.kFuncs->CreateToolbar(GetParent(rebarWnd), CCS_NODIVIDER | CCS_NOPARENTALIGN | CCS_NORESIZE | TBSTYLE_FLAT | TBSTYLE_TRANSPARENT | TBSTYLE_TOOLTIPS);
-      if (!hwndTB){
+      toolbar->hWnd = kPlugin.kFuncs->CreateToolbar(GetParent(rebarWnd), CCS_NODIVIDER | CCS_NOPARENTALIGN | CCS_NORESIZE | TBSTYLE_FLAT | TBSTYLE_TRANSPARENT | TBSTYLE_TOOLTIPS);
+      if (!toolbar->hWnd){
          MessageBox(NULL, "Failed to create toolbar", PLUGIN_NAME, MB_OK);
          return;
       }
 
       buttons = new TBBUTTON[toolbar->iButtonCount];
-      button = toolbar->buttonHead;
+      button = toolbar->pButtonHead;
       int i = 0;
       while (button) {
          buttons[i].iBitmap = i;
@@ -234,14 +262,14 @@ void DoRebar(HWND rebarWnd) {
          i++;
          button = button->next;
       }
-      SendMessage(hwndTB, TB_BUTTONSTRUCTSIZE, (WPARAM) sizeof(TBBUTTON), 0);
-      SendMessage(hwndTB, TB_ADDBUTTONS, i, (LPARAM) buttons);
+      SendMessage(toolbar->hWnd, TB_BUTTONSTRUCTSIZE, (WPARAM) sizeof(TBBUTTON), 0);
+      SendMessage(toolbar->hWnd, TB_ADDBUTTONS, i, (LPARAM) buttons);
 
       // if no images were specified, then we'll be using text buttons
       if (!toolbar->hot) {
          char buf[1024]; // you'd have to be crazy to use more than 1K worth of toolbar text on a single toolbar       
          int buflen = 0;
-         button = toolbar->buttonHead;
+         button = toolbar->pButtonHead;
          while (button) {
             int len = strlen(button->sName);
             if (buflen + len > 1024) break;
@@ -252,37 +280,37 @@ void DoRebar(HWND rebarWnd) {
             button = button->next;
          }
          buf[buflen] = 0;
-         SendMessage(hwndTB, TB_ADDSTRING, 0, (LPARAM) buf);
-         SendMessage(hwndTB, TB_SETIMAGELIST, 0, (LPARAM) NULL);
+         SendMessage(toolbar->hWnd, TB_ADDSTRING, 0, (LPARAM) buf);
+         SendMessage(toolbar->hWnd, TB_SETIMAGELIST, 0, (LPARAM) NULL);
       }
       else {
          // if only one image was specified, set that as the default image
          // instead of making it the "hot" image
          if (!toolbar->cold)
-            SendMessage(hwndTB, TB_SETIMAGELIST, 0, (LPARAM) toolbar->hot);
+            SendMessage(toolbar->hWnd, TB_SETIMAGELIST, 0, (LPARAM) toolbar->hot);
          else {
-            SendMessage(hwndTB, TB_SETHOTIMAGELIST, 0, (LPARAM) toolbar->hot);
-            SendMessage(hwndTB, TB_SETIMAGELIST, 0, (LPARAM) toolbar->cold);
+            SendMessage(toolbar->hWnd, TB_SETHOTIMAGELIST, 0, (LPARAM) toolbar->hot);
+            SendMessage(toolbar->hWnd, TB_SETIMAGELIST, 0, (LPARAM) toolbar->cold);
             if (toolbar->dead)
-               SendMessage(hwndTB, TB_SETDISABLEDIMAGELIST, 0, (LPARAM) toolbar->dead);
+               SendMessage(toolbar->hWnd, TB_SETDISABLEDIMAGELIST, 0, (LPARAM) toolbar->dead);
          }
       }
 
-      SetWindowPos(hwndTB, NULL, 0, 0, 0, 0, SWP_FRAMECHANGED);
+      SetWindowPos(toolbar->hWnd, NULL, 0, 0, 0, 0, SWP_FRAMECHANGED);
 
 
       // Register the band name and child hwnd
-      kPlugin.kFuncs->RegisterBand(hwndTB, toolbar->sTitle);
+      kPlugin.kFuncs->RegisterBand(toolbar->hWnd, toolbar->sTitle);
 
       REBARBANDINFO rbBand;
       rbBand.cbSize = sizeof(REBARBANDINFO);  // Required
       rbBand.fMask  = RBBIM_STYLE | RBBIM_CHILD  | RBBIM_CHILDSIZE |
          RBBIM_SIZE | RBBIM_IDEALSIZE;
 
-      DWORD dwBtnSize = SendMessage(hwndTB, TB_GETBUTTONSIZE, 0,0); 
+      DWORD dwBtnSize = SendMessage(toolbar->hWnd, TB_GETBUTTONSIZE, 0,0); 
       rbBand.fStyle     = RBBS_FIXEDBMP;
       rbBand.lpText     = NULL;
-      rbBand.hwndChild  = hwndTB;
+      rbBand.hwndChild  = toolbar->hWnd;
       rbBand.cxMinChild = 0;
       rbBand.cyMinChild = HIWORD(dwBtnSize);
       rbBand.cyIntegral = 1;
@@ -317,8 +345,10 @@ enum state {
 Sample ToolBar(16,16) {                # (width, height) is optional, defaults to 16, 16
    Button1(16, 16) {                   # the (width, height) is optional, defaults to toolbar dimensions
       ID_NAV_STOP | MenuName           # command / Menu
+      Tooltip Text                     # Tooltip popup text
       c:\tool1.bmp[0]                  # hot image
       c:\tool2.bmp[0]                  # cold image (optional)
+      c:\tool3.bmp[0]                  # dead image (optional)
    }
 }
 
@@ -425,7 +455,7 @@ void LoadToolbars(char *filename) {
                   curButton = curButton->next;
                }
                else
-                  curToolbar->buttonHead = curButton = AddButton(curToolbar, p, width, height);
+                  curButton = AddButton(curToolbar, p, width, height);
                iBuildState++;
             }
             else {
@@ -492,30 +522,20 @@ void LoadToolbars(char *filename) {
          case HOT:
          case COLD:
          case DEAD:
-            char *file=p, *pp;
-            int index=-1;
-            
-            if ((pp = strchr(p, '['))) {
-               *pp = 0;
-               pp = SkipWhiteSpace(pp+1);
-               index = atoi(pp);
-            };
-            
-            if (index == -1) index = 0;   // set default image index
             if (iBuildState == HOT) {
                if (!curToolbar->hot)
                   curToolbar->hot = ImageList_Create(curToolbar->width, curToolbar->height, ILC_MASK | ILC_COLORDDB, 0, 32);
-               AddImageToList(curToolbar, curToolbar->hot, file, index, curButton->width, curButton->height);
+               AddImageToList(curToolbar, curButton, curToolbar->hot, p);
             }
             else if (iBuildState == COLD) {
                if (!curToolbar->cold)
                   curToolbar->cold = ImageList_Create(curToolbar->width, curToolbar->height, ILC_MASK | ILC_COLORDDB, 0, 32);
-               AddImageToList(curToolbar, curToolbar->cold, file, index, curButton->width, curButton->height);
+               AddImageToList(curToolbar, curButton, curToolbar->cold, p);
             }
             else {
                if (!curToolbar->dead)
                   curToolbar->dead = ImageList_Create(curToolbar->width, curToolbar->height, ILC_MASK | ILC_COLORDDB, 0, 32);
-               AddImageToList(curToolbar, curToolbar->dead, file, index, curButton->width, curButton->height);
+               AddImageToList(curToolbar, curButton, curToolbar->dead, p);
             }
             
             iBuildState++;
@@ -538,13 +558,18 @@ s_toolbar *AddToolbar(char *name, int width, int height) {
 
    newToolbar->width = width;
    newToolbar->height = height;
-   newToolbar->buttonHead = NULL;
+   newToolbar->pButtonTail = NULL;
    newToolbar->iButtonCount = 0;
    newToolbar->next = NULL;
 
    newToolbar->hot  = NULL;
    newToolbar->cold = NULL;
    newToolbar->dead = NULL;
+
+   newToolbar->iID = ++giToolbarCount;
+   newToolbar->pButtonHead = NULL;
+   newToolbar->pButtonTail = NULL;
+   newToolbar->hWnd = NULL;
    
    return newToolbar;
 }
@@ -564,7 +589,12 @@ s_button  *AddButton(s_toolbar *toolbar, char *name, int width, int height) {
    newButton->iID = 0;
    newButton->menu = NULL;
    newButton->next = NULL;
+   newButton->sImagePath = NULL;
 
+
+   if (toolbar->pButtonHead == NULL)
+      toolbar->pButtonHead = newButton;
+   toolbar->pButtonTail = newButton;
    toolbar->iButtonCount++;
 
    return newButton;
@@ -612,31 +642,42 @@ void EndButton(s_toolbar *toolbar, s_button *button, int state) {
    }
 }
 
-void AddImageToList(s_toolbar *toolbar, HIMAGELIST list, char *file, int index, int width, int height) {
+HBITMAP LoadButtonImage(s_toolbar *pToolbar, s_button *pButton, char *sFile) {
 
-   if (!file || !*file)
-      return;
+   if (!sFile || !*sFile)
+      return 0;
+
+   int index;
+   if (char *p = strchr(sFile, '[')) {
+      *p = 0;
+      p = SkipWhiteSpace(p+1);
+      index = atoi(p);
+   }
+   else
+      index = 0; // set default image index
 
    int xstart, ystart;
+   int height = pButton->height;
+   int width = pButton->width;
 
    // center the bitmap if smaller, and crop it if it's too big
-   if (height > toolbar->height) height = toolbar->height;
-   if (width > toolbar->width) width = toolbar->width;
+   if (height > pToolbar->height) height = pToolbar->height;
+   if (width > pToolbar->width) width = pToolbar->width;
 
-   xstart = (toolbar->width - width)/2;
-   ystart = (toolbar->height - height)/2;
+   xstart = (pToolbar->width - width)/2;
+   ystart = (pToolbar->height - height)/2;
 
    HDC hdcButton, hdcBitmap;
    HBITMAP hButton, hBitmap;
    HBRUSH hBrush;
    
-   if (strchr(file, '\\')) {
-      hBitmap = (HBITMAP)LoadImage(NULL, file, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+   if (strchr(sFile, '\\')) {
+      hBitmap = (HBITMAP)LoadImage(NULL, sFile, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
    }
    else {
       char fullpath[MAX_PATH];
       strcpy(fullpath, gszConfigDir);
-      strcat(fullpath, file);
+      strcat(fullpath, sFile);
       hBitmap = (HBITMAP)LoadImage(NULL, fullpath, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
    }
    
@@ -644,25 +685,331 @@ void AddImageToList(s_toolbar *toolbar, HIMAGELIST list, char *file, int index, 
    SelectObject(hdcBitmap, hBitmap);
    
    hdcButton = CreateCompatibleDC(hdcBitmap);
-   hButton = CreateCompatibleBitmap(hdcBitmap, toolbar->width, toolbar->height);
+   hButton = CreateCompatibleBitmap(hdcBitmap, pToolbar->width, pToolbar->height);
    SelectObject(hdcButton, hButton);
 
    // fill the button with the transparency
    hBrush = CreateSolidBrush(RGB(255,0,255));
    SelectObject(hdcButton, hBrush);
-   PatBlt(hdcButton, 0, 0, toolbar->width, toolbar->height, PATCOPY);
+   PatBlt(hdcButton, 0, 0, pToolbar->width, pToolbar->height, PATCOPY);
 
    // copy the button from the full bitmap
    BitBlt(hdcButton, xstart, ystart, width, height, hdcBitmap, width*index, 0, SRCCOPY);
    DeleteDC(hdcBitmap);
    DeleteDC(hdcButton);
    
+   DeleteObject(hBrush);
+   DeleteObject(hBitmap);
+
+   return hButton;
+
+}
+
+void AddImageToList(s_toolbar *pToolbar, s_button *pButton, HIMAGELIST list, char *sFile) {
+
+   HBITMAP hButton = LoadButtonImage(pToolbar, pButton, sFile);
+
    ImageList_AddMasked(list, hButton, RGB(255,0,255));
 
-   DeleteObject(hBrush);
    DeleteObject(hButton);
-   DeleteObject(hBitmap);
+
+   delete pButton->sImagePath;
+   pButton->sImagePath = strdup(sFile);
 }
+
+
+/*
+   We use the toolbar name to ID conversion scheme because it lets us later squeeze both the
+   toolbar ID the button ID into the same LONG paramater in SendMessage calls.  Since we
+   need one of the two SendMessage paramaters for a return value data pointer, the
+   alternative to using numeric ids would be have to be passing a pointer to a structure
+   containing the toolbar string name and the button ID.
+*/
+
+int GetToolbarID(char *sToolbar) {
+
+   s_toolbar *pToolbar = toolbar_head;
+   while (pToolbar) {
+      if (pToolbar->sTitle && *pToolbar->sTitle && !strcmpi(sToolbar, pToolbar->sTitle))
+         return pToolbar->iID;
+      pToolbar = pToolbar->next;
+   }
+
+   return 0;   // return 0 if the toolbar does not exist, the first toolbar number is 1
+}
+
+
+s_toolbar *FindToolbar(WORD iToolbar) {
+   // make sure the toolbar id is valid
+   if (iToolbar == 0 || iToolbar > giToolbarCount)
+      return NULL;
+
+   s_toolbar *pToolbar = toolbar_head;
+   while (pToolbar) {
+      if (pToolbar->iID == iToolbar)
+         return pToolbar;
+      pToolbar = pToolbar->next;
+   }
+
+   return NULL;
+}
+
+s_button *FindButton(s_toolbar *pToolbar, int iButton) {
+   
+   if (!pToolbar)
+      return NULL;
+   
+   s_button *pButton = pToolbar->pButtonHead;
+   while (pButton) {
+      if (pButton->iID == iButton)
+         return pButton;
+      pButton = pButton->next;
+   }
+
+   return NULL;
+}
+
+
+enum list { IMAGELIST_HOT = 1, IMAGELIST_COLD, IMAGELIST_DEAD };
+
+
+void SetButtonImage(char *sParams) {//WORD iToolbar, WORD iButton, char *sImage) {
+
+   // sParams = "ToolbarID, BUTTON_ID, [HOT|COLD|DEAD], Path\to\new\image.bmp[0]"
+
+   // parse paramaters
+
+   // Get ToolbarID param
+   char *p = SkipWhiteSpace(sParams);
+   char *c = strchr(sParams, ',');
+   if (!c) return;
+   *c = 0;  // terminate string
+   int iToolbar = atoi(p);
+   if (!iToolbar)
+      iToolbar = GetToolbarID(p);
+   *c = ','; // replace comma
+
+   // Get BUTTON_ID param   
+   p = SkipWhiteSpace(c+1);
+   c = strchr(p, ',');
+   if (!c) return;
+   *c = 0;  // terminate string
+   int iButton = atoi(p);
+   if (!iButton)
+      iButton = kPlugin.kFuncs->GetID(p);
+   *c = ','; // replace comma
+
+
+   // Get imagelist param (hot, cold, dead)
+   p = SkipWhiteSpace(c+1);
+   c = strchr(p, ',');
+   if (!c) return;
+   *c = 0;  // terminate string
+   int iImagelist;
+   if (!strcmpi(p, "hot"))
+      iImagelist = IMAGELIST_HOT;
+   else if (!strcmpi(p, "cold"))
+      iImagelist = IMAGELIST_COLD;
+   else if (!strcmpi(p, "dead"))
+      iImagelist = IMAGELIST_DEAD;
+   *c = ','; // replace comma
+   
+   
+   // get image param
+   char *sImage = SkipWhiteSpace(c+1);
+
+   
+   
+   
+   
+   s_toolbar *pToolbar = FindToolbar(iToolbar);
+   if (!pToolbar)
+      return;
+
+   s_button *pButton = FindButton(pToolbar, iButton);
+   if (!pButton)
+      return;
+
+   if (pButton->sImagePath && *pButton->sImagePath && !strcmpi(pButton->sImagePath, sImage))
+      return;
+
+   int index = SendMessage(pToolbar->hWnd, TB_COMMANDTOINDEX, pButton->iID, 0);
+   
+   HBITMAP hButton = LoadButtonImage(pToolbar, pButton, sImage);
+
+   HDC hdcButton = CreateCompatibleDC(NULL);
+   SelectObject(hdcButton, hButton);
+   
+
+   // Create the transparency mask
+   HDC hdcMask = CreateCompatibleDC(hdcButton);
+   HBITMAP hMask = CreateBitmap(pButton->width, pButton->height, 1, 1, NULL);
+   SelectObject(hdcMask, hMask);   
+   SetBkColor(hdcButton, RGB(255,0,255));
+   BitBlt(hdcMask, 0, 0, pButton->width, pButton->height, hdcButton, 0, 0, SRCCOPY);
+
+   DeleteObject(hdcButton);
+   DeleteObject(hdcMask);
+
+   if (iImagelist == IMAGELIST_HOT)
+      ImageList_Replace(pToolbar->hot, index, hButton, hMask);
+   else if (iImagelist == IMAGELIST_COLD)
+      ImageList_Replace(pToolbar->cold, index, hButton, hMask);
+   else if (iImagelist == IMAGELIST_DEAD)
+      ImageList_Replace(pToolbar->dead, index, hButton, hMask);
+
+   DeleteObject(hButton);
+   DeleteObject(hMask);
+
+   // force the toolbar to reload the image from the imagelist
+   SendMessage(pToolbar->hWnd, TB_CHANGEBITMAP, iButton, MAKELPARAM(index, 0));
+
+   delete pButton->sImagePath;
+   pButton->sImagePath = strdup(sImage);
+
+}
+
+
+void EnableButton(char *sParams) {
+
+   // Get ToolbarID param
+   char *p = SkipWhiteSpace(sParams);
+   char *c = strchr(sParams, ',');
+   if (!c) return;
+   *c = 0;  // terminate string
+   int iToolbar = atoi(p);
+   if (!iToolbar)
+      iToolbar = GetToolbarID(p);
+   *c = ','; // replace comma
+
+   // Get BUTTON_ID param   
+   p = SkipWhiteSpace(c+1);
+   c = strchr(p, ',');
+   if (!c) return;
+   *c = 0;  // terminate string
+   int iButton = atoi(p);
+   if (!iButton)
+      iButton = kPlugin.kFuncs->GetID(p);
+   *c = ','; // replace comma
+
+   // Get STATE param   
+   p = SkipWhiteSpace(c+1);
+   int iState = atoi(p);
+
+
+
+   s_toolbar *pToolbar = FindToolbar(iToolbar);
+   if (!pToolbar)
+      return;
+
+   s_button *pButton = FindButton(pToolbar, iButton);
+   if (!pButton)
+      return;
+
+   SendMessage(pToolbar->hWnd, TB_ENABLEBUTTON, pButton->iID, MAKELONG(iState, 0));
+
+}
+
+int IsButtonEnabled(char *sParams) {
+
+   // Get ToolbarID param
+   char *p = SkipWhiteSpace(sParams);
+   char *c = strchr(sParams, ',');
+   if (!c) return NULL;
+   *c = 0;  // terminate string
+   int iToolbar = atoi(p);
+   if (!iToolbar)
+      iToolbar = GetToolbarID(p);
+   *c = ','; // replace comma
+
+   // Get BUTTON_ID param   
+   p = SkipWhiteSpace(c+1);
+   int iButton = atoi(p);
+   
+   
+   
+   s_toolbar *pToolbar = FindToolbar(iToolbar);
+   if (!pToolbar)
+      return NULL;
+
+   s_button *pButton = FindButton(pToolbar, iButton);
+   if (!pButton)
+      return NULL;
+
+   return SendMessage(pToolbar->hWnd, TB_ISBUTTONENABLED, pButton->iID, 0);
+}
+
+
+void CheckButton(char *sParams) {
+
+   // Get ToolbarID param
+   char *p = SkipWhiteSpace(sParams);
+   char *c = strchr(sParams, ',');
+   if (!c) return;
+   *c = 0;  // terminate string
+   int iToolbar = atoi(p);
+   if (!iToolbar)
+      iToolbar = GetToolbarID(p);
+   *c = ','; // replace comma
+
+   // Get BUTTON_ID param   
+   p = SkipWhiteSpace(c+1);
+   c = strchr(p, ',');
+   if (!c) return;
+   *c = 0;  // terminate string
+   int iButton = atoi(p);
+   if (!iButton)
+      iButton = kPlugin.kFuncs->GetID(p);
+   *c = ','; // replace comma
+
+   // Get STATE param   
+   p = SkipWhiteSpace(c+1);
+   int iState = atoi(p);
+
+
+
+   s_toolbar *pToolbar = FindToolbar(iToolbar);
+   if (!pToolbar)
+      return;
+
+   s_button *pButton = FindButton(pToolbar, iButton);
+   if (!pButton)
+      return;
+
+   SendMessage(pToolbar->hWnd, TB_CHECKBUTTON, pButton->iID, MAKELONG(iState, 0));
+
+}
+
+int  IsButtonChecked(char *sParams) {
+
+   // Get ToolbarID param
+   char *p = SkipWhiteSpace(sParams);
+   char *c = strchr(sParams, ',');
+   if (!c) return NULL;
+   *c = 0;  // terminate string
+   int iToolbar = atoi(p);
+   if (!iToolbar)
+      iToolbar = GetToolbarID(p);
+   *c = ','; // replace comma
+
+   // Get BUTTON_ID param   
+   p = SkipWhiteSpace(c+1);
+   int iButton = atoi(p);
+   
+   
+   
+   s_toolbar *pToolbar = FindToolbar(iToolbar);
+   if (!pToolbar)
+      return NULL;
+
+   s_button *pButton = FindButton(pToolbar, iButton);
+   if (!pButton)
+      return NULL;
+
+   return SendMessage(pToolbar->hWnd, TB_ISBUTTONCHECKED, pButton->iID, 0);
+}
+
+
 
 
 
@@ -687,7 +1034,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
          while (toolbar) {
             if (toolbar->iButtonCount == 0) continue;
 
-            button = toolbar->buttonHead;
+            button = toolbar->pButtonTail;
             while (button) {
                if (button->iID == lpnmtb->iItem && button->menu) {
 
@@ -722,7 +1069,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
          while (toolbar) {
             if (toolbar->iButtonCount == 0) continue;
             
-            button = toolbar->buttonHead;
+            button = toolbar->pButtonTail;
             while (button) {
                if (button->iID == (int) wParam) {
                   
