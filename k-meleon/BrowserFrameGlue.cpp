@@ -92,21 +92,20 @@ void CBrowserFrame::BrowserFrameGlueObj::UpdateBusyState(PRBool aBusy)
 // Will get called after a URI is successfully loaded in the browser
 // We use this info to update the URL bar's edit box
 //
-void CBrowserFrame::BrowserFrameGlueObj::UpdateCurrentURI(nsIURI *aLocation)
-{
+void CBrowserFrame::BrowserFrameGlueObj::UpdateCurrentURI(nsIURI *aLocation){
    METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
 
-      if(aLocation)	{
-         nsXPIDLCString uriString;
-         aLocation->GetSpec(getter_Copies(uriString));
+   if(aLocation)	{
+      nsXPIDLCString uriString;
+      aLocation->GetSpec(getter_Copies(uriString));
 
-         pThis->m_wndUrlBar.SetCurrentURL(uriString.get());
-      }
+      pThis->m_wndUrlBar.SetCurrentURL(uriString.get());
+   }
 
-      // post notification that the session history is changing
-      // this will be updated later when OnUpdateBusy state is called
-      // because the page title has not yet loaded
-      theApp.m_pMainWnd->GetActiveWindow()->PostMessage(WM_UPDATESESSIONHISTORY, 0, 0);
+   // post notification that the session history is changing
+   // this will be updated later when OnUpdateBusy state is called
+   // because the page title has not yet loaded
+   pThis->PostMessage(WM_UPDATESESSIONHISTORY, 0, 0);
 }
 
 void CBrowserFrame::BrowserFrameGlueObj::GetBrowserFrameTitle(PRUnichar **aTitle)
