@@ -624,6 +624,11 @@ BEGIN
     ID_EDIT_SELECT_NONE     "Select nothing in the document\nSelect None"
 END
 
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_PROG_BAR             "####################"
+END
+
 #endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
 

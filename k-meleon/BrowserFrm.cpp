@@ -87,8 +87,8 @@ END_MESSAGE_MAP()
 
 static UINT indicators[] =
 {
-	ID_SEPARATOR,           // For the Status line
-	ID_SEPARATOR,           // For the Progress Bar
+	ID_PROG_BAR,            // For the Progress Bar
+	ID_SEPARATOR            // For the Status line
 };
 
 #define BAND_BASE_ID 200
@@ -255,12 +255,12 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct){
 	// Create the status bar with two panes - one pane for actual status
 	// text msgs. and the other for the progress control
 	if (!m_wndStatusBar.Create(this) ||
-		!m_wndStatusBar.SetIndicators(indicators,
-		  sizeof(indicators)/sizeof(UINT)))
+		!m_wndStatusBar.SetIndicators(indicators, sizeof(indicators)/sizeof(UINT)))
 	{
 		TRACE0("Failed to create status bar\n");
 		return -1;      // fail to create
 	}
+  m_wndStatusBar.SetPaneStyle(1, SBPS_STRETCH);
 
 	// Create the progress bar as a child of the status bar.
 	// Note that the ItemRect which we'll get at this stage
@@ -270,7 +270,7 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct){
 	// The actual positioning of the progress bar will be done
 	// in response to OnSize()
 	RECT rc;
-	m_wndStatusBar.GetItemRect (1, &rc);
+	m_wndStatusBar.GetItemRect (0, &rc);
 	if (!m_wndProgressBar.Create(WS_CHILD|WS_VISIBLE|PBS_SMOOTH, rc, &m_wndStatusBar, ID_PROG_BAR))
 	{
 		TRACE0("Failed to create progress bar\n");
@@ -454,10 +454,10 @@ BOOL CBrowserFrame::OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERIN
 void CBrowserFrame::OnSize(UINT nType, int cx, int cy) {
   CFrameWnd::OnSize(nType, cx, cy);
 
-  // Get the ItemRect of the status bar's Pane 1
+  // Get the ItemRect of the status bar's Pane 0
   // That's where the progress bar will be located
   RECT rc;
-  m_wndStatusBar.GetItemRect(1, &rc);
+  m_wndStatusBar.GetItemRect(0, &rc);
 
   // Move the progress bar into it's correct location
   //
