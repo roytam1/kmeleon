@@ -33,8 +33,10 @@
 #define KMELEON_PLUGIN_EXPORTS
 #include "../kmeleon_plugin.h"
 
-#define BMP_PADDING_LEFT 3
-#define BMP_PADDING_RIGHT 4
+//#define BMP_PADDING_LEFT 3
+//#define BMP_PADDING_RIGHT 4
+#define BMP_PADDING_LEFT 2
+#define BMP_PADDING_RIGHT 2
 #define BMP_HEIGHT 16
 #define BMP_WIDTH  16
 int     SPACE_BETWEEN = 0; // the space between the text and the accelerator, set to the width of 'X'
