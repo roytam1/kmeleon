@@ -409,7 +409,7 @@ void BuildRebar()
       strcpy(buttonString, child->text.c_str());
       CondenseString(buttonString, gMaxTBSize);
       stringID = SendMessage(ghWndTB, TB_ADDSTRING, (WPARAM)NULL, (LPARAM)buttonString);
-	  delete buttonString;
+      delete buttonString;
 
       TBBUTTON button = {0};
       button.iString = stringID;
@@ -489,11 +489,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
          return true;
       }
       else if (CBookmarkNode *node = gBookmarkRoot.FindNode(command)) {
-
-         kPlugin.kFuncs->NavigateTo(node->url.c_str(), OPEN_NORMAL);
-
          node->lastVisit = time(NULL);
          gBookmarksModified = true;	// this doesn't call for instant saving, it can wait until we add/edit/quit
+         kPlugin.kFuncs->NavigateTo(node->url.c_str(), OPEN_NORMAL);
 
          return true;
       }
