@@ -33,8 +33,7 @@ class CBrowserImpl : public nsIInterfaceRequestor,
 					 public nsIEmbeddingSiteWindow,
 					 public nsIWebProgressListener,
 					 public nsIContextMenuListener,
-					 public nsSupportsWeakReference,
-                public nsIURIContentListener
+					 public nsSupportsWeakReference
 {
 public:
    CBrowserImpl();
@@ -49,7 +48,6 @@ public:
    NS_DECL_NSIEMBEDDINGSITEWINDOW
    NS_DECL_NSIWEBPROGRESSLISTENER
 	NS_DECL_NSICONTEXTMENULISTENER
-   NS_DECL_NSIURICONTENTLISTENER
 
 protected:
 

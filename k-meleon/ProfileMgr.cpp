@@ -57,7 +57,9 @@ nsresult CProfileMgr::StartUp()
 {
     nsresult rv;
 
-    NS_WITH_SERVICE(nsIProfile, profileService, NS_PROFILE_CONTRACTID, &rv);
+   nsCOMPtr<nsIProfile> profileService = 
+      do_GetService(NS_PROFILE_CONTRACTID, &rv);
+
     if (NS_FAILED(rv)) return rv;
 
     PRInt32 profileCount;
@@ -111,15 +113,16 @@ nsresult CProfileMgr::DoManageProfilesDialog(PRBool bAtStartUp)
     dialog.m_bAtStartUp = bAtStartUp;
     dialog.m_bAskAtStartUp = NS_SUCCEEDED(rv) ? showIt : TRUE;
 
-    if (dialog.DoModal() == IDOK)
-    {
-        SetShowDialogOnStart(dialog.m_bAskAtStartUp);
+   if (dialog.DoModal() == IDOK)
+   {
+      SetShowDialogOnStart(dialog.m_bAskAtStartUp);
          
-        NS_WITH_SERVICE(nsIProfile, profileService, NS_PROFILE_CONTRACTID, &rv);
-        if (NS_SUCCEEDED(rv))
-               rv = profileService->SetCurrentProfile(dialog.m_SelectedProfile.GetUnicode());
-    }
-    return NS_OK;
+      nsCOMPtr<nsIProfile> profileService = 
+         do_GetService(NS_PROFILE_CONTRACTID, &rv);
+      if (NS_SUCCEEDED(rv))
+         rv = profileService->SetCurrentProfile(dialog.m_SelectedProfile.get());
+   }
+   return NS_OK;
 }
     
  

@@ -150,6 +150,7 @@ nsresult CMfcEmbedApp::OverrideComponents()
 	   PR_TRUE); // replace existing
 
 /*
+
    // Override the nsIHelperAppLauncherDialog
    nsCOMPtr<nsIFactory> helpFactory;
    rv = NewUnknownContentHandlerFactory(getter_AddRefs(helpFactory));
@@ -523,9 +524,10 @@ BOOL CMfcEmbedApp::InitializeProfiles() {
    m_ProfileMgr = new CProfileMgr;
    if (!m_ProfileMgr)
       return FALSE;
-
+  
    nsresult rv;
-   NS_WITH_SERVICE(nsIObserverService, observerService, NS_OBSERVERSERVICE_CONTRACTID, &rv);
+   nsCOMPtr<nsIObserverService> observerService = 
+      do_GetService(NS_OBSERVERSERVICE_CONTRACTID, &rv);
 
    observerService->AddObserver(this, NS_LITERAL_STRING("profile-approve-change").get());
    observerService->AddObserver(this, NS_LITERAL_STRING("profile-change-teardown").get());

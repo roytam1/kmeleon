@@ -61,7 +61,7 @@ CPreferences::~CPreferences() {
 void CPreferences::Load() {
 
    nsresult rv;
-   NS_WITH_SERVICE(nsIPref, prefs, NS_PREF_CONTRACTID, &rv);
+   nsCOMPtr<nsIPref> prefs(do_GetService(NS_PREF_CONTRACTID, &rv));
    if (NS_SUCCEEDED(rv)) {	  
 
       PRBool inited;
@@ -192,7 +192,7 @@ void CPreferences::Load() {
 
 void CPreferences::Save() {
    nsresult rv;
-   NS_WITH_SERVICE(nsIPref, prefs, NS_PREF_CONTRACTID, &rv);
+   nsCOMPtr<nsIPref> prefs(do_GetService(NS_PREF_CONTRACTID, &rv));
    if (NS_SUCCEEDED(rv)) {
 
       // -- Display settings
@@ -268,7 +268,7 @@ void CPreferences::Save() {
 
 int CPreferences::GetBool(const char *preference, int defaultVal){
    nsresult rv;
-   NS_WITH_SERVICE(nsIPref, prefs, NS_PREF_CONTRACTID, &rv);
+   nsCOMPtr<nsIPref> prefs(do_GetService(NS_PREF_CONTRACTID, &rv));
    if (NS_SUCCEEDED(rv)) {
       PRBool tempBool;
       rv = prefs->GetBoolPref(preference, &tempBool);
@@ -282,7 +282,7 @@ int CPreferences::GetBool(const char *preference, int defaultVal){
 
 void CPreferences::SetBool(const char *preference, int value){
    nsresult rv;
-   NS_WITH_SERVICE(nsIPref, prefs, NS_PREF_CONTRACTID, &rv);
+   nsCOMPtr<nsIPref> prefs(do_GetService(NS_PREF_CONTRACTID, &rv));
 
    if (NS_SUCCEEDED(rv))
       prefs->SetBoolPref(preference, value);
@@ -291,7 +291,7 @@ void CPreferences::SetBool(const char *preference, int value){
 
 int CPreferences::GetInt(const char *preference, int defaultVal){
    nsresult rv;
-   NS_WITH_SERVICE(nsIPref, prefs, NS_PREF_CONTRACTID, &rv);
+   nsCOMPtr<nsIPref> prefs(do_GetService(NS_PREF_CONTRACTID, &rv));
    if (NS_SUCCEEDED(rv)) {
       PRInt32 tempInt;
       rv = prefs->GetIntPref(preference, &tempInt);
@@ -305,7 +305,7 @@ int CPreferences::GetInt(const char *preference, int defaultVal){
 
 void CPreferences::SetInt(const char *preference, int value){
    nsresult rv;
-   NS_WITH_SERVICE(nsIPref, prefs, NS_PREF_CONTRACTID, &rv);
+   nsCOMPtr<nsIPref> prefs(do_GetService(NS_PREF_CONTRACTID, &rv));
 
    if (NS_SUCCEEDED(rv))
       prefs->SetIntPref(preference, value);
@@ -314,7 +314,7 @@ void CPreferences::SetInt(const char *preference, int value){
 
 int CPreferences::GetString(const char *preference, char *retVal, char *defaultVal){
    nsresult rv;
-   NS_WITH_SERVICE(nsIPref, prefs, NS_PREF_CONTRACTID, &rv);
+   nsCOMPtr<nsIPref> prefs(do_GetService(NS_PREF_CONTRACTID, &rv));
    if (NS_SUCCEEDED(rv)) {
       CString string;
       _GetString(preference, string, defaultVal);
@@ -327,7 +327,7 @@ int CPreferences::GetString(const char *preference, char *retVal, char *defaultV
 
 void CPreferences::SetString(const char *preference, char *value){
    nsresult rv;
-   NS_WITH_SERVICE(nsIPref, prefs, NS_PREF_CONTRACTID, &rv);
+   nsCOMPtr<nsIPref> prefs(do_GetService(NS_PREF_CONTRACTID, &rv));
    if (NS_SUCCEEDED(rv)) {
       prefs->SetCharPref(preference, value);
    }

@@ -43,6 +43,7 @@
 #include <afxcmn.h>			// MFC support for Windows Common Controls
 #endif // _AFX_NO_AFXCMN_SUPPORT
 
+#include "nsIWidget.h"
 #include "nsCOMPtr.h"
 #include "nsNetUtil.h"
 #include "nsString.h"
@@ -56,6 +57,7 @@
 #include "nsIWebNavigation.h"
 #include "nsIWebBrowserChrome.h"
 #include "nsIWebProgressListener.h"
+#include "nsIWebProgress.h"
 #include "nsIWindowCreator.h"
 #include "nsIInterfaceRequestor.h"
 #include "nsIDocShellTreeOwner.h"
