@@ -30,12 +30,13 @@ extern CMfcEmbedApp theApp;
 #include "BrowserFrm.h"
 #include "BrowserView.h"
 
-BOOL CBrowserView::IsViewSourceUrl(CString& strUrl) {
+BOOL CBrowserView::IsViewSourceUrl(CString& strUrl)
+{
    return (strUrl.Find("view-source:", 0) != -1) ? TRUE : FALSE;
 }
 
-BOOL CBrowserView::OpenViewSourceWindow(const char* pUrl) {
-
+BOOL CBrowserView::OpenViewSourceWindow(const char* pUrl)
+{
    // Use external viewer
    if (theApp.preferences.bSourceUseExternalCommand) {
       if (theApp.preferences.sourceCommand) {
@@ -84,7 +85,8 @@ BOOL CBrowserView::OpenViewSourceWindow(const char* pUrl) {
    return TRUE;
 }                                                                               
 
-void CBrowserView::RefreshToolBarItem(WPARAM ItemID, LPARAM unused) {
+void CBrowserView::RefreshToolBarItem(WPARAM ItemID, LPARAM unused)
+{
 	switch (ItemID) {
 		case ID_NAV_BACK:
 			m_refreshBackButton = TRUE;
@@ -95,19 +97,13 @@ void CBrowserView::RefreshToolBarItem(WPARAM ItemID, LPARAM unused) {
 	}
 }
 
-void CBrowserView::GetBrowserWindowTitle(nsCString& title)
+void CBrowserView::GetPageTitle(CString& title)
 {
-   nsXPIDLString idlStrTitle;
-	if(mBaseWindow)
-		mBaseWindow->GetTitle(getter_Copies(idlStrTitle));
+   USES_CONVERSION;
 
-	title.AssignWithConversion(idlStrTitle);
-
-	// Sanitize the title of all illegal characters
-   title.CompressWhitespace();     // Remove whitespace from the ends
-   title.StripChars("\\*|:\"><?"); // Strip illegal characters
-   title.ReplaceChar('.', L'_');   // Dots become underscores
-   title.ReplaceChar('/', L'-');   // Forward slashes become hyphens
+   PRUnichar *aTitle;
+   mpBrowserFrameGlue->GetBrowserFrameTitle(&aTitle);
+   title = W2A(aTitle);
 }
 
 NS_IMETHODIMP CBrowserView::URISaveAs(nsIURI* aURI, bool bDocument)
@@ -296,7 +292,8 @@ void CBrowserView::LoadHomePage()
 // The actual toolbar state will be updated in response to the
 // ON_UPDATE_COMMAND_UI method - OnUpdateNavStop() being called
 //
-void CBrowserView::UpdateBusyState(PRBool aBusy) {
+void CBrowserView::UpdateBusyState(PRBool aBusy)
+{
 	mbDocumentLoading = aBusy;
 
 	if (mbDocumentLoading){
@@ -318,8 +315,8 @@ void CBrowserView::SetCtxMenuImageSrc(nsAutoString& strImgSrc)
 	mCtxMenuImgSrc = strImgSrc;
 }
 
-char * CBrowserView::GetTempFile() {
-
+char * CBrowserView::GetTempFile()
+{
    m_tempFileCount++;
    
    char ** newFileList = new char*[m_tempFileCount];                             // create new index
@@ -340,17 +337,17 @@ char * CBrowserView::GetTempFile() {
    return newFile;
 }
 
-void CBrowserView::DeleteTempFiles() {
-
+void CBrowserView::DeleteTempFiles()
+{
    for (int x=0;x<m_tempFileCount;x++) {
       DeleteFile(m_tempFileList[x]);
       delete m_tempFileList[x];
    }
    if (m_tempFileCount > 0) delete m_tempFileList;
-
 }
 
-int CBrowserView::GetCurrentURI(char *sURI) {
+int CBrowserView::GetCurrentURI(char *sURI)
+{
    if(! mWebNav)
 		return 0;
 
