@@ -26,6 +26,7 @@
 #include "op_hotlist.h"
 #include "../kmeleon_plugin.h"
 #include "..\\rebar_menu\\hot_tracking.h"
+#include "../KMeleonConst.h"
 
 #include "../Utils.h"
 #include <sys/stat.h>
@@ -36,15 +37,88 @@ extern void * KMeleonWndProc;
 
 #include <string.h>
 
+#define MAX_BUTTONS 32
+
+
+TB *create_TB(HWND hWnd) {
+   TB *ptr = (TB*)calloc(1, sizeof(struct hotlistTB));
+   if (ptr) {
+      ptr->hWnd = hWnd;
+      ptr->next = root;
+      root = ptr;
+   }
+   return ptr;
+}
+
+TB *find_TB(HWND hWnd) {
+   TB *ptr = root;
+   while (ptr && ptr->hWnd != hWnd && ptr->hWndTB != hWnd)
+      ptr = ptr->next;
+   return ptr;
+}
+
+void remove_TB(HWND hWnd) {
+   TB *prev = NULL, *ptr = root;
+   while (ptr && (ptr->hWnd != hWnd)) {
+      prev = ptr;
+      ptr = ptr->next;
+   }
+   
+   if (ptr) {
+      if (prev)
+         prev->next = ptr->next;
+      else
+         root = ptr->next;
+      
+      if (ptr->hWndTB) {
+         TBBUTTON btn = {0};
+         while (SendMessage(ptr->hWndTB, TB_GETBUTTON, 0 /*index*/, (LPARAM)&btn)) {
+            if (IsMenu((HMENU)(btn.idCommand-SUBMENU_OFFSET))){
+               HMENU tmpMenu = (HMENU)(btn.idCommand-SUBMENU_OFFSET);
+               DestroyMenu(tmpMenu);
+            }
+            SendMessage(ptr->hWndTB, TB_DELETEBUTTON, 0 /*index*/, 0);
+         }
+         DestroyWindow(ptr->hWndTB);
+      }
+      free(ptr);
+   }
+}
+
+
+// Subclass procedure for the toolbar
+LRESULT APIENTRY WndTBSubclassProc(
+    HWND hwnd, 
+    UINT uMsg, 
+    WPARAM wParam, 
+    LPARAM lParam) 
+{ 
+
+   switch (uMsg) {
+   case WM_SIZE:
+   {
+      TB *tmpTB = find_TB(hwnd);
+      if (tmpTB)
+         PostMessage(tmpTB->hWnd, WM_COMMAND, nUpdateTB, 0);
+   }
+   break;
+   
+   default:
+      break;
+   }
+   
+   return CallWindowProc(wpOrigTBWndProc, hwnd, uMsg, wParam, lParam);
+} 
+
 
 void findNick(char *nick, char *url)
 {
-  CBookmarkNode *retNode =   gHotlistRoot.FindNick(nick);
-
-  *url = 0;
-  if (retNode) {
-    strcpy(url, (char*)retNode->url.c_str());
-  }
+   CBookmarkNode *retNode =   gHotlistRoot.FindNick(nick);
+   
+   *url = 0;
+   if (retNode) {
+      strcpy(url, (char*)retNode->url.c_str());
+   }
 }
 
 
@@ -98,11 +172,13 @@ void BuildMenu(HMENU menu, CBookmarkNode *node, BOOL isContinuation)
 }
 
 
-// Build Rebar
-void BuildRebar(HWND hWndTB)
+int setTBButtonWidth(HWND hWndTB)
 {
-   if (!bRebarEnabled || !hWndTB || !gImagelist)
-      return;
+   if (!bRebarEnabled || !hWndTB)
+      return 0;
+
+   int nMinWidth = nButtonMinWidth > 0 ? nButtonMinWidth * nHRes / nHSize : nButtonMinWidth;
+   int nMaxWidth = nButtonMaxWidth > 0 ? nButtonMaxWidth * nHRes / nHSize : nButtonMaxWidth;
    
    CBookmarkNode *toolbarNode = gHotlistRoot.FindSpecialNode(BOOKMARK_FLAG_TB);
    
@@ -110,40 +186,89 @@ void BuildRebar(HWND hWndTB)
    
    //SendMessage(hWndTB, TB_SETEXTENDEDSTYLE, 0, TBSTYLE_EX_DRAWDDARROWS);
    
-   SendMessage(hWndTB, TB_SETIMAGELIST, 0, (LPARAM)gImagelist);
+   if (gImagelist && bButtonIcons)
+     SendMessage(hWndTB, TB_SETIMAGELIST, 0, (LPARAM)gImagelist);
+   else
+     SendMessage(hWndTB, TB_SETIMAGELIST, 0, (LPARAM)NULL);
+
+   int width = 0;
+   if (nMaxWidth > 0) {
+     RECT rect;
+     GetWindowRect(hWndTB,&rect);
+     width = rect.right - rect.left;
+
+     int i = 0;
+     CBookmarkNode *tmpNode = toolbarNode->child;
+     while (tmpNode && i<MAX_BUTTONS) {
+       i++;
+       tmpNode = tmpNode->next;
+     }
+
+     if (i) {
+        if (width > 0)
+           width = width / i;
+        else
+           width = nMaxWidth;
+     }
+     if (width > nMaxWidth) width = nMaxWidth;
+     if (width < nMinWidth) width = nMinWidth;
+   }
    
-   SendMessage(hWndTB, TB_SETBUTTONWIDTH, 0, MAKELONG(0, 100));
+   SendMessage(hWndTB, TB_SETBUTTONWIDTH, 0, 
+               MAKELONG(nMaxWidth >= 0 ? width : 0, 
+                        nMaxWidth >= 0 ? width : 0));
    
-   int stringID;
+   return nMaxWidth;
+}
+
+
+// Build Rebar
+void BuildRebar(HWND hWndTB)
+{
+   if (!bRebarEnabled || !hWndTB)
+      return;
+
+   int nMaxWidth = setTBButtonWidth(hWndTB);
+   CBookmarkNode *toolbarNode = gHotlistRoot.FindSpecialNode(BOOKMARK_FLAG_TB);
+   
+   int stringID, nButtons;
    
    CBookmarkNode *child;
-   
-   for (child=toolbarNode->child; child; child=child->next) {
+
+   for (nButtons=0,child=toolbarNode->child; child && nButtons<MAX_BUTTONS; child=child->next, nButtons++) {
       if (child->type == BOOKMARK_SEPARATOR) {
+         nButtons--;
          continue;
       }
       
       // condense the title and escape ampersands
-      char *buttonString = fixString(child->text.c_str(), 20);
+      char *buttonString = fixString(child->text.c_str(), nMaxWidth > 0 ? 0 : -nMaxWidth);
       stringID = SendMessage(hWndTB, TB_ADDSTRING, (WPARAM)NULL, (LPARAM)buttonString);
       delete buttonString;
       
       TBBUTTON button = {0};
       button.iString = stringID;
       button.fsState = TBSTATE_ENABLED;
-      button.fsStyle = TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE;
+      button.fsStyle = TBSTYLE_BUTTON | ((nButtonMaxWidth < 0) ? TBSTYLE_AUTOSIZE : 0) |
+         TBSTYLE_ALTDRAG | TBSTYLE_WRAPABLE;
       
       if (child->type == BOOKMARK_FOLDER){
          // toolbar may not be contained in bookmark menu, so we can't just use its submenus
          HMENU childMenu = CreatePopupMenu();
          BuildMenu(childMenu, child, false);
          button.idCommand = MENU_TO_COMMAND((UINT)childMenu);
-         button.iBitmap = IMAGE_FOLDER_CLOSED;
+         if (bButtonIcons)
+            button.iBitmap = IMAGE_FOLDER_CLOSED;
+         else 
+            button.iBitmap = 0;
          button.fsStyle |= TBSTYLE_DROPDOWN;
       }
       else {
          button.idCommand = child->id;
-         button.iBitmap = IMAGE_BOOKMARK;
+         if (bButtonIcons)
+            button.iBitmap = IMAGE_BOOKMARK;
+         else 
+            button.iBitmap = 0;
       }
       
       SendMessage(hWndTB, TB_INSERTBUTTON, (WPARAM)-1, (LPARAM)&button);
@@ -163,7 +288,31 @@ void BuildRebar(HWND hWndTB)
    */
 }
 
-int addLink(char *url, char *title) 
+
+void UpdateRebarMenu(HWND hWndTB)
+{
+   if (hWndTB && bRebarEnabled) {
+      setTBButtonWidth(hWndTB);
+   }
+}
+
+#if 0
+// BUG! Memory is leaking. Need to free TB_ADDSTRING strings too?
+void RebuildRebarMenu(HWND hWndTB)
+{
+   TBBUTTON btn = {0};
+   while (SendMessage(hWndTB, TB_GETBUTTON, 0 /*index*/, (LPARAM)&btn)) {
+      if (IsMenu((HMENU)(btn.idCommand-SUBMENU_OFFSET))){
+         HMENU tmpMenu = (HMENU)(btn.idCommand-SUBMENU_OFFSET);
+         DestroyMenu(tmpMenu);
+      }
+      SendMessage(hWndTB, TB_DELETEBUTTON, 0 /*index*/, 0);
+   }
+   BuildRebar(hWndTB);
+}
+#endif
+
+int addLink(char *url, char *title)
 {
    if (!url)
       return false;
@@ -243,17 +392,12 @@ int addLink(char *url, char *title)
    }
    bEmpty = true;
    BuildMenu(gMenuHotlist, &gHotlistRoot, false);
-   
+
 #if 0
-   // BUG!
-   // Only the last toolbar would get updated
-   // The ghWndTB must be one per frame, not one global
-   
-   if (ghWndTB) {
-      // delete the old rebar
-      while (SendMessage(ghWndTB, TB_DELETEBUTTON, 0 /*index*/, 0));
-      // and rebuild
-      BuildRebar(ghWndTB);
+   TB *ptr = root;
+   while (ptr) {
+     RebuildRebarMenu( ptr->hWndTB );
+     ptr = ptr->next;
    }
 #endif
 
@@ -266,11 +410,29 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
    static NMTOOLBAR tbhdr;
    static NMHDR hdr;
    
-   if (message == WM_COMMAND) {
+   if (message == WM_CLOSE) {
+     if (find_TB(hWnd))
+       remove_TB(hWnd);
+   }
+   else if (message == WM_COMMAND) {
       WORD command = LOWORD(wParam);
       
       if (command == nConfigCommand){
          Config(hWnd);
+         return 1;
+      }
+      else if (command == nUpdateTB){
+         TB *tmpTB = find_TB(hWnd);
+         if (tmpTB && tmpTB->hWndTB) {
+            if (tmpTB->count) {
+               WINDOWPLACEMENT wp;
+               wp.length = sizeof (WINDOWPLACEMENT);
+               GetWindowPlacement(tmpTB->hWndTB, &wp);
+               if (wp.showCmd == SW_SHOWNORMAL ||
+                   wp.showCmd == SW_SHOWMAXIMIZED)
+                  UpdateRebarMenu( tmpTB->hWndTB );
+            }
+         }
          return 1;
       }
       else if (command == nAddCommand ||
@@ -307,6 +469,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
          return true;
       }
    }
+   else if (message == UWM_UPDATESESSIONHISTORY) {
+      TB *tmpTB = find_TB(hWnd);
+      if (tmpTB!=NULL && tmpTB->count==0) {
+         tmpTB->count = 1;
+         PostMessage(hWnd, WM_COMMAND, nUpdateTB, 0);
+      }
+   }
+   /*
+   else if (message == WM_SIZE) {
+      if (wParam == SIZE_MAXIMIZED ||
+          wParam == SIZE_RESTORED) {
+         PostMessage(hWnd, WM_COMMAND, nUpdateTB, 0);
+      }
+   }
+   */
    else if (message == WM_NOTIFY) {
       hdr = *((LPNMHDR)lParam);
       if ((long)hdr.code == TBN_DROPDOWN) {

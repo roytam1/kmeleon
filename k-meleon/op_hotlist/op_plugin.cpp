@@ -192,9 +192,14 @@ void getHotlistFile() {
 }
 
 int Init(){
+   HDC hdcScreen = CreateDC("DISPLAY", NULL, NULL, NULL); 
+   nHSize = GetDeviceCaps(hdcScreen, HORZSIZE);
+   nHRes = GetDeviceCaps(hdcScreen, HORZRES);
+
    nConfigCommand = kPlugin.kFuncs->GetCommandIDs(1);
    nAddCommand = kPlugin.kFuncs->GetCommandIDs(1);
    nAddLinkCommand = kPlugin.kFuncs->GetCommandIDs(1);
+   nUpdateTB = kPlugin.kFuncs->GetCommandIDs(1);
    
    nDropdownCommand = kPlugin.kFuncs->GetCommandIDs(1);
    kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_REBAR_ENABLED, &bRebarEnabled, &bRebarEnabled);
@@ -205,6 +210,12 @@ int Init(){
    if (gMaxMenuLength < 1) gMaxMenuLength = 20;
    gMenuSortOrder = 209;
    kPlugin.kFuncs->GetPreference(PREF_INT, PREFERENCE_MENU_SORTORDER, &gMenuSortOrder, &gMenuSortOrder);
+   nButtonMinWidth = 10;
+   kPlugin.kFuncs->GetPreference(PREF_INT,  PREFERENCE_BUTTON_MINWIDTH, &nButtonMinWidth, &nButtonMinWidth);
+   nButtonMaxWidth = 35;
+   kPlugin.kFuncs->GetPreference(PREF_INT,  PREFERENCE_BUTTON_MAXWIDTH, &nButtonMaxWidth, &nButtonMaxWidth);
+   bButtonIcons = true;
+   kPlugin.kFuncs->GetPreference(PREF_BOOL,  PREFERENCE_BUTTON_ICONS, &bButtonIcons, &bButtonIcons);
    
    getHotlistFile();
    bEmpty = true;
@@ -222,6 +233,8 @@ int Init(){
 void Create(HWND parent){
    KMeleonWndProc = (void *) GetWindowLong(parent, GWL_WNDPROC);
    SetWindowLong(parent, GWL_WNDPROC, (LONG)WndProc);
+
+   pNewTB = create_TB(parent);
 }
 
 // Preferences Dialog function
@@ -236,8 +249,10 @@ BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
             case BN_CLICKED:
                switch (LOWORD(wParam)) {
                   case IDOK:
-                     bRebarEnabled = SendDlgItemMessage(hWnd, IDC_REBARENABLED, BM_GETCHECK, 0, 0);
-                     kPlugin.kFuncs->SetPreference(PREF_BOOL, PREFERENCE_REBAR_ENABLED, &bRebarEnabled);
+                  {
+                     int bTmpRebarEnabled = SendDlgItemMessage(hWnd, IDC_REBARENABLED, BM_GETCHECK, 0, 0);
+                     kPlugin.kFuncs->SetPreference(PREF_BOOL, PREFERENCE_REBAR_ENABLED, &bTmpRebarEnabled);
+                  }
                   case IDCANCEL:
                      SendMessage(hWnd, WM_CLOSE, 0, 0);
                }
@@ -257,7 +272,10 @@ void Config(HWND hWndParent){
 }
 
 void Quit(){
-   ImageList_Destroy(gImagelist);
+   if (gImagelist)
+      ImageList_Destroy(gImagelist);
+   while (root)
+      remove_TB(root->hWnd);
 }
 
 void DoMenu(HMENU menu, char *param){
@@ -297,8 +315,8 @@ void DoMenu(HMENU menu, char *param){
    lpszHotlistFile = strdup(gHotlistFile);
    if (lpszHotlistFile && *lpszHotlistFile) {
       if ((ret = op_readFile(lpszHotlistFile)) > 0) {
-	if (gMenuSortOrder)
-	    gHotlistRoot.sort(gMenuSortOrder);
+         if (gMenuSortOrder)
+            gHotlistRoot.sort(gMenuSortOrder);
          BuildMenu(menu, &gHotlistRoot, false);
       }
    }
@@ -331,33 +349,40 @@ int DoAccel(char *param) {
 
 void DoRebar(HWND rebarWnd) {
    
-   // disabled to fix "create new window pauses for several seconds" bug
    if (bRebarEnabled) {
       
       DWORD dwStyle = 0x40 | /*the 40 gets rid of an ugly border on top.  I have no idea what flag it corresponds to...*/
-         CCS_NOPARENTALIGN | CCS_NORESIZE | //CCS_ADJUSTABLE |
+         CCS_NOPARENTALIGN | CCS_NORESIZE | CCS_ADJUSTABLE | TBSTYLE_ALTDRAG |
          TBSTYLE_FLAT | TBSTYLE_TRANSPARENT | TBSTYLE_LIST | TBSTYLE_TOOLTIPS;
       
       // Create the toolbar control to be added.
-      ghWndTB = CreateWindowEx(0, TOOLBARCLASSNAME, "",
+      HWND hWndTB = CreateWindowEx(0, TOOLBARCLASSNAME, "",
                                WS_CHILD | dwStyle,
                                0,0,0,0,
                                rebarWnd, (HMENU)/*id*/200,
                                kPlugin.hDllInstance, NULL
                                );
       
-      if (!ghWndTB){
+      if (!hWndTB){
          MessageBox(NULL, TOOLBAND_FAILED_TO_CREATE, NULL, 0);
          return;
       }
       
+      wpOrigTBWndProc = (WNDPROC) SetWindowLong(hWndTB, 
+         GWL_WNDPROC, (LONG) WndTBSubclassProc);
+
+      if (pNewTB) {
+         pNewTB->hWndTB = hWndTB;
+         pNewTB = NULL;
+      }
+
       // Register the band name and child hwnd
-      kPlugin.kFuncs->RegisterBand(ghWndTB, TOOLBAND_NAME);
+      kPlugin.kFuncs->RegisterBand(hWndTB, TOOLBAND_NAME);
       
-      BuildRebar(ghWndTB);
-      
+      BuildRebar(hWndTB);
+
       // Get the height of the toolbar.
-      DWORD dwBtnSize = SendMessage(ghWndTB, TB_GETBUTTONSIZE, 0,0);
+      DWORD dwBtnSize = SendMessage(hWndTB, TB_GETBUTTONSIZE, 0,0);
       
       REBARBANDINFO rbBand = {0};
       rbBand.cbSize = sizeof(REBARBANDINFO);  // Required
@@ -367,17 +392,16 @@ void DoRebar(HWND rebarWnd) {
       
       rbBand.fStyle = RBBS_CHILDEDGE | RBBS_FIXEDBMP | RBBS_VARIABLEHEIGHT;
       rbBand.lpText     = PLUGIN_NAME;
-      rbBand.hwndChild  = ghWndTB;
+      rbBand.hwndChild  = hWndTB;
       rbBand.cxMinChild = 0;
       rbBand.cyMinChild = HIWORD(dwBtnSize);
       rbBand.cyIntegral = 1;
       rbBand.cyMaxChild = rbBand.cyMinChild;
-      rbBand.cxIdeal    = 0;
+      rbBand.cxIdeal    = 100;
       rbBand.cx         = rbBand.cxIdeal;
       
       // Add the band that has the toolbar.
       SendMessage(rebarWnd, RB_INSERTBAND, (WPARAM)-1, (LPARAM)&rbBand);
-      
    }
 }
 

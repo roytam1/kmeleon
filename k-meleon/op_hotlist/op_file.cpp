@@ -62,19 +62,19 @@ int ParseHotlistFolder(char **p, CBookmarkNode &node)
       else if (strnicmp(*p, "CREATED=", 8) == 0) {
          strncpy(szTmp, *p+8, HOTLIST_STRING_LEN);
          szTmp[HOTLIST_STRING_LEN-1] = 0;
-	 addDate = atol(szTmp);
+         addDate = atol(szTmp);
       }
 
       else if (strnicmp(*p, "VISITED=", 8) == 0) {
          strncpy(szTmp, *p+8, HOTLIST_STRING_LEN);
          szTmp[HOTLIST_STRING_LEN-1] = 0;
-	 lastVisit = atol(szTmp);
+         lastVisit = atol(szTmp);
       }
 
       else if (strnicmp(*p, "ORDER=", 6) == 0) {
          strncpy(szTmp, *p+6, HOTLIST_STRING_LEN);
          szTmp[HOTLIST_STRING_LEN-1] = 0;
-	 order = atol(szTmp);
+         order = atol(szTmp);
       }
 
       else if (strnicmp(*p, "DESCRIPTION=", 12) == 0) {
@@ -117,7 +117,7 @@ int ParseHotlistFolder(char **p, CBookmarkNode &node)
          
          size += ParseHotlist(p, *newNode);
          
-         if ( !found_tb &&
+         if ( !found_tb && gToolbarFolder[0] != 0 && 
               ((strcmp(szName, gToolbarFolder) == 0)))
             {
                newNode->flags |= BOOKMARK_FLAG_TB;
@@ -162,19 +162,19 @@ int ParseHotlistUrl(char **p, CBookmarkNode &node)
       else if (strnicmp(*p, "CREATED=", 8) == 0) {
          strncpy(szTmp, *p+8, HOTLIST_STRING_LEN);
          szTmp[HOTLIST_STRING_LEN-1] = 0;
-	 addDate = atol(szTmp);
+         addDate = atol(szTmp);
       }
 
       else if (strnicmp(*p, "VISITED=", 8) == 0) {
          strncpy(szTmp, *p+8, HOTLIST_STRING_LEN);
          szTmp[HOTLIST_STRING_LEN-1] = 0;
-	 lastVisit = atol(szTmp);
+         lastVisit = atol(szTmp);
       }
 
       else if (strnicmp(*p, "ORDER=", 6) == 0) {
          strncpy(szTmp, *p+6, HOTLIST_STRING_LEN);
          szTmp[HOTLIST_STRING_LEN-1] = 0;
-	 order = atol(szTmp);
+         order = atol(szTmp);
       }
 
       else if (strnicmp(*p, "DESCRIPTION=", 12) == 0) {

@@ -53,6 +53,12 @@ void quicksort(char *a, size_t n, size_t es, cmp_t *cmp, unsigned int flag);
                             "Would you like to locate this file?\n"
 
 
+#ifdef WHERE
+CBookmarkNode gHotlistRoot(0, "", "", "", "", BOOKMARK_FOLDER, 0);
+#else
+#define WHERE extern
+WHERE CBookmarkNode gHotlistRoot;
+#endif
 
 // The interface
 
@@ -65,6 +71,22 @@ int ParseHotlist(char **bmFileBuffer, CBookmarkNode &node);
 int SaveHotlistEntry(FILE *bmFile, CBookmarkNode *node);
 int addLink(char *url, char *title);
 void findNick(char *nick, char *url);
+LRESULT APIENTRY WndTBSubclassProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
+struct hotlistTB {
+   HWND hWnd;
+   HWND hWndTB;
+  int count;
+   struct hotlistTB *next;
+};
+typedef struct hotlistTB TB;
+
+WHERE TB *root;
+WHERE TB *pNewTB;
+
+TB *create_TB(HWND hWnd);
+TB *find_TB(HWND hWnd);
+void remove_TB(HWND hWnd);
 #endif
 
 void Config(HWND parent);
@@ -79,17 +101,14 @@ void Config(HWND parent);
 #define PREFERENCE_MENU_AUTOLEN _T("kmeleon.plugins.hotlist.menuAutoDetect")
 #define PREFERENCE_MENU_SORTORDER _T("kmeleon.plugins.hotlist.sortOrder")
 #define PREFERENCE_TOOLBAR_FOLDER _T("kmeleon.plugins.hotlist.toolbarFolder")
+#define PREFERENCE_BUTTON_MINWIDTH  _T("kmeleon.plugins.hotlist.buttonMinWidth")
+#define PREFERENCE_BUTTON_MAXWIDTH  _T("kmeleon.plugins.hotlist.buttonMaxWidth")
+#define PREFERENCE_BUTTON_ICONS  _T("kmeleon.plugins.hotlist.buttonIcons")
 
 
 // The globals
 
-#ifdef WHERE
-CBookmarkNode gHotlistRoot(0, "", "", "", "", BOOKMARK_FOLDER, 0);
-#else
-#define WHERE extern
-WHERE CBookmarkNode gHotlistRoot;
-#endif
-
+WHERE WNDPROC wpOrigTBWndProc;
 WHERE BOOL bRebarEnabled;
 WHERE BOOL bResynchHotlist;
 WHERE BOOL bCreate;
@@ -104,6 +123,7 @@ WHERE UINT nAddLinkCommand;
 // WHERE UINT nAddToolbarCommand;
 // WHERE UINT nEditCommand;
 WHERE UINT nDropdownCommand;
+WHERE UINT nUpdateTB;
 WHERE UINT nFirstHotlistPosition;
 
 WHERE char *lpszHotlistFile;
@@ -123,6 +143,12 @@ WHERE int gMenuSortOrder;
 WHERE BOOL bDOS;
 WHERE BOOL bEmpty;
 
+WHERE int  nButtonMinWidth;
+WHERE int  nButtonMaxWidth;
+WHERE BOOL bButtonIcons;
+WHERE int nHSize, nHRes;
+
 WHERE HWND ghWndTB;
 WHERE HIMAGELIST gImagelist; // the one and only imagelist...
+
 #endif
