@@ -3,7 +3,31 @@ Microsoft Developer Studio Workspace File, Format Version 6.00
 
 ###############################################################################
 
+Project: "Layers"=".\layers\Layers.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
 Project: "bmp_menu"=".\bmp_menu\bmp_menu.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "external"=".\External\external.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -51,7 +75,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "kmeleon"=".\kmeleon.dsp" - Package Owner=<4>
+Project: "kmeleon"=".\KMeleon.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -100,6 +124,18 @@ Package=<4>
 ###############################################################################
 
 Project: "ns_bookmarks"=".\ns_bookmarks\ns_bookmarks.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "op_hotlist"=".\op_hotlist\op_hotlist.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{

@@ -347,7 +347,7 @@ void CBrowserFrame::BrowserFrameGlueObj::DestroyBrowserFrame()
    pThis->PostMessage(WM_CLOSE);
 }
 
-void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags, nsIDOMNode *aNode)
+void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags, nsIContextMenuInfo *aInfo)
 {  
 
    METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
@@ -375,9 +375,14 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags,
   
   !!BAD HACK!!  !!BAD HACK!!  !!BAD HACK!!  !!BAD HACK!!  !!BAD HACK!!
 */
+
+   nsCOMPtr<nsIDOMNode> node;
+   aInfo->GetTargetNode(getter_AddRefs(node));
+
+   
    if (pThis->m_wndBrowserView.m_iGetNodeHack == 1) {
       pThis->m_wndBrowserView.m_iGetNodeHack = 0;
-      pThis->m_wndBrowserView.m_pGetNode = aNode;
+      pThis->m_wndBrowserView.m_pGetNode = node;
       return;
    }
 
@@ -388,9 +393,9 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags,
       menuType = _T("DocumentPopup");
    else if((aContextFlags & nsIContextMenuListener::CONTEXT_TEXT) || (aContextFlags & nsIContextMenuListener::CONTEXT_INPUT))
 */
-   if((aContextFlags & nsIContextMenuListener::CONTEXT_TEXT) || (aContextFlags & nsIContextMenuListener::CONTEXT_INPUT))
+   if((aContextFlags & nsIContextMenuListener2::CONTEXT_TEXT) || (aContextFlags & nsIContextMenuListener2::CONTEXT_INPUT))
       menuType = _T("TextPopup");
-   else if(aContextFlags & nsIContextMenuListener::CONTEXT_LINK)
+   else if(aContextFlags & nsIContextMenuListener2::CONTEXT_LINK)
    {
       // Since we handle all the browser menu/toolbar commands
       // in the View, we basically setup the Link's URL in the
@@ -400,37 +405,11 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags,
       // will be accesible in the view
       
 
-      // Get the URL from the link. This is two step process
-      // 1. We first get the nsIDOMHTMLAnchorElement
-      // 2. We then get the URL associated with the link
-      
-      nsresult rv = NS_OK;
-      
+      nsresult rv = aInfo->GetAssociatedLink(strUrlUcs2);
+      if (NS_FAILED(rv))
+         return;
 
-      nsCOMPtr<nsIDOMHTMLAreaElement> areaElement;
-      areaElement = do_QueryInterface(aNode);
-      if (areaElement) {
-         areaElement->GetHref(strUrlUcs2);
-      }
-      else {
-         // Search for an anchor element
-         nsCOMPtr<nsIDOMHTMLAnchorElement> linkElement;
-         nsCOMPtr<nsIDOMNode> node = aNode;
-         while (node) {
-            linkElement = do_QueryInterface(node);
-            if (linkElement)
-               break;
-            
-            nsCOMPtr<nsIDOMNode> parentNode;
-            node->GetParentNode(getter_AddRefs(parentNode));
-            node = parentNode;
-         }
-         if (linkElement) {
-            rv = linkElement->GetHref(strUrlUcs2);
-         }
-      }
-      if (strUrlUcs2.Length()) {
-         
+      if (strUrlUcs2.Length()) {         
          // Update the view with the new LinkUrl
          // Note that this string is in UCS2 format
          pThis->m_wndBrowserView.SetCtxMenuLinkUrl(strUrlUcs2);
@@ -438,25 +417,55 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags,
          menuType = _T("LinkPopup");
       }
    }
-   if(aContextFlags & nsIContextMenuListener::CONTEXT_IMAGE) {
+   if(aContextFlags & nsIContextMenuListener2::CONTEXT_IMAGE) {
 
       // Get the IMG SRC
-      nsresult rv = NS_OK;
-      nsCOMPtr<nsIDOMHTMLImageElement> imgElement(do_QueryInterface(aNode, &rv));
-      if(NS_SUCCEEDED(rv)) {
-         rv = imgElement->GetSrc(strImgSrcUcs2);
-         if(NS_SUCCEEDED(rv)) {
-            pThis->m_wndBrowserView.SetCtxMenuImageSrc(strImgSrcUcs2); // Set the new Img Src
+      nsCOMPtr<nsIURI> imgURI;
+      aInfo->GetImageSrc(getter_AddRefs(imgURI));
 
-            if(aContextFlags & nsIContextMenuListener::CONTEXT_LINK)
-               menuType = _T("ImageLinkPopup");
-            else
-               menuType = _T("ImagePopup");
-         }
-      }
+      if (!imgURI)
+         return;
+
+      nsCAutoString strImgSrcUtf8;
+      imgURI->GetSpec(strImgSrcUtf8);
+      if (strImgSrcUtf8.IsEmpty())
+         return;
+
+      strImgSrcUcs2 = NS_ConvertUTF8toUCS2(strImgSrcUtf8);
+      pThis->m_wndBrowserView.SetCtxMenuImageSrc(strImgSrcUcs2); // Set the new Img Src
+
+      if(aContextFlags & nsIContextMenuListener2::CONTEXT_LINK)
+         menuType = _T("ImageLinkPopup");
+      else
+         menuType = _T("ImagePopup");
+
    }
 
 
+   else if(aContextFlags & nsIContextMenuListener2::CONTEXT_BACKGROUND_IMAGE)  {                                                                           
+
+      nsAutoString strImgSrcUcs2;
+      pThis->m_wndBrowserView.SetCtxMenuImageSrc(strImgSrcUcs2); // Clear it
+
+      // Get the IMG SRC
+
+      nsCOMPtr<nsIURI> imgURI;
+      aInfo->GetBackgroundImageSrc(getter_AddRefs(imgURI));
+      if (!imgURI)
+         return;
+      nsCAutoString uri;
+      imgURI->GetSpec(uri);
+
+      pThis->m_wndBrowserView.SetCtxMenuImageSrc(NS_ConvertUTF8toUCS2(uri)); // Set the new Img Src
+
+   
+      if(aContextFlags & nsIContextMenuListener2::CONTEXT_LINK)
+         menuType = _T("ImageLinkPopup");
+      else
+         menuType = _T("ImagePopup");
+   
+   }
+      
    // Determine if we need to add the Frame related context menu items
    // such as "View Frame Source" etc.
    //
@@ -465,8 +474,9 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags,
       //Determine the current Frame URL
       //
       nsresult rv = NS_OK;
+      
       nsCOMPtr<nsIDOMDocument> domDoc;
-      rv = aNode->GetOwnerDocument(getter_AddRefs(domDoc));
+      rv = node->GetOwnerDocument(getter_AddRefs(domDoc));
       
       if(NS_SUCCEEDED(rv)) {
          nsCOMPtr<nsIDOMHTMLDocument> htmlDoc(do_QueryInterface(domDoc, &rv));
@@ -474,15 +484,15 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags,
             rv = htmlDoc->GetURL(strFrameURL);
             if(NS_SUCCEEDED(rv)) {
                pThis->m_wndBrowserView.SetCurrentFrameURL(strFrameURL); //Set it to the new URL
-
-               if(aContextFlags & nsIContextMenuListener::CONTEXT_LINK) {
-                  if(aContextFlags & nsIContextMenuListener::CONTEXT_IMAGE)
+               
+               if(aContextFlags & nsIContextMenuListener2::CONTEXT_LINK) {
+                  if(aContextFlags & nsIContextMenuListener2::CONTEXT_IMAGE)
                      menuType = _T("FrameImageLinkPopup");
                   else
                      menuType = _T("FrameLinkPopup");
                }
                else {
-                  if(aContextFlags & nsIContextMenuListener::CONTEXT_IMAGE)
+                  if(aContextFlags & nsIContextMenuListener2::CONTEXT_IMAGE)
                      menuType = _T("FrameImagePopup");
                   else
                      menuType = _T("FrameDocumentPopup");
@@ -496,7 +506,7 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags,
    /*  !!BAD HACK!!  !!BAD HACK!!  !!BAD HACK!!  !!BAD HACK!!  */
    if (pThis->m_wndBrowserView.m_iGetNodeHack == 2) {
       pThis->m_wndBrowserView.m_iGetNodeHack = 0;
-      pThis->m_wndBrowserView.m_pGetNode = aNode;
+      pThis->m_wndBrowserView.m_pGetNode = node;
       return;
    }
    
@@ -545,7 +555,6 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowTooltip(PRInt32 x, PRInt32 y, const
 {
    METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
 
-
    if (!text) {
       pThis->m_wndToolTip.Hide();
       return;
@@ -561,4 +570,24 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowTooltip(PRInt32 x, PRInt32 y, const
    point.y += GetSystemMetrics(SM_CYCURSOR); // jump to below the cursor, otherwise we appear right on top of the cursor
 
    pThis->m_wndToolTip.Show(text, point.x, point.y);      
+}
+
+void CBrowserFrame::BrowserFrameGlueObj::FocusNextElement() {
+   METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
+
+   nsCOMPtr<nsIWebBrowserFocus> focus(do_GetInterface(pThis->m_wndBrowserView.mWebBrowser));
+   if(focus) {
+      pThis->m_wndUrlBar.MaintainFocus();   
+      ::SetFocus(pThis->m_wndUrlBar.m_hwndEdit);
+   }
+}
+
+void CBrowserFrame::BrowserFrameGlueObj::FocusPrevElement() {
+   METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
+
+   nsCOMPtr<nsIWebBrowserFocus> focus(do_GetInterface(pThis->m_wndBrowserView.mWebBrowser));
+   if(focus) {
+      pThis->m_wndUrlBar.MaintainFocus();
+      ::SetFocus(pThis->m_wndUrlBar.m_hwndEdit);
+   }
 }

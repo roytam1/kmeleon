@@ -35,6 +35,10 @@
 
 #define VC_EXTRALEAN		// Exclude rarely-used stuff from Windows headers
 
+#ifndef NEW_H
+#define NEW_H <new>
+#endif
+
 //
 // These headers are very evil, as they will define DEBUG if _DEBUG is
 //  defined, which is lame and not what we want for things like
@@ -150,7 +154,7 @@
 // webBrowser_core: 
 #include "nsITooltipTextProvider.h"
 #include "nsIWebBrowser.h"
-#include "nsIContextMenuListener.h"
+#include "nsIContextMenuListener2.h"
 #include "nsIWebBrowserPrint.h"
 #include "nsIEmbeddingSiteWindow.h"
 #include "nsIWebBrowserChrome.h"
@@ -184,6 +188,7 @@
 #include "nsIServiceManager.h"
 #include "nsError.h"
 #include "nsObserverService.h"
+#include "imgIContainer.h"
 #include "nsAppDirectoryServiceDefs.h"
 #include "nsIObserver.h"
 #include "nsCOMPtr.h"

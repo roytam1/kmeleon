@@ -505,7 +505,11 @@ void CBrowserView::OnNewUrlEnteredInUrlBar()
 {
 
    mpBrowserFrame->m_wndUrlBar.EditChanged(FALSE);
-   SetFocus();
+
+   nsCOMPtr<nsIWebBrowserFocus> focus(do_GetInterface(mWebBrowser));
+   if(focus)
+      focus->Activate();
+
    
    // Get the currently entered URL
 	CString strUrl;
