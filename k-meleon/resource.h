@@ -250,8 +250,8 @@
 #define ID_OPEN_LINK_IN_BACKGROUND      32798
 #define ID_WINDOW_NEXT                  32799
 #define ID_WINDOW_PREV                  32800
-#define ID_FILE_PRINTPREVIEW            32801
-#define ID_FILE_PRINTSETUP              32802
+#define ID_FILE_PRINTPREVIEW            ID_FILE_PRINT_PREVIEW
+#define ID_FILE_PRINTSETUP              ID_FILE_PRINT_SETUP
 #define ID_TOOLBARS_LOCK                32803
 #define ID_VIEW_FRAME_SOURCE            32804
 #define ID_OPEN_FRAME_IN_NEW_WINDOW     32805

@@ -862,25 +862,12 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    ID_NEXT_PANE            "Switch to the next window pane\nNext Pane"
-    ID_PREV_PANE            "Switch back to the previous window pane\nPrevious Pane"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    ID_WINDOW_SPLIT         "Split the active window into panes\nSplit"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
     ID_EDIT_CLEAR           "Erase the selection\nErase"
     ID_EDIT_CLEAR_ALL       "Erase everything\nErase All"
     ID_EDIT_COPY            "Copy the selection and put it on the Clipboard\nCopy"
     ID_EDIT_CUT             "Cut the selection and put it on the Clipboard\nCut"
     ID_EDIT_FIND            "Find the specified text\nFind"
     ID_EDIT_PASTE           "Insert Clipboard contents\nPaste"
-    ID_EDIT_REPEAT          "Repeat the last action\nRepeat"
-    ID_EDIT_REPLACE         "Replace specific text with different text\nReplace"
     ID_EDIT_SELECT_ALL      "Select the entire document\nSelect All"
     ID_EDIT_UNDO            "Undo the last action\nUndo"
     ID_EDIT_REDO            "Redo the previously undone action\nRedo"
@@ -895,9 +882,10 @@ BEGIN
     ID_LINK_KMELEON_FAQ     "View the K-Meleon FAQ"
     ID_LINK_KMELEON_MANUAL  "View the K-Meleon User's Guide and Reference Manual"
     ID_LINK_ABOUT_PLUGINS   "View information on installed third party plugins"
-    ID_EDIT_FINDNEXT        "Find the next occurance of the specified text"
-    ID_EDIT_FINDPREV        "Find the previous occurance of the specified text"
+    ID_EDIT_FINDNEXT        "Find the next occurence of the specified text"
+    ID_EDIT_FINDPREV        "Find the previous occurence of the specified text"
     ID_WINDOW_NEXT          "Switch to next K-Meleon window"
+    ID_WINDOW_PREV          "Switch to previous K-Meleon window"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -910,18 +898,15 @@ BEGIN
     ID_NAV_SEARCH           "Search the Internet"
     ID_EDIT_SELECT_NONE     "Select nothing in the document\nSelect None"
     ID_NEW_BROWSER          "Open a new browser window"
-    ID_VIEW_SOURCE          "View the souce of the current page"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    ID_WINDOW_PREV          "Switch to previous K-Meleon window"
+    ID_VIEW_SOURCE          "View the source of the current page"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
     ID_VIEW_TOOLBAR         "Show or hide the toolbar\nToggle ToolBar"
     ID_VIEW_STATUS_BAR      "Show or hide the status bar\nToggle StatusBar"
+    ID_FONT_INCREASE        "Increase font size"
+    ID_FONT_DECREASE        "Decrease font size"
 END
 
 STRINGTABLE DISCARDABLE 
