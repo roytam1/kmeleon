@@ -131,14 +131,15 @@ BOOL BrowseForBookmarks(char *file)
    }
 }
 
-// Save boomkarks
-static void SaveBookmarks(FILE *bmFile, CBookmarkNode &node)
+// Save bookmarks
+static void SaveBookmarks(FILE *bmFile, CBookmarkNode *node)
 {
    fprintf(bmFile, "<DL><p>\n");
 
    int type;
    CBookmarkNode *child;
-   for (child=node.child; child; child=child->next) {
+   for (child=node->child; child; child=child->next) {
+
       type = child->type;
       if (type == BOOKMARK_FOLDER){
          char szFolderFlags[64] = {0};
@@ -150,23 +151,21 @@ static void SaveBookmarks(FILE *bmFile, CBookmarkNode &node)
             strcat(szFolderFlags, "MENUHEADER ");
          fprintf(bmFile, "<DT><H3 %sADD_DATE=\"%d\">%s</H3>\n", szFolderFlags, child->addDate, child->text.c_str());
 
-         SaveBookmarks(bmFile, *child);
+         SaveBookmarks(bmFile, child);
       }
       else if (type == BOOKMARK_SEPARATOR) {
          fprintf(bmFile, "<HR>\n");
       }
-      else{
+      else if (type == BOOKMARK_BOOKMARK) {
          fprintf(bmFile, "<DT><A HREF=\"%s\" ADD_DATE=\"%d\" LAST_VISIT=\"%d\" LAST_MODIFIED=\"%d\">%s</A>\n", child->url.c_str(), child->addDate, child->lastVisit, child->lastModified, child->text.c_str());
       }
+	  // if it falls through, there's a problem, but we'll just ignore it for now.
    }
    fprintf(bmFile, "</DL><p>\n");
 }
 
 void Save(const char *file)
 {
-   if (!gMenuBookmarks)
-      return;
-
    if (!gGeneratedByUs) {
       if (MessageBox(NULL, BOOKMARKS_NOT_BY_US, PLUGIN_NAME, MB_YESNO) != IDYES) {
          return;
@@ -183,7 +182,7 @@ void Save(const char *file)
       fprintf(bmFile, "<TITLE>%s</TITLE>\n", gBookmarksTitle);
       fprintf(bmFile, "<H1>%s</H1>\n\n", gBookmarksTitle);
 
-      SaveBookmarks(bmFile, gBookmarkRoot);
+      SaveBookmarks(bmFile, &gBookmarkRoot);
 
       fclose(bmFile);
    }
@@ -196,7 +195,6 @@ void Save(const char *file)
 }
 
 // Load bookmarks
-
 void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
 {
    char *p;
@@ -328,7 +326,6 @@ void BuildMenu(HMENU menu, CBookmarkNode *node, BOOL isContinuation)
    for (child = (isContinuation) ? node : node->child ; child ; child = child->next) {
       if (++count > gMaxMenuLength) {
          HMENU childMenu = CreatePopupMenu();
-//MessageBox(NULL, "[more]", "Adding:", MB_OK);
          AppendMenu(menu, MF_STRING|MF_POPUP, (UINT)childMenu, "[more]");
          BuildMenu(childMenu, child, true);
          break;
@@ -339,14 +336,12 @@ void BuildMenu(HMENU menu, CBookmarkNode *node, BOOL isContinuation)
       else if (child->type == BOOKMARK_FOLDER) {
          HMENU childMenu = CreatePopupMenu();
          child->id = (UINT)childMenu; // we have to save off the HMENU for the rebar
-//MessageBox(NULL, child->text.c_str(), "Adding:", MB_OK);
          AppendMenu(menu, MF_STRING|MF_POPUP, (UINT)childMenu, child->text.c_str());
          BuildMenu(childMenu, child, false);
       }
-      else {
+      else if (child->type == BOOKMARK_BOOKMARK) {
          char *pszTemp = _strdup(child->text.c_str());
          CondenseString(pszTemp, 40);
-//MessageBox(NULL, pszTemp, "Adding:", MB_OK);
          AppendMenu(menu, MF_STRING, child->id, pszTemp);
          delete pszTemp;
       }
@@ -459,6 +454,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
          return true;
       }
       else if (CBookmarkNode *node = gBookmarkRoot.FindNode(command)) {
+
          kPlugin.kFuncs->NavigateTo(node->url.c_str(), OPEN_NORMAL);
 
          node->lastVisit = time(NULL);
