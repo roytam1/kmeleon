@@ -19,7 +19,6 @@
 //
 
 #include "stdafx.h"
-
 #include "commctrl.h"
 
 #define KMELEON_PLUGIN_EXPORTS
@@ -27,6 +26,10 @@
 #include "../Utils.h"
 
 #define _T(blah) blah
+
+#ifndef TPM_NOANIMATION
+#define TPM_NOANIMATION 0x4000
+#endif
 
 /*
 // MFC handles this for us (how nice)
@@ -255,7 +258,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                // the hook may change this, so we need to save it for the TB_PRESSBUTTON
                lastItem = giCurrentItem; 
 
-               TrackPopupMenu((HMENU)(giCurrentItem-SUBMENU_OFFSET), TPM_LEFTALIGN, pt.x, pt.y, 0, hWnd, NULL);
+               TrackPopupMenu((HMENU)(giCurrentItem-SUBMENU_OFFSET), TPM_LEFTALIGN | TPM_NOANIMATION, pt.x, pt.y, 0, hWnd, NULL);
 
                UnhookWindowsHookEx(ghhookMsg);
                SendMessage(ghToolbarWnd, TB_PRESSBUTTON, lastItem, MAKELONG(false, 0));
