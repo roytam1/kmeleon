@@ -16,7 +16,6 @@
 *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
-
 #include "StdAfx.h"
 #include "nsIFile.h"
 #include "nsILocalFile.h"
@@ -98,9 +97,11 @@ void CMostRecentUrls::AddURL(const char * aURL) {
    }
 
    // shift everything down
-   for (; x>0; x--)  m_URLs[x] = m_URLs[x-1];
+   while (x) {
+      m_URLs[x] = m_URLs[x-1];
+      x--;
+   }
 
 	// add the new url
-   m_URLs[0] = _strdup(aURL);
-
+   strcpy(m_URLs[0], aURL);
 }
