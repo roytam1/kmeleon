@@ -130,8 +130,18 @@ BOOL CMfcEmbedApp::InitInstance()
     return FALSE;
   }
 
+  // Parse command line for standard shell commands, DDE, file open
+	CCommandLineInfo cmdInfo;
+	ParseCommandLine(cmdInfo);
+
 	// Create the first browser frame window
-	OnNewBrowser();
+	CBrowserFrame *pBrowserFrame = CreateNewBrowserFrame();
+
+	//Load the HomePage into the browser view
+  if(!cmdInfo.m_strFileName.IsEmpty())
+    pBrowserFrame->m_wndBrowserView.OpenURL(cmdInfo.m_strFileName);
+  else if(pBrowserFrame)
+		pBrowserFrame->m_wndBrowserView.LoadHomePage();
 
 	return TRUE;
 }
