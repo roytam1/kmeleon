@@ -103,7 +103,9 @@ void Quit(){
 }
 
 void DoMenu(HMENU menu, char *param) {
-   AppendMenu(menu, MF_STRING, id_fullscreen, "&Full Screen");
+   if (*param)
+         AppendMenu(menu, MF_STRING, id_fullscreen, param);
+   else AppendMenu(menu, MF_STRING, id_fullscreen, "&Full Screen");
 }
 
 int DoAccel(char *param) {
