@@ -331,7 +331,10 @@ void CBrowserFrame::BrowserFrameGlueObj::SetBrowserPositionAndSize(PRInt32 aX, P
 void CBrowserFrame::BrowserFrameGlueObj::SetFocus(){
    METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
 
-   pThis->SetFocus();
+   if (pThis->m_ignoreFocus > 0)
+       pThis->m_ignoreFocus--;
+   else
+       pThis->SetFocus();
 }
 
 void CBrowserFrame::BrowserFrameGlueObj::FocusAvailable(PRBool *aFocusAvail)
@@ -353,7 +356,7 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowBrowserFrame(PRBool aShow)
     if(aShow)
     {
         pThis->ShowWindow(SW_SHOW);
-        pThis->SetActiveWindow();
+        // pThis->SetActiveWindow();
         pThis->UpdateWindow();
     }
     else
@@ -367,7 +370,8 @@ void CBrowserFrame::BrowserFrameGlueObj::GetBrowserFrameVisibility(PRBool *aVisi
    METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
 
    // Is the current BrowserFrame the active one?
-   if (GetActiveWindow()->m_hWnd != pThis->m_hWnd)
+   CWnd *pWnd = GetActiveWindow();
+   if (pWnd && pWnd->m_hWnd != pThis->m_hWnd)
    {
       *aVisible = PR_FALSE;
       return;
