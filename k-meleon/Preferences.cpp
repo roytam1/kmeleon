@@ -282,10 +282,22 @@ void CPreferences::Load() {
       NS_ASSERTION(PR_FALSE, "Could not get preferences service");
 }
 
-void CPreferences::SaveDlgPrefs() {
+void CPreferences::Flush() {
    nsresult rv;
    nsCOMPtr<nsIPref> prefs(do_GetService(NS_PREF_CONTRACTID, &rv));
    if (NS_SUCCEEDED(rv)) {
+      rv = prefs->SavePrefFile(nsnull);      
+   }
+   else
+      NS_ASSERTION(PR_FALSE, "Could not get preferences service");
+}
+
+
+void CPreferences::Save() {
+   nsresult rv;
+   nsCOMPtr<nsIPref> prefs(do_GetService(NS_PREF_CONTRACTID, &rv));
+   if (NS_SUCCEEDED(rv)) {
+
       // -- General preferences
       rv = prefs->SetBoolPref(_T("kmeleon.general.startHome"), bStartHome);
       rv = prefs->SetCharPref(_T("kmeleon.general.homePage"), homePage);
@@ -362,22 +374,6 @@ void CPreferences::SaveDlgPrefs() {
       rv = prefs->SetCharPref(_T("capability.policy.restrictedpopups.sites"), restrictedPopupSites);
 
       rv = prefs->SetBoolPref(_T("dom.disable_open_during_load"), bDisablePopupsOnLoad);
-
-      Save();
-   }
-   else
-      NS_ASSERTION(PR_FALSE, "Could not get preferences service");
-}
-
-void CPreferences::Save() {
-   nsresult rv;
-   nsCOMPtr<nsIPref> prefs(do_GetService(NS_PREF_CONTRACTID, &rv));
-   if (NS_SUCCEEDED(rv)) {
-      // NOTE: The prefs set in this function will not be settable in a macro!
-      //       This is why most were moved into SaveDlgPrefs(), so they wouldn't
-      //        be overwritten when trying to save them from a macro.
-      //       Those left here can be changed outside of the prefs dialog, so
-      //        they're left in here for now.
 
      if (!theApp.m_pMostRecentBrowserFrame || !(theApp.m_pMostRecentBrowserFrame->m_style & WS_POPUP)) {
        // -- Display settings

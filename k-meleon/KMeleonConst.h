@@ -39,6 +39,11 @@
 #define TB_MBUTTONUP	                  WM_APP + 127
 #define TB_RBUTTONUP	                  WM_APP + 128
 
+#define TB_LBUTTONDBLCLK                  WM_APP + 129
+#define TB_MBUTTONDBLCLK                  WM_APP + 130
+#define TB_RBUTTONDBLCLK                  WM_APP + 131
+
+
 #define PLUGIN_COMMAND_START_ID        5000
 #define PLUGIN_REBAR_START_ID          200
 

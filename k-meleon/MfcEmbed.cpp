@@ -872,7 +872,6 @@ int CMfcEmbedApp::ExitInstance()
    plugins.SendMessage("*", "* Plugin Manager", "Quit");
 
    preferences.Save();
-   preferences.SaveDlgPrefs();
    
    m_ProfileMgr->ShutDownCurrentProfile( theApp.preferences.bGuestAccount );
    if (m_ProfileMgr) delete m_ProfileMgr;
@@ -965,7 +964,6 @@ BOOL CMfcEmbedApp::CreateHiddenWindow()
 nsresult CMfcEmbedApp::InitializePrefs(){
    preferences.Load();
    preferences.Save();
-   preferences.SaveDlgPrefs();
 
    return TRUE;
 }
