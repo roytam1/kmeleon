@@ -541,8 +541,12 @@ void CBrowserFrame::OnMove(int x, int y)
 { 
     CFrameWnd::OnMove(x, y);
 
+    WINDOWPLACEMENT wp;
+    wp.length = sizeof (WINDOWPLACEMENT);
+    GetWindowPlacement(&wp);
+
    // only record the window position for non-popup windows
-   if (!(m_style & WS_POPUP)){
+   if (!(m_style & WS_POPUP) && (wp.showCmd != SW_SHOWMAXIMIZED)){
        RECT rc;
 
        GetWindowRect(&rc);
