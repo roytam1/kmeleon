@@ -1,7 +1,5 @@
 # Installer script 1.1v for the K-Meleon webbrowser
-
-# comment next line out to produce a "real" installer, otherwise you'll get a dummy
-#!define debug
+# This script requires a custom build of nsis to support the APPDATADIR variable
 
 Name "K-Meleon"
 ComponentText "This will install K-Meleon v0.4"
@@ -30,13 +28,11 @@ Section "K-Meleon (required)"
 ;FindWindow "close" "Afx:400000:0" ""
 
 # Copying temp files
-SetOutPath "$TEMP\K-Meleon"
-File concat.exe
+#SetOutPath "$TEMP\K-Meleon"
+#File concat.exe
 # and copying regular files
 SetOutPath "$INSTDIR\uninstall"
-File K-MeleonUNINST.reg
-
-!ifndef debug
+File K-MeleonUNINST.ini
 
 SetOutPath "$INSTDIR"
 File ..\*
@@ -63,7 +59,12 @@ File ..\res\*
 SetOutPath $INSTDIR\res\builtin
 File ..\res\builtin\*
 
-!endif
+IfFileExists $APPDATADIR\KMeleon 0 KeepProfiles
+MessageBox MB_YESNO "User profiles from a previous installation of K-Meleon have been detected$\n \
+These files must be removed for KMeleon to properly function.$\n \
+Do you want to remove the stored user profiles?" IDNO KeepProfiles
+RMDir /r $APPDATADIR\KMeleon
+KeepProfiles:
 
 SectionEnd
 
@@ -79,35 +80,35 @@ CreateShortCut "$QUICKLAUNCH\K-Meleon.lnk" "$INSTDIR\K-Meleon.exe" "" "" 0
 SectionEnd
 
 #------------------------------------------------------------------------------------------
-Section "Always open HTML by K-Meleon"
+Section "Always open HTML with K-Meleon"
 SectionIn 1,2
 
-# save the old values somewhere and restore them on uninstall
-ExecWait 'regedit /e "$TEMP\K-Meleon\RESTOREhtm.tmp" HKEY_CLASSES_ROOT\.htm'
-ExecWait 'regedit /e "$TEMP\K-Meleon\RESTOREhtml.tmp" HKEY_CLASSES_ROOT\.html'
-ExecWait 'regedit /e "$TEMP\K-Meleon\RESTOREhttp.tmp" HKEY_CLASSES_ROOT\http'
-ExecWait '"$TEMP\K-Meleon\concat.exe" "$TEMP\K-Meleon\RESTOREhtm.tmp" "$TEMP\K-Meleon\RESTOREfileAsso.reg"'
-ExecWait '"$TEMP\K-Meleon\concat.exe" "$TEMP\K-Meleon\RESTOREhtml.tmp" "$TEMP\K-Meleon\RESTOREfileAsso.reg"'
-ExecWait '"$TEMP\K-Meleon\concat.exe" "$TEMP\K-Meleon\RESTOREhttp.tmp" "$TEMP\K-Meleon\RESTOREfileAsso.reg"'
-# -m: Do not mov when destination already exists
-ExecWait '"$TEMP\K-Meleon\concat.exe" "$TEMP\K-Meleon\RESTOREfileAsso.reg" "$INSTDIR\uninstall\RESTOREfileAsso.reg" -m'
+ReadRegStr $0 HKCR ".htm" ""
+WriteINIStr "$INSTDIR\uninstall\K-MeleonUNINST.ini" "HKCR" ".htm" $0
+WriteRegStr HKCR ".htm" "" "K-Meleon.HTML"
 
-WriteRegStr HKEY_CLASSES_ROOT ".htm" "" "K-Meleon.HTML"
-WriteRegStr HKEY_CLASSES_ROOT ".htm" "Content Type" "text/html"
-WriteRegStr HKEY_CLASSES_ROOT ".html" "" "K-Meleon.HTML"
-WriteRegStr HKEY_CLASSES_ROOT ".html" "Content Type" "text/html"
-WriteRegStr HKEY_CLASSES_ROOT "K-Meleon.HTML" "" "Hypertext Markup Language Document"
-WriteRegStr HKEY_CLASSES_ROOT "K-Meleon.HTML\shell\open\command" "" '"$INSTDIR\K-Meleon.exe" "%1"'
-WriteRegStr HKEY_CLASSES_ROOT "http" "" "URL:HTTP (HyperText Transfer-Protokoll)"
-WriteRegStr HKEY_CLASSES_ROOT "http\shell\open\command" "" '"$INSTDIR\K-Meleon.exe" "%1"'
+ReadRegStr $0 HKCR ".htm" "Content Type"
+WriteINIStr "$INSTDIR\uninstall\K-MeleonUNINST.ini" "HKCR" ".htm\Content Type" $0
+WriteRegStr HKCR ".htm" "Content Type" "text/html"
 
-# Uninstall information
-WriteINIStr "$INSTDIR\uninstall\K-MeleonUNINST.reg" "-HKEY_CURRENT_USER\Software\K-Meleon" "" ""
+ReadRegStr $0 HKCR ".html" ""
+WriteINIStr "$INSTDIR\uninstall\K-MeleonUNINST.ini" "HKCR" ".html" $0
+WriteRegStr HKCR ".html" "" "K-Meleon.HTML"
 
-WriteINIStr "$INSTDIR\uninstall\K-MeleonUNINST.reg" "-HKEY_CLASSES_ROOT\.htm" "" ""
-WriteINIStr "$INSTDIR\uninstall\K-MeleonUNINST.reg" "-HKEY_CLASSES_ROOT\.html" "" ""
-WriteINIStr "$INSTDIR\uninstall\K-MeleonUNINST.reg" "-HKEY_CLASSES_ROOT\K-Meleon.HTML" "" ""
-WriteINIStr "$INSTDIR\uninstall\K-MeleonUNINST.reg" "-HKEY_CLASSES_ROOT\http" "" ""
+ReadRegStr $0 HKCR ".html" "Content Type"
+WriteINIStr "$INSTDIR\uninstall\K-MeleonUNINST.ini" "HKCR" ".html\Content Type" $0
+WriteRegStr HKCR ".html" "Content Type" "text/html"
+
+ReadRegStr $0 HKCR "http" ""
+WriteINIStr "$INSTDIR\uninstall\K-MeleonUNINST.ini" "HKCR" "http" $0
+WriteRegStr HKCR "http" "" "URL:HTTP (HyperText Transfer-Protocol)"
+
+ReadRegStr $0 HKCR "http\shell\open\command" ""
+WriteINIStr "$INSTDIR\uninstall\K-MeleonUNINST.ini" "HKCR" "http\shell\open\command" $0
+WriteRegStr HKCR "http\shell\open\command" "" '"$INSTDIR\K-Meleon.exe" "%1"'
+
+WriteRegStr HKCR "K-Meleon.HTML" "" "Hypertext Markup Language Document"
+WriteRegStr HKCR "K-Meleon.HTML\shell\open\command" "" '"$INSTDIR\K-Meleon.exe" "%1"'
 
 SectionEnd
 
@@ -115,10 +116,10 @@ SectionEnd
 Section -PostInstall
 
 # Adding the Installation directory which can be used to update k-meleon or by plugin installers
-WriteRegStr HKEY_CURRENT_USER "Software\K-Meleon\K-Meleon\General" "InstallDir" "$INSTDIR"
+WriteRegStr HKCU "Software\K-Meleon\K-Meleon\General" "InstallDir" "$INSTDIR"
 # Adding K-Meleon uninstall info
-WriteRegStr HKEY_LOCAL_MACHINE "Software\Microsoft\Windows\CurrentVersion\Uninstall\K-Meleon" "DisplayName" "K-Meleon (remove only)"
-WriteRegStr HKEY_LOCAL_MACHINE "Software\Microsoft\Windows\CurrentVersion\Uninstall\K-Meleon" "UninstallString" '"$INSTDIR\Uninstall.exe"'
+WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\K-Meleon" "DisplayName" "K-Meleon (remove only)"
+WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\K-Meleon" "UninstallString" '"$INSTDIR\Uninstall.exe"'
 
 # Cleaning up temp files
 Delete $TEMP\K-Meleon\*
@@ -138,42 +139,42 @@ Section Uninstall
 ;FindWindow "close" "Afx:400000:0" ""
 
 # delete all registry entries that Kmeleon does on install
-ExecWait 'regedit /s "$INSTDIR\uninstall\K-MeleonUNINST.reg"'
+#ExecWait 'regedit /s "$INSTDIR\uninstall\K-MeleonUNINST.reg"'
 
 # and restoring the original file associations
-MessageBox MB_YESNO "Should we restore the original file associations as default browser?" IDNO 1
-ExecWait "regedit /s $INSTDIR\uninstall\RESTOREfileAsso.reg"
+ReadINIStr $0 "$INSTDIR\uninstall\K-MeleonUNINST.ini" "HKCR" ".htm"
+WriteRegStr HKCR ".htm" "" $0
 
-!ifndef debug
+ReadINIStr $0 "$INSTDIR\uninstall\K-MeleonUNINST.ini" "HKCR" ".htm\Content Type"
+WriteRegStr HKCR ".htm" "Content Type" $0
+
+ReadINIStr $0 "$INSTDIR\uninstall\K-MeleonUNINST.ini" "HKCR" ".html"
+WriteRegStr HKCR ".html" "" $0
+
+ReadINIStr $0 "$INSTDIR\uninstall\K-MeleonUNINST.ini" "HKCR" ".html\Content Type"
+WriteRegStr HKCR ".html" "Content Type" $0
+
+ReadINIStr $0 "$INSTDIR\uninstall\K-MeleonUNINST.ini" "HKCR" "http"
+WriteRegStr HKCR "http" "" $0
+
+ReadINIStr $0 "$INSTDIR\uninstall\K-MeleonUNINST.ini" "HKCR" "http\shell\open\command"
+WriteRegStr HKCR "http\shell\open\command" "" $0
+
+DeleteRegKey HKCR "K-Meleon.HTML"
+
+# ask about removing user profiles/settings
+MessageBox MB_YESNO "Do you want to remove the stored user profiles?" IDNO KeepProfiles
+RMDir /r $APPDATADIR\KMeleon
+KeepProfiles:
+
 # Delete the Systems Setting uninstall info key
-DeleteRegKey HKEY_LOCAL_MACHINE "Software\Microsoft\Windows\CurrentVersion\Uninstall\K-Meleon"
-!endif
+DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\K-Meleon"
 
-!ifndef debug
 # Deleting all the K-Meleon files
-Delete $INSTDIR\chrome\*
-RMDir $INSTDIR\chrome
-Delete $INSTDIR\components\*
-RMDir $INSTDIR\components
-Delete $INSTDIR\defaults\pref\*
-RMDir $INSTDIR\defaults\pref
-Delete $INSTDIR\defaults\profile\*
-RMDir $INSTDIR\defaults\profile
-RMDir $INSTDIR\defaults
-Delete $INSTDIR\plugins\*
-RMDir $INSTDIR\plugins
-Delete $INSTDIR\res\builtin\*
-RMDir $INSTDIR\res\builtin
-Delete $INSTDIR\res\*
-RMDir $INSTDIR\res
-Delete $INSTDIR\uninstall\*
-RMDir $INSTDIR\uninstall
-Delete $INSTDIR\*
-RMDir $INSTDIR
+RMDir /r $INSTDIR
 
 Delete "$SMPROGRAMS\K-Meleon.lnk"
 Delete "$DESKTOP\K-Meleon.lnk"
 Delete "$QUICKLAUNCH\K-Meleon.lnk"
-!endif
 
 SectionEnd
