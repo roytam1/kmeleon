@@ -29,6 +29,10 @@
 #define PREFERENCE_MAX_MENU_LENGTH "kmeleon.plugins.bookmarks.maxMenuLength"
 #define PREFERENCE_MENU_AUTODETECT "kmeleon.plugins.bookmarks.menuAutoDetect"
 #define PREFERENCE_MAX_TB_SIZE     "kmeleon.plugins.bookmarks.maxToolbarSize"
+#define PREFERENCE_EDIT_DLG_LEFT   "kmeleon.plugins.bookmarks.editdialog.left"
+#define PREFERENCE_EDIT_DLG_TOP    "kmeleon.plugins.bookmarks.editdialog.top"
+#define PREFERENCE_EDIT_DLG_WIDTH  "kmeleon.plugins.bookmarks.editdialog.width"
+#define PREFERENCE_EDIT_DLG_HEIGHT "kmeleon.plugins.bookmarks.editdialog.height"
 #define PREFERENCE_SETTINGS_DIR    "kmeleon.general.settingsDir"
 
 #define BOOKMARK_TAG "<!DOCTYPE NETSCAPE-Bookmark-file-1>"
@@ -48,6 +52,7 @@
 
 #define TOOLBAND_NAME "Bookmarks"
 #define TOOLBAND_FAILED_TO_CREATE "Failed to create bookmark toolbar"
+#define TOOLBAND_MAX_BUTTONS  42    // this seems like as good a number as any
 
 #define IMAGE_BLANK         -1
 #define IMAGE_FOLDER_CLOSED 0

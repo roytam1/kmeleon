@@ -224,9 +224,12 @@ CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
          hCursorDrag = LoadCursor(kPlugin.hDllInstance, MAKEINTRESOURCE(IDC_DRAG_CURSOR));
          bDragging = false;
 
-//         RECT rect;
-//         GetClientRect(hDlg, &rect);
-//         OnSize(rect.bottom, rect.right);
+         int dialogleft = 50, dialogtop = 50, dialogwidth = 500, dialogheight = 500;
+         kPlugin.kFuncs->GetPreference(PREF_INT, PREFERENCE_EDIT_DLG_LEFT, &dialogleft, &dialogleft);
+         kPlugin.kFuncs->GetPreference(PREF_INT, PREFERENCE_EDIT_DLG_TOP, &dialogtop, &dialogtop);
+         kPlugin.kFuncs->GetPreference(PREF_INT, PREFERENCE_EDIT_DLG_WIDTH, &dialogwidth, &dialogwidth);
+         kPlugin.kFuncs->GetPreference(PREF_INT, PREFERENCE_EDIT_DLG_HEIGHT, &dialogheight, &dialogheight);
+         SetWindowPos(hDlg, 0, dialogleft, dialogtop, dialogwidth, dialogheight, 0);
 
          hHook = SetWindowsHookEx(WH_KEYBOARD, KeyboardProc, NULL, GetCurrentThreadId());
       }
@@ -523,13 +526,13 @@ CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       break;
 
-/*
    case WM_SIZE:
       if(wParam != SIZE_MINIMIZED) {
-         OnSize(HIWORD(lParam), LOWORD(lParam));
+         RECT rect;
+         GetClientRect(hDlg, &rect);
+         OnSize(rect.bottom, rect.right);
       }
       break;
-*/
 
    case WM_GETMINMAXINFO:
       LPMINMAXINFO lpminmaxinfo;
@@ -570,6 +573,17 @@ CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
                   Rebuild();
                }
+
+               RECT DlgPos;
+               GetWindowRect(hDlg, &DlgPos);
+               kPlugin.kFuncs->SetPreference(PREF_INT, PREFERENCE_EDIT_DLG_LEFT, &DlgPos.left);
+               kPlugin.kFuncs->SetPreference(PREF_INT, PREFERENCE_EDIT_DLG_TOP, &DlgPos.top);
+               int temp;
+               temp = DlgPos.right - DlgPos.left;
+               kPlugin.kFuncs->SetPreference(PREF_INT, PREFERENCE_EDIT_DLG_WIDTH, &temp);
+               temp = DlgPos.bottom - DlgPos.top;
+               kPlugin.kFuncs->SetPreference(PREF_INT, PREFERENCE_EDIT_DLG_HEIGHT, &temp);
+
 
                UnhookWindowsHookEx(hHook);
                EndDialog(hDlg, 1);
@@ -1143,28 +1157,61 @@ static void OnRClick(HWND hTree)
    }
 }
 
-#define BORDER 8
-#define BUTTON_HEIGHT 24
-#define OK_WIDTH 68
-#define CANCEL_WIDTH 68
+// this is ugly, see...  all this need to be changed each time the dialog is re-arranged...
+#define BORDER 8  // this one is pixels, the rest are DLUs
+#define BUTTON_HEIGHT 15
+#define HELP_WIDTH 27
+#define OK_WIDTH 45
+#define CANCEL_WIDTH 45
+#define PROPERTIES_HEIGHT 73
+#define EDITBOXES_LEFT 33
+#define EDITBOXES_TOP 85
+#define EDITBOXES_HEIGHT 12
+#define DATES_WIDTH 78
+#define OTHER_WIDTH 25
+
+#define convX(x) MulDiv(x, buX, 4)
+#define convY(y) MulDiv(y, buY, 8)
 
 static void OnSize(int height, int width) {
-   static int oldheight = -1, oldwidth = -1;
+   int buX, buY;
+   RECT rc;    // GetDialogBaseUnits returns incorrect values...?
+   SetRect(&rc, 0, 0, 4, 8);
+   MapDialogRect(hEditWnd, &rc);
+   buY = rc.bottom;
+   buX = rc.right;
+
+   // move help button
+   SetWindowPos(GetDlgItem(hEditWnd, ID_KEYBINDINGS), 0, BORDER, height-BORDER-convY(BUTTON_HEIGHT), 0, 0, SWP_NOSIZE);
+   // move import favorites button
+   SetWindowPos(GetDlgItem(hEditWnd, ID_IMPORT_FAVORITES), 0, BORDER*2+convX(HELP_WIDTH), height-BORDER-convY(BUTTON_HEIGHT), 0, 0, SWP_NOSIZE);
+   // move ok button
+   SetWindowPos(GetDlgItem(hEditWnd, IDOK), 0, width-BORDER*2-convX(CANCEL_WIDTH+OK_WIDTH), height-BORDER-convY(BUTTON_HEIGHT), 0, 0, SWP_NOSIZE);
+   // move cancel button
+   SetWindowPos(GetDlgItem(hEditWnd, IDCANCEL), 0, width-BORDER-convX(CANCEL_WIDTH), height-BORDER-convY(BUTTON_HEIGHT), 0, 0, SWP_NOSIZE);
+
+   // move/resize properties box
+   SetWindowPos(GetDlgItem(hEditWnd, IDC_STATIC_PROPERTIES), 0, BORDER, height-BORDER*2-convY(BUTTON_HEIGHT+PROPERTIES_HEIGHT), width-BORDER*2, convY(PROPERTIES_HEIGHT), 0);
 
    // resize tree
-   SetWindowPos(GetDlgItem(hEditWnd, IDC_TREE_BOOKMARK), 0, 0, 0, width-(BORDER*2), height-(BORDER*3 + BUTTON_HEIGHT), SWP_NOMOVE);
+   SetWindowPos(GetDlgItem(hEditWnd, IDC_TREE_BOOKMARK), 0, BORDER, BORDER, width-(BORDER*2), height-BORDER*4-convY(BUTTON_HEIGHT+PROPERTIES_HEIGHT), 0);
 
-   // move import favorites button
-   SetWindowPos(GetDlgItem(hEditWnd, ID_IMPORT_FAVORITES), 0, BORDER, height-(BORDER+BUTTON_HEIGHT), 0, 0, SWP_NOSIZE);
+   // move/resize properties widgets
+   SetWindowPos(GetDlgItem(hEditWnd, IDC_STATIC_TITLE), 0, BORDER*2, height-convY(EDITBOXES_TOP), 0, 0, SWP_NOSIZE);
+   SetWindowPos(GetDlgItem(hEditWnd, IDC_TITLE), 0, convX(EDITBOXES_LEFT), height-convY(EDITBOXES_TOP)-2, width-convX(EDITBOXES_LEFT)-BORDER*2, convY(EDITBOXES_HEIGHT), 0);
+   SetWindowPos(GetDlgItem(hEditWnd, IDC_STATIC_URL), 0, BORDER*2, height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*1.25), 0, 0, SWP_NOSIZE);
+   SetWindowPos(GetDlgItem(hEditWnd, IDC_URL), 0, convX(EDITBOXES_LEFT), height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*1.25)-2, width-convX(EDITBOXES_LEFT)-BORDER*2, convY(EDITBOXES_HEIGHT), 0);
+   SetWindowPos(GetDlgItem(hEditWnd, IDC_STATIC_ADDED), 0, BORDER*2, height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*2.5), 0, 0, SWP_NOSIZE);
+   SetWindowPos(GetDlgItem(hEditWnd, IDC_ADDED), 0, convX(EDITBOXES_LEFT)+5, height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*2.5), convX(DATES_WIDTH), convY(EDITBOXES_HEIGHT), 0);
+   SetWindowPos(GetDlgItem(hEditWnd, IDC_STATIC_VISITED), 0, BORDER*2, height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*3.75), 0, 0, SWP_NOSIZE);
+   SetWindowPos(GetDlgItem(hEditWnd, IDC_LAST_VISIT), 0, convX(EDITBOXES_LEFT)+5, height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*3.75), convX(DATES_WIDTH), convY(EDITBOXES_HEIGHT), 0);
 
-   // move ok button
-   SetWindowPos(GetDlgItem(hEditWnd, IDOK), 0, width-(BORDER*2+CANCEL_WIDTH+OK_WIDTH), height-(BORDER+BUTTON_HEIGHT), 0, 0, SWP_NOSIZE);
+   SetWindowPos(GetDlgItem(hEditWnd, IDC_STATIC_OTHER), 0, convX(EDITBOXES_LEFT+DATES_WIDTH)+BORDER, height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*2.5), 0, 0, SWP_NOSIZE);
+   SetWindowPos(GetDlgItem(hEditWnd, IDC_OTHER), 0, convX(EDITBOXES_LEFT+DATES_WIDTH+OTHER_WIDTH)+BORDER, height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*2.5), width-convX(EDITBOXES_LEFT+DATES_WIDTH+OTHER_WIDTH)-BORDER*3, convY(EDITBOXES_HEIGHT*2), 0);
 
-   // move cancel button
-   SetWindowPos(GetDlgItem(hEditWnd, IDCANCEL), 0, width-(BORDER+CANCEL_WIDTH), height-(BORDER+BUTTON_HEIGHT), 0, 0, SWP_NOSIZE);
-
-   oldheight = height;
-   oldwidth = width;
+   // eliminate those ugly artifacts (that show up on my machine, at least...)
+   InvalidateRgn(hEditWnd, NULL, FALSE);
+   UpdateWindow(hEditWnd);
 }
 
 
