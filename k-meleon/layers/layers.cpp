@@ -236,27 +236,37 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
          *(int *)data2 = layers;
       }
       else if (stricmp(subject, "GetLayersInWindow") == 0) {
-         int len = MSGEX_LENGTH-2;
-         char *cPtr = (char *)data2;
-         *cPtr = 0;
+         int len = 0;
+
          struct frame *pFrame;
          pFrame = getFrameByString((char *)data1);
          if (pFrame) {
             struct layer *pLayer = pFrame->layer;
-            while (pLayer && len > 0) {
+            while (pLayer) {
                kmeleonDocInfo *dInfo;
                dInfo = kPlugin.kFuncs->GetDocInfo(pLayer->hWnd);
                if (dInfo && dInfo->url) {
-                  strncpy(cPtr, dInfo->url, len);
-                  int slen = strlen(cPtr);
-                  len -= slen;
-                  cPtr += slen;
+                  len += strlen(dInfo->url) + 1;
+               }
+               pLayer = pLayer->next;
+            }
+
+            char *cPtr = (char *)malloc(len);
+            *(char **)data2 = cPtr;
+
+            pLayer = pFrame->layer;
+            while (pLayer) {
+               kmeleonDocInfo *dInfo;
+               dInfo = kPlugin.kFuncs->GetDocInfo(pLayer->hWnd);
+               if (dInfo && dInfo->url) {
+                  strcpy(cPtr, dInfo->url);
+                  cPtr += strlen(cPtr);
                   *cPtr++ = '\t';
                }
                pLayer = pLayer->next;
             }
+            *cPtr = 0;
          }
-         *cPtr = 0;
       }
       else if (stricmp(subject, "ReplaceLayersInWindow") == 0) {
          struct frame *pFrame = find_frame(ghCurHwnd);
