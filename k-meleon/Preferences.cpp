@@ -143,19 +143,17 @@ void CPreferences::Load() {
          while (x>0 && buf[x] != '\\') x--;
          if (x>0) buf[x+1]=0;
          strcat (buf, "skins\\");
-         skinsDir = buf;         // plugins dir = path to kmeleon.exe + "kplugins\"
+         skinsDir = buf;         // skins dir = path to kmeleon.exe + "skins\"
       }
 
       if (skinsCurrent.IsEmpty())
          skinsCurrent = "Default\\";
 
-      skinsPath = skinsDir;
-      if (skinsPath.Right(1) != "\\")
-         skinsPath += "\\";
-      skinsPath += skinsCurrent;
-      if (skinsPath.Right(1) != "\\")
-         skinsPath += "\\";
-
+      if (skinsDir.Right(1) != "\\")
+         skinsDir += "\\";
+     
+      if (skinsCurrent.Right(1) != "\\")
+         skinsCurrent += "\\";
 
 
       if (pluginsDir.IsEmpty()) {

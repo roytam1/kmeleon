@@ -268,9 +268,11 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct){
 		return -1;      // fail to create
 	}
 
-   if (!m_wndAnimate.Open(theApp.preferences.skinsPath + "Throbber.avi"))
-      if (!m_wndAnimate.Open(theApp.preferences.settingsDir + "Throbber.avi"))
-         m_wndAnimate.Open("Throbber.avi");
+
+   if (!m_wndAnimate.Open(theApp.preferences.settingsDir + "Throbber.avi"))
+     if (!m_wndAnimate.Open(theApp.preferences.skinsDir + theApp.preferences.skinsCurrent + "Throbber.avi"))
+         if (!m_wndAnimate.Open(theApp.preferences.skinsDir + "default\\Throbber.avi"))
+            m_wndAnimate.Open("Throbber.avi");
 
 	// Create a ReBar window to which the toolbar and UrlBar 
 	// will be added
