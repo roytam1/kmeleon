@@ -222,7 +222,10 @@ NS_IMETHODIMP CBrowserView::URISaveAs(nsIURI* aURI, bool bDocument)
             NS_NewLocalFile(pStrDataPath, TRUE, getter_AddRefs(dataPath));
          }
 
-         persist->SaveDocument(nsnull, file, dataPath);
+         if (bDocument)
+            persist->SaveDocument(nsnull, file, dataPath);
+         else
+            persist->SaveURI(aURI, nsnull, file);
       }
 	}
 
