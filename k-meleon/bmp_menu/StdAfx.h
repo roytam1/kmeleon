@@ -19,6 +19,8 @@
 
 #include <afxres.h>
 
+#include <shellapi.h>
+
 // TODO: reference additional headers your program requires here
 
 //{{AFX_INSERT_LOCATION}}

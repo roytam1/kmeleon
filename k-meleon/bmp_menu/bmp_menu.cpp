@@ -145,7 +145,6 @@ void ParseConfig(char *buffer){
 	#include "../definemap.cpp"
 	DefineMapT::iterator defineMapIt;
 
-
 	HBITMAP currentBitmap = NULL;
 	int index = 0;
 
@@ -240,7 +239,15 @@ void Create(HWND parent){
 }
 
 void Config(HWND parent){
-  MessageBox(parent, "This plugin brought to you by the letter U", "Bitmapped Menu plugin", 0);
+  char cfgPath[MAX_PATH];
+  strcpy(cfgPath, szPath);
+  strcat(cfgPath, "menuicons.cfg");
+
+  ShellExecute(parent, NULL, "notepad.exe", cfgPath, NULL, SW_SHOW);
+
+  strcpy(cfgPath, szPath);
+  strcat(cfgPath, "menus.cfg");
+  ShellExecute(parent, NULL, "notepad.exe", cfgPath, NULL, SW_SHOW);
 }
 
 void Quit(){
@@ -432,8 +439,10 @@ void UnSetOwnerDrawn(HMENU menu){
       ::GetMenuItemInfo(menu, i, true, &mmi);
 
       mdt = (MenuDataT *)mmi.dwItemData;
-      delete [] (char *)mdt->data;
-      delete mdt;
+      if (mdt->version == BMP_MENU_VERSION){
+        delete [] (char *)mdt->data;
+        delete mdt;
+      }
     }
   }
 }
@@ -459,22 +468,37 @@ void SetOwnerDrawn(HMENU menu, HINSTANCE plugin){
     state = ::GetMenuState(menu, i, MF_BYPOSITION);
     if (state & MF_POPUP){
       SetOwnerDrawn(GetSubMenu(menu, i), plugin);
-    }
-    else if (state == 0){
+      if (plugin){
+        mmi.fMask = MIIM_TYPE;
+        mmi.cch = 0;
+        mmi.dwTypeData = NULL;
+        GetMenuItemInfo(menu, i, true, &mmi);
+        mmi.cch ++;
+        mmi.dwTypeData = new char[mmi.cch];
+        GetMenuItemInfo(menu, i, true, &mmi);
+
+        MenuDataT *mData = new MenuDataT;
+        mData->version = BMP_MENU_VERSION;
+        mData->data = mmi.dwTypeData;
+        mData->DrawBitmap = DrawProc;
+        
+        ModifyMenu(menu, i, MF_BYPOSITION | MF_OWNERDRAW | MF_POPUP, (UINT)GetSubMenu(menu, i), (LPCTSTR)(void *)mData);
+      }
+    }else if (state == 0){
       mmi.fMask = MIIM_TYPE;
       mmi.cch = 0;
       mmi.dwTypeData = NULL;
-      ::GetMenuItemInfo(menu, i, true, &mmi);
+      GetMenuItemInfo(menu, i, true, &mmi);
       mmi.cch ++;
       mmi.dwTypeData = new char[mmi.cch];
-      ::GetMenuItemInfo(menu, i, true, &mmi);
+      GetMenuItemInfo(menu, i, true, &mmi);
 
       MenuDataT *mData = new MenuDataT;
       mData->version = BMP_MENU_VERSION;
       mData->data = mmi.dwTypeData;
       mData->DrawBitmap = DrawProc;
 
-      ModifyMenu(menu, i, MF_BYPOSITION | MF_OWNERDRAW, ::GetMenuItemID(menu, i), (LPCTSTR)(void *)mData);
+      ModifyMenu(menu, i, MF_BYPOSITION | MF_OWNERDRAW, GetMenuItemID(menu, i), (LPCTSTR)(void *)mData);
     }
   }
 }
