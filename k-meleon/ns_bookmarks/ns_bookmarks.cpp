@@ -244,6 +244,9 @@ void SaveBookmarks(FILE *bmFile, HMENU menu){
 }
 
 void Save(){
+   if (!m_menuBookmarks)
+      return;
+
    FILE *bmFile = fopen(szPath, "w");
    if (bmFile){
       fprintf(bmFile, "<!DOCTYPE NETSCAPE-Bookmark-file-1>\n");
