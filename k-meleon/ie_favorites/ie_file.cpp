@@ -24,6 +24,8 @@
 #  include "../missing.h"
 #endif
 
+#include <shlobj.h>
+
 
 #define KMELEON_PLUGIN_EXPORTS
 #include "../kmeleon_plugin.h"
