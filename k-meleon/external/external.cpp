@@ -20,6 +20,7 @@
 #include <windows.h>
 
 #define PLUGIN_NAME "External Program Control Plugin"
+#define NO_OPTIONS "This plugin has no user configurable options."
 
 #define KMELEON_PLUGIN_EXPORTS
 #include "..\kmeleon_plugin.h"
@@ -29,6 +30,7 @@
 
 int Init();
 void Create(HWND parent);
+void Config(HWND parent);
 void Close(HWND parent);
 void Quit();
 
@@ -48,6 +50,9 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
       }
       else if (stricmp(subject, "Create") == 0) {
          Create((HWND)data1);
+      }
+      else if (stricmp(subject, "Config") == 0) {
+         Config((HWND)data1);
       }
       else return 0;
 
@@ -82,6 +87,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 void Create(HWND hWndParent) {
 	KMeleonWndProc = (WNDPROC) GetWindowLong(hWndParent, GWL_WNDPROC);
 	SetWindowLong(hWndParent, GWL_WNDPROC, (LONG)WndProc);
+}
+
+void Config(HWND parent){
+   MessageBox(parent, NO_OPTIONS, PLUGIN_NAME, 0);
 }
 
 
