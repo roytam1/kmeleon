@@ -69,7 +69,7 @@ void CPreferences::Load() {
       if (NS_FAILED(rv) || !inited) {
          // Set up prefs for first run
          rv = prefs->SetBoolPref(_T("kmeleon.prefs_inited"), PR_TRUE);
-         rv = prefs->SavePrefFile();
+         rv = prefs->SavePrefFile(nsnull);
       }
 
 
@@ -177,9 +177,7 @@ void CPreferences::Load() {
       // 0 = Always, 1 = site, 2 = never
       _GetInt(_T("network.image.imageBehavior"), iImagesEnabled, 0);
 
-      _GetString(_T("kmeleon.useragent.kmeleon"), userAgent, "KMeleon/0.4");
-
-      _GetString(_T("general.useragent.override"), userAgent, "KMeleon/0.4");
+      _GetString(_T("general.useragent.override"), userAgent, "");
 
       CString animationMode;
       _GetString(_T("image.animation_mode"), animationMode, _T("normal"));
@@ -255,14 +253,14 @@ void CPreferences::Save() {
 
       rv = prefs->SetIntPref(_T("network.cookie.cookieBehavior"), iCookiesEnabled);
       rv = prefs->SetIntPref(_T("network.image.imageBehavior"), iImagesEnabled);
-      prefs->SetCharPref(_T("general.useragent.override"), userAgent);
+      if (!userAgent.IsEmpty()) prefs->SetCharPref(_T("general.useragent.override"), userAgent);
 
       if (bAnimationsEnabled)    // "once" "none" "normal"
          rv = prefs->SetCharPref(_T("image.animation_mode"), _T("normal"));
       else
          rv = prefs->SetCharPref(_T("image.animation_mode"), _T("none"));
 
-      rv = prefs->SavePrefFile();
+      rv = prefs->SavePrefFile(nsnull);
    }
    else
       NS_ASSERTION(PR_FALSE, "Could not get preferences service");
