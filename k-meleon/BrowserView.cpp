@@ -91,6 +91,7 @@ BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
 	ON_COMMAND(ID_VIEW_SOURCE, OnViewSource)
 	ON_COMMAND(ID_VIEW_INFO, OnViewInfo)
    ON_UPDATE_COMMAND_UI(ID_FILE_PRINT, OnUpdateFilePrint)
+   ON_UPDATE_COMMAND_UI(ID_VIEW_STATUS_BAR, OnUpdateViewStatusBar)
 	ON_COMMAND(ID_NAV_BACK, OnNavBack)
 	ON_COMMAND(ID_NAV_FORWARD, OnNavForward)
 	ON_COMMAND(ID_NAV_SEARCH, OnNavSearch)
@@ -213,14 +214,14 @@ HRESULT CBrowserView::CreateBrowser()
 	mpBrowserImpl->Init(mpBrowserFrameGlue, mWebBrowser);
 	mpBrowserImpl->AddRef();
 
-  mWebBrowser->SetContainerWindow(NS_STATIC_CAST(nsIWebBrowserChrome*, mpBrowserImpl));
+   mWebBrowser->SetContainerWindow(NS_STATIC_CAST(nsIWebBrowserChrome*, mpBrowserImpl));
 
 	rv = NS_OK;
-    nsCOMPtr<nsIDocShellTreeItem> dsti = do_QueryInterface(mWebBrowser, &rv);
+   nsCOMPtr<nsIDocShellTreeItem> dsti = do_QueryInterface(mWebBrowser, &rv);
 	if(NS_FAILED(rv))
 		return rv;
-  //dsti->SetItemType(nsIDocShellTreeItem::typeChromeWrapper);
-  dsti->SetItemType(nsIDocShellTreeItem::typeContentWrapper);
+   //dsti->SetItemType(nsIDocShellTreeItem::typeChromeWrapper);
+   dsti->SetItemType(nsIDocShellTreeItem::typeContentWrapper);
 
     // Create the real webbrowser window
   
@@ -252,14 +253,14 @@ HRESULT CBrowserView::CreateBrowser()
   mWebNav->LoadURI(NS_ConvertASCIItoUCS2("chrome://embed/content/simple-shell.xul"), nsIWebNavigation::LOAD_FLAGS_NONE);
   */
 
-	// Set up the web shell
-//	mWebBrowser->SetParentURIContentListener(mWebBrowserContainer);   
-   
-   
-   
+	// Set up the content listeners
+   nsCOMPtr<nsDSURIContentListener> uriListener;
+   uriListener = do_QueryInterface(NS_STATIC_CAST(nsDSURIContentListener*, mpBrowserImpl));
+   NS_ENSURE_TRUE(uriListener, NS_ERROR_FAILURE);
+	mWebBrowser->SetParentURIContentListener(uriListener);
+  
    // Register the BrowserImpl object to receive progress messages
-  // These callbacks will be used to update the status/progress bars
-
+   // These callbacks will be used to update the status/progress bars
 
    nsWeakPtr weakling( dont_AddRef(NS_GetWeakReference(NS_STATIC_CAST(nsIWebProgressListener*, mpBrowserImpl))));
    (void)mWebBrowser->AddWebBrowserListener(weakling, NS_GET_IID(nsIWebProgressListener));
@@ -1008,17 +1009,17 @@ void CBrowserView::OnSaveImageAs()
 
 void CBrowserView::OnKmeleonHome()
 {
-  OpenURL(KMELEON_HOMEPAGE_URL);
+   OpenURL(KMELEON_HOMEPAGE_URL);
 }
 
 void CBrowserView::OnKmeleonForum()
 {
-  OpenURL(KMELEON_FORUM_URL);
+   OpenURL(KMELEON_FORUM_URL);
 }
 
 void CBrowserView::OnShowFindDlg() {
 
-	// When the the user chooses the Find menu item
+   // When the the user chooses the Find menu item
 	// and if a Find dlg. is already being shown
 	// just set focus to the existing dlg instead of
 	// creating a new one
@@ -1158,6 +1159,20 @@ void CBrowserView::OnFilePrint()
       m_bCurrentlyPrinting = FALSE;
     }
   }  
+}
+
+void CBrowserView::OnUpdateViewStatusBar(CCmdUI* pCmdUI) {
+   HWND hWndStatus = FindWindowEx(this->GetParent()->GetSafeHwnd(), NULL, STATUSCLASSNAME, NULL);
+   BOOL bVis = ::IsWindowVisible(hWndStatus);
+
+   pCmdUI->SetCheck(bVis);
+   
+/*
+   if (pCmdUI->m_pMenu) {
+      pCmdUI->m_pMenu->CheckMenuItem(pCmdUI->m_nIndex, MF_BYPOSITION | MF_CHECKED);
+      DrawMenuBar();
+   }
+*/
 }
 
 /////////////////////////////////////////////////////////////////////////////

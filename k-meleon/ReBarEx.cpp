@@ -37,17 +37,19 @@ CReBarEx::~CReBarEx() {
       delete tbIndex;
    }
    CReBar::~CReBar();
-}  
+}
+
 /*
 void CReBarEx::MaximizeBand( UINT uBand ) {
    return;
 }
 */
+
 void CReBarEx::RegisterBand(HWND hWnd, char *name) {
 
    if (FindByName(name) != -1)
       return;
-   
+
    tbBand **newIndex = new tbBand *[tbCount+1];
    if (tbCount) {
       memcpy(newIndex, tbIndex, ((tbCount)*sizeof(tbBand *)));

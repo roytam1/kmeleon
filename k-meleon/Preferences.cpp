@@ -171,10 +171,6 @@ void CPreferences::Load() {
       _GetInt(_T("network.image.imageBehavior"), iImagesEnabled, 0);
 
       _GetString(_T("kmeleon.useragent.kmeleon"), userAgent, "KMeleon/0.4");
-      _GetString(_T("kmeleon.useragent.kmeleon"), userAgent, "KMeleon/0.4");
-      _GetString(_T("kmeleon.useragent.kmeleon"), userAgent, "KMeleon/0.4");
-      _GetString(_T("kmeleon.useragent.kmeleon"), userAgent, "KMeleon/0.4");
-      _GetString(_T("kmeleon.useragent.kmeleon"), userAgent, "KMeleon/0.4");
 
       _GetString(_T("general.useragent.override"), userAgent, "KMeleon/0.4");
 

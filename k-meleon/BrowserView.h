@@ -169,6 +169,7 @@ protected:
    afx_msg void OnShowFindDlg();
    afx_msg void OnFilePrint();
    afx_msg void OnUpdateFilePrint(CCmdUI* pCmdUI);
+   afx_msg void OnUpdateViewStatusBar(CCmdUI* pCmdUI);
    afx_msg void OnFindNext();
    afx_msg void OnFindPrev();
    afx_msg LRESULT OnFindMsg(WPARAM wParam, LPARAM lParam);
