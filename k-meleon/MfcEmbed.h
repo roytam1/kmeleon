@@ -71,7 +71,7 @@ public:
 							PRInt32 x = -1, PRInt32 y = -1, 
 							PRInt32 cx = -1, PRInt32 cy = -1,
 							PRBool bShowWindow = PR_TRUE);
-	void RemoveFrameFromList(CBrowserFrame* pFrm, BOOL bCloseAppOnLastFrame = TRUE);
+	void RemoveFrameFromList(CBrowserFrame* pFrm);
    void RegisterWindow(CDialog *window);
    void UnregisterWindow(CDialog *window);
 
@@ -127,6 +127,7 @@ private:
    BOOL        m_bAlreadyRunning;
    CString     m_sMainWindowClassName;
    BOOL        m_bFirstWindowCreated;
+   BOOL        m_bSwitchingProfiles;
    // used to process the rebar DrawToolbarMenu function, which must only
    // be called once, but must be called after the first window has been created
 
