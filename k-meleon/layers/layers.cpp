@@ -334,8 +334,6 @@ struct frame *del_layer(HWND hWnd) {
 }
 
 void CondenseMenuText(char *buf, char *title, int index) {
-   int len;
-   
    if ( (index >= 0) && (index <10) ) {
       buf[0] = '&';
       buf[1] = index + '0';
@@ -344,11 +342,9 @@ void CondenseMenuText(char *buf, char *title, int index) {
    else
       memcpy(buf, "   ", 3);
    
-   len = strlen(title);
-   if (len > (BUF_SIZE + 3 + BUF_SIZE))
-      CondenseString(title, (BUF_SIZE + 3 + BUF_SIZE));
-   
-   strcpy(buf+3, title);
+   char *p = fixString(title, 0);
+   strncpy(buf+3, p, BUF_SIZE + 3 + BUF_SIZE);
+   delete p;
 }
 
 
@@ -753,19 +749,21 @@ void BuildRebar(HWND hWndTB, HWND hWndParent)
          if (nMaxWidth) {
             kmeleonDocInfo *dInfo = kPlugin.kFuncs->GetDocInfo(pLayer->hWnd);
             if (dInfo && dInfo->title) {
+               char *p = fixString(dInfo->title, 0);
                strcat(buf, " ");
                len++;
                if (nMaxWidth<0 && 
-                   strlen(dInfo->title) < (UINT)((-nMaxWidth) < 3 ? 3 : (-nMaxWidth))) {
-                  strcat(buf, dInfo->title);
+                   strlen(p) < (UINT)((-nMaxWidth) < 3 ? 3 : (-nMaxWidth))) {
+                  strcat(buf, p);
                }
                else {
-                  strncat(buf, dInfo->title, nTextLength - len);
+                  strncat(buf, p, nTextLength - len);
                   if (nMaxWidth < 0) {
                      buf[nTextLength - 2] = 0;
                      strcat(buf, "...");
                   }
                }
+               delete p;
             }
          }
          
