@@ -158,7 +158,12 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
 	CString strTitle;
 	strTitle.LoadString(IDR_MAINFRAME);
 
-	// Now, create the browser frame
+   // save the current band sizes before creating new window
+   // this way the new window will "inherit" the current settings
+   if (m_pMostRecentBrowserFrame)
+      m_pMostRecentBrowserFrame->m_wndReBar.SaveBandSizes();
+   
+   // Now, create the browser frame
 	CBrowserFrame* pFrame = new CBrowserFrame(chromeMask);
 
    // Restore previous window size if -1
@@ -330,7 +335,8 @@ BOOL CMfcEmbedApp::CreateHiddenWindow()
 }
 
 nsresult CMfcEmbedApp::InitializePrefs(){
-  preferences.Load();
+   preferences.Load();
+   preferences.Save();
 
   if (!menus.Load(preferences.settingsDir + MENU_CONFIG_FILE)){
     // we used to create the file if it didn't exist
@@ -409,7 +415,7 @@ NS_IMETHODIMP CMfcEmbedApp::Observe(nsISupports *aSubject, const PRUnichar *aTop
 
 				pBrowserFrame->DestroyWindow();
 		    }
-	    }
+       }
     }
     else if (nsCRT::strcmp(aTopic, NS_LITERAL_STRING("profile-after-change").get()) == 0)
     {

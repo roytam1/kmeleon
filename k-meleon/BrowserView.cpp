@@ -253,12 +253,16 @@ HRESULT CBrowserView::CreateBrowser()
   mWebNav->LoadURI(NS_ConvertASCIItoUCS2("chrome://embed/content/simple-shell.xul"), nsIWebNavigation::LOAD_FLAGS_NONE);
   */
 
+  
+/*
 	// Set up the content listeners
    nsCOMPtr<nsIURIContentListener> uriListener;
    uriListener = do_QueryInterface(NS_STATIC_CAST(nsIURIContentListener*, mpBrowserImpl));
    NS_ENSURE_TRUE(uriListener, NS_ERROR_FAILURE);
 	mWebBrowser->SetParentURIContentListener(uriListener);
-  
+*/
+
+
    // Register the BrowserImpl object to receive progress messages
    // These callbacks will be used to update the status/progress bars
 
@@ -714,17 +718,17 @@ void CBrowserView::OnFileClose() {
 
 void CBrowserView::GetBrowserWindowTitle(nsCString& title)
 {
-	nsXPIDLString idlStrTitle;
+   nsXPIDLString idlStrTitle;
 	if(mBaseWindow)
 		mBaseWindow->GetTitle(getter_Copies(idlStrTitle));
 
 	title.AssignWithConversion(idlStrTitle);
 
 	// Sanitize the title of all illegal characters
-    title.CompressWhitespace();     // Remove whitespace from the ends
-    title.StripChars("\\*|:\"><?"); // Strip illegal characters
-    title.ReplaceChar('.', L'_');   // Dots become underscores
-    title.ReplaceChar('/', L'-');   // Forward slashes become hyphens
+   title.CompressWhitespace();     // Remove whitespace from the ends
+   title.StripChars("\\*|:\"><?"); // Strip illegal characters
+   title.ReplaceChar('.', L'_');   // Dots become underscores
+   title.ReplaceChar('/', L'-');   // Forward slashes become hyphens
 }
 
 void CBrowserView::OnFileSaveAs() {
@@ -757,22 +761,22 @@ NS_IMETHODIMP CBrowserView::URISaveAs(nsIURI* aURI, bool bDocument) {
 
    char sDefault[] = "default.htm";
    char *pBuf = NULL, *pFileName = sDefault;
-   
+
    if (strlen(path.get()) > 1) {
 	   // The path may have the "/" char in it - strip those
 	   pBuf = new char[strlen(path.get()) + 5];      // +5 for ".htm" to be safely appended, if necessary
       strcpy(pBuf, path.get());
 	   char* slash = strrchr(pBuf, '/');
       if (strlen(slash) > 1)
-        pFileName = slash+1;                                   // filename = file.ext
+         pFileName = slash+1;                                  // filename = file.ext
       else {
-         while ((slash > pBuf) && (strlen(slash) <= 1)) {     // strip off extra /es
+         while ((slash > pBuf) && (strlen(slash) <= 1)) {      // strip off extra /es
             *slash = 0;
             slash--;
    	      slash = strrchr(pBuf, '/');
          }
          if (slash && (strlen(slash) > 0)) {
-            pFileName=slash+1;                                // filename = directory.htm
+            pFileName=slash+1;                                 // filename = directory.htm
             strcat(pFileName, ".htm");
          }
       }
@@ -803,27 +807,25 @@ NS_IMETHODIMP CBrowserView::URISaveAs(nsIURI* aURI, bool bDocument) {
       strcat(lpszFilter, ")|*.");
       strcat(lpszFilter, extension);
       strcat(lpszFilter, "|");
-      strcat(lpszFilter,
-        "Web Page, HTML Only (*.htm;*.html)|*.htm;*.html|"
-        "Web Page, Complete (*.htm;*.html)|*.htm;*.html|" 
-        "Text File (*.txt)|*.txt|"
+      strcat(lpszFilter, "Web Page, HTML Only (*.htm;*.html)|*.htm;*.html|");
+      if (bDocument)
+        strcat(lpszFilter, "Web Page, Complete (*.htm;*.html)|*.htm;*.html|");
+      strcat(lpszFilter,"Text File (*.txt)|*.txt|"
         "All Files (*.*)|*.*||");
   
    CFileDialog cf(FALSE, extension, (const char *)pFileName, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
 					lpszFilter, this);
 
-
-   if(cf.DoModal() == IDOK)
-	{
-		CString strFullPath = cf.GetPathName(); // Will be like: c:\tmp\junk.htm
-		char *pStrFullPath = strFullPath.GetBuffer(0); // Get char * for later use
+   if(cf.DoModal() == IDOK) {
+		CString strFullPath = cf.GetPathName();            // Will be like: c:\tmp\junk.htm
+		char *pStrFullPath = strFullPath.GetBuffer(0);     // Get char * for later use
 		
 		CString strDataPath; 
 		char *pStrDataPath = NULL;
-		if(cf.m_ofn.nFilterIndex == 3) 
-		{
-			// cf.m_ofn.nFilterIndex == 3 indicates
-			// user want to save the complete document including
+      if (bDocument && (cf.m_ofn.nFilterIndex == 3)) {
+
+         // cf.m_ofn.nFilterIndex == 3 indicates that the
+			// user wants to save the complete document including
 			// all frames, images, scripts, stylesheets etc.
 
 			int idxPeriod = strFullPath.ReverseFind('.');
@@ -860,7 +862,7 @@ void CBrowserView::OpenURL(const char* pUrl){
       mWebNav->LoadURI(NS_ConvertASCIItoUCS2(pUrl).GetUnicode(), nsIWebNavigation::LOAD_FLAGS_NONE);
 }
 
-void CBrowserView::OpenURL(const PRUnichar* pUrl){
+void CBrowserView::OpenURL(const PRUnichar* pUrl) {
    if(mWebNav)
       mWebNav->LoadURI(pUrl, nsIWebNavigation::LOAD_FLAGS_NONE);
 }

@@ -156,7 +156,7 @@ void CReBarEx::SaveBandSizes() {
    }
 }
 
-void CReBarEx::RestoreBandSizes(){
+void CReBarEx::RestoreBandSizes() {
    int x;
    REBARBANDINFO rbbi;
    rbbi.cbSize = sizeof(rbbi);
@@ -176,7 +176,7 @@ void CReBarEx::RestoreBandSizes(){
 
       sprintf(tempPref + 17, _T("%s.break"), tbIndex[x]->name);
       barbreak = theApp.preferences.GetInt(tempPref, 0);
-      if (barbreak){
+      if (barbreak) {
          rbbi.fMask |= RBBIM_STYLE;
          GetReBarCtrl().GetBandInfo(FindByIndex(x), &rbbi);
          rbbi.fStyle |= RBBS_BREAK;

@@ -293,9 +293,9 @@ kmeleonPlugin * CPlugins::Load(char *file){
       return 0;
    }
 
-      kPlugin->hParentInstance = AfxGetInstanceHandle();
-      kPlugin->hDllInstance = plugin;
-      kPlugin->kf = &kmelFuncs;
+   kPlugin->hParentInstance = AfxGetInstanceHandle();
+   kPlugin->hDllInstance = plugin;
+   kPlugin->kf = &kmelFuncs;
 
    // If the plugin is enabled, get its functions and call init
    const char *noPath = FileNoPath(file);
@@ -352,7 +352,7 @@ void CPlugins::UnLoadAll(){
    POSITION pos = pluginList.GetStartPosition();
    kmeleonPlugin * kPlugin;
    CString s;
-   while (pos){
+   while (pos) {
       pluginList.GetNextAssoc(pos, s, kPlugin);
       if (kPlugin){
          delete kPlugin->dllname;
