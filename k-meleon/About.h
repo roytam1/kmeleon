@@ -16,9 +16,27 @@
 *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
-#define  WM_UPDATESESSIONHISTORY    WM_APP + 110
-#define  WM_REFRESHTOOLBARITEM      WM_APP + 111
+#include "version.h"
+#include "resource.h"
+#include "BrowserView.h"
 
-#define  ID_EDIT_FINDNEXT           WM_APP + 112
-#define  ID_EDIT_FINDPREV           WM_APP + 113
-#define  ID_OPEN_LINK_IN_BACKGROUND WM_APP + 114
+class CAboutDlg : public CDialog
+{
+public:
+	CAboutDlg();
+	enum { IDD = IDD_ABOUTBOX };
+
+   CBrowserView* m_pBrowserView;
+protected:
+   CString m_credits;
+   CString m_version;
+
+	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+
+protected:
+   //{{AFX_MSG(CMfcEmbedApp)
+   afx_msg void OnHome();
+   afx_msg void OnForum();
+   //}}AFX_MSG
+	DECLARE_MESSAGE_MAP()
+};

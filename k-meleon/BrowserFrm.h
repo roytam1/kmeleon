@@ -58,6 +58,7 @@ public:
       GetLBText(GetCurSel(), url);
 	}
 	inline SetCurrentURL(LPCTSTR pUrl) {
+      CComboBoxEx test;
 		SetWindowText(pUrl);
 	}
 	inline AddURLToList(CString& url, bool bAddToMRUList = true) {
@@ -98,22 +99,22 @@ protected:
 public:
    inline CBrowserImpl *GetBrowserImpl() { return m_wndBrowserView.mpBrowserImpl; }
 
-   CToolBarEx    m_wndToolBar;
-	CStatusBar  m_wndStatusBar;
-	CProgressCtrl m_wndProgressBar;
-	CUrlBar m_wndUrlBar;
-	CReBar m_wndReBar;
+   CToolBarEx     m_wndToolBar;
+	CStatusBar     m_wndStatusBar;
+	CProgressCtrl  m_wndProgressBar;
+	CUrlBar        m_wndUrlBar;
+	CReBar         m_wndReBar;
    CAnimateCtrl	m_wndAnimate;
 
-   CImageList m_toolbarHotImageList;
-   CImageList m_toolbarColdImageList;
-   CImageList m_toolbarDisabledImageList;
+   CImageList     m_toolbarHotImageList;
+   CImageList     m_toolbarColdImageList;
+   CImageList     m_toolbarDisabledImageList;
 
-   CBitmap m_bmpBack;
+   CBitmap        m_bmpBack;
 
 	// The view inside which the embedded browser will
 	// be displayed in
-	CBrowserView    m_wndBrowserView;
+	CBrowserView   m_wndBrowserView;
 
 	// This specifies what UI elements this frame will sport
 	// w.r.t. toolbar, statusbar, urlbar etc.

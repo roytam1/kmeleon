@@ -34,6 +34,7 @@
 #define IDD_PREFERENCES_MENUS           160
 #define IDC_PAN_UP                      161
 #define IDD_PREFERENCES_CACHE           161
+#define IDD_ERRORBOX                    162
 #define IDC_PAN_RIGHT                   163
 #define IDC_PAN_LEFT                    164
 #define IDC_PAN                         165
@@ -68,7 +69,6 @@
 #define IDC_CHECK_IMAGES                1026
 #define IDC_CHECK_JAVA                  1027
 #define IDC_CHECK_CSS                   1028
-#define IDC_EDIT_VERSION                1029
 #define IDC_CHECK_ANIMATIONS            1031
 #define IDC_EDIT1                       1033
 #define IDC_EDIT_DISK_CACHE             1034
@@ -90,6 +90,8 @@
 #define IDC_BUTTON3                     1055
 #define IDC_PROMPT_ADDRESS_TEXT         1056
 #define IDC_EDIT_MEMORY_CACHE           1056
+#define IDC_ERRORS                      1058
+#define IDC_VERSION                     1059
 #define IDC_CONTAINER                   1110
 #define IDC_EDIT_TOOLBAR_BACKGROUND     1111
 #define IDC_EDIT_SETTINGS_DIR           1111
@@ -103,6 +105,8 @@
 #define IDC_BUTTON_BROWSE               1117
 #define IDC_LIST_PLUGINS                1118
 #define IDC_BUTTON_CONFIG               1119
+#define IDC_KMELEON_HOME                1120
+#define IDC_KMELEON_FORUM               1121
 #define IDC_FIND_EDIT                   1152
 #define ID_NAV_BACK                     32773
 #define ID_NAV_FORWARD                  32774
@@ -122,8 +126,9 @@
 #define ID_PREFERENCES                  32790
 #define ID_SELECT_URL                   32791
 #define ID_MANAGE_PROFILES              32792
-#define ID_LINK_KMELEON_HOME            32800
-#define ID_LINK_KMELEON_FORUM           32801
+#define ID_COPY_IMAGE_LOCATION          32793
+#define ID_LINK_KMELEON_HOME            32794
+#define ID_LINK_KMELEON_FORUM           32795
 
 // Next default values for new objects
 // 
@@ -132,7 +137,7 @@
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        164
 #define _APS_NEXT_COMMAND_VALUE         32791
-#define _APS_NEXT_CONTROL_VALUE         1058
+#define _APS_NEXT_CONTROL_VALUE         1062
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

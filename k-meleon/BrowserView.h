@@ -148,7 +148,8 @@ protected:
 	afx_msg void OnSelectAll();
 	afx_msg void OnSelectNone();
 	afx_msg void OnCopyLinkLocation();
-	afx_msg void OnOpenLinkInNewWindow();
+	afx_msg void OnCopyImageLocation();
+   afx_msg void OnOpenLinkInNewWindow();
 	afx_msg void OnOpenLinkInBackground();
 	afx_msg void OnViewImageInNewWindow();
 	afx_msg void OnSaveLinkAs();
@@ -165,6 +166,7 @@ protected:
 	afx_msg void OnUpdateCut(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateCopy(CCmdUI* pCmdUI);
 	afx_msg void OnUpdatePaste(CCmdUI* pCmdUI);
+	afx_msg void OnAppAbout();
 	//}}AFX_MSG
 	
 	DECLARE_MESSAGE_MAP()

@@ -1,6 +1,7 @@
 //Microsoft Developer Studio generated resource script.
 //
 #include "resource.h"
+#include "KmeleonMessages.h"
 
 #define APSTUDIO_READONLY_SYMBOLS
 /////////////////////////////////////////////////////////////////////////////
@@ -212,16 +213,17 @@ END
 // Dialog
 //
 
-IDD_ABOUTBOX DIALOG DISCARDABLE  0, 0, 228, 134
+IDD_ABOUTBOX DIALOG DISCARDABLE  0, 0, 228, 201
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "About K-Meleon"
 FONT 8, "MS Sans Serif"
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,212,123,16,11
-    EDITTEXT        IDC_CREDITS,0,0,227,123,ES_MULTILINE | ES_AUTOVSCROLL | 
-                    ES_READONLY | WS_VSCROLL
-    EDITTEXT        IDC_EDIT_VERSION,0,123,211,12,ES_CENTER | ES_AUTOHSCROLL | 
-                    ES_READONLY
+    EDITTEXT        IDC_CREDITS,0,1,227,163,ES_CENTER | ES_MULTILINE | 
+                    ES_READONLY | WS_VSCROLL | NOT WS_TABSTOP
+    CTEXT           "Static",IDC_VERSION,0,188,227,12,WS_BORDER
+    PUSHBUTTON      "&Ok",IDOK,6,168,61,16
+    PUSHBUTTON      "K-Meleon &Home",IDC_KMELEON_HOME,83,168,61,16
+    PUSHBUTTON      "K-Meleon &Forums",IDC_KMELEON_FORUM,160,168,61,16
 END
 
 IDD_PROMPT_DIALOG DIALOG DISCARDABLE  0, 0, 249, 82
@@ -335,7 +337,7 @@ END
 IDD_PREFERENCES_PROXY DIALOGEX 0, 0, 233, 154
 STYLE WS_CHILD
 EXSTYLE WS_EX_CLIENTEDGE | WS_EX_CONTROLPARENT
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     LTEXT           "HTTP:",IDC_STATIC,13,35,22,8
     EDITTEXT        IDC_EDIT_HTTP_PROXY,41,32,142,14,ES_AUTOHSCROLL
@@ -357,7 +359,7 @@ END
 IDD_PREFERENCES_GENERAL DIALOGEX 0, 0, 233, 154
 STYLE WS_CHILD
 EXSTYLE WS_EX_CLIENTEDGE | WS_EX_CONTROLPARENT
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     LTEXT           "Home Page:",IDC_STATIC,4,7,45,8
     EDITTEXT        IDC_EDIT_HOMEPAGE,49,4,180,14,ES_AUTOHSCROLL
@@ -442,7 +444,7 @@ END
 IDD_PREFERENCES_CACHE DIALOGEX 0, 0, 233, 154
 STYLE WS_CHILD
 EXSTYLE WS_EX_CLIENTEDGE | WS_EX_CONTROLPARENT
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     LTEXT           "Memory Cache",IDC_STATIC,5,17,52,10
     LTEXT           "Disk Cache",IDC_STATIC,5,37,52,10
@@ -456,18 +458,17 @@ BEGIN
                     119,80,10
     EDITTEXT        IDC_EDIT_MEMORY_CACHE,66,15,41,13,ES_AUTOHSCROLL
     EDITTEXT        IDC_EDIT_DISK_CACHE,66,35,41,13,ES_AUTOHSCROLL
-    /* Disabled
-    LTEXT           "Cache Directory",IDC_STATIC,5,57,55,10
-    EDITTEXT        IDC_EDIT_CACHE_DIRECTORY,65,54,141,13,ES_AUTOHSCROLL
-    PUSHBUTTON      "...",IDC_BUTTON_BROWSE,207,54,14,13
-
-    PUSHBUTTON      "Clear Memory Cache",IDC_BUTTON2,144,16,77,13,
-                    WS_DISABLED
-    PUSHBUTTON      "Clear Disk Cache",IDC_BUTTON3,144,35,77,13,WS_DISABLED
-  
-    */
     LTEXT           "KBytes",IDC_STATIC,110,17,32,9
     LTEXT           "KBytes",IDC_STATIC,110,37,32,10
+END
+
+IDD_ERRORBOX DIALOG DISCARDABLE  200, 200, 228, 149
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,90,129,47,15
+    EDITTEXT        IDC_ERRORS,0,0,227,123,ES_MULTILINE | ES_AUTOVSCROLL | 
+                    ES_READONLY | WS_VSCROLL
 END
 
 
@@ -599,6 +600,12 @@ BEGIN
         TOPMARGIN, 4
         BOTTOMMARGIN, 150
     END
+
+    IDD_ERRORBOX, DIALOG
+    BEGIN
+        BOTTOMMARGIN, 147
+        HORZGUIDE, 123
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -674,6 +681,24 @@ BEGIN
     ID_EDIT_SELECT_ALL      "Select the entire document\nSelect All"
     ID_EDIT_UNDO            "Undo the last action\nUndo"
     ID_EDIT_REDO            "Redo the previously undone action\nRedo"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_EDIT_FINDNEXT        "Find the next occurance of the specified text"
+    ID_EDIT_FINDPREV        "Find the previous occurance of the specified text"
+    ID_NEW_BROWSER          "Open a new browser window"
+    ID_MANAGE_PROFILES      "Manage the user profiles on this computer"
+    ID_PREFERENCES          "Change preferences and settings"
+    ID_VIEW_SOURCE          "View the souce of the current page"
+    ID_NAV_BACK             "Return to the previous document in history list"
+    ID_NAV_FORWARD          "Move forward to next document in history list"
+    ID_NAV_STOP             "Stop loading the current page"
+    ID_NAV_RELOAD           "Reload the current page"
+    ID_NAV_HOME             "Go to the Home page"
+    ID_NAV_SEARCH           "Search the Internet"
+    ID_LINK_KMELEON_HOME    "Go to the K-Meleon home page"
+    ID_LINK_KMELEON_FORUM   "Go to the K-Meleon forums"
 END
 
 STRINGTABLE DISCARDABLE 

@@ -89,14 +89,13 @@ public:
 // Implementation
 
 public:
-	//{{AFX_MSG(CMfcEmbedApp)
-	afx_msg void OnAppAbout();
-	afx_msg void OnNewBrowser();
-  afx_msg void OnManageProfiles();
-  afx_msg void OnPreferences();
-  // NOTE - the ClassWizard will add and remove member functions here.
-	// DO NOT EDIT what you see in these blocks of generated code !
-  //}}AFX_MSG
+   //{{AFX_MSG(CMfcEmbedApp)
+   afx_msg void OnNewBrowser();
+   afx_msg void OnManageProfiles();
+   afx_msg void OnPreferences();
+   // NOTE - the ClassWizard will add and remove member functions here.
+   // DO NOT EDIT what you see in these blocks of generated code !
+   //}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 
 private:

@@ -24,7 +24,7 @@
 
 // File Overview....
 //
-// The typical MFC app, frame creation code + AboutDlg handling
+// The typical MFC app, frame creation code
 //
 // NS_InitEmbedding() is called in InitInstance()
 // 
@@ -49,7 +49,6 @@
 #include "nsIWindowWatcher.h"
 
 
-
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
@@ -63,8 +62,7 @@ BEGIN_MESSAGE_MAP(CMfcEmbedApp, CWinApp)
 	//{{AFX_MSG_MAP(CMfcEmbedApp)
 	ON_COMMAND(ID_NEW_BROWSER, OnNewBrowser)
 	ON_COMMAND(ID_MANAGE_PROFILES, OnManageProfiles)
-	ON_COMMAND(ID_APP_ABOUT, OnAppAbout)
-  ON_COMMAND(ID_PREFERENCES, OnPreferences)
+   ON_COMMAND(ID_PREFERENCES, OnPreferences)
 	// NOTE - the ClassWizard will add and remove mapping macros here.
 	//    DO NOT EDIT what you see in these blocks of generated code!
 	//}}AFX_MSG_MAP
@@ -481,66 +479,4 @@ NS_IMETHODIMP CMfcEmbedApp::CreateChromeWindow(nsIWebBrowserChrome *parent,
       NS_ADDREF(*_retval);
    }
    return NS_OK;
-}
-
-
-#include "version.h"
-
-// AboutDlg Stuff
-
-class CAboutDlg : public CDialog
-{
-public:
-	CAboutDlg();
-
-	enum { IDD = IDD_ABOUTBOX };
-
-protected:
-  CString m_credits;
-  CString m_version;
-
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
-
-protected:
-	DECLARE_MESSAGE_MAP()
-};
-
-#define _QUOTE(blah) #blah
-
-CAboutDlg::CAboutDlg() : CDialog(CAboutDlg::IDD)
-{
-  m_credits = _QUOTE(
-    K-Meleon - Copyright 2000-2001\r\n
-    \r\n
-    Uses the Gecko rendering engine by the Mozilla Group\r\n
-    Based on MfcEmbed\r\n
-    Corner animation stolen from Galeon\r\n
-    \r\n
-    Contributors:\r\n
-    Christophe Thibault <christophe@nullsoft.com>\r\n
-    Brian Harris <binaryc@teamreaction.com>\r\n
-    Sebastian Spaeth <Sebastian@SSpaeth.de>\r\n
-    Chak Nanga <chak@netscape.com>\r\n
-    Jeff Doozan <jeff@tcbnetworks.com>\r\n
-    \r\n
-    Documentation:\r\n
-    Lance Hall (aka pyzr) <pyzr@pyzr.com>\r\n
-  );
-  m_version.Format("Version " VERSION " Build %d Compiled " BUILD_TIME, BUILD_NUMBER);
-}
-
-void CAboutDlg::DoDataExchange(CDataExchange* pDX){
-	CDialog::DoDataExchange(pDX);
-	DDX_Text(pDX, IDC_CREDITS, m_credits);
-  DDX_Text(pDX, IDC_EDIT_VERSION, m_version);
-}
-
-BEGIN_MESSAGE_MAP(CAboutDlg, CDialog)
-END_MESSAGE_MAP()
-
-// Show the AboutDlg
-void CMfcEmbedApp::OnAppAbout()
-{
-	CAboutDlg aboutDlg;
-	aboutDlg.DoModal();
 }

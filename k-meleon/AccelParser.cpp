@@ -37,7 +37,7 @@ extern CMfcEmbedApp theApp;
 BOOL CALLBACK AccelLogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam){
    if (uMsg == WM_INITDIALOG) {
       CString *log = (CString *)lParam;
-      SetDlgItemText(hwndDlg, IDC_CREDITS, *log);
+      SetDlgItemText(hwndDlg, IDC_ERRORS, *log);
       SetWindowText(hwndDlg, _T("Accel Log"));
       return true;
    }
@@ -59,7 +59,7 @@ public:
    };
    ~CAccelLog() {
       if (error)
-         DialogBoxParam(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDD_ABOUTBOX), NULL, AccelLogProc, (LPARAM)&log);
+         DialogBoxParam(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDD_ERRORBOX), NULL, AccelLogProc, (LPARAM)&log);
    };
 
    void WriteString(const char *string){

@@ -58,7 +58,7 @@ extern CMfcEmbedApp theApp;
 #include "ToolBarEx.h"
 #include "Utils.h"
 #include "KmeleonMessages.h"
-
+#include "About.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -100,6 +100,7 @@ BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
 	ON_COMMAND(ID_EDIT_SELECT_ALL, OnSelectAll)
 	ON_COMMAND(ID_EDIT_SELECT_NONE, OnSelectNone)
 	ON_COMMAND(ID_COPY_LINK_LOCATION, OnCopyLinkLocation)
+	ON_COMMAND(ID_COPY_IMAGE_LOCATION, OnCopyImageLocation)
 	ON_COMMAND(ID_OPEN_LINK_IN_NEW_WINDOW, OnOpenLinkInNewWindow)
 	ON_COMMAND(ID_OPEN_LINK_IN_BACKGROUND, OnOpenLinkInBackground)
 	ON_COMMAND(ID_VIEW_IMAGE, OnViewImageInNewWindow)
@@ -110,6 +111,7 @@ BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
    ON_COMMAND(ID_EDIT_FIND, OnShowFindDlg)
    ON_COMMAND(ID_EDIT_FINDNEXT, OnFindNext)
    ON_COMMAND(ID_EDIT_FINDPREV, OnFindPrev)
+	ON_COMMAND(ID_APP_ABOUT, OnAppAbout)
    ON_REGISTERED_MESSAGE(WM_FINDMSG, OnFindMsg) 
    ON_UPDATE_COMMAND_UI(ID_NAV_BACK, OnUpdateNavBack)
 	ON_UPDATE_COMMAND_UI(ID_NAV_FORWARD, OnUpdateNavForward)
@@ -737,13 +739,13 @@ void CBrowserView::OnFileSaveAs()
 }
 
 void CBrowserView::OpenURL(const char* pUrl){
-  if(mWebNav)
-    mWebNav->LoadURI(NS_ConvertASCIItoUCS2(pUrl).GetUnicode(), nsIWebNavigation::LOAD_FLAGS_NONE);
+   if(mWebNav)
+      mWebNav->LoadURI(NS_ConvertASCIItoUCS2(pUrl).GetUnicode(), nsIWebNavigation::LOAD_FLAGS_NONE);
 }
 
 void CBrowserView::OpenURL(const PRUnichar* pUrl){
-  if(mWebNav)
-		mWebNav->LoadURI(pUrl, nsIWebNavigation::LOAD_FLAGS_NONE);
+   if(mWebNav)
+      mWebNav->LoadURI(pUrl, nsIWebNavigation::LOAD_FLAGS_NONE);
 }
 
 CBrowserFrame* CBrowserView::CreateNewBrowserFrame(PRUint32 chromeMask, 
@@ -791,6 +793,31 @@ void CBrowserView::LoadHomePage()
     OnNavHome();
   else
     OpenURL("about:blank");
+}
+
+void CBrowserView::OnCopyImageLocation()
+{
+	if(! mCtxMenuImgSrc.Length())
+		return;
+
+	if (! OpenClipboard())
+		return;
+
+	HGLOBAL hClipData = ::GlobalAlloc(GMEM_MOVEABLE | GMEM_DDESHARE, mCtxMenuImgSrc.Length() + 1);
+	if(! hClipData)
+		return;
+
+	char *pszClipData = (char*)::GlobalLock(hClipData);
+	if(!pszClipData)
+		return;
+
+	mCtxMenuImgSrc.ToCString(pszClipData, mCtxMenuImgSrc.Length() + 1);
+
+	GlobalUnlock(hClipData);
+
+	EmptyClipboard();
+	SetClipboardData(CF_TEXT, hClipData);
+	CloseClipboard();
 }
 
 void CBrowserView::OnCopyLinkLocation()
@@ -1210,4 +1237,12 @@ void CBrowserView::DeleteTempFiles() {
    }
    if (m_tempFileCount > 0) delete m_tempFileList;
 
+}
+
+// Show the AboutDlg
+void CBrowserView::OnAppAbout()
+{
+	CAboutDlg aboutDlg;
+   aboutDlg.m_pBrowserView = this;
+	aboutDlg.DoModal();
 }

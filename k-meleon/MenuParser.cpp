@@ -52,7 +52,7 @@ CMenuParser::~CMenuParser(){
 BOOL CALLBACK MenuLogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam){
    if (uMsg == WM_INITDIALOG) {
       CString *log = (CString *)lParam;
-      SetDlgItemText(hwndDlg, IDC_CREDITS, *log);
+      SetDlgItemText(hwndDlg, IDC_ERRORS, *log);
       SetWindowText(hwndDlg, _T("Menu Log"));
       return true;
    }
@@ -74,7 +74,7 @@ public:
    };
    ~CMenuLog() {
       if (error)
-         DialogBoxParam(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDD_ABOUTBOX), NULL, MenuLogProc, (LPARAM)&log);
+         DialogBoxParam(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDD_ERRORBOX), NULL, MenuLogProc, (LPARAM)&log);
    };
 
    void WriteString(const char *string){
