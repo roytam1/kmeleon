@@ -19,7 +19,8 @@
 #include "string.h"
 #include "Utils.h"
 
-void TranslateTabs(char *buffer){
+void TranslateTabs(char *buffer)
+{
   char *p;
   for (p=buffer; *p; p++){
     if (*p == '\\'){
@@ -31,7 +32,8 @@ void TranslateTabs(char *buffer){
   }
 }
 
-void TrimWhiteSpace(char *string){
+void TrimWhiteSpace(char *string)
+{
   char *p;
   for ( p = string + strlen(string) - 1; p >= string; p-- ){
     if (*p == ' ' || *p == '\t'){
@@ -42,7 +44,8 @@ void TrimWhiteSpace(char *string){
   }
 }
 
-char *SkipWhiteSpace(char *string){
+char *SkipWhiteSpace(char *string)
+{
   char *p;
   for (p = string; *p; p++){
     if (*p != ' ' && *p != '\t'){
@@ -61,7 +64,8 @@ char *SkipWhiteSpace(char *string){
 //  note, this modifies the string passed to it, so make
 //  a copy if you need to reference the original
 
-int CondenseString(char *buf, int size) {
+int CondenseString(char *buf, int size)
+{
 	int firstlen, secondlen, len;
    char *read, *write;
 
@@ -100,3 +104,17 @@ int CondenseString(char *buf, int size) {
    return strlen(buf);
 
 }
+
+long FileSize(FILE *file)
+{
+   long oldPosition = ftell(file);
+
+   fseek(file, 0, SEEK_END);
+
+   long filesize = ftell(file);
+
+   fseek(file, oldPosition, SEEK_SET);
+
+   return filesize;
+}
+
