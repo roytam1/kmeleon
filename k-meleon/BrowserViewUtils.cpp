@@ -122,25 +122,34 @@ NS_IMETHODIMP CBrowserView::URISaveAs(nsIURI* aURI, bool bDocument)
 	aURI->GetPath(getter_Copies(path));
 
    char sDefault[] = "default.htm";
-   char *pBuf = NULL, *pFileName = sDefault;
+   char *pFileName = sDefault;
+   char *pBuf = NULL;
 
    if (strlen(path.get()) > 1) {
 	   // The path may have the "/" char in it - strip those
 	   pBuf = new char[strlen(path.get()) + 5];      // +5 for ".htm" to be safely appended, if necessary
       strcpy(pBuf, path.get());
 	   char* slash = strrchr(pBuf, '/');
-      if (strlen(slash) > 1)
-         pFileName = slash+1;                                  // filename = file.ext
+
+      if (slash) {
+         if (strlen(slash) > 1)
+            pFileName = slash+1;                                  // filename = file.ext
+         else {
+            while ((slash > pBuf) && (strlen(slash) <= 1)) {      // strip off extra /es
+               *slash = 0;
+               slash--;
+   	         slash = strrchr(pBuf, '/');
+            }
+            if (slash && (strlen(slash) > 0)) {
+               pFileName=slash+1;                                 // filename = directory.htm
+               strcat(pFileName, ".htm");
+            }
+         }
+      }
       else {
-         while ((slash > pBuf) && (strlen(slash) <= 1)) {      // strip off extra /es
-            *slash = 0;
-            slash--;
-   	      slash = strrchr(pBuf, '/');
-         }
-         if (slash && (strlen(slash) > 0)) {
-            pFileName=slash+1;                                 // filename = directory.htm
-            strcat(pFileName, ".htm");
-         }
+         // if there is no slash, then it's probably an invalid url (javascript: link, etc)
+         MessageBox((CString)("Cannot Save URL ") + path.get());
+         return NS_ERROR_FAILURE;
       }
    }
    else {
@@ -154,6 +163,11 @@ NS_IMETHODIMP CBrowserView::URISaveAs(nsIURI* aURI, bool bDocument)
          strcat(pBuf, ".htm");                     // filename = www_host_com.htm
       }
    }
+
+   // This is so saving cgi-scripts doesn't produce invalid filenames
+   char *questionMark = strchr(pFileName, '?');
+   if (questionMark)
+      *questionMark = 0;
 
    char *extension = strrchr(pFileName, '.');
    if (!extension) {
