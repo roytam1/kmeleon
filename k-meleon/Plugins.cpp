@@ -481,6 +481,23 @@ int GetGlobalVar(enum PREFTYPE type, char *preference, void *ret) {
    return retLen;
 }
 
+char *EncodeUTF8(const char *str) {
+  USES_CONVERSION;
+  nsAutoString aStr;
+  aStr.Append(T2W(str));
+  char *pszStr = (char*)NS_ConvertUCS2toUTF8(aStr).get();
+  if (pszStr)
+    pszStr = strdup(pszStr);
+  return pszStr;
+}
+
+char *DecodeUTF8(const char *str) {
+  USES_CONVERSION;
+  char *pszStr = W2T(NS_ConvertUTF8toUCS2(str).get());
+  if (pszStr)
+    pszStr = strdup(pszStr);
+  return pszStr;
+}
 
 long CPlugins::SendMessage(const char *to, const char *from, const char *subject, long data1, long data2)
 {
@@ -523,7 +540,9 @@ kmeleonFunctions kmelFuncs = {
    GetID,
    GetInfoAtPoint,
    CommandAtPoint,
-   GetGlobalVar
+   GetGlobalVar,
+   EncodeUTF8,
+   DecodeUTF8
 };
 
 BOOL CPlugins::TestLoad(const char *file, const char *description)
