@@ -71,6 +71,8 @@ HIMAGELIST m_imagelist; // the one and only imagelist...
 HMENU m_menuBookmarks;
 HMENU m_toolbarMenu;
 
+int m_bookmarksModified = false;
+
 UINT nConfigCommand;
 UINT nAddCommand;
 UINT nEditCommand;
@@ -317,6 +319,7 @@ void ParseBookmarks(char *bmFileBuffer, HMENU menu){
 void DoMenu(HMENU menu, char *param){
    if (stricmp(param, "Config") == 0){
       AppendMenu(menu, MF_STRING, nConfigCommand, "&Config");
+      m_bookmarksModified = true;
       return;
    }
    if (stricmp(param, "Add") == 0){
@@ -590,7 +593,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
       }
    }
    else if (message == WM_NCDESTROY){
-      Save();
+      // We can't do this in Quit() because the menu is destroyed by then
+      if (m_bookmarksModified) {
+         Save();
+      }
    }
    return CallWindowProc(KMeleonWndProc, hWnd, message, wParam, lParam);
 }
