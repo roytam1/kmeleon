@@ -207,7 +207,7 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct){
 		return -1;      // fail to create
 	}
 
-	//Add the ToolBar and UrlBar windows to the rebar
+	//Add the UrlBar and Throbber windows to the rebar
 	m_wndReBar.AddBar(&m_wndUrlBar, "URL:");
    m_wndReBar.AddBar(&m_wndAnimate, NULL, NULL, RBBS_FIXEDSIZE | RBBS_FIXEDBMP);
 
@@ -475,14 +475,15 @@ void CBrowserFrame::SetBackImage ()
 {
 	CReBarCtrl& rc = m_wndReBar.GetReBarCtrl ();
 
-	for (UINT i = 0; i < rc.GetBandCount(); i++)	{
+   REBARBANDINFO info;
+   memset (&info, 0, sizeof (REBARBANDINFO));
+   info.cbSize = sizeof (info);
+   info.hbmBack = theApp.preferences.bToolbarBackground ? (HBITMAP)m_bmpBack : NULL;
 
-		REBARBANDINFO info;
-		memset (&info, 0, sizeof (REBARBANDINFO));
-		info.cbSize = sizeof (info);
-		info.fMask = RBBIM_BACKGROUND;
-		info.hbmBack = theApp.preferences.bToolbarBackground ? (HBITMAP)m_bmpBack : NULL;
-		rc.SetBandInfo (i, &info);
+   int count = rc.GetBandCount();
+   for (int i = 0; i < count; i++)	{
+      info.fMask = RBBIM_BACKGROUND;
+		BOOL blah = rc.SetBandInfo (i, &info);
 
 		CRect rectBand;
 		rc.GetRect (i, rectBand);
