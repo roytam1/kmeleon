@@ -26,6 +26,8 @@ void DoRebar(HWND rebarWnd);
 int  DoAccel(char *param);
 void Save(const char *file);
 
+extern "C" KMELEON_PLUGIN int DrawBitmap(DRAWITEMSTRUCT *dis);
+
 // Window Procs
 BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);

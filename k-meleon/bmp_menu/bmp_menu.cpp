@@ -67,32 +67,6 @@ kmeleonPlugin kPlugin = {
    DoMessage
 };
 
-long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2)
-{
-   if (to[0] == '*' || stricmp(to, kPlugin.dllname) == 0) {
-      if (stricmp(subject, "Init") == 0) {
-         Init();
-      }
-      else if (stricmp(subject, "Create") == 0) {
-         Create((HWND)data1);
-      }
-      else if (stricmp(subject, "Config") == 0) {
-         Config((HWND)data1);
-      }
-      else if (stricmp(subject, "Quit") == 0) {
-         Quit();
-      }
-      else if (stricmp(subject, "DoMenu") == 0) {
-         DoMenu((HMENU)data1, (char *)data2);
-      }
-      else return 0;
-
-      return 1;
-   }
-   return 0;
-}
-
-
 /*
 # sample config
 
@@ -137,6 +111,47 @@ BOOL  gbMeasureAccel = TRUE; // win98 workaround - win98 automatically adjusts m
 
 
 
+
+
+long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2)
+{
+   if (to[0] == '*' || stricmp(to, kPlugin.dllname) == 0) {
+      if (stricmp(subject, "Init") == 0) {
+         Init();
+      }
+      else if (stricmp(subject, "Create") == 0) {
+         Create((HWND)data1);
+      }
+      else if (stricmp(subject, "Config") == 0) {
+         Config((HWND)data1);
+      }
+      else if (stricmp(subject, "Quit") == 0) {
+         Quit();
+      }
+      else if (stricmp(subject, "DoMenu") == 0) {
+         DoMenu((HMENU)data1, (char *)data2);
+      }
+      else if (stricmp(subject, "UnSetOwnerDrawn") == 0) {
+         UnSetOwnerDrawn((HMENU)data1);
+      }
+      else if (stricmp(subject, "SetOwnerDrawn") == 0) {
+
+         // if this menu has already been "ownerdrawn", then it's
+         // probably being called again as a result of an update,
+         // so we remove it from the mapping because the SetOwnerDrawn
+         // function exits if it's listed in the mapping
+         menuMap::iterator menuIter = menus.find((HMENU)data1);
+         if (menuIter != menus.end())
+            menus.erase(menuIter);
+
+         SetOwnerDrawn((HMENU)data1, (DRAWBITMAPPROC)data2, FALSE);
+      }
+      else return 0;
+
+      return 1;
+   }
+   return 0;
+}
 
 
 void ParseConfig(char *buffer) {
@@ -604,9 +619,7 @@ void UnSetOwnerDrawn(HMENU menu){
          mmi.fMask = MIIM_DATA | MIIM_ID;
          GetMenuItemInfo(menu, i, true, &mmi);
 
-         // subclassing the separator is the key, otherwise widows will do all sorts
-         // of weird things with the numbers we tell it to use in measuremenuitem
-         if (!*((char *)mmi.dwItemData))
+         if (!mmi.dwItemData ||  !*( (char *)mmi.dwItemData) )
             ModifyMenu(menu, i, MF_BYPOSITION | MF_SEPARATOR, mmi.wID, NULL);
          else
             ModifyMenu(menu, i, MF_BYPOSITION | MF_STRING, mmi.wID, mmi.dwTypeData);
@@ -647,12 +660,19 @@ void SetOwnerDrawn(HMENU menu, DRAWBITMAPPROC DrawProc, BOOL topLevel){
    int count = GetMenuItemCount(menu);
    for (i=0; i<count; i++){
       state = GetMenuState(menu, i, MF_BYPOSITION);
+
+      // no need to do anything if it's already ownerdrawn
+      if (state & MF_OWNERDRAW) {}
+
       if (state & MF_POPUP) {
          HMENU subMenu = GetSubMenu(menu, i);
          SetOwnerDrawn(subMenu, DrawProc, FALSE);
          if (!topLevel)
             StringToOwnerDrawn(menu, i, MF_POPUP, (UINT)subMenu);
       }
+      
+      // subclassing the separator is the key, otherwise widows will do all sorts
+      // of weird things with the numbers we tell it to use in measuremenuitem
       else if (state & MF_SEPARATOR)
          ModifyMenu(menu, i, MF_BYPOSITION  | MF_OWNERDRAW, i, "");
       else if (state == 0)
