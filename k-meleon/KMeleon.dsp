@@ -257,11 +257,11 @@ SOURCE=.\kmeleon_plugin.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\KmeleonConst.h
+SOURCE=.\Log.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\MenuEx.h
+SOURCE=.\KmeleonConst.h
 # End Source File
 # Begin Source File
 

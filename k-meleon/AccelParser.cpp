@@ -29,89 +29,10 @@ extern CMfcEmbedApp theApp;
 #include "Plugins.h"
 #include "kmeleon_plugin.h"
 
+#include "Log.h"
+
 #define BEGIN_VK_TEST if (0){}
 #define VK_TEST(KEY)  else if (stricmp(p, #KEY) == 0){ key = VK_##KEY; }
-
-
-
-BOOL CALLBACK AccelLogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam){
-   if (uMsg == WM_INITDIALOG) {
-      CString *log = (CString *)lParam;
-      SetDlgItemText(hwndDlg, IDC_ERRORS, *log);
-      SetWindowText(hwndDlg, _T("Accel Log"));
-      return true;
-   }
-   else if (uMsg == WM_COMMAND) {
-      if (LOWORD(wParam) == IDOK)
-         EndDialog(hwndDlg, 0);
-    return true;
-  }
-  return false;
-}
-
-class CAccelLog {
-protected:
-   CString log;
-   int error;
-public:
-   CAccelLog() {
-      error = 0;
-   };
-   ~CAccelLog() {
-      if (error)
-         DialogBoxParam(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDD_ERRORBOX), NULL, AccelLogProc, (LPARAM)&log);
-   };
-
-   void WriteString(const char *string){
-      log += string;
-   }
-
-   void Error(){
-      error = 1;
-   }
-};
-
-#if 0
-#define LOG_1(msg, var1)       \
-   if (log) {                  \
-      char err[255];            \
-      sprintf(err, msg, var1);  \
-      log->WriteString(err);    \
-      log->WriteString("\r\n"); \
-   }
-
-#define LOG_2(msg, var1, var2)      \
-   if (log) {                       \
-      char err[255];                 \
-      sprintf(err, msg, var1, var2); \
-      log->WriteString(err);         \
-      log->WriteString("\r\n");      \
-   }
-#else
-#define LOG_1(a, b)
-#define LOG_2(a, b, c)
-#endif
-
-#define LOG_ERROR_1(msg, var1)   \
-   if (log) {                     \
-      log->Error();               \
-      char err[255];              \
-      sprintf(err, msg, var1);    \
-      log->WriteString("*** ");    \
-      log->WriteString(err);      \
-      log->WriteString("\r\n");   \
-   }
-
-#define LOG_ERROR_2(msg, var1, var2)   \
-   if (log) {                     \
-      log->Error();               \
-      char err[255];              \
-      sprintf(err, msg, var1, var2);    \
-      log->WriteString("*** ");    \
-      log->WriteString(err);      \
-      log->WriteString("\r\n");   \
-   }
-
 
 CAccelParser::CAccelParser(){
    accelTable = NULL;
@@ -150,17 +71,7 @@ int CAccelParser::Load(CString &filename){
    }
    END_CATCH
 
-   CAccelLog *log;
-   TRY {
-      log = new CAccelLog(); //("accel.log", CFile::modeWrite | CFile::modeCreate);
-      log->WriteString("Accel File: ");
-      log->WriteString(filename);
-      log->WriteString("\r\n\r\n");
-   }
-   CATCH (CFileException, e) {
-      log = NULL;
-   }
-   END_CATCH
+   SETUP_LOG("Accel");
 
    long length = accelFile->GetLength();
    char *buffer = new char[length + 1];
@@ -173,8 +84,6 @@ int CAccelParser::Load(CString &filename){
    accelFile = NULL;
 
    CMap<CString, LPCSTR, int, int &> defineMap;
-
-
 #include "defineMap.cpp"
 
    char *e, *s;
@@ -364,9 +273,7 @@ int CAccelParser::Load(CString &filename){
 
   delete [] buffer;
 
-  if (log){
-    delete log;
-  }
+  END_LOG();
 
   return true;
 }
