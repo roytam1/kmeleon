@@ -116,16 +116,18 @@ CBrowserFrame::~CBrowserFrame()
 
 void CBrowserFrame::OnClose()
 {
-  // if we don't do this, then our menu will be destroyed when the first window is.
-  // that's bad because our menu is shared between all windows
-  SetMenu(NULL);
+   // if we don't do this, then our menu will be destroyed when the first window is.
+   // that's bad because our menu is shared between all windows
+   SetMenu(NULL);
 
-  SaveBandSizes();
+   SaveBandSizes();
 
-	CMfcEmbedApp *pApp = (CMfcEmbedApp *)AfxGetApp();
-	pApp->RemoveFrameFromList(this);
+   CMfcEmbedApp *pApp = (CMfcEmbedApp *)AfxGetApp();
+   pApp->RemoveFrameFromList(this);
 
-	DestroyWindow();
+   DestroyWindow();
+
+   m_wndBrowserView.SetBrowserFrameGlue(NULL);
 }
 
 // This is where the UrlBar, ToolBar, StatusBar, ProgressBar
