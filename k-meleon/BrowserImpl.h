@@ -33,28 +33,28 @@ class CBrowserImpl : public nsIInterfaceRequestor,
 					 public nsIContextMenuListener,
 					 public nsIPrompt,
 					 public nsSupportsWeakReference
+//                public nsIURIContentListener
 {
 public:
-    CBrowserImpl();
-    ~CBrowserImpl();
-	NS_METHOD Init(PBROWSERFRAMEGLUE pBrowserFrameGlue,
+   CBrowserImpl();
+   ~CBrowserImpl();
+   NS_METHOD Init(PBROWSERFRAMEGLUE pBrowserFrameGlue,
 					nsIWebBrowser* aWebBrowser);
 
-    NS_DECL_ISUPPORTS
+   NS_DECL_ISUPPORTS
 	NS_DECL_NSIINTERFACEREQUESTOR
-    NS_DECL_NSIWEBBROWSERCHROME
-    NS_DECL_NSIEMBEDDINGSITEWINDOW
-    NS_DECL_NSIWEBPROGRESSLISTENER
+   NS_DECL_NSIWEBBROWSERCHROME
+   NS_DECL_NSIEMBEDDINGSITEWINDOW
+   NS_DECL_NSIWEBPROGRESSLISTENER
 	NS_DECL_NSICONTEXTMENULISTENER
 	NS_DECL_NSIPROMPT
+//	NS_DECL_NSIURICONTENTLISTENER
 
 protected:
 
 	PBROWSERFRAMEGLUE m_pBrowserFrameGlue;
 
 	nsCOMPtr<nsIWebBrowser> mWebBrowser;
-
-    nsCOMPtr<nsIPrompt> mPrompter;
 };
 
 #endif //_BROWSERIMPL_H

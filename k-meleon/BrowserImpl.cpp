@@ -128,25 +128,6 @@ NS_IMETHODIMP CBrowserImpl::GetInterface(const nsIID &aIID, void** aInstancePtr)
 	// service is missing we just fall back to the regular 
 	// implementation of nsIPrompt
 
-	if(aIID.Equals(NS_GET_IID(nsIPrompt)))
-	{
-		if (!mPrompter)
-		{
-#ifdef USE_SINGLE_SIGN_ON
-			nsresult rv;
-			nsCOMPtr<nsISingleSignOnPrompt> siPrompt = do_CreateInstance(NS_SINGLESIGNONPROMPT_CONTRACTID, &rv);
-			if (NS_SUCCEEDED(rv))
-			{
-				siPrompt->SetPromptDialogs(NS_STATIC_CAST(nsIPrompt*, this));
-				mPrompter = siPrompt;
-			}
-			else
-#endif
-				mPrompter = NS_STATIC_CAST(nsIPrompt*, this);
-		}
-		NS_ENSURE_TRUE(mPrompter, NS_ERROR_FAILURE);
-		return mPrompter->QueryInterface(aIID, aInstancePtr);
-	}
 	if(aIID.Equals(NS_GET_IID(nsIDOMWindow)))
 	{
 		if (mWebBrowser)
