@@ -72,7 +72,7 @@ int CondenseString(char *buf, int size)
    read=buf+1;
    for (write=read; *read; read++) {    // condense tabs and spaces
       if ( (*read == ' ') || (*read == '\t') ) {
-         if (*(write-1) != *read) {    // if we've not alreade added a space
+         if (*(write-1) != *read) {    // if we've not already added a space
             *write = *read;            // assign space
             write++;
          }
@@ -104,9 +104,13 @@ int CondenseString(char *buf, int size)
    return strlen(buf);
 }
 
-// changes & to && so they display in menus correctly
-char *EscapeAmpersands(char *string)
-{
+// condenses a string and changes & to && (for display in menus)
+// returns a new string
+char *fixString(const char *inString, int size) {
+   char *string = strdup(inString);
+
+   CondenseString(string, size);
+
    int iCount = 0;
    char *p = string;
    while (p = strchr(p, '&')) {
@@ -114,23 +118,29 @@ char *EscapeAmpersands(char *string)
       iCount++;
    }
 
-   if (!iCount) return NULL;
-
-   char *newString = new char[strlen(string) + iCount + 1];
-   char *out = newString;
-   while (*string) {
-      *out = *string;
-      // double up the ampersand
-      if (*string == '&') {
+   if (iCount) {
+      char *newString = new char[strlen(string) + iCount + 1];
+      char *out = newString;
+      char *in = string;
+      while (*in) {
+         *out = *in;
+         // double up the ampersand
+         if (*in == '&') {
+            out++;
+            *out = '&';
+         }
          out++;
-         *out = '&';
+         in++;
       }
-      out++;
-      string++;
+      // can't forget to null terminate!!
+      *out = 0;
+
+      delete string;
+      string = strdup(newString);
+      delete newString;
    }
-   // can't forget to null terminate!!
-   *out = 0;
-   return newString;
+
+   return string;
 }
 
 long FileSize(FILE *file)

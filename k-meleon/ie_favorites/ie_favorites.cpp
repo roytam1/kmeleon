@@ -457,30 +457,23 @@ int BuildFavoritesMenu(char * strPath, HMENU mainMenu)
          strcat(subPath, wfd.cFileName);         
          strcat(subPath, "/");
 
-      HMENU subMenu = CreatePopupMenu();
+         HMENU subMenu = CreatePopupMenu();
 
-      // call this function recursively.
-      if(gNumFavorites < MAX_FAVORITES && BuildFavoritesMenu(subPath, subMenu))	{
-         // only insert a submenu if there are in fact .URL files in the subdirectory
-         subPath[strlen(subPath)-1] = 0; // chop off the trailing slash
-         char *escaped = EscapeAmpersands(subPath);
-         if (escaped) {
-//            InsertMenu(mainMenu, nFirstFavoriteCommand, MF_BYCOMMAND | MF_POPUP | MF_STRING, (UINT)subMenu, escaped);
-            AppendMenu(mainMenu, MF_BYCOMMAND | MF_POPUP | MF_STRING, (UINT)subMenu, escaped);
-            delete escaped;
+         // call this function recursively.
+         if(gNumFavorites < MAX_FAVORITES && BuildFavoritesMenu(subPath, subMenu)) {
+            // only insert a submenu if there are in fact .URL files in the subdirectory
+            subPath[strlen(subPath)-1] = 0; // chop off the trailing slash
+            // condense the name and escape ampersands
+            char *pszTemp = fixString(subPath, 40);
+            AppendMenu(mainMenu, MF_BYCOMMAND | MF_POPUP | MF_STRING, (UINT)subMenu, pszTemp);
+            delete pszTemp;
+         } else{
+            DestroyMenu(subMenu);
          }
-         else
-//            InsertMenu(mainMenu, nFirstFavoriteCommand, MF_BYCOMMAND | MF_POPUP | MF_STRING, (UINT)subMenu, subPath);
-            AppendMenu(mainMenu, MF_BYCOMMAND | MF_POPUP | MF_STRING, (UINT)subMenu, subPath);
-      }else{
-         DestroyMenu(subMenu);
-      }
 
-      delete [] subPath;
+         delete [] subPath;
 
-//         dirsArray.push_back(subPath);
-
-      }else if ((wfd.dwFileAttributes & (FILE_ATTRIBUTE_HIDDEN|FILE_ATTRIBUTE_SYSTEM))==0) {
+      } else if ((wfd.dwFileAttributes & (FILE_ATTRIBUTE_HIDDEN|FILE_ATTRIBUTE_SYSTEM))==0) {
          // if it's not a hidden or system file
 
          char *dot = strrchr(wfd.cFileName, '.');
@@ -504,19 +497,12 @@ int BuildFavoritesMenu(char * strPath, HMENU mainMenu)
             // format for display in the menu
             // chop off the .url
             *dot = 0;
-            // shrink the string
-            CondenseString(wfd.cFileName, 40);
-            // escape &
-            char *escaped = EscapeAmpersands(wfd.cFileName);
-            if (escaped) {
-               gFavorites.InsertAt(nPos, escaped);
-               AppendMenu(mainMenu, MF_STRING | MF_ENABLED, nFirstFavoriteCommand + nPos, escaped);
-               delete escaped;
-            }
-            else {
-               gFavorites.InsertAt(nPos, wfd.cFileName);
-               AppendMenu(mainMenu, MF_STRING | MF_ENABLED, nFirstFavoriteCommand + nPos, wfd.cFileName);
-            }
+            // condense the string and escape ampersands
+            char *pszTemp = fixString(wfd.cFileName, 40);
+
+            gFavorites.InsertAt(nPos, pszTemp);
+            AppendMenu(mainMenu, MF_STRING | MF_ENABLED, nFirstFavoriteCommand + nPos, pszTemp);
+            delete pszTemp;
 
             /*
             HACK HACK HACK

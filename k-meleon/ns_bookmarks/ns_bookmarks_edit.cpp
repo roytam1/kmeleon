@@ -1206,14 +1206,8 @@ static void BuildFavoritesTree(TCHAR *FavoritesPath, char* strPath, CBookmarkNod
             // format for display in the menu
             // chop off the .url
             *dot = 0;
-            // shrink the string
-            CondenseString(wfd.cFileName, 40);
-            // escape &
-            char *escaped = EscapeAmpersands(wfd.cFileName);
-            if (escaped) {
-               strcpy(wfd.cFileName, escaped);
-               delete escaped;
-            }
+            // condense the string and escape ampersands
+            char *pszTemp = fixString(wfd.cFileName, 40);
 
             FavoritesPath[FavoritesPathLen] = 0;
 
@@ -1229,6 +1223,7 @@ static void BuildFavoritesTree(TCHAR *FavoritesPath, char* strPath, CBookmarkNod
             // insert node
             newFavoritesNode->AddChild(new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), wfd.cFileName, url, BOOKMARK_BOOKMARK, time(NULL)));
 
+            delete pszTemp;
             delete [] urlFile;
          }
       }

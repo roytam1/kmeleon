@@ -369,14 +369,15 @@ void BuildMenu(HMENU menu, CBookmarkNode *node, BOOL isContinuation)
       else if (child->type == BOOKMARK_FOLDER) {
          HMENU childMenu = CreatePopupMenu();
          child->id = (UINT)childMenu; // we have to save off the HMENU for the rebar
-         char *pszTemp = _strdup(child->text.c_str());
-         CondenseString(pszTemp, 40);
+         // condense the title and escape ampersands
+         char *pszTemp = fixString(child->text.c_str(), 40);
          AppendMenu(menu, MF_STRING|MF_POPUP, (UINT)childMenu, pszTemp);
+         delete pszTemp;
          BuildMenu(childMenu, child, false);
       }
       else if (child->type == BOOKMARK_BOOKMARK) {
-         char *pszTemp = _strdup(child->text.c_str());
-         CondenseString(pszTemp, 40);
+         // condense the title and escape ampersands
+         char *pszTemp = fixString(child->text.c_str(), 40);
          AppendMenu(menu, MF_STRING, child->id, pszTemp);
          delete pszTemp;
       }
@@ -405,9 +406,8 @@ void BuildRebar()
          continue;
       }
 
-      char *buttonString = new char[strlen(child->text.c_str()) + 1];
-      strcpy(buttonString, child->text.c_str());
-      CondenseString(buttonString, gMaxTBSize);
+      // condense the title and escape ampersands
+      char *buttonString = fixString(child->text.c_str(), gMaxTBSize);
       stringID = SendMessage(ghWndTB, TB_ADDSTRING, (WPARAM)NULL, (LPARAM)buttonString);
       delete buttonString;
 
