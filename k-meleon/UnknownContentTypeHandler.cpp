@@ -368,6 +368,12 @@ NS_IMETHODIMP CProgressDialog::OnStateChange(nsIWebProgress *aWebProgress,
       }
       else
       {
+
+         mStartTime = 0;
+         if (!mStartTime || !mTotalBytes)
+            return NS_OK;
+
+
          CString statusText;
          PRInt64 now = PR_Now();
          PRInt64 timeSpent = now - mStartTime;
