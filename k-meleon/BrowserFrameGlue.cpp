@@ -50,6 +50,7 @@
 #include "Dialogs.h"
 #include "MenuParser.h"
 #include "KmeleonConst.h"
+#include "nsIDOMHTMLAreaElement.h"
 
 extern CMfcEmbedApp theApp;
 
@@ -382,15 +383,15 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags,
 
       
    char *menuType = _T("DocumentPopup");
-
+/* 
    if(aContextFlags & nsIContextMenuListener::CONTEXT_DOCUMENT)
       menuType = _T("DocumentPopup");
    else if((aContextFlags & nsIContextMenuListener::CONTEXT_TEXT) || (aContextFlags & nsIContextMenuListener::CONTEXT_INPUT))
+*/
+   if((aContextFlags & nsIContextMenuListener::CONTEXT_TEXT) || (aContextFlags & nsIContextMenuListener::CONTEXT_INPUT))
       menuType = _T("TextPopup");
    else if(aContextFlags & nsIContextMenuListener::CONTEXT_LINK)
    {
-      menuType = _T("LinkPopup");
-
       // Since we handle all the browser menu/toolbar commands
       // in the View, we basically setup the Link's URL in the
       // BrowserView object. When a menu selection in the context
@@ -402,75 +403,65 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags,
       // Get the URL from the link. This is two step process
       // 1. We first get the nsIDOMHTMLAnchorElement
       // 2. We then get the URL associated with the link
-
+      
       nsresult rv = NS_OK;
       
-      // Search for an anchor element
-      nsCOMPtr<nsIDOMHTMLAnchorElement> linkElement;
-      nsCOMPtr<nsIDOMNode> node = aNode;
-      while (node)
-      {
-         linkElement = do_QueryInterface(node);
-         if (linkElement)
-            break;
-         
-         nsCOMPtr<nsIDOMNode> parentNode;
-         node->GetParentNode(getter_AddRefs(parentNode));
-         node = parentNode;
-      }
-      if (!linkElement)
-         return;
-      
-      rv = linkElement->GetHref(strUrlUcs2);
-      if(NS_FAILED(rv))
-         return;
 
-      // Update the view with the new LinkUrl
-      // Note that this string is in UCS2 format
-      pThis->m_wndBrowserView.SetCtxMenuLinkUrl(strUrlUcs2);
+      nsCOMPtr<nsIDOMHTMLAreaElement> areaElement;
+      areaElement = do_QueryInterface(aNode);
+      if (areaElement) {
+         areaElement->GetHref(strUrlUcs2);
+      }
+      else {
+         // Search for an anchor element
+         nsCOMPtr<nsIDOMHTMLAnchorElement> linkElement;
+         nsCOMPtr<nsIDOMNode> node = aNode;
+         while (node) {
+            linkElement = do_QueryInterface(node);
+            if (linkElement)
+               break;
+            
+            nsCOMPtr<nsIDOMNode> parentNode;
+            node->GetParentNode(getter_AddRefs(parentNode));
+            node = parentNode;
+         }
+         if (linkElement) {
+            rv = linkElement->GetHref(strUrlUcs2);
+         }
+      }
+      if (strUrlUcs2.Length()) {
+         
+         // Update the view with the new LinkUrl
+         // Note that this string is in UCS2 format
+         pThis->m_wndBrowserView.SetCtxMenuLinkUrl(strUrlUcs2);
+         
+         menuType = _T("LinkPopup");
+      }
    }
    if(aContextFlags & nsIContextMenuListener::CONTEXT_IMAGE) {
-      if(aContextFlags & nsIContextMenuListener::CONTEXT_LINK)
-         menuType = _T("ImageLinkPopup");
-      else
-         menuType = _T("ImagePopup");
 
       // Get the IMG SRC
       nsresult rv = NS_OK;
       nsCOMPtr<nsIDOMHTMLImageElement> imgElement(do_QueryInterface(aNode, &rv));
-      if(NS_FAILED(rv))
-         return;
+      if(NS_SUCCEEDED(rv)) {
+         rv = imgElement->GetSrc(strImgSrcUcs2);
+         if(NS_SUCCEEDED(rv)) {
+            pThis->m_wndBrowserView.SetCtxMenuImageSrc(strImgSrcUcs2); // Set the new Img Src
 
-      rv = imgElement->GetSrc(strImgSrcUcs2);
-      if(NS_FAILED(rv))
-         return;
-
-      pThis->m_wndBrowserView.SetCtxMenuImageSrc(strImgSrcUcs2); // Set the new Img Src
+            if(aContextFlags & nsIContextMenuListener::CONTEXT_LINK)
+               menuType = _T("ImageLinkPopup");
+            else
+               menuType = _T("ImagePopup");
+         }
+      }
    }
 
 
    // Determine if we need to add the Frame related context menu items
    // such as "View Frame Source" etc.
    //
-   BOOL bContentHasFrames = FALSE;
    if(pThis->m_wndBrowserView.ViewContentContainsFrames())
-   {
-      
-      if(aContextFlags & nsIContextMenuListener::CONTEXT_LINK) {
-         if(aContextFlags & nsIContextMenuListener::CONTEXT_IMAGE)
-            menuType = _T("FrameImageLinkPopup");
-         else
-            menuType = _T("FrameLinkPopup");
-      }
-      else {
-         if(aContextFlags & nsIContextMenuListener::CONTEXT_IMAGE)
-            menuType = _T("FrameImagePopup");
-         else
-            menuType = _T("FrameDocumentPopup");
-      }
-      
-      bContentHasFrames = TRUE;
-            
+   {            
       //Determine the current Frame URL
       //
       nsresult rv = NS_OK;
@@ -483,6 +474,19 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags,
             rv = htmlDoc->GetURL(strFrameURL);
             if(NS_SUCCEEDED(rv)) {
                pThis->m_wndBrowserView.SetCurrentFrameURL(strFrameURL); //Set it to the new URL
+
+               if(aContextFlags & nsIContextMenuListener::CONTEXT_LINK) {
+                  if(aContextFlags & nsIContextMenuListener::CONTEXT_IMAGE)
+                     menuType = _T("FrameImageLinkPopup");
+                  else
+                     menuType = _T("FrameLinkPopup");
+               }
+               else {
+                  if(aContextFlags & nsIContextMenuListener::CONTEXT_IMAGE)
+                     menuType = _T("FrameImagePopup");
+                  else
+                     menuType = _T("FrameDocumentPopup");
+               }
             }
          }
       }
@@ -507,7 +511,7 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags,
       int offset = theApp.menus.GetOffset(ctxMenu);
       
       RECT desktopRect;
-      GetDesktopWindow()->GetWindowRect(&desktopRect);
+      SystemParametersInfo(SPI_GETWORKAREA, NULL, &desktopRect, 0);
       if ( (int)(cursorPos.y - offset) < (int)(desktopRect.bottom - (ctxMenu->GetMenuItemCount() * GetSystemMetrics(SM_CYMENUSIZE)) + (GetSystemMetrics(SM_CYEDGE)*2)) ){
          // we only do this if we're not too close to the bottom of the screen
          cursorPos.y -= offset;
