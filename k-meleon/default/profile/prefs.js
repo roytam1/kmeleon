@@ -9,6 +9,7 @@
  * For more information, see http://www.mozilla.org/unix/customizing.html#prefs
  */
 
+user_pref("aggreg8.stylesheet.title", "grey");
 user_pref("capability.policy.restrictedpopups.Window.open", "allAccess");
 user_pref("capability.policy.restrictedpopups.sites", "");
 user_pref("dom.disable_open_during_load", true);
@@ -29,12 +30,10 @@ user_pref("kmeleon.plugins.bookmarks.chevron", true);
 user_pref("kmeleon.plugins.bookmarks.load", false);
 user_pref("kmeleon.plugins.bookmarks.menuAutoDetect", true);
 user_pref("kmeleon.plugins.bookmarks.openurl", "ID_OPEN_LINK");
-user_pref("kmeleon.plugins.bookmarks.toolbarEnabled", true);
 user_pref("kmeleon.plugins.external.load", true);
 user_pref("kmeleon.plugins.favorites.load", false);
 user_pref("kmeleon.plugins.favorites.menuAutoDetect", true);
 user_pref("kmeleon.plugins.favorites.openurl", "ID_OPEN_LINK");
-user_pref("kmeleon.plugins.favorites.rebar", true);
 user_pref("kmeleon.plugins.fullscreen.load", true);
 user_pref("kmeleon.plugins.gestures.down", "layers(OpenLinkBg)");
 user_pref("kmeleon.plugins.gestures.downleft", "layers(Last)");
@@ -49,7 +48,6 @@ user_pref("kmeleon.plugins.history.load", true);
 user_pref("kmeleon.plugins.hotlist.load", false);
 user_pref("kmeleon.plugins.hotlist.menuAutoDetect", true);
 user_pref("kmeleon.plugins.hotlist.openurl", "ID_OPEN_LINK");
-user_pref("kmeleon.plugins.hotlist.rebar", true);
 user_pref("kmeleon.plugins.layers.confirmClose", true);
 user_pref("kmeleon.plugins.layers.load", true);
 user_pref("kmeleon.plugins.layers.rebar", true);
@@ -66,13 +64,10 @@ user_pref("kmeleon.privacy.useragent2.name", "Netscape 4.8");
 user_pref("kmeleon.privacy.useragent2.string", "Mozilla/4.8 [en] (Windows NT 5.1; U)");
 user_pref("kmeleon.privacy.useragent3.name", "Opera 7.54");
 user_pref("kmeleon.privacy.useragent3.string", "Opera/7.54 (Windows NT 5.1; U) [en]");
-user_pref("kmeleon.toolband.Bookmarks.visibility", false);
-user_pref("kmeleon.toolband.Favorites.visibility", false);
 user_pref("kmeleon.toolband.GO.break", 0);
 user_pref("kmeleon.toolband.GO.index", 8);
 user_pref("kmeleon.toolband.GO.size", 59);
 user_pref("kmeleon.toolband.GO.visibility", true);
-user_pref("kmeleon.toolband.Hotlist.visibility", false);
 user_pref("kmeleon.toolband.Layer/Window Buttons.break", 0);
 user_pref("kmeleon.toolband.Layer/Window Buttons.index", 1);
 user_pref("kmeleon.toolband.Layer/Window Buttons.size", 59);
