@@ -277,6 +277,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
             GetWindowRect(GetDesktopWindow(), &rectDesktop );
             AdjustWindowRectEx(&rectDesktop, GetWindowLong(hWnd, GWL_STYLE), (GetMenu(hWnd)?true:false), GetWindowLong(hWnd, GWL_EXSTYLE));
 
+            rectDesktop.top    -= 2;
+            rectDesktop.left   -= 2;
+            rectDesktop.bottom += 2;
+            rectDesktop.right  += 2;
+
             rectFullScreenWindowRect = rectDesktop;
             wpNew = fs->wpOld;
 
