@@ -253,7 +253,10 @@ int CAccelParser::Parse(char *p)
 
       accelerators[numAccelerators].cmd = command;
       accelerators[numAccelerators].fVirt = virt;
-      accelerators[numAccelerators].key = key;
+      if ( ((key >= 'A') && (key <= 'Z')) || ((key >= 'a') && (key <= 'z')) )
+         accelerators[numAccelerators].key = key;
+      else
+         accelerators[numAccelerators].key = VkKeyScan(key);
       numAccelerators++;
    } // if e
 
