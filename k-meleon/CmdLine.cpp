@@ -26,7 +26,7 @@ CCmdLine::Initialize(char *cmdLine) {
    m_sCmdLine = cmdLine;
 
 
-   if (GetSwitch("-chrome", NULL, true))
+   if (GetSwitch("-chrome", NULL, true) > 0)
       m_bChrome =  TRUE;
 
    // -profilesDir <directory>

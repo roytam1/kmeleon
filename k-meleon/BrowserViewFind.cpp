@@ -29,6 +29,97 @@ extern CMfcEmbedApp theApp;
 #include "BrowserFrm.h"
 #include "BrowserView.h"
 
+void CBrowserView::OnShowFindDlg() 
+{
+	// When the the user chooses the Find menu item
+	// and if a Find dlg. is already being shown
+	// just set focus to the existing dlg instead of
+	// creating a new one
+	if(m_pFindDlg)
+	{
+		m_pFindDlg->SetFocus();
+		return;
+	}
+
+	CString csSearchStr;
+	PRBool bMatchCase = PR_FALSE;
+	PRBool bMatchWholeWord = PR_FALSE;
+	PRBool bWrapAround = PR_FALSE;
+	PRBool bSearchBackwards = PR_FALSE;
+
+	// See if we can get and initialize the dlg box with
+	// the values/settings the user specified in the previous search
+	nsCOMPtr<nsIWebBrowserFind> finder(do_GetInterface(mWebBrowser));
+	if(finder)
+	{
+		nsXPIDLString stringBuf;
+		finder->GetSearchString(getter_Copies(stringBuf));
+		csSearchStr = stringBuf.get();
+
+		finder->GetMatchCase(&bMatchCase);
+		finder->GetEntireWord(&bMatchWholeWord);
+		finder->GetWrapFind(&bWrapAround);
+		finder->GetFindBackwards(&bSearchBackwards);		
+	}
+
+	m_pFindDlg = new CFindDialog(csSearchStr, bMatchCase, bMatchWholeWord,
+							bWrapAround, bSearchBackwards, this);
+	m_pFindDlg->Create(TRUE, NULL, NULL, 0, this);
+}
+
+// This will be called whenever the user pushes the Find
+// button in the Find dialog box
+// This method gets bound to the WM_FINDMSG windows msg via the 
+//
+//	   ON_REGISTERED_MESSAGE(WM_FINDMSG, OnFindMsg) 
+//
+//	message map entry.
+//
+// WM_FINDMSG (which is registered towards the beginning of this file)
+// is the message via which the FindDialog communicates with this view
+//
+LRESULT CBrowserView::OnFindMsg(WPARAM wParam, LPARAM lParam)
+{
+	nsCOMPtr<nsIWebBrowserFind> finder(do_GetInterface(mWebBrowser));
+	if(!finder)
+		return NULL;
+
+	// Get the pointer to the current Find dialog box
+	CFindDialog* dlg = (CFindDialog *) CFindReplaceDialog::GetNotifier(lParam);
+	if(!dlg) 
+		return NULL;
+
+	// Has the user decided to terminate the dialog box?
+	if(dlg->IsTerminating())
+		return NULL;
+
+	if(dlg->FindNext())
+	{
+		nsString searchString;
+		searchString.AssignWithConversion(dlg->GetFindString().GetBuffer(0));
+		finder->SetSearchString(searchString.get());
+	
+		finder->SetMatchCase(dlg->MatchCase() ? PR_TRUE : PR_FALSE);
+		finder->SetEntireWord(dlg->MatchWholeWord() ? PR_TRUE : PR_FALSE);
+		finder->SetWrapFind(dlg->WrapAround() ? PR_TRUE : PR_FALSE);
+		finder->SetFindBackwards(dlg->SearchBackwards() ? PR_TRUE : PR_FALSE);
+
+		PRBool didFind;
+		nsresult rv = finder->FindNext(&didFind);
+		
+        if(!didFind)
+        {
+            MessageBox("Not found.");
+            dlg->SetFocus();
+        }
+
+        return (NS_SUCCEEDED(rv) && didFind);
+	}
+
+    return 0;
+}
+
+/*
 void CBrowserView::OnShowFindDlg() {
 
    // When the the user chooses the Find menu item
@@ -72,7 +163,7 @@ void CBrowserView::OnShowFindDlg() {
 	m_pFindDlg = new CFindDialog(csSearchStr, bMatchCase, bMatchWholeWord, bWrapAround, bSearchBackwards, this);
 	m_pFindDlg->Create(TRUE, NULL, NULL, 0, this);
 }
-
+*/
 void CBrowserView::OnFindNext() {
 	nsCOMPtr<nsIWebBrowserFind> finder(do_GetInterface(mWebBrowser));
 
@@ -113,7 +204,7 @@ void CBrowserView::OnFindPrev() {
    finder->GetFindBackwards(&rv);
    finder->SetFindBackwards(rv^2);  // reset the initial find direction
 }
-
+/*
 // This will be called whenever the user pushes the Find
 // button in the Find dialog box
 // This method gets bound to the WM_FINDMSG windows msg via the
@@ -170,3 +261,4 @@ LRESULT CBrowserView::OnFindMsg(WPARAM wParam, LPARAM lParam) {
 	}
 	return 0;
 }
+*/

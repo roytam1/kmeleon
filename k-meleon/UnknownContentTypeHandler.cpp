@@ -116,9 +116,11 @@ CUnknownContentTypeHandler::PromptForSaveToFile(nsISupports * aWindowContext, co
 
    return NS_ERROR_FAILURE;
 #else
+
    nsresult rv = NS_OK;
 
-   nsCOMPtr<nsIFilePicker> filePicker = do_CreateInstance(NS_FILEPICKER_CID, &rv);
+   nsCOMPtr<nsIFilePicker> filePicker = do_CreateInstance("@mozilla.org/filepicker;1");
+//   nsCOMPtr<nsIFilePicker> filePicker = do_CreateInstance(NS_FILEPICKER_CID, &rv);
    if (filePicker)
    {
       nsAFlatString title = NS_LITERAL_STRING ("Save As:");
@@ -129,7 +131,7 @@ CUnknownContentTypeHandler::PromptForSaveToFile(nsISupports * aWindowContext, co
       nsAutoString wildCardExtension (NS_LITERAL_STRING("*").get());
       if (aSuggestedFileExtension) {
          wildCardExtension.Append(aSuggestedFileExtension);
-         filePicker->AppendFilter(wildCardExtension.GetUnicode(), wildCardExtension.GetUnicode());
+         filePicker->AppendFilter(wildCardExtension.get(), wildCardExtension.get());
       }
 
       filePicker->AppendFilters(nsIFilePicker::filterAll);
@@ -169,6 +171,24 @@ CUnknownContentTypeHandler::PromptForSaveToFile(nsISupports * aWindowContext, co
       }
    }
    return rv;
+
+   /*
+   USES_CONVERSION;
+   NS_ENSURE_ARG_POINTER(aNewFile);
+   char *lpszFilter = "All Files (*.*)|*.*||";
+   CFileDialog cf(FALSE, W2T(aSuggestedFileExtension), W2T(aDefaultFile),
+      OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
+      lpszFilter, NULL);
+   if(cf.DoModal() == IDOK)
+   {
+      CString m_FileName = cf.GetPathName(); // Will be like: c:\tmp\junk.exe
+      
+      return NS_NewLocalFile(m_FileName, PR_FALSE, aNewFile);
+   }
+   else
+      return NS_ERROR_FAILURE;
+   */
+
 #endif
 }
 
@@ -443,13 +463,13 @@ void CProgressDialog::SetLauncher(nsIHelperAppLauncher *aLauncher){
    // we'll set it later in OnProgressChange
    // mStartTime = timestarted; //PR_Now();
 
-	char *uri;
+	nsCAutoString uri;
    char *filepath;
 
-	pUri->GetSpec (&uri);
+	pUri->GetSpec (uri);
 	pFile->GetPath (&filepath);
 
-   SetDlgItemText(IDC_SOURCE, uri);
+   SetDlgItemText(IDC_SOURCE, uri.get());
    SetDlgItemText(IDC_DESTINATION, filepath);
 
    char *file = strrchr(filepath, '\\')+1;

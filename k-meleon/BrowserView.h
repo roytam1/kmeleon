@@ -83,13 +83,18 @@ public:
 	// Mozilla interfaces
 	//
 	nsCOMPtr<nsIWebBrowser> mWebBrowser;
-	nsCOMPtr<nsIBaseWindow> mBaseWindow;
+	nsCOMPtr<nsIBaseWindow>  mBaseWindow;
 	nsCOMPtr<nsIWebNavigation> mWebNav;
 
 	void UpdateBusyState(PRBool aBusy);
 	PRBool mbDocumentLoading;
 
-	void SetCtxMenuLinkUrl(nsAutoString& strLinkUrl);
+
+   nsIDOMNode *GetNodeAtPoint(int x, int y, BOOL bPrepareMenu);
+   int m_iGetNodeHack;
+   nsCOMPtr<nsIDOMNode> m_pGetNode;
+   
+   void SetCtxMenuLinkUrl(nsAutoString& strLinkUrl);
 	nsAutoString mCtxMenuLinkUrl;
 
 	void SetCtxMenuImageSrc(nsAutoString& strImgSrc);
@@ -128,7 +133,7 @@ public:
 
    inline void ClearFindDialog() { m_pFindDlg = NULL; }
 
-   NS_IMETHODIMP CBrowserView::URISaveAs(nsIURI *aURI, bool bDocument=FALSE);
+   NS_IMETHODIMP URISaveAs(nsIURI *aURI, bool bDocument=FALSE);
 
 protected:
 	BOOL m_refreshBackButton;
@@ -183,6 +188,7 @@ protected:
 	afx_msg void OnSelectNone();
 	afx_msg void OnCopyLinkLocation();
 	afx_msg void OnCopyImageLocation();
+   afx_msg void OnOpenLink();
    afx_msg void OnOpenLinkInNewWindow();
 	afx_msg void OnOpenLinkInBackground();
 	afx_msg void OnViewImageInNewWindow();
@@ -209,6 +215,8 @@ protected:
 	afx_msg void OnWindowNext();
 	afx_msg void OnWindowPrev();
    afx_msg void OnViewFrameSource();
+   afx_msg void OnOpenFrame();
+   afx_msg void OnOpenFrameInBackground();
    afx_msg void OnOpenFrameInNewWindow();   
 
    afx_msg void OnEditURL( NMHDR * pNotifyStruct, LRESULT * result );

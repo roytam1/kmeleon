@@ -118,6 +118,10 @@ CBrowserFrame::~CBrowserFrame()
 
 void CBrowserFrame::OnClose()
 {
+
+   // tell all our plugins that we are closing
+   theApp.plugins.SendMessage("*", "* OnClose", "Close", (long)m_hWnd);
+
    // if we don't do this, then our menu will be destroyed when the first window is.
    // that's bad because our menu is shared between all windows
    SetMenu(NULL);
@@ -161,6 +165,7 @@ void CBrowserFrame::OnClose()
   and the menu is loaded differently
   
 */
+
 
 BOOL CBrowserFrame::Create(LPCTSTR lpszClassName,
                            LPCTSTR lpszWindowName,
@@ -362,6 +367,7 @@ BOOL CBrowserFrame::PreCreateWindow(CREATESTRUCT& cs)
 	if( !CFrameWnd::PreCreateWindow(cs) )
 		return FALSE;
  
+   cs.lpszClass = BROWSER_WINDOW_CLASS;
    cs.dwExStyle &= ~WS_EX_CLIENTEDGE;
 
 	// Change window style based on the chromeMask
@@ -379,7 +385,7 @@ BOOL CBrowserFrame::PreCreateWindow(CREATESTRUCT& cs)
 	   }
    }
 
-	cs.lpszClass = AfxRegisterWndClass(0);
+//	cs.lpszClass = AfxRegisterWndClass(0);
 
 	return TRUE;
 }

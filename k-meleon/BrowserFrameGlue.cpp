@@ -96,8 +96,8 @@ void CBrowserFrame::BrowserFrameGlueObj::UpdateCurrentURI(nsIURI *aLocation){
    METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
 
    if(aLocation) {
-      nsXPIDLCString uriString;
-      aLocation->GetSpec(getter_Copies(uriString));
+      nsCAutoString uriString;
+      aLocation->GetSpec(uriString);
 
       pThis->m_wndUrlBar.SetCurrentURL(uriString.get());
    }
@@ -348,8 +348,27 @@ void CBrowserFrame::BrowserFrameGlueObj::DestroyBrowserFrame()
 
 void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags, nsIDOMNode *aNode)
 {
+
    METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
 
+/*
+  !!BAD HACK!!  !!BAD HACK!!  !!BAD HACK!!  !!BAD HACK!!  !!BAD HACK!!
+
+  The bGetElementHack flag is part of the GetElementFromPoint function.
+  Basically, there's no easy way that I've found to get the link
+  information by point from mozilla, so as a workaround, the function
+  simply sends a contextmenu notifier with the point we want.  It's
+  our job here to make sure the context menu doesn't get shown.
+  
+  !!BAD HACK!!  !!BAD HACK!!  !!BAD HACK!!  !!BAD HACK!!  !!BAD HACK!!
+*/
+   if (pThis->m_wndBrowserView.m_iGetNodeHack == 1) {
+      pThis->m_wndBrowserView.m_iGetNodeHack = 0;
+      pThis->m_wndBrowserView.m_pGetNode = aNode;
+      return;
+   }
+
+      
    char *menuType = _T("DocumentPopup");
 
    if(aContextFlags & nsIContextMenuListener::CONTEXT_DOCUMENT)
@@ -395,20 +414,6 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags,
       if (!linkElement)
          return;
       
-
-
-/*
-      nsCOMPtr<nsIDOMHTMLAnchorElement> linkElement(do_QueryInterface(aNode, &rv));
-      if(NS_FAILED(rv)){
-         nsCOMPtr<nsIDOMNode> parentNode;
-         aNode->GetParentNode(getter_AddRefs(parentNode));
-         linkElement = do_QueryInterface(parentNode, &rv);
-         if (NS_FAILED(rv)){
-            return;
-         }
-      }
-*/
-
       rv = linkElement->GetHref(strUrlUcs2);
       if(NS_FAILED(rv))
          return;
@@ -440,56 +445,66 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags,
    }
 
 
-    // Determine if we need to add the Frame related context menu items
-    // such as "View Frame Source" etc.
-    //
-    BOOL bContentHasFrames = FALSE;
-    if(pThis->m_wndBrowserView.ViewContentContainsFrames())
-    {
+   // Determine if we need to add the Frame related context menu items
+   // such as "View Frame Source" etc.
+   //
+   BOOL bContentHasFrames = FALSE;
+   if(pThis->m_wndBrowserView.ViewContentContainsFrames())
+   {
+      
+      if(aContextFlags & nsIContextMenuListener::CONTEXT_LINK) {
+         if(aContextFlags & nsIContextMenuListener::CONTEXT_IMAGE)
+            menuType = _T("FrameImageLinkPopup");
+         else
+            menuType = _T("FrameLinkPopup");
+      }
+      else {
+         if(aContextFlags & nsIContextMenuListener::CONTEXT_IMAGE)
+            menuType = _T("FrameImagePopup");
+         else
+            menuType = _T("FrameDocumentPopup");
+      }
+      
+      bContentHasFrames = TRUE;
+      
+      nsAutoString strFrameURL;
+      pThis->m_wndBrowserView.SetCurrentFrameURL(strFrameURL); // Clear it
+      
+      //Determine the current Frame URL
+      //
+      nsresult rv = NS_OK;
+      nsCOMPtr<nsIDOMDocument> domDoc;
+      rv = aNode->GetOwnerDocument(getter_AddRefs(domDoc));
+      
+      if(NS_SUCCEEDED(rv)) {
+         nsCOMPtr<nsIDOMHTMLDocument> htmlDoc(do_QueryInterface(domDoc, &rv));
+         if(NS_SUCCEEDED(rv)) {
+            rv = htmlDoc->GetURL(strFrameURL);
+            if(NS_SUCCEEDED(rv)) {
+               pThis->m_wndBrowserView.SetCurrentFrameURL(strFrameURL); //Set it to the new URL
+            }
+         }
+      }
+   }
+   
 
-       if(aContextFlags & nsIContextMenuListener::CONTEXT_LINK) {
-          if(aContextFlags & nsIContextMenuListener::CONTEXT_IMAGE)
-             menuType = _T("FrameImageLinkPopup");
-          else
-             menuType = _T("FrameLinkPopup");
-       }
-       else {
-          if(aContextFlags & nsIContextMenuListener::CONTEXT_IMAGE)
-             menuType = _T("FrameImagePopup");
-          else
-             menuType = _T("FrameDocumentPopup");
-       }
-       
-       bContentHasFrames = TRUE;
-       
-       nsAutoString strFrameURL;
-        pThis->m_wndBrowserView.SetCurrentFrameURL(strFrameURL); // Clear it
-
-        //Determine the current Frame URL
-        //
-        nsresult rv = NS_OK;
-        nsCOMPtr<nsIDOMDocument> domDoc;
-        rv = aNode->GetOwnerDocument(getter_AddRefs(domDoc));
-
-        if(NS_SUCCEEDED(rv)) {
-           nsCOMPtr<nsIDOMHTMLDocument> htmlDoc(do_QueryInterface(domDoc, &rv));
-           if(NS_SUCCEEDED(rv)) {
-              rv = htmlDoc->GetURL(strFrameURL);
-              if(NS_SUCCEEDED(rv)) {
-                 pThis->m_wndBrowserView.SetCurrentFrameURL(strFrameURL); //Set it to the new URL
-              }
-           }
-        }
-    }
+   /*  !!BAD HACK!!  !!BAD HACK!!  !!BAD HACK!!  !!BAD HACK!!  */
+   if (pThis->m_wndBrowserView.m_iGetNodeHack == 2) {
+      pThis->m_wndBrowserView.m_iGetNodeHack = 0;
+      pThis->m_wndBrowserView.m_pGetNode = aNode;
+      return;
+   }
+   
 
    CMenu *ctxMenu = theApp.menus.GetMenu(menuType);
    if(ctxMenu)
    {
+
       POINT cursorPos;
       GetCursorPos(&cursorPos);
       
       int offset = theApp.menus.GetOffset(ctxMenu);
-
+      
       RECT desktopRect;
       GetDesktopWindow()->GetWindowRect(&desktopRect);
       if ( (int)(cursorPos.y - offset) < (int)(desktopRect.bottom - (ctxMenu->GetMenuItemCount() * GetSystemMetrics(SM_CYMENUSIZE)) + (GetSystemMetrics(SM_CYEDGE)*2)) ){
@@ -499,8 +514,9 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags,
             cursorPos.y = 0;
          }
       }
-
+      
       ctxMenu->TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, cursorPos.x, cursorPos.y, pThis);
+   
    }
 }
 

@@ -25,6 +25,7 @@
 #include "Dialogs.h"
 #include "BrowserView.h"
 #include "MfcEmbed.h"
+#include "resource.h"
 extern CMfcEmbedApp theApp;
 
 // File overview....
@@ -44,7 +45,6 @@ CFindDialog::CFindDialog(CString& csSearchStr, PRBool bMatchCase,
 	// Save these initial settings off in member vars
 	// We'll use these to initialize the controls
 	// in InitDialog()
-
 	m_csSearchStr = csSearchStr;
 	m_bMatchCase = bMatchCase;
 	m_bMatchWholeWord = bMatchWholeWord;
@@ -75,7 +75,7 @@ BOOL CFindDialog::OnInitDialog()
 	if(pChk)
 		pChk->SetCheck(m_bMatchWholeWord);
 
-   pChk = (CButton *)GetDlgItem(IDC_WRAP_AROUND);	
+	pChk = (CButton *)GetDlgItem(IDC_WRAP_AROUND);	
 	if(pChk)
 		pChk->SetCheck(m_bWrapAround);
 
@@ -108,8 +108,6 @@ BOOL CFindDialog::SearchBackwards()
 
 	return pChk ? pChk->GetCheck() : FALSE;
 }
-
-#include "Dialogs.h"
 
 // File overview....
 //

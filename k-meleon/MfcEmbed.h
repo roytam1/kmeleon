@@ -47,6 +47,9 @@
 #include "resource.h"       // main symbols
 
 
+#define HIDDEN_WINDOW_CLASS  "KMeleon"
+#define BROWSER_WINDOW_CLASS "KMeleon Browser Window"
+
 class CBrowserFrame;
 class CProfileMgr;
 
@@ -77,8 +80,6 @@ public:
    void UnregisterWindow(CDialog *window);
 
    nsresult OverrideComponents();
-
-   LPCTSTR GetMainWindowClassName();
 
 	// Overrides
 	// ClassWizard generated virtual function overrides
@@ -131,7 +132,6 @@ private:
 private:
    CProfileMgr *m_ProfileMgr;
    BOOL        m_bAlreadyRunning;
-   CString     m_sMainWindowClassName;
    BOOL        m_bFirstWindowCreated;
    BOOL        m_bSwitchingProfiles;
    // used to process the rebar DrawToolbarMenu function, which must only

@@ -206,7 +206,7 @@ public:
    CBitmap         m_bmpBack;
 
 	// The view inside which the embedded browser will
-	// be displayed in
+	// be displayed
 	CBrowserView   m_wndBrowserView;
 
    // note: right now it's just a CStatic, but eventually it will become something better

@@ -24,6 +24,7 @@
 // Now also used to receive notification messages from the tray icon
 
 
+#include "MfcEmbed.h"
 #include "KmeleonConst.h"
 #include "BrowserFrm.h"
 
