@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
+ /* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
  *
  * The contents of this file are subject to the Netscape Public
  * License Version 1.1 (the "License"); you may not use this file
@@ -68,8 +68,8 @@ static char THIS_FILE[] = __FILE__;
 static NS_DEFINE_CID(kPromptServiceCID, NS_PROMPTSERVICE_CID);
 
 BEGIN_MESSAGE_MAP(CMfcEmbedApp, CWinApp)
-	//{{AFX_MSG_MAP(CMfcEmbedApp)
-	ON_COMMAND(ID_NEW_BROWSER, OnNewBrowser)
+   //{{AFX_MSG_MAP(CMfcEmbedApp)
+   ON_COMMAND(ID_NEW_BROWSER, OnNewBrowser)
 	ON_COMMAND(ID_MANAGE_PROFILES, OnManageProfiles)
    ON_COMMAND(ID_PREFERENCES, OnPreferences)
 	// NOTE - the ClassWizard will add and remove mapping macros here.
@@ -299,6 +299,38 @@ BOOL CMfcEmbedApp::InitInstance()
    return TRUE;
 }
 
+// add new download dialags to the internal window list so we won't exit
+// the app while downloads are in progress
+void CMfcEmbedApp::RegisterWindow(CDialog *window) {
+   m_MiscWndLst.AddHead(window);
+}
+
+void CMfcEmbedApp::UnregisterWindow(CDialog *window) {
+	POSITION pos = m_MiscWndLst.Find(window);
+   m_MiscWndLst.RemoveAt(pos);
+
+
+   // Unless we are set to stay resident,
+   // send a WM_QUIT msg. to the hidden window if we've
+	// just closed the last browserframe window and
+	// if the bCloseAppOnLastFrame is TRUE. This be FALSE
+	// only in the case we're switching profiles
+	// Without this the hidden window will stick around
+	// i.e. the app will never die even after all the 
+	// visible windows are gone.
+   if ((m_MiscWndLst.GetCount() == 0) && (m_FrameWndLst.GetCount() == 0)) {
+
+      // if we're staying resident, create the hidden browser window
+      if (((CHiddenWnd*) m_pMainWnd)->Persisting() == PERSIST_STATE_ENABLED)
+         ((CHiddenWnd*) m_pMainWnd)->StayResident();
+
+      // otherwise we're exiting, close the Evil Hidden Window
+      else
+		   m_pMainWnd->PostMessage(WM_QUIT);
+   }
+}
+
+
 CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
 												   PRInt32 x, PRInt32 y,
 												   PRInt32 cx, PRInt32 cy,
@@ -449,7 +481,7 @@ void CMfcEmbedApp::RemoveFrameFromList(CBrowserFrame* pFrm, BOOL bCloseAppOnLast
 	// Without this the hidden window will stick around
 	// i.e. the app will never die even after all the 
 	// visible windows are gone.
-   if(m_FrameWndLst.GetCount() == 0) {
+   if ((m_FrameWndLst.GetCount() == 0) && (m_MiscWndLst.GetCount() == 0)) {
 
       // if we're switching profiles, we don't need to do anything
       if (!bCloseAppOnLastFrame) {}
@@ -479,7 +511,15 @@ int CMfcEmbedApp::ExitInstance()
    
    CBrowserFrame* pBrowserFrame = NULL;
 
-	POSITION pos = m_FrameWndLst.GetHeadPosition();
+   POSITION pos = m_MiscWndLst.GetHeadPosition();
+   while( pos != NULL )
+   {
+      CProgressDialog *pDlg = (CProgressDialog *) m_MiscWndLst.GetNext(pos);
+      if (pDlg)
+         pDlg->Cancel();
+   }
+
+   pos = m_FrameWndLst.GetHeadPosition();
    while( pos != NULL ) {
 		pBrowserFrame = (CBrowserFrame *) m_FrameWndLst.GetNext(pos);
 		if(pBrowserFrame)	{
@@ -614,52 +654,60 @@ NS_IMPL_THREADSAFE_ISUPPORTS3(CMfcEmbedApp, nsIObserver, nsIWindowCreator, nsISu
 
 NS_IMETHODIMP CMfcEmbedApp::Observe(nsISupports *aSubject, const PRUnichar *aTopic, const PRUnichar *someData)
 {
-    nsresult rv = NS_OK;
+   nsresult rv = NS_OK;
     
-    if (nsCRT::strcmp(aTopic, NS_LITERAL_STRING("profile-approve-change").get()) == 0)
-    {
-        // Ask the user if they want to
-        int result = MessageBox(NULL, "Do you want to close all windows in order to switch the profile?", "Confirm", MB_YESNO | MB_ICONQUESTION);
-        if (result != IDYES)
-        {
-            nsCOMPtr<nsIProfileChangeStatus> status = do_QueryInterface(aSubject);
-            NS_ENSURE_TRUE(status, NS_ERROR_FAILURE);
-            status->VetoChange();
-        }
-    }
-    else if (nsCRT::strcmp(aTopic, NS_LITERAL_STRING("profile-change-teardown").get()) == 0)
-    {
-        // Close all open windows. Alternatively, we could just call CBrowserWindow::Stop()
-        // on each. Either way, we have to stop all network activity on this phase.
+   if (nsCRT::strcmp(aTopic, NS_LITERAL_STRING("profile-approve-change").get()) == 0)
+   {
+      // Ask the user if they want to
+      int result = MessageBox(NULL, "Do you want to close all windows in order to switch the profile?\nThis will cancel any files being downloaded.", "Confirm", MB_YESNO | MB_ICONQUESTION);
+      if (result != IDYES)
+      {
+         nsCOMPtr<nsIProfileChangeStatus> status = do_QueryInterface(aSubject);
+         NS_ENSURE_TRUE(status, NS_ERROR_FAILURE);
+         status->VetoChange();
+      }
+   }
+   else if (nsCRT::strcmp(aTopic, NS_LITERAL_STRING("profile-change-teardown").get()) == 0)
+   {
+      // Close all open windows. Alternatively, we could just call CBrowserWindow::Stop()
+      // on each. Either way, we have to stop all network activity on this phase.
+
+      POSITION pos = m_MiscWndLst.GetHeadPosition();
+      while( pos != NULL )
+      {
+         CProgressDialog *pDlg = (CProgressDialog *) m_MiscWndLst.GetNext(pos);
+         if (pDlg)
+            pDlg->Cancel();
+      }
+
+      pos = m_FrameWndLst.GetHeadPosition();
+	   while( pos != NULL )
+	   {
+		   CBrowserFrame *pBrowserFrame = (CBrowserFrame *) m_FrameWndLst.GetNext(pos);
+		   if(pBrowserFrame)
+         {
+		      pBrowserFrame->ShowWindow(false);
+
+            // Passing in FALSE below so that we do not
+            // kill the main app during a profile switch
+            RemoveFrameFromList(pBrowserFrame, FALSE);
+
+            pBrowserFrame->DestroyWindow();
+         }
+      }
+   }
+   else if (nsCRT::strcmp(aTopic, NS_LITERAL_STRING("profile-after-change").get()) == 0)
+   {
+      plugins.UnLoadAll();
+      InitializePrefs(); // In case we have just switched to a newly created profile.
         
-	    POSITION pos = m_FrameWndLst.GetHeadPosition();
-	    while( pos != NULL )
-	    {
-		    CBrowserFrame *pBrowserFrame = (CBrowserFrame *) m_FrameWndLst.GetNext(pos);
-		    if(pBrowserFrame)
-		    {
-			    pBrowserFrame->ShowWindow(false);
+      // Only make a new browser window on a switch. This also gets
+      // called at start up and we already make a window then.
+      if (!nsCRT::strcmp(someData, NS_LITERAL_STRING("switch").get()))
+         OnNewBrowser();
+   }
 
-				// Passing in FALSE below so that we do not
-				// kill the main app during a profile switch
-				RemoveFrameFromList(pBrowserFrame, FALSE);
-
-				pBrowserFrame->DestroyWindow();
-		    }
-       }
-    }
-    else if (nsCRT::strcmp(aTopic, NS_LITERAL_STRING("profile-after-change").get()) == 0)
-    {
-        plugins.UnLoadAll();
-        InitializePrefs(); // In case we have just switched to a newly created profile.
-        
-         // Only make a new browser window on a switch. This also gets
-         // called at start up and we already make a window then.
-         if (!nsCRT::strcmp(someData, NS_LITERAL_STRING("switch").get()))      
-            OnNewBrowser();
-    }
-
-    return rv;
+   return rv;
 }
 
 // ---------------------------------------------------------------------------

@@ -29,42 +29,6 @@
 #include "MfcEmbed.h"
 extern CMfcEmbedApp theApp;
 
-class CProgressDialog : public CDialog,
-                        public nsIWebProgressListener,
-                        public nsSupportsWeakReference {
-public:
-   enum { IDD = IDD_PROGRESS };
-
-   NS_DECL_ISUPPORTS
-   NS_DECL_NSIWEBPROGRESSLISTENER
-
-   CProgressDialog();
-   virtual ~CProgressDialog();
-
-   virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
-
-   void SetLauncher(nsIHelperAppLauncher *aLauncher);
-
-protected:
-   nsCOMPtr<nsIHelperAppLauncher> mLauncher;
-   
-   // this is used to calculate speed
-   PRInt64 mStartTime;
-
-   PRInt32 mTotalBytes;
-
-   int mDone;
-
-   char *mFileName;
-   char *mFilePath;
-
-   virtual void OnCancel( );
-   afx_msg void OnOpen();
-
-	DECLARE_MESSAGE_MAP()
-
-};
-
 
 // HandleUnknownContentType (from nsIUnknownContentTypeHandler) implementation.
 // XXX We can get the content type from the channel now so that arg could be dropped.
@@ -90,9 +54,14 @@ NS_IMETHODIMP
 CUnknownContentTypeHandler::ShowProgressDialog(nsIHelperAppLauncher *aLauncher, nsISupports *aContext ) {
 
    CProgressDialog *progressDialog = new CProgressDialog ();
-   progressDialog->Create(IDD_PROGRESS, CWnd::FromHandle(GetDesktopWindow()));
+   theApp.RegisterWindow(progressDialog);
 
+   progressDialog->Create(IDD_PROGRESS, CWnd::FromHandle(GetDesktopWindow()));
    progressDialog->SetLauncher(aLauncher);
+
+   BOOL bClose = theApp.preferences.GetBool("kmeleon.general.CloseDownloadDialog", true);
+   progressDialog->CheckDlgButton(IDC_CLOSE_WHEN_DONE, bClose);
+
 
    NS_ADDREF (progressDialog);
    aLauncher->SetWebProgressListener (progressDialog);
@@ -321,9 +290,12 @@ CProgressDialog::~CProgressDialog(){
 /* void onStateChange (in nsIWebProgress aWebProgress, in nsIRequest aRequest, in long aStateFlags, in unsigned long aStatus); */
 NS_IMETHODIMP CProgressDialog::OnStateChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest, PRInt32 aStateFlags, PRUint32 aStatus){
    if (aStateFlags & nsIWebProgressListener::STATE_STOP){
-      if (IsDlgButtonChecked(IDC_CLOSE_WHEN_DONE)){
+      if (IsDlgButtonChecked(IDC_CLOSE_WHEN_DONE)) {
          mLauncher->CloseProgressWindow ();
-      }else{
+         theApp.preferences.SetBool("kmeleon.general.CloseDownloadDialog", true);
+      }
+      else
+      {
          char statusText[50];
          PRInt64 now = PR_Now ();
          PRInt64 timeSpent = now - mStartTime;
@@ -336,6 +308,7 @@ NS_IMETHODIMP CProgressDialog::OnStateChange(nsIWebProgress *aWebProgress, nsIRe
          GetDlgItem(IDC_CLOSE_WHEN_DONE)->ShowWindow(SW_HIDE);
 
          mDone = true;
+         theApp.preferences.SetBool("kmeleon.general.CloseDownloadDialog", false);
       }
    }else if (aStateFlags & nsIWebProgressListener::STATE_REDIRECTING){
       SetDlgItemText(IDC_STATUS, "Redirecting...");
@@ -396,11 +369,34 @@ NS_IMETHODIMP CProgressDialog::OnProgressChange(nsIWebProgress *aWebProgress, ns
          mTotalBytes = aMaxTotalProgress;
       }
 
-      if (speed){
+		if (speed) {
          PRInt32 remaining = (PRInt32)((aMaxTotalProgress - aCurTotalProgress)/speed +.5);
 
          char timeString[50];
-         sprintf(timeString, "Time Left: %u Seconds", remaining );
+         int remainHours=0, remainMin=0, remainSec=0, remainTemp;
+         remainTemp = remaining;
+         
+         if (remainTemp > 3600) {
+            remainHours = remainTemp/3600;
+            remainTemp %= 3600;
+         }
+         if (remainTemp > 60) {
+            remainMin = remainTemp/60;
+            remainTemp %= 60;
+         }
+         remainSec = remainTemp;
+	
+         if (remainHours)
+            sprintf(timeString, "Time Left: %d:%02d:%02d", remainHours, remainMin, remainSec);
+         else if (remainMin) {
+            if (remainMin == 1)
+               sprintf(timeString, "Time Left: %d Minute, %0d Seconds", remainMin, remainSec);
+            else
+               sprintf(timeString, "Time Left: %d Minutes, %0d Seconds", remainMin, remainSec);
+         }
+         else
+            sprintf(timeString, "Time Left: %d Seconds", remainSec);
+
          SetDlgItemText(IDC_TIME_LEFT, timeString);
       }
 
@@ -412,7 +408,7 @@ NS_IMETHODIMP CProgressDialog::OnProgressChange(nsIWebProgress *aWebProgress, ns
       GetDlgItem(IDC_DOWNLOAD_PROGRESS, &progressBar);
       ::SendMessage(progressBar, PBM_SETRANGE, 0, MAKELPARAM(0, 100)); 
       ::SendMessage(progressBar, PBM_SETPOS, (WPARAM) percent, 0);
-    }
+   }
    return NS_OK;
 }
 
@@ -467,18 +463,32 @@ void CProgressDialog::SetLauncher(nsIHelperAppLauncher *aLauncher){
 
 BEGIN_MESSAGE_MAP(CProgressDialog, CDialog)
 	ON_COMMAND(IDC_OPEN, OnOpen)
+	ON_COMMAND(WM_CLOSE, OnClose)
 END_MESSAGE_MAP()
+
+void CProgressDialog::Cancel() {
+   mLauncher->Cancel();
+   mLauncher->CloseProgressWindow ();   
+}
 
 void CProgressDialog::OnCancel() {
    if (mDone){
       DestroyWindow();
-   }else{
-      mLauncher->Cancel();
-      mLauncher->CloseProgressWindow ();
+   }
+   else {
+      Cancel();
    }
 }
 
-void CProgressDialog::OnOpen(){
+void CProgressDialog::OnClose() {
+   if (!mDone) {
+      mLauncher->Cancel();
+      mLauncher->CloseProgressWindow ();
+   }
+   theApp.UnregisterWindow(this);
+}
+
+void CProgressDialog::OnOpen() {
    char *directory = strdup(mFilePath);
    char *last_slash = strrchr(directory, '\\');
    *last_slash = 0;
