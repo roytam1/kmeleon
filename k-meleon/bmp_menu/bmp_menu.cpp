@@ -102,7 +102,7 @@ BmpMapT bmpMap;
 
 typedef std::map<std::string, int> DefineMapT;
 
-void ParseConfig(char *buffer){
+void ParseConfig(char *buffer) {
   hImageList = ImageList_Create(16, 16, ILC_MASK | ILC_COLOR8, 32, 256);
 
 	DefineMapT defineMap;
@@ -110,12 +110,12 @@ void ParseConfig(char *buffer){
 	#include "../definemap.cpp"
 	DefineMapT::iterator defineMapIt;
   
-  BOOL currentBitmap = false;
+   BOOL currentBitmap = false;
 	int index = 0;
 
 	char *p;
 	while ((p = strtok(NULL, "\n")) != NULL){
-		if (*p == '#'){
+		if (*p == '#') {
 			continue;
 		}
 		else if (!currentBitmap){
@@ -125,7 +125,7 @@ void ParseConfig(char *buffer){
 				TrimWhiteSpace(p);
 				p = SkipWhiteSpace(p);
 
-        HBITMAP bitmap;
+            HBITMAP bitmap;
 				if (strchr(p, ':') || *p == '/' || *p == '\\') {
 					bitmap = (HBITMAP)LoadImage(NULL, p, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE);
 				}
@@ -228,12 +228,15 @@ void DoMenu(HMENU menu, char *param){
    // only do this the first time
    if (refCount == 0) {
       menus.push_back(menu);
-
-      HINSTANCE plugin = LoadLibrary(param);
-      SetOwnerDrawn(menu, plugin);
-      if (plugin) {
-         FreeLibrary(plugin);
+      if (*param) {
+         HINSTANCE plugin = LoadLibrary(param);
+         if (plugin) {
+            SetOwnerDrawn(menu, plugin);
+            FreeLibrary(plugin);
+         }
       }
+      else
+         SetOwnerDrawn(menu, NULL);
    }
 }
 
