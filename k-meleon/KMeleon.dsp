@@ -93,6 +93,10 @@ LINK32=link.exe
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
+SOURCE=.\AccelParser.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\BrowserFrameGlue.cpp
 # End Source File
 # Begin Source File
@@ -162,6 +166,19 @@ SOURCE=.\StdAfx.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\Utils.cpp
+
+!IF  "$(CFG)" == "kmeleon - Win32 Release"
+
+# SUBTRACT CPP /YX /Yc /Yu
+
+!ELSEIF  "$(CFG)" == "kmeleon - Win32 Debug"
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
 SOURCE=.\winEmbedFileLocProvider.cpp
 # SUBTRACT CPP /YX /Yc /Yu
 # End Source File
@@ -169,6 +186,10 @@ SOURCE=.\winEmbedFileLocProvider.cpp
 # Begin Group "Header Files"
 
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
+# Begin Source File
+
+SOURCE=.\AccelParser.h
+# End Source File
 # Begin Source File
 
 SOURCE=.\BrowserFrm.h
@@ -224,6 +245,10 @@ SOURCE=.\Resource.h
 # Begin Source File
 
 SOURCE=.\StdAfx.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Utils.h
 # End Source File
 # Begin Source File
 
