@@ -16,6 +16,7 @@
 *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
+#include "version.h"
 
 #include "StdAfx.h"
 #include "About.h"
@@ -57,7 +58,7 @@ CAboutDlg::CAboutDlg() : CDialog(CAboutDlg::IDD)
       Documentation:\r\n
       Lance Hall (aka pyzr) <pyzr@pyzr.com>
   );
-  m_version.Format("Version " VERSION " Build %d Compiled " BUILD_TIME, BUILD_NUMBER);
+  m_version.Format("Version %s Build %d Compiled %s", VERSION, BUILD_NUMBER, BUILD_TIME);
 }
 
 void CAboutDlg::DoDataExchange(CDataExchange* pDX){
