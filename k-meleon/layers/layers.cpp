@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2002 Ulf Erikson <ulferikson@fastmail.fm>
+ * Copyright (C) 2002-2003 Ulf Erikson <ulferikson@fastmail.fm>
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -39,6 +39,7 @@
 
 #define MAX_LAYERS 32
 #define BUF_SIZE 20
+#define IMAGE_LAYER_BUTTON 0
 
 #define PLUGIN_NAME  "Layered Windows Plugin"
 
@@ -138,6 +139,7 @@ MenuList *gMenuList = NULL;
 HWND ghCurHwnd;
 int curLayer;
 
+HIMAGELIST gImagelist;
 HWND ghParent;
 int bLayer;
 int bBack;
@@ -349,6 +351,55 @@ void CondenseMenuText(char *buf, char *title, int index) {
 }
 
 
+// look for filename first in the skinsDir, then in the settingsDir
+// check for the filename in skinsDir, and copy the path into szSkinFile
+// if it's not there, just assume it's in settingsDir, and copy that path
+
+void FindSkinFile( char *szSkinFile, char *filename ) {
+
+   char szTmpSkinDir[MAX_PATH];
+   char szTmpSkinName[MAX_PATH];
+   char szTmpSkinFile[MAX_PATH] = "";
+
+   if (!szSkinFile || !filename || !*filename)
+      return;
+
+   kPlugin.kFuncs->GetPreference(PREF_STRING, "kmeleon.general.skinsDir", szTmpSkinDir, (char*)"");
+   kPlugin.kFuncs->GetPreference(PREF_STRING, "kmeleon.general.skinsCurrent", szTmpSkinName, (char*)"");
+
+   if (*szTmpSkinDir && *szTmpSkinName) {
+      strcpy(szTmpSkinFile, szTmpSkinDir);
+
+      int len = strlen(szTmpSkinFile);
+      if (szTmpSkinFile[len-1] != '\\')
+         strcat(szTmpSkinFile, "\\");
+
+      strcat(szTmpSkinFile, szTmpSkinName);
+      len = strlen(szTmpSkinFile);
+      if (szTmpSkinFile[len-1] != '\\')
+         strcat(szTmpSkinFile, "\\");
+
+      strcat(szTmpSkinFile, filename);
+
+      WIN32_FIND_DATA FindData;
+
+      HANDLE hFile = FindFirstFile(szTmpSkinFile, &FindData);
+      if(hFile != INVALID_HANDLE_VALUE) {   
+         FindClose(hFile);
+         strcpy( szSkinFile, szTmpSkinFile );
+         return;
+      }
+   }
+
+   // it wasn't in the skinsDir, assume settingsDir
+   kPlugin.kFuncs->GetPreference(PREF_STRING, "kmeleon.general.settingsDir", szSkinFile, (char*)"");
+   if (! *szSkinFile)      // no settingsDir, bad
+      strcpy(szSkinFile, filename);
+   else
+      strcat(szSkinFile, filename);
+}
+
+
 int nHSize, nHRes;
 
 int Init(){
@@ -392,6 +443,28 @@ int Init(){
    kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_CATCHOPEN_WINDOW, &bCatchOpenWindow, &bCatchOpenWindow);
    kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_CATCHCLOSE_WINDOW, &bCatchCloseWindow, &bCatchCloseWindow);
    
+
+   HBITMAP bitmap;
+   int ilc_bits = ILC_COLOR;
+
+   char szFullPath[MAX_PATH];
+   FindSkinFile(szFullPath, "layers.bmp");
+   FILE *fp = fopen(szFullPath, "r");
+   if (fp) {
+      fclose(fp);
+      bitmap = (HBITMAP)LoadImage(NULL, szFullPath, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+
+      BITMAP bmp;
+      GetObject(bitmap, sizeof(BITMAP), &bmp);
+      
+      ilc_bits = (bmp.bmBitsPixel == 32 ? ILC_COLOR32 : (bmp.bmBitsPixel == 24 ? ILC_COLOR24 : (bmp.bmBitsPixel == 16 ? ILC_COLOR16 : (bmp.bmBitsPixel == 8 ? ILC_COLOR8 : (bmp.bmBitsPixel == 4 ? ILC_COLOR4 : ILC_COLOR)))));
+      gImagelist = ImageList_Create(bmp.bmWidth, bmp.bmHeight, ILC_MASK | ilc_bits, 4, 4);
+      if (gImagelist && bitmap)
+	ImageList_AddMasked(gImagelist, bitmap, RGB(255, 0, 255));
+      if (bitmap)
+	DeleteObject(bitmap);
+   } 
+
    return true;
 }
 
@@ -472,6 +545,8 @@ void Config(HWND hWndParent){
 }
 
 void Quit(){
+   if (gImagelist)
+      ImageList_Destroy(gImagelist);
 }
 
 void DoMenu(HMENU menu, char *param){
@@ -599,7 +674,10 @@ void addRebarButton(HWND hWndTB, char *text, int num, int active)
       ((nButtonMaxWidth < 0) ? TBSTYLE_AUTOSIZE : 0) | TBSTYLE_ALTDRAG | TBSTYLE_WRAPABLE |
       (((nButtonStyle & BS_PRESSED) && active) ? TBSTYLE_CHECK : 0);
    button.idCommand = id_layer + num;
-   button.iBitmap = 0;
+   if (gImagelist)
+      button.iBitmap = MAKELONG(IMAGE_LAYER_BUTTON, 0);
+   else
+      button.iBitmap = 0;
    
    SendMessage(hWndTB, TB_INSERTBUTTON, (WPARAM)-1, (LPARAM)&button);
 
@@ -622,7 +700,10 @@ void BuildRebar(HWND hWndTB, HWND hWndParent)
    SetWindowText(hWndTB, "");
    
    // SendMessage(hWndTB, TB_SETEXTENDEDSTYLE, 0, TBSTYLE_EX_DRAWDDARROWS);
-   SendMessage(hWndTB, TB_SETIMAGELIST, 0, (LPARAM)NULL);
+   if (gImagelist)
+      SendMessage(hWndTB, TB_SETIMAGELIST, 0, (LPARAM)gImagelist);
+   else
+      SendMessage(hWndTB, TB_SETIMAGELIST, 0, (LPARAM)NULL);
    struct frame *pFrame = find_frame(hWndParent);
    if (!pFrame) {
      SendMessage(hWndTB, TB_SETBUTTONWIDTH, 0, MAKELONG(nMaxWidth >= 0 ? nMaxWidth : 0, nMaxWidth >= 0 ? nMaxWidth : 0));
