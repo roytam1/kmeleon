@@ -570,20 +570,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
          char *c;
          while ((c = strpbrk(dInfo->title, "\\/:*?\"<>|")) != NULL) *c = ' ';
 
-         CString filename = gFavoritesPath;
-         filename += dInfo->title;
+         CString filename = dInfo->title;
          filename += _T(".url");
+         gFavoritesFiles.Add(filename);
+         filename = gFavoritesPath + filename;
          ::WritePrivateProfileString(_T("InternetShortcut"), _T("URL"), dInfo->url, filename);
 
          int nPos = gFavorites.GetSize();
          
-         char *pszTemp = _strdup(dInfo->title);
-         CondenseString(pszTemp, 40);
+         char *pszTemp = fixString(dInfo->title, 40);
          AppendMenu(gFavoritesMenu, MF_STRING, nFirstFavoriteCommand+nPos, pszTemp);
-         gFavorites.Add(pszTemp);         
+         gFavorites.Add(pszTemp);
+         gIcons.Add(0);
          delete pszTemp;
-
-         gFavoritesFiles.Add(filename);
 
          DrawMenuBar(hWnd);
 
