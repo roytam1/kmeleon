@@ -42,12 +42,14 @@
 // Local Includes
 #include "stdafx.h"
 #include "MfcEmbed.h"
+#include "HiddenWnd.h"
 #include "BrowserFrm.h"
 #include "winEmbedFileLocProvider.h"
 #include "ProfileMgr.h"
 #include "BrowserImpl.h"
 #include "nsIWindowWatcher.h"
 #include "kmeleonConst.h"
+//#include "UnknownContentTypeHandler.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -129,6 +131,37 @@ nsresult CMfcEmbedApp::OverrideComponents()
       } else
        ::FreeLibrary(overlib);
    }
+/*
+   // Override the UnknownContentHandler
+   nsCOMPtr<nsIFactory> unkFactory;
+   rv = NewUnknownContentHandlerFactory(getter_AddRefs(unkFactory));
+   if (NS_FAILED(rv)) return rv;
+   rv = nsComponentManager::RegisterFactory(kUnknownContentTypeHandlerCID,
+	   NS_IUNKNOWNCONTENTTYPEHANDLER_CLASSNAME,
+	   NS_IUNKNOWNCONTENTTYPEHANDLER_CONTRACTID ,
+	   unkFactory,
+	   PR_TRUE); // replace existing
+*/
+/*
+   rv = nsComponentManager::RegisterFactory(kUnknownContentTypeHandlerCID,
+	   NS_IHELPERAPPLAUNCHERDLG_CLASSNAME,
+	   NS_IHELPERAPPLAUNCHERDLG_CONTRACTID,
+	   unkFactory,
+	   PR_TRUE); // replace existing
+
+*/
+/*
+   // Override the nsIHelperAppLauncherDialog
+   nsCOMPtr<nsIFactory> helpFactory;
+   rv = NewUnknownContentHandlerFactory(getter_AddRefs(helpFactory));
+   if (NS_FAILED(rv)) return rv;
+   rv = nsComponentManager::RegisterFactory(kHelperAppLauncherDialogCID,
+	   NS_IHELPERAPPLAUNCHERDLG_CLASSNAME,
+	   NS_IHELPERAPPLAUNCHERDLG_CONTRACTID,
+	   helpFactory,
+	   PR_TRUE); // replace existing
+*/
+   
    return rv;
 }
 
@@ -186,7 +219,7 @@ LPCTSTR CMfcEmbedApp::GetMainWindowClassName() {
 //
 BOOL CMfcEmbedApp::InitInstance()
 {
-   
+
    // Parse command line
 //	ParseCmdLine();
 
@@ -203,7 +236,7 @@ BOOL CMfcEmbedApp::InitInstance()
    // eventually, we should handle this through DDE
    if (m_bAlreadyRunning) {
       // find the hidden window
-      if (HWND hwndPrev = FindWindowEx(NULL, NULL, "KMeleon", NULL) ) {
+      if (HWND hwndPrev = FindWindowEx(NULL, NULL, GetMainWindowClassName(), NULL) ) {
          if(*m_lpCmdLine) {
             COPYDATASTRUCT copyData;
             copyData.cbData = strlen(m_lpCmdLine);
@@ -261,36 +294,20 @@ BOOL CMfcEmbedApp::InitInstance()
 
    plugins.FindAndLoad("*.dll");
 
-   // Check if the tray control is running...if it is, we'll
-   // ask if we should stay resident between sessions
-   HWND hwndLoader = FindWindowEx(NULL, NULL, "KMeleon Tray Control", NULL);
-   if (hwndLoader)
-      ((CHiddenWnd*) m_pMainWnd)->GetPersist();
-
    // see if we're staying resident
-   if (((CHiddenWnd*) m_pMainWnd)->m_bStayResident) {
-      if ( ((CHiddenWnd*) m_pMainWnd)->StayResident() ) {
-         if (((CHiddenWnd*) m_pMainWnd)->m_bPreloadWindow)
-            m_pMostRecentBrowserFrame->m_wndReBar.DrawToolBarMenu();
-      }
-      else
-         return FALSE;
-   }
-
-   // otherwise we should create a browser and load the start page
-   else {
-      // Create the first browser frame window, hidden if the -persist flag is set
+   // if we're not, we should create a browser and load the start page
+   if (((CHiddenWnd*) m_pMainWnd)->Persisting() != PERSIST_STATE_PERSISTING) {
+      // Create the first browser frame window
 	   CBrowserFrame *pBrowserFrame = CreateNewBrowserFrame();
       if(!pBrowserFrame)
          return FALSE;
-      pBrowserFrame->m_wndReBar.DrawToolBarMenu();
       
       if ( *m_lpCmdLine )
          pBrowserFrame->m_wndBrowserView.OpenURL(m_lpCmdLine);
       else
          pBrowserFrame->m_wndBrowserView.LoadHomePage();
    }
-
+  
    return TRUE;
 }
 
@@ -427,7 +444,7 @@ void CMfcEmbedApp::RemoveFrameFromList(CBrowserFrame* pFrm, BOOL bCloseAppOnLast
       // if we're switching profiles, we don't need to do anything
       if (!bCloseAppOnLastFrame) {}
       // if we're staying resident, create the hidden browser window
-      else if ( ((CHiddenWnd*) m_pMainWnd)->m_bStayResident ) {
+      else if (((CHiddenWnd*) m_pMainWnd)->Persisting() == PERSIST_STATE_ENABLED) {
          ((CHiddenWnd*) m_pMainWnd)->StayResident();
       }
       // otherwise we're exiting, close the Evil Hidden Window
@@ -651,198 +668,4 @@ NS_IMETHODIMP CMfcEmbedApp::CreateChromeWindow(nsIWebBrowserChrome *parent,
    }
    return NS_OK;
 
-}
-
-
-BEGIN_MESSAGE_MAP(CHiddenWnd, CFrameWnd)
-	//{{AFX_MSG_MAP(CHiddenWnd)
-   ON_WM_CREATE()
-   ON_WM_CLOSE()
-   ON_WM_COPYDATA()
-	ON_MESSAGE(UWM_NEWWINDOW, OnNewWindow)
-   ON_MESSAGE(UWM_PERSIST_SET, OnSetPersist)
-   ON_MESSAGE(UWM_PERSIST_SHOW, ShowBrowser)
-	//}}AFX_MSG_MAP
-END_MESSAGE_MAP()
-
-
-
-
-BOOL CHiddenWnd::PreCreateWindow(CREATESTRUCT& cs) {
-
-	if( !CFrameWnd::PreCreateWindow(cs) )
-		return FALSE;
-   cs.lpszClass = theApp.GetMainWindowClassName();
-
-   return TRUE;
-}
-
-void CHiddenWnd::OnCreate(LPCREATESTRUCT lpCreateStruct) {
-   m_bPersisting = FALSE;
-   m_bStayResident = FALSE;
-   m_bPreloadWindow = FALSE;
-   m_bPreloadStartPage = FALSE;
-
-   CFrameWnd::OnCreate(lpCreateStruct);
-}
-
-void CHiddenWnd::OnClose() {
-   if (!m_bStayResident)
-      CFrameWnd::OnClose();
-
-   // the user has selected File|Exit, close all the browser windows
-   else {
-      CBrowserFrame* pBrowserFrame = NULL;
-
-	   POSITION pos = theApp.m_FrameWndLst.GetHeadPosition();
-      while( pos != NULL ) {
-		   pBrowserFrame = (CBrowserFrame *) theApp.m_FrameWndLst.GetNext(pos);
-		   if(pBrowserFrame)	{
-			   pBrowserFrame->ShowWindow(false);
-   			pBrowserFrame->DestroyWindow();
-	   	}
-	   }
-	   theApp.m_FrameWndLst.RemoveAll();
-      StayResident();
-   }
-}
-
-void CHiddenWnd::OnSetPersist(DWORD flags) {
-   BOOL bNewStayResident = (flags & PERSIST_BROWSER);
-   BOOL bNewPreloadWindow = (flags & PERSIST_WINDOW);
-   BOOL bNewPreloadStartPage =(flags & PERSIST_STARTPAGE);
-
-   // a little sanity checking
-   if (bNewPreloadStartPage && ! bNewPreloadWindow)
-      bNewPreloadStartPage = FALSE;
-
-   // update the hidden window with the new settings
-   if (m_bPersisting) {
-
-      if (!bNewStayResident)
-         PostMessage(WM_QUIT);
-
-      // preload the window
-      if (bNewPreloadWindow && !m_bPreloadWindow) {
-         m_pHiddenBrowser = theApp.CreateNewBrowserFrame(nsIWebBrowserChrome::CHROME_ALL,
-                                                     -1, -1, -1, -1, PR_FALSE);
-         if (bNewPreloadStartPage)
-            m_pHiddenBrowser->m_wndBrowserView.LoadHomePage();
-         else
-            m_pHiddenBrowser->m_wndBrowserView.OpenURL("about:blank");
-      }
-
-      // don't preload the window
-      if (!bNewPreloadWindow && m_bPreloadWindow) {
-         m_pHiddenBrowser->DestroyWindow();
-         POSITION pos = theApp.m_FrameWndLst.Find(m_pHiddenBrowser);
-         theApp.m_FrameWndLst.RemoveAt(pos);
-      }
-
-      // preload the start page
-      if (bNewPreloadStartPage && !m_bPreloadStartPage)
-         m_pHiddenBrowser->m_wndBrowserView.LoadHomePage();
-
-      // don't preload the start page
-      if (bNewPreloadWindow && !bNewPreloadStartPage && m_bPreloadStartPage)
-         m_pHiddenBrowser->m_wndBrowserView.OpenURL("about:blank");
-   }
-
-   m_bStayResident = bNewStayResident;
-   m_bPreloadWindow = bNewPreloadWindow;
-   m_bPreloadStartPage = bNewPreloadStartPage;
-}
-
-void CHiddenWnd::GetPersist() {
-   HWND hwndLoader = FindWindowEx(NULL, NULL, "KMeleon Tray Control", NULL);
-   if (hwndLoader) {
-      LRESULT flags = ::SendMessage(hwndLoader, UWM_PERSIST_GET, NULL, NULL);
-
-      m_bStayResident = ((flags & PERSIST_BROWSER));
-      m_bPreloadWindow = ((flags & PERSIST_WINDOW));
-      m_bPreloadStartPage = ((flags & PERSIST_STARTPAGE));
-      m_bShowNow =  ((flags & PERSIST_SHOWNOW));
-
-      // a little sanity checking
-      if (m_bPreloadStartPage && ! m_bPreloadWindow)
-         m_bPreloadStartPage = FALSE;
-   
-   }
-   else {
-      m_bStayResident = FALSE;
-      m_bPreloadWindow = FALSE;
-      m_bPreloadStartPage = FALSE;
-      m_bShowNow = FALSE;
-   }
-}
-
-BOOL CHiddenWnd::StayResident() {
-
-   // if the ShowNow flag is set, we're not really going to stay resident
-   if (m_bShowNow) {
-      m_bShowNow = FALSE;
-      m_bPersisting = FALSE;
-
-      m_pHiddenBrowser = theApp.CreateNewBrowserFrame();
-      if (!m_pHiddenBrowser)
-         return FALSE;
-      m_pHiddenBrowser->m_wndBrowserView.LoadHomePage();
-   }
-
-   else {
-      m_bPersisting = TRUE;
-
-      if (m_bPreloadWindow) {
-         m_pHiddenBrowser = theApp.CreateNewBrowserFrame(nsIWebBrowserChrome::CHROME_ALL,
-                                                     -1, -1, -1, -1, PR_FALSE);
-         if (!m_pHiddenBrowser)
-            return FALSE;
-
-         if (m_bPreloadStartPage)
-            m_pHiddenBrowser->m_wndBrowserView.LoadHomePage();
-         else
-            m_pHiddenBrowser->m_wndBrowserView.OpenURL("about:blank");
-      }
-   }
-
-   return TRUE;
-}
-
-void CHiddenWnd::ShowBrowser(char *URI) {
-
-   // if we already have a browser, load home page (if necessary), and show the window
-   if (m_bPersisting && m_bPreloadWindow) {
-      if (URI)
-         m_pHiddenBrowser->m_wndBrowserView.OpenURL(URI);
-      else if (!m_bPreloadStartPage)
-         m_pHiddenBrowser->m_wndBrowserView.LoadHomePage();
-
-      if (theApp.preferences.bMaximized) m_pHiddenBrowser->ShowWindow(SW_MAXIMIZE);
-      else m_pHiddenBrowser->ShowWindow(SW_SHOW);
-      m_pHiddenBrowser->SetWindowPos(&wndTop, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | SWP_SHOWWINDOW);
-
-      m_bPersisting = FALSE;
-   }
-
-   // otherwise, just create a new browser
-   else {
-      CBrowserFrame* browser;
-      browser = theApp.CreateNewBrowserFrame(nsIWebBrowserChrome::CHROME_ALL, -1, -1, -1, -1, PR_TRUE);
-      if (URI)
-         browser->m_wndBrowserView.OpenURL(URI);
-      else
-         browser->m_wndBrowserView.LoadHomePage();
-   }
-}
-
-// This is called from another instance of Kmeleon (via the UWM_NEWWINDOW message),
-// when no command line paramaters have been specified
-void CHiddenWnd::OnNewWindow() {
-   ShowBrowser();
-}
-
-// This is called from another instance of Kmeleon,
-// and contains any command line parameters specified
-void CHiddenWnd::OnCopyData(CWnd* pWnd, COPYDATASTRUCT* pCopyDataStruct) {
-   ShowBrowser((char *) pCopyDataStruct->lpData);
 }
