@@ -95,9 +95,14 @@ int CReBarEx::FindByIndex(int index) {
 
 void CReBarEx::DrawToolBarMenu() {
    if (!m_menu) return;
-   for (int x=0; x<tbCount; x++)
-      if (tbIndex[x]->name)
-         AppendMenu(m_menu, MF_STRING, TOOLBAR_MENU_START_ID+x, tbIndex[x]->name);
+   for (int x=0; x<tbCount; x++) {
+      if (tbIndex[x]->name) {
+         if (tbIndex[x]->visibility)
+            AppendMenu(m_menu, MF_CHECKED	| MF_STRING, TOOLBAR_MENU_START_ID+x, tbIndex[x]->name);
+         else
+            AppendMenu(m_menu, MF_STRING, TOOLBAR_MENU_START_ID+x, tbIndex[x]->name);
+      }
+   }
 }
 
 BOOL CReBarEx::GetVisibility(int index) {
@@ -106,6 +111,14 @@ BOOL CReBarEx::GetVisibility(int index) {
 
 void CReBarEx::SetVisibility(int index, BOOL visibility) {
    GetReBarCtrl().ShowBand(FindByIndex(index), visibility);
+
+   if (tbIndex[index]->visibility)
+      CheckMenuItem(m_menu, index+TOOLBAR_MENU_START_ID, MF_BYCOMMAND | MF_UNCHECKED);
+   else
+      CheckMenuItem(m_menu, index+TOOLBAR_MENU_START_ID, MF_BYCOMMAND | MF_CHECKED);
+
+   DrawMenuBar();
+
    tbIndex[index]->visibility = visibility;
 }
 
@@ -146,7 +159,7 @@ void CReBarEx::RestoreBandSizes(){
    REBARBANDINFO rbbi;
    rbbi.cbSize = sizeof(rbbi);
 
-   for (x=0; x<GetReBarCtrl().GetBandCount(); x++) {
+   for (x=0; (UINT) x<GetReBarCtrl().GetBandCount(); x++) {
       rbbi.fMask = RBBIM_ID;
       rbbi.wID = PLUGIN_REBAR_START_ID + x;
       GetReBarCtrl().SetBandInfo(x, &rbbi);
