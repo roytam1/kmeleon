@@ -86,9 +86,10 @@ CMfcEmbedApp theApp;
 //
 BOOL CMfcEmbedApp::InitInstance()
 {
-	Enable3dControls();
 
-	// Take a look at 
+//	Enable3dControls();   
+   
+   // Take a look at 
 	// http://www.mozilla.org/projects/xpcom/file_locations.html
 	// for more info on File Locations
 
@@ -117,20 +118,20 @@ BOOL CMfcEmbedApp::InitInstance()
       return FALSE;
    }
 
-   plugins.FindAndLoad("kmeleon_*.dll");
-
    if(!CreateHiddenWindow()){
       ASSERT(FALSE);
       NS_TermEmbedding();
       return FALSE;
    }
 
+   plugins.FindAndLoad("kmeleon_*.dll");
+
+   // Create the first browser frame window
+	CBrowserFrame *pBrowserFrame = CreateNewBrowserFrame();
+
    // Parse command line for standard shell commands, DDE, file open
 	CCommandLineInfo cmdInfo;
 	ParseCommandLine(cmdInfo);
-
-	// Create the first browser frame window
-	CBrowserFrame *pBrowserFrame = CreateNewBrowserFrame();
 
 	//Load the HomePage into the browser view
    if(pBrowserFrame){
