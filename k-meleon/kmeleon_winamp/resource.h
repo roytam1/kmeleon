@@ -2,6 +2,11 @@
 // Microsoft Developer Studio generated include file.
 // Used by kmeleon_winamp.rc
 //
+#define IDS_PREV                        1
+#define IDS_PLAY                        2
+#define IDS_PAUSE                       3
+#define IDS_STOP                        4
+#define IDS_NEXT                        5
 #define IDB_TOOLBAR_BUTTONS             162
 #define ID_WINAMP_PREV                  2501
 #define ID_WINAMP_NEXT                  2502

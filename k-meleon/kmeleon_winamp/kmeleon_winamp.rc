@@ -120,6 +120,21 @@ END
 //
 
 IDB_TOOLBAR_BUTTONS     BITMAP  DISCARDABLE     "bmp00001.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_PREV                "Previous"
+    IDS_PLAY                "Play"
+    IDS_PAUSE               "Pause"
+    IDS_STOP                "Stop"
+    IDS_NEXT                "Next"
+END
+
 #endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
 
