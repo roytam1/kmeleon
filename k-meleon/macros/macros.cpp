@@ -663,9 +663,8 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
          int nRetval = 0;
          if (preftype == PREF_STRING) {
             kFuncs->GetPreference(preftype,(char*)params[1].c_str(),&cRetval,NULL);
-            std::string strRet = "\"";
-            strRet += cRetval;
-            strRet += "\"";
+            std::string strRet;
+            strRet = protectString( cRetval );
             return strRet;
          }
          else if (preftype == PREF_INT) {
@@ -973,9 +972,8 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
          int nRetval = 0;
          if (preftype == PREF_STRING) {
             kFuncs->SendMessage((char*)params[0].c_str(), PLUGIN_NAME, (char*)params[1].c_str(), (long) params[2].c_str(), (long) &cRetval);
-            std::string strRet = "\"";
-            strRet += cRetval;
-            strRet += "\"";
+            std::string strRet;
+            strRet = protectString( cRetval );
             return strRet;
          }
          else if (preftype == PREF_INT) {
