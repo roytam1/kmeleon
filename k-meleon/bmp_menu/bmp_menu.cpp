@@ -224,14 +224,16 @@ void Quit(){
 }
 
 void DoMenu(HMENU menu, char *param){
-  // only do this the first time
-  if (refCount == 0){
-    menus.push_back(menu);
+   // only do this the first time
+   if (refCount == 0) {
+      menus.push_back(menu);
 
-    HINSTANCE plugin = LoadLibrary(param);
-    SetOwnerDrawn(menu, plugin);
-    if (plugin) FreeLibrary(plugin);
-  }
+      HINSTANCE plugin = LoadLibrary(param);
+      if (plugin) {
+         SetOwnerDrawn(menu, plugin);
+         FreeLibrary(plugin);
+      }
+   }
 }
 
 void DoRebar(HWND rebarWnd) {
@@ -430,13 +432,13 @@ void SetOwnerDrawn(HMENU menu, HINSTANCE plugin){
       }
    }
    else
-    DrawProc = DrawBitmap;
+      DrawProc = DrawBitmap;
 
    for (i=0; i<count; i++){
       state = ::GetMenuState(menu, i, MF_BYPOSITION);
       if (state & MF_POPUP){
          SetOwnerDrawn(GetSubMenu(menu, i), plugin);
-         if (plugin){
+         if (plugin) {
             mmi.fMask = MIIM_TYPE;
             mmi.cch = 0;
             mmi.dwTypeData = NULL;
