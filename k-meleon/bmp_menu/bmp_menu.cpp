@@ -32,9 +32,13 @@
 #include "../kmeleon_plugin.h"
 
 #define BMP_MENU_VERSION 3333
-#define LEFT_SPACE 16
+#define BMP_PADDING_LEFT 3
+#define BMP_PADDING_RIGHT 4
 #define BMP_HEIGHT 16
 #define BMP_WIDTH  16
+int     SPACE_BETWEEN = 0; // the space between the text and the accelerator, set to the width of 'X'
+#define MARGIN_LEFT BMP_WIDTH + BMP_PADDING_LEFT + BMP_PADDING_RIGHT
+#define MARGIN_RIGHT 16
 
 typedef int (*DRAWBITMAPPROC)(DRAWITEMSTRUCT *dis);
 
@@ -101,6 +105,19 @@ BmpMapT bmpMap;
 
 // maps "ID_BLAH" to ID_BLAH
 typedef std::map<std::string, int> DefineMapT;
+
+
+
+
+HMENU ghMenuLast;          // the last menu that we've drawn
+int   giMaxAccelWidth;     // the longest accelerator (used by DrawMenuItem)
+int   giMaxTextMeasured;    // the longest text (used by MeasureMenuItem)
+int   giMaxAccelMeasured;   // the longest accelerator (used by MeasureMenuItem)
+BOOL  gbDrawn = TRUE;      // after the menu is drawn, we should reset iMaxText and iMaxAccel
+
+
+
+
 
 
 void ParseConfig(char *buffer) {
@@ -173,6 +190,29 @@ int Init() {
    bFirstRun = TRUE;
 
    kPlugin.kf->GetPreference(PREF_STRING, "kmeleon.general.settingsDir", settingsPath, "");
+
+
+
+   // calculate the width of the character "X"
+   // this will be used as a measurement for space between the
+   // text and the accelerator
+   NONCLIENTMETRICS ncm = {0};
+   ncm.cbSize = sizeof(ncm);
+   SystemParametersInfo(SPI_GETNONCLIENTMETRICS,0,(PVOID)&ncm,FALSE);
+
+   HDC hDC = CreateCompatibleDC(NULL);
+   HFONT font;
+   font = CreateFontIndirect(&ncm.lfMenuFont);
+   HFONT oldFont = (HFONT)SelectObject(hDC, font); 
+   
+   SIZE size;
+   GetTextExtentPoint32(hDC, "X", 1, &size);
+
+   SPACE_BETWEEN = size.cx;
+
+   SelectObject(hDC, oldFont);
+   DeleteObject(font);
+
 
    char cfgPath[MAX_PATH];
    strcpy(cfgPath, settingsPath);
@@ -247,7 +287,7 @@ void DoMenu(HMENU menu, char *param){
       
       // Don't ownerdraw the top level menu items (File, Edit, View, etc)
       // We can't actually be sure that this is going to be that menu.
-      // Perhaps someone who only want menuicons on the File menu will decide
+      // Perhaps someone who only wants menuicons on the File menu will decide
       // to move the bmpmenu() call from the top level menu into the file menu...
       // In that circumstance, none of the entries under "File" will be ownerdrawn...oops
 
@@ -278,21 +318,24 @@ int DrawBitmap(DRAWITEMSTRUCT *dis) {
       top += dis->rcItem.top;
 
       if (dis->itemState & ODS_GRAYED)
-         ImageList_DrawEx(hImageList, bmpMapIt->second, dis->hDC, dis->rcItem.left+1, top, 0, 0, CLR_NONE, GetSysColor(COLOR_3DFACE), ILD_BLEND  | ILD_TRANSPARENT);
+         ImageList_DrawEx(hImageList, bmpMapIt->second, dis->hDC, dis->rcItem.left+BMP_PADDING_LEFT, top, 0, 0, CLR_NONE, GetSysColor(COLOR_3DFACE), ILD_BLEND  | ILD_TRANSPARENT);
 
       else if (dis->itemState & ODS_SELECTED)
-         ImageList_Draw(hImageList, bmpMapIt->second, dis->hDC, dis->rcItem.left+1, top, ILD_TRANSPARENT);
+         ImageList_Draw(hImageList, bmpMapIt->second, dis->hDC, dis->rcItem.left+BMP_PADDING_LEFT, top, ILD_TRANSPARENT);
 
       else
-         ImageList_Draw(hImageList, bmpMapIt->second, dis->hDC, dis->rcItem.left+1, top, ILD_TRANSPARENT);
+         ImageList_Draw(hImageList, bmpMapIt->second, dis->hDC, dis->rcItem.left+BMP_PADDING_LEFT, top, ILD_TRANSPARENT);
 
-      return LEFT_SPACE;
+      return BMP_WIDTH;
 	}
    else if (dis->itemState & ODS_CHECKED) {
+
+      // the check mark is only 6x6, so we need to offset its drawing position
       if (dis->itemState & ODS_SELECTED)
-         DrawCheckMark(dis->hDC, dis->rcItem.left+6, dis->rcItem.top+5, GetSysColor(COLOR_HIGHLIGHTTEXT));
+         DrawCheckMark(dis->hDC, dis->rcItem.left+BMP_PADDING_LEFT+4, dis->rcItem.top+5, GetSysColor(COLOR_HIGHLIGHTTEXT));
       else
-         DrawCheckMark(dis->hDC, dis->rcItem.left+6, dis->rcItem.top+5, GetSysColor(COLOR_MENUTEXT));
+         DrawCheckMark(dis->hDC, dis->rcItem.left+BMP_PADDING_LEFT+4, dis->rcItem.top+5, GetSysColor(COLOR_MENUTEXT));
+      return BMP_WIDTH;
    }
 
    return 0;
@@ -328,50 +371,58 @@ void DrawCheckMark(HDC pDC,int x,int y,COLORREF color) {
    SetPixel(pDC, x+6, y+2, color);
 }
 
-char *GetMaxTab(HMENU menu){
-	MENUITEMINFO mmi;
-	mmi.cbSize = sizeof(mmi);
-
-	int maxChars = 0;
-   char *maxTab = NULL;
-	int state;
-	char *string;
-	char *tab;
-
-	int count = GetMenuItemCount(menu);
-	int i;
-	for (i=0; i<count; i++) {
-
-		state = GetMenuState(menu, i, MF_BYPOSITION);
-
-		if (state & MF_OWNERDRAW){
-			mmi.fMask = MIIM_DATA;
-			GetMenuItemInfo(menu, i, true, &mmi);
-
+int GetMaxAccelWidth(HDC hDC, HMENU hMenu){
+   MENUITEMINFO mmi;
+   mmi.cbSize = sizeof(mmi);
+   
+   int iMaxAccel = 0;
+   char *string;
+   char *tab;
+   SIZE size;
+   
+   int count = GetMenuItemCount(hMenu);
+   int i;
+   for (i=0; i<count; i++) {      
+      UINT state = GetMenuState(hMenu, i, MF_BYPOSITION);
+      if (state & MF_OWNERDRAW) {
+         mmi.fMask = MIIM_DATA;
+         GetMenuItemInfo(hMenu, i, true, &mmi);            
          string = (char *)mmi.dwItemData;
-
+      
          tab = strchr(string, '\t');
-
+      
          if (tab) {
-            if (strlen(tab) > maxChars) {
-               maxChars = strlen(tab);
-               maxTab = tab+1;
-				}
-			}
-		}
-	}
-	return maxTab;
+            GetTextExtentPoint32(hDC, tab+1, strlen(tab+1), &size);
+            if (size.cx > iMaxAccel) iMaxAccel = size.cx;
+         }
+      }
+   }
+   return iMaxAccel;
 }
 
 void DrawMenuItem(DRAWITEMSTRUCT *dis) {
+   gbDrawn = TRUE;
+   HMENU menu = (HMENU)dis->hwndItem;
 
-	HMENU menu = (HMENU)dis->hwndItem;
+   if ((HMENU) dis->hwndItem != ghMenuLast &&  GetMenuItemCount((HMENU) dis->hwndItem)) {
+      int accelWidth = GetMaxAccelWidth(dis->hDC, (HMENU)dis->hwndItem);
+      if (accelWidth) {
+         giMaxAccelWidth = accelWidth;
+         int width = dis->rcItem.right - dis->rcItem.left;
+      }
+   }
 
-	// make sure itemID is a valid int
-	//dis->itemID = LOWORD(dis->itemID);
    char *string = (char *)dis->itemData;
 
-	BOOL hasBitmap = false;
+   if (!*string) {
+		RECT rc;
+      rc.bottom   = dis->rcItem.bottom;
+      rc.left     = dis->rcItem.left;
+      rc.right    = dis->rcItem.right;
+		rc.top      = dis->rcItem.top + ((rc.bottom-dis->rcItem.top)>>1); // vertical center
+		DrawEdge(dis->hDC, &rc, EDGE_ETCHED, BF_TOP);   // draw separator line
+      return;
+   }
 
 	// Draw the highlight rectangle
 	SetBkMode(dis->hDC, TRANSPARENT);
@@ -388,35 +439,22 @@ void DrawMenuItem(DRAWITEMSTRUCT *dis) {
    if (menuIter != menus.end()){
       DrawProc = menuIter->second;
       int space = DrawProc(dis);
-      if (space>0) {
-         dis->rcItem.left += space;
-         hasBitmap = true;
-      }
    }
 
-	if (!hasBitmap){
-		dis->rcItem.left += LEFT_SPACE;
-	}
-
-   dis->rcItem.left += 4;
+   dis->rcItem.left = MARGIN_LEFT + 1; // start drawing text at the pixel after our margin
 
    RECT rcTab;
 
 	char *tab = strrchr(string, '\t');
 	int itemLen, tabLen;
-	if (tab) {
+
+   if (tab) {
 		itemLen = tab - string;
       tab++;
 		tabLen = strlen(tab);
 
-      char *maxTab = GetMaxTab(menu);
-
       rcTab.top = dis->rcItem.top;
-      rcTab.left = 0;
-      if (maxTab){
-         DrawText(dis->hDC, maxTab, strlen(maxTab), &rcTab, DT_SINGLELINE | DT_CALCRECT );
-      }
-      rcTab.left = dis->rcItem.right - rcTab.right - BMP_WIDTH;
+      rcTab.left = dis->rcItem.right - giMaxAccelWidth - MARGIN_RIGHT;
       rcTab.right = dis->rcItem.right;
       rcTab.bottom = dis->rcItem.bottom;
 	}
@@ -465,39 +503,44 @@ void MeasureMenuItem(MEASUREITEMSTRUCT *mis, HDC hDC) {
    font = CreateFontIndirect(&ncm.lfMenuFont);
    HFONT oldFont = (HFONT)SelectObject(hDC, font); 
 
-   BOOL bWin98 = FALSE;
-   // check for Win98/WinMe (dwMinorVersion = 90 for WinME)
-   OSVERSIONINFO info;
-   info.dwOSVersionInfoSize = sizeof( OSVERSIONINFO );
-   if (GetVersionEx(&info)) {
-      if ( (info.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS) && (info.dwMinorVersion > 0) ) {
-         bWin98 = TRUE;
-      }
+   SIZE size;
+   char *string = (char *)mis->itemData;
+   if (!*string)  { // it's a separator
+      mis->itemWidth = 0;
+      mis->itemHeight = GetSystemMetrics(SM_CYMENUSIZE) >> 1;
+      return;
    }
 
-   char *string = (char *)mis->itemData;
-   SIZE size;
-   int tabWidth = 0;
+   if (gbDrawn) {
+      giMaxTextMeasured = 0;
+      giMaxAccelMeasured = 0;
+      gbDrawn = FALSE;
+   }
+
    char *tab = strrchr(string, '\t');
    if (tab) {
-      // Since we are converting string menus to ownerdrawn,
-      // Windows98 will automatically adjust the size we return to compensate for the
-      // accelerator string, so we shouldn't include it in our measurements
-      if (bWin98) {
-         int tabWidth = 0;
-         GetTextExtentPoint32(hDC, string, tab-string, &size);
-         size.cx += 8;
-      }
-      else {
-         size.cx = LOWORD( GetTabbedTextExtent(hDC, string, strlen(string), 0, NULL) );
-      }
+      int len = tab-string-1;
+      while (*(string+len) == ' ')  // trim trailing spaces (to compensate for sloppy menus and TranslateTabs())
+         len--;
+      GetTextExtentPoint32(hDC, string, len+1, &size);
+      if (size.cx > giMaxTextMeasured) giMaxTextMeasured = size.cx;
+      
+      GetTextExtentPoint32(hDC, tab+1, strlen(tab+1), &size);
+      if (size.cx > giMaxAccelMeasured) giMaxAccelMeasured = size.cx;
+         
+      mis->itemWidth = SPACE_BETWEEN;
+
    }
    else {
       GetTextExtentPoint32(hDC, string, strlen(string), &size);
-      size.cx += 28;
+      if (size.cx > giMaxTextMeasured) giMaxTextMeasured = size.cx;
+      mis->itemWidth = 0;
    }
-
-   mis->itemWidth = size.cx;
+   
+   mis->itemWidth += giMaxTextMeasured + giMaxAccelMeasured;
+   mis->itemWidth += MARGIN_LEFT + MARGIN_RIGHT;
+   // compensate for the width of a chekmark (minus one pixel!) that windows so graciously adds for us
+   mis->itemWidth -= (GetSystemMetrics(SM_CXMENUCHECK)-1);
    mis->itemHeight = GetSystemMetrics(SM_CYMENUSIZE);
    if (mis->itemHeight < 18)
       mis->itemHeight = 18;
@@ -523,7 +566,12 @@ void UnSetOwnerDrawn(HMENU menu){
          mmi.fMask = MIIM_DATA | MIIM_ID;
          GetMenuItemInfo(menu, i, true, &mmi);
 
-         ModifyMenu(menu, i, MF_BYPOSITION | MF_STRING, mmi.wID, mmi.dwTypeData);
+         // subclassing the separator is the key, otherwise widows will do all sorts
+         // of weird things with the numbers we tell it to use in measuremenuitem
+         if (!*((char *)mmi.dwItemData))
+            ModifyMenu(menu, i, MF_BYPOSITION | MF_SEPARATOR, mmi.wID, NULL);
+         else
+            ModifyMenu(menu, i, MF_BYPOSITION | MF_STRING, mmi.wID, mmi.dwTypeData);
       }
    }
 }
@@ -567,9 +615,10 @@ void SetOwnerDrawn(HMENU menu, DRAWBITMAPPROC DrawProc, BOOL topLevel){
          if (!topLevel)
             StringToOwnerDrawn(menu, i, MF_POPUP, (UINT)subMenu);
       }
-      else if (state == 0) {
+      else if (state & MF_SEPARATOR)
+         ModifyMenu(menu, i, MF_BYPOSITION  | MF_OWNERDRAW, i, "");
+      else if (state == 0)
          StringToOwnerDrawn(menu, i, 0, GetMenuItemID(menu, i));
-      }
    }
 }
 
