@@ -211,7 +211,10 @@ KMELEON_PLUGIN kmeleonPlugin *GetKmeleonPlugin() {
 
 KMELEON_PLUGIN int DrawBitmap(DRAWITEMSTRUCT *dis) {
   short position = dis->itemID - commandIDs;
-  ImageList_Draw(himlHot, position, dis->hDC, dis->rcItem.left, dis->rcItem.top, ILD_TRANSPARENT);
+  int top = (dis->rcItem.bottom - dis->rcItem.top - 12) / 2;
+  top += dis->rcItem.top;
+
+  ImageList_Draw(himlHot, position, dis->hDC, dis->rcItem.left, top, ILD_TRANSPARENT);
   return 14;
 }
 
