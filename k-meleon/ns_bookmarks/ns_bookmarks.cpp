@@ -34,7 +34,14 @@
 
 #define MAX_BOOKMARKS 1024
 
-#define _T(blah) blah
+#define _T(x) TEXT(x)
+
+#define PLUGIN_NAME "Netscape Bookmark Plugin"
+
+#define PREFERENCE_BOOKMARK_FILE   "kmeleon.bookmarks.bookmarkFile"
+#define PREFERENCE_TOOLBAR_FOLDER  "kmeleon.bookmarks.toolbarFolder"
+#define PREFERENCE_TOOLBAR_ENABLED "kmeleon.bookmarks.toolbarEnabled"
+#define PREFERENCE_SETTINGS_DIR    "kmeleon.general.settingsDir"
 
 int Init();
 void Create(HWND parent);
@@ -55,11 +62,11 @@ pluginFunctions pFuncs = {
 
 kmeleonPlugin kPlugin = {
    KMEL_PLUGIN_VER,
-   "Netscape Bookmark Plugin",
+   PLUGIN_NAME,
    &pFuncs
 };
 
-HIMAGELIST imagelist; // the one and only imagelist...
+HIMAGELIST m_imagelist; // the one and only imagelist...
 
 HMENU m_menuBookmarks;
 HMENU m_toolbarMenu;
@@ -70,7 +77,10 @@ UINT nEditCommand;
 UINT nDropdownCommand;
 UINT nFirstBookmarkCommand;
 
-TCHAR szPath[MAX_PATH];
+CHAR szPath[MAX_PATH];
+CHAR toolbarFolder[MAX_PATH];
+
+int m_toolbarEnabled;
 
 int Init(){
    nConfigCommand = kPlugin.kf->GetCommandIDs(1);
@@ -80,8 +90,12 @@ int Init(){
 
    nFirstBookmarkCommand = kPlugin.kf->GetCommandIDs(MAX_BOOKMARKS);
 
-   kPlugin.kf->GetPreference(PREF_STRING, _T("kmeleon.general.settingsDir"), szPath, "");
-   strcat(szPath, "bookmarks.html");
+   kPlugin.kf->GetPreference(PREF_STRING, PREFERENCE_BOOKMARK_FILE, szPath, "");
+
+   if (!szPath[0]) {
+      kPlugin.kf->GetPreference(PREF_STRING, PREFERENCE_SETTINGS_DIR, szPath, "");
+      strcat(szPath, "bookmarks.html");
+   }
   
    FILE *bmFile = fopen(szPath, "r");
    if (bmFile)
@@ -114,16 +128,23 @@ int Init(){
          ofn.nMaxFile = MAX_PATH;
          ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | 	OFN_LONGNAMES | OFN_EXPLORER | OFN_HIDEREADONLY;
          ofn.lpstrTitle = "Netscape Bookmarks";
-         if (GetOpenFileName(&ofn))
-            CopyFile(ofn.lpstrFile, szPath, TRUE);
+
+         if (GetOpenFileName(&ofn)) {
+            strcpy(szPath, ofn.lpstrFile);
+            kPlugin.kf->SetPreference(PREF_STRING, PREFERENCE_BOOKMARK_FILE, szPath);
+         }
       }
    }
 
-   imagelist = ImageList_Create(16, 15, ILC_MASK, 4, 4);
+   kPlugin.kf->GetPreference(PREF_STRING, PREFERENCE_TOOLBAR_FOLDER, toolbarFolder, "");
+
+   kPlugin.kf->GetPreference(PREF_BOOL, PREFERENCE_TOOLBAR_ENABLED, &m_toolbarEnabled, &m_toolbarEnabled);
+
+   m_imagelist = ImageList_Create(16, 15, ILC_MASK, 4, 4);
 
    HBITMAP bitmap = LoadBitmap(kPlugin.hDllInstance, MAKEINTRESOURCE(IDB_IMAGES));
 
-   ImageList_AddMasked(imagelist, bitmap, RGB(192, 192, 192));
+   ImageList_AddMasked(m_imagelist, bitmap, RGB(192, 192, 192));
 
    DeleteObject(bitmap);
 
@@ -143,11 +164,36 @@ void SaveBookmarks(FILE *bmFile, HMENU menu);
 
 void Quit(){
    //  the menu should have been destroyed by kmeleon...
-   ImageList_Destroy(imagelist);
+   ImageList_Destroy(m_imagelist);
 }
 
 void Config(HWND parent){
-   MessageBox(parent, "This plugin brought to you by the letter N", "Netscape Bookmark plugin", 0);
+   char message[255];
+   strcpy(message, "The toolbar is currently ");
+
+   if (m_toolbarEnabled) {
+      strcat(message, "enabled");
+   }
+   else {
+      strcat(message, "disabled");
+   }
+   strcat(message, "\n\nWould you like the toolbar to be enabled?");
+
+   int result = MessageBox(parent, message, PLUGIN_NAME, MB_YESNO | MB_ICONQUESTION);
+
+   int oldstate = m_toolbarEnabled;
+   if (result == IDYES) {
+      m_toolbarEnabled = true;
+   }
+   else if (result == IDNO) {
+      m_toolbarEnabled = false;
+   }
+
+   if (m_toolbarEnabled != oldstate) {
+      kPlugin.kf->SetPreference(PREF_BOOL, PREFERENCE_TOOLBAR_ENABLED, &m_toolbarEnabled);
+
+      MessageBox(parent, "Note: You must restart K-Meleon for the change to take effect", PLUGIN_NAME, 0);
+   }
 }
 
 #define _Q(x) #x
@@ -170,7 +216,12 @@ void SaveBookmarks(FILE *bmFile, HMENU menu){
 
         if (mInfo.hSubMenu == m_toolbarMenu){
            fprintf(bmFile, "<DT><H3 PERSONAL_TOOLBAR_FOLDER=\"true\">%s</H3>\n<DL><p>\n", mInfo.dwTypeData);
-        }else{
+
+           /* this is to support both NS 4 and NS 6 style bookmarks */
+           kPlugin.kf->SetPreference(PREF_STRING, PREFERENCE_TOOLBAR_FOLDER, mInfo.dwTypeData);
+
+        }
+        else{
            fprintf(bmFile, "<DT><H3>%s</H3>\n<DL><p>\n", mInfo.dwTypeData);
         }
 
@@ -217,17 +268,23 @@ void ParseBookmarks(char *bmFileBuffer, HMENU menu){
    while ((p = strtok(NULL, "\n")) != NULL){
       if ((t = strstr(p, "<DT><H3")) != NULL){
          t+=7;
-         char *start = strchr(t, '>') + 1;
+         char *name = strchr(t, '>') + 1;
          char *end = strrchr(t, '<');
          *end = 0;
          HMENU subMenu = CreatePopupMenu();
          ParseBookmarks(end, subMenu);
-         AppendMenu(menu, MF_STRING | MF_POPUP, (UINT)subMenu, start);
+         AppendMenu(menu, MF_STRING | MF_POPUP, (UINT)subMenu, name);
 
-         if (strstr(t, _Q(PERSONAL_TOOLBAR_FOLDER="true"))){
+         /* this is to support both NS 4 and NS 6 style bookmarks */
+         if (strcmp(name, toolbarFolder) == 0){
             m_toolbarMenu = subMenu;
          }
-      }else if ((t = strstr(p, "<DT><A HREF=\"")) != NULL){
+         else if (strstr(t, _Q(PERSONAL_TOOLBAR_FOLDER="true"))){
+            m_toolbarMenu = subMenu;
+            strcpy(toolbarFolder, name);
+         }
+      }
+      else if ((t = strstr(p, "<DT><A HREF=\"")) != NULL) {
          t+=13; // t now points to the url
          char *q = strchr(t, '\"');
          if (q) *q = 0;
@@ -243,9 +300,11 @@ void ParseBookmarks(char *bmFileBuffer, HMENU menu){
             CondenseString(t, 40);
 
          AppendMenu(menu, MF_STRING, nFirstBookmarkCommand+position, t);
-      }else if ((t = strstr(p, "</DL>")) != NULL){
+      }
+      else if ((t = strstr(p, "</DL>")) != NULL) {
          return;
-      }else if ((t = strstr(p, "<hr>")) != NULL){
+      }
+      else if ((t = strstr(p, "<hr>")) != NULL) {
          AppendMenu(menu, MF_SEPARATOR, 0, NULL);
       }
    }
@@ -253,15 +312,15 @@ void ParseBookmarks(char *bmFileBuffer, HMENU menu){
 }
 
 void DoMenu(HMENU menu, char *param){
-   if (stricmp(param, _T("Config")) == 0){
+   if (stricmp(param, "Config") == 0){
       AppendMenu(menu, MF_STRING, nConfigCommand, "&Config");
       return;
    }
-   if (stricmp(param, _T("Add")) == 0){
+   if (stricmp(param, "Add") == 0){
       AppendMenu(menu, MF_STRING, nAddCommand, "&Add Bookmark");
       return;
    }
-   if (stricmp(param, _T("Edit")) == 0){
+   if (stricmp(param, "Edit") == 0){
       AppendMenu(menu, MF_STRING, nEditCommand, "&Edit Bookmarks");
       return;
    }
@@ -271,10 +330,7 @@ void DoMenu(HMENU menu, char *param){
 
       FILE *bmFile = fopen(szPath, "r");
       if (bmFile){
-         fseek(bmFile, 0, SEEK_END);
-
-         long bmFileSize = ftell(bmFile);
-         fseek(bmFile, 0, SEEK_SET);
+         long bmFileSize = FileSize(bmFile);
 
          char *bmFileBuffer = new char[bmFileSize];
          if (bmFileBuffer){
@@ -295,9 +351,9 @@ void DoMenu(HMENU menu, char *param){
 
 void DoRebar(HWND rebarWnd) {
 
-// disabled to fix "create new window pauses for several seconds" bug
-#if 0
-   
+   // disabled to fix "create new window pauses for several seconds" bug
+   if (m_toolbarEnabled){
+
    DWORD dwStyle = 0x40 | /*the 40 gets rid of an ugly border on top.  I have no idea what flag it corresponds to...*/
       CCS_NOPARENTALIGN | CCS_NORESIZE | //CCS_ADJUSTABLE |
       TBSTYLE_FLAT | TBSTYLE_TRANSPARENT | TBSTYLE_LIST | TBSTYLE_TOOLTIPS;
@@ -327,7 +383,7 @@ void DoRebar(HWND rebarWnd) {
 
    //SendMessage(hwndTB, TB_SETEXTENDEDSTYLE, 0, TBSTYLE_EX_DRAWDDARROWS);
 
-   SendMessage(hwndTB, TB_SETIMAGELIST, 0, (LPARAM)imagelist);
+   SendMessage(hwndTB, TB_SETIMAGELIST, 0, (LPARAM)m_imagelist);
 
    SendMessage(hwndTB, TB_SETBUTTONWIDTH, 0, MAKELONG(0, 100));
 
@@ -359,7 +415,6 @@ void DoRebar(HWND rebarWnd) {
 
          SendMessage(hwndTB, TB_INSERTBUTTON, (WPARAM)-1, (LPARAM)&button);
       }
-
       else {
          char temp[128];
          mInfo.fMask = MIIM_TYPE | MIIM_ID;
@@ -418,7 +473,7 @@ void DoRebar(HWND rebarWnd) {
    // Add the band that has the toolbar.
    SendMessage(rebarWnd, RB_INSERTBAND, (WPARAM)-1, (LPARAM)&rbBand);
 
-#endif
+   }
 }
 
 CALLBACK EditProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
@@ -461,11 +516,12 @@ LRESULT CALLBACK MsgHook(int code, WPARAM wParam, LPARAM lParam){
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
    if (message == WM_COMMAND){
       WORD command = LOWORD(wParam);
-      if (command == nConfigCommand){
+
+      if (command == nConfigCommand) {
          Config(NULL);
          return true;
       }
-      if (command == nAddCommand){
+      else if (command == nAddCommand) {
          kmeleonDocInfo *dInfo = kPlugin.kf->GetDocInfo(hWnd);
          if (dInfo) {
             urlVector.push_back((std::string)dInfo->url);
@@ -477,11 +533,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
          }
          return true;
       }
-      if (command == nEditCommand){
+      else if (command == nEditCommand) {
          DialogBoxParam(kPlugin.hDllInstance, MAKEINTRESOURCE(IDD_EDIT_BOOKMARKS), hWnd, EditProc, 0);
          return true;
       }
-      if (command >= nFirstBookmarkCommand && command < (nFirstBookmarkCommand + MAX_BOOKMARKS)){
+      else if (command >= nFirstBookmarkCommand && command < (nFirstBookmarkCommand + MAX_BOOKMARKS)){
          kPlugin.kf->NavigateTo((char *)urlVector[command-nFirstBookmarkCommand].c_str(), OPEN_NORMAL);
          return true;
       }
@@ -604,23 +660,28 @@ CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam){
             }
             if (nmtv->itemNew.lParam < SUBMENU_OFFSET){
                SetDlgItemText(hDlg, IDC_EDIT_URL, urlVector[nmtv->itemNew.lParam - nFirstBookmarkCommand].c_str());
-            }else{
+            }
+            else{
                SetDlgItemText(hDlg, IDC_EDIT_URL, "");
             }
-         }else if (nmtv->hdr.code == TVN_BEGINDRAG){
+         }
+         else if (nmtv->hdr.code == TVN_BEGINDRAG){
             TreeView_Select(hTree, nmtv->itemNew.hItem, TVGN_CARET);
 
             SetCursor(hCursorDrag);
             bDragging = true;
             SetCapture(hDlg);
-         }else if (nmtv->hdr.code == NM_SETCURSOR){
+         }
+         else if (nmtv->hdr.code == NM_SETCURSOR){
             if (bDragging){
                SetCursor(hCursorDrag);
                return true;
-            }else{
+            }
+            else{
                return false;         
             }
-         }else if (nmtv->hdr.code == NM_CLICK){
+         }
+         else if (nmtv->hdr.code == NM_CLICK){
             TVHITTESTINFO hti;
             GetCursorPos(&hti.pt);
             ScreenToClient(hTree, &hti.pt);
@@ -629,7 +690,8 @@ CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam){
             if (item){
                TreeView_Select(hTree, item, TVGN_DROPHILITE);
             }
-         }else if (nmtv->hdr.code == NM_RCLICK){
+         }
+         else if (nmtv->hdr.code == NM_RCLICK){
             POINT mouse;
             GetCursorPos(&mouse);
 
@@ -657,12 +719,14 @@ CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam){
                      TreeView_GetItem(hTree, &parentItem);
 
                      DeleteMenu((HMENU)(parentItem.lParam - SUBMENU_OFFSET), itemData.lParam, MF_BYCOMMAND);
-                  }else{
+                  }
+                  else{
                      DeleteMenu(m_menuBookmarks, itemData.lParam, MF_BYCOMMAND);
                   }
                   TreeView_DeleteItem(hTree, item);
                }
-            }else if (command = ID_SET_TOOLBAR_FOLDER){
+            }
+            else if (command = ID_SET_TOOLBAR_FOLDER){
                TVHITTESTINFO hti;
                hti.pt.x = mouse.x;
                hti.pt.y = mouse.y;
@@ -677,7 +741,8 @@ CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam){
 
                   if (itemData.lParam > SUBMENU_OFFSET){ // this is a submenu
                      m_toolbarMenu = (HMENU)(itemData.lParam - SUBMENU_OFFSET);
-                  }else{ // this is an item, set the toolbar folder to it's parent
+                  }
+                  else{ // this is an item, set the toolbar folder to it's parent
                      HTREEITEM parent = TreeView_GetParent(hTree, item);
                      if (parent){
                         TVITEMEX parentItem;
@@ -686,13 +751,15 @@ CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam){
                         TreeView_GetItem(hTree, &parentItem);
 
                         m_toolbarMenu = (HMENU)(parentItem.lParam - SUBMENU_OFFSET);
-                     }else{
+                     }
+                     else{
                         m_toolbarMenu = m_menuBookmarks;
                      }
                   }
                }
             }
-         }else if (nmtv->hdr.code == TVN_ENDLABELEDIT){
+         }
+         else if (nmtv->hdr.code == TVN_ENDLABELEDIT){
             NMTVDISPINFO *nmtvdi = (NMTVDISPINFO *)nmtv;
             if (nmtvdi->item.pszText){
                if (nmtvdi->item.lParam < SUBMENU_OFFSET){
@@ -707,17 +774,20 @@ CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam){
                   TreeView_GetItem(hTree, &parentItem);
 
                   parentMenu = (HMENU)(parentItem.lParam - SUBMENU_OFFSET);
-               }else{
+               }
+               else{
                   parentMenu = m_menuBookmarks;
                }
                if (nmtvdi->item.lParam < SUBMENU_OFFSET){
                   ModifyMenu(parentMenu, nmtvdi->item.lParam, MF_BYCOMMAND | MF_STRING, nmtvdi->item.lParam, nmtvdi->item.pszText);
-               }else{
+               }
+               else{
                   ModifyMenu(parentMenu, nmtvdi->item.lParam - SUBMENU_OFFSET, MF_BYCOMMAND | MF_POPUP | MF_STRING, nmtvdi->item.lParam - SUBMENU_OFFSET, nmtvdi->item.pszText);
                }
                TreeView_SetItem(hTree, &nmtvdi->item);
             }
-         }else{
+         }
+         else{
             return true;
          }
       }
@@ -770,7 +840,8 @@ CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam){
                TreeView_GetItem(hTree, &parentItem);
 
                parentMenu = (HMENU)(parentItem.lParam - SUBMENU_OFFSET);
-            }else{
+            }
+            else{
                parentMenu = m_menuBookmarks;
             }
             DeleteMenu(parentMenu, tvis.item.lParam, MF_BYCOMMAND);
@@ -850,17 +921,19 @@ extern "C" {
 
       if (GetMenuState((HMENU)dis->hwndItem, dis->itemID, MF_BYCOMMAND) & MF_POPUP){
          if (dis->itemState & ODS_SELECTED){
-            ImageList_Draw(imagelist, 0, dis->hDC, dis->rcItem.left, top, ILD_TRANSPARENT | ILD_FOCUS );
-         }else{
-            ImageList_Draw(imagelist, 0, dis->hDC, dis->rcItem.left, top, ILD_TRANSPARENT);
+            ImageList_Draw(m_imagelist, 0, dis->hDC, dis->rcItem.left, top, ILD_TRANSPARENT | ILD_FOCUS );
+         }
+         else{
+            ImageList_Draw(m_imagelist, 0, dis->hDC, dis->rcItem.left, top, ILD_TRANSPARENT);
          }
          return 18;
       }
       if (dis->itemID >= nFirstBookmarkCommand && dis->itemID < (nFirstBookmarkCommand + MAX_BOOKMARKS)){
          if (dis->itemState & ODS_SELECTED){
-            ImageList_Draw(imagelist, 1, dis->hDC, dis->rcItem.left, top, ILD_TRANSPARENT | ILD_FOCUS);
-         }else{
-            ImageList_Draw(imagelist, 1, dis->hDC, dis->rcItem.left, top, ILD_TRANSPARENT);
+            ImageList_Draw(m_imagelist, 1, dis->hDC, dis->rcItem.left, top, ILD_TRANSPARENT | ILD_FOCUS);
+         }
+         else{
+            ImageList_Draw(m_imagelist, 1, dis->hDC, dis->rcItem.left, top, ILD_TRANSPARENT);
          }
 
          return 18;
