@@ -57,6 +57,7 @@ int          FindVar(char *varName);
 char*        FindVarName(int id);
 int          GetConfigFiles(configFileType **configFiles);
 std::string  GetVarVal(int varid);
+std::string  GetGlobalVarVal(HWND hWnd, char *name, int *found);
 int          Init();
 int          IntVal(std::string input);
 void         LoadMacros(char *filename);
@@ -1749,6 +1750,12 @@ std::string EvalExpression(HWND hWnd,std::string exp) {
    if(exp.at(0) == '$') {  
       exp = exp.substr(1);
 
+      // first check for global variables
+      int isGlobal = 0;
+      std::string val = GetGlobalVarVal(hWnd, (char*)exp.c_str(), &isGlobal);
+      if (isGlobal)
+         return (char*)val.c_str();
+
       // if the variable exists return the value
       int thisvarid = FindVar((char*)exp.c_str());
       if(thisvarid != NOTFOUND) {
@@ -1860,6 +1867,37 @@ std::string GetVarVal(int varid)
 
 };
 
+std::string GetGlobalVarVal(HWND hWnd, char *name, int *found)
+{
+   *found = 0;
+   if (name == NULL)
+      return "";
+   
+   *found = 1;
+   if (strcmp(name, "URL") == 0) {
+      kmeleonDocInfo *dInfo = kPlugin.kFuncs->GetDocInfo(hWnd);
+      if (dInfo && dInfo->url) {
+         return dInfo->url;
+      }
+      else 
+         return "";
+   }
+   
+   else if (strcmp(name, "FrameURL") == 0) {
+      return "";
+   }
+   
+   else if (strcmp(name, "LinkURL") == 0) {
+      return "";
+   }
+   
+   else if (strcmp(name, "ImageURL") == 0) {
+      return "";
+   }
+   
+   *found = 0;
+   return "";
+}
 
 /************* ADD VAR *****************/
 int AddVar() {
