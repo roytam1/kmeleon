@@ -76,7 +76,7 @@ typedef struct {
    void (*SetPreference)(enum PREFTYPE type, char *preference, void *val, BOOL update = FALSE);
 
    // sets the status bar text
-   void (*SetStatusBarText)(char *s);
+   void (*SetStatusBarText)(const char *s);
 
    int (*GetMozillaSessionHistory)(char **titles[], int *count, int *index);
 	void (*GotoHistoryIndex)(UINT index);
