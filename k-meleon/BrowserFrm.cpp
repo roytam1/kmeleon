@@ -550,10 +550,12 @@ void CBrowserFrame::OnMove(int x, int y)
        RECT rc;
 
        GetWindowRect(&rc);
-       theApp.preferences.windowWidth = rc.right - rc.left;
-       theApp.preferences.windowHeight = rc.bottom - rc.top;
-       theApp.preferences.windowXPos = rc.left;
-       theApp.preferences.windowYPos = rc.top;
+       if (rc.left > 0 && rc.top > 0 ) {
+           theApp.preferences.windowWidth = rc.right - rc.left;
+           theApp.preferences.windowHeight = rc.bottom - rc.top;
+           theApp.preferences.windowXPos = rc.left;
+           theApp.preferences.windowYPos = rc.top;
+       }
    }
 }
 
@@ -586,10 +588,12 @@ void CBrowserFrame::OnSize(UINT nType, int cx, int cy)
          theApp.preferences.bMaximized = false;
 
          GetWindowRect(&rc);
-         theApp.preferences.windowWidth = rc.right - rc.left;
-         theApp.preferences.windowHeight = rc.bottom - rc.top;
-         theApp.preferences.windowXPos = rc.left;
-         theApp.preferences.windowYPos = rc.top;
+         if (rc.left > 0 && rc.top > 0 ) {
+             theApp.preferences.windowWidth = rc.right - rc.left;
+             theApp.preferences.windowHeight = rc.bottom - rc.top;
+             theApp.preferences.windowXPos = rc.left;
+             theApp.preferences.windowYPos = rc.top;
+         }
       }
    }
 }
