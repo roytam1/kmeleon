@@ -39,8 +39,19 @@
 class CUrlBar : public CComboBoxEx
 {
 public:
+  int Create(DWORD style, RECT &rect, CWnd *parentWnd, UINT id){
+    int ret = CComboBoxEx::Create(style | CBS_AUTOHSCROLL, rect, parentWnd, id);
+
+    COMBOBOXEXITEM ci;
+    ci.mask = CBEIF_IMAGE;
+    ci.iItem = -1;
+    ci.iImage = 15;
+    SetItem(&ci);
+
+    return ret;
+  }
 	inline GetEnteredURL(CString& url) {
-		GetEditCtrl()->GetWindowText(url);
+    GetEditCtrl()->GetWindowText(url);
 	}
 	inline GetSelectedURL(CString& url) {
 		GetLBText(GetCurSel(), url);
@@ -50,7 +61,10 @@ public:
 	}
 	inline AddURLToList(CString& url) {
 		COMBOBOXEXITEM ci;
-		ci.mask = CBEIF_TEXT; 	ci.iItem = -1;
+		ci.mask = CBEIF_TEXT | CBEIF_IMAGE | CBEIF_SELECTEDIMAGE;
+    ci.iItem = 0;
+    ci.iImage = 15;
+    ci.iSelectedImage = 15;
 		ci.pszText = (LPTSTR)(LPCTSTR)url;
 		InsertItem(&ci);
 	}
