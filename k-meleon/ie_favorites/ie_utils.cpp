@@ -278,19 +278,20 @@ void BuildRebar(HWND hWndTB)
       
       SendMessage(hWndTB, TB_INSERTBUTTON, (WPARAM)-1, (LPARAM)&button);
    }
-   /*
-     TBBUTTON button = {0};
-     button.fsState = TBSTATE_ENABLED;
-     button.fsStyle = TBSTYLE_SEP;
-     SendMessage(hWndTB, TB_INSERTBUTTON, (WPARAM)0, (LPARAM)&button);
-     
-     //button.iBitmap = IMAGE_CHEVRON;
-     button.idCommand = nDropdownCommand;
-     button.fsState = TBSTATE_ENABLED;
-     button.fsStyle = TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE | TBSTYLE_DROPDOWN;
-     button.iString = -1;
-     SendMessage(hWndTB, TB_INSERTBUTTON, (WPARAM)0, (LPARAM)&button);
-   */
+
+   if (bChevronEnabled) {
+      TBBUTTON button = {0};
+      button.fsState = TBSTATE_ENABLED;
+      button.fsStyle = TBSTYLE_SEP;
+      SendMessage(hWndTB, TB_INSERTBUTTON, (WPARAM)0, (LPARAM)&button);
+      
+      button.iBitmap = IMAGE_CHEVRON;
+      button.idCommand = nDropdownCommand;
+      button.fsState = TBSTATE_ENABLED;
+      button.fsStyle = TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE | TBSTYLE_DROPDOWN;
+      button.iString = -1;
+      SendMessage(hWndTB, TB_INSERTBUTTON, (WPARAM)0, (LPARAM)&button);
+   }
 }
 
 
@@ -441,19 +442,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
       hdr = *((LPNMHDR)lParam);
       if ((long)hdr.code == TBN_DROPDOWN) {
          tbhdr = *((LPNMTOOLBAR)lParam);
-         /*
-           // this is the little down arrow thing
-           if (tbhdr.iItem == nDropdownCommand){
-              RECT rc;
-              WPARAM index = 0;
-              SendMessage(tbhdr.hdr.hwndFrom, TB_GETITEMRECT, index, (LPARAM) &rc);
-              POINT pt = { rc.left, rc.bottom };
-              ClientToScreen(tbhdr.hdr.hwndFrom, &pt);
-              TrackPopupMenu((HMENU)gMenuFavorites, TPM_LEFTALIGN, pt.x, pt.y, 0, hWnd, NULL);
-            }
-            else 
-         */
-         if (IsMenu((HMENU)(tbhdr.iItem-SUBMENU_OFFSET))){
+
+         // this is the little down arrow thing
+         if (tbhdr.iItem == nDropdownCommand){
+            RECT rc;
+            WPARAM index = 0;
+            SendMessage(tbhdr.hdr.hwndFrom, TB_GETITEMRECT, index, (LPARAM) &rc);
+            POINT pt = { rc.left, rc.bottom };
+            ClientToScreen(tbhdr.hdr.hwndFrom, &pt);
+            TrackPopupMenu((HMENU)gMenuFavorites, TPM_LEFTALIGN, pt.x, pt.y, 0, hWnd, NULL);
+         }
+         else if (IsMenu((HMENU)(tbhdr.iItem-SUBMENU_OFFSET))){
             char toolbarName[11];
             GetWindowText(tbhdr.hdr.hwndFrom, toolbarName, 10);
             if (strcmp(toolbarName, TOOLBAND_NAME) != 0) {

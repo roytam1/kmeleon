@@ -128,6 +128,7 @@ void Config(HWND parent);
 #define _T(x) x
 #define PREFERENCE_FAVORITES_PATH _T("kmeleon.plugins.favorites.directory")
 #define PREFERENCE_REBAR_ENABLED _T("kmeleon.plugins.favorites.rebar")
+#define PREFERENCE_CHEVRON_ENABLED _T("kmeleon.plugins.favorites.chevron")
 #define PREFERENCE_FAVORITES_RESYNCH  _T("kmeleon.plugins.favorites.resynch")
 #define PREFERENCE_SETTINGS_DIR    _T("kmeleon.general.settingsDir")
 #define PREFERENCE_MENU_MAXLEN _T("kmeleon.plugins.favorites.maxMenuLength")
@@ -147,6 +148,7 @@ void Config(HWND parent);
 
 WHERE WNDPROC wpOrigTBWndProc;
 WHERE BOOL bRebarEnabled;
+WHERE BOOL bChevronEnabled;
 WHERE BOOL bResynchFavorites;
 WHERE BOOL bCreate;
 WHERE BOOL bIgnore;
@@ -163,6 +165,7 @@ WHERE UINT nAddLinkCommand;
 // WHERE UINT nAddToolbarCommand;
 WHERE UINT nEditCommand;
 WHERE UINT nFirstFavoriteCommand;
+WHERE UINT nDropdownCommand;
 WHERE UINT nUpdateTB;
 WHERE UINT nFirstFavoritesPosition;
 WHERE UINT wm_deferhottrack;
