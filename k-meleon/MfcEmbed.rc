@@ -135,7 +135,7 @@ END
 IDD_PREFERENCES_DISPLAY DIALOGEX 0, 0, 233, 154
 STYLE WS_CHILD
 EXSTYLE WS_EX_CLIENTEDGE | WS_EX_CONTROLPARENT
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     EDITTEXT        IDC_EDIT_TOOLBAR_BACKGROUND,11,22,169,14,ES_AUTOHSCROLL
     CONTROL         "Show Toolbar Background",IDC_CHECK_TOOLBAR_BACKGROUND,
@@ -200,15 +200,15 @@ END
 IDD_PREFERENCES_PLUGINS DIALOGEX 0, 0, 233, 154
 STYLE WS_CHILD
 EXSTYLE WS_EX_CLIENTEDGE | WS_EX_CONTROLPARENT
-FONT 8, "MS Sans Serif", 0, 0, 0x1
+FONT 8, "MS Sans Serif"
 BEGIN
     CONTROL         "List1",IDC_LIST_PLUGINS,"SysListView32",LVS_LIST | 
                     LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | 
-                    LVS_NOCOLUMNHEADER | WS_BORDER | WS_TABSTOP,4,4,225,113
-    PUSHBUTTON      "&Configure",IDC_BUTTON_CONFIG,4,120,57,14
-    PUSHBUTTON      "&Enable/Disable",IDC_BUTTON_ENABLE,63,120,57,14
-    LTEXT           "Disabled plugins will not be loaded the next time K-Meleon is started.",
-                    IDC_STATIC,4,138,225,12
+                    LVS_NOCOLUMNHEADER | WS_BORDER | WS_TABSTOP,4,4,225,114
+    PUSHBUTTON      "&Configure",IDC_BUTTON_CONFIG,4,122,57,14
+    PUSHBUTTON      "&Enable/Disable",IDC_BUTTON_ENABLE,65,122,57,14
+    LTEXT           "Checked items will be loaded next time K-Meleon starts",
+                    IDC_STATIC,4,142,173,8
 END
 
 IDD_PREFERENCES_ADVANCED DIALOGEX 0, 0, 233, 154
@@ -329,6 +329,19 @@ BEGIN
     EDITTEXT        IDC_SEARCH_QUERY,7,20,232,13,ES_AUTOHSCROLL
 END
 
+IDD_DIALOG_OPEN DIALOG DISCARDABLE  0, 0, 213, 62
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Open"
+FONT 8, "MS Sans Serif"
+BEGIN
+    EDITTEXT        IDC_EDIT1,7,20,199,14,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,7,41,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,82,41,50,14
+    PUSHBUTTON      "Browse...",IDC_BUTTON_BROWSE,157,41,49,14
+    LTEXT           "Type in a url, or browse for a file on your computer.",
+                    IDC_STATIC,7,7,160,8
+END
+
 
 #ifndef _MAC
 /////////////////////////////////////////////////////////////////////////////
@@ -436,6 +449,7 @@ BEGIN
         RIGHTMARGIN, 229
         TOPMARGIN, 4
         BOTTOMMARGIN, 150
+        HORZGUIDE, 122
     END
 
     IDD_PREFERENCES_ADVANCED, DIALOG
@@ -467,6 +481,15 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 48
     END
+
+    IDD_DIALOG_OPEN, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 206
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 55
+        HORZGUIDE, 27
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -480,10 +503,10 @@ END
 // remains consistent on all systems.
 IDR_MAINFRAME           ICON    DISCARDABLE     "res\\MozillaBrowser.ico"
 IDI_DOCUMENT            ICON    DISCARDABLE     "res\\KmeleonDocument.ico"
-IDI_ON                  ICON    DISCARDABLE     "res\\on.ico"
 IDI_OFF                 ICON    DISCARDABLE     "res\\off.ico"
 IDI_OFFCHECK            ICON    DISCARDABLE     "res\\offcheck.ico"
 IDI_ONCHECK             ICON    DISCARDABLE     "res\\oncheck.ico"
+IDI_ON                  ICON    DISCARDABLE     "res\\on.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //

@@ -45,6 +45,7 @@
 #define IDI_OFF                         176
 #define IDI_OFFCHECK                    179
 #define IDI_ONCHECK                     180
+#define IDD_DIALOG_OPEN                 181
 #define ID_URL_BAR                      1001
 #define ID_PROG_BAR                     1002
 #define IDC_PROMPT_ANSWER               1003
@@ -112,7 +113,6 @@
 #define IDC_EDIT_TOOLBAR_BACKGROUND     1111
 #define IDC_EDIT_SETTINGS_DIR           1111
 #define IDC_RADIO_START_HOME            1112
-#define IDC_EDIT_URL                    1112
 #define IDC_RADIO_START_BLANK           1113
 #define IDC_EDIT_HOMEPAGE               1114
 #define IDC_EDIT_PROXY                  1115
@@ -125,6 +125,7 @@
 #define IDC_KMELEON_HOME                1120
 #define IDC_BUTTON_ENABLE               1120
 #define IDC_KMELEON_FORUM               1121
+#define IDC_EDIT_URL                    1122
 #define IDC_FIND_EDIT                   1152
 #define ID_NAV_BACK                     32773
 #define ID_NAV_FORWARD                  32774
@@ -158,7 +159,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        181
+#define _APS_NEXT_RESOURCE_VALUE        184
 #define _APS_NEXT_COMMAND_VALUE         32801
 #define _APS_NEXT_CONTROL_VALUE         1043
 #define _APS_NEXT_SYMED_VALUE           101
