@@ -43,7 +43,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MD /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_AFXDLL" /Yu"stdafx.h" /FD /c
-# ADD CPP /nologo /MD /W3 /GX /O2 /I "..\mozilla\mozilla\nsprpub\pr\include" /I "..\mozilla\mozilla\nsprpub\_o.obj\include" /I "..\mozilla\mozilla\include" /I "..\mozilla\mozilla\xpcom\components" /I "..\mozilla\mozilla\dist\include" /I "..\mozilla\mozilla\dist\WIN32_O.OBJ\include" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "HW_THREADS" /D "XP_PC" /D "XP_WIN" /D "XP_WIN32" /D WINVER=0x400 /D _WIN32_IE=0x0500 /D "_AFXDLL" /Fr /Yu"stdafx.h" /FD /c
+# ADD CPP /nologo /MD /W3 /GX /O2 /I "\projects\mozilla\mozilla\dist\include" /I "\projects\mozilla\mozilla\dist\WIN32_O.OBJ\include" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "HW_THREADS" /D "XP_PC" /D "XP_WIN" /D "XP_WIN32" /D WINVER=0x400 /D _WIN32_IE=0x0500 /D "_AFXDLL" /Fr /Yu"stdafx.h" /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "NDEBUG" /d "_AFXDLL"
@@ -53,7 +53,11 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 /nologo /subsystem:windows /machine:I386
+<<<<<<< KMeleon.dsp
+# ADD LINK32 xpcom.lib baseembed_s.lib plc4.lib /nologo /subsystem:windows /machine:I386 /out:"..\mozilla\mozilla\dist\WIN32_o.OBJ\Embed\k-meleon.exe" /libpath:"\projects\mozilla\mozilla\dist\WIN32_o.OBJ\lib"
+=======
 # ADD LINK32 xpcom.lib baseembed_s.lib plc4.lib nspr4.lib /nologo /subsystem:windows /machine:I386 /out:"..\mozilla\mozilla\dist\WIN32_o.OBJ\Embed\k-meleon.exe" /libpath:"c:\projects\mozilla\mozilla\dist\win32_o.obj\lib" /libpath:"..\mozilla\mozilla\dist\WIN32_o.OBJ\lib"
+>>>>>>> 1.27
 # SUBTRACT LINK32 /pdb:none
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
@@ -85,7 +89,11 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept
+<<<<<<< KMeleon.dsp
+# ADD LINK32 xpcom.lib baseembed_s.lib /nologo /subsystem:windows /map /debug /machine:I386 /nodefaultlib:"MSVCRT" /out:"..\mozilla\mozilla\dist\WIN32_o.OBJ\Embed\k-meleon.exe" /pdbtype:sept /libpath:"..\mozilla\mozilla\dist\WIN32_o.OBJ\lib"
+=======
 # ADD LINK32 xpcom.lib baseembed_s.lib nspr4.lib /nologo /subsystem:windows /map /debug /machine:I386 /out:"..\mozilla\mozilla\dist\WIN32_o.OBJ\Embed\k-meleon.exe" /pdbtype:sept /libpath:"..\mozilla\mozilla\dist\WIN32_o.OBJ\lib"
+>>>>>>> 1.27
 # SUBTRACT LINK32 /profile /pdb:none /nodefaultlib
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
@@ -130,10 +138,6 @@ SOURCE=.\BrowserFrm.cpp
 # Begin Source File
 
 SOURCE=.\BrowserImpl.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\BrowserImplContentLstnr.cpp
 # End Source File
 # Begin Source File
 
@@ -257,6 +261,10 @@ SOURCE=.\Dialogs.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\HiddenWnd.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\IBrowserFrameGlue.h
 # End Source File
 # Begin Source File
@@ -318,6 +326,10 @@ SOURCE=.\ToolBarEx.h
 # Begin Source File
 
 SOURCE=.\ToolBarWrapper.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\UnknownContentTypeHandler.h
 # End Source File
 # Begin Source File
 
