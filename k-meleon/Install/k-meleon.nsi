@@ -17,6 +17,8 @@ InstallDirRegKey HKEY_CURRENT_USER "Software\K-Meleon\K-Meleon\General" "Install
 EnabledBitmap yes.bmp
 DisabledBitmap no.bmp
 SetOverwrite on
+SetCompress auto
+SetDatablockOptimize on
 
 InstType Standard
 
@@ -27,9 +29,6 @@ Section "K-Meleon (required)"
 # but a couple of other programs use that (ICQ), so we'll better leave it for now
 ;FindWindow "close" "Afx:400000:0" ""
 
-# Copying temp files
-#SetOutPath "$TEMP\K-Meleon"
-#File concat.exe
 # and copying regular files
 SetOutPath "$INSTDIR\uninstall"
 File K-MeleonUNINST.ini
@@ -137,9 +136,6 @@ Section Uninstall
 # First trying to shut down running instances, the Window class is called: Afx:400000:0
 # but a couple of other programs use that, so we'll leave it for now
 ;FindWindow "close" "Afx:400000:0" ""
-
-# delete all registry entries that Kmeleon does on install
-#ExecWait 'regedit /s "$INSTDIR\uninstall\K-MeleonUNINST.reg"'
 
 # and restoring the original file associations
 ReadINIStr $0 "$INSTDIR\uninstall\K-MeleonUNINST.ini" "HKCR" ".htm"
