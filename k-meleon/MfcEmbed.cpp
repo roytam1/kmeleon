@@ -218,6 +218,18 @@ RefreshPlugins(PRBool aReloadPages)
     return plugins->ReloadPlugins(aReloadPages);
 }
 
+nsresult CMfcEmbedApp::SetOffline(BOOL offline)
+{
+    nsresult result;
+    nsCOMPtr<nsIIOService> io = do_GetService(NS_IOSERVICE_CONTRACTID, &result);
+    if (NS_SUCCEEDED(result)) {
+        result = io->SetOffline(offline);
+        if (NS_SUCCEEDED(result))
+            theApp.preferences.bOffline = offline;
+    }
+
+    return result;
+}
 
 
 // Initialize our MFC application and also init
@@ -312,6 +324,7 @@ BOOL CMfcEmbedApp::InitInstance()
    InitializeDefineMap();
 
    InitializePrefs();
+   SetOffline(theApp.preferences.bOffline);
 
    plugins.FindAndLoad();
 

@@ -211,6 +211,7 @@ protected:
 	afx_msg void OnNavReload();
 	afx_msg void OnNavForceReload(); 
 	afx_msg void OnNavStop();
+    afx_msg void OnToggleOffline();
 	afx_msg void OnCut();
 	afx_msg void OnCopy();
 	afx_msg void OnPaste();

@@ -228,27 +228,29 @@ BOOL CBrowserFrame::Create(LPCTSTR lpszClassName,
                            DWORD dwExStyle,
                            CCreateContext* pContext)
 {
-   HMENU hMenu = NULL;
+   m_hMenu = NULL;
    CMenu *menu = theApp.menus.GetMenu(_T("Main"));
    if (menu){
-      hMenu = menu->m_hMenu;
-   }
-   else {
-      MessageBox("No Menu");
+      m_hMenu = menu->m_hMenu;
    }
    
    m_strTitle = lpszWindowName;    // save title for later
    
    if (!CreateEx(dwExStyle, lpszClassName, lpszWindowName, dwStyle,
       rect.left, rect.top, rect.right, rect.bottom,
-      pParentWnd->GetSafeHwnd(), hMenu, (LPVOID)pContext))
+      pParentWnd->GetSafeHwnd(), m_hMenu, (LPVOID)pContext))
    {
       TRACE0("Warning: failed to create CFrameWnd.\n");
-      if (hMenu != NULL)
-         DestroyMenu(hMenu);
+      if (m_hMenu != NULL)
+         DestroyMenu(m_hMenu);
+      m_hMenu == NULL;
       return FALSE;
    }
-   
+
+   CheckMenuItem(m_hMenu,
+                 ID_OFFLINE, 
+                 MF_BYCOMMAND | (theApp.preferences.bOffline ? MF_CHECKED : MF_UNCHECKED) );
+       
    return TRUE;
 }
 

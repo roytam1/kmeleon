@@ -233,6 +233,7 @@ protected:
 public:
     inline CBrowserImpl *GetBrowserImpl() { return m_wndBrowserView.mpBrowserImpl; }
 
+    HMENU           m_hMenu;
     CMyStatusBar    m_wndStatusBar;
     CProgressCtrl   m_wndProgressBar;
     CUrlBar         m_wndUrlBar;
