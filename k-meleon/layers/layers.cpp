@@ -645,12 +645,19 @@ void DoRebar(HWND rebarWnd){
       ((nButtonStyle & BS_3D) ? 0 : (TBSTYLE_FLAT | TBSTYLE_TRANSPARENT)) | TBSTYLE_LIST | TBSTYLE_TOOLTIPS;
    
    // Create the toolbar control to be added.
-   ghWndTB = CreateWindowEx(0, TOOLBARCLASSNAME, "",
-                            WS_CHILD | dwStyle,
-                            0,0,0,0,
-                            rebarWnd, (HMENU)/*id*/200,
-                            kPlugin.hDllInstance, NULL
-                            );
+   //ghWndTB = CreateWindowEx(0, TOOLBARCLASSNAME, "",
+   //                         WS_CHILD | dwStyle,
+   //                         0,0,0,0,
+   //                         rebarWnd, (HMENU)/*id*/200,
+   //                         kPlugin.hDllInstance, NULL
+   //                         );
+
+   ghWndTB = kPlugin.kFuncs->CreateToolbar(GetParent(rebarWnd), dwStyle);
+   
+   if (!ghWndTB){
+      MessageBox(NULL, "Failed to create layers toolbar", NULL, 0);
+      return;
+   }
    
    if (pNewLayer) {
       pNewLayer->hWndTB = ghWndTB;
@@ -659,11 +666,6 @@ void DoRebar(HWND rebarWnd){
    
    // Register the band name and child hwnd
    kPlugin.kFuncs->RegisterBand(ghWndTB, "Layers");
-   
-   if (!ghWndTB){
-      MessageBox(NULL, "Failed to create layers toolbar", NULL, 0);
-      return;
-   }
    
    BuildRebar(ghWndTB, NULL);
    
@@ -741,6 +743,61 @@ void UpdateRebarMenu(struct layer *pLayer)
    }
 }
 
+void ShowMenuUnderButton(HWND hWndParent, HMENU hMenu, UINT uMouseButton, int iID) {
+   // Find the toolbar
+   HWND hReBar = FindWindowEx(GetActiveWindow(), NULL, REBARCLASSNAME, NULL);
+   int uBandCount = SendMessage(hReBar, RB_GETBANDCOUNT, 0, 0);  
+   int x = 0;
+   BOOL bFound = FALSE;
+   REBARBANDINFO rb;
+   rb.cbSize = sizeof(REBARBANDINFO);
+   rb.fMask = RBBIM_CHILD;
+   while (x < uBandCount && !bFound) {
+         
+      if (!SendMessage(hReBar, RB_GETBANDINFO, (WPARAM) x++, (LPARAM) &rb))
+         continue;
+                  
+      // toolbar hwnd
+      HWND tb = rb.hwndChild;
+      RECT rc;
+      
+      int ButtonID = SendMessage(tb, TB_COMMANDTOINDEX, iID, 0);
+      if (ButtonID < 0)
+         continue;
+      if (ButtonID == 0) {
+         TBBUTTON button;
+         SendMessage(tb, TB_GETBUTTON, 0, (LPARAM) &button);
+         if (button.idCommand != iID)
+            continue;
+      }
+
+      SendMessage(tb, TB_GETITEMRECT, ButtonID, (LPARAM) &rc);
+      POINT pt = { rc.left, rc.bottom };
+      ClientToScreen(tb, &pt);
+      DWORD SelectionMade = TrackPopupMenu(hMenu, TPM_LEFTALIGN | uMouseButton | TPM_NONOTIFY | TPM_RETURNCMD, pt.x, pt.y, 0, hWndParent, &rc);
+      
+      PostMessage(hWndParent, UWM_REFRESHTOOLBARITEM, (WPARAM) iID, 0);
+      
+      if (SelectionMade > 0) {
+         PostMessage(hWndParent, WM_COMMAND, (WPARAM) SelectionMade, iID);
+      }
+
+      bFound = TRUE;
+   }
+}
+
+void CreateToolbarMenu (HWND hWndParent, UINT mouseButton, int buttonID) {
+
+   HMENU menu = CreatePopupMenu();
+   
+   AppendMenu(menu, MF_STRING, id_close_layer,     "Close Layer");
+   AppendMenu(menu, MF_STRING, id_open_new_layer,  "New Layer");
+   
+   ShowMenuUnderButton(hWndParent, menu, mouseButton, buttonID);
+   
+   DestroyMenu(menu);
+}
+
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
    // store these in static vars so that the BeginHotTrack call can access them
    struct frame *pFrame;
@@ -812,6 +869,32 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
             }
             break;
             
+         case TB_RBUTTONDOWN:
+         {
+            WORD command = wParam;
+            if ((command >= id_layer) && 
+                (command < id_layer+MAX_LAYERS)) {
+#if 0
+               CreateToolbarMenu(hWnd, TPM_RIGHTBUTTON, command);
+#else
+               pFrame = find_frame(hWnd);
+               if (pFrame) {
+                  int i = command - id_layer;
+                  pLayer = pFrame->layer;
+                  while (i>0 && pLayer) {
+                     pLayer = pLayer->next;
+                     i--;
+                  }
+                  if (pLayer) {
+                     PostMessage(pLayer->hWnd, WM_COMMAND, id_close_layer, 0);
+                  }
+               }
+#else
+               break;
+            }
+            break;
+         }
+         
          case WM_COMMAND:
          {
             WORD command = LOWORD(wParam);
@@ -1045,15 +1128,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                
                pFrame = del_layer(hWnd);
                if (pFrame && pLayer && pLayer->hWnd!=hWnd) {
+                  int closebg = (pFrame->hWndFront != hWnd);
                   WINDOWPLACEMENT *wpOld = (WINDOWPLACEMENT*)calloc(1, sizeof(WINDOWPLACEMENT));
                   wpOld->length = sizeof (WINDOWPLACEMENT);
                   GetWindowPlacement(hWnd, wpOld);
                   if (wpOld->showCmd != SW_SHOWMAXIMIZED)
                      wpOld->showCmd = SW_NORMAL;
-                  pFrame->hWndFront = 
-                     pFrame->hWndLast && pFrame->hWndLast != hWnd ? 
-                     pFrame->hWndLast : pLayer->hWnd;
-                  pFrame->hWndLast = NULL;
+                  pFrame->hWndFront = closebg ? pFrame->hWndFront :
+                     (pFrame->hWndLast && pFrame->hWndLast != hWnd ? 
+                      pFrame->hWndLast : pLayer->hWnd);
+                  pFrame->hWndLast = closebg ? 
+                     (pFrame->hWndLast != hWnd ? pFrame->hWndLast : NULL) :
+                     NULL;
                   if (bCatchWindow && !newLayer)
                      ghParent = pFrame->hWndFront;
                   UpdateRebarMenu( find_layer(pFrame->hWndFront) );
