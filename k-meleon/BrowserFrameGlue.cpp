@@ -105,7 +105,7 @@ void CBrowserFrame::BrowserFrameGlueObj::UpdateCurrentURI(nsIURI *aLocation){
    // post notification that the session history is changing
    // this will be updated later when OnUpdateBusy state is called
    // because the page title has not yet loaded
-   pThis->PostMessage(WM_UPDATESESSIONHISTORY, 0, 0);
+   pThis->PostMessage(UWM_UPDATESESSIONHISTORY, 0, 0);
 }
 
 void CBrowserFrame::BrowserFrameGlueObj::GetBrowserFrameTitle(PRUnichar **aTitle)

@@ -129,6 +129,11 @@
 #define ID_COPY_IMAGE_LOCATION          32793
 #define ID_LINK_KMELEON_HOME            32794
 #define ID_LINK_KMELEON_FORUM           32795
+#define ID_EDIT_FINDNEXT                32796
+#define ID_EDIT_FINDPREV                32797
+#define ID_OPEN_LINK_IN_BACKGROUND      32798
+#define ID_WINDOW_NEXT                  32799
+#define ID_WINDOW_PREV                  32800
 
 // Next default values for new objects
 // 

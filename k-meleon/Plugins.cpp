@@ -30,13 +30,22 @@ extern CMfcEmbedApp theApp;
 #include "Plugins.h"
 #include "Utils.h"
 
-
 #define START_ID 2000
+
+
+int SessionSize=0;
+char **pHistory;
+
 
 CPlugins::CPlugins(){
 }
 
 CPlugins::~CPlugins(){
+   if (SessionSize) {
+      for (int i=0; i<SessionSize; i++)
+         delete pHistory[i];
+   }
+   delete pHistory;
   UnLoadAll();
 }
 
@@ -160,11 +169,7 @@ void SetPreference(enum PREFTYPE type, char *preference, void *val) {
 }
 
 
-int SessionSize=0;
-char **pHistory;
-
 int GetMozillaSessionHistory (char ***titles, int *count, int *index) {
-
    nsresult result;
    int i;
 

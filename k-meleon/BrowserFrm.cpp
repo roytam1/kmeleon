@@ -85,7 +85,7 @@ BEGIN_MESSAGE_MAP(CBrowserFrame, CFrameWnd)
 	ON_WM_SIZE()
 	ON_WM_CLOSE()
    ON_WM_SYSCOLORCHANGE()
-	ON_MESSAGE(WM_REFRESHTOOLBARITEM, RefreshToolBarItem)
+	ON_MESSAGE(UWM_REFRESHTOOLBARITEM, RefreshToolBarItem)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -443,7 +443,7 @@ void CBrowserFrame::OnSetFocus(CWnd* pOldWnd)
 	m_wndBrowserView.mBaseWindow->SetFocus();
 
 	// update session history for the current window
-   PostMessage(WM_UPDATESESSIONHISTORY, 0, 0);
+   PostMessage(UWM_UPDATESESSIONHISTORY, 0, 0);
 }
 
 /*

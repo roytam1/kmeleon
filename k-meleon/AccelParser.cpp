@@ -364,6 +364,10 @@ int CAccelParser::Load(CString &filename){
 
   delete [] buffer;
 
+  if (log){
+    delete log;
+  }
+
   return true;
 }
 

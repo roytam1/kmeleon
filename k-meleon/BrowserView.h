@@ -167,6 +167,8 @@ protected:
 	afx_msg void OnUpdateCopy(CCmdUI* pCmdUI);
 	afx_msg void OnUpdatePaste(CCmdUI* pCmdUI);
 	afx_msg void OnAppAbout();
+	afx_msg void OnWindowNext();
+	afx_msg void OnWindowPrev();
 	//}}AFX_MSG
 	
 	DECLARE_MESSAGE_MAP()

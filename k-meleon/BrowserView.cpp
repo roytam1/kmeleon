@@ -112,6 +112,8 @@ BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
    ON_COMMAND(ID_EDIT_FINDNEXT, OnFindNext)
    ON_COMMAND(ID_EDIT_FINDPREV, OnFindPrev)
 	ON_COMMAND(ID_APP_ABOUT, OnAppAbout)
+	ON_COMMAND(ID_WINDOW_NEXT, OnWindowNext)
+	ON_COMMAND(ID_WINDOW_PREV, OnWindowPrev)
    ON_REGISTERED_MESSAGE(WM_FINDMSG, OnFindMsg) 
    ON_UPDATE_COMMAND_UI(ID_NAV_BACK, OnUpdateNavBack)
 	ON_UPDATE_COMMAND_UI(ID_NAV_FORWARD, OnUpdateNavForward)
@@ -120,7 +122,7 @@ BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
 	ON_UPDATE_COMMAND_UI(ID_EDIT_COPY, OnUpdateCopy)
 	ON_UPDATE_COMMAND_UI(ID_EDIT_PASTE, OnUpdatePaste)
 	ON_WM_ACTIVATE()
-	ON_MESSAGE(WM_REFRESHTOOLBARITEM, RefreshToolBarItem)
+	ON_MESSAGE(UWM_REFRESHTOOLBARITEM, RefreshToolBarItem)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -270,7 +272,7 @@ HRESULT CBrowserView::DestroyBrowser() {
 
 	if(mpBrowserImpl)
 	{
-		mpBrowserImpl->Release();
+		delete mpBrowserImpl;
 		mpBrowserImpl = nsnull;
 	}
 
@@ -299,7 +301,7 @@ void CBrowserView::OnSize( UINT nType, int cx, int cy)
 }
 
 // Called by this object's creator i.e. the CBrowserFrame object
-// to pass it's pointer to us
+// to pass its pointer to us
 //
 void CBrowserView::SetBrowserFrame(CBrowserFrame* pBrowserFrame)
 {
@@ -1095,9 +1097,9 @@ void CBrowserView::UpdateBusyState(PRBool aBusy) {
 		mpBrowserFrame->m_wndAnimate.Stop();
 		mpBrowserFrame->m_wndAnimate.Seek(0);
 
-		// WM_UPDATESESSIONHISTORY is also posted in in CBrowserFrame::BrowserFrameGlueObj::UpdateCurrentURI
+		// UWM_UPDATESESSIONHISTORY is also posted in in CBrowserFrame::BrowserFrameGlueObj::UpdateCurrentURI
 		// but only the page url is available at that time, this will overwrite it with the title
-		mpBrowserFrame->PostMessage(WM_UPDATESESSIONHISTORY, 0, 0);
+		mpBrowserFrame->PostMessage(UWM_UPDATESESSIONHISTORY, 0, 0);
 	}
 }
 
@@ -1240,9 +1242,16 @@ void CBrowserView::DeleteTempFiles() {
 }
 
 // Show the AboutDlg
-void CBrowserView::OnAppAbout()
-{
+void CBrowserView::OnAppAbout() {
 	CAboutDlg aboutDlg;
    aboutDlg.m_pBrowserView = this;
 	aboutDlg.DoModal();
+}
+
+void CBrowserView::OnWindowNext() {
+   GetNextWindow(GW_HWNDNEXT)->SetActiveWindow();
+}
+
+void CBrowserView::OnWindowPrev() {
+   GetNextWindow(GW_HWNDNEXT)->SetActiveWindow();
 }
