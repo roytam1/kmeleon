@@ -42,7 +42,8 @@ static void BuildFavoritesTree(TCHAR *FavoritesPath, char* strPath, CBookmarkNod
 static void CreateNewObject(HWND hTree, HTREEITEM fromItem, int type);
 static void ChangeSpecialFolder(HWND hTree, HTREEITEM *htiOld, HTREEITEM htiNew, int flag);
 static void DeleteItem(HWND hTree, HTREEITEM item);
-static void UpdateItem(HWND hDlg, HTREEITEM item);
+static void UpdateTitle(HWND hDlg, HTREEITEM item);
+static void UpdateURL(HWND hDlg, HTREEITEM item);
 
 // Local vars
 
@@ -51,11 +52,11 @@ static BOOL bDragging;
 static HWND hEditWnd;
 
 static CBookmarkNode workingBookmarks; // this will hold a copy of the bookmarks for us to fuck with
-static BOOL bookmarksEdited;	// separate from gBookmarksModified - only tracks changes within edit dialog
+static BOOL bookmarksEdited;    // separate from gBookmarksModified - only tracks changes within edit dialog
 
-static HTREEITEM hTBitem;	// store current toolbar folder treeview item
-static HTREEITEM hNBitem;	// store current new bookmark folder treeview item
-static HTREEITEM hBMitem;	// store current bookmark menu folder treeview item
+static HTREEITEM hTBitem;   // current toolbar folder treeview item
+static HTREEITEM hNBitem;   // current new bookmark folder treeview item
+static HTREEITEM hBMitem;   // current bookmark menu folder treeview item
 
 
 // Commonly used functions
@@ -87,7 +88,7 @@ static inline void UnixTimeToSystemTime(time_t t, LPSYSTEMTIME pst) {
 
 CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-   static bool bTimer = false;	// semi-crude hack to make scrolling smoother
+   static bool bTimer = false;  // semi-crude hack to make scrolling smoother
    static HTREEITEM htCurHover = NULL;
    static HTREEITEM htDummyItem = NULL;
 
@@ -136,11 +137,6 @@ CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
          // Selection changed
          if (nmtv->hdr.code == TVN_SELCHANGED){
-            // if there was something selected previously, update it
-            if (nmtv->itemOld.hItem) {
-               UpdateItem(hDlg, nmtv->itemOld.hItem);
-			}
-
             // Put the new url/title into the box
             CBookmarkNode *newNode = (CBookmarkNode *)nmtv->itemNew.lParam;
 
@@ -186,18 +182,18 @@ CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                   GetTimeFormat(GetThreadLocale(), NULL, &st, NULL, pszDate, 899);
                   strcat(pszTmp, pszDate);
                   SetDlgItemText(hDlg, IDC_LAST_VISIT, pszTmp);
-		       }
+               }
                else {
                   SetDlgItemText(hDlg, IDC_LAST_VISIT, "Never");
-		       }
-		    }
+               }
+            }
             else {
                SetDlgItemText(hDlg, IDC_URL, "");
                SetDlgItemText(hDlg, IDC_LAST_VISIT, "");
                EnableWindow(GetDlgItem(hDlg, IDC_STATIC_URL), false);
                EnableWindow(GetDlgItem(hDlg, IDC_URL), false);
                EnableWindow(GetDlgItem(hDlg, IDC_STATIC_VISITED), false);
-		    }
+            }
 
             UnixTimeToSystemTime(newNode->addDate, &st);
             GetDateFormat(GetThreadLocale(), DATE_SHORTDATE, &st, NULL, pszDate, 899);
@@ -210,21 +206,21 @@ CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
             strcpy(pszTmp, "");
             if (newNode->flags & BOOKMARK_FLAG_TB) {
                strcat(pszTmp, "Toolbar Folder\n");
-		    }
+            }
             if (newNode->flags & BOOKMARK_FLAG_NB) {
                strcat(pszTmp, "New Bookmarks Folder\n");
-		    }
+            }
             if (newNode->flags & BOOKMARK_FLAG_BM) {
                strcat(pszTmp, "Bookmark Menu\n");
-		    }
+            }
             if (pszTmp[0]) {
                EnableWindow(GetDlgItem(hDlg, IDC_STATIC_OTHER), true);
                SetDlgItemText(hDlg, IDC_OTHER, pszTmp);
-		    }
+            }
             else {
                EnableWindow(GetDlgItem(hDlg, IDC_STATIC_OTHER), false);
                SetDlgItemText(hDlg, IDC_OTHER, "");
-		    }
+            }
          }
          // start a drag operation
          else if (nmtv->hdr.code == TVN_BEGINDRAG){
@@ -234,19 +230,15 @@ CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                SetCursor(hCursorDrag);
                bDragging = true;
                SetCapture(hDlg);
-			}
+            }
          }
          // key pressed
-         else if (nmtv->hdr.code == TVN_KEYDOWN) {
-            switch (((LPNMTVKEYDOWN)lParam)->wVKey) {
-			case VK_DELETE:
-               HTREEITEM hSelection = TreeView_GetSelection(hTree);
-               if (hSelection) {
-                  DeleteItem(hTree, hSelection);
-			   }
-               break;
-			}
-		 }
+         else if (nmtv->hdr.code == TVN_KEYDOWN && ((LPNMTVKEYDOWN)lParam)->wVKey == VK_DELETE) {
+            HTREEITEM hSelection = TreeView_GetSelection(hTree);
+            if (hSelection) {
+               DeleteItem(hTree, hSelection);
+            }
+         }
          else if (nmtv->hdr.code == NM_DBLCLK){
             TVHITTESTINFO hti;
             GetCursorPos(&hti.pt);
@@ -289,7 +281,7 @@ CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       break;
 
    case WM_TIMER:
-	  {
+      {
          // only one-time timers - will reset selves if necessary
          KillTimer(hDlg, wParam);
 
@@ -298,8 +290,8 @@ CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
             bTimer = false;
             HWND hTree = GetDlgItem(hDlg, IDC_TREE_BOOKMARK);
             SendMessage(hTree, WM_VSCROLL, wParam, NULL);
-		 }
-		 else if (wParam == 2) {
+         }
+         else if (wParam == 2) {
             // need to expand folder
             HWND hTree = GetDlgItem(hDlg, IDC_TREE_BOOKMARK);
 
@@ -312,12 +304,12 @@ CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                tvis.itemex.iImage = IMAGE_BLANK;
                tvis.itemex.iSelectedImage = IMAGE_BLANK;
                htDummyItem = TreeView_InsertItem(hTree, &tvis);
-			}
+            }
 
-            TreeView_SetInsertMark(hTree, NULL, false);	// clean up insertion mark before expand messes it up
+            TreeView_SetInsertMark(hTree, NULL, false); // clean up insertion mark before expand messes it up
             TreeView_Expand(hTree, htCurHover, TVE_EXPAND);
-		 }
-	  }
+         }
+      }
       // no break, because we want to update the insertion mark and set timers again if needed
 
    case WM_MOUSEMOVE:
@@ -330,21 +322,21 @@ CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
          GetCursorPos(&hti.pt);
          ScreenToClient(hTree, &hti.pt);
 
-		 RECT tvRect;
+         RECT tvRect;
 
          // set timers to scroll, if dragging to top/bottom
          GetClientRect(hTree, &tvRect);
-		 if (!bTimer && hti.pt.y >= 0 && hti.pt.y < 25) {
+         if (!bTimer && hti.pt.y >= 0 && hti.pt.y < 25) {
             SetTimer(hDlg,
                0,                 // timer id - passed as wParam through WM_TIMER to WM_VSCROLL (thus, 0=up, 1=down)
                50,                // 0.05-second interval 
                (TIMERPROC) NULL); // no timer callback 
             bTimer = true;
-		 }
-		 else if (!bTimer && tvRect.bottom - hti.pt.y >= 0 && tvRect.bottom - hti.pt.y < 25) {
+         }
+         else if (!bTimer && tvRect.bottom - hti.pt.y >= 0 && tvRect.bottom - hti.pt.y < 25) {
             SetTimer(hDlg, 1, 50, (TIMERPROC) NULL);
             bTimer = true;
-		 }
+         }
 
          HTREEITEM item = TreeView_HitTest(hTree, &hti);
          if (item) {
@@ -367,15 +359,15 @@ CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                    // (only necessary if item==htDummyItem, but can't hurt to do it either way...)
                    SendMessage(hDlg, uMsg, wParam, lParam);
                    break;
-			   }
+               }
 
                if (((CBookmarkNode *)(tvItem.lParam))->type == BOOKMARK_FOLDER) {
                   // folder - expand it after hovering for 1 second
                   SetTimer(hDlg, 2, 1000, (TIMERPROC) NULL);
-			   }
+               }
                else {
                   KillTimer(hDlg, 2);
-			   }
+               }
 
                htCurHover = item;
             }
@@ -383,13 +375,13 @@ CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
             if (!TreeView_GetParent(hTree, item)) {
                // item is the root - crudely fake being below it (no moving stuff above root)
                hti.pt.y += 100;
-			}
+            }
 
             TreeView_GetItemRect(hTree, item, &tvRect, false);
             if (hti.pt.y < tvRect.top + (tvRect.bottom - tvRect.top)/2) {
                // top half of item - place insertion mark before item
                TreeView_SetInsertMark(hTree, item, false);
-			}
+            }
             else {
                // bottom half of item
                TVITEMEX tvItem;
@@ -399,12 +391,12 @@ CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                if (tvItem.state & TVIS_EXPANDED) {
                   // expanded folder - place insertion mark before first child
                   TreeView_SetInsertMark(hTree, TreeView_GetChild(hTree, item), false);
-			   }
+               }
                else {
                   // bookmark, separator, or collapsed folder - place insertion mark after item
                   TreeView_SetInsertMark(hTree, item, true);
-			   }
-			}
+               }
+            }
          }
          else {
             // over no item, default to end of entire list
@@ -428,10 +420,10 @@ CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
             // so we can collapse the curhover if it only has the one child (the dummy item)
             if (!TreeView_GetNextSibling(hTree, TreeView_GetChild(hTree, htCurHover))) {
                TreeView_Expand(hTree, htCurHover, TVE_COLLAPSE);
-			}
+            }
             TreeView_DeleteItem(hTree, htDummyItem);
             htDummyItem = NULL;
-		 }
+         }
       }
       break;
 
@@ -452,43 +444,39 @@ CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
    case WM_COMMAND:
       {
-         if (HIWORD(wParam) == EN_KILLFOCUS){
+         if (HIWORD(wParam) == EN_CHANGE) {
             int id = LOWORD(wParam);
-            if (id == IDC_TITLE || id == IDC_URL) {
-               // save title and url (even though only one could have changed...)
-               // FIXME(somewhat) - this is redundant if we clicked out into the treeview,
-               // because then the SELCHANGED handler will have called updateitem, already.
+            if (id == IDC_TITLE && SendMessage(GetDlgItem(hDlg, IDC_TITLE), EM_GETMODIFY, 0, 0)) {
+               SendMessage(GetDlgItem(hDlg, IDC_TITLE), EM_SETMODIFY, FALSE, 0);
                HWND hTree = GetDlgItem(hDlg, IDC_TREE_BOOKMARK);
                HTREEITEM hSelection = TreeView_GetSelection(hTree);
                if (hSelection) {
-                  UpdateItem(hDlg, hSelection);
-			   }
-			}
+                  UpdateTitle(hDlg, hSelection);
+               }
+            }
+            else if (id == IDC_URL && SendMessage(GetDlgItem(hDlg, IDC_URL), EM_GETMODIFY, 0, 0)) {
+               SendMessage(GetDlgItem(hDlg, IDC_URL), EM_SETMODIFY, FALSE, 0);
+               HWND hTree = GetDlgItem(hDlg, IDC_TREE_BOOKMARK);
+               HTREEITEM hSelection = TreeView_GetSelection(hTree);
+               if (hSelection) {
+                  UpdateURL(hDlg, hSelection);
+               }
+            }
          }
-         else if (HIWORD(wParam) == BN_CLICKED){
+         else if (HIWORD(wParam) == BN_CLICKED) {
             WORD id = LOWORD(wParam);
             switch(id){
-			case ID_IMPORT_FAVORITES:
+            case ID_IMPORT_FAVORITES:
                ImportFavorites(GetDlgItem(hDlg, IDC_TREE_BOOKMARK));
                break;
-            case IDOK:
-               {
-                  // we need to save the title and url - user might have pressed enter in an edit box, thus not sending EN_KILLFOCUS
-                  HWND hTree = GetDlgItem(hDlg, IDC_TREE_BOOKMARK);
-                  HTREEITEM hSelection = TreeView_GetSelection(hTree);
-                  if (hSelection) {
-                     CBookmarkNode *node = GetBookmarkNode(hTree, hSelection);
-                     UpdateItem(hDlg, hSelection);
-                  }
-               }
 
-               // save the changes
-			   if (bookmarksEdited) {
+            case IDOK:
+               if (bookmarksEdited) {
                   gBookmarkRoot = workingBookmarks;
                   Save(gBookmarkFile);
 
                   Rebuild();
-			   }
+               }
 
                EndDialog(hDlg, 1);
                break;
@@ -521,19 +509,19 @@ static void FillTree(HWND hTree, HTREEITEM parent, CBookmarkNode &node)
       if (type == BOOKMARK_FOLDER) {
          tvis.itemex.iImage = IMAGE_FOLDER_CLOSED;
          tvis.itemex.iSelectedImage = IMAGE_FOLDER_OPEN;
-		 tvis.itemex.pszText = (char *)child->text.c_str();
+         tvis.itemex.pszText = (char *)child->text.c_str();
 
          HTREEITEM thisItem = TreeView_InsertItem(hTree, &tvis);
 
          if (child->flags & BOOKMARK_FLAG_TB) {
             ChangeSpecialFolder(hTree, &hTBitem, thisItem, BOOKMARK_FLAG_TB);
-		 }
+         }
          if (child->flags & BOOKMARK_FLAG_BM) {
             ChangeSpecialFolder(hTree, &hBMitem, thisItem, BOOKMARK_FLAG_BM);
-		 }
+         }
          if (child->flags & BOOKMARK_FLAG_NB) {
             ChangeSpecialFolder(hTree, &hNBitem, thisItem, BOOKMARK_FLAG_NB);
-		 }
+         }
 
          FillTree(hTree, thisItem, *child);
       }
@@ -602,12 +590,12 @@ static void OnDrop(HWND hTree)
       HTREEITEM oldParentItem = TreeView_GetParent(hTree, item);
       if (oldParentItem) {
          oldParentNode = GetBookmarkNode(hTree, oldParentItem);
-	  }
+      }
       else {
          oldParentNode = &workingBookmarks;
-	  }
+      }
 
-	  // determine the new location in the treeview
+      // determine the new location in the treeview
       TVHITTESTINFO hti;
       GetCursorPos(&hti.pt);
       ScreenToClient(hTree, &hti.pt);
@@ -617,13 +605,13 @@ static void OnDrop(HWND hTree)
          if (!TreeView_GetParent(hTree, itemDrop)) {
             // item is the root - crudely fake being below it (no moving stuff above root)
             hti.pt.y += 100;
-		 }
+         }
          RECT tvRect;
          TreeView_GetItemRect(hTree, itemDrop, &tvRect, false);
          if (hti.pt.y < tvRect.top + (tvRect.bottom - tvRect.top)/2) {
             // top half of item - insert before item
             tvis.hInsertAfter = TreeView_GetPrevSibling(hTree, itemDrop);
-		 }
+         }
          else {
             // bottom half of item
             TVITEMEX tvItem;
@@ -634,20 +622,20 @@ static void OnDrop(HWND hTree)
                // expanded folder - insert before first child
                tvis.hInsertAfter = NULL;
                itemDrop = TreeView_GetChild(hTree, itemDrop);
-			}
+            }
             else {
                // bookmark or collapsed folder - insert after item
                tvis.hInsertAfter = itemDrop;
-			}
-		 }
+            }
+         }
 
          if (tvis.hInsertAfter) {
             newPreviousNode = GetBookmarkNode(hTree, tvis.hInsertAfter);
-		 }
-		 else {
+         }
+         else {
             newPreviousNode = NULL;
             tvis.hInsertAfter = TVI_FIRST;
-		 }
+         }
       }
       else {
          // default to end of entire tree...  is this desirable?  e.g., what if the user drags it out of the treeview area, we just throw it on the end???
@@ -676,29 +664,29 @@ static void OnDrop(HWND hTree)
             oldParentNode->child = moveNode->next;
             if (!moveNode->next)
                oldParentNode->lastChild = NULL;
-	     }
-	     else {
+         }
+         else {
             // find the old previous node (only necessary to find it if it exists)
             for (oldPreviousNode = oldParentNode->child ; oldPreviousNode->next != moveNode ; oldPreviousNode = oldPreviousNode->next);
             oldPreviousNode->next = moveNode->next;
             if (!moveNode->next)
                oldParentNode->lastChild = oldPreviousNode;
-	     }
+         }
 
          // insert node in its new location in the bookmark structure
          if (newPreviousNode) {
             moveNode->next = newPreviousNode->next;
             newPreviousNode->next = moveNode;
-	     }
+         }
          else {
             moveNode->next = newParentNode->child;
             newParentNode->child = moveNode;
-	     }
+         }
 
          // create a new copy of the treeview item
          HTREEITEM newParent = TreeView_InsertItem(hTree, &tvis);
 
-	     // select it
+         // select it
          TreeView_SelectItem(hTree, newParent);
 
          // copy its children
@@ -707,13 +695,13 @@ static void OnDrop(HWND hTree)
          // collapse its parent if it's going to be empty (doesn't work if we collapse after deletion, for some reason)
          if (!TreeView_GetNextSibling(hTree, TreeView_GetChild(hTree, oldParentItem))) {
             TreeView_Expand(hTree, oldParentItem, TVE_COLLAPSE);
-		 }
+         }
 
          // and delete it 
          TreeView_DeleteItem(hTree, item);
 
          bookmarksEdited = true;
-	  }
+      }
    }
 
    SetCursor(LoadCursor(NULL, IDC_ARROW));
@@ -811,7 +799,7 @@ static void ChangeSpecialFolder(HWND hTree, HTREEITEM *htiOld, HTREEITEM htiNew,
          itemData.iImage = IMAGE_FOLDER_CLOSED;
          itemData.iSelectedImage = IMAGE_FOLDER_OPEN;
          TreeView_SetItem(hTree, &itemData);
-	  }
+      }
    }
 
    // new item
@@ -861,9 +849,8 @@ static void DeleteItem(HWND hTree, HTREEITEM item) {
 }
 
 // This just updates a node with the current Title and URL edit contents.
-// Maybe it should just change one (specified by passed value), but it's not too important.
-// And maybe it needn't update the tree if we're just exiting, but again... not too big a deal.
-static void UpdateItem(HWND hDlg, HTREEITEM item) {
+// Maybe it needn't update the tree if we're just exiting, but it's not too big a deal.
+static void UpdateTitle(HWND hDlg, HTREEITEM item) {
    HWND hTree = GetDlgItem(hDlg, IDC_TREE_BOOKMARK);
    CBookmarkNode *node = GetBookmarkNode(hTree, item);
 
@@ -882,8 +869,14 @@ static void UpdateItem(HWND hDlg, HTREEITEM item) {
          itemData.mask = TVIF_TEXT;
          itemData.pszText = TitleBuffer;
          TreeView_SetItem(hTree, &itemData);
-	  }
+      }
    }
+}
+
+// Ditto, but for the URL
+static void UpdateURL(HWND hDlg, HTREEITEM item) {
+   HWND hTree = GetDlgItem(hDlg, IDC_TREE_BOOKMARK);
+   CBookmarkNode *node = GetBookmarkNode(hTree, item);
 
    if (node->type == BOOKMARK_BOOKMARK) {
       char URLBuffer[1024];
@@ -923,7 +916,7 @@ static void OnRClick(HWND hTree)
          break;
       case ID__SETAS_TOOLBARFOLDER:
          ChangeSpecialFolder(hTree, &hTBitem, item, BOOKMARK_FLAG_TB);
-         bookmarksEdited = true;	// ChangeSpecialFolder is used when filling the tree initially, as well, so we don't want it to set bookmarksModified itself
+         bookmarksEdited = true;    // ChangeSpecialFolder is used when filling the tree initially, as well, so we don't want it to set bookmarksModified itself
          break;
       case ID__SETAS_NEWBOOKMARKFOLDER:
          ChangeSpecialFolder(hTree, &hNBitem, item, BOOKMARK_FLAG_NB);
