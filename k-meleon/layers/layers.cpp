@@ -45,7 +45,8 @@
 
 static BOOL bRebarEnabled  =   1;
 static char szTitle[MAX_PATH > 256 ? MAX_PATH : 256] = "Layers:";
-static int  nButtonWidth   =  75;
+static int  nButtonMinWidth   =  35;
+static int  nButtonMaxWidth   =  75;
 static BOOL bButtonNumbers =   0;
 static BOOL nButtonStyle   =   2;
 static BOOL bCloseWindow   =   0;
@@ -60,7 +61,8 @@ static BOOL bCatchWindow   =   0;
 #define PREFERENCE_SETTINGS_DIR  _T("kmeleon.general.settingsDir")
 #define PREFERENCE_REBAR_ENABLED _T("kmeleon.plugins.layers.rebar")
 #define PREFERENCE_REBAR_TITLE   _T("kmeleon.plugins.layers.title")
-#define PREFERENCE_BUTTON_WIDTH  _T("kmeleon.plugins.layers.width")
+#define PREFERENCE_BUTTON_MINWIDTH  _T("kmeleon.plugins.layers.minWidth")
+#define PREFERENCE_BUTTON_MAXWIDTH  _T("kmeleon.plugins.layers.maxWidth")
 #define PREFERENCE_BUTTON_NUMBER _T("kmeleon.plugins.layers.numbers")
 #define PREFERENCE_BUTTON_STYLE  _T("kmeleon.plugins.layers.style")
 #define PREFERENCE_CLOSE_WINDOW  _T("kmeleon.plugins.layers.close")
@@ -363,7 +365,8 @@ int Init(){
    // Get the rebar status
    kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_REBAR_ENABLED, &bRebarEnabled, &bRebarEnabled);
    kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_REBAR_TITLE, &szTitle, &szTitle);
-   kPlugin.kFuncs->GetPreference(PREF_INT,  PREFERENCE_BUTTON_WIDTH, &nButtonWidth, &nButtonWidth);
+   kPlugin.kFuncs->GetPreference(PREF_INT,  PREFERENCE_BUTTON_MINWIDTH, &nButtonMinWidth, &nButtonMinWidth);
+   kPlugin.kFuncs->GetPreference(PREF_INT,  PREFERENCE_BUTTON_MAXWIDTH, &nButtonMaxWidth, &nButtonMaxWidth);
    kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_BUTTON_NUMBER, &bButtonNumbers, &bButtonNumbers);
    kPlugin.kFuncs->GetPreference(PREF_INT, PREFERENCE_BUTTON_STYLE, &nButtonStyle, &nButtonStyle);
    kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_CLOSE_WINDOW, &bCloseWindow, &bCloseWindow);
@@ -574,7 +577,7 @@ void addRebarButton(HWND hWndTB, char *text, int num, int active)
       (((nButtonStyle & BS_GRAYED) && active) ? 0 : TBSTATE_ENABLED) |
       (((nButtonStyle & BS_PRESSED) && active) ? TBSTATE_CHECKED : 0);
    button.fsStyle = TBSTYLE_BUTTON | 
-      ((nButtonWidth < 0) ? TBSTYLE_AUTOSIZE : 0) | TBSTYLE_ALTDRAG | TBSTYLE_WRAPABLE |
+      ((nButtonMaxWidth < 0) ? TBSTYLE_AUTOSIZE : 0) | TBSTYLE_ALTDRAG | TBSTYLE_WRAPABLE |
       (((nButtonStyle & BS_PRESSED) && active) ? TBSTYLE_CHECK : 0);
    button.idCommand = id_layer + num;
    button.iBitmap = 0;
@@ -589,7 +592,8 @@ void BuildRebar(HWND hWndTB, HWND hWndParent)
    if (!bRebarEnabled || !hWndTB || bIgnore)
       return;
    
-   kPlugin.kFuncs->GetPreference(PREF_INT,  PREFERENCE_BUTTON_WIDTH, &nButtonWidth, &nButtonWidth);
+   kPlugin.kFuncs->GetPreference(PREF_INT,  PREFERENCE_BUTTON_MINWIDTH, &nButtonMinWidth, &nButtonMinWidth);
+   kPlugin.kFuncs->GetPreference(PREF_INT,  PREFERENCE_BUTTON_MAXWIDTH, &nButtonMaxWidth, &nButtonMaxWidth);
    kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_BUTTON_NUMBER, &bButtonNumbers, &bButtonNumbers);
    kPlugin.kFuncs->GetPreference(PREF_INT, PREFERENCE_BUTTON_STYLE, &nButtonStyle, &nButtonStyle);
    
@@ -599,13 +603,13 @@ void BuildRebar(HWND hWndTB, HWND hWndParent)
    SendMessage(hWndTB, TB_SETIMAGELIST, 0, (LPARAM)NULL);
    struct frame *pFrame = find_frame(hWndParent);
    if (!pFrame) {
-     SendMessage(hWndTB, TB_SETBUTTONWIDTH, 0, MAKELONG(nButtonWidth >= 0 ? nButtonWidth : 0, nButtonWidth >= 0 ? nButtonWidth : 0));
+     SendMessage(hWndTB, TB_SETBUTTONWIDTH, 0, MAKELONG(nButtonMaxWidth >= 0 ? nButtonMaxWidth : 0, nButtonMaxWidth >= 0 ? nButtonMaxWidth : 0));
       addRebarButton(hWndTB, "K-Meleon", 0, 0);
       return;
    }
 
    int width = 0;
-   if (nButtonWidth > 0) {
+   if (nButtonMaxWidth > 0) {
      RECT rect;
      GetWindowRect(hWndTB,&rect);
      width = rect.right - rect.left;
@@ -619,19 +623,19 @@ void BuildRebar(HWND hWndTB, HWND hWndParent)
      
      if (i)
        width = width / i;
-     if (width > nButtonWidth) width = nButtonWidth;
-     if (width < 1) width = 1;
+     if (width > nButtonMaxWidth) width = nButtonMaxWidth;
+     if (width < nButtonMinWidth) width = nButtonMinWidth;
    }
 
    SendMessage(hWndTB, TB_SETBUTTONWIDTH, 0, 
-               MAKELONG(nButtonWidth >= 0 ? width : 0, 
-                        nButtonWidth >= 0 ? width : 0));
+               MAKELONG(nButtonMaxWidth >= 0 ? width : 0, 
+                        nButtonMaxWidth >= 0 ? width : 0));
    
    if (pFrame) {
       struct layer *pLayer = pFrame->layer;
       int i = 0;
       while (pLayer && i<MAX_LAYERS) {
-         int nTextLength = nButtonWidth < 0 ? -nButtonWidth : 256;
+         int nTextLength = nButtonMaxWidth < 0 ? -nButtonMaxWidth : 256;
          nTextLength = nTextLength > 4 ? nTextLength : 4;
          char *buf = new char[nTextLength + 1];
          buf[0] = 0;
@@ -642,18 +646,18 @@ void BuildRebar(HWND hWndTB, HWND hWndParent)
             len = strlen(buf);
          }
          
-         if (nButtonWidth) {
+         if (nButtonMaxWidth) {
             kmeleonDocInfo *dInfo = kPlugin.kFuncs->GetDocInfo(pLayer->hWnd);
             if (dInfo && dInfo->title) {
                strcat(buf, " ");
                len++;
-               if (nButtonWidth<0 && 
-                   strlen(dInfo->title) < (UINT)((-nButtonWidth) < 3 ? 3 : (-nButtonWidth))) {
+               if (nButtonMaxWidth<0 && 
+                   strlen(dInfo->title) < (UINT)((-nButtonMaxWidth) < 3 ? 3 : (-nButtonMaxWidth))) {
                   strcat(buf, dInfo->title);
                }
                else {
                   strncat(buf, dInfo->title, nTextLength - len);
-                  if (nButtonWidth < 0) {
+                  if (nButtonMaxWidth < 0) {
                      buf[nTextLength - 2] = 0;
                      strcat(buf, "...");
                   }
@@ -973,7 +977,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                      HWND hWndTmp = pLayer->hWnd;
                      pFrame = del_layer(pLayer->hWnd);
                      if (hWndTmp != hWnd)
-                        PostMessage(hWndTmp, WM_CLOSE, 0, 0);
+                        CallWindowProc((WNDPROC)KMeleonWndProc, hWndTmp, WM_CLOSE, 0, 0);
                      pLayer = pFrame ? pFrame->layer : NULL;
                   }
                }
@@ -989,8 +993,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                
                if (ghMenu)
                   ShowMenuUnderButton(hWnd, ghMenu, TPM_RIGHTBUTTON, command);
-               else
-                  PostMessage(hWnd, WM_COMMAND, id_close_layer, command);
+               break;
+            }
+            break;
+         }
+            
+         case TB_MBUTTONDOWN:
+         {
+            WORD command = wParam;
+            if ((command >= id_layer) && 
+                (command < id_layer+MAX_LAYERS)) {
+               
+               PostMessage(hWnd, WM_COMMAND, id_close_layer, command);
                break;
             }
             break;
@@ -1220,7 +1234,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                      HWND hWndTmp = pLayer->hWnd;
                      if (hWndTmp != hWnd || command != id_close_others) {
                         pFrame = del_layer(pLayer->hWnd);
-                        PostMessage(hWndTmp, WM_CLOSE, 0, 0);
+                        CallWindowProc((WNDPROC)KMeleonWndProc, hWndTmp, WM_CLOSE, 0, 0);
                      }
                      pLayer = pFrame ? pFrame->layer : NULL;
                   }
@@ -1284,10 +1298,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                   UpdateRebarMenu( find_layer(pFrame->hWndFront) );
                   UpdateRebarMenu( find_layer(hWnd) );
                   PostMessage(pFrame->hWndFront, WM_COMMAND, id_resize, (LPARAM)wpOld);
-                  PostMessage(hWnd, WM_CLOSE, 0, 0);
+                  CallWindowProc((WNDPROC)KMeleonWndProc, hWnd, WM_CLOSE, 0, 0);
                }
                else {
-                  PostMessage(hWnd, WM_CLOSE, 0, 0);
+                  CallWindowProc((WNDPROC)KMeleonWndProc, hWnd, WM_CLOSE, 0, 0);
                }
                return 1;
             }
