@@ -335,17 +335,23 @@ END
 IDD_PREFERENCES_PROXY DIALOGEX 0, 0, 233, 154
 STYLE WS_CHILD
 EXSTYLE WS_EX_CLIENTEDGE | WS_EX_CONTROLPARENT
-FONT 8, "MS Sans Serif", 0, 0, 0x1
+FONT 8, "MS Sans Serif"
 BEGIN
-    LTEXT           "HTTP",IDC_STATIC,2,18,20,8
-    EDITTEXT        IDC_EDIT_HTTP_PROXY,25,15,169,14,ES_AUTOHSCROLL
-    EDITTEXT        IDC_EDIT_HTTP_PROXY_PORT,194,15,36,14,ES_AUTOHSCROLL
-    LTEXT           "Don't Proxy:",IDC_STATIC,2,40,39,8
-    EDITTEXT        IDC_EDIT_PROXY_NO_PROXY,42,37,188,14,ES_AUTOHSCROLL
-    CONTROL         "Enable Proxy",IDC_CHECK_PROXY_TYPE,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,173,59,57,10
-    LTEXT           "Server",IDC_STATIC,25,4,169,8
-    LTEXT           "Port",IDC_STATIC,194,4,36,8
+    LTEXT           "HTTP:",IDC_STATIC,13,35,22,8
+    EDITTEXT        IDC_EDIT_HTTP_PROXY,41,32,142,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDIT_HTTP_PROXY_PORT,186,32,36,14,ES_AUTOHSCROLL
+    LTEXT           "Do not use proxy servers for domains beginning with:",
+                    IDC_STATIC,14,90,166,8
+    EDITTEXT        IDC_EDIT_PROXY_NO_PROXY,13,102,209,22,ES_MULTILINE | 
+                    ES_AUTOHSCROLL | WS_VSCROLL
+    CONTROL         "Enable Proxies",IDC_CHECK_PROXY_TYPE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,41,55,65,10
+    LTEXT           "Address of proxy server to use",IDC_STATIC,44,18,105,8
+    LTEXT           "Port",IDC_STATIC,188,18,32,8
+    GROUPBOX        "Servers",IDC_STATIC,5,2,223,70
+    GROUPBOX        "Exceptions",IDC_STATIC,5,77,223,69
+    LTEXT           "Use commas (,) to separate entries.",IDC_STATIC,13,128,
+                    192,10
 END
 
 IDD_PREFERENCES_GENERAL DIALOGEX 0, 0, 233, 154
@@ -431,6 +437,37 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,101,42,100,12
     DEFPUSHBUTTON   "&Find Next",IDOK,182,5,50,14,WS_GROUP
     PUSHBUTTON      "Cancel",IDCANCEL,182,23,50,14
+END
+
+IDD_PREFERENCES_CACHE DIALOGEX 0, 0, 233, 154
+STYLE WS_CHILD
+EXSTYLE WS_EX_CLIENTEDGE | WS_EX_CONTROLPARENT
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Memory Cache",IDC_STATIC,5,17,52,10
+    LTEXT           "Disk Cache",IDC_STATIC,5,37,52,10
+    LTEXT           "Cached data is compared to network data:",IDC_STATIC,5,
+                    78,139,8
+    CONTROL         "&Once per session",IDC_RADIO_ONCE,"Button",
+                    BS_AUTORADIOBUTTON | WS_GROUP,15,93,80,10
+    CONTROL         "&Always",IDC_RADIO_ALWAYS,"Button",BS_AUTORADIOBUTTON,
+                    15,106,80,10
+    CONTROL         "&Never",IDC_RADIO_NEVER,"Button",BS_AUTORADIOBUTTON,15,
+                    119,80,10
+    EDITTEXT        IDC_EDIT_MEMORY_CACHE,66,15,41,13,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDIT_DISK_CACHE,66,35,41,13,ES_AUTOHSCROLL
+    /* Disabled
+    LTEXT           "Cache Directory",IDC_STATIC,5,57,55,10
+    EDITTEXT        IDC_EDIT_CACHE_DIRECTORY,65,54,141,13,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",IDC_BUTTON_BROWSE,207,54,14,13
+
+    PUSHBUTTON      "Clear Memory Cache",IDC_BUTTON2,144,16,77,13,
+                    WS_DISABLED
+    PUSHBUTTON      "Clear Disk Cache",IDC_BUTTON3,144,35,77,13,WS_DISABLED
+  
+    */
+    LTEXT           "KBytes",IDC_STATIC,110,17,32,9
+    LTEXT           "KBytes",IDC_STATIC,110,37,32,10
 END
 
 

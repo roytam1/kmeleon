@@ -33,6 +33,7 @@
 #define IDC_PAN_DOWN                    160
 #define IDD_PREFERENCES_MENUS           160
 #define IDC_PAN_UP                      161
+#define IDD_PREFERENCES_CACHE           161
 #define IDC_PAN_RIGHT                   163
 #define IDC_PAN_LEFT                    164
 #define IDC_PAN                         165
@@ -70,7 +71,9 @@
 #define IDC_EDIT_VERSION                1029
 #define IDC_CHECK_ANIMATIONS            1031
 #define IDC_EDIT1                       1033
+#define IDC_EDIT_DISK_CACHE             1034
 #define IDC_BUTTON_MENUS                1035
+#define IDC_EDIT_CACHE_DIRECTORY        1035
 #define IDC_BUTTON_ACCEL                1036
 #define IDC_BUTTON_HELP                 1037
 #define IDC_MATCH_WHOLE_WORD            1040
@@ -78,9 +81,15 @@
 #define IDC_WRAP_AROUND                 1042
 #define IDC_SEARCH_BACKWARDS            1043
 #define IDC_CHECK_SOURCE_ENABLED        1050
+#define IDC_RADIO_ONCE                  1050
 #define IDC_EDIT_SOURCE_COMMAND         1051
+#define IDC_RADIO_ALWAYS                1051
+#define IDC_RADIO_NEVER                 1052
+#define IDC_BUTTON2                     1054
 #define IDC_EDIT_ADDRESS                1055
+#define IDC_BUTTON3                     1055
 #define IDC_PROMPT_ADDRESS_TEXT         1056
+#define IDC_EDIT_MEMORY_CACHE           1056
 #define IDC_CONTAINER                   1110
 #define IDC_EDIT_TOOLBAR_BACKGROUND     1111
 #define IDC_EDIT_SETTINGS_DIR           1111
@@ -121,9 +130,9 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        163
+#define _APS_NEXT_RESOURCE_VALUE        164
 #define _APS_NEXT_COMMAND_VALUE         32791
-#define _APS_NEXT_CONTROL_VALUE         1050
+#define _APS_NEXT_CONTROL_VALUE         1058
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

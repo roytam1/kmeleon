@@ -377,7 +377,7 @@ void CBrowserView::OnViewSource()  {
 		return;
 
    // Use external viewer
-   if (theApp.preferences.sourceEnabled) {
+   if (theApp.preferences.bSourceUseExternalCommand) {
       if (theApp.preferences.sourceCommand) {
 
          char *tempfile = GetTempFile();

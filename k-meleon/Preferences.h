@@ -47,7 +47,7 @@ public:
    int posCX, posCY;
 
    // use external source viewer
-   int sourceEnabled;
+   int bSourceUseExternalCommand;
    CString sourceCommand;
   
    // -- yummy proxies
@@ -58,6 +58,18 @@ public:
 
    CString proxyNoProxy;
 
+
+   // -- cache
+   int cacheMemory;
+   int bCacheMemoryEnabled;
+   int cacheDisk;
+   int bCacheDiskEnabled;
+   /* Disabled
+   CString cacheDir;
+   */
+   int cacheCheckFrequency;
+
+   
    // -- paranoia
    int bJavaEnabled;
    int bJavascriptEnabled;

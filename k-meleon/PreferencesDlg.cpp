@@ -62,6 +62,7 @@ CPreferencesDlg::OnInitDialog(){
    AddItem(_T("Menus"),   IDD_PREFERENCES_MENUS);
    AddItem(_T("Proxy"),   IDD_PREFERENCES_PROXY);
    AddItem(_T("Paranoia"),IDD_PREFERENCES_PARANOIA);
+   AddItem(_T("Cache"),   IDD_PREFERENCES_CACHE);
    AddItem(_T("Plugins"), IDD_PREFERENCES_PLUGINS);
 
    m_list.SetItemState(0, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
@@ -173,7 +174,7 @@ void CPreferencePage::DoDataExchange(CDataExchange* pDX){
       DDX_Text(pDX, IDC_EDIT_HOMEPAGE, theApp.preferences.homePage);
       DDX_Text(pDX, IDC_EDIT_SETTINGS_DIR, theApp.preferences.settingsDir);
       DDX_Text(pDX, IDC_EDIT_PLUGINS_DIR, theApp.preferences.pluginsDir);
-      DDX_Check(pDX, IDC_CHECK_SOURCE_ENABLED, theApp.preferences.sourceEnabled);
+      DDX_Check(pDX, IDC_CHECK_SOURCE_ENABLED, theApp.preferences.bSourceUseExternalCommand);
       DDX_Text(pDX, IDC_EDIT_SOURCE_COMMAND, theApp.preferences.sourceCommand);
       break;
     case IDD_PREFERENCES_PROXY:
@@ -181,6 +182,14 @@ void CPreferencePage::DoDataExchange(CDataExchange* pDX){
       DDX_Text(pDX, IDC_EDIT_HTTP_PROXY_PORT, theApp.preferences.proxyHttpPort);
       DDX_Text(pDX, IDC_EDIT_PROXY_NO_PROXY, theApp.preferences.proxyNoProxy);
       DDX_Check(pDX, IDC_CHECK_PROXY_TYPE, theApp.preferences.proxyType);
+      break;
+    case IDD_PREFERENCES_CACHE:
+      DDX_Text(pDX, IDC_EDIT_MEMORY_CACHE, theApp.preferences.cacheMemory);
+      DDX_Text(pDX, IDC_EDIT_DISK_CACHE, theApp.preferences.cacheDisk);
+      /* Disabled
+      DDX_Text(pDX, IDC_EDIT_CACHE_DIRECTORY, theApp.preferences.cacheDir);
+      */
+      DDX_Radio(pDX, IDC_RADIO_ONCE, theApp.preferences.cacheCheckFrequency);
       break;
     case IDD_PREFERENCES_PARANOIA:
       DDX_Check(pDX, IDC_CHECK_JAVA, theApp.preferences.bJavaEnabled);

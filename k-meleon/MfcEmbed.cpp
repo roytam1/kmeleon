@@ -341,7 +341,7 @@ nsresult CMfcEmbedApp::InitializePrefs(){
 
 nsresult CMfcEmbedApp::InitializeCachePrefs()
 {
-	const char * const CACHE_DIR_PREF   = "browser.cache.directory";
+   const char * const CACHE_DIR_PREF   = "browser.cache.directory";
 	
 	nsresult rv;
 	NS_WITH_SERVICE(nsIPref, prefs, NS_PREF_CONTRACTID, &rv);
