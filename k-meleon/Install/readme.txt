@@ -40,7 +40,6 @@ v0.3 (02/13/01)
  - Uninstall works now, providing correct uninstall.exe now
  - percentage of document loaded sometimes wrong (>100%)
  - Several Kmeleon0.21 crashes which are already fixed in the nightlies
- - first cut at general plugin introduction
  - Save html of a page only
  - Save complete page incl. images into a directory
  - takes URL as command line option
