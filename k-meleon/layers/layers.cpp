@@ -1161,9 +1161,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                      if (pLayer) {
                         SendMessage(hWnd, WM_COMMAND, lParam, 0);
                         PostMessage(pLayer->hWnd, WM_COMMAND, command, 0);
+                        return 0;
                      }
                   }
-                  return 0;
                }
                
                if (pFrame) {
@@ -1213,9 +1213,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                      }
                      if (pLayer) {
                         PostMessage(pLayer->hWnd, WM_COMMAND, id_close_layer, 0);
+                        return 0;
                      }
                   }
-                  return 0;
                }
                
                int newLayer = 0;
