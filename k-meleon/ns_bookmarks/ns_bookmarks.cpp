@@ -469,6 +469,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
          if (dInfo) {
             urlVector.push_back((std::string)dInfo->url);
             titleVector.push_back((std::string)dInfo->title);
+            if (strlen(dInfo->title) > 40)
+               CondenseString(dInfo->title, 40);
             AppendMenu(m_menuBookmarks, MF_STRING, nFirstBookmarkCommand+urlVector.size()-1, dInfo->title);
             DrawMenuBar(hWnd);
          }
