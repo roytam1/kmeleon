@@ -47,7 +47,7 @@ public:
 
    CString searchEngine;
  
-   // this holds the menu.txt files
+   CString saveDir;
    CString settingsDir;
    CString pluginsDir;
 

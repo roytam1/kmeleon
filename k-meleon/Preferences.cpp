@@ -103,7 +103,8 @@ void CPreferences::Load() {
 
       _GetBool(_T("kmeleon.general.sourceEnabled"), bSourceUseExternalCommand, false);
       _GetString(_T("kmeleon.general.sourceCommand"), sourceCommand, _T(""));
-    
+
+      _GetString(_T("kmeleon.general.saveDir"), saveDir, _T(""));   
       _GetString(_T("kmeleon.general.settingsDir"), settingsDir, _T(""));
       _GetString(_T("kmeleon.general.pluginsDir"), pluginsDir, _T(""));
     
@@ -219,6 +220,7 @@ void CPreferences::Save() {
       rv = prefs->SetBoolPref(_T("kmeleon.general.startHome"), bStartHome);
       rv = prefs->SetCharPref(_T("kmeleon.general.homePage"), homePage);
 
+      rv = prefs->SetCharPref(_T("kmeleon.general.saveDir"), saveDir);
       rv = prefs->SetCharPref(_T("kmeleon.general.settingsDir"), settingsDir);
       rv = prefs->SetCharPref(_T("kmeleon.general.pluginsDir"), pluginsDir);
 
