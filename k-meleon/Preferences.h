@@ -179,7 +179,6 @@ protected:
 
    virtual BOOL OnInitDialog();
 
-   afx_msg void OnEditCookies();
    afx_msg void OnClearDiskCache();
    afx_msg void OnClearMemCache();
    afx_msg void OnBrowse();

@@ -278,7 +278,6 @@ void CPreferencePage::DoDataExchange(CDataExchange* pDX){
 BEGIN_MESSAGE_MAP(CPreferencePage, CDialog)
 	//{{AFX_MSG_MAP(CPreferencePage)
 	ON_BN_CLICKED(IDC_BUTTON_BROWSE, OnBrowse)
-	ON_BN_CLICKED(IDC_BUTTON_COOKIES, OnEditCookies)
 	ON_BN_CLICKED(IDC_BUTTON_CLEAR_MEM_CACHE, OnClearMemCache)
 	ON_BN_CLICKED(IDC_BUTTON_CLEAR_DISK_CACHE, OnClearDiskCache)
    ON_CBN_SELCHANGE(IDC_COMBO, OnComboChanged)
@@ -305,12 +304,6 @@ void CPreferencePage::OnClearDiskCache() {
 
    CacheService->EvictEntries(nsICache::STORE_ON_DISK);
    CacheService->EvictEntries(nsICache::STORE_ON_DISK_AS_FILE);
-}
-
-void CPreferencePage::OnEditCookies() {
-   CString cookiePath;
-   cookiePath = theApp.preferences.profileDir + "cookies.txt";
-   ShellExecute(NULL, NULL, "notepad.exe", cookiePath.GetBuffer(0), NULL, SW_SHOW);
 }
 
 void CPreferencePage::OnBrowse() {
