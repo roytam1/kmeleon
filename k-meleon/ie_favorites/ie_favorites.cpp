@@ -48,7 +48,7 @@ void Config(HWND parent);
 void Quit();
 HGLOBAL GetMenu();
 void DoMenu(HMENU menu, char *param);
-void OnMessage(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam);
+LPARAM OnMessage(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 kmeleonPlugin kPlugin = {
   KMEL_PLUGIN_VER,
@@ -226,7 +226,6 @@ void DoMenu(HMENU menu, char *param){
     AppendMenu(menu, MF_STRING, nAddCommand, "&Add Favorite");
     return;
   }
-
 	m_menuFavorites.Attach(menu);
 
 	TCHAR           sz[MAX_PATH];
@@ -264,21 +263,24 @@ void DoMenu(HMENU menu, char *param){
 	}
 }
 
-void OnMessage(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam){
+LPARAM OnMessage(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam){
   if (message == WM_COMMAND){
     WORD command = LOWORD(wParam);
     if (command == nConfigCommand){
       Config(NULL);
-      return;
+      return true;
     }
     if (command == nAddCommand){
       //AppendMenu(mainMenu, MF_STRING, nFirstFavoriteCommand, "New Item");
-      return;
+      MessageBox(NULL, "Many things we must do\nTo satisfy you\n\nAdding favorites is one\nSonn it will be done\n", "A poem", 0);
+      return true;
     }
     if (command >= nFirstFavoriteCommand && command < (nFirstFavoriteCommand + MAX_FAVORITES)){
       kPlugin.NavigateTo((char *)(LPCTSTR)m_astrFavoriteURLs.GetAt(command - nFirstFavoriteCommand), 0);
+      return true;
     }
   }
+  return false;
 }
 
 // so it doesn't munge the function name
