@@ -138,10 +138,12 @@ BOOL CMfcEmbedApp::InitInstance()
 	CBrowserFrame *pBrowserFrame = CreateNewBrowserFrame();
 
 	//Load the HomePage into the browser view
-  if(!cmdInfo.m_strFileName.IsEmpty())
-    pBrowserFrame->m_wndBrowserView.OpenURL(cmdInfo.m_strFileName);
-  else if(pBrowserFrame)
-		pBrowserFrame->m_wndBrowserView.LoadHomePage();
+  if(pBrowserFrame){
+    if(!cmdInfo.m_strFileName.IsEmpty())
+      pBrowserFrame->m_wndBrowserView.OpenURL(cmdInfo.m_strFileName);
+    else
+      pBrowserFrame->m_wndBrowserView.LoadHomePage();
+  }
 
 	return TRUE;
 }
@@ -158,7 +160,9 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
 	// Use the Windows default if all are specified as -1
   if(x == -1 && y == -1 && cx == -1 && cy == -1){
 		winSize = CFrameWnd::rectDefault;
-    style |= WS_MAXIMIZE;
+  }
+  if (preferences.bMaximized && !(chromeMask & nsIWebBrowserChrome::CHROME_WITH_SIZE) ) {
+      style |= WS_MAXIMIZE;
   }
 
 	// Load the window title from the string resource table

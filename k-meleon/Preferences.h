@@ -106,6 +106,9 @@ public:
   // this holds the menu.txt files
   CString settingsDir;
 
+  // true if the window should default to maximized
+  int bMaximized;
+
   // if true, will call Save on destruction
   int bAutoSave;
 

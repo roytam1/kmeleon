@@ -35,6 +35,8 @@ CPreferences::~CPreferences() {
 CPreferences::Load() {
   bAutoSave = true;
 
+  bMaximized = theApp.GetProfileInt(_T("Display"), _T("Maximized"), 1);
+
   bToolbarBackground = theApp.GetProfileInt(_T("Display"), _T("BackgroundImageEnabled"), 1);
   toolbarBackground = theApp.GetProfileString(_T("Display"), _T("BackgroundImage"));
 
@@ -59,6 +61,8 @@ CPreferences::Load() {
 }
 
 CPreferences::Save() {
+  theApp.WriteProfileInt(_T("Display"), _T("Maximized"), bMaximized);
+
   theApp.WriteProfileInt(_T("Display"), _T("BackgroundImageEnabled"), bToolbarBackground);
   theApp.WriteProfileString(_T("Display"), _T("BackgroundImage"), toolbarBackground);
 

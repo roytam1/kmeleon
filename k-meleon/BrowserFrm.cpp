@@ -368,16 +368,18 @@ BOOL CBrowserFrame::OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERIN
 //
 void CBrowserFrame::OnSize(UINT nType, int cx, int cy) 
 {
-       CFrameWnd::OnSize(nType, cx, cy);
-	
-       // Get the ItemRect of the status bar's Pane 1
-       // That's where the progress bar will be located
-       RECT rc;
-       m_wndStatusBar.GetItemRect(1, &rc);
+  CFrameWnd::OnSize(nType, cx, cy);
 
-       // Move the progress bar into it's correct location
-       //
-       m_wndProgressBar.MoveWindow(&rc);
+  // Get the ItemRect of the status bar's Pane 1
+  // That's where the progress bar will be located
+  RECT rc;
+  m_wndStatusBar.GetItemRect(1, &rc);
+
+  // Move the progress bar into it's correct location
+  //
+  m_wndProgressBar.MoveWindow(&rc);
+
+  theApp.preferences.bMaximized = IsZoomed();
 }
 
 /////////////////////////////////////////////////////////////////////////////
