@@ -27,6 +27,7 @@
 #define IDD_PREFERENCES_PROXY           156
 #define IDD_PREFERENCES_GENERAL         157
 #define IDD_PREFERENCES_PLUGINS         158
+#define IDD_PREFERENCES_PARANOIA        159
 #define IDC_PAN_DOWN                    160
 #define IDC_PAN_UP                      161
 #define IDC_PAN_RIGHT                   163
@@ -58,6 +59,13 @@
 #define IDC_EDIT_HTTP_PROXY_PORT        1021
 #define IDC_CHECK_PROXY_TYPE            1022
 #define IDC_EDIT_PROXY_NO_PROXY         1023
+#define IDC_CHECK_JAVASCRIPT            1024
+#define IDC_CHECK_COOKIES               1025
+#define IDC_CHECK_IMAGES                1026
+#define IDC_CHECK_JAVA                  1027
+#define IDC_CHECK_CSS                   1028
+#define IDC_EDIT_VERSION                1029
+#define IDC_CHECK_ANIMATIONS            1031
 #define IDC_CONTAINER                   1110
 #define IDC_EDIT_TOOLBAR_BACKGROUND     1111
 #define IDC_EDIT_SETTINGS_DIR           1111
@@ -86,8 +94,8 @@
 #define ID_SAVE_IMAGE_AS                32788
 #define ID_COPY_LINK_LOCATION           32789
 #define ID_PREFERENCES                  32790
-#define ID_SELECT_URL                   32790
-#define ID_MANAGE_PROFILES              32791
+#define ID_SELECT_URL                   32791
+#define ID_MANAGE_PROFILES              32792
 #define ID_LINK_KMELEON_HOME            32800
 #define ID_LINK_KMELEON_FORUM           32801
 
@@ -96,9 +104,9 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        155
+#define _APS_NEXT_RESOURCE_VALUE        157
 #define _APS_NEXT_COMMAND_VALUE         32791
-#define _APS_NEXT_CONTROL_VALUE         1024
+#define _APS_NEXT_CONTROL_VALUE         1033
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
