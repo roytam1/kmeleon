@@ -64,6 +64,9 @@
 
 #include "BrowserImpl.h"
 
+#define NIGHTLY
+
+
 CBrowserImpl::CBrowserImpl()
 {
    NS_INIT_ISUPPORTS();
@@ -215,30 +218,39 @@ NS_IMETHODIMP CBrowserImpl::CreateBrowserWindow(PRUint32 chromeMask, PRInt32 aX,
       return NS_ERROR_FAILURE;
 }
 
-// Gets called in response to create a new browser window. 
-// Ex: In response to a JavaScript Window.Open() call of
-// the form 
-//
-//		window.open("http://www.mozilla.org", "theWin", ...);
-//
-// Here "theWin" is the "targetName" of the window where this URL
-// is to be loaded into
-// 
-// So, we get called to see if a target by that name already exists
-//
-#if 0
-/* I didn't really want to mess with your code, but this method has
-   been removed from nsIWebBrowserChrome per the API review meeting
-   on 5 Feb 01.
-*/
-NS_IMETHODIMP CBrowserImpl::FindNamedBrowserItem(const PRUnichar *aName,
-                                                 nsIDocShellTreeItem ** aBrowserItem)
-{
-   if(! m_pBrowserFrameGlue)
-      return NS_ERROR_FAILURE;
+#ifdef NIGHTLY
 
-   return m_pBrowserFrameGlue->FindNamedBrowserItem(aName, NS_STATIC_CAST(nsIWebBrowserChrome*, this), aBrowserItem);
+// Will get called in response to JavaScript window.close()
+//
+NS_IMETHODIMP CBrowserImpl::DestroyBrowserWindow()
+{
+	if(! m_pBrowserFrameGlue)
+		return NS_ERROR_FAILURE;
+
+	m_pBrowserFrameGlue->DestroyBrowserFrame();
+
+	return NS_OK;
 }
+
+#else
+
+NS_IMETHODIMP
+CBrowserImpl::SetPersistence(PRBool aPersistX, PRBool aPersistY,
+                             PRBool aPersistCX, PRBool aPersistCY,
+                             PRBool aPersistSizeMode)
+{
+   return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+
+NS_IMETHODIMP
+CBrowserImpl::GetPersistence(PRBool* aPersistX, PRBool* aPersistY,
+                             PRBool* aPersistCX, PRBool* aPersistCY,
+                             PRBool* aPersistSizeMode)
+{
+   return NS_ERROR_NOT_IMPLEMENTED;
+}
+
 #endif
 
 // Gets called in response to set the size of a window
@@ -278,26 +290,6 @@ NS_IMETHODIMP CBrowserImpl::ExitModalEventLoop(nsresult aStatus)
    return NS_OK;
 }
 
-/*  //  Nightly fix
-
-NS_IMETHODIMP
-CBrowserImpl::SetPersistence(PRBool aPersistX, PRBool aPersistY,
-                             PRBool aPersistCX, PRBool aPersistCY,
-                             PRBool aPersistSizeMode)
-{
-   return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-NS_IMETHODIMP
-CBrowserImpl::GetPersistence(PRBool* aPersistX, PRBool* aPersistY,
-                             PRBool* aPersistCX, PRBool* aPersistCY,
-                             PRBool* aPersistSizeMode)
-{
-   return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-*/
 
 //*****************************************************************************
 // CBrowserImpl::nsIWebBrowserSiteWindow
