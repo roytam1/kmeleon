@@ -342,7 +342,7 @@ int DrawBitmap(DRAWITEMSTRUCT *dis) {
       top += dis->rcItem.top;
 
       if (dis->itemState & ODS_GRAYED)
-         ImageList_DrawEx(hImageList, bmpMapIt->second, dis->hDC, dis->rcItem.left+BMP_PADDING_LEFT, top, 0, 0, CLR_NONE, GetSysColor(COLOR_3DFACE), ILD_BLEND  | ILD_TRANSPARENT);
+         ImageList_DrawEx(hImageList, bmpMapIt->second, dis->hDC, dis->rcItem.left+BMP_PADDING_LEFT, top, 0, 0, CLR_NONE, GetSysColor(COLOR_MENU), ILD_BLEND  | ILD_TRANSPARENT);
 
       else if (dis->itemState & ODS_SELECTED)
          ImageList_Draw(hImageList, bmpMapIt->second, dis->hDC, dis->rcItem.left+BMP_PADDING_LEFT, top, ILD_TRANSPARENT);
@@ -458,7 +458,7 @@ void DrawMenuItem(DRAWITEMSTRUCT *dis) {
 		SetTextColor(dis->hDC, GetSysColor(COLOR_HIGHLIGHTTEXT));
 	}
 	else {
-		FillRect(dis->hDC, &dis->rcItem, GetSysColorBrush(COLOR_3DFACE));
+		FillRect(dis->hDC, &dis->rcItem, GetSysColorBrush(COLOR_MENU));
 	}
 
    DRAWBITMAPPROC DrawProc;
@@ -492,7 +492,7 @@ void DrawMenuItem(DRAWITEMSTRUCT *dis) {
 	if (dis->itemState & ODS_GRAYED) {
 		// setup pen to draw selected, grayed text
 		if (dis->itemState & ODS_SELECTED) {
-			SetTextColor(dis->hDC, GetSysColor(COLOR_3DFACE));
+			SetTextColor(dis->hDC, GetSysColor(COLOR_MENU));
 		}
 		// Draw shadow for unselected grayed items
 		else {
