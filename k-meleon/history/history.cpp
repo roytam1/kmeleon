@@ -95,9 +95,7 @@ void DoMenu(HMENU menu, char *param){
 }
 
 void DoRebar(HWND rebarWnd) {
-   hReBar = rebarWnd;
 }
-
 
 void CreateBackMenu (HWND hWndParent, UINT button) {
 	int index, count, i, limit;
@@ -122,23 +120,25 @@ void CreateBackMenu (HWND hWndParent, UINT button) {
 		AppendMenu(submenu, MF_STRING, i+1, buf);
 	}
 
-
    // Find the toolbar
-   UINT uBandIndex = ::SendMessage(hReBar, RB_IDTOINDEX, 200, 0);     // 200 = Toolbar ID
+   HWND hReBar = FindWindowEx(GetActiveWindow(), NULL, REBARCLASSNAME, NULL);
+
+   UINT uBandIndex = SendMessage(hReBar, RB_IDTOINDEX, 200, 0);     // 200 = Toolbar ID
+
    REBARBANDINFO rb;
    rb.cbSize = sizeof(REBARBANDINFO);
    rb.fMask = RBBIM_CHILD;
 
-   if (::SendMessage(hReBar, RB_GETBANDINFO, (WPARAM) uBandIndex, (LPARAM) &rb)) {
+   if (SendMessage(hReBar, RB_GETBANDINFO, (WPARAM) uBandIndex, (LPARAM) &rb)) {
 
       // toolbar hwnd
       HWND tb = rb.hwndChild;
       RECT rc;
 
-      WPARAM ButtonID = ::SendMessage(tb, TB_COMMANDTOINDEX, ID_NAV_BACK, 0);
-	   ::SendMessage(tb, TB_GETITEMRECT, ButtonID, (LPARAM) &rc);
+      WPARAM ButtonID = SendMessage(tb, TB_COMMANDTOINDEX, ID_NAV_BACK, 0);
+	   SendMessage(tb, TB_GETITEMRECT, ButtonID, (LPARAM) &rc);
 	   POINT pt = { rc.left, rc.bottom };
-	   ::ClientToScreen(tb, &pt);
+	   ClientToScreen(tb, &pt);
       DWORD SelectionMade = TrackPopupMenu(submenu, TPM_LEFTALIGN | button | TPM_NONOTIFY | TPM_RETURNCMD, pt.x, pt.y, 0, hWndParent, &rc);
 
 	   DestroyMenu(submenu);
@@ -154,7 +154,8 @@ void CreateBackMenu (HWND hWndParent, UINT button) {
 
 
 void CreateForwardMenu (HWND hWndParent, UINT button) {
-	int index, count, i, limit;
+
+   int index, count, i, limit;
 	char **titles, buf[47];
 
 	if (!kPlugin.kf->GetMozillaSessionHistory (&titles, &count, &index)) {
@@ -176,21 +177,24 @@ void CreateForwardMenu (HWND hWndParent, UINT button) {
 		AppendMenu(submenu, MF_STRING, i+1, buf);
 	}
 
-   UINT uBandIndex = ::SendMessage(hReBar, RB_IDTOINDEX, 200, 0);     // 200 = Toolbar ID
+   // Find the toolbar
+   HWND hReBar = FindWindowEx(GetActiveWindow(), NULL, REBARCLASSNAME, NULL);
+
+   UINT uBandIndex = SendMessage(hReBar, RB_IDTOINDEX, 200, 0);     // 200 = Toolbar ID
    REBARBANDINFO rb;
    rb.cbSize = sizeof(REBARBANDINFO);
    rb.fMask = RBBIM_CHILD;
 
-   if (::SendMessage(hReBar, RB_GETBANDINFO, (WPARAM) uBandIndex, (LPARAM) &rb)) {
+   if (SendMessage(hReBar, RB_GETBANDINFO, (WPARAM) uBandIndex, (LPARAM) &rb)) {
 
       // toolbar hwnd
       HWND tb = rb.hwndChild;
       RECT rc;
 
-   	WPARAM ButtonID = ::SendMessage(tb, TB_COMMANDTOINDEX, ID_NAV_FORWARD, 0);
-	   ::SendMessage(tb, TB_GETITEMRECT, ButtonID, (LPARAM) &rc);
+   	WPARAM ButtonID = SendMessage(tb, TB_COMMANDTOINDEX, ID_NAV_FORWARD, 0);
+	   SendMessage(tb, TB_GETITEMRECT, ButtonID, (LPARAM) &rc);
 	   POINT pt = { rc.left, rc.bottom };
-	   ::ClientToScreen(tb, &pt);
+	   ClientToScreen(tb, &pt);
 	   DWORD SelectionMade = TrackPopupMenu(submenu, TPM_LEFTALIGN | button | TPM_NONOTIFY | TPM_RETURNCMD, pt.x, pt.y, 0, hWndParent, &rc);
 
 	   DestroyMenu(submenu);
