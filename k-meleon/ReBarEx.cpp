@@ -74,7 +74,7 @@ int CReBarEx::FindByChild(HWND hWnd) {
    rbbi.cbSize = sizeof(rbbi);
    rbbi.fMask = RBBIM_ID | RBBIM_CHILD;
 
-   for (int x=0; x<GetReBarCtrl().GetBandCount(); x++) {
+   for (UINT x=0; x<GetReBarCtrl().GetBandCount(); x++) {
       GetReBarCtrl().GetBandInfo(x, &rbbi);
       if (rbbi.hwndChild == hWnd)
          return GetReBarCtrl().IDToIndex(rbbi.wID);

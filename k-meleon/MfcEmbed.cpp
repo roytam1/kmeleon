@@ -130,6 +130,8 @@ BOOL CMfcEmbedApp::InitInstance()
    // Create the first browser frame window
 	CBrowserFrame *pBrowserFrame = CreateNewBrowserFrame();
 
+   pBrowserFrame->m_wndReBar.DrawToolBarMenu();
+
    // Parse command line for standard shell commands, DDE, file open
 	CCommandLineInfo cmdInfo;
 	ParseCommandLine(cmdInfo);
@@ -204,11 +206,16 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
 
 void CMfcEmbedApp::OnNewBrowser()
 {
-	CBrowserFrame *pBrowserFrame = CreateNewBrowserFrame();
+   char *sURI = new char[m_pMostRecentBrowserFrame->m_wndBrowserView.GetCurrentURI(NULL)+1];
+   m_pMostRecentBrowserFrame->m_wndBrowserView.GetCurrentURI(sURI);
+   CBrowserFrame *pBrowserFrame = CreateNewBrowserFrame();
 
 	//Load the HomePage into the browser view
    if(pBrowserFrame) {
-		pBrowserFrame->m_wndBrowserView.LoadHomePage();
+      pBrowserFrame->m_wndBrowserView.OpenURL(sURI);
+      delete sURI;
+
+   //		pBrowserFrame->m_wndBrowserView.LoadHomePage();
       pBrowserFrame->m_setURLBarFocus = true;
    }
 }

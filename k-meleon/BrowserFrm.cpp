@@ -283,8 +283,6 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct){
 
    theApp.plugins.DoRebars(m_wndReBar.GetReBarCtrl().m_hWnd);
 
-   m_wndReBar.DrawToolBarMenu();
-
    m_wndReBar.RestoreBandSizes();
 
    LoadBackImage();

@@ -88,9 +88,9 @@ int CPreferencesDlg::DoModal(){
   return ret;
 }
 
-void CPreferencesDlg::OnOK(){
-  page->UpdateData();
-  CDialog::OnOK();
+void CPreferencesDlg::OnOK() {
+   page->UpdateData();
+   CDialog::OnOK();
 }
 
 void CPreferencesDlg::OnCancel(){
@@ -328,7 +328,7 @@ BOOL CPreferencePageMenus::OnInitDialog(){
 	return FALSE;  // return TRUE  unless you set the focus to a control
 }
 
-void CPreferencePageMenus::OnDestroy(){
+CPreferencePageMenus::~CPreferencePageMenus() {
    if (SendDlgItemMessage(IDC_EDIT1, EM_GETMODIFY)){
       if (m_nCurrentFile == 0){
          SaveFile("menus.cfg");

@@ -86,9 +86,10 @@ BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
    ON_COMMAND(ID_SELECT_URL, OnSelectUrl)
 	ON_COMMAND(ID_FILE_OPEN, OnFileOpen)
 	ON_COMMAND(ID_FILE_SAVE_AS, OnFileSaveAs)
+   ON_COMMAND(ID_FILE_PRINT, OnFilePrint) 
+	ON_COMMAND(ID_FILE_CLOSE, OnFileClose)
 	ON_COMMAND(ID_VIEW_SOURCE, OnViewSource)
 	ON_COMMAND(ID_VIEW_INFO, OnViewInfo)
-   ON_COMMAND(ID_FILE_PRINT, OnFilePrint) 
    ON_UPDATE_COMMAND_UI(ID_FILE_PRINT, OnUpdateFilePrint)
 	ON_COMMAND(ID_NAV_BACK, OnNavBack)
 	ON_COMMAND(ID_NAV_FORWARD, OnNavForward)
@@ -388,23 +389,6 @@ void CBrowserView::OnSelectUrl(){
 
 void CBrowserView::OnViewSource()  {
 
-   if(! mWebNav)
-		return;
-
-	nsresult rv = NS_OK;
-
-   // Get the URI whose source we want to view.
-	nsCOMPtr<nsIURI> currentURI;
-	rv = mWebNav->GetCurrentURI(getter_AddRefs(currentURI));
-	if(NS_FAILED(rv) || !currentURI)
-      return;
-
-	// Get the uri string associated with the nsIURI object
-	nsXPIDLCString uriString;
-	rv = currentURI->GetSpec(getter_Copies(uriString));
-	if(NS_FAILED(rv))
-		return;
-
    // Use external viewer
    if (theApp.preferences.bSourceUseExternalCommand) {
       if (theApp.preferences.sourceCommand) {
@@ -438,6 +422,8 @@ void CBrowserView::OnViewSource()  {
 	if(!curDocShell)
 		return;
 
+   nsresult rv;
+
 	// Get the ViewMode of the current docshell
 	PRInt32 viewMode;
 	rv = curDocShell->GetViewMode(&viewMode);
@@ -470,7 +456,10 @@ void CBrowserView::OnViewSource()  {
 	// Finally, load this URI into the newly created frame
 	//(who's mode was set to "ViewSource" earlier
 	
-	pFrm->m_wndBrowserView.OpenURL(uriString.get());
+	char *sURI = new char[GetCurrentURI(NULL)+1];
+   GetCurrentURI(sURI);
+   pFrm->m_wndBrowserView.OpenURL(sURI);
+   delete sURI;
 }
 
 void CBrowserView::OnViewInfo() 
@@ -700,6 +689,10 @@ void CBrowserView::OnFileOpen()
 		CString strFullPath = cf.GetPathName(); // Will be like: c:\tmp\junk.htm
 		OpenURL(strFullPath);
 	}
+}
+
+void CBrowserView::OnFileClose() {
+   mpBrowserFrame->OnClose();
 }
 
 void CBrowserView::GetBrowserWindowTitle(nsCString& title)
@@ -1391,4 +1384,27 @@ void CBrowserView::OnWindowPrev() {
    else      pFrame = (CBrowserFrame *) theApp.m_FrameWndLst.GetTail();
    
    pFrame->ActivateFrame();
+}
+
+int CBrowserView::GetCurrentURI(char *sURI) {
+   if(! mWebNav)
+		return 0;
+
+	nsresult rv = NS_OK;
+   
+   nsCOMPtr<nsIURI> currentURI;
+	rv = mWebNav->GetCurrentURI(getter_AddRefs(currentURI));
+	if(NS_FAILED(rv) || !currentURI)
+      return 0;
+
+   // Get the uri string associated with the nsIURI object
+	nsXPIDLCString uriString;
+	rv = currentURI->GetSpec(getter_Copies(uriString));
+	if(NS_FAILED(rv))
+		return 0;
+
+   int len = strlen(uriString.get());
+   if (sURI)
+      strcpy(sURI, uriString.get());
+   return len;
 }
