@@ -19,6 +19,8 @@
 #define  UWM_UPDATESESSIONHISTORY      WM_APP + 110
 #define  UWM_REFRESHTOOLBARITEM        WM_APP + 111
 
+#define  UWM_NEWWINDOW                 WM_APP + 115
+
 #define  TB_LBUTTONDOWN	               WM_APP + 120
 #define  TB_MBUTTONDOWN	               WM_APP + 121
 #define  TB_RBUTTONDOWN	               WM_APP + 122
