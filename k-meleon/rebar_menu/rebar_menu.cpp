@@ -40,7 +40,6 @@ WNDPROC KMeleonWndProc;
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
-
 int Init();
 void Create(HWND parent);
 void Config(HWND parent);
@@ -203,23 +202,32 @@ void DoRebar(HWND rebarWnd) {
 }
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
+   // store these in static vars so that the BeginHotTrack call can access them
+   static NMTOOLBAR tbhdr;
+   static NMHDR hdr;
+
    if (message == WM_NOTIFY) {
-      NMHDR *hdr = (LPNMHDR)lParam;
-      if (hdr->code == TBN_DROPDOWN) {
-         NMTOOLBAR *tbhdr = (LPNMTOOLBAR)lParam;
-         if (IsMenu((HMENU)(tbhdr->iItem-SUBMENU_OFFSET))){
+      hdr = *((LPNMHDR)lParam);
+      if (hdr.code == TBN_DROPDOWN) {
+         tbhdr = *((LPNMTOOLBAR)lParam);
+         if (IsMenu((HMENU)(tbhdr.iItem-SUBMENU_OFFSET))){
             char toolbarName[11];
-            GetWindowText(tbhdr->hdr.hwndFrom, toolbarName, 10);
+            GetWindowText(tbhdr.hdr.hwndFrom, toolbarName, 10);
             if (strcmp(toolbarName, MENU_NAME) != 0) {
                // oops, this isn't our toolbar
                return CallWindowProc(KMeleonWndProc, hWnd, message, wParam, lParam);
             }
 
-            BeginHotTrack(tbhdr, kPlugin.hDllInstance, hWnd);
+            // post a message to defer exceution of BeginHotTrack
+            PostMessage(hWnd, WM_DEFERHOTTRACK, NULL, NULL);
 
             return DefWindowProc(hWnd, message, wParam, lParam);
          }
-      }     
+      }
+   }
+   else if (message == WM_DEFERHOTTRACK) {
+      BeginHotTrack(&tbhdr, kPlugin.hDllInstance, hWnd);
+      return true;
    }
    return CallWindowProc(KMeleonWndProc, hWnd, message, wParam, lParam);
 }
