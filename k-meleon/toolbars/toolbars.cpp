@@ -1102,7 +1102,12 @@ int IsButtonEnabled(char *sParams) {
    if (!pButton)
       return NULL;
 
-   return SendMessage(pToolbar->hWnd, TB_ISBUTTONENABLED, pButton->iID, 0) != 0;
+   while (pToolbar) {
+      if (pToolbar->hwndWindow == GetActiveWindow())
+         return SendMessage(pToolbar->hWnd, TB_ISBUTTONENABLED, pButton->iID, 0) != 0;
+      pToolbar = pToolbar->nextWindow;
+   }
+   return NULL;
 }
 
 
@@ -1183,7 +1188,12 @@ int  IsButtonChecked(char *sParams) {
    if (!pButton)
       return NULL;
 
-   return SendMessage(pToolbar->hWnd, TB_ISBUTTONCHECKED, pButton->iID, 0) != 0;
+   while (pToolbar) {
+      if (pToolbar->hwndWindow == GetActiveWindow())
+         return SendMessage(pToolbar->hWnd, TB_ISBUTTONCHECKED, pButton->iID, 0) != 0;
+      pToolbar = pToolbar->nextWindow;
+   }
+   return NULL;
 }
 
 
