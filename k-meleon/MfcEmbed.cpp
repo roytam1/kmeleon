@@ -81,6 +81,7 @@ CMfcEmbedApp::CMfcEmbedApp()
 {
     m_ProfileMgr = NULL;
 
+   m_bFirstWindowCreated = FALSE;
    
    mRefCnt = 1; // Start at one - nothing is going to addref this object
    m_pMostRecentBrowserFrame  = NULL;
@@ -358,7 +359,14 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
    //pFrame->LoadAccelTable(MAKEINTRESOURCE(IDR_MAINFRAME));
    pFrame->m_hAccelTable = accel.GetTable();
 
-	// Show the window...
+
+   // this only needs to be called once
+   if (!m_bFirstWindowCreated) {
+      pFrame->m_wndReBar.DrawToolBarMenu();
+      m_bFirstWindowCreated = TRUE;
+   }
+   
+   // Show the window...
 	if(bShowWindow) {
       if (preferences.bMaximized) pFrame->ShowWindow(SW_MAXIMIZE);
       else pFrame->ShowWindow(SW_SHOW);
