@@ -44,8 +44,8 @@ int FindMacro(char *macroName);
 int FindCommand(char *macroName);
 void LoadMacros(char *filename);
 BOOL APIENTRY DllMain(HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved );
-void ExecuteMacro(int macro);
-void ExecuteCommand (int command, char *data);
+void ExecuteMacro(HWND hWnd, int macro);
+void ExecuteCommand (HWND hWnd, int command, char *data);
 int GetConfigFiles(configFileType **configFiles);
 
 long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2);
@@ -118,12 +118,14 @@ int iMacroCount = 0;
 #define CMD(CMD)  else if (command == ##CMD)
 
 enum commands {
-   open = 1000,
-   opennew,
-   openbg,
-   setpref,
-   togglepref,
-   exec
+   open = 1000,      // open url in current window
+   opennew,          // open url in new window
+   openbg,           // open url in new background window
+   setpref,          // set a preference
+   togglepref,       // toggle a preference between values
+   exec,             // run a program
+   id,               // send a command id to the current window
+   plugin            // exectute a plugin command
 };
 
 
@@ -250,6 +252,8 @@ int FindCommand(char *cmd) {
       CMD_TEST(setpref)
       CMD_TEST(togglepref)
       CMD_TEST(exec)
+      CMD_TEST(id)
+      CMD_TEST(plugin)
 
    return cmdVal;
 }
@@ -315,18 +319,18 @@ void AddMacroEvent(int macro, int eventID, char *eventData) {
 }
 
 
-void ExecuteMacro (int macro) {
+void ExecuteMacro (HWND hWnd, int macro) {
    if ((macro < 0) || (macro >= iMacroCount))
       return;
 
    for (int x=0; x<macroList[macro]->eventCount; x++) {
       if (macroList[macro]->eventList[x]->id < 1000)
-         ExecuteMacro(macroList[macro]->eventList[x]->id);
-      else ExecuteCommand(macroList[macro]->eventList[x]->id, macroList[macro]->eventList[x]->data);
+         ExecuteMacro(hWnd, macroList[macro]->eventList[x]->id);
+      else ExecuteCommand(hWnd, macroList[macro]->eventList[x]->id, macroList[macro]->eventList[x]->data);
    }
 }
 
-void ExecuteCommand (int command, char *data) {
+void ExecuteCommand (HWND hWnd, int command, char *data) {
 
    BEGIN_CMD_TEST
       CMD(open)      kFuncs->NavigateTo(data, OPEN_NORMAL);
@@ -483,6 +487,30 @@ void ExecuteCommand (int command, char *data) {
          PROCESS_INFORMATION pi = {0};
          CreateProcess(NULL, data, NULL, NULL, FALSE, NORMAL_PRIORITY_CLASS, NULL, NULL, &si, &pi);
       }
+      CMD(id) {         
+         int cmd;
+         cmd = kPlugin.kFuncs->GetID(data);
+         if (!cmd)
+            cmd = atoi(data);
+
+         SendMessage(hWnd, WM_COMMAND, cmd, NULL);
+      }
+      CMD(plugin) {
+         int cmd;
+
+         char *comma = strchr(data, ',');
+         if (comma) {
+            *comma = 0;
+            char *param = SkipWhiteSpace(comma+1);
+            char *plugin = data;
+            kPlugin.kFuncs->SendMessage(plugin, PLUGIN_NAME, "DoAccel", (long)param, (long)&cmd);
+            // restore the comma
+            *comma = ',';
+
+            SendMessage(hWnd, WM_COMMAND, cmd, NULL);
+         }        
+      }
+
 }
 
 void LoadMacros(char *filename) {
@@ -599,7 +627,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
    switch (message) {
    case WM_COMMAND:
       if ( (LOWORD(wParam) >= ID_START) && (LOWORD(wParam) <= ID_END) )
-         ExecuteMacro(LOWORD(wParam)-ID_START);
+         ExecuteMacro(hWnd, LOWORD(wParam)-ID_START);
    }
 
    return CallWindowProc(KMeleonWndProc, hWnd, message, wParam, lParam);
