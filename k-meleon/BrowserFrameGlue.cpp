@@ -101,16 +101,6 @@ void CBrowserFrame::BrowserFrameGlueObj::UpdateCurrentURI(nsIURI *aLocation){
 
       pThis->m_wndUrlBar.SetCurrentURL(uriString.get());
    }
-
-   // The page has started loading, give it the focus
-   // unless this is the start page, and the urlbar has the focus
-   if (pThis->m_preserveUrlBarFocus)
-      pThis->m_preserveUrlBarFocus = FALSE;
-   else if (pThis->IsChild(GetFocus())) {
-      nsCOMPtr<nsIWebBrowserFocus> focus(do_GetInterface(pThis->m_wndBrowserView.mWebBrowser));
-      if(focus)
-         focus->Activate();
-   }
 }
 
 void CBrowserFrame::BrowserFrameGlueObj::GetBrowserFrameTitle(PRUnichar **aTitle)

@@ -167,8 +167,8 @@ void CHiddenWnd::ShowBrowser(char *URI) {
       if (URI && *URI)
          m_pHiddenBrowser->m_wndBrowserView.OpenURL(URI);
       else {
+         m_pHiddenBrowser->SetFocus();
          m_pHiddenBrowser->m_wndUrlBar.SetFocus();
-         m_pHiddenBrowser->m_preserveUrlBarFocus = TRUE;
          if (!m_bPreloadStartPage)
             m_pHiddenBrowser->m_wndBrowserView.LoadHomePage();
       }
@@ -197,8 +197,8 @@ void CHiddenWnd::ShowBrowser(char *URI) {
          browser->m_wndBrowserView.OpenURL(URI);
       }
       else {
+         browser->SetFocus();
          browser->m_wndUrlBar.SetFocus();
-         browser->m_preserveUrlBarFocus = TRUE;
          browser->m_wndBrowserView.LoadHomePage();
       }
    }
