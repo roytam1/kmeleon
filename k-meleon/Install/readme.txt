@@ -5,7 +5,6 @@ K-Meleon (c) 2000 Christophe Thibault (http://www.kmeleon.org/). All rights rese
 
 K-Meleon uses some bits from :
 SuperPimp(tm) Installer (c) 2000 Nullsoft
-BCG Toolbar Copyright © 1999-2000 Stas Levin
 Gecko and System Icon from Mozilla (http://www.mozilla.org/)
 Little AVI animation borrowed from the Galeon project (http://galeon.sourceforge.net/) (c) Frédéric Toussaint
 
@@ -49,6 +48,6 @@ v0.2 (11/26/00): Compiled with Mozilla M18 Nightly build (11/26/00)
         - Closing the main k-meleon browser will close all childs
 
 v0.1 (08/21/00):
-- First release. 
+- First release by Christophe Thibault
   Lots of stuff is not implemented such as Context menu, HTTPS, History, 
   Cookies saving, Mime types handling, etc...
