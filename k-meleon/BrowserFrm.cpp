@@ -478,9 +478,7 @@ BOOL CBrowserFrame::OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERIN
 //
 void CBrowserFrame::OnSize(UINT nType, int cx, int cy) {
    CFrameWnd::OnSize(nType, cx, cy);
-
-   if (!theApp.m_created) return;
-   
+ 
    // Get the ItemRect of the status bar's Pane 0
    // That's where the progress bar will be located
    RECT rc;
@@ -491,6 +489,8 @@ void CBrowserFrame::OnSize(UINT nType, int cx, int cy) {
    //
    if (m_wndProgressBar.m_hWnd)
       m_wndProgressBar.MoveWindow(&rc);
+
+   if (!theApp.m_created) return;
 
    // record the maximized state   
    if (nType == SIZE_MAXIMIZED) theApp.preferences.bMaximized = true;
