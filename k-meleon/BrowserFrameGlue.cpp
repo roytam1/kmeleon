@@ -346,7 +346,7 @@ PRBool CBrowserFrame::BrowserFrameGlueObj::CreateNewBrowserFrame(PRUint32 chrome
 void CBrowserFrame::BrowserFrameGlueObj::DestroyBrowserFrame()
 {
    METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
-   pThis->PostMessage(WM_CLOSE);
+   pThis->PostMessage(WM_CLOSE, -1, -1);
 }
 
 #define GOTO_BUILD_CTX_MENU { bContentHasFrames = FALSE; goto BUILD_CTX_MENU; }
