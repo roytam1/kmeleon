@@ -90,10 +90,11 @@ void Quit(){
 }
 
 void DoMenu(HMENU menu, char *param){
-	AppendMenu(menu, MF_SEPARATOR, ID_HISTORY_FLAG, "");
 
 	/* This separator serves as the "flag" where the session
 	history should be added */
+   
+   AppendMenu(menu, MF_SEPARATOR, ID_HISTORY_FLAG, "");
 
 }
 
@@ -149,8 +150,6 @@ void CreateBackMenu (UINT button) {
 		   kPlugin.kf->GotoHistoryIndex(SelectionMade-1);
       }
    }
-
-   FreeStringArray (titles, count);
 }
 
 
@@ -199,8 +198,6 @@ void CreateForwardMenu (UINT button) {
 	   }
 
    }
-
-   FreeStringArray (titles, count);
 }
 
 void UpdateHistoryMenu () {
@@ -249,21 +246,6 @@ void UpdateHistoryMenu () {
 		else
 			AppendMenu(hHistoryMenu, MF_ENABLED | MF_STRING, ID_HISTORY+i, buf);
 	}
-
-	FreeStringArray (titles, count);
-}
-
-
-//  This isn't working... 
-//  since it doesn't free the strings
-//  we have a nice little memory leak for the moment
-
-void FreeStringArray(char **array, int size) {
-   return;
-   
-   for (int i=1; i<size; i++)
-      delete array[i];
-	delete (array);
 }
 
 void CondenseMenuText(char *buf, char *title, int index) {

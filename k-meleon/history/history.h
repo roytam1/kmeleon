@@ -34,7 +34,6 @@ void UpdateHistoryMenu();
 void OnTBLButtonHold(DWORD buttonID, DWORD unused);
 void OnTBRButtonDown(WPARAM controlID, LPARAM lParam);
 
-void FreeStringArray(char *array[], int size);
 void CondenseMenuText(char *buf, char *title, int index);
 
 int ID_HISTORY_FLAG = -1;

@@ -158,9 +158,13 @@ void SetPreference(enum PREFTYPE type, char *preference, void *val) {
    }
 }
 
-int GetMozillaSessionHistory (char ***titles, int *count, int *index) {
 
-	nsresult result;
+int SessionSize=0;
+char *History[20];
+
+int GetMozillaSessionHistory (char ***titles, int *count, int *index) {
+   nsresult result;
+   int i;
 
 	CBrowserFrame	*mainFrame		= (CBrowserFrame *) theApp.m_pMainWnd->GetActiveWindow();
 	if (!mainFrame)	return FALSE;
@@ -169,14 +173,21 @@ int GetMozillaSessionHistory (char ***titles, int *count, int *index) {
 	result = mainFrame->m_wndBrowserView.mWebNav->GetSessionHistory(getter_AddRefs (h));
 	if (!NS_SUCCEEDED (result) || (!h)) return FALSE;
 
-	h->GetCount (count);
+
+   // Clear the table
+   if (SessionSize)
+      for (i=0; i<SessionSize; i++)
+         delete History[i];
+
+   h->GetCount (count);
 	h->GetIndex (index);
 
-   char **t = new char *[*count];
+   if (*count > 20) *count=20;
+   SessionSize = *count;
 
 	nsCOMPtr<nsISHEntry> he;
 	PRUnichar *title;
-	for (PRInt32 i = 0; i < *count; i++) {
+	for (i=0; i < *count; i++) {
 
 		result = h->GetEntryAtIndex (i, PR_FALSE, getter_AddRefs (he));
 		if (!NS_SUCCEEDED(result) || (!he)) return FALSE;
@@ -192,10 +203,10 @@ int GetMozillaSessionHistory (char ***titles, int *count, int *index) {
 		len = WideCharToMultiByte(CP_ACP, 0, title, -1, s, len, NULL, NULL);
       s[len] = 0;
 
-      t[i] = s;
+      History[i] = s;
 	}
 
-   *titles = t;
+   *titles = History;
 	return TRUE;
 }
 
