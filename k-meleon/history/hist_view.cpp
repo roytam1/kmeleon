@@ -592,11 +592,16 @@ struct tm subMonth(struct tm t, int m) {
 }
 
 struct tm subYear(struct tm t, int y) {
-   t.tm_year -= y;
+   struct tm newt = {0};
 
+   t.tm_year -= y;
    time_t date = mktime(&t);
    struct tm *pt = localtime(&date);
-   return *pt;
+
+   if (pt)
+     newt = *pt;
+
+   return newt;
 }
 
 
@@ -697,13 +702,16 @@ CHistoryNode *groupDates(CHistoryNode *oldList)
            break;
         default:
            t = subYear(t, 1);
-           itoa(t.tm_year, str, 10); 
+	   if (t.tm_year)
+	     itoa(1900 + t.tm_year, str, 10); 
+	   else
+	     strcpy(str, "Never");
           break;
       }
 
       date = mktime(&t);
 
-      if (tmp->lastVisit > date) {
+      if (tmp->lastVisit >= date) {
 
          CHistoryNode *newFolder = new CHistoryNode(str, HISTORY_FOLDER, 0);
          while (tmp && (tmp->lastVisit > date)) {

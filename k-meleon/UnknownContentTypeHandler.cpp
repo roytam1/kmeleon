@@ -574,7 +574,7 @@ void CProgressDialog::Cancel() {
 
    if (mPersist) {
       mPersist->CancelSave();
-      if (mFilePath) {
+      if (mFilePath && !mDone) {
         DeleteFile(mFilePath);
       }
    }

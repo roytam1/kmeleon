@@ -1058,7 +1058,7 @@ void CBrowserView::OnFilePrint()
       
         // Get the printer settings
         if (!m_PrintSettings) {
-            if (NS_FAILED(print->GetGlobalPrintSettings(getter_AddRefs(m_PrintSettings))))
+            if (!GetPrintSettings())
                 return;
         }
          
@@ -1085,7 +1085,7 @@ void CBrowserView::OnFilePrintPreview()
     if(print) {
         // Get the printer settings
         if (!m_PrintSettings) {
-            if (NS_FAILED(print->GetGlobalPrintSettings(getter_AddRefs(m_PrintSettings))))
+            if (!GetPrintSettings())
                 return;
         }
         if (!m_InPrintPreview) {
