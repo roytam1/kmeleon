@@ -332,7 +332,7 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
 
       WINDOWPLACEMENT wp;
       wp.length = sizeof(WINDOWPLACEMENT);
-      DWORD ret = ::GetWindowPlacement(m_pMostRecentBrowserFrame->m_hWnd, &wp);
+      m_pMostRecentBrowserFrame->GetWindowPlacement(&wp);
 
       // try to compensate for getwindowplacement
       wp.rcNormalPosition.top += 28;      // for some reason, it always thinks the window
@@ -360,13 +360,23 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
       winSize.bottom = wp.rcNormalPosition.bottom - wp.rcNormalPosition.top;
       
 
+      if (x > 0)
+         winSize.left = x;
+      if (y > 0)
+         winSize.top = y;
+      if (cx > 0)
+         winSize.right = cx;
+      if (cy > 0)
+         winSize.bottom = cy;
+
+
 
       // dont't display windows offscreen
-      if (winSize.left < screen.left)
-         winSize.left = screen.left;
+      if (winSize.left < (screen.left+100))
+         winSize.left = (screen.left+100);
 
-      if (winSize.top < screen.top)
-         winSize.top = screen.top;
+      if (winSize.top < (screen.top+100))
+         winSize.top = (screen.top+100);
 
 
       // don't create windows larger than the screen
@@ -463,7 +473,8 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
 
    // Show the window...
    if(bShowWindow) {
-      if (preferences.bMaximized) pFrame->ShowWindow(SW_MAXIMIZE);
+      if (preferences.bMaximized && (chromeMask & nsIWebBrowserChrome::CHROME_WINDOW_RESIZE))
+         pFrame->ShowWindow(SW_MAXIMIZE);
       else pFrame->ShowWindow(SW_SHOW);
       pFrame->UpdateWindow();
    }
