@@ -105,8 +105,7 @@ CBrowserFrame::CBrowserFrame(PRUint32 chromeMask)
 	// will have menubar, toolbar, statusbar etc.
 
 	m_chromeMask = chromeMask;
-   m_created = false;
-   m_setURLBarFocus = false;
+   m_created = FALSE;
 }
 
 CBrowserFrame::~CBrowserFrame()
@@ -393,14 +392,18 @@ void CBrowserFrame::OnSetFocus(CWnd* pOldWnd)
       PostMessage(UWM_UPDATESESSIONHISTORY, 0, 0);
    }
 
-	// forward focus to the browser window
+   // forward focus to the browser window
 	m_wndBrowserView.SetFocus();
 }
 
 void CBrowserFrame::OnActivate(UINT nState, CWnd* pWndOther, BOOL bMinimized) {
    CFrameWnd::OnActivate(nState, pWndOther, bMinimized);
 
-   m_wndBrowserView.Activate(nState, pWndOther, bMinimized);
+   // since setting the focus when the window is created (but before the page is loaded)
+   // doesn't seem to do anything, we'll skip it, so we don't take the focus away from
+   // the UrlBar
+   if (m_created)
+      m_wndBrowserView.Activate(nState, pWndOther, bMinimized);
 }
 
 

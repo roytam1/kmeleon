@@ -95,22 +95,21 @@ void CBrowserFrame::BrowserFrameGlueObj::UpdateBusyState(PRBool aBusy)
 void CBrowserFrame::BrowserFrameGlueObj::UpdateCurrentURI(nsIURI *aLocation){
    METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
 
-   if(aLocation)        {
+   if(aLocation) {
       nsXPIDLCString uriString;
       aLocation->GetSpec(getter_Copies(uriString));
 
       pThis->m_wndUrlBar.SetCurrentURL(uriString.get());
    }
 
-   if (pThis->IsChild(GetFocus())) {
-      // the context menus break if we don't do this ???
-      pThis->SetFocus();
-
-      // switch the focus to the URLBar, if necessary
-      if (pThis->m_setURLBarFocus) {
-         pThis->m_wndUrlBar.SetFocus();
-         pThis->m_setURLBarFocus = false;
-      }
+   // The page has started loading, give it the focus
+   // unless this is the start page, and the urlbar has the focus
+   if (pThis->m_preserveUrlBarFocus)
+      pThis->m_preserveUrlBarFocus = FALSE;
+   else if (pThis->IsChild(GetFocus())) {
+      nsCOMPtr<nsIWebBrowserFocus> focus(do_GetInterface(pThis->m_wndBrowserView.mWebBrowser));
+      if(focus)
+         focus->Activate();
    }
 }
 

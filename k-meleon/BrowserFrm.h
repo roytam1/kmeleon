@@ -142,7 +142,7 @@ public:
 	PRUint32 m_chromeMask;
 
    BOOL m_created; // set after we are created
-   BOOL m_setURLBarFocus;
+   BOOL m_preserveUrlBarFocus;
 
 protected:
 	//
