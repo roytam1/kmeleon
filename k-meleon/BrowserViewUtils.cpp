@@ -324,13 +324,16 @@ void CBrowserView::UpdateBusyState(PRBool aBusy)
    }
    
    
-   if (mbDocumentLoading){
-		mpBrowserFrame->m_wndAnimate.Play(0, -1, -1);
-	}
-	else {
-		mpBrowserFrame->m_wndAnimate.Stop();
-		mpBrowserFrame->m_wndAnimate.Seek(0);
-  }
+
+   if (mpBrowserFrame->m_wndAnimate) {
+      if (mbDocumentLoading){
+		   mpBrowserFrame->m_wndAnimate.Play(0, -1, -1);
+	   }
+	   else {
+		   mpBrowserFrame->m_wndAnimate.Stop();
+		   mpBrowserFrame->m_wndAnimate.Seek(0);
+      }
+   }
 }
 
 void CBrowserView::SetCtxMenuLinkUrl(nsAutoString& strLinkUrl)
