@@ -142,6 +142,8 @@ void CReBarEx::ToggleVisibility(int index) {
 void CReBarEx::SaveBandSizes() {
    int x, index;
    char tempPref[256] = _T("kmeleon.toolband."); // 17 chars
+
+
    REBARBANDINFO rbbi;
    rbbi.cbSize = sizeof(rbbi);
    rbbi.fMask = RBBIM_SIZE | RBBIM_CHILD | RBBIM_ID | RBBIM_STYLE;
@@ -178,6 +180,7 @@ void CReBarEx::RestoreBandSizes() {
    rbbi.cbSize = sizeof(rbbi);
 
    char tempPref[256] = "kmeleon.toolband."; // 17 chars
+   int  *newIndex = new int[m_iCount];
 
    // Note: Yes, I know it looks odd to go through the same array twice, but
    //       we *HAVE* to move the bands around before setting their styles or else
@@ -189,13 +192,22 @@ void CReBarEx::RestoreBandSizes() {
       int offset = strlen(m_index[x]->name) + 17;
 
       strcpy(tempPref + offset, ".index");
-      int newIndex = theApp.preferences.GetInt(tempPref, -1);
-      if (newIndex >= 0) {
-         if (barIndex != -1 && barIndex != newIndex) {
-            GetReBarCtrl().MoveBand(barIndex, newIndex);
+      
+      newIndex[x] = theApp.preferences.GetInt(tempPref, -1);
+   }
+   
+   for (x=0; x<m_iCount; x++) {
+      for (int i=0; i<m_iCount; i++) {
+         if (newIndex[i] == x) {  // newIndex[i] >= 0
+            int barIndex = FindByIndex(i); // index of the bar on the Rebar
+            if (barIndex != -1 && barIndex != newIndex[i]) {
+               GetReBarCtrl().MoveBand(barIndex, newIndex[i]);
+            }
          }
       }
    }
+
+   delete [] newIndex;
 
    BOOL barbreak;
    for (x=0; x<m_iCount; x++) {
@@ -207,7 +219,7 @@ void CReBarEx::RestoreBandSizes() {
       int offset = strlen(m_index[x]->name) + 17;
 
       strcpy(tempPref + offset, ".break");
-      barbreak = theApp.preferences.GetInt(tempPref, 0);
+      barbreak = theApp.preferences.GetInt(tempPref, 1);
       if (barbreak) {
          rbbi.fMask |= RBBIM_STYLE;
          GetReBarCtrl().GetBandInfo(barIndex, &rbbi);
