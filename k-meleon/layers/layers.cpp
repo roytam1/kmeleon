@@ -97,37 +97,6 @@ kmeleonPlugin kPlugin = {
    DoMessage
 };
 
-long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2)
-{
-   if (to[0] == '*' || stricmp(to, kPlugin.dllname) == 0) {
-      if (stricmp(subject, "Init") == 0) {
-         Init();
-      }
-      else if (stricmp(subject, "Create") == 0) {
-         Create((HWND)data1);
-      }
-      else if (stricmp(subject, "Config") == 0) {
-         Config((HWND)data1);
-      }
-      else if (stricmp(subject, "Quit") == 0) {
-         Quit();
-      }
-      else if (stricmp(subject, "DoMenu") == 0) {
-         DoMenu((HMENU)data1, (char *)data2);
-      }
-      else if (stricmp(subject, "DoRebar") == 0) {
-         DoRebar((HWND)data1);
-      }
-      else if (stricmp(subject, "DoAccel") == 0) {
-         *(int *)data2 = DoAccel((char *)data1);
-      }
-      else return 0;
-      
-      return 1;
-   }
-   return 0;
-}
-
 struct layer {
    HWND hWnd;
    HWND hWndTB;
@@ -159,6 +128,7 @@ struct menulist {
 };
 typedef struct menulist MenuList;
 MenuList *gMenuList = NULL;
+HWND ghCurHwnd;
 int curLayer;
 
 HWND ghParent;
@@ -166,6 +136,49 @@ int bLayer;
 int bBack;
 int bFront;
 WINDOWPLACEMENT gwpOld;
+
+long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2)
+{
+   if (to[0] == '*' || stricmp(to, kPlugin.dllname) == 0) {
+      if (stricmp(subject, "Init") == 0) {
+         Init();
+      }
+      else if (stricmp(subject, "Create") == 0) {
+         Create((HWND)data1);
+      }
+      else if (stricmp(subject, "Config") == 0) {
+         Config((HWND)data1);
+      }
+      else if (stricmp(subject, "Quit") == 0) {
+         Quit();
+      }
+      else if (stricmp(subject, "DoMenu") == 0) {
+         DoMenu((HMENU)data1, (char *)data2);
+      }
+      else if (stricmp(subject, "DoRebar") == 0) {
+         DoRebar((HWND)data1);
+      }
+      else if (stricmp(subject, "DoAccel") == 0) {
+         *(int *)data2 = DoAccel((char *)data1);
+      }
+      else if (stricmp(subject, "OpenURL") == 0) {
+         ghParent = ghCurHwnd;
+         bBack = 0;
+         bLayer = 1;
+         kPlugin.kFuncs->NavigateTo((char *)data1, OPEN_BACKGROUND);
+      }
+      else if (stricmp(subject, "OpenURLBg") == 0) {
+         ghParent = ghCurHwnd;
+         bBack = 1;
+         bLayer = 1;
+         kPlugin.kFuncs->NavigateTo((char *)data1, OPEN_BACKGROUND);
+      }
+      else return 0;
+      
+      return 1;
+   }
+   return 0;
+}
 
 struct frame *find_frame(HWND hWnd) {
    struct frame *pFrame = root;
@@ -647,7 +660,7 @@ void BuildRebar(HWND hWndTB, HWND hWndParent)
                }
             }
 
-			delete buf;
+            delete buf;
          }
          
          addRebarButton(hWndTB, buf, i, pLayer->hWnd == pFrame->hWndFront );
@@ -901,6 +914,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
             pFrame = find_frame(hWnd);
             if (!pFrame)
                break;
+            if (message == WM_SETFOCUS)
+               ghCurHwnd = hWnd;
             if (hWnd != pFrame->hWndFront) {
                ShowWindowAsync(hWnd, SW_HIDE);
                PostMessage(pFrame->hWndFront, WM_SETFOCUS, 0, 0);
@@ -1008,7 +1023,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                         strcpy(cTmp, "view-source:");
                         strcat(cTmp, dInfo->url);
                         kPlugin.kFuncs->NavigateTo(cTmp, OPEN_BACKGROUND);
-						delete cTmp;
+                        delete cTmp;
                         return 0;
                      }
                   }
