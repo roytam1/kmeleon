@@ -40,7 +40,7 @@ void BuildMenu(HMENU menu, CBookmarkNode *node, BOOL isContinuation);
 void BuildRebar(HWND hWndTB);
 void Rebuild();
 int addLink(char *url, char *title, int flag);
-void findNick(char *nick, char *url);
+void findNick(char *nick, char **url);
 char *stristr(const char *String, const char *Pattern);
 void FindSkinFile( char *szSkinFile, char *filename );
 

@@ -128,7 +128,7 @@ void RebuildRebarMenu(HWND hWndTB);
 int ParseHotlist(char **bmFileBuffer, CBookmarkNode &node);
 int SaveHotlistEntry(FILE *bmFile, CBookmarkNode *node);
 int addLink(char *url, char *title);
-void findNick(char *nick, char *url);
+void findNick(char *nick, char **url);
 LRESULT APIENTRY WndTBSubclassProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 void FindSkinFile( char *szSkinFile, char *filename );

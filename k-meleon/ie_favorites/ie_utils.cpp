@@ -116,17 +116,17 @@ LRESULT APIENTRY WndTBSubclassProc(
    return CallWindowProc(wpOrigTBWndProc, hwnd, uMsg, wParam, lParam);
 } 
 
-void findNick(char *nick, char *url)
+void findNick(char *nick, char **url)
 {
    HKEY hKey;
    DWORD dwSize;
    char regkey[128] = "Software\\Microsoft\\Internet Explorer\\SearchUrl\\";
-   *url = 0;
    strncat(regkey, nick, 80);
    if (RegOpenKey(HKEY_CURRENT_USER, (LPCTSTR)regkey, &hKey) == ERROR_SUCCESS) {
+     *url = (char *) malloc(INTERNET_MAX_URL_LENGTH+1);
 
       dwSize = INTERNET_MAX_URL_LENGTH;
-      RegQueryValueEx(hKey, NULL, NULL, NULL, (LPBYTE)url, &dwSize);
+      RegQueryValueEx(hKey, NULL, NULL, NULL, (LPBYTE)*url, &dwSize);
       RegCloseKey(hKey);
    }
 }

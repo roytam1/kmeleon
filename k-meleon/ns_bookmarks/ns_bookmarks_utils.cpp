@@ -694,13 +694,13 @@ void Load(const char *file)
    ReleaseMutex(ghMutex);
 }
 
-void findNick(char *nick, char *url)
+void findNick(char *nick, char **url)
 {
    CBookmarkNode *retNode =   gBookmarkRoot.FindNick(nick);
    
-   *url = 0;
+   *url = (char *) malloc(INTERNET_MAX_URL_LENGTH+1);
    if (retNode) {
-      strcpy(url, retNode->url.c_str());
+      strcpy(*url, retNode->url.c_str());
    }
 }
 
