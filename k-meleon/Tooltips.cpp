@@ -93,6 +93,8 @@ NS_IMETHODIMP CTooltipTextProvider::GetNodeText(nsIDOMNode *aNode, PRUnichar **a
    
    nsString titleText;
    nsString altText;
+
+   nsString tagName;
    
    nsCOMPtr<nsIDOMNode> current ( aNode );
    while (!titleText.Length() && current ) {
@@ -276,10 +278,15 @@ void CKmToolTip::Show(const char *text, int x, int y) {
    // measure the size of the text
    CDC *DC = GetWindowDC();
    int nSavedDC = DC->SaveDC();
-   
+
    DC->SelectObject(m_pFont);
    CRect rect;
-   DC->DrawText(text, rect, DT_CALCRECT);
+   rect.top = 0;
+   rect.bottom = 0;
+   rect.left = 0;
+   rect.right = 300; // max width of the tooltip
+
+   DC->DrawText(text, rect, DT_CALCRECT | DT_WORDBREAK );
    DC->RestoreDC(nSavedDC);
    
    // add a bit of padding on the sides
@@ -318,7 +325,7 @@ void CKmToolTip::OnPaint() {
    
    ClientRect.left += 3;
    
-   DC.DrawText(pszText, -1, ClientRect, NULL);
+   DC.DrawText(pszText, -1, ClientRect, DT_WORDBREAK);
    
    DC.RestoreDC(nSavedDC);
 }
