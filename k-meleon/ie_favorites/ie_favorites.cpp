@@ -293,6 +293,7 @@ void DoRebar(HWND rebarWnd){
 }
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
+  WndProcMap::iterator WndProcIterator;
   if (message == WM_COMMAND){
     WORD command = LOWORD(wParam);
     if (command == nConfigCommand){
@@ -325,11 +326,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
       kPlugin.NavigateTo((char *)(LPCTSTR)m_astrFavoriteURLs.GetAt(command - nFirstFavoriteCommand), 0);
       return true;
     }
+  }else if (message == WM_COMMAND){
+    WndProcIterator = KMeleonWndProcs.find(hWnd); 
+    KMeleonWndProcs.erase(WndProcIterator);
+    return 0;
   }
-  WndProcMap::iterator WndProcIterator;
   WndProcIterator = KMeleonWndProcs.find(hWnd);
 
-  return CallWindowProc((WNDPROC)WndProcIterator->second, hWnd, message, wParam, lParam);
+  if (WndProcIterator != KMeleonWndProcs.end()){
+    return CallWindowProc((WNDPROC)WndProcIterator->second, hWnd, message, wParam, lParam);
+  }
+  return 0;
 }
 
 
