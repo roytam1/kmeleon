@@ -81,6 +81,7 @@ void quicksort(char *a, size_t n, size_t es, cmp_t *cmp, unsigned int flag);
 #define ID__BOOKMARK_CUT                32816
 #define ID__BOOKMARK_COPY               32817
 #define ID__BOOKMARK_PASTE              32818
+#define ID__ZOOM                        32819
 
 #define TOOLBAND_NAME "Hotlist"
 #define TOOLBAND_FAILED_TO_CREATE "Failed to create hotlist toolbar"
@@ -134,6 +135,7 @@ struct hotlistTB {
 };
 typedef struct hotlistTB TB;
 
+WHERE HWND hWndFront;
 WHERE TB *root;
 WHERE TB *pNewTB;
 
@@ -162,6 +164,8 @@ void Config(HWND parent);
 #define PREFERENCE_EDIT_DLG_TOP    _T("kmeleon.plugins.hotlist.editdialog.top")
 #define PREFERENCE_EDIT_DLG_WIDTH  _T("kmeleon.plugins.hotlist.editdialog.width")
 #define PREFERENCE_EDIT_DLG_HEIGHT _T("kmeleon.plugins.hotlist.editdialog.height")
+#define PREFERENCE_EDIT_ZOOM _T("kmeleon.plugins.hotlist.editdialog.zoom")
+#define PREFERENCE_EDIT_MAX _T("kmeleon.plugins.hotlist.editdialog.maximized")
 
 // The globals
 
@@ -185,6 +189,7 @@ WHERE UINT nDropdownCommand;
 WHERE UINT nUpdateTB;
 WHERE UINT nFirstHotlistPosition;
 WHERE UINT wm_deferhottrack;
+WHERE UINT wm_deferbringtotop;
 
 WHERE char *lpszHotlistFile;
 

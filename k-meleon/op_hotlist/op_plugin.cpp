@@ -308,6 +308,7 @@ int Init(){
    nHRes = GetDeviceCaps(hdcScreen, HORZRES);
 
    wm_deferhottrack = kPlugin.kFuncs->GetCommandIDs(1);
+   wm_deferbringtotop = kPlugin.kFuncs->GetCommandIDs(1);
 
    nConfigCommand = kPlugin.kFuncs->GetCommandIDs(1);
    nAddCommand = kPlugin.kFuncs->GetCommandIDs(1);

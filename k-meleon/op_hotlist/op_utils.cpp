@@ -373,8 +373,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
    static NMHDR hdr;
    
    if (message == WM_CLOSE) {
-     if (find_TB(hWnd))
-       remove_TB(hWnd);
+      if (find_TB(hWnd))
+         remove_TB(hWnd);
+   }
+   if (message == WM_SETFOCUS) {
+      hWndFront = hWnd;
    }
    else if (message == WM_COMMAND) {
       WORD command = LOWORD(wParam);
@@ -432,6 +435,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
       }
       else if (command == wm_deferhottrack) {
          BeginHotTrack(&tbhdr, kPlugin.hDllInstance, hWnd);
+         return true;
+      }
+      else if (command == wm_deferbringtotop) {
+         BringWindowToTop(hWnd);
          return true;
       }
       else if (CBookmarkNode *node = gHotlistRoot.FindNode(command)) {
