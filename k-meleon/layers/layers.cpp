@@ -22,10 +22,11 @@
 
 #include <windows.h>
 #include <commctrl.h>
-#include <afxres.h>     // for ID_APP_EXIT
 
 #ifdef __MINGW32__
 #  include "../missing.h"
+#else
+#  include <afxres.h>     // for ID_APP_EXIT
 #endif
 
 #include <stdlib.h>
@@ -150,6 +151,31 @@ int bFront;
 WINDOWPLACEMENT gwpOld;
 int numLayers;
 
+struct frame *getFrameByString(char *sz) {
+   struct frame *pFrame = NULL;
+
+   if (sz && *sz) {
+      int frame = atoi(sz);
+      if (frame > 0) {
+         pFrame = root;
+         while (pFrame && frame > 1) {
+            pFrame = pFrame->next;
+            frame--;
+         }
+      }
+      else {
+         pFrame = find_frame(ghCurHwnd);
+      }
+   }
+   else {
+      pFrame = find_frame(ghCurHwnd);
+   }
+   if (!pFrame)
+      pFrame = root;
+
+   return pFrame;
+}
+
 long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2)
 {
    if (to[0] == '*' || stricmp(to, kPlugin.dllname) == 0) {
@@ -193,28 +219,12 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
             pFrame = pFrame->next;
             frames++;
          }
-         itoa(frames, (char *)data2, 10);
+         *(int *)data2 = frames;
       }
       else if (stricmp(subject, "NumberOfLayersInWindow") == 0) {
          int layers = 0;
-         struct frame *pFrame = NULL;
-         char *sz = (char *)data1;
-         if (sz && *sz) {
-            int frame = atoi(sz);
-            if (frame > 0) {
-               pFrame = root;
-               while (pFrame && frame > 0) {
-                  pFrame = pFrame->next;
-                  frame--;
-               }
-            }
-            else {
-               pFrame = find_frame(ghCurHwnd);
-            }
-         }
-         else {
-            pFrame = find_frame(ghCurHwnd);
-         }
+         struct frame *pFrame;
+         pFrame = getFrameByString((char *)data1);
          if (pFrame) {
             struct layer *pLayer = pFrame->layer;
             while (pLayer) {
@@ -222,30 +232,14 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
                layers++;
             }
          }
-         itoa(layers, (char *)data2, 10);
+         *(int *)data2 = layers;
       }
       else if (stricmp(subject, "GetLayersInWindow") == 0) {
          int len = MSGEX_LENGTH-2;
          char *cPtr = (char *)data2;
          *cPtr = 0;
-         struct frame *pFrame = NULL;
-         char *sz = (char *)data1;
-         if (sz && *sz) {
-            int frame = atoi(sz);
-            if (frame > 0) {
-               pFrame = root;
-               while (pFrame && frame > 0) {
-                  pFrame = pFrame->next;
-                  frame--;
-               }
-            }
-            else {
-               pFrame = find_frame(ghCurHwnd);
-            }
-         }
-         else {
-            pFrame = find_frame(ghCurHwnd);
-         }
+         struct frame *pFrame;
+         pFrame = getFrameByString((char *)data1);
          if (pFrame) {
             struct layer *pLayer = pFrame->layer;
             while (pLayer && len > 0) {
@@ -264,8 +258,14 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
          *cPtr = 0;
       }
       else if (stricmp(subject, "ReplaceLayersInWindow") == 0) {
-         char *cPtr = (char *)data1;
          struct frame *pFrame = find_frame(ghCurHwnd);
+         char *cPtr = (char *)data1;
+         
+         if (data1 && data2 && *(char*)data2) {
+            pFrame = getFrameByString((char *)data1);
+            cPtr = (char *)data2;
+         }
+
          if (cPtr && pFrame) {
             struct layer *pLayer = pFrame->layer;
 
@@ -1158,18 +1158,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
             if (!pFrame)
                break;
             if (message == WM_SETFOCUS) {
-               ghCurHwnd = hWnd;
                if (hWnd != pFrame->hWndFront) {
                   ShowWindowAsync(hWnd, SW_HIDE);
                   PostMessage(pFrame->hWndFront, WM_COMMAND, id_resize, (LPARAM)0);
                   break;
                }
+               ghCurHwnd = hWnd;
             }
             if (message == UWM_UPDATESESSIONHISTORY ||
                 hWnd == pFrame->hWndFront) {
+               UpdateLayersMenu(pFrame->hWndFront);
                if ( (pLayer = find_layer(pFrame->hWndFront)) == NULL)
                   break;
-               UpdateLayersMenu(pFrame->hWndFront);
                UpdateRebarMenu(pLayer);
             }
             else {
