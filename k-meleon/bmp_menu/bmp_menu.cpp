@@ -33,6 +33,9 @@
 
 #define BMP_MENU_VERSION 3333
 #define LEFT_SPACE 18
+#define BMP_HEIGHT 16
+#define BMP_WIDTH  16
+
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 WNDPROC KMeleonWndProc;
@@ -91,7 +94,7 @@ BmpMapT bmpMap;
 typedef std::map<std::string, int> DefineMapT;
 
 void ParseConfig(char *buffer) {
-   hImageList = ImageList_Create(16, 16, ILC_MASK | ILC_COLOR8, 32, 256);
+   hImageList = ImageList_Create(BMP_WIDTH, BMP_HEIGHT, ILC_MASK | ILC_COLOR8, 32, 256);
 
 	DefineMapT defineMap;
    DefineMapT::iterator defineMapIt;
@@ -239,7 +242,7 @@ int DrawBitmap(DRAWITEMSTRUCT *dis) {
 
 	// Load the corresponding bitmap
 	if (bmpMapIt != bmpMap.end()){
-      int top = (dis->rcItem.bottom - dis->rcItem.top - 16) / 2;
+      int top = (dis->rcItem.bottom - dis->rcItem.top - BMP_HEIGHT) / 2;
       top += dis->rcItem.top;
 
       if (dis->itemState & ODS_GRAYED)
@@ -353,17 +356,17 @@ void DrawMenuItem(DRAWITEMSTRUCT *dis) {
 
    if (mdt->DrawBitmap){
       int space = mdt->DrawBitmap(dis);
-      if (space > 0){
+      if (space>0) {
          dis->rcItem.left += space;
          hasBitmap = true;
       }
    }
 
 	if (!hasBitmap){
-		dis->rcItem.left += LEFT_SPACE;
+		dis->rcItem.left += BMP_WIDTH;
 	}
 
-   dis->rcItem.left += 2;
+   dis->rcItem.left += 4;
 
    RECT rcTab;
 
@@ -381,7 +384,7 @@ void DrawMenuItem(DRAWITEMSTRUCT *dis) {
       if (maxTab){
          DrawText(dis->hDC, maxTab, strlen(maxTab), &rcTab, DT_SINGLELINE | DT_CALCRECT );
       }
-      rcTab.left = dis->rcItem.right - rcTab.right - 16;
+      rcTab.left = dis->rcItem.right - rcTab.right - BMP_WIDTH;
       rcTab.right = dis->rcItem.right;
       rcTab.bottom = dis->rcItem.bottom;
 	}
@@ -403,9 +406,7 @@ void DrawMenuItem(DRAWITEMSTRUCT *dis) {
 
 			DrawText(dis->hDC, string, itemLen, &dis->rcItem, DT_SINGLELINE | DT_VCENTER | DT_NOCLIP );
 			if (tab) {
-				//dis->rcItem.right -= 15;  //  16 - 1 for shadow
 				DrawText(dis->hDC, tab, tabLen, &rcTab, DT_SINGLELINE | DT_VCENTER | DT_NOCLIP );
-				//dis->rcItem.right += 15;
 			}
 
 			dis->rcItem.left -= 1;
@@ -418,21 +419,13 @@ void DrawMenuItem(DRAWITEMSTRUCT *dis) {
 
 	DrawText(dis->hDC, string, itemLen, &dis->rcItem, DT_SINGLELINE | DT_VCENTER | DT_NOCLIP );
 	if (tab) {
-		//dis->rcItem.right -= 16;
 		DrawText(dis->hDC, tab, tabLen, &rcTab, DT_SINGLELINE | DT_VCENTER | DT_NOCLIP );
-		//dis->rcItem.right += 16;
 	}
 }
 
 void MeasureMenuItem(MEASUREITEMSTRUCT *mis, HDC hDC) {
    MenuDataT *menuData = (MenuDataT *)mis->itemData;
 
-//   mis->itemWidth = 0;
-//   mis->itemHeight = GetSystemMetrics(SM_CYMENUSIZE);
-
-//   return;
-
-   
    NONCLIENTMETRICS ncm = {0};
    ncm.cbSize = sizeof(ncm);
    SystemParametersInfo(SPI_GETNONCLIENTMETRICS,0,(PVOID)&ncm,FALSE);
@@ -446,18 +439,19 @@ void MeasureMenuItem(MEASUREITEMSTRUCT *mis, HDC hDC) {
    int tabWidth = 0;
    char *tab = strrchr(string, '\t');
    if (tab) {
+      // check for WinNT4 and Win95
       OSVERSIONINFO info;
       info.dwOSVersionInfoSize = sizeof( OSVERSIONINFO );
       if (GetVersionEx(&info)) {
-         // detect NT4 and Win95
          if ( ( ( info.dwPlatformId == VER_PLATFORM_WIN32_NT ) && (info.dwMajorVersion == 4) ) \
             || ( (info.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS) && (info.dwMinorVersion == 0) ) ) {
-
-            DWORD sz = GetTabbedTextExtent(hDC, string, strlen(string), 0, 0);
-            size.cx = LOWORD(sz);
+               size.cx = LOWORD( GetTabbedTextExtent(hDC, string, strlen(string), 1,0) );
          }
-         else GetTextExtentPoint32(hDC, string, tab-string-1, &size);
+         // not NT4 of Win95
+         else size.cx = GetTextExtentPoint32(hDC, string, tab-string-1, &size);
       }
+      // no version info
+      else size.cx = GetTextExtentPoint32(hDC, string, tab-string-1, &size);
    }
    else
       GetTextExtentPoint32(hDC, string, strlen(string), &size);
