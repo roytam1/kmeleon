@@ -315,13 +315,15 @@ BOOL CBrowserFrame::PreCreateWindow(CREATESTRUCT& cs)
 	if(! (m_chromeMask & nsIWebBrowserChrome::CHROME_TITLEBAR) )
 		cs.style &= ~WS_CAPTION; // No caption		
 
-	if(! (m_chromeMask & nsIWebBrowserChrome::CHROME_WINDOW_RESIZE) ) {
-		// Can't resize this window
-		cs.style &= ~WS_SIZEBOX;
-		cs.style &= ~WS_THICKFRAME;
-		cs.style &= ~WS_MINIMIZEBOX;
-		cs.style &= ~WS_MAXIMIZEBOX;
-	}
+   if (!theApp.preferences.bDisableResize) {   
+      if(! (m_chromeMask & nsIWebBrowserChrome::CHROME_WINDOW_RESIZE) ) {
+	   	// Can't resize this window
+		   cs.style &= ~WS_SIZEBOX;
+		   cs.style &= ~WS_THICKFRAME;
+		   cs.style &= ~WS_MINIMIZEBOX;
+		   cs.style &= ~WS_MAXIMIZEBOX;
+	   }
+   }
 
 	cs.lpszClass = AfxRegisterWndClass(0);
 
