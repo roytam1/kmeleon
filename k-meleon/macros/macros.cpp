@@ -997,16 +997,16 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
             return "";
          }
 
-         char cRetval[MSGEX_LENGTH];
-         cRetval[0] = 0;
-         int nRetval = 0;
          if (preftype == PREF_STRING) {
+            char *cRetval = NULL;
             kFuncs->SendMessage((char*)params[0].c_str(), PLUGIN_NAME, (char*)params[1].c_str(), (long) params[2].c_str(), (long) &cRetval);
             std::string strRet;
-            strRet = protectString( cRetval );
+            strRet = protectString( cRetval ? cRetval : "" );
+            if (cRetval) free(cRetval);
             return strRet;
          }
          else if (preftype == PREF_INT) {
+            int nRetval = 0;
             kFuncs->SendMessage((char*)params[0].c_str(), PLUGIN_NAME, (char*)params[1].c_str(), (long) params[2].c_str(), (long) &nRetval);
             char buffer[12];
             _itoa(nRetval,buffer,10);
