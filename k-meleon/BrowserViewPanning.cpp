@@ -31,24 +31,31 @@ int CBrowserView::OnMouseActivate(CWnd* pDesktopWnd, UINT nHitTest, UINT message
 {
    int id;
    id = theApp.accel.CheckMouse(message);
-   if (id) {
-     PostMessage(WM_COMMAND, (WPARAM)ID_MOUSE_ACTION, (LPARAM)id);
-     id_mouse = id;
-     return TRUE;
-   }
-   switch (message) {
-   case WM_LBUTTONDOWN:
-   case WM_RBUTTONDOWN:
+
+   if (message==WM_LBUTTONDOWN || message==WM_RBUTTONDOWN)
       mpBrowserFrame->m_wndUrlBar.EditChanged(FALSE);
-      break;
-   case WM_MBUTTONDOWN:
-      if(m_panning) StopPanning();
-      else StartPanning();
-      return TRUE;
-   case WM_MBUTTONUP:
-      {
-      }
-      return TRUE;
+
+   if (m_panning) {
+	  if (message==WM_LBUTTONDOWN ||
+		  message==WM_RBUTTONDOWN ||
+		  message==WM_MBUTTONDOWN) {
+		 StopPanning();
+		 return TRUE;
+	  }
+   }
+   else {
+	  if (id) {
+		 maccel_cmd = id;
+		 maccel_key = message;
+		 PostMessage(WM_COMMAND, (WPARAM)ID_MOUSE_ACTION, (LPARAM)id);
+		 return TRUE;
+	  }
+	  else {
+		 if (message==WM_MBUTTONDOWN) {
+			StartPanning();
+			return TRUE;
+		 }
+	  }
    }
 
    return CWnd::OnMouseActivate(pDesktopWnd, nHitTest, message);
@@ -116,6 +123,7 @@ void CBrowserView::OnTimer(UINT nIDEvent)
 void CBrowserView::StartPanning()
 {
 	m_panning = 1;
+	m_panningQuick = theApp.preferences.GetBool("kmeleon.general.quickAutoscroll", FALSE);
 	GetCursorPos(&m_panningPoint);
 	SetCapture();
 	SetTimer(0x1,20,NULL);
@@ -129,6 +137,7 @@ void CBrowserView::StopPanning()
 	ReleaseCapture();
 	KillTimer(0x1);
 	m_panning = 0;
+	maccel_pan = 0;
 }
 
 BOOL CBrowserView::PreTranslateMessage(MSG* pMsg)
@@ -136,7 +145,7 @@ BOOL CBrowserView::PreTranslateMessage(MSG* pMsg)
   if(m_panning && (pMsg->message==WM_SETCURSOR || pMsg->message==WM_MOUSEMOVE))
     return TRUE;
 
-  if(m_panning && (pMsg->message==WM_LBUTTONDOWN || pMsg->message==WM_RBUTTONDOWN || pMsg->message==WM_MOUSEWHEEL))
+  if(m_panning && (pMsg->message==WM_LBUTTONDOWN || (pMsg->message==WM_MBUTTONDOWN && maccel_pan) || (pMsg->message==WM_MBUTTONUP && m_panningQuick) || pMsg->message==WM_RBUTTONDOWN || pMsg->message==WM_MOUSEWHEEL))
     StopPanning();
 
 	return CWnd::PreTranslateMessage(pMsg);

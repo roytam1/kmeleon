@@ -124,6 +124,7 @@ public:
    void StartPanning();
    void StopPanning();
    BOOL m_panning;
+   BOOL m_panningQuick;
    CPoint m_panningPoint;
   
 	void RefreshToolBarItem(WPARAM ItemID, LPARAM unused);
@@ -152,7 +153,9 @@ protected:
    BOOL m_InPrintPreview;
    char **m_tempFileList;
    int m_tempFileCount;
-    int id_mouse;
+    int maccel_cmd;
+    int maccel_key;
+    int maccel_pan;
   
    CFindDialog* m_pFindDlg;
    CPrintProgressDialog* m_pPrintProgressDlg;
