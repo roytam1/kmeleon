@@ -252,7 +252,12 @@ HRESULT CBrowserView::CreateBrowser()
   mWebNav->LoadURI(NS_ConvertASCIItoUCS2("chrome://embed/content/simple-shell.xul"), nsIWebNavigation::LOAD_FLAGS_NONE);
   */
 
-  // Register the BrowserImpl object to receive progress messages
+	// Set up the web shell
+//	mWebBrowser->SetParentURIContentListener(mWebBrowserContainer);   
+   
+   
+   
+   // Register the BrowserImpl object to receive progress messages
   // These callbacks will be used to update the status/progress bars
 
 
@@ -710,8 +715,8 @@ void CBrowserView::GetBrowserWindowTitle(nsCString& title)
     title.ReplaceChar('/', L'-');   // Forward slashes become hyphens
 }
 
-void CBrowserView::OnFileSaveAs()
-{
+void CBrowserView::OnFileSaveAs() {
+
 	// Try to get the file name part from the URL
 	// To do that we first construct an obj which supports 
 	// nsIRUI interface. Makes it easy to extract portions
@@ -725,10 +730,18 @@ void CBrowserView::OnFileSaveAs()
 	if(NS_FAILED(rv) || !currentURI)
       return;
 
+   URISaveAs(currentURI, true);
+
+}
+
+NS_IMETHODIMP CBrowserView::URISaveAs(nsIURI* aURI, bool bDocument) {
+
+   NS_ENSURE_ARG_POINTER(aURI);
+
 	// Get the "path" portion (see nsIURI.h for more info
 	// on various parts of a URI)
 	nsXPIDLCString path;
-	currentURI->GetPath(getter_Copies(path));
+	aURI->GetPath(getter_Copies(path));
 
    char sDefault[] = "default.htm";
    char *pBuf = NULL, *pFileName = sDefault;
@@ -753,7 +766,7 @@ void CBrowserView::OnFileSaveAs()
       }
    }
    else {
-   	currentURI->GetHost(getter_Copies(path));
+   	aURI->GetHost(getter_Copies(path));
       if (strlen(path.get()) >= 1) {
    	   pBuf = new char[strlen(path.get()) + 5];  // +5 for ".htm" to be safely appended, if necessary
          strcpy(pBuf, path.get());
@@ -764,9 +777,12 @@ void CBrowserView::OnFileSaveAs()
       }
    }
 
-   char *extension = strrchr(pFileName, '.')+1;
-   if (!extension)
-      extension = strrchr(sDefault, '.')+1;
+   char *extension = strrchr(pFileName, '.');
+   if (!extension) {
+      extension = strrchr(sDefault, '.');
+      strcat(pFileName, extension);
+   }
+   extension++;
 
    char lpszFilter[256];
       strcpy(lpszFilter, extension);
@@ -813,12 +829,18 @@ void CBrowserView::OnFileSaveAs()
 
       // Save the file
       nsCOMPtr<nsIWebBrowserPersist> persist(do_QueryInterface(mWebBrowser));
-      if(persist)
-         persist->SaveDocument(nsnull, pStrFullPath, pStrDataPath);
+      if(persist) {
+         if (bDocument)
+            persist->SaveDocument(nsnull, pStrFullPath, pStrDataPath);
+         else
+            persist->SaveURI(aURI, nsnull, strFullPath);
+      }
 	}
 
    if (pBuf)
       delete pBuf;
+
+   return NS_OK;
 }
 
 void CBrowserView::OpenURL(const char* pUrl){
@@ -946,9 +968,9 @@ void CBrowserView::OnViewImageInNewWindow()
 		OpenURLInNewWindow(mCtxMenuImgSrc.GetUnicode());
 }
 
-void CBrowserView::OnSaveLinkAs()
-{
-	if(! mCtxMenuLinkUrl.Length())
+void CBrowserView::OnSaveLinkAs() {
+   
+   if(! mCtxMenuLinkUrl.Length())
 		return;
 
 	// Try to get the file name part from the URL
@@ -962,34 +984,7 @@ void CBrowserView::OnSaveLinkAs()
 	if (NS_FAILED(rv)) 
 		return;
 
-	// Get the "path" portion (see nsIURI.h for more info
-	// on various parts of a URI)
-	nsXPIDLCString path;
-	linkURI->GetPath(getter_Copies(path));
-
-	// The path may have the "/" char in it - strip those
-	nsCAutoString fileName(path);
-	int slash = fileName.RFindCharInSet("\\/");
-
-	// Now, use this file name in a File Save As dlg...
-
-	char *lpszFilter =
-        "HTML Files (*.htm;*.html)|*.htm;*.html|"
-		"Text Files (*.txt)|*.txt|" 
-	    "All Files (*.*)|*.*||";
-
-   const char *pFileName = fileName.Length() ? fileName.get() + slash+1 : NULL;
-
-	CFileDialog cf(FALSE, "htm", pFileName, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
-		lpszFilter, this);
-	if(cf.DoModal() == IDOK)
-	{
-		CString strFullPath = cf.GetPathName();
-
-        nsCOMPtr<nsIWebBrowserPersist> persist(do_QueryInterface(mWebBrowser));
-		if(persist)
-			persist->SaveURI(linkURI, nsnull, strFullPath.GetBuffer(0));
-	}
+   URISaveAs(linkURI);
 }
 
 void CBrowserView::OnSaveImageAs()
@@ -1003,35 +998,12 @@ void CBrowserView::OnSaveImageAs()
 	// of a URL like the filename, scheme etc. + We'll also
 	// use it while saving this link to a file
 	nsresult rv   = NS_OK;
-	nsCOMPtr<nsIURI> linkURI;
-	rv = NS_NewURI(getter_AddRefs(linkURI), mCtxMenuImgSrc);
+	nsCOMPtr<nsIURI> imageURI;
+	rv = NS_NewURI(getter_AddRefs(imageURI), mCtxMenuImgSrc);
 	if (NS_FAILED(rv)) 
 		return;
 
-	// Get the "path" portion (see nsIURI.h for more info
-	// on various parts of a URI)
-	nsXPIDLCString path;
-	linkURI->GetPath(getter_Copies(path));
-
-	// The path may have the "/" char in it - strip those
-	nsCAutoString fileName(path);
-	int slash = fileName.RFindCharInSet("\\/");
-
-	// Now, use this file name in a File Save As dlg...
-
-	char *lpszFilter = "All Files (*.*)|*.*||";
-	const char *pFileName = fileName.Length() ? fileName.get() + slash+1: NULL;
-
-	CFileDialog cf(FALSE, NULL, pFileName, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
-		lpszFilter, this);
-	if(cf.DoModal() == IDOK)
-	{
-		CString strFullPath = cf.GetPathName();
-
-        nsCOMPtr<nsIWebBrowserPersist> persist(do_QueryInterface(mWebBrowser));
-		if(persist)
-			persist->SaveURI(linkURI, nsnull, strFullPath.GetBuffer(0));
-	}
+   URISaveAs(imageURI);
 }
 
 void CBrowserView::OnKmeleonHome()
@@ -1408,3 +1380,11 @@ int CBrowserView::GetCurrentURI(char *sURI) {
       strcpy(sURI, uriString.get());
    return len;
 }
+/*
+int CheckStatusBar {
+   HWND hStatusBar = mpBrowserFrame->FindWindow(NULL, STATUSCLASSNAME, NULL);
+   if (hStatusBar) {
+      bStatusBarVisible = IsWindowVisible(hStatusBar);
+   }
+}
+*/

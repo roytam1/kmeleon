@@ -109,6 +109,8 @@ public:
 
    inline void ClearFindDialog() { m_pFindDlg = NULL; }
 
+   NS_IMETHODIMP CBrowserView::URISaveAs(nsIURI *aURI, bool bDocument=FALSE);
+
 protected:
 	BOOL m_refreshBackButton;
 	BOOL m_refreshForwardButton; 
