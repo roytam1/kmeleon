@@ -21,15 +21,17 @@
 // has the added ability to log to a file
 
 #include "StdAfx.h"
+#include "resource.h"
 
 #ifdef ENABLE_LOG
 
 #ifdef LOG_FILE
 
+#define DEFINE_LOG CStdioFile *log;
+
 #define SETUP_LOG(x)             \
-   CFile *log;                   \
    TRY {                         \
-      log = new CFile( x ".log", CFile::modeWrite | CFile::modeCreate);    \
+      log = new CStdioFile( x ".log", CFile::modeWrite | CFile::modeCreate);    \
    }                             \
    CATCH (CFileException, e) {   \
       log = NULL;                \
@@ -126,7 +128,8 @@ public:
    }
 };
 
-#define SETUP_LOG(x) CLog log; log.title = x;
+#define DEFINE_LOG CLog log;
+#define SETUP_LOG(x) log.title = x;
 #define END_LOG() log.Show();
 
 #define LOG_1(msg, var1)        \
@@ -173,6 +176,7 @@ public:
 
 #else  // ENABLE_LOG
 
+#define DEFINE_LOG
 #define SETUP_LOG(x)
 #define LOG_1(x, y)
 #define LOG_ERROR_1(x, y)
