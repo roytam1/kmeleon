@@ -212,6 +212,7 @@ void TrayRButton(HWND hWnd) {
    POINT CurPos;
    GetCursorPos(&CurPos);
 
+   SetForegroundWindow(hWnd);
    TrackPopupMenu(popup, TPM_RIGHTBUTTON, CurPos.x, CurPos.y, 0, hWnd, NULL);
    PostMessage(hWnd, WM_NULL, 0, 0);
 }
