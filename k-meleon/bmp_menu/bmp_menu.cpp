@@ -272,8 +272,12 @@ int DrawBitmap(DRAWITEMSTRUCT *dis) {
 
       return LEFT_SPACE;
 	}
-   else if (dis->itemState & ODS_CHECKED)
-      DrawCheckMark(dis->hDC, dis->rcItem.left+6, dis->rcItem.top+5, GetSysColor(COLOR_MENUTEXT));
+   else if (dis->itemState & ODS_CHECKED) {
+      if (dis->itemState & ODS_SELECTED)
+         DrawCheckMark(dis->hDC, dis->rcItem.left+6, dis->rcItem.top+5, GetSysColor(COLOR_HIGHLIGHTTEXT));
+      else
+         DrawCheckMark(dis->hDC, dis->rcItem.left+6, dis->rcItem.top+5, GetSysColor(COLOR_MENUTEXT));
+   }
 
    return 0;
 }
