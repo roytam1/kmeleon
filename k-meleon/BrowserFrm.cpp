@@ -135,12 +135,10 @@ void CBrowserFrame::OnClose()
 // get created
 // 
 int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct){
+   m_created = false;
+
 	if (CFrameWnd::OnCreate(lpCreateStruct) == -1)
 		return -1;
-
-
-   // preserve the maximized state, in case any of the plugins resize the window
-   BOOL bMaximized = theApp.preferences.bMaximized;
 
   // tell all our plugins that we were created
   theApp.plugins.OnCreate(this->m_hWnd);
@@ -304,9 +302,7 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct){
 
    m_wndUrlBar.SetFocus();
 
-
-   // restore the maximized state
-   theApp.preferences.bMaximized = bMaximized;
+   m_created = true;
 
 	return 0;
 }
@@ -483,20 +479,24 @@ BOOL CBrowserFrame::OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERIN
 void CBrowserFrame::OnSize(UINT nType, int cx, int cy) {
    CFrameWnd::OnSize(nType, cx, cy);
 
-   // Get the ItemRect of the status bar's Pane 0
-   // That's where the progress bar will be located
-   RECT rc;
-   if (m_wndStatusBar.m_hWnd)
-      m_wndStatusBar.GetItemRect(m_wndStatusBar.CommandToIndex(ID_PROG_BAR), &rc);
+  if (!m_created){
+     return;
+  }
 
-   // Move the progress bar into it's correct location
-   //
-   if (m_wndProgressBar.m_hWnd)
-      m_wndProgressBar.MoveWindow(&rc);
+  // Get the ItemRect of the status bar's Pane 0
+  // That's where the progress bar will be located
+  RECT rc;
+  m_wndStatusBar.GetItemRect(m_wndStatusBar.CommandToIndex(ID_PROG_BAR), &rc);
 
-   if (nType == SIZE_MAXIMIZED) theApp.preferences.bMaximized = true;
-   else if (nType == SIZE_RESTORED) theApp.preferences.bMaximized = false;
+  // Move the progress bar into it's correct location
+  //
+  m_wndProgressBar.MoveWindow(&rc);
 
+  if (nType == SIZE_MAXIMIZED){
+    theApp.preferences.bMaximized = true;
+  }else if (nType == SIZE_RESTORED){
+    theApp.preferences.bMaximized = false;
+  }
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -555,9 +555,9 @@ void CBrowserFrame::LoadBackImage ()
 
   HBITMAP hbmp;
   if (theApp.preferences.toolbarBackground.IsEmpty()){
-    theApp.preferences.toolbarBackground = theApp.preferences.settingsDir + "Back.bmp";
-	}
-  hbmp = (HBITMAP) ::LoadImage (AfxGetResourceHandle (),
+     theApp.preferences.toolbarBackground = theApp.preferences.settingsDir + "Back.bmp";
+  }
+  hbmp = (HBITMAP) ::LoadImage (NULL,
     theApp.preferences.toolbarBackground,
     IMAGE_BITMAP,
     0, 0,

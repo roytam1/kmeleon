@@ -80,19 +80,20 @@ public:
 protected: 
 	DECLARE_DYNAMIC(CBrowserFrame)
 
+   BOOL m_created; // set after we are created
 public:
 	CToolBarEx    m_wndToolBar;
 	CStatusBar  m_wndStatusBar;
 	CProgressCtrl m_wndProgressBar;
 	CUrlBar m_wndUrlBar;
 	CReBar m_wndReBar;
-  CAnimateCtrl	m_wndAnimate;
+   CAnimateCtrl	m_wndAnimate;
 
-  CImageList m_toolbarHotImageList;
-  CImageList m_toolbarColdImageList;
-  CImageList m_toolbarDisabledImageList;
+   CImageList m_toolbarHotImageList;
+   CImageList m_toolbarColdImageList;
+   CImageList m_toolbarDisabledImageList;
 
-  CBitmap m_bmpBack;
+   CBitmap m_bmpBack;
 
 	// The view inside which the embedded browser will
 	// be displayed in
@@ -124,11 +125,11 @@ protected:
 public:
 	void SetupFrameChrome();
 
-  void LoadBackImage ();
-  void SetBackImage ();
+   void LoadBackImage ();
+   void SetBackImage ();
 
-  void SaveBandSizes();
-  void RestoreBandSizes();
+   void SaveBandSizes();
+   void RestoreBandSizes();
 
 // Overrides
 	// ClassWizard generated virtual function overrides
