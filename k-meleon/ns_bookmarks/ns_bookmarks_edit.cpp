@@ -105,19 +105,19 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
          case VK_F2:
             fEatKeystroke = true;
             SetFocus(GetDlgItem(hEditWnd, IDC_TITLE));
-            SendMessage(GetDlgItem(hEditWnd, IDC_TITLE), EM_SETSEL, 0, -1);  // select all
+            SendDlgItemMessage(hEditWnd, IDC_TITLE, EM_SETSEL, 0, -1);  // select all
             break;
          case VK_PRIOR:
             if (bDragging) {
                fEatKeystroke = true;
-               SendMessage(GetDlgItem(hEditWnd, IDC_TREE_BOOKMARK), WM_VSCROLL, SB_PAGEUP, 0);
+               SendDlgItemMessage(hEditWnd, IDC_TREE_BOOKMARK, WM_VSCROLL, SB_PAGEUP, 0);
                SendMessage(hEditWnd, WM_MOUSEMOVE, 0, 0);  // update the insertion mark
             }
             break;
          case VK_UP:
             if (bDragging) {
                fEatKeystroke = true;
-               SendMessage(GetDlgItem(hEditWnd, IDC_TREE_BOOKMARK), WM_VSCROLL, SB_LINEUP, 0);
+               SendDlgItemMessage(hEditWnd, IDC_TREE_BOOKMARK, WM_VSCROLL, SB_LINEUP, 0);
                SendMessage(hEditWnd, WM_MOUSEMOVE, 0, 0);  // update the insertion mark
             }
             else if (GetKeyState(VK_SHIFT) & 0x80) {
@@ -135,14 +135,14 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
          case VK_NEXT:
             if (bDragging) {
                fEatKeystroke = true;
-               SendMessage(GetDlgItem(hEditWnd, IDC_TREE_BOOKMARK), WM_VSCROLL, SB_PAGEDOWN, 0);
+               SendDlgItemMessage(hEditWnd, IDC_TREE_BOOKMARK, WM_VSCROLL, SB_PAGEDOWN, 0);
                SendMessage(hEditWnd, WM_MOUSEMOVE, 0, 0);  // update the insertion mark
             }
             break;
          case VK_DOWN:
             if (bDragging) {
                fEatKeystroke = true;
-               SendMessage(GetDlgItem(hEditWnd, IDC_TREE_BOOKMARK), WM_VSCROLL, SB_LINEDOWN, 0);
+               SendDlgItemMessage(hEditWnd, IDC_TREE_BOOKMARK, WM_VSCROLL, SB_LINEDOWN, 0);
                SendMessage(hEditWnd, WM_MOUSEMOVE, 0, 0);  // update the insertion mark
             }
             else if (GetKeyState(VK_SHIFT) & 0x80) {
@@ -198,7 +198,7 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
    else if (hasFocus == GetDlgItem(hEditWnd, IDC_TITLE) && wParam == VK_RETURN) {
       fEatKeystroke = true;
       SetFocus(GetDlgItem(hEditWnd, IDC_URL));
-      SendMessage(GetDlgItem(hEditWnd, IDC_URL), EM_SETSEL, 0, -1);  // select all
+      SendDlgItemMessage(hEditWnd, IDC_URL, EM_SETSEL, 0, -1);  // select all
    }
    else if (hasFocus == GetDlgItem(hEditWnd, IDC_URL) && wParam == VK_RETURN) {
       fEatKeystroke = true;
@@ -212,6 +212,7 @@ CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
    static HHOOK hHook;
    static bool bTimer = false;  // semi-crude hack to make scrolling smoother
+   static HWND hTree;
    static HTREEITEM htCurHover = NULL;
    static HTREEITEM htDummyItem = NULL;
 
@@ -219,8 +220,8 @@ CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
    case WM_INITDIALOG:
       {
          hEditWnd = hDlg;
+         hTree = GetDlgItem(hDlg, IDC_TREE_BOOKMARK);
 
-         HWND hTree = GetDlgItem(hDlg, IDC_TREE_BOOKMARK);
          TreeView_SetImageList(hTree, gImagelist, TVSIL_NORMAL);
 
          workingBookmarks = gBookmarkRoot;
@@ -260,7 +261,6 @@ CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       return false;
    case WM_NOTIFY:
       {
-         HWND hTree = GetDlgItem(hDlg, IDC_TREE_BOOKMARK);
          NMTREEVIEW *nmtv = (NMTREEVIEW *)lParam;
 
          // Selection changed
@@ -407,12 +407,10 @@ CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
          if (wParam < 2) {
             // scrolling, and wParam conveniently holds the direction
             bTimer = false;
-            HWND hTree = GetDlgItem(hDlg, IDC_TREE_BOOKMARK);
             SendMessage(hTree, WM_VSCROLL, wParam, NULL);
          }
          else if (wParam == 2) {
             // need to expand folder
-            HWND hTree = GetDlgItem(hDlg, IDC_TREE_BOOKMARK);
 
             // the folder might be empty, in which case we add an empty dummy item to allow it to expand
             if (!TreeView_GetChild(hTree, htCurHover)) {
@@ -434,7 +432,6 @@ CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
    case WM_MOUSEMOVE:
       // update the insertion mark if we're dragging
       if (bDragging){
-         HWND hTree = GetDlgItem(hDlg, IDC_TREE_BOOKMARK);
 
          // find current coordinates
          TVHITTESTINFO hti;
@@ -528,7 +525,6 @@ CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
    case WM_LBUTTONUP:
       if (bDragging){
-         HWND hTree = GetDlgItem(hDlg, IDC_TREE_BOOKMARK);
          HTREEITEM hSelection = TreeView_GetSelection(hTree);
          if (hSelection) MoveItem(hTree, hSelection, 3);
 
@@ -569,17 +565,15 @@ CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
          if (HIWORD(wParam) == EN_CHANGE) {
             int id = LOWORD(wParam);
-            if (id == IDC_TITLE && SendMessage(GetDlgItem(hDlg, IDC_TITLE), EM_GETMODIFY, 0, 0)) {
-               SendMessage(GetDlgItem(hDlg, IDC_TITLE), EM_SETMODIFY, FALSE, 0);
-               HWND hTree = GetDlgItem(hDlg, IDC_TREE_BOOKMARK);
+            if (id == IDC_TITLE && SendDlgItemMessage(hDlg, IDC_TITLE, EM_GETMODIFY, 0, 0)) {
+               SendDlgItemMessage(hDlg, IDC_TITLE, EM_SETMODIFY, FALSE, 0);
                HTREEITEM hSelection = TreeView_GetSelection(hTree);
                if (hSelection) {
                   UpdateTitle(hDlg, hSelection);
                }
             }
-            else if (id == IDC_URL && SendMessage(GetDlgItem(hDlg, IDC_URL), EM_GETMODIFY, 0, 0)) {
-               SendMessage(GetDlgItem(hDlg, IDC_URL), EM_SETMODIFY, FALSE, 0);
-               HWND hTree = GetDlgItem(hDlg, IDC_TREE_BOOKMARK);
+            else if (id == IDC_URL && SendDlgItemMessage(hDlg, IDC_URL, EM_GETMODIFY, 0, 0)) {
+               SendDlgItemMessage(hDlg, IDC_URL, EM_SETMODIFY, FALSE, 0);
                HTREEITEM hSelection = TreeView_GetSelection(hTree);
                if (hSelection) {
                   UpdateURL(hDlg, hSelection);
@@ -873,6 +867,11 @@ static void MoveItem(HWND hTree, HTREEITEM item, int mode) {
       }
 
       break;
+   }
+
+   // check to see if we're dropping something in itself
+   for (HTREEITEM temp = TreeView_GetParent(hTree, itemDrop); temp != NULL ; temp = TreeView_GetParent(hTree, temp)) {
+      if (temp == item) {return;}
    }
 
    // setup the new parent
