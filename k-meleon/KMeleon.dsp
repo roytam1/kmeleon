@@ -204,6 +204,10 @@ SOURCE=.\MfcEmbed.rc
 # End Source File
 # Begin Source File
 
+SOURCE=.\MostRecentUrls.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\Plugins.cpp
 # End Source File
 # Begin Source File
@@ -394,6 +398,10 @@ SOURCE=.\res\Cursor_27.cur
 # Begin Source File
 
 SOURCE=.\res\icon2.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\KmeleonDocument.ico
 # End Source File
 # Begin Source File
 
