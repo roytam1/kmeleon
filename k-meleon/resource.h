@@ -73,6 +73,12 @@
 #define IDC_BUTTON_ACCEL                1036
 #define IDC_BUTTON_HELP                 1037
 #define IDC_BUTTON2                     1039
+#define IDC_CHECK_SOURCE_ENABLED        1040
+#define IDC_EDIT_SOURCE_COMMAND         1042
+#define IDC_BUTTON_SOURCE_BROWSE        1043
+#define IDC_BROWSE                      1044
+#define IDC_EDIT_ADDRESS                1045
+#define IDC_PROMPT_ADDRESS_TEXT         1046
 #define IDC_CONTAINER                   1110
 #define IDC_EDIT_TOOLBAR_BACKGROUND     1111
 #define IDC_EDIT_SETTINGS_DIR           1111
@@ -113,9 +119,9 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        158
+#define _APS_NEXT_RESOURCE_VALUE        163
 #define _APS_NEXT_COMMAND_VALUE         32791
-#define _APS_NEXT_CONTROL_VALUE         1040
+#define _APS_NEXT_CONTROL_VALUE         1047
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
