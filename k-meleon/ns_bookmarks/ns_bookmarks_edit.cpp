@@ -86,30 +86,99 @@ static inline void UnixTimeToSystemTime(time_t t, LPSYSTEMTIME pst) {
 }
 
 
-// Hook function for keyboard hook - snags SHIFT-UP and SHIFT-DOWN in the treeview, only.
+// Hook function for keyboard hook
+// I have to use the hook to capture SHIFT-UP, SHIFT-DOWN, ENTER and other "system"-type keypresses
+// And to keep things consistent, I just threw all keypress handling in here
 LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
+   if ( (nCode != HC_ACTION) || (lParam & 0x80000000) ) {   // highest bit of lParam high == key being released
+      return CallNextHookEx(NULL, nCode, wParam, lParam);
+   }
+
    BOOL fEatKeystroke = false;
+   HWND hasFocus = GetFocus();
    HWND hTree = GetDlgItem(hEditWnd, IDC_TREE_BOOKMARK);
 
-   if (nCode == HC_ACTION
-      && (GetKeyState(VK_SHIFT) & 0x80)
-      && !(lParam & 0x80000000)
-      && GetFocus() == hTree
-   ) {
-      HTREEITEM hSelection;
-      switch (wParam) {
-      case VK_UP:
-         fEatKeystroke = true;
-         hSelection = TreeView_GetSelection(hTree);
-         if (hSelection) MoveItem(hTree, hSelection, 1);
-         break;
-      case VK_DOWN:
-         fEatKeystroke = true;
-         hTree = GetDlgItem(hEditWnd, IDC_TREE_BOOKMARK);
-         hSelection = TreeView_GetSelection(hTree);
-         if (hSelection) MoveItem(hTree, hSelection, 2);
-         break;
+   if (hasFocus == hTree) {
+      HTREEITEM hItem = TreeView_GetSelection(hTree);
+      if (hItem) {
+         switch (wParam) {
+         case VK_F2:
+            fEatKeystroke = true;
+            SetFocus(GetDlgItem(hEditWnd, IDC_TITLE));
+            SendMessage(GetDlgItem(hEditWnd, IDC_TITLE), EM_SETSEL, 0, -1);  // select all
+            break;
+         case VK_UP:
+            if (GetKeyState(VK_SHIFT) & 0x80) {
+               fEatKeystroke = true;
+               MoveItem(hTree, hItem, 1);
+            }
+            else if (GetKeyState(VK_MENU) & 0x80) {   // what genius decided to call ALT "VK_MENU"???
+               fEatKeystroke = true;
+               HTREEITEM hItemSelect = TreeView_GetPrevSibling(hTree, hItem);
+               if (!hItemSelect) hItemSelect = TreeView_GetPrevVisible(hTree, hItem);
+               if (!hItemSelect) break;
+               TreeView_SelectItem(hTree, hItemSelect);
+            }
+            break;
+         case VK_DOWN:
+            if (GetKeyState(VK_SHIFT) & 0x80) {
+               fEatKeystroke = true;
+               MoveItem(hTree, hItem, 2);
+            }
+            else if (GetKeyState(VK_MENU) & 0x80) {
+               fEatKeystroke = true;
+               HTREEITEM hItemSelect = TreeView_GetNextSibling(hTree, hItem);
+               if (!hItemSelect) hItemSelect = TreeView_GetNextSibling(hTree, TreeView_GetParent(hTree, hItem));
+               if (!hItemSelect) hItemSelect = TreeView_GetNextVisible(hTree, hItem);
+               if (!hItemSelect) break;
+               TreeView_SelectItem(hTree, hItemSelect);
+            }
+            break;
+         case VK_RETURN:
+            {
+               fEatKeystroke = true;
+               CBookmarkNode *node = GetBookmarkNode(hTree, hItem);
+               if (node->type == BOOKMARK_BOOKMARK) {
+                  node->lastVisit = time(NULL);
+                  bookmarksEdited = true;
+                  if (GetKeyState(VK_CONTROL) & 0x80) {
+                     kPlugin.kFuncs->NavigateTo(node->url.c_str(), OPEN_BACKGROUND);
+                  }
+                  else {
+                     kPlugin.kFuncs->NavigateTo(node->url.c_str(), OPEN_NORMAL);
+                  }
+                  TreeView_SelectItem(hTree, hItem);  // just to fire off a SELCHANGED notifier to update the status (last visited!)
+               }
+               else if (node->type == BOOKMARK_FOLDER) {
+                  TreeView_Expand(hTree, hItem, TVE_TOGGLE);
+               }
+            }
+            break;
+         case 'D':
+            if (!(GetKeyState(VK_CONTROL) & 0x80))
+               break;
+         case VK_DELETE:
+            fEatKeystroke = true;
+            DeleteItem(hTree, hItem);
+            break;
+         case 'N':
+            if (!(GetKeyState(VK_CONTROL) & 0x80))
+               break;
+         case VK_INSERT:
+            fEatKeystroke = true;
+            CreateNewObject(hTree, hItem, BOOKMARK_BOOKMARK);
+            break;
+         }
       }
+   }
+   else if (hasFocus == GetDlgItem(hEditWnd, IDC_TITLE) && wParam == VK_RETURN) {
+      fEatKeystroke = true;
+      SetFocus(GetDlgItem(hEditWnd, IDC_URL));
+      SendMessage(GetDlgItem(hEditWnd, IDC_URL), EM_SETSEL, 0, -1);  // select all
+   }
+   else if (hasFocus == GetDlgItem(hEditWnd, IDC_URL) && wParam == VK_RETURN) {
+      fEatKeystroke = true;
+      SetFocus(GetDlgItem(hEditWnd, IDC_TREE_BOOKMARK));
    }
 
    return(fEatKeystroke ? 1 : CallNextHookEx(NULL, nCode, wParam, lParam));
@@ -265,20 +334,6 @@ CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                SetCapture(hDlg);
             }
          }
-         // key pressed
-         else if (nmtv->hdr.code == TVN_KEYDOWN) {
-            HTREEITEM hSelection = TreeView_GetSelection(hTree);
-            if (hSelection) {
-               switch(((LPNMTVKEYDOWN)lParam)->wVKey) {
-               case VK_DELETE:
-                  DeleteItem(hTree, hSelection);
-                  break;
-               case VK_INSERT:
-                  CreateNewObject(hTree, hSelection, BOOKMARK_BOOKMARK);
-                  break;
-               }
-            }
-         }
          else if (nmtv->hdr.code == NM_DBLCLK){
             TVHITTESTINFO hti;
             GetCursorPos(&hti.pt);
@@ -292,17 +347,19 @@ CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                   node->lastVisit = time(NULL);
                   bookmarksEdited = true;
                   kPlugin.kFuncs->NavigateTo(node->url.c_str(), OPEN_NORMAL);
+                  TreeView_SelectItem(hTree, hItem);  // just to fire off a SELCHANGED notifier to update the status (last visited!)
 
-                  if (bookmarksEdited && MessageBox(hDlg, BOOKMARKS_SAVE_CHANGES, PLUGIN_NAME, MB_YESNO) == IDYES) {
-                     // save the changes
-                     gBookmarkRoot = workingBookmarks;
-                     Save(gBookmarkFile);
-                     UnhookWindowsHookEx(hHook);
-                     EndDialog(hDlg, 1);
-                     return true;
-                  }
-                  UnhookWindowsHookEx(hHook);
-                  EndDialog(hDlg, 0);
+// don't necessarily want to exit, here...
+//                  if (bookmarksEdited && MessageBox(hDlg, BOOKMARKS_SAVE_CHANGES, PLUGIN_NAME, MB_YESNO) == IDYES) {
+//                     // save the changes
+//                     gBookmarkRoot = workingBookmarks;
+//                     Save(gBookmarkFile);
+//                     UnhookWindowsHookEx(hHook);
+//                     EndDialog(hDlg, 1);
+//                     return true;
+//                  }
+//                  UnhookWindowsHookEx(hHook);
+//                  EndDialog(hDlg, 0);
                   return true;
                }
             }
@@ -505,9 +562,6 @@ CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
          else if (HIWORD(wParam) == BN_CLICKED) {
             WORD id = LOWORD(wParam);
             switch(id){
-            case ID_IMPORT_FAVORITES:
-               ImportFavorites(GetDlgItem(hDlg, IDC_TREE_BOOKMARK));
-               break;
 
             case IDOK:
                if (bookmarksEdited) {
@@ -524,6 +578,14 @@ CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
             case IDCANCEL:
                UnhookWindowsHookEx(hHook);
                EndDialog(hDlg, 0);
+               break;
+
+            case ID_IMPORT_FAVORITES:
+               ImportFavorites(GetDlgItem(hDlg, IDC_TREE_BOOKMARK));
+               break;
+
+            case ID_KEYBINDINGS:
+               MessageBox(hDlg, "Next/prev sibling\t\tAlt+Arrows\n\nMove item up/down\t\tShift+Arrows\n\nOpen item in browser\tEnter\n\nOpen item in background\tCtl+Enter\n\nEdit title\t\t\tF2\n\nDelete item\t\tCtl+D or Del\n\nNew bookmark\t\tCtl+N or Ins", "Key-bindings", MB_ICONINFORMATION | MB_OK);
                break;
             }
          }
@@ -1017,41 +1079,65 @@ static void OnRClick(HWND hTree)
    POINT mouse;
    GetCursorPos(&mouse);
 
-   HMENU topMenu = LoadMenu(kPlugin.hDllInstance, MAKEINTRESOURCE(IDR_CONTEXTMENU));
-   HMENU contextMenu = GetSubMenu(topMenu, 0);
-   int command = TrackPopupMenu(contextMenu, TPM_RIGHTBUTTON | TPM_LEFTALIGN | TPM_RETURNCMD, mouse.x, mouse.y, 0, hTree, NULL);
-
    TVHITTESTINFO hti;
    hti.pt.x = mouse.x;
    hti.pt.y = mouse.y;
    ScreenToClient(hTree, &hti.pt);
 
-   HTREEITEM item = TreeView_HitTest(hTree, &hti);
-   if (item) {
+   HTREEITEM hItem = TreeView_HitTest(hTree, &hti);
+   if (hItem) {
+      TreeView_SelectItem(hTree, hItem);
+
+      HMENU topMenu = LoadMenu(kPlugin.hDllInstance, MAKEINTRESOURCE(IDR_CONTEXTMENU));
+      HMENU contextMenu = GetSubMenu(topMenu, 0);
+      int command = TrackPopupMenu(contextMenu, TPM_RIGHTBUTTON | TPM_LEFTALIGN | TPM_RETURNCMD, mouse.x, mouse.y, 0, hTree, NULL);
+
       switch (command) {
+      case ID__OPEN:
+         {
+            CBookmarkNode *node = GetBookmarkNode(hTree, hItem);
+            if (node->type == BOOKMARK_BOOKMARK) {
+               node->lastVisit = time(NULL);
+               bookmarksEdited = true;
+               kPlugin.kFuncs->NavigateTo(node->url.c_str(), OPEN_NORMAL);
+               TreeView_SelectItem(hTree, hItem);  // just to fire off a SELCHANGED notifier to update the status (last visited!)
+            }
+         }
+         break;
+      case ID__OPEN_BACKGROUND:
+         {
+            CBookmarkNode *node = GetBookmarkNode(hTree, hItem);
+            if (node->type == BOOKMARK_BOOKMARK) {
+               node->lastVisit = time(NULL);
+               bookmarksEdited = true;
+               kPlugin.kFuncs->NavigateTo(node->url.c_str(), OPEN_BACKGROUND);
+               TreeView_SelectItem(hTree, hItem);  // just to fire off a SELCHANGED notifier to update the status (last visited!)
+            }
+         }
+         break;
       case ID__NEW_FOLDER:
-         CreateNewObject(hTree, item, BOOKMARK_FOLDER);
+         CreateNewObject(hTree, hItem, BOOKMARK_FOLDER);
          break;
       case ID__NEW_SEPARATOR:
-         CreateNewObject(hTree, item, BOOKMARK_SEPARATOR);
+         CreateNewObject(hTree, hItem, BOOKMARK_SEPARATOR);
          break;
       case ID__NEW_BOOKMARK:
-         CreateNewObject(hTree, item, BOOKMARK_BOOKMARK);
+         CreateNewObject(hTree, hItem, BOOKMARK_BOOKMARK);
          break;
       case ID__SETAS_TOOLBARFOLDER:
-         ChangeSpecialFolder(hTree, &hTBitem, item, BOOKMARK_FLAG_TB);
+         ChangeSpecialFolder(hTree, &hTBitem, hItem, BOOKMARK_FLAG_TB);
          bookmarksEdited = true;    // ChangeSpecialFolder is used when filling the tree initially, as well, so we don't want it to set bookmarksModified itself
          break;
       case ID__SETAS_NEWBOOKMARKFOLDER:
-         ChangeSpecialFolder(hTree, &hNBitem, item, BOOKMARK_FLAG_NB);
+         ChangeSpecialFolder(hTree, &hNBitem, hItem, BOOKMARK_FLAG_NB);
          bookmarksEdited = true;
          break;
       case ID__SETAS_BOOKMARKMENU:
-         ChangeSpecialFolder(hTree, &hBMitem, item, BOOKMARK_FLAG_BM);
+         ChangeSpecialFolder(hTree, &hBMitem, hItem, BOOKMARK_FLAG_BM);
          bookmarksEdited = true;
          break;
-      case ID_BOOKMARK_DELETE:
-         DeleteItem(hTree, item);
+      case ID__BOOKMARK_DELETE:
+         DeleteItem(hTree, hItem);
          break;
       }
    }
