@@ -85,6 +85,8 @@ void CPreferences::Load() {
 
       _GetInt(_T("kmeleon.display.newWindowOpenAs"), iNewWindowOpenAs, 0);
       _GetString(_T("kmeleon.display.newWindowURL"), newWindowURL, _T(""));
+
+      _GetBool(_T("kmeleon.display.disableResize"), bDisableResize, false);
       
 
       // -- Find settings
@@ -107,7 +109,6 @@ void CPreferences::Load() {
       _GetString(_T("kmeleon.general.saveDir"), saveDir, _T(""));   
       _GetString(_T("kmeleon.general.settingsDir"), settingsDir, _T(""));
       _GetString(_T("kmeleon.general.pluginsDir"), pluginsDir, _T(""));
-    
       if (settingsDir.IsEmpty()) {
          nsCOMPtr<nsIFile> profileDir;
          rv = NS_GetSpecialDirectory(NS_APP_USER_PROFILE_50_DIR, getter_AddRefs(profileDir));
@@ -125,7 +126,7 @@ void CPreferences::Load() {
       }
       if (settingsDir[settingsDir.GetLength() - 1] != '\\')
          settingsDir += '\\';
-     
+
       if (pluginsDir.IsEmpty()) {
          char buf[MAX_PATH];
          GetModuleFileName(NULL, buf, MAX_PATH);
@@ -140,7 +141,7 @@ void CPreferences::Load() {
 
 
      // -- Cache
-      _GetString(_T("browser.cache.directory"), cacheDir, _T(""));
+      _GetString(_T("browser.cache.disk.parent_directory"), cacheDir, _T(""));
       if (cacheDir.IsEmpty())
          cacheDir = settingsDir + "cache\\";
       else if (cacheDir[cacheDir.GetLength() - 1] != '\\')
@@ -178,6 +179,7 @@ void CPreferences::Load() {
       
       _GetBool(_T("javascript.enabled"), bJavascriptEnabled, true);
       _GetBool(_T("security.enable_java"), bJavaEnabled, true);
+      _GetBool(_T("signon.rememberSignons"), bRememberSignons, true);
 
       // 0 = Always, 1 = site, 2 = never
       _GetInt(_T("network.cookie.cookieBehavior"), iCookiesEnabled, 0);
@@ -232,6 +234,8 @@ void CPreferences::Save() {
       rv = prefs->SetIntPref(_T("kmeleon.display.newWindowOpenAs"), iNewWindowOpenAs);
       rv = prefs->SetCharPref(_T("kmeleon.display.newWindowURL"), newWindowURL);
 
+      rv = prefs->SetBoolPref(_T("kmeleon.display.disableResize"), bDisableResize);
+
       // -- Find settings
       
 	   rv = prefs->SetBoolPref(_T("kmeleon.find.matchCase"), bFindMatchCase);
@@ -255,7 +259,7 @@ void CPreferences::Save() {
 
      // -- Cache
 
-      rv = prefs->SetCharPref(_T("browser.cache.directory"), cacheDir);
+      rv = prefs->SetCharPref(_T("browser.cache.disk.parent_directory"), cacheDir);
       rv = prefs->SetIntPref(_T("browser.cache.disk.capacity"), cacheDisk);
 
       rv = prefs->SetIntPref(_T("browser.cache.memory.capacity"), cacheMemory);
@@ -288,6 +292,7 @@ void CPreferences::Save() {
 
       rv = prefs->SetBoolPref(_T("javascript.enabled"), bJavascriptEnabled);
       rv = prefs->SetBoolPref(_T("security.enable_java"), bJavaEnabled);
+      rv = prefs->SetBoolPref(_T("signon.rememberSignons"), bRememberSignons);
 
       rv = prefs->SetIntPref(_T("network.cookie.cookieBehavior"), iCookiesEnabled);
       rv = prefs->SetIntPref(_T("network.image.imageBehavior"), iImagesEnabled);

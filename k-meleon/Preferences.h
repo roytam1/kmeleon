@@ -51,6 +51,8 @@ public:
    CString settingsDir;
    CString pluginsDir;
 
+   int bDisableResize;
+
    // true if the window should default to maximized
    int bMaximized;
 
@@ -93,6 +95,7 @@ public:
 
    int bJavaEnabled;
    int bJavascriptEnabled;
+   int bRememberSignons;
    int bAnimationsEnabled;
 
 

@@ -193,11 +193,13 @@ void CPreferencePage::DoDataExchange(CDataExchange* pDX){
     case IDD_PREFERENCES_GENERAL:
       DDX_Check(pDX, IDC_CHECK_JAVASCRIPT, theApp.preferences.bJavascriptEnabled);
       DDX_Check(pDX, IDC_CHECK_JAVA, theApp.preferences.bJavaEnabled);
+      DDX_Check(pDX, IDC_CHECK_PASSWORDS, theApp.preferences.bRememberSignons);
       DDX_Text(pDX, IDC_EDIT_HTTP, theApp.preferences.httpVersion);
       DDX_Text(pDX, IDC_EDIT_SETTINGS_DIR, theApp.preferences.settingsDir);
       DDX_Text(pDX, IDC_EDIT_PLUGINS_DIR, theApp.preferences.pluginsDir);
       DDX_Check(pDX, IDC_CHECK_SOURCE_ENABLED, theApp.preferences.bSourceUseExternalCommand);
       DDX_Text(pDX, IDC_EDIT_SOURCE_COMMAND, theApp.preferences.sourceCommand);
+      DDX_Check(pDX, IDC_CHECK_DISABLERESIZE, theApp.preferences.bDisableResize);
       break;
     case IDD_PREFERENCES_PROXY:
       DDX_Text(pDX, IDC_EDIT_HTTP_PROXY,        theApp.preferences.proxyHTTP);
@@ -484,10 +486,22 @@ void CPreferencePageConfigs::SaveFile(const char *filename)
       return;
    }
    CFile file;
-   if (file.Open(filename, CFile::modeCreate | CFile::modeWrite | CFile::typeBinary)){
+   if (file.Open(filename, CFile::modeCreate | CFile::modeWrite | CFile::typeBinary)) {
       /* binary is so Write treats cr/lf as 2 characters */
       file.Write(m_fileText, m_fileText.GetLength());
       file.Close();
+
+      if (strstr(filename, "prefs.js")) {
+         nsresult rv;
+         nsCOMPtr<nsIPref> prefs(do_GetService(NS_PREF_CONTRACTID, &rv));
+         if (NS_SUCCEEDED(rv)) {
+            nsCOMPtr<nsILocalFile> prefFile(do_CreateInstance(NS_LOCAL_FILE_CONTRACTID));
+            rv = prefFile->InitWithPath(filename);
+
+            prefs->ReadUserPrefs(prefFile);
+            theApp.preferences.Load();
+         }
+      }
    }
    else
       MessageBox("Error opening file");
