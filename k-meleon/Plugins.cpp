@@ -184,6 +184,9 @@ void SetPreference(enum PREFTYPE type, char *preference, void *val, BOOL update)
    }
 }
 
+void SetStatusBarText(char *s) {
+   theApp.m_pMostRecentBrowserFrame->m_wndStatusBar.SetPaneText(0, s);
+}
 
 int GetMozillaSessionHistory (char ***titles, int *count, int *index)
 {
@@ -450,6 +453,7 @@ kmeleonFunctions kmelFuncs = {
    GetDocInfo,
    GetPreference,
    SetPreference,
+   SetStatusBarText,
    GetMozillaSessionHistory,
    GotoHistoryIndex,
    RegisterBand,
