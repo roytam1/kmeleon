@@ -233,9 +233,8 @@ NS_IMETHODIMP CBrowserView::URISaveAs(nsIURI* aURI, bool bDocument)
       int idxSlash;
       idxSlash = theApp.preferences.saveDir.ReverseFind('\\');
       theApp.preferences.saveDir = theApp.preferences.saveDir.Mid(0, idxSlash+1);
-		
+
 		CString strDataPath; 
-		char *pStrDataPath = NULL;
       if (bDocument && (cf.m_ofn.nFilterIndex == 3)) {
 
          // cf.m_ofn.nFilterIndex == 3 indicates that the
@@ -251,8 +250,6 @@ NS_IMETHODIMP CBrowserView::URISaveAs(nsIURI* aURI, bool bDocument)
 			// named junk.htm
 			// Any images etc in the doc will be saved to a dir
 			// with the name c:\tmp\junk_files
-
-			pStrDataPath = strDataPath.GetBuffer(0); //Get char * for later use
 		}
 
       // Save the file
@@ -267,9 +264,11 @@ NS_IMETHODIMP CBrowserView::URISaveAs(nsIURI* aURI, bool bDocument)
          NS_NewLocalFile(filename, TRUE, getter_AddRefs(file));
 
          nsCOMPtr<nsILocalFile> dataPath;
-         if (pStrDataPath)
+         if (strDataPath)
          {
-            NS_NewLocalFile(filename, TRUE, getter_AddRefs(dataPath));
+            nsString pathname;
+            pathname.AssignWithConversion(strDataPath.GetBuffer(0));
+            NS_NewLocalFile(pathname, TRUE, getter_AddRefs(dataPath));
          }
 
          if (bDocument)
