@@ -37,6 +37,7 @@
 #include "../resource.h"
 #include "layers.h"
 #include "../Utils.h"
+#include "../macros/macros.h"
 
 #define MAX_LAYERS 32
 #define BUF_SIZE 20
@@ -117,11 +118,12 @@ struct frame {
    struct frame *next;
 };
 
+struct frame *find_frame(HWND hWnd);
+
 struct frame *root = NULL;
 BOOL    bIgnore = 0;
 BOOL    bDoClose = 0;
 BOOL    bCaught = 0;
-struct layer *pNewLayer = NULL;
 
 INT id_layer;
 INT id_open_new_layer, id_open_link_front, id_open_link_back;
@@ -146,6 +148,7 @@ int bLayer;
 int bBack;
 int bFront;
 WINDOWPLACEMENT gwpOld;
+int numLayers;
 
 long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2)
 {
@@ -182,6 +185,126 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
          bBack = 1;
          bLayer = 1;
          kPlugin.kFuncs->NavigateTo((char *)data1, OPEN_BACKGROUND);
+      }
+      else if (stricmp(subject, "NumberOfWindows") == 0) {
+         int frames = 0;
+         struct frame *pFrame = root;
+         while (pFrame) {
+            pFrame = pFrame->next;
+            frames++;
+         }
+         itoa(frames, (char *)data2, 10);
+      }
+      else if (stricmp(subject, "NumberOfLayersInWindow") == 0) {
+         int layers = 0;
+         struct frame *pFrame = NULL;
+         char *sz = (char *)data1;
+         if (sz && *sz) {
+            int frame = atoi(sz);
+            if (frame > 0) {
+               pFrame = root;
+               while (pFrame && frame > 0) {
+                  pFrame = pFrame->next;
+                  frame--;
+               }
+            }
+            else {
+               pFrame = find_frame(ghCurHwnd);
+            }
+         }
+         else {
+            pFrame = find_frame(ghCurHwnd);
+         }
+         if (pFrame) {
+            struct layer *pLayer = pFrame->layer;
+            while (pLayer) {
+               pLayer = pLayer->next;
+               layers++;
+            }
+         }
+         itoa(layers, (char *)data2, 10);
+      }
+      else if (stricmp(subject, "GetLayersInWindow") == 0) {
+         int len = MSGEX_LENGTH-2;
+         char *cPtr = (char *)data2;
+         *cPtr = 0;
+         struct frame *pFrame = NULL;
+         char *sz = (char *)data1;
+         if (sz && *sz) {
+            int frame = atoi(sz);
+            if (frame > 0) {
+               pFrame = root;
+               while (pFrame && frame > 0) {
+                  pFrame = pFrame->next;
+                  frame--;
+               }
+            }
+            else {
+               pFrame = find_frame(ghCurHwnd);
+            }
+         }
+         else {
+            pFrame = find_frame(ghCurHwnd);
+         }
+         if (pFrame) {
+            struct layer *pLayer = pFrame->layer;
+            while (pLayer && len > 0) {
+               kmeleonDocInfo *dInfo;
+               dInfo = kPlugin.kFuncs->GetDocInfo(pLayer->hWnd);
+               if (dInfo && dInfo->url) {
+                  strncpy(cPtr, dInfo->url, len);
+                  int slen = strlen(cPtr);
+                  len -= slen;
+                  cPtr += slen;
+                  *cPtr++ = '\t';
+               }
+               pLayer = pLayer->next;
+            }
+         }
+         *cPtr = 0;
+      }
+      else if (stricmp(subject, "ReplaceLayersInWindow") == 0) {
+         char *cPtr = (char *)data1;
+         struct frame *pFrame = find_frame(ghCurHwnd);
+         if (cPtr && pFrame) {
+            struct layer *pLayer = pFrame->layer;
+
+            while (pLayer && cPtr && *cPtr) {
+               char *p = strchr(cPtr, '\t');
+               if (p)
+                  *p = 0;
+               kPlugin.kFuncs->NavigateTo(cPtr, OPEN_NORMAL, pLayer->hWnd);
+               if (p)
+                  cPtr = p+1;
+               else
+                  cPtr = NULL;
+               pLayer = pLayer->next;
+            }
+
+            while (cPtr && *cPtr) {
+               char *p = strchr(cPtr, '\t');
+               if (p)
+                  *p = 0;
+
+               ghParent = ghCurHwnd;
+               bBack = 1;
+               bLayer = 1;
+               numLayers++;
+               kPlugin.kFuncs->NavigateTo(cPtr, OPEN_BACKGROUND);
+
+               if (p)
+                  cPtr = p+1;
+               else
+                  cPtr = NULL;
+            }
+
+            while (pLayer) {
+               PostMessage(pLayer->hWnd, WM_COMMAND, id_close_layer, 0);
+               pLayer = pLayer->next;
+            }
+
+            PostMessage(ghCurHwnd, WM_COMMAND, id_layer, 0);
+         }
       }
       else return 0;
       
@@ -457,9 +580,9 @@ int Init(){
       ilc_bits = (bmp.bmBitsPixel == 32 ? ILC_COLOR32 : (bmp.bmBitsPixel == 24 ? ILC_COLOR24 : (bmp.bmBitsPixel == 16 ? ILC_COLOR16 : (bmp.bmBitsPixel == 8 ? ILC_COLOR8 : (bmp.bmBitsPixel == 4 ? ILC_COLOR4 : ILC_COLOR)))));
       gImagelist = ImageList_Create(bmp.bmWidth, bmp.bmHeight, ILC_MASK | ilc_bits, 4, 4);
       if (gImagelist && bitmap)
-	ImageList_AddMasked(gImagelist, bitmap, RGB(255, 0, 255));
+         ImageList_AddMasked(gImagelist, bitmap, RGB(255, 0, 255));
       if (bitmap)
-	DeleteObject(bitmap);
+         DeleteObject(bitmap);
    } 
 
    return true;
@@ -485,6 +608,7 @@ void Create(HWND parent){
          }
          else {
             find_frame(parent)->hWndFront = ghParent;
+            PostMessage(ghParent, UWM_UPDATESESSIONHISTORY, (WPARAM)0, (LPARAM)0);
             PostMessage(ghParent, WM_COMMAND, id_resize, (LPARAM)&gwpOld);
             ShowWindowAsync(parent, SW_HIDE);
          } 
@@ -497,16 +621,20 @@ void Create(HWND parent){
       PostMessage(parent, WM_COMMAND, id_resize, (LPARAM)&gwpOld);
    }
    
-   kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_CATCHOPEN_WINDOW, &bCatchOpenWindow, &bCatchOpenWindow);
-   if (bCatchOpenWindow) {
-      if (!bBack || !ghParent || !found)
-         ghParent = parent;
+   if (numLayers > 0) {
+      numLayers--;
    }
-   else
-      ghParent = NULL;
-   pNewLayer = find_layer(parent);
-   bBack = bFront = 0;
-   bLayer = bCatchOpenWindow;
+   else {
+      kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_CATCHOPEN_WINDOW, &bCatchOpenWindow, &bCatchOpenWindow);
+      if (bCatchOpenWindow) {
+         if (!bBack || !ghParent || !found)
+            ghParent = parent;
+      }
+      else
+         ghParent = NULL;
+      bBack = bFront = 0;
+      bLayer = bCatchOpenWindow;
+   }
 }
 
 // Preferences Dialog function
@@ -766,8 +894,8 @@ void BuildRebar(HWND hWndTB, HWND hWndParent)
                delete p;
             }
          }
-         
-         addRebarButton(hWndTB, buf, i, pLayer->hWnd == pFrame->hWndFront );
+
+         addRebarButton(hWndTB, buf, i, pLayer->hWnd == pFrame->hWndFront);
 
          delete buf;
          
@@ -877,9 +1005,9 @@ void DoRebar(HWND rebarWnd){
       return;
    }
    
+   struct layer *pNewLayer = find_layer( GetParent(rebarWnd) );
    if (pNewLayer) {
       pNewLayer->hWndTB = ghWndTB;
-      pNewLayer = NULL;
    }
    
    // Register the band name and child hwnd
@@ -1015,7 +1143,6 @@ void ShowMenuUnderButton(HWND hWndParent, HMENU hMenu, UINT uMouseButton, int iI
 }
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
-   // store these in static vars so that the BeginHotTrack call can access them
    struct frame *pFrame;
    struct layer *pLayer;
    
@@ -1040,9 +1167,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
             }
             if (message == UWM_UPDATESESSIONHISTORY ||
                 hWnd == pFrame->hWndFront) {
-               UpdateLayersMenu(pFrame->hWndFront);
                if ( (pLayer = find_layer(pFrame->hWndFront)) == NULL)
                   break;
+               UpdateLayersMenu(pFrame->hWndFront);
                UpdateRebarMenu(pLayer);
             }
             else {
@@ -1472,7 +1599,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                }
                return 1;
             }
-            
+
             break;
          }
          
