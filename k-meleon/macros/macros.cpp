@@ -1651,6 +1651,13 @@ std::string EvalExpression(HWND hWnd,std::string exp) {
       }
    }
 
+   // if it begins with an ampersand this is a reference to another macro
+   if(exp.at(0) == '&') {
+      strtemp = "macros(" + exp.substr(1) + ")";
+      strtemp = EvalExpression(hWnd, strTrim(strtemp));
+      return strtemp.c_str();
+   }
+
    // while (expression) statement;
    if (exp.find_first_of("while") == 0) {
       int lpos, rpos;
