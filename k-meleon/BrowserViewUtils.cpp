@@ -50,22 +50,15 @@ BOOL CBrowserView::OpenViewSourceWindow(const char* pUrl)
          CString tempfile;
          tempfile = GetTempFile();
 
-	 char *url;
-	 int len = GetCurrentURI(NULL);
-	 if (len) {
-	    url = new char[len+1];
-	    GetCurrentURI(url);
-
-	    if (strncmp(url, "file:///", 8) == 0) {
-	      int i;
-	      for (i=0; i<strlen(url); i++)
-		if (url[i]=='/')
-		  url[i]='\\';
-	      tempfile = url+8;
-	    }
-	 }
-	 else
-	    url = NULL;
+         char *url = strdup(pUrl);
+         
+         if (url && strnicmp(url, "view-source:file:///", 8) == 0) {
+            int i;
+            for (i=0; i<strlen(url); i++)
+               if (url[i]=='/')
+                  url[i]='\\';
+            tempfile = url+strlen("view-source:file:///");
+         }
 
          nsCOMPtr<nsIWebBrowserPersist> persist(do_QueryInterface(mWebBrowser));
          if(persist)
