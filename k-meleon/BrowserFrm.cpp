@@ -107,6 +107,8 @@ CBrowserFrame::CBrowserFrame(PRUint32 chromeMask)
 	// will have menubar, toolbar, statusbar etc.
 
 	m_chromeMask = chromeMask;
+   m_created = false;
+   m_setURLBarFocus = false;
 }
 
 CBrowserFrame::~CBrowserFrame()
@@ -489,7 +491,7 @@ void CBrowserFrame::OnSize(UINT nType, int cx, int cy) {
    if (m_wndProgressBar.m_hWnd)
       m_wndProgressBar.MoveWindow(&rc);
 
-   if (!theApp.m_created) return;
+   if (!m_created) return;
 
    // record the maximized state   
    if (nType == SIZE_MAXIMIZED) theApp.preferences.bMaximized = true;

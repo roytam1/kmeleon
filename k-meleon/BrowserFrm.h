@@ -105,11 +105,11 @@ public:
 	CReBar m_wndReBar;
    CAnimateCtrl	m_wndAnimate;
 
-  CImageList m_toolbarHotImageList;
-  CImageList m_toolbarColdImageList;
-  CImageList m_toolbarDisabledImageList;
+   CImageList m_toolbarHotImageList;
+   CImageList m_toolbarColdImageList;
+   CImageList m_toolbarDisabledImageList;
 
-  CBitmap m_bmpBack;
+   CBitmap m_bmpBack;
 
 	// The view inside which the embedded browser will
 	// be displayed in
@@ -118,6 +118,9 @@ public:
 	// This specifies what UI elements this frame will sport
 	// w.r.t. toolbar, statusbar, urlbar etc.
 	PRUint32 m_chromeMask;
+
+   BOOL m_created; // set after we are created
+   BOOL m_setURLBarFocus;
 
 protected:
 	//

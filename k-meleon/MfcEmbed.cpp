@@ -73,7 +73,7 @@ END_MESSAGE_MAP()
 CMfcEmbedApp::CMfcEmbedApp() :
     m_ProfileMgr(NULL)
 {
-    mRefCnt = 1; // Start at one - nothing is going to addref this object
+   mRefCnt = 1; // Start at one - nothing is going to addref this object
 }
 
 CMfcEmbedApp theApp;
@@ -140,10 +140,10 @@ BOOL CMfcEmbedApp::InitInstance()
       else
          pBrowserFrame->m_wndBrowserView.LoadHomePage();
 
-         pBrowserFrame->m_wndUrlBar.SetFocus();
+      pBrowserFrame->m_setURLBarFocus = true;
    }
 
-	return TRUE;
+   return TRUE;
 }
 
 CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
@@ -151,9 +151,6 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
 												   PRInt32 cx, PRInt32 cy,
 												   PRBool bShowWindow)
 {
- 
-   m_created = false;
-
 	// Load the window title from the string resource table
 	CString strTitle;
 	strTitle.LoadString(IDR_MAINFRAME);
@@ -198,9 +195,9 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
 
 	// Add to the list of BrowserFrame windows
 	m_FrameWndLst.AddHead(pFrame);
-
-   m_created = true;
    
+   pFrame->m_created = true;
+
    return pFrame;
 }
 
@@ -209,8 +206,10 @@ void CMfcEmbedApp::OnNewBrowser()
 	CBrowserFrame *pBrowserFrame = CreateNewBrowserFrame();
 
 	//Load the HomePage into the browser view
-	if(pBrowserFrame)
+   if(pBrowserFrame) {
 		pBrowserFrame->m_wndBrowserView.LoadHomePage();
+      pBrowserFrame->m_setURLBarFocus = true;
+   }
 }
 
 // This gets called anytime a BrowserFrameWindow is

@@ -42,6 +42,8 @@
 
 #include "resource.h"       // main symbols
 
+
+
 /////////////////////////////////////////////////////////////////////////////
 // CMfcEmbedApp:
 // See mozembed.cpp for the implementation of this class
@@ -83,8 +85,6 @@ public:
    CPreferences  preferences;
    CMenuParser   menus;
    CAccelParser  accel;
-
-   BOOL m_created; // set after we are created
 
 // Implementation
 

@@ -149,7 +149,7 @@ int CBrowserView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
 	CreateBrowser();
 
-  DragAcceptFiles();
+   DragAcceptFiles();
 	return 0;
 }
 
@@ -233,9 +233,9 @@ HRESULT CBrowserView::CreateBrowser()
 		rcLocation.top++;
 	}
 
-	rv = mBaseWindow->InitWindow(nsNativeWidget(m_hWnd), nsnull,
+   rv = mBaseWindow->InitWindow(nsNativeWidget(m_hWnd), nsnull,
 		0, 0, rcLocation.right - rcLocation.left, rcLocation.bottom - rcLocation.top);
-  rv = mBaseWindow->Create();
+   rv = mBaseWindow->Create();
 
   /*
   nsCOMPtr<nsIWebNavigation> mWebNav(do_QueryInterface(mBaseWindow));
@@ -389,7 +389,7 @@ void CBrowserView::OnViewSource()  {
             char *command = new char[theApp.preferences.sourceCommand.GetLength() + strlen(tempfile) +2];
             
             strcpy(command, theApp.preferences.sourceCommand);
-            strcat(command, " ");       //append " filename" to the viewer command
+            strcat(command, " ");                              //append " filename" to the viewer command
             strcat(command, tempfile);
             
             STARTUPINFO si = { 0 };
@@ -398,9 +398,7 @@ void CBrowserView::OnViewSource()  {
             si.dwFlags = STARTF_USESHOWWINDOW;
             si.wShowWindow = SW_SHOW;
 
-            CreateProcess(0,command,0,0,0,0,0,0,&si,&pi);
-
-//            DeleteFile(tempfile);
+            CreateProcess(0,command,0,0,0,0,0,0,&si,&pi);      // launch external viewer
          }
       return;
       }
@@ -516,31 +514,35 @@ void CBrowserView::OnNavHome(){
 }
 
 BOOL CALLBACK SearchProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam){
-  static CString *search;
-  if (uMsg == WM_INITDIALOG){
-    search = (CString *)lParam;
-    SetDlgItemText(hwndDlg, IDC_PROMPT_TEXT, "Enter search query.");
-    SetWindowText(hwndDlg, _T("Search"));
-    ::SetFocus(::GetDlgItem(hwndDlg, IDC_PROMPT_ANSWER));
-    return false;
-  }else if (uMsg == WM_COMMAND){
-    if (LOWORD(wParam) == IDOK){
-      char buffer[256];
-      ::GetDlgItemText(hwndDlg, IDC_PROMPT_ANSWER, buffer, 255);
-      *search = buffer;
-      EndDialog(hwndDlg, true);
-    }else if (LOWORD(wParam) == IDCANCEL){
-      EndDialog(hwndDlg, false);
-    }
-    return true;
-  }
-  return false;
+   static CString *search;
+
+   if (uMsg == WM_INITDIALOG) {
+      search = (CString *)lParam;
+      SetDlgItemText(hwndDlg, IDC_PROMPT_TEXT, "Enter search query.");
+      SetWindowText(hwndDlg, _T("Search"));
+      ::SetFocus(::GetDlgItem(hwndDlg, IDC_PROMPT_ANSWER));
+      return false;
+   }
+
+   else if (uMsg == WM_COMMAND) {
+      if (LOWORD(wParam) == IDOK){
+         char buffer[256];
+         ::GetDlgItemText(hwndDlg, IDC_PROMPT_ANSWER, buffer, 255);
+         *search = buffer;
+         EndDialog(hwndDlg, true);
+      }
+      else if (LOWORD(wParam) == IDCANCEL)
+         EndDialog(hwndDlg, false);
+      return true;
+   }
+
+   return false;
 }
 
 void CBrowserView::OnNavSearch(){
-  CString search;
-  if (DialogBoxParam(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDD_PROMPT_DIALOG), m_hWnd, SearchProc, (LPARAM)&search))
-    OpenURL(theApp.preferences.searchEngine + search);
+   CString search;
+   if (DialogBoxParam(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDD_PROMPT_DIALOG), m_hWnd, SearchProc, (LPARAM)&search))
+      OpenURL(theApp.preferences.searchEngine + search);
 }
 
 void CBrowserView::OnNavReload() 

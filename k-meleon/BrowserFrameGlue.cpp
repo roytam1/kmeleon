@@ -142,10 +142,17 @@ void CBrowserFrame::BrowserFrameGlueObj::SetBrowserFrameTitle(const PRUnichar *a
    title += " (" + cs + ')';
    pThis->SetWindowText(title);
 
-   // then steal focus
+   //  the context menus break if we don't do this ???
    if (pThis->IsChild(GetFocus())){
       pThis->SetFocus();
    }
+
+   // switch the focus to the URLBar, if necessary
+   if (pThis->m_setURLBarFocus) {
+      pThis->m_wndUrlBar.SetFocus();
+      pThis->m_setURLBarFocus = false;
+   }
+  
 }
 
 void CBrowserFrame::BrowserFrameGlueObj::SetBrowserFrameSize(PRInt32 aCX, PRInt32 aCY)
