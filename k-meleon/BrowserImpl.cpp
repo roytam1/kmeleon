@@ -1,25 +1,33 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
+/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: Mozilla-sample-code 1.0
  *
- * The contents of this file are subject to the Netscape Public
- * License Version 1.1 (the "License"); you may not use this file
- * except in compliance with the License. You may obtain a copy of
- * the License at http://www.mozilla.org/NPL/
+ * Copyright (c) 2002 Netscape Communications Corporation and
+ * other contributors
  *
- * Software distributed under the License is distributed on an "AS
- * IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or
- * implied. See the License for the specific language governing
- * rights and limitations under the License.
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this Mozilla sample software and associated documentation files
+ * (the "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to permit
+ * persons to whom the Software is furnished to do so, subject to the
+ * following conditions:
  *
- * The Original Code is mozilla.org code.
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
  *
- * The Initial Developer of the Original Code is Netscape
- * Communications Corporation.  Portions created by Netscape are
- * Copyright (C) 1998 Netscape Communications Corporation. All
- * Rights Reserved.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
  *
- * Contributor(s): 
+ * Contributor(s):
  *   Chak Nanga <chak@netscape.com> 
- */
+ *
+ * ***** END LICENSE BLOCK ***** */
 
 // File Overview....
 // This is the class which implements all the interfaces
@@ -60,17 +68,19 @@
 //			implementation details
 //
 
-#include "stdafx.h"
+#ifdef _WINDOWS
+  #include "stdafx.h"
+#endif
 
 #include "nsIDOMWindow.h"
 #include "BrowserImpl.h"
 
 CBrowserImpl::CBrowserImpl()
 {
-  NS_INIT_ISUPPORTS();
+    NS_INIT_ISUPPORTS();
 
-  m_pBrowserFrameGlue = NULL;
-  mWebBrowser = nsnull;
+    m_pBrowserFrameGlue = NULL;
+    mWebBrowser = nsnull;
 }
 
 
@@ -104,6 +114,7 @@ NS_INTERFACE_MAP_BEGIN(CBrowserImpl)
    NS_INTERFACE_MAP_ENTRY(nsIWebBrowserChrome)
    NS_INTERFACE_MAP_ENTRY(nsIWebBrowserChromeFocus)
    NS_INTERFACE_MAP_ENTRY(nsIEmbeddingSiteWindow)
+   NS_INTERFACE_MAP_ENTRY(nsIEmbeddingSiteWindow2)
    NS_INTERFACE_MAP_ENTRY(nsIWebProgressListener)
    NS_INTERFACE_MAP_ENTRY(nsIContextMenuListener2)
    NS_INTERFACE_MAP_ENTRY(nsITooltipListener)
@@ -188,7 +199,6 @@ NS_IMETHODIMP CBrowserImpl::SetChromeFlags(PRUint32 aChromeMask)
    return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-
 // Will get called in response to JavaScript window.close()
 //
 NS_IMETHODIMP CBrowserImpl::DestroyBrowserWindow()
@@ -226,9 +236,10 @@ NS_IMETHODIMP CBrowserImpl::SizeBrowserTo(PRInt32 aCX, PRInt32 aCY)
 
    GetClientRect(w, &rcClient);
    GetWindowRect(w, &rcFrame);
+
    rcNewFrame.right += rcFrame.Width() - rcClient.Width();
    rcNewFrame.bottom += rcFrame.Height() - rcClient.Height();
-
+   
    m_pBrowserFrameGlue->SetBrowserFrameSize(rcNewFrame.Width(), rcNewFrame.Height());
    
    return NS_OK;
@@ -236,41 +247,41 @@ NS_IMETHODIMP CBrowserImpl::SizeBrowserTo(PRInt32 aCX, PRInt32 aCY)
 
 NS_IMETHODIMP CBrowserImpl::ShowAsModal(void)
 {
-   // mostly stolen from WebBrowserChrome.cpp in WinEmbed
-   HWND h = m_pBrowserFrameGlue->GetBrowserFrameNativeWnd();
-   MSG msg;
-   HANDLE hFakeEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
-   bool aRunCondition = true;
-   while (aRunCondition) {
-      // Process pending messages
-      while (PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE)) {
-         if (msg.hwnd == h) {
-            if (msg.message == WM_CLOSE) {
-               aRunCondition = PR_FALSE;
-               break;
+    // mostly stolen from WebBrowserChrome.cpp in WinEmbed
+    HWND h = m_pBrowserFrameGlue->GetBrowserFrameNativeWnd();
+    MSG msg;
+    HANDLE hFakeEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+    bool aRunCondition = true;
+    while (aRunCondition) {
+        // Process pending messages
+        while (PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE)) {
+            if (msg.hwnd == h) {
+                if (msg.message == WM_CLOSE) {
+                    aRunCondition = PR_FALSE;
+                    break;
+                }
             }
-         }
+            
+            if (!GetMessage(&msg, NULL, 0, 0)) {
+                // WM_QUIT
+                aRunCondition = PR_FALSE;
+                break;
+            }
+            
+            PRBool wasHandled = PR_FALSE;
+            NS_HandleEmbeddingEvent(msg, wasHandled);
+            if (wasHandled)
+                continue;
          
-         if (!GetMessage(&msg, NULL, 0, 0)) {
-            // WM_QUIT
-            aRunCondition = PR_FALSE;
-            break;
-         }
-         
-         PRBool wasHandled = PR_FALSE;
-         NS_HandleEmbeddingEvent(msg, wasHandled);
-         if (wasHandled)
-            continue;
-         
-         TranslateMessage(&msg);
-         DispatchMessage(&msg);
-      }
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
+        }
       
-      // Do idle stuff
-      MsgWaitForMultipleObjects(1, &hFakeEvent, FALSE, 100, QS_ALLEVENTS);
-   }
-   CloseHandle(hFakeEvent);
-   return msg.wParam;
+        // Do idle stuff
+        MsgWaitForMultipleObjects(1, &hFakeEvent, FALSE, 100, QS_ALLEVENTS);
+    }
+    CloseHandle(hFakeEvent);
+    return msg.wParam;
 }
 
 NS_IMETHODIMP CBrowserImpl::IsWindowModal(PRBool *retval)
@@ -313,14 +324,14 @@ CBrowserImpl::GetPersistence(PRBool* aPersistX, PRBool* aPersistY,
 
 NS_IMETHODIMP CBrowserImpl::FocusNextElement()
 {
-   m_pBrowserFrameGlue->FocusNextElement();
-   return NS_OK;
+    m_pBrowserFrameGlue->FocusNextElement();
+    return NS_OK;
 }
 
 NS_IMETHODIMP CBrowserImpl::FocusPrevElement()
 {
-   m_pBrowserFrameGlue->FocusPrevElement();
-   return NS_OK;
+    m_pBrowserFrameGlue->FocusPrevElement();
+    return NS_OK;
 }
 
 //*****************************************************************************
@@ -329,29 +340,29 @@ NS_IMETHODIMP CBrowserImpl::FocusPrevElement()
 
 NS_IMETHODIMP CBrowserImpl::SetDimensions(PRUint32 aFlags, PRInt32 x, PRInt32 y, PRInt32 cx, PRInt32 cy)
 {
-   if(! m_pBrowserFrameGlue)
-      return NS_ERROR_FAILURE;
+    if(! m_pBrowserFrameGlue)
+        return NS_ERROR_FAILURE;
 
-   if (aFlags & nsIEmbeddingSiteWindow::DIM_FLAGS_POSITION){
-      if (aFlags & nsIEmbeddingSiteWindow::DIM_FLAGS_SIZE_OUTER){
-         m_pBrowserFrameGlue->SetBrowserFramePositionAndSize(x, y, cx, cy, PR_TRUE);
-      }
-      else if (aFlags & nsIEmbeddingSiteWindow::DIM_FLAGS_SIZE_INNER){
-         m_pBrowserFrameGlue->SetBrowserPositionAndSize(x, y, cx, cy, PR_TRUE);
-      }
-      else {
-         m_pBrowserFrameGlue->SetBrowserFramePosition(x, y);
-      }
-   }
-   else{
-      if (aFlags & nsIEmbeddingSiteWindow::DIM_FLAGS_SIZE_OUTER){
-         m_pBrowserFrameGlue->SetBrowserFrameSize(cx, cy);
-      }else if (aFlags & nsIEmbeddingSiteWindow::DIM_FLAGS_SIZE_INNER){
-         m_pBrowserFrameGlue->SetBrowserSize(cx, cy);
-      }
-   }
+    if (aFlags & nsIEmbeddingSiteWindow::DIM_FLAGS_POSITION){
+        if (aFlags & nsIEmbeddingSiteWindow::DIM_FLAGS_SIZE_OUTER){
+            m_pBrowserFrameGlue->SetBrowserFramePositionAndSize(x, y, cx, cy, PR_TRUE);
+        }
+        else if (aFlags & nsIEmbeddingSiteWindow::DIM_FLAGS_SIZE_INNER){
+            m_pBrowserFrameGlue->SetBrowserPositionAndSize(x, y, cx, cy, PR_TRUE);
+        }
+        else {
+            m_pBrowserFrameGlue->SetBrowserFramePosition(x, y);
+        }
+    }
+    else{
+        if (aFlags & nsIEmbeddingSiteWindow::DIM_FLAGS_SIZE_OUTER){
+            m_pBrowserFrameGlue->SetBrowserFrameSize(cx, cy);
+        }else if (aFlags & nsIEmbeddingSiteWindow::DIM_FLAGS_SIZE_INNER){
+            m_pBrowserFrameGlue->SetBrowserSize(cx, cy);
+        }
+    }
 
-   return NS_OK;
+    return NS_OK;
 }
 
 NS_IMETHODIMP CBrowserImpl::GetDimensions(PRUint32 aFlags, PRInt32 *x, PRInt32 *y, PRInt32 *cx, PRInt32 *cy)
@@ -359,11 +370,15 @@ NS_IMETHODIMP CBrowserImpl::GetDimensions(PRUint32 aFlags, PRInt32 *x, PRInt32 *
 	if(! m_pBrowserFrameGlue)
 		return NS_ERROR_FAILURE;
     
-    if (aFlags & nsIEmbeddingSiteWindow::DIM_FLAGS_POSITION){
+    if (aFlags & nsIEmbeddingSiteWindow::DIM_FLAGS_POSITION)
+    {
     	m_pBrowserFrameGlue->GetBrowserFramePosition(x, y);
     }
-    if (aFlags & nsIEmbeddingSiteWindow::DIM_FLAGS_SIZE_INNER || 
-        aFlags & nsIEmbeddingSiteWindow::DIM_FLAGS_SIZE_OUTER)
+    if (aFlags & nsIEmbeddingSiteWindow::DIM_FLAGS_SIZE_INNER)
+    {
+    	m_pBrowserFrameGlue->GetBrowserSize(cx, cy);
+    }
+    if (aFlags & nsIEmbeddingSiteWindow::DIM_FLAGS_SIZE_OUTER)
     {
     	m_pBrowserFrameGlue->GetBrowserFrameSize(cx, cy);
     }
@@ -378,8 +393,8 @@ NS_IMETHODIMP CBrowserImpl::GetSiteWindow(void** aSiteWindow)
 
    *aSiteWindow = 0;
    if (m_pBrowserFrameGlue) {
-      HWND w = m_pBrowserFrameGlue->GetBrowserFrameNativeWnd();
-      *aSiteWindow = NS_REINTERPRET_CAST(void *, w);
+       HWND w = m_pBrowserFrameGlue->GetBrowserFrameNativeWnd();
+       *aSiteWindow = NS_REINTERPRET_CAST(void *, w);
    }
    return NS_OK;
 }
@@ -389,7 +404,7 @@ NS_IMETHODIMP CBrowserImpl::SetFocus()
 	if(! m_pBrowserFrameGlue)
 		return NS_ERROR_FAILURE;
 
-   m_pBrowserFrameGlue->SetFocus();
+    m_pBrowserFrameGlue->SetFocus();
 
 	return NS_OK;
 }
@@ -434,27 +449,41 @@ NS_IMETHODIMP CBrowserImpl::SetVisibility(PRBool aVisibility)
     return NS_OK;
 }
 
-NS_IMETHODIMP CBrowserImpl::OnShowTooltip(PRInt32 x, PRInt32 y, const PRUnichar * tipText)
+//*****************************************************************************
+// CBrowserImpl::nsIEmbeddingSiteWindow2
+//*****************************************************************************
+
+NS_IMETHODIMP CBrowserImpl::Blur()
 {
-   USES_CONVERSION;
+    return NS_OK;
+} 
+
+
+//*****************************************************************************
+// CBrowserImpl::nsITooltipListener
+//*****************************************************************************
+
+/* void onShowTooltip (in long aXCoords, in long aYCoords, in wstring aTipText); */
+NS_IMETHODIMP CBrowserImpl::OnShowTooltip(PRInt32 aXCoords, PRInt32 aYCoords, const PRUnichar *aTipText)
+{
+    USES_CONVERSION;
    
-   if(! m_pBrowserFrameGlue)
-      return NS_ERROR_FAILURE;
+    if(! m_pBrowserFrameGlue)
+        return NS_ERROR_FAILURE;
 
+    char *text = W2T(aTipText);
 
-   char *text = W2T(tipText);
+    m_pBrowserFrameGlue->ShowTooltip(aXCoords, aYCoords, text);
 
-   m_pBrowserFrameGlue->ShowTooltip(x, y, text);
-
-   return NS_OK;
+    return NS_OK;
 }
 
 NS_IMETHODIMP CBrowserImpl::OnHideTooltip()
 {
-   if(! m_pBrowserFrameGlue)
-      return NS_ERROR_FAILURE;
+    if(! m_pBrowserFrameGlue)
+        return NS_ERROR_FAILURE;
 
-   m_pBrowserFrameGlue->ShowTooltip(0, 0, nsnull);
+    m_pBrowserFrameGlue->ShowTooltip(0, 0, nsnull);
 
-   return NS_OK;
+    return NS_OK;
 }

@@ -202,4 +202,26 @@
 // - END MOZILLA INCLUDES -
 // Please don't change the line above, I have a perl script that depends on it being here :)
 
+
+
+#if defined(THERECANBENODEBUG) && defined(DEBUG)
+#undef DEBUG
+#endif
+
+#include "nsIInterfaceRequestorUtils.h"
+#include "nsIObserverService.h"
+#ifdef MOZ_OLD_CACHE
+#include "nsINetDataCacheManager.h"
+#endif
+#include "nsIEmbeddingSiteWindow2.h"
+
+// MfcEmbed #defines
+
+// USE_PROFILES - If defined, nsIProfile will be used which allows for
+// multiple profiles. If not defined, a standalone directory service provider
+// will be used to provide "profile" locations to one specified directory.
+// In the case, the mozilla profile DLL is not needed.
+
+#define USE_PROFILES 1
+
 #endif //_STDAFX_H

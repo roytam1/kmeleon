@@ -31,40 +31,40 @@ extern CMfcEmbedApp theApp;
 
 void CBrowserView::OnShowFindDlg() 
 {
-	// When the the user chooses the Find menu item
-	// and if a Find dlg. is already being shown
-	// just set focus to the existing dlg instead of
-	// creating a new one
-	if(m_pFindDlg)
-	{
-		m_pFindDlg->SetFocus();
-		return;
-	}
+    // When the the user chooses the Find menu item
+    // and if a Find dlg. is already being shown
+    // just set focus to the existing dlg instead of
+    // creating a new one
+    if(m_pFindDlg)
+    {
+	m_pFindDlg->SetFocus();
+	return;
+    }
 
-	CString csSearchStr;
-	PRBool bMatchCase = PR_FALSE;
-	PRBool bMatchWholeWord = PR_FALSE;
-	PRBool bWrapAround = PR_FALSE;
-	PRBool bSearchBackwards = PR_FALSE;
+    CString csSearchStr;
+    PRBool bMatchCase = PR_FALSE;
+    PRBool bMatchWholeWord = PR_FALSE;
+    PRBool bWrapAround = PR_FALSE;
+    PRBool bSearchBackwards = PR_FALSE;
 
-	// See if we can get and initialize the dlg box with
-	// the values/settings the user specified in the previous search
-	nsCOMPtr<nsIWebBrowserFind> finder(do_GetInterface(mWebBrowser));
-	if(finder)
-	{
-		nsXPIDLString stringBuf;
-		finder->GetSearchString(getter_Copies(stringBuf));
-		csSearchStr = stringBuf.get();
+    // See if we can get and initialize the dlg box with
+    // the values/settings the user specified in the previous search
+    nsCOMPtr<nsIWebBrowserFind> finder(do_GetInterface(mWebBrowser));
+    if(finder)
+    {
+	nsXPIDLString stringBuf;
+	finder->GetSearchString(getter_Copies(stringBuf));
+	csSearchStr = stringBuf.get();
 
-		finder->GetMatchCase(&bMatchCase);
-		finder->GetEntireWord(&bMatchWholeWord);
-		finder->GetWrapFind(&bWrapAround);
-		finder->GetFindBackwards(&bSearchBackwards);		
-	}
+	finder->GetMatchCase(&bMatchCase);
+	finder->GetEntireWord(&bMatchWholeWord);
+	finder->GetWrapFind(&bWrapAround);
+	finder->GetFindBackwards(&bSearchBackwards);		
+    }
 
-	m_pFindDlg = new CFindDialog(csSearchStr, bMatchCase, bMatchWholeWord,
-							bWrapAround, bSearchBackwards, this);
-	m_pFindDlg->Create(TRUE, NULL, NULL, 0, this);
+    m_pFindDlg = new CFindDialog(csSearchStr, bMatchCase, bMatchWholeWord,
+				 bWrapAround, bSearchBackwards, this);
+    m_pFindDlg->Create(TRUE, NULL, NULL, 0, this);
 }
 
 // This will be called whenever the user pushes the Find
@@ -80,90 +80,43 @@ void CBrowserView::OnShowFindDlg()
 //
 LRESULT CBrowserView::OnFindMsg(WPARAM wParam, LPARAM lParam)
 {
-	nsCOMPtr<nsIWebBrowserFind> finder(do_GetInterface(mWebBrowser));
-	if(!finder)
-		return NULL;
+    nsCOMPtr<nsIWebBrowserFind> finder(do_GetInterface(mWebBrowser));
+    if(!finder)
+	return NULL;
 
-	// Get the pointer to the current Find dialog box
-	CFindDialog* dlg = (CFindDialog *) CFindReplaceDialog::GetNotifier(lParam);
-	if(!dlg) 
-		return NULL;
+    // Get the pointer to the current Find dialog box
+    CFindDialog* dlg = (CFindDialog *) CFindReplaceDialog::GetNotifier(lParam);
+    if(!dlg) 
+	return NULL;
 
-	// Has the user decided to terminate the dialog box?
-	if(dlg->IsTerminating())
-		return NULL;
+    // Has the user decided to terminate the dialog box?
+    if(dlg->IsTerminating())
+	return NULL;
 
-	if(dlg->FindNext())
-	{
-		nsString searchString;
-		searchString.AssignWithConversion(dlg->GetFindString().GetBuffer(0));
-		finder->SetSearchString(searchString.get());
+    if(dlg->FindNext())
+    {
+        USES_CONVERSION;
+        finder->SetSearchString(T2W(dlg->GetFindString().GetBuffer(0)));
+        finder->SetMatchCase(dlg->MatchCase() ? PR_TRUE : PR_FALSE);
+        finder->SetEntireWord(dlg->MatchWholeWord() ? PR_TRUE : PR_FALSE);
+        finder->SetWrapFind(dlg->WrapAround() ? PR_TRUE : PR_FALSE);
+        finder->SetFindBackwards(dlg->SearchBackwards() ? PR_TRUE : PR_FALSE);
+ 
+	PRBool didFind;
+	nsresult rv = finder->FindNext(&didFind);
 	
-		finder->SetMatchCase(dlg->MatchCase() ? PR_TRUE : PR_FALSE);
-		finder->SetEntireWord(dlg->MatchWholeWord() ? PR_TRUE : PR_FALSE);
-		finder->SetWrapFind(dlg->WrapAround() ? PR_TRUE : PR_FALSE);
-		finder->SetFindBackwards(dlg->SearchBackwards() ? PR_TRUE : PR_FALSE);
-
-		PRBool didFind;
-		nsresult rv = finder->FindNext(&didFind);
-		
         if(!didFind)
-        {
+	{
             MessageBox("Not found.");
             dlg->SetFocus();
         }
 
         return (NS_SUCCEEDED(rv) && didFind);
-	}
+    }
 
     return 0;
 }
 
-/*
-void CBrowserView::OnShowFindDlg() {
-
-   // When the the user chooses the Find menu item
-	// and if a Find dlg. is already being shown
-	// just set focus to the existing dlg instead of
-	// creating a new one
-	if(m_pFindDlg)	{
-		m_pFindDlg->SetFocus();
-		return;
-	}
-
-	CString csSearchStr;
-	PRBool bMatchCase = PR_FALSE;
-	PRBool bMatchWholeWord = PR_FALSE;
-	PRBool bWrapAround = PR_TRUE;
-	PRBool bSearchBackwards = PR_FALSE;
-
-	// See if we can get and initialize the dlg box with
-	// the values/settings the user specified in the previous search
-	nsCOMPtr<nsIWebBrowserFind> finder(do_GetInterface(mWebBrowser));
-	if(finder) {
-		nsXPIDLString stringBuf;
-		finder->GetSearchString(getter_Copies(stringBuf));
-		csSearchStr = stringBuf.get();
-
-      if (csSearchStr != "") {
-		   finder->GetMatchCase(&bMatchCase);
-		   finder->GetEntireWord(&bMatchWholeWord);
-		   finder->GetWrapFind(&bWrapAround);
-		   finder->GetFindBackwards(&bSearchBackwards);		
-      }
-      else {
-         csSearchStr = theApp.preferences.findSearchStr;
-	      bMatchCase = theApp.preferences.bFindMatchCase;
-	      bMatchWholeWord = theApp.preferences.bFindMatchWholeWord;
-	      bWrapAround = theApp.preferences.bFindWrapAround;
-	      bSearchBackwards = theApp.preferences.bFindSearchBackwards;
-      }
-	}
-
-	m_pFindDlg = new CFindDialog(csSearchStr, bMatchCase, bMatchWholeWord, bWrapAround, bSearchBackwards, this);
-	m_pFindDlg->Create(TRUE, NULL, NULL, 0, this);
-}
-*/
 void CBrowserView::OnFindNext() {
 	nsCOMPtr<nsIWebBrowserFind> finder(do_GetInterface(mWebBrowser));
 
@@ -204,61 +157,3 @@ void CBrowserView::OnFindPrev() {
    finder->GetFindBackwards(&rv);
    finder->SetFindBackwards(rv^2);  // reset the initial find direction
 }
-/*
-// This will be called whenever the user pushes the Find
-// button in the Find dialog box
-// This method gets bound to the WM_FINDMSG windows msg via the
-//
-// ON_REGISTERED_MESSAGE(WM_FINDMSG, OnFindMsg)
-//
-//  message map entry.
-//
-// WM_FINDMSG (which is registered towards the beginning of this file)
-// is the message via which the FindDialog communicates with this view
-//
-LRESULT CBrowserView::OnFindMsg(WPARAM wParam, LPARAM lParam) {
-	nsCOMPtr<nsIWebBrowserFind> finder(do_GetInterface(mWebBrowser));
-
-	if(!finder) return NULL;
-
-	// Get the pointer to the current Find dialog box
-	CFindDialog* dlg = (CFindDialog *) CFindReplaceDialog::GetNotifier(lParam);
-	if(!dlg) return NULL;
-
-	// Has the user decided to terminate the dialog box?
-	if(dlg->IsTerminating()) return NULL;
-
-	if(dlg->FindNext()) {
-
-      // save the find settings
-      theApp.preferences.findSearchStr = dlg->GetFindString().GetBuffer(0);
-	   theApp.preferences.bFindMatchCase = dlg->MatchCase();
-	   theApp.preferences.bFindMatchWholeWord = dlg->MatchWholeWord();
-	   theApp.preferences.bFindWrapAround = dlg->WrapAround();
-	   theApp.preferences.bFindSearchBackwards = dlg->SearchBackwards();
-
-
-      // create the find query
-      nsString searchString;
-		searchString.AssignWithConversion(theApp.preferences.findSearchStr.GetBuffer(0));
-		finder->SetSearchString(searchString.get());
-      
-      finder->SetMatchCase((theApp.preferences.bFindMatchCase) ? PR_TRUE : PR_FALSE);
-		finder->SetEntireWord((theApp.preferences.bFindMatchWholeWord) ? PR_TRUE : PR_FALSE);
-		finder->SetWrapFind((theApp.preferences.bFindWrapAround) ? PR_TRUE : PR_FALSE);
-		finder->SetFindBackwards((theApp.preferences.bFindSearchBackwards) ? PR_TRUE : PR_FALSE);
-
-		PRBool didFind;
-		nsresult rv = finder->FindNext(&didFind);
-      
-
-      
-      if(!didFind) {
-         MessageBox("Not found.");
-         dlg->SetFocus();
-      }                                                                       
-      return (NS_SUCCEEDED(rv) && didFind);
-	}
-	return 0;
-}
-*/

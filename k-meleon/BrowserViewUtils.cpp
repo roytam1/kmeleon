@@ -38,75 +38,75 @@ extern CMfcEmbedApp theApp;
 
 BOOL CBrowserView::IsViewSourceUrl(CString& strUrl)
 {
-   return (strUrl.Find("view-source:", 0) != -1) ? TRUE : FALSE;
+    return (strUrl.Find(_T("view-source:"), 0) != -1) ? TRUE : FALSE;
 }
 
 BOOL CBrowserView::OpenViewSourceWindow(const char* pUrl)
 {
-   // Use external viewer
-   if (theApp.preferences.bSourceUseExternalCommand) {
-      if (theApp.preferences.sourceCommand) {
+    // Use external viewer
+    if (theApp.preferences.bSourceUseExternalCommand) {
+	if (theApp.preferences.sourceCommand) {
 
-         CString tempfile;
-         tempfile = GetTempFile();
+	    CString tempfile;
+	    tempfile = GetTempFile();
 
-         char *url = strdup(pUrl);
+	    char *url = strdup(pUrl);
          
-         if (url && strnicmp(url, "view-source:file:///", 20) == 0) {
-            int i;
-            for (i=0; i<strlen(url); i++)
-               if (url[i]=='/')
-                  url[i]='\\';
-            tempfile = url+strlen("view-source:file:///");
-         }
-
-         nsCOMPtr<nsIWebBrowserPersist> persist(do_QueryInterface(mWebBrowser));
-         if(persist)
-         {
-            nsCOMPtr<nsILocalFile> file;
-            NS_NewNativeLocalFile(nsDependentCString(T2A(tempfile.GetBuffer(0))), TRUE, getter_AddRefs(file));
-
-            CProgressDialog *progress = new CProgressDialog(FALSE);      
-            progress->InitViewer(persist, theApp.preferences.sourceCommand.GetBuffer(0), tempfile.GetBuffer(0));
-
-            nsAutoString sURI;
-            sURI.AssignWithConversion(pUrl+strlen("View-Source:"));
+	    if (url && strnicmp(url, "view-source:file:///", 20) == 0) {
+		int i;
+		for (i=0; i<strlen(url); i++)
+		    if (url[i]=='/')
+			url[i]='\\';
+		tempfile = url+strlen("view-source:file:///");
+	    }
+	    
+	    nsCOMPtr<nsIWebBrowserPersist> persist(do_QueryInterface(mWebBrowser));
+	    if(persist)
+	    {
+		nsCOMPtr<nsILocalFile> file;
+		NS_NewNativeLocalFile(nsDependentCString(T2A(tempfile.GetBuffer(0))), TRUE, getter_AddRefs(file));
+		
+		CProgressDialog *progress = new CProgressDialog(FALSE);      
+		progress->InitViewer(persist, theApp.preferences.sourceCommand.GetBuffer(0), tempfile.GetBuffer(0));
+		
+		nsAutoString sURI;
+		sURI.AssignWithConversion(pUrl+strlen("View-Source:"));
 
          	nsCOMPtr<nsIURI> srcURI;
-	         nsresult rv = NS_NewURI(getter_AddRefs(srcURI), sURI);
-	         if (NS_FAILED(rv)) {
-		   if (url)
-		     delete url;
-		         return FALSE;
-		 }
+		nsresult rv = NS_NewURI(getter_AddRefs(srcURI), sURI);
+		if (NS_FAILED(rv)) {
+		    if (url)
+			delete url;
+		    return FALSE;
+		}
  
-            persist->SaveURI(srcURI, nsnull, nsnull, nsnull, nsnull, file);
-         }
-	 if (url)
-	   delete url;
-         return TRUE;
-      }
-   }
+		persist->SaveURI(srcURI, nsnull, nsnull, nsnull, nsnull, file);
+	    }
+	    if (url)
+		delete url;
+	    return TRUE;
+	}
+    }
    
-   // use the internal viewer
+    // use the internal viewer
 
-	// Create a new browser frame in which we'll show the document source
-	// Note that we're getting rid of the toolbars etc. by specifying
-	// the appropriate chromeFlags
-	PRUint32 chromeFlags =  nsIWebBrowserChrome::CHROME_WINDOW_BORDERS |
-							nsIWebBrowserChrome::CHROME_TITLEBAR |
-							nsIWebBrowserChrome::CHROME_WINDOW_RESIZE;
-	CBrowserFrame* pFrm = CreateNewBrowserFrame(); //chromeFlags);
-	if(!pFrm)
-		return FALSE;
+    // Create a new browser frame in which we'll show the document source
+    // Note that we're getting rid of the toolbars etc. by specifying
+    // the appropriate chromeFlags
+    PRUint32 chromeFlags =  nsIWebBrowserChrome::CHROME_WINDOW_BORDERS |
+	                    nsIWebBrowserChrome::CHROME_TITLEBAR |
+	                    nsIWebBrowserChrome::CHROME_WINDOW_RESIZE;
+    CBrowserFrame* pFrm = CreateNewBrowserFrame(); //chromeFlags);
+    if(!pFrm)
+	return FALSE;
 
-	// Finally, load this URI into the newly created frame
-	pFrm->m_wndBrowserView.OpenURL(pUrl);
+    // Finally, load this URI into the newly created frame
+    pFrm->m_wndBrowserView.OpenURL(pUrl);
+    
+    pFrm->BringWindowToTop();
 
-   pFrm->BringWindowToTop();
-
-   return TRUE;
-}                                                                               
+    return TRUE;
+}
 
 void CBrowserView::RefreshToolBarItem(WPARAM ItemID, LPARAM unused)
 {
@@ -139,7 +139,6 @@ BOOL MultiSave(nsIURI* aURI, nsILocalFile* file) {
    persist->SaveURI(aURI, nsnull, nsnull, nsnull, nsnull, file);
    return TRUE;
 }
-
 
 NS_IMETHODIMP CBrowserView::URISaveAs(nsIURI* aURI, bool bDocument)
 {
@@ -309,7 +308,8 @@ void CBrowserView::OpenURL(const PRUnichar* pUrl)
 {
    CString str = pUrl;
    mpBrowserFrame->m_wndUrlBar.SetCurrentURL((char*)str.GetBuffer(0));
-   mWebNav->LoadURI(pUrl,                              // URI string
+   if(mWebNav)
+       mWebNav->LoadURI(pUrl,                          // URI string
                     nsIWebNavigation::LOAD_FLAGS_NONE, // Load flags
                     nsnull,                            // Refering URI
                     nsnull,                            // Post data
@@ -317,39 +317,39 @@ void CBrowserView::OpenURL(const PRUnichar* pUrl)
 }
 
 CBrowserFrame* CBrowserView::CreateNewBrowserFrame(PRUint32 chromeMask, 
-									PRInt32 x, PRInt32 y, 
-									PRInt32 cx, PRInt32 cy,
-									PRBool bShowWindow)
+				    PRInt32 x, PRInt32 y, 
+				    PRInt32 cx, PRInt32 cy,
+				    PRBool bShowWindow)
 {  
-   CMfcEmbedApp *pApp = (CMfcEmbedApp *)AfxGetApp();
-	if(!pApp)
-		return NULL;
+    CMfcEmbedApp *pApp = (CMfcEmbedApp *)AfxGetApp();
+    if(!pApp)
+	return NULL;
 
-  return pApp->CreateNewBrowserFrame(chromeMask, x, y, cx, cy, bShowWindow);
+    return pApp->CreateNewBrowserFrame(chromeMask, x, y, cx, cy, bShowWindow);
 }
 
 void CBrowserView::OpenURLInNewWindow(const char* pUrl, BOOL bBackground)
 {
-	OpenURLInNewWindow(NS_ConvertASCIItoUCS2(pUrl).get(), bBackground);
+    OpenURLInNewWindow(NS_ConvertASCIItoUCS2(pUrl).get(), bBackground);
 }
 
 void CBrowserView::OpenURLInNewWindow(const PRUnichar* pUrl, BOOL bBackground)
 {
-	if(!pUrl)
-		return; 
+    if(!pUrl)
+        return; 
    
-   // create hidden window
-   CBrowserFrame* pFrm = CreateNewBrowserFrame(nsIWebBrowserChrome::CHROME_ALL, -1, -1, -1, -1, PR_FALSE);
-	if(!pFrm)
-		return;
+    // create hidden window
+    CBrowserFrame* pFrm = CreateNewBrowserFrame(nsIWebBrowserChrome::CHROME_ALL, -1, -1, -1, -1, PR_FALSE);
+    if(!pFrm)
+	return;
 
-   // Load the URL into it...
+    // Load the URL into it...
 
-	// Note that OpenURL() is overloaded - one takes a "char *"
-	// and the other a "PRUniChar *". We're using the "PRUnichar *"
-	// version here 
+    // Note that OpenURL() is overloaded - one takes a "char *"
+    // and the other a "PRUniChar *". We're using the "PRUnichar *"
+    // version here 
 
-   pFrm->m_wndBrowserView.OpenURL(pUrl);
+    pFrm->m_wndBrowserView.OpenURL(pUrl);
 
 
    /* Show the window minimized, instead of on the bottom, because mozilla freaks out if we put it on the bottom */
@@ -358,18 +358,17 @@ void CBrowserView::OpenURLInNewWindow(const PRUnichar* pUrl, BOOL bBackground)
    /* Reverting to open minimized again hoping the statusbar reappears */
    /* If the window is not maximized, and is opened on the bottom, the statusbar does not get drawn */
 
-   if (bBackground) {
-      if (theApp.preferences.bMaximized)
-         pFrm->SetWindowPos(&wndBottom, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | SWP_SHOWWINDOW);
-      else  
-         pFrm->ShowWindow(SW_MINIMIZE);
-   }
+    if (bBackground) {
+	if (theApp.preferences.bMaximized)
+	    pFrm->SetWindowPos(&wndBottom, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | SWP_SHOWWINDOW);
+	else  
+	    pFrm->ShowWindow(SW_MINIMIZE);
+    }
    
-   // show the window
-   else
-      pFrm->ShowWindow(SW_SHOW);
+    // show the window
+    else
+	pFrm->ShowWindow(SW_SHOW);
 }
-
 
 void CBrowserView::LoadHomePage()
 {
@@ -378,7 +377,6 @@ void CBrowserView::LoadHomePage()
    else
       OpenURL("about:blank");
 }
-
 
 // Called from the busy state related methods in the 
 // BrowserFrameGlue object
@@ -393,50 +391,62 @@ void CBrowserView::LoadHomePage()
 //
 void CBrowserView::UpdateBusyState(PRBool aBusy)
 {
-	mbDocumentLoading = aBusy;
+    if (mbDocumentLoading && !aBusy && m_InPrintPreview) 
+    {
+	nsCOMPtr<nsIWebBrowserPrint> print(do_GetInterface(mWebBrowser));
+	if(print) {
+	    PRBool isDoingPP;
+	    print->GetDoingPrintPreview(&isDoingPP);
+	    if (!isDoingPP) 
+	    {
+		m_InPrintPreview = FALSE;
+		CMenu* menu = mpBrowserFrame->GetMenu();
+		if (menu) {
+		    menu->CheckMenuItem( ID_FILE_PRINTPREVIEW, MF_UNCHECKED );
+		}
+	    }
+	}
+    }
 
+    mbDocumentLoading = aBusy;
 
-   if (m_InPrintPreview) {
-      nsCOMPtr<nsIWebBrowserPrint> print(do_GetInterface(mWebBrowser));
-      if(print) {
-         PRBool isDoingPP;
-         print->GetDoingPrintPreview(&isDoingPP);
-         if (!isDoingPP) {
-            m_InPrintPreview = FALSE;
-            CMenu* menu = mpBrowserFrame->GetMenu();
-            if (menu) {
-               menu->CheckMenuItem( ID_FILE_PRINTPREVIEW, MF_UNCHECKED );
-            }
-         }
-      }
-   }
-   
-   
-
-   if (mpBrowserFrame->m_wndAnimate) {
-      if (mbDocumentLoading){
-		   mpBrowserFrame->m_wndAnimate.Play(0, -1, -1);
-	   }
-	   else {
-		   mpBrowserFrame->m_wndAnimate.Stop();
-		   mpBrowserFrame->m_wndAnimate.Seek(0);
-      }
-   }
+    if (mpBrowserFrame->m_wndAnimate) {
+	if (mbDocumentLoading){
+	    mpBrowserFrame->m_wndAnimate.Play(0, -1, -1);
+	}
+	else {
+	    mpBrowserFrame->m_wndAnimate.Stop();
+	    mpBrowserFrame->m_wndAnimate.Seek(0);
+	}
+    }
 }
+
 
 void CBrowserView::SetCtxMenuLinkUrl(nsAutoString& strLinkUrl)
 {
-	mCtxMenuLinkUrl = strLinkUrl;
+    mCtxMenuLinkUrl = strLinkUrl;
 }
 
 void CBrowserView::SetCtxMenuImageSrc(nsAutoString& strImgSrc)
 {
-	mCtxMenuImgSrc = strImgSrc;
+    mCtxMenuImgSrc = strImgSrc;
 }
 
 void CBrowserView::SetCurrentFrameURL(nsAutoString& strCurrentFrameURL)
 {
-	mCtxMenuCurrentFrameURL = strCurrentFrameURL;
+    mCtxMenuCurrentFrameURL = strCurrentFrameURL;
+}
+
+void CBrowserView::ShowSecurityInfo()                                           
+{
+    HWND hParent = mpBrowserFrame->m_hWnd;
+
+    if(m_SecurityState == SECURITY_STATE_INSECURE) { 
+	::MessageBox(m_hWnd, "This page has not been transferred over a secure connection.", "Security Information", MB_OK);
+    } else {
+	// TEMPORARY.  this should be replaced with something more permanent
+	::MessageBox(m_hWnd, "This page has been transferred over a secure connection.", "Security Information", MB_OK);
+    }
 }
 
 
@@ -493,18 +503,6 @@ int CBrowserView::GetCurrentURI(char *sURI)
    if (sURI)
       strcpy(sURI, uriString.get());
    return len;
-}
-
-void CBrowserView::ShowSecurityInfo()                                           
-{
-   HWND hParent = mpBrowserFrame->m_hWnd;
-
-   if(m_SecurityState == SECURITY_STATE_INSECURE) { 
-      ::MessageBox(m_hWnd, "This page has not been transferred over a secure connection.", "Security Information", MB_OK);
-   } else {
-      // TEMPORARY.  this should be replaced with something more permanent
-      ::MessageBox(m_hWnd, "This page has been transferred over a secure connection.", "Security Information", MB_OK);
-   }
 }
 
 /*
