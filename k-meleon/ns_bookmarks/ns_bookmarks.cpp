@@ -15,10 +15,12 @@
 *  along with this program; if not, write to the Free Software
 *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
-// ns_bookmarks.cpp : Defines the entry point for the DLL application.
+// ns_bookmarks.cpp : Plugin that supports netscape-style boomarks
 //
 
 #include "stdafx.h"
+//#include "resource.h"
+
 #define KMELEON_PLUGIN_EXPORTS
 #include "../kmeleon_plugin.h"
 
@@ -36,43 +38,45 @@ BOOL APIENTRY DllMain( HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
   return TRUE;
 }
 
-HMENU mainMenu = NULL;
-
 int Init();
 void Config(HWND parent);
 void Quit();
 HGLOBAL GetMenu();
+void DoMenu(HMENU menu, char *param);
 void OnCommand(UINT command);
 
 kmeleonPlugin kPlugin = {
   KMEL_PLUGIN_VER,
-  "Netscape 4.x Compatible Bookmarks",
+  "Netscape Bookmark Plugin",
   Init,
   Config,
   Quit,
-  GetMenu,
+  DoMenu,
   OnCommand
 };
 
+HMENU mainMenu = NULL;
+
 int Init(){
-  // we have to do it this crazy assed way because you apparently can't pass HMENUs between processes
-  mainMenu = (HMENU)LoadResource(kPlugin.hDllInstance, FindResource(kPlugin.hDllInstance, MAKEINTRESOURCE(201), RT_MENU));
+  mainMenu = NULL;
   return true;
 }
 
 void Config(HWND parent){
-  MessageBox(parent, "This plugin brought to you by the letter C", "Netscape Bookmark plugin", 0);
+  MessageBox(parent, "This plugin brought to you by the letter N", "Netscape Bookmark plugin", 0);
 }
 
 void Quit(){
-  DestroyMenu(mainMenu);
 }
 
-HGLOBAL GetMenu(){
-  return LockResource(mainMenu);
+void DoMenu(HMENU menu, char *param){
+
+  AppendMenu(menu, MF_STRING, 2000, param);
+
 }
 
 void OnCommand(UINT command){
+
 }
 
 // so it doesn't munge the function name
