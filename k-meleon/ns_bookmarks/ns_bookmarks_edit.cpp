@@ -957,6 +957,7 @@ INT_PTR CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			     
 			     strtok(bmFileBuffer, "\n");
 			     ParseBookmarks(bmFileBuffer, gBookmarkRoot);
+                             Rebuild();
                            }
 
                            delete [] bmFileBuffer;
