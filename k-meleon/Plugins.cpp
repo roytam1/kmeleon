@@ -246,6 +246,29 @@ void RegisterBand(HWND hWnd, char *name, int visibleOnMenu)
    theApp.m_pMostRecentBrowserFrame->m_wndReBar.RegisterBand(hWnd, name, visibleOnMenu);
 }
 
+int GetAccel(char *plugin, char *params) {
+   kmeleonPlugin * kPlugin = theApp.plugins.Load(plugin);
+   
+   if (kPlugin && kPlugin->loaded) {
+      if (kPlugin->pf->DoAccel) {
+         return kPlugin->pf->DoAccel(params);
+      }
+      else
+         return 0;
+   }
+   else
+      return -1;
+}
+
+// This lets a plugin create a toolbar within the current browser frame
+// the advantage of having K-Meleon create the toolbar is that it will
+// be handled through MFC, which will handle the button states through
+// UPDATE_UI calls
+HWND CreateToolbar() {
+   return theApp.m_pMostRecentBrowserFrame->CreateToolbar();
+}
+
+
 kmeleonFunctions kmelFuncs = {
    GetCommandIDs,
    NavigateTo,
@@ -254,7 +277,9 @@ kmeleonFunctions kmelFuncs = {
    SetPreference,
    GetMozillaSessionHistory,
    GotoHistoryIndex,
-   RegisterBand
+   RegisterBand,
+   GetAccel,
+   CreateToolbar
 };
 
 BOOL CPlugins::TestLoad(const char *file, const char *description)
@@ -457,4 +482,3 @@ int CPlugins::GetConfigFiles(configFileType *configFiles, int maxFiles)
    }
    return numFiles;
 }
-
