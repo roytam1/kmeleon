@@ -35,6 +35,19 @@
 
 #define VC_EXTRALEAN		// Exclude rarely-used stuff from Windows headers
 
+//
+// These headers are very evil, as they will define DEBUG if _DEBUG is
+//  defined, which is lame and not what we want for things like
+//  MOZ_TRACE_MALLOC and other tools.
+// If we do not detect this, various MOZ/NS debug symbols are undefined
+//  and we can not build.
+// /MDd defines _DEBUG automagically to have the right debug C LIB
+//  functions get called (so we can get symbols and hook into malloc).
+//
+#if !defined(DEBUG)
+#define THERECANBENODEBUG
+#endif
+
 #include <afxwin.h>         // MFC core and standard components
 #include <afxext.h>         // MFC extensions
 #include <afxdtctl.h>		// MFC support for Internet Explorer 4 Common Controls
@@ -50,15 +63,15 @@
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.
 //}}AFX_INSERT_LOCATION
 
+#if defined(THERECANBENODEBUG) && defined(DEBUG)
+#undef DEBUG
+#endif
+
 
 // Please don't change the line below, I have a perl script that depends on it being here :)
 // - BEGIN MOZILLA INCLUDES -
 // Additional include directories: 
-// ../mozilla/mozilla/dist/include/nspr, ../mozilla/mozilla/dist/include/docshell, ../mozilla/mozilla/dist/include/dom, ../mozilla/mozilla/dist/include/embed_base, ../mozilla/mozilla/dist/include/exthandler, ../mozilla/mozilla/dist/include/find, ../mozilla/mozilla/dist/include/gfx, ../mozilla/mozilla/dist/include/helperAppDlg, ../mozilla/mozilla/dist/include/intl, ../mozilla/mozilla/dist/include/layout, ../mozilla/mozilla/dist/include/necko, ../mozilla/mozilla/dist/include/pref, ../mozilla/mozilla/dist/include/profile, ../mozilla/mozilla/dist/include/shistory, ../mozilla/mozilla/dist/include/string, ../mozilla/mozilla/dist/include/uriloader, ../mozilla/mozilla/dist/include/wallet, ../mozilla/mozilla/dist/include/webBrowser_core, ../mozilla/mozilla/dist/include/webshell, ../mozilla/mozilla/dist/include/widget, ../mozilla/mozilla/dist/include/windowwatcher, ../mozilla/mozilla/dist/include/xpcom, 
-
-// cache
-#include "nsICache.h"
-#include "nsICacheService.h"
+// ../mozilla/mozilla/dist/include/docshell, ../mozilla/mozilla/dist/include/dom, ../mozilla/mozilla/dist/include/embed_base, ../mozilla/mozilla/dist/include/exthandler, ../mozilla/mozilla/dist/include/find, ../mozilla/mozilla/dist/include/gfx, ../mozilla/mozilla/dist/include/helperAppDlg, ../mozilla/mozilla/dist/include/intl, ../mozilla/mozilla/dist/include/necko, ../mozilla/mozilla/dist/include/nkcache, ../mozilla/mozilla/dist/include/pref, ../mozilla/mozilla/dist/include/profile, ../mozilla/mozilla/dist/include/shistory, ../mozilla/mozilla/dist/include/string, ../mozilla/mozilla/dist/include/uriloader, ../mozilla/mozilla/dist/include/wallet, ../mozilla/mozilla/dist/include/webBrowser_core, ../mozilla/mozilla/dist/include/webbrowserpersist, ../mozilla/mozilla/dist/include/webshell, ../mozilla/mozilla/dist/include/widget, ../mozilla/mozilla/dist/include/windowwatcher, ../mozilla/mozilla/dist/include/xpcom, ../mozilla/mozilla/dist/include/nspr, 
 
 // docshell: 
 #include "nsIDocShell.h"
@@ -94,9 +107,6 @@
 // intl: 
 #include "nsIStringBundle.h"
 
-// layout: 
-#include "nsIPrintListener.h"
-
 // necko: 
 #include "nsIHTTPChannel.h"
 #include "nsIChannel.h"
@@ -104,6 +114,10 @@
 #include "nsIPrompt.h"
 #include "nsIURI.h"
 #include "nsIRequestObserver.h"
+
+// nkcache: 
+#include "nsICacheService.h"
+#include "nsICache.h"
 
 // pref: 
 #include "nsIPref.h"
@@ -131,7 +145,6 @@
 
 // webBrowser_core: 
 #include "nsITooltipTextProvider.h"
-#include "nsIWebBrowserPersist.h"
 #include "nsIWebBrowser.h"
 #include "nsIContextMenuListener.h"
 #include "nsIWebBrowserPrint.h"
@@ -143,6 +156,9 @@
 #include "nsCWebBrowser.h"
 #include "nsIWebBrowserChromeFocus.h"
 
+// webbrowserpersist: 
+#include "nsIWebBrowserPersist.h"
+
 // webshell: 
 #include "nsIClipboardCommands.h"
 
@@ -153,19 +169,25 @@
 #include "nsIWidget.h"
 
 // windowwatcher: 
+#include "nsIPromptService.h"
 #include "nsIWindowWatcher.h"
 
 // xpcom: 
-#include "nsIGenericFactory.h"
 #include "nsWeakReference.h"
+#include "nsIGenericFactory.h"
 #include "nsIInterfaceRequestor.h"
 #include "nsVoidArray.h"
 #include "nsIServiceManager.h"
 #include "nsError.h"
+#include "nsObserverService.h"
 #include "nsAppDirectoryServiceDefs.h"
 #include "nsIObserver.h"
-#include "nsIObserverService.h"
 #include "nsCOMPtr.h"
+
+// nspr: 
+
+// Not Found in ../mozilla/mozilla/dist/include: 
+//#include "nsIPrintListener.h"
 
 // - END MOZILLA INCLUDES -
 // Please don't change the line above, I have a perl script that depends on it being here :)
