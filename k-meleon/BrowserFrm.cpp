@@ -113,8 +113,6 @@ CBrowserFrame::CBrowserFrame(PRUint32 chromeMask)
 
 CBrowserFrame::~CBrowserFrame()
 {
-   if (theApp.m_pMostRecentBrowserFrame == this)
-      theApp.m_pMostRecentBrowserFrame = NULL;
 }
 
 void CBrowserFrame::OnClose()
@@ -128,9 +126,23 @@ void CBrowserFrame::OnClose()
 
    SaveBandSizes();
 
-   CMfcEmbedApp *pApp = (CMfcEmbedApp *)AfxGetApp();
-   pApp->RemoveFrameFromList(this);
+   if (theApp.m_pMostRecentBrowserFrame == this) {
+      CBrowserFrame* pFrame;
+      POSITION pos = theApp.m_FrameWndLst.Find(this);
+      pFrame = (CBrowserFrame *) theApp.m_FrameWndLst.GetPrev(pos);
+      if (pos)            // set MostRecentBrowserFrame to the  previous frame
+         pFrame = (CBrowserFrame *) theApp.m_FrameWndLst.GetPrev(pos);
+      else                // set MostRecentBrowserFrame to the  last frame
+         pFrame = (CBrowserFrame *) theApp.m_FrameWndLst.GetTail();
+      if (pFrame != this)
+         theApp.m_pMostRecentBrowserFrame = pFrame;
+      else // only one frame exists, make the pointer null
+         theApp.m_pMostRecentBrowserFrame = NULL;
+   }
 
+//   CMfcEmbedApp *pApp = (CMfcEmbedApp *)AfxGetApp();
+   theApp.RemoveFrameFromList(this);
+   
    DestroyWindow();
 }
 
