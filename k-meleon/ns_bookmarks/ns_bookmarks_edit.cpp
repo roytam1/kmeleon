@@ -107,8 +107,20 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
             SetFocus(GetDlgItem(hEditWnd, IDC_TITLE));
             SendMessage(GetDlgItem(hEditWnd, IDC_TITLE), EM_SETSEL, 0, -1);  // select all
             break;
+         case VK_PRIOR:
+            if (bDragging) {
+               fEatKeystroke = true;
+               SendMessage(GetDlgItem(hEditWnd, IDC_TREE_BOOKMARK), WM_VSCROLL, SB_PAGEUP, 0);
+               SendMessage(hEditWnd, WM_MOUSEMOVE, 0, 0);  // update the insertion mark
+            }
+            break;
          case VK_UP:
-            if (GetKeyState(VK_SHIFT) & 0x80) {
+            if (bDragging) {
+               fEatKeystroke = true;
+               SendMessage(GetDlgItem(hEditWnd, IDC_TREE_BOOKMARK), WM_VSCROLL, SB_LINEUP, 0);
+               SendMessage(hEditWnd, WM_MOUSEMOVE, 0, 0);  // update the insertion mark
+            }
+            else if (GetKeyState(VK_SHIFT) & 0x80) {
                fEatKeystroke = true;
                MoveItem(hTree, hItem, 1);
             }
@@ -120,8 +132,20 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
                TreeView_SelectItem(hTree, hItemSelect);
             }
             break;
+         case VK_NEXT:
+            if (bDragging) {
+               fEatKeystroke = true;
+               SendMessage(GetDlgItem(hEditWnd, IDC_TREE_BOOKMARK), WM_VSCROLL, SB_PAGEDOWN, 0);
+               SendMessage(hEditWnd, WM_MOUSEMOVE, 0, 0);  // update the insertion mark
+            }
+            break;
          case VK_DOWN:
-            if (GetKeyState(VK_SHIFT) & 0x80) {
+            if (bDragging) {
+               fEatKeystroke = true;
+               SendMessage(GetDlgItem(hEditWnd, IDC_TREE_BOOKMARK), WM_VSCROLL, SB_LINEDOWN, 0);
+               SendMessage(hEditWnd, WM_MOUSEMOVE, 0, 0);  // update the insertion mark
+            }
+            else if (GetKeyState(VK_SHIFT) & 0x80) {
                fEatKeystroke = true;
                MoveItem(hTree, hItem, 2);
             }
