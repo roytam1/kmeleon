@@ -86,7 +86,7 @@ static inline void UnixTimeToSystemTime(time_t t, LPSYSTEMTIME pst) {
 #ifdef __MINGW32__
    ll = Int32x32To64(t, 10000000) + 116444736000000000LL;
 #else
-   ll = Int32x32To64(t, 10000000) + 116444736000000000;
+   ll = Int32x32To64(t, 10000000) + 116444736000000000L;
 #endif
    ft1.dwLowDateTime = (DWORD)ll;
    ft1.dwHighDateTime = ll >> 32;
@@ -108,7 +108,7 @@ static int parseInt64(char *buf, LONGLONG *outValue)
       
     ++charsRead;
     LONGLONG digit = c - '0';
-    value *= 10LL;
+    value *= 10L;
     value += digit;
   }
   if (!charsRead)
@@ -808,6 +808,8 @@ int CALLBACK ViewProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
          SetWindowPos(hDlg, 0, dialogleft, dialogtop, dialogwidth, dialogheight, 0);
          if (maximized)
             ShowWindow(hDlg, SW_MAXIMIZE);
+         else
+            ShowWindow(hDlg, SW_NORMAL);
 
          hHook = SetWindowsHookEx(WH_KEYBOARD, KeyboardProc, NULL, GetCurrentThreadId());
          RECT rect;
@@ -1105,12 +1107,10 @@ static void OnRClick(HWND hTree)
       if (sortOrder == SORT_BY_URL)
          CheckMenuItem(contextMenu, ID__SORT_URL, MF_BYCOMMAND | MF_CHECKED);
 
-      MENUITEMINFO minfo = {0};
-      minfo.cbSize = sizeof(MENUITEMINFO);
-      minfo.fMask = MIIM_STRING;
-      minfo.dwTypeData = (char*) (zoom ? "Show properties" : "Hide properties");
-      minfo.cch = strlen((char*)minfo.dwTypeData);
-      SetMenuItemInfo(contextMenu, ID__ZOOM, FALSE, (LPMENUITEMINFO) &minfo);
+      if (zoom)
+	CheckMenuItem(contextMenu, ID__ZOOM, MF_BYCOMMAND | MF_UNCHECKED);
+      else 
+	CheckMenuItem(contextMenu, ID__ZOOM, MF_BYCOMMAND | MF_CHECKED);
       
       int command = TrackPopupMenu(contextMenu, TPM_RIGHTBUTTON | TPM_LEFTALIGN | TPM_RETURNCMD, mouse.x, mouse.y, 0, hTree, NULL);
 

@@ -108,7 +108,7 @@ BEGIN
         MENUITEM "Set as &New Bookmark Folder", ID__SETAS_NEWBOOKMARKFOLDER
         MENUITEM "Set as Bookmark &Menu",       ID__SETAS_BOOKMARKMENU
         MENUITEM SEPARATOR
-        MENUITEM "&Zoom",                       ID__ZOOM
+        MENUITEM "Properties",                  ID__ZOOM
     END
 END
 

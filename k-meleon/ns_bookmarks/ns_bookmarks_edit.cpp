@@ -110,7 +110,7 @@ static inline void UnixTimeToSystemTime(time_t t, LPSYSTEMTIME pst) {
    FILETIME ft1;
    FILETIME ft2;
 
-   ll = Int32x32To64(t, 10000000) + 116444736000000000LL;
+   ll = Int32x32To64(t, 10000000) + 116444736000000000L;
    ft1.dwLowDateTime = (DWORD)ll;
    ft1.dwHighDateTime = ll >> 32;
 
@@ -556,7 +556,7 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
    return(fEatKeystroke ? 1 : CallNextHookEx(NULL, nCode, wParam, lParam));
 }
 
-INT_PTR CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
    static HHOOK hHook;
    static bool bTimer = false;  // semi-crude hack to make scrolling smoother
@@ -616,6 +616,8 @@ INT_PTR CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
          SetWindowPos(hDlg, 0, dialogleft, dialogtop, dialogwidth, dialogheight, 0);
          if (maximized)
             ShowWindow(hDlg, SW_MAXIMIZE);
+         else
+            ShowWindow(hDlg, SW_NORMAL);
 
          hHook = SetWindowsHookEx(WH_KEYBOARD, KeyboardProc, NULL, GetCurrentThreadId());
       }
@@ -1584,12 +1586,10 @@ static void OnRClick(HWND hTree)
       else
          CheckMenuItem(contextMenu, ID__SETAS_NEWBOOKMARKFOLDER, MF_BYCOMMAND | MF_UNCHECKED);
 
-      MENUITEMINFO minfo = {0};
-      minfo.cbSize = sizeof(MENUITEMINFO);
-      minfo.fMask = MIIM_STRING;
-      minfo.dwTypeData = (char*) (zoom ? "Show properties" : "Hide properties");
-      minfo.cch = strlen((char*)minfo.dwTypeData);
-      SetMenuItemInfo(contextMenu, ID__ZOOM, FALSE, (LPMENUITEMINFO) &minfo);
+      if (zoom)
+	CheckMenuItem(contextMenu, ID__ZOOM, MF_BYCOMMAND | MF_UNCHECKED);
+      else 
+	CheckMenuItem(contextMenu, ID__ZOOM, MF_BYCOMMAND | MF_CHECKED);
       
       bTracking = TRUE;
       int command = TrackPopupMenu(contextMenu, TPM_RIGHTBUTTON | TPM_LEFTALIGN | TPM_RETURNCMD, mouse.x, mouse.y, 0, hTree, NULL);

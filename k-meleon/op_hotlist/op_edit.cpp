@@ -548,6 +548,8 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
          SetWindowPos(hDlg, 0, dialogleft, dialogtop, dialogwidth, dialogheight, 0);
          if (maximized)
             ShowWindow(hDlg, SW_MAXIMIZE);
+         else
+            ShowWindow(hDlg, SW_NORMAL);
 
          hCursorDrag = LoadCursor(kPlugin.hDllInstance, MAKEINTRESOURCE(IDC_DRAG_CURSOR));
          bDragging = false;
@@ -1516,13 +1518,11 @@ static void OnRClick(HWND hTree)
       else
          CheckMenuItem(contextMenu, ID__SETAS_NEWBOOKMARKFOLDER, MF_BYCOMMAND | MF_UNCHECKED);
 
-      MENUITEMINFO minfo = {0};
-      minfo.cbSize = sizeof(MENUITEMINFO);
-      minfo.fMask = MIIM_STRING;
-      minfo.dwTypeData = (char*) (zoom ? "Show properties" : "Hide properties");
-      minfo.cch = strlen((char*)minfo.dwTypeData);
-      SetMenuItemInfo(contextMenu, ID__ZOOM, FALSE, (LPMENUITEMINFO) &minfo);
-      
+      if (zoom)
+	CheckMenuItem(contextMenu, ID__ZOOM, MF_BYCOMMAND | MF_UNCHECKED);
+      else 
+	CheckMenuItem(contextMenu, ID__ZOOM, MF_BYCOMMAND | MF_CHECKED);
+
       bTracking = TRUE;
       int command = TrackPopupMenu(contextMenu, TPM_RIGHTBUTTON | TPM_LEFTALIGN | TPM_RETURNCMD, mouse.x, mouse.y, 0, hTree, NULL);
       bTracking = FALSE;
