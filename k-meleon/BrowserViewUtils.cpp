@@ -234,49 +234,23 @@ NS_IMETHODIMP CBrowserView::URISaveAs(nsIURI* aURI, bool bDocument)
       idxSlash = theApp.preferences.saveDir.ReverseFind('\\');
       theApp.preferences.saveDir = theApp.preferences.saveDir.Mid(0, idxSlash+1);
 
-		CString strDataPath; 
-      if (bDocument && (cf.m_ofn.nFilterIndex == 3)) {
 
-         // cf.m_ofn.nFilterIndex == 3 indicates that the
-			// user wants to save the complete document including
-			// all frames, images, scripts, stylesheets etc.
 
-			int idxPeriod = strFullPath.ReverseFind('.');
-			strDataPath = strFullPath.Mid(0, idxPeriod);
-			strDataPath += "_files";
 
-			// At this stage strDataPath will be of the form
-			// c:\tmp\junk_files - assuming we're saving to a file
-			// named junk.htm
-			// Any images etc in the doc will be saved to a dir
-			// with the name c:\tmp\junk_files
-		}
-
-      // Save the file
+      // Get the persist interface that we'll use for saving the file(s)
       nsCOMPtr<nsIWebBrowserPersist> persist(do_QueryInterface(mWebBrowser));
-      if(persist)
-      {
+      if(!persist)
+         return NS_ERROR_FAILURE;
 
-         nsString filename;
-         filename.AssignWithConversion(strFullPath.GetBuffer(0));
+      nsString filename;
+      filename.AssignWithConversion(strFullPath.GetBuffer(0));
 
-         nsCOMPtr<nsILocalFile> file;
-         NS_NewLocalFile(filename, TRUE, getter_AddRefs(file));
+      nsCOMPtr<nsILocalFile> file;
+      NS_NewNativeLocalFile(nsDependentCString(T2A(strFullPath.GetBuffer(0))), TRUE, getter_AddRefs(file));
 
-         nsCOMPtr<nsILocalFile> dataPath;
-         if (strDataPath)
-         {
-            nsString pathname;
-            pathname.AssignWithConversion(strDataPath.GetBuffer(0));
-            NS_NewLocalFile(pathname, TRUE, getter_AddRefs(dataPath));
-         }
+      persist->SaveURI(aURI, nsnull, file);
 
-         if (bDocument)
-            persist->SaveDocument(nsnull, file, dataPath, nsnull, 0, 0);
-         else
-            persist->SaveURI(aURI, nsnull, file);
-      }
-	}
+   }
 
    if (pBuf)
       delete pBuf;
