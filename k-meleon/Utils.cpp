@@ -17,6 +17,7 @@
 */
 
 #include "string.h"
+#include "Utils.h"
 
 void TranslateTabs(char *buffer){
   char *p;
@@ -49,4 +50,48 @@ char *SkipWhiteSpace(char *string){
     }
   }
   return string;
+}
+
+
+//
+
+
+int CondenseString(char *buf, int size) {
+	int firstlen, secondlen, len;
+   char *read, *write;
+
+   write=buf+1;
+   for (read=buf+1; *read; read++) {    // condense tabs and spaces
+      if ( (*read == ' ') || (*read == '\t') ) {
+         if (*(write-1) != *read) {    // if we've not alreade added a space
+            *write = *read;
+            write++;
+         }
+      }
+      else {
+         *write = *read;
+         *write++;
+      }
+   }
+   *(write+1) = 0;
+
+   len = strlen(buf);
+   if ((size == 0) || (len < size))
+      return len;
+
+
+   if (size%2) { // if even {
+      firstlen = ((size +1) - 3) / 2;
+      secondlen= firstlen-1;
+   }
+   else {
+      firstlen = (size - 3) / 2;
+      secondlen= firstlen;
+   }
+
+   memcpy(buf+firstlen, "...", 3);
+   strcpy(buf+firstlen+3, buf+len-secondlen-1);
+   
+   return strlen(buf);
+
 }

@@ -19,5 +19,5 @@
 void TranslateTabs(char *buffer);
 void TrimWhiteSpace(char *string);
 char *SkipWhiteSpace(char *string);
-void FreeStringArray(char *array[], int size);
-void CondenseMenuText(char *buf, char *title, int index);
+int CondenseString(char *buf, int size);
+
