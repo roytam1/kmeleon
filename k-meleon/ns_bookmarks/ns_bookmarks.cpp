@@ -38,9 +38,9 @@
 
 #define PLUGIN_NAME "Netscape Bookmark Plugin"
 
-#define PREFERENCE_BOOKMARK_FILE   "kmeleon.bookmarks.bookmarkFile"
-#define PREFERENCE_TOOLBAR_FOLDER  "kmeleon.bookmarks.toolbarFolder"
-#define PREFERENCE_TOOLBAR_ENABLED "kmeleon.bookmarks.toolbarEnabled"
+#define PREFERENCE_BOOKMARK_FILE   "kmeleon.plugins.bookmarks.bookmarkFile"
+#define PREFERENCE_TOOLBAR_FOLDER  "kmeleon.plugins.bookmarks.toolbarFolder"
+#define PREFERENCE_TOOLBAR_ENABLED "kmeleon.plugins.bookmarks.toolbarEnabled"
 #define PREFERENCE_SETTINGS_DIR    "kmeleon.general.settingsDir"
 
 int Init();
@@ -50,6 +50,7 @@ void Quit();
 void DoMenu(HMENU menu, char *param);
 void DoRebar(HWND rebarWnd);
 void OnSize(int height, int width);
+BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 pluginFunctions pFuncs = {
    Init,
@@ -82,7 +83,7 @@ UINT nFirstBookmarkCommand;
 CHAR szPath[MAX_PATH];
 CHAR toolbarFolder[MAX_PATH];
 
-int m_toolbarEnabled;
+BOOL m_toolbarEnabled;
 
 int Init(){
    nConfigCommand = kPlugin.kf->GetCommandIDs(1);
@@ -179,34 +180,39 @@ void Quit(){
    ImageList_Destroy(m_imagelist);
 }
 
-void Config(HWND parent){
-   char message[255];
-   strcpy(message, "The toolbar is currently ");
-
-   if (m_toolbarEnabled) {
-      strcat(message, "enabled");
-   }
-   else {
-      strcat(message, "disabled");
-   }
-   strcat(message, "\n\nWould you like the toolbar to be enabled?");
-
-   int result = MessageBox(parent, message, PLUGIN_NAME, MB_YESNO | MB_ICONQUESTION);
-
-   int oldstate = m_toolbarEnabled;
-   if (result == IDYES) {
-      m_toolbarEnabled = true;
-   }
-   else if (result == IDNO) {
-      m_toolbarEnabled = false;
-   }
-
-   if (m_toolbarEnabled != oldstate) {
-      kPlugin.kf->SetPreference(PREF_BOOL, PREFERENCE_TOOLBAR_ENABLED, &m_toolbarEnabled);
-
-      MessageBox(parent, "Note: You must restart K-Meleon for the change to take effect", PLUGIN_NAME, 0);
-   }
+void Config(HWND hWndParent){
+   DialogBoxParam(kPlugin.hDllInstance ,MAKEINTRESOURCE(IDD_CONFIG), hWndParent, (DLGPROC)DlgProc, NULL);
 }
+
+// Preferences Dialog function
+BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+
+   switch (uMsg) {
+		case WM_INITDIALOG:
+         SendDlgItemMessage(hWnd, IDC_REBARENABLED, BM_SETCHECK, m_toolbarEnabled, 0);
+         break;
+      case WM_COMMAND:
+			switch(HIWORD(wParam)) {
+				case BN_CLICKED:
+					switch (LOWORD(wParam)) {
+						case IDOK:
+                     m_toolbarEnabled = SendDlgItemMessage(hWnd, IDC_REBARENABLED, BM_GETCHECK, 0, 0);
+                     kPlugin.kf->SetPreference(PREF_BOOL, PREFERENCE_TOOLBAR_ENABLED, &m_toolbarEnabled);
+                  case IDCANCEL:
+                     SendMessage(hWnd, WM_CLOSE, 0, 0);
+               }
+         }
+         break;
+      case WM_CLOSE:
+			EndDialog(hWnd, NULL);
+			break;
+		default:
+			return FALSE;
+   }
+   return TRUE;
+}
+
+
 
 #define _Q(x) #x
 

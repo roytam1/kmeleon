@@ -2,10 +2,12 @@
 // Microsoft Developer Studio generated include file.
 // Used by ns_bookmarks.rc
 //
+#define IDD_CONFIG                      101
 #define IDD_EDIT_BOOKMARKS              157
 #define IDB_IMAGES                      158
 #define IDR_CONTEXTMENU                 159
 #define IDC_DRAG_CURSOR                 160
+#define IDC_REBARENABLED                1000
 #define IDC_TREE_BOOKMARK               1034
 #define IDC_EDIT_URL                    1035
 #define ID_BOOKMARK_DELETE              32791
