@@ -949,14 +949,16 @@ INT_PTR CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                         char *bmFileBuffer = new char[bmFileSize];
                         if (bmFileBuffer){
                            fread(bmFileBuffer, sizeof(char), bmFileSize, bmFile);
-                           delete gBookmarkRoot.child;
-                           delete gBookmarkRoot.next;
-                           gBookmarkRoot.child = NULL;
-                           gBookmarkRoot.next = NULL;
+			   if (feof(bmFile)) {
+			     delete gBookmarkRoot.child;
+			     delete gBookmarkRoot.next;
+			     gBookmarkRoot.child = NULL;
+			     gBookmarkRoot.next = NULL;
+			     
+			     strtok(bmFileBuffer, "\n");
+			     ParseBookmarks(bmFileBuffer, gBookmarkRoot);
+                           }
 
-                           strtok(bmFileBuffer, "\n");
-                           ParseBookmarks(bmFileBuffer, gBookmarkRoot);
-                           
                            delete [] bmFileBuffer;
                         }
                         fclose(bmFile);

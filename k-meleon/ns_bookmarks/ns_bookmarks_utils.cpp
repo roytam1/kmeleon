@@ -26,6 +26,8 @@
 #include "stdafx.h"
 #include "resource.h"
 #include "wininet.h"    // for INTERNET_MAX_URL_LENGTH
+#include <stdio.h>
+#include <io.h>
 
 #include "defines.h"
 
@@ -41,6 +43,7 @@
 
 extern WNDPROC KMeleonWndProc;
 extern BOOL bChevronEnabled;
+char szContentType[BOOKMARKS_TITLE_LEN];
 
 // Preferences Dialog function
 BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
@@ -62,10 +65,10 @@ BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
                case IDC_MENU_AUTODETECT:
                   if (SendDlgItemMessage(hWnd, IDC_MENU_AUTODETECT, BM_GETCHECK, 0, 0)) {
                      EnableWindow(GetDlgItem(hWnd, IDC_MAX_MENU_LENGTH), false);
-				  }
+                  }
                   else {
                      EnableWindow(GetDlgItem(hWnd, IDC_MAX_MENU_LENGTH), true);
-				  }
+                  }
                   break;
                case IDC_BROWSE:
                   {
@@ -144,7 +147,7 @@ BOOL BrowseForBookmarks(char *file)
    ofn.lpstrFilter = BOOKMARKS_FILTER;
    ofn.lpstrFile = file;
    ofn.nMaxFile = MAX_PATH;
-   ofn.Flags = OFN_PATHMUSTEXIST | 	OFN_LONGNAMES | OFN_EXPLORER | OFN_HIDEREADONLY;
+   ofn.Flags = OFN_PATHMUSTEXIST | OFN_LONGNAMES | OFN_EXPLORER | OFN_HIDEREADONLY;
    ofn.lpstrTitle = PLUGIN_NAME;
 
    if (GetOpenFileName(&ofn)) {
@@ -179,8 +182,8 @@ static void SaveBookmarks(FILE *bmFile, CBookmarkNode *node)
          if (child->flags & BOOKMARK_FLAG_BM)
             strcat(szFolderFlags, "MENUHEADER ");
          fprintf(bmFile, "%s<DT><H3 %sADD_DATE=\"%d\">%s</H3>\n", szSpacer, szFolderFlags, child->addDate, child->text.c_str());
-	 if (child->desc.c_str() != NULL && *(child->desc.c_str()) != 0)
-	   fprintf(bmFile, "%s<DD>%s\n", szSpacer, child->desc.c_str());
+         if (child->desc.c_str() != NULL && *(child->desc.c_str()) != 0)
+            fprintf(bmFile, "%s<DD>%s\n", szSpacer, child->desc.c_str());
 
          if (strlen(szSpacer) < MAXSPACER) szSpacer[strlen(szSpacer)] = ' ';   // add a space
          SaveBookmarks(bmFile, child);
@@ -195,16 +198,16 @@ static void SaveBookmarks(FILE *bmFile, CBookmarkNode *node)
          fprintf(bmFile, " ADD_DATE=\"%d\"", child->addDate);
          fprintf(bmFile, " LAST_VISIT=\"%d\"", child->lastVisit);
          fprintf(bmFile, " LAST_MODIFIED=\"%d\"", child->lastModified);
-	 char *psz;
-	 psz = (char *) child->nick.c_str();
-	 if (psz && *psz)
-	   fprintf(bmFile, " SHORTCUTURL=\"%s\"", psz);
-	 psz = (char *) child->charset.c_str();
-	 if (psz && *psz)
-	   fprintf(bmFile, " LAST_CHARSET=\"%s\"", psz);
+         char *psz;
+         psz = (char *) child->nick.c_str();
+         if (psz && *psz)
+            fprintf(bmFile, " SHORTCUTURL=\"%s\"", psz);
+         psz = (char *) child->charset.c_str();
+         if (psz && *psz)
+            fprintf(bmFile, " LAST_CHARSET=\"%s\"", psz);
          fprintf(bmFile, ">%s</A>\n", child->text.c_str());
-	 if (child->desc.c_str() != NULL && *(child->desc.c_str()) != 0)
-	   fprintf(bmFile, "%s<DD>%s\n", szSpacer, child->desc.c_str());
+         if (child->desc.c_str() != NULL && *(child->desc.c_str()) != 0)
+            fprintf(bmFile, "%s<DD>%s\n", szSpacer, child->desc.c_str());
       }
       // if it falls through, there's a problem, but we'll just ignore it for now.
    }
@@ -212,13 +215,53 @@ static void SaveBookmarks(FILE *bmFile, CBookmarkNode *node)
    fprintf(bmFile, "%s</DL><p>\n", szSpacer);
 }
 
+static BOOL bBackedUp = 0;
+
+static void create_backup(const char *file)
+{
+   int i;
+   char buf[MAX_PATH];
+   char buf2[MAX_PATH];
+   
+   if (bBackedUp)
+      return;
+
+   /* rotate the old backups */
+   for (i=2; i>=1; i--) {
+      sprintf(buf, "%s.bak%d", file, i);
+      sprintf(buf2, "%s.bak%d", file, i+1);
+      unlink(buf2);
+      rename(buf, buf2);
+   }
+
+   sprintf(buf, "%s.bak1", file);
+   unlink(buf);
+   rename(file, buf);
+
+   bBackedUp = 1;
+}
+
 void Save(const char *file)
 {
+   if (!gBookmarkRoot.child && !gBookmarkRoot.next) {
+      if (MessageBox(NULL, "The bookmarks tree is empty.\nDo you really want to erase all your bookmarks?", PLUGIN_NAME ": WARNING" , MB_YESNO|MB_ICONEXCLAMATION) != IDYES) {
+         Load(gBookmarkFile);
+         if (!gBookmarkRoot.child && !gBookmarkRoot.next) {
+            MessageBox(NULL, "Unable to recover old bookmarks.", PLUGIN_NAME ": BUG WARNING" , MB_OK|MB_ICONSTOP);
+            return;
+         }
+      }
+   }
+
    if (!gGeneratedByUs) {
       if (MessageBox(NULL, BOOKMARKS_NOT_BY_US, PLUGIN_NAME, MB_YESNO) != IDYES) {
          return;
       }
    }
+
+#if 1
+   create_backup(file);
+#endif
 
    FILE *bmFile = fopen(file, "w");
    if (bmFile){
@@ -227,6 +270,8 @@ void Save(const char *file)
       fprintf(bmFile, "%s\n", COMMENT_TAG);
 // FIXME - figure out if this needs to be here, or if it should be different on non-US-English systems
 //      fprintf(bmFile, "%s\n", CONTENT_TYPE_TAG);
+      if (*szContentType)
+         fprintf(bmFile, "%s%s>\n", CONTENT_TYPE_TAG, szContentType);
       fprintf(bmFile, "<TITLE>%s</TITLE>\n", gBookmarksTitle);
       fprintf(bmFile, "<H1>%s</H1>\n\n", gBookmarksTitle);
 
@@ -275,7 +320,7 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
 
          CBookmarkNode * newNode = new CBookmarkNode(0, name, "", "", "", "", BOOKMARK_FOLDER, addDate);
          node.AddChild(newNode);
-	 lastNode = newNode;
+         lastNode = newNode;
 
          ParseBookmarks(end, *newNode);
 
@@ -349,23 +394,23 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
          if (d) {
             d+=13;
 
-	    char *q = strchr(d, '\"');
-	    if (q) {
-	      *q = 0;
-	      nick = strdup(d);
-	      *q = '\"';
-	    }
+            char *q = strchr(d, '\"');
+            if (q) {
+               *q = 0;
+               nick = strdup(d);
+               *q = '\"';
+            }
          }
          d = strstr(t, "LAST_CHARSET=\"");
          if (d) {
             d+=14;
 
-	    char *q = strchr(d, '\"');
-	    if (q) {
-	      *q = 0;
-	      charset = strdup(d);
-	      *q = '\"';
-	    }
+            char *q = strchr(d, '\"');
+            if (q) {
+               *q = 0;
+               charset = strdup(d);
+               *q = '\"';
+            }
          }
 
          t = strchr(t, '>');
@@ -384,19 +429,19 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
          if (name[0] == 0)
             name = url;
 
-	 lastNode = new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), name, url, nick, NULL, charset, BOOKMARK_BOOKMARK, addDate, lastVisit, lastModified);
+         lastNode = new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), name, url, nick, NULL, charset, BOOKMARK_BOOKMARK, addDate, lastVisit, lastModified);
          node.AddChild(lastNode);
-	 
-	 if (nick)
-	   free(nick);
-	 if (charset)
-	   free(charset);
+         
+         if (nick)
+            free(nick);
+         if (charset)
+            free(charset);
       }
       else if ((t = strstr(p, "</DL>")) != NULL) {
          return;
       }
       else if ((t = strstr(p, "<HR>")) != NULL) {
-	lastNode = new CBookmarkNode(0, "", "", "", "", "", BOOKMARK_SEPARATOR);
+         lastNode = new CBookmarkNode(0, "", "", "", "", "", BOOKMARK_SEPARATOR);
          node.AddChild(lastNode);
       }
       else if ((t = strstr(p, "<TITLE>")) != NULL) {
@@ -411,19 +456,45 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
          strcpy(gBookmarksTitle, t);
       }
       else if ((t = strstr(p, "<DD>")) != NULL && lastNode != NULL) {
-	    char *e = t+4;
-	    while (*e && *e!='\n')
-	      e++;
-	    *e = 0;
-	    lastNode->desc = t+4;
+         char *e = t+4;
+         while (*e && *e!='\n')
+            e++;
+         *e = 0;
+         lastNode->desc = t+4;
       }
       else if (strstr(p, KMELEON_TAG) != NULL) {
          gGeneratedByUs = true;
+      }
+      else if ((t = strstr(p, CONTENT_TYPE_TAG)) != NULL) {
+         t += strlen(CONTENT_TYPE_TAG);
+         strncpy(szContentType, t, sizeof(szContentType)-1);
+         szContentType[sizeof(szContentType)-1] = 0;
+         t = strchr(szContentType, '>');
+         if (t)
+            *t = 0;
       }
    }
    return;
 }
 
+void Load(const char *file) 
+{
+   FILE *bmFile = fopen(file, "r");
+   if (bmFile){
+      long bmFileSize = FileSize(bmFile);
+      
+      char *bmFileBuffer = new char[bmFileSize];
+      if (bmFileBuffer){
+         fread(bmFileBuffer, sizeof(char), bmFileSize, bmFile);
+         
+         strtok(bmFileBuffer, "\n");
+         ParseBookmarks(bmFileBuffer, gBookmarkRoot);
+         
+         delete [] bmFileBuffer;
+      }
+      fclose(bmFile);
+   }
+}
 
 void findNick(char *nick, char *url)
 {
@@ -623,27 +694,27 @@ static char *pszPrompt;
 
 BOOL CALLBACK
 PromptDlgProc( HWND hwnd,
-	      UINT Message,
-	      WPARAM wParam,
-	      LPARAM lParam )
+               UINT Message,
+               WPARAM wParam,
+               LPARAM lParam )
 {
     switch (Message) {
       case WM_INITDIALOG:
-	SetWindowText( hwnd, pszTitle ? pszTitle : "Smart bookmark" );
-	SetDlgItemText(hwnd, IDC_SEARCHTEXT, pszPrompt ? pszPrompt : "");
+         SetWindowText( hwnd, pszTitle ? pszTitle : "Smart bookmark" );
+         SetDlgItemText(hwnd, IDC_SEARCHTEXT, pszPrompt ? pszPrompt : "");
         return TRUE;
       case WM_COMMAND:
         switch (LOWORD(wParam)) {
-	  case IDOK:
-	    GetDlgItemText(hwnd, IDC_INPUT, szInput, 256);
-	    EndDialog( hwnd, IDOK );
-	    break;
-	  case IDCANCEL:
-	    EndDialog( hwnd, IDCANCEL );
-	    break;
-	}
-	break;
-	
+        case IDOK:
+           GetDlgItemText(hwnd, IDC_INPUT, szInput, 256);
+           EndDialog( hwnd, IDOK );
+           break;
+        case IDCANCEL:
+           EndDialog( hwnd, IDCANCEL );
+           break;
+        }
+        break;
+
       default:
         return FALSE;
     }
@@ -708,10 +779,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
       }
       else if (CBookmarkNode *node = gBookmarkRoot.FindNode(command)) {
          node->lastVisit = time(NULL);
-         gBookmarksModified = true;	// this doesn't call for instant saving, it can wait until we add/edit/quit
+         gBookmarksModified = true; // this doesn't call for instant saving, it can wait until we add/edit/quit
 
-	 if (node->url.c_str() == NULL || *node->url.c_str() == 0)
-	   return true;
+         if (node->url.c_str() == NULL || *node->url.c_str() == 0)
+            return true;
 
          char *str = strdup(node->url.c_str());
          char *ptr = strstr(str, "%s");
@@ -719,30 +790,30 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
             char buff[INTERNET_MAX_URL_LENGTH];
             *ptr = 0;
             strcpy(buff, str);
-	    ptr += 2;
+            ptr += 2;
 
-	    pszTitle = strdup( node->text.c_str() );
-	    pszPrompt = strdup( node->desc.c_str() );
+            pszTitle = strdup( node->text.c_str() );
+            pszPrompt = strdup( node->desc.c_str() );
 
-	    int ok = DialogBox(kPlugin.hDllInstance,
-			       MAKEINTRESOURCE(IDD_SMARTBOOKMARK), hWnd, (DLGPROC)PromptDlgProc);
-	    PostMessage(hWnd, WM_NULL, 0, 0);
-	    if (ok == IDOK && *szInput) {
-	      strcat(buff, szInput);
-	      strcat(buff, ptr);
-	      kPlugin.kFuncs->NavigateTo(buff, OPEN_NORMAL);
-	    }
+            int ok = DialogBox(kPlugin.hDllInstance,
+                               MAKEINTRESOURCE(IDD_SMARTBOOKMARK), hWnd, (DLGPROC)PromptDlgProc);
+            PostMessage(hWnd, WM_NULL, 0, 0);
+            if (ok == IDOK && *szInput) {
+               strcat(buff, szInput);
+               strcat(buff, ptr);
+               kPlugin.kFuncs->NavigateTo(buff, OPEN_NORMAL);
+            }
 
-	    if (pszTitle) 
-	      free(pszTitle);
-	    if (pszPrompt) 
-	      free(pszPrompt);
+            if (pszTitle) 
+               free(pszTitle);
+            if (pszPrompt) 
+               free(pszPrompt);
 
          }
          else {
             kPlugin.kFuncs->NavigateTo(str, OPEN_NORMAL);
          }
-	 free(str);
+         free(str);
 
          return true;
       }
