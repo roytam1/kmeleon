@@ -555,16 +555,14 @@ BOOL CALLBACK SearchProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam){
 
    if (uMsg == WM_INITDIALOG) {
       search = (CString *)lParam;
-      SetDlgItemText(hwndDlg, IDC_PROMPT_TEXT, "Enter search query.");
-      SetWindowText(hwndDlg, _T("Search"));
-      ::SetFocus(::GetDlgItem(hwndDlg, IDC_PROMPT_ANSWER));
+      ::SetFocus(::GetDlgItem(hwndDlg, IDC_SEARCH_QUERY));
       return false;
    }
 
    else if (uMsg == WM_COMMAND) {
       if (LOWORD(wParam) == IDOK){
          char buffer[256];
-         ::GetDlgItemText(hwndDlg, IDC_PROMPT_ANSWER, buffer, 255);
+         ::GetDlgItemText(hwndDlg, IDC_SEARCH_QUERY, buffer, 255);
          *search = buffer;
          EndDialog(hwndDlg, true);
       }
@@ -578,7 +576,7 @@ BOOL CALLBACK SearchProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam){
 
 void CBrowserView::OnNavSearch(){
    CString search;
-   if (DialogBoxParam(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDD_PROMPT_DIALOG), m_hWnd, SearchProc, (LPARAM)&search))
+   if (DialogBoxParam(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDD_SEARCH_DIALOG), m_hWnd, SearchProc, (LPARAM)&search))
       OpenURL(theApp.preferences.searchEngine + search);
 }
 

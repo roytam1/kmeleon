@@ -9,9 +9,7 @@
 #define IDR_CTXMENU_LINK                131
 #define IDR_CTXMENU_TEXT                132
 #define IDR_CTXMENU_IMAGE               133
-#define IDD_PROMPT_DIALOG               134
-#define IDD_PROMPT_PASSWORD_DIALOG      135
-#define IDD_PROMPT_USERPASS_DIALOG      136
+#define IDD_SEARCH_DIALOG               134
 #define IDD_PROFILES                    137
 #define IDD_PROFILE_NEW                 138
 #define IDD_PROFILE_RENAME              139
@@ -50,6 +48,7 @@
 #define ID_URL_BAR                      1001
 #define ID_PROG_BAR                     1002
 #define IDC_PROMPT_ANSWER               1003
+#define IDC_SEARCH_QUERY                1003
 #define IDC_PROMPT_QUESTION             1004
 #define IDC_PROMPT_TEXT                 1005
 #define IDC_USERNAME                    1006

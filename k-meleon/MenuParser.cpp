@@ -177,7 +177,7 @@ int CMenuParser::Load(CString &filename){
 
                kmeleonPlugin * kPlugin = theApp.plugins.Load(p);
 
-               if (kPlugin->loaded) {
+               if (kPlugin && kPlugin->loaded) {
                   if (kPlugin->pf->DoMenu){
                      kPlugin->pf->DoMenu(currentMenu->GetSafeHmenu(), parameter);
 
