@@ -22,6 +22,7 @@
  */
 
 #include "stdafx.h"
+#include "nsEscape.h"
 
 #include "UnknownContentTypeHandler.h"
 
@@ -56,13 +57,9 @@ CUnknownContentTypeHandler::PromptForSaveToFile(nsIHelperAppLauncher *aLauncher,
    filter += W2T(aSuggestedFileExtension);
    filter += "|All Files|*.*||";
 
-   CString defaultFile = W2T(aDefaultFile);
-   // unmunge the filename
-   defaultFile.Replace("%20", " ");
-   defaultFile.Replace("%27", "\'");
-   defaultFile.Replace("%28", "(");
-   defaultFile.Replace("%29", ")");
-   defaultFile.Replace("%2C", ",");
+   char *tmp = strdup(nsUnescape(W2T(aDefaultFile)));
+   CString defaultFile = tmp;
+   free(tmp);
 
    defaultFile = theApp.preferences.saveDir + defaultFile;
 
@@ -340,8 +337,9 @@ NS_IMETHODIMP CProgressDialog::OnStateChange(nsIWebProgress *aWebProgress,
       char *command = new char[strlen(mViewer) + strlen(mFilePath) +2];
       
       strcpy(command, mViewer);
-      strcat(command, " ");                              //append " filename" to the viewer command
+      strcat(command, " \"");                              //append " filename" to the viewer command
       strcat(command, mFilePath);
+      strcat(command, "\"");
       
       STARTUPINFO si = { 0 };
       PROCESS_INFORMATION pi;
@@ -530,8 +528,10 @@ END_MESSAGE_MAP()
 
 void CProgressDialog::Cancel() {
 
-   if (mObserver)
+   if (mObserver) {
+      mObserver->Observe(nsnull, "oncancel", nsnull);
       mObserver->Observe(nsnull, "OnCancel", nsnull);
+   }
 
    if (mPersist)
       mPersist->CancelSave();
