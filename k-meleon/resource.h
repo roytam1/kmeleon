@@ -259,6 +259,9 @@
 #define ID_OPEN_FRAME_IN_BACKGROUND     32808
 #define ID_FONT_INCREASE                32809
 #define ID_FONT_DECREASE                32810
+#define ID_LINK_KMELEON_FAQ             32811
+#define ID_LINK_KMELEON_MANUAL          32812
+#define ID_LINK_ABOUT_PLUGINS           32813
 #define IDS_FAILED_TO_CREATE_BROWSER    61204
 #define IDS_NEW_PLUGIN_FOUND            61205
 #define IDS_PLUGIN_NO_OPTIONS           61206
@@ -281,7 +284,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        192
-#define _APS_NEXT_COMMAND_VALUE         32806
+#define _APS_NEXT_COMMAND_VALUE         32814
 #define _APS_NEXT_CONTROL_VALUE         1078
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
