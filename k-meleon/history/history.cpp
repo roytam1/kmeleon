@@ -97,6 +97,48 @@ void DoMenu(HMENU menu, char *param){
 void DoRebar(HWND rebarWnd) {
 }
 
+void ShowMenuUnderButton(HWND hWndParent, HMENU hMenu, UINT uMouseButton, int iID) {
+   // Find the toolbar
+   HWND hReBar = FindWindowEx(GetActiveWindow(), NULL, REBARCLASSNAME, NULL);
+   int uBandCount = SendMessage(hReBar, RB_GETBANDCOUNT, 0, 0);  
+   int x = 0;
+   BOOL bFound = FALSE;
+   REBARBANDINFO rb;
+   rb.cbSize = sizeof(REBARBANDINFO);
+   rb.fMask = RBBIM_CHILD;
+   while (x < uBandCount && !bFound) {
+         
+      if (!SendMessage(hReBar, RB_GETBANDINFO, (WPARAM) x++, (LPARAM) &rb))
+         continue;
+                  
+      // toolbar hwnd
+      HWND tb = rb.hwndChild;
+      RECT rc;
+      
+      int ButtonID = SendMessage(tb, TB_COMMANDTOINDEX, iID, 0);
+      if (ButtonID < 0)
+         continue;
+      if (ButtonID == 0) {
+         TBBUTTON button;
+         SendMessage(tb, TB_GETBUTTON, 0, (LPARAM) &button);
+         if (button.idCommand != iID)
+            continue;
+      }
+
+      SendMessage(tb, TB_GETITEMRECT, ButtonID, (LPARAM) &rc);
+      POINT pt = { rc.left, rc.bottom };
+      ClientToScreen(tb, &pt);
+      DWORD SelectionMade = TrackPopupMenu(hMenu, TPM_LEFTALIGN | uMouseButton | TPM_NONOTIFY | TPM_RETURNCMD, pt.x, pt.y, 0, hWndParent, &rc);
+      
+      PostMessage(hWndParent, UWM_REFRESHTOOLBARITEM, (WPARAM) iID, 0);
+      
+      if (SelectionMade > 0)
+         kPlugin.kf->GotoHistoryIndex(SelectionMade-1);
+
+      bFound = TRUE;
+   }
+}
+
 void CreateBackMenu (HWND hWndParent, UINT button) {
 	int index, count, i, limit;
 	char **titles, buf[47];
@@ -109,47 +151,17 @@ void CreateBackMenu (HWND hWndParent, UINT button) {
       limit = index-20;
    else limit=0;
 
-   HMENU menu, submenu;
-
-	menu = CreateMenu();
-	submenu = CreatePopupMenu();
+   HMENU menu = CreatePopupMenu();
 
 	int x=0;
 	for (i = index - 1; i >= limit; i--) {
 		CondenseMenuText(buf, titles[i], x++);
-		AppendMenu(submenu, MF_STRING, i+1, buf);
+		AppendMenu(menu, MF_STRING, i+1, buf);
 	}
 
-   // Find the toolbar
-   HWND hReBar = FindWindowEx(GetActiveWindow(), NULL, REBARCLASSNAME, NULL);
+   ShowMenuUnderButton(hWndParent, menu, button, ID_NAV_BACK);
 
-   UINT uBandIndex = SendMessage(hReBar, RB_IDTOINDEX, 200, 0);     // 200 = Toolbar ID
-
-   REBARBANDINFO rb;
-   rb.cbSize = sizeof(REBARBANDINFO);
-   rb.fMask = RBBIM_CHILD;
-
-   if (SendMessage(hReBar, RB_GETBANDINFO, (WPARAM) uBandIndex, (LPARAM) &rb)) {
-
-      // toolbar hwnd
-      HWND tb = rb.hwndChild;
-      RECT rc;
-
-      WPARAM ButtonID = SendMessage(tb, TB_COMMANDTOINDEX, ID_NAV_BACK, 0);
-	   SendMessage(tb, TB_GETITEMRECT, ButtonID, (LPARAM) &rc);
-	   POINT pt = { rc.left, rc.bottom };
-	   ClientToScreen(tb, &pt);
-      DWORD SelectionMade = TrackPopupMenu(submenu, TPM_LEFTALIGN | button | TPM_NONOTIFY | TPM_RETURNCMD, pt.x, pt.y, 0, hWndParent, &rc);
-
-	   DestroyMenu(submenu);
-	   DestroyMenu(menu);
-
-	   PostMessage(hWndParent, UWM_REFRESHTOOLBARITEM, (WPARAM) ID_NAV_BACK, 0);
-
-      if (SelectionMade > 0) {
-		   kPlugin.kf->GotoHistoryIndex(SelectionMade-1);
-      }
-   }
+   DestroyMenu(menu);
 }
 
 
@@ -162,10 +174,7 @@ void CreateForwardMenu (HWND hWndParent, UINT button) {
 		return;
 	}
 
-	HMENU menu, submenu;
-
-	menu = CreateMenu();
-	submenu = CreatePopupMenu();
+	HMENU menu = CreatePopupMenu();
 
    if (count-index > 20)
       limit = index+20;
@@ -174,40 +183,14 @@ void CreateForwardMenu (HWND hWndParent, UINT button) {
    int x=0;
 	for (i = index + 1; i < limit; i++) {
 		CondenseMenuText(buf, titles[i], x++);
-		AppendMenu(submenu, MF_STRING, i+1, buf);
+		AppendMenu(menu, MF_STRING, i+1, buf);
 	}
 
-   // Find the toolbar
-   HWND hReBar = FindWindowEx(GetActiveWindow(), NULL, REBARCLASSNAME, NULL);
+   ShowMenuUnderButton(hWndParent, menu, button, ID_NAV_FORWARD);
 
-   UINT uBandIndex = SendMessage(hReBar, RB_IDTOINDEX, 200, 0);     // 200 = Toolbar ID
-   REBARBANDINFO rb;
-   rb.cbSize = sizeof(REBARBANDINFO);
-   rb.fMask = RBBIM_CHILD;
-
-   if (SendMessage(hReBar, RB_GETBANDINFO, (WPARAM) uBandIndex, (LPARAM) &rb)) {
-
-      // toolbar hwnd
-      HWND tb = rb.hwndChild;
-      RECT rc;
-
-   	WPARAM ButtonID = SendMessage(tb, TB_COMMANDTOINDEX, ID_NAV_FORWARD, 0);
-	   SendMessage(tb, TB_GETITEMRECT, ButtonID, (LPARAM) &rc);
-	   POINT pt = { rc.left, rc.bottom };
-	   ClientToScreen(tb, &pt);
-	   DWORD SelectionMade = TrackPopupMenu(submenu, TPM_LEFTALIGN | button | TPM_NONOTIFY | TPM_RETURNCMD, pt.x, pt.y, 0, hWndParent, &rc);
-
-	   DestroyMenu(submenu);
-	   DestroyMenu(menu);
-
-	   PostMessage(hWndParent, UWM_REFRESHTOOLBARITEM, (WPARAM) ID_NAV_FORWARD, 0);
-
-      if (SelectionMade > 0) {
-		   kPlugin.kf->GotoHistoryIndex(SelectionMade-1);
-	   }
-
-   }
+   DestroyMenu(menu);
 }
+ 
 
 void UpdateHistoryMenu (HWND hWndParent) {
 	int index, count, i;
