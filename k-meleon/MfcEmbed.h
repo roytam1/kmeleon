@@ -41,6 +41,7 @@
 #include "Preferences.h"
 #include "MenuParser.h"
 #include "AccelParser.h"
+#include "KmeleonConst.h"
 
 #include "resource.h"       // main symbols
 
@@ -53,7 +54,6 @@
 
 class CBrowserFrame;
 class CProfileMgr;
-
 class CMfcEmbedApp : public CWinApp,
                      public nsIObserver,
                      public nsIWindowCreator,
@@ -73,6 +73,8 @@ public:
 	void RemoveFrameFromList(CBrowserFrame* pFrm, BOOL bCloseAppOnLastFrame = TRUE);
    nsresult OverrideComponents();
 
+   LPCTSTR GetMainWindowClassName();
+
 	// Overrides
 	// ClassWizard generated virtual function overrides
 	//{{AFX_VIRTUAL(CMfcEmbedApp)
@@ -91,10 +93,10 @@ public:
 
    HMENU          m_toolbarControlsMenu;
    CBrowserFrame* m_pMostRecentBrowserFrame; // the most recently used frame
-
    CBrowserFrame* m_pOpenNewBrowserFrame; // used by OnNewBrowser to preserve an initilaized frame
-   // Implementation
 
+
+   // Implementation
 public:
    //{{AFX_MSG(CMfcEmbedApp)
    afx_msg void OnNewBrowser();
@@ -112,7 +114,9 @@ private:
    nsresult    InitializeWindowCreator();
 
 private:
-    CProfileMgr     *m_ProfileMgr;
+   CProfileMgr *m_ProfileMgr;
+   BOOL        bAlreadyRunning;
+   CString     m_sMainWindowClassName;
 };
 
 

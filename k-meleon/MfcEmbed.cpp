@@ -82,6 +82,8 @@ CMfcEmbedApp::CMfcEmbedApp() :
    mRefCnt = 1; // Start at one - nothing is going to addref this object
    m_pMostRecentBrowserFrame  = NULL;
    m_toolbarControlsMenu = NULL;
+
+   m_sMainWindowClassName = _T("KMeleon .4");
 }
 
 CMfcEmbedApp theApp;
@@ -130,6 +132,10 @@ nsresult CMfcEmbedApp::OverrideComponents()
 }
 
 
+LPCTSTR CMfcEmbedApp::GetMainWindowClassName() {
+	return   m_sMainWindowClassName;
+}
+
 // Initialize our MFC application and also init
 // the Gecko embedding APIs
 // Note that we're also init'ng the profile switching
@@ -139,6 +145,42 @@ nsresult CMfcEmbedApp::OverrideComponents()
 //
 BOOL CMfcEmbedApp::InitInstance()
 {
+
+   
+   //	Register the main window class
+   WNDCLASS wc = { 0 };
+	wc.style = CS_DBLCLKS | CS_HREDRAW | CS_VREDRAW;
+	wc.lpfnWndProc =  AfxWndProc;
+	wc.hInstance = AfxGetInstanceHandle();
+	wc.lpszClassName = m_sMainWindowClassName;
+	wc.hIcon = LoadIcon( IDR_MAINFRAME );
+	AfxRegisterClass( &wc );
+
+   // Parse command line for standard shell commands, DDE, file open
+	CCommandLineInfo cmdInfo;
+	ParseCommandLine(cmdInfo);
+   
+   // check for prior instances
+   HANDLE hMutexOneInstance = CreateMutex( NULL, TRUE, "K-Meleon Instance Mutex" );
+	bAlreadyRunning = ( GetLastError() == ERROR_ALREADY_EXISTS );
+
+   if ( hMutexOneInstance )
+		ReleaseMutex( hMutexOneInstance );
+
+   if (bAlreadyRunning) {
+      // find the hidden window
+      if (HWND hwndPrev = FindWindowEx(NULL, NULL, "KMeleon .4", NULL) ) {
+         if(!cmdInfo.m_strFileName.IsEmpty()) {
+            COPYDATASTRUCT copyData;
+            copyData.cbData = cmdInfo.m_strFileName.GetLength();
+            copyData.lpData = (void *) (const char *) cmdInfo.m_strFileName;
+            SendMessage(hwndPrev, WM_COPYDATA, NULL, (LPARAM) &copyData);
+         }
+         else
+            SendMessage(hwndPrev, UWM_NEWWINDOW, NULL, NULL);
+      }
+      return FALSE;
+   }
 
 	Enable3dControls();   
    
@@ -189,10 +231,6 @@ BOOL CMfcEmbedApp::InitInstance()
 	CBrowserFrame *pBrowserFrame = CreateNewBrowserFrame();
 
    pBrowserFrame->m_wndReBar.DrawToolBarMenu();
-
-   // Parse command line for standard shell commands, DDE, file open
-	CCommandLineInfo cmdInfo;
-	ParseCommandLine(cmdInfo);
 
 	//Load the HomePage into the browser view
    if(pBrowserFrame){
@@ -343,7 +381,10 @@ int CMfcEmbedApp::ExitInstance()
 	// When File/Exit is chosen and if the user
 	// has opened multiple browser windows shut all
 	// of them down properly before exiting the app
-  
+
+   if (bAlreadyRunning)
+      return 1;
+   
    CBrowserFrame* pBrowserFrame = NULL;
 
 	POSITION pos = m_FrameWndLst.GetHeadPosition();
@@ -416,7 +457,7 @@ BOOL CMfcEmbedApp::CreateHiddenWindow()
     return FALSE;
 
   RECT bounds = { -10010, -10010, -10000, -10000 };
-  hiddenWnd->Create(NULL, "main", WS_DISABLED, bounds, NULL, NULL, 0, NULL);
+  hiddenWnd->Create(NULL, "K-Meleon hidden window", WS_DISABLED, bounds, NULL, NULL, 0, NULL);
   m_pMainWnd = hiddenWnd;
 
   return TRUE;
@@ -538,3 +579,4 @@ NS_IMETHODIMP CMfcEmbedApp::CreateChromeWindow(nsIWebBrowserChrome *parent,
    }
    return NS_OK;
 }
+

@@ -83,7 +83,9 @@ BEGIN_MESSAGE_MAP(CBrowserFrame, CFrameWnd)
 	ON_WM_CLOSE()
    ON_WM_ACTIVATE()
    ON_WM_SYSCOLORCHANGE()
+	ON_WM_COPYDATA()
 	ON_MESSAGE(UWM_REFRESHTOOLBARITEM, RefreshToolBarItem)
+	ON_MESSAGE(UWM_NEWWINDOW, OnNewWindow)
    ON_COMMAND_RANGE(TOOLBAR_MENU_START_ID, TOOLBAR_MENU_END_ID, ToggleToolBar)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
@@ -107,7 +109,6 @@ CBrowserFrame::CBrowserFrame(PRUint32 chromeMask)
    m_created = false;
    m_setURLBarFocus = false;
 
-//   if(!theApp.m_pMostRecentBrowserFrame)
    theApp.m_pMostRecentBrowserFrame = this;
 
 }
@@ -344,8 +345,8 @@ BOOL CBrowserFrame::PreCreateWindow(CREATESTRUCT& cs)
 {
 	if( !CFrameWnd::PreCreateWindow(cs) )
 		return FALSE;
-
-	cs.dwExStyle &= ~WS_EX_CLIENTEDGE;
+ 
+   cs.dwExStyle &= ~WS_EX_CLIENTEDGE;
 
 	// Change window style based on the chromeMask
 
@@ -361,7 +362,8 @@ BOOL CBrowserFrame::PreCreateWindow(CREATESTRUCT& cs)
 		cs.style &= ~WS_MAXIMIZEBOX;
 	}
 
-	cs.lpszClass = AfxRegisterWndClass(0);
+   cs.lpszClass = theApp.GetMainWindowClassName();
+//	cs.lpszClass = AfxRegisterWndClass(0);
 
   // this function is actually called twice per window.
   // the first time hInstance is 0
@@ -565,6 +567,20 @@ BOOL CBrowserFrame::Create(LPCTSTR lpszClassName,
 	return TRUE;
 }
 
+
+// This is called from another instance of Kmeleon (via the UWM_NEWWINDOW message),
+// when no command line paramaters have been specified
+void CBrowserFrame::OnNewWindow() {
+   CBrowserFrame *pBrowserFrame = theApp.CreateNewBrowserFrame();
+   pBrowserFrame->m_wndBrowserView.LoadHomePage();
+}
+
+// This is called from another instance of Kmeleon,
+// and contains any command line parameters specified
+void CBrowserFrame::OnCopyData(CWnd* pWnd, COPYDATASTRUCT* pCopyDataStruct) {
+   CBrowserFrame *pBrowserFrame = theApp.CreateNewBrowserFrame();
+   pBrowserFrame->m_wndBrowserView.OpenURL((char *) pCopyDataStruct->lpData);
+}
 
 #ifdef _DEBUG
 void CBrowserFrame::AssertValid() const
