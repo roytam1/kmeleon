@@ -129,6 +129,7 @@ nsresult CMfcEmbedApp::OverrideComponents()
       } else
        ::FreeLibrary(overlib);
    }
+   return rv;
 }
 
 /*
