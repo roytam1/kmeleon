@@ -102,6 +102,9 @@ void CBrowserFrame::BrowserFrameGlueObj::UpdateCurrentURI(nsIURI *aLocation)
 		pThis->m_wndUrlBar.SetCurrentURL(uriString.get());
 	}
 
+	// append the session history menu info
+	// this will be updated later when OnUpdateBusy state is called
+	// because the page title is not yet available
 
 	pThis->m_wndBrowserView.UpdateGoMenu();
 }

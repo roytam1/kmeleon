@@ -922,9 +922,14 @@ void CBrowserView::UpdateBusyState(PRBool aBusy)
 
   if (mbDocumentLoading){
     mpBrowserFrame->m_wndAnimate.Play(0, -1, -1);
-  }else{
+  }
+  else {
     mpBrowserFrame->m_wndAnimate.Stop();
     mpBrowserFrame->m_wndAnimate.Seek(0);
+
+	// UpdateGoMenu is also called in CBrowserFrame::BrowserFrameGlueObj::UpdateCurrentURI
+	// but only the page url is available at that time, this will overwrite it with the title
+	UpdateGoMenu();
   }
 }
 
@@ -1195,9 +1200,8 @@ void CBrowserView::UpdateGoMenu () {
 		i--;
 	}
 
-	if (i == count)  // if we didn't delete any menus, then we haven't modified this menu before
-		pGoMenu->AppendMenu(MF_SEPARATOR, NULL, "");  // add a separator
-
+	// the ID_GO_HISTORY is needed so that the separator is later deleted in the above routine
+	pGoMenu->AppendMenu(MF_SEPARATOR, ID_GO_HISTORY, "");  // add a separator
 
 	// Add the local history to the menu
 	if (!MozillaSessionHistory (&titles, &count, &index)) {

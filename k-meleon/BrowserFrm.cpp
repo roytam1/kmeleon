@@ -428,6 +428,9 @@ void CBrowserFrame::OnSetFocus(CWnd* pOldWnd)
 {
 	// forward focus to the browser window
 	m_wndBrowserView.mBaseWindow->SetFocus();
+
+	// update session history the current window
+	this->m_wndBrowserView.UpdateGoMenu();
 }
 
 /*
