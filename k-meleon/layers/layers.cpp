@@ -968,52 +968,11 @@ char *getLine(char *text, char **line) {
 }
 
 void readMenu() {
-   CHAR szFileName[MAX_PATH];
-
    if (bReadMenu != 0)
       return;
    bReadMenu = 1;
 
-   kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_SETTINGS_DIR, szFileName, (char*)"");
-   strcat(szFileName, "\\menus.cfg");
-   FILE *fp = fopen(szFileName, "r");
-   if (fp){
-      long size = FileSize(fp);
-      
-      char *buf = new char[size];
-      if (buf){
-         char *pa, *line;
-
-         fread(buf, sizeof(char), size, fp);
-
-         pa = getLine(buf, &line);
-         while (pa && strnicmp(line, "layerbuttonpopup", 16))
-            pa = getLine(pa, &line);
-
-         if (pa) {
-            ghMenu = CreatePopupMenu();
-            do {
-               pa = getLine(pa, &line);
-               if (strncmp(line, "layers", 6) == 0) {
-                  char *p = strchr(line, '(');
-                  if (p) {
-                     line = ++p;
-                     p = strchr(line, ')');
-                     if (p) {
-                        *p = 0;
-                        DoMenu(ghMenu, line);
-                     }
-                  }
-               }
-               else if (*line == '-')
-                  AppendMenu(ghMenu, MF_SEPARATOR, 0,  0);
-            } while (pa && *line!='}');
-         }
-         
-         delete [] buf;
-      }
-      fclose(fp);
-   }
+   ghMenu = kPlugin.kFuncs->GetMenu("LayerButtonPopup");
 }
 
 void DoRebar(HWND rebarWnd){
