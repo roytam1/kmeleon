@@ -156,7 +156,9 @@ enum commands {
    prompt,
    getclipboard,
    setclipboard,
-   macros
+   macros,
+   pluginmsg,
+   pluginmsgex
 };
 
 
@@ -303,6 +305,8 @@ int FindCommand(char *cmd) {
       CMD_TEST(getclipboard)
       CMD_TEST(setclipboard)
       CMD_TEST(macros)
+      CMD_TEST(pluginmsg)
+      CMD_TEST(pluginmsgex)
 
    return cmdVal;
 }
@@ -802,6 +806,74 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
          else {
             ExecuteMacro(hWnd,cmdid);
          }
+      }
+
+
+      /*
+         PluginMsg ( "DestPlugin", "Command", "Param1", "Param2");
+
+         Send a command to a plugin that does not need a return value.
+         If the plugin needs more than two parameters, it will have to
+         parse them out of a string passed as either Param1 or Param2
+      */
+
+      CMD(pluginmsg) {;
+      
+         if((nparam != 3) && (nparam != 4))  {
+            parseError(WRONGARGS, "PluginMsgEx", data, 4, nparam);
+            return "";
+         }
+
+         kFuncs->SendMessage((char*)params[0].c_str(), PLUGIN_NAME, (char*)params[1].c_str(), (long) params[2].c_str(), (long) params[3].c_str());
+         return "";
+         
+      }
+
+      /*
+         PluginMsgEx ( "DestPlugin", "Command", "Params", [INT|CHAR]);
+
+         Internally, this uses the SendMessage command, to send
+         "Command" to DestPlugin with a pointer to "Params" in Data1
+         and a pointer to RetVal in Data2
+
+         This introduces a compatability concern - all plugins that wish to
+         export commands to the macros this way MUST recieve their params in
+         Data1 and return any values in Data2.  If a plugin needs more than
+         one paramater, it must be ready to parse it from a string in Data1
+         eg, "Params" would actually be "Param1, \"Param 2\", Param3, etc"
+      */
+
+      CMD(pluginmsgex) {
+         enum PREFTYPE preftype;
+
+         if(nparam != 4)  {
+            parseError(WRONGARGS, "PluginMsgEx", data, 4, nparam);
+            return "";
+         }
+
+         if (!strcmpi((char*)params[3].c_str(), "int")) preftype = PREF_INT;
+         else if (!strcmpi((char*)params[3].c_str(), "string")) preftype = PREF_STRING;
+         else {
+			   parseError(WRONGTYPE, "PluginMsgEx", data);
+            return "";
+         }
+
+         char cRetval[2048];  // 2k should be enough?
+         int nRetval = 0;
+         if (preftype == PREF_STRING) {
+            kFuncs->SendMessage((char*)params[0].c_str(), PLUGIN_NAME, (char*)params[1].c_str(), (long) params[2].c_str(), (long) &cRetval);
+            std::string strRet = "\"";
+            strRet += cRetval;
+            strRet += "\"";
+            return strRet;
+         }
+         else if (preftype == PREF_INT) {
+            kFuncs->SendMessage((char*)params[0].c_str(), PLUGIN_NAME, (char*)params[1].c_str(), (long) params[2].c_str(), (long) &nRetval);
+            char buffer[12];
+            _itoa(nRetval,buffer,10);
+            return buffer;
+         }
+         return "";
       }
 
    return "";
