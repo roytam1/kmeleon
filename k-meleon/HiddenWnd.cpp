@@ -48,7 +48,7 @@ void CHiddenWnd::OnCreate(LPCREATESTRUCT lpCreateStruct) {
    if (m_bStayResident)
       StayResident();
    else
-      ShowBrowser();
+      ShowBrowser(theApp.m_lpCmdLine);
 
    CFrameWnd::OnCreate(lpCreateStruct);
 }
@@ -190,8 +190,14 @@ void CHiddenWnd::ShowBrowser(char *URI) {
          return;
       }
 
-      if (URI && *URI)
+      if (URI && *URI) {
+         // if the URI is in quotes, strip them off
+         if (URI[0] == '"') {
+            URI++;
+            URI[strlen(URI)-1] = 0;
+         }
          browser->m_wndBrowserView.OpenURL(URI);
+      }
       else {
          browser->m_setURLBarFocus = TRUE;
          browser->m_wndBrowserView.LoadHomePage();
