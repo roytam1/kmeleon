@@ -72,7 +72,8 @@ static inline void UnixTimeToSystemTime(time_t t, LPSYSTEMTIME pst) {
    FILETIME ft1;
    FILETIME ft2;
 
-   ll = Int32x32To64(t, 10000000) + 116444736000000000LL;
+//   ll = Int32x32To64(t, 10000000) + 116444736000000000LL;
+   ll = Int32x32To64(t, 10000000) + 116444736000000000;
    ft1.dwLowDateTime = (DWORD)ll;
    ft1.dwHighDateTime = ll >> 32;
 
@@ -889,7 +890,7 @@ static void CopyItem(HWND hTree, HTREEITEM item) {
    }
 }
 
-static void DeleteItem(HWND hTree, HTREEITEM item, int mode=0) {
+static void DeleteItem(HWND hTree, HTREEITEM item, int mode) {
    CBookmarkNode *node, *parentNode;
 
    node = GetBookmarkNode(hTree, item);
@@ -922,7 +923,6 @@ static void DeleteItem(HWND hTree, HTREEITEM item, int mode=0) {
 
    bookmarksEdited = true;
 }
-
 
 static void CopyBranch(HWND hTree, HTREEITEM item, HTREEITEM newParent)
 {
@@ -1178,7 +1178,7 @@ static void MoveItem(HWND hTree, HTREEITEM item, int mode) {
 }
 
 
-static void CreateNewObject(HWND hTree, HTREEITEM fromItem, int type, int mode=0) {
+static void CreateNewObject(HWND hTree, HTREEITEM fromItem, int type, int mode) {
    CBookmarkNode *newNode;
 
    TVINSERTSTRUCT tvis;
