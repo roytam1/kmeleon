@@ -123,7 +123,7 @@ void Quit(){
 }
 
 static CStringArray m_astrFavoriteURLs;
-static CMap<CString, LPCTSTR, int, int>	m_URLIcons;
+static CArray<UINT, int> m_URLIcons;
 
 static int        m_iInternetShortcutIcon;
 static HIMAGELIST m_himSystem;
@@ -167,41 +167,33 @@ int BuildFavoritesMenu(LPCTSTR pszPath, int nStartPos, CMenu* pMenu)
 				{
 					// an .URL file is formatted just like an .INI file, so we can
 					// use GetPrivateProfileString() to get the information we want
-					::GetPrivateProfileString(_T("InternetShortcut"), _T("URL"),
-											  _T(""), buf, MAX_PATH,
-											  strPath2 + str);
+					GetPrivateProfileString(_T("InternetShortcut"), _T("URL"),
+            _T(""), buf, MAX_PATH,
+            strPath2 + str);
 					str = str.Left(str.GetLength() - 4);
 
 					// scan through the array and perform an insertion sort
 					// to make sure the menu ends up in alphabetic order
-          /*
+
 					for(nPos = nStartPos ; nPos < nEndPos ; ++nPos)	{
 						if(str.CompareNoCase(astrFavorites[nPos]) < 0)
 							break;
 					}
-          */
-          nPos = m_astrFavoriteURLs.GetSize();
+
+          //nPos = m_astrFavoriteURLs.GetSize();
+
 					astrFavorites.InsertAt(nPos, str);
 					m_astrFavoriteURLs.InsertAt(nPos, buf);
 
-					TCHAR ext[_MAX_EXT];
-					_tsplitpath (buf, NULL, NULL, NULL, ext);
-
-					int iIcon;
-					if (!m_URLIcons.Lookup (ext, iIcon))
+					// Retrieve icon
+					SHFILEINFO sfi;
+					if (SHGetFileInfo (strPath2 + wfd.cFileName, 0, &sfi, sizeof(SHFILEINFO), SHGFI_SMALLICON | SHGFI_SYSICONINDEX) &&
+						  sfi.iIcon >= 0)
 					{
-						// Retrieve icon file
-						SHFILEINFO sfi;
-						if (::SHGetFileInfo (strPath2 + wfd.cFileName, 0, &sfi, sizeof(SHFILEINFO), 
-							SHGFI_SMALLICON | SHGFI_SYSICONINDEX) &&
-							sfi.iIcon >= 0)
-						{
-							m_URLIcons.SetAt (ext, sfi.iIcon);
+						m_URLIcons.InsertAt(nPos, sfi.iIcon);
 
-							if (m_iInternetShortcutIcon == -1)
-							{
-								m_iInternetShortcutIcon = sfi.iIcon;
-							}
+						if (m_iInternetShortcutIcon == -1) {
+							m_iInternetShortcutIcon = sfi.iIcon;
 						}
 					}
 
@@ -227,12 +219,11 @@ int BuildFavoritesMenu(LPCTSTR pszPath, int nStartPos, CMenu* pMenu)
 				if(lstrcmp(wfd.cFileName, _T(".")) == 0 || lstrcmp(wfd.cFileName, _T("..")) == 0)
 					continue;
 
-        /*
 				for(nPos = 0 ; nPos < nLastDir ; ++nPos)
 				{
 					if(astrDirs[nPos].CompareNoCase(wfd.cFileName) > 0)
 						break;
-				}*/
+				}
 				pSubMenu = new CMenu;
 				pSubMenu->CreatePopupMenu();
 
@@ -277,11 +268,12 @@ void DoMenu(HMENU menu, char *param){
 	BuildFavoritesMenu(szPath, 0, &m_menuFavorites);
 
 	SHFILEINFO sfi;
-	m_himSystem = (HIMAGELIST)SHGetFileInfo( szPath,
-                                       0,
-                                       &sfi, 
-                                       sizeof(SHFILEINFO), 
-                                       SHGFI_SYSICONINDEX | SHGFI_SMALLICON);
+  m_himSystem = (HIMAGELIST)SHGetFileInfo( szPath,
+    0,
+    &sfi, 
+    sizeof(SHFILEINFO), 
+    SHGFI_SYSICONINDEX | SHGFI_SMALLICON);
+
 	if (m_himSystem != NULL) {
 		int cx, cy;
 
@@ -362,10 +354,24 @@ KMELEON_PLUGIN kmeleonPlugin *GetKmeleonPlugin() {
 }
 
 KMELEON_PLUGIN int DrawBitmap(DRAWITEMSTRUCT *dis) {
-  if (dis->itemID >= nFirstFavoriteCommand && dis->itemID < (nFirstFavoriteCommand + MAX_FAVORITES)){
-    ImageList_Draw(m_himSystem, m_iInternetShortcutIcon, dis->hDC, dis->rcItem.left, dis->rcItem.top, ILD_TRANSPARENT);
+  if (GetMenuState((HMENU)dis->hwndItem, dis->itemID, MF_BYCOMMAND) & MF_POPUP){
+    if (dis->itemState & ODS_SELECTED){
+      ImageList_Draw(m_himSystem, m_iFolderIcon, dis->hDC, dis->rcItem.left, dis->rcItem.top, ILD_FOCUS );
+    }else{
+      ImageList_Draw(m_himSystem, m_iFolderIcon, dis->hDC, dis->rcItem.left, dis->rcItem.top, ILD_TRANSPARENT);
+    }
+    return 18;
   }
-  return 16;
+  if (dis->itemID >= nFirstFavoriteCommand && dis->itemID < (nFirstFavoriteCommand + MAX_FAVORITES)){
+    if (dis->itemState & ODS_SELECTED){
+      ImageList_Draw(m_himSystem, m_URLIcons[dis->itemID - nFirstFavoriteCommand], dis->hDC, dis->rcItem.left, dis->rcItem.top, ILD_FOCUS);
+    }else{
+      ImageList_Draw(m_himSystem, m_URLIcons[dis->itemID - nFirstFavoriteCommand], dis->hDC, dis->rcItem.left, dis->rcItem.top, ILD_TRANSPARENT);
+    }
+
+    return 18;
+  }
+  return 0;
 }
 
 }
