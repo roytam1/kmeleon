@@ -298,7 +298,7 @@ CProgressDialog::~CProgressDialog(){
 NS_IMETHODIMP CProgressDialog::OnStateChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest, PRInt32 aStateFlags, PRUint32 aStatus){
    if (aStateFlags & nsIWebProgressListener::STATE_STOP){
       if (IsDlgButtonChecked(IDC_CLOSE_WHEN_DONE)) {
-         mLauncher->CloseProgressWindow ();
+         Close();
          theApp.preferences.SetBool("kmeleon.general.CloseDownloadDialog", true);
       }
       else
@@ -477,7 +477,7 @@ END_MESSAGE_MAP()
 
 void CProgressDialog::Cancel() {
    mLauncher->Cancel();
-   mLauncher->CloseProgressWindow ();   
+   Close();
 }
 
 void CProgressDialog::OnCancel() {
@@ -489,12 +489,16 @@ void CProgressDialog::OnCancel() {
    }
 }
 
+void CProgressDialog::Close() {
+   mLauncher->CloseProgressWindow ();
+   theApp.UnregisterWindow(this);
+}
+
 void CProgressDialog::OnClose() {
    if (!mDone) {
+      Close();
       mLauncher->Cancel();
-      mLauncher->CloseProgressWindow ();
    }
-   theApp.UnregisterWindow(this);
 }
 
 void CProgressDialog::OnOpen() {

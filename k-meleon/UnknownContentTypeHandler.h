@@ -67,6 +67,7 @@ public:
    virtual ~CProgressDialog();
 
    void Cancel();
+   void Close();
 
    virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
