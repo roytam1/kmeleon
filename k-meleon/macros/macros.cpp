@@ -27,6 +27,7 @@
 #define KMELEON_PLUGIN_EXPORTS
 #include "..\kmeleon_plugin.h"
 #include "..\utils.h"
+#include "macros.h"
 
 #define _T(x) x
 
@@ -460,6 +461,42 @@ static void parseError(int err, char *cmd, char *args, int data1=0, int data2=0)
    MessageBox(NULL, msg, title, MB_OK);
 }
 
+std::string title = "";
+std::string question = "";
+std::string answer = "";
+
+BOOL CALLBACK
+PromptDlgProc( HWND hwnd,
+	      UINT Message,
+	      WPARAM wParam,
+	      LPARAM lParam )
+{
+    switch (Message) {
+      case WM_INITDIALOG:
+	SetWindowText(hwnd, (char*)title.c_str());
+	SetDlgItemText(hwnd, IDC_PROMPT, (char*)question.c_str());
+        return TRUE;
+      case WM_COMMAND:
+        switch (LOWORD(wParam)) {
+	  case IDOK:
+	    char tmp[256];
+	    GetDlgItemText(hwnd, IDC_ANSWER, tmp, 256);
+	    answer = tmp;
+	    EndDialog( hwnd, IDOK );
+	    break;
+	  case IDCANCEL:
+	    EndDialog( hwnd, IDCANCEL );
+	    break;
+	}
+	break;
+	
+      default:
+        return FALSE;
+    }
+    return TRUE;
+}
+
+
 std::string ExecuteCommand (HWND hWnd, int command, char *data) {
    const int nmaxparams = 5;  // maximum num of function parameters
    std::string params[nmaxparams];
@@ -725,7 +762,18 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
 
       }
       CMD(prompt) {
-         // TODO: create and show a modal 'prompt' dialog that returns a string value
+         if (nparam > 2) {  // statusbar( [$0 [,$1]] )
+            parseError(WRONGARGS, "statusbar", data, 2, nparam);
+            return "";
+         }
+	question = params[0];
+	title = params[1];
+	int ok = DialogBox(kPlugin.hDllInstance,
+		  MAKEINTRESOURCE(IDD_PROMPT), hWnd, (DLGPROC)PromptDlgProc);
+	PostMessage(hWnd, WM_NULL, 0, 0);
+	if (ok == IDOK)
+	  return answer;
+	else 
          return "";
       }
 
