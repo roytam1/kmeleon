@@ -80,7 +80,7 @@ public:
 	//
 	nsCOMPtr<nsIWebBrowser> mWebBrowser;
 	nsCOMPtr<nsIBaseWindow> mBaseWindow;
-	nsCOMPtr<nsIWebNavigation> mWebNav;	
+	nsCOMPtr<nsIWebNavigation> mWebNav;
 
 	void UpdateBusyState(PRBool aBusy);
 	PRBool mbDocumentLoading;
@@ -113,6 +113,7 @@ protected:
 	afx_msg void OnSize( UINT, int, int );
   afx_msg void OnTimer(UINT nIDEvent);
   afx_msg int OnMouseActivate(CWnd* pDesktopWnd, UINT nHitTest, UINT message);
+  afx_msg void OnDropFiles( HDROP );
 	// UrlBar command handlers
 	//
 	afx_msg void OnUrlSelectedInUrlBar();
