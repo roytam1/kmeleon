@@ -307,7 +307,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 					CreateForwardMenu(hWnd, TPM_LEFTBUTTON);
 					break;
 			}
-			return true;
+			break;
 		case TB_RBUTTONDOWN:
 			switch (wParam) {
 				case ID_NAV_BACK:
@@ -317,7 +317,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 					CreateForwardMenu(hWnd, TPM_RIGHTBUTTON);
 					break;
 			}
-			return true;
+			break;
 
 		case WM_COMMAND:
 			WORD command;
