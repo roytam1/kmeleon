@@ -306,7 +306,7 @@ int GetTabWidth(HMENU menu){
 			}
 		}
 	}
-	return maxChars+3;
+	return maxChars+5;
 }
 
 void DrawMenuItem(DRAWITEMSTRUCT *dis) {
@@ -474,54 +474,63 @@ void SetOwnerDrawn(HMENU menu, HINSTANCE plugin){
 }
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
-  if (message == WM_MEASUREITEM){
-    MEASUREITEMSTRUCT *mis = (MEASUREITEMSTRUCT *)lParam;
-    MenuDataT * mdt = (MenuDataT *)mis->itemData;
-    if (mis->CtlType == ODT_MENU && mdt->version == BMP_MENU_VERSION){
-      RECT rc = {0};
-      HDC hDC = GetDC(hWnd);
+   if (message == WM_MEASUREITEM){
+      MEASUREITEMSTRUCT *mis = (MEASUREITEMSTRUCT *)lParam;
+      MenuDataT * mdt = (MenuDataT *)mis->itemData;
+      if (mis->CtlType == ODT_MENU && mdt->version == BMP_MENU_VERSION){
+         RECT rc = {0};
+         HDC hDC = GetDC(hWnd);
 
-      NONCLIENTMETRICS ncm = {0};
-		  ncm.cbSize = sizeof(ncm);
-		  SystemParametersInfo(SPI_GETNONCLIENTMETRICS,0,(PVOID)&ncm,FALSE);
-		  HFONT font;
-		  font = CreateFontIndirect(&ncm.lfMenuFont);
-		  HFONT oldFont = (HFONT)SelectObject(hDC, font);
+         NONCLIENTMETRICS ncm = {0};
+		   ncm.cbSize = sizeof(ncm);
+		   SystemParametersInfo(SPI_GETNONCLIENTMETRICS,0,(PVOID)&ncm,FALSE);
+		   HFONT font;
+		   font = CreateFontIndirect(&ncm.lfMenuFont);
+		   HFONT oldFont = (HFONT)SelectObject(hDC, font);
       
-      char *string = (char *)((MenuDataT *)mis->itemData)->data;
+         char *string = (char *)((MenuDataT *)mis->itemData)->data;
 
-      DrawText(hDC, string, strlen(string), &rc, DT_CALCRECT | DT_SINGLELINE);
+         char *tab = strrchr(string, '\t');
+         int tabWidth;
+         if (tab) tabWidth = tab - string +5;
+         else tabWidth = 0;
 
-      SelectObject(hDC, oldFont);
-      DeleteObject(font);
-      ReleaseDC(hWnd, hDC);
+         DWORD size = GetTabbedTextExtent(hDC, string, strlen(string), 1, &tabWidth);
+         rc.top    = 0;
+         rc.left   = 0;
+         rc.bottom = HIWORD(size);
+         rc.right  = LOWORD(size);
 
-      mis->itemWidth = rc.right + LEFT_SPACE;
-      mis->itemHeight = GetSystemMetrics(SM_CYMENUSIZE);
-      return true;
-    }
-  }
-  else if (message == WM_DRAWITEM){
-    DRAWITEMSTRUCT *dis = (DRAWITEMSTRUCT *)lParam;
-    MenuDataT * mdt = (MenuDataT *)dis->itemData;
-    if (dis->CtlType == ODT_MENU && mdt->version == BMP_MENU_VERSION){
-      DrawMenuItem(dis);
-      return true;
-    }
-  }
-  else if (message == WM_DESTROY){
-    refCount--;
-    if (refCount == 0){
-      while(menus.size()){
-        UnSetOwnerDrawn(menus.front());
-        menus.erase(menus.begin());
+         SelectObject(hDC, oldFont);
+         DeleteObject(font);
+         ReleaseDC(hWnd, hDC);
+
+         mis->itemWidth = rc.right + LEFT_SPACE;
+         mis->itemHeight = GetSystemMetrics(SM_CYMENUSIZE);
+         return true;
       }
-    }
-  }
-  WndProcMap::iterator WndProcIterator;
-  WndProcIterator = KMeleonWndProcs.find(hWnd);
+   }
+   else if (message == WM_DRAWITEM){
+       DRAWITEMSTRUCT *dis = (DRAWITEMSTRUCT *)lParam;
+      MenuDataT * mdt = (MenuDataT *)dis->itemData;
+      if (dis->CtlType == ODT_MENU && mdt->version == BMP_MENU_VERSION){
+         DrawMenuItem(dis);
+         return true;
+      }
+   }
+   else if (message == WM_DESTROY){
+       refCount--;
+      if (refCount == 0){
+         while(menus.size()){
+            UnSetOwnerDrawn(menus.front());
+            menus.erase(menus.begin());
+         }
+      }
+   }
+   WndProcMap::iterator WndProcIterator;
+   WndProcIterator = KMeleonWndProcs.find(hWnd);
 
-  return CallWindowProc((WNDPROC)WndProcIterator->second, hWnd, message, wParam, lParam);
+   return CallWindowProc((WNDPROC)WndProcIterator->second, hWnd, message, wParam, lParam);
 }
 
 // so it doesn't munge the function name
