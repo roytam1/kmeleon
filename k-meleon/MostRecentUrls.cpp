@@ -87,7 +87,7 @@ void CMostRecentUrls::AddURL(const char * aURL) {
    }
 
    // if no match
-   if(x==m_URLCount-1) {
+   if((x==m_URLCount-1) || (m_URLCount == 0)) {
       if (x==m_maxURLs-1) delete m_URLs[x];    // if list is full, remove the bottom entry
       else {                                   // otherwise just increase the count
          m_URLCount++;
