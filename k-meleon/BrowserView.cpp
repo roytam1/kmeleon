@@ -83,7 +83,7 @@ BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
 	ON_WM_SIZE()
    ON_WM_TIMER()
    ON_WM_MOUSEACTIVATE()
-	ON_CBN_SELENDOK(ID_URL_BAR, OnUrlSelectedInUrlBar)
+	// ON_CBN_SELENDOK(ID_URL_BAR, OnUrlSelectedInUrlBar)
    ON_CBN_KILLFOCUS(ID_URL_BAR, OnUrlKillFocus)
    ON_CBN_EDITCHANGE(ID_URL_BAR, OnUrlEditChange)
    ON_COMMAND(IDOK, OnNewUrlEnteredInUrlBar)
@@ -535,7 +535,7 @@ void CBrowserView::OnNewUrlEnteredInUrlBar()
 }
 
 // A URL has  been selected from the UrlBar's dropdown list
-//
+/*
 void CBrowserView::OnUrlSelectedInUrlBar()
 {
    CString strUrl;	
@@ -546,6 +546,7 @@ void CBrowserView::OnUrlSelectedInUrlBar()
    else 
    	OpenURL(strUrl.GetBuffer(0));
 }
+*/
 
 void CBrowserView::OnSelectUrl()
 {
