@@ -119,6 +119,8 @@ typedef struct {
    char * (*EncodeUTF8) (const char *str);
    char * (*DecodeUTF8) (const char *str);
 
+   void (*GetBrowserviewRect) (HWND mainWnd, RECT *rc);
+
 } kmeleonFunctions;
 
 /*

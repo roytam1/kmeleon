@@ -501,6 +501,12 @@ char *DecodeUTF8(const char *str) {
   return pszStr;
 }
 
+void GetBrowserviewRect(HWND mainWnd, RECT *rc) {
+   CBrowserFrame *frame = (CBrowserFrame *)CWnd::FromHandle(mainWnd);
+   if (frame)
+      frame->m_wndBrowserView.GetWindowRect(rc);
+}
+
 long CPlugins::SendMessage(const char *to, const char *from, const char *subject, long data1, long data2)
 {
    long retVal = 0;
@@ -544,7 +550,8 @@ kmeleonFunctions kmelFuncs = {
    CommandAtPoint,
    GetGlobalVar,
    EncodeUTF8,
-   DecodeUTF8
+   DecodeUTF8,
+   GetBrowserviewRect
 };
 
 BOOL CPlugins::TestLoad(const char *file, const char *description)
