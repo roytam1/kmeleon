@@ -22,6 +22,9 @@
 #include "resource.h"
 #include "frontend.h"
 
+#pragma warning( disable : 4786 ) // C4786 bitches about the std::map template name expanding beyond 255 characters
+#include <map>
+
 #define KMELEON_PLUGIN_EXPORTS
 #include "../kmeleon_plugin.h"
 
@@ -42,22 +45,22 @@ BOOL APIENTRY DllMain( HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
 }
 
 int Init();
+void Create(HWND parent);
 void Config(HWND parent);
 void Quit();
 HGLOBAL GetMenu();
 void DoMenu(HMENU menu, char *param);
 void DoRebar(HWND rebarWnd);
-LPARAM OnMessage(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 kmeleonPlugin kPlugin = {
   KMEL_PLUGIN_VER,
   "Winamp Plugin",
   Init,
+  Create,
   Config,
   Quit,
   DoMenu,
-  DoRebar,
-  OnMessage
+  DoRebar
 };
 
 HBITMAP prevBmp;
@@ -90,6 +93,16 @@ int Init(){
   AppendMenu(mainMenu, MF_STRING, commandIDs + 4, "Next");
 
   return true;
+}
+
+typedef std::map<HWND, void *> WndProcMap;
+WndProcMap KMeleonWndProcs;
+
+LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+
+void Create(HWND parent){
+	KMeleonWndProcs[parent] = (void *) GetWindowLong(parent, GWL_WNDPROC);
+	SetWindowLong(parent, GWL_WNDPROC, (LONG)WndProc);
 }
 
 void Config(HWND parent){
@@ -180,7 +193,7 @@ void DoRebar(HWND rebarWnd){
   */
 }
 
-LPARAM OnMessage(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam){
+LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
   if (message == WM_COMMAND){
     WORD command = LOWORD(wParam);
     if (command >= commandIDs && command < (commandIDs + numCommands)){
@@ -189,7 +202,10 @@ LPARAM OnMessage(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam){
       return true;
     }
   }
-  return false;
+  WndProcMap::iterator WndProcIterator;
+  WndProcIterator = KMeleonWndProcs.find(hWnd);
+
+  return CallWindowProc((WNDPROC)WndProcIterator->second, hWnd, message, wParam, lParam);
 }
 
 // so it doesn't munge the function name
