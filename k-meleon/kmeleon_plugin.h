@@ -90,6 +90,10 @@ typedef struct {
 
    HWND (*CreateToolbar) (HWND parentWnd, UINT style = 0x0000994F);
 
+
+   // get the value of an identifier, eg "ID_NAV_BACK"
+   int (*GetID) (char *strID);
+
 } kmeleonFunctions;
 
 /*

@@ -28,16 +28,12 @@ extern CMfcEmbedApp theApp;
 #include "MenuParser.h"
 #include "Utils.h"
 
-static CMap<CString, LPCSTR, int, int &> defineMap;
 CMenuParser::CMenuParser()
 {
-   #include "defineMap.cpp"
 }
 
 CMenuParser::CMenuParser(CString &filename)
 {
-   #include "defineMap.cpp"
-
 	Load(filename);
 }
 
@@ -163,7 +159,10 @@ int CMenuParser::Parse(char *p)
                *e = 0;
                e = SkipWhiteSpace(e+1);
                int val;
-               if (!defineMap.Lookup(e, val))
+
+               
+               val = theApp.GetID(e);
+               if (!val)
                   val = atoi(e);
 
                TrimWhiteSpace(p);
