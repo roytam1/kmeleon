@@ -31,6 +31,10 @@ extern CMfcEmbedApp theApp;
 
 #include "BrowserFrm.h"
 #include "BrowserView.h"
+#define NS_WEBBROWSERPERSIST_CID \
+{ 0x7e677795, 0xc582, 0x4cd1, { 0x9e, 0x8d, 0x82, 0x71, 0xb3, 0x47, 0x4d, 0x2a } }
+#define NS_WEBBROWSERPERSIST_CONTRACTID \
+"@mozilla.org/embedding/browser/nsWebBrowserPersist;1"
 
 BOOL CBrowserView::IsViewSourceUrl(CString& strUrl)
 {
@@ -109,6 +113,18 @@ void CBrowserView::GetPageTitle(CString& title)
    mpBrowserFrameGlue->GetBrowserFrameTitle(&aTitle);
    title = W2T(aTitle);
 }
+
+BOOL MultiSave(nsIURI* aURI, nsILocalFile* file) {
+   nsCOMPtr<nsIWebBrowserPersist> persist(do_CreateInstance(NS_WEBBROWSERPERSIST_CONTRACTID));
+   if(!persist)
+      return FALSE;
+    
+   CProgressDialog *progress = new CProgressDialog(FALSE);
+   progress->InitPersist(aURI, file, persist, TRUE);
+   persist->SaveURI(aURI, nsnull, nsnull, nsnull, nsnull, file);
+   return TRUE;
+}
+
 
 NS_IMETHODIMP CBrowserView::URISaveAs(nsIURI* aURI, bool bDocument)
 {
@@ -200,7 +216,28 @@ NS_IMETHODIMP CBrowserView::URISaveAs(nsIURI* aURI, bool bDocument)
       idxSlash = theApp.preferences.saveDir.ReverseFind('\\');
       theApp.preferences.saveDir = theApp.preferences.saveDir.Mid(0, idxSlash+1);
 
+      BOOL bSaveAll = FALSE;
+      CString strDataPath;
+      char *pStrDataPath = NULL;
+      if(bDocument && cf.m_ofn.nFilterIndex == 3) {
+         // cf.m_ofn.nFilterIndex == 3 indicates
+         // user want to save the complete document including
+         // all frames, images, scripts, stylesheets etc.
 
+         bSaveAll = TRUE;
+
+         int idxPeriod = strFullPath.ReverseFind('.');
+         strDataPath = strFullPath.Mid(0, idxPeriod);
+         strDataPath += "_files";
+
+         // At this stage strDataPath will be of the form
+         // c:\tmp\junk_files - assuming we're saving to a file
+         // named junk.htm
+         // Any images etc in the doc will be saved to a dir
+         // with the name c:\tmp\junk_files
+
+         pStrDataPath = strDataPath.GetBuffer(0); // Get char * for later use
+      }
 
 
       // Get the persist interface that we'll use for saving the file(s)
@@ -214,12 +251,32 @@ NS_IMETHODIMP CBrowserView::URISaveAs(nsIURI* aURI, bool bDocument)
       nsCOMPtr<nsILocalFile> file;
       NS_NewNativeLocalFile(nsDependentCString(T2A(strFullPath.GetBuffer(0))), TRUE, getter_AddRefs(file));
 
-      CProgressDialog *progress = new CProgressDialog(FALSE);
+      nsCOMPtr<nsILocalFile> dataPath;
+      if (pStrDataPath)
+         NS_NewNativeLocalFile(nsDependentCString(pStrDataPath), TRUE, getter_AddRefs(dataPath));
+
+      if(!bDocument) {
+         PRUint32 currentState;
+         persist->GetCurrentState(&currentState);
+         if (currentState != nsIWebBrowserPersist::PERSIST_STATE_FINISHED) {
+            // Now we save the file using a throw away persist if we are already saving...
+            if (MultiSave(aURI, file) == TRUE) {
+               if (pBuf) delete pBuf;
+                  return NS_OK;
+            }
+            else
+               return NS_ERROR_FAILURE;
+	 }
+         CProgressDialog *progress = new CProgressDialog(FALSE);
       
-      progress->InitPersist(aURI, file, persist, TRUE);
+         progress->InitPersist(aURI, file, persist, TRUE);
 
-      persist->SaveURI(aURI, nsnull, nsnull, nsnull, nsnull, file);
-
+         persist->SaveURI(aURI, nsnull, nsnull, nsnull, nsnull, file);
+      }
+      else if(bSaveAll)
+         persist->SaveDocument(nsnull, file, dataPath, nsnull, 0, 0);
+      else
+         persist->SaveURI(aURI, nsnull, nsnull, nsnull, nsnull, file);
    }
 
    if (pBuf)
