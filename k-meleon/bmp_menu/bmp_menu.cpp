@@ -52,6 +52,7 @@ void Create(HWND parent);
 void Config(HWND parent);
 void Quit();
 void DoMenu(HMENU menu, char *param);
+int GetConfigFiles(configFileType **configFiles);
 
 pluginFunctions pFunc = {
    Init,
@@ -59,7 +60,9 @@ pluginFunctions pFunc = {
    Config,
    Quit,
    DoMenu,
-   NULL // no rebar
+   NULL, // no rebar
+   NULL, // no accels
+   GetConfigFiles
 };
 
 kmeleonPlugin kPlugin = {
@@ -200,16 +203,29 @@ void Create(HWND parent){
    bFirstRun=FALSE;
 }
 
-void Config(HWND parent){
+void Config(HWND parent)
+{
    char cfgPath[MAX_PATH];
    strcpy(cfgPath, settingsPath);
    strcat(cfgPath, "menuicons.cfg");
 
    ShellExecute(parent, NULL, "notepad.exe", cfgPath, NULL, SW_SHOW);
+}
 
-   strcpy(cfgPath, settingsPath);
-   strcat(cfgPath, "menus.cfg");
-   ShellExecute(parent, NULL, "notepad.exe", cfgPath, NULL, SW_SHOW);
+configFileType g_configFiles[1];
+
+int GetConfigFiles(configFileType **configFiles)
+{
+   strcpy(g_configFiles[0].file, settingsPath);
+   strcat(g_configFiles[0].file, "menuicons.cfg");
+
+   strcpy(g_configFiles[0].label, "Menu Icons");
+
+   strcpy(g_configFiles[0].helpUrl, "http://www.kmeleon.org");
+
+   *configFiles = g_configFiles;
+
+   return 1;
 }
 
 void Quit(){
@@ -510,6 +526,9 @@ void StringToOwnerDrawn(HMENU menu, int i, UINT flags, UINT id){
    mmi.cch ++;
    mmi.dwTypeData = new char[mmi.cch];
    GetMenuItemInfo(menu, i, true, &mmi);
+
+   // at first glance it appears as though dwTypeData is never delete[]d, but that's not so.   in
+   // UnSetOwnerDrawn, we change it back to a MF_STRING which causes windows to delete[] it for us
 
    ModifyMenu(menu, i, MF_BYPOSITION | MF_OWNERDRAW | flags, id, mmi.dwTypeData);
 }

@@ -30,6 +30,12 @@
 #define OPEN_BACKGROUND  2
 
 typedef struct {
+   char label[16];
+   char file[MAX_PATH];
+   char helpUrl[MAX_PATH];
+} configFileType;
+
+typedef struct {
    char *title;
    char *url;
 } kmeleonDocInfo;
@@ -70,6 +76,7 @@ typedef struct {
    void  (*DoMenu)  (HMENU menu, char *param);
    void  (*DoRebar) (HWND rebarWnd);
    int   (*DoAccel) (char *param);
+   int   (*GetConfigFiles)(configFileType **configFiles);
 } pluginFunctions;
 
 typedef struct {

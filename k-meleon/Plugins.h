@@ -48,6 +48,8 @@ public:
    //LRESULT OnMessage(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam);
    int  OnUpdate(UINT command);
    void DoRebars(HWND rebarWnd);
+
+   int GetConfigFiles(configFileType *configFiles, int maxFiles);
 };
 
 #endif // __PLUGINS_H__

@@ -43,6 +43,7 @@ void LoadMacros(char *filename);
 BOOL APIENTRY DllMain(HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved );
 void ExecuteMacro(int macro);
 void ExecuteCommand (int command, char *data);
+int GetConfigFiles(configFileType **configFiles);
 
 pluginFunctions pFunc = {
    Init,
@@ -51,7 +52,8 @@ pluginFunctions pFunc = {
    Quit,
    DoMenu,
    DoRebar,
-   DoAccel
+   DoAccel,
+   GetConfigFiles
 };
 
 kmeleonPlugin kPlugin = {
@@ -134,6 +136,25 @@ void Config(HWND hWndParent) {
    kPlugin.kf->GetPreference(PREF_STRING, _T("kmeleon.general.settingsDir"), cfgPath, "");
    strcat(cfgPath, "macros.cfg");
    ShellExecute(NULL, NULL, "notepad.exe", cfgPath, NULL, SW_SHOW);
+}
+
+configFileType g_configFiles[1];
+
+int GetConfigFiles(configFileType **configFiles)
+{
+   char cfgPath[MAX_PATH];
+   kPlugin.kf->GetPreference(PREF_STRING, _T("kmeleon.general.settingsDir"), cfgPath, "");
+
+   strcpy(g_configFiles[0].file, cfgPath);
+   strcat(g_configFiles[0].file, "macros.cfg");
+
+   strcpy(g_configFiles[0].label, "Macros");
+
+   strcpy(g_configFiles[0].helpUrl, "http://www.kmeleon.org");
+
+   *configFiles = g_configFiles;
+
+   return 1;
 }
 
 void Quit() {

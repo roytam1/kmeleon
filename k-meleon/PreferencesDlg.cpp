@@ -59,7 +59,7 @@ CPreferencesDlg::OnInitDialog(){
 
    AddItem(_T("General"), IDD_PREFERENCES_GENERAL);
    AddItem(_T("Display"), IDD_PREFERENCES_DISPLAY);
-   AddItem(_T("Menus"),   IDD_PREFERENCES_MENUS);
+   AddItem(_T("Configs"),   IDD_PREFERENCES_CONFIGS);
    AddItem(_T("Proxy"),   IDD_PREFERENCES_PROXY);
    AddItem(_T("Advanced"),IDD_PREFERENCES_ADVANCED);
    AddItem(_T("Cache"),   IDD_PREFERENCES_CACHE);
@@ -132,8 +132,8 @@ void CPreferencesDlg::ShowPage(UINT idd){
   if (idd == IDD_PREFERENCES_PLUGINS)
     page = new CPreferencePagePlugins;
 
-  else if (idd == IDD_PREFERENCES_MENUS)
-     page = new CPreferencePageMenus;
+  else if (idd == IDD_PREFERENCES_CONFIGS)
+     page = new CPreferencePageConfigs;
 
   else
     page = new CPreferencePage;
@@ -399,35 +399,57 @@ void CPreferencePagePlugins::OnEnable() {
 
 /**/
 
-BOOL CPreferencePageMenus::OnInitDialog(){
+BOOL CPreferencePageConfigs::OnInitDialog(){
    CDialog::OnInitDialog();
 
-   ShowFile("menus.cfg");
-   m_nCurrentFile = 0;
+   CEdit *editBox = (CEdit *)GetDlgItem(IDC_EDIT1);
+   editBox->SetTabStops(6);
+
+   AddTab("Menus", theApp.preferences.settingsDir + "menus.cfg", "");
+   AddTab("Accelerators", theApp.preferences.settingsDir + "accel.cfg", "");
+   AddTab("Prefs", theApp.preferences.settingsDir + "prefs.js", "");
+
+   configFileType pluginConfigFiles[10];
+   int numConfigFiles = theApp.plugins.GetConfigFiles(pluginConfigFiles, 10);
+   int i;
+   for (i=0; i<numConfigFiles; i++) {
+      AddTab(pluginConfigFiles[i].label, pluginConfigFiles[i].file, pluginConfigFiles[i].helpUrl);
+   }
+
+   ShowFile(m_configFiles[0]);
 
 	return FALSE;  // return TRUE  unless you set the focus to a control
 }
 
-CPreferencePageMenus::~CPreferencePageMenus() {
+CPreferencePageConfigs::~CPreferencePageConfigs() {
 }
 
-void CPreferencePageMenus::OnHelp(){
-   if (m_nCurrentFile == 0){
-      MessageBox("Somewhere on kmeleon.org there should be a help file.  Eventually, the information will be here too.");
-   }
-   else if (m_nCurrentFile == 1){
-      MessageBox("Somewhere on kmeleon.org there should be a help file.  Eventually, the information will be here too.");
-   }
+void CPreferencePageConfigs::AddTab(const char *label, const char *file, const char *help)
+{
+   int newItem = m_tabCtrl.GetItemCount();
+   m_tabCtrl.InsertItem(newItem, label);
+   m_configFiles.InsertAt(newItem, file);
 }
 
-void CPreferencePageMenus::SaveFile(char *filename){
-   if (MessageBox("Do you wish to save your changes?", filename, MB_YESNO) == IDNO){
+void CPreferencePageConfigs::OnHelp(){
+   MessageBox("Somewhere on kmeleon.org there should be a help file.  Eventually, the information will be here too.");
+}
+
+void CPreferencePageConfigs::SaveFile(const char *filename)
+{
+   const char *prettyFilename = strrchr(filename, '\\');
+   if (prettyFilename) {
+      prettyFilename++; // hop over the '\'
+   } else {
+      prettyFilename = filename;
+   }
+   if (MessageBox("Do you wish to save your changes?", prettyFilename, MB_YESNO) == IDNO){
       return;
    }
    CFile file;
-   if (file.Open(theApp.preferences.settingsDir + filename, CFile::typeBinary | CFile::modeWrite)){
+   if (file.Open(filename, CFile::typeBinary | CFile::modeWrite)){
       /* binary is so Write treats cr/lf as 2 characters */
-      file.Write(m_fileText, m_fileText.GetLength()+1);
+      file.Write(m_fileText, m_fileText.GetLength());
    }
    else{
       MessageBox("Error opening file");
@@ -435,9 +457,9 @@ void CPreferencePageMenus::SaveFile(char *filename){
    file.Close();
 }
 
-void CPreferencePageMenus::ShowFile(char *filename){
+void CPreferencePageConfigs::ShowFile(const char *filename){
    CFile file;
-   if (file.Open(theApp.preferences.settingsDir + filename, CFile::modeRead)){
+   if (file.Open(filename, CFile::modeRead)){
       int length = file.GetLength();
       char *buffer = new char[length+1];
       buffer[file.Read(buffer, length)] = 0;
@@ -452,47 +474,40 @@ void CPreferencePageMenus::ShowFile(char *filename){
       MessageBox("Error opening file");
    }
    file.Close();
-   m_currentFile = filename;
 }
 
-void CPreferencePageMenus::OnMenus(){
-   UpdateData();
-
-   ShowFile("menus.cfg");
-   m_nCurrentFile = 0;
+void CPreferencePageConfigs::OnSelChange(NMHDR *nmHdr, LRESULT *result)
+{
+   ShowFile(m_configFiles[m_tabCtrl.GetCurSel()]);
 
    SendDlgItemMessage(IDC_EDIT1, EM_SETMODIFY, 0);
 }
 
-void CPreferencePageMenus::OnAccel(){
+void CPreferencePageConfigs::OnSelChanging(NMHDR *nmHdr, LRESULT *result)
+{
    UpdateData();
 
-   ShowFile("accel.cfg");
-   m_nCurrentFile = 1;
-
-   SendDlgItemMessage(IDC_EDIT1, EM_SETMODIFY, 0);
+   *result = false;
 }
 
-void CPreferencePageMenus::DoDataExchange(CDataExchange* pDX){
+void CPreferencePageConfigs::DoDataExchange(CDataExchange* pDX){
    CDialog::DoDataExchange(pDX);
 	//{{AFX_DATA_MAP(CPreferencePagePlugins)
    DDX_Text(pDX, IDC_EDIT1, m_fileText);
+   DDX_Control(pDX, IDC_TAB1, m_tabCtrl);
    //}}AFX_DATA_MAP
 
    if (pDX->m_bSaveAndValidate){
       if (SendDlgItemMessage(IDC_EDIT1, EM_GETMODIFY)){
-         if (m_nCurrentFile == 0)
-            SaveFile("menus.cfg");
-         else if (m_nCurrentFile == 1)
-            SaveFile("accel.cfg");
+         SaveFile(m_configFiles[m_tabCtrl.GetCurSel()]);
       }
    }
 }
 
-BEGIN_MESSAGE_MAP(CPreferencePageMenus, CPreferencePage)
-	//{{AFX_MSG_MAP(CPreferencePageMenus)
+BEGIN_MESSAGE_MAP(CPreferencePageConfigs, CPreferencePage)
+	//{{AFX_MSG_MAP(CPreferencePageConfigs)
    ON_BN_CLICKED(IDC_BUTTON_HELP, OnHelp)
-   ON_BN_CLICKED(IDC_BUTTON_MENUS, OnMenus)
-   ON_BN_CLICKED(IDC_BUTTON_ACCEL, OnAccel)
+   ON_NOTIFY(TCN_SELCHANGING, IDC_TAB1, OnSelChanging)
+   ON_NOTIFY(TCN_SELCHANGE, IDC_TAB1, OnSelChange)
    //}}AFX_MSG_MAP
 END_MESSAGE_MAP()
