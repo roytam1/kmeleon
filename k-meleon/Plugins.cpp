@@ -194,11 +194,11 @@ int GetMozillaSessionHistory (char ***titles, int *count, int *index) {
 
    SessionSize = *count;
 
-	nsCOMPtr<nsISHEntry> he;
+	nsCOMPtr<nsIHistoryEntry> he;
 	PRUnichar *title;
 	for (i=0; i < *count; i++) {
 
-		result = h->GetEntryAtIndex (i, PR_FALSE, getter_AddRefs (he));
+		result = h->GetEntryAtIndex(i, PR_FALSE, getter_AddRefs (he));
 		if (!NS_SUCCEEDED(result) || (!he)) return FALSE;
 
 		result = he->GetTitle (&title);

@@ -131,6 +131,7 @@ void CBrowserFrame::OnClose()
       CBrowserFrame* pFrame;
 
       POSITION pos = theApp.m_FrameWndLst.Find(this);
+      theApp.m_FrameWndLst.GetPrev(pos);
       if (pos) pFrame = (CBrowserFrame *) theApp.m_FrameWndLst.GetPrev(pos);  // previous frame
       else     pFrame = (CBrowserFrame *) theApp.m_FrameWndLst.GetTail();     // last frame
 
@@ -139,7 +140,7 @@ void CBrowserFrame::OnClose()
       // if only one frame exists, nullify the pointer
    }
 
-   theApp.RemoveFrameFromList(this);   
+   theApp.RemoveFrameFromList(this);
 
    DestroyWindow();
 }
@@ -452,7 +453,7 @@ BOOL CBrowserFrame::PreCreateWindow(CREATESTRUCT& cs)
 void CBrowserFrame::OnSetFocus(CWnd* pOldWnd)
 {
 	// forward focus to the browser window
-	m_wndBrowserView.mBaseWindow->SetFocus();
+	m_wndBrowserView.SetFocus();
 
    theApp.m_pMostRecentBrowserFrame = this;
 
