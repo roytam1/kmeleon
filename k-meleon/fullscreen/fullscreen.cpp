@@ -58,7 +58,6 @@ WINDOWPLACEMENT wpOld;
 RECT rectFullScreenWindowRect;
 BOOL bFullScreen=0;
 
-
 BOOL APIENTRY DllMain(HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved ) {
    switch (ul_reason_for_call) {
       case DLL_PROCESS_ATTACH:
@@ -98,41 +97,25 @@ void DoMenu(HMENU menu, char *param) {
 }
 
 void DoRebar(HWND rebarWnd) {
-   hReBar = rebarWnd;
-}
-
-void ShowRebar (BOOL bState) {
-   if (bState)
-      ShowWindow(hReBar, SW_SHOW);
-   else
-      ShowWindow(hReBar, SW_HIDE);
-}
-
-void ShowStatusBar (HWND hWndParent, BOOL bState) {
-   if (!(hStatusBar = FindWindowEx(hWndParent, NULL, "msctls_statusbar32", NULL)))
-      return;
-
-   if (bState)
-      ShowWindow(hStatusBar, SW_SHOW);
-   else
-      ShowWindow(hStatusBar, SW_HIDE);
 }
 
 void HideClutter(HWND hWndParent) {
+   hReBar = FindWindowEx(hWndParent, NULL, "ReBarWindow32", NULL);
+   hStatusBar = FindWindowEx(hWndParent, NULL, "msctls_statusbar32", NULL);
+
    if (bFullScreen) {
-
-      // Save initial rebar/statusbar states
-      bReBarVisible = IsWindowVisible(hReBar);
-      if ( (hStatusBar = FindWindowEx(hWndParent, NULL, "msctls_statusbar32", NULL)) )
+      if (hReBar) {
+         bReBarVisible = IsWindowVisible(hReBar);     // save intitial visibility state
+         ShowWindow(hReBar, !bHideReBar);             // hide/unhide rebar
+      }
+      if (hStatusBar) {
          bStatusBarVisible = IsWindowVisible(hStatusBar);
-
-      // hide/unhide rebar/statusbar
-      ShowRebar(!bHideReBar);
-      ShowStatusBar(hWndParent, !bHideStatusBar);
+         ShowWindow(hStatusBar, !bHideStatusBar);
+      }
    }
    else {
-      ShowRebar(bReBarVisible);
-      ShowStatusBar(hWndParent, bStatusBarVisible);
+      if (hReBar) ShowWindow(hReBar, bReBarVisible);
+      if (hStatusBar) ShowWindow(hStatusBar, bStatusBarVisible);
    }
 }
 
@@ -156,37 +139,36 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
       }
    case WM_COMMAND:
       WORD command = LOWORD(wParam);
-      switch (command) {
-         case ID_FULLSCREEN:
+      if (command == ID_FULLSCREEN) {
 
-            WINDOWPLACEMENT wpNew;
+         WINDOWPLACEMENT wpNew;
 
-            if (!bFullScreen) {
+         if (!bFullScreen) {
 
-               RECT rectDesktop;
-               bFullScreen=TRUE;
+            RECT rectDesktop;
+            bFullScreen=TRUE;
 
-               wpOld.length = sizeof (wpOld);
-               GetWindowPlacement(hWnd, &wpOld);
+            wpOld.length = sizeof (wpOld);
+            GetWindowPlacement(hWnd, &wpOld);
   
-               GetWindowRect(GetDesktopWindow(), &rectDesktop );
-               AdjustWindowRectEx(&rectDesktop, GetWindowLong(hWnd, GWL_STYLE), TRUE, GetWindowLong(hWnd, GWL_EXSTYLE));
+            GetWindowRect(GetDesktopWindow(), &rectDesktop );
+            AdjustWindowRectEx(&rectDesktop, GetWindowLong(hWnd, GWL_STYLE), TRUE, GetWindowLong(hWnd, GWL_EXSTYLE));
 
-               rectFullScreenWindowRect = rectDesktop;
-               wpNew = wpOld;
+            rectFullScreenWindowRect = rectDesktop;
+            wpNew = wpOld;
 
-               wpNew.showCmd = SW_SHOWNORMAL;
-               wpNew.rcNormalPosition = rectDesktop;
+            wpNew.showCmd = SW_SHOWNORMAL;
+            wpNew.rcNormalPosition = rectDesktop;
 
-               HideClutter(hWnd);
-            }
-            else  {
-               bFullScreen=FALSE;
-               wpNew = wpOld;
-               HideClutter(hWnd);
-            }
-            SetWindowPlacement (hWnd, &wpNew);
-            return true;
+            HideClutter(hWnd);
+         }
+         else  {
+            bFullScreen=FALSE;
+            wpNew = wpOld;
+            HideClutter(hWnd);
+         }
+         SetWindowPlacement (hWnd, &wpNew);
+         return true;
       }
    }
 

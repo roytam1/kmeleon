@@ -53,7 +53,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /machine:I386
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib advapi32.lib shell32.lib comctl32.lib /nologo /dll /machine:I386 /out:"/projects/mozilla/mozilla/dist/win32_o.obj/embed/kmeleon_fullscreen.dll"
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib advapi32.lib shell32.lib comctl32.lib /nologo /dll /machine:I386 /out:"\projects\mozilla\mozilla\dist\WIN32_o.OBJ\Embed\kmeleon_fullscreen.dll" /out:"/projects/mozilla/mozilla/dist/win32_o.obj/embed/kmeleon_fullscreen.dll"
 # SUBTRACT LINK32 /profile
 
 !ELSEIF  "$(CFG)" == "fullscreen - Win32 Debug"
@@ -80,7 +80,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib Comctl32.lib /nologo /dll /map /debug /machine:I386 /pdbtype:sept /out:"/projects/mozilla/mozilla/dist/win32_o.obj/embed/kmeleon_fullscreen.dll"
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib Comctl32.lib /nologo /dll /map /debug /machine:I386 /out:"\projects\mozilla\mozilla\dist\WIN32_o.OBJ\Embed\kmeleon_fullscreen.dll" /pdbtype:sept /out:"/projects/mozilla/mozilla/dist/win32_o.obj/embed/kmeleon_fullscreen.dll"
 # SUBTRACT LINK32 /profile
 
 !ENDIF 
@@ -95,15 +95,7 @@ LINK32=link.exe
 # Begin Source File
 
 SOURCE=.\fullscreen.cpp
-
-!IF  "$(CFG)" == "fullscreen - Win32 Release"
-
-!ELSEIF  "$(CFG)" == "fullscreen - Win32 Debug"
-
 # SUBTRACT CPP /YX /Yc /Yu
-
-!ENDIF 
-
 # End Source File
 # End Group
 # Begin Group "Header Files"

@@ -27,8 +27,6 @@ HGLOBAL GetMenu();
 void DoMenu(HMENU menu, char *param);
 void DoRebar(HWND rebarWnd);
 
-void ShowRebar (BOOL bState);
-void ShowStatusBar (HWND hWndParent, BOOL bState);
 void HideClutter(HWND hWndParent);
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
