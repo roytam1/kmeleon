@@ -27,7 +27,8 @@ extern CMfcEmbedApp theApp;
 /*
 ** Middle button panning shit
 */
-int CBrowserView::OnMouseActivate(CWnd* pDesktopWnd, UINT nHitTest, UINT message) {
+int CBrowserView::OnMouseActivate(CWnd* pDesktopWnd, UINT nHitTest, UINT message)
+{
    switch (message) {
    case WM_MBUTTONDOWN:
       if(m_panning) StopPanning();
@@ -42,7 +43,8 @@ int CBrowserView::OnMouseActivate(CWnd* pDesktopWnd, UINT nHitTest, UINT message
    return CWnd::OnMouseActivate(pDesktopWnd, nHitTest, message);
 }
 
-void CBrowserView::OnTimer(UINT nIDEvent){
+void CBrowserView::OnTimer(UINT nIDEvent)
+{
    switch(nIDEvent){
    case 0x1:
       if(m_panning) {
@@ -96,7 +98,8 @@ void CBrowserView::OnTimer(UINT nIDEvent){
    CWnd::OnTimer(nIDEvent);
 }
 
-void CBrowserView::StartPanning(){
+void CBrowserView::StartPanning()
+{
 	m_panning = 1;
 	GetCursorPos(&m_panningPoint);
 	SetCapture();
@@ -105,13 +108,15 @@ void CBrowserView::StartPanning(){
 	SetFocus();
 }
 
-void CBrowserView::StopPanning(){
+void CBrowserView::StopPanning()
+{
 	ReleaseCapture();
 	KillTimer(0x1);
 	m_panning = 0;
 }
 
-BOOL CBrowserView::PreTranslateMessage(MSG* pMsg) {
+BOOL CBrowserView::PreTranslateMessage(MSG* pMsg)
+{
   if(m_panning && (pMsg->message==WM_SETCURSOR || pMsg->message==WM_MOUSEMOVE))
     return TRUE;
 
