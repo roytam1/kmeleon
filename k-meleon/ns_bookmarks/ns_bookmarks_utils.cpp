@@ -158,6 +158,53 @@ BOOL BrowseForBookmarks(char *file)
    }
 }
 
+
+int GlobalReplace(char *str, char *a, char *b) {
+  char *prev, *p, *q;
+  int i = 0;
+
+  p = q = prev = strdup(str);
+  *str = 0;
+
+  while (p && *p && (p = strstr(p, a)) != NULL) {
+    i++;
+    *p = 0;
+    strcat(str, q);
+    strcat(str, b);
+    p += strlen(a);
+    q = p;
+  }
+
+  if (q && *q)
+    strcat(str, q);
+  free(prev);
+
+  return i;
+}
+
+char *EncodeString(const char *str) {
+  char *pszStr = (char *)malloc(strlen(str) + INTERNET_MAX_URL_LENGTH);
+  strcpy(pszStr, str);
+  GlobalReplace(pszStr, "&",  "&amp;");
+  GlobalReplace(pszStr, "<",  "&lt;");
+  GlobalReplace(pszStr, ">",  "&gt;");
+  GlobalReplace(pszStr, "\"", "&quot;");
+  GlobalReplace(pszStr, "\'", "&apos;");
+  return pszStr;
+}
+
+char *DecodeString(const char *str) {
+  char *pszStr = (char *)malloc(strlen(str) + INTERNET_MAX_URL_LENGTH);
+  strcpy(pszStr, str);
+  GlobalReplace(pszStr, "&amp;",  "&");
+  GlobalReplace(pszStr, "&lt;",   "<");
+  GlobalReplace(pszStr, "&gt;",   ">");
+  GlobalReplace(pszStr, "&quot;", "\"");
+  GlobalReplace(pszStr, "&apos;", "\'");
+  return pszStr;
+}
+
+
 // Save bookmarks
 static void SaveBookmarks(FILE *bmFile, CBookmarkNode *node)
 {
@@ -194,7 +241,9 @@ static void SaveBookmarks(FILE *bmFile, CBookmarkNode *node)
       }
       else if (type == BOOKMARK_BOOKMARK) {
          fprintf(bmFile, "%s<DT><A", szSpacer);
-         fprintf(bmFile, " HREF=\"%s\"", child->url.c_str());
+         char *pszUrl = EncodeString(child->url.c_str());
+         fprintf(bmFile, " HREF=\"%s\"", pszUrl);
+	 free(pszUrl);
          fprintf(bmFile, " ADD_DATE=\"%d\"", child->addDate);
          fprintf(bmFile, " LAST_VISIT=\"%d\"", child->lastVisit);
          fprintf(bmFile, " LAST_MODIFIED=\"%d\"", child->lastModified);
@@ -286,6 +335,7 @@ void Save(const char *file)
    /* this is to support both NS 4 and NS 6 style bookmarks */
    kPlugin.kFuncs->SetPreference(PREF_STRING, PREFERENCE_TOOLBAR_FOLDER, (void *)gBookmarkRoot.FindSpecialNode(BOOKMARK_FLAG_TB)->text.c_str());
 }
+
 
 // Load bookmarks
 void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
@@ -429,8 +479,10 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
          if (name[0] == 0)
             name = url;
 
-         lastNode = new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), name, url, nick, NULL, charset, BOOKMARK_BOOKMARK, addDate, lastVisit, lastModified);
+         char *pszUrl = DecodeString(url);
+         lastNode = new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), name, pszUrl, nick, NULL, charset, BOOKMARK_BOOKMARK, addDate, lastVisit, lastModified);
          node.AddChild(lastNode);
+	 free(pszUrl);
          
          if (nick)
             free(nick);
