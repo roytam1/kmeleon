@@ -45,7 +45,7 @@
 
 static BOOL bRebarEnabled  =   1;
 static char szTitle[MAX_PATH > 256 ? MAX_PATH : 256] = "Layers:";
-static int  nButtonWidth   =  15;
+static int  nButtonWidth   =  75;
 static BOOL bButtonNumbers =   0;
 static BOOL nButtonStyle   =   2;
 static BOOL bCloseWindow   =   0;
@@ -560,7 +560,7 @@ void addRebarButton(HWND hWndTB, char *text, int num, int active)
       (((nButtonStyle & BS_GRAYED) && active) ? 0 : TBSTATE_ENABLED) |
       (((nButtonStyle & BS_PRESSED) && active) ? TBSTATE_CHECKED : 0);
    button.fsStyle = TBSTYLE_BUTTON | 
-      ((nButtonWidth >= 0) ? TBSTYLE_AUTOSIZE : 0) | TBSTYLE_ALTDRAG | TBSTYLE_WRAPABLE |
+      ((nButtonWidth < 0) ? TBSTYLE_AUTOSIZE : 0) | TBSTYLE_ALTDRAG | TBSTYLE_WRAPABLE |
       (((nButtonStyle & BS_PRESSED) && active) ? TBSTYLE_CHECK : 0);
    button.idCommand = id_layer + num;
    button.iBitmap = 0;
@@ -583,16 +583,41 @@ void BuildRebar(HWND hWndTB, HWND hWndParent)
    
    // SendMessage(hWndTB, TB_SETEXTENDEDSTYLE, 0, TBSTYLE_EX_DRAWDDARROWS);
    SendMessage(hWndTB, TB_SETIMAGELIST, 0, (LPARAM)NULL);
-   SendMessage(hWndTB, TB_SETBUTTONWIDTH, 0, 
-               MAKELONG(((nButtonWidth < 0) ? -nButtonWidth : 0), 
-                        ((nButtonWidth < 0) ? -nButtonWidth : 0)));
-   
    struct frame *pFrame = find_frame(hWndParent);
+   if (!pFrame) {
+     SendMessage(hWndTB, TB_SETBUTTONWIDTH, 0, MAKELONG(nButtonWidth >= 0 ? nButtonWidth : 0, nButtonWidth >= 0 ? nButtonWidth : 0));
+      addRebarButton(hWndTB, "K-Meleon", 0, 0);
+      return;
+   }
+
+   int width = 0;
+   if (nButtonWidth > 0) {
+     RECT rect;
+     GetWindowRect(hWndTB,&rect);
+     width = rect.right - rect.left;
+     
+     int i = 0;
+     struct layer *pLayer = pFrame->layer;
+     while (pLayer && i<MAX_LAYERS) {
+       i++;
+       pLayer = pLayer->next;
+     }
+     
+     if (i)
+       width = width / i;
+     if (width > nButtonWidth) width = nButtonWidth;
+     if (width < 1) width = 1;
+   }
+
+   SendMessage(hWndTB, TB_SETBUTTONWIDTH, 0, 
+               MAKELONG(nButtonWidth >= 0 ? width : 0, 
+                        nButtonWidth >= 0 ? width : 0));
+   
    if (pFrame) {
       struct layer *pLayer = pFrame->layer;
       int i = 0;
       while (pLayer && i<MAX_LAYERS) {
-         int nTextLength = nButtonWidth >= 0 ? nButtonWidth : 256;
+         int nTextLength = nButtonWidth < 0 ? -nButtonWidth : 256;
          nTextLength = nTextLength > 4 ? nTextLength : 4;
          char buf[nTextLength + 1];
          buf[0] = 0;
@@ -608,13 +633,13 @@ void BuildRebar(HWND hWndTB, HWND hWndParent)
             if (dInfo && dInfo->title) {
                strcat(buf, " ");
                len++;
-               if (nButtonWidth>=0 && 
-                   strlen(dInfo->title) < (UINT)(nButtonWidth < 3 ? 3 : nButtonWidth)) {
+               if (nButtonWidth<0 && 
+                   strlen(dInfo->title) < (UINT)((-nButtonWidth) < 3 ? 3 : (-nButtonWidth))) {
                   strcat(buf, dInfo->title);
                }
                else {
                   strncat(buf, dInfo->title, nTextLength - len);
-                  if (nButtonWidth > 0) {
+                  if (nButtonWidth < 0) {
                      buf[nTextLength - 2] = 0;
                      strcat(buf, "...");
                   }
@@ -889,7 +914,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                      PostMessage(pLayer->hWnd, WM_COMMAND, id_close_layer, 0);
                   }
                }
-#else
+#endif
                break;
             }
             break;
