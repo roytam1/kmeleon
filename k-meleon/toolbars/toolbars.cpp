@@ -85,7 +85,7 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
 
 struct s_button {
    char *sName;
-//   char *sToolTip;
+   char *sToolTip;
    HMENU menu;
    int iID;
    int width, height;
@@ -189,8 +189,8 @@ void Quit() {
       while (button) {
          if (button->sName)
             delete button->sName;
-//         if (button->sToolTip)
-//            delete button->sToolTip;
+         if (button->sToolTip)
+            delete button->sToolTip;
 
          tempbtn = button;
          button = button->next;
@@ -305,7 +305,7 @@ enum state {
    TOOLBAR = 0,// waiting for toolbar to be added
    BUTTON,     // expecting a button to be added
    ID,         // expecting a button id
-//   DESC,       // expecting a tooltip/description
+   DESC,       // expecting a tooltip/description
    HOT,        // expecting theh hot image
    COLD,       // expecting the cold image
    DEAD    // expecting the disabled image
@@ -440,17 +440,22 @@ void LoadToolbars(char *filename) {
          switch (iBuildState) {
          case ID:
             
-            curButton->menu = NULL;
+
+/*            
+            // ID_NAME|MENU
             
+            // get the menu associated with the button
+            curButton->menu = NULL;            
             char *pipe;
             pipe = strchr(p, '|');
             if (pipe) {
                *pipe = 0;
-               
+               TrimWhiteSpace(p);
+
                TrimWhiteSpace(pipe+1);
-               
-//               curButton->menu = kPlugin.kFuncs->GetMenu(SkipWhiteSpace(pipe+1));
+               curButton->menu = kPlugin.kFuncs->GetMenu(SkipWhiteSpace(pipe+1));
             }
+*/
             
             // check for call to other plugin
             char *op;
@@ -469,15 +474,21 @@ void LoadToolbars(char *filename) {
                if (!curButton->iID)
                   curButton->iID = atoi(p);
             }
-            
+
+/*
+            // if a menu wasn't explicitly set, see if the command id has a registered menu
+            if (!pipe)
+               curButton->menu = kPlugin.kFuncs->GetMenu(curButton->iID);
+*/
+
             iBuildState++;
 
             break;
-            //            case DESC:
-            //               curButton->sToolTip = new char[strlen(p) + 1];
-            //               strcpy(curButton->sToolTip, p);
-            //               iBuildState++;
-            //               break;
+         case DESC:
+               curButton->sToolTip = new char[strlen(p) + 1];
+               strcpy(curButton->sToolTip, p);
+               iBuildState++;
+               break;
          case HOT:
          case COLD:
          case DEAD:
@@ -549,7 +560,7 @@ s_button  *AddButton(s_toolbar *toolbar, char *name, int width, int height) {
 
    newButton->width = width;
    newButton->height = height;
-//   newButton->sToolTip = NULL;
+   newButton->sToolTip = NULL;
    newButton->iID = 0;
    newButton->menu = NULL;
    newButton->next = NULL;
@@ -656,10 +667,20 @@ void AddImageToList(s_toolbar *toolbar, HIMAGELIST list, char *file, int index, 
 
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
-   if (message == WM_NOTIFY){
-      LPNMTOOLBAR lpnmtb = (LPNMTOOLBAR) lParam;
 
-      if (lpnmtb->hdr.code == TBN_DROPDOWN) {
+/*
+   if (message == TB_LBUTTONHOLD) {
+
+   }
+
+   else if (message == WM_NOTIFY){
+
+      LPNMHDR lpNmhdr = (LPNMHDR) lParam;
+
+      if (lpNmhdr->code == TBN_DROPDOWN) {
+
+         LPNMTOOLBAR lpnmtb = (LPNMTOOLBAR) lParam;
+         
          s_toolbar   *toolbar = toolbar_head;
          s_button    *button;
 
@@ -676,13 +697,45 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                   POINT pt = { rc.left, rc.bottom };
                   ClientToScreen(lpnmtb->hdr.hwndFrom, &pt);
 
-                  TrackPopupMenu(button->menu, TPM_RIGHTALIGN, pt.x, pt.y, 0, hWnd, NULL);
+                  int iSel = TrackPopupMenu(button->menu, TPM_RIGHTALIGN | TPM_NONOTIFY | TPM_RETURNCMD, pt.x, pt.y, 0, hWnd, NULL);
+                  if (iSel)
+                     SendMessage(hWnd, WM_COMMAND, 0, iSel);
+
                   return TBDDRET_DEFAULT;
                }
                button = button->next;
             }
             toolbar = toolbar->next;
          }
+      }
+*/
+
+   
+   if (message == WM_NOTIFY){
+
+      LPNMHDR lpNmhdr = (LPNMHDR) lParam;
+      if (lpNmhdr->code == TTN_NEEDTEXT) {
+
+         s_toolbar   *toolbar = toolbar_head;
+         s_button    *button;
+
+         while (toolbar) {
+            if (toolbar->iButtonCount == 0) continue;
+            
+            button = toolbar->buttonHead;
+            while (button) {
+               if (button->iID == (int) wParam) {
+                  
+                  LPTOOLTIPTEXT lpTiptext = (LPTOOLTIPTEXT) lParam;                  
+                  lpTiptext->lpszText = button->sToolTip;
+                  return NULL;
+
+               }
+               button = button->next;
+            }
+            toolbar = toolbar->next;
+         }
+
       }
    }
    return CallWindowProc(KMeleonWndProc, hWnd, message, wParam, lParam);
