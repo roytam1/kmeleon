@@ -243,13 +243,11 @@ BOOL CBrowserFrame::Create(LPCTSTR lpszClassName,
       TRACE0("Warning: failed to create CFrameWnd.\n");
       if (m_hMenu != NULL)
          DestroyMenu(m_hMenu);
-      m_hMenu == NULL;
+      m_hMenu = NULL;
       return FALSE;
    }
 
-   CheckMenuItem(m_hMenu,
-                 ID_OFFLINE, 
-                 MF_BYCOMMAND | (theApp.preferences.bOffline ? MF_CHECKED : MF_UNCHECKED) );
+   theApp.menus.SetCheck(ID_OFFLINE, theApp.preferences.bOffline);
        
    return TRUE;
 }

@@ -173,7 +173,8 @@ enum commands {
    basename,
    dirname,
    hostname,
-   forcecharset
+   forcecharset,
+   setcheck
 };
 
 
@@ -330,10 +331,10 @@ public:
     if (ptr && ptr->id == id) {
       int cmdid = FindMacro((char*)ptr->macro.c_str());
       if (cmdid != NOTFOUND) {
-       sGlobalArg = ptr->arg;
-       ExecuteMacro(hWnd, cmdid);
-       sGlobalArg = "";
-       return TRUE;
+	sGlobalArg = ptr->arg;
+	ExecuteMacro(hWnd, cmdid);
+	sGlobalArg = "";
+	return TRUE;
       }
     }
     return FALSE;
@@ -354,29 +355,29 @@ void DoMenu(HMENU menu, char *param) {
 
       char *arg = strchr(param, '(');
       if (arg) {
-         *(arg++) = 0;
-         char *p = strchr(arg, ')');
-         if (p) {
-            *p = 0;
-            id = arglist.add(param, arg);
-         }
+	*(arg++) = 0;
+	char *p = strchr(arg, ')');
+	if (p) {
+	  *p = 0;
+	  id = arglist.add(param, arg);
+	}
       }
 
+      int index = FindMacro(param);
       if (id == -1) {
-         int index = FindMacro(param);
-         if (index != NOTFOUND)
-            id = ID_START+index;
+	if (index != NOTFOUND)
+	  id = ID_START+index;
       }
 
       if (id != -1) {
-         if (string)
-            AppendMenu(menu, MF_STRING, id, string);
-         else if (macroList[index]->menuString)
-            AppendMenu(menu, MF_STRING, id, macroList[index]->menuString);
-         else if (macroList[index]->macroName)
-            AppendMenu(menu, MF_STRING, id, macroList[index]->macroName);
-         else 
-            AppendMenu(menu, MF_STRING, id, "Untitled Macro");
+	if (string)
+	  AppendMenu(menu, MF_STRING, id, string);
+	else if (index != NOTFOUND && macroList[index]->menuString)
+	  AppendMenu(menu, MF_STRING, id, macroList[index]->menuString);
+	else if (index != NOTFOUND && macroList[index]->macroName)
+	  AppendMenu(menu, MF_STRING, id, macroList[index]->macroName);
+	else 
+	  AppendMenu(menu, MF_STRING, id, "Untitled Macro");
       }
    }
 }
@@ -387,22 +388,22 @@ int DoAccel(char *param) {
 
       char *arg = strchr(param, '(');
       if (arg) {
-         *(arg++) = 0;
-         char *p = strchr(arg, ')');
-         if (p) {
-            *p = 0;
-            id = arglist.add(param, arg);
-         }
+	*(arg++) = 0;
+	char *p = strchr(arg, ')');
+	if (p) {
+	  *p = 0;
+	  id = arglist.add(param, arg);
+	}
       }
 
       if (id == -1) {
-         int index = FindMacro(param);
-         if (index != NOTFOUND)
-            id = ID_START+index;
+	int index = FindMacro(param);
+	if (index != NOTFOUND)
+	  id = ID_START+index;
       }
 
       if (id != -1)
-         return id;
+	return id;
    }
    return 0;
 }
@@ -443,6 +444,7 @@ int FindCommand(char *cmd) {
       CMD_TEST(dirname)
       CMD_TEST(hostname)
       CMD_TEST(forcecharset)
+      CMD_TEST(setcheck)
 
    return cmdVal;
 }
@@ -745,23 +747,27 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
 
          // Thanks to Mynen (mark_yen@hotmail.com) for pointing out this bug
          //  as well as submitting a patch
-         if (data && *data) {
+         if (data) {
 
             if (preftype == PREF_STRING)
                kFuncs->SetPreference(preftype, pref, data, TRUE);
 
             else if (preftype == PREF_INT) {
+	      if (*data) {
                // note that SetPreference() expects third param
                // to be a pointer in all cases, even for int and bool
                int iData = atoi(data);
                kFuncs->SetPreference(preftype, pref, &iData, TRUE);
+	      }
             } 
 
             else {   // boolean
+	      if (*data) {
                int bData = FALSE;
                if (!strcmpi(data, "true"))
                   bData = TRUE;
                kFuncs->SetPreference(preftype, pref, &bData, TRUE);
+	      }
             }
          }
       }
@@ -1339,7 +1345,31 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
          }
 
          kFuncs->SetForceCharset(nparam < 1 ? "" : (char*)params[0].c_str());
-        return "";
+	 return "";
+      }
+
+      /*
+         setcheck( id );
+      */
+
+      CMD(setcheck) {
+         if (nparam < 1 || nparam > 2) {  // setcheck( $0, $1 )
+            parseError(WRONGARGS, "setcheck", data, 2, nparam);
+            return "";
+         }
+
+         int cmd;
+         cmd = kPlugin.kFuncs->GetID((char*)params[0].c_str());
+         if (!cmd)
+            cmd = atoi((char*)params[0].c_str());
+
+	 BOOL mark = TRUE;
+	 if (nparam == 2)
+	   mark = BoolVal(EvalExpression(hWnd, params[1]));
+
+         kFuncs->SetCheck(cmd, mark);
+
+	 return "";
       }
 
    return "";
@@ -1653,9 +1683,9 @@ std::string EvalExpression(HWND hWnd,std::string exp) {
 
    // if it begins with an ampersand this is a reference to another macro
    if(exp.at(0) == '&') {
-      strtemp = "macros(" + exp.substr(1) + ")";
-      strtemp = EvalExpression(hWnd, strTrim(strtemp));
-      return strtemp.c_str();
+     strtemp = "macros(" + exp.substr(1) + ")";
+     strtemp = EvalExpression(hWnd, strTrim(strtemp));
+     return strtemp.c_str();
    }
 
    // while (expression) statement;
@@ -1677,35 +1707,35 @@ std::string EvalExpression(HWND hWnd,std::string exp) {
 	    if(exp.at(j) == '(') {
 	       ++lparen;
 	       if (lparen == 1)
-		  lpos = j;
+		 lpos = j;
 	       continue;
 	    }
 	    if(exp.at(j) == ')') {
 	       ++rparen;
 	       if (lparen == rparen)
-		  rpos = j;
+		 rpos = j;
 	       break;
 	    }
 	 }
       }
-      
+
       if (lpos != NOTFOUND && rpos != NOTFOUND) {
-	 std::string pre = strTrim(exp.substr(0,lpos));
-	 std::string expr = strTrim(exp.substr(lpos+1,rpos-(lpos+1)));
-	 std::string stmt = strTrim(exp.substr(rpos+1));
-	 
-	 std::string copy;
-	 std::string result = "";
-	 
-	 copy = expr.c_str();
-	 int b = BoolVal(EvalExpression(hWnd, copy));
-	 while (b) {
-	    copy = stmt.c_str();
-	    result = EvalExpression(hWnd, copy);
-	    copy = expr.c_str();
-	    b = BoolVal(EvalExpression(hWnd, copy));
-	 }
-	 return result;
+	std::string pre = strTrim(exp.substr(0,lpos));
+	std::string expr = strTrim(exp.substr(lpos+1,rpos-(lpos+1)));
+	std::string stmt = strTrim(exp.substr(rpos+1));
+
+	std::string copy;
+	std::string result = "";
+
+	copy = expr.c_str();
+	int b = BoolVal(EvalExpression(hWnd, copy));
+	while (b) {
+	  copy = stmt.c_str();
+	  result = EvalExpression(hWnd, copy);
+	  copy = expr.c_str();
+	  b = BoolVal(EvalExpression(hWnd, copy));
+	}
+	return result;
       }
    }
 
@@ -1751,8 +1781,8 @@ std::string EvalExpression(HWND hWnd,std::string exp) {
       }
 
       if ( epos != NOTFOUND && qpos != NOTFOUND && epos < qpos &&
-          exp.at(epos+1) != '=' && exp.at(epos-1) != '!' && 
-          exp.at(epos-1) != '<' && exp.at(epos-1) != '>' ) {
+	   exp.at(epos+1) != '=' && exp.at(epos-1) != '!' && 
+	   exp.at(epos-1) != '<' && exp.at(epos-1) != '>') {
 	 qpos = cpos = NOTFOUND;
       }
       
@@ -1827,7 +1857,7 @@ std::string EvalExpression(HWND hWnd,std::string exp) {
 	      rval = exp.substr(pos+size);
 	      strtemp = exp.substr(pos,size); //the comparison operator
 	      break;
-           }
+	    }
             else if(exp.at(i) == '+' ||   // addition 
 		    exp.at(i) == '-') {   // subtraction
                int last_op = i;
@@ -2142,7 +2172,7 @@ std::string GetGlobalVarVal(HWND hWnd, char *name, int *found)
       *found = 1;
       return sGlobalArg;
    }
-   
+
    int retLen = kPlugin.kFuncs->GetGlobalVar(PREF_STRING, name, NULL);
    if (retLen) {
       *found = 1;

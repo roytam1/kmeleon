@@ -1583,13 +1583,7 @@ void CBrowserView::ChangeTextSize(PRInt32 change)
 void CBrowserView::OnToggleOffline()
 {
     theApp.SetOffline(!theApp.preferences.bOffline);
-    HMENU hMenu = mpBrowserFrame->m_hMenu;
-    if (hMenu) {
-        CheckMenuItem( 
-            hMenu,
-            ID_OFFLINE, 
-            MF_BYCOMMAND | (theApp.preferences.bOffline ? MF_CHECKED : MF_UNCHECKED) );
-    }
+    theApp.menus.SetCheck(ID_OFFLINE, theApp.preferences.bOffline);
     mpBrowserFrame->m_wndStatusBar.SetPaneText(0, 
        (theApp.preferences.bOffline ? "Offline" : "Online"));
 }

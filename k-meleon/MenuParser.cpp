@@ -194,3 +194,15 @@ int CMenuParser::GetOffset(CMenu *menu){
 
    return offset;
 }
+
+void CMenuParser::SetCheck(UINT id, BOOL checked)
+{
+   POSITION pos = menus.GetStartPosition();
+   CMenu *m;
+   CString s;
+   while (pos) {
+      menus.GetNextAssoc(pos, s, m);
+      if (m)
+       m->CheckMenuItem( id, MF_BYCOMMAND | (checked ? MF_CHECKED : MF_UNCHECKED) );
+   }
+}

@@ -41,6 +41,8 @@ public:
 
    CMenu *GetMenu(char * menuName);
    int GetOffset(CMenu *menu);
+
+   void SetCheck(UINT id, BOOL checked = TRUE);
 };
 
 #endif // __MENUPARSER_H__
