@@ -26,6 +26,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <commctrl.h>
+#include <stdlib.h>
 
 #define KMELEON_PLUGIN_EXPORTS
 #include "../kmeleon_plugin.h"
@@ -56,7 +57,12 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
 void DoRebar(HWND rebarWnd);
 
 
-HMENU ghMenu;
+struct menulist {
+   HMENU hMenu;
+   struct menulist *next;
+};
+typedef struct menulist MenuList;
+MenuList *gMenuList = NULL;
 
 kmeleonPlugin kPlugin = {
 	KMEL_PLUGIN_VER,
@@ -118,7 +124,11 @@ void Quit(){
 }
 
 void DoMenu(HMENU menu, char *param){
-   ghMenu = menu;
+   MenuList *tmp;
+   tmp = (MenuList *) calloc(1, sizeof(struct menulist));
+   tmp->hMenu = menu;
+   tmp->next = gMenuList;
+   gMenuList = tmp;
    AppendMenu(menu, MF_SEPARATOR, 0, "");
 }
 
@@ -225,6 +235,10 @@ void UpdateHistoryMenu (HWND hWndParent) {
 	char **titles;
 	char buf[47];  //  3 spaces for "&# " 20 for beginning of title 3 for "..." 20 for end of title
 
+   MenuList *tmpMenu = gMenuList;
+   while (tmpMenu) {
+      HMENU ghMenu = tmpMenu->hMenu;
+
 	if (!ghMenu)
 		return;
 
@@ -244,6 +258,8 @@ void UpdateHistoryMenu (HWND hWndParent) {
 		else
 			AppendMenu(ghMenu, MF_ENABLED | MF_STRING, ID_HISTORY+i, buf);
 	}
+	tmpMenu = tmpMenu->next;
+   }
 }
 
 
