@@ -65,7 +65,7 @@ void         SetOption(std::string option);
 void         SetVarExp(int varid, std::string value);
 int          strFindFirst(std::string instring,char findchar,bool notinparen=false);
 std::string  strTrim(std::string instr);
-std::string  strVal(std::string input);
+std::string  strVal(std::string input, int bOnlyQuotes = 0);
 
 
 
@@ -804,7 +804,7 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
          else if(strcmpi(params[2].c_str(),"STOP")==0) icon=MB_ICONSTOP;         
          else if(strcmpi(params[2].c_str(),"QUESTION")==0) icon=MB_ICONQUESTION;         
 
-         MessageBox(NULL,strVal(params[0]).c_str(),strVal(params[1]).c_str(), MB_OK|icon);
+         MessageBox(NULL,params[0].c_str(),params[1].c_str(), MB_OK|icon);
          return "";
       }
       CMD(confirm) {
@@ -822,7 +822,7 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
          else if(strcmpi(params[3].c_str(),"STOP")==0) icon=MB_ICONSTOP;         
          else if(strcmpi(params[3].c_str(),"QUESTION")==0) icon=MB_ICONQUESTION;         
 
-         int result = MessageBox(NULL,strVal(params[0]).c_str(),strVal(params[1]).c_str(), buttons|icon);
+         int result = MessageBox(NULL,params[0].c_str(),params[1].c_str(), buttons|icon);
          if(result == IDOK) return "OK";
          if(result == IDYES) return "YES";
          if(result == IDNO) return "NO";
@@ -1641,8 +1641,8 @@ std::string EvalExpression(HWND hWnd,std::string exp) {
                }
             }
             else if(exp.at(i) == '.') { // concat
-               lval = strVal(EvalExpression(hWnd, strTrim(exp.substr(0,i))));
-               rval = strVal(EvalExpression(hWnd, strTrim(exp.substr(i+1))));
+               lval = strVal(EvalExpression(hWnd, strTrim(exp.substr(0,i))),1);
+               rval = strVal(EvalExpression(hWnd, strTrim(exp.substr(i+1))),1);
                return "\"" + lval + rval.c_str() + "\"";
                // yes, the .c_str() is actually necessary.  Without it, the
                // final " isn't appended...  don't ask me why.
@@ -1952,7 +1952,7 @@ int BoolVal(std::string input) {
    return true;
 }
 
-std::string strVal(std::string input) {
+std::string strVal(std::string input, int bOnlyQuotes = 0) {
 
    if(input.length() < 1) {
       return input;
@@ -1972,6 +1972,8 @@ std::string strVal(std::string input) {
    }
    if(isstr) input = input.substr(1,len-2);
 
+   if (bOnlyQuotes == 1)
+	  return input;
 
 //   if(data.at(pos)=='"' && (data.at(pos-1) != '\\' || (data.at(pos-1) == '\\' && pos-2 >= 0 && data.at(pos-2) == '\\'))) {
 //   if(input.at(0) == '"' && (input.at(input.length()-1) == '"' && (input.length()-2 > 0 && input.at(input.length()-2) == '\\'))) {
