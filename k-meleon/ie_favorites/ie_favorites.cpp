@@ -19,6 +19,7 @@
 //
 
 #include "stdafx.h"
+#include "resource.h"
 
 #define KMELEON_PLUGIN_EXPORTS
 #include "../kmeleon_plugin.h"
@@ -48,6 +49,7 @@ void Config(HWND parent);
 void Quit();
 void DoMenu(HMENU menu, char *param);
 void DoRebar(HWND rebarWnd);
+BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 pluginFunctions pFuncs = {
    Init,
@@ -70,6 +72,8 @@ UINT nConfigCommand;
 UINT nAddCommand;
 UINT nEditCommand;
 UINT nFirstFavoriteCommand;
+BOOL bRebarEnabled;
+HINSTANCE ghInstance;
 
 TCHAR szPath[MAX_PATH];
 
@@ -97,6 +101,10 @@ int Init(){
       RegCloseKey(hKey);
    }
 
+   // Get the rebar status
+   int pref = 0;
+   kPlugin.kf->GetPreference(PREF_BOOL, _T("kmeleon.plugins.favorites.rebar"), &bRebarEnabled, &pref);
+
    return true;
 }
 
@@ -109,8 +117,8 @@ void Create(HWND parent){
    SetWindowLong(parent, GWL_WNDPROC, (LONG)WndProc);
 }
 
-void Config(HWND parent){
-   MessageBox(parent, "This plugin brought to you by the letter M", "IE Favorites plugin", 0);
+void Config(HWND hWndParent) {
+   DialogBoxParam(kPlugin.hDllInstance ,MAKEINTRESOURCE(IDD_CONFIG), hWndParent, (DLGPROC)DlgProc, NULL);
 }
 
 void Quit(){
@@ -286,6 +294,10 @@ void DoMenu(HMENU menu, char *param){
 #define SUBMENU_OFFSET 5000 // this is here to distinguish between submenus and menu items, which may have the same id
 
 void DoRebar(HWND rebarWnd){
+
+   if (!bRebarEnabled)
+      return;
+
    DWORD dwStyle = 0x40 | /*the 40 gets rid of an ugly border on top.  I have no idea what flag it corresponds to...*/
       CCS_NOPARENTALIGN | CCS_NORESIZE | //CCS_ADJUSTABLE |
       TBSTYLE_FLAT | TBSTYLE_TRANSPARENT | TBSTYLE_LIST | TBSTYLE_TOOLTIPS;
@@ -531,6 +543,33 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
    return CallWindowProc(KMeleonWndProc, hWnd, message, wParam, lParam);
 }
 
+// Preferences Dialog function
+BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+
+   switch (uMsg) {
+		case WM_INITDIALOG:
+         SendDlgItemMessage(hWnd, IDC_REBARENABLED, BM_SETCHECK, bRebarEnabled, 0);
+         break;
+      case WM_COMMAND:
+			switch(HIWORD(wParam)) {
+				case BN_CLICKED:
+					switch (LOWORD(wParam)) {
+						case IDOK:
+                     bRebarEnabled = SendDlgItemMessage(hWnd, IDC_REBARENABLED, BM_GETCHECK, 0, 0);
+                     kPlugin.kf->SetPreference(PREF_BOOL, _T("kmeleon.plugins.favorites.rebar"), &bRebarEnabled);
+                  case IDCANCEL:
+                     SendMessage(hWnd, WM_CLOSE, 0, 0);
+               }
+         }
+         break;
+      case WM_CLOSE:
+			EndDialog(hWnd, NULL);
+			break;
+		default:
+			return FALSE;
+   }
+   return TRUE;
+}
 
 // so it doesn't munge the function name
 extern "C" {
