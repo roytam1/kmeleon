@@ -469,7 +469,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
       WORD command = LOWORD(wParam);
 
       if (command == nConfigCommand) {
-         Config(NULL);
+         Config(hWnd);
          return true;
       }
       else if (command == nAddCommand) {
