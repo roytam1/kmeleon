@@ -30,6 +30,7 @@
 #define IDD_PREFERENCES_ADVANCED        159
 #define IDC_PAN_DOWN                    160
 #define IDD_PREFERENCES_MENUS           160
+#define IDD_PREFERENCES_CONFIGS         160
 #define IDC_PAN_UP                      161
 #define IDD_PREFERENCES_CACHE           161
 #define IDD_ERRORBOX                    162
@@ -140,6 +141,7 @@
 #define IDC_EDIT_RESTRICT               1058
 #define IDC_VERSION                     1059
 #define IDC_EDIT_USERAGENT              1060
+#define IDC_TAB1                        1063
 #define IDC_CONTAINER                   1110
 #define IDC_EDIT_TOOLBAR_BACKGROUND     1111
 #define IDC_EDIT_SETTINGS_DIR           1111
@@ -192,7 +194,7 @@
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        191
 #define _APS_NEXT_COMMAND_VALUE         32801
-#define _APS_NEXT_CONTROL_VALUE         1063
+#define _APS_NEXT_CONTROL_VALUE         1064
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -152,25 +152,29 @@ protected:
   DECLARE_MESSAGE_MAP()
 };
 
-class CPreferencePageMenus: public CPreferencePage {
+class CPreferencePageConfigs: public CPreferencePage {
 protected:
   CString m_fileText;
-  int m_nCurrentFile;
-  char * m_currentFile;
 
-   ~CPreferencePageMenus();
+  CTabCtrl m_tabCtrl;
+
+  CStringArray m_configFiles;
+
+  void AddTab(const char *label, const char *file, const char *help);
+
+  ~CPreferencePageConfigs();
   
   virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV support
 
   virtual BOOL OnInitDialog();
-//  afx_msg void OnDestroy();
+  //  afx_msg void OnDestroy();
 
-  void ShowFile(char *);
-  void SaveFile(char *);
+  void ShowFile(const char *);
+  void SaveFile(const char *);
 
   afx_msg void OnHelp();
-  afx_msg void OnMenus();
-  afx_msg void OnAccel();
+  afx_msg void OnSelChanging(NMHDR *nmHdr, LRESULT *result);
+  afx_msg void OnSelChange(NMHDR *nmHdr, LRESULT *result);
 
   DECLARE_MESSAGE_MAP()
 };

@@ -435,3 +435,24 @@ void CPlugins::DoRebars(HWND rebarWnd)
          kPlugin->pf->DoRebar(rebarWnd);
    }
 }
+
+int CPlugins::GetConfigFiles(configFileType *configFiles, int maxFiles)
+{
+   int numFiles = 0;
+   POSITION pos = pluginList.GetStartPosition();
+   kmeleonPlugin * kPlugin;
+   CString s;
+   while (pos) {
+      pluginList.GetNextAssoc( pos, s, kPlugin);
+      if (kPlugin->loaded && kPlugin->pf->GetConfigFiles) {
+         configFileType *tempConfigFiles;
+         int numTempConfigFiles = kPlugin->pf->GetConfigFiles(&tempConfigFiles);
+         int i = 0;
+         while (numFiles < maxFiles && i < numTempConfigFiles) {
+            memcpy(&configFiles[numFiles++], &tempConfigFiles[i++], sizeof(configFileType));
+         }
+      }
+   }
+   return numFiles;
+}
+
