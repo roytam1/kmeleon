@@ -52,7 +52,7 @@ BOOL CBrowserView::OpenViewSourceWindow(const char* pUrl)
 
          char *url = strdup(pUrl);
          
-         if (url && strnicmp(url, "view-source:file:///", 8) == 0) {
+         if (url && strnicmp(url, "view-source:file:///", 20) == 0) {
             int i;
             for (i=0; i<strlen(url); i++)
                if (url[i]=='/')
