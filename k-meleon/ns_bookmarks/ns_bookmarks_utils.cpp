@@ -16,8 +16,16 @@
 *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
+#ifdef __MINGW32__
+#  define _WIN32_IE 0x0500
+#  include <windows.h>
+#  include <commctrl.h>
+#  include "../missing.h"
+#endif
+
 #include "stdafx.h"
 #include "resource.h"
+#include "wininet.h"    // for INTERNET_MAX_URL_LENGTH
 
 #include "defines.h"
 
@@ -162,6 +170,8 @@ static void SaveBookmarks(FILE *bmFile, CBookmarkNode *node)
       type = child->type;
       if (type == BOOKMARK_FOLDER){
          char szFolderFlags[256] = {0};
+         if (child->flags & BOOKMARK_FLAG_GRP)
+            strcat(szFolderFlags, "FOLDER_GROUP=\"true\" ");
          if (child->flags & BOOKMARK_FLAG_TB)
             strcat(szFolderFlags, "PERSONAL_TOOLBAR_FOLDER=\"true\" ID=\"NC:PersonalToolbarFolder\" ");
          if (child->flags & BOOKMARK_FLAG_NB)
@@ -169,6 +179,8 @@ static void SaveBookmarks(FILE *bmFile, CBookmarkNode *node)
          if (child->flags & BOOKMARK_FLAG_BM)
             strcat(szFolderFlags, "MENUHEADER ");
          fprintf(bmFile, "%s<DT><H3 %sADD_DATE=\"%d\">%s</H3>\n", szSpacer, szFolderFlags, child->addDate, child->text.c_str());
+	 if (child->desc.c_str() != NULL && *(child->desc.c_str()) != 0)
+	   fprintf(bmFile, "%s<DD>%s\n", szSpacer, child->desc.c_str());
 
          if (strlen(szSpacer) < MAXSPACER) szSpacer[strlen(szSpacer)] = ' ';   // add a space
          SaveBookmarks(bmFile, child);
@@ -178,7 +190,7 @@ static void SaveBookmarks(FILE *bmFile, CBookmarkNode *node)
          fprintf(bmFile, "%s<HR>\n", szSpacer);
       }
       else if (type == BOOKMARK_BOOKMARK) {
-         fprintf(bmFile, "<DT><A");
+         fprintf(bmFile, "%s<DT><A", szSpacer);
          fprintf(bmFile, " HREF=\"%s\"", child->url.c_str());
          fprintf(bmFile, " ADD_DATE=\"%d\"", child->addDate);
          fprintf(bmFile, " LAST_VISIT=\"%d\"", child->lastVisit);
@@ -191,6 +203,8 @@ static void SaveBookmarks(FILE *bmFile, CBookmarkNode *node)
 	 if (psz && *psz)
 	   fprintf(bmFile, " LAST_CHARSET=\"%s\"", psz);
          fprintf(bmFile, ">%s</A>\n", child->text.c_str());
+	 if (child->desc.c_str() != NULL && *(child->desc.c_str()) != 0)
+	   fprintf(bmFile, "%s<DD>%s\n", szSpacer, child->desc.c_str());
       }
       // if it falls through, there's a problem, but we'll just ignore it for now.
    }
@@ -234,6 +248,7 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
    char *p;
    char *t;
    bool found_tb = false;
+   CBookmarkNode * lastNode = &node;
 
    while ((p = strtok(NULL, "\n")) != NULL){
       if ((t = strstr(p, "<DT><H3")) != NULL){
@@ -250,6 +265,7 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
          if (end) *end = 0;
 
          time_t addDate=0;
+
          char *d;
          d = strstr(t, "ADD_DATE=\"");
          if (d) {
@@ -257,8 +273,9 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
             addDate = atol(d);
          }
 
-         CBookmarkNode * newNode = new CBookmarkNode(0, name, "", "", "", BOOKMARK_FOLDER, addDate);
+         CBookmarkNode * newNode = new CBookmarkNode(0, name, "", "", "", "", BOOKMARK_FOLDER, addDate);
          node.AddChild(newNode);
+	 lastNode = newNode;
 
          ParseBookmarks(end, *newNode);
 
@@ -276,6 +293,11 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
          {
             newNode->flags |= BOOKMARK_FLAG_TB;
             found_tb = true;
+         }
+
+         if ( strstr(t, _Q(FOLDER_GROUP="true")) )
+         {
+            newNode->flags |= BOOKMARK_FLAG_GRP;
          }
 
          // These are both NS 4 style - I don't know how Mozilla does it
@@ -362,7 +384,8 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
          if (name[0] == 0)
             name = url;
 
-         node.AddChild(new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), name, url, nick, charset, BOOKMARK_BOOKMARK, addDate, lastVisit, lastModified));
+	 lastNode = new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), name, url, nick, NULL, charset, BOOKMARK_BOOKMARK, addDate, lastVisit, lastModified);
+         node.AddChild(lastNode);
 	 
 	 if (nick)
 	   free(nick);
@@ -373,7 +396,8 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
          return;
       }
       else if ((t = strstr(p, "<HR>")) != NULL) {
-         node.AddChild(new CBookmarkNode(0, "", "", "", "", BOOKMARK_SEPARATOR));
+	lastNode = new CBookmarkNode(0, "", "", "", "", "", BOOKMARK_SEPARATOR);
+         node.AddChild(lastNode);
       }
       else if ((t = strstr(p, "<TITLE>")) != NULL) {
          t+=7; // t now points to the title
@@ -385,6 +409,13 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
          }
 
          strcpy(gBookmarksTitle, t);
+      }
+      else if ((t = strstr(p, "<DD>")) != NULL && lastNode != NULL) {
+	    char *e = t+4;
+	    while (*e && *e!='\n')
+	      e++;
+	    *e = 0;
+	    lastNode->desc = t+4;
       }
       else if (strstr(p, KMELEON_TAG) != NULL) {
          gGeneratedByUs = true;
@@ -437,17 +468,49 @@ void BuildMenu(HMENU menu, CBookmarkNode *node, BOOL isContinuation)
       else if (child->type == BOOKMARK_FOLDER) {
          HMENU childMenu = CreatePopupMenu();
          child->id = (UINT)childMenu; // we have to save off the HMENU for the rebar
+
+#if 1
          // condense the title and escape ampersands
          char *pszTemp = fixString(child->text.c_str(), 40);
          AppendMenu(menu, MF_STRING|MF_POPUP, (UINT)childMenu, pszTemp);
          delete pszTemp;
+#else         
+         char *szTitle = (char*) child->text.c_str();
+         int len = strlen(szTitle)+1;
+
+         int wlen = MultiByteToWideChar(CP_UTF8, 0,
+                                        szTitle, len,
+                                        NULL, 0);
+         WCHAR *wszTitle = new WCHAR[wlen+1];
+         wlen = MultiByteToWideChar(CP_UTF8, 0,
+                                    szTitle, len,
+                                    wszTitle, wlen);
+         AppendMenuW(menu, MF_STRING|MF_POPUP, (UINT)childMenu, wszTitle);
+         delete wszTitle;
+#endif
+
          BuildMenu(childMenu, child, false);
       }
       else if (child->type == BOOKMARK_BOOKMARK) {
+#if 1
          // condense the title and escape ampersands
          char *pszTemp = fixString(child->text.c_str(), 40);
          AppendMenu(menu, MF_STRING, child->id, pszTemp);
          delete pszTemp;
+#else
+         char *szTitle = (char*) child->text.c_str();
+         int len = strlen(szTitle)+1;
+
+         int wlen = MultiByteToWideChar(CP_UTF8, 0,
+                                        szTitle, len,
+                                        NULL, 0);
+         WCHAR *wszTitle = new WCHAR[wlen+1];
+         wlen = MultiByteToWideChar(CP_UTF8, 0,
+                                    szTitle, len,
+                                    wszTitle, wlen);
+         AppendMenuW(menu, MF_STRING, child->id, wszTitle);
+         delete wszTitle;
+#endif
       }
    }
 }
@@ -540,11 +603,11 @@ void Rebuild() {
 
 int addLink(char *url, char *title, int flag)
 {
-   if (!url)
+   if (!url || !(*url))
       return false;
 
    CBookmarkNode *addNode = gBookmarkRoot.FindSpecialNode(flag);
-   addNode->AddChild(new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), title ? (*title ? title : url) : url, url, "", "", BOOKMARK_BOOKMARK, time(NULL)));
+   addNode->AddChild(new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), title ? (*title ? title : url) : url, url, "", "", "", BOOKMARK_BOOKMARK, time(NULL)));
    
    Save(gBookmarkFile);
    
@@ -552,6 +615,41 @@ int addLink(char *url, char *title, int flag)
 
    return true;
 }
+
+
+static char szInput[256];
+static char *pszTitle;
+static char *pszPrompt;
+
+BOOL CALLBACK
+PromptDlgProc( HWND hwnd,
+	      UINT Message,
+	      WPARAM wParam,
+	      LPARAM lParam )
+{
+    switch (Message) {
+      case WM_INITDIALOG:
+	SetWindowText( hwnd, pszTitle ? pszTitle : "Smart bookmark" );
+	SetDlgItemText(hwnd, IDC_SEARCHTEXT, pszPrompt ? pszPrompt : "");
+        return TRUE;
+      case WM_COMMAND:
+        switch (LOWORD(wParam)) {
+	  case IDOK:
+	    GetDlgItemText(hwnd, IDC_INPUT, szInput, 256);
+	    EndDialog( hwnd, IDOK );
+	    break;
+	  case IDCANCEL:
+	    EndDialog( hwnd, IDCANCEL );
+	    break;
+	}
+	break;
+	
+      default:
+        return FALSE;
+    }
+    return TRUE;
+}
+
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
    // store these in static vars so that the BeginHotTrack call can access them
@@ -593,13 +691,51 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
          return true;
       }
       else if (command == nEditCommand) {
-         DialogBoxParam(kPlugin.hDllInstance, MAKEINTRESOURCE(IDD_EDIT_BOOKMARKS), hWnd, EditProc, 0);
+         if (ghWndEdit) {
+            ShowWindow(ghWndEdit, SW_RESTORE);
+            BringWindowToTop(ghWndEdit);
+         }
+         else
+            ghWndEdit = CreateDialogParam(kPlugin.hDllInstance, MAKEINTRESOURCE(IDD_EDIT_BOOKMARKS), NULL, EditProc, 0);
          return true;
       }
       else if (CBookmarkNode *node = gBookmarkRoot.FindNode(command)) {
          node->lastVisit = time(NULL);
          gBookmarksModified = true;	// this doesn't call for instant saving, it can wait until we add/edit/quit
-         kPlugin.kFuncs->NavigateTo(node->url.c_str(), OPEN_NORMAL);
+
+	 if (node->url.c_str() == NULL || *node->url.c_str() == 0)
+	   return true;
+
+         char *str = strdup(node->url.c_str());
+         char *ptr = strstr(str, "%s");
+         if (ptr) {
+            char buff[INTERNET_MAX_URL_LENGTH];
+            *ptr = 0;
+            strcpy(buff, str);
+	    ptr += 2;
+
+	    pszTitle = strdup( node->text.c_str() );
+	    pszPrompt = strdup( node->desc.c_str() );
+
+	    int ok = DialogBox(kPlugin.hDllInstance,
+			       MAKEINTRESOURCE(IDD_SMARTBOOKMARK), hWnd, (DLGPROC)PromptDlgProc);
+	    PostMessage(hWnd, WM_NULL, 0, 0);
+	    if (ok == IDOK && *szInput) {
+	      strcat(buff, szInput);
+	      strcat(buff, ptr);
+	      kPlugin.kFuncs->NavigateTo(buff, OPEN_NORMAL);
+	    }
+
+	    if (pszTitle) 
+	      free(pszTitle);
+	    if (pszPrompt) 
+	      free(pszPrompt);
+
+         }
+         else {
+            kPlugin.kFuncs->NavigateTo(str, OPEN_NORMAL);
+         }
+	 free(str);
 
          return true;
       }
@@ -645,9 +781,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 // this would be a hack to clean the status bar for separators, popups
 // (they work (clear the status bar) for CMenu-added separators/popups,
 // but not when they are added via standard win32 calls...)
-//      else {
-//         kPlugin.kFuncs->SetStatusBarText("");
-//      }
+      else {
+         kPlugin.kFuncs->SetStatusBarText("");
+      }
    }
    return CallWindowProc(KMeleonWndProc, hWnd, message, wParam, lParam);
 }

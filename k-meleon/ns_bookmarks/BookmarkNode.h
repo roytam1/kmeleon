@@ -29,10 +29,12 @@ const int BOOKMARK_SEPARATOR= 2;  // this node is a separator, url, title, and c
 const int BOOKMARK_FLAG_TB = 0x1;	// Toolbar Folder
 const int BOOKMARK_FLAG_NB = 0x2;	// New Bookmarks Folder
 const int BOOKMARK_FLAG_BM = 0x4;	// Bookmark Menu Folder
+const int BOOKMARK_FLAG_GRP = 0x8;	// Bookmark Group Folder
 
 typedef int cmp_t(const char *, const char *, unsigned int);
 void quicksort(char *a, size_t n, size_t es, cmp_t *cmp, unsigned int flag);
 static int compareBookmarks(const char *e1, const char *e2, unsigned int sortorder);
+char *stristr(const char *String, const char *Pattern);
 
 class CBookmarkNode {
 public:
@@ -40,6 +42,7 @@ public:
    std::string text;
    std::string url;
    std::string nick;
+   std::string desc;
    std::string charset;
    int type;
    int flags;
@@ -56,6 +59,7 @@ public:
       text = "";
       url = "";
       nick = "";
+      desc = "";
       charset = "";
       type = 0;
 	  flags = 0;
@@ -67,12 +71,13 @@ public:
       lastVisit = 0;
       lastModified = 0;
    }
-   inline CBookmarkNode(int id, const char *text, const char *url, const char *nick, const char *charset, int type, time_t addDate=0, time_t lastVisit=0, time_t lastModified=0)
+   inline CBookmarkNode(int id, const char *text, const char *url, const char *nick, const char *desc, const char *charset, int type, time_t addDate=0, time_t lastVisit=0, time_t lastModified=0)
    {
       this->id = id;
       this->text = text;
       this->url = url;
       this->nick = nick ? nick : "";
+      this->desc = desc ? desc : "";
       this->charset = charset ? charset : "";
       this->type = type;
 	  this->flags = 0;
@@ -83,12 +88,13 @@ public:
       this->lastVisit = lastVisit;
       this->lastModified = lastModified;
    }
-   inline CBookmarkNode(int id, std::string &text, std::string &url, std::string &nick, std::string &charset, int type, time_t addDate=0, time_t lastVisit=0, time_t lastModified=0)
+   inline CBookmarkNode(int id, std::string &text, std::string &url, std::string &nick, std::string &desc, std::string &charset, int type, time_t addDate=0, time_t lastVisit=0, time_t lastModified=0)
    {
       this->id = id;
       this->text = text;
       this->url = url;
       this->nick = nick;
+      this->desc = desc;
       this->charset = charset;
       this->type = type;
 	  this->flags = 0;
@@ -115,6 +121,7 @@ public:
       text = n2.text;
       url = n2.url;
       nick = n2.nick;
+      desc = n2.desc;
       charset = n2.charset;
       type = n2.type;
       flags = n2.flags;
@@ -280,6 +287,59 @@ public:
       }
       // We couldn't find it.  Rather than returning null and risking a null pointer crash, return ourself
       return this;
+   }
+   int Index(int &mypos, CBookmarkNode *node)
+   {
+      CBookmarkNode *c;
+      for (c=child; c; c=c->next) {
+         mypos++;
+         if (c->type == BOOKMARK_SEPARATOR)
+            continue;
+         else if (node == c)
+               return mypos;
+
+         if (c->type == BOOKMARK_FOLDER) {
+            int newpos = c->Index(mypos, node);
+            if (newpos >= 0)
+               return newpos;
+         }
+      }
+      return -1;
+   }
+   int Search(const char *str, int pos, int &mypos, int &firstpos, CBookmarkNode **node)
+   {
+      CBookmarkNode *c;
+      for (c=child; c; c=c->next) {
+         mypos++;
+         if (c->type == BOOKMARK_SEPARATOR) {
+            continue;
+         }
+         else if (stristr(c->text.c_str(), str) ||
+		  stristr(c->url.c_str(), str) ||
+		  stristr(c->nick.c_str(), str) ||
+		  stristr(c->desc.c_str(), str)) {
+            if (mypos >= pos) {
+               // this is it!
+               if (node)
+                  *node = c;
+               return mypos;
+            }
+            else if (firstpos == -1) {
+               firstpos = mypos;
+            }
+         }
+
+         if (c->type == BOOKMARK_FOLDER) {
+
+            int newpos = c->Search(str, pos, mypos, firstpos, node);
+
+            if (newpos >= pos) {
+               // found it in a sub-node
+               return newpos;
+            }
+         }
+      }
+      return firstpos;
    }
    void sort(int sortorder)
    {

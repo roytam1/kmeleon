@@ -34,6 +34,8 @@
 #define PREFERENCE_EDIT_DLG_TOP    "kmeleon.plugins.bookmarks.editdialog.top"
 #define PREFERENCE_EDIT_DLG_WIDTH  "kmeleon.plugins.bookmarks.editdialog.width"
 #define PREFERENCE_EDIT_DLG_HEIGHT "kmeleon.plugins.bookmarks.editdialog.height"
+#define PREFERENCE_EDIT_ZOOM _T("kmeleon.plugins.favorites.editdialog.zoom")
+#define PREFERENCE_EDIT_MAX _T("kmeleon.plugins.favorites.editdialog.maximized")
 #define PREFERENCE_SETTINGS_DIR    "kmeleon.general.settingsDir"
 
 #define BOOKMARK_TAG "<!DOCTYPE NETSCAPE-Bookmark-file-1>"
