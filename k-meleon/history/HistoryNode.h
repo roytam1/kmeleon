@@ -220,7 +220,7 @@ public:
    {
       CHistoryNode *c, *prev = NULL;
       for (c=child; c; c=c->next) {
-         if (c->type == HISTORY_FOLDER) {
+         if (c->type == HISTORY_FOLDER && c->child != NULL) {
             CHistoryNode *old = c;
             CHistoryNode *tmp = c->next;
 
@@ -242,6 +242,16 @@ public:
          prev = c;
       }
       lastChild = prev;
+   }
+   int size() {
+      int i = 1;
+
+      if (type == HISTORY_FOLDER && child)
+         i = i + child->size();
+      if (next)
+         i = i + next->size();
+
+      return i;
    }
    void sort(int sortorder)
    {

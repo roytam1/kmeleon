@@ -62,6 +62,7 @@ extern HWND ghWndView;
 extern HIMAGELIST gImagelist;
 
 #define IDD_VIEW_HISTORY		100
+#define IDD_CONFIG                      101
 #define IDR_CONTEXTMENU                 159
 
 #define IDC_REBARENABLED                1000
@@ -77,6 +78,8 @@ extern HIMAGELIST gImagelist;
 #define IDC_URL				1012
 #define IDC_STATIC_VISITED		1015
 #define IDC_LAST_VISIT			1016
+#define IDC_EXPIRE_DAYS                 1017
+#define IDB_CLEAR                       1018
 
 #define IDB_IMAGES                      159
 #define IDB_ICON                        160
