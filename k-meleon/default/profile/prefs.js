@@ -30,6 +30,7 @@ user_pref("kmeleon.plugins.bookmarks.chevron", true);
 user_pref("kmeleon.plugins.bookmarks.load", false);
 user_pref("kmeleon.plugins.bookmarks.menuAutoDetect", true);
 user_pref("kmeleon.plugins.bookmarks.openurl", "ID_OPEN_LINK");
+user_pref("kmeleon.plugins.crash.load", false);
 user_pref("kmeleon.plugins.external.load", true);
 user_pref("kmeleon.plugins.favorites.load", false);
 user_pref("kmeleon.plugins.favorites.menuAutoDetect", true);
