@@ -66,10 +66,10 @@
 
 CBrowserImpl::CBrowserImpl()
 {
-  NS_INIT_ISUPPORTS();
+   NS_INIT_ISUPPORTS();
 
-  m_pBrowserFrameGlue = NULL;
-  mWebBrowser = nsnull;
+   m_pBrowserFrameGlue = NULL;
+   mWebBrowser = nsnull;
 }
 
 
@@ -81,13 +81,13 @@ CBrowserImpl::~CBrowserImpl()
 // Call on this Init() method with proper values after creation
 //
 NS_METHOD CBrowserImpl::Init(PBROWSERFRAMEGLUE pBrowserFrameGlue, 
-							  nsIWebBrowser* aWebBrowser)
+                             nsIWebBrowser* aWebBrowser)
 {
 	  m_pBrowserFrameGlue = pBrowserFrameGlue;
-	  
-	  SetWebBrowser(aWebBrowser);
+     
+     SetWebBrowser(aWebBrowser);
 
-	  return NS_OK;
+     return NS_OK;
 }
 
 //*****************************************************************************
@@ -106,48 +106,48 @@ NS_INTERFACE_MAP_BEGIN(CBrowserImpl)
    NS_INTERFACE_MAP_ENTRY(nsIContextMenuListener)
    NS_INTERFACE_MAP_ENTRY(nsIPrompt)
    NS_INTERFACE_MAP_ENTRY(nsISupportsWeakReference)
-NS_INTERFACE_MAP_END
+   NS_INTERFACE_MAP_END
 
-//*****************************************************************************
-// CBrowserImpl::nsIInterfaceRequestor
-//*****************************************************************************   
+   //*****************************************************************************
+   // CBrowserImpl::nsIInterfaceRequestor
+   //*****************************************************************************   
 
-NS_IMETHODIMP CBrowserImpl::GetInterface(const nsIID &aIID, void** aInstancePtr)
+   NS_IMETHODIMP CBrowserImpl::GetInterface(const nsIID &aIID, void** aInstancePtr)
 {
-	// Note that we're wrapping our nsIPrompt impl. with the 
-	// nsISingleSignOnPrompt - if USE_SINGLE_SIGN_ON is defined
-	// (and if single sign-on support dll's are present and enabled) 
-	// This allows the embedding app to use the password save
-	// feature. When signing on to a host which needs authentication
-	// the Single sign-on service will check to see if the auth. info
-	// is already saved and if so uses it to pre-fill the sign-on form
-	// If not, our nsIPrompt impl will be called
-	// to present the auth UI and return the required auth info.
-	// If we do not compile with single sign-on support or if that
-	// service is missing we just fall back to the regular 
-	// implementation of nsIPrompt
+   // Note that we're wrapping our nsIPrompt impl. with the 
+   // nsISingleSignOnPrompt - if USE_SINGLE_SIGN_ON is defined
+   // (and if single sign-on support dll's are present and enabled) 
+   // This allows the embedding app to use the password save
+   // feature. When signing on to a host which needs authentication
+   // the Single sign-on service will check to see if the auth. info
+   // is already saved and if so uses it to pre-fill the sign-on form
+   // If not, our nsIPrompt impl will be called
+   // to present the auth UI and return the required auth info.
+   // If we do not compile with single sign-on support or if that
+   // service is missing we just fall back to the regular 
+   // implementation of nsIPrompt
 
-	if(aIID.Equals(NS_GET_IID(nsIPrompt)))
-	{
-		if (!mPrompter)
-		{
+   if(aIID.Equals(NS_GET_IID(nsIPrompt)))
+   {
+      if (!mPrompter)
+      {
 #ifdef USE_SINGLE_SIGN_ON
-			nsresult rv;
-			nsCOMPtr<nsISingleSignOnPrompt> siPrompt = do_CreateInstance(NS_SINGLESIGNONPROMPT_CONTRACTID, &rv);
-			if (NS_SUCCEEDED(rv))
-			{
-				siPrompt->SetPromptDialogs(NS_STATIC_CAST(nsIPrompt*, this));
-				mPrompter = siPrompt;
-			}
-			else
+         nsresult rv;
+         nsCOMPtr<nsISingleSignOnPrompt> siPrompt = do_CreateInstance(NS_SINGLESIGNONPROMPT_CONTRACTID, &rv);
+         if (NS_SUCCEEDED(rv))
+         {
+            siPrompt->SetPromptDialogs(NS_STATIC_CAST(nsIPrompt*, this));
+            mPrompter = siPrompt;
+         }
+         else
 #endif
-				mPrompter = NS_STATIC_CAST(nsIPrompt*, this);
-		}
-		NS_ENSURE_TRUE(mPrompter, NS_ERROR_FAILURE);
-		return mPrompter->QueryInterface(aIID, aInstancePtr);
-	}
-	else
-		return QueryInterface(aIID, aInstancePtr);
+            mPrompter = NS_STATIC_CAST(nsIPrompt*, this);
+      }
+      NS_ENSURE_TRUE(mPrompter, NS_ERROR_FAILURE);
+      return mPrompter->QueryInterface(aIID, aInstancePtr);
+   }
+   else
+      return QueryInterface(aIID, aInstancePtr);
 }
 
 //*****************************************************************************
@@ -158,12 +158,12 @@ NS_IMETHODIMP CBrowserImpl::GetInterface(const nsIID &aIID, void** aInstancePtr)
 //
 NS_IMETHODIMP CBrowserImpl::SetStatus(PRUint32 aType, const PRUnichar* aStatus)
 {
-	if(! m_pBrowserFrameGlue)
-		return NS_ERROR_FAILURE;
+   if(! m_pBrowserFrameGlue)
+      return NS_ERROR_FAILURE;
 
-	m_pBrowserFrameGlue->UpdateStatusBarText(aStatus);
+   m_pBrowserFrameGlue->UpdateStatusBarText(aStatus);
 
-	return NS_OK;
+   return NS_OK;
 }
 
 NS_IMETHODIMP CBrowserImpl::GetWebBrowser(nsIWebBrowser** aWebBrowser)
@@ -205,14 +205,14 @@ NS_IMETHODIMP CBrowserImpl::SetChromeFlags(PRUint32 aChromeMask)
 //
 NS_IMETHODIMP CBrowserImpl::CreateBrowserWindow(PRUint32 chromeMask, PRInt32 aX, PRInt32 aY, PRInt32 aCX, PRInt32 aCY, nsIWebBrowser **aWebBrowser)
 {
-	if(! m_pBrowserFrameGlue)
-		return NS_ERROR_FAILURE;
+   if(! m_pBrowserFrameGlue)
+      return NS_ERROR_FAILURE;
 
-	if(m_pBrowserFrameGlue->CreateNewBrowserFrame(chromeMask, 
-								aX, aY, aCX, aCY, aWebBrowser))
-		return NS_OK;
-	else
-	    return NS_ERROR_FAILURE;
+   if(m_pBrowserFrameGlue->CreateNewBrowserFrame(chromeMask, 
+      aX, aY, aCX, aCY, aWebBrowser))
+      return NS_OK;
+   else
+      return NS_ERROR_FAILURE;
 }
 
 // Gets called in response to create a new browser window. 
@@ -232,12 +232,12 @@ NS_IMETHODIMP CBrowserImpl::CreateBrowserWindow(PRUint32 chromeMask, PRInt32 aX,
    on 5 Feb 01.
 */
 NS_IMETHODIMP CBrowserImpl::FindNamedBrowserItem(const PRUnichar *aName,
-                                                  	  nsIDocShellTreeItem ** aBrowserItem)
+                                                 nsIDocShellTreeItem ** aBrowserItem)
 {
-	if(! m_pBrowserFrameGlue)
-		return NS_ERROR_FAILURE;
+   if(! m_pBrowserFrameGlue)
+      return NS_ERROR_FAILURE;
 
-	return m_pBrowserFrameGlue->FindNamedBrowserItem(aName, NS_STATIC_CAST(nsIWebBrowserChrome*, this), aBrowserItem);
+   return m_pBrowserFrameGlue->FindNamedBrowserItem(aName, NS_STATIC_CAST(nsIWebBrowserChrome*, this), aBrowserItem);
 }
 #endif
 
@@ -252,12 +252,12 @@ NS_IMETHODIMP CBrowserImpl::FindNamedBrowserItem(const PRUnichar *aName,
 //
 NS_IMETHODIMP CBrowserImpl::SizeBrowserTo(PRInt32 aCX, PRInt32 aCY)
 {
-	if(! m_pBrowserFrameGlue)
-		return NS_ERROR_FAILURE;
+   if(! m_pBrowserFrameGlue)
+      return NS_ERROR_FAILURE;
 
-	m_pBrowserFrameGlue->SetBrowserFrameSize(aCX, aCY);
+   m_pBrowserFrameGlue->SetBrowserFrameSize(aCX, aCY);
 
-	return NS_OK;
+   return NS_OK;
 }
 
 NS_IMETHODIMP CBrowserImpl::ShowAsModal(void)
@@ -267,32 +267,32 @@ NS_IMETHODIMP CBrowserImpl::ShowAsModal(void)
 
 NS_IMETHODIMP CBrowserImpl::IsWindowModal(PRBool *retval)
 {
-  // We're not modal
-  *retval = PR_FALSE;
+   // We're not modal
+   *retval = PR_FALSE;
 
-  return NS_OK;
+   return NS_OK;
 }
 
 NS_IMETHODIMP CBrowserImpl::ExitModalEventLoop(nsresult aStatus)
 {
-  return NS_OK;
+   return NS_OK;
 }
 
 
 NS_IMETHODIMP
 CBrowserImpl::SetPersistence(PRBool aPersistX, PRBool aPersistY,
-                                  PRBool aPersistCX, PRBool aPersistCY,
-                                  PRBool aPersistSizeMode)
+                             PRBool aPersistCX, PRBool aPersistCY,
+                             PRBool aPersistSizeMode)
 {
-    return NS_ERROR_NOT_IMPLEMENTED;
+   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP
 CBrowserImpl::GetPersistence(PRBool* aPersistX, PRBool* aPersistY,
-                                  PRBool* aPersistCX, PRBool* aPersistCY,
-                                  PRBool* aPersistSizeMode)
+                             PRBool* aPersistCX, PRBool* aPersistCY,
+                             PRBool* aPersistSizeMode)
 {
-    return NS_ERROR_NOT_IMPLEMENTED;
+   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 //*****************************************************************************
@@ -303,109 +303,109 @@ CBrowserImpl::GetPersistence(PRBool* aPersistX, PRBool* aPersistY,
 //
 NS_IMETHODIMP CBrowserImpl::Destroy()
 {
-	if(! m_pBrowserFrameGlue)
-		return NS_ERROR_FAILURE;
+   if(! m_pBrowserFrameGlue)
+      return NS_ERROR_FAILURE;
 
-	m_pBrowserFrameGlue->DestroyBrowserFrame();
+   m_pBrowserFrameGlue->DestroyBrowserFrame();
 
-	return NS_OK;
+   return NS_OK;
 }
 
 NS_IMETHODIMP CBrowserImpl::SetPosition(PRInt32 x, PRInt32 y)
 {
-	if(! m_pBrowserFrameGlue)
-		return NS_ERROR_FAILURE;
+   if(! m_pBrowserFrameGlue)
+      return NS_ERROR_FAILURE;
 
-	m_pBrowserFrameGlue->SetBrowserFramePosition(x, y);
+   m_pBrowserFrameGlue->SetBrowserFramePosition(x, y);
 
-	return NS_OK;
+   return NS_OK;
 }
 
 NS_IMETHODIMP CBrowserImpl::GetPosition(PRInt32* x, PRInt32* y)
 {
-	if(! m_pBrowserFrameGlue)
-		return NS_ERROR_FAILURE;
+   if(! m_pBrowserFrameGlue)
+      return NS_ERROR_FAILURE;
 
-	m_pBrowserFrameGlue->GetBrowserFramePosition(x, y);
+   m_pBrowserFrameGlue->GetBrowserFramePosition(x, y);
 
-	return NS_OK;
+   return NS_OK;
 }
 
 // Gets called when using JavaScript ResizeTo()/ResizeBy() methods
 //
 NS_IMETHODIMP CBrowserImpl::SetSize(PRInt32 cx, PRInt32 cy, PRBool fRepaint)
 {
-	if(! m_pBrowserFrameGlue)
-		return NS_ERROR_FAILURE;
+   if(! m_pBrowserFrameGlue)
+      return NS_ERROR_FAILURE;
 
-	m_pBrowserFrameGlue->SetBrowserFrameSize(cx, cy);
+   m_pBrowserFrameGlue->SetBrowserFrameSize(cx, cy);
 
-	return NS_OK;
+   return NS_OK;
 }
 
 // Gets called when using JavaScript ResizeTo()/ResizeBy() methods
 //
 NS_IMETHODIMP CBrowserImpl::GetSize(PRInt32* cx, PRInt32* cy)
 {
-	if(! m_pBrowserFrameGlue)
-		return NS_ERROR_FAILURE;
+   if(! m_pBrowserFrameGlue)
+      return NS_ERROR_FAILURE;
 
-	m_pBrowserFrameGlue->GetBrowserFrameSize(cx, cy);
+   m_pBrowserFrameGlue->GetBrowserFrameSize(cx, cy);
 
-	return NS_OK;
+   return NS_OK;
 }
 
 NS_IMETHODIMP CBrowserImpl::SetPositionAndSize(PRInt32 x, PRInt32 y, PRInt32 cx, PRInt32 cy, PRBool fRepaint)
 {
-	if(! m_pBrowserFrameGlue)
-		return NS_ERROR_FAILURE;
+   if(! m_pBrowserFrameGlue)
+      return NS_ERROR_FAILURE;
 
-	m_pBrowserFrameGlue->SetBrowserFramePositionAndSize(x, y, cx, cy, fRepaint);
+   m_pBrowserFrameGlue->SetBrowserFramePositionAndSize(x, y, cx, cy, fRepaint);
 
-	return NS_OK;
+   return NS_OK;
 }
 
 NS_IMETHODIMP CBrowserImpl::GetPositionAndSize(PRInt32* x, PRInt32* y, PRInt32* cx, PRInt32* cy)
 {
-	if(! m_pBrowserFrameGlue)
-		return NS_ERROR_FAILURE;
+   if(! m_pBrowserFrameGlue)
+      return NS_ERROR_FAILURE;
 
-	m_pBrowserFrameGlue->GetBrowserFramePositionAndSize(x, y, cx, cy);
+   m_pBrowserFrameGlue->GetBrowserFramePositionAndSize(x, y, cx, cy);
 
-	return NS_OK;
+   return NS_OK;
 }
 
 NS_IMETHODIMP CBrowserImpl::GetSiteWindow(void** aSiteWindow)
 {
-	return NS_ERROR_NOT_IMPLEMENTED;
+   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP CBrowserImpl::SetFocus()
 {
-	if(! m_pBrowserFrameGlue)
-		return NS_ERROR_FAILURE;
+   if(! m_pBrowserFrameGlue)
+      return NS_ERROR_FAILURE;
 
-	m_pBrowserFrameGlue->SetFocus();
+   m_pBrowserFrameGlue->SetFocus();
 
-	return NS_OK;
+   return NS_OK;
 }
 
 NS_IMETHODIMP CBrowserImpl::GetTitle(PRUnichar** aTitle)
 {
-	if(! m_pBrowserFrameGlue)
-		return NS_ERROR_FAILURE;
+   if(! m_pBrowserFrameGlue)
+      return NS_ERROR_FAILURE;
 
-	m_pBrowserFrameGlue->GetBrowserFrameTitle(aTitle);
-	
-	return NS_OK;
+   m_pBrowserFrameGlue->GetBrowserFrameTitle(aTitle);
+   
+   return NS_OK;
 }
 
 NS_IMETHODIMP CBrowserImpl::SetTitle(const PRUnichar* aTitle)
 {
-	if(! m_pBrowserFrameGlue)
-		return NS_ERROR_FAILURE;
+   if(! m_pBrowserFrameGlue)
+      return NS_ERROR_FAILURE;
 
-	m_pBrowserFrameGlue->SetBrowserFrameTitle(aTitle);
-	
-	return NS_OK;
+   m_pBrowserFrameGlue->SetBrowserFrameTitle(aTitle);
+   
+   return NS_OK;
 }

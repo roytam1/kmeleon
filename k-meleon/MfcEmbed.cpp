@@ -465,7 +465,7 @@ CAboutDlg::CAboutDlg() : CDialog(CAboutDlg::IDD)
     Documentation:\r\n
     Lance Hall (aka pyzr) <pyzr@pyzr.com>\r\n
   );
-  m_version = "Version " VERSION " Build " BUILD_NUMBER_STRING " Compiled " BUILD_TIME;
+  m_version.Format("Version " VERSION " Build %d Compiled " BUILD_TIME, BUILD_NUMBER);
 }
 
 void CAboutDlg::DoDataExchange(CDataExchange* pDX){

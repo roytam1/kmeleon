@@ -27,212 +27,212 @@
 #define VK_TEST(KEY)  else if (stricmp(p, #KEY) == 0){ key = VK_##KEY; }
 
 CAccelParser::CAccelParser(){
-	accelTable = NULL;
-  numAccelerators = 0;
-	memset(accelerators, 0, sizeof(ACCEL) * MAX_ACCEL);
+   accelTable = NULL;
+   numAccelerators = 0;
+   memset(accelerators, 0, sizeof(ACCEL) * MAX_ACCEL);
 }
 
 CAccelParser::CAccelParser(CString &filename){
-	accelTable = NULL;
-  numAccelerators = 0;
-	memset(accelerators, 0, sizeof(ACCEL) * MAX_ACCEL);
+   accelTable = NULL;
+   numAccelerators = 0;
+   memset(accelerators, 0, sizeof(ACCEL) * MAX_ACCEL);
 
-  Load(filename);
+   Load(filename);
 }
 
 CAccelParser::~CAccelParser(){
-  if (accelTable){
-    DestroyAcceleratorTable(accelTable);
-  }
+   if (accelTable){
+      DestroyAcceleratorTable(accelTable);
+   }
 }
 
 int CAccelParser::Load(CString &filename){
-  if (accelTable){
-    DestroyAcceleratorTable(accelTable);
-    accelTable = NULL;
-    numAccelerators = 0;
-  }
+   if (accelTable){
+      DestroyAcceleratorTable(accelTable);
+      accelTable = NULL;
+      numAccelerators = 0;
+   }
 
-  CFile *accelFile;
-  TRY {
-    accelFile = new CFile(filename, CFile::modeRead);
-  }
-  CATCH (CFileException, e) {
-    accelFile = NULL;
-    return false;
-  }
-  END_CATCH
+   CFile *accelFile;
+   TRY {
+      accelFile = new CFile(filename, CFile::modeRead);
+   }
+   CATCH (CFileException, e) {
+      accelFile = NULL;
+      return false;
+   }
+   END_CATCH
 
-  long length = accelFile->GetLength();
-  char *buffer = new char[length + 1];
-  accelFile->Read(buffer, length);
-  // force the terminating 0
-  buffer[length] = 0;
+      long length = accelFile->GetLength();
+   char *buffer = new char[length + 1];
+   accelFile->Read(buffer, length);
+   // force the terminating 0
+   buffer[length] = 0;
 
-  accelFile->Close();
-  delete accelFile;
-  accelFile = NULL;
+   accelFile->Close();
+   delete accelFile;
+   accelFile = NULL;
 
-  CMap<CString, LPCSTR, int, int &> defineMap;
+   CMap<CString, LPCSTR, int, int &> defineMap;
 #include "defineMap.cpp"
 
-  char *e, *s;
-  char *alt, *ctrl, *shift;
-  BYTE virt;
-  int command;
-  int key;
-  char *p = strtok(buffer, "\r\n");
-  while (p){
-    if (p[0] == '#'){
-    }
-    else {
-      // <modifiers> <key> = <command>
-      e = strchr(p, '=');
-      if (e){
-        *e = 0;
-        e++;
-        e = SkipWhiteSpace(e);
-        TrimWhiteSpace(e);
+   char *e, *s;
+   char *alt, *ctrl, *shift;
+   BYTE virt;
+   int command;
+   int key;
+   char *p = strtok(buffer, "\r\n");
+   while (p){
+      if (p[0] == '#'){
+      }
+      else {
+         // <modifiers> <key> = <command>
+         e = strchr(p, '=');
+         if (e){
+            *e = 0;
+            e++;
+            e = SkipWhiteSpace(e);
+            TrimWhiteSpace(e);
 
-        if (!defineMap.Lookup(e, command)){
-          command = atoi(e);
-        }
+            if (!defineMap.Lookup(e, command)){
+               command = atoi(e);
+            }
 
-        TrimWhiteSpace(p);
-        s = p;
+            TrimWhiteSpace(p);
+            s = p;
 
-        virt = 0;
-        alt = strstr(s, "ALT");
-        if (alt){
-          virt |= FALT;
-          p = alt + 3;
-        }
-        ctrl = strstr(s, "CTRL");
-        if (ctrl){
-          virt |= FCONTROL;
-          if (ctrl > alt){
-            p = ctrl + 4;
-          }
-        }
-        shift = strstr(s, "SHIFT");
-        if (shift){
-          virt |= FSHIFT;
-          if ((shift > alt) && (shift > ctrl)){
-            p = shift + 5;
-          }
-        }
-        virt |= FVIRTKEY;
-        // by now, p should be past the modifiers and point to " <key>"
-        p = SkipWhiteSpace(p);
+            virt = 0;
+            alt = strstr(s, "ALT");
+            if (alt){
+               virt |= FALT;
+               p = alt + 3;
+            }
+            ctrl = strstr(s, "CTRL");
+            if (ctrl){
+               virt |= FCONTROL;
+               if (ctrl > alt){
+                  p = ctrl + 4;
+               }
+            }
+            shift = strstr(s, "SHIFT");
+            if (shift){
+               virt |= FSHIFT;
+               if ((shift > alt) && (shift > ctrl)){
+                  p = shift + 5;
+               }
+            }
+            virt |= FVIRTKEY;
+            // by now, p should be past the modifiers and point to " <key>"
+            p = SkipWhiteSpace(p);
 
-        if (strncmp(p, "VK_", 3) == 0){
-          p+=3;
-          key = 0;
+            if (strncmp(p, "VK_", 3) == 0){
+               p+=3;
+               key = 0;
 
-          // these should be in order of frequency of use to speed up parsing
-          BEGIN_VK_TEST
+               // these should be in order of frequency of use to speed up parsing
+               BEGIN_VK_TEST
 
-          VK_TEST(ESCAPE)
-          VK_TEST(LEFT)
-          VK_TEST(RIGHT)
+                  VK_TEST(ESCAPE)
+                  VK_TEST(LEFT)
+                  VK_TEST(RIGHT)
 
-          VK_TEST(F1)
-          VK_TEST(F2)
-          VK_TEST(F3)
-          VK_TEST(F4)
-          VK_TEST(F5)
-          VK_TEST(F6)
-          VK_TEST(F7)
-          VK_TEST(F8)
-          VK_TEST(F9)
-          VK_TEST(F10)
-          VK_TEST(F11)
-          VK_TEST(F12)
+                  VK_TEST(F1)
+                  VK_TEST(F2)
+                  VK_TEST(F3)
+                  VK_TEST(F4)
+                  VK_TEST(F5)
+                  VK_TEST(F6)
+                  VK_TEST(F7)
+                  VK_TEST(F8)
+                  VK_TEST(F9)
+                  VK_TEST(F10)
+                  VK_TEST(F11)
+                  VK_TEST(F12)
 
-          VK_TEST(HOME)
-          VK_TEST(END)
+                  VK_TEST(HOME)
+                  VK_TEST(END)
 
-          VK_TEST(PRIOR)  // page up
-          VK_TEST(NEXT)   // page down
-          VK_TEST(UP)
-          VK_TEST(DOWN)
-          VK_TEST(INSERT)
-          VK_TEST(DELETE)
-          VK_TEST(SPACE)
-          VK_TEST(HELP)
-          VK_TEST(EXECUTE)
-          VK_TEST(SELECT)
-          VK_TEST(PRINT)
-          VK_TEST(SNAPSHOT) // print screen?
+                  VK_TEST(PRIOR)  // page up
+                  VK_TEST(NEXT)   // page down
+                  VK_TEST(UP)
+                  VK_TEST(DOWN)
+                  VK_TEST(INSERT)
+                  VK_TEST(DELETE)
+                  VK_TEST(SPACE)
+                  VK_TEST(HELP)
+                  VK_TEST(EXECUTE)
+                  VK_TEST(SELECT)
+                  VK_TEST(PRINT)
+                  VK_TEST(SNAPSHOT) // print screen?
 
-          VK_TEST(BACK)
-          VK_TEST(TAB)
-          VK_TEST(CLEAR)
+                  VK_TEST(BACK)
+                  VK_TEST(TAB)
+                  VK_TEST(CLEAR)
 
-          VK_TEST(RETURN)
+                  VK_TEST(RETURN)
 
-          VK_TEST(MULTIPLY)
-          VK_TEST(ADD)
-          VK_TEST(SUBTRACT)
-          VK_TEST(DECIMAL)
-          VK_TEST(DIVIDE)
-          VK_TEST(SEPARATOR)
+                  VK_TEST(MULTIPLY)
+                  VK_TEST(ADD)
+                  VK_TEST(SUBTRACT)
+                  VK_TEST(DECIMAL)
+                  VK_TEST(DIVIDE)
+                  VK_TEST(SEPARATOR)
 
-          VK_TEST(PAUSE)
-          VK_TEST(CAPITAL)
-          VK_TEST(MENU)
+                  VK_TEST(PAUSE)
+                  VK_TEST(CAPITAL)
+                  VK_TEST(MENU)
 
-          VK_TEST(KANA)
-          VK_TEST(JUNJA)
-          VK_TEST(FINAL)
-          VK_TEST(HANJA)
-          VK_TEST(KANJI)
+                  VK_TEST(KANA)
+                  VK_TEST(JUNJA)
+                  VK_TEST(FINAL)
+                  VK_TEST(HANJA)
+                  VK_TEST(KANJI)
 
-          VK_TEST(CONVERT)
-          VK_TEST(NONCONVERT)
-          VK_TEST(ACCEPT)
-          VK_TEST(MODECHANGE)
+                  VK_TEST(CONVERT)
+                  VK_TEST(NONCONVERT)
+                  VK_TEST(ACCEPT)
+                  VK_TEST(MODECHANGE)
 
-          VK_TEST(LWIN)
-          VK_TEST(RWIN)
-          VK_TEST(APPS)
+                  VK_TEST(LWIN)
+                  VK_TEST(RWIN)
+                  VK_TEST(APPS)
 
-          VK_TEST(NUMPAD0)
-          VK_TEST(NUMPAD1)
-          VK_TEST(NUMPAD2)
-          VK_TEST(NUMPAD3)
-          VK_TEST(NUMPAD4)
-          VK_TEST(NUMPAD5)
-          VK_TEST(NUMPAD6)
-          VK_TEST(NUMPAD7)
-          VK_TEST(NUMPAD8)
-          VK_TEST(NUMPAD9)
+                  VK_TEST(NUMPAD0)
+                  VK_TEST(NUMPAD1)
+                  VK_TEST(NUMPAD2)
+                  VK_TEST(NUMPAD3)
+                  VK_TEST(NUMPAD4)
+                  VK_TEST(NUMPAD5)
+                  VK_TEST(NUMPAD6)
+                  VK_TEST(NUMPAD7)
+                  VK_TEST(NUMPAD8)
+                  VK_TEST(NUMPAD9)
 
-          VK_TEST(F13)
-          VK_TEST(F14)
-          VK_TEST(F15)
-          VK_TEST(F16)
-          VK_TEST(F17)
-          VK_TEST(F18)
-          VK_TEST(F19)
-          VK_TEST(F20)
-          VK_TEST(F21)
-          VK_TEST(F22)
-          VK_TEST(F23)
-          VK_TEST(F24)
+                  VK_TEST(F13)
+                  VK_TEST(F14)
+                  VK_TEST(F15)
+                  VK_TEST(F16)
+                  VK_TEST(F17)
+                  VK_TEST(F18)
+                  VK_TEST(F19)
+                  VK_TEST(F20)
+                  VK_TEST(F21)
+                  VK_TEST(F22)
+                  VK_TEST(F23)
+                  VK_TEST(F24)
 
-          VK_TEST(NUMLOCK)
-          VK_TEST(SCROLL)
-        }
-        else {
-          // regular key...
-          key = (WORD)*p;
-        }
+                  VK_TEST(NUMLOCK)
+                  VK_TEST(SCROLL)
+            }
+            else {
+               // regular key...
+               key = (WORD)*p;
+            }
 
-        accelerators[numAccelerators].cmd = command;
-        accelerators[numAccelerators].fVirt = virt;
-        accelerators[numAccelerators].key = key;
-        numAccelerators++;
+            accelerators[numAccelerators].cmd = command;
+            accelerators[numAccelerators].fVirt = virt;
+            accelerators[numAccelerators].key = key;
+            numAccelerators++;
       } // if e
     }
     p = strtok(NULL, "\r\n");
@@ -244,10 +244,8 @@ int CAccelParser::Load(CString &filename){
 }
 
 HACCEL CAccelParser::GetTable(){
-  if (!accelTable){
-    accelTable = CreateAcceleratorTable(accelerators, numAccelerators);
-  }
-  return accelTable;
+   if (!accelTable){
+      accelTable = CreateAcceleratorTable(accelerators, numAccelerators);
+   }
+   return accelTable;
 }
-
-

@@ -19,6 +19,7 @@ CFG=kmeleon - Win32 Debug
 !MESSAGE 
 !MESSAGE "kmeleon - Win32 Release" (based on "Win32 (x86) Application")
 !MESSAGE "kmeleon - Win32 Debug" (based on "Win32 (x86) Application")
+!MESSAGE "kmeleon - Win32 Profile Release" (based on "Win32 (x86) Application")
 !MESSAGE 
 
 # Begin Project
@@ -56,6 +57,11 @@ LINK32=link.exe
 # ADD BASE LINK32 /nologo /subsystem:windows /machine:I386
 # ADD LINK32 xpcom.lib baseembed_s.lib plc4.lib /nologo /subsystem:windows /machine:I386 /out:"..\mozilla\mozilla\dist\WIN32_o.OBJ\Embed\k-meleon.exe" /libpath:"c:\projects\mozilla\mozilla\dist\win32_o.obj\lib" /libpath:"..\mozilla\mozilla\dist\WIN32_o.OBJ\lib"
 # SUBTRACT LINK32 /pdb:none
+# Begin Special Build Tool
+SOURCE="$(InputPath)"
+PostBuild_Desc=Updating Version
+PostBuild_Cmds=version BUILD_NUMBER version.h
+# End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "kmeleon - Win32 Debug"
 
@@ -82,6 +88,41 @@ BSC32=bscmake.exe
 LINK32=link.exe
 # ADD BASE LINK32 /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept
 # ADD LINK32 xpcom.lib baseembed_s.lib /nologo /subsystem:windows /debug /machine:I386 /out:"..\mozilla\mozilla\dist\WIN32_o.OBJ\Embed\k-meleon.exe" /pdbtype:sept /libpath:"..\mozilla\mozilla\dist\WIN32_o.OBJ\lib"
+# Begin Special Build Tool
+SOURCE="$(InputPath)"
+PostBuild_Desc=Updating Version
+PostBuild_Cmds=version BUILD_NUMBER version.h
+# End Special Build Tool
+
+!ELSEIF  "$(CFG)" == "kmeleon - Win32 Profile Release"
+
+# PROP BASE Use_MFC 6
+# PROP BASE Use_Debug_Libraries 0
+# PROP BASE Output_Dir "kmeleon___Win32_Profile_Release"
+# PROP BASE Intermediate_Dir "kmeleon___Win32_Profile_Release"
+# PROP BASE Ignore_Export_Lib 0
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 6
+# PROP Use_Debug_Libraries 0
+# PROP Output_Dir "ProfileRelease"
+# PROP Intermediate_Dir "ProfileRelease"
+# PROP Ignore_Export_Lib 0
+# PROP Target_Dir ""
+# ADD BASE CPP /nologo /MD /W3 /GX /O2 /I "..\mozilla\mozilla\nsprpub\pr\include" /I "..\mozilla\mozilla\nsprpub\_o.obj\include" /I "..\mozilla\mozilla\include" /I "..\mozilla\mozilla\xpcom\components" /I "..\mozilla\mozilla\dist\include" /I "..\mozilla\mozilla\dist\WIN32_O.OBJ\include" /D "WIN32" /D "_WINDOWS" /D "_AFXDLL" /D "_MBCS" /D "HW_THREADS" /D "XP_PC" /D "XP_WIN" /D "XP_WIN32" /D WINVER=0x400 /D _WIN32_IE=0x0500 /Yu"stdafx.h" /FD /c
+# SUBTRACT BASE CPP /Fr
+# ADD CPP /nologo /MD /W3 /GX /O2 /I "..\mozilla\mozilla\nsprpub\pr\include" /I "..\mozilla\mozilla\nsprpub\_o.obj\include" /I "..\mozilla\mozilla\include" /I "..\mozilla\mozilla\xpcom\components" /I "..\mozilla\mozilla\dist\include" /I "..\mozilla\mozilla\dist\WIN32_O.OBJ\include" /D "PROFILE" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "HW_THREADS" /D "XP_PC" /D "XP_WIN" /D "XP_WIN32" /D WINVER=0x400 /D _WIN32_IE=0x0500 /D "_AFXDLL" /Yu"stdafx.h" /FD /c
+# SUBTRACT CPP /Fr
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
+# ADD BASE RSC /l 0x409 /d "NDEBUG" /d "_AFXDLL"
+# ADD RSC /l 0x409 /d "NDEBUG" /d "_AFXDLL"
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 xpcom.lib baseembed_s.lib plc4.lib /nologo /subsystem:windows /machine:I386 /out:"..\mozilla\mozilla\dist\WIN32_o.OBJ\Embed\k-meleon.exe" /libpath:"c:\projects\mozilla\mozilla\dist\win32_o.obj\lib" /libpath:"..\mozilla\mozilla\dist\WIN32_o.OBJ\lib"
+# SUBTRACT BASE LINK32 /pdb:none
+# ADD LINK32 xpcom.lib baseembed_s.lib plc4.lib /nologo /subsystem:windows /profile /map:"..\mozilla\mozilla\dist\WIN32_o.OBJ\Embed\k-meleon.map" /debug /machine:I386 /out:"..\mozilla\mozilla\dist\WIN32_o.OBJ\Embed\k-meleon.exe" /libpath:"c:\projects\mozilla\mozilla\dist\win32_o.obj\lib" /libpath:"..\mozilla\mozilla\dist\WIN32_o.OBJ\lib"
 
 !ENDIF 
 
@@ -89,6 +130,7 @@ LINK32=link.exe
 
 # Name "kmeleon - Win32 Release"
 # Name "kmeleon - Win32 Debug"
+# Name "kmeleon - Win32 Profile Release"
 # Begin Group "Source Files"
 
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
@@ -127,7 +169,22 @@ SOURCE=.\BrowserView.cpp
 # Begin Source File
 
 SOURCE=.\defineMap.cpp
+
+!IF  "$(CFG)" == "kmeleon - Win32 Release"
+
 # PROP Exclude_From_Build 1
+
+!ELSEIF  "$(CFG)" == "kmeleon - Win32 Debug"
+
+# PROP Exclude_From_Build 1
+
+!ELSEIF  "$(CFG)" == "kmeleon - Win32 Profile Release"
+
+# PROP BASE Exclude_From_Build 1
+# PROP Exclude_From_Build 1
+
+!ENDIF 
+
 # End Source File
 # Begin Source File
 
@@ -267,6 +324,24 @@ SOURCE=.\Utils.h
 # Begin Source File
 
 SOURCE=.\version.h
+
+!IF  "$(CFG)" == "kmeleon - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "kmeleon - Win32 Debug"
+
+# PROP Ignore_Default_Tool 1
+# Begin Custom Build - Updating Version
+InputPath=.\version.h
+
+"$(InputPath)" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	version.exe BUILD_NUMBER $(InputPath)
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "kmeleon - Win32 Profile Release"
+
+!ENDIF 
+
 # End Source File
 # Begin Source File
 

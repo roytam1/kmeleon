@@ -70,12 +70,12 @@
 NS_IMETHODIMP
 CBrowserImpl::Alert(const PRUnichar *dialogTitle, const PRUnichar *text)
 {
-	if(! m_pBrowserFrameGlue)
-		return NS_ERROR_FAILURE;
-	
-	m_pBrowserFrameGlue->Alert(dialogTitle, text);
+   if(! m_pBrowserFrameGlue)
+      return NS_ERROR_FAILURE;
+   
+   m_pBrowserFrameGlue->Alert(dialogTitle, text);
 
-	return NS_OK;
+   return NS_OK;
 }
 
 // Invoked in the case of a JS confirm() method invocation
@@ -83,14 +83,14 @@ CBrowserImpl::Alert(const PRUnichar *dialogTitle, const PRUnichar *text)
 // our nsIPrompt with nsISingleSignonPrompt)
 NS_IMETHODIMP
 CBrowserImpl::Confirm(const PRUnichar *dialogTitle, 
-			   const PRUnichar *text, PRBool *retval)
+                      const PRUnichar *text, PRBool *retval)
 {
-	if(! m_pBrowserFrameGlue)
-		return NS_ERROR_FAILURE;
+   if(! m_pBrowserFrameGlue)
+      return NS_ERROR_FAILURE;
 
-	m_pBrowserFrameGlue->Confirm(dialogTitle, text, retval);
+   m_pBrowserFrameGlue->Confirm(dialogTitle, text, retval);
 
-	return NS_OK;
+   return NS_OK;
 }
 
 // (This method will get called when we're *NOT* wrapping
@@ -100,62 +100,62 @@ CBrowserImpl::Confirm(const PRUnichar *dialogTitle,
 // invoked to put up a prompt.
 NS_IMETHODIMP
 CBrowserImpl::Prompt(const PRUnichar *dialogTitle,
-			  const PRUnichar *text,
-			  const PRUnichar *passwordRealm,
-			  PRUint32 savePassword,
-			  const PRUnichar *defaultText, 
-			  PRUnichar **result, PRBool *retval)
+                     const PRUnichar *text,
+                     const PRUnichar *passwordRealm,
+                     PRUint32 savePassword,
+                     const PRUnichar *defaultText, 
+                     PRUnichar **result, PRBool *retval)
 {
-	if(! m_pBrowserFrameGlue)
-		return NS_ERROR_FAILURE;
+   if(! m_pBrowserFrameGlue)
+      return NS_ERROR_FAILURE;
 
-	m_pBrowserFrameGlue->Prompt(dialogTitle, text, defaultText, result, retval);
+   m_pBrowserFrameGlue->Prompt(dialogTitle, text, defaultText, result, retval);
 
-	return NS_OK;
+   return NS_OK;
 }
 
 NS_IMETHODIMP
 CBrowserImpl::PromptPassword(const PRUnichar *dialogTitle,
-				  const PRUnichar *text, 
-				  const PRUnichar *passwordRealm,
-				  PRUint32 savePassword, PRUnichar **pwd,
-				  PRBool *retval)
+                             const PRUnichar *text, 
+                             const PRUnichar *passwordRealm,
+                             PRUint32 savePassword, PRUnichar **pwd,
+                             PRBool *retval)
 {
-	if(! m_pBrowserFrameGlue)
-		return NS_ERROR_FAILURE;
+   if(! m_pBrowserFrameGlue)
+      return NS_ERROR_FAILURE;
 
-	// Note that we're using the same PromptPassword method in 
-	// IBrowserFrameGlue for both the single sign-on and non-
-	// single sign-on cases. 
-	// In the non-single sign-on case i.e. here, we do not
-	// have a checkboxmsg or chkboxstate to worry about - 
-	// hence NULLs are being passed for those params below
+   // Note that we're using the same PromptPassword method in 
+   // IBrowserFrameGlue for both the single sign-on and non-
+   // single sign-on cases. 
+   // In the non-single sign-on case i.e. here, we do not
+   // have a checkboxmsg or chkboxstate to worry about - 
+   // hence NULLs are being passed for those params below
 
-	m_pBrowserFrameGlue->PromptPassword(dialogTitle, text, NULL/*no chkbox msg*/, 
-							NULL/*no chkboxState*/, pwd, retval);
+   m_pBrowserFrameGlue->PromptPassword(dialogTitle, text, NULL/*no chkbox msg*/, 
+      NULL/*no chkboxState*/, pwd, retval);
 
-    return NS_OK;
+   return NS_OK;
 }
 
 NS_IMETHODIMP
 CBrowserImpl::PromptUsernameAndPassword(const PRUnichar *dialogTitle,
-					     const PRUnichar *text,
-					     const PRUnichar *passwordRealm,
-					     PRUint32 savePassword, 
-					     PRUnichar **user,
-					     PRUnichar **pwd, 
-					     PRBool *retval)
+                                        const PRUnichar *text,
+                                        const PRUnichar *passwordRealm,
+                                        PRUint32 savePassword, 
+                                        PRUnichar **user,
+                                        PRUnichar **pwd, 
+                                        PRBool *retval)
 {
-	if(! m_pBrowserFrameGlue)
-		return NS_ERROR_FAILURE;
+   if(! m_pBrowserFrameGlue)
+      return NS_ERROR_FAILURE;
 
-	m_pBrowserFrameGlue->PromptUserNamePassword(dialogTitle, text, 
-							NULL/*UserName Label*/, NULL/*Password Label*/, 
-							NULL/*checkboxMsg*/, NULL/*checkboxState*/,
-							user, pwd, 
-							retval);
+   m_pBrowserFrameGlue->PromptUserNamePassword(dialogTitle, text, 
+      NULL/*UserName Label*/, NULL/*Password Label*/, 
+      NULL/*checkboxMsg*/, NULL/*checkboxState*/,
+      user, pwd, 
+      retval);
 
-    return NS_OK;
+   return NS_OK;
 }
 
 // This method is evil/painful. This needs to go away and i think there's
@@ -195,108 +195,107 @@ CBrowserImpl::PromptUsernameAndPassword(const PRUnichar *dialogTitle,
 //
 NS_IMETHODIMP
 CBrowserImpl::UniversalDialog(const PRUnichar *titleMessage,
-				   const PRUnichar *dialogTitle,
-				   const PRUnichar *text,
-				   const PRUnichar *checkboxMsg,
-				   const PRUnichar *button0Text, 
-				   const PRUnichar *button1Text,
-				   const PRUnichar *button2Text, 
-				   const PRUnichar *button3Text,
-				   const PRUnichar *editfield1Msg,
-				   const PRUnichar *editfield2Msg,
-				   PRUnichar **editfield1Value, 
-				   PRUnichar **editfield2Value,
-				   const PRUnichar *iconURL,
-				   PRBool *checkboxState, 
-				   PRInt32 numberButtons, 
-				   PRInt32 numberEditfields,
-				   PRInt32 editField1Password,
-				   PRInt32 *buttonPressed)
+                              const PRUnichar *dialogTitle,
+                              const PRUnichar *text,
+                              const PRUnichar *checkboxMsg,
+                              const PRUnichar *button0Text, 
+                              const PRUnichar *button1Text,
+                              const PRUnichar *button2Text, 
+                              const PRUnichar *button3Text,
+                              const PRUnichar *editfield1Msg,
+                              const PRUnichar *editfield2Msg,
+                              PRUnichar **editfield1Value, 
+                              PRUnichar **editfield2Value,
+                              const PRUnichar *iconURL,
+                              PRBool *checkboxState, 
+                              PRInt32 numberButtons, 
+                              PRInt32 numberEditfields,
+                              PRInt32 editField1Password,
+                              PRInt32 *buttonPressed)
 {
-	if(! m_pBrowserFrameGlue)
-		return NS_ERROR_FAILURE;
+   if(! m_pBrowserFrameGlue)
+      return NS_ERROR_FAILURE;
 
-	if(numberEditfields == 1 && checkboxMsg == NULL && editField1Password == 0)
-	{
-		// This is a Prompt()
+   if(numberEditfields == 1 && checkboxMsg == NULL && editField1Password == 0)
+   {
+      // This is a Prompt()
 
-		m_pBrowserFrameGlue->Prompt(dialogTitle, text, *editfield1Value, editfield1Value, buttonPressed);
+      m_pBrowserFrameGlue->Prompt(dialogTitle, text, *editfield1Value, editfield1Value, buttonPressed);
 
-		// The Prompt() methods return PR_TRUE/PR_FALSE depending on whether 
-		// the OK/CANCEL was pressed. However, UniversalDialog checks
-		// for the index of the button pressed i.e. "0" for the "OK" button and
-		// "1" for the CANCEL button. 
+      // The Prompt() methods return PR_TRUE/PR_FALSE depending on whether 
+      // the OK/CANCEL was pressed. However, UniversalDialog checks
+      // for the index of the button pressed i.e. "0" for the "OK" button and
+      // "1" for the CANCEL button. 
 
-		// So, now let's translate to what the UniversalDlg expects
+      // So, now let's translate to what the UniversalDlg expects
 
-		if(*buttonPressed) //Will be TRUE i.e. 1 if the user chose OK
-			*buttonPressed = 0; //Set it to the OK button index i.e. to "0"
-		else
-			*buttonPressed = 1; //Set it to the Cancel button index i.e. to "1"
+      if(*buttonPressed) //Will be TRUE i.e. 1 if the user chose OK
+         *buttonPressed = 0; //Set it to the OK button index i.e. to "0"
+      else
+         *buttonPressed = 1; //Set it to the Cancel button index i.e. to "1"
 
-		return NS_OK;
-	}
-	else if(numberEditfields == 1 && checkboxMsg != NULL && editField1Password == 1)
-	{
-		// This is a PromptPassword()
+      return NS_OK;
+   }
+   else if(numberEditfields == 1 && checkboxMsg != NULL && editField1Password == 1)
+   {
+      // This is a PromptPassword()
 
-		m_pBrowserFrameGlue->PromptPassword(dialogTitle, text, checkboxMsg, 
-								checkboxState, editfield1Value, buttonPressed);
+      m_pBrowserFrameGlue->PromptPassword(dialogTitle, text, checkboxMsg, 
+         checkboxState, editfield1Value, buttonPressed);
 
-		//See comments above on why we're doing this...
-		if(*buttonPressed) 
-			*buttonPressed = 0;
-		else
-			*buttonPressed = 1;
+      //See comments above on why we're doing this...
+      if(*buttonPressed) 
+         *buttonPressed = 0;
+      else
+         *buttonPressed = 1;
 
-		return NS_OK;
-	}
-	else if(numberEditfields == 2 && checkboxMsg != NULL && editField1Password == 0)
-	{
-		// This is a username/password dialog
+      return NS_OK;
+   }
+   else if(numberEditfields == 2 && checkboxMsg != NULL && editField1Password == 0)
+   {
+      // This is a username/password dialog
 
-		m_pBrowserFrameGlue->PromptUserNamePassword(dialogTitle, text, 
-								editfield1Msg, editfield2Msg, 
-								checkboxMsg, checkboxState,
-								editfield1Value, editfield2Value, 
-								buttonPressed);
+      m_pBrowserFrameGlue->PromptUserNamePassword(dialogTitle, text, 
+         editfield1Msg, editfield2Msg, 
+         checkboxMsg, checkboxState,
+         editfield1Value, editfield2Value, 
+         buttonPressed);
 
-		//See comments above on why we're doing this...
-		if(*buttonPressed)
-			*buttonPressed = 0;
-		else
-			*buttonPressed = 1;
+      //See comments above on why we're doing this...
+      if(*buttonPressed)
+         *buttonPressed = 0;
+      else
+         *buttonPressed = 1;
 
-		return NS_OK;
-	}
-	else
-		return NS_ERROR_NOT_IMPLEMENTED;
+      return NS_OK;
+   }
+   else
+      return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP
 CBrowserImpl::AlertCheck(const PRUnichar *dialogTitle, 
-			      const PRUnichar *text, 
-			      const PRUnichar *checkMsg,
-			      PRBool *checkValue)
+                         const PRUnichar *text, 
+                         const PRUnichar *checkMsg,
+                         PRBool *checkValue)
 {
-	    return NS_ERROR_NOT_IMPLEMENTED;
+   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP
 CBrowserImpl::ConfirmCheck(const PRUnichar *dialogTitle,
-				const PRUnichar *text,
-				const PRUnichar *checkMsg, 
-				PRBool *checkValue, PRBool *retval)
+                           const PRUnichar *text,
+                           const PRUnichar *checkMsg, 
+                           PRBool *checkValue, PRBool *retval)
 {
-	return NS_ERROR_NOT_IMPLEMENTED;
+   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP
 CBrowserImpl::Select(const PRUnichar *dialogTitle,
-			  const PRUnichar *text, PRUint32 count,
-			  const PRUnichar **selectList,
-			  PRInt32 *outSelection, PRBool *retval)
+                     const PRUnichar *text, PRUint32 count,
+                     const PRUnichar **selectList,
+                     PRInt32 *outSelection, PRBool *retval)
 {
-    return NS_ERROR_NOT_IMPLEMENTED;
+   return NS_ERROR_NOT_IMPLEMENTED;
 }
-
