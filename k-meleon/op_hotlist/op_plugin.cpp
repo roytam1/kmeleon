@@ -252,6 +252,56 @@ void getHotlistFile() {
       kPlugin.kFuncs->SetPreference(PREF_STRING, PREFERENCE_HOTLIST_FILE, gHotlistFile);
 }
 
+
+// look for filename first in the skinsDir, then in the settingsDir
+// check for the filename in skinsDir, and copy the path into szSkinFile
+// if it's not there, just assume it's in settingsDir, and copy that path
+
+void FindSkinFile( char *szSkinFile, char *filename ) {
+
+   char szTmpSkinDir[MAX_PATH];
+   char szTmpSkinName[MAX_PATH];
+   char szTmpSkinFile[MAX_PATH] = "";
+
+   if (!szSkinFile || !filename || !*filename)
+      return;
+
+   kPlugin.kFuncs->GetPreference(PREF_STRING, "kmeleon.general.skinsDir", szTmpSkinDir, (char*)"");
+   kPlugin.kFuncs->GetPreference(PREF_STRING, "kmeleon.general.skinsCurrent", szTmpSkinName, (char*)"");
+
+   if (*szTmpSkinDir && *szTmpSkinName) {
+      strcpy(szTmpSkinFile, szTmpSkinDir);
+
+      int len = strlen(szTmpSkinFile);
+      if (szTmpSkinFile[len-1] != '\\')
+         strcat(szTmpSkinFile, "\\");
+
+      strcat(szTmpSkinFile, szTmpSkinName);
+      len = strlen(szTmpSkinFile);
+      if (szTmpSkinFile[len-1] != '\\')
+         strcat(szTmpSkinFile, "\\");
+
+      strcat(szTmpSkinFile, filename);
+
+      WIN32_FIND_DATA FindData;
+
+      HANDLE hFile = FindFirstFile(szTmpSkinFile, &FindData);
+      if(hFile != INVALID_HANDLE_VALUE) {   
+         FindClose(hFile);
+         strcpy( szSkinFile, szTmpSkinFile );
+         return;
+      }
+   }
+
+   // it wasn't in the skinsDir, assume settingsDir
+   kPlugin.kFuncs->GetPreference(PREF_STRING, "kmeleon.general.settingsDir", szSkinFile, (char*)"");
+   if (! *szSkinFile)      // no settingsDir, bad
+      strcpy(szSkinFile, filename);
+   else
+      strcat(szSkinFile, filename);
+}
+
+
 int Init(){
    HDC hdcScreen = CreateDC("DISPLAY", NULL, NULL, NULL); 
    nHSize = GetDeviceCaps(hdcScreen, HORZSIZE);
@@ -285,12 +335,28 @@ int Init(){
    bEmpty = true;
 
    if (!bIgnore) {
-      gImagelist = ImageList_Create(16, 15, ILC_MASK, 4, 4);
-      HBITMAP bitmap = LoadBitmap(kPlugin.hDllInstance, MAKEINTRESOURCE(IDB_IMAGES));
-      if (gImagelist && bitmap)
-         ImageList_AddMasked(gImagelist, bitmap, RGB(192, 192, 192));
-      if (bitmap)
-         DeleteObject(bitmap);
+     HBITMAP bitmap;
+     int ilc_bits = ILC_COLOR;
+     
+     char szFullPath[MAX_PATH];
+     FindSkinFile(szFullPath, "hotlist.bmp");
+     FILE *fp = fopen(szFullPath, "r");
+     if (fp) {
+        fclose(fp);
+        bitmap = (HBITMAP)LoadImage(NULL, szFullPath, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+     } else {
+        bitmap = LoadBitmap(kPlugin.hDllInstance, MAKEINTRESOURCE(IDB_IMAGES));
+     }
+     
+     BITMAP bmp;
+     GetObject(bitmap, sizeof(BITMAP), &bmp);
+
+     ilc_bits = (bmp.bmBitsPixel == 32 ? ILC_COLOR32 : (bmp.bmBitsPixel == 24 ? ILC_COLOR24 : (bmp.bmBitsPixel == 16 ? ILC_COLOR16 : (bmp.bmBitsPixel == 8 ? ILC_COLOR8 : (bmp.bmBitsPixel == 4 ? ILC_COLOR4 : ILC_COLOR)))));
+     gImagelist = ImageList_Create(bmp.bmWidth/6, bmp.bmHeight, ILC_MASK | ilc_bits, 4, 4);
+     if (gImagelist && bitmap)
+        ImageList_AddMasked(gImagelist, bitmap, RGB(255, 0, 255));
+     if (bitmap)
+        DeleteObject(bitmap);
    }
    
    return true;
@@ -419,7 +485,6 @@ void Config(HWND hWndParent){
 }
 
 void Quit(){
-  //MessageBox(NULL, "Quit", "1", MB_OK);
    if (gImagelist)
       ImageList_Destroy(gImagelist);
    if (gHotlistModified) {
