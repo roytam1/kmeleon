@@ -108,7 +108,7 @@ void DoRebar(HWND rebarWnd) {
 }
 
 
-void CreateBackMenu (UINT button) {
+void CreateBackMenu (HWND hWndParent, UINT button) {
 	int index, count, i, limit;
 	char **titles, buf[47];
 
@@ -148,12 +148,12 @@ void CreateBackMenu (UINT button) {
 	   ::SendMessage(tb, TB_GETITEMRECT, ButtonID, (LPARAM) &rc);
 	   POINT pt = { rc.left, rc.bottom };
 	   ::ClientToScreen(tb, &pt);
-      DWORD SelectionMade = TrackPopupMenu(submenu, TPM_LEFTALIGN | button | TPM_NONOTIFY | TPM_RETURNCMD, pt.x, pt.y, 0, ::GetActiveWindow(), &rc);
+      DWORD SelectionMade = TrackPopupMenu(submenu, TPM_LEFTALIGN | button | TPM_NONOTIFY | TPM_RETURNCMD, pt.x, pt.y, 0, hWndParent, &rc);
 
 	   DestroyMenu(submenu);
 	   DestroyMenu(menu);
 
-	   PostMessage(GetActiveWindow(), WM_REFRESHTOOLBARITEM, (WPARAM) ID_NAV_BACK, 0);
+	   PostMessage(hWndParent, WM_REFRESHTOOLBARITEM, (WPARAM) ID_NAV_BACK, 0);
 
       if (SelectionMade > 0) {
 		   kPlugin.kf->GotoHistoryIndex(SelectionMade-1);
@@ -162,7 +162,7 @@ void CreateBackMenu (UINT button) {
 }
 
 
-void CreateForwardMenu (UINT button) {
+void CreateForwardMenu (HWND hWndParent, UINT button) {
 	int index, count, i, limit;
 	char **titles, buf[47];
 
@@ -200,25 +200,27 @@ void CreateForwardMenu (UINT button) {
 	   ::SendMessage(tb, TB_GETITEMRECT, ButtonID, (LPARAM) &rc);
 	   POINT pt = { rc.left, rc.bottom };
 	   ::ClientToScreen(tb, &pt);
-	   DWORD SelectionMade = TrackPopupMenu(submenu, TPM_LEFTALIGN | button | TPM_NONOTIFY | TPM_RETURNCMD, pt.x, pt.y, 0, ::GetActiveWindow(), &rc);
+	   DWORD SelectionMade = TrackPopupMenu(submenu, TPM_LEFTALIGN | button | TPM_NONOTIFY | TPM_RETURNCMD, pt.x, pt.y, 0, hWndParent, &rc);
 
 	   DestroyMenu(submenu);
 	   DestroyMenu(menu);
 
-	   if (SelectionMade > 0) {
+	   PostMessage(hWndParent, WM_REFRESHTOOLBARITEM, (WPARAM) ID_NAV_FORWARD, 0);
+
+      if (SelectionMade > 0) {
 		   kPlugin.kf->GotoHistoryIndex(SelectionMade-1);
 	   }
 
    }
 }
 
-void UpdateHistoryMenu () {
+void UpdateHistoryMenu (HWND hWndParent) {
 	int index, count, i;
 	char **titles;
 	char buf[47];  //  3 spaces for "&# " 20 for beginning of title 3 for "..." 20 for end of title
 
 
-	HMENU hTopMenu = GetMenu(GetActiveWindow()),hHistoryMenu=0, hSubMenu;
+	HMENU hTopMenu = GetMenu(hWndParent),hHistoryMenu=0, hSubMenu;
 
 	if (!hTopMenu)
 		return;
@@ -285,25 +287,25 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 	switch (message) {
 
 		case WM_UPDATESESSIONHISTORY:
-			UpdateHistoryMenu();
+			UpdateHistoryMenu(hWnd);
 			return true;
 		case TB_LBUTTONHOLD:
 			switch (wParam) {
 				case ID_NAV_BACK:
-					CreateBackMenu(TPM_LEFTBUTTON);
+					CreateBackMenu(hWnd, TPM_LEFTBUTTON);
 					break;
 				case ID_NAV_FORWARD:
-					CreateForwardMenu(TPM_LEFTBUTTON);
+					CreateForwardMenu(hWnd, TPM_LEFTBUTTON);
 					break;
 			}
 			return true;
 		case TB_RBUTTONDOWN:
 			switch (wParam) {
 				case ID_NAV_BACK:
-					CreateBackMenu(TPM_RIGHTBUTTON);
+					CreateBackMenu(hWnd, TPM_RIGHTBUTTON);
 					break;
 				case ID_NAV_FORWARD:
-					CreateForwardMenu(TPM_RIGHTBUTTON);
+					CreateForwardMenu(hWnd, TPM_RIGHTBUTTON);
 					break;
 			}
 			return true;

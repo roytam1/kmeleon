@@ -28,9 +28,9 @@ void DoRebar(HWND rebarWnd);
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
-void CreateBackMenu (UINT button);
-void CreateForwardMenu (UINT button);
-void UpdateHistoryMenu();
+void CreateBackMenu (HWND hWndParent, UINT button);
+void CreateForwardMenu (HWND hWndParent, UINT button);
+void UpdateHistoryMenu(HWND hWndParent);
 void CondenseMenuText(char *buf, char *title, int index);
 
 int ID_HISTORY_FLAG = -1;
