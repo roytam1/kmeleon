@@ -137,6 +137,11 @@ public:
 
    NS_IMETHODIMP URISaveAs(nsIURI *aURI, bool bDocument=FALSE);
 
+   void OnIncreaseFont();
+   void OnDecreaseFont();
+   void ChangeTextSize(PRInt32 change);
+
+
 protected:
 	BOOL m_refreshBackButton;
 	BOOL m_refreshForwardButton; 
