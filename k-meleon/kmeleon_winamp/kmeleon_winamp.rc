@@ -82,14 +82,11 @@ BEGIN
     BEGIN
         BLOCK "040904B0"
         BEGIN
-            VALUE "CompanyName", "\0"
-            VALUE "FileDescription", "ns_bookmarks DLL\0"
+            VALUE "FileDescription", "KMeleon Winamp Controls Plugin\0"
             VALUE "FileVersion", "1, 0, 0, 1\0"
-            VALUE "InternalName", "ns_bookmarks\0"
             VALUE "LegalCopyright", "Copyright (C) 2001\0"
-            VALUE "LegalTrademarks", "\0"
-            VALUE "OriginalFilename", "ns_bookmarks.DLL\0"
-            VALUE "ProductName", "ns_bookmarks Dynamic Link Library\0"
+            VALUE "OriginalFilename", "winamp.DLL\0"
+            VALUE "ProductName", "Winamp Controls\0"
             VALUE "ProductVersion", "1, 0, 0, 1\0"
         END
     END
