@@ -1179,13 +1179,6 @@ void CBrowserView::OnUpdateViewStatusBar(CCmdUI* pCmdUI) {
    BOOL bVis = ::IsWindowVisible(hWndStatus);
 
    pCmdUI->SetCheck(bVis);
-   
-/*
-   if (pCmdUI->m_pMenu) {
-      pCmdUI->m_pMenu->CheckMenuItem(pCmdUI->m_nIndex, MF_BYPOSITION | MF_CHECKED);
-      DrawMenuBar();
-   }
-*/
 }
 
 /////////////////////////////////////////////////////////////////////////////

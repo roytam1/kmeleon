@@ -458,8 +458,8 @@ void CBrowserFrame::SetBackImage ()
 {
 	CReBarCtrl& rc = m_wndReBar.GetReBarCtrl ();
 
-	for (UINT i = 0; i < rc.GetBandCount(); i++)
-	{
+	for (UINT i = 0; i < rc.GetBandCount(); i++)	{
+
 		REBARBANDINFO info;
 		memset (&info, 0, sizeof (REBARBANDINFO));
 		info.cbSize = sizeof (info);
@@ -487,25 +487,24 @@ void CBrowserFrame::SetBackImage ()
 /////////////////////////////////////////////////////////////////////////////
 void CBrowserFrame::LoadBackImage ()
 {
-	//------------------------------------
+   //------------------------------------
 	// Load control bars background image:
 	//------------------------------------
 
-	if (m_bmpBack.GetSafeHandle () != NULL)	{
+	if (m_bmpBack.GetSafeHandle () != NULL)
 		m_bmpBack.DeleteObject ();
-	}
 
-  HBITMAP hbmp;
-  if (theApp.preferences.toolbarBackground.IsEmpty()){
-    theApp.preferences.toolbarBackground = theApp.preferences.settingsDir + "Back.bmp";
-	}
-  hbmp = (HBITMAP) ::LoadImage (AfxGetResourceHandle (),
-    theApp.preferences.toolbarBackground,
-    IMAGE_BITMAP,
-    0, 0,
-    LR_LOADMAP3DCOLORS | LR_LOADFROMFILE);
+   HBITMAP hbmp;
+   if (theApp.preferences.toolbarBackground.IsEmpty())
+      theApp.preferences.toolbarBackground = theApp.preferences.settingsDir + "Back.bmp";
 
-	m_bmpBack.Attach (hbmp);
+   hbmp = (HBITMAP) ::LoadImage (AfxGetResourceHandle (),
+      theApp.preferences.toolbarBackground,
+      IMAGE_BITMAP,
+      0, 0,
+      LR_LOADMAP3DCOLORS | LR_LOADFROMFILE);
+
+   m_bmpBack.Attach (hbmp);
 }
 
 void CBrowserFrame::RefreshToolBarItem(WPARAM ItemID, LPARAM unused) {
