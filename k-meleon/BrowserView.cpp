@@ -379,27 +379,27 @@ char* CBrowserView::NicknameLookup(char* pUrl)
 {
     char *p, *q, *r;
     char *nickUrl;
-    char *custUrl;
     
     // Check for a nickname
     nickUrl = NULL;
-    p = pUrl;                           // get entered URL
-    p = SkipWhiteSpace(p);              // skip any leading spaces
-    q = strchr(p, ' ');                 // look for a space
+    p = strdup(pUrl);                   // get entered URL
+    q = SkipWhiteSpace(p);              // skip any leading spaces
+    q = strchr(q, ' ');                 // look for a space
     
     if (q)                              // if more than one word
         *q = 0;                         // terminate first word
     
-    theApp.plugins.SendMessage("*", "* FindNick", "FindNick", (long)p, (long)&nickUrl);
+    theApp.plugins.SendMessage("*", "* FindNick", "FindNick", (long)SkipWhiteSpace(p), (long)&nickUrl);
 
     if (q)                              // if more than one word
         *q = ' ';                       // restore space
-    
-    if (nickUrl && *nickUrl != 0) {
+
+    if (nickUrl) {
+        int len = strlen(nickUrl);
         r = strstr(nickUrl, "%s");       // look for %s
         if (r) {                         // if found
             *r = 0;                      // terminate string up to %s
-            char *custUrl = (char*)malloc(strlen(nickUrl+INTERNET_MAX_URL_LENGTH));
+            char *custUrl = (char*)malloc(len+INTERNET_MAX_URL_LENGTH);
             strcpy(custUrl, nickUrl);     // copy string before %s
             if (q)                        // if more than one word
                 strcat(custUrl, q+1);     // copy second word
@@ -412,7 +412,8 @@ char* CBrowserView::NicknameLookup(char* pUrl)
     }
     else 
         pUrl = strdup(pUrl);
-    
+
+    free(p);
     return pUrl;
 } 
 
@@ -455,9 +456,15 @@ void CBrowserView::OpenMultiURL(char *urls)
             }
         }
 
-        int idOpen = theApp.GetID(szOpenURLcmd);
+        int idOpenX = -1;
+        char *p = strchr(szOpenURLcmd, '|');
+        if (p) {
+            *p = 0;
+            idOpenX = theApp.GetID(p+1);
+        }
+        int idOpen  = theApp.GetID(szOpenURLcmd);
 
-        char *p = urls;
+        p = urls;
         while (p) {
             char *q = strchr(p, '\t');
             if (q) *q = 0;
@@ -477,6 +484,8 @@ void CBrowserView::OpenMultiURL(char *urls)
                 OpenURL(urls);
                 return;
             }
+
+            idOpen = idOpenX==-1 ? idOpen : idOpenX;
 
             if (q)
                 p = q+1;
@@ -514,14 +523,14 @@ void CBrowserView::OnNewUrlEnteredInUrlBar()
       OpenViewSourceWindow(strUrl.GetBuffer(0));
    else {
        char *pUrl = NicknameLookup((char*)strUrl.GetBuffer(0));
-       strUrl = pUrl;
-       free(pUrl);
 
        // Navigate to that URL
-       if (strchr(strUrl.GetBuffer(0), '\t'))
-           OpenMultiURL(strUrl.GetBuffer(0));
+       if (strchr(pUrl, '\t'))
+           OpenMultiURL(pUrl);
        else
-           OpenURL(strUrl.GetBuffer(0));
+           OpenURL(pUrl);
+
+       free(pUrl);
    }
 }
 
