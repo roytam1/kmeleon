@@ -1751,7 +1751,8 @@ std::string EvalExpression(HWND hWnd,std::string exp) {
       }
 
       if ( epos != NOTFOUND && qpos != NOTFOUND && epos < qpos &&
-	   exp.at(epos+1) != '=' && exp.at(epos-1) != '!' ) {
+          exp.at(epos+1) != '=' && exp.at(epos-1) != '!' && 
+          exp.at(epos-1) != '<' && exp.at(epos-1) != '>' ) {
 	 qpos = cpos = NOTFOUND;
       }
       
@@ -1816,6 +1817,17 @@ std::string EvalExpression(HWND hWnd,std::string exp) {
                   break;
                }
             }
+            else if(exp.at(i) == '<' ||
+		    exp.at(i) == '>') {
+	      isComparison = true;
+	      int pos = i;
+	      int size = 1;
+	      if(exp.at(i+1)=='=') ++i, ++size;
+	      lval = exp.substr(0,pos);
+	      rval = exp.substr(pos+size);
+	      strtemp = exp.substr(pos,size); //the comparison operator
+	      break;
+           }
             else if(exp.at(i) == '+' ||   // addition 
 		    exp.at(i) == '-') {   // subtraction
                int last_op = i;
@@ -1895,14 +1907,20 @@ std::string EvalExpression(HWND hWnd,std::string exp) {
    if(isComparison) {
       lval = EvalExpression(hWnd,strTrim(lval));
       rval = EvalExpression(hWnd,strTrim(rval));
-      if(strVal(lval) == strVal(rval)) { 
-         if(strtemp == "==") return "1";
-         else return "0";
-      }
-      else {
-         if(strtemp == "!=") return "1";
-         else return "0";
-      }
+      if (strtemp == "==") 
+	return (strVal(lval) == strVal(rval)) ? "1" : "0";
+      else if (strtemp == "!=") 
+	return (strVal(lval) != strVal(rval)) ? "1" : "0";
+      else if (strtemp == "<") 
+	return (strVal(lval) < strVal(rval)) ? "1" : "0";
+      else if (strtemp == ">") 
+	return (strVal(lval) > strVal(rval)) ? "1" : "0";
+      else if (strtemp == "<=") 
+	return (strVal(lval) <= strVal(rval)) ? "1" : "0";
+      else if (strtemp == ">=") 
+	return (strVal(lval) >= strVal(rval)) ? "1" : "0";
+      else
+	return "";
    }
 
    // if we're assigning the left param must be a variable, the right could be an expression
