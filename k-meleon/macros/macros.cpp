@@ -185,6 +185,8 @@ BOOL APIENTRY DllMain(HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserv
    return TRUE;
 }
 
+
+
 int Init() {
    kFuncs = kPlugin.kFuncs;
 
@@ -490,6 +492,7 @@ static void parseError(int err, char *cmd, char *args, int data1=0, int data2=0)
 
 std::string title = "";
 std::string question = "";
+std::string instring = "";
 std::string answer = "";
 
 BOOL CALLBACK
@@ -502,6 +505,7 @@ PromptDlgProc( HWND hwnd,
       case WM_INITDIALOG:
 	SetWindowText(hwnd, (char*)title.c_str());
 	SetDlgItemText(hwnd, IDC_PROMPT, (char*)question.c_str());
+	SetDlgItemText(hwnd, IDC_ANSWER, (char*)instring.c_str());
         return TRUE;
       case WM_COMMAND:
         switch (LOWORD(wParam)) {
@@ -843,12 +847,13 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
 
       }
       CMD(prompt) {
-         if (nparam > 2) {  // statusbar( [$0 [,$1]] )
-            parseError(WRONGARGS, "prompt", data, 2, nparam);
+         if (nparam > 3) {  // statusbar( [$0 [,$1]] )
+            parseError(WRONGARGS, "prompt", data, 3, nparam);
             return "";
          }
 	question = params[0];
 	title = params[1];
+   instring = params[2];
 	int ok = DialogBox(kPlugin.hDllInstance,
 		  MAKEINTRESOURCE(IDD_PROMPT), hWnd, (DLGPROC)PromptDlgProc);
 	PostMessage(hWnd, WM_NULL, 0, 0);
@@ -1767,7 +1772,7 @@ std::string EvalExpression(HWND hWnd,std::string exp) {
       int isGlobal = 0;
       std::string val = GetGlobalVarVal(hWnd, (char*)exp.c_str(), &isGlobal);
       if (isGlobal)
-         return (char*)val.c_str();
+         return protectString((char*)val.c_str());
 
       // if the variable exists return the value
       int thisvarid = FindVar((char*)exp.c_str());
