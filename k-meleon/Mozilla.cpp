@@ -165,7 +165,11 @@ int CMozilla::Navigate(CString *url)
 
 void CMozilla::OnGoBack() 
 {
-	if(mWebNav) mWebNav->GoBack();
+  if(mWebNav){
+    // BHarris - if you don't stop first, pages get overlaid
+    mWebNav->Stop();
+    mWebNav->GoBack();
+  }
 }
 
 void CMozilla::OnUpdateGoBack(CCmdUI* pCmdUI) 
@@ -180,7 +184,11 @@ void CMozilla::OnUpdateGoBack(CCmdUI* pCmdUI)
 
 void CMozilla::OnGoForward() 
 {
-	if(mWebNav)	mWebNav->GoForward();	
+  if(mWebNav){
+    // BHarris - if you don't stop first, pages get overlaid
+    mWebNav->Stop();
+    mWebNav->GoForward();	
+  }
 }
 
 void CMozilla::OnUpdateGoForward(CCmdUI* pCmdUI) 
@@ -368,8 +376,10 @@ BOOL CMozilla::PreTranslateMessage(MSG* pMsg)
 void CMozilla::OnPopup(int flags)
 {
   int hmenu;
-  if(flags&nsIContextMenuListener::CONTEXT_LINK) hmenu=IDR_LINK_POPUP;
-  else hmenu=IDR_BROWSER_POPUP;
+  if (flags & nsIContextMenuListener::CONTEXT_LINK)
+    hmenu=IDR_LINK_POPUP;
+  else
+    hmenu=IDR_BROWSER_POPUP;
 
   CMenu menu;
   menu.LoadMenu(hmenu);
@@ -377,10 +387,14 @@ void CMozilla::OnPopup(int flags)
   CPoint point;
 	GetCursorPos(&point);
 
-  CMenu* pSumMenu = menu.GetSubMenu(0);
+  CMenu* pSubMenu = menu.GetSubMenu(0);
 
+  // BHarris
+  pSubMenu->TrackPopupMenu(TPM_LEFTALIGN | TPM_LEFTBUTTON | TPM_RIGHTBUTTON, point.x - 2, point.y - 2, this);
+  /*
   CBCGPopupMenu* pPopupMenu = new CBCGPopupMenu;
-  pPopupMenu->Create(this, point.x, point.y, (HMENU)pSumMenu->m_hMenu, FALSE, TRUE);
+  pPopupMenu->Create(this, point.x, point.y, (HMENU)pSubMenu->m_hMenu, FALSE, TRUE);
+  */
 }
 
 void CMozilla::SetLastLink(char *link)

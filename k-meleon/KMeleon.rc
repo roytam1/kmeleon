@@ -122,7 +122,7 @@ BEGIN
     POPUP "&File"
     BEGIN
         MENUITEM "&Open...\tCtrl+O",            ID_FILE_OPEN
-        MENUITEM "Open &new window...\tCtrl+N", ID_FILE_NEWWINDOW
+        MENUITEM "&New window\tCtrl+N",         ID_FILE_NEWWINDOW
         MENUITEM SEPARATOR
         MENUITEM "&Print...\tCtrl+P",           ID_FILE_PRINT
         MENUITEM SEPARATOR
@@ -147,8 +147,8 @@ BEGIN
         MENUITEM "Sto&p\tEsc",                  ID_VIEW_STOP
         MENUITEM "&Refresh\tF5",                ID_VIEW_REFRESH
         MENUITEM SEPARATOR
-        MENUITEM "&Background Image",           ID_VIEW_BACKGROUND
         MENUITEM "&Customize...",               ID_VIEW_CUSTOMIZE
+        MENUITEM "&Preferences...",             ID_VIEW_PREFERENCES
     END
     POPUP "&Go"
     BEGIN
@@ -179,20 +179,20 @@ END
 
 IDR_MAINFRAME ACCELERATORS PRELOAD MOVEABLE PURE 
 BEGIN
-    "N",            ID_FILE_NEWWINDOW,      VIRTKEY, CONTROL
-    "O",            ID_FILE_OPEN,           VIRTKEY, CONTROL
-    "S",            ID_FILE_SAVE,           VIRTKEY, CONTROL
-    "P",            ID_FILE_PRINT,          VIRTKEY, CONTROL
-    "Z",            ID_EDIT_UNDO,           VIRTKEY, CONTROL
-    "X",            ID_EDIT_CUT,            VIRTKEY, CONTROL
-    "C",            ID_EDIT_COPY,           VIRTKEY, CONTROL
-    "V",            ID_EDIT_PASTE,          VIRTKEY, CONTROL
-    VK_BACK,        ID_EDIT_UNDO,           VIRTKEY, ALT
-    VK_DELETE,      ID_EDIT_CUT,            VIRTKEY, SHIFT
-    VK_INSERT,      ID_EDIT_COPY,           VIRTKEY, CONTROL
-    VK_INSERT,      ID_EDIT_PASTE,          VIRTKEY, SHIFT
-    VK_F6,          ID_NEXT_PANE,           VIRTKEY 
-    VK_F6,          ID_PREV_PANE,           VIRTKEY, SHIFT
+    "C",            ID_EDIT_COPY,           VIRTKEY, CONTROL, NOINVERT
+    "N",            ID_FILE_NEWWINDOW,      VIRTKEY, CONTROL, NOINVERT
+    "O",            ID_FILE_OPEN,           VIRTKEY, CONTROL, NOINVERT
+    "P",            ID_FILE_PRINT,          VIRTKEY, CONTROL, NOINVERT
+    "S",            ID_FILE_SAVE,           VIRTKEY, CONTROL, NOINVERT
+    "V",            ID_EDIT_PASTE,          VIRTKEY, CONTROL, NOINVERT
+    VK_BACK,        ID_EDIT_UNDO,           VIRTKEY, ALT, NOINVERT
+    VK_DELETE,      ID_EDIT_CUT,            VIRTKEY, SHIFT, NOINVERT
+    VK_F6,          ID_NEXT_PANE,           VIRTKEY, NOINVERT
+    VK_F6,          ID_PREV_PANE,           VIRTKEY, SHIFT, NOINVERT
+    VK_INSERT,      ID_EDIT_COPY,           VIRTKEY, CONTROL, NOINVERT
+    VK_INSERT,      ID_EDIT_PASTE,          VIRTKEY, SHIFT, NOINVERT
+    "X",            ID_EDIT_CUT,            VIRTKEY, CONTROL, NOINVERT
+    "Z",            ID_EDIT_UNDO,           VIRTKEY, CONTROL, NOINVERT
 END
 
 
@@ -201,15 +201,15 @@ END
 // Dialog
 //
 
-IDD_ABOUTBOX DIALOG DISCARDABLE  0, 0, 220, 79
+IDD_ABOUTBOX DIALOG DISCARDABLE  0, 0, 219, 89
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "About K-Meleon"
 FONT 8, "MS Sans Serif"
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,162,58,50,14,WS_GROUP
+    DEFPUSHBUTTON   "OK",IDOK,162,69,50,14,WS_GROUP
     LTEXT           "Toolbars rendering using",IDC_STATIC,8,55,78,8
-    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,8,42,205,1
-    CTEXT           "K-Meleon v0.2.1",IDC_STATIC,84,6,54,8,SS_NOPREFIX
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,7,42,205,1
+    CTEXT           "K-Meleon v0.2.1",IDC_STATIC,83,6,53,8,SS_NOPREFIX
     LTEXT           "Copyright © 2000",IDC_STATIC,53,17,56,8
     CONTROL         "Christophe Thibault",IDC_MAIL,"Button",BS_OWNERDRAW | 
                     WS_TABSTOP,111,16,65,8
@@ -221,7 +221,8 @@ BEGIN
     CONTROL         "BCG Library",IDC_URL_BCG,"Button",BS_OWNERDRAW | 
                     WS_TABSTOP,87,54,41,8
     LTEXT           "Little corner animation by Frédéric Toussaint",
-                    IDC_STATIC,7,64,139,8
+                    IDC_STATIC,7,66,139,8
+    LTEXT           "Additional Coding: Brian Harris",IDC_STATIC,7,75,96,8
 END
 
 IDR_MAINFRAME DIALOG DISCARDABLE  0, 0, 330, 16
@@ -229,6 +230,92 @@ STYLE WS_CHILD
 FONT 8, "MS Sans Serif"
 BEGIN
     LTEXT           "TODO: layout dialog bar ",IDC_STATIC,12,4,300,8
+END
+
+IDD_PROMPT DIALOG DISCARDABLE  0, 0, 264, 95
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Dialog"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,75,74,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,131,74,50,14
+    EDITTEXT        IDC_EDITBOX,7,44,250,14,ES_AUTOHSCROLL
+    LTEXT           "Static",IDC_CAPTION,7,7,250,35
+END
+
+IDD_PROMPT_USERNAME_PASSWORD DIALOG DISCARDABLE  0, 0, 186, 102
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Dialog"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,43,81,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,97,81,50,14
+    EDITTEXT        IDC_EDIT_USERNAME,61,37,118,14,ES_AUTOHSCROLL
+    LTEXT           "Username:",IDC_STATIC,7,40,54,8
+    EDITTEXT        IDC_EDIT_PASSWORD,61,55,118,14,ES_AUTOHSCROLL
+    LTEXT           "Password",IDC_STATIC,7,58,54,8
+    LTEXT           "Static",IDC_CAPTION,7,7,172,26
+END
+
+IDD_PREFERENCES DIALOGEX 0, 0, 345, 185
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_CONTROLPARENT
+CAPTION "Preferences"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,234,164,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,288,164,50,14
+    CONTROL         "List1",IDC_LIST1,"SysListView32",LVS_LIST | 
+                    LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | 
+                    WS_BORDER | WS_TABSTOP,7,7,93,171
+    CONTROL         "",IDC_CONTAINER,"Static",SS_ETCHEDFRAME,103,7,235,154
+END
+
+IDD_PREFERENCES_DISPLAY DIALOGEX 0, 0, 233, 154
+STYLE WS_CHILD
+EXSTYLE WS_EX_CLIENTEDGE | WS_EX_CONTROLPARENT
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    EDITTEXT        IDC_EDIT_TOOLBAR_BACKGROUND,84,6,93,14,ES_AUTOHSCROLL
+    CONTROL         "Toolbar Background",IDC_CHECK_TOOLBAR_BACKGROUND,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,4,8,80,10
+    PUSHBUTTON      "Browse...",IDC_BUTTON_BROWSE,179,6,50,14
+END
+
+IDD_PREFERENCES_PROXY DIALOGEX 0, 0, 233, 154
+STYLE WS_CHILD
+EXSTYLE WS_EX_CLIENTEDGE | WS_EX_CONTROLPARENT
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    EDITTEXT        IDC_EDIT_PROXY,51,4,178,14,ES_AUTOHSCROLL
+    LTEXT           "Proxy Server:",IDC_STATIC,4,7,43,8
+    LTEXT           "** Proxy Support Not Implemented Yet",IDC_STATIC,51,65,
+                    120,8
+END
+
+IDD_PREFERENCES_GENERAL DIALOGEX 0, 0, 233, 154
+STYLE WS_CHILD
+EXSTYLE WS_EX_CLIENTEDGE | WS_EX_CONTROLPARENT
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    LTEXT           "Home Page:",IDC_STATIC,4,7,45,8
+    EDITTEXT        IDC_EDIT_HOMEPAGE,49,4,180,14,ES_AUTOHSCROLL
+    LTEXT           "When K-Meleon Starts, Display:",IDC_STATIC,4,24,101,8
+    CONTROL         "Blank Page",IDC_RADIO_START_BLANK,"Button",
+                    BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,113,23,53,10
+    CONTROL         "Home Page",IDC_RADIO_START_HOME,"Button",
+                    BS_AUTORADIOBUTTON,176,23,53,10
+END
+
+IDD_PREFERENCES_PLUGINS DIALOGEX 0, 0, 233, 154
+STYLE WS_CHILD
+EXSTYLE WS_EX_CLIENTEDGE | WS_EX_CONTROLPARENT
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "List1",IDC_LIST_PLUGINS,"SysListView32",LVS_LIST | 
+                    LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | 
+                    LVS_NOCOLUMNHEADER | WS_BORDER | WS_TABSTOP,4,4,225,130
+    PUSHBUTTON      "Configure",IDC_BUTTON_CONFIG,4,136,50,14
 END
 
 
@@ -286,9 +373,75 @@ BEGIN
     IDD_ABOUTBOX, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 213
+        RIGHTMARGIN, 212
         TOPMARGIN, 6
-        BOTTOMMARGIN, 72
+        BOTTOMMARGIN, 83
+    END
+
+    IDD_PROMPT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 257
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 88
+    END
+
+    IDD_PROMPT_USERNAME_PASSWORD, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 179
+        VERTGUIDE, 61
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 95
+        HORZGUIDE, 44
+        HORZGUIDE, 62
+    END
+
+    IDD_PREFERENCES, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 338
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 178
+    END
+
+    IDD_PREFERENCES_DISPLAY, DIALOG
+    BEGIN
+        LEFTMARGIN, 4
+        RIGHTMARGIN, 229
+        VERTGUIDE, 84
+        TOPMARGIN, 4
+        BOTTOMMARGIN, 150
+        HORZGUIDE, 13
+    END
+
+    IDD_PREFERENCES_PROXY, DIALOG
+    BEGIN
+        LEFTMARGIN, 4
+        RIGHTMARGIN, 229
+        VERTGUIDE, 51
+        TOPMARGIN, 4
+        BOTTOMMARGIN, 150
+        HORZGUIDE, 11
+    END
+
+    IDD_PREFERENCES_GENERAL, DIALOG
+    BEGIN
+        LEFTMARGIN, 4
+        RIGHTMARGIN, 229
+        VERTGUIDE, 49
+        TOPMARGIN, 4
+        BOTTOMMARGIN, 150
+        HORZGUIDE, 11
+        HORZGUIDE, 28
+    END
+
+    IDD_PREFERENCES_PLUGINS, DIALOG
+    BEGIN
+        LEFTMARGIN, 4
+        RIGHTMARGIN, 229
+        TOPMARGIN, 4
+        BOTTOMMARGIN, 150
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -325,7 +478,7 @@ END
 STRINGTABLE PRELOAD DISCARDABLE 
 BEGIN
     AFX_IDS_APP_TITLE       "K-Meleon"
-    AFX_IDS_IDLEMESSAGE     "Ready"
+    AFX_IDS_IDLEMESSAGE     "Document Done"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -509,6 +662,11 @@ BEGIN
     ID_VIEW_BACKGROUND      "Show or hide the background image\nToggle Background"
 END
 
+STRINGTABLE DISCARDABLE 
+BEGIN
+    ID_PREFERENCES          "Edit Program Preferences.\nPreferences"
+END
+
 #endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
 
@@ -557,6 +715,9 @@ IDR_LINK_POPUP MENU DISCARDABLE
 BEGIN
     POPUP "Popup"
     BEGIN
+        MENUITEM "Back",                        ID_GO_BACK
+        MENUITEM "Forward",                     ID_GO_FORWARD
+        MENUITEM SEPARATOR
         MENUITEM "Open",                        ID_POPUP_OPEN
         MENUITEM "Open in a New Window",        ID_POPUP_OPENINANEWWINDOW
         MENUITEM SEPARATOR

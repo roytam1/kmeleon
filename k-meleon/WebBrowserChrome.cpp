@@ -29,6 +29,7 @@
 #include "nsIDocShellTreeItem.h"
 #include "nsIRequest.h"
 #include "nsIChannel.h"
+#include "nsIPrompt.h"
 #include "nsCWebBrowser.h"
 #include "nsWidgetsCID.h"
 
@@ -70,7 +71,7 @@ NS_INTERFACE_MAP_BEGIN(WebBrowserChrome)
    NS_INTERFACE_MAP_ENTRY(nsIBaseWindow)
    NS_INTERFACE_MAP_ENTRY(nsIContextMenuListener)
    NS_INTERFACE_MAP_ENTRY(nsIWebProgressListener)  //optional
-   NS_INTERFACE_MAP_ENTRY(nsIPrompt)
+   NS_INTERFACE_MAP_ENTRY(nsIPrompt) // defined in prompt.cpp/h
 NS_INTERFACE_MAP_END
 
 //*****************************************************************************
@@ -240,8 +241,9 @@ NS_IMETHODIMP WebBrowserChrome::OnProgressChange(nsIWebProgress *progress, nsIRe
 	if (maxTotalProgress > 0)
 	{	
 		PRUint32 percentage;
-    if(curTotalProgress>maxTotalProgress) percentage=100;
-    else percentage=(curTotalProgress * 100) / maxTotalProgress;
+    percentage=(curTotalProgress * 100) / maxTotalProgress;
+    if(curTotalProgress>maxTotalProgress)
+      percentage=100;
 		parentFrame->onProgressChange(percentage);
   } else
 		parentFrame->onProgressChange(0);
@@ -256,10 +258,14 @@ NS_IMETHODIMP WebBrowserChrome::OnStateChange(nsIWebProgress *progress, nsIReque
 
   if (progressStateFlags & nsIWebProgressListener::STATE_IS_NETWORK) {
 		if (progressStateFlags & nsIWebProgressListener::STATE_START) {
-			 if(parentFrame->IsWindowVisible())
+			if(parentFrame->IsWindowVisible()){
 				parentFrame->StartAnimation();
-		} else if (progressStateFlags & nsIWebProgressListener::STATE_STOP)
+			}
+			parentFrame->SetMessageText("Connecting...");  // BHarris
+		} else if (progressStateFlags & nsIWebProgressListener::STATE_STOP){
       parentFrame->StopAnimation();
+			parentFrame->SetMessageText("Document Done");  // BHarris
+		}
    }
     return NS_OK;
 }
@@ -440,101 +446,93 @@ NS_IMETHODIMP WebBrowserChrome::OnShowContextMenu(PRUint32 aContextFlags, nsIDOM
 	return NS_OK;
 }
 
-NS_IMETHODIMP WebBrowserChrome::Alert(const PRUnichar *dialogTitle, const PRUnichar *text)
-{
-	nsString title(dialogTitle);
-	nsString txt(text);
-	char *strTitle=title.ToNewCString();
-	char *strTxt=txt.ToNewCString();
-	MessageBox(NULL,strTxt,strTitle,MB_ICONWARNING);
-	Recycle(strTxt);
-	Recycle(strTitle);
-    return NS_OK;
-}
-
-NS_IMETHODIMP WebBrowserChrome::AlertCheck(const PRUnichar *dialogTitle, const PRUnichar *text, const PRUnichar *checkMsg, PRBool *checkValue)
-{
-  MessageBox(NULL,"AlertCheck called","hu?",0);
-  return NS_OK;
-}
-
-NS_IMETHODIMP WebBrowserChrome::Confirm(const PRUnichar *dialogTitle, const PRUnichar *text, PRBool *_retval)
-{
-	nsString title(dialogTitle);
-	nsString txt(text);
-	char *strTitle=title.ToNewCString();
-	char *strTxt=txt.ToNewCString();
-	*_retval=(MessageBox(NULL,strTxt,strTitle,MB_OKCANCEL|MB_ICONQUESTION)==IDOK);
-	Recycle(strTxt);
-	Recycle(strTitle);
-    return NS_OK;
-}
-
-NS_IMETHODIMP WebBrowserChrome::ConfirmCheck(const PRUnichar *dialogTitle, const PRUnichar *text, const PRUnichar *checkMsg, PRBool *checkValue, PRBool *_retval)
-{
-    return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-NS_IMETHODIMP WebBrowserChrome::Prompt(const PRUnichar *dialogTitle, const PRUnichar *text, const PRUnichar *passwordRealm, PRUint32 savePassword, const PRUnichar *defaultText, PRUnichar **result, PRBool *_retval)
-{
-    return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-NS_IMETHODIMP WebBrowserChrome::PromptUsernameAndPassword(const PRUnichar *dialogTitle, const PRUnichar *text, const PRUnichar *passwordRealm, PRUint32 savePassword, PRUnichar **user, PRUnichar **pwd, PRBool *_retval)
-{
-    return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-NS_IMETHODIMP WebBrowserChrome::PromptPassword(const PRUnichar *dialogTitle, const PRUnichar *text, const PRUnichar *passwordRealm, PRUint32 savePassword, PRUnichar **pwd, PRBool *_retval)
-{
-    return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-NS_IMETHODIMP WebBrowserChrome::Select(const PRUnichar *dialogTitle, const PRUnichar *text, PRUint32 count, const PRUnichar **selectList, PRInt32 *outSelection, PRBool *_retval)
-{
-    return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-NS_IMETHODIMP WebBrowserChrome::UniversalDialog(const PRUnichar *titleMessage, const PRUnichar *dialogTitle, const PRUnichar *text, const PRUnichar *checkboxMsg, const PRUnichar *button0Text, const PRUnichar *button1Text, const PRUnichar *button2Text, const PRUnichar *button3Text, const PRUnichar *editfield1Msg, const PRUnichar *editfield2Msg, PRUnichar **editfield1Value, PRUnichar **editfield2Value, const PRUnichar *iconURL, PRBool *checkboxState, PRInt32 numberButtons, PRInt32 numberEditfields, PRInt32 editField1Password, PRInt32 *buttonPressed)
-{
-    return NS_ERROR_NOT_IMPLEMENTED;
-}
-
 //*****************************************************************************
 // WebBrowserChrome::nsIURIContentListener
 //*****************************************************************************   
 
 NS_IMETHODIMP WebBrowserChrome::OnStartURIOpen(nsIURI *aURI, const char *aWindowTarget, PRBool *aAbortOpen)
 {
-  MessageBox(NULL,"start uri open","tata",0);
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
+   if(mParentContentListener)
+      {
+      nsresult rv = mParentContentListener->OnStartURIOpen(aURI, aWindowTarget,
+         aAbortOpen);
 
+      if(NS_ERROR_NOT_IMPLEMENTED != rv)
+         return rv;
+      }
+
+   return NS_OK;
+}
 NS_IMETHODIMP WebBrowserChrome::GetProtocolHandler(nsIURI *aURI, nsIProtocolHandler **aProtocolHandler)
 {
-  return NS_ERROR_NOT_IMPLEMENTED;
+   NS_ENSURE_ARG_POINTER(aProtocolHandler);
+   NS_ENSURE_ARG(aURI);
+                                
+   if(mParentContentListener)
+      {
+      nsresult rv = mParentContentListener->GetProtocolHandler(aURI,
+         aProtocolHandler);
+
+      if(NS_ERROR_NOT_IMPLEMENTED != rv)
+         return rv;
+      }
+   *aProtocolHandler = nsnull;
+
+   return NS_OK;
 }
 
 NS_IMETHODIMP WebBrowserChrome::DoContent(const char *aContentType, nsURILoadCommand aCommand,
 					   const char *aWindowTarget, nsIChannel *aOpenedChannel,
 					   nsIStreamListener **aContentHandler, PRBool *aAbortProcess)
 {
-  return NS_ERROR_NOT_IMPLEMENTED;
+  MessageBox(NULL,"do content","tata",0);
+  return NS_OK;
 }
 
 NS_IMETHODIMP WebBrowserChrome::IsPreferred(const char *aContentType, nsURILoadCommand aCommand,
 					     const char *aWindowTarget, char **aDesiredContentType,
-					     PRBool *aCanHandleContent)
+					     PRBool *aCanHandle)
 {
-  *aCanHandleContent = PR_FALSE;
-  return NS_OK;
+   NS_ENSURE_ARG_POINTER(aCanHandle);
+   NS_ENSURE_ARG_POINTER(aDesiredContentType);
+
+   if(mParentContentListener)
+      {
+      nsresult rv = mParentContentListener->IsPreferred(aContentType,
+         aCommand, aWindowTarget, aDesiredContentType, aCanHandle);
+      
+      if(NS_ERROR_NOT_IMPLEMENTED != rv)
+         return rv;
+      }
+
+   *aCanHandle = PR_FALSE;
+
+   if(aContentType)
+      {
+      // (1) list all content types we want to  be the primary handler for....
+      // and suggest a desired content type if appropriate...
+      if(nsCRT::strcasecmp(aContentType,  "text/html") == 0
+         || nsCRT::strcasecmp(aContentType, "text/xul") == 0
+         || nsCRT::strcasecmp(aContentType, "text/rdf") == 0 
+         || nsCRT::strcasecmp(aContentType, "text/xml") == 0
+         || nsCRT::strcasecmp(aContentType, "text/css") == 0
+         || nsCRT::strcasecmp(aContentType, "image/gif") == 0
+         || nsCRT::strcasecmp(aContentType, "image/jpeg") == 0
+         || nsCRT::strcasecmp(aContentType, "image/png") == 0
+         || nsCRT::strcasecmp(aContentType, "image/tiff") == 0
+         || nsCRT::strcasecmp(aContentType, "application/http-index-format") == 0)
+         *aCanHandle = PR_TRUE;
+      }
+
+   return NS_OK;
 }
 
 NS_IMETHODIMP WebBrowserChrome::CanHandleContent(const char *aContentType, nsURILoadCommand aCommand,
 						  const char *aWindowTarget, char **aDesiredContentType,
 						  PRBool *_retval)
 {
-  return NS_ERROR_NOT_IMPLEMENTED;
+  *_retval = PR_TRUE;
+  return NS_OK;
 }
 
 NS_IMETHODIMP WebBrowserChrome::GetLoadCookie(nsISupports * *aLoadCookie)
@@ -549,12 +547,18 @@ NS_IMETHODIMP WebBrowserChrome::SetLoadCookie(nsISupports * aLoadCookie)
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP WebBrowserChrome::GetParentContentListener(nsIURIContentListener * *aParentContentListener)
+NS_IMETHODIMP WebBrowserChrome::GetParentContentListener(nsIURIContentListener * *aParentListener)
 {
-  return NS_ERROR_NOT_IMPLEMENTED;
+   NS_ENSURE_ARG_POINTER(aParentListener);
+
+   *aParentListener = mParentContentListener;
+   NS_IF_ADDREF(*aParentListener);
+   return NS_OK;
 }
 
-NS_IMETHODIMP WebBrowserChrome::SetParentContentListener(nsIURIContentListener * aParentContentListener)
+NS_IMETHODIMP WebBrowserChrome::SetParentContentListener(nsIURIContentListener * aParentListener)
 {
-  return NS_ERROR_NOT_IMPLEMENTED;
+   // Weak Reference, don't addref
+   mParentContentListener = aParentListener;
+   return NS_OK;
 }

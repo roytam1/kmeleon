@@ -52,7 +52,7 @@ END_MESSAGE_MAP()
 
 BOOL CMainToolBar::RestoreOriginalstate ()
 {
-	RemoveAllButtons ();
+	//RemoveAllButtons ();
 
 	CString str;
 
@@ -99,5 +99,6 @@ BOOL CMainToolBar::RestoreOriginalstate ()
 	AdjustLayout ();
 
 	SetWindowText (_T("Standard"));
+
 	return TRUE;
 }

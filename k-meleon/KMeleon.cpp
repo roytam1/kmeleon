@@ -52,7 +52,7 @@ END_MESSAGE_MAP()
 
 CKMeleonApp::CKMeleonApp()
 {
-	m_bBackgroundImage = TRUE;
+  preferences = NULL;
 }
 
 CKMeleonApp::~CKMeleonApp()
@@ -110,6 +110,8 @@ BOOL CKMeleonApp::InitInstance()
 
 	NS_InitEmbedding(nsnull,nsnull);
 
+  plugins.FindAndLoad("kmeleon_*.dll");
+
 	// Register the application's document templates.  Document templates
 	//  serve as the connection between documents, frame windows and views.
 
@@ -121,6 +123,22 @@ BOOL CKMeleonApp::InitInstance()
 		RUNTIME_CLASS(CMozilla));
 	AddDocTemplate(pDocTemplate);
 
+  /*
+	CMultiDocTemplate* pDocTemplate;
+	pDocTemplate = new CMultiDocTemplate(
+		IDR_MAINFRAME,
+		RUNTIME_CLASS(CKMeleonDoc),
+		RUNTIME_CLASS(CMainFrame),       // main MDI frame window
+		RUNTIME_CLASS(CMozilla));
+  AddDocTemplate(pDocTemplate);
+
+	// create main MDI Frame window
+	CFrameWnd* pMainFrame = new CFrameWnd;
+	if (!pMainFrame->LoadFrame(IDR_MAINFRAME))
+		return FALSE;
+	m_pMainWnd = pMainFrame;
+  */
+
 	// Parse command line for standard shell commands, DDE, file open
 	CCommandLineInfo cmdInfo;
 	ParseCommandLine(cmdInfo);
@@ -131,10 +149,14 @@ BOOL CKMeleonApp::InitInstance()
 
 	CMainFrame *m=(CMainFrame *)m_pMainWnd;
 	CMozilla *p=(CMozilla *)m->GetActiveView();
+
 	p->createBrowser();
 
-	m_sStartPage = GetProfileString("Settings","StartPage","http://kmeleon.org/");
-	p->Navigate(&m_sStartPage);
+  if (preferences->bStartHome){
+    p->Navigate(&preferences->homePage);
+  }else{
+    p->Navigate(&(CString)_T("about:blank"));
+  }
 
 	// The one and only window has been initialized, so show and update it.
 	m_pMainWnd->ShowWindow(SW_SHOW);
@@ -145,12 +167,10 @@ BOOL CKMeleonApp::InitInstance()
 
 void CKMeleonApp::LoadCustomState ()
 {
-	m_bBackgroundImage = GetInt (_T("BackgroundImage"), TRUE);
 }
 
 void CKMeleonApp::SaveCustomState ()
 {
-	WriteInt (_T("BackgroundImage"), m_bBackgroundImage);
 }
 
 void CKMeleonApp::createNewBrowser()
@@ -245,8 +265,18 @@ BOOL CAboutDlg::OnInitDialog()
 
 int CKMeleonApp::ExitInstance() 
 {
-	WriteProfileString("Settings","StartPage",m_sStartPage);
+  if (preferences)
+    delete preferences;
+
 	NS_TermEmbedding();
 	BCGCBCleanUp ();
 	return CWinApp::ExitInstance();
+}
+
+BOOL CKMeleonApp::OnIdle( LONG count ){
+  CWinApp::OnIdle( count );
+
+  NS_DoIdleEmbeddingStuff();
+
+  return true;
 }

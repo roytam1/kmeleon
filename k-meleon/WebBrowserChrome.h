@@ -31,7 +31,6 @@
 #include "nsIWebNavigation.h"
 #include "nsIWebProgressListener.h"
 #include "nsIInterfaceRequestor.h"
-#include "nsIPrompt.h"
 #include "nsIWebBrowser.h"
 #include "nsVoidArray.h"
 #include "nsIContextMenuListener.h"
@@ -39,13 +38,17 @@
 #include "nsISHistory.h"
 #include "nsIURIContentListener.h"
 
+#include "Prompt.h"
+//#include "UnknownFile.h"
+
 class WebBrowserChrome   : public nsIWebBrowserChrome,
                            public nsIWebProgressListener,
                            public nsIBaseWindow,
-													 public nsIContextMenuListener,
-                           public nsIPrompt,
+                           public nsIContextMenuListener,
                            public nsIInterfaceRequestor,
-                           public nsIURIContentListener
+                           public nsIURIContentListener,
+                           public CPrompt //  BC -- implements all nsIPrompt stufs
+//                           public CUnknownFile // BC -- Unknown file stuff
 {
 public:
     WebBrowserChrome(nativeWindow nWindow, CMainFrame *parent);
@@ -59,17 +62,18 @@ public:
     NS_DECL_NSIWEBPROGRESSLISTENER
     NS_DECL_NSIBASEWINDOW
     NS_DECL_NSICONTEXTMENULISTENER
-    NS_DECL_NSIPROMPT
     NS_DECL_NSIINTERFACEREQUESTOR
 
 protected:
-   
+
    nativeWindow mNativeWindow;
-   
+
    nsCOMPtr<nsIWebBrowser> mWebBrowser;
    nsCOMPtr<nsIBaseWindow> mBaseWindow;
    nsCOMPtr<nsIWebBrowserChrome> mTopWindow;
-    
+
+   nsIURIContentListener*  mParentContentListener;  // Weak Reference
+
    static nsVoidArray sBrowserList;
 
 	 CMainFrame *parentFrame;

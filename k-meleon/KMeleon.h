@@ -32,6 +32,9 @@
 
 #include "resource.h"       // main symbols
 
+#include "Preferences.h"
+#include "Plugins.h"
+
 /////////////////////////////////////////////////////////////////////////////
 // CKMeleonApp:
 //
@@ -42,9 +45,9 @@ class CKMeleonApp :	public CWinApp,
 public:
 	CKMeleonApp();
 	~CKMeleonApp();
-	
-	BOOL	m_bBackgroundImage;
-	CString m_sStartPage;
+
+	CPreferences   *preferences;
+  CPlugins       plugins;
 
 // Overrides
 	// ClassWizard generated virtual function overrides
@@ -58,6 +61,8 @@ public:
 	virtual void SaveCustomState ();
 
 	void createNewBrowser();
+
+  virtual BOOL OnIdle( LONG count );
 
 // Implementation
 	//{{AFX_MSG(CKMeleonApp)

@@ -53,7 +53,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 /nologo /subsystem:windows /machine:I386
-# ADD LINK32 xpcom.lib baseembed_s.lib appfilelocprovider_s.lib plc4.lib BCGCB474StaticS.lib /nologo /subsystem:windows /machine:I386 /out:"Release/k-meleon.exe" /libpath:"..\mozilla\mozilla\dist\WIN32_O.OBJ\lib" /OPT:nowin98
+# ADD LINK32 xpcom.lib baseembed_s.lib plc4.lib /nologo /subsystem:windows /machine:I386 /out:"c:/projects/mozilla/mozilla/dist/win32_o.obj/bin/k-meleon.exe" /libpath:"..\mozilla\mozilla\dist\WIN32_O.OBJ\lib" /OPT:nowin98
 # SUBTRACT LINK32 /pdb:none
 
 !ELSEIF  "$(CFG)" == "KMeleon - Win32 Debug"
@@ -70,7 +70,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_AFXDLL" /Yu"stdafx.h" /FD /GZ /c
-# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "..\mozilla\mozilla\nsprpub\pr\include" /I "..\mozilla\mozilla\nsprpub\_o.obj\include" /I "..\mozilla\mozilla\include" /I "..\mozilla\mozilla\xpcom\components" /I "..\mozilla\mozilla\dist\include" /I "..\mozilla\mozilla\dist\WIN32_O.OBJ\include" /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "_AFXDLL" /D "_MBCS" /D "_BCGCONTROLBAR_STATIC_" /D "HW_THREADS" /D "XP_PC" /D "XP_WIN" /D "XP_WIN32" /D WINVER=0x400 /FR /Yu"stdafx.h" /FD /GZ /c
+# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "..\mozilla\mozilla\nsprpub\pr\include" /I "..\mozilla\mozilla\nsprpub\_o.obj\include" /I "..\mozilla\mozilla\include" /I "..\mozilla\mozilla\xpcom\components" /I "..\mozilla\mozilla\dist\include" /I "..\mozilla\mozilla\dist\WIN32_O.OBJ\include" /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "_AFXDLL" /D "_MBCS" /D "HW_THREADS" /D "XP_PC" /D "XP_WIN" /D "XP_WIN32" /D WINVER=0x400 /FR /Yu"stdafx.h" /FD /GZ /c
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "_DEBUG" /d "_AFXDLL"
@@ -80,7 +80,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 xpcom.lib baseembed_s.lib appfilelocprovider_s.lib plc4.lib /nologo /subsystem:windows /debug /machine:I386 /out:"Debug/k-meleon.exe" /pdbtype:sept /libpath:"..\mozilla\mozilla\dist\WIN32_D.OBJ\lib"
+# ADD LINK32 xpcom.lib baseembed_s.lib /nologo /subsystem:windows /debug /machine:I386 /out:"c:/projects/mozilla/mozilla/dist/win32_o.obj/bin/k-meleon_d.exe" /pdbtype:sept /libpath:"..\mozilla\mozilla\dist\WIN32_o.OBJ\lib"
 
 !ENDIF 
 
@@ -121,7 +121,23 @@ SOURCE=.\MainToolBar.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\MenuParser.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\Mozilla.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Plugins.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Preferences.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Prompt.cpp
 # End Source File
 # Begin Source File
 
@@ -139,6 +155,10 @@ SOURCE=.\WebBrowserChrome.cpp
 # Begin Source File
 
 SOURCE=.\KMeleon.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\kmeleon_plugin.h
 # End Source File
 # Begin Source File
 
@@ -162,7 +182,23 @@ SOURCE=.\MainToolBar.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\MenuParser.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\Mozilla.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Plugins.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Preferences.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Prompt.h
 # End Source File
 # Begin Source File
 
@@ -171,6 +207,10 @@ SOURCE=.\Resource.h
 # Begin Source File
 
 SOURCE=.\StdAfx.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\UnknownFile.h
 # End Source File
 # Begin Source File
 

@@ -30,6 +30,13 @@
 #define IDC_PAN_DOWNRIGHT               149
 #define IDR_BROWSER_POPUP               150
 #define IDR_LINK_POPUP                  151
+#define IDD_PROMPT                      152
+#define IDD_PROMPT_USERNAME_PASSWORD    153
+#define IDD_PREFERENCES                 154
+#define IDD_PREFERENCES_DISPLAY         155
+#define IDD_PREFERENCES_PROXY           156
+#define IDD_PREFERENCES_GENERAL         157
+#define IDD_PREFERENCES_PLUGINS         158
 #define IDB_COLDTOOLBAR                 261
 #define IDB_HOTTOOLBAR                  262
 #define IDS_WEB_TUTORIAL                736
@@ -58,6 +65,22 @@
 #define IDC_VERSION                     1002
 #define IDC_URL_GECKO                   1002
 #define IDC_URL_BCG                     1003
+#define IDC_EDITBOX                     1003
+#define IDC_CAPTION                     1004
+#define IDC_EDIT_USERNAME               1005
+#define IDC_EDIT_PASSWORD               1006
+#define IDC_LIST1                       1009
+#define IDC_CONTAINER                   1010
+#define IDC_EDIT1                       1011
+#define IDC_EDIT_TOOLBAR_BACKGROUND     1011
+#define IDC_RADIO_START_HOME            1012
+#define IDC_RADIO_START_BLANK           1013
+#define IDC_EDIT_HOMEPAGE               1014
+#define IDC_EDIT_PROXY                  1015
+#define IDC_CHECK_TOOLBAR_BACKGROUND    1016
+#define IDC_BUTTON_BROWSE               1017
+#define IDC_LIST_PLUGINS                1018
+#define IDC_BUTTON_CONFIG               1019
 #define IDS_FILETYPES                   1201
 #define ID_VIEW_ADDRESS_BAR             32722
 #define ID_VIEW_CUSTOMIZE               32770
@@ -98,15 +121,17 @@
 #define ID_POPUP_OPENINANEWWINDOW       32831
 #define ID_POPUP_COPYSHORTCUT           32832
 #define ID_VIEW_SOURCE                  32834
+#define ID_PREFERENCES                  32835
+#define ID_VIEW_PREFERENCES             32836
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        152
-#define _APS_NEXT_COMMAND_VALUE         32835
-#define _APS_NEXT_CONTROL_VALUE         1003
+#define _APS_NEXT_RESOURCE_VALUE        159
+#define _APS_NEXT_COMMAND_VALUE         32837
+#define _APS_NEXT_CONTROL_VALUE         1020
 #define _APS_NEXT_SYMED_VALUE           102
 #endif
 #endif

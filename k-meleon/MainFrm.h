@@ -28,26 +28,35 @@
 #include "MainToolBar.h"
 #include "LinksBar.h"
 
+#include "Preferences.h"
+#include "MenuParser.h"
+
 class CMainFrame : public CFrameWnd
 {
-	
+public:
+  CMainFrame();
+
 protected: // create from serialization only
-	CMainFrame();
 	DECLARE_DYNCREATE(CMainFrame)
 
 // Attributes
 public:
-	HIMAGELIST							m_himSystem;
-	CSize								m_SysImageSize;
+	HIMAGELIST          m_himSystem;
+	CSize               m_SysImageSize;
 
 protected:
-	int									m_iFolderIcon;
-	int									m_iInternetShortcutIcon;
+	int                 m_iFolderIcon;
+	int                 m_iInternetShortcutIcon;
 
-	CBitmap								m_bmpBack;
+	CBitmap             m_bmpBack;
 
-	int									m_iAnimationStarted;
-// Operations
+	int                 m_iAnimationStarted;
+
+	//  BHarris - save old status for onMouseOut
+	CString             oldStatus;
+
+  CMenuParser         m_menuParse;
+
 public:
 	int setupBookmarks();
 	int BuildFavoritesMenu(LPCTSTR pszPath, int nStartPos, CMenu* pMenu);
@@ -126,6 +135,7 @@ protected:
 	afx_msg void OnFileNewwindow();
 	//}}AFX_MSG
 	afx_msg void OnViewCustomize();
+  afx_msg void OnViewPreferences();
 	afx_msg LRESULT OnToolbarReset(WPARAM,LPARAM);
 	afx_msg LRESULT OnToolbarContextMenu(WPARAM,LPARAM);
 	afx_msg LRESULT OnHelpCustomizeToolbars(WPARAM wp, LPARAM lp);
@@ -133,6 +143,10 @@ protected:
 	afx_msg void OnNewAddressEnter();
 	afx_msg void OnFavorite(UINT nID);
 	afx_msg void OnHistory(UINT nID);
+
+  afx_msg void OnDestroy();
+
+  afx_msg void OnGenericCommand(UINT nID);
 	DECLARE_MESSAGE_MAP()
 };
 

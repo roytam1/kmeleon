@@ -52,8 +52,6 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_LINKS_BAR, OnUpdateViewLinksBar)
 	ON_COMMAND(ID_VIEW_TEXTLABELS, OnViewTextlabels)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_TEXTLABELS, OnUpdateViewTextlabels)
-	ON_COMMAND(ID_VIEW_BACKGROUND, OnViewBackground)
-	ON_UPDATE_COMMAND_UI(ID_VIEW_BACKGROUND, OnUpdateViewBackground)
 	ON_WM_SYSCOLORCHANGE()
 	ON_COMMAND(ID_HELP_WEB_KMELEON_HOME, OnHelpWebKmeleonHome)
 	ON_COMMAND(ID_HELP_WEB_KMELEON_FORUM, OnHelpWebKmeleonForum)
@@ -62,6 +60,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
 	ON_COMMAND(ID_FILE_NEWWINDOW, OnFileNewwindow)
 	//}}AFX_MSG_MAP
 	ON_COMMAND(ID_VIEW_CUSTOMIZE, OnViewCustomize)
+	ON_COMMAND(ID_VIEW_PREFERENCES, OnViewPreferences)
 	ON_REGISTERED_MESSAGE(BCGM_RESETTOOLBAR, OnToolbarReset)
 	ON_REGISTERED_MESSAGE(BCGM_TOOLBARMENU, OnToolbarContextMenu)
 	ON_REGISTERED_MESSAGE(BCGM_CUSTOMIZEHELP, OnHelpCustomizeToolbars)
@@ -69,6 +68,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
 	ON_COMMAND_RANGE(FIRST_FAVORITE_COMMAND, LAST_FAVORITE_COMMAND, OnFavorite)
 	ON_COMMAND_RANGE(FIRST_HISTORY_COMMAND, FIRST_HISTORY_COMMAND + HISTORY_LEN - 1, OnHistory)
 	ON_COMMAND(IDOK, OnNewAddressEnter)
+  ON_COMMAND_RANGE(2000, 2999, OnGenericCommand)
 END_MESSAGE_MAP()
 
 static UINT indicators[] =
@@ -96,10 +96,22 @@ CMainFrame::~CMainFrame()
 	sMainFrameList.RemoveElement(this);
 }
 
+void CMainFrame::OnDestroy() {
+  // reassign the main window
+  if (theApp.m_pMainWnd->m_hWnd == m_hWnd){
+    theApp.m_pMainWnd = (CMainFrame *)sMainFrameList.ElementAt(1);
+    MessageBox("Done");
+  }
+  CFrameWnd::OnDestroy();
+}
+
 int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
 	if (CFrameWnd::OnCreate(lpCreateStruct) == -1)
 		return -1;
+
+  if (!theApp.preferences)
+    theApp.preferences = new CPreferences(this);
 
 	CBCGToolBar::EnableQuickCustomization ();
 
@@ -108,7 +120,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	//---------------------------------
 	// Set toolbar and menu image size:
 	//---------------------------------
-//	CBCGToolBar::SetSizes (CSize (36, 28), CSize (22, 20));  // big buttons
+	//CBCGToolBar::SetSizes (CSize (36, 28), CSize (22, 20));  // big buttons
 	CBCGToolBar::SetSizes (CSize (22, 20), CSize (16, 16));  // small buttons
 	CBCGToolBar::SetMenuSizes (CSize (22, 21), CSize (16, 15));
 
@@ -211,7 +223,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 		return -1;      // fail to create
 	}
 
-//	m_wndMenuBar.AdjustLayout ();
+	m_wndMenuBar.AdjustLayout ();
 	m_wndToolBar.AdjustLayout ();
 	m_wndLinksBar.AdjustLayout ();
 
@@ -272,8 +284,13 @@ BOOL CMainFrame::PreCreateWindow(CREATESTRUCT& cs)
 {
 	if( !CFrameWnd::PreCreateWindow(cs) )
 		return FALSE;
-	// TODO: Modify the Window class or styles here by modifying
-	//  the CREATESTRUCT cs
+
+  if (m_menuParse.Load(CString("menus.txt"))){
+    cs.hMenu = m_menuParse.GetMenu()->m_hMenu;
+  }
+  else {
+    MessageBox("Ack! menus.txt is bad!");
+  }
 
 	return TRUE;
 }
@@ -375,7 +392,7 @@ int CMainFrame::BuildFavoritesMenu(LPCTSTR pszPath, int nStartPos, CMenu* pMenu)
 			if((wfd.dwFileAttributes & (FILE_ATTRIBUTE_DIRECTORY|FILE_ATTRIBUTE_HIDDEN|FILE_ATTRIBUTE_SYSTEM))==0)
 			{
 				str = wfd.cFileName;
-				if(str.Right(4) == _T(".url"))
+				if(str.Right(4).CompareNoCase(_T(".url")))
 				{
 					// an .URL file is formatted just like an .INI file, so we can
 					// use GetPrivateProfileString() to get the information we want
@@ -466,6 +483,11 @@ int CMainFrame::BuildFavoritesMenu(LPCTSTR pszPath, int nStartPos, CMenu* pMenu)
 	return nEndPos;
 }
 
+void CMainFrame::OnGenericCommand(UINT command) {
+  // see if any plugin wants it
+  theApp.plugins.OnCommand(command);
+}
+
 void CMainFrame::OnViewCustomize()
 {
 	//------------------------------------
@@ -476,6 +498,12 @@ void CMainFrame::OnViewCustomize()
 	,	BCGCUSTOMIZE_MENU_ANIMATIONS | BCGCUSTOMIZE_TEXT_LABELS);
 
 	pDlgCust->Create ();
+}
+
+void CMainFrame::OnViewPreferences(){
+  theApp.preferences->DoModal();
+  LoadBackImage();
+  SetBackImage();
 }
 
 LRESULT CMainFrame::OnToolbarContextMenu(WPARAM wp,LPARAM lp)
@@ -526,7 +554,7 @@ LRESULT CMainFrame::OnHelpCustomizeToolbars(WPARAM wp, LPARAM lp)
 
 BOOL CMainFrame::OnShowPopupMenu (CBCGPopupMenu* pMenuPopup)
 {
-    CBCGFrameWnd::OnShowPopupMenu (pMenuPopup);
+  CFrameWnd::OnShowPopupMenu (pMenuPopup);
 
 	if (pMenuPopup == NULL)
 	{
@@ -747,6 +775,9 @@ void CMainFrame::OnNewAddressEnter()
 	// list of addresses in the combo box.
 	CString str;
 
+  // stop current document first or bad stuff happens
+  ((CMozilla *)GetActiveView())->SendMessage(WM_COMMAND, ID_VIEW_STOP);
+
 	m_wndAddress.GetEditCtrl()->GetWindowText(str);
 	((CMozilla *)GetActiveView())->Navigate(&str);
 
@@ -758,6 +789,9 @@ void CMainFrame::OnNewAddressEnter()
 	m_wndAddress.InsertItem(&item);
 
   m_wndAddress.GetEditCtrl()->SetSel(0,4096,TRUE);
+
+  // set focus to document so scrolling works as expected
+  ((CMozilla *)GetActiveView())->SetFocus();
 }
 
 void CMainFrame::OnLink1() 
@@ -832,12 +866,19 @@ BOOL CMainFrame::GetToolbarButtonToolTipText (CBCGToolbarButton* pButton, CStrin
 
 	return FALSE;	// Default tooltip text
 }
-//***************************************************************************************
-void CMainFrame::OnViewBackground() 
+
+//*******************************************************************************************
+void CMainFrame::OnSysColorChange() 
 {
-	theApp.m_bBackgroundImage = !theApp.m_bBackgroundImage;
+	CFrameWnd::OnSysColorChange();
+	
+	//-------------------------
+	// Reload background image:
+	//-------------------------
+	LoadBackImage ();
 	SetBackImage ();
 }
+
 //***************************************************************************************
 void CMainFrame::SetBackImage ()
 {
@@ -849,7 +890,7 @@ void CMainFrame::SetBackImage ()
 		memset (&info, 0, sizeof (REBARBANDINFO));
 		info.cbSize = sizeof (info);
 		info.fMask = RBBIM_BACKGROUND;
-		info.hbmBack = theApp.m_bBackgroundImage ? (HBITMAP)m_bmpBack : NULL;
+		info.hbmBack = theApp.preferences->bToolbarBackground ? (HBITMAP)m_bmpBack : NULL;
 		rc.SetBandInfo (i, &info);
 
 		CRect rectBand;
@@ -868,22 +909,7 @@ void CMainFrame::SetBackImage ()
 		}
 	}
 }
-//*******************************************************************************************
-void CMainFrame::OnUpdateViewBackground(CCmdUI* pCmdUI) 
-{
-	pCmdUI->SetCheck (theApp.m_bBackgroundImage);
-}
-//*******************************************************************************************
-void CMainFrame::OnSysColorChange() 
-{
-	CFrameWnd::OnSysColorChange();
-	
-	//-------------------------
-	// Reload background image:
-	//-------------------------
-	LoadBackImage ();
-	SetBackImage ();
-}
+
 //********************************************************************************************
 void CMainFrame::LoadBackImage ()
 {
@@ -896,12 +922,20 @@ void CMainFrame::LoadBackImage ()
 		m_bmpBack.DeleteObject ();
 	}
 
-	HBITMAP hbmp = (HBITMAP) ::LoadImage (AfxGetResourceHandle (),
-		MAKEINTRESOURCE (IDB_BACK),
-		IMAGE_BITMAP,
-		0, 0,
-		LR_LOADMAP3DCOLORS | LR_LOADTRANSPARENT);
-	ASSERT (hbmp != NULL);
+  HBITMAP hbmp;
+  if (theApp.preferences->toolbarBackground.IsEmpty()){
+    hbmp = (HBITMAP) ::LoadImage (AfxGetResourceHandle (),
+			MAKEINTRESOURCE (IDB_BACK),
+			IMAGE_BITMAP,
+			0, 0,
+			LR_LOADMAP3DCOLORS | LR_LOADTRANSPARENT);
+	}else{
+    hbmp = (HBITMAP) ::LoadImage (AfxGetResourceHandle (),
+			theApp.preferences->toolbarBackground,
+			IMAGE_BITMAP,
+			0, 0,
+			LR_LOADMAP3DCOLORS | LR_LOADFROMFILE);
+	}
 
 	m_bmpBack.Attach (hbmp);
 }
@@ -929,8 +963,17 @@ void CMainFrame::onPageTitleChange(char *title)
 void CMainFrame::onOverLink(char *link)
 {
 	CMozilla *m=(CMozilla *)GetActiveView();
-  if(link && link[0]) m->SetLastLink(link);
-	SetMessageText(link);
+	// BHarris - oldStatus stuff
+  if(link && link[0]){
+
+		m_wndStatusBar.GetWindowText(oldStatus);
+
+		m->SetLastLink(link);
+		SetMessageText(link);
+	}else{
+		SetMessageText(oldStatus);
+	}
+	// BH end
 }
 
 void CMainFrame::onJSStatus(char *status)
@@ -999,7 +1042,7 @@ void CMainFrame::OnHelpWebKmeleonForum()
 
 void CMainFrame::OnGoStartPage() 
 {
-	((CMozilla *)GetActiveView())->Navigate(&theApp.m_sStartPage);
+	((CMozilla *)GetActiveView())->Navigate(&theApp.preferences->homePage);
 }
 
 void CMainFrame::OnGoSearchTheWeb() 
