@@ -110,6 +110,8 @@ BEGIN
         MENUITEM "Cu&t",                        ID__BOOKMARK_CUT
         MENUITEM "&Copy",                       ID__BOOKMARK_COPY
         MENUITEM "&Paste",                      ID__BOOKMARK_PASTE
+        MENUITEM SEPARATOR
+        MENUITEM "&Zoom",                       ID__ZOOM
     END
 END
 

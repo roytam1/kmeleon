@@ -41,6 +41,8 @@ static BOOL bDragging;
 static HCURSOR hCursorDrag;
 
 static HTREEITEM hTBitem;   // current toolbar folder treeview item
+static BOOL zoom;
+static BOOL maximized;
 
 #define CUT 1
 #define KILL 1
@@ -91,6 +93,15 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
    HWND hasFocus = GetFocus();
    HWND hTree = GetDlgItem(hEditWnd, IDC_TREE_HOTLIST);
 
+   if (!(hasFocus == hTree ||
+         hasFocus == GetDlgItem(hEditWnd, IDC_NAME) ||
+         hasFocus == GetDlgItem(hEditWnd, IDC_URL) ||
+         hasFocus == GetDlgItem(hEditWnd, IDC_ORDER) ||
+         hasFocus == GetDlgItem(hEditWnd, IDC_DESCRIPTION) ||
+         hasFocus == GetDlgItem(hEditWnd, IDC_SHORT_NAME) ||
+         hasFocus == GetDlgItem(hEditWnd, IDOK) ||
+         hasFocus == GetDlgItem(hEditWnd, IDCANCEL)))
+      return  CallNextHookEx(NULL, nCode, wParam, lParam);
 
    if (wParam == VK_ESCAPE) {
       fEatKeystroke = true;
@@ -136,11 +147,13 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
                   bookmarksEdited = true;
                   if (GetKeyState(VK_CONTROL) & 0x80) {
                      kPlugin.kFuncs->NavigateTo(node->url.c_str(), OPEN_BACKGROUND);
+                     TreeView_SelectItem(hTree, hItem);  // just to fire off a SELCHANGED notifier to update the status (last visited!)
                   }
                   else {
                      kPlugin.kFuncs->NavigateTo(node->url.c_str(), OPEN_NORMAL);
+                     TreeView_SelectItem(hTree, hItem);  // just to fire off a SELCHANGED notifier to update the status (last visited!)
+                     PostMessage(hWndFront, WM_COMMAND, wm_deferbringtotop, (LPARAM)NULL);
                   }
-                  TreeView_SelectItem(hTree, hItem);  // just to fire off a SELCHANGED notifier to update the status (last visited!)
                }
                else if (node->type == BOOKMARK_FOLDER) {
                   TreeView_Expand(hTree, hItem, TVE_TOGGLE);
@@ -312,6 +325,10 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
          HTREEITEM newItem = TreeView_InsertItem(hTree, &tvis);
 
+         // root starts out as special folder
+         hTBitem = newItem;
+         workingBookmarks.flags = BOOKMARK_FLAG_TB;
+
          FillTree(hTree, newItem, workingBookmarks);
 
          TreeView_Expand(hTree, newItem, TVE_EXPAND);
@@ -321,7 +338,11 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
          kPlugin.kFuncs->GetPreference(PREF_INT, PREFERENCE_EDIT_DLG_TOP, &dialogtop, &dialogtop);
          kPlugin.kFuncs->GetPreference(PREF_INT, PREFERENCE_EDIT_DLG_WIDTH, &dialogwidth, &dialogwidth);
          kPlugin.kFuncs->GetPreference(PREF_INT, PREFERENCE_EDIT_DLG_HEIGHT, &dialogheight, &dialogheight);
+         kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_EDIT_ZOOM, &zoom, &zoom);
+         kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_EDIT_MAX, &maximized, &maximized);
          SetWindowPos(hDlg, 0, dialogleft, dialogtop, dialogwidth, dialogheight, 0);
+         if (maximized)
+            ShowWindow(hDlg, SW_MAXIMIZE);
 
          hCursorDrag = LoadCursor(kPlugin.hDllInstance, MAKEINTRESOURCE(IDC_DRAG_CURSOR));
          bDragging = false;
@@ -442,10 +463,11 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                CBookmarkNode *node = GetBookmarkNode(hTree, hItem);
 
                if (node->type == BOOKMARK_BOOKMARK) {
-                  // node->lastVisit = time(NULL);
-                  // bookmarksEdited = true;
+                  node->lastVisit = time(NULL);
+                  bookmarksEdited = true;
                   kPlugin.kFuncs->NavigateTo(node->url.c_str(), OPEN_NORMAL);
                   TreeView_SelectItem(hTree, hItem);  // just to fire off a SELCHANGED notifier to update the status (last visited!)
+                  PostMessage(hWndFront, WM_COMMAND, wm_deferbringtotop, (LPARAM)NULL);
 
                   return true;
                }
@@ -705,15 +727,20 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                   RebuildMenu();
                }
                
-               RECT DlgPos;
-               GetWindowRect(hDlg, &DlgPos);
-               kPlugin.kFuncs->SetPreference(PREF_INT, PREFERENCE_EDIT_DLG_LEFT, &DlgPos.left);
-               kPlugin.kFuncs->SetPreference(PREF_INT, PREFERENCE_EDIT_DLG_TOP, &DlgPos.top);
+               WINDOWPLACEMENT wp;
+               wp.length = sizeof(wp);
+               GetWindowPlacement(hDlg, &wp);
+
+               kPlugin.kFuncs->SetPreference(PREF_INT, PREFERENCE_EDIT_DLG_LEFT, &wp.rcNormalPosition.left);
+               kPlugin.kFuncs->SetPreference(PREF_INT, PREFERENCE_EDIT_DLG_TOP, &wp.rcNormalPosition.top);
                int temp;
-               temp = DlgPos.right - DlgPos.left;
+               temp = wp.rcNormalPosition.right - wp.rcNormalPosition.left;
                kPlugin.kFuncs->SetPreference(PREF_INT, PREFERENCE_EDIT_DLG_WIDTH, &temp);
-               temp = DlgPos.bottom - DlgPos.top;
+               temp = wp.rcNormalPosition.bottom - wp.rcNormalPosition.top;
                kPlugin.kFuncs->SetPreference(PREF_INT, PREFERENCE_EDIT_DLG_HEIGHT, &temp);
+               kPlugin.kFuncs->SetPreference(PREF_BOOL, PREFERENCE_EDIT_ZOOM, &zoom);
+               temp = (wp.showCmd == SW_SHOWMAXIMIZED);
+               kPlugin.kFuncs->SetPreference(PREF_BOOL, PREFERENCE_EDIT_MAX, &temp);
 
                UnhookWindowsHookEx(hHook);
                ghWndEdit = NULL;
@@ -1243,6 +1270,7 @@ static void OnRClick(HWND hTree)
                bookmarksEdited = true;
                kPlugin.kFuncs->NavigateTo(node->url.c_str(), OPEN_NORMAL);
                TreeView_SelectItem(hTree, hItem);  // just to fire off a SELCHANGED notifier to update the status (last visited!)
+               PostMessage(hWndFront, WM_COMMAND, wm_deferbringtotop, (LPARAM)NULL);
             }
          }
          break;
@@ -1293,6 +1321,17 @@ static void OnRClick(HWND hTree)
         if (freeNode)
            CreateNewObject(hTree, hItem, freeNode->type, PASTE);
          break;
+      case ID__ZOOM:
+         {
+            zoom = !zoom;
+
+            RECT rect;            
+            GetClientRect(hEditWnd, &rect);            
+            OnSize(rect.bottom, rect.right);
+
+            TreeView_SelectItem(hTree, hItem);  // just to fire off a SELCHANGED notifier
+         }
+         break;
       }
    }
 }
@@ -1321,13 +1360,12 @@ static void OnSize(int height, int width) {
    buY = rc.bottom;
    buX = rc.right;
 
-
    // resize tree
    SetWindowPos(GetDlgItem(hEditWnd, IDC_TREE_HOTLIST), 0, 
                 BORDER, 
                 BORDER, 
                 width-(BORDER*2), 
-                height-BORDER*4-convY(BUTTON_HEIGHT+PROPERTIES_HEIGHT), 
+                height-BORDER*4-convY(BUTTON_HEIGHT+(1-zoom)*PROPERTIES_HEIGHT), 
                 0);
 
    // move cancel button
@@ -1345,7 +1383,7 @@ static void OnSize(int height, int width) {
    // move/resize properties box
    SetWindowPos(GetDlgItem(hEditWnd, IDC_STATIC_PROPERTIES), 0, 
                 BORDER, 
-                height-BORDER*2-convY(BUTTON_HEIGHT+PROPERTIES_HEIGHT), 
+                zoom ? height + BORDER : height-BORDER*2-convY(BUTTON_HEIGHT+PROPERTIES_HEIGHT), 
                 width-BORDER*2, 
                 convY(PROPERTIES_HEIGHT), 
                 0);
@@ -1359,76 +1397,76 @@ static void OnSize(int height, int width) {
 
    SetWindowPos(GetDlgItem(hEditWnd, IDC_STATIC_CREATED), 0, 
                 BORDER*2, 
-                height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*2.5), 
+                zoom ? height + BORDER : height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*2.5), 
                 0, 
                 0, SWP_NOSIZE);
    SetWindowPos(GetDlgItem(hEditWnd, IDC_CREATED), 0, 
                 convX(EDITBOXES_LEFT)+5, 
-                height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*2.5), 
+                zoom ? height + BORDER : height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*2.5), 
                 w1, // convX(DATES_WIDTH), 
                 convY(EDITBOXES_HEIGHT), 
                 0);
    SetWindowPos(GetDlgItem(hEditWnd, IDC_STATIC_VISITED), 0, 
                 x2, // convX(EDITBOXES_LEFT+DATES_WIDTH)+BORDER, 
-                height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*2.5), 
+                zoom ? height + BORDER : height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*2.5), 
                 0, 0, SWP_NOSIZE);
    SetWindowPos(GetDlgItem(hEditWnd, IDC_LAST_VISIT), 0, 
                 x2 + OTHER_WIDTH+5, // convX(EDITBOXES_LEFT+DATES_WIDTH+OTHER_WIDTH)+BORDER+5, 
-                height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*2.5), 
+                zoom ? height + BORDER : height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*2.5), 
                 w2 - OTHER_WIDTH-5, // width-convX(EDITBOXES_LEFT+DATES_WIDTH+OTHER_WIDTH)-BORDER*3, 
                 convY(EDITBOXES_HEIGHT), 0);
 
    SetWindowPos(GetDlgItem(hEditWnd, IDC_STATIC_SHORT), 0, 
                 2*BORDER, 
-                height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*5.0), 
+                zoom ? height + BORDER : height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*5.0), 
                 0, 0, SWP_NOSIZE);
    SetWindowPos(GetDlgItem(hEditWnd, IDC_SHORT_NAME), 0, 
                 convX(EDITBOXES_LEFT), 
-                height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*5.0)-2, 
+                zoom ? height + BORDER : height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*5.0)-2, 
                 convX(DATES_WIDTH),
                 convY(EDITBOXES_HEIGHT), 
                 0);
 
    SetWindowPos(GetDlgItem(hEditWnd, IDC_STATIC_DESC), 0, 
                 x2, // convX(EDITBOXES_LEFT+DATES_WIDTH)+BORDER, 
-                height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*3.75), 
+                zoom ? height + BORDER : height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*3.75), 
                 0, 0, SWP_NOSIZE);
    SetWindowPos(GetDlgItem(hEditWnd, IDC_DESCRIPTION), 0, 
                 x2 + OTHER_WIDTH, // convX(EDITBOXES_LEFT+DATES_WIDTH+OTHER_WIDTH)+BORDER, 
-                height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*3.75)-2, 
+                zoom ? height + BORDER : height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*3.75)-2, 
                 w2 - OTHER_WIDTH, // width-convX(EDITBOXES_LEFT+DATES_WIDTH+OTHER_WIDTH)-BORDER*3, 
                 convY(EDITBOXES_HEIGHT), 
                 0);
 
    SetWindowPos(GetDlgItem(hEditWnd, IDC_STATIC_ORDER), 0, 
                 2*BORDER, 
-                height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*3.75), 
+                zoom ? height + BORDER : height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*3.75), 
                 0, 0, SWP_NOSIZE);
    SetWindowPos(GetDlgItem(hEditWnd, IDC_ORDER), 0, 
                 convX(EDITBOXES_LEFT), 
-                height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*3.75)-2, 
+                zoom ? height + BORDER : height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*3.75)-2, 
                 w1, // convX(DATES_WIDTH),
                 convY(EDITBOXES_HEIGHT), 
                 0);
 
    SetWindowPos(GetDlgItem(hEditWnd, IDC_STATIC_URL), 0, 
                 BORDER*2, 
-                height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*1.25), 
+                zoom ? height + BORDER : height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*1.25), 
                 0, 0, SWP_NOSIZE);
    SetWindowPos(GetDlgItem(hEditWnd, IDC_URL), 0, 
                 convX(EDITBOXES_LEFT), 
-                height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*1.25)-2, 
+                zoom ? height + BORDER : height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*1.25)-2, 
                 width-convX(EDITBOXES_LEFT)-BORDER*2, 
                 convY(EDITBOXES_HEIGHT), 
                 0);
 
    SetWindowPos(GetDlgItem(hEditWnd, IDC_STATIC_NAME), 0, 
                 BORDER*2, 
-                height-convY(EDITBOXES_TOP), 
+                zoom ? height + BORDER : height-convY(EDITBOXES_TOP), 
                 0, 0, SWP_NOSIZE);
    SetWindowPos(GetDlgItem(hEditWnd, IDC_NAME), 0, 
                 convX(EDITBOXES_LEFT), 
-                height-convY(EDITBOXES_TOP)-2, 
+                zoom ? height + BORDER : height-convY(EDITBOXES_TOP)-2, 
                 width-convX(EDITBOXES_LEFT)-BORDER*2, 
                 convY(EDITBOXES_HEIGHT), 
                 0);
