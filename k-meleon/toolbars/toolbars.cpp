@@ -343,15 +343,30 @@ void DoRebar(HWND rebarWnd) {
       buttons = new TBBUTTON[toolbar->iButtonCount];
       button = toolbar->pButtonHead;
       int i = 0;
+      int j = 0;
       while (button) {
-         buttons[i].iBitmap = i;
-         buttons[i].idCommand = button->iID;
-         buttons[i].iString = i;
+         if (button->sName!=NULL || button->width!=0 || button->height!=0) {
+            buttons[i].iBitmap = j;
+            buttons[i].idCommand = button->iID;
+            buttons[i].iString = j;
+            j++;
 
-         buttons[i].dwData = 0;
-         buttons[i].fsState = TBSTATE_ENABLED;
-         buttons[i].fsStyle = TBSTYLE_BUTTON | (button->menu?TBSTYLE_DROPDOWN:0);
-         buttons[i].bReserved[0] = 0;
+            buttons[i].dwData = 0;
+            buttons[i].fsState = TBSTATE_ENABLED;
+            buttons[i].fsStyle = TBSTYLE_BUTTON | (button->menu?TBSTYLE_DROPDOWN:0);
+            buttons[i].bReserved[0] = 0;
+         }
+         else {
+            buttons[i].iBitmap = 0;
+            buttons[i].idCommand = 0;
+            buttons[i].iString = 0;
+
+            buttons[i].dwData = 0;
+            buttons[i].fsState = TBSTATE_ENABLED;
+            buttons[i].fsStyle = TBSTYLE_SEP;
+            buttons[i].bReserved[0] = 0;
+         }
+
          i++;
          button = button->next;
       }
@@ -364,10 +379,12 @@ void DoRebar(HWND rebarWnd) {
          int buflen = 0;
          button = toolbar->pButtonHead;
          while (button) {
-            int len = strlen(button->sName);
-            if (buflen + len > 1024) break;
-            strcpy(buf+buflen, button->sName);
-            buflen += len;
+            if (button->sName != NULL) {
+               int len = strlen(button->sName);
+               if (buflen + len > 1024) break;
+               strcpy(buf+buflen, button->sName);
+               buflen += len;
+            }
             buf[buflen] = 0;
             buflen++;
             button = button->next;
@@ -568,6 +585,20 @@ void LoadToolbars(char *filename) {
             }
             else {
                MessageBox(NULL, "Extra { found", NULL, MB_OK);
+            }
+         }
+         cb = strchr(p, '-');
+         if (cb && iBuildState == BUTTON) {
+            p = SkipWhiteSpace(p);
+            TrimWhiteSpace(p);
+            if (strcmp(p, "-") == 0) {
+               // add new separator
+               if (curButton) {
+                  curButton->next = AddButton(curToolbar, NULL, 0, 0);
+                  curButton = curButton->next;
+               }
+               else
+                  curButton = AddButton(curToolbar, NULL, 0, 0);
             }
          }
       }
