@@ -18,12 +18,6 @@
 */
 
 
-//#include "stdafx.h"
-#include "history.h"
-#include "..\Utils.h"
-#include "..\KmeleonConst.h"
-#include "..\resource.h"
-
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <commctrl.h>
@@ -31,6 +25,12 @@
 
 #define KMELEON_PLUGIN_EXPORTS
 #include "../kmeleon_plugin.h"
+
+//#include "stdafx.h"
+#include "history.h"
+#include "..\Utils.h"
+#include "..\KmeleonConst.h"
+#include "..\resource.h"
 
 
 #define PLUGIN_NAME "History Plugin"
