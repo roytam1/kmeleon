@@ -1079,6 +1079,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                }
             }
             
+            else if (command == ID_APP_EXIT) {
+               bIgnore = true;
+            }
+
             else if ((command == ID_WINDOW_NEXT) ||
                      (command == ID_WINDOW_PREV)) {
                
@@ -1108,7 +1112,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                      wpTmp.length = sizeof (WINDOWPLACEMENT);
                      GetWindowPlacement(newframe->hWndFront, &wpTmp);
                      SetWindowPlacement(newframe->hWndFront, &wpTmp);
-                     // SetFocus(newframe->hWndFront);
+                     SetFocus(newframe->hWndFront);
                   }
                }
                
@@ -1270,6 +1274,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                      GetWindowPlacement(hWnd, &wpTmp);
                      SetWindowPlacement(hWnd, &wpTmp);
                      // PostMessage(hWnd, WM_SETFOCUS, 0, 0);
+                     if (pFrame && pFrame->hWndFront)
+                        UpdateLayersMenu(pFrame->hWndFront);
+                     if (pFrame && pFrame->layer)
+                        UpdateRebarMenu(pFrame->layer);
                   }
                }
             }
