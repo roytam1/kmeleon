@@ -499,9 +499,9 @@ STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
 CAPTION "Alert"
 FONT 8, "MS Sans Serif"
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,91,127,50,14
-    CONTROL         "",IDC_CHECKBOX,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,
-                    104,215,10
+    DEFPUSHBUTTON   "OK",IDOK,91,130,50,14
+    CONTROL         "",IDC_CHECKBOX,"Button",BS_AUTOCHECKBOX | BS_TOP | 
+                    BS_MULTILINE | WS_TABSTOP,10,104,215,20
     EDITTEXT        IDC_MSG_TEXT,10,10,214,88,ES_MULTILINE | ES_READONLY
 END
 
@@ -619,13 +619,18 @@ BEGIN
     BEGIN
         BLOCK "040904b0"
         BEGIN
-            VALUE "CompanyName", "http://kmeleon.org\0"
+            VALUE "Comments", "\0"
+            VALUE "CompanyName", "http://kmeleon.sf.net/\0"
             VALUE "FileDescription", "K-Meleon Web Browser\0"
             VALUE "FileVersion", "0, 7, 1, 0\0"
+            VALUE "InternalName", "\0"
             VALUE "LegalCopyright", "Copyright (C) 2001-2003\0"
+            VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "k-meleon.exe\0"
+            VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "K-Meleon\0"
             VALUE "ProductVersion", "0.7.1\0"
+            VALUE "SpecialBuild", "\0"
         END
     END
     BLOCK "VarFileInfo"
