@@ -53,7 +53,9 @@ extern CMfcEmbedApp theApp;
 #include "BrowserView.h"
 #include "BrowserImpl.h"
 #include "BrowserFrm.h"
-#include "PrintProgressDialog.h"    
+#include "PrintProgressDialog.h"
+#include "nsPrintSettingsImpl.h"
+#include "PrintSetupDialog.h"
 #include "ToolBarEx.h"
 #include "Utils.h"
 #include "KmeleonConst.h"
@@ -108,6 +110,8 @@ BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
 	ON_COMMAND(ID_SAVE_IMAGE_AS, OnSaveImageAs)
    ON_COMMAND(ID_EDIT_FIND, OnShowFindDlg)
    ON_COMMAND(ID_FILE_PRINT, OnFilePrint) 
+   ON_COMMAND(ID_FILE_PRINTPREVIEW, OnFilePrintPreview)
+   ON_COMMAND(ID_FILE_PRINTSETUP, OnFilePrintSetup)
    ON_UPDATE_COMMAND_UI(ID_FILE_PRINT, OnUpdateFilePrint)
    ON_UPDATE_COMMAND_UI(ID_VIEW_STATUS_BAR, OnUpdateViewStatusBar)
    ON_COMMAND(ID_EDIT_FINDNEXT, OnFindNext)
@@ -149,6 +153,8 @@ CBrowserView::CBrowserView()
    m_pPrintProgressDlg = NULL; 
    m_bCurrentlyPrinting = NULL;
    m_SecurityState = SECURITY_STATE_INSECURE;
+
+   m_PrintSettings = (nsIPrintSettings*)new nsPrintSettings();
 
    m_tempFileCount = 0;
 }
@@ -224,8 +230,13 @@ HRESULT CBrowserView::CreateBrowser()
    nsCOMPtr<nsIDocShellTreeItem> dsti = do_QueryInterface(mWebBrowser, &rv);
 	if(NS_FAILED(rv))
 		return rv;
-   //dsti->SetItemType(nsIDocShellTreeItem::typeChromeWrapper);
-   dsti->SetItemType(nsIDocShellTreeItem::typeContentWrapper);
+
+
+   // If the browser window hosting chrome or content?
+   dsti->SetItemType( theApp.cmdline.m_bChrome ?
+      nsIDocShellTreeItem::typeChromeWrapper :
+      nsIDocShellTreeItem::typeContentWrapper);
+
 
     // Create the real webbrowser window
   
@@ -880,7 +891,7 @@ void CBrowserView::OnFilePrint()
    if(domWindow) {
       nsCOMPtr<nsIWebBrowserPrint> print(do_GetInterface(mWebBrowser));
       if(print) {
-         CPrintProgressDialog  dlg(mWebBrowser, domWindow);
+         CPrintProgressDialog  dlg(mWebBrowser, domWindow, m_PrintSettings);
 
          nsCOMPtr<nsIURI> currentURI;
          nsresult rv = mWebNav->GetCurrentURI(getter_AddRefs(currentURI));
@@ -904,6 +915,47 @@ void CBrowserView::OnUpdateViewStatusBar(CCmdUI* pCmdUI)
 
    pCmdUI->SetCheck(bVis);
 }
+
+
+ 
+
+void CBrowserView::OnFilePrintPreview()                                         
+{                                                                                 
+   nsCOMPtr<nsIDOMWindow> domWindow;   
+   mWebBrowser->GetContentDOMWindow(getter_AddRefs(domWindow));                   
+   if(domWindow) {                                                                     
+      nsCOMPtr<nsIWebBrowserPrint> print(do_GetInterface(mWebBrowser));               
+      if(print) {                                                                                  
+         print->PrintPreview(domWindow, m_PrintSettings);                                   
+      }                                                                                 
+   }                                                                                
+}                                                                               
+
+static float GetFloatFromStr(const char* aStr, float aMaxVal = 1.0)             
+{                                                                               
+   float val;                                                                    
+   sscanf(aStr, "%f", &val);                                                     
+   if (val <= aMaxVal) {                                                         
+      return val;                                                                 
+   } else {                                                                      
+      return 0.5;                                                                 
+   }                                                                             
+}                                                                               
+
+void CBrowserView::OnFilePrintSetup()                                           
+{                                                                               
+   CPrintSetupDialog  dlg(m_PrintSettings);                                      
+   if (dlg.DoModal() == IDOK && m_PrintSettings != NULL) {                       
+      m_PrintSettings->SetMarginTop(GetFloatFromStr(dlg.m_TopMargin));            
+      m_PrintSettings->SetMarginLeft(GetFloatFromStr(dlg.m_LeftMargin));          
+      m_PrintSettings->SetMarginRight(GetFloatFromStr(dlg.m_RightMargin));        
+      m_PrintSettings->SetMarginBottom(GetFloatFromStr(dlg.m_BottomMargin));      
+      m_PrintSettings->SetScaling(double(dlg.m_Scaling) / 100.0);                 
+      m_PrintSettings->SetPrintBGColors(dlg.m_PrintBGColors);                     
+      m_PrintSettings->SetPrintBGColors(dlg.m_PrintBGImages);                     
+   }                                                                             
+}                                                                             
+
 
 void CBrowserView::OnUpdateFilePrint(CCmdUI* pCmdUI)
 {

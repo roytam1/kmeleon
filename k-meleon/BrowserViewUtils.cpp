@@ -175,7 +175,7 @@ NS_IMETHODIMP CBrowserView::URISaveAs(nsIURI* aURI, bool bDocument)
       strcat(lpszFilter,"Text File (*.txt)|*.txt|"
         "All Files (*.*)|*.*||");
   
-   CFileDialog cf(FALSE, extension, (const char *)pFileName, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
+   CFileDialog cf(FALSE, extension, pFileName, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
 					lpszFilter, this);
 
    cf.m_ofn.lpstrInitialDir = theApp.preferences.saveDir;
@@ -237,14 +237,16 @@ NS_IMETHODIMP CBrowserView::URISaveAs(nsIURI* aURI, bool bDocument)
 
 void CBrowserView::OpenURL(const char* pUrl)
 {
-   if(mWebNav)
-      mWebNav->LoadURI(NS_ConvertASCIItoUCS2(pUrl).get(), nsIWebNavigation::LOAD_FLAGS_NONE);
+   OpenURL(NS_ConvertASCIItoUCS2(pUrl).get());                                 
 }
 
 void CBrowserView::OpenURL(const PRUnichar* pUrl)
 {
-   if(mWebNav)
-      mWebNav->LoadURI(pUrl, nsIWebNavigation::LOAD_FLAGS_NONE);
+   mWebNav->LoadURI(pUrl,                              // URI string
+                    nsIWebNavigation::LOAD_FLAGS_NONE, // Load flags
+                    nsnull,                            // Refering URI
+                    nsnull,                            // Post data
+                    nsnull);                           // Extra headers
 }
 
 CBrowserFrame* CBrowserView::CreateNewBrowserFrame(PRUint32 chromeMask, 

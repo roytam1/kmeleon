@@ -12,6 +12,7 @@
 
 CCmdLine::CCmdLine() {
    m_sProfilesDir = NULL;
+   m_bChrome = FALSE;
 }
 
 CCmdLine::~CCmdLine() {
@@ -23,6 +24,10 @@ CCmdLine::Initialize(char *cmdLine) {
    int len;
 
    m_sCmdLine = cmdLine;
+
+
+   if (GetSwitch("-chrome", NULL, true))
+      m_bChrome =  TRUE;
 
    // -profilesDir <directory>
    // or -profilesDir $appdata

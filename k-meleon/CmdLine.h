@@ -8,4 +8,5 @@ public:
    
    char *m_sProfilesDir;
    char *m_sCmdLine;
+   BOOL  m_bChrome;
 };

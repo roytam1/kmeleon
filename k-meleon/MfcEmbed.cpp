@@ -94,7 +94,7 @@ CMfcEmbedApp::CMfcEmbedApp()
    mRefCnt = 1; // Start at one - nothing is going to addref this object
    m_pMostRecentBrowserFrame  = NULL;
    m_toolbarControlsMenu = NULL;
-   
+     
    m_sMainWindowClassName = _T("KMeleon");
 }
 
@@ -236,12 +236,74 @@ BOOL CMfcEmbedApp::InitInstance()
       return FALSE;
    }
    
+#if 1
    if(!InitializeProfiles()){
       ASSERT(FALSE);
       NS_TermEmbedding();
       return FALSE;
    }
-   
+#else
+//   nsCOMPtr<nsIObserverService> observerService = 
+//      do_GetService(NS_OBSERVERSERVICE_CONTRACTID, &rv);
+
+
+//       nsCOMPtr<nsIDirectoryService> theDirService(do_CreateInstance(NS_DIRECTORY_SERVICE_CONTRACTID));
+//       theDirService->
+
+//      NS_WITH_SERVICE( nsIProperties, 
+//         directoryService, 
+//         NS_DIRECTORY_SERVICE_PROGID, 
+//         &rv);
+
+      nsCOMPtr<nsILocalFile> newPath;
+      nsCOMPtr<nsILocalFile> tempPath(do_CreateInstance(NS_LOCAL_FILE_CONTRACTID));
+      rv = tempPath->InitWithPath("c:\\kmeleon\\blah");
+      
+      newPath = tempPath;
+      
+      static NS_DEFINE_CID(kDirectoryServiceCID, NS_DIRECTORY_SERVICE_CID);
+      nsCOMPtr<nsIProperties> properties(do_GetService(kDirectoryServiceCID, &rv));
+      properties->Set(NS_APP_PREFS_50_DIR, newPath);
+      properties->Set(NS_APP_USER_PROFILE_50_DIR, newPath);
+
+      rv = newPath->AppendRelativePath("chrome");
+      properties->Set(NS_APP_USER_CHROME_DIR, newPath);
+
+      newPath = tempPath;
+      properties->Set(NS_APP_PREFS_50_FILE, tempPath);
+
+/*
+
+         sApp_PrefsDirectory50         = NS_NewAtom(NS_APP_PREFS_50_DIR);
+         sApp_PreferencesFile50        = NS_NewAtom(NS_APP_PREFS_50_FILE);
+        
+       // Profile:
+         sApp_UserProfileDirectory50   = NS_NewAtom(NS_APP_USER_PROFILE_50_DIR);
+        
+       // Application Directories:
+         sApp_UserChromeDirectory      = NS_NewAtom(NS_APP_USER_CHROME_DIR);
+         
+       // Aplication Files:
+         sApp_LocalStore50             = NS_NewAtom(NS_APP_LOCALSTORE_50_FILE);
+         sApp_History50                = NS_NewAtom(NS_APP_HISTORY_50_FILE);
+         sApp_UsersPanels50            = NS_NewAtom(NS_APP_USER_PANELS_50_FILE);
+         sApp_UsersMimeTypes50         = NS_NewAtom(NS_APP_USER_MIMETYPES_50_FILE);
+         
+       // Bookmarks:
+         sApp_BookmarksFile50          = NS_NewAtom(NS_APP_BOOKMARKS_50_FILE);
+         
+       // Search
+         sApp_SearchFile50             = NS_NewAtom(NS_APP_SEARCH_50_FILE);
+         
+       // MailNews
+         sApp_MailDirectory50          = NS_NewAtom(NS_APP_MAIL_50_DIR);
+         sApp_ImapMailDirectory50      = NS_NewAtom(NS_APP_IMAP_MAIL_50_DIR);
+         sApp_NewsDirectory50          = NS_NewAtom(NS_APP_NEWS_50_DIR);
+         sApp_MessengerFolderCache50   = NS_NewAtom(NS_APP_MESSENGER_FOLDER_CACHE_50_DIR);
+
+*/
+#endif
+      
    InitializePrefs();
    plugins.FindAndLoad();
    
@@ -540,11 +602,11 @@ BOOL CMfcEmbedApp::InitializeProfiles() {
    
    nsresult rv;
    nsCOMPtr<nsIObserverService> observerService = 
-      do_GetService(NS_OBSERVERSERVICE_CONTRACTID, &rv);
+      do_GetService("@mozilla.org/observer-service;1", &rv);
    
-   observerService->AddObserver(this, NS_LITERAL_STRING("profile-approve-change").get());
-   observerService->AddObserver(this, NS_LITERAL_STRING("profile-change-teardown").get());
-   observerService->AddObserver(this, NS_LITERAL_STRING("profile-after-change").get());
+   observerService->AddObserver(this, "profile-approve-change", PR_TRUE);
+   observerService->AddObserver(this, "profile-change-teardown", PR_TRUE);
+   observerService->AddObserver(this, "profile-after-change", PR_TRUE);
    
    
    int len = cmdline.GetSwitch("-P", NULL, FALSE);
@@ -646,11 +708,11 @@ NS_IMPL_THREADSAFE_ISUPPORTS3(CMfcEmbedApp, nsIObserver, nsIWindowCreator, nsISu
 
 // Mainly needed to support "on the fly" profile switching
 
-NS_IMETHODIMP CMfcEmbedApp::Observe(nsISupports *aSubject, const PRUnichar *aTopic, const PRUnichar *someData)
+NS_IMETHODIMP CMfcEmbedApp::Observe(nsISupports *aSubject, const char *aTopic, const PRUnichar *someData)
 {
    nsresult rv = NS_OK;
    
-   if (nsCRT::strcmp(aTopic, NS_LITERAL_STRING("profile-approve-change").get()) == 0)
+   if (nsCRT::strcmp(aTopic, "profile-approve-change") == 0)
    {
       // Ask the user if they want to
       int result = MessageBox(NULL, "Do you want to close all windows in order to switch the profile?\nThis will cancel any files being downloaded.", "Confirm", MB_YESNO | MB_ICONQUESTION);
@@ -661,7 +723,7 @@ NS_IMETHODIMP CMfcEmbedApp::Observe(nsISupports *aSubject, const PRUnichar *aTop
          status->VetoChange();
       }
    }
-   else if (nsCRT::strcmp(aTopic, NS_LITERAL_STRING("profile-change-teardown").get()) == 0)
+   else if (nsCRT::strcmp(aTopic, "profile-change-teardown") == 0)
    {
       // Close all open windows. Alternatively, we could just call CBrowserWindow::Stop()
       // on each. Either way, we have to stop all network activity on this phase.
@@ -683,7 +745,7 @@ NS_IMETHODIMP CMfcEmbedApp::Observe(nsISupports *aSubject, const PRUnichar *aTop
       }
       m_bSwitchingProfiles = FALSE;
    }
-   else if (nsCRT::strcmp(aTopic, NS_LITERAL_STRING("profile-after-change").get()) == 0)
+   else if (nsCRT::strcmp(aTopic, "profile-after-change") == 0)
    {        
       // Only reinitialize everything if this is a profile switch, since this
       // called at start up and we already do evenything once already

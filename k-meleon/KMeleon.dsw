@@ -135,6 +135,30 @@ Package=<4>
 
 ###############################################################################
 
+Project: "toolbars"=".\toolbars\toolbars.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "urlbar"=".\urlbar\urlbar.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
 Project: "weasel"=".\weasel\weasel.dsp" - Package Owner=<4>
 
 Package=<5>
