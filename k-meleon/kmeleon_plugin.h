@@ -44,6 +44,14 @@ typedef struct {
    char *url;
 } kmeleonDocInfo;
 
+
+typedef struct {
+   char *image;
+   char *link;
+   char *frame;
+   char *page;
+} kmeleonPointInfo;
+
 enum PREFTYPE {
    PREF_BOOL,
    PREF_INT,
@@ -93,6 +101,12 @@ typedef struct {
 
    // get the value of an identifier, eg "ID_NAV_BACK"
    int (*GetID) (char *strID);
+
+
+   // get the link/image/frame at a point
+   kmeleonPointInfo *(*GetInfoAtPoint) (int x, int y);
+
+   int (* CommandAtPoint) (int command, WORD x, WORD y);
 
 } kmeleonFunctions;
 

@@ -33,6 +33,8 @@ extern CMfcEmbedApp theApp;
 int SessionSize=0;
 char **pHistory;
 kmeleonDocInfo kDocInfo;
+kmeleonPointInfo gPointInfo;
+
 
 CPlugins::CPlugins()
 {
@@ -40,6 +42,12 @@ CPlugins::CPlugins()
 
 CPlugins::~CPlugins()
 {
+
+   delete gPointInfo.image;
+   delete gPointInfo.link;
+   delete gPointInfo.frame;
+   delete gPointInfo.page;
+
    if (SessionSize) {
       for (int i=0; i<SessionSize; i++)
          delete pHistory[i];
@@ -252,7 +260,160 @@ HWND CreateToolbar(HWND hWnd, UINT style) {
 }
 
 int GetID(char *strID) {
-   return theApp.GetID(strID);
+
+   int ID = theApp.GetID(strID);
+
+   if (!ID) {
+      char *plugin = strID;
+      char *parameter = strchr(strID, '(');
+      if (parameter) {
+         *parameter++ = 0;
+         char *close = strchr(parameter, ')');
+         if (close)
+            *close = 0;
+      }
+      
+      theApp.plugins.SendMessage(plugin, "* GetID", "DoAccel", (long) parameter, (long)&ID);
+   }
+
+   return ID;
+}
+
+kmeleonPointInfo *GetInfoAtPoint(int x, int y) {
+
+   delete gPointInfo.image;
+   delete gPointInfo.link;
+   delete gPointInfo.frame;
+   delete gPointInfo.page;
+   gPointInfo.image = NULL;
+   gPointInfo.link  = NULL;
+   gPointInfo.frame = NULL;
+   gPointInfo.page  = NULL;
+
+
+   if (!theApp.m_pMostRecentBrowserFrame || !theApp.m_pMostRecentBrowserFrame->m_wndBrowserView)
+      return &gPointInfo;
+      
+   CBrowserView *pBrowserView;  
+   pBrowserView = &theApp.m_pMostRecentBrowserFrame->m_wndBrowserView;
+
+
+
+	// get the page url
+   int len = pBrowserView->GetCurrentURI(NULL);
+   if (len) {
+      gPointInfo.page = new char[len+1];
+      pBrowserView->GetCurrentURI(gPointInfo.page);
+   }
+
+
+   // get the DOMNode at the point
+   nsCOMPtr<nsIDOMNode> aNode;
+   aNode = pBrowserView->GetNodeAtPoint(x, y, TRUE);
+   if (!aNode) {
+      MessageBox(NULL, "no node", NULL, MB_OK);
+      return &gPointInfo;
+   }
+
+
+   
+   nsAutoString strBuf;
+   nsresult rv = NS_OK;
+
+
+   // check if there's a link
+   // Search for an anchor element
+   nsCOMPtr<nsIDOMHTMLAnchorElement> linkElement;
+   nsCOMPtr<nsIDOMNode> node = aNode;
+   while (node) {
+      linkElement = do_QueryInterface(node);
+      if (linkElement)
+         break;
+      
+      nsCOMPtr<nsIDOMNode> parentNode;
+      node->GetParentNode(getter_AddRefs(parentNode));
+      node = parentNode;
+   }
+   if (linkElement) {
+      rv = linkElement->GetHref(strBuf);
+      if(NS_SUCCEEDED(rv)) {
+         if (strBuf.Length()) {
+            gPointInfo.link = new char[strBuf.Length() + 1];
+            strBuf.ToCString(gPointInfo.link, strBuf.Length() + 1);
+         }
+      }
+   }
+
+
+   // check for an image
+   nsCOMPtr<nsIDOMHTMLImageElement> imgPointInfo(do_QueryInterface(aNode, &rv));
+   if(NS_SUCCEEDED(rv)) {
+      rv = imgPointInfo->GetSrc(strBuf);
+      if(NS_SUCCEEDED(rv)) {
+         gPointInfo.image = new char[strBuf.Length() + 1];
+         strBuf.ToCString(gPointInfo.image, strBuf.Length() + 1);
+      }
+   }
+
+
+   // get the current Frame URL
+   nsCOMPtr<nsIDOMDocument> domDoc;
+   rv = aNode->GetOwnerDocument(getter_AddRefs(domDoc));
+   
+   if(NS_SUCCEEDED(rv)) {
+      nsCOMPtr<nsIDOMHTMLDocument> htmlDoc(do_QueryInterface(domDoc, &rv));
+      if(NS_SUCCEEDED(rv)) {
+         rv = htmlDoc->GetURL(strBuf);
+         if(NS_SUCCEEDED(rv)) {
+            gPointInfo.frame = new char[strBuf.Length() +1];
+            strBuf.ToCString(gPointInfo.frame , strBuf.Length() +1);
+         }
+      }
+   }
+
+
+   return &gPointInfo;
+}
+
+
+// return 0 if the function did not succeed (ie, trying to open a link from
+// a point that is not a link)
+// return 1 if it does succeed
+
+int CommandAtPoint(int command, WORD x, WORD y) {
+   CBrowserView *pBrowserView;  
+   pBrowserView = &theApp.m_pMostRecentBrowserFrame->m_wndBrowserView;
+
+   pBrowserView->GetNodeAtPoint(x, y, TRUE);
+
+   switch (command) {
+   case ID_OPEN_LINK:
+   case ID_OPEN_LINK_IN_NEW_WINDOW:
+   case ID_OPEN_LINK_IN_BACKGROUND:
+   case ID_SAVE_LINK_AS:
+   case ID_COPY_LINK_LOCATION:
+      if (!pBrowserView->mCtxMenuLinkUrl.Length())
+         return 0;
+      break;
+
+   case ID_VIEW_IMAGE:
+   case ID_SAVE_IMAGE_AS:
+   case ID_COPY_IMAGE_LOCATION:
+      if (!pBrowserView->mCtxMenuImgSrc.Length())
+         return 0;
+      break;
+
+   case ID_OPEN_FRAME:
+   case ID_OPEN_FRAME_IN_BACKGROUND:
+   case ID_OPEN_FRAME_IN_NEW_WINDOW:
+   case ID_VIEW_FRAME_SOURCE:
+      if (!pBrowserView->mCtxMenuCurrentFrameURL.Length())
+         return 0;
+      break;
+   }
+
+   pBrowserView->PostMessage(WM_COMMAND, command, NULL);
+   return 1;
 }
 
 
@@ -293,7 +454,9 @@ kmeleonFunctions kmelFuncs = {
    GotoHistoryIndex,
    RegisterBand,
    CreateToolbar,
-   GetID
+   GetID,
+   GetInfoAtPoint,
+   CommandAtPoint
 };
 
 BOOL CPlugins::TestLoad(const char *file, const char *description)
