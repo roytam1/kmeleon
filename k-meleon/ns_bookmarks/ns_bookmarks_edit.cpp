@@ -637,32 +637,52 @@ static void MoveItem(HWND hTree, HTREEITEM item, int mode) {
    HTREEITEM itemDrop;
    switch (mode) {
    case 1:  // move up one
-      itemDrop = TreeView_GetPrevVisible(hTree, item);
-      if (itemDrop != TreeView_GetRoot(hTree)) itemDrop = TreeView_GetPrevVisible(hTree, itemDrop);
+      // if we're at the top, do nothing
+      if (TreeView_GetPrevVisible(hTree, item) == TreeView_GetRoot(hTree)) return;
 
-      TVITEMEX tvItem;
-      tvItem.mask = TVIF_STATE;
-      tvItem.hItem = itemDrop;
-      TreeView_GetItem(hTree, &tvItem);
-      if (tvItem.state & TVIS_EXPANDED) {
-         // expanded folder - insert before first child
-         tvis.hInsertAfter = NULL;
-         itemDrop = TreeView_GetChild(hTree, itemDrop);
+      itemDrop = TreeView_GetPrevSibling(hTree, item);
+
+      if (!itemDrop) {  // we are first child of parent - move above parent,
+         itemDrop = TreeView_GetPrevSibling(hTree, TreeView_GetParent(hTree, item));
+         tvis.hInsertAfter = itemDrop;
+         if (!itemDrop) { // parent is first child of parent's parent - place after parent's parent
+            itemDrop = TreeView_GetParent(hTree, item);
+            tvis.hInsertAfter = TVI_FIRST;
+         }
+
+         PostMessage(hTree, WM_VSCROLL, SB_LINEUP, NULL);
       }
       else {
-         // bookmark or collapsed folder - insert after item
-         tvis.hInsertAfter = itemDrop;
+         TVITEMEX tvItem;
+         tvItem.mask = TVIF_STATE;
+         tvItem.hItem = itemDrop;
+         TreeView_GetItem(hTree, &tvItem);
+         if (tvItem.state & TVIS_EXPANDED) {    // we're below an expanded folder - move to last child of folder
+            itemDrop = TreeView_GetPrevVisible(hTree, item);
+            tvis.hInsertAfter = itemDrop;
+         }
+         else {   // otherwise, just place after prev siblings's prev sibling
+            itemDrop = TreeView_GetPrevSibling(hTree, itemDrop);
+            tvis.hInsertAfter = itemDrop;
+            if (!itemDrop) {  // item is the second child
+               itemDrop = item;
+               tvis.hInsertAfter = TVI_FIRST;
+            }
+
+            PostMessage(hTree, WM_VSCROLL, SB_LINEUP, NULL);
+         }
       }
 
-      if (tvis.hInsertAfter) {
+      if (tvis.hInsertAfter == TVI_FIRST) {
+         newPreviousNode = NULL;
+      }
+      else {
          newPreviousNode = GetBookmarkNode(hTree, tvis.hInsertAfter);
       }
-      else {
-         newPreviousNode = NULL;
-         tvis.hInsertAfter = TVI_FIRST;
-      }
+
       break;
    case 2:  // move down one
+      if (!TreeView_GetNextVisible(hTree, item)) return;  // do nothing if we're at the very end
       itemDrop = TreeView_GetNextSibling(hTree, item);
       if (itemDrop) {
          TVITEMEX tvItem;
@@ -686,11 +706,20 @@ static void MoveItem(HWND hTree, HTREEITEM item, int mode) {
             newPreviousNode = NULL;
             tvis.hInsertAfter = TVI_FIRST;
          }
+
+         PostMessage(hTree, WM_VSCROLL, SB_LINEDOWN, NULL);
       }
       else {
-         // if there is no next sibling, then don't move it anywhere
-         return;
+         // if there is no next sibling, try moving it down a level (place it after its parent)
+         itemDrop = TreeView_GetParent(hTree, item);
+
+         // if we're at the end of the list, we'll be trying to place after the root - just return
+         if (itemDrop == TreeView_GetRoot(hTree)) return;
+
+         tvis.hInsertAfter = itemDrop;
+         newPreviousNode = GetBookmarkNode(hTree, tvis.hInsertAfter);
       }
+
       break;
    case 3:  // move to drag'n'drop location
       TVHITTESTINFO hti;
