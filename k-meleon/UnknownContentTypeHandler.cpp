@@ -501,6 +501,7 @@ NS_IMETHODIMP CProgressDialog::Init(nsIURI *aSource, nsILocalFile *aTarget, cons
    mFilePath = strdup(filepath.get());
 
    mStartTime = startTime;
+   mLastUpdateTime = 0;
 
    return NS_OK;
 }
