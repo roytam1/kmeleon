@@ -391,10 +391,7 @@ void CPreferencePagePlugins::OnConfig() {
 
       if (item == 0) {
          if (kPlugin->loaded) {
-            if (kPlugin->pf->Config)
-               kPlugin->pf->Config(this->m_hWnd);
-            else 
-               AfxMessageBox(IDS_PLUGIN_NO_OPTIONS);
+            theApp.plugins.SendMessage(kPlugin->dllname, "* Prefs Page", "OnConfig", (long)this->m_hWnd);
          }
          else
             AfxMessageBox(IDS_PLUGIN_NOT_LOADED);
