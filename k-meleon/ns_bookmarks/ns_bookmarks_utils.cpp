@@ -416,7 +416,6 @@ void BuildRebar()
 }
 
 void Rebuild() {
-
    // delete the old bookmarks from the menu (FIXME - needs to be more robust than "delete everything after the first bookmark position" - there may be normal menu items there (if the user is weird))
    while (DeleteMenu(gMenuBookmarks, nFirstBookmarkPosition, MF_BYPOSITION));
    // and rebuild
@@ -429,9 +428,6 @@ void Rebuild() {
       // and rebuild
       BuildRebar();
    }
-
-//   kPlugin.kFuncs->SendMessage("bmpmenu", kPlugin.dllname, "UnSetOwnerDrawn", (long) gMenuBookmarks, NULL);
-   kPlugin.kFuncs->SendMessage("bmpmenu", kPlugin.dllname, "SetOwnerDrawn", (long) gMenuBookmarks, (long) DrawBitmap);
 
 // FIXME - Is this needed?  Hm, if anywhere, in WndProc, below, in the nAddCommand and nEditCommand cases...  but then it's still only one window, and the others don't get the call, so...   heck, it works without it.  It will stay until someone complains.  :)
 //   DrawMenuBar(hWnd);
