@@ -197,6 +197,11 @@ BOOL CMfcEmbedApp::InitInstance()
    if (m_bAlreadyRunning) {
       // find the hidden window
       if (HWND hwndPrev = FindWindowEx(NULL, NULL, HIDDEN_WINDOW_CLASS, NULL) ) {
+         // Ignore all command-line options when already open
+         cmdline.GetSwitch("-P", NULL, TRUE);  
+         cmdline.GetSwitch("-chrome", NULL, TRUE);
+         cmdline.GetSwitch("-profilesDir", NULL, TRUE);
+
          if(*m_lpCmdLine) {
             COPYDATASTRUCT copyData;
             copyData.cbData = strlen(m_lpCmdLine)+1;
