@@ -105,7 +105,7 @@ CBrowserImpl::CanHandleContent(const char * aContentType,
 }
 
 NS_IMETHODIMP 
-CBrowserImpl::GetParentContentListener(nsDSURIContentListener** aParentContentListener)
+CBrowserImpl::GetParentContentListener(nsIURIContentListener** aParentContentListener)
 {
    /*
    NS_ENSURE_ARG_POINTER(aParentContentListener);
@@ -117,7 +117,7 @@ CBrowserImpl::GetParentContentListener(nsDSURIContentListener** aParentContentLi
 }
 
 NS_IMETHODIMP 
-CBrowserImpl::SetParentContentListener(nsDSURIContentListener* aParentContentListener)
+CBrowserImpl::SetParentContentListener(nsIURIContentListener* aParentContentListener)
 {
    /*
    return NS_OK;
