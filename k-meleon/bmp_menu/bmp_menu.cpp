@@ -229,7 +229,7 @@ int Init() {
    OSVERSIONINFO     osVersion;
    osVersion.dwOSVersionInfoSize = sizeof( OSVERSIONINFO );
    GetVersionEx( &osVersion );
-   if ((osVersion.dwMajorVersion > 4) || ((osVersion.dwMajorVersion ==4) && (osVersion.dwMinorVersion > 0)))
+   if ( (osVersion.dwMajorVersion ==4) && (osVersion.dwMinorVersion > 0) && (osVersion.dwMinorVersion < 90) )
       gbMeasureAccel = FALSE;
 
 
