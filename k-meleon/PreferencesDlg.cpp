@@ -312,6 +312,7 @@ void CPreferencePage::OnClearDiskCache() {
 }
 
 void CPreferencePage::OnBrowse() {
+   CString oldstr;
    CFileDialog fDlg(TRUE);
    switch (idd){
       case IDD_PREFERENCES_DISPLAY:
@@ -323,7 +324,16 @@ void CPreferencePage::OnBrowse() {
       case IDD_PREFERENCES_GENERAL:
          fDlg.m_ofn.lpstrFilter = "Executable Files\0*.exe\0";
          fDlg.DoModal();
+         oldstr = theApp.preferences.sourceCommand;
          theApp.preferences.sourceCommand = fDlg.GetPathName();
+	 if (theApp.preferences.sourceCommand != "") {
+	   if (oldstr != theApp.preferences.sourceCommand)
+	     theApp.preferences.bSourceUseExternalCommand = TRUE;
+	 }
+	 else {
+	   if (oldstr != "")
+	     theApp.preferences.sourceCommand = oldstr;
+	 }
          UpdateData(FALSE);
          break;
    }
