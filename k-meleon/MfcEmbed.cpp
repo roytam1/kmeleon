@@ -317,6 +317,16 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
    // Now, create the browser frame
 	CBrowserFrame* pFrame = new CBrowserFrame(chromeMask);
 
+   // this backup is made as part of a bad workaround:
+   // m_pMostRecentBrowserFrame needs to be this frame for the life of this function so that
+   // things like plugins and the rebar sizes can access it, but
+   // m_pMostRecentBrowserFrame should not stay set to this if this window
+   // is hidden (usually meaning that it is created using the open link in background option)
+   // so the backup is made, and m_pMostRecentBrowserFrame will be restored
+   // at the end of this function
+   CBrowserFrame* pOldRecentFrame = m_pMostRecentBrowserFrame;   
+   theApp.m_pMostRecentBrowserFrame = pFrame;
+   
    // restore the saved window size
    RECT winSize;
    winSize.top    = CW_USEDEFAULT;
@@ -353,7 +363,7 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
       m_bFirstWindowCreated = TRUE;
    }
 
-   5// Show the window...
+   // Show the window...
 	if(bShowWindow) {
       if (preferences.bMaximized) pFrame->ShowWindow(SW_MAXIMIZE);
       else pFrame->ShowWindow(SW_SHOW);
@@ -364,6 +374,8 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
 	m_FrameWndLst.AddHead(pFrame);
    
    pFrame->m_created = true;
+
+   theApp.m_pMostRecentBrowserFrame = pOldRecentFrame;
 
    return pFrame;
 }
@@ -436,12 +448,14 @@ void CMfcEmbedApp::RemoveFrameFromList(CBrowserFrame* pFrm, BOOL bCloseAppOnLast
 	// i.e. the app will never die even after all the 
 	// visible windows are gone.
    if(m_FrameWndLst.GetCount() == 0) {
+
       // if we're switching profiles, we don't need to do anything
       if (!bCloseAppOnLastFrame) {}
+
       // if we're staying resident, create the hidden browser window
-      else if (((CHiddenWnd*) m_pMainWnd)->Persisting() == PERSIST_STATE_ENABLED) {
+      else if (((CHiddenWnd*) m_pMainWnd)->Persisting() == PERSIST_STATE_ENABLED)
          ((CHiddenWnd*) m_pMainWnd)->StayResident();
-      }
+
       // otherwise we're exiting, close the Evil Hidden Window
       else
 		   m_pMainWnd->PostMessage(WM_QUIT);
