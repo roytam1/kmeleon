@@ -136,7 +136,7 @@ CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
          // Selection changed
          if (nmtv->hdr.code == TVN_SELCHANGED){
-            // if there was something selected, update it
+            // if there was something selected previously, update it
             if (nmtv->itemOld.hItem) {
                UpdateItem(hDlg, nmtv->itemOld.hItem);
 			}
@@ -453,13 +453,14 @@ CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
    case WM_COMMAND:
       {
          if (HIWORD(wParam) == EN_KILLFOCUS){
-            HWND hControl = (HWND)lParam;
-            if (hControl == GetDlgItem(hDlg, IDC_TITLE) || hControl == GetDlgItem(hDlg, IDC_URL)) {
-               // save title and url (even though only one could have changed...
+            int id = LOWORD(wParam);
+            if (id == IDC_TITLE || id == IDC_URL) {
+               // save title and url (even though only one could have changed...)
+               // FIXME(somewhat) - this is redundant if we clicked out into the treeview,
+               // because then the SELCHANGED handler will have called updateitem, already.
                HWND hTree = GetDlgItem(hDlg, IDC_TREE_BOOKMARK);
                HTREEITEM hSelection = TreeView_GetSelection(hTree);
                if (hSelection) {
-                  CBookmarkNode *node = GetBookmarkNode(hTree, hSelection);
                   UpdateItem(hDlg, hSelection);
 			   }
 			}
@@ -850,9 +851,11 @@ static void DeleteItem(HWND hTree, HTREEITEM item) {
    HTREEITEM hSelect = TreeView_GetNextSibling(hTree, item);
    if (!hSelect) hSelect = TreeView_GetPrevSibling(hTree, item);
    if (!hSelect) hSelect = TreeView_GetParent(hTree, item);
-   TreeView_SelectItem(hTree, hSelect);
 
    TreeView_DeleteItem(hTree, item);
+
+   // must call selectitem after deleteitem, otherwise the SELCHANGED handler will try to update the deleted node!
+   TreeView_SelectItem(hTree, hSelect);
 
    bookmarksEdited = true;
 }
