@@ -23,6 +23,8 @@
 #include "../Utils.h"
 #include <afxres.h>
 
+
+
 #pragma warning( disable : 4786 ) // C4786 bitches about the std::map template name expanding beyond 255 characters
 #include <map>
 #include <string>
@@ -31,7 +33,6 @@
 #define KMELEON_PLUGIN_EXPORTS
 #include "../kmeleon_plugin.h"
 
-#define BMP_MENU_VERSION 3333
 #define BMP_PADDING_LEFT 3
 #define BMP_PADDING_RIGHT 4
 #define BMP_HEIGHT 16
@@ -114,6 +115,7 @@ int   giMaxAccelWidth;     // the longest accelerator (used by DrawMenuItem)
 int   giMaxTextMeasured;    // the longest text (used by MeasureMenuItem)
 int   giMaxAccelMeasured;   // the longest accelerator (used by MeasureMenuItem)
 BOOL  gbDrawn = TRUE;      // after the menu is drawn, we should reset iMaxText and iMaxAccel
+BOOL  gbMeasureAccel = TRUE; // win98 workaround - win98 automatically adjusts measuremenuitem for the width of the accel
 
 
 
@@ -191,6 +193,12 @@ int Init() {
 
    kPlugin.kf->GetPreference(PREF_STRING, "kmeleon.general.settingsDir", settingsPath, "");
 
+   // Check for Win98
+   OSVERSIONINFO     osVersion;
+   osVersion.dwOSVersionInfoSize = sizeof( OSVERSIONINFO );
+   GetVersionEx( &osVersion );
+   if ((osVersion.dwMajorVersion > 4) || ((osVersion.dwMajorVersion ==4) && (osVersion.dwMinorVersion > 0)))
+      gbMeasureAccel = FALSE;
 
 
    // calculate the width of the character "X"
@@ -516,6 +524,7 @@ void MeasureMenuItem(MEASUREITEMSTRUCT *mis, HDC hDC) {
       gbDrawn = FALSE;
    }
 
+#if 1
    char *tab = strrchr(string, '\t');
    if (tab) {
       int len = tab-string-1;
@@ -535,8 +544,18 @@ void MeasureMenuItem(MEASUREITEMSTRUCT *mis, HDC hDC) {
       if (size.cx > giMaxTextMeasured) giMaxTextMeasured = size.cx;
       mis->itemWidth = 0;
    }
-   
-   mis->itemWidth += giMaxTextMeasured + giMaxAccelMeasured;
+
+   mis->itemWidth += giMaxTextMeasured;
+   if (gbMeasureAccel)
+      mis->itemWidth += giMaxAccelMeasured;
+
+#else
+   RECT rcText;
+   DrawText(hDC, string, -1, &rcText, DT_SINGLELINE|DT_LEFT|DT_VCENTER|DT_CALCRECT);
+
+   mis->itemWidth = rcText.right - rcText.left;
+#endif
+
    mis->itemWidth += MARGIN_LEFT + MARGIN_RIGHT;
    // compensate for the width of a chekmark (minus one pixel!) that windows so graciously adds for us
    mis->itemWidth -= (GetSystemMetrics(SM_CXMENUCHECK)-1);
