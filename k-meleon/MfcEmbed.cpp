@@ -387,7 +387,7 @@ BOOL CMfcEmbedApp::InitInstance()
    }
 
    InitializePrefs();
-   plugins.FindAndLoad("*.dll");
+   plugins.FindAndLoad();
 
    // the hidden window will take care of creating the first
    // browser window for us
@@ -421,15 +421,17 @@ void CMfcEmbedApp::UnregisterWindow(CDialog *window) {
 	// visible windows are gone.
    if ((m_MiscWndLst.GetCount() == 0) && (m_FrameWndLst.GetCount() == 0)) {
 
-      // if we're staying resident, create the hidden browser window
-      if (((CHiddenWnd*) m_pMainWnd)->Persisting() == PERSIST_STATE_ENABLED)
-         ((CHiddenWnd*) m_pMainWnd)->StayResident();
+      if (m_pMainWnd) {
+         // if we're staying resident, create the hidden browser window
+         if (((CHiddenWnd*) m_pMainWnd)->Persisting() == PERSIST_STATE_ENABLED)
+            ((CHiddenWnd*) m_pMainWnd)->StayResident();
 
-      // otherwise we're exiting, close the Evil Hidden Window
-      else {
-		   m_pMainWnd->PostMessage(WM_QUIT);
-         delete (CHiddenWnd *) m_pMainWnd;
-         m_pMainWnd = FALSE;
+         // otherwise we're exiting, close the Evil Hidden Window
+         else {
+            m_pMainWnd->PostMessage(WM_QUIT);
+            delete (CHiddenWnd *) m_pMainWnd;
+            m_pMainWnd = NULL;
+         }
       }
    }
 }
@@ -592,15 +594,18 @@ void CMfcEmbedApp::RemoveFrameFromList(CBrowserFrame* pFrm)
       // if we're switching profiles, we don't need to do anything
       if (m_bSwitchingProfiles) {}
 
-      // if we're staying resident, create the hidden browser window
-      else if (((CHiddenWnd*) m_pMainWnd)->Persisting() == PERSIST_STATE_ENABLED)
-         ((CHiddenWnd*) m_pMainWnd)->StayResident();
+      else if (m_pMainWnd) {
 
-      // otherwise we're exiting, close the Evil Hidden Window
-      else {
-		   m_pMainWnd->PostMessage(WM_QUIT);
-         delete (CHiddenWnd *) m_pMainWnd;
-         m_pMainWnd = FALSE;
+         // if we're staying resident, create the hidden browser window
+         if (((CHiddenWnd*) m_pMainWnd)->Persisting() == PERSIST_STATE_ENABLED)
+            ((CHiddenWnd*) m_pMainWnd)->StayResident();
+
+         // otherwise we're exiting, close the Evil Hidden Window
+         else {
+            m_pMainWnd->PostMessage(WM_QUIT);
+            delete (CHiddenWnd *) m_pMainWnd;
+            m_pMainWnd = NULL;
+         }
       }
    }
 }
@@ -836,7 +841,7 @@ NS_IMETHODIMP CMfcEmbedApp::Observe(nsISupports *aSubject, const PRUnichar *aTop
 //         plugins.UnLoadAll();
          menus.Destroy();
          InitializePrefs();
-         plugins.FindAndLoad("*.dll");         
+         plugins.FindAndLoad();
          
          CBrowserFrame* browser;
          browser = CreateNewBrowserFrame();
