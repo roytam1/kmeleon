@@ -57,6 +57,7 @@ BOOL gGeneratedByUs = false;
 BOOL gToolbarEnabled;
 
 int gMaxMenuLength;
+BOOL gMenuAutoDetect;
 int gMaxTBSize;
 
 WNDPROC KMeleonWndProc;
@@ -152,6 +153,7 @@ int Init(){
    kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_TOOLBAR_FOLDER, gToolbarFolder, "");
    kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_TOOLBAR_ENABLED, &gToolbarEnabled, &gToolbarEnabled);
    kPlugin.kFuncs->GetPreference(PREF_INT, PREFERENCE_MAX_MENU_LENGTH, &gMaxMenuLength, &gMaxMenuLength);
+   kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_MENU_AUTODETECT, &gMenuAutoDetect, &gMenuAutoDetect);
    if (gMaxMenuLength < 1) gMaxMenuLength = 20;
    kPlugin.kFuncs->GetPreference(PREF_INT, PREFERENCE_MAX_TB_SIZE, &gMaxTBSize, &gMaxTBSize);
    if (gMaxTBSize < 1) gMaxTBSize = 20;
