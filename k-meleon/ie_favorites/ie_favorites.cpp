@@ -448,6 +448,41 @@ void DoRebar(HWND rebarWnd){
    SendMessage(rebarWnd, RB_INSERTBAND, (WPARAM)-1, (LPARAM)&rbBand);
 }
 
+BOOL gbContinueMenu;
+int giCurrentItem; 
+HWND ghToolbarWnd;
+HHOOK ghhookMsg;
+LRESULT CALLBACK MsgHook(int code, WPARAM wParam, LPARAM lParam){
+   if (code == MSGF_MENU){
+      MSG *msg = (MSG *)lParam;
+      if (msg->message == WM_MOUSEMOVE){
+         POINT mouse;
+         mouse.x = LOWORD(msg->lParam);
+         mouse.y = HIWORD(msg->lParam);
+
+         if (ghToolbarWnd){
+            ScreenToClient(ghToolbarWnd, &mouse);
+            int ndx = SendMessage(ghToolbarWnd, TB_HITTEST, 0, (LPARAM)&mouse);
+
+            if (ndx >= 0){
+               TBBUTTON button;
+               SendMessage(ghToolbarWnd, TB_GETBUTTON, ndx, (LPARAM)&button);
+               if (giCurrentItem != button.idCommand && IsMenu((HMENU)(button.idCommand-SUBMENU_OFFSET))){
+                  SendMessage(msg->hwnd, WM_CANCELMODE, 0, 0);
+
+                  // this basically tells the loop, "we would like to enter a new menu loop with this item:"
+giCurrentItem = button.idCommand;
+                  gbContinueMenu = true;
+
+                  return true;
+               }
+            }
+         }
+      }
+   }
+   return CallNextHookEx(ghhookMsg, code, wParam, lParam);
+}
+
 char *GetURL(int index){
    // this is static so that we can return it
    static char url[MAX_PATH];
