@@ -121,6 +121,7 @@ private:
 	BOOL			InitializeProfiles();
 	BOOL			CreateHiddenWindow();  
    nsresult    InitializePrefs();
+   nsresult    InitializeMenusAccels();
    nsresult    InitializeWindowCreator();
 
 private:
