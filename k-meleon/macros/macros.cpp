@@ -844,7 +844,7 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
       }
       CMD(prompt) {
          if (nparam > 2) {  // statusbar( [$0 [,$1]] )
-            parseError(WRONGARGS, "statusbar", data, 2, nparam);
+            parseError(WRONGARGS, "prompt", data, 2, nparam);
             return "";
          }
 	question = params[0];
@@ -938,7 +938,7 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
       CMD(pluginmsg) {
       
          if((nparam != 3) && (nparam != 4))  {
-            parseError(WRONGARGS, "PluginMsgEx", data, 4, nparam);
+            parseError(WRONGARGS, "PluginMsg", data, 4, nparam);
             return "";
          }
 
