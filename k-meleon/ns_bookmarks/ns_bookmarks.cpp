@@ -539,7 +539,7 @@ void FillTree(HWND hTree, HTREEITEM parent, HMENU menu){
         GetMenuItemInfo(menu, i, MF_BYPOSITION, &mInfo);
 
         tvis.itemex.pszText = mInfo.dwTypeData;
-        tvis.itemex.lParam = 0;
+        tvis.itemex.lParam = (long)(mInfo.hSubMenu)+SUBMENU_OFFSET;
         HTREEITEM thisItem = TreeView_InsertItem(hTree, &tvis);
         FillTree(hTree, thisItem, (HMENU)mInfo.hSubMenu);
      }
@@ -559,27 +559,56 @@ void FillTree(HWND hTree, HTREEITEM parent, HMENU menu){
    }
 }
 
+HCURSOR hCursorDrag;
+BOOL bDragging;
+
 CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam){
    switch (uMsg){
    case WM_INITDIALOG:
       {
          HWND hTree = GetDlgItem(hDlg, IDC_TREE_BOOKMARK);
          FillTree(hTree, NULL, m_menuBookmarks);
+
+         hCursorDrag = LoadCursor(kPlugin.hDllInstance, MAKEINTRESOURCE(IDC_DRAG_CURSOR));
+         bDragging = false;
       }
       return false;
    case WM_NOTIFY:
       {
+         HWND hTree = GetDlgItem(hDlg, IDC_TREE_BOOKMARK);
          NMTREEVIEW *nmtv = (NMTREEVIEW *)lParam;
          if (nmtv->hdr.code == TVN_SELCHANGED){
-            if (nmtv->itemOld.lParam){
+            if (nmtv->itemOld.lParam && nmtv->itemOld.lParam < SUBMENU_OFFSET){
                char buffer[1025];
                GetDlgItemText(hDlg, IDC_EDIT_URL, buffer, 1024);
                urlVector[nmtv->itemOld.lParam - nFirstBookmarkCommand] = (std::string)buffer;
             }
-            if (nmtv->itemNew.lParam){
+            if (nmtv->itemNew.lParam < SUBMENU_OFFSET){
                SetDlgItemText(hDlg, IDC_EDIT_URL, urlVector[nmtv->itemNew.lParam - nFirstBookmarkCommand].c_str());
             }else{
                SetDlgItemText(hDlg, IDC_EDIT_URL, "");
+            }
+         }else if (nmtv->hdr.code == TVN_BEGINDRAG){
+            TreeView_Select(hTree, nmtv->itemNew.hItem, TVGN_CARET);
+
+            SetCursor(hCursorDrag);
+            bDragging = true;
+            SetCapture(hDlg);
+         }else if (nmtv->hdr.code == NM_SETCURSOR){
+            if (bDragging){
+               SetCursor(hCursorDrag);
+               return true;
+            }else{
+               return false;         
+            }
+         }else if (nmtv->hdr.code == NM_CLICK){
+            TVHITTESTINFO hti;
+            GetCursorPos(&hti.pt);
+            ScreenToClient(hTree, &hti.pt);
+
+            HTREEITEM item = TreeView_HitTest(hTree, &hti);
+            if (item){
+               TreeView_Select(hTree, item, TVGN_DROPHILITE);
             }
          }else if (nmtv->hdr.code == NM_RCLICK){
             POINT mouse;
@@ -588,35 +617,163 @@ CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam){
             HMENU topMenu = LoadMenu(kPlugin.hDllInstance, MAKEINTRESOURCE(IDR_CONTEXTMENU));
             HMENU contextMenu = GetSubMenu(topMenu, 0);
             int command = TrackPopupMenu(contextMenu, TPM_LEFTALIGN | TPM_RETURNCMD, mouse.x, mouse.y, 0, hDlg, NULL);
-            if (command == 0){ // delete
-               // todo
-               // TreeView_HitTest(treeViewWnd, hti)
-               //
+            if (command == ID_BOOKMARK_DELETE){ // delete
+               TVHITTESTINFO hti;
+               hti.pt.x = mouse.x;
+               hti.pt.y = mouse.y;
+               ScreenToClient(hTree, &hti.pt);
+
+               HTREEITEM item = TreeView_HitTest(hTree, &hti);
+               if (item){
+                  TVITEMEX itemData;
+                  itemData.mask = TVIF_PARAM;
+                  itemData.hItem = item;
+                  TreeView_GetItem(hTree, &itemData);
+
+                  HTREEITEM parent = TreeView_GetParent(hTree, item);
+                  if (parent){
+                     TVITEMEX parentItem;
+                     parentItem.mask = TVIF_PARAM;
+                     parentItem.hItem = parent;
+                     TreeView_GetItem(hTree, &parentItem);
+
+                     DeleteMenu((HMENU)(parentItem.lParam - SUBMENU_OFFSET), itemData.lParam, MF_BYCOMMAND);
+                  }else{
+                     DeleteMenu(m_menuBookmarks, itemData.lParam, MF_BYCOMMAND);
+                  }
+                  TreeView_DeleteItem(hTree, item);
+               }
             }
+         }else if (nmtv->hdr.code == TVN_ENDLABELEDIT){
+            NMTVDISPINFO *nmtvdi = (NMTVDISPINFO *)nmtv;
+            if (nmtvdi->item.pszText){
+               if (nmtvdi->item.lParam < SUBMENU_OFFSET){
+                  titleVector[nmtvdi->item.lParam - nFirstBookmarkCommand] = (std::string)nmtvdi->item.pszText;
+               }
+               HTREEITEM parent = TreeView_GetParent(hTree, &nmtvdi->item.hItem);
+               HMENU parentMenu;
+               if (parent){
+                  TVITEMEX parentItem;
+                  parentItem.mask = TVIF_PARAM;
+                  parentItem.hItem = parent;
+                  TreeView_GetItem(hTree, &parentItem);
+
+                  parentMenu = (HMENU)(parentItem.lParam - SUBMENU_OFFSET);
+               }else{
+                  parentMenu = m_menuBookmarks;
+               }
+               if (nmtvdi->item.lParam < SUBMENU_OFFSET){
+                  ModifyMenu(parentMenu, nmtvdi->item.lParam, MF_BYCOMMAND | MF_STRING, nmtvdi->item.lParam, nmtvdi->item.pszText);
+               }else{
+                  ModifyMenu(parentMenu, nmtvdi->item.lParam - SUBMENU_OFFSET, MF_BYCOMMAND | MF_POPUP | MF_STRING, nmtvdi->item.lParam - SUBMENU_OFFSET, nmtvdi->item.pszText);
+               }
+               TreeView_SetItem(hTree, &nmtvdi->item);
+            }
+         }else{
+            return true;
          }
+      }
+      break;
+   case WM_MOUSEMOVE:
+      if (bDragging){
+         HWND hTree = GetDlgItem(hDlg, IDC_TREE_BOOKMARK);
+
+         TVHITTESTINFO hti;
+         GetCursorPos(&hti.pt);
+         ScreenToClient(hTree, &hti.pt);
+
+         HTREEITEM item = TreeView_HitTest(hTree, &hti);
+         if (item){
+            TreeView_Select(hTree, item, TVGN_DROPHILITE);
+         }
+         return true;
+      }
+      break;
+   case WM_LBUTTONUP:
+      if (bDragging){
+         HWND hTree = GetDlgItem(hDlg, IDC_TREE_BOOKMARK);
+
+         TVHITTESTINFO hti;
+         GetCursorPos(&hti.pt);
+         ScreenToClient(hTree, &hti.pt);
+
+         HTREEITEM item = TreeView_GetSelection(hTree);
+         HTREEITEM itemDrop = TreeView_HitTest(hTree, &hti);
+         if (itemDrop && item){
+            TVINSERTSTRUCT tvis;
+            tvis.item.hItem = item;
+            tvis.item.mask = TVIF_CHILDREN | TVIF_PARAM | TVIF_TEXT;
+            tvis.item.pszText = new char[1025];
+            tvis.item.cchTextMax = 1024;
+            TreeView_GetItem(hTree, &tvis.item);
+
+            if (tvis.item.cChildren){
+               MessageBox(hDlg, "Note: creating/deleting/moving folders doesn't work right now", NULL, 0);
+               return false;
+            }
+
+            // delete current item
+            HTREEITEM parent = TreeView_GetParent(hTree, item);
+            HMENU parentMenu;
+            if (parent){
+               TVITEMEX parentItem;
+               parentItem.mask = TVIF_PARAM;
+               parentItem.hItem = parent;
+               TreeView_GetItem(hTree, &parentItem);
+
+               parentMenu = (HMENU)(parentItem.lParam - SUBMENU_OFFSET);
+            }else{
+               parentMenu = m_menuBookmarks;
+            }
+            DeleteMenu(parentMenu, tvis.item.lParam, MF_BYCOMMAND);
+            
+            TreeView_DeleteItem(hTree, item);
+
+            // then create a new one
+
+            tvis.hParent = TreeView_GetParent(hTree, itemDrop);
+            tvis.hInsertAfter = TreeView_GetPrevSibling(hTree, itemDrop);
+            if (!tvis.hInsertAfter)
+               tvis.hInsertAfter = TVI_FIRST;
+
+            TreeView_InsertItem(hTree, &tvis);
+
+            TVITEMEX nextItem;
+            nextItem.mask = TVIF_PARAM;
+            nextItem.hItem = itemDrop;
+            TreeView_GetItem(hTree, &nextItem);
+
+            InsertMenu(parentMenu, nextItem.lParam, MF_BYCOMMAND | MF_STRING, tvis.item.lParam, tvis.item.pszText);
+
+            delete tvis.item.pszText;
+         }
+
+         SetCursor(LoadCursor(NULL, IDC_ARROW));
+         bDragging = false;
+         ReleaseCapture();
       }
       break;
    case WM_COMMAND:
       {
-         WORD id = LOWORD(wParam);
-         switch(id){
-         case IDOK:
-            {
-               // todo:
-               // item = GetSelectedItem
-               // char buffer[1025];
-               // GetDlgItemText(hDlg, IDC_EDIT_URL, buffer, 1024);
-               // urlVector[item.lParam - nFirstBookmarkCommand] = (std::string)buffer;
+         if (HIWORD(wParam) == BN_CLICKED){
+            WORD id = LOWORD(wParam);
+            switch(id){
+            case IDOK:
+               {
+                  // todo:
+                  // item = GetSelectedItem
+                  // char buffer[1025];
+                  // GetDlgItemText(hDlg, IDC_EDIT_URL, buffer, 1024);
+                  // urlVector[item.lParam - nFirstBookmarkCommand] = (std::string)buffer;
+               }
+            case IDCANCEL:
+               EndDialog(hDlg, 1);
+               break;
             }
-         case IDCANCEL:
-            EndDialog(hDlg, 1);
-            break;
          }
       }
-   default:
-      return false;
    }
-   return true;
+   return false;
 }
 
 // so it doesn't munge the function name

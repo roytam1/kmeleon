@@ -68,7 +68,7 @@ STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Bookmarks"
 FONT 8, "MS Sans Serif"
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,271,170,50,14
+    PUSHBUTTON      "OK",IDOK,271,170,50,14
     CONTROL         "Tree1",IDC_TREE_BOOKMARK,"SysTreeView32",TVS_HASBUTTONS | 
                     TVS_HASLINES | TVS_LINESATROOT | TVS_EDITLABELS | 
                     TVS_SHOWSELALWAYS | TVS_INFOTIP | WS_BORDER | WS_TABSTOP,
@@ -118,6 +118,13 @@ BEGIN
     END
 END
 
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Cursor
+//
+
+IDC_DRAG_CURSOR         CURSOR  DISCARDABLE     "cursor1.cur"
 #endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
 
