@@ -26,6 +26,7 @@
 #define KMELEON_PLUGIN_EXPORTS
 #include "op_hotlist.h"
 #include "../kmeleon_plugin.h"
+#include "../resource.h"
 #include "..\\rebar_menu\\hot_tracking.h"
 #include "../KMeleonConst.h"
 
@@ -397,31 +398,69 @@ static char *pszPrompt;
 
 BOOL CALLBACK
 PromptDlgProc( HWND hwnd,
-	      UINT Message,
-	      WPARAM wParam,
-	      LPARAM lParam )
+               UINT Message,
+               WPARAM wParam,
+               LPARAM lParam )
 {
     switch (Message) {
-      case WM_INITDIALOG:
-	SetWindowText( hwnd, pszTitle ? pszTitle : "Smart bookmark" );
-	SetDlgItemText(hwnd, IDC_SEARCHTEXT, pszPrompt ? pszPrompt : "");
-        return TRUE;
-      case WM_COMMAND:
-        switch (LOWORD(wParam)) {
-	  case IDOK:
-	    GetDlgItemText(hwnd, IDC_INPUT, szInput, 256);
-	    EndDialog( hwnd, IDOK );
-	    break;
-	  case IDCANCEL:
-	    EndDialog( hwnd, IDCANCEL );
-	    break;
-	}
-	break;
-	
-      default:
-        return FALSE;
+        case WM_INITDIALOG:
+            SetWindowText( hwnd, pszTitle ? pszTitle : "Smart bookmark" );
+            SetDlgItemText(hwnd, IDC_SEARCHTEXT, pszPrompt ? pszPrompt : "");
+            return TRUE;
+        case WM_COMMAND:
+            switch (LOWORD(wParam)) {
+                case IDOK:
+                    GetDlgItemText(hwnd, IDC_INPUT, szInput, 256);
+                    EndDialog( hwnd, IDOK );
+                    break;
+                case IDCANCEL:
+                    EndDialog( hwnd, IDCANCEL );
+                    break;
+            }
+            break;
+            
+        default:
+            return FALSE;
     }
     return TRUE;
+}
+
+void OpenURL(char *url)
+{
+    char szOpenURLcmd[80];
+    
+    kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_HOTLIST_OPENURL, szOpenURLcmd, (char*)"");
+    
+    if (*szOpenURLcmd) {
+        char *plugin = szOpenURLcmd;
+        char *parameter = strchr(szOpenURLcmd, '(');
+        if (parameter) {
+            *parameter++ = 0;
+            char *close = strchr(parameter, ')');
+            if (close) {
+                *close = 0;
+                
+                if (kPlugin.kFuncs->SendMessage(plugin, PLUGIN_NAME, parameter, (long)url, 0))
+                    return;
+            }
+        }
+
+        int idOpen = kPlugin.kFuncs->GetID(szOpenURLcmd);
+
+        switch (idOpen) {
+        case ID_OPEN_LINK:
+            kPlugin.kFuncs->NavigateTo(url, OPEN_NORMAL);
+            return;
+        case ID_OPEN_LINK_IN_BACKGROUND:
+            kPlugin.kFuncs->NavigateTo(url, OPEN_BACKGROUND);
+            return;
+        case ID_OPEN_LINK_IN_NEW_WINDOW:
+            kPlugin.kFuncs->NavigateTo(url, OPEN_NEW);
+            return;
+        }
+    }
+
+    kPlugin.kFuncs->NavigateTo(url, OPEN_NORMAL);
 }
 
 
@@ -503,8 +542,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
          node->lastVisit = time(NULL);
          gHotlistModified = true;   // this doesn't call for instant saving, it can wait until we add/edit/quit
 
-	 if (node->url.c_str() == NULL || *node->url.c_str() == 0)
-	   return true;
+         if (node->url.c_str() == NULL || *node->url.c_str() == 0)
+             return true;
 
          char *str = strdup(node->url.c_str());
          char *ptr = strstr(str, "%s");
@@ -512,30 +551,30 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
             char buff[INTERNET_MAX_URL_LENGTH];
             *ptr = 0;
             strcpy(buff, str);
-	    ptr += 2;
-
-	    pszTitle = strdup( node->text.c_str() );
-	    pszPrompt = strdup( node->desc.c_str() );
-
-	    int ok = DialogBox(kPlugin.hDllInstance,
-			       MAKEINTRESOURCE(IDD_SMARTBOOKMARK), hWnd, (DLGPROC)PromptDlgProc);
-	    PostMessage(hWnd, WM_NULL, 0, 0);
-	    if (ok == IDOK && *szInput) {
-	      strcat(buff, szInput);
-	      strcat(buff, ptr);
-	      kPlugin.kFuncs->NavigateTo(buff, OPEN_NORMAL);
-	    }
-
-	    if (pszTitle) 
-	      free(pszTitle);
-	    if (pszPrompt) 
-	      free(pszPrompt);
-
+            ptr += 2;
+            
+            pszTitle = strdup( node->text.c_str() );
+            pszPrompt = strdup( node->desc.c_str() );
+            
+            int ok = DialogBox(kPlugin.hDllInstance,
+                               MAKEINTRESOURCE(IDD_SMARTBOOKMARK), hWnd, (DLGPROC)PromptDlgProc);
+            PostMessage(hWnd, WM_NULL, 0, 0);
+            if (ok == IDOK && *szInput) {
+                strcat(buff, szInput);
+                strcat(buff, ptr);
+                OpenURL(buff);
+            }
+            
+            if (pszTitle) 
+                free(pszTitle);
+            if (pszPrompt) 
+                free(pszPrompt);
+            
          }
          else {
-            kPlugin.kFuncs->NavigateTo(str, OPEN_NORMAL);
+             OpenURL(str);
          }
-	 free(str);
+         free(str);
 
          return true;
       }

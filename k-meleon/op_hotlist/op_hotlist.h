@@ -177,6 +177,7 @@ void Config(HWND parent);
 #define PREFERENCE_EDIT_DLG_HEIGHT _T("kmeleon.plugins.hotlist.editdialog.height")
 #define PREFERENCE_EDIT_ZOOM _T("kmeleon.plugins.hotlist.editdialog.zoom")
 #define PREFERENCE_EDIT_MAX _T("kmeleon.plugins.hotlist.editdialog.maximized")
+#define PREFERENCE_HOTLIST_OPENURL _T("kmeleon.plugins.hotlist.openurl")
 
 // The globals
 

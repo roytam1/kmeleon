@@ -33,6 +33,7 @@
 
 #define KMELEON_PLUGIN_EXPORTS
 #include "../kmeleon_plugin.h"
+#include "../resource.h"
 #include "../Utils.h"
 
 #include "..\\rebar_menu\\hot_tracking.h"
@@ -774,6 +775,44 @@ PromptDlgProc( HWND hwnd,
     return TRUE;
 }
 
+void OpenURL(char *url)
+{
+    char szOpenURLcmd[80];
+    
+    kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_BOOKMARKS_OPENURL, szOpenURLcmd, (char*)"");
+    
+    if (*szOpenURLcmd) {
+        char *plugin = szOpenURLcmd;
+        char *parameter = strchr(szOpenURLcmd, '(');
+        if (parameter) {
+            *parameter++ = 0;
+            char *close = strchr(parameter, ')');
+            if (close) {
+                *close = 0;
+                
+                if (kPlugin.kFuncs->SendMessage(plugin, PLUGIN_NAME, parameter, (long)url, 0))
+                    return;
+            }
+        }
+
+        int idOpen = kPlugin.kFuncs->GetID(szOpenURLcmd);
+
+        switch (idOpen) {
+        case ID_OPEN_LINK:
+            kPlugin.kFuncs->NavigateTo(url, OPEN_NORMAL);
+            return;
+        case ID_OPEN_LINK_IN_BACKGROUND:
+            kPlugin.kFuncs->NavigateTo(url, OPEN_BACKGROUND);
+            return;
+        case ID_OPEN_LINK_IN_NEW_WINDOW:
+            kPlugin.kFuncs->NavigateTo(url, OPEN_NEW);
+            return;
+        }
+    }
+
+    kPlugin.kFuncs->NavigateTo(url, OPEN_NORMAL);
+}
+
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
    // store these in static vars so that the BeginHotTrack call can access them
@@ -854,7 +893,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
             if (ok == IDOK && *szInput) {
                strcat(buff, szInput);
                strcat(buff, ptr);
-               kPlugin.kFuncs->NavigateTo(buff, OPEN_NORMAL);
+               OpenURL(buff);
             }
 
             if (pszTitle) 
@@ -864,7 +903,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 
          }
          else {
-            kPlugin.kFuncs->NavigateTo(str, OPEN_NORMAL);
+            OpenURL(str);
          }
          free(str);
 

@@ -151,6 +151,7 @@ void Config(HWND parent);
 #define PREFERENCE_EDIT_DLG_WIDTH  _T("kmeleon.plugins.favorites.editdialog.width")
 #define PREFERENCE_EDIT_DLG_HEIGHT _T("kmeleon.plugins.favorites.editdialog.height")
 #define PREFERENCE_REBAR_TITLE   _T("kmeleon.plugins.favorites.title")
+#define PREFERENCE_FAVORITES_OPENURL _T("kmeleon.plugins.favorites.openurl")
 
 // The globals
 
