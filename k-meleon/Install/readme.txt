@@ -33,7 +33,10 @@ ChangeLog:
 ----------
 since then
  - Session cookies work
+ - Properties->Version of k-meleon.exe contained not correct information
 v0.3 (02/13/01)
+ - navigating with forward/back before the site finished loading 
+   leads to wrong display (2 pages on top of each other)
  - CTRL-N is now assignable as Accelerator key (Open in New Window now)
  - Plugin support for menus/toolbars
  - Scriptable menus & shortcuts
@@ -41,13 +44,14 @@ v0.3 (02/13/01)
  - replaced BCG Library by using Mozilla's new MFC-Embed code
  - closing first-window doesn't quit K-Meleon now
  - Allow basic authentication
- - View source menu entry to show the html source
+ - View source menu entry
  - Uninstall works now, providing correct uninstall.exe now
  - fixed percentage of document loaded sometimes wrong (>100%)
  - Several Kmeleon0.21 crashes which are already fixed in the nightlies
  - Save html of a page only
  - Save complete page incl. images into a directory
  - Save images, download files with right mouse click
+ - Open local files doesn't work on some systems
  - takes URL as command line option
  - mailto: links open mail app
  - wording GNU General Public License fixed

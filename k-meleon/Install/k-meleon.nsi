@@ -1,8 +1,8 @@
 Name "K-Meleon"
-ComponentText "This will install K-Meleon v0.3"
+ComponentText "This will install K-Meleon v0.3.1"
 LicenseText "K-Meleon is published under the GPL. The Gecko(tm) engine is released under the NPL (as shown in file license.txt)"
 LicenseData "GNUlicense.txt"
-OutFile "kmeleon03.exe"
+OutFile "kmeleon031.exe"
 UninstallText "This will uninstall K-Meleon from your computer."
 UninstallExeName "Uninstall.exe"
 DirText "Please select the directory you want to install K-Meleon in."
@@ -49,6 +49,18 @@ CreateShortCut "$DESKTOP\K-Meleon.lnk" "$INSTDIR\K-Meleon.exe" "" "" 0
 CreateShortCut "$SMPROGRAMS\K-Meleon.lnk" "$INSTDIR\K-Meleon.exe" "" "" 0
 CreateShortCut "$QUICKLAUNCH\K-Meleon.lnk" "$INSTDIR\K-Meleon.exe" "" "" 0
 
+Section "Always open HTML by K-Meleon"
+SectionIn 2
+# maybe we should save the old values somewhere and restore them on uninstall?
+WriteRegStr HKEY_CLASSES_ROOT ".htm" "" "K-Meleon.HTML"
+WriteRegStr HKEY_CLASSES_ROOT ".htm" "Content Type" "text/html"
+WriteRegStr HKEY_CLASSES_ROOT ".html" "" "K-Meleon.HTML"
+WriteRegStr HKEY_CLASSES_ROOT ".html" "Content Type" "text/html"
+
+WriteRegStr HKEY_CLASSES_ROOT "K-Meleon.HTML" "" Hypertext Markup Language Document"
+WriteRegStr HKEY_CLASSES_ROOT "K-Meleon.HTML\shell\open\command" "" '"$INSTDIR\k-meleon.exe" "%1"'
+
+
 Section -PostInstall
 # Adding the Installation directory which can be used to update k-meleon or by plugin installers
 WriteRegStr HKEY_CURRENT_USER "Software\K-Meleon\K-Meleon\General" "InstallDir" "$INSTDIR"
@@ -67,7 +79,8 @@ Section Uninstall
 # but a couple of other programs use that, so we'll leave it for now
 ;FindWindow "close" "Afx:400000:0" ""
 # delete all registry entries that Kmeleon does on install
-DeleteRegKey HKEY_CURRENT_USER "Software\K-Meleon"
+# optionally we'll need to remove .html file association if K-Meleon had registered itself
+;DeleteRegKey HKEY_CLASSES_ROOT "K-Meleon.HTML"
 
 # No need to remove the seingle entries before deleting the whole key???
 ;DeleteRegValue HKEY_LOCAL_MACHINE "Software\Microsoft\Windows\CurrentVersion\Uninstall\K-Meleon" "UninstallString"
