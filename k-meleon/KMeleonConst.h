@@ -18,6 +18,7 @@
 
 #define UWM_UPDATESESSIONHISTORY       WM_APP + 110
 #define UWM_REFRESHTOOLBARITEM         WM_APP + 111
+#define UWM_UPDATEBUSYSTATE            WM_APP + 112
 
 #define UWM_NEWWINDOW                  WM_APP + 115
 
