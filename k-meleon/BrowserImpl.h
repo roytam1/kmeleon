@@ -1,60 +1,71 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
+/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: Mozilla-sample-code 1.0
  *
- * The contents of this file are subject to the Netscape Public
- * License Version 1.1 (the "License"); you may not use this file
- * except in compliance with the License. You may obtain a copy of
- * the License at http://www.mozilla.org/NPL/
+ * Copyright (c) 2002 Netscape Communications Corporation and
+ * other contributors
  *
- * Software distributed under the License is distributed on an "AS
- * IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or
- * implied. See the License for the specific language governing
- * rights and limitations under the License.
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this Mozilla sample software and associated documentation files
+ * (the "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to permit
+ * persons to whom the Software is furnished to do so, subject to the
+ * following conditions:
  *
- * The Original Code is mozilla.org code.
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
  *
- * The Initial Developer of the Original Code is Netscape
- * Communications Corporation.  Portions created by Netscape are
- * Copyright (C) 1998 Netscape Communications Corporation. All
- * Rights Reserved.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
  *
- * Contributor(s): 
+ * Contributor(s):
  *   Chak Nanga <chak@netscape.com> 
- */
+ *
+ * ***** END LICENSE BLOCK ***** */
 
 #ifndef _BROWSERIMPL_H
 #define _BROWSERIMPL_H
 
 #include "IBrowserFrameGlue.h"
+#include "nsIWebBrowserChromeFocus.h"
+#include "nsICommandParams.h"
 
 class CBrowserImpl : public nsIInterfaceRequestor,
 					 public nsIWebBrowserChrome,
-                public nsIWebBrowserChromeFocus,
-					 public nsIEmbeddingSiteWindow,
+                     public nsIWebBrowserChromeFocus,
+					 public nsIEmbeddingSiteWindow2,
 					 public nsIWebProgressListener,
 					 public nsIContextMenuListener2,
-                public nsITooltipListener,
+                     public nsITooltipListener,
 					 public nsSupportsWeakReference
 {
 public:
    CBrowserImpl();
    ~CBrowserImpl();
    NS_METHOD Init(PBROWSERFRAMEGLUE pBrowserFrameGlue,
-					nsIWebBrowser* aWebBrowser);
+                  nsIWebBrowser* aWebBrowser);
 
    NS_DECL_ISUPPORTS
-	NS_DECL_NSIINTERFACEREQUESTOR
+   NS_DECL_NSIINTERFACEREQUESTOR
    NS_DECL_NSIWEBBROWSERCHROME
    NS_DECL_NSIWEBBROWSERCHROMEFOCUS
    NS_DECL_NSIEMBEDDINGSITEWINDOW
+   NS_DECL_NSIEMBEDDINGSITEWINDOW2
    NS_DECL_NSIWEBPROGRESSLISTENER
-	NS_DECL_NSICONTEXTMENULISTENER2
+   NS_DECL_NSICONTEXTMENULISTENER2
    NS_DECL_NSITOOLTIPLISTENER
 
 protected:
-
-	PBROWSERFRAMEGLUE m_pBrowserFrameGlue;
-
-	nsCOMPtr<nsIWebBrowser> mWebBrowser;
+   
+   PBROWSERFRAMEGLUE m_pBrowserFrameGlue;
+    
+   nsCOMPtr<nsIWebBrowser> mWebBrowser;
 };
 
 #endif //_BROWSERIMPL_H

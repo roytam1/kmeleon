@@ -1,25 +1,33 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
+/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: Mozilla-sample-code 1.0
  *
- * The contents of this file are subject to the Netscape Public
- * License Version 1.1 (the "License"); you may not use this file
- * except in compliance with the License. You may obtain a copy of
- * the License at http://www.mozilla.org/NPL/
+ * Copyright (c) 2002 Netscape Communications Corporation and
+ * other contributors
  *
- * Software distributed under the License is distributed on an "AS
- * IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or
- * implied. See the License for the specific language governing
- * rights and limitations under the License.
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this Mozilla sample software and associated documentation files
+ * (the "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to permit
+ * persons to whom the Software is furnished to do so, subject to the
+ * following conditions:
  *
- * The Original Code is mozilla.org code.
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
  *
- * The Initial Developer of the Original Code is Netscape
- * Communications Corporation.  Portions created by Netscape are
- * Copyright (C) 1998 Netscape Communications Corporation. All
- * Rights Reserved.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
  *
- * Contributor(s): 
+ * Contributor(s):
  *   Chak Nanga <chak@netscape.com> 
- */
+ *
+ * ***** END LICENSE BLOCK ***** */
 
 // This interface acts as a glue between the required/optional 
 // Gecko embedding interfaces and the actual platform specific
@@ -37,79 +45,78 @@
 #define _IBROWSERFRAMEGLUE_H
 
 struct IBrowserFrameGlue {
-	// Progress Related Methods
-	virtual void UpdateStatusBarText(const PRUnichar *aMessage) = 0;
-	virtual void UpdateProgress(PRInt32 aCurrent, PRInt32 aMax) = 0;
-	virtual void UpdateBusyState(PRBool aBusy) = 0;
-	virtual void UpdateCurrentURI(nsIURI *aLocation) = 0;
-   virtual void UpdateSecurityStatus(PRInt32 aState) = 0;                      
+    // Progress Related Methods
+    virtual void UpdateStatusBarText(const PRUnichar *aMessage) = 0;
+    virtual void UpdateProgress(PRInt32 aCurrent, PRInt32 aMax) = 0;
+    virtual void UpdateBusyState(PRBool aBusy) = 0;
+    virtual void UpdateCurrentURI(nsIURI *aLocation) = 0;
+    virtual void UpdateSecurityStatus(PRInt32 aState) = 0;
 
-
-	// BrowserFrame Related Methods
-	virtual PRBool CreateNewBrowserFrame(PRUint32 chromeMask, 
-							PRInt32 x, PRInt32 y, 
-							PRInt32 cx, PRInt32 cy,
-							nsIWebBrowser ** aWebBrowser) = 0;
-	virtual void DestroyBrowserFrame() = 0;
-	virtual void GetBrowserFrameTitle(PRUnichar **aTitle) = 0;
-	virtual void SetBrowserFrameTitle(const PRUnichar *aTitle) = 0;
-	virtual void GetBrowserFramePosition(PRInt32 *aX, PRInt32 *aY) = 0;
-	virtual void SetBrowserFramePosition(PRInt32 aX, PRInt32 aY) = 0;
-	virtual void GetBrowserFrameSize(PRInt32 *aCX, PRInt32 *aCY) = 0;
-	virtual void SetBrowserFrameSize(PRInt32 aCX, PRInt32 aCY) = 0;
-   virtual void SetBrowserSize(PRInt32 aCX, PRInt32 aCY) = 0;
-	virtual void GetBrowserFramePositionAndSize(PRInt32 *aX, PRInt32 *aY, PRInt32 *aCX, PRInt32 *aCY) = 0;
-	virtual void SetBrowserFramePositionAndSize(PRInt32 aX, PRInt32 aY, PRInt32 aCX, PRInt32 aCY, PRBool fRepaint) = 0;
+    // BrowserFrame Related Methods
+    virtual PRBool CreateNewBrowserFrame(PRUint32 chromeMask, 
+                            PRInt32 x, PRInt32 y, 
+                            PRInt32 cx, PRInt32 cy,
+                            nsIWebBrowser ** aWebBrowser) = 0;
+    virtual void DestroyBrowserFrame() = 0;
+    virtual void GetBrowserFrameTitle(PRUnichar **aTitle) = 0;
+    virtual void SetBrowserFrameTitle(const PRUnichar *aTitle) = 0;
+    virtual void GetBrowserFramePosition(PRInt32 *aX, PRInt32 *aY) = 0;
+    virtual void SetBrowserFramePosition(PRInt32 aX, PRInt32 aY) = 0;
+    virtual void GetBrowserFrameSize(PRInt32 *aCX, PRInt32 *aCY) = 0;
+    virtual void SetBrowserFrameSize(PRInt32 aCX, PRInt32 aCY) = 0;
+    virtual void GetBrowserSize(PRInt32 *aCX, PRInt32 *aCY) = 0;
+    virtual void SetBrowserSize(PRInt32 aCX, PRInt32 aCY) = 0;
+    virtual void GetBrowserFramePositionAndSize(PRInt32 *aX, PRInt32 *aY, PRInt32 *aCX, PRInt32 *aCY) = 0;
+    virtual void SetBrowserFramePositionAndSize(PRInt32 aX, PRInt32 aY, PRInt32 aCX, PRInt32 aCY, PRBool fRepaint) = 0;
    virtual void SetBrowserPositionAndSize(PRInt32 aX, PRInt32 aY, PRInt32 aCX, PRInt32 aCY, PRBool fRepaint) = 0;
-	virtual void ShowBrowserFrame(PRBool aShow) = 0;
-	virtual void SetFocus() = 0;
-	virtual void FocusAvailable(PRBool *aFocusAvail) = 0;
-	virtual void GetBrowserFrameVisibility(PRBool *aVisible) = 0;
+    virtual void ShowBrowserFrame(PRBool aShow) = 0;
+    virtual void SetFocus() = 0;
+    virtual void FocusAvailable(PRBool *aFocusAvail) = 0;
+    virtual void GetBrowserFrameVisibility(PRBool *aVisible) = 0;
 
-	// ContextMenu Related Methods
-	virtual void ShowContextMenu(PRUint32 aContextFlags, nsIContextMenuInfo *aInfo) = 0;
+    // ContextMenu Related Methods
+    virtual void ShowContextMenu(PRUint32 aContextFlags, nsIContextMenuInfo *aInfo) = 0;
 
-	//Prompt Related Methods
-   virtual HWND GetBrowserFrameNativeWnd() = 0;
+    //Prompt Related Methods
+    virtual HWND GetBrowserFrameNativeWnd() = 0;
 
-   // Tooltip function
-   virtual void ShowTooltip(PRInt32 x, PRInt32 y, const char *text) = 0;
+    // Tooltip function
+    virtual void ShowTooltip(PRInt32 x, PRInt32 y, const char *text) = 0;
 
-   virtual void FocusNextElement() = 0;
-   virtual void FocusPrevElement() = 0;
-
+    virtual void FocusNextElement() = 0;
+    virtual void FocusPrevElement() = 0;
 };
 
-#define	NS_DECL_BROWSERFRAMEGLUE	\
-	public:	\
-		virtual void UpdateStatusBarText(const PRUnichar *aMessage);	\
-		virtual void UpdateProgress(PRInt32 aCurrent, PRInt32 aMax);	\
-		virtual void UpdateBusyState(PRBool aBusy);						\
-		virtual void UpdateCurrentURI(nsIURI *aLocation);				\
-      virtual void UpdateSecurityStatus(PRInt32 aState);         \
-		virtual PRBool CreateNewBrowserFrame(PRUint32 chromeMask, PRInt32 x, PRInt32 y, PRInt32 cx, PRInt32 cy, nsIWebBrowser** aWebBrowser);	\
-		virtual void DestroyBrowserFrame();							\
-		virtual void GetBrowserFrameTitle(PRUnichar **aTitle);	\
-		virtual void SetBrowserFrameTitle(const PRUnichar *aTitle);	\
-		virtual void GetBrowserFramePosition(PRInt32 *aX, PRInt32 *aY);	\
-		virtual void SetBrowserFramePosition(PRInt32 aX, PRInt32 aY);	\
-		virtual void GetBrowserFrameSize(PRInt32 *aCX, PRInt32 *aCY);	\
-		virtual void SetBrowserFrameSize(PRInt32 aCX, PRInt32 aCY);		\
-      virtual void SetBrowserSize(PRInt32 aCX, PRInt32 aCY);		\
-		virtual void GetBrowserFramePositionAndSize(PRInt32 *aX, PRInt32 *aY, PRInt32 *aCX, PRInt32 *aCY);	\
-		virtual void SetBrowserFramePositionAndSize(PRInt32 aX, PRInt32 aY, PRInt32 aCX, PRInt32 aCY, PRBool fRepaint);	\
-      virtual void SetBrowserPositionAndSize(PRInt32 aX, PRInt32 aY, PRInt32 aCX, PRInt32 aCY, PRBool fRepaint);	\
-		virtual void ShowBrowserFrame(PRBool aShow);					\
-		virtual void SetFocus();										\
-		virtual void FocusAvailable(PRBool *aFocusAvail);				\
-		virtual void GetBrowserFrameVisibility(PRBool *aVisible);		\
-      virtual void ShowContextMenu(PRUint32 aContextFlags, nsIContextMenuInfo *aInfo); \
-      virtual HWND GetBrowserFrameNativeWnd();                                \
-      virtual void ShowTooltip(PRInt32 x, PRInt32 y, const char *text); \
-      virtual void FocusNextElement(); \
-      virtual void FocusPrevElement();
+#define NS_DECL_BROWSERFRAMEGLUE    \
+    public: \
+        virtual void UpdateStatusBarText(const PRUnichar *aMessage);    \
+        virtual void UpdateProgress(PRInt32 aCurrent, PRInt32 aMax);    \
+        virtual void UpdateBusyState(PRBool aBusy);                     \
+        virtual void UpdateCurrentURI(nsIURI *aLocation);               \
+        virtual void UpdateSecurityStatus(PRInt32 aState);         \
+        virtual PRBool CreateNewBrowserFrame(PRUint32 chromeMask, PRInt32 x, PRInt32 y, PRInt32 cx, PRInt32 cy, nsIWebBrowser** aWebBrowser);   \
+        virtual void DestroyBrowserFrame();                         \
+        virtual void GetBrowserFrameTitle(PRUnichar **aTitle);  \
+        virtual void SetBrowserFrameTitle(const PRUnichar *aTitle); \
+        virtual void GetBrowserFramePosition(PRInt32 *aX, PRInt32 *aY); \
+        virtual void SetBrowserFramePosition(PRInt32 aX, PRInt32 aY);   \
+        virtual void GetBrowserFrameSize(PRInt32 *aCX, PRInt32 *aCY);   \
+        virtual void SetBrowserFrameSize(PRInt32 aCX, PRInt32 aCY);     \
+        virtual void GetBrowserSize(PRInt32 *aCX, PRInt32 *aCY);        \
+        virtual void SetBrowserSize(PRInt32 aCX, PRInt32 aCY);          \
+        virtual void GetBrowserFramePositionAndSize(PRInt32 *aX, PRInt32 *aY, PRInt32 *aCX, PRInt32 *aCY);  \
+        virtual void SetBrowserFramePositionAndSize(PRInt32 aX, PRInt32 aY, PRInt32 aCX, PRInt32 aCY, PRBool fRepaint); \
+        virtual void SetBrowserPositionAndSize(PRInt32 aX, PRInt32 aY, PRInt32 aCX, PRInt32 aCY, PRBool fRepaint);  \
+        virtual void ShowBrowserFrame(PRBool aShow);                    \
+        virtual void SetFocus();                                        \
+        virtual void FocusAvailable(PRBool *aFocusAvail);               \
+        virtual void GetBrowserFrameVisibility(PRBool *aVisible);       \
+        virtual void ShowContextMenu(PRUint32 aContextFlags, nsIContextMenuInfo *aInfo); \
+        virtual HWND GetBrowserFrameNativeWnd();                          \
+        virtual void ShowTooltip(PRInt32 x, PRInt32 y, const char *text); \
+        virtual void FocusNextElement(); \
+        virtual void FocusPrevElement();
 
-		
 typedef IBrowserFrameGlue *PBROWSERFRAMEGLUE;
 
 #endif //_IBROWSERFRAMEGLUE_H

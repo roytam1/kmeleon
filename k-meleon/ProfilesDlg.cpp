@@ -1,3 +1,32 @@
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: Mozilla-sample-code 1.0
+ *
+ * Copyright (c) 2002 Netscape Communications Corporation and
+ * other contributors
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this Mozilla sample software and associated documentation files
+ * (the "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to permit
+ * persons to whom the Software is furnished to do so, subject to the
+ * following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ *
+ * Contributor(s):
+ *
+ * ***** END LICENSE BLOCK ***** */
+
 // ProfilesDlg.cpp : implementation file
 //
 
@@ -25,20 +54,19 @@ static void ValidateProfileName(const CString& profileName, CDataExchange* pDX)
       nsCOMPtr<nsIProfile> profileService = 
          do_GetService(NS_PROFILE_CONTRACTID, &rv);
 
-      rv = profileService->ProfileExists(T2W(profileName), &exists);
+      rv = profileService->ProfileExists(T2CW(profileName), &exists);
    }
 
     if (NS_SUCCEEDED(rv) && exists)
     {
         CString errMsg;
-
         errMsg.Format(IDS_PROFILE_EXISTS, (const char *)profileName);
         AfxMessageBox( errMsg, MB_ICONEXCLAMATION );
         errMsg.Empty();
         pDX->Fail();
     }
 
-    if (profileName.FindOneOf("\\/") != -1)
+    if (profileName.FindOneOf(_T("\\/")) != -1)
     {
         AfxMessageBox( IDS_PROFILE_BAD_CHARS, MB_ICONEXCLAMATION );
         pDX->Fail();
@@ -154,7 +182,7 @@ void CProfilesDlg::DoDataExchange(CDataExchange* pDX)
         {
             CString itemText;
             m_ProfileList.GetText(itemIndex, itemText);
-            m_SelectedProfile.Assign(T2W(itemText));
+            m_SelectedProfile.Assign(T2CW(itemText));
         }
     }
 }
@@ -226,7 +254,7 @@ void CProfilesDlg::OnNewProfile()
         {
             USES_CONVERSION;
 
-   		    rv = profileService->CreateNewProfile(T2W(dialog.m_Name), nsnull, nsnull, PR_FALSE);
+	    rv = profileService->CreateNewProfile(T2CW(dialog.m_Name), nsnull, nsnull, PR_FALSE);
             ASSERT(NS_SUCCEEDED(rv));
             if (NS_SUCCEEDED(rv))
             {
@@ -260,7 +288,7 @@ void CProfilesDlg::OnRenameProfile()
         ASSERT(NS_SUCCEEDED(rv));
         if (NS_SUCCEEDED(rv))
         {
-            rv = profileService->RenameProfile(T2W(dialog.m_CurrentName), T2W(dialog.m_NewName));
+            rv = profileService->RenameProfile(T2CW(dialog.m_CurrentName), T2W(dialog.m_NewName));
             ASSERT(NS_SUCCEEDED(rv));
         }
     }	
@@ -284,7 +312,7 @@ void CProfilesDlg::OnDeleteProfile()
    {
         USES_CONVERSION;
 
-        rv = profileService->DeleteProfile(T2W(selectedProfile), PR_TRUE);
+        rv = profileService->DeleteProfile(T2CW(selectedProfile), PR_TRUE);
         ASSERT(NS_SUCCEEDED(rv));
         if (NS_SUCCEEDED(rv))
         {
@@ -293,12 +321,9 @@ void CProfilesDlg::OnDeleteProfile()
                 GetDlgItem(IDOK)->EnableWindow(FALSE);
 				}
 			}
-		}                                                                               
-                                                                            
-	void CProfilesDlg::OnDblclkProfile()                                            
- 
-        {                                                                               
- 
-    OnOK();
- 		
+		}
+
+void CProfilesDlg::OnDblclkProfile()
+{
+  OnOK();
 }

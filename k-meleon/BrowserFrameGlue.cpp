@@ -1,25 +1,33 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
+/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: Mozilla-sample-code 1.0
  *
- * The contents of this file are subject to the Netscape Public
- * License Version 1.1 (the "License"); you may not use this file
- * except in compliance with the License. You may obtain a copy of
- * the License at http://www.mozilla.org/NPL/
+ * Copyright (c) 2002 Netscape Communications Corporation and
+ * other contributors
  *
- * Software distributed under the License is distributed on an "AS
- * IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or
- * implied. See the License for the specific language governing
- * rights and limitations under the License.
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this Mozilla sample software and associated documentation files
+ * (the "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to permit
+ * persons to whom the Software is furnished to do so, subject to the
+ * following conditions:
  *
- * The Original Code is mozilla.org code.
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
  *
- * The Initial Developer of the Original Code is Netscape
- * Communications Corporation.  Portions created by Netscape are
- * Copyright (C) 1998 Netscape Communications Corporation. All
- * Rights Reserved.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
  *
- * Contributor(s): 
+ * Contributor(s):
  *   Chak Nanga <chak@netscape.com> 
- */
+ *
+ * ***** END LICENSE BLOCK ***** */
 
 // File Overview....
 //
@@ -60,13 +68,8 @@ extern CMfcEmbedApp theApp;
 void CBrowserFrame::BrowserFrameGlueObj::UpdateStatusBarText(const PRUnichar *aMessage)
 {
    METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
-
-      nsCString strStatus; 
-
-   if(aMessage)
-      strStatus.AssignWithConversion(aMessage);
-
-   pThis->m_wndStatusBar.SetPaneText(0, strStatus.get());
+   USES_CONVERSION;
+   pThis->m_wndStatusBar.SetPaneText(0, aMessage ? W2CT(aMessage) : _T(""));
 }
 
 void CBrowserFrame::BrowserFrameGlueObj::UpdateProgress(PRInt32 aCurrent, PRInt32 aMax)
@@ -79,15 +82,15 @@ void CBrowserFrame::BrowserFrameGlueObj::UpdateProgress(PRInt32 aCurrent, PRInt3
 
 void CBrowserFrame::BrowserFrameGlueObj::UpdateBusyState(PRBool aBusy)
 {       
-   METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
+    METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
 
-      // Just notify the view of the busy state
-      // There's code in there which will take care of
-      // updating the STOP toolbar btn. etc
+    // Just notify the view of the busy state
+    // There's code in there which will take care of
+    // updating the STOP toolbar btn. etc
 
-      pThis->m_wndBrowserView.UpdateBusyState(aBusy);
-      if (!aBusy)
-         pThis->PostMessage(UWM_UPDATEBUSYSTATE, 0, 0);
+    pThis->m_wndBrowserView.UpdateBusyState(aBusy);
+    if (!aBusy)
+        pThis->PostMessage(UWM_UPDATEBUSYSTATE, 0, 0);
 }
 
 // Called from the OnLocationChange() method in the nsIWebProgressListener 
@@ -95,57 +98,59 @@ void CBrowserFrame::BrowserFrameGlueObj::UpdateBusyState(PRBool aBusy)
 // Will get called after a URI is successfully loaded in the browser
 // We use this info to update the URL bar's edit box
 //
-void CBrowserFrame::BrowserFrameGlueObj::UpdateCurrentURI(nsIURI *aLocation){
-   METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
+void CBrowserFrame::BrowserFrameGlueObj::UpdateCurrentURI(nsIURI *aLocation)
+{
+    METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
 
-   if(aLocation) {
-      nsCAutoString uriString;
-      aLocation->GetSpec(uriString);
-
-      pThis->m_wndUrlBar.SetCurrentURL(uriString.get());
-   }
+    if(aLocation) 
+    {
+        USES_CONVERSION;
+        nsCAutoString uriString;
+        aLocation->GetSpec(uriString);
+        pThis->m_wndUrlBar.SetCurrentURL(A2CT(uriString.get()));
+    }
 }
 
 void CBrowserFrame::BrowserFrameGlueObj::GetBrowserFrameTitle(PRUnichar **aTitle)
 {
-   METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
+    METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
 
-   CString title;
-   pThis->GetWindowText(title);
+    CString title;
+    pThis->GetWindowText(title);
 
-   CString appTitle;
-   appTitle.LoadString(AFX_IDS_APP_TITLE);
+    CString appTitle;
+    appTitle.LoadString(AFX_IDS_APP_TITLE);
 
-   title.Replace(" (" + appTitle + ')', "");
+    title.Replace(" (" + appTitle + ')', "");
 
-   if(!title.IsEmpty())
-   {
-      nsString nsTitle;
-      nsTitle.AssignWithConversion(title.GetBuffer(0));
-
-      *aTitle = ToNewUnicode(nsTitle);
-   }
+    if(!title.IsEmpty())
+    {
+        USES_CONVERSION;
+        nsString nsTitle;
+        nsTitle.Assign(T2CW(title.GetBuffer(0)));
+        *aTitle = ToNewUnicode(nsTitle);
+    }
 }
 
 void CBrowserFrame::BrowserFrameGlueObj::SetBrowserFrameTitle(const PRUnichar *aTitle)
 {
-   METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
+    METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
 
-   USES_CONVERSION;
+    CString appTitle;
+    appTitle.LoadString(AFX_IDS_APP_TITLE);
 
-   CString appTitle;
-   appTitle.LoadString(AFX_IDS_APP_TITLE);
+    CString title;
+    USES_CONVERSION;
+    title = W2CT(aTitle);
 
-   CString title = W2T(aTitle);
+    if (title.IsEmpty()){
+        pThis->m_wndUrlBar.GetEnteredURL(title);
+    }
 
-   if (title.IsEmpty()){
-      pThis->m_wndUrlBar.GetEnteredURL(title);
-   }
+    title += " (" + appTitle + ')';
+    pThis->SetWindowText(title);
 
-   title += " (" + appTitle + ')';
-   pThis->SetWindowText(title);
-
-   pThis->PostMessage(UWM_UPDATESESSIONHISTORY, 0, 0);
+    pThis->PostMessage(UWM_UPDATESESSIONHISTORY, 0, 0);
 }
 
 void CBrowserFrame::BrowserFrameGlueObj::SetBrowserFrameSize(PRInt32 aCX, PRInt32 aCY)
@@ -198,16 +203,30 @@ void CBrowserFrame::BrowserFrameGlueObj::SetBrowserSize(PRInt32 aCX, PRInt32 aCY
 
 void CBrowserFrame::BrowserFrameGlueObj::GetBrowserFrameSize(PRInt32 *aCX, PRInt32 *aCY)
 {
-   METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
+    METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
 
-      RECT wndRect;
-   pThis->GetWindowRect(&wndRect);
+    RECT wndRect;
+    pThis->GetWindowRect(&wndRect);
 
-   if (aCX)
-      *aCX = wndRect.right - wndRect.left;
+    if (aCX)
+        *aCX = wndRect.right - wndRect.left;
 
-   if (aCY)
-      *aCY = wndRect.bottom - wndRect.top;
+    if (aCY)
+        *aCY = wndRect.bottom - wndRect.top;
+}
+
+void CBrowserFrame::BrowserFrameGlueObj::GetBrowserSize(PRInt32 *aCX, PRInt32 *aCY)
+{
+    METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
+
+    RECT wndRect;
+    pThis->m_wndBrowserView.GetClientRect(&wndRect);
+
+    if (aCX)
+        *aCX = wndRect.right - wndRect.left;
+
+    if (aCY)
+        *aCY = wndRect.bottom - wndRect.top;
 }
 
 void CBrowserFrame::BrowserFrameGlueObj::SetBrowserFramePosition(PRInt32 aX, PRInt32 aY)
@@ -317,27 +336,30 @@ void CBrowserFrame::BrowserFrameGlueObj::SetFocus(){
 
 void CBrowserFrame::BrowserFrameGlueObj::FocusAvailable(PRBool *aFocusAvail)
 {
-   METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
+    METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
 
-      HWND focusWnd = ::GetFocus();
+    HWND focusWnd = ::GetFocus(); // GetFocus()->m_hWnd;
 
-   if ((focusWnd == pThis->m_hWnd) || ::IsChild(pThis->m_hWnd, focusWnd))
-      *aFocusAvail = PR_TRUE;
-   else
-      *aFocusAvail = PR_FALSE;
+    if ((focusWnd == pThis->m_hWnd) || ::IsChild(pThis->m_hWnd, focusWnd))
+        *aFocusAvail = PR_TRUE;
+    else
+        *aFocusAvail = PR_FALSE;
 }
 
 void CBrowserFrame::BrowserFrameGlueObj::ShowBrowserFrame(PRBool aShow)
 {
-   METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
+    METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
       
-   if(aShow){
-      pThis->ShowWindow(SW_SHOW);
-      pThis->SetActiveWindow();
-      pThis->UpdateWindow();
-   }else{
-      pThis->ShowWindow(SW_HIDE);
-   }
+    if(aShow)
+    {
+        pThis->ShowWindow(SW_SHOW);
+        pThis->SetActiveWindow();
+        pThis->UpdateWindow();
+    }
+    else
+    {
+        pThis->ShowWindow(SW_HIDE);
+    }
 }
 
 void CBrowserFrame::BrowserFrameGlueObj::GetBrowserFrameVisibility(PRBool *aVisible)
@@ -345,7 +367,8 @@ void CBrowserFrame::BrowserFrameGlueObj::GetBrowserFrameVisibility(PRBool *aVisi
    METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
 
    // Is the current BrowserFrame the active one?
-   if (GetActiveWindow()->m_hWnd != pThis->m_hWnd){
+   if (GetActiveWindow()->m_hWnd != pThis->m_hWnd)
+   {
       *aVisible = PR_FALSE;
       return;
    }
@@ -362,46 +385,48 @@ void CBrowserFrame::BrowserFrameGlueObj::GetBrowserFrameVisibility(PRBool *aVisi
 }
 
 PRBool CBrowserFrame::BrowserFrameGlueObj::CreateNewBrowserFrame(PRUint32 chromeMask, 
-                                                                 PRInt32 x, PRInt32 y, 
-                                                                 PRInt32 cx, PRInt32 cy,
-                                                                 nsIWebBrowser** aWebBrowser)
+                            PRInt32 x, PRInt32 y, 
+                            PRInt32 cx, PRInt32 cy,
+                            nsIWebBrowser** aWebBrowser)
 {
-   NS_ENSURE_ARG_POINTER(aWebBrowser);
+    NS_ENSURE_ARG_POINTER(aWebBrowser);
 
-   *aWebBrowser = nsnull;
+    *aWebBrowser = nsnull;
 
-   CMfcEmbedApp *pApp = (CMfcEmbedApp *)AfxGetApp();
-   if(!pApp)
-      return PR_FALSE;
+    CMfcEmbedApp *pApp = (CMfcEmbedApp *)AfxGetApp();
+    if(!pApp)
+        return PR_FALSE;
 
-   // Note that we're calling with the last param set to "false" i.e.
-   // this instructs not to show the frame window
-   // This is mainly needed when the window size is specified in the window.open()
-   // JS call. In those cases Gecko calls us to create the browser with a default
-   // size (all are -1) and then it calls the SizeBrowserTo() method to set
-   // the proper window size. If this window were to be visible then you'll see
-   // the window size changes on the screen causing an unappealing flicker
+    // Note that we're calling with the last param set to "false" i.e.
+    // this instructs not to show the frame window
+    // This is mainly needed when the window size is specified in the window.open()
+    // JS call. In those cases Gecko calls us to create the browser with a default
+    // size (all are -1) and then it calls the SizeBrowserTo() method to set
+    // the proper window size. If this window were to be visible then you'll see
+    // the window size changes on the screen causing an unappealing flicker
+    //
+    
+    CBrowserFrame* pFrm = pApp->CreateNewBrowserFrame(chromeMask, x, y, cx, cy, PR_FALSE);
+    if(!pFrm)
+        return PR_FALSE;
 
-   CBrowserFrame* pFrm = pApp->CreateNewBrowserFrame(chromeMask, x, y, cx, cy, PR_FALSE);
-   if(!pFrm)
-      return PR_FALSE;
+    // At this stage we have a new CBrowserFrame and a new CBrowserView
+    // objects. The CBrowserView also would have an embedded browser
+    // object created. Get the mWebBrowser member from the CBrowserView
+    // and return it. (See CBrowserView's CreateBrowser() on how the
+    // embedded browser gets created and how it's mWebBrowser member
+    // gets initialized)
 
-   // At this stage we have a new CBrowserFrame and a new CBrowserView
-   // objects. The CBrowserView also would have an embedded browser
-   // object created. Get the mWebBrowser member from the CBrowserView
-   // and return it. (See CBrowserView's CreateBrowser() on how the
-   // embedded browser gets created and how it's mWebBrowser member
-   // gets initialized)
+    NS_IF_ADDREF(*aWebBrowser = pFrm->m_wndBrowserView.mWebBrowser);
 
-   NS_IF_ADDREF(*aWebBrowser = pFrm->m_wndBrowserView.mWebBrowser);
-
-   return PR_TRUE;
+    return PR_TRUE;
 }
 
 void CBrowserFrame::BrowserFrameGlueObj::DestroyBrowserFrame()
 {
-   METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
-   pThis->PostMessage(WM_CLOSE, -1, -1);
+    METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
+
+    pThis->PostMessage(WM_CLOSE, -1, -1);
 }
 
 #define GOTO_BUILD_CTX_MENU { bContentHasFrames = FALSE; goto BUILD_CTX_MENU; }
@@ -623,12 +648,15 @@ BUILD_CTX_MENU:
       
       RECT desktopRect;
       SystemParametersInfo(SPI_GETWORKAREA, NULL, &desktopRect, 0);
-      if ( (int)(cursorPos.y - offset) < (int)(desktopRect.bottom - (ctxMenu->GetMenuItemCount() * GetSystemMetrics(SM_CYMENUSIZE)) + (GetSystemMetrics(SM_CYEDGE)*2)) ){
+      int menuHeight = (ctxMenu->GetMenuItemCount() * GetSystemMetrics(SM_CYMENUSIZE));
+      if ( (int)(cursorPos.y - offset) < (int)(desktopRect.bottom - menuHeight) ){
          // we only do this if we're not too close to the bottom of the screen
          cursorPos.y -= offset;
          if (cursorPos.y < 0){
             cursorPos.y = 0;
          }
+      } else if (cursorPos.y + menuHeight > desktopRect.bottom) {
+          cursorPos.y = desktopRect.bottom - menuHeight;
       }
       
       ctxMenu->TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, cursorPos.x, cursorPos.y, pThis);
@@ -638,36 +666,33 @@ BUILD_CTX_MENU:
 
 HWND CBrowserFrame::BrowserFrameGlueObj::GetBrowserFrameNativeWnd()
 {
-	METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
-
-   return pThis->m_hWnd;
+    METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
+    return pThis->m_hWnd;
 }
-
- 
 
 void CBrowserFrame::BrowserFrameGlueObj::UpdateSecurityStatus(PRInt32 aState)
 {
-   METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
+    METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
 
-   pThis->UpdateSecurityStatus(aState);
+    pThis->UpdateSecurityStatus(aState);
 }
 
 void CBrowserFrame::BrowserFrameGlueObj::ShowTooltip(PRInt32 x, PRInt32 y, const char *text)
 {
-   METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
+    METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
 
-   if (!text) {
-      pThis->m_wndToolTip.Hide();
-      return;
-   }
+    if (!text) {
+        pThis->m_wndToolTip.Hide();
+        return;
+    }
 
-   POINT point;
-   ::GetCursorPos(&point);
+    POINT point;
+    ::GetCursorPos(&point);
 
-   pThis->m_wndBrowserView.ScreenToClient(&point);
-   point.y += GetSystemMetrics(SM_CYCURSOR)/2 + 4; // jump to below the cursor, otherwise we appear right on top of the cursor
+    pThis->m_wndBrowserView.ScreenToClient(&point);
+    point.y += GetSystemMetrics(SM_CYCURSOR)/2 + 4; // jump to below the cursor, otherwise we appear right on top of the cursor
 
-   pThis->m_wndToolTip.Show(text, point.x, point.y);
+    pThis->m_wndToolTip.Show(text, point.x, point.y);
 }
 
 void CBrowserFrame::BrowserFrameGlueObj::FocusNextElement() {
