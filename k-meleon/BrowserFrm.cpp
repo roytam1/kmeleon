@@ -140,10 +140,8 @@ void CBrowserFrame::OnClose()
       // if no other browser views exist, nullify the pointer
    }
 
-   theApp.RemoveFrameFromList(this);
-
-//   ShowWindow(SW_HIDE);
    DestroyWindow();
+   theApp.RemoveFrameFromList(this);
 }
 
 // This is where the UrlBar, ToolBar, StatusBar, ProgressBar
