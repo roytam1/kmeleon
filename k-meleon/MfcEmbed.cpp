@@ -233,7 +233,7 @@ void CMfcEmbedApp::RemoveFrameFromList(CBrowserFrame* pFrm, BOOL bCloseAppOnLast
 	// Without this the hidden window will stick around
 	// i.e. the app will never die even after all the 
 	// visible windows are gone.
-	if(m_FrameWndLst.GetCount() == 0 && bCloseAppOnLastFrame)
+   if(m_FrameWndLst.GetCount() == 0 && bCloseAppOnLastFrame)
 		m_pMainWnd->PostMessage(WM_QUIT);
 }
 

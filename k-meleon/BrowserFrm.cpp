@@ -142,6 +142,7 @@ void CBrowserFrame::OnClose()
 
    theApp.RemoveFrameFromList(this);
 
+   ShowWindow(FALSE);
    DestroyWindow();
 }
 

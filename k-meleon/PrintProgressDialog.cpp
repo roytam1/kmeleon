@@ -224,10 +224,10 @@ CPrintProgressDialog::OnEndPrinting(PRUint32 aStatus)
   // Here we need to know whether we have gone "modal" 
   // because we could get notified here if the user cancels
   // before we ever get a chance to go into the modal loop
-  if (m_InModalMode) {
-    EndDialog(1);
-  }
-  return NS_OK;
+   if (m_InModalMode) {
+      EndDialog(1);
+   }
+   return NS_OK;
 }
 
 void CPrintProgressDialog::OnCancel() 

@@ -271,7 +271,7 @@ HRESULT CBrowserView::DestroyBrowser() {
    if(mBaseWindow)
 	{
 		mBaseWindow->Destroy();
-        mBaseWindow = nsnull;
+      mBaseWindow = nsnull;
 	}
 
 	if(mpBrowserImpl)
@@ -332,6 +332,18 @@ void CBrowserView::Activate(UINT nState, CWnd* pWndOther, BOOL bMinimized) {
    default:
       break;
    }
+
+   //  the context menus break if we don't do this ???
+   if (IsChild(GetFocus())){
+      mpBrowserFrame->SetFocus();
+   }
+
+   // switch the focus to the URLBar, if necessary
+   if (mpBrowserFrame->m_setURLBarFocus) {
+      mpBrowserFrame->m_wndUrlBar.SetFocus();
+      mpBrowserFrame->m_setURLBarFocus = false;
+   }
+
 }
 
 void CBrowserView::OnDropFiles( HDROP drop ){

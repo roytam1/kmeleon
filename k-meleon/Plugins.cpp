@@ -134,16 +134,20 @@ static kmeleonDocInfo kDocInfo;
 kmeleonDocInfo * GetDocInfo(HWND mainWnd) {
    CBrowserFrame *frame = (CBrowserFrame *)CWnd::FromHandle(mainWnd);
 
+   return NULL;
+
    if (!frame){
       return NULL;
    }
 
+   CString url;
+   frame->m_wndUrlBar.GetEnteredURL(url);
+   if (strlen(url) >= MAX_URL)
+      return NULL;
+
    CString title;
    frame->GetWindowText(title);
    title.Replace(" (K-Meleon)", "");
-
-   CString url;
-   frame->m_wndUrlBar.GetEnteredURL(url);
 
    strcpy(kDocInfo.title, title);
    strcpy(kDocInfo.url, url);
@@ -181,6 +185,7 @@ void SetPreference(enum PREFTYPE type, char *preference, void *val) {
 
 
 int GetMozillaSessionHistory (char ***titles, int *count, int *index) {
+
    nsresult result;
    int i;
 
@@ -195,19 +200,20 @@ int GetMozillaSessionHistory (char ***titles, int *count, int *index) {
    h->GetCount (count);
 	h->GetIndex (index);
 
-   // Clear the table
+   // Clear the previous table
    if (SessionSize) {
       for (i=0; i<SessionSize; i++)
          delete pHistory[i];
    }
-   delete pHistory;
-   pHistory = new char *[*count];
-
+   
    SessionSize = *count;
+
+   delete pHistory;
+   pHistory = new char *[SessionSize];
 
 	nsCOMPtr<nsIHistoryEntry> he;
 	PRUnichar *title;
-	for (i=0; i < *count; i++) {
+	for (i=0; i < SessionSize; i++) {
 
 		result = h->GetEntryAtIndex(i, PR_FALSE, getter_AddRefs (he));
 		if (!NS_SUCCEEDED(result) || (!he)) return FALSE;
@@ -216,13 +222,11 @@ int GetMozillaSessionHistory (char ***titles, int *count, int *index) {
 		if (!NS_SUCCEEDED(result) || (!title)) return FALSE;
 
 		// The title is in 16-bit unicode, this converts it to 8bit (UTF)
-
 		int len;
 		len = WideCharToMultiByte(CP_ACP, 0, title, -1, 0, 0, NULL, NULL);
 		char *s = new char[len+1];
 		len = WideCharToMultiByte(CP_ACP, 0, title, -1, s, len, NULL, NULL);
       s[len] = 0;
-
       pHistory[i] = s;
 	}
 

@@ -29,9 +29,11 @@
 #define OPEN_NEW         1
 #define OPEN_BACKGROUND  2
 
+#define MAX_URL          1024
+
 typedef struct {
   char title[256];
-  char url[256];  
+  char url[MAX_URL];  
 } kmeleonDocInfo;
 
 enum PREFTYPE {
