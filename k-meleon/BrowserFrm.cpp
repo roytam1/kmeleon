@@ -520,6 +520,52 @@ void CBrowserFrame::ToggleToolBar(UINT uID) {
    m_wndReBar.ToggleVisibility(uID - TOOLBAR_MENU_START_ID);
 }
 
+/*
+
+   This is identical to the MFC CFrameWnd::Create function
+   except that the rect structure passed to it contains
+   x, y, cx, cx values instead of left, top, right, bottom
+
+*/
+
+BOOL CBrowserFrame::Create(LPCTSTR lpszClassName,
+	LPCTSTR lpszWindowName,
+	DWORD dwStyle,
+	const RECT& rect,
+	CWnd* pParentWnd,
+	LPCTSTR lpszMenuName,
+	DWORD dwExStyle,
+	CCreateContext* pContext)
+{
+	HMENU hMenu = NULL;
+	if (lpszMenuName != NULL)
+	{
+		// load in a menu that will get destroyed when window gets destroyed
+		HINSTANCE hInst = AfxFindResourceHandle(lpszMenuName, RT_MENU);
+		if ((hMenu = ::LoadMenu(hInst, lpszMenuName)) == NULL)
+		{
+			TRACE0("Warning: failed to load menu for CFrameWnd.\n");
+			PostNcDestroy();            // perhaps delete the C++ object
+			return FALSE;
+		}
+	}
+
+	m_strTitle = lpszWindowName;    // save title for later
+
+	if (!CreateEx(dwExStyle, lpszClassName, lpszWindowName, dwStyle,
+		rect.left, rect.top, rect.right, rect.bottom,
+		pParentWnd->GetSafeHwnd(), hMenu, (LPVOID)pContext))
+	{
+		TRACE0("Warning: failed to create CFrameWnd.\n");
+		if (hMenu != NULL)
+			DestroyMenu(hMenu);
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+
 #ifdef _DEBUG
 void CBrowserFrame::AssertValid() const
 {

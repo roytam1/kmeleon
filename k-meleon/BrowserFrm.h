@@ -157,6 +157,15 @@ public:
    void SaveWindowPos();
    void RestoreWindowPos(PRInt32 *x, PRInt32 *y, PRInt32 *cx, PRInt32 *cy);
 
+   BOOL Create(LPCTSTR lpszClassName,
+	   LPCTSTR lpszWindowName,
+	   DWORD dwStyle,
+	   const RECT& rect,
+	   CWnd* pParentWnd,
+	   LPCTSTR lpszMenuName,
+	   DWORD dwExStyle,
+	   CCreateContext* pContext);
+
    // Overrides
 	// ClassWizard generated virtual function overrides
 	//{{AFX_VIRTUAL(CBrowserFrame)

@@ -228,12 +228,10 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
    winSize.top    = CW_USEDEFAULT;
    winSize.left   = CW_USEDEFAULT;
    if (preferences.width != -1 && preferences.height != -1) {
-      // since MFC determines the window size as top-bottom and left-right,
-      // the CW_USEDEFAULT ensures that it it will properly size the window to our width and
-      // height...windows versions other than Win2k are able to do this with or without CW_USEDEFAULT,
-      // so it's best for us to use it
-      winSize.right  = CW_USEDEFAULT + preferences.width;
-      winSize.bottom = CW_USEDEFAULT + preferences.height;
+      // the Create function has been modified to take width, and height values
+      // instead of right and bottom window placement variables
+      winSize.right  = preferences.width;
+      winSize.bottom = preferences.height;
    }
    else {
       winSize.right  = CW_USEDEFAULT;
@@ -242,6 +240,9 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
 
    LONG style = WS_OVERLAPPEDWINDOW;
    if (preferences.bMaximized) style |= WS_MAXIMIZE;
+
+   // this calls our modified create function, the winSize rect uses CreateWindowEx style x, y, cx, cy
+   // rather than the MFC style left, top, right, bottom
    if (!pFrame->Create(NULL, strTitle, style, winSize, NULL, MAKEINTRESOURCE(IDR_MAINFRAME), 0L, NULL))
 		return NULL;
 
