@@ -1643,49 +1643,76 @@ std::string EvalExpression(HWND hWnd,std::string exp) {
                   strtemp = exp.substr(i-1,2); //the comparison operator
                   break;
                }
-	       else {
+               else {
                   isAssignment = true;
                   lval = strTrim(exp.substr(0,i));
                   rval = strTrim(exp.substr(i+1));
                   break;
                }
             }
-            else if(exp.at(i) == '+') {   // addition
-               int res = IntVal(EvalExpression(hWnd,strTrim(exp.substr(0,i)))) + IntVal(EvalExpression(hWnd,strTrim(exp.substr(i+1))));
+            else if(exp.at(i) == '+' ||   // addition 
+		    exp.at(i) == '-') {   // subtraction
+               int last_op = i;
+               int j = i;
+	       for(j=i; j<exp.length(); ++j)
+		  if(exp.at(j) == '"' && exp.at(j-1) != '\\')
+		     instr = (instr) ? false : true;
+		  else if(!instr)
+		     if(exp.at(j) == '(')
+			++lparen;
+		     else if(exp.at(j) == ')')
+			++rparen;
+		     else if(lparen == rparen)
+			if(exp.at(j) == '+' ||   // addition 
+			   exp.at(j) == '-')     // subtraction
+			   last_op = j;
+	       
+               int res_l = IntVal(EvalExpression(hWnd,strTrim(exp.substr(0,last_op))));
+	       int res_r = IntVal(EvalExpression(hWnd,strTrim(exp.substr(last_op+1))));
+	       int res = 0;
+	       if (exp.at(last_op) == '+')
+		  res = res_l + res_r;
+	       else if (exp.at(last_op) == '-')
+		  res = res_l - res_r;
                itoa(res,(char*)exp.data(),10);
                return exp;
             }
-            else if(exp.at(i) == '-') { // subtraction
-               int res = IntVal(EvalExpression(hWnd,strTrim(exp.substr(0,i)))) - IntVal(EvalExpression(hWnd,strTrim(exp.substr(i+1))));
+            else if(exp.at(i) == '*' ||   // multiplication
+		    exp.at(i) == '/' ||   // division
+		    exp.at(i) == '%') {   // remainder
+               int last_op = i;
+               int j = i;
+	       for(j=i; j<exp.length(); ++j)
+		  if(exp.at(j) == '"' && exp.at(j-1) != '\\')
+		     instr = (instr) ? false : true;
+		  else if(!instr)
+		     if(exp.at(j) == '(')
+			++lparen;
+		     else if(exp.at(j) == ')')
+			++rparen;
+		     else if(lparen == rparen)
+			if(exp.at(j) == '*' ||   // multiplication
+			   exp.at(j) == '/' ||   // division
+			   exp.at(j) == '%')     // remainder
+			   last_op = j;
+	       
+               int res_l = IntVal(EvalExpression(hWnd,strTrim(exp.substr(0,last_op))));
+	       int res_r = IntVal(EvalExpression(hWnd,strTrim(exp.substr(last_op+1))));
+	       int res = 0;
+	       if (exp.at(last_op) == '*')
+		  res = res_l * res_r;
+	       else if (exp.at(last_op) == '/')
+		  if (res_r == 0)   // illegal division by zero
+		     return "0";
+		  else
+		     res = res_l / res_r;
+	       else if (exp.at(last_op) == '%')
+		  if (res_r == 0)   // illegal division by zero
+		     return "0";
+		  else
+		     res = res_l % res_r;
                itoa(res,(char*)exp.data(),10);
                return exp;
-            }
-            else if(exp.at(i) == '*') { // multiplication
-               int res = IntVal(EvalExpression(hWnd,strTrim(exp.substr(0,i)))) * IntVal(EvalExpression(hWnd,strTrim(exp.substr(i+1))));
-               itoa(res,(char*)exp.data(),10);
-               return exp;
-            }
-            else if(exp.at(i) == '/') { // division
-               int nrval = IntVal(EvalExpression(hWnd,strTrim(exp.substr(i+1))));
-               if(nrval == 0) { //illegal division by zero
-                  return "0";
-               }
-               else {
-                  int res = IntVal(EvalExpression(hWnd,strTrim(exp.substr(0,i)))) / nrval;
-                  itoa(res,(char*)exp.data(),10);
-                  return exp;
-               }
-            }
-            else if(exp.at(i) == '%') { // remainder
-               int nrval = IntVal(EvalExpression(hWnd,strTrim(exp.substr(i+1))));
-               if(nrval == 0) { //illegal division by zero
-                  return "0";
-               }
-               else {
-                  int res = IntVal(EvalExpression(hWnd,strTrim(exp.substr(0,i)))) % nrval;
-                  itoa(res,(char*)exp.data(),10);
-                  return exp;
-               }
             }
             else if(exp.at(i) == '.') { // concat
                lval = strVal(EvalExpression(hWnd, strTrim(exp.substr(0,i))),1);
