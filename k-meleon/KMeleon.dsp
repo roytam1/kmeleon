@@ -43,7 +43,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MD /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_AFXDLL" /Yu"stdafx.h" /FD /c
-# ADD CPP /nologo /MD /W3 /GX /O2 /I "/projects/mozilla/mozilla/dist/include/docshell" /I "/projects/mozilla/mozilla/dist/include/dom" /I "/projects/mozilla/mozilla/dist/include/embed_base" /I "/projects/mozilla/mozilla/dist/include/exthandler" /I "/projects/mozilla/mozilla/dist/include/find" /I "/projects/mozilla/mozilla/dist/include/gfx" /I "/projects/mozilla/mozilla/dist/include/helperAppDlg" /I "/projects/mozilla/mozilla/dist/include/necko" /I "/projects/mozilla/mozilla/dist/include/pref" /I "/projects/mozilla/mozilla/dist/include/profile" /I "/projects/mozilla/mozilla/dist/include/shistory" /I "/projects/mozilla/mozilla/dist/include/string" /I "/projects/mozilla/mozilla/dist/include/uriloader" /I "/projects/mozilla/mozilla/dist/include/wallet" /I "/projects/mozilla/mozilla/dist/include/webBrowser_core" /I "/projects/mozilla/mozilla/dist/include/webshell" /I "/projects/mozilla/mozilla/dist/include/widget" /I "/projects/mozilla/mozilla/dist/include/xpcom" /I "\projects\mozilla\mozilla\dist\include" /I "\projects\mozilla\mozilla\dist\WIN32_O.OBJ\include" /D _WIN32_IE=0x0500 /D "XP_WIN" /D "XP_WIN32" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "HW_THREADS" /D "XP_PC" /D WINVER=0x400 /D "_AFXDLL" /Fr /Yu"stdafx.h" /FD /c
+# ADD CPP /nologo /MD /W3 /GX /O2 /I "/projects/mozilla/mozilla/dist/include/docshell" /I "/projects/mozilla/mozilla/dist/include/dom" /I "/projects/mozilla/mozilla/dist/include/embed_base" /I "/projects/mozilla/mozilla/dist/include/exthandler" /I "/projects/mozilla/mozilla/dist/include/find" /I "/projects/mozilla/mozilla/dist/include/gfx" /I "/projects/mozilla/mozilla/dist/include/helperAppDlg" /I "/projects/mozilla/mozilla/dist/include/intl" /I "/projects/mozilla/mozilla/dist/include/layout" /I "/projects/mozilla/mozilla/dist/include/necko" /I "/projects/mozilla/mozilla/dist/include/pref" /I "/projects/mozilla/mozilla/dist/include/profile" /I "/projects/mozilla/mozilla/dist/include/shistory" /I "/projects/mozilla/mozilla/dist/include/string" /I "/projects/mozilla/mozilla/dist/include/uriloader" /I "/projects/mozilla/mozilla/dist/include/wallet" /I "/projects/mozilla/mozilla/dist/include/webBrowser_core" /I "/projects/mozilla/mozilla/dist/include/webshell" /I "/projects/mozilla/mozilla/dist/include/widget" /I "/projects/mozilla/mozilla/dist/include/windowwatcher" /I "/projects/mozilla/mozilla/dist/include/xpcom" /I "\projects\mozilla\mozilla\dist\include" /I "\projects\mozilla\mozilla\dist\WIN32_O.OBJ\include" /D _WIN32_IE=0x0500 /D "XP_WIN" /D "XP_WIN32" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "HW_THREADS" /D "XP_PC" /D WINVER=0x400 /D "_AFXDLL" /Fr /Yu"stdafx.h" /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "NDEBUG" /d "_AFXDLL"
@@ -75,7 +75,7 @@ PostBuild_Cmds=version BUILD_NUMBER version.h
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_AFXDLL" /Yu"stdafx.h" /FD /GZ /c
-# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "/projects/mozilla/mozilla/dist/include/docshell" /I "/projects/mozilla/mozilla/dist/include/dom" /I "/projects/mozilla/mozilla/dist/include/embed_base" /I "/projects/mozilla/mozilla/dist/include/exthandler" /I "/projects/mozilla/mozilla/dist/include/find" /I "/projects/mozilla/mozilla/dist/include/gfx" /I "/projects/mozilla/mozilla/dist/include/helperAppDlg" /I "/projects/mozilla/mozilla/dist/include/necko" /I "/projects/mozilla/mozilla/dist/include/pref" /I "/projects/mozilla/mozilla/dist/include/profile" /I "/projects/mozilla/mozilla/dist/include/shistory" /I "/projects/mozilla/mozilla/dist/include/string" /I "/projects/mozilla/mozilla/dist/include/uriloader" /I "/projects/mozilla/mozilla/dist/include/wallet" /I "/projects/mozilla/mozilla/dist/include/webBrowser_core" /I "/projects/mozilla/mozilla/dist/include/webshell" /I "/projects/mozilla/mozilla/dist/include/widget" /I "/projects/mozilla/mozilla/dist/include/xpcom" /I "\projects\mozilla\mozilla\dist\include" /I "\projects\mozilla\mozilla\dist\WIN32_O.OBJ\include" /D "_DEBUG" /D "XP_WIN" /D "XP_WIN32" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "HW_THREADS" /D "XP_PC" /D WINVER=0x400 /D "_AFXDLL" /FR /Yu"stdafx.h" /FD /I /projects/mozilla/mozilla/dist/include/docshell" /I /projects/mozilla/mozilla/dist/include/dom" /I /projects/mozilla/mozilla/dist/include/embed_base" /I /projects/mozilla/mozilla/dist/include/exthandler" /I /projects/mozilla/mozilla/dist/include/find" /I /projects/mozilla/mozilla/dist/include/gfx" /I /projects/mozilla/mozilla/dist/include/helperAppDlg" /I /projects/mozilla/mozilla/dist/include/necko" /I /projects/mozilla/mozilla/dist/include/pref" /I /projects/mozilla/mozilla/dist/include/profile" /I /projects/mozilla/mozilla/dist/include/shistory" /I /projects/mozilla/mozilla/dist/include/string" /I /projects/mozilla/mozilla/dist/include/uriloader" /I /projects/mozilla/mozilla/dist/include/wallet" /I /projects/mozilla/mozilla/dist/include/webBrowser_core" /I /projects/mozilla/mozilla/dist/include/webshell" /I /projects/mozilla/mozilla/dist/include/widget" /I /projects/mozilla/mozilla/dist/include/xpcom" /GZ " " " " " " " " " " " " " " " " " " /c
+# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "/projects/mozilla/mozilla/dist/include/docshell" /I "/projects/mozilla/mozilla/dist/include/dom" /I "/projects/mozilla/mozilla/dist/include/embed_base" /I "/projects/mozilla/mozilla/dist/include/exthandler" /I "/projects/mozilla/mozilla/dist/include/find" /I "/projects/mozilla/mozilla/dist/include/gfx" /I "/projects/mozilla/mozilla/dist/include/helperAppDlg" /I "/projects/mozilla/mozilla/dist/include/intl" /I "/projects/mozilla/mozilla/dist/include/layout" /I "/projects/mozilla/mozilla/dist/include/necko" /I "/projects/mozilla/mozilla/dist/include/pref" /I "/projects/mozilla/mozilla/dist/include/profile" /I "/projects/mozilla/mozilla/dist/include/shistory" /I "/projects/mozilla/mozilla/dist/include/string" /I "/projects/mozilla/mozilla/dist/include/uriloader" /I "/projects/mozilla/mozilla/dist/include/wallet" /I "/projects/mozilla/mozilla/dist/include/webBrowser_core" /I "/projects/mozilla/mozilla/dist/include/webshell" /I "/projects/mozilla/mozilla/dist/include/widget" /I "/projects/mozilla/mozilla/dist/include/windowwatcher" /I "/projects/mozilla/mozilla/dist/include/xpcom" /I "\projects\mozilla\mozilla\dist\include" /I "\projects\mozilla\mozilla\dist\WIN32_O.OBJ\include" /D "_DEBUG" /D "XP_WIN" /D "XP_WIN32" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "HW_THREADS" /D "XP_PC" /D WINVER=0x400 /D "_AFXDLL" /FR /Yu"stdafx.h" /FD /I /projects/mozilla/mozilla/dist/include/docshell" /I /projects/mozilla/mozilla/dist/include/dom" /I /projects/mozilla/mozilla/dist/include/embed_base" /I /projects/mozilla/mozilla/dist/include/exthandler" /I /projects/mozilla/mozilla/dist/include/find" /I /projects/mozilla/mozilla/dist/include/gfx" /I /projects/mozilla/mozilla/dist/include/helperAppDlg" /I /projects/mozilla/mozilla/dist/include/necko" /I /projects/mozilla/mozilla/dist/include/pref" /I /projects/mozilla/mozilla/dist/include/profile" /I /projects/mozilla/mozilla/dist/include/shistory" /I /projects/mozilla/mozilla/dist/include/string" /I /projects/mozilla/mozilla/dist/include/uriloader" /I /projects/mozilla/mozilla/dist/include/wallet" /I /projects/mozilla/mozilla/dist/include/webBrowser_core" /I /projects/mozilla/mozilla/dist/include/webshell" /I /projects/mozilla/mozilla/dist/include/widget" /I /projects/mozilla/mozilla/dist/include/xpcom" /GZ " " " " " " " " " " " " " " " " " " /c
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "_DEBUG" /d "_AFXDLL"
@@ -87,11 +87,6 @@ LINK32=link.exe
 # ADD BASE LINK32 /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept
 # ADD LINK32 xpcom.lib baseembed_s.lib xpcom.lib baseembed_s.lib nspr4.lib /nologo /subsystem:windows /map /debug /machine:I386 /nodefaultlib:"MSVCRT" /out:"..\mozilla\mozilla\dist\WIN32_o.OBJ\Embed\k-meleon.exe" /pdbtype:sept /libpath:"..\mozilla\mozilla\dist\WIN32_o.OBJ\lib"
 # SUBTRACT LINK32 /profile /pdb:none /nodefaultlib
-# Begin Special Build Tool
-SOURCE="$(InputPath)"
-PostBuild_Desc=Updating Version
-PostBuild_Cmds=version BUILD_NUMBER version.h
-# End Special Build Tool
 
 !ENDIF 
 
@@ -237,6 +232,10 @@ SOURCE=.\ToolBarEx.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\Tooltips.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\UnknownContentTypeHandler.cpp
 # End Source File
 # Begin Source File
@@ -351,6 +350,10 @@ SOURCE=.\ToolBarWrapper.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\Tooltips.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\UnknownContentTypeHandler.h
 # End Source File
 # Begin Source File
@@ -360,30 +363,6 @@ SOURCE=.\Utils.h
 # Begin Source File
 
 SOURCE=.\version.h
-
-!IF  "$(CFG)" == "kmeleon - Win32 Release"
-
-# PROP Ignore_Default_Tool 1
-# Begin Custom Build - Updating Version
-InputPath=.\version.h
-
-"$(InputPath)" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	version.exe BUILD_NUMBER $(InputPath)
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "kmeleon - Win32 Debug"
-
-# Begin Custom Build - Updating Version
-InputPath=.\version.h
-
-"$(InputPath)" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	version.exe BUILD_NUMBER $(InputPath)
-
-# End Custom Build
-
-!ENDIF 
-
 # End Source File
 # Begin Source File
 
