@@ -118,52 +118,54 @@ void CPreferences::Load() {
 
       _GetString(_T("kmeleon.general.skinsDir"), skinsDir, _T(""));
       _GetString(_T("kmeleon.general.skinsCurrent"), skinsCurrent, _T(""));
+
       
-      if (settingsDir.IsEmpty()) {
+      char appDir[MAX_PATH];
+      GetModuleFileName(NULL, appDir, MAX_PATH);
+      int x=strlen(appDir)-1;
+      while (x>0 && appDir[x] != '\\') x--;
+      if (x>0) appDir[x+1]=0;
 
-         nsCOMPtr<nsIFile> profileDir;
-         rv = NS_GetSpecialDirectory(NS_APP_USER_PROFILE_50_DIR, getter_AddRefs(profileDir));
-         NS_ASSERTION(profileDir, "NS_APP_USER_PROFILE_50_DIR is not defined");
+      
 
-         if (NS_SUCCEEDED(rv)){
+      nsCOMPtr<nsIFile> nsProfileDir;
+      rv = NS_GetSpecialDirectory(NS_APP_USER_PROFILE_50_DIR, getter_AddRefs(nsProfileDir));
+      NS_ASSERTION(nsProfileDir, "NS_APP_USER_PROFILE_50_DIR is not defined");
+      
+      if (NS_SUCCEEDED(rv)){         
+         nsCAutoString pathBuf;
+         rv = nsProfileDir->GetNativePath(pathBuf);
+         profileDir = pathBuf.get();
 
-            nsCAutoString pathBuf;
-            rv = profileDir->GetNativePath(pathBuf);
-            settingsDir = pathBuf.get();
-         }
+         if (profileDir.Right(1) != '\\')
+            profileDir += '\\';
       }
-      if (settingsDir[settingsDir.GetLength() - 1] != '\\')
+      else
+         profileDir = appDir;
+
+
+
+      if (settingsDir.IsEmpty())
+         settingsDir = profileDir;
+      else if (settingsDir.Right(1) != '\\')
          settingsDir += '\\';
 
 
       if (skinsDir.IsEmpty()) {
-         char buf[MAX_PATH];
-         GetModuleFileName(NULL, buf, MAX_PATH);
-         int x=strlen(buf)-1;
-         while (x>0 && buf[x] != '\\') x--;
-         if (x>0) buf[x+1]=0;
-         strcat (buf, "skins\\");
-         skinsDir = buf;         // skins dir = path to kmeleon.exe + "skins\"
+         skinsDir = appDir;
+         skinsDir += "skins\\";
       }
+      else if (skinsDir.Right(1) != "\\")
+         skinsDir += "\\";
 
       if (skinsCurrent.IsEmpty())
-         skinsCurrent = "Default\\";
-
-      if (skinsDir.Right(1) != "\\")
-         skinsDir += "\\";
-     
-      if (skinsCurrent.Right(1) != "\\")
+         skinsCurrent = "Default\\";     
+      else if (skinsCurrent.Right(1) != "\\")
          skinsCurrent += "\\";
 
-
       if (pluginsDir.IsEmpty()) {
-         char buf[MAX_PATH];
-         GetModuleFileName(NULL, buf, MAX_PATH);
-         int x=strlen(buf)-1;
-         while (x>0 && buf[x] != '\\') x--;
-         if (x>0) buf[x+1]=0;
-         strcat (buf, "kplugins\\");
-         pluginsDir = buf;         // plugins dir = path to kmeleon.exe + "kplugins\"
+         pluginsDir = appDir;
+         pluginsDir += "kplugins\\";
       }
       else if (pluginsDir[pluginsDir.GetLength() - 1] != '\\')
          pluginsDir += '\\';

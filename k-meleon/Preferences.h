@@ -50,6 +50,7 @@ public:
    CString saveDir;
    CString settingsDir;
    CString pluginsDir;
+   CString profileDir;
 
    CString skinsDir;
    CString skinsCurrent;

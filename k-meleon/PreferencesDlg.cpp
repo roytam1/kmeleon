@@ -443,7 +443,7 @@ BOOL CPreferencePageConfigs::OnInitDialog(){
 
    AddTab("Menus", theApp.preferences.settingsDir + "menus.cfg", "");
    AddTab("Accelerators", theApp.preferences.settingsDir + "accel.cfg", "");
-   AddTab("Prefs", theApp.preferences.settingsDir + "prefs.js", "");
+   AddTab("Prefs", theApp.preferences.profileDir + "prefs.js", "");
 
    configFileType pluginConfigFiles[10];
    int numConfigFiles = theApp.plugins.GetConfigFiles(pluginConfigFiles, 10);
