@@ -102,6 +102,10 @@ void CPlugins::OnCreate(HWND wnd){
 void NavigateTo(char *url, int windowState){
    CBrowserFrame *mainFrame = theApp.m_pMostRecentBrowserFrame;
 
+   if (!mainFrame){
+      return;
+   }
+
    switch(windowState) {
    case OPEN_NORMAL:
       mainFrame->m_wndBrowserView.OpenURL(url);
