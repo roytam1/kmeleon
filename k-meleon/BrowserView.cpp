@@ -990,8 +990,8 @@ void CBrowserView::OnFilePrint()
 
 void CBrowserView::OnUpdateViewStatusBar(CCmdUI* pCmdUI)
 {
-   CWnd *Status = mpBrowserFrame->FindWindow(STATUSCLASSNAME, NULL);
-   pCmdUI->SetCheck(Status->IsWindowVisible());
+    HWND hWndStatus = FindWindowEx(GetParent()->GetSafeHwnd(), NULL, STATUSCLASSNAME, NULL);
+    pCmdUI->SetCheck(::IsWindowVisible(hWndStatus));
 }
 
 
@@ -1013,7 +1013,7 @@ void CBrowserView::OnFilePrintPreview()
             return;
       }
       if (!m_InPrintPreview) {
-         if (NS_SUCCEEDED(print->PrintPreview(m_PrintSettings, nsnull, nsnull)))
+         if (NS_SUCCEEDED(print->PrintPreview(m_PrintSettings)))
             m_InPrintPreview = TRUE;
       }
       else {
