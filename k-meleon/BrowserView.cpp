@@ -1092,15 +1092,11 @@ void CBrowserView::OnFilePrintPreview()
    }
 }
 
-static float GetFloatFromStr(const char* aStr, float aMaxVal = 1.0)             
+static float GetFloatFromStr(const char* aStr)
 {                                                                               
    float val;                                                                    
    sscanf(aStr, "%f", &val);                                                     
-   if (val <= aMaxVal) {                                                         
-      return val;                                                                 
-   } else {                                                                      
-      return 0.5;                                                                 
-   }                                                                             
+   return val;                                                                 
 }
 
 static PRUnichar* GetUnicodeFromCString(const CString& aStr)
@@ -1119,10 +1115,10 @@ BOOL CBrowserView::GetPrintSettings() {
    if (NS_FAILED(print->GetGlobalPrintSettings(getter_AddRefs(m_PrintSettings))))
       return FALSE;
 
-   m_PrintSettings->SetMarginTop(GetFloatFromStr(theApp.preferences.printMarginTop, 10));
-   m_PrintSettings->SetMarginLeft(GetFloatFromStr(theApp.preferences.printMarginLeft, 10));
-   m_PrintSettings->SetMarginRight(GetFloatFromStr(theApp.preferences.printMarginRight, 10));
-   m_PrintSettings->SetMarginBottom(GetFloatFromStr(theApp.preferences.printMarginBottom, 10));
+   m_PrintSettings->SetMarginTop(GetFloatFromStr(theApp.preferences.printMarginTop));
+   m_PrintSettings->SetMarginLeft(GetFloatFromStr(theApp.preferences.printMarginLeft));
+   m_PrintSettings->SetMarginRight(GetFloatFromStr(theApp.preferences.printMarginRight));
+   m_PrintSettings->SetMarginBottom(GetFloatFromStr(theApp.preferences.printMarginBottom));
 
    m_PrintSettings->SetScaling(double(theApp.preferences.printScaling) / 100.0);
    m_PrintSettings->SetPrintBGColors(theApp.preferences.printBGColors);
@@ -1130,8 +1126,8 @@ BOOL CBrowserView::GetPrintSettings() {
       
    m_PrintSettings->SetPaperSizeType(theApp.preferences.printUnit);
 
-   m_PrintSettings->SetPaperWidth(GetFloatFromStr(theApp.preferences.printWidth, 100));
-   m_PrintSettings->SetPaperHeight(GetFloatFromStr(theApp.preferences.printHeight, 100));
+   m_PrintSettings->SetPaperWidth(GetFloatFromStr(theApp.preferences.printWidth));
+   m_PrintSettings->SetPaperHeight(GetFloatFromStr(theApp.preferences.printHeight));
       
 
    PRUnichar* uStr;
@@ -1184,10 +1180,10 @@ void CBrowserView::OnFilePrintSetup()
       theApp.preferences.printMarginRight = dlg.m_RightMargin;
       theApp.preferences.printMarginBottom = dlg.m_BottomMargin;
 
-      m_PrintSettings->SetMarginTop(GetFloatFromStr(theApp.preferences.printMarginTop, 10));
-      m_PrintSettings->SetMarginLeft(GetFloatFromStr(theApp.preferences.printMarginLeft, 10));
-      m_PrintSettings->SetMarginRight(GetFloatFromStr(theApp.preferences.printMarginRight, 10));
-      m_PrintSettings->SetMarginBottom(GetFloatFromStr(theApp.preferences.printMarginBottom, 10));
+      m_PrintSettings->SetMarginTop(GetFloatFromStr(theApp.preferences.printMarginTop));
+      m_PrintSettings->SetMarginLeft(GetFloatFromStr(theApp.preferences.printMarginLeft));
+      m_PrintSettings->SetMarginRight(GetFloatFromStr(theApp.preferences.printMarginRight));
+      m_PrintSettings->SetMarginBottom(GetFloatFromStr(theApp.preferences.printMarginBottom));
 
 
       theApp.preferences.printScaling = dlg.m_Scaling;
@@ -1310,8 +1306,13 @@ void CBrowserView::ChangeTextSize(PRInt32 change)
    float textzoom;
    domWindow->GetTextZoom(&textzoom);
    textzoom += ((float)change) / 10;
-   if (textzoom > 0 && textzoom <= 20)
-      domWindow->SetTextZoom(textzoom);  
+   if (textzoom > 0 && textzoom <= 4) {
+      domWindow->SetTextZoom(textzoom);
+
+      char szStatus[128];
+      sprintf(szStatus, "Text Zoom: %.0f", textzoom*10);
+      mpBrowserFrame->m_wndStatusBar.SetPaneText(0, szStatus);
+   }
 }
 
 

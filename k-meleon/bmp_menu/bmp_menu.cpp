@@ -111,12 +111,16 @@ BOOL  gbDrawn = TRUE;      // after the menu is drawn, we should reset iMaxText 
 BOOL  gbMeasureAccel = TRUE; // win98 workaround - win98 automatically adjusts measuremenuitem for the width of the accel
 
 
-// look for filename first in the skinsDir, then in the settingsDir
-// check for the filename in skinsDir, and copy the path into szSkinFile
-// if it's not there, just assume it's in settingsDir, and copy that path
+// look for filename first in the settingsDir,
+// then skinsDir\CurrentSkin,
+// then skinsDir\default
+// if it's not anywhere, return settingsDir
 
 void FindSkinFile( char *szSkinFile, char *filename ) {
 
+   WIN32_FIND_DATA FindData;
+   HANDLE hFile;
+   
    char szTmpSkinDir[MAX_PATH];
    char szTmpSkinName[MAX_PATH];
    char szTmpSkinFile[MAX_PATH] = "";
@@ -124,25 +128,54 @@ void FindSkinFile( char *szSkinFile, char *filename ) {
    if (!szSkinFile || !filename || !*filename)
       return;
 
+   // check for the file in the settingsDir
+   kPlugin.kFuncs->GetPreference(PREF_STRING, "kmeleon.general.settingsDir", szTmpSkinFile, (char*)"");
+   if (*szTmpSkinFile) {
+      strcat(szTmpSkinFile, filename);
+
+      hFile = FindFirstFile(szTmpSkinFile, &FindData);
+      if(hFile != INVALID_HANDLE_VALUE) {   
+         FindClose(hFile);
+         strcpy( szSkinFile, szTmpSkinFile );
+         return;
+      }
+   }
+   
+
+   // it wasn't in settingsDir, check the current skin   
+
    kPlugin.kFuncs->GetPreference(PREF_STRING, "kmeleon.general.skinsDir", szTmpSkinDir, (char*)"");
    kPlugin.kFuncs->GetPreference(PREF_STRING, "kmeleon.general.skinsCurrent", szTmpSkinName, (char*)"");
 
    if (*szTmpSkinDir && *szTmpSkinName) {
+
+      int len = strlen(szTmpSkinDir);
+      if (szTmpSkinDir[len-1] != '\\')
+         strcat(szTmpSkinDir, "\\");
+
+      len = strlen(szTmpSkinName);
+      if (szTmpSkinName[len-1] != '\\')
+         strcat(szTmpSkinName, "\\");
+
       strcpy(szTmpSkinFile, szTmpSkinDir);
-
-      int len = strlen(szTmpSkinFile);
-      if (szTmpSkinFile[len-1] != '\\')
-         strcat(szTmpSkinFile, "\\");
-
       strcat(szTmpSkinFile, szTmpSkinName);
-      len = strlen(szTmpSkinFile);
-      if (szTmpSkinFile[len-1] != '\\')
-         strcat(szTmpSkinFile, "\\");
-
       strcat(szTmpSkinFile, filename);
-      WIN32_FIND_DATA FindData;
 
-      HANDLE hFile = FindFirstFile(szTmpSkinFile, &FindData);
+      hFile = FindFirstFile(szTmpSkinFile, &FindData);
+      if(hFile != INVALID_HANDLE_VALUE) {   
+         FindClose(hFile);
+         strcpy( szSkinFile, szTmpSkinFile );
+         return;
+      }
+
+
+      // it wasn't in the current skin directory, check the default
+
+      strcpy(szTmpSkinFile, szTmpSkinDir);
+      strcat(szTmpSkinFile, "default\\");
+      strcat(szTmpSkinFile, filename);
+
+      hFile = FindFirstFile(szTmpSkinFile, &FindData);
       if(hFile != INVALID_HANDLE_VALUE) {   
          FindClose(hFile);
          strcpy( szSkinFile, szTmpSkinFile );
@@ -150,7 +183,7 @@ void FindSkinFile( char *szSkinFile, char *filename ) {
       }
    }
 
-   // it wasn't in the skinsDir, assume settingsDir
+   // it wasn't anywhere, return the path to the settingsDir, in case the file is being created
    kPlugin.kFuncs->GetPreference(PREF_STRING, "kmeleon.general.settingsDir", szSkinFile, (char*)"");
    if (! *szSkinFile)      // no settingsDir, bad
       strcpy(szSkinFile, filename);
