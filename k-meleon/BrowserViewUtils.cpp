@@ -382,5 +382,5 @@ void CBrowserView::ShowSecurityInfo()
 
       return;
    }                                                                           
-   ::MessageBox(hParent, "To Be Continued.", "K-Meleon", MB_OK);
+   ::MessageBox(hParent, "This page has been transferred over a secure connection.", "K-Meleon", MB_OK);
 }
