@@ -223,6 +223,10 @@ SOURCE=.\StdAfx.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\version.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\winEmbedFileLocProvider.h
 # End Source File
 # End Group
@@ -268,10 +272,6 @@ SOURCE=.\res\Cursor_17.cur
 # Begin Source File
 
 SOURCE=.\res\Cursor_27.cur
-# End Source File
-# Begin Source File
-
-SOURCE=.\res\mfcembed.ico
 # End Source File
 # Begin Source File
 
