@@ -46,6 +46,7 @@ private:
 	CBrowserView* m_pOwner;
 
 protected:
+   virtual void OnCancel();
 	virtual BOOL OnInitDialog();
 	virtual void PostNcDestroy();
 };

@@ -44,8 +44,9 @@ CFindDialog::CFindDialog(CString& csSearchStr, PRBool bMatchCase,
 {
 	// Save these initial settings off in member vars
 	// We'll use these to initialize the controls
-	// in InitDialog()
-	m_csSearchStr = csSearchStr;
+	// in InitDialog()     
+   
+   m_csSearchStr = csSearchStr;
 	m_bMatchCase = bMatchCase;
 	m_bMatchWholeWord = bMatchWholeWord;
 	m_bWrapAround = bWrapAround;
@@ -63,7 +64,14 @@ BOOL CFindDialog::OnInitDialog()
 {
 	CFindReplaceDialog::OnInitDialog();
 
-	CEdit* pEdit = (CEdit *)GetDlgItem(IDC_FIND_EDIT);
+
+   // -- Find settings
+   m_bMatchCase = theApp.preferences.bFindMatchCase;
+   m_bSearchBackwards = theApp.preferences.bFindSearchBackwards;
+   m_bWrapAround = theApp.preferences.bFindWrapAround;  
+
+
+   CEdit* pEdit = (CEdit *)GetDlgItem(IDC_FIND_EDIT);
 	if(pEdit)
 		pEdit->SetWindowText(m_csSearchStr);
 
@@ -86,9 +94,28 @@ BOOL CFindDialog::OnInitDialog()
 	return TRUE; 
 }
 
+void CFindDialog::OnCancel() {
+
+	CButton* pChk = (CButton *)GetDlgItem(IDC_MATCH_CASE);
+	if(pChk)
+		theApp.preferences.bFindMatchCase = pChk->GetCheck();
+
+	pChk = (CButton *)GetDlgItem(IDC_WRAP_AROUND);	
+	if(pChk)
+		theApp.preferences.bFindWrapAround = pChk->GetCheck();
+	
+	pChk = (CButton *)GetDlgItem(IDC_SEARCH_BACKWARDS);
+	if(pChk)
+		theApp.preferences.bFindSearchBackwards = pChk->GetCheck();
+
+	CFindReplaceDialog::OnCancel();
+
+}
+
 void CFindDialog::PostNcDestroy()	
 {
-	// Let the owner know we're gone
+  
+   // Let the owner know we're gone
 	if(m_pOwner != NULL)	
 		m_pOwner->ClearFindDialog();
 
