@@ -125,7 +125,7 @@ kmeleonDocInfo * GetDocInfo(HWND mainWnd) {
    char *url;
    int len = frame->m_wndBrowserView.GetCurrentURI(NULL);
    if (len) {
-      char *url = new char[len+1];
+      url = new char[len+1];
       frame->m_wndBrowserView.GetCurrentURI(url);
    }
    else
