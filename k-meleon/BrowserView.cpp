@@ -113,8 +113,10 @@ BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
 	ON_UPDATE_COMMAND_UI(ID_EDIT_PASTE, OnUpdatePaste)
 	ON_WM_ACTIVATE()
 	//}}AFX_MSG_MAP
-END_MESSAGE_MAP()
 
+	ON_COMMAND_RANGE(ID_GO_HISTORY, ID_GO_HISTORY+20, OnGoHistory)
+	
+END_MESSAGE_MAP()
 
 CBrowserView::CBrowserView()
 {
@@ -449,6 +451,14 @@ void CBrowserView::OnTBLButtonHold(DWORD buttonID, DWORD unused) {
 			CreateForwardMenu(TPM_LEFTBUTTON);
 			break;
 	}
+}
+
+void CBrowserView::OnGoHistory(UINT nID) {
+
+	CBrowserFrame	*mainFrame		= (CBrowserFrame *) theApp.m_pMainWnd->GetActiveWindow();
+
+	if(mainFrame->m_wndBrowserView.mWebNav)
+		mainFrame->m_wndBrowserView.mWebNav->GotoIndex(nID-ID_GO_HISTORY);
 }
 
 // end Jeff Doozan
@@ -1029,7 +1039,7 @@ BOOL CBrowserView::PreTranslateMessage(MSG* pMsg) {
 
 void CBrowserView::CreateBackMenu (UINT button) {
 	int index, count, i;
-	char **titles;
+	char **titles, buf[47];
 
 	if (!MozillaSessionHistory (&titles, &count, &index)) {
 		return;
@@ -1042,14 +1052,16 @@ void CBrowserView::CreateBackMenu (UINT button) {
 	menu.CreateMenu();
 	submenu.CreatePopupMenu();
 
-	for (i = index - 1; i >= 0; i--)
-		submenu.AppendMenu(MF_STRING, i+1, titles[i]);
+	int x=0;
+	for (i = index - 1; i >= 0; i--) {
+		CondenseMenuText(buf, titles[i], x++);
+		submenu.AppendMenu(MF_STRING, i+1, buf);
+	}
 
 	CRect rc;
 	WPARAM ButtonID = mainFrame->m_wndToolBar.CommandToIndex(ID_NAV_BACK);
 	mainFrame->m_wndToolBar.GetItemRect(ButtonID, &rc);
 	mainFrame->m_wndToolBar.ClientToScreen(&rc);
-//	DWORD SelectionMade = submenu.TrackPopupMenu( TPM_LEFTALIGN | TPM_LEFTBUTTON | TPM_RIGHTBUTTON | TPM_NONOTIFY | TPM_RETURNCMD, rc.left, rc.bottom, this, &rc);
 	DWORD SelectionMade = submenu.TrackPopupMenu( TPM_LEFTALIGN | button | TPM_NONOTIFY | TPM_RETURNCMD, rc.left, rc.bottom, this, &rc);
 
 	submenu.Detach();
@@ -1068,7 +1080,7 @@ void CBrowserView::CreateBackMenu (UINT button) {
 
 void CBrowserView::CreateForwardMenu (UINT button) {
 	int index, count, i;
-	char **titles;
+	char **titles, buf[47];
 	CBrowserFrame	*mainFrame		= (CBrowserFrame *) theApp.m_pMainWnd->GetActiveWindow();
 
 	if (!MozillaSessionHistory (&titles, &count, &index)) {
@@ -1080,14 +1092,16 @@ void CBrowserView::CreateForwardMenu (UINT button) {
 	menu.CreateMenu();
 	submenu.CreatePopupMenu();
 
-	for (i = index + 1; i < count; i++)
-		submenu.AppendMenu(MF_STRING, i+1, titles[i]);
+	int x=0;
+	for (i = index + 1; i < count; i++) {
+		CondenseMenuText(buf, titles[i], x++);
+		submenu.AppendMenu(MF_STRING, i+1, buf);
+	}
 
 	CRect rc;
 	WPARAM ButtonID = mainFrame->m_wndToolBar.CommandToIndex(ID_NAV_FORWARD);
 	mainFrame->m_wndToolBar.GetItemRect(ButtonID, &rc);
 	mainFrame->m_wndToolBar.ClientToScreen(&rc);
-//	DWORD SelectionMade = submenu.TrackPopupMenu( TPM_LEFTALIGN | TPM_LEFTBUTTON | TPM_RIGHTBUTTON | TPM_NONOTIFY | TPM_RETURNCMD, rc.left, rc.bottom, this, &rc);
 	DWORD SelectionMade = submenu.TrackPopupMenu( TPM_LEFTALIGN | button | TPM_NONOTIFY | TPM_RETURNCMD, rc.left, rc.bottom, this, &rc);
 
 	submenu.Detach();
@@ -1143,5 +1157,62 @@ int CBrowserView::MozillaSessionHistory (char **titles[], int *count, int *index
 	return TRUE;
 }
 
+void CBrowserView::UpdateGoMenu () {
+	int index, count, i;
+	char **titles;
+	char buf[47];  //  3 spaces for "&# " 20 for beginning of title 3 for "..." 20 for end of title
 
+	CBrowserFrame	*mainFrame = (CBrowserFrame *) theApp.m_pMainWnd->GetActiveWindow();
+	CMenu *pTopMenu = mainFrame->GetMenu(), *pGoMenu =0; // top menu handler 
+
+	if (!pTopMenu)
+		return;
+
+	// find the "Go" submenu (or, at least, the first submenu with ID_NAV_BACK in pos 0)
+	// since menus are easily changeable via menus.cfg, this may lead to the history
+	// being appended to the wrong menu, or not being appended at all....
+	for (i = 0; i < (int) pTopMenu->GetMenuItemCount(); i++) { 
+		MENUITEMINFO mi;
+		char buf[129];
+		mi.cbSize = sizeof(MENUITEMINFO);
+		mi.fMask = MIIM_TYPE;
+		mi.dwTypeData=buf;
+		mi.cch=128;
+
+		if (pTopMenu->GetMenuItemInfo(i, &mi, TRUE))
+			if (strcmp( (char *) mi.dwTypeData, "&Go") == 0)
+				pGoMenu = pTopMenu->GetSubMenu(i);
+	}
+
+	if (!pGoMenu)
+		return;
+
+	// Clear the existing history menu 
+	count = pGoMenu->GetMenuItemCount()-1;
+	i = count;
+	while (i && (pGoMenu->GetMenuItemID(i) >= ID_GO_HISTORY)) {
+		pGoMenu->DeleteMenu(i, MF_BYPOSITION); 
+		i--;
+	}
+
+	if (i == count)  // if we didn't delete any menus, then we haven't modified this menu before
+		pGoMenu->AppendMenu(MF_SEPARATOR, NULL, "");  // add a separator
+
+
+	// Add the local history to the menu
+	if (!MozillaSessionHistory (&titles, &count, &index)) {
+		return;
+	}
+	for (i=count-1;i>=0;i--) {
+
+		CondenseMenuText(buf, titles[i], (count-1 - i) );
+
+		if (i == index)
+			pGoMenu->AppendMenu(MF_ENABLED | MF_STRING | MF_CHECKED, ID_GO_HISTORY+i, buf);
+		else
+			pGoMenu->AppendMenu(MF_ENABLED | MF_STRING, ID_GO_HISTORY+i, buf);
+	}
+
+	FreeStringArray (titles, count);	
+}
 // end Jeff Doozan

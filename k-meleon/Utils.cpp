@@ -57,3 +57,24 @@ void FreeStringArray(char *array[], int size) {
 		delete (array[i]);
 	delete (array);
 }
+
+void CondenseMenuText(char *buf, char *title, int index) {
+	int len;
+
+	if ( (index >= 0) && (index <10) ) {
+		buf[0] = '&';
+		buf[1] = index +48; // convert int to ascii
+		buf[2] = ' ';
+	}
+	else
+		memcpy(buf, "   ", 3);
+
+	len = strlen(title);
+	if (len > 43)  {
+		memcpy(buf+3, title, 20);
+		memcpy(buf+23, "...", 3);
+		strcpy(buf+26, title+len-21);
+	}
+	else
+		strcpy(buf+3, title);
+}

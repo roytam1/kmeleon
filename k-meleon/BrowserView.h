@@ -74,6 +74,7 @@ public:
 	void CreateBackMenu (UINT button);
 	void CreateForwardMenu (UINT button);
 	int MozillaSessionHistory(char **titles[], int *count, int *index);
+	void UpdateGoMenu ();
 
 	// Pointer to the object which implements
 	// the inerfaces required by Mozilla embedders
@@ -157,6 +158,7 @@ protected:
 	afx_msg void OnUpdateCopy(CCmdUI* pCmdUI);
 	afx_msg void OnUpdatePaste(CCmdUI* pCmdUI);
 	//}}AFX_MSG
+	void OnGoHistory(UINT nID);
 	DECLARE_MESSAGE_MAP()
 };
 

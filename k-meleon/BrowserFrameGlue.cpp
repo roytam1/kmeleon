@@ -101,6 +101,9 @@ void CBrowserFrame::BrowserFrameGlueObj::UpdateCurrentURI(nsIURI *aLocation)
 
 		pThis->m_wndUrlBar.SetCurrentURL(uriString.get());
 	}
+
+
+	pThis->m_wndBrowserView.UpdateGoMenu();
 }
 
 void CBrowserFrame::BrowserFrameGlueObj::GetBrowserFrameTitle(PRUnichar **aTitle)
