@@ -16,15 +16,16 @@ InstType Standard
 Section "K-Meleon (required)"
 
 # delete previous kmeleon instances
-# First trying to shut down running instances, the Window class is called: ?Mozilla:DNSWindowClass? Need to change that
-#FindWindow "close" "Mozilla:DNSWindowClass" ""
+# First trying to shut down running instances, the Window class is called: Afx:400000:0
+# but a couple of other programs use that, so we'll leave it for now
+#FindWindow "close" "Afx:400000:0" ""
 
 SetOutPath $INSTDIR
 File k-meleon.exe
 File *.dll
-# next line needs to be changed to *.cfg when menus.txt is renamed
-File menus.txt
+File *.cfg
 File ReadMe.txt
+
 
 SetOutPath $INSTDIR\chrome
 File chrome\*
@@ -49,16 +50,17 @@ CreateShortCut "$QUICKLAUNCH\K-Meleon.lnk" "$INSTDIR\K-Meleon.exe" "" "" 0
 Section -PostInstall
 WriteRegStr HKEY_LOCAL_MACHINE "Software\Microsoft\Windows\CurrentVersion\Uninstall\K-Meleon" "DisplayName" "K-Meleon (remove only)"
 WriteRegStr HKEY_LOCAL_MACHINE "Software\Microsoft\Windows\CurrentVersion\Uninstall\K-Meleon" "UninstallString" '"$INSTDIR\Uninstall.exe"'
-Exec '"$WINDIR\notepad.exe" "$INSTDIR\ReadMe.txt"'
-;Exec '"$INSTDIR\K-Meleon.exe" "$INSTDIR\ReadMe.txt"'
+;Exec '"$WINDIR\notepad.exe" "$INSTDIR\ReadMe.txt"'
+Exec '"$INSTDIR\K-Meleon.exe" "$INSTDIR\ReadMe.txt"'
 
 
 #------------------------------------
 # Uninstall part begins here:
 Section Uninstall
 
-# First trying to shut down running instances, the Window class is called: ?Mozilla:DNSWindowClass? Need to change that!
-;FindWindow "close" "Mozilla:DNSWindowClass" ""
+# First trying to shut down running instances, the Window class is called: Afx:400000:0
+# but a couple of other programs use that, so we'll leave it for now
+;FindWindow "close" "Afx:400000:0" ""
 # delete all registry entries that Kmeleon does on install
 DeleteRegKey HKEY_CURRENT_USER "Software\K-Meleon"
 

@@ -27,6 +27,23 @@ K-Meleon is released under the GNU Private License.
 
 ChangeLog:
 ----------
+v0.3 (02/13/01)
+ - CTRL-N is not assignable as Accelerator key (Open in New Window now)
+ - Plugin support for menus/toolbars
+ - Scriptable menus & shortcuts
+ - preferences dialog
+ - replaced BCG Library by using Mozilla's new MFC-Embed code
+ - closing first-window doesn't quit K-Meleon now
+ - Allow basic authentication
+ - Save images, download files with right mouse click
+ - Add view source menu entry to show the html source
+ - Uninstall works now, providing correct uninstall.exe now
+ - percentage of document loaded sometimes wrong (>100%)
+ - Several Kmeleon0.21 crashes which are already fixed in the nightlies
+ - first cut at general plugin introduction
+ - Save html of a page only
+ - Save complete page incl. images into a directory
+ - takes URL as command line option
 
 v0.2.1 (11/27/00): Compiled with Mozilla M18 Nightly build (11/26/00)
 - fixed mouse wheel crashing bug (duh).
