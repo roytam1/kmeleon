@@ -563,7 +563,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
    if (message == WM_MEASUREITEM) {
       MEASUREITEMSTRUCT *mis = (MEASUREITEMSTRUCT *)lParam;
       MenuDataT * mdt = (MenuDataT *)mis->itemData;
-      if (mis->CtlType == ODT_MENU && mdt->version == BMP_MENU_VERSION) {
+     if (mis->CtlType == ODT_MENU && mdt && mdt->version == BMP_MENU_VERSION) {
          HDC hDC = GetWindowDC(hWnd);
          MeasureMenuItem(mis, hDC);
          ReleaseDC(hWnd, hDC);
@@ -573,7 +573,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
    else if (message == WM_DRAWITEM){
       DRAWITEMSTRUCT *dis = (DRAWITEMSTRUCT *)lParam;
       MenuDataT * mdt = (MenuDataT *)dis->itemData;
-      if (dis->CtlType == ODT_MENU && mdt->version == BMP_MENU_VERSION){
+      if (dis->CtlType == ODT_MENU && mdt && mdt->version == BMP_MENU_VERSION){
          DrawMenuItem(dis);
          return true;
       }
