@@ -35,7 +35,7 @@ CAboutDlg::CAboutDlg(CWnd *wndParent) : CDialog(CAboutDlg::IDD, wndParent)
       Based on MfcEmbed\r\n
       \r\n
       Core Developers:\r\n
-      Jeff Doozan <jeff@tcbnetworks.com>\r\n
+      Jeff Doozan <jeff@tcbmi.com>\r\n
       Brian Harris <binaryc@teamreaction.com>\r\n
       Mark Liffiton <liffiton@simons-rock.edu>\r\n
       \r\n
