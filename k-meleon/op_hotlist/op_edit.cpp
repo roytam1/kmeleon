@@ -30,6 +30,11 @@
 
 #include "../Utils.h"
 
+#define VK_OEM_MINUS 0xBD
+#define VK_OEM_PERIOD 0xBE
+#define VK_MINUS VK_OEM_MINUS
+#define VK_PERIOD VK_OEM_PERIOD
+
 extern kmeleonPlugin kPlugin;
 extern void * KMeleonWndProc;
 
@@ -103,6 +108,7 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
    }
 
    BOOL fEatKeystroke = false;
+   BOOL fakedKey = false;
    HWND hasFocus = GetFocus();
    HWND hTree = GetDlgItem(hEditWnd, IDC_TREE_HOTLIST);
 
@@ -182,8 +188,11 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
             {
                if (len > 0) {
                   wParam = str[len-1];
-                  lParam = 0;
-                  goto tab_expand;
+		  wParam = toupper(wParam);
+		  if (wParam == '-') wParam = VK_MINUS;
+		  if (wParam == '.') wParam = VK_PERIOD; 
+                  fakedKey = true;
+                  goto search_again;
                }
                int idc_next = IDC_NAME;
                fEatKeystroke = true;
@@ -193,8 +202,12 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
                   idc_next = IDCANCEL;
                   SendMessage(GetDlgItem(hEditWnd, idc_next), BM_SETSTYLE, BS_DEFPUSHBUTTON, TRUE);
                }
+	       else if (!IsWindowEnabled(GetDlgItem(hEditWnd, IDC_NAME))) {
+                  idc_next = IDOK;
+                  SendMessage(GetDlgItem(hEditWnd, idc_next), BM_SETSTYLE, BS_DEFPUSHBUTTON, TRUE);
+	       }
                SetFocus(GetDlgItem(hEditWnd, idc_next));
-               if (idc_next != IDCANCEL)
+               if (idc_next == IDC_NAME)
                   SendDlgItemMessage(hEditWnd, idc_next, EM_SETSEL, 0, -1);  // select all
             }
             break;
@@ -249,44 +262,75 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
                   case 'X':
                      // Ctrl X == Cut
                      DeleteItem(hTree, hItem, CUT);
+		     fEatKeystroke = true;
                      break;
                   case 'C':
                      // Ctrl C == Copy
                      CopyItem(hTree, hItem);
+		     fEatKeystroke = true;
                      break;
                   case 'V':
                      // Ctrl V == Paste
                      if (freeNode)
                         CreateNewObject(hTree, hItem, freeNode->type, PASTE);
+		     fEatKeystroke = true;
                      break;
                   case 'G':
                      if (len > 0) {
                         wParam = str[len-1];
-                        lParam = 0;
-                        goto tab_expand;
+                        wParam = toupper(wParam);
+			if (wParam == '-') wParam = VK_MINUS;
+			if (wParam == '.') wParam = VK_PERIOD; 
+                        fakedKey = true;
+                        goto search_again;
                      }
                      break;
                   }
                   break;
                }
-               if (GetKeyState(VK_MENU) & 0x80) {
+               else if (GetKeyState(VK_MENU) & 0x80) {
                   break;
                }
+	       else {
+                  switch (wParam) {
+                  case VK_F3:
+                     if (len > 0) {
+                        wParam = str[len-1];
+                        wParam = toupper(wParam);
+			if (wParam == '-') wParam = VK_MINUS;
+			if (wParam == '.') wParam = VK_PERIOD; 
+                        fakedKey = true;
+                        goto search_again;
+                     }
+                     break;
+                  }
+	       }
 
-            tab_expand:
                if (wParam == VK_BACK && len > 0) {
                   circling = 0;
                   len--;
                }
-               else if ( (lParam & (1<<24)) == 0 && 
-                         wParam >= 32 && wParam < 127 && 
+               else if ( (wParam == ' ' || 
+                          (wParam >= '0' && wParam <= '9') || 
+                          (wParam >= 'A' && wParam <= 'Z')) && 
                          len < (SEARCH_LEN-1) ) {
                   str[len] = tolower(wParam);
+                  len++;
+               }
+               else if ( (wParam == VK_MINUS) && 
+                         len < (SEARCH_LEN-1) ) {
+                  str[len] = '-';
+                  len++;
+               }
+               else if ( wParam == VK_PERIOD && 
+                         len < (SEARCH_LEN-1) ) {
+                  str[len] = '.';
                   len++;
                }
                else
                   break;
 
+            search_again:
                fEatKeystroke = true;
                searching = 1;
                str[len] = 0;
@@ -297,7 +341,7 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
                   int firstpos = -1;
                   int searchfrom = pos;
 
-                  if (len == 1) {
+                  if (len == 1 && !fakedKey) {
                      HTREEITEM hItem = TreeView_GetSelection(hTree);
                      node = GetBookmarkNode(hTree, hItem);
                      if (workingBookmarks.Index(searchfrom, node) == -1)
@@ -308,17 +352,18 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
 
                   int newpos = workingBookmarks.Search(str, searchfrom, mypos, firstpos, &node);
 
-                  if (newpos == -1 || 
+                  if (fakedKey || newpos == -1 || 
                       (circling && len > 1 && str[len-1] == str[len-2])) {
-                     if (len > 1 && str[len-1] == str[len-2])
+                     if (fakedKey || (len > 1 && str[len-1] == str[len-2]))
                         searchfrom++;
-                     len--;
+                     if (!fakedKey)
+                       len--;
                      str[len] = 0;
                      mypos = 0;
                      firstpos = -1;
                      if (len > 0) {
                         newpos = workingBookmarks.Search(str, searchfrom, mypos, firstpos, &node);
-                        if (newpos == pos || (len > 1 && str[len-1] == str[len-2])) {
+                        if (!fakedKey && (newpos == pos || (len > 1 && str[len-1] == str[len-2]))) {
                            circling = 1;
                            while (len > 1 && str[len-1] == str[len-2])
                               len--;

@@ -37,6 +37,7 @@ void quicksort(char *a, size_t n, size_t es, cmp_t *cmp, unsigned int flag);
 #define IDD_CONFIG                      101
 #define IDD_INSTALL                     102
 #define IDD_EDIT_HOTLIST		103
+#define IDD_SMARTBOOKMARK               104
 #define IDR_CONTEXTMENU                 159
 #define IDC_DRAG_CURSOR                 160
 
@@ -67,6 +68,8 @@ void quicksort(char *a, size_t n, size_t es, cmp_t *cmp, unsigned int flag);
 #define IDC_SORTORDER_ZA		1024
 #define IDC_FOLDERFIRST			1025
 #define IDC_USEORDER			1026
+#define IDC_INPUT			1027
+#define IDC_SEARCHTEXT			1028
 
 #define ID__BOOKMARK_DELETE             32791
 #define ID__SET_TOOLBAR_FOLDER          32792

@@ -107,15 +107,24 @@ BEGIN
         MENUITEM "Set as &Toolbar Folder",      ID__SETAS_TOOLBARFOLDER
         MENUITEM "Set as &New Bookmark Folder", ID__SETAS_NEWBOOKMARKFOLDER
         MENUITEM "Set as Bookmark &Menu",       ID__SETAS_BOOKMARKMENU
-#        MENUITEM SEPARATOR
-#        MENUITEM "Cu&t",                        ID__BOOKMARK_CUT
-#        MENUITEM "&Copy",                       ID__BOOKMARK_COPY
-#        MENUITEM "&Paste",                      ID__BOOKMARK_PASTE
         MENUITEM SEPARATOR
         MENUITEM "&Zoom",                       ID__ZOOM
     END
 END
 
+
 IDB_IMAGES              BITMAP  DISCARDABLE     "bitmap1.bmp"
 IDC_DRAG_CURSOR         CURSOR  DISCARDABLE     "cursor1.cur"
 IDB_ICON                ICON    DISCARDABLE     "icon1.ico"
+
+
+IDD_SMARTBOOKMARK DIALOG DISCARDABLE  0, 0, 250, 58
+STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+CAPTION "Prompt"
+FONT 8, "MS Sans Serif"
+BEGIN
+    EDITTEXT        IDC_INPUT, 7,20, 236,13, ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,130,39,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,189,39,50,14
+    LTEXT           "Search", IDC_SEARCHTEXT, 10,7, 230,13
+END

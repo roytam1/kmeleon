@@ -389,6 +389,40 @@ int addLink(char *url, char *title)
 }
 
 
+static char szInput[256];
+static char *pszTitle;
+static char *pszPrompt;
+
+BOOL CALLBACK
+PromptDlgProc( HWND hwnd,
+	      UINT Message,
+	      WPARAM wParam,
+	      LPARAM lParam )
+{
+    switch (Message) {
+      case WM_INITDIALOG:
+	SetWindowText( hwnd, pszTitle ? pszTitle : "Smart bookmark" );
+	SetDlgItemText(hwnd, IDC_SEARCHTEXT, pszPrompt ? pszPrompt : "");
+        return TRUE;
+      case WM_COMMAND:
+        switch (LOWORD(wParam)) {
+	  case IDOK:
+	    GetDlgItemText(hwnd, IDC_INPUT, szInput, 256);
+	    EndDialog( hwnd, IDOK );
+	    break;
+	  case IDCANCEL:
+	    EndDialog( hwnd, IDCANCEL );
+	    break;
+	}
+	break;
+	
+      default:
+        return FALSE;
+    }
+    return TRUE;
+}
+
+
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
    // store these in static vars so that the BeginHotTrack call can access them
    static NMTOOLBAR tbhdr;
@@ -466,8 +500,41 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
       else if (CBookmarkNode *node = gHotlistRoot.FindNode(command)) {
          node->lastVisit = time(NULL);
          gHotlistModified = true;   // this doesn't call for instant saving, it can wait until we add/edit/quit
-         kPlugin.kFuncs->NavigateTo(node->url.c_str(), OPEN_NORMAL);
-         
+
+	 if (node->url.c_str() == NULL || *node->url.c_str() == 0)
+	   return true;
+
+         char *str = strdup(node->url.c_str());
+         char *ptr = strstr(str, "%s");
+         if (ptr) {
+            char buff[INTERNET_MAX_URL_LENGTH];
+            *ptr = 0;
+            strcpy(buff, str);
+	    ptr += 2;
+
+	    pszTitle = strdup( node->text.c_str() );
+	    pszPrompt = strdup( node->desc.c_str() );
+
+	    int ok = DialogBox(kPlugin.hDllInstance,
+			       MAKEINTRESOURCE(IDD_SMARTBOOKMARK), hWnd, (DLGPROC)PromptDlgProc);
+	    PostMessage(hWnd, WM_NULL, 0, 0);
+	    if (ok == IDOK && *szInput) {
+	      strcat(buff, szInput);
+	      strcat(buff, ptr);
+	      kPlugin.kFuncs->NavigateTo(buff, OPEN_NORMAL);
+	    }
+
+	    if (pszTitle) 
+	      free(pszTitle);
+	    if (pszPrompt) 
+	      free(pszPrompt);
+
+         }
+         else {
+            kPlugin.kFuncs->NavigateTo(str, OPEN_NORMAL);
+         }
+	 free(str);
+
          return true;
       }
    }
@@ -516,6 +583,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
       else if (CBookmarkNode *node = gHotlistRoot.FindNode(LOWORD(id))) {
          kPlugin.kFuncs->SetStatusBarText((char *)node->url.c_str());
          return true;
+      }
+      else {
+         kPlugin.kFuncs->SetStatusBarText("");
       }
    }
 #if 0
