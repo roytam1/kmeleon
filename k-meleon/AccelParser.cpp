@@ -84,6 +84,7 @@ int CAccelParser::Parse(char *p)
    BYTE virt;
    int command;
    int key;
+   BOOL vkey;
 
    // <modifiers> <key> = <command>
    e = strchr(p, '=');
@@ -150,6 +151,7 @@ int CAccelParser::Parse(char *p)
       if (strncmp(p, "VK_", 3) == 0){
          p+=3;
          key = 0;
+         vkey = TRUE;
 
          // these should be in order of frequency of use to speed up parsing
          BEGIN_VK_TEST
@@ -249,11 +251,12 @@ int CAccelParser::Parse(char *p)
       else {
          // regular key...
          key = (WORD)*p;
+         vkey = FALSE;
       }
 
       accelerators[numAccelerators].cmd = command;
       accelerators[numAccelerators].fVirt = virt;
-      if ( ((key >= 'A') && (key <= 'Z')) || ((key >= 'a') && (key <= 'z')) )
+      if ( vkey || ((key >= 'A') && (key <= 'Z')) || ((key >= 'a') && (key <= 'z')) )
          accelerators[numAccelerators].key = key;
       else
          accelerators[numAccelerators].key = VkKeyScan(key);
