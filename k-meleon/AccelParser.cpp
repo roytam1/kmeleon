@@ -31,6 +31,17 @@ extern CMfcEmbedApp theApp;
 #define BEGIN_VK_TEST if (0){}
 #define VK_TEST(KEY)  else if (stricmp(p, #KEY) == 0){ key = VK_##KEY; }
 
+// a few that winuser.h doesn't have for some reason (snagged from msdn)
+#define VK_OEM_PLUS 0xBB
+#define VK_OEM_COMMA 0xBC
+#define VK_OEM_MINUS 0xBD
+#define VK_OEM_PERIOD 0xBE
+// and some more friendly definitions...
+#define VK_PLUS VK_OEM_PLUS
+#define VK_EQUALS VK_OEM_PLUS
+#define VK_MINUS VK_OEM_MINUS
+#define VK_COMMA VK_OEM_COMMA
+#define VK_PERIOD VK_OEM_PERIOD
 
 CAccelParser::CAccelParser()
 {
@@ -180,6 +191,12 @@ int CAccelParser::Parse(char *p)
             VK_TEST(SELECT)
             VK_TEST(PRINT)
             VK_TEST(SNAPSHOT) // print screen?
+
+            VK_TEST(PLUS)
+            VK_TEST(MINUS)
+            VK_TEST(COMMA)
+            VK_TEST(PERIOD)
+            VK_TEST(EQUALS)
 
             VK_TEST(BACK)
             VK_TEST(TAB)
