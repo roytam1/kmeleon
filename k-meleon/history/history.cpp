@@ -270,9 +270,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 
 	switch (message) {
 
-		
-      case WM_SETFOCUS:
-      case UWM_UPDATESESSIONHISTORY:
+
+		case WM_SETFOCUS:
+		case UWM_UPDATESESSIONHISTORY:
 			UpdateHistoryMenu(hWnd);
 			break;
 		case TB_LBUTTONHOLD:
@@ -304,6 +304,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 				return true;
 			}
 			break;
+	    case WM_MENUSELECT:
+		{
+			int command = LOWORD(wParam);
+
+			if ((command >= ID_HISTORY) && (command < ID_HISTORY+20)) {
+				char **titles;
+				int count, index;
+				if (kPlugin.kFuncs->GetMozillaSessionHistory (&titles, &count, &index)) {
+					kPlugin.kFuncs->SetStatusBarText(titles[command - ID_HISTORY]);
+					return true;
+				}
+			}
+
+			break;
+		}
 	}
 	
 	return CallWindowProc(KMeleonWndProc, hWnd, message, wParam, lParam);
