@@ -731,8 +731,10 @@ BOOL CALLBACK SearchProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 void CBrowserView::OnNavSearch()
 {
    CString search;
-   if (DialogBoxParam(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDD_SEARCH_DIALOG), m_hWnd, SearchProc, (LPARAM)&search))
+   if (DialogBoxParam(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDD_SEARCH_DIALOG), m_hWnd, SearchProc, (LPARAM)&search)) {
+      search.Replace("+", "%2b");
       OpenURL(theApp.preferences.searchEngine + search);
+   }
 }
 
 void CBrowserView::OnNavReload() 
