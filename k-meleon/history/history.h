@@ -39,3 +39,5 @@ void CondenseMenuText(char *buf, char *title, int index);
 
 int ID_HISTORY_FLAG = -1;
 int ID_HISTORY = -1;
+
+HWND hReBar;

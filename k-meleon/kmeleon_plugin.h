@@ -53,16 +53,15 @@ typedef struct {
 
 	int (*GetMozillaSessionHistory)(char **titles[], int *count, int *index);
 	void (*GotoHistoryIndex)(UINT index);
-	HWND (*GetToolbarWnd)();
 } kmeleonFunctions;
 
 typedef struct {
-	int (*Init)();
-	void (*Create)(HWND parent);
-  void (*Config)(HWND parent);
+   int (*Init)();
+   void (*Create)(HWND parent);
+   void (*Config)(HWND parent);
 	void (*Quit)();
-  void (*DoMenu)(HMENU menu, char *param);
-  void (*DoRebar)(HWND rebarWnd);
+   void (*DoMenu)(HMENU menu, char *param);
+   void (*DoRebar)(HWND rebarWnd);
 } pluginFunctions;
 
 typedef struct {

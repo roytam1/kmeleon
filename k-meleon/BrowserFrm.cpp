@@ -63,6 +63,7 @@
 extern CMfcEmbedApp theApp;
 
 #include "BrowserFrm.h"
+#include "BrowserView.h"
 #include "ToolBarEx.h"
 #include "KmeleonMessages.h"
 
@@ -432,7 +433,7 @@ void CBrowserFrame::OnSetFocus(CWnd* pOldWnd)
 	m_wndBrowserView.mBaseWindow->SetFocus();
 
 	// update session history for the current window
-//	theApp.m_pMainWnd->GetActiveWindow()->PostMessage(WM_UPDATESESSIONHISTORY, 0, 0);
+   PostMessage(WM_UPDATESESSIONHISTORY, 0, 0);
 }
 
 /*

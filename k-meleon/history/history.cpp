@@ -97,7 +97,8 @@ void DoMenu(HMENU menu, char *param){
 
 }
 
-void DoRebar(HWND rebarWnd){
+void DoRebar(HWND rebarWnd) {
+   hReBar = rebarWnd;
 }
 
 
@@ -120,24 +121,36 @@ void CreateBackMenu (UINT button) {
 		AppendMenu(submenu, MF_STRING, i+1, buf);
 	}
 
-	RECT rc;
-	HWND tb = kPlugin.kf->GetToolbarWnd();
-	WPARAM ButtonID = ::SendMessage(tb, TB_COMMANDTOINDEX, ID_NAV_BACK, 0);
-	::SendMessage(tb, TB_GETITEMRECT, ButtonID, (LPARAM) &rc);
-	POINT pt = { rc.left, rc.bottom };
-	::ClientToScreen(tb, &pt);
-	DWORD SelectionMade = TrackPopupMenu(submenu, TPM_LEFTALIGN | button | TPM_NONOTIFY | TPM_RETURNCMD, pt.x, pt.y, 0, ::GetActiveWindow(), &rc);
 
-	DestroyMenu(submenu);
-	DestroyMenu(menu);
+   // Find the toolbar
+   UINT uBandIndex = ::SendMessage(hReBar, RB_IDTOINDEX, 200, 0);     // 200 = Toolbar ID
+   REBARBANDINFO rb;
+   rb.cbSize = sizeof(REBARBANDINFO);
+   rb.fMask = RBBIM_CHILD;
 
-	PostMessage(GetActiveWindow(), WM_REFRESHTOOLBARITEM, (WPARAM) ID_NAV_BACK, 0);
+   if (::SendMessage(hReBar, RB_GETBANDINFO, (WPARAM) uBandIndex, (LPARAM) &rb)) {
 
-	FreeStringArray (titles, count-1);
+      // toolbar hwnd
+      HWND tb = rb.hwndChild;
+      RECT rc;
 
-	if (SelectionMade > 0) {
-		kPlugin.kf->GotoHistoryIndex(SelectionMade-1);
-	}
+      WPARAM ButtonID = ::SendMessage(tb, TB_COMMANDTOINDEX, ID_NAV_BACK, 0);
+	   ::SendMessage(tb, TB_GETITEMRECT, ButtonID, (LPARAM) &rc);
+	   POINT pt = { rc.left, rc.bottom };
+	   ::ClientToScreen(tb, &pt);
+      DWORD SelectionMade = TrackPopupMenu(submenu, TPM_LEFTALIGN | button | TPM_NONOTIFY | TPM_RETURNCMD, pt.x, pt.y, 0, ::GetActiveWindow(), &rc);
+
+	   DestroyMenu(submenu);
+	   DestroyMenu(menu);
+
+	   PostMessage(GetActiveWindow(), WM_REFRESHTOOLBARITEM, (WPARAM) ID_NAV_BACK, 0);
+
+      if (SelectionMade > 0) {
+		   kPlugin.kf->GotoHistoryIndex(SelectionMade-1);
+      }
+   }
+
+   FreeStringArray (titles, count);
 }
 
 
@@ -160,24 +173,34 @@ void CreateForwardMenu (UINT button) {
 		AppendMenu(submenu, MF_STRING, i+1, buf);
 	}
 
-	RECT rc;
-	HWND tb = kPlugin.kf->GetToolbarWnd();
-	WPARAM ButtonID = ::SendMessage(tb, TB_COMMANDTOINDEX, ID_NAV_FORWARD, 0);
-	::SendMessage(tb, TB_GETITEMRECT, ButtonID, (LPARAM) &rc);
-	POINT pt = { rc.left, rc.bottom };
-	::ClientToScreen(tb, &pt);
-	DWORD SelectionMade = TrackPopupMenu(submenu, TPM_LEFTALIGN | button | TPM_NONOTIFY | TPM_RETURNCMD, pt.x, pt.y, 0, ::GetActiveWindow(), &rc);
 
-	DestroyMenu(submenu);
-	DestroyMenu(menu);
+   UINT uBandIndex = ::SendMessage(hReBar, RB_IDTOINDEX, 200, 0);     // 200 = Toolbar ID
+   REBARBANDINFO rb;
+   rb.cbSize = sizeof(REBARBANDINFO);
+   rb.fMask = RBBIM_CHILD;
 
-	PostMessage(GetActiveWindow(), WM_REFRESHTOOLBARITEM, ID_NAV_FORWARD, 0);
+   if (::SendMessage(hReBar, RB_GETBANDINFO, (WPARAM) uBandIndex, (LPARAM) &rb)) {
 
-	FreeStringArray (titles, count-1);
+      // toolbar hwnd
+      HWND tb = rb.hwndChild;
+      RECT rc;
 
-	if (SelectionMade > 0) {
-		kPlugin.kf->GotoHistoryIndex(SelectionMade-1);
-	}
+   	WPARAM ButtonID = ::SendMessage(tb, TB_COMMANDTOINDEX, ID_NAV_FORWARD, 0);
+	   ::SendMessage(tb, TB_GETITEMRECT, ButtonID, (LPARAM) &rc);
+	   POINT pt = { rc.left, rc.bottom };
+	   ::ClientToScreen(tb, &pt);
+	   DWORD SelectionMade = TrackPopupMenu(submenu, TPM_LEFTALIGN | button | TPM_NONOTIFY | TPM_RETURNCMD, pt.x, pt.y, 0, ::GetActiveWindow(), &rc);
+
+	   DestroyMenu(submenu);
+	   DestroyMenu(menu);
+
+	   if (SelectionMade > 0) {
+		   kPlugin.kf->GotoHistoryIndex(SelectionMade-1);
+	   }
+
+   }
+
+   FreeStringArray (titles, count);
 }
 
 void UpdateHistoryMenu () {
@@ -227,13 +250,19 @@ void UpdateHistoryMenu () {
 			AppendMenu(hHistoryMenu, MF_ENABLED | MF_STRING, ID_HISTORY+i, buf);
 	}
 
-	FreeStringArray (titles, count-1);	
+	FreeStringArray (titles, count);
 }
 
-void FreeStringArray(char *array[], int size) {
-	int i;
-	for (i = 0; i < size; i++)
-		delete (array[i]);
+
+//  This isn't working... 
+//  since it doesn't free the strings
+//  we have a nice little memory leak for the moment
+
+void FreeStringArray(char **array, int size) {
+   return;
+   
+   for (int i=1; i<size; i++)
+      delete array[i];
 	delete (array);
 }
 

@@ -894,7 +894,7 @@ void CBrowserView::UpdateBusyState(PRBool aBusy) {
 
 		// WM_UPDATESESSIONHISTORY is also posted in in CBrowserFrame::BrowserFrameGlueObj::UpdateCurrentURI
 		// but only the page url is available at that time, this will overwrite it with the title
-		theApp.m_pMainWnd->GetActiveWindow()->PostMessage(WM_UPDATESESSIONHISTORY, 0, 0);
+		mpBrowserFrame->PostMessage(WM_UPDATESESSIONHISTORY, 0, 0);
 	}
 }
 

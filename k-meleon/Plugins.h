@@ -49,7 +49,7 @@ public:
 
   void DoRebars(HWND rebarWnd);
 
-	int GetMozillaSessionHistory (char **titles[], int *count, int *index);
+	int GetMozillaSessionHistory (char ***titles, int *count, int *index);
 
 };
 

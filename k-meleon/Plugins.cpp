@@ -105,8 +105,8 @@ void CPlugins::OnCreate(HWND wnd){
 }
 
 void NavigateTo(char *url, int newWindow){
-  CBrowserFrame *mainFrame = (CBrowserFrame *)theApp.m_pMainWnd->GetActiveWindow();
-  mainFrame->m_wndBrowserView.OpenURL(url);
+   CBrowserFrame *mainFrame = (CBrowserFrame *)theApp.m_pMainWnd->GetActiveWindow();
+   mainFrame->m_wndBrowserView.OpenURL(url);
 }
 
 static kmeleonDocInfo kDocInfo;
@@ -144,21 +144,21 @@ void GetPreference(enum PREFTYPE type, char *preference, void *ret, void *defVal
   }
 }
 
-void SetPreference(enum PREFTYPE type, char *preference, void *val){
-  switch (type){
-  case PREF_BOOL:
-    theApp.preferences.SetBool(preference, *(int *)val);
-    break;
-  case PREF_INT:
-    theApp.preferences.SetInt(preference, *(int *)val);
-    break;
-  case PREF_STRING:
-    theApp.preferences.SetString(preference, (char *)val);
-    break;
-  }
+void SetPreference(enum PREFTYPE type, char *preference, void *val) {
+   switch (type){
+      case PREF_BOOL:
+         theApp.preferences.SetBool(preference, *(int *)val);
+         break;
+      case PREF_INT:
+         theApp.preferences.SetInt(preference, *(int *)val);
+         break;
+      case PREF_STRING:
+         theApp.preferences.SetString(preference, (char *)val);
+         break;
+   }
 }
 
-int GetMozillaSessionHistory (char **titles[], int *count, int *index) {
+int GetMozillaSessionHistory (char ***titles, int *count, int *index) {
 
 	nsresult result;
 
@@ -172,7 +172,7 @@ int GetMozillaSessionHistory (char **titles[], int *count, int *index) {
 	h->GetCount (count);
 	h->GetIndex (index);
 
-	char **t = (char **) new char[*count * sizeof(char *)];
+   char **t = new char *[*count];
 
 	nsCOMPtr<nsISHEntry> he;
 	PRUnichar *title;
@@ -188,14 +188,14 @@ int GetMozillaSessionHistory (char **titles[], int *count, int *index) {
 
 		int len;
 		len = WideCharToMultiByte(CP_ACP, 0, title, -1, 0, 0, NULL, NULL);
-		char *s = new(char[len+1]);
+		char *s = new char[len+1];
 		len = WideCharToMultiByte(CP_ACP, 0, title, -1, s, len, NULL, NULL);
-		s[len]=0;
+      s[len] = 0;
 
-		t[i] = s;
-
+      t[i] = s;
 	}
-	*titles = t;
+
+   *titles = t;
 	return TRUE;
 }
 
@@ -205,55 +205,47 @@ void GotoHistoryIndex(UINT index) {
 		mainFrame->m_wndBrowserView.mWebNav->GotoIndex(index);
 }
 
-HWND GetToolbarWnd() {
-	CBrowserFrame	*mainFrame		= (CBrowserFrame *) theApp.m_pMainWnd->GetActiveWindow();
-	if (mainFrame)
-		return mainFrame->m_wndToolBar.m_hWnd;
-	else return NULL;
-}
-
 kmeleonFunctions kmelFuncs = {
-  GetCommandIDs,
-  NavigateTo,
-  GetDocInfo,
-  GetPreference,
-  SetPreference,
-  GetMozillaSessionHistory,
-  GotoHistoryIndex,
-  GetToolbarWnd
+   GetCommandIDs,
+   NavigateTo,
+   GetDocInfo,
+   GetPreference,
+   SetPreference,
+   GetMozillaSessionHistory,
+   GotoHistoryIndex
 };
 
 kmeleonPlugin * CPlugins::Load(const char *file){
-  kmeleonPlugin * kPlugin;
-  if (pluginList.Lookup(FileNoPath(file), kPlugin)){
-    return kPlugin; // it's already loaded
-  }
+   kmeleonPlugin * kPlugin;
+   if (pluginList.Lookup(FileNoPath(file), kPlugin)){
+      return kPlugin; // it's already loaded
+   }
 
-  HINSTANCE plugin = LoadLibrary(file);
-  KmeleonPluginGetter kpg = (KmeleonPluginGetter)GetProcAddress(plugin, "GetKmeleonPlugin");
+   HINSTANCE plugin = LoadLibrary(file);
+   KmeleonPluginGetter kpg = (KmeleonPluginGetter)GetProcAddress(plugin, "GetKmeleonPlugin");
 
-  if (!kpg){
-    FreeLibrary(plugin);
-    return 0;
-  }
+   if (!kpg){
+      FreeLibrary(plugin);
+      return 0;
+   }
 
-  kPlugin = kpg();
+   kPlugin = kpg();
 
-  if (!kPlugin){
-    FreeLibrary(plugin);
-    return 0;
-  }
+   if (!kPlugin){
+      FreeLibrary(plugin);
+      return 0;
+   }
 
-  kPlugin->hParentInstance = AfxGetInstanceHandle();
-  kPlugin->hDllInstance = plugin;
+   kPlugin->hParentInstance = AfxGetInstanceHandle();
+   kPlugin->hDllInstance = plugin;
+  
+   kPlugin->kf = &kmelFuncs;
 
-  kPlugin->kf = &kmelFuncs;
+   kPlugin->pf->Init();
 
-  kPlugin->pf->Init();
+   pluginList.SetAt(FileNoPath(file), kPlugin);
 
-  pluginList.SetAt(FileNoPath(file), kPlugin);
-
-  return kPlugin;
+   return kPlugin;
 }
 
 int CPlugins::FindAndLoad(char *pattern = "*.dll"){
