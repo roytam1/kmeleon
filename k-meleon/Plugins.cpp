@@ -428,7 +428,7 @@ int CommandAtPoint(int command, WORD x, WORD y) {
       break;
    }
 
-   pBrowserView->PostMessage(WM_COMMAND, command, NULL);
+   pBrowserView->mpBrowserFrame->PostMessage(WM_COMMAND, command, NULL);
    return 1;
 }
 
