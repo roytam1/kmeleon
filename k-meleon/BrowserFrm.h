@@ -134,7 +134,8 @@ friend class CToolBarList;
 public:
    CToolBarItem(CWnd *wnd) {
       m_tb = new CToolBarEx;
-      m_tb->CreateEx (wnd, 0x40 | /*CCS_NOPARENTALIGN | CCS_NORESIZE | */ TBSTYLE_FLAT | TBSTYLE_TRANSPARENT | TBSTYLE_AUTOSIZE | TBSTYLE_TOOLTIPS);
+
+      m_tb->CreateEx (wnd, 0x40 | CCS_NOPARENTALIGN | CCS_NORESIZE | TBSTYLE_FLAT | TBSTYLE_TRANSPARENT | TBSTYLE_AUTOSIZE | TBSTYLE_TOOLTIPS);
       m_next = NULL;
    }
    ~CToolBarItem() {

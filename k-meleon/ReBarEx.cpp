@@ -77,10 +77,11 @@ int CReBarEx::FindByChild(HWND hWnd) {
    rbbi.cbSize = sizeof(rbbi);
    rbbi.fMask = RBBIM_ID | RBBIM_CHILD;
 
-   for (UINT x=0; x<GetReBarCtrl().GetBandCount(); x++) {
+   int count = GetReBarCtrl().GetBandCount();
+   for (int x=0; x<count; x++) {
       GetReBarCtrl().GetBandInfo(x, &rbbi);
       if (rbbi.hwndChild == hWnd)
-         return GetReBarCtrl().IDToIndex(rbbi.wID);
+            return x;
    }
    return -1;
 }
@@ -94,6 +95,13 @@ int CReBarEx::FindByName(char *name) {
 
 int CReBarEx::FindByIndex(int index) {
    return FindByChild(m_index[index]->hWnd);
+}
+
+int CReBarEx::ChildToListIndex(HWND hWnd) {
+   for (int x=0; x < m_iCount; x++)
+      if (m_index[x]->hWnd == hWnd)
+         return x;
+   return -1;
 }
 
 void CReBarEx::DrawToolBarMenu() {
@@ -136,25 +144,29 @@ void CReBarEx::SaveBandSizes() {
    char tempPref[256] = _T("kmeleon.toolband."); // 17 chars
    REBARBANDINFO rbbi;
    rbbi.cbSize = sizeof(rbbi);
-   rbbi.fMask = RBBIM_SIZE | RBBIM_ID | RBBIM_STYLE;
+   rbbi.fMask = RBBIM_SIZE | RBBIM_CHILD | RBBIM_ID | RBBIM_STYLE;
 
-   for (x=0; x < m_iCount; x++) {
-      index = FindByIndex(x);
-      GetReBarCtrl().GetBandInfo(index, &rbbi);
+   int iSkipped = 0; // counter for unindexed bands (right now just the throbber)
 
-      if (m_index[x]->name){
-         sprintf(tempPref + 17, _T("%s.size"), m_index[x]->name);
+   int count = GetReBarCtrl().GetBandCount();
+   for (x=0; x < count; x++) {
+      GetReBarCtrl().GetBandInfo(x, &rbbi);
+      index = ChildToListIndex(rbbi.hwndChild);
+
+      if ((index != -1) && m_index[index]->name) {
+         sprintf(tempPref + 17, _T("%s.size"), m_index[index]->name);
          theApp.preferences.SetInt(tempPref, rbbi.cx);
 
-         sprintf(tempPref + 17, _T("%s.index"), m_index[x]->name);
-         theApp.preferences.SetInt(tempPref, index);
+         sprintf(tempPref + 17, _T("%s.index"), m_index[index]->name);
+         theApp.preferences.SetInt(tempPref, x-iSkipped);
 
-         sprintf(tempPref + 17, _T("%s.visibility"), m_index[x]->name);
-         theApp.preferences.SetBool(tempPref, m_index[x]->visibility);
+         sprintf(tempPref + 17, _T("%s.visibility"), m_index[index]->name);
+         theApp.preferences.SetBool(tempPref, m_index[index]->visibility);
 
-         sprintf(tempPref + 17, _T("%s.break"), m_index[x]->name);
+         sprintf(tempPref + 17, _T("%s.break"), m_index[index]->name);
          theApp.preferences.SetInt(tempPref, rbbi.fStyle & RBBS_BREAK);
       }
+      else iSkipped++;
    }
 }
 
@@ -163,12 +175,6 @@ void CReBarEx::RestoreBandSizes() {
    REBARBANDINFO rbbi;
    rbbi.cbSize = sizeof(rbbi);
 
-   for (x=0; (UINT) x<GetReBarCtrl().GetBandCount(); x++) {
-      rbbi.fMask = RBBIM_ID;
-      rbbi.wID = PLUGIN_REBAR_START_ID + x;
-      GetReBarCtrl().SetBandInfo(x, &rbbi);
-   }
-      
    char tempPref[256] = _T("kmeleon.toolband."); // 17 chars
    BOOL barbreak;
    for (x=0; x<m_iCount; x++) {
@@ -199,6 +205,6 @@ void CReBarEx::RestoreBandSizes() {
 
       sprintf(tempPref + 17, _T("%s.visibility"), m_index[x]->name);
       if (!theApp.preferences.GetBool(tempPref, TRUE))
-      SetVisibility(x, FALSE);
+         SetVisibility(x, FALSE);
    }
 }

@@ -39,6 +39,7 @@ private:
    int FindByChild (HWND hWnd);
    int FindByName  (char *name);
    int FindByIndex (int index);
+   int ChildToListIndex(HWND hWnd);
 
    struct tbBand {
       UINT uID;
