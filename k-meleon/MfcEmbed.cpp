@@ -52,6 +52,8 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
+#define MENU_CONFIG_FILE "menus.cfg"
+
 BEGIN_MESSAGE_MAP(CMfcEmbedApp, CWinApp)
 	//{{AFX_MSG_MAP(CMfcEmbedApp)
 	ON_COMMAND(ID_NEW_BROWSER, OnNewBrowser)
@@ -146,7 +148,7 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
   if(x == -1 && y == -1 && cx == -1 && cy == -1){
 		winSize = CFrameWnd::rectDefault;
   }
-  if (preferences.bMaximized && !(chromeMask & nsIWebBrowserChrome::CHROME_WITH_SIZE) ) {
+  if (preferences.bMaximized && chromeMask == nsIWebBrowserChrome::CHROME_ALL) {
       style |= WS_MAXIMIZE;
   }
 
@@ -309,7 +311,7 @@ nsresult CMfcEmbedApp::InitializePrefs()
   rv = InitializeCachePrefs();
   NS_ASSERTION(NS_SUCCEEDED(rv), "Could not initialize cache prefs");
 
-  if (!menus.Load(preferences.settingsDir + "menus.cfg")){
+  if (!menus.Load(preferences.settingsDir + MENU_CONFIG_FILE)){
     HMODULE module = AfxGetInstanceHandle();
     HRSRC res = FindResource(module, MAKEINTRESOURCE(IDR_MENU_TEXT), "TEXT");
     HGLOBAL menuRes = LoadResource(module, res);
@@ -317,13 +319,13 @@ nsresult CMfcEmbedApp::InitializePrefs()
     if (!menuText)
       return rv;
     TRY {
-      CFile menuFile((LPCTSTR)(preferences.settingsDir + "menus.cfg"), CFile::modeWrite | CFile::modeCreate);
+      CFile menuFile((LPCTSTR)(preferences.settingsDir + MENU_CONFIG_FILE), CFile::modeWrite | CFile::modeCreate);
       menuFile.WriteHuge(menuText, strlen(menuText));
       menuFile.Close();
 
       // try again
-      if (!menus.Load(preferences.settingsDir + "menus.cfg")){
-        MessageBox(NULL, "Ack! Could not find menus.cfg!", NULL, 0);
+      if (!menus.Load(preferences.settingsDir + MENU_CONFIG_FILE)){
+        MessageBox(NULL, "Could not find " MENU_CONFIG_FILE, NULL, 0);
       }
     }
     CATCH (CFileException, e) {
