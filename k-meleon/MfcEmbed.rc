@@ -282,7 +282,7 @@ END
 IDD_PREFERENCES_CACHE DIALOGEX 0, 0, 271, 204
 STYLE WS_CHILD
 EXSTYLE WS_EX_CLIENTEDGE | WS_EX_CONTROLPARENT
-FONT 8, "MS Sans Serif", 0, 0, 0x1
+FONT 8, "MS Sans Serif"
 BEGIN
     EDITTEXT        IDC_EDIT_MEMORY_CACHE,79,28,41,13,ES_AUTOHSCROLL
     EDITTEXT        IDC_EDIT_DISK_CACHE,79,48,41,13,ES_AUTOHSCROLL
@@ -295,8 +295,8 @@ BEGIN
     CONTROL         "&Automatically",IDC_RADIO4,"Button",BS_AUTORADIOBUTTON,
                     27,174,57,10
     LTEXT           "Memory Cache:",IDC_STATIC,18,28,52,10
-    LTEXT           "Cached data is compared to network data:",IDC_STATIC,18,
-                    123,139,8
+    CONTROL         "Cached data is compared to network data:",IDC_STATIC,
+                    "Static",SS_LEFTNOWORDWRAP | WS_GROUP,18,123,139,8
     LTEXT           "Disk Cache:",IDC_STATIC,18,49,52,10
     LTEXT           "KBytes",IDC_STATIC,123,49,32,10
     LTEXT           "KBytes",IDC_STATIC,123,30,32,9
@@ -447,10 +447,10 @@ FONT 8, "MS Sans Serif"
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,130,69,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,189,69,50,14
-    LTEXT           "Please enter something....",1002,10,7,229,29
-    EDITTEXT        1001,7,39,232,13,ES_AUTOHSCROLL
-    CONTROL         "Save Answer",1005,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
-                    7,57,229,10
+    LTEXT           "Please enter something....",IDC_PROMPT_TEXT,10,7,229,29
+    EDITTEXT        IDC_PROMPT_ANSWER,7,39,232,13,ES_AUTOHSCROLL
+    CONTROL         "Save Answer",IDC_CHECK_SAVE_PASSWORD,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,57,229,10
 END
 
 IDD_PROMPT_PASSWORD_DIALOG DIALOG DISCARDABLE  0, 0, 248, 93
@@ -459,29 +459,29 @@ STYLE DS_SYSMODAL | DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION |
 CAPTION "Password Entry Dialog"
 FONT 8, "MS Sans Serif"
 BEGIN
-    LTEXT           "Please enter your password:",1002,5,7,232,20
+    LTEXT           "Please enter your password:",IDC_PROMPT_TEXT,5,7,232,20
     DEFPUSHBUTTON   "OK",IDOK,129,75,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,188,75,50,14
-    EDITTEXT        1004,5,37,233,12,ES_PASSWORD | ES_AUTOHSCROLL
-    CONTROL         "Save Password",1005,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,7,57,229,10
+    EDITTEXT        IDC_PASSWORD,5,37,233,12,ES_PASSWORD | ES_AUTOHSCROLL
+    CONTROL         "Save Password",IDC_CHECK_SAVE_PASSWORD,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,57,229,10
 END
 
-IDD_PROMPT_USERPASS_DIALOG DIALOG DISCARDABLE  0, 0, 214, 123
+IDD_PROMPT_USERPASS_DIALOG DIALOG DISCARDABLE  0, 0, 214, 119
 STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
 CAPTION "Username and Password Required"
 FONT 8, "MS Sans Serif"
 BEGIN
     LTEXT           "This operation requires authentication.  Please enter your user name and password:",
-                    1002,6,9,171,25
-    LTEXT           "User Name:",1006,6,39,39,9
-    EDITTEXT        1003,49,39,153,12,ES_AUTOHSCROLL
-    LTEXT           "Password:",1007,6,58,36,8
-    EDITTEXT        1004,49,56,153,12,ES_PASSWORD | ES_AUTOHSCROLL
-    CONTROL         "Save User Name and Password",1005,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,6,78,201,10
-    DEFPUSHBUTTON   "OK",IDOK,40,101,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,95,101,50,14
+                    IDC_PROMPT_TEXT,8,9,199,25
+    LTEXT           "User Name:",IDC_USERNAME_LABEL,8,39,39,9
+    EDITTEXT        IDC_USERNAME,51,39,153,12,ES_AUTOHSCROLL
+    LTEXT           "Password:",IDC_PASSWORD_LABEL,8,58,36,8
+    EDITTEXT        IDC_PASSWORD,51,56,153,12,ES_PASSWORD | ES_AUTOHSCROLL
+    CONTROL         "Save User Name and Password",IDC_CHECK_SAVE_PASSWORD,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,8,78,199,10
+    DEFPUSHBUTTON   "OK",IDOK,54,97,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,109,97,50,14
 END
 
 IDD_ALERT_CHECK_DIALOG DIALOG DISCARDABLE  0, 0, 233, 151
