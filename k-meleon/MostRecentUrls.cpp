@@ -90,7 +90,7 @@ void CMostRecentUrls::AddURL(const char * aURL) {
    // check list for previous entry
    for (int x=0; x<m_URLCount-1; x++)	{
       if(m_URLs[x]) {
-         if(strcmpi(m_URLs[x], aURL) == 0)
+         if(strcmp(m_URLs[x], aURL) == 0)
             break; 
       }
    }
