@@ -596,14 +596,31 @@ void CBrowserFrame::LoadBackImage ()
 		m_bmpBack.DeleteObject ();
 
    HBITMAP hbmp;
-   if (theApp.preferences.toolbarBackground.IsEmpty())
-      theApp.preferences.toolbarBackground = theApp.preferences.settingsDir + "Back.bmp";
 
+   CString file = theApp.preferences.settingsDir + "Back.bmp";
    hbmp = (HBITMAP) ::LoadImage (AfxGetResourceHandle (),
-      theApp.preferences.toolbarBackground,
+      file,
       IMAGE_BITMAP,
       0, 0,
       LR_LOADMAP3DCOLORS | LR_LOADFROMFILE);
+
+   if (!hbmp) {
+      file = theApp.preferences.skinsDir + theApp.preferences.skinsCurrent + "Back.bmp";
+      hbmp = (HBITMAP) ::LoadImage (AfxGetResourceHandle (),
+         file,
+         IMAGE_BITMAP,
+         0, 0,
+         LR_LOADMAP3DCOLORS | LR_LOADFROMFILE);
+   }
+
+   if (!hbmp) {
+      file = theApp.preferences.skinsDir + "default\\Back.bmp";
+      hbmp = (HBITMAP) ::LoadImage (AfxGetResourceHandle (),
+         file,
+         IMAGE_BITMAP,
+         0, 0,
+         LR_LOADMAP3DCOLORS | LR_LOADFROMFILE);
+   }
 
    m_bmpBack.Attach (hbmp);
 }

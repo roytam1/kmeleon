@@ -152,11 +152,12 @@ BEGIN
     CONTROL         "&URL",IDC_RADIO_URL,"Button",BS_AUTORADIOBUTTON,139,101,
                     30,8
     EDITTEXT        IDC_EDIT_URL,171,99,87,12,ES_AUTOHSCROLL | WS_GROUP
-    EDITTEXT        IDC_EDIT_TOOLBAR_BACKGROUND,17,140,199,14,ES_AUTOHSCROLL
-    PUSHBUTTON      "B&rowse...",IDC_BUTTON_BROWSE,219,140,39,14
+    COMBOBOX        IDC_COMBO_SKIN,17,140,241,121,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_GROUP | WS_TABSTOP
+//    PUSHBUTTON      "B&rowse...",IDC_BUTTON_BROWSE,219,140,39,14
     CONTROL         "Show &Toolbar Background",IDC_CHECK_TOOLBAR_BACKGROUND,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,159,137,10
-    GROUPBOX        "Toolbar Background Image",IDC_STATIC,4,125,263,52
+    GROUPBOX        "Skin",IDC_STATIC,4,125,263,52
     GROUPBOX        "Page Display Settings",IDC_STATIC,4,6,263,112
     LTEXT           "Home Page:",IDC_STATIC,17,21,43,10
     LTEXT           "When K-Meleon starts, display:",IDC_STATIC,17,41,109,10

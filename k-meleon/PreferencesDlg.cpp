@@ -160,9 +160,10 @@ void CPreferencesDlg::ShowPage(UINT idd){
 BOOL CPreferencePage::OnInitDialog(){
    switch (idd) {
       case IDD_PREFERENCES_PRIVACY:
-      char buf[256], uabuf[256], pref[34];
-      int x=1,y,index=0;
-      SendDlgItemMessage(IDC_COMBO, CB_ADDSTRING, 0, (LONG) "Default");
+      {
+         char buf[256], uabuf[256], pref[34];
+         int x=1,y,index=0;
+         SendDlgItemMessage(IDC_COMBO, CB_ADDSTRING, 0, (LONG) "Default");
          do {
             sprintf(pref, "kmeleon.privacy.useragent%d.name", x);
             theApp.preferences.GetString(pref, buf, "");
@@ -170,18 +171,44 @@ BOOL CPreferencePage::OnInitDialog(){
                SendDlgItemMessage(IDC_COMBO, CB_ADDSTRING, 0, (LONG) buf);
             x++;
          } while (*buf);
-
-      theApp.preferences.GetString("general.useragent.override", uabuf, "");
-      if (*uabuf) {
-         for (y=1; y<x; y++) {
-            sprintf(pref, "kmeleon.privacy.useragent%d.string", y);
-            theApp.preferences.GetString(pref, buf, "");
-            if (strcmp(buf, uabuf) == 0)
-               index=y;
-		 }
-	  }
-      SendDlgItemMessage(IDC_COMBO, CB_SETCURSEL, index, 0);
+         
+         theApp.preferences.GetString("general.useragent.override", uabuf, "");
+         if (*uabuf) {
+            for (y=1; y<x; y++) {
+               sprintf(pref, "kmeleon.privacy.useragent%d.string", y);
+               theApp.preferences.GetString(pref, buf, "");
+               if (strcmp(buf, uabuf) == 0)
+                  index=y;
+            }
+         }
+         SendDlgItemMessage(IDC_COMBO, CB_SETCURSEL, index, 0);
+         
          break;
+      }
+      
+      case IDD_PREFERENCES_DISPLAY:
+      {
+         int i=0, index=0;
+         WIN32_FIND_DATA ffd;
+         CString fname = theApp.preferences.skinsDir + "*.*";
+         HANDLE hFind = FindFirstFile(fname.GetBuffer(0), &ffd);
+         if (hFind != INVALID_HANDLE_VALUE) {
+            fname = theApp.preferences.skinsCurrent;
+            fname = fname.Left(fname.GetLength()-1);
+            do {
+               if (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY && 
+                   ffd.cFileName[0]!='.') {
+                  SendDlgItemMessage(IDC_COMBO_SKIN, CB_ADDSTRING, 0, (LONG)ffd.cFileName);
+                  if (fname.CompareNoCase(ffd.cFileName) == 0)
+                     index=i;
+                  i++;
+               }
+            } while ( FindNextFile(hFind, &ffd) );
+            FindClose(hFind);
+            SendDlgItemMessage(IDC_COMBO_SKIN, CB_SETCURSEL, index, 0);
+         }
+         break;
+      }
    }
        
    CDialog::OnInitDialog();
@@ -196,7 +223,7 @@ void CPreferencePage::DoDataExchange(CDataExchange* pDX){
     case IDD_PREFERENCES_DISPLAY:
       DDX_Radio(pDX, IDC_RADIO_START_BLANK, theApp.preferences.bStartHome);
       DDX_Text(pDX, IDC_EDIT_HOMEPAGE, theApp.preferences.homePage);
-      DDX_Text(pDX, IDC_EDIT_TOOLBAR_BACKGROUND, theApp.preferences.toolbarBackground);
+      // DDX_Text(pDX, IDC_EDIT_TOOLBAR_BACKGROUND, theApp.preferences.toolbarBackground);
       DDX_Check(pDX, IDC_CHECK_TOOLBAR_BACKGROUND, theApp.preferences.bToolbarBackground);
       DDX_Radio(pDX, IDC_RADIO_NEWWINDOW, theApp.preferences.iNewWindowOpenAs);
       DDX_Text(pDX, IDC_EDIT_URL, theApp.preferences.newWindowURL);
@@ -255,6 +282,7 @@ BEGIN_MESSAGE_MAP(CPreferencePage, CDialog)
 	ON_BN_CLICKED(IDC_BUTTON_CLEAR_MEM_CACHE, OnClearMemCache)
 	ON_BN_CLICKED(IDC_BUTTON_CLEAR_DISK_CACHE, OnClearDiskCache)
    ON_CBN_SELCHANGE(IDC_COMBO, OnComboChanged)
+   ON_CBN_SELCHANGE(IDC_COMBO_SKIN, OnComboChanged)
   //}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -305,25 +333,41 @@ void CPreferencePage::OnBrowse() {
 
 void CPreferencePage::OnComboChanged() {
    switch (idd) {
-   case IDD_PREFERENCES_PRIVACY:
-      int index;
-      char buf[256], pref[34];
+      case IDD_PREFERENCES_PRIVACY:
+      {
+         int index;
+         char buf[256], pref[34];
 
-      index = SendDlgItemMessage(IDC_COMBO, CB_GETCURSEL, 0, 0);
+         index = SendDlgItemMessage(IDC_COMBO, CB_GETCURSEL, 0, 0);
 
-       if (index == 0)
-          theApp.preferences.GetString("general.useragent.override", buf, "");
-       else {
-          sprintf(pref, "kmeleon.privacy.useragent%d.string", index);
-          theApp.preferences.GetString(pref, buf, "");
-       }
-      
-      if (*buf)
-         SetDlgItemText(IDC_EDIT_USERAGENT, buf);
-      else
-         SetDlgItemText(IDC_EDIT_USERAGENT, "");
+          if (index == 0)
+             theApp.preferences.GetString("general.useragent.override", buf, "");
+          else {
+             sprintf(pref, "kmeleon.privacy.useragent%d.string", index);
+             theApp.preferences.GetString(pref, buf, "");
+          }
 
-      break;
+         if (*buf)
+            SetDlgItemText(IDC_EDIT_USERAGENT, buf);
+         else
+            SetDlgItemText(IDC_EDIT_USERAGENT, "");
+
+         break;
+      }
+      case IDD_PREFERENCES_DISPLAY:
+      {
+         int index;
+         char buf[256];
+
+         index = SendDlgItemMessage(IDC_COMBO_SKIN, CB_GETCURSEL, 0, 0);
+
+         if (index != CB_ERR) {
+            SendDlgItemMessage(IDC_COMBO_SKIN, CB_GETLBTEXT, index, (LPARAM)buf);
+            theApp.preferences.skinsCurrent = buf;
+            theApp.preferences.skinsCurrent = theApp.preferences.skinsCurrent + "\\";
+         }
+         break;
+      }
    }
 }
 
