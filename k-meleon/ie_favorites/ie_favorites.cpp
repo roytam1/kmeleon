@@ -398,8 +398,9 @@ void DoRebar(HWND rebarWnd){
      }
    }
 
-   // Get the height of the toolbar.
-   DWORD dwBtnSize = SendMessage(hwndTB, TB_GETBUTTONSIZE, 0,0);
+   // Get the width & height of the toolbar.
+   SIZE size;
+   SendMessage(hwndTB, TB_GETMAXSIZE, 0, (LPARAM)&size);
 
    REBARBANDINFO rbBand;
    rbBand.cbSize = sizeof(REBARBANDINFO);  // Required
@@ -411,10 +412,10 @@ void DoRebar(HWND rebarWnd){
    rbBand.lpText     = "Links";
    rbBand.hwndChild  = hwndTB;
    rbBand.cxMinChild = 0;
-   rbBand.cyMinChild = HIWORD(dwBtnSize);
+   rbBand.cyMinChild = size.cy;
    rbBand.cyIntegral = 1;
    rbBand.cyMaxChild = rbBand.cyMinChild;
-   rbBand.cxIdeal    = 0;
+   rbBand.cxIdeal    = size.cx + 16;
    rbBand.cx         = rbBand.cxIdeal;
 
    // Add the band that has the toolbar.
