@@ -72,6 +72,9 @@ public:
 							PRInt32 cx = -1, PRInt32 cy = -1,
 							PRBool bShowWindow = PR_TRUE);
 	void RemoveFrameFromList(CBrowserFrame* pFrm, BOOL bCloseAppOnLastFrame = TRUE);
+   void RegisterWindow(CDialog *window);
+   void UnregisterWindow(CDialog *window);
+
    nsresult OverrideComponents();
 
 //   BOOL IsCmdLineSwitch(const char *pSwitch, BOOL bRemove = FALSE);
@@ -88,7 +91,11 @@ public:
 	virtual BOOL OnIdle(LONG lCount);
 	//}}AFX_VIRTUAL
 
-	CObList m_FrameWndLst;
+   // list of browser windows
+   CObList m_FrameWndLst;
+
+   // list of download windows
+   CObList m_MiscWndLst;
 
    CPlugins      plugins;
    CPreferences  preferences;

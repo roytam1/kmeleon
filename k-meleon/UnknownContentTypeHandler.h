@@ -49,3 +49,46 @@ public:
 
 
 nsresult NewUnknownContentHandlerFactory(nsIFactory** aFactory);
+
+
+
+#include "resource.h"
+
+class CProgressDialog : public CDialog,
+                        public nsIWebProgressListener,
+                        public nsSupportsWeakReference {
+public:
+   enum { IDD = IDD_PROGRESS };
+
+   NS_DECL_ISUPPORTS
+   NS_DECL_NSIWEBPROGRESSLISTENER
+
+   CProgressDialog();
+   virtual ~CProgressDialog();
+
+   void Cancel();
+
+   virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+
+   void SetLauncher(nsIHelperAppLauncher *aLauncher);
+
+protected:
+   nsCOMPtr<nsIHelperAppLauncher> mLauncher;
+   
+   // this is used to calculate speed
+   PRInt64 mStartTime;
+
+   PRInt32 mTotalBytes;
+
+   int mDone;
+
+   char *mFileName;
+   char *mFilePath;
+
+   virtual void OnCancel( );
+   afx_msg void OnOpen();
+   afx_msg void OnClose();
+
+	DECLARE_MESSAGE_MAP()
+
+};
