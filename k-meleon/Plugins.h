@@ -32,11 +32,7 @@ class CPlugins {
   friend CPreferencePagePlugins;
 
 protected:
-  CMap<CString, LPCSTR, kmeleonPlugin *, kmeleonPlugin *> pluginList;
-
-  char *configBuffer;
-  char *loadLine;
-  char *dontLoadLine;
+   CMap<CString, LPCSTR, kmeleonPlugin *, kmeleonPlugin *> pluginList;
 
 public:
 	CPlugins();
@@ -52,8 +48,6 @@ public:
    //LRESULT OnMessage(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam);
    int  OnUpdate(UINT command);
    void DoRebars(HWND rebarWnd);
-   int GetMozillaSessionHistory (char ***titles, int *count, int *index);
-   void RegisterBand(HWND hWnd, char *name);
 };
 
 #endif // __PLUGINS_H__

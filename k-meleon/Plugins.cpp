@@ -32,22 +32,24 @@ extern CMfcEmbedApp theApp;
 
 int SessionSize=0;
 char **pHistory;
+kmeleonDocInfo kDocInfo;
 
 CPlugins::CPlugins() {
-   configBuffer = NULL;
-   loadLine = NULL;
-   dontLoadLine = NULL;
 }
 
 CPlugins::~CPlugins(){
-   if (configBuffer){
-      delete [] configBuffer;
-   }
    if (SessionSize) {
       for (int i=0; i<SessionSize; i++)
          delete pHistory[i];
    }
    delete pHistory;
+
+   if (kDocInfo.url)
+      delete kDocInfo.url;
+   
+   if (kDocInfo.title)
+      delete kDocInfo.title;
+   
    UnLoadAll();
 }
 
@@ -113,7 +115,6 @@ void NavigateTo(char *url, int windowState){
    }
 }
 
-static kmeleonDocInfo kDocInfo;
 kmeleonDocInfo * GetDocInfo(HWND mainWnd) {
    CBrowserFrame *frame = (CBrowserFrame *)CWnd::FromHandle(mainWnd);
 
@@ -121,17 +122,23 @@ kmeleonDocInfo * GetDocInfo(HWND mainWnd) {
       return NULL;
    }
 
-   CString url;
-   frame->m_wndUrlBar.GetEnteredURL(url);
-   if (url.GetLength() >= MAX_URL)
-      return NULL;
+   char *url = new char[frame->m_wndBrowserView.GetCurrentURI(NULL)+1];
+   frame->m_wndBrowserView.GetCurrentURI(url);
 
    CString title;
    frame->GetWindowText(title);
    title.Replace(" (K-Meleon)", "");
+   char *doctitle = new char[title.GetLength()+1];
+   strcpy(doctitle, title);
 
-   strcpy(kDocInfo.title, title);
-   strcpy(kDocInfo.url, url);
+   if (kDocInfo.url)
+      delete kDocInfo.url;
+   
+   if (kDocInfo.title)
+      delete kDocInfo.title;
+
+   kDocInfo.title = doctitle;
+   kDocInfo.url = url;
 
    return &kDocInfo;
 }

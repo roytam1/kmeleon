@@ -1151,23 +1151,22 @@ void CBrowserView::OnFilePrint()
    mWebBrowser->GetContentDOMWindow(getter_AddRefs(domWindow));
    if(domWindow) {
       nsCOMPtr<nsIWebBrowserPrint> print(do_GetInterface(mWebBrowser));
-      if(print)
-      {
+      if(print) {
          CPrintProgressDialog  dlg(mWebBrowser, domWindow);
 
          nsCOMPtr<nsIURI> currentURI;
          nsresult rv = mWebNav->GetCurrentURI(getter_AddRefs(currentURI));
-      if(NS_SUCCEEDED(rv) || currentURI)
-      {
-         nsXPIDLCString path;
-         currentURI->GetPath(getter_Copies(path));
-         dlg.SetURI(path.get());
+
+         if(rv || currentURI) {
+            nsXPIDLCString path;
+            currentURI->GetPath(getter_Copies(path));
+            dlg.SetURI(path.get());
+         }
+         m_bCurrentlyPrinting = TRUE;
+         dlg.DoModal();
+         m_bCurrentlyPrinting = FALSE;
       }
-      m_bCurrentlyPrinting = TRUE;
-      dlg.DoModal();
-      m_bCurrentlyPrinting = FALSE;
-    }
-  }  
+   }  
 }
 
 void CBrowserView::OnUpdateViewStatusBar(CCmdUI* pCmdUI) {
