@@ -112,7 +112,6 @@
 #define ID_PREFERENCES                  32790
 #define ID_SELECT_URL                   32791
 #define ID_MANAGE_PROFILES              32792
-#define ID_FULLSCREEN                   32793
 #define ID_LINK_KMELEON_HOME            32800
 #define ID_LINK_KMELEON_FORUM           32801
 
