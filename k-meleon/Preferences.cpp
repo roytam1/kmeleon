@@ -28,48 +28,97 @@ CPreferences::CPreferences() {
 }
 
 CPreferences::~CPreferences() {
-  if (bAutoSave)
-    Save();
 }
 
-CPreferences::Load() {
-  bAutoSave = true;
-
-  bMaximized = theApp.GetProfileInt(_T("Display"), _T("Maximized"), 1);
-
-  bToolbarBackground = theApp.GetProfileInt(_T("Display"), _T("BackgroundImageEnabled"), 1);
-  toolbarBackground = theApp.GetProfileString(_T("Display"), _T("BackgroundImage"));
-
-  bStartHome = theApp.GetProfileInt(_T("General"), _T("StartHome"), 1);
-  homePage = theApp.GetProfileString(_T("General"), _T("HomePage"), _T("http://www.kmeleon.org"));
-
-  settingsDir = theApp.GetProfileString(_T("General"), _T("SettingsDir"));
-  if (settingsDir.IsEmpty()){
-    //  a better way to do this would be to query mozilla
-	  char filename[255];
-    char *p;
-	  GetModuleFileName(AfxGetInstanceHandle(), filename, sizeof(filename));
-	  p = filename + lstrlen(filename);
-  	while (p >= filename && *p != '\\') p--;
-    *p = 0;
-
-    settingsDir = filename;
+#define GetBool(_pref, _value, _defaultValue) { \
+    PRBool tempBool; \
+    rv = prefs->GetBoolPref(_pref, &tempBool); \
+    if (NS_SUCCEEDED(rv)) \
+      _value = tempBool; \
+    else \
+      _value = _defaultValue; \
   }
-  if (settingsDir[settingsDir.GetLength()-1] != '\\'){
-    settingsDir += '\\';
+
+#define GetString(_pref, _value, _defaultValue) { \
+    int bufLen; \
+    char *tempBuffer = NULL; \
+    rv = prefs->GetBinaryPref(_pref, tempBuffer, &bufLen); \
+    if (NS_SUCCEEDED(rv)){ \
+      _value = tempBuffer; \
+      delete tempBuffer; \
+    } \
+    else \
+      _value = _defaultValue; \
   }
+
+void CPreferences::Load() {
+
+  nsresult rv;
+  NS_WITH_SERVICE(nsIPref, prefs, NS_PREF_CONTRACTID, &rv);
+  if (NS_SUCCEEDED(rv)) {	  
+
+    PRBool inited;
+    rv = prefs->GetBoolPref("kmeleon.prefs_inited", &inited);
+    if (NS_FAILED(rv) || !inited) {
+      // Set up prefs for first run
+      rv = prefs->SetBoolPref(_T("kmeleon.display.maximized"), PR_TRUE);
+      rv = prefs->SetBoolPref(_T("kmeleon.display.backgroundImageEnabled"), PR_TRUE);
+      rv = prefs->SetCharPref(_T("kmeleon.display.backgroundImage"), "");
+
+      rv = prefs->SetBoolPref(_T("kmeleon.general.startHome"), PR_TRUE);
+      rv = prefs->SetCharPref(_T("kmeleon.general.homePage"), _T("http://www.kmeleon.org"));
+
+      rv = prefs->SetBoolPref(_T("kmeleon.prefs_inited"), PR_TRUE);
+      rv = prefs->SavePrefFile();
+    }
+    GetBool(_T("kmeleon.display.maximized"), bMaximized, true);
+    GetBool(_T("kmeleon.display.backgroundImageEnabled"), bToolbarBackground, true);
+
+    GetString(_T("kmeleon.display.backgroundImage"), toolbarBackground, _T(""));
+
+    GetBool(_T("kmeleon.general.startHome"), bStartHome, true);
+    GetString(_T("kmeleon.general.homePage"), homePage, _T("http://www.kmeleon.org"));
+
+    GetString(_T("kmeleon.general.settingsDir"), settingsDir, _T(""));
+    if (settingsDir.IsEmpty()){
+      nsCOMPtr<nsIFile> profileDir;
+      rv = NS_GetSpecialDirectory(NS_APP_USER_PROFILE_50_DIR, getter_AddRefs(profileDir));
+      NS_ASSERTION(profileDir, "NS_APP_USER_PROFILE_50_DIR is not defined");
+      if (NS_FAILED(rv)) return;
+
+      nsCOMPtr<nsILocalFile> localFile(do_QueryInterface(profileDir));
+      NS_ASSERTION(localFile, "Cannot get nsILocalFile from profile dir");
+
+      nsXPIDLCString descriptorString;
+      rv = localFile->GetPersistentDescriptor(getter_Copies(descriptorString));
+
+      settingsDir = descriptorString;
+    }
+    if (settingsDir[settingsDir.GetLength() - 1] != '\\'){
+      settingsDir += '\\';
+    }
+  }
+  else
+    NS_ASSERTION(PR_FALSE, "Could not get preferences service");
 }
 
-CPreferences::Save() {
-  theApp.WriteProfileInt(_T("Display"), _T("Maximized"), bMaximized);
+void CPreferences::Save() {
+  nsresult rv;
+  NS_WITH_SERVICE(nsIPref, prefs, NS_PREF_CONTRACTID, &rv);
+  if (NS_SUCCEEDED(rv)) {	  
+    rv = prefs->SetBoolPref(_T("kmeleon.display.maximized"), bMaximized);
+    rv = prefs->SetBoolPref(_T("kmeleon.display.backgroundImageEnabled"), bToolbarBackground);
+    rv = prefs->SetCharPref(_T("kmeleon.display.backgroundImage"), toolbarBackground);
 
-  theApp.WriteProfileInt(_T("Display"), _T("BackgroundImageEnabled"), bToolbarBackground);
-  theApp.WriteProfileString(_T("Display"), _T("BackgroundImage"), toolbarBackground);
+    rv = prefs->SetBoolPref(_T("kmeleon.general.startHome"), bStartHome);
+    rv = prefs->SetCharPref(_T("kmeleon.general.homePage"), homePage);
 
-  theApp.WriteProfileInt(_T("General"), _T("StartHome"), bStartHome);
-  theApp.WriteProfileString(_T("General"), _T("HomePage"), homePage);
+    rv = prefs->SetCharPref(_T("kmeleon.general.settingsDir"), settingsDir);
 
-  theApp.WriteProfileString(_T("General"), _T("SettingsDir"), settingsDir);
+    rv = prefs->SavePrefFile();
+  }
+  else
+    NS_ASSERTION(PR_FALSE, "Could not get preferences service");
 }
 
 CPreferencesDlg::CPreferencesDlg() : CDialog(IDD) {

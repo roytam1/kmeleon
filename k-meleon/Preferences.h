@@ -109,16 +109,13 @@ public:
   // true if the window should default to maximized
   int bMaximized;
 
-  // if true, will call Save on destruction
-  int bAutoSave;
-
   // -- functions
 
   CPreferences();
   ~CPreferences();
 
-  Save();
-  Load();
+  void Save();
+  void Load();
 };
 
 #endif

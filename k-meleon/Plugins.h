@@ -38,6 +38,8 @@ public:
 	CPlugins();
 	~CPlugins();
 
+  void UnLoadAll();
+
   int FindAndLoad(char *pattern);
   kmeleonPlugin * Load(const char *pattern);
   

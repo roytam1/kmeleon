@@ -21,6 +21,7 @@
 #define IDB_BACK                        147
 #define IDI_ICON1                       150
 #define IDB_TOOLBAR_DISABLED            151
+#define IDR_MENU_TEXT                   152
 #define IDD_PREFERENCES                 154
 #define IDD_PREFERENCES_DISPLAY         155
 #define IDD_PREFERENCES_PROXY           156
@@ -90,7 +91,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        152
+#define _APS_NEXT_RESOURCE_VALUE        155
 #define _APS_NEXT_COMMAND_VALUE         32790
 #define _APS_NEXT_CONTROL_VALUE         1020
 #define _APS_NEXT_SYMED_VALUE           101

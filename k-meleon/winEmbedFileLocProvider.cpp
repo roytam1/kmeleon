@@ -298,7 +298,7 @@ static nsresult GetChromeLocale(PRUnichar** localeName)
     nsCOMPtr<nsIChromeRegistry> chromeRegistry = do_GetService(kChromeRegistryCID, &rv);
 
     if (NS_SUCCEEDED(rv)) {
-        nsString tmpstr; tmpstr.AssignWithConversion("navigator");
+        nsString tmpstr; tmpstr.AssignWithConversion("global");
         rv = chromeRegistry->GetSelectedLocale(tmpstr.GetUnicode(), localeName);
     }
     return rv;

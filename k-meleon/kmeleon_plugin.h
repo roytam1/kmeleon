@@ -26,6 +26,11 @@
 #endif
 
 typedef struct {
+  char title[256];
+  char url[256];  
+} kmeleonDocInfo;
+
+typedef struct {
   // Filled in by the plugin
 	int version;
 	char *description;
@@ -43,6 +48,8 @@ typedef struct {
   UINT (*GetCommandIDs)(int num);
   // if newWindow, open in a new window, otherwise use the current window
   void (*NavigateTo)(char *url, int newWindow);
+
+  kmeleonDocInfo * (*GetDocInfo)(HWND mainWnd);
 
 	HINSTANCE hParentInstance;
 	HINSTANCE hDllInstance;

@@ -86,45 +86,30 @@ BOOL CMfcEmbedApp::InitInstance()
 	// http://www.mozilla.org/projects/xpcom/file_locations.html
 	// for more info on File Locations
 
-  winEmbedFileLocProvider *provider = new winEmbedFileLocProvider("MfcEmbed");
-  if(!provider)
-  {
+  winEmbedFileLocProvider *provider = new winEmbedFileLocProvider("KMeleon");
+  if(!provider){
     ASSERT(FALSE);
     return FALSE;
   }
 
   nsresult rv;
   rv = NS_InitEmbedding(nsnull, provider);
-  if(NS_FAILED(rv))
-  {
+  if(NS_FAILED(rv)){
     ASSERT(FALSE);
     return FALSE;
   }
 
-  if(!InitializeProfiles())
-  {
+  if(!InitializeProfiles()){
     ASSERT(FALSE);
     NS_TermEmbedding();
     return FALSE;
   }
 
-  InitializePrefs();
-
-  SetRegistryKey(_T("K-Meleon"));
-
-  // TODO: rather than having 2 seperate preferences thing (one for windows, one for mozilla)
-  //       we should merge them into 1.  that means changing the windows registry stuff to use
-  //       nsIPrefs
-  preferences.Load();
-
   plugins.FindAndLoad("kmeleon_*.dll");
 
-  if (!menus.Load(preferences.settingsDir + "menus.cfg")){
-    MessageBox(NULL, "Ack! Could not find menus.cfg!", NULL, 0);
-  }
+  InitializePrefs();
 
-  if(!CreateHiddenWindow())
-  {
+  if(!CreateHiddenWindow()){
     ASSERT(FALSE);
     NS_TermEmbedding();
     return FALSE;
@@ -250,10 +235,12 @@ int CMfcEmbedApp::ExitInstance()
 	}
 	m_FrameWndLst.RemoveAll();
 
-    if (m_pMainWnd)
-        m_pMainWnd->DestroyWindow();
+  if (m_pMainWnd)
+    m_pMainWnd->DestroyWindow();
 
-    delete m_ProfileMgr;
+  delete m_ProfileMgr;
+
+  preferences.Save();
 
 	NS_TermEmbedding();
 
@@ -316,30 +303,35 @@ BOOL CMfcEmbedApp::CreateHiddenWindow()
 
 nsresult CMfcEmbedApp::InitializePrefs()
 {
-  nsresult rv;
-  NS_WITH_SERVICE(nsIPref, prefs, NS_PREF_CONTRACTID, &rv);
-  if (NS_SUCCEEDED(rv)) {	  
+  preferences.Load();
 
-    rv = InitializeCachePrefs();
-    NS_ASSERTION(NS_SUCCEEDED(rv), "Could not initialize cache prefs");
-    
-    // We are using the default prefs from mozilla. If you were
-    // disributing your own, this would be done simply by editing
-    // the default pref files.
-    
-    PRBool inited;
-    rv = prefs->GetBoolPref("kmeleon.prefs_inited", &inited);
-    if (NS_FAILED(rv) || !inited)
-    {
-      rv = prefs->SetBoolPref("kmeleon.prefs_inited", PR_TRUE);
-      if (NS_SUCCEEDED(rv))
-        rv = prefs->SavePrefFile();
+  nsresult rv;
+  rv = InitializeCachePrefs();
+  NS_ASSERTION(NS_SUCCEEDED(rv), "Could not initialize cache prefs");
+
+  if (!menus.Load(preferences.settingsDir + "menus.cfg")){
+    HMODULE module = AfxGetInstanceHandle();
+    HRSRC res = FindResource(module, MAKEINTRESOURCE(IDR_MENU_TEXT), "TEXT");
+    HGLOBAL menuRes = LoadResource(module, res);
+    char * menuText = (char *)LockResource(menuRes);
+    if (!menuText)
+      return rv;
+    TRY {
+      CFile menuFile((LPCTSTR)(preferences.settingsDir + "menus.cfg"), CFile::modeWrite | CFile::modeCreate);
+      menuFile.WriteHuge(menuText, strlen(menuText));
+      menuFile.Close();
+
+      // try again
+      if (!menus.Load(preferences.settingsDir + "menus.cfg")){
+        MessageBox(NULL, "Ack! Could not find menus.cfg!", NULL, 0);
+      }
     }
-    
+    CATCH (CFileException, e) {
+    }
+    END_CATCH
+    FreeResource(menuRes);
   }
-  else
-    NS_ASSERTION(PR_FALSE, "Could not get preferences service");
-		
+
   return rv;
 }
 
@@ -362,7 +354,7 @@ nsresult CMfcEmbedApp::InitializeCachePrefs()
     }
 
     // Set up the new pref
-    nsCOMPtr<nsIFile> profileDir;   
+    nsCOMPtr<nsIFile> profileDir;
     rv = NS_GetSpecialDirectory(NS_APP_USER_PROFILE_50_DIR, getter_AddRefs(profileDir));
     NS_ASSERTION(profileDir, "NS_APP_USER_PROFILE_50_DIR is not defined");
     if (NS_FAILED(rv)) return rv;
@@ -434,6 +426,7 @@ NS_IMETHODIMP CMfcEmbedApp::Observe(nsISupports *aSubject, const PRUnichar *aTop
     }
     else if (nsCRT::strcmp(aTopic, PROFILE_AFTER_CHANGE_TOPIC) == 0)
     {
+        plugins.UnLoadAll();
         InitializePrefs(); // In case we have just switched to a newly created profile.
         
         OnNewBrowser();

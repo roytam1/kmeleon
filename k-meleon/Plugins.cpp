@@ -29,20 +29,13 @@ extern CMfcEmbedApp theApp;
 #include "Plugins.h"
 #include "kmeleon_plugin.h"
 
+#define START_ID 2000
+
 CPlugins::CPlugins(){
 }
 
 CPlugins::~CPlugins(){
-  POSITION pos = pluginList.GetStartPosition();
-  kmeleonPlugin * kPlugin;
-  CString s;
-  while (pos){
-    pluginList.GetNextAssoc( pos, s, kPlugin);
-    if (kPlugin){
-      kPlugin->Quit();
-      FreeLibrary(kPlugin->hDllInstance);
-    }
-  }
+  UnLoadAll();
 }
 
 // returns a pointer to the char after the last \ or /
@@ -60,7 +53,7 @@ const char *FileNoPath(const char *filepath){
   }
 }
 
-UINT currentID = 2000;
+UINT currentID = START_ID;
 UINT GetCommandIDs(int num){
   UINT freeID = currentID;
   currentID += num;
@@ -102,6 +95,27 @@ void NavigateTo(char *url, int newWindow){
   mainFrame->m_wndBrowserView.OpenURL(url);
 }
 
+static kmeleonDocInfo kDocInfo;
+kmeleonDocInfo * GetDocInfo(HWND mainWnd){
+  CBrowserFrame *frame = (CBrowserFrame *)CWnd::FromHandle(mainWnd);
+
+  if (!frame){
+    return NULL;
+  }
+
+  CString title;
+  frame->GetWindowText(title);
+  title.Replace(" (K-Meleon)", "");
+
+  CString url;
+  frame->m_wndUrlBar.GetEnteredURL(url);
+
+  strcpy(kDocInfo.title, title);
+  strcpy(kDocInfo.url, url);
+
+  return &kDocInfo;
+}
+
 kmeleonPlugin * CPlugins::Load(const char *file){
   kmeleonPlugin * kPlugin;
   if (pluginList.Lookup(FileNoPath(file), kPlugin)){
@@ -128,6 +142,7 @@ kmeleonPlugin * CPlugins::Load(const char *file){
 
   kPlugin->GetCommandIDs = GetCommandIDs;
   kPlugin->NavigateTo = NavigateTo;
+  kPlugin->GetDocInfo = GetDocInfo;
 
   kPlugin->Init();
 
@@ -153,6 +168,21 @@ int CPlugins::FindAndLoad(char *pattern = "*.dll"){
   return i;
 }
 
+void CPlugins::UnLoadAll(){
+  POSITION pos = pluginList.GetStartPosition();
+  kmeleonPlugin * kPlugin;
+  CString s;
+  while (pos){
+    pluginList.GetNextAssoc( pos, s, kPlugin);
+    if (kPlugin){
+      kPlugin->Quit();
+      FreeLibrary(kPlugin->hDllInstance);
+    }
+  }
+  pluginList.RemoveAll();
+  currentID = START_ID;
+}
+
 void CPlugins::DoRebars(HWND rebarWnd){
   POSITION pos = pluginList.GetStartPosition();
   kmeleonPlugin * kPlugin;
@@ -164,3 +194,4 @@ void CPlugins::DoRebars(HWND rebarWnd){
     }
   }
 }
+

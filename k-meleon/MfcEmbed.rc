@@ -195,6 +195,7 @@ BEGIN
     "C",            ID_EDIT_COPY,           VIRTKEY, CONTROL, NOINVERT
     "N",            ID_NEW_BROWSER,         VIRTKEY, CONTROL, NOINVERT
     "O",            ID_FILE_OPEN,           VIRTKEY, CONTROL, NOINVERT
+    "R",            ID_NAV_RELOAD,          VIRTKEY, CONTROL, NOINVERT
     "S",            ID_FILE_SAVE_AS,        VIRTKEY, CONTROL, NOINVERT
     "V",            ID_EDIT_PASTE,          VIRTKEY, CONTROL, NOINVERT
     VK_BACK,        ID_EDIT_UNDO,           VIRTKEY, ALT, NOINVERT
@@ -203,6 +204,8 @@ BEGIN
     VK_F6,          ID_PREV_PANE,           VIRTKEY, SHIFT, NOINVERT
     VK_INSERT,      ID_EDIT_COPY,           VIRTKEY, CONTROL, NOINVERT
     VK_INSERT,      ID_EDIT_PASTE,          VIRTKEY, SHIFT, NOINVERT
+    VK_LEFT,        ID_NAV_BACK,            VIRTKEY, ALT, NOINVERT
+    VK_RIGHT,       ID_NAV_FORWARD,         VIRTKEY, ALT, NOINVERT
     "X",            ID_EDIT_CUT,            VIRTKEY, CONTROL, NOINVERT
     "Z",            ID_EDIT_UNDO,           VIRTKEY, CONTROL, NOINVERT
 END
@@ -482,6 +485,13 @@ IDC_PAN_UPLEFT          CURSOR  DISCARDABLE     "res\\Cursor_15.cur"
 IDC_PAN_DOWNLEFT        CURSOR  DISCARDABLE     "res\\Cursor_17.cur"
 IDC_PAN_UPRIGHT         CURSOR  DISCARDABLE     "res\\Cursor_14.cur"
 IDC_PAN_DOWNRIGHT       CURSOR  DISCARDABLE     "res\\Cursor_16.cur"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXT
+//
+
+IDR_MENU_TEXT           TEXT    DISCARDABLE     "res\\menus.cfg"
 
 /////////////////////////////////////////////////////////////////////////////
 //
