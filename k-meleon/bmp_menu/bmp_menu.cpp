@@ -279,7 +279,7 @@ int GetTabWidth(HMENU menu){
 
 	int maxChars = 0;
 	int state;
-  char *string;
+	char *string;
 	char *tab;
 
 	int count = ::GetMenuItemCount(menu);
@@ -292,22 +292,21 @@ int GetTabWidth(HMENU menu){
 			mmi.fMask = MIIM_DATA;
 			::GetMenuItemInfo(menu, i, true, &mmi);
 
-      MenuDataT *mdt = (MenuDataT *)mmi.dwItemData;
-      if (mdt){
-        string = (char *)mdt->data;
+			MenuDataT *mdt = (MenuDataT *)mmi.dwItemData;
+			if (mdt){
+				string = (char *)mdt->data;
 
-        tab = strrchr(string, '\t');
+				tab = strrchr(string, '\t');
 
-        if (tab) {
-          if ((tab - string) > maxChars) {
-            maxChars = tab - string;
-          }
-        }
+				if (tab) {
+					if ((tab - string) > maxChars) {
+						maxChars = tab - string;
+					}
+				}
 			}
 		}
 	}
-
-	return maxChars*2;
+	return maxChars+3;
 }
 
 void DrawMenuItem(DRAWITEMSTRUCT *dis) {
@@ -320,7 +319,7 @@ void DrawMenuItem(DRAWITEMSTRUCT *dis) {
 
 	BOOL hasBitmap = false;
 
-	// Draw the hilight rectangle
+	// Draw the highlight rectangle
 	SetBkMode(dis->hDC, TRANSPARENT);
 	if (dis->itemState & ODS_SELECTED) {
 		FillRect(dis->hDC, &dis->rcItem, GetSysColorBrush(COLOR_HIGHLIGHT));
