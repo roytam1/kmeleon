@@ -17,11 +17,16 @@
 */
 
 
-#include "stdafx.h"
+//#include "stdafx.h"
 #include "history.h"
+#include "../Utils.h"
 #include "../ToolBarExMessages.h"
 #include "../resource.h"
 #include "../KmeleonMessages.h"
+
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <commctrl.h>
 
 #pragma warning( disable : 4786 ) // C4786 bitches about the std::map template name expanding beyond 255 characters
 #include <map>
@@ -104,20 +109,24 @@ void DoRebar(HWND rebarWnd) {
 
 
 void CreateBackMenu (UINT button) {
-	int index, count, i;
+	int index, count, i, limit;
 	char **titles, buf[47];
 
 	if (!kPlugin.kf->GetMozillaSessionHistory (&titles, &count, &index)) {
 		return;
 	}
 
-	HMENU menu, submenu;
+   if (index>20)
+      limit = index-20;
+   else limit=0;
+
+   HMENU menu, submenu;
 
 	menu = CreateMenu();
 	submenu = CreatePopupMenu();
 
 	int x=0;
-	for (i = index - 1; i >= 0; i--) {
+	for (i = index - 1; i >= limit; i--) {
 		CondenseMenuText(buf, titles[i], x++);
 		AppendMenu(submenu, MF_STRING, i+1, buf);
 	}
@@ -154,7 +163,7 @@ void CreateBackMenu (UINT button) {
 
 
 void CreateForwardMenu (UINT button) {
-	int index, count, i;
+	int index, count, i, limit;
 	char **titles, buf[47];
 
 	if (!kPlugin.kf->GetMozillaSessionHistory (&titles, &count, &index)) {
@@ -166,12 +175,15 @@ void CreateForwardMenu (UINT button) {
 	menu = CreateMenu();
 	submenu = CreatePopupMenu();
 
-	int x=0;
-	for (i = index + 1; i < count; i++) {
+   if (count-index > 20)
+      limit = index+20;
+   else limit=count;
+
+   int x=0;
+	for (i = index + 1; i < limit; i++) {
 		CondenseMenuText(buf, titles[i], x++);
 		AppendMenu(submenu, MF_STRING, i+1, buf);
 	}
-
 
    UINT uBandIndex = ::SendMessage(hReBar, RB_IDTOINDEX, 200, 0);     // 200 = Toolbar ID
    REBARBANDINFO rb;
@@ -248,6 +260,7 @@ void UpdateHistoryMenu () {
 	}
 }
 
+
 void CondenseMenuText(char *buf, char *title, int index) {
 	int len;
 
@@ -261,13 +274,18 @@ void CondenseMenuText(char *buf, char *title, int index) {
 
 	len = strlen(title);
 	if (len > 43)  {
-		memcpy(buf+3, title, 20);
-		memcpy(buf+23, "...", 3);
-		strcpy(buf+26, title+len-21);
+      char *temp = new char[len];
+
+      strcpy (temp, title);
+      CondenseString(temp, 43);
+		strcpy(buf+3, temp);
+
+      delete temp;
 	}
 	else
 		strcpy(buf+3, title);
 }
+
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 

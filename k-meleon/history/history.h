@@ -16,6 +16,7 @@
 *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
+#include <windows.h>
 
 int Init();
 void Create(HWND parent);
@@ -29,11 +30,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 void CreateBackMenu (UINT button);
 void CreateForwardMenu (UINT button);
-int MozillaSessionHistory(char **titles[], int *count, int *index);
 void UpdateHistoryMenu();
-void OnTBLButtonHold(DWORD buttonID, DWORD unused);
-void OnTBRButtonDown(WPARAM controlID, LPARAM lParam);
-
 void CondenseMenuText(char *buf, char *title, int index);
 
 int ID_HISTORY_FLAG = -1;
