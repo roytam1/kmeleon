@@ -1,4 +1,4 @@
-         /*
+/*
 *  Copyright (C) 2001 Jeff Doozan
 *
 *  This program is free software; you can redistribute it and/or modify
@@ -25,7 +25,7 @@ extern CMfcEmbedApp theApp;
 
 #define _QUOTE(blah) #blah
 
-CAboutDlg::CAboutDlg() : CDialog(CAboutDlg::IDD)
+CAboutDlg::CAboutDlg(CWnd *wndParent) : CDialog(CAboutDlg::IDD, wndParent)
 {
    m_credits = _QUOTE(
       \r\n

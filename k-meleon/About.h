@@ -22,7 +22,7 @@
 class CAboutDlg : public CDialog
 {
 public:
-	CAboutDlg();
+	CAboutDlg(CWnd *wndParent);
 	enum { IDD = IDD_ABOUTBOX };
 
 protected:
