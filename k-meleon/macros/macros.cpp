@@ -25,8 +25,9 @@
 #define PLUGIN_NAME "Macro Extension Plugin"
 
 #define KMELEON_PLUGIN_EXPORTS
-#include "..\kmeleon_plugin.h"
-#include "..\utils.h"
+#include "..\\kmeleon_plugin.h"
+#include "..\\KMeleonConst.h"
+#include "..\\utils.h"
 #include "macros.h"
 
 #define _T(x) x
@@ -135,6 +136,7 @@ struct var {
 
 int ID_START    = -1;
 int ID_END      = -1;
+int wm_deferopenmsg = -1;
 int iMacroCount = 0;
 int iVarCount   = 0;
 int bStartup    = 1;
@@ -204,6 +206,8 @@ int Init() {
    ID_START = kFuncs->GetCommandIDs(iMacroCount);
    ID_END = ID_START+iMacroCount-1;
 
+   wm_deferopenmsg = kPlugin.kFuncs->GetCommandIDs(1);
+
    return 1;
 }
 
@@ -215,14 +219,7 @@ void Create(HWND hWndParent) {
 	KMeleonWndProc = (WNDPROC) GetWindowLong(hWndParent, GWL_WNDPROC);
 	SetWindowLong(hWndParent, GWL_WNDPROC, (LONG)WndProc);
 
-   int index = FindMacro("OnStartup");
-   if (bStartup && index != NOTFOUND)
-      ExecuteMacro(hWndParent, index);
-   bStartup = 0;
-
-   index = FindMacro("OnOpenWindow");
-   if (index != NOTFOUND)
-      ExecuteMacro(hWndParent, index);
+	PostMessage(hWndParent, WM_COMMAND, wm_deferopenmsg, 0);
 }
 
 void Config(HWND hWndParent) {
@@ -2113,9 +2110,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 
    switch (message) {
    case WM_COMMAND:
-      if ( (LOWORD(wParam) >= ID_START) && (LOWORD(wParam) <= ID_END) )
+     if (LOWORD(wParam)==wm_deferopenmsg) {
+       int index = FindMacro("OnStartup");
+       if (bStartup && index != NOTFOUND)
+	 ExecuteMacro(hWnd, index);
+       bStartup = 0;
+       
+       index = FindMacro("OnOpenWindow");
+       if (index != NOTFOUND)
+	 ExecuteMacro(hWnd, index);
+     }
+     else if ( (LOWORD(wParam) >= ID_START) && (LOWORD(wParam) <= ID_END) )
          ExecuteMacro(hWnd, LOWORD(wParam)-ID_START);
-      break;
+     break;
    case WM_CLOSE:
       {
          int index = FindMacro("OnCloseWindow");
