@@ -129,6 +129,7 @@ protected:
 	afx_msg void OnViewInfo();
 	afx_msg void OnNavBack();
 	afx_msg void OnNavForward();
+  afx_msg void OnNavSearch();
 	afx_msg void OnNavHome();
 	afx_msg void OnNavReload();
 	afx_msg void OnNavStop();
