@@ -554,6 +554,7 @@ kmeleonPlugin * CPlugins::Load(char *file)
    TrimWhiteSpace(file);
 
    const char *noPath = FileNoPath(file);
+   strlwr((char*)noPath);
 
    // truncate the .dll extension
    char *dot = strrchr(noPath, '.');
