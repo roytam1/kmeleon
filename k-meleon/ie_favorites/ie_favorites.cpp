@@ -88,13 +88,14 @@ int Init(){
    if(RegOpenKey(HKEY_CURRENT_USER, _T("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\User Shell Folders"), &hKey) != ERROR_SUCCESS)
    {
       TRACE0("Favorites folder not found\n");
-      //return;
-      strcpy(sz, _T("c:\\windows\\favorites"));
+      *szPath=NULL;
    }
-   dwSize = sizeof(sz);
-   RegQueryValueEx(hKey, _T("Favorites"), NULL, NULL, (LPBYTE)sz, &dwSize);
-   ExpandEnvironmentStrings(sz, szPath, MAX_PATH);
-   RegCloseKey(hKey);
+   else {
+      dwSize = sizeof(sz);
+      RegQueryValueEx(hKey, _T("Favorites"), NULL, NULL, (LPBYTE)sz, &dwSize);
+      ExpandEnvironmentStrings(sz, szPath, MAX_PATH);
+      RegCloseKey(hKey);
+   }
 
    return true;
 }
@@ -242,6 +243,10 @@ int BuildFavoritesMenu(LPCTSTR pszPath, int nStartPos, CMenu* pMenu)
 
 
 void DoMenu(HMENU menu, char *param){
+
+   // there are no favorites
+   if (!*szPath)
+      return;
 
    if (stricmp(param, _T("Config")) == 0){
       AppendMenu(menu, MF_STRING, nConfigCommand, "&Config");
