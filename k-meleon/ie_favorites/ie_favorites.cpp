@@ -105,12 +105,19 @@ int Init()
    TCHAR           sz[MAX_PATH];
    HKEY            hKey;
    DWORD           dwSize;
+   ITEMIDLIST *idl;
 
    long rslt = ERROR_SUCCESS;
 
-   // first try the correct way, unfortunately this isn't supported on all platforms :(
-   if (!SHGetSpecialFolderPath(NULL, sz, CSIDL_FAVORITES, true)){
-
+   // first try the correct way
+   if (SHGetSpecialFolderLocation(NULL, CSIDL_FAVORITES, &idl) == NOERROR) {
+      IMalloc *malloc;
+      SHGetPathFromIDList(idl, sz);
+      SHGetMalloc(&malloc);
+      malloc->Free(idl);
+      malloc->Release();
+   }  
+   else {
       // if the correct way failed, find out from the registry where the favorites are located.
       if(RegOpenKey(HKEY_CURRENT_USER, REG_USER_SHELL_FOLDERS, &hKey) == ERROR_SUCCESS) {
          dwSize = MAX_PATH;
@@ -143,6 +150,7 @@ int Init()
       gFavoritesPath[0] = 0;
       gFavoritesPathLen = 0;
    }
+
 
    // Get the rebar status
    int pref = 0;
