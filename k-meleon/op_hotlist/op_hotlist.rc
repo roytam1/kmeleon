@@ -106,10 +106,12 @@ BEGIN
         MENUITEM "New &Bookmark",               ID__NEW_BOOKMARK
         MENUITEM SEPARATOR
         MENUITEM "Set as &Toolbar Folder",      ID__SETAS_TOOLBARFOLDER
-        MENUITEM SEPARATOR
-        MENUITEM "Cu&t",                        ID__BOOKMARK_CUT
-        MENUITEM "&Copy",                       ID__BOOKMARK_COPY
-        MENUITEM "&Paste",                      ID__BOOKMARK_PASTE
+        MENUITEM "Set as &New Bookmark Folder", ID__SETAS_NEWBOOKMARKFOLDER
+        MENUITEM "Set as Bookmark &Menu",       ID__SETAS_BOOKMARKMENU
+#        MENUITEM SEPARATOR
+#        MENUITEM "Cu&t",                        ID__BOOKMARK_CUT
+#        MENUITEM "&Copy",                       ID__BOOKMARK_COPY
+#        MENUITEM "&Paste",                      ID__BOOKMARK_PASTE
         MENUITEM SEPARATOR
         MENUITEM "&Zoom",                       ID__ZOOM
     END

@@ -38,6 +38,8 @@
 #endif
 
 static bool found_tb = false;
+static bool found_bm = false;
+static bool found_nb = false;
 
 int ParseHotlistFolder(char **p, CBookmarkNode &node) 
 {
@@ -142,6 +144,18 @@ int ParseHotlistFolder(char **p, CBookmarkNode &node)
             {
                newNode->flags |= BOOKMARK_FLAG_TB;
                found_tb = true;
+            }
+         if ( !found_bm && gMenuFolder[0] != 0 && 
+              ((strcmp(szName, gMenuFolder) == 0)))
+            {
+               newNode->flags |= BOOKMARK_FLAG_BM;
+               found_bm = true;
+            }
+         if ( !found_nb && gNewitemFolder[0] != 0 && 
+              ((strcmp(szName, gNewitemFolder) == 0)))
+            {
+               newNode->flags |= BOOKMARK_FLAG_NB;
+               found_nb = true;
             }
       }
    }

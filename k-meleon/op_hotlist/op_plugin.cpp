@@ -321,6 +321,8 @@ int Init(){
    kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_CHEVRON_ENABLED, &bChevronEnabled, &bChevronEnabled);
    kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_HOTLIST_RESYNCH, &bResynchHotlist, &bResynchHotlist);
    kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_TOOLBAR_FOLDER, gToolbarFolder, (char*)"");
+   kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_MENU_FOLDER, gMenuFolder, (char*)"");
+   kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_NEWITEM_FOLDER, gNewitemFolder, (char*)"");
    kPlugin.kFuncs->GetPreference(PREF_INT, PREFERENCE_MENU_MAXLEN, &gMaxMenuLength, &gMaxMenuLength);
    kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_MENU_AUTOLEN, &gMenuAutoDetect, &gMenuAutoDetect);
    if (gMaxMenuLength < 1) gMaxMenuLength = 20;
@@ -472,7 +474,34 @@ BOOL CALLBACK PrefDlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
                   case IDOK:
                   {
                      GetDlgItemText(hWnd, IDC_HOTLIST_FILE, szTmp, MAX_PATH);
-                     kPlugin.kFuncs->SetPreference(PREF_STRING, PREFERENCE_HOTLIST_FILE, szTmp);
+                     if (strcmp(gHotlistFile, szTmp) != 0) {
+                        if (gHotlistModified) {
+                           op_writeFile(lpszHotlistFile);
+                        }
+                        free(lpszHotlistFile);
+                        lpszHotlistFile = strdup(szTmp);
+                        if (lpszHotlistFile && *lpszHotlistFile) {
+                           delete gHotlistRoot.child;
+                           delete gHotlistRoot.next;
+                           gHotlistRoot.child = NULL;
+                           gHotlistRoot.next = NULL;
+                           if (op_readFile(lpszHotlistFile)) {
+                              strcpy(gHotlistFile, szTmp);
+                              kPlugin.kFuncs->SetPreference(PREF_STRING, PREFERENCE_HOTLIST_FILE, szTmp);
+                           } else {
+                              free(lpszHotlistFile);
+                              lpszHotlistFile = strdup(gHotlistFile);
+                              if (lpszHotlistFile && *lpszHotlistFile) {
+                                 delete gHotlistRoot.child;
+                                 delete gHotlistRoot.next;
+                                 gHotlistRoot.child = NULL;
+                                 gHotlistRoot.next = NULL;
+                                 op_readFile(lpszHotlistFile);
+                              }
+                           }
+                        }
+                        rebuild = 1;
+                     }
 
                      nTmp = GetDlgItemInt(hWnd, IDC_MAX_MENU_LENGTH, NULL, TRUE);
                      if (nTmp < 1) nTmp = 20;
@@ -600,7 +629,7 @@ void DoMenu(HMENU menu, char *param){
       if ((ret = op_readFile(lpszHotlistFile)) > 0) {
          if (gMenuSortOrder)
             gHotlistRoot.sort(gMenuSortOrder);
-         BuildMenu(menu, &gHotlistRoot, false);
+         BuildMenu(menu, gHotlistRoot.FindSpecialNode(BOOKMARK_FLAG_BM), false);
       }
    }
    

@@ -41,6 +41,8 @@ static BOOL bDragging;
 static HCURSOR hCursorDrag;
 
 static HTREEITEM hTBitem;   // current toolbar folder treeview item
+static HTREEITEM hNBitem;   // current new bookmark folder treeview item
+static HTREEITEM hBMitem;   // current bookmark menu folder treeview item
 static BOOL zoom;
 static BOOL maximized;
 
@@ -72,8 +74,11 @@ static inline void UnixTimeToSystemTime(time_t t, LPSYSTEMTIME pst) {
    FILETIME ft1;
    FILETIME ft2;
 
-//   ll = Int32x32To64(t, 10000000) + 116444736000000000LL;
+#ifdef __MINGW32__
+   ll = Int32x32To64(t, 10000000) + 116444736000000000LL;
+#else
    ll = Int32x32To64(t, 10000000) + 116444736000000000;
+#endif
    ft1.dwLowDateTime = (DWORD)ll;
    ft1.dwHighDateTime = ll >> 32;
 
@@ -165,6 +170,8 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
             {
                int idc_next = IDC_NAME;
                fEatKeystroke = true;
+               if (zoom)
+                  break;
                if (GetKeyState(VK_SHIFT) & 0x80) {
                   idc_next = IDCANCEL;
                   SendMessage(GetDlgItem(hEditWnd, idc_next), BM_SETSTYLE, BS_DEFPUSHBUTTON, TRUE);
@@ -326,9 +333,9 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
          HTREEITEM newItem = TreeView_InsertItem(hTree, &tvis);
 
-         // root starts out as special folder
-         hTBitem = newItem;
-         workingBookmarks.flags = BOOKMARK_FLAG_TB;
+         // root starts out with all specials set to it - FillTree will unset any that are set elsewhere with ChangeSpecialFolders
+         hTBitem = hNBitem = hBMitem = newItem;
+         workingBookmarks.flags = BOOKMARK_FLAG_TB | BOOKMARK_FLAG_BM | BOOKMARK_FLAG_NB;
 
          FillTree(hTree, newItem, workingBookmarks);
 
@@ -653,6 +660,8 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
    case WM_COMMAND:
       {
          if (LOWORD(wParam) == nAddCommand) {
+            gHotlistRoot = workingBookmarks;
+
             CBookmarkNode *newNode = (CBookmarkNode *)lParam;
 
             TVINSERTSTRUCT tvis;
@@ -661,12 +670,12 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
             tvis.itemex.iImage = IMAGE_BOOKMARK;
             tvis.itemex.iSelectedImage = IMAGE_BOOKMARK;
             tvis.itemex.lParam = (long)newNode;
-            tvis.hParent = TreeView_GetRoot(hTree);
+            tvis.hParent = hNBitem;
             tvis.hInsertAfter = TVI_LAST;
 
             HTREEITEM newItem = TreeView_InsertItem(hTree, &tvis);
             
-            bookmarksEdited = true;
+            bookmarksEdited = false;
          }
          else if (HIWORD(wParam) == EN_CHANGE) {
             int id = LOWORD(wParam);
@@ -719,11 +728,46 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
          else if (HIWORD(wParam) == BN_CLICKED) {
             WORD id = LOWORD(wParam);
             switch(id){
+            
+            case IDCANCEL:
+               if (!zoom) {
+                  if (bookmarksEdited) {
+                     delete gHotlistRoot.child;
+                     delete gHotlistRoot.next;
+                     gHotlistRoot.child = NULL;
+                     gHotlistRoot.next = NULL;
+                     if (op_readFile(lpszHotlistFile) > 0) {
+                        RebuildMenu();
+                     }
+                  }
+                  
+                  UnhookWindowsHookEx(hHook);
+                  ghWndEdit = NULL;
+                  EndDialog(hDlg, 0);
+                  break;
+               }
+               // fall through!
 
             case IDOK:
                if (bookmarksEdited) {
                   gHotlistRoot = workingBookmarks;
                   op_writeFile(lpszHotlistFile);
+
+                  CBookmarkNode *node = GetBookmarkNode(hTree, hTBitem);
+                  if (node && (node->flags & BOOKMARK_FLAG_TB)) {
+                     strcpy(gToolbarFolder, (char*)node->text.c_str());
+                     kPlugin.kFuncs->SetPreference(PREF_STRING, PREFERENCE_TOOLBAR_FOLDER, gToolbarFolder);
+                  }
+                  node = GetBookmarkNode(hTree, hBMitem);
+                  if (node && (node->flags & BOOKMARK_FLAG_BM)) {
+                     strcpy(gMenuFolder, (char*)node->text.c_str());
+                     kPlugin.kFuncs->SetPreference(PREF_STRING, PREFERENCE_MENU_FOLDER, gMenuFolder);
+                  }
+                  node = GetBookmarkNode(hTree, hNBitem);
+                  if (node && (node->flags & BOOKMARK_FLAG_NB)) {
+                     strcpy(gNewitemFolder, (char*)node->text.c_str());
+                     kPlugin.kFuncs->SetPreference(PREF_STRING, PREFERENCE_NEWITEM_FOLDER, gNewitemFolder);
+                  }
                   
                   RebuildMenu();
                }
@@ -746,22 +790,6 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                UnhookWindowsHookEx(hHook);
                ghWndEdit = NULL;
                EndDialog(hDlg, 1);
-               break;
-            
-            case IDCANCEL:
-               if (bookmarksEdited) {
-                  delete gHotlistRoot.child;
-                  delete gHotlistRoot.next;
-                  gHotlistRoot.child = NULL;
-                  gHotlistRoot.next = NULL;
-                  if (op_readFile(lpszHotlistFile) > 0) {
-                     RebuildMenu();
-                  }
-               }
-
-               UnhookWindowsHookEx(hHook);
-               ghWndEdit = NULL;
-               EndDialog(hDlg, 0);
                break;
             }
          }
@@ -849,15 +877,12 @@ static void FillTree(HWND hTree, HTREEITEM parent, CBookmarkNode &node)
          if (child->flags & BOOKMARK_FLAG_TB) {
             ChangeSpecialFolder(hTree, &hTBitem, thisItem, BOOKMARK_FLAG_TB);
          }
-
-         /*
          if (child->flags & BOOKMARK_FLAG_BM) {
             ChangeSpecialFolder(hTree, &hBMitem, thisItem, BOOKMARK_FLAG_BM);
          }
          if (child->flags & BOOKMARK_FLAG_NB) {
             ChangeSpecialFolder(hTree, &hNBitem, thisItem, BOOKMARK_FLAG_NB);
          }
-         */
 
          FillTree(hTree, thisItem, *child);
       }
@@ -1259,6 +1284,36 @@ static void OnRClick(HWND hTree)
 
       HMENU topMenu = LoadMenu(kPlugin.hDllInstance, MAKEINTRESOURCE(IDR_CONTEXTMENU));
       HMENU contextMenu = GetSubMenu(topMenu, 0);
+
+      CBookmarkNode *node = GetBookmarkNode(hTree, hItem);
+      if (node && node->type != BOOKMARK_FOLDER) {
+         HTREEITEM htiParent = TreeView_GetParent(hTree, hItem);
+         if (htiParent)
+            node = GetBookmarkNode(hTree, htiParent);
+         else 
+            node = NULL;
+      }
+      
+      if (node && (node->flags & BOOKMARK_FLAG_TB))
+         CheckMenuItem(contextMenu, ID__SETAS_TOOLBARFOLDER, MF_BYCOMMAND | MF_CHECKED);
+      else
+         CheckMenuItem(contextMenu, ID__SETAS_TOOLBARFOLDER, MF_BYCOMMAND | MF_UNCHECKED);
+      if (node && (node->flags & BOOKMARK_FLAG_BM))
+         CheckMenuItem(contextMenu, ID__SETAS_BOOKMARKMENU, MF_BYCOMMAND | MF_CHECKED);
+      else
+         CheckMenuItem(contextMenu, ID__SETAS_BOOKMARKMENU, MF_BYCOMMAND | MF_UNCHECKED);
+      if (node && (node->flags & BOOKMARK_FLAG_NB))
+         CheckMenuItem(contextMenu, ID__SETAS_NEWBOOKMARKFOLDER, MF_BYCOMMAND | MF_CHECKED);
+      else
+         CheckMenuItem(contextMenu, ID__SETAS_NEWBOOKMARKFOLDER, MF_BYCOMMAND | MF_UNCHECKED);
+
+      MENUITEMINFO minfo = {0};
+      minfo.cbSize = sizeof(MENUITEMINFO);
+      minfo.fMask = MIIM_STRING;
+      minfo.dwTypeData = (char*) (zoom ? "Show properties" : "Hide properties");
+      minfo.cch = strlen((char*)minfo.dwTypeData);
+      SetMenuItemInfo(contextMenu, ID__ZOOM, FALSE, (LPMENUITEMINFO) &minfo);
+      
       int command = TrackPopupMenu(contextMenu, TPM_RIGHTBUTTON | TPM_LEFTALIGN | TPM_RETURNCMD, mouse.x, mouse.y, 0, hTree, NULL);
 
       switch (command) {
@@ -1298,7 +1353,6 @@ static void OnRClick(HWND hTree)
          ChangeSpecialFolder(hTree, &hTBitem, hItem, BOOKMARK_FLAG_TB);
          bookmarksEdited = true;    // ChangeSpecialFolder is used when filling the tree initially, as well, so we don't want it to set bookmarksModified itself
          break;
-         /*
       case ID__SETAS_NEWBOOKMARKFOLDER:
          ChangeSpecialFolder(hTree, &hNBitem, hItem, BOOKMARK_FLAG_NB);
          bookmarksEdited = true;
@@ -1307,7 +1361,6 @@ static void OnRClick(HWND hTree)
          ChangeSpecialFolder(hTree, &hBMitem, hItem, BOOKMARK_FLAG_BM);
          bookmarksEdited = true;
          break;
-         */
       case ID__BOOKMARK_DELETE:
          DeleteItem(hTree, hItem);
          break;
@@ -1362,22 +1415,22 @@ static void OnSize(int height, int width) {
 
    // resize tree
    SetWindowPos(GetDlgItem(hEditWnd, IDC_TREE_HOTLIST), 0, 
-                BORDER, 
-                BORDER, 
-                width-(BORDER*2), 
-                height-BORDER*4-convY(BUTTON_HEIGHT+(1-zoom)*PROPERTIES_HEIGHT), 
+                zoom ? 0 : BORDER, 
+                zoom ? 0 : BORDER, 
+                zoom ? width : width-(BORDER*2), 
+                zoom ? height : height-BORDER*4-convY(BUTTON_HEIGHT+(1-zoom)*PROPERTIES_HEIGHT), 
                 0);
 
    // move cancel button
    SetWindowPos(GetDlgItem(hEditWnd, IDCANCEL), 0, 
                 width-BORDER-convX(CANCEL_WIDTH), 
-                height-BORDER-convY(BUTTON_HEIGHT), 
+                zoom ? height + BORDER : height-BORDER-convY(BUTTON_HEIGHT), 
                 0, 0, SWP_NOSIZE);
 
    // move ok button
    SetWindowPos(GetDlgItem(hEditWnd, IDOK), 0, 
                 width-BORDER*2-convX(CANCEL_WIDTH+OK_WIDTH), 
-                height-BORDER-convY(BUTTON_HEIGHT), 
+                zoom ? height + BORDER : height-BORDER-convY(BUTTON_HEIGHT), 
                 0, 0, SWP_NOSIZE);
 
    // move/resize properties box

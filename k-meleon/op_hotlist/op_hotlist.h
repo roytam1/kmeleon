@@ -157,6 +157,8 @@ void Config(HWND parent);
 #define PREFERENCE_MENU_AUTOLEN _T("kmeleon.plugins.hotlist.menuAutoDetect")
 #define PREFERENCE_MENU_SORTORDER _T("kmeleon.plugins.hotlist.sortOrder")
 #define PREFERENCE_TOOLBAR_FOLDER _T("kmeleon.plugins.hotlist.toolbarFolder")
+#define PREFERENCE_MENU_FOLDER _T("kmeleon.plugins.hotlist.menuFolder")
+#define PREFERENCE_NEWITEM_FOLDER _T("kmeleon.plugins.hotlist.newitemFolder")
 #define PREFERENCE_BUTTON_MINWIDTH  _T("kmeleon.plugins.hotlist.buttonMinWidth")
 #define PREFERENCE_BUTTON_MAXWIDTH  _T("kmeleon.plugins.hotlist.buttonMaxWidth")
 #define PREFERENCE_BUTTON_ICONS  _T("kmeleon.plugins.hotlist.buttonIcons")
@@ -177,6 +179,8 @@ WHERE BOOL bCreate;
 WHERE BOOL bIgnore;
 WHERE CHAR gHotlistFile[MAX_PATH];
 WHERE CHAR gToolbarFolder[MAX_PATH];
+WHERE CHAR gMenuFolder[MAX_PATH];
+WHERE CHAR gNewitemFolder[MAX_PATH];
 
 extern kmeleonPlugin kPlugin;
 

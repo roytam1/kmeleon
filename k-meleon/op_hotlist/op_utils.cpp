@@ -180,7 +180,7 @@ void RebuildMenu() {
    // and rebuild
    if (gMenuSortOrder)
       gHotlistRoot.sort(gMenuSortOrder);
-   BuildMenu(gMenuHotlist, &gHotlistRoot, false);
+   BuildMenu(gMenuHotlist, gHotlistRoot.FindSpecialNode(BOOKMARK_FLAG_BM), false);
 
    // need to rebuild the rebar, too, in case it had submenus (whose ids are now invalid)
    TB *ptr = root;
@@ -337,12 +337,18 @@ int addLink(char *url, char *title)
    if (!newNode)
       return false;
    
-   gHotlistRoot.AddChild(newNode);
-   op_addEntry(lpszHotlistFile, newNode);
    if (ghWndEdit) {
       SendMessage(ghWndEdit, WM_COMMAND, nAddCommand, (LPARAM)newNode);
+      CBookmarkNode *addNode = gHotlistRoot.FindSpecialNode(BOOKMARK_FLAG_NB);
+      addNode->AddChild(newNode);
+      op_writeFile(lpszHotlistFile);
    }
-   
+   else {
+      CBookmarkNode *addNode = gHotlistRoot.FindSpecialNode(BOOKMARK_FLAG_NB);
+      addNode->AddChild(newNode);
+      op_writeFile(lpszHotlistFile);
+   }
+     
    if (!bEmpty) {
       
       // FIXME!
@@ -353,15 +359,13 @@ int addLink(char *url, char *title)
          ;
    }
    bEmpty = true;
-   BuildMenu(gMenuHotlist, &gHotlistRoot, false);
+   BuildMenu(gMenuHotlist, gHotlistRoot.FindSpecialNode(BOOKMARK_FLAG_BM), false);
 
-#if 0
    TB *ptr = root;
    while (ptr) {
      RebuildRebarMenu( ptr->hWndTB );
      ptr = ptr->next;
    }
-#endif
 
    return true;
 }
@@ -442,8 +446,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
          return true;
       }
       else if (CBookmarkNode *node = gHotlistRoot.FindNode(command)) {
-         // node->lastVisit = time(NULL);
-         // gHotlistModified = true;   // this doesn't call for instant saving, it can wait until we add/edit/quit
+         node->lastVisit = time(NULL);
+         gHotlistModified = true;   // this doesn't call for instant saving, it can wait until we add/edit/quit
          kPlugin.kFuncs->NavigateTo(node->url.c_str(), OPEN_NORMAL);
          
          return true;
@@ -505,7 +509,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
                while (DeleteMenu(gMenuHotlist, nFirstHotlistPosition, MF_BYPOSITION))
                   ;
             bEmpty = true;
-            BuildMenu(gMenuHotlist, &gHotlistRoot, false);
+            BuildMenu(gMenuHotlist, gHotlistRoot.FindSpecialNode(BOOKMARK_FLAG_BM), false);
          }
       }
    }
