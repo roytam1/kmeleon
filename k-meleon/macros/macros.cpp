@@ -434,7 +434,7 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
       CMD(setpref)   {
          enum PREFTYPE preftype;
 
-        char *c = strchr(data, ',');
+         char *c = strchr(data, ',');
          if (c) {
             //*c = 0;
             //TrimWhiteSpace(data);
@@ -466,20 +466,20 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
             if (data && *data) {
 
                if (preftype == PREF_STRING)
-                  kFuncs->SetPreference(preftype, pref, data);
+                  kFuncs->SetPreference(preftype, pref, data/*, TRUE*/);
 
                else if (preftype == PREF_INT) {
                   // note that SetPreference() expects third param
                   // to be a pointer in all cases, even for int and bool
                   int iData = atoi(data);
-                  kFuncs->SetPreference(preftype, pref, &iData);
+                  kFuncs->SetPreference(preftype, pref, &iData/*, TRUE*/);
                } 
 
                else {   // boolean
                   int bData = FALSE;
                   if (!strcmpi(data, "true"))
                      bData = TRUE;
-                  kFuncs->SetPreference(preftype, pref, &bData);
+                  kFuncs->SetPreference(preftype, pref, &bData/*, TRUE*/);
                }
             }
          }
@@ -547,6 +547,12 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
             return "";
          }
 
+         // this is ugly... it needs fixing...  please...  think of the children.
+         if (strlen(pref)>1 && pref[0]=='"' && pref[strlen(pref)-1]=='"') {
+            pref[strlen(pref)-1] = 0;
+            pref++;
+         }
+
          char sVal[256];
          int  iVal=0;
          if (preftype == PREF_STRING)
@@ -555,7 +561,7 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
             kFuncs->GetPreference(preftype, pref, &iVal, &iVal);
             if (preftype == PREF_BOOL) {
                iVal = !iVal;
-               kFuncs->SetPreference(preftype, pref, &iVal, TRUE);
+               kFuncs->SetPreference(preftype, pref, &iVal/*, TRUE*/);
                return "";
             }
          }
@@ -578,10 +584,10 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
                         *c = 0;
                         c++;
                      }
-                     kFuncs->SetPreference(preftype, pref, param, TRUE);
+                     kFuncs->SetPreference(preftype, pref, param/*, TRUE*/);
                   }
                   else
-                     kFuncs->SetPreference(preftype, pref, prefdata, TRUE);
+                     kFuncs->SetPreference(preftype, pref, prefdata/*, TRUE*/);
                   bPrefWritten = TRUE;
                }
             }
@@ -598,7 +604,8 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
                   }
                   else
                      dataVal = atoi(prefdata);
-                  kFuncs->SetPreference(preftype, pref, &dataVal, TRUE);
+
+                  kFuncs->SetPreference(preftype, pref, &dataVal/*, TRUE*/);
                   bPrefWritten = TRUE;
                }
             }
@@ -606,10 +613,10 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
 
          if (!bPrefWritten) {
             if (preftype == PREF_STRING)
-               kFuncs->SetPreference(preftype, pref, prefdata, TRUE);
+               kFuncs->SetPreference(preftype, pref, prefdata/*, TRUE*/);
             else if (preftype == PREF_INT) {
                int val = atoi(prefdata);
-               kFuncs->SetPreference(preftype, pref, &val, TRUE);
+               kFuncs->SetPreference(preftype, pref, &val/*, TRUE*/);
             }
          }
 
