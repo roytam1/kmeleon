@@ -299,45 +299,45 @@ END_MESSAGE_MAP()
 
 int CPromptUsernamePasswordDialog::OnInitDialog()
 {   
-   	SetWindowText(m_csDialogTitle);
-  
-    CWnd *pWnd = GetDlgItem(IDC_PROMPT_TEXT);
-    if(pWnd)
-        pWnd->SetWindowText(m_csPromptText);
-
-    CButton *pChk = (CButton *)GetDlgItem(IDC_CHECK_SAVE_PASSWORD);
-    if(pChk)
-    {
-        if(m_bHasCheckBox)
-        {
-            if (!m_csCheckBoxText.IsEmpty())
-                pChk->SetWindowText(m_csCheckBoxText);
-            pChk->SetCheck(m_bCheckBoxValue ? BST_CHECKED : BST_UNCHECKED);
-        }
-        else
-        {
-            pChk->ShowWindow(SW_HIDE);
-        }
-    }
-
-    CEdit *pEdit = (CEdit *)GetDlgItem(IDC_PASSWORD);
-    if(pEdit) 
-    {
-        pEdit->SetWindowText(m_csPassword);
-    }
-
-    pEdit = (CEdit *)GetDlgItem(IDC_USERNAME);
-    if(pEdit) 
-    {
-        pEdit->SetWindowText(m_csUserName);
-        pEdit->SetSel(0, -1);
-
-        pEdit->SetFocus();
-
-        return 0; // Returning "0" since we're explicitly setting focus
-    }
-
-    return TRUE;
+   SetWindowText(m_csDialogTitle);
+   
+   CWnd *pWnd = GetDlgItem(IDC_PROMPT_TEXT);
+   if(pWnd)
+      pWnd->SetWindowText(m_csPromptText);
+   
+   CButton *pChk = (CButton *)GetDlgItem(IDC_CHECK_SAVE_PASSWORD);
+   if(pChk)
+   {
+      if(m_bHasCheckBox)
+      {
+         if (!m_csCheckBoxText.IsEmpty())
+            pChk->SetWindowText(m_csCheckBoxText);
+         pChk->SetCheck(m_bCheckBoxValue ? BST_CHECKED : BST_UNCHECKED);
+      }
+      else
+      {
+         pChk->ShowWindow(SW_HIDE);
+      }
+   }
+   
+   CEdit *pEdit = (CEdit *)GetDlgItem(IDC_PASSWORD);
+   if(pEdit) 
+   {
+      pEdit->SetWindowText(m_csPassword);
+   }
+   
+   pEdit = (CEdit *)GetDlgItem(IDC_USERNAME);
+   if(pEdit) 
+   {
+      pEdit->SetWindowText(m_csUserName);
+      pEdit->SetSel(0, -1);
+      
+      pEdit->SetFocus();
+      
+      return 0; // Returning "0" since we're explicitly setting focus
+   }
+   
+   return TRUE;
 }
 
 //--------------------------------------------------------------------------//
