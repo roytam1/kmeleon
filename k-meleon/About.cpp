@@ -49,14 +49,11 @@ CAboutDlg::CAboutDlg() : CDialog(CAboutDlg::IDD)
       );
    }
    m_credits += _QUOTE(
-      Sebastian Spaeth <Sebastian@SSpaeth.de>\r\n    
       \r\n
       Past Contributors:\r\n
+      Sebastian Spaeth <Sebastian@SSpaeth.de>\r\n    
       Christophe Thibault <christophe@nullsoft.com>\r\n
       Chak Nanga <chak@netscape.com>\r\n
-      \r\n
-      Documentation:\r\n
-      Lance Hall (aka pyzr) <pyzr@pyzr.com>
   );
   m_version.Format("Version %s Build %d Compiled %s", VERSION, BUILD_NUMBER, BUILD_TIME);
 }
