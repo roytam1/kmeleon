@@ -774,7 +774,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
       return true;
    }
    else if (message == WM_MENUSELECT) {
-      if (CBookmarkNode *node = gBookmarkRoot.FindNode(LOWORD(wParam))) {
+      UINT id = LOWORD(wParam);
+      if (id >= nConfigCommand && id < nDropdownCommand) {
+         if (id == nConfigCommand)
+            kPlugin.kFuncs->SetStatusBarText("Configure the bookmarks plugin");
+         else if (id == nAddCommand)
+            kPlugin.kFuncs->SetStatusBarText("Add to bookmarks");
+         else if (id == nAddLinkCommand)
+            kPlugin.kFuncs->SetStatusBarText("Add link to bookmarks");
+         else if (id == nEditCommand)
+            kPlugin.kFuncs->SetStatusBarText("Edit the bookmarks");
+         return true;
+      } 
+      else if (CBookmarkNode *node = gBookmarkRoot.FindNode(LOWORD(wParam))) {
          kPlugin.kFuncs->SetStatusBarText(node->url.c_str());
          return true;
       }
