@@ -401,11 +401,11 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags,
       POINT cursorPos;
       GetCursorPos(&cursorPos);
 
-      static int display = 0;
-      if (display){
+//      static int display = 0;
+//      if (display){
          ctxMenu->TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, cursorPos.x, cursorPos.y, pThis);
-      }
-      display =! display;
+//      }
+//      display =! display;
    }
 }
 
