@@ -31,6 +31,7 @@ extern CMfcEmbedApp theApp;
 
 // HandleUnknownContentType (from nsIUnknownContentTypeHandler) implementation.
 // XXX We can get the content type from the channel now so that arg could be dropped.
+
 NS_IMETHODIMP
 CUnknownContentTypeHandler::HandleUnknownContentType( nsIRequest *request,
                                                        const char *aContentType,
@@ -41,8 +42,10 @@ CUnknownContentTypeHandler::HandleUnknownContentType( nsIRequest *request,
     nsCOMPtr<nsISupports> channel;
     nsCAutoString         contentDisp;
 
-   MessageBox(NULL, "CHandleUnknownContentType()", NULL, MB_OK);
-/*
+    // this function never seems to get called...
+    MessageBox(NULL, "CHandleUnknownContentType()", NULL, MB_OK);
+
+    /*
     if ( request ) {
         
       aChannel = do_QueryInterface(request);
@@ -122,53 +125,20 @@ CUnknownContentTypeHandler::HandleUnknownContentType( nsIRequest *request,
             rv = NS_ERROR_NULL_POINTER;
         }
     }
-
-*/
+    */
 
     return rv;
 }
 
+
 NS_IMETHODIMP
 CUnknownContentTypeHandler::ShowProgressDialog(nsIHelperAppLauncher *aLauncher, nsISupports *aContext ) {
-    nsresult rv = NS_ERROR_FAILURE;
+
+    // this is here because mozilla won't do anything untill we call this function
+    // eventually we should probably pop up a "file saving" box or something
+    aLauncher->SetWebProgressListener (NULL);
 
     return NS_OK;
-/*
-    // Get parent window (from context).
-    nsCOMPtr<nsIDOMWindowInternal> parent( do_GetInterface( aContext ) );
-    if ( parent ) {
-        // Get JS context from parent window.
-        nsCOMPtr<nsIScriptGlobalObject> sgo = do_QueryInterface( parent, &rv );
-        if ( NS_SUCCEEDED( rv ) && sgo ) {
-            nsCOMPtr<nsIScriptContext> context;
-            sgo->GetContext( getter_AddRefs( context ) );
-            if ( context ) {
-                // Get native context.
-                JSContext *jsContext = (JSContext*)context->GetNativeContext();
-                if ( jsContext ) {
-                    // Set up window.arguments[0]...
-                    void *stackPtr;
-                    jsval *argv = JS_PushArguments( jsContext,
-                                                    &stackPtr,
-                                                    "sss%ip",
-                                                    "chrome://global/content/helperAppDldProgress.xul",
-                                                    "_blank",
-                                                    "chrome,titlebar,minimizable",
-                                                    (const nsIID*)(&NS_GET_IID(nsIHelperAppLauncher)),
-                                                    (nsISupports*)aLauncher );
-                    if ( argv ) {
-                        // Open the dialog.
-                        nsCOMPtr<nsIDOMWindowInternal> dialog;
-                        rv = parent->OpenDialog( jsContext, argv, 4, getter_AddRefs( dialog ) );
-                        // Pop arguments.
-                        JS_PopArguments( jsContext, stackPtr );
-                    }
-                }
-            }
-        }
-    }
-*/
-    return rv;
 }
 
 // Show the helper app launch confirmation dialog as instructed.
@@ -188,6 +158,8 @@ CUnknownContentTypeHandler::Show( nsIHelperAppLauncher *aLauncher, nsISupports *
 NS_IMETHODIMP
 CUnknownContentTypeHandler::PromptForSaveToFile(nsISupports * aWindowContext, const PRUnichar * aDefaultFile, const PRUnichar * aSuggestedFileExtension, nsILocalFile ** aNewFile)
 {
+// change this to 0 to use the mozilla file picker
+#if 1
    USES_CONVERSION;
 
    CString filter = W2T(aSuggestedFileExtension);
@@ -213,23 +185,16 @@ CUnknownContentTypeHandler::PromptForSaveToFile(nsISupports * aWindowContext, co
    }
 
    return NS_ERROR_FAILURE;
+#else
+   nsresult rv = NS_OK;
 
- /*
    nsCOMPtr<nsIFilePicker> filePicker = do_CreateInstance("@mozilla.org/filepicker;1", &rv);
    if (filePicker)
    {
-      nsCOMPtr<nsIStringBundleService> stringService = do_GetService(kStringBundleServiceCID);
-      nsCOMPtr<nsIStringBundle> stringBundle;
-      NS_ENSURE_TRUE(stringService, NS_ERROR_FAILURE);
-
-      NS_ENSURE_SUCCESS(stringService->CreateBundle(HELPERAPP_DIALOG_URL, nsnull, getter_AddRefs(stringBundle)), 
-                    NS_ERROR_FAILURE);
-
-      nsXPIDLString windowTitle;
-      stringBundle->GetStringFromName(NS_LITERAL_STRING("saveDialogTitle").get(), getter_Copies(windowTitle));
+      nsAFlatString title = NS_LITERAL_STRING ("Save As:");
 
       nsCOMPtr<nsIDOMWindowInternal> parent( do_GetInterface( aWindowContext ) );
-      filePicker->Init(parent, windowTitle, nsIFilePicker::modeSave);
+      filePicker->Init(parent, title.get(), nsIFilePicker::modeSave);
       filePicker->SetDefaultString(aDefaultFile);
       nsAutoString wildCardExtension (NS_LITERAL_STRING("*").get());
       if (aSuggestedFileExtension) {
@@ -273,9 +238,8 @@ CUnknownContentTypeHandler::PromptForSaveToFile(nsISupports * aWindowContext, co
          }
       }
    }
-*/
-
-  return NS_OK;
+   return NS_OK;
+#endif
 }
 
 

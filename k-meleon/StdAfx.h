@@ -82,11 +82,18 @@
 #include "nsIEmbeddingSiteWindow.h"
 #include "nsIWebBrowserFind.h"
 #include "nsIWebBrowserFocus.h"
+#include "nsIWebProgress.h"
 
 // Printing
 #include "nsIPrintOptions.h" 
 #include "nsIWebBrowserPrint.h"
-#include "nsIDOMWindow.h"  
+#include "nsIDOMWindow.h"
+
+// Unknown Content Type Handler
+#include "nsIUnkContentTypeHandler.h"
+#include "nsIHelperAppLauncherDialog.h"
+#include "nsIExternalHelperAppService.h"
+#include "nsIHelperAppLauncherDialog.h"
 
 //{{AFX_INSERT_LOCATION}}
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.

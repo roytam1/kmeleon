@@ -158,6 +158,10 @@ SOURCE=.\Dialogs.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\HiddenWnd.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\MenuParser.cpp
 # End Source File
 # Begin Source File
@@ -208,6 +212,10 @@ SOURCE=.\StdAfx.cpp
 # Begin Source File
 
 SOURCE=.\ToolBarEx.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\UnknownContentTypeHandler.cpp
 # End Source File
 # Begin Source File
 
