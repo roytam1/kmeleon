@@ -309,18 +309,6 @@ LPCTSTR CMfcEmbedApp::GetMainWindowClassName() {
 BOOL CMfcEmbedApp::InitInstance()
 {
 
-   // Parse command line
-   int len = GetCommandLineSwitch("-f", NULL, FALSE);
-   if (len == 0) {
-      MessageBox(NULL, m_lpCmdLine, NULL, MB_OK);
-   }
-   else if (len > 0) {
-      char *arg = new char[len+1];
-      GetCommandLineSwitch("-f", arg, TRUE);
-      MessageBox(NULL, m_lpCmdLine, NULL, MB_OK);
-      delete arg;
-   }
-
    // check for prior instances
    HANDLE hMutexOneInstance = CreateMutex( NULL, TRUE, "K-Meleon Instance Mutex" );
 	m_bAlreadyRunning = ( GetLastError() == ERROR_ALREADY_EXISTS );
@@ -558,6 +546,8 @@ void CMfcEmbedApp::OnNewBrowser()
       case PREF_NEW_WINDOW_HOME:
    	   pBrowserFrame->m_wndBrowserView.LoadHomePage();
          break;
+      case PREF_NEW_WINDOW_BLANK:
+         pBrowserFrame->m_wndBrowserView.OpenURL("about:blank");
       case PREF_NEW_WINDOW_URL:
          pBrowserFrame->m_wndBrowserView.OpenURL(preferences.newWindowURL);
          break;
