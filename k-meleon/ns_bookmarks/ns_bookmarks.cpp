@@ -308,6 +308,7 @@ void ParseBookmarks(char *bmFileBuffer, HMENU menu){
       else if ((t = strstr(p, "<DT><A HREF=\"")) != NULL) {
          t+=13; // t now points to the url
          char *q = strchr(t, '\"');
+         char *u = t;
          if (q) *q = 0;
          urlVector.push_back((std::string)t);
          int position = urlVector.size() - 1;
@@ -316,6 +317,9 @@ void ParseBookmarks(char *bmFileBuffer, HMENU menu){
          *q = 0;
 
          titleVector.push_back((std::string)t);
+
+         if (*t == 0)
+            t = u;
 
          if (strlen(t) > 40)
             CondenseString(t, 40);
