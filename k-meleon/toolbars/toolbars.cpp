@@ -279,8 +279,7 @@ void Config(HWND hWndParent) {
 configFileType g_configFiles[1];
 int GetConfigFiles(configFileType **configFiles)
 {
-   kPlugin.kFuncs->GetPreference(PREF_STRING, _T("kmeleon.general.settingsDir"), g_configFiles[0].file, (char*)"");
-   strcat(g_configFiles[0].file, "toolbars.cfg");
+   FindSkinFile(g_configFiles[0].file, "toolbars.cfg");
 
    strcpy(g_configFiles[0].label, "Toolbars");
 
