@@ -136,6 +136,21 @@ LINK32=link.exe
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
+SOURCE=.\About.cpp
+
+!IF  "$(CFG)" == "kmeleon - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "kmeleon - Win32 Debug"
+
+# SUBTRACT CPP /YX /Yc /Yu
+
+!ELSEIF  "$(CFG)" == "kmeleon - Win32 Profile Release"
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
 SOURCE=.\AccelParser.cpp
 # End Source File
 # Begin Source File
@@ -249,6 +264,10 @@ SOURCE=.\winEmbedFileLocProvider.cpp
 # Begin Group "Header Files"
 
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
+# Begin Source File
+
+SOURCE=.\About.h
+# End Source File
 # Begin Source File
 
 SOURCE=.\AccelParser.h
