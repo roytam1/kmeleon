@@ -229,6 +229,7 @@
 #define ID_NAV_STOP                     32776
 #define ID_NAV_RELOAD                   32777
 #define ID_NAV_SEARCH                   32778
+#define ID_NAV_FORCE_RELOAD             32779
 #define ID_EDIT_SELECT_NONE             32781
 #define ID_NEW_BROWSER                  32782
 #define ID_VIEW_SOURCE                  32783
