@@ -93,7 +93,8 @@ enum commands {
    opennew,
    openbg,
    setpref,
-   togglepref
+   togglepref,
+   exec
 };
 
 
@@ -217,6 +218,7 @@ int FindCommand(char *cmd) {
       CMD_TEST(openbg)
       CMD_TEST(setpref)
       CMD_TEST(togglepref)
+      CMD_TEST(exec)
 
    return cmdVal;
 }
@@ -421,6 +423,11 @@ void ExecuteCommand (int command, char *data) {
          }
 
          delete datacopy;
+      }
+      CMD(exec) {
+         STARTUPINFO si = {0};
+         PROCESS_INFORMATION pi = {0};
+         CreateProcess(NULL, data, NULL, NULL, FALSE, NORMAL_PRIORITY_CLASS, NULL, NULL, &si, &pi);
       }
 }
 
