@@ -292,6 +292,10 @@ SOURCE=.\res\Tool3.bmp
 # End Group
 # Begin Source File
 
+SOURCE=.\res\menus.cfg
+# End Source File
+# Begin Source File
+
 SOURCE=.\res\out.avi
 # End Source File
 # End Target
