@@ -572,6 +572,11 @@ INT_PTR CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
          }
 
          hEditWnd = hDlg;
+         len = 0;
+         str[len] = 0;
+         pos = 0;
+         circling = 0;
+
          hTree = GetDlgItem(hDlg, IDC_TREE_BOOKMARK);
 
          TreeView_SetImageList(hTree, gImagelist, TVSIL_NORMAL);
