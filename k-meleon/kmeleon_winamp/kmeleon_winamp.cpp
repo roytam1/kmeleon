@@ -140,6 +140,11 @@ void DoRebar(HWND rebarWnd){
     /*uStructSize*/ sizeof(TBBUTTON)
     );
 
+  if (!hwndTB){
+    MessageBox(NULL, "Failed to create winamp toolbar", NULL, 0);
+    return;
+  }
+
   //SetWindowText(hwndTB, "Winamp");
 
   HIMAGELIST himlHot = ImageList_LoadImage(kPlugin.hDllInstance, MAKEINTRESOURCE(IDB_TOOLBAR_BUTTONS), 12, numCommands, CLR_DEFAULT, IMAGE_BITMAP, LR_DEFAULTCOLOR );
@@ -160,14 +165,19 @@ void DoRebar(HWND rebarWnd){
   rbBand.hwndChild  = hwndTB;
   rbBand.cxMinChild = 0;
   rbBand.cyMinChild = HIWORD(dwBtnSize);
-  rbBand.cx         = rbBand.cxIdeal = LOWORD(dwBtnSize) * numCommands;
+  rbBand.cyIntegral = 1;
+  rbBand.cyMaxChild = rbBand.cyMinChild;
+  rbBand.cxIdeal    = LOWORD(dwBtnSize) * numCommands;
+  rbBand.cx         = rbBand.cxIdeal;
 
   // Add the band that has the toolbar.
   SendMessage(rebarWnd, RB_INSERTBAND, (WPARAM)-1, (LPARAM)&rbBand);
 
+  /*
   UINT bandPos = SendMessage(rebarWnd, RB_GETBANDCOUNT, (WPARAM)0, (LPARAM)0) - 1;
   SendMessage(rebarWnd, RB_MINIMIZEBAND, (WPARAM)bandPos, (LPARAM)0);
   SendMessage(rebarWnd, RB_MAXIMIZEBAND, (WPARAM)bandPos, (LPARAM)true);
+  */
 }
 
 LPARAM OnMessage(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam){
