@@ -349,169 +349,168 @@ void CBrowserFrame::BrowserFrameGlueObj::DestroyBrowserFrame()
    pThis->PostMessage(WM_CLOSE);
 }
 
+#define GOTO_BUILD_CTX_MENU { bContentHasFrames = FALSE; goto BUILD_CTX_MENU; }
+
 void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags, nsIContextMenuInfo *aInfo)
 {  
+    METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
 
-   METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
+    BOOL bContentHasFrames = FALSE;
+    BOOL bContentHasImage = FALSE;
+    UINT nIDResource = IDR_CTXMENU_DOCUMENT;
 
-   nsAutoString strUrlUcs2;
-   nsAutoString strImgSrcUcs2;
-   nsAutoString strFrameURL;
+    // Reset the values from the last invocation
+    // Clear image src & link url
+    nsAutoString empty;
+    pThis->m_wndBrowserView.SetCtxMenuImageSrc(empty);  
+    pThis->m_wndBrowserView.SetCtxMenuLinkUrl(empty);
+    pThis->m_wndBrowserView.SetCurrentFrameURL(empty);
 
-   // Reset the value from the last invocation
-   // (A new value will be set after we determine it below)
-   //
-   pThis->m_wndBrowserView.SetCtxMenuLinkUrl(strUrlUcs2);
-   pThis->m_wndBrowserView.SetCtxMenuImageSrc(strImgSrcUcs2);
-   pThis->m_wndBrowserView.SetCurrentFrameURL(strFrameURL);
+    if(aContextFlags & nsIContextMenuListener2::CONTEXT_DOCUMENT)
+    {
+        nIDResource = IDR_CTXMENU_DOCUMENT;
 
-   
-/*
-  !!BAD HACK!!  !!BAD HACK!!  !!BAD HACK!!  !!BAD HACK!!  !!BAD HACK!!
+        // Background image?
+        if (aContextFlags & nsIContextMenuListener2::CONTEXT_BACKGROUND_IMAGE)
+        {
+            // Get the IMG SRC
+            nsCOMPtr<nsIURI> imgURI;
+            aInfo->GetBackgroundImageSrc(getter_AddRefs(imgURI));
+            if (!imgURI)
+                return; 
+            nsCAutoString uri;
+            imgURI->GetSpec(uri);
+            bContentHasImage = TRUE;
 
-  The bGetElementHack flag is part of the GetElementFromPoint function.
-  Basically, there's no easy way that I've found to get the link
-  information by point from mozilla, so as a workaround, the function
-  simply sends a contextmenu notifier with the point we want.  It's
-  our job here to make sure the context menu doesn't get shown.
-  
-  !!BAD HACK!!  !!BAD HACK!!  !!BAD HACK!!  !!BAD HACK!!  !!BAD HACK!!
-*/
+            pThis->m_wndBrowserView.SetCtxMenuImageSrc(NS_ConvertUTF8toUCS2(uri)); // Set the new Img Src
+        }
+    }
+    else if(aContextFlags & nsIContextMenuListener2::CONTEXT_TEXT) 
+        nIDResource = IDR_CTXMENU_TEXT;
+    else if(aContextFlags & nsIContextMenuListener2::CONTEXT_LINK)
+    {
+        nIDResource = IDR_CTXMENU_LINK;
 
-   nsCOMPtr<nsIDOMNode> node;
-   aInfo->GetTargetNode(getter_AddRefs(node));
+        // Since we handle all the browser menu/toolbar commands
+        // in the View, we basically setup the Link's URL in the
+        // BrowserView object. When a menu selection in the context
+        // menu is made, the appropriate command handler in the
+        // BrowserView will be invoked and the value of the URL
+        // will be accesible in the view
+        
+        nsAutoString strUrlUcs2;
+        nsresult rv = aInfo->GetAssociatedLink(strUrlUcs2);
+        if(NS_FAILED(rv))
+            return;
 
-   
-   if (pThis->m_wndBrowserView.m_iGetNodeHack == 1) {
-      pThis->m_wndBrowserView.m_iGetNodeHack = 0;
-      pThis->m_wndBrowserView.m_pGetNode = node;
-      return;
-   }
+        // Update the view with the new LinkUrl
+        // Note that this string is in UCS2 format
+        pThis->m_wndBrowserView.SetCtxMenuLinkUrl(strUrlUcs2);
 
-      
-   char *menuType = _T("DocumentPopup");
-/* 
-   if(aContextFlags & nsIContextMenuListener::CONTEXT_DOCUMENT)
-      menuType = _T("DocumentPopup");
-   else if((aContextFlags & nsIContextMenuListener::CONTEXT_TEXT) || (aContextFlags & nsIContextMenuListener::CONTEXT_INPUT))
-*/
-   if((aContextFlags & nsIContextMenuListener2::CONTEXT_TEXT) || (aContextFlags & nsIContextMenuListener2::CONTEXT_INPUT))
-      menuType = _T("TextPopup");
-   else if(aContextFlags & nsIContextMenuListener2::CONTEXT_LINK)
-   {
-      // Since we handle all the browser menu/toolbar commands
-      // in the View, we basically setup the Link's URL in the
-      // BrowserView object. When a menu selection in the context
-      // menu is made, the appropriate command handler in the
-      // BrowserView will be invoked and the value of the URL
-      // will be accesible in the view
-      
-
-      nsresult rv = aInfo->GetAssociatedLink(strUrlUcs2);
-      if (NS_FAILED(rv))
-         return;
-
-      if (strUrlUcs2.Length()) {         
-         // Update the view with the new LinkUrl
-         // Note that this string is in UCS2 format
-         pThis->m_wndBrowserView.SetCtxMenuLinkUrl(strUrlUcs2);
-         
-         menuType = _T("LinkPopup");
-      }
-   }
-   if(aContextFlags & nsIContextMenuListener2::CONTEXT_IMAGE) {
-
-      // Get the IMG SRC
-      nsCOMPtr<nsIURI> imgURI;
-      aInfo->GetImageSrc(getter_AddRefs(imgURI));
-
-      if (!imgURI)
-         return;
-
-      nsCAutoString strImgSrcUtf8;
-      imgURI->GetSpec(strImgSrcUtf8);
-      if (strImgSrcUtf8.IsEmpty())
-         return;
-
-      strImgSrcUcs2 = NS_ConvertUTF8toUCS2(strImgSrcUtf8);
-      pThis->m_wndBrowserView.SetCtxMenuImageSrc(strImgSrcUcs2); // Set the new Img Src
-
-      if(aContextFlags & nsIContextMenuListener2::CONTEXT_LINK)
-         menuType = _T("ImageLinkPopup");
-      else
-         menuType = _T("ImagePopup");
-
-   }
-
-
-   else if(aContextFlags & nsIContextMenuListener2::CONTEXT_BACKGROUND_IMAGE)  {                                                                           
-
-      nsAutoString strImgSrcUcs2;
-      pThis->m_wndBrowserView.SetCtxMenuImageSrc(strImgSrcUcs2); // Clear it
-
-      // Get the IMG SRC
-
-      nsCOMPtr<nsIURI> imgURI;
-      aInfo->GetBackgroundImageSrc(getter_AddRefs(imgURI));
-      if (!imgURI)
-         return;
-      nsCAutoString uri;
-      imgURI->GetSpec(uri);
-
-      pThis->m_wndBrowserView.SetCtxMenuImageSrc(NS_ConvertUTF8toUCS2(uri)); // Set the new Img Src
-
-   
-      if(aContextFlags & nsIContextMenuListener2::CONTEXT_LINK)
-         menuType = _T("ImageLinkPopup");
-      else
-         menuType = _T("ImagePopup");
-   
-   }
-      
-   // Determine if we need to add the Frame related context menu items
-   // such as "View Frame Source" etc.
-   //
-   if(pThis->m_wndBrowserView.ViewContentContainsFrames())
-   {            
-      //Determine the current Frame URL
-      //
-      nsresult rv = NS_OK;
-      
-      nsCOMPtr<nsIDOMDocument> domDoc;
-      rv = node->GetOwnerDocument(getter_AddRefs(domDoc));
-      
-      if(NS_SUCCEEDED(rv)) {
-         nsCOMPtr<nsIDOMHTMLDocument> htmlDoc(do_QueryInterface(domDoc, &rv));
-         if(NS_SUCCEEDED(rv)) {
-            rv = htmlDoc->GetURL(strFrameURL);
-            if(NS_SUCCEEDED(rv)) {
-               pThis->m_wndBrowserView.SetCurrentFrameURL(strFrameURL); //Set it to the new URL
-               
-               if(aContextFlags & nsIContextMenuListener2::CONTEXT_LINK) {
-                  if(aContextFlags & nsIContextMenuListener2::CONTEXT_IMAGE)
-                     menuType = _T("FrameImageLinkPopup");
-                  else
-                     menuType = _T("FrameLinkPopup");
-               }
-               else {
-                  if(aContextFlags & nsIContextMenuListener2::CONTEXT_IMAGE)
-                     menuType = _T("FrameImagePopup");
-                  else
-                     menuType = _T("FrameDocumentPopup");
-               }
+        // Test if there is an image URL as well
+        nsCOMPtr<nsIURI> imgURI;
+        aInfo->GetImageSrc(getter_AddRefs(imgURI));
+        if(imgURI)
+        {
+            nsCAutoString strImgSrcUtf8;
+            imgURI->GetSpec(strImgSrcUtf8);
+            if(!strImgSrcUtf8.IsEmpty())
+            {
+                // Set the new Img Src
+                pThis->m_wndBrowserView.SetCtxMenuImageSrc(NS_ConvertUTF8toUCS2(strImgSrcUtf8));
+                bContentHasImage = TRUE;
             }
-         }
-      }
-   }
-   
+        }
+    }
+    else if(aContextFlags & nsIContextMenuListener2::CONTEXT_IMAGE)
+    {
+        nIDResource = IDR_CTXMENU_IMAGE;
 
-   /*  !!BAD HACK!!  !!BAD HACK!!  !!BAD HACK!!  !!BAD HACK!!  */
-   if (pThis->m_wndBrowserView.m_iGetNodeHack == 2) {
-      pThis->m_wndBrowserView.m_iGetNodeHack = 0;
-      pThis->m_wndBrowserView.m_pGetNode = node;
-      return;
-   }
-   
+        // Get the IMG SRC
+        nsCOMPtr<nsIURI> imgURI;
+        aInfo->GetImageSrc(getter_AddRefs(imgURI));
+        if(!imgURI)
+            return;
+        nsCAutoString strImgSrcUtf8;
+        imgURI->GetSpec(strImgSrcUtf8);
+        if(strImgSrcUtf8.IsEmpty())
+            return;
+
+        // Set the new Img Src
+        pThis->m_wndBrowserView.SetCtxMenuImageSrc(NS_ConvertUTF8toUCS2(strImgSrcUtf8));
+    }
+
+    // Determine if we need to add the Frame related context menu items
+    // such as "View Frame Source" etc.
+    //
+    if(pThis->m_wndBrowserView.ViewContentContainsFrames())
+    {
+        bContentHasFrames = TRUE;
+
+        //Determine the current Frame URL
+        //
+        nsresult rv = NS_OK;
+        nsCOMPtr<nsIDOMNode> node;
+        aInfo->GetTargetNode(getter_AddRefs(node));
+        if(!node)
+            GOTO_BUILD_CTX_MENU;
+
+        nsCOMPtr<nsIDOMDocument> domDoc;
+        rv = node->GetOwnerDocument(getter_AddRefs(domDoc));
+        if(NS_FAILED(rv))
+            GOTO_BUILD_CTX_MENU;
+
+        nsCOMPtr<nsIDOMHTMLDocument> htmlDoc(do_QueryInterface(domDoc, &rv));
+        if(NS_FAILED(rv))
+            GOTO_BUILD_CTX_MENU;
+
+        nsAutoString strFrameURL;
+        rv = htmlDoc->GetURL(strFrameURL);
+        if(NS_FAILED(rv))
+            GOTO_BUILD_CTX_MENU;
+
+        pThis->m_wndBrowserView.SetCurrentFrameURL(strFrameURL); //Set it to the new URL
+    }
+
+BUILD_CTX_MENU:
+
+    char *menuType = _T("<nothing>");
+    if (!bContentHasFrames) {
+        switch (nIDResource) {
+        case IDR_CTXMENU_DOCUMENT:
+            menuType = _T("DocumentPopup");
+            break;
+        case IDR_CTXMENU_TEXT:
+            menuType = _T("TextPopup");
+            break;
+        case IDR_CTXMENU_LINK:
+            menuType = _T("LinkPopup");
+            if (bContentHasImage)
+                menuType = _T("ImageLinkPopup");
+            break;
+        case IDR_CTXMENU_IMAGE:
+            menuType = _T("ImagePopup");
+            break;
+        }
+    }
+    else {
+        switch (nIDResource) {
+        case IDR_CTXMENU_DOCUMENT:
+            menuType = _T("FrameDocumentPopup");
+            break;
+        case IDR_CTXMENU_TEXT:
+            menuType = _T("FrameTextPopup");
+            break;
+        case IDR_CTXMENU_LINK:
+            menuType = _T("FrameLinkPopup");
+            if (bContentHasImage)
+                menuType = _T("FrameImageLinkPopup");
+            break;
+        case IDR_CTXMENU_IMAGE:
+            menuType = _T("FrameImagePopup");
+            break;
+        }
+    }
 
    CMenu *ctxMenu = theApp.menus.GetMenu(menuType);
    if(ctxMenu)
