@@ -16,9 +16,6 @@ K-Meleon is the Windows answer to Galeon. Thus, K-Meleon is a lite Web browser b
 standards-compliant. To make it simple, K-Meleon could be considered as the unbloated Mozilla 
 version for Windows.
 
-K-Meleon doesn't require Mozilla to be installed to run. Although, if you already installed 
-Mozilla, you'll just have to download the small version of K-Meleon.
-
 K-Meleon interface tries to mimic the IE MFC interface as much as possible. For comvenience, 
 it also uses the IE bookmarking system.
 
@@ -28,21 +25,23 @@ K-Meleon is released under the GNU General Public License.
 ChangeLog:
 ----------
 v0.3 (02/13/01)
- - CTRL-N is not assignable as Accelerator key (Open in New Window now)
+ - CTRL-N is now assignable as Accelerator key (Open in New Window now)
  - Plugin support for menus/toolbars
  - Scriptable menus & shortcuts
  - preferences dialog
  - replaced BCG Library by using Mozilla's new MFC-Embed code
  - closing first-window doesn't quit K-Meleon now
  - Allow basic authentication
- - Save images, download files with right mouse click
- - Add view source menu entry to show the html source
+ - View source menu entry to show the html source
  - Uninstall works now, providing correct uninstall.exe now
- - percentage of document loaded sometimes wrong (>100%)
+ - fixed percentage of document loaded sometimes wrong (>100%)
  - Several Kmeleon0.21 crashes which are already fixed in the nightlies
  - Save html of a page only
  - Save complete page incl. images into a directory
+ - Save images, download files with right mouse click
  - takes URL as command line option
+ - wording GNU General Public License fixed
+ - new bugs introduced :-)
 
 v0.2.1 (11/27/00): Compiled with Mozilla M18 Nightly build (11/26/00)
 - fixed mouse wheel crashing bug (duh).

@@ -1,7 +1,7 @@
 Name "K-Meleon"
 ComponentText "This will install K-Meleon v0.3"
-LicenseText "K-Meleon is a GPL product based on Gecko(tm). Please read the license terms below before installing."
-LicenseData "license.txt"
+LicenseText "K-Meleon is published under the GPL. The Gecko(tm) engine is released under the NPL (as shown in file license.txt)"
+LicenseData "GNUlicense.txt"
 OutFile "kmeleon03.exe"
 UninstallText "This will uninstall K-Meleon from your computer."
 UninstallExeName "Uninstall.exe"
@@ -25,6 +25,7 @@ File k-meleon.exe
 File *.dll
 File *.cfg
 File ReadMe.txt
+File License.txt
 
 
 SetOutPath $INSTDIR\chrome

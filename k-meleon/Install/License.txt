@@ -1,5 +1,5 @@
 K-Meleon is licensed under the GNU General Public License (GPL).
-The Gecko(tm) engine is subject to the Mozilla Public License.
+The Gecko(tm) engine is subject to the Mozilla Public License (as shown below the GPL).
 
 		    GNU GENERAL PUBLIC LICENSE
 		       Version 2, June 1991
