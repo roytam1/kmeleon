@@ -59,7 +59,7 @@ BEGIN
         MENUITEM "Sort by &Date",                   ID__SORT_DATE
         MENUITEM "Sort by &URL",                    ID__SORT_URL
         MENUITEM SEPARATOR
-        MENUITEM "&Zoom",                           ID__ZOOM
+        MENUITEM "Properties",                      ID__ZOOM
     END
 END
 

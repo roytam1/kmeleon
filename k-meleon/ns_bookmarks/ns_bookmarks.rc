@@ -190,7 +190,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "&Delete",                     ID__BOOKMARK_DELETE
         MENUITEM SEPARATOR
-        MENUITEM "&Zoom",                       ID__ZOOM
+        MENUITEM "Properties"                   ID__ZOOM
     END
 END
 
