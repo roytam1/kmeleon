@@ -87,7 +87,7 @@ CreateShortCut "$SMSTARTUP\K-Meleon Loader.lnk" "$INSTDIR\loader.exe"
 SectionEnd
 
 #------------------------------------------------------------------------------------------
-Section "Stardard Plugins"
+Section "Standard Plugins"
 SectionIn 1
 
 SetOutPath "$INSTDIR\kplugins"
