@@ -22,6 +22,7 @@
 #include "MfcEmbed.h"
 extern CMfcEmbedApp theApp;
 
+#include "Plugins.h"
 #include "Preferences.h"
 
 CPreferences::CPreferences() {
@@ -30,7 +31,7 @@ CPreferences::CPreferences() {
 CPreferences::~CPreferences() {
 }
 
-#define GetBool(_pref, _value, _defaultValue) { \
+#define _GetBool(_pref, _value, _defaultValue) { \
     PRBool tempBool;                            \
     rv = prefs->GetBoolPref(_pref, &tempBool);  \
     if (NS_SUCCEEDED(rv))                       \
@@ -39,7 +40,7 @@ CPreferences::~CPreferences() {
       _value = _defaultValue;                   \
   }
 
-#define GetInt(_pref, _value, _defaultValue) {  \
+#define _GetInt(_pref, _value, _defaultValue) {  \
     PRInt32 tempInt;                            \
     rv = prefs->GetIntPref(_pref, &tempInt);    \
     if (NS_SUCCEEDED(rv))                       \
@@ -48,7 +49,7 @@ CPreferences::~CPreferences() {
       _value = _defaultValue;                   \
   }
 
-#define GetString(_pref, _value, _defaultValue) { \
+#define _GetString(_pref, _value, _defaultValue) { \
     nsXPIDLCString tempString;                    \
     rv = prefs->CopyCharPref(_pref, getter_Copies(tempString));  \
     if (NS_SUCCEEDED(rv))                         \
@@ -70,15 +71,17 @@ void CPreferences::Load() {
       rv = prefs->SetBoolPref(_T("kmeleon.prefs_inited"), PR_TRUE);
       rv = prefs->SavePrefFile();
     }
-    GetBool(_T("kmeleon.display.maximized"), bMaximized, true);
-    GetBool(_T("kmeleon.display.backgroundImageEnabled"), bToolbarBackground, true);
+    _GetBool(_T("kmeleon.display.maximized"), bMaximized, true);
+    _GetBool(_T("kmeleon.display.backgroundImageEnabled"), bToolbarBackground, true);
 
-    GetString(_T("kmeleon.display.backgroundImage"), toolbarBackground, _T(""));
+    _GetString(_T("kmeleon.display.backgroundImage"), toolbarBackground, _T(""));
 
-    GetBool(_T("kmeleon.general.startHome"), bStartHome, true);
-    GetString(_T("kmeleon.general.homePage"), homePage, _T("http://www.kmeleon.org"));
+    _GetBool(_T("kmeleon.general.startHome"), bStartHome, true);
+    _GetString(_T("kmeleon.general.homePage"), homePage, _T("http://www.kmeleon.org"));
 
-    GetString(_T("kmeleon.general.settingsDir"), settingsDir, _T(""));
+    _GetString(_T("kmeleon.general.searchEngine"), searchEngine, _T("http://www.google.com/keyword/"));
+
+    _GetString(_T("kmeleon.general.settingsDir"), settingsDir, _T(""));
     if (settingsDir.IsEmpty()){
       nsCOMPtr<nsIFile> profileDir;
       rv = NS_GetSpecialDirectory(NS_APP_USER_PROFILE_50_DIR, getter_AddRefs(profileDir));
@@ -97,12 +100,34 @@ void CPreferences::Load() {
       settingsDir += '\\';
     }
 
-    GetString(_T("network.proxy.http"), proxyHttp, _T("proxy"));
-    GetInt(_T("network.proxy.http_port"), proxyHttpPort, 80);
+    _GetString(_T("network.proxy.http"), proxyHttp, _T("proxy"));
+    _GetInt(_T("network.proxy.http_port"), proxyHttpPort, 80);
 
-    GetString(_T("network.proxy.no_proxies_on"), proxyNoProxy, _T("localhost"));
+    _GetString(_T("network.proxy.no_proxies_on"), proxyNoProxy, _T("localhost"));
 
-    GetInt(_T("network.proxy.type"), proxyType, 0);
+    _GetInt(_T("network.proxy.type"), proxyType, 0);
+
+    //
+
+    _GetBool(_T("javascript.enabled"), bJavascriptEnabled, true);
+    _GetBool(_T("security.enable_java"), bJavaEnabled, true);
+    _GetBool(_T("css.allow"), bCSSEnabled, true);
+
+    _GetInt(_T("network.accept_cookies"), bCookiesEnabled, 0);
+    if (bCookiesEnabled == 2){ // 0 = Always, 1 = warn, 2 = never
+      bCookiesEnabled = false;
+    }else{
+      bCookiesEnabled = true;
+    }
+    _GetBool(_T("advanced.always_load_images"), bImagesEnabled, true);
+
+    CString animationMode;
+    _GetString(_T("image.animation_mode"), animationMode, _T("normal"));
+    if (animationMode == _T("normal")){ // "once" "none" "normal"
+      bAnimationsEnabled = true;
+    }else{
+      bAnimationsEnabled = false;
+    }
   }
   else
     NS_ASSERTION(PR_FALSE, "Could not get preferences service");
@@ -111,15 +136,19 @@ void CPreferences::Load() {
 void CPreferences::Save() {
   nsresult rv;
   NS_WITH_SERVICE(nsIPref, prefs, NS_PREF_CONTRACTID, &rv);
-  if (NS_SUCCEEDED(rv)) {	  
+  if (NS_SUCCEEDED(rv)) {
     rv = prefs->SetBoolPref(_T("kmeleon.display.maximized"), bMaximized);
     rv = prefs->SetBoolPref(_T("kmeleon.display.backgroundImageEnabled"), bToolbarBackground);
     rv = prefs->SetCharPref(_T("kmeleon.display.backgroundImage"), toolbarBackground);
+
+    //
 
     rv = prefs->SetBoolPref(_T("kmeleon.general.startHome"), bStartHome);
     rv = prefs->SetCharPref(_T("kmeleon.general.homePage"), homePage);
 
     rv = prefs->SetCharPref(_T("kmeleon.general.settingsDir"), settingsDir);
+
+    //
 
     rv = prefs->SetCharPref(_T("network.proxy.http"), proxyHttp);
     rv = prefs->SetIntPref(_T("network.proxy.http_port"), proxyHttpPort);
@@ -128,10 +157,48 @@ void CPreferences::Save() {
 
     rv = prefs->SetIntPref(_T("network.proxy.type"), proxyType);
 
+    //
+
+    rv = prefs->SetBoolPref(_T("javascript.enabled"), bJavascriptEnabled);
+    rv = prefs->SetBoolPref(_T("security.enable_java"), bJavaEnabled);
+    rv = prefs->SetBoolPref(_T("css.allow"), bCSSEnabled);
+    if (bCookiesEnabled){ // 0 = Always, 1 = warn, 2 = never
+      rv = prefs->SetIntPref(_T("network.accept_cookies"), 0);
+    }else{
+      rv = prefs->SetIntPref(_T("network.accept_cookies"), 2);
+    }
+    rv = prefs->SetBoolPref(_T("advanced.always_load_images"), bImagesEnabled);
+    if (bAnimationsEnabled){ // "once" "none" "normal"
+      rv = prefs->SetCharPref(_T("image.animation_mode"), _T("normal"));
+    }else{
+      rv = prefs->SetCharPref(_T("image.animation_mode"), _T("none"));
+    }
+
     rv = prefs->SavePrefFile();
   }
   else
     NS_ASSERTION(PR_FALSE, "Could not get preferences service");
+}
+
+int CPreferences::GetInt(const char *preference, int defaultVal){
+  nsresult rv;
+  NS_WITH_SERVICE(nsIPref, prefs, NS_PREF_CONTRACTID, &rv);
+  if (NS_SUCCEEDED(rv)) {
+    PRInt32 tempInt;
+    rv = prefs->GetIntPref(preference, &tempInt);
+    if (NS_SUCCEEDED(rv))
+      return tempInt;
+    else
+      return defaultVal;
+  }
+  else return defaultVal;
+}
+void CPreferences::SetInt(const char *preference, int value){
+  nsresult rv;
+  NS_WITH_SERVICE(nsIPref, prefs, NS_PREF_CONTRACTID, &rv);
+  if (NS_SUCCEEDED(rv)) {
+    prefs->SetIntPref(preference, value);
+  }
 }
 
 CPreferencesDlg::CPreferencesDlg() : CDialog(IDD) {
@@ -166,10 +233,11 @@ CPreferencesDlg::OnInitDialog(){
 
  	m_list.InsertColumn(0, "Blah", LVCFMT_LEFT, rect.right);
 
-  AddItem("General", IDD_PREFERENCES_GENERAL);
-  AddItem("Display", IDD_PREFERENCES_DISPLAY);
-  AddItem("Proxy",   IDD_PREFERENCES_PROXY);
-  AddItem("Plugins", IDD_PREFERENCES_PLUGINS);
+  AddItem(_T("General"), IDD_PREFERENCES_GENERAL);
+  AddItem(_T("Display"), IDD_PREFERENCES_DISPLAY);
+  AddItem(_T("Proxy"),   IDD_PREFERENCES_PROXY);
+  AddItem(_T("Paranoia"),IDD_PREFERENCES_PARANOIA);
+  AddItem(_T("Plugins"), IDD_PREFERENCES_PLUGINS);
 
   m_list.SetItemState(0, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
 
@@ -188,6 +256,8 @@ int CPreferencesDlg::DoModal(){
     delete page;
     page = NULL;
   }
+
+  theApp.preferences.Save();
 
   return ret;
 }
@@ -279,6 +349,14 @@ void CPreferencePage::DoDataExchange(CDataExchange* pDX){
       DDX_Text(pDX, IDC_EDIT_HTTP_PROXY_PORT, theApp.preferences.proxyHttpPort);
       DDX_Text(pDX, IDC_EDIT_PROXY_NO_PROXY, theApp.preferences.proxyNoProxy);
       DDX_Check(pDX, IDC_CHECK_PROXY_TYPE, theApp.preferences.proxyType);
+      break;
+    case IDD_PREFERENCES_PARANOIA:
+      DDX_Check(pDX, IDC_CHECK_JAVA, theApp.preferences.bJavaEnabled);
+      DDX_Check(pDX, IDC_CHECK_JAVASCRIPT, theApp.preferences.bJavascriptEnabled);
+      DDX_Check(pDX, IDC_CHECK_COOKIES, theApp.preferences.bCookiesEnabled);
+      DDX_Check(pDX, IDC_CHECK_CSS, theApp.preferences.bCSSEnabled);
+      DDX_Check(pDX, IDC_CHECK_IMAGES, theApp.preferences.bImagesEnabled);
+      DDX_Check(pDX, IDC_CHECK_ANIMATIONS, theApp.preferences.bAnimationsEnabled);
       break;
   }
   //}}AFX_DATA_MAP

@@ -103,6 +103,8 @@ public:
   CString homePage;
   int bStartHome;
 
+  CString searchEngine;
+
   // this holds the menu.txt files
   CString settingsDir;
 
@@ -117,6 +119,14 @@ public:
 
   CString proxyNoProxy;
 
+  // -- paranoia
+  int bJavaEnabled;
+  int bJavascriptEnabled;
+  int bCookiesEnabled;
+  int bCSSEnabled;
+  int bImagesEnabled;
+  int bAnimationsEnabled;
+
   // -- functions
 
   CPreferences();
@@ -124,6 +134,9 @@ public:
 
   void Save();
   void Load();
+
+  void SetInt(const char *preference, int value);
+  int  GetInt(const char *preference, int defaultVal);
 };
 
 #endif
