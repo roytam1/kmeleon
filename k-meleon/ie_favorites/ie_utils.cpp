@@ -494,6 +494,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
          
          return true;
       }
+      else {
+         kPlugin.kFuncs->SetStatusBarText("");
+      }
    }
    
    return CallWindowProc((WNDPROC)KMeleonWndProc, hWnd, message, wParam, lParam);
