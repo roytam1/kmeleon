@@ -507,6 +507,13 @@ void GetBrowserviewRect(HWND mainWnd, RECT *rc) {
       frame->m_wndBrowserView.GetWindowRect(rc);
 }
 
+HMENU GetMenu(char *menuName){
+   CMenu *menu;
+   menu = theApp.menus.GetMenu(menuName);
+
+   return menu ? menu->m_hMenu : NULL;
+}
+
 long CPlugins::SendMessage(const char *to, const char *from, const char *subject, long data1, long data2)
 {
    long retVal = 0;
@@ -551,7 +558,8 @@ kmeleonFunctions kmelFuncs = {
    GetGlobalVar,
    EncodeUTF8,
    DecodeUTF8,
-   GetBrowserviewRect
+   GetBrowserviewRect,
+   GetMenu
 };
 
 BOOL CPlugins::TestLoad(const char *file, const char *description)

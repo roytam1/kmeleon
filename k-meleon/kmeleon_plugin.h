@@ -121,6 +121,8 @@ typedef struct {
 
    void (*GetBrowserviewRect) (HWND mainWnd, RECT *rc);
 
+   HMENU (*GetMenu) (char *menu);
+
 } kmeleonFunctions;
 
 /*
