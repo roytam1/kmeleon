@@ -139,6 +139,20 @@ BOOL CProfileMgr::SetMostRecentProfile() {
    return TRUE;
 }
 
+BOOL CProfileMgr::ShutDownCurrentProfile(BOOL cleanup) {
+   nsresult rv;
+
+   nsCOMPtr<nsIProfile> profileService = 
+      do_GetService(NS_PROFILE_CONTRACTID, &rv);
+   if (NS_FAILED(rv)) return FALSE;
+
+   rv = profileService->ShutDownCurrentProfile(
+           cleanup ? nsIProfile::SHUTDOWN_CLEANSE : nsIProfile::SHUTDOWN_PERSIST);
+   if (NS_FAILED(rv)) return FALSE;
+
+   return TRUE;
+}
+
 nsresult CProfileMgr::DoManageProfilesDialog(PRBool bAtStartUp)
 {
     CProfilesDlg    dialog;

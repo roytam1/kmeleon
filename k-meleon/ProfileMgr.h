@@ -52,6 +52,7 @@ class CProfileMgr
         // If bAtStartUp is TRUE, a profile must be selected.
     BOOL                SetCurrentProfile(const char *profile);
     BOOL                SetMostRecentProfile();
+    BOOL                ShutDownCurrentProfile(BOOL cleanup=FALSE);
     
   protected:
       

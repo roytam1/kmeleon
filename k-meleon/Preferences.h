@@ -46,6 +46,8 @@ public:
    int bStartHome;
    BOOL bOffline;
 
+   BOOL bGuestAccount;
+
    CString searchEngine;
  
    CString saveDir;

@@ -109,6 +109,8 @@ void CPreferences::Load() {
 
       _GetBool(_T("kmeleon.general.offline"), bOffline, false);
 
+      _GetBool(_T("kmeleon.general.guest_account"), bGuestAccount, false);
+
       _GetBool(_T("kmeleon.general.startHome"), bStartHome, true);
       _GetString(_T("kmeleon.general.homePage"), homePage, _T("http://kmeleon.sourceforge.net/start"));
 
@@ -287,6 +289,7 @@ void CPreferences::SaveDlgPrefs() {
       rv = prefs->SetBoolPref(_T("kmeleon.general.startHome"), bStartHome);
       rv = prefs->SetCharPref(_T("kmeleon.general.homePage"), homePage);
       rv = prefs->SetBoolPref(_T("kmeleon.general.offline"), bOffline);
+      rv = prefs->SetBoolPref(_T("kmeleon.general.guest_account"), bGuestAccount);
 
       rv = prefs->SetCharPref(_T("kmeleon.general.saveDir"), saveDir);
       rv = prefs->SetCharPref(_T("kmeleon.general.settingsDir"), settingsDir);
