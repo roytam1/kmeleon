@@ -21,6 +21,8 @@
 #include "stdafx.h"
 #include "resource.h"
 
+#include "commctrl.h"
+
 #pragma warning( disable : 4786 ) // C4786 bitches about the std::map template name expanding beyond 255 characters
 #include <map>
 #include <string>
@@ -233,7 +235,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 }
 
 void FillTree(HWND hTree){
-  TreeView_InsertItem(hTree, 
+  TVINSERTSTRUCT tvis;
+  tvis.hParent = NULL;
+  tvis.hInsertAfter = NULL;
+  tvis.itemex.mask = TVIF_TEXT;
+  tvis.itemex.pszText = "Blah!";
+  TreeView_InsertItem(hTree, &tvis);
 }
 
 CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam){
