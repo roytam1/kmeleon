@@ -84,18 +84,31 @@ CUnknownContentTypeHandler::PromptForSaveToFile(nsISupports * aWindowContext, co
    defaultFile.Replace("%29", ")");
    defaultFile.Replace("%2C", ",");
 
+   defaultFile = theApp.preferences.saveDir + defaultFile;
+
    CFileDialog cf(FALSE, W2T(aSuggestedFileExtension), defaultFile, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, filter, (CWnd *)theApp.m_pMostRecentBrowserFrame);
    if(cf.DoModal() == IDOK){
       NS_ENSURE_ARG_POINTER(aNewFile);
 
-      if (!cf.GetPathName().IsEmpty()){
+      CString pathName = cf.GetPathName();
+
+      if (!pathName.IsEmpty()){
          nsCOMPtr<nsILocalFile> file(do_CreateInstance("@mozilla.org/file/local;1"));
 
          NS_ENSURE_TRUE(file, NS_ERROR_FAILURE);
 
-         file->InitWithPath(cf.GetPathName());
+         file->InitWithPath(pathName);
 
          NS_ADDREF(*aNewFile = file);
+
+         // Be sure to save off the new default saveDir
+         int slash = pathName.ReverseFind('\\');
+         if (slash == -1) {
+            pathName.ReverseFind('/');
+         }
+         if (slash != -1) {
+            theApp.preferences.saveDir = pathName.Left(slash+1);
+         }
 
          return NS_OK;
       }
