@@ -186,6 +186,19 @@
 #define ID_OPEN_LINK_IN_BACKGROUND      32798
 #define ID_WINDOW_NEXT                  32799
 #define ID_WINDOW_PREV                  32800
+#define IDS_FAILED_TO_CREATE_BROWSER    61204
+#define IDS_NEW_PLUGIN_FOUND            61205
+#define IDS_PLUGIN_NO_OPTIONS           61206
+#define IDS_PLUGIN_NOT_LOADED           61207
+#define IDS_PROFILE_EXISTS              61208
+#define IDS_PROFILE_BAD_CHARS           61209
+#define IDS_DOWNLOAD_DONE               61210
+#define IDS_DOWNLOAD_PROGRESS           61211
+#define IDS_TIMELEFT_HOURS              61212
+#define IDS_TIMELEFT_SECONDS            61213
+#define IDS_TIMELEFT_MINUTES            61214
+#define IDS_TIMELEFT_MINUTE             61215
+#define IDS_PERCENT_OF_FILE             61216
 
 // Next default values for new objects
 // 

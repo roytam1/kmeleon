@@ -355,10 +355,10 @@ void CPreferencePagePlugins::OnConfig() {
             if (kPlugin->pf->Config)
                kPlugin->pf->Config(this->m_hWnd);
             else 
-               MessageBox("This plugin has no configuration options", "K-Meleon Plugin");
+               AfxMessageBox(IDS_PLUGIN_NO_OPTIONS);
          }
          else
-            MessageBox("This plugin has not been loaded", "K-Meleon Plugin");
+            AfxMessageBox(IDS_PLUGIN_NOT_LOADED);
 
          break;
       }

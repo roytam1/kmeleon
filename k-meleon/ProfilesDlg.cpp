@@ -6,10 +6,6 @@
 #include "mfcembed.h"
 #include "ProfilesDlg.h"
 
-// Mozilla
-#include "nsIProfile.h"
-#include "nsIServiceManager.h"
-
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
@@ -35,7 +31,7 @@ static void ValidateProfileName(const CString& profileName, CDataExchange* pDX)
     {
         CString errMsg;
 
-        errMsg.Format(_T("Error: A profile named \"%s\" already exists."), (const char *)profileName);
+        errMsg.Format(IDS_PROFILE_EXISTS, (const char *)profileName);
         AfxMessageBox( errMsg, MB_ICONEXCLAMATION );
         errMsg.Empty();
         pDX->Fail();
@@ -43,7 +39,7 @@ static void ValidateProfileName(const CString& profileName, CDataExchange* pDX)
 
     if (profileName.FindOneOf("\\/") != -1)
     {
-        AfxMessageBox( _T("Error: A profile name cannot contain the characters \"\\\" or \"/\"."), MB_ICONEXCLAMATION );
+        AfxMessageBox( IDS_PROFILE_BAD_CHARS, MB_ICONEXCLAMATION );
         pDX->Fail();
     }
 }
