@@ -268,6 +268,9 @@ void Create(HWND parent){
 }
 
 void Quit(){
+   hWndFront = NULL;
+   if (ghWndEdit)
+      SendMessage(ghWndEdit, WM_CLOSE, 0, 0);
    ImageList_Destroy(gImagelist);
 
    if (gBookmarksModified) {
