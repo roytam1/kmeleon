@@ -226,6 +226,10 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
                   CreateNewObject(hTree, hItem, node->type);
                else
                   CreateNewObject(hTree, hItem, BOOKMARK_FOLDER);
+               if (!zoom) {
+                  SetFocus(GetDlgItem(hEditWnd, IDC_NAME));
+                  SendDlgItemMessage(hEditWnd, IDC_NAME, EM_SETSEL, 0, -1);
+               }
             }
             break;
          case ' ':
@@ -1497,12 +1501,17 @@ static void OnRClick(HWND hTree)
          break;
       case ID__NEW_FOLDER:
          CreateNewObject(hTree, hItem, BOOKMARK_FOLDER);
-         break;
-      case ID__NEW_SEPARATOR:
-         CreateNewObject(hTree, hItem, BOOKMARK_SEPARATOR);
+         if (!zoom) {
+            SetFocus(GetDlgItem(hEditWnd, IDC_NAME));
+            SendDlgItemMessage(hEditWnd, IDC_NAME, EM_SETSEL, 0, -1);
+         }
          break;
       case ID__NEW_BOOKMARK:
          CreateNewObject(hTree, hItem, BOOKMARK_BOOKMARK);
+         if (!zoom) {
+            SetFocus(GetDlgItem(hEditWnd, IDC_NAME));
+            SendDlgItemMessage(hEditWnd, IDC_NAME, EM_SETSEL, 0, -1);
+         }
          break;
       case ID__SETAS_TOOLBARFOLDER:
          ChangeSpecialFolder(hTree, &hTBitem, hItem, BOOKMARK_FLAG_TB);

@@ -192,6 +192,8 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
          case VK_INSERT:
             fEatKeystroke = true;
             CreateNewObject(hTree, hItem, BOOKMARK_BOOKMARK);
+            SetFocus(GetDlgItem(hEditWnd, IDC_TITLE));
+            SendDlgItemMessage(hEditWnd, IDC_TITLE, EM_SETSEL, 0, -1);
             break;
          }
       }
@@ -1189,12 +1191,16 @@ static void OnRClick(HWND hTree)
          break;
       case ID__NEW_FOLDER:
          CreateNewObject(hTree, hItem, BOOKMARK_FOLDER);
+         SetFocus(GetDlgItem(hEditWnd, IDC_TITLE));
+         SendDlgItemMessage(hEditWnd, IDC_TITLE, EM_SETSEL, 0, -1);
          break;
       case ID__NEW_SEPARATOR:
          CreateNewObject(hTree, hItem, BOOKMARK_SEPARATOR);
          break;
       case ID__NEW_BOOKMARK:
          CreateNewObject(hTree, hItem, BOOKMARK_BOOKMARK);
+         SetFocus(GetDlgItem(hEditWnd, IDC_TITLE));
+         SendDlgItemMessage(hEditWnd, IDC_TITLE, EM_SETSEL, 0, -1);
          break;
       case ID__SETAS_TOOLBARFOLDER:
          ChangeSpecialFolder(hTree, &hTBitem, hItem, BOOKMARK_FLAG_TB);
