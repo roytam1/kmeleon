@@ -466,7 +466,7 @@ void Rebuild() {
       BuildRebar();
    }
 
-// FIXME - Is this needed?  Hm, if anywhere, in WndProc, below, in the nAddCommand and nEditCommand cases...  but then it's still only one window, and the others don't get the call, so...   heck, it works without it.  It will stay until someone complains.  :)
+// FIXME - Is this needed?  Hm, if anywhere, in WndProc, below, in the nAddCommand/nAddToolbarCommand/nEditCommand cases...  but then it's still only one window, and the others don't get the call, so...   heck, it works without it.  It will stay until someone complains.  :)
 //   DrawMenuBar(hWnd);
 }
 
@@ -486,6 +486,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
          kmeleonDocInfo *dInfo = kPlugin.kFuncs->GetDocInfo(hWnd);
          if (dInfo) {
             CBookmarkNode *addNode = gBookmarkRoot.FindSpecialNode(BOOKMARK_FLAG_NB);
+            addNode->AddChild(new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), dInfo->title, dInfo->url, BOOKMARK_BOOKMARK, time(NULL)));
+
+            Save(gBookmarkFile);
+
+            Rebuild();
+         }
+         return true;
+      }
+      else if (command == nAddToolbarCommand) {
+         kmeleonDocInfo *dInfo = kPlugin.kFuncs->GetDocInfo(hWnd);
+         if (dInfo) {
+            CBookmarkNode *addNode = gBookmarkRoot.FindSpecialNode(BOOKMARK_FLAG_TB);
             addNode->AddChild(new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), dInfo->title, dInfo->url, BOOKMARK_BOOKMARK, time(NULL)));
 
             Save(gBookmarkFile);
