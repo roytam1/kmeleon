@@ -1283,6 +1283,16 @@ static void OnRClick(HWND hTree)
       case ID__BOOKMARK_DELETE:
          DeleteItem(hTree, hItem);
          break;
+      case ID__BOOKMARK_CUT:
+         DeleteItem(hTree, hItem, CUT);
+         break;
+      case ID__BOOKMARK_COPY:
+         CopyItem(hTree, hItem);
+         break;
+      case ID__BOOKMARK_PASTE:
+        if (freeNode)
+           CreateNewObject(hTree, hItem, freeNode->type, PASTE);
+         break;
       }
    }
 }

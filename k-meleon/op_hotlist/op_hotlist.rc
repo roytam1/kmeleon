@@ -107,7 +107,9 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Set as &Toolbar Folder",      ID__SETAS_TOOLBARFOLDER
         MENUITEM SEPARATOR
-        MENUITEM "&Delete",                     ID__BOOKMARK_DELETE
+        MENUITEM "Cu&t",                        ID__BOOKMARK_CUT
+        MENUITEM "&Copy",                       ID__BOOKMARK_COPY
+        MENUITEM "&Paste",                      ID__BOOKMARK_PASTE
     END
 END
 
