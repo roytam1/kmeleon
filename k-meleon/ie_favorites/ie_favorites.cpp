@@ -48,6 +48,7 @@ void Config(HWND parent);
 void Quit();
 HGLOBAL GetMenu();
 void DoMenu(HMENU menu, char *param);
+void DoRebar(HWND rebarWnd);
 LPARAM OnMessage(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 kmeleonPlugin kPlugin = {
@@ -57,7 +58,7 @@ kmeleonPlugin kPlugin = {
   Config,
   Quit,
   DoMenu,
-  NULL,
+  DoRebar,
   OnMessage
 };
 
@@ -65,13 +66,34 @@ CMenu m_menuFavorites;
 
 UINT nConfigCommand;
 UINT nAddCommand;
+UINT nEditCommand;
 UINT nFirstFavoriteCommand;
 
-int Init(){
-  nFirstFavoriteCommand = kPlugin.GetCommandIDs(MAX_FAVORITES);
+TCHAR szPath[MAX_PATH];
 
+int Init(){
   nConfigCommand = kPlugin.GetCommandIDs(1);
   nAddCommand = kPlugin.GetCommandIDs(1);
+  nEditCommand = kPlugin.GetCommandIDs(1);
+
+  nFirstFavoriteCommand = kPlugin.GetCommandIDs(MAX_FAVORITES);
+
+	TCHAR           sz[MAX_PATH];
+	HKEY            hKey;
+	DWORD           dwSize;
+
+	// find out from the registry where the favorites are located.
+	if(RegOpenKey(HKEY_CURRENT_USER, _T("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\User Shell Folders"), &hKey) != ERROR_SUCCESS)
+	{
+		TRACE0("Favorites folder not found\n");
+		//return;
+    strcpy(sz, _T("c:\\windows\\favorites"));
+	}
+	dwSize = sizeof(sz);
+	RegQueryValueEx(hKey, _T("Favorites"), NULL, NULL, (LPBYTE)sz, &dwSize);
+	ExpandEnvironmentStrings(sz, szPath, MAX_PATH);
+	RegCloseKey(hKey);
+
   return true;
 }
 
@@ -80,6 +102,7 @@ void Config(HWND parent){
 }
 
 void Quit(){
+  m_menuFavorites.DestroyMenu();
 }
 
 static CStringArray m_astrFavoriteURLs;
@@ -226,24 +249,11 @@ void DoMenu(HMENU menu, char *param){
     AppendMenu(menu, MF_STRING, nAddCommand, "&Add Favorite");
     return;
   }
+  if (stricmp(param, _T("Edit")) == 0){
+    AppendMenu(menu, MF_STRING, nEditCommand, "&Edit Favorites");
+    return;
+  }
 	m_menuFavorites.Attach(menu);
-
-	TCHAR           sz[MAX_PATH];
-	TCHAR           szPath[MAX_PATH];
-	HKEY            hKey;
-	DWORD           dwSize;
-
-	// find out from the registry where the favorites are located.
-	if(RegOpenKey(HKEY_CURRENT_USER, _T("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\User Shell Folders"), &hKey) != ERROR_SUCCESS)
-	{
-		TRACE0("Favorites folder not found\n");
-		//return;
-    strcpy(sz, _T("c:\\windows\\favorites"));
-	}
-	dwSize = sizeof(sz);
-	RegQueryValueEx(hKey, _T("Favorites"), NULL, NULL, (LPBYTE)sz, &dwSize);
-	ExpandEnvironmentStrings(sz, szPath, MAX_PATH);
-	RegCloseKey(hKey);
 
 	BuildFavoritesMenu(szPath, 0, &m_menuFavorites);
 
@@ -263,6 +273,12 @@ void DoMenu(HMENU menu, char *param){
 	}
 }
 
+void DoRebar(HWND rebarWnd){
+/*
+  TODO: Add a favorites ReBar Band
+*/
+}
+
 LPARAM OnMessage(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam){
   if (message == WM_COMMAND){
     WORD command = LOWORD(wParam);
@@ -271,8 +287,25 @@ LPARAM OnMessage(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam){
       return true;
     }
     if (command == nAddCommand){
-      //AppendMenu(mainMenu, MF_STRING, nFirstFavoriteCommand, "New Item");
-      MessageBox(NULL, "Many things we must do\nTo satisfy you\n\nAdding favorites is one\nSoon it will be done\n", "A poem by BinaryC", 0);
+      kmeleonDocInfo *dInfo = kPlugin.GetDocInfo(wnd);
+
+      CString filename = szPath;
+      filename += _T('\\');
+      filename += dInfo->title;
+      filename += _T(".url");
+      ::WritePrivateProfileString(_T("InternetShortcut"), _T("URL"), dInfo->url, filename);
+
+      UINT nPos = m_astrFavoriteURLs.GetSize();
+      m_astrFavoriteURLs.InsertAt(nPos, dInfo->url);
+
+      m_menuFavorites.AppendMenu(MF_STRING, nFirstFavoriteCommand+nPos, dInfo->title);
+
+      DrawMenuBar(wnd);
+
+      return true;
+    }
+    if (command == nEditCommand){
+      ShellExecute(wnd, "explore", szPath, NULL, szPath, SW_SHOWNORMAL);
       return true;
     }
     if (command >= nFirstFavoriteCommand && command < (nFirstFavoriteCommand + MAX_FAVORITES)){
