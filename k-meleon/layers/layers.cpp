@@ -284,7 +284,7 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
                char *p = strchr(cPtr, '\t');
                if (p)
                   *p = 0;
-               if (*cPtr)
+	       if (*cPtr) 
                   kPlugin.kFuncs->NavigateTo(cPtr, OPEN_NORMAL, pLayer->hWnd);
                if (p)
                   cPtr = p+1;
@@ -614,6 +614,7 @@ void Create(HWND parent, LPCREATESTRUCT pCS){
      if (pParentLayer && !pParentLayer->popup)
        prevHwnd = ghParent;
    }
+   kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_CATCHOPEN_WINDOW, &bCatchOpenWindow, &bCatchOpenWindow);
    if (!prevHwnd && bCatchOpenWindow && !popup && ghCurHwnd) {
      struct layer *pParentLayer = find_layer( ghCurHwnd );
      if (pParentLayer && !pParentLayer->popup) {
@@ -662,7 +663,6 @@ void Create(HWND parent, LPCREATESTRUCT pCS){
       numLayers--;
    }
    else {
-      kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_CATCHOPEN_WINDOW, &bCatchOpenWindow, &bCatchOpenWindow);
       if (bCatchOpenWindow) {
          if (!bBack || !ghParent || !found)
             ghParent = parent;
@@ -1580,7 +1580,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                   pFrame->hWndLast = closebg ? 
                      (pFrame->hWndLast != hWnd ? pFrame->hWndLast : NULL) :
                      NULL;
-                  if (!newLayer)
+                  kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_CATCHOPEN_WINDOW, &bCatchOpenWindow, &bCatchOpenWindow);
+                  if (!newLayer && bCatchOpenWindow)
                      ghParent = pFrame->hWndFront;
                   UpdateRebarMenu( find_layer(pFrame->hWndFront) );
                   UpdateRebarMenu( find_layer(hWnd) );
