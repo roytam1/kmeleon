@@ -22,9 +22,9 @@
 #  include <windows.h>
 #  include <commctrl.h>
 #  include "../missing.h"
+#else
+#  include <shlobj.h>
 #endif
-
-#include <shlobj.h>
 
 
 #define KMELEON_PLUGIN_EXPORTS
@@ -163,7 +163,7 @@ int ReadFavorites(char *szRoot, char *szPath, CBookmarkNode &newFavoritesNode)
          // if it's not a hidden or system file
          
          char *dot = strrchr(wfd.cFileName, '.');
-         if(dot && stricmp(dot, ".url") == 0) {
+         if(dot && (dot != wfd.cFileName) && stricmp(dot, ".url") == 0) {
             
             int filenameLen = (dot - wfd.cFileName) + 4;
             urlFile = new char[pathLen + filenameLen + 1];
