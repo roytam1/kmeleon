@@ -125,7 +125,7 @@ int Init(){
          ofn.lCustData = 0;
          ofn.lpfnHook = NULL;
          ofn.lpTemplateName = NULL;
-         ofn.lpstrFilter = "Bookmark Files\0bookmark.htm;bookmarks.html\0HTML Files\0*.htm;*.html\0";
+         ofn.lpstrFilter = "Bookmark Files\0bookmark.htm;bookmarks.html,bookmark.htm\0HTML Files\0*.htm;*.html\0";
          ofn.lpstrFile = buf;
          ofn.nMaxFile = MAX_PATH;
          ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | 	OFN_LONGNAMES | OFN_EXPLORER | OFN_HIDEREADONLY;
@@ -133,6 +133,16 @@ int Init(){
 
          if (GetOpenFileName(&ofn)) {
             strcpy(szPath, ofn.lpstrFile);
+            kPlugin.kf->SetPreference(PREF_STRING, PREFERENCE_BOOKMARK_FILE, szPath);
+         }
+      }
+      // create the default bookmark file
+      else {
+         kPlugin.kf->GetPreference(PREF_STRING, PREFERENCE_SETTINGS_DIR, szPath, "");
+         strcat(szPath, "bookmarks.html");
+         bmFile = fopen(szPath, "w");
+         if (bmFile) {
+            fclose(bmFile);
             kPlugin.kf->SetPreference(PREF_STRING, PREFERENCE_BOOKMARK_FILE, szPath);
          }
       }
