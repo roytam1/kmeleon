@@ -523,14 +523,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
          kmeleonDocInfo *dInfo = kPlugin.kf->GetDocInfo(hWnd);
 
          CString filename = gFavoritesPath;
-         filename += _T('\\');
          filename += dInfo->title;
          filename += _T(".url");
          ::WritePrivateProfileString(_T("InternetShortcut"), _T("URL"), dInfo->url, filename);
 
          int nPos = gFavorites.GetSize();
-         AppendMenu(gFavoritesMenu, MF_STRING, nFirstFavoriteCommand+nPos, dInfo->title);
-         gFavorites.Add(dInfo->title);
+         
+         char *pszTemp = _strdup(dInfo->title);
+         CondenseString(pszTemp, 40);
+         AppendMenu(gFavoritesMenu, MF_STRING, nFirstFavoriteCommand+nPos, pszTemp);
+         gFavorites.Add(pszTemp);         
+         delete pszTemp;
+
          gFavoritesFiles.Add(filename);
 
          DrawMenuBar(hWnd);
