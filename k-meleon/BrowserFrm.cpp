@@ -120,14 +120,15 @@ void CBrowserFrame::OnClose()
    // that's bad because our menu is shared between all windows
    SetMenu(NULL);
 
+   // the browserframeglue will be deleted soon, so we set it to null so it won't try to access it after it's deleted.
+   m_wndBrowserView.SetBrowserFrameGlue(NULL);
+
    SaveBandSizes();
 
    CMfcEmbedApp *pApp = (CMfcEmbedApp *)AfxGetApp();
    pApp->RemoveFrameFromList(this);
 
    DestroyWindow();
-
-   m_wndBrowserView.SetBrowserFrameGlue(NULL);
 }
 
 // This is where the UrlBar, ToolBar, StatusBar, ProgressBar
@@ -226,46 +227,44 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct){
 	//Add the ToolBar and UrlBar windows to the rebar
 	m_wndReBar.AddBar(&m_wndToolBar, NULL);
 	m_wndReBar.AddBar(&m_wndUrlBar, "URL:");
-  m_wndReBar.AddBar(&m_wndAnimate, NULL, NULL, RBBS_FIXEDSIZE | RBBS_FIXEDBMP);
+   m_wndReBar.AddBar(&m_wndAnimate, NULL, NULL, RBBS_FIXEDSIZE | RBBS_FIXEDBMP);
 
-  //--------------------------------------------------------------
+   //--------------------------------------------------------------
 	// Set up min/max sizes and ideal sizes for pieces of the rebar:
 	//--------------------------------------------------------------
-  CReBarCtrl *rebarControl = &m_wndReBar.GetReBarCtrl();
+   CReBarCtrl *rebarControl = &m_wndReBar.GetReBarCtrl();
   
 	REBARBANDINFO rbbi;
 
-  // Address Bar
+   // Address Bar
 	CRect rectAddress;
 	m_wndUrlBar.GetEditCtrl()->GetWindowRect(&rectAddress);
 
 	rbbi.fMask = RBBIM_CHILDSIZE | RBBIM_IDEALSIZE | RBBIM_SIZE;;
-  rbbi.cxMinChild = 0;
+   rbbi.cxMinChild = 0;
 	rbbi.cyMinChild = rectAddress.Height() + 7;
 	rbbi.cxIdeal = 200;
-  rbbi.cx = 200;
+   rbbi.cx = 200;
 	rebarControl->SetBandInfo (1, &rbbi);
 
-  rebarControl->MaximizeBand(1);
-
-  // Toolbar
+   // Toolbar
 	CRect rectToolBar;
 	m_wndToolBar.GetItemRect(0, &rectToolBar);
 
-	rbbi.cbSize = sizeof(rbbi);
-	rbbi.fMask = RBBIM_CHILDSIZE | RBBIM_IDEALSIZE | RBBIM_SIZE;
-	rbbi.cxMinChild = 0;
-	rbbi.cyMinChild = rectToolBar.Height();
-	rbbi.cxIdeal = rectToolBar.Width() * m_wndToolBar.GetCount();
-  rbbi.cx = rbbi.cxIdeal + 10;
-	rebarControl->SetBandInfo (0, &rbbi);
+   rbbi.cbSize = sizeof(rbbi);
+   rbbi.fMask = RBBIM_CHILDSIZE | RBBIM_IDEALSIZE | RBBIM_SIZE;
+   rbbi.cxMinChild = 0;
+   rbbi.cyMinChild = rectToolBar.Height();
+   rbbi.cxIdeal = rectToolBar.Width() * m_wndToolBar.GetCount();
+   rbbi.cx = rbbi.cxIdeal + 10;
+   rebarControl->SetBandInfo (0, &rbbi);
 
-  theApp.plugins.DoRebars(m_wndReBar.GetReBarCtrl().m_hWnd);
+   theApp.plugins.DoRebars(m_wndReBar.GetReBarCtrl().m_hWnd);
 
-  RestoreBandSizes();
+   RestoreBandSizes();
 
-  LoadBackImage();
-  SetBackImage();
+   LoadBackImage();
+   SetBackImage();
 
 	// Create the status bar with two panes - one pane for actual status
 	// text msgs. and the other for the progress control
@@ -275,7 +274,7 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct){
 		TRACE0("Failed to create status bar\n");
 		return -1;      // fail to create
 	}
-  m_wndStatusBar.SetPaneStyle(m_wndStatusBar.CommandToIndex(ID_SEPARATOR), SBPS_STRETCH);
+   m_wndStatusBar.SetPaneStyle(m_wndStatusBar.CommandToIndex(ID_SEPARATOR), SBPS_STRETCH);
 
 	// Create the progress bar as a child of the status bar.
 	// Note that the ItemRect which we'll get at this stage
@@ -323,8 +322,8 @@ void CBrowserFrame::SaveBandSizes(){
       sprintf(tempPref + 16, _T("%i.ndx"), rbbi.wID);
       theApp.preferences.SetInt(tempPref, i);
 
-      sprintf(tempPref + 16, _T("%i.style"), rbbi.wID);
-      theApp.preferences.SetInt(tempPref, rbbi.fStyle);
+      sprintf(tempPref + 16, _T("%i.break"), rbbi.wID);
+      theApp.preferences.SetInt(tempPref, rbbi.fStyle & RBBS_BREAK);
     }
   }
 }
@@ -341,20 +340,24 @@ void CBrowserFrame::RestoreBandSizes(){
     rbbi.wID = BAND_BASE_ID + i;
     rebarControl->SetBandInfo(i, &rbbi);
   }
+  BOOL barbreak;
   char tempPref[256] = _T("kmeleon.toolband"); // 16 chars
   for ( i=0; i < bandCount; i++){
     rbbi.fMask = 0;
     rbbi.wID = BAND_BASE_ID + i;
 
+    sprintf(tempPref + 16, _T("%i.break"), rbbi.wID);
+    barbreak = theApp.preferences.GetInt(tempPref, 0);
+    if (barbreak){
+      rbbi.fMask |= RBBIM_STYLE;
+      rebarControl->GetBandInfo(i, &rbbi);
+      rbbi.fStyle |= RBBS_BREAK;
+    }
+
     sprintf(tempPref + 16, _T("%i.size"), rbbi.wID);
     rbbi.cx = theApp.preferences.GetInt(tempPref, 0);
     if (rbbi.cx > 0)
       rbbi.fMask |= RBBIM_SIZE;
-
-    sprintf(tempPref + 16, _T("%i.style"), rbbi.wID);
-    rbbi.fStyle = theApp.preferences.GetInt(tempPref, 0);
-    if (rbbi.fStyle > 0)
-      rbbi.fMask |= RBBIM_STYLE;
 
     sprintf(tempPref + 16, _T("%i.ndx"), rbbi.wID);
     int ndx = theApp.preferences.GetInt(tempPref, -1);
