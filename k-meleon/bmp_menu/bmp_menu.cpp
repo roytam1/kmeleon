@@ -335,6 +335,7 @@ char *GetMaxTab(HMENU menu){
 }
 
 void DrawMenuItem(DRAWITEMSTRUCT *dis) {
+
 	HMENU menu = (HMENU)dis->hwndItem;
 
 	// make sure itemID is a valid int
@@ -425,7 +426,7 @@ void DrawMenuItem(DRAWITEMSTRUCT *dis) {
 
 void MeasureMenuItem(MEASUREITEMSTRUCT *mis, HDC hDC) {
    MenuDataT *menuData = (MenuDataT *)mis->itemData;
-
+   
    NONCLIENTMETRICS ncm = {0};
    ncm.cbSize = sizeof(ncm);
    SystemParametersInfo(SPI_GETNONCLIENTMETRICS,0,(PVOID)&ncm,FALSE);
@@ -434,14 +435,13 @@ void MeasureMenuItem(MEASUREITEMSTRUCT *mis, HDC hDC) {
    font = CreateFontIndirect(&ncm.lfMenuFont);
    HFONT oldFont = (HFONT)SelectObject(hDC, font); 
 
-   BOOL bWinVer4 = FALSE;
-   // check for WinNT4 and Win95
+   BOOL bWin98 = FALSE;
+   // check for Win98/WinMe (dwMinorVersion = 90 for WinME)
    OSVERSIONINFO info;
    info.dwOSVersionInfoSize = sizeof( OSVERSIONINFO );
    if (GetVersionEx(&info)) {
-      if ( ( ( info.dwPlatformId == VER_PLATFORM_WIN32_NT ) && (info.dwMajorVersion == 4) ) \
-         || ( (info.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS) && (info.dwMinorVersion == 0) ) ) {
-            bWinVer4 = TRUE;
+      if ( (info.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS) && (info.dwMinorVersion > 0) ) {
+         bWin98 = TRUE;
       }
    }
 
@@ -450,16 +450,21 @@ void MeasureMenuItem(MEASUREITEMSTRUCT *mis, HDC hDC) {
    int tabWidth = 0;
    char *tab = strrchr(string, '\t');
    if (tab) {
-      if (bWinVer4)
-         size.cx = LOWORD( GetTabbedTextExtent(hDC, string, strlen(string), 0, NULL) );
+      // Since we are converting string menus to ownerdrawn,
+      // Windows98 will automatically adjust the size we return to compensate for the
+      // accelerator string, so we shouldn't include it in our measurements
+      if (bWin98) {
+         int tabWidth = 0;
+         GetTextExtentPoint32(hDC, string, tab-string, &size);
+         size.cx += 8;
+      }
       else {
-         int tabWidth = 8;
-         size.cx = LOWORD( GetTabbedTextExtent(hDC, string, strlen(string), 1, &tabWidth) );
+         size.cx = LOWORD( GetTabbedTextExtent(hDC, string, strlen(string), 0, NULL) );
       }
    }
    else {
       GetTextExtentPoint32(hDC, string, strlen(string), &size);
-      if (bWinVer4)
+      if (!bWin98)
          size.cx += 28;
    }
 
