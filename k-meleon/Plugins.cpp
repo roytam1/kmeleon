@@ -286,7 +286,6 @@ kmeleonPlugin * CPlugins::Load(const char *file){
    const char *noPath = FileNoPath(file);
    int testLoad = TestLoad(noPath); // 1 load, 0 don't load, -1 not found
    if (testLoad == 0){
-      MessageBox(NULL, "not loading", noPath, 0);
       return NULL;
    }
 

@@ -72,6 +72,10 @@
       log->WriteString("\r\n");         \
    }
 
+#define LOG_STRICT()
+#define LOG_VERBOSE()
+
+
 #else // LOG_FILE not defined, use a dialog box
 
 class CLog {
@@ -80,11 +84,14 @@ protected:
    int error;
 
 public:
+   int strict, verbose;
+   CString title;
+
    static BOOL CALLBACK MenuLogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam){
       if (uMsg == WM_INITDIALOG) {
-         CString *log = (CString *)lParam;
+         CString *log = &((CLog *)lParam)->log;
          SetDlgItemText(hwndDlg, IDC_ERRORS, *log);
-         SetWindowText(hwndDlg, _T("Menu Log"));
+         SetWindowText(hwndDlg, ((CLog *)lParam)->title + " Log");
          return true;
       }
       else if (uMsg == WM_COMMAND) {
@@ -97,14 +104,15 @@ public:
 
    CLog() {
       error = 0;
+      strict = 0;
+      verbose = 0;
    };
    ~CLog() {
-      Show();
    };
 
    void Show(){
-      if (error){
-         DialogBoxParam(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDD_ERRORBOX), NULL, CLog::MenuLogProc, (LPARAM)&log);
+      if ((error && strict) || verbose){
+         DialogBoxParam(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDD_ERRORBOX), NULL, CLog::MenuLogProc, (LPARAM)this);
       }
       error = 0;
    }
@@ -118,7 +126,7 @@ public:
    }
 };
 
-#define SETUP_LOG(x) CLog log;
+#define SETUP_LOG(x) CLog log; log.title = x;
 #define END_LOG() log.Show();
 
 #define LOG_1(msg, var1)        \
@@ -157,6 +165,10 @@ public:
       log.Error();                     \
    }
 
+// strict alerts when there is an error, verbose always alerts
+#define LOG_STRICT() log.strict = 1;
+#define LOG_VERBOSE() log.verbose = 1;
+
 #endif // LOG_FILE
 
 #else  // ENABLE_LOG
@@ -167,5 +179,8 @@ public:
 #define LOG_2(x, y, z)
 #define LOG_ERROR_2(x, y, z)
 #define END_LOG()
+
+#define LOG_STRICT()
+#define LOG_VERBOSE()
 
 #endif // ENABLE_LOG

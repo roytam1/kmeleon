@@ -81,15 +81,36 @@ int CMenuParser::Load(CString &filename){
 
    CMenu *currentMenu = NULL;
 
+   int pauseParsing = 0; // this is used for %if metacommands
+
    char *p = strtok(buffer, "\r\n");
    while (p){
 
       if (p[0] == '#'){
       }
-
+      else if (p[0] == '%'){
+         if (strnicmp(p+1, "strict", 6) == 0){
+            LOG_STRICT();
+         }
+         else if (strnicmp(p+1, "verbose", 7) == 0){
+            LOG_VERBOSE();
+         }
+         else if (strnicmp(p+1, "ifplugin", 8) == 0){
+            char *plugin = p+9;
+            kmeleonPlugin * kPlugin = theApp.plugins.Load(plugin);
+            if (!kPlugin){
+               pauseParsing = 1;
+            }
+         }
+         else if (strcmpi(p+1, "endif") == 0){
+            pauseParsing = 0;
+         }
+      }
+      else if (pauseParsing){
+      }
       else if (!currentMenu){
-         // There can only be 2 things outside a menu:
-         //   comments, and the beginning of a menu block
+         // There can only be 3 things outside a menu:
+         //   comments, metacommands, and the beginning of a menu block
          char *cb = strchr(p, '{');
          if (cb){
             *cb = 0;

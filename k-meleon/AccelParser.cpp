@@ -29,6 +29,7 @@ extern CMfcEmbedApp theApp;
 #include "Plugins.h"
 #include "kmeleon_plugin.h"
 
+#define ENABLE_LOG
 #include "Log.h"
 
 #define BEGIN_VK_TEST if (0){}
@@ -86,6 +87,8 @@ int CAccelParser::Load(CString &filename){
    CMap<CString, LPCSTR, int, int &> defineMap;
 #include "defineMap.cpp"
 
+   int pauseParsing = 0;
+
    char *e, *s;
    char *alt, *ctrl, *shift;
    BYTE virt;
@@ -93,7 +96,28 @@ int CAccelParser::Load(CString &filename){
    int key;
    char *p = strtok(buffer, "\r\n");
    while (p){
+
       if (p[0] == '#'){
+      }
+      else if (p[0] == '%'){
+         if (strnicmp(p+1, "strict", 6) == 0){
+            LOG_STRICT();
+         }
+         else if (strnicmp(p+1, "verbose", 7) == 0){
+            LOG_VERBOSE();
+         }
+         else if (strnicmp(p+1, "ifplugin", 8) == 0){
+            char *plugin = p+9;
+            kmeleonPlugin * kPlugin = theApp.plugins.Load(plugin);
+            if (!kPlugin){
+               pauseParsing = 1;
+            }
+         }
+         else if (strcmpi(p+1, "endif") == 0){
+            pauseParsing = 0;
+         }
+      }
+      else if (pauseParsing){
       }
       else {
          // <modifiers> <key> = <command>
