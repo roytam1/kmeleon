@@ -149,34 +149,40 @@ BOOL BrowseForBookmarks(char *file)
 // Save bookmarks
 static void SaveBookmarks(FILE *bmFile, CBookmarkNode *node)
 {
-   fprintf(bmFile, "<DL><p>\n");
-
+#define MAXSPACER 50
    int type;
    CBookmarkNode *child;
-   for (child=node->child; child; child=child->next) {
+   static char szSpacer[MAXSPACER+1] = {0};
 
+   fprintf(bmFile, "%s<DL><p>\n", szSpacer);
+   if (strlen(szSpacer) < MAXSPACER) szSpacer[strlen(szSpacer)] = ' ';   // add a space
+
+   for (child=node->child; child; child=child->next) {
       type = child->type;
       if (type == BOOKMARK_FOLDER){
-         char szFolderFlags[64] = {0};
+         char szFolderFlags[256] = {0};
          if (child->flags & BOOKMARK_FLAG_TB)
             strcat(szFolderFlags, "PERSONAL_TOOLBAR_FOLDER=\"true\" ID=\"NC:PersonalToolbarFolder\" ");
          if (child->flags & BOOKMARK_FLAG_NB)
             strcat(szFolderFlags, "NEWITEMHEADER ");
          if (child->flags & BOOKMARK_FLAG_BM)
             strcat(szFolderFlags, "MENUHEADER ");
-         fprintf(bmFile, "<DT><H3 %sADD_DATE=\"%d\">%s</H3>\n", szFolderFlags, child->addDate, child->text.c_str());
+         fprintf(bmFile, "%s<DT><H3 %sADD_DATE=\"%d\">%s</H3>\n", szSpacer, szFolderFlags, child->addDate, child->text.c_str());
 
+         if (strlen(szSpacer) < MAXSPACER) szSpacer[strlen(szSpacer)] = ' ';   // add a space
          SaveBookmarks(bmFile, child);
+         szSpacer[strlen(szSpacer)-1] = 0;      // remove the space
       }
       else if (type == BOOKMARK_SEPARATOR) {
-         fprintf(bmFile, "<HR>\n");
+         fprintf(bmFile, "%s<HR>\n", szSpacer);
       }
       else if (type == BOOKMARK_BOOKMARK) {
-         fprintf(bmFile, "<DT><A HREF=\"%s\" ADD_DATE=\"%d\" LAST_VISIT=\"%d\" LAST_MODIFIED=\"%d\">%s</A>\n", child->url.c_str(), child->addDate, child->lastVisit, child->lastModified, child->text.c_str());
+         fprintf(bmFile, "%s<DT><A HREF=\"%s\" ADD_DATE=\"%d\" LAST_VISIT=\"%d\" LAST_MODIFIED=\"%d\">%s</A>\n", szSpacer, child->url.c_str(), child->addDate, child->lastVisit, child->lastModified, child->text.c_str());
       }
-	  // if it falls through, there's a problem, but we'll just ignore it for now.
+      // if it falls through, there's a problem, but we'll just ignore it for now.
    }
-   fprintf(bmFile, "</DL><p>\n");
+   szSpacer[strlen(szSpacer)-1] = 0;      // remove the space
+   fprintf(bmFile, "%s</DL><p>\n", szSpacer);
 }
 
 void Save(const char *file)
@@ -307,7 +313,9 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
          if (t) {
             name = t+1;
             q = strchr(name, '<');
-            *q = 0;
+            if (q) {
+               *q = 0;
+            }
          }
          else {
             name = "";
@@ -405,10 +413,14 @@ void BuildRebar(HWND hWndTB)
    SendMessage(hWndTB, TB_SETBUTTONWIDTH, 0, MAKELONG(0, 100));
 
    int stringID;
-
    CBookmarkNode *child;
+   int curButton = 0;
 
    for (child=toolbarNode->child; child; child=child->next) {
+      if (++curButton > TOOLBAND_MAX_BUTTONS) {
+         break;      // Simple fix to prevent massive toolbar folders from bringing KM to its knees
+      }
+
       if (child->type == BOOKMARK_SEPARATOR) {
          continue;
       }
