@@ -147,6 +147,7 @@ void Config(HWND parent);
 
 #define _T(x) x
 #define PREFERENCE_REBAR_ENABLED _T("kmeleon.plugins.hotlist.rebar")
+#define PREFERENCE_CHEVRON_ENABLED _T("kmeleon.plugins.hotlist.chevron")
 #define PREFERENCE_HOTLIST_FILE  _T("kmeleon.plugins.hotlist.hotlistFile")
 #define PREFERENCE_HOTLIST_RESYNCH  _T("kmeleon.plugins.hotlist.resynch")
 #define PREFERENCE_SETTINGS_DIR    _T("kmeleon.general.settingsDir")
@@ -166,6 +167,7 @@ void Config(HWND parent);
 
 WHERE WNDPROC wpOrigTBWndProc;
 WHERE BOOL bRebarEnabled;
+WHERE BOOL bChevronEnabled;
 WHERE BOOL bResynchHotlist;
 WHERE BOOL bCreate;
 WHERE BOOL bIgnore;
