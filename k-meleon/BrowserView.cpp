@@ -374,8 +374,8 @@ void CBrowserView::OnDropFiles( HDROP drop ){
 //
 void CBrowserView::OnNewUrlEnteredInUrlBar()
 {
-   SetFocus();
    mpBrowserFrame->m_wndUrlBar.EditChanged(FALSE);
+   SetFocus();
    
    // Get the currently entered URL
 	CString strUrl;
