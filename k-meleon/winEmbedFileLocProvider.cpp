@@ -36,7 +36,7 @@
 
 // WARNING: These hard coded names need to go away. They need to
 // come from localizable resources
-#define APP_REGISTRY_NAME "registry.dat"
+#define APP_REGISTRY_NAME "profiles.dat"
 
 #define PROFILE_ROOT_DIR_NAME       "Profiles"
 #define DEFAULTS_DIR_NAME           "defaults"
@@ -52,12 +52,9 @@
 // winEmbedFileLocProvider::Constructor/Destructor
 //*****************************************************************************   
 
-winEmbedFileLocProvider::winEmbedFileLocProvider(const char* productDirName)
+winEmbedFileLocProvider::winEmbedFileLocProvider()
 {
     NS_INIT_ISUPPORTS();
-
-    strncpy(mProductDirName, productDirName, sizeof(mProductDirName) - 1);
-    mProductDirName[sizeof(mProductDirName) - 1] = '\0';
 }
 
 winEmbedFileLocProvider::~winEmbedFileLocProvider()
@@ -86,11 +83,11 @@ winEmbedFileLocProvider::GetFile(const char *prop, PRBool *persistant, nsIFile *
 	
     if (nsCRT::strcmp(prop, NS_APP_APPLICATION_REGISTRY_DIR) == 0)
     {
-        rv = GetProductDirectory(getter_AddRefs(localFile));
+        rv = CloneMozBinDirectory(getter_AddRefs(localFile));
     }
     else if (nsCRT::strcmp(prop, NS_APP_APPLICATION_REGISTRY_FILE) == 0)
     {
-        rv = GetProductDirectory(getter_AddRefs(localFile));
+        rv = CloneMozBinDirectory(getter_AddRefs(localFile));
         if (NS_SUCCEEDED(rv))
             rv = localFile->Append(APP_REGISTRY_NAME);
     }
@@ -202,38 +199,7 @@ NS_METHOD winEmbedFileLocProvider::CloneMozBinDirectory(nsILocalFile **aLocalFil
 //----------------------------------------------------------------------------------------
 NS_METHOD winEmbedFileLocProvider::GetProductDirectory(nsILocalFile **aLocalFile)
 {
-    NS_ENSURE_ARG_POINTER(aLocalFile);
-    
-    nsresult rv;
-    PRBool exists;
-    nsCOMPtr<nsILocalFile> localDir;
-
-    nsCOMPtr<nsIProperties> directoryService = 
-      do_GetService(NS_DIRECTORY_SERVICE_CONTRACTID, &rv);
-
-    if (NS_FAILED(rv)) return rv;
-    rv = directoryService->Get(NS_WIN_APPDATA_DIR, NS_GET_IID(nsILocalFile), getter_AddRefs(localDir));
-    if (NS_SUCCEEDED(rv))
-        rv = localDir->Exists(&exists);
-    if (NS_FAILED(rv) || !exists)
-    {
-        // On some Win95 machines, NS_WIN_APPDATA_DIR does not exist - revert to NS_WIN_WINDOWS_DIR
-        localDir = nsnull;
-        rv = directoryService->Get(NS_WIN_WINDOWS_DIR, NS_GET_IID(nsILocalFile), getter_AddRefs(localDir));
-    }
-    if (NS_FAILED(rv)) return rv;
-
-    rv = localDir->AppendRelativePath(mProductDirName);
-    if (NS_FAILED(rv)) return rv;
-    rv = localDir->Exists(&exists);
-    if (NS_SUCCEEDED(rv) && !exists)
-        rv = localDir->Create(nsIFile::DIRECTORY_TYPE, 0775);
-    if (NS_FAILED(rv)) return rv;
-
-    *aLocalFile = localDir;
-    NS_ADDREF(*aLocalFile);
-
-   return rv; 
+   return CloneMozBinDirectory(aLocalFile);
 }
 
 
@@ -250,7 +216,7 @@ NS_METHOD winEmbedFileLocProvider::GetDefaultUserProfileRoot(nsILocalFile **aLoc
     PRBool exists;
     nsCOMPtr<nsILocalFile> localDir;
    
-    rv = GetProductDirectory(getter_AddRefs(localDir));
+    rv = CloneMozBinDirectory(getter_AddRefs(localDir));
     if (NS_FAILED(rv)) return rv;
 
     // These 3 platforms share this part of the path - do them as one
