@@ -76,7 +76,6 @@
 #include "nsAppDirectoryServiceDefs.h"
 #include "nsIProfileChangeStatus.h"
 #include "nsIObserverService.h"
-#include "nsINetDataCacheManager.h"
 #include "nsError.h"
 #include "nsIObserver.h"
 #include "nsWeakReference.h"
