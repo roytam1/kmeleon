@@ -158,20 +158,25 @@ void CPreferences::Load() {
       _GetInt(_T("network.proxy.type"), proxyType, 0);
 
 
-      // -- Paranoia
-      
+      // -- Advanced     
       
       _GetBool(_T("javascript.enabled"), bJavascriptEnabled, true);
       _GetBool(_T("security.enable_java"), bJavaEnabled, true);
       _GetBool(_T("css.allow"), bCSSEnabled, true);
 
-      _GetInt(_T("network.accept_cookies"), bCookiesEnabled, 0);
-      if (bCookiesEnabled == 2)  // 0 = Always, 1 = warn, 2 = never
-         bCookiesEnabled = false;
-      else
-         bCookiesEnabled = true;
+      // 0 = Always, 1 = site, 2 = never
+      _GetInt(_T("network.cookie.cookieBehavior"), iCookiesEnabled, 0);
 
-      _GetBool(_T("advanced.always_load_images"), bImagesEnabled, true);
+      // 0 = Always, 1 = site, 2 = never
+      _GetInt(_T("network.image.imageBehavior"), iImagesEnabled, 0);
+
+      _GetString(_T("kmeleon.useragent.kmeleon"), userAgent, "KMeleon/0.4");
+      _GetString(_T("kmeleon.useragent.kmeleon"), userAgent, "KMeleon/0.4");
+      _GetString(_T("kmeleon.useragent.kmeleon"), userAgent, "KMeleon/0.4");
+      _GetString(_T("kmeleon.useragent.kmeleon"), userAgent, "KMeleon/0.4");
+      _GetString(_T("kmeleon.useragent.kmeleon"), userAgent, "KMeleon/0.4");
+
+      _GetString(_T("general.useragent.override"), userAgent, "KMeleon/0.4");
 
       CString animationMode;
       _GetString(_T("image.animation_mode"), animationMode, _T("normal"));
@@ -235,19 +240,15 @@ void CPreferences::Save() {
 
       rv = prefs->SetIntPref(_T("network.proxy.type"), proxyType);
 
-      //  -- Paranoia
+      //  -- Advanced
 
       rv = prefs->SetBoolPref(_T("javascript.enabled"), bJavascriptEnabled);
       rv = prefs->SetBoolPref(_T("security.enable_java"), bJavaEnabled);
       rv = prefs->SetBoolPref(_T("css.allow"), bCSSEnabled);
 
-      if (bCookiesEnabled)    // 0 = Always, 1 = warn, 2 = never
-         rv = prefs->SetIntPref(_T("network.accept_cookies"), 0);
-      else
-         rv = prefs->SetIntPref(_T("network.accept_cookies"), 2);
-
-      
-      rv = prefs->SetBoolPref(_T("advanced.always_load_images"), bImagesEnabled);
+      rv = prefs->SetIntPref(_T("network.cookie.cookieBehavior"), iCookiesEnabled);
+      rv = prefs->SetIntPref(_T("network.image.imageBehavior"), iImagesEnabled);
+      prefs->SetCharPref(_T("general.useragent.override"), userAgent);
 
       if (bAnimationsEnabled)    // "once" "none" "normal"
          rv = prefs->SetCharPref(_T("image.animation_mode"), _T("normal"));

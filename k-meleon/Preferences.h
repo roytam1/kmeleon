@@ -70,13 +70,16 @@ public:
    int cacheCheckFrequency;
 
    
-   // -- paranoia
+   // -- Advanced
+   int iCookiesEnabled;
+   int iImagesEnabled;
+
    int bJavaEnabled;
    int bJavascriptEnabled;
-   int bCookiesEnabled;
    int bCSSEnabled;
-   int bImagesEnabled;
    int bAnimationsEnabled;
+
+   CString userAgent;
 
    // -- functions
 
@@ -100,6 +103,7 @@ class CPreferencePage : public CDialog {
 public:
    UINT idd;
 protected:
+
    virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV support
 
    virtual BOOL OnInitDialog();

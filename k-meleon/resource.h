@@ -29,7 +29,7 @@
 #define IDD_PREFERENCES_GENERAL         157
 #define IDI_DOCUMENT                    157
 #define IDD_PREFERENCES_PLUGINS         158
-#define IDD_PREFERENCES_PARANOIA        159
+#define IDD_PREFERENCES_ADVANCED        159
 #define IDC_PAN_DOWN                    160
 #define IDD_PREFERENCES_MENUS           160
 #define IDC_PAN_UP                      161
@@ -62,7 +62,9 @@
 #define IDC_LOCALE_COMBO                1017
 #define IDC_NEW_NAME                    1018
 #define IDC_CREDITS                     1019
+#define IDC_PPD_DOC_TXT                 1020
 #define IDC_EDIT_HTTP_PROXY_PORT        1021
+#define IDC_PPD_DOC_TITLE_STATIC        1021
 #define IDC_CHECK_PROXY_TYPE            1022
 #define IDC_EDIT_PROXY_NO_PROXY         1023
 #define IDC_CHECK_JAVASCRIPT            1024
@@ -70,13 +72,20 @@
 #define IDC_CHECK_IMAGES                1026
 #define IDC_CHECK_JAVA                  1027
 #define IDC_CHECK_CSS                   1028
+#define IDC_IMAGES_ALL                  1030
 #define IDC_CHECK_ANIMATIONS            1031
+#define IDC_IMAGES_SITE                 1032
 #define IDC_EDIT1                       1033
+#define IDC_IMAGES_NONE                 1033
 #define IDC_EDIT_DISK_CACHE             1034
+#define IDC_COOKIES_ALL                 1034
 #define IDC_BUTTON_MENUS                1035
 #define IDC_EDIT_CACHE_DIRECTORY        1035
+#define IDC_COOKIES_SITE                1035
 #define IDC_BUTTON_ACCEL                1036
+#define IDC_COOKIES_NONE                1036
 #define IDC_BUTTON_HELP                 1037
+#define IDC_COMBO_USERAGENT             1038
 #define IDC_MATCH_WHOLE_WORD            1040
 #define IDC_MATCH_CASE                  1041
 #define IDC_WRAP_AROUND                 1042
@@ -93,8 +102,6 @@
 #define IDC_EDIT_MEMORY_CACHE           1056
 #define IDC_ERRORS                      1058
 #define IDC_VERSION                     1059
-#define IDC_PPD_DOC_TXT                 1020
-#define IDC_PPD_DOC_TITLE_STATIC        1021
 #define IDC_CONTAINER                   1110
 #define IDC_EDIT_TOOLBAR_BACKGROUND     1111
 #define IDC_EDIT_SETTINGS_DIR           1111
@@ -143,9 +150,9 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        171
+#define _APS_NEXT_RESOURCE_VALUE        173
 #define _APS_NEXT_COMMAND_VALUE         32801
-#define _APS_NEXT_CONTROL_VALUE         1023
+#define _APS_NEXT_CONTROL_VALUE         1039
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -159,7 +159,6 @@ public:
 	public:
 	virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
 	virtual BOOL OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERINFO* pHandlerInfo);
-	afx_msg void RefreshToolBarItem(WPARAM ItemID, LPARAM unused);
 	//}}AFX_VIRTUAL
 
 // Implementation
@@ -179,6 +178,7 @@ protected:
 	afx_msg void OnClose();
    afx_msg void OnActivate(UINT nState, CWnd* pWndOther, BOOL bMinimized);
    afx_msg void OnSysColorChange();
+	afx_msg void RefreshToolBarItem(WPARAM ItemID, LPARAM unused);
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };

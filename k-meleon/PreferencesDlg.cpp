@@ -61,7 +61,7 @@ CPreferencesDlg::OnInitDialog(){
    AddItem(_T("Display"), IDD_PREFERENCES_DISPLAY);
    AddItem(_T("Menus"),   IDD_PREFERENCES_MENUS);
    AddItem(_T("Proxy"),   IDD_PREFERENCES_PROXY);
-   AddItem(_T("Paranoia"),IDD_PREFERENCES_PARANOIA);
+   AddItem(_T("Advanced"),IDD_PREFERENCES_ADVANCED);
    AddItem(_T("Cache"),   IDD_PREFERENCES_CACHE);
    AddItem(_T("Plugins"), IDD_PREFERENCES_PLUGINS);
 
@@ -156,6 +156,20 @@ void CPreferencesDlg::ShowPage(UINT idd){
 /**/
 
 BOOL CPreferencePage::OnInitDialog(){
+   switch (idd) {
+      case IDD_PREFERENCES_ADVANCED:
+         char buf[256], pref[32];
+         int x=0;
+         do {
+            sprintf(pref, "kmeleon.useragent%d", x);
+            theApp.preferences.GetString(pref, buf, "");
+            if (*buf)
+                  SendDlgItemMessage(IDC_COMBO_USERAGENT, CB_ADDSTRING, 0, (LONG) buf);
+         } while (*buf);
+
+         break;
+   }
+       
    CDialog::OnInitDialog();
 
 	return FALSE;  // return TRUE  unless you set the focus to a control
@@ -191,13 +205,16 @@ void CPreferencePage::DoDataExchange(CDataExchange* pDX){
       */
       DDX_Radio(pDX, IDC_RADIO_ONCE, theApp.preferences.cacheCheckFrequency);
       break;
-    case IDD_PREFERENCES_PARANOIA:
+    case IDD_PREFERENCES_ADVANCED:
       DDX_Check(pDX, IDC_CHECK_JAVA, theApp.preferences.bJavaEnabled);
       DDX_Check(pDX, IDC_CHECK_JAVASCRIPT, theApp.preferences.bJavascriptEnabled);
-      DDX_Check(pDX, IDC_CHECK_COOKIES, theApp.preferences.bCookiesEnabled);
       DDX_Check(pDX, IDC_CHECK_CSS, theApp.preferences.bCSSEnabled);
-      DDX_Check(pDX, IDC_CHECK_IMAGES, theApp.preferences.bImagesEnabled);
       DDX_Check(pDX, IDC_CHECK_ANIMATIONS, theApp.preferences.bAnimationsEnabled);
+
+      DDX_Radio(pDX, IDC_IMAGES_ALL, theApp.preferences.iImagesEnabled);
+      DDX_Radio(pDX, IDC_COOKIES_ALL, theApp.preferences.iCookiesEnabled);
+      
+      DDX_CBString(pDX, IDC_COMBO_USERAGENT, theApp.preferences.userAgent);
       break;
   }
   //}}AFX_DATA_MAP
