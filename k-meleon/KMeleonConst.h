@@ -38,10 +38,10 @@
 #define TB_RBUTTONUP	                  WM_APP + 128
 
 
-#define PLUGIN_COMMAND_START_ID        2000
+#define PLUGIN_COMMAND_START_ID        5000
 #define PLUGIN_REBAR_START_ID          200
 
-#define TOOLBAR_MENU_START_ID          5000
+#define TOOLBAR_MENU_START_ID          2000
 #define TOOLBAR_MENU_END_ID            TOOLBAR_MENU_START_ID+50  // this limits us to 50 toolbars, should be enough :)
 #define BAND_BASE_ID                   200
 
