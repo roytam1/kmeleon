@@ -50,7 +50,7 @@ typedef struct {
 
    kmeleonDocInfo * (*GetDocInfo)(HWND mainWnd);
 
-   // gets the preference, stores it in ret, returns false if it didn't exist
+   // gets the preference, stores it in ret
    void (*GetPreference)(enum PREFTYPE type, char *preference, void *ret, void *defaultVal);
    // sets the preference
    void (*SetPreference)(enum PREFTYPE type, char *preference, void *val);
