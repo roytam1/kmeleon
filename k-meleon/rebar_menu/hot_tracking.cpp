@@ -20,6 +20,9 @@
 
 #include "hot_tracking.h"
 
+#define HwndMenuCur() FindWindow(szMenuClass, NULL)
+const char szMenuClass[] = "#32768";
+
 BOOL gbContinueMenu;
 int giCurrentItem; 
 HWND ghToolbarWnd;
@@ -31,16 +34,17 @@ LRESULT CALLBACK MsgHook(int code, WPARAM wParam, LPARAM lParam){
          POINT mouse;
          mouse.x = LOWORD(msg->lParam);
          mouse.y = HIWORD(msg->lParam);
-         ScreenToClient(ghToolbarWnd, &mouse);
-         int ndx = SendMessage(ghToolbarWnd, TB_HITTEST, 0, (LPARAM)&mouse);
+         if (ScreenToClient(ghToolbarWnd, &mouse) != 0) {
+            int ndx = SendMessage(ghToolbarWnd, TB_HITTEST, 0, (LPARAM)&mouse);
 
-         // if we clicked on a button, we should close
-         // (it would close by itself, but another TB_DROPDOWN will trigger if we don't do this)
-         // (um, I think so, anyway...  I forget the specifics...)
-         if (ndx >= 0){
-            SendMessage(msg->hwnd, WM_CANCELMODE, 0, 0);
-            gbContinueMenu = false;
-            return true;
+            // if we clicked on the button for the current menu, we should close
+            TBBUTTON button;
+            SendMessage(ghToolbarWnd, TB_GETBUTTON, ndx, (LPARAM)&button);
+            if (giCurrentItem == button.idCommand){
+               SendMessage(msg->hwnd, WM_CANCELMODE, 0, 0);
+               gbContinueMenu = false;
+               return true;
+            }
          }
       }
       if (msg->message == WM_MOUSEMOVE && !gbContinueMenu && ghToolbarWnd) {
@@ -48,20 +52,30 @@ LRESULT CALLBACK MsgHook(int code, WPARAM wParam, LPARAM lParam){
          mouse.x = LOWORD(msg->lParam);
          mouse.y = HIWORD(msg->lParam);
 
-         ScreenToClient(ghToolbarWnd, &mouse);
-         int ndx = SendMessage(ghToolbarWnd, TB_HITTEST, 0, (LPARAM)&mouse);
+         if (ScreenToClient(ghToolbarWnd, &mouse) != 0) {
+            int ndx = SendMessage(ghToolbarWnd, TB_HITTEST, 0, (LPARAM)&mouse);
 
-         if (ndx >= 0){
             TBBUTTON button;
             SendMessage(ghToolbarWnd, TB_GETBUTTON, ndx, (LPARAM)&button);
             if (giCurrentItem != button.idCommand && IsMenu((HMENU)(button.idCommand-SUBMENU_OFFSET))){
-               SendMessage(msg->hwnd, WM_CANCELMODE, 0, 0);
 
-               // this basically tells the loop, "we would like to enter a new menu loop with this item:"
-               giCurrentItem = button.idCommand;
-               gbContinueMenu = true;
+               RECT rect = {0};
+               HWND hw = HwndMenuCur();
+               GetWindowRect(hw, &rect);
 
-               return true;
+               ClientToScreen(ghToolbarWnd, &mouse);
+
+               if (!(mouse.x >= rect.left && mouse.x <= rect.right &&
+                     mouse.y >= rect.top  && mouse.y <= rect.bottom)) {
+
+                  SendMessage(msg->hwnd, WM_CANCELMODE, 0, 0);
+                  
+                  // this basically tells the loop, "we would like to enter a new menu loop with this item:"
+                  giCurrentItem = button.idCommand;
+                  gbContinueMenu = true;
+                  
+                  return true;
+               }
             }
          }
       }
