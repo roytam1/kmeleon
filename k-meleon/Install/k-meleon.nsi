@@ -1,8 +1,8 @@
 # Installer script 1.1h for the K-Meleon webbrowser, please note that it uses feature
 # of the Winamp SuperPimp installer >1.1h
 
-#uncomment next line to produce a "real" installer, otherwise you'll get a dummy
-!define debug
+# comment next line out to produce a "real" installer, otherwise you'll get a dummy
+#!define debug
 
 Name "K-Meleon"
 ComponentText "This will install K-Meleon v0.3.1"
