@@ -334,29 +334,11 @@ void LoadMacros(char *filename) {
 
          // just a normal event, it's either an assignment or a command
          else {
-            // if check for an assignment         
             char *op = NULL;
-            char *e = strchr(p, '=');
-            if (e){
-               *e = 0;
-               e++;
-               e = SkipWhiteSpace(e);
-               TrimWhiteSpace(e);
+            char *e = NULL;
 
-               p = SkipWhiteSpace(p);
-               TrimWhiteSpace(p);
-
-               // it's a menu assignment
-               if (strcmpi("menu", p) == 0) {
-                  macroList[iMacroCount-1]->menuString = new char[strlen(e) + 1];
-                  strcpy(macroList[iMacroCount-1]->menuString, e);
-               }
-            }
-            
             // if there's an open parenthesis, we'll assume it's a command
-            else
-               op = strchr(p, '(');
-            if (op) {
+            if ((op = strchr(p, '('))) {
                char *params = op + 1;
                char *cp = strrchr(params, ')');
                if (cp) *cp = 0;
@@ -370,6 +352,22 @@ void LoadMacros(char *filename) {
                if (command != NOTFOUND)
                   AddMacroEvent(iMacroCount-1, command, params);
             }
+            // check for an assignment
+            else if ((e = strchr(p, '='))) {
+               *e = 0;
+               e++;
+               e = SkipWhiteSpace(e);
+               TrimWhiteSpace(e);
+
+               p = SkipWhiteSpace(p);
+               TrimWhiteSpace(p);
+
+               // it's a menu assignment
+               if (strcmpi("menu", p) == 0) {
+                  macroList[iMacroCount-1]->menuString = new char[strlen(e) + 1];
+                  strcpy(macroList[iMacroCount-1]->menuString, e);
+               }
+            }            
          }
       } // currentMacro
       p = strtok(NULL, "\r\n");
