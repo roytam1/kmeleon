@@ -253,7 +253,7 @@ CKmToolTip::CKmToolTip() {
 }
 
 void CKmToolTip::Create(CWnd *pWnd) {
-   CWnd::Create(m_pszWndClass, NULL, WS_CHILD | WS_BORDER,
+   CWnd::Create(m_pszWndClass, NULL, WS_POPUP | WS_BORDER,
       CRect(10,10,150,50), pWnd, NULL, NULL);
 }
 
