@@ -853,7 +853,8 @@ void CBrowserView::OnFileSaveAs()
 	char *lpszFilter =
         "Web Page, HTML Only (*.htm;*.html)|*.htm;*.html|"
         "Web Page, Complete (*.htm;*.html)|*.htm;*.html|" 
-        "Text File (*.txt)|*.txt||";
+        "Text File (*.txt)|*.txt|"
+        "All Files (*.*)|*.*||";
 
 	CFileDialog cf(FALSE, "htm", fileName.get(), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
 					lpszFilter, this);
