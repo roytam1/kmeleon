@@ -31,11 +31,11 @@
 #include <ctype.h>
 
 #define KMELEON_PLUGIN_EXPORTS
-#include "kmeleon_plugin.h"
-#include "KMeleonConst.h"
-#include "resource.h"
+#include "../kmeleon_plugin.h"
+#include "../KMeleonConst.h"
+#include "../resource.h"
 #include "layers.h"
-#include "Utils.h"
+#include "../Utils.h"
 
 #define MAX_LAYERS 32
 #define BUF_SIZE 20
