@@ -165,6 +165,8 @@ int Init(){
    kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_REBAR_ENABLED, &bRebarEnabled, &bRebarEnabled);
    kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_CHEVRON_ENABLED, &bChevronEnabled, &bChevronEnabled);
    kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_TOOLBAR_FOLDER, gToolbarFolder, (char*)TOOLBAND_FOLDER);
+   kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_MENU_FOLDER, gMenuFolder, (char*)MENU_FOLDER);
+   kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_NEWITEM_FOLDER, gNewitemFolder, (char*)NEWITEM_FOLDER);
    kPlugin.kFuncs->GetPreference(PREF_INT, PREFERENCE_MENU_MAXLEN, &gMaxMenuLength, &gMaxMenuLength);
    kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_MENU_AUTOLEN, &gMenuAutoDetect, &gMenuAutoDetect);
    gMaxMenuLength = MAX_MENU_LENGTH;
@@ -449,7 +451,7 @@ void DoMenu(HMENU menu, char *param){
      if (gMenuSortOrder) {
        gFavoritesRoot.sort(gMenuSortOrder);
      }
-     BuildMenu(menu, &gFavoritesRoot, false);
+     BuildMenu(menu, gFavoritesRoot.FindSpecialNode(BOOKMARK_FLAG_BM), false);
    }
 }
 

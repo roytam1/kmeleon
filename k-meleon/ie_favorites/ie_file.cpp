@@ -105,6 +105,8 @@ int GetFavoritesPath(void)
 }
 
 static bool found_tb = false;
+static bool found_bm = false;
+static bool found_nb = false;
 
 int ReadFavorites(char *szRoot, char *szPath, CBookmarkNode &newFavoritesNode)
 {
@@ -156,6 +158,16 @@ int ReadFavorites(char *szRoot, char *szPath, CBookmarkNode &newFavoritesNode)
             newFavoritesChildNode->flags |= BOOKMARK_FLAG_TB;
             found_tb = true;
          }
+         if ( !found_bm && gMenuFolder[0] != 0 && 
+              (strncmp(subPath, gMenuFolder, strlen(subPath)-1) == 0)) {
+               newFavoritesChildNode->flags |= BOOKMARK_FLAG_BM;
+               found_bm = true;
+            }
+         if ( !found_nb && gNewitemFolder[0] != 0 && 
+              (strncmp(subPath, gNewitemFolder, strlen(subPath)-1) == 0)) {
+               newFavoritesChildNode->flags |= BOOKMARK_FLAG_NB;
+               found_nb = true;
+            }
             
          delete [] subPath;
          
@@ -227,6 +239,12 @@ int CreateFavorite(CBookmarkNode *newNode)
          strcat(c, "]");
       }
       strcpy(filename, gFavoritesPath);
+      if (gNewitemFolder[0] && 
+          gFavoritesRoot.FindSpecialNode(BOOKMARK_FLAG_NB)) {
+         strcat(filename, gNewitemFolder);
+         if (filename[strlen(filename)-1] != '\\')
+            strcat(filename, "\\");
+      }
       strcat(filename, name);
       strcat(filename, _T(".url"));
       FILE *bmFile = fopen(filename, "r");
