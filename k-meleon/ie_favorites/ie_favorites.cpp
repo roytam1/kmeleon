@@ -21,27 +21,14 @@
 #include "stdafx.h"
 #include "resource.h"
 
+#include <vector>
+
+using namespace std;
+
 #define KMELEON_PLUGIN_EXPORTS
 #include "../kmeleon_plugin.h"
 
 #define MAX_FAVORITES 512
-
-/*
-// MFC handles this for us (how nice)
-BOOL APIENTRY DllMain( HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved )
-{
-  switch (ul_reason_for_call)
-  {
-		case DLL_PROCESS_ATTACH:
-      case DLL_THREAD_ATTACH:
-      case DLL_THREAD_DETACH:
-      case DLL_PROCESS_DETACH:
-      break;
-      }
-
-  return TRUE;
-  }
-*/
 
 int Init();
 void Create(HWND parent);
@@ -53,20 +40,18 @@ BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 pluginFunctions pFuncs = {
    Init,
-      Create,
-      Config,
-      Quit,
-      DoMenu,
-      DoRebar
+   Create,
+   Config,
+   Quit,
+   DoMenu,
+   DoRebar
 };
 
 kmeleonPlugin kPlugin = {
    KMEL_PLUGIN_VER,
-      "IE Favorites Plugin",
-      &pFuncs
+   "IE Favorites Plugin",
+   &pFuncs
 };
-
-CMenu m_menuFavorites;
 
 UINT nConfigCommand;
 UINT nAddCommand;
@@ -75,7 +60,8 @@ UINT nFirstFavoriteCommand;
 BOOL bRebarEnabled;
 HINSTANCE ghInstance;
 
-TCHAR szPath[MAX_PATH];
+TCHAR gFavoritesPath[MAX_PATH];
+int   gFavoritesPathLen;
 
 int Init(){
    nConfigCommand = kPlugin.kf->GetCommandIDs(1);
@@ -92,13 +78,15 @@ int Init(){
    if(RegOpenKey(HKEY_CURRENT_USER, _T("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\User Shell Folders"), &hKey) != ERROR_SUCCESS)
    {
       TRACE0("Favorites folder not found\n");
-      *szPath=NULL;
    }
    else {
       dwSize = sizeof(sz);
       RegQueryValueEx(hKey, _T("Favorites"), NULL, NULL, (LPBYTE)sz, &dwSize);
-      ExpandEnvironmentStrings(sz, szPath, MAX_PATH);
+      ExpandEnvironmentStrings(sz, gFavoritesPath, MAX_PATH);
       RegCloseKey(hKey);
+
+      strcat(gFavoritesPath, "\\");
+      gFavoritesPathLen = strlen(gFavoritesPath);
    }
 
    // Get the rebar status
@@ -121,139 +109,142 @@ void Config(HWND hWndParent) {
    DialogBoxParam(kPlugin.hDllInstance ,MAKEINTRESOURCE(IDD_CONFIG), hWndParent, (DLGPROC)DlgProc, NULL);
 }
 
+static HMENU gFavoritesMenu;
+
 void Quit(){
-   m_menuFavorites.DestroyMenu();
+   DestroyMenu(gFavoritesMenu);
 }
 
-static CStringArray    m_astrFavorites;
-static CStringArray m_astrFavoriteURLs;
-static CArray<UINT, int> m_URLIcons;
+static CStringArray      gFavorites;
+static CStringArray      gFavoritesFiles;
+static CArray<UINT, int> gIcons;
 
-static int        m_iInternetShortcutIcon;
-static HIMAGELIST m_himSystem;
-static CSize      m_SysImageSize;
-static int        m_iFolderIcon;
+static UINT gNumFavorites;
 
-int BuildFavoritesMenu(LPCTSTR pszPath, int nStartPos, CMenu* pMenu)
-{
-   CString         strPath(pszPath);
-   CString         strPath2;
-   CString         str;
-   WIN32_FIND_DATA wfd;
-   HANDLE          h;
-   int             nPos;
-   int             nEndPos;
-   int             nNewEndPos;
-   int             nLastDir;
-   TCHAR           buf[MAX_PATH];
-   CStringArray    astrDirs;
-   CMenu*          pSubMenu;
+static int        gInternetShortcutIcon;
+static int        gFolderIcon;
+static HIMAGELIST gSystemImages;
+static CSize      gSysImageSize;
 
-   // make sure there's a trailing backslash
-   if(strPath[strPath.GetLength() - 1] != _T('\\'))
-      strPath += _T('\\');
-   strPath2 = strPath;
-   strPath += _T("*.*");
+int BuildFavoritesMenu(char * strPath, HMENU mainMenu){
+   const int nStart = gNumFavorites;
+   int nPos;
+
+   vector<char *> dirsArray;
+
+   int pathLen = strlen(strPath);
+
+   char * searchString = new char[gFavoritesPathLen + pathLen + 2];
+   strcpy(searchString, gFavoritesPath);
+   strcat(searchString, strPath);
+   strcat(searchString, "*");
+
+   char * urlFile;
+   char * subPath;
 
    // now scan the directory, first for .URL files and then for subdirectories
    // that may also contain .URL files
-   h = FindFirstFile(strPath, &wfd);
-   if(h != INVALID_HANDLE_VALUE)
-   {
-      nEndPos = nStartPos;
-      do
-      {
-         if((wfd.dwFileAttributes & (FILE_ATTRIBUTE_DIRECTORY|FILE_ATTRIBUTE_HIDDEN|FILE_ATTRIBUTE_SYSTEM))==0)
-         {
-            str = wfd.cFileName;
-            if(str.Right(4).CompareNoCase(_T(".url")) == 0)
-            {
-               // an .URL file is formatted just like an .INI file, so we can
-               // use GetPrivateProfileString() to get the information we want
-               GetPrivateProfileString(_T("InternetShortcut"), _T("URL"),
-                  _T(""), buf, MAX_PATH,
-                  strPath2 + str);
-               str = str.Left(str.GetLength() - 4);
+   WIN32_FIND_DATA wfd;
+   HANDLE h = FindFirstFile(searchString, &wfd);
 
-               // scan through the array and perform an insertion sort
-               // to make sure the menu ends up in alphabetic order
+   delete [] searchString;
 
-               for(nPos = nStartPos ; nPos < nEndPos ; ++nPos)	{
-                  if(str.CompareNoCase(m_astrFavorites[nPos]) < 0)
-                     break;
-               }
+   if(h == INVALID_HANDLE_VALUE) {
+      return gNumFavorites;
+   }
 
-               //nPos = m_astrFavoriteURLs.GetSize();
+   do {
+      if(wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+         // ignore the current and parent directory entries
+         if(lstrcmp(wfd.cFileName, _T(".")) == 0 || lstrcmp(wfd.cFileName, _T("..")) == 0)
+            continue;
 
-               m_astrFavorites.InsertAt(nPos, str);
-               m_astrFavoriteURLs.InsertAt(nPos, buf);
+         subPath = new char[pathLen + strlen(wfd.cFileName) + 2];
+         strcpy(subPath, strPath);
+         strcat(subPath, wfd.cFileName);
+         strcat(subPath, "/");
 
-               // Retrieve icon
-               SHFILEINFO sfi;
-               if (SHGetFileInfo (strPath2 + wfd.cFileName, 0, &sfi, sizeof(SHFILEINFO), SHGFI_SMALLICON | SHGFI_SYSICONINDEX) &&
-                  sfi.iIcon >= 0)
-               {
-                  m_URLIcons.InsertAt(nPos, sfi.iIcon);
+         dirsArray.push_back(subPath);
 
-                  if (m_iInternetShortcutIcon == -1) {
-                     m_iInternetShortcutIcon = sfi.iIcon;
-                  }
-               }
+      }else if ((wfd.dwFileAttributes & (FILE_ATTRIBUTE_HIDDEN|FILE_ATTRIBUTE_SYSTEM))==0) {
+         // if it's not a hidden or system file
 
-               ++nEndPos;
-            }
-         }
-      } while(FindNextFile(h, &wfd));
-      FindClose(h);
-      // Now add these items to the menu
-      for(nPos = nStartPos ; nPos < nEndPos ; ++nPos)	{
-         pMenu->AppendMenu(MF_STRING | MF_ENABLED, nFirstFavoriteCommand + nPos, m_astrFavorites[nPos]);
-      }
+         char *dot = strrchr(wfd.cFileName, '.');
+         if(dot && stricmp(dot, ".url") == 0) {
 
-      // now that we've got all the .URL files, check the subdirectories for more
-      nLastDir = 0;
-      h = FindFirstFile(strPath, &wfd);
-      ASSERT(h != INVALID_HANDLE_VALUE);
-      do
-      {
-         if(wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-         {
-            // ignore the current and parent directory entries
-            if(lstrcmp(wfd.cFileName, _T(".")) == 0 || lstrcmp(wfd.cFileName, _T("..")) == 0)
-               continue;
-
-            for(nPos = 0 ; nPos < nLastDir ; ++nPos)
-            {
-               if(astrDirs[nPos].CompareNoCase(wfd.cFileName) > 0)
+            // scan through the array and perform an insertion sort
+            // to make sure the menu ends up in alphabetic order
+            for(nPos = nStart; nPos < gNumFavorites; nPos++)	{
+               if(stricmp(wfd.cFileName, gFavorites[nPos]) < 0)
                   break;
             }
-            pSubMenu = new CMenu;
-            pSubMenu->CreatePopupMenu();
 
-            // call this function recursively.
-            nNewEndPos = BuildFavoritesMenu(strPath2 + wfd.cFileName, nEndPos, pSubMenu);
-            if(nNewEndPos != nEndPos)	{
-               // only intert a submenu if there are in fact .URL files in the subdirectory
-               nEndPos = nNewEndPos;
-               //pMenu->AppendMenu(MF_BYPOSITION | MF_POPUP | MF_STRING, (UINT)pSubMenu->m_hMenu, wfd.cFileName);
-               pMenu->InsertMenu(nFirstFavoriteCommand + nStartPos, MF_BYCOMMAND | MF_POPUP | MF_STRING, (UINT)pSubMenu->m_hMenu, wfd.cFileName);
-               pSubMenu->Detach();
-               astrDirs.InsertAt(nPos, wfd.cFileName);
-               ++nLastDir;
+            int filenameLen = (dot - wfd.cFileName) + 4;
+            urlFile = new char[pathLen + filenameLen + 1];
+            strcpy(urlFile, strPath);
+            strcat(urlFile, wfd.cFileName);
+
+            gFavoritesFiles.InsertAt(nPos, urlFile);
+
+            *dot = 0;
+            gFavorites.InsertAt(nPos, wfd.cFileName);
+
+            strcpy(gFavoritesPath + gFavoritesPathLen, urlFile);
+            // Retrieve icon
+            SHFILEINFO sfi;
+            if (SHGetFileInfo (gFavoritesPath, 0, &sfi, sizeof(SHFILEINFO), SHGFI_SMALLICON | SHGFI_SYSICONINDEX) && sfi.iIcon >= 0) {
+               gIcons.InsertAt(nPos, sfi.iIcon);
+
+               if (gInternetShortcutIcon == -1) {
+                  gInternetShortcutIcon = sfi.iIcon;
+               }
+            }else{
+               gIcons.InsertAt(nPos, 0);
             }
-            delete pSubMenu;
+            gFavoritesPath[gFavoritesPathLen] = 0;
+
+            delete [] urlFile;
+
+            gNumFavorites++;
          }
-      } while(FindNextFile(h, &wfd));
-      FindClose(h);
+      }
+   } while(FindNextFile(h, &wfd));
+   FindClose(h);
+
+   // Now add these items to the menu
+   for (nPos = nStart; nPos < gNumFavorites; nPos++) {
+      AppendMenu(mainMenu, MF_STRING | MF_ENABLED, nFirstFavoriteCommand + nPos, gFavorites[nPos]);
    }
-   return nEndPos;
+
+   // then do the directories
+   HMENU subMenu;
+
+   int nSize = dirsArray.size();
+   for (nPos = 0; nPos < nSize; nPos++){
+      subMenu = CreatePopupMenu();
+
+      subPath = dirsArray[nPos];
+
+      // call this function recursively.
+      if(BuildFavoritesMenu(subPath, subMenu))	{
+         // only insert a submenu if there are in fact .URL files in the subdirectory
+         subPath[strlen(subPath)-1] = 0; // chop off the trailing slash
+         InsertMenu(mainMenu, nFirstFavoriteCommand, MF_BYCOMMAND | MF_POPUP | MF_STRING, (UINT)subMenu, subPath);
+      }else{
+         DestroyMenu(subMenu);
+      }
+
+      delete [] subPath;
+   }
+
+   return gNumFavorites - nStart;
 }
 
 
 void DoMenu(HMENU menu, char *param){
 
    // there are no favorites
-   if (!*szPath)
+   if (!*gFavoritesPath)
       return;
 
    if (stricmp(param, _T("Config")) == 0){
@@ -268,26 +259,25 @@ void DoMenu(HMENU menu, char *param){
       AppendMenu(menu, MF_STRING, nEditCommand, "&Edit Favorites");
       return;
    }
-   m_iInternetShortcutIcon = -1;
+   gInternetShortcutIcon = -1;
 
-   m_menuFavorites.Attach(menu);
-
-   BuildFavoritesMenu(szPath, 0, &m_menuFavorites);
+   gFavoritesMenu = menu;
+   BuildFavoritesMenu("", gFavoritesMenu);
 
    SHFILEINFO sfi;
-   m_himSystem = (HIMAGELIST)SHGetFileInfo( szPath,
+   gSystemImages = (HIMAGELIST)SHGetFileInfo( gFavoritesPath,
       0,
       &sfi, 
       sizeof(SHFILEINFO), 
       SHGFI_SYSICONINDEX | SHGFI_SMALLICON);
 
-   if (m_himSystem != NULL) {
+   if (gSystemImages != NULL) {
       int cx, cy;
 
-      ::ImageList_GetIconSize (m_himSystem, &cx, &cy);
-      m_SysImageSize = CSize (cx, cy);
+      ImageList_GetIconSize (gSystemImages, &cx, &cy);
+      gSysImageSize = CSize (cx, cy);
 
-      m_iFolderIcon = sfi.iIcon;
+      gFolderIcon = sfi.iIcon;
    }
 }
 
@@ -338,7 +328,7 @@ void DoRebar(HWND rebarWnd){
 
    //SendMessage(hwndTB, TB_SETEXTENDEDSTYLE, 0, TBSTYLE_EX_DRAWDDARROWS);
 
-   SendMessage(hwndTB, TB_SETIMAGELIST, 0, (LPARAM)m_himSystem);
+   SendMessage(hwndTB, TB_SETIMAGELIST, 0, (LPARAM)gSystemImages);
 
    SendMessage(hwndTB, TB_SETBUTTONWIDTH, 0, MAKELONG(0, 100));
 
@@ -348,24 +338,24 @@ void DoRebar(HWND rebarWnd){
    MENUITEMINFO mInfo;
    mInfo.cbSize = sizeof(mInfo);
    int i;
-   int count = GetMenuItemCount(m_menuFavorites);
+   int count = GetMenuItemCount(gFavoritesMenu);
    HMENU hLinksMenu = NULL;
    for (i=0; i<count; i++){
-     if (GetMenuState(m_menuFavorites, i, MF_BYPOSITION) & MF_POPUP){
+     if (GetMenuState(gFavoritesMenu, i, MF_BYPOSITION) & MF_POPUP){
         char temp[128];
         mInfo.fMask = MIIM_TYPE | MIIM_SUBMENU;
         mInfo.cch = 127;
         mInfo.dwTypeData = temp;
-        GetMenuItemInfo(m_menuFavorites, i, MF_BYPOSITION, &mInfo);
+        GetMenuItemInfo(gFavoritesMenu, i, MF_BYPOSITION, &mInfo);
         
         if (stricmp(mInfo.dwTypeData, "Links") == 0){
-           hLinksMenu = GetSubMenu(m_menuFavorites, i);
+           hLinksMenu = GetSubMenu(gFavoritesMenu, i);
            break;
         }
      }
    }
    if (hLinksMenu == NULL)
-      hLinksMenu = m_menuFavorites;
+      hLinksMenu = gFavoritesMenu;
    count = GetMenuItemCount(hLinksMenu);
    for (i=0; i<count; i++){
      if (GetMenuState(hLinksMenu, i, MF_BYPOSITION) & MF_POPUP){
@@ -378,7 +368,7 @@ void DoRebar(HWND rebarWnd){
         stringID = SendMessage(hwndTB, TB_ADDSTRING, (WPARAM)NULL, (LPARAM)(LPCTSTR)mInfo.dwTypeData);
 
         TBBUTTON button;
-        button.iBitmap = m_iFolderIcon;
+        button.iBitmap = gFolderIcon;
         button.idCommand = (int)mInfo.hSubMenu+SUBMENU_OFFSET;
         button.fsState = TBSTATE_ENABLED;
         button.fsStyle = TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE | TBSTYLE_DROPDOWN;
@@ -400,7 +390,7 @@ void DoRebar(HWND rebarWnd){
            stringID = SendMessage(hwndTB, TB_ADDSTRING, (WPARAM)NULL, (LPARAM)(LPCTSTR)mInfo.dwTypeData);//m_astrFavorites[index]);
 
            TBBUTTON button;
-           button.iBitmap = m_URLIcons[index];
+           button.iBitmap = gIcons[index];
            button.idCommand = mInfo.wID;
            button.fsState = TBSTATE_ENABLED;
            button.fsStyle = TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE;
@@ -471,6 +461,21 @@ LRESULT CALLBACK MsgHook(int code, WPARAM wParam, LPARAM lParam){
    return CallNextHookEx(ghhookMsg, code, wParam, lParam);
 }
 
+char *GetURL(int index){
+   static char url[MAX_PATH];
+   static char path[MAX_PATH] = {0};
+   if (!path[0]){
+      strcpy(path, gFavoritesPath);
+   }
+   strcpy(path+gFavoritesPathLen, gFavoritesFiles.GetAt(index));
+   // a .URL file is formatted just like an .INI file, so we can
+   // use GetPrivateProfileString() to get the information we want
+   GetPrivateProfileString(_T("InternetShortcut"), _T("URL"),
+      _T(""), url, MAX_PATH,
+      path);
+   return url;
+}
+
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
    if (message == WM_COMMAND){
       WORD command = LOWORD(wParam);
@@ -481,27 +486,27 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
       if (command == nAddCommand){
          kmeleonDocInfo *dInfo = kPlugin.kf->GetDocInfo(hWnd);
 
-         CString filename = szPath;
+         CString filename = gFavoritesPath;
          filename += _T('\\');
          filename += dInfo->title;
          filename += _T(".url");
          ::WritePrivateProfileString(_T("InternetShortcut"), _T("URL"), dInfo->url, filename);
 
-         UINT nPos = m_astrFavoriteURLs.GetSize();
-         m_astrFavoriteURLs.InsertAt(nPos, dInfo->url);
-
-         m_menuFavorites.AppendMenu(MF_STRING, nFirstFavoriteCommand+nPos, dInfo->title);
+         int nPos = gFavorites.GetSize();
+         AppendMenu(gFavoritesMenu, MF_STRING, nFirstFavoriteCommand+nPos, dInfo->title);
+         gFavorites.Add(dInfo->title);
+         gFavoritesFiles.Add(filename);
 
          DrawMenuBar(hWnd);
 
          return true;
       }
       if (command == nEditCommand){
-         ShellExecute(hWnd, "explore", szPath, NULL, szPath, SW_SHOWNORMAL);
+         ShellExecute(hWnd, "explore", gFavoritesPath, NULL, gFavoritesPath, SW_SHOWNORMAL);
          return true;
       }
       if (command >= nFirstFavoriteCommand && command < (nFirstFavoriteCommand + MAX_FAVORITES)){
-         kPlugin.kf->NavigateTo((char *)(LPCTSTR)m_astrFavoriteURLs.GetAt(command - nFirstFavoriteCommand), OPEN_NORMAL);
+         kPlugin.kf->NavigateTo(GetURL(command-nFirstFavoriteCommand), OPEN_NORMAL);
          return true;
       }
    }
@@ -584,17 +589,17 @@ extern "C" {
 
       if (GetMenuState((HMENU)dis->hwndItem, dis->itemID, MF_BYCOMMAND) & MF_POPUP){
          if (dis->itemState & ODS_SELECTED){
-            ImageList_Draw(m_himSystem, m_iFolderIcon, dis->hDC, dis->rcItem.left, top, ILD_TRANSPARENT | ILD_FOCUS );
+            ImageList_Draw(gSystemImages, gFolderIcon, dis->hDC, dis->rcItem.left, top, ILD_TRANSPARENT | ILD_FOCUS );
          }else{
-            ImageList_Draw(m_himSystem, m_iFolderIcon, dis->hDC, dis->rcItem.left, top, ILD_TRANSPARENT);
+            ImageList_Draw(gSystemImages, gFolderIcon, dis->hDC, dis->rcItem.left, top, ILD_TRANSPARENT);
          }
          return 18;
       }
       if (dis->itemID >= nFirstFavoriteCommand && dis->itemID < (nFirstFavoriteCommand + MAX_FAVORITES)){
          if (dis->itemState & ODS_SELECTED){
-            ImageList_Draw(m_himSystem, m_URLIcons[dis->itemID - nFirstFavoriteCommand], dis->hDC, dis->rcItem.left, top, ILD_TRANSPARENT | ILD_FOCUS);
+            ImageList_Draw(gSystemImages, gIcons[dis->itemID - nFirstFavoriteCommand], dis->hDC, dis->rcItem.left, top, ILD_TRANSPARENT | ILD_FOCUS);
          }else{
-            ImageList_Draw(m_himSystem, m_URLIcons[dis->itemID - nFirstFavoriteCommand], dis->hDC, dis->rcItem.left, top, ILD_TRANSPARENT);
+            ImageList_Draw(gSystemImages, gIcons[dis->itemID - nFirstFavoriteCommand], dis->hDC, dis->rcItem.left, top, ILD_TRANSPARENT);
          }
 
          return 18;
