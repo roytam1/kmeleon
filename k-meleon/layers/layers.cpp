@@ -1255,13 +1255,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                   bIgnore = true;
                   pLayer = pFrame->layer;
                   while (pLayer) {
-                     if (command == id_close_others && pLayer->hWnd == hWnd) {
+                     if (pLayer->hWnd == hWnd) {
                         pLayer = pLayer->next;
                         if (!pLayer)
                            break;
                      }
                      HWND hWndTmp = pLayer->hWnd;
-                     if (hWndTmp != hWnd || command != id_close_others) {
+                     if (hWndTmp != hWnd) {
                         pFrame = del_layer(pLayer->hWnd);
                         CallWindowProc((WNDPROC)KMeleonWndProc, hWndTmp, WM_CLOSE, 0, 0);
                      }
@@ -1278,6 +1278,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                         UpdateLayersMenu(pFrame->hWndFront);
                      if (pFrame && pFrame->layer)
                         UpdateRebarMenu(pFrame->layer);
+                  }
+                  else if (command != id_close_others) {
+                     pFrame = del_layer(hWnd);
+                     PostMessage(hWnd, WM_CLOSE, 0, 0);
                   }
                }
             }
