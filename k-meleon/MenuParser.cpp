@@ -150,19 +150,11 @@ int CMenuParser::Parse(char *p)
 
             TrimWhiteSpace(p);
 
-            kmeleonPlugin * kPlugin = theApp.plugins.Load(p);
-
-            if (kPlugin && kPlugin->loaded) {
-               if (kPlugin->pf->DoMenu){
-                  kPlugin->pf->DoMenu(currentMenu->GetSafeHmenu(), parameter);
-
-                  LOG_2("Called plugin %s with parameter %s", p, parameter);
-               }
-               else
-                  LOG_ERROR_1( "Plugin %s has no menu", p);
+            if (theApp.plugins.SendMessage(p, "* MenuParser", "DoMenu", (long)currentMenu->GetSafeHmenu(), (long)parameter)) {
+               LOG_2("Called plugin %s with parameter %s", p, parameter);
             }
             else {
-               LOG_ERROR_2( "Could not load plugin %s\r\n\twith parameter %s", p, parameter );
+               LOG_ERROR_1( "Plugin %s has no menu", p);
             }
          }
          else {
