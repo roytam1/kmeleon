@@ -113,6 +113,8 @@ CBrowserFrame::CBrowserFrame(PRUint32 chromeMask)
 
 CBrowserFrame::~CBrowserFrame()
 {
+   if (theApp.m_pMostRecentBrowserFrame == this)
+      theApp.m_pMostRecentBrowserFrame = NULL;
 }
 
 void CBrowserFrame::OnClose()
@@ -441,6 +443,8 @@ void CBrowserFrame::OnSetFocus(CWnd* pOldWnd)
 {
 	// forward focus to the browser window
 	m_wndBrowserView.mBaseWindow->SetFocus();
+
+   theApp.m_pMostRecentBrowserFrame = this;
 
 	// update session history for the current window
    PostMessage(UWM_UPDATESESSIONHISTORY, 0, 0);

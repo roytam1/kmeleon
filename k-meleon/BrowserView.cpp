@@ -1244,14 +1244,13 @@ void CBrowserView::DeleteTempFiles() {
 // Show the AboutDlg
 void CBrowserView::OnAppAbout() {
 	CAboutDlg aboutDlg;
-   aboutDlg.m_pBrowserView = this;
 	aboutDlg.DoModal();
 }
 
 void CBrowserView::OnWindowNext() {
-   GetNextWindow(GW_HWNDNEXT)->SetActiveWindow();
+//   GetNextWindow(GW_HWNDNEXT)->SetActiveWindow();
 }
 
 void CBrowserView::OnWindowPrev() {
-   GetNextWindow(GW_HWNDNEXT)->SetActiveWindow();
+//   GetNextWindow(GW_HWNDNEXT)->SetActiveWindow();
 }

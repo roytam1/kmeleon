@@ -27,7 +27,6 @@ extern CMfcEmbedApp theApp;
 
 CAboutDlg::CAboutDlg() : CDialog(CAboutDlg::IDD)
 {
-   m_pBrowserView = NULL;
    m_credits = _QUOTE(
       \r\n
       K-Meleon - Copyright 2000-2001\r\n
@@ -66,12 +65,12 @@ END_MESSAGE_MAP()
 
 
 void CAboutDlg::OnHome() {
-   if (m_pBrowserView)
-      m_pBrowserView->PostMessage(WM_COMMAND, ID_LINK_KMELEON_HOME);
+   if (theApp.m_pMostRecentBrowserFrame)
+      theApp.m_pMostRecentBrowserFrame->PostMessage(WM_COMMAND, ID_LINK_KMELEON_HOME);
 }
 
 
 void CAboutDlg::OnForum() {
-   if (m_pBrowserView)
-      m_pBrowserView->PostMessage(WM_COMMAND, ID_LINK_KMELEON_FORUM);
+   if (theApp.m_pMostRecentBrowserFrame)
+      theApp.m_pMostRecentBrowserFrame->PostMessage(WM_COMMAND, ID_LINK_KMELEON_FORUM);
 }

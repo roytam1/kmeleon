@@ -86,7 +86,9 @@ public:
    CMenuParser   menus;
    CAccelParser  accel;
 
-// Implementation
+   CBrowserFrame* m_pMostRecentBrowserFrame;
+
+   // Implementation
 
 public:
    //{{AFX_MSG(CMfcEmbedApp)

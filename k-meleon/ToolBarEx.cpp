@@ -90,7 +90,7 @@ void CToolBarEx::OnLButtonDown(UINT nFlags, CPoint point) {
 	if (buttonID > -1) {
 		SetTimer(LBUTTON_TIMER + buttonID,300,NULL);
 
-		theApp.m_pMainWnd->GetActiveWindow()->PostMessage(TB_LBUTTONDOWN, GetItemID(buttonID), 0);
+		theApp.m_pMostRecentBrowserFrame->PostMessage(TB_LBUTTONDOWN, GetItemID(buttonID), 0);
 	}
 	
 	CToolBar::OnLButtonDown(nFlags, point);
@@ -102,7 +102,7 @@ void CToolBarEx::OnLButtonUp(UINT nFlags, CPoint point) {
 	if (buttonID > -1) {
 		KillTimer(LBUTTON_TIMER + buttonID);
 
-		theApp.m_pMainWnd->GetActiveWindow()->PostMessage(TB_LBUTTONUP, GetItemID(buttonID), 0);
+		theApp.m_pMostRecentBrowserFrame->PostMessage(TB_LBUTTONUP, GetItemID(buttonID), 0);
 	}
 
 	CToolBar::OnLButtonUp(nFlags, point);
@@ -114,7 +114,7 @@ void CToolBarEx::OnMButtonDown(UINT nFlags, CPoint point) {
 	if (buttonID > -1) {
 		SetTimer(MBUTTON_TIMER + buttonID,300,NULL);
 
-		theApp.m_pMainWnd->GetActiveWindow()->PostMessage(TB_MBUTTONDOWN, GetItemID(buttonID), 0);
+		theApp.m_pMostRecentBrowserFrame->PostMessage(TB_MBUTTONDOWN, GetItemID(buttonID), 0);
 	}
 	
 	CToolBar::OnMButtonDown(nFlags, point);
@@ -126,7 +126,7 @@ void CToolBarEx::OnMButtonUp(UINT nFlags, CPoint point) {
 	if (buttonID > -1) {
 		KillTimer(MBUTTON_TIMER + buttonID);
 
-		theApp.m_pMainWnd->GetActiveWindow()->PostMessage(TB_MBUTTONUP, GetItemID(buttonID), 0);
+		theApp.m_pMostRecentBrowserFrame->PostMessage(TB_MBUTTONUP, GetItemID(buttonID), 0);
 	}
 
 	CToolBar::OnMButtonUp(nFlags, point);
@@ -138,7 +138,7 @@ void CToolBarEx::OnRButtonDown(UINT nFlags, CPoint point) {
 	if (buttonID > -1) {
 		SetTimer(RBUTTON_TIMER + buttonID,300,NULL);
 
-		theApp.m_pMainWnd->GetActiveWindow()->PostMessage(TB_RBUTTONDOWN, GetItemID(buttonID), 0);
+		theApp.m_pMostRecentBrowserFrame->PostMessage(TB_RBUTTONDOWN, GetItemID(buttonID), 0);
 	}
 	
 	CToolBar::OnRButtonDown(nFlags, point);
@@ -150,7 +150,7 @@ void CToolBarEx::OnRButtonUp(UINT nFlags, CPoint point) {
 	if (buttonID > -1) {
 		KillTimer(RBUTTON_TIMER + buttonID);
 
-		theApp.m_pMainWnd->GetActiveWindow()->PostMessage(TB_RBUTTONUP, GetItemID(buttonID), 0);
+		theApp.m_pMostRecentBrowserFrame->PostMessage(TB_RBUTTONUP, GetItemID(buttonID), 0);
 	}
 
 	CToolBar::OnRButtonUp(nFlags, point);
@@ -166,19 +166,19 @@ void CToolBarEx::OnTimer(UINT nIDEvent) {
 		// Left button timer
 		if ((nIDEvent >= LBUTTON_TIMER) && (nIDEvent < LBUTTON_TIMER + count)) {
 			KillTimer(nIDEvent);
-			theApp.m_pMainWnd->GetActiveWindow()->PostMessage(TB_LBUTTONHOLD, GetItemID(nIDEvent-LBUTTON_TIMER), 0);
+			theApp.m_pMostRecentBrowserFrame->PostMessage(TB_LBUTTONHOLD, GetItemID(nIDEvent-LBUTTON_TIMER), 0);
 		}
 
 		// Middle button timer
 		else if ((nIDEvent >= MBUTTON_TIMER) && (nIDEvent < MBUTTON_TIMER + count)) {
 			KillTimer(nIDEvent);
-			theApp.m_pMainWnd->GetActiveWindow()->PostMessage(TB_MBUTTONHOLD, GetItemID(nIDEvent-MBUTTON_TIMER), 0);
+			theApp.m_pMostRecentBrowserFrame->PostMessage(TB_MBUTTONHOLD, GetItemID(nIDEvent-MBUTTON_TIMER), 0);
 		}
 
 		// Right button timer
 		else if ((nIDEvent >= RBUTTON_TIMER) && (nIDEvent < RBUTTON_TIMER + count)) {
 			KillTimer(nIDEvent);
-			theApp.m_pMainWnd->GetActiveWindow()->PostMessage(TB_RBUTTONHOLD, GetItemID(nIDEvent-RBUTTON_TIMER), 0);
+			theApp.m_pMostRecentBrowserFrame->PostMessage(TB_RBUTTONHOLD, GetItemID(nIDEvent-RBUTTON_TIMER), 0);
 		}
 	}
 		

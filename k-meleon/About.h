@@ -26,7 +26,6 @@ public:
 	CAboutDlg();
 	enum { IDD = IDD_ABOUTBOX };
 
-   CBrowserView* m_pBrowserView;
 protected:
    CString m_credits;
    CString m_version;

@@ -72,6 +72,7 @@ CMfcEmbedApp::CMfcEmbedApp() :
     m_ProfileMgr(NULL)
 {
    mRefCnt = 1; // Start at one - nothing is going to addref this object
+   m_pMostRecentBrowserFrame = NULL;
 }
 
 CMfcEmbedApp theApp;

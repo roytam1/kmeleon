@@ -37,7 +37,7 @@ int SessionSize=0;
 char **pHistory;
 
 
-CPlugins::CPlugins(){
+CPlugins::CPlugins() {
 }
 
 CPlugins::~CPlugins(){
@@ -115,7 +115,7 @@ void CPlugins::OnCreate(HWND wnd){
 }
 
 void NavigateTo(char *url, int newWindow){
-   CBrowserFrame *mainFrame = (CBrowserFrame *)theApp.m_pMainWnd->GetActiveWindow();
+   CBrowserFrame *mainFrame = theApp.m_pMostRecentBrowserFrame;
    mainFrame->m_wndBrowserView.OpenURL(url);
 }
 
@@ -173,15 +173,12 @@ int GetMozillaSessionHistory (char ***titles, int *count, int *index) {
    nsresult result;
    int i;
 
-	CBrowserFrame	*mainFrame		= (CBrowserFrame *) theApp.m_pMainWnd->GetActiveWindow();
-
-	if (!mainFrame)	return FALSE;
+	if (!theApp.m_pMostRecentBrowserFrame)	return FALSE;
 
 	nsCOMPtr<nsISHistory> h;
-   if (!h)
-      return FALSE;
 
-	result = mainFrame->m_wndBrowserView.mWebNav->GetSessionHistory(getter_AddRefs (h));
+   result = theApp.m_pMostRecentBrowserFrame->m_wndBrowserView.mWebNav->GetSessionHistory(getter_AddRefs (h));
+
    if (!NS_SUCCEEDED (result) || (!h)) return FALSE;
 
    h->GetCount (count);
@@ -223,7 +220,7 @@ int GetMozillaSessionHistory (char ***titles, int *count, int *index) {
 }
 
 void GotoHistoryIndex(UINT index) {
-	CBrowserFrame	*mainFrame		= (CBrowserFrame *) theApp.m_pMainWnd->GetActiveWindow();
+	CBrowserFrame	*mainFrame = theApp.m_pMostRecentBrowserFrame;
 	if (mainFrame)
 		mainFrame->m_wndBrowserView.mWebNav->GotoIndex(index);
 }
