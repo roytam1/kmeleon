@@ -1,0 +1,35 @@
+// THIS FILE WILL BE OVERWRITTEN BY DEV-C++!
+// DO NOT EDIT!
+
+#include <windows.h> // include for version info constants
+
+#include "privacy_res.rc"
+
+//
+// TO CHANGE VERSION INFORMATION, EDIT PROJECT OPTIONS...
+//
+1 VERSIONINFO
+FILEVERSION 0,0,3,0
+PRODUCTVERSION 0,0,3,0
+FILETYPE VFT_DLL
+{
+  BLOCK "StringFileInfo"
+	 {
+		 BLOCK "040904E4"
+		 {
+			 VALUE "CompanyName", ""
+			 VALUE "FileVersion", "0.0.3.0"
+			 VALUE "FileDescription", "Privacy Plugin for K-Meleon"
+			 VALUE "InternalName", ""
+			 VALUE "LegalCopyright", "2004 - Romain Vallet"
+			 VALUE "LegalTrademarks", ""
+			 VALUE "OriginalFilename", "privacy.dll"
+			 VALUE "ProductName", ""
+			 VALUE "ProductVersion", ""
+		 }
+	 }
+  BLOCK "VarFileInfo"
+	 {
+		 VALUE "Translation", 0x0409, 1252
+	 }
+}
