@@ -24,6 +24,58 @@
 
 #include "resource.h"
 
+
+class CPreferences {
+public:
+  // -- data
+  CString toolbarBackground;
+  int bToolbarBackground;
+
+  CString homePage;
+  int bStartHome;
+
+  CString searchEngine;
+
+  // this holds the menu.txt files
+  CString settingsDir;
+
+  // true if the window should default to maximized
+  int bMaximized;
+
+  // -- yummy proxies
+  int proxyType;
+
+  CString proxyHttp;
+  int proxyHttpPort;
+
+  CString proxyNoProxy;
+
+  // -- paranoia
+  int bJavaEnabled;
+  int bJavascriptEnabled;
+  int bCookiesEnabled;
+  int bCSSEnabled;
+  int bImagesEnabled;
+  int bAnimationsEnabled;
+
+  // -- functions
+
+  CPreferences();
+  ~CPreferences();
+
+  void Save();
+  void Load();
+
+  void SetBool(const char *preference, int value);
+  int  GetBool(const char *preference, int defaultVal);
+
+  void SetInt(const char *preference, int value);
+  int  GetInt(const char *preference, int defaultVal);
+
+  void SetString(const char *preference, char * value);
+  void GetString(const char *preference, char * retValue, char * defaultVal);
+};
+
 class CPreferencePage : public CDialog {
 public:
   UINT idd;
@@ -94,49 +146,5 @@ protected:
 
 };
 
-class CPreferences {
-public:
-  // -- data
-  CString toolbarBackground;
-  int bToolbarBackground;
-
-  CString homePage;
-  int bStartHome;
-
-  CString searchEngine;
-
-  // this holds the menu.txt files
-  CString settingsDir;
-
-  // true if the window should default to maximized
-  int bMaximized;
-
-  // -- yummy proxies
-  int proxyType;
-
-  CString proxyHttp;
-  int proxyHttpPort;
-
-  CString proxyNoProxy;
-
-  // -- paranoia
-  int bJavaEnabled;
-  int bJavascriptEnabled;
-  int bCookiesEnabled;
-  int bCSSEnabled;
-  int bImagesEnabled;
-  int bAnimationsEnabled;
-
-  // -- functions
-
-  CPreferences();
-  ~CPreferences();
-
-  void Save();
-  void Load();
-
-  void SetInt(const char *preference, int value);
-  int  GetInt(const char *preference, int defaultVal);
-};
 
 #endif

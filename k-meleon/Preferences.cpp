@@ -15,14 +15,13 @@
 *  along with this program; if not, write to the Free Software
 *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
-//  Holds various prefernces for k-meleon.  also controls the dialog box
+//  Holds various prefernces for k-meleon. also has the getters/setters
 
 #include "StdAfx.h"
 
 #include "MfcEmbed.h"
 extern CMfcEmbedApp theApp;
 
-#include "Plugins.h"
 #include "Preferences.h"
 
 CPreferences::CPreferences() {
@@ -180,6 +179,26 @@ void CPreferences::Save() {
     NS_ASSERTION(PR_FALSE, "Could not get preferences service");
 }
 
+int CPreferences::GetBool(const char *preference, int defaultVal){
+  nsresult rv;
+  NS_WITH_SERVICE(nsIPref, prefs, NS_PREF_CONTRACTID, &rv);
+  if (NS_SUCCEEDED(rv)) {
+    PRBool tempBool;
+    rv = prefs->GetBoolPref(preference, &tempBool);
+    if (NS_SUCCEEDED(rv))
+      return tempBool;
+    else
+      return defaultVal;
+  }
+  else return defaultVal;
+}
+void CPreferences::SetBool(const char *preference, int value){
+  nsresult rv;
+  NS_WITH_SERVICE(nsIPref, prefs, NS_PREF_CONTRACTID, &rv);
+  if (NS_SUCCEEDED(rv)) {
+    prefs->SetBoolPref(preference, value);
+  }
+}
 int CPreferences::GetInt(const char *preference, int defaultVal){
   nsresult rv;
   NS_WITH_SERVICE(nsIPref, prefs, NS_PREF_CONTRACTID, &rv);
@@ -200,255 +219,20 @@ void CPreferences::SetInt(const char *preference, int value){
     prefs->SetIntPref(preference, value);
   }
 }
-
-CPreferencesDlg::CPreferencesDlg() : CDialog(IDD) {
-  page = NULL;
-}
-
-BOOL CPreferencesDlg::Create(CWnd *pParent){
-  return false;
-}
-
-void CPreferencesDlg::DoDataExchange(CDataExchange* pDX){
-	CDialog::DoDataExchange(pDX);
-	//{{AFX_DATA_MAP(CPreferencesDlg)
-	DDX_Control(pDX, IDC_LIST1, m_list);
-  //}}AFX_DATA_MAP
-}
-
-BEGIN_MESSAGE_MAP(CPreferencesDlg, CDialog)
-	//{{AFX_MSG_MAP(CPreferencesDlg)
-  ON_NOTIFY(LVN_ITEMCHANGED, IDC_LIST1, OnListSelect)
-  //}}AFX_MSG_MAP
-END_MESSAGE_MAP()
-
-CPreferencesDlg::OnInitDialog(){
-  CDialog::OnInitDialog();
-
-  UpdateData(true);
-
-  RECT rect;
-  m_list.SetParent(this);
-	m_list.GetClientRect(&rect);
-
- 	m_list.InsertColumn(0, "Blah", LVCFMT_LEFT, rect.right);
-
-  AddItem(_T("General"), IDD_PREFERENCES_GENERAL);
-  AddItem(_T("Display"), IDD_PREFERENCES_DISPLAY);
-  AddItem(_T("Proxy"),   IDD_PREFERENCES_PROXY);
-  AddItem(_T("Paranoia"),IDD_PREFERENCES_PARANOIA);
-  AddItem(_T("Plugins"), IDD_PREFERENCES_PLUGINS);
-
-  m_list.SetItemState(0, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
-
-	return TRUE;  // return TRUE  unless you set the focus to a control
-}
-
-CPreferencesDlg::~CPreferencesDlg(){
-  if (page)
-    delete page;
-}
-
-int CPreferencesDlg::DoModal(){
-  int ret = CDialog::DoModal();
-
-  if (page){
-    delete page;
-    page = NULL;
+void CPreferences::GetString(const char *preference, char *retVal, char *defaultVal){
+  nsresult rv;
+  NS_WITH_SERVICE(nsIPref, prefs, NS_PREF_CONTRACTID, &rv);
+  if (NS_SUCCEEDED(rv)) {
+    CString string;
+    _GetString(preference, string, defaultVal);
+    strcpy(retVal, string);
   }
-
-  theApp.preferences.Save();
-
-  return ret;
 }
-
-void CPreferencesDlg::OnOK(){
-  page->UpdateData();
-  CDialog::OnOK();
-}
-
-void CPreferencesDlg::OnCancel(){
-  CDialog::OnCancel();
-}
-
-void CPreferencesDlg::AddItem(char *text, UINT idd){
-  int item = m_list.GetItemCount();
-  m_list.InsertItem(item, text, 0);
-  m_list.SetItemData(item, idd);
-}
-
-void CPreferencesDlg::OnListSelect(NMHDR* pNMHDR, LRESULT* pResult) {
-  int item;
-  POSITION pos;
-  pos = m_list.GetFirstSelectedItemPosition();
-  if (!pos){
-    return;
-  }
-  item = m_list.GetNextSelectedItem(pos);
-
-  UINT idd = m_list.GetItemData(item);
-
-  ShowPage(idd);
-}
-
-void CPreferencesDlg::ShowPage(UINT idd){
-  if (page){
-    if (page->idd == idd){
-      return;
-    }
-    page->UpdateData();
-    delete page;
-  }
-  if (idd == IDD_PREFERENCES_PLUGINS){
-    page = new CPreferencePagePlugins;
-  }else{
-    page = new CPreferencePage;
-  }
-  
-  page->idd = idd;
-
-  page->Create(idd, this);
-
-  page->SetParent(this);
-
-  RECT rect;
-  CWnd *container = GetDlgItem(IDC_CONTAINER);
-  container->GetClientRect(&rect);
-  container->ClientToScreen(&rect);
-
-  ScreenToClient(&rect);
-
-  page->MoveWindow(&rect);
-
-  page->ShowWindow(SW_SHOW);
-}
-
-/**/
-
-BOOL CPreferencePage::OnInitDialog(){
-  CDialog::OnInitDialog();
-
-	return FALSE;  // return TRUE  unless you set the focus to a control
-}
-
-void CPreferencePage::DoDataExchange(CDataExchange* pDX){
-	CDialog::DoDataExchange(pDX);
-	//{{AFX_DATA_MAP(CPreferencePage)
-  switch (idd){
-    case IDD_PREFERENCES_DISPLAY:
-      DDX_Text(pDX, IDC_EDIT_TOOLBAR_BACKGROUND, theApp.preferences.toolbarBackground);
-      DDX_Check(pDX, IDC_CHECK_TOOLBAR_BACKGROUND, theApp.preferences.bToolbarBackground);
-      break;
-    case IDD_PREFERENCES_GENERAL:
-      DDX_Radio(pDX, IDC_RADIO_START_BLANK, theApp.preferences.bStartHome);
-      DDX_Text(pDX, IDC_EDIT_HOMEPAGE, theApp.preferences.homePage);
-      DDX_Text(pDX, IDC_EDIT_SETTINGS_DIR, theApp.preferences.settingsDir);
-      break;
-    case IDD_PREFERENCES_PROXY:
-      DDX_Text(pDX, IDC_EDIT_HTTP_PROXY, theApp.preferences.proxyHttp);
-      DDX_Text(pDX, IDC_EDIT_HTTP_PROXY_PORT, theApp.preferences.proxyHttpPort);
-      DDX_Text(pDX, IDC_EDIT_PROXY_NO_PROXY, theApp.preferences.proxyNoProxy);
-      DDX_Check(pDX, IDC_CHECK_PROXY_TYPE, theApp.preferences.proxyType);
-      break;
-    case IDD_PREFERENCES_PARANOIA:
-      DDX_Check(pDX, IDC_CHECK_JAVA, theApp.preferences.bJavaEnabled);
-      DDX_Check(pDX, IDC_CHECK_JAVASCRIPT, theApp.preferences.bJavascriptEnabled);
-      DDX_Check(pDX, IDC_CHECK_COOKIES, theApp.preferences.bCookiesEnabled);
-      DDX_Check(pDX, IDC_CHECK_CSS, theApp.preferences.bCSSEnabled);
-      DDX_Check(pDX, IDC_CHECK_IMAGES, theApp.preferences.bImagesEnabled);
-      DDX_Check(pDX, IDC_CHECK_ANIMATIONS, theApp.preferences.bAnimationsEnabled);
-      break;
-  }
-  //}}AFX_DATA_MAP
-}
-
-BEGIN_MESSAGE_MAP(CPreferencePage, CDialog)
-	//{{AFX_MSG_MAP(CPreferencePage)
-	ON_BN_CLICKED(IDC_BUTTON_BROWSE, OnBrowse)
-  //}}AFX_MSG_MAP
-END_MESSAGE_MAP()
-
-void CPreferencePage::OnBrowse() {
-  CFileDialog fDlg(TRUE);
-  switch (idd){
-    case IDD_PREFERENCES_DISPLAY:
-      fDlg.m_ofn.lpstrFilter = "Bitmaps\0*.bmp\0";
-      fDlg.DoModal();
-      theApp.preferences.toolbarBackground = fDlg.GetPathName();
-      UpdateData(FALSE);
-      break;
+void CPreferences::SetString(const char *preference, char *value){
+  nsresult rv;
+  NS_WITH_SERVICE(nsIPref, prefs, NS_PREF_CONTRACTID, &rv);
+  if (NS_SUCCEEDED(rv)) {
+    prefs->SetCharPref(preference, value);
   }
 }
 
-// these are here to cancel the effects of hitting enter/esc
-void CPreferencePage::OnOK(){
-}
-
-void CPreferencePage::OnCancel(){
-}
-
-/**/
-
-BOOL CPreferencePagePlugins::OnInitDialog(){
-  CDialog::OnInitDialog();
-
-  RECT rect;
-  m_pluginList.SetParent(this);
-	m_pluginList.GetClientRect(&rect);
-
- 	m_pluginList.InsertColumn(0, "Blah", LVCFMT_LEFT, rect.right);
-
-  POSITION pos = theApp.plugins.pluginList.GetStartPosition();
-  kmeleonPlugin * kPlugin;
-  CString s;
-  int i=0;
-  while (pos){
-    theApp.plugins.pluginList.GetNextAssoc( pos, s, kPlugin);
-
-    int item = m_pluginList.GetItemCount();
-
-    m_pluginList.InsertItem(item, kPlugin->description, 0);
-  }
-  m_pluginList.SetItemState(0, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
-
-	return FALSE;  // return TRUE  unless you set the focus to a control
-}
-
-void CPreferencePagePlugins::DoDataExchange(CDataExchange* pDX){
-	CDialog::DoDataExchange(pDX);
-	//{{AFX_DATA_MAP(CPreferencePagePlugins)
-  DDX_Control(pDX, IDC_LIST_PLUGINS, m_pluginList);
-  //}}AFX_DATA_MAP
-}
-
-BEGIN_MESSAGE_MAP(CPreferencePagePlugins, CPreferencePage)
-	//{{AFX_MSG_MAP(CPreferencePagePlugins)
-  ON_BN_CLICKED(IDC_BUTTON_CONFIG, OnConfig)
-  //}}AFX_MSG_MAP
-END_MESSAGE_MAP()
-
-
-void CPreferencePagePlugins::OnConfig() {
-  int item;
-  POSITION pos;
-  pos = m_pluginList.GetFirstSelectedItemPosition();
-  if (!pos){
-    return;
-  }
-  item = m_pluginList.GetNextSelectedItem(pos);
-
-  kmeleonPlugin * kPlugin;
-  CString s;
-  pos = theApp.plugins.pluginList.GetStartPosition();
-  while (pos){
-    theApp.plugins.pluginList.GetNextAssoc( pos, s, kPlugin);
-
-    if (item == 0){
-      if (kPlugin->Config){
-        kPlugin->Config(this->m_hWnd);
-      }
-      break;
-    }
-    item--;
-  }
-}
