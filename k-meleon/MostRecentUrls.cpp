@@ -27,8 +27,10 @@ extern CMfcEmbedApp theApp;
 CMostRecentUrls::CMostRecentUrls() {
 
    m_maxURLs = theApp.preferences.GetInt("kmeleon.MRU.maxURLs", 16); 
-   if (m_maxURLs < 0) {
+   if (m_maxURLs <= 0) {
       m_maxURLs=0;
+      m_URLCount=0;
+      m_URLs=NULL;
       return;
    }
 
@@ -41,15 +43,19 @@ CMostRecentUrls::CMostRecentUrls() {
    do {
       itoa(x, sBuf, 10);
       strcpy(sCount, sBuf);                              // create  "kmeleon.MRU.URL##" string
-      m_URLs[x] = new char[1024];
-      theApp.preferences.GetString(sPref, m_URLs[x], "");
-   } while ((*m_URLs[x]) && (++x<m_maxURLs));
-
-   if (x<m_maxURLs)
-      delete m_URLs[x];
+      int len = theApp.preferences.GetString(sPref, NULL, "");
+      if (len > 0) {
+         m_URLs[x] = new char[len+1];
+         theApp.preferences.GetString(sPref, m_URLs[x], "");
+      }
+      else
+         break;
+   } while (++x<m_maxURLs);
    
    m_URLCount = x;
-   for(;x<m_maxURLs;x++) m_URLs[x] = NULL;
+   // nullify the empty entries
+   for(;x<m_maxURLs;x++)
+      m_URLs[x] = NULL;
 }
 
 CMostRecentUrls::~CMostRecentUrls() {
@@ -79,6 +85,8 @@ char * CMostRecentUrls::GetURL(int aInx) {
 
 void CMostRecentUrls::AddURL(const char * aURL) {
 
+   if (m_maxURLs<1) return;
+
    // check list for previous entry
    for (int x=0; x<m_URLCount-1; x++)	{
       if(m_URLs[x]) {
@@ -89,8 +97,9 @@ void CMostRecentUrls::AddURL(const char * aURL) {
 
    // if no match
    if((x==m_URLCount-1) || (m_URLCount == 0)) {
-      if (x==m_maxURLs-1) delete m_URLs[x];    // if list is full, remove the bottom entry
-      else {                                   // otherwise just increase the count
+      if (m_URLCount==m_maxURLs)
+         delete m_URLs[x];            // if list is full, remove the bottom entry
+      else {                          // otherwise add a new entry and increase the count
          m_URLCount++;
          x++;
       }
@@ -103,5 +112,5 @@ void CMostRecentUrls::AddURL(const char * aURL) {
    }
 
 	// add the new url
-   strcpy(m_URLs[0], aURL);
+   m_URLs[0] = _strdup(aURL);
 }

@@ -321,8 +321,7 @@ PRBool CBrowserFrame::BrowserFrameGlueObj::CreateNewBrowserFrame(PRUint32 chrome
 void CBrowserFrame::BrowserFrameGlueObj::DestroyBrowserFrame()
 {
    METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
-
-      pThis->PostMessage(WM_CLOSE);
+   pThis->PostMessage(WM_CLOSE);
 }
 
 void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags, nsIDOMNode *aNode)

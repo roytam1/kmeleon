@@ -42,7 +42,7 @@ CMenuParser::~CMenuParser(){
    POSITION pos = menus.GetStartPosition();
    CMenu *m;
    CString s;
-   while (pos){
+   while (pos) {
       menus.GetNextAssoc( pos, s, m);
       if (m){
          m->DestroyMenu();

@@ -16,6 +16,8 @@
 *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
+#define  MAX_URL_LENGTH 1024
+
 class CMostRecentUrls {
 public:
 
