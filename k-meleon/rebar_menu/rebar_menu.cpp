@@ -27,10 +27,6 @@
 
 #define _T(blah) blah
 
-#ifndef TPM_NOANIMATION
-#define TPM_NOANIMATION 0x4000
-#endif
-
 /*
 // MFC handles this for us (how nice)
 BOOL APIENTRY DllMain( HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved )
@@ -256,9 +252,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                ClientToScreen(ghToolbarWnd, &pt);
 
                // the hook may change this, so we need to save it for the TB_PRESSBUTTON
-               lastItem = giCurrentItem; 
+               lastItem = giCurrentItem;
 
-               TrackPopupMenu((HMENU)(giCurrentItem-SUBMENU_OFFSET), TPM_LEFTALIGN | TPM_NOANIMATION, pt.x, pt.y, 0, hWnd, NULL);
+               TrackPopupMenu((HMENU)(giCurrentItem-SUBMENU_OFFSET), TPM_LEFTALIGN, pt.x, pt.y, 0, hWnd, NULL);
 
                UnhookWindowsHookEx(ghhookMsg);
                SendMessage(ghToolbarWnd, TB_PRESSBUTTON, lastItem, MAKELONG(false, 0));
