@@ -1168,12 +1168,16 @@ void CBrowserView::UpdateGoMenu () {
 	char buf[47];  //  3 spaces for "&# " 20 for beginning of title 3 for "..." 20 for end of title
 
 	CBrowserFrame	*mainFrame = (CBrowserFrame *) theApp.m_pMainWnd->GetActiveWindow();
+
+	if (!mainFrame)
+		return;
+
 	CMenu *pTopMenu = mainFrame->GetMenu(), *pGoMenu =0; // top menu handler 
 
 	if (!pTopMenu)
 		return;
 
-	// find the "Go" submenu (or, at least, the first submenu with ID_NAV_BACK in pos 0)
+	// find the "&Go" submenu
 	// since menus are easily changeable via menus.cfg, this may lead to the history
 	// being appended to the wrong menu, or not being appended at all....
 	for (i = 0; i < (int) pTopMenu->GetMenuItemCount(); i++) { 
