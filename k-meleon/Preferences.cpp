@@ -97,7 +97,7 @@ void CPreferences::Load() {
       // -- Find settings
       
 	   _GetBool(_T("kmeleon.find.matchCase"), bFindMatchCase, false);
-	   _GetBool(_T("kmeleon.find.matchWholeWord"), bFindMatchWholeWord, false);
+//	   _GetBool(_T("kmeleon.find.matchWholeWord"), bFindMatchWholeWord, false);
 	   _GetBool(_T("kmeleon.find.searchBackwards"), bFindSearchBackwards, false);
 	   _GetBool(_T("kmeleon.find.wrapAround"), bFindWrapAround, false);
       
@@ -214,43 +214,16 @@ void CPreferences::Load() {
       _GetString(_T("capability.policy.restrictedpopups.sites"), restrictedPopupSites, "");
 
       _GetBool(_T("dom.disable_open_during_load"), bDisablePopupsOnLoad, false);
-
-
    }
    else
       NS_ASSERTION(PR_FALSE, "Could not get preferences service");
 }
 
-void CPreferences::Save() {
+void CPreferences::SaveDlgPrefs() {
    nsresult rv;
    nsCOMPtr<nsIPref> prefs(do_GetService(NS_PREF_CONTRACTID, &rv));
    if (NS_SUCCEEDED(rv)) {
-
-      // -- Display settings
-
-      rv = prefs->SetBoolPref(_T("kmeleon.display.maximized"), bMaximized);
-      rv = prefs->SetIntPref(_T("kmeleon.display.width"), windowWidth);
-      rv = prefs->SetIntPref(_T("kmeleon.display.height"), windowHeight);
-      rv = prefs->SetIntPref(_T("kmeleon.display.XPos"), windowXPos);
-      rv = prefs->SetIntPref(_T("kmeleon.display.YPos"), windowYPos);
-      rv = prefs->SetBoolPref(_T("kmeleon.display.backgroundImageEnabled"), bToolbarBackground);
-      rv = prefs->SetCharPref(_T("kmeleon.display.backgroundImage"), toolbarBackground);
-
-      rv = prefs->SetIntPref(_T("kmeleon.display.newWindowOpenAs"), iNewWindowOpenAs);
-      rv = prefs->SetCharPref(_T("kmeleon.display.newWindowURL"), newWindowURL);
-
-      rv = prefs->SetBoolPref(_T("kmeleon.display.disableResize"), bDisableResize);
-
-      // -- Find settings
-      
-	   rv = prefs->SetBoolPref(_T("kmeleon.find.matchCase"), bFindMatchCase);
-// don't set this - it might confuse the users :)  (okay, we *should* remove all references to it, perhaps, but I'm being lazy - sorry)
-//	   rv = prefs->SetBoolPref(_T("kmeleon.find.matchWholeWord"), bFindMatchWholeWord);
-	   rv = prefs->SetBoolPref(_T("kmeleon.find.wrapAround"), bFindWrapAround);
-	   rv = prefs->SetBoolPref(_T("kmeleon.find.searchBackwards"), bFindSearchBackwards);
-
       // -- General preferences
-
       rv = prefs->SetBoolPref(_T("kmeleon.general.startHome"), bStartHome);
       rv = prefs->SetCharPref(_T("kmeleon.general.homePage"), homePage);
 
@@ -261,10 +234,7 @@ void CPreferences::Save() {
       rv = prefs->SetBoolPref(_T("kmeleon.general.sourceEnabled"), bSourceUseExternalCommand);
       rv = prefs->SetCharPref(_T("kmeleon.general.sourceCommand"), sourceCommand);
 
-
-
-     // -- Cache
-
+      // -- Cache
       rv = prefs->SetCharPref(_T("browser.cache.disk.parent_directory"), cacheDir);
       rv = prefs->SetIntPref(_T("browser.cache.disk.capacity"), cacheDisk);
 
@@ -272,7 +242,6 @@ void CPreferences::Save() {
       rv = prefs->SetIntPref(_T("browser.cache.check_doc_frequency"), cacheCheckFrequency);
 
       // -- Proxies
-
       rv = prefs->SetCharPref(_T("network.proxy.http"),        proxyHTTP);
       rv = prefs->SetIntPref (_T("network.proxy.http_port"),   proxyHTTPPort);
       rv = prefs->SetCharPref(_T("network.proxy.ftp"),         proxyFTP);
@@ -295,7 +264,6 @@ void CPreferences::Save() {
       rv = prefs->SetIntPref(_T("network.proxy.type"), proxyType);
 
       //  -- Advanced
-
       rv = prefs->SetBoolPref(_T("javascript.enabled"), bJavascriptEnabled);
       rv = prefs->SetBoolPref(_T("security.enable_java"), bJavaEnabled);
       rv = prefs->SetBoolPref(_T("signon.rememberSignons"), bRememberSignons);
@@ -325,7 +293,43 @@ void CPreferences::Save() {
 
       rv = prefs->SetBoolPref(_T("dom.disable_open_during_load"), bDisablePopupsOnLoad);
 
-      
+      Save();
+   }
+   else
+      NS_ASSERTION(PR_FALSE, "Could not get preferences service");
+}
+
+void CPreferences::Save() {
+   nsresult rv;
+   nsCOMPtr<nsIPref> prefs(do_GetService(NS_PREF_CONTRACTID, &rv));
+   if (NS_SUCCEEDED(rv)) {
+      // NOTE: The prefs set in this function will not be settable in a macro!
+      //       This is why most were moved into SaveDlgPrefs(), so they wouldn't
+      //        be overwritten when trying to save them from a macro.
+      //       Those left here can be changed outside of the prefs dialog, so
+      //        they're left in here for now.
+
+      // -- Display settings
+      rv = prefs->SetBoolPref(_T("kmeleon.display.maximized"), bMaximized);
+      rv = prefs->SetIntPref(_T("kmeleon.display.width"), windowWidth);
+      rv = prefs->SetIntPref(_T("kmeleon.display.height"), windowHeight);
+      rv = prefs->SetIntPref(_T("kmeleon.display.XPos"), windowXPos);
+      rv = prefs->SetIntPref(_T("kmeleon.display.YPos"), windowYPos);
+      rv = prefs->SetBoolPref(_T("kmeleon.display.backgroundImageEnabled"), bToolbarBackground);
+      rv = prefs->SetCharPref(_T("kmeleon.display.backgroundImage"), toolbarBackground);
+
+      rv = prefs->SetIntPref(_T("kmeleon.display.newWindowOpenAs"), iNewWindowOpenAs);
+      rv = prefs->SetCharPref(_T("kmeleon.display.newWindowURL"), newWindowURL);
+
+      rv = prefs->SetBoolPref(_T("kmeleon.display.disableResize"), bDisableResize);
+
+      // -- Find settings
+	   rv = prefs->SetBoolPref(_T("kmeleon.find.matchCase"), bFindMatchCase);
+// don't set this - it might confuse the users :)  (okay, we *should* remove all references to it, perhaps, but I'm being lazy - sorry)
+//	   rv = prefs->SetBoolPref(_T("kmeleon.find.matchWholeWord"), bFindMatchWholeWord);
+	   rv = prefs->SetBoolPref(_T("kmeleon.find.wrapAround"), bFindWrapAround);
+	   rv = prefs->SetBoolPref(_T("kmeleon.find.searchBackwards"), bFindSearchBackwards);
+
       rv = prefs->SavePrefFile(nsnull);
    }
    else

@@ -121,6 +121,7 @@ public:
    CPreferences();
    ~CPreferences();
 
+   void SaveDlgPrefs();
    void Save();
    void Load();
 
