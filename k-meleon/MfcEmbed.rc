@@ -61,156 +61,6 @@ END
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// Menu
-//
-
-IDR_MAINFRAME MENU PRELOAD DISCARDABLE 
-BEGIN
-    POPUP "&File"
-    BEGIN
-        MENUITEM "&New Browser Window\tCtrl+N", ID_NEW_BROWSER
-        MENUITEM SEPARATOR
-        MENUITEM "&Open File...\tCtrl+O",       ID_FILE_OPEN
-        MENUITEM "&Save Page As...\tCtrl+S",    ID_FILE_SAVE_AS
-        MENUITEM SEPARATOR
-        MENUITEM "&Print...\tCtrl-P",           ID_FILE_PRINT
-        MENUITEM SEPARATOR
-        MENUITEM "E&xit",                       ID_APP_EXIT
-    END
-    POPUP "&Edit"
-    BEGIN
-        MENUITEM "Cu&t\tCtrl+X",                ID_EDIT_CUT
-        MENUITEM "&Copy\tCtrl+C",               ID_EDIT_COPY
-        MENUITEM "&Paste\tCtrl+V",              ID_EDIT_PASTE
-        MENUITEM SEPARATOR
-        MENUITEM "Select &All",                 ID_EDIT_SELECT_ALL
-        MENUITEM "Select &None",                ID_EDIT_SELECT_NONE
-        MENUITEM SEPARATOR
-        MENUITEM "&Find in This Page...\tCtrl+F", ID_EDIT_FIND
-        MENUITEM SEPARATOR
-        MENUITEM "Profiles...",                 ID_MANAGE_PROFILES
-        MENUITEM "Preferences...",              ID_PREFERENCES
-    END
-    POPUP "&View"
-    BEGIN
-        MENUITEM "Page S&ource",                ID_VIEW_SOURCE
-        MENUITEM "Page &Info",                  ID_VIEW_INFO
-        MENUITEM SEPARATOR
-        MENUITEM "&Toolbar",                    ID_VIEW_TOOLBAR
-        MENUITEM "&Status Bar",                 ID_VIEW_STATUS_BAR
-    END
-    POPUP "&Go"
-    BEGIN
-        MENUITEM "&Back",                       ID_NAV_BACK
-        MENUITEM "&Forward",                    ID_NAV_FORWARD
-        MENUITEM "&Home",                       ID_NAV_HOME
-    END
-    POPUP "&Help"
-    BEGIN
-        MENUITEM "&About MfcEmbed...",          ID_APP_ABOUT
-    END
-END
-
-IDR_CTXMENU_DOCUMENT MENU DISCARDABLE 
-BEGIN
-    POPUP "Document Context Menu"
-    BEGIN
-        MENUITEM "&Back",                       ID_NAV_BACK
-        MENUITEM "&Forward",                    ID_NAV_FORWARD
-        MENUITEM "&Reload",                     ID_NAV_RELOAD
-        MENUITEM "&Stop",                       ID_NAV_STOP
-        MENUITEM SEPARATOR
-        MENUITEM "&View Page Source",           ID_VIEW_SOURCE
-        MENUITEM "View Page &Info",             ID_VIEW_INFO
-        MENUITEM SEPARATOR
-        MENUITEM "Save &Page As...",            ID_FILE_SAVE_AS
-        MENUITEM SEPARATOR
-        MENUITEM "Select &All",                 ID_EDIT_SELECT_ALL
-        MENUITEM "Select &None",                ID_EDIT_SELECT_NONE
-        MENUITEM "&Copy",                       ID_EDIT_COPY
-    END
-END
-
-IDR_CTXMENU_IMAGE MENU DISCARDABLE 
-BEGIN
-    POPUP "Image Context Menu"
-    BEGIN
-        MENUITEM "&Back",                       ID_NAV_BACK
-        MENUITEM "&Forward",                    ID_NAV_FORWARD
-        MENUITEM "&Reload",                     ID_NAV_RELOAD
-        MENUITEM "&Stop",                       ID_NAV_STOP
-        MENUITEM SEPARATOR
-        MENUITEM "&View Page Source",           ID_VIEW_SOURCE
-        MENUITEM "View &Image",                 ID_VIEW_IMAGE
-        MENUITEM SEPARATOR
-        MENUITEM "Save Image As...",            ID_SAVE_IMAGE_AS
-        MENUITEM "Save &Page As...",            ID_FILE_SAVE_AS
-    END
-END
-
-IDR_CTXMENU_LINK MENU DISCARDABLE 
-BEGIN
-    POPUP "Link Context Menu"
-    BEGIN
-        MENUITEM "Open Link In New Window",     ID_OPEN_LINK_IN_NEW_WINDOW
-        MENUITEM SEPARATOR
-        MENUITEM "&Back",                       ID_NAV_BACK
-        MENUITEM "&Forward",                    ID_NAV_FORWARD
-        MENUITEM "&Reload",                     ID_NAV_RELOAD
-        MENUITEM "&Stop",                       ID_NAV_STOP
-        MENUITEM SEPARATOR
-        MENUITEM "&View Page Source",           ID_VIEW_SOURCE
-        MENUITEM SEPARATOR
-        MENUITEM "Save &Page As...",            ID_FILE_SAVE_AS
-        MENUITEM "Save &Link As...",            ID_SAVE_LINK_AS
-        MENUITEM "&Copy Link Location",         ID_COPY_LINK_LOCATION
-    END
-END
-
-IDR_CTXMENU_TEXT MENU DISCARDABLE 
-BEGIN
-    POPUP "Selection Context Menu"
-    BEGIN
-        MENUITEM "Cu&t",                        ID_EDIT_CUT
-        MENUITEM "&Copy",                       ID_EDIT_COPY
-        MENUITEM "&Paste",                      ID_EDIT_PASTE
-        MENUITEM "Select &All",                 ID_EDIT_SELECT_ALL
-    END
-END
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Accelerator
-//
-
-IDR_MAINFRAME ACCELERATORS PRELOAD MOVEABLE PURE 
-BEGIN
-    "C",            ID_EDIT_COPY,           VIRTKEY, CONTROL, NOINVERT
-    "D",            ID_SELECT_URL,          VIRTKEY, ALT, NOINVERT
-    "F",            ID_EDIT_FIND,           VIRTKEY, CONTROL, NOINVERT
-    "N",            ID_NEW_BROWSER,         VIRTKEY, CONTROL, NOINVERT
-    "O",            ID_FILE_OPEN,           VIRTKEY, CONTROL, NOINVERT
-    "R",            ID_NAV_RELOAD,          VIRTKEY, CONTROL, NOINVERT
-    "S",            ID_FILE_SAVE_AS,        VIRTKEY, CONTROL, NOINVERT
-    "V",            ID_EDIT_PASTE,          VIRTKEY, CONTROL, NOINVERT
-    VK_BACK,        ID_EDIT_UNDO,           VIRTKEY, ALT, NOINVERT
-    VK_DELETE,      ID_EDIT_CUT,            VIRTKEY, SHIFT, NOINVERT
-    VK_ESCAPE,      ID_NAV_STOP,            VIRTKEY, NOINVERT
-    VK_F4,          ID_APP_EXIT,            VIRTKEY, CONTROL, ALT, NOINVERT
-    VK_F6,          ID_NEXT_PANE,           VIRTKEY, NOINVERT
-    VK_F6,          ID_PREV_PANE,           VIRTKEY, SHIFT, NOINVERT
-    VK_INSERT,      ID_EDIT_COPY,           VIRTKEY, CONTROL, NOINVERT
-    VK_INSERT,      ID_EDIT_PASTE,          VIRTKEY, SHIFT, NOINVERT
-    VK_LEFT,        ID_NAV_BACK,            VIRTKEY, ALT, NOINVERT
-    VK_RIGHT,       ID_NAV_FORWARD,         VIRTKEY, ALT, NOINVERT
-    "X",            ID_EDIT_CUT,            VIRTKEY, CONTROL, NOINVERT
-    "Z",            ID_EDIT_UNDO,           VIRTKEY, CONTROL, NOINVERT
-END
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
 // Dialog
 //
 
@@ -495,18 +345,13 @@ BEGIN
     BEGIN
         BLOCK "040904b0"
         BEGIN
-            VALUE "Comments", "\0"
             VALUE "CompanyName", "http://kmeleon.org\0"
             VALUE "FileDescription", "K-Meleon webbrowser\0"
             VALUE "FileVersion", "1, 0, 0, 1\0"
-            VALUE "InternalName", "MfcEmbed\0"
             VALUE "LegalCopyright", "Copyright (C) 2001\0"
-            VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "k-meleon.exe\0"
-            VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "K-Meleon\0"
-            VALUE "ProductVersion", "0.3.x\0"
-            VALUE "SpecialBuild", "\0"
+            VALUE "ProductVersion", "0.4.x\0"
         END
     END
     BLOCK "VarFileInfo"
