@@ -37,7 +37,8 @@
 
 #define _T(x) x
 #define PREFERENCE_HISTORY_LENGTH _T("kmeleon.plugins.history.length")
-static INT nHistoryLength = 20;
+static INT nHistoryLength = 25;
+#define PREF_BROWSER_HISTORY_EXPIRE_DAYS "browser.history_expire_days"
 
 /*
 BOOL APIENTRY DllMain( HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved ) {
@@ -78,6 +79,7 @@ kmeleonPlugin kPlugin = {
 int ID_HISTORY_FLAG = -1;
 int ID_HISTORY = -1;
 int ID_VIEW_HISTORY = -1;
+int ID_CONFIG_HISTORY = -1;
 int wm_deferbringtotop = -1;
 HWND hWndFront;
 
@@ -175,6 +177,7 @@ int Init(){
    wm_deferbringtotop = kPlugin.kFuncs->GetCommandIDs(1);
    ID_HISTORY = kPlugin.kFuncs->GetCommandIDs(nHistoryLength);
    ID_VIEW_HISTORY = kPlugin.kFuncs->GetCommandIDs(1);
+   ID_CONFIG_HISTORY = kPlugin.kFuncs->GetCommandIDs(1);
 
 
    HBITMAP bitmap;
@@ -213,8 +216,53 @@ void Create(HWND parent){
    SetWindowLong(parent, GWL_WNDPROC, (LONG)WndProc);
 }
 
+// Preferences Dialog function
+BOOL CALLBACK PrefDlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+   int nTmp;
+   
+   switch (uMsg) {
+
+      case WM_INITDIALOG:
+         nTmp = 7;
+         kPlugin.kFuncs->GetPreference(PREF_INT, PREF_BROWSER_HISTORY_EXPIRE_DAYS, &nTmp, &nTmp);
+         SetDlgItemInt(hWnd, IDC_EXPIRE_DAYS, nTmp, TRUE);
+         EnableWindow(GetDlgItem(hWnd, IDB_CLEAR), false);
+         break;
+
+      case WM_COMMAND:
+         switch(HIWORD(wParam)) {
+            case BN_CLICKED:
+               switch (LOWORD(wParam)) {
+                  case IDB_CLEAR:
+                     if (MessageBox(hWnd, "Delete all items in your History folder?", "History plugin", MB_YESNO) == IDYES) {
+                        MessageBox(NULL, "Deletion is not implemented", "History", MB_OK);
+                     }
+                     break;
+
+                  case IDOK:
+                     nTmp = GetDlgItemInt(hWnd, IDC_EXPIRE_DAYS, NULL, TRUE);
+                     kPlugin.kFuncs->SetPreference(PREF_INT, PREF_BROWSER_HISTORY_EXPIRE_DAYS, &nTmp);
+                     // fall through...
+
+                  case IDCANCEL:
+                     SendMessage(hWnd, WM_CLOSE, 0, 0);
+               }
+         }
+         break;
+
+      case WM_CLOSE:
+         EndDialog(hWnd, 0);
+         break;
+
+      default:
+         return FALSE;
+   }
+
+   return TRUE;
+}
+
 void Config(HWND parent){
-   MessageBox(parent, "This plugin has no user configurable options", "History plugin", 0);
+   DialogBoxParam(kPlugin.hDllInstance, MAKEINTRESOURCE(IDD_CONFIG), parent, (DLGPROC)PrefDlgProc, 0);
 }
 
 void Quit(){
@@ -238,6 +286,9 @@ void DoMenu(HMENU menu, char *param){
       if (stricmp(action, "View") == 0){
          command = ID_VIEW_HISTORY;
       }
+      if (stricmp(action, "Config") == 0){
+         command = ID_CONFIG_HISTORY;
+      }
       if (command && string && *string) {
          AppendMenu(menu, MF_STRING, command, string);
          return;
@@ -256,6 +307,8 @@ void DoMenu(HMENU menu, char *param){
 int DoAccel(char *param) {
    if (stricmp(param, "View") == 0)
       return ID_VIEW_HISTORY;
+   if (stricmp(param, "Config") == 0)
+      return ID_CONFIG_HISTORY;
    return 0;
 }
 
@@ -458,6 +511,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
          }
          return true;
       }
+      else if (command == ID_CONFIG_HISTORY) {
+         Config(hWnd);
+         return 1;
+      }
       else if (command == wm_deferbringtotop) {
          BringWindowToTop(hWnd);
          return true;
@@ -475,7 +532,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                return true;
             }
          }
-         
+         else if (command == ID_VIEW_HISTORY) {
+            kPlugin.kFuncs->SetStatusBarText("View global history");
+            return true;
+         }
+         else if (command == ID_CONFIG_HISTORY) {
+            kPlugin.kFuncs->SetStatusBarText("Configure the history plugin");
+            return true;
+         }
+
          break;
       }
    }

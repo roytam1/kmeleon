@@ -183,6 +183,13 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
             break;
          case VK_TAB:
             {
+               if (len > 0) {
+                  wParam = str[len-1];
+                  wParam = toupper(wParam);
+                  lParam = 0;
+                  goto search_again;
+               }
+
                fEatKeystroke = true;
                if (zoom)
                   break;
@@ -214,20 +221,36 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
             // Fall through!
          default:
             {
-               if (GetKeyState(VK_CONTROL) & 0x80) {
-                  if (wParam == 'u' || wParam=='U')
+               if ((GetKeyState(VK_CONTROL) & 0x80) || (wParam==VK_F3)) {
+                  switch (wParam) {
+                  case 'U':
                      len = 0;
+                     break;
+                  case 'G':
+                  case VK_F3:
+                     if (len > 0) {
+                        wParam = str[len-1];
+                        wParam = toupper(wParam);
+                        lParam = 0;
+                        goto search_again;
+                     }
+                     break;
+                  }
                   break;
                }
                if (GetKeyState(VK_MENU) & 0x80) {
                   break;
                }
 
+            search_again:
                if (wParam == VK_BACK && len > 0) {
                   circling = 0;
                   len--;
                }
-               else if ( (wParam == 32 || wParam >= 65 && wParam < 127) && len < (SEARCH_LEN-1) ) {
+               else if ( (wParam == ' ' || 
+                          (wParam >= '0' && wParam <= '9') || 
+                          (wParam >= 'A' && wParam <= 'Z')) && 
+                         len < (SEARCH_LEN-1) ) {
                   str[len] = tolower(wParam);
                   len++;
                }
@@ -382,16 +405,9 @@ int ParseHistoryEntry(char **p, CHistoryNode &node)
    time_t lastVisit=0;
 
    if (*p && **p && (q = strchr(*p, ':')) != NULL) {
-
       *q++ = 0;
 
-      r1 = strchr(q, '\r');
-      r2 = strchr(q, '\n');
-      if (!r1 || (r2 && r2 < r1)) 
-         r1 = r2;
-      if (r1)
-         *r1++ = 0;
-
+      // Ugly conversion from milliseconds to seconds..
       if (q-(*p) > 4)
          *(q-4) = 0;
 
@@ -412,24 +428,26 @@ int ParseHistoryEntry(char **p, CHistoryNode &node)
 
 int ParseHistory(char **p, CHistoryNode &node) 
 {
-   char *q1 = NULL;
-   char *q2 = NULL;
    int size = 0;
+   char *q1 = strchr(*p, '\r');
+   char *q2 = strchr(*p, '\n');
    
-   while (*p && **p && 
-          ((q1 = strchr(*p, '\r')) != NULL || (q2 = strchr(*p, '\n')) != NULL)) {
+   while (*p && **p) {
       if (!q1 || (q2 && q2 < q1)) 
          q1 = q2;
-      *q1++ = 0;
+      if (q1)
+         *q1++ = 0;
       
       while (*p && **p && isspace(**p))
          (*p)++;
       
-      if (*p && isdigit(**p)) {
+      if (*p && isdigit(**p))
          size += ParseHistoryEntry(p, node);
-      }
       
-      *p = q1;
+      if ( (*p = q1) != NULL ) {
+         q1 = strchr(*p, '\r');
+         q2 = strchr(*p, '\n');
+      }
    }
 
    *p = q1;
@@ -444,6 +462,10 @@ int readHistory() {
    kPlugin.kFuncs->GetPreference(PREF_STRING, "kmeleon.general.settingsDir", szHistFile, (char*)"");
    strcat(szHistFile, "history.txt");
    FILE *hFile = fopen(szHistFile, "r");
+   if (!hFile){
+      kPlugin.kFuncs->GetPreference(PREF_STRING, "kmeleon.plugins.history.historyFile", szHistFile, (char*)"");
+      hFile = fopen(szHistFile, "r");
+   }
    if (hFile){
       long hFileSize = FileSize(hFile);
       
@@ -467,6 +489,9 @@ int readHistory() {
 
 CHistoryNode *groupURLs(CHistoryNode *oldList)
 {
+   if (!oldList)
+      return NULL;
+
    CHistoryNode *newList;
    CHistoryNode *tmp;
    newList = new CHistoryNode(oldList->url.c_str(), HISTORY_FOLDER, 0);
@@ -504,6 +529,8 @@ CHistoryNode *groupURLs(CHistoryNode *oldList)
       }
    }
    
+   oldList->child = newList->child;
+   oldList->next = newList->next;
    return newList;
 }
 
@@ -552,6 +579,10 @@ CHistoryNode *groupDates(CHistoryNode *oldList)
 {
    char *weekday[] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
    char *month[] = {"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"};
+
+   if (!oldList)
+      return NULL;
+
    CHistoryNode *newList;
    CHistoryNode *tmp;
    newList = new CHistoryNode(oldList->url.c_str(), HISTORY_FOLDER, 0);
@@ -672,7 +703,9 @@ CHistoryNode *groupDates(CHistoryNode *oldList)
 
       pass++;
    }
-   
+
+   oldList->child = newList->child;
+   oldList->next = newList->next;
    sortOrder = SORT_BY_DATE;
    return newList;
 }
@@ -680,6 +713,7 @@ CHistoryNode *groupDates(CHistoryNode *oldList)
 
 int CALLBACK ViewProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+   static int error;
    static HHOOK hHook;
    static HWND hTree;
 
@@ -687,10 +721,15 @@ int CALLBACK ViewProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
    case WM_INITDIALOG:
       {
          if (readHistory() == -1) {
+            MessageBox(NULL, "History file not found", "History", MB_OK);
+            ghWndView = NULL;
+            error = 1;
+            PostMessage(GetDlgItem(hDlg, IDCANCEL), BM_CLICK, 0, 0);
             EndDialog(hDlg, 0);
             return 0;
          }
 
+         error = 0;
          hEditWnd = hDlg;
          len = 0;
          str[len] = 0;
@@ -857,11 +896,21 @@ int CALLBACK ViewProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
             switch(id){
 
             case IDCANCEL:
+               if (error) {
+                  error = 0;
+                  ghWndView = NULL;
+                  if (hWndFront)
+                     PostMessage(hWndFront, WM_COMMAND, wm_deferbringtotop, (LPARAM)NULL);
+                  EndDialog(hDlg, 0);
+                  break;
+               }
                if (!zoom) {
                   ghWndView = NULL;
 
-                  delete gHistoryRoot.child;
-                  delete gHistoryRoot.next;
+                  if (gHistoryRoot.child)
+                     delete gHistoryRoot.child;
+                  if (gHistoryRoot.next)
+                     delete gHistoryRoot.next;
                   gHistoryRoot.child = NULL;
                   gHistoryRoot.next = NULL;
 
@@ -894,8 +943,10 @@ int CALLBACK ViewProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
                ghWndView = NULL;
 
-               delete gHistoryRoot.child;
-               delete gHistoryRoot.next;
+               if (gHistoryRoot.child)
+                  delete gHistoryRoot.child;
+               if (gHistoryRoot.next)
+                  delete gHistoryRoot.next;
                gHistoryRoot.child = NULL;
                gHistoryRoot.next = NULL;
 
@@ -905,7 +956,7 @@ int CALLBACK ViewProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                EndDialog(hDlg, 1);
 
                // Delete all selected history entries
-               if (freeNode->child) {
+               if (freeNode && freeNode->child) {
                   // This is not likely to be implemented in a while..
 
                   MessageBox(NULL, "Deletion is not implemented", "History", MB_OK);
@@ -919,7 +970,8 @@ int CALLBACK ViewProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                   }
                   */
                }
-               delete freeNode;
+               if (freeNode)
+                  delete freeNode;
 
                break;
             }
@@ -985,7 +1037,7 @@ static void DeleteItem(HWND hTree, HTREEITEM item) {
       parentNode = workingHist;
    }
 
-   if (parentNode->UnlinkNode(node))
+   if (freeNode && parentNode && parentNode->UnlinkNode(node))
       freeNode->AddChild(node);
 
    // select a new item
