@@ -179,7 +179,7 @@ void Create(HWND hWndParent) {
 }
 
 void Config(HWND hWndParent) {
-	DialogBoxParam(ghInstance ,MAKEINTRESOURCE(IDD_PREFS), hWndParent, (DLGPROC)DlgProc, (LPARAM)NULL);
+	DialogBoxParam(kPlugin.hDllInstance ,MAKEINTRESOURCE(IDD_PREFS), hWndParent, (DLGPROC)DlgProc, (LPARAM)NULL);
 }
 
 void Quit(){
@@ -308,6 +308,7 @@ BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 		case WM_INITDIALOG:
          SendDlgItemMessage(hWnd, IDC_HIDEREBAR, BM_SETCHECK, bHideReBar, 0);
          SendDlgItemMessage(hWnd, IDC_HIDESTATUSBAR, BM_SETCHECK, bHideStatusBar, 0);
+         SendDlgItemMessage(hWnd, IDC_AUTOFULLSCREEN, BM_SETCHECK, bAutoFullscreen, 0);
          break;
       case WM_COMMAND:
 			switch(HIWORD(wParam)) {
@@ -316,8 +317,10 @@ BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 						case IDOK:
                      bHideReBar = SendDlgItemMessage(hWnd, IDC_HIDEREBAR, BM_GETCHECK, 0, 0);
                      bHideStatusBar = SendDlgItemMessage(hWnd, IDC_HIDESTATUSBAR, BM_GETCHECK, 0, 0);
+                     bAutoFullscreen = SendDlgItemMessage(hWnd, IDC_AUTOFULLSCREEN, BM_GETCHECK, 0, 0);
                      kPlugin.kFuncs->SetPreference(PREF_BOOL, _T("kmeleon.plugins.fullscreen.hide_rebar"), &bHideReBar);
                      kPlugin.kFuncs->SetPreference(PREF_BOOL, _T("kmeleon.plugins.fullscreen.hide_statusbar"), &bHideStatusBar);
+                     kPlugin.kFuncs->SetPreference(PREF_BOOL, _T("kmeleon.plugins.fullscreen.auto"), &bAutoFullscreen);
                   case IDCANCEL:
                      SendMessage(hWnd, WM_CLOSE, 0, 0);
                }
