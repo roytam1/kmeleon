@@ -251,7 +251,7 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
                pLayer = pLayer->next;
             }
 
-            char *cPtr = (char *)malloc(len);
+            char *cPtr = (char *)malloc(len+1);
             *(char **)data2 = cPtr;
 
             pLayer = pFrame->layer;
@@ -284,7 +284,8 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
                char *p = strchr(cPtr, '\t');
                if (p)
                   *p = 0;
-               kPlugin.kFuncs->NavigateTo(cPtr, OPEN_NORMAL, pLayer->hWnd);
+               if (*cPtr)
+                  kPlugin.kFuncs->NavigateTo(cPtr, OPEN_NORMAL, pLayer->hWnd);
                if (p)
                   cPtr = p+1;
                else
@@ -297,11 +298,13 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
                if (p)
                   *p = 0;
 
-               ghParent = ghCurHwnd;
-               bBack = 1;
-               bLayer = 1;
-               numLayers++;
-               kPlugin.kFuncs->NavigateTo(cPtr, OPEN_BACKGROUND);
+               if (*cPtr) {
+                  ghParent = ghCurHwnd;
+                  bBack = 1;
+                  bLayer = 1;
+                  numLayers++;
+                  kPlugin.kFuncs->NavigateTo(cPtr, OPEN_BACKGROUND);
+               }
 
                if (p)
                   cPtr = p+1;

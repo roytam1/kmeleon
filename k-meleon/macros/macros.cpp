@@ -687,7 +687,7 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
             return "";
          }
 
-         char cRetval[256];
+         char cRetval[4096];
          int nRetval = 0;
          if (preftype == PREF_STRING) {
             kFuncs->GetPreference(preftype,(char*)params[1].c_str(),&cRetval,NULL);

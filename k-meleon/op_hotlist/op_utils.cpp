@@ -123,6 +123,8 @@ void findNick(char *nick, char **url)
    
    if (retNode) {
       if (retNode->type == BOOKMARK_BOOKMARK) {
+         if (*url)
+            free(*url);
          *url = (char *) malloc(INTERNET_MAX_URL_LENGTH+1);
          strcpy(*url, (char*)retNode->url.c_str());
       }
@@ -136,7 +138,9 @@ void findNick(char *nick, char **url)
          }
 
 	 if (!len) return;
-         char *pUrl = (char *)malloc(len);
+         char *pUrl = (char *)malloc(len+1);
+         if (*url)
+            free(*url);
 	 *url = pUrl;
 
          c = retNode->child;

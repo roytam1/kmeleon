@@ -123,7 +123,9 @@ void findNick(char *nick, char **url)
    char regkey[128] = "Software\\Microsoft\\Internet Explorer\\SearchUrl\\";
    strncat(regkey, nick, 80);
    if (RegOpenKey(HKEY_CURRENT_USER, (LPCTSTR)regkey, &hKey) == ERROR_SUCCESS) {
-     *url = (char *) malloc(INTERNET_MAX_URL_LENGTH+1);
+      if (*url)
+	free(*url);
+      *url = (char *) calloc(INTERNET_MAX_URL_LENGTH+1, 1);
 
       dwSize = INTERNET_MAX_URL_LENGTH;
       RegQueryValueEx(hKey, NULL, NULL, NULL, (LPBYTE)*url, &dwSize);
