@@ -237,8 +237,8 @@ void GotoHistoryIndex(UINT index) {
 		mainFrame->m_wndBrowserView.mWebNav->GotoIndex(index);
 }
 
-void RegisterBand(HWND hWnd, char *name) {
-   theApp.m_pMostRecentBrowserFrame->m_wndReBar.RegisterBand(hWnd, name);
+void RegisterBand(HWND hWnd, char *name, int visibleOnMenu) {
+   theApp.m_pMostRecentBrowserFrame->m_wndReBar.RegisterBand(hWnd, name, visibleOnMenu);
 }
 
 kmeleonFunctions kmelFuncs = {
@@ -340,27 +340,21 @@ kmeleonPlugin * CPlugins::Load(char *file){
    return kPlugin;
 }
 
-int CPlugins::FindAndLoad(char *pattern = "*.dll"){
+int CPlugins::FindAndLoad(const char *pattern = "*.dll"){
    CString filepath;
    CFileFind finder;
    BOOL bWorking;
 
-   int x=strlen(pattern);
-   while (x>0 && pattern[x] != '\\' && pattern[x] != '/') x--;
-
-   if (x==0) {       // if pattern does not contain \ or / we need to prepend pluginsDir
-      CString search = theApp.preferences.pluginsDir + pattern;
-      bWorking = finder.FindFile(search);
-   }
-   else bWorking = finder.FindFile(pattern);
+   bWorking = finder.FindFile(pattern);
 
    int i = 0;
    while (bWorking) {
       bWorking = finder.FindNextFile();
 
       filepath = finder.GetFilePath();
-      if ( Load((char *)(const char *)filepath) )
+      if ( Load(filepath.LockBuffer()) )
          i++;
+      filepath.UnlockBuffer();
    }
    return i;
 }

@@ -59,7 +59,7 @@ typedef struct {
 	void (*GotoHistoryIndex)(UINT index);
 
    // Register a rebar band
-   void (*RegisterBand) (HWND hWnd, char *name);
+   void (*RegisterBand) (HWND hWnd, char *name, int visibleOnMenu = true);
 } kmeleonFunctions;
 
 typedef struct {

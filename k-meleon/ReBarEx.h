@@ -24,7 +24,7 @@ class CReBarEx : public CReBar {
 public:
    CReBarEx();
    ~CReBarEx();
-   void RegisterBand(HWND hWnd, char *name);
+   void RegisterBand(HWND hWnd, char *name, int visibleOnMenu);
    void DrawToolBarMenu();
    void ToggleVisibility(int index);
    void SaveBandSizes();
@@ -45,6 +45,7 @@ private:
       char *name;
       HWND hWnd;
       BOOL visibility;
+      BOOL visibleOnMenu;
    } **m_index;
    int m_iCount;
 };
