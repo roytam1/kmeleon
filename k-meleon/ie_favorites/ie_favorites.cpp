@@ -96,6 +96,9 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
       if (stricmp(subject, "Init") == 0) {
          Init();
       }
+      else if (stricmp(subject, "Create") == 0) {
+         Create((HWND)data1);
+      }
       else if (stricmp(subject, "Config") == 0) {
          Config((HWND)data1);
       }
