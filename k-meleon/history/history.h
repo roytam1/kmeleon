@@ -41,6 +41,7 @@ void CreateBackMenu (HWND hWndParent, UINT button);
 void CreateForwardMenu (HWND hWndParent, UINT button);
 void UpdateHistoryMenu(HWND hWndParent);
 void CondenseMenuText(char *buf, char *title, int index);
+void FindSkinFile( char *szSkinFile, char *filename );
 
 extern int ID_HISTORY_FLAG;
 extern int ID_HISTORY;
@@ -61,9 +62,9 @@ int CALLBACK ViewProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 extern HWND ghWndView;
 extern HIMAGELIST gImagelist;
 
-#define IDD_VIEW_HISTORY		100
-#define IDD_CONFIG                      101
-#define IDR_CONTEXTMENU                 159
+#define IDD_VIEW_HISTORY		700
+#define IDD_CONFIG                      701
+#define IDR_CONTEXTMENU                 759
 
 #define IDC_REBARENABLED                1000
 #define IDC_HISTORY_FILE                1001

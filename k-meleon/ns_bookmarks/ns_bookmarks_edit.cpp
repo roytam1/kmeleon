@@ -577,6 +577,20 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
          pos = 0;
          circling = 0;
 
+         HICON hIcon;
+         char szFullPath[MAX_PATH];
+         FindSkinFile(szFullPath, "bookmarks-edit.ico");
+
+         if (*szFullPath==0 || (hIcon = (HICON)LoadImage( NULL, szFullPath, IMAGE_ICON, 0,0, LR_DEFAULTSIZE | LR_LOADFROMFILE ))==NULL)
+            hIcon = (HICON)LoadImage( kPlugin.hDllInstance, MAKEINTRESOURCE(IDB_ICON), IMAGE_ICON, 0,0, LR_DEFAULTSIZE );
+         if (hIcon)
+            SendMessage(hDlg, WM_SETICON, ICON_BIG, (LPARAM) hIcon);
+
+         if (*szFullPath==0 || (hIcon = (HICON)LoadImage( NULL, szFullPath, IMAGE_ICON, 16,16, LR_LOADFROMFILE ))==NULL)
+            hIcon = (HICON)LoadImage( kPlugin.hDllInstance, MAKEINTRESOURCE(IDB_ICON), IMAGE_ICON, 16,16, 0 );
+         if (hIcon)
+            SendMessage(hDlg, WM_SETICON, ICON_SMALL, (LPARAM) hIcon);
+
          hTree = GetDlgItem(hDlg, IDC_TREE_BOOKMARK);
 
          TreeView_SetImageList(hTree, gImagelist, TVSIL_NORMAL);

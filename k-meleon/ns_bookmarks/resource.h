@@ -9,6 +9,7 @@
 #define IDB_IMAGES                      158
 #define IDR_CONTEXTMENU                 159
 #define IDC_DRAG_CURSOR                 160
+#define IDB_ICON                        161
 #define IDC_REBARENABLED                1000
 #define IDC_TREE_BOOKMARK               1034
 #define IDC_EDIT_URL                    1035
