@@ -259,7 +259,7 @@ void Save(const char *file)
       }
    }
 
-#if 1
+#if 0
    create_backup(file);
 #endif
 
