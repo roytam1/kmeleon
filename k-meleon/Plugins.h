@@ -47,7 +47,7 @@ public:
    int TestLoad(const char *file);
 
    int FindAndLoad(char *pattern);
-   kmeleonPlugin * Load(const char *pattern);
+   kmeleonPlugin * Load(char *pattern);
    void OnCreate(HWND wnd);
    //LRESULT OnMessage(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam);
    int  OnUpdate(UINT command);

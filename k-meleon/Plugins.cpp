@@ -278,7 +278,11 @@ int CPlugins::TestLoad(const char *file){
    }
 }
 
-kmeleonPlugin * CPlugins::Load(const char *file){
+kmeleonPlugin * CPlugins::Load(char *file){
+  
+   file = SkipWhiteSpace(file);
+   TrimWhiteSpace(file);
+
    kmeleonPlugin * kPlugin;
    if (pluginList.Lookup(FileNoPath(file), kPlugin)){
       return kPlugin; // it's already loaded
@@ -348,7 +352,7 @@ int CPlugins::FindAndLoad(char *pattern = "*.dll"){
       bWorking = finder.FindNextFile();
 
       filepath = finder.GetFilePath();
-      if ( Load(filepath) )
+      if ( Load((char *)(const char *)filepath) )
          i++;
    }
    return i;
