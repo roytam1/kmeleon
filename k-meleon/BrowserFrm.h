@@ -125,6 +125,9 @@ public:
   void LoadBackImage ();
   void SetBackImage ();
 
+  void SaveBandSizes();
+  void RestoreBandSizes();
+
 // Overrides
 	// ClassWizard generated virtual function overrides
 	//{{AFX_VIRTUAL(CBrowserFrame)

@@ -91,6 +91,8 @@ static UINT indicators[] =
 	ID_SEPARATOR,           // For the Progress Bar
 };
 
+#define BAND_BASE_ID 200
+
 /////////////////////////////////////////////////////////////////////////////
 // CBrowserFrame construction/destruction
 
@@ -112,6 +114,8 @@ void CBrowserFrame::OnClose()
   // if we don't do this, then our menu will be destroyed when the first window is.
   // that's bad because our menu is shared between all windows
   SetMenu(NULL);
+
+  SaveBandSizes();
 
 	CMfcEmbedApp *pApp = (CMfcEmbedApp *)AfxGetApp();
 	pApp->RemoveFrameFromList(this);
@@ -180,10 +184,10 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct){
 
   m_toolbarHotImageList.Create(IDB_TOOLBAR_HOT, 16, 8, RGB(255, 0, 255));
   m_wndToolBar.GetToolBarCtrl().SetHotImageList(&m_toolbarHotImageList);
-
+/*
   m_toolbarDisabledImageList.Create(IDB_TOOLBAR_DISABLED, 16, 8, RGB(255, 0, 255));
   m_wndToolBar.GetToolBarCtrl().SetDisabledImageList(&m_toolbarDisabledImageList);
-
+*/
   m_wndToolBar.SetButtons(buttons, 6);
 
   m_wndUrlBar.SetImageList(&m_toolbarHotImageList);
@@ -243,6 +247,8 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct){
 
   theApp.plugins.DoRebars(m_wndReBar.GetReBarCtrl().m_hWnd);
 
+  RestoreBandSizes();
+
   LoadBackImage();
   SetBackImage();
 
@@ -281,6 +287,78 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct){
   m_wndUrlBar.SetFocus();
 
 	return 0;
+}
+
+void CBrowserFrame::SaveBandSizes(){
+  REBARBANDINFO rbbi;
+  rbbi.cbSize = sizeof(rbbi);
+  rbbi.fMask = RBBIM_SIZE | RBBIM_ID | RBBIM_STYLE;
+
+  CReBarCtrl *rebarControl = &m_wndReBar.GetReBarCtrl();
+  int bandCount = rebarControl->GetBandCount();
+  int i;
+  char tempPref[256] = _T("kmeleon.toolband"); // 16 chars
+  for ( i=0; i < bandCount; i++){
+    rebarControl->GetBandInfo(i, &rbbi);
+
+    if (rbbi.wID){
+      sprintf(tempPref + 16, _T("%i.size"), rbbi.wID);
+      theApp.preferences.SetInt(tempPref, rbbi.cx);
+
+      sprintf(tempPref + 16, _T("%i.ndx"), rbbi.wID);
+      theApp.preferences.SetInt(tempPref, i);
+
+      sprintf(tempPref + 16, _T("%i.style"), rbbi.wID);
+      theApp.preferences.SetInt(tempPref, rbbi.fStyle);
+    }
+  }
+}
+
+void CBrowserFrame::RestoreBandSizes(){
+  REBARBANDINFO rbbi;
+  rbbi.cbSize = sizeof(rbbi);
+
+  CReBarCtrl *rebarControl = &m_wndReBar.GetReBarCtrl();
+  int bandCount = rebarControl->GetBandCount();
+  int i;
+  for ( i=0; i < bandCount; i++){
+    rbbi.fMask = RBBIM_ID;
+    rbbi.wID = BAND_BASE_ID + i;
+    rebarControl->SetBandInfo(i, &rbbi);
+  }
+  char tempPref[256] = _T("kmeleon.toolband"); // 16 chars
+  for ( i=0; i < bandCount; i++){
+    rbbi.fMask = 0;
+    rbbi.wID = BAND_BASE_ID + i;
+
+    sprintf(tempPref + 16, _T("%i.size"), rbbi.wID);
+    rbbi.cx = theApp.preferences.GetInt(tempPref, 0);
+    if (rbbi.cx > 0)
+      rbbi.fMask |= RBBIM_SIZE;
+
+    sprintf(tempPref + 16, _T("%i.style"), rbbi.wID);
+    rbbi.fStyle = theApp.preferences.GetInt(tempPref, 0);
+    if (rbbi.fStyle > 0)
+      rbbi.fMask |= RBBIM_STYLE;
+
+    sprintf(tempPref + 16, _T("%i.ndx"), rbbi.wID);
+    int ndx = theApp.preferences.GetInt(tempPref, -1);
+    if (ndx >= 0){
+      // find us
+      int current;
+      for (current = 0; current < bandCount; current++){
+        REBARBANDINFO rbsearch;
+        rbsearch.cbSize = sizeof(rbbi);
+        rbsearch.fMask = RBBIM_ID;
+        rebarControl->GetBandInfo(current, &rbsearch);
+        if (rbsearch.wID == rbbi.wID){
+          rebarControl->MoveBand(current, ndx);
+          rebarControl->SetBandInfo(ndx, &rbbi);
+          break;
+        }
+      }
+    }
+  }
 }
 
 void CBrowserFrame::SetupFrameChrome()
