@@ -40,7 +40,7 @@ int CBrowserView::OnMouseActivate(CWnd* pDesktopWnd, UINT nHitTest, UINT message
 		  message==WM_RBUTTONDOWN ||
 		  message==WM_MBUTTONDOWN) {
 		 StopPanning();
-		 return TRUE;
+		 return MA_ACTIVATE;
 	  }
    }
    else {
@@ -48,12 +48,12 @@ int CBrowserView::OnMouseActivate(CWnd* pDesktopWnd, UINT nHitTest, UINT message
 		 maccel_cmd = id;
 		 maccel_key = message;
 		 PostMessage(WM_COMMAND, (WPARAM)ID_MOUSE_ACTION, (LPARAM)id);
-		 return TRUE;
+		 return MA_ACTIVATE;
 	  }
 	  else {
 		 if (message==WM_MBUTTONDOWN) {
 			StartPanning();
-			return TRUE;
+			return MA_ACTIVATE;
 		 }
 	  }
    }
@@ -187,13 +187,18 @@ void CBrowserView::StopPanning()
    KillTimer(0x1);
    m_panning = 0;
    maccel_pan = 0;
+   
+   nsCOMPtr<nsIDOMWindowInternal> pWin ( do_QueryInterface(s) );
+   if ( pWin )
+     pWin->Focus();
+
    s = NULL;
 }
 
 BOOL CBrowserView::PreTranslateMessage(MSG* pMsg)
 {
   if(m_panning && (pMsg->message==WM_SETCURSOR || pMsg->message==WM_MOUSEMOVE))
-    return TRUE;
+    return 1;
 
   if(m_panning && (pMsg->message==WM_LBUTTONDOWN || (pMsg->message==WM_MBUTTONDOWN && maccel_pan) || (pMsg->message==WM_MBUTTONUP && m_panningQuick) || pMsg->message==WM_RBUTTONDOWN || pMsg->message==WM_MOUSEWHEEL))
     StopPanning();
