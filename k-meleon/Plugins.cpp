@@ -165,16 +165,18 @@ int SessionSize=0;
 char **pHistory;
 
 int GetMozillaSessionHistory (char ***titles, int *count, int *index) {
+
    nsresult result;
    int i;
 
 	CBrowserFrame	*mainFrame		= (CBrowserFrame *) theApp.m_pMainWnd->GetActiveWindow();
+
 	if (!mainFrame)	return FALSE;
 
 	nsCOMPtr<nsISHistory> h;
-	result = mainFrame->m_wndBrowserView.mWebNav->GetSessionHistory(getter_AddRefs (h));
-	if (!NS_SUCCEEDED (result) || (!h)) return FALSE;
 
+	result = mainFrame->m_wndBrowserView.mWebNav->GetSessionHistory(getter_AddRefs (h));
+   if (!NS_SUCCEEDED (result) || (!h)) return FALSE;
 
    h->GetCount (count);
 	h->GetIndex (index);

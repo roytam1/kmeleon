@@ -247,7 +247,7 @@ HRESULT CBrowserView::CreateBrowser()
 
 HRESULT CBrowserView::DestroyBrowser() {	   
 
-   DeleteTempFiles();
+   DeleteTempFiles();   
 
    if(mBaseWindow)
 	{
@@ -1066,6 +1066,6 @@ void CBrowserView::DeleteTempFiles() {
       DeleteFile(m_tempFileList[x]);
       delete m_tempFileList[x];
    }
+   if (m_tempFileCount > 0) delete m_tempFileList;
 
-   delete m_tempFileList;
 }
