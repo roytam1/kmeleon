@@ -23,6 +23,7 @@
 
 #include "stdafx.h"
 #include "nsEscape.h"
+#include "nsIFileURL.h"
 
 #include "UnknownContentTypeHandler.h"
 
@@ -539,16 +540,15 @@ BEGIN_MESSAGE_MAP(CProgressDialog, CDialog)
 END_MESSAGE_MAP()
 
 void CProgressDialog::Cancel() {
-
-   if (mObserver) {
-      mObserver->Observe(nsnull, "oncancel", nsnull);
-      mObserver->Observe(nsnull, "OnCancel", nsnull);
-   }
+   Close();
 
    if (mPersist)
       mPersist->CancelSave();
 
-   Close();
+   if (mObserver) {
+     mObserver->Observe(nsnull, "OnCancel", nsnull);
+     mObserver->Observe(nsnull, "oncancel", nsnull);
+   }
 }
 
 void CProgressDialog::Close() {
@@ -638,13 +638,20 @@ void CProgressDialog::InitPersist(nsIURI *aSource, nsILocalFile *aTarget, nsIWeb
 
 
 /* void init (in nsIURI aSource, in nsILocalFile aTarget, in wstring aDisplayName, in nsIMIMEInfo aMIMEInfo, in long long startTime, in nsIWebBrowserPersist aPersist); */
-NS_IMETHODIMP CProgressDialog::Init(nsIURI *aSource, nsILocalFile *aTarget, const PRUnichar *aDisplayName, nsIMIMEInfo *aMIMEInfo, PRInt64 startTime, nsIWebBrowserPersist *aPersist)
+NS_IMETHODIMP CProgressDialog::Init(nsIURI *aSource, nsIURI *aTarget, const PRUnichar *aDisplayName, nsIMIMEInfo *aMIMEInfo, PRInt64 startTime, nsIWebBrowserPersist *aPersist)
 {
 	nsCAutoString uri;
    nsCAutoString filepath;
 
    aSource->GetSpec(uri);
-	aTarget->GetNativePath(filepath);
+
+   nsCOMPtr<nsIFileURL> tFileUrl = do_QueryInterface(aTarget);
+   if (tFileUrl)
+   {
+     nsCOMPtr<nsIFile> tFileRef;
+     tFileUrl->GetFile(getter_AddRefs(tFileRef));
+     tFileRef->GetNativePath(filepath);
+   }
 
    SetDlgItemText(IDC_SOURCE, uri.get());
    SetDlgItemText(IDC_DESTINATION, filepath.get());
@@ -666,7 +673,12 @@ NS_IMETHODIMP CProgressDialog::GetSource(nsIURI * *aSource)
 }
 
 /* readonly attribute nsILocalFile target; */
-NS_IMETHODIMP CProgressDialog::GetTarget(nsILocalFile * *aTarget)
+NS_IMETHODIMP CProgressDialog::GetTarget(nsIURI * *aTarget)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP CProgressDialog::GetTargetFile(nsILocalFile * *aTargetFile)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }
