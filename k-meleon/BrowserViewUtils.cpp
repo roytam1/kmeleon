@@ -50,6 +50,23 @@ BOOL CBrowserView::OpenViewSourceWindow(const char* pUrl)
          CString tempfile;
          tempfile = GetTempFile();
 
+	 char *url;
+	 int len = GetCurrentURI(NULL);
+	 if (len) {
+	    url = new char[len+1];
+	    GetCurrentURI(url);
+
+	    if (strncmp(url, "file:///", 8) == 0) {
+	      int i;
+	      for (i=0; i<strlen(url); i++)
+		if (url[i]=='/')
+		  url[i]='\\';
+	      tempfile = url+8;
+	    }
+	 }
+	 else
+	    url = NULL;
+
          nsCOMPtr<nsIWebBrowserPersist> persist(do_QueryInterface(mWebBrowser));
          if(persist)
          {
@@ -64,11 +81,16 @@ BOOL CBrowserView::OpenViewSourceWindow(const char* pUrl)
 
          	nsCOMPtr<nsIURI> srcURI;
 	         nsresult rv = NS_NewURI(getter_AddRefs(srcURI), sURI);
-	         if (NS_FAILED(rv)) 
+	         if (NS_FAILED(rv)) {
+		   if (url)
+		     delete url;
 		         return FALSE;
+		 }
  
             persist->SaveURI(srcURI, nsnull, nsnull, nsnull, nsnull, file);
          }
+	 if (url)
+	   delete url;
          return TRUE;
       }
    }
