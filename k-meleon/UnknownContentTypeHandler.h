@@ -28,6 +28,7 @@ public:
 
 
 nsresult NewUnknownContentHandlerFactory(nsIFactory** aFactory);
+nsresult NewDownloadFactory(nsIFactory** aFactory);
 
 
 
@@ -35,12 +36,16 @@ nsresult NewUnknownContentHandlerFactory(nsIFactory** aFactory);
 
 class CProgressDialog : public CDialog,
                         public nsIWebProgressListener,
-                        public nsSupportsWeakReference {
+                        public nsIDownload
+// not needed?
+//                        , public nsSupportsWeakReference
+                         {
 public:
    enum { IDD = IDD_PROGRESS };
 
    NS_DECL_ISUPPORTS
    NS_DECL_NSIWEBPROGRESSLISTENER
+   NS_DECL_NSIDOWNLOAD
 
    CProgressDialog();
    virtual ~CProgressDialog();
@@ -48,15 +53,19 @@ public:
    void Cancel();
    void Close();
 
-   virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+//   void PostNcDestroy();
 
-   void SetLauncher(nsIHelperAppLauncher *aLauncher);
+// seems unnecessary
+//   virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
 protected:
-   nsCOMPtr<nsIHelperAppLauncher> mLauncher;
-   
+   nsCOMPtr<nsIObserver> mObserver;
+
    // this is used to calculate speed
    PRInt64 mStartTime;
+
+   // this is used to slow down the updates
+   PRInt64 mLastUpdateTime;
 
    PRInt32 mTotalBytes;
 
@@ -65,10 +74,9 @@ protected:
    char *mFileName;
    char *mFilePath;
 
-   virtual void OnCancel( );
+   virtual void OnCancel();
    afx_msg void OnOpen();
    afx_msg void OnClose();
 
 	DECLARE_MESSAGE_MAP()
-
 };

@@ -142,6 +142,7 @@
 // uriloader: 
 #include "nsIWebProgress.h"
 #include "nsIWebProgressListener.h"
+#include "nsIDownload.h"
 
 // wallet: 
 #include "nsIWalletService.h"
