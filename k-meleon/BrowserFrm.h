@@ -213,7 +213,7 @@ private:
 class CBrowserFrame : public CFrameWnd
 {	
 public:
-	CBrowserFrame(PRUint32 chromeMask);
+	CBrowserFrame(PRUint32 chromeMask, LONG style);
 
 protected: 
 	DECLARE_DYNAMIC(CBrowserFrame)
@@ -239,6 +239,7 @@ public:
 	// This specifies what UI elements this frame will sport
 	// w.r.t. toolbar, statusbar, urlbar etc.
 	PRUint32 m_chromeMask;
+	LONG m_style;
 
    BOOL m_created; // set after we are created
 

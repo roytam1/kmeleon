@@ -21,6 +21,7 @@
 #include "kmeleonConst.h"
 
 #include "MfcEmbed.h"
+#include "BrowserFrm.h"
 extern CMfcEmbedApp theApp;
 
 #include "Preferences.h"
@@ -77,12 +78,14 @@ void CPreferences::Load() {
 
       _GetBool(_T("kmeleon.display.hideTaskBarButtons"), bHideTaskBarButtons, false);
       
-      _GetBool(_T("kmeleon.display.maximized"), bMaximized, true);
+      if (!theApp.m_pMostRecentBrowserFrame || !(theApp.m_pMostRecentBrowserFrame->m_style & WS_POPUP)) {
+	_GetBool(_T("kmeleon.display.maximized"), bMaximized, true);
 
-      _GetInt(_T("kmeleon.display.width"), windowWidth, -1);
-      _GetInt(_T("kmeleon.display.height"), windowHeight, -1);
-      _GetInt(_T("kmeleon.display.XPos"), windowXPos, -1);
-      _GetInt(_T("kmeleon.display.YPos"), windowYPos, -1);
+	_GetInt(_T("kmeleon.display.width"), windowWidth, -1);
+	_GetInt(_T("kmeleon.display.height"), windowHeight, -1);
+	_GetInt(_T("kmeleon.display.XPos"), windowXPos, -1);
+	_GetInt(_T("kmeleon.display.YPos"), windowYPos, -1);
+      }
 
       _GetBool(_T("kmeleon.display.backgroundImageEnabled"), bToolbarBackground, true);
 
@@ -367,14 +370,17 @@ void CPreferences::Save() {
       //       Those left here can be changed outside of the prefs dialog, so
       //        they're left in here for now.
 
-      // -- Display settings
-      rv = prefs->SetBoolPref(_T("kmeleon.display.maximized"), bMaximized);
-      rv = prefs->SetIntPref(_T("kmeleon.display.width"), windowWidth);
-      rv = prefs->SetIntPref(_T("kmeleon.display.height"), windowHeight);
-      rv = prefs->SetIntPref(_T("kmeleon.display.XPos"), windowXPos);
-      rv = prefs->SetIntPref(_T("kmeleon.display.YPos"), windowYPos);
-      rv = prefs->SetBoolPref(_T("kmeleon.display.backgroundImageEnabled"), bToolbarBackground);
-      rv = prefs->SetCharPref(_T("kmeleon.display.backgroundImage"), toolbarBackground);
+     if (!theApp.m_pMostRecentBrowserFrame || !(theApp.m_pMostRecentBrowserFrame->m_style & WS_POPUP)) {
+       // -- Display settings
+       rv = prefs->SetBoolPref(_T("kmeleon.display.maximized"), bMaximized);
+       rv = prefs->SetIntPref(_T("kmeleon.display.width"), windowWidth);
+       rv = prefs->SetIntPref(_T("kmeleon.display.height"), windowHeight);
+       rv = prefs->SetIntPref(_T("kmeleon.display.XPos"), windowXPos);
+       rv = prefs->SetIntPref(_T("kmeleon.display.YPos"), windowYPos);
+     }
+
+       rv = prefs->SetBoolPref(_T("kmeleon.display.backgroundImageEnabled"), bToolbarBackground);
+       rv = prefs->SetCharPref(_T("kmeleon.display.backgroundImage"), toolbarBackground);
 
       rv = prefs->SetIntPref(_T("kmeleon.display.newWindowOpenAs"), iNewWindowOpenAs);
       rv = prefs->SetCharPref(_T("kmeleon.display.newWindowURL"), newWindowURL);

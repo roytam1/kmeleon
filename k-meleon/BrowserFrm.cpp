@@ -102,13 +102,14 @@ static UINT indicators[] =
 /////////////////////////////////////////////////////////////////////////////
 // CBrowserFrame construction/destruction
 
-CBrowserFrame::CBrowserFrame(PRUint32 chromeMask)
+CBrowserFrame::CBrowserFrame(PRUint32 chromeMask, LONG style = 0)
 {
 	// Save the chromeMask off. It'll be used
 	// later to determine whether this browser frame
 	// will have menubar, toolbar, statusbar etc.
 
 	m_chromeMask = chromeMask;
+	m_style = style;
    m_created = FALSE;
 }
 
@@ -148,8 +149,6 @@ void CBrowserFrame::OnClose()
    // the browserframeglue will be deleted soon, so we set it to null so it won't try to access it after it's deleted.
    m_wndBrowserView.SetBrowserFrameGlue(NULL);
 
-   m_wndReBar.SaveBandSizes();
-
    if (theApp.m_pMostRecentBrowserFrame == this) {
       CBrowserFrame* pFrame;
 
@@ -161,6 +160,10 @@ void CBrowserFrame::OnClose()
       if (pFrame != this)  theApp.m_pMostRecentBrowserFrame = pFrame;
       else                 theApp.m_pMostRecentBrowserFrame = NULL;
       // if no other browser views exist, nullify the pointer
+
+      if (!theApp.m_pMostRecentBrowserFrame && !(m_style & WS_POPUP)){
+          m_wndReBar.SaveBandSizes();
+      }
    }
 
    DestroyWindow();
@@ -225,7 +228,7 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct){
 		return -1;
 
    // tell all our plugins that we were created
-   theApp.plugins.SendMessage("*", "* OnCreate", "Create", (long)this->m_hWnd);
+   theApp.plugins.SendMessage("*", "* OnCreate", "Create", (long)this->m_hWnd, (long)lpCreateStruct);
 
 	// Pass "this" to the View for later callbacks
 	// and/or access to any public data members, if needed
@@ -367,18 +370,43 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct){
 
 void CBrowserFrame::SetupFrameChrome()
 {
-  if(m_chromeMask == nsIWebBrowserChrome::CHROME_ALL){
-		return;
-  }
-
-	if(! (m_chromeMask & nsIWebBrowserChrome::CHROME_MENUBAR) )
-		SetMenu(NULL); // Hide the MenuBar
-
-	if(! (m_chromeMask & nsIWebBrowserChrome::CHROME_TOOLBAR) )
-		m_wndReBar.ShowWindow(SW_HIDE); // Hide the ToolBar
-
-	if(! (m_chromeMask & nsIWebBrowserChrome::CHROME_STATUSBAR) )
-		m_wndStatusBar.ShowWindow(SW_HIDE); // Hide the StatusBar
+    if(m_chromeMask == nsIWebBrowserChrome::CHROME_ALL){
+        return;
+    }
+    
+    if(! (m_chromeMask & nsIWebBrowserChrome::CHROME_TOOLBAR) &&  
+       ! (m_chromeMask & nsIWebBrowserChrome::CHROME_MENUBAR) && 
+       ! (m_chromeMask & nsIWebBrowserChrome::CHROME_LOCATIONBAR) ) {
+        m_wndReBar.ShowWindow(SW_HIDE); // Hide the Rebar
+    }
+    
+    if(! (m_chromeMask & nsIWebBrowserChrome::CHROME_TOOLBAR) ) {
+        int i = m_wndReBar.count();
+        int iMenubar = m_wndReBar.FindByName("Menu");
+        int iUrlbar  = m_wndReBar.FindByName("URL Bar");
+        while (i-- > 0) {
+            if (i != iMenubar && i != iUrlbar)
+                m_wndReBar.ShowBand(i, false);
+        }
+        m_wndReBar.lineup();
+        m_wndReBar.LockBars(true);
+    }
+    
+    if(! (m_chromeMask & nsIWebBrowserChrome::CHROME_MENUBAR) ) {
+        SetMenu(NULL); // Hide the MenuBar
+        int iMenubar  = m_wndReBar.FindByName("Menu");
+        if (iMenubar >= 0)
+            m_wndReBar.ShowBand(iMenubar, false);
+    }
+    
+    if(! (m_chromeMask & nsIWebBrowserChrome::CHROME_LOCATIONBAR) ) {
+        int iUrlbar  = m_wndReBar.FindByName("URL Bar");
+        if (iUrlbar >= 0)
+            m_wndReBar.ShowBand(iUrlbar, false);
+    }
+    
+    if(! (m_chromeMask & nsIWebBrowserChrome::CHROME_STATUSBAR) )
+        m_wndStatusBar.ShowWindow(SW_HIDE); // Hide the StatusBar
 }
 
 BOOL CBrowserFrame::PreCreateWindow(CREATESTRUCT& cs)
@@ -394,12 +422,17 @@ BOOL CBrowserFrame::PreCreateWindow(CREATESTRUCT& cs)
 	if(! (m_chromeMask & nsIWebBrowserChrome::CHROME_TITLEBAR) )
 		cs.style &= ~WS_CAPTION; // No caption		
 
+    cs.style |= WS_SIZEBOX;
+    cs.style |= WS_THICKFRAME;
+    cs.style |= WS_MINIMIZEBOX;
+    cs.style |= WS_MAXIMIZEBOX;
+
    if (!theApp.preferences.bDisableResize) {   
       if(! (m_chromeMask & nsIWebBrowserChrome::CHROME_WINDOW_RESIZE) ) {
 	   	// Can't resize this window
 		   cs.style &= ~WS_SIZEBOX;
 		   cs.style &= ~WS_THICKFRAME;
-		   cs.style &= ~WS_MINIMIZEBOX;
+		   // cs.style &= ~WS_MINIMIZEBOX;
 		   cs.style &= ~WS_MAXIMIZEBOX;
 	   }
    }
@@ -522,9 +555,8 @@ void CBrowserFrame::OnSize(UINT nType, int cx, int cy)
 
    if (!m_created) return;
 
-   // only record the window size if the window is actually resizable
-   // this helps stop javascript window.open from fucking with the window size preference
-   if (m_chromeMask & nsIWebBrowserChrome::CHROME_WINDOW_RESIZE){
+   // only record the window size for non-popup windows
+   if (!(m_style & WS_POPUP)){
       // record the maximized state
       if (nType == SIZE_MAXIMIZED)
          theApp.preferences.bMaximized = true;

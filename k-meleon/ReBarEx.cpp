@@ -121,6 +121,22 @@ BOOL CReBarEx::GetVisibility(int index) {
    return m_index[index]->visibility;
 }
 
+void CReBarEx::lineup() {
+   REBARBANDINFO rbbi;
+
+   for (int x=0; x<m_iCount; x++) {
+     rbbi.cbSize = sizeof(rbbi);
+     rbbi.fMask = RBBIM_STYLE;
+     GetReBarCtrl().GetBandInfo(x, &rbbi);
+     rbbi.fStyle |= RBBS_BREAK;
+     GetReBarCtrl().SetBandInfo(x, &rbbi);
+   }
+}
+
+void CReBarEx::ShowBand(int index, BOOL visibility) {
+   GetReBarCtrl().ShowBand(index, visibility);
+}
+
 void CReBarEx::SetVisibility(int index, BOOL visibility) {
    GetReBarCtrl().ShowBand(FindByIndex(index), visibility);
 
