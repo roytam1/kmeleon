@@ -119,7 +119,7 @@ char *fixString(const char *inString, int size) {
    }
 
    if (iCount) {
-      char *newString = new char[strlen(string) + iCount + 1];
+      char *newString = new char[strlen(string) + iCount + 2];
       char *out = newString;
       char *in = string;
       while (*in) {
@@ -134,6 +134,7 @@ char *fixString(const char *inString, int size) {
       }
       // can't forget to null terminate!!
       *out = 0;
+      *(out+1) = 0; // double null for tb_addstring
 
       delete string;
       string = strdup(newString);
