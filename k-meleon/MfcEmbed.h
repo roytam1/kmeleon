@@ -24,6 +24,8 @@
 // mozembed.h : main header file for the MOZEMBED application
 //
 
+#define NIGHTLY
+
 #ifndef _MFCEMBED_H
 #define _MFCEMBED_H
 

@@ -84,6 +84,7 @@ BEGIN_MESSAGE_MAP(CBrowserFrame, CFrameWnd)
 	ON_WM_SETFOCUS()
 	ON_WM_SIZE()
 	ON_WM_CLOSE()
+   ON_WM_ACTIVATE()
    ON_WM_SYSCOLORCHANGE()
 	ON_MESSAGE(UWM_REFRESHTOOLBARITEM, RefreshToolBarItem)
 	//}}AFX_MSG_MAP
@@ -128,21 +129,18 @@ void CBrowserFrame::OnClose()
 
    if (theApp.m_pMostRecentBrowserFrame == this) {
       CBrowserFrame* pFrame;
+
       POSITION pos = theApp.m_FrameWndLst.Find(this);
-      pFrame = (CBrowserFrame *) theApp.m_FrameWndLst.GetPrev(pos);
-      if (pos)            // set MostRecentBrowserFrame to the  previous frame
-         pFrame = (CBrowserFrame *) theApp.m_FrameWndLst.GetPrev(pos);
-      else                // set MostRecentBrowserFrame to the  last frame
-         pFrame = (CBrowserFrame *) theApp.m_FrameWndLst.GetTail();
-      if (pFrame != this)
-         theApp.m_pMostRecentBrowserFrame = pFrame;
-      else // only one frame exists, make the pointer null
-         theApp.m_pMostRecentBrowserFrame = NULL;
+      if (pos) pFrame = (CBrowserFrame *) theApp.m_FrameWndLst.GetPrev(pos);  // previous frame
+      else     pFrame = (CBrowserFrame *) theApp.m_FrameWndLst.GetTail();     // last frame
+
+      if (pFrame != this)  theApp.m_pMostRecentBrowserFrame = pFrame;
+      else                 theApp.m_pMostRecentBrowserFrame = NULL;
+      // if only one frame exists, nullify the pointer
    }
 
-//   CMfcEmbedApp *pApp = (CMfcEmbedApp *)AfxGetApp();
-   theApp.RemoveFrameFromList(this);
-   
+   theApp.RemoveFrameFromList(this);   
+
    DestroyWindow();
 }
 
@@ -462,18 +460,11 @@ void CBrowserFrame::OnSetFocus(CWnd* pOldWnd)
    PostMessage(UWM_UPDATESESSIONHISTORY, 0, 0);
 }
 
-/*
-LRESULT CBrowserFrame::WindowProc( UINT message, WPARAM wParam, LPARAM lParam ){
-  LRESULT result = theApp.plugins.OnMessage( this->m_hWnd, message, wParam, lParam );
+void CBrowserFrame::OnActivate(UINT nState, CWnd* pWndOther, BOOL bMinimized) {
+   CFrameWnd::OnActivate(nState, pWndOther, bMinimized);
 
-  LRESULT result2 = CFrameWnd::WindowProc( message, wParam, lParam );
-
-  if (!result)
-    return result2;
-  else
-    return result;
+   m_wndBrowserView.Activate(nState, pWndOther, bMinimized);
 }
-*/
 
 BOOL CBrowserFrame::OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERINFO* pHandlerInfo)
 {

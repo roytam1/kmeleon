@@ -93,6 +93,8 @@ public:
 	void SetCtxMenuImageSrc(nsAutoString& strImgSrc);
 	nsAutoString mCtxMenuImgSrc;
 
+   void Activate(UINT nState, CWnd* pWndOther, BOOL bMinimized);
+
    void StartPanning();
    void StopPanning();
    BOOL m_panning;

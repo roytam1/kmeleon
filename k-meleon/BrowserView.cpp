@@ -317,6 +317,23 @@ void CBrowserView::SetBrowserFrameGlue(PBROWSERFRAMEGLUE pBrowserFrameGlue)
 	mpBrowserFrameGlue = pBrowserFrameGlue;
 }
 
+void CBrowserView::Activate(UINT nState, CWnd* pWndOther, BOOL bMinimized) {
+   nsCOMPtr<nsIWebBrowserFocus> focus(do_GetInterface(mWebBrowser));
+   if(!focus)
+      return;
+   
+   switch(nState) {
+   case WA_ACTIVE:
+      focus->Activate();
+      break;
+   case WA_INACTIVE:
+      focus->Deactivate();
+      break;
+   default:
+      break;
+   }
+}
+
 void CBrowserView::OnDropFiles( HDROP drop ){
   UINT size = DragQueryFile(drop, 0, NULL, 0) + 1;
   char *filename = new char[size];
@@ -965,7 +982,7 @@ void CBrowserView::OnSaveLinkAs()
 		"Text Files (*.txt)|*.txt|" 
 	    "All Files (*.*)|*.*||";
 
-const char *pFileName = fileName.Length() ? fileName.get() + slash+1 : NULL;
+   const char *pFileName = fileName.Length() ? fileName.get() + slash+1 : NULL;
 
 	CFileDialog cf(FALSE, "htm", pFileName, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
 		lpszFilter, this);
@@ -1199,6 +1216,9 @@ void CBrowserView::UpdateBusyState(PRBool aBusy) {
 		// UWM_UPDATESESSIONHISTORY is also posted in in CBrowserFrame::BrowserFrameGlueObj::UpdateCurrentURI
 		// but only the page url is available at that time, this will overwrite it with the title
 		mpBrowserFrame->PostMessage(UWM_UPDATESESSIONHISTORY, 0, 0);
+
+      // this is a stupid hack and will probably go away once mozilla is fixed
+      Activate(WA_ACTIVE, this, false);
 	}
 }
 
@@ -1349,7 +1369,6 @@ void CBrowserView::OnAppAbout() {
 void CBrowserView::OnWindowNext() {
    CBrowserFrame* pFrame;
 	POSITION pos = theApp.m_FrameWndLst.Find(mpBrowserFrame);
-	pFrame = (CBrowserFrame *) theApp.m_FrameWndLst.GetNext(pos);
    if (pos)
       pFrame = (CBrowserFrame *) theApp.m_FrameWndLst.GetNext(pos);
    else
@@ -1361,7 +1380,6 @@ void CBrowserView::OnWindowNext() {
 void CBrowserView::OnWindowPrev() {
    CBrowserFrame* pFrame;
 	POSITION pos = theApp.m_FrameWndLst.Find(mpBrowserFrame);
-	pFrame = (CBrowserFrame *) theApp.m_FrameWndLst.GetPrev(pos);
    if (pos)
       pFrame = (CBrowserFrame *) theApp.m_FrameWndLst.GetPrev(pos);
    else

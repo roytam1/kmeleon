@@ -82,6 +82,7 @@
 #include "nsWeakReference.h"
 #include "nsIEmbeddingSiteWindow.h"
 #include "nsIWebBrowserFind.h"
+#include "nsIWebBrowserFocus.h"
 
 // Printing
 #include "nsIPrintOptions.h" 

@@ -268,8 +268,29 @@ NS_IMETHODIMP CBrowserImpl::IsWindowModal(PRBool *retval)
 
 NS_IMETHODIMP CBrowserImpl::ExitModalEventLoop(nsresult aStatus)
 {
-  return NS_OK;
+   return NS_OK;
 }
+
+#if 0
+
+NS_IMETHODIMP
+CBrowserImpl::SetPersistence(PRBool aPersistX, PRBool aPersistY,
+                             PRBool aPersistCX, PRBool aPersistCY,
+                             PRBool aPersistSizeMode)
+{
+   return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+
+NS_IMETHODIMP
+CBrowserImpl::GetPersistence(PRBool* aPersistX, PRBool* aPersistY,
+                             PRBool* aPersistCX, PRBool* aPersistCY,
+                             PRBool* aPersistSizeMode)
+{
+   return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+#endif
 
 //*****************************************************************************
 // CBrowserImpl::nsIEmbeddingSiteWindow
