@@ -157,7 +157,7 @@ void ParseConfig(char *buffer) {
 					strcat(bmpPath, p);
 					bitmap = (HBITMAP)LoadImage(NULL, bmpPath, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE);
 				}
-            ImageList_AddMasked(hImageList, bitmap, RGB(192, 192, 192));
+            ImageList_AddMasked(hImageList, bitmap, RGB(255, 0, 255));
 
             DeleteObject(bitmap);
 
