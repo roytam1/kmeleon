@@ -29,7 +29,7 @@ CAboutDlg::CAboutDlg(CWnd *wndParent) : CDialog(CAboutDlg::IDD, wndParent)
 {
    m_credits = _QUOTE(
       \r\n
-      K-Meleon - Copyright 2000-2002\r\n
+      K-Meleon - Copyright 2000-2003\r\n
       \r\n
       Uses the Gecko rendering engine by the Mozilla Group\r\n
       Based on MfcEmbed\r\n
