@@ -23,11 +23,10 @@
 #ifndef __PromptService_h
 #define __PromptService_h
 
+// this component is for an MFC app; it's Windows. make sure this is defined.
 #ifndef XP_WIN
 #define XP_WIN
 #endif
-
-#include "nsError.h"
 
 class nsIFactory;
 

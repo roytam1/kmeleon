@@ -27,22 +27,8 @@
 */
 
 #include "stdafx.h"
-#include "About.h"
 #include "Dialogs.h"
 #include "PromptService.h"
-#include "nsCOMPtr.h"
-#include "nsMemory.h"
-#include "nsString.h"
-#include "nsIDOMWindow.h"
-#include "nsIEmbeddingSiteWindow.h"
-#include "nsIFactory.h"
-#include "nsIPromptService.h"
-#include "nsIServiceManager.h"
-#include "nsIWebBrowserChrome.h"
-#include "nsIWindowWatcher.h"
-
-#undef NS_IMETHODIMP
-#define NS_IMETHODIMP nsresult __stdcall
 
 static HINSTANCE gInstance;
 
@@ -52,15 +38,15 @@ static HINSTANCE gInstance;
 
 class ResourceState {
 public:
-   ResourceState() {
-      mPreviousInstance = ::AfxGetResourceHandle();
-      ::AfxSetResourceHandle(gInstance);
-   }
-   ~ResourceState() {
-      ::AfxSetResourceHandle(mPreviousInstance);
-   }
+  ResourceState() {
+    mPreviousInstance = ::AfxGetResourceHandle();
+    ::AfxSetResourceHandle(gInstance);
+  }
+  ~ResourceState() {
+    ::AfxSetResourceHandle(mPreviousInstance);
+  }
 private:
-   HINSTANCE mPreviousInstance;
+  HINSTANCE mPreviousInstance;
 };
 
 
@@ -71,14 +57,14 @@ private:
 class CPromptService: public nsIPromptService {
 public:
                  CPromptService();
-   virtual       ~CPromptService();
+  virtual       ~CPromptService();
 
-   NS_DECL_ISUPPORTS
-   NS_DECL_NSIPROMPTSERVICE
+  NS_DECL_ISUPPORTS
+  NS_DECL_NSIPROMPTSERVICE
 
 private:
-   nsCOMPtr<nsIWindowWatcher> mWWatch;
-   CWnd *CWndForDOMWindow(nsIDOMWindow *aWindow);
+  nsCOMPtr<nsIWindowWatcher> mWWatch;
+  CWnd *CWndForDOMWindow(nsIDOMWindow *aWindow);
 };
 
 //*****************************************************************************
@@ -88,7 +74,7 @@ NS_IMPL_ISUPPORTS1(CPromptService, nsIPromptService)
 CPromptService::CPromptService() :
   mWWatch(do_GetService("@mozilla.org/embedcomp/window-watcher;1"))
 {
-   NS_INIT_REFCNT();
+  NS_INIT_REFCNT();
 }
 
 CPromptService::~CPromptService() {
@@ -97,26 +83,26 @@ CPromptService::~CPromptService() {
 CWnd *
 CPromptService::CWndForDOMWindow(nsIDOMWindow *aWindow)
 {
-   nsCOMPtr<nsIWebBrowserChrome> chrome;
-   CWnd *val = 0;
+  nsCOMPtr<nsIWebBrowserChrome> chrome;
+  CWnd *val = 0;
 
-   if (mWWatch) {
-      nsCOMPtr<nsIDOMWindow> fosterParent;
-      if (!aWindow) { // it will be a dependent window. try to find a foster parent.
-         mWWatch->GetActiveWindow(getter_AddRefs(fosterParent));
-         aWindow = fosterParent;
-      }
-      mWWatch->GetChromeForWindow(aWindow, getter_AddRefs(chrome));
+  if (mWWatch) {
+    nsCOMPtr<nsIDOMWindow> fosterParent;
+    if (!aWindow) { // it will be a dependent window. try to find a foster parent.
+      mWWatch->GetActiveWindow(getter_AddRefs(fosterParent));
+      aWindow = fosterParent;
+    }
+    mWWatch->GetChromeForWindow(aWindow, getter_AddRefs(chrome));
+  }
 
-      if (chrome) {
-         nsCOMPtr<nsIEmbeddingSiteWindow> site(do_QueryInterface(chrome));
-         if (site) {
-            HWND w;
-            site->GetSiteWindow(reinterpret_cast<void **>(&w));
-            val = CWnd::FromHandle(w);
-         }
-      }
-   }
+  if (chrome) {
+    nsCOMPtr<nsIEmbeddingSiteWindow> site(do_QueryInterface(chrome));
+    if (site) {
+      HWND w;
+      site->GetSiteWindow(reinterpret_cast<void **>(&w));
+      val = CWnd::FromHandle(w);
+    }
+  }
 
   return val;
 }
@@ -140,7 +126,18 @@ NS_IMETHODIMP CPromptService::AlertCheck(nsIDOMWindow *parent,
                                          const PRUnichar *checkboxMsg,
                                          PRBool *checkValue)
 {
-  return NS_ERROR_NOT_IMPLEMENTED;
+  ResourceState setState;
+  USES_CONVERSION;
+
+  CWnd *wnd = CWndForDOMWindow(parent);
+  CAlertCheckDialog dlg(wnd, W2T(dialogTitle), W2T(text),
+                    W2T(checkboxMsg), checkValue ? *checkValue : 0);
+
+  dlg.DoModal();
+
+  *checkValue = dlg.m_bCheckBoxValue;
+
+  return NS_OK;
 }
 
 NS_IMETHODIMP CPromptService::Confirm(nsIDOMWindow *parent,
@@ -154,12 +151,12 @@ NS_IMETHODIMP CPromptService::Confirm(nsIDOMWindow *parent,
 
   if (wnd)
     choice = wnd->MessageBox(W2T(text), W2T(dialogTitle),
-                      MB_YESNO | MB_ICONEXCLAMATION);
+                      MB_OKCANCEL | MB_ICONEXCLAMATION);
   else
     choice = ::MessageBox(0, W2T(text), W2T(dialogTitle),
-                      MB_YESNO | MB_ICONEXCLAMATION);
+                      MB_OKCANCEL | MB_ICONEXCLAMATION);
 
-  *_retval = choice == IDYES ? PR_TRUE : PR_FALSE;
+  *_retval = choice == IDOK ? PR_TRUE : PR_FALSE;
 
   return NS_OK;
 }
@@ -171,7 +168,21 @@ NS_IMETHODIMP CPromptService::ConfirmCheck(nsIDOMWindow *parent,
                                            PRBool *checkValue,
                                            PRBool *_retval)
 {
-  return NS_ERROR_NOT_IMPLEMENTED;
+    ResourceState setState;
+    USES_CONVERSION;
+
+    CWnd *wnd = CWndForDOMWindow(parent);
+    CConfirmCheckDialog dlg(wnd, W2T(dialogTitle), W2T(text),
+                    W2T(checkboxMsg), checkValue ? *checkValue : 0,
+                    "Yes", "No", NULL);
+
+    int iBtnClicked = dlg.DoModal();
+
+    *checkValue = dlg.m_bCheckBoxValue;
+
+    *_retval = iBtnClicked == 0 ? PR_TRUE : PR_FALSE;
+
+    return NS_OK;
 }
 
 NS_IMETHODIMP CPromptService::Prompt(nsIDOMWindow *parent,
@@ -199,7 +210,7 @@ NS_IMETHODIMP CPromptService::Prompt(nsIDOMWindow *parent,
     nsString csPromptEditValue;
     csPromptEditValue.AssignWithConversion(dlg.m_csPromptAnswer.GetBuffer(0));
 
-    *value = csPromptEditValue.ToNewUnicode();
+    *value = ToNewUnicode(csPromptEditValue);
 
     *_retval = PR_TRUE;
   } else
@@ -217,47 +228,43 @@ NS_IMETHODIMP CPromptService::PromptUsernameAndPassword(nsIDOMWindow *parent,
                                                         PRBool *checkValue,
                                                         PRBool *_retval)
 {
+  ResourceState setState;
+  USES_CONVERSION;
 
-   ResourceState setState;
-   USES_CONVERSION;
-
-   CWnd *wnd = CWndForDOMWindow(parent);
-
-   CPromptUsernamePasswordDialog dlg(wnd, W2T(dialogTitle), W2T(text),
+  CWnd *wnd = CWndForDOMWindow(parent);
+  CPromptUsernamePasswordDialog dlg(wnd, W2T(dialogTitle), W2T(text),
                     username && *username ? W2T(*username) : 0,
                     password && *password ? W2T(*password) : 0, 
                     checkValue != nsnull, W2T(checkboxMsg),
                     checkValue ? *checkValue : 0);
 
-   if (dlg.DoModal() == IDOK) {
+  if (dlg.DoModal() == IDOK) {
+    // Get the username entered
+    if (username && *username) {
+        nsMemory::Free(*username);
+        *username = nsnull;
+    }
+    nsString csUserName;
+    csUserName.AssignWithConversion(dlg.m_csUserName.GetBuffer(0));
+    *username = ToNewUnicode(csUserName);
 
-      // Get the username entered
-      if (username && *username) {
-         nsMemory::Free(*username);
-         *username = nsnull;
-      }
-      nsString csUserName;
-      csUserName.AssignWithConversion(dlg.m_csUserName.GetBuffer(0));
-      *username = csUserName.ToNewUnicode();
+    // Get the password entered
+    if (password && *password) {
+      nsMemory::Free(*password);
+      *password = nsnull;
+    }
+    nsString csPassword;
+    csPassword.AssignWithConversion(dlg.m_csPassword.GetBuffer(0));
+    *password = ToNewUnicode(csPassword);
 
-      // Get the password entered
-      if (password && *password) {
-         nsMemory::Free(*password);
-         *password = nsnull;
-      }
-      nsString csPassword;
-      csPassword.AssignWithConversion(dlg.m_csPassword.GetBuffer(0));
-      *password = csPassword.ToNewUnicode();
+    if(checkValue)		
+      *checkValue = dlg.m_bCheckBoxValue;
 
-      if(checkValue)		
-         *checkValue = dlg.m_bCheckBoxValue;
+    *_retval = PR_TRUE;
+  } else
+    *_retval = PR_FALSE;
 
-      *_retval = PR_TRUE;
-   }
-   else
-      *_retval = PR_FALSE;
-
-   return NS_OK;
+  return NS_OK;
 }
 
 NS_IMETHODIMP CPromptService::PromptPassword(nsIDOMWindow *parent,
@@ -268,34 +275,32 @@ NS_IMETHODIMP CPromptService::PromptPassword(nsIDOMWindow *parent,
                                              PRBool *checkValue,
                                              PRBool *_retval)
 {
-   ResourceState setState;
-   USES_CONVERSION;
+  ResourceState setState;
+  USES_CONVERSION;
 
-   CWnd *wnd = CWndForDOMWindow(parent);
-   CPromptPasswordDialog dlg(wnd, W2T(dialogTitle), W2T(text),
+  CWnd *wnd = CWndForDOMWindow(parent);
+  CPromptPasswordDialog dlg(wnd, W2T(dialogTitle), W2T(text),
                             password && *password ? W2T(*password) : 0,
                             checkValue != nsnull, W2T(checkboxMsg),
                             checkValue ? *checkValue : 0);
+  if(dlg.DoModal() == IDOK) {
+    // Get the password entered
+    if (password && *password) {
+        nsMemory::Free(*password);
+        *password = nsnull;
+    }
+    nsString csPassword;
+    csPassword.AssignWithConversion(dlg.m_csPassword.GetBuffer(0));
+    *password = ToNewUnicode(csPassword);
 
-   if(dlg.DoModal() == IDOK) {
-      // Get the password entered
-      if (password && *password) {
-         nsMemory::Free(*password);
-         *password = nsnull;
-      }
-      nsString csPassword;
-      csPassword.AssignWithConversion(dlg.m_csPassword.GetBuffer(0));
-      *password = csPassword.ToNewUnicode();
+    if(checkValue)
+      *checkValue = dlg.m_bCheckBoxValue;
 
-      if(checkValue)
-         *checkValue = dlg.m_bCheckBoxValue;
+    *_retval = PR_TRUE;
+  } else
+    *_retval = PR_FALSE;
 
-      *_retval = PR_TRUE;
-   }
-   else
-      *_retval = PR_FALSE;
-
-   return NS_OK;
+  return NS_OK;
 }
 
 NS_IMETHODIMP CPromptService::Select(nsIDOMWindow *parent,
@@ -305,19 +310,72 @@ NS_IMETHODIMP CPromptService::Select(nsIDOMWindow *parent,
                                      PRInt32 *outSelection,
                                      PRBool *_retval)
 {
-   return NS_ERROR_NOT_IMPLEMENTED;
+  return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP CPromptService::ConfirmEx(nsIDOMWindow *parent,
                                         const PRUnichar *dialogTitle,
                                         const PRUnichar *text,
-                                        PRUint32 button0And1Flags,
+                                        PRUint32 buttonFlags,
+                                        const PRUnichar *button0Title,
+                                        const PRUnichar *button1Title,
                                         const PRUnichar *button2Title,
                                         const PRUnichar *checkMsg,
                                         PRBool *checkValue,
                                         PRInt32 *buttonPressed)
 {
-   return NS_ERROR_NOT_IMPLEMENTED;
+    ResourceState setState;
+    USES_CONVERSION;
+
+    // First, determine the button titles based on buttonFlags
+    const PRUnichar* buttonStrings[] = { button0Title, button1Title, button2Title };
+    CString csBtnTitles[3];
+
+    for(int i=0; i<3; i++)
+    {
+        switch(buttonFlags & 0xff) {
+            case BUTTON_TITLE_OK:
+                csBtnTitles[i] = "Ok";
+                break;
+            case BUTTON_TITLE_CANCEL:
+                csBtnTitles[i] = "Cancel";
+                break;
+            case BUTTON_TITLE_YES:
+                csBtnTitles[i] = "Yes";
+                break;
+            case BUTTON_TITLE_NO:
+                csBtnTitles[i] = "No";
+                break;
+            case BUTTON_TITLE_SAVE:
+                csBtnTitles[i] = "Save";
+                break;
+            case BUTTON_TITLE_DONT_SAVE:
+                csBtnTitles[i] = "DontSave";
+                break;
+            case BUTTON_TITLE_REVERT:
+                csBtnTitles[i] = "Revert";
+                break;
+            case BUTTON_TITLE_IS_STRING:
+                csBtnTitles[i] = W2T(buttonStrings[i]);
+                break;
+        }
+   
+        buttonFlags >>= 8;    
+    }
+
+    CWnd *wnd = CWndForDOMWindow(parent);
+    CConfirmCheckDialog dlg(wnd, W2T(dialogTitle), W2T(text),
+        checkMsg ? W2T(checkMsg) : NULL, checkValue ? *checkValue : 0,
+                    csBtnTitles[0].IsEmpty() ? NULL : (LPCTSTR)csBtnTitles[0], 
+                    csBtnTitles[1].IsEmpty() ? NULL : (LPCTSTR)csBtnTitles[1], 
+                    csBtnTitles[2].IsEmpty() ? NULL : (LPCTSTR)csBtnTitles[2]);
+
+    *buttonPressed = dlg.DoModal();
+
+    if(checkValue)
+        *checkValue = dlg.m_bCheckBoxValue;
+
+    return NS_OK;    
 }
  
 //*****************************************************************************
@@ -326,11 +384,11 @@ NS_IMETHODIMP CPromptService::ConfirmEx(nsIDOMWindow *parent,
 
 class CPromptServiceFactory : public nsIFactory {
 public:
-   NS_DECL_ISUPPORTS
-   NS_DECL_NSIFACTORY
+  NS_DECL_ISUPPORTS
+  NS_DECL_NSIFACTORY
 
-   CPromptServiceFactory();
-   virtual ~CPromptServiceFactory();
+  CPromptServiceFactory();
+  virtual ~CPromptServiceFactory();
 };
 
 //*****************************************************************************
@@ -338,7 +396,8 @@ public:
 NS_IMPL_ISUPPORTS1(CPromptServiceFactory, nsIFactory)
 
 CPromptServiceFactory::CPromptServiceFactory() {
-   NS_INIT_ISUPPORTS();
+
+  NS_INIT_ISUPPORTS();
 }
 
 CPromptServiceFactory::~CPromptServiceFactory() {
@@ -346,44 +405,45 @@ CPromptServiceFactory::~CPromptServiceFactory() {
 
 NS_IMETHODIMP CPromptServiceFactory::CreateInstance(nsISupports *aOuter, const nsIID & aIID, void **aResult)
 {
-   NS_ENSURE_ARG_POINTER(aResult);
+  NS_ENSURE_ARG_POINTER(aResult);
   
-   *aResult = NULL;  
-   CPromptService *inst = new CPromptService;    
-   if (!inst)
-      return NS_ERROR_OUT_OF_MEMORY;
+  *aResult = NULL;  
+  CPromptService *inst = new CPromptService;    
+  if (!inst)
+    return NS_ERROR_OUT_OF_MEMORY;
     
-   nsresult rv = inst->QueryInterface(aIID, aResult);
-   if (rv != NS_OK) {  
-      // We didn't get the right interface, so clean up  
-      delete inst;  
-   }  
+  nsresult rv = inst->QueryInterface(aIID, aResult);
+  if (rv != NS_OK) {  
+    // We didn't get the right interface, so clean up  
+    delete inst;  
+  }  
     
-   return rv;
+  return rv;
 }
 
 NS_IMETHODIMP CPromptServiceFactory::LockFactory(PRBool lock)
 {
-   return NS_OK;
+  return NS_OK;
 }
 
 //*****************************************************************************
 
 void InitPromptService(HINSTANCE instance) {
-   gInstance = instance;
+
+  gInstance = instance;
 }
 
 nsresult NS_NewPromptServiceFactory(nsIFactory** aFactory)
 {
-   NS_ENSURE_ARG_POINTER(aFactory);
-   *aFactory = nsnull;
+  NS_ENSURE_ARG_POINTER(aFactory);
+  *aFactory = nsnull;
   
-   CPromptServiceFactory *result = new CPromptServiceFactory;
-   if (!result)
-      return NS_ERROR_OUT_OF_MEMORY;
+  CPromptServiceFactory *result = new CPromptServiceFactory;
+  if (!result)
+    return NS_ERROR_OUT_OF_MEMORY;
     
-   NS_ADDREF(result);
-   *aFactory = result;
+  NS_ADDREF(result);
+  *aFactory = result;
   
-   return NS_OK;
+  return NS_OK;
 }
