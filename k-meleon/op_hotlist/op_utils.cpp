@@ -154,6 +154,103 @@ void BuildRebar(HWND hWndTB)
    */
 }
 
+int addLink(char *url, char *title) 
+{
+   if (!url)
+      return false;
+
+   CBookmarkNode *newNode = new 
+      CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), 
+                    title ? (*title ? title : url) : url, url, 
+                    BOOKMARK_BOOKMARK, time(NULL));
+   if (!newNode)
+      return false;
+   
+   gHotlistRoot.AddChild(newNode);
+   
+   if (lpszHotlistFile && *lpszHotlistFile) {
+               
+      int bNewFile = 0;
+      struct stat sb;
+      if (stat (lpszHotlistFile, &sb) == -1 && errno == ENOENT)
+         bNewFile = 1;
+      
+      if (bNewFile) {
+         FILE *bmFile = fopen(lpszHotlistFile, "w+");
+         if (bmFile)
+            fclose(bmFile);
+      }
+      FILE *bmFile = fopen(lpszHotlistFile, "rb+");
+      if (bmFile) {
+         if (bNewFile) {
+            fprintf(bmFile, 
+                    "Opera Hotlist version 2.0\r\n"
+                    "Options:encoding=utf8,version=3\r\n\r\n");
+            bDOS = 1;
+         }
+         else {
+            long bmFileSize = FileSize(bmFile);
+#define LEN 16
+            char *bmFileBuffer = new char[LEN+1];
+            if (bmFileBuffer){
+               if (bmFileSize > LEN-1)
+                  fseek(bmFile, bmFileSize-(LEN-1), SEEK_SET);
+               int bufsize = fread(bmFileBuffer, sizeof(char), LEN, bmFile);
+               bmFileBuffer[LEN] = 0;
+               char *p = strstr(bmFileBuffer, "\r\n");
+               bDOS = (p != NULL);
+               p = strrchr(bmFileBuffer, '-');
+               if (p) {
+                  int offset = (bmFileBuffer + bufsize) - p;
+                  fseek(bmFile, bmFileSize-offset, SEEK_SET);
+               }
+               delete [] bmFileBuffer;
+            }
+         }
+         SaveHotlistEntry(bmFile, newNode);
+         if (bDOS) 
+            fprintf(bmFile, "\r");
+         fprintf(bmFile, "\n");
+         fprintf(bmFile, "-");
+         if (bDOS) 
+            fprintf(bmFile, "\r");
+         fprintf(bmFile, "\n");
+         fclose(bmFile);
+      }
+      else
+         MessageBox(NULL, "Unable to save hotlist", "Error", MB_ICONSTOP|MB_OK);
+   }
+   else
+      MessageBox(NULL, "Unable to save hotlist", "Error", MB_ICONSTOP|MB_OK);
+   
+   if (!bEmpty) {
+      
+      // FIXME!
+      // this "deletes everything after the first bookmark position"
+      // which is not robust as there may be normal menu items there
+      
+      while (DeleteMenu(gMenuHotlist, nFirstHotlistPosition, MF_BYPOSITION))
+         ;
+   }
+   bEmpty = true;
+   BuildMenu(gMenuHotlist, &gHotlistRoot, false);
+   
+#if 0
+   // BUG!
+   // Only the last toolbar would get updated
+   // The ghWndTB must be one per frame, not one global
+   
+   if (ghWndTB) {
+      // delete the old rebar
+      while (SendMessage(ghWndTB, TB_DELETEBUTTON, 0 /*index*/, 0));
+      // and rebuild
+      BuildRebar(ghWndTB);
+   }
+#endif
+
+   return true;
+}
+
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
    // store these in static vars so that the BeginHotTrack call can access them
@@ -178,118 +275,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
                url = dInfo->url;
                title = dInfo->title;
             }
+            addLink(url, title);
          }
          else {
-#if 0
-            /*
-              POINTS curpos;
-              GetCursorPos(&curpos);
-            */
-            POINTS pos;
-            DWORD msgpos = GetMessagePos();
-            pos = MAKEPOINTS(msgpos);
-            kmeleonPointInfo *pInfo = 
-               kPlugin.kFuncs->GetInfoAtPoint(pos.x, pos.y);
-            if (pInfo) {
-               url = pInfo->link;
+            int retLen = kPlugin.kFuncs->GetGlobalVar(PREF_STRING, "LinkURL", NULL);
+            if (retLen) {
+               char *retVal = new char[retLen+1];
+               kPlugin.kFuncs->GetGlobalVar(PREF_STRING, "LinkURL", retVal);
+               url = title = retVal;
+               addLink(url, title);
+               delete retVal;
             }
-#else
-            return 0;
-#endif
          }
-         if (url) {
-            // int bHotlistExists = gHotlistRoot.child != NULL;
-            
-            CBookmarkNode *newNode = new 
-               CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), 
-                             title ? title : url, url, 
-                             BOOKMARK_BOOKMARK, time(NULL));
-            if (!newNode)
-               return false;
 
-            gHotlistRoot.AddChild(newNode);
-            
-            if (lpszHotlistFile && *lpszHotlistFile) {
-               
-               int bNewFile = 0;
-               struct stat sb;
-               if (stat (lpszHotlistFile, &sb) == -1 && errno == ENOENT)
-                  bNewFile = 1;
-               
-               if (bNewFile) {
-                  FILE *bmFile = fopen(lpszHotlistFile, "w+");
-                  if (bmFile)
-                     fclose(bmFile);
-               }
-               FILE *bmFile = fopen(lpszHotlistFile, "rb+");
-               if (bmFile) {
-                  if (bNewFile) {
-                     fprintf(bmFile, 
-                             "Opera Hotlist version 2.0\r\n"
-                             "Options:encoding=utf8,version=3\r\n\r\n");
-                     bDOS = 1;
-                  }
-                  else {
-                     long bmFileSize = FileSize(bmFile);
-#define LEN 16
-                     char *bmFileBuffer = new char[LEN+1];
-                     if (bmFileBuffer){
-                        if (bmFileSize > LEN-1)
-                           fseek(bmFile, bmFileSize-(LEN-1), SEEK_SET);
-                        int bufsize = fread(bmFileBuffer, sizeof(char), LEN, bmFile);
-                        bmFileBuffer[LEN] = 0;
-                        char *p = strstr(bmFileBuffer, "\r\n");
-                        bDOS = (p != NULL);
-                        p = strrchr(bmFileBuffer, '-');
-                        if (p) {
-                           int offset = (bmFileBuffer + bufsize) - p;
-                           fseek(bmFile, bmFileSize-offset, SEEK_SET);
-                        }
-                        delete [] bmFileBuffer;
-                     }
-                  }
-                  SaveHotlistEntry(bmFile, newNode);
-                  if (bDOS) 
-                     fprintf(bmFile, "\r");
-                  fprintf(bmFile, "\n");
-                  fprintf(bmFile, "-");
-                  if (bDOS) 
-                     fprintf(bmFile, "\r");
-                  fprintf(bmFile, "\n");
-                  fclose(bmFile);
-               }
-               else
-                  MessageBox(hWnd, "Unable to save hotlist", "Error", MB_ICONSTOP|MB_OK);
-            }
-            else
-               MessageBox(hWnd, "Unable to save hotlist", "Error", MB_ICONSTOP|MB_OK);
-            
-            if (!bEmpty) {
-               
-               // FIXME!
-               // this "deletes everything after the first bookmark position"
-               // which is not robust as there may be normal menu items there
-               
-               while (DeleteMenu(gMenuHotlist, nFirstHotlistPosition, MF_BYPOSITION))
-                  ;
-            }
-            bEmpty = true;
-            BuildMenu(gMenuHotlist, &gHotlistRoot, false);
-
-#if 0
-            // BUG!
-            // Only the last toolbar would get updated
-            // The ghWndTB must be one per frame, not one global
-
-            if (ghWndTB) {
-               // delete the old rebar
-               while (SendMessage(ghWndTB, TB_DELETEBUTTON, 0 /*index*/, 0));
-               // and rebuild
-               BuildRebar(ghWndTB);
-            }
-#endif
-
-         }
          return true;
       }
       else if (CBookmarkNode *node = gHotlistRoot.FindNode(command)) {

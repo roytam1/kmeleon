@@ -61,6 +61,7 @@ void BuildMenu(HMENU menu, CBookmarkNode *node, BOOL isContinuation);
 void BuildRebar(HWND hWndTB);
 int ParseHotlist(char **bmFileBuffer, CBookmarkNode &node);
 int SaveHotlistEntry(FILE *bmFile, CBookmarkNode *node);
+int addLink(char *url, char *title);
 #endif
 
 void Config(HWND parent);
