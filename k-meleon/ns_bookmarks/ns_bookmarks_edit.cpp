@@ -68,6 +68,7 @@ static void CopyItem(HWND hTree, HTREEITEM item);
 static void UpdateTitle(HWND hDlg, HTREEITEM item);
 static void UpdateURL(HWND hDlg, HTREEITEM item);
 static void UpdateNick(HWND hDlg, HTREEITEM item);
+static void UpdateDesc(HWND hDlg, HTREEITEM item);
 
 // Local vars
 
@@ -950,6 +951,13 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                   UpdateNick(hDlg, hSelection);
                }
             }
+            else if (id == IDC_DESC && SendDlgItemMessage(hDlg, IDC_DESC, EM_GETMODIFY, 0, 0)) {
+               SendDlgItemMessage(hDlg, IDC_DESC, EM_SETMODIFY, FALSE, 0);
+               HTREEITEM hSelection = TreeView_GetSelection(hTree);
+               if (hSelection) {
+                  UpdateDesc(hDlg, hSelection);
+               }
+            }
          }
          else if (HIWORD(wParam) == BN_CLICKED) {
             WORD id = LOWORD(wParam);
@@ -1552,6 +1560,21 @@ static void UpdateNick(HWND hDlg, HTREEITEM item) {
       GetDlgItemText(hDlg, IDC_NICK, szBuffer, 1023);
       if (node->nick.compare(szBuffer) != 0) {
          node->nick = szBuffer;
+         bookmarksEdited = true;
+      }
+   }
+}
+
+
+static void UpdateDesc(HWND hDlg, HTREEITEM item) {
+   HWND hTree = GetDlgItem(hDlg, IDC_TREE_BOOKMARK);
+   CBookmarkNode *node = GetBookmarkNode(hTree, item);
+
+   if (node->type == BOOKMARK_BOOKMARK || node->type == BOOKMARK_FOLDER) {
+      char szBuffer[1024];
+      GetDlgItemText(hDlg, IDC_DESC, szBuffer, 1023);
+      if (node->desc.compare(szBuffer) != 0) {
+         node->desc = szBuffer;
          bookmarksEdited = true;
       }
    }
