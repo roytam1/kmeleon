@@ -109,7 +109,8 @@ void DoRebar(HWND rebarWnd) {
       );
 
    // Register the band name and child hwnd
-   kPlugin.kf->RegisterBand(hwndTB, "Menu Bar");
+   // we don't want them disabling the menu (because you can't get it back!)
+   //kPlugin.kf->RegisterBand(hwndTB, "Menu Bar");
 
    if (!hwndTB){
       MessageBox(NULL, "Failed to create menu toolbar", NULL, 0);
