@@ -32,7 +32,7 @@
 #include "../kmeleon_plugin.h"
 
 #define BMP_MENU_VERSION 3333
-#define LEFT_SPACE 18
+#define LEFT_SPACE 16
 #define BMP_HEIGHT 16
 #define BMP_WIDTH  16
 
@@ -363,7 +363,7 @@ void DrawMenuItem(DRAWITEMSTRUCT *dis) {
    }
 
 	if (!hasBitmap){
-		dis->rcItem.left += BMP_WIDTH;
+		dis->rcItem.left += LEFT_SPACE;
 	}
 
    dis->rcItem.left += 4;
@@ -434,27 +434,34 @@ void MeasureMenuItem(MEASUREITEMSTRUCT *mis, HDC hDC) {
    font = CreateFontIndirect(&ncm.lfMenuFont);
    HFONT oldFont = (HFONT)SelectObject(hDC, font); 
 
+   BOOL bWinVer4 = FALSE;
+   // check for WinNT4 and Win95
+   OSVERSIONINFO info;
+   info.dwOSVersionInfoSize = sizeof( OSVERSIONINFO );
+   if (GetVersionEx(&info)) {
+      if ( ( ( info.dwPlatformId == VER_PLATFORM_WIN32_NT ) && (info.dwMajorVersion == 4) ) \
+         || ( (info.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS) && (info.dwMinorVersion == 0) ) ) {
+            bWinVer4 = TRUE;
+      }
+   }
+
    char *string = (char *)menuData->data;
    SIZE size;
    int tabWidth = 0;
    char *tab = strrchr(string, '\t');
    if (tab) {
-      // check for WinNT4 and Win95
-      OSVERSIONINFO info;
-      info.dwOSVersionInfoSize = sizeof( OSVERSIONINFO );
-      if (GetVersionEx(&info)) {
-         if ( ( ( info.dwPlatformId == VER_PLATFORM_WIN32_NT ) && (info.dwMajorVersion == 4) ) \
-            || ( (info.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS) && (info.dwMinorVersion == 0) ) ) {
-               size.cx = LOWORD( GetTabbedTextExtent(hDC, string, strlen(string), 1,0) );
-         }
-         // not NT4 of Win95
-         else size.cx = GetTextExtentPoint32(hDC, string, tab-string-1, &size);
+      if (bWinVer4)
+         size.cx = LOWORD( GetTabbedTextExtent(hDC, string, strlen(string), 0, NULL) );
+      else {
+         int tabWidth = 8;
+         size.cx = LOWORD( GetTabbedTextExtent(hDC, string, strlen(string), 1, &tabWidth) );
       }
-      // no version info
-      else size.cx = GetTextExtentPoint32(hDC, string, tab-string-1, &size);
    }
-   else
+   else {
       GetTextExtentPoint32(hDC, string, strlen(string), &size);
+      if (bWinVer4)
+         size.cx += 28;
+   }
 
    mis->itemWidth = size.cx;
    mis->itemHeight = GetSystemMetrics(SM_CYMENUSIZE);
