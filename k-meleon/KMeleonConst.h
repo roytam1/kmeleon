@@ -45,9 +45,10 @@
 #define TOOLBAR_MENU_END_ID            TOOLBAR_MENU_START_ID+50  // this limits us to 50 toolbars, should be enough :)
 #define BAND_BASE_ID                   200
 
-#define PREF_NEW_WINDOW_CURRENT        0
+#define PREF_NEW_WINDOW_BLANK          0
 #define PREF_NEW_WINDOW_HOME           1
-#define PREF_NEW_WINDOW_URL            2
+#define PREF_NEW_WINDOW_CURRENT        2
+#define PREF_NEW_WINDOW_URL            3
 
 
 // the SHOWNOW flag is set when the loader launches kmeleon and needs a browser window immediately
