@@ -416,7 +416,8 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags,
             pThis->m_wndBrowserView.SetCtxMenuImageSrc(NS_ConvertUTF8toUCS2(uri)); // Set the new Img Src
         }
     }
-    else if(aContextFlags & nsIContextMenuListener2::CONTEXT_TEXT) 
+    else if(aContextFlags & nsIContextMenuListener2::CONTEXT_TEXT || 
+            aContextFlags & nsIContextMenuListener2::CONTEXT_INPUT) 
         nIDResource = IDR_CTXMENU_TEXT;
     else if(aContextFlags & nsIContextMenuListener2::CONTEXT_LINK)
     {
