@@ -21,14 +21,18 @@
 
 #include "StdAfx.h"
 
+#include "Parser.h"
+
 #define MAX_ACCEL 127
 
-class CAccelParser {
+class CAccelParser : public CParser {
 protected:
   ACCEL accelerators[MAX_ACCEL];
   int numAccelerators;
 
   HACCEL accelTable;
+
+  int Parse(char *p);
 
 public:
   CAccelParser();

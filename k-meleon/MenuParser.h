@@ -21,22 +21,26 @@
 
 #include "StdAfx.h"
 
-class CMenuParser {
+#include "Parser.h"
+
+class CMenuParser : public CParser{
 protected:
   CMap<CString, LPCSTR, CMenu *, CMenu *&> menus;
   CMap<CMenu *, CMenu *&, int, int&> menuOffsets;
 
+  int Parse(char *p);
+
 public:
 	CMenuParser();
-  CMenuParser(CString &filename);
+   CMenuParser(CString &filename);
 
 	~CMenuParser();
 
-  int Load(CString &filename);
-  void Destroy();
+   int Load(CString &filename);
+   void Destroy();
 
-  CMenu *GetMenu(char * menuName);
-  int GetOffset(CMenu *menu);
+   CMenu *GetMenu(char * menuName);
+   int GetOffset(CMenu *menu);
 };
 
 #endif // __MENUPARSER_H__
