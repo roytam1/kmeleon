@@ -21,6 +21,8 @@
 #include <shellapi.h>
 #include <stdlib.h>
 
+#define PLUGIN_NAME "Macro Extension Plugin"
+
 #define KMELEON_PLUGIN_EXPORTS
 #include "..\kmeleon_plugin.h"
 #include "..\utils.h"
@@ -46,22 +48,49 @@ void ExecuteMacro(int macro);
 void ExecuteCommand (int command, char *data);
 int GetConfigFiles(configFileType **configFiles);
 
-pluginFunctions pFunc = {
-   Init,
-   Create,
-   Config,
-   Quit,
-   DoMenu,
-   DoRebar,
-   DoAccel,
-   GetConfigFiles
-};
+long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2);
 
 kmeleonPlugin kPlugin = {
    KMEL_PLUGIN_VER,
-   "Macro Extension Plugin",
-   &pFunc
+   PLUGIN_NAME,
+   DoMessage
 };
+
+long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2)
+{
+   if (to[0] == '*' || stricmp(to, kPlugin.dllname) == 0) {
+      if (stricmp(subject, "Init") == 0) {
+         Init();
+      }
+      else if (stricmp(subject, "Create") == 0) {
+         Create((HWND)data1);
+      }
+      else if (stricmp(subject, "Config") == 0) {
+         Config((HWND)data1);
+      }
+      else if (stricmp(subject, "Quit") == 0) {
+         Quit();
+      }
+      else if (stricmp(subject, "DoMenu") == 0) {
+         DoMenu((HMENU)data1, (char *)data2);
+      }
+      else if (stricmp(subject, "DoRebar") == 0) {
+         DoRebar((HWND)data1);
+      }
+      else if (stricmp(subject, "DoAccel") == 0) {
+          *(int *)data2 = DoAccel((char *)data1);
+      }
+      else if (stricmp(subject, "GetConfigFiles") == 0) {
+         *(int *)data2 = GetConfigFiles((configFileType**)data1);
+      }
+      else return 0;
+
+      return 1;
+   }
+   return 0;
+}
+
+kmeleonFunctions *kFuncs;
 
 HINSTANCE ghInstance;
 WINDOWPLACEMENT wpOld;
@@ -111,9 +140,11 @@ BOOL APIENTRY DllMain(HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserv
 }
 
 int Init() {
+   kFuncs = kPlugin.kFuncs;
+
    char szMacroFile[MAX_PATH];
 
-   kPlugin.kf->GetPreference(PREF_STRING, "kmeleon.general.settingsDir", szMacroFile, "");
+   kFuncs->GetPreference(PREF_STRING, "kmeleon.general.settingsDir", szMacroFile, "");
 
    if (! *szMacroFile)
       return 0;
@@ -121,7 +152,7 @@ int Init() {
    strcat(szMacroFile, "macros.cfg");
 
    LoadMacros(szMacroFile);
-   ID_START = kPlugin.kf->GetCommandIDs(iMacroCount);
+   ID_START = kFuncs->GetCommandIDs(iMacroCount);
    ID_END = ID_START+iMacroCount-1;
    return 1;
 }
@@ -137,7 +168,7 @@ void Create(HWND hWndParent) {
 
 void Config(HWND hWndParent) {
    char cfgPath[MAX_PATH];
-   kPlugin.kf->GetPreference(PREF_STRING, _T("kmeleon.general.settingsDir"), cfgPath, "");
+   kFuncs->GetPreference(PREF_STRING, _T("kmeleon.general.settingsDir"), cfgPath, "");
    strcat(cfgPath, "macros.cfg");
    ShellExecute(NULL, NULL, "notepad.exe", cfgPath, NULL, SW_SHOW);
 }
@@ -147,7 +178,7 @@ configFileType g_configFiles[1];
 int GetConfigFiles(configFileType **configFiles)
 {
    char cfgPath[MAX_PATH];
-   kPlugin.kf->GetPreference(PREF_STRING, _T("kmeleon.general.settingsDir"), cfgPath, "");
+   kFuncs->GetPreference(PREF_STRING, _T("kmeleon.general.settingsDir"), cfgPath, "");
 
    strcpy(g_configFiles[0].file, cfgPath);
    strcat(g_configFiles[0].file, "macros.cfg");
@@ -298,9 +329,9 @@ void ExecuteMacro (int macro) {
 void ExecuteCommand (int command, char *data) {
 
    BEGIN_CMD_TEST
-      CMD(open)      kPlugin.kf->NavigateTo(data, OPEN_NORMAL);
-      CMD(opennew)   kPlugin.kf->NavigateTo(data, OPEN_NEW);
-      CMD(openbg)    kPlugin.kf->NavigateTo(data, OPEN_BACKGROUND);
+      CMD(open)      kFuncs->NavigateTo(data, OPEN_NORMAL);
+      CMD(opennew)   kFuncs->NavigateTo(data, OPEN_NEW);
+      CMD(openbg)    kFuncs->NavigateTo(data, OPEN_BACKGROUND);
       CMD(setpref)   {
          enum PREFTYPE preftype;
          char *c = strchr(data, ',');
@@ -334,20 +365,20 @@ void ExecuteCommand (int command, char *data) {
             if (data && *data) {
 
                if (preftype == PREF_STRING)
-                  kPlugin.kf->SetPreference(preftype, pref, data);
+                  kFuncs->SetPreference(preftype, pref, data);
 
                else if (preftype == PREF_INT) {
                   // note that SetPreference() expects third param
                   // to be a pointer in all cases, even for int and bool
                   int iData = atoi(data);
-                  kPlugin.kf->SetPreference(preftype, pref, &iData);
+                  kFuncs->SetPreference(preftype, pref, &iData);
                } 
 
                else {   // boolean
                   int bData = FALSE;
                   if (!strcmpi(data, "true"))
                      bData = TRUE;
-                  kPlugin.kf->SetPreference(preftype, pref, &bData);
+                  kFuncs->SetPreference(preftype, pref, &bData);
                }
             }
 
@@ -382,12 +413,12 @@ void ExecuteCommand (int command, char *data) {
          char sVal[256];
          int  iVal=0;
          if (preftype == PREF_STRING)
-            kPlugin.kf->GetPreference(preftype, pref, &sVal, NULL);
+            kFuncs->GetPreference(preftype, pref, &sVal, NULL);
          else {
-            kPlugin.kf->GetPreference(preftype, pref, &iVal, &iVal);
+            kFuncs->GetPreference(preftype, pref, &iVal, &iVal);
             if (preftype == PREF_BOOL) {
                iVal = !iVal;
-               kPlugin.kf->SetPreference(preftype, pref, &iVal, TRUE);
+               kFuncs->SetPreference(preftype, pref, &iVal, TRUE);
                return;
             }
          }
@@ -410,10 +441,10 @@ void ExecuteCommand (int command, char *data) {
                         *c = 0;
                         c++;
                      }
-                     kPlugin.kf->SetPreference(preftype, pref, param, TRUE);
+                     kFuncs->SetPreference(preftype, pref, param, TRUE);
                   }
                   else
-                     kPlugin.kf->SetPreference(preftype, pref, prefdata, TRUE);
+                     kFuncs->SetPreference(preftype, pref, prefdata, TRUE);
                   bPrefWritten = TRUE;
                }
             }
@@ -430,7 +461,7 @@ void ExecuteCommand (int command, char *data) {
                   }
                   else
                      dataVal = atoi(prefdata);
-                  kPlugin.kf->SetPreference(preftype, pref, &dataVal, TRUE);
+                  kFuncs->SetPreference(preftype, pref, &dataVal, TRUE);
                   bPrefWritten = TRUE;
                }
             }
@@ -438,10 +469,10 @@ void ExecuteCommand (int command, char *data) {
 
          if (!bPrefWritten) {
             if (preftype == PREF_STRING)
-               kPlugin.kf->SetPreference(preftype, pref, prefdata, TRUE);
+               kFuncs->SetPreference(preftype, pref, prefdata, TRUE);
             else if (preftype == PREF_INT) {
                int val = atoi(prefdata);
-               kPlugin.kf->SetPreference(preftype, pref, &val, TRUE);
+               kFuncs->SetPreference(preftype, pref, &val, TRUE);
             }
          }
 

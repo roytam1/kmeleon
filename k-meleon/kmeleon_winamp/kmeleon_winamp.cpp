@@ -22,6 +22,8 @@
 #include "resource.h"
 #include "frontend.h"
 
+#define PLUGIN_NAME "Winamp Plugin"
+
 #define KMELEON_PLUGIN_EXPORTS
 #include "../kmeleon_plugin.h"
 
@@ -45,21 +47,51 @@ void Config(HWND parent);
 void Quit();
 void DoMenu(HMENU menu, char *param);
 void DoRebar(HWND rebarWnd);
+int DrawBitmap(DRAWITEMSTRUCT *dis);
 
-pluginFunctions pFunc = {
-   Init,
-      Create,
-      Config,
-      Quit,
-      DoMenu,
-      DoRebar
-};
+long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2);
 
 kmeleonPlugin kPlugin = {
    KMEL_PLUGIN_VER,
-      "Winamp Plugin",
-      &pFunc
+   PLUGIN_NAME,
+   DoMessage
 };
+
+kmeleonFunctions *kFuncs;
+
+long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2)
+{
+   if (to[0] == '*' || stricmp(to, kPlugin.dllname) == 0) {
+      if (stricmp(subject, "Init") == 0) {
+         Init();
+      }
+      else if (stricmp(subject, "Create") == 0) {
+         Create((HWND)data1);
+      }
+      else if (stricmp(subject, "Config") == 0) {
+         Config((HWND)data1);
+      }
+      else if (stricmp(subject, "Quit") == 0) {
+         Quit();
+      }
+      else if (stricmp(subject, "DoMenu") == 0) {
+         DoMenu((HMENU)data1, (char *)data2);
+      }
+      else if (stricmp(subject, "DoRebar") == 0) {
+         DoRebar((HWND)data1);
+      }
+      else if (stricmp(subject, "DrawBitmap") == 0) {
+         if (data1 && data2) {
+            *(int *)data2 = DrawBitmap((DRAWITEMSTRUCT *)data1);
+         }
+      }
+      else return 0;
+
+      return 1;
+   }
+   return 0;
+}
+
 
 HIMAGELIST himlHot;
 
@@ -77,8 +109,10 @@ DWORD commandTable[numCommands] = {
 
 int Init(){
 
+   kFuncs = kPlugin.kFuncs;
+
    // allocate some ids
-   commandIDs = kPlugin.kf->GetCommandIDs(numCommands);
+   commandIDs = kFuncs->GetCommandIDs(numCommands);
 
    himlHot = ImageList_LoadImage(kPlugin.hDllInstance, MAKEINTRESOURCE(IDB_TOOLBAR_BUTTONS), 12, numCommands, CLR_DEFAULT, IMAGE_BITMAP, LR_DEFAULTCOLOR );
 
@@ -150,7 +184,7 @@ void DoRebar(HWND rebarWnd){
    }
 
    // Register the band name and child hwnd
-    kPlugin.kf->RegisterBand(hwndTB, "Winamp");
+    kFuncs->RegisterBand(hwndTB, "Winamp");
     
    //SetWindowText(hwndTB, "Winamp");
 
@@ -197,20 +231,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
    return CallWindowProc(KMeleonWndProc, hWnd, message, wParam, lParam);
 }
 
+int DrawBitmap(DRAWITEMSTRUCT *dis)
+{
+   short position = dis->itemID - commandIDs;
+   int top = (dis->rcItem.bottom - dis->rcItem.top - 12) / 2;
+   top += dis->rcItem.top;
+
+   ImageList_Draw(himlHot, position, dis->hDC, dis->rcItem.left, top, ILD_TRANSPARENT);
+   return 14;
+}
+
 // so it doesn't munge the function name
 extern "C" {
 
    KMELEON_PLUGIN kmeleonPlugin *GetKmeleonPlugin() {
       return &kPlugin;
-   }
-
-   KMELEON_PLUGIN int DrawBitmap(DRAWITEMSTRUCT *dis) {
-      short position = dis->itemID - commandIDs;
-      int top = (dis->rcItem.bottom - dis->rcItem.top - 12) / 2;
-      top += dis->rcItem.top;
-
-      ImageList_Draw(himlHot, position, dis->hDC, dis->rcItem.left, top, ILD_TRANSPARENT);
-      return 14;
    }
 
 }
