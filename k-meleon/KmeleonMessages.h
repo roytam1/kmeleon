@@ -16,5 +16,9 @@
 *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
-#define	WM_UPDATESESSIONHISTORY	WM_APP + 110
-#define WM_REFRESHTOOLBARITEM	WM_APP + 111
+#define  WM_UPDATESESSIONHISTORY WM_APP + 110
+#define  WM_REFRESHTOOLBARITEM   WM_APP + 111
+
+#define  ID_EDIT_FINDNEXT        WM_APP + 112
+#define  ID_EDIT_FINDPREV        WM_APP + 113
+#define  ID_FULLSCREEN           WM_APP + 114

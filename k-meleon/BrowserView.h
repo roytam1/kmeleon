@@ -153,6 +153,8 @@ protected:
 	afx_msg void OnSaveLinkAs();
 	afx_msg void OnSaveImageAs();
    afx_msg void OnShowFindDlg();
+   afx_msg void OnFindNext();
+   afx_msg void OnFindPrev();
    afx_msg LRESULT OnFindMsg(WPARAM wParam, LPARAM lParam);
    afx_msg void OnKmeleonHome();
    afx_msg void OnKmeleonForum();

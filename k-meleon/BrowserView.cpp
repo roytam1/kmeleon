@@ -107,6 +107,8 @@ BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
    ON_COMMAND(ID_LINK_KMELEON_HOME, OnKmeleonHome)
    ON_COMMAND(ID_LINK_KMELEON_FORUM, OnKmeleonForum)
    ON_COMMAND(ID_EDIT_FIND, OnShowFindDlg)
+   ON_COMMAND(ID_EDIT_FINDNEXT, OnFindNext)
+   ON_COMMAND(ID_EDIT_FINDPREV, OnFindPrev)
    ON_REGISTERED_MESSAGE(WM_FINDMSG, OnFindMsg) 
    ON_UPDATE_COMMAND_UI(ID_NAV_BACK, OnUpdateNavBack)
 	ON_UPDATE_COMMAND_UI(ID_NAV_FORWARD, OnUpdateNavForward)
@@ -745,8 +747,8 @@ CBrowserFrame* CBrowserView::CreateNewBrowserFrame(PRUint32 chromeMask,
 									PRInt32 x, PRInt32 y, 
 									PRInt32 cx, PRInt32 cy,
 									PRBool bShowWindow)
-{
-	CMfcEmbedApp *pApp = (CMfcEmbedApp *)AfxGetApp();
+{  
+   CMfcEmbedApp *pApp = (CMfcEmbedApp *)AfxGetApp();
 	if(!pApp)
 		return NULL;
 
@@ -928,7 +930,7 @@ void CBrowserView::OnShowFindDlg() {
 	CString csSearchStr;
 	PRBool bMatchCase = PR_FALSE;
 	PRBool bMatchWholeWord = PR_FALSE;
-	PRBool bWrapAround = PR_FALSE;
+	PRBool bWrapAround = PR_TRUE;
 	PRBool bSearchBackwards = PR_FALSE;
 
 	// See if we can get and initialize the dlg box with
@@ -948,6 +950,29 @@ void CBrowserView::OnShowFindDlg() {
 	m_pFindDlg = new CFindDialog(csSearchStr, bMatchCase, bMatchWholeWord, bWrapAround, bSearchBackwards, this);
 	m_pFindDlg->Create(TRUE, NULL, NULL, 0, this);
 
+}
+
+void CBrowserView::OnFindNext() {
+	nsCOMPtr<nsIWebBrowserFind> finder(do_GetInterface(mWebBrowser));
+
+   if(!finder) return;
+
+   PRBool didFind;
+	finder->FindNext(&didFind);
+}
+
+void CBrowserView::OnFindPrev() {
+	nsCOMPtr<nsIWebBrowserFind> finder(do_GetInterface(mWebBrowser));
+
+   if(!finder) return;
+
+   PRBool rv;
+
+   finder->GetFindBackwards(&rv);
+   finder->SetFindBackwards(rv^2);  // reverse the find direction
+	finder->FindNext(&rv);
+   finder->GetFindBackwards(&rv);
+   finder->SetFindBackwards(rv^2);  // reverse the find direction again
 }
 
 // This will be called whenever the user pushes the Find
