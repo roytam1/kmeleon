@@ -377,7 +377,9 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
    }
 
    LONG style = WS_OVERLAPPEDWINDOW;
-   if (preferences.bMaximized) style |= WS_MAXIMIZE;
+
+   if (preferences.bMaximized && (chromeMask & nsIWebBrowserChrome::CHROME_WINDOW_RESIZE))
+      style |= WS_MAXIMIZE;
 
    // this calls our modified create function, the winSize rect uses CreateWindowEx style x, y, cx, cy
    // rather than the MFC style left, top, right, bottom
