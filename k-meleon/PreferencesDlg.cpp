@@ -59,7 +59,7 @@ CPreferencesDlg::OnInitDialog(){
 
    AddItem(_T("General"), IDD_PREFERENCES_GENERAL);
    AddItem(_T("Display"), IDD_PREFERENCES_DISPLAY);
-   AddItem(_T("Configs"),   IDD_PREFERENCES_CONFIGS);
+   AddItem(_T("Configs"), IDD_PREFERENCES_CONFIGS);
    AddItem(_T("Proxy"),   IDD_PREFERENCES_PROXY);
    AddItem(_T("Advanced"),IDD_PREFERENCES_ADVANCED);
    AddItem(_T("Cache"),   IDD_PREFERENCES_CACHE);
@@ -447,14 +447,13 @@ void CPreferencePageConfigs::SaveFile(const char *filename)
       return;
    }
    CFile file;
-   if (file.Open(filename, CFile::typeBinary | CFile::modeWrite)){
+   if (file.Open(filename, CFile::modeCreate | CFile::modeWrite | CFile::typeBinary)){
       /* binary is so Write treats cr/lf as 2 characters */
       file.Write(m_fileText, m_fileText.GetLength());
+      file.Close();
    }
-   else{
+   else
       MessageBox("Error opening file");
-   }
-   file.Close();
 }
 
 void CPreferencePageConfigs::ShowFile(const char *filename){
