@@ -378,11 +378,5 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
          }
       }
    }
-   else if (message == WM_NCDESTROY){
-      // We can't do this in Quit() because the menu is destroyed by then
-      if (gBookmarksModified) {
-         Save(gBookmarkFile);
-      }
-   }
    return CallWindowProc(KMeleonWndProc, hWnd, message, wParam, lParam);
 }
