@@ -28,11 +28,14 @@
 
 #include "StdAfx.h"
 #include "Tooltips.h"
+#include "nsIContent.h"
 
 // The Object:
 
 NS_IMETHODIMP CTooltipTextProvider::GetNodeText(nsIDOMNode *aNode, PRUnichar **aText, PRBool *_retval)
 {
+
+/*
    *_retval = PR_FALSE;
 
    nsCOMPtr<nsIDOMNamedNodeMap> attributes;
@@ -66,6 +69,73 @@ NS_IMETHODIMP CTooltipTextProvider::GetNodeText(nsIDOMNode *aNode, PRUnichar **a
          return NS_OK;
       }
    }
+   else {
+      nsresult rv2 = NS_OK;
+      nsCOMPtr<nsIContent> content(do_QueryInterface(aNode, &rv2));
+      if(NS_SUCCEEDED(rv2)) {
+         nsCOMPtr<nsIAtom> atom;
+         content->GetTag(*getter_AddRefs(atom));
+         if (atom) {
+            nsAutoString tag;
+            atom->ToString(tag);
+
+            char buf[4096];
+            tag.ToCString(buf, tag.Length()+1);
+//            ::MessageBox(NULL, buf, NULL, MB_OK);
+         }      
+      }      
+   }
+
+   return NS_OK;
+*/
+
+   NS_ENSURE_ARG_POINTER(aNode);
+   NS_ENSURE_ARG_POINTER(aText);
+   
+   nsString titleText;
+   nsString altText;
+   
+   nsCOMPtr<nsIDOMNode> current ( aNode );
+   while (!titleText.Length() && current ) {
+      nsCOMPtr<nsIDOMElement> currElement ( do_QueryInterface(current) );
+      if ( currElement ) {
+
+         // first try the normal title attribute...
+         currElement->GetAttribute(NS_LITERAL_STRING("title"), titleText);
+
+         // that didn't work, try it in the XLink namespace         
+         if (!titleText.Length())
+            currElement->GetAttributeNS(NS_LITERAL_STRING("http://www.w3.org/1999/xlink"), NS_LITERAL_STRING("title"), titleText);
+
+         // it's possible that the "alt" definition will be found
+         // before "title"...if this happens, we don't need to keep
+         // checking for "alt" tags
+         if ( !titleText.Length() && !altText.Length() ) {
+            // no dice, check for an "alt" tag
+            currElement->GetAttribute(NS_LITERAL_STRING("alt"), altText);
+            
+            // still nothing, look for an "alt" tag in the XLink namespace
+            if (!altText.Length())
+               currElement->GetAttributeNS(NS_LITERAL_STRING("http://www.w3.org/1999/xlink"), NS_LITERAL_STRING("title"), altText);
+         }
+      }
+      
+      // title not found, walk up to the parent and keep trying
+      if ( titleText.Length() == 0 ) {
+         nsCOMPtr<nsIDOMNode> temp ( current );
+         temp->GetParentNode(getter_AddRefs(current));
+      }
+   } // while not found
+
+   if (titleText.Length())
+      *aText = ToNewUnicode(titleText);
+   else if (altText.Length())
+      *aText = ToNewUnicode(altText);
+   else
+      *aText = NULL;
+
+   *_retval = *aText ? PR_TRUE : PR_FALSE;
+
    return NS_OK;
 }
 
