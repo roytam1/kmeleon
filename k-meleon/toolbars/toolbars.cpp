@@ -329,8 +329,10 @@ void DoRebar(HWND rebarWnd) {
    s_toolbar   *toolbar = toolbar_head;
    s_button    *button;
    TBBUTTON     *buttons = NULL;
+   int sep;
 
    while (toolbar) {
+      sep = 0;
       if (toolbar->iButtonCount == 0) continue;
 
       // Create the toolbar control to be added.
@@ -360,6 +362,7 @@ void DoRebar(HWND rebarWnd) {
             buttons[i].iBitmap = 0;
             buttons[i].idCommand = 0;
             buttons[i].iString = 0;
+	    sep++;
 
             buttons[i].dwData = 0;
             buttons[i].fsState = TBSTATE_ENABLED;
@@ -421,11 +424,11 @@ void DoRebar(HWND rebarWnd) {
       rbBand.fStyle     = RBBS_FIXEDBMP;
       rbBand.lpText     = NULL;
       rbBand.hwndChild  = toolbar->hWnd;
-      rbBand.cxMinChild = LOWORD(dwBtnSize) * toolbar->iButtonCount;
+      rbBand.cxMinChild = LOWORD(dwBtnSize) * (toolbar->iButtonCount-sep) + 8*sep;
       rbBand.cyMinChild = HIWORD(dwBtnSize);
       rbBand.cyIntegral = 1;
       rbBand.cyMaxChild = rbBand.cyMinChild;
-      rbBand.cxIdeal    = LOWORD(dwBtnSize) * toolbar->iButtonCount;
+      rbBand.cxIdeal    = LOWORD(dwBtnSize) * (toolbar->iButtonCount-sep) + 8*sep;
       rbBand.cx         = rbBand.cxIdeal;
 
       // Add the band that has the toolbar.
@@ -1086,6 +1089,8 @@ int IsButtonEnabled(char *sParams) {
    // Get BUTTON_ID param   
    p = SkipWhiteSpace(c+1);
    int iButton = atoi(p);
+   if (!iButton)
+      iButton = kPlugin.kFuncs->GetID(p);
    
    
    
@@ -1165,6 +1170,8 @@ int  IsButtonChecked(char *sParams) {
    // Get BUTTON_ID param   
    p = SkipWhiteSpace(c+1);
    int iButton = atoi(p);
+   if (!iButton)
+      iButton = kPlugin.kFuncs->GetID(p);
    
    
    
