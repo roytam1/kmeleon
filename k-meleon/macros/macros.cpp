@@ -159,7 +159,16 @@ enum commands {
    setclipboard,
    macros,
    pluginmsg,
-   pluginmsgex
+   pluginmsgex,
+   gensub,
+   gsub,
+   index,
+   length,
+   sub,
+   substr,
+   basename,
+   dirname,
+   hostname
 };
 
 
@@ -308,6 +317,15 @@ int FindCommand(char *cmd) {
       CMD_TEST(macros)
       CMD_TEST(pluginmsg)
       CMD_TEST(pluginmsgex)
+      CMD_TEST(gensub)
+      CMD_TEST(gsub)
+      CMD_TEST(index)
+      CMD_TEST(length)
+      CMD_TEST(sub)
+      CMD_TEST(substr)
+      CMD_TEST(basename)
+      CMD_TEST(dirname)
+      CMD_TEST(hostname)
 
    return cmdVal;
 }
@@ -496,6 +514,41 @@ PromptDlgProc( HWND hwnd,
     return TRUE;
 }
 
+
+
+std::string GenSub(std::string r, std::string s, std::string h, std::string t)
+{
+  std::string result = "";
+  std::string hd, tl = t;
+  int match = 0;
+
+  if (r.length() < 1)
+    return t;
+
+  int exch = -1;
+  if (h[0] != 'g' && h[0]!='G')
+    exch = atoi( (char *)h.c_str() );
+
+  while (tl.length() > 0) {
+    int i = tl.find(r);
+    if (i != NOTFOUND) {
+      match++;
+
+      hd = tl.substr(0,i);
+      tl = tl.substr(i+r.length());
+      
+      if (match == exch || exch < 0)
+	result = result + hd + s;
+      else
+	result = result + hd + r;
+    }
+    else {
+      result = result + tl;
+      break;
+    }
+  }
+  return result;
+}
 
 std::string ExecuteCommand (HWND hWnd, int command, char *data) {
    const int nmaxparams = 5;  // maximum num of function parameters
@@ -922,6 +975,201 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
             return buffer;
          }
          return "";
+      }
+
+      /*
+         gensub( r, s, h, t );
+
+	 search the target string t for matches of the string r.  If h
+	 is a string beginning with g or G, then replace all matches
+	 of r with s.  Otherwise, h is a number indicating which match
+	 of r to replace.  The modified string is returned as the
+	 result of the function.
+      */
+
+      CMD(gensub) {
+         if (nparam != 4) {  // substr( $0, $1, $2, $3 )
+            parseError(WRONGARGS, "gensub", data, 4, nparam);
+            return "";
+         }
+
+	 return GenSub(params[0], params[1], params[2], params[3]);
+      }
+
+      /*
+         gsub( r, s, t );
+
+	 for each substring matching the string r in the string t,
+	 substitute the string s, and return the number of
+	 substitutions.
+      */
+
+      CMD(gsub) {
+         if (nparam != 3) {  // substr( $0, $1, $2 )
+            parseError(WRONGARGS, "gsub", data, 3, nparam);
+            return "";
+         }
+
+	 return GenSub(params[0], params[1], "G", params[2]);
+      }
+
+      /*
+         index( s, t );
+
+	 returns the index of the string t in the string s, or -1 if t
+	 is not present.
+      */
+
+      CMD(index) {
+         if (nparam != 2) {  // substr( $0, $1 )
+            parseError(WRONGARGS, "index", data, 2, nparam);
+            return "";
+         }
+	 int i = params[0].find( params[1] );
+	 if (i == NOTFOUND)
+	   return "-1";
+	 else {
+	   char buffer[12];
+	   _itoa(i,buffer,10);
+	   return buffer;
+	 }
+      }
+
+      /*
+         length( s );
+
+	 returns the length of the string s.
+      */
+
+      CMD(length) {
+         if (nparam != 1) {  // substr( $0 )
+            parseError(WRONGARGS, "length", data, 1, nparam);
+            return "";
+         }
+	 char buffer[12];
+	 _itoa(params[0].length(),buffer,10);
+	 return buffer;
+      }
+
+      /*
+         sub( t, s, t );
+
+	 just like gsub(), but only the first matching substring is
+	 replaced.
+      */
+
+      CMD(sub) {
+         if (nparam != 3) {  // substr( $0, $1, $2 )
+            parseError(WRONGARGS, "sub", data, 3, nparam);
+            return "";
+         }
+
+	 return GenSub(params[0], params[1], "1", params[2]);
+      }
+
+      /*
+         substr( s, i [, n] );
+
+	 returns the at most n-character substring of s starting at i.
+	 If n is omitted, the rest of s is used.
+      */
+
+      CMD(substr) {
+         if (nparam != 2 && nparam != 3) {  // substr( $0, $1 [, $2] )
+            parseError(WRONGARGS, "substr", data, 3, nparam);
+            return "";
+         }
+	 if (nparam == 2)
+	   return params[0].substr( atoi( (char *)params[1].c_str() ) );
+	 else
+	   return params[0].substr( atoi( (char *)params[1].c_str() ),
+				    atoi( (char *)params[2].c_str() ) );
+      }
+
+      /*
+         basename( NAME [, SUFFIX] );
+
+	 Returns NAME with any leading directory components removed.
+	 If specified, also remove a trailing SUFFIX.
+      */
+
+      CMD(basename) {
+         if (nparam != 1 && nparam != 2) {  // substr( $0, [, $1] )
+            parseError(WRONGARGS, "basename", data, 2, nparam);
+            return "";
+         }
+	 int i, j;
+
+	 if (nparam == 2) {
+	   i = params[0].rfind( params[1] );
+	   if (i != NOTFOUND )
+	     params[0] = params[0].substr(0,i);
+	 }
+	 
+	 i = params[0].rfind( "/" );
+	 j = params[0].rfind( "\\" );
+	 
+	 if (i == NOTFOUND)
+	   i = j;
+	 if (i != NOTFOUND && j != NOTFOUND && i<j)
+	   i = j;
+
+	 if (i != NOTFOUND)
+	   params[0] = params[0].substr(i+1);
+
+	 return params[0];
+      }
+
+      /*
+         dirname( NAME );
+
+	 Returns NAME with its trailing /component removed; if NAME
+	 contains no /'s, output `.' (meaning the current directory).
+      */
+
+      CMD(dirname) {
+         if (nparam != 1) {  // substr( $0 )
+            parseError(WRONGARGS, "dirname", data, 1, nparam);
+            return "";
+         }
+	 int i, j;
+
+	 i = params[0].rfind( "/" );
+	 j = params[0].rfind( "\\" );
+
+	 if (i == NOTFOUND)
+	   i = j;
+	 if (i != NOTFOUND && j != NOTFOUND && i<j)
+	   i = j;
+
+	 if (i != NOTFOUND)
+	   params[0] = params[0].substr(0, i);
+
+	 return params[0];
+      }
+
+      /*
+         hostname( URL );
+
+	 Returns hostname of given URL.
+      */
+
+      CMD(hostname) {
+         if (nparam != 1) {  // substr( $0 )
+            parseError(WRONGARGS, "hostname", data, 1, nparam);
+            return "";
+         }
+	 int i;
+
+	 i = params[0].find( "://" );
+	 if (i != NOTFOUND)
+	   params[0] = params[0].substr(i+3);
+
+	 i = params[0].find( "/" );
+	 if (i != NOTFOUND)
+	   params[0] = params[0].substr(0,i);
+
+	 return params[0];
       }
 
    return "";
