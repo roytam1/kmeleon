@@ -71,8 +71,6 @@ CPreferencesDlg::OnInitDialog(){
 }
 
 CPreferencesDlg::~CPreferencesDlg(){
-  if (page)
-    delete page;
 }
 
 int CPreferencesDlg::DoModal(){
@@ -89,7 +87,11 @@ int CPreferencesDlg::DoModal(){
 }
 
 void CPreferencesDlg::OnOK() {
-   page->UpdateData();
+   if (page) {
+      page->UpdateData();
+      delete page;
+      page = NULL;
+   }
    CDialog::OnOK();
 }
 
@@ -125,15 +127,15 @@ void CPreferencesDlg::ShowPage(UINT idd){
     page->UpdateData();
     delete page;
   }
-  if (idd == IDD_PREFERENCES_PLUGINS){
+
+  if (idd == IDD_PREFERENCES_PLUGINS)
     page = new CPreferencePagePlugins;
-  }
-  else if (idd == IDD_PREFERENCES_MENUS){
+
+  else if (idd == IDD_PREFERENCES_MENUS)
      page = new CPreferencePageMenus;
-  }
-  else{
+
+  else
     page = new CPreferencePage;
-  }
   
   page->idd = idd;
 
@@ -380,12 +382,10 @@ BOOL CPreferencePageMenus::OnInitDialog(){
 
 CPreferencePageMenus::~CPreferencePageMenus() {
    if (SendDlgItemMessage(IDC_EDIT1, EM_GETMODIFY)){
-      if (m_nCurrentFile == 0){
+      if (m_nCurrentFile == 0)
          SaveFile("menus.cfg");
-      }
-      else if (m_nCurrentFile == 1){
+      else if (m_nCurrentFile == 1)
          SaveFile("accel.cfg");
-      }
    }
 }
 
