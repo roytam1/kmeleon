@@ -453,7 +453,7 @@ public:
 		 if(!instr) {
 			if(strData.at(pos) == ',') {
             if (out)
-				  *out = strVal(strData.substr(lpos, pos-lpos));
+				  *out = strVal(strData.substr(lpos, pos-lpos), -1);
 			   lpos = pos+1;
 			   lastchar = ',';
             return 1;
@@ -462,7 +462,7 @@ public:
 		 lastchar = strData.at(pos);
    }
    if (out)
-		 *out = strVal(strData.substr(lpos));
+		 *out = strVal(strData.substr(lpos), -1);
    return 1;
 }
 };
