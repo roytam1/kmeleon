@@ -32,8 +32,10 @@ public:
    BOOL GetVisibility(int index);
    void SetVisibility(int index, BOOL visibility);
 
+public:
    HMENU m_menu;
-protected:
+
+private:
    int FindByChild (HWND hWnd);
    int FindByName  (char *name);
    int FindByIndex (int index);
@@ -43,6 +45,6 @@ protected:
       char *name;
       HWND hWnd;
       BOOL visibility;
-   } **tbIndex;
-   int tbCount;
+   } **m_index;
+   int m_iCount;
 };
