@@ -59,7 +59,7 @@ typedef struct {
    // gets the preference, stores it in ret
    void (*GetPreference)(enum PREFTYPE type, char *preference, void *ret, void *defaultVal);
    // sets the preference
-   void (*SetPreference)(enum PREFTYPE type, char *preference, void *val);
+   void (*SetPreference)(enum PREFTYPE type, char *preference, void *val, BOOL update = FALSE);
 
    int (*GetMozillaSessionHistory)(char **titles[], int *count, int *index);
 	void (*GotoHistoryIndex)(UINT index);
