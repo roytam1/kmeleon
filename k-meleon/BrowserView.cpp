@@ -812,8 +812,14 @@ NS_IMETHODIMP CBrowserView::URISaveAs(nsIURI* aURI, bool bDocument) {
    CFileDialog cf(FALSE, extension, (const char *)pFileName, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
 					lpszFilter, this);
 
+   cf.m_ofn.lpstrInitialDir = theApp.preferences.saveDir;
+
    if(cf.DoModal() == IDOK) {
 		CString strFullPath = cf.GetPathName();            // Will be like: c:\tmp\junk.htm
+      theApp.preferences.saveDir = cf.GetPathName();
+      int idxSlash;
+      idxSlash = theApp.preferences.saveDir.ReverseFind('\\');
+      theApp.preferences.saveDir = theApp.preferences.saveDir.Mid(0, idxSlash+1);
 		char *pStrFullPath = strFullPath.GetBuffer(0);     // Get char * for later use
 		
 		CString strDataPath; 
@@ -1413,11 +1419,3 @@ int CBrowserView::GetCurrentURI(char *sURI) {
       strcpy(sURI, uriString.get());
    return len;
 }
-/*
-int CheckStatusBar {
-   HWND hStatusBar = mpBrowserFrame->FindWindow(NULL, STATUSCLASSNAME, NULL);
-   if (hStatusBar) {
-      bStatusBarVisible = IsWindowVisible(hStatusBar);
-   }
-}
-*/
