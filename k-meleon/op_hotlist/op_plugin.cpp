@@ -130,6 +130,64 @@ BOOL BrowseForHotlist(char *file)
    }
 }
 
+// HotlistFile Dialog function
+BOOL CALLBACK HotlistFileDlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+   static int ret;
+   
+   switch (uMsg) {
+      case WM_INITDIALOG:
+      {
+         ret = 0;
+
+         HDC hdcScreen = CreateDC("DISPLAY", NULL, NULL, NULL); 
+         int nHSize = GetDeviceCaps(hdcScreen, HORZSIZE);
+         int nVSize = GetDeviceCaps(hdcScreen, VERTSIZE);
+
+         WINDOWPLACEMENT wp;
+         wp.length = sizeof (WINDOWPLACEMENT);
+         GetWindowPlacement(hWnd, &wp);
+
+         int width = wp.rcNormalPosition.right - wp.rcNormalPosition.left;
+         int height = wp.rcNormalPosition.bottom - wp.rcNormalPosition.top;
+
+         wp.showCmd = SW_RESTORE;
+         wp.rcNormalPosition.left = nHSize;
+         wp.rcNormalPosition.top = nVSize;
+         wp.rcNormalPosition.right = nHSize + width;
+         wp.rcNormalPosition.bottom = nVSize + height;
+         SetWindowPlacement(hWnd, &wp);
+
+         SendDlgItemMessage(hWnd, IDC_REBARENABLED, BM_SETCHECK, bRebarEnabled, 0);
+         break;
+      }
+      case WM_COMMAND:
+         switch(HIWORD(wParam)) {
+            case BN_CLICKED:
+               switch (LOWORD(wParam)) {
+                  case ID_CREATE:
+                     ret = ID_CREATE;
+                     SendMessage(hWnd, WM_CLOSE, 0, 0);
+                     break;
+                  case ID_SEARCH:
+                     ret = ID_SEARCH;
+                     SendMessage(hWnd, WM_CLOSE, 0, 0);
+                     break;
+                  case IDCANCEL:
+                     ret = IDCANCEL;
+                     SendMessage(hWnd, WM_CLOSE, 0, 0);
+                     break;
+               }
+         }
+         break;
+      case WM_CLOSE:
+         EndDialog(hWnd, ret);
+         break;
+      default:
+         return FALSE;
+   }
+   return TRUE;
+}
+
 void getHotlistFile() {
    FILE *bmFile;
    char tmp[2048];
@@ -142,18 +200,17 @@ void getHotlistFile() {
    }
    
    bmFile = fopen(gHotlistFile, "r");
-   while (!bmFile) {
+   while (!bmFile && !bIgnore) {
    retry:
       kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_SETTINGS_DIR, gHotlistFile, (char*)"");
       strcat(gHotlistFile, HOTLIST_DEFAULT_FILENAME);
       
-      strcpy(tmp, "Would you like to set your hotlist file to the default value?\n\n'");
-      strcat(tmp, gHotlistFile);
-      strcat(tmp, "'\n");
-      
-      while (!bmFile && 
-             MessageBox(NULL, tmp, PLUGIN_NAME, 
-                        MB_ICONQUESTION | MB_YESNO) == IDNO) {
+      while (!bmFile && !bIgnore) {
+         int ret = DialogBoxParam(kPlugin.hDllInstance ,MAKEINTRESOURCE(IDD_INSTALL), NULL, (DLGPROC)HotlistFileDlgProc, 0);
+         if (ret == IDCANCEL || ret == ID_CREATE) {
+            bIgnore = (ret == IDCANCEL);
+            break;
+         }
          if (!BrowseForHotlist(gHotlistFile)) {
             goto retry;
          }
@@ -162,10 +219,13 @@ void getHotlistFile() {
             strcpy(tmp, "File not found:\n'");
             strcat(tmp, gHotlistFile);
             strcat(tmp, "'\n\nCreate it?\n");
+            if (MessageBox(NULL, tmp, PLUGIN_NAME, 
+                           MB_ICONQUESTION | MB_YESNO) == IDYES)
+               break;
          }
       }
       
-      if (!bmFile) {
+      if (!bmFile && !bIgnore) {
          bmFile = fopen(gHotlistFile, "wb");
          if (bmFile) {
             fprintf(bmFile, 
@@ -188,7 +248,8 @@ void getHotlistFile() {
    if (bmFile)
       fclose(bmFile);
    
-   kPlugin.kFuncs->SetPreference(PREF_STRING, PREFERENCE_HOTLIST_FILE, gHotlistFile);
+   if (!bIgnore)
+      kPlugin.kFuncs->SetPreference(PREF_STRING, PREFERENCE_HOTLIST_FILE, gHotlistFile);
 }
 
 int Init(){
@@ -219,13 +280,15 @@ int Init(){
    
    getHotlistFile();
    bEmpty = true;
-   
-   gImagelist = ImageList_Create(16, 15, ILC_MASK, 4, 4);
-   HBITMAP bitmap = LoadBitmap(kPlugin.hDllInstance, MAKEINTRESOURCE(IDB_IMAGES));
-   if (gImagelist && bitmap)
-      ImageList_AddMasked(gImagelist, bitmap, RGB(192, 192, 192));
-   if (bitmap)
-      DeleteObject(bitmap);
+
+   if (!bIgnore) {
+      gImagelist = ImageList_Create(16, 15, ILC_MASK, 4, 4);
+      HBITMAP bitmap = LoadBitmap(kPlugin.hDllInstance, MAKEINTRESOURCE(IDB_IMAGES));
+      if (gImagelist && bitmap)
+         ImageList_AddMasked(gImagelist, bitmap, RGB(192, 192, 192));
+      if (bitmap)
+         DeleteObject(bitmap);
+   }
    
    return true;
 }
@@ -234,24 +297,105 @@ void Create(HWND parent){
    KMeleonWndProc = (void *) GetWindowLong(parent, GWL_WNDPROC);
    SetWindowLong(parent, GWL_WNDPROC, (LONG)WndProc);
 
-   pNewTB = create_TB(parent);
+   if (!bIgnore)
+      pNewTB = create_TB(parent);
 }
 
 // Preferences Dialog function
-BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+BOOL CALLBACK PrefDlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+   int nTmp;
+   char szTmp[PATH_MAX+1];
    
    switch (uMsg) {
       case WM_INITDIALOG:
-         SendDlgItemMessage(hWnd, IDC_REBARENABLED, BM_SETCHECK, bRebarEnabled, 0);
+
+         kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_HOTLIST_FILE, szTmp, gHotlistFile);
+         SetDlgItemText(hWnd, IDC_HOTLIST_FILE, szTmp);
+
+         kPlugin.kFuncs->GetPreference(PREF_INT, PREFERENCE_MENU_MAXLEN, &nTmp, &gMaxMenuLength);
+         if (nTmp < 1) nTmp = 20;
+         SetDlgItemInt(hWnd, IDC_MAX_MENU_LENGTH, nTmp, TRUE);
+
+         kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_MENU_AUTOLEN, &nTmp, &gMenuAutoDetect);
+         SendDlgItemMessage(hWnd, IDC_MENU_AUTODETECT, BM_SETCHECK, nTmp, 0);
+         if (nTmp) {
+            EnableWindow(GetDlgItem(hWnd, IDC_MAX_MENU_LENGTH), false);
+         }
+
+         kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_REBAR_ENABLED, &nTmp, &bRebarEnabled);
+         SendDlgItemMessage(hWnd, IDC_REBARENABLED, BM_SETCHECK, nTmp, 0);
+         if (!nTmp) {
+            EnableWindow(GetDlgItem(hWnd, IDC_MIN_TB_SIZE), false);
+            EnableWindow(GetDlgItem(hWnd, IDC_MAX_TB_SIZE), false);
+         }
+
+         kPlugin.kFuncs->GetPreference(PREF_INT, PREFERENCE_BUTTON_MINWIDTH, &nTmp, &nButtonMinWidth);
+         SetDlgItemInt(hWnd, IDC_MIN_TB_SIZE, nButtonMinWidth, TRUE);
+
+         kPlugin.kFuncs->GetPreference(PREF_INT, PREFERENCE_BUTTON_MAXWIDTH, &nTmp, &nButtonMaxWidth);
+         SetDlgItemInt(hWnd, IDC_MAX_TB_SIZE, nButtonMaxWidth, TRUE);
+         
          break;
       case WM_COMMAND:
          switch(HIWORD(wParam)) {
             case BN_CLICKED:
                switch (LOWORD(wParam)) {
+                  case IDC_MENU_AUTODETECT:
+                     if (SendDlgItemMessage(hWnd, IDC_MENU_AUTODETECT, BM_GETCHECK, 0, 0)) {
+                        EnableWindow(GetDlgItem(hWnd, IDC_MAX_MENU_LENGTH), false);
+                     }
+                     else {
+                        EnableWindow(GetDlgItem(hWnd, IDC_MAX_MENU_LENGTH), true);
+                     }
+                     break;
+                  case IDC_REBARENABLED:
+                     if (SendDlgItemMessage(hWnd, IDC_REBARENABLED, BM_GETCHECK, 0, 0)) {
+                        EnableWindow(GetDlgItem(hWnd, IDC_MIN_TB_SIZE), true);
+                        EnableWindow(GetDlgItem(hWnd, IDC_MAX_TB_SIZE), true);
+                     }
+                     else {
+                        EnableWindow(GetDlgItem(hWnd, IDC_MIN_TB_SIZE), false);
+                        EnableWindow(GetDlgItem(hWnd, IDC_MAX_TB_SIZE), false);
+                     }
+                     break;
+                  case IDC_BROWSE:
+                  {
+                     HWND hBookmarksFileWnd = GetDlgItem(hWnd, IDC_HOTLIST_FILE);
+                     GetWindowText(hBookmarksFileWnd, szTmp, MAX_PATH);
+                     nTmp = strlen(szTmp);
+                     while (--nTmp >= 0) {
+                        if (szTmp[nTmp] == '/')
+                           szTmp[nTmp] = '\\';
+                     }
+                     if (BrowseForHotlist(szTmp)) {
+                        SetWindowText(hBookmarksFileWnd, szTmp);
+                        SetFocus(hBookmarksFileWnd);
+                     }
+                  }
+                  break;
                   case IDOK:
                   {
-                     int bTmpRebarEnabled = SendDlgItemMessage(hWnd, IDC_REBARENABLED, BM_GETCHECK, 0, 0);
-                     kPlugin.kFuncs->SetPreference(PREF_BOOL, PREFERENCE_REBAR_ENABLED, &bTmpRebarEnabled);
+                     GetDlgItemText(hWnd, IDC_HOTLIST_FILE, szTmp, MAX_PATH);
+                     kPlugin.kFuncs->SetPreference(PREF_STRING, PREFERENCE_HOTLIST_FILE, szTmp);
+
+                     nTmp = GetDlgItemInt(hWnd, IDC_MAX_MENU_LENGTH, NULL, TRUE);
+                     if (nTmp < 1) nTmp = 20;
+                     kPlugin.kFuncs->SetPreference(PREF_INT, PREFERENCE_MENU_MAXLEN, &nTmp);
+
+                     nTmp = SendDlgItemMessage(hWnd, IDC_MENU_AUTODETECT, BM_GETCHECK, 0, 0);
+                     kPlugin.kFuncs->SetPreference(PREF_BOOL, PREFERENCE_MENU_AUTOLEN, &nTmp);
+
+                     nTmp = SendDlgItemMessage(hWnd, IDC_REBARENABLED, BM_GETCHECK, 0, 0);
+                     kPlugin.kFuncs->SetPreference(PREF_BOOL, PREFERENCE_REBAR_ENABLED, &nTmp);
+
+                     nTmp = GetDlgItemInt(hWnd, IDC_MIN_TB_SIZE, NULL, TRUE);
+                     if (nTmp < 1) nTmp = 0;
+                     kPlugin.kFuncs->SetPreference(PREF_INT, PREFERENCE_BUTTON_MINWIDTH, &nTmp);
+
+                     nTmp = GetDlgItemInt(hWnd, IDC_MAX_TB_SIZE, NULL, TRUE);
+                     kPlugin.kFuncs->SetPreference(PREF_INT, PREFERENCE_BUTTON_MAXWIDTH, &nTmp);
+
+                     // fall through...
                   }
                   case IDCANCEL:
                      SendMessage(hWnd, WM_CLOSE, 0, 0);
@@ -268,7 +412,7 @@ BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 }
 
 void Config(HWND hWndParent){
-   DialogBoxParam(kPlugin.hDllInstance ,MAKEINTRESOURCE(IDD_CONFIG), hWndParent, (DLGPROC)DlgProc, 0);
+   DialogBoxParam(kPlugin.hDllInstance ,MAKEINTRESOURCE(IDD_CONFIG), hWndParent, (DLGPROC)PrefDlgProc, 0);
 }
 
 void Quit(){
@@ -298,13 +442,16 @@ void DoMenu(HMENU menu, char *param){
       }
       if (stricmp(param, "Config") == 0)
          command = nConfigCommand;
-      if (command && string && *string) {
+      if (command && string && *string && (!bIgnore || command == nConfigCommand)) {
          AppendMenu(menu, MF_STRING, command, string);
          return;
       }
       return;
    }
-   
+
+   if (bIgnore)
+      return;
+
    gMenuHotlist = menu;
    if (gMenuHotlist)
       nFirstHotlistPosition = GetMenuItemCount(gMenuHotlist);
@@ -348,6 +495,8 @@ int DoAccel(char *param) {
 }
 
 void DoRebar(HWND rebarWnd) {
+   if (bIgnore)
+      return;
    
    if (bRebarEnabled) {
       

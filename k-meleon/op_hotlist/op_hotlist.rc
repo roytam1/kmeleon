@@ -7,19 +7,43 @@
 #define IDC_STATIC (-1)
 #endif
 
-IDD_CONFIG DIALOG DISCARDABLE  0, 0, 166, 95
+IDD_INSTALL DIALOG DISCARDABLE  0, 0, 185, 75
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Opera Hotlist File"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "Create",ID_CREATE,7,53,50,14
+    PUSHBUTTON      "Search",ID_SEARCH,68,53,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,128,53,50,14
+    LTEXT           "The specified Hotlist file was not found.", IDC_STATIC,7,7,171,18
+    LTEXT           "You can either let K-Meleon create a new one,", IDC_STATIC,7,20,171,18
+    LTEXT           "or you could search for your hotlist file manually.", IDC_STATIC,7,29,171,18
+END
+
+IDD_CONFIG DIALOGEX 0, 0, 166, 166
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Opera Hotlist Settings"
 FONT 8, "MS Sans Serif"
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,7,73,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,108,73,50,14
-    GROUPBOX        "Options",IDC_STATIC,7,7,152,61
+    GROUPBOX        "Options",IDC_STATIC,7,7,152,130
+    LTEXT           "Hotlist File:",IDC_STATIC,20,20,51,8
+    EDITTEXT        IDC_HOTLIST_FILE,20,30,114,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",IDC_BROWSE,133,30,15,12,BS_FLAT,WS_EX_STATICEDGE
+    LTEXT           "Menu Spillover Length:",IDC_STATIC,20,50,75,10,
+                    SS_CENTERIMAGE
+    EDITTEXT        IDC_MAX_MENU_LENGTH,20,60,25,12,ES_AUTOHSCROLL
+    CONTROL         "Height of Screen",IDC_MENU_AUTODETECT,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,54,62,69,10
     CONTROL         "Enable Hotlist Toolbar",IDC_REBARENABLED,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,25,24,106,11
-    LTEXT           "You must restart K-Meleon for any changes to take effect.",
-                    IDC_STATIC,27,42,125,18
+                    BS_AUTOCHECKBOX | WS_TABSTOP,20,88,128,11
+    LTEXT           "Min Toolbar Button Size:",IDC_STATIC,20,104,80,12,
+                    SS_CENTERIMAGE
+    EDITTEXT        IDC_MIN_TB_SIZE,105,105,25,12,ES_AUTOHSCROLL
+    LTEXT           "Max Toolbar Button Size:",IDC_STATIC,20,118,80,12,
+                    SS_CENTERIMAGE
+    EDITTEXT        IDC_MAX_TB_SIZE,105,119,25,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,55,145,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,109,145,50,14
 END
-
 
 IDB_IMAGES              BITMAP  DISCARDABLE     "bitmap1.bmp"
