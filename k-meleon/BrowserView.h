@@ -91,18 +91,22 @@ public:
 	void SetCtxMenuImageSrc(nsAutoString& strImgSrc);
 	nsAutoString mCtxMenuImgSrc;
 
-  void StartPanning();
-  void StopPanning();
-  BOOL m_panning;
-  CPoint m_panningPoint;
+   void StartPanning();
+   void StopPanning();
+   BOOL m_panning;
+   CPoint m_panningPoint;
   
 	void RefreshToolBarItem(WPARAM ItemID, LPARAM unused);
+
+   char * GetTempFile();
+   void DeleteTempFiles();
 
 
 protected:
 	BOOL m_refreshBackButton;
 	BOOL m_refreshForwardButton; 
-  
+   char **m_tempFileList;
+   int m_tempFileCount;
   
   // Overrides
 	// ClassWizard generated virtual function overrides
@@ -118,12 +122,12 @@ protected:
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	afx_msg void OnDestroy();
 	afx_msg void OnSize( UINT, int, int );
-  afx_msg void OnTimer(UINT nIDEvent);
-  afx_msg int OnMouseActivate(CWnd* pDesktopWnd, UINT nHitTest, UINT message);
-  afx_msg void OnDropFiles( HDROP );
+   afx_msg void OnTimer(UINT nIDEvent);
+   afx_msg int OnMouseActivate(CWnd* pDesktopWnd, UINT nHitTest, UINT message);
+   afx_msg void OnDropFiles( HDROP );
 	afx_msg void OnUrlSelectedInUrlBar();
 	afx_msg void OnNewUrlEnteredInUrlBar();
-  afx_msg void OnSelectUrl();
+   afx_msg void OnSelectUrl();
 	afx_msg void OnFileOpen();
 	afx_msg void OnFileSaveAs();
 	afx_msg void OnViewSource();
@@ -144,8 +148,8 @@ protected:
 	afx_msg void OnViewImageInNewWindow();
 	afx_msg void OnSaveLinkAs();
 	afx_msg void OnSaveImageAs();
-  afx_msg void OnKmeleonHome();
-  afx_msg void OnKmeleonForum();
+   afx_msg void OnKmeleonHome();
+   afx_msg void OnKmeleonForum();
 	afx_msg void OnUpdateNavBack(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateNavForward(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateNavStop(CCmdUI* pCmdUI);

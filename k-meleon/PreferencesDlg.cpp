@@ -172,6 +172,8 @@ void CPreferencePage::DoDataExchange(CDataExchange* pDX){
       DDX_Radio(pDX, IDC_RADIO_START_BLANK, theApp.preferences.bStartHome);
       DDX_Text(pDX, IDC_EDIT_HOMEPAGE, theApp.preferences.homePage);
       DDX_Text(pDX, IDC_EDIT_SETTINGS_DIR, theApp.preferences.settingsDir);
+      DDX_Check(pDX, IDC_CHECK_SOURCE_ENABLED, theApp.preferences.sourceEnabled);
+      DDX_Text(pDX, IDC_EDIT_SOURCE_COMMAND, theApp.preferences.sourceCommand);
       break;
     case IDD_PREFERENCES_PROXY:
       DDX_Text(pDX, IDC_EDIT_HTTP_PROXY, theApp.preferences.proxyHttp);
@@ -198,15 +200,21 @@ BEGIN_MESSAGE_MAP(CPreferencePage, CDialog)
 END_MESSAGE_MAP()
 
 void CPreferencePage::OnBrowse() {
-  CFileDialog fDlg(TRUE);
-  switch (idd){
-    case IDD_PREFERENCES_DISPLAY:
-      fDlg.m_ofn.lpstrFilter = "Bitmaps\0*.bmp\0";
-      fDlg.DoModal();
-      theApp.preferences.toolbarBackground = fDlg.GetPathName();
-      UpdateData(FALSE);
-      break;
-  }
+   CFileDialog fDlg(TRUE);
+   switch (idd){
+      case IDD_PREFERENCES_DISPLAY:
+         fDlg.m_ofn.lpstrFilter = "Bitmaps\0*.bmp\0";
+         fDlg.DoModal();
+         theApp.preferences.toolbarBackground = fDlg.GetPathName();
+         UpdateData(FALSE);
+         break;
+      case IDD_PREFERENCES_GENERAL:
+         fDlg.m_ofn.lpstrFilter = "Executable Files\0*.exe\0";
+         fDlg.DoModal();
+         theApp.preferences.sourceCommand = fDlg.GetPathName();
+         UpdateData(FALSE);
+         break;
+   }
 }
 
 // these are here to cancel the effects of hitting enter/esc

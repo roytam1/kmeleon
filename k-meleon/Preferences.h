@@ -35,13 +35,16 @@ public:
   int bStartHome;
 
   CString searchEngine;
-
+ 
   // this holds the menu.txt files
   CString settingsDir;
 
   // true if the window should default to maximized
   int bMaximized;
 
+  int sourceEnabled;
+  CString sourceCommand;
+  
   // -- yummy proxies
   int proxyType;
 

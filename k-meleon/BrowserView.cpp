@@ -72,15 +72,15 @@ static const char* KMELEON_FORUM_URL = "http://www.kmeleon.org/forum/";
 
 BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
 	//{{AFX_MSG_MAP(CBrowserView)
-	ON_WM_CREATE()
+   ON_WM_CREATE()
 	ON_WM_DESTROY()
 	ON_WM_SIZE()
-  ON_WM_TIMER()
-  ON_WM_MOUSEACTIVATE()
-  ON_WM_DROPFILES()
+   ON_WM_TIMER()
+   ON_WM_MOUSEACTIVATE()
+   ON_WM_DROPFILES()
 	ON_CBN_SELENDOK(ID_URL_BAR, OnUrlSelectedInUrlBar)
 	ON_COMMAND(IDOK, OnNewUrlEnteredInUrlBar)
-  ON_COMMAND(ID_SELECT_URL, OnSelectUrl)
+   ON_COMMAND(ID_SELECT_URL, OnSelectUrl)
 	ON_COMMAND(ID_FILE_OPEN, OnFileOpen)
 	ON_COMMAND(ID_FILE_SAVE_AS, OnFileSaveAs)
 	ON_COMMAND(ID_VIEW_SOURCE, OnViewSource)
@@ -101,8 +101,8 @@ BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
 	ON_COMMAND(ID_VIEW_IMAGE, OnViewImageInNewWindow)
 	ON_COMMAND(ID_SAVE_LINK_AS, OnSaveLinkAs)
 	ON_COMMAND(ID_SAVE_IMAGE_AS, OnSaveImageAs)
-  ON_COMMAND(ID_LINK_KMELEON_HOME, OnKmeleonHome)
-  ON_COMMAND(ID_LINK_KMELEON_FORUM, OnKmeleonForum)
+   ON_COMMAND(ID_LINK_KMELEON_HOME, OnKmeleonHome)
+   ON_COMMAND(ID_LINK_KMELEON_FORUM, OnKmeleonForum)
 	ON_UPDATE_COMMAND_UI(ID_NAV_BACK, OnUpdateNavBack)
 	ON_UPDATE_COMMAND_UI(ID_NAV_FORWARD, OnUpdateNavForward)
 	ON_UPDATE_COMMAND_UI(ID_NAV_STOP, OnUpdateNavStop)
@@ -112,7 +112,6 @@ BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
 	ON_WM_ACTIVATE()
 	ON_MESSAGE(WM_REFRESHTOOLBARITEM, RefreshToolBarItem)
 	//}}AFX_MSG_MAP
-	
 END_MESSAGE_MAP()
 
 CBrowserView::CBrowserView()
@@ -126,6 +125,8 @@ CBrowserView::CBrowserView()
 	mpBrowserFrameGlue = nsnull;
 
 	mbDocumentLoading = PR_FALSE;
+
+   m_tempFileCount = 0;
 }
 
 CBrowserView::~CBrowserView()
@@ -244,9 +245,11 @@ HRESULT CBrowserView::CreateBrowser()
 	return S_OK;
 }
 
-HRESULT CBrowserView::DestroyBrowser() 
-{	   
-	if(mBaseWindow)
+HRESULT CBrowserView::DestroyBrowser() {	   
+
+   DeleteTempFiles();
+
+   if(mBaseWindow)
 	{
 		mBaseWindow->Destroy();
         mBaseWindow = nsnull;
@@ -344,16 +347,59 @@ void CBrowserView::OnSelectUrl(){
   mpBrowserFrame->m_wndUrlBar.SetFocus();
 }
 
-void CBrowserView::OnViewSource() 
-{
-	if(! mWebNav)
-		return;
+void CBrowserView::OnViewSource()  {
 
-	nsCOMPtr<nsIDocShell> curDocShell( do_GetInterface(mWebBrowser) );
-	if(!curDocShell)
+   if(! mWebNav)
 		return;
 
 	nsresult rv = NS_OK;
+
+   // Get the URI whose source we want to view.
+	nsCOMPtr<nsIURI> currentURI;
+	rv = mWebNav->GetCurrentURI(getter_AddRefs(currentURI));
+	if(NS_FAILED(rv) || !currentURI)
+      return;
+
+	// Get the uri string associated with the nsIURI object
+	nsXPIDLCString uriString;
+	rv = currentURI->GetSpec(getter_Copies(uriString));
+	if(NS_FAILED(rv))
+		return;
+
+   // Use external viewer
+   if (theApp.preferences.sourceEnabled) {
+      if (theApp.preferences.sourceCommand) {
+
+         char *tempfile = GetTempFile();
+
+         nsCOMPtr<nsIWebBrowserPersist> persist(do_QueryInterface(mWebBrowser));
+         if(persist) {
+            persist->SaveDocument(nsnull, tempfile, 0);
+
+            char *command = new char[theApp.preferences.sourceCommand.GetLength() + strlen(tempfile) +2];
+            
+            strcpy(command, theApp.preferences.sourceCommand);
+            strcat(command, " ");       //append " filename" to the viewer command
+            strcat(command, tempfile);
+            
+            STARTUPINFO si = { 0 };
+            PROCESS_INFORMATION pi;
+            si.cb = sizeof STARTUPINFO;
+            si.dwFlags = STARTF_USESHOWWINDOW;
+            si.wShowWindow = SW_SHOW;
+
+            CreateProcess(0,command,0,0,0,0,0,0,&si,&pi);
+
+//            DeleteFile(tempfile);
+         }
+      return;
+      }
+   }
+   
+   // Use internal viewer
+   nsCOMPtr<nsIDocShell> curDocShell( do_GetInterface(mWebBrowser) );
+	if(!curDocShell)
+		return;
 
 	// Get the ViewMode of the current docshell
 	PRInt32 viewMode;
@@ -383,18 +429,6 @@ void CBrowserView::OnViewSource()
 	if(!newFramesDocShell)
 		return;
 	newFramesDocShell->SetViewMode(nsIDocShell::viewSource);
-
-	// Now get the URI whose source we want to view.
-	nsCOMPtr<nsIURI> currentURI;
-	rv = mWebNav->GetCurrentURI(getter_AddRefs(currentURI));
-	if(NS_FAILED(rv) || !currentURI)
-		return;
-
-	// Get the uri string associated with the nsIURI object
-	nsXPIDLCString uriString;
-	rv = currentURI->GetSpec(getter_Copies(uriString));
-	if(NS_FAILED(rv))
-		return;
 
 	// Finally, load this URI into the newly created frame
 	//(who's mode was set to "ViewSource" earlier
@@ -1002,4 +1036,36 @@ BOOL CBrowserView::PreTranslateMessage(MSG* pMsg) {
     StopPanning();
 	
 	return CWnd::PreTranslateMessage(pMsg);
+}
+
+char * CBrowserView::GetTempFile() {
+
+   m_tempFileCount++;
+   
+   char ** newFileList = new char*[m_tempFileCount];                             // create new index
+
+   memcpy(newFileList, m_tempFileList, ((m_tempFileCount-1)*sizeof(char**)) );   // copy old index
+
+   if (m_tempFileCount>1) delete m_tempFileList;                                 // delete old index
+   m_tempFileList = newFileList;
+
+   char *newFile = new char[MAX_PATH];
+ 
+   char temppath[MAX_PATH];
+   GetTempPath(MAX_PATH, temppath);
+   GetTempFileName(temppath, "kme", 0, newFile);                                 // create tempfile name
+   
+   m_tempFileList[m_tempFileCount-1] = newFile;
+
+   return newFile;
+}
+
+void CBrowserView::DeleteTempFiles() {
+
+   for (int x=0;x<m_tempFileCount;x++) {
+      DeleteFile(m_tempFileList[x]);
+      delete m_tempFileList[x];
+   }
+
+   delete m_tempFileList;
 }

@@ -80,7 +80,11 @@ void CPreferences::Load() {
 
     _GetString(_T("kmeleon.general.searchEngine"), searchEngine, _T("http://www.google.com/keyword/"));
 
+    _GetBool(_T("kmeleon.general.sourceEnabled"), sourceEnabled, false);
+    _GetString(_T("kmeleon.general.sourceCommand"), sourceCommand, _T(""));
+    
     _GetString(_T("kmeleon.general.settingsDir"), settingsDir, _T(""));
+    
     if (settingsDir.IsEmpty()){
       nsCOMPtr<nsIFile> profileDir;
       rv = NS_GetSpecialDirectory(NS_APP_USER_PROFILE_50_DIR, getter_AddRefs(profileDir));
@@ -127,6 +131,7 @@ void CPreferences::Load() {
     }else{
       bAnimationsEnabled = false;
     }
+
   }
   else
     NS_ASSERTION(PR_FALSE, "Could not get preferences service");
@@ -146,6 +151,9 @@ void CPreferences::Save() {
     rv = prefs->SetCharPref(_T("kmeleon.general.homePage"), homePage);
 
     rv = prefs->SetCharPref(_T("kmeleon.general.settingsDir"), settingsDir);
+
+    rv = prefs->SetBoolPref(_T("kmeleon.general.sourceEnabled"), sourceEnabled);
+    rv = prefs->SetCharPref(_T("kmeleon.general.sourceCommand"), sourceCommand);
 
     //
 
