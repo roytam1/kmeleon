@@ -138,6 +138,10 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct){
 	if (CFrameWnd::OnCreate(lpCreateStruct) == -1)
 		return -1;
 
+
+   // preserve the maximized state, in case any of the plugins resize the window
+   BOOL bMaximized = theApp.preferences.bMaximized;
+
   // tell all our plugins that we were created
   theApp.plugins.OnCreate(this->m_hWnd);
 
@@ -298,7 +302,11 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct){
 
 	SetupFrameChrome(); 
 
-  m_wndUrlBar.SetFocus();
+   m_wndUrlBar.SetFocus();
+
+
+   // restore the maximized state
+   theApp.preferences.bMaximized = bMaximized;
 
 	return 0;
 }
@@ -473,24 +481,22 @@ BOOL CBrowserFrame::OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERIN
 // Needed to properly position/resize the progress bar
 //
 void CBrowserFrame::OnSize(UINT nType, int cx, int cy) {
-  CFrameWnd::OnSize(nType, cx, cy);
+   CFrameWnd::OnSize(nType, cx, cy);
 
-  // Get the ItemRect of the status bar's Pane 0
-  // That's where the progress bar will be located
-  RECT rc;
-  if (m_wndStatusBar.m_hWnd)
-     m_wndStatusBar.GetItemRect(m_wndStatusBar.CommandToIndex(ID_PROG_BAR), &rc);
+   // Get the ItemRect of the status bar's Pane 0
+   // That's where the progress bar will be located
+   RECT rc;
+   if (m_wndStatusBar.m_hWnd)
+      m_wndStatusBar.GetItemRect(m_wndStatusBar.CommandToIndex(ID_PROG_BAR), &rc);
 
-  // Move the progress bar into it's correct location
-  //
-  if (m_wndProgressBar.m_hWnd)
-     m_wndProgressBar.MoveWindow(&rc);
+   // Move the progress bar into it's correct location
+   //
+   if (m_wndProgressBar.m_hWnd)
+      m_wndProgressBar.MoveWindow(&rc);
 
-  if (nType == SIZE_MAXIMIZED){
-    theApp.preferences.bMaximized = true;
-  }else if (nType == SIZE_RESTORED){
-    theApp.preferences.bMaximized = false;
-  }
+   if (nType == SIZE_MAXIMIZED) theApp.preferences.bMaximized = true;
+   else if (nType == SIZE_RESTORED) theApp.preferences.bMaximized = false;
+
 }
 
 /////////////////////////////////////////////////////////////////////////////
