@@ -231,6 +231,7 @@ protected:
 	afx_msg void OnUpdateCut(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateCopy(CCmdUI* pCmdUI);
 	afx_msg void OnUpdatePaste(CCmdUI* pCmdUI);
+	afx_msg void OnUpdateViewImage(CCmdUI* pCmdUI);
 	afx_msg void OnAppAbout();
 	afx_msg void OnWindowNext();
 	afx_msg void OnWindowPrev();
