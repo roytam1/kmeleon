@@ -2043,20 +2043,17 @@ std::string strVal(std::string input, int bOnlyQuotes) {
          if(input.at(pos+1) == 'n') { //newline
            if (bOnlyQuotes==-1) { // FIXME: why not always convert '\'+'n' to '\n'?
              input.replace(pos,2,"\n");
-             ++pos;
              continue;
            }				 
          }
          if(input.at(pos+1) == 't') { //tab
            if (bOnlyQuotes==-1) { // FIXME: why not always convert '\'+'t' to '\t'?
              input.replace(pos,2,"\t");
-             ++pos;
              continue;
            }
          }
          if(input.at(pos+1) == '\\') {
             input.replace(pos,1,"");
-            ++pos;
             continue;
          }
          input.replace(pos,1,"");
