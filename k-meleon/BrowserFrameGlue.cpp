@@ -86,6 +86,8 @@ void CBrowserFrame::BrowserFrameGlueObj::UpdateBusyState(PRBool aBusy)
       // updating the STOP toolbar btn. etc
 
       pThis->m_wndBrowserView.UpdateBusyState(aBusy);
+      if (aBusy)
+         pThis->PostMessage(UWM_UPDATEBUSYSTATE, 0, 0);
 }
 
 // Called from the OnLocationChange() method in the nsIWebProgressListener 
