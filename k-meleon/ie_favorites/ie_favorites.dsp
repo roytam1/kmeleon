@@ -53,7 +53,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /machine:I386
-# ADD LINK32 /nologo /dll /machine:I386 /out:"\projects\mozilla\mozilla\dist\WIN32_o.OBJ\Embed\kplugins\favorites.dll" /OPT:NOWIN98
+# ADD LINK32 comctl32.lib gdi32.lib user32.lib comdlg32.lib /nologo /dll /machine:I386 /out:"\projects\mozilla\mozilla\dist\WIN32_o.OBJ\Embed\kplugins\favorites.dll" /OPT:NOWIN98
 # SUBTRACT LINK32 /pdb:none
 
 !ELSEIF  "$(CFG)" == "ie_favorites - Win32 Debug"
@@ -81,7 +81,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 /nologo /dll /debug /machine:I386 /out:"\projects\mozilla\mozilla\dist\WIN32_o.OBJ\Embed\kplugins\favorites.dll" /pdbtype:sept
+# ADD LINK32 comctl32.lib gdi32.lib user32.lib comdlg32.lib /nologo /dll /debug /machine:I386 /out:"\projects\mozilla\mozilla\dist\WIN32_o.OBJ\Embed\kplugins\favorites.dll" /pdbtype:sept
 # SUBTRACT LINK32 /pdb:none
 
 !ENDIF 
@@ -102,6 +102,10 @@ SOURCE=.\ie_favorites.cpp
 SOURCE=.\StdAfx.cpp
 # ADD CPP /Yc"stdafx.h"
 # End Source File
+# Begin Source File
+
+SOURCE=..\Utils.cpp
+# End Source File
 # End Group
 # Begin Group "Header Files"
 
@@ -109,6 +113,10 @@ SOURCE=.\StdAfx.cpp
 # Begin Source File
 
 SOURCE=.\StdAfx.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\Utils.h
 # End Source File
 # End Group
 # Begin Group "Resource Files"

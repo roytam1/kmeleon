@@ -21,6 +21,8 @@
 #include "stdafx.h"
 #include "resource.h"
 
+#include "../Utils.h"
+
 #include <vector>
 
 using namespace std;
@@ -75,18 +77,31 @@ int Init(){
    DWORD           dwSize;
 
    // find out from the registry where the favorites are located.
-   if(RegOpenKey(HKEY_CURRENT_USER, _T("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\User Shell Folders"), &hKey) != ERROR_SUCCESS)
-   {
+   if(RegOpenKey(HKEY_CURRENT_USER, _T("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\User Shell Folders"), &hKey) != ERROR_SUCCESS) {
       TRACE0("Favorites folder not found\n");
    }
    else {
       dwSize = sizeof(sz);
-      RegQueryValueEx(hKey, _T("Favorites"), NULL, NULL, (LPBYTE)sz, &dwSize);
-      ExpandEnvironmentStrings(sz, gFavoritesPath, MAX_PATH);
+      long rslt = RegQueryValueEx(hKey, _T("Favorites"), NULL, NULL, (LPBYTE)sz, &dwSize);
+
+      if (rslt != ERROR_SUCCESS) {
+         RegCloseKey(hKey);
+         if (RegOpenKey(HKEY_CURRENT_USER, _T("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders"), &hKey) == ERROR_SUCCESS) {
+            rslt = RegQueryValueEx(hKey, _T("Favorites"), NULL, NULL, (LPBYTE)sz, &dwSize);
+         }
+      }
       RegCloseKey(hKey);
 
-      strcat(gFavoritesPath, "\\");
-      gFavoritesPathLen = strlen(gFavoritesPath);
+      if (rslt == ERROR_SUCCESS) {
+         ExpandEnvironmentStrings(sz, gFavoritesPath, MAX_PATH);
+
+         strcat(gFavoritesPath, "\\");
+         gFavoritesPathLen = strlen(gFavoritesPath);
+      }
+      else {
+         gFavoritesPath[0] = 0;
+         gFavoritesPathLen = 0;
+      }
    }
 
    // Get the rebar status
@@ -115,8 +130,8 @@ void Quit(){
    DestroyMenu(gFavoritesMenu);
 }
 
-static CStringArray      gFavorites;
-static CStringArray      gFavoritesFiles;
+static CStringArray      gFavorites;         // this one contains the display filename (Really...vorite)
+static CStringArray      gFavoritesFiles;    // this one contains the full filename (SomeFolder\Stuff\Really Long Favorite)
 static CArray<UINT, int> gIcons;
 
 static UINT gNumFavorites;
@@ -186,9 +201,16 @@ int BuildFavoritesMenu(char * strPath, HMENU mainMenu){
 
             gFavoritesFiles.InsertAt(nPos, urlFile);
 
+            // chop off the .url
             *dot = 0;
+            CondenseString(wfd.cFileName, 40);
             gFavorites.InsertAt(nPos, wfd.cFileName);
 
+            /*
+            HACK HACK HACK
+            We append the filename to gFavoritesPath, get the icon, then chop the file off again
+            this is a really lame way of doing this...
+            */
             strcpy(gFavoritesPath + gFavoritesPathLen, urlFile);
             // Retrieve icon
             SHFILEINFO sfi;
@@ -426,53 +448,19 @@ void DoRebar(HWND rebarWnd){
    SendMessage(rebarWnd, RB_INSERTBAND, (WPARAM)-1, (LPARAM)&rbBand);
 }
 
-BOOL gbContinueMenu;
-int giCurrentItem; 
-HWND ghToolbarWnd;
-HHOOK ghhookMsg;
-LRESULT CALLBACK MsgHook(int code, WPARAM wParam, LPARAM lParam){
-   if (code == MSGF_MENU){
-      MSG *msg = (MSG *)lParam;
-      if (msg->message == WM_MOUSEMOVE){
-         POINT mouse;
-         mouse.x = LOWORD(msg->lParam);
-         mouse.y = HIWORD(msg->lParam);
-
-         if (ghToolbarWnd){
-            ScreenToClient(ghToolbarWnd, &mouse);
-            int ndx = SendMessage(ghToolbarWnd, TB_HITTEST, 0, (LPARAM)&mouse);
-
-            if (ndx >= 0){
-               TBBUTTON button;
-               SendMessage(ghToolbarWnd, TB_GETBUTTON, ndx, (LPARAM)&button);
-               if (giCurrentItem != button.idCommand && IsMenu((HMENU)(button.idCommand-SUBMENU_OFFSET))){
-                  SendMessage(msg->hwnd, WM_CANCELMODE, 0, 0);
-
-                  // this basically tells the loop, "we would like to enter a new menu loop with this item:"
-                  giCurrentItem = button.idCommand;
-                  gbContinueMenu = true;
-
-                  return true;
-               }
-            }
-         }
-      }
-   }
-   return CallNextHookEx(ghhookMsg, code, wParam, lParam);
-}
-
 char *GetURL(int index){
+   // this is static so that we can return it
    static char url[MAX_PATH];
-   static char path[MAX_PATH] = {0};
-   if (!path[0]){
-      strcpy(path, gFavoritesPath);
-   }
+
+   char path[MAX_PATH];
+   strcpy(path, gFavoritesPath);
    strcpy(path+gFavoritesPathLen, gFavoritesFiles.GetAt(index));
+
    // a .URL file is formatted just like an .INI file, so we can
    // use GetPrivateProfileString() to get the information we want
    GetPrivateProfileString(_T("InternetShortcut"), _T("URL"),
-      _T(""), url, MAX_PATH,
-      path);
+      _T(""), url, MAX_PATH, path);
+
    return url;
 }
 
