@@ -109,9 +109,9 @@ SOURCE=..\Utils.cpp
 
 !IF  "$(CFG)" == "ns_bookmarks - Win32 Release"
 
-# SUBTRACT CPP /YX /Yc /Yu
-
 !ELSEIF  "$(CFG)" == "ns_bookmarks - Win32 Debug"
+
+# SUBTRACT CPP /YX /Yc /Yu
 
 !ENDIF 
 
@@ -122,7 +122,15 @@ SOURCE=..\Utils.cpp
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
 # Begin Source File
 
+SOURCE=..\kmeleon_plugin.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\StdAfx.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\Utils.h
 # End Source File
 # End Group
 # Begin Group "Resource Files"

@@ -234,7 +234,7 @@ void DoRebar(HWND rebarWnd){
       m_toolbarMenu = m_menuBookmarks;
    }
 
-   SetWindowText(hwndTB, "NSBOOKMARKS");
+   SetWindowText(hwndTB, "Netscape Bookbar");
 
    //SendMessage(hwndTB, TB_SETEXTENDEDSTYLE, 0, TBSTYLE_EX_DRAWDDARROWS);
 
