@@ -586,7 +586,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
    if (message == WM_COMMAND){
       WORD command = LOWORD(wParam);
       if (command == nConfigCommand){
-         Config(NULL);
+         Config(hWnd);
          return true;
       }
       if (command == nAddCommand){
