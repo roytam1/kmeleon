@@ -65,6 +65,8 @@ public:
    int windowXPos;
    int windowYPos;
 
+   int bNewWindowHasUrlFocus;
+
    // use external source viewer
    int bSourceUseExternalCommand;
    CString sourceCommand;
