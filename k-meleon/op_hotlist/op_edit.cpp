@@ -41,6 +41,12 @@ static BOOL bDragging;
 static BOOL bTracking;
 static HCURSOR hCursorDrag;
 
+#define SEARCH_LEN 256
+static char str[SEARCH_LEN];
+static int len;
+static int pos;
+static int circling;
+
 static HTREEITEM hTBitem;   // current toolbar folder treeview item
 static HTREEITEM hNBitem;   // current new bookmark folder treeview item
 static HTREEITEM hBMitem;   // current bookmark menu folder treeview item
@@ -110,9 +116,14 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
          hasFocus == GetDlgItem(hEditWnd, IDCANCEL)))
       return  CallNextHookEx(NULL, nCode, wParam, lParam);
 
+   int searching = 0;
+
    if (wParam == VK_ESCAPE && !bTracking) {
       fEatKeystroke = true;
-      SendMessage(GetDlgItem(hEditWnd, IDCANCEL), BM_CLICK, 0, 0);
+      if (len == 0)
+         SendMessage(GetDlgItem(hEditWnd, IDCANCEL), BM_CLICK, 0, 0);
+      else
+         len = 0;
    }
    else if (hasFocus == hTree) {
       HTREEITEM hItem = TreeView_GetSelection(hTree);
@@ -169,6 +180,11 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
             break;
          case VK_TAB:
             {
+               if (len > 0) {
+                  wParam = str[len-1];
+                  lParam = 0;
+                  goto tab_expand;
+               }
                int idc_next = IDC_NAME;
                fEatKeystroke = true;
                if (zoom)
@@ -212,31 +228,143 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
                   CreateNewObject(hTree, hItem, BOOKMARK_FOLDER);
             }
             break;
-         case 'X':
-            if (GetKeyState(VK_CONTROL) & 0x80) {
-               // Ctrl X == Cut
-               DeleteItem(hTree, hItem, CUT);
-            }
-            break;
-         case 'C':
-            if (GetKeyState(VK_CONTROL) & 0x80) {
-               // Ctrl C == Copy
-               CopyItem(hTree, hItem);
-            }
-            break;
-         case 'V':
-            if (GetKeyState(VK_CONTROL) & 0x80) {
-               // Ctrl V == Paste
-               if (freeNode)
-                  CreateNewObject(hTree, hItem, freeNode->type, PASTE);
-            }
-            break;
          case ' ':
             {
                CBookmarkNode *node = GetBookmarkNode(hTree, hItem);
-               if (node->type == BOOKMARK_FOLDER) {
+               if (node->type == BOOKMARK_FOLDER && len == 0) {
                   fEatKeystroke = true;
                   TreeView_Expand(hTree, hItem, TVE_TOGGLE);
+                  break;
+               }
+            }
+            // Fall through!
+         default:
+            {
+               if (GetKeyState(VK_CONTROL) & 0x80) {
+                  switch (wParam) {
+                  case 'X':
+                     // Ctrl X == Cut
+                     DeleteItem(hTree, hItem, CUT);
+                     break;
+                  case 'C':
+                     // Ctrl C == Copy
+                     CopyItem(hTree, hItem);
+                     break;
+                  case 'V':
+                     // Ctrl V == Paste
+                     if (freeNode)
+                        CreateNewObject(hTree, hItem, freeNode->type, PASTE);
+                     break;
+                  case 'G':
+                     if (len > 0) {
+                        wParam = str[len-1];
+                        lParam = 0;
+                        goto tab_expand;
+                     }
+                     break;
+                  }
+                  break;
+               }
+               if (GetKeyState(VK_MENU) & 0x80) {
+                  break;
+               }
+
+            tab_expand:
+               if (wParam == VK_BACK && len > 0) {
+                  circling = 0;
+                  len--;
+               }
+               else if ( (lParam & (1<<24)) == 0 && 
+                         wParam >= 32 && wParam < 127 && 
+                         len < (SEARCH_LEN-1) ) {
+                  str[len] = tolower(wParam);
+                  len++;
+               }
+               else
+                  break;
+
+               fEatKeystroke = true;
+               searching = 1;
+               str[len] = 0;
+               if (len > 0) {
+                  CBookmarkNode *node;
+
+                  int mypos = 0;
+                  int firstpos = -1;
+                  int searchfrom = pos;
+
+                  if (len == 1) {
+                     HTREEITEM hItem = TreeView_GetSelection(hTree);
+                     node = GetBookmarkNode(hTree, hItem);
+                     if (workingBookmarks.Index(searchfrom, node) == -1)
+                        searchfrom = pos;
+                     else
+                        pos = searchfrom;
+                  }
+
+                  int newpos = workingBookmarks.Search(str, searchfrom, mypos, firstpos, &node);
+
+                  if (newpos == -1 || 
+                      (circling && len > 1 && str[len-1] == str[len-2])) {
+                     if (len > 1 && str[len-1] == str[len-2])
+                        searchfrom++;
+                     len--;
+                     str[len] = 0;
+                     mypos = 0;
+                     firstpos = -1;
+                     if (len > 0) {
+                        newpos = workingBookmarks.Search(str, searchfrom, mypos, firstpos, &node);
+                        if (newpos == pos || (len > 1 && str[len-1] == str[len-2])) {
+                           circling = 1;
+                           while (len > 1 && str[len-1] == str[len-2])
+                              len--;
+                           str[len] = 0;
+                           mypos = 0;
+                           firstpos = -1;
+                           newpos = workingBookmarks.Search(str, searchfrom, mypos, firstpos, &node);
+                        }
+                     }
+                  }
+                  else 
+                     circling = 0;
+
+                  if (newpos == -1 || len == 0) {
+                     pos = 0;
+                     len = 0;
+                     str[len] = 0;
+                     searching = 0;
+                  }
+                  else {
+                     char tmp[SEARCH_LEN+32];
+                     strcpy(tmp, "Hotlist -- Find: \"");
+                     strcat(tmp, str);
+                     strcat(tmp, "\"");
+                     SetWindowText( hEditWnd, tmp );
+
+                     HTREEITEM hItem = TreeView_GetRoot(hTree);
+                     int i = 0;
+                     while (hItem && i < newpos) {
+                        HTREEITEM hTmp = TreeView_GetChild(hTree, hItem);
+                        if (!hTmp)
+                           hTmp = TreeView_GetNextSibling(hTree, hItem);
+                        if (!hTmp) {
+                           HTREEITEM hTmp2 = TreeView_GetParent(hTree, hItem);
+                           while (!hTmp && hTmp2) {
+                              hTmp = TreeView_GetNextSibling(hTree, hTmp2);
+                              hTmp2 = TreeView_GetParent(hTree, hTmp2);
+                           }
+                        }
+                        hItem = hTmp;
+                        i++;
+                     }
+
+                     if (hItem) {
+                        TreeView_SelectItem(hTree, hItem);
+                        TreeView_EnsureVisible(hTree, hItem);
+                     }
+
+                     pos = newpos;
+                  }
                }
             }
             break;
@@ -297,6 +425,15 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
       }
    }
 
+   if ((searching == 0 || len==0) && 
+       wParam != VK_SHIFT && wParam != VK_MENU && wParam != VK_CONTROL) {
+      len = 0;
+      pos = 0;
+      str[len] = 0;
+      SetWindowText( hEditWnd, "Hotlist" );
+      circling = 0;
+   }
+
    return(fEatKeystroke ? 1 : CallNextHookEx(NULL, nCode, wParam, lParam));
 }
 
@@ -316,6 +453,12 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
             op_writeFile(lpszHotlistFile);
 
          hEditWnd = hDlg;
+
+         HICON hIcon = LoadIcon(kPlugin.hDllInstance, MAKEINTRESOURCE(IDB_ICON));
+         if (hIcon) {
+            SendMessage(hDlg, WM_SETICON, ICON_BIG, (LPARAM) hIcon);
+            SendMessage(hDlg, WM_SETICON, ICON_SMALL, (LPARAM) hIcon);
+         }
 
          hTree = GetDlgItem(hDlg, IDC_TREE_HOTLIST);
          TreeView_SetImageList(hTree, gImagelist, TVSIL_NORMAL);
@@ -743,6 +886,8 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                   }
                   
                   UnhookWindowsHookEx(hHook);
+                  if (hWndFront)
+                     PostMessage(hWndFront, WM_COMMAND, wm_deferbringtotop, (LPARAM) NULL);
                   ghWndEdit = NULL;
                   EndDialog(hDlg, 0);
                   break;
@@ -789,6 +934,8 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                kPlugin.kFuncs->SetPreference(PREF_BOOL, PREFERENCE_EDIT_MAX, &temp);
 
                UnhookWindowsHookEx(hHook);
+               if (hWndFront)
+                  PostMessage(hWndFront, WM_COMMAND, wm_deferbringtotop, (LPARAM) NULL);
                ghWndEdit = NULL;
                EndDialog(hDlg, 1);
                break;
@@ -1143,6 +1290,11 @@ static void MoveItem(HWND hTree, HTREEITEM item, int mode) {
       }
 
       break;
+   }
+
+   // check to see if we're dropping something in itself
+   for (HTREEITEM temp = TreeView_GetParent(hTree, itemDrop); temp != NULL ; temp = TreeView_GetParent(hTree, temp)) {
+      if (temp == item) {return;}
    }
 
    // setup the new parent
