@@ -31,6 +31,9 @@
 #include "../kmeleon_plugin.h"
 
 
+#define PLUGIN_NAME "History Plugin"
+
+
 /*
 BOOL APIENTRY DllMain( HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved ) {
 	switch (ul_reason_for_call) {
@@ -49,27 +52,52 @@ void Create(HWND parent);
 void Config(HWND parent);
 void Quit();
 void DoMenu(HMENU menu, char *param);
+long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2);
 void DoRebar(HWND rebarWnd);
+
 
 HMENU ghMenu;
 
-pluginFunctions pFunc = {
-	Init,
-	Create,
-	Config,
-	Quit,
-	DoMenu,
-	DoRebar
-};
-
 kmeleonPlugin kPlugin = {
 	KMEL_PLUGIN_VER,
-	"History Plugin",
-	&pFunc
+	PLUGIN_NAME,
+	DoMessage
 };
 
+
+
+long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2)
+{
+   if (to[0] == '*' || stricmp(to, kPlugin.dllname) == 0) {
+      if (stricmp(subject, "Init") == 0) {
+         Init();
+      }
+      else if (stricmp(subject, "Create") == 0) {
+         Create((HWND)data1);
+      }
+      else if (stricmp(subject, "Config") == 0) {
+         Config((HWND)data1);
+      }
+      else if (stricmp(subject, "Quit") == 0) {
+         Quit();
+      }
+      else if (stricmp(subject, "DoMenu") == 0) {
+         DoMenu((HMENU)data1, (char *)data2);
+      }
+      else if (stricmp(subject, "DoRebar") == 0) {
+         DoRebar((HWND)data1);
+      }
+      else return 0;
+
+      return 1;
+   }
+   return 0;
+}
+
+
+
 int Init(){
-	ID_HISTORY = kPlugin.kf->GetCommandIDs(20);
+	ID_HISTORY = kPlugin.kFuncs->GetCommandIDs(20);
 	return true;
 }
 
@@ -133,7 +161,7 @@ void ShowMenuUnderButton(HWND hWndParent, HMENU hMenu, UINT uMouseButton, int iI
       PostMessage(hWndParent, UWM_REFRESHTOOLBARITEM, (WPARAM) iID, 0);
       
       if (SelectionMade > 0)
-         kPlugin.kf->GotoHistoryIndex(SelectionMade-1);
+         kPlugin.kFuncs->GotoHistoryIndex(SelectionMade-1);
 
       bFound = TRUE;
    }
@@ -143,7 +171,7 @@ void CreateBackMenu (HWND hWndParent, UINT button) {
 	int index, count, i, limit;
 	char **titles, buf[47];
 
-	if (!kPlugin.kf->GetMozillaSessionHistory (&titles, &count, &index)) {
+	if (!kPlugin.kFuncs->GetMozillaSessionHistory (&titles, &count, &index)) {
 		return;
 	}
 
@@ -170,7 +198,7 @@ void CreateForwardMenu (HWND hWndParent, UINT button) {
    int index, count, i, limit;
 	char **titles, buf[47];
 
-	if (!kPlugin.kf->GetMozillaSessionHistory (&titles, &count, &index)) {
+	if (!kPlugin.kFuncs->GetMozillaSessionHistory (&titles, &count, &index)) {
 		return;
 	}
 
@@ -205,7 +233,7 @@ void UpdateHistoryMenu (HWND hWndParent) {
 		DeleteMenu(ghMenu, i, MF_BYCOMMAND);
 
 	// Add the local history to the menu
-	if (!kPlugin.kf->GetMozillaSessionHistory (&titles, &count, &index)) return;
+	if (!kPlugin.kFuncs->GetMozillaSessionHistory (&titles, &count, &index)) return;
 	if (count > 20) count = 20;
 
 	for (i=count-1;i>=0;i--) {
@@ -270,7 +298,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 			WORD command;
 			command = LOWORD(wParam);
 			if ((command >= ID_HISTORY) && (command < ID_HISTORY+20)) {
-				kPlugin.kf->GotoHistoryIndex(command-ID_HISTORY);
+				kPlugin.kFuncs->GotoHistoryIndex(command-ID_HISTORY);
 				return true;
 			}
 			break;
