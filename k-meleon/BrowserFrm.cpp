@@ -80,6 +80,7 @@ BEGIN_MESSAGE_MAP(CBrowserFrame, CFrameWnd)
 	ON_WM_CREATE()
 	ON_WM_SETFOCUS()
 	ON_WM_SIZE()
+	ON_WM_MOVE()
 	ON_WM_CLOSE()
    ON_WM_ACTIVATE()
    ON_WM_SYSCOLORCHANGE()
@@ -534,6 +535,22 @@ BOOL CBrowserFrame::OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERIN
 
 	// otherwise, do default handling
 	return CFrameWnd::OnCmdMsg(nID, nCode, pExtra, pHandlerInfo);
+}
+
+void CBrowserFrame::OnMove(int x, int y)
+{ 
+    CFrameWnd::OnMove(x, y);
+
+   // only record the window position for non-popup windows
+   if (!(m_style & WS_POPUP)){
+       RECT rc;
+
+       GetWindowRect(&rc);
+       theApp.preferences.windowWidth = rc.right - rc.left;
+       theApp.preferences.windowHeight = rc.bottom - rc.top;
+       theApp.preferences.windowXPos = rc.left;
+       theApp.preferences.windowYPos = rc.top;
+   }
 }
 
 // Needed to properly position/resize the progress bar
