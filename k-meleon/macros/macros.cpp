@@ -514,6 +514,25 @@ PromptDlgProc( HWND hwnd,
     return TRUE;
 }
 
+std::string protectString( char *pszData ) {
+   // put the clipboard data in quotes to distinguish it from commands
+   std::string retval = "\"";
+   retval.append(pszData);  // the clipboard data
+   // escape any " or \ in the clipboard data
+   int pos=0;
+   while(++pos < retval.length()) {
+	  if(retval.at(pos) == '"') {
+		 retval.insert(pos++,"\\");               
+	  }
+	  else if(retval.at(pos) == '\\') {
+		 retval.insert(pos++,"\\");
+	  }
+   }
+   
+   // add the closing "
+   retval.append("\"");
+   return retval;
+}
 
 
 std::string GenSub(std::string r, std::string s, std::string h, std::string t)
@@ -547,6 +566,7 @@ std::string GenSub(std::string r, std::string s, std::string h, std::string t)
       break;
     }
   }
+  result = protectString( (char*)result.c_str() );
   return result;
 }
 
@@ -851,21 +871,8 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
          CloseClipboard();
 
          // put the clipboard data in quotes to distinguish it from commands
-         std::string retval = "\"";
-         retval.append(pszData);  // the clipboard data
-         // escape any " or \ in the clipboard data
-         int pos=0;
-         while(++pos < retval.length()) {
-            if(retval.at(pos) == '"') {
-               retval.insert(pos++,"\\");               
-            }
-            else if(retval.at(pos) == '\\') {
-               retval.insert(pos++,"\\");
-            }
-         }
-         
-         // add the closing "
-         retval.append("\"");
+         std::string retval;
+		 retval = protectString( pszData );
          return retval;
      }
 
@@ -918,7 +925,7 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
          parse them out of a string passed as either Param1 or Param2
       */
 
-      CMD(pluginmsg) {;
+      CMD(pluginmsg) {
       
          if((nparam != 3) && (nparam != 4))  {
             parseError(WRONGARGS, "PluginMsgEx", data, 4, nparam);
@@ -1079,11 +1086,16 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
             parseError(WRONGARGS, "substr", data, 3, nparam);
             return "";
          }
+		 std::string retval;
+
 	 if (nparam == 2)
-	   return params[0].substr( atoi( (char *)params[1].c_str() ) );
+			retval = params[0].substr( atoi( (char *)params[1].c_str() ) );
 	 else
-	   return params[0].substr( atoi( (char *)params[1].c_str() ),
+			retval = params[0].substr( atoi( (char *)params[1].c_str() ),
 				    atoi( (char *)params[2].c_str() ) );
+
+		 retval = protectString( (char*)retval.c_str() );
+		 return retval;
       }
 
       /*
@@ -1117,7 +1129,9 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
 	 if (i != NOTFOUND)
 	   params[0] = params[0].substr(i+1);
 
-	 return params[0];
+		 std::string retval;
+		 retval = protectString( (char*)params[0].c_str() );
+		 return retval;
       }
 
       /*
@@ -1144,8 +1158,12 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
 
 	 if (i != NOTFOUND)
 	   params[0] = params[0].substr(0, i);
+		 else
+			params[0] = ".";
 
-	 return params[0];
+		 std::string retval;
+		 retval = protectString( (char*)params[0].c_str() );
+		 return retval;
       }
 
       /*
@@ -1169,7 +1187,9 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
 	 if (i != NOTFOUND)
 	   params[0] = params[0].substr(0,i);
 
-	 return params[0];
+		 std::string retval;
+		 retval = protectString( (char*)params[0].c_str() );
+		 return retval;
       }
 
    return "";
