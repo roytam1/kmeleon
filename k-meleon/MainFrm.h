@@ -152,6 +152,7 @@ protected:
 	DECLARE_MESSAGE_MAP()
 
   BOOL OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERINFO* pHandlerInfo);
+  LRESULT WindowProc( UINT message, WPARAM wParam, LPARAM lParam );
 };
 
 /////////////////////////////////////////////////////////////////////////////

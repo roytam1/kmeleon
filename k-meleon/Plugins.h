@@ -39,7 +39,7 @@ public:
   int FindAndLoad(char *pattern);
   kmeleonPlugin * Load(const char *pattern);
   
-  void OnCommand(UINT command);
+  void OnMessage(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam);
   int  OnUpdate(UINT command);
 
   void DoRebars(HWND rebarWnd);

@@ -74,17 +74,19 @@ int CPlugins::OnUpdate(UINT command){
 }
 
 //  TODO: when a plugin calls GetCommandIDs, register it, then only send them those messages
-void CPlugins::OnCommand(UINT command){
+void CPlugins::OnMessage(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam){
+  /*
   if (!OnUpdate(command)){
     return;
   }
+  */
   POSITION pos = pluginList.GetStartPosition();
   kmeleonPlugin * kPlugin;
   CString s;
   while (pos){
     pluginList.GetNextAssoc( pos, s, kPlugin);
-    if (kPlugin && kPlugin->OnCommand){
-      kPlugin->OnCommand(command);
+    if (kPlugin && kPlugin->OnMessage){
+      kPlugin->OnMessage(wnd, message, wParam, lParam);
     }
   }
 }

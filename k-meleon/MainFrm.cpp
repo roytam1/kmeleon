@@ -335,11 +335,15 @@ void CMainFrame::Dump(CDumpContext& dc) const
 /////////////////////////////////////////////////////////////////////////////
 // CMainFrame message handlers
 
+LRESULT CMainFrame::WindowProc( UINT message, WPARAM wParam, LPARAM lParam ){
+  theApp.plugins.OnMessage(this->m_hWnd, message, wParam, lParam);
+
+  return CFrameWnd::WindowProc(message, wParam, lParam);
+}
+
 BOOL CMainFrame::OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERINFO* pHandlerInfo) {
   if (nCode == CN_COMMAND){
-    if (!pHandlerInfo){
-      theApp.plugins.OnCommand(nID);
-    }else if (theApp.plugins.OnUpdate(nID)){
+    if (pHandlerInfo && theApp.plugins.OnUpdate(nID)){
       return true;
     }
   }

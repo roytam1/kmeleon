@@ -48,7 +48,7 @@ void Config(HWND parent);
 void Quit();
 HGLOBAL GetMenu();
 void DoMenu(HMENU menu, char *param);
-void OnCommand(UINT command);
+void OnMessage(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 kmeleonPlugin kPlugin = {
   KMEL_PLUGIN_VER,
@@ -57,7 +57,8 @@ kmeleonPlugin kPlugin = {
   Config,
   Quit,
   DoMenu,
-  OnCommand
+  NULL,
+  OnMessage
 };
 
 CMenu m_menuFavorites;
@@ -263,17 +264,20 @@ void DoMenu(HMENU menu, char *param){
 	}
 }
 
-void OnCommand(UINT command){
-  if (command == nConfigCommand){
-    Config(NULL);
-    return;
-  }
-  if (command == nAddCommand){
-    //AppendMenu(mainMenu, MF_STRING, nFirstFavoriteCommand, "New Item");
-    return;
-  }
-  if (command >= nFirstFavoriteCommand && command < (nFirstFavoriteCommand + MAX_FAVORITES)){
-    kPlugin.NavigateTo((char *)(LPCTSTR)m_astrFavoriteURLs.GetAt(command - nFirstFavoriteCommand), 0);
+void OnMessage(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam){
+  if (message == WM_COMMAND){
+    WORD command = LOWORD(wParam);
+    if (command == nConfigCommand){
+      Config(NULL);
+      return;
+    }
+    if (command == nAddCommand){
+      //AppendMenu(mainMenu, MF_STRING, nFirstFavoriteCommand, "New Item");
+      return;
+    }
+    if (command >= nFirstFavoriteCommand && command < (nFirstFavoriteCommand + MAX_FAVORITES)){
+      kPlugin.NavigateTo((char *)(LPCTSTR)m_astrFavoriteURLs.GetAt(command - nFirstFavoriteCommand), 0);
+    }
   }
 }
 

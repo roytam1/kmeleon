@@ -33,10 +33,9 @@ typedef struct {
 	void (*Config)(HWND parent);
 	void (*Quit)();
   void (*DoMenu)(HMENU menu, char *param);
-  void (*OnCommand)(UINT command);
-  // return false to disable the item
-  //int (*CommandUpdate)(UINT command);
   void (*DoRebar)(HWND rebarWnd);
+
+  void (*OnMessage)(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam);
 
   // Filled in by k-meleon
   // this function allocates <num> successive ids for the plugin, then returns the first one.

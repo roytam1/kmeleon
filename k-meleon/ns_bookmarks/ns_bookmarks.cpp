@@ -43,7 +43,7 @@ void Config(HWND parent);
 void Quit();
 HGLOBAL GetMenu();
 void DoMenu(HMENU menu, char *param);
-void OnCommand(UINT command);
+void OnMessage(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 kmeleonPlugin kPlugin = {
   KMEL_PLUGIN_VER,
@@ -52,7 +52,8 @@ kmeleonPlugin kPlugin = {
   Config,
   Quit,
   DoMenu,
-  OnCommand
+  NULL,
+  OnMessage
 };
 
 HMENU mainMenu = NULL;
@@ -75,8 +76,7 @@ void DoMenu(HMENU menu, char *param){
 
 }
 
-void OnCommand(UINT command){
-
+void OnMessage(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam){
 }
 
 // so it doesn't munge the function name

@@ -46,8 +46,8 @@ void Config(HWND parent);
 void Quit();
 HGLOBAL GetMenu();
 void DoMenu(HMENU menu, char *param);
-void OnCommand(UINT command);
 void DoRebar(HWND rebarWnd);
+void OnMessage(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 kmeleonPlugin kPlugin = {
   KMEL_PLUGIN_VER,
@@ -56,8 +56,8 @@ kmeleonPlugin kPlugin = {
   Config,
   Quit,
   DoMenu,
-  OnCommand,
-  DoRebar
+  DoRebar,
+  OnMessage
 };
 
 HBITMAP prevBmp;
@@ -113,16 +113,17 @@ void DoRebar(HWND rebarWnd){
   for (i=0; i<numCommands; i++){
     buttons[i].iBitmap = i;
     buttons[i].idCommand = commandIDs + i;
+    buttons[i].iString = i + 1;
 
     buttons[i].dwData = 0;
     buttons[i].fsState = TBSTATE_ENABLED;
     buttons[i].fsStyle = TBSTYLE_BUTTON;
-    buttons[i].iString = 0;
     buttons[i].bReserved[0] = 0;
   };
 
-  DWORD dwStyle = 0x40 | CCS_NOPARENTALIGN | CCS_NORESIZE | /*CCS_NOMOVEY | */
-    TBSTYLE_FLAT | /*TBSTYLE_AUTOSIZE | TBSTYLE_LIST |*/ TBSTYLE_TOOLTIPS | TBSTYLE_TRANSPARENT;
+  DWORD dwStyle = 0x40 | /*the 40 gets rid of an ugly border on top.  I have no idea what flag it corresponds to...*/
+    CCS_NOPARENTALIGN | CCS_NORESIZE |
+    TBSTYLE_FLAT | TBSTYLE_TRANSPARENT /* | TBSTYLE_AUTOSIZE | TBSTYLE_LIST | TBSTYLE_TOOLTIPS */;
 
   // Create the toolbar control to be added.
   HWND hwndTB = CreateToolbarEx(rebarWnd, dwStyle,
@@ -169,10 +170,13 @@ void DoRebar(HWND rebarWnd){
   SendMessage(rebarWnd, RB_MAXIMIZEBAND, (WPARAM)bandPos, (LPARAM)true);
 }
 
-void OnCommand(UINT command){
-  if (command >= commandIDs && command < (commandIDs + numCommands)){
-    HWND hwndWinamp = FindWindow("Winamp v1.x",NULL);
-    SendMessage(hwndWinamp, WM_COMMAND, commandTable[command - commandIDs], 0);
+void OnMessage(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam){
+  if (message == WM_COMMAND){
+    WORD command = LOWORD(wParam);
+    if (command >= commandIDs && command < (commandIDs + numCommands)){
+      HWND hwndWinamp = FindWindow("Winamp v1.x",NULL);
+      SendMessage(hwndWinamp, WM_COMMAND, commandTable[command - commandIDs], 0);
+    }
   }
 }
 
