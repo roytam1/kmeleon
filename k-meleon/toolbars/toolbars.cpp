@@ -38,6 +38,7 @@
 /* Begin K-Meleon Plugin Header */
 
 int  Init();
+void Create(HWND parent);
 void Config(HWND parent);
 void Quit();
 void DoRebar(HWND rebarWnd);
@@ -56,8 +57,11 @@ kmeleonPlugin kPlugin = {
 long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2)
 {
    if (to[0] == '*' || stricmp(to, kPlugin.dllname) == 0) {
-      if (stricmp(subject, "Init") == 0) {
+      if (stricmp(subject, "MenusInited") == 0) {
          Init();
+      }
+      else if (stricmp(subject, "Create") == 0) {
+         Create((HWND)data1);
       }
       else if (stricmp(subject, "Config") == 0) {
          Config((HWND)data1);
@@ -81,6 +85,7 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
 struct s_button {
    char *sName;
 //   char *sToolTip;
+   HMENU menu;
    int iID;
    int width, height;
    s_button *next;
@@ -127,6 +132,15 @@ int Init() {
    LoadToolbars(szConfigFile);
 
    return 1;
+}
+
+LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+
+WNDPROC KMeleonWndProc;
+
+void Create(HWND parent){
+   KMeleonWndProc = (WNDPROC) GetWindowLong(parent, GWL_WNDPROC);
+   SetWindowLong(parent, GWL_WNDPROC, (LONG)WndProc);
 }
 
 void Config(HWND hWndParent) {
@@ -200,7 +214,7 @@ void DoRebar(HWND rebarWnd) {
       // Create the toolbar control to be added.
       HWND hwndTB = kPlugin.kFuncs->CreateToolbar(GetParent(rebarWnd), CCS_NODIVIDER | CCS_NOPARENTALIGN | CCS_NORESIZE | TBSTYLE_FLAT | TBSTYLE_TRANSPARENT | TBSTYLE_TOOLTIPS);
       if (!hwndTB){
-         MessageBox(NULL, "Failed to create toolbar", "K-Meleon Toolbar Plugin", MB_OK);
+         MessageBox(NULL, "Failed to create toolbar", PLUGIN_NAME, MB_OK);
          return;
       }
 
@@ -214,7 +228,7 @@ void DoRebar(HWND rebarWnd) {
 
          buttons[i].dwData = 0;
          buttons[i].fsState = TBSTATE_ENABLED;
-         buttons[i].fsStyle = TBSTYLE_BUTTON;
+         buttons[i].fsStyle = TBSTYLE_BUTTON | (button->menu?TBSTYLE_DROPDOWN:0);
          buttons[i].bReserved[0] = 0;
          i++;
          button = button->next;
@@ -301,7 +315,7 @@ enum state {
 
 Sample ToolBar(16,16) {                # (width, height) is optional, defaults to 16, 16
    Button1(16, 16) {                   # the (width, height) is optional, defaults to toolbar dimensions
-      ID_NAV_STOP                      # command
+      ID_NAV_STOP | MenuName           # command / Menu
       c:\tool1.bmp[0]                  # hot image
       c:\tool2.bmp[0]                  # cold image (optional)
    }
@@ -424,6 +438,18 @@ void LoadToolbars(char *filename) {
          
          switch (iBuildState) {
          case ID:
+
+            curButton->menu = NULL;
+
+            char *pipe;
+            pipe = strchr(p, '|');
+            if (pipe) {
+               *pipe = 0;
+
+               TrimWhiteSpace(pipe+1);
+
+               curButton->menu = kPlugin.kFuncs->GetMenu(SkipWhiteSpace(pipe+1));
+            }
             
             // check for call to other plugin
             char *op;
@@ -434,7 +460,7 @@ void LoadToolbars(char *filename) {
                char *plugin = p;
                p = strchr(param, ')');
                if (p) *p =0;
-               kPlugin.kFuncs->SendMessage(plugin, PLUGIN_NAME, "DoAccel", (long)param, &curButton->iID);
+               kPlugin.kFuncs->SendMessage(plugin, PLUGIN_NAME, "DoAccel", (long)param, (long)&curButton->iID);
             }
             
             // check for numeric value
@@ -443,51 +469,12 @@ void LoadToolbars(char *filename) {
             
             
             // check for defined value
-#define CHECK(VAR) \
+#define DEFINEMAP_ADD(VAR) \
    else if (!strcmp(#VAR, p)) \
             curButton->iID = VAR;
-            
-            CHECK(ID_NAV_BACK)
-               CHECK(ID_NAV_FORWARD)
-               CHECK(ID_NAV_HOME)
-               CHECK(ID_NAV_STOP)
-               CHECK(ID_NAV_RELOAD)
-               CHECK(ID_NAV_SEARCH)
-               CHECK(ID_VIEW_SOURCE)
-               CHECK(ID_VIEW_TOOLBAR)
-               CHECK(ID_VIEW_STATUS_BAR)
-               CHECK(ID_PREFERENCES)
-               CHECK(ID_NEW_BROWSER)
-               CHECK(ID_FILE_SAVE_AS)
-               CHECK(ID_FILE_OPEN)
-               CHECK(ID_FILE_CLOSE)
-               CHECK(ID_FILE_PRINT)
-               CHECK(ID_EDIT_CUT)
-               CHECK(ID_EDIT_COPY)
-               CHECK(ID_EDIT_PASTE)
-               CHECK(ID_EDIT_UNDO)
-               CHECK(ID_EDIT_CLEAR)
-               CHECK(ID_EDIT_SELECT_ALL)
-               CHECK(ID_EDIT_SELECT_NONE)
-               CHECK(ID_EDIT_FIND)
-               CHECK(ID_EDIT_FINDNEXT)
-               CHECK(ID_EDIT_FINDPREV)
-               CHECK(ID_VIEW_IMAGE)
-               CHECK(ID_SAVE_IMAGE_AS)
-               CHECK(ID_SAVE_LINK_AS)
-               CHECK(ID_APP_EXIT)
-               CHECK(ID_APP_ABOUT)
-               CHECK(ID_OPEN_LINK_IN_NEW_WINDOW)
-               CHECK(ID_COPY_LINK_LOCATION)
-               CHECK(ID_COPY_IMAGE_LOCATION)
-               CHECK(ID_MANAGE_PROFILES)
-               CHECK(ID_LINK_KMELEON_HOME)
-               CHECK(ID_LINK_KMELEON_FORUM)
-               CHECK(ID_SELECT_URL)
-               CHECK(ID_OPEN_LINK_IN_BACKGROUND)
-               CHECK(ID_WINDOW_NEXT)
-               CHECK(ID_WINDOW_PREV)
-               
+
+#include "../definemap.cpp"
+
                iBuildState++;
             break;
             //            case DESC:
@@ -568,6 +555,7 @@ s_button  *AddButton(s_toolbar *toolbar, char *name, int width, int height) {
    newButton->height = height;
 //   newButton->sToolTip = NULL;
    newButton->iID = 0;
+   newButton->menu = NULL;
    newButton->next = NULL;
 
    toolbar->iButtonCount++;
@@ -668,6 +656,42 @@ void AddImageToList(s_toolbar *toolbar, HIMAGELIST list, char *file, int index, 
    DeleteObject(hButton);
    DeleteObject(hBitmap);
 }
+
+
+
+LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
+   if (message == WM_NOTIFY){
+      LPNMTOOLBAR lpnmtb = (LPNMTOOLBAR) lParam;
+
+      if (lpnmtb->hdr.code == TBN_DROPDOWN) {
+         s_toolbar   *toolbar = toolbar_head;
+         s_button    *button;
+
+         while (toolbar) {
+            if (toolbar->iButtonCount == 0) continue;
+
+            button = toolbar->buttonHead;
+            while (button) {
+               if (button->iID == lpnmtb->iItem && button->menu) {
+
+                  RECT rc;
+                  WPARAM index = SendMessage(lpnmtb->hdr.hwndFrom, TB_COMMANDTOINDEX, lpnmtb->iItem, 0);
+                  SendMessage(lpnmtb->hdr.hwndFrom, TB_GETITEMRECT, index, (LPARAM) &rc);
+                  POINT pt = { rc.left, rc.bottom };
+                  ClientToScreen(lpnmtb->hdr.hwndFrom, &pt);
+
+                  TrackPopupMenu(button->menu, TPM_RIGHTALIGN, pt.x, pt.y, 0, hWnd, NULL);
+                  return TBDDRET_DEFAULT;
+               }
+               button = button->next;
+            }
+            toolbar = toolbar->next;
+         }
+      }
+   }
+   return CallWindowProc(KMeleonWndProc, hWnd, message, wParam, lParam);
+}
+
 
 
 // function mutilation protection
