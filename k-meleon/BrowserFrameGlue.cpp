@@ -607,13 +607,14 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowTooltip(PRInt32 x, PRInt32 y, const
    }
 
    POINT point;
+   ::GetCursorPos(&point);
    point.x = x;
    point.y = y;
 
-   pThis->m_wndBrowserView.ClientToScreen(&point);
-   point.y += GetSystemMetrics(SM_CYCURSOR); // jump to below the cursor, otherwise we appear right on top of the cursor
+//   pThis->m_wndBrowserView.ClientToScreen(&point);
+   point.y += GetSystemMetrics(SM_CYCURSOR)/2 + 4; // jump to below the cursor, otherwise we appear right on top of the cursor
 
-   pThis->m_wndToolTip.Show(text, point.x, point.y);      
+   pThis->m_wndToolTip.Show(text, point.x, point.y);
 }
 
 void CBrowserFrame::BrowserFrameGlueObj::FocusNextElement() {

@@ -253,7 +253,7 @@ CKmToolTip::CKmToolTip() {
 }
 
 void CKmToolTip::Create(CWnd *pWnd) {
-   CWnd::Create(m_pszWndClass, NULL, WS_POPUP | WS_BORDER,
+   CWnd::Create(m_pszWndClass, NULL, WS_CHILD | WS_BORDER,
       CRect(10,10,150,50), pWnd, NULL, NULL);
 }
 
@@ -291,7 +291,7 @@ void CKmToolTip::Show(const char *text, int x, int y) {
    
    // add a bit of padding on the sides
    int width = rect.Width() + 10;
-   int height = rect.Height() +2;
+   int height = rect.Height() +5;
    
    // keep the tooltip from running off the window
    CWnd *pWndParent = GetParent();
@@ -316,6 +316,8 @@ void CKmToolTip::OnPaint() {
    clrBackground = ::GetSysColor(COLOR_INFOBK);
    CRect ClientRect;
    GetClientRect(ClientRect);
+   DC.Rectangle(ClientRect);
+   ClientRect.DeflateRect(1,1,1,1);
    DC.FillSolidRect(ClientRect, clrBackground);
    
    // Draw text
