@@ -412,7 +412,6 @@ void Create(HWND parent){
             find_frame(parent)->hWndFront = parent;
             PostMessage(parent, WM_COMMAND, id_resize, (LPARAM)&gwpOld);
             ShowWindowAsync( ghParent, SW_HIDE );
-            PostMessage(parent, WM_SETFOCUS, 0, 0);
          }
          else {
             find_frame(parent)->hWndFront = ghParent;
@@ -955,7 +954,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                ghCurHwnd = hWnd;
                if (hWnd != pFrame->hWndFront) {
                   ShowWindowAsync(hWnd, SW_HIDE);
-                  PostMessage(pFrame->hWndFront, WM_SETFOCUS, 0, 0);
+                  PostMessage(pFrame->hWndFront, WM_COMMAND, id_resize, (LPARAM)0);
                   break;
                }
             }
@@ -1112,7 +1111,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                      wpTmp.length = sizeof (WINDOWPLACEMENT);
                      GetWindowPlacement(newframe->hWndFront, &wpTmp);
                      SetWindowPlacement(newframe->hWndFront, &wpTmp);
-                     SetFocus(newframe->hWndFront);
+                     BringWindowToTop(newframe->hWndFront);
                   }
                }
                
@@ -1273,7 +1272,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                      wpTmp.length = sizeof (WINDOWPLACEMENT);
                      GetWindowPlacement(hWnd, &wpTmp);
                      SetWindowPlacement(hWnd, &wpTmp);
-                     // PostMessage(hWnd, WM_SETFOCUS, 0, 0);
+                     PostMessage(hWnd, WM_COMMAND, id_resize, (LPARAM)0);
                      if (pFrame && pFrame->hWndFront)
                         UpdateLayersMenu(pFrame->hWndFront);
                      if (pFrame && pFrame->layer)
@@ -1385,10 +1384,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
             
             else if (command == id_resize) {
                WINDOWPLACEMENT *wpNew = (WINDOWPLACEMENT*)lParam;
-               SetWindowPlacement(hWnd, wpNew);
-               if (wpNew->showCmd == SW_SHOWNORMAL || 
-                   wpNew->showCmd == SW_SHOWMAXIMIZED) {
-                  SetFocus(hWnd);
+               if (wpNew)
+                  SetWindowPlacement(hWnd, wpNew);
+               if (!wpNew || (wpNew->showCmd == SW_SHOWNORMAL || 
+                              wpNew->showCmd == SW_SHOWMAXIMIZED)) {
+                  BringWindowToTop(hWnd);
                }
                return 1;
             }
