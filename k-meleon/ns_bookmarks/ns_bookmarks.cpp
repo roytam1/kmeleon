@@ -37,6 +37,7 @@
 
 UINT nConfigCommand;
 UINT nAddCommand;
+UINT nAddToolbarCommand;
 UINT nEditCommand;
 UINT nDropdownCommand;
 UINT nFirstBookmarkPosition;
@@ -106,6 +107,7 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
 int Init(){
    nConfigCommand = kPlugin.kFuncs->GetCommandIDs(1);
    nAddCommand = kPlugin.kFuncs->GetCommandIDs(1);
+   nAddToolbarCommand = kPlugin.kFuncs->GetCommandIDs(1);
    nEditCommand = kPlugin.kFuncs->GetCommandIDs(1);
    nDropdownCommand = kPlugin.kFuncs->GetCommandIDs(1);
 
@@ -208,6 +210,9 @@ void DoMenu(HMENU menu, char *param){
       if (stricmp(action, "Add") == 0){
          command = nAddCommand;
       }
+      if (stricmp(action, "AddToolbar") == 0){
+         command = nAddToolbarCommand;
+      }
       if (stricmp(action, "Edit") == 0){
          command = nEditCommand;
       }
@@ -248,10 +253,13 @@ int DoAccel(char *param)
    if (stricmp(param, "Add") == 0){
       return nAddCommand;
    }
+   if (stricmp(param, "AddToolbar") == 0){
+      return nAddToolbarCommand;
+   }
    if (stricmp(param, "Edit") == 0){
       return nEditCommand;
    }
-   return nAddCommand;
+   return nConfigCommand;
 }
 
 void DoRebar(HWND rebarWnd) {

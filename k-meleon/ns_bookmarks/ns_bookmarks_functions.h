@@ -51,6 +51,7 @@ extern HWND ghWndTB;
 
 extern UINT nConfigCommand;
 extern UINT nAddCommand;
+extern UINT nAddToolbarCommand;
 extern UINT nEditCommand;
 extern UINT nDropdownCommand;
 extern UINT nFirstBookmarkPosition;
