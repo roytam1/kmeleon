@@ -92,10 +92,12 @@ CParser::Load(CString &filename)
    END_CATCH
 
    long length = file->GetLength();
-   char *buffer = new char[length + 1];
+   char *buffer = new char[length + 3]; // CR+LF+NUL
    file->Read(buffer, length);
    // force the terminating 0
-   buffer[length] = 0;
+   buffer[length] = '\r';
+   buffer[length+1] = '\n';
+   buffer[length+2] = 0;
 
    file->Close();
    delete file;
