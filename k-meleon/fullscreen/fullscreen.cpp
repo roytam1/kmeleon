@@ -90,7 +90,7 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
 }
 
 
-BOOL bHideReBar, bHideStatusBar;
+BOOL bHideReBar, bHideStatusBar, bAutoFullscreen;
 
 HINSTANCE ghInstance;
 
@@ -162,6 +162,7 @@ BOOL APIENTRY DllMain(HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserv
 int Init(){
    kPlugin.kFuncs->GetPreference(PREF_BOOL, _T("kmeleon.plugins.fullscreen.hide_rebar"), &bHideReBar, (void *)"1");
    kPlugin.kFuncs->GetPreference(PREF_BOOL, _T("kmeleon.plugins.fullscreen.hide_statusbar"), &bHideStatusBar, (void *)"1");
+   kPlugin.kFuncs->GetPreference(PREF_BOOL, _T("kmeleon.plugins.fullscreen.auto"), &bAutoFullscreen, (void *)&bAutoFullscreen);
 	id_fullscreen = kPlugin.kFuncs->GetCommandIDs(1);
    return true;
 }
@@ -173,6 +174,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 void Create(HWND hWndParent) {
 	KMeleonWndProc = (WNDPROC) GetWindowLong(hWndParent, GWL_WNDPROC);
 	SetWindowLong(hWndParent, GWL_WNDPROC, (LONG)WndProc);
+	if (bAutoFullscreen)
+	  PostMessage(hWndParent, WM_COMMAND, id_fullscreen, 0);
 }
 
 void Config(HWND hWndParent) {
