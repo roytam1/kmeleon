@@ -61,6 +61,10 @@ void quicksort(char *a, size_t n, size_t es, cmp_t *cmp, unsigned int flag);
 #define IDC_SHORT_NAME			1020
 #define IDC_STATIC_DESC			1021
 #define IDC_DESCRIPTION			1022
+#define IDC_SORTORDER_AZ		1023
+#define IDC_SORTORDER_ZA		1024
+#define IDC_FOLDERFIRST			1025
+#define IDC_USEORDER			1026
 
 #define TOOLBAND_NAME "Hotlist"
 #define TOOLBAND_FAILED_TO_CREATE "Failed to create hotlist toolbar"
@@ -186,7 +190,7 @@ WHERE int  nButtonMaxWidth;
 WHERE BOOL bButtonIcons;
 WHERE int nHSize, nHRes;
 
-// WHERE HWND ghWndTB;
+WHERE HWND ghWndEdit;
 WHERE HIMAGELIST gImagelist; // the one and only imagelist...
 
 #endif

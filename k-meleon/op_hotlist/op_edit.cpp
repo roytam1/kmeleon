@@ -85,7 +85,12 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
    HWND hasFocus = GetFocus();
    HWND hTree = GetDlgItem(hEditWnd, IDC_TREE_HOTLIST);
 
-   if (hasFocus == hTree) {
+
+   if (wParam == VK_ESCAPE) {
+      fEatKeystroke = true;
+      SendMessage(GetDlgItem(hEditWnd, IDCANCEL), BM_CLICK, 0, 0);
+   }
+   else if (hasFocus == hTree) {
       HTREEITEM hItem = TreeView_GetSelection(hTree);
       if (hItem) {
          switch (wParam) {
@@ -134,6 +139,19 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
                else if (node->type == BOOKMARK_FOLDER) {
                   TreeView_Expand(hTree, hItem, TVE_TOGGLE);
                }
+            }
+            break;
+         case VK_TAB:
+            {
+               int idc_next = IDC_NAME;
+               fEatKeystroke = true;
+               if (GetKeyState(VK_SHIFT) & 0x80) {
+                  idc_next = IDCANCEL;
+                  SendMessage(GetDlgItem(hEditWnd, idc_next), BM_SETSTYLE, BS_DEFPUSHBUTTON, TRUE);
+               }
+               SetFocus(GetDlgItem(hEditWnd, idc_next));
+               if (idc_next != IDCANCEL)
+                  SendDlgItemMessage(hEditWnd, idc_next, EM_SETSEL, 0, -1);  // select all
             }
             break;
          case VK_DELETE:
@@ -199,8 +217,19 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
    }
    else if (hasFocus == GetDlgItem(hEditWnd, IDC_NAME) && wParam == VK_RETURN) {
       fEatKeystroke = true;
-      SetFocus(GetDlgItem(hEditWnd, IDC_URL));
-      SendDlgItemMessage(hEditWnd, IDC_URL, EM_SETSEL, 0, -1);  // select all
+      if (IsWindowEnabled(GetDlgItem(hEditWnd, IDC_URL))) {
+         SetFocus(GetDlgItem(hEditWnd, IDC_URL));
+         SendDlgItemMessage(hEditWnd, IDC_URL, EM_SETSEL, 0, -1);  // select all
+      }
+      else {
+         SetFocus(GetDlgItem(hEditWnd, IDC_TREE_HOTLIST));
+      }
+   }
+   else if (hasFocus == GetDlgItem(hEditWnd, IDOK) && wParam == VK_RETURN) {
+      SendMessage(GetDlgItem(hEditWnd, IDOK), BM_CLICK, 0, 0);
+   }
+   else if (hasFocus == GetDlgItem(hEditWnd, IDCANCEL) && wParam == VK_RETURN) {
+      SendMessage(GetDlgItem(hEditWnd, IDCANCEL), BM_CLICK, 0, 0);
    }
    else if ((hasFocus == GetDlgItem(hEditWnd, IDC_URL) ||
              hasFocus == GetDlgItem(hEditWnd, IDC_ORDER) ||
@@ -209,6 +238,35 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
             wParam == VK_RETURN) {
       fEatKeystroke = true;
       SetFocus(GetDlgItem(hEditWnd, IDC_TREE_HOTLIST));
+   }
+   else if (wParam == VK_TAB) {
+      int fields[] = {IDC_TREE_HOTLIST, IDC_NAME, IDC_URL, 
+                      IDC_ORDER, IDC_DESCRIPTION, IDC_SHORT_NAME, 
+                      IDOK, IDCANCEL, IDC_TREE_HOTLIST};
+      for (int i=1; fields[i]!=IDC_TREE_HOTLIST; i++) {
+         if (GetDlgItem(hEditWnd, fields[i]) == hasFocus) {
+            int idc_next = fields[i + ((GetKeyState(VK_SHIFT) & 0x80) ? -1 : 1)];
+            if (idc_next == IDC_TREE_HOTLIST || 
+                idc_next == IDOK || idc_next == IDCANCEL || 
+                IsWindowEnabled(GetDlgItem(hEditWnd, idc_next))) {
+               fEatKeystroke = true;
+               if (fields[i] == IDOK || fields[i] == IDCANCEL)
+                  SendMessage(hasFocus, BM_SETSTYLE, BS_PUSHBUTTON, TRUE);
+               if (idc_next == IDOK || idc_next == IDCANCEL)
+                  SendMessage(GetDlgItem(hEditWnd, idc_next), BM_SETSTYLE, BS_DEFPUSHBUTTON, TRUE);
+               SetFocus(GetDlgItem(hEditWnd, idc_next));
+               if (idc_next != IDC_TREE_HOTLIST && 
+                   idc_next != IDOK && idc_next != IDCANCEL)
+                  SendDlgItemMessage(hEditWnd, idc_next, EM_SETSEL, 0, -1);  // select all
+               break;
+            }
+            else {
+               hasFocus = GetDlgItem(hEditWnd, idc_next);
+               i = 0;
+               continue;
+            }
+         }
+      }
    }
 
    return(fEatKeystroke ? 1 : CallNextHookEx(NULL, nCode, wParam, lParam));
@@ -341,7 +399,7 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
             EnableWindow(GetDlgItem(hDlg, IDC_STATIC_ORDER), true);
             EnableWindow(GetDlgItem(hDlg, IDC_ORDER), true);
-            SetDlgItemInt(hDlg, IDC_ORDER, (UINT)newNode->order, false);
+            SetDlgItemInt(hDlg, IDC_ORDER, (UINT)newNode->order, true);
             
             EnableWindow(GetDlgItem(hDlg, IDC_STATIC_DESC), true);
             EnableWindow(GetDlgItem(hDlg, IDC_DESCRIPTION), true);
@@ -374,7 +432,23 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
    case WM_COMMAND:
       {
-         if (HIWORD(wParam) == EN_CHANGE) {
+         if (LOWORD(wParam) == nAddCommand) {
+            CBookmarkNode *newNode = (CBookmarkNode *)lParam;
+
+            TVINSERTSTRUCT tvis;
+            tvis.itemex.mask = TVIF_TEXT | TVIF_PARAM | TVIF_IMAGE | TVIF_SELECTEDIMAGE;
+            tvis.itemex.pszText = (TCHAR*)newNode->text.c_str();
+            tvis.itemex.iImage = IMAGE_BOOKMARK;
+            tvis.itemex.iSelectedImage = IMAGE_BOOKMARK;
+            tvis.itemex.lParam = (long)newNode;
+            tvis.hParent = TreeView_GetRoot(hTree);
+            tvis.hInsertAfter = TVI_LAST;
+
+            HTREEITEM newItem = TreeView_InsertItem(hTree, &tvis);
+            
+            bookmarksEdited = true;
+         }
+         else if (HIWORD(wParam) == EN_CHANGE) {
             int id = LOWORD(wParam);
 
             if (id == IDC_NAME || id == IDC_URL ||
@@ -386,7 +460,7 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                      CBookmarkNode *node = GetBookmarkNode(hTree, hSelection);
                      
                      if (node->type == BOOKMARK_BOOKMARK || node->type == BOOKMARK_FOLDER) {
-                        if (id == IDC_ORDER && node->order != GetDlgItemInt(hDlg, id, NULL, false)) {
+                        if (id == IDC_ORDER && node->order != GetDlgItemInt(hDlg, id, NULL, true)) {
                            node->order = GetDlgItemInt(hDlg, id, NULL, true);
                            bookmarksEdited = true;
                         }
@@ -445,6 +519,7 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                kPlugin.kFuncs->SetPreference(PREF_INT, PREFERENCE_EDIT_DLG_HEIGHT, &temp);
 
                UnhookWindowsHookEx(hHook);
+               ghWndEdit = NULL;
                EndDialog(hDlg, 1);
                break;
             
@@ -460,6 +535,7 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                }
 
                UnhookWindowsHookEx(hHook);
+               ghWndEdit = NULL;
                EndDialog(hDlg, 0);
                break;
             }
@@ -607,7 +683,7 @@ static void CreateNewObject(HWND hTree, HTREEITEM fromItem, int type, int mode=0
    TreeView_GetItem(hTree, &itemData);
    CBookmarkNode *fromNode = (CBookmarkNode *)itemData.lParam;
 
-   if (fromNode->type == BOOKMARK_FOLDER) {
+   if (fromNode->type == BOOKMARK_FOLDER && mode == PASTE) {
       // if we're adding to a folder, make it the first child
       newNode->next = fromNode->child;
       fromNode->child = newNode;
@@ -711,7 +787,7 @@ static void OnSize(int height, int width) {
    SetWindowPos(GetDlgItem(hEditWnd, IDC_LAST_VISIT), 0, 
                 x2 + OTHER_WIDTH+5, // convX(EDITBOXES_LEFT+DATES_WIDTH+OTHER_WIDTH)+BORDER+5, 
                 height-convY(EDITBOXES_TOP-EDITBOXES_HEIGHT*2.5), 
-                w1 - OTHER_WIDTH, // width-convX(EDITBOXES_LEFT+DATES_WIDTH+OTHER_WIDTH)-BORDER*3, 
+                w2 - OTHER_WIDTH-5, // width-convX(EDITBOXES_LEFT+DATES_WIDTH+OTHER_WIDTH)-BORDER*3, 
                 convY(EDITBOXES_HEIGHT), 0);
 
    SetWindowPos(GetDlgItem(hEditWnd, IDC_STATIC_SHORT), 0, 
