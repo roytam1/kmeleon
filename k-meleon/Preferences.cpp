@@ -88,6 +88,7 @@ void CPreferences::Load() {
       _GetString(_T("kmeleon.general.sourceCommand"), sourceCommand, _T(""));
     
       _GetString(_T("kmeleon.general.settingsDir"), settingsDir, _T(""));
+      _GetString(_T("kmeleon.general.pluginsDir"), pluginsDir, _T(""));
     
       if (settingsDir.IsEmpty()) {
          nsCOMPtr<nsIFile> profileDir;
@@ -106,6 +107,17 @@ void CPreferences::Load() {
       }
       if (settingsDir[settingsDir.GetLength() - 1] != '\\')
          settingsDir += '\\';
+     
+      if (pluginsDir.IsEmpty()) {
+         char buf[MAX_PATH];
+         GetModuleFileName(NULL, buf, MAX_PATH);
+         int x=strlen(buf)-1;
+         while (x>0 && buf[x] != '\\') x--;
+         if (x>0) buf[x+1]=0;
+         pluginsDir = buf;         // plugins dir = path to kmeleon.exe
+      }
+      else if (pluginsDir[pluginsDir.GetLength() - 1] != '\\')
+         pluginsDir += '\\';
 
       _GetString(_T("network.proxy.http"), proxyHttp, _T("proxy"));
       _GetInt(_T("network.proxy.http_port"), proxyHttpPort, 80);
@@ -154,6 +166,7 @@ void CPreferences::Save() {
     rv = prefs->SetCharPref(_T("kmeleon.general.homePage"), homePage);
 
     rv = prefs->SetCharPref(_T("kmeleon.general.settingsDir"), settingsDir);
+    rv = prefs->SetCharPref(_T("kmeleon.general.pluginsDir"), pluginsDir);
 
     rv = prefs->SetBoolPref(_T("kmeleon.general.sourceEnabled"), sourceEnabled);
     rv = prefs->SetCharPref(_T("kmeleon.general.sourceCommand"), sourceCommand);

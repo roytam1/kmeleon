@@ -56,16 +56,15 @@ const char *FileNoPath(const char *filepath){
 }
 
 UINT currentID = START_ID;
-UINT GetCommandIDs(int num){
-  UINT freeID = currentID;
-  currentID += num;
-  return freeID;
+UINT GetCommandIDs(int num) {
+   UINT freeID = currentID;
+   currentID += num;
+   return freeID;
 }
 
 int CPlugins::OnUpdate(UINT command){
-   if (command >= 2000 && command <= currentID){
-       return true;
-   }
+   if (command >= 2000 && command <= currentID)
+      return true;
    return false;
 }
 
@@ -95,15 +94,14 @@ LRESULT CPlugins::OnMessage(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam
 #endif
 
 void CPlugins::OnCreate(HWND wnd){
-  POSITION pos = pluginList.GetStartPosition();
-  kmeleonPlugin * kPlugin;
-  CString s;
-  while (pos){
-    pluginList.GetNextAssoc( pos, s, kPlugin);
-    if (kPlugin && kPlugin->pf->Create){
-      kPlugin->pf->Create(wnd);
-    }
-  }
+   POSITION pos = pluginList.GetStartPosition();
+   kmeleonPlugin * kPlugin;
+   CString s;
+   while (pos){
+      pluginList.GetNextAssoc( pos, s, kPlugin);
+      if (kPlugin && kPlugin->pf->Create) 
+         kPlugin->pf->Create(wnd);
+   }
 }
 
 void NavigateTo(char *url, int newWindow){
@@ -112,38 +110,38 @@ void NavigateTo(char *url, int newWindow){
 }
 
 static kmeleonDocInfo kDocInfo;
-kmeleonDocInfo * GetDocInfo(HWND mainWnd){
-  CBrowserFrame *frame = (CBrowserFrame *)CWnd::FromHandle(mainWnd);
+kmeleonDocInfo * GetDocInfo(HWND mainWnd) {
+   CBrowserFrame *frame = (CBrowserFrame *)CWnd::FromHandle(mainWnd);
 
-  if (!frame){
-    return NULL;
-  }
+   if (!frame){
+      return NULL;
+   }
 
-  CString title;
-  frame->GetWindowText(title);
-  title.Replace(" (K-Meleon)", "");
+   CString title;
+   frame->GetWindowText(title);
+   title.Replace(" (K-Meleon)", "");
 
-  CString url;
-  frame->m_wndUrlBar.GetEnteredURL(url);
+   CString url;
+   frame->m_wndUrlBar.GetEnteredURL(url);
 
-  strcpy(kDocInfo.title, title);
-  strcpy(kDocInfo.url, url);
+   strcpy(kDocInfo.title, title);
+   strcpy(kDocInfo.url, url);
 
-  return &kDocInfo;
+   return &kDocInfo;
 }
 
-void GetPreference(enum PREFTYPE type, char *preference, void *ret, void *defVal){
-  switch (type){
-  case PREF_BOOL:
-    *(int *)ret = theApp.preferences.GetBool(preference, *(int *)defVal);
-    break;
-  case PREF_INT:
-    *(int *)ret = theApp.preferences.GetInt(preference, *(int *)defVal);
-    break;
-  case PREF_STRING:
-    theApp.preferences.GetString(preference, (char *)ret, (char *)defVal);
-    break;
-  }
+void GetPreference(enum PREFTYPE type, char *preference, void *ret, void *defVal) {
+   switch (type){
+   case PREF_BOOL:
+      *(int *)ret = theApp.preferences.GetBool(preference, *(int *)defVal);
+      break;
+   case PREF_INT:
+      *(int *)ret = theApp.preferences.GetInt(preference, *(int *)defVal);
+      break;
+   case PREF_STRING:
+      theApp.preferences.GetString(preference, (char *)ret, (char *)defVal);
+      break;
+   }
 }
 
 void SetPreference(enum PREFTYPE type, char *preference, void *val) {
@@ -266,45 +264,52 @@ kmeleonPlugin * CPlugins::Load(const char *file){
 }
 
 int CPlugins::FindAndLoad(char *pattern = "*.dll"){
-  CString filepath;
-  CFileFind finder;
-  BOOL bWorking = finder.FindFile(pattern);
-  int i = 0;
-  while (bWorking)
-  {
-    bWorking = finder.FindNextFile();
+   CString filepath;
+   CFileFind finder;
+   BOOL bWorking;
 
-    filepath = finder.GetFilePath();
-    if ( Load(filepath) ){
-      i++;
-    }
-  }
-  return i;
+   int x=strlen(pattern);
+   while (x>0 && pattern[x] != '\\' && pattern[x] != '/') x--;
+
+   if (x==0) {       // if pattern does not contain \ or / we need to prepend pluginsDir
+      CString search = theApp.preferences.pluginsDir + "*.dll";
+      bWorking = finder.FindFile(search);
+   }
+   else bWorking = finder.FindFile(pattern);
+
+   int i = 0;
+   while (bWorking) {
+      bWorking = finder.FindNextFile();
+
+      filepath = finder.GetFilePath();
+      if ( Load(filepath) )
+         i++;
+   }
+   return i;
 }
 
 void CPlugins::UnLoadAll(){
-  POSITION pos = pluginList.GetStartPosition();
-  kmeleonPlugin * kPlugin;
-  CString s;
-  while (pos){
-    pluginList.GetNextAssoc( pos, s, kPlugin);
-    if (kPlugin){
-      kPlugin->pf->Quit();
-      FreeLibrary(kPlugin->hDllInstance);
-    }
-  }
-  pluginList.RemoveAll();
-  currentID = START_ID;
+   POSITION pos = pluginList.GetStartPosition();
+   kmeleonPlugin * kPlugin;
+   CString s;
+   while (pos){
+      pluginList.GetNextAssoc( pos, s, kPlugin);
+      if (kPlugin){
+         kPlugin->pf->Quit();
+         FreeLibrary(kPlugin->hDllInstance);
+      }
+   }
+   pluginList.RemoveAll();
+   currentID = START_ID;
 }
 
 void CPlugins::DoRebars(HWND rebarWnd){
-  POSITION pos = pluginList.GetStartPosition();
-  kmeleonPlugin * kPlugin;
-  CString s;
-  while (pos){
-    pluginList.GetNextAssoc( pos, s, kPlugin);
-    if (kPlugin && kPlugin->pf->DoRebar){
-      kPlugin->pf->DoRebar(rebarWnd);
-    }
-  }
+   POSITION pos = pluginList.GetStartPosition();
+   kmeleonPlugin * kPlugin;
+   CString s;
+   while (pos){
+      pluginList.GetNextAssoc( pos, s, kPlugin);
+      if (kPlugin && kPlugin->pf->DoRebar)
+         kPlugin->pf->DoRebar(rebarWnd);
+   }
 }

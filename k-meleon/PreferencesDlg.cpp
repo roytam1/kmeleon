@@ -172,6 +172,7 @@ void CPreferencePage::DoDataExchange(CDataExchange* pDX){
       DDX_Radio(pDX, IDC_RADIO_START_BLANK, theApp.preferences.bStartHome);
       DDX_Text(pDX, IDC_EDIT_HOMEPAGE, theApp.preferences.homePage);
       DDX_Text(pDX, IDC_EDIT_SETTINGS_DIR, theApp.preferences.settingsDir);
+      DDX_Text(pDX, IDC_EDIT_PLUGINS_DIR, theApp.preferences.pluginsDir);
       DDX_Check(pDX, IDC_CHECK_SOURCE_ENABLED, theApp.preferences.sourceEnabled);
       DDX_Text(pDX, IDC_EDIT_SOURCE_COMMAND, theApp.preferences.sourceCommand);
       break;

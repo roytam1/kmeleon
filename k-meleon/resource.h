@@ -89,6 +89,7 @@
 #define IDC_EDIT_HOMEPAGE               1114
 #define IDC_EDIT_PROXY                  1115
 #define IDC_EDIT_HTTP_PROXY             1115
+#define IDC_EDIT_PLUGINS_DIR            1115
 #define IDC_CHECK_TOOLBAR_BACKGROUND    1116
 #define IDC_BUTTON_BROWSE               1117
 #define IDC_LIST_PLUGINS                1118

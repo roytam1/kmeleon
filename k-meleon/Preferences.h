@@ -27,17 +27,18 @@
 
 class CPreferences {
 public:
-  // -- data
-  CString toolbarBackground;
-  int bToolbarBackground;
+   // -- data
+   CString toolbarBackground;
+   int bToolbarBackground;
 
-  CString homePage;
-  int bStartHome;
+   CString homePage;
+   int bStartHome;
 
-  CString searchEngine;
+   CString searchEngine;
  
-  // this holds the menu.txt files
-  CString settingsDir;
+   // this holds the menu.txt files
+   CString settingsDir;
+   CString pluginsDir;
 
    // true if the window should default to maximized
    int bMaximized;
@@ -45,59 +46,58 @@ public:
    // recent window position
    int posCX, posCY;
 
-
    // use external source viewer
    int sourceEnabled;
    CString sourceCommand;
   
-  // -- yummy proxies
-  int proxyType;
+   // -- yummy proxies
+   int proxyType;
 
-  CString proxyHttp;
-  int proxyHttpPort;
+   CString proxyHttp;
+   int proxyHttpPort;
 
-  CString proxyNoProxy;
+   CString proxyNoProxy;
 
-  // -- paranoia
-  int bJavaEnabled;
-  int bJavascriptEnabled;
-  int bCookiesEnabled;
-  int bCSSEnabled;
-  int bImagesEnabled;
-  int bAnimationsEnabled;
+   // -- paranoia
+   int bJavaEnabled;
+   int bJavascriptEnabled;
+   int bCookiesEnabled;
+   int bCSSEnabled;
+   int bImagesEnabled;
+   int bAnimationsEnabled;
 
-  // -- functions
+   // -- functions
 
-  CPreferences();
-  ~CPreferences();
+   CPreferences();
+   ~CPreferences();
 
-  void Save();
-  void Load();
+   void Save();
+   void Load();
 
-  void SetBool(const char *preference, int value);
-  int  GetBool(const char *preference, int defaultVal);
+   void SetBool(const char *preference, int value);
+   int  GetBool(const char *preference, int defaultVal);
 
-  void SetInt(const char *preference, int value);
-  int  GetInt(const char *preference, int defaultVal);
+   void SetInt(const char *preference, int value);
+   int  GetInt(const char *preference, int defaultVal);
 
-  void SetString(const char *preference, char * value);
-  void GetString(const char *preference, char * retValue, char * defaultVal);
+   void SetString(const char *preference, char * value);
+   void GetString(const char *preference, char * retValue, char * defaultVal);
 };
 
 class CPreferencePage : public CDialog {
 public:
-  UINT idd;
+   UINT idd;
 protected:
-  virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV support
+   virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV support
 
-  virtual BOOL OnInitDialog();
+   virtual BOOL OnInitDialog();
 
-  afx_msg void OnBrowse();
+   afx_msg void OnBrowse();
 
-  virtual void OnOK();
-  virtual void OnCancel();
+   virtual void OnOK();
+   virtual void OnCancel();
 
-  DECLARE_MESSAGE_MAP()
+   DECLARE_MESSAGE_MAP()
 };
 
 class CPreferencePagePlugins : public CPreferencePage {
