@@ -46,6 +46,9 @@ public:
    std::string desc;
    int type;
    int flags;
+   std::string in_panel;
+   std::string panel_pos;
+   std::string bar_pos;
    time_t addDate;
    time_t lastVisit;
    time_t lastModified;
@@ -67,11 +70,15 @@ public:
       child = NULL;
       lastChild = NULL;
 
+      in_panel = "";
+      panel_pos = "";
+      bar_pos = "";
+
       addDate = 0;
       lastVisit = 0;
       lastModified = 0;
    }
-   inline CBookmarkNode(int id, const char *text, const char *url, const char *nick, const char *desc, int type, time_t addDate=0, time_t lastVisit=0, time_t lastModified=0, long order=LONG_MAX)
+   inline CBookmarkNode(int id, const char *text, const char *url, const char *nick, const char *desc, int type, time_t addDate=0, time_t lastVisit=0, time_t lastModified=0, long order=-1, const char *in_panel=NULL, const char *panel_pos=NULL, const char *bar_pos=NULL)
    {
       this->id = id;
       this->order = order;
@@ -81,6 +88,9 @@ public:
       this->desc = desc;
       this->type = type;
       this->flags = 0;
+      this->in_panel = in_panel ? in_panel : "";
+      this->panel_pos = panel_pos ? panel_pos : "";
+      this->bar_pos = bar_pos ? bar_pos : "";
       this->next = NULL;
       this->child = NULL;
       this->lastChild = NULL;
@@ -88,7 +98,7 @@ public:
       this->lastVisit = lastVisit;
       this->lastModified = lastModified;
    }
-   inline CBookmarkNode(int id, std::string &text, std::string &url, std::string &nick, std::string &desc, int type, time_t addDate=0, time_t lastVisit=0, time_t lastModified=0, long order=LONG_MAX)
+   inline CBookmarkNode(int id, std::string &text, std::string &url, std::string &nick, std::string &desc, int type, time_t addDate=0, time_t lastVisit=0, time_t lastModified=0, long order=-1, const char *in_panel=NULL, const char *panel_pos=NULL, const char *bar_pos=NULL)
    {
       this->id = id;
       this->order = order;
@@ -98,6 +108,9 @@ public:
       this->desc = desc;
       this->type = type;
       this->flags = 0;
+      this->in_panel = in_panel ? in_panel : "";
+      this->panel_pos = panel_pos ? panel_pos : "";
+      this->bar_pos = bar_pos ? bar_pos : "";
       this->next = NULL;
       this->child = NULL;
       this->lastChild = NULL;
@@ -125,6 +138,9 @@ public:
       desc = n2.desc;
       type = n2.type;
       flags = n2.flags;
+      in_panel = n2.in_panel;
+      panel_pos = n2.panel_pos;
+      bar_pos = n2.bar_pos;
       addDate = n2.addDate;
       lastVisit = n2.lastVisit;
       lastModified = n2.lastModified;
@@ -340,22 +356,32 @@ static int compareBookmarks(const char *e1, const char *e2, unsigned int sortord
           cmp = c1->type - c2->type;
           break;
        case 2:
-          cmp = (c1->order < c2->order) ? -1 : (c1->order == c2->order) ? 0 : 1;
+          if (c1->order < 0 && c2->order < 0) 
+             cmp = 0;
+          else if (c1->order >= 0 && c2->order >= 0) 
+             cmp = (c1->order < c2->order) ? -1 : (c1->order == c2->order) ? 0 : 1;
+          else 
+             cmp = (c1->order < 0) ? 1 : (c2->order < 0) ? -1 : 0;
           break;
        case 3:
           cmp = stricmp((char*)c1->text.c_str(), (char*)c2->text.c_str());
           break;
        case 4:
-          cmp = stricmp((char*)c1->url.c_str(), (char*)c2->url.c_str());
-          break;
+         cmp = c2->id - c1->id;
+         return cmp ? cmp : -1;
        case 5:
-          cmp = stricmp((char*)c1->nick.c_str(), (char*)c2->nick.c_str());
+          cmp = c2->type - c1->type;
           break;
        case 6:
-          cmp = (c1->addDate < c2->addDate) ? -1 : (c1->addDate == c2->addDate) ? 0 : 1;
+          if (c2->order < 0 && c1->order < 0) 
+             cmp = 0;
+          else if (c2->order >= 0 && c1->order >= 0) 
+             cmp = (c2->order < c1->order) ? -1 : (c2->order == c1->order) ? 0 : 1;
+          else 
+             cmp = (c2->order < 0) ? 1 : (c1->order < 0) ? -1 : 0;
           break;
        case 7:
-          cmp = (c1->lastVisit < c2->lastVisit) ? -1 : (c1->lastVisit == c2->lastVisit) ? 0 : 1;
+          cmp = stricmp((char*)c2->text.c_str(), (char*)c1->text.c_str());
           break;
        default:
          cmp = c1->id - c2->id;

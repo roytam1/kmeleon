@@ -337,8 +337,10 @@ int addLink(char *url, char *title)
       return false;
    
    gHotlistRoot.AddChild(newNode);
-
    op_addEntry(lpszHotlistFile, newNode);
+   if (ghWndEdit) {
+      SendMessage(ghWndEdit, WM_COMMAND, nAddCommand, (LPARAM)newNode);
+   }
    
    if (!bEmpty) {
       
@@ -419,7 +421,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
          return true;
       }
       else if (command == nEditCommand) {
-         DialogBoxParam(kPlugin.hDllInstance, MAKEINTRESOURCE(IDD_EDIT_HOTLIST), hWnd, EditProc, 0);
+         if (ghWndEdit) {
+            ShowWindow(ghWndEdit, SW_RESTORE);
+            BringWindowToTop(ghWndEdit);
+         }
+         else
+            ghWndEdit = CreateDialogParam(kPlugin.hDllInstance, MAKEINTRESOURCE(IDD_EDIT_HOTLIST), NULL, EditProc, 0);
          return true;
       }
       else if (command == wm_deferhottrack) {
@@ -427,8 +434,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
          return true;
       }
       else if (CBookmarkNode *node = gHotlistRoot.FindNode(command)) {
-         node->lastVisit = time(NULL);
-         gHotlistModified = true;   // this doesn't call for instant saving, it can wait until we add/edit/quit
+         // node->lastVisit = time(NULL);
+         // gHotlistModified = true;   // this doesn't call for instant saving, it can wait until we add/edit/quit
          kPlugin.kFuncs->NavigateTo(node->url.c_str(), OPEN_NORMAL);
          
          return true;

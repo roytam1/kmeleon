@@ -322,7 +322,7 @@ int Init(){
    kPlugin.kFuncs->GetPreference(PREF_INT, PREFERENCE_MENU_MAXLEN, &gMaxMenuLength, &gMaxMenuLength);
    kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_MENU_AUTOLEN, &gMenuAutoDetect, &gMenuAutoDetect);
    if (gMaxMenuLength < 1) gMaxMenuLength = 20;
-   gMenuSortOrder = 209;
+   gMenuSortOrder = 3*8*8 + 2*8 + 1;
    kPlugin.kFuncs->GetPreference(PREF_INT, PREFERENCE_MENU_SORTORDER, &gMenuSortOrder, &gMenuSortOrder);
    nButtonMinWidth = 10;
    kPlugin.kFuncs->GetPreference(PREF_INT,  PREFERENCE_BUTTON_MINWIDTH, &nButtonMinWidth, &nButtonMinWidth);
@@ -374,9 +374,12 @@ void Create(HWND parent){
 BOOL CALLBACK PrefDlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
    int nTmp;
    char szTmp[PATH_MAX+1];
+   static int sorting;
+   static int rebuild;
    
    switch (uMsg) {
       case WM_INITDIALOG:
+         sorting = rebuild = 0;
 
          kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_HOTLIST_FILE, szTmp, gHotlistFile);
          SetDlgItemText(hWnd, IDC_HOTLIST_FILE, szTmp);
@@ -389,6 +392,28 @@ BOOL CALLBACK PrefDlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
          SendDlgItemMessage(hWnd, IDC_MENU_AUTODETECT, BM_SETCHECK, nTmp, 0);
          if (nTmp) {
             EnableWindow(GetDlgItem(hWnd, IDC_MAX_MENU_LENGTH), false);
+         }
+
+         kPlugin.kFuncs->GetPreference(PREF_INT, PREFERENCE_MENU_SORTORDER, &nTmp, &gMenuSortOrder);
+         if (nTmp==3 || nTmp==7 || nTmp==3*8+2 || nTmp==7*8+2 || 
+             nTmp==3*8+1 || nTmp==7*8+1 || 
+             nTmp==3*8*8+2*8+1 || nTmp==7*8*8+2*8+1) {
+            while (nTmp > 8) {
+               if ((nTmp % 8) == 1)
+                  SendDlgItemMessage(hWnd, IDC_FOLDERFIRST, BM_SETCHECK, 1, 0);
+               if ((nTmp % 8) == 2)
+                  SendDlgItemMessage(hWnd, IDC_USEORDER, BM_SETCHECK, 1, 0);
+               nTmp = nTmp / 8;
+            }
+            CheckRadioButton(hWnd, IDC_SORTORDER_AZ, IDC_SORTORDER_ZA, 
+                             nTmp != 7 ? IDC_SORTORDER_AZ : IDC_SORTORDER_ZA);
+            sorting = 1;
+         } else {
+            sorting = 0;
+            EnableWindow(GetDlgItem(hWnd, IDC_SORTORDER_AZ), false);
+            EnableWindow(GetDlgItem(hWnd, IDC_SORTORDER_ZA), false);
+            EnableWindow(GetDlgItem(hWnd, IDC_FOLDERFIRST), false);
+            EnableWindow(GetDlgItem(hWnd, IDC_USEORDER), false);
          }
 
          kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_REBAR_ENABLED, &nTmp, &bRebarEnabled);
@@ -450,9 +475,39 @@ BOOL CALLBACK PrefDlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
                      nTmp = GetDlgItemInt(hWnd, IDC_MAX_MENU_LENGTH, NULL, TRUE);
                      if (nTmp < 1) nTmp = 20;
                      kPlugin.kFuncs->SetPreference(PREF_INT, PREFERENCE_MENU_MAXLEN, &nTmp);
+                     if (nTmp != gMaxMenuLength) {
+                        gMaxMenuLength = nTmp;
+                        rebuild = 1;
+                     }
 
                      nTmp = SendDlgItemMessage(hWnd, IDC_MENU_AUTODETECT, BM_GETCHECK, 0, 0);
                      kPlugin.kFuncs->SetPreference(PREF_BOOL, PREFERENCE_MENU_AUTOLEN, &nTmp);
+                     if (nTmp != gMenuAutoDetect) {
+                        gMenuAutoDetect = nTmp;
+                        rebuild = 1;
+                     }
+
+                     if (sorting) {
+                        sorting = 0;
+
+                        nTmp = IsDlgButtonChecked(hWnd, IDC_SORTORDER_AZ);
+                        sorting = sorting + 3*(nTmp==BST_CHECKED);
+
+                        nTmp = IsDlgButtonChecked(hWnd, IDC_SORTORDER_ZA);
+                        sorting = sorting + 7*(nTmp==BST_CHECKED);
+
+                        nTmp = IsDlgButtonChecked(hWnd, IDC_USEORDER);
+                        if (nTmp == BST_CHECKED)
+                           sorting = 8*sorting + 2;
+
+                        nTmp = IsDlgButtonChecked(hWnd, IDC_FOLDERFIRST);
+                        if (nTmp == BST_CHECKED)
+                           sorting = 8*sorting + 1;
+
+                        kPlugin.kFuncs->SetPreference(PREF_INT, PREFERENCE_MENU_SORTORDER, &sorting);
+                        gMenuSortOrder = sorting;
+                        rebuild = 1;
+                     }
 
                      nTmp = SendDlgItemMessage(hWnd, IDC_REBARENABLED, BM_GETCHECK, 0, 0);
                      kPlugin.kFuncs->SetPreference(PREF_BOOL, PREFERENCE_REBAR_ENABLED, &nTmp);
@@ -463,6 +518,9 @@ BOOL CALLBACK PrefDlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 
                      nTmp = GetDlgItemInt(hWnd, IDC_MAX_TB_SIZE, NULL, TRUE);
                      kPlugin.kFuncs->SetPreference(PREF_INT, PREFERENCE_BUTTON_MAXWIDTH, &nTmp);
+
+                     if (rebuild)
+                        RebuildMenu();
 
                      // fall through...
                   }
@@ -485,6 +543,8 @@ void Config(HWND hWndParent){
 }
 
 void Quit(){
+   if (ghWndEdit)
+      SendMessage(ghWndEdit, WM_CLOSE, 0, 0);
    if (gImagelist)
       ImageList_Destroy(gImagelist);
    if (gHotlistModified) {

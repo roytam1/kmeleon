@@ -28,13 +28,13 @@ BEGIN
     LTEXT           "or you could search for your hotlist file manually.", IDC_STATIC,7,29,171,18
 END
 
-IDD_CONFIG DIALOGEX 0, 0, 166, 166
+IDD_CONFIG DIALOGEX 0, 0, 166, 190
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Opera Hotlist Settings"
 FONT 8, "MS Sans Serif"
 BEGIN
-    GROUPBOX        "Options",IDC_STATIC,7,7,152,130
-    LTEXT           "Hotlist File:",IDC_STATIC,20,20,51,8
+    GROUPBOX        "Options",IDC_STATIC,7,7,152,154
+    LTEXT           "Hotlist File:",IDC_STATIC,20,20,75,8
     EDITTEXT        IDC_HOTLIST_FILE,20,30,114,12,ES_AUTOHSCROLL
     PUSHBUTTON      "...",IDC_BROWSE,133,30,15,12,BS_FLAT,WS_EX_STATICEDGE
     LTEXT           "Menu Spillover Length:",IDC_STATIC,20,50,75,10,
@@ -42,22 +42,33 @@ BEGIN
     EDITTEXT        IDC_MAX_MENU_LENGTH,20,60,25,12,ES_AUTOHSCROLL
     CONTROL         "Height of Screen",IDC_MENU_AUTODETECT,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,54,62,69,10
+
+    GROUPBOX        "Sorting",IDC_STATIC,16,76,134,33
+    CONTROL         "Ascending (a-z)",IDC_SORTORDER_AZ,"Button",
+                    BS_AUTORADIOBUTTON | WS_TABSTOP,20,86,65,11
+    CONTROL         "Descending (z-a)",IDC_SORTORDER_ZA,"Button",
+                    BS_AUTORADIOBUTTON | WS_TABSTOP,20,97,65,11
+    CONTROL         "Folders first",IDC_FOLDERFIRST,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,98,86,50,11
+    CONTROL         "Use 'Order'",IDC_USEORDER,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,98,97,50,11
+
     CONTROL         "Enable Hotlist Toolbar",IDC_REBARENABLED,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,20,88,128,11
-    LTEXT           "Min Toolbar Button Size:",IDC_STATIC,20,104,80,12,
+                    BS_AUTOCHECKBOX | WS_TABSTOP,20,114,128,11
+    LTEXT           "Min Toolbar Button Size:",IDC_STATIC,20,128,80,12,
                     SS_CENTERIMAGE
-    EDITTEXT        IDC_MIN_TB_SIZE,105,105,25,12,ES_AUTOHSCROLL
-    LTEXT           "Max Toolbar Button Size:",IDC_STATIC,20,118,80,12,
+    EDITTEXT        IDC_MIN_TB_SIZE,105,129,25,12,ES_AUTOHSCROLL
+    LTEXT           "Max Toolbar Button Size:",IDC_STATIC,20,142,80,12,
                     SS_CENTERIMAGE
-    EDITTEXT        IDC_MAX_TB_SIZE,105,119,25,12,ES_AUTOHSCROLL
-    DEFPUSHBUTTON   "OK",IDOK,55,145,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,109,145,50,14
+    EDITTEXT        IDC_MAX_TB_SIZE,105,143,25,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,55,169,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,109,169,50,14
 END
 
 IDB_IMAGES              BITMAP  DISCARDABLE     "bitmap1.bmp"
 
 IDD_EDIT_HOTLIST DIALOGEX 0, 0, 306, 276
-STYLE DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+STYLE WS_BORDER | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_THICKFRAME | WS_VISIBLE
 CAPTION "Hotlist"
 FONT 8, "MS Sans Serif"
 BEGIN

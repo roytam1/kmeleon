@@ -48,7 +48,10 @@ int ParseHotlistFolder(char **p, CBookmarkNode &node)
    char szTmp[HOTLIST_STRING_LEN] = {0};
    char szDesc[HOTLIST_STRING_LEN] = {0};
    time_t addDate=0, lastVisit=0;
-   long order=LONG_MAX;
+   long order=-1;
+   char szInPanel[HOTLIST_STRING_LEN] = {0};
+   char szPanelPos[HOTLIST_STRING_LEN] = {0};
+   char szBarPos[HOTLIST_STRING_LEN] = {0};
    
    while (p && *p && **p && (q = strchr(*p, '\n')) != NULL) {
       *q++ = 0;
@@ -77,6 +80,21 @@ int ParseHotlistFolder(char **p, CBookmarkNode &node)
          strncpy(szTmp, *p+6, HOTLIST_STRING_LEN);
          szTmp[HOTLIST_STRING_LEN-1] = 0;
          order = atol(szTmp);
+      }
+
+      else if (strnicmp(*p, "IN PANEL=", 9) == 0) {
+         strncpy(szInPanel, *p+9, HOTLIST_STRING_LEN);
+         szInPanel[HOTLIST_STRING_LEN-1] = 0;
+      }
+
+      else if (strnicmp(*p, "PANEL_POS=", 10) == 0) {
+         strncpy(szPanelPos, *p+9, HOTLIST_STRING_LEN);
+         szPanelPos[HOTLIST_STRING_LEN-1] = 0;
+      }
+
+      else if (strnicmp(*p, "PERSONALBAR_POS=", 16) == 0) {
+         strncpy(szBarPos, *p+16, HOTLIST_STRING_LEN);
+         szBarPos[HOTLIST_STRING_LEN-1] = 0;
       }
 
       else if (strnicmp(*p, "DESCRIPTION=", 12) == 0) {
@@ -113,7 +131,7 @@ int ParseHotlistFolder(char **p, CBookmarkNode &node)
    
    if (szName[0]) {
       CBookmarkNode * newNode = 
-         new CBookmarkNode(0, szName, "", szNick, szDesc, BOOKMARK_FOLDER, addDate, lastVisit, 0, order);
+         new CBookmarkNode(0, szName, "", szNick, szDesc, BOOKMARK_FOLDER, addDate, lastVisit, 0, order, szInPanel, szPanelPos, szBarPos);
       if (newNode) {
          node.AddChild(newNode);
          
@@ -140,7 +158,10 @@ int ParseHotlistUrl(char **p, CBookmarkNode &node)
    char szTmp[HOTLIST_STRING_LEN] = {0};
    char szDesc[HOTLIST_STRING_LEN] = {0};
    time_t addDate=0, lastVisit=0;
-   long order=LONG_MAX;
+   long order=-1;
+   char szInPanel[HOTLIST_STRING_LEN] = {0};
+   char szPanelPos[HOTLIST_STRING_LEN] = {0};
+   char szBarPos[HOTLIST_STRING_LEN] = {0};
    
    while (*p && **p && (q = strchr(*p, '\n')) != NULL) {
       *q++ = 0;
@@ -179,6 +200,21 @@ int ParseHotlistUrl(char **p, CBookmarkNode &node)
          order = atol(szTmp);
       }
 
+      else if (strnicmp(*p, "IN PANEL=", 9) == 0) {
+         strncpy(szInPanel, *p+9, HOTLIST_STRING_LEN);
+         szInPanel[HOTLIST_STRING_LEN-1] = 0;
+      }
+
+      else if (strnicmp(*p, "PANEL_POS=", 10) == 0) {
+         strncpy(szPanelPos, *p+9, HOTLIST_STRING_LEN);
+         szPanelPos[HOTLIST_STRING_LEN-1] = 0;
+      }
+
+      else if (strnicmp(*p, "PERSONALBAR_POS=", 16) == 0) {
+         strncpy(szBarPos, *p+16, HOTLIST_STRING_LEN);
+         szBarPos[HOTLIST_STRING_LEN-1] = 0;
+      }
+
       else if (strnicmp(*p, "DESCRIPTION=", 12) == 0) {
          strncpy(szDesc, *p+12, HOTLIST_STRING_LEN);
          szDesc[HOTLIST_STRING_LEN-1] = 0;
@@ -212,7 +248,7 @@ int ParseHotlistUrl(char **p, CBookmarkNode &node)
    if (szURL[0]) {
       int id = kPlugin.kFuncs->GetCommandIDs(1);
       CBookmarkNode * newNode = 
-         new CBookmarkNode(id, szName[0] ? szName : szURL, szURL, szNick, szDesc, BOOKMARK_BOOKMARK, addDate, lastVisit, 0, order);
+         new CBookmarkNode(id, szName[0] ? szName : szURL, szURL, szNick, szDesc, BOOKMARK_BOOKMARK, addDate, lastVisit, 0, order, szInPanel, szPanelPos, szBarPos);
       if (newNode) {
          node.AddChild(newNode);
          return 1;
@@ -311,6 +347,12 @@ int SaveHotlistEntry(FILE *bmFile, CBookmarkNode *node)
    fprintf(bmFile, "\tORDER=%ld%s", node->order, EOL);
    fprintf(bmFile, "\tDESCRIPTION=%s%s", (char*)node->desc.c_str(), EOL);
    fprintf(bmFile, "\tSHORT NAME=%s%s", (char*)node->nick.c_str(), EOL);
+   if (node->bar_pos.length() > 0)
+      fprintf(bmFile, "\tPERSONALBAR_POS=%s%s", (char*)node->bar_pos.c_str(), EOL);
+   if (node->in_panel.length() > 0)
+      fprintf(bmFile, "\tIN PANEL=%s%s", (char*)node->in_panel.c_str(), EOL);
+   if (node->panel_pos.length() > 0)
+      fprintf(bmFile, "\tPANEL_POS=%s%s", (char*)node->panel_pos.c_str(), EOL);
    
    return 0;
 }
@@ -329,6 +371,12 @@ int SaveHotlist(FILE *bmFile, CBookmarkNode *node)
          fprintf(bmFile, "\tORDER=%ld%s", child->order, EOL);
          fprintf(bmFile, "\tDESCRIPTION=%s%s", (char*)child->desc.c_str(), EOL);
          fprintf(bmFile, "\tSHORT NAME=%s%s", (char*)child->nick.c_str(), EOL);
+         if (node->bar_pos.length() > 0)
+            fprintf(bmFile, "\tPERSONALBAR_POS=%s%s", (char*)node->bar_pos.c_str(), EOL);
+         if (node->in_panel.length() > 0)
+            fprintf(bmFile, "\tIN PANEL=%s%s", (char*)node->in_panel.c_str(), EOL);
+         if (node->panel_pos.length() > 0)
+            fprintf(bmFile, "\tPANEL_POS=%s%s", (char*)node->panel_pos.c_str(), EOL);
          fprintf(bmFile, "%s", EOL);
          SaveHotlist(bmFile, child);
          fprintf(bmFile, "-%s", EOL);
@@ -434,7 +482,7 @@ int op_writeFile(char *file) {
    int ret = -1;
 
    if (file && *file) {
-#if 0
+#if 1
       if (!bHotlistBak) {
          backup_hotlist(file);
       }
@@ -449,7 +497,7 @@ int op_writeFile(char *file) {
          ret = SaveHotlist(bmFile, &gHotlistRoot);
          fprintf(bmFile, "-\r\n");
          fclose(bmFile);
-	 gHotlistModified = false;
+         gHotlistModified = false;
       }
    }
    return ret;
