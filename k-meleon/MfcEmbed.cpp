@@ -362,7 +362,7 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
    winSize.bottom = CW_USEDEFAULT;
    winSize.right  = CW_USEDEFAULT;
 
-   if (x>0 && y>0 && cx>10 && cy>10) {
+   if (x>0 && y>0 && cx>0 && cy>0) {
        winSize.left = x;
        winSize.top = y;
        winSize.right = cx;
@@ -449,6 +449,8 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
    }
    else if (preferences.bMaximized && (chromeMask & nsIWebBrowserChrome::CHROME_WINDOW_RESIZE))
        style |= WS_MAXIMIZE;
+
+   style &= ~WS_VISIBLE;
 
    // Now, create the browser frame
    CBrowserFrame* pFrame = new CBrowserFrame(chromeMask, style);
