@@ -95,9 +95,13 @@ int CPlugins::OnUpdate(UINT command)
    return false;
 }
 
-void NavigateTo(const char *url, int windowState)
+void NavigateTo(const char *url, int windowState, HWND mainWnd)
 {
-   CBrowserFrame *mainFrame = theApp.m_pMostRecentBrowserFrame;
+   CBrowserFrame *mainFrame;
+   if (mainWnd)
+      mainFrame = (CBrowserFrame *)CWnd::FromHandle(mainWnd);
+   else
+      mainFrame = theApp.m_pMostRecentBrowserFrame;
 
    if (!mainFrame) {
       return;
