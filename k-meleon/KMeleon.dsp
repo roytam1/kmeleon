@@ -235,6 +235,10 @@ SOURCE=.\PreferencesDlg.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\PrintProgressDialog.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\ProfileMgr.cpp
 # End Source File
 # Begin Source File
@@ -315,6 +319,10 @@ SOURCE=.\Plugins.h
 # Begin Source File
 
 SOURCE=.\Preferences.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\PrintProgressDialog.h
 # End Source File
 # Begin Source File
 

@@ -42,6 +42,7 @@
 #define IDC_PAN_DOWNLEFT                167
 #define IDC_PAN_UPRIGHT                 168
 #define IDC_PAN_DOWNRIGHT               169
+#define IDD_PRINT_PROGRESS_DIALOG       170
 #define ID_URL_BAR                      1001
 #define ID_PROG_BAR                     1002
 #define IDC_PROMPT_ANSWER               1003
@@ -92,6 +93,8 @@
 #define IDC_EDIT_MEMORY_CACHE           1056
 #define IDC_ERRORS                      1058
 #define IDC_VERSION                     1059
+#define IDC_PPD_DOC_TXT                 1020
+#define IDC_PPD_DOC_TITLE_STATIC        1021
 #define IDC_CONTAINER                   1110
 #define IDC_EDIT_TOOLBAR_BACKGROUND     1111
 #define IDC_EDIT_SETTINGS_DIR           1111
@@ -107,7 +110,7 @@
 #define IDC_BUTTON_CONFIG               1119
 #define IDC_KMELEON_HOME                1120
 #define IDC_KMELEON_FORUM               1121
-#define IDC_FIND_EDIT                   1152
+#define IDC_FIND_EDIT                   1122
 #define ID_NAV_BACK                     32773
 #define ID_NAV_FORWARD                  32774
 #define ID_NAV_HOME                     32775
@@ -140,9 +143,9 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        164
-#define _APS_NEXT_COMMAND_VALUE         32791
-#define _APS_NEXT_CONTROL_VALUE         1062
+#define _APS_NEXT_RESOURCE_VALUE        171
+#define _APS_NEXT_COMMAND_VALUE         32801
+#define _APS_NEXT_CONTROL_VALUE         1023
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

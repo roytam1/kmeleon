@@ -40,6 +40,7 @@
 class CBrowserFrame;
 class CBrowserImpl;
 class CFindDialog;
+class CPrintProgressDialog; 
 
 class CBrowserView : public CWnd
 {
@@ -111,6 +112,10 @@ protected:
    int m_tempFileCount;
   
    CFindDialog* m_pFindDlg;
+   CPrintProgressDialog* m_pPrintProgressDlg;
+
+   // Indicates whether we are currently printing      
+   BOOL m_bCurrentlyPrinting;   
 
    // Overrides
 	// ClassWizard generated virtual function overrides
@@ -155,6 +160,8 @@ protected:
 	afx_msg void OnSaveLinkAs();
 	afx_msg void OnSaveImageAs();
    afx_msg void OnShowFindDlg();
+   afx_msg void OnFilePrint();
+   afx_msg void OnUpdateFilePrint(CCmdUI* pCmdUI);
    afx_msg void OnFindNext();
    afx_msg void OnFindPrev();
    afx_msg LRESULT OnFindMsg(WPARAM wParam, LPARAM lParam);

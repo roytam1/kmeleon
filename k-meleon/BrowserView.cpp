@@ -54,7 +54,7 @@ extern CMfcEmbedApp theApp;
 #include "BrowserImpl.h"
 #include "BrowserFrm.h"
 #include "Dialogs.h"
-
+#include "PrintProgressDialog.h"    
 #include "ToolBarEx.h"
 #include "Utils.h"
 #include "KmeleonMessages.h"
@@ -88,6 +88,8 @@ BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
 	ON_COMMAND(ID_FILE_SAVE_AS, OnFileSaveAs)
 	ON_COMMAND(ID_VIEW_SOURCE, OnViewSource)
 	ON_COMMAND(ID_VIEW_INFO, OnViewInfo)
+   ON_COMMAND(ID_FILE_PRINT, OnFilePrint) 
+//   ON_UPDATE_COMMAND_UI(ID_FILE_PRINT, OnUpdateFilePrint)
 	ON_COMMAND(ID_NAV_BACK, OnNavBack)
 	ON_COMMAND(ID_NAV_FORWARD, OnNavForward)
 	ON_COMMAND(ID_NAV_SEARCH, OnNavSearch)
@@ -139,6 +141,8 @@ CBrowserView::CBrowserView()
 	mbDocumentLoading = PR_FALSE;
 
    m_pFindDlg = NULL;
+   m_pPrintProgressDlg = NULL; 
+   m_bCurrentlyPrinting = NULL;
 
    m_tempFileCount = 0;
 }
@@ -1029,6 +1033,9 @@ void CBrowserView::OnKmeleonForum()
 
 void CBrowserView::OnShowFindDlg() {
 
+   PostMessage(WM_COMMAND, ID_FILE_PRINT, 0);
+   return;
+
 	// When the the user chooses the Find menu item
 	// and if a Find dlg. is already being shown
 	// just set focus to the existing dlg instead of
@@ -1138,6 +1145,37 @@ LRESULT CBrowserView::OnFindMsg(WPARAM wParam, LPARAM lParam) {
 		return (NS_SUCCEEDED(rv) && didFind);
 	}
 	return 0;
+}
+
+void CBrowserView::OnFilePrint()
+{
+   nsCOMPtr<nsIDOMWindow> domWindow;
+   mWebBrowser->GetContentDOMWindow(getter_AddRefs(domWindow));
+   if(domWindow) {
+      nsCOMPtr<nsIWebBrowserPrint> print(do_GetInterface(mWebBrowser));
+      if(print)
+      {
+         CPrintProgressDialog  dlg(mWebBrowser, domWindow);
+
+         nsCOMPtr<nsIURI> currentURI;
+         nsresult rv = mWebNav->GetCurrentURI(getter_AddRefs(currentURI));
+      if(NS_SUCCEEDED(rv) || currentURI)
+      {
+         nsXPIDLCString path;
+         currentURI->GetPath(getter_Copies(path));
+         dlg.SetURI(path.get());
+      }
+      m_bCurrentlyPrinting = TRUE;
+      dlg.DoModal();
+      m_bCurrentlyPrinting = FALSE;
+    }
+  }  
+}
+
+/////////////////////////////////////////////////////////////////////////////
+void CBrowserView::OnUpdateFilePrint(CCmdUI* pCmdUI)
+{
+    pCmdUI->Enable(!m_bCurrentlyPrinting);
 }
 
 // Called from the busy state related methods in the 
