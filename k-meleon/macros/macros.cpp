@@ -1180,6 +1180,69 @@ std::string EvalExpression(HWND hWnd,std::string exp) {
    }
 
 
+   // conditional expression?
+   if (exp.find_first_of('?') != std::string::npos &&
+       exp.find_first_of(':') != std::string::npos) {
+	       
+      int epos, qpos, cpos;
+      int lparen, rparen;
+      bool instr;
+      
+      epos = qpos = cpos = NOTFOUND;
+      lparen = rparen = 0;
+      instr = false;
+      
+      if (exp.at(0) == '"') instr = true;
+      else if (exp.at(0) == '(') ++lparen;
+      for (int j=1; j<exp.length(); ++j) {
+	 if (exp.at(j) == '"' && exp.at(j-1) != '\\') {
+	    instr = (instr) ? false : true;
+	    continue;
+	 }
+	 if (!instr) {
+	    if(exp.at(j) == '(') {
+	       ++lparen;
+	       continue;
+	    }
+	    if(exp.at(j) == ')') {
+	       ++rparen;
+	       continue;
+	    }
+	    if (exp.at(j) == '=' && lparen==rparen && epos==NOTFOUND) {
+	       epos = j;
+	    }
+	    else if (exp.at(j) == '?' && lparen==rparen && qpos==NOTFOUND) {
+	       qpos = j;
+	    }
+	    else if (exp.at(j) == ':' && lparen==rparen) {
+	       cpos = j;
+	       break;
+	    }
+	 }
+      }
+
+      if ( epos != NOTFOUND && qpos != NOTFOUND && epos < qpos &&
+	   exp.at(epos+1) != '=' && exp.at(epos-1) != '!' ) {
+	 qpos = cpos = NOTFOUND;
+      }
+      
+      if (qpos != NOTFOUND && cpos != NOTFOUND && qpos<cpos) {
+
+	 int b = BoolVal(EvalExpression(hWnd,strTrim(exp.substr(0,qpos))));
+	 if (b)
+	    strtemp = EvalExpression(hWnd,strTrim(exp.substr(qpos+1,cpos-(qpos+1))));
+	 else
+	    strtemp = EvalExpression(hWnd,strTrim(exp.substr(cpos+1)));
+	 
+	 return strtemp;
+      }
+      else if (qpos != NOTFOUND || cpos != NOTFOUND) {
+	 strtemp = "The expression '" + exp + "' is a badly formed conditional expression.";
+	 DoError((char*)strtemp.c_str());
+	 return "";
+      }
+   }
+
    // if there's an equals (=) that's not in a string, and not in parenths
    // check for operators also
    // it's a comparison or an assignment
@@ -1217,7 +1280,7 @@ std::string EvalExpression(HWND hWnd,std::string exp) {
                   strtemp = exp.substr(i-1,2); //the comparison operator
                   break;
                }
-               else {
+	       else {
                   isAssignment = true;
                   lval = strTrim(exp.substr(0,i));
                   rval = strTrim(exp.substr(i+1));
