@@ -130,10 +130,6 @@ SOURCE=.\Dialogs.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\MenuEx.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=.\MenuParser.cpp
 # End Source File
 # Begin Source File
@@ -172,10 +168,6 @@ SOURCE=.\StdAfx.cpp
 # Begin Source File
 
 SOURCE=.\ToolBarEx.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\ToolBarWrapper.cpp
 # End Source File
 # Begin Source File
 

@@ -108,9 +108,9 @@ BOOL CMfcEmbedApp::InitInstance()
     return FALSE;
   }
 
-  plugins.FindAndLoad("kmeleon_*.dll");
-
   InitializePrefs();
+
+  plugins.FindAndLoad("kmeleon_*.dll");
 
   if(!CreateHiddenWindow()){
     ASSERT(FALSE);
