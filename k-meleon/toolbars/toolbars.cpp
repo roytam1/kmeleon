@@ -204,8 +204,7 @@ void FindSkinFile( char *szSkinFile, char *filename ) {
 int Init() {
    char szConfigFile[MAX_PATH];
 
-   kPlugin.kFuncs->GetPreference(PREF_STRING, _T("kmeleon.general.settingsDir"), szConfigFile, (char*)"");
-   strcat(szConfigFile, "toolbars.cfg");
+   FindSkinFile(szConfigFile, "toolbars.cfg");
    LoadToolbars(szConfigFile);
 
    return 1;
