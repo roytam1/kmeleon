@@ -105,24 +105,32 @@ int CondenseString(char *buf, int size)
 }
 
 // changes & to && so they display in menus correctly
-void EscapeAmpersands(char *string)
+char *EscapeAmpersands(char *string)
 {
-   char *input = strdup(string);
-   char *in = input;
-   char *out = string;
-   while (*in) {
-      *out = *in;
+   int iCount = 0;
+   char *p = string;
+   while (p = strchr(p, '&')) {
+      p++;
+      iCount++;
+   }
+
+   if (!iCount) return NULL;
+
+   char *newString = new char[strlen(string) + iCount + 1];
+   char *out = newString;
+   while (*string) {
+      *out = *string;
       // double up the ampersand
-      if (*in == '&') {
+      if (*string == '&') {
          out++;
          *out = '&';
       }
       out++;
-      in++;
+      string++;
    }
    // can't forget to null terminate!!
    *out = 0;
-   delete input;
+   return newString;
 }
 
 long FileSize(FILE *file)
