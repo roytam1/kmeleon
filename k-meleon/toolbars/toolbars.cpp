@@ -181,7 +181,7 @@ void DoRebar(HWND rebarWnd) {
       if (toolbar->iButtonCount == 0) continue;
 
       // Create the toolbar control to be added.
-      HWND hwndTB = kPlugin.kf->CreateToolbar();
+      HWND hwndTB = kPlugin.kf->CreateToolbar(GetParent(rebarWnd), CCS_NODIVIDER | CCS_NOPARENTALIGN | CCS_NORESIZE | TBSTYLE_FLAT | TBSTYLE_TRANSPARENT | TBSTYLE_TOOLTIPS);
       if (!hwndTB){
          MessageBox(NULL, "Failed to create toolbar", "K-Meleon Toolbar Plugin", MB_OK);
          return;

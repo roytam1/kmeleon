@@ -268,8 +268,9 @@ int GetAccel(char *plugin, char *params) {
 // the advantage of having K-Meleon create the toolbar is that it will
 // be handled through MFC, which will handle the button states through
 // UPDATE_UI calls
-HWND CreateToolbar() {
-   return theApp.m_pMostRecentBrowserFrame->CreateToolbar();
+HWND CreateToolbar(HWND hWnd, UINT style) {
+   CBrowserFrame *browserFrm = (CBrowserFrame *)CWnd::FromHandle(hWnd);
+   return browserFrm->CreateToolbar(style);
 }
 
 

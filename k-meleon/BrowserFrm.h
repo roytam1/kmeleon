@@ -132,10 +132,10 @@ class CToolBarList;
 class CToolBarItem {
 friend class CToolBarList;
 public:
-   CToolBarItem(CWnd *wnd) {
+   CToolBarItem(CWnd *wnd, UINT style)
+   {
       m_tb = new CToolBarEx;
-
-      m_tb->CreateEx (wnd, 0x40 | CCS_NOPARENTALIGN | CCS_NORESIZE | TBSTYLE_FLAT | TBSTYLE_TRANSPARENT | TBSTYLE_AUTOSIZE | TBSTYLE_TOOLTIPS);
+      m_tb->CreateEx (wnd, style);
       m_next = NULL;
    }
    ~CToolBarItem() {
@@ -160,8 +160,9 @@ public:
          delete temp;
       }
    }
-   HWND Add(CWnd *wnd) {
-      CToolBarItem *newTB = new CToolBarItem(wnd);
+   HWND Add(CWnd *wnd, UINT style)
+   {
+      CToolBarItem *newTB = new CToolBarItem(wnd, style);
 
       if (!m_head)
          m_head = m_tail = newTB;
@@ -214,7 +215,7 @@ public:
    void ShowSecurityInfo();
 
    CToolBarList m_tbList;
-   HWND CreateToolbar();
+   HWND CreateToolbar(UINT style);
 
 protected:
 	//
