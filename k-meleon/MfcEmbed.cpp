@@ -709,6 +709,26 @@ void CMfcEmbedApp::RemoveFrameFromList(CBrowserFrame* pFrm)
    POSITION pos = m_FrameWndLst.Find(pFrm);
    m_FrameWndLst.RemoveAt(pos);
    
+   if(IsClipboardFormatAvailable(CF_TEXT)) {
+       if(OpenClipboard(NULL)) {
+           HANDLE hcb = GetClipboardData(CF_TEXT);
+           LPVOID pData = GlobalLock(hcb);
+           char *pszData = (char*)malloc(strlen((char*)pData) + 1);
+           strcpy(pszData, (LPSTR)pData);
+           GlobalUnlock(hcb);
+
+           EmptyClipboard();
+
+           HGLOBAL hData = GlobalAlloc(GMEM_DDESHARE|GMEM_MOVEABLE,strlen(pszData) + 1);
+           pData = GlobalLock(hData);
+           strcpy((LPSTR)pData, pszData);
+           GlobalUnlock(hData);
+           SetClipboardData(CF_TEXT, hData);
+
+           CloseClipboard();
+       }
+   }
+   
    // Unless we are set to stay resident,
    // send a WM_QUIT msg. to the hidden window if we've
    // just closed the last browserframe window and
