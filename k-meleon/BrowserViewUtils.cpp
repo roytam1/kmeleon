@@ -274,9 +274,10 @@ void CBrowserView::OpenURLInNewWindow(const PRUnichar* pUrl, BOOL bBackground)
 
    // show the window
    if (bBackground)
-      pFrm->ShowWindow(SW_MINIMIZE);
-//      pFrm->SetWindowPos(&wndBottom, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | SWP_SHOWWINDOW);
-         /* Show the window minimized, instead of on the bottom, because mozilla freaks out if we put it on the bottom */
+      pFrm->SetWindowPos(&wndBottom, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | SWP_SHOWWINDOW);
+   //      pFrm->ShowWindow(SW_MINIMIZE);
+   /* Show the window minimized, instead of on the bottom, because mozilla freaks out if we put it on the bottom */
+   /* As of Oct 30, 2002, this seems to be working again.  Good. */
 
    else
       pFrm->ShowWindow(SW_SHOW);
