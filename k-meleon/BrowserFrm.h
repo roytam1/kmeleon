@@ -58,6 +58,7 @@ public:
       
       m_preserveUrlBarFocus = FALSE;
       m_changed = FALSE;
+      m_bSelected = FALSE;
       
       return ret;
    }
@@ -66,6 +67,7 @@ public:
    }
    inline GetSelectedURL(CString& url) {
       GetLBText(GetCurSel(), url);
+      m_bSelected = TRUE;
    }   
    inline SetCurrentURL(LPCTSTR pUrl) {
       if (!m_changed) {
@@ -108,13 +110,18 @@ public:
          GetEditCtrl()->SetSel(-1, 0);
    }
    inline EditChanged(BOOL state) {
-      m_changed = state;
+      if (m_bSelected) {
+         m_changed = FALSE;
+         m_bSelected = FALSE;
+      }
+      else m_changed = state;
    }
    
 protected:
    CMostRecentUrls m_MRUList;
    BOOL m_preserveUrlBarFocus;
    BOOL m_changed;
+   BOOL m_bSelected;
 };
 
 // CMyStatusBar class
