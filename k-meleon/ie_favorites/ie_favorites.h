@@ -109,6 +109,10 @@ void findNick(char *nick, char *url);
 LRESULT APIENTRY WndTBSubclassProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
+extern "C" {
+   KMELEON_PLUGIN int DrawBitmap(DRAWITEMSTRUCT *dis);
+}
+
 struct favoritesTB {
    HWND hWnd;
    HWND hWndTB;

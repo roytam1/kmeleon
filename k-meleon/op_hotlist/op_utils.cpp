@@ -23,6 +23,7 @@
 #  include "../missing.h"
 #endif
 
+#define KMELEON_PLUGIN_EXPORTS
 #include "op_hotlist.h"
 #include "../kmeleon_plugin.h"
 #include "..\\rebar_menu\\hot_tracking.h"
@@ -190,6 +191,7 @@ void BuildMenu(HMENU menu, CBookmarkNode *node, BOOL isContinuation)
          delete pszTemp;
       }
    }
+   kPlugin.kFuncs->SendMessage("bmpmenu", PLUGIN_NAME, "SetOwnerDrawn", (long)menu, (long)DrawBitmap);
 }
 
 void RebuildMenu() {

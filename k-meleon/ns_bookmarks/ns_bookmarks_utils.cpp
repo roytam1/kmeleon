@@ -584,6 +584,7 @@ void BuildMenu(HMENU menu, CBookmarkNode *node, BOOL isContinuation)
 #endif
       }
    }
+   kPlugin.kFuncs->SendMessage("bmpmenu", PLUGIN_NAME, "SetOwnerDrawn", (long)menu, (long)DrawBitmap);
 }
 
 // Build Rebar
