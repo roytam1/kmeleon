@@ -210,18 +210,17 @@ void DoRebar(HWND rebarWnd) {
 
       SetWindowPos(hwndTB, NULL, 0, 0, 0, 0, SWP_FRAMECHANGED);
 
-      
+
       // Register the band name and child hwnd
       kPlugin.kf->RegisterBand(hwndTB, toolbar->sTitle);
 
       REBARBANDINFO rbBand;
       rbBand.cbSize = sizeof(REBARBANDINFO);  // Required
-      rbBand.fMask  = /*RBBIM_TEXT |*/
-         RBBIM_STYLE | RBBIM_CHILD  | RBBIM_CHILDSIZE |
+      rbBand.fMask  = RBBIM_STYLE | RBBIM_CHILD  | RBBIM_CHILDSIZE |
          RBBIM_SIZE | RBBIM_IDEALSIZE;
-      
+
       DWORD dwBtnSize = SendMessage(hwndTB, TB_GETBUTTONSIZE, 0,0); 
-      rbBand.fStyle     = NULL;
+      rbBand.fStyle     = RBBS_FIXEDBMP;
       rbBand.lpText     = NULL;
       rbBand.hwndChild  = hwndTB;
       rbBand.cxMinChild = 0;
@@ -230,7 +229,7 @@ void DoRebar(HWND rebarWnd) {
       rbBand.cyMaxChild = rbBand.cyMinChild;
       rbBand.cxIdeal    = LOWORD(dwBtnSize) * toolbar->iButtonCount;
       rbBand.cx         = rbBand.cxIdeal;
-      
+
       // Add the band that has the toolbar.
       SendMessage(rebarWnd, RB_INSERTBAND, (WPARAM)-1, (LPARAM)&rbBand);
 
