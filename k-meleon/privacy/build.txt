@@ -1,0 +1,21 @@
+
+ Privacy Plugin for K-Meleon
+ ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+ Version 0.0.3
+ Copyright 2004 (c) Romain Vallet
+
+
+ Build instructions
+ ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+ This plugin has been built with Dev-C++ 4.9.8.7 (using MinGW 3.2)
+ Dev-C++ can be found at http://www.bloodshed.net
+
+ The configuration dialog has been created with Wedit Resource Editor.
+ This editor is par tof the lcc-win32 package.
+ lcc-win32 can be found at http://www.cs.virginia.edu/~lcc-win32
+
+ Some files from the K-Meleon sources are required :
+   * kmeleon_plugin.h
+   * Utils.cpp
+   * Utils.h
+ 
