@@ -1292,8 +1292,12 @@ static void CreateNewObject(HWND hTree, HTREEITEM fromItem, int type, int mode) 
 
    switch (type) {
    case BOOKMARK_BOOKMARK:
-      newNode = new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), "New Bookmark", "http://kmeleon.sourceforge.net/", "", "", "", BOOKMARK_BOOKMARK, time(NULL));
-      tvis.itemex.pszText = "New Bookmark";
+      if (mode == PASTE && freeNode) {
+	newNode = freeNode;
+	freeNode = NULL;
+      } else
+	newNode = new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), "New Bookmark", "http://kmeleon.sourceforge.net/", "", "", "", BOOKMARK_BOOKMARK, time(NULL));
+      tvis.itemex.pszText = (TCHAR*)newNode->text.c_str();
       tvis.itemex.iImage = IMAGE_BOOKMARK;
       tvis.itemex.iSelectedImage = IMAGE_BOOKMARK;
       break;
@@ -1421,7 +1425,12 @@ static void DeleteItem(HWND hTree, HTREEITEM item, int mode) {
       return;
    }
 
-   parentNode->DeleteNode(node);
+   if (mode == CUT) {
+      parentNode->UnlinkNode(node);
+      freeNode = node;
+      freeParentNode = parentNode;
+   } else
+      parentNode->DeleteNode(node);
 
    // select a new item
    HTREEITEM hSelect = TreeView_GetNextSibling(hTree, item);
