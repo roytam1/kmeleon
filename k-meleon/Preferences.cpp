@@ -242,6 +242,33 @@ void CPreferences::Load() {
       _GetString(_T("capability.policy.restrictedpopups.sites"), restrictedPopupSites, "");
 
       _GetBool(_T("dom.disable_open_during_load"), bDisablePopupsOnLoad, false);
+
+
+
+      // -- Printing
+
+
+      _GetString(_T("kmeleon.print.headerLeft"), printHeaderLeft, "&T");
+      _GetString(_T("kmeleon.print.headerMiddle"), printHeaderMiddle, "");
+      _GetString(_T("kmeleon.print.headerRight"), printHeaderRight, "&U");
+
+      _GetString(_T("kmeleon.print.footerLeft"), printFooterLeft, "&PT");
+      _GetString(_T("kmeleon.print.footerMiddle"), printFooterMiddle, "");
+      _GetString(_T("kmeleon.print.footerRight"), printFooterRight, "&D");
+      
+      _GetBool(_T("kmeleon.print.BGColors"), printBGColors, false);
+      _GetBool(_T("kmeleon.print.BGImages"), printBGImages, false);
+
+      _GetString(_T("kmeleon.print.marginLeft"), printMarginLeft, "0.5");
+      _GetString(_T("kmeleon.print.marginRight"), printMarginRight, "0.5");
+      _GetString(_T("kmeleon.print.marginTop"), printMarginTop, "0.5");
+      _GetString(_T("kmeleon.print.marginBottom"), printMarginBottom, "0.5");
+      
+      _GetInt(_T("kmeleon.print.scaling"), printScaling, 100);
+      _GetInt(_T("kmeleon.print.paperUnit"), printUnit, nsIPrintSettings::kPaperSizeInches);
+      _GetString(_T("kmeleon.print.paperWidth"), printWidth, "8.5");
+      _GetString(_T("kmeleon.print.paperHeight"), printHeight, "11");
+
    }
    else
       NS_ASSERTION(PR_FALSE, "Could not get preferences service");
@@ -363,7 +390,32 @@ void CPreferences::Save() {
 	   rv = prefs->SetBoolPref(_T("kmeleon.find.wrapAround"), bFindWrapAround);
 	   rv = prefs->SetBoolPref(_T("kmeleon.find.searchBackwards"), bFindSearchBackwards);
 
-      rv = prefs->SavePrefFile(nsnull);
+
+      // -- Print Settings
+      rv = prefs->SetCharPref(_T("kmeleon.print.headerLeft"), printHeaderLeft);
+      rv = prefs->SetCharPref(_T("kmeleon.print.headerMiddle"), printHeaderMiddle);
+      rv = prefs->SetCharPref(_T("kmeleon.print.headerRight"), printHeaderRight);
+
+      rv = prefs->SetCharPref(_T("kmeleon.print.footerLeft"), printFooterLeft);
+      rv = prefs->SetCharPref(_T("kmeleon.print.footerMiddle"), printFooterMiddle);
+      rv = prefs->SetCharPref(_T("kmeleon.print.footerRight"), printFooterRight);
+      
+      rv = prefs->SetBoolPref(_T("kmeleon.print.BGColors"), printBGColors);
+      rv = prefs->SetBoolPref(_T("kmeleon.print.BGImages"), printBGImages);
+
+      rv = prefs->SetCharPref(_T("kmeleon.print.marginLeft"), printMarginLeft);
+      rv = prefs->SetCharPref(_T("kmeleon.print.marginRight"), printMarginRight);
+      rv = prefs->SetCharPref(_T("kmeleon.print.marginTop"), printMarginTop);
+      rv = prefs->SetCharPref(_T("kmeleon.print.marginBottom"), printMarginBottom);
+      
+      rv = prefs->SetIntPref(_T("kmeleon.print.scaling"), printScaling);
+      rv = prefs->SetIntPref(_T("kmeleon.print.paperUnit"), printUnit);
+      rv = prefs->SetCharPref(_T("kmeleon.print.paperWidth"), printWidth);
+      rv = prefs->SetCharPref(_T("kmeleon.print.paperHeight"), printHeight);
+      
+      
+      rv = prefs->SavePrefFile(nsnull);   
+   
    }
    else
       NS_ASSERTION(PR_FALSE, "Could not get preferences service");
