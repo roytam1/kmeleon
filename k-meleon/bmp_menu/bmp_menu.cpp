@@ -33,6 +33,8 @@
 #define KMELEON_PLUGIN_EXPORTS
 #include "../kmeleon_plugin.h"
 
+#define CONFIG_FILE "menuicons.cfg"
+
 //#define BMP_PADDING_LEFT 3
 //#define BMP_PADDING_RIGHT 4
 #define BMP_PADDING_LEFT 2
@@ -83,8 +85,6 @@ ID_BLARG2
 }
 */
 
-char settingsPath[MAX_PATH];
-
 // this maps HMENU's to DrawProcs
 typedef std::map<HMENU, DRAWBITMAPPROC> menuMap;
 menuMap menus;
@@ -111,8 +111,52 @@ BOOL  gbDrawn = TRUE;      // after the menu is drawn, we should reset iMaxText 
 BOOL  gbMeasureAccel = TRUE; // win98 workaround - win98 automatically adjusts measuremenuitem for the width of the accel
 
 
+// look for filename first in the skinsDir, then in the settingsDir
+// check for the filename in skinsDir, and copy the path into szSkinFile
+// if it's not there, just assume it's in settingsDir, and copy that path
 
+void FindSkinFile( char *szSkinFile, char *filename ) {
 
+   char szTmpSkinDir[MAX_PATH];
+   char szTmpSkinName[MAX_PATH];
+   char szTmpSkinFile[MAX_PATH] = "";
+
+   if (!szSkinFile || !filename || !*filename)
+      return;
+
+   kPlugin.kFuncs->GetPreference(PREF_STRING, "kmeleon.general.skinsDir", szTmpSkinDir, (char*)"");
+   kPlugin.kFuncs->GetPreference(PREF_STRING, "kmeleon.general.skinsCurrent", szTmpSkinName, (char*)"");
+
+   if (*szTmpSkinDir && *szTmpSkinName) {
+      strcpy(szTmpSkinFile, szTmpSkinDir);
+
+      int len = strlen(szTmpSkinFile);
+      if (szTmpSkinFile[len-1] != '\\')
+         strcat(szTmpSkinFile, "\\");
+
+      strcat(szTmpSkinFile, szTmpSkinName);
+      len = strlen(szTmpSkinFile);
+      if (szTmpSkinFile[len-1] != '\\')
+         strcat(szTmpSkinFile, "\\");
+
+      strcat(szTmpSkinFile, filename);
+      WIN32_FIND_DATA FindData;
+
+      HANDLE hFile = FindFirstFile(szTmpSkinFile, &FindData);
+      if(hFile != INVALID_HANDLE_VALUE) {   
+         FindClose(hFile);
+         strcpy( szSkinFile, szTmpSkinFile );
+         return;
+      }
+   }
+
+   // it wasn't in the skinsDir, assume settingsDir
+   kPlugin.kFuncs->GetPreference(PREF_STRING, "kmeleon.general.settingsDir", szSkinFile, (char*)"");
+   if (! *szSkinFile)      // no settingsDir, bad
+      strcpy(szSkinFile, filename);
+   else
+      strcat(szSkinFile, filename);
+}
 
 
 long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2)
@@ -189,8 +233,7 @@ void ParseConfig(char *buffer) {
             // else it's relative to the settings directory (just plain blah)
 				else {
 					char bmpPath[MAX_PATH];
-					strcpy(bmpPath, settingsPath);
-					strcat(bmpPath, p);
+               FindSkinFile(bmpPath, p);
 					bitmap = (HBITMAP)LoadImage(NULL, bmpPath, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE);
 				}
             ImageList_AddMasked(hImageList, bitmap, RGB(255, 0, 255));
@@ -225,8 +268,6 @@ void ParseConfig(char *buffer) {
 int Init() {
    bFirstRun = TRUE;
 
-   kPlugin.kFuncs->GetPreference(PREF_STRING, "kmeleon.general.settingsDir", settingsPath, "");
-
    // Check for Win98
    OSVERSIONINFO     osVersion;
    osVersion.dwOSVersionInfoSize = sizeof( OSVERSIONINFO );
@@ -256,8 +297,7 @@ int Init() {
 
 
    char cfgPath[MAX_PATH];
-   strcpy(cfgPath, settingsPath);
-   strcat(cfgPath, "menuicons.cfg");
+   FindSkinFile(cfgPath, CONFIG_FILE);
 
    FILE *cfgFile = fopen(cfgPath, "r");
    if (cfgFile){
@@ -287,8 +327,7 @@ void Create(HWND parent){
 void Config(HWND parent)
 {
    char cfgPath[MAX_PATH];
-   strcpy(cfgPath, settingsPath);
-   strcat(cfgPath, "menuicons.cfg");
+   FindSkinFile(cfgPath, CONFIG_FILE);
 
    ShellExecute(parent, NULL, "notepad.exe", cfgPath, NULL, SW_SHOW);
 }
@@ -297,8 +336,7 @@ configFileType g_configFiles[1];
 
 int GetConfigFiles(configFileType **configFiles)
 {
-   strcpy(g_configFiles[0].file, settingsPath);
-   strcat(g_configFiles[0].file, "menuicons.cfg");
+   FindSkinFile(g_configFiles[0].file, CONFIG_FILE);
 
    strcpy(g_configFiles[0].label, "Menu Icons");
 

@@ -115,6 +115,10 @@ void CPreferences::Load() {
       _GetString(_T("kmeleon.general.saveDir"), saveDir, _T(""));   
       _GetString(_T("kmeleon.general.settingsDir"), settingsDir, _T(""));
       _GetString(_T("kmeleon.general.pluginsDir"), pluginsDir, _T(""));
+
+      _GetString(_T("kmeleon.general.skinsDir"), skinsDir, _T(""));
+      _GetString(_T("kmeleon.general.skinsCurrent"), skinsCurrent, _T(""));
+      
       if (settingsDir.IsEmpty()) {
 
          nsCOMPtr<nsIFile> profileDir;
@@ -130,6 +134,29 @@ void CPreferences::Load() {
       }
       if (settingsDir[settingsDir.GetLength() - 1] != '\\')
          settingsDir += '\\';
+
+
+      if (skinsDir.IsEmpty()) {
+         char buf[MAX_PATH];
+         GetModuleFileName(NULL, buf, MAX_PATH);
+         int x=strlen(buf)-1;
+         while (x>0 && buf[x] != '\\') x--;
+         if (x>0) buf[x+1]=0;
+         strcat (buf, "skins\\");
+         skinsDir = buf;         // plugins dir = path to kmeleon.exe + "kplugins\"
+      }
+
+      if (skinsCurrent.IsEmpty())
+         skinsCurrent = "Default\\";
+
+      skinsPath = skinsDir;
+      if (skinsPath.Right(1) != "\\")
+         skinsPath += "\\";
+      skinsPath += skinsCurrent;
+      if (skinsPath.Right(1) != "\\")
+         skinsPath += "\\";
+
+
 
       if (pluginsDir.IsEmpty()) {
          char buf[MAX_PATH];
@@ -231,6 +258,9 @@ void CPreferences::SaveDlgPrefs() {
       rv = prefs->SetCharPref(_T("kmeleon.general.saveDir"), saveDir);
       rv = prefs->SetCharPref(_T("kmeleon.general.settingsDir"), settingsDir);
       rv = prefs->SetCharPref(_T("kmeleon.general.pluginsDir"), pluginsDir);
+
+      rv = prefs->SetCharPref(_T("kmeleon.general.skinsDir"), skinsDir);
+      rv = prefs->SetCharPref(_T("kmeleon.general.skinsCurrent"), skinsCurrent);
 
       rv = prefs->SetBoolPref(_T("kmeleon.general.sourceEnabled"), bSourceUseExternalCommand);
       rv = prefs->SetCharPref(_T("kmeleon.general.sourceCommand"), sourceCommand);

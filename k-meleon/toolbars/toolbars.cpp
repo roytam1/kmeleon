@@ -152,14 +152,59 @@ BOOL APIENTRY DllMain(HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserv
    return TRUE;
 }
 
-char gszConfigDir[MAX_PATH];
+// look for filename first in the skinsDir, then in the settingsDir
+// check for the filename in skinsDir, and copy the path into szSkinFile
+// if it's not there, just assume it's in settingsDir, and copy that path
+
+void FindSkinFile( char *szSkinFile, char *filename ) {
+
+   char szTmpSkinDir[MAX_PATH];
+   char szTmpSkinName[MAX_PATH];
+   char szTmpSkinFile[MAX_PATH] = "";
+
+   if (!szSkinFile || !filename || !*filename)
+      return;
+
+   kPlugin.kFuncs->GetPreference(PREF_STRING, "kmeleon.general.skinsDir", szTmpSkinDir, (char*)"");
+   kPlugin.kFuncs->GetPreference(PREF_STRING, "kmeleon.general.skinsCurrent", szTmpSkinName, (char*)"");
+
+   if (*szTmpSkinDir && *szTmpSkinName) {
+      strcpy(szTmpSkinFile, szTmpSkinDir);
+
+      int len = strlen(szTmpSkinFile);
+      if (szTmpSkinFile[len-1] != '\\')
+         strcat(szTmpSkinFile, "\\");
+
+      strcat(szTmpSkinFile, szTmpSkinName);
+      len = strlen(szTmpSkinFile);
+      if (szTmpSkinFile[len-1] != '\\')
+         strcat(szTmpSkinFile, "\\");
+
+      strcat(szTmpSkinFile, filename);
+
+      WIN32_FIND_DATA FindData;
+
+      HANDLE hFile = FindFirstFile(szTmpSkinFile, &FindData);
+      if(hFile != INVALID_HANDLE_VALUE) {   
+         FindClose(hFile);
+         strcpy( szSkinFile, szTmpSkinFile );
+         return;
+      }
+   }
+
+   // it wasn't in the skinsDir, assume settingsDir
+   kPlugin.kFuncs->GetPreference(PREF_STRING, "kmeleon.general.settingsDir", szSkinFile, (char*)"");
+   if (! *szSkinFile)      // no settingsDir, bad
+      strcpy(szSkinFile, filename);
+   else
+      strcat(szSkinFile, filename);
+}
+
 
 int Init() {
    char szConfigFile[MAX_PATH];
-   kPlugin.kFuncs->GetPreference(PREF_STRING, "kmeleon.general.settingsDir", gszConfigDir, (char*)"");
-   if (! *gszConfigDir)
-      return 0;
-   strcpy(szConfigFile, gszConfigDir);
+
+   kPlugin.kFuncs->GetPreference(PREF_STRING, _T("kmeleon.general.settingsDir"), szConfigFile, (char*)"");
    strcat(szConfigFile, "toolbars.cfg");
    LoadToolbars(szConfigFile);
 
@@ -204,10 +249,7 @@ void Config(HWND hWndParent) {
 configFileType g_configFiles[1];
 int GetConfigFiles(configFileType **configFiles)
 {
-   char cfgPath[MAX_PATH];
-   kPlugin.kFuncs->GetPreference(PREF_STRING, _T("kmeleon.general.settingsDir"), cfgPath, (char*)"");
-
-   strcpy(g_configFiles[0].file, cfgPath);
+   kPlugin.kFuncs->GetPreference(PREF_STRING, _T("kmeleon.general.settingsDir"), g_configFiles[0].file, (char*)"");
    strcat(g_configFiles[0].file, "toolbars.cfg");
 
    strcpy(g_configFiles[0].label, "Toolbars");
@@ -713,8 +755,7 @@ HBITMAP LoadButtonImage(s_toolbar *pToolbar, s_button *pButton, char *sFile) {
    }
    else {
       char fullpath[MAX_PATH];
-      strcpy(fullpath, gszConfigDir);
-      strcat(fullpath, sFile);
+      FindSkinFile(fullpath, sFile);
       hBitmap = (HBITMAP)LoadImage(NULL, fullpath, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
    }
    
