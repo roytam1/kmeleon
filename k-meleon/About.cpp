@@ -50,6 +50,7 @@ CAboutDlg::CAboutDlg() : CDialog(CAboutDlg::IDD)
    }
 
    m_credits += _QUOTE(
+      Tuncer M. Ayaz <tma@users.sf.net>\r\n
       \r\n
       Past Contributors:\r\n
       Sebastian Spaeth <Sebastian@SSpaeth.de>\r\n    
