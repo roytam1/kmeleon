@@ -20,6 +20,7 @@
 
 #include "stdafx.h"
 #include "resource.h"
+#include "wininet.h"    // for INTERNET_MAX_URL_LENGTH
 
 #include <vector>
 
@@ -314,9 +315,9 @@ void DoRebar(HWND rebarWnd){
    }
 
    // Register the band name and child hwnd
-    kPlugin.kFuncs->RegisterBand(hwndTB, "Favorites");
+   kPlugin.kFuncs->RegisterBand(hwndTB, "Favorites");
 
-    SetWindowText(hwndTB, TOOLBAND_LABEL);
+   SetWindowText(hwndTB, TOOLBAND_LABEL);
 
    //SendMessage(hwndTB, TB_SETEXTENDEDSTYLE, 0, TBSTYLE_EX_DRAWDDARROWS);
 
@@ -328,70 +329,69 @@ void DoRebar(HWND rebarWnd){
    int index;
    
    MENUITEMINFO mInfo;
-   mInfo.cbSize = sizeof(mInfo);
+   mInfo.cbSize = sizeof(MENUITEMINFO);
    int i;
    int count = GetMenuItemCount(gFavoritesMenu);
    HMENU hLinksMenu = NULL;
    for (i=0; i<count; i++){
-     if (GetMenuState(gFavoritesMenu, i, MF_BYPOSITION) & MF_POPUP){
-        char temp[128];
-        mInfo.fMask = MIIM_TYPE | MIIM_SUBMENU;
-        mInfo.cch = 127;
-        mInfo.dwTypeData = temp;
-        GetMenuItemInfo(gFavoritesMenu, i, MF_BYPOSITION, &mInfo);
+      if (GetMenuState(gFavoritesMenu, i, MF_BYPOSITION) & MF_POPUP){
+         char temp[128];
+         mInfo.fMask = MIIM_TYPE | MIIM_SUBMENU;
+         mInfo.cch = 127;
+         mInfo.dwTypeData = temp;
+         GetMenuItemInfo(gFavoritesMenu, i, MF_BYPOSITION, &mInfo);
         
-        if (mInfo.dwTypeData && stricmp(mInfo.dwTypeData, "Links") == 0){
-           hLinksMenu = GetSubMenu(gFavoritesMenu, i);
-           break;
-        }
-     }
+         if (mInfo.dwTypeData && stricmp(mInfo.dwTypeData, "Links") == 0){
+            hLinksMenu = GetSubMenu(gFavoritesMenu, i);
+            break;
+         }
+      }
    }
    if (hLinksMenu == NULL)
       hLinksMenu = gFavoritesMenu;
    count = GetMenuItemCount(hLinksMenu);
    for (i=0; i<count; i++){
-     if (GetMenuState(hLinksMenu, i, MF_BYPOSITION) & MF_POPUP){
-        char temp[128];
-        mInfo.fMask = MIIM_TYPE | MIIM_SUBMENU;
-        mInfo.cch = 127;
-        mInfo.dwTypeData = temp;
-        GetMenuItemInfo(hLinksMenu, i, MF_BYPOSITION, &mInfo);
+      if (GetMenuState(hLinksMenu, i, MF_BYPOSITION) & MF_POPUP){
+         char temp[128];
+         mInfo.fMask = MIIM_TYPE | MIIM_SUBMENU;
+         mInfo.cch = 127;
+         mInfo.dwTypeData = temp;
+         GetMenuItemInfo(hLinksMenu, i, MF_BYPOSITION, &mInfo);
 
-        stringID = SendMessage(hwndTB, TB_ADDSTRING, (WPARAM)NULL, (LPARAM)(LPCTSTR)mInfo.dwTypeData);
+         stringID = SendMessage(hwndTB, TB_ADDSTRING, (WPARAM)NULL, (LPARAM)(LPCTSTR)mInfo.dwTypeData);
 
-        TBBUTTON button;
-        button.iBitmap = gFolderIcon;
-        button.idCommand = (int)mInfo.hSubMenu+SUBMENU_OFFSET;
-        button.fsState = TBSTATE_ENABLED;
-        button.fsStyle = TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE | TBSTYLE_DROPDOWN;
-        //button.bReserved = NULL;
-        button.iString = stringID;
+         TBBUTTON button;
+         button.iBitmap = gFolderIcon;
+         button.idCommand = (int)mInfo.hSubMenu+SUBMENU_OFFSET;
+         button.fsState = TBSTATE_ENABLED;
+         button.fsStyle = TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE | TBSTYLE_DROPDOWN;
+         //button.bReserved = NULL;
+         button.iString = stringID;
 
-        SendMessage(hwndTB, TB_INSERTBUTTON, (WPARAM)-1, (LPARAM)&button);
-     }
-     else{
-        char temp[128];
-        mInfo.fMask = MIIM_TYPE | MIIM_ID;
-        mInfo.cch = 127;
-        mInfo.dwTypeData = temp;
-        GetMenuItemInfo(hLinksMenu, i, MF_BYPOSITION, &mInfo);
+         SendMessage(hwndTB, TB_INSERTBUTTON, (WPARAM)-1, (LPARAM)&button);
+      }
+      else{
+         char temp[128];
+         mInfo.fMask = MIIM_TYPE | MIIM_ID;
+         mInfo.cch = 127;
+         mInfo.dwTypeData = temp;
+         GetMenuItemInfo(hLinksMenu, i, MF_BYPOSITION, &mInfo);
 
-        if (mInfo.wID >= nFirstFavoriteCommand && mInfo.wID < nFirstFavoriteCommand + MAX_FAVORITES){
-           index = mInfo.wID - nFirstFavoriteCommand;
+         if (mInfo.wID >= nFirstFavoriteCommand && mInfo.wID < nFirstFavoriteCommand + MAX_FAVORITES){
+            index = mInfo.wID - nFirstFavoriteCommand;
+            stringID = SendMessage(hwndTB, TB_ADDSTRING, (WPARAM)NULL, (LPARAM)(LPCTSTR)mInfo.dwTypeData);//m_astrFavorites[index]);
 
-           stringID = SendMessage(hwndTB, TB_ADDSTRING, (WPARAM)NULL, (LPARAM)(LPCTSTR)mInfo.dwTypeData);//m_astrFavorites[index]);
+            TBBUTTON button;
+            button.iBitmap = gIcons[index];
+            button.idCommand = mInfo.wID;
+            button.fsState = TBSTATE_ENABLED;
+            button.fsStyle = TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE;
+            //button.bReserved = NULL;
+            button.iString = stringID;
 
-           TBBUTTON button;
-           button.iBitmap = gIcons[index];
-           button.idCommand = mInfo.wID;
-           button.fsState = TBSTATE_ENABLED;
-           button.fsStyle = TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE;
-           //button.bReserved = NULL;
-           button.iString = stringID;
-
-           SendMessage(hwndTB, TB_INSERTBUTTON, (WPARAM)-1, (LPARAM)&button);
-        }
-     }
+            SendMessage(hwndTB, TB_INSERTBUTTON, (WPARAM)-1, (LPARAM)&button);
+         }
+      }
    }
 
    // Get the width & height of the toolbar.
@@ -422,8 +422,6 @@ int BuildFavoritesMenu(char * strPath, HMENU mainMenu)
 {
    const int nStart = gNumFavorites;
    int nPos;
-
-   std::vector<char *> dirsArray;
 
    int pathLen = strlen(strPath);
 
@@ -459,7 +457,28 @@ int BuildFavoritesMenu(char * strPath, HMENU mainMenu)
          strcat(subPath, wfd.cFileName);         
          strcat(subPath, "/");
 
-         dirsArray.push_back(subPath);
+      HMENU subMenu = CreatePopupMenu();
+
+      // call this function recursively.
+      if(gNumFavorites < MAX_FAVORITES && BuildFavoritesMenu(subPath, subMenu))	{
+         // only insert a submenu if there are in fact .URL files in the subdirectory
+         subPath[strlen(subPath)-1] = 0; // chop off the trailing slash
+         char *escaped = EscapeAmpersands(subPath);
+         if (escaped) {
+//            InsertMenu(mainMenu, nFirstFavoriteCommand, MF_BYCOMMAND | MF_POPUP | MF_STRING, (UINT)subMenu, escaped);
+            AppendMenu(mainMenu, MF_BYCOMMAND | MF_POPUP | MF_STRING, (UINT)subMenu, escaped);
+            delete escaped;
+         }
+         else
+//            InsertMenu(mainMenu, nFirstFavoriteCommand, MF_BYCOMMAND | MF_POPUP | MF_STRING, (UINT)subMenu, subPath);
+            AppendMenu(mainMenu, MF_BYCOMMAND | MF_POPUP | MF_STRING, (UINT)subMenu, subPath);
+      }else{
+         DestroyMenu(subMenu);
+      }
+
+      delete [] subPath;
+
+//         dirsArray.push_back(subPath);
 
       }else if ((wfd.dwFileAttributes & (FILE_ATTRIBUTE_HIDDEN|FILE_ATTRIBUTE_SYSTEM))==0) {
          // if it's not a hidden or system file
@@ -469,10 +488,11 @@ int BuildFavoritesMenu(char * strPath, HMENU mainMenu)
 
             // scan through the array and perform an insertion sort
             // to make sure the menu ends up in alphabetic order
-            for(nPos = nStart; nPos < gNumFavorites; nPos++)	{
-               if(stricmp(wfd.cFileName, gFavorites[nPos]) < 0)
-                  break;
-            }
+//            for(nPos = nStart; nPos < gNumFavorites; nPos++)	{
+//               if(stricmp(wfd.cFileName, gFavorites[nPos]) < 0)
+//                  break;
+//            }
+            nPos = gNumFavorites;   // no alphabetization for now - isn't the order in which they were inserted better anyway?
 
             int filenameLen = (dot - wfd.cFileName) + 4;
             urlFile = new char[pathLen + filenameLen + 1];
@@ -490,10 +510,13 @@ int BuildFavoritesMenu(char * strPath, HMENU mainMenu)
             char *escaped = EscapeAmpersands(wfd.cFileName);
             if (escaped) {
                gFavorites.InsertAt(nPos, escaped);
+               AppendMenu(mainMenu, MF_STRING | MF_ENABLED, nFirstFavoriteCommand + nPos, escaped);
                delete escaped;
             }
-            else
+            else {
                gFavorites.InsertAt(nPos, wfd.cFileName);
+               AppendMenu(mainMenu, MF_STRING | MF_ENABLED, nFirstFavoriteCommand + nPos, wfd.cFileName);
+            }
 
             /*
             HACK HACK HACK
@@ -524,51 +547,17 @@ int BuildFavoritesMenu(char * strPath, HMENU mainMenu)
          }
       }
    } while(FindNextFile(h, &wfd));
+
    FindClose(h);
 
-   // Now add these items to the menu
-   for (nPos = nStart; nPos < gNumFavorites; nPos++) {
-      AppendMenu(mainMenu, MF_STRING | MF_ENABLED, nFirstFavoriteCommand + nPos, gFavorites[nPos]);
-   }
-
-   if (tooMany) {
-      MessageBox(NULL, ERROR_TOO_MANY_FAVORITES, PLUGIN_NAME, 0);
-      return gNumFavorites - nStart;
-   }
-
-   // then do the directories
-   HMENU subMenu;
-
-   int nSize = dirsArray.size();
-   for (nPos = 0; nPos < nSize; nPos++){
-      subMenu = CreatePopupMenu();
-
-      subPath = dirsArray[nPos];
-
-      // call this function recursively.
-      if(gNumFavorites < MAX_FAVORITES && BuildFavoritesMenu(subPath, subMenu))	{
-         // only insert a submenu if there are in fact .URL files in the subdirectory
-         subPath[strlen(subPath)-1] = 0; // chop off the trailing slash
-         char *escaped = EscapeAmpersands(subPath);
-         if (escaped) {
-            InsertMenu(mainMenu, nFirstFavoriteCommand, MF_BYCOMMAND | MF_POPUP | MF_STRING, (UINT)subMenu, escaped);
-            delete escaped;
-         }
-         else
-            InsertMenu(mainMenu, nFirstFavoriteCommand, MF_BYCOMMAND | MF_POPUP | MF_STRING, (UINT)subMenu, subPath);
-      }else{
-         DestroyMenu(subMenu);
-      }
-
-      delete [] subPath;
-   }
+   if (tooMany) MessageBox(NULL, ERROR_TOO_MANY_FAVORITES, PLUGIN_NAME, 0);
 
    return gNumFavorites - nStart;
 }
 
 char *GetURL(int index){
    // this is static so that we can return it
-   static char url[MAX_PATH];
+   static char url[INTERNET_MAX_URL_LENGTH];
 
    char path[MAX_PATH];
    strcpy(path, gFavoritesPath);
@@ -576,8 +565,7 @@ char *GetURL(int index){
 
    // a .URL file is formatted just like an .INI file, so we can
    // use GetPrivateProfileString() to get the information we want
-   GetPrivateProfileString(_T("InternetShortcut"), _T("URL"),
-      _T(""), url, MAX_PATH, path);
+   GetPrivateProfileString(_T("InternetShortcut"), _T("URL"), _T(""), url, INTERNET_MAX_URL_LENGTH, path);
 
    return url;
 }
