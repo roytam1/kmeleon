@@ -63,7 +63,7 @@ BOOL CBrowserView::OpenViewSourceWindow(const char* pUrl)
 	         if (NS_FAILED(rv)) 
 		         return FALSE;
  
-            persist->SaveURI(srcURI, nsnull, file);
+            persist->SaveURI(srcURI, nsnull, nsnull, nsnull, nsnull, file);
          }
          return TRUE;
       }
@@ -218,7 +218,7 @@ NS_IMETHODIMP CBrowserView::URISaveAs(nsIURI* aURI, bool bDocument)
       
       progress->InitPersist(aURI, file, persist, TRUE);
 
-      persist->SaveURI(aURI, nsnull, file);
+      persist->SaveURI(aURI, nsnull, nsnull, nsnull, nsnull, file);
 
    }
 

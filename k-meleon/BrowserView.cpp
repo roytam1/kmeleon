@@ -910,7 +910,7 @@ void CBrowserView::OnFileSaveAs()
             if(bSaveAll)
                 persist->SaveDocument(nsnull, file, dataPath, nsnull, 0, 0);
             else
-                persist->SaveURI(nsnull, nsnull, file);
+                persist->SaveURI(nsnull, nsnull, nsnull, nsnull, nsnull, file);
         }
     }
       
