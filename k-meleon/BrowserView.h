@@ -128,6 +128,7 @@ public:
    BOOL m_panning;
    BOOL m_panningQuick;
    CPoint m_panningPoint;
+   nsCOMPtr<nsIDOMWindow> s;
   
 	void RefreshToolBarItem(WPARAM ItemID, LPARAM unused);
 
