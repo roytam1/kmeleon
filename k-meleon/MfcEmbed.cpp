@@ -175,6 +175,7 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
 
 
    LONG style = WS_OVERLAPPEDWINDOW;
+   if (preferences.bMaximized) style |= WS_MAXIMIZE;
    if (!pFrame->Create(NULL, strTitle, style, winSize, NULL, MAKEINTRESOURCE(IDR_MAINFRAME), 0L, NULL))
 		return NULL;
 
@@ -187,9 +188,7 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
 
 	// Show the window...
 	if(bShowWindow) {
-      if (preferences.bMaximized) pFrame->ShowWindow(SW_SHOWMAXIMIZED);
-      else pFrame->ShowWindow(SW_SHOW);
-
+      pFrame->ShowWindow(SW_SHOW);
 		pFrame->UpdateWindow();
 	}
 

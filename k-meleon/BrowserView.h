@@ -56,7 +56,7 @@ public:
 							PRInt32 x = -1, PRInt32 y = -1, 
 							PRInt32 cx = -1, PRInt32 cy = -1,
 							PRBool bShowWindow = PR_TRUE);
-	void OpenURLInNewWindow(const PRUnichar* pUrl);
+	void OpenURLInNewWindow(const PRUnichar* pUrl, BOOL bBackground=0);
 	void LoadHomePage();
 
 	void GetBrowserWindowTitle(nsCString& title);
@@ -149,6 +149,7 @@ protected:
 	afx_msg void OnSelectNone();
 	afx_msg void OnCopyLinkLocation();
 	afx_msg void OnOpenLinkInNewWindow();
+	afx_msg void OnOpenLinkInBackground();
 	afx_msg void OnViewImageInNewWindow();
 	afx_msg void OnSaveLinkAs();
 	afx_msg void OnSaveImageAs();

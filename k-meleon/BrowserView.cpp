@@ -101,6 +101,7 @@ BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
 	ON_COMMAND(ID_EDIT_SELECT_NONE, OnSelectNone)
 	ON_COMMAND(ID_COPY_LINK_LOCATION, OnCopyLinkLocation)
 	ON_COMMAND(ID_OPEN_LINK_IN_NEW_WINDOW, OnOpenLinkInNewWindow)
+	ON_COMMAND(ID_OPEN_LINK_IN_BACKGROUND, OnOpenLinkInBackground)
 	ON_COMMAND(ID_VIEW_IMAGE, OnViewImageInNewWindow)
 	ON_COMMAND(ID_SAVE_LINK_AS, OnSaveLinkAs)
 	ON_COMMAND(ID_SAVE_IMAGE_AS, OnSaveImageAs)
@@ -757,15 +758,24 @@ CBrowserFrame* CBrowserView::CreateNewBrowserFrame(PRUint32 chromeMask,
   return pApp->CreateNewBrowserFrame(chromeMask, x, y, cx, cy, bShowWindow);
 }
 
-void CBrowserView::OpenURLInNewWindow(const PRUnichar* pUrl){
+void CBrowserView::OpenURLInNewWindow(const PRUnichar* pUrl, BOOL bBackground){
 	if(!pUrl)
 		return;
 
-	CBrowserFrame* pFrm = CreateNewBrowserFrame();
+   // create hidden window
+   CBrowserFrame* pFrm = CreateNewBrowserFrame(nsIWebBrowserChrome::CHROME_ALL, -1, -1, -1, -1, false);
 	if(!pFrm)
 		return;
 
-	// Load the URL into it...
+   // show the window
+   if (bBackground)
+         pFrm->SetWindowPos(&wndBottom, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | SWP_SHOWWINDOW);
+   else
+      pFrm->ShowWindow(SW_SHOW);
+
+   pFrm->UpdateWindow();
+   
+   // Load the URL into it...
 
 	// Note that OpenURL() is overloaded - one takes a "char *"
 	// and the other a "PRUniChar *". We're using the "PRUnichar *"
@@ -773,6 +783,7 @@ void CBrowserView::OpenURLInNewWindow(const PRUnichar* pUrl){
 
 	pFrm->m_wndBrowserView.OpenURL(pUrl);
 }
+
 
 void CBrowserView::LoadHomePage()
 {
@@ -811,6 +822,12 @@ void CBrowserView::OnOpenLinkInNewWindow()
 {
 	if(mCtxMenuLinkUrl.Length())
 		OpenURLInNewWindow(mCtxMenuLinkUrl.GetUnicode());
+}
+
+void CBrowserView::OnOpenLinkInBackground()
+{
+	if(mCtxMenuLinkUrl.Length())
+		OpenURLInNewWindow(mCtxMenuLinkUrl.GetUnicode(), true);
 }
 
 void CBrowserView::OnViewImageInNewWindow()
