@@ -39,23 +39,23 @@ CMostRecentUrls::CMostRecentUrls() {
    char sPref[20] = "kmeleon.MRU.URL", sBuf[5];
    char *sCount = sPref + strlen(sPref);
    int x=0;
+   int y=0;
 
    do {
       itoa(x, sBuf, 10);
       strcpy(sCount, sBuf);                              // create  "kmeleon.MRU.URL##" string
       int len = theApp.preferences.GetString(sPref, NULL, "");
       if (len > 0) {
-         m_URLs[x] = new char[len+1];
-         theApp.preferences.GetString(sPref, m_URLs[x], "");
+         m_URLs[y] = new char[len+1];
+         theApp.preferences.GetString(sPref, m_URLs[y], "");
+	 y++;
       }
-      else
-         break;
    } while (++x<m_maxURLs);
    
-   m_URLCount = x;
+   m_URLCount = y;
    // nullify the empty entries
-   for(;x<m_maxURLs;x++)
-      m_URLs[x] = NULL;
+   for(;y<m_maxURLs;y++)
+      m_URLs[y] = NULL;
 }
 
 CMostRecentUrls::~CMostRecentUrls() {
@@ -66,10 +66,14 @@ CMostRecentUrls::~CMostRecentUrls() {
 
    theApp.preferences.SetInt("kmeleon.MRU.maxURLs", m_maxURLs); 
 
+   int y = 0;
    for (int x=0; x<m_URLCount; x++) {
-      itoa(x, sBuf, 10);
+      itoa(y, sBuf, 10);
       strcpy(sCount, sBuf);                              // create  "kmeleon.MRU.URL##" string
-      theApp.preferences.SetString(sPref, m_URLs[x]);
+      if (strlen(m_URLs[x]) > 0) {
+        theApp.preferences.SetString(sPref, m_URLs[x]);
+	y++;
+      }
    }
    
    for (x=0;x<m_maxURLs;x++)
