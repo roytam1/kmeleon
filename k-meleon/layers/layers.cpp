@@ -777,7 +777,17 @@ void DoRebar(HWND rebarWnd){
    }
    
    // Register the band name and child hwnd
-   kPlugin.kFuncs->RegisterBand(ghWndTB, "Layers");
+   if (szTitle && *szTitle) {
+      int len = strlen(szTitle);
+      char c = szTitle[len-1];
+      if (c == ':')
+         szTitle[len-1] = 0;
+      kPlugin.kFuncs->RegisterBand(ghWndTB, szTitle);
+      if (c == ':')
+         strcat(szTitle, ":");
+   }
+   else
+      kPlugin.kFuncs->RegisterBand(ghWndTB, "Layers");
    
    BuildRebar(ghWndTB, NULL);
    
@@ -1051,8 +1061,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                   WINDOWPLACEMENT *wpOld = (WINDOWPLACEMENT*)calloc(1, sizeof(WINDOWPLACEMENT));
                   wpOld->length = sizeof (WINDOWPLACEMENT);
                   GetWindowPlacement(newframe->hWndFront, wpOld);
-                  if (wpOld->showCmd == SW_HIDE)
+                  if (wpOld->showCmd == SW_HIDE || wpOld->showCmd == SW_SHOWMINIMIZED) {
+                     wpOld->showCmd = SW_NORMAL;
                      PostMessage(newframe->hWndFront, WM_COMMAND, id_resize, (LPARAM)wpOld);
+                  } 
                   else {
                      free(wpOld);
                      SetFocus(newframe->hWndFront);
