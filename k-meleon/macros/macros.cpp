@@ -20,6 +20,7 @@
 #include <windows.h>
 #include <shellapi.h>
 #include <stdlib.h>
+#include <string>
 
 #define PLUGIN_NAME "Macro Extension Plugin"
 
@@ -31,24 +32,41 @@
 
 #define NOTFOUND -1
 
-int Init();
-void Create(HWND parent);
-void Config(HWND parent);
-void Quit();
-void DoMenu(HMENU menu, char *param);
-void DoRebar(HWND rebarWnd);
-int DoAccel(char *param);
-int AddMacro();
-void AddMacroEvent(int macro, int eventID, char *eventData);
-int FindMacro(char *macroName);
-int FindCommand(char *macroName);
-void LoadMacros(char *filename);
-BOOL APIENTRY DllMain(HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved );
-void ExecuteMacro(HWND hWnd, int macro);
-void ExecuteCommand (HWND hWnd, int command, char *data);
-int GetConfigFiles(configFileType **configFiles);
 
-long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2);
+BOOL         APIENTRY DllMain(HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved );
+int          AddMacro();
+void         AddMacroEvent(int macro, char *eventData);
+int          AddNewVar(std::string strin);
+int          AddVar();
+int          BoolVal(std::string input);
+void         Create(HWND parent);
+void         Config(HWND parent);
+void         DoError(char* msg);
+void         DoMenu(HMENU menu, char *param);
+void         DoRebar(HWND rebarWnd);
+int          DoAccel(char *param);
+long         DoMessage(const char *to, const char *from, const char *subject, long data1, long data2);
+std::string  EvalExpression(HWND hWnd,std::string exp);
+void         ExecuteMacro(HWND hWnd, int macro);
+std::string  ExecuteCommand (HWND hWnd, int command, char *data);
+int          FindCommand(char *macroName);
+int          FindMacro(char *macroName);
+char*        FindMacroName(int id);
+int          FindVar(char *varName);
+char*        FindVarName(int id);
+int          GetConfigFiles(configFileType **configFiles);
+std::string  GetVarVal(int varid);
+int          Init();
+int          IntVal(std::string input);
+void         LoadMacros(char *filename);
+void         Quit();
+void         SetOption(std::string option);
+void         SetVarExp(int varid, std::string value);
+int          strFindFirst(std::string instring,char findchar,bool notinparen=false);
+std::string  strTrim(std::string instr);
+std::string  strVal(std::string input);
+
+
 
 kmeleonPlugin kPlugin = {
    KMEL_PLUGIN_VER,
@@ -57,7 +75,7 @@ kmeleonPlugin kPlugin = {
 };
 
 long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2)
-{
+{  
    if (to[0] == '*' || stricmp(to, kPlugin.dllname) == 0) {
       if (stricmp(subject, "Init") == 0) {
          Init();
@@ -78,6 +96,7 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
          DoRebar((HWND)data1);
       }
       else if (stricmp(subject, "DoAccel") == 0) {
+          
           *(int *)data2 = DoAccel((char *)data1);
       }
       else if (stricmp(subject, "GetConfigFiles") == 0) {
@@ -107,11 +126,15 @@ struct macro {
    struct event **eventList;
 } **macroList;
 
+struct var {
+   char *varname;
+   char *expression;
+} **varList;
 
 int ID_START    = -1;
 int ID_END      = -1;
 int iMacroCount = 0;
-
+int iVarCount   = 0;
 
 #define BEGIN_CMD_TEST if (0) {}
 #define CMD_TEST(CMD)  else if (stricmp(cmd, #CMD) == 0) { cmdVal = ##CMD; }
@@ -122,10 +145,17 @@ enum commands {
    opennew,          // open url in new window
    openbg,           // open url in new background window
    setpref,          // set a preference
+   getpref,
    togglepref,       // toggle a preference between values
    exec,             // run a program
    id,               // send a command id to the current window
-   plugin            // exectute a plugin command
+   plugin,            // exectute a plugin command
+   alert,
+   confirm,
+   prompt,
+   getclipboard,
+   setclipboard,
+   macros
 };
 
 
@@ -213,6 +243,16 @@ void Quit() {
       delete macroList[curMacro];
    }
    delete macroList;
+
+   if(iVarCount > 0) {
+      for(int curVar = 0; curVar < iVarCount; curVar++) {
+         if(varList[curVar]->varname) delete varList[curVar]->varname;
+         if(varList[curVar]->expression) delete varList[curVar]->expression;
+         delete varList[curVar];
+      }
+   }
+   delete varList;
+
 }
 
 void DoMenu(HMENU menu, char *param) {
@@ -250,10 +290,17 @@ int FindCommand(char *cmd) {
       CMD_TEST(opennew)
       CMD_TEST(openbg)
       CMD_TEST(setpref)
+      CMD_TEST(getpref)
       CMD_TEST(togglepref)
       CMD_TEST(exec)
       CMD_TEST(id)
       CMD_TEST(plugin)
+      CMD_TEST(alert)
+      CMD_TEST(confirm)
+      CMD_TEST(prompt)
+      CMD_TEST(getclipboard)
+      CMD_TEST(setclipboard)
+      CMD_TEST(macros)
 
    return cmdVal;
 }
@@ -297,7 +344,7 @@ int AddMacro() {
 /*
   Adds and initializes a new event entry to the current macro
 */
-void AddMacroEvent(int macro, int eventID, char *eventData) {
+void AddMacroEvent(int macro, char *eventData) {
 
    // create new, larger index and copy the old index over
    event ** newEventList = new event*[macroList[macro]->eventCount+1];
@@ -309,7 +356,7 @@ void AddMacroEvent(int macro, int eventID, char *eventData) {
 
    // set the data
    macroList[macro]->eventList[macroList[macro]->eventCount] = new event;
-   macroList[macro]->eventList[macroList[macro]->eventCount]->id   = eventID;
+   //macroList[macro]->eventList[macroList[macro]->eventCount]->id   = eventID;
    if (eventData != NULL) {
       macroList[macro]->eventList[macroList[macro]->eventCount]->data = new char[strlen(eventData) + 1];
       strcpy(macroList[macro]->eventList[macroList[macro]->eventCount]->data, eventData);
@@ -324,47 +371,97 @@ void ExecuteMacro (HWND hWnd, int macro) {
       return;
 
    for (int x=0; x<macroList[macro]->eventCount; x++) {
+      if(macroList[macro]->eventList[x]->data) {
+         EvalExpression(hWnd,macroList[macro]->eventList[x]->data);
+      }
+   }
+/*
+   for (int x=0; x<macroList[macro]->eventCount; x++) {
       if (macroList[macro]->eventList[x]->id < 1000)
-         ExecuteMacro(hWnd, macroList[macro]->eventList[x]->id);
+         //ExecuteMacro(hWnd, macroList[macro]->eventList[x]->id);
+         EvalExpression(hWnd,macroList[macro]->eventList[x]->data);
       else ExecuteCommand(hWnd, macroList[macro]->eventList[x]->id, macroList[macro]->eventList[x]->data);
    }
+*/
 }
 
-void ExecuteCommand (HWND hWnd, int command, char *data) {
+
+std::string ExecuteCommand (HWND hWnd, int command, char *data) {
+
+   const int nmaxparams = 5;  // maximum num of function parameters
+   std::string params[nmaxparams];
+   std::string strData = data;
+
+   int pos,lpos,i;
+   i = pos = lpos = 0;
+   bool instr = false;
+
+   if(strData.length() > 0) {
+      if(strData.at(0) == '"') instr = true;
+      char lastchar = strData.at(0);
+      while(++pos <= strData.length()-1) {
+         if(i >= nmaxparams) break;
+         if(strData.at(pos) == '"' && lastchar != '\\') {
+            instr = (instr) ? false : true;
+            lastchar = '"';
+            continue;
+         }
+         if(!instr) {
+            if(strData.at(pos) == ',') {
+               
+               params[i++] = strVal(strData.substr(lpos,pos-lpos));
+               lpos = pos+1;
+               lastchar = ',';
+               continue;
+            }
+         }
+         lastchar = strData.at(pos);
+      }
+      if(i < nmaxparams) params[i] = strVal(strData.substr(lpos));
+   }
+
 
    BEGIN_CMD_TEST
-      CMD(open)      kFuncs->NavigateTo(data, OPEN_NORMAL);
-      CMD(opennew)   kFuncs->NavigateTo(data, OPEN_NEW);
-      CMD(openbg)    kFuncs->NavigateTo(data, OPEN_BACKGROUND);
+      CMD(open) {
+         kFuncs->NavigateTo((char*)params[0].c_str(), OPEN_NORMAL);
+      }
+      CMD(opennew) {
+         kFuncs->NavigateTo((char*)params[0].c_str(), OPEN_NEW);
+      }
+      CMD(openbg) {
+         kFuncs->NavigateTo((char*)params[0].c_str(), OPEN_BACKGROUND);
+      }
       CMD(setpref)   {
          enum PREFTYPE preftype;
-         char *c = strchr(data, ',');
+
+        char *c = strchr(data, ',');
          if (c) {
-            *c = 0;
-            TrimWhiteSpace(data);
-            if (!strcmpi(data, "bool")) preftype = PREF_BOOL;
-            else if (!strcmpi(data, "int")) preftype = PREF_INT;
-            else if (!strcmpi(data, "string")) preftype = PREF_STRING;
+            //*c = 0;
+            //TrimWhiteSpace(data);
+            if (!strcmpi((char*)params[0].c_str(), "bool")) preftype = PREF_BOOL;
+            else if (!strcmpi((char*)params[0].c_str(), "int")) preftype = PREF_INT;
+            else if (!strcmpi((char*)params[0].c_str(), "string")) preftype = PREF_STRING;
             else {
                MessageBox(NULL, "Invalid pref command", data, MB_OK);
-               return;
+               return "";
             }
-            char *pref = SkipWhiteSpace(c+1);
+            //char *pref = SkipWhiteSpace(c+1);
+            char *pref = (char*)params[1].c_str();
             c = strchr(pref, ',');
-            *c = 0;
-            TrimWhiteSpace(pref);
+            //*c = 0;
+            //TrimWhiteSpace(pref);
 
             if (!pref) {
                MessageBox(NULL, "No Preference defined", "Macros", MB_OK);
-               return;
+               return "";
             }
 
-            data = SkipWhiteSpace(c+1);
-            TrimWhiteSpace(data);
+            data = (char*)params[2].c_str();
+            //data = SkipWhiteSpace(c+1);
+            //TrimWhiteSpace(data);
             
-
-            /* Thanks to Mynen (mark_yen@hotmail.com) for pointing out this bug
-               as well as submitting a patch */
+            // Thanks to Mynen (mark_yen@hotmail.com) for pointing out this bug
+            //   as well as submitting a patch
             
             if (data && *data) {
 
@@ -385,15 +482,51 @@ void ExecuteCommand (HWND hWnd, int command, char *data) {
                   kFuncs->SetPreference(preftype, pref, &bData);
                }
             }
-
          }
       }
+      CMD(getpref) {
+         enum PREFTYPE preftype;
+
+         if (!strcmpi((char*)params[0].c_str(), "bool")) preftype = PREF_BOOL;
+         else if (!strcmpi((char*)params[0].c_str(), "int")) preftype = PREF_INT;
+         else if (!strcmpi((char*)params[0].c_str(), "string")) preftype = PREF_STRING;
+         else {
+            MessageBox(NULL, "Invalid data type in getpref command", "Invalid getpref command", MB_OK);
+            return "";
+         }
+
+         if(params[1].length() < 1)  {
+            MessageBox(NULL, "Invalid getpref command", "Invalid getpref command", MB_OK);
+            return "";
+         }
+
+         std::string strRet = "";
+         char cRetval[256];
+         int nRetval = 0;
+         if (preftype == PREF_STRING) {
+            kFuncs->GetPreference(preftype,(char*)params[1].c_str(),&cRetval,NULL);
+            return cRetval;
+         }
+         else if (preftype == PREF_INT) {
+            kFuncs->GetPreference(preftype,(char*)params[1].c_str(),&nRetval,&nRetval);
+            char buffer[12];
+            _itoa(nRetval,buffer,10);
+            return buffer;
+         }
+         else { //PREF_BOOL
+            kFuncs->GetPreference(preftype,(char*)params[1].c_str(),&nRetval,&nRetval);
+            if(nRetval) return "true";
+            else return "false";
+         }
+         return "";
+      }
       CMD(togglepref) {
+         
          char *datacopy = _strdup(data);
 
          enum PREFTYPE preftype;
          char *c = strchr(datacopy, ',');
-         if (!c) return;
+         if (!c) return "";
 
          *c = 0;
          TrimWhiteSpace(datacopy);
@@ -402,7 +535,7 @@ void ExecuteCommand (HWND hWnd, int command, char *data) {
          else if (!strcmpi(datacopy, "string")) preftype = PREF_STRING;
          else {
             MessageBox(NULL, "Invalid pref command", datacopy, MB_OK);
-            return;
+            return "";
          }
 
          char *pref = SkipWhiteSpace(c+1);
@@ -411,7 +544,7 @@ void ExecuteCommand (HWND hWnd, int command, char *data) {
          TrimWhiteSpace(pref);
          if (!pref) {
             MessageBox(NULL, "No Preference defined", "Macros", MB_OK);
-            return;
+            return "";
          }
 
          char sVal[256];
@@ -423,7 +556,7 @@ void ExecuteCommand (HWND hWnd, int command, char *data) {
             if (preftype == PREF_BOOL) {
                iVal = !iVal;
                kFuncs->SetPreference(preftype, pref, &iVal, TRUE);
-               return;
+               return "";
             }
          }
 
@@ -481,17 +614,21 @@ void ExecuteCommand (HWND hWnd, int command, char *data) {
          }
 
          delete datacopy;
+
       }
+
+
       CMD(exec) {
          STARTUPINFO si = {0};
          PROCESS_INFORMATION pi = {0};
-         CreateProcess(NULL, data, NULL, NULL, FALSE, NORMAL_PRIORITY_CLASS, NULL, NULL, &si, &pi);
+         CreateProcess(NULL, (char*)params[0].c_str(), NULL, NULL, FALSE, NORMAL_PRIORITY_CLASS, NULL, NULL, &si, &pi);
       }
-      CMD(id) {         
+
+      CMD(id) {
          int cmd;
-         cmd = kPlugin.kFuncs->GetID(data);
+         cmd = kPlugin.kFuncs->GetID((char*)params[0].c_str());
          if (!cmd)
-            cmd = atoi(data);
+            cmd = atoi((char*)params[0].c_str());
 
          SendMessage(hWnd, WM_COMMAND, cmd, NULL);
       }
@@ -510,7 +647,131 @@ void ExecuteCommand (HWND hWnd, int command, char *data) {
             SendMessage(hWnd, WM_COMMAND, cmd, NULL);
          }        
       }
+      CMD(alert) {
+         // params are message,title,icon
 
+         int icon = 0;
+         if(strcmpi(params[2].c_str(),"EXCLAIM")==0) icon=MB_ICONEXCLAMATION;
+         else if(strcmpi(params[2].c_str(),"INFO")==0) icon=MB_ICONINFORMATION;
+         else if(strcmpi(params[2].c_str(),"STOP")==0) icon=MB_ICONSTOP;         
+         else if(strcmpi(params[2].c_str(),"QUESTION")==0) icon=MB_ICONQUESTION;         
+
+         MessageBox(NULL,strVal(params[0]).c_str(),strVal(params[1]).c_str(), MB_OK|icon);
+         return "";
+
+      }
+      CMD(confirm) {
+         // params are message,title,buttons,icon
+
+         int buttons = MB_OKCANCEL;
+         if     (strcmpi(params[2].c_str(),"RETRYCANCEL")==0) buttons=MB_RETRYCANCEL;
+         else if(strcmpi(params[2].c_str(),"YESNO")==0) buttons=MB_YESNO;
+         else if(strcmpi(params[2].c_str(),"YESNOCANCEL")==0) buttons=MB_YESNOCANCEL;         
+         else if(strcmpi(params[2].c_str(),"ABORTRETRYIGNORE")==0) buttons=MB_ABORTRETRYIGNORE; 
+
+         int icon = 0;
+         if     (strcmpi(params[3].c_str(),"EXCLAIM")==0) icon=MB_ICONEXCLAMATION;
+         else if(strcmpi(params[3].c_str(),"INFO")==0) icon=MB_ICONINFORMATION;
+         else if(strcmpi(params[3].c_str(),"STOP")==0) icon=MB_ICONSTOP;         
+         else if(strcmpi(params[3].c_str(),"QUESTION")==0) icon=MB_ICONQUESTION;         
+
+         int result = MessageBox(NULL,strVal(params[0]).c_str(),strVal(params[1]).c_str(), buttons|icon);
+         if(result == IDOK) return "OK";
+         if(result == IDYES) return "YES";
+         if(result == IDNO) return "NO";
+         if(result == IDABORT) return "ABORT";
+         if(result == IDRETRY) return "RETRY";
+         if(result == IDIGNORE) return "IGNORE";
+         if(result == IDCANCEL) return "0";         
+
+         return "";      
+
+      }
+      CMD(prompt) {
+         // TODO: create and show a modal 'prompt' dialog that returns a string value
+         return "";
+      }
+
+      CMD(getclipboard) {
+         // get and return data from the clipboard
+
+         if(!IsClipboardFormatAvailable(CF_TEXT)) return "";
+         if(!OpenClipboard(NULL)) {
+            DoError("Error opening the clipboard.");
+            return "";
+         }
+
+         char* pszData;
+         LPVOID pData;
+         HANDLE hcb;
+         hcb = GetClipboardData(CF_TEXT);
+         pData = GlobalLock(hcb);
+         pszData = (char*)malloc(strlen((char*)pData) + 1);
+         strcpy(pszData, (LPSTR)pData);
+         GlobalUnlock(hcb);
+          
+         CloseClipboard();
+
+         // put the clipboard data in quotes to distinguish it from commands
+         std::string retval = "\"";
+         retval.append(pszData);  // the clipboard data
+         // escape any " or \ in the clipboard data
+         int pos=0;
+         while(++pos < retval.length()) {
+            if(retval.at(pos) == '"') {
+               retval.insert(pos++,"\\");               
+            }
+            else if(retval.at(pos) == '\\') {
+               retval.insert(pos++,"\\");
+            }
+         }
+         
+         // add the closing "
+         retval.append("\"");
+         return retval;
+     }
+
+      CMD(setclipboard) {
+         // set data to the clipboard
+
+         if(!OpenClipboard(NULL)) {
+            DoError("Error opening the clipboard.");
+            return "";
+         }
+
+         char *pszData = (char*)params[0].c_str();
+         HGLOBAL hData;
+         LPVOID pData;
+
+         EmptyClipboard();
+
+         hData = GlobalAlloc(GMEM_DDESHARE|GMEM_MOVEABLE,strlen(pszData) + 1);
+
+         pData = GlobalLock(hData);
+         strcpy((LPSTR)pData, pszData);
+         GlobalUnlock(hData);
+
+         SetClipboardData(CF_TEXT, hData);
+         CloseClipboard();
+
+         return "1";
+      }
+      CMD(macros) {
+         // execute another macro
+
+         int cmdid = FindMacro((char*)params[0].c_str());
+         if(cmdid == NOTFOUND) {
+            std::string msg = "Invalid macro reference. The macro '";
+            msg.append(params[0]);
+            msg.append("' does not exist.");
+            DoError((char*)msg.c_str());
+         }
+         else {
+            ExecuteMacro(hWnd,cmdid);
+         }
+      }
+
+   return "";
 }
 
 void LoadMacros(char *filename) {
@@ -527,97 +788,749 @@ void LoadMacros(char *filename) {
    buf[length] = 0;
    CloseHandle(macroFile);  
    
+   std::string fileGuts = buf;
+   delete buf;
 
-   BOOL buildingMacro = false;
+   fileGuts.append("\r\nEOF\r\n");
 
-   char *p = strtok(buf, "\r\n");
-   while (p) {
+   std::string lval,rval,strtemp,thisLine,thisStatement;
+   int nCurPos, pos;
+   int nLineCount  = 0;
+   nCurPos = 0;
+   bool buildingMacro,inBlock,isEOF,skipBlock;
+   buildingMacro = inBlock = isEOF = skipBlock = false;
 
-      p = SkipWhiteSpace(p);
-      TrimWhiteSpace(p);
+   while(!isEOF) {
+      ++nLineCount;
 
-      if (p[0] == '#') {
+      // take it one line at a time (losing the carriage return and newline)
+      int n = fileGuts.find("\r\n",nCurPos);
+      thisLine = fileGuts.substr(nCurPos,n - nCurPos);
+      nCurPos = n+2;
+
+      // get outta here if we're at EOF
+      if(thisLine == "EOF") {
+         isEOF = true;
+         break;
       }
-      
-      // "MacroName {"
-      else if (!buildingMacro) {
-         // There can only be 2 things outside a macro
-         //   comments, and the beginning of a macro block
-         char *cb = strchr(p, '{');
-         if (cb) {
-            *cb = 0;
-            p = SkipWhiteSpace(p);
-            TrimWhiteSpace(p);
-            // add new macro, if it doesn't already exist
-            if (FindMacro(p) == NOTFOUND) {
-               int curMacro = AddMacro();
-               macroList[curMacro]->macroName = new char[strlen(p) + 1];
-               strcpy (macroList[curMacro]->macroName, p);
-               buildingMacro = true;
+
+      // convert tabs
+      pos = thisLine.find("\t");
+      while(pos != std::string::npos) {
+         thisLine.replace(pos,1," ");
+         pos = thisLine.find("\t");
+      }
+
+      // trim whitespace
+      thisLine = strTrim(thisLine);
+
+      // skip blank lines
+      if(thisLine.length() < 1) continue;
+
+      // skip full line comments
+      if(thisLine.at(0) == '#') continue;
+
+      // get rid of everything after the first # including any leading whitespace
+      // unless it's within a string
+      pos = thisLine.find('#');
+      if(pos != std::string::npos) {
+         bool instr = false;
+         for(pos=0; pos<thisLine.length()-1; ++pos) {
+            if(thisLine.at(pos) == '"') {
+               instr = (instr) ? false : true;
+            }
+            if(thisLine.at(pos) == '#' && !instr) {
+               thisLine.replace(pos,thisLine.length()-pos,"");
+               break;
             }
          }
+         thisLine = strTrim(thisLine);
       }
 
-      else {
-         p = SkipWhiteSpace(p);
-         TrimWhiteSpace(p);
+      // if the line starts with a ! it's a macro option so we'll strip the ! and
+      // any whitespace then set the option if it's recognized
+      pos = 0;
+      if(thisLine.at(0) == '!') {
+         thisLine = thisLine.substr(1);
+         thisLine = strTrim(thisLine);
+         //SetOption(thisLine);
+         continue;
+      }
 
-         // reference to another macro
-         if (p[0] == '&'){
-            p++;
-            int index = FindMacro(p);
-            if (index != NOTFOUND)
-               AddMacroEvent(iMacroCount-1, index, NULL);
+
+      // the only things that can be outside a macro def are comments,options and 
+      // global variable declarations and assignments
+      // we already took care of comments and options
+      if(!buildingMacro && thisLine.at(0) == '$') {
+         do {
+            if(thisLine.at(0) != '$') break;
+            pos = strFindFirst(thisLine,';',true);
+            if(pos == std::string::npos) {
+               thisStatement = thisLine;
+               thisLine = "";   // end the loop
+            }
+            else {
+               thisStatement = strTrim(thisLine.substr(0,pos));
+               thisLine = strTrim(thisLine.substr(pos+1));
+            }
+            //AddMacroEvent(nglobalmacro,(char*)thisStatement.c_str());
+            EvalExpression(NULL,thisStatement);
+         } while(thisLine.length() > 0);
+      }
+      if(thisLine.length() < 1) continue;
+
+
+      if(!buildingMacro) {
+         pos = thisLine.find_first_of('{');
+         if(pos != std::string::npos) {
+            // if there's a { we're entering a block. the macro name is before the { and
+            // the macro definition may or may not begin on this line after the {.
+            // we also may have whitespace to get rid of
+            strtemp = strTrim(thisLine.substr(0,pos)); //name of the macro
+            thisLine = strTrim(thisLine.substr(pos+1)); // start of the macro def
+
+            inBlock = true;
          }
-
-         // end block
-         else if (p[0] == '}') {
-            buildingMacro = false;
-         }
-
-         // just a normal event, it's either an assignment or a command
          else {
-            char *op = NULL;
-            char *e = NULL;
-
-            // if there's an open parenthesis, we'll assume it's a command
-            if ((op = strchr(p, '('))) {
-               char *params = op + 1;
-               char *cp = strrchr(params, ')');
-               if (cp) *cp = 0;
-               *op = 0;
-
-               p=SkipWhiteSpace(p);
-               TrimWhiteSpace(p);
-
-               // figure out event id of string "p"
-               int command = FindCommand(p);
-               if (command != NOTFOUND)
-                  AddMacroEvent(iMacroCount-1, command, params);
-            }
-            // check for an assignment
-            else if ((e = strchr(p, '='))) {
-               *e = 0;
-               e++;
-               e = SkipWhiteSpace(e);
-               TrimWhiteSpace(e);
-
-               p = SkipWhiteSpace(p);
-               TrimWhiteSpace(p);
-
-               // it's a menu assignment
-               if (strcmpi("menu", p) == 0) {
-                  macroList[iMacroCount-1]->menuString = new char[strlen(e) + 1];
-                  strcpy(macroList[iMacroCount-1]->menuString, e);
-               }
+            strtemp = thisLine; //name of the macro
+            thisLine = "";
+         }
+         // check for a valid macro name
+         if(strtemp.length() < 1) {
+            DoError("Missing macro name.");
+            break;
+         }
+         char* badlist = "!@#$%^&*(){}[]<>/ \\\"'`~=?;";
+         pos = -1;
+         bool isBad = false;
+         for(int i=0; i<strlen(badlist); ++i) {
+            pos = strtemp.find(badlist[i]);
+            if(pos != std::string::npos) {
+               isBad = true;
+               break;
             }            
          }
-      } // currentMacro
-      p = strtok(NULL, "\r\n");
-   } // while
+         if(isBad) {
+            DoError("Bad character in macro name.");
+            break;
+         }
+         // if we made it this far the macro name looks good
+         // add new macro if it doesn't already exist
+         if(FindMacro((char*)strtemp.c_str()) == NOTFOUND) {
+            int curMacro = AddMacro();
+            macroList[curMacro]->macroName = new char[strtemp.length() + 1];
+            strcpy (macroList[curMacro]->macroName,strtemp.c_str());
+            buildingMacro = true;
+         }
+         else {   // macro exists, give a redefinition error and skip the rest of this macro
+            DoError("Macro redefinition.");
+         }
+      }
 
-   delete buf;
+      if(thisLine.length() < 1) continue;
+
+      //*else* we're building a macro
+      // if we're not in a block yet, this better be the start of one
+      //  otherwise they most likely forgot the opening {
+      if(!inBlock) {
+         if(thisLine.at(0) == '{') {
+            // hooray for them, they started a block!
+            // if there's anything after { it's either whitespace or the start of the macro def
+            // so get rid of the whitespace, and if there's nothing left loop the next line
+            inBlock = true;
+            thisLine = strTrim(thisLine.substr(1));
+            if(thisLine.length() < 1) continue;
+         }
+         else {
+            // somethings not right here so exit with an error
+            DoError("Invalid macro definition. Missing opening bracket?");
+            break;
+         }
+      }
+     // check for the end of a block
+      // a } contained in parenthesis or a string does not close a block
+      pos = thisLine.find('}');
+      if(pos != std::string::npos) {   // there's a } so check the whole line
+         if(thisLine.length() <= 1) {
+            buildingMacro = inBlock = false;
+            continue;
+         }
+
+         pos = strFindFirst(thisLine,'}',true);
+         if(pos != std::string::npos) {
+            thisLine = strTrim(thisLine.substr(0,pos));
+            buildingMacro = inBlock = false;
+            if(thisLine.length() < 1) {
+               continue;
+            }
+         }
+      }
+
+
+     // there's no if's, and's or but's about it, we're now processing macro commands
+      // go to the next line if we're skipping this block
+      bool needBreak = false;
+      do {
+         pos = strFindFirst(thisLine,';',true);
+         if(pos == std::string::npos) {
+            thisStatement = thisLine;
+            thisLine = "";   // end the loop
+         }
+         else {
+            thisStatement = strTrim(thisLine.substr(0,pos));
+            thisLine = strTrim(thisLine.substr(pos+1));
+         }   
+         // we have a statement, time to do something with it
+
+         //check for menu assignment
+         pos = thisStatement.find('=');
+         if(pos != std::string::npos) {
+            pos = strFindFirst(thisStatement,'=',true);
+            if(pos != std::string::npos) {
+               lval = strTrim(thisStatement.substr(0,pos));
+               if(strcmpi(lval.c_str(),"menu") == 0) {
+                  rval = strTrim(thisStatement.substr(pos+1));
+                  if(rval.length() < 1) { // trying to set the menu to nothing
+                     DoError("Cannot set menu string to empty value.");
+                     needBreak = true; break;
+                  }
+                  if(macroList[iMacroCount-1]->menuString) delete macroList[iMacroCount-1]->menuString;
+                   strtemp = strVal(rval);
+                  macroList[iMacroCount-1]->menuString = new char[strtemp.length()+1];
+                  strcpy(macroList[iMacroCount-1]->menuString,strtemp.c_str());
+                  continue;
+               }
+            }
+         }
+
+         // if it begins with an ampersand this is a reference to another macro
+         if(thisStatement.at(0) == '&') {
+            thisStatement = strTrim(thisStatement.substr(1));
+            if(thisStatement.length() < 1) {
+               DoError("Invalid macro reference.");
+               needBreak = true; break;
+            }
+            thisStatement = "macros(" + thisStatement + ")";
+         }
+
+         // anything that's left by now is an expression of some sort
+         AddMacroEvent(iMacroCount-1,(char*)thisStatement.c_str());
+         // if(!inBlock) DBUG(ENDBLOCK,"");
+
+      } while (thisLine.length() > 0);
+
+      if(needBreak) break;
+
+
+
+
+   }//end while
+
 }
+
+/**********/
+std::string EvalExpression(HWND hWnd,std::string exp) {
+
+   if(exp.length() < 1) return ""; // nothing to evaluate
+
+   int pos,rpos,lpos,lparen,rparen;
+   pos = rpos = lpos = lparen = rparen = 0;
+   int i = 0;
+   bool instr;
+   std::string lval,rval,strtemp;
+
+   // if there's an equals (=)  that's not in a string, and not in parenths
+   // check for operators also
+   // it's a comparison or an assignment
+   bool isComparison = false;
+   bool isAssignment = false;
+   instr = false;
+   lparen = 0;
+   rparen = 0;
+   if(exp.at(0) == '"') instr = true;
+   else if(exp.at(0) == '(') ++lparen;
+   for(i=1;i<exp.length();++i) {
+      //break; //skip this for now
+      if(exp.at(i) == '"' && exp.at(i-1) != '\\') {
+         instr = (instr) ? false : true;
+         continue;
+      }
+      if(!instr) {
+         if(exp.at(i) == '(') {
+            ++lparen;
+            continue;
+         }
+         if(exp.at(i) == ')') {
+            ++rparen;
+            continue;
+         }
+
+         if(lparen == rparen) {
+            if(exp.at(i)=='=') {
+               //we have an = that's not in parenths and not in a string
+               if(exp.at(i+1)=='=' || exp.at(i-1)=='!') {
+                  isComparison = true;
+                  if(exp.at(i+1)=='=') ++i;
+                  lval = exp.substr(0,i-1);
+                  rval = exp.substr(i+1);
+                  strtemp = exp.substr(i-1,2); //the comparison operator
+                  break;
+               }
+               else {
+                  isAssignment = true;
+                  lval = strTrim(exp.substr(0,i));
+                  rval = strTrim(exp.substr(i+1));
+                  break;
+               }
+            }
+            else if(exp.at(i) == '+') {   // addition
+               int res = IntVal(EvalExpression(hWnd,strTrim(exp.substr(0,i)))) + IntVal(EvalExpression(hWnd,strTrim(exp.substr(i+1))));
+               itoa(res,(char*)exp.data(),10);
+               return exp;
+            }
+            else if(exp.at(i) == '-') { // subtraction
+               int res = IntVal(EvalExpression(hWnd,strTrim(exp.substr(0,i)))) - IntVal(EvalExpression(hWnd,strTrim(exp.substr(i+1))));
+               itoa(res,(char*)exp.data(),10);
+               return exp;
+            }
+            else if(exp.at(i) == '*') { // multiplication
+               int res = IntVal(EvalExpression(hWnd,strTrim(exp.substr(0,i)))) * IntVal(EvalExpression(hWnd,strTrim(exp.substr(i+1))));
+               itoa(res,(char*)exp.data(),10);
+               return exp;
+            }
+            else if(exp.at(i) == '/') { // division
+               int nrval = IntVal(EvalExpression(hWnd,strTrim(exp.substr(i+1))));
+               if(nrval == 0) { //illegal division by zero
+                  return "0";
+               }
+               else {
+                  int res = IntVal(EvalExpression(hWnd,strTrim(exp.substr(0,i)))) / nrval;
+                  itoa(res,(char*)exp.data(),10);
+                  return exp;
+               }
+            }
+            else if(exp.at(i) == '%') { // remainder
+               int nrval = IntVal(EvalExpression(hWnd,strTrim(exp.substr(i+1))));
+               if(nrval == 0) { //illegal division by zero
+                  return "0";
+               }
+               else {
+                  int res = IntVal(EvalExpression(hWnd,strTrim(exp.substr(0,i)))) % nrval;
+                  itoa(res,(char*)exp.data(),10);
+                  return exp;
+               }
+            }
+            else if(exp.at(i) == '.') { // concat
+               lval = strTrim(exp.substr(0,i));
+               rval = strTrim(exp.substr(i+1));
+               return "\"" + strVal(EvalExpression(hWnd,lval)) + strVal(EvalExpression(hWnd,rval)) + "\"";
+            }
+         }
+      }
+   }
+   // if we're comparing the left or right hand values could be an expression
+   if(isComparison) {
+      lval = EvalExpression(hWnd,strTrim(lval));
+      rval = EvalExpression(hWnd,strTrim(rval));
+      if(strVal(lval) == strVal(rval)) { 
+         if(strtemp == "==") return "1";
+         else return "0";
+      }
+      else {
+         if(strtemp == "!=") return "1";
+         else return "0";
+      }
+   }
+   // if we're assigning the left param must be a variable, the right could be an expression
+   else if(isAssignment) {
+      rval = EvalExpression(hWnd,strTrim(rval));
+      if(lval.at(0) != '$') {
+         DoError("Left hand of assignment must be a variable.");
+         return "";
+      }
+      //make sure the variable exists, or if this appears to be a declaration add it
+      lval = lval.substr(1);
+      lval = strTrim(lval);
+      int varid = FindVar((char*)lval.c_str());
+      if(varid == NOTFOUND) { //create it
+         varid = AddNewVar(lval);
+         if(varid == NOTFOUND) {
+            DoError("var err");
+            return "";
+         }
+      }
+      SetVarExp(varid,rval);
+
+      return "";
+   }
+
+   // at this point it's not an assignment or comparison
+   // so it's just an expression who's value needs to be evaluated and returned
+
+   // if there's parenthesis not in a string this is an expression or command
+   // find the positions of the first and first matching parenth
+   rpos = NOTFOUND;
+   lpos = NOTFOUND;
+   pos = NOTFOUND;
+   lparen = 0;
+   rparen = 0;
+   instr = false;
+
+   // this could be a comma seperated list of expressions
+   if(exp.find_first_of(',') != std::string::npos) {
+      if(exp.at(0) == '"') instr = true;
+      for(i=1;i<exp.length();++i) {
+         if(exp.at(i) == '"' && exp.at(i-1) != '\\') {
+            instr = (instr) ? false : true;
+            continue;
+         }
+         if(!instr) {
+            if(exp.at(i) == '(') {
+               ++lparen;
+               continue;
+            }
+            if(exp.at(i) == ')') {
+               ++rparen;
+               continue;
+            }
+            if(exp.at(i) == ',' && lparen==rparen) {
+               pos = i;
+               break;
+            }
+         }
+      }
+
+      if(pos == NOTFOUND) {
+         // reset these vars for the next loop
+         rpos = lpos = NOTFOUND;
+         lparen = rparen = 0;
+         instr = false;
+      }
+      else {
+         lval = EvalExpression(hWnd,strTrim(exp.substr(0,pos)));
+         rval = EvalExpression(hWnd,strTrim(exp.substr(pos+1)));
+
+         return lval + "," + rval;
+      }
+   }
+
+   lparen = rparen = NOTFOUND;
+   // not a list of expressions
+   if(exp.find_first_of('(') != std::string::npos) {
+      if(exp.at(0) == '"') instr = true;
+      else if(exp.at(0) == '(') { lpos=0;++lparen; }
+      for(i=1; i<exp.length(); ++i) {
+         if(exp.at(i) == '"' && exp.at(i-1) != '\\') {
+            instr = (instr) ? false : true;
+            continue;
+         }
+         if(!instr) {
+            if(exp.at(i) == '(') {
+               if(lpos == NOTFOUND) lpos = i;
+               ++lparen;
+               continue;
+            }
+            if(exp.at(i) == ')') {
+               if(++rparen == lparen) {
+                  rpos = i;
+                  break;
+               }
+               continue;
+            }
+         }
+      }
+      if(lparen > rparen) {
+         DoError("Unmatched left parenthesis '('.");
+         return "";
+      }
+
+      if(lpos == 0 && rpos == exp.length()-1) {
+         exp = exp.substr(1,exp.length()-2);
+         return EvalExpression(hWnd,strTrim(exp));
+      }
+
+      if(lparen != NOTFOUND) {      // anything to the left of ( is a command name,
+         lval = strTrim(exp.substr(0,lpos));
+         rval = strTrim(exp.substr(rpos+1));
+         exp = strTrim(exp.substr(lpos+1,rpos-lpos-1)); // guts
+
+         int cmndid = FindCommand((char*)lval.c_str());
+         if(cmndid == NOTFOUND) {
+            strtemp = "Command not found '" + lval + "'";
+            DoError((char*)strtemp.c_str());
+            return "";
+         }
+         exp = EvalExpression(hWnd,exp);
+
+         //return ExecuteCommand(hWnd,cmndid,(char*)exp.c_str()) + rval;
+         return ExecuteCommand(hWnd,cmndid,(char*)exp.c_str()) + rval;
+
+      }
+   }
+
+   // if there's no parenthesis this is just a constant value or a variable
+   if(exp.at(0) == '$') {  
+      exp = exp.substr(1);
+
+      // if the variable exists return the value
+      int thisvarid = FindVar((char*)exp.c_str());
+      if(thisvarid != NOTFOUND) {
+         return GetVarVal(thisvarid);
+      }
+      else { // or else error
+        strtemp = "The variable '" + exp + "' does not exist. Did you declare it? Is it in scope?";
+        DoError((char*)strtemp.c_str());
+        return "";
+      }
+
+      // if there's a space treat it as a declaration
+      /*
+      pos = exp.find_first_of(' ');
+      if(pos != std::string::npos) {
+         // create it
+         int varid = AddNewVar(exp);
+         return "";
+      }      
+      
+      // or else find it and return the value
+      int thisvarid = FindVar((char*)exp.c_str());
+      if(thisvarid != NOTFOUND) {
+         return GetVarVal(thisvarid);
+      }
+      else { // bad var name 
+        strtemp = "The variable '" + exp + "' does not exist. Did you declare it? Is it in scope?";
+        DoError((char*)strtemp.c_str());
+        return "";
+      } 
+      */
+   }
+
+   //DoError((char*)exp.c_str());
+
+   return exp;
+
+}
+
+
+
+/**********/
+void SetVarExp(int varid, std::string value) {
+
+   if(varList[varid]->expression) delete varList[varid]->expression;
+   varList[varid]->expression = new char[value.length()+1];
+   strcpy(varList[varid]->expression,(char*)value.c_str());
+}
+
+/***************/
+int AddNewVar(std::string strin) {
+//   std::string strtype;
+
+   int pos;
+   //make sure the var name is valid
+   bool isBad = false;
+   if(strin.length()<1) isBad = true;
+   char* badlist = "!@#$%^&*(){}[]<>/ \\\"'`~=?;";
+   for(int i=0; i<strlen(badlist); ++i) {
+      pos = strin.find_first_of(badlist[i]);
+      if(pos != std::string::npos) {
+         isBad = true;
+         break;
+      }
+   }
+   if(isBad) {
+      strin = "Invalid character in variable name '" + strin + "'. Invalid characters are !@#$%^&*(){}[]<>/ \"\\'`~=?;.";
+      DoError((char*)strin.c_str());
+      return NOTFOUND;
+   }
+
+   int varid = AddVar();
+
+   varList[varid]->varname = new char[strin.length()+1];
+   strcpy(varList[varid]->varname,strin.c_str());
+   //varList[varid]->type = nvartype;
+   //varList[varid]->scope = GLOBALVAR;
+
+   return varid;
+
+}
+
+/************** FIND VAR ******************/
+int FindVar(char *varName) {
+   // returns NOTFOUND if a variable is not defined
+   if(iVarCount < 1) return NOTFOUND;
+
+   int x=-1;
+   while (++x<iVarCount) {
+      if (varList[x]->varname)
+         if (!strcmp(varList[x]->varname, varName)) return x;
+   }
+   return NOTFOUND;
+}
+
+/****** FIND VAR NAME ************/
+char* FindVarName(int id)
+{   if ((id < 0) || (id >= iVarCount))
+      return "";
+   return varList[id]->varname;
+}
+
+/**********/
+std::string GetVarVal(int varid)
+{
+   if(varList[varid]->expression) 
+       return EvalExpression(NULL,varList[varid]->expression);
+   else
+      return "";
+
+};
+
+
+/************* ADD VAR *****************/
+int AddVar() {
+
+   var ** newVarList = new var*[iVarCount+1];
+   if(iVarCount) {
+      memcpy(newVarList, varList, ((iVarCount)*sizeof(var**)) );
+      delete varList;
+   }
+   varList = newVarList;
+
+   varList[iVarCount] = new var;
+   varList[iVarCount]->varname = NULL;
+   varList[iVarCount]->expression = NULL;
+//   varList[iVarCount]->scope = GLOBALVAR;
+
+   iVarCount++;
+   return iVarCount - 1;
+
+}
+
+
+
+
+
+
+/************* misc *******************/
+/**** DoError ******/
+void DoError(char* msg) {
+   MessageBox(NULL,msg,"Error",MB_OK);
+
+}
+
+/**** strTrim ***/
+std::string strTrim(std::string instr) {
+   int lpos = 0;
+   int rpos = instr.length()-1;
+   while(lpos <= rpos && instr.at(lpos) == ' ') ++lpos;
+   while(rpos >=0 && instr.at(rpos) == ' ') --rpos;
+   return instr.substr(lpos,rpos-lpos+1);
+}
+
+int strFindFirst(std::string instring,char findchar,bool notinparen) {
+
+   bool instr = false;
+   int pos = 0;
+   int lparen = 0;
+   int rparen = 0;
+   if(instring.at(0) == '"') instr = true;
+   if(instring.at(0) == '(') ++lparen;
+   while(++pos < instring.length()) {
+      if(instring.at(pos) == '"') {
+         instr = (instr) ? false : true;
+         continue;
+      }
+      if(!instr) {
+         if(instring.at(pos) == '(') {
+            ++lparen;
+            continue;
+         }
+         if(instring.at(pos) == ')') {
+            ++rparen;
+            continue;
+         }
+         if(instring.at(pos) == findchar) {
+            if(notinparen) {
+               if(lparen==rparen) return pos;
+            }
+            else
+               return pos;
+            continue;
+         }
+      }
+   }
+
+   return std::string::npos;
+}
+
+
+int IntVal(std::string input) {
+   
+   input = strVal(input);
+   return atoi(input.c_str());
+   return 0;
+}
+
+int BoolVal(std::string input) {
+   input = strVal(input);
+   if(input.length() < 1 || strcmpi((char*)input.c_str(),"0")==0 || strcmpi((char*)input.c_str(),"false")==0) return false;
+   return true;
+}
+
+std::string strVal(std::string input) {
+
+   if(input.length() < 1) {
+      return input;
+   }
+
+   bool isstr = false;
+   int len = input.length();
+   if(input.at(0) == '"') {
+      if(len-1 >=0 && input.at(len-1) == '"') {
+         if(len-2 >= 0 && input.at(len-2) == '\\') {
+            if(len-3 >= 0 && input.at(len-3) == '\\') {
+               isstr = true;
+            }
+         }
+         else isstr = true;
+      }
+   }
+   if(isstr) input = input.substr(1,len-2);
+
+
+//   if(data.at(pos)=='"' && (data.at(pos-1) != '\\' || (data.at(pos-1) == '\\' && pos-2 >= 0 && data.at(pos-2) == '\\'))) {
+//   if(input.at(0) == '"' && (input.at(input.length()-1) == '"' && (input.length()-2 > 0 && input.at(input.length()-2) == '\\'))) {
+//   if(input.at(0) == '"' && input.at(input.length()-1) == '"' && input.at(input.length()-2) != '\\' && input.at(input.length()-3) != '\\') {
+   int pos=-1;
+   while(++pos < input.length()) {
+      if(input.at(pos) == '\\') {
+         if(pos == input.length()-1) {
+            input = input.substr(0,pos);
+            break;
+         }           
+         if(input.at(pos+1) == 'n') { //newline
+
+         }
+         if(input.at(pos+1) == 't') { //tab
+
+         }
+         if(input.at(pos+1) == '\\') {
+            input.replace(pos,1,"");
+            ++pos;
+            continue;
+         }
+         input.replace(pos,1,"");
+      }
+   }
+
+   return input;
+}
+
+
+
+
+
+
+
 
 
 // Subclassed window function
