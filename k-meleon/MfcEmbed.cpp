@@ -125,7 +125,7 @@ BOOL CMfcEmbedApp::InitInstance()
       return FALSE;
    }
 
-   plugins.FindAndLoad("kmeleon_*.dll");
+   plugins.FindAndLoad("*.dll");
 
    // Create the first browser frame window
 	CBrowserFrame *pBrowserFrame = CreateNewBrowserFrame();

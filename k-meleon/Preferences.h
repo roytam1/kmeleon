@@ -119,12 +119,14 @@ protected:
 class CPreferencePagePlugins : public CPreferencePage {
 protected:
   CListCtrl m_pluginList;
+  CImageList m_imageList;
 
   virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV support
 
   virtual BOOL OnInitDialog();
 
   afx_msg void OnConfig();
+  afx_msg void OnEnable();
 
   DECLARE_MESSAGE_MAP()
 };

@@ -383,12 +383,13 @@ END
 IDD_PREFERENCES_PLUGINS DIALOGEX 0, 0, 233, 154
 STYLE WS_CHILD
 EXSTYLE WS_EX_CLIENTEDGE | WS_EX_CONTROLPARENT
-FONT 8, "MS Sans Serif", 0, 0, 0x1
+FONT 8, "MS Sans Serif"
 BEGIN
     CONTROL         "List1",IDC_LIST_PLUGINS,"SysListView32",LVS_LIST | 
                     LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | 
                     LVS_NOCOLUMNHEADER | WS_BORDER | WS_TABSTOP,4,4,225,130
-    PUSHBUTTON      "Configure",IDC_BUTTON_CONFIG,4,136,50,14
+    PUSHBUTTON      "&Configure",IDC_BUTTON_CONFIG,4,136,57,14
+    PUSHBUTTON      "&Enable/Disable",IDC_BUTTON_ENABLE,63,136,57,14
 END
 
 IDD_PREFERENCES_ADVANCED DIALOGEX 0, 0, 233, 154
@@ -654,6 +655,10 @@ END
 // remains consistent on all systems.
 IDR_MAINFRAME           ICON    DISCARDABLE     "res\\MozillaBrowser.ico"
 IDI_DOCUMENT            ICON    DISCARDABLE     "res\\KmeleonDocument.ico"
+IDI_ON                  ICON    DISCARDABLE     "res\\on.ico"
+IDI_OFF                 ICON    DISCARDABLE     "res\\off.ico"
+IDI_OFFCHECK            ICON    DISCARDABLE     "res\\offcheck.ico"
+IDI_ONCHECK             ICON    DISCARDABLE     "res\\oncheck.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //

@@ -252,7 +252,6 @@ void CPreferencePage::OnCancel(){
 }
 
 /**/
-
 BOOL CPreferencePagePlugins::OnInitDialog(){
    CDialog::OnInitDialog();
 
@@ -265,13 +264,26 @@ BOOL CPreferencePagePlugins::OnInitDialog(){
    POSITION pos = theApp.plugins.pluginList.GetStartPosition();
    kmeleonPlugin * kPlugin;
    CString s;
-   int i=0;
-   while (pos){
-      theApp.plugins.pluginList.GetNextAssoc( pos, s, kPlugin);
+
+   m_imageList.Create(16, 16, TRUE, 4, 4);
+   m_imageList.Add(theApp.LoadIcon(IDI_OFF));
+   m_imageList.Add(theApp.LoadIcon(IDI_ON));
+   m_imageList.Add(theApp.LoadIcon(IDI_OFFCHECK));
+   m_imageList.Add(theApp.LoadIcon(IDI_ONCHECK));
+   m_pluginList.SetImageList(&m_imageList, LVSIL_SMALL);
+
+   while (pos) {
+      theApp.plugins.pluginList.GetNextAssoc(pos, s, kPlugin);
 
       int item = m_pluginList.GetItemCount();
 
-      m_pluginList.InsertItem(item, kPlugin->description, 0);
+      char preference[128] = "kmeleon.plugins.";
+      strcat(preference, kPlugin->dllname);
+      strcat(preference, ".load");
+
+      int image=kPlugin->loaded;
+      if(theApp.preferences.GetBool(preference, 1)) image+=2;
+      m_pluginList.InsertItem(item, kPlugin->description, image);
    }
    m_pluginList.SetItemState(0, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
 
@@ -288,33 +300,71 @@ void CPreferencePagePlugins::DoDataExchange(CDataExchange* pDX){
 BEGIN_MESSAGE_MAP(CPreferencePagePlugins, CPreferencePage)
 	//{{AFX_MSG_MAP(CPreferencePagePlugins)
   ON_BN_CLICKED(IDC_BUTTON_CONFIG, OnConfig)
+  ON_BN_CLICKED(IDC_BUTTON_ENABLE, OnEnable)
   //}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
 
 void CPreferencePagePlugins::OnConfig() {
-  int item;
-  POSITION pos;
-  pos = m_pluginList.GetFirstSelectedItemPosition();
-  if (!pos){
-    return;
-  }
-  item = m_pluginList.GetNextSelectedItem(pos);
+   int item;
+   POSITION pos;
+   pos = m_pluginList.GetFirstSelectedItemPosition();
+   if (!pos){
+      return;
+   }
+   item = m_pluginList.GetNextSelectedItem(pos);
 
-  kmeleonPlugin * kPlugin;
-  CString s;
-  pos = theApp.plugins.pluginList.GetStartPosition();
-  while (pos){
-    theApp.plugins.pluginList.GetNextAssoc( pos, s, kPlugin);
+   kmeleonPlugin * kPlugin;
+   CString s;
+   pos = theApp.plugins.pluginList.GetStartPosition();
+   while (pos){
+      theApp.plugins.pluginList.GetNextAssoc( pos, s, kPlugin);
 
-    if (item == 0){
-      if (kPlugin->pf->Config){
-        kPlugin->pf->Config(this->m_hWnd);
+      if (item == 0) {
+         if (kPlugin->loaded) {
+            if (kPlugin->pf->Config)
+               kPlugin->pf->Config(this->m_hWnd);
+            else 
+               MessageBox("This plugin has no configuration options", "K-Meleon Plugin");
+         }
+         else
+            MessageBox("This plugin has not been loaded", "K-Meleon Plugin");
+
+         break;
       }
-      break;
-    }
-    item--;
-  }
+      item--;
+   }
+}
+
+void CPreferencePagePlugins::OnEnable() {
+   int item;
+   POSITION pos;
+   pos = m_pluginList.GetFirstSelectedItemPosition();
+   if (!pos){
+      return;
+   }
+   item = m_pluginList.GetNextSelectedItem(pos);
+
+   kmeleonPlugin * kPlugin;
+   CString s;
+   pos = theApp.plugins.pluginList.GetStartPosition();
+   int i=item;
+   while (pos){
+      theApp.plugins.pluginList.GetNextAssoc( pos, s, kPlugin);
+
+      if (i == 0) {
+         char preference[128] = "kmeleon.plugins.";
+         strcat(preference, kPlugin->dllname);
+         strcat(preference, ".load");
+         theApp.preferences.SetBool(preference, !theApp.preferences.GetBool(preference, 1));
+
+         int image=kPlugin->loaded;
+         if(theApp.preferences.GetBool(preference, 1)) image+=2;
+         m_pluginList.SetItem(item, 0, LVIF_IMAGE, NULL, image, NULL, NULL, NULL);
+         break;
+      }
+      i--;
+   }
 }
 
 /**/

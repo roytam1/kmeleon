@@ -92,7 +92,7 @@ void CPlugins::OnCreate(HWND wnd){
    CString s;
    while (pos){
       pluginList.GetNextAssoc( pos, s, kPlugin);
-      if (kPlugin && kPlugin->pf->Create) 
+      if (kPlugin->loaded && kPlugin->pf->Create) 
          kPlugin->pf->Create(wnd);
    }
 }
@@ -235,47 +235,25 @@ kmeleonFunctions kmelFuncs = {
    RegisterBand
 };
 
-int CPlugins::TestLoad(const char *file){
-   if (!configBuffer){
-      FILE *configFile = fopen(theApp.preferences.settingsDir + "plugins.cfg", "r");
-      if (configFile){
-         fseek(configFile, 0, SEEK_END);
-         int length = ftell(configFile);
-         fseek(configFile, 0, SEEK_SET);
-         configBuffer = new char[length];
+BOOL CPlugins::TestLoad(const char *file, const char *description) {
 
-         fread(configBuffer, sizeof(char), length, configFile);
+   char preference[128] = "kmeleon.plugins.";
+   strcat(preference, file);
+   strcat(preference, ".load");
+   
+   int load = theApp.preferences.GetBool(preference, -1);
+   if (load == -1) {
+      char buf[256] = "A new plugin was found:\n\n";
+      strcat(buf, description);
+      strcat(buf, "\n\nWould you like to load this plugin now?");
 
-         loadLine = strstr(configBuffer, "[load]");
-         dontLoadLine = strstr(configBuffer, "[dontload]");
-      }
+      if (MessageBox(NULL, buf, "Plugin found", MB_YESNO) == IDYES)
+         load = 1;
+      else load = 0;
+      theApp.preferences.SetBool(preference, load);
    }
-   if (configBuffer){
-      char *pluginLine = strstr(configBuffer, file);
-      if (pluginLine){
-         if (loadLine > dontLoadLine){
-            // [dontload]
-            // [load]
-            if (pluginLine > loadLine){
-               return 1;
-            }else{
-               return 0;
-            }
-         }else{
-            // [load]
-            // [dontload]
-            if (pluginLine > dontLoadLine){
-               return 0;
-            }else{
-               return 1;
-            }
-         }
-      }else{
-         return -1;
-      }
-   }else{
-      return -1;
-   }
+   return load;
+
 }
 
 kmeleonPlugin * CPlugins::Load(char *file){
@@ -292,12 +270,6 @@ kmeleonPlugin * CPlugins::Load(char *file){
 
    int x=strlen(file);
    while (x>0 && file[x] != '\\' && file[x] != '/') x--;
-
-   const char *noPath = FileNoPath(file);
-   int testLoad = TestLoad(noPath); // 1 load, 0 don't load, -1 not found
-   if (testLoad == 0){
-      return NULL;
-   }
 
    if (x==0) {       // if pattern does not contain \ or / we need to prepend pluginsDir
       char buf[MAX_PATH];
@@ -321,15 +293,33 @@ kmeleonPlugin * CPlugins::Load(char *file){
       return 0;
    }
 
-   kPlugin->hParentInstance = AfxGetInstanceHandle();
-   kPlugin->hDllInstance = plugin;
-  
-   kPlugin->kf = &kmelFuncs;
+      kPlugin->hParentInstance = AfxGetInstanceHandle();
+      kPlugin->hDllInstance = plugin;
+      kPlugin->kf = &kmelFuncs;
 
-   kPlugin->pf->Init();
+   // If the plugin is enabled, get its functions and call init
+   const char *noPath = FileNoPath(file);
+   if (( kPlugin->loaded=TestLoad(noPath, kPlugin->description))) {
+      kPlugin->pf->Init();
+   }
+   // otherwise, make a copy of the descripion, and unload it
+   else {
+      kmeleonPlugin *temp = new kmeleonPlugin;
+      char *sBuf = new char[strlen(kPlugin->description)+1];
+      temp->description = sBuf;
+      strcpy(temp->description, kPlugin->description);
+      temp->loaded = false;
+      FreeLibrary(plugin);
+      kPlugin=temp;
+   }
+
+   // save the filename
+   char *name = new char[strlen(noPath)+1];
+   strcpy(name, noPath);
+   kPlugin->dllname=name;
 
    pluginList.SetAt(noPath, kPlugin);
-
+   
    return kPlugin;
 }
 
@@ -366,7 +356,11 @@ void CPlugins::UnLoadAll(){
       pluginList.GetNextAssoc( pos, s, kPlugin);
       if (kPlugin){
          kPlugin->pf->Quit();
-         FreeLibrary(kPlugin->hDllInstance);
+         delete kPlugin->dllname;
+         if (!kPlugin->loaded)
+            FreeLibrary(kPlugin->hDllInstance);
+         else  // the plugin was disabled, delete the copied description
+            delete kPlugin->description;
       }
    }
    pluginList.RemoveAll();
@@ -379,7 +373,7 @@ void CPlugins::DoRebars(HWND rebarWnd){
    CString s;
    while (pos) {
       pluginList.GetNextAssoc( pos, s, kPlugin);
-      if (kPlugin && kPlugin->pf->DoRebar)
+      if (kPlugin->loaded && kPlugin->pf->DoRebar)
          kPlugin->pf->DoRebar(rebarWnd);
    }
 }

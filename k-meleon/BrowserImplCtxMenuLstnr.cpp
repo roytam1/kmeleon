@@ -32,11 +32,8 @@
 
 NS_IMETHODIMP CBrowserImpl::OnShowContextMenu(PRUint32 aContextFlags, nsIDOMEvent *aEvent, nsIDOMNode *aNode)
 {
-   if(m_pBrowserFrameGlue) {
-      aEvent->GetAltKey();
-      aEvent->GetShiftKey();
+   if(m_pBrowserFrameGlue)
       m_pBrowserFrameGlue->ShowContextMenu(aContextFlags, aNode);
-   }
 
    return NS_OK;
 }

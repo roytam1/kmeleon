@@ -79,13 +79,15 @@ typedef struct {
 	int version;
 	char *description;
 
-  pluginFunctions *pf;
+   pluginFunctions *pf;
 
   // Filled in by k-meleon
 	HINSTANCE hParentInstance;
 	HINSTANCE hDllInstance;
 
-  kmeleonFunctions *kf;
+   kmeleonFunctions *kf;
+   char *dllname;
+   BOOL loaded;
 
 } kmeleonPlugin;
 

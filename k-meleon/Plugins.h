@@ -44,7 +44,7 @@ public:
 
    void UnLoadAll();
 
-   int TestLoad(const char *file);
+   BOOL TestLoad(const char *file, const char *description);
 
    int FindAndLoad(char *pattern);
    kmeleonPlugin * Load(char *pattern);

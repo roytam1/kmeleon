@@ -109,7 +109,7 @@ int CAccelParser::Load(CString &filename){
          else if (strnicmp(p+1, "ifplugin", 8) == 0){
             char *plugin = p+9;
             kmeleonPlugin * kPlugin = theApp.plugins.Load(plugin);
-            if (!kPlugin){
+            if (!kPlugin->loaded) {
                pauseParsing = 1;
             }
          }

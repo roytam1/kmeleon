@@ -86,29 +86,28 @@ int CMenuParser::Load(CString &filename){
    char *p = strtok(buffer, "\r\n");
    while (p){
 
-      if (p[0] == '#'){
+      if (p[0] == '#') {
       }
-      else if (p[0] == '%'){
+      else if (p[0] == '%') {
          if (strnicmp(p+1, "strict", 6) == 0){
             LOG_STRICT();
          }
-         else if (strnicmp(p+1, "verbose", 7) == 0){
+         else if (strnicmp(p+1, "verbose", 7) == 0) {
             LOG_VERBOSE();
          }
-         else if (strnicmp(p+1, "ifplugin", 8) == 0){
+         else if (strnicmp(p+1, "ifplugin", 8) == 0) {
             char *plugin = p+9;
             kmeleonPlugin * kPlugin = theApp.plugins.Load(plugin);
-            if (!kPlugin){
+            if (!kPlugin->loaded) {
                pauseParsing = 1;
             }
          }
-         else if (strcmpi(p+1, "endif") == 0){
+         else if (strcmpi(p+1, "endif") == 0)
             pauseParsing = 0;
-         }
       }
-      else if (pauseParsing){
+      else if (pauseParsing) {
       }
-      else if (!currentMenu){
+      else if (!currentMenu) {
          // There can only be 3 things outside a menu:
          //   comments, metacommands, and the beginning of a menu block
          char *cb = strchr(p, '{');
@@ -178,7 +177,7 @@ int CMenuParser::Load(CString &filename){
 
                kmeleonPlugin * kPlugin = theApp.plugins.Load(p);
 
-               if (kPlugin) {
+               if (kPlugin->loaded) {
                   if (kPlugin->pf->DoMenu){
                      kPlugin->pf->DoMenu(currentMenu->GetSafeHmenu(), parameter);
 

@@ -122,7 +122,8 @@ void CPreferences::Load() {
          int x=strlen(buf)-1;
          while (x>0 && buf[x] != '\\') x--;
          if (x>0) buf[x+1]=0;
-         pluginsDir = buf;         // plugins dir = path to kmeleon.exe
+         strcat (buf, "plugins\\");
+         pluginsDir = buf;         // plugins dir = path to kmeleon.exe + "plugins\"
       }
       else if (pluginsDir[pluginsDir.GetLength() - 1] != '\\')
          pluginsDir += '\\';
