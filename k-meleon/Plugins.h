@@ -22,11 +22,11 @@
 #define __PLUGINS_H__
 
 #include "StdAfx.h"
-#include "kmeleon_plugin.h"
 
 #include <afxtempl.h>
 
 #include "Preferences.h"
+#include "kmeleon_plugin.h"
 
 class CPlugins {
   friend CPreferencePagePlugins;

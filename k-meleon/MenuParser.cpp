@@ -23,6 +23,7 @@
 extern CMfcEmbedApp theApp;
 
 #include "Plugins.h"
+#include "kmeleon_plugin.h"
 
 #include "MenuParser.h"
 
@@ -89,6 +90,7 @@ BOOL CALLBACK MenuLogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (LOWORD(wParam) == IDOK){
       EndDialog(hwndDlg, 0);
     }
+    return true;
   }
   return false;
 }
