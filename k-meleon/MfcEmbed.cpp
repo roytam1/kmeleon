@@ -640,6 +640,7 @@ int CMfcEmbedApp::ExitInstance()
    plugins.UnLoadAll();
 
    preferences.Save();
+   preferences.SaveDlgPrefs();
    
    NS_TermEmbedding();
    
@@ -728,6 +729,7 @@ BOOL CMfcEmbedApp::CreateHiddenWindow()
 nsresult CMfcEmbedApp::InitializePrefs(){
    preferences.Load();
    preferences.Save();
+   preferences.SaveDlgPrefs();
 
    return TRUE;
 }
