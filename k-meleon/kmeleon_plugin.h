@@ -66,6 +66,12 @@ typedef struct {
 
    // Register a rebar band
    void (*RegisterBand) (HWND hWnd, char *name, int visibleOnMenu = true);
+
+   // Query another plugin's accelerators
+   int   (*GetAccel) (char *plugin, char *param);
+
+   HWND (*CreateToolbar) ();
+
 } kmeleonFunctions;
 
 typedef struct {
