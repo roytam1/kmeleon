@@ -490,6 +490,14 @@ void UnSetOwnerDrawn(HMENU menu){
 
          mdt = (MenuDataT *)mmi.dwItemData;
          if (mdt && mdt->version == BMP_MENU_VERSION) {
+
+            // remove our mdt structure from the menu's dwItemData
+            MENUITEMINFO mmiNew;
+            mmiNew.cbSize = sizeof ( MENUITEMINFO );
+            mmi.dwItemData = NULL;
+            mmi.fMask = MIIM_DATA;
+            SetMenuItemInfo(menu, i, TRUE, &mmi);
+
             delete [] (char *)mdt->data;
             delete mdt;
          }
