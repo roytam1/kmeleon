@@ -76,7 +76,6 @@ LRESULT APIENTRY WndTBSubclassProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM l
 struct hotlistTB {
    HWND hWnd;
    HWND hWndTB;
-  int count;
    struct hotlistTB *next;
 };
 typedef struct hotlistTB TB;
@@ -148,7 +147,7 @@ WHERE int  nButtonMaxWidth;
 WHERE BOOL bButtonIcons;
 WHERE int nHSize, nHRes;
 
-WHERE HWND ghWndTB;
+// WHERE HWND ghWndTB;
 WHERE HIMAGELIST gImagelist; // the one and only imagelist...
 
 #endif

@@ -97,9 +97,12 @@ LRESULT APIENTRY WndTBSubclassProc(
    switch (uMsg) {
    case WM_SIZE:
    {
-      TB *tmpTB = find_TB(hwnd);
-      if (tmpTB)
-         PostMessage(tmpTB->hWnd, WM_COMMAND, nUpdateTB, 0);
+      if (pNewTB == NULL &&
+          (wParam == SIZE_MAXIMIZED || wParam == SIZE_RESTORED)) {
+         TB *tmpTB = find_TB(hwnd);
+         if (tmpTB && tmpTB->hWnd)
+            PostMessage(tmpTB->hWnd, WM_COMMAND, nUpdateTB, 0);
+      }
    }
    break;
    
@@ -182,19 +185,11 @@ int setTBButtonWidth(HWND hWndTB)
    
    CBookmarkNode *toolbarNode = gHotlistRoot.FindSpecialNode(BOOKMARK_FLAG_TB);
    
-   SetWindowText(hWndTB, TOOLBAND_NAME);
-   
-   //SendMessage(hWndTB, TB_SETEXTENDEDSTYLE, 0, TBSTYLE_EX_DRAWDDARROWS);
-   
-   if (gImagelist && bButtonIcons)
-     SendMessage(hWndTB, TB_SETIMAGELIST, 0, (LPARAM)gImagelist);
-   else
-     SendMessage(hWndTB, TB_SETIMAGELIST, 0, (LPARAM)NULL);
-
    int width = 0;
    if (nMaxWidth > 0) {
-     RECT rect;
-     GetWindowRect(hWndTB,&rect);
+     RECT rect = {0};
+     if (GetWindowRect(hWndTB,&rect) == 0)
+        return 0;
      width = rect.right - rect.left;
 
      int i = 0;
@@ -214,7 +209,7 @@ int setTBButtonWidth(HWND hWndTB)
      if (width < nMinWidth) width = nMinWidth;
    }
    
-   SendMessage(hWndTB, TB_SETBUTTONWIDTH, 0, 
+   PostMessage(hWndTB, TB_SETBUTTONWIDTH, 0, 
                MAKELONG(nMaxWidth >= 0 ? width : 0, 
                         nMaxWidth >= 0 ? width : 0));
    
@@ -228,7 +223,10 @@ void BuildRebar(HWND hWndTB)
    if (!bRebarEnabled || !hWndTB)
       return;
 
-   int nMaxWidth = setTBButtonWidth(hWndTB);
+   int nMaxWidth = nButtonMaxWidth > 0 ? nButtonMaxWidth * nHRes / nHSize : nButtonMaxWidth;
+
+   SendMessage(hWndTB, TB_SETBUTTONWIDTH, 0, MAKELONG(100, 100));
+
    CBookmarkNode *toolbarNode = gHotlistRoot.FindSpecialNode(BOOKMARK_FLAG_TB);
    
    int stringID, nButtons;
@@ -258,7 +256,7 @@ void BuildRebar(HWND hWndTB)
          BuildMenu(childMenu, child, false);
          button.idCommand = MENU_TO_COMMAND((UINT)childMenu);
          if (bButtonIcons)
-            button.iBitmap = IMAGE_FOLDER_CLOSED;
+            button.iBitmap = MAKELONG(IMAGE_FOLDER_CLOSED, 0);
          else 
             button.iBitmap = 0;
          button.fsStyle |= TBSTYLE_DROPDOWN;
@@ -266,7 +264,7 @@ void BuildRebar(HWND hWndTB)
       else {
          button.idCommand = child->id;
          if (bButtonIcons)
-            button.iBitmap = IMAGE_BOOKMARK;
+            button.iBitmap = MAKELONG(IMAGE_BOOKMARK, 0);
          else 
             button.iBitmap = 0;
       }
@@ -424,14 +422,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
       else if (command == nUpdateTB){
          TB *tmpTB = find_TB(hWnd);
          if (tmpTB && tmpTB->hWndTB) {
-            if (tmpTB->count) {
-               WINDOWPLACEMENT wp;
-               wp.length = sizeof (WINDOWPLACEMENT);
-               GetWindowPlacement(tmpTB->hWndTB, &wp);
+            WINDOWPLACEMENT wp = {0};
+            wp.length = sizeof (WINDOWPLACEMENT);
+            if (GetWindowPlacement(tmpTB->hWndTB, &wp) != 0)
                if (wp.showCmd == SW_SHOWNORMAL ||
                    wp.showCmd == SW_SHOWMAXIMIZED)
                   UpdateRebarMenu( tmpTB->hWndTB );
-            }
          }
          return 1;
       }
@@ -469,21 +465,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
          return true;
       }
    }
-   else if (message == UWM_UPDATESESSIONHISTORY) {
-      TB *tmpTB = find_TB(hWnd);
-      if (tmpTB!=NULL && tmpTB->count==0) {
-         tmpTB->count = 1;
-         PostMessage(hWnd, WM_COMMAND, nUpdateTB, 0);
-      }
-   }
-   /*
-   else if (message == WM_SIZE) {
-      if (wParam == SIZE_MAXIMIZED ||
-          wParam == SIZE_RESTORED) {
-         PostMessage(hWnd, WM_COMMAND, nUpdateTB, 0);
-      }
-   }
-   */
    else if (message == WM_NOTIFY) {
       hdr = *((LPNMHDR)lParam);
       if ((long)hdr.code == TBN_DROPDOWN) {
