@@ -74,16 +74,16 @@ CPreferencesDlg::~CPreferencesDlg(){
 }
 
 int CPreferencesDlg::DoModal(){
-  int ret = CDialog::DoModal();
+   int ret = CDialog::DoModal();
 
-  if (page){
-    delete page;
-    page = NULL;
-  }
+   if (page){
+      delete page;
+      page = NULL;
+   }
 
-  theApp.preferences.Save();
+   theApp.preferences.Save();
 
-  return ret;
+   return ret;
 }
 
 void CPreferencesDlg::OnOK() {
@@ -381,17 +381,6 @@ BOOL CPreferencePageMenus::OnInitDialog(){
 }
 
 CPreferencePageMenus::~CPreferencePageMenus() {
-   /*
-   Note: this does no good since IDC_EDIT1 has been destroyed
-   already, we need to find a better place to put this
-
-   if (SendDlgItemMessage(IDC_EDIT1, EM_GETMODIFY)){
-      if (m_nCurrentFile == 0)
-         SaveFile("menus.cfg");
-      else if (m_nCurrentFile == 1)
-         SaveFile("accel.cfg");
-   }
-   */
 }
 
 void CPreferencePageMenus::OnHelp(){
@@ -410,8 +399,7 @@ void CPreferencePageMenus::SaveFile(char *filename){
    CFile file;
    if (file.Open(theApp.preferences.settingsDir + filename, CFile::typeBinary | CFile::modeWrite)){
       /* binary is so Write treats cr/lf as 2 characters */
-      UpdateData();
-      file.Write(m_fileText, m_fileText.GetLength());
+      file.Write(m_fileText, m_fileText.GetLength()+1);
    }
    else{
       MessageBox("Error opening file");
@@ -440,8 +428,8 @@ void CPreferencePageMenus::ShowFile(char *filename){
 }
 
 void CPreferencePageMenus::OnMenus(){
-   if (SendDlgItemMessage(IDC_EDIT1, EM_GETMODIFY))
-      SaveFile(m_currentFile);
+   UpdateData();
+
    ShowFile("menus.cfg");
    m_nCurrentFile = 0;
 
@@ -449,8 +437,8 @@ void CPreferencePageMenus::OnMenus(){
 }
 
 void CPreferencePageMenus::OnAccel(){
-   if (SendDlgItemMessage(IDC_EDIT1, EM_GETMODIFY))
-      SaveFile(m_currentFile);
+   UpdateData();
+
    ShowFile("accel.cfg");
    m_nCurrentFile = 1;
 
@@ -462,6 +450,15 @@ void CPreferencePageMenus::DoDataExchange(CDataExchange* pDX){
 	//{{AFX_DATA_MAP(CPreferencePagePlugins)
    DDX_Text(pDX, IDC_EDIT1, m_fileText);
    //}}AFX_DATA_MAP
+
+   if (pDX->m_bSaveAndValidate){
+      if (SendDlgItemMessage(IDC_EDIT1, EM_GETMODIFY)){
+         if (m_nCurrentFile == 0)
+            SaveFile("menus.cfg");
+         else if (m_nCurrentFile == 1)
+            SaveFile("accel.cfg");
+      }
+   }
 }
 
 BEGIN_MESSAGE_MAP(CPreferencePageMenus, CPreferencePage)
