@@ -22,7 +22,7 @@
 extern CMfcEmbedApp theApp;
 
 #include "BrowserView.h"
-
+#include "BrowserFrm.h"
 
 /*
 ** Middle button panning shit
@@ -30,6 +30,10 @@ extern CMfcEmbedApp theApp;
 int CBrowserView::OnMouseActivate(CWnd* pDesktopWnd, UINT nHitTest, UINT message)
 {
    switch (message) {
+   case WM_LBUTTONDOWN:
+   case WM_RBUTTONDOWN:
+      mpBrowserFrame->m_wndUrlBar.EditChanged(FALSE);
+      break;
    case WM_MBUTTONDOWN:
       if(m_panning) StopPanning();
       else StartPanning();
