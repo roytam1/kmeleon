@@ -50,6 +50,7 @@
 #include "nsIWindowWatcher.h"
 #include "kmeleonConst.h"
 #include "UnknownContentTypeHandler.h"
+#include "Utils.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -150,7 +151,6 @@ nsresult CMfcEmbedApp::OverrideComponents()
 	   PR_TRUE); // replace existing
 
 /*
-
    // Override the nsIHelperAppLauncherDialog
    nsCOMPtr<nsIFactory> helpFactory;
    rv = NewUnknownContentHandlerFactory(getter_AddRefs(helpFactory));
@@ -165,45 +165,136 @@ nsresult CMfcEmbedApp::OverrideComponents()
    return rv;
 }
 
-/*
-void CMfcEmbedApp::ParseCmdLine()
+// search for a switch in the command line
+// return -1 if the switch is not found
+// for separation purposes, we make the assumption that flags begin with a dash "-",
+// but the "-" is  still required in the pSwitch parameter
+// otherwise return the number of characters in the argument after the flag
+// if pArgs is a valid pointer, copy the argument data into it
+// if bRemove is set, the flag (and it's argument, if pArgs is valid) will be removed
+int CMfcEmbedApp::GetCommandLineSwitch(const char *pSwitch, char *pArgs, BOOL bRemove)
 {
+   char *p, *c;
+   char *pQuote;
+   char *pSwitchPos;
+   char *pCmdLine;
+   char *pArgStart, *pArgEnd;
+   int iQuoteCount;
+   BOOL bIsValidSwitch;
+   int iSwitchLen, iArgLen=0;
+
+   if ( !pSwitch || !*pSwitch )
+      return -1;
+   else
+      iSwitchLen = strlen(pSwitch);
+
+   p = pCmdLine = SkipWhiteSpace(m_lpCmdLine);
+   do {
+      bIsValidSwitch = FALSE;
+      
+      if ( ((!p) || (!*p)) || !(pSwitchPos = strstr(p, pSwitch)) ) {
+         if (pArgs) *pArgs = 0;
+         return -1;
+      }
+      p = SkipWhiteSpace(pSwitchPos + iSwitchLen);
+
+      // if this happens to be the first character on the command line,
+      // then we don't need to do any error checking
+      if (pSwitchPos == pCmdLine)
+         bIsValidSwitch = TRUE;
+
+      // make sure the flag is preceeded by whitespace
+      else if ( (*(pSwitchPos-1) != ' ') && (*(pSwitchPos-1) != '\t') )
+         continue;
+
+      // make sure the character after the flag is whitespace or null
+      else if ( (*(pSwitchPos+iSwitchLen) != ' ') && (*(pSwitchPos+iSwitchLen) != '\t') && (*(pSwitchPos+iSwitchLen) != 0)  )
+         continue;
+
+      // if the "argument" starts with a dash, it's another switch, and this
+      // switch has no argument
+      else if (*p == '-') {
+         *pArgs = 0;
+         return 0;
+      }
+
+      // make sure the switch we've found isn't inside quotation marks
+      else {
+         c = pCmdLine;
+         iQuoteCount = 0;
+         do {
+            pQuote = strchr(c, '\"');
+            if (pQuote) {
+               if ( !( *(pQuote-1) == '\\') )
+                  iQuoteCount++;
+               c = pQuote+1;
+            }
+         } while ( pQuote && (pQuote < pSwitchPos) );      
+
+         // there are 3 cases when the switch found will be valid
+         // 1) if there are the no quotes found before the switch
+         // 2) if there an odd number of quotes found, and the last quote is found after the switch
+         // 3) if there are an even number of quotes found, and no quotes after the switch
+
+         if (  (iQuoteCount == 0) || \
+              ((pQuote) && (iQuoteCount%2)) || \
+            ((!pQuote) && (!(iQuoteCount%2))) )
+            bIsValidSwitch = TRUE;
+      }
+   } while (pSwitchPos && !bIsValidSwitch);
+
+   if (pSwitchPos && bIsValidSwitch) {
+      pArgStart = SkipWhiteSpace(p);
+      
+      // check if the argument is inside quotes
+      if (*pArgStart == '\"') {
+         pArgStart++;
+         pArgEnd = strchr(pArgStart, '\"');
+      }
+
+      // find the first whitespace
+      else {
+         char *pTab   = strchr(pArgStart, '\t');
+         char *pSpace = strchr(pArgStart, ' ');
+
+         if (pTab && pSpace)
+            pArgEnd = ( pTab > pSpace ? pSpace : pTab );
+         else
+            pArgEnd = ( pTab ? pTab : pSpace );
+      }
+
+      if (pArgEnd)
+         iArgLen = pArgEnd-pArgStart;
+      else
+         iArgLen = strlen(pArgStart);
+
+      if (pArgs) {
+         if (iArgLen) {
+            memcpy(pArgs, pArgStart, iArgLen);
+            pArgs[iArgLen] = 0;
+         }
+         else
+            *pArgs = 0;
+      }
+      
+      if (bRemove) {
+         char *pNewData;
+         if (pArgs)
+            pNewData = pArgEnd ? pArgEnd+1 : pArgStart + iArgLen;
+         else
+            pNewData = pSwitchPos + iSwitchLen;
+
+         pNewData = SkipWhiteSpace(pNewData);
+         while (*pNewData)
+            *pSwitchPos++ = *pNewData++;
+         *pSwitchPos = 0;
+      }
+
+   }
+
+   return iArgLen;
 }
 
-BOOL CMfcEmbedApp::IsCmdLineSwitch(const char *pSwitch, BOOL bRemove)
-{
-    //  Search for the switch in the command line.
-    //  Don't take it out of m_lpCmdLine by default
-    char *pFound = strstr(m_lpCmdLine, pSwitch);
-    if(pFound == NULL ||
-        // Switch must be at beginning of command line
-        // or have a space in front of it to avoid
-        // mangling filenames
-        ( (pFound != m_lpCmdLine) &&
-          *(pFound-1) != ' ' ) ) 
-    {
-        return(FALSE);
-    }
-
-    if (bRemove) 
-    {
-        // remove the flag from the command line
-        char *pTravEnd = pFound + strlen(pSwitch);
-        char *pTraverse = pFound;
-
-        *pTraverse = *pTravEnd;
-        while(*pTraverse != '\0')   
-        {
-            pTraverse++;
-            pTravEnd++;
-            *pTraverse = *pTravEnd;
-        }
-    }
-
-    return(TRUE);
-}
-
-*/
 
 
 LPCTSTR CMfcEmbedApp::GetMainWindowClassName() {
@@ -221,7 +312,16 @@ BOOL CMfcEmbedApp::InitInstance()
 {
 
    // Parse command line
-//	ParseCmdLine();
+   int len = GetCommandLineSwitch("-f", NULL, FALSE);
+   if (len == 0) {
+      MessageBox(NULL, m_lpCmdLine, NULL, MB_OK);
+   }
+   else if (len > 0) {
+      char *arg = new char[len+1];
+      GetCommandLineSwitch("-f", arg, TRUE);
+      MessageBox(NULL, m_lpCmdLine, NULL, MB_OK);
+      delete arg;
+   }
 
    // check for prior instances
    HANDLE hMutexOneInstance = CreateMutex( NULL, TRUE, "K-Meleon Instance Mutex" );
@@ -576,8 +676,29 @@ BOOL CMfcEmbedApp::InitializeProfiles() {
    observerService->AddObserver(this, NS_LITERAL_STRING("profile-change-teardown").get());
    observerService->AddObserver(this, NS_LITERAL_STRING("profile-after-change").get());
 
-   m_ProfileMgr->StartUp();
 
+   int len = GetCommandLineSwitch("-P", NULL, FALSE);
+
+   // there are no parameters, load the most recent profile
+   if (len == 0) {
+      GetCommandLineSwitch("-P", NULL, TRUE);  // remove the flag from the command line
+   }
+   // try loading the profile specified
+   else if (len > 0) {
+      char *profile = new char[len+1];
+      GetCommandLineSwitch("-P", profile, TRUE);
+
+      BOOL bResult;
+      if (!stricmp("mostrecent", profile))
+         bResult = m_ProfileMgr->SetMostRecentProfile();
+      else
+         bResult = m_ProfileMgr->SetCurrentProfile(profile);
+      delete profile;
+      if (bResult)
+         return TRUE;
+   }
+
+   m_ProfileMgr->StartUp();
    return TRUE;
 }
 
@@ -612,7 +733,7 @@ nsresult CMfcEmbedApp::InitializePrefs(){
    preferences.Load();
    preferences.Save();
 
-  if (!menus.Load(preferences.settingsDir + MENU_CONFIG_FILE)){
+   if (!menus.Load(preferences.settingsDir + MENU_CONFIG_FILE)){
     // we used to create the file if it didn't exist
     // but now it should be copied automagically from defaults when the profile is created
     MessageBox(NULL, "Could not find " MENU_CONFIG_FILE, NULL, 0);
@@ -702,12 +823,26 @@ NS_IMETHODIMP CMfcEmbedApp::Observe(nsISupports *aSubject, const PRUnichar *aTop
    else if (nsCRT::strcmp(aTopic, NS_LITERAL_STRING("profile-after-change").get()) == 0)
    {
       plugins.UnLoadAll();
+      menus.Destroy();
       InitializePrefs(); // In case we have just switched to a newly created profile.
+      plugins.FindAndLoad("*.dll");
         
       // Only make a new browser window on a switch. This also gets
       // called at start up and we already make a window then.
-      if (!nsCRT::strcmp(someData, NS_LITERAL_STRING("switch").get()))
-         OnNewBrowser();
+      if (!nsCRT::strcmp(someData, NS_LITERAL_STRING("switch").get())) {
+         CBrowserFrame* browser;
+         browser = CreateNewBrowserFrame();
+
+         if (!browser) {
+            MessageBox(NULL, "Could not create browser frame", NULL, MB_OK);
+            m_pMainWnd->PostMessage(WM_QUIT);
+            return NS_ERROR_FAILURE;
+         }
+
+         browser->SetFocus();
+         browser->m_wndUrlBar.MaintainFocus();
+         browser->m_wndBrowserView.LoadHomePage();
+      }
    }
 
    return rv;

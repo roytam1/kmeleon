@@ -77,8 +77,7 @@ public:
 
    nsresult OverrideComponents();
 
-//   BOOL IsCmdLineSwitch(const char *pSwitch, BOOL bRemove = FALSE);
-//   void ParseCmdLine();
+   int GetCommandLineSwitch(const char *pSwitch, char *pArgs, BOOL bRemove);
 
    LPCTSTR GetMainWindowClassName();
 
