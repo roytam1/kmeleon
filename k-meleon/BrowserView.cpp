@@ -60,6 +60,8 @@ extern CMfcEmbedApp theApp;
 #include "Utils.h"
 #include "KmeleonConst.h"
 #include "About.h"
+#include "kmeleon_plugin.h"
+#include <wininet.h>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -510,33 +512,75 @@ void CBrowserView::OnEditURL( NMHDR * pNotifyStruct, LRESULT * result )
 {
    *result = 0;
 }
+
 // A new URL was entered in the URL bar
 // Get the URL's text from the Urlbar's (ComboBox's) EditControl 
 // and navigate to that URL
 //
 void CBrowserView::OnNewUrlEnteredInUrlBar()
 {
+   nsCOMPtr<nsIWebBrowserFocus> focus(do_GetInterface(mWebBrowser));
+
+   if(!focus)
+      return;
+
+   focus->Activate();
 
    mpBrowserFrame->m_wndUrlBar.EditChanged(FALSE);
-
-   nsCOMPtr<nsIWebBrowserFocus> focus(do_GetInterface(mWebBrowser));
-   if(focus)
-      focus->Activate();
-
    
    // Get the currently entered URL
-	CString strUrl;
-	mpBrowserFrame->m_wndUrlBar.GetEnteredURL(strUrl);
+   CString strUrl;
+   mpBrowserFrame->m_wndUrlBar.GetEnteredURL(strUrl);
+
+   // Add what was just entered into the MRI list
+   mpBrowserFrame->m_wndUrlBar.AddURLToList(strUrl);
 
    if(IsViewSourceUrl(strUrl))
       OpenViewSourceWindow(strUrl.GetBuffer(0));
-   else 
-      // Navigate to that URL
-	   OpenURL(strUrl.GetBuffer(0));
+   else {
+      strUrl = NicknameLookup((char*)strUrl.GetBuffer(0));
 
-	// Add what was just entered into the UrlBar
-	mpBrowserFrame->m_wndUrlBar.AddURLToList(strUrl);
+      // Navigate to that URL
+      OpenURL(strUrl.GetBuffer(0));
+   }
 }
+
+char* CBrowserView::NicknameLookup(char* pUrl)
+{
+   char *p, *q, *r;
+   char nickUrl[INTERNET_MAX_URL_LENGTH];
+   char custUrl[INTERNET_MAX_URL_LENGTH];
+
+   // Check for a nickname
+   *nickUrl = 0;
+   p = pUrl;                           // get entered URL
+   p = SkipWhiteSpace(p);              // skip any leading spaces
+   q = strchr(p, ' ');                 // look for a space
+
+   if (q)                              // if more than one word
+      *q = 0;                          // terminate first word
+
+   theApp.plugins.SendMessage("*", "* FindNick", "FindNick", (long)p, (long)&nickUrl);
+
+   if (q)                              // if more than one word
+      *q = ' ';                        // restore space
+
+   if (*nickUrl != 0) {
+      r = strstr(nickUrl, "%s");       // look for %s
+      if (r) {                         // if found
+         *r = 0;                       // terminate string up to %s
+         strcpy(custUrl, nickUrl);     // copy string before %s
+         if (q)                        // if more than one word
+            strcat(custUrl, q+1);      // copy second word
+         strcat(custUrl, r+2);         // copy string after %s
+         pUrl = custUrl;
+	  }
+      else
+         pUrl = nickUrl;
+   }
+
+  return pUrl;
+} 
 
 // A URL has  been selected from the UrlBar's dropdown list
 /*
@@ -833,6 +877,7 @@ void CBrowserView::OnFileOpen()
          // if the file doesn't exist, they probably typed a url...
          // so chop off the path (for some reason GetFileName doesn't work for us...
          strFullPath = strFullPath.Mid(strFullPath.ReverseFind('\\')+1);
+         strFullPath = NicknameLookup((char*)strFullPath.GetBuffer(0));
       }else{
          fclose(test);
       }
