@@ -1201,7 +1201,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
             if (pFrame) {
                bIgnore = true;
                kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_CATCHCLOSE_WINDOW, &bCatchCloseWindow, &bCatchCloseWindow);
-               if (bCatchCloseWindow) {
+               if (bCatchCloseWindow || (wParam==-1 && lParam==-1)) {
                  bDoClose = 1;
                  bCaught = 1;
                  bIgnore = false;
