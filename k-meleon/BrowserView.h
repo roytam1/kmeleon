@@ -216,6 +216,9 @@ protected:
    afx_msg LRESULT OnFindMsg(WPARAM wParam, LPARAM lParam);
    afx_msg void OnKmeleonHome();
    afx_msg void OnKmeleonForum();
+   afx_msg void OnKmeleonFAQ();
+   afx_msg void OnKmeleonManual();
+   afx_msg void OnAboutPlugins();
 	afx_msg void OnUpdateNavBack(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateNavForward(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateNavStop(CCmdUI* pCmdUI);

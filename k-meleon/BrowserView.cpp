@@ -69,6 +69,9 @@ static char THIS_FILE[] = __FILE__;
 
 static const char* KMELEON_HOMEPAGE_URL = "http://kmeleon.sourceforge.net/";
 static const char* KMELEON_FORUM_URL = "http://kmeleon.sourceforge.net/forum/";
+static const char* KMELEON_FAQ_URL = "http://kmeleon.sourceforge.net/docs/faq.php";
+static const char* KMELEON_MANUAL_URL = "http://kmeleon.sourceforge.net/manual/";
+static const char* ABOUT_PLUGINS_URL = "about:plugins";
 
 // Register message for FindDialog communication                                                                                
 static UINT WM_FINDMSG = ::RegisterWindowMessage(FINDMSGSTRING);
@@ -136,6 +139,9 @@ BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
 	ON_COMMAND(ID_WINDOW_PREV, OnWindowPrev)
 	ON_COMMAND(ID_FONT_INCREASE, OnIncreaseFont)
 	ON_COMMAND(ID_FONT_DECREASE, OnDecreaseFont)
+   ON_COMMAND(ID_LINK_KMELEON_FAQ, OnKmeleonFAQ)
+   ON_COMMAND(ID_LINK_KMELEON_MANUAL, OnKmeleonManual)
+   ON_COMMAND(ID_LINK_ABOUT_PLUGINS, OnAboutPlugins)
 	ON_WM_ACTIVATE()
 	ON_MESSAGE(UWM_REFRESHTOOLBARITEM, RefreshToolBarItem)
 
@@ -1260,6 +1266,21 @@ void CBrowserView::OnKmeleonHome()
 void CBrowserView::OnKmeleonForum()
 {
    OpenURL(KMELEON_FORUM_URL);
+}
+
+void CBrowserView::OnKmeleonFAQ()
+{
+   OpenURL(KMELEON_FAQ_URL);
+}
+
+void CBrowserView::OnKmeleonManual()
+{
+   OpenURL(KMELEON_MANUAL_URL);
+}
+
+void CBrowserView::OnAboutPlugins()
+{
+   OpenURL(ABOUT_PLUGINS_URL);
 }
 
 void CBrowserView::OnAppAbout()
