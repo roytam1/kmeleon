@@ -22,7 +22,7 @@ Mozilla, you'll just have to download the small version of K-Meleon.
 K-Meleon interface tries to mimic the IE MFC interface as much as possible. For comvenience, 
 it also uses the IE bookmarking system.
 
-K-Meleon is released under the GNU Private License.
+K-Meleon is released under the GNU General Public License.
 
 
 ChangeLog:
