@@ -76,32 +76,42 @@ int Init(){
    HKEY            hKey;
    DWORD           dwSize;
 
-   // find out from the registry where the favorites are located.
-   if(RegOpenKey(HKEY_CURRENT_USER, _T("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\User Shell Folders"), &hKey) != ERROR_SUCCESS) {
-      TRACE0("Favorites folder not found\n");
-   }
-   else {
-      dwSize = sizeof(sz);
-      long rslt = RegQueryValueEx(hKey, _T("Favorites"), NULL, NULL, (LPBYTE)sz, &dwSize);
+   long rslt = ERROR_SUCCESS;
 
-      if (rslt != ERROR_SUCCESS) {
+   // first try the correct way, unfortunately this isn't supported on all platforms :(
+   if (!SHGetSpecialFolderPath(NULL, sz, CSIDL_FAVORITES, true)){
+
+      // if the correct way failed, find out from the registry where the favorites are located.
+      if(RegOpenKey(HKEY_CURRENT_USER, _T("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\User Shell Folders"), &hKey) == ERROR_SUCCESS) {
+         dwSize = MAX_PATH;
+         rslt = RegQueryValueEx(hKey, _T("Favorites"), NULL, NULL, (LPBYTE)sz, &dwSize);
          RegCloseKey(hKey);
-         if (RegOpenKey(HKEY_CURRENT_USER, _T("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders"), &hKey) == ERROR_SUCCESS) {
-            rslt = RegQueryValueEx(hKey, _T("Favorites"), NULL, NULL, (LPBYTE)sz, &dwSize);
+
+         if (rslt != ERROR_SUCCESS) {
+            if (RegOpenKey(HKEY_CURRENT_USER, _T("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders"), &hKey) == ERROR_SUCCESS) {
+               rslt = RegQueryValueEx(hKey, _T("Favorites"), NULL, NULL, (LPBYTE)sz, &dwSize);
+               RegCloseKey(hKey);
+            }
+            else {
+               TRACE0("Favorites folder not found\n");
+               rslt = -1;
+            }
          }
       }
-      RegCloseKey(hKey);
-
-      if (rslt == ERROR_SUCCESS) {
-         ExpandEnvironmentStrings(sz, gFavoritesPath, MAX_PATH);
-
-         strcat(gFavoritesPath, "\\");
-         gFavoritesPathLen = strlen(gFavoritesPath);
-      }
       else {
-         gFavoritesPath[0] = 0;
-         gFavoritesPathLen = 0;
+         TRACE0("Favorites folder not found\n");
+         rslt = -1;
       }
+   }
+   if (rslt == ERROR_SUCCESS) {
+      ExpandEnvironmentStrings(sz, gFavoritesPath, MAX_PATH);
+
+      strcat(gFavoritesPath, "\\");
+      gFavoritesPathLen = strlen(gFavoritesPath);
+   }
+   else {
+      gFavoritesPath[0] = 0;
+      gFavoritesPathLen = 0;
    }
 
    // Get the rebar status
@@ -471,7 +481,7 @@ LRESULT CALLBACK MsgHook(int code, WPARAM wParam, LPARAM lParam){
                   SendMessage(msg->hwnd, WM_CANCELMODE, 0, 0);
 
                   // this basically tells the loop, "we would like to enter a new menu loop with this item:"
-giCurrentItem = button.idCommand;
+                  giCurrentItem = button.idCommand;
                   gbContinueMenu = true;
 
                   return true;
