@@ -1025,7 +1025,7 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
       */
 
       CMD(gensub) {
-         if (nparam != 4) {  // substr( $0, $1, $2, $3 )
+         if (nparam != 4) {  // gensub( $0, $1, $2, $3 )
             parseError(WRONGARGS, "gensub", data, 4, nparam);
             return "";
          }
@@ -1042,7 +1042,7 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
       */
 
       CMD(gsub) {
-         if (nparam != 3) {  // substr( $0, $1, $2 )
+         if (nparam != 3) {  // gsub( $0, $1, $2 )
             parseError(WRONGARGS, "gsub", data, 3, nparam);
             return "";
          }
@@ -1058,7 +1058,7 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
       */
 
       CMD(index) {
-         if (nparam != 2) {  // substr( $0, $1 )
+         if (nparam != 2) {  // index( $0, $1 )
             parseError(WRONGARGS, "index", data, 2, nparam);
             return "";
          }
@@ -1079,7 +1079,7 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
       */
 
       CMD(length) {
-         if (nparam != 1) {  // substr( $0 )
+         if (nparam != 1) {  // length( $0 )
             parseError(WRONGARGS, "length", data, 1, nparam);
             return "";
          }
@@ -1096,7 +1096,7 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
       */
 
       CMD(sub) {
-         if (nparam != 3) {  // substr( $0, $1, $2 )
+         if (nparam != 3) {  // sub( $0, $1, $2 )
             parseError(WRONGARGS, "sub", data, 3, nparam);
             return "";
          }
@@ -1117,12 +1117,18 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
             return "";
          }
 		 std::string retval;
+		 int i = atoi( (char *)params[1].c_str() );
+		 int n = nparam == 3 ? atoi( (char *)params[2].c_str() ) : 0;
+		 int len = params[0].length();
+		 if (i<0)     i = 0;
+		 if (i>len)   i = len;
+		 if (n<0)     n = 0;
+		 if (n>len-i) n = len-i;
 
 	 if (nparam == 2)
-			retval = params[0].substr( atoi( (char *)params[1].c_str() ) );
+			retval = params[0].substr(i);
 	 else
-			retval = params[0].substr( atoi( (char *)params[1].c_str() ),
-				    atoi( (char *)params[2].c_str() ) );
+			retval = params[0].substr(i, n);
 
 		 retval = protectString( (char*)retval.c_str() );
 		 return retval;
@@ -1136,7 +1142,7 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
       */
 
       CMD(basename) {
-         if (nparam != 1 && nparam != 2) {  // substr( $0, [, $1] )
+         if (nparam != 1 && nparam != 2) {  // basename( $0, [, $1] )
             parseError(WRONGARGS, "basename", data, 2, nparam);
             return "";
          }
@@ -1172,7 +1178,7 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
       */
 
       CMD(dirname) {
-         if (nparam != 1) {  // substr( $0 )
+         if (nparam != 1) {  // dirname( $0 )
             parseError(WRONGARGS, "dirname", data, 1, nparam);
             return "";
          }
@@ -1208,7 +1214,7 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
       */
 
       CMD(hostname) {
-         if (nparam != 1) {  // substr( $0 )
+         if (nparam != 1) {  // hostname( $0 )
             parseError(WRONGARGS, "hostname", data, 1, nparam);
             return "";
          }
@@ -2020,6 +2026,11 @@ int strFindFirst(std::string instring,char findchar,bool notinparen) {
                return pos;
             continue;
          }
+      }
+      else {
+         if(instring.at(pos) == '\\') {
+            ++pos;
+	 }
       }
    }
 
