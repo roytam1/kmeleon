@@ -305,6 +305,9 @@ static time_t timestamp;
 
 int op_readFile(char *file) {
    int ret = -1;
+   found_tb = false;
+   found_bm = false;
+   found_nb = false;
    
    FILE *bmFile = fopen(file, "r");
    if (bmFile){
