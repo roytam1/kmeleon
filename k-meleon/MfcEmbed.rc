@@ -440,30 +440,149 @@ BEGIN
                     12
 END
 
-IDD_PRINTSETUP_DIALOG DIALOG DISCARDABLE  0, 0, 205, 141
-STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+IDD_PROMPT_DIALOG DIALOG DISCARDABLE  0, 0, 249, 92
+STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+CAPTION "Prompt Dialog"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,130,69,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,189,69,50,14
+    LTEXT           "Please enter something....",1002,10,7,229,29
+    EDITTEXT        1001,7,39,232,13,ES_AUTOHSCROLL
+    CONTROL         "Save Answer",1005,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    7,57,229,10
+END
+
+IDD_PROMPT_PASSWORD_DIALOG DIALOG DISCARDABLE  0, 0, 248, 93
+STYLE DS_SYSMODAL | DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "Password Entry Dialog"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Please enter your password:",1002,5,7,232,20
+    DEFPUSHBUTTON   "OK",IDOK,129,75,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,188,75,50,14
+    EDITTEXT        1004,5,37,233,12,ES_PASSWORD | ES_AUTOHSCROLL
+    CONTROL         "Save Password",1005,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,7,57,229,10
+END
+
+IDD_PROMPT_USERPASS_DIALOG DIALOG DISCARDABLE  0, 0, 214, 123
+STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+CAPTION "Username and Password Required"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "This operation requires authentication.  Please enter your user name and password:",
+                    1002,6,9,171,25
+    LTEXT           "User Name:",1006,6,39,39,9
+    EDITTEXT        1003,49,39,153,12,ES_AUTOHSCROLL
+    LTEXT           "Password:",1007,6,58,36,8
+    EDITTEXT        1004,49,56,153,12,ES_PASSWORD | ES_AUTOHSCROLL
+    CONTROL         "Save User Name and Password",1005,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,6,78,201,10
+    DEFPUSHBUTTON   "OK",IDOK,40,101,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,95,101,50,14
+END
+
+IDD_ALERT_CHECK_DIALOG DIALOG DISCARDABLE  0, 0, 233, 151
+STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+CAPTION "Alert"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,91,127,50,14
+    CONTROL         "",IDC_CHECKBOX,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,
+                    104,215,10
+    EDITTEXT        IDC_MSG_TEXT,10,10,214,88,ES_MULTILINE | ES_READONLY
+END
+
+IDD_CONFIRM_CHECK_DIALOG DIALOG DISCARDABLE  0, 0, 371, 111
+STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+CAPTION "ConfirmCheck"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "Btn1",IDC_BTN1,104,90,50,14
+    CONTROL         "",IDC_CHECKBOX,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,
+                    62,355,10
+    LTEXT           "",IDC_MSG_TEXT,6,10,354,39
+    DEFPUSHBUTTON   "Btn2",IDC_BTN2,164,89,50,14
+    DEFPUSHBUTTON   "Btn3",IDC_BTN3,224,89,50,14
+END
+
+IDD_CHOOSE_ACTION_DIALOG DIALOG DISCARDABLE  0, 0, 285, 114
+STYLE DS_MODALFRAME | WS_MINIMIZEBOX | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "Choose An Action"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "You have chosen to download a file of type: ",
+                    IDC_STATIC,8,9,142,8
+    LTEXT           "Static",IDC_CONTENT_TYPE,152,10,123,8
+    GROUPBOX        "What would you like K-Meleon to do with this file?",
+                    IDC_STATIC,8,24,268,61
+    CONTROL         "O&pen using",IDC_OPEN_USING,"Button",BS_AUTORADIOBUTTON | 
+                    WS_TABSTOP,19,41,60,10
+    CONTROL         "&Save this file to disk",IDC_SAVE_TO_DISK,"Button",
+                    BS_AUTORADIOBUTTON | WS_TABSTOP,19,69,103,10
+    LTEXT           "Static",IDC_APP_NAME,31,53,186,9,SS_SUNKEN
+    PUSHBUTTON      "&Choose...",IDC_CHOOSE_APP,222,51,50,12
+    PUSHBUTTON      "Ok",IDOK,94,94,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,150,94,50,14
+END
+
+IDD_PRINTSETUP_DIALOG DIALOG DISCARDABLE  0, 0, 319, 193
+STYLE DS_SYSMODAL | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Page Setup"
 FONT 8, "MS Sans Serif"
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,7,120,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,108,120,50,14
-    GROUPBOX        "Margins",IDC_STATIC,7,8,147,44
-    LTEXT           "Left:",IDC_STATIC,89,22,15,8
-    EDITTEXT        IDC_LEFT_MARGIN_TXT,105,18,40,14,ES_AUTOHSCROLL
-    LTEXT           "Top:",IDC_STATIC,22,22,16,8
-    EDITTEXT        IDC_TOP_MARGIN_TXT,39,19,40,14,ES_AUTOHSCROLL
-    LTEXT           "Right:",IDC_STATIC,85,38,20,8
-    EDITTEXT        IDC_BOTTOM_MARGIN_TXT,39,35,40,14,ES_AUTOHSCROLL
-    LTEXT           "Bottom:",IDC_STATIC,13,37,25,8
-    EDITTEXT        IDC_RIGHT_MARGIN_TXT,106,35,40,14,ES_AUTOHSCROLL
-    CONTROL         "Print Background C&olors",IDC_PRT_BGCOLORS,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,7,93,92,10
+    COMBOBOX        IDC_PAPER_SIZE_CBX,26,16,81,67,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    EDITTEXT        IDC_UD_PAPER_WDTH,33,33,40,14,ES_AUTOHSCROLL | 
+                    WS_DISABLED
+    EDITTEXT        IDC_UD_PAPER_HGT,106,33,40,14,ES_AUTOHSCROLL | 
+                    WS_DISABLED
+    CONTROL         "Inches",IDC_INCHES_RD,"Button",BS_AUTORADIOBUTTON | 
+                    WS_DISABLED | WS_GROUP,13,52,37,10
+    CONTROL         "Millimeters",IDC_MILLI_RD,"Button",BS_AUTORADIOBUTTON | 
+                    WS_DISABLED,53,52,48,10
     CONTROL         "Slider1",IDC_SCALE,"msctls_trackbar32",TBS_AUTOTICKS | 
-                    TBS_BOTH | WS_TABSTOP,9,65,100,19
-    EDITTEXT        IDC_SCALE_TXT,110,71,19,14,ES_AUTOHSCROLL
-    GROUPBOX        "Scaling",IDC_STATIC,7,54,148,34
+                    TBS_BOTH | WS_TABSTOP,9,81,100,19
+    EDITTEXT        IDC_SCALE_TXT,110,86,19,14,ES_AUTOHSCROLL
+    CONTROL         "Print Background C&olors",IDC_PRT_BGCOLORS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,163,74,92,10
     CONTROL         "Print Background &Images",IDC_PRT_BGIMAGES,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,7,106,95,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,163,85,95,10
+    EDITTEXT        IDC_TOP_MARGIN_TXT,195,16,40,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_LEFT_MARGIN_TXT,268,16,40,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_BOTTOM_MARGIN_TXT,196,36,40,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_RIGHT_MARGIN_TXT,268,36,40,14,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,208,172,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,262,172,50,14
+    GROUPBOX        "Margins",IDC_STATIC,163,7,149,50
+    LTEXT           "Left:",IDC_STATIC,251,18,15,8
+    LTEXT           "Top:",IDC_STATIC,178,18,16,8
+    LTEXT           "Right:",IDC_STATIC,246,39,20,8
+    LTEXT           "Bottom:",IDC_STATIC,168,38,25,8
+    GROUPBOX        "Scaling",IDC_STATIC,7,70,148,34
+    LTEXT           "Size:",IDC_STATIC,10,17,16,8
+    GROUPBOX        "Paper Size",IDC_STATIC,7,7,147,57
+    LTEXT           "Width:",IDC_UD_WIDTH_LBL,10,36,22,8,WS_DISABLED
+    LTEXT           "Height:",IDC_UD_HEIGHT_LBL,81,36,24,8,WS_DISABLED
+    GROUPBOX        "Header",IDC_STATIC,7,108,106,60
+    LTEXT           "Left:",IDC_STATIC,23,123,15,8
+    EDITTEXT        IDC_HDR_LEFT_TXT,39,120,67,14,ES_AUTOHSCROLL
+    LTEXT           "Middle:",IDC_STATIC,15,138,24,8
+    EDITTEXT        IDC_HDR_MID_TXT,39,135,67,14,ES_AUTOHSCROLL
+    LTEXT           "Right:",IDC_STATIC,17,152,20,8
+    EDITTEXT        IDC_HDR_RIGHT_TXT,39,149,67,14,ES_AUTOHSCROLL
+    GROUPBOX        "Footer",IDC_STATIC,118,108,106,60
+    LTEXT           "Left:",IDC_STATIC,133,123,15,8
+    EDITTEXT        IDC_FTR_LEFT_TXT,149,120,67,14,ES_AUTOHSCROLL
+    LTEXT           "Middle:",IDC_STATIC,125,138,24,8
+    EDITTEXT        IDC_FTR_MID_TXT,149,135,67,14,ES_AUTOHSCROLL
+    LTEXT           "Right:",IDC_STATIC,127,153,20,8
+    EDITTEXT        IDC_FTR_RIGHT_TXT,149,150,67,14,ES_AUTOHSCROLL
+    LTEXT           "&U - URL\n&T - Page Title\n&D - Date\n&P - Page Number\n&PT - Page Num / Total",
+                    IDC_STATIC,231,112,81,56,SS_NOPREFIX | SS_SUNKEN
 END
 
 
@@ -652,6 +771,16 @@ BEGIN
         TOPMARGIN, 4
         BOTTOMMARGIN, 200
     END
+
+    IDD_PRINTSETUP_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 312
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 186
+        HORZGUIDE, 108
+        HORZGUIDE, 168
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -813,6 +942,8 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_PERCENT_OF_FILE     "%d%% of %s"
+    IDS_PROFILE_SWITCH      "Do you want to close all windows in order to switch the profile?\nThis will cancel any files being downloaded."
+    IDS_OLD_PLUGIN          "Sorry, ""%s"" was compiled for an older version of K-Meleon.\nChanges in the Plugin API have caused this plugin to not function any more.  Please download a newer version of the plugin."
 END
 
 #endif    // English (U.S.) resources
