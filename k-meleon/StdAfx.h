@@ -46,61 +46,122 @@
 
 #include <afxole.h>
 
-#include "nsIWidget.h"
-#include "nsCOMPtr.h"
-#include "nsNetUtil.h"
-#include "nsString.h"
-#include "nsVoidArray.h"
-#include "nsCWebBrowser.h"
-#include "nsXPIDLString.h"
-#include "nsWidgetsCID.h"
-#include "nsIDocShell.h"
-#include "nsIWebBrowser.h"
-#include "nsIBaseWindow.h"
-#include "nsIWebNavigation.h"
-#include "nsIWebBrowserChrome.h"
-#include "nsIWebProgressListener.h"
-#include "nsIWebProgress.h"
-#include "nsIWindowCreator.h"
-#include "nsIInterfaceRequestor.h"
-#include "nsIDocShellTreeOwner.h"
-#include "nsIDocShellTreeItem.h"
-#include "nsIClipboardCommands.h"
-#include "nsIWebBrowserPersist.h"
-#include "nsIContextMenuListener.h"
-#include "nsIDOMNode.h"
-#include "nsIDOMHTMLAnchorElement.h"
-#include "nsIDOMHTMLImageElement.h"
-#include "nsReadableUtils.h"
-#include "nsIPrompt.h"
-#include "nsIWalletService.h"
-#include "nsEmbedAPI.h"		 
-#include "nsISHistory.h"
-#include "nsISHEntry.h"
-#include "nsIPref.h"
-#include "nsAppDirectoryServiceDefs.h"
-#include "nsIProfileChangeStatus.h"
-#include "nsIObserverService.h"
-#include "nsError.h"
-#include "nsIObserver.h"
-#include "nsWeakReference.h"
-#include "nsIEmbeddingSiteWindow.h"
-#include "nsIWebBrowserFind.h"
-#include "nsIWebBrowserFocus.h"
-#include "nsIWebProgress.h"
-
-// Printing
-#include "nsIPrintOptions.h" 
-#include "nsIWebBrowserPrint.h"
-#include "nsIDOMWindow.h"
-
-// Unknown Content Type Handler
-#include "nsIUnkContentTypeHandler.h"
-#include "nsIHelperAppLauncherDialog.h"
-#include "nsIExternalHelperAppService.h"
-#include "nsIHelperAppLauncherDialog.h"
-
 //{{AFX_INSERT_LOCATION}}
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.
+//}}AFX_INSERT_LOCATION
+
+
+// Please don't change the line below, I have a perl script that depends on it being here :)
+// - BEGIN MOZILLA INCLUDES -
+// Additional include directories: 
+// /projects/mozilla/mozilla/dist/include/docshell, /projects/mozilla/mozilla/dist/include/dom, /projects/mozilla/mozilla/dist/include/embed_base, /projects/mozilla/mozilla/dist/include/exthandler, /projects/mozilla/mozilla/dist/include/find, /projects/mozilla/mozilla/dist/include/gfx, /projects/mozilla/mozilla/dist/include/helperAppDlg, /projects/mozilla/mozilla/dist/include/intl, /projects/mozilla/mozilla/dist/include/layout, /projects/mozilla/mozilla/dist/include/necko, /projects/mozilla/mozilla/dist/include/pref, /projects/mozilla/mozilla/dist/include/profile, /projects/mozilla/mozilla/dist/include/shistory, /projects/mozilla/mozilla/dist/include/string, /projects/mozilla/mozilla/dist/include/uriloader, /projects/mozilla/mozilla/dist/include/wallet, /projects/mozilla/mozilla/dist/include/webBrowser_core, /projects/mozilla/mozilla/dist/include/webshell, /projects/mozilla/mozilla/dist/include/widget, /projects/mozilla/mozilla/dist/include/windowwatcher, /projects/mozilla/mozilla/dist/include/xpcom, 
+
+// docshell: 
+#include "nsIDocShell.h"
+#include "nsIWebNavigation.h"
+#include "nsIDocShellTreeOwner.h"
+#include "nsIDocShellTreeItem.h"
+
+// dom: 
+#include "nsIDOMHTMLAnchorElement.h"
+#include "nsIDOMNode.h"
+#include "nsIDOMNamedNodeMap.h"
+#include "nsIDOMHTMLImageElement.h"
+#include "nsIScriptGlobalObject.h"
+#include "nsIDOMWindow.h"
+#include "nsIDOMWindowInternal.h"
+
+// embed_base: 
+#include "nsIWindowCreator.h"
+#include "nsEmbedAPI.h"
+
+// exthandler: 
+#include "nsIExternalHelperAppService.h"
+
+// find: 
+#include "nsIWebBrowserFind.h"
+
+// gfx: 
+#include "nsIPrintOptions.h"
+
+// helperAppDlg: 
+#include "nsIHelperAppLauncherDialog.h"
+
+// intl: 
+#include "nsIStringBundle.h"
+
+// layout: 
+#include "nsIPrintListener.h"
+
+// necko: 
+#include "nsIPrompt.h"
+#include "nsIHTTPChannel.h"
+#include "nsIURI.h"
+#include "nsIRequestObserver.h"
+#include "nsIChannel.h"
+#include "nsNetUtil.h"
+
+// pref: 
+#include "nsIPref.h"
+
+// profile: 
+#include "nsIProfileChangeStatus.h"
+
+// shistory: 
+#include "nsISHistory.h"
+#include "nsIHistoryEntry.h"
+#include "nsISHEntry.h"
+
+// string: 
+#include "nsReadableUtils.h"
+#include "nsXPIDLString.h"
+#include "nsString.h"
+
+// uriloader: 
+#include "nsIWebProgress.h"
+#include "nsIWebProgressListener.h"
+
+// wallet: 
+#include "nsIWalletService.h"
+
+// webBrowser_core: 
+#include "nsIWebBrowserChrome.h"
+#include "nsITooltipListener.h"
+#include "nsITooltipTextProvider.h"
+#include "nsCTooltipTextProvider.h"
+#include "nsIWebBrowserPersist.h"
+#include "nsIWebBrowser.h"
+#include "nsIWebBrowserFocus.h"
+#include "nsCWebBrowser.h"
+#include "nsIWebBrowserChromeFocus.h"
+#include "nsIContextMenuListener.h"
+#include "nsIWebBrowserPrint.h"
+#include "nsIEmbeddingSiteWindow.h"
+
+// webshell: 
+#include "nsIClipboardCommands.h"
+
+// widget: 
+#include "nsIBaseWindow.h"
+#include "nsWidgetsCID.h"
+#include "nsIFilePicker.h"
+#include "nsIWidget.h"
+
+// windowwatcher: 
+#include "nsIWindowWatcher.h"
+
+// xpcom: 
+#include "nsAppDirectoryServiceDefs.h"
+#include "nsWeakReference.h"
+#include "nsIGenericFactory.h"
+#include "nsIObserver.h"
+#include "nsIInterfaceRequestor.h"
+#include "nsVoidArray.h"
+#include "nsError.h"
+#include "nsIObserverService.h"
+#include "nsCOMPtr.h"
+
+// - END MOZILLA INCLUDES -
+// Please don't change the line above, I have a perl script that depends on it being here :)
 
 #endif //_STDAFX_H

@@ -157,14 +157,17 @@ public:
 	// be displayed in
 	CBrowserView   m_wndBrowserView;
 
-   void UpdateSecurityStatus(PRInt32 aState);
-   void ShowSecurityInfo();
+   // note: right now it's just a CStatic, but eventually it will become something better
+   CStatic        m_tooltip;
 
 	// This specifies what UI elements this frame will sport
 	// w.r.t. toolbar, statusbar, urlbar etc.
 	PRUint32 m_chromeMask;
 
    BOOL m_created; // set after we are created
+
+   void UpdateSecurityStatus(PRInt32 aState);
+   void ShowSecurityInfo();
 
 protected:
 	//

@@ -25,7 +25,6 @@
 #define _BROWSERIMPL_H
 
 #include "IBrowserFrameGlue.h"
-#include "nsIWebBrowserChromeFocus.h"
 
 class CBrowserImpl : public nsIInterfaceRequestor,
 					 public nsIWebBrowserChrome,
@@ -33,6 +32,7 @@ class CBrowserImpl : public nsIInterfaceRequestor,
 					 public nsIEmbeddingSiteWindow,
 					 public nsIWebProgressListener,
 					 public nsIContextMenuListener,
+                public nsITooltipListener,
 					 public nsSupportsWeakReference
 {
 public:
@@ -48,6 +48,7 @@ public:
    NS_DECL_NSIEMBEDDINGSITEWINDOW
    NS_DECL_NSIWEBPROGRESSLISTENER
 	NS_DECL_NSICONTEXTMENULISTENER
+   NS_DECL_NSITOOLTIPLISTENER
 
 protected:
 

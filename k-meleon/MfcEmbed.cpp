@@ -47,10 +47,10 @@
 #include "winEmbedFileLocProvider.h"
 #include "ProfileMgr.h"
 #include "BrowserImpl.h"
-#include "nsIWindowWatcher.h"
 #include "kmeleonConst.h"
 #include "UnknownContentTypeHandler.h"
 #include "Utils.h"
+#include "Tooltips.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -67,6 +67,13 @@ static char THIS_FILE[] = __FILE__;
 #define NS_PROMPTSERVICE_CID \
    {0xa2112d6a, 0x0e28, 0x421f, {0xb4, 0x6a, 0x25, 0xc0, 0xb3, 0x8, 0xcb, 0xd0}}
 static NS_DEFINE_CID(kPromptServiceCID, NS_PROMPTSERVICE_CID);
+
+
+// this is for overriding the Mozilla default HelperAppLauncherDialog
+#define NS_HELPERAPPLAUNCHERDIALOG_CID \
+    {0xf68578eb, 0x6ec2, 0x4169, {0xae, 0x19, 0x8c, 0x62, 0x43, 0xf0, 0xab, 0xe1}}
+static NS_DEFINE_CID(kHelperAppLauncherDialogCID, NS_HELPERAPPLAUNCHERDIALOG_CID);
+
 
 BEGIN_MESSAGE_MAP(CMfcEmbedApp, CWinApp)
    //{{AFX_MSG_MAP(CMfcEmbedApp)
@@ -131,37 +138,28 @@ nsresult CMfcEmbedApp::OverrideComponents()
                                                 promptFactory,
                                                 PR_TRUE); // replace existing
       } else
-       ::FreeLibrary(overlib);
+         ::FreeLibrary(overlib);
    }
 
-   // Override the UnknownContentHandler
-   nsCOMPtr<nsIFactory> unkFactory;
-   rv = NewUnknownContentHandlerFactory(getter_AddRefs(unkFactory));
-   if (NS_FAILED(rv)) return rv;
-   rv = nsComponentManager::RegisterFactory(kUnknownContentTypeHandlerCID,
-	   NS_IUNKNOWNCONTENTTYPEHANDLER_CLASSNAME,
-	   NS_IUNKNOWNCONTENTTYPEHANDLER_CONTRACTID ,
-	   unkFactory,
-	   PR_TRUE); // replace existing
+   nsCOMPtr<nsIFactory> helperAppDlgFactory;
+   rv = NewUnknownContentHandlerFactory(getter_AddRefs(helperAppDlgFactory));
+   if (NS_SUCCEEDED(rv))
+      nsComponentManager::RegisterFactory(kHelperAppLauncherDialogCID,
+                                          "Helper App Launcher Dialog",
+                                          "@mozilla.org/helperapplauncherdialog;1",
+                                          helperAppDlgFactory,
+                                          PR_TRUE); // replace existing
 
-   rv = nsComponentManager::RegisterFactory(kUnknownContentTypeHandlerCID,
-	   NS_IHELPERAPPLAUNCHERDLG_CLASSNAME,
-	   NS_IHELPERAPPLAUNCHERDLG_CONTRACTID,
-	   unkFactory,
-	   PR_TRUE); // replace existing
+   nsCOMPtr<nsIFactory> tooltipTextProviderFactory;
+   rv = NewTooltipTextProviderFactory(getter_AddRefs(tooltipTextProviderFactory));
+   if (NS_SUCCEEDED(rv))
+      nsComponentManager::RegisterFactory(kTooltipTextProviderCID,
+                                          "Tooltip Text Provider",
+                                          "@mozilla.org/embedcomp/tooltiptextprovider;1",
+                                          tooltipTextProviderFactory,
+                                          PR_TRUE); // replace existing
 
-/*
-   // Override the nsIHelperAppLauncherDialog
-   nsCOMPtr<nsIFactory> helpFactory;
-   rv = NewUnknownContentHandlerFactory(getter_AddRefs(helpFactory));
-   if (NS_FAILED(rv)) return rv;
-   rv = nsComponentManager::RegisterFactory(kHelperAppLauncherDialogCID,
-	   NS_IHELPERAPPLAUNCHERDLG_CLASSNAME,
-	   NS_IHELPERAPPLAUNCHERDLG_CONTRACTID,
-	   helpFactory,
-	   PR_TRUE); // replace existing
-*/
-   
+
    return rv;
 }
 

@@ -106,6 +106,7 @@ NS_INTERFACE_MAP_BEGIN(CBrowserImpl)
    NS_INTERFACE_MAP_ENTRY(nsIEmbeddingSiteWindow)
    NS_INTERFACE_MAP_ENTRY(nsIWebProgressListener)
    NS_INTERFACE_MAP_ENTRY(nsIContextMenuListener)
+   NS_INTERFACE_MAP_ENTRY(nsITooltipListener)
    NS_INTERFACE_MAP_ENTRY(nsISupportsWeakReference)
 NS_INTERFACE_MAP_END
 
@@ -410,4 +411,29 @@ NS_IMETHODIMP CBrowserImpl::SetVisibility(PRBool aVisibility)
     m_pBrowserFrameGlue->ShowBrowserFrame(aVisibility);
 
     return NS_OK;
+}
+
+NS_IMETHODIMP CBrowserImpl::OnShowTooltip(PRInt32 x, PRInt32 y, const PRUnichar * tipText)
+{
+   USES_CONVERSION;
+   
+   if(! m_pBrowserFrameGlue)
+      return NS_ERROR_FAILURE;
+
+
+   char *text = W2A(tipText);
+
+   m_pBrowserFrameGlue->ShowTooltip(x, y, text);
+
+   return NS_OK;
+}
+
+NS_IMETHODIMP CBrowserImpl::OnHideTooltip()
+{
+   if(! m_pBrowserFrameGlue)
+      return NS_ERROR_FAILURE;
+
+   m_pBrowserFrameGlue->ShowTooltip(0, 0, nsnull);
+
+   return NS_OK;
 }
