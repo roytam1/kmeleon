@@ -81,7 +81,7 @@ END_MESSAGE_MAP()
 CMfcEmbedApp::CMfcEmbedApp()
 {
    m_ProfileMgr = NULL;
-  
+   m_bSwitchingProfiles = FALSE;
    m_bFirstWindowCreated = FALSE;
    
    mRefCnt = 1; // Start at one - nothing is going to addref this object
@@ -386,6 +386,7 @@ BOOL CMfcEmbedApp::InitInstance()
       return FALSE;
    }
 
+   InitializePrefs();
    plugins.FindAndLoad("*.dll");
 
    // the hidden window will take care of creating the first
@@ -425,8 +426,11 @@ void CMfcEmbedApp::UnregisterWindow(CDialog *window) {
          ((CHiddenWnd*) m_pMainWnd)->StayResident();
 
       // otherwise we're exiting, close the Evil Hidden Window
-      else
+      else {
 		   m_pMainWnd->PostMessage(WM_QUIT);
+         delete (CHiddenWnd *) m_pMainWnd;
+         m_pMainWnd = FALSE;
+      }
    }
 }
 
@@ -570,11 +574,10 @@ void CMfcEmbedApp::OnNewBrowser()
 // in ExitInstance() being called and the app is
 // properly cleaned up and shutdown
 //
-void CMfcEmbedApp::RemoveFrameFromList(CBrowserFrame* pFrm, BOOL bCloseAppOnLastFrame/*= TRUE*/)
+void CMfcEmbedApp::RemoveFrameFromList(CBrowserFrame* pFrm)
 {
 	POSITION pos = m_FrameWndLst.Find(pFrm);
    m_FrameWndLst.RemoveAt(pos);
-
 
    // Unless we are set to stay resident,
    // send a WM_QUIT msg. to the hidden window if we've
@@ -587,15 +590,18 @@ void CMfcEmbedApp::RemoveFrameFromList(CBrowserFrame* pFrm, BOOL bCloseAppOnLast
    if ((m_FrameWndLst.GetCount() == 0) && (m_MiscWndLst.GetCount() == 0)) {
 
       // if we're switching profiles, we don't need to do anything
-      if (!bCloseAppOnLastFrame) {}
+      if (m_bSwitchingProfiles) {}
 
       // if we're staying resident, create the hidden browser window
       else if (((CHiddenWnd*) m_pMainWnd)->Persisting() == PERSIST_STATE_ENABLED)
          ((CHiddenWnd*) m_pMainWnd)->StayResident();
 
       // otherwise we're exiting, close the Evil Hidden Window
-      else
+      else {
 		   m_pMainWnd->PostMessage(WM_QUIT);
+         delete (CHiddenWnd *) m_pMainWnd;
+         m_pMainWnd = FALSE;
+      }
    }
 }
 
@@ -625,15 +631,16 @@ int CMfcEmbedApp::ExitInstance()
    pos = m_FrameWndLst.GetHeadPosition();
    while( pos != NULL ) {
 		pBrowserFrame = (CBrowserFrame *) m_FrameWndLst.GetNext(pos);
-		if(pBrowserFrame)	{
-			pBrowserFrame->ShowWindow(false);
-			pBrowserFrame->DestroyWindow();
-		}
+		if(pBrowserFrame)
+         pBrowserFrame->SendMessage(WM_CLOSE);
 	}
 	m_FrameWndLst.RemoveAll();
 
-   if (m_pMainWnd)
-      m_pMainWnd->DestroyWindow();
+   if (m_pMainWnd) {
+      m_pMainWnd->SendMessage(WM_CLOSE);
+      delete (CHiddenWnd *) m_pMainWnd;
+      m_pMainWnd = NULL;
+   }
 
    delete m_ProfileMgr;
 
@@ -743,7 +750,7 @@ nsresult CMfcEmbedApp::InitializePrefs(){
   }
 
   return TRUE;
-}
+}   
 
 /* InitializeWindowCreator creates and hands off an object with a callback
    to a window creation function. This will be used by Gecko C++ code
@@ -804,32 +811,33 @@ NS_IMETHODIMP CMfcEmbedApp::Observe(nsISupports *aSubject, const PRUnichar *aTop
             pDlg->Cancel();
       }
 
+      m_bSwitchingProfiles = TRUE;
       pos = m_FrameWndLst.GetHeadPosition();
-	   while( pos != NULL )
-	   {
+	   while( pos != NULL ) {
 		   CBrowserFrame *pBrowserFrame = (CBrowserFrame *) m_FrameWndLst.GetNext(pos);
 		   if(pBrowserFrame)
-         {
-		      pBrowserFrame->ShowWindow(false);
-
-            // Passing in FALSE below so that we do not
-            // kill the main app during a profile switch
-            RemoveFrameFromList(pBrowserFrame, FALSE);
-
-            pBrowserFrame->DestroyWindow();
-         }
+            pBrowserFrame->SendMessage(WM_CLOSE);
       }
+      m_bSwitchingProfiles = FALSE;
    }
    else if (nsCRT::strcmp(aTopic, NS_LITERAL_STRING("profile-after-change").get()) == 0)
-   {
-      plugins.UnLoadAll();
-      menus.Destroy();
-      InitializePrefs(); // In case we have just switched to a newly created profile.
-      plugins.FindAndLoad("*.dll");
-        
-      // Only make a new browser window on a switch. This also gets
-      // called at start up and we already make a window then.
+   {        
+      // Only reinitialize everything if this is a profile switch, since this
+      // called at start up and we already do evenything once already
       if (!nsCRT::strcmp(someData, NS_LITERAL_STRING("switch").get())) {
+
+
+/* Unloading a plugin that has subclassed a browser window crashes us, even if the
+   subclassed window has been closed...I don't really know why, so I'll save this 
+   as something to debug later, and just not unload plugins (which will cause problems
+   when switching profiles, but since this feature caused kmeleon .4 to crash and *nobody*
+   submitted a bug report, I have a feeling this isn't a commonly used feature.
+*/
+//         plugins.UnLoadAll();
+         menus.Destroy();
+         InitializePrefs();
+         plugins.FindAndLoad("*.dll");         
+         
          CBrowserFrame* browser;
          browser = CreateNewBrowserFrame();
 
