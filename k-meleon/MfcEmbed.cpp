@@ -119,8 +119,8 @@ BOOL CMfcEmbedApp::InitInstance()
 
   plugins.FindAndLoad("kmeleon_*.dll");
 
-  if (!menus.Load(preferences.settingsDir + "menus.txt")){
-    MessageBox(NULL, "Ack! Could not find Menus.txt!", NULL, 0);
+  if (!menus.Load(preferences.settingsDir + "menus.cfg")){
+    MessageBox(NULL, "Ack! Could not find menus.cfg!", NULL, 0);
   }
 
   if(!CreateHiddenWindow())
