@@ -99,6 +99,7 @@ BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
 	ON_COMMAND(ID_NAV_HOME, OnNavHome)
 	ON_COMMAND(ID_NAV_RELOAD, OnNavReload)
 	ON_COMMAND(ID_NAV_FORCE_RELOAD, OnNavForceReload)
+    ON_COMMAND(ID_FILE_SAVE_FRAME_AS, OnFileSaveFrameAs)
 	ON_COMMAND(ID_NAV_STOP, OnNavStop)
 	ON_COMMAND(ID_EDIT_CUT, OnCut)
 	ON_COMMAND(ID_EDIT_COPY, OnCopy)
@@ -871,6 +872,24 @@ void CBrowserView::OnFileSaveAs()
         return;
  
     URISaveAs(currentURI, TRUE);
+}
+
+void CBrowserView::OnFileSaveFrameAs()
+{
+    if(! mCtxMenuCurrentFrameURL.Length())
+        return;
+
+    // Try to get the file name part from the URL
+    // To do that we first construct an obj which supports
+    // nsIRUI interface. Makes it easy to extract portions
+    // of a URL like the filename, scheme etc. + We'll also
+    // use it while saving this link to a file
+    nsresult rv   = NS_OK;
+    nsCOMPtr<nsIURI> frameURI;
+    rv = NS_NewURI(getter_AddRefs(frameURI), mCtxMenuCurrentFrameURL);
+    if(NS_FAILED(rv))
+        return;
+    URISaveAs(frameURI, TRUE);
 }
 
 void CBrowserView::OnCopyImageLocation()

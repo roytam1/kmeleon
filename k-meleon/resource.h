@@ -229,7 +229,6 @@
 #define ID_NAV_STOP                     32776
 #define ID_NAV_RELOAD                   32777
 #define ID_NAV_SEARCH                   32778
-#define ID_NAV_FORCE_RELOAD             32779
 #define ID_EDIT_SELECT_NONE             32781
 #define ID_NEW_BROWSER                  32782
 #define ID_VIEW_SOURCE                  32783
@@ -263,6 +262,8 @@
 #define ID_LINK_KMELEON_FAQ             32811
 #define ID_LINK_KMELEON_MANUAL          32812
 #define ID_LINK_ABOUT_PLUGINS           32813
+#define ID_NAV_FORCE_RELOAD             32814
+#define ID_FILE_SAVE_FRAME_AS           32815
 #define IDS_FAILED_TO_CREATE_BROWSER    61204
 #define IDS_NEW_PLUGIN_FOUND            61205
 #define IDS_PLUGIN_NO_OPTIONS           61206

@@ -182,6 +182,7 @@ protected:
    afx_msg void OnSelectUrl();
 	afx_msg void OnFileOpen();
 	afx_msg void OnFileSaveAs();
+	afx_msg void OnFileSaveFrameAs();
    afx_msg void OnFileClose();
 	afx_msg void OnViewSource();
 	afx_msg void OnViewInfo();
