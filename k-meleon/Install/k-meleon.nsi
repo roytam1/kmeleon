@@ -38,7 +38,7 @@ File plugins\*
 SetOutPath $INSTDIR\res
 File res\*
 SetOutPath $INSTDIR\res\builtin
-File res\builtin
+File res\builtin\*
 
 Section "Start Menu and Desktop Icons"
 SectionIn 1
