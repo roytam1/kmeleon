@@ -270,6 +270,8 @@ void DoMenu(HMENU menu, char *param){
     AppendMenu(menu, MF_STRING, nEditCommand, "&Edit Favorites");
     return;
   }
+  m_iInternetShortcutIcon = -1;
+
 	m_menuFavorites.Attach(menu);
 
 	BuildFavoritesMenu(szPath, 0, &m_menuFavorites);
@@ -357,6 +359,13 @@ extern "C" {
 
 KMELEON_PLUGIN kmeleonPlugin *GetKmeleonPlugin() {
   return &kPlugin;
+}
+
+KMELEON_PLUGIN int DrawBitmap(DRAWITEMSTRUCT *dis) {
+  if (dis->itemID >= nFirstFavoriteCommand && dis->itemID < (nFirstFavoriteCommand + MAX_FAVORITES)){
+    ImageList_Draw(m_himSystem, m_iInternetShortcutIcon, dis->hDC, dis->rcItem.left, dis->rcItem.top, ILD_TRANSPARENT);
+  }
+  return 16;
 }
 
 }

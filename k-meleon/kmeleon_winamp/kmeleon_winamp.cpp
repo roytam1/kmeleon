@@ -28,8 +28,6 @@
 #define KMELEON_PLUGIN_EXPORTS
 #include "../kmeleon_plugin.h"
 
-HMENU mainMenu = NULL;
-
 BOOL APIENTRY DllMain( HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved )
 {
   switch (ul_reason_for_call)
@@ -67,8 +65,7 @@ kmeleonPlugin kPlugin = {
   &pFunc
 };
 
-HBITMAP prevBmp;
-HBITMAP nextBmp;
+HIMAGELIST himlHot;
 
 UINT commandIDs;
 
@@ -87,14 +84,7 @@ int Init(){
   // allocate some ids
   commandIDs = kPlugin.kf->GetCommandIDs(numCommands);
 
-  mainMenu = CreateMenu();
-
-  AppendMenu(mainMenu, MF_STRING, commandIDs + 1, "Play");
-  AppendMenu(mainMenu, MF_STRING, commandIDs + 2, "Pause");
-  AppendMenu(mainMenu, MF_STRING, commandIDs + 3, "Stop");
-  AppendMenu(mainMenu, MF_SEPARATOR, 0, "-");
-  AppendMenu(mainMenu, MF_STRING, commandIDs + 0, "Previous");
-  AppendMenu(mainMenu, MF_STRING, commandIDs + 4, "Next");
+  himlHot = ImageList_LoadImage(kPlugin.hDllInstance, MAKEINTRESOURCE(IDB_TOOLBAR_BUTTONS), 12, numCommands, CLR_DEFAULT, IMAGE_BITMAP, LR_DEFAULTCOLOR );
 
   return true;
 }
@@ -114,14 +104,16 @@ void Config(HWND parent){
 }
 
 void Quit(){
-  DestroyMenu(mainMenu);
-
-  DeleteObject(prevBmp);
-  DeleteObject(nextBmp);
+  ImageList_Destroy(himlHot);
 }
 
 void DoMenu(HMENU menu, char *param){
-  AppendMenu(menu, MF_POPUP | MF_STRING, (UINT)mainMenu, param);
+  AppendMenu(menu, MF_STRING, commandIDs + 1, "Play");
+  AppendMenu(menu, MF_STRING, commandIDs + 2, "Pause");
+  AppendMenu(menu, MF_STRING, commandIDs + 3, "Stop");
+  AppendMenu(menu, MF_SEPARATOR, 0, "-");
+  AppendMenu(menu, MF_STRING, commandIDs + 0, "Previous");
+  AppendMenu(menu, MF_STRING, commandIDs + 4, "Next");
 }
 
 void DoRebar(HWND rebarWnd){
@@ -163,8 +155,6 @@ void DoRebar(HWND rebarWnd){
   }
 
   //SetWindowText(hwndTB, "Winamp");
-
-  HIMAGELIST himlHot = ImageList_LoadImage(kPlugin.hDllInstance, MAKEINTRESOURCE(IDB_TOOLBAR_BUTTONS), 12, numCommands, CLR_DEFAULT, IMAGE_BITMAP, LR_DEFAULTCOLOR );
 
   SendMessage(hwndTB, TB_SETHOTIMAGELIST, 0, (LPARAM)himlHot);
 
@@ -217,6 +207,12 @@ extern "C" {
 
 KMELEON_PLUGIN kmeleonPlugin *GetKmeleonPlugin() {
   return &kPlugin;
+}
+
+KMELEON_PLUGIN int DrawBitmap(DRAWITEMSTRUCT *dis) {
+  short position = dis->itemID - commandIDs;
+  ImageList_Draw(himlHot, position, dis->hDC, dis->rcItem.left, dis->rcItem.top, ILD_TRANSPARENT);
+  return 14;
 }
 
 }
