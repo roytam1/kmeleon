@@ -38,6 +38,7 @@ static CBookmarkNode *freeNode, *freeParentNode;
 static BOOL bookmarksEdited;
 static HWND hEditWnd;
 static BOOL bDragging;
+static BOOL bTracking;
 static HCURSOR hCursorDrag;
 
 static HTREEITEM hTBitem;   // current toolbar folder treeview item
@@ -109,7 +110,7 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
          hasFocus == GetDlgItem(hEditWnd, IDCANCEL)))
       return  CallNextHookEx(NULL, nCode, wParam, lParam);
 
-   if (wParam == VK_ESCAPE) {
+   if (wParam == VK_ESCAPE && !bTracking) {
       fEatKeystroke = true;
       SendMessage(GetDlgItem(hEditWnd, IDCANCEL), BM_CLICK, 0, 0);
    }
@@ -1314,7 +1315,9 @@ static void OnRClick(HWND hTree)
       minfo.cch = strlen((char*)minfo.dwTypeData);
       SetMenuItemInfo(contextMenu, ID__ZOOM, FALSE, (LPMENUITEMINFO) &minfo);
       
+      bTracking = TRUE;
       int command = TrackPopupMenu(contextMenu, TPM_RIGHTBUTTON | TPM_LEFTALIGN | TPM_RETURNCMD, mouse.x, mouse.y, 0, hTree, NULL);
+      bTracking = FALSE;
 
       switch (command) {
       case ID__OPEN:
