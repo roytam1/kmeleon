@@ -45,12 +45,13 @@
 
 static BOOL bRebarEnabled  =   1;
 static char szTitle[MAX_PATH > 256 ? MAX_PATH : 256] = "Layers:";
-static int  nButtonMinWidth   =  35;
-static int  nButtonMaxWidth   =  75;
+static int  nButtonMinWidth   =  10;
+static int  nButtonMaxWidth   =  35;
 static BOOL bButtonNumbers =   0;
 static BOOL nButtonStyle   =   2;
 static BOOL bCloseWindow   =   0;
-static BOOL bCatchWindow   =   0;
+static BOOL bCatchOpenWindow   =   0;
+static BOOL bCatchCloseWindow   =   0;
 
 #define BS_GRAYED  1
 #define BS_PRESSED 2
@@ -61,12 +62,15 @@ static BOOL bCatchWindow   =   0;
 #define PREFERENCE_SETTINGS_DIR  _T("kmeleon.general.settingsDir")
 #define PREFERENCE_REBAR_ENABLED _T("kmeleon.plugins.layers.rebar")
 #define PREFERENCE_REBAR_TITLE   _T("kmeleon.plugins.layers.title")
+#define PREFERENCE_BUTTON_WIDTH  _T("kmeleon.plugins.layers.width")
 #define PREFERENCE_BUTTON_MINWIDTH  _T("kmeleon.plugins.layers.minWidth")
 #define PREFERENCE_BUTTON_MAXWIDTH  _T("kmeleon.plugins.layers.maxWidth")
 #define PREFERENCE_BUTTON_NUMBER _T("kmeleon.plugins.layers.numbers")
 #define PREFERENCE_BUTTON_STYLE  _T("kmeleon.plugins.layers.style")
 #define PREFERENCE_CLOSE_WINDOW  _T("kmeleon.plugins.layers.close")
 #define PREFERENCE_CATCH_WINDOW  _T("kmeleon.plugins.layers.catch")
+#define PREFERENCE_CATCHOPEN_WINDOW  _T("kmeleon.plugins.layers.catchOpen")
+#define PREFERENCE_CATCHCLOSE_WINDOW  _T("kmeleon.plugins.layers.catchClose")
 
 
 BOOL APIENTRY DllMain (
@@ -345,7 +349,13 @@ void CondenseMenuText(char *buf, char *title, int index) {
 }
 
 
+int nHSize, nHRes;
+
 int Init(){
+   HDC hdcScreen = CreateDC("DISPLAY", NULL, NULL, NULL); 
+   nHSize = GetDeviceCaps(hdcScreen, HORZSIZE);
+   nHRes = GetDeviceCaps(hdcScreen, HORZRES);
+
    id_layer = kPlugin.kFuncs->GetCommandIDs(MAX_LAYERS);
    
    id_open_new_layer = kPlugin.kFuncs->GetCommandIDs(1);
@@ -367,11 +377,16 @@ int Init(){
    kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_REBAR_ENABLED, &bRebarEnabled, &bRebarEnabled);
    kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_REBAR_TITLE, &szTitle, &szTitle);
    kPlugin.kFuncs->GetPreference(PREF_INT,  PREFERENCE_BUTTON_MINWIDTH, &nButtonMinWidth, &nButtonMinWidth);
+   kPlugin.kFuncs->GetPreference(PREF_INT,  PREFERENCE_BUTTON_WIDTH, &nButtonMaxWidth, &nButtonMaxWidth);
+   nButtonMaxWidth = nButtonMaxWidth > 0 ? nButtonMaxWidth * nHSize / nHRes : nButtonMaxWidth;
    kPlugin.kFuncs->GetPreference(PREF_INT,  PREFERENCE_BUTTON_MAXWIDTH, &nButtonMaxWidth, &nButtonMaxWidth);
    kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_BUTTON_NUMBER, &bButtonNumbers, &bButtonNumbers);
    kPlugin.kFuncs->GetPreference(PREF_INT, PREFERENCE_BUTTON_STYLE, &nButtonStyle, &nButtonStyle);
    kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_CLOSE_WINDOW, &bCloseWindow, &bCloseWindow);
-   kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_CATCH_WINDOW, &bCatchWindow, &bCatchWindow);
+   kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_CATCH_WINDOW, &bCatchOpenWindow, &bCatchOpenWindow);
+   bCatchCloseWindow = bCatchOpenWindow;
+   kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_CATCHOPEN_WINDOW, &bCatchOpenWindow, &bCatchOpenWindow);
+   kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_CATCHCLOSE_WINDOW, &bCatchCloseWindow, &bCatchCloseWindow);
    
    return true;
 }
@@ -409,8 +424,8 @@ void Create(HWND parent){
       PostMessage(parent, WM_COMMAND, id_resize, (LPARAM)&gwpOld);
    }
    
-   kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_CATCH_WINDOW, &bCatchWindow, &bCatchWindow);
-   if (bCatchWindow) {
+   kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_CATCHOPEN_WINDOW, &bCatchOpenWindow, &bCatchOpenWindow);
+   if (bCatchOpenWindow) {
       if (!bBack || !ghParent || !found)
          ghParent = parent;
    }
@@ -418,7 +433,7 @@ void Create(HWND parent){
       ghParent = NULL;
    pNewLayer = find_layer(parent);
    bBack = bFront = 0;
-   bLayer = bCatchWindow;
+   bLayer = bCatchOpenWindow;
 }
 
 // Preferences Dialog function
@@ -598,19 +613,22 @@ void BuildRebar(HWND hWndTB, HWND hWndParent)
    kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_BUTTON_NUMBER, &bButtonNumbers, &bButtonNumbers);
    kPlugin.kFuncs->GetPreference(PREF_INT, PREFERENCE_BUTTON_STYLE, &nButtonStyle, &nButtonStyle);
    
+   int nMinWidth = nButtonMinWidth > 0 ? nButtonMinWidth * nHRes / nHSize : nButtonMinWidth;
+   int nMaxWidth = nButtonMaxWidth > 0 ? nButtonMaxWidth * nHRes / nHSize : nButtonMaxWidth;
+
    SetWindowText(hWndTB, "");
    
    // SendMessage(hWndTB, TB_SETEXTENDEDSTYLE, 0, TBSTYLE_EX_DRAWDDARROWS);
    SendMessage(hWndTB, TB_SETIMAGELIST, 0, (LPARAM)NULL);
    struct frame *pFrame = find_frame(hWndParent);
    if (!pFrame) {
-     SendMessage(hWndTB, TB_SETBUTTONWIDTH, 0, MAKELONG(nButtonMaxWidth >= 0 ? nButtonMaxWidth : 0, nButtonMaxWidth >= 0 ? nButtonMaxWidth : 0));
+     SendMessage(hWndTB, TB_SETBUTTONWIDTH, 0, MAKELONG(nMaxWidth >= 0 ? nMaxWidth : 0, nMaxWidth >= 0 ? nMaxWidth : 0));
       addRebarButton(hWndTB, "K-Meleon", 0, 0);
       return;
    }
 
    int width = 0;
-   if (nButtonMaxWidth > 0) {
+   if (nMaxWidth > 0) {
      RECT rect;
      GetWindowRect(hWndTB,&rect);
      width = rect.right - rect.left;
@@ -624,19 +642,19 @@ void BuildRebar(HWND hWndTB, HWND hWndParent)
      
      if (i)
        width = width / i;
-     if (width > nButtonMaxWidth) width = nButtonMaxWidth;
-     if (width < nButtonMinWidth) width = nButtonMinWidth;
+     if (width > nMaxWidth) width = nMaxWidth;
+     if (width < nMinWidth) width = nMinWidth;
    }
 
    SendMessage(hWndTB, TB_SETBUTTONWIDTH, 0, 
-               MAKELONG(nButtonMaxWidth >= 0 ? width : 0, 
-                        nButtonMaxWidth >= 0 ? width : 0));
+               MAKELONG(nMaxWidth >= 0 ? width : 0, 
+                        nMaxWidth >= 0 ? width : 0));
    
    if (pFrame) {
       struct layer *pLayer = pFrame->layer;
       int i = 0;
       while (pLayer && i<MAX_LAYERS) {
-         int nTextLength = nButtonMaxWidth < 0 ? -nButtonMaxWidth : 256;
+         int nTextLength = nMaxWidth < 0 ? -nMaxWidth : 256;
          nTextLength = nTextLength > 4 ? nTextLength : 4;
          char *buf = new char[nTextLength + 1];
          buf[0] = 0;
@@ -647,18 +665,18 @@ void BuildRebar(HWND hWndTB, HWND hWndParent)
             len = strlen(buf);
          }
          
-         if (nButtonMaxWidth) {
+         if (nMaxWidth) {
             kmeleonDocInfo *dInfo = kPlugin.kFuncs->GetDocInfo(pLayer->hWnd);
             if (dInfo && dInfo->title) {
                strcat(buf, " ");
                len++;
-               if (nButtonMaxWidth<0 && 
-                   strlen(dInfo->title) < (UINT)((-nButtonMaxWidth) < 3 ? 3 : (-nButtonMaxWidth))) {
+               if (nMaxWidth<0 && 
+                   strlen(dInfo->title) < (UINT)((-nMaxWidth) < 3 ? 3 : (-nMaxWidth))) {
                   strcat(buf, dInfo->title);
                }
                else {
                   strncat(buf, dInfo->title, nTextLength - len);
-                  if (nButtonMaxWidth < 0) {
+                  if (nMaxWidth < 0) {
                      buf[nTextLength - 2] = 0;
                      strcat(buf, "...");
                   }
@@ -966,8 +984,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
             pFrame = find_frame(hWnd);
             if (pFrame) {
                bIgnore = true;
-               kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_CATCH_WINDOW, &bCatchWindow, &bCatchWindow);
-               if (bCatchWindow) {
+               kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_CATCHCLOSE_WINDOW, &bCatchCloseWindow, &bCatchCloseWindow);
+               if (bCatchCloseWindow) {
                  bDoClose = 1;
                  bCaught = 1;
                  bIgnore = false;
@@ -1035,9 +1053,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
             }
 
             else if (command == ID_VIEW_SOURCE) {
-               kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_CATCH_WINDOW, &bCatchWindow, &bCatchWindow);
+               kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_CATCHOPEN_WINDOW, &bCatchOpenWindow, &bCatchOpenWindow);
                
-               if (bCatchWindow) {
+               if (bCatchOpenWindow) {
                   ghParent = hWnd;
                   bBack = 0;
                   bLayer = 1;
@@ -1300,7 +1318,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                   pFrame->hWndLast = closebg ? 
                      (pFrame->hWndLast != hWnd ? pFrame->hWndLast : NULL) :
                      NULL;
-                  if (bCatchWindow && !newLayer)
+                  if (bCatchCloseWindow && !newLayer)
                      ghParent = pFrame->hWndFront;
                   UpdateRebarMenu( find_layer(pFrame->hWndFront) );
                   UpdateRebarMenu( find_layer(hWnd) );
