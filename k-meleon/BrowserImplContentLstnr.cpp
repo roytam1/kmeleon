@@ -92,16 +92,15 @@ CBrowserImpl::CanHandleContent(const char * aContentType,
                                     PRBool * aCanHandleContent)
 
 {
-   /*
+
    NS_ENSURE_ARG_POINTER(aDesiredContentType);
    NS_ENSURE_ARG_POINTER(aCanHandleContent);
    *aDesiredContentType = nsnull;
    *aCanHandleContent = PR_FALSE;
 
    return NS_OK;
-   */
-
-   return  NS_ERROR_NOT_IMPLEMENTED;
+ 
+//   return  NS_ERROR_NOT_IMPLEMENTED;
 
 }
 

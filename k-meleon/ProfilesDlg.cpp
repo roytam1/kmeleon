@@ -19,15 +19,17 @@ static char THIS_FILE[] = __FILE__;
 // Static Routines
 static void ValidateProfileName(const CString& profileName, CDataExchange* pDX)
 {
-    USES_CONVERSION;
+   USES_CONVERSION;
 
-    nsresult rv;
-    PRBool exists = FALSE;
+   nsresult rv;
+   PRBool exists = FALSE;
 
-    {
-        NS_WITH_SERVICE(nsIProfile, profileService, NS_PROFILE_CONTRACTID, &rv);
-        rv = profileService->ProfileExists(T2W(profileName), &exists);
-    }
+   {
+      nsCOMPtr<nsIProfile> profileService = 
+         do_GetService(NS_PROFILE_CONTRACTID, &rv);
+
+      rv = profileService->ProfileExists(T2W(profileName), &exists);
+   }
 
     if (NS_SUCCEEDED(rv) && exists)
     {
@@ -181,10 +183,11 @@ BOOL CProfilesDlg::OnInitDialog()
     nsCAutoString   cStr;        
     nsXPIDLString   curProfileName;
 
-    // Fill the list of profiles
-    nsresult rv;
-    NS_WITH_SERVICE(nsIProfile, profileService, NS_PROFILE_CONTRACTID, &rv);
-    profileService->GetCurrentProfile(getter_Copies(curProfileName));
+   // Fill the list of profiles
+   nsresult rv;
+   nsCOMPtr<nsIProfile> profileService = 
+      do_GetService(NS_PROFILE_CONTRACTID, &rv);
+   profileService->GetCurrentProfile(getter_Copies(curProfileName));
 
     PRInt32     selectedRow = 0;
     PRUint32    listLen;
@@ -218,7 +221,8 @@ void CProfilesDlg::OnNewProfile()
     {
         nsresult rv;
 
-        NS_WITH_SERVICE(nsIProfile, profileService, NS_PROFILE_CONTRACTID, &rv);
+         nsCOMPtr<nsIProfile> profileService = 
+            do_GetService(NS_PROFILE_CONTRACTID, &rv);
         ASSERT(NS_SUCCEEDED(rv));
         if (NS_SUCCEEDED(rv))
         {
@@ -253,7 +257,8 @@ void CProfilesDlg::OnRenameProfile()
 
         nsresult rv;
 
-        NS_WITH_SERVICE(nsIProfile, profileService, NS_PROFILE_CONTRACTID, &rv);
+         nsCOMPtr<nsIProfile> profileService = 
+            do_GetService(NS_PROFILE_CONTRACTID, &rv);
         ASSERT(NS_SUCCEEDED(rv));
         if (NS_SUCCEEDED(rv))
         {
@@ -273,11 +278,12 @@ void CProfilesDlg::OnDeleteProfile()
     CString selectedProfile;
     m_ProfileList.GetText(itemIndex, selectedProfile);
     
-    nsresult rv;
-    NS_WITH_SERVICE(nsIProfile, profileService, NS_PROFILE_CONTRACTID, &rv);
-    ASSERT(NS_SUCCEEDED(rv));
-    if (NS_SUCCEEDED(rv))
-    {
+   nsresult rv;
+   nsCOMPtr<nsIProfile> profileService = 
+      do_GetService(NS_PROFILE_CONTRACTID, &rv);
+   ASSERT(NS_SUCCEEDED(rv));
+   if (NS_SUCCEEDED(rv))
+   {
         USES_CONVERSION;
 
         rv = profileService->DeleteProfile(T2W(selectedProfile), PR_TRUE);

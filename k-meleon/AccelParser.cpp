@@ -139,7 +139,7 @@ int CAccelParser::Load(CString &filename){
 
                kmeleonPlugin * kPlugin = theApp.plugins.Load(e);
 
-               if (!kPlugin || kPlugin->loaded) {
+               if (kPlugin && kPlugin->loaded) {
                   if (kPlugin->pf->DoAccel) {
                      command = kPlugin->pf->DoAccel(parameter);
                      LOG_2("Called plugin %s with parameter %s", e, parameter);

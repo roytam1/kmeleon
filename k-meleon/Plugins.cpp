@@ -111,10 +111,10 @@ void NavigateTo(char *url, int windowState){
       mainFrame->m_wndBrowserView.OpenURL(url);
       break;
    case OPEN_NEW:
-      mainFrame->m_wndBrowserView.OpenURLInNewWindow(NS_ConvertASCIItoUCS2(url).GetUnicode());
+      mainFrame->m_wndBrowserView.OpenURLInNewWindow(NS_ConvertASCIItoUCS2(url).get());
       break;
    case OPEN_BACKGROUND:
-      mainFrame->m_wndBrowserView.OpenURLInNewWindow(NS_ConvertASCIItoUCS2(url).GetUnicode(), true);
+      mainFrame->m_wndBrowserView.OpenURLInNewWindow(NS_ConvertASCIItoUCS2(url).get(), true);
       break;
    }
 }

@@ -253,13 +253,14 @@ HRESULT CBrowserView::CreateBrowser()
   mWebNav->LoadURI(NS_ConvertASCIItoUCS2("chrome://embed/content/simple-shell.xul"), nsIWebNavigation::LOAD_FLAGS_NONE);
   */
 
-  
+
+   /*
 	// Set up the content listeners
    nsCOMPtr<nsIURIContentListener> uriListener;
    uriListener = do_QueryInterface(NS_STATIC_CAST(nsIURIContentListener*, mpBrowserImpl));
    NS_ENSURE_TRUE(uriListener, NS_ERROR_FAILURE);
 	mWebBrowser->SetParentURIContentListener(uriListener);
-
+*/
 
    // Register the BrowserImpl object to receive progress messages
    // These callbacks will be used to update the status/progress bars
@@ -870,7 +871,7 @@ NS_IMETHODIMP CBrowserView::URISaveAs(nsIURI* aURI, bool bDocument) {
 
 void CBrowserView::OpenURL(const char* pUrl){
    if(mWebNav)
-      mWebNav->LoadURI(NS_ConvertASCIItoUCS2(pUrl).GetUnicode(), nsIWebNavigation::LOAD_FLAGS_NONE);
+      mWebNav->LoadURI(NS_ConvertASCIItoUCS2(pUrl).get(), nsIWebNavigation::LOAD_FLAGS_NONE);
 }
 
 void CBrowserView::OpenURL(const PRUnichar* pUrl) {
@@ -978,19 +979,19 @@ void CBrowserView::OnCopyLinkLocation()
 void CBrowserView::OnOpenLinkInNewWindow()
 {
 	if(mCtxMenuLinkUrl.Length())
-		OpenURLInNewWindow(mCtxMenuLinkUrl.GetUnicode());
+		OpenURLInNewWindow(mCtxMenuLinkUrl.get());
 }
 
 void CBrowserView::OnOpenLinkInBackground()
 {
 	if(mCtxMenuLinkUrl.Length())
-		OpenURLInNewWindow(mCtxMenuLinkUrl.GetUnicode(), true);
+		OpenURLInNewWindow(mCtxMenuLinkUrl.get(), true);
 }
 
 void CBrowserView::OnViewImageInNewWindow()
 {
 	if(mCtxMenuImgSrc.Length())
-		OpenURLInNewWindow(mCtxMenuImgSrc.GetUnicode());
+		OpenURLInNewWindow(mCtxMenuImgSrc.get());
 }
 
 void CBrowserView::OnSaveLinkAs() {
@@ -1162,7 +1163,7 @@ LRESULT CBrowserView::OnFindMsg(WPARAM wParam, LPARAM lParam) {
       // create the find query
       nsString searchString;
 		searchString.AssignWithConversion(theApp.preferences.findSearchStr.GetBuffer(0));
-		finder->SetSearchString(searchString.GetUnicode());
+		finder->SetSearchString(searchString.get());
       
       finder->SetMatchCase((theApp.preferences.bFindMatchCase) ? PR_TRUE : PR_FALSE);
 		finder->SetEntireWord((theApp.preferences.bFindMatchWholeWord) ? PR_TRUE : PR_FALSE);
