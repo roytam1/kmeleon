@@ -25,7 +25,7 @@ class CMenuParser {
 protected:
   CFile *menuFile;
 
-  CMenu *menu;
+  CMap<CString, LPCSTR, CMenu *, CMenu *&> menus;
 
 public:
 	CMenuParser();
@@ -35,7 +35,7 @@ public:
 
   Load(CString &filename);
 
-  CMenu *GetMenu();
+  CMenu *GetMenu(char * menuName);
 };
 
 #endif // __MENUPARSER_H__

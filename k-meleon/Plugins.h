@@ -27,7 +27,7 @@
 #include "Preferences.h"
 
 class CPlugins {
-  friend CPreferencePage;
+  friend CPreferencePagePlugins;
 
 protected:
   CMap<CString, LPCSTR, kmeleonPlugin *, kmeleonPlugin *> pluginList;
@@ -40,6 +40,9 @@ public:
   kmeleonPlugin * Load(const char *pattern);
   
   void OnCommand(UINT command);
+  int  OnUpdate(UINT command);
+
+  void DoRebars(HWND rebarWnd);
 };
 
 #endif // __PLUGINS_H__

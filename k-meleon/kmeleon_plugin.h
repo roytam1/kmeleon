@@ -26,13 +26,25 @@
 #endif
 
 typedef struct {
+  // Filled in by the plugin
 	int version;
 	char *description;
 	int (*Init)();
 	void (*Config)(HWND parent);
 	void (*Quit)();
-  HGLOBAL (*GetMenu)();
+  void (*DoMenu)(HMENU menu, char *param);
   void (*OnCommand)(UINT command);
+  // return false to disable the item
+  //int (*CommandUpdate)(UINT command);
+  void (*DoRebar)(HWND rebarWnd);
+
+  // Filled in by k-meleon
+  // this function allocates <num> successive ids for the plugin, then returns the first one.
+  // use it to get an unused command id.  this way plugins won't step on others toes.
+  UINT (*GetCommandIDs)(int num);
+  // if newWindow, open in a new window, otherwise use the current window
+  void (*NavigateTo)(char *url, int newWindow);
+
 	HINSTANCE hParentInstance;
 	HINSTANCE hDllInstance;
 } kmeleonPlugin;

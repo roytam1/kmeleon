@@ -24,44 +24,58 @@
 
 extern CKMeleonApp theApp;
 
-CPreferences::CPreferences(){
-  Init();
+CPreferences::CPreferences() {
 }
 
-CPreferences::CPreferences(CWnd* pParent /*=NULL*/)
-	: CDialog(CPreferences::IDD, pParent)
-{
-  Init();
+CPreferences::~CPreferences() {
+  if (bAutoSave)
+    Save();
 }
 
-BOOL CPreferences::Create(CWnd *pParent){
-  return false;
-}
+CPreferences::Load() {
+  bAutoSave = true;
 
-void CPreferences::Init(){
-  bStartHome = theApp.GetProfileInt(_T("General"), _T("StartHome"), 1);
-  homePage = theApp.GetProfileString(_T("General"), _T("HomePage"), "http://www.kmeleon.org");
-
-  toolbarBackground = theApp.GetProfileString(_T("Display"), _T("BackgroundImage"));
   bToolbarBackground = theApp.GetProfileInt(_T("Display"), _T("BackgroundImageEnabled"), 1);
+  toolbarBackground = theApp.GetProfileString(_T("Display"), _T("BackgroundImage"));
 
+  bStartHome = theApp.GetProfileInt(_T("General"), _T("StartHome"), 1);
+  homePage = theApp.GetProfileString(_T("General"), _T("HomePage"), _T("http://www.kmeleon.org"));
+
+  settingsDir = theApp.GetProfileString(_T("General"), _T("SettingsDir"));
+}
+
+CPreferences::Save() {
+  theApp.WriteProfileInt(_T("Display"), _T("BackgroundImageEnabled"), bToolbarBackground);
+  theApp.WriteProfileString(_T("Display"), _T("BackgroundImage"), toolbarBackground);
+
+  theApp.WriteProfileInt(_T("General"), _T("StartHome"), bStartHome);
+  theApp.WriteProfileString(_T("General"), _T("HomePage"), homePage);
+
+  theApp.WriteProfileString(_T("General"), _T("SettingsDir"), settingsDir);
+}
+
+CPreferencesDlg::CPreferencesDlg() : CDialog(IDD) {
   page = NULL;
 }
 
-void CPreferences::DoDataExchange(CDataExchange* pDX){
+BOOL CPreferencesDlg::Create(CWnd *pParent){
+  return false;
+}
+
+void CPreferencesDlg::DoDataExchange(CDataExchange* pDX){
 	CDialog::DoDataExchange(pDX);
-	//{{AFX_DATA_MAP(CPreferences)
+	//{{AFX_DATA_MAP(CPreferencesDlg)
 	DDX_Control(pDX, IDC_LIST1, m_list);
   //}}AFX_DATA_MAP
 }
 
-BEGIN_MESSAGE_MAP(CPreferences, CDialog)
-	//{{AFX_MSG_MAP(CPreferences)
+BEGIN_MESSAGE_MAP(CPreferencesDlg, CDialog)
+	//{{AFX_MSG_MAP(CPreferencesDlg)
   ON_NOTIFY(LVN_ITEMCHANGED, IDC_LIST1, OnListSelect)
   //}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
-CPreferences::OnInitDialog(){
+CPreferencesDlg::OnInitDialog(){
   CDialog::OnInitDialog();
 
   UpdateData(true);
@@ -82,12 +96,12 @@ CPreferences::OnInitDialog(){
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
-CPreferences::~CPreferences(){
+CPreferencesDlg::~CPreferencesDlg(){
   if (page)
     delete page;
 }
 
-int CPreferences::DoModal(){
+int CPreferencesDlg::DoModal(){
   int ret = CDialog::DoModal();
 
   if (page){
@@ -95,31 +109,25 @@ int CPreferences::DoModal(){
     page = NULL;
   }
 
-  theApp.WriteProfileInt(_T("Display"), _T("BackgroundImageEnabled"), bToolbarBackground);
-  theApp.WriteProfileString(_T("Display"), _T("BackgroundImage"), toolbarBackground);
-
-  theApp.WriteProfileInt(_T("General"), _T("StartHome"), bStartHome);
-  theApp.WriteProfileString(_T("General"), _T("HomePage"), homePage);
-
   return ret;
 }
 
-void CPreferences::OnOK(){
+void CPreferencesDlg::OnOK(){
   page->UpdateData();
   CDialog::OnOK();
 }
 
-void CPreferences::OnCancel(){
+void CPreferencesDlg::OnCancel(){
   CDialog::OnCancel();
 }
 
-void CPreferences::AddItem(char *text, UINT idd){
+void CPreferencesDlg::AddItem(char *text, UINT idd){
   int item = m_list.GetItemCount();
   m_list.InsertItem(item, text, 0);
   m_list.SetItemData(item, idd);
 }
 
-void CPreferences::OnListSelect(NMHDR* pNMHDR, LRESULT* pResult) {
+void CPreferencesDlg::OnListSelect(NMHDR* pNMHDR, LRESULT* pResult) {
   int item;
   POSITION pos;
   pos = m_list.GetFirstSelectedItemPosition();
@@ -133,7 +141,7 @@ void CPreferences::OnListSelect(NMHDR* pNMHDR, LRESULT* pResult) {
   ShowPage(idd);
 }
 
-void CPreferences::ShowPage(UINT idd){
+void CPreferencesDlg::ShowPage(UINT idd){
   if (page){
     if (page->idd == idd){
       return;
@@ -141,7 +149,11 @@ void CPreferences::ShowPage(UINT idd){
     page->UpdateData();
     delete page;
   }
-  page = new CPreferencePage;
+  if (idd == IDD_PREFERENCES_PLUGINS){
+    page = new CPreferencePagePlugins;
+  }else{
+    page = new CPreferencePage;
+  }
   
   page->idd = idd;
 
@@ -166,46 +178,21 @@ void CPreferences::ShowPage(UINT idd){
 BOOL CPreferencePage::OnInitDialog(){
   CDialog::OnInitDialog();
 
-  if (idd == IDD_PREFERENCES_PLUGINS){
-    CPreferences *parent = (CPreferences *)GetParent();
-    RECT rect;
-    parent->m_pluginList.SetParent(this);
-	  parent->m_pluginList.GetClientRect(&rect);
-
- 	  parent->m_pluginList.InsertColumn(0, "Blah", LVCFMT_LEFT, rect.right);
-
-    POSITION pos = theApp.plugins.pluginList.GetStartPosition();
-    kmeleonPlugin * kPlugin;
-    CString s;
-    int i=0;
-    while (pos){
-      theApp.plugins.pluginList.GetNextAssoc( pos, s, kPlugin);
-
-      int item = parent->m_pluginList.GetItemCount();
-
-      parent->m_pluginList.InsertItem(item, kPlugin->description, 0);
-    }
-    parent->m_pluginList.SetItemState(0, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
-  }
-
 	return FALSE;  // return TRUE  unless you set the focus to a control
 }
 
 void CPreferencePage::DoDataExchange(CDataExchange* pDX){
-  CPreferences *parent = (CPreferences *)GetParent();
 	CDialog::DoDataExchange(pDX);
 	//{{AFX_DATA_MAP(CPreferencePage)
   switch (idd){
     case IDD_PREFERENCES_DISPLAY:
-      DDX_Text(pDX, IDC_EDIT_TOOLBAR_BACKGROUND, parent->toolbarBackground);
-      DDX_Check(pDX, IDC_CHECK_TOOLBAR_BACKGROUND, parent->bToolbarBackground);
+      DDX_Text(pDX, IDC_EDIT_TOOLBAR_BACKGROUND, theApp.preferences.toolbarBackground);
+      DDX_Check(pDX, IDC_CHECK_TOOLBAR_BACKGROUND, theApp.preferences.bToolbarBackground);
       break;
     case IDD_PREFERENCES_GENERAL:
-      DDX_Radio(pDX, IDC_RADIO_START_BLANK, parent->bStartHome);
-      DDX_Text(pDX, IDC_EDIT_HOMEPAGE, parent->homePage);
-      break;
-    case IDD_PREFERENCES_PLUGINS:
-      DDX_Control(pDX, IDC_LIST_PLUGINS, parent->m_pluginList);
+      DDX_Radio(pDX, IDC_RADIO_START_BLANK, theApp.preferences.bStartHome);
+      DDX_Text(pDX, IDC_EDIT_HOMEPAGE, theApp.preferences.homePage);
+      DDX_Text(pDX, IDC_EDIT_SETTINGS_DIR, theApp.preferences.settingsDir);
       break;
   }
   //}}AFX_DATA_MAP
@@ -214,36 +201,77 @@ void CPreferencePage::DoDataExchange(CDataExchange* pDX){
 BEGIN_MESSAGE_MAP(CPreferencePage, CDialog)
 	//{{AFX_MSG_MAP(CPreferencePage)
 	ON_BN_CLICKED(IDC_BUTTON_BROWSE, OnBrowse)
-  ON_BN_CLICKED(IDC_BUTTON_CONFIG, OnConfig)
   //}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
 void CPreferencePage::OnBrowse() {
-  CPreferences *parent = (CPreferences *)GetParent();
-
   CFileDialog fDlg(TRUE);
   switch (idd){
     case IDD_PREFERENCES_DISPLAY:
       fDlg.m_ofn.lpstrFilter = "Bitmaps\0*.bmp\0";
       fDlg.DoModal();
-      if (parent){
-        parent->toolbarBackground = fDlg.GetPathName();
-        UpdateData(FALSE);
-      }
+      theApp.preferences.toolbarBackground = fDlg.GetPathName();
+      UpdateData(FALSE);
       break;
   }
 }
 
-void CPreferencePage::OnConfig() {
-  CPreferences *parent = (CPreferences *)GetParent();
+// these are here to cancel the effects of hitting enter/esc
+void CPreferencePage::OnOK(){
+}
 
+void CPreferencePage::OnCancel(){
+}
+
+/**/
+
+BOOL CPreferencePagePlugins::OnInitDialog(){
+  CDialog::OnInitDialog();
+
+  RECT rect;
+  m_pluginList.SetParent(this);
+	m_pluginList.GetClientRect(&rect);
+
+ 	m_pluginList.InsertColumn(0, "Blah", LVCFMT_LEFT, rect.right);
+
+  POSITION pos = theApp.plugins.pluginList.GetStartPosition();
+  kmeleonPlugin * kPlugin;
+  CString s;
+  int i=0;
+  while (pos){
+    theApp.plugins.pluginList.GetNextAssoc( pos, s, kPlugin);
+
+    int item = m_pluginList.GetItemCount();
+
+    m_pluginList.InsertItem(item, kPlugin->description, 0);
+  }
+  m_pluginList.SetItemState(0, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
+
+	return FALSE;  // return TRUE  unless you set the focus to a control
+}
+
+void CPreferencePagePlugins::DoDataExchange(CDataExchange* pDX){
+	CDialog::DoDataExchange(pDX);
+	//{{AFX_DATA_MAP(CPreferencePagePlugins)
+  DDX_Control(pDX, IDC_LIST_PLUGINS, m_pluginList);
+  //}}AFX_DATA_MAP
+}
+
+BEGIN_MESSAGE_MAP(CPreferencePagePlugins, CPreferencePage)
+	//{{AFX_MSG_MAP(CPreferencePagePlugins)
+  ON_BN_CLICKED(IDC_BUTTON_CONFIG, OnConfig)
+  //}}AFX_MSG_MAP
+END_MESSAGE_MAP()
+
+
+void CPreferencePagePlugins::OnConfig() {
   int item;
   POSITION pos;
-  pos = parent->m_pluginList.GetFirstSelectedItemPosition();
+  pos = m_pluginList.GetFirstSelectedItemPosition();
   if (!pos){
     return;
   }
-  item = parent->m_pluginList.GetNextSelectedItem(pos);
+  item = m_pluginList.GetNextSelectedItem(pos);
 
   kmeleonPlugin * kPlugin;
   CString s;
@@ -259,11 +287,4 @@ void CPreferencePage::OnConfig() {
     }
     item--;
   }
-}
-
-// these are here to cancel the effects of hitting enter/esc
-void CPreferencePage::OnOK(){
-}
-
-void CPreferencePage::OnCancel(){
 }

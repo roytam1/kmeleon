@@ -20,6 +20,11 @@
 
 #include "StdAfx.h"
 
+#include "KMeleon.h"
+#include "nsEmbedAPI.h"
+#include "MainFrm.h"
+#include "Mozilla.h"
+
 #include "Plugins.h"
 #include "kmeleon_plugin.h"
 
@@ -54,6 +59,42 @@ const char *FileNoPath(const char *filepath){
   }
 }
 
+UINT currentID = 2000;
+UINT GetCommandIDs(int num){
+  UINT freeID = currentID;
+  currentID += num;
+  return freeID;
+}
+
+int CPlugins::OnUpdate(UINT command){
+  if (command >= 2000 && command <= currentID){
+    return true;
+  }
+  return false;
+}
+
+//  TODO: when a plugin calls GetCommandIDs, register it, then only send them those messages
+void CPlugins::OnCommand(UINT command){
+  if (!OnUpdate(command)){
+    return;
+  }
+  POSITION pos = pluginList.GetStartPosition();
+  kmeleonPlugin * kPlugin;
+  CString s;
+  while (pos){
+    pluginList.GetNextAssoc( pos, s, kPlugin);
+    if (kPlugin && kPlugin->OnCommand){
+      kPlugin->OnCommand(command);
+    }
+  }
+}
+
+void NavigateTo(char *url, int newWindow){
+  CString CStringUrl(url);
+  CMainFrame *mainFrame = (CMainFrame *)theApp.m_pMainWnd->GetActiveWindow();
+  ((CMozilla *)(mainFrame->GetActiveView()))->Navigate(&CStringUrl);
+}
+
 kmeleonPlugin * CPlugins::Load(const char *file){
   kmeleonPlugin * kPlugin;
   if (pluginList.Lookup(FileNoPath(file), kPlugin)){
@@ -77,6 +118,9 @@ kmeleonPlugin * CPlugins::Load(const char *file){
 
   kPlugin->hParentInstance = AfxGetInstanceHandle();
   kPlugin->hDllInstance = plugin;
+
+  kPlugin->GetCommandIDs = GetCommandIDs;
+  kPlugin->NavigateTo = NavigateTo;
 
   kPlugin->Init();
 
@@ -102,15 +146,14 @@ int CPlugins::FindAndLoad(char *pattern = "*.dll"){
   return i;
 }
 
-void CPlugins::OnCommand(UINT command){
+void CPlugins::DoRebars(HWND rebarWnd){
   POSITION pos = pluginList.GetStartPosition();
   kmeleonPlugin * kPlugin;
   CString s;
   while (pos){
     pluginList.GetNextAssoc( pos, s, kPlugin);
-    if (kPlugin && kPlugin->OnCommand){
-      kPlugin->OnCommand(command);
+    if (kPlugin && kPlugin->DoRebar){
+      kPlugin->DoRebar(rebarWnd);
     }
   }
 }
-

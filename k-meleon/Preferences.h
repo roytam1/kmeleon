@@ -33,7 +33,6 @@ protected:
   virtual BOOL OnInitDialog();
 
   afx_msg void OnBrowse();
-  afx_msg void OnConfig();
 
   virtual void OnOK();
   virtual void OnCancel();
@@ -41,28 +40,33 @@ protected:
   DECLARE_MESSAGE_MAP()
 };
 
-class CPreferences : public CDialog{
+class CPreferencePagePlugins : public CPreferencePage {
+protected:
+  CListCtrl m_pluginList;
+
+  virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV support
+
+  virtual BOOL OnInitDialog();
+
+  afx_msg void OnConfig();
+
+  DECLARE_MESSAGE_MAP()
+};
+
+
+class CPreferencesDlg : public CDialog{
+  friend CPreferencePage;
 protected:
   //{{AFX_DATA(CPreferences)
 	enum { IDD = IDD_PREFERENCES };
   CListCtrl	m_list;
   //}}AFX_DATA
 
-  CListCtrl m_pluginList;
-
   CPreferencePage *page;
 
 public:
-  // the filename
-  CString toolbarBackground;
-  int bToolbarBackground;
-
-  CString homePage;
-  int bStartHome;
-
-  CPreferences(CWnd* pParent /*=NULL*/);
-  CPreferences();
-  ~CPreferences();
+  CPreferencesDlg();
+  ~CPreferencesDlg();
 
   int DoModal();
 
@@ -88,8 +92,30 @@ protected:
 
   void AddItem(char *text, UINT idd);
 
-  friend CPreferencePage;
+};
 
+class CPreferences {
+public:
+  // -- data
+  CString toolbarBackground;
+  int bToolbarBackground;
+
+  CString homePage;
+  int bStartHome;
+
+  // this holds the menu.txt files
+  CString settingsDir;
+
+  // if true, will call Save on destruction
+  int bAutoSave;
+
+  // -- functions
+
+  CPreferences();
+  ~CPreferences();
+
+  Save();
+  Load();
 };
 
 #endif

@@ -25,18 +25,21 @@
 #include "MenuParser.h"
 
 CMenuParser::CMenuParser(){
-  menu = NULL;
 }
 
 CMenuParser::CMenuParser(CString &filename){
-  menu = NULL;
 	Load(filename);
 }
 
 CMenuParser::~CMenuParser(){
-  if (menu){
-    menu->DestroyMenu();
-    delete menu;
+  POSITION pos = menus.GetStartPosition();
+  CMenu *m;
+  CString s;
+  while (pos){
+    menus.GetNextAssoc( pos, s, m);
+    if (m){
+      m->DestroyMenu();
+    }
   }
 }
 
@@ -65,10 +68,6 @@ void TranslateTabs(char *buffer){
    }
 
 int CMenuParser::Load(CString &filename){
-  if (menu)
-    delete menu;
-  menu = NULL;
-
   TRY {
     menuFile = new CFile(filename, CFile::modeRead);
   }
@@ -100,14 +99,18 @@ int CMenuParser::Load(CString &filename){
     if (*p == '#'){
     }
     else if (strnicmp(p, _T("MenuDef"), 7) == 0){
+      p+=8;
       currentMenuName = NULL;
-      menu = new CMenu();
-      menu->CreateMenu();
-      currentMenu = menu;
+      currentMenu = new CMenu();
+
+      if (strstr(p, _T("Popup"))){
+        currentMenu->CreatePopupMenu();
+      }else{
+        currentMenu->CreateMenu();
+      }
+      menus[p] = currentMenu;
     }
     else if (strnicmp(p, _T(":EndMenu"), 8) == 0){
-      // there shouldn't be anything after this!
-      break;
     }
     else if (strnicmp(p, _T("Popup "), 6) == 0){
       if (currentMenuName || currentMenu){
@@ -144,18 +147,10 @@ int CMenuParser::Load(CString &filename){
         e++;
         kmeleonPlugin * kPlugin = theApp.plugins.Load(e);
         if (kPlugin) {
-          HMENU pluginMenu;
-          HGLOBAL menuData = kPlugin->GetMenu();
-          pluginMenu = LoadMenuIndirect(menuData);
-
-          if (!IsMenu(pluginMenu)){
-            ERROR_BOX_1( "Menu %s is not a menu?", p )
-          }else if (!pluginMenu){
-            ERROR_BOX_1( "Could not load menu %s", p )
+          if (kPlugin->DoMenu){
+            kPlugin->DoMenu(currentMenu->GetSafeHmenu(), p);
           }else{
-            if (!currentMenu->AppendMenu(MF_POPUP | MF_STRING, (UINT)pluginMenu, p)){
-              ERROR_BOX_1( "Could create menu %s", e )
-            }
+            ERROR_BOX_1( "plugin %s has no menu", e);
           }
         }else{
           ERROR_BOX_1( "Could not load plugin %s", e )
@@ -166,11 +161,16 @@ int CMenuParser::Load(CString &filename){
       // unknown command
     }
     else {
-      char *e = strrchr(p, '=');
-      if (e){
-        *e = 0;
-        e++;
-        currentMenu->AppendMenu(MF_STRING, atoi(e), p);
+      if (!currentMenu){
+        MessageBox(NULL, "Found Menu item with no menu!", "", 0);
+      }
+      else {
+        char *e = strrchr(p, '=');
+        if (e){
+          *e = 0;
+          e++;
+          currentMenu->AppendMenu(MF_STRING, atoi(e), p);
+        }
       }
     }
     p = strtok(NULL, "\r\n");
@@ -192,6 +192,10 @@ int CMenuParser::Load(CString &filename){
   return 1;
 }
 
-CMenu *CMenuParser::GetMenu(){
+CMenu *CMenuParser::GetMenu(char *menuName){
+  CMenu *menu;
+  if (!menus.Lookup(menuName, menu)){
+    return NULL;
+  }
 	return menu;
 }
