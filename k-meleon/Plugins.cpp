@@ -32,6 +32,7 @@ extern CMfcEmbedApp theApp;
 
 int SessionSize=0;
 char **pHistory;
+char **pHistUrl;
 kmeleonDocInfo kDocInfo;
 kmeleonPointInfo gPointInfo;
 
@@ -49,10 +50,19 @@ CPlugins::~CPlugins()
    delete gPointInfo.page;
 
    if (SessionSize) {
-      for (int i=0; i<SessionSize; i++)
+     for (int i=0; i<SessionSize; i++) {
+       if (pHistory && pHistory[i])
          delete pHistory[i];
+       if (pHistUrl && pHistUrl[i])
+          delete pHistUrl[i];
+     }
    }
-   delete pHistory;
+   if (pHistory)
+      delete pHistory;
+   if (pHistUrl)
+      delete pHistUrl;
+   pHistory = NULL;
+   pHistUrl = NULL;
 
    if (kDocInfo.url)
       delete kDocInfo.url;
@@ -90,7 +100,7 @@ UINT GetCommandIDs(int num)
 
 int CPlugins::OnUpdate(UINT command)
 {
-   if (command >= 2000 && command <= currentCmdID)
+   if (command >= PLUGIN_COMMAND_START_ID && command <= currentCmdID)
       return true;
    return false;
 }
@@ -192,53 +202,83 @@ void SetStatusBarText(const char *s) {
    theApp.m_pMostRecentBrowserFrame->m_wndStatusBar.SetPaneText(0, s);
 }
 
-int GetMozillaSessionHistory (char ***titles, int *count, int *index)
+int GetMozillaSessionHistory (char ***titles, char ***urls, int *count, int *index)
 {
    nsresult result;
    int i;
 
-	if (!theApp.m_pMostRecentBrowserFrame)	return FALSE;
-
-	nsCOMPtr<nsISHistory> h;
+   if (!theApp.m_pMostRecentBrowserFrame) return FALSE;
+   
+   nsCOMPtr<nsISHistory> h;
 
    result = theApp.m_pMostRecentBrowserFrame->m_wndBrowserView.mWebNav->GetSessionHistory(getter_AddRefs (h));
 
    if (!NS_SUCCEEDED (result) || (!h)) return FALSE;
-
+   
    h->GetCount (count);
-	h->GetIndex (index);
+   h->GetIndex (index);
 
    // Clear the previous table
    if (SessionSize) {
-      for (i=0; i<SessionSize; i++)
-         delete pHistory[i];
+      for (i=0; i<SessionSize; i++) {
+         if (pHistory && pHistory[i])
+            delete pHistory[i];
+         if (pHistUrl && pHistUrl[i])
+            delete pHistUrl[i];
+      }
    }
-
+   
    SessionSize = *count;
-
-   delete pHistory;
+   
+   if (pHistory)
+      delete pHistory;
    pHistory = new char *[SessionSize];
+   
+   nsCOMPtr<nsIHistoryEntry> he;
+   PRUnichar *title;
+   
+   if (pHistUrl)
+      delete pHistUrl;
+   pHistUrl = new char *[SessionSize];
+   
+   nsCOMPtr<nsIURI> theUri;
+   nsCString uri;
+   
+   for (i=0; i < SessionSize; i++) {
+      pHistory[i] = NULL;
+      pHistUrl[i] = NULL;
+   }
+   
+   for (i=0; i < SessionSize; i++) {
+      result = h->GetEntryAtIndex(i, PR_FALSE, getter_AddRefs (he));
+      if (!NS_SUCCEEDED(result) || (!he)) return FALSE;
+      
+      result = he->GetURI(getter_AddRefs(theUri));
+      if (!NS_SUCCEEDED(result) || (!theUri)) return FALSE;
+      
+      theUri->GetSpec(uri);
+      char *t = strdup(uri.get());
 
-	nsCOMPtr<nsIHistoryEntry> he;
-	PRUnichar *title;
-	for (i=0; i < SessionSize; i++) {
-		result = h->GetEntryAtIndex(i, PR_FALSE, getter_AddRefs (he));
-		if (!NS_SUCCEEDED(result) || (!he)) return FALSE;
-
-		result = he->GetTitle (&title);
-		if (!NS_SUCCEEDED(result) || (!title)) return FALSE;
-
-		// The title is in 16-bit unicode, this converts it to 8bit (UTF)
-		int len;
-		len = WideCharToMultiByte(CP_OEMCP, 0, title, -1, 0, 0, NULL, NULL);
-		char *s = new char[len+1];
-		len = WideCharToMultiByte(CP_OEMCP, 0, title, -1, s, len, NULL, NULL);
+      pHistUrl[i] = t;
+      
+      result = he->GetTitle (&title);
+      if (!NS_SUCCEEDED(result) || (!title)) return FALSE;
+      
+      // The title is in 16-bit unicode, this converts it to 8bit (UTF)
+      int len;
+      len = WideCharToMultiByte(CP_OEMCP, 0, title, -1, 0, 0, NULL, NULL);
+      char *s = new char[len+1];
+      len = WideCharToMultiByte(CP_OEMCP, 0, title, -1, s, len, NULL, NULL);
       s[len] = 0;
       pHistory[i] = s;
-	}
+   }
+   
+   if (titles)
+      *titles = pHistory;
+   if (urls)
+      *urls = pHistUrl;
 
-   *titles = pHistory;
-	return TRUE;
+   return TRUE;
 }
 
 void GotoHistoryIndex(UINT index)
