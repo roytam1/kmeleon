@@ -288,7 +288,7 @@ void DoRebar(HWND rebarWnd) {
       return;
    }
 
-   BuildRebar();
+   BuildRebar(ghWndTB);
 
    // Get the height of the toolbar.
    DWORD dwBtnSize = SendMessage(ghWndTB, TB_GETBUTTONSIZE, 0,0);

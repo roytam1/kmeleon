@@ -36,7 +36,7 @@ BOOL BrowseForBookmarks(char *file);
 
 void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node);
 void BuildMenu(HMENU menu, CBookmarkNode *node, BOOL isContinuation);
-void BuildRebar();
+void BuildRebar(HWND hWndTB);
 void Rebuild();
 
 #define MENU_TO_COMMAND(x) (x+SUBMENU_OFFSET)
