@@ -31,6 +31,8 @@
 #include "Preferences.h"
 #include "MenuParser.h"
 
+class CMozilla;
+
 class CMainFrame : public CFrameWnd
 {
 public:
@@ -41,21 +43,24 @@ protected: // create from serialization only
 
 // Attributes
 public:
-	HIMAGELIST          m_himSystem;
-	CSize               m_SysImageSize;
+	HIMAGELIST  m_himSystem;
+	CSize       m_SysImageSize;
 
 protected:
-	int                 m_iFolderIcon;
-	int                 m_iInternetShortcutIcon;
+	int         m_iFolderIcon;
+	int         m_iInternetShortcutIcon;
 
-	CBitmap             m_bmpBack;
+	CBitmap     m_bmpBack;
 
-	int                 m_iAnimationStarted;
+	int         m_iAnimationStarted;
 
 	//  BHarris - save old status for onMouseOut
-	CString             oldStatus;
+	CString     oldStatus;
 
-  CMenuParser         m_menuParse;
+  // true if the mozilla browser thing was created for this window
+  BOOL        m_browserCreated;
+
+  CMozilla *  m_pView;
 
 public:
 	int setupBookmarks();
@@ -107,18 +112,20 @@ protected:  // control bar embedded members
 	CBCGMenuBar		m_wndMenuBar;
 	CStatusBar		m_wndStatusBar;
 	CMainToolBar	m_wndToolBar;
-	CLinksBar		m_wndLinksBar;
-	CReBar			m_wndReBar;
+	CLinksBar	  	m_wndLinksBar;
+	CReBar		  	m_wndReBar;
 	CAnimateCtrl	m_wndAnimate;
 	CComboBoxEx		m_wndAddress;
 
-	BOOL			m_bMainToolbarMenu;
+	BOOL		    	m_bMainToolbarMenu;
 
 // Generated message map functions
 protected:
 	//{{AFX_MSG(CMainFrame)
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
-	afx_msg void OnLink1();
+  afx_msg void OnClose( );
+  afx_msg void OnActivate( UINT nState, CWnd* pWndOther, BOOL bMinimized );
+  afx_msg void OnLink1();
 	afx_msg void OnViewAddressBar();
 	afx_msg void OnUpdateViewAddressBar(CCmdUI* pCmdUI);
 	afx_msg void OnViewLinksBar();
@@ -141,13 +148,10 @@ protected:
 	afx_msg LRESULT OnHelpCustomizeToolbars(WPARAM wp, LPARAM lp);
 	afx_msg void OnNewAddress();
 	afx_msg void OnNewAddressEnter();
-	afx_msg void OnFavorite(UINT nID);
 	afx_msg void OnHistory(UINT nID);
-
-  afx_msg void OnDestroy();
-
-  afx_msg void OnGenericCommand(UINT nID);
 	DECLARE_MESSAGE_MAP()
+
+  BOOL OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERINFO* pHandlerInfo);
 };
 
 /////////////////////////////////////////////////////////////////////////////

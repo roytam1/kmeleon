@@ -68,7 +68,11 @@ NS_INTERFACE_MAP_BEGIN(WebBrowserChrome)
    NS_INTERFACE_MAP_ENTRY(nsIInterfaceRequestor)
    NS_INTERFACE_MAP_ENTRY(nsIWebBrowserChrome)
    NS_INTERFACE_MAP_ENTRY(nsIURIContentListener)
+
+   // Feb 2nd, the mozilla API changed.  when compiled with the new code switch these 2 comments
+   //NS_INTERFACE_MAP_ENTRY(nsIWebBrowserSiteWindow)
    NS_INTERFACE_MAP_ENTRY(nsIBaseWindow)
+
    NS_INTERFACE_MAP_ENTRY(nsIContextMenuListener)
    NS_INTERFACE_MAP_ENTRY(nsIWebProgressListener)  //optional
    NS_INTERFACE_MAP_ENTRY(nsIPrompt) // defined in prompt.cpp/h
@@ -306,8 +310,7 @@ WebBrowserChrome::OnStatusChange(nsIWebProgress* aWebProgress,
    return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP WebBrowserChrome::OnSecurityChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest, PRInt32 state)
-{
+NS_IMETHODIMP WebBrowserChrome::OnSecurityChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest, PRInt32 state){
    return NS_ERROR_NOT_IMPLEMENTED;
 }
 
@@ -315,31 +318,40 @@ NS_IMETHODIMP WebBrowserChrome::OnSecurityChange(nsIWebProgress *aWebProgress, n
 // WebBrowserChrome::nsIBaseWindow
 //*****************************************************************************   
 
+// When using the new mozilla code, uncomment this block:
+/*
+NS_IMETHODIMP WebBrowserChrome::GetSiteWindow(void* siteWindow){
+   NS_ENSURE_ARG_POINTER(siteWindow);
+
+   *siteWindow = mNativeWindow;
+   return NS_OK;
+}
+*/
+
+// When using the new mozilla code, comment out this block:
+///*
 NS_IMETHODIMP WebBrowserChrome::InitWindow(nativeWindow aParentNativeWindow,
    nsIWidget* parentWidget, PRInt32 x, PRInt32 y, PRInt32 cx, PRInt32 cy)   
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP WebBrowserChrome::Create()
-{
+NS_IMETHODIMP WebBrowserChrome::Create(){
    NS_ASSERTION(PR_FALSE, "You can't call this");
    return NS_ERROR_UNEXPECTED;
 }
+//*/
 
-NS_IMETHODIMP WebBrowserChrome::Destroy()
-{
-   NS_ASSERTION(PR_FALSE, "You can't call this");
-   return NS_ERROR_UNEXPECTED;
+NS_IMETHODIMP WebBrowserChrome::Destroy(){
+  //NS_ASSERTION(PR_FALSE, "You can't call this");
+  return mBaseWindow->Destroy();
 }
 
-NS_IMETHODIMP WebBrowserChrome::SetPosition(PRInt32 x, PRInt32 y)
-{
+NS_IMETHODIMP WebBrowserChrome::SetPosition(PRInt32 x, PRInt32 y){
     return mBaseWindow->SetPosition(x, y);
 }
 
-NS_IMETHODIMP WebBrowserChrome::GetPosition(PRInt32* x, PRInt32* y)
-{
+NS_IMETHODIMP WebBrowserChrome::GetPosition(PRInt32* x, PRInt32* y){
     return mBaseWindow->GetPosition(x, y);
 }
 
@@ -348,82 +360,70 @@ NS_IMETHODIMP WebBrowserChrome::SetSize(PRInt32 cx, PRInt32 cy, PRBool fRepaint)
     return mBaseWindow->SetSize(cx, cy, fRepaint);
 }
 
-NS_IMETHODIMP WebBrowserChrome::GetSize(PRInt32* cx, PRInt32* cy)
-{
+NS_IMETHODIMP WebBrowserChrome::GetSize(PRInt32* cx, PRInt32* cy){
     return mBaseWindow->GetSize(cx, cy);
 }
 
-NS_IMETHODIMP WebBrowserChrome::SetPositionAndSize(PRInt32 x, PRInt32 y, PRInt32 cx, PRInt32 cy, PRBool fRepaint)
-{
-    return mBaseWindow->SetPositionAndSize(x, y, cx, cy, fRepaint);
+NS_IMETHODIMP WebBrowserChrome::SetPositionAndSize(PRInt32 x, PRInt32 y, PRInt32 cx, PRInt32 cy, PRBool fRepaint){
+  return mBaseWindow->SetPositionAndSize(x, y, cx, cy, fRepaint);
 }
 
-NS_IMETHODIMP WebBrowserChrome::GetPositionAndSize(PRInt32* x, PRInt32* y, PRInt32* cx, PRInt32* cy)
-{
+NS_IMETHODIMP WebBrowserChrome::GetPositionAndSize(PRInt32* x, PRInt32* y, PRInt32* cx, PRInt32* cy){
     return mBaseWindow->GetPositionAndSize(x, y, cx, cy);
 }
 
-NS_IMETHODIMP WebBrowserChrome::Repaint(PRBool aForce)
-{
+///*
+NS_IMETHODIMP WebBrowserChrome::Repaint(PRBool aForce){
    return mBaseWindow->Repaint(aForce);
 }
 
-NS_IMETHODIMP WebBrowserChrome::GetParentWidget(nsIWidget** aParentWidget)
-{
+NS_IMETHODIMP WebBrowserChrome::GetParentWidget(nsIWidget** aParentWidget){
    NS_ENSURE_ARG_POINTER(aParentWidget);
 
    NS_ASSERTION(PR_FALSE, "Not Yet Implemented");
    return NS_OK;
 }
 
-NS_IMETHODIMP WebBrowserChrome::SetParentWidget(nsIWidget* aParentWidget)
-{
+NS_IMETHODIMP WebBrowserChrome::SetParentWidget(nsIWidget* aParentWidget){
    NS_ASSERTION(PR_FALSE, "You can't call this");
    return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP WebBrowserChrome::GetParentNativeWindow(nativeWindow* aParentNativeWindow)
-{
+NS_IMETHODIMP WebBrowserChrome::GetParentNativeWindow(nativeWindow* aParentNativeWindow){
    NS_ENSURE_ARG_POINTER(aParentNativeWindow);
 
    *aParentNativeWindow = mNativeWindow;
    return NS_OK;
 }
 
-NS_IMETHODIMP WebBrowserChrome::SetParentNativeWindow(nativeWindow aParentNativeWindow)
-{
+NS_IMETHODIMP WebBrowserChrome::SetParentNativeWindow(nativeWindow aParentNativeWindow){
    mNativeWindow = aParentNativeWindow;
    return NS_OK;
 }
 
-NS_IMETHODIMP WebBrowserChrome::GetVisibility(PRBool* aVisibility)
-{
+NS_IMETHODIMP WebBrowserChrome::GetVisibility(PRBool* aVisibility){
    return mBaseWindow->GetVisibility(aVisibility);
 }
 
-NS_IMETHODIMP WebBrowserChrome::SetVisibility(PRBool aVisibility)
-{   
+NS_IMETHODIMP WebBrowserChrome::SetVisibility(PRBool aVisibility){   
    return mBaseWindow->SetVisibility(aVisibility);
 }
 
-NS_IMETHODIMP WebBrowserChrome::GetMainWidget(nsIWidget** aMainWidget)
-{
+NS_IMETHODIMP WebBrowserChrome::GetMainWidget(nsIWidget** aMainWidget){
     return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP WebBrowserChrome::SetFocus()
-{
+NS_IMETHODIMP WebBrowserChrome::FocusAvailable(nsIBaseWindow* aCurrentFocus, 
+   PRBool* aTookFocus){
+  return mBaseWindow->FocusAvailable(aCurrentFocus, aTookFocus);
+}
+//*/
+
+NS_IMETHODIMP WebBrowserChrome::SetFocus(){
    return mBaseWindow->SetFocus();
 }
 
-NS_IMETHODIMP WebBrowserChrome::FocusAvailable(nsIBaseWindow* aCurrentFocus, 
-   PRBool* aTookFocus)
-{
-   return mBaseWindow->FocusAvailable(aCurrentFocus, aTookFocus);
-}
-
-NS_IMETHODIMP WebBrowserChrome::GetTitle(PRUnichar** aTitle)
-{
+NS_IMETHODIMP WebBrowserChrome::GetTitle(PRUnichar** aTitle){
    NS_ENSURE_ARG_POINTER(aTitle);
 
    *aTitle = nsnull;
@@ -431,8 +431,7 @@ NS_IMETHODIMP WebBrowserChrome::GetTitle(PRUnichar** aTitle)
    return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP WebBrowserChrome::SetTitle(const PRUnichar* aTitle)
-{
+NS_IMETHODIMP WebBrowserChrome::SetTitle(const PRUnichar* aTitle){
 	nsString toto(aTitle);
 	char *str=toto.ToNewCString();
 	parentFrame->onPageTitleChange(str);
@@ -440,42 +439,51 @@ NS_IMETHODIMP WebBrowserChrome::SetTitle(const PRUnichar* aTitle)
    return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP WebBrowserChrome::OnShowContextMenu(PRUint32 aContextFlags, nsIDOMEvent *aEvent, nsIDOMNode *aNode)
-{
+NS_IMETHODIMP WebBrowserChrome::OnShowContextMenu(PRUint32 aContextFlags, nsIDOMEvent *aEvent, nsIDOMNode *aNode){
   parentFrame->onPopup(aContextFlags);
 	return NS_OK;
 }
+
+/*
+nsresult GaleonEmbed::SetViewSourceMode (PRInt32 mode)
+{
+	nsresult result;
+
+	nsCOMPtr<nsIDocShell> DocShell;
+	result = GetDocShell (getter_AddRefs(DocShell));
+	if (NS_FAILED(result) || !DocShell) return NS_ERROR_FAILURE;
+
+	return DocShell->SetViewMode (mode);
+}
+*/
 
 //*****************************************************************************
 // WebBrowserChrome::nsIURIContentListener
 //*****************************************************************************   
 
-NS_IMETHODIMP WebBrowserChrome::OnStartURIOpen(nsIURI *aURI, const char *aWindowTarget, PRBool *aAbortOpen)
-{
-   if(mParentContentListener)
-      {
-      nsresult rv = mParentContentListener->OnStartURIOpen(aURI, aWindowTarget,
-         aAbortOpen);
+NS_IMETHODIMP WebBrowserChrome::OnStartURIOpen(nsIURI *aURI, const char *aWindowTarget, PRBool *aAbortOpen){
+   if(mParentContentListener) {
+     nsresult rv = mParentContentListener->OnStartURIOpen(aURI, aWindowTarget, aAbortOpen);
 
-      if(NS_ERROR_NOT_IMPLEMENTED != rv)
-         return rv;
-      }
+     if(NS_ERROR_NOT_IMPLEMENTED != rv)
+       return rv;
+   }
+
+   MessageBox(NULL, "OnStartURIOpen", "blah", 0);
 
    return NS_OK;
 }
-NS_IMETHODIMP WebBrowserChrome::GetProtocolHandler(nsIURI *aURI, nsIProtocolHandler **aProtocolHandler)
-{
+NS_IMETHODIMP WebBrowserChrome::GetProtocolHandler(nsIURI *aURI, nsIProtocolHandler **aProtocolHandler){
    NS_ENSURE_ARG_POINTER(aProtocolHandler);
    NS_ENSURE_ARG(aURI);
                                 
-   if(mParentContentListener)
-      {
-      nsresult rv = mParentContentListener->GetProtocolHandler(aURI,
-         aProtocolHandler);
+   if(mParentContentListener) {
+     nsresult rv = mParentContentListener->GetProtocolHandler(aURI,
+       aProtocolHandler);
 
-      if(NS_ERROR_NOT_IMPLEMENTED != rv)
-         return rv;
-      }
+     if(NS_ERROR_NOT_IMPLEMENTED != rv)
+       return rv;
+   }
    *aProtocolHandler = nsnull;
 
    return NS_OK;
@@ -547,8 +555,7 @@ NS_IMETHODIMP WebBrowserChrome::SetLoadCookie(nsISupports * aLoadCookie)
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP WebBrowserChrome::GetParentContentListener(nsIURIContentListener * *aParentListener)
-{
+NS_IMETHODIMP WebBrowserChrome::GetParentContentListener(nsIURIContentListener * *aParentListener){
    NS_ENSURE_ARG_POINTER(aParentListener);
 
    *aParentListener = mParentContentListener;
@@ -556,8 +563,7 @@ NS_IMETHODIMP WebBrowserChrome::GetParentContentListener(nsIURIContentListener *
    return NS_OK;
 }
 
-NS_IMETHODIMP WebBrowserChrome::SetParentContentListener(nsIURIContentListener * aParentListener)
-{
+NS_IMETHODIMP WebBrowserChrome::SetParentContentListener(nsIURIContentListener * aParentListener){
    // Weak Reference, don't addref
    mParentContentListener = aParentListener;
    return NS_OK;

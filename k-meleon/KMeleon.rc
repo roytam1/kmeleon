@@ -89,7 +89,6 @@ BEGIN
         MENUITEM "&Address Bar",                ID_VIEW_ADDRESS_BAR
         MENUITEM "&Links",                      ID_VIEW_LINKS_BAR
         MENUITEM SEPARATOR
-        MENUITEM "&Background Image",           ID_VIEW_BACKGROUND
         MENUITEM "Te&xt Labels",                ID_VIEW_TEXTLABELS
         MENUITEM "&Customize...",               ID_VIEW_CUSTOMIZE
     END
@@ -122,7 +121,7 @@ BEGIN
     POPUP "&File"
     BEGIN
         MENUITEM "&Open...\tCtrl+O",            ID_FILE_OPEN
-        MENUITEM "&New window\tCtrl+N",         ID_FILE_NEWWINDOW
+        MENUITEM "&New window\tCtrl+N",         32825
         MENUITEM SEPARATOR
         MENUITEM "&Print...\tCtrl+P",           ID_FILE_PRINT
         MENUITEM SEPARATOR
@@ -144,9 +143,6 @@ BEGIN
             MENUITEM "Smallest",                    ID_VIEW_FONTS_SMALLEST
         END
         MENUITEM SEPARATOR
-        MENUITEM "Sto&p\tEsc",                  ID_VIEW_STOP
-        MENUITEM "&Refresh\tF5",                ID_VIEW_REFRESH
-        MENUITEM SEPARATOR
         MENUITEM "&Customize...",               ID_VIEW_CUSTOMIZE
         MENUITEM "&Preferences...",             ID_VIEW_PREFERENCES
     END
@@ -155,6 +151,9 @@ BEGIN
         MENUITEM "&Back\tAlt+Left Arrow",       ID_GO_BACK
         MENUITEM "&Forward\tAlt+Right Arrow",   ID_GO_FORWARD
         MENUITEM SEPARATOR
+        MENUITEM "Sto&p\tEsc",                  ID_STOP
+        MENUITEM "&Refresh\tF5",                ID_REFRESH
+        MENUITEM "",                            1
         MENUITEM "&Start Page",                 ID_GO_START_PAGE
         MENUITEM "Search the &Web",             ID_GO_SEARCH_THE_WEB
     END
@@ -305,12 +304,14 @@ BEGIN
                     BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,113,23,53,10
     CONTROL         "Home Page",IDC_RADIO_START_HOME,"Button",
                     BS_AUTORADIOBUTTON,176,23,53,10
+    EDITTEXT        IDC_EDIT_SETTINGS_DIR,49,43,180,14,ES_AUTOHSCROLL
+    LTEXT           "Settings Dir:",IDC_STATIC,4,46,39,8
 END
 
 IDD_PREFERENCES_PLUGINS DIALOGEX 0, 0, 233, 154
 STYLE WS_CHILD
 EXSTYLE WS_EX_CLIENTEDGE | WS_EX_CONTROLPARENT
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     CONTROL         "List1",IDC_LIST_PLUGINS,"SysListView32",LVS_LIST | 
                     LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | 
@@ -434,6 +435,7 @@ BEGIN
         BOTTOMMARGIN, 150
         HORZGUIDE, 11
         HORZGUIDE, 28
+        HORZGUIDE, 50
     END
 
     IDD_PREFERENCES_PLUGINS, DIALOG
@@ -587,8 +589,8 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     ID_VIEW_CUSTOMIZE       "Customize toolbars ane menus.\nCustomize"
-    ID_VIEW_STOP            "Stops opening a file.\nStop"
-    ID_VIEW_REFRESH         "Refreshes the contents of the current page.\nRefresh"
+    ID_STOP                 "Stops opening a file.\nStop"
+    ID_REFRESH              "Refreshes the contents of the current page.\nRefresh"
     ID_LINK_1               "Open this page"
     ID_VIEW_FONTS_LARGEST   "Selects largest font size."
     ID_VIEW_FONTS_LARGE     "Selects large font size."
@@ -602,17 +604,6 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDS_WEB_TUTORIAL        "http://www.microsoft.com/magazine/guides/internet/"
-    IDS_ONLINE_SUPPORT      "http://www.microsoft.com/iesupport/"
-    IDS_FREE_STUFF          "http://www.microsoft.com/ie/download/"
-    IDS_GET_FASTER_INTERNET_ACCESS "http://www.microsoft.com/windows/getisdn/"
-    IDS_FREQUENTLY_ASKED_QUESTIONS 
-                            "http://www.microsoft.com/iesupport/content/faq/"
-    IDS_INTERNET_START_PAGE "http://home.microsoft.com/"
-    IDS_SEND_FEEDBACK       "http://www.microsoft.com/regwiz/regwiz.asp?finishurl=/ie/"
-    IDS_BEST_OF_THE_WEB     "http://home.microsoft.com/exploring/exploring.asp"
-    IDS_SEARCH_THE_WEB      "http://home.microsoft.com/access/allinone.asp"
-    IDS_MICROSOFT_HOME_PAGE "http://www.microsoft.com/"
     IDS_BACK                "Back"
     IDS_FORWARD             "Forward"
     IDS_STOP                "Stop"
@@ -659,7 +650,6 @@ STRINGTABLE DISCARDABLE
 BEGIN
     ID_VIEW_LINKS_BAR       "Show or hide the links bar\nToggle LinksBar"
     ID_VIEW_TEXTLABELS      "Toggle text labels on the main tollbars\nText Labels"
-    ID_VIEW_BACKGROUND      "Show or hide the background image\nToggle Background"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -707,7 +697,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "View Source",                 ID_VIEW_SOURCE
         MENUITEM SEPARATOR
-        MENUITEM "Refresh",                     ID_VIEW_REFRESH
+        MENUITEM "Refresh",                     ID_REFRESH
     END
 END
 

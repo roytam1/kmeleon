@@ -22,7 +22,7 @@ CFG=KMeleon - Win32 Debug
 !MESSAGE 
 
 # Begin Project
-# PROP AllowPerConfigDependencies 0
+# PROP AllowPerConfigDependencies 1
 # PROP Scc_ProjName ""
 # PROP Scc_LocalPath ""
 CPP=cl.exe
@@ -53,8 +53,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 /nologo /subsystem:windows /machine:I386
-# ADD LINK32 xpcom.lib baseembed_s.lib plc4.lib /nologo /subsystem:windows /machine:I386 /out:"c:/projects/mozilla/mozilla/dist/win32_o.obj/bin/k-meleon.exe" /libpath:"..\mozilla\mozilla\dist\WIN32_O.OBJ\lib" /OPT:nowin98
-# SUBTRACT LINK32 /pdb:none
+# ADD LINK32 xpcom.lib baseembed_s.lib plc4.lib /nologo /subsystem:windows /profile /map:"c:/projects/mozilla/mozilla/dist/win32_o.obj/bin/k-meleon.map" /machine:I386 /out:"c:/projects/mozilla/mozilla/dist/win32_o.obj/bin/k-meleon.exe" /libpath:"..\mozilla\mozilla\dist\WIN32_O.OBJ\lib" /OPT:nowin98
 
 !ELSEIF  "$(CFG)" == "KMeleon - Win32 Debug"
 
@@ -80,7 +79,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 xpcom.lib baseembed_s.lib /nologo /subsystem:windows /debug /machine:I386 /out:"c:/projects/mozilla/mozilla/dist/win32_o.obj/bin/k-meleon_d.exe" /pdbtype:sept /libpath:"..\mozilla\mozilla\dist\WIN32_o.OBJ\lib"
+# ADD LINK32 xpcom.lib baseembed_s.lib /nologo /subsystem:windows /profile /map:"c:/projects/mozilla/mozilla/dist/win32_o.obj/bin/k-meleon_d.map" /debug /machine:I386 /out:"c:/projects/mozilla/mozilla/dist/win32_o.obj/bin/k-meleon_d.exe" /libpath:"..\mozilla\mozilla\dist\WIN32_o.OBJ\lib"
 
 !ENDIF 
 
@@ -91,6 +90,10 @@ LINK32=link.exe
 # Begin Group "Source Files"
 
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
+# Begin Source File
+
+SOURCE=.\HiddenFrame.cpp
+# End Source File
 # Begin Source File
 
 SOURCE=.\KMeleon.cpp
@@ -152,6 +155,10 @@ SOURCE=.\WebBrowserChrome.cpp
 # Begin Group "Header Files"
 
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
+# Begin Source File
+
+SOURCE=.\HiddenFrame.h
+# End Source File
 # Begin Source File
 
 SOURCE=.\KMeleon.h
@@ -303,6 +310,10 @@ SOURCE=.\res\TOOL2.BMP
 # Begin Source File
 
 SOURCE=.\res\Toolbar.bmp
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\toolbar1.bmp
 # End Source File
 # End Group
 # Begin Source File

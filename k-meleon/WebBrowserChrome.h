@@ -27,7 +27,11 @@
 #include "nsIDocShell.h"
 #include "nsIContentViewer.h"
 #include "nsIContentViewerFile.h"
+
+// when compiling with the new code, use this line instead
+//#include "nsIWebBrowserSiteWindow.h"
 #include "nsIBaseWindow.h"
+
 #include "nsIWebNavigation.h"
 #include "nsIWebProgressListener.h"
 #include "nsIInterfaceRequestor.h"
@@ -43,7 +47,11 @@
 
 class WebBrowserChrome   : public nsIWebBrowserChrome,
                            public nsIWebProgressListener,
+
+                           // when compiling with the new code, use this line instead
+                           //public nsIWebBrowserSiteWindow
                            public nsIBaseWindow,
+
                            public nsIContextMenuListener,
                            public nsIInterfaceRequestor,
                            public nsIURIContentListener,
@@ -60,7 +68,11 @@ public:
     NS_DECL_NSIWEBBROWSERCHROME
     NS_DECL_NSIURICONTENTLISTENER
     NS_DECL_NSIWEBPROGRESSLISTENER
+
+    // when compiling with the new code, use this line instead
+    //NS_DECL_NSIWEBBROWSERSITEWINDOW
     NS_DECL_NSIBASEWINDOW
+
     NS_DECL_NSICONTEXTMENULISTENER
     NS_DECL_NSIINTERFACEREQUESTOR
 

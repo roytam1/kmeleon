@@ -66,10 +66,10 @@ BOOL CMainToolBar::RestoreOriginalstate ()
 	InsertButton (CBCGToolbarMenuButton (ID_GO_FORWARD, menuHistory, 1, str));
 
 	str.LoadString(IDS_STOP);
-	InsertButton (CBCGToolbarButton (ID_VIEW_STOP, 2, str));
+	InsertButton (CBCGToolbarButton (ID_STOP, 2, str));
 
 	str.LoadString(IDS_REFRESH);
-	InsertButton (CBCGToolbarButton (ID_VIEW_REFRESH, 3, str));
+	InsertButton (CBCGToolbarButton (ID_REFRESH, 3, str));
 
 	str.LoadString(IDS_HOME);
 	InsertButton (CBCGToolbarButton (ID_GO_START_PAGE, 4, str));

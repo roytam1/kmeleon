@@ -30,11 +30,6 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-static	CStringArray						m_astrFavoriteURLs;
-static	CMap<CString, LPCTSTR, int, int>	m_URLIcons;
-static	CMenu								m_menuFavorites;
-static int alreadyScannedBookmarks=0;
-
 static nsVoidArray sMainFrameList;
 
 /////////////////////////////////////////////////////////////////////////////
@@ -45,7 +40,9 @@ IMPLEMENT_DYNCREATE(CMainFrame, CFrameWnd)
 BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
 	//{{AFX_MSG_MAP(CMainFrame)
 	ON_WM_CREATE()
-	ON_COMMAND(ID_LINK_1, OnLink1)
+  ON_WM_CLOSE()
+  ON_WM_ACTIVATE()
+  ON_COMMAND(ID_LINK_1, OnLink1)
 	ON_COMMAND(ID_VIEW_ADDRESS_BAR, OnViewAddressBar)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_ADDRESS_BAR, OnUpdateViewAddressBar)
 	ON_COMMAND(ID_VIEW_LINKS_BAR, OnViewLinksBar)
@@ -65,10 +62,8 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
 	ON_REGISTERED_MESSAGE(BCGM_TOOLBARMENU, OnToolbarContextMenu)
 	ON_REGISTERED_MESSAGE(BCGM_CUSTOMIZEHELP, OnHelpCustomizeToolbars)
 	ON_CBN_SELENDOK(AFX_IDW_TOOLBAR + 1,OnNewAddress)
-	ON_COMMAND_RANGE(FIRST_FAVORITE_COMMAND, LAST_FAVORITE_COMMAND, OnFavorite)
 	ON_COMMAND_RANGE(FIRST_HISTORY_COMMAND, FIRST_HISTORY_COMMAND + HISTORY_LEN - 1, OnHistory)
 	ON_COMMAND(IDOK, OnNewAddressEnter)
-  ON_COMMAND_RANGE(2000, 2999, OnGenericCommand)
 END_MESSAGE_MAP()
 
 static UINT indicators[] =
@@ -88,32 +83,41 @@ CMainFrame::CMainFrame()
 	m_iFolderIcon = 0;
 	m_iInternetShortcutIcon = -1;
 	m_iAnimationStarted = 0;
+  m_browserCreated = 0;
+
 	sMainFrameList.AppendElement(this);
 }
 
-CMainFrame::~CMainFrame()
-{
+CMainFrame::~CMainFrame() {
 	sMainFrameList.RemoveElement(this);
-}
 
-void CMainFrame::OnDestroy() {
-  // reassign the main window
-  if (theApp.m_pMainWnd->m_hWnd == m_hWnd){
-    theApp.m_pMainWnd = (CMainFrame *)sMainFrameList.ElementAt(1);
-    MessageBox("Done");
+  // if we were the last window, close the application
+  if (sMainFrameList.Count() == 0){
+    theApp.m_pMainWnd->PostMessage(WM_QUIT);
+    return;
   }
-  CFrameWnd::OnDestroy();
 }
 
-int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
-{
+void CMainFrame::OnClose(){
+  // save the toolbar state
+
+  // don't quit if we are loading an document or else mozilla crashes
+  if (m_iAnimationStarted){
+    CMozilla *moz = (CMozilla *)GetActiveView();
+    moz->SendMessage(WM_COMMAND, ID_STOP);
+    Sleep(100);
+    PostMessage(WM_CLOSE, 0, 0);
+    return;
+  }
+
+  CFrameWnd::OnClose();
+}
+
+int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct){
 	if (CFrameWnd::OnCreate(lpCreateStruct) == -1)
 		return -1;
 
-  if (!theApp.preferences)
-    theApp.preferences = new CPreferences(this);
-
-	CBCGToolBar::EnableQuickCustomization ();
+	//CBCGToolBar::EnableQuickCustomization ();
 
 	LoadBackImage ();
 
@@ -148,6 +152,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	//------------------------------------
 	m_wndMenuBar.SetBarStyle (m_wndMenuBar.GetBarStyle() &
 		~(CBRS_GRIPPER | CBRS_BORDER_TOP | CBRS_BORDER_BOTTOM | CBRS_BORDER_LEFT | CBRS_BORDER_RIGHT));
+
 
 	//------------------------------
 	// Create the animation control:
@@ -241,15 +246,17 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	rbbi.cyMinChild = rectToolBar.Height();
 	rbbi.cx = rbbi.cxIdeal = rectToolBar.Width() * m_wndToolBar.GetCount ();
 	m_wndReBar.GetReBarCtrl().SetBandInfo (1, &rbbi);
-	rbbi.cxMinChild = 0;
 
 	CRect rectAddress;
 	m_wndAddress.GetEditCtrl()->GetWindowRect(&rectAddress);
 
 	rbbi.fMask = RBBIM_CHILDSIZE | RBBIM_IDEALSIZE;
 	rbbi.cyMinChild = rectAddress.Height() + 10;
+  rbbi.cxMinChild = 0;
 	rbbi.cxIdeal = 200;
 	m_wndReBar.GetReBarCtrl().SetBandInfo (3, &rbbi);
+
+  theApp.plugins.DoRebars(m_wndReBar.GetReBarCtrl().m_hWnd);
 
 	//-------------------
 	// Create status bar:
@@ -272,11 +279,6 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	m_wndLinksBar.SetBarStyle(m_wndLinksBar.GetBarStyle() |
 		CBRS_TOOLTIPS | CBRS_FLYBY);
 
-	if(!alreadyScannedBookmarks)
-	{
-		setupBookmarks();
-	}
-
 	return 0;
 }
 
@@ -285,14 +287,33 @@ BOOL CMainFrame::PreCreateWindow(CREATESTRUCT& cs)
 	if( !CFrameWnd::PreCreateWindow(cs) )
 		return FALSE;
 
-  if (m_menuParse.Load(CString("menus.txt"))){
-    cs.hMenu = m_menuParse.GetMenu()->m_hMenu;
-  }
-  else {
-    MessageBox("Ack! menus.txt is bad!");
+  // this function is actually called twice per window.
+  // the first time hInstance is 0
+  if (cs.hInstance){
+    if (theApp.menus.GetMenu("Main")){
+      cs.hMenu = theApp.menus.GetMenu("Main")->m_hMenu;
+    }
   }
 
 	return TRUE;
+}
+
+void CMainFrame::OnActivate( UINT nState, CWnd* pWndOther, BOOL bMinimized ){
+  // We can't do this in OnCreate because it's possible the active view hasn't been created yet
+  if (!m_browserCreated){
+    CMozilla *p=(CMozilla *)GetActiveView();
+
+    p->createBrowser();
+
+    if (theApp.preferences.bStartHome){
+      p->Navigate(&theApp.preferences.homePage);
+    }else{
+      p->Navigate(&(CString)_T("about:blank"));
+    }
+
+    m_browserCreated = 1;
+  }
+  CFrameWnd::OnActivate(nState, pWndOther, bMinimized);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -314,200 +335,38 @@ void CMainFrame::Dump(CDumpContext& dc) const
 /////////////////////////////////////////////////////////////////////////////
 // CMainFrame message handlers
 
-int CMainFrame::setupBookmarks()
-{
-	//-----------------------
-	// Set up Favorites menu:
-	//-----------------------
-	m_menuFavorites.CreatePopupMenu ();
+BOOL CMainFrame::OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERINFO* pHandlerInfo) {
+  if (nCode == CN_COMMAND){
+    if (!pHandlerInfo){
+      theApp.plugins.OnCommand(nID);
+    }else if (theApp.plugins.OnUpdate(nID)){
+      return true;
+    }
+  }
 
-	TCHAR           sz[MAX_PATH];
-	TCHAR           szPath[MAX_PATH];
-	HKEY            hKey;
-	DWORD           dwSize;
-
-	// find out from the registry where the favorites are located.
-	if(RegOpenKey(HKEY_CURRENT_USER, _T("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\User Shell Folders"), &hKey) != ERROR_SUCCESS)
-	{
-		TRACE0("Favorites folder not found\n");
-		return 0;
-	}
-	dwSize = sizeof(sz);
-	RegQueryValueEx(hKey, _T("Favorites"), NULL, NULL, (LPBYTE)sz, &dwSize);
-	ExpandEnvironmentStrings(sz, szPath, MAX_PATH);
-	RegCloseKey(hKey);
-
-	BuildFavoritesMenu(szPath, 0, &m_menuFavorites);
-
-	SHFILEINFO sfi;
-	m_himSystem = (HIMAGELIST)SHGetFileInfo( szPath,
-                                       0,
-                                       &sfi, 
-                                       sizeof(SHFILEINFO), 
-                                       SHGFI_SYSICONINDEX | SHGFI_SMALLICON);
-	if (m_himSystem != NULL)
-	{
-		int cx, cy;
-
-		::ImageList_GetIconSize (m_himSystem, &cx, &cy);
-		m_SysImageSize = CSize (cx, cy);
-
-		m_iFolderIcon = sfi.iIcon;
-	}
-	
-	alreadyScannedBookmarks = 1;
-	return 1;
+  return CFrameWnd::OnCmdMsg(nID, nCode, pExtra, pHandlerInfo);
 }
 
-int CMainFrame::BuildFavoritesMenu(LPCTSTR pszPath, int nStartPos, CMenu* pMenu)
-{
-	CString         strPath(pszPath);
-	CString         strPath2;
-	CString         str;
-	WIN32_FIND_DATA wfd;
-	HANDLE          h;
-	int             nPos;
-	int             nEndPos;
-	int             nNewEndPos;
-	int             nLastDir;
-	TCHAR           buf[INTERNET_MAX_PATH_LENGTH];
-	CStringArray    astrFavorites;
-	CStringArray    astrDirs;
-	CMenu*          pSubMenu;
-
-	// make sure there's a trailing backslash
-	if(strPath[strPath.GetLength() - 1] != _T('\\'))
-		strPath += _T('\\');
-	strPath2 = strPath;
-	strPath += _T("*.*");
-
-	// now scan the directory, first for .URL files and then for subdirectories
-	// that may also contain .URL files
-	h = FindFirstFile(strPath, &wfd);
-	if(h != INVALID_HANDLE_VALUE)
-	{
-		nEndPos = nStartPos;
-		do
-		{
-			if((wfd.dwFileAttributes & (FILE_ATTRIBUTE_DIRECTORY|FILE_ATTRIBUTE_HIDDEN|FILE_ATTRIBUTE_SYSTEM))==0)
-			{
-				str = wfd.cFileName;
-				if(str.Right(4).CompareNoCase(_T(".url")))
-				{
-					// an .URL file is formatted just like an .INI file, so we can
-					// use GetPrivateProfileString() to get the information we want
-					::GetPrivateProfileString(_T("InternetShortcut"), _T("URL"),
-											  _T(""), buf, INTERNET_MAX_PATH_LENGTH,
-											  strPath2 + str);
-					str = str.Left(str.GetLength() - 4);
-
-					// scan through the array and perform an insertion sort
-					// to make sure the menu ends up in alphabetic order
-					for(nPos = nStartPos ; nPos < nEndPos ; ++nPos)
-					{
-						if(str.CompareNoCase(astrFavorites[nPos]) < 0)
-							break;
-					}
-					astrFavorites.InsertAt(nPos, str);
-					m_astrFavoriteURLs.InsertAt(nPos, buf);
-
-					TCHAR ext[_MAX_EXT];
-					_tsplitpath (buf, NULL, NULL, NULL, ext);
-
-					int iIcon;
-					if (!m_URLIcons.Lookup (ext, iIcon))
-					{
-						// Retrieve icon file
-						SHFILEINFO sfi;
-						if (::SHGetFileInfo (strPath2 + wfd.cFileName, 0, &sfi, sizeof(SHFILEINFO), 
-							SHGFI_SMALLICON | SHGFI_SYSICONINDEX) &&
-							sfi.iIcon >= 0)
-						{
-							m_URLIcons.SetAt (ext, sfi.iIcon);
-
-							if (m_iInternetShortcutIcon == -1)
-							{
-								m_iInternetShortcutIcon = sfi.iIcon;
-							}
-						}
-					}
-
-					++nEndPos;
-				}
-			}
-		} while(FindNextFile(h, &wfd));
-		FindClose(h);
-		// Now add these items to the menu
-		for(nPos = nStartPos ; nPos < nEndPos ; ++nPos)
-		{
-			pMenu->AppendMenu(MF_STRING | MF_ENABLED, FIRST_FAVORITE_COMMAND + nPos, astrFavorites[nPos]);
-		}
-
-
-		// now that we've got all the .URL files, check the subdirectories for more
-		nLastDir = 0;
-		h = FindFirstFile(strPath, &wfd);
-		ASSERT(h != INVALID_HANDLE_VALUE);
-		do
-		{
-			if(wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-			{
-				// ignore the current and parent directory entries
-				if(lstrcmp(wfd.cFileName, _T(".")) == 0 || lstrcmp(wfd.cFileName, _T("..")) == 0)
-					continue;
-
-				for(nPos = 0 ; nPos < nLastDir ; ++nPos)
-				{
-					if(astrDirs[nPos].CompareNoCase(wfd.cFileName) > 0)
-						break;
-				}
-				pSubMenu = new CMenu;
-				pSubMenu->CreatePopupMenu();
-
-				// call this function recursively.
-				nNewEndPos = BuildFavoritesMenu(strPath2 + wfd.cFileName, nEndPos, pSubMenu);
-				if(nNewEndPos != nEndPos)
-				{
-					// only intert a submenu if there are in fact .URL files in the subdirectory
-					nEndPos = nNewEndPos;
-					pMenu->InsertMenu(nPos, MF_BYPOSITION | MF_POPUP | MF_STRING, (UINT)pSubMenu->m_hMenu, wfd.cFileName);
-					pSubMenu->Detach();
-					astrDirs.InsertAt(nPos, wfd.cFileName);
-					++nLastDir;
-				}
-				delete pSubMenu;
-			}
-		} while(FindNextFile(h, &wfd));
-		FindClose(h);
-	}
-	return nEndPos;
-}
-
-void CMainFrame::OnGenericCommand(UINT command) {
-  // see if any plugin wants it
-  theApp.plugins.OnCommand(command);
-}
-
-void CMainFrame::OnViewCustomize()
-{
+void CMainFrame::OnViewCustomize() {
 	//------------------------------------
 	// Create a customize toolbars dialog:
 	//------------------------------------
 	CBCGToolbarCustomize* pDlgCust = new CBCGToolbarCustomize (this,
-		TRUE /* Automatic menus scaning */
-	,	BCGCUSTOMIZE_MENU_ANIMATIONS | BCGCUSTOMIZE_TEXT_LABELS);
+		TRUE, /* Automatic menus scaning */
+		BCGCUSTOMIZE_MENU_ANIMATIONS | BCGCUSTOMIZE_TEXT_LABELS);
 
 	pDlgCust->Create ();
 }
 
 void CMainFrame::OnViewPreferences(){
-  theApp.preferences->DoModal();
+  CPreferencesDlg prefDlg;
+  prefDlg.DoModal();
+
   LoadBackImage();
   SetBackImage();
 }
 
-LRESULT CMainFrame::OnToolbarContextMenu(WPARAM wp,LPARAM lp)
-{
+LRESULT CMainFrame::OnToolbarContextMenu(WPARAM wp,LPARAM lp) {
 	m_bMainToolbarMenu = 
 		DYNAMIC_DOWNCAST (	CMainToolBar, 
 							CWnd::FromHandlePermanent ((HWND) wp)) != NULL;
@@ -526,8 +385,7 @@ LRESULT CMainFrame::OnToolbarContextMenu(WPARAM wp,LPARAM lp)
 	return 0;
 }
 
-afx_msg LRESULT CMainFrame::OnToolbarReset(WPARAM /*wp*/,LPARAM)
-{
+afx_msg LRESULT CMainFrame::OnToolbarReset(WPARAM /*wp*/,LPARAM) {
 	// TODO: reset toolbar with id = (UINT) wp to its initial state:
 	//
 	// UINT uiToolBarId = (UINT) wp;
@@ -539,8 +397,7 @@ afx_msg LRESULT CMainFrame::OnToolbarReset(WPARAM /*wp*/,LPARAM)
 	return 0;
 }
 
-LRESULT CMainFrame::OnHelpCustomizeToolbars(WPARAM wp, LPARAM lp)
-{
+LRESULT CMainFrame::OnHelpCustomizeToolbars(WPARAM wp, LPARAM lp) {
 	int iPageNum = (int) wp;
 
 	CBCGToolbarCustomize* pDlg = (CBCGToolbarCustomize*) lp;
@@ -552,54 +409,36 @@ LRESULT CMainFrame::OnHelpCustomizeToolbars(WPARAM wp, LPARAM lp)
 	return 0;
 }
 
-BOOL CMainFrame::OnShowPopupMenu (CBCGPopupMenu* pMenuPopup)
-{
-  CFrameWnd::OnShowPopupMenu (pMenuPopup);
+BOOL CMainFrame::OnShowPopupMenu (CBCGPopupMenu* pMenuPopup) {
+  CBCGFrameWnd::OnShowPopupMenu (pMenuPopup);
 
-	if (pMenuPopup == NULL)
-	{
-        return TRUE;
-    }
+	if (pMenuPopup == NULL) {
+    return TRUE;
+  }
 
 	CBCGPopupMenuBar* pMenuBar = pMenuPopup->GetMenuBar ();
 	ASSERT_VALID (pMenuBar);
 
-	for (int i = 0; i < pMenuBar->GetCount (); i ++)
-	{
+	for (int i = 0; i < pMenuBar->GetCount (); i ++) {
 		CBCGToolbarButton* pButton = pMenuBar->GetButton (i);
 		ASSERT_VALID (pButton);
-
-		if (pButton->m_nID == ID_FAVORITS_DUMMY)
-		{
-			if (CBCGToolBar::IsCustomizeMode ())
-			{
-				return FALSE;
-			}
-
-			pMenuBar->ImportFromMenu (m_menuFavorites);
-			pMenuPopup->SetMaxWidth (300);
-
-			return TRUE;
-		}
 	}
 
 	CBCGToolbarMenuButton* pParentButton = pMenuPopup->GetParentButton ();
-	if (pParentButton == NULL)
-	{
+	if (pParentButton == NULL) {
 		return TRUE;
 	}
 
-	switch (pParentButton->m_nID)
-	{
+	switch (pParentButton->m_nID) {
 	case ID_GO_BACK:
 	case ID_GO_FORWARD:
 		{
-			if (CBCGToolBar::IsCustomizeMode ())
-			{
+			if (CBCGToolBar::IsCustomizeMode ()) {
 				return FALSE;
 			}
 
-/*			CBCGIEDemoView* pView = ((CBCGIEDemoView*)GetActiveView());
+      /*
+			CBCGIEDemoView* pView = ((CBCGIEDemoView*)GetActiveView());
 			ASSERT_VALID (pView);
 
 			CBCGIEDemoDoc* pDoc = pView->GetDocument();
@@ -629,7 +468,8 @@ BOOL CMainFrame::OnShowPopupMenu (CBCGPopupMenu* pMenuPopup)
 						CBCGToolbarMenuButton (pObj->GetCommand (), NULL, -1, 
 												pObj->GetTitle ()));
 				}
-			}*/
+			}
+      */
 		}
 	}
 
@@ -640,8 +480,7 @@ BOOL CMainFrame::OnDrawMenuImage (CDC* pDC,
 								const CBCGToolbarMenuButton* pMenuButton,
 								const CRect& rectImage)
 {
-	if (m_himSystem == NULL)
-	{
+	if (m_himSystem == NULL) {
 		return FALSE;
 	}
 
@@ -650,33 +489,20 @@ BOOL CMainFrame::OnDrawMenuImage (CDC* pDC,
 
 	int iIcon = -1;
 
-	switch (pMenuButton->m_nID)
+  /*
+	if (pMenuButton->m_nID >= FIRST_FAVORITE_COMMAND &&
+		pMenuButton->m_nID <= LAST_FAVORITE_COMMAND)
 	{
-	case ID_HELP_MICROSOFT_ON_THE_WEB_FREE_STUFF:
-	case ID_HELP_MICROSOFT_ON_THE_WEB_GET_FASTER_INTERNET_ACCESS:
-	case ID_HELP_MICROSOFT_ON_THE_WEB_FREQUENTLY_ASKED_QUESTIONS:
-	case ID_HELP_MICROSOFT_ON_THE_WEB_INTERNET_START_PAGE:
-	case ID_HELP_MICROSOFT_ON_THE_WEB_SEND_FEEDBACK:
-	case ID_HELP_MICROSOFT_ON_THE_WEB_BEST_OF_THE_WEB:
-	case ID_HELP_MICROSOFT_ON_THE_WEB_SEARCH_THE_WEB:
-	case ID_HELP_MICROSOFT_ON_THE_WEB_MICROSOFT_HOME_PAGE:
-		iIcon = m_iInternetShortcutIcon;
-		break;
+		TCHAR ext[_MAX_EXT];
+		_tsplitpath (m_astrFavoriteURLs [pMenuButton->m_nID - FIRST_FAVORITE_COMMAND], NULL, NULL, NULL, ext);
 
-	default:
-		if (pMenuButton->m_nID >= FIRST_FAVORITE_COMMAND &&
-			pMenuButton->m_nID <= LAST_FAVORITE_COMMAND)
-		{
-			TCHAR ext[_MAX_EXT];
-			_tsplitpath (m_astrFavoriteURLs [pMenuButton->m_nID - FIRST_FAVORITE_COMMAND], NULL, NULL, NULL, ext);
-
-			m_URLIcons.Lookup (ext, iIcon);
-		}
-		else if (IsFavoritesMenu (pMenuButton))	// Maybe, favorits folder?
-		{
-			iIcon = m_iFolderIcon;
-		}
-	}
+    m_URLIcons.Lookup (ext, iIcon);
+  }
+  else if (IsFavoritesMenu (pMenuButton))	// Maybe, favorits folder?
+  {
+    iIcon = m_iFolderIcon;
+  }
+  */
 
 	if (iIcon == -1)
 	{
@@ -690,41 +516,9 @@ BOOL CMainFrame::OnDrawMenuImage (CDC* pDC,
 	return TRUE;
 }
 
-BOOL CMainFrame::IsFavoritesMenu (const CBCGToolbarMenuButton* pMenuButton)
-{
-	if (pMenuButton == NULL || pMenuButton->m_nID != (UINT) -1)
-	{
-		return FALSE;
-	}
-
-	ASSERT_VALID (pMenuButton);
-	const CObList& lstCommands = pMenuButton->GetCommands ();
-	
-	for (POSITION pos = lstCommands.GetHeadPosition (); pos != NULL;)
-	{
-		CBCGToolbarButton* pCmd = (CBCGToolbarButton*) lstCommands.GetNext (pos);
-		ASSERT_VALID (pCmd);
-
-		if ((pCmd->m_nID >= FIRST_FAVORITE_COMMAND &&
-			pCmd->m_nID <= LAST_FAVORITE_COMMAND) ||
-			IsFavoritesMenu (DYNAMIC_DOWNCAST (CBCGToolbarMenuButton, pCmd)))
-		{
-			return TRUE;
-		}
-	}
-
-	return FALSE;
-}
-
-void CMainFrame::OnFavorite(UINT nID)
-{
-	SetFocus ();
-	((CMozilla *)GetActiveView())->Navigate(&m_astrFavoriteURLs[nID-FIRST_FAVORITE_COMMAND]);
-}
-
-void CMainFrame::OnHistory(UINT nID)
-{
-/*	CBCGIEDemoView* pView = ((CBCGIEDemoView*)GetActiveView());
+void CMainFrame::OnHistory(UINT nID){
+  /*
+	CBCGIEDemoView* pView = ((CBCGIEDemoView*)GetActiveView());
 	ASSERT_VALID (pView);
 
 	CBCGIEDemoDoc* pDoc = pView->GetDocument();
@@ -733,32 +527,32 @@ void CMainFrame::OnHistory(UINT nID)
 	CHistoryObj* pObj = pDoc->Go (nID);
 	ASSERT (pObj != NULL);
 
-	pView->Navigate2 (pObj->GetURL (), 0, NULL);*/
+	pView->Navigate2 (pObj->GetURL (), 0, NULL);
+  */
 }
 
-void CMainFrame::SetAddress(LPCTSTR lpszUrl)
-{
+void CMainFrame::SetAddress(LPCTSTR lpszUrl){
 	m_wndAddress.SetWindowText(lpszUrl);
 }
 
-void CMainFrame::StartAnimation()
-{
+void CMainFrame::StartAnimation(){
 	m_wndAnimate.Play(0, -1, -1);
 	m_iAnimationStarted = 1;
 }
 
-void CMainFrame::StopAnimation()
-{
-	if(m_iAnimationStarted)
-	{
+void CMainFrame::StopAnimation() {
+	if(m_iAnimationStarted)	{
 		m_wndAnimate.Stop();
 		m_wndAnimate.Seek(0);
 	}
 	m_iAnimationStarted = 0;
 }
 
-void CMainFrame::OnNewAddress()
-{
+void CMainFrame::OnLink1() {
+	
+}
+
+void CMainFrame::OnNewAddress() {
 	// gets called when an item in the Address combo box is selected
 	// just navigate to the newly selected location.
 	CString str;
@@ -767,25 +561,24 @@ void CMainFrame::OnNewAddress()
 	((CMozilla *)GetActiveView())->Navigate(&str);
 }
 
-void CMainFrame::OnNewAddressEnter()
-{
+void CMainFrame::OnNewAddressEnter() {
 	// gets called when an item is entered manually into the edit box portion
 	// of the Address combo box.
 	// navigate to the newly selected location and also add this address to the
 	// list of addresses in the combo box.
-	CString str;
+	CString url;
 
   // stop current document first or bad stuff happens
-  ((CMozilla *)GetActiveView())->SendMessage(WM_COMMAND, ID_VIEW_STOP);
+  ((CMozilla *)GetActiveView())->SendMessage(WM_COMMAND, ID_STOP);
 
-	m_wndAddress.GetEditCtrl()->GetWindowText(str);
-	((CMozilla *)GetActiveView())->Navigate(&str);
+	m_wndAddress.GetEditCtrl()->GetWindowText(url);
+	((CMozilla *)GetActiveView())->Navigate(&url);
 
 	COMBOBOXEXITEM item;
 
 	item.mask = CBEIF_TEXT;
-	item.iItem = -1;
-	item.pszText = (LPTSTR)(LPCTSTR)str;
+	item.iItem = 0;
+	item.pszText = (LPTSTR)(LPCTSTR)url;
 	m_wndAddress.InsertItem(&item);
 
   m_wndAddress.GetEditCtrl()->SetSel(0,4096,TRUE);
@@ -794,14 +587,7 @@ void CMainFrame::OnNewAddressEnter()
   ((CMozilla *)GetActiveView())->SetFocus();
 }
 
-void CMainFrame::OnLink1() 
-{
-	// TODO: Add your command handler code here
-	
-}
-
-void CMainFrame::OnViewAddressBar() 
-{
+void CMainFrame::OnViewAddressBar() {
 	m_wndReBar.GetReBarCtrl().ShowBand (3, !m_wndAddress.IsWindowVisible ());
 }
 
@@ -815,27 +601,13 @@ void CMainFrame::OnViewLinksBar()
 	ShowControlBar (&m_wndLinksBar, (m_wndLinksBar.GetStyle () & WS_VISIBLE) == 0, FALSE);
 }
 
-void CMainFrame::OnUpdateViewLinksBar(CCmdUI* pCmdUI) 
-{
+void CMainFrame::OnUpdateViewLinksBar(CCmdUI* pCmdUI){
 	pCmdUI->SetCheck (m_wndLinksBar.IsWindowVisible ());
 }
 
-BOOL CMainFrame::OnMenuButtonToolHitTest (CBCGToolbarButton* pButton, TOOLINFO* pTI)
-{
+BOOL CMainFrame::OnMenuButtonToolHitTest (CBCGToolbarButton* pButton, TOOLINFO* pTI){
 	ASSERT_VALID (pButton);
-	
-	if (pButton->m_nID < FIRST_FAVORITE_COMMAND ||
-		pButton->m_nID > LAST_FAVORITE_COMMAND)
-	{
-		return FALSE;
-	}
-
 	ASSERT (pTI != NULL);
-
-	CString strText = m_astrFavoriteURLs [pButton->m_nID - FIRST_FAVORITE_COMMAND];
-
-	pTI->lpszText = (LPTSTR) ::calloc ((strText.GetLength () + 1), sizeof (TCHAR));
-	_tcscpy (pTI->lpszText, strText);
 
 	return TRUE;
 }
@@ -890,7 +662,7 @@ void CMainFrame::SetBackImage ()
 		memset (&info, 0, sizeof (REBARBANDINFO));
 		info.cbSize = sizeof (info);
 		info.fMask = RBBIM_BACKGROUND;
-		info.hbmBack = theApp.preferences->bToolbarBackground ? (HBITMAP)m_bmpBack : NULL;
+		info.hbmBack = theApp.preferences.bToolbarBackground ? (HBITMAP)m_bmpBack : NULL;
 		rc.SetBandInfo (i, &info);
 
 		CRect rectBand;
@@ -923,7 +695,7 @@ void CMainFrame::LoadBackImage ()
 	}
 
   HBITMAP hbmp;
-  if (theApp.preferences->toolbarBackground.IsEmpty()){
+  if (theApp.preferences.toolbarBackground.IsEmpty()){
     hbmp = (HBITMAP) ::LoadImage (AfxGetResourceHandle (),
 			MAKEINTRESOURCE (IDB_BACK),
 			IMAGE_BITMAP,
@@ -931,7 +703,7 @@ void CMainFrame::LoadBackImage ()
 			LR_LOADMAP3DCOLORS | LR_LOADTRANSPARENT);
 	}else{
     hbmp = (HBITMAP) ::LoadImage (AfxGetResourceHandle (),
-			theApp.preferences->toolbarBackground,
+			theApp.preferences.toolbarBackground,
 			IMAGE_BITMAP,
 			0, 0,
 			LR_LOADMAP3DCOLORS | LR_LOADFROMFILE);
@@ -951,8 +723,7 @@ BOOL CMainFrame::LoadFrame(UINT nIDResource, DWORD dwDefaultStyle, CWnd* pParent
 	return TRUE;
 }
 
-void CMainFrame::onPageTitleChange(char *title)
-{
+void CMainFrame::onPageTitleChange(char *title) {
 	char tmp[512+64];
 	strncpy(tmp,title,512);
 	tmp[512]=0;
@@ -960,8 +731,7 @@ void CMainFrame::onPageTitleChange(char *title)
 	SetWindowText(tmp);
 }
 
-void CMainFrame::onOverLink(char *link)
-{
+void CMainFrame::onOverLink(char *link) {
 	CMozilla *m=(CMozilla *)GetActiveView();
 	// BHarris - oldStatus stuff
   if(link && link[0]){
@@ -976,18 +746,15 @@ void CMainFrame::onOverLink(char *link)
 	// BH end
 }
 
-void CMainFrame::onJSStatus(char *status)
-{
+void CMainFrame::onJSStatus(char *status) {
 	SetMessageText(status);
 }
 
-void CMainFrame::onJSDefaultStatus(char *status)
-{
+void CMainFrame::onJSDefaultStatus(char *status) {
 	SetMessageText(status);
 }
 
-void CMainFrame::onSizeBrowserTo(int cx,int cy)
-{
+void CMainFrame::onSizeBrowserTo(int cx,int cy) {
 	// FUCKO:There is probably a better way of doing it
 	CMozilla *m=(CMozilla *)GetActiveView();
 	RECT rC,rM;
@@ -998,61 +765,56 @@ void CMainFrame::onSizeBrowserTo(int cx,int cy)
 	SetWindowPos(NULL,0,0,(rM.right-rC.right)+cx,(rM.bottom-rC.bottom)+cy,SWP_NOMOVE|SWP_NOZORDER);
 }
 
-void CMainFrame::onProgressChange(int percentage)
-{
+void CMainFrame::onProgressChange(int percentage) {
 	char tmp[512];
 	wsprintf(tmp,"Done: %i %%",percentage);
 	SetMessageText(tmp);
 }
 
-void CMainFrame::onPopup(int flags)
-{
+void CMainFrame::onPopup(int flags) {
 	CMozilla *m=(CMozilla *)GetActiveView();
   m->OnPopup(flags);
 }
 
-void *CMainFrame::createNewBrowser()
-{
+void *CMainFrame::createNewBrowser() {
   // FIXME: DEFINITELY have to find a better (and less buggy) way for doing this
-
+  /*
 	CSingleDocTemplate* pDocTemplate;
 	pDocTemplate = new CSingleDocTemplate(
 		IDR_MAINFRAME,
 		RUNTIME_CLASS(CKMeleonDoc),
 		RUNTIME_CLASS(CMainFrame),       // main SDI frame window
-		RUNTIME_CLASS(CMozilla));
+		RUNTIME_CLASS(CMozilla)
+    );
 	CKMeleonDoc *d=(CKMeleonDoc *)pDocTemplate->OpenDocumentFile(NULL,TRUE);
-	CMainFrame *pFrame=(CMainFrame *)sMainFrameList.ElementAt(sMainFrameList.Count()-1);
-	CMozilla *m=(CMozilla *)pFrame->GetActiveView();
-	return(m->createBrowser());
+  */
+  theApp.OnFileNew();
+  CMainFrame *pFrame=(CMainFrame *)sMainFrameList.ElementAt(sMainFrameList.Count()-1);
+  CMozilla *m=(CMozilla *)pFrame->GetActiveView();
+  return(m->createBrowser());
 }
 
 
-void CMainFrame::OnHelpWebKmeleonHome() 
-{
+void CMainFrame::OnHelpWebKmeleonHome() {
   CString c="http://kmeleon.org/";
   ((CMozilla *)GetActiveView())->Navigate(&c);
 }
 
-void CMainFrame::OnHelpWebKmeleonForum() 
-{
+void CMainFrame::OnHelpWebKmeleonForum() {
   CString c="http://kmeleon.org/forum/";
   ((CMozilla *)GetActiveView())->Navigate(&c);
 }
 
-void CMainFrame::OnGoStartPage() 
-{
-	((CMozilla *)GetActiveView())->Navigate(&theApp.preferences->homePage);
+void CMainFrame::OnGoStartPage() {
+	((CMozilla *)GetActiveView())->Navigate(&theApp.preferences.homePage);
 }
 
-void CMainFrame::OnGoSearchTheWeb() 
-{
+void CMainFrame::OnGoSearchTheWeb() {
   CString c="http://google.com/";
   ((CMozilla *)GetActiveView())->Navigate(&c);
 }
 
-void CMainFrame::OnFileNewwindow() 
-{
+void CMainFrame::OnFileNewwindow() {
   nsIWebBrowser *mNewBrowser=(nsIWebBrowser *)createNewBrowser();
 
   CString str;

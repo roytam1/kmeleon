@@ -21,6 +21,7 @@
 #include "KMeleonDoc.h"
 #include "nsEmbedAPI.h"
 #include "MainFrm.h"
+
 #include "Mozilla.h"
 
 #include "nsIDocShell.h"
@@ -53,14 +54,11 @@ CMozilla::CMozilla()
 	panning = 0;
 }
 
-CMozilla::~CMozilla()
-{
-	if(chrome) 
-	{
-		mWebNav->Stop();
-// FIXME:		mRootDocShell->StopLoad();
-// FUCKO: needs to stop all loading before calling delete otherwise it crashes
-//		delete(chrome);
+CMozilla::~CMozilla() {
+	if(chrome) {
+    // FUCKO: needs to stop all loading before calling delete otherwise it crashes
+    // right now, stopping is handled in CMainFrame::OnClose
+    delete chrome;
 	}
 }
 
@@ -73,10 +71,10 @@ BEGIN_MESSAGE_MAP(CMozilla, CWnd)
 	ON_UPDATE_COMMAND_UI(ID_GO_BACK, OnUpdateGoBack)
 	ON_COMMAND(ID_GO_FORWARD, OnGoForward)
 	ON_UPDATE_COMMAND_UI(ID_GO_FORWARD, OnUpdateGoForward)
-	ON_COMMAND(ID_VIEW_STOP, OnViewStop)
-	ON_UPDATE_COMMAND_UI(ID_VIEW_STOP, OnUpdateViewStop)
-	ON_COMMAND(ID_VIEW_REFRESH, OnViewRefresh)
-	ON_UPDATE_COMMAND_UI(ID_VIEW_REFRESH, OnUpdateViewRefresh)
+	ON_COMMAND(ID_STOP, OnViewStop)
+	ON_UPDATE_COMMAND_UI(ID_STOP, OnUpdateViewStop)
+	ON_COMMAND(ID_REFRESH, OnViewRefresh)
+	ON_UPDATE_COMMAND_UI(ID_REFRESH, OnUpdateViewRefresh)
 	ON_WM_MOUSEACTIVATE()
 	ON_WM_TIMER()
 	ON_COMMAND(ID_POPUP_OPEN, OnLinkOpen)
@@ -125,16 +123,14 @@ int CMozilla::ResizeEmbedding()
    return 1;
 }
 
-int CMozilla::OnCreate(LPCREATESTRUCT lpCreateStruct) 
-{
+int CMozilla::OnCreate(LPCREATESTRUCT lpCreateStruct) {
 	if (CWnd::OnCreate(lpCreateStruct) == -1)
 		return -1;
 
 	return 0;
 }
 
-void *CMozilla::createBrowser()
-{
+void *CMozilla::createBrowser() {
 	chrome=new WebBrowserChrome(m_hWnd,(CMainFrame *)GetParentFrame());
 
 	NS_ADDREF(chrome); // native window will hold the addref.
@@ -152,19 +148,19 @@ void *CMozilla::createBrowser()
 	return mBrowser;
 }
 
-void CMozilla::OnSize(UINT nType, int cx, int cy) 
-{
+void CMozilla::OnSize(UINT nType, int cx, int cy) {
 	ResizeEmbedding();
 }
 
-int CMozilla::Navigate(CString *url)
-{
-  if(mWebNav) mWebNav->LoadURI(NS_ConvertASCIItoUCS2(url->GetBuffer(1024)).GetUnicode(),nsIWebNavigation::LOAD_FLAGS_NONE);
+int CMozilla::Navigate(CString *url){
+  if(mWebNav){
+    mWebNav->Stop();
+    mWebNav->LoadURI(NS_ConvertASCIItoUCS2(url->GetBuffer(1024)).GetUnicode(),nsIWebNavigation::LOAD_FLAGS_NONE);
+  }
 	return 0;
 }
 
-void CMozilla::OnGoBack() 
-{
+void CMozilla::OnGoBack() {
   if(mWebNav){
     // BHarris - if you don't stop first, pages get overlaid
     mWebNav->Stop();
@@ -172,8 +168,7 @@ void CMozilla::OnGoBack()
   }
 }
 
-void CMozilla::OnUpdateGoBack(CCmdUI* pCmdUI) 
-{
+void CMozilla::OnUpdateGoBack(CCmdUI* pCmdUI) {
 	if(mWebNav)
 	{
 		PRBool a;
@@ -182,8 +177,7 @@ void CMozilla::OnUpdateGoBack(CCmdUI* pCmdUI)
 	}
 }
 
-void CMozilla::OnGoForward() 
-{
+void CMozilla::OnGoForward() {
   if(mWebNav){
     // BHarris - if you don't stop first, pages get overlaid
     mWebNav->Stop();
@@ -191,42 +185,34 @@ void CMozilla::OnGoForward()
   }
 }
 
-void CMozilla::OnUpdateGoForward(CCmdUI* pCmdUI) 
-{
-	if(mWebNav)
-	{
+void CMozilla::OnUpdateGoForward(CCmdUI* pCmdUI) {
+	if(mWebNav)	{
 		PRBool a;
 		mWebNav->GetCanGoForward(&a);
 		pCmdUI->Enable (a);
 	}
 }
 
-void CMozilla::OnViewStop() 
-{
+void CMozilla::OnViewStop() {
 	if(mWebNav) mWebNav->Stop();
 }
 
-void CMozilla::OnUpdateViewStop(CCmdUI* pCmdUI) 
-{
+void CMozilla::OnUpdateViewStop(CCmdUI* pCmdUI) {
 }
 
-void CMozilla::OnViewRefresh() 
-{
+void CMozilla::OnViewRefresh() {
   if(mWebNav) mWebNav->Reload(nsIWebNavigation::LOAD_FLAGS_NONE);
 }
 
-void CMozilla::OnUpdateViewRefresh(CCmdUI* pCmdUI) 
-{
+void CMozilla::OnUpdateViewRefresh(CCmdUI* pCmdUI) {
 }
 
-BOOL CMozilla::OnEraseBkgnd(CDC* pDC) 
-{
+BOOL CMozilla::OnEraseBkgnd(CDC* pDC) {
 	if(chrome && !((WebBrowserChrome *)chrome)->working) return 0;
   return CWnd::OnEraseBkgnd(pDC);
 }
 
-BOOL CMozilla::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt) 
-{
+BOOL CMozilla::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt) {
 	POINT p={0,0};
 	// Send the message to Gecko like if it was generated from the top-left point
 	HWND w=::ChildWindowFromPoint(m_hWnd,p);
@@ -241,8 +227,8 @@ BOOL CMozilla::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 	return 0;
 }
 
-LRESULT CMozilla::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) 
-{
+LRESULT CMozilla::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+  /*
 	switch (message){
       case WM_APPCOMMAND:
 				switch((short)(HIWORD(lParam) & ~0x8000)){
@@ -255,12 +241,12 @@ LRESULT CMozilla::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 				}
 				break;
 	}
-      	
+  */
+
 	return CWnd::WindowProc(message, wParam, lParam);
 }
 
-int CMozilla::OnMouseActivate(CWnd* pDesktopWnd, UINT nHitTest, UINT message) 
-{
+int CMozilla::OnMouseActivate(CWnd* pDesktopWnd, UINT nHitTest, UINT message) {
 	switch (message) {
 /*		case WM_MBUTTONDOWN:
 			{
@@ -362,8 +348,7 @@ void CMozilla::StopPanning()
 	panning = 0;
 }
 
-BOOL CMozilla::PreTranslateMessage(MSG* pMsg) 
-{
+BOOL CMozilla::PreTranslateMessage(MSG* pMsg) {
   if(panning && (pMsg->message==WM_SETCURSOR || pMsg->message==WM_MOUSEMOVE))
     return TRUE;
 
@@ -373,46 +358,38 @@ BOOL CMozilla::PreTranslateMessage(MSG* pMsg)
 	return CWnd::PreTranslateMessage(pMsg);
 }
 
-void CMozilla::OnPopup(int flags)
-{
-  int hmenu;
-  if (flags & nsIContextMenuListener::CONTEXT_LINK)
-    hmenu=IDR_LINK_POPUP;
-  else
-    hmenu=IDR_BROWSER_POPUP;
-
-  CMenu menu;
-  menu.LoadMenu(hmenu);
-
+void CMozilla::OnPopup(int flags) {
   CPoint point;
 	GetCursorPos(&point);
 
-  CMenu* pSubMenu = menu.GetSubMenu(0);
+  CMenu *pSubMenu = NULL;
+  if (flags & nsIContextMenuListener::CONTEXT_LINK){
+    pSubMenu = theApp.menus.GetMenu("LinkPopup");
+  }else{
+    pSubMenu = theApp.menus.GetMenu("PagePopup");
+  }
+  if (pSubMenu)
+    pSubMenu->TrackPopupMenu(TPM_LEFTALIGN | TPM_LEFTBUTTON | TPM_RIGHTBUTTON, point.x - 2, point.y - 2, this);
 
-  // BHarris
-  pSubMenu->TrackPopupMenu(TPM_LEFTALIGN | TPM_LEFTBUTTON | TPM_RIGHTBUTTON, point.x - 2, point.y - 2, this);
   /*
   CBCGPopupMenu* pPopupMenu = new CBCGPopupMenu;
   pPopupMenu->Create(this, point.x, point.y, (HMENU)pSubMenu->m_hMenu, FALSE, TRUE);
   */
 }
 
-void CMozilla::SetLastLink(char *link)
-{
+void CMozilla::SetLastLink(char *link) {
   strncpy(last_link,link,sizeof(last_link)-1);
   last_link[sizeof(last_link)-1]=0;
 }
 
-void CMozilla::OnLinkOpen() 
-{
+void CMozilla::OnLinkOpen() {
   CString s=last_link;
   Navigate(&s);
 }
 
-void CMozilla::OnLinkOpenNewWindow() 
-{
+void CMozilla::OnLinkOpenNewWindow() {
   CString s=last_link;
-  
+
   nsIWebBrowser *mNewBrowser;
   chrome->CreateBrowserWindow(0, -1, -1, -1, -1, &mNewBrowser);
 
@@ -420,8 +397,7 @@ void CMozilla::OnLinkOpenNewWindow()
   mNewWebNav->LoadURI(NS_ConvertASCIItoUCS2(s.GetBuffer(1024)).GetUnicode(),nsIWebNavigation::LOAD_FLAGS_NONE);
 }
 
-void CMozilla::OnPopupCopyShortcut() 
-{
+void CMozilla::OnPopupCopyShortcut() {
 	OpenClipboard();
   EmptyClipboard();
   HGLOBAL c=GlobalAlloc(GMEM_MOVEABLE | GMEM_DDESHARE ,sizeof(last_link)+1);
@@ -432,8 +408,7 @@ void CMozilla::OnPopupCopyShortcut()
   CloseClipboard();
 }
 
-void CMozilla::OnEditCopy() 
-{
+void CMozilla::OnEditCopy() {
   nsIContentViewer *pContentViewer = nsnull;
   nsCOMPtr<nsIDocShell> rootDocShell = do_GetInterface(mBrowser);
 	nsresult res = rootDocShell->GetContentViewer(&pContentViewer);
@@ -444,8 +419,7 @@ void CMozilla::OnEditCopy()
   }
 }
 
-void CMozilla::OnEditCut() 
-{
+void CMozilla::OnEditCut() {
   nsIContentViewer *pContentViewer = nsnull;
   nsCOMPtr<nsIDocShell> rootDocShell = do_GetInterface(mBrowser);
 	nsresult res = rootDocShell->GetContentViewer(&pContentViewer);
@@ -456,8 +430,7 @@ void CMozilla::OnEditCut()
   }
 }
 
-void CMozilla::OnEditPaste() 
-{
+void CMozilla::OnEditPaste() {
   nsIContentViewer *pContentViewer = nsnull;
   nsCOMPtr<nsIDocShell> rootDocShell = do_GetInterface(mBrowser);
 	nsresult res = rootDocShell->GetContentViewer(&pContentViewer);

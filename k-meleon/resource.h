@@ -73,6 +73,7 @@
 #define IDC_CONTAINER                   1010
 #define IDC_EDIT1                       1011
 #define IDC_EDIT_TOOLBAR_BACKGROUND     1011
+#define IDC_EDIT_SETTINGS_DIR           1011
 #define IDC_RADIO_START_HOME            1012
 #define IDC_RADIO_START_BLANK           1013
 #define IDC_EDIT_HOMEPAGE               1014
@@ -84,8 +85,8 @@
 #define IDS_FILETYPES                   1201
 #define ID_VIEW_ADDRESS_BAR             32722
 #define ID_VIEW_CUSTOMIZE               32770
-#define ID_VIEW_STOP                    32778
-#define ID_VIEW_REFRESH                 32779
+#define ID_STOP                         32778
+#define ID_REFRESH                      32779
 #define ID_LINK_1                       32781
 #define ID_VIEW_FONTS_LARGEST           32782
 #define ID_VIEW_FONTS_LARGE             32783
@@ -101,19 +102,10 @@
 #define ID_FONT_DROPDOWN                32793
 #define ID_HELP_WEB_TUTORIAL            32798
 #define ID_HELP_ONLINE_SUPPORT          32800
-#define ID_HELP_MICROSOFT_ON_THE_WEB_FREE_STUFF 32801
-#define ID_HELP_MICROSOFT_ON_THE_WEB_GET_FASTER_INTERNET_ACCESS 32802
-#define ID_HELP_MICROSOFT_ON_THE_WEB_FREQUENTLY_ASKED_QUESTIONS 32803
-#define ID_HELP_MICROSOFT_ON_THE_WEB_SEND_FEEDBACK 32804
-#define ID_HELP_MICROSOFT_ON_THE_WEB_BEST_OF_THE_WEB 32805
-#define ID_HELP_MICROSOFT_ON_THE_WEB_SEARCH_THE_WEB 32806
-#define ID_HELP_MICROSOFT_ON_THE_WEB_MICROSOFT_HOME_PAGE 32807
-#define ID_HELP_MICROSOFT_ON_THE_WEB_INTERNET_START_PAGE 32812
 #define ID_FAVORITS_DUMMY               32819
 #define ID_HISTORY_DUMMY                32820
 #define ID_VIEW_LINKS_BAR               32821
 #define ID_VIEW_TEXTLABELS              32823
-#define ID_VIEW_BACKGROUND              32824
 #define ID_FILE_NEWWINDOW               32825
 #define ID_HELP_WEB_KMELEON_HOME        32826
 #define ID_HELP_WEB_KMELEON_FORUM       32827
@@ -129,8 +121,8 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        159
-#define _APS_NEXT_COMMAND_VALUE         32837
+#define _APS_NEXT_RESOURCE_VALUE        161
+#define _APS_NEXT_COMMAND_VALUE         32840
 #define _APS_NEXT_CONTROL_VALUE         1020
 #define _APS_NEXT_SYMED_VALUE           102
 #endif

@@ -34,20 +34,22 @@
 
 #include "Preferences.h"
 #include "Plugins.h"
+#include "MenuParser.h"
 
 /////////////////////////////////////////////////////////////////////////////
 // CKMeleonApp:
 //
 
-class CKMeleonApp :	public CWinApp,
-						public CBCGWorkspace
+class CKMeleonApp :	public CWinApp //,	public CBCGWorkspace
 {
 public:
 	CKMeleonApp();
 	~CKMeleonApp();
 
-	CPreferences   *preferences;
+	CPreferences   preferences;
   CPlugins       plugins;
+
+  CMenuParser    menus;
 
 // Overrides
 	// ClassWizard generated virtual function overrides
@@ -65,6 +67,7 @@ public:
   virtual BOOL OnIdle( LONG count );
 
 // Implementation
+  afx_msg void OnFileNew();
 	//{{AFX_MSG(CKMeleonApp)
 	afx_msg void OnAppAbout();
 		// NOTE - the ClassWizard will add and remove member functions here.

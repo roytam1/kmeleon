@@ -15,6 +15,18 @@ Package=<4>
 
 ###############################################################################
 
+Project: "ie_favorites"=".\ie_favorites\ie_favorites.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
 Project: "kmeleon_winamp"=".\kmeleon_winamp\kmeleon_winamp.dsp" - Package Owner=<4>
 
 Package=<5>
