@@ -31,30 +31,11 @@
 #define KMELEON_PLUGIN_EXPORTS
 #include "../kmeleon_plugin.h"
 
-#define _T(x) x
+#define BMP_MENU_VERSION 3333
+#define LEFT_SPACE 18
 
-std::vector<HMENU> menus;
-int refCount;
-
-char szPath[MAX_PATH];
-
-
-
-/*
-BOOL APIENTRY DllMain( HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved )
-{
-  switch (ul_reason_for_call)
-  {
-		case DLL_PROCESS_ATTACH:
-    case DLL_THREAD_ATTACH:
-    case DLL_THREAD_DETACH:
-    case DLL_PROCESS_DETACH:
-      break;
-  }
-
-  return TRUE;
-}
-*/
+LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+WNDPROC KMeleonWndProc;
 
 void DrawCheckMark(HDC pDC,int x,int y,COLORREF color);
 void SetOwnerDrawn(HMENU menu, HINSTANCE plugin);
@@ -65,7 +46,6 @@ void Create(HWND parent);
 void Config(HWND parent);
 void Quit();
 void DoMenu(HMENU menu, char *param);
-void DoRebar(HWND rebarWnd);
 
 pluginFunctions pFunc = {
    Init,
@@ -73,7 +53,7 @@ pluginFunctions pFunc = {
    Config,
    Quit,
    DoMenu,
-   DoRebar
+   NULL // no rebar
 };
 
 kmeleonPlugin kPlugin = {
@@ -96,22 +76,28 @@ ID_BLARG2
 }
 */
 
+char settingsPath[MAX_PATH];
+
+std::vector<HMENU> menus;
+int refCount;
+
 HIMAGELIST hImageList;
 
+// this maps command ids to the bitmap/index
 typedef std::map<short, int> BmpMapT;
 BmpMapT bmpMap;
-// this maps command ids to the bitmap/index
 
+// maps "ID_BLAH" to ID_BLAH
 typedef std::map<std::string, int> DefineMapT;
 
 void ParseConfig(char *buffer) {
    hImageList = ImageList_Create(16, 16, ILC_MASK | ILC_COLOR8, 32, 256);
 
 	DefineMapT defineMap;
-	#define DEFINEMAP_ADD(entry) defineMap[std::string(#entry)] = entry;
-	#include "../definemap.cpp"
-	DefineMapT::iterator defineMapIt;
-  
+   DefineMapT::iterator defineMapIt;
+#define DEFINEMAP_ADD(entry) defineMap[std::string(#entry)] = entry;
+#include "../definemap.cpp"
+
    BOOL currentBitmap = false;
 	int index = 0;
 
@@ -122,7 +108,6 @@ void ParseConfig(char *buffer) {
 		if (*p == '#') {
 			continue;
 		}
-
 		else if (!currentBitmap) {
 			char *b = strchr(p, '{');
 			if (b) {
@@ -131,12 +116,14 @@ void ParseConfig(char *buffer) {
 				p = SkipWhiteSpace(p);
 
             HBITMAP bitmap;
-				if (strchr(p, ':') || *p == '/' || *p == '\\') {
+            // if it's relative to the root (ie: c:\blah or \blah or /blah
+				if (*p == '/' || *p == '\\' || *(p+1) == ':') {
 					bitmap = (HBITMAP)LoadImage(NULL, p, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE);
 				}
+            // else it's relative to the settings directory (just plain blah)
 				else {
 					char bmpPath[MAX_PATH];
-					strcpy(bmpPath, szPath);
+					strcpy(bmpPath, settingsPath);
 					strcat(bmpPath, p);
 					bitmap = (HBITMAP)LoadImage(NULL, bmpPath, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE);
 				}
@@ -147,7 +134,6 @@ void ParseConfig(char *buffer) {
             currentBitmap = true;
 			}
 		}
-
 		else {
 			if ( strchr( p, '}' )) {
             currentBitmap = false;
@@ -173,10 +159,10 @@ void ParseConfig(char *buffer) {
 int Init() {
    refCount = 0;
 
-   kPlugin.kf->GetPreference(PREF_STRING, _T("kmeleon.general.settingsDir"), szPath, "");
+   kPlugin.kf->GetPreference(PREF_STRING, "kmeleon.general.settingsDir", settingsPath, "");
 
    char cfgPath[MAX_PATH];
-   strcpy(cfgPath, szPath);
+   strcpy(cfgPath, settingsPath);
    strcat(cfgPath, "menuicons.cfg");
 
    FILE *cfgFile = fopen(cfgPath, "r");
@@ -199,10 +185,6 @@ int Init() {
    return true;
 }
 
-WNDPROC KMeleonWndProc;
-
-LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
-
 void Create(HWND parent){
 	KMeleonWndProc = (WNDPROC) GetWindowLong(parent, GWL_WNDPROC);
 	SetWindowLong(parent, GWL_WNDPROC, (LONG)WndProc);
@@ -212,18 +194,19 @@ void Create(HWND parent){
 
 void Config(HWND parent){
    char cfgPath[MAX_PATH];
-   strcpy(cfgPath, szPath);
+   strcpy(cfgPath, settingsPath);
    strcat(cfgPath, "menuicons.cfg");
 
    ShellExecute(parent, NULL, "notepad.exe", cfgPath, NULL, SW_SHOW);
 
-   strcpy(cfgPath, szPath);
+   strcpy(cfgPath, settingsPath);
    strcat(cfgPath, "menus.cfg");
    ShellExecute(parent, NULL, "notepad.exe", cfgPath, NULL, SW_SHOW);
 }
 
 void Quit(){
-   ImageList_Destroy(hImageList);
+   if (hImageList)
+      ImageList_Destroy(hImageList);
 }
 
 void DoMenu(HMENU menu, char *param){
@@ -242,11 +225,6 @@ void DoMenu(HMENU menu, char *param){
    }
 }
 
-void DoRebar(HWND rebarWnd) {
-}
-
-#define BMP_MENU_VERSION 3333
-
 typedef int (*DRAWBITMAPPROC)(DRAWITEMSTRUCT *dis);
 
 typedef struct {
@@ -254,8 +232,6 @@ typedef struct {
    void *data;
    DRAWBITMAPPROC DrawBitmap;
 } MenuDataT;
-
-#define LEFT_SPACE 18
 
 int DrawBitmap(DRAWITEMSTRUCT *dis) {
 	BmpMapT::iterator bmpMapIt;
@@ -287,11 +263,42 @@ int DrawBitmap(DRAWITEMSTRUCT *dis) {
    return 0;
 }
 
-int GetTabWidth(HMENU menu){
+void DrawCheckMark(HDC pDC,int x,int y,COLORREF color) {
+   SetPixel(pDC, x,   y+2, color);
+   SetPixel(pDC, x,   y+3, color);
+   SetPixel(pDC, x,   y+4, color);
+
+   SetPixel(pDC, x+1, y+3, color);
+   SetPixel(pDC, x+1, y+4, color);
+   SetPixel(pDC, x+1, y+5, color);
+
+   SetPixel(pDC, x+2, y+4, color);
+   SetPixel(pDC, x+2, y+5, color);
+   SetPixel(pDC, x+2, y+6, color);
+
+   SetPixel(pDC, x+3, y+3, color);
+   SetPixel(pDC, x+3, y+4, color);
+   SetPixel(pDC, x+3, y+5, color);
+
+   SetPixel(pDC, x+4, y+2, color);
+   SetPixel(pDC, x+4, y+3, color);
+   SetPixel(pDC, x+4, y+4, color);
+
+   SetPixel(pDC, x+5, y+1, color);
+   SetPixel(pDC, x+5, y+2, color);
+   SetPixel(pDC, x+5, y+3, color);
+
+   SetPixel(pDC, x+6, y,   color);
+   SetPixel(pDC, x+6, y+1, color);
+   SetPixel(pDC, x+6, y+2, color);
+}
+
+char *GetMaxTab(HMENU menu){
 	MENUITEMINFO mmi;
 	mmi.cbSize = sizeof(mmi);
 
 	int maxChars = 0;
+   char *maxTab = NULL;
 	int state;
 	char *string;
 	char *tab;
@@ -310,17 +317,18 @@ int GetTabWidth(HMENU menu){
 			if (mdt){
 				string = (char *)mdt->data;
 
-				tab = strrchr(string, '\t');
+				tab = strchr(string, '\t');
 
 				if (tab) {
-					if ((tab - string) > maxChars) {
-						maxChars = tab - string;
+					if (strlen(tab) > maxChars) {
+                  maxChars = strlen(tab);
+						maxTab = tab+1;
 					}
 				}
 			}
 		}
 	}
-	return maxChars+5;
+	return maxTab;
 }
 
 void DrawMenuItem(DRAWITEMSTRUCT *dis) {
@@ -357,25 +365,35 @@ void DrawMenuItem(DRAWITEMSTRUCT *dis) {
 
    dis->rcItem.left += 2;
 
+   RECT rcTab;
+
 	char *tab = strrchr(string, '\t');
-	int leftLen, rightLen;
+	int itemLen, tabLen;
 	if (tab) {
-		leftLen = tab - string;
-		rightLen = strlen(tab);
+		itemLen = tab - string;
+      tab++;
+		tabLen = strlen(tab);
+
+      char *maxTab = GetMaxTab(menu);
+
+      rcTab.top = dis->rcItem.top;
+      rcTab.left = 0;
+      if (maxTab){
+         DrawText(dis->hDC, maxTab, strlen(maxTab), &rcTab, DT_SINGLELINE | DT_CALCRECT );
+      }
+      rcTab.left = dis->rcItem.right - rcTab.right - 16;
+      rcTab.right = dis->rcItem.right;
+      rcTab.bottom = dis->rcItem.bottom;
 	}
 	else {
-		leftLen = strlen(string);
-		rightLen = 0;
+		itemLen = strlen(string);
+		tabLen = 0;
 	}
-   short tabWidth = GetTabWidth(menu);
-
 	if (dis->itemState & ODS_GRAYED) {
-
 		// setup pen to draw selected, grayed text
 		if (dis->itemState & ODS_SELECTED) {
 			SetTextColor(dis->hDC, GetSysColor(COLOR_3DFACE));
 		}
-
 		// Draw shadow for unselected grayed items
 		else {
 			dis->rcItem.left += 1;
@@ -383,10 +401,10 @@ void DrawMenuItem(DRAWITEMSTRUCT *dis) {
 
 			SetTextColor(dis->hDC, GetSysColor(COLOR_HIGHLIGHTTEXT));
 
-			DrawText(dis->hDC, string, leftLen, &dis->rcItem, DT_SINGLELINE | DT_VCENTER | DT_EXPANDTABS | DT_TABSTOP | (0<<8) /* 0 spaces/tab */ );
+			DrawText(dis->hDC, string, itemLen, &dis->rcItem, DT_SINGLELINE | DT_VCENTER | DT_NOCLIP );
 			if (tab) {
 				//dis->rcItem.right -= 15;  //  16 - 1 for shadow
-				DrawText(dis->hDC, tab, rightLen, &dis->rcItem, DT_SINGLELINE | DT_VCENTER | DT_EXPANDTABS | DT_TABSTOP | (tabWidth<<8));
+				DrawText(dis->hDC, tab, tabLen, &rcTab, DT_SINGLELINE | DT_VCENTER | DT_NOCLIP );
 				//dis->rcItem.right += 15;
 			}
 
@@ -398,64 +416,64 @@ void DrawMenuItem(DRAWITEMSTRUCT *dis) {
 		}
 	}
 
-	DrawText(dis->hDC, string, leftLen, &dis->rcItem, DT_SINGLELINE | DT_VCENTER | DT_EXPANDTABS | DT_TABSTOP | (0<<8) /* 0 spaces/tab */ );
+	DrawText(dis->hDC, string, itemLen, &dis->rcItem, DT_SINGLELINE | DT_VCENTER | DT_NOCLIP );
 	if (tab) {
 		//dis->rcItem.right -= 16;
-		DrawText(dis->hDC, tab, rightLen, &dis->rcItem, DT_SINGLELINE | DT_VCENTER | DT_EXPANDTABS | DT_TABSTOP | (tabWidth<<8));
+		DrawText(dis->hDC, tab, tabLen, &rcTab, DT_SINGLELINE | DT_VCENTER | DT_NOCLIP );
 		//dis->rcItem.right += 16;
 	}
 }
 
-void DrawCheckMark(HDC pDC,int x,int y,COLORREF color) {
-   SetPixel(pDC, x,   y+2, color);
-   SetPixel(pDC, x,   y+3, color);
-   SetPixel(pDC, x,   y+4, color);
+void MeasureMenuItem(MEASUREITEMSTRUCT *mis, HDC hDC) {
+   MenuDataT *menuData = (MenuDataT *)mis->itemData;
 
-   SetPixel(pDC, x+1, y+3, color);
-   SetPixel(pDC, x+1, y+4, color);
-   SetPixel(pDC, x+1, y+5, color);
+   NONCLIENTMETRICS ncm = {0};
+   ncm.cbSize = sizeof(ncm);
+   SystemParametersInfo(SPI_GETNONCLIENTMETRICS,0,(PVOID)&ncm,FALSE);
+   
+   HFONT font;
+   font = CreateFontIndirect(&ncm.lfMenuFont);
+   HFONT oldFont = (HFONT)SelectObject(hDC, font);
 
-   SetPixel(pDC, x+2, y+4, color);
-   SetPixel(pDC, x+2, y+5, color);
-   SetPixel(pDC, x+2, y+6, color);
+   char *string = (char *)menuData->data;
 
-   SetPixel(pDC, x+3, y+3, color);
-   SetPixel(pDC, x+3, y+4, color);
-   SetPixel(pDC, x+3, y+5, color);
+   int tabWidth = 8; // tab every 8 pixels
 
-   SetPixel(pDC, x+4, y+2, color);
-   SetPixel(pDC, x+4, y+3, color);
-   SetPixel(pDC, x+4, y+4, color);
+   /*
+   RECT rc={0};
+   DrawText(hDC, string, strlen(string), &rc, DT_SINGLELINE | DT_CALCRECT );
+   DrawText(hDC, string, strlen(string), &rc, DT_SINGLELINE );
+   */
+   DWORD size = GetTabbedTextExtent(hDC, string, strlen(string), 1, &tabWidth);
 
-   SetPixel(pDC, x+5, y+1, color);
-   SetPixel(pDC, x+5, y+2, color);
-   SetPixel(pDC, x+5, y+3, color);
+   SelectObject(hDC, oldFont);
+   DeleteObject(font);
 
-   SetPixel(pDC, x+6, y,   color);
-   SetPixel(pDC, x+6, y+1, color);
-   SetPixel(pDC, x+6, y+2, color);
+   //mis->itemWidth = rc.right;
+   mis->itemWidth = LOWORD(size);
+   mis->itemHeight = GetSystemMetrics(SM_CYMENUSIZE);
 }
 
 void UnSetOwnerDrawn(HMENU menu){
    MENUITEMINFO mmi;
    mmi.cbSize = sizeof(mmi);
-   int count = ::GetMenuItemCount(menu);
-   int i;
-   int state;
-   MenuDataT *mdt;
-   
-   for (i=0; i<count; i++) {
 
+   MenuDataT *mdt;
+   int state;
+
+   int i;
+   int count = ::GetMenuItemCount(menu);
+   for (i=0; i<count; i++) {
       state = ::GetMenuState(menu, i, MF_BYPOSITION);
-      if (state & MF_POPUP)
+      if (state & MF_POPUP){
          UnSetOwnerDrawn(GetSubMenu(menu, i));
-      
-      else if (state & MF_OWNERDRAW) {
+      }
+      if (state & MF_OWNERDRAW) {
          mmi.fMask = MIIM_DATA;
          ::GetMenuItemInfo(menu, i, true, &mmi);
 
          mdt = (MenuDataT *)mmi.dwItemData;
-         if (mdt->version == BMP_MENU_VERSION) {
+         if (mdt && mdt->version == BMP_MENU_VERSION) {
             delete [] (char *)mdt->data;
             delete mdt;
          }
@@ -463,58 +481,49 @@ void UnSetOwnerDrawn(HMENU menu){
    }
 }
 
-void SetOwnerDrawn(HMENU menu, HINSTANCE plugin){
+// this oddly named function converts a menu of type MF_STRING to MF_OWNERDRAW
+void StringToOwnerDrawn(HMENU menu, int i, UINT flags, UINT id, DRAWBITMAPPROC DrawProc){
    MENUITEMINFO mmi;
    mmi.cbSize = sizeof(mmi);
-   int count = ::GetMenuItemCount(menu);
-   int i;
-   int state;
 
-   DRAWBITMAPPROC DrawProc;
-   if (plugin) {
+   mmi.fMask = MIIM_TYPE;
+   mmi.cch = 0;
+   mmi.dwTypeData = NULL;
+   GetMenuItemInfo(menu, i, true, &mmi);
+   mmi.cch ++;
+   mmi.dwTypeData = new char[mmi.cch];
+   GetMenuItemInfo(menu, i, true, &mmi);
+
+   MenuDataT *mData = new MenuDataT;
+   mData->version = BMP_MENU_VERSION;
+   mData->data = mmi.dwTypeData;
+   mData->DrawBitmap = DrawProc;
+
+   ModifyMenu(menu, i, MF_BYPOSITION | MF_OWNERDRAW | flags, id, (LPCTSTR)(void *)mData);
+}
+
+void SetOwnerDrawn(HMENU menu, HINSTANCE plugin){
+   DRAWBITMAPPROC DrawProc = NULL;
+   if (plugin)
       DrawProc = (DRAWBITMAPPROC)GetProcAddress(plugin, "DrawBitmap");
-      if (!DrawProc)
-         DrawProc = DrawBitmap;
-   }
-   else
+   if (!DrawProc)
       DrawProc = DrawBitmap;
 
-   for (i=0; i<count; i++){
-      state = ::GetMenuState(menu, i, MF_BYPOSITION);
-      if (state & MF_POPUP) {
-         SetOwnerDrawn(GetSubMenu(menu, i), plugin);
-         if (plugin) {
-            mmi.fMask = MIIM_TYPE;
-            mmi.cch = 0;
-            mmi.dwTypeData = NULL;
-            GetMenuItemInfo(menu, i, true, &mmi);
-            mmi.cch ++;
-            mmi.dwTypeData = new char[mmi.cch];
-            GetMenuItemInfo(menu, i, true, &mmi);
+   int state;
 
-            MenuDataT *mData = new MenuDataT;
-            mData->version = BMP_MENU_VERSION;
-            mData->data = mmi.dwTypeData;
-            mData->DrawBitmap = DrawProc;
-        
-            ModifyMenu(menu, i, MF_BYPOSITION | MF_OWNERDRAW | MF_POPUP, (UINT)GetSubMenu(menu, i), (LPCTSTR)(void *)mData);
+   int i;
+   int count = GetMenuItemCount(menu);
+   for (i=0; i<count; i++){
+      state = GetMenuState(menu, i, MF_BYPOSITION);
+      if (state & MF_POPUP) {
+         HMENU subMenu = GetSubMenu(menu, i);
+         SetOwnerDrawn(subMenu, plugin);
+         if (plugin) {
+            StringToOwnerDrawn(menu, i, MF_POPUP, (UINT)subMenu, DrawProc);
          }
       }
       else if (state == 0) {
-         mmi.fMask = MIIM_TYPE;
-         mmi.cch = 0;
-         mmi.dwTypeData = NULL;
-         GetMenuItemInfo(menu, i, true, &mmi);
-         mmi.cch ++;
-         mmi.dwTypeData = new char[mmi.cch];
-         GetMenuItemInfo(menu, i, true, &mmi);
-
-         MenuDataT *mData = new MenuDataT;
-         mData->version = BMP_MENU_VERSION;
-         mData->data = mmi.dwTypeData;
-         mData->DrawBitmap = DrawProc;
-
-         ModifyMenu(menu, i, MF_BYPOSITION | MF_OWNERDRAW, GetMenuItemID(menu, i), (LPCTSTR)(void *)mData);
+         StringToOwnerDrawn(menu, i, 0, GetMenuItemID(menu, i), DrawProc);
       }
    }
 }
@@ -522,40 +531,12 @@ void SetOwnerDrawn(HMENU menu, HINSTANCE plugin){
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 
    if (message == WM_MEASUREITEM) {
-
       MEASUREITEMSTRUCT *mis = (MEASUREITEMSTRUCT *)lParam;
       MenuDataT * mdt = (MenuDataT *)mis->itemData;
-
       if (mis->CtlType == ODT_MENU && mdt->version == BMP_MENU_VERSION) {
-         RECT rc = {0};
-         HDC hDC = GetDC(hWnd);
-
-         NONCLIENTMETRICS ncm = {0};
-		   ncm.cbSize = sizeof(ncm);
-		   SystemParametersInfo(SPI_GETNONCLIENTMETRICS,0,(PVOID)&ncm,FALSE);
-		   HFONT font;
-		   font = CreateFontIndirect(&ncm.lfMenuFont);
-		   HFONT oldFont = (HFONT)SelectObject(hDC, font);
-      
-         char *string = (char *)((MenuDataT *)mis->itemData)->data;
-
-         char *tab = strrchr(string, '\t');
-         int tabWidth;
-         if (tab) tabWidth = tab - string +8;      // +8 gives us a little extra edge on the right after the accelerator
-         else tabWidth = 0;
-
-         DWORD size = GetTabbedTextExtent(hDC, string, strlen(string), 1, &tabWidth);
-         rc.top    = 0;
-         rc.left   = 0;
-         rc.bottom = HIWORD(size);
-         rc.right  = LOWORD(size);
-
-         SelectObject(hDC, oldFont);
-         DeleteObject(font);
+         HDC hDC = GetWindowDC(hWnd);
+         MeasureMenuItem(mis, hDC);
          ReleaseDC(hWnd, hDC);
-
-         mis->itemWidth = rc.right + LEFT_SPACE;
-         mis->itemHeight = GetSystemMetrics(SM_CYMENUSIZE);
          return true;
       }
    }
@@ -568,7 +549,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
       }
    }
    else if (message == WM_DESTROY){
-       refCount--;
+      refCount--;
       if (refCount == 0){
          while(menus.size()){
             UnSetOwnerDrawn(menus.front());
