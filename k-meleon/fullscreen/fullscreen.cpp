@@ -32,6 +32,7 @@
 #include <commctrl.h>
 // #include <afxres.h>
 #include <stdlib.h>
+#include <shellapi.h>
 
 #include "resource.h"
 
@@ -268,25 +269,40 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 
          if (!fs->bFullScreen) {
 
-            RECT rectDesktop;
+            RECT rectWindow;
             fs->bFullScreen=TRUE;
 
             fs->wpOld.length = sizeof (fs->wpOld);
             GetWindowPlacement(hWnd, &fs->wpOld);
   
-            GetWindowRect(GetDesktopWindow(), &rectDesktop );
-            AdjustWindowRectEx(&rectDesktop, GetWindowLong(hWnd, GWL_STYLE), (GetMenu(hWnd)?true:false), GetWindowLong(hWnd, GWL_EXSTYLE));
+            GetWindowRect(GetDesktopWindow(), &rectWindow );
+            AdjustWindowRectEx(&rectWindow, GetWindowLong(hWnd, GWL_STYLE), (GetMenu(hWnd)?true:false), GetWindowLong(hWnd, GWL_EXSTYLE));
 
-            rectDesktop.top    -= 2;
-            rectDesktop.left   -= 2;
-            rectDesktop.bottom += 2;
-            rectDesktop.right  += 2;
+	    APPBARDATA abd;
+	    UINT uState = (UINT) SHAppBarMessage(ABM_GETSTATE, &abd); 
 
-            rectFullScreenWindowRect = rectDesktop;
+	    if ((uState & ABS_ALWAYSONTOP) && !(uState & ABS_AUTOHIDE)) {
+	      BOOL fResult = (BOOL) SHAppBarMessage(ABM_GETTASKBARPOS, &abd); 
+	      if (abd.rc.left <= 1 && abd.rc.top <= 1) {
+		RECT rectDesktop;
+		GetWindowRect(GetDesktopWindow(), &rectDesktop );
+		if (abd.rc.right >= rectDesktop.right)
+		  rectWindow.top -= (abd.rc.bottom-abd.rc.top);
+		else if (abd.rc.bottom >= rectDesktop.bottom)
+		  rectWindow.left -= (abd.rc.right-abd.rc.left);
+	      }
+	    }
+
+            rectWindow.top    -= 2;
+            rectWindow.left   -= 2;
+            rectWindow.bottom += 2;
+            rectWindow.right  += 2;
+
+            rectFullScreenWindowRect = rectWindow;
             wpNew = fs->wpOld;
 
             wpNew.showCmd = SW_SHOWNORMAL;
-            wpNew.rcNormalPosition = rectDesktop;
+            wpNew.rcNormalPosition = rectWindow;
 
             HideClutter(hWnd, fs);
          }
