@@ -16,6 +16,8 @@
 
 #include <windows.h>
 
+#include <commctrl.h>
+
 // TODO: reference additional headers your program requires here
 
 //{{AFX_INSERT_LOCATION}}

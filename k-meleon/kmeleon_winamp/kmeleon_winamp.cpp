@@ -25,6 +25,8 @@
 #define KMELEON_PLUGIN_EXPORTS
 #include "../kmeleon_plugin.h"
 
+HMENU mainMenu = NULL;
+
 BOOL APIENTRY DllMain( HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved )
 {
   switch (ul_reason_for_call)
@@ -39,13 +41,13 @@ BOOL APIENTRY DllMain( HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
   return TRUE;
 }
 
-HMENU mainMenu = NULL;
-
 int Init();
 void Config(HWND parent);
 void Quit();
 HGLOBAL GetMenu();
+void DoMenu(HMENU menu, char *param);
 void OnCommand(UINT command);
+void DoRebar(HWND rebarWnd);
 
 kmeleonPlugin kPlugin = {
   KMEL_PLUGIN_VER,
@@ -53,13 +55,40 @@ kmeleonPlugin kPlugin = {
   Init,
   Config,
   Quit,
-  GetMenu,
-  OnCommand
+  DoMenu,
+  OnCommand,
+  DoRebar
+};
+
+HBITMAP prevBmp;
+HBITMAP nextBmp;
+
+UINT commandIDs;
+
+const numCommands = 5;
+
+DWORD commandTable[numCommands] = {
+  WINAMP_BUTTON1, /* prev */
+  WINAMP_BUTTON2, /* play */
+  WINAMP_BUTTON3, /* pause */
+  WINAMP_BUTTON4, /* stop */
+  WINAMP_BUTTON5  /* next */
 };
 
 int Init(){
-  // we have to do it this crazy assed way because you apparently can't pass HMENUs between processes
-  mainMenu = (HMENU)LoadResource(kPlugin.hDllInstance, FindResource(kPlugin.hDllInstance, MAKEINTRESOURCE(201), RT_MENU));
+
+  // allocate some ids
+  commandIDs = kPlugin.GetCommandIDs(numCommands);
+
+  mainMenu = CreateMenu();
+
+  AppendMenu(mainMenu, MF_STRING, commandIDs + 1, "Play");
+  AppendMenu(mainMenu, MF_STRING, commandIDs + 2, "Pause");
+  AppendMenu(mainMenu, MF_STRING, commandIDs + 3, "Stop");
+  AppendMenu(mainMenu, MF_SEPARATOR, 0, "-");
+  AppendMenu(mainMenu, MF_STRING, commandIDs + 0, "Previous");
+  AppendMenu(mainMenu, MF_STRING, commandIDs + 4, "Next");
+
   return true;
 }
 
@@ -69,33 +98,81 @@ void Config(HWND parent){
 
 void Quit(){
   DestroyMenu(mainMenu);
+
+  DeleteObject(prevBmp);
+  DeleteObject(nextBmp);
 }
 
-HGLOBAL GetMenu(){
-  return LockResource(mainMenu);
+void DoMenu(HMENU menu, char *param){
+  AppendMenu(menu, MF_POPUP | MF_STRING, (UINT)mainMenu, param);
 }
 
-/*
-		play
-			SendMessage(hwndWinamp, WM_COMMAND,WINAMP_BUTTON2,0);
-		pause
-			SendMessage(hwndWinamp, WM_COMMAND,WINAMP_BUTTON3,0);
-		stop
-			SendMessage(hwndWinamp, WM_COMMAND,WINAMP_BUTTON4,0);
-		next
-			SendMessage(hwndWinamp, WM_COMMAND,WINAMP_BUTTON5,0);
-		prev
-			SendMessage(hwndWinamp, WM_COMMAND,WINAMP_BUTTON1,0);
-*/
+void DoRebar(HWND rebarWnd){
+  TBBUTTON buttons[numCommands];
+  int i;
+  for (i=0; i<numCommands; i++){
+    buttons[i].iBitmap = i;
+    buttons[i].idCommand = commandIDs + i;
+
+    buttons[i].dwData = 0;
+    buttons[i].fsState = TBSTATE_ENABLED;
+    buttons[i].fsStyle = TBSTYLE_BUTTON;
+    buttons[i].iString = 0;
+    buttons[i].bReserved[0] = 0;
+  };
+
+  DWORD dwStyle = 0x40 | CCS_NOPARENTALIGN | CCS_NORESIZE | /*CCS_NOMOVEY | */
+    TBSTYLE_FLAT | /*TBSTYLE_AUTOSIZE | TBSTYLE_LIST |*/ TBSTYLE_TOOLTIPS | TBSTYLE_TRANSPARENT;
+
+  // Create the toolbar control to be added.
+  HWND hwndTB = CreateToolbarEx(rebarWnd, dwStyle,
+    /*id*/ 200,
+    /*nBitmaps*/ 2,
+    /*hBMInst*/ kPlugin.hDllInstance,
+    /*wBMID*/ IDB_TOOLBAR_BUTTONS,
+    /*lpButtons*/ buttons,
+    /*iNumButtons*/ numCommands,
+    /*dxButton*/ 12,
+    /*dyButton*/ 12,
+    /*dxBitmap*/ 12,
+    /*dyBitmap*/ 12,
+    /*uStructSize*/ sizeof(TBBUTTON)
+    );
+
+  //SetWindowText(hwndTB, "Winamp");
+
+  HIMAGELIST himlHot = ImageList_LoadImage(kPlugin.hDllInstance, MAKEINTRESOURCE(IDB_TOOLBAR_BUTTONS), 12, numCommands, CLR_DEFAULT, IMAGE_BITMAP, LR_DEFAULTCOLOR );
+
+  SendMessage(hwndTB, TB_SETHOTIMAGELIST, 0, (LPARAM)himlHot);
+
+  // Get the height of the toolbar.
+  DWORD dwBtnSize = SendMessage(hwndTB, TB_GETBUTTONSIZE, 0,0);
+
+  REBARBANDINFO rbBand;
+  rbBand.cbSize = sizeof(REBARBANDINFO);  // Required
+  rbBand.fMask  = /*RBBIM_TEXT |*/
+    RBBIM_STYLE | RBBIM_CHILD  | RBBIM_CHILDSIZE |
+    RBBIM_SIZE | RBBIM_IDEALSIZE;
+
+  rbBand.fStyle = RBBS_CHILDEDGE | RBBS_FIXEDBMP | RBBS_VARIABLEHEIGHT;
+  rbBand.lpText     = "Winamp";
+  rbBand.hwndChild  = hwndTB;
+  rbBand.cxMinChild = 0;
+  rbBand.cyMinChild = HIWORD(dwBtnSize);
+  rbBand.cx         = rbBand.cxIdeal = LOWORD(dwBtnSize) * numCommands;
+
+  // Add the band that has the toolbar.
+  SendMessage(rebarWnd, RB_INSERTBAND, (WPARAM)-1, (LPARAM)&rbBand);
+
+  UINT bandPos = SendMessage(rebarWnd, RB_GETBANDCOUNT, (WPARAM)0, (LPARAM)0) - 1;
+  SendMessage(rebarWnd, RB_MINIMIZEBAND, (WPARAM)bandPos, (LPARAM)0);
+  SendMessage(rebarWnd, RB_MAXIMIZEBAND, (WPARAM)bandPos, (LPARAM)true);
+}
 
 void OnCommand(UINT command){
-  if (command == ID_WINAMP_PREV){
+  if (command >= commandIDs && command < (commandIDs + numCommands)){
     HWND hwndWinamp = FindWindow("Winamp v1.x",NULL);
-    SendMessage(hwndWinamp, WM_COMMAND,WINAMP_BUTTON1,0);
-  }
-  if (command == 2502){
-    HWND hwndWinamp = FindWindow("Winamp v1.x",NULL);
-    SendMessage(hwndWinamp, WM_COMMAND,WINAMP_BUTTON5,0);
+    SendMessage(hwndWinamp, WM_COMMAND, commandTable[command - commandIDs], 0);
   }
 }
 
