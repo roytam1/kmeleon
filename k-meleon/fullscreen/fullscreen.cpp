@@ -1,0 +1,241 @@
+/*
+*  Copyright (C) 2001 Jeff Doozan
+*
+*  This program is free software; you can redistribute it and/or modify
+*  it under the terms of the GNU General Public License as published by
+*  the Free Software Foundation; either version 2, or (at your option)
+*  any later version.
+*
+*  This program is distributed in the hope that it will be useful,
+*  but WITHOUT ANY WARRANTY; without even the implied warranty of
+*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*  GNU General Public License for more details.
+*
+*  You should have received a copy of the GNU General Public License
+*  along with this program; if not, write to the Free Software
+*  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+*/
+
+#include "fullscreen.h"
+#include "resource.h"
+#include "../resource.h"
+
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <commctrl.h>
+#include <afxres.h>
+
+#pragma warning( disable : 4786 ) // C4786 bitches about the std::map template name expanding beyond 255 characters
+#include <map>
+
+#define _T(x) x
+
+#define KMELEON_PLUGIN_EXPORTS
+#include "../kmeleon_plugin.h"
+
+pluginFunctions pFunc = {
+   Init,
+   Create,
+   Config,
+   Quit,
+   DoMenu,
+   DoRebar
+};
+
+kmeleonPlugin kPlugin = {
+   KMEL_PLUGIN_VER,
+   "Fullscreen Plugin",
+   &pFunc
+};
+
+HWND hReBar, hStatusBar;
+BOOL bHideReBar, bHideStatusBar;
+BOOL bReBarVisible, bStatusBarVisible;
+
+HINSTANCE ghInstance;
+
+WINDOWPLACEMENT wpOld;
+RECT rectFullScreenWindowRect;
+BOOL bFullScreen=0;
+
+
+BOOL APIENTRY DllMain(HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved ) {
+   switch (ul_reason_for_call) {
+      case DLL_PROCESS_ATTACH:
+         ghInstance = (HINSTANCE) hModule;
+      case DLL_THREAD_ATTACH:
+      case DLL_THREAD_DETACH:
+      case DLL_PROCESS_DETACH:
+      break;
+   }
+   return TRUE;
+}
+
+int Init(){
+   kPlugin.kf->GetPreference(PREF_BOOL, _T("kmeleon.plugin.fullscreen.hide_rebar"), &bHideReBar, "1");
+   kPlugin.kf->GetPreference(PREF_BOOL, _T("kmeleon.plugin.fullscreen.hide_statusbar"), &bHideStatusBar, "1");
+   return true;
+}
+
+typedef std::map<HWND, void *> WndProcMap;
+WndProcMap KMeleonWndProcs;
+
+LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+
+void Create(HWND hWndParent) {
+	KMeleonWndProcs[hWndParent] = (void *) GetWindowLong(hWndParent, GWL_WNDPROC);
+	SetWindowLong(hWndParent, GWL_WNDPROC, (LONG)WndProc);
+}
+
+void Config(HWND hWndParent) {
+	DialogBoxParam(ghInstance ,"IDD_PREFS", NULL, (DLGPROC)DlgProc, NULL);
+}
+
+void Quit(){
+}
+
+void DoMenu(HMENU menu, char *param) {
+}
+
+void DoRebar(HWND rebarWnd) {
+   hReBar = rebarWnd;
+}
+
+void ShowRebar (BOOL bState) {
+   if (bState)
+      ShowWindow(hReBar, SW_SHOW);
+   else
+      ShowWindow(hReBar, SW_HIDE);
+}
+
+void ShowStatusBar (HWND hWndParent, BOOL bState) {
+   if (!(hStatusBar = FindWindowEx(hWndParent, NULL, "msctls_statusbar32", NULL)))
+      return;
+
+   if (bState)
+      ShowWindow(hStatusBar, SW_SHOW);
+   else
+      ShowWindow(hStatusBar, SW_HIDE);
+}
+
+void HideClutter(HWND hWndParent) {
+   if (bFullScreen) {
+
+      // Save initial rebar/statusbar states
+      bReBarVisible = IsWindowVisible(hReBar);
+      if ( (hStatusBar = FindWindowEx(hWndParent, NULL, "msctls_statusbar32", NULL)) )
+         bStatusBarVisible = IsWindowVisible(hStatusBar);
+
+      // hide/unhide rebar/statusbar
+      ShowRebar(!bHideReBar);
+      ShowStatusBar(hWndParent, !bHideStatusBar);
+   }
+   else {
+      ShowRebar(bReBarVisible);
+      ShowStatusBar(hWndParent, bStatusBarVisible);
+   }
+}
+
+
+// Subclassed window function
+
+LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
+
+   switch (message) {
+   case WM_GETMINMAXINFO:
+      if (bFullScreen) {       
+         MINMAXINFO *lpMMI;
+
+         lpMMI = (MINMAXINFO FAR *) lParam;
+
+         lpMMI->ptMaxSize.y       = rectFullScreenWindowRect.bottom - rectFullScreenWindowRect.top;
+         lpMMI->ptMaxTrackSize.y  = lpMMI->ptMaxSize.y;
+         lpMMI->ptMaxSize.x       = rectFullScreenWindowRect.right - rectFullScreenWindowRect.left;
+         lpMMI->ptMaxTrackSize.x  = lpMMI->ptMaxSize.x;
+         return false;
+      }
+   case WM_COMMAND:
+      WORD command = LOWORD(wParam);
+      switch (command) {
+         case ID_FULLSCREEN:
+
+            WINDOWPLACEMENT wpNew;
+
+            if (!bFullScreen) {
+
+               RECT rectDesktop;
+               bFullScreen=TRUE;
+
+               wpOld.length = sizeof (wpOld);
+               GetWindowPlacement(hWnd, &wpOld);
+  
+               GetWindowRect(GetDesktopWindow(), &rectDesktop );
+               AdjustWindowRectEx(&rectDesktop, GetWindowLong(hWnd, GWL_STYLE), TRUE, GetWindowLong(hWnd, GWL_EXSTYLE));
+
+               rectFullScreenWindowRect = rectDesktop;
+               wpNew = wpOld;
+
+               wpNew.showCmd = SW_SHOWNORMAL;
+               wpNew.rcNormalPosition = rectDesktop;
+
+               HideClutter(hWnd);
+            }
+            else  {
+               bFullScreen=FALSE;
+               wpNew = wpOld;
+               HideClutter(hWnd);
+            }
+            SetWindowPlacement (hWnd, &wpNew);
+            return true;
+      }
+   }
+
+   WndProcMap::iterator WndProcIterator;
+   WndProcIterator = KMeleonWndProcs.find(hWnd);
+
+   return CallWindowProc((WNDPROC)WndProcIterator->second, hWnd, message, wParam, lParam);
+}
+
+
+// Preferences Dialog function
+BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+
+   switch (uMsg) {
+		case WM_INITDIALOG:
+         SendDlgItemMessage(hWnd, IDC_HIDEREBAR, BM_SETCHECK, bHideReBar, 0);
+         SendDlgItemMessage(hWnd, IDC_HIDESTATUSBAR, BM_SETCHECK, bHideStatusBar, 0);
+         break;
+      case WM_COMMAND:
+			switch(HIWORD(wParam)) {
+				case BN_CLICKED:
+					switch (LOWORD(wParam)) {
+						case IDOK:
+                     bHideReBar = SendDlgItemMessage(hWnd, IDC_HIDEREBAR, BM_GETCHECK, 0, 0);
+                     bHideStatusBar = SendDlgItemMessage(hWnd, IDC_HIDESTATUSBAR, BM_GETCHECK, 0, 0);
+                     kPlugin.kf->SetPreference(PREF_BOOL, _T("kmeleon.plugin.fullscreen.hide_rebar"), &bHideReBar);
+                     kPlugin.kf->SetPreference(PREF_BOOL, _T("kmeleon.plugin.fullscreen.hide_statusbar"), &bHideStatusBar);
+                  case IDCANCEL:
+                     SendMessage(hWnd, WM_CLOSE, 0, 0);
+               }
+         }
+         break;
+      case WM_CLOSE:
+			EndDialog(hWnd, NULL);
+			break;
+		default:
+			return FALSE;
+   }
+   return TRUE;
+}
+
+// function mutilation protection
+extern "C" {
+
+KMELEON_PLUGIN kmeleonPlugin *GetKmeleonPlugin() {
+   return &kPlugin;
+}
+
+//KMELEON_PLUGIN int DrawBitmap(DRAWITEMSTRUCT *dis) {
+//}
+
+}

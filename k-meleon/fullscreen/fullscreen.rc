@@ -1,0 +1,31 @@
+/*
+*  Copyright (C) 2001 Jeff Doozan
+*
+*  This program is free software; you can redistribute it and/or modify
+*  it under the terms of the GNU General Public License as published by
+*  the Free Software Foundation; either version 2, or (at your option)
+*  any later version.
+*
+*  This program is distributed in the hope that it will be useful,
+*  but WITHOUT ANY WARRANTY; without even the implied warranty of
+*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*  GNU General Public License for more details.
+*
+*  You should have received a copy of the GNU General Public License
+*  along with this program; if not, write to the Free Software
+*  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+*/
+
+#include <windows.h>
+#include "resource.h"
+
+IDD_PREFS DIALOGEX 0, 0, 115, 71
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU | DS_CENTER
+CAPTION "Fullscreen Preferences"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK", IDOK, 7, 50, 50, 14
+    PUSHBUTTON      "Cancel", IDCANCEL, 58, 50, 50, 14
+    CONTROL         "Hide ReBar", IDC_HIDEREBAR, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 19, 16, 85, 9
+    CONTROL         "Hide StatusBar",IDC_HIDESTATUSBAR,"Button", BS_AUTOCHECKBOX | WS_TABSTOP, 19, 29, 74, 9
+END
