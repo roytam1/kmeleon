@@ -132,7 +132,7 @@ public:
   }
 };
 
-typedef std::map<int, CBmpEntry> BmpMapT;
+typedef std::map<short, CBmpEntry> BmpMapT;
 BmpMapT bmpMap;
 // this maps command ids to the bitmap/index
 
@@ -259,43 +259,10 @@ void DoRebar(HWND rebarWnd){
 
 #define LEFT_SPACE 18
 
-int GetTabWidth(HMENU menu){
-	MENUITEMINFO mmi;
-	mmi.cbSize = sizeof(mmi);
-
-	int maxChars = 0;
-	int state;
-	char *tab;
-
-	int count = ::GetMenuItemCount(menu);
-	int i;
-	for (i=0; i<count; i++) {
-
-		state = ::GetMenuState(menu, i, MF_BYPOSITION);
-
-		if (state & MF_OWNERDRAW){
-			mmi.fMask = MIIM_DATA;
-			::GetMenuItemInfo(menu, i, true, &mmi);
-			tab = strrchr((char *)mmi.dwItemData, '\t');
-
-			if (tab) {
-				if ((tab - (char *)mmi.dwItemData) > maxChars) {
-					maxChars = tab - (char *)mmi.dwItemData;
-				}
-			}
-		}
-	}
-
-	return maxChars*2;
-}
-
 void DrawMenuItem(DRAWITEMSTRUCT *dis) {
 
 	HMENU menu = (HMENU)dis->hwndItem;
 
-	// make sure itemID is a valid int
-	dis->itemID = LOWORD(dis->itemID);
-	
 	MENUITEMINFO mmi;
 	mmi.cbSize = sizeof(mmi);
 	mmi.fMask = MIIM_DATA;
@@ -347,6 +314,7 @@ void DrawMenuItem(DRAWITEMSTRUCT *dis) {
 	char *tab = strrchr((char *)mmi.dwItemData, '\t');
 	int leftLen, rightLen;
 	if (tab) {
+		tab++; // skip beyond tab character
 		leftLen = tab - ((char *)mmi.dwItemData);
 		rightLen = strlen(tab);
 	}
@@ -360,7 +328,7 @@ void DrawMenuItem(DRAWITEMSTRUCT *dis) {
 
 		// setup pen to draw selected, grayed text
 		if (dis->itemState & ODS_SELECTED) {
-			SetTextColor(dis->hDC, GetSysColor(COLOR_GRAYTEXT));
+			SetTextColor(dis->hDC, GetSysColor(COLOR_3DFACE));
 		}
 
 		// Draw shadow for unselected grayed items
@@ -372,9 +340,9 @@ void DrawMenuItem(DRAWITEMSTRUCT *dis) {
 
 			DrawText(dis->hDC, (char *)mmi.dwItemData, leftLen, &dis->rcItem, DT_SINGLELINE | DT_VCENTER | DT_EXPANDTABS | DT_TABSTOP | (0<<8) /* 0 spaces/tab */ );
 			if (tab) {
-				int tabWidth;
-				tabWidth = GetTabWidth(menu);
-				DrawText(dis->hDC, tab, rightLen, &dis->rcItem, DT_SINGLELINE | DT_VCENTER | DT_EXPANDTABS | DT_TABSTOP | (tabWidth<<8) );
+				dis->rcItem.right -= 15;  //  16 - 1 for shadow
+				DrawText(dis->hDC, tab, rightLen, &dis->rcItem, DT_SINGLELINE | DT_VCENTER | DT_RIGHT);
+				dis->rcItem.right += 15;
 			}
 
 			dis->rcItem.left -= 1;
@@ -387,9 +355,9 @@ void DrawMenuItem(DRAWITEMSTRUCT *dis) {
 
 	DrawText(dis->hDC, (char *)mmi.dwItemData, leftLen, &dis->rcItem, DT_SINGLELINE | DT_VCENTER | DT_EXPANDTABS | DT_TABSTOP | (0<<8) /* 0 spaces/tab */ );
 	if (tab){
-		int tabWidth;
-		tabWidth = GetTabWidth(menu);
-		DrawText(dis->hDC, tab, rightLen, &dis->rcItem, DT_SINGLELINE | DT_VCENTER | DT_EXPANDTABS | DT_TABSTOP | (tabWidth<<8) );
+		dis->rcItem.right -= 16;
+		DrawText(dis->hDC, tab, rightLen, &dis->rcItem, DT_SINGLELINE | DT_VCENTER | DT_RIGHT);
+		dis->rcItem.right += 16;
 	}
 }
 
