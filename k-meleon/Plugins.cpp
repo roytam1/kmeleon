@@ -99,7 +99,7 @@ void CPlugins::OnCreate(HWND wnd)
    }
 }
 
-void NavigateTo(char *url, int windowState)
+void NavigateTo(const char *url, int windowState)
 {
    CBrowserFrame *mainFrame = theApp.m_pMostRecentBrowserFrame;
 
@@ -169,7 +169,7 @@ void GetPreference(enum PREFTYPE type, char *preference, void *ret, void *defVal
    }
 }
 
-void SetPreference(enum PREFTYPE type, char *preference, void *val)
+void SetPreference(enum PREFTYPE type, char *preference, void *val, BOOL update)
 {
    switch (type) {
       case PREF_BOOL:
@@ -181,6 +181,10 @@ void SetPreference(enum PREFTYPE type, char *preference, void *val)
       case PREF_STRING:
          theApp.preferences.SetString(preference, (char *)val);
          break;
+   }
+   if (update) {
+      theApp.preferences.Save();
+      theApp.preferences.Load();
    }
 }
 
@@ -352,7 +356,11 @@ kmeleonPlugin * CPlugins::Load(char *file)
       plugin = LoadLibrary(buf);    // load the full path
       delete buf;
    }
-   else plugin = LoadLibrary(file);
+   else {
+      DWORD err = GetLastError();
+      plugin = LoadLibrary(file);
+      err = GetLastError();
+   }
 
    KmeleonPluginGetter kpg = (KmeleonPluginGetter)GetProcAddress(plugin, "GetKmeleonPlugin");
 
