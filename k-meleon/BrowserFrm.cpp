@@ -580,8 +580,8 @@ BOOL CBrowserFrame::Create(LPCTSTR lpszClassName,
 }
 
 // create a linked list of CToolBarEx controls, return the hwnd
-HWND CBrowserFrame::CreateToolbar() {
-   return m_tbList.Add(this);
+HWND CBrowserFrame::CreateToolbar(UINT style) {
+   return m_tbList.Add(this, style);
 }
 
 

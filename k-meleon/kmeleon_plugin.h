@@ -70,7 +70,22 @@ typedef struct {
    // Query another plugin's accelerators
    int   (*GetAccel) (char *plugin, char *param);
 
-   HWND (*CreateToolbar) ();
+   /*
+   CCS_NODIVIDER | CCS_NOPARENTALIGN | CCS_NORESIZE | //CCS_ADJUSTABLE |
+   TBSTYLE_FLAT | TBSTYLE_TRANSPARENT | TBSTYLE_LIST | TBSTYLE_TOOLTIPS
+
+   0x00000040
+   0x00000008
+   0x00000004
+   0x00000800
+   0x00008000
+   0x00001000
+   0x00000100
+   ----------
+   0x0000994F
+   */
+
+   HWND (*CreateToolbar) (HWND parentWnd, UINT style = 0x0000994F);
 
 } kmeleonFunctions;
 
