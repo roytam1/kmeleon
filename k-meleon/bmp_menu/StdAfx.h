@@ -17,6 +17,8 @@
 
 #include <commctrl.h>
 
+#include <afxres.h>
+
 // TODO: reference additional headers your program requires here
 
 //{{AFX_INSERT_LOCATION}}

@@ -272,39 +272,6 @@ typedef struct {
 
 #define LEFT_SPACE 18
 
-int GetTabWidth(HMENU menu){
-	MENUITEMINFO mmi;
-	mmi.cbSize = sizeof(mmi);
-
-	int maxChars = 0;
-	int state;
-  char *string;
-	char *tab;
-
-	int count = ::GetMenuItemCount(menu);
-	int i;
-	for (i=0; i<count; i++) {
-
-		state = ::GetMenuState(menu, i, MF_BYPOSITION);
-
-		if (state & MF_OWNERDRAW){
-			mmi.fMask = MIIM_DATA;
-			::GetMenuItemInfo(menu, i, true, &mmi);
-      string = (char *)((MenuDataT *)mmi.dwItemData)->data;
-
-			tab = strrchr(string, '\t');
-
-			if (tab) {
-				if ((tab - string) > maxChars) {
-					maxChars = tab - string;
-				}
-			}
-		}
-	}
-
-	return maxChars*2;
-}
-
 int DrawBitmap(DRAWITEMSTRUCT *dis) {
 	BmpMapT::iterator bmpMapIt;
 	bmpMapIt = bmpMap.find(dis->itemID);
@@ -327,6 +294,43 @@ int DrawBitmap(DRAWITEMSTRUCT *dis) {
 		return LEFT_SPACE;
 	}
   return 0;
+}
+
+int GetTabWidth(HMENU menu){
+	MENUITEMINFO mmi;
+	mmi.cbSize = sizeof(mmi);
+
+	int maxChars = 0;
+	int state;
+  char *string;
+	char *tab;
+
+	int count = ::GetMenuItemCount(menu);
+	int i;
+	for (i=0; i<count; i++) {
+
+		state = ::GetMenuState(menu, i, MF_BYPOSITION);
+
+		if (state & MF_OWNERDRAW){
+			mmi.fMask = MIIM_DATA;
+			::GetMenuItemInfo(menu, i, true, &mmi);
+
+      MenuDataT *mdt = (MenuDataT *)mmi.dwItemData;
+      if (mdt){
+        string = (char *)mdt->data;
+
+        tab = strrchr(string, '\t');
+
+        if (tab) {
+          if ((tab - string) > maxChars) {
+            maxChars = tab - string;
+          }
+        }
+			}
+		}
+	}
+
+	return maxChars*2;
 }
 
 void DrawMenuItem(DRAWITEMSTRUCT *dis) {
@@ -372,7 +376,7 @@ void DrawMenuItem(DRAWITEMSTRUCT *dis) {
 		leftLen = strlen(string);
 		rightLen = 0;
 	}
-
+  short tabWidth = GetTabWidth(menu);
 
 	if (dis->itemState & ODS_GRAYED) {
 
@@ -390,9 +394,9 @@ void DrawMenuItem(DRAWITEMSTRUCT *dis) {
 
 			DrawText(dis->hDC, string, leftLen, &dis->rcItem, DT_SINGLELINE | DT_VCENTER | DT_EXPANDTABS | DT_TABSTOP | (0<<8) /* 0 spaces/tab */ );
 			if (tab) {
-				dis->rcItem.right -= 15;  //  16 - 1 for shadow
-				DrawText(dis->hDC, tab, rightLen, &dis->rcItem, DT_SINGLELINE | DT_VCENTER | DT_RIGHT);
-				dis->rcItem.right += 15;
+				//dis->rcItem.right -= 15;  //  16 - 1 for shadow
+				DrawText(dis->hDC, tab, rightLen, &dis->rcItem, DT_SINGLELINE | DT_VCENTER | DT_EXPANDTABS | DT_TABSTOP | (tabWidth<<8));
+				//dis->rcItem.right += 15;
 			}
 
 			dis->rcItem.left -= 1;
@@ -405,9 +409,9 @@ void DrawMenuItem(DRAWITEMSTRUCT *dis) {
 
 	DrawText(dis->hDC, string, leftLen, &dis->rcItem, DT_SINGLELINE | DT_VCENTER | DT_EXPANDTABS | DT_TABSTOP | (0<<8) /* 0 spaces/tab */ );
 	if (tab){
-		dis->rcItem.right -= 16;
-		DrawText(dis->hDC, tab, rightLen, &dis->rcItem, DT_SINGLELINE | DT_VCENTER | DT_RIGHT);
-		dis->rcItem.right += 16;
+		//dis->rcItem.right -= 16;
+		DrawText(dis->hDC, tab, rightLen, &dis->rcItem, DT_SINGLELINE | DT_VCENTER | DT_EXPANDTABS | DT_TABSTOP | (tabWidth<<8));
+		//dis->rcItem.right += 16;
 	}
 }
 
@@ -478,7 +482,8 @@ void SetOwnerDrawn(HMENU menu, HINSTANCE plugin){
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
   if (message == WM_MEASUREITEM){
     MEASUREITEMSTRUCT *mis = (MEASUREITEMSTRUCT *)lParam;
-    if (mis->CtlType == ODT_MENU && ((MenuDataT *)mis->itemData)->version == BMP_MENU_VERSION){
+    MenuDataT * mdt = (MenuDataT *)mis->itemData;
+    if (mis->CtlType == ODT_MENU && mdt->version == BMP_MENU_VERSION){
       RECT rc = {0};
       HDC hDC = GetDC(hWnd);
 
@@ -504,8 +509,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
   }
   else if (message == WM_DRAWITEM){
     DRAWITEMSTRUCT *dis = (DRAWITEMSTRUCT *)lParam;
-    if (dis->CtlType == ODT_MENU && ((MenuDataT *)dis->itemData)->version == BMP_MENU_VERSION){
-      MenuDataT * mdt = (MenuDataT *)dis->itemData;
+    MenuDataT * mdt = (MenuDataT *)dis->itemData;
+    if (dis->CtlType == ODT_MENU && mdt->version == BMP_MENU_VERSION){
       DrawMenuItem(dis);
       return true;
     }
