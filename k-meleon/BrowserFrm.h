@@ -48,6 +48,10 @@ extern CMfcEmbedApp theApp;
 class CUrlBar : public CComboBoxEx {
 
 public:
+
+   HWND m_hwndEdit;
+   
+   
    int Create(DWORD style, RECT &rect, CWnd *parentWnd, UINT id) {
       int ret = CComboBoxEx::Create(style | CBS_AUTOHSCROLL, rect, parentWnd, id);
       
@@ -62,6 +66,10 @@ public:
       m_changed = FALSE;
       m_bSelected = FALSE;
       m_iFocusCount = 0;
+
+      CEdit *edit = GetEditCtrl();
+      if (edit)
+         m_hwndEdit = edit->m_hWnd;
       
       return ret;
    }
@@ -114,12 +122,9 @@ public:
       if (m_changed)
          GetEditCtrl()->SetSel(-1, 0);
 
-      // mozilla always tries to steal focus twice after
-      // the page has finished loading
-      if (!bDocumentLoading) {         
-         if (++m_iFocusCount >= 2)
-            m_preserveUrlBarFocus = FALSE;
-      }
+      // mozilla always tries to steal focus twice
+      if (++m_iFocusCount >= 2)
+         m_preserveUrlBarFocus = FALSE;
    }
    void EndFocus() {
       m_preserveUrlBarFocus = FALSE;
@@ -131,6 +136,7 @@ public:
       }
       else m_changed = state;
    }
+
    
 protected:
    CMostRecentUrls m_MRUList;
@@ -279,6 +285,7 @@ public:
 	//{{AFX_VIRTUAL(CBrowserFrame)
 	public:
 	virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
+   virtual BOOL PreTranslateMessage(MSG* pMsg);
 	virtual BOOL OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERINFO* pHandlerInfo);
 	//}}AFX_VIRTUAL
 

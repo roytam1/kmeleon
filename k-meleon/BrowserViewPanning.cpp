@@ -130,6 +130,6 @@ BOOL CBrowserView::PreTranslateMessage(MSG* pMsg)
 
   if(m_panning && (pMsg->message==WM_LBUTTONDOWN || pMsg->message==WM_RBUTTONDOWN))
     StopPanning();
-	
+
 	return CWnd::PreTranslateMessage(pMsg);
 }

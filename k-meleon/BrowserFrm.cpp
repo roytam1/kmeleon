@@ -116,6 +116,21 @@ CBrowserFrame::~CBrowserFrame()
 {
 }
 
+BOOL CBrowserFrame::PreTranslateMessage(MSG* pMsg)
+{
+   if (pMsg->message==WM_KEYDOWN && pMsg->wParam == VK_TAB && pMsg->hwnd == m_wndUrlBar.m_hwndEdit) {
+      
+      nsCOMPtr<nsIWebBrowserFocus> focus(do_GetInterface(m_wndBrowserView.mWebBrowser));
+      if(focus) {
+         focus->Activate();
+         focus->SetFocusAtFirstElement();
+         return 1;
+      }
+   }
+
+   return CFrameWnd::PreTranslateMessage(pMsg);
+}
+
 void CBrowserFrame::OnClose()
 {
 

@@ -105,7 +105,7 @@ NS_INTERFACE_MAP_BEGIN(CBrowserImpl)
    NS_INTERFACE_MAP_ENTRY(nsIWebBrowserChromeFocus)
    NS_INTERFACE_MAP_ENTRY(nsIEmbeddingSiteWindow)
    NS_INTERFACE_MAP_ENTRY(nsIWebProgressListener)
-   NS_INTERFACE_MAP_ENTRY(nsIContextMenuListener)
+   NS_INTERFACE_MAP_ENTRY(nsIContextMenuListener2)
    NS_INTERFACE_MAP_ENTRY(nsITooltipListener)
    NS_INTERFACE_MAP_ENTRY(nsISupportsWeakReference)
 NS_INTERFACE_MAP_END
@@ -313,12 +313,14 @@ CBrowserImpl::GetPersistence(PRBool* aPersistX, PRBool* aPersistY,
 
 NS_IMETHODIMP CBrowserImpl::FocusNextElement()
 {
-   return NS_ERROR_NOT_IMPLEMENTED;
+   m_pBrowserFrameGlue->FocusNextElement();
+   return NS_OK;
 }
 
 NS_IMETHODIMP CBrowserImpl::FocusPrevElement()
 {
-   return NS_ERROR_NOT_IMPLEMENTED;
+   m_pBrowserFrameGlue->FocusPrevElement();
+   return NS_OK;
 }
 
 //*****************************************************************************
