@@ -696,11 +696,37 @@ void Load(const char *file)
 
 void findNick(char *nick, char **url)
 {
-   CBookmarkNode *retNode =   gBookmarkRoot.FindNick(nick);
+   CBookmarkNode *retNode = (*nick ? gBookmarkRoot.FindNick(nick) : NULL);
    
-   *url = (char *) malloc(INTERNET_MAX_URL_LENGTH+1);
    if (retNode) {
-      strcpy(*url, retNode->url.c_str());
+      if (retNode->type == BOOKMARK_BOOKMARK) {
+         *url = (char *) malloc(INTERNET_MAX_URL_LENGTH+1);
+         strcpy(*url, (char*)retNode->url.c_str());
+      }
+      else if (retNode->type == BOOKMARK_FOLDER) {
+         CBookmarkNode *c = retNode->child;
+         int len = 0;
+         while (c) {
+            if (c->type == BOOKMARK_BOOKMARK && c->url.c_str())
+               len += strlen(c->url.c_str()) + 1;
+            c = c->next;
+         }
+
+	 if (!len) return;
+         char *pUrl = (char *)malloc(len);
+	 *url = pUrl;
+
+         c = retNode->child;
+         while (c) {
+            if (c->type == BOOKMARK_BOOKMARK && c->url.c_str()) {
+               strcpy(pUrl, c->url.c_str());
+               pUrl += strlen(pUrl);
+               *pUrl++ = '\t';
+            }
+            c = c->next;
+         }
+         *pUrl = 0;
+      }
    }
 }
 
