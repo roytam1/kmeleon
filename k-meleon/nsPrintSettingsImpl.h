@@ -23,13 +23,21 @@
 #ifndef nsPrintSettingsImpl_h__
 #define nsPrintSettingsImpl_h__
 
+#include "nsComObsolete.h"
 #include "nsIPrintSettings.h"  
 #include "nsMargin.h"  
-#include "nsString.h"  
+#include "nsString.h"
+#include "nsWeakReference.h"  
+
+#define NUM_HEAD_FOOT 3
 
 //*****************************************************************************
 //***    nsPrintSettings
 //*****************************************************************************
+
+#undef  IMETHOD_VISIBILITY
+#define IMETHOD_VISIBILITY NS_VISIBILITY_DEFAULT
+
 class nsPrintSettings : public nsIPrintSettings
 {
 public:
@@ -37,18 +45,28 @@ public:
   NS_DECL_NSIPRINTSETTINGS
 
   nsPrintSettings();
+  nsPrintSettings(const nsPrintSettings& aPS);
   virtual ~nsPrintSettings();
 
+  virtual nsPrintSettings& operator=(const nsPrintSettings& rhs);
+
 protected:
+  // May be implemented by the platform-specific derived class                       
+  virtual nsresult _Clone(nsIPrintSettings **_retval);
+  virtual nsresult _Assign(nsIPrintSettings *aPS);
+  
   typedef enum {
     eHeader,
     eFooter
   } nsHeaderFooterEnum;
 
+
   nsresult GetMarginStrs(PRUnichar * *aTitle, nsHeaderFooterEnum aType, PRInt16 aJust);
   nsresult SetMarginStrs(const PRUnichar * aTitle, nsHeaderFooterEnum aType, PRInt16 aJust);
 
-  // Members 
+  // Members
+  nsWeakPtr     mSession; // Should never be touched by Clone or Assign
+ 
   nsMargin      mMargin;
   PRInt32       mPrintOptions;
 
@@ -60,26 +78,45 @@ protected:
   PRBool        mPrintBGColors;  // print background colors
   PRBool        mPrintBGImages;  // print background images
 
+  PRInt16       mPrintFrameTypeUsage;
   PRInt16       mPrintFrameType;
+  PRBool        mHowToEnableFrameUI;
+  PRBool        mIsCancelled;
   PRBool        mPrintSilent;
+  PRBool        mPrintPreview;
+  PRBool        mShrinkToFit;
+  PRBool        mShowPrintProgress;
   PRInt32       mPrintPageDelay;
 
   nsString      mTitle;
   nsString      mURL;
   nsString      mPageNumberFormat;
-  nsString      mHeaderStrs[3];
-  nsString      mFooterStrs[3];
+  nsString      mHeaderStrs[NUM_HEAD_FOOT];
+  nsString      mFooterStrs[NUM_HEAD_FOOT];
+
+  nsString      mPaperName;
+  nsString      mPlexName;
+  PRInt16       mPaperData;
+  PRInt16       mPaperSizeType;
+  double        mPaperWidth;
+  double        mPaperHeight;
+  PRInt16       mPaperSizeUnit;
 
   PRBool        mPrintReversed;
   PRBool        mPrintInColor; // a false means grayscale
   PRInt32       mPaperSize;    // see page size consts
   PRInt32       mOrientation;  // see orientation consts
   nsString      mPrintCommand;
+  PRInt32       mNumCopies;
+  nsXPIDLString mPrinter;
   PRBool        mPrintToFile;
   nsString      mToFileName;
+  PRPackedBool  mIsInitedFromPrinter;
+  PRPackedBool  mIsInitedFromPrefs;
 
 };
 
-
+#undef  IMETHOD_VISIBILITY
+#define IMETHOD_VISIBILITY NS_VISIBILITY_HIDDEN
 
 #endif /* nsPrintSettings_h__ */

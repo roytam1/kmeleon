@@ -291,6 +291,8 @@ void CPreferences::SaveDlgPrefs() {
       rv = prefs->SetBoolPref(_T("kmeleon.general.offline"), bOffline);
       rv = prefs->SetBoolPref(_T("kmeleon.general.guest_account"), bGuestAccount);
 
+      rv = prefs->SetCharPref(_T("kmeleon.general.searchEngine"), searchEngine);
+
       rv = prefs->SetCharPref(_T("kmeleon.general.saveDir"), saveDir);
       rv = prefs->SetCharPref(_T("kmeleon.general.settingsDir"), settingsDir);
       rv = prefs->SetCharPref(_T("kmeleon.general.pluginsDir"), pluginsDir);

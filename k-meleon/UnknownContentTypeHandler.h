@@ -46,6 +46,7 @@ public:
    NS_DECL_ISUPPORTS
    NS_DECL_NSIWEBPROGRESSLISTENER
    NS_DECL_NSIDOWNLOAD
+   NS_DECL_NSITRANSFER
 
    CProgressDialog(BOOL bAuto=TRUE);
    virtual ~CProgressDialog();
