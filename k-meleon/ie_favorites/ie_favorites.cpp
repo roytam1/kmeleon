@@ -330,18 +330,33 @@ void DoRebar(HWND rebarWnd){
    
    MENUITEMINFO mInfo;
    mInfo.cbSize = sizeof(MENUITEMINFO);
+
    int i;
+
    int count = GetMenuItemCount(gFavoritesMenu);
    HMENU hLinksMenu = NULL;
    for (i=0; i<count; i++){
       if (GetMenuState(gFavoritesMenu, i, MF_BYPOSITION) & MF_POPUP){
-         char temp[128];
-         mInfo.fMask = MIIM_TYPE | MIIM_SUBMENU;
-         mInfo.cch = 127;
-         mInfo.dwTypeData = temp;
+         bool isLinksMenu = false;
+
+         mInfo.fMask = MIIM_TYPE;
          GetMenuItemInfo(gFavoritesMenu, i, MF_BYPOSITION, &mInfo);
-        
-         if (mInfo.dwTypeData && stricmp(mInfo.dwTypeData, "Links") == 0){
+
+         if (mInfo.fType == MFT_STRING) {
+            char temp[128];
+            mInfo.cch = 127;
+            mInfo.dwTypeData = temp;
+            GetMenuItemInfo(gFavoritesMenu, i, MF_BYPOSITION, &mInfo);
+            isLinksMenu = (mInfo.dwTypeData && stricmp(mInfo.dwTypeData, "Links") == 0);
+         }
+         else {
+            // if it's ownerdrawn, we get at the string another way (damn, this is ugly...)
+            mInfo.fMask = MIIM_DATA;
+            GetMenuItemInfo(gFavoritesMenu, i, MF_BYPOSITION, &mInfo);
+            isLinksMenu = (stricmp((char*)mInfo.dwItemData, "Links") == 0);
+         }
+
+         if (isLinksMenu) {
             hLinksMenu = GetSubMenu(gFavoritesMenu, i);
             break;
          }
@@ -349,16 +364,26 @@ void DoRebar(HWND rebarWnd){
    }
    if (hLinksMenu == NULL)
       hLinksMenu = gFavoritesMenu;
+
    count = GetMenuItemCount(hLinksMenu);
    for (i=0; i<count; i++){
       if (GetMenuState(hLinksMenu, i, MF_BYPOSITION) & MF_POPUP){
-         char temp[128];
          mInfo.fMask = MIIM_TYPE | MIIM_SUBMENU;
-         mInfo.cch = 127;
-         mInfo.dwTypeData = temp;
          GetMenuItemInfo(hLinksMenu, i, MF_BYPOSITION, &mInfo);
 
-         stringID = SendMessage(hwndTB, TB_ADDSTRING, (WPARAM)NULL, (LPARAM)(LPCTSTR)mInfo.dwTypeData);
+         if (mInfo.fType == MFT_STRING) {
+            char temp[128];
+            mInfo.cch = 127;
+            mInfo.dwTypeData = temp;
+            GetMenuItemInfo(hLinksMenu, i, MF_BYPOSITION, &mInfo);
+            stringID = SendMessage(hwndTB, TB_ADDSTRING, (WPARAM)NULL, (LPARAM)(LPCTSTR)mInfo.dwTypeData);
+         }
+         else {
+            // if it's ownerdrawn, we get at the string another way (damn, this is ugly...)
+            mInfo.fMask = MIIM_DATA | MIIM_SUBMENU;
+            GetMenuItemInfo(hLinksMenu, i, MF_BYPOSITION, &mInfo);
+            stringID = SendMessage(hwndTB, TB_ADDSTRING, (WPARAM)NULL, (LPARAM)(LPCTSTR)mInfo.dwItemData);
+         }
 
          TBBUTTON button;
          button.iBitmap = gFolderIcon;
@@ -371,19 +396,14 @@ void DoRebar(HWND rebarWnd){
          SendMessage(hwndTB, TB_INSERTBUTTON, (WPARAM)-1, (LPARAM)&button);
       }
       else{
-         char temp[128];
-         mInfo.fMask = MIIM_TYPE | MIIM_ID;
-         mInfo.cch = 127;
-         mInfo.dwTypeData = temp;
-         GetMenuItemInfo(hLinksMenu, i, MF_BYPOSITION, &mInfo);
+         index = GetMenuItemID(hLinksMenu, i) - nFirstFavoriteCommand;
 
-         if (mInfo.wID >= nFirstFavoriteCommand && mInfo.wID < nFirstFavoriteCommand + MAX_FAVORITES){
-            index = mInfo.wID - nFirstFavoriteCommand;
-            stringID = SendMessage(hwndTB, TB_ADDSTRING, (WPARAM)NULL, (LPARAM)(LPCTSTR)mInfo.dwTypeData);//m_astrFavorites[index]);
+         if (index >= 0 && index < MAX_FAVORITES){
+            stringID = SendMessage(hwndTB, TB_ADDSTRING, (WPARAM)NULL, (LPARAM)(LPCTSTR)gFavorites[index]);
 
             TBBUTTON button;
             button.iBitmap = gIcons[index];
-            button.idCommand = mInfo.wID;
+            button.idCommand = index + nFirstFavoriteCommand;
             button.fsState = TBSTATE_ENABLED;
             button.fsStyle = TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE;
             //button.bReserved = NULL;
@@ -462,7 +482,6 @@ int BuildFavoritesMenu(char * strPath, HMENU mainMenu)
          // call this function recursively.
          if(gNumFavorites < MAX_FAVORITES && BuildFavoritesMenu(subPath, subMenu)) {
             // only insert a submenu if there are in fact .URL files in the subdirectory
-            // condense the name and escape ampersands
             char *pszTemp = fixString(wfd.cFileName, 40);
             AppendMenu(mainMenu, MF_BYCOMMAND | MF_POPUP | MF_STRING, (UINT)subMenu, pszTemp);
             delete pszTemp;
