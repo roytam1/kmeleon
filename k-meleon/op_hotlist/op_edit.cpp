@@ -502,6 +502,10 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
             op_writeFile(lpszHotlistFile);
 
          hEditWnd = hDlg;
+         len = 0;
+         str[len] = 0;
+         pos = 0;
+         circling = 0;
 
          HICON hIcon = LoadIcon(kPlugin.hDllInstance, MAKEINTRESOURCE(IDB_ICON));
          if (hIcon) {
