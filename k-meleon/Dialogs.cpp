@@ -35,15 +35,20 @@
 //				CPromptDialog Stuff
 //--------------------------------------------------------------------------//
 
-CPromptDialog::CPromptDialog(CWnd* pParent, const char* pTitle, const char* pText, const char* pDefEditText)
-    : CDialog(CPromptDialog::IDD, pParent)
+CPromptDialog::CPromptDialog(CWnd* pParent, const char* pTitle, const char* pText,
+                             const char* pInitPromptText,
+                             BOOL bHasCheck, const char* pCheckText, int initCheckVal)
+    : CDialog(CPromptDialog::IDD, pParent),
+    m_bHasCheckBox(bHasCheck)
 {   
 	if(pTitle)
 		m_csDialogTitle = pTitle;
 	if(pText)
 		m_csPromptText = pText;
-	if(pDefEditText)
-		m_csPromptAnswer = pDefEditText;
+	if(pInitPromptText)
+		m_csPromptAnswer = pInitPromptText;
+	if(pCheckText)
+	    m_csCheckBoxText = pCheckText; 
 }
 
 void CPromptDialog::DoDataExchange(CDataExchange* pDX)
@@ -51,6 +56,7 @@ void CPromptDialog::DoDataExchange(CDataExchange* pDX)
     CDialog::DoDataExchange(pDX);
     //{{AFX_DATA_MAP(CPromptDialog)
     DDX_Text(pDX, IDC_PROMPT_ANSWER, m_csPromptAnswer);
+    DDX_Check(pDX, IDC_CHECK_SAVE_PASSWORD, m_bCheckBoxValue);
     //}}AFX_DATA_MAP
 }
 
@@ -67,6 +73,23 @@ int CPromptDialog::OnInitDialog()
 	CWnd *pWnd = GetDlgItem(IDC_PROMPT_TEXT);
 	if(pWnd)
 		pWnd->SetWindowText(m_csPromptText);
+
+  CButton *pChk = (CButton *)GetDlgItem(IDC_CHECK_SAVE_PASSWORD);
+	if(pChk)
+	{
+	    if (m_bHasCheckBox)
+	    {
+		    if(!m_csCheckBoxText.IsEmpty())
+			    pChk->SetWindowText(m_csCheckBoxText);
+			pChk->SetCheck(m_bCheckBoxValue ? BST_CHECKED : BST_UNCHECKED);
+		}
+		else
+		{
+			// Hide the check box control if there's no label text
+			// This will be the case when we're not using single sign-on
+			pChk->ShowWindow(SW_HIDE); 
+		}
+	}
 
 	CEdit *pEdit = (CEdit *)GetDlgItem(IDC_PROMPT_ANSWER);
 	if(pEdit) 
@@ -85,18 +108,20 @@ int CPromptDialog::OnInitDialog()
 //				CPromptPasswordDialog Stuff
 //--------------------------------------------------------------------------//
 
-CPromptPasswordDialog::CPromptPasswordDialog(CWnd* pParent, const char* pTitle, const char* pText, const char* pCheckText)
-    : CDialog(CPromptPasswordDialog::IDD, pParent)
+CPromptPasswordDialog::CPromptPasswordDialog(CWnd* pParent, const char* pTitle, const char* pText,
+                                             const char* pInitPasswordText,
+                                             BOOL bHasCheck, const char* pCheckText, int initCheckVal)
+    : CDialog(CPromptPasswordDialog::IDD, pParent),
+    m_bHasCheckBox(bHasCheck), m_bCheckBoxValue(initCheckVal)
 {   
 	if(pTitle)
 		m_csDialogTitle = pTitle;
 	if(pText)
 		m_csPromptText = pText;
+	if(pInitPasswordText)
+	    m_csPassword = pInitPasswordText;
 	if(pCheckText)
 		m_csCheckBoxText = pCheckText;
-
-	m_csPassword = "";
-	m_bSavePassword = PR_FALSE;
 }
 
 void CPromptPasswordDialog::DoDataExchange(CDataExchange* pDX)
@@ -104,7 +129,7 @@ void CPromptPasswordDialog::DoDataExchange(CDataExchange* pDX)
     CDialog::DoDataExchange(pDX);
     //{{AFX_DATA_MAP(CPromptPasswordDialog)
     DDX_Text(pDX, IDC_PASSWORD, m_csPassword);
-	DDX_Check(pDX, IDC_CHECK_SAVE_PASSWORD, m_bSavePassword);
+	  DDX_Check(pDX, IDC_CHECK_SAVE_PASSWORD, m_bCheckBoxValue);
     //}}AFX_DATA_MAP
 }
 
@@ -116,24 +141,26 @@ END_MESSAGE_MAP()
 
 int CPromptPasswordDialog::OnInitDialog()
 {   
-   	SetWindowText(m_csDialogTitle);
+  SetWindowText(m_csDialogTitle);
   
 	CWnd *pWnd = GetDlgItem(IDC_PROMPT_TEXT);
 	if(pWnd)
 		pWnd->SetWindowText(m_csPromptText);
 
-	pWnd = GetDlgItem(IDC_CHECK_SAVE_PASSWORD);
-	if(pWnd)
+	CButton *pChk = (CButton *)GetDlgItem(IDC_CHECK_SAVE_PASSWORD);
+	if(pChk)
 	{
-		if(!m_csCheckBoxText.IsEmpty())
-		{
-			pWnd->SetWindowText(m_csCheckBoxText);
+	  if (m_bHasCheckBox)
+	  {
+		  if(!m_csCheckBoxText.IsEmpty())
+			  pChk->SetWindowText(m_csCheckBoxText);
+			pChk->SetCheck(m_bCheckBoxValue ? BST_CHECKED : BST_UNCHECKED);
 		}
 		else
 		{
 			// Hide the check box control if there's no label text
 			// This will be the case when we're not using single sign-on
-			pWnd->ShowWindow(SW_HIDE); 
+			pChk->ShowWindow(SW_HIDE); 
 		}
 	}
 
@@ -152,27 +179,22 @@ int CPromptPasswordDialog::OnInitDialog()
 //				CPromptUsernamePasswordDialog Stuff
 //--------------------------------------------------------------------------//
 
-CPromptUsernamePasswordDialog::CPromptUsernamePasswordDialog(CWnd* pParent, const char* pTitle, const char* pText, 
-								   const char* pUserNameLabel, const char* pPasswordLabel,
-								   const char* pCheckText, const char* pInitUserName,
-                           const char* pInitPassword, PRBool bCheck)
-    : CDialog(CPromptUsernamePasswordDialog::IDD, pParent)
+CPromptUsernamePasswordDialog::CPromptUsernamePasswordDialog(CWnd* pParent, const char* pTitle, const char* pText,
+                                  const char* pInitUsername, const char* pInitPassword, 
+		                          BOOL bHasCheck, const char* pCheckText, int initCheckVal)
+    : CDialog(CPromptUsernamePasswordDialog::IDD, pParent),
+    m_bHasCheckBox(bHasCheck), m_bCheckBoxValue(initCheckVal)
 {   
 	if(pTitle)
 		m_csDialogTitle = pTitle;
 	if(pText)
 		m_csPromptText = pText;
-	if(pUserNameLabel)
-		m_csUserNameLabel = pUserNameLabel;
-	if(pPasswordLabel)
-		m_csPasswordLabel = pPasswordLabel;
+	if(pInitUsername)
+		m_csUserName = pInitUsername;
+	if(pInitPassword)
+		m_csPassword = pInitPassword;
 	if(pCheckText)
 		m_csCheckBoxText = pCheckText;
-   if(pInitUserName) 
-      m_csUserName = pInitUserName; 
-   if(pInitPassword)
-      m_csPassword = pInitPassword;
-	m_bSavePassword = bCheck; 
 }
 
 void CPromptUsernamePasswordDialog::DoDataExchange(CDataExchange* pDX)
@@ -181,7 +203,7 @@ void CPromptUsernamePasswordDialog::DoDataExchange(CDataExchange* pDX)
     //{{AFX_DATA_MAP(CPromptUsernamePasswordDialog)
 	DDX_Text(pDX, IDC_USERNAME, m_csUserName);
     DDX_Text(pDX, IDC_PASSWORD, m_csPassword);
-	DDX_Check(pDX, IDC_CHECK_SAVE_PASSWORD, m_bSavePassword);
+	DDX_Check(pDX, IDC_CHECK_SAVE_PASSWORD, m_bCheckBoxValue);
     //}}AFX_DATA_MAP
 }
 
@@ -199,51 +221,33 @@ int CPromptUsernamePasswordDialog::OnInitDialog()
 	if(pWnd)
 		pWnd->SetWindowText(m_csPromptText);
 
-	// This empty check is required since in the case
-	// of non single sign-on the interface methods do
-	// not specify the label text for username(unlike in
-	// in the single sign-on case where they are)
-	// In the case where the labels are not specified 
-	// we just use whatever is in the dlg resource
-	// Ditto for the password label also
-	if(! m_csUserNameLabel.IsEmpty())
-	{
-		pWnd = GetDlgItem(IDC_USERNAME_LABEL);
-		if(pWnd)
-			pWnd->SetWindowText(m_csUserNameLabel);
-	}
-
-	if(! m_csPasswordLabel.IsEmpty())
-	{
-		pWnd = GetDlgItem(IDC_PASSWORD_LABEL);
-		if(pWnd)
-			pWnd->SetWindowText(m_csPasswordLabel);
-	}
-
 	CButton *pChk = (CButton *)GetDlgItem(IDC_CHECK_SAVE_PASSWORD);
-	if(pChk) {
-		if(!m_csCheckBoxText.IsEmpty()) {
-			pChk->SetWindowText(m_csCheckBoxText);
-         pChk->SetCheck(m_bSavePassword ? BST_CHECKED : BST_UNCHECKED);
+	if(pChk)
+	{
+		if(m_bHasCheckBox)
+		{
+		    if (!m_csCheckBoxText.IsEmpty())
+			    pChk->SetWindowText(m_csCheckBoxText);
+			pChk->SetCheck(m_bCheckBoxValue ? BST_CHECKED : BST_UNCHECKED);
 		}
-		else {
-			// Hide the check box control if there's no label text
-			// This will be the case when we're not using single sign-on
-
-         pChk->ShowWindow(SW_HIDE);  
-      }
+		else
+		{
+			pChk->ShowWindow(SW_HIDE);
+		}
 	}
 
+	CEdit *pEdit = (CEdit *)GetDlgItem(IDC_PASSWORD);
+	if(pEdit) 
+	{
+		pEdit->SetWindowText(m_csPassword);
+	}
 
-   CEdit *pEdit = (CEdit *)GetDlgItem(IDC_PASSWORD);
-   if(pEdit) {
-      pEdit->SetWindowText(m_csPassword);
-   }
+	pEdit = (CEdit *)GetDlgItem(IDC_USERNAME);
+	if(pEdit) 
+	{
+		pEdit->SetWindowText(m_csUserName);
+		pEdit->SetSel(0, -1);
 
-   pEdit = (CEdit *)GetDlgItem(IDC_USERNAME);
-   if (pEdit) {
-      pEdit->SetWindowText(m_csUserName); 
-      pEdit->SetSel(0, -1);
 		pEdit->SetFocus();
 
 		return 0; // Returning "0" since we're explicitly setting focus
@@ -252,69 +256,78 @@ int CPromptUsernamePasswordDialog::OnInitDialog()
 	return TRUE;
 }
 
-
 //--------------------------------------------------------------------------//
-//              CFindDialog Stuff
+//				CFindDialog Stuff
 //--------------------------------------------------------------------------//
 
 CFindDialog::CFindDialog(CString& csSearchStr, PRBool bMatchCase,
-            PRBool bMatchWholeWord, PRBool bWrapAround,
-            PRBool bSearchBackwards, CBrowserView* pOwner)
-            : CFindReplaceDialog()
+				PRBool bMatchWholeWord, PRBool bWrapAround,
+				PRBool bSearchBackwards, CBrowserView* pOwner)
+				: CFindReplaceDialog()
 {
-   // Save these initial settings off in member vars
-   // We'll use these to initialize the controls
-   // in InitDialog()
-   m_csSearchStr = csSearchStr;
-   m_bMatchCase = bMatchCase;
-   m_bMatchWholeWord = bMatchWholeWord;
-   m_bWrapAround = bWrapAround;
-   m_bSearchBackwards = bSearchBackwards;
-   m_pOwner = pOwner;
+	// Save these initial settings off in member vars
+	// We'll use these to initialize the controls
+	// in InitDialog()
+	m_csSearchStr = csSearchStr;
+	m_bMatchCase = bMatchCase;
+	m_bMatchWholeWord = bMatchWholeWord;
+	m_bWrapAround = bWrapAround;
+	m_bSearchBackwards = bSearchBackwards;
+	m_pOwner = pOwner;
 
-   // Set up to load our customized Find dialog template
-   // rather than the default one MFC provides
-   m_fr.Flags |= FR_ENABLETEMPLATE;
-   m_fr.hInstance = AfxGetInstanceHandle();
-   m_fr.lpTemplateName = MAKEINTRESOURCE(IDD_FINDDLG);
+	// Set up to load our customized Find dialog template
+	// rather than the default one MFC provides
+	m_fr.Flags |= FR_ENABLETEMPLATE;
+	m_fr.hInstance = AfxGetInstanceHandle();
+	m_fr.lpTemplateName = MAKEINTRESOURCE(IDD_FINDDLG);
 }
 
-BOOL CFindDialog::OnInitDialog()
+BOOL CFindDialog::OnInitDialog() 
 {
-   CFindReplaceDialog::OnInitDialog();
+	CFindReplaceDialog::OnInitDialog();
 
-   CEdit* pEdit = (CEdit *)GetDlgItem(IDC_FIND_EDIT);
-   if(pEdit) pEdit->SetWindowText(m_csSearchStr);
+	CEdit* pEdit = (CEdit *)GetDlgItem(IDC_FIND_EDIT);
+	if(pEdit)
+		pEdit->SetWindowText(m_csSearchStr);
 
-   CButton* pChk = (CButton *)GetDlgItem(IDC_MATCH_CASE);
-   if(pChk) pChk->SetCheck(m_bMatchCase);
+	CButton* pChk = (CButton *)GetDlgItem(IDC_MATCH_CASE);
+	if(pChk)
+		pChk->SetCheck(m_bMatchCase);
 
-   pChk = (CButton *)GetDlgItem(IDC_MATCH_WHOLE_WORD);
-   if(pChk) pChk->SetCheck(m_bMatchWholeWord);
+	pChk = (CButton *)GetDlgItem(IDC_MATCH_WHOLE_WORD);
+	if(pChk)
+		pChk->SetCheck(m_bMatchWholeWord);
 
-   pChk = (CButton *)GetDlgItem(IDC_WRAP_AROUND);
-   if(pChk) pChk->SetCheck(m_bWrapAround);
+	pChk = (CButton *)GetDlgItem(IDC_WRAP_AROUND);	
+	if(pChk)
+		pChk->SetCheck(m_bWrapAround);
 
-   pChk = (CButton *)GetDlgItem(IDC_SEARCH_BACKWARDS);
-   if(pChk) pChk->SetCheck(m_bSearchBackwards);
+	pChk = (CButton *)GetDlgItem(IDC_SEARCH_BACKWARDS);
+	if(pChk)
+		pChk->SetCheck(m_bSearchBackwards);
 
-   return TRUE;
+	return TRUE; 
 }
 
-void CFindDialog::PostNcDestroy() {
-   // Let the owner know we're gone
-   if(m_pOwner != NULL)
-      m_pOwner->ClearFindDialog();
+void CFindDialog::PostNcDestroy()	
+{
+	// Let the owner know we're gone
+	if(m_pOwner != NULL)	
+		m_pOwner->ClearFindDialog();
 
-   CFindReplaceDialog::PostNcDestroy();
+	CFindReplaceDialog::PostNcDestroy();
 }
 
-BOOL CFindDialog::WrapAround() {
-   CButton* pChk = (CButton *)GetDlgItem(IDC_WRAP_AROUND);
-   return pChk ? pChk->GetCheck() : FALSE;
+BOOL CFindDialog::WrapAround()
+{
+	CButton* pChk = (CButton *)GetDlgItem(IDC_WRAP_AROUND);
+
+	return pChk ? pChk->GetCheck() : FALSE;
 }
 
-BOOL CFindDialog::SearchBackwards() {
-   CButton* pChk = (CButton *)GetDlgItem(IDC_SEARCH_BACKWARDS);
-   return pChk ? pChk->GetCheck() : FALSE;
+BOOL CFindDialog::SearchBackwards()
+{
+	CButton* pChk = (CButton *)GetDlgItem(IDC_SEARCH_BACKWARDS);
+
+	return pChk ? pChk->GetCheck() : FALSE;
 }
