@@ -163,7 +163,7 @@ int Init(){
    kPlugin.kFuncs->GetPreference(PREF_INT, PREFERENCE_MAX_TB_SIZE, &gMaxTBSize, &gMaxTBSize);
    if (gMaxTBSize < 1) gMaxTBSize = 20;
 
-   gImagelist = ImageList_Create(16, 15, ILC_MASK, 4, 4);
+   gImagelist = ImageList_Create(16, 15, ILC_MASK | ILC_COLOR8, 4, 4);
    HBITMAP bitmap = LoadBitmap(kPlugin.hDllInstance, MAKEINTRESOURCE(IDB_IMAGES));
    ImageList_AddMasked(gImagelist, bitmap, RGB(192, 192, 192));
    DeleteObject(bitmap);
