@@ -1004,7 +1004,7 @@ void CBrowserView::OnFilePrintPreview()
       if (!m_PrintSettings)
          print->GetNewPrintSettings(getter_AddRefs(m_PrintSettings));
 
-      print->PrintPreview(m_PrintSettings);
+      print->PrintPreview(m_PrintSettings, nsnull);
    }
 }
 

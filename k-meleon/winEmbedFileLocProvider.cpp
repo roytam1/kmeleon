@@ -85,7 +85,7 @@ winEmbedFileLocProvider::GetFile(const char *prop, PRBool *persistant, nsIFile *
    {
       if (theApp.cmdline.m_sProfilesDir) {
          nsCOMPtr<nsILocalFile> tempPath(do_CreateInstance(NS_LOCAL_FILE_CONTRACTID));
-         rv = tempPath->InitWithPath(nsDependentCString(theApp.cmdline.m_sProfilesDir));
+         rv = tempPath->InitWithNativePath(nsDependentCString(theApp.cmdline.m_sProfilesDir));
          if (NS_FAILED(rv)) return rv;
          getter_AddRefs(localFile = tempPath);
          if (NS_FAILED(rv)) return rv;
@@ -93,14 +93,14 @@ winEmbedFileLocProvider::GetFile(const char *prop, PRBool *persistant, nsIFile *
       else {
          rv = CloneMozBinDirectory(getter_AddRefs(localFile));
          if (NS_SUCCEEDED(rv))
-            rv = localFile->AppendRelativePath(PROFILE_ROOT_DIR_NAME);
+            rv = localFile->AppendRelativeNativePath(PROFILE_ROOT_DIR_NAME);
       }
    }
    else if (nsCRT::strcmp(prop, NS_APP_APPLICATION_REGISTRY_FILE) == 0)
    {
       if (theApp.cmdline.m_sProfilesDir) {
          nsCOMPtr<nsILocalFile> tempPath(do_CreateInstance(NS_LOCAL_FILE_CONTRACTID));
-         rv = tempPath->InitWithPath(nsDependentCString(theApp.cmdline.m_sProfilesDir));
+         rv = tempPath->InitWithNativePath(nsDependentCString(theApp.cmdline.m_sProfilesDir));
          if (NS_FAILED(rv)) return rv;
          getter_AddRefs(localFile = tempPath);
          if (NS_FAILED(rv)) return rv;
@@ -108,24 +108,24 @@ winEmbedFileLocProvider::GetFile(const char *prop, PRBool *persistant, nsIFile *
       else {
          rv = CloneMozBinDirectory(getter_AddRefs(localFile));
          if (NS_SUCCEEDED(rv))
-            rv = localFile->AppendRelativePath(PROFILE_ROOT_DIR_NAME);
+            rv = localFile->AppendRelativeNativePath(PROFILE_ROOT_DIR_NAME);
       }
       if (NS_SUCCEEDED(rv))
-         rv = localFile->Append(APP_REGISTRY_NAME);
+         rv = localFile->AppendNative(APP_REGISTRY_NAME);
    }
    else if (nsCRT::strcmp(prop, NS_APP_DEFAULTS_50_DIR) == 0)
    {
       rv = CloneMozBinDirectory(getter_AddRefs(localFile));
       if (NS_SUCCEEDED(rv))
-         rv = localFile->AppendRelativePath(DEFAULTS_DIR_NAME);
+         rv = localFile->AppendRelativeNativePath(DEFAULTS_DIR_NAME);
    }
    else if (nsCRT::strcmp(prop, NS_APP_PREF_DEFAULTS_50_DIR) == 0)
    {
       rv = CloneMozBinDirectory(getter_AddRefs(localFile));
       if (NS_SUCCEEDED(rv)) {
-         rv = localFile->AppendRelativePath(DEFAULTS_DIR_NAME);
+         rv = localFile->AppendRelativeNativePath(DEFAULTS_DIR_NAME);
          if (NS_SUCCEEDED(rv))
-            rv = localFile->AppendRelativePath(DEFAULTS_PREF_DIR_NAME);
+            rv = localFile->AppendRelativeNativePath(DEFAULTS_PREF_DIR_NAME);
       }
    }
    else if (nsCRT::strcmp(prop, NS_APP_PROFILE_DEFAULTS_NLOC_50_DIR) == 0 ||
@@ -133,9 +133,9 @@ winEmbedFileLocProvider::GetFile(const char *prop, PRBool *persistant, nsIFile *
    {
       rv = CloneMozBinDirectory(getter_AddRefs(localFile));
       if (NS_SUCCEEDED(rv))
-         rv = localFile->AppendRelativePath(DEFAULTS_DIR_NAME);
+         rv = localFile->AppendRelativeNativePath(DEFAULTS_DIR_NAME);
       if (NS_SUCCEEDED(rv))
-         rv = localFile->AppendRelativePath(DEFAULTS_PROFILE_DIR_NAME);
+         rv = localFile->AppendRelativeNativePath(DEFAULTS_PROFILE_DIR_NAME);
    }
    else if (nsCRT::strcmp(prop, NS_APP_USER_PROFILES_ROOT_DIR) == 0)
    {
@@ -145,25 +145,25 @@ winEmbedFileLocProvider::GetFile(const char *prop, PRBool *persistant, nsIFile *
    {
       rv = CloneMozBinDirectory(getter_AddRefs(localFile));
       if (NS_SUCCEEDED(rv))
-         rv = localFile->AppendRelativePath(RES_DIR_NAME);
+         rv = localFile->AppendRelativeNativePath(RES_DIR_NAME);
    }
    else if (nsCRT::strcmp(prop, NS_APP_CHROME_DIR) == 0)
    {
       rv = CloneMozBinDirectory(getter_AddRefs(localFile));
       if (NS_SUCCEEDED(rv))
-         rv = localFile->AppendRelativePath(CHROME_DIR_NAME);
+         rv = localFile->AppendRelativeNativePath(CHROME_DIR_NAME);
    }
    else if (nsCRT::strcmp(prop, NS_APP_PLUGINS_DIR) == 0)
    {
       rv = CloneMozBinDirectory(getter_AddRefs(localFile));
       if (NS_SUCCEEDED(rv))
-         rv = localFile->AppendRelativePath(PLUGINS_DIR_NAME);
+         rv = localFile->AppendRelativeNativePath(PLUGINS_DIR_NAME);
    }
    else if (nsCRT::strcmp(prop, NS_APP_SEARCH_DIR) == 0)
    {
       rv = CloneMozBinDirectory(getter_AddRefs(localFile));
       if (NS_SUCCEEDED(rv))
-         rv = localFile->AppendRelativePath(SEARCH_DIR_NAME);
+         rv = localFile->AppendRelativeNativePath(SEARCH_DIR_NAME);
    }
 
    if (localFile && NS_SUCCEEDED(rv))
@@ -246,7 +246,7 @@ NS_METHOD winEmbedFileLocProvider::GetProductDirectory(nsILocalFile **aLocalFile
       }
       if (NS_FAILED(rv)) return rv;
       
-      rv = localDir->AppendRelativePath("K-Meleon");
+      rv = localDir->AppendRelativeNativePath("K-Meleon");
       if (NS_FAILED(rv)) return rv;
       rv = localDir->Exists(&exists);
       if (NS_SUCCEEDED(rv) && !exists)
@@ -281,7 +281,7 @@ NS_METHOD winEmbedFileLocProvider::GetDefaultUserProfileRoot(nsILocalFile **aLoc
    
    if (theApp.cmdline.m_sProfilesDir) {
       nsCOMPtr<nsILocalFile> tempPath(do_CreateInstance(NS_LOCAL_FILE_CONTRACTID));
-      rv = tempPath->InitWithPath(nsDependentCString(theApp.cmdline.m_sProfilesDir));
+      rv = tempPath->InitWithNativePath(nsDependentCString(theApp.cmdline.m_sProfilesDir));
       if (NS_FAILED(rv)) return rv;
       getter_AddRefs(localDir = tempPath);
       if (NS_FAILED(rv)) return rv;
@@ -291,7 +291,7 @@ NS_METHOD winEmbedFileLocProvider::GetDefaultUserProfileRoot(nsILocalFile **aLoc
       if (NS_FAILED(rv)) return rv;
       
       // These 3 platforms share this part of the path - do them as one
-      rv = localDir->AppendRelativePath(PROFILE_ROOT_DIR_NAME);
+      rv = localDir->AppendRelativeNativePath(PROFILE_ROOT_DIR_NAME);
       if (NS_FAILED(rv)) return rv;
    }
    

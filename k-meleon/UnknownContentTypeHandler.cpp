@@ -467,7 +467,7 @@ void CProgressDialog::SetLauncher(nsIHelperAppLauncher *aLauncher){
    nsCAutoString filepath;
 
 	pUri->GetSpec (uri);
-	pFile->GetPath (filepath);
+	pFile->GetNativePath (filepath);
 
    SetDlgItemText(IDC_SOURCE, uri.get());
    SetDlgItemText(IDC_DESTINATION, filepath.get());
