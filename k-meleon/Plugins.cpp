@@ -320,7 +320,7 @@ kmeleonPointInfo *GetInfoAtPoint(int x, int y) {
    nsCOMPtr<nsIDOMNode> aNode;
    aNode = pBrowserView->GetNodeAtPoint(x, y, TRUE);
    if (!aNode) {
-      MessageBox(NULL, "no node", NULL, MB_OK);
+      // MessageBox(NULL, "no node", NULL, MB_OK);
       return &gPointInfo;
    }
 
