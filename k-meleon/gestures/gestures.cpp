@@ -190,15 +190,18 @@ DIRECTION findDir(POINT p1, POINT p2) {
 }
 
 static UINT  m_captured;
+static UINT  m_defercapture;
 
 static POINT m_posDown;
 static SYSTEMTIME m_stDown;
+static int m_virt;
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
     if (message == WM_COMMAND){
         WORD command = LOWORD(wParam);
 
         if (command == id_defercapture) {
+            m_captured = m_defercapture;
             SetCapture(hWnd);
         }
     }
@@ -207,78 +210,113 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
         UINT nHitTest = LOWORD(lParam);
         UINT mouseMsg = HIWORD(lParam);
 
-        if (!m_captured && nHitTest == HTCLIENT) {
-            if (mouseMsg == WM_RBUTTONDOWN) {
-                if (GetKeyState(VK_SHIFT)   >= 0 &&
-                    GetKeyState(VK_CONTROL) >= 0 &&
-                    GetKeyState(VK_MENU)    >= 0) {
+        if (nHitTest == HTCLIENT) {
 
-                    RECT rc = {0};
-                    kPlugin.kFuncs->GetBrowserviewRect(hWnd, &rc);
+            RECT rc = {0};
+            kPlugin.kFuncs->GetBrowserviewRect(hWnd, &rc);
 
-                    GetCursorPos(&m_posDown);
-                    if (m_posDown.x >= rc.left && m_posDown.x <= rc.right &&
-                        m_posDown.y >= rc.top  && m_posDown.y <= rc.bottom) {
+            GetCursorPos(&m_posDown);
+            if (m_posDown.x >= rc.left && m_posDown.x <= rc.right &&
+                m_posDown.y >= rc.top  && m_posDown.y <= rc.bottom) {
 
-                        SetCapture(hWnd);
-                        m_captured = mouseMsg;
-                        GetSystemTime(&m_stDown);
-                        PostMessage(hWnd, WM_COMMAND, id_defercapture, 0);
+                m_virt = 0;
+                if (GetKeyState(VK_SHIFT) < 0)
+                    m_virt |= FSHIFT;
+                if (GetKeyState(VK_CONTROL) < 0)
+                    m_virt |= FCONTROL;
+                if (GetKeyState(VK_MENU) < 0)
+                    m_virt |= FALT;
 
-                        return MA_ACTIVATE;
-                    }
+                if (mouseMsg == WM_RBUTTONDOWN || m_virt != 0) {
+
+                    SetCapture(hWnd);
+                    m_defercapture = m_captured = mouseMsg;
+                    GetSystemTime(&m_stDown);
+                    PostMessage(hWnd, WM_COMMAND, id_defercapture, 0);
+                    
+                    return MA_ACTIVATE;
                 }
             }
         }
+        else
+            m_captured = m_defercapture = 0;
     }
-    else if (message == WM_RBUTTONUP) {
-        if (m_captured == WM_RBUTTONDOWN) {
+    else if (message == WM_CAPTURECHANGED ||
+             message == WM_LBUTTONDBLCLK || 
+             message == WM_MBUTTONDBLCLK || 
+             message == WM_RBUTTONDBLCLK){
+        ReleaseCapture();
+        m_captured = 0;
+    }
+    else if (message == WM_LBUTTONUP && m_captured == WM_LBUTTONDOWN ||
+             message == WM_MBUTTONUP && m_captured == WM_MBUTTONDOWN ||
+             message == WM_RBUTTONUP && m_captured == WM_RBUTTONDOWN) {
+        
+        POINT m_posUp;
+        GetCursorPos(&m_posUp);
 
-            POINT m_posUp;
-            GetCursorPos(&m_posUp);
+        DIRECTION dir = findDir(m_posDown, m_posUp);
 
-            DIRECTION dir = findDir(m_posDown, m_posUp);
+        SYSTEMTIME m_stUp;
+        GetSystemTime(&m_stUp);
 
-            SYSTEMTIME m_stUp;
-            GetSystemTime(&m_stUp);
+        ULONG u1 = m_stDown.wMilliseconds + 1000 * (m_stDown.wSecond + 60*(m_stDown.wMinute + 60*(m_stDown.wHour)));
+        ULONG u2 = m_stUp.wMilliseconds + 1000 * (m_stUp.wSecond + 60*(m_stUp.wMinute + 60*(m_stUp.wHour)));
 
-            ULONG u1 = m_stDown.wMilliseconds + 1000 * (m_stDown.wSecond + 60*(m_stDown.wMinute + 60*(m_stDown.wHour)));
-            ULONG u2 = m_stUp.wMilliseconds + 1000 * (m_stUp.wSecond + 60*(m_stUp.wMinute + 60*(m_stUp.wHour)));
+        UINT MAXTIME = 750;
+        kPlugin.kFuncs->GetPreference(PREF_INT, PREF_"maxtime", &MAXTIME, &MAXTIME);
 
-            UINT MAXTIME = 300;
-            kPlugin.kFuncs->GetPreference(PREF_INT, PREF_"maxtime", &MAXTIME, &MAXTIME);
-
-            if ( u2 - u1 > MAXTIME ) {
-                if ( u2 - u1 > 3*MAXTIME/2 )
-                    dir = NOMOVE;
-                else
-                    dir = (dir != NOMOVE ? BADMOVE : NOMOVE);
-            }
-
-            if (dir == NOMOVE) {
-                PostMessage(GetFocus(), WM_CONTEXTMENU, (WPARAM) hWnd, MAKELONG(m_posUp.x, m_posUp.y));
-            }
-            else if (dir != BADMOVE) {
-                char szDir[10][10] = { "nomove", "right", "upright", "up", "upleft", "left", "downleft", "down", "downright", "badmove" };
-
-                char szPref[100];
-                strcpy(szPref, PREF_);
-                strcat(szPref, szDir[dir]);
-
-                char szTxt[100];
-                kPlugin.kFuncs->GetPreference(PREF_STRING, szPref, &szTxt, (char*)"");
-
-                if (*szTxt) {
-                    int id = kPlugin.kFuncs->GetID(szTxt);
-                    if (id > 0)
-                        SendMessage(hWnd, WM_COMMAND, id, 0L);
-                }
-            }
-
-            ReleaseCapture();
-            m_captured = 0;
-            return 0;
+        if ( u2 - u1 > MAXTIME ) {
+            if ( u2 - u1 > 3*MAXTIME/2 )
+                dir = NOMOVE;
+            else
+                dir = (dir != NOMOVE ? BADMOVE : NOMOVE);
         }
+
+        char szTxt[100];
+        char szPref[100];
+        strcpy(szPref, PREF_);
+
+        if (m_virt & FSHIFT)   strcat(szPref, "S");
+        if (m_virt & FCONTROL) strcat(szPref, "C");
+        if (m_virt & FALT)     strcat(szPref, "A");
+
+        if (m_captured == WM_LBUTTONDOWN) strcat(szPref, "L");
+        if (m_captured == WM_MBUTTONDOWN) strcat(szPref, "M");
+        if (m_captured == WM_RBUTTONDOWN) strcat(szPref, "R");
+
+        char szDir[10][10] = { "nomove", "right", "upright", "up", "upleft", "left", "downleft", "down", "downright", "badmove" };
+        strcat(szPref, szDir[dir]);
+
+        kPlugin.kFuncs->GetPreference(PREF_STRING, szPref, szTxt, (char*)"");
+
+        kmeleonPointInfo *pInfo = kPlugin.kFuncs->GetInfoAtPoint(m_posDown.x, m_posDown.y);
+        if (pInfo) {
+            if (pInfo->link)  strcat(szPref, "L");
+            if (pInfo->image) strcat(szPref, "I");
+        }
+
+        kPlugin.kFuncs->GetPreference(PREF_STRING, szPref, szTxt, szTxt);
+
+        if (!*szTxt && m_captured == WM_RBUTTONDOWN && m_virt == 0) {
+            strcpy(szPref, PREF_);
+            strcat(szPref, szDir[dir]);
+            kPlugin.kFuncs->GetPreference(PREF_STRING, szPref, szTxt, (char*)"");
+        }
+
+        int id = 0;
+        if (*szTxt)
+            id = kPlugin.kFuncs->GetID(szTxt);
+        
+        if (dir == NOMOVE && m_captured == WM_RBUTTONDOWN && m_virt == 0 && id <= 0)
+            PostMessage(GetFocus(), WM_CONTEXTMENU, (WPARAM) hWnd, MAKELONG(m_posUp.x, m_posUp.y));
+        else if (dir != BADMOVE && id > 0)
+            SendMessage(hWnd, WM_COMMAND, id, 0L);
+
+        ReleaseCapture();
+        m_captured = m_defercapture = 0;
+        if (dir != BADMOVE)
+            return 0;
     }
 
     return CallWindowProc((WNDPROC)KMeleonWndProc, hWnd, message, wParam, lParam);
