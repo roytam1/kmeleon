@@ -359,6 +359,13 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags,
     BOOL bContentHasImage = FALSE;
     UINT nIDResource = IDR_CTXMENU_DOCUMENT;
 
+    if (pThis->m_wndBrowserView.m_iGetNodeHack == 0) {
+         if (GetKeyState(VK_SHIFT) < 0 ||
+             GetKeyState(VK_CONTROL) < 0 || 
+             GetKeyState(VK_MENU) < 0)
+              return;
+    }
+         
     // Reset the values from the last invocation
     // Clear image src & link url
     nsAutoString empty;

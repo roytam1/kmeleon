@@ -24,11 +24,14 @@
 #include "Parser.h"
 
 #define MAX_ACCEL 127
+#define MAX_MOUSE 12
 
 class CAccelParser : public CParser {
 protected:
   ACCEL accelerators[MAX_ACCEL];
   int numAccelerators;
+  ACCEL mouse[MAX_MOUSE];
+  int numMKeys;
 
   HACCEL accelTable;
 
@@ -43,6 +46,8 @@ public:
   int Load(CString &filename);
 
   HACCEL GetTable();
+
+  int CheckMouse(UINT message);
 };
 
 #endif // __ACCELPARSER_H__

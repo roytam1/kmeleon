@@ -51,6 +51,8 @@ CAccelParser::CAccelParser()
    accelTable = NULL;
    numAccelerators = 0;
    memset(accelerators, 0, sizeof(ACCEL) * MAX_ACCEL);
+   numMKeys = 0;
+   memset(mouse, 0, sizeof(ACCEL) * MAX_MOUSE);
 
 }
 
@@ -266,6 +268,27 @@ int CAccelParser::Parse(char *p)
             VK_TEST(NUMLOCK)
             VK_TEST(SCROLL)
       }
+      else if (stricmp(p, "LButton") == 0){ 
+	mouse[numMKeys].cmd = command;
+	mouse[numMKeys].fVirt = virt & (~FVIRTKEY);
+	mouse[numMKeys].key = WM_LBUTTONDOWN;
+	numMKeys++;
+	return true;
+      }
+      else if (stricmp(p, "MButton") == 0){ 
+	mouse[numMKeys].cmd = command;
+	mouse[numMKeys].fVirt = virt & (~FVIRTKEY);
+	mouse[numMKeys].key = WM_MBUTTONDOWN;
+	numMKeys++;
+	return true;
+      }
+      else if (stricmp(p, "RButton") == 0){ 
+	mouse[numMKeys].cmd = command;
+	mouse[numMKeys].fVirt = virt & (~FVIRTKEY);
+	mouse[numMKeys].key = WM_RBUTTONDOWN;
+	numMKeys++;
+	return true;
+      }
       else {
          // regular key...
          key = (WORD)*p;
@@ -289,4 +312,21 @@ HACCEL CAccelParser::GetTable(){
       accelTable = CreateAcceleratorTable(accelerators, numAccelerators);
    }
    return accelTable;
+}
+
+int CAccelParser::CheckMouse(UINT message){
+   int i, virt = 0;
+   if (GetKeyState(VK_SHIFT) < 0)
+      virt |= FSHIFT;
+   if (GetKeyState(VK_CONTROL) < 0)
+      virt |= FCONTROL;
+   if (GetKeyState(VK_MENU) < 0)
+      virt |= FALT;
+   for (i=0; i<numMKeys; i++) {
+      if (mouse[i].key == message) {
+	 if (mouse[i].fVirt == virt)
+	    return mouse[i].cmd;
+      }
+   }
+   return 0;
 }
