@@ -106,9 +106,6 @@ CBrowserFrame::CBrowserFrame(PRUint32 chromeMask)
 	m_chromeMask = chromeMask;
    m_created = false;
    m_setURLBarFocus = false;
-
-   theApp.m_pMostRecentBrowserFrame = this;
-
 }
 
 CBrowserFrame::~CBrowserFrame()
