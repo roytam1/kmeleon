@@ -79,8 +79,8 @@ END_MESSAGE_MAP()
 
 CMfcEmbedApp::CMfcEmbedApp()
 {
-    m_ProfileMgr = NULL;
-
+   m_ProfileMgr = NULL;
+  
    m_bFirstWindowCreated = FALSE;
    
    mRefCnt = 1; // Start at one - nothing is going to addref this object
@@ -287,28 +287,16 @@ BOOL CMfcEmbedApp::InitInstance()
       return FALSE;
    }
 
+   plugins.FindAndLoad("*.dll");
+
+   // the hidden window will take care of creating the first
+   // browser window for us
    if(!CreateHiddenWindow()){
       ASSERT(FALSE);
       NS_TermEmbedding();
       return FALSE;
    }
 
-   plugins.FindAndLoad("*.dll");
-
-   // see if we're staying resident
-   // if we're not, we should create a browser and load the start page
-   if (((CHiddenWnd*) m_pMainWnd)->Persisting() != PERSIST_STATE_PERSISTING) {
-      // Create the first browser frame window
-	   CBrowserFrame *pBrowserFrame = CreateNewBrowserFrame();
-      if(!pBrowserFrame)
-         return FALSE;
-      
-      if ( *m_lpCmdLine )
-         pBrowserFrame->m_wndBrowserView.OpenURL(m_lpCmdLine);
-      else
-         pBrowserFrame->m_wndBrowserView.LoadHomePage();
-   }
-  
    return TRUE;
 }
 
@@ -359,14 +347,13 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
    //pFrame->LoadAccelTable(MAKEINTRESOURCE(IDR_MAINFRAME));
    pFrame->m_hAccelTable = accel.GetTable();
 
-
    // this only needs to be called once
    if (!m_bFirstWindowCreated) {
       pFrame->m_wndReBar.DrawToolBarMenu();
       m_bFirstWindowCreated = TRUE;
    }
-   
-   // Show the window...
+
+   5// Show the window...
 	if(bShowWindow) {
       if (preferences.bMaximized) pFrame->ShowWindow(SW_MAXIMIZE);
       else pFrame->ShowWindow(SW_SHOW);

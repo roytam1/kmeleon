@@ -70,6 +70,10 @@ private:
    BOOL           m_bShowNow;
    CBrowserFrame* m_pHiddenBrowser;
 
+   BOOL        m_bFirstWindowCreated;
+   // used to process the rebar DrawToolbarMenu function, which must only
+   // be called once, but must be called after the first window has been created
+
 };
 
 

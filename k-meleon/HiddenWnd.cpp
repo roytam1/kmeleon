@@ -34,7 +34,7 @@ END_MESSAGE_MAP()
 
 BOOL CHiddenWnd::PreCreateWindow(CREATESTRUCT& cs) {
 
-	if( !CFrameWnd::PreCreateWindow(cs) )
+   if( !CFrameWnd::PreCreateWindow(cs) )
 		return FALSE;
    cs.lpszClass = theApp.GetMainWindowClassName();
 
@@ -47,6 +47,8 @@ void CHiddenWnd::OnCreate(LPCREATESTRUCT lpCreateStruct) {
    QueryPersistFlags();
    if (m_bStayResident)
       StayResident();
+   else
+      ShowBrowser();
 
    CFrameWnd::OnCreate(lpCreateStruct);
 }
@@ -72,7 +74,6 @@ void CHiddenWnd::QueryPersistFlags() {
       m_bPreloadWindow     = FALSE;
       m_bPreloadStartPage  = FALSE;
       m_bShowNow           = FALSE;
-      m_bPersisting        = FALSE;
    }
 }
 
@@ -165,12 +166,18 @@ void CHiddenWnd::ShowBrowser(char *URI) {
    if (m_bPersisting && m_bPreloadWindow) {
       if (URI && *URI)
          m_pHiddenBrowser->m_wndBrowserView.OpenURL(URI);
-      else if (!m_bPreloadStartPage)
-         m_pHiddenBrowser->m_wndBrowserView.LoadHomePage();
+      else {
+         if (!m_bPreloadStartPage) {
+            m_pHiddenBrowser->m_wndBrowserView.LoadHomePage();
+            m_pHiddenBrowser->m_setURLBarFocus = TRUE;
+         }
+         else
+            m_pHiddenBrowser->m_wndUrlBar.SetFocus();
+      }
 
       if (theApp.preferences.bMaximized) m_pHiddenBrowser->ShowWindow(SW_MAXIMIZE);
       else m_pHiddenBrowser->ShowWindow(SW_SHOW);
-      m_pHiddenBrowser->SetWindowPos(&wndTop, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | SWP_SHOWWINDOW);
+      m_pHiddenBrowser->SetWindowPos(&wndTop, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_SHOWWINDOW);
 
       m_bPersisting = FALSE;
    }
@@ -178,20 +185,28 @@ void CHiddenWnd::ShowBrowser(char *URI) {
    // otherwise, just create a new browser
    else {
       CBrowserFrame* browser;
-      browser = theApp.CreateNewBrowserFrame(nsIWebBrowserChrome::CHROME_ALL, -1, -1, -1, -1, PR_TRUE);
+      browser = theApp.CreateNewBrowserFrame();
+
+      if (!browser) {
+         MessageBox("Could not create browser frame");
+         return;
+      }
+
       if (URI && *URI)
          browser->m_wndBrowserView.OpenURL(URI);
-      else
+      else {
+         browser->m_setURLBarFocus = TRUE;
          browser->m_wndBrowserView.LoadHomePage();
+      }
    }
+
 }
 
-
 int CHiddenWnd::Persisting() {
-   if (m_bStayResident)
-      return PERSIST_STATE_ENABLED;
    if (m_bPersisting)
       return PERSIST_STATE_PERSISTING;
+   if (m_bStayResident)
+      return PERSIST_STATE_ENABLED;
    return PERSIST_STATE_DISABLED;
 }
 
@@ -203,10 +218,7 @@ BOOL CHiddenWnd::StayResident() {
       m_bShowNow = FALSE;
       m_bPersisting = FALSE;
 
-      m_pHiddenBrowser = theApp.CreateNewBrowserFrame();
-      if (!m_pHiddenBrowser)
-         return FALSE;
-      m_pHiddenBrowser->m_wndBrowserView.LoadHomePage();
+      ShowBrowser();
    }
 
    else {
