@@ -580,6 +580,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
       if (command == nAddCommand){
          kmeleonDocInfo *dInfo = kPlugin.kFuncs->GetDocInfo(hWnd);
 
+         // remove any characters the filesystem won't like
+         char *c;
+         while ((c = strpbrk(dInfo->title, "\\/:*?\"<>|")) != NULL) *c = ' ';
+
          CString filename = gFavoritesPath;
          filename += dInfo->title;
          filename += _T(".url");
