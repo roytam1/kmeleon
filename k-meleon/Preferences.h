@@ -43,8 +43,8 @@ public:
    // true if the window should default to maximized
    int bMaximized;
 
-   // recent window position
-   int posCX, posCY;
+   // recent window size
+   int width, height;
 
    // use external source viewer
    int bSourceUseExternalCommand;

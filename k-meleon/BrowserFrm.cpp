@@ -431,13 +431,13 @@ void CBrowserFrame::OnSize(UINT nType, int cx, int cy) {
    if (!m_created) return;
 
    // record the maximized state   
-   if (nType == SIZE_MAXIMIZED) theApp.preferences.bMaximized = true;
+   if (nType == SIZE_MAXIMIZED)
+      theApp.preferences.bMaximized = true;
    // record the window size/pos
    else if (nType == SIZE_RESTORED) {
       theApp.preferences.bMaximized = false;
-      GetWindowRect(&rc);
-      theApp.preferences.posCX = rc.right - rc.left;
-      theApp.preferences.posCY = rc.bottom - rc.top;
+      theApp.preferences.width = cx;
+      theApp.preferences.height = cy;
    }
 }
 

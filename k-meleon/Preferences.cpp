@@ -75,8 +75,8 @@ void CPreferences::Load() {
       // -- Display settings
       
       _GetBool(_T("kmeleon.display.maximized"), bMaximized, true);
-      _GetInt(_T("kmeleon.display.cx"), posCX, -1);
-      _GetInt(_T("kmeleon.display.cy"), posCY, -1);
+      _GetInt(_T("kmeleon.display.width"), width, -1);
+      _GetInt(_T("kmeleon.display.height"), height, -1);
 
       _GetBool(_T("kmeleon.display.backgroundImageEnabled"), bToolbarBackground, true);
 
@@ -194,8 +194,8 @@ void CPreferences::Save() {
       // -- Display settings
 
       rv = prefs->SetBoolPref(_T("kmeleon.display.maximized"), bMaximized);
-      rv = prefs->SetIntPref(_T("kmeleon.display.cx"), posCX);
-      rv = prefs->SetIntPref(_T("kmeleon.display.cy"), posCY);
+      rv = prefs->SetIntPref(_T("kmeleon.display.width"), width);
+      rv = prefs->SetIntPref(_T("kmeleon.display.height"), height);
       rv = prefs->SetBoolPref(_T("kmeleon.display.backgroundImageEnabled"), bToolbarBackground);
       rv = prefs->SetCharPref(_T("kmeleon.display.backgroundImage"), toolbarBackground);
 

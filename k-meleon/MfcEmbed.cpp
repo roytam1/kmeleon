@@ -225,8 +225,8 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
 
    // Restore previous window size if -1
    if (cx==-1 && cy==-1) {
-      cx = preferences.posCX;
-      cy = preferences.posCY;
+      cx = preferences.width;
+      cy = preferences.height;
       x = CW_USEDEFAULT;
       y = CW_USEDEFAULT;
    }
