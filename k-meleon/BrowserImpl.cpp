@@ -307,29 +307,29 @@ NS_IMETHODIMP CBrowserImpl::FocusPrevElement()
 
 NS_IMETHODIMP CBrowserImpl::SetDimensions(PRUint32 aFlags, PRInt32 x, PRInt32 y, PRInt32 cx, PRInt32 cy)
 {
-	if(! m_pBrowserFrameGlue)
-		return NS_ERROR_FAILURE;
+   if(! m_pBrowserFrameGlue)
+      return NS_ERROR_FAILURE;
 
-    if (aFlags & nsIEmbeddingSiteWindow::DIM_FLAGS_POSITION &&
-        (aFlags & nsIEmbeddingSiteWindow::DIM_FLAGS_SIZE_INNER || 
-         aFlags & nsIEmbeddingSiteWindow::DIM_FLAGS_SIZE_OUTER))
-    {
-    	m_pBrowserFrameGlue->SetBrowserFramePositionAndSize(x, y, cx, cy, PR_TRUE);
-    }
-    else
-    {
-        if (aFlags & nsIEmbeddingSiteWindow::DIM_FLAGS_POSITION)
-        {
-    	    m_pBrowserFrameGlue->SetBrowserFramePosition(x, y);
-        }
-        if (aFlags & nsIEmbeddingSiteWindow::DIM_FLAGS_SIZE_INNER || 
-            aFlags & nsIEmbeddingSiteWindow::DIM_FLAGS_SIZE_OUTER)
-        {
-    	    m_pBrowserFrameGlue->SetBrowserFrameSize(cx, cy);
-        }
-    }
+   if (aFlags & nsIEmbeddingSiteWindow::DIM_FLAGS_POSITION){
+      if (aFlags & nsIEmbeddingSiteWindow::DIM_FLAGS_SIZE_OUTER){
+         m_pBrowserFrameGlue->SetBrowserFramePositionAndSize(x, y, cx, cy, PR_TRUE);
+      }
+      else if (aFlags & nsIEmbeddingSiteWindow::DIM_FLAGS_SIZE_INNER){
+         m_pBrowserFrameGlue->SetBrowserPositionAndSize(x, y, cx, cy, PR_TRUE);
+      }
+      else {
+         m_pBrowserFrameGlue->SetBrowserFramePosition(x, y);
+      }
+   }
+   else{
+      if (aFlags & nsIEmbeddingSiteWindow::DIM_FLAGS_SIZE_OUTER){
+         m_pBrowserFrameGlue->SetBrowserFrameSize(cx, cy);
+      }else if (aFlags & nsIEmbeddingSiteWindow::DIM_FLAGS_SIZE_INNER){
+         m_pBrowserFrameGlue->SetBrowserSize(cx, cy);
+      }
+   }
 
-    return NS_OK;
+   return NS_OK;
 }
 
 NS_IMETHODIMP CBrowserImpl::GetDimensions(PRUint32 aFlags, PRInt32 *x, PRInt32 *y, PRInt32 *cx, PRInt32 *cy)
@@ -337,8 +337,7 @@ NS_IMETHODIMP CBrowserImpl::GetDimensions(PRUint32 aFlags, PRInt32 *x, PRInt32 *
 	if(! m_pBrowserFrameGlue)
 		return NS_ERROR_FAILURE;
     
-    if (aFlags & nsIEmbeddingSiteWindow::DIM_FLAGS_POSITION)
-    {
+    if (aFlags & nsIEmbeddingSiteWindow::DIM_FLAGS_POSITION){
     	m_pBrowserFrameGlue->GetBrowserFramePosition(x, y);
     }
     if (aFlags & nsIEmbeddingSiteWindow::DIM_FLAGS_SIZE_INNER || 

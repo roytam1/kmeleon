@@ -155,7 +155,24 @@ void CBrowserFrame::BrowserFrameGlueObj::SetBrowserFrameSize(PRInt32 aCX, PRInt3
 {
    METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
       
-      pThis->SetWindowPos(NULL, 0, 0, aCX, aCY, 
+   pThis->SetWindowPos(NULL, 0, 0, aCX, aCY, 
+      SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOZORDER
+      );
+}
+
+void CBrowserFrame::BrowserFrameGlueObj::SetBrowserSize(PRInt32 aCX, PRInt32 aCY)
+{
+   METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
+
+   // first we have to figure out how much bigger the frame is than the view
+   RECT frameRect, viewRect;
+   pThis->GetWindowRect(&frameRect);
+   pThis->m_wndBrowserView.GetClientRect(&viewRect);
+
+   int deltax = (frameRect.right-frameRect.left)-(viewRect.right-viewRect.left);
+   int deltay = (frameRect.bottom-frameRect.top)-(viewRect.bottom-viewRect.top);
+
+   pThis->SetWindowPos(NULL, 0, 0, aCX+deltax, aCY+deltay,
       SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOZORDER
       );
 }
@@ -178,7 +195,7 @@ void CBrowserFrame::BrowserFrameGlueObj::SetBrowserFramePosition(PRInt32 aX, PRI
 {
    METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)  
 
-      pThis->SetWindowPos(NULL, aX, aY, 0, 0, 
+   pThis->SetWindowPos(NULL, aX, aY, 0, 0, 
       SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOZORDER);
 }
 
@@ -186,7 +203,7 @@ void CBrowserFrame::BrowserFrameGlueObj::GetBrowserFramePosition(PRInt32 *aX, PR
 {
    METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
 
-      RECT wndRect;
+   RECT wndRect;
    pThis->GetWindowRect(&wndRect);
 
    if (aX)
@@ -200,7 +217,7 @@ void CBrowserFrame::BrowserFrameGlueObj::GetBrowserFramePositionAndSize(PRInt32 
 {
    METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
 
-      RECT wndRect;
+   RECT wndRect;
    pThis->GetWindowRect(&wndRect);
 
    if (aX)
@@ -220,7 +237,23 @@ void CBrowserFrame::BrowserFrameGlueObj::SetBrowserFramePositionAndSize(PRInt32 
 {
    METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
 
-      pThis->SetWindowPos(NULL, aX, aY, aCX, aCY, 
+   pThis->SetWindowPos(NULL, aX, aY, aCX, aCY, 
+      SWP_NOACTIVATE | SWP_NOZORDER);
+}
+
+void CBrowserFrame::BrowserFrameGlueObj::SetBrowserPositionAndSize(PRInt32 aX, PRInt32 aY, PRInt32 aCX, PRInt32 aCY, PRBool fRepaint)
+{
+   METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
+
+   // first we have to figure out how much bigger the frame is than the view
+   RECT frameRect, viewRect;
+   pThis->GetWindowRect(&frameRect);
+   pThis->m_wndBrowserView.GetClientRect(&viewRect);
+
+   int deltax = (frameRect.right-frameRect.left)-(viewRect.right-viewRect.left);
+   int deltay = (frameRect.bottom-frameRect.top)-(viewRect.bottom-viewRect.top);
+
+   pThis->SetWindowPos(NULL, aX, aY, aCX+deltax, aCY+(deltay/2),
       SWP_NOACTIVATE | SWP_NOZORDER);
 }
 
@@ -234,7 +267,7 @@ void CBrowserFrame::BrowserFrameGlueObj::FocusAvailable(PRBool *aFocusAvail)
 {
    METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
 
-   HWND focusWnd = GetFocus()->m_hWnd;
+      HWND focusWnd = ::GetFocus();
 
    if ((focusWnd == pThis->m_hWnd) || ::IsChild(pThis->m_hWnd, focusWnd))
       *aFocusAvail = PR_TRUE;
@@ -246,14 +279,11 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowBrowserFrame(PRBool aShow)
 {
    METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
 
-      if(aShow)
-      {
+      if(aShow){
          pThis->ShowWindow(SW_SHOW);
          pThis->SetActiveWindow();
          pThis->UpdateWindow();
-      }
-      else
-      {
+      }else{
          pThis->ShowWindow(SW_HIDE);
       }
 }
@@ -262,22 +292,21 @@ void CBrowserFrame::BrowserFrameGlueObj::GetBrowserFrameVisibility(PRBool *aVisi
 {
    METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
 
-      // Is the current BrowserFrame the active one?
-      if (GetActiveWindow()->m_hWnd != pThis->m_hWnd)
-      {
-         *aVisible = PR_FALSE;
-         return;
-      }
+   // Is the current BrowserFrame the active one?
+   if (GetActiveWindow()->m_hWnd != pThis->m_hWnd){
+      *aVisible = PR_FALSE;
+      return;
+   }
 
-      // We're the active one
-      //Return FALSE if we're minimized
-      WINDOWPLACEMENT wpl;
-      pThis->GetWindowPlacement(&wpl);
+   // We're the active one
+   //Return FALSE if we're minimized
+   WINDOWPLACEMENT wpl;
+   pThis->GetWindowPlacement(&wpl);
 
-      if ((wpl.showCmd == SW_RESTORE) || (wpl.showCmd == SW_MAXIMIZE))
-         *aVisible = PR_TRUE;
-      else
-         *aVisible = PR_FALSE;
+   if ((wpl.showCmd == SW_RESTORE) || (wpl.showCmd == SW_MAXIMIZE))
+      *aVisible = PR_TRUE;
+   else
+      *aVisible = PR_FALSE;
 }
 
 PRBool CBrowserFrame::BrowserFrameGlueObj::CreateNewBrowserFrame(PRUint32 chromeMask, 
@@ -404,7 +433,7 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags,
 
       RECT desktopRect;
       GetDesktopWindow()->GetWindowRect(&desktopRect);
-      if ( (cursorPos.y - offset) < (desktopRect.bottom - (ctxMenu->GetMenuItemCount() * GetSystemMetrics(SM_CYMENUSIZE)) + (GetSystemMetrics(SM_CYEDGE)*2)) ){
+      if ( (int)(cursorPos.y - offset) < (int)(desktopRect.bottom - (ctxMenu->GetMenuItemCount() * GetSystemMetrics(SM_CYMENUSIZE)) + (GetSystemMetrics(SM_CYEDGE)*2)) ){
          // we only do this if we're not too close to the bottom of the screen
          cursorPos.y -= offset;
          if (cursorPos.y < 0){

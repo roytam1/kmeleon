@@ -386,15 +386,15 @@ BOOL CBrowserFrame::PreCreateWindow(CREATESTRUCT& cs)
 // CBrowserFrame message handlers
 void CBrowserFrame::OnSetFocus(CWnd* pOldWnd)
 {
-	// forward focus to the browser window
-	m_wndBrowserView.SetFocus();
-
    if (theApp.m_pMostRecentBrowserFrame != this) {
       theApp.m_pMostRecentBrowserFrame = this;
 
 	   // update session history for the current window
       PostMessage(UWM_UPDATESESSIONHISTORY, 0, 0);
    }
+
+	// forward focus to the browser window
+	m_wndBrowserView.SetFocus();
 }
 
 void CBrowserFrame::OnActivate(UINT nState, CWnd* pWndOther, BOOL bMinimized) {
@@ -492,16 +492,20 @@ void CBrowserFrame::OnSize(UINT nType, int cx, int cy) {
 
    if (!m_created) return;
 
-   // record the maximized state   
-   if (nType == SIZE_MAXIMIZED)
-      theApp.preferences.bMaximized = true;
-   // record the window size/pos
-   else if (nType == SIZE_RESTORED) {
-      theApp.preferences.bMaximized = false;
+   // only record the window size if the window is actually resizable
+   // this helps stop javascript window.open from fucking with the window size preference
+   if (m_chromeMask & nsIWebBrowserChrome::CHROME_WINDOW_RESIZE){
+      // record the maximized state
+      if (nType == SIZE_MAXIMIZED)
+         theApp.preferences.bMaximized = true;
+      // record the window size/pos
+      else if (nType == SIZE_RESTORED) {
+         theApp.preferences.bMaximized = false;
 
-      GetWindowRect(&rc);
-      theApp.preferences.width = rc.right - rc.left;
-      theApp.preferences.height = rc.bottom - rc.top;
+         GetWindowRect(&rc);
+         theApp.preferences.width = rc.right - rc.left;
+         theApp.preferences.height = rc.bottom - rc.top;
+      }
    }
 }
 

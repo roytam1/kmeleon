@@ -57,8 +57,10 @@ struct IBrowserFrameGlue {
 	virtual void SetBrowserFramePosition(PRInt32 aX, PRInt32 aY) = 0;
 	virtual void GetBrowserFrameSize(PRInt32 *aCX, PRInt32 *aCY) = 0;
 	virtual void SetBrowserFrameSize(PRInt32 aCX, PRInt32 aCY) = 0;
+   virtual void SetBrowserSize(PRInt32 aCX, PRInt32 aCY) = 0;
 	virtual void GetBrowserFramePositionAndSize(PRInt32 *aX, PRInt32 *aY, PRInt32 *aCX, PRInt32 *aCY) = 0;
 	virtual void SetBrowserFramePositionAndSize(PRInt32 aX, PRInt32 aY, PRInt32 aCX, PRInt32 aCY, PRBool fRepaint) = 0;
+   virtual void SetBrowserPositionAndSize(PRInt32 aX, PRInt32 aY, PRInt32 aCX, PRInt32 aCY, PRBool fRepaint) = 0;
 	virtual void ShowBrowserFrame(PRBool aShow) = 0;
 	virtual void SetFocus() = 0;
 	virtual void FocusAvailable(PRBool *aFocusAvail) = 0;
@@ -86,8 +88,10 @@ struct IBrowserFrameGlue {
 		virtual void SetBrowserFramePosition(PRInt32 aX, PRInt32 aY);	\
 		virtual void GetBrowserFrameSize(PRInt32 *aCX, PRInt32 *aCY);	\
 		virtual void SetBrowserFrameSize(PRInt32 aCX, PRInt32 aCY);		\
+      virtual void SetBrowserSize(PRInt32 aCX, PRInt32 aCY);		\
 		virtual void GetBrowserFramePositionAndSize(PRInt32 *aX, PRInt32 *aY, PRInt32 *aCX, PRInt32 *aCY);	\
 		virtual void SetBrowserFramePositionAndSize(PRInt32 aX, PRInt32 aY, PRInt32 aCX, PRInt32 aCY, PRBool fRepaint);	\
+      virtual void SetBrowserPositionAndSize(PRInt32 aX, PRInt32 aY, PRInt32 aCX, PRInt32 aCY, PRBool fRepaint);	\
 		virtual void ShowBrowserFrame(PRBool aShow);					\
 		virtual void SetFocus();										\
 		virtual void FocusAvailable(PRBool *aFocusAvail);				\
