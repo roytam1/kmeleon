@@ -64,6 +64,7 @@ extern CMfcEmbedApp theApp;
 
 #include "BrowserFrm.h"
 #include "ToolBarEx.h"
+#include "KmeleonMessages.h"
 
 
 #ifdef _DEBUG
@@ -84,6 +85,7 @@ BEGIN_MESSAGE_MAP(CBrowserFrame, CFrameWnd)
 	ON_WM_SIZE()
 	ON_WM_CLOSE()
   ON_WM_SYSCOLORCHANGE()
+	ON_MESSAGE(WM_REFRESHTOOLBARITEM, RefreshToolBarItem)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -549,6 +551,14 @@ void CBrowserFrame::LoadBackImage ()
 
 	m_bmpBack.Attach (hbmp);
 }
+
+void CBrowserFrame::RefreshToolBarItem(WPARAM ItemID, LPARAM unused) {
+
+	// Drop this through to BrowserView
+	m_wndBrowserView.RefreshToolBarItem(ItemID, unused);
+
+}
+
 
 #ifdef _DEBUG
 void CBrowserFrame::AssertValid() const

@@ -439,6 +439,7 @@ void CBrowserView::OnUpdateNavBack(CCmdUI* pCmdUI)
 	// a menu item, this fixes them
 	if (m_refreshBackButton) {
 		pCmdUI->Enable(FALSE);
+		pCmdUI->Enable(TRUE);
 		m_refreshBackButton = FALSE;
 	}
 
@@ -456,6 +457,7 @@ void CBrowserView::OnUpdateNavForward(CCmdUI* pCmdUI)
 	// a menu item, this fixes thim
 	if (m_refreshForwardButton) {
 		pCmdUI->Enable(FALSE);
+		pCmdUI->Enable(TRUE);
 		m_refreshForwardButton = FALSE;
 	}
 

@@ -96,6 +96,7 @@ public:
   BOOL m_panning;
   CPoint m_panningPoint;
   
+	void RefreshToolBarItem(WPARAM ItemID, LPARAM unused);
 
 
 protected:
@@ -151,7 +152,6 @@ protected:
 	afx_msg void OnUpdateCut(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateCopy(CCmdUI* pCmdUI);
 	afx_msg void OnUpdatePaste(CCmdUI* pCmdUI);
-	afx_msg void RefreshToolBarItem(WPARAM ItemID, LPARAM unused);
 	//}}AFX_MSG
 	
 	DECLARE_MESSAGE_MAP()
