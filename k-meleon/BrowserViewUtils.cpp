@@ -25,6 +25,9 @@
 #include "stdafx.h"
 #include "nsEscape.h"
 
+#include "nsIContentViewer.h"
+#include "nsIMarkupDocumentViewer.h" 
+
 #include "UnknownContentTypeHandler.h"
 
 #include "MfcEmbed.h"
@@ -587,3 +590,58 @@ nsIDOMNode *CBrowserView::GetNodeAtPoint(int x, int y, BOOL bPrepareMenu) {
    return m_pGetNode;
 
 }
+
+
+nsIDocShell *CBrowserView::GetDocShell()
+{
+   nsresult result = NS_OK;
+   nsCOMPtr<nsIDocShell> docShell;
+   
+   nsCOMPtr<nsIDocShellTreeItem> dsti = do_QueryInterface(mWebBrowser, &result);
+   if(NS_FAILED(result) || !dsti)
+      return NULL;
+   
+   nsCOMPtr<nsIDocShellTreeOwner> treeOwner;
+   result = dsti->GetTreeOwner(getter_AddRefs(treeOwner));
+   if (NS_FAILED(result) || !treeOwner) 
+      return  NULL;
+
+   nsCOMPtr<nsIDocShellTreeItem> contentItem;
+   result = treeOwner->GetPrimaryContentShell(getter_AddRefs(contentItem));
+   if (NS_FAILED(result) || !contentItem) 
+      return NULL;
+
+   docShell = do_QueryInterface(contentItem);
+
+   return docShell;
+} 
+
+
+BOOL CBrowserView::ForceCharset(char *aCharSet)
+{
+   nsresult result;
+   nsCOMPtr<nsIDocShell> DocShell;
+
+   DocShell = GetDocShell();
+
+   if (!DocShell) 
+     return FALSE;
+
+   nsCOMPtr<nsIContentViewer> contentViewer;
+   result = DocShell->GetContentViewer (getter_AddRefs(contentViewer));
+   if (NS_FAILED(result) || !contentViewer) 
+     return FALSE;
+
+   nsCOMPtr<nsIMarkupDocumentViewer> mdv = do_QueryInterface(contentViewer,&result);
+   if (NS_FAILED(result) || !mdv) 
+     return FALSE;
+
+   nsCString mCharset;
+   mCharset = aCharSet;
+   result = mdv->SetForceCharacterSet(mCharset);
+   
+   if (NS_SUCCEEDED(result))
+       mWebNav->Reload(nsIWebNavigation::LOAD_FLAGS_CHARSET_CHANGE);
+
+   return NS_SUCCEEDED(result);
+} 

@@ -123,6 +123,8 @@ typedef struct {
 
    HMENU (*GetMenu) (char *menu);
 
+   void (*SetForceCharset)(char *aCharset);
+
 } kmeleonFunctions;
 
 /*
