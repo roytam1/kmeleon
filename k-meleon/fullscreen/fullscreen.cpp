@@ -175,7 +175,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 void Create(HWND hWndParent) {
 	KMeleonWndProc = (WNDPROC) GetWindowLong(hWndParent, GWL_WNDPROC);
 	SetWindowLong(hWndParent, GWL_WNDPROC, (LONG)WndProc);
-	if (bAutoFullscreen)
+	BOOL bLast = FALSE;
+	kPlugin.kFuncs->GetPreference(PREF_BOOL, _T("kmeleon.plugins.fullscreen.last"), &bLast, (void *)&bLast);
+	if (bAutoFullscreen || bLast)
 	  PostMessage(hWndParent, WM_COMMAND, id_fullscreen, 0);
 }
 
@@ -313,6 +315,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
             HideClutter(hWnd, fs);
             if (fs->bMaximized) ShowWindow(hWnd, SW_MAXIMIZE);
          }
+	 kPlugin.kFuncs->SetPreference(PREF_BOOL, _T("kmeleon.plugins.fullscreen.last"), &fs->bFullScreen);
          SetWindowPlacement (hWnd, &wpNew);
          return true;
       }
