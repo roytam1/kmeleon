@@ -181,37 +181,53 @@ void DoMenu(HMENU menu, char *param)
    if (!*gFavoritesPath)
       return;
 
-   if (stricmp(param, _T("Config")) == 0){
-      AppendMenu(menu, MF_STRING, nConfigCommand, "&Config");
-      return;
+   if (*param != 0)  {
+
+      char *comma = strchr(param, ',');
+      char *action = param;
+      char *string = strchr(param, ',');
+      if (string) {
+         *string = 0;
+         string = SkipWhiteSpace(string+1);
+      }
+      else
+         string = action;
+
+      int command = 0;
+      if (stricmp(action, "Config") == 0){
+         command = nConfigCommand;
+      }
+      if (stricmp(action, "Add") == 0){
+         command = nAddCommand;
+      }
+      if (stricmp(action, "Edit") == 0){
+         command = nEditCommand;
+      }
+      if (command) {
+         AppendMenu(menu, MF_STRING, command, string);
+      }
    }
-   if (stricmp(param, _T("Add")) == 0){
-      AppendMenu(menu, MF_STRING, nAddCommand, "&Add Favorite");
-      return;
-   }
-   if (stricmp(param, _T("Edit")) == 0){
-      AppendMenu(menu, MF_STRING, nEditCommand, "&Edit Favorites");
-      return;
-   }
-   gInternetShortcutIcon = -1;
-
-   gFavoritesMenu = menu;
-   BuildFavoritesMenu("", gFavoritesMenu);
-
-   SHFILEINFO sfi;
-   gSystemImages = (HIMAGELIST)SHGetFileInfo( gFavoritesPath,
-      0,
-      &sfi, 
-      sizeof(SHFILEINFO), 
-      SHGFI_SYSICONINDEX | SHGFI_SMALLICON);
-
-   if (gSystemImages != NULL) {
-      int cx, cy;
-
-      ImageList_GetIconSize (gSystemImages, &cx, &cy);
-      gSysImageSize = CSize (cx, cy);
-
-      gFolderIcon = sfi.iIcon;
+   else {
+      gInternetShortcutIcon = -1;
+      
+      gFavoritesMenu = menu;
+      BuildFavoritesMenu("", gFavoritesMenu);
+      
+      SHFILEINFO sfi;
+      gSystemImages = (HIMAGELIST)SHGetFileInfo( gFavoritesPath,
+         0,
+         &sfi, 
+         sizeof(SHFILEINFO), 
+         SHGFI_SYSICONINDEX | SHGFI_SMALLICON);
+      
+      if (gSystemImages != NULL) {
+         int cx, cy;
+         
+         ImageList_GetIconSize (gSystemImages, &cx, &cy);
+         gSysImageSize = CSize (cx, cy);
+         
+         gFolderIcon = sfi.iIcon;
+      }
    }
 }
 
@@ -280,7 +296,7 @@ void DoRebar(HWND rebarWnd){
         mInfo.dwTypeData = temp;
         GetMenuItemInfo(gFavoritesMenu, i, MF_BYPOSITION, &mInfo);
         
-        if (stricmp(mInfo.dwTypeData, "Links") == 0){
+        if (mInfo.dwTypeData && stricmp(mInfo.dwTypeData, "Links") == 0){
            hLinksMenu = GetSubMenu(gFavoritesMenu, i);
            break;
         }
