@@ -25,6 +25,10 @@
 #define KMELEON_PLUGIN __declspec(dllimport)
 #endif
 
+#define OPEN_NORMAL      0    // valid windowState values in NavigateTo()
+#define OPEN_NEW         1
+#define OPEN_BACKGROUND  2
+
 typedef struct {
   char title[256];
   char url[256];  
@@ -42,7 +46,7 @@ typedef struct {
   UINT (*GetCommandIDs)(int num);
 
   // if newWindow, open in a new window, otherwise use the current window
-  void (*NavigateTo)(char *url, int newWindow);
+  void (*NavigateTo)(char *url, int windowState);
 
   kmeleonDocInfo * (*GetDocInfo)(HWND mainWnd);
 

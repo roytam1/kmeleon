@@ -114,9 +114,20 @@ void CPlugins::OnCreate(HWND wnd){
    }
 }
 
-void NavigateTo(char *url, int newWindow){
+void NavigateTo(char *url, int windowState){
    CBrowserFrame *mainFrame = theApp.m_pMostRecentBrowserFrame;
-   mainFrame->m_wndBrowserView.OpenURL(url);
+
+   switch(windowState) {
+   case OPEN_NORMAL:
+      mainFrame->m_wndBrowserView.OpenURL(url);
+      break;
+   case OPEN_NEW:
+      mainFrame->m_wndBrowserView.OpenURLInNewWindow(NS_ConvertASCIItoUCS2(url).GetUnicode());
+      break;
+   case OPEN_BACKGROUND:
+      mainFrame->m_wndBrowserView.OpenURLInNewWindow(NS_ConvertASCIItoUCS2(url).GetUnicode(), true);
+      break;
+   }
 }
 
 static kmeleonDocInfo kDocInfo;
