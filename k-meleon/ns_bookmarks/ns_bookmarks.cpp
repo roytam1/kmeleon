@@ -666,6 +666,35 @@ CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam){
                   }
                   TreeView_DeleteItem(hTree, item);
                }
+            }else if (command = ID_SET_TOOLBAR_FOLDER){
+               TVHITTESTINFO hti;
+               hti.pt.x = mouse.x;
+               hti.pt.y = mouse.y;
+               ScreenToClient(hTree, &hti.pt);
+
+               HTREEITEM item = TreeView_HitTest(hTree, &hti);
+               if (item){
+                  TVITEMEX itemData;
+                  itemData.mask = TVIF_PARAM;
+                  itemData.hItem = item;
+                  TreeView_GetItem(hTree, &itemData);
+
+                  if (itemData.lParam > SUBMENU_OFFSET){ // this is a submenu
+                     m_toolbarMenu = (HMENU)(itemData.lParam - SUBMENU_OFFSET);
+                  }else{ // this is an item, set the toolbar folder to it's parent
+                     HTREEITEM parent = TreeView_GetParent(hTree, item);
+                     if (parent){
+                        TVITEMEX parentItem;
+                        parentItem.mask = TVIF_PARAM;
+                        parentItem.hItem = parent;
+                        TreeView_GetItem(hTree, &parentItem);
+
+                        m_toolbarMenu = (HMENU)(parentItem.lParam - SUBMENU_OFFSET);
+                     }else{
+                        m_toolbarMenu = m_menuBookmarks;
+                     }
+                  }
+               }
             }
          }else if (nmtv->hdr.code == TVN_ENDLABELEDIT){
             NMTVDISPINFO *nmtvdi = (NMTVDISPINFO *)nmtv;
