@@ -101,17 +101,17 @@ BOOL APIENTRY DllMain(HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserv
    return TRUE;
 }
 
+char gszConfigDir[MAX_PATH];
+
 int Init() {
-   char szconfigFile[MAX_PATH];
-
-   kPlugin.kf->GetPreference(PREF_STRING, "kmeleon.general.settingsDir", szconfigFile, "");
-
-   if (! *szconfigFile)
+   char szConfigFile[MAX_PATH];
+   kPlugin.kf->GetPreference(PREF_STRING, "kmeleon.general.settingsDir", gszConfigDir, "");
+   if (! *gszConfigDir)
       return 0;
+   strcpy(szConfigFile, gszConfigDir);
+   strcat(szConfigFile, "toolbars.cfg");
+   LoadToolbars(szConfigFile);
 
-   strcat(szconfigFile, "toolbars.cfg");
-
-   LoadToolbars(szconfigFile);
    return 1;
 }
 
@@ -179,10 +179,6 @@ void DoRebar(HWND rebarWnd) {
 
    while (toolbar) {
       if (toolbar->iButtonCount == 0) continue;
-
-      DWORD dwStyle = 0x40 | /*the 40 gets rid of an ugly border on top.  I have no idea what flag it corresponds to...*/
-         CCS_NOPARENTALIGN | CCS_NORESIZE |
-         TBSTYLE_FLAT | TBSTYLE_TRANSPARENT /* | TBSTYLE_AUTOSIZE | TBSTYLE_LIST | TBSTYLE_TOOLTIPS */;
 
       // Create the toolbar control to be added.
       HWND hwndTB = kPlugin.kf->CreateToolbar();
@@ -578,7 +574,15 @@ void AddImageToList(s_toolbar *toolbar, HIMAGELIST list, char *file, int index, 
    HBITMAP hButton, hBitmap;
    HBRUSH hBrush;
    
-   hBitmap = (HBITMAP)LoadImage(NULL, file, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+   if (strchr(file, '\\')) {
+      hBitmap = (HBITMAP)LoadImage(NULL, file, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+   }
+   else {
+      char fullpath[MAX_PATH];
+      strcpy(fullpath, gszConfigDir);
+      strcat(fullpath, file);
+      hBitmap = (HBITMAP)LoadImage(NULL, fullpath, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+   }
    
    hdcBitmap = CreateCompatibleDC(NULL);
    SelectObject(hdcBitmap, hBitmap);
