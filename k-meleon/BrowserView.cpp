@@ -1347,9 +1347,25 @@ void CBrowserView::OnAppAbout() {
 }
 
 void CBrowserView::OnWindowNext() {
-//   GetNextWindow(GW_HWNDNEXT)->SetActiveWindow();
+   CBrowserFrame* pFrame;
+	POSITION pos = theApp.m_FrameWndLst.Find(mpBrowserFrame);
+	pFrame = (CBrowserFrame *) theApp.m_FrameWndLst.GetNext(pos);
+   if (pos)
+      pFrame = (CBrowserFrame *) theApp.m_FrameWndLst.GetNext(pos);
+   else
+      pFrame = (CBrowserFrame *) theApp.m_FrameWndLst.GetHead();
+   
+   pFrame->ActivateFrame();
 }
 
 void CBrowserView::OnWindowPrev() {
-//   GetNextWindow(GW_HWNDNEXT)->SetActiveWindow();
+   CBrowserFrame* pFrame;
+	POSITION pos = theApp.m_FrameWndLst.Find(mpBrowserFrame);
+	pFrame = (CBrowserFrame *) theApp.m_FrameWndLst.GetPrev(pos);
+   if (pos)
+      pFrame = (CBrowserFrame *) theApp.m_FrameWndLst.GetPrev(pos);
+   else
+      pFrame = (CBrowserFrame *) theApp.m_FrameWndLst.GetTail();
+   
+   pFrame->ActivateFrame();
 }

@@ -110,7 +110,7 @@
 #define IDC_BUTTON_CONFIG               1119
 #define IDC_KMELEON_HOME                1120
 #define IDC_KMELEON_FORUM               1121
-#define IDC_FIND_EDIT                   1122
+#define IDC_FIND_EDIT                   1152
 #define ID_NAV_BACK                     32773
 #define ID_NAV_FORWARD                  32774
 #define ID_NAV_HOME                     32775
