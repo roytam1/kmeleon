@@ -64,6 +64,8 @@ extern CMfcEmbedApp theApp;
 
 #include "BrowserFrm.h"
 
+#include "ToolBarEx.h"
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
@@ -125,7 +127,7 @@ void CBrowserFrame::OnClose()
 
 // This is where the UrlBar, ToolBar, StatusBar, ProgressBar
 // get created
-//
+// 
 int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct){
 	if (CFrameWnd::OnCreate(lpCreateStruct) == -1)
 		return -1;
@@ -191,6 +193,7 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct){
   m_wndToolBar.SetButtons(buttons, 6);
 
   m_wndUrlBar.SetImageList(&m_toolbarHotImageList);
+
 
   // Create the animation control..
 	if (!m_wndAnimate.Create(WS_CHILD | WS_VISIBLE, CRect(0, 0, 10, 10), this, AFX_IDW_TOOLBAR + 2) ||
@@ -555,4 +558,3 @@ void CBrowserFrame::Dump(CDumpContext& dc) const
 }
 
 #endif //_DEBUG
-

@@ -54,6 +54,10 @@ extern CMfcEmbedApp theApp;
 #include "BrowserImpl.h"
 #include "BrowserFrm.h"
 
+#include "ToolBarEx.h"
+
+#include "Utils.h"
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
@@ -71,22 +75,20 @@ BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
 	ON_WM_SIZE()
   ON_WM_TIMER()
   ON_WM_MOUSEACTIVATE()
-
   ON_WM_DROPFILES()
-
-	// UrlBar command handlers
-	ON_COMMAND(IDOK, OnNewUrlEnteredInUrlBar)
 	ON_CBN_SELENDOK(ID_URL_BAR, OnUrlSelectedInUrlBar)
-
-	// Menu/Toolbar command handlers
+	ON_COMMAND(IDOK, OnNewUrlEnteredInUrlBar)
+  ON_COMMAND(ID_SELECT_URL, OnSelectUrl)
 	ON_COMMAND(ID_FILE_OPEN, OnFileOpen)
 	ON_COMMAND(ID_FILE_SAVE_AS, OnFileSaveAs)
 	ON_COMMAND(ID_VIEW_SOURCE, OnViewSource)
 	ON_COMMAND(ID_VIEW_INFO, OnViewInfo)
 	ON_COMMAND(ID_NAV_BACK, OnNavBack)
 	ON_COMMAND(ID_NAV_FORWARD, OnNavForward)
+	ON_MESSAGE(WM_LBUTTONHOLD, OnLButtonHold)
+	ON_NOTIFY(NM_RCLICK,AFX_IDW_TOOLBAR,OnRClick)
+	ON_COMMAND(ID_NAV_SEARCH, OnNavSearch)
 	ON_COMMAND(ID_NAV_HOME, OnNavHome)
-  ON_COMMAND(ID_NAV_SEARCH, OnNavSearch)
 	ON_COMMAND(ID_NAV_RELOAD, OnNavReload)
 	ON_COMMAND(ID_NAV_STOP, OnNavStop)
 	ON_COMMAND(ID_EDIT_CUT, OnCut)
@@ -94,24 +96,20 @@ BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
 	ON_COMMAND(ID_EDIT_PASTE, OnPaste)
 	ON_COMMAND(ID_EDIT_SELECT_ALL, OnSelectAll)
 	ON_COMMAND(ID_EDIT_SELECT_NONE, OnSelectNone)
+	ON_COMMAND(ID_COPY_LINK_LOCATION, OnCopyLinkLocation)
 	ON_COMMAND(ID_OPEN_LINK_IN_NEW_WINDOW, OnOpenLinkInNewWindow)
 	ON_COMMAND(ID_VIEW_IMAGE, OnViewImageInNewWindow)
-	ON_COMMAND(ID_COPY_LINK_LOCATION, OnCopyLinkLocation)
 	ON_COMMAND(ID_SAVE_LINK_AS, OnSaveLinkAs)
 	ON_COMMAND(ID_SAVE_IMAGE_AS, OnSaveImageAs)
-
-  ON_COMMAND(ID_SELECT_URL, OnSelectUrl)
-
   ON_COMMAND(ID_LINK_KMELEON_HOME, OnKmeleonHome)
   ON_COMMAND(ID_LINK_KMELEON_FORUM, OnKmeleonForum)
-
-	// Menu/Toolbar UI update handlers
 	ON_UPDATE_COMMAND_UI(ID_NAV_BACK, OnUpdateNavBack)
 	ON_UPDATE_COMMAND_UI(ID_NAV_FORWARD, OnUpdateNavForward)
 	ON_UPDATE_COMMAND_UI(ID_NAV_STOP, OnUpdateNavStop)
 	ON_UPDATE_COMMAND_UI(ID_EDIT_CUT, OnUpdateCut)
 	ON_UPDATE_COMMAND_UI(ID_EDIT_COPY, OnUpdateCopy)
 	ON_UPDATE_COMMAND_UI(ID_EDIT_PASTE, OnUpdatePaste)
+	ON_WM_ACTIVATE()
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -415,25 +413,77 @@ void CBrowserView::OnNavBack()
 		mWebNav->GoBack();
 }
 
-void CBrowserView::OnUpdateNavBack(CCmdUI* pCmdUI)
-{
-	PRBool canGoBack = PR_FALSE;
-
-    if (mWebNav)
-        mWebNav->GetCanGoBack(&canGoBack);
-
-	pCmdUI->Enable(canGoBack);
-}
-
 void CBrowserView::OnNavForward() 
 {
 	if(mWebNav)
 		mWebNav->GoForward();
 }
 
+// Jeff Doozan - 28 Feb, 2001
+
+void CBrowserView::OnRClick(NMHDR* pNotifyStruct,LRESULT* result) {
+	NMTOOLBAR* pInfo = (NMTOOLBAR*)pNotifyStruct;
+
+	switch(pInfo->iItem) {
+		case ID_NAV_BACK:
+			TRACE0("ID_NAV_BACK right click\n");
+			CreateBackMenu();
+			break;
+		case ID_NAV_FORWARD:
+			TRACE0("ID_NAV_FORWARD right click\n");
+			CreateForwardMenu();
+			break;
+	}
+}
+
+void CBrowserView::OnLButtonHold(DWORD buttonID, DWORD unused) {
+	CBrowserFrame	*mainFrame		= (CBrowserFrame *) theApp.m_pMainWnd->GetActiveWindow();
+
+	switch (buttonID) {
+		case ID_NAV_BACK:
+			TRACE0("ID_NAV_BACK held\n");
+			CreateBackMenu();
+			break;
+		case ID_NAV_FORWARD:
+			TRACE0("ID_NAV_FORWARD held\n");
+			CreateForwardMenu();
+			break;
+	}
+}
+
+// end Jeff Doozan
+
+void CBrowserView::OnUpdateNavBack(CCmdUI* pCmdUI)
+{
+	PRBool canGoBack = PR_FALSE;
+
+	// Jeff Doozan
+	// Buttons get "stuck" down after selecting
+	// a menu item, this fixes thim
+	if (m_unPressBack) {
+		pCmdUI->Enable(FALSE);
+		pCmdUI->Enable(TRUE);
+		m_unPressBack=0;
+	}
+    
+	if (mWebNav)
+        mWebNav->GetCanGoBack(&canGoBack);
+
+	pCmdUI->Enable(canGoBack);
+}
+
 void CBrowserView::OnUpdateNavForward(CCmdUI* pCmdUI)
 {
 	PRBool canGoFwd = PR_FALSE;
+
+	// Jeff Doozan
+	// Buttons get "stuck" down after selecting
+	// a menu item, this fixes thim
+	if (m_unPressForward) {
+		pCmdUI->Enable(FALSE);
+		pCmdUI->Enable(TRUE);
+		m_unPressForward=0;
+	}
 
     if (mWebNav)
         mWebNav->GetCanGoForward(&canGoFwd);
@@ -973,3 +1023,123 @@ BOOL CBrowserView::PreTranslateMessage(MSG* pMsg) {
 	
 	return CWnd::PreTranslateMessage(pMsg);
 }
+
+
+// Jeff Doozan - 28 Feb, 2001
+
+void CBrowserView::CreateBackMenu () {
+	int index, count, i;
+	char **titles;
+
+	if (!MozillaSessionHistory (&titles, &count, &index)) {
+		return;
+	}
+
+	CMenu menu, submenu;
+
+	CBrowserFrame *mainFrame = (CBrowserFrame *)theApp.m_pMainWnd->GetActiveWindow();
+
+	menu.CreateMenu();
+	submenu.CreatePopupMenu();
+
+	for (i = index - 1; i >= 0; i--)
+		submenu.AppendMenu(MF_STRING, i+1, titles[i]);
+
+	CRect rc;
+	WPARAM ButtonID = mainFrame->m_wndToolBar.CommandToIndex(ID_NAV_BACK);
+	mainFrame->m_wndToolBar.GetItemRect(ButtonID, &rc);
+	mainFrame->m_wndToolBar.ClientToScreen(&rc);
+	DWORD SelectionMade = submenu.TrackPopupMenu( TPM_LEFTALIGN | TPM_LEFTBUTTON | TPM_RIGHTBUTTON | TPM_NONOTIFY | TPM_RETURNCMD, rc.left, rc.bottom, this, &rc);
+
+	submenu.Detach();
+	submenu.DestroyMenu();
+	menu.DestroyMenu();
+
+	FreeStringArray (titles, count);
+
+	m_unPressBack=true;
+	
+	if (SelectionMade > 0) {
+		if(mainFrame->m_wndBrowserView.mWebNav)
+			mainFrame->m_wndBrowserView.mWebNav->GotoIndex(SelectionMade-1);
+	}
+}
+
+void CBrowserView::CreateForwardMenu () {
+	int index, count, i;
+	char **titles;
+	CBrowserFrame	*mainFrame		= (CBrowserFrame *) theApp.m_pMainWnd->GetActiveWindow();
+
+	if (!MozillaSessionHistory (&titles, &count, &index)) {
+		return;
+	}
+
+	CMenu menu, submenu;
+
+	menu.CreateMenu();
+	submenu.CreatePopupMenu();
+
+	for (i = index + 1; i < count; i++)
+		submenu.AppendMenu(MF_STRING, i+1, titles[i]);
+
+	CRect rc;
+	WPARAM ButtonID = mainFrame->m_wndToolBar.CommandToIndex(ID_NAV_FORWARD);
+	mainFrame->m_wndToolBar.GetItemRect(ButtonID, &rc);
+	mainFrame->m_wndToolBar.ClientToScreen(&rc);
+	DWORD SelectionMade = submenu.TrackPopupMenu( TPM_LEFTALIGN | TPM_LEFTBUTTON | TPM_RIGHTBUTTON | TPM_NONOTIFY | TPM_RETURNCMD, rc.left, rc.bottom, this, &rc);
+
+	submenu.Detach();
+	submenu.DestroyMenu();
+	menu.DestroyMenu();
+
+	FreeStringArray (titles, count);
+
+	m_unPressForward=true;
+
+	if (SelectionMade > 0) {
+		if(mainFrame->m_wndBrowserView.mWebNav)
+			mainFrame->m_wndBrowserView.mWebNav->GotoIndex(SelectionMade-1);
+	}
+}
+
+int CBrowserView::MozillaSessionHistory (char **titles[], int *count, int *index) {
+	nsresult result;
+
+	CBrowserFrame	*mainFrame		= (CBrowserFrame *) theApp.m_pMainWnd->GetActiveWindow();
+
+	nsCOMPtr<nsISHistory> h;
+	result = mainFrame->m_wndBrowserView.mWebNav->GetSessionHistory (getter_AddRefs (h));
+	if (!NS_SUCCEEDED (result) || (!h)) return FALSE;
+
+	h->GetCount (count);
+	h->GetIndex (index);
+
+	char **t = (char **) new char[*count * sizeof(char *)];
+
+	nsCOMPtr<nsISHEntry> he;
+	PRUnichar *title;
+	for (PRInt32 i = 0; i < *count; i++) {
+
+		result = h->GetEntryAtIndex (i, PR_FALSE, getter_AddRefs (he));
+		if (!NS_SUCCEEDED(result) || (!he)) return FALSE;
+
+		result = he->GetTitle (&title);
+		if (!NS_SUCCEEDED(result) || (!title)) return FALSE;
+
+		// The title is in 16-bit unicode, this converts it to 8bit (UTF)
+
+		int len;
+		len = WideCharToMultiByte(CP_ACP, 0, title, -1, 0, 0, NULL, NULL);
+		char *s = new(char[len+1]);
+		len = WideCharToMultiByte(CP_ACP, 0, title, -1, s, len, NULL, NULL);
+		s[len]=0;
+
+		t[i] = s;
+
+	}
+	*titles = t;
+	return TRUE;
+}
+
+
+// end Jeff Doozan

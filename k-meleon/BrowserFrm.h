@@ -35,6 +35,8 @@
 #include "BrowserView.h"
 #include "IBrowserFrameGlue.h"
 
+#include "ToolBarEx.h"
+
 // A simple UrlBar class...
 class CUrlBar : public CComboBoxEx
 {
@@ -79,7 +81,7 @@ protected:
 	DECLARE_DYNAMIC(CBrowserFrame)
 
 public:
-	CToolBar    m_wndToolBar;
+	CToolBarEx    m_wndToolBar;
 	CStatusBar  m_wndStatusBar;
 	CProgressCtrl m_wndProgressBar;
 	CUrlBar m_wndUrlBar;
@@ -131,9 +133,9 @@ public:
 // Overrides
 	// ClassWizard generated virtual function overrides
 	//{{AFX_VIRTUAL(CBrowserFrame)
+	public:
 	virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
 	virtual BOOL OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERINFO* pHandlerInfo);
-  //virtual LRESULT WindowProc( UINT message, WPARAM wParam, LPARAM lParam );
 	//}}AFX_VIRTUAL
 
 // Implementation

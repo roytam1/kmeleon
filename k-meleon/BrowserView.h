@@ -71,6 +71,10 @@ public:
 	void SetBrowserFrameGlue(PBROWSERFRAMEGLUE pBrowserFrameGlue);
 	PBROWSERFRAMEGLUE mpBrowserFrameGlue;
 
+	void CreateBackMenu ();
+	void CreateForwardMenu ();
+	int MozillaSessionHistory(char **titles[], int *count, int *index);
+
 	// Pointer to the object which implements
 	// the inerfaces required by Mozilla embedders
 	//
@@ -104,6 +108,9 @@ public:
   virtual BOOL PreTranslateMessage(MSG* pMsg);
 	//}}AFX_VIRTUAL
 
+protected:
+	BOOL m_unPressBack;
+	BOOL m_unPressForward;
 
 	// Generated message map functions
 protected:
@@ -114,22 +121,21 @@ protected:
   afx_msg void OnTimer(UINT nIDEvent);
   afx_msg int OnMouseActivate(CWnd* pDesktopWnd, UINT nHitTest, UINT message);
   afx_msg void OnDropFiles( HDROP );
-	// UrlBar command handlers
-	//
 	afx_msg void OnUrlSelectedInUrlBar();
 	afx_msg void OnNewUrlEnteredInUrlBar();
-
   afx_msg void OnSelectUrl();
-
-	// ToolBar/Menu command handlers
-	//
 	afx_msg void OnFileOpen();
 	afx_msg void OnFileSaveAs();
 	afx_msg void OnViewSource();
 	afx_msg void OnViewInfo();
 	afx_msg void OnNavBack();
 	afx_msg void OnNavForward();
-  afx_msg void OnNavSearch();
+
+	afx_msg void OnLButtonHold(DWORD buttonID, DWORD unused);
+
+	afx_msg void OnDropDown(NMHDR* pNotifyStruct,LRESULT* result);
+	afx_msg void OnRClick(NMHDR* pNotifyStruct,LRESULT* result);
+	afx_msg void OnNavSearch();
 	afx_msg void OnNavHome();
 	afx_msg void OnNavReload();
 	afx_msg void OnNavStop();
@@ -143,12 +149,8 @@ protected:
 	afx_msg void OnViewImageInNewWindow();
 	afx_msg void OnSaveLinkAs();
 	afx_msg void OnSaveImageAs();
-
   afx_msg void OnKmeleonHome();
   afx_msg void OnKmeleonForum();
-
-	// Handlers to keep the toolbar/menu items up to date
-	//
 	afx_msg void OnUpdateNavBack(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateNavForward(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateNavStop(CCmdUI* pCmdUI);

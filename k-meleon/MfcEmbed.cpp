@@ -460,6 +460,7 @@ CAboutDlg::CAboutDlg() : CDialog(CAboutDlg::IDD)
     Brian Harris <binaryc@teamreaction.com>\r\n
     Sebastian Spaeth <Sebastian@SSpaeth.de>\r\n
     Chak Nanga <chak@netscape.com>\r\n
+    Jeff Doozan <jeff@tcbnetworks.com>\r\n
     \r\n
     Documentation:\r\n
     Lance Hall (aka pyzr) <pyzr@pyzr.com>\r\n

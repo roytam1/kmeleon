@@ -50,3 +50,10 @@ char *SkipWhiteSpace(char *string){
   }
   return string;
 }
+
+void FreeStringArray(char *array[], int size) {
+	int i;
+	for (i = 0; i < size; i++)
+		delete (array[i]);
+	delete (array);
+}
