@@ -58,7 +58,7 @@ public:
       lastVisit = 0;
       lastModified = 0;
    }
-	inline CBookmarkNode(int id, const char *text, const char *url, int type, time_t addDate=0, time_t lastVisit=0, time_t lastModified=0)
+   inline CBookmarkNode(int id, const char *text, const char *url, int type, time_t addDate=0, time_t lastVisit=0, time_t lastModified=0)
    {
       this->id = id;
       this->text = text;
@@ -122,10 +122,16 @@ public:
          lastChild = child;
          while (lastChild->next) lastChild = lastChild->next;
       }
+      else {
+         child = NULL;
+      }
 
       if (n2.next) {
          next = new CBookmarkNode();
          (*next) = (*n2.next);
+      }
+      else {
+         next = NULL;
       }
 
       return *this;
@@ -185,15 +191,18 @@ public:
             continue;
          }
          else if (c->type == BOOKMARK_FOLDER) {
-            CBookmarkNode *lc = c->lastChild;
-
+// FIXME - they currently could be stored out of order after being shuffled around in the edit dialog
+// so we can't use this optimization.
+// - Perhaps re-ID bookmarks after edit?  It might be worth it, if speed becomes an issue.
+/*
             // this little bit of code is for optimizations
             // it assumes the items are stored in order.
             // if the items ever get out of order, we need to remove this code
-
+            CBookmarkNode *lc = c->lastChild;
             if (lc && lc->type == BOOKMARK_BOOKMARK && lc->id < id) {
                continue;
             }
+*/
 
             CBookmarkNode *retNode = c->FindNode(id);
 
