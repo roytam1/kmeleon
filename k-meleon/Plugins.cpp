@@ -28,6 +28,8 @@ extern CMfcEmbedApp theApp;
 
 #include "kmeleon_plugin.h"
 #include "Plugins.h"
+#include "Utils.h"
+
 
 #define START_ID 2000
 
@@ -40,17 +42,17 @@ CPlugins::~CPlugins(){
 
 // returns a pointer to the char after the last \ or /
 const char *FileNoPath(const char *filepath){
-  char *p1 = strrchr(filepath, '\\');
-  char *p2 = strrchr(filepath, '/');
-  if (p1 > p2){
-    return p1 + 1;
-  }
-  else if (p2 > p1){
-    return p2 + 1;
-  }
-  else{
-    return filepath;
-  }
+   char *p1 = strrchr(filepath, '\\');
+   char *p2 = strrchr(filepath, '/');
+   if (p1 > p2) {
+      return p1 + 1;
+   }
+   else if (p2 > p1) {
+      return p2 + 1;
+   }
+   else {
+      return filepath;
+   }
 }
 
 UINT currentID = START_ID;
@@ -61,10 +63,10 @@ UINT GetCommandIDs(int num){
 }
 
 int CPlugins::OnUpdate(UINT command){
-  if (command >= 2000 && command <= currentID){
-    return true;
-  }
-  return false;
+   if (command >= 2000 && command <= currentID){
+       return true;
+   }
+   return false;
 }
 
 #if 0
@@ -160,7 +162,7 @@ void SetPreference(enum PREFTYPE type, char *preference, void *val) {
 
 
 int SessionSize=0;
-char *History[20];
+char **pHistory;
 
 int GetMozillaSessionHistory (char ***titles, int *count, int *index) {
    nsresult result;
@@ -174,15 +176,17 @@ int GetMozillaSessionHistory (char ***titles, int *count, int *index) {
 	if (!NS_SUCCEEDED (result) || (!h)) return FALSE;
 
 
-   // Clear the table
-   if (SessionSize)
-      for (i=0; i<SessionSize; i++)
-         delete History[i];
-
    h->GetCount (count);
 	h->GetIndex (index);
 
-   if (*count > 20) *count=20;
+   // Clear the table
+   if (SessionSize) {
+      for (i=0; i<SessionSize; i++)
+         delete pHistory[i];
+   }
+   delete pHistory;
+   pHistory = new char *[*count];
+
    SessionSize = *count;
 
 	nsCOMPtr<nsISHEntry> he;
@@ -203,10 +207,10 @@ int GetMozillaSessionHistory (char ***titles, int *count, int *index) {
 		len = WideCharToMultiByte(CP_ACP, 0, title, -1, s, len, NULL, NULL);
       s[len] = 0;
 
-      History[i] = s;
+      pHistory[i] = s;
 	}
 
-   *titles = History;
+   *titles = pHistory;
 	return TRUE;
 }
 

@@ -53,8 +53,13 @@ char *SkipWhiteSpace(char *string){
 }
 
 
-//
-
+//  Remove duplicate tabs and spaces
+//  compress other characters into 'size' string
+//  Ex  "This   is  a test", 15 = "This i...a test"
+//  If size is 0, just remove duplicate tabs and spaces
+//  returns the length of the modified string
+//  note, this modifies the string passed to it, so make
+//  a copy if you need to reference the original
 
 int CondenseString(char *buf, int size) {
 	int firstlen, secondlen, len;
@@ -64,23 +69,23 @@ int CondenseString(char *buf, int size) {
    for (read=buf+1; *read; read++) {    // condense tabs and spaces
       if ( (*read == ' ') || (*read == '\t') ) {
          if (*(write-1) != *read) {    // if we've not alreade added a space
-            *write = *read;
+            *write = *read;            // assign space
             write++;
          }
       }
       else {
-         *write = *read;
+         *write = *read;               // assign chars
          *write++;
       }
    }
-   *(write+1) = 0;
+   *(write+1) = 0;                     // null terminator
 
    len = strlen(buf);
    if ((size == 0) || (len < size))
       return len;
 
 
-   if (size%2) { // if even {
+   if (size%2) { // if even
       firstlen = ((size +1) - 3) / 2;
       secondlen= firstlen-1;
    }
