@@ -654,8 +654,15 @@ void LoadToolbars(char *filename) {
 
             break;
          case DESC:
-               curButton->sToolTip = new char[strlen(p) + 1];
-               strcpy(curButton->sToolTip, p);
+               if (strcmp(p, "\"\"") != 0) {
+                  curButton->sToolTip = new char[strlen(p) + 1];
+                  if (strlen(p)>1 && p[0] == '\"' && p[strlen(p)-1] == '\"') {
+                    strcpy(curButton->sToolTip, p+1);
+                    curButton->sToolTip[strlen(curButton->sToolTip)-1] = 0;
+                  }
+                  else
+                    strcpy(curButton->sToolTip, p);
+               }
                iBuildState++;
                break;
          case HOT:
