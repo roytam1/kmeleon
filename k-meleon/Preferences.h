@@ -60,7 +60,10 @@ public:
    int bMaximized;
 
    // recent window size
-   int width, height;
+   int windowHeight;
+   int windowWidth;
+   int windowXPos;
+   int windowYPos;
 
    // use external source viewer
    int bSourceUseExternalCommand;

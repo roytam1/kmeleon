@@ -50,7 +50,7 @@ BOOL CBrowserView::OpenViewSourceWindow(const char* pUrl)
             NS_NewLocalFile(T2A(tempfile), TRUE, getter_AddRefs(file));
 
 
-            persist->SaveDocument(nsnull, file, nsnull);
+            persist->SaveDocument(nsnull, file, nsnull, nsnull, 0, 0);
 
             char *command = new char[theApp.preferences.sourceCommand.GetLength() + strlen(tempfile) +2];
             
@@ -237,7 +237,7 @@ NS_IMETHODIMP CBrowserView::URISaveAs(nsIURI* aURI, bool bDocument)
          }
 
          if (bDocument)
-            persist->SaveDocument(nsnull, file, dataPath);
+            persist->SaveDocument(nsnull, file, dataPath, nsnull, 0, 0);
          else
             persist->SaveURI(aURI, nsnull, file);
       }
@@ -278,28 +278,27 @@ CBrowserFrame* CBrowserView::CreateNewBrowserFrame(PRUint32 chromeMask,
 void CBrowserView::OpenURLInNewWindow(const PRUnichar* pUrl, BOOL bBackground)
 {
 	if(!pUrl)
-		return;
-
+		return; 
+   
    // create hidden window
-   CBrowserFrame* pFrm = CreateNewBrowserFrame(nsIWebBrowserChrome::CHROME_ALL, -1, -1, -1, -1, false);
+   CBrowserFrame* pFrm = CreateNewBrowserFrame(nsIWebBrowserChrome::CHROME_ALL, -1, -1, -1, -1, PR_FALSE);
 	if(!pFrm)
 		return;
 
-   // show the window
-   if (bBackground)
-         pFrm->SetWindowPos(&wndBottom, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | SWP_SHOWWINDOW);
-   else
-      pFrm->ShowWindow(SW_SHOW);
-
-   pFrm->UpdateWindow();
-   
    // Load the URL into it...
 
 	// Note that OpenURL() is overloaded - one takes a "char *"
 	// and the other a "PRUniChar *". We're using the "PRUnichar *"
 	// version here
 
-	pFrm->m_wndBrowserView.OpenURL(pUrl);
+   pFrm->m_wndBrowserView.OpenURL(pUrl);
+
+   // show the window
+   if (bBackground)
+         pFrm->SetWindowPos(&wndBottom, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | SWP_SHOWWINDOW);
+   else
+      pFrm->ShowWindow(SW_SHOW);
+  
 }
 
 

@@ -293,6 +293,7 @@ void CMfcEmbedApp::UnregisterWindow(CDialog *window) {
 }
 
 
+
 CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
                                                    PRInt32 x, PRInt32 y,
                                                    PRInt32 cx, PRInt32 cy,
@@ -306,10 +307,100 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
    // this way the new window will "inherit" the current settings
    if (m_pMostRecentBrowserFrame)
       m_pMostRecentBrowserFrame->m_wndReBar.SaveBandSizes();
+        
    
+   // get the current window size/pos   
+   RECT winSize;   
+   if (m_pMostRecentBrowserFrame) {
+      CRect rect;
+      m_pMostRecentBrowserFrame->GetWindowRect(&rect);
+      
+      int offset        = GetSystemMetrics(SM_CYSIZE);
+      
+
+      RECT screen;
+      SystemParametersInfo(SPI_GETWORKAREA, NULL, &screen, 0);
+      int screenWidth   = screen.right - screen.left;
+      int screenHeight  = screen.bottom - screen.top;
+      
+      
+      winSize.left   = rect.left + offset;
+      winSize.top    = rect.top + offset;
+
+      // the Create function is overloaded to treat "right" and "bottom" as
+      // "width" and "height"
+      winSize.right  = rect.Width();
+      winSize.bottom = rect.Height();
+      
+
+
+      // dont't display windows offscreen
+      if (winSize.left < screen.left)
+         winSize.left = screen.left;
+
+      if (winSize.top < screen.top)
+         winSize.top = screen.top;
+
+
+      // don't create windows larger than the screen
+      if (winSize.right > screenWidth)
+         winSize.right = screenWidth;
+
+      if (winSize.bottom > screenHeight)
+         winSize.bottom = screenHeight;
+
+
+
+      // make sure the window isn't going to run off the screen
+
+      if (screen.right - (winSize.left + winSize.right) < 0)
+         winSize.left = screen.right - winSize.right;
+      
+      if (screen.bottom - (winSize.top + winSize.bottom) < 0) 
+         winSize.top = screen.bottom - winSize.bottom;
+      
+      // if we're going to be positioned right on top of the current window,
+      // move to the top corner
+      if ( ((winSize.left - rect.left) < offset) &&
+           ((winSize.top - rect.top) < offset) ) {
+         winSize.left = screen.left;
+         winSize.top = screen.top;
+      }
+
+   }
+   else {
+
+      if (preferences.windowYPos > 0 && preferences.windowXPos > 0) {
+         winSize.left = preferences.windowXPos;
+         winSize.top  = preferences.windowYPos;
+      }
+      else {
+         winSize.left   = CW_USEDEFAULT;
+         winSize.top    = CW_USEDEFAULT;
+      }
+      
+      if (preferences.windowHeight > 10 && preferences.windowWidth > 10) {
+         winSize.right  = preferences.windowWidth;
+         winSize.bottom = preferences.windowHeight;         
+      }
+      else {
+         winSize.bottom = CW_USEDEFAULT;
+         winSize.right  = CW_USEDEFAULT;
+      }
+   }
+   
+   LONG style = WS_OVERLAPPEDWINDOW;
+   
+   if (preferences.bMaximized && (chromeMask & nsIWebBrowserChrome::CHROME_WINDOW_RESIZE))
+      style |= WS_MAXIMIZE;
+
+
+
+
    // Now, create the browser frame
    CBrowserFrame* pFrame = new CBrowserFrame(chromeMask);
-   
+
+
    // this backup is made as part of a bad workaround:
    // m_pMostRecentBrowserFrame needs to be this frame for the life of this function so that
    // things like plugins and the rebar sizes can access it, but
@@ -318,33 +409,11 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
    // so the backup is made, and m_pMostRecentBrowserFrame will be restored
    // at the end of this function
    CBrowserFrame* pOldRecentFrame = m_pMostRecentBrowserFrame;   
-   theApp.m_pMostRecentBrowserFrame = pFrame;
-   
+   theApp.m_pMostRecentBrowserFrame = pFrame;   
    if (!pOldRecentFrame)
       pOldRecentFrame = pFrame;
-   
-   // restore the saved window size
-   RECT winSize;
-   winSize.top    = CW_USEDEFAULT;
-   winSize.left   = CW_USEDEFAULT;
-   if (preferences.width != -1 && preferences.height != -1) {
-      // the Create function has been modified to take width, and height values
-      // instead of right and bottom window placement variables
-      winSize.right  = preferences.width;
-      winSize.bottom = preferences.height;
-   }
-   else {
-      winSize.right  = CW_USEDEFAULT;
-      winSize.bottom = CW_USEDEFAULT;
-   }
-   
-   LONG style = WS_OVERLAPPEDWINDOW;
-   
-   if (preferences.bMaximized && (chromeMask & nsIWebBrowserChrome::CHROME_WINDOW_RESIZE))
-      style |= WS_MAXIMIZE;
 
-   // this calls our modified create function, the winSize rect uses CreateWindowEx style x, y, cx, cy
-   // rather than the MFC style left, top, right, bottom
+
    if (!pFrame->Create(NULL, strTitle, style, winSize, m_pMainWnd, NULL, 0L, NULL))
       return NULL;
    
@@ -381,6 +450,7 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
    
    return pFrame;
 }
+
 
 void CMfcEmbedApp::OnNewBrowser()
 {

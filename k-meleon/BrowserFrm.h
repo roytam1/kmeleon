@@ -224,6 +224,11 @@ public:
    CToolBarList m_tbList;
    HWND CreateToolbar(UINT style);
 
+
+   BOOL Create(LPCTSTR lpszClassName,	   LPCTSTR lpszWindowName,
+	   DWORD dwStyle,	   const RECT& rect,	   CWnd* pParentWnd,
+	   LPCTSTR lpszMenuName,	   DWORD dwExStyle,	   CCreateContext* pContext);
+
 protected:
 	//
 	// This nested class implements the IBrowserFramGlue interface
@@ -251,15 +256,6 @@ public:
 
    void SaveWindowPos();
    void RestoreWindowPos(PRInt32 *x, PRInt32 *y, PRInt32 *cx, PRInt32 *cy);
-
-   BOOL Create(LPCTSTR lpszClassName,
-	   LPCTSTR lpszWindowName,
-	   DWORD dwStyle,
-	   const RECT& rect,
-	   CWnd* pParentWnd,
-	   LPCTSTR lpszMenuName,
-	   DWORD dwExStyle,
-	   CCreateContext* pContext);
 
    // Overrides
 	// ClassWizard generated virtual function overrides
