@@ -34,15 +34,21 @@ int SessionSize=0;
 char **pHistory;
 
 CPlugins::CPlugins() {
+   configBuffer = NULL;
+   loadLine = NULL;
+   dontLoadLine = NULL;
 }
 
 CPlugins::~CPlugins(){
+   if (configBuffer){
+      delete [] configBuffer;
+   }
    if (SessionSize) {
       for (int i=0; i<SessionSize; i++)
          delete pHistory[i];
    }
    delete pHistory;
-  UnLoadAll();
+   UnLoadAll();
 }
 
 // returns a pointer to the char after the last \ or /
@@ -73,31 +79,6 @@ int CPlugins::OnUpdate(UINT command){
       return true;
    return false;
 }
-
-#if 0
-// The new way of doing things is for the plugin to subclass our window
-LRESULT CPlugins::OnMessage(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam){
-  /*
-  if (!OnUpdate(command)){
-    return;
-  }
-  */
-  LRESULT result = 0;
-  LRESULT result2;
-  POSITION pos = pluginList.GetStartPosition();
-  kmeleonPlugin * kPlugin;
-  CString s;
-  while (pos){
-    pluginList.GetNextAssoc( pos, s, kPlugin);
-    if (kPlugin && kPlugin->OnMessage){
-      result2 = kPlugin->OnMessage(wnd, message, wParam, lParam);
-      if (result2)
-        result = result2;
-    }
-  }
-  return result;
-}
-#endif
 
 void CPlugins::OnCreate(HWND wnd){
    POSITION pos = pluginList.GetStartPosition();
@@ -248,6 +229,49 @@ kmeleonFunctions kmelFuncs = {
    RegisterBand
 };
 
+int CPlugins::TestLoad(const char *file){
+   if (!configBuffer){
+      FILE *configFile = fopen(theApp.preferences.settingsDir + "plugins.cfg", "r");
+      if (configFile){
+         fseek(configFile, 0, SEEK_END);
+         int length = ftell(configFile);
+         fseek(configFile, 0, SEEK_SET);
+         configBuffer = new char[length];
+
+         fread(configBuffer, sizeof(char), length, configFile);
+
+         loadLine = strstr(configBuffer, "[load]");
+         dontLoadLine = strstr(configBuffer, "[dontload]");
+      }
+   }
+   if (configBuffer){
+      char *pluginLine = strstr(configBuffer, file);
+      if (pluginLine){
+         if (loadLine > dontLoadLine){
+            // [dontload]
+            // [load]
+            if (pluginLine > loadLine){
+               return 1;
+            }else{
+               return 0;
+            }
+         }else{
+            // [load]
+            // [dontload]
+            if (pluginLine > dontLoadLine){
+               return 0;
+            }else{
+               return 1;
+            }
+         }
+      }else{
+         return -1;
+      }
+   }else{
+      return -1;
+   }
+}
+
 kmeleonPlugin * CPlugins::Load(const char *file){
    kmeleonPlugin * kPlugin;
    if (pluginList.Lookup(FileNoPath(file), kPlugin)){
@@ -259,6 +283,13 @@ kmeleonPlugin * CPlugins::Load(const char *file){
    int x=strlen(file);
    while (x>0 && file[x] != '\\' && file[x] != '/') x--;
 
+   const char *noPath = FileNoPath(file);
+   int testLoad = TestLoad(noPath); // 1 load, 0 don't load, -1 not found
+   if (testLoad == 0){
+      MessageBox(NULL, "not loading", noPath, 0);
+      return NULL;
+   }
+
    if (x==0) {       // if pattern does not contain \ or / we need to prepend pluginsDir
       char buf[MAX_PATH];
       strcpy(buf, theApp.preferences.pluginsDir);
@@ -266,7 +297,7 @@ kmeleonPlugin * CPlugins::Load(const char *file){
       plugin = LoadLibrary(buf);    // load the full path
    }
    else plugin = LoadLibrary(file);
-   
+
    KmeleonPluginGetter kpg = (KmeleonPluginGetter)GetProcAddress(plugin, "GetKmeleonPlugin");
 
    if (!kpg){
@@ -288,7 +319,7 @@ kmeleonPlugin * CPlugins::Load(const char *file){
 
    kPlugin->pf->Init();
 
-   pluginList.SetAt(FileNoPath(file), kPlugin);
+   pluginList.SetAt(noPath, kPlugin);
 
    return kPlugin;
 }

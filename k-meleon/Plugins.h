@@ -34,11 +34,17 @@ class CPlugins {
 protected:
   CMap<CString, LPCSTR, kmeleonPlugin *, kmeleonPlugin *> pluginList;
 
+  char *configBuffer;
+  char *loadLine;
+  char *dontLoadLine;
+
 public:
 	CPlugins();
 	~CPlugins();
 
    void UnLoadAll();
+
+   int TestLoad(const char *file);
 
    int FindAndLoad(char *pattern);
    kmeleonPlugin * Load(const char *pattern);
