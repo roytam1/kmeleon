@@ -56,14 +56,8 @@ CPlugins::~CPlugins()
 }
 
 // returns a pointer to the char after the last \ or /
-// also strips the .dll
 const char *FileNoPath(const char *filepath)
 {
-   char *d = strrchr(filepath, '.');
-   if (d && strcmpi(d, ".dll") == 0){
-      *d = 0;
-   }
-
    char *p1 = strrchr(filepath, '\\');
    char *p2 = strrchr(filepath, '/');
    if (p1 > p2) {
@@ -290,21 +284,46 @@ kmeleonPlugin * CPlugins::Load(char *file)
    file = SkipWhiteSpace(file);
    TrimWhiteSpace(file);
 
+   const char *noPath = FileNoPath(file);
+
+   // truncate the .dll extension
+   char *dot = strrchr(noPath, '.');
+   if (dot && (strcmpi(dot, ".dll") == 0) )
+      *dot = 0;
+   else
+      dot = NULL;
+
+   // check if the plugin is already loaded
    kmeleonPlugin * kPlugin;
-   if (pluginList.Lookup(FileNoPath(file), kPlugin)) {
+   if (pluginList.Lookup(noPath, kPlugin))
       return kPlugin; // it's already loaded
-   }
+
+   // restore the '.' in the truncated string
+   if (dot)
+      *dot = '.';
 
    HINSTANCE plugin;
 
-   int x=strlen(file);
-   while (x>0 && file[x] != '\\' && file[x] != '/') x--;
+   char *c = file;
+   while (*c && *c != ':') c++;
 
-   if (x==0) {       // if pattern does not contain \ or / we need to prepend pluginsDir
-      char buf[MAX_PATH];
-      strcpy(buf, theApp.preferences.pluginsDir);
+   // we need to append .dll because NT4 gets confused if a directory in the path
+   // contains a '.' and the file to be loaded does not
+   if (!*c || !dot) {        // if pattern does not contain : we need to prepend pluginsDir
+                              // if it doesn't end in .dll, we need to append that
+      int newlen = strlen(file);
+      if (!*c) newlen += strlen(theApp.preferences.pluginsDir);
+      if (!dot) newlen += 4; // ".dll"
+
+      char *buf = new char[newlen+1];
+      *buf = 0;
+
+      if (!*c) strcpy(buf, theApp.preferences.pluginsDir);
       strcat(buf, file);
+      if (!dot) strcat(buf, ".dll");
+
       plugin = LoadLibrary(buf);    // load the full path
+      delete buf;
    }
    else plugin = LoadLibrary(file);
 
@@ -326,8 +345,11 @@ kmeleonPlugin * CPlugins::Load(char *file)
    kPlugin->hDllInstance = plugin;
    kPlugin->kf = &kmelFuncs;
 
-   // If the plugin is enabled, get its functions and call init
-   const char *noPath = FileNoPath(file);
+   // truncate the .dll extension in noPath
+   if (dot)
+      *dot = 0;
+
+   // If the plugin is enabled, get its functions and call init   
    if (( kPlugin->loaded=TestLoad(noPath, kPlugin->description))) {
       kPlugin->pf->Init();
    }
@@ -359,9 +381,9 @@ int CPlugins::FindAndLoad(const char *pattern)
    BOOL bWorking;
    
    int x=strlen(pattern);
-   while (x>0 && pattern[x] != '\\' && pattern[x] != '/') x--;
+   while (x>0 && (pattern[x] != ':')) x--;
    
-   if (x==0) {       // if pattern does not contain \ or / we need to prepend pluginsDir
+   if (x==0) {       // if pattern does not contain ':' we need to prepend pluginsDir
       CString search = theApp.preferences.pluginsDir + pattern;
       bWorking = finder.FindFile(search);
    }
