@@ -374,6 +374,9 @@ void CBrowserView::OnDropFiles( HDROP drop ){
 //
 void CBrowserView::OnNewUrlEnteredInUrlBar()
 {
+   SetFocus();
+   mpBrowserFrame->m_wndUrlBar.EditChanged(FALSE);
+   
    // Get the currently entered URL
 	CString strUrl;
 	mpBrowserFrame->m_wndUrlBar.GetEnteredURL(strUrl);
@@ -392,6 +395,8 @@ void CBrowserView::OnNewUrlEnteredInUrlBar()
 //
 void CBrowserView::OnUrlSelectedInUrlBar()
 {
+   mpBrowserFrame->m_wndUrlBar.EditChanged(FALSE);
+
    CString strUrl;	
 	mpBrowserFrame->m_wndUrlBar.GetSelectedURL(strUrl);
 
@@ -399,6 +404,8 @@ void CBrowserView::OnUrlSelectedInUrlBar()
       OpenViewSourceWindow(strUrl.GetBuffer(0));
    else 
    	OpenURL(strUrl.GetBuffer(0));
+
+   SetFocus();
 }
 
 void CBrowserView::OnSelectUrl(){
@@ -408,6 +415,8 @@ void CBrowserView::OnSelectUrl(){
 void CBrowserView::OnUrlKillFocus() {
    if (mpBrowserFrame->m_wndUrlBar.CheckFocus())
       mpBrowserFrame->m_wndUrlBar.ReturnFocus();
+
+   mpBrowserFrame->m_wndUrlBar.EditChanged(FALSE);
 }
 
 void CBrowserView::OnUrlEditChange() {
