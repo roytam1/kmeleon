@@ -134,6 +134,8 @@ BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
 	ON_COMMAND(ID_APP_ABOUT, OnAppAbout)
 	ON_COMMAND(ID_WINDOW_NEXT, OnWindowNext)
 	ON_COMMAND(ID_WINDOW_PREV, OnWindowPrev)
+	ON_COMMAND(ID_FONT_INCREASE, OnIncreaseFont)
+	ON_COMMAND(ID_FONT_DECREASE, OnDecreaseFont)
 	ON_WM_ACTIVATE()
 	ON_MESSAGE(UWM_REFRESHTOOLBARITEM, RefreshToolBarItem)
 
@@ -199,7 +201,7 @@ HRESULT CBrowserView::CreateBrowser()
 	if(NS_FAILED(rv))
 		return rv;
 
-	// Save off the nsIWebNavigation interface pointer 
+   // Save off the nsIWebNavigation interface pointer 
 	// in the mWebNav member variable which we'll use 
 	// later for web page navigation
 	//
@@ -208,7 +210,7 @@ HRESULT CBrowserView::CreateBrowser()
 	if(NS_FAILED(rv))
 		return rv;
 
-	// Create the CBrowserImpl object - this is the object
+   // Create the CBrowserImpl object - this is the object
 	// which implements the interfaces which are required
 	// by an app embedding mozilla i.e. these are the interfaces
 	// thru' which the *embedded* browser communicates with the
@@ -278,7 +280,7 @@ HRESULT CBrowserView::CreateBrowser()
 
    nsWeakPtr weakling( dont_AddRef(NS_GetWeakReference(NS_STATIC_CAST(nsIWebProgressListener*, mpBrowserImpl))));
    (void)mWebBrowser->AddWebBrowserListener(weakling, NS_GET_IID(nsIWebProgressListener));
-   
+      
    // Finally, show the web browser window
 	mBaseWindow->SetVisibility(PR_TRUE);
 
@@ -1189,7 +1191,7 @@ void CBrowserView::OnKmeleonForum()
 
 void CBrowserView::OnAppAbout()
 {
-	CAboutDlg aboutDlg;
+	CAboutDlg aboutDlg(this);
 	aboutDlg.DoModal();
 }
 
@@ -1214,3 +1216,27 @@ void CBrowserView::OnWindowPrev()
    
    pFrame->ActivateFrame();
 }
+
+
+
+void CBrowserView::OnIncreaseFont() {
+   ChangeTextSize(1);
+}
+
+void CBrowserView::OnDecreaseFont() {
+   ChangeTextSize(-1);
+}
+
+void CBrowserView::ChangeTextSize(PRInt32 change)
+{
+   class nsIDOMWindow *domWindow;
+   mWebBrowser->GetContentDOMWindow(&domWindow);
+   
+   float textzoom;
+   domWindow->GetTextZoom(&textzoom);
+   textzoom += ((float)change) / 10;
+   if (textzoom > 0 && textzoom <= 20)
+      domWindow->SetTextZoom(textzoom);  
+}
+
+
