@@ -228,7 +228,7 @@ void DoMenu(HMENU menu, char *param){
 typedef int (*DRAWBITMAPPROC)(DRAWITEMSTRUCT *dis);
 
 typedef struct {
-   long version; // this is just to differenciate between our ownerdraw menus and someone else's menus
+   long version; // this is just to differentiate between our ownerdraw menus and someone else's menus
    void *data;
    DRAWBITMAPPROC DrawBitmap;
 } MenuDataT;
@@ -437,21 +437,28 @@ void MeasureMenuItem(MEASUREITEMSTRUCT *mis, HDC hDC) {
 
    char *string = (char *)menuData->data;
 
-   int tabWidth = 8; // tab every 8 pixels
+   SIZE size;
+   int tabWidth = 0;
+   char *tab = strrchr(string, '\t');
+   if (tab) {
+      char *buf = new char[strlen(string)+11];
+      *tab=0;
+      strcpy(buf, string);
+      strcat(buf, "          "); // 10 spaces
+      strcat(buf, tab+1);
+      *tab='\t';
 
-   /*
-   RECT rc={0};
-   DrawText(hDC, string, strlen(string), &rc, DT_SINGLELINE | DT_CALCRECT );
-   DrawText(hDC, string, strlen(string), &rc, DT_SINGLELINE );
-   */
-   DWORD size = GetTabbedTextExtent(hDC, string, strlen(string), 1, &tabWidth);
+      GetTextExtentPoint32(hDC, buf, strlen(buf), &size);
+      delete buf;
+   }
+   else 
+      GetTextExtentPoint32(hDC, string, strlen(string), &size);
+
+   mis->itemWidth = size.cx;
+   mis->itemHeight = GetSystemMetrics(SM_CYMENUSIZE);
 
    SelectObject(hDC, oldFont);
    DeleteObject(font);
-
-   //mis->itemWidth = rc.right;
-   mis->itemWidth = LOWORD(size);
-   mis->itemHeight = GetSystemMetrics(SM_CYMENUSIZE);
 }
 
 void UnSetOwnerDrawn(HMENU menu){
