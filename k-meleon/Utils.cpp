@@ -65,8 +65,8 @@ int CondenseString(char *buf, int size) {
 	int firstlen, secondlen, len;
    char *read, *write;
 
-   write=buf+1;
-   for (read=buf+1; *read; read++) {    // condense tabs and spaces
+   read=buf+1;
+   for (write=read; *read; read++) {    // condense tabs and spaces
       if ( (*read == ' ') || (*read == '\t') ) {
          if (*(write-1) != *read) {    // if we've not alreade added a space
             *write = *read;            // assign space
@@ -78,7 +78,7 @@ int CondenseString(char *buf, int size) {
          *write++;
       }
    }
-   *(write+1) = 0;                     // null terminator
+   *write = 0;                         // null terminator
 
    len = strlen(buf);
    if ((size == 0) || (len < size))
