@@ -37,6 +37,7 @@
 
 UINT nConfigCommand;
 UINT nAddCommand;
+UINT nAddLinkCommand;
 UINT nAddToolbarCommand;
 UINT nEditCommand;
 UINT nDropdownCommand;
@@ -56,6 +57,7 @@ BOOL gBookmarksModified = false;
 BOOL gGeneratedByUs = false;
 
 BOOL gToolbarEnabled;
+BOOL bChevronEnabled = true;
 
 int gMaxMenuLength;
 BOOL gMenuAutoDetect;
@@ -63,7 +65,7 @@ int gMaxTBSize;
 
 WNDPROC KMeleonWndProc;
 
-CBookmarkNode gBookmarkRoot(0, "", "", BOOKMARK_FOLDER, 0);
+CBookmarkNode gBookmarkRoot(0, "", "", "", "", BOOKMARK_FOLDER, 0);
 
 long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2);
 
@@ -96,6 +98,12 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
       }
       else if (stricmp(subject, "DoAccel") == 0) {
           *(int *)data2 = DoAccel((char *)data1);
+      }
+      else if (stricmp(subject, "AddLink") == 0) {
+         addLink((char *)data1, (char *)data2, BOOKMARK_FLAG_NB);
+      }
+      else if (stricmp(subject, "FindNick") == 0) {
+         findNick((char *)data1, (char *)data2);
       }
       else return 0;
 
@@ -156,13 +164,14 @@ int Init(){
    nConfigCommand = kPlugin.kFuncs->GetCommandIDs(1);
    nAddCommand = kPlugin.kFuncs->GetCommandIDs(1);
    nAddToolbarCommand = kPlugin.kFuncs->GetCommandIDs(1);
+   nAddLinkCommand = kPlugin.kFuncs->GetCommandIDs(1);
    nEditCommand = kPlugin.kFuncs->GetCommandIDs(1);
    nDropdownCommand = kPlugin.kFuncs->GetCommandIDs(1);
 
-   kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_BOOKMARK_FILE, gBookmarkFile, "");
+   kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_BOOKMARK_FILE, gBookmarkFile, (char*)"");
 
    if (!gBookmarkFile[0]) {
-      kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_SETTINGS_DIR, gBookmarkFile, "");
+      kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_SETTINGS_DIR, gBookmarkFile, (char*)"");
       strcat(gBookmarkFile, BOOKMARKS_DEFAULT_FILENAME);
    }
 
@@ -203,8 +212,9 @@ int Init(){
    }
    kPlugin.kFuncs->SetPreference(PREF_STRING, PREFERENCE_BOOKMARK_FILE, gBookmarkFile);
 
-   kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_TOOLBAR_FOLDER, gToolbarFolder, "");
+   kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_TOOLBAR_FOLDER, gToolbarFolder, (char*)"");
    kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_TOOLBAR_ENABLED, &gToolbarEnabled, &gToolbarEnabled);
+   kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_CHEVRON_ENABLED, &bChevronEnabled, &bChevronEnabled);
    kPlugin.kFuncs->GetPreference(PREF_INT, PREFERENCE_MAX_MENU_LENGTH, &gMaxMenuLength, &gMaxMenuLength);
    kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_MENU_AUTODETECT, &gMenuAutoDetect, &gMenuAutoDetect);
    if (gMaxMenuLength < 1) gMaxMenuLength = 20;
@@ -255,7 +265,7 @@ void Quit(){
 }
 
 void Config(HWND hWndParent){
-   DialogBoxParam(kPlugin.hDllInstance ,MAKEINTRESOURCE(IDD_CONFIG), hWndParent, (DLGPROC)DlgProc, NULL);
+   DialogBoxParam(kPlugin.hDllInstance ,MAKEINTRESOURCE(IDD_CONFIG), hWndParent, (DLGPROC)DlgProc, (LPARAM)NULL);
 }
 
 // param format <action>, String
@@ -280,6 +290,9 @@ void DoMenu(HMENU menu, char *param){
       }
       if (stricmp(action, "AddToolbar") == 0){
          command = nAddToolbarCommand;
+      }
+      if (stricmp(action, "AddLink") == 0){
+         command = nAddLinkCommand;
       }
       if (stricmp(action, "Edit") == 0){
          command = nEditCommand;

@@ -29,7 +29,7 @@ void Save(const char *file);
 // Window Procs
 BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
-CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
+INT_PTR CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 // Utils
 BOOL BrowseForBookmarks(char *file);
@@ -38,6 +38,8 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node);
 void BuildMenu(HMENU menu, CBookmarkNode *node, BOOL isContinuation);
 void BuildRebar(HWND hWndTB);
 void Rebuild();
+int addLink(char *url, char *title, int flag);
+void findNick(char *nick, char *url);
 
 #define MENU_TO_COMMAND(x) (x+SUBMENU_OFFSET)
 #define COMMAND_TO_MENU(x) (HMENU)(x-SUBMENU_OFFSET)
@@ -51,6 +53,7 @@ extern HWND ghWndTB;
 
 extern UINT nConfigCommand;
 extern UINT nAddCommand;
+extern UINT nAddLinkCommand;
 extern UINT nAddToolbarCommand;
 extern UINT nEditCommand;
 extern UINT nDropdownCommand;

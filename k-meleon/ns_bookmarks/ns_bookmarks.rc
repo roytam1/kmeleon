@@ -108,6 +108,8 @@ BEGIN
     LTEXT           "",IDC_LAST_VISIT,35,220,78,10
     LTEXT           "Other:",IDC_STATIC_OTHER,119,205,25,10
     LTEXT           "",IDC_OTHER,145,205,150,25
+    LTEXT           "Nick:",IDC_STATIC_NICK,119,220,25,10
+    EDITTEXT        IDC_NICK,145,220,150,12,ES_AUTOHSCROLL
     GROUPBOX        "Properties",IDC_STATIC_PROPERTIES,5,162,295,73
 END
 
@@ -160,6 +162,9 @@ BEGIN
     BEGIN
         MENUITEM "&Open in Current Browser Window", ID__OPEN
         MENUITEM "Open in Back&ground",         ID__OPEN_BACKGROUND
+        MENUITEM SEPARATOR
+        MENUITEM "Sort Folder",                 ID__SORT
+        MENUITEM "Sort Folders Recursively",    ID__SORT_ALL
         MENUITEM SEPARATOR
         MENUITEM "New &Folder",                 ID__NEW_FOLDER
         MENUITEM "New &Bookmark",               ID__NEW_BOOKMARK

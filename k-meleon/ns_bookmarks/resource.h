@@ -29,6 +29,8 @@
 #define IDC_STATIC_TITLE                1055
 #define IDC_MENU_AUTODETECT             1055
 #define ID_KEYBINDINGS                  1056
+#define IDC_NICK                        1057
+#define IDC_STATIC_NICK                 1058
 #define ID_BOOKMARK_DELETE              32791
 #define ID__BOOKMARK_DELETE             32791
 #define ID_SET_TOOLBAR_FOLDER           32792
@@ -40,6 +42,8 @@
 #define ID__SETAS_BOOKMARKMENU          32803
 #define ID__OPEN_BACKGROUND             32814
 #define ID__OPEN                        32815
+#define ID__SORT                        32816
+#define ID__SORT_ALL                    32817
 
 // Next default values for new objects
 // 
