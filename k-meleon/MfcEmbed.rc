@@ -305,7 +305,7 @@ BEGIN
                     38,10
     CONTROL         "&Never",IDC_RADIO3,"Button",BS_AUTORADIOBUTTON,28,162,
                     35,10
-    CONTROL         "&Automatically",IDC_RADIO4,"Button",BS_AUTORADIOBUTTON,
+    CONTROL         "A&utomatically",IDC_RADIO4,"Button",BS_AUTORADIOBUTTON,
                     27,174,57,10
     LTEXT           "Memory Cache:",IDC_STATIC,18,28,52,10
     CONTROL         "Cached data is compared to network data:",IDC_STATIC,
@@ -408,7 +408,7 @@ BEGIN
                     BS_AUTORADIOBUTTON,152,32,78,10
     CONTROL         "Do &not accept cookies",IDC_COOKIES_NONE,"Button",
                     BS_AUTORADIOBUTTON,152,44,88,10
-    PUSHBUTTON      "E&dit Cookies...",IDC_BUTTON_COOKIES,154,57,88,12,
+    PUSHBUTTON      "Edit Coo&kies...",IDC_BUTTON_COOKIES,154,57,88,12,
                     WS_GROUP
     COMBOBOX        IDC_COMBO,77,94,183,121,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_GROUP | WS_TABSTOP
