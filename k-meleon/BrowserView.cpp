@@ -917,7 +917,6 @@ void CBrowserView::OnKmeleonForum()
 
 void CBrowserView::OnShowFindDlg() {
 
-
 	// When the the user chooses the Find menu item
 	// and if a Find dlg. is already being shown
 	// just set focus to the existing dlg instead of
@@ -941,10 +940,12 @@ void CBrowserView::OnShowFindDlg() {
 		finder->GetSearchString(getter_Copies(stringBuf));
 		csSearchStr = stringBuf.get();
 
-		finder->GetMatchCase(&bMatchCase);
-		finder->GetEntireWord(&bMatchWholeWord);
-		finder->GetWrapFind(&bWrapAround);
-		finder->GetFindBackwards(&bSearchBackwards);		
+      if (csSearchStr != "") {
+		   finder->GetMatchCase(&bMatchCase);
+		   finder->GetEntireWord(&bMatchWholeWord);
+		   finder->GetWrapFind(&bWrapAround);
+		   finder->GetFindBackwards(&bSearchBackwards);		
+      }
 	}
 
 	m_pFindDlg = new CFindDialog(csSearchStr, bMatchCase, bMatchWholeWord, bWrapAround, bSearchBackwards, this);
@@ -957,8 +958,19 @@ void CBrowserView::OnFindNext() {
 
    if(!finder) return;
 
-   PRBool didFind;
-	finder->FindNext(&didFind);
+	CString csSearchStr;
+	nsXPIDLString stringBuf;
+
+   finder->GetSearchString(getter_Copies(stringBuf));
+   csSearchStr = stringBuf.get();
+
+   if (csSearchStr != "") {
+      PRBool didFind;
+	   finder->FindNext(&didFind);
+   }
+   else {
+      OnShowFindDlg();
+   }
 }
 
 void CBrowserView::OnFindPrev() {
