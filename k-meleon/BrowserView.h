@@ -55,6 +55,7 @@ public:
 	HRESULT DestroyBrowser();
 	void OpenURL(const char* pUrl);
 	void OpenURL(const PRUnichar* pUrl);
+	char* CBrowserView::NicknameLookup(char* pUrl);
 	CBrowserFrame* CreateNewBrowserFrame(PRUint32 chromeMask = nsIWebBrowserChrome::CHROME_ALL, 
 							PRInt32 x = -1, PRInt32 y = -1, 
 							PRInt32 cx = -1, PRInt32 cy = -1,
