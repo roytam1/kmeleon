@@ -36,8 +36,8 @@ CAboutDlg::CAboutDlg() : CDialog(CAboutDlg::IDD)
       \r\n
       Current Contributors:\r\n
    );
-   if ((int)(time(NULL)/60) %2 == 1){
-      bFirst = 0;
+   // switches position every 10 seconds
+   if ((int)(time(NULL)/10) %2 == 1){
       m_credits += _QUOTE(
          Jeff Doozan <jeff@tcbnetworks.com>\r\n
          Brian Harris <binaryc@teamreaction.com>\r\n

@@ -102,7 +102,27 @@ int CondenseString(char *buf, int size)
    strcpy(buf+firstlen+3, buf+len-secondlen-1);
    
    return strlen(buf);
+}
 
+// changes & to && so they display in menus correctly
+void EscapeAmpersands(char *string)
+{
+   char *input = strdup(string);
+   char *in = input;
+   char *out = string;
+   while (*in) {
+      *out = *in;
+      // double up the ampersand
+      if (*in == '&') {
+         out++;
+         *out = '&';
+      }
+      out++;
+      in++;
+   }
+   // can't forget to null terminate!!
+   *out = 0;
+   delete input;
 }
 
 long FileSize(FILE *file)
