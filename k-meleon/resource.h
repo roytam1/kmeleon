@@ -4,10 +4,15 @@
 //
 #define IDD_ABOUTBOX                    100
 #define IDR_MAINFRAME                   128
+#define IDD_PROMPT_DIALOG               128
 #define IDR_MOZEMBTYPE                  129
+#define IDD_PROMPT_PASSWORD_DIALOG      129
 #define IDR_CTXMENU_DOCUMENT            130
+#define IDD_PROMPT_USERPASS_DIALOG      130
 #define IDR_CTXMENU_LINK                131
+#define IDD_ALERT_CHECK_DIALOG          131
 #define IDR_CTXMENU_TEXT                132
+#define IDD_CONFIRM_CHECK_DIALOG        132
 #define IDR_CTXMENU_IMAGE               133
 #define IDD_SEARCH_DIALOG               134
 #define IDD_PROFILES                    137
@@ -59,8 +64,10 @@
 #define IDS_ENCRYPTION_NONE             189
 #define IDD_FILE_PRINTSETUP             190
 #define IDD_PRINTSETUP_DIALOG           191
+#define IDD_CHOOSE_ACTION_DIALOG        192
 #define ID_URL_BAR                      1001
 #define ID_PROG_BAR                     1002
+#define ID_THROBBER                     1003
 #define IDC_PROMPT_ANSWER               1003
 #define IDC_SEARCH_QUERY                1003
 #define IDC_PROMPT_QUESTION             1004
@@ -68,18 +75,28 @@
 #define IDC_USERNAME                    1006
 #define IDC_PASSWORD                    1007
 #define IDC_CHECK_SAVE_PASSWORD         1008
+#define IDC_CHECKBOX                    1008
 #define IDC_USERNAME_LABEL              1009
+#define IDC_MSG_TEXT                    1009
 #define IDC_PASSWORD_LABEL              1010
+#define IDC_BTN1                        1010
 #define IDC_LIST1                       1011
+#define IDC_BTN2                        1011
 #define IDC_PROF_RENAME                 1012
+#define IDC_BTN3                        1012
 #define IDC_PROF_DELETE                 1013
 #define IDC_PROF_NEW                    1014
 #define IDC_CHECK_ASK_AT_START          1015
 #define IDC_NEW_PROF_NAME               1016
+#define IDC_CONTENT_TYPE                1016
 #define IDC_LOCALE_COMBO                1017
+#define IDC_SAVE_TO_DISK                1017
 #define IDC_NEW_NAME                    1018
+#define IDC_OPEN_USING                  1018
 #define IDC_CREDITS                     1019
+#define IDC_CHOOSE_APP                  1019
 #define IDC_PPD_DOC_TXT                 1020
+#define IDC_APP_NAME                    1020
 #define IDC_EDIT_HTTP_PROXY_PORT        1021
 #define IDC_PPD_DOC_TITLE_STATIC        1021
 #define IDC_CHECK_PROXY_TYPE            1022
@@ -95,27 +112,40 @@
 #define IDC_IMAGES_ALL                  1030
 #define IDC_CHECK_ANIMATIONS            1031
 #define IDC_IMAGES_SITE                 1032
+#define IDC_PAPER_SIZE_CBX              1032
 #define IDC_EDIT1                       1033
 #define IDC_IMAGES_NONE                 1033
+#define IDC_UD_PAPER_HGT                1033
 #define IDC_EDIT_DISK_CACHE             1034
 #define IDC_COOKIES_ALL                 1034
+#define IDC_UD_PAPER_WDTH               1034
 #define IDC_BUTTON_MENUS                1035
 #define IDC_EDIT_CACHE_DIRECTORY        1035
 #define IDC_COOKIES_SITE                1035
+#define IDC_UD_WIDTH_LBL                1035
 #define IDC_BUTTON_ACCEL                1036
 #define IDC_COOKIES_NONE                1036
+#define IDC_UD_HEIGHT_LBL               1036
 #define IDC_BUTTON_HELP                 1037
+#define IDC_INCHES_RD                   1037
 #define IDC_COMBO_USERAGENT             1038
 #define IDC_COMBO                       1038
+#define IDC_MILLI_RD                    1038
 #define IDC_RADIO_CURRENT               1039
+#define IDC_HDR_LEFT_TXT                1039
 #define IDC_MATCH_WHOLE_WORD            1040
 #define IDC_RADIO_HOME                  1040
+#define IDC_HDR_MID_TXT                 1040
 #define IDC_MATCH_CASE                  1041
 #define IDC_RADIO_URL                   1041
+#define IDC_HDR_RIGHT_TXT               1041
 #define IDC_WRAP_AROUND                 1042
+#define IDC_FTR_LEFT_TXT                1042
 #define IDC_SEARCH_BACKWARDS            1043
 #define IDC_DOWNLOAD_PROGRESS           1043
+#define IDC_FTR_MID_TXT                 1043
 #define IDC_DESTINATION                 1044
+#define IDC_FTR_RIGHT_TXT               1044
 #define IDC_STATUS                      1045
 #define IDC_SOURCE                      1046
 #define IDC_TIME_LEFT                   1047
@@ -221,6 +251,7 @@
 #define ID_WINDOW_PREV                  32800
 #define ID_FILE_PRINTPREVIEW            32801
 #define ID_FILE_PRINTSETUP              32802
+#define ID_TOOLBARS_LOCK                32803
 #define IDS_FAILED_TO_CREATE_BROWSER    61204
 #define IDS_NEW_PLUGIN_FOUND            61205
 #define IDS_PLUGIN_NO_OPTIONS           61206
@@ -234,6 +265,8 @@
 #define IDS_TIMELEFT_MINUTES            61214
 #define IDS_TIMELEFT_MINUTE             61215
 #define IDS_PERCENT_OF_FILE             61216
+#define IDS_PROFILE_SWITCH              61217
+#define IDS_OLD_PLUGIN                  61218
 
 // Next default values for new objects
 // 
@@ -241,7 +274,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        192
-#define _APS_NEXT_COMMAND_VALUE         32803
+#define _APS_NEXT_COMMAND_VALUE         32804
 #define _APS_NEXT_CONTROL_VALUE         1078
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
