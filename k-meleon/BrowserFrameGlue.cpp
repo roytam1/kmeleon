@@ -49,6 +49,8 @@
 #include "BrowserFrm.h"
 #include "Dialogs.h"
 
+extern CMfcEmbedApp theApp;
+
 /////////////////////////////////////////////////////////////////////////////
 // IBrowserFrameGlue implementation
 
@@ -320,15 +322,15 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags,
 {
 	METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
 
-	UINT nIDResource = IDR_CTXMENU_DOCUMENT;
+	char *menuType = _T("DocumentPopup");
 
 	if(aContextFlags & nsIContextMenuListener::CONTEXT_DOCUMENT)
-		nIDResource = IDR_CTXMENU_DOCUMENT;
+		menuType = _T("DocumentPopup");
 	else if(aContextFlags & nsIContextMenuListener::CONTEXT_TEXT)		
-		nIDResource = IDR_CTXMENU_TEXT;
+		menuType = _T("TextPopup");
 	else if(aContextFlags & nsIContextMenuListener::CONTEXT_LINK)
 	{
-		nIDResource = IDR_CTXMENU_LINK;
+		menuType = _T("LinkPopup");
 
 		// Since we handle all the browser menu/toolbar commands
 		// in the View, we basically setup the Link's URL in the
@@ -343,13 +345,19 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags,
 		nsAutoString strUrlUcs2;
 		pThis->m_wndBrowserView.SetCtxMenuLinkUrl(strUrlUcs2);
 
-		// Get the URL from the link. This is two step process
+    // Get the URL from the link. This is two step process
 		// 1. We first get the nsIDOMHTMLAnchorElement
 		// 2. We then get the URL associated with the link
 		nsresult rv = NS_OK;
 		nsCOMPtr<nsIDOMHTMLAnchorElement> linkElement(do_QueryInterface(aNode, &rv));
-		if(NS_FAILED(rv))
-			return;
+    if(NS_FAILED(rv)){
+      nsCOMPtr<nsIDOMNode> parentNode;
+      aNode->GetParentNode(getter_AddRefs(parentNode));
+      linkElement = do_QueryInterface(parentNode, &rv);
+      if (NS_FAILED(rv)){
+        return;
+      }
+    }
 
 		rv = linkElement->GetHref(strUrlUcs2);
 		if(NS_FAILED(rv))
@@ -359,8 +367,11 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags,
 		// Note that this string is in UCS2 format
 		pThis->m_wndBrowserView.SetCtxMenuLinkUrl(strUrlUcs2);
 	}
-	else if(aContextFlags & nsIContextMenuListener::CONTEXT_IMAGE) {
-		nIDResource = IDR_CTXMENU_IMAGE;
+	if(aContextFlags & nsIContextMenuListener::CONTEXT_IMAGE) {
+    if(aContextFlags & nsIContextMenuListener::CONTEXT_LINK)
+      menuType = _T("ImageLinkPopup");
+    else
+      menuType = _T("ImagePopup");
 
 		nsAutoString strImgSrcUcs2;
 		pThis->m_wndBrowserView.SetCtxMenuImageSrc(strImgSrcUcs2); // Clear it
@@ -378,13 +389,13 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags,
 		pThis->m_wndBrowserView.SetCtxMenuImageSrc(strImgSrcUcs2); // Set the new Img Src
 	}
 
-	CMenu ctxMenu;
-	if(ctxMenu.LoadMenu(nIDResource))
+  CMenu *ctxMenu = theApp.menus.GetMenu(menuType);
+	if(ctxMenu)
 	{
 		POINT cursorPos;
 		GetCursorPos(&cursorPos);
 
-		(ctxMenu.GetSubMenu(0))->TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, cursorPos.x, cursorPos.y, pThis);
+		ctxMenu->TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, cursorPos.x, cursorPos.y, pThis);
 	}
 }
 
