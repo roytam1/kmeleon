@@ -330,7 +330,7 @@ void CBrowserView::SetBrowserFrameGlue(PBROWSERFRAMEGLUE pBrowserFrameGlue)
 
 void CBrowserView::Activate(UINT nState, CWnd* pWndOther, BOOL bMinimized) {
    nsCOMPtr<nsIWebBrowserFocus> focus(do_GetInterface(mWebBrowser));
-   if(!focus)
+   if(!focus)      
       return;
 
    switch(nState) {
@@ -1236,12 +1236,7 @@ void CBrowserView::UpdateBusyState(PRBool aBusy) {
 	else {
 		mpBrowserFrame->m_wndAnimate.Stop();
 		mpBrowserFrame->m_wndAnimate.Seek(0);
-
-      // this is a stupid hack and will probably go away once mozilla is fixed
-      // only activate when we are the active window
-      if (IsChild(GetFocus()))
-         Activate(WA_ACTIVE, this, false);
-	}
+  }
 }
 
 void CBrowserView::SetCtxMenuLinkUrl(nsAutoString& strLinkUrl)

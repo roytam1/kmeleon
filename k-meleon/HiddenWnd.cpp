@@ -167,12 +167,10 @@ void CHiddenWnd::ShowBrowser(char *URI) {
       if (URI && *URI)
          m_pHiddenBrowser->m_wndBrowserView.OpenURL(URI);
       else {
-         if (!m_bPreloadStartPage) {
+         m_pHiddenBrowser->m_wndUrlBar.SetFocus();
+         m_pHiddenBrowser->m_preserveUrlBarFocus = TRUE;
+         if (!m_bPreloadStartPage)
             m_pHiddenBrowser->m_wndBrowserView.LoadHomePage();
-            m_pHiddenBrowser->m_setURLBarFocus = TRUE;
-         }
-         else
-            m_pHiddenBrowser->m_wndUrlBar.SetFocus();
       }
 
       if (theApp.preferences.bMaximized) m_pHiddenBrowser->ShowWindow(SW_MAXIMIZE);
@@ -199,7 +197,8 @@ void CHiddenWnd::ShowBrowser(char *URI) {
          browser->m_wndBrowserView.OpenURL(URI);
       }
       else {
-         browser->m_setURLBarFocus = TRUE;
+         browser->m_wndUrlBar.SetFocus();
+         browser->m_preserveUrlBarFocus = TRUE;
          browser->m_wndBrowserView.LoadHomePage();
       }
    }

@@ -442,6 +442,8 @@ void CMfcEmbedApp::OnNewBrowser()
 
    if(pBrowserFrame) {
 	   //Load the new window start page into the browser view
+      pBrowserFrame->m_wndUrlBar.SetFocus();
+      pBrowserFrame->m_preserveUrlBarFocus = TRUE;
       switch (preferences.iNewWindowOpenAs) {
       case PREF_NEW_WINDOW_CURRENT:
          if (sURI) {
@@ -456,7 +458,6 @@ void CMfcEmbedApp::OnNewBrowser()
          pBrowserFrame->m_wndBrowserView.OpenURL(preferences.newWindowURL);
          break;
       }
-      pBrowserFrame->m_setURLBarFocus = true;
    }
 }
 
