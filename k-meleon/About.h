@@ -32,9 +32,8 @@ protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
 protected:
-   //{{AFX_MSG(CMfcEmbedApp)
    afx_msg void OnHome();
    afx_msg void OnForum();
-   //}}AFX_MSG
+
 	DECLARE_MESSAGE_MAP()
 };
