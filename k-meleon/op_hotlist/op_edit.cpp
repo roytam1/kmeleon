@@ -1489,11 +1489,14 @@ static void OnRClick(HWND hTree)
 
       CBookmarkNode *node = GetBookmarkNode(hTree, hItem);
       if (node && node->type != BOOKMARK_FOLDER) {
-         HTREEITEM htiParent = TreeView_GetParent(hTree, hItem);
-         if (htiParent)
-            node = GetBookmarkNode(hTree, htiParent);
-         else 
-            node = NULL;
+         EnableMenuItem(contextMenu, ID__SETAS_TOOLBARFOLDER, MF_BYCOMMAND | MF_GRAYED);
+         EnableMenuItem(contextMenu, ID__SETAS_BOOKMARKMENU, MF_BYCOMMAND | MF_GRAYED);
+         EnableMenuItem(contextMenu, ID__SETAS_NEWBOOKMARKFOLDER, MF_BYCOMMAND | MF_GRAYED);
+      }
+      else {
+         EnableMenuItem(contextMenu, ID__SETAS_TOOLBARFOLDER, MF_BYCOMMAND | MF_ENABLED);
+         EnableMenuItem(contextMenu, ID__SETAS_BOOKMARKMENU, MF_BYCOMMAND | MF_ENABLED);
+         EnableMenuItem(contextMenu, ID__SETAS_NEWBOOKMARKFOLDER, MF_BYCOMMAND | MF_ENABLED);
       }
       
       if (node && (node->flags & BOOKMARK_FLAG_TB))
