@@ -56,6 +56,8 @@ HGLOBAL GetMenu();
 void DoMenu(HMENU menu, char *param);
 void DoRebar(HWND rebarWnd);
 
+HMENU ghMenu;
+
 pluginFunctions pFunc = {
 	Init,
 	Create,
@@ -72,8 +74,7 @@ kmeleonPlugin kPlugin = {
 };
 
 int Init(){
-	ID_HISTORY_FLAG = kPlugin.kf->GetCommandIDs(21);
-	ID_HISTORY = ID_HISTORY_FLAG + 1;
+	ID_HISTORY = kPlugin.kf->GetCommandIDs(20);
 	return true;
 }
 
@@ -95,12 +96,8 @@ void Quit(){
 }
 
 void DoMenu(HMENU menu, char *param){
-
-	/* This separator serves as the "flag" where the session
-	history should be added */
-   
-   AppendMenu(menu, MF_SEPARATOR, ID_HISTORY_FLAG, "");
-
+   ghMenu = menu;
+   AppendMenu(menu, MF_SEPARATOR, 0, "");
 }
 
 void DoRebar(HWND rebarWnd) {
@@ -219,34 +216,12 @@ void UpdateHistoryMenu (HWND hWndParent) {
 	char **titles;
 	char buf[47];  //  3 spaces for "&# " 20 for beginning of title 3 for "..." 20 for end of title
 
-
-	HMENU hTopMenu = GetMenu(hWndParent),hHistoryMenu=0, hSubMenu;
-
-	if (!hTopMenu)
-		return;
-
-
-	// Walk the top level menus for our flag
-	for (i = 0; i < GetMenuItemCount(hTopMenu); i++) {
-		if( (hSubMenu = GetSubMenu(hTopMenu, i-1)) ) {
-			for (int x = 0; x < GetMenuItemCount(hSubMenu); x++) {
-				MENUITEMINFO mi;
-				mi.cbSize = sizeof(MENUITEMINFO);
-				mi.fMask = MIIM_ID;
-
-				if (::GetMenuItemInfo(hSubMenu, x, TRUE, &mi))
-					if (mi.wID == ID_HISTORY_FLAG)
-						hHistoryMenu = hSubMenu;
-			}
-		}
-	}
-
-	if (!hHistoryMenu)
+	if (!ghMenu)
 		return;
 
 	// Clear the existing history menu 
 	for (i=ID_HISTORY;i<ID_HISTORY+20;i++)
-		DeleteMenu(hHistoryMenu, i, MF_BYCOMMAND);
+		DeleteMenu(ghMenu, i, MF_BYCOMMAND);
 
 	// Add the local history to the menu
 	if (!kPlugin.kf->GetMozillaSessionHistory (&titles, &count, &index)) return;
@@ -256,9 +231,9 @@ void UpdateHistoryMenu (HWND hWndParent) {
 		CondenseMenuText(buf, titles[i], (count-1 - i) );
 
 		if (i == index)
-			AppendMenu(hHistoryMenu, MF_ENABLED | MF_STRING | MF_CHECKED, ID_HISTORY+i, buf);
+			AppendMenu(ghMenu, MF_ENABLED | MF_STRING | MF_CHECKED, ID_HISTORY+i, buf);
 		else
-			AppendMenu(hHistoryMenu, MF_ENABLED | MF_STRING, ID_HISTORY+i, buf);
+			AppendMenu(ghMenu, MF_ENABLED | MF_STRING, ID_HISTORY+i, buf);
 	}
 }
 
