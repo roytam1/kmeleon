@@ -400,18 +400,26 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags,
    {
       POINT cursorPos;
       GetCursorPos(&cursorPos);
+      
+      int offset = theApp.menus.GetOffset(ctxMenu);
 
-//      static int display = 0;
-//      if (display){
-         ctxMenu->TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, cursorPos.x, cursorPos.y, pThis);
-//      }
-//      display =! display;
+      RECT desktopRect;
+      GetDesktopWindow()->GetWindowRect(&desktopRect);
+      if ( (cursorPos.y - offset) < (desktopRect.bottom - (ctxMenu->GetMenuItemCount() * GetSystemMetrics(SM_CYMENUSIZE)) + (GetSystemMetrics(SM_CYEDGE)*2)) ){
+         // we only do this if we're not too close to the bottom of the screen
+         cursorPos.y -= offset;
+         if (cursorPos.y < 0){
+            cursorPos.y = 0;
+         }
+      }
+
+      ctxMenu->TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, cursorPos.x, cursorPos.y, pThis);
    }
 }
-
 
 HWND CBrowserFrame::BrowserFrameGlueObj::GetBrowserFrameNativeWnd()
 {
 	METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
+
    return pThis->m_hWnd;
 }

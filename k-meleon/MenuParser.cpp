@@ -39,6 +39,10 @@ CMenuParser::CMenuParser(CString &filename){
 }
 
 CMenuParser::~CMenuParser(){
+   Destroy();
+}
+
+void CMenuParser::Destroy(){
    POSITION pos = menus.GetStartPosition();
    CMenu *m;
    CString s;
@@ -163,6 +167,10 @@ int CMenuParser::Load(CString &filename){
             TrimWhiteSpace(p);
             if (strcmpi(p, "ToolBars") == 0) 
                theApp.m_toolbarControlsMenu = currentMenu->GetSafeHmenu();
+
+            if (strcmpi(p, "EntryPoint") == 0) {
+               menuOffsets[currentMenu] = (currentMenu->GetMenuItemCount() * GetSystemMetrics(SM_CYMENUSIZE)) + GetSystemMetrics(SM_CYEDGE);
+            }
          }
          else {
             // it's either a plugin or a menu item
@@ -223,4 +231,12 @@ CMenu *CMenuParser::GetMenu(char *menuName){
       return NULL;
 
    return menu;
+}
+
+int CMenuParser::GetOffset(CMenu *menu){
+   int offset;
+   if (!menuOffsets.Lookup(menu, offset))
+      return 0;
+
+   return offset;
 }
