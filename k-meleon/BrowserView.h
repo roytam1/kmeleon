@@ -138,6 +138,7 @@ public:
 protected:
 	BOOL m_refreshBackButton;
 	BOOL m_refreshForwardButton; 
+   BOOL m_InPrintPreview;
    char **m_tempFileList;
    int m_tempFileCount;
   
@@ -199,6 +200,7 @@ protected:
    afx_msg void OnFilePrintPreview();
    afx_msg void OnFilePrintSetup();
    afx_msg void OnUpdateFilePrint(CCmdUI* pCmdUI);
+	afx_msg void OnUpdateFilePrintPreview(CCmdUI* pCmdUI);
    afx_msg void OnUpdateViewStatusBar(CCmdUI* pCmdUI);
    afx_msg void OnFindNext();
    afx_msg void OnFindPrev();

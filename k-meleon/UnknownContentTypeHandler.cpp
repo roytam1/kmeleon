@@ -304,7 +304,10 @@ CProgressDialog::~CProgressDialog(){
 }
 
 /* void onStateChange (in nsIWebProgress aWebProgress, in nsIRequest aRequest, in long aStateFlags, in unsigned long aStatus); */
-NS_IMETHODIMP CProgressDialog::OnStateChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest, PRInt32 aStateFlags, PRUint32 aStatus){
+NS_IMETHODIMP CProgressDialog::OnStateChange(nsIWebProgress *aWebProgress, 
+                                          nsIRequest *aRequest, PRUint32 aStateFlags, 
+                                          nsresult aStatus)
+{
    if (aStateFlags & nsIWebProgressListener::STATE_STOP){
       if (IsDlgButtonChecked(IDC_CLOSE_WHEN_DONE)) {
          Close();
@@ -439,10 +442,11 @@ NS_IMETHODIMP CProgressDialog::OnStatusChange(nsIWebProgress *aWebProgress, nsIR
     return NS_OK;
 }
 
-/* void onSecurityChange (in nsIWebProgress aWebProgress, in nsIRequest aRequest, in long state); */
-NS_IMETHODIMP CProgressDialog::OnSecurityChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest, PRInt32 state){
+NS_IMETHODIMP CProgressDialog::OnSecurityChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest, PRUint32 state)
+{
     return NS_OK;
 }
+
 
 void CProgressDialog::DoDataExchange(CDataExchange* pDX){
 	CDialog::DoDataExchange(pDX);

@@ -129,6 +129,7 @@ BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
 	ON_UPDATE_COMMAND_UI(ID_EDIT_COPY, OnUpdateCopy)
 	ON_UPDATE_COMMAND_UI(ID_EDIT_PASTE, OnUpdatePaste)
    ON_UPDATE_COMMAND_UI(ID_FILE_PRINT, OnUpdateFilePrint)
+   ON_UPDATE_COMMAND_UI(ID_FILE_PRINTPREVIEW, OnUpdateFilePrintPreview)
    ON_UPDATE_COMMAND_UI(ID_VIEW_STATUS_BAR, OnUpdateViewStatusBar)
 	ON_COMMAND(ID_APP_ABOUT, OnAppAbout)
 	ON_COMMAND(ID_WINDOW_NEXT, OnWindowNext)
@@ -165,6 +166,7 @@ CBrowserView::CBrowserView()
    m_pGetNode = NULL;
 
    m_panning = FALSE;
+   m_InPrintPreview = FALSE;
 }
 
 CBrowserView::~CBrowserView()
@@ -952,50 +954,52 @@ void CBrowserView::OnSaveImageAs()
 
 void CBrowserView::OnFilePrint()
 {
-  nsresult rv;
-  nsCOMPtr<nsIPref> prefs(do_GetService(NS_PREF_CONTRACTID, &rv));
-  if (NS_SUCCEEDED(rv)) 
-  {
-    prefs->SetBoolPref("print.use_native_print_dialog", PR_TRUE);
-    prefs->SetBoolPref("print.show_print_progress", PR_FALSE);
-  }
-  else
-	NS_ASSERTION(PR_FALSE, "Could not get preferences service");
-
-  nsCOMPtr<nsIWebBrowserPrint> print(do_GetInterface(mWebBrowser));
-	if(print)
-	{
-
-   // Get the printer settings
-   if (!m_PrintSettings)
-      print->GetNewPrintSettings(getter_AddRefs(m_PrintSettings));
-
-    CPrintProgressDialog  dlg(mWebBrowser, m_PrintSettings);
-
-	  nsCOMPtr<nsIURI> currentURI;
-	  nsresult rv = mWebNav->GetCurrentURI(getter_AddRefs(currentURI));
-    if(NS_SUCCEEDED(rv) || currentURI) 
-    {
-	    nsCAutoString path;
-	    currentURI->GetPath(path);
-      dlg.SetURI(path.get());
-    }
-    m_bCurrentlyPrinting = TRUE;
-    dlg.DoModal();
-    m_bCurrentlyPrinting = FALSE;
-  }
+   nsresult rv;
+   nsCOMPtr<nsIPref> prefs(do_GetService(NS_PREF_CONTRACTID, &rv));
+   if (NS_SUCCEEDED(rv)) {
+      prefs->SetBoolPref("print.use_native_print_dialog", PR_TRUE);
+      prefs->SetBoolPref("print.show_print_progress", PR_FALSE);
+   }
+   else
+      NS_ASSERTION(PR_FALSE, "Could not get preferences service");
+   
+   nsCOMPtr<nsIWebBrowserPrint> print(do_GetInterface(mWebBrowser));
+   if(print){
+      
+      // Get the printer settings
+      if (!m_PrintSettings) {
+         if (NS_FAILED(print->GetGlobalPrintSettings(getter_AddRefs(m_PrintSettings))))
+            return;
+      }
+         
+      CPrintProgressDialog  dlg(mWebBrowser, m_PrintSettings);
+      
+      nsCOMPtr<nsIURI> currentURI;
+      nsresult rv = mWebNav->GetCurrentURI(getter_AddRefs(currentURI));
+      if(NS_SUCCEEDED(rv) || currentURI) 
+      {
+         nsCAutoString path;
+         currentURI->GetPath(path);
+         dlg.SetURI(path.get());
+      }
+      m_bCurrentlyPrinting = TRUE;
+      dlg.DoModal();
+      m_bCurrentlyPrinting = FALSE;
+   }
 }
 
 void CBrowserView::OnUpdateViewStatusBar(CCmdUI* pCmdUI)
 {
-   HWND hWndStatus = FindWindowEx(this->GetParent()->GetSafeHwnd(), NULL, STATUSCLASSNAME, NULL);
-   BOOL bVis = ::IsWindowVisible(hWndStatus);
-
-   pCmdUI->SetCheck(bVis);
+   CWnd *Status = mpBrowserFrame->FindWindow(STATUSCLASSNAME, NULL);
+   pCmdUI->SetCheck(Status->IsWindowVisible());
 }
 
 
  
+void CBrowserView::OnUpdateFilePrintPreview(CCmdUI* pCmdUI)
+{
+   pCmdUI->SetCheck(m_InPrintPreview);
+}
 
 void CBrowserView::OnFilePrintPreview()                                         
 {
@@ -1003,11 +1007,19 @@ void CBrowserView::OnFilePrintPreview()
    nsCOMPtr<nsIWebBrowserPrint> print(do_GetInterface(mWebBrowser));
    if(print) {
       // Get the printer settings
-      if (!m_PrintSettings)
-         print->GetNewPrintSettings(getter_AddRefs(m_PrintSettings));
-
-      print->PrintPreview(m_PrintSettings, nsnull);
-   
+      
+      if (!m_PrintSettings) {
+         if (NS_FAILED(print->GetGlobalPrintSettings(getter_AddRefs(m_PrintSettings))))
+            return;
+      }
+      if (!m_InPrintPreview) {
+         if (NS_SUCCEEDED(print->PrintPreview(m_PrintSettings, nsnull, nsnull)))
+            m_InPrintPreview = TRUE;
+      }
+      else {
+         if (NS_SUCCEEDED(print->ExitPrintPreview()))
+            m_InPrintPreview = FALSE;
+      }
    }
 }
 
@@ -1032,57 +1044,62 @@ static PRUnichar* GetUnicodeFromCString(const CString& aStr)
 
 void CBrowserView::OnFilePrintSetup()
 {
-
-   // Get the printer settings
    nsCOMPtr<nsIWebBrowserPrint> print(do_GetInterface(mWebBrowser));
-	if(print && !m_PrintSettings)
-      print->GetNewPrintSettings(getter_AddRefs(m_PrintSettings));
+   if (!print)
+      return;
+   
+   // Get the printer settings
+   if (!m_PrintSettings) {
+      if (NS_FAILED(print->GetGlobalPrintSettings(getter_AddRefs(m_PrintSettings))))
+         return;
+   }
+   
    
    CPrintSetupDialog  dlg(m_PrintSettings);
-  if (dlg.DoModal() == IDOK && m_PrintSettings != NULL) {
-    m_PrintSettings->SetMarginTop(GetFloatFromStr(dlg.m_TopMargin));
-    m_PrintSettings->SetMarginLeft(GetFloatFromStr(dlg.m_LeftMargin));
-    m_PrintSettings->SetMarginRight(GetFloatFromStr(dlg.m_RightMargin));
-    m_PrintSettings->SetMarginBottom(GetFloatFromStr(dlg.m_BottomMargin));
-
-    m_PrintSettings->SetScaling(double(dlg.m_Scaling) / 100.0);
-    m_PrintSettings->SetPrintBGColors(dlg.m_PrintBGColors);
-    m_PrintSettings->SetPrintBGColors(dlg.m_PrintBGImages);
-
-    short  type;
-    double width;
-    double height;
-    dlg.GetPaperSizeInfo(type, width, height);
-    m_PrintSettings->SetPaperSizeType(type);
-    m_PrintSettings->SetPaperWidth(width);
-    m_PrintSettings->SetPaperHeight(height);
-
-    PRUnichar* uStr;
-    uStr = GetUnicodeFromCString(dlg.m_HeaderLeft);
-    m_PrintSettings->SetHeaderStrLeft(uStr);
-    if (uStr != nsnull) nsMemory::Free(uStr);
-
-    uStr = GetUnicodeFromCString(dlg.m_HeaderMiddle);
-    m_PrintSettings->SetHeaderStrCenter(uStr);
-    if (uStr != nsnull) nsMemory::Free(uStr);
-
-    uStr = GetUnicodeFromCString(dlg.m_HeaderRight);
-    m_PrintSettings->SetHeaderStrRight(uStr);
-    if (uStr != nsnull) nsMemory::Free(uStr);
-
-    uStr = GetUnicodeFromCString(dlg.m_FooterLeft);
-    m_PrintSettings->SetFooterStrLeft(uStr);
-    if (uStr != nsnull) nsMemory::Free(uStr);
-
-    uStr = GetUnicodeFromCString(dlg.m_FooterMiddle);
-    m_PrintSettings->SetFooterStrCenter(uStr);
-    if (uStr != nsnull) nsMemory::Free(uStr);
-
-    uStr = GetUnicodeFromCString(dlg.m_FooterRight);
-    m_PrintSettings->SetFooterStrRight(uStr);
-    if (uStr != nsnull) nsMemory::Free(uStr);
-
-  }
+   if (dlg.DoModal() == IDOK && m_PrintSettings != NULL) {
+      m_PrintSettings->SetMarginTop(GetFloatFromStr(dlg.m_TopMargin));
+      m_PrintSettings->SetMarginLeft(GetFloatFromStr(dlg.m_LeftMargin));
+      m_PrintSettings->SetMarginRight(GetFloatFromStr(dlg.m_RightMargin));
+      m_PrintSettings->SetMarginBottom(GetFloatFromStr(dlg.m_BottomMargin));
+      
+      m_PrintSettings->SetScaling(double(dlg.m_Scaling) / 100.0);
+      m_PrintSettings->SetPrintBGColors(dlg.m_PrintBGColors);
+      m_PrintSettings->SetPrintBGColors(dlg.m_PrintBGImages);
+      
+      short  type;
+      double width;
+      double height;
+      dlg.GetPaperSizeInfo(type, width, height);
+      m_PrintSettings->SetPaperSizeType(type);
+      m_PrintSettings->SetPaperWidth(width);
+      m_PrintSettings->SetPaperHeight(height);
+      
+      PRUnichar* uStr;
+      uStr = GetUnicodeFromCString(dlg.m_HeaderLeft);
+      m_PrintSettings->SetHeaderStrLeft(uStr);
+      if (uStr != nsnull) nsMemory::Free(uStr);
+      
+      uStr = GetUnicodeFromCString(dlg.m_HeaderMiddle);
+      m_PrintSettings->SetHeaderStrCenter(uStr);
+      if (uStr != nsnull) nsMemory::Free(uStr);
+      
+      uStr = GetUnicodeFromCString(dlg.m_HeaderRight);
+      m_PrintSettings->SetHeaderStrRight(uStr);
+      if (uStr != nsnull) nsMemory::Free(uStr);
+      
+      uStr = GetUnicodeFromCString(dlg.m_FooterLeft);
+      m_PrintSettings->SetFooterStrLeft(uStr);
+      if (uStr != nsnull) nsMemory::Free(uStr);
+      
+      uStr = GetUnicodeFromCString(dlg.m_FooterMiddle);
+      m_PrintSettings->SetFooterStrCenter(uStr);
+      if (uStr != nsnull) nsMemory::Free(uStr);
+      
+      uStr = GetUnicodeFromCString(dlg.m_FooterRight);
+      m_PrintSettings->SetFooterStrRight(uStr);
+      if (uStr != nsnull) nsMemory::Free(uStr);
+      
+   }
 }
                                                                            
 
