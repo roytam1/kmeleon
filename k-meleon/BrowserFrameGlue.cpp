@@ -48,6 +48,7 @@
 #include "MfcEmbed.h"
 #include "BrowserFrm.h"
 #include "Dialogs.h"
+#include "MenuParser.h"
 
 extern CMfcEmbedApp theApp;
 
@@ -135,6 +136,11 @@ void CBrowserFrame::BrowserFrameGlueObj::SetBrowserFrameTitle(const PRUnichar *a
 
   title += " (" + cs + ')';
   pThis->SetWindowText(title);
+
+  // then steal focus
+  if (pThis->IsChild(GetFocus()){
+    pThis->SetFocus();
+  }
 }
 
 void CBrowserFrame::BrowserFrameGlueObj::SetBrowserFrameSize(PRInt32 aCX, PRInt32 aCY)
