@@ -22,21 +22,28 @@
 #include <time.h>
 #include <string>
 #include <windows.h>
+#include <limits.h>
 
-const int BOOKMARK_BOOKMARK = 0;  // this node is a real bookmark, all fields valid
-const int BOOKMARK_FOLDER   = 1;  // "children" is not empty.  url is not used
-const int BOOKMARK_SEPARATOR= 2;  // this node is a separator, url, title, and children are not used
+#include "op_hotlist.h"
+
+const int BOOKMARK_FOLDER   = 0;  // "children" is not empty.  url is not used
+const int BOOKMARK_SEPARATOR= 1;  // this node is a separator, url, title, and children are not used
+const int BOOKMARK_BOOKMARK = 2;  // this node is a real bookmark, all fields valid
 
 const int BOOKMARK_FLAG_TB = 0x1;	// Toolbar Folder
 const int BOOKMARK_FLAG_NB = 0x2;	// New Bookmarks Folder
 const int BOOKMARK_FLAG_BM = 0x4;	// Bookmark Menu Folder
 
+static int compareBookmarks(const char *e1, const char *e2, unsigned int sortorder);
+
 class CBookmarkNode {
 public:
    int id;
+   long order;
    std::string text;
    std::string url;
-   std::string nickname;
+   std::string nick;
+   std::string desc;
    int type;
    int flags;
    time_t addDate;
@@ -49,9 +56,11 @@ public:
    inline CBookmarkNode()
    {
       id = 0;
+      order = 0;
       text = "";
       url = "";
-      nickname = "";
+      nick = "";
+      desc = "";
       type = 0;
 	  flags = 0;
       next = NULL;
@@ -62,12 +71,14 @@ public:
       lastVisit = 0;
       lastModified = 0;
    }
-   inline CBookmarkNode(int id, const char *text, const char *url, const char *nick, int type, time_t addDate=0, time_t lastVisit=0, time_t lastModified=0)
+   inline CBookmarkNode(int id, const char *text, const char *url, const char *nick, const char *desc, int type, time_t addDate=0, time_t lastVisit=0, time_t lastModified=0, long order=LONG_MAX)
    {
       this->id = id;
+      this->order = order;
       this->text = text;
       this->url = url;
-      this->nickname = nick;
+      this->nick = nick;
+      this->desc = desc;
       this->type = type;
 	  this->flags = 0;
       this->next = NULL;
@@ -77,12 +88,14 @@ public:
       this->lastVisit = lastVisit;
       this->lastModified = lastModified;
    }
-   inline CBookmarkNode(int id, std::string &text, std::string &url, std::string &nick, int type, time_t addDate=0, time_t lastVisit=0, time_t lastModified=0)
+   inline CBookmarkNode(int id, std::string &text, std::string &url, std::string &nick, std::string &desc, int type, time_t addDate=0, time_t lastVisit=0, time_t lastModified=0, long order=LONG_MAX)
    {
       this->id = id;
+      this->order = order;
       this->text = text;
       this->url = url;
-      this->nickname = nick;
+      this->nick = nick;
+      this->desc = desc;
       this->type = type;
 	  this->flags = 0;
       this->next = NULL;
@@ -105,9 +118,11 @@ public:
    inline CBookmarkNode &operator=(CBookmarkNode &n2)
    {
       id = n2.id;
+      order = n2.order;
       text = n2.text;
       url = n2.url;
-      nickname = n2.nickname;
+      nick = n2.nick;
+      desc = n2.desc;
       type = n2.type;
       flags = n2.flags;
       addDate = n2.addDate;
@@ -243,7 +258,7 @@ public:
                return retNode;
             }
          }
-         else if (strcmp((char*)c->nickname.c_str(), nick) == 0) {
+         else if (strcmp((char*)c->nick.c_str(), nick) == 0) {
             // this is it!
             return c;
          }
@@ -270,6 +285,84 @@ public:
       // We couldn't find it.  Rather than returning null and risking a null pointer crash, return ourself
       return this;
    }
+   void sort(int sortorder)
+   {
+      if (!child)
+        return;
+
+      CBookmarkNode *c;
+      int i = 0;
+      for (c=child; c; c=c->next)
+	i++;
+      if (i == 0)
+	return;
+      void **buf = (void**)calloc(i, sizeof(void*));
+      if (!buf)
+	return;
+      for (i=0,c=child; c; c=c->next,i++)
+	buf[i] = (void*)c;
+      quicksort((char*)buf, i, sizeof(void*), &compareBookmarks, sortorder);
+      child = ((CBookmarkNode*)buf[0]);
+      for (int j=0; j<i-1; j++) {
+	c = ((CBookmarkNode*)buf[j]);
+	c->next = ((CBookmarkNode*)buf[j+1]);
+      }
+      c = ((CBookmarkNode*)buf[i-1]);
+      c->next = NULL;
+      lastChild = c;
+      free(buf);
+      for (c=child; c; c=c->next) {
+	if (c->type == BOOKMARK_FOLDER) {
+	  c->sort(sortorder);
+	}
+      }
+   }
 };
 
+
+static int compareBookmarks(const char *e1, const char *e2, unsigned int sortorder)
+{
+#define SORT_BITS 3
+     int cmp = 0;
+
+     if (e1 == e2) return 0;
+     if (!e1) return -1;
+     if (!e2) return 1;
+
+     CBookmarkNode *c1 = (CBookmarkNode *)*((void**)e1);
+     CBookmarkNode *c2 = (CBookmarkNode *)*((void**)e2);
+
+     switch (sortorder & ((1<<SORT_BITS)-1)) {
+       case 1:
+	 cmp = c1->type - c2->type;
+	 break;
+       case 2:
+	 cmp = (c1->order < c2->order) ? -1 : (c1->order == c2->order) ? 0 : 1;
+	 break;
+       case 3:
+	 cmp = stricmp((char*)c1->text.c_str(), (char*)c2->text.c_str());
+	 break;
+       case 4:
+	 cmp = stricmp((char*)c1->url.c_str(), (char*)c2->url.c_str());
+	 break;
+       case 5:
+	 cmp = stricmp((char*)c1->nick.c_str(), (char*)c2->nick.c_str());
+	 break;
+       case 6:
+	 cmp = (c1->addDate < c2->addDate) ? -1 : (c1->addDate == c2->addDate) ? 0 : 1;
+	 break;
+       case 7:
+	 cmp = (c1->lastVisit < c2->lastVisit) ? -1 : (c1->lastVisit == c2->lastVisit) ? 0 : 1;
+	 break;
+       default:
+         cmp = c1->id - c2->id;
+	 return cmp ? cmp : -1;
+	 break;
+     }
+     if (cmp == 0)
+       return compareBookmarks(e1, e2, (sortorder >> SORT_BITS));
+     return cmp;
+}
+
 #endif
+

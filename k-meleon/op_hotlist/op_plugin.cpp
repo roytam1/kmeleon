@@ -203,6 +203,8 @@ int Init(){
    kPlugin.kFuncs->GetPreference(PREF_INT, PREFERENCE_MENU_MAXLEN, &gMaxMenuLength, &gMaxMenuLength);
    kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_MENU_AUTOLEN, &gMenuAutoDetect, &gMenuAutoDetect);
    if (gMaxMenuLength < 1) gMaxMenuLength = 20;
+   gMenuSortOrder = 209;
+   kPlugin.kFuncs->GetPreference(PREF_INT, PREFERENCE_MENU_SORTORDER, &gMenuSortOrder, &gMenuSortOrder);
    
    getHotlistFile();
    bEmpty = true;
@@ -295,6 +297,8 @@ void DoMenu(HMENU menu, char *param){
    lpszHotlistFile = strdup(gHotlistFile);
    if (lpszHotlistFile && *lpszHotlistFile) {
       if ((ret = op_readFile(lpszHotlistFile)) > 0) {
+	if (gMenuSortOrder)
+	    gHotlistRoot.sort(gMenuSortOrder);
          BuildMenu(menu, &gHotlistRoot, false);
       }
    }
