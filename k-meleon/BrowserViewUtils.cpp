@@ -311,6 +311,11 @@ CBrowserFrame* CBrowserView::CreateNewBrowserFrame(PRUint32 chromeMask,
   return pApp->CreateNewBrowserFrame(chromeMask, x, y, cx, cy, bShowWindow);
 }
 
+void CBrowserView::OpenURLInNewWindow(const char* pUrl, BOOL bBackground)
+{
+	OpenURLInNewWindow(NS_ConvertASCIItoUCS2(pUrl).get(), bBackground);
+}
+
 void CBrowserView::OpenURLInNewWindow(const PRUnichar* pUrl, BOOL bBackground)
 {
 	if(!pUrl)

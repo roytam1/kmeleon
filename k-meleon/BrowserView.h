@@ -59,6 +59,7 @@ public:
 							PRInt32 x = -1, PRInt32 y = -1, 
 							PRInt32 cx = -1, PRInt32 cy = -1,
 							PRBool bShowWindow = PR_TRUE);
+	void OpenURLInNewWindow(const char* pUrl, BOOL bBackground=FALSE);
    void OpenURLInNewWindow(const PRUnichar* pUrl, BOOL bBackground=FALSE);
 	void LoadHomePage();
 
@@ -206,6 +207,8 @@ protected:
 	afx_msg void OnViewImageInNewWindow();
 	afx_msg void OnSaveLinkAs();
 	afx_msg void OnSaveImageAs();
+	afx_msg void OnViewPageInfo();
+	afx_msg void OnViewFrameInfo();
    afx_msg void OnShowFindDlg();
    afx_msg void OnFilePrint();
    afx_msg void OnFilePrintPreview();
