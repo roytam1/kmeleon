@@ -148,6 +148,10 @@ void CReBarEx::SetVisibility(int index, BOOL visibility) {
    DrawMenuBar();
 
    m_index[index]->visibility = visibility;
+
+   char tempPref[256] = _T("kmeleon.toolband."); // 17 chars
+   sprintf(tempPref + 17, _T("%s.visibility"), m_index[index]->name);
+   theApp.preferences.SetBool(tempPref, m_index[index]->visibility);
 }
 
 void CReBarEx::ToggleVisibility(int index) {

@@ -84,7 +84,7 @@ int CPreferencesDlg::DoModal(){
       page = NULL;
    }
 
-   theApp.preferences.SaveDlgPrefs();
+   theApp.preferences.Save();
 
    return ret;
 }

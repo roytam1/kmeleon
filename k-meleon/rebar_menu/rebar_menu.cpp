@@ -129,7 +129,7 @@ void Setup(){
 	   char szBuf[16] = {0};
 	   char szId[6] = {0};
 	   strcpy(szBuf, "ALT ? = ");
-	   szBuf[4] = *(p+1);
+	   szBuf[4] = toupper(*(p+1));
 	   int id = DoAccel((LPTSTR)mInfo.dwTypeData, TRUE);
 	   itoa(id, szId, 10);
 	   strcat(szBuf, szId);
@@ -235,9 +235,10 @@ void DoRebar(HWND rebarWnd) {
 	 if ( GetMenuState(m_menu, i, MF_BYPOSITION) & MF_POPUP) {
 	    char temp[128];
 	    mInfo.fMask = MIIM_TYPE | MIIM_SUBMENU;
-	    mInfo.cch = 127;
+	    mInfo.cch = 126;
 	    mInfo.dwTypeData = temp;
 	    GetMenuItemInfo(m_menu, i, MF_BYPOSITION, &mInfo);
+	    temp[strlen(temp)+1] = '\0';
 
 	    stringID = SendMessage(hwndTB, TB_ADDSTRING, (WPARAM)NULL, (LPARAM)(LPCTSTR)mInfo.dwTypeData);
 
@@ -253,9 +254,10 @@ void DoRebar(HWND rebarWnd) {
 	 else{
 	    char temp[128];
 	    mInfo.fMask = MIIM_TYPE | MIIM_ID;
-	    mInfo.cch = 127;
+	    mInfo.cch = 126;
 	    mInfo.dwTypeData = temp;
 	    GetMenuItemInfo(m_menu, i, MF_BYPOSITION, &mInfo);
+	    temp[strlen(temp)+1] = '\0';
 
 	    stringID = SendMessage(hwndTB, TB_ADDSTRING, (WPARAM)NULL, (LPARAM)(LPCTSTR)mInfo.dwTypeData);
 

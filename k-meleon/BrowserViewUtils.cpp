@@ -285,7 +285,7 @@ NS_IMETHODIMP CBrowserView::URISaveAs(nsIURI* aURI, bool bDocument)
       BOOL bSaveAll = FALSE;
       CString strDataPath;
       char *pStrDataPath = NULL;
-      if (bDocument)
+      if (bDocument && strstr(extension, "htm"))
 	theApp.preferences.iSaveType = ofn.nFilterIndex;
       if(bDocument && ofn.nFilterIndex == 3) {
          // cf.m_ofn.nFilterIndex == 3 indicates

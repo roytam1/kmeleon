@@ -610,7 +610,7 @@ void Create(HWND parent, LPCREATESTRUCT pCS){
      if (pParentLayer && !pParentLayer->popup) {
        struct frame *pFrame = find_frame(ghCurHwnd);
        if (pFrame)
-	 ghCurHwnd = pFrame->hWndFront;
+         ghCurHwnd = pFrame->hWndFront;
        prevHwnd = ghCurHwnd;
        ghParent = ghCurHwnd;
      }
@@ -634,7 +634,7 @@ void Create(HWND parent, LPCREATESTRUCT pCS){
          find_frame(parent)->hWndLast = ghParent;
          if (!bBack) {
             struct frame *pFrame = find_frame(parent);
-	    ghParent = pFrame->hWndFront;
+            ghParent = pFrame->hWndFront;
             pFrame->hWndFront = parent;
             MoveWindow(parent, 
                        gwpOld.rcNormalPosition.left, gwpOld.rcNormalPosition.top, 
@@ -721,6 +721,12 @@ void Destroy(HWND hWnd){
     del_layer(hWnd);
     if (!ghCurHwnd || ghCurHwnd==hWnd)
       ghCurHwnd = hWndTmp;
+
+    gwpOld.length = sizeof (WINDOWPLACEMENT);
+    GetWindowPlacement(hWnd, &gwpOld);
+    if (gwpOld.showCmd != SW_SHOWMAXIMIZED)
+      gwpOld.showCmd = SW_RESTORE;
+    PostMessage(ghCurHwnd, WM_COMMAND, id_resize, (LPARAM)&gwpOld);
   }
 }
 
@@ -1012,7 +1018,7 @@ void DoRebar(HWND rebarWnd){
    readMenu();
    
    DWORD dwStyle = 0x40 | /*the 40 gets rid of an ugly border on top.  I have no idea what flag it corresponds to...*/
-      CCS_NOPARENTALIGN | CCS_NORESIZE | //CCS_ADJUSTABLE |
+      CS_DBLCLKS | CCS_NOPARENTALIGN | CCS_NORESIZE | //CCS_ADJUSTABLE |
       ((nButtonStyle & BS_3D) ? TBSTYLE_TRANSPARENT : (TBSTYLE_FLAT | TBSTYLE_TRANSPARENT)) | TBSTYLE_LIST | TBSTYLE_TOOLTIPS;
    
    // Create the toolbar control to be added.
@@ -1307,9 +1313,22 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                PostMessage(hWnd, WM_COMMAND, id_close_layer, MAKELPARAM(PLUGIN_JUNK,command));
                break;
             }
+            /* Fall through! */
+         }
+
+         case TB_LBUTTONDBLCLK:
+         {
+            WORD command = wParam;
+            if (!command) {
+               HWND hWndTB = (HWND) lParam;
+               pLayer = find_layer(hWnd);
+               if (pLayer->hWndTB == hWndTB) {
+                  PostMessage(hWnd, WM_COMMAND, id_open_new_layer, (LPARAM) 0);
+               }
+            }
             break;
          }
-         
+
          case WM_COMMAND:
          {
             WORD command = LOWORD(wParam);
@@ -1522,7 +1541,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                      if (pLayer) {
                         SendMessage(hWnd, WM_COMMAND, lParam, -1);
                         PostMessage(pLayer->hWnd, WM_COMMAND, command, -1);
-			return 0;
+                        return 0;
                      }
                   }
                }
@@ -1754,15 +1773,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                if (!wpNew || (wpNew->showCmd == SW_RESTORE || 
                               wpNew->showCmd == SW_SHOWMAXIMIZED)) {
 
-		 pFrame = find_frame(hWnd);
-		 if (pFrame) {
-		   if (pFrame->hWndFront!=hWnd) {
-		     pFrame->hWndFront=hWnd;
-		   }
-		 }
+                 pFrame = find_frame(hWnd);
+                 if (pFrame) {
+                   if (pFrame->hWndFront!=hWnd) {
+                     pFrame->hWndFront=hWnd;
+                   }
+                 }
 
                   BringWindowToTop(hWnd);
-		  ghCurHwnd = hWnd;
+                  ghCurHwnd = hWnd;
                }
                
                pLayer = find_layer(hWnd);

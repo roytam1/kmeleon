@@ -723,7 +723,8 @@ void CBrowserView::OnNavReload()
 {
     PRUint32 loadFlags = nsIWebNavigation::LOAD_FLAGS_NONE;
     if (GetKeyState(VK_SHIFT))
-        loadFlags = nsIWebNavigation::LOAD_FLAGS_BYPASS_CACHE;
+        loadFlags = nsIWebNavigation::LOAD_FLAGS_BYPASS_CACHE | 
+                    nsIWebNavigation::LOAD_FLAGS_BYPASS_PROXY;
     if (mWebNav)
         mWebNav->Reload(loadFlags); 
 }
@@ -731,7 +732,8 @@ void CBrowserView::OnNavReload()
 void CBrowserView::OnNavForceReload()
 {
     if(mWebNav)
-        mWebNav->Reload(nsIWebNavigation::LOAD_FLAGS_BYPASS_CACHE);
+        mWebNav->Reload(nsIWebNavigation::LOAD_FLAGS_BYPASS_CACHE |
+                        nsIWebNavigation::LOAD_FLAGS_BYPASS_PROXY);
 }
 
 void CBrowserView::OnNavStop() 
@@ -1729,6 +1731,8 @@ void CBrowserView::ChangeTextSize(PRInt32 change)
 
 void CBrowserView::OnToggleOffline()
 {
+    theApp.BroadcastMessage(WM_COMMAND, ID_NAV_STOP, (LPARAM) 0);
+
     theApp.SetOffline(!theApp.preferences.bOffline);
     theApp.menus.SetCheck(ID_OFFLINE, theApp.preferences.bOffline);
     mpBrowserFrame->m_wndStatusBar.SetPaneText(0, 

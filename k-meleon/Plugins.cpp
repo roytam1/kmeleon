@@ -181,6 +181,8 @@ void GetPreference(enum PREFTYPE type, char *preference, void *ret, void *defVal
 
 void SetPreference(enum PREFTYPE type, char *preference, void *val, BOOL update)
 {
+   theApp.preferences.Save();
+
    switch (type) {
       case PREF_BOOL:
          theApp.preferences.SetBool(preference, *(int *)val);
@@ -192,10 +194,9 @@ void SetPreference(enum PREFTYPE type, char *preference, void *val, BOOL update)
          theApp.preferences.SetString(preference, (char *)val);
          break;
    }
-   if (update) {
-      theApp.preferences.Save();
-      theApp.preferences.Load();
-   }
+
+   theApp.preferences.Flush();
+   theApp.preferences.Load();
 }
 
 void DelPreference(char *preference)
