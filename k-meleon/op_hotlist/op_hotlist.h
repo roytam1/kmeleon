@@ -89,6 +89,7 @@ void quicksort(char *a, size_t n, size_t es, cmp_t *cmp, unsigned int flag);
 #define MENU_TO_COMMAND(x) (x+SUBMENU_OFFSET)
 
 #define IDB_IMAGES                      158
+#define IDB_ICON                        159
 
 #define IMAGE_BLANK         -1
 #define IMAGE_FOLDER_CLOSED 0

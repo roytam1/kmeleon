@@ -35,6 +35,7 @@ const int BOOKMARK_FLAG_NB = 0x2; // New Bookmarks Folder
 const int BOOKMARK_FLAG_BM = 0x4; // Bookmark Menu Folder
 
 static int compareBookmarks(const char *e1, const char *e2, unsigned int sortorder);
+char *stristr(const char *String, const char *Pattern);
 
 class CBookmarkNode {
 public:
@@ -303,6 +304,59 @@ public:
       }
       // We couldn't find it.  Rather than returning null and risking a null pointer crash, return ourself
       return this;
+   }
+   int Index(int &mypos, CBookmarkNode *node)
+   {
+      CBookmarkNode *c;
+      for (c=child; c; c=c->next) {
+         mypos++;
+         if (c->type == BOOKMARK_SEPARATOR)
+            continue;
+         else if (node == c)
+               return mypos;
+
+         if (c->type == BOOKMARK_FOLDER) {
+            int newpos = c->Index(mypos, node);
+            if (newpos >= 0)
+               return newpos;
+         }
+      }
+      return -1;
+   }
+   int Search(const char *str, int pos, int &mypos, int &firstpos, CBookmarkNode **node)
+   {
+      CBookmarkNode *c;
+      for (c=child; c; c=c->next) {
+         mypos++;
+         if (c->type == BOOKMARK_SEPARATOR) {
+            continue;
+         }
+         else if (stristr(c->text.c_str(), str) ||
+		  stristr(c->url.c_str(), str) ||
+		  stristr(c->nick.c_str(), str) ||
+		  stristr(c->desc.c_str(), str)) {
+            if (mypos >= pos) {
+               // this is it!
+               if (node)
+                  *node = c;
+               return mypos;
+            }
+            else if (firstpos == -1) {
+               firstpos = mypos;
+            }
+         }
+
+         if (c->type == BOOKMARK_FOLDER) {
+
+            int newpos = c->Search(str, pos, mypos, firstpos, node);
+
+            if (newpos >= pos) {
+               // found it in a sub-node
+               return newpos;
+            }
+         }
+      }
+      return firstpos;
    }
    void sort(int sortorder)
    {
