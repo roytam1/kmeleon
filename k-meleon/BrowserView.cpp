@@ -72,6 +72,8 @@ BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
   ON_WM_TIMER()
   ON_WM_MOUSEACTIVATE()
 
+  ON_WM_DROPFILES()
+
 	// UrlBar command handlers
 	ON_COMMAND(IDOK, OnNewUrlEnteredInUrlBar)
 	ON_CBN_SELENDOK(ID_URL_BAR, OnUrlSelectedInUrlBar)
@@ -135,6 +137,8 @@ int CBrowserView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
 	CreateBrowser();
 
+  DragAcceptFiles();
+
 	return 0;
 }
 
@@ -194,7 +198,8 @@ HRESULT CBrowserView::CreateBrowser()
     nsCOMPtr<nsIDocShellTreeItem> dsti = do_QueryInterface(mWebBrowser, &rv);
 	if(NS_FAILED(rv))
 		return rv;
-    dsti->SetItemType(nsIDocShellTreeItem::typeContentWrapper);
+  //dsti->SetItemType(nsIDocShellTreeItem::typeChromeWrapper);
+  dsti->SetItemType(nsIDocShellTreeItem::typeContentWrapper);
 
     // Create the real webbrowser window
   
@@ -219,9 +224,14 @@ HRESULT CBrowserView::CreateBrowser()
 
 	rv = mBaseWindow->InitWindow(nsNativeWidget(m_hWnd), nsnull,
 		0, 0, rcLocation.right - rcLocation.left, rcLocation.bottom - rcLocation.top);
-	rv = mBaseWindow->Create();
+  rv = mBaseWindow->Create();
 
-    // Register the BrowserImpl object to receive progress messages
+  /*
+  nsCOMPtr<nsIWebNavigation> mWebNav(do_QueryInterface(mBaseWindow));
+  mWebNav->LoadURI(NS_ConvertASCIItoUCS2("chrome://embed/content/simple-shell.xul"), nsIWebNavigation::LOAD_FLAGS_NONE);
+  */
+
+  // Register the BrowserImpl object to receive progress messages
 	// These callbacks will be used to update the status/progress bars
 	nsCOMPtr<nsIWebProgressListener> listener = NS_STATIC_CAST(nsIWebProgressListener*, mpBrowserImpl);
     nsCOMPtr<nsISupports> supports = do_QueryInterface(listener);
@@ -285,6 +295,17 @@ void CBrowserView::SetBrowserFrameGlue(PBROWSERFRAMEGLUE pBrowserFrameGlue)
 	mpBrowserFrameGlue = pBrowserFrameGlue;
 }
 
+void CBrowserView::OnDropFiles( HDROP drop ){
+  UINT size = DragQueryFile(drop, 0, NULL, 0) + 1;
+  char *filename = new char[size];
+  DragQueryFile(drop, 0, filename, size);
+
+  OpenURL(filename);
+
+  delete filename;
+  DragFinish(drop);
+}
+
 // A new URL was entered in the URL bar
 // Get the URL's text from the Urlbar's (ComboBox's) EditControl 
 // and navigate to that URL
@@ -300,6 +321,9 @@ void CBrowserView::OnNewUrlEnteredInUrlBar()
 
 	// Add what was just entered into the UrlBar
 	mpBrowserFrame->m_wndUrlBar.AddURLToList(strUrl);
+
+  // then steal focus
+  mBaseWindow->SetFocus();
 }
 
 // A URL has  been selected from the UrlBar's dropdown list
@@ -572,20 +596,20 @@ void CBrowserView::OnFileSaveAs()
 			pStrDataPath = strDataPath.GetBuffer(0); //Get char * for later use
 		}
 
-        // Save the file
-        nsCOMPtr<nsIWebBrowserPersist> persist(do_QueryInterface(mWebBrowser));
+    // Save the file
+    nsCOMPtr<nsIWebBrowserPersist> persist(do_QueryInterface(mWebBrowser));
 		if(persist)
 			persist->SaveDocument(nsnull, pStrFullPath, pStrDataPath);
 	}
 }
 
 void CBrowserView::OpenURL(const char* pUrl){
-	if(mWebNav)
-		mWebNav->LoadURI(NS_ConvertASCIItoUCS2(pUrl).GetUnicode(), nsIWebNavigation::LOAD_FLAGS_NONE);
+  if(mWebNav)
+    mWebNav->LoadURI(NS_ConvertASCIItoUCS2(pUrl).GetUnicode(), nsIWebNavigation::LOAD_FLAGS_NONE);
 }
 
 void CBrowserView::OpenURL(const PRUnichar* pUrl){
-	if(mWebNav)
+  if(mWebNav)
 		mWebNav->LoadURI(pUrl, nsIWebNavigation::LOAD_FLAGS_NONE);
 }
 
