@@ -374,18 +374,22 @@ STYLE WS_CHILD
 EXSTYLE WS_EX_CLIENTEDGE | WS_EX_CONTROLPARENT
 FONT 8, "MS Sans Serif"
 BEGIN
-    LTEXT           "Identify Browser As:",IDC_STATIC,11,14,74,8
+    LTEXT           "Identify browser as:",IDC_STATIC,13,25,70,8
     CONTROL         "Disable popup windows on page load/unload",
                     IDC_CHECK_LOAD,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,13,
-                    60,166,10
-    GROUPBOX        "Popup Control",IDC_STATIC,3,44,226,104
+                    85,166,10
+    GROUPBOX        "Popup Control",IDC_STATIC,3,71,226,80
     CONTROL         "Disable popup windows on domains beginning with:",
                     IDC_CHECK_RESTRICT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
-                    13,76,205,9
-    EDITTEXT        IDC_EDIT_RESTRICT,11,93,208,38,ES_AUTOHSCROLL
-    LTEXT           "Use commas (,) to separate entries.",IDC_STATIC,12,134,
+                    13,99,205,9
+    EDITTEXT        IDC_EDIT_RESTRICT,11,115,208,20,ES_AUTOHSCROLL
+    LTEXT           "Use commas (,) to separate entries.",IDC_STATIC,12,139,
                     192,10
-    EDITTEXT        IDC_EDIT_USERAGENT,89,13,130,13,ES_AUTOHSCROLL
+    COMBOBOX        IDC_COMBO,88,23,131,121,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    GROUPBOX        "Browser Identification",IDC_STATIC,3,7,226,56
+    EDITTEXT        IDC_EDIT_USERAGENT,88,42,131,12,ES_AUTOHSCROLL
+    LTEXT           "UserAgent string:",IDC_STATIC,13,44,61,8
 END
 
 

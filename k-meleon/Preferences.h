@@ -127,6 +127,7 @@ protected:
    virtual BOOL OnInitDialog();
 
    afx_msg void OnBrowse();
+   afx_msg void OnComboChanged();
 
    virtual void OnOK();
    virtual void OnCancel();

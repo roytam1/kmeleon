@@ -160,14 +160,15 @@ void CPreferencesDlg::ShowPage(UINT idd){
 
 BOOL CPreferencePage::OnInitDialog(){
    switch (idd) {
-      case IDD_PREFERENCES_ADVANCED:
+      case IDD_PREFERENCES_PRIVACY:
          char buf[256], pref[32];
          int x=0;
          do {
-            sprintf(pref, "kmeleon.useragent%d", x);
+            sprintf(pref, "kmeleon.privacy.useragent%d.name", x);
             theApp.preferences.GetString(pref, buf, "");
             if (*buf)
-                  SendDlgItemMessage(IDC_COMBO_USERAGENT, CB_ADDSTRING, 0, (LONG) buf);
+               SendDlgItemMessage(IDC_COMBO, CB_ADDSTRING, 0, (LONG) buf);
+            x++;
          } while (*buf);
 
          break;
@@ -231,6 +232,7 @@ void CPreferencePage::DoDataExchange(CDataExchange* pDX){
 BEGIN_MESSAGE_MAP(CPreferencePage, CDialog)
 	//{{AFX_MSG_MAP(CPreferencePage)
 	ON_BN_CLICKED(IDC_BUTTON_BROWSE, OnBrowse)
+   ON_CBN_SELCHANGE(IDC_COMBO, OnComboChanged)
   //}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -249,6 +251,26 @@ void CPreferencePage::OnBrowse() {
          theApp.preferences.sourceCommand = fDlg.GetPathName();
          UpdateData(FALSE);
          break;
+   }
+}
+
+void CPreferencePage::OnComboChanged() {
+   switch (idd) {
+   case IDD_PREFERENCES_PRIVACY:
+      int index;
+      char buf[256], pref[32];
+
+      index = SendDlgItemMessage(IDC_COMBO, CB_GETCURSEL, 0, 0);
+
+      sprintf(pref, "kmeleon.privacy.useragent%d.string", index);
+      theApp.preferences.GetString(pref, buf, "");
+      
+      if (*buf)
+         SetDlgItemText(IDC_EDIT_USERAGENT, buf);
+      else
+         SetDlgItemText(IDC_EDIT_USERAGENT, "");
+
+      break;
    }
 }
 
