@@ -443,7 +443,7 @@ void CMfcEmbedApp::OnNewBrowser()
    if(pBrowserFrame) {
 	   //Load the new window start page into the browser view
       pBrowserFrame->SetFocus();
-      pBrowserFrame->m_wndUrlBar.SetFocus();
+      pBrowserFrame->m_wndUrlBar.MaintainFocus();
       switch (preferences.iNewWindowOpenAs) {
       case PREF_NEW_WINDOW_CURRENT:
          if (sURI) {

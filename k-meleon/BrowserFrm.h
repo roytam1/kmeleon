@@ -94,19 +94,16 @@ public:
          AddURLToList(urlStr, false);
       }
    }   
-   void SetFocus() {
-      CComboBoxEx::SetFocus();
+   void MaintainFocus() {
+      SetFocus();
       m_preserveUrlBarFocus = TRUE;
    }   
    BOOL CheckFocus() {
       return m_preserveUrlBarFocus;
    }   
-   inline UnsetFocus() {
-      m_preserveUrlBarFocus = FALSE;
-   }   
    void ReturnFocus() {
+      SetFocus();
       m_preserveUrlBarFocus = FALSE;
-      CComboBoxEx::SetFocus();
       if (m_changed)
          GetEditCtrl()->SetSel(-1, 0);
    }
