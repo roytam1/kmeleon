@@ -24,6 +24,8 @@
 
 #include "stdafx.h"
 
+#include "UnknownContentTypeHandler.h"
+
 #include "MfcEmbed.h"
 extern CMfcEmbedApp theApp;
 
@@ -41,63 +43,27 @@ BOOL CBrowserView::OpenViewSourceWindow(const char* pUrl)
    if (theApp.preferences.bSourceUseExternalCommand) {
       if (theApp.preferences.sourceCommand) {
 
-         nsString tempfile;
-         tempfile.AssignWithConversion(GetTempFile());
+         CString tempfile;
+         tempfile = GetTempFile();
 
-
-         
-/*         
-      // Save the file
-      nsCOMPtr<nsIWebBrowserPersist> persist(do_QueryInterface(mWebBrowser));
-      if(persist)
-      {
-
-         nsString filename;
-         filename.AssignWithConversion(strFullPath.GetBuffer(0));
-
-         nsCOMPtr<nsILocalFile> file;
-         NS_NewLocalFile(filename, TRUE, getter_AddRefs(file));
-
-         nsCOMPtr<nsILocalFile> dataPath;
-         if (pStrDataPath)
-         {
-            NS_NewLocalFile(filename, TRUE, getter_AddRefs(dataPath));
-         }
-
-         if (bDocument)
-            persist->SaveDocument(nsnull, file, dataPath, nsnull, 0, 0);
-         else
-            persist->SaveURI(aURI, nsnull, file);
-      }
-         
-         
-*/         
          nsCOMPtr<nsIWebBrowserPersist> persist(do_QueryInterface(mWebBrowser));
          if(persist)
          {
             nsCOMPtr<nsILocalFile> file;
-            NS_NewLocalFile(tempfile, TRUE, getter_AddRefs(file));
+            NS_NewNativeLocalFile(nsDependentCString(T2A(tempfile.GetBuffer(0))), TRUE, getter_AddRefs(file));
 
+            CProgressDialog *progress = new CProgressDialog(FALSE);      
+            progress->InitViewer(persist, theApp.preferences.sourceCommand.GetBuffer(0), tempfile.GetBuffer(0));
 
-            persist->SaveDocument(nsnull, file, nsnull, nsnull, 0, 0);
-//            persist->SaveURI(nsnull, nsnull, file);
+            nsAutoString sURI;
+            sURI.AssignWithConversion(pUrl+strlen("View-Source:"));
 
-            char *command = new char[theApp.preferences.sourceCommand.GetLength() + tempfile.Length() +2];
-            
-            strcpy(command, theApp.preferences.sourceCommand);
-            strcat(command, " ");                              //append " filename" to the viewer command
-            tempfile.ToCString(command+strlen(command), tempfile.Length() +1);           
-//            strcat(command, tempfile.ToCString();
-            
-            STARTUPINFO si = { 0 };
-            PROCESS_INFORMATION pi;
-            si.cb = sizeof STARTUPINFO;
-            si.dwFlags = STARTF_USESHOWWINDOW;
-            si.wShowWindow = SW_SHOW;
-
-            CreateProcess(0,command,0,0,0,0,0,0,&si,&pi);      // launch external viewer
-
-            delete command;
+         	nsCOMPtr<nsIURI> srcURI;
+	         nsresult rv = NS_NewURI(getter_AddRefs(srcURI), sURI);
+	         if (NS_FAILED(rv)) 
+		         return FALSE;
+ 
+            persist->SaveURI(srcURI, nsnull, file);
          }
          return TRUE;
       }
@@ -247,6 +213,10 @@ NS_IMETHODIMP CBrowserView::URISaveAs(nsIURI* aURI, bool bDocument)
 
       nsCOMPtr<nsILocalFile> file;
       NS_NewNativeLocalFile(nsDependentCString(T2A(strFullPath.GetBuffer(0))), TRUE, getter_AddRefs(file));
+
+      CProgressDialog *progress = new CProgressDialog(FALSE);
+      
+      progress->InitPersist(aURI, file, persist, TRUE);
 
       persist->SaveURI(aURI, nsnull, file);
 
