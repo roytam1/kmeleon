@@ -93,6 +93,9 @@ BmpMapT bmpMap;
 // maps "ID_BLAH" to ID_BLAH
 typedef std::map<std::string, int> DefineMapT;
 
+BOOL bFirstRun=TRUE;
+
+
 void ParseConfig(char *buffer) {
    hImageList = ImageList_Create(BMP_WIDTH, BMP_HEIGHT, ILC_MASK | ILC_COLOR8, 32, 256);
 
@@ -160,8 +163,6 @@ void ParseConfig(char *buffer) {
 }
 
 int Init() {
-   refCount = 0;
-
    kPlugin.kf->GetPreference(PREF_STRING, "kmeleon.general.settingsDir", settingsPath, "");
 
    char cfgPath[MAX_PATH];
@@ -191,8 +192,6 @@ int Init() {
 void Create(HWND parent){
 	KMeleonWndProc = (WNDPROC) GetWindowLong(parent, GWL_WNDPROC);
 	SetWindowLong(parent, GWL_WNDPROC, (LONG)WndProc);
-
-   refCount++;
 }
 
 void Config(HWND parent){
@@ -210,11 +209,18 @@ void Config(HWND parent){
 void Quit(){
    if (hImageList)
       ImageList_Destroy(hImageList);
+
+   while(menus.size()) {
+      UnSetOwnerDrawn(menus.front());
+      menus.erase(menus.begin());
+   }
 }
 
 void DoMenu(HMENU menu, char *param){
    // only do this the first time
-   if (refCount == 0) {
+   if (bFirstRun) {
+      bFirstRun = FALSE;
+
       menus.push_back(menu);
       if (*param) {
          HINSTANCE plugin = LoadLibrary(param);
@@ -317,7 +323,7 @@ char *GetMaxTab(HMENU menu){
 			::GetMenuItemInfo(menu, i, true, &mmi);
 
 			MenuDataT *mdt = (MenuDataT *)mmi.dwItemData;
-			if (mdt){
+			if (mdt) {
 				string = (char *)mdt->data;
 
 				tab = strchr(string, '\t');
@@ -576,15 +582,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
       if (dis->CtlType == ODT_MENU && mdt && mdt->version == BMP_MENU_VERSION){
          DrawMenuItem(dis);
          return true;
-      }
-   }
-   else if (message == WM_DESTROY){
-      refCount--;
-      if (refCount == 0){
-         while(menus.size()){
-            UnSetOwnerDrawn(menus.front());
-            menus.erase(menus.begin());
-         }
       }
    }
    return CallWindowProc(KMeleonWndProc, hWnd, message, wParam, lParam);
