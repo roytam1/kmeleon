@@ -138,7 +138,7 @@ void CBrowserFrame::BrowserFrameGlueObj::SetBrowserFrameTitle(const PRUnichar *a
   pThis->SetWindowText(title);
 
   // then steal focus
-  if (pThis->IsChild(GetFocus()){
+  if (pThis->IsChild(GetFocus())){
     pThis->SetFocus();
   }
 }
@@ -455,9 +455,9 @@ void CBrowserFrame::BrowserFrameGlueObj::Confirm(const PRUnichar *dialogTitle, c
 
 	USES_CONVERSION;
 
-	int iChoice = pThis->MessageBox(W2T(text), W2T(dialogTitle), MB_YESNO | MB_ICONEXCLAMATION);
+	int iChoice = pThis->MessageBox(W2T(text), W2T(dialogTitle), MB_OKCANCEL | MB_ICONEXCLAMATION);
 
-	*retval = (iChoice == IDYES) ? PR_TRUE : PR_FALSE;
+	*retval = (iChoice == IDOK) ? PR_TRUE : PR_FALSE;
 }
 
 void CBrowserFrame::BrowserFrameGlueObj::Prompt(const PRUnichar *dialogTitle, const PRUnichar *text,
