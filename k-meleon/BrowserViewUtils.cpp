@@ -500,7 +500,7 @@ void CBrowserView::ShowSecurityInfo()
    HWND hParent = mpBrowserFrame->m_hWnd;
 
    if(m_SecurityState == SECURITY_STATE_INSECURE) { 
-      ::MessageBox(m_hWnd, "This page has been NOT been transferred over a secure connection.", "Security Information", MB_OK);
+      ::MessageBox(m_hWnd, "This page has not been transferred over a secure connection.", "Security Information", MB_OK);
    } else {
       // TEMPORARY.  this should be replaced with something more permanent
       ::MessageBox(m_hWnd, "This page has been transferred over a secure connection.", "Security Information", MB_OK);
