@@ -16,9 +16,8 @@
 *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
-#include "version.h"
-
 #include "StdAfx.h"
+#include "version.h"
 #include "About.h"
 #include "BrowserFrm.h"
 #include "MfcEmbed.h"
@@ -38,6 +37,7 @@ CAboutDlg::CAboutDlg() : CDialog(CAboutDlg::IDD)
       Current Contributors:\r\n
    );
    if ((int)(time(NULL)/60) %2 == 1){
+      bFirst = 0;
       m_credits += _QUOTE(
          Jeff Doozan <jeff@tcbnetworks.com>\r\n
          Brian Harris <binaryc@teamreaction.com>\r\n
@@ -52,12 +52,15 @@ CAboutDlg::CAboutDlg() : CDialog(CAboutDlg::IDD)
    m_credits += _QUOTE(
       Tuncer M. Ayaz <tma@users.sf.net>\r\n
       \r\n
+      Project Documentation:\r\n
+      Andrew Mutch <amutch@tln.lib.mi.us>\r\n
+      \r\n
       Past Contributors:\r\n
       Sebastian Spaeth <Sebastian@SSpaeth.de>\r\n    
       Christophe Thibault <christophe@nullsoft.com>\r\n
       Chak Nanga <chak@netscape.com>\r\n
   );
-  m_version.Format("Version %s Build %d Compiled %s", VERSION, BUILD_NUMBER, BUILD_TIME);
+   m_version.Format("Version %s Build %d Compiled %s", VERSION, BUILD_NUMBER, BUILD_TIME);
 }
 
 void CAboutDlg::DoDataExchange(CDataExchange* pDX){
