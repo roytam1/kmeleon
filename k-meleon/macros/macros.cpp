@@ -150,6 +150,7 @@ enum commands {
    exec,             // run a program
    id,               // send a command id to the current window
    plugin,            // exectute a plugin command
+   statusbar,        // set the text of the status bar in the current window
    alert,
    confirm,
    prompt,
@@ -295,6 +296,7 @@ int FindCommand(char *cmd) {
       CMD_TEST(exec)
       CMD_TEST(id)
       CMD_TEST(plugin)
+      CMD_TEST(statusbar)
       CMD_TEST(alert)
       CMD_TEST(confirm)
       CMD_TEST(prompt)
@@ -671,6 +673,14 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
          kPlugin.kFuncs->SendMessage(plugin, PLUGIN_NAME, "DoAccel", (long)param, (long)&cmd);
          SendMessage(hWnd, WM_COMMAND, cmd, NULL);
       }
+      CMD(statusbar) {
+         if (nparam != 1) {  // statusbar( $0 )
+            parseError(WRONGARGS, "statusbar", data, 2, nparam);
+            return "";
+         }
+         kPlugin.kFuncs->SetStatusBarText((char*)params[0].c_str());
+         return "";
+      }
       CMD(alert) {
          // params are message,title,icon
 
@@ -682,7 +692,6 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
 
          MessageBox(NULL,strVal(params[0]).c_str(),strVal(params[1]).c_str(), MB_OK|icon);
          return "";
-
       }
       CMD(confirm) {
          // params are message,title,buttons,icon
