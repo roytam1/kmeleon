@@ -87,11 +87,11 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
       else if (stricmp(subject, "SetButtonImage") == 0) {
          SetButtonImage((char *)data1);
       }
-      else if (stricmp(subject, "EnabledButton") == 0) {
-         CheckButton((char *)data1);
+      else if (stricmp(subject, "EnableButton") == 0) {
+         EnableButton((char *)data1);
       }
       else if (stricmp(subject, "IsButtonEnabled") == 0) {
-         *(int *)data2 = IsButtonChecked((char *)data1);
+         *(int *)data2 = IsButtonEnabled((char *)data1);
       }
       else if (stricmp(subject, "CheckButton") == 0) {
          CheckButton((char *)data1);
@@ -114,7 +114,7 @@ struct s_button {
    HMENU menu;
    int iID;
    int width, height;
-   s_button *next;
+   s_button *next, *prev;
 };
 
 struct s_toolbar {
@@ -153,7 +153,7 @@ char gszConfigDir[MAX_PATH];
 
 int Init() {
    char szConfigFile[MAX_PATH];
-   kPlugin.kFuncs->GetPreference(PREF_STRING, "kmeleon.general.settingsDir", gszConfigDir, "");
+   kPlugin.kFuncs->GetPreference(PREF_STRING, "kmeleon.general.settingsDir", gszConfigDir, (char*)"");
    if (! *gszConfigDir)
       return 0;
    strcpy(szConfigFile, gszConfigDir);
@@ -174,7 +174,7 @@ void Create(HWND parent){
 
 void Config(HWND hWndParent) {
    char cfgPath[MAX_PATH];
-   kPlugin.kFuncs->GetPreference(PREF_STRING, _T("kmeleon.general.settingsDir"), cfgPath, "");
+   kPlugin.kFuncs->GetPreference(PREF_STRING, _T("kmeleon.general.settingsDir"), cfgPath, (char*)"");
    strcat(cfgPath, "toolbars.cfg");
    ShellExecute(NULL, NULL, "notepad.exe", cfgPath, NULL, SW_SHOW);
 }
@@ -183,7 +183,7 @@ configFileType g_configFiles[1];
 int GetConfigFiles(configFileType **configFiles)
 {
    char cfgPath[MAX_PATH];
-   kPlugin.kFuncs->GetPreference(PREF_STRING, _T("kmeleon.general.settingsDir"), cfgPath, "");
+   kPlugin.kFuncs->GetPreference(PREF_STRING, _T("kmeleon.general.settingsDir"), cfgPath, (char*)"");
 
    strcpy(g_configFiles[0].file, cfgPath);
    strcat(g_configFiles[0].file, "toolbars.cfg");
@@ -558,7 +558,6 @@ s_toolbar *AddToolbar(char *name, int width, int height) {
 
    newToolbar->width = width;
    newToolbar->height = height;
-   newToolbar->pButtonTail = NULL;
    newToolbar->iButtonCount = 0;
    newToolbar->next = NULL;
 
@@ -589,6 +588,7 @@ s_button  *AddButton(s_toolbar *toolbar, char *name, int width, int height) {
    newButton->iID = 0;
    newButton->menu = NULL;
    newButton->next = NULL;
+   newButton->prev = toolbar->pButtonTail;
    newButton->sImagePath = NULL;
 
 
@@ -766,6 +766,14 @@ s_button *FindButton(s_toolbar *pToolbar, int iButton) {
       pButton = pButton->next;
    }
 
+   int i = 1;
+   pButton = pToolbar->pButtonHead;
+   while (pButton) {
+      if (i++ == iButton)
+         return pButton;
+      pButton = pButton->next;
+   }
+
    return NULL;
 }
 
@@ -872,6 +880,8 @@ void SetButtonImage(char *sParams) {//WORD iToolbar, WORD iButton, char *sImage)
 
 void EnableButton(char *sParams) {
 
+   // sParams = "ToolbarID, BUTTON_ID, STATE"
+
    // Get ToolbarID param
    char *p = SkipWhiteSpace(sParams);
    char *c = strchr(sParams, ',');
@@ -906,11 +916,13 @@ void EnableButton(char *sParams) {
    if (!pButton)
       return;
 
-   SendMessage(pToolbar->hWnd, TB_ENABLEBUTTON, pButton->iID, MAKELONG(iState, 0));
-
+   SendMessage(pToolbar->hWnd, TB_ENABLEBUTTON, pButton->iID, MAKELONG(iState != 0, 0));
+     
 }
 
 int IsButtonEnabled(char *sParams) {
+
+   // sParams = "ToolbarID, BUTTON_ID"
 
    // Get ToolbarID param
    char *p = SkipWhiteSpace(sParams);
@@ -936,12 +948,14 @@ int IsButtonEnabled(char *sParams) {
    if (!pButton)
       return NULL;
 
-   return SendMessage(pToolbar->hWnd, TB_ISBUTTONENABLED, pButton->iID, 0);
+   return SendMessage(pToolbar->hWnd, TB_ISBUTTONENABLED, pButton->iID, 0) != 0;
 }
 
 
 void CheckButton(char *sParams) {
 
+   // sParams = "ToolbarID, BUTTON_ID, STATE"
+
    // Get ToolbarID param
    char *p = SkipWhiteSpace(sParams);
    char *c = strchr(sParams, ',');
@@ -976,11 +990,13 @@ void CheckButton(char *sParams) {
    if (!pButton)
       return;
 
-   SendMessage(pToolbar->hWnd, TB_CHECKBUTTON, pButton->iID, MAKELONG(iState, 0));
+   SendMessage(pToolbar->hWnd, TB_CHECKBUTTON, pButton->iID, MAKELONG(iState != 0, 0));
 
 }
 
 int  IsButtonChecked(char *sParams) {
+
+   // sParams = "ToolbarID, BUTTON_ID"
 
    // Get ToolbarID param
    char *p = SkipWhiteSpace(sParams);
@@ -1006,7 +1022,7 @@ int  IsButtonChecked(char *sParams) {
    if (!pButton)
       return NULL;
 
-   return SendMessage(pToolbar->hWnd, TB_ISBUTTONCHECKED, pButton->iID, 0);
+   return SendMessage(pToolbar->hWnd, TB_ISBUTTONCHECKED, pButton->iID, 0) != 0;
 }
 
 
@@ -1050,7 +1066,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 
                   return TBDDRET_DEFAULT;
                }
-               button = button->next;
+               button = button->prev;
             }
             toolbar = toolbar->next;
          }
@@ -1078,7 +1094,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                   return NULL;
 
                }
-               button = button->next;
+               button = button->prev;
             }
             toolbar = toolbar->next;
          }
