@@ -26,8 +26,8 @@
 //
 
 
-#define	WM_LBUTTONHOLD	WM_APP + 123
-
+#define	TB_LBUTTONHOLD	WM_APP + 120
+#define	TB_RBUTTONDOWN	WM_APP + 121
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -59,6 +59,7 @@ protected:
 	//{{AFX_MSG(CToolBarEx)
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
 	afx_msg void OnLButtonUp(UINT nFlags, CPoint point);
+	afx_msg void OnRButtonDown(UINT nFlags, CPoint point);
 	afx_msg void OnTimer(UINT nIDEvent);
 	//}}AFX_MSG
 

@@ -71,8 +71,8 @@ public:
 	void SetBrowserFrameGlue(PBROWSERFRAMEGLUE pBrowserFrameGlue);
 	PBROWSERFRAMEGLUE mpBrowserFrameGlue;
 
-	void CreateBackMenu ();
-	void CreateForwardMenu ();
+	void CreateBackMenu (UINT button);
+	void CreateForwardMenu (UINT button);
 	int MozillaSessionHistory(char **titles[], int *count, int *index);
 
 	// Pointer to the object which implements
@@ -131,10 +131,9 @@ protected:
 	afx_msg void OnNavBack();
 	afx_msg void OnNavForward();
 
-	afx_msg void OnLButtonHold(DWORD buttonID, DWORD unused);
+	afx_msg void OnTBLButtonHold(DWORD buttonID, DWORD unused);
+	afx_msg void OnTBRButtonDown(WPARAM controlID, LPARAM lParam);
 
-	afx_msg void OnDropDown(NMHDR* pNotifyStruct,LRESULT* result);
-	afx_msg void OnRClick(NMHDR* pNotifyStruct,LRESULT* result);
 	afx_msg void OnNavSearch();
 	afx_msg void OnNavHome();
 	afx_msg void OnNavReload();

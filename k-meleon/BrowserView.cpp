@@ -85,8 +85,10 @@ BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
 	ON_COMMAND(ID_VIEW_INFO, OnViewInfo)
 	ON_COMMAND(ID_NAV_BACK, OnNavBack)
 	ON_COMMAND(ID_NAV_FORWARD, OnNavForward)
-	ON_MESSAGE(WM_LBUTTONHOLD, OnLButtonHold)
-	ON_NOTIFY(NM_RCLICK,AFX_IDW_TOOLBAR,OnRClick)
+
+	ON_MESSAGE(TB_LBUTTONHOLD, OnTBLButtonHold)
+	ON_MESSAGE(TB_RBUTTONDOWN, OnTBRButtonDown)
+
 	ON_COMMAND(ID_NAV_SEARCH, OnNavSearch)
 	ON_COMMAND(ID_NAV_HOME, OnNavHome)
 	ON_COMMAND(ID_NAV_RELOAD, OnNavReload)
@@ -421,32 +423,30 @@ void CBrowserView::OnNavForward()
 
 // Jeff Doozan - 28 Feb, 2001
 
-void CBrowserView::OnRClick(NMHDR* pNotifyStruct,LRESULT* result) {
-	NMTOOLBAR* pInfo = (NMTOOLBAR*)pNotifyStruct;
-
-	switch(pInfo->iItem) {
+void CBrowserView::OnTBRButtonDown(WPARAM controlID, LPARAM lParam) {
+	switch(controlID) {
 		case ID_NAV_BACK:
 			TRACE0("ID_NAV_BACK right click\n");
-			CreateBackMenu();
+			CreateBackMenu(TPM_RIGHTBUTTON);
 			break;
 		case ID_NAV_FORWARD:
 			TRACE0("ID_NAV_FORWARD right click\n");
-			CreateForwardMenu();
+			CreateForwardMenu(TPM_RIGHTBUTTON);
 			break;
 	}
 }
 
-void CBrowserView::OnLButtonHold(DWORD buttonID, DWORD unused) {
+void CBrowserView::OnTBLButtonHold(DWORD buttonID, DWORD unused) {
 	CBrowserFrame	*mainFrame		= (CBrowserFrame *) theApp.m_pMainWnd->GetActiveWindow();
 
 	switch (buttonID) {
 		case ID_NAV_BACK:
 			TRACE0("ID_NAV_BACK held\n");
-			CreateBackMenu();
+			CreateBackMenu(TPM_LEFTBUTTON);
 			break;
 		case ID_NAV_FORWARD:
 			TRACE0("ID_NAV_FORWARD held\n");
-			CreateForwardMenu();
+			CreateForwardMenu(TPM_LEFTBUTTON);
 			break;
 	}
 }
@@ -1027,7 +1027,7 @@ BOOL CBrowserView::PreTranslateMessage(MSG* pMsg) {
 
 // Jeff Doozan - 28 Feb, 2001
 
-void CBrowserView::CreateBackMenu () {
+void CBrowserView::CreateBackMenu (UINT button) {
 	int index, count, i;
 	char **titles;
 
@@ -1049,7 +1049,8 @@ void CBrowserView::CreateBackMenu () {
 	WPARAM ButtonID = mainFrame->m_wndToolBar.CommandToIndex(ID_NAV_BACK);
 	mainFrame->m_wndToolBar.GetItemRect(ButtonID, &rc);
 	mainFrame->m_wndToolBar.ClientToScreen(&rc);
-	DWORD SelectionMade = submenu.TrackPopupMenu( TPM_LEFTALIGN | TPM_LEFTBUTTON | TPM_RIGHTBUTTON | TPM_NONOTIFY | TPM_RETURNCMD, rc.left, rc.bottom, this, &rc);
+//	DWORD SelectionMade = submenu.TrackPopupMenu( TPM_LEFTALIGN | TPM_LEFTBUTTON | TPM_RIGHTBUTTON | TPM_NONOTIFY | TPM_RETURNCMD, rc.left, rc.bottom, this, &rc);
+	DWORD SelectionMade = submenu.TrackPopupMenu( TPM_LEFTALIGN | button | TPM_NONOTIFY | TPM_RETURNCMD, rc.left, rc.bottom, this, &rc);
 
 	submenu.Detach();
 	submenu.DestroyMenu();
@@ -1065,7 +1066,7 @@ void CBrowserView::CreateBackMenu () {
 	}
 }
 
-void CBrowserView::CreateForwardMenu () {
+void CBrowserView::CreateForwardMenu (UINT button) {
 	int index, count, i;
 	char **titles;
 	CBrowserFrame	*mainFrame		= (CBrowserFrame *) theApp.m_pMainWnd->GetActiveWindow();
@@ -1086,7 +1087,8 @@ void CBrowserView::CreateForwardMenu () {
 	WPARAM ButtonID = mainFrame->m_wndToolBar.CommandToIndex(ID_NAV_FORWARD);
 	mainFrame->m_wndToolBar.GetItemRect(ButtonID, &rc);
 	mainFrame->m_wndToolBar.ClientToScreen(&rc);
-	DWORD SelectionMade = submenu.TrackPopupMenu( TPM_LEFTALIGN | TPM_LEFTBUTTON | TPM_RIGHTBUTTON | TPM_NONOTIFY | TPM_RETURNCMD, rc.left, rc.bottom, this, &rc);
+//	DWORD SelectionMade = submenu.TrackPopupMenu( TPM_LEFTALIGN | TPM_LEFTBUTTON | TPM_RIGHTBUTTON | TPM_NONOTIFY | TPM_RETURNCMD, rc.left, rc.bottom, this, &rc);
+	DWORD SelectionMade = submenu.TrackPopupMenu( TPM_LEFTALIGN | button | TPM_NONOTIFY | TPM_RETURNCMD, rc.left, rc.bottom, this, &rc);
 
 	submenu.Detach();
 	submenu.DestroyMenu();

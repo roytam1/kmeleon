@@ -17,7 +17,7 @@
 
 *
 *  Extended CToolBar class, processes WM_LBUTTONDOWN and WM_LBUTTONUP messages
-*  if a button is pressed for longer than 300ms, the event WM_LBUTTONHOLD is
+*  if a button is pressed for longer than 300ms, the event TB_LBUTTONHOLD is
 *  sent to the BrowserView window.
 *
 
@@ -50,6 +50,7 @@ CToolBarEx::~CToolBarEx()
 
 BEGIN_MESSAGE_MAP(CToolBarEx, CToolBar)
 	//{{AFX_MSG_MAP(CToolBarEx)
+	ON_WM_RBUTTONDOWN()
 	ON_WM_LBUTTONDOWN()
 	ON_WM_LBUTTONUP()
 	ON_WM_TIMER()
@@ -96,13 +97,28 @@ void CToolBarEx::OnLButtonUp(UINT nFlags, CPoint point) {
 	CToolBar::OnLButtonUp(nFlags, point);
 }
 
+void CToolBarEx::OnRButtonDown(UINT nFlags, CPoint point) {
+	int count = GetToolBarCtrl().GetButtonCount();
+
+	CRect buttonRect;
+	
+	for (int n = 0; n < count; n++) {
+		GetItemRect(n, &buttonRect);
+		if (buttonRect.PtInRect(point)) {
+			CBrowserFrame *mainFrame = (CBrowserFrame *)theApp.m_pMainWnd->GetActiveWindow();
+			mainFrame->m_wndBrowserView.PostMessage(TB_RBUTTONDOWN, GetItemID(n), 0);
+			break;
+		}
+	}
+}
+
 void CToolBarEx::OnTimer(UINT nIDEvent) {
 
 	if (nIDEvent <= (UINT) GetToolBarCtrl().GetButtonCount()) {
 		KillTimer(nIDEvent);
 
 		CBrowserFrame *mainFrame = (CBrowserFrame *)theApp.m_pMainWnd->GetActiveWindow();
-		mainFrame->m_wndBrowserView.PostMessage(WM_LBUTTONHOLD, GetItemID(nIDEvent-1), 0);
+		mainFrame->m_wndBrowserView.PostMessage(TB_LBUTTONHOLD, GetItemID(nIDEvent-1), 0);
 	}
 
 	CToolBar::OnTimer(nIDEvent);
