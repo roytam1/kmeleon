@@ -230,9 +230,9 @@ int GetMozillaSessionHistory (char ***titles, int *count, int *index)
 
 		// The title is in 16-bit unicode, this converts it to 8bit (UTF)
 		int len;
-		len = WideCharToMultiByte(CP_ACP, 0, title, -1, 0, 0, NULL, NULL);
+		len = WideCharToMultiByte(CP_OEMCP, 0, title, -1, 0, 0, NULL, NULL);
 		char *s = new char[len+1];
-		len = WideCharToMultiByte(CP_ACP, 0, title, -1, s, len, NULL, NULL);
+		len = WideCharToMultiByte(CP_OEMCP, 0, title, -1, s, len, NULL, NULL);
       s[len] = 0;
       pHistory[i] = s;
 	}
