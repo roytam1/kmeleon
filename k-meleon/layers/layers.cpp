@@ -659,11 +659,11 @@ void BuildRebar(HWND hWndTB, HWND hWndParent)
                   }
                }
             }
-
-            delete buf;
          }
          
          addRebarButton(hWndTB, buf, i, pLayer->hWnd == pFrame->hWndFront );
+
+         delete buf;
          
          pLayer = pLayer->next;
          i++;
