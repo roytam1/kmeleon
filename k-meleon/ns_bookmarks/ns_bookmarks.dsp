@@ -53,7 +53,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /machine:I386
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib /nologo /dll /machine:I386 /out:"\projects\mozilla\mozilla\dist\WIN32_o.OBJ\Embed\kmeleon_bookmarks.dll" /out:"/projects/mozilla/mozilla/dist/win32_o.obj/Embed/kmeleon_bookmarks.dll"
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib comctl32.lib /nologo /dll /machine:I386 /out:"\projects\mozilla\mozilla\dist\WIN32_o.OBJ\Embed\kmeleon_bookmarks.dll" /out:"/projects/mozilla/mozilla/dist/win32_o.obj/Embed/kmeleon_bookmarks.dll"
 
 !ELSEIF  "$(CFG)" == "ns_bookmarks - Win32 Debug"
 
@@ -79,7 +79,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib comctl32.lib comdlg32.lib advapi32.lib shell32.lib /nologo /dll /debug /machine:I386 /out:"c:/projects/mozilla/mozilla/dist/win32_o.obj/Embed/kmeleon_bookmarks.dll" /pdbtype:sept
+# ADD LINK32 comctl32.lib comdlg32.lib advapi32.lib shell32.lib kernel32.lib user32.lib gdi32.lib /nologo /dll /debug /machine:I386 /out:"c:/projects/mozilla/mozilla/dist/win32_o.obj/Embed/kmeleon_bookmarks.dll" /pdbtype:sept
 
 !ENDIF 
 
@@ -106,15 +106,7 @@ SOURCE=.\StdAfx.cpp
 # Begin Source File
 
 SOURCE=..\Utils.cpp
-
-!IF  "$(CFG)" == "ns_bookmarks - Win32 Release"
-
-!ELSEIF  "$(CFG)" == "ns_bookmarks - Win32 Debug"
-
 # SUBTRACT CPP /YX /Yc /Yu
-
-!ENDIF 
-
 # End Source File
 # End Group
 # Begin Group "Header Files"

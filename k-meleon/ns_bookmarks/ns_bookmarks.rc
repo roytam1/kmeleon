@@ -102,6 +102,22 @@ END
 //
 
 IDB_IMAGES              BITMAP  DISCARDABLE     "bitmap1.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_CONTEXTMENU MENU DISCARDABLE 
+BEGIN
+    POPUP "."
+    BEGIN
+        MENUITEM "&Delete",                     ID_BOOKMARK_DELETE
+        MENUITEM SEPARATOR
+        MENUITEM "&Set As Toolbar Folder",      ID_SET_TOOLBAR_FOLDER
+    END
+END
+
 #endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
 
