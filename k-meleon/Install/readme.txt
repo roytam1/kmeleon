@@ -31,9 +31,45 @@ http://kmeleon.sourcforge.net/publicPGP.txt
 
 ChangeLog:
 ----------
-since then
- - Session cookies work
- - Properties->Version of k-meleon.exe contained not correct information
+v0.4 (18 April, 2001)
+- Plugin configuration
+- Check marks on toolbar menu
+- fixed: xpcom.dll crashes when trying to view some non html files: http://kmeleon.sourceforge.net/docs/ToDo.txt
+- fixed: menus don't save in preferences
+- open new window to current page
+- "close" menuitem fixed
+- Toolbars can now be hidden
+- modified plugins to call RegisterToolbar
+- removed wndproc map from plugins
+- Fixed new focus/display bugs
+- Cleaned up caching
+- New macros plugin
+- Printing
+- choose filter extension in save as dialog based on downloaded file extension when downloading
+- Fixed memory leaks
+- Added stringtable for kmeleon menu identifiers
+- Cleaned up the dialog boxes
+- Copy image url
+- right click and keyboard shortcut option for "open link in background"
+  (open new window not on top)
+- selecting address bar, when first starting up K-Meleon
+- [Fixed] While loading a page, closing K-Meleon will lead to a crash
+- very basic cache preferences added
+- Plugins can now define accelerator keys through accel.cfg
+- Plugins directory added to preferences
+- Find Next/Previous
+- remembers the size of previous browser windows between runs
+- Full Screen option in menus
+- MRU list in URL bar
+- Find in page
+- view source in external viewer
+- Fullscreen Mode (accessable via F2 and menus)
+- ftp download proposes full path+filename as filename (pubmozillanightlymozillainstaller.exe)
+- bmpmenu.  This plugin adds images to the menus (configurable)
+- browsing history in the go menu/back/forward buttons
+- Session cookies work
+- Properties->Version of k-meleon.exe contained not correct information
+
 v0.3 (02/13/01)
  - navigating with forward/back before the site finished loading 
    leads to wrong display (2 pages on top of each other)

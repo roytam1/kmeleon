@@ -1,12 +1,11 @@
-# Installer script 1.1h for the K-Meleon webbrowser, please note that it uses feature
-# of the Winamp SuperPimp installer >1.1h
+# Installer script 1.1v for the K-Meleon webbrowser
 
 # comment next line out to produce a "real" installer, otherwise you'll get a dummy
 #!define debug
 
 Name "K-Meleon"
-ComponentText "This will install K-Meleon v0.3.1"
-OutFile "kmeleon031.exe"
+ComponentText "This will install K-Meleon v0.4"
+OutFile "kmeleon04.exe"
 
 UninstallText "This will uninstall K-Meleon. You need to agree to the following registry changes to completely get rid of it."
 UninstallExeName "Uninstall.exe"
@@ -14,7 +13,7 @@ UninstallExeName "Uninstall.exe"
 LicenseText "K-Meleon is published under the GPL. The Gecko(tm) engine is released under the NPL (as shown in file license.txt)"
 LicenseData "GNUlicense.txt"
 
-DirText "Please select the directory you want to install K-Meleon in."
+DirText "Please select the directory where you want to install K-Meleon."
 InstallDir "$PROGRAMFILES\K-Meleon"
 InstallDirRegKey HKEY_CURRENT_USER "Software\K-Meleon\K-Meleon\General" "InstallDir"
 EnabledBitmap yes.bmp
@@ -37,33 +36,39 @@ File concat.exe
 SetOutPath "$INSTDIR\uninstall"
 File K-MeleonUNINST.reg
 
-SetOutPath "$INSTDIR"
-File ..\ReadMe.txt
-File ..\License.txt
-File ..\k-meleon.exe
 !ifndef debug
-File ..\*.dll
-File ..\*.cfg
+
+SetOutPath "$INSTDIR"
+File ..\*
 
 SetOutPath $INSTDIR\chrome
 File ..\chrome\*
+
 SetOutPath $INSTDIR\components
 File ..\components\*
-SetOutPath $INSTDIR\defaults
+
 SetOutPath $INSTDIR\defaults\pref
 File ..\defaults\pref\*
+
+SetOutPath $INSTDIR\defaults\profile
+File ..\defaults\profile\*
+
 SetOutPath $INSTDIR\plugins
 File ..\plugins\*
+
 SetOutPath $INSTDIR\res
 File ..\res\*
+
 SetOutPath $INSTDIR\res\builtin
 File ..\res\builtin\*
+
 !endif
 
 #------------------------------------------------------------------------------------------
 Section "Start Menu and Desktop Icons"
 SectionIn 1
 
+SetOutPath "$INSTDIR"
 CreateShortCut "$DESKTOP\K-Meleon.lnk" "$INSTDIR\K-Meleon.exe" "" "" 0
 CreateShortCut "$SMPROGRAMS\K-Meleon.lnk" "$INSTDIR\K-Meleon.exe" "" "" 0
 CreateShortCut "$QUICKLAUNCH\K-Meleon.lnk" "$INSTDIR\K-Meleon.exe" "" "" 0
@@ -142,6 +147,8 @@ Delete $INSTDIR\components\*
 RMDir $INSTDIR\components
 Delete $INSTDIR\defaults\pref\*
 RMDir $INSTDIR\defaults\pref
+Delete $INSTDIR\defaults\profile\*
+RMDir $INSTDIR\defaults\profile
 RMDir $INSTDIR\defaults
 Delete $INSTDIR\plugins\*
 RMDir $INSTDIR\plugins
