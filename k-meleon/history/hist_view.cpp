@@ -31,6 +31,11 @@
 #include "../Utils.h"
 #include <wininet.h>
 
+#define VK_OEM_MINUS 0xBD
+#define VK_OEM_PERIOD 0xBE
+#define VK_MINUS VK_OEM_MINUS
+#define VK_PERIOD VK_OEM_PERIOD
+
 extern kmeleonPlugin kPlugin;
 extern void * KMeleonWndProc;
 
@@ -120,6 +125,7 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
    }
 
    BOOL fEatKeystroke = false;
+   BOOL fakedKey = false;
    HWND hasFocus = GetFocus();
    HWND hTree = GetDlgItem(hEditWnd, IDC_TREE_HOTLIST);
 
@@ -186,7 +192,7 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
                if (len > 0) {
                   wParam = str[len-1];
                   wParam = toupper(wParam);
-                  lParam = 0;
+                  fakedKey = true;
                   goto search_again;
                }
 
@@ -221,28 +227,38 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
             // Fall through!
          default:
             {
-               if ((GetKeyState(VK_CONTROL) & 0x80) || (wParam==VK_F3)) {
+               if (GetKeyState(VK_CONTROL) & 0x80) {
                   switch (wParam) {
                   case 'U':
                      len = 0;
                      break;
                   case 'G':
-                  case VK_F3:
                      if (len > 0) {
                         wParam = str[len-1];
                         wParam = toupper(wParam);
-                        lParam = 0;
+                        fakedKey = true;
                         goto search_again;
                      }
                      break;
                   }
                   break;
                }
-               if (GetKeyState(VK_MENU) & 0x80) {
+               else if (GetKeyState(VK_MENU) & 0x80) {
                   break;
                }
+               else {
+                  switch (wParam) {
+                  case VK_F3:
+                     if (len > 0) {
+                        wParam = str[len-1];
+                        wParam = toupper(wParam);
+                        fakedKey = true;
+                        goto search_again;
+                     }
+                     break;
+                  }
+               }
 
-            search_again:
                if (wParam == VK_BACK && len > 0) {
                   circling = 0;
                   len--;
@@ -254,9 +270,20 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
                   str[len] = tolower(wParam);
                   len++;
                }
+               else if ( (wParam == VK_MINUS) && 
+                         len < (SEARCH_LEN-1) ) {
+                  str[len] = '-';
+                  len++;
+               }
+               else if ( wParam == VK_PERIOD && 
+                         len < (SEARCH_LEN-1) ) {
+                  str[len] = '.';
+                  len++;
+               }
                else
                   break;
 
+            search_again:
                fEatKeystroke = true;
                searching = 1;
                str[len] = 0;
@@ -267,7 +294,7 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
                   int firstpos = -1;
                   int searchfrom = pos;
 
-                  if (len == 1) {
+                  if (len == 1 && !fakedKey) {
                      HTREEITEM hItem = TreeView_GetSelection(hTree);
                      node = GetHistoryNode(hTree, hItem);
                      if (workingHist->Index(searchfrom, node) == -1)
@@ -278,17 +305,18 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
 
                   int newpos = workingHist->Search(str, searchfrom, mypos, firstpos, &node);
 
-                  if (newpos == -1 || 
+                  if (fakedKey || newpos == -1 || 
                       (circling && len > 1 && str[len-1] == str[len-2])) {
-                     if (len > 1 && str[len-1] == str[len-2])
+                     if (fakedKey || (len > 1 && str[len-1] == str[len-2]))
                         searchfrom++;
-                     len--;
+                     if (!fakedKey)
+                        len--;
                      str[len] = 0;
                      mypos = 0;
                      firstpos = -1;
                      if (len > 0) {
                         newpos = workingHist->Search(str, searchfrom, mypos, firstpos, &node);
-                        if (newpos == pos || (len > 1 && str[len-1] == str[len-2])) {
+                        if (!fakedKey && (newpos == pos || (len > 1 && str[len-1] == str[len-2]))) {
                            circling = 1;
                            while (len > 1 && str[len-1] == str[len-2])
                               len--;
