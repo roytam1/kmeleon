@@ -57,7 +57,7 @@ public:
 							PRInt32 x = -1, PRInt32 y = -1, 
 							PRInt32 cx = -1, PRInt32 cy = -1,
 							PRBool bShowWindow = PR_TRUE);
-	void OpenURLInNewWindow(const PRUnichar* pUrl, BOOL bBackground=0);
+   void OpenURLInNewWindow(const PRUnichar* pUrl, BOOL bBackground=FALSE);
 	void LoadHomePage();
 
 	void GetBrowserWindowTitle(nsCString& title);

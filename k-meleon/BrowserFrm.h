@@ -193,9 +193,6 @@ protected:
    afx_msg void OnSysColorChange();
 	afx_msg void RefreshToolBarItem(WPARAM ItemID, LPARAM unused);
    afx_msg void ToggleToolBar(UINT uID);
-   afx_msg void OnCopyData(CWnd* pWnd, COPYDATASTRUCT* pCopyDataStruct);
-   afx_msg void OnNewWindow();
-
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };
