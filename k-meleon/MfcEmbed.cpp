@@ -811,6 +811,7 @@ int CMfcEmbedApp::ExitInstance()
       m_pMainWnd = NULL;
    }
    
+   m_ProfileMgr->ShutDownCurrentProfile( theApp.preferences.bGuestAccount );
    if (m_ProfileMgr) delete m_ProfileMgr;
    
    // unload the plugins before we terminate embedding,
@@ -982,7 +983,12 @@ NS_IMETHODIMP CMfcEmbedApp::Observe(nsISupports *aSubject, const char *aTopic, c
 {
    nsresult rv = NS_OK;
    
-   if (nsCRT::strcmp(aTopic, "profile-approve-change") == 0)
+   USES_CONVERSION;
+
+   if (nsCRT::strcmp(aTopic, "profile-approve-change") == 0 &&
+       (!someData ||
+        nsCRT::strcmp(W2A(someData), "shutdown-cleanse") != 0 &&
+        nsCRT::strcmp(W2A(someData), "shutdown-persist") != 0))
    {
       // Ask the user if they want to
       int result = AfxMessageBox(IDS_PROFILE_SWITCH, MB_YESNO | MB_ICONQUESTION, 0);
