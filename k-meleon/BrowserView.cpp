@@ -119,6 +119,8 @@ BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
    ON_COMMAND(ID_FILE_PRINTPREVIEW, OnFilePrintPreview)
    ON_COMMAND(ID_FILE_PRINTSETUP, OnFilePrintSetup)
    ON_COMMAND(ID_VIEW_FRAME_SOURCE, OnViewFrameSource)
+   ON_COMMAND(ID_VIEW_PAGE_INFO, OnViewPageInfo)
+   ON_COMMAND(ID_VIEW_FRAME_INFO, OnViewFrameInfo)
    ON_COMMAND(ID_OPEN_FRAME, OnOpenFrame)
    ON_COMMAND(ID_OPEN_FRAME_IN_NEW_WINDOW, OnOpenFrameInNewWindow)
    ON_COMMAND(ID_OPEN_FRAME_IN_BACKGROUND, OnOpenFrameInBackground)
@@ -890,6 +892,68 @@ void CBrowserView::OnFileSaveFrameAs()
     if(NS_FAILED(rv))
         return;
     URISaveAs(frameURI, TRUE);
+}
+
+void CBrowserView::OnViewPageInfo()
+{
+   if(! mWebNav)
+      return;
+
+   // Get the URI object we want to view from the cache.
+   nsresult rv = NS_OK;
+   nsCOMPtr<nsIURI> currentURI;
+   rv = mWebNav->GetCurrentURI(getter_AddRefs(currentURI));
+   if(NS_FAILED(rv) || !currentURI) 
+      return;
+
+   // Get the uri string associated with the nsIURI object
+   nsCAutoString uriString;
+   rv = currentURI->GetSpec(uriString);
+   if(NS_FAILED(rv))
+      return;
+ 
+   // Build the page info url
+   nsCAutoString viewPageInfoUrl;
+ 
+   if(uriString.Find("https://", 0) == -1)
+      viewPageInfoUrl.Append("about:cache-entry?client=HTTP&sb=1&key=");
+   else
+      viewPageInfoUrl.Append("about:cache-entry?client=HTTP-memory-only&sb=1&key=");
+ 
+   viewPageInfoUrl.Append(uriString.get());
+ 
+   OpenURLInNewWindow(viewPageInfoUrl.get());
+}
+ 
+void CBrowserView::OnViewFrameInfo()
+{
+   if(! mWebNav) 
+      return;
+ 
+   // Get the URI object we want to view from the cache.
+   nsresult rv = NS_OK;
+   nsCOMPtr<nsIURI> frameURI;
+   rv = NS_NewURI(getter_AddRefs(frameURI), mCtxMenuCurrentFrameURL);
+   if(NS_FAILED(rv))
+      return;
+ 
+   // Get the uri string associated with the nsIURI object
+   nsCAutoString uriString;
+   rv = frameURI->GetSpec(uriString);
+   if(NS_FAILED(rv))
+     return;
+
+   // Build the page info url
+   nsCAutoString viewFrameInfoUrl;
+
+   if(uriString.Find("https://", 0) == -1)
+      viewFrameInfoUrl.Append("about:cache-entry?client=HTTP&sb=1&key=");
+   else
+      viewFrameInfoUrl.Append("about:cache-entry?client=HTTP-memory-only&sb=1&key=");
+
+   viewFrameInfoUrl.Append(uriString.get());
+
+   OpenURLInNewWindow(viewFrameInfoUrl.get());
 }
 
 void CBrowserView::OnCopyImageLocation()
