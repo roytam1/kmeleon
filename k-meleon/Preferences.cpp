@@ -106,7 +106,7 @@ void CPreferences::Load() {
       _GetBool(_T("kmeleon.general.startHome"), bStartHome, true);
       _GetString(_T("kmeleon.general.homePage"), homePage, _T("http://kmeleon.sourceforge.net"));
 
-      _GetString(_T("kmeleon.general.searchEngine"), searchEngine, _T("http://www.google.com/keyword/"));
+      _GetString(_T("kmeleon.general.searchEngine"), searchEngine, _T("http://www.google.com/search?q="));
 
       _GetBool(_T("kmeleon.general.sourceEnabled"), bSourceUseExternalCommand, false);
       _GetString(_T("kmeleon.general.sourceCommand"), sourceCommand, _T(""));
