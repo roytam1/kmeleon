@@ -700,12 +700,14 @@ void findNick(char *nick, char **url)
    
    if (retNode) {
       if (retNode->type == BOOKMARK_BOOKMARK) {
+	if (*url)
+	  free(*url);
          *url = (char *) malloc(INTERNET_MAX_URL_LENGTH+1);
-         strcpy(*url, (char*)retNode->url.c_str());
+	 strcpy(*url, (char*)retNode->url.c_str());
       }
       else if (retNode->type == BOOKMARK_FOLDER) {
          CBookmarkNode *c = retNode->child;
-         int len = 0;
+	 int len = 0;
          while (c) {
             if (c->type == BOOKMARK_BOOKMARK && c->url.c_str())
                len += strlen(c->url.c_str()) + 1;
@@ -713,7 +715,7 @@ void findNick(char *nick, char **url)
          }
 
 	 if (!len) return;
-         char *pUrl = (char *)malloc(len);
+         char *pUrl = (char *)malloc(len+1);
 	 *url = pUrl;
 
          c = retNode->child;
