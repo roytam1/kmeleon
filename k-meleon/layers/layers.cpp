@@ -57,6 +57,7 @@ static BOOL bCatchWindow   =   0;
 #define BS_BOLD    8
 
 #define _T(x) x
+#define PREFERENCE_SETTINGS_DIR  _T("kmeleon.general.settingsDir")
 #define PREFERENCE_REBAR_ENABLED _T("kmeleon.plugins.layers.rebar")
 #define PREFERENCE_REBAR_TITLE   _T("kmeleon.plugins.layers.title")
 #define PREFERENCE_BUTTON_WIDTH  _T("kmeleon.plugins.layers.width")
@@ -659,11 +660,82 @@ void BuildRebar(HWND hWndTB, HWND hWndParent)
 }
 
 HWND ghWndTB;
+HMENU ghMenu;
+int bReadMenu;
+
+char *getLine(char *text, char **line) {
+   if (!text)
+      return NULL;
+   char *p = SkipWhiteSpace(text);
+   
+   if (line)
+      *line = p;
+   
+   while (*p && *p != '\n')
+      p++;
+   
+   if (*p == 0)
+      return NULL;
+   
+   *p = 0;
+   return (p+1);
+}
+
+void readMenu() {
+   CHAR szFileName[MAX_PATH];
+
+   if (bReadMenu != 0)
+      return;
+   bReadMenu = 1;
+
+   kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_SETTINGS_DIR, szFileName, (char*)"");
+   strcat(szFileName, "\\menus.cfg");
+   FILE *fp = fopen(szFileName, "r");
+   if (fp){
+      long size = FileSize(fp);
+      
+      char *buf = new char[size];
+      if (buf){
+         char *pa, *line;
+
+         fread(buf, sizeof(char), size, fp);
+
+         pa = getLine(buf, &line);
+         while (pa && strncasecmp(line, "layerbuttonpopup", 16))
+            pa = getLine(pa, &line);
+
+         if (pa) {
+            ghMenu = CreatePopupMenu();
+            do {
+               pa = getLine(pa, &line);
+               if (strncmp(line, "layers", 6) == 0) {
+                  char *p = strchr(line, '(');
+                  if (p) {
+                     line = ++p;
+                     p = strchr(line, ')');
+                     if (p) {
+                        *p = 0;
+                        DoMenu(ghMenu, line);
+                     }
+                  }
+               }
+               else if (*line == '-')
+                  AppendMenu(ghMenu, MF_SEPARATOR, 0,  0);
+            } while (pa && *line!='}');
+         }
+         
+         delete [] buf;
+      }
+      fclose(fp);
+   }
+}
 
 void DoRebar(HWND rebarWnd){
    
    if (!bRebarEnabled)
       return;
+
+   readMenu();
    
    DWORD dwStyle = 0x40 | /*the 40 gets rid of an ugly border on top.  I have no idea what flag it corresponds to...*/
       CCS_NOPARENTALIGN | CCS_NORESIZE | //CCS_ADJUSTABLE |
@@ -811,18 +883,6 @@ void ShowMenuUnderButton(HWND hWndParent, HMENU hMenu, UINT uMouseButton, int iI
    }
 }
 
-void CreateToolbarMenu (HWND hWndParent, UINT mouseButton, int buttonID) {
-
-   HMENU menu = CreatePopupMenu();
-   
-   AppendMenu(menu, MF_STRING, id_close_layer,     "Close Layer");
-   AppendMenu(menu, MF_STRING, id_open_new_layer,  "New Layer");
-   
-   ShowMenuUnderButton(hWndParent, menu, mouseButton, buttonID);
-   
-   DestroyMenu(menu);
-}
-
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
    // store these in static vars so that the BeginHotTrack call can access them
    struct frame *pFrame;
@@ -899,22 +959,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
             WORD command = wParam;
             if ((command >= id_layer) && 
                 (command < id_layer+MAX_LAYERS)) {
-#if 0
-               CreateToolbarMenu(hWnd, TPM_RIGHTBUTTON, command);
-#else
-               pFrame = find_frame(hWnd);
-               if (pFrame) {
-                  int i = command - id_layer;
-                  pLayer = pFrame->layer;
-                  while (i>0 && pLayer) {
-                     pLayer = pLayer->next;
-                     i--;
-                  }
-                  if (pLayer) {
-                     PostMessage(pLayer->hWnd, WM_COMMAND, id_close_layer, 0);
-                  }
-               }
-#endif
+               
+               if (ghMenu)
+                  ShowMenuUnderButton(hWnd, ghMenu, TPM_RIGHTBUTTON, command);
+               else
+                  PostMessage(hWnd, WM_COMMAND, id_close_layer, command);
                break;
             }
             break;
@@ -1098,7 +1147,25 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
             else if (command == id_close_all ||
                      command == id_close_others ||
                      command == id_close_frame) {
+
                pFrame = find_frame(hWnd);
+               
+               if (lParam) {
+                  if (pFrame) {
+                     int i = lParam - id_layer;
+                     pLayer = pFrame->layer;
+                     while (i>0 && pLayer) {
+                        pLayer = pLayer->next;
+                        i--;
+                     }
+                     if (pLayer) {
+                        SendMessage(hWnd, WM_COMMAND, lParam, 0);
+                        PostMessage(pLayer->hWnd, WM_COMMAND, command, 0);
+                     }
+                  }
+                  return 0;
+               }
+               
                if (pFrame) {
                   
                   if (command == id_close_all) {
@@ -1134,6 +1201,23 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
             }
             
             else if (command == id_close_layer) {
+
+               if (lParam) {
+                  pFrame = find_frame(hWnd);
+                  if (pFrame) {
+                     int i = lParam - id_layer;
+                     pLayer = pFrame->layer;
+                     while (i>0 && pLayer) {
+                        pLayer = pLayer->next;
+                        i--;
+                     }
+                     if (pLayer) {
+                        PostMessage(pLayer->hWnd, WM_COMMAND, id_close_layer, 0);
+                     }
+                  }
+                  return 0;
+               }
+               
                int newLayer = 0;
                pLayer = find_prev_layer(hWnd);
                
