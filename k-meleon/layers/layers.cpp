@@ -22,6 +22,7 @@
 
 #include <windows.h>
 #include <commctrl.h>
+#include <afxres.h>     // for ID_APP_EXIT
 
 #ifdef __MINGW32__
 #  include "../missing.h"
