@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2002 Ulf Erikson <ulferikson@fastmail.fm>
+ * Copyright (C) 2002-2003 Ulf Erikson <ulferikson@fastmail.fm>
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -28,8 +28,10 @@
 #include "BookmarkNode.h"
 
 #include <stdio.h>
+#include <io.h>
 #include <sys/stat.h>
 #include <wininet.h>    // for INTERNET_MAX_URL_LENGTH
+#include <errno.h>
 
 #ifndef MAX
 #  define MAX(a,b) ((a)>(b)?(a):(b))
@@ -275,6 +277,7 @@ int op_readFile(char *file) {
          timestamp = MAX(time(NULL), st.st_mtime);
       }
       fclose(bmFile);
+      gHotlistModified = false;
    }
    
    return ret;
@@ -335,21 +338,119 @@ int SaveHotlist(FILE *bmFile, CBookmarkNode *node)
       }
       else if (type == BOOKMARK_BOOKMARK) {
          SaveHotlistEntry(bmFile, child);
-         if (child->next)
-            fprintf(bmFile, "%s", EOL);
+         fprintf(bmFile, "%s", EOL);
       }
    }
    return 0;
 }
 
+static BOOL bHotlistBak = 0;
+
+static void backup_hotlist(char *file)
+{
+   int i;
+   char buf[PATH_MAX];
+   char buf2[PATH_MAX];
+   
+   /* rotate the old hotlists */
+   for (i=8; i>=1; i--) {
+      sprintf(buf, "%s.bak%d", file, i);
+      sprintf(buf2, "%s.bak%d", file, i+1);
+      unlink(buf2);
+      rename(buf, buf2);
+   }
+
+   sprintf(buf, "%s.bak1", file);
+   unlink(buf);
+   rename(file, buf);
+
+   bHotlistBak = 1;
+}
+
+int op_addEntry(char *file, CBookmarkNode *node)
+{
+   if (file && *file) {
+      int bNewFile = 0;
+      struct stat sb;
+      if (stat (lpszHotlistFile, &sb) == -1 && errno == ENOENT)
+         bNewFile = 1;
+      
+      if (bNewFile) {
+         FILE *bmFile = fopen(file, "w+");
+         if (bmFile)
+            fclose(bmFile);
+      }
+      FILE *bmFile = fopen(file, "rb+");
+      if (bmFile) {
+         if (bNewFile) {
+            fprintf(bmFile, 
+                    "Opera Hotlist version 2.0\r\n"
+                    "Options:encoding=utf8,version=3\r\n\r\n");
+            bDOS = 1;
+         }
+         else {
+            long bmFileSize = FileSize(bmFile);
+#define LEN 16
+            char *bmFileBuffer = new char[LEN+1];
+            if (bmFileBuffer){
+               if (bmFileSize > LEN-1)
+                  fseek(bmFile, bmFileSize-(LEN-1), SEEK_SET);
+               int bufsize = fread(bmFileBuffer, sizeof(char), LEN, bmFile);
+               bmFileBuffer[LEN] = 0;
+               char *p = strstr(bmFileBuffer, "\r\n");
+               bDOS = (p != NULL);
+               p = strrchr(bmFileBuffer, '-');
+               if (p) {
+                  int offset = (bmFileBuffer + bufsize) - p;
+                  fseek(bmFile, bmFileSize-offset, SEEK_SET);
+               }
+               delete [] bmFileBuffer;
+            }
+         }
+         SaveHotlistEntry(bmFile, node);
+         if (bDOS) 
+            fprintf(bmFile, "\r");
+         fprintf(bmFile, "\n");
+         fprintf(bmFile, "-");
+         if (bDOS) 
+            fprintf(bmFile, "\r");
+         fprintf(bmFile, "\n");
+         fclose(bmFile);
+      }
+      else {
+         MessageBox(NULL, "Unable to save hotlist", "Error", MB_ICONSTOP|MB_OK);
+         return -1;
+      }
+   }
+   else {
+      MessageBox(NULL, "Unable to save hotlist", "Error", MB_ICONSTOP|MB_OK);
+      return -1;
+   }
+
+   return 0;
+}
 
 int op_writeFile(char *file) {
    int ret = -1;
-   /*
-     FILE *bmFile = fopen(file, "ab+");
-     if (bmFile) {
-     ret = SaveHotlist(bmFile, &gHotlistRoot);
-     }
-   */
+
+   if (file && *file) {
+#if 0
+      if (!bHotlistBak) {
+         backup_hotlist(file);
+      }
+#endif
+
+      FILE *bmFile = fopen(file, "wb+");
+      if (bmFile) {
+         fprintf(bmFile, 
+                 "Opera Hotlist version 2.0\r\n"
+                 "Options:encoding=utf8,version=3\r\n\r\n");
+         bDOS = 1;
+         ret = SaveHotlist(bmFile, &gHotlistRoot);
+         fprintf(bmFile, "-\r\n");
+         fclose(bmFile);
+	 gHotlistModified = false;
+      }
+   }
    return ret;
 }

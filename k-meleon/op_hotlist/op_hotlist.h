@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2002 Ulf Erikson <ulferikson@fastmail.fm>
+ * Copyright (C) 2002-2003 Ulf Erikson <ulferikson@fastmail.fm>
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -33,8 +33,11 @@ void quicksort(char *a, size_t n, size_t es, cmp_t *cmp, unsigned int flag);
 
 #define ID_CREATE                       501
 #define ID_SEARCH                       502
+
 #define IDD_CONFIG                      101
 #define IDD_INSTALL                     102
+#define IDD_EDIT_HOTLIST		103
+
 #define IDC_REBARENABLED                1000
 #define IDC_HOTLIST_FILE                1001
 #define IDC_BROWSE                      1002
@@ -42,6 +45,23 @@ void quicksort(char *a, size_t n, size_t es, cmp_t *cmp, unsigned int flag);
 #define IDC_MIN_TB_SIZE                 1004
 #define IDC_MAX_TB_SIZE                 1005
 #define IDC_MENU_AUTODETECT             1006
+#define IDC_TREE_HOTLIST		1007
+#define IDC_STATIC_PROPERTIES		1008
+#define IDC_STATIC_NAME			1009
+#define IDC_NAME			1010
+#define IDC_STATIC_URL			1011
+#define IDC_URL				1012
+#define IDC_STATIC_CREATED		1013
+#define IDC_CREATED			1014
+#define IDC_STATIC_VISITED		1015
+#define IDC_LAST_VISIT			1016
+#define IDC_STATIC_ORDER		1017
+#define IDC_ORDER			1018
+#define IDC_STATIC_SHORT		1019
+#define IDC_SHORT_NAME			1020
+#define IDC_STATIC_DESC			1021
+#define IDC_DESCRIPTION			1022
+
 #define TOOLBAND_NAME "Hotlist"
 #define TOOLBAND_FAILED_TO_CREATE "Failed to create hotlist toolbar"
 #define PLUGIN_NAME "Opera Hotlist Plugin"
@@ -75,13 +95,17 @@ WHERE CBookmarkNode gHotlistRoot;
 #ifndef COMPILING_RC
 int op_readFile(char *);
 int op_writeFile(char *);
+int op_addEntry(char *, CBookmarkNode *);
 void BuildMenu(HMENU menu, CBookmarkNode *node, BOOL isContinuation);
+void RebuildMenu();
 void BuildRebar(HWND hWndTB);
+void RebuildRebarMenu(HWND hWndTB);
 int ParseHotlist(char **bmFileBuffer, CBookmarkNode &node);
 int SaveHotlistEntry(FILE *bmFile, CBookmarkNode *node);
 int addLink(char *url, char *title);
 void findNick(char *nick, char *url);
 LRESULT APIENTRY WndTBSubclassProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 struct hotlistTB {
    HWND hWnd;
@@ -105,7 +129,7 @@ void Config(HWND parent);
 #define PREFERENCE_REBAR_ENABLED _T("kmeleon.plugins.hotlist.rebar")
 #define PREFERENCE_HOTLIST_FILE  _T("kmeleon.plugins.hotlist.hotlistFile")
 #define PREFERENCE_HOTLIST_RESYNCH  _T("kmeleon.plugins.hotlist.resynch")
-#define PREFERENCE_SETTINGS_DIR    "kmeleon.general.settingsDir"
+#define PREFERENCE_SETTINGS_DIR    _T("kmeleon.general.settingsDir")
 #define PREFERENCE_MENU_MAXLEN _T("kmeleon.plugins.hotlist.maxMenuLength")
 #define PREFERENCE_MENU_AUTOLEN _T("kmeleon.plugins.hotlist.menuAutoDetect")
 #define PREFERENCE_MENU_SORTORDER _T("kmeleon.plugins.hotlist.sortOrder")
@@ -113,7 +137,10 @@ void Config(HWND parent);
 #define PREFERENCE_BUTTON_MINWIDTH  _T("kmeleon.plugins.hotlist.buttonMinWidth")
 #define PREFERENCE_BUTTON_MAXWIDTH  _T("kmeleon.plugins.hotlist.buttonMaxWidth")
 #define PREFERENCE_BUTTON_ICONS  _T("kmeleon.plugins.hotlist.buttonIcons")
-
+#define PREFERENCE_EDIT_DLG_LEFT   _T("kmeleon.plugins.hotlist.editdialog.left")
+#define PREFERENCE_EDIT_DLG_TOP    _T("kmeleon.plugins.hotlist.editdialog.top")
+#define PREFERENCE_EDIT_DLG_WIDTH  _T("kmeleon.plugins.hotlist.editdialog.width")
+#define PREFERENCE_EDIT_DLG_HEIGHT _T("kmeleon.plugins.hotlist.editdialog.height")
 
 // The globals
 
@@ -131,10 +158,11 @@ WHERE UINT nConfigCommand;
 WHERE UINT nAddCommand;
 WHERE UINT nAddLinkCommand;
 // WHERE UINT nAddToolbarCommand;
-// WHERE UINT nEditCommand;
+WHERE UINT nEditCommand;
 WHERE UINT nDropdownCommand;
 WHERE UINT nUpdateTB;
 WHERE UINT nFirstHotlistPosition;
+WHERE UINT wm_deferhottrack;
 
 WHERE char *lpszHotlistFile;
 

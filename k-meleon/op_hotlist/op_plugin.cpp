@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2002 Ulf Erikson <ulferikson@fastmail.fm>
+ * Copyright (C) 2002-2003 Ulf Erikson <ulferikson@fastmail.fm>
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -257,8 +257,11 @@ int Init(){
    nHSize = GetDeviceCaps(hdcScreen, HORZSIZE);
    nHRes = GetDeviceCaps(hdcScreen, HORZRES);
 
+   wm_deferhottrack = kPlugin.kFuncs->GetCommandIDs(1);
+
    nConfigCommand = kPlugin.kFuncs->GetCommandIDs(1);
    nAddCommand = kPlugin.kFuncs->GetCommandIDs(1);
+   nEditCommand = kPlugin.kFuncs->GetCommandIDs(1);
    nAddLinkCommand = kPlugin.kFuncs->GetCommandIDs(1);
    nUpdateTB = kPlugin.kFuncs->GetCommandIDs(1);
    
@@ -416,8 +419,12 @@ void Config(HWND hWndParent){
 }
 
 void Quit(){
+  //MessageBox(NULL, "Quit", "1", MB_OK);
    if (gImagelist)
       ImageList_Destroy(gImagelist);
+   if (gHotlistModified) {
+      op_writeFile(lpszHotlistFile);
+   }
    while (root)
       remove_TB(root->hWnd);
 }
@@ -442,6 +449,8 @@ void DoMenu(HMENU menu, char *param){
       }
       if (stricmp(param, "Config") == 0)
          command = nConfigCommand;
+      if (stricmp(param, "Edit") == 0)
+         command = nEditCommand;
       if (command && string && *string && (!bIgnore || command == nConfigCommand)) {
          AppendMenu(menu, MF_STRING, command, string);
          return;
@@ -491,6 +500,10 @@ void DoMenu(HMENU menu, char *param){
 int DoAccel(char *param) {
    if (stricmp(param, "Config") == 0)
       return nConfigCommand;
+   if (stricmp(param, "Add") == 0)
+      return nAddCommand;
+   if (stricmp(param, "Edit") == 0)
+      return nEditCommand;
    return 0;
 }
 
