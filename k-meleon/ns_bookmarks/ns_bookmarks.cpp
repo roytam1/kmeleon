@@ -22,6 +22,7 @@
 #include "resource.h"
 
 #include "commctrl.h"
+#include "commdlg.h"
 
 #pragma warning( disable : 4786 ) // C4786 bitches about the std::map template name expanding beyond 255 characters
 #include <string>
@@ -61,17 +62,17 @@ void DoRebar(HWND rebarWnd);
 
 pluginFunctions pFuncs = {
    Init,
-      Create,
-      Config,
-      Quit,
-      DoMenu,
-      DoRebar
+   Create,
+   Config,
+   Quit,
+   DoMenu,
+   DoRebar
 };
 
 kmeleonPlugin kPlugin = {
    KMEL_PLUGIN_VER,
-      "Netscape Bookmark Plugin",
-      &pFuncs
+   "Netscape Bookmark Plugin",
+   &pFuncs
 };
 
 HIMAGELIST imagelist; // the one and only imagelist...
@@ -97,6 +98,42 @@ int Init(){
 
    kPlugin.kf->GetPreference(PREF_STRING, _T("kmeleon.general.settingsDir"), szPath, "");
    strcat(szPath, "bookmarks.html");
+
+   FILE *bmFile = fopen(szPath, "r");
+   if (bmFile)
+      fclose(bmFile);
+   else {
+      if (MessageBox(NULL, "Your existing bookmarks file could not be found.\n\n"
+         "Would you like to locate this file now?",
+         "Netscape Bookmarks", MB_YESNO) == IDYES) {
+
+         char buf[MAX_PATH]="";
+         
+         OPENFILENAME ofn;
+         ofn.lStructSize = sizeof(OPENFILENAME);
+         ofn.hInstance = kPlugin.hDllInstance;
+         ofn.hwndOwner = NULL;
+         ofn.lpstrCustomFilter = NULL;
+         ofn.nMaxCustFilter = 0;
+         ofn.nFilterIndex = 1;
+         ofn.lpstrFileTitle = NULL;
+         ofn.nMaxFileTitle = MAX_PATH;
+         ofn.lpstrInitialDir = NULL;
+         ofn.nFileOffset = 0;
+         ofn.nFileExtension = 0;
+         ofn.lpstrDefExt = NULL;
+         ofn.lCustData = 0;
+         ofn.lpfnHook = NULL;
+         ofn.lpTemplateName = NULL;
+         ofn.lpstrFilter = "Bookmark Files\0bookmark.htm;bookmarks.html\0HTML Files\0*.htm;*.html\0";
+         ofn.lpstrFile = buf;
+         ofn.nMaxFile = MAX_PATH;
+         ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | 	OFN_LONGNAMES | OFN_EXPLORER | OFN_HIDEREADONLY;
+         ofn.lpstrTitle = "Netscape Bookmarks";
+         if (GetOpenFileName(&ofn))
+            CopyFile(ofn.lpstrFile, szPath, TRUE);
+      }
+   }
 
    imagelist = ImageList_Create(16, 15, ILC_MASK, 4, 4);
 
