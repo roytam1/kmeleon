@@ -1057,11 +1057,17 @@ void CBrowserView::OnShowFindDlg() {
 		   finder->GetWrapFind(&bWrapAround);
 		   finder->GetFindBackwards(&bSearchBackwards);		
       }
+      else {
+         csSearchStr = theApp.preferences.findSearchStr;
+	      bMatchCase = theApp.preferences.bFindMatchCase;
+	      bMatchWholeWord = theApp.preferences.bFindMatchWholeWord;
+	      bWrapAround = theApp.preferences.bFindWrapAround;
+	      bSearchBackwards = theApp.preferences.bFindSearchBackwards;
+      }
 	}
 
 	m_pFindDlg = new CFindDialog(csSearchStr, bMatchCase, bMatchWholeWord, bWrapAround, bSearchBackwards, this);
 	m_pFindDlg->Create(TRUE, NULL, NULL, 0, this);
-
 }
 
 void CBrowserView::OnFindNext() {
@@ -1072,6 +1078,7 @@ void CBrowserView::OnFindNext() {
 	nsXPIDLString stringBuf;
    finder->GetSearchString(getter_Copies(stringBuf));
    if (stringBuf.get()[0]) {
+
       PRBool didFind;
 	   finder->FindNext(&didFind);
    }
@@ -1128,19 +1135,29 @@ LRESULT CBrowserView::OnFindMsg(WPARAM wParam, LPARAM lParam) {
 	if(dlg->IsTerminating()) return NULL;
 
 	if(dlg->FindNext()) {
-		nsString searchString;
-		searchString.AssignWithConversion(dlg->GetFindString().GetBuffer(0));
-		finder->SetSearchString(searchString.GetUnicode());
 
-		finder->SetMatchCase(dlg->MatchCase() ? PR_TRUE : PR_FALSE);
-		finder->SetEntireWord(dlg->MatchWholeWord() ? PR_TRUE : PR_FALSE);
-		finder->SetWrapFind(dlg->WrapAround() ? PR_TRUE : PR_FALSE);
-		finder->SetFindBackwards(dlg->SearchBackwards() ? PR_TRUE : PR_FALSE);
+      // save the find settings
+      theApp.preferences.findSearchStr = dlg->GetFindString().GetBuffer(0);
+	   theApp.preferences.bFindMatchCase = dlg->MatchCase();
+	   theApp.preferences.bFindMatchWholeWord = dlg->MatchWholeWord();
+	   theApp.preferences.bFindWrapAround = dlg->WrapAround();
+	   theApp.preferences.bFindSearchBackwards = dlg->SearchBackwards();
+
+
+      // create the find query
+      nsString searchString;
+		searchString.AssignWithConversion(theApp.preferences.findSearchStr.GetBuffer(0));
+		finder->SetSearchString(searchString.GetUnicode());
+      
+      finder->SetMatchCase((theApp.preferences.bFindMatchCase) ? PR_TRUE : PR_FALSE);
+		finder->SetEntireWord((theApp.preferences.bFindMatchWholeWord) ? PR_TRUE : PR_FALSE);
+		finder->SetWrapFind((theApp.preferences.bFindWrapAround) ? PR_TRUE : PR_FALSE);
+		finder->SetFindBackwards((theApp.preferences.bFindSearchBackwards) ? PR_TRUE : PR_FALSE);
 
 		PRBool didFind;
 		nsresult rv = finder->FindNext(&didFind);
-
-		return (NS_SUCCEEDED(rv) && didFind);
+      
+      return (NS_SUCCEEDED(rv) && didFind);
 	}
 	return 0;
 }

@@ -28,6 +28,13 @@
 class CPreferences {
 public:
 
+   // -- Find settings
+   CString findSearchStr;
+	int bFindMatchCase;
+	int bFindMatchWholeWord;
+   int bFindWrapAround;
+	int bFindSearchBackwards;
+   
    // -- Display
    CString toolbarBackground;
    int bToolbarBackground;

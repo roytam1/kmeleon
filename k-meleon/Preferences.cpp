@@ -86,6 +86,14 @@ void CPreferences::Load() {
       _GetInt(_T("kmeleon.display.newWindowOpenAs"), iNewWindowOpenAs, 0);
       _GetString(_T("kmeleon.display.newWindowURL"), newWindowURL, _T(""));
       
+
+      // -- Find settings
+      
+	   _GetBool(_T("kmeleon.find.matchCase"), bFindMatchCase, false);
+	   _GetBool(_T("kmeleon.find.matchWholeWord"), bFindMatchWholeWord, false);
+	   _GetBool(_T("kmeleon.find.searchBackwards"), bFindSearchBackwards, false);
+	   _GetBool(_T("kmeleon.find.wrapAround"), bFindWrapAround, false);
+      
       // -- General preferences
 
       _GetBool(_T("kmeleon.general.startHome"), bStartHome, true);
@@ -198,6 +206,13 @@ void CPreferences::Save() {
 
       rv = prefs->SetIntPref(_T("kmeleon.display.newWindowOpenAs"), iNewWindowOpenAs);
       rv = prefs->SetCharPref(_T("kmeleon.display.newWindowURL"), newWindowURL);
+
+      // -- Find settings
+      
+	   rv = prefs->SetBoolPref(_T("kmeleon.find.matchCase"), bFindMatchCase);
+	   rv = prefs->SetBoolPref(_T("kmeleon.find.matchWholeWord"), bFindMatchWholeWord);
+	   rv = prefs->SetBoolPref(_T("kmeleon.find.wrapAround"), bFindWrapAround);
+	   rv = prefs->SetBoolPref(_T("kmeleon.find.searchBackwards"), bFindSearchBackwards);
 
       // -- General preferences
 
