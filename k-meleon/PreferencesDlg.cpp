@@ -269,10 +269,9 @@ void CPreferencePage::OnClearDiskCache() {
 }
 
 void CPreferencePage::OnEditCookies() {
-   char cookiePath[MAX_PATH];
-   strcpy(cookiePath, theApp.preferences.settingsDir);
-   strcat(cookiePath, "cookies.txt");
-   ShellExecute(NULL, NULL, "notepad.exe", cookiePath, NULL, SW_SHOW);
+   CString cookiePath;
+   cookiePath = theApp.preferences.profileDir + "cookies.txt";
+   ShellExecute(NULL, NULL, "notepad.exe", cookiePath.GetBuffer(0), NULL, SW_SHOW);
 }
 
 void CPreferencePage::OnBrowse() {
