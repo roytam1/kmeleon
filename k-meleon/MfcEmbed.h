@@ -24,6 +24,8 @@
 // mozembed.h : main header file for the MOZEMBED application
 //
 
+#define NIGHTLY
+
 #ifndef _MFCEMBED_H
 #define _MFCEMBED_H
 
@@ -77,10 +79,10 @@ public:
 
 	CObList m_FrameWndLst;
 
-  CPlugins      plugins;
-  CPreferences  preferences;
-  CMenuParser   menus;
-  CAccelParser  accel;
+   CPlugins      plugins;
+   CPreferences  preferences;
+   CMenuParser   menus;
+   CAccelParser  accel;
 
 // Implementation
 

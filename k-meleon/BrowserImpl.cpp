@@ -278,6 +278,7 @@ NS_IMETHODIMP CBrowserImpl::ExitModalEventLoop(nsresult aStatus)
    return NS_OK;
 }
 
+/*  //  Nightly fix
 
 NS_IMETHODIMP
 CBrowserImpl::SetPersistence(PRBool aPersistX, PRBool aPersistY,
@@ -287,6 +288,7 @@ CBrowserImpl::SetPersistence(PRBool aPersistX, PRBool aPersistY,
    return NS_ERROR_NOT_IMPLEMENTED;
 }
 
+
 NS_IMETHODIMP
 CBrowserImpl::GetPersistence(PRBool* aPersistX, PRBool* aPersistY,
                              PRBool* aPersistCX, PRBool* aPersistCY,
@@ -294,6 +296,8 @@ CBrowserImpl::GetPersistence(PRBool* aPersistX, PRBool* aPersistY,
 {
    return NS_ERROR_NOT_IMPLEMENTED;
 }
+
+*/
 
 //*****************************************************************************
 // CBrowserImpl::nsIWebBrowserSiteWindow

@@ -68,9 +68,15 @@ nsresult CProfileMgr::StartUp()
         // Make a new default profile
         NS_NAMED_LITERAL_STRING(newProfileName, "default");
 
+#ifdef NIGHTLY
+        rv = profileService->CreateNewProfile(newProfileName.get(), nsnull, nsnull, PR_FALSE);
+        if (NS_FAILED(rv)) return rv;
+        rv = profileService->SetCurrentProfile(newProfileName.get());
+#else
         rv = profileService->CreateNewProfile(newProfileName, nsnull, nsnull, PR_FALSE);
         if (NS_FAILED(rv)) return rv;
         rv = profileService->SetCurrentProfile(newProfileName);
+#endif
         if (NS_FAILED(rv)) return rv;
     }
     else
@@ -139,9 +145,15 @@ nsresult CProfileMgr::GetShowDialogOnStart(PRBool* showIt)
 
     nsRegistryKey profilesTreeKey;
     
+#ifdef NIGHTLY
+    rv = registry->GetKey(nsIRegistry::Common, 
+                          kRegistryGlobalPrefsSubtreeString.get(), 
+                          &profilesTreeKey);
+#else
     rv = registry->GetKey(nsIRegistry::Common, 
                           kRegistryGlobalPrefsSubtreeString, 
                           &profilesTreeKey);
+#endif
 
     if (NS_SUCCEEDED(rv)) 
     {
@@ -166,16 +178,28 @@ nsresult CProfileMgr::SetShowDialogOnStart(PRBool showIt)
 
     nsRegistryKey profilesTreeKey;
     
+#ifdef NIGHTLY
+    rv = registry->GetKey(nsIRegistry::Common, 
+                          kRegistryGlobalPrefsSubtreeString.get(), 
+                          &profilesTreeKey);
+    if (NS_FAILED(rv)) 
+    {
+        rv = registry->AddKey(nsIRegistry::Common, 
+                              kRegistryGlobalPrefsSubtreeString.get(), 
+                              &profilesTreeKey);
+    }
+#else
     rv = registry->GetKey(nsIRegistry::Common, 
                           kRegistryGlobalPrefsSubtreeString, 
                           &profilesTreeKey);
-
     if (NS_FAILED(rv)) 
     {
         rv = registry->AddKey(nsIRegistry::Common, 
                               kRegistryGlobalPrefsSubtreeString, 
                               &profilesTreeKey);
     }
+#endif
+
     if (NS_SUCCEEDED(rv))
     {
     

@@ -89,36 +89,36 @@ BOOL CMfcEmbedApp::InitInstance()
 	// http://www.mozilla.org/projects/xpcom/file_locations.html
 	// for more info on File Locations
 
-  winEmbedFileLocProvider *provider = new winEmbedFileLocProvider("KMeleon");
-  if(!provider){
-    ASSERT(FALSE);
-    return FALSE;
-  }
+   winEmbedFileLocProvider *provider = new winEmbedFileLocProvider("KMeleon");
+   if(!provider){
+      ASSERT(FALSE);
+      return FALSE;
+   }
 
-  nsresult rv;
-  rv = NS_InitEmbedding(nsnull, provider);
-  if(NS_FAILED(rv)){
-    ASSERT(FALSE);
-    return FALSE;
-  }
+   nsresult rv;
+   rv = NS_InitEmbedding(nsnull, provider);
+   if(NS_FAILED(rv)){
+      ASSERT(FALSE);
+      return FALSE;
+   }
 
-  if(!InitializeProfiles()){
-    ASSERT(FALSE);
-    NS_TermEmbedding();
-    return FALSE;
-  }
+   if(!InitializeProfiles()){
+      ASSERT(FALSE);
+      NS_TermEmbedding();
+      return FALSE;
+   }
 
-  InitializePrefs();
+   InitializePrefs();
 
-  plugins.FindAndLoad("kmeleon_*.dll");
+   plugins.FindAndLoad("kmeleon_*.dll");
 
-  if(!CreateHiddenWindow()){
-    ASSERT(FALSE);
-    NS_TermEmbedding();
-    return FALSE;
-  }
+   if(!CreateHiddenWindow()){
+      ASSERT(FALSE);
+      NS_TermEmbedding();
+      return FALSE;
+   }
 
-  // Parse command line for standard shell commands, DDE, file open
+   // Parse command line for standard shell commands, DDE, file open
 	CCommandLineInfo cmdInfo;
 	ParseCommandLine(cmdInfo);
 
@@ -126,12 +126,12 @@ BOOL CMfcEmbedApp::InitInstance()
 	CBrowserFrame *pBrowserFrame = CreateNewBrowserFrame();
 
 	//Load the HomePage into the browser view
-  if(pBrowserFrame){
-    if(!cmdInfo.m_strFileName.IsEmpty())
-      pBrowserFrame->m_wndBrowserView.OpenURL(cmdInfo.m_strFileName);
-    else
-      pBrowserFrame->m_wndBrowserView.LoadHomePage();
-  }
+   if(pBrowserFrame){
+      if(!cmdInfo.m_strFileName.IsEmpty())
+         pBrowserFrame->m_wndBrowserView.OpenURL(cmdInfo.m_strFileName);
+      else
+         pBrowserFrame->m_wndBrowserView.LoadHomePage();
+   }
 
 	return TRUE;
 }
@@ -144,11 +144,11 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
 	// Setup a CRect with the requested window dimensions
 	CRect winSize(x, y, cx, cy);
 
-  LONG style = WS_OVERLAPPEDWINDOW;
+   LONG style = WS_OVERLAPPEDWINDOW;
 	// Use the Windows default if all are specified as -1
-  if(x == -1 && y == -1 && cx == -1 && cy == -1){
+   if(x == -1 && y == -1 && cx == -1 && cy == -1){
 		winSize = CFrameWnd::rectDefault;
-  }
+   }
 
 	// Load the window title from the string resource table
 	CString strTitle;
@@ -162,19 +162,17 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
 		return NULL;
 	}
 
-  pFrame->SetIcon(LoadIcon(IDR_MAINFRAME), true);
-  pFrame->SetIcon(LoadIcon(IDR_MAINFRAME), false);
+   pFrame->SetIcon(LoadIcon(IDR_MAINFRAME), true);
+   pFrame->SetIcon(LoadIcon(IDR_MAINFRAME), false);
 
 	// load accelerator resource
-	//pFrame->LoadAccelTable(MAKEINTRESOURCE(IDR_MAINFRAME));
-  pFrame->m_hAccelTable = accel.GetTable();
+   //pFrame->LoadAccelTable(MAKEINTRESOURCE(IDR_MAINFRAME));
+   pFrame->m_hAccelTable = accel.GetTable();
 
 	// Show the window...
-	if(bShowWindow){
-    if (preferences.bMaximized)
-      pFrame->ShowWindow(SW_SHOWMAXIMIZED);
-    else
-      pFrame->ShowWindow(SW_SHOW);
+	if(bShowWindow) {
+      if (preferences.bMaximized) pFrame->ShowWindow(SW_SHOWMAXIMIZED);
+      else pFrame->ShowWindow(SW_SHOW);
 
 		pFrame->UpdateWindow();
 	}
@@ -270,21 +268,27 @@ void CMfcEmbedApp::OnManageProfiles()
   m_ProfileMgr->DoManageProfilesDialog(PR_FALSE);
 }
 
-BOOL CMfcEmbedApp::InitializeProfiles()
-{
-  m_ProfileMgr = new CProfileMgr;
-  if (!m_ProfileMgr)
-    return FALSE;
+BOOL CMfcEmbedApp::InitializeProfiles() {
+   m_ProfileMgr = new CProfileMgr;
+   if (!m_ProfileMgr)
+      return FALSE;
 
-  m_ProfileMgr->StartUp();
+   m_ProfileMgr->StartUp();
 
-  nsresult rv;
-  NS_WITH_SERVICE(nsIObserverService, observerService, NS_OBSERVERSERVICE_CONTRACTID, &rv);
-  observerService->AddObserver(this, PROFILE_APPROVE_CHANGE_TOPIC);
-  observerService->AddObserver(this, PROFILE_CHANGE_TEARDOWN_TOPIC);
-  observerService->AddObserver(this, PROFILE_AFTER_CHANGE_TOPIC);
+   nsresult rv;
+   NS_WITH_SERVICE(nsIObserverService, observerService, NS_OBSERVERSERVICE_CONTRACTID, &rv);
 
-  return TRUE;
+#ifdef NIGHTLY  
+   observerService->AddObserver(this, NS_LITERAL_STRING("profile-approve-change").get());
+   observerService->AddObserver(this, NS_LITERAL_STRING("profile-change-teardown").get());
+   observerService->AddObserver(this, NS_LITERAL_STRING("profile-after-change").get());
+#else
+   observerService->AddObserver(this, PROFILE_APPROVE_CHANGE_TOPIC);
+   observerService->AddObserver(this, PROFILE_CHANGE_TEARDOWN_TOPIC);
+   observerService->AddObserver(this, PROFILE_AFTER_CHANGE_TOPIC);
+#endif
+
+   return TRUE;
 }
 
 // When the profile switch happens, all open browser windows need to be 
@@ -377,7 +381,11 @@ NS_IMETHODIMP CMfcEmbedApp::Observe(nsISupports *aSubject, const PRUnichar *aTop
 {
     nsresult rv = NS_OK;
     
+#ifdef NIGHTLY  
+    if (nsCRT::strcmp(aTopic, NS_LITERAL_STRING("profile-approve-change").get()) == 0)
+#else
     if (nsCRT::strcmp(aTopic, PROFILE_APPROVE_CHANGE_TOPIC) == 0)
+#endif
     {
         // Ask the user if they want to
         int result = MessageBox(NULL, "Do you want to close all windows in order to switch the profile?", "Confirm", MB_YESNO | MB_ICONQUESTION);
@@ -388,7 +396,11 @@ NS_IMETHODIMP CMfcEmbedApp::Observe(nsISupports *aSubject, const PRUnichar *aTop
             status->VetoChange();
         }
     }
+#ifdef NIGHTLY  
+    else if (nsCRT::strcmp(aTopic, NS_LITERAL_STRING("profile-change-teardown").get()) == 0)
+#else
     else if (nsCRT::strcmp(aTopic, PROFILE_CHANGE_TEARDOWN_TOPIC) == 0)
+#endif
     {
         // Close all open windows. Alternatively, we could just call CBrowserWindow::Stop()
         // on each. Either way, we have to stop all network activity on this phase.
@@ -413,7 +425,11 @@ NS_IMETHODIMP CMfcEmbedApp::Observe(nsISupports *aSubject, const PRUnichar *aTop
         if (NS_SUCCEEDED(rv))
           cacheMgr->Clear(nsINetDataCacheManager::MEM_CACHE);
     }
+#ifdef NIGHTLY
+    else if (nsCRT::strcmp(aTopic, NS_LITERAL_STRING("profile-after-change").get()) == 0)
+#else
     else if (nsCRT::strcmp(aTopic, PROFILE_AFTER_CHANGE_TOPIC) == 0)
+#endif
     {
         plugins.UnLoadAll();
         InitializePrefs(); // In case we have just switched to a newly created profile.

@@ -65,7 +65,11 @@ void CBrowserFrame::BrowserFrameGlueObj::UpdateStatusBarText(const PRUnichar *aM
    if(aMessage)
       strStatus.AssignWithConversion(aMessage);
 
+#ifdef NIGHTLY
+   pThis->m_wndStatusBar.SetPaneText(0, strStatus);
+#else
    pThis->m_wndStatusBar.SetPaneText(0, strStatus.GetBuffer());
+#endif
 }
 
 void CBrowserFrame::BrowserFrameGlueObj::UpdateProgress(PRInt32 aCurrent, PRInt32 aMax)
