@@ -481,21 +481,23 @@ int GetGlobalVar(enum PREFTYPE type, char *preference, void *ret) {
    return retLen;
 }
 
+static char *safe_strdup(const char *ptr) {
+  if (ptr)
+    return strdup(ptr);
+  return NULL;
+}
+
 char *EncodeUTF8(const char *str) {
   USES_CONVERSION;
   nsAutoString aStr;
   aStr.Append(T2W(str));
-  char *pszStr = (char*)NS_ConvertUCS2toUTF8(aStr).get();
-  if (pszStr)
-    pszStr = strdup(pszStr);
+  char *pszStr = safe_strdup(NS_ConvertUCS2toUTF8(aStr).get());
   return pszStr;
 }
 
 char *DecodeUTF8(const char *str) {
   USES_CONVERSION;
-  char *pszStr = W2T(NS_ConvertUTF8toUCS2(str).get());
-  if (pszStr)
-    pszStr = strdup(pszStr);
+  char *pszStr = safe_strdup(W2T(NS_ConvertUTF8toUCS2(str).get()));
   return pszStr;
 }
 
