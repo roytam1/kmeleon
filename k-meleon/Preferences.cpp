@@ -244,7 +244,8 @@ void CPreferences::Save() {
       // -- Find settings
       
 	   rv = prefs->SetBoolPref(_T("kmeleon.find.matchCase"), bFindMatchCase);
-	   rv = prefs->SetBoolPref(_T("kmeleon.find.matchWholeWord"), bFindMatchWholeWord);
+// don't set this - it might confuse the users :)  (okay, we *should* remove all references to it, perhaps, but I'm being lazy - sorry)
+//	   rv = prefs->SetBoolPref(_T("kmeleon.find.matchWholeWord"), bFindMatchWholeWord);
 	   rv = prefs->SetBoolPref(_T("kmeleon.find.wrapAround"), bFindWrapAround);
 	   rv = prefs->SetBoolPref(_T("kmeleon.find.searchBackwards"), bFindSearchBackwards);
 
