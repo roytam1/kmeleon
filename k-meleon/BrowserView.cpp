@@ -542,7 +542,7 @@ void CBrowserView::OnSelectUrl()
 void CBrowserView::OnUrlKillFocus()
 {
    if (mpBrowserFrame->m_wndUrlBar.CheckFocus())
-      mpBrowserFrame->m_wndUrlBar.ReturnFocus();
+      mpBrowserFrame->m_wndUrlBar.ReturnFocus(mbDocumentLoading);
    else
       mpBrowserFrame->m_wndUrlBar.EditChanged(FALSE);
 }

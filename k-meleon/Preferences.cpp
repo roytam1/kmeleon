@@ -93,6 +93,7 @@ void CPreferences::Load() {
 
       _GetBool(_T("kmeleon.display.disableResize"), bDisableResize, false);
       
+      _GetBool(_T("kmeleon.display.NewWindowHasUrlFocus"), bNewWindowHasUrlFocus, true);
 
       // -- Find settings
       
@@ -322,6 +323,8 @@ void CPreferences::Save() {
       rv = prefs->SetCharPref(_T("kmeleon.display.newWindowURL"), newWindowURL);
 
       rv = prefs->SetBoolPref(_T("kmeleon.display.disableResize"), bDisableResize);
+
+      rv = prefs->SetBoolPref(_T("kmeleon.display.NewWindowHasUrlFocus"), bNewWindowHasUrlFocus);
 
       // -- Find settings
 	   rv = prefs->SetBoolPref(_T("kmeleon.find.matchCase"), bFindMatchCase);

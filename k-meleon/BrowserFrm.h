@@ -57,9 +57,11 @@ public:
       ci.iImage = 15;
       SetItem(&ci);
       
+      m_bFocusEnabled = theApp.preferences.bNewWindowHasUrlFocus;
       m_preserveUrlBarFocus = FALSE;
       m_changed = FALSE;
       m_bSelected = FALSE;
+      m_iFocusCount = 0;
       
       return ret;
    }
@@ -98,17 +100,29 @@ public:
       }
    }   
    void MaintainFocus() {
-      SetFocus();
-      m_preserveUrlBarFocus = TRUE;
+      if (m_bFocusEnabled) {
+         SetFocus();
+         m_preserveUrlBarFocus = TRUE;
+         m_iFocusCount = 0;
+      }
    }   
    BOOL CheckFocus() {
       return m_preserveUrlBarFocus;
    }   
-   void ReturnFocus() {
+   void ReturnFocus(BOOL bDocumentLoading) {
       SetFocus();
-      m_preserveUrlBarFocus = FALSE;
       if (m_changed)
          GetEditCtrl()->SetSel(-1, 0);
+
+      // mozilla always tries to steal focus twice after
+      // the page has finished loading
+      if (!bDocumentLoading) {         
+         if (++m_iFocusCount >= 2)
+            m_preserveUrlBarFocus = FALSE;
+      }
+   }
+   void EndFocus() {
+      m_preserveUrlBarFocus = FALSE;
    }
    inline EditChanged(BOOL state) {
       if (m_bSelected) {
@@ -123,6 +137,8 @@ protected:
    BOOL m_preserveUrlBarFocus;
    BOOL m_changed;
    BOOL m_bSelected;
+   BOOL m_bFocusEnabled;
+   int  m_iFocusCount;
 };
 
 // CMyStatusBar class
