@@ -271,19 +271,36 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
 
 void CMfcEmbedApp::OnNewBrowser()
 {
-   char *sURI;
+   char *sURI = NULL;
    if (preferences.iNewWindowOpenAs == PREF_NEW_WINDOW_CURRENT) {
-      sURI = new char[m_pMostRecentBrowserFrame->m_wndBrowserView.GetCurrentURI(NULL)+1];
-      m_pMostRecentBrowserFrame->m_wndBrowserView.GetCurrentURI(sURI);
+      // check that the current window has a URI loaded
+      int len = m_pMostRecentBrowserFrame->m_wndBrowserView.GetCurrentURI(NULL);
+      if (len > 0) {
+         sURI = new char[len+1];
+         m_pMostRecentBrowserFrame->m_wndBrowserView.GetCurrentURI(sURI);
+         // save the frame that called us, in case it calls again
+         // before the newly created frame has had time to load the URI
+         m_pOpenNewBrowserFrame = m_pMostRecentBrowserFrame;
+      }
+      else if (m_pOpenNewBrowserFrame) {
+         len = m_pOpenNewBrowserFrame->m_wndBrowserView.GetCurrentURI(NULL);
+         if (len > 0) {
+            sURI = new char[len+1];
+            m_pOpenNewBrowserFrame->m_wndBrowserView.GetCurrentURI(sURI);
+         }
+      }
    }
-         
+
    CBrowserFrame *pBrowserFrame = CreateNewBrowserFrame();
+
    if(pBrowserFrame) {
 	   //Load the new window start page into the browser view
       switch (preferences.iNewWindowOpenAs) {
       case PREF_NEW_WINDOW_CURRENT:
-         pBrowserFrame->m_wndBrowserView.OpenURL(sURI);
-         delete sURI;
+         if (sURI) {
+            pBrowserFrame->m_wndBrowserView.OpenURL(sURI);
+            delete sURI;
+         }
          break;
       case PREF_NEW_WINDOW_HOME:
    	   pBrowserFrame->m_wndBrowserView.LoadHomePage();
@@ -344,7 +361,7 @@ int CMfcEmbedApp::ExitInstance()
 
    delete m_ProfileMgr;
 
-   theApp.preferences.Save();
+   preferences.Save();
 
    NS_TermEmbedding();
 
