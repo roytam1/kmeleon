@@ -29,25 +29,6 @@
 #include "MfcEmbed.h"
 extern CMfcEmbedApp theApp;
 
-// HandleUnknownContentType (from nsIUnknownContentTypeHandler) implementation.
-// XXX We can get the content type from the channel now so that arg could be dropped.
-
-NS_IMETHODIMP
-CUnknownContentTypeHandler::HandleUnknownContentType( nsIRequest *request,
-                                                       const char *aContentType,
-                                                       nsIDOMWindowInternal *aWindow ) {
-    nsresult rv = NS_OK;
-
-    nsCOMPtr<nsIChannel> aChannel;
-    nsCOMPtr<nsISupports> channel;
-    nsCAutoString         contentDisp;
-
-    // this function never seems to get called...
-    MessageBox(NULL, "CHandleUnknownContentType()", NULL, MB_OK);
-
-    return rv;
-}
-
 
 NS_IMETHODIMP
 CUnknownContentTypeHandler::ShowProgressDialog(nsIHelperAppLauncher *aLauncher, nsISupports *aContext ) {
@@ -182,10 +163,6 @@ CUnknownContentTypeHandler::PromptForSaveToFile(nsISupports * aWindowContext, co
 NS_GENERIC_FACTORY_CONSTRUCTOR(CUnknownContentTypeHandler)
 
 static nsModuleComponentInfo components[] = {
-  { NS_IUNKNOWNCONTENTTYPEHANDLER_CLASSNAME, 
-    NS_UNKNOWNCONTENTTYPEHANDLER_CID, 
-    NS_IUNKNOWNCONTENTTYPEHANDLER_CONTRACTID,
-    CUnknownContentTypeHandlerConstructor },
   { NS_IHELPERAPPLAUNCHERDLG_CLASSNAME, 
     NS_UNKNOWNCONTENTTYPEHANDLER_CID, 
     NS_IHELPERAPPLAUNCHERDLG_CONTRACTID, 
@@ -195,8 +172,7 @@ static nsModuleComponentInfo components[] = {
 NS_IMPL_NSGETMODULE("CUnknownContentTypeHandler", components )
 
 /* nsISupports Implementation for the class */
-NS_IMPL_ISUPPORTS2(CUnknownContentTypeHandler,
-                   nsIUnknownContentTypeHandler,
+NS_IMPL_ISUPPORTS1(CUnknownContentTypeHandler,
                    nsIHelperAppLauncherDialog)
 
 

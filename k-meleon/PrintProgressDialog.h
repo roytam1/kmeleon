@@ -7,7 +7,6 @@
 // PrintProgressDialog.h : header file
 //
 
-#include "nsIPrintListener.h"
 class nsIWebBrowser;
 class nsIDOMWindow;
 class nsIPrintListener;

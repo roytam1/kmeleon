@@ -325,7 +325,11 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct){
 	// Note that the window styles (WM_RESIZE etc) are set inside
 	// of PreCreateWindow()
 
-	SetupFrameChrome(); 
+	SetupFrameChrome();
+
+   // Create a tooltip control that centers its text horizontally.
+   m_tooltip.Create(_T("Tooltip"), WS_CHILD|SS_CENTER,
+      CRect(10,10,150,50), this);
 
 	return 0;
 }

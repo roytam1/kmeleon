@@ -42,7 +42,7 @@ struct IBrowserFrameGlue {
 	virtual void UpdateProgress(PRInt32 aCurrent, PRInt32 aMax) = 0;
 	virtual void UpdateBusyState(PRBool aBusy) = 0;
 	virtual void UpdateCurrentURI(nsIURI *aLocation) = 0;
- virtual void UpdateSecurityStatus(PRInt32 aState) = 0;                      
+   virtual void UpdateSecurityStatus(PRInt32 aState) = 0;                      
 
 
 	// BrowserFrame Related Methods
@@ -71,6 +71,9 @@ struct IBrowserFrameGlue {
 
 	//Prompt Related Methods
    virtual HWND GetBrowserFrameNativeWnd() = 0;
+
+   // Tooltip function
+   virtual void ShowTooltip(PRInt32 x, PRInt32 y, const char *text) = 0;
 };
 
 #define	NS_DECL_BROWSERFRAMEGLUE	\
@@ -97,7 +100,8 @@ struct IBrowserFrameGlue {
 		virtual void FocusAvailable(PRBool *aFocusAvail);				\
 		virtual void GetBrowserFrameVisibility(PRBool *aVisible);		\
       virtual void ShowContextMenu(PRUint32 aContextFlags, nsIDOMNode *aNode); \
-      virtual HWND GetBrowserFrameNativeWnd();
+      virtual HWND GetBrowserFrameNativeWnd();                                \
+      virtual void ShowTooltip(PRInt32 x, PRInt32 y, const char *text);
 		
 typedef IBrowserFrameGlue *PBROWSERFRAMEGLUE;
 

@@ -120,7 +120,7 @@ void CBrowserFrame::BrowserFrameGlueObj::GetBrowserFrameTitle(PRUnichar **aTitle
       nsString nsTitle;
       nsTitle.AssignWithConversion(title.GetBuffer(0));
 
-      *aTitle = nsTitle.ToNewUnicode();
+      *aTitle = ToNewUnicode(nsTitle);
    }
 }
 
@@ -455,3 +455,25 @@ void CBrowserFrame::BrowserFrameGlueObj::UpdateSecurityStatus(PRInt32 aState)
    pThis->UpdateSecurityStatus(aState);
 }
 
+void CBrowserFrame::BrowserFrameGlueObj::ShowTooltip(PRInt32 x, PRInt32 y, const char *text)
+{
+   METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
+
+   if (text) {
+
+      POINT point;
+      point.x = x;
+      point.y = y;
+
+      pThis->m_wndBrowserView.ClientToScreen(&point);
+      pThis->ScreenToClient(&point);
+
+      point.y += 20; // jump to below the cursor, otherwise we appear right on top of the cursor
+
+      pThis->m_tooltip.SetWindowText(text);
+      pThis->m_tooltip.SetWindowPos(NULL, point.x, point.y, 8*strlen(text), GetSystemMetrics(SM_CYCAPTION), SWP_NOZORDER | SWP_DRAWFRAME);
+      pThis->m_tooltip.ShowWindow(SW_SHOW);
+   } else {
+      pThis->m_tooltip.ShowWindow(SW_HIDE);
+   }
+}

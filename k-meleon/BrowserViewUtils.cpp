@@ -44,8 +44,13 @@ BOOL CBrowserView::OpenViewSourceWindow(const char* pUrl)
          char *tempfile = GetTempFile();
 
          nsCOMPtr<nsIWebBrowserPersist> persist(do_QueryInterface(mWebBrowser));
-         if(persist) {
-            persist->SaveDocument(nsnull, tempfile, 0);
+         if(persist)
+         {
+            nsCOMPtr<nsILocalFile> file;
+            NS_NewLocalFile(T2A(tempfile), TRUE, getter_AddRefs(file));
+
+
+            persist->SaveDocument(nsnull, file, nsnull);
 
             char *command = new char[theApp.preferences.sourceCommand.GetLength() + strlen(tempfile) +2];
             
@@ -206,11 +211,18 @@ NS_IMETHODIMP CBrowserView::URISaveAs(nsIURI* aURI, bool bDocument)
 
       // Save the file
       nsCOMPtr<nsIWebBrowserPersist> persist(do_QueryInterface(mWebBrowser));
-      if(persist) {
-         if (bDocument)
-            persist->SaveDocument(nsnull, pStrFullPath, pStrDataPath);
-         else
-            persist->SaveURI(aURI, nsnull, strFullPath);
+      if(persist)
+      {
+         nsCOMPtr<nsILocalFile> file;
+         NS_NewLocalFile(T2A(pStrFullPath), TRUE, getter_AddRefs(file));
+
+         nsCOMPtr<nsILocalFile> dataPath;
+         if (pStrDataPath)
+         {
+            NS_NewLocalFile(pStrDataPath, TRUE, getter_AddRefs(dataPath));
+         }
+
+         persist->SaveDocument(nsnull, file, dataPath);
       }
 	}
 
