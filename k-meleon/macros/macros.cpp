@@ -485,20 +485,20 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
          if (data && *data) {
 
             if (preftype == PREF_STRING)
-               kFuncs->SetPreference(preftype, pref, data);
+               kFuncs->SetPreference(preftype, pref, data, TRUE);
 
             else if (preftype == PREF_INT) {
                // note that SetPreference() expects third param
                // to be a pointer in all cases, even for int and bool
                int iData = atoi(data);
-               kFuncs->SetPreference(preftype, pref, &iData);
+               kFuncs->SetPreference(preftype, pref, &iData, TRUE);
             } 
 
             else {   // boolean
                int bData = FALSE;
                if (!strcmpi(data, "true"))
                   bData = TRUE;
-               kFuncs->SetPreference(preftype, pref, &bData);
+               kFuncs->SetPreference(preftype, pref, &bData, TRUE);
             }
          }
       }
@@ -588,7 +588,7 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
                if (!strcmp(param, sVal)) {
                   if (nextToken( &t, &str )) {
                      param = (char*)str.c_str();
-                     kFuncs->SetPreference(preftype, pref, param);
+                     kFuncs->SetPreference(preftype, pref, param, TRUE);
                   }
                   else
                      kFuncs->SetPreference(preftype, pref, prefdata, TRUE);
