@@ -98,6 +98,15 @@ public:
    BOOL OpenViewSourceWindow(const char* pUrl);  
    BOOL IsViewSourceUrl(CString& strUrl);
 
+   enum _securityState {
+      SECURITY_STATE_SECURE,
+      SECURITY_STATE_INSECURE,
+      SECURITY_STATE_BROKEN
+   };
+
+   int m_SecurityState;
+   void ShowSecurityInfo();
+   
    void StartPanning();
    void StopPanning();
    BOOL m_panning;
