@@ -155,7 +155,12 @@ void DoMenu(HMENU menu, char *param) {
    if (*param) {
       int index = FindMacro(param);
       if (index != NOTFOUND) {
-         // found it
+         if (macroList[index]->menuString)
+            AppendMenu(menu, MF_STRING, ID_START+index, macroList[index]->menuString);
+         else if (macroList[index]->macroName)
+            AppendMenu(menu, MF_STRING, ID_START+index, macroList[index]->macroName);
+         else 
+            AppendMenu(menu, MF_STRING, ID_START+index, "Untitled Macro");
       }
    }
 }
@@ -291,7 +296,7 @@ void LoadMacros(char *filename) {
       if (p[0] == '#') {
       }
       
-      // Macro name {
+      // "MacroName {"
       else if (!buildingMacro) {
          // There can only be 2 things outside a macro
          //   comments, and the beginning of a macro block
@@ -327,12 +332,31 @@ void LoadMacros(char *filename) {
             buildingMacro = false;
          }
 
-         // just a normal event
+         // just a normal event, it's either an assignment or a command
          else {
-            // it's either a plugin or a menu item
-            char *op = strchr(p, '(');
+            // if check for an assignment         
+            char *op = NULL;
+            char *e = strchr(p, '=');
+            if (e){
+               *e = 0;
+               e++;
+               e = SkipWhiteSpace(e);
+               TrimWhiteSpace(e);
 
-            if (op) { // if there's an open parenthesis, we'll assume it's a command
+               p = SkipWhiteSpace(p);
+               TrimWhiteSpace(p);
+
+               // it's a menu assignment
+               if (strcmpi("menu", p) == 0) {
+                  macroList[iMacroCount-1]->menuString = new char[strlen(e) + 1];
+                  strcpy(macroList[iMacroCount-1]->menuString, e);
+               }
+            }
+            
+            // if there's an open parenthesis, we'll assume it's a command
+            else
+               op = strchr(p, '(');
+            if (op) {
                char *params = op + 1;
                char *cp = strrchr(params, ')');
                if (cp) *cp = 0;
