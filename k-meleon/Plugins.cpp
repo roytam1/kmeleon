@@ -300,9 +300,11 @@ kmeleonPointInfo *GetInfoAtPoint(int x, int y) {
    CBrowserView *pBrowserView;  
    pBrowserView = &theApp.m_pMostRecentBrowserFrame->m_wndBrowserView;
 
+   if (!pBrowserView)
+      return &gPointInfo;
 
 
-	// get the page url
+   // get the page url
    int len = pBrowserView->GetCurrentURI(NULL);
    if (len) {
       gPointInfo.page = new char[len+1];
@@ -387,6 +389,17 @@ int CommandAtPoint(int command, WORD x, WORD y) {
    CBrowserView *pBrowserView;  
    pBrowserView = &theApp.m_pMostRecentBrowserFrame->m_wndBrowserView;
 
+
+   if (!pBrowserView)
+      return FALSE;
+
+   nsCOMPtr<nsIWebBrowserFocus> focus(do_GetInterface(pBrowserView->mWebBrowser));
+   if(!focus)
+      return FALSE;
+
+   focus->Activate();
+
+   
    pBrowserView->GetNodeAtPoint(x, y, TRUE);
 
    switch (command) {
