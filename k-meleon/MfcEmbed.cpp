@@ -71,12 +71,14 @@ static char THIS_FILE[] = __FILE__;
 {0xa2112d6a, 0x0e28, 0x421f, {0xb4, 0x6a, 0x25, 0xc0, 0xb3, 0x8, 0xcb, 0xd0}}
 static NS_DEFINE_CID(kPromptServiceCID, NS_PROMPTSERVICE_CID);
 
-
 // this is for overriding the Mozilla default HelperAppLauncherDialog
 #define NS_HELPERAPPLAUNCHERDIALOG_CID \
 {0xf68578eb, 0x6ec2, 0x4169, {0xae, 0x19, 0x8c, 0x62, 0x43, 0xf0, 0xab, 0xe1}}
 static NS_DEFINE_CID(kHelperAppLauncherDialogCID, NS_HELPERAPPLAUNCHERDIALOG_CID);
 
+#define NS_DOWNLOAD_CID \
+{ 0xe3fa9d0a, 0x1dd1, 0x11b2, { 0xbd, 0xef, 0x8c, 0x72, 0x0b, 0x59, 0x74, 0x45 } }
+static NS_DEFINE_CID(kDownloadCID, NS_DOWNLOAD_CID);
 
 BEGIN_MESSAGE_MAP(CMfcEmbedApp, CWinApp)
 //{{AFX_MSG_MAP(CMfcEmbedApp)
@@ -135,7 +137,7 @@ nsresult CMfcEmbedApp::OverrideComponents()
          promptFactory,
          PR_TRUE);
    }
-   
+
    nsCOMPtr<nsIFactory> helperAppDlgFactory;
    rv = NewUnknownContentHandlerFactory(getter_AddRefs(helperAppDlgFactory));
    if (NS_SUCCEEDED(rv)) {
@@ -145,7 +147,17 @@ nsresult CMfcEmbedApp::OverrideComponents()
          helperAppDlgFactory,
          PR_TRUE); // replace existing
    }
-   
+
+   nsCOMPtr<nsIFactory> dlFactory;
+   rv = NewDownloadFactory(getter_AddRefs(dlFactory));
+   if (NS_SUCCEEDED(rv)) {
+      nsComponentManager::RegisterFactory(kDownloadCID,
+         "Download",
+         NS_DOWNLOAD_CONTRACTID,
+         dlFactory,
+         PR_TRUE); // replace existing
+   }
+
    nsCOMPtr<nsIFactory> tooltipTextProviderFactory;
    rv = NewTooltipTextProviderFactory(getter_AddRefs(tooltipTextProviderFactory));
    if (NS_SUCCEEDED(rv)) {
@@ -178,8 +190,7 @@ BOOL CMfcEmbedApp::InitInstance()
    
    if ( hMutexOneInstance )
       ReleaseMutex( hMutexOneInstance );
-   
-   
+
    // if another instance is already running, pass it our command line paramaters,
    // and ask it to open a new window
    // eventually, we should handle this through DDE
@@ -533,6 +544,7 @@ void CMfcEmbedApp::OnNewBrowser()
          break;
       case PREF_NEW_WINDOW_BLANK:
          pBrowserFrame->m_wndBrowserView.OpenURL("about:blank");
+         break;
       case PREF_NEW_WINDOW_URL:
          pBrowserFrame->m_wndBrowserView.OpenURL(preferences.newWindowURL);
          break;
