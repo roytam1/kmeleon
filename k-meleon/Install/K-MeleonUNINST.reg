@@ -1,0 +1,7 @@
+REGEDIT4
+; Executing this will remove all file association registry entries that K-Meleon changed 
+; during its installation. It will hopefully once reinstall the original file associations.
+
+; note: Adding a key via [key] and optionally the values in following lines "keyname"="value"
+; @ seems to be the standard keyname. removing whole keys via [-key] single keynames by [-key keyname]
+

@@ -3,7 +3,7 @@ ComponentText "This will install K-Meleon v0.3.1"
 LicenseText "K-Meleon is published under the GPL. The Gecko(tm) engine is released under the NPL (as shown in file license.txt)"
 LicenseData "GNUlicense.txt"
 OutFile "kmeleon031.exe"
-UninstallText "This will uninstall K-Meleon from your computer."
+UninstallText "This will uninstall K-Meleon. You need to agree to the following registry changes to completely get rid of it."
 UninstallExeName "Uninstall.exe"
 DirText "Please select the directory you want to install K-Meleon in."
 InstallDirRegKey HKEY_CURRENT_USER "Software\K-Meleon\K-Meleon\General" "InstallDir"
@@ -25,6 +25,7 @@ SetOutPath $INSTDIR
 File k-meleon.exe
 File *.dll
 File *.cfg
+File K-MeleonUNINST.reg
 File ReadMe.txt
 File License.txt
 
@@ -51,24 +52,32 @@ CreateShortCut "$QUICKLAUNCH\K-Meleon.lnk" "$INSTDIR\K-Meleon.exe" "" "" 0
 
 Section "Always open HTML by K-Meleon"
 SectionIn 2
-# maybe we should save the old values somewhere and restore them on uninstall?
+# save the old values somewhere and restore them on uninstall
+ExecWait 'regedit /e "$INSTDIR\RESTOREhtm.tmp" HKEY_CLASSES_ROOT\.htm'
+ExecWait 'regedit /e "$INSTDIR\RESTOREhtml.tmp" HKEY_CLASSES_ROOT\.html'
+ExecWait 'command.com /c copy /A $INSTDIR\RESTORE*.tmp /A $INSTDIR\RESTOREfileAsso.reg'
+Delete "$INSTDIR\*.tmp"
+
 WriteRegStr HKEY_CLASSES_ROOT ".htm" "" "K-Meleon.HTML"
 WriteRegStr HKEY_CLASSES_ROOT ".htm" "Content Type" "text/html"
 WriteRegStr HKEY_CLASSES_ROOT ".html" "" "K-Meleon.HTML"
 WriteRegStr HKEY_CLASSES_ROOT ".html" "Content Type" "text/html"
-
-WriteRegStr HKEY_CLASSES_ROOT "K-Meleon.HTML" "" Hypertext Markup Language Document"
-WriteRegStr HKEY_CLASSES_ROOT "K-Meleon.HTML\shell\open\command" "" '"$INSTDIR\k-meleon.exe" "%1"'
-
+WriteRegStr HKEY_CLASSES_ROOT "K-Meleon.HTML" "" "Hypertext Markup Language Document"
+WriteRegStr HKEY_CLASSES_ROOT "K-Meleon.HTML\shell\open\command" "" '"$INSTDIR\K-Meleon.exe" "%1"'
+# Uninstall information
+WriteINIStr "$INSTDIR\K-MeleonUNINST.reg" "-HKEY_CLASSES_ROOT\.htm" "" ""
+WriteINIStr "$INSTDIR\K-MeleonUNINST.reg" "-HKEY_CLASSES_ROOT\.html" "" ""
+WriteINIStr "$INSTDIR\K-MeleonUNINST.reg" "-HKEY_CLASSES_ROOT\K-Meleon.HTML" "" ""
 
 Section -PostInstall
 # Adding the Installation directory which can be used to update k-meleon or by plugin installers
 WriteRegStr HKEY_CURRENT_USER "Software\K-Meleon\K-Meleon\General" "InstallDir" "$INSTDIR"
-# Adding uninstall info
+# Adding K-Meleon uninstall info
 WriteRegStr HKEY_LOCAL_MACHINE "Software\Microsoft\Windows\CurrentVersion\Uninstall\K-Meleon" "DisplayName" "K-Meleon (remove only)"
 WriteRegStr HKEY_LOCAL_MACHINE "Software\Microsoft\Windows\CurrentVersion\Uninstall\K-Meleon" "UninstallString" '"$INSTDIR\Uninstall.exe"'
+
 ;Exec '"$WINDIR\notepad.exe" "$INSTDIR\ReadMe.txt"'
-Exec '"$INSTDIR\K-Meleon.exe" "$INSTDIR\ReadMe.txt"'
+;Exec '"$INSTDIR\K-Meleon.exe" "$INSTDIR\ReadMe.txt"'
 
 
 #------------------------------------
@@ -79,8 +88,9 @@ Section Uninstall
 # but a couple of other programs use that, so we'll leave it for now
 ;FindWindow "close" "Afx:400000:0" ""
 # delete all registry entries that Kmeleon does on install
-# optionally we'll need to remove .html file association if K-Meleon had registered itself
-;DeleteRegKey HKEY_CLASSES_ROOT "K-Meleon.HTML"
+ExecWait 'regedit /s "$INSTDIR\K-MeleonUNINST.reg"'
+# and restoring the original file associations
+ExecWait 'regedit "$INSTDIR\RESTOREfileAsso.reg"'
 
 # No need to remove the seingle entries before deleting the whole key???
 ;DeleteRegValue HKEY_LOCAL_MACHINE "Software\Microsoft\Windows\CurrentVersion\Uninstall\K-Meleon" "UninstallString"
@@ -101,7 +111,7 @@ RMDir $INSTDIR\res\builtin
 Delete $INSTDIR\res\*
 RMDir $INSTDIR\res
 Delete $INSTDIR\*
-RMDir $INSTDIR
+;RMDir $INSTDIR
 
 Delete "$SMPROGRAMS\K-Meleon.lnk"
 Delete "$DESKTOP\K-Meleon.lnk"
