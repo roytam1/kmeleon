@@ -464,12 +464,13 @@ void MeasureMenuItem(MEASUREITEMSTRUCT *mis, HDC hDC) {
    }
    else {
       GetTextExtentPoint32(hDC, string, strlen(string), &size);
-      if (!bWin98)
-         size.cx += 28;
+      size.cx += 28;
    }
 
    mis->itemWidth = size.cx;
    mis->itemHeight = GetSystemMetrics(SM_CYMENUSIZE);
+   if (mis->itemHeight < 18)
+      mis->itemHeight = 18;
 
    SelectObject(hDC, oldFont);
    DeleteObject(font);
