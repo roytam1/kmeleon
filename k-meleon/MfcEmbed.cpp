@@ -418,6 +418,8 @@ NS_IMETHODIMP CMfcEmbedApp::Observe(nsISupports *aSubject, const PRUnichar *aTop
     return rv;
 }
 
+#include "version.h"
+
 // AboutDlg Stuff
 
 class CAboutDlg : public CDialog
@@ -429,6 +431,7 @@ public:
 
 protected:
   CString m_credits;
+  CString m_version;
 
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
@@ -445,18 +448,24 @@ CAboutDlg::CAboutDlg() : CDialog(CAboutDlg::IDD)
     \r\n
     Uses the Gecko rendering engine by the Mozilla Group\r\n
     Based on MfcEmbed\r\n
+    Corner animation stolen from Galeon\r\n
     \r\n
     Contributors:\r\n
     Christophe Thibault <christophe@nullsoft.com>\r\n
     Brian Harris <binaryc@teamreaction.com>\r\n
     Sebastian Spaeth <Sebastian@SSpaeth.de>\r\n
     Chak Nanga <chak@netscape.com>\r\n
+    \r\n
+    Documentation:\r\n
+    Lance Hall (aka pyzr) <pyzr@pyzr.com>\r\n
   );
+  m_version = "Version " VERSION " Build " BUILD_NUMBER_STRING " Compiled " BUILD_TIME;
 }
 
 void CAboutDlg::DoDataExchange(CDataExchange* pDX){
 	CDialog::DoDataExchange(pDX);
 	DDX_Text(pDX, IDC_CREDITS, m_credits);
+  DDX_Text(pDX, IDC_EDIT_VERSION, m_version);
 }
 
 BEGIN_MESSAGE_MAP(CAboutDlg, CDialog)

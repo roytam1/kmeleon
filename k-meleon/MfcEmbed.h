@@ -35,11 +35,11 @@
 	#error include 'stdafx.h' before including this file for PCH
 #endif
 
-#include "resource.h"       // main symbols
-
 #include "Plugins.h"
 #include "Preferences.h"
 #include "MenuParser.h"
+
+#include "resource.h"       // main symbols
 
 /////////////////////////////////////////////////////////////////////////////
 // CMfcEmbedApp:
