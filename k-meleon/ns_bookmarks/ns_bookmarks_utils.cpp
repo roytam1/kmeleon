@@ -656,7 +656,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
    static NMTOOLBAR tbhdr;
    static NMHDR hdr;
 
-   if (message == WM_COMMAND) {
+   if (message == WM_SETFOCUS) {
+      hWndFront = hWnd;
+   }
+   else if (message == WM_COMMAND) {
       WORD command = LOWORD(wParam);
 
       if (command == nConfigCommand) {
@@ -697,6 +700,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
          }
          else
             ghWndEdit = CreateDialogParam(kPlugin.hDllInstance, MAKEINTRESOURCE(IDD_EDIT_BOOKMARKS), NULL, EditProc, 0);
+         return true;
+      }
+      else if (command == wm_deferbringtotop) {
+         BringWindowToTop(hWnd);
          return true;
       }
       else if (CBookmarkNode *node = gBookmarkRoot.FindNode(command)) {
