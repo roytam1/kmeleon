@@ -392,17 +392,17 @@ void BuildMenu(HMENU menu, CBookmarkNode *node, BOOL isContinuation)
 }
 
 // Build Rebar
-void BuildRebar()
+void BuildRebar(HWND hWndTB)
 {
    CBookmarkNode *toolbarNode = gBookmarkRoot.FindSpecialNode(BOOKMARK_FLAG_TB);
 
-   SetWindowText(ghWndTB, TOOLBAND_NAME);
+   SetWindowText(hWndTB, TOOLBAND_NAME);
 
-   //SendMessage(ghWndTB, TB_SETEXTENDEDSTYLE, 0, TBSTYLE_EX_DRAWDDARROWS);
+   //SendMessage(hWndTB, TB_SETEXTENDEDSTYLE, 0, TBSTYLE_EX_DRAWDDARROWS);
 
-   SendMessage(ghWndTB, TB_SETIMAGELIST, 0, (LPARAM)gImagelist);
+   SendMessage(hWndTB, TB_SETIMAGELIST, 0, (LPARAM)gImagelist);
 
-   SendMessage(ghWndTB, TB_SETBUTTONWIDTH, 0, MAKELONG(0, 100));
+   SendMessage(hWndTB, TB_SETBUTTONWIDTH, 0, MAKELONG(0, 100));
 
    int stringID;
 
@@ -415,7 +415,7 @@ void BuildRebar()
 
       // condense the title and escape ampersands
       char *buttonString = fixString(child->text.c_str(), gMaxTBSize);
-      stringID = SendMessage(ghWndTB, TB_ADDSTRING, (WPARAM)NULL, (LPARAM)buttonString);
+      stringID = SendMessage(hWndTB, TB_ADDSTRING, (WPARAM)NULL, (LPARAM)buttonString);
       delete buttonString;
 
       TBBUTTON button = {0};
@@ -436,20 +436,20 @@ void BuildRebar()
          button.iBitmap = IMAGE_BOOKMARK;
       }
 
-      SendMessage(ghWndTB, TB_INSERTBUTTON, (WPARAM)-1, (LPARAM)&button);
+      SendMessage(hWndTB, TB_INSERTBUTTON, (WPARAM)-1, (LPARAM)&button);
    }
 
    TBBUTTON button = {0};
    button.fsState = TBSTATE_ENABLED;
    button.fsStyle = TBSTYLE_SEP;
-   SendMessage(ghWndTB, TB_INSERTBUTTON, (WPARAM)0, (LPARAM)&button);
+   SendMessage(hWndTB, TB_INSERTBUTTON, (WPARAM)0, (LPARAM)&button);
 
    button.iBitmap = IMAGE_CHEVRON;
    button.idCommand = nDropdownCommand;
    button.fsState = TBSTATE_ENABLED;
    button.fsStyle = TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE | TBSTYLE_DROPDOWN;
    button.iString = -1;
-   SendMessage(ghWndTB, TB_INSERTBUTTON, (WPARAM)0, (LPARAM)&button);
+   SendMessage(hWndTB, TB_INSERTBUTTON, (WPARAM)0, (LPARAM)&button);
 }
 
 void Rebuild() {
@@ -463,7 +463,7 @@ void Rebuild() {
       // delete the old rebar
       while (SendMessage(ghWndTB, TB_DELETEBUTTON, 0 /*index*/, 0));
       // and rebuild
-      BuildRebar();
+      BuildRebar(ghWndTB);
    }
 
 // FIXME - Is this needed?  Hm, if anywhere, in WndProc, below, in the nAddCommand/nAddToolbarCommand/nEditCommand cases...  but then it's still only one window, and the others don't get the call, so...   heck, it works without it.  It will stay until someone complains.  :)
