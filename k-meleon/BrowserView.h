@@ -147,7 +147,7 @@ protected:
   
   // Generated message map functions
 protected:
-   nsIPrintSettings* m_PrintSettings;
+	nsCOMPtr<nsIPrintSettings> m_PrintSettings;
 
 	//{{AFX_MSG(CBrowserView)
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
