@@ -114,6 +114,7 @@ struct frame {
 struct frame *root = NULL;
 BOOL    bIgnore = 0;
 BOOL    bDoClose = 0;
+BOOL    bCaught = 0;
 struct layer *pNewLayer = NULL;
 
 INT id_layer;
@@ -383,22 +384,22 @@ void Create(HWND parent){
    int found = add_layer(parent, ghParent);
    if (found && bLayer) {
       if (ghParent) {
-         WINDOWPLACEMENT *wpOld = (WINDOWPLACEMENT*)calloc(1, sizeof(WINDOWPLACEMENT));
-         wpOld->length = sizeof (WINDOWPLACEMENT);
-         GetWindowPlacement(ghParent, wpOld);
-         if (wpOld->showCmd != SW_SHOWMAXIMIZED)
-            wpOld->showCmd = SW_NORMAL;
+         gwpOld.length = sizeof (WINDOWPLACEMENT);
+         GetWindowPlacement(ghParent, &gwpOld);
+         if (gwpOld.showCmd != SW_SHOWMAXIMIZED)
+            gwpOld.showCmd = SW_NORMAL;
          find_frame(parent)->hWndLast = ghParent;
          if (!bBack) {
             find_frame(parent)->hWndFront = parent;
-         }
-         else
-            wpOld->showCmd = SW_HIDE;
-         PostMessage(parent, WM_COMMAND, id_resize, (LPARAM)wpOld);
-         if (bBack)
-            PostMessage(ghParent, WM_SETFOCUS, 0, 0);
-         else
+            PostMessage(parent, WM_COMMAND, id_resize, (LPARAM)&gwpOld);
             ShowWindowAsync( ghParent, SW_HIDE );
+            PostMessage(parent, WM_SETFOCUS, 0, 0);
+         }
+         else {
+            find_frame(parent)->hWndFront = ghParent;
+            PostMessage(ghParent, WM_COMMAND, id_resize, (LPARAM)&gwpOld);
+            ShowWindowAsync(parent, SW_HIDE);
+         } 
       }
       else {
          ShowWindowAsync( parent, SW_HIDE );
@@ -928,12 +929,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
             pFrame = find_frame(hWnd);
             if (!pFrame)
                break;
-            if (message == WM_SETFOCUS)
+            if (message == WM_SETFOCUS) {
                ghCurHwnd = hWnd;
-            if (hWnd != pFrame->hWndFront) {
-               ShowWindowAsync(hWnd, SW_HIDE);
-               PostMessage(pFrame->hWndFront, WM_SETFOCUS, 0, 0);
-               break;
+               if (hWnd != pFrame->hWndFront) {
+                  ShowWindowAsync(hWnd, SW_HIDE);
+                  PostMessage(pFrame->hWndFront, WM_SETFOCUS, 0, 0);
+                  break;
+               }
             }
             if (message == UWM_UPDATESESSIONHISTORY ||
                 hWnd == pFrame->hWndFront) {
@@ -967,6 +969,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_CATCH_WINDOW, &bCatchWindow, &bCatchWindow);
                if (bCatchWindow) {
                  bDoClose = 1;
+                 bCaught = 1;
                  bIgnore = false;
                  PostMessage(hWnd, WM_COMMAND, id_close_layer, 0);
                  return 1;
@@ -1072,16 +1075,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                      newframe = newframe->next;
                }
                if (newframe != pFrame) {
-                  WINDOWPLACEMENT *wpOld = (WINDOWPLACEMENT*)calloc(1, sizeof(WINDOWPLACEMENT));
-                  wpOld->length = sizeof (WINDOWPLACEMENT);
-                  GetWindowPlacement(newframe->hWndFront, wpOld);
-                  if (wpOld->showCmd == SW_HIDE || wpOld->showCmd == SW_SHOWMINIMIZED) {
-                     wpOld->showCmd = SW_NORMAL;
-                     PostMessage(newframe->hWndFront, WM_COMMAND, id_resize, (LPARAM)wpOld);
+                  gwpOld.length = sizeof (WINDOWPLACEMENT);
+                  GetWindowPlacement(newframe->hWndFront, &gwpOld);
+                  if (gwpOld.showCmd == SW_HIDE || gwpOld.showCmd == SW_SHOWMINIMIZED) {
+                     gwpOld.showCmd = SW_NORMAL;
+                     PostMessage(newframe->hWndFront, WM_COMMAND, id_resize, (LPARAM)&gwpOld);
                   } 
                   else {
-                     free(wpOld);
-                     SetFocus(newframe->hWndFront);
+                     WINDOWPLACEMENT wpTmp;
+                     wpTmp.length = sizeof (WINDOWPLACEMENT);
+                     GetWindowPlacement(newframe->hWndFront, &wpTmp);
+                     SetWindowPlacement(newframe->hWndFront, &wpTmp);
+                     // SetFocus(newframe->hWndFront);
                   }
                }
                
@@ -1103,17 +1108,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                   break;
                
                if (pLayer->hWnd != hWnd && hWnd == pFrame->hWndFront) {
-                  WINDOWPLACEMENT *wpOld = (WINDOWPLACEMENT*)calloc(1, sizeof(WINDOWPLACEMENT));
-                  wpOld->length = sizeof (WINDOWPLACEMENT);
-                  GetWindowPlacement(hWnd, wpOld);
-                  if (wpOld->showCmd != SW_SHOWMAXIMIZED)
-                     wpOld->showCmd = SW_NORMAL;
+                  gwpOld.length = sizeof (WINDOWPLACEMENT);
+                  GetWindowPlacement(hWnd, &gwpOld);
+                  if (gwpOld.showCmd != SW_SHOWMAXIMIZED)
+                     gwpOld.showCmd = SW_NORMAL;
                   pFrame = find_frame(pLayer->hWnd);
                   pFrame->hWndLast = pFrame->hWndFront;
                   pFrame->hWndFront = pLayer->hWnd;
                   UpdateRebarMenu( find_layer(pFrame->hWndFront) );
                   UpdateRebarMenu( find_layer(pFrame->hWndLast) );
-                  PostMessage(pFrame->hWndFront, WM_COMMAND, id_resize, (LPARAM)wpOld);
+                  PostMessage(pFrame->hWndFront, WM_COMMAND, id_resize, (LPARAM)&gwpOld);
                   ShowWindowAsync(pFrame->hWndLast, SW_HIDE);
                }
                return 1;
@@ -1125,16 +1129,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                   break;
                
                if (pFrame->hWndLast && pFrame->hWndLast != hWnd && hWnd == pFrame->hWndFront) {
-                  WINDOWPLACEMENT *wpOld = (WINDOWPLACEMENT*)calloc(1, sizeof(WINDOWPLACEMENT));
-                  wpOld->length = sizeof (WINDOWPLACEMENT);
-                  GetWindowPlacement(hWnd, wpOld);
-                  if (wpOld->showCmd != SW_SHOWMAXIMIZED)
-                     wpOld->showCmd = SW_NORMAL;
+                  gwpOld.length = sizeof (WINDOWPLACEMENT);
+                  GetWindowPlacement(hWnd, &gwpOld);
+                  if (gwpOld.showCmd != SW_SHOWMAXIMIZED)
+                     gwpOld.showCmd = SW_NORMAL;
                   pFrame->hWndFront = pFrame->hWndLast;
                   pFrame->hWndLast = hWnd;
                   UpdateRebarMenu( find_layer(pFrame->hWndFront) );
                   UpdateRebarMenu( find_layer(pFrame->hWndLast) );
-                  PostMessage(pFrame->hWndFront, WM_COMMAND, id_resize, (LPARAM)wpOld);
+                  PostMessage(pFrame->hWndFront, WM_COMMAND, id_resize, (LPARAM)&gwpOld);
                   ShowWindowAsync(pFrame->hWndLast, SW_HIDE);
                }
                return 1;
@@ -1239,8 +1242,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                      pLayer = pFrame ? pFrame->layer : NULL;
                   }
                   bIgnore = false;
-                  if (command == id_close_others)
-                     PostMessage(hWnd, WM_SETFOCUS, 0, 0);
+                  if (command == id_close_others) {
+                     WINDOWPLACEMENT wpTmp;
+                     wpTmp.length = sizeof (WINDOWPLACEMENT);
+                     GetWindowPlacement(hWnd, &wpTmp);
+                     SetWindowPlacement(hWnd, &wpTmp);
+                     // PostMessage(hWnd, WM_SETFOCUS, 0, 0);
+                  }
                }
             }
             
@@ -1282,11 +1290,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                pFrame = del_layer(hWnd);
                if (pFrame && pLayer && pLayer->hWnd!=hWnd) {
                   int closebg = (pFrame->hWndFront != hWnd);
-                  WINDOWPLACEMENT *wpOld = (WINDOWPLACEMENT*)calloc(1, sizeof(WINDOWPLACEMENT));
-                  wpOld->length = sizeof (WINDOWPLACEMENT);
-                  GetWindowPlacement(hWnd, wpOld);
-                  if (wpOld->showCmd != SW_SHOWMAXIMIZED)
-                     wpOld->showCmd = SW_NORMAL;
+                  gwpOld.length = sizeof (WINDOWPLACEMENT);
+                  GetWindowPlacement(hWnd, &gwpOld);
+                  if (gwpOld.showCmd != SW_SHOWMAXIMIZED)
+                     gwpOld.showCmd = SW_NORMAL;
                   pFrame->hWndFront = closebg ? pFrame->hWndFront :
                      (pFrame->hWndLast && pFrame->hWndLast != hWnd ? 
                       pFrame->hWndLast : pLayer->hWnd);
@@ -1297,12 +1304,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                      ghParent = pFrame->hWndFront;
                   UpdateRebarMenu( find_layer(pFrame->hWndFront) );
                   UpdateRebarMenu( find_layer(hWnd) );
-                  PostMessage(pFrame->hWndFront, WM_COMMAND, id_resize, (LPARAM)wpOld);
-                  CallWindowProc((WNDPROC)KMeleonWndProc, hWnd, WM_CLOSE, 0, 0);
+                  PostMessage(pFrame->hWndFront, WM_COMMAND, id_resize, (LPARAM)&gwpOld);
+                  if (bCaught)
+                     CallWindowProc((WNDPROC)KMeleonWndProc, hWnd, WM_CLOSE, 0, 0);
+                  else
+                     PostMessage(hWnd, WM_CLOSE, 0, 0);
                }
                else {
-                  CallWindowProc((WNDPROC)KMeleonWndProc, hWnd, WM_CLOSE, 0, 0);
+                  if (bCaught)
+                     CallWindowProc((WNDPROC)KMeleonWndProc, hWnd, WM_CLOSE, 0, 0);
+                  else
+                     PostMessage(hWnd, WM_CLOSE, 0, 0);
                }
+               bCaught = 0;
                return 1;
             }
             
@@ -1320,16 +1334,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                   }
                   if (pLayer && pLayer->hWnd != hWnd && hWnd == pFrame->hWndFront) {
                      kPlugin.kFuncs->SetStatusBarText("");
-                     WINDOWPLACEMENT *wpOld = (WINDOWPLACEMENT*)calloc(1, sizeof(WINDOWPLACEMENT));
-                     wpOld->length = sizeof (WINDOWPLACEMENT);
-                     GetWindowPlacement(hWnd, wpOld);
-                     if (wpOld->showCmd != SW_SHOWMAXIMIZED)
-                        wpOld->showCmd = SW_NORMAL;
+                     gwpOld.length = sizeof (WINDOWPLACEMENT);
+                     GetWindowPlacement(hWnd, &gwpOld);
+                     if (gwpOld.showCmd != SW_SHOWMAXIMIZED)
+                        gwpOld.showCmd = SW_NORMAL;
                      pFrame->hWndLast = pFrame->hWndFront;
                      pFrame->hWndFront = pLayer->hWnd;
                      UpdateRebarMenu( find_layer(pFrame->hWndFront) );
                      UpdateRebarMenu( find_layer(pFrame->hWndLast) );
-                     PostMessage(pFrame->hWndFront, WM_COMMAND, id_resize, (LPARAM)wpOld);
+                     PostMessage(pFrame->hWndFront, WM_COMMAND, id_resize, (LPARAM)&gwpOld);
                      ShowWindowAsync(pFrame->hWndLast, SW_HIDE);
                   }
                }
@@ -1343,7 +1356,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                    wpNew->showCmd == SW_SHOWMAXIMIZED) {
                   SetFocus(hWnd);
                }
-               free(wpNew);
                return 1;
             }
             
