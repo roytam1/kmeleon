@@ -385,118 +385,136 @@ void ExecuteMacro (HWND hWnd, int macro) {
 */
 }
 
+// Thanks to Ulf Erikson for the tokenizer to clean things up in here...
+struct tokenizer {
+   std::string strData;
+   int pos,lpos;
+   char lastchar;
+   bool instr;
+};
+
+void createTokenizer( struct tokenizer *t, char *data ) {
+   t->strData = data;
+   t->pos = t-> lpos = 0;
+   t->instr = false;
+   if(t->strData.length() > 0) {
+      if(t->strData.at(0) == '"') t->instr = true;
+      t->lastchar = t->strData.at(0);
+   }
+   else t->lastchar = 0;
+}
+
+int nextToken ( struct tokenizer *t, std::string *out ) {
+   if (t->pos >= t->strData.length())
+     return 0;
+   while(++t->pos <= t->strData.length()-1) {
+      if(t->strData.at(t->pos) == '"' && t->lastchar != '\\') {
+         t->instr = (t->instr) ? false : true;
+         t->lastchar = '"';
+         continue;
+      }
+      if(!t->instr) {
+         if(t->strData.at(t->pos) == ',') {
+            if (out)
+	            *out = strVal(t->strData.substr(t->lpos, t->pos-t->lpos));
+            t->lpos = t->pos+1;
+            t->lastchar = ',';
+            return 1;
+         }
+      }
+      t->lastchar = t->strData.at(t->pos);
+   }
+   if (out)
+      *out = strVal(t->strData.substr(t->lpos));
+   return 1;
+}
 
 std::string ExecuteCommand (HWND hWnd, int command, char *data) {
-
    const int nmaxparams = 5;  // maximum num of function parameters
    std::string params[nmaxparams];
-   std::string strData = data;
+   struct tokenizer t;
+   int nparam = 0;
 
-   int pos,lpos,i;
-   i = pos = lpos = 0;
-   bool instr = false;
-
-   if(strData.length() > 0) {
-      if(strData.at(0) == '"') instr = true;
-      char lastchar = strData.at(0);
-      while(++pos <= strData.length()-1) {
-         if(i >= nmaxparams) break;
-         if(strData.at(pos) == '"' && lastchar != '\\') {
-            instr = (instr) ? false : true;
-            lastchar = '"';
-            continue;
-         }
-         if(!instr) {
-            if(strData.at(pos) == ',') {
-               
-               params[i++] = strVal(strData.substr(lpos,pos-lpos));
-               lpos = pos+1;
-               lastchar = ',';
-               continue;
-            }
-         }
-         lastchar = strData.at(pos);
-      }
-      if(i < nmaxparams) params[i] = strVal(strData.substr(lpos));
+   createTokenizer( &t, data );
+   while (nparam<nmaxparams && nextToken( &t, &params[nparam] )) {
+      nparam++;
    }
-
 
    BEGIN_CMD_TEST
       CMD(open) {
+         if (nparam != 1) {  // open( $0 )
+            MessageBox(NULL, "Wrong number of arguments - expected 1", "Invalid open command", MB_OK);
+            return "";
+         }
          kFuncs->NavigateTo((char*)params[0].c_str(), OPEN_NORMAL);
       }
       CMD(opennew) {
+         if (nparam != 1) {  // opennew( $0 )
+            MessageBox(NULL, "Wrong number of arguments - expected 1", "Invalid opennew command", MB_OK);
+            return "";
+         }
          kFuncs->NavigateTo((char*)params[0].c_str(), OPEN_NEW);
       }
       CMD(openbg) {
+         if (nparam != 1) {  // openbg( $0 )
+            MessageBox(NULL, "Wrong number of arguments - expected 1", "Invalid openbg command", MB_OK);
+            return "";
+         }
          kFuncs->NavigateTo((char*)params[0].c_str(), OPEN_BACKGROUND);
       }
       CMD(setpref)   {
          enum PREFTYPE preftype;
 
-         char *c = strchr(data, ',');
-         if (c) {
-            //*c = 0;
-            //TrimWhiteSpace(data);
-            if (!strcmpi((char*)params[0].c_str(), "bool")) preftype = PREF_BOOL;
-            else if (!strcmpi((char*)params[0].c_str(), "int")) preftype = PREF_INT;
-            else if (!strcmpi((char*)params[0].c_str(), "string")) preftype = PREF_STRING;
-            else {
-               MessageBox(NULL, "Invalid pref command", data, MB_OK);
-               return "";
-            }
-            //char *pref = SkipWhiteSpace(c+1);
-            char *pref = (char*)params[1].c_str();
-            c = strchr(pref, ',');
-            //*c = 0;
-            //TrimWhiteSpace(pref);
+         if (nparam != 3) {  // setpref( $0, $1, $2 )
+            MessageBox(NULL, "Wrong number of arguments - expected 3", "Invalid setpref command", MB_OK);
+            return "";
+         }
 
-            if (!pref) {
-               MessageBox(NULL, "No Preference defined", "Macros", MB_OK);
-               return "";
-            }
+         if (!strcmpi((char*)params[0].c_str(), "bool")) preftype = PREF_BOOL;
+         else if (!strcmpi((char*)params[0].c_str(), "int")) preftype = PREF_INT;
+         else if (!strcmpi((char*)params[0].c_str(), "string")) preftype = PREF_STRING;
+         else {
+            MessageBox(NULL, "Invalid data type in setpref command", "Invalid setpref command", MB_OK);
+            return "";
+         }
+         char *pref = (char*)params[1].c_str();
+         data = (char*)params[2].c_str();
 
-            data = (char*)params[2].c_str();
-            //data = SkipWhiteSpace(c+1);
-            //TrimWhiteSpace(data);
-            
-            // Thanks to Mynen (mark_yen@hotmail.com) for pointing out this bug
-            //   as well as submitting a patch
-            
-            if (data && *data) {
+         // Thanks to Mynen (mark_yen@hotmail.com) for pointing out this bug
+         //  as well as submitting a patch
+         if (data && *data) {
 
-               if (preftype == PREF_STRING)
-                  kFuncs->SetPreference(preftype, pref, data/*, TRUE*/);
+            if (preftype == PREF_STRING)
+               kFuncs->SetPreference(preftype, pref, data);
 
-               else if (preftype == PREF_INT) {
-                  // note that SetPreference() expects third param
-                  // to be a pointer in all cases, even for int and bool
-                  int iData = atoi(data);
-                  kFuncs->SetPreference(preftype, pref, &iData/*, TRUE*/);
-               } 
+            else if (preftype == PREF_INT) {
+               // note that SetPreference() expects third param
+               // to be a pointer in all cases, even for int and bool
+               int iData = atoi(data);
+               kFuncs->SetPreference(preftype, pref, &iData);
+            } 
 
-               else {   // boolean
-                  int bData = FALSE;
-                  if (!strcmpi(data, "true"))
-                     bData = TRUE;
-                  kFuncs->SetPreference(preftype, pref, &bData/*, TRUE*/);
-               }
+            else {   // boolean
+               int bData = FALSE;
+               if (!strcmpi(data, "true"))
+                  bData = TRUE;
+               kFuncs->SetPreference(preftype, pref, &bData);
             }
          }
       }
       CMD(getpref) {
          enum PREFTYPE preftype;
 
+         if(nparam != 2)  { // getpref( $0, $1 )
+            MessageBox(NULL, "Wrong number of arguments - expected 2", "Invalid getpref command", MB_OK);
+            return "";
+         }
+
          if (!strcmpi((char*)params[0].c_str(), "bool")) preftype = PREF_BOOL;
          else if (!strcmpi((char*)params[0].c_str(), "int")) preftype = PREF_INT;
          else if (!strcmpi((char*)params[0].c_str(), "string")) preftype = PREF_STRING;
          else {
             MessageBox(NULL, "Invalid data type in getpref command", "Invalid getpref command", MB_OK);
-            return "";
-         }
-
-         if(params[1].length() < 1)  {
-            MessageBox(NULL, "Invalid getpref command", "Invalid getpref command", MB_OK);
             return "";
          }
 
@@ -521,40 +539,28 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
          return "";
       }
       CMD(togglepref) {
-         
-         char *datacopy = _strdup(data);
-
          enum PREFTYPE preftype;
-         char *c = strchr(datacopy, ',');
-         if (!c) return "";
 
-         *c = 0;
-         TrimWhiteSpace(datacopy);
-         if (!strcmpi(datacopy, "bool")) preftype = PREF_BOOL;
-         else if (!strcmpi(datacopy, "int")) preftype = PREF_INT;
-         else if (!strcmpi(datacopy, "string")) preftype = PREF_STRING;
-         else {
-            MessageBox(NULL, "Invalid pref command", datacopy, MB_OK);
-            return "";
+         if (nparam) {
+            if (!strcmpi((char*)params[0].c_str(), "bool")) preftype = PREF_BOOL;
+            else if (!strcmpi((char*)params[0].c_str(), "int")) preftype = PREF_INT;
+            else if (!strcmpi((char*)params[0].c_str(), "string")) preftype = PREF_STRING;
+            else {
+               MessageBox(NULL, "Invalid data type in togglepref command", "Invalid togglepref command", MB_OK);
+               return "";
+            }
          }
 
-         char *pref = SkipWhiteSpace(c+1);
-         c = strchr(pref, ',');
-         if (c) *c = 0;
-         TrimWhiteSpace(pref);
-         if (!pref) {
-            MessageBox(NULL, "No Preference defined", "Macros", MB_OK);
+         if ((preftype == PREF_BOOL && nparam != 2) ||
+            (preftype != PREF_BOOL && nparam < 3)) {
+            MessageBox(NULL, "Wrong number of arguments", "Invalid togglepref command", MB_OK);
             return "";
-         }
-
-         // this is ugly... it needs fixing...  please...  think of the children.
-         if (strlen(pref)>1 && pref[0]=='"' && pref[strlen(pref)-1]=='"') {
-            pref[strlen(pref)-1] = 0;
-            pref++;
          }
 
          char sVal[256];
          int  iVal=0;
+         char *pref = (char*)params[1].c_str();
+
          if (preftype == PREF_STRING)
             kFuncs->GetPreference(preftype, pref, &sVal, NULL);
          else {
@@ -566,25 +572,21 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
             }
          }
 
-         char *prefdata = SkipWhiteSpace(c+1);
-         c = prefdata;
+         createTokenizer( &t, data );
+         nextToken( &t, NULL );  // params[0] == data type
+         nextToken( &t, NULL );  // params[1] == preference id
+         char *prefdata = (char*)params[2].c_str();
+
+         std::string str;
+
          BOOL bPrefWritten = FALSE;
-         while (c && *c && !bPrefWritten) {
-            char *param = SkipWhiteSpace(c);
-            TrimWhiteSpace(param);
-            if ((c = strchr(c, ','))) {
-               *c = 0;
-               c++;
-            }
+         while (!bPrefWritten && nextToken( &t, &str)) {
+            char *param = (char*)str.c_str();
             if (preftype == PREF_STRING) {
                if (!strcmp(param, sVal)) {
-                  if (c) {
-                     param = SkipWhiteSpace(c);
-                     if ((c = strchr(c, ','))) {
-                        *c = 0;
-                        c++;
-                     }
-                     kFuncs->SetPreference(preftype, pref, param/*, TRUE*/);
+                  if (nextToken( &t, &str )) {
+                     param = (char*)str.c_str();
+                     kFuncs->SetPreference(preftype, pref, param);
                   }
                   else
                      kFuncs->SetPreference(preftype, pref, prefdata/*, TRUE*/);
@@ -594,12 +596,8 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
             else if (preftype == PREF_INT) {
                int dataVal = atoi(param);
                if (dataVal == iVal) {
-                  if (c) {
-                     param = SkipWhiteSpace(c);
-                     if ((c = strchr(c, ','))) {
-                        *c = 0;
-                        c++;
-                     }
+                  if (nextToken( &t, &str )) {
+                     param = (char*)str.c_str();
                      dataVal = atoi(param);
                   }
                   else
@@ -619,9 +617,6 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
                kFuncs->SetPreference(preftype, pref, &val/*, TRUE*/);
             }
          }
-
-         delete datacopy;
-
       }
 
 
@@ -1041,19 +1036,55 @@ std::string EvalExpression(HWND hWnd,std::string exp) {
    if(exp.length() < 1) return ""; // nothing to evaluate
 
    int pos,rpos,lpos,lparen,rparen;
-   pos = rpos = lpos = lparen = rparen = 0;
    int i = 0;
    bool instr;
    std::string lval,rval,strtemp;
 
-   // if there's an equals (=)  that's not in a string, and not in parenths
+   pos = lpos = rpos = NOTFOUND;
+   lparen = rparen = 0;
+   instr = false;
+
+   // this could be a comma seperated list of expressions
+   if(exp.find_first_of(',') != std::string::npos) {
+      if(exp.at(0) == '"') instr = true;
+      for(i=1;i<exp.length();++i) {
+         if(exp.at(i) == '"' && exp.at(i-1) != '\\') {
+            instr = (instr) ? false : true;
+            continue;
+         }
+         if(!instr) {
+            if(exp.at(i) == '(') {
+               ++lparen;
+               continue;
+            }
+            if(exp.at(i) == ')') {
+               ++rparen;
+               continue;
+            }
+            if(exp.at(i) == ',' && lparen==rparen) {
+               pos = i;
+               break;
+            }
+         }
+      }
+
+      if(pos != NOTFOUND) {
+         lval = EvalExpression(hWnd,strTrim(exp.substr(0,pos)));
+         rval = EvalExpression(hWnd,strTrim(exp.substr(pos+1)));
+
+         return lval + "," + rval;
+      }
+   }
+
+
+   // if there's an equals (=) that's not in a string, and not in parenths
    // check for operators also
    // it's a comparison or an assignment
    bool isComparison = false;
    bool isAssignment = false;
+   rpos = lpos = NOTFOUND;
+   lparen = rparen = 0;
    instr = false;
-   lparen = 0;
-   rparen = 0;
    if(exp.at(0) == '"') instr = true;
    else if(exp.at(0) == '(') ++lparen;
    for(i=1;i<exp.length();++i) {
@@ -1135,6 +1166,7 @@ std::string EvalExpression(HWND hWnd,std::string exp) {
          }
       }
    }
+
    // if we're comparing the left or right hand values could be an expression
    if(isComparison) {
       lval = EvalExpression(hWnd,strTrim(lval));
@@ -1148,6 +1180,7 @@ std::string EvalExpression(HWND hWnd,std::string exp) {
          else return "0";
       }
    }
+
    // if we're assigning the left param must be a variable, the right could be an expression
    else if(isAssignment) {
       rval = EvalExpression(hWnd,strTrim(rval));
@@ -1171,61 +1204,15 @@ std::string EvalExpression(HWND hWnd,std::string exp) {
       return "";
    }
 
-   // at this point it's not an assignment or comparison
-   // so it's just an expression who's value needs to be evaluated and returned
 
-   // if there's parenthesis not in a string this is an expression or command
-   // find the positions of the first and first matching parenth
-   rpos = NOTFOUND;
-   lpos = NOTFOUND;
-   pos = NOTFOUND;
-   lparen = 0;
-   rparen = 0;
-   instr = false;
 
-   // this could be a comma seperated list of expressions
-   if(exp.find_first_of(',') != std::string::npos) {
-      if(exp.at(0) == '"') instr = true;
-      for(i=1;i<exp.length();++i) {
-         if(exp.at(i) == '"' && exp.at(i-1) != '\\') {
-            instr = (instr) ? false : true;
-            continue;
-         }
-         if(!instr) {
-            if(exp.at(i) == '(') {
-               ++lparen;
-               continue;
-            }
-            if(exp.at(i) == ')') {
-               ++rparen;
-               continue;
-            }
-            if(exp.at(i) == ',' && lparen==rparen) {
-               pos = i;
-               break;
-            }
-         }
-      }
-
-      if(pos == NOTFOUND) {
-         // reset these vars for the next loop
-         rpos = lpos = NOTFOUND;
-         lparen = rparen = 0;
-         instr = false;
-      }
-      else {
-         lval = EvalExpression(hWnd,strTrim(exp.substr(0,pos)));
-         rval = EvalExpression(hWnd,strTrim(exp.substr(pos+1)));
-
-         return lval + "," + rval;
-      }
-   }
-
+   rpos = lpos = NOTFOUND;
    lparen = rparen = NOTFOUND;
-   // not a list of expressions
+   instr = false;
    if(exp.find_first_of('(') != std::string::npos) {
       if(exp.at(0) == '"') instr = true;
       else if(exp.at(0) == '(') { lpos=0;++lparen; }
+
       for(i=1; i<exp.length(); ++i) {
          if(exp.at(i) == '"' && exp.at(i-1) != '\\') {
             instr = (instr) ? false : true;
@@ -1269,7 +1256,6 @@ std::string EvalExpression(HWND hWnd,std::string exp) {
          }
          exp = EvalExpression(hWnd,exp);
 
-         //return ExecuteCommand(hWnd,cmndid,(char*)exp.c_str()) + rval;
          return ExecuteCommand(hWnd,cmndid,(char*)exp.c_str()) + rval;
 
       }
@@ -1315,7 +1301,6 @@ std::string EvalExpression(HWND hWnd,std::string exp) {
    //DoError((char*)exp.c_str());
 
    return exp;
-
 }
 
 
