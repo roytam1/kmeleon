@@ -160,8 +160,9 @@ void CPreferencesDlg::ShowPage(UINT idd){
 BOOL CPreferencePage::OnInitDialog(){
    switch (idd) {
       case IDD_PREFERENCES_PRIVACY:
-         char buf[256], pref[32];
-         int x=0;
+      char buf[256], uabuf[256], pref[34];
+      int x=1,y,index=0;
+      SendDlgItemMessage(IDC_COMBO, CB_ADDSTRING, 0, (LONG) "Default");
          do {
             sprintf(pref, "kmeleon.privacy.useragent%d.name", x);
             theApp.preferences.GetString(pref, buf, "");
@@ -170,6 +171,16 @@ BOOL CPreferencePage::OnInitDialog(){
             x++;
          } while (*buf);
 
+      theApp.preferences.GetString("general.useragent.override", uabuf, "");
+      if (*uabuf) {
+         for (y=1; y<x; y++) {
+            sprintf(pref, "kmeleon.privacy.useragent%d.string", y);
+            theApp.preferences.GetString(pref, buf, "");
+            if (strcmp(buf, uabuf) == 0)
+               index=y;
+		 }
+	  }
+      SendDlgItemMessage(IDC_COMBO, CB_SETCURSEL, index, 0);
          break;
    }
        
@@ -296,12 +307,16 @@ void CPreferencePage::OnComboChanged() {
    switch (idd) {
    case IDD_PREFERENCES_PRIVACY:
       int index;
-      char buf[256], pref[32];
+      char buf[256], pref[34];
 
       index = SendDlgItemMessage(IDC_COMBO, CB_GETCURSEL, 0, 0);
 
-      sprintf(pref, "kmeleon.privacy.useragent%d.string", index);
-      theApp.preferences.GetString(pref, buf, "");
+       if (index == 0)
+          theApp.preferences.GetString("general.useragent.override", buf, "");
+       else {
+          sprintf(pref, "kmeleon.privacy.useragent%d.string", index);
+          theApp.preferences.GetString(pref, buf, "");
+       }
       
       if (*buf)
          SetDlgItemText(IDC_EDIT_USERAGENT, buf);
