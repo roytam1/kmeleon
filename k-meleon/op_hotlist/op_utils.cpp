@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2002 Ulf Erikson <ulferikson@fastmail.fm>
+ * Copyright (C) 2002-2003 Ulf Erikson <ulferikson@fastmail.fm>
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -174,6 +174,22 @@ void BuildMenu(HMENU menu, CBookmarkNode *node, BOOL isContinuation)
    }
 }
 
+void RebuildMenu() {
+   // delete the old bookmarks from the menu (FIXME - needs to be more robust than "delete everything after the first bookmark position" - there may be normal menu items there (if the user is weird))
+   while (DeleteMenu(gMenuHotlist, nFirstHotlistPosition, MF_BYPOSITION));
+   // and rebuild
+   if (gMenuSortOrder)
+      gHotlistRoot.sort(gMenuSortOrder);
+   BuildMenu(gMenuHotlist, &gHotlistRoot, false);
+
+   // need to rebuild the rebar, too, in case it had submenus (whose ids are now invalid)
+   TB *ptr = root;
+   while (ptr) {
+     RebuildRebarMenu( ptr->hWndTB );
+     PostMessage(ptr->hWnd, WM_COMMAND, nUpdateTB, 0);
+     ptr = ptr->next;
+   }
+}
 
 int setTBButtonWidth(HWND hWndTB)
 {
@@ -294,7 +310,6 @@ void UpdateRebarMenu(HWND hWndTB)
    }
 }
 
-#if 0
 // BUG! Memory is leaking. Need to free TB_ADDSTRING strings too?
 void RebuildRebarMenu(HWND hWndTB)
 {
@@ -308,7 +323,6 @@ void RebuildRebarMenu(HWND hWndTB)
    }
    BuildRebar(hWndTB);
 }
-#endif
 
 int addLink(char *url, char *title)
 {
@@ -323,61 +337,8 @@ int addLink(char *url, char *title)
       return false;
    
    gHotlistRoot.AddChild(newNode);
-   
-   if (lpszHotlistFile && *lpszHotlistFile) {
-               
-      int bNewFile = 0;
-      struct stat sb;
-      if (stat (lpszHotlistFile, &sb) == -1 && errno == ENOENT)
-         bNewFile = 1;
-      
-      if (bNewFile) {
-         FILE *bmFile = fopen(lpszHotlistFile, "w+");
-         if (bmFile)
-            fclose(bmFile);
-      }
-      FILE *bmFile = fopen(lpszHotlistFile, "rb+");
-      if (bmFile) {
-         if (bNewFile) {
-            fprintf(bmFile, 
-                    "Opera Hotlist version 2.0\r\n"
-                    "Options:encoding=utf8,version=3\r\n\r\n");
-            bDOS = 1;
-         }
-         else {
-            long bmFileSize = FileSize(bmFile);
-#define LEN 16
-            char *bmFileBuffer = new char[LEN+1];
-            if (bmFileBuffer){
-               if (bmFileSize > LEN-1)
-                  fseek(bmFile, bmFileSize-(LEN-1), SEEK_SET);
-               int bufsize = fread(bmFileBuffer, sizeof(char), LEN, bmFile);
-               bmFileBuffer[LEN] = 0;
-               char *p = strstr(bmFileBuffer, "\r\n");
-               bDOS = (p != NULL);
-               p = strrchr(bmFileBuffer, '-');
-               if (p) {
-                  int offset = (bmFileBuffer + bufsize) - p;
-                  fseek(bmFile, bmFileSize-offset, SEEK_SET);
-               }
-               delete [] bmFileBuffer;
-            }
-         }
-         SaveHotlistEntry(bmFile, newNode);
-         if (bDOS) 
-            fprintf(bmFile, "\r");
-         fprintf(bmFile, "\n");
-         fprintf(bmFile, "-");
-         if (bDOS) 
-            fprintf(bmFile, "\r");
-         fprintf(bmFile, "\n");
-         fclose(bmFile);
-      }
-      else
-         MessageBox(NULL, "Unable to save hotlist", "Error", MB_ICONSTOP|MB_OK);
-   }
-   else
-      MessageBox(NULL, "Unable to save hotlist", "Error", MB_ICONSTOP|MB_OK);
+
+   op_addEntry(lpszHotlistFile, newNode);
    
    if (!bEmpty) {
       
@@ -457,6 +418,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 
          return true;
       }
+      else if (command == nEditCommand) {
+         DialogBoxParam(kPlugin.hDllInstance, MAKEINTRESOURCE(IDD_EDIT_HOTLIST), hWnd, EditProc, 0);
+         return true;
+      }
+      else if (command == wm_deferhottrack) {
+         BeginHotTrack(&tbhdr, kPlugin.hDllInstance, hWnd);
+         return true;
+      }
       else if (CBookmarkNode *node = gHotlistRoot.FindNode(command)) {
          node->lastVisit = time(NULL);
          gHotlistModified = true;   // this doesn't call for instant saving, it can wait until we add/edit/quit
@@ -469,7 +438,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
       hdr = *((LPNMHDR)lParam);
       if ((long)hdr.code == TBN_DROPDOWN) {
          tbhdr = *((LPNMTOOLBAR)lParam);
-         
          /*
            // this is the little down arrow thing
            if (tbhdr.iItem == nDropdownCommand){
@@ -491,15 +459,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
             }
             
             // post a message to defer exceution of BeginHotTrack
-            PostMessage(hWnd, WM_DEFERHOTTRACK, (WPARAM)NULL, (LPARAM)NULL);
+            PostMessage(hWnd, WM_COMMAND, wm_deferhottrack, (LPARAM)NULL);
             
             return DefWindowProc(hWnd, message, wParam, lParam);
          }
       }
-   }
-   else if (message == WM_DEFERHOTTRACK) {
-      BeginHotTrack(&tbhdr, kPlugin.hDllInstance, hWnd);
-      return true;
    }
    else if (message == WM_MENUSELECT) {
       UINT id = LOWORD(wParam);
@@ -510,6 +474,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
             kPlugin.kFuncs->SetStatusBarText("Add to hotlist");
          else if (id == nAddLinkCommand) 
             kPlugin.kFuncs->SetStatusBarText("Add link to hotlist");
+         else if (id == nEditCommand) 
+            kPlugin.kFuncs->SetStatusBarText("Edit the hotlist");
+         return true;
       }
       else if (CBookmarkNode *node = gHotlistRoot.FindNode(LOWORD(id))) {
          kPlugin.kFuncs->SetStatusBarText((char *)node->url.c_str());

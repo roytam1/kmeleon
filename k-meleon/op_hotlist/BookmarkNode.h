@@ -30,9 +30,9 @@ const int BOOKMARK_FOLDER   = 0;  // "children" is not empty.  url is not used
 const int BOOKMARK_SEPARATOR= 1;  // this node is a separator, url, title, and children are not used
 const int BOOKMARK_BOOKMARK = 2;  // this node is a real bookmark, all fields valid
 
-const int BOOKMARK_FLAG_TB = 0x1;	// Toolbar Folder
-const int BOOKMARK_FLAG_NB = 0x2;	// New Bookmarks Folder
-const int BOOKMARK_FLAG_BM = 0x4;	// Bookmark Menu Folder
+const int BOOKMARK_FLAG_TB = 0x1; // Toolbar Folder
+const int BOOKMARK_FLAG_NB = 0x2; // New Bookmarks Folder
+const int BOOKMARK_FLAG_BM = 0x4; // Bookmark Menu Folder
 
 static int compareBookmarks(const char *e1, const char *e2, unsigned int sortorder);
 
@@ -62,7 +62,7 @@ public:
       nick = "";
       desc = "";
       type = 0;
-	  flags = 0;
+      flags = 0;
       next = NULL;
       child = NULL;
       lastChild = NULL;
@@ -80,7 +80,7 @@ public:
       this->nick = nick;
       this->desc = desc;
       this->type = type;
-	  this->flags = 0;
+      this->flags = 0;
       this->next = NULL;
       this->child = NULL;
       this->lastChild = NULL;
@@ -97,7 +97,7 @@ public:
       this->nick = nick;
       this->desc = desc;
       this->type = type;
-	  this->flags = 0;
+      this->flags = 0;
       this->next = NULL;
       this->child = NULL;
       this->lastChild = NULL;
@@ -168,7 +168,7 @@ public:
       }
       lastChild = newChild;
    }
-   BOOL DeleteNode(CBookmarkNode *node)
+   BOOL UnlinkNode(CBookmarkNode *node)
    {
       CBookmarkNode *c;
       CBookmarkNode *previous = NULL;
@@ -195,13 +195,16 @@ public:
             // in pretty much the whole menu being deleted
             node->next = NULL;
 
-            // finally we can be deleted
-            delete node;
-
-            // WE HAVE TO BREAK HERE
-            // if we don't break, when the for () tries to do child=child->next, it will crash
             return true;
          }
+      }
+      return false;
+   }
+   BOOL DeleteNode(CBookmarkNode *node)
+   {
+      if (UnlinkNode(node)) {
+         delete node;
+         return true;
       }
       return false;
    }
@@ -293,28 +296,28 @@ public:
       CBookmarkNode *c;
       int i = 0;
       for (c=child; c; c=c->next)
-	i++;
+         i++;
       if (i == 0)
-	return;
+         return;
       void **buf = (void**)calloc(i, sizeof(void*));
       if (!buf)
-	return;
+         return;
       for (i=0,c=child; c; c=c->next,i++)
-	buf[i] = (void*)c;
+         buf[i] = (void*)c;
       quicksort((char*)buf, i, sizeof(void*), &compareBookmarks, sortorder);
       child = ((CBookmarkNode*)buf[0]);
       for (int j=0; j<i-1; j++) {
-	c = ((CBookmarkNode*)buf[j]);
-	c->next = ((CBookmarkNode*)buf[j+1]);
+         c = ((CBookmarkNode*)buf[j]);
+         c->next = ((CBookmarkNode*)buf[j+1]);
       }
       c = ((CBookmarkNode*)buf[i-1]);
       c->next = NULL;
       lastChild = c;
       free(buf);
       for (c=child; c; c=c->next) {
-	if (c->type == BOOKMARK_FOLDER) {
-	  c->sort(sortorder);
-	}
+         if (c->type == BOOKMARK_FOLDER) {
+            c->sort(sortorder);
+         }
       }
    }
 };
@@ -334,30 +337,30 @@ static int compareBookmarks(const char *e1, const char *e2, unsigned int sortord
 
      switch (sortorder & ((1<<SORT_BITS)-1)) {
        case 1:
-	 cmp = c1->type - c2->type;
-	 break;
+          cmp = c1->type - c2->type;
+          break;
        case 2:
-	 cmp = (c1->order < c2->order) ? -1 : (c1->order == c2->order) ? 0 : 1;
-	 break;
+          cmp = (c1->order < c2->order) ? -1 : (c1->order == c2->order) ? 0 : 1;
+          break;
        case 3:
-	 cmp = stricmp((char*)c1->text.c_str(), (char*)c2->text.c_str());
-	 break;
+          cmp = stricmp((char*)c1->text.c_str(), (char*)c2->text.c_str());
+          break;
        case 4:
-	 cmp = stricmp((char*)c1->url.c_str(), (char*)c2->url.c_str());
-	 break;
+          cmp = stricmp((char*)c1->url.c_str(), (char*)c2->url.c_str());
+          break;
        case 5:
-	 cmp = stricmp((char*)c1->nick.c_str(), (char*)c2->nick.c_str());
-	 break;
+          cmp = stricmp((char*)c1->nick.c_str(), (char*)c2->nick.c_str());
+          break;
        case 6:
-	 cmp = (c1->addDate < c2->addDate) ? -1 : (c1->addDate == c2->addDate) ? 0 : 1;
-	 break;
+          cmp = (c1->addDate < c2->addDate) ? -1 : (c1->addDate == c2->addDate) ? 0 : 1;
+          break;
        case 7:
-	 cmp = (c1->lastVisit < c2->lastVisit) ? -1 : (c1->lastVisit == c2->lastVisit) ? 0 : 1;
-	 break;
+          cmp = (c1->lastVisit < c2->lastVisit) ? -1 : (c1->lastVisit == c2->lastVisit) ? 0 : 1;
+          break;
        default:
          cmp = c1->id - c2->id;
-	 return cmp ? cmp : -1;
-	 break;
+         return cmp ? cmp : -1;
+         break;
      }
      if (cmp == 0)
        return compareBookmarks(e1, e2, (sortorder >> SORT_BITS));
