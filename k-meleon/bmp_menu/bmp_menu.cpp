@@ -41,6 +41,8 @@ int     SPACE_BETWEEN = 0; // the space between the text and the accelerator, se
 #define MARGIN_LEFT BMP_WIDTH + BMP_PADDING_LEFT + BMP_PADDING_RIGHT
 #define MARGIN_RIGHT 16
 
+typedef int (*DRAWBITMAPPROC)(DRAWITEMSTRUCT *dis);
+
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 WNDPROC KMeleonWndProc;
 
@@ -410,12 +412,15 @@ int GetMaxAccelWidth(HDC hDC, HMENU hMenu){
          mmi.fMask = MIIM_DATA;
          GetMenuItemInfo(hMenu, i, true, &mmi);            
          string = (char *)mmi.dwItemData;
+
+         if (string) {
       
-         tab = strchr(string, '\t');
+            tab = strchr(string, '\t');
       
-         if (tab) {
-            GetTextExtentPoint32(hDC, tab+1, strlen(tab+1), &size);
-            if (size.cx > iMaxAccel) iMaxAccel = size.cx;
+            if (tab) {
+               GetTextExtentPoint32(hDC, tab+1, strlen(tab+1), &size);
+               if (size.cx > iMaxAccel) iMaxAccel = size.cx;
+            }
          }
       }
    }
