@@ -61,7 +61,6 @@ CPrintSetupDialog::CPrintSetupDialog(nsIPrintSettings* aPrintSettings, CWnd* pPa
 	
 }
 
-
 void CPrintSetupDialog::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);

@@ -141,6 +141,8 @@ public:
    void OnDecreaseFont();
    void ChangeTextSize(PRInt32 change);
 
+   BOOL GetPrintSettings();
+
 
 protected:
 	BOOL m_refreshBackButton;

@@ -122,6 +122,31 @@ public:
    CString userAgent;
 
 
+   // -- Printing
+
+   CString printMarginTop;
+   CString printMarginRight;
+   CString printMarginLeft;
+   CString printMarginBottom;
+   int printScaling;
+   
+   int printBGColors;
+   int printBGImages;
+   
+   int printUnit; // inches or cm
+   CString printWidth;
+   CString printHeight;
+   
+   CString printHeaderLeft;
+   CString printHeaderRight;
+   CString printHeaderMiddle;
+   CString printFooterLeft;
+   CString printFooterRight;
+   CString printFooterMiddle;
+
+
+
+
    // -- functions
 
    CPreferences();

@@ -1110,6 +1110,58 @@ static PRUnichar* GetUnicodeFromCString(const CString& aStr)
   return ToNewUnicode(str);
 }
 
+BOOL CBrowserView::GetPrintSettings() {
+
+   nsCOMPtr<nsIWebBrowserPrint> print(do_GetInterface(mWebBrowser));
+   if (!print)
+      return FALSE; 
+   
+   if (NS_FAILED(print->GetGlobalPrintSettings(getter_AddRefs(m_PrintSettings))))
+      return FALSE;
+
+   m_PrintSettings->SetMarginTop(GetFloatFromStr(theApp.preferences.printMarginTop, 10));
+   m_PrintSettings->SetMarginLeft(GetFloatFromStr(theApp.preferences.printMarginLeft, 10));
+   m_PrintSettings->SetMarginRight(GetFloatFromStr(theApp.preferences.printMarginRight, 10));
+   m_PrintSettings->SetMarginBottom(GetFloatFromStr(theApp.preferences.printMarginBottom, 10));
+
+   m_PrintSettings->SetScaling(double(theApp.preferences.printScaling) / 100.0);
+   m_PrintSettings->SetPrintBGColors(theApp.preferences.printBGColors);
+   m_PrintSettings->SetPrintBGImages(theApp.preferences.printBGImages);
+      
+   m_PrintSettings->SetPaperSizeType(theApp.preferences.printUnit);
+
+   m_PrintSettings->SetPaperWidth(GetFloatFromStr(theApp.preferences.printWidth, 100));
+   m_PrintSettings->SetPaperHeight(GetFloatFromStr(theApp.preferences.printHeight, 100));
+      
+
+   PRUnichar* uStr;
+   uStr = GetUnicodeFromCString(theApp.preferences.printHeaderLeft);
+   m_PrintSettings->SetHeaderStrLeft(uStr);
+   if (uStr != nsnull) nsMemory::Free(uStr);
+      
+   uStr = GetUnicodeFromCString(theApp.preferences.printHeaderMiddle);
+   m_PrintSettings->SetHeaderStrCenter(uStr);
+   if (uStr != nsnull) nsMemory::Free(uStr);
+      
+   uStr = GetUnicodeFromCString(theApp.preferences.printHeaderRight);
+   m_PrintSettings->SetHeaderStrRight(uStr);
+   if (uStr != nsnull) nsMemory::Free(uStr);
+   
+   uStr = GetUnicodeFromCString(theApp.preferences.printFooterLeft);
+   m_PrintSettings->SetFooterStrLeft(uStr);
+   if (uStr != nsnull) nsMemory::Free(uStr);
+   
+   uStr = GetUnicodeFromCString(theApp.preferences.printFooterMiddle);
+   m_PrintSettings->SetFooterStrCenter(uStr);
+   if (uStr != nsnull) nsMemory::Free(uStr);
+      
+   uStr = GetUnicodeFromCString(theApp.preferences.printFooterRight);
+   m_PrintSettings->SetFooterStrRight(uStr);
+   if (uStr != nsnull) nsMemory::Free(uStr);
+   
+   
+   return TRUE;
+}
 
 void CBrowserView::OnFilePrintSetup()
 {
@@ -1119,55 +1171,78 @@ void CBrowserView::OnFilePrintSetup()
    
    // Get the printer settings
    if (!m_PrintSettings) {
-      if (NS_FAILED(print->GetGlobalPrintSettings(getter_AddRefs(m_PrintSettings))))
+      if (!GetPrintSettings())
          return;
    }
    
    
-   CPrintSetupDialog  dlg(m_PrintSettings);
+   CPrintSetupDialog  dlg(m_PrintSettings, this);
    if (dlg.DoModal() == IDOK && m_PrintSettings != NULL) {
-      m_PrintSettings->SetMarginTop(GetFloatFromStr(dlg.m_TopMargin));
-      m_PrintSettings->SetMarginLeft(GetFloatFromStr(dlg.m_LeftMargin));
-      m_PrintSettings->SetMarginRight(GetFloatFromStr(dlg.m_RightMargin));
-      m_PrintSettings->SetMarginBottom(GetFloatFromStr(dlg.m_BottomMargin));
+
+      theApp.preferences.printMarginTop = dlg.m_TopMargin;
+      theApp.preferences.printMarginLeft = dlg.m_LeftMargin;
+      theApp.preferences.printMarginRight = dlg.m_RightMargin;
+      theApp.preferences.printMarginBottom = dlg.m_BottomMargin;
+
+      m_PrintSettings->SetMarginTop(GetFloatFromStr(theApp.preferences.printMarginTop, 10));
+      m_PrintSettings->SetMarginLeft(GetFloatFromStr(theApp.preferences.printMarginLeft, 10));
+      m_PrintSettings->SetMarginRight(GetFloatFromStr(theApp.preferences.printMarginRight, 10));
+      m_PrintSettings->SetMarginBottom(GetFloatFromStr(theApp.preferences.printMarginBottom, 10));
+
+
+      theApp.preferences.printScaling = dlg.m_Scaling;
+      theApp.preferences.printBGColors = dlg.m_PrintBGColors;
+      theApp.preferences.printBGImages = dlg.m_PrintBGImages;
+
+      m_PrintSettings->SetScaling(double(theApp.preferences.printScaling) / 100.0);
+      m_PrintSettings->SetPrintBGColors(theApp.preferences.printBGColors);
+      m_PrintSettings->SetPrintBGImages(theApp.preferences.printBGImages);
       
-      m_PrintSettings->SetScaling(double(dlg.m_Scaling) / 100.0);
-      m_PrintSettings->SetPrintBGColors(dlg.m_PrintBGColors);
-      m_PrintSettings->SetPrintBGColors(dlg.m_PrintBGImages);
-      
-      short  type;
+      short  unit;
       double width;
       double height;
-      dlg.GetPaperSizeInfo(type, width, height);
-      m_PrintSettings->SetPaperSizeType(type);
+      dlg.GetPaperSizeInfo(unit, width, height);
+
+      theApp.preferences.printUnit = unit;
+      theApp.preferences.printWidth.Format("%f",width);
+      theApp.preferences.printHeight.Format("%f",height);
+
+      m_PrintSettings->SetPaperSizeType(unit);
       m_PrintSettings->SetPaperWidth(width);
       m_PrintSettings->SetPaperHeight(height);
-      
+
       PRUnichar* uStr;
       uStr = GetUnicodeFromCString(dlg.m_HeaderLeft);
       m_PrintSettings->SetHeaderStrLeft(uStr);
       if (uStr != nsnull) nsMemory::Free(uStr);
+      theApp.preferences.printHeaderLeft = dlg.m_HeaderLeft;
       
       uStr = GetUnicodeFromCString(dlg.m_HeaderMiddle);
       m_PrintSettings->SetHeaderStrCenter(uStr);
       if (uStr != nsnull) nsMemory::Free(uStr);
+      theApp.preferences.printHeaderMiddle = dlg.m_HeaderMiddle;
       
       uStr = GetUnicodeFromCString(dlg.m_HeaderRight);
       m_PrintSettings->SetHeaderStrRight(uStr);
       if (uStr != nsnull) nsMemory::Free(uStr);
+      theApp.preferences.printHeaderRight = dlg.m_HeaderRight;
       
       uStr = GetUnicodeFromCString(dlg.m_FooterLeft);
       m_PrintSettings->SetFooterStrLeft(uStr);
       if (uStr != nsnull) nsMemory::Free(uStr);
+      theApp.preferences.printFooterLeft = dlg.m_FooterLeft;
       
       uStr = GetUnicodeFromCString(dlg.m_FooterMiddle);
       m_PrintSettings->SetFooterStrCenter(uStr);
       if (uStr != nsnull) nsMemory::Free(uStr);
+      theApp.preferences.printFooterMiddle = dlg.m_FooterMiddle;
       
       uStr = GetUnicodeFromCString(dlg.m_FooterRight);
       m_PrintSettings->SetFooterStrRight(uStr);
       if (uStr != nsnull) nsMemory::Free(uStr);
-      
+      theApp.preferences.printFooterRight = dlg.m_FooterRight;
+
+
    }
 }
                                                                            

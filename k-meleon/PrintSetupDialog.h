@@ -16,7 +16,7 @@ class CPrintSetupDialog : public CDialog
 // Construction
 public:
 	CPrintSetupDialog(nsIPrintSettings* aPrintSettings, CWnd* pParent = NULL);   // standard constructor
-  void SetPrintSettings(nsIPrintSettings* aPrintSettings);
+   void SetPrintSettings(nsIPrintSettings* aPrintSettings);
   void GetPaperSizeInfo(short& aType, double& aWidth, double& aHeight);
 
 // Dialog Data
