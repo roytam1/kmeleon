@@ -353,14 +353,17 @@ void CPlugins::UnLoadAll(){
    kmeleonPlugin * kPlugin;
    CString s;
    while (pos){
-      pluginList.GetNextAssoc( pos, s, kPlugin);
+      pluginList.GetNextAssoc(pos, s, kPlugin);
       if (kPlugin){
-         kPlugin->pf->Quit();
          delete kPlugin->dllname;
-         if (!kPlugin->loaded)
+         if (kPlugin->loaded) {
+            kPlugin->pf->Quit();
             FreeLibrary(kPlugin->hDllInstance);
-         else  // the plugin was disabled, delete the copied description
+         }
+         else  { // the plugin was disabled, delete the copied description
             delete kPlugin->description;
+            delete kPlugin;
+         }
       }
    }
    pluginList.RemoveAll();
