@@ -134,6 +134,9 @@ struct s_toolbar {
    s_button *pButtonHead;
    s_button *pButtonTail;
    s_toolbar *next;
+
+   s_toolbar *nextWindow;
+   HWND       hwndWindow;
 };
 s_toolbar *toolbar_head = NULL;
 int giToolbarCount = 0;
@@ -166,10 +169,29 @@ int Init() {
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 WNDPROC KMeleonWndProc;
+s_button *FindButton(s_toolbar *pToolbar, int iButton);
 
 void Create(HWND parent){
    KMeleonWndProc = (WNDPROC) GetWindowLong(parent, GWL_WNDPROC);
    SetWindowLong(parent, GWL_WNDPROC, (LONG)WndProc);
+
+   s_toolbar *firstToolbar = NULL;
+   s_toolbar *prevToolbar = NULL;
+   s_toolbar *toolbar = toolbar_head;
+   while (toolbar) {
+     s_toolbar *newToolbar = new s_toolbar;
+     *newToolbar = *toolbar;
+     newToolbar->hwndWindow = parent;
+     newToolbar->nextWindow = toolbar;
+     newToolbar->next = NULL;
+     if (prevToolbar != NULL)
+       prevToolbar->next = newToolbar;
+     prevToolbar = newToolbar;
+     if (firstToolbar == NULL)
+       firstToolbar = newToolbar;
+     toolbar = toolbar->next;
+   }
+   toolbar_head = firstToolbar;
 }
 
 void Config(HWND hWndParent) {
@@ -320,6 +342,21 @@ void DoRebar(HWND rebarWnd) {
 
       // Add the band that has the toolbar.
       SendMessage(rebarWnd, RB_INSERTBAND, (WPARAM)-1, (LPARAM)&rbBand);
+
+	  if (toolbar && toolbar->nextWindow) {
+			s_toolbar   *oldToolbar = toolbar->nextWindow;
+			int i = 1;
+			s_button *pButton = FindButton(oldToolbar, i);
+			while (pButton) {
+			   if (SendMessage(oldToolbar->hWnd, TB_ISBUTTONENABLED, pButton->iID, 0) != 0) 
+				  SendMessage(toolbar->hWnd, TB_ENABLEBUTTON, pButton->iID, MAKELONG(1, 0));
+			   if (SendMessage(oldToolbar->hWnd, TB_ISBUTTONCHECKED, pButton->iID, 0) != 0) 
+				  SendMessage(toolbar->hWnd, TB_CHECKBUTTON, pButton->iID, MAKELONG(1, 0));
+			   
+			   i++;
+			   pButton = FindButton(oldToolbar, i);
+			}
+	  }
 
       toolbar = toolbar->next;
       if (buttons) {
@@ -912,12 +949,16 @@ void EnableButton(char *sParams) {
    if (!pToolbar)
       return;
 
-   s_button *pButton = FindButton(pToolbar, iButton);
-   if (!pButton)
-      return;
-
-   SendMessage(pToolbar->hWnd, TB_ENABLEBUTTON, pButton->iID, MAKELONG(iState != 0, 0));
+   while (pToolbar) {
+     if (pToolbar->hWnd == NULL || pToolbar->nextWindow == NULL)
+       return;
+     s_button *pButton = FindButton(pToolbar, iButton);
+     if (!pButton)
+       return;
      
+	 SendMessage(pToolbar->hWnd, TB_ENABLEBUTTON, pButton->iID, MAKELONG(iState != 0, 0));
+     pToolbar = pToolbar->nextWindow;
+   }
 }
 
 int IsButtonEnabled(char *sParams) {
@@ -986,12 +1027,17 @@ void CheckButton(char *sParams) {
    if (!pToolbar)
       return;
 
-   s_button *pButton = FindButton(pToolbar, iButton);
-   if (!pButton)
-      return;
+   while (pToolbar) {
+     if (pToolbar->hWnd == NULL || pToolbar->nextWindow == NULL)
+       return;
+     s_button *pButton = FindButton(pToolbar, iButton);
+     if (!pButton)
+       return;
+     
+     SendMessage(pToolbar->hWnd, TB_CHECKBUTTON, pButton->iID, MAKELONG(iState != 0, 0));
 
-   SendMessage(pToolbar->hWnd, TB_CHECKBUTTON, pButton->iID, MAKELONG(iState != 0, 0));
-
+     pToolbar = pToolbar->nextWindow;
+   }
 }
 
 int  IsButtonChecked(char *sParams) {
@@ -1101,6 +1147,33 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 
       }
    }
+   else if (message == WM_CLOSE) {
+
+	  s_toolbar *toolbar = toolbar_head;
+	  s_toolbar *prevToolbar = NULL;
+	  while (toolbar) {
+		 if (toolbar->hwndWindow == hWnd) {
+			s_toolbar *tempbar = toolbar;
+			if (prevToolbar) {
+			   while (toolbar) {
+				  prevToolbar->nextWindow = toolbar->nextWindow;
+				  prevToolbar = prevToolbar->next;
+				  toolbar = toolbar->next;
+			   }
+			}
+			else {
+			   toolbar_head = toolbar->nextWindow;
+			}
+			delete tempbar;
+			break;
+		 }
+		 else {
+			prevToolbar = toolbar;
+			toolbar = toolbar->nextWindow;
+		 }
+	  }
+   }
+
    return CallWindowProc(KMeleonWndProc, hWnd, message, wParam, lParam);
 }
 
