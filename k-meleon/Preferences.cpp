@@ -18,6 +18,7 @@
 //  Holds various prefernces for k-meleon. also has the getters/setters
 
 #include "StdAfx.h"
+#include "kmeleonConst.h"
 
 #include "MfcEmbed.h"
 extern CMfcEmbedApp theApp;
@@ -82,11 +83,11 @@ void CPreferences::Load() {
 
       _GetString(_T("kmeleon.display.backgroundImage"), toolbarBackground, _T(""));
 
-
+      _GetInt(_T("kmeleon.display.newWindowOpenAs"), iNewWindowOpenAs, 0);
+      _GetString(_T("kmeleon.display.newWindowURL"), newWindowURL, _T(""));
       
       // -- General preferences
 
-      
       _GetBool(_T("kmeleon.general.startHome"), bStartHome, true);
       _GetString(_T("kmeleon.general.homePage"), homePage, _T("http://www.kmeleon.org"));
 
@@ -194,6 +195,9 @@ void CPreferences::Save() {
       rv = prefs->SetIntPref(_T("kmeleon.display.height"), height);
       rv = prefs->SetBoolPref(_T("kmeleon.display.backgroundImageEnabled"), bToolbarBackground);
       rv = prefs->SetCharPref(_T("kmeleon.display.backgroundImage"), toolbarBackground);
+
+      rv = prefs->SetIntPref(_T("kmeleon.display.newWindowOpenAs"), iNewWindowOpenAs);
+      rv = prefs->SetCharPref(_T("kmeleon.display.newWindowURL"), newWindowURL);
 
       // -- General preferences
 

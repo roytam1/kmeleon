@@ -184,6 +184,8 @@ void CPreferencePage::DoDataExchange(CDataExchange* pDX){
     case IDD_PREFERENCES_DISPLAY:
       DDX_Text(pDX, IDC_EDIT_TOOLBAR_BACKGROUND, theApp.preferences.toolbarBackground);
       DDX_Check(pDX, IDC_CHECK_TOOLBAR_BACKGROUND, theApp.preferences.bToolbarBackground);
+      DDX_Radio(pDX, IDC_RADIO_CURRENT, theApp.preferences.iNewWindowOpenAs);
+      DDX_Text(pDX, IDC_EDIT_URL, theApp.preferences.newWindowURL);
       break;
     case IDD_PREFERENCES_GENERAL:
       DDX_Radio(pDX, IDC_RADIO_START_BLANK, theApp.preferences.bStartHome);

@@ -27,9 +27,13 @@
 
 class CPreferences {
 public:
-   // -- data
+
+   // -- Display
    CString toolbarBackground;
    int bToolbarBackground;
+
+   int iNewWindowOpenAs;
+   CString newWindowURL;
 
    CString homePage;
    int bStartHome;

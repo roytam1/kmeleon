@@ -47,6 +47,7 @@
 #include "ProfileMgr.h"
 #include "BrowserImpl.h"
 #include "nsIWindowWatcher.h"
+#include "kmeleonConst.h"
 
 
 #ifdef _DEBUG
@@ -270,16 +271,24 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
 
 void CMfcEmbedApp::OnNewBrowser()
 {
-   char *sURI = new char[m_pMostRecentBrowserFrame->m_wndBrowserView.GetCurrentURI(NULL)+1];
-   m_pMostRecentBrowserFrame->m_wndBrowserView.GetCurrentURI(sURI);
    CBrowserFrame *pBrowserFrame = CreateNewBrowserFrame();
-
-	//Load the HomePage into the browser view
    if(pBrowserFrame) {
-      pBrowserFrame->m_wndBrowserView.OpenURL(sURI);
-      delete sURI;
-
-   //		pBrowserFrame->m_wndBrowserView.LoadHomePage();
+	   //Load the new window start page into the browser view
+      switch (preferences.iNewWindowOpenAs) {
+      case PREF_NEW_WINDOW_CURRENT:
+         char *sURI;
+         sURI = new char[m_pMostRecentBrowserFrame->m_wndBrowserView.GetCurrentURI(NULL)+1];
+         m_pMostRecentBrowserFrame->m_wndBrowserView.GetCurrentURI(sURI);
+         pBrowserFrame->m_wndBrowserView.OpenURL(sURI);
+         delete sURI;
+         break;
+      case PREF_NEW_WINDOW_HOME:
+   	   pBrowserFrame->m_wndBrowserView.LoadHomePage();
+         break;
+      case PREF_NEW_WINDOW_URL:
+         pBrowserFrame->m_wndBrowserView.OpenURL(preferences.newWindowURL);
+         break;
+      }
       pBrowserFrame->m_setURLBarFocus = true;
    }
 }

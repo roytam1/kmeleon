@@ -58,7 +58,7 @@ typedef struct {
    int (*GetMozillaSessionHistory)(char **titles[], int *count, int *index);
 	void (*GotoHistoryIndex)(UINT index);
 
-   // Register a rebar band, allocate and return a new bandID
+   // Register a rebar band
    void (*RegisterBand) (HWND hWnd, char *name);
 } kmeleonFunctions;
 
