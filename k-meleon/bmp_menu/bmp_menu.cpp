@@ -38,6 +38,8 @@ int refCount;
 
 char szPath[MAX_PATH];
 
+
+
 /*
 BOOL APIENTRY DllMain( HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved )
 {
@@ -66,18 +68,18 @@ void DoMenu(HMENU menu, char *param);
 void DoRebar(HWND rebarWnd);
 
 pluginFunctions pFunc = {
-  Init,
-  Create,
-  Config,
-  Quit,
-  DoMenu,
-  DoRebar
+   Init,
+   Create,
+   Config,
+   Quit,
+   DoMenu,
+   DoRebar
 };
 
 kmeleonPlugin kPlugin = {
-  KMEL_PLUGIN_VER,
-  "Bitmapped Menus",
-  &pFunc
+   KMEL_PLUGIN_VER,
+   "Bitmapped Menus",
+   &pFunc
 };
 
 /*
@@ -103,7 +105,7 @@ BmpMapT bmpMap;
 typedef std::map<std::string, int> DefineMapT;
 
 void ParseConfig(char *buffer) {
-  hImageList = ImageList_Create(16, 16, ILC_MASK | ILC_COLOR8, 32, 256);
+   hImageList = ImageList_Create(16, 16, ILC_MASK | ILC_COLOR8, 32, 256);
 
 	DefineMapT defineMap;
 	#define DEFINEMAP_ADD(entry) defineMap[std::string(#entry)] = entry;
@@ -114,11 +116,14 @@ void ParseConfig(char *buffer) {
 	int index = 0;
 
 	char *p;
-	while ((p = strtok(NULL, "\n")) != NULL){
+	while ((p = strtok(NULL, "\n")) != NULL) {
+
+      // ignore the comments
 		if (*p == '#') {
 			continue;
 		}
-		else if (!currentBitmap){
+
+		else if (!currentBitmap) {
 			char *b = strchr(p, '{');
 			if (b) {
 				*b = 0;
@@ -135,17 +140,18 @@ void ParseConfig(char *buffer) {
 					strcat(bmpPath, p);
 					bitmap = (HBITMAP)LoadImage(NULL, bmpPath, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE);
 				}
-        ImageList_AddMasked(hImageList, bitmap, RGB(192, 192, 192));
+            ImageList_AddMasked(hImageList, bitmap, RGB(192, 192, 192));
 
-        DeleteObject(bitmap);
+            DeleteObject(bitmap);
 
-        currentBitmap = true;
+            currentBitmap = true;
 			}
 		}
+
 		else {
 			if ( strchr( p, '}' )) {
-        currentBitmap = false;
-        index = ImageList_GetImageCount(hImageList);
+            currentBitmap = false;
+            index = ImageList_GetImageCount(hImageList);
 				continue;
 			}
 
@@ -153,48 +159,44 @@ void ParseConfig(char *buffer) {
 			p = SkipWhiteSpace(p);
 
 			int id;
-
 			defineMapIt = defineMap.find(std::string(p));
-			if ( defineMapIt != defineMap.end() ) {
+			if ( defineMapIt != defineMap.end() )
 				id = defineMapIt->second;
-			} 
-			else {
+			else
 				id = 0;
-			}
 			bmpMap[id] = index;
 			index++;
 		}
 	}
 }
 
-int Init(){
-  refCount = 0;
+int Init() {
+   refCount = 0;
 
-  kPlugin.kf->GetPreference(PREF_STRING, _T("kmeleon.general.settingsDir"), szPath, "");
+   kPlugin.kf->GetPreference(PREF_STRING, _T("kmeleon.general.settingsDir"), szPath, "");
 
-  char cfgPath[MAX_PATH];
-  strcpy(cfgPath, szPath);
-  strcat(cfgPath, "menuicons.cfg");
+   char cfgPath[MAX_PATH];
+   strcpy(cfgPath, szPath);
+   strcat(cfgPath, "menuicons.cfg");
 
-  FILE *cfgFile = fopen(cfgPath, "r");
-  if (cfgFile){
-    fseek(cfgFile, 0, SEEK_END);
-    long cfgFileSize = ftell(cfgFile);
-    fseek(cfgFile, 0, SEEK_SET);
+   FILE *cfgFile = fopen(cfgPath, "r");
+   if (cfgFile){
+      fseek(cfgFile, 0, SEEK_END);
+      long cfgFileSize = ftell(cfgFile);
+      fseek(cfgFile, 0, SEEK_SET);
 
-    char *cfgFileBuffer = new char[cfgFileSize];
-    if (cfgFileBuffer){
-      fread(cfgFileBuffer, sizeof(char), cfgFileSize, cfgFile);
+      char *cfgFileBuffer = new char[cfgFileSize];
+      if (cfgFileBuffer) {
+         fread(cfgFileBuffer, sizeof(char), cfgFileSize, cfgFile);
 
-      strtok(cfgFileBuffer, "\n");
-      ParseConfig(cfgFileBuffer);
+         strtok(cfgFileBuffer, "\n");
+         ParseConfig(cfgFileBuffer);
 
-      delete [] cfgFileBuffer;
-    }
-    fclose(cfgFile);
-  }
-
-  return true;
+         delete [] cfgFileBuffer;
+      }
+      fclose(cfgFile);
+   }
+   return true;
 }
 
 WNDPROC KMeleonWndProc;
@@ -205,23 +207,23 @@ void Create(HWND parent){
 	KMeleonWndProc = (WNDPROC) GetWindowLong(parent, GWL_WNDPROC);
 	SetWindowLong(parent, GWL_WNDPROC, (LONG)WndProc);
 
-  refCount++;
+   refCount++;
 }
 
 void Config(HWND parent){
-  char cfgPath[MAX_PATH];
-  strcpy(cfgPath, szPath);
-  strcat(cfgPath, "menuicons.cfg");
+   char cfgPath[MAX_PATH];
+   strcpy(cfgPath, szPath);
+   strcat(cfgPath, "menuicons.cfg");
 
-  ShellExecute(parent, NULL, "notepad.exe", cfgPath, NULL, SW_SHOW);
+   ShellExecute(parent, NULL, "notepad.exe", cfgPath, NULL, SW_SHOW);
 
-  strcpy(cfgPath, szPath);
-  strcat(cfgPath, "menus.cfg");
-  ShellExecute(parent, NULL, "notepad.exe", cfgPath, NULL, SW_SHOW);
+   strcpy(cfgPath, szPath);
+   strcat(cfgPath, "menus.cfg");
+   ShellExecute(parent, NULL, "notepad.exe", cfgPath, NULL, SW_SHOW);
 }
 
 void Quit(){
-  ImageList_Destroy(hImageList);
+   ImageList_Destroy(hImageList);
 }
 
 void DoMenu(HMENU menu, char *param){
@@ -233,10 +235,10 @@ void DoMenu(HMENU menu, char *param){
          if (plugin) {
             SetOwnerDrawn(menu, plugin);
             FreeLibrary(plugin);
+            return;
          }
       }
-      else
-         SetOwnerDrawn(menu, NULL);
+      SetOwnerDrawn(menu, NULL);
    }
 }
 
@@ -435,28 +437,30 @@ void DrawCheckMark(HDC pDC,int x,int y,COLORREF color) {
 }
 
 void UnSetOwnerDrawn(HMENU menu){
-  MENUITEMINFO mmi;
-  mmi.cbSize = sizeof(mmi);
-  int count = ::GetMenuItemCount(menu);
-  int i;
-  int state;
-  MenuDataT *mdt;
-  for (i=0; i<count; i++){
-    state = ::GetMenuState(menu, i, MF_BYPOSITION);
-    if (state & MF_POPUP){
-      UnSetOwnerDrawn(GetSubMenu(menu, i));
-    }
-    else if (state & MF_OWNERDRAW){
-      mmi.fMask = MIIM_DATA;
-      ::GetMenuItemInfo(menu, i, true, &mmi);
+   MENUITEMINFO mmi;
+   mmi.cbSize = sizeof(mmi);
+   int count = ::GetMenuItemCount(menu);
+   int i;
+   int state;
+   MenuDataT *mdt;
+   
+   for (i=0; i<count; i++) {
 
-      mdt = (MenuDataT *)mmi.dwItemData;
-      if (mdt->version == BMP_MENU_VERSION){
-        delete [] (char *)mdt->data;
-        delete mdt;
+      state = ::GetMenuState(menu, i, MF_BYPOSITION);
+      if (state & MF_POPUP)
+         UnSetOwnerDrawn(GetSubMenu(menu, i));
+      
+      else if (state & MF_OWNERDRAW) {
+         mmi.fMask = MIIM_DATA;
+         ::GetMenuItemInfo(menu, i, true, &mmi);
+
+         mdt = (MenuDataT *)mmi.dwItemData;
+         if (mdt->version == BMP_MENU_VERSION) {
+            delete [] (char *)mdt->data;
+            delete mdt;
+         }
       }
-    }
-  }
+   }
 }
 
 void SetOwnerDrawn(HMENU menu, HINSTANCE plugin){
@@ -469,16 +473,15 @@ void SetOwnerDrawn(HMENU menu, HINSTANCE plugin){
    DRAWBITMAPPROC DrawProc;
    if (plugin) {
       DrawProc = (DRAWBITMAPPROC)GetProcAddress(plugin, "DrawBitmap");
-      if (!DrawProc){
+      if (!DrawProc)
          DrawProc = DrawBitmap;
-      }
    }
    else
       DrawProc = DrawBitmap;
 
    for (i=0; i<count; i++){
       state = ::GetMenuState(menu, i, MF_BYPOSITION);
-      if (state & MF_POPUP){
+      if (state & MF_POPUP) {
          SetOwnerDrawn(GetSubMenu(menu, i), plugin);
          if (plugin) {
             mmi.fMask = MIIM_TYPE;
@@ -557,7 +560,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
       }
    }
    else if (message == WM_DRAWITEM){
-       DRAWITEMSTRUCT *dis = (DRAWITEMSTRUCT *)lParam;
+      DRAWITEMSTRUCT *dis = (DRAWITEMSTRUCT *)lParam;
       MenuDataT * mdt = (MenuDataT *)dis->itemData;
       if (dis->CtlType == ODT_MENU && mdt->version == BMP_MENU_VERSION){
          DrawMenuItem(dis);

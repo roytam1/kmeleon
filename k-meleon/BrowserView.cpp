@@ -254,13 +254,11 @@ HRESULT CBrowserView::CreateBrowser()
   */
 
   
-/*
 	// Set up the content listeners
    nsCOMPtr<nsIURIContentListener> uriListener;
    uriListener = do_QueryInterface(NS_STATIC_CAST(nsIURIContentListener*, mpBrowserImpl));
    NS_ENSURE_TRUE(uriListener, NS_ERROR_FAILURE);
 	mWebBrowser->SetParentURIContentListener(uriListener);
-*/
 
 
    // Register the BrowserImpl object to receive progress messages

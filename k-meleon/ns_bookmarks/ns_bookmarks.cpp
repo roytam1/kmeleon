@@ -98,7 +98,7 @@ int Init(){
 
    kPlugin.kf->GetPreference(PREF_STRING, _T("kmeleon.general.settingsDir"), szPath, "");
    strcat(szPath, "bookmarks.html");
-
+  
    FILE *bmFile = fopen(szPath, "r");
    if (bmFile)
       fclose(bmFile);

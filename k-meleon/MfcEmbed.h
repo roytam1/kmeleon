@@ -71,6 +71,7 @@ public:
 							PRInt32 cx = -1, PRInt32 cy = -1,
 							PRBool bShowWindow = PR_TRUE);
 	void RemoveFrameFromList(CBrowserFrame* pFrm, BOOL bCloseAppOnLastFrame = TRUE);
+   nsresult OverrideComponents();
 
 	// Overrides
 	// ClassWizard generated virtual function overrides

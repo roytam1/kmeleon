@@ -108,13 +108,13 @@ void DoRebar(HWND rebarWnd) {
       kPlugin.hDllInstance, NULL
       );
 
-   // Register the band name and child hwnd
-   kPlugin.kf->RegisterBand(hwndTB, "Menu Bar");
-
    if (!hwndTB){
       MessageBox(NULL, "Failed to create menu toolbar", NULL, 0);
       return;
    }
+
+   // Register the band name and child hwnd
+   kPlugin.kf->RegisterBand(hwndTB, "Menu Bar");
 
    m_menu = GetMenu(GetParent(rebarWnd));
    if (!m_menu){
@@ -129,43 +129,43 @@ void DoRebar(HWND rebarWnd) {
    mInfo.cbSize = sizeof(mInfo);
    int i;
    int count = GetMenuItemCount(m_menu);
-   for (i=0; i<count; i++){
-     if (GetMenuState(m_menu, i, MF_BYPOSITION) & MF_POPUP){
-        char temp[128];
-        mInfo.fMask = MIIM_TYPE | MIIM_SUBMENU;
-        mInfo.cch = 127;
-        mInfo.dwTypeData = temp;
-        GetMenuItemInfo(m_menu, i, MF_BYPOSITION, &mInfo);
+   for (i=0; i<count; i++) {
+      if ( GetMenuState(m_menu, i, MF_BYPOSITION) & MF_POPUP) {
+         char temp[128];
+         mInfo.fMask = MIIM_TYPE | MIIM_SUBMENU;
+         mInfo.cch = 127;
+         mInfo.dwTypeData = temp;
+         GetMenuItemInfo(m_menu, i, MF_BYPOSITION, &mInfo);
 
-        stringID = SendMessage(hwndTB, TB_ADDSTRING, (WPARAM)NULL, (LPARAM)(LPCTSTR)mInfo.dwTypeData);
+         stringID = SendMessage(hwndTB, TB_ADDSTRING, (WPARAM)NULL, (LPARAM)(LPCTSTR)mInfo.dwTypeData);
 
-        TBBUTTON button;
-        button.iBitmap = 0;
-        button.idCommand = (int)mInfo.hSubMenu + SUBMENU_OFFSET;
-        button.fsState = TBSTATE_ENABLED;
-        button.fsStyle = TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE | TBSTYLE_DROPDOWN;
-        button.iString = stringID;
+         TBBUTTON button;
+         button.iBitmap = 0;
+         button.idCommand = (int)mInfo.hSubMenu + SUBMENU_OFFSET;
+         button.fsState = TBSTATE_ENABLED;
+         button.fsStyle = TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE | TBSTYLE_DROPDOWN;
+         button.iString = stringID;
 
-        SendMessage(hwndTB, TB_INSERTBUTTON, (WPARAM)-1, (LPARAM)&button);
-     }
-     else{
-        char temp[128];
-        mInfo.fMask = MIIM_TYPE | MIIM_ID;
-        mInfo.cch = 127;
-        mInfo.dwTypeData = temp;
-        GetMenuItemInfo(m_menu, i, MF_BYPOSITION, &mInfo);
+         SendMessage(hwndTB, TB_INSERTBUTTON, (WPARAM)-1, (LPARAM)&button);
+      }
+      else{
+         char temp[128];
+         mInfo.fMask = MIIM_TYPE | MIIM_ID;
+         mInfo.cch = 127;
+         mInfo.dwTypeData = temp;
+         GetMenuItemInfo(m_menu, i, MF_BYPOSITION, &mInfo);
 
-        stringID = SendMessage(hwndTB, TB_ADDSTRING, (WPARAM)NULL, (LPARAM)(LPCTSTR)mInfo.dwTypeData);
+         stringID = SendMessage(hwndTB, TB_ADDSTRING, (WPARAM)NULL, (LPARAM)(LPCTSTR)mInfo.dwTypeData);
 
-        TBBUTTON button;
-        button.iBitmap = 0;
-        button.idCommand = mInfo.wID;
-        button.fsState = TBSTATE_ENABLED;
-        button.fsStyle = TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE;
-        button.iString = stringID;
+         TBBUTTON button;
+         button.iBitmap = 0;
+         button.idCommand = mInfo.wID;
+         button.fsState = TBSTATE_ENABLED;
+         button.fsStyle = TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE;
+         button.iString = stringID;
 
-        SendMessage(hwndTB, TB_INSERTBUTTON, (WPARAM)-1, (LPARAM)&button);
-     }
+         SendMessage(hwndTB, TB_INSERTBUTTON, (WPARAM)-1, (LPARAM)&button);
+      }
    }
 
    // Get the height of the toolbar.

@@ -43,7 +43,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MD /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_AFXDLL" /Yu"stdafx.h" /FD /c
-# ADD CPP /nologo /MD /W3 /GX /O2 /I "..\mozilla\mozilla\nsprpub\pr\include" /I "..\mozilla\mozilla\nsprpub\_o.obj\include" /I "..\mozilla\mozilla\include" /I "..\mozilla\mozilla\xpcom\components" /I "..\mozilla\mozilla\dist\include" /I "..\mozilla\mozilla\dist\WIN32_O.OBJ\include" /D "WIN32" /D "_WINDOWS" /D "_AFXDLL" /D "_MBCS" /D "HW_THREADS" /D "XP_PC" /D "XP_WIN" /D "XP_WIN32" /D WINVER=0x400 /D _WIN32_IE=0x0500 /Fr /Yu"stdafx.h" /FD /c
+# ADD CPP /nologo /MD /W3 /GX /O2 /I "..\mozilla\mozilla\nsprpub\pr\include" /I "..\mozilla\mozilla\nsprpub\_o.obj\include" /I "..\mozilla\mozilla\include" /I "..\mozilla\mozilla\xpcom\components" /I "..\mozilla\mozilla\dist\include" /I "..\mozilla\mozilla\dist\WIN32_O.OBJ\include" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "HW_THREADS" /D "XP_PC" /D "XP_WIN" /D "XP_WIN32" /D WINVER=0x400 /D _WIN32_IE=0x0500 /D "_AFXDLL" /Fr /Yu"stdafx.h" /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "NDEBUG" /d "_AFXDLL"
@@ -75,7 +75,7 @@ PostBuild_Cmds=version BUILD_NUMBER version.h
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_AFXDLL" /Yu"stdafx.h" /FD /GZ /c
-# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "..\mozilla\mozilla\nsprpub\pr\include" /I "..\mozilla\mozilla\nsprpub\_o.obj\include" /I "..\mozilla\mozilla\include" /I "..\mozilla\mozilla\xpcom\components" /I "..\mozilla\mozilla\dist\include" /I "..\mozilla\mozilla\dist\WIN32_o.OBJ\include" /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "_AFXDLL" /D "_MBCS" /D "HW_THREADS" /D "XP_PC" /D "XP_WIN" /D "XP_WIN32" /D WINVER=0x400 /FR /Yu"stdafx.h" /FD /GZ /c
+# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "\projects\mozilla\mozilla\dist\include" /I "\projects\mozilla\mozilla\dist\WIN32_O.OBJ\include" /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "HW_THREADS" /D "XP_PC" /D "XP_WIN" /D "XP_WIN32" /D WINVER=0x400 /D "_AFXDLL" /FR /Yu"stdafx.h" /FD /GZ /c
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "_DEBUG" /d "_AFXDLL"
@@ -133,11 +133,11 @@ SOURCE=.\BrowserImpl.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\BrowserImplCtxMenuLstnr.cpp
+SOURCE=.\BrowserImplContentLstnr.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\BrowserImplPrompt.cpp
+SOURCE=.\BrowserImplCtxMenuLstnr.cpp
 # End Source File
 # Begin Source File
 
@@ -257,11 +257,11 @@ SOURCE=.\kmeleon_plugin.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\Log.h
+SOURCE=.\KmeleonConst.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\KmeleonConst.h
+SOURCE=.\Log.h
 # End Source File
 # Begin Source File
 
@@ -389,11 +389,31 @@ SOURCE=.\res\icon2.ico
 # End Source File
 # Begin Source File
 
+SOURCE=.\res\icon3.ico
+# End Source File
+# Begin Source File
+
 SOURCE=.\res\KmeleonDocument.ico
 # End Source File
 # Begin Source File
 
 SOURCE=.\res\MozillaBrowser.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\off.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\offcheck.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\on.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\oncheck.ico
 # End Source File
 # Begin Source File
 

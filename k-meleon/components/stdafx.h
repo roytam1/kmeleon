@@ -21,38 +21,25 @@
  *   Chak Nanga <chak@netscape.com> 
  */
 
-#ifndef _BROWSERIMPL_H
-#define _BROWSERIMPL_H
+// stdafx.h : include file for standard system include files,
+//  or project specific include files that are used frequently, but
+//      are changed infrequently
+//
 
-#include "IBrowserFrameGlue.h"
+#ifndef _STDAFX_H
+#define _STDAFX_H
 
-class CBrowserImpl : public nsIInterfaceRequestor,
-					 public nsIWebBrowserChrome,
-					 public nsIEmbeddingSiteWindow,
-					 public nsIWebProgressListener,
-					 public nsIContextMenuListener,
-					 public nsSupportsWeakReference,
-                public nsIURIContentListener
-{
-public:
-   CBrowserImpl();
-   ~CBrowserImpl();
-   NS_METHOD Init(PBROWSERFRAMEGLUE pBrowserFrameGlue,
-					nsIWebBrowser* aWebBrowser);
+#define VC_EXTRALEAN	// Exclude rarely-used stuff from Windows headers
 
-   NS_DECL_ISUPPORTS
-	NS_DECL_NSIINTERFACEREQUESTOR
-   NS_DECL_NSIWEBBROWSERCHROME
-   NS_DECL_NSIEMBEDDINGSITEWINDOW
-   NS_DECL_NSIWEBPROGRESSLISTENER
-	NS_DECL_NSICONTEXTMENULISTENER
-   NS_DECL_NSIURICONTENTLISTENER
+#include <afxwin.h>         // MFC core and standard components
+#include <afxext.h>         // MFC extensions
+#include <afxdtctl.h>		// MFC support for Internet Explorer 4 Common Controls
+#include <afxpriv.h>		// Needed for MFC MBCS/Unicode Conversion Macros
+#ifndef _AFX_NO_AFXCMN_SUPPORT
+#include <afxcmn.h>			// MFC support for Windows Common Controls
+#endif // _AFX_NO_AFXCMN_SUPPORT
 
-protected:
+//{{AFX_INSERT_LOCATION}}
+// Microsoft Visual C++ will insert additional declarations immediately before the previous line.
 
-	PBROWSERFRAMEGLUE m_pBrowserFrameGlue;
-
-	nsCOMPtr<nsIWebBrowser> mWebBrowser;
-};
-
-#endif //_BROWSERIMPL_H
+#endif //_STDAFX_H

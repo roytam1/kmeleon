@@ -18,11 +18,13 @@
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <shellapi.h>
 
 #define KMELEON_PLUGIN_EXPORTS
 #include "..\kmeleon_plugin.h"
 #include "..\utils.h"
 
+#define _T(x) x
 
 #define NOTFOUND -1
 
@@ -128,6 +130,10 @@ void Create(HWND hWndParent) {
 }
 
 void Config(HWND hWndParent) {
+   char cfgPath[MAX_PATH];
+   kPlugin.kf->GetPreference(PREF_STRING, _T("kmeleon.general.settingsDir"), cfgPath, "");
+   strcat(cfgPath, "macros.cfg");
+   ShellExecute(NULL, NULL, "notepad.exe", cfgPath, NULL, SW_SHOW);
 }
 
 void Quit() {

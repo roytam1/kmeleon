@@ -14,40 +14,31 @@
  *
  * The Initial Developer of the Original Code is Netscape
  * Communications Corporation.  Portions created by Netscape are
- * Copyright (C) 1998 Netscape Communications Corporation. All
+ * Copyright (C) 2001 Netscape Communications Corporation. All
  * Rights Reserved.
  *
  * Contributor(s): 
- *   Chak Nanga <chak@netscape.com> 
  */
 
-#ifndef _DIALOGS_H_
-#define _DIALOGS_H_
+#ifndef __PromptService_h
+#define __PromptService_h
 
-#include "resource.h"
+#ifndef XP_WIN
+#define XP_WIN
+#endif
 
-class CBrowserView;
+#include "nsError.h"
 
-class CFindDialog : public CFindReplaceDialog	
-{
-public:
-	CFindDialog(CString& csSearchStr, PRBool bMatchCase,
-				PRBool bMatchWholeWord, PRBool bWrapAround,
-				PRBool bSearchBackwards, CBrowserView* pOwner);
-	BOOL WrapAround();
-	BOOL SearchBackwards();
+class nsIFactory;
 
-private:
-	CString m_csSearchStr;
-	PRBool m_bMatchCase;
-	PRBool m_bMatchWholeWord;
-	PRBool m_bWrapAround;
-	PRBool m_bSearchBackwards;
-	CBrowserView* m_pOwner;
+// factory creator, in hard and soft link formats
+extern "C" NS_EXPORT nsresult NS_NewPromptServiceFactory(nsIFactory** aFactory);
+typedef nsresult (__cdecl *MakeFactoryType)(nsIFactory **);
+#define kPromptServiceFactoryFuncName "NS_NewPromptServiceFactory"
 
-protected:
-	virtual BOOL OnInitDialog();
-	virtual void PostNcDestroy();
-};
+// initialization function, in hard and soft link formats
+extern "C" NS_EXPORT void InitPromptService(HINSTANCE instance);
+typedef nsresult (__cdecl *InitPromptServiceType)(HINSTANCE instance);
+#define kPromptServiceInitFuncName "InitPromptService"
 
-#endif //_DIALOG_H_
+#endif

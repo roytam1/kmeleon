@@ -68,7 +68,7 @@ void CPreferences::Load() {
       if (NS_FAILED(rv) || !inited) {
          // Set up prefs for first run
          rv = prefs->SetBoolPref(_T("kmeleon.prefs_inited"), PR_TRUE);
-         rv = prefs->SavePrefFile(nsnull);
+         rv = prefs->SavePrefFile();
       }
 
 
@@ -252,7 +252,7 @@ void CPreferences::Save() {
       else
          rv = prefs->SetCharPref(_T("image.animation_mode"), _T("none"));
 
-      rv = prefs->SavePrefFile(nsnull);
+      rv = prefs->SavePrefFile();
    }
    else
       NS_ASSERTION(PR_FALSE, "Could not get preferences service");

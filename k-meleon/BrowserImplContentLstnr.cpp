@@ -78,6 +78,10 @@ CBrowserImpl::IsPreferred(const char * aContentType,
    NS_ENSURE_ARG_POINTER(aDesiredContentType);
    NS_ENSURE_ARG_POINTER(aCanHandleContent);
    *aDesiredContentType = nsnull;
+
+//   nsCOMPtr<nsIURI> currentURI;
+//	rv = mWebBrowser->GetCurrentURI(getter_AddRefs(currentURI));
+   
    // claim that we can handle everything
    *aCanHandleContent = PR_TRUE;
    return NS_OK;
