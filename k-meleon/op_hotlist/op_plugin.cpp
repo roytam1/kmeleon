@@ -90,7 +90,7 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
       }
       else if (stricmp(subject, "FindNick") == 0) {
          if (data1 && data2)
-            findNick((char *)data1, (char *)data2);
+            findNick((char *)data1, (char **)data2);
       }
       else return 0;
       

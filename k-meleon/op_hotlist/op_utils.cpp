@@ -117,29 +117,38 @@ LRESULT APIENTRY WndTBSubclassProc(
 } 
 
 
-void findNick(char *nick, char *url)
+void findNick(char *nick, char **url)
 {
    CBookmarkNode *retNode = (*nick ? gHotlistRoot.FindNick(nick) : NULL);
    
-   *url = 0;
    if (retNode) {
       if (retNode->type == BOOKMARK_BOOKMARK) {
-         strcpy(url, (char*)retNode->url.c_str());
+         *url = (char *) malloc(INTERNET_MAX_URL_LENGTH+1);
+         strcpy(*url, (char*)retNode->url.c_str());
       }
       else if (retNode->type == BOOKMARK_FOLDER) {
-         int len = MSGEX_LENGTH-2;
-         CBookmarkNode *c =   retNode->child;
-         while (c && len > 0) {
+         CBookmarkNode *c = retNode->child;
+	 int len = 0;
+         while (c) {
+            if (c->type == BOOKMARK_BOOKMARK && c->url.c_str())
+               len += strlen(c->url.c_str()) + 1;
+            c = c->next;
+         }
+
+	 if (!len) return;
+         char *pUrl = (char *)malloc(len);
+	 *url = pUrl;
+
+         c = retNode->child;
+         while (c) {
             if (c->type == BOOKMARK_BOOKMARK && c->url.c_str()) {
-               strncpy(url, c->url.c_str(), len);
-               int slen = strlen(url);
-               len -= slen;
-               url += slen;
-               *url++ = '\t';
+               strcpy(pUrl, c->url.c_str());
+               pUrl += strlen(pUrl);
+               *pUrl++ = '\t';
             }
             c = c->next;
          }
-         *url = 0;
+         *pUrl = 0;
       }
    }
 }
