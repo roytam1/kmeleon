@@ -35,16 +35,17 @@ extern WNDPROC KMeleonWndProc;
 
 // Preferences Dialog function
 BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-
    switch (uMsg) {
-		case WM_INITDIALOG:
+      case WM_INITDIALOG:
          SendDlgItemMessage(hWnd, IDC_REBARENABLED, BM_SETCHECK, gToolbarEnabled, 0);
          SetDlgItemText(hWnd, IDC_BOOKMARKS_FILE, gBookmarkFile);
+         SetDlgItemInt(hWnd, IDC_MAX_MENU_LENGTH, gMaxMenuLength, false);
+         SetDlgItemInt(hWnd, IDC_MAX_TB_SIZE, gMaxTBSize, false);
          break;
       case WM_COMMAND:
-			switch(HIWORD(wParam)) {
-				case BN_CLICKED:
-					switch (LOWORD(wParam)) {
+         switch(HIWORD(wParam)) {
+            case BN_CLICKED:
+               switch (LOWORD(wParam)) {
                case IDC_BROWSE:
                   {
                      char tempPath[MAX_PATH];
@@ -52,6 +53,14 @@ BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 
                      GetWindowText(hBookmarksFileWnd, tempPath, MAX_PATH);
                      if (BrowseForBookmarks(tempPath)) {
+                        // if the file they chose doesn't exist, create it
+                        FILE *bmFile = fopen(gBookmarkFile, "r");
+                        if (!bmFile) {
+                           bmFile = fopen(gBookmarkFile, "w");
+                           gGeneratedByUs = true;
+                        }
+                        fclose(bmFile);
+
                         SetWindowText(hBookmarksFileWnd, tempPath);
                         SetFocus(hBookmarksFileWnd);
                      }
@@ -59,10 +68,21 @@ BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
                   break;
                case IDOK:
                   gToolbarEnabled = SendDlgItemMessage(hWnd, IDC_REBARENABLED, BM_GETCHECK, 0, 0);
-                  kPlugin.kf->SetPreference(PREF_BOOL, PREFERENCE_TOOLBAR_ENABLED, &gToolbarEnabled);
+                  kPlugin.kFuncs->SetPreference(PREF_BOOL, PREFERENCE_TOOLBAR_ENABLED, &gToolbarEnabled);
 
                   GetDlgItemText(hWnd, IDC_BOOKMARKS_FILE, gBookmarkFile, MAX_PATH);
-                  kPlugin.kf->SetPreference(PREF_STRING, PREFERENCE_BOOKMARK_FILE, gBookmarkFile);
+                  kPlugin.kFuncs->SetPreference(PREF_STRING, PREFERENCE_BOOKMARK_FILE, gBookmarkFile);
+
+                  gMaxMenuLength = GetDlgItemInt(hWnd, IDC_MAX_MENU_LENGTH, NULL, false);
+                  if (gMaxMenuLength < 1) gMaxMenuLength = 20;
+                  kPlugin.kFuncs->SetPreference(PREF_INT, PREFERENCE_MAX_MENU_LENGTH, &gMaxMenuLength);
+
+                  gMaxTBSize = GetDlgItemInt(hWnd, IDC_MAX_TB_SIZE, NULL, false);
+                  if (gMaxTBSize < 1) gMaxTBSize = 20;
+                  kPlugin.kFuncs->SetPreference(PREF_INT, PREFERENCE_MAX_TB_SIZE, &gMaxTBSize);
+
+                  // rebuild menu and toolbars to provide instant gratification to users
+                  Rebuild();
 
                   // fall through...
                case IDCANCEL:
@@ -71,12 +91,12 @@ BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
          }
          break;
       case WM_CLOSE:
-			EndDialog(hWnd, NULL);
-			break;
-		default:
-			return FALSE;
+         EndDialog(hWnd, NULL);
+         break;
+      default:
+         return false;
    }
-   return TRUE;
+   return true;
 }
 
 BOOL BrowseForBookmarks(char *file)
@@ -112,7 +132,6 @@ BOOL BrowseForBookmarks(char *file)
 }
 
 // Save boomkarks
-
 static void SaveBookmarks(FILE *bmFile, CBookmarkNode &node)
 {
    fprintf(bmFile, "<DL><p>\n");
@@ -122,12 +141,14 @@ static void SaveBookmarks(FILE *bmFile, CBookmarkNode &node)
    for (child=node.child; child; child=child->next) {
       type = child->type;
       if (type == BOOKMARK_FOLDER){
-         fprintf(bmFile, "<DT><H3 ADD_DATE=\"%d\">%s</H3>\n", child->addDate, child->text.c_str());
-
-         SaveBookmarks(bmFile, *child);
-      }
-      else if (type == BOOKMARK_FOLDER_TB) {
-         fprintf(bmFile, "<DT><H3 ADD_DATE=\"%d\" PERSONAL_TOOLBAR_FOLDER=\"true\">%s</H3>\n<DL><p>\n", child->addDate, child->text.c_str());
+         char szFolderFlags[64] = {0};
+         if (child->flags & BOOKMARK_FLAG_TB)
+            strcat(szFolderFlags, "PERSONAL_TOOLBAR_FOLDER=\"true\" ");
+         if (child->flags & BOOKMARK_FLAG_NB)
+            strcat(szFolderFlags, "NEWITEMHEADER ");
+         if (child->flags & BOOKMARK_FLAG_BM)
+            strcat(szFolderFlags, "MENUHEADER ");
+         fprintf(bmFile, "<DT><H3 %sADD_DATE=\"%d\">%s</H3>\n", szFolderFlags, child->addDate, child->text.c_str());
 
          SaveBookmarks(bmFile, *child);
       }
@@ -135,7 +156,7 @@ static void SaveBookmarks(FILE *bmFile, CBookmarkNode &node)
          fprintf(bmFile, "<HR>\n");
       }
       else{
-         fprintf(bmFile, "<DT><A HREF=\"%s\" ADD_DATE=\"%d\" LAST_VISIT=\"%d\" LAST_ACCESS=\"%d\">%s</A>\n", child->url.c_str(), child->addDate, child->lastModified, child->lastVisit, child->text.c_str());
+         fprintf(bmFile, "<DT><A HREF=\"%s\" ADD_DATE=\"%d\" LAST_VISIT=\"%d\" LAST_MODIFIED=\"%d\">%s</A>\n", child->url.c_str(), child->addDate, child->lastVisit, child->lastModified, child->text.c_str());
       }
    }
    fprintf(bmFile, "</DL><p>\n");
@@ -147,8 +168,7 @@ void Save(const char *file)
       return;
 
    if (!gGeneratedByUs) {
-      if (MessageBox(NULL, BOOKMARKS_NOT_BY_US,
-         PLUGIN_NAME, MB_YESNO) != IDYES) {
+      if (MessageBox(NULL, BOOKMARKS_NOT_BY_US, PLUGIN_NAME, MB_YESNO) != IDYES) {
          return;
       }
    }
@@ -158,7 +178,8 @@ void Save(const char *file)
       fprintf(bmFile, "%s\n", BOOKMARK_TAG);
       fprintf(bmFile, "%s\n", KMELEON_TAG);
       fprintf(bmFile, "%s\n", COMMENT_TAG);
-      fprintf(bmFile, "%s\n", CONTENT_TYPE_TAG);
+// FIXME - figure out if this needs to be here, or if it should be different on non-US-English systems
+//      fprintf(bmFile, "%s\n", CONTENT_TYPE_TAG);
       fprintf(bmFile, "<TITLE>%s</TITLE>\n", gBookmarksTitle);
       fprintf(bmFile, "<H1>%s</H1>\n\n", gBookmarksTitle);
 
@@ -166,8 +187,12 @@ void Save(const char *file)
 
       fclose(bmFile);
    }
+
+   gGeneratedByUs = true;
+   gBookmarksModified = false;
+
    /* this is to support both NS 4 and NS 6 style bookmarks */
-   kPlugin.kf->SetPreference(PREF_STRING, PREFERENCE_TOOLBAR_FOLDER, (void *)gBookmarkRoot.FindToolbarNode()->text.c_str());
+   kPlugin.kFuncs->SetPreference(PREF_STRING, PREFERENCE_TOOLBAR_FOLDER, (void *)gBookmarkRoot.FindSpecialNode(BOOKMARK_FLAG_TB)->text.c_str());
 }
 
 // Load bookmarks
@@ -203,12 +228,21 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
 
          ParseBookmarks(end, *newNode);
 
-         /* this is to support both NS 4 and NS 6 style bookmarks */
+         // this is to support both NS 4 and NS 6 style bookmarks
          if ( (strcmp(name, gToolbarFolder) == 0) ||
               (strstr(t, _Q(PERSONAL_TOOLBAR_FOLDER="true"))) )
          {
-            newNode->type = BOOKMARK_FOLDER_TB;
+            newNode->flags |= BOOKMARK_FLAG_TB;
          }
+
+         // These are both NS 4 style - I don't know how Mozilla does it
+         if ( strstr(t, "NEWITEMHEADER") ) {
+            newNode->flags |= BOOKMARK_FLAG_NB;
+         }
+         if ( strstr(t, "MENUHEADER") ) {
+            newNode->flags |= BOOKMARK_FLAG_BM;
+         }
+
          newNode->id = 0;  // later, in buildmenu, this will be set to the hmenu
       }
       else if ((t = strstr(p, "<DT><A HREF=\"")) != NULL) {
@@ -259,8 +293,7 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
          if (name[0] == 0)
             name = url;
 
-         node.AddChild(new CBookmarkNode(gNumBookmarks, name, url, BOOKMARK_BOOKMARK, addDate, lastVisit, lastModified));
-         gNumBookmarks++;
+         node.AddChild(new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), name, url, BOOKMARK_BOOKMARK, addDate, lastVisit, lastModified));
       }
       else if ((t = strstr(p, "</DL>")) != NULL) {
          return;
@@ -287,32 +320,122 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
 }
 
 // Build Menu
-void BuildMenu(HMENU menu, CBookmarkNode &node)
+void BuildMenu(HMENU menu, CBookmarkNode *node, BOOL isContinuation)
 {
    CBookmarkNode *child;
-   for (child=node.child; child; child=child->next) {
-      if (child->type == BOOKMARK_SEPARATOR) {
+   int count = 0;
+
+   for (child = (isContinuation) ? node : node->child ; child ; child = child->next) {
+      if (++count > gMaxMenuLength) {
+         HMENU childMenu = CreatePopupMenu();
+//MessageBox(NULL, "[more]", "Adding:", MB_OK);
+         AppendMenu(menu, MF_STRING|MF_POPUP, (UINT)childMenu, "[more]");
+         BuildMenu(childMenu, child, true);
+         break;
+	  }
+      else if (child->type == BOOKMARK_SEPARATOR) {
          AppendMenu(menu, MF_SEPARATOR, 0, "");
       }
-      else if (child->type == BOOKMARK_FOLDER || child->type == BOOKMARK_FOLDER_TB) {
+      else if (child->type == BOOKMARK_FOLDER) {
          HMENU childMenu = CreatePopupMenu();
-         BuildMenu(childMenu, *child);
-         AppendMenu(menu, MF_STRING|MF_POPUP, (UINT)childMenu, child->text.c_str());
          child->id = (UINT)childMenu; // we have to save off the HMENU for the rebar
+//MessageBox(NULL, child->text.c_str(), "Adding:", MB_OK);
+         AppendMenu(menu, MF_STRING|MF_POPUP, (UINT)childMenu, child->text.c_str());
+         BuildMenu(childMenu, child, false);
       }
       else {
          char *pszTemp = _strdup(child->text.c_str());
          CondenseString(pszTemp, 40);
-         AppendMenu(menu, MF_STRING, nFirstBookmarkCommand + child->id, pszTemp);
+//MessageBox(NULL, pszTemp, "Adding:", MB_OK);
+         AppendMenu(menu, MF_STRING, child->id, pszTemp);
          delete pszTemp;
       }
    }
 }
 
+// Build Rebar
+void BuildRebar()
+{
+   CBookmarkNode *toolbarNode = gBookmarkRoot.FindSpecialNode(BOOKMARK_FLAG_TB);
+
+   SetWindowText(ghWndTB, TOOLBAND_NAME);
+
+   //SendMessage(ghWndTB, TB_SETEXTENDEDSTYLE, 0, TBSTYLE_EX_DRAWDDARROWS);
+
+   SendMessage(ghWndTB, TB_SETIMAGELIST, 0, (LPARAM)gImagelist);
+
+   SendMessage(ghWndTB, TB_SETBUTTONWIDTH, 0, MAKELONG(0, 100));
+
+   int stringID;
+
+   CBookmarkNode *child;
+
+   for (child=toolbarNode->child; child; child=child->next) {
+      if (child->type == BOOKMARK_SEPARATOR) {
+         continue;
+      }
+
+      char *buttonString = new char[strlen(child->text.c_str()) + 1];
+      strcpy(buttonString, child->text.c_str());
+      CondenseString(buttonString, gMaxTBSize);
+      stringID = SendMessage(ghWndTB, TB_ADDSTRING, (WPARAM)NULL, (LPARAM)buttonString);
+	  delete buttonString;
+
+      TBBUTTON button = {0};
+      button.iString = stringID;
+      button.fsState = TBSTATE_ENABLED;
+      button.fsStyle = TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE;
+
+      if (child->type == BOOKMARK_FOLDER){
+         // toolbar may not be contained in bookmark menu, so we can't just use its submenus
+         HMENU childMenu = CreatePopupMenu();
+         BuildMenu(childMenu, child, false);
+         button.idCommand = MENU_TO_COMMAND((UINT)childMenu);
+         button.iBitmap = IMAGE_FOLDER_CLOSED;
+         button.fsStyle |= TBSTYLE_DROPDOWN;
+      }
+      else {
+         button.idCommand = child->id;
+         button.iBitmap = IMAGE_BOOKMARK;
+      }
+
+      SendMessage(ghWndTB, TB_INSERTBUTTON, (WPARAM)-1, (LPARAM)&button);
+   }
+
+   TBBUTTON button = {0};
+   button.fsState = TBSTATE_ENABLED;
+   button.fsStyle = TBSTYLE_SEP;
+   SendMessage(ghWndTB, TB_INSERTBUTTON, (WPARAM)0, (LPARAM)&button);
+
+   button.iBitmap = IMAGE_CHEVRON;
+   button.idCommand = nDropdownCommand;
+   button.fsState = TBSTATE_ENABLED;
+   button.fsStyle = TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE | TBSTYLE_DROPDOWN;
+   button.iString = -1;
+   SendMessage(ghWndTB, TB_INSERTBUTTON, (WPARAM)0, (LPARAM)&button);
+}
+
+void Rebuild() {
+   // delete the old bookmarks from the menu (FIXME - needs to be more robust than "delete everything after the first bookmark position" - there may be normal menu items there (if the user is weird))
+   while (DeleteMenu(gMenuBookmarks, nFirstBookmarkPosition, MF_BYPOSITION));
+   // and rebuild
+   BuildMenu(gMenuBookmarks, gBookmarkRoot.FindSpecialNode(BOOKMARK_FLAG_BM), false);
+
+   // need to rebuild the rebar, too, in case it had submenus (whose ids are now invalid)
+   if (ghWndTB) {
+      // delete the old rebar
+      while (SendMessage(ghWndTB, TB_DELETEBUTTON, 0 /*index*/, 0));
+      // and rebuild
+      BuildRebar();
+   }
+
+// FIXME - Is this needed?  Hm, if anywhere, in WndProc, below, in the nAddCommand and nEditCommand cases...  but then it's still only one window, and the others don't get the call, so...   heck, it works without it.  It will stay until someone complains.  :)
+//   DrawMenuBar(hWnd);
+}
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-   if (message == WM_COMMAND){
+    if (message == WM_COMMAND) {
       WORD command = LOWORD(wParam);
 
       if (command == nConfigCommand) {
@@ -320,32 +443,26 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
          return true;
       }
       else if (command == nAddCommand) {
-         kmeleonDocInfo *dInfo = kPlugin.kf->GetDocInfo(hWnd);
+         kmeleonDocInfo *dInfo = kPlugin.kFuncs->GetDocInfo(hWnd);
          if (dInfo) {
-            gBookmarkRoot.AddChild(new CBookmarkNode(gNumBookmarks, dInfo->title, dInfo->url, BOOKMARK_BOOKMARK, time(NULL)));
+            CBookmarkNode *addNode = gBookmarkRoot.FindSpecialNode(BOOKMARK_FLAG_NB);
+            addNode->AddChild(new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), dInfo->title, dInfo->url, BOOKMARK_BOOKMARK, time(NULL)));
 
-            if (strlen(dInfo->title) > 40)
-               CondenseString(dInfo->title, 40);
+            Save(gBookmarkFile);
 
-            AppendMenu(gMenuBookmarks, MF_STRING, nFirstBookmarkCommand+gNumBookmarks, dInfo->title);
-            gNumBookmarks++;
-
-            DrawMenuBar(hWnd);
+            Rebuild();
          }
-         gBookmarksModified = true;
          return true;
       }
       else if (command == nEditCommand) {
          DialogBoxParam(kPlugin.hDllInstance, MAKEINTRESOURCE(IDD_EDIT_BOOKMARKS), hWnd, EditProc, 0);
          return true;
       }
-      else if ((command >= nFirstBookmarkCommand) && (command < (nFirstBookmarkCommand + MAX_BOOKMARKS))){
-         int id = command-nFirstBookmarkCommand;
-         CBookmarkNode *node = gBookmarkRoot.FindNode(id);
+      else if (CBookmarkNode *node = gBookmarkRoot.FindNode(command)) {
+         kPlugin.kFuncs->NavigateTo(node->url.c_str(), OPEN_NORMAL);
 
          node->lastVisit = time(NULL);
-
-         kPlugin.kf->NavigateTo(node->url.c_str(), OPEN_NORMAL);
+         gBookmarksModified = true;	// this doesn't call for instant saving, it can wait until we add/edit/quit
 
          return true;
       }
@@ -378,5 +495,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
          }
       }
    }
+
    return CallWindowProc(KMeleonWndProc, hWnd, message, wParam, lParam);
 }

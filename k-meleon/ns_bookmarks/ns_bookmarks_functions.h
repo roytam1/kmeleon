@@ -17,13 +17,14 @@
 */
 
 // functions exposed to kmeleon
-int Init();
+int  Init();
 void Create(HWND parent);
 void Config(HWND parent);
 void Quit();
 void DoMenu(HMENU menu, char *param);
 void DoRebar(HWND rebarWnd);
 int  DoAccel(char *param);
+void Save(const char *file);
 
 // Window Procs
 BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -34,12 +35,9 @@ CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL BrowseForBookmarks(char *file);
 
 void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node);
-void BuildMenu(HMENU menu, CBookmarkNode &node);
-
-
-#define IS_BOOKMARK(x)  (x>0&&x<SUBMENU_OFFSET)
-#define IS_SEPARATOR(x) (x==0)
-#define IS_FOLDER(x)    (x>=SUBMENU_OFFSET)
+void BuildMenu(HMENU menu, CBookmarkNode *node, BOOL isContinuation);
+void BuildRebar();
+void Rebuild();
 
 #define MENU_TO_COMMAND(x) (x+SUBMENU_OFFSET)
 #define COMMAND_TO_MENU(x) (HMENU)(x-SUBMENU_OFFSET)
@@ -49,12 +47,13 @@ void BuildMenu(HMENU menu, CBookmarkNode &node);
 extern HIMAGELIST gImagelist;
 
 extern HMENU gMenuBookmarks;
+extern HWND ghWndTB;
 
 extern UINT nConfigCommand;
 extern UINT nAddCommand;
 extern UINT nEditCommand;
 extern UINT nDropdownCommand;
-extern UINT nFirstBookmarkCommand;
+extern UINT nFirstBookmarkPosition;
 
 extern CHAR gBookmarkFile[];
 extern CHAR gToolbarFolder[];
@@ -63,8 +62,9 @@ extern CHAR gBookmarksTitle[];
 extern BOOL gBookmarksModified;
 extern BOOL gGeneratedByUs;
 extern BOOL gToolbarEnabled;
+extern int gMaxMenuLength;
+extern int gMaxTBSize;
 
 extern CBookmarkNode gBookmarkRoot;
-extern int gNumBookmarks;
 
 extern kmeleonPlugin kPlugin;

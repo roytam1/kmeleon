@@ -16,7 +16,6 @@
 *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
-#define MAX_BOOKMARKS 4096
 #define BOOKMARKS_TITLE_LEN 64
 
 #define _T(x) TEXT(x)
@@ -27,6 +26,8 @@
 #define PREFERENCE_BOOKMARK_FILE   "kmeleon.plugins.bookmarks.bookmarkFile"
 #define PREFERENCE_TOOLBAR_FOLDER  "kmeleon.plugins.bookmarks.toolbarFolder"
 #define PREFERENCE_TOOLBAR_ENABLED "kmeleon.plugins.bookmarks.toolbarEnabled"
+#define PREFERENCE_MAX_MENU_LENGTH "kmeleon.plugins.bookmarks.maxMenuLength"
+#define PREFERENCE_MAX_TB_SIZE     "kmeleon.plugins.bookmarks.maxToolbarSize"
 #define PREFERENCE_SETTINGS_DIR    "kmeleon.general.settingsDir"
 
 #define BOOKMARK_TAG "<!DOCTYPE NETSCAPE-Bookmark-file-1>"
@@ -52,6 +53,6 @@
 #define IMAGE_FOLDER_OPEN   1
 #define IMAGE_BOOKMARK      2
 #define IMAGE_CHEVRON       3
-#define IMAGE_FOLDER_TB_CLOSED 4
-#define IMAGE_FOLDER_TB_OPEN   5
+#define IMAGE_FOLDER_SPECIAL_CLOSED 4
+#define IMAGE_FOLDER_SPECIAL_OPEN   5
 

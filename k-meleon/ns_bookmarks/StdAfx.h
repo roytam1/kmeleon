@@ -16,6 +16,12 @@
 
 #define OEMRESOURCE
 
+#define VC_EXTRALEAN		// Exclude rarely-used stuff from Windows headers
+
+// for import favorites
+#include <shlobj.h>
+
+
 #include <windows.h>
 
 #include "commctrl.h"
@@ -25,7 +31,6 @@
 
 #pragma warning( disable : 4786 ) // C4786 bitches about the std template names expanding beyond 255 characters
 #include <string>
-#include <vector>
 
 //{{AFX_INSERT_LOCATION}}
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.
