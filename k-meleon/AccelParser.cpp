@@ -73,6 +73,7 @@ int CAccelParser::Load(CString &filename){
   delete accelFile;
   accelFile = NULL;
 
+  CMap<CString, LPCSTR, int, int &> defineMap;
 #include "defineMap.cpp"
 
   char *e, *s;

@@ -1,8 +1,9 @@
 // used by both the Accel Parser and the Menu Parser
 
+#ifndef DEFINEMAP_ADD
 #define DEFINEMAP_ADD(entry) defineMap[#entry] = entry;
+#endif
 
-CMap<CString, LPCSTR, int, int &> defineMap;
 DEFINEMAP_ADD(ID_NAV_BACK)
 DEFINEMAP_ADD(ID_NAV_FORWARD)
 DEFINEMAP_ADD(ID_NAV_HOME)

@@ -162,6 +162,7 @@ int CMenuParser::Load(CString &filename){
 
   TranslateTabs(buffer);
 
+  CMap<CString, LPCSTR, int, int &> defineMap;
 #include "defineMap.cpp"
 
   CMenu *currentMenu = NULL;
