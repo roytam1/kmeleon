@@ -47,6 +47,7 @@ File ..\chrome\*
 SetOutPath $INSTDIR\components
 File ..\components\*
 
+SetOutPath $INSTDIR\defaults
 SetOutPath $INSTDIR\defaults\pref
 File ..\defaults\pref\*
 
@@ -64,6 +65,8 @@ File ..\res\builtin\*
 
 !endif
 
+SectionEnd
+
 #------------------------------------------------------------------------------------------
 Section "Start Menu and Desktop Icons"
 SectionIn 1
@@ -73,9 +76,12 @@ CreateShortCut "$DESKTOP\K-Meleon.lnk" "$INSTDIR\K-Meleon.exe" "" "" 0
 CreateShortCut "$SMPROGRAMS\K-Meleon.lnk" "$INSTDIR\K-Meleon.exe" "" "" 0
 CreateShortCut "$QUICKLAUNCH\K-Meleon.lnk" "$INSTDIR\K-Meleon.exe" "" "" 0
 
+SectionEnd
+
 #------------------------------------------------------------------------------------------
 Section "Always open HTML by K-Meleon"
 SectionIn 1,2
+
 # save the old values somewhere and restore them on uninstall
 ExecWait 'regedit /e "$TEMP\K-Meleon\RESTOREhtm.tmp" HKEY_CLASSES_ROOT\.htm'
 ExecWait 'regedit /e "$TEMP\K-Meleon\RESTOREhtml.tmp" HKEY_CLASSES_ROOT\.html'
@@ -103,8 +109,11 @@ WriteINIStr "$INSTDIR\uninstall\K-MeleonUNINST.reg" "-HKEY_CLASSES_ROOT\.html" "
 WriteINIStr "$INSTDIR\uninstall\K-MeleonUNINST.reg" "-HKEY_CLASSES_ROOT\K-Meleon.HTML" "" ""
 WriteINIStr "$INSTDIR\uninstall\K-MeleonUNINST.reg" "-HKEY_CLASSES_ROOT\http" "" ""
 
+SectionEnd
+
 #------------------------------------------------------------------------------------------
 Section -PostInstall
+
 # Adding the Installation directory which can be used to update k-meleon or by plugin installers
 WriteRegStr HKEY_CURRENT_USER "Software\K-Meleon\K-Meleon\General" "InstallDir" "$INSTDIR"
 # Adding K-Meleon uninstall info
@@ -118,6 +127,7 @@ RMDir $TEMP\K-Meleon
 ;Exec '"$INSTDIR\k-meleon.exe" "$INSTDIR\ReadMe.txt"'
 ExecShell "open" "$INSTDIR\ReadMe.txt"
 
+SectionEnd
 
 #------------------------------------------------------------------------------------------
 # Uninstall part begins here:
@@ -165,3 +175,5 @@ Delete "$SMPROGRAMS\K-Meleon.lnk"
 Delete "$DESKTOP\K-Meleon.lnk"
 Delete "$QUICKLAUNCH\K-Meleon.lnk"
 !endif
+
+SectionEnd
