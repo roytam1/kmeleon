@@ -236,7 +236,41 @@ NS_IMETHODIMP CBrowserImpl::SizeBrowserTo(PRInt32 aCX, PRInt32 aCY)
 
 NS_IMETHODIMP CBrowserImpl::ShowAsModal(void)
 {
-   return NS_ERROR_NOT_IMPLEMENTED;
+   // mostly stolen from WebBrowserChrome.cpp in WinEmbed
+   HWND h = m_pBrowserFrameGlue->GetBrowserFrameNativeWnd();
+   MSG msg;
+   HANDLE hFakeEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+   bool aRunCondition = true;
+   while (aRunCondition) {
+      // Process pending messages
+      while (PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE)) {
+         if (msg.hwnd == h) {
+            if (msg.message == WM_CLOSE) {
+               aRunCondition = PR_FALSE;
+               break;
+            }
+         }
+         
+         if (!GetMessage(&msg, NULL, 0, 0)) {
+            // WM_QUIT
+            aRunCondition = PR_FALSE;
+            break;
+         }
+         
+         PRBool wasHandled = PR_FALSE;
+         NS_HandleEmbeddingEvent(msg, wasHandled);
+         if (wasHandled)
+            continue;
+         
+         TranslateMessage(&msg);
+         DispatchMessage(&msg);
+      }
+      
+      // Do idle stuff
+      MsgWaitForMultipleObjects(1, &hFakeEvent, FALSE, 100, QS_ALLEVENTS);
+   }
+   CloseHandle(hFakeEvent);
+   return msg.wParam;
 }
 
 NS_IMETHODIMP CBrowserImpl::IsWindowModal(PRBool *retval)
