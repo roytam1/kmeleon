@@ -83,9 +83,7 @@ BEGIN_MESSAGE_MAP(CBrowserFrame, CFrameWnd)
 	ON_WM_CLOSE()
    ON_WM_ACTIVATE()
    ON_WM_SYSCOLORCHANGE()
-	ON_WM_COPYDATA()
 	ON_MESSAGE(UWM_REFRESHTOOLBARITEM, RefreshToolBarItem)
-	ON_MESSAGE(UWM_NEWWINDOW, OnNewWindow)
    ON_COMMAND_RANGE(TOOLBAR_MENU_START_ID, TOOLBAR_MENU_END_ID, ToggleToolBar)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
@@ -362,17 +360,18 @@ BOOL CBrowserFrame::PreCreateWindow(CREATESTRUCT& cs)
 		cs.style &= ~WS_MAXIMIZEBOX;
 	}
 
-   cs.lpszClass = theApp.GetMainWindowClassName();
-//	cs.lpszClass = AfxRegisterWndClass(0);
+	cs.lpszClass = AfxRegisterWndClass(0);
 
-  // this function is actually called twice per window.
-  // the first time hInstance is 0
-  if (cs.hInstance){
-    CMenu *menu = theApp.menus.GetMenu(_T("Main"));
-    if (menu){
-      cs.hMenu = menu->m_hMenu;
-    }
-  }
+   // this function is actually called twice per window.
+   // the first time hInstance is 0
+   if (cs.hInstance){
+      CMenu *menu = theApp.menus.GetMenu(_T("Main"));
+      if (menu){
+         cs.hMenu = menu->m_hMenu;
+      }
+      else
+         MessageBox("No Menu");
+   }
 
 	return TRUE;
 }
@@ -567,20 +566,6 @@ BOOL CBrowserFrame::Create(LPCTSTR lpszClassName,
 	return TRUE;
 }
 
-
-// This is called from another instance of Kmeleon (via the UWM_NEWWINDOW message),
-// when no command line paramaters have been specified
-void CBrowserFrame::OnNewWindow() {
-   CBrowserFrame *pBrowserFrame = theApp.CreateNewBrowserFrame();
-   pBrowserFrame->m_wndBrowserView.LoadHomePage();
-}
-
-// This is called from another instance of Kmeleon,
-// and contains any command line parameters specified
-void CBrowserFrame::OnCopyData(CWnd* pWnd, COPYDATASTRUCT* pCopyDataStruct) {
-   CBrowserFrame *pBrowserFrame = theApp.CreateNewBrowserFrame();
-   pBrowserFrame->m_wndBrowserView.OpenURL((char *) pCopyDataStruct->lpData);
-}
 
 #ifdef _DEBUG
 void CBrowserFrame::AssertValid() const

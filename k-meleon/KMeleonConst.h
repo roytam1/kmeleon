@@ -16,14 +16,18 @@
 *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
-#define  UWM_UPDATESESSIONHISTORY      WM_APP + 110
-#define  UWM_REFRESHTOOLBARITEM        WM_APP + 111
+#define UWM_UPDATESESSIONHISTORY       WM_APP + 110
+#define UWM_REFRESHTOOLBARITEM         WM_APP + 111
 
-#define  UWM_NEWWINDOW                 WM_APP + 115
+#define UWM_NEWWINDOW                  WM_APP + 115
 
-#define  TB_LBUTTONDOWN	               WM_APP + 120
-#define  TB_MBUTTONDOWN	               WM_APP + 121
-#define  TB_RBUTTONDOWN	               WM_APP + 122
+#define UWM_PERSIST_SET                WM_APP + 116
+#define UWM_PERSIST_GET                WM_APP + 117
+#define UWM_PERSIST_SHOW               WM_APP + 118
+
+#define TB_LBUTTONDOWN	               WM_APP + 120
+#define TB_MBUTTONDOWN	               WM_APP + 121
+#define TB_RBUTTONDOWN	               WM_APP + 122
 
 #define TB_LBUTTONHOLD                 WM_APP + 123
 #define TB_MBUTTONHOLD	               WM_APP + 124
@@ -38,9 +42,18 @@
 #define PLUGIN_REBAR_START_ID          200
 
 #define TOOLBAR_MENU_START_ID          5000
-#define TOOLBAR_MENU_END_ID            TOOLBAR_MENU_START_ID+50
+#define TOOLBAR_MENU_END_ID            TOOLBAR_MENU_START_ID+50  // this limits us to 50 toolbars, should be enough :)
 #define BAND_BASE_ID                   200
 
 #define PREF_NEW_WINDOW_CURRENT        0
 #define PREF_NEW_WINDOW_HOME           1
 #define PREF_NEW_WINDOW_URL            2
+
+
+// the SHOWNOW flag is set when the loader launches kmeleon and needs a browser window immediately
+#define PERSIST_BROWSER                0x0001
+#define PERSIST_WINDOW                 0x0002
+#define PERSIST_STARTPAGE              0x0004
+#define PERSIST_SHOWNOW                0x0008
+
+
