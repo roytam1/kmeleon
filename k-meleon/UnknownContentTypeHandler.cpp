@@ -39,7 +39,10 @@ CUnknownContentTypeHandler::Show( nsIHelperAppLauncher *aLauncher, nsISupports *
     // later on, we may want to say, "hey, we have no clue how to handle this, do you want to
     // save it or open it in some application?"
    
-   aLauncher->SaveToDisk(nsnull, false);
+  if (theApp.preferences.GetBool("kmeleon.general.SaveUnkownContent", true))
+    aLauncher->SaveToDisk(nsnull, false);
+  else
+    aLauncher->Cancel();
 
    return NS_OK;
 }
