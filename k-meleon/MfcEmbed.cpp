@@ -150,6 +150,8 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
 												   PRBool bShowWindow)
 {
  
+   m_created = false;
+
 	// Load the window title from the string resource table
 	CString strTitle;
 	strTitle.LoadString(IDR_MAINFRAME);
@@ -157,25 +159,25 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
 	// Now, create the browser frame
 	CBrowserFrame* pFrame = new CBrowserFrame(chromeMask);
 
-   // Restore window position if all are -1
-   if (x==-1 && y==-1 && cx==-1 && cy==-1) {
-      pFrame->RestoreWindowPos(&x, &y, &cx, &cy);   
+   // Restore previous window size is -1
+   if (cx==-1 && cy==-1) {
+      cx = preferences.posCX;
+      cy = preferences.posCY;
+      x = CW_USEDEFAULT;
+      y = CW_USEDEFAULT;
    }
 
    // Setup a CRect with the requested window dimensions
 	CRect winSize(x, y, cx, cy);
 
-	// Use the Windows default if all are still specified as -1
-   if(x == -1 && y == -1 && cx == -1 && cy == -1) {
+	// Use the Windows default if size is still -1
+   if(cx == -1 && cy == -1)
 		winSize = CFrameWnd::rectDefault;
-   }
+
 
    LONG style = WS_OVERLAPPEDWINDOW;
-   if (!pFrame->Create(NULL, strTitle, style, 
-					winSize, NULL, MAKEINTRESOURCE(IDR_MAINFRAME), 0L, NULL))
-	{
+   if (!pFrame->Create(NULL, strTitle, style, winSize, NULL, MAKEINTRESOURCE(IDR_MAINFRAME), 0L, NULL))
 		return NULL;
-	}
 
    pFrame->SetIcon(LoadIcon(IDR_MAINFRAME), true);
    pFrame->SetIcon(LoadIcon(IDR_MAINFRAME), false);
@@ -195,7 +197,9 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
 	// Add to the list of BrowserFrame windows
 	m_FrameWndLst.AddHead(pFrame);
 
-	return pFrame;
+   m_created = true;
+   
+   return pFrame;
 }
 
 void CMfcEmbedApp::OnNewBrowser()

@@ -94,7 +94,6 @@ public:
 
 protected: 
 	DECLARE_DYNAMIC(CBrowserFrame)
-   BOOL m_created; // set after we are created
 
 public:
    inline CBrowserImpl *GetBrowserImpl() { return m_wndBrowserView.mpBrowserImpl; }

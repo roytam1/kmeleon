@@ -84,6 +84,8 @@ public:
    CMenuParser   menus;
    CAccelParser  accel;
 
+   BOOL m_created; // set after we are created
+
 // Implementation
 
 public:

@@ -39,11 +39,16 @@ public:
   // this holds the menu.txt files
   CString settingsDir;
 
-  // true if the window should default to maximized
-  int bMaximized;
+   // true if the window should default to maximized
+   int bMaximized;
 
-  int sourceEnabled;
-  CString sourceCommand;
+   // recent window position
+   int posCX, posCY;
+
+
+   // use external source viewer
+   int sourceEnabled;
+   CString sourceCommand;
   
   // -- yummy proxies
   int proxyType;

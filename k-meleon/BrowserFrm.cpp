@@ -122,7 +122,6 @@ void CBrowserFrame::OnClose()
    // the browserframeglue will be deleted soon, so we set it to null so it won't try to access it after it's deleted.
    m_wndBrowserView.SetBrowserFrameGlue(NULL);
 
-   if (!theApp.preferences.bMaximized) SaveWindowPos();
    SaveBandSizes();
 
    CMfcEmbedApp *pApp = (CMfcEmbedApp *)AfxGetApp();
@@ -135,8 +134,7 @@ void CBrowserFrame::OnClose()
 // get created
 // 
 int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct){
-   m_created = false;
-   
+
    if (CFrameWnd::OnCreate(lpCreateStruct) == -1)
 		return -1;
 
@@ -305,8 +303,6 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct){
 
    m_wndUrlBar.SetFocus();
 
-   m_created = true;
-
 	return 0;
 }
 
@@ -386,22 +382,6 @@ void CBrowserFrame::RestoreBandSizes(){
   }
 }
 
-
-void CBrowserFrame::SaveWindowPos() {
-   RECT rc;
-   GetWindowRect(&rc);
-   theApp.preferences.SetInt("kmeleon.display.left", rc.left);
-   theApp.preferences.SetInt("kmeleon.display.top", rc.top);
-   theApp.preferences.SetInt("kmeleon.display.bottom", rc.bottom);
-   theApp.preferences.SetInt("kmeleon.display.right", rc.right);
-}
-
-void CBrowserFrame::RestoreWindowPos(PRInt32 *x, PRInt32 *y, PRInt32 *cx, PRInt32 *cy) {
-   *x  = theApp.preferences.GetInt("kmeleon.display.left", -1);
-   *y  = theApp.preferences.GetInt("kmeleon.display.top", -1);
-   *cy = theApp.preferences.GetInt("kmeleon.display.bottom", -1);
-   *cx = theApp.preferences.GetInt("kmeleon.display.right", -1);
-}
 
 void CBrowserFrame::SetupFrameChrome()
 {
@@ -499,7 +479,7 @@ BOOL CBrowserFrame::OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERIN
 void CBrowserFrame::OnSize(UINT nType, int cx, int cy) {
    CFrameWnd::OnSize(nType, cx, cy);
 
-   if (!m_created) return;
+   if (!theApp.m_created) return;
    
    // Get the ItemRect of the status bar's Pane 0
    // That's where the progress bar will be located
@@ -512,9 +492,15 @@ void CBrowserFrame::OnSize(UINT nType, int cx, int cy) {
    if (m_wndProgressBar.m_hWnd)
       m_wndProgressBar.MoveWindow(&rc);
 
+   // record the maximized state   
    if (nType == SIZE_MAXIMIZED) theApp.preferences.bMaximized = true;
-   else if (nType == SIZE_RESTORED) theApp.preferences.bMaximized = false;
-
+   // record the window size/pos
+   else if (nType == SIZE_RESTORED) {
+      theApp.preferences.bMaximized = false;
+      GetWindowRect(&rc);
+      theApp.preferences.posCX = rc.right - rc.left;
+      theApp.preferences.posCY = rc.bottom - rc.top;
+   }
 }
 
 /////////////////////////////////////////////////////////////////////////////
