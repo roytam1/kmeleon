@@ -432,7 +432,7 @@ void CBrowserFrame::UpdateSecurityStatus(PRInt32 aState)
    CStatusBarCtrl& sb = m_wndStatusBar.GetStatusBarCtrl();
    sb.SetIcon(2, //2 is the pane index of the status bar where the lock icon will be shown
    (HICON)::LoadImage(AfxGetResourceHandle(),
-   MAKEINTRESOURCE(iResID), IMAGE_ICON, 16,16,0));
+   MAKEINTRESOURCE(iResID), IMAGE_ICON, 16,16,LR_LOADMAP3DCOLORS));
 }
 
 void CBrowserFrame::ShowSecurityInfo()
