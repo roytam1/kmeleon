@@ -116,6 +116,9 @@ typedef struct {
 
    BOOL (*GetGlobalVar) (enum PREFTYPE type, char *preference, void *ret);
 
+   char * (*EncodeUTF8) (const char *str);
+   char * (*DecodeUTF8) (const char *str);
+
 } kmeleonFunctions;
 
 /*
