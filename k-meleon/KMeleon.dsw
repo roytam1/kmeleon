@@ -15,6 +15,18 @@ Package=<4>
 
 ###############################################################################
 
+Project: "history"=".\history\history.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
 Project: "ie_favorites"=".\ie_favorites\ie_favorites.dsp" - Package Owner=<4>
 
 Package=<5>

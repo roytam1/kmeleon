@@ -57,6 +57,8 @@ extern CMfcEmbedApp theApp;
 #include "ToolBarEx.h"
 
 #include "Utils.h"
+#include "KmeleonMessages.h"
+
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -108,8 +110,8 @@ BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
 	ON_UPDATE_COMMAND_UI(ID_EDIT_COPY, OnUpdateCopy)
 	ON_UPDATE_COMMAND_UI(ID_EDIT_PASTE, OnUpdatePaste)
 	ON_WM_ACTIVATE()
+	ON_MESSAGE(WM_REFRESHTOOLBARITEM, RefreshToolBarItem)
 	//}}AFX_MSG_MAP
-
 	
 END_MESSAGE_MAP()
 
@@ -417,13 +419,29 @@ void CBrowserView::OnNavForward()
 		mWebNav->GoForward();
 }
 
+
+void CBrowserView::RefreshToolBarItem(WPARAM ItemID, LPARAM unused) {
+	MessageBox("Moo");
+	switch (ItemID) {
+		case ID_NAV_BACK:
+			m_refreshBackButton = TRUE;
+			break;
+		case ID_NAV_FORWARD:
+			m_refreshForwardButton = TRUE;
+			break;
+	}
+}
+
 void CBrowserView::OnUpdateNavBack(CCmdUI* pCmdUI)
 {
 	PRBool canGoBack = PR_FALSE;
 
 	// Buttons get "stuck" down after selecting
 	// a menu item, this fixes them
-//	pCmdUI->Enable(FALSE);
+	if (m_refreshBackButton) {
+		pCmdUI->Enable(FALSE);
+		m_refreshBackButton = FALSE;
+	}
 
 	if (mWebNav)
         mWebNav->GetCanGoBack(&canGoBack);
@@ -437,7 +455,10 @@ void CBrowserView::OnUpdateNavForward(CCmdUI* pCmdUI)
 
 	// Buttons get "stuck" down after selecting
 	// a menu item, this fixes thim
-//	pCmdUI->Enable(FALSE);
+	if (m_refreshForwardButton) {
+		pCmdUI->Enable(FALSE);
+		m_refreshForwardButton = FALSE;
+	}
 
     if (mWebNav)
         mWebNav->GetCanGoForward(&canGoFwd);
@@ -860,21 +881,20 @@ void CBrowserView::OnKmeleonForum()
 // The actual toolbar state will be updated in response to the
 // ON_UPDATE_COMMAND_UI method - OnUpdateNavStop() being called
 //
-void CBrowserView::UpdateBusyState(PRBool aBusy)
-{
+void CBrowserView::UpdateBusyState(PRBool aBusy) {
 	mbDocumentLoading = aBusy;
 
-  if (mbDocumentLoading){
-    mpBrowserFrame->m_wndAnimate.Play(0, -1, -1);
-  }
-  else {
-    mpBrowserFrame->m_wndAnimate.Stop();
-    mpBrowserFrame->m_wndAnimate.Seek(0);
+	if (mbDocumentLoading){
+		mpBrowserFrame->m_wndAnimate.Play(0, -1, -1);
+	}
+	else {
+		mpBrowserFrame->m_wndAnimate.Stop();
+		mpBrowserFrame->m_wndAnimate.Seek(0);
 
-	// UpdateGoMenu is also called in CBrowserFrame::BrowserFrameGlueObj::UpdateCurrentURI
-	// but only the page url is available at that time, this will overwrite it with the title
-//	UpdateGoMenu();
-  }
+		// WM_UPDATESESSIONHISTORY is also posted in in CBrowserFrame::BrowserFrameGlueObj::UpdateCurrentURI
+		// but only the page url is available at that time, this will overwrite it with the title
+		theApp.m_pMainWnd->GetActiveWindow()->PostMessage(WM_UPDATESESSIONHISTORY, 0, 0);
+	}
 }
 
 void CBrowserView::SetCtxMenuLinkUrl(nsAutoString& strLinkUrl)

@@ -63,8 +63,8 @@
 extern CMfcEmbedApp theApp;
 
 #include "BrowserFrm.h"
-
 #include "ToolBarEx.h"
+
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -429,8 +429,8 @@ void CBrowserFrame::OnSetFocus(CWnd* pOldWnd)
 	// forward focus to the browser window
 	m_wndBrowserView.mBaseWindow->SetFocus();
 
-	// update session history the current window
-//	this->m_wndBrowserView.UpdateGoMenu();
+	// update session history for the current window
+//	theApp.m_pMainWnd->GetActiveWindow()->PostMessage(WM_UPDATESESSIONHISTORY, 0, 0);
 }
 
 /*

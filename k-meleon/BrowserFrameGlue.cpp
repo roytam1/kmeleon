@@ -49,6 +49,7 @@
 #include "BrowserFrm.h"
 #include "Dialogs.h"
 #include "MenuParser.h"
+#include "KmeleonMessages.h"
 
 extern CMfcEmbedApp theApp;
 
@@ -102,11 +103,10 @@ void CBrowserFrame::BrowserFrameGlueObj::UpdateCurrentURI(nsIURI *aLocation)
 		pThis->m_wndUrlBar.SetCurrentURL(uriString.get());
 	}
 
-	// append the session history menu info
+	// post notification that the session history is changing
 	// this will be updated later when OnUpdateBusy state is called
-	// because the page title is not yet available
-
-//	pThis->m_wndBrowserView.UpdateGoMenu();
+	// because the page title has not yet loaded
+	theApp.m_pMainWnd->GetActiveWindow()->PostMessage(WM_UPDATESESSIONHISTORY, 0, 0);
 }
 
 void CBrowserFrame::BrowserFrameGlueObj::GetBrowserFrameTitle(PRUnichar **aTitle)

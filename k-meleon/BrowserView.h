@@ -95,16 +95,23 @@ public:
   void StopPanning();
   BOOL m_panning;
   CPoint m_panningPoint;
+  
 
-	// Overrides
+
+protected:
+	BOOL m_refreshBackButton;
+	BOOL m_refreshForwardButton; 
+  
+  
+  // Overrides
 	// ClassWizard generated virtual function overrides
 	//{{AFX_VIRTUAL(CBrowserView)
 	protected:
 	virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
   virtual BOOL PreTranslateMessage(MSG* pMsg);
-	//}}AFX_VIRTUAL
-
-	// Generated message map functions
+	//}}AFX_VIRTUAL  
+  
+  // Generated message map functions
 protected:
 	//{{AFX_MSG(CBrowserView)
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
@@ -144,7 +151,9 @@ protected:
 	afx_msg void OnUpdateCut(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateCopy(CCmdUI* pCmdUI);
 	afx_msg void OnUpdatePaste(CCmdUI* pCmdUI);
+	afx_msg void RefreshToolBarItem(WPARAM ItemID, LPARAM unused);
 	//}}AFX_MSG
+	
 	DECLARE_MESSAGE_MAP()
 };
 
