@@ -21,16 +21,55 @@
 #include "stdafx.h"
 #include "resource.h"
 
-#include "../Utils.h"
-
 #include <vector>
-
-using namespace std;
 
 #define KMELEON_PLUGIN_EXPORTS
 #include "../kmeleon_plugin.h"
+#include "../Utils.h"
+
+#include "../rebar_menu/hot_tracking.h"
+
+#define PLUGIN_NAME "IE Favorites Plugin"
+#define TOOLBAND_LABEL "Links"
+
+#define PREFERENCE_REBAR_ENABLED _T("kmeleon.plugins.favorites.rebar")
+
+#define REG_USER_SHELL_FOLDERS _T("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\User Shell Folders")
+#define REG_SHELL_FOLDERS _T("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders")
+#define REG_FAVORITES_KEY _T("Favorites")
 
 #define MAX_FAVORITES 512
+
+#define ERROR_TOO_MANY_FAVORITES "Error! You have too many favorites!\n\n" \
+                                 "Right now, only 512 favorites are supported"
+
+static CStringArray      gFavorites;         // this one contains the display filename (Really...vorite)
+static CStringArray      gFavoritesFiles;    // this one contains the full filename (SomeFolder\Stuff\Really Long Favorite)
+static CArray<UINT, int> gIcons;
+
+static UINT gNumFavorites;
+
+static int        gInternetShortcutIcon;
+static int        gFolderIcon;
+static HIMAGELIST gSystemImages;
+static CSize      gSysImageSize;
+
+static HMENU gFavoritesMenu;
+
+static UINT nConfigCommand;
+static UINT nAddCommand;
+static UINT nEditCommand;
+static UINT nFirstFavoriteCommand;
+static BOOL bRebarEnabled;
+static HINSTANCE ghInstance;
+
+static TCHAR gFavoritesPath[MAX_PATH];
+static int   gFavoritesPathLen;
+
+static WNDPROC KMeleonWndProc;
+
+LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+int BuildFavoritesMenu(char * strPath, HMENU mainMenu);
 
 int Init();
 void Create(HWND parent);
@@ -51,21 +90,12 @@ pluginFunctions pFuncs = {
 
 kmeleonPlugin kPlugin = {
    KMEL_PLUGIN_VER,
-   "IE Favorites Plugin",
+   PLUGIN_NAME,
    &pFuncs
 };
 
-UINT nConfigCommand;
-UINT nAddCommand;
-UINT nEditCommand;
-UINT nFirstFavoriteCommand;
-BOOL bRebarEnabled;
-HINSTANCE ghInstance;
-
-TCHAR gFavoritesPath[MAX_PATH];
-int   gFavoritesPathLen;
-
-int Init(){
+int Init()
+{
    nConfigCommand = kPlugin.kf->GetCommandIDs(1);
    nAddCommand = kPlugin.kf->GetCommandIDs(1);
    nEditCommand = kPlugin.kf->GetCommandIDs(1);
@@ -82,14 +112,14 @@ int Init(){
    if (!SHGetSpecialFolderPath(NULL, sz, CSIDL_FAVORITES, true)){
 
       // if the correct way failed, find out from the registry where the favorites are located.
-      if(RegOpenKey(HKEY_CURRENT_USER, _T("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\User Shell Folders"), &hKey) == ERROR_SUCCESS) {
+      if(RegOpenKey(HKEY_CURRENT_USER, REG_USER_SHELL_FOLDERS, &hKey) == ERROR_SUCCESS) {
          dwSize = MAX_PATH;
-         rslt = RegQueryValueEx(hKey, _T("Favorites"), NULL, NULL, (LPBYTE)sz, &dwSize);
+         rslt = RegQueryValueEx(hKey, REG_FAVORITES_KEY, NULL, NULL, (LPBYTE)sz, &dwSize);
          RegCloseKey(hKey);
 
          if (rslt != ERROR_SUCCESS) {
-            if (RegOpenKey(HKEY_CURRENT_USER, _T("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders"), &hKey) == ERROR_SUCCESS) {
-               rslt = RegQueryValueEx(hKey, _T("Favorites"), NULL, NULL, (LPBYTE)sz, &dwSize);
+            if (RegOpenKey(HKEY_CURRENT_USER, REG_SHELL_FOLDERS, &hKey) == ERROR_SUCCESS) {
+               rslt = RegQueryValueEx(hKey, REG_FAVORITES_KEY, NULL, NULL, (LPBYTE)sz, &dwSize);
                RegCloseKey(hKey);
             }
             else {
@@ -116,170 +146,29 @@ int Init(){
 
    // Get the rebar status
    int pref = 0;
-   kPlugin.kf->GetPreference(PREF_BOOL, _T("kmeleon.plugins.favorites.rebar"), &bRebarEnabled, &pref);
+   kPlugin.kf->GetPreference(PREF_BOOL, PREFERENCE_REBAR_ENABLED, &bRebarEnabled, &pref);
 
    return true;
 }
 
-WNDPROC KMeleonWndProc;
-
-LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
-
-void Create(HWND parent){
+void Create(HWND parent)
+{
    KMeleonWndProc = (WNDPROC) GetWindowLong(parent, GWL_WNDPROC);
    SetWindowLong(parent, GWL_WNDPROC, (LONG)WndProc);
 }
 
-void Config(HWND hWndParent) {
+void Config(HWND hWndParent)
+{
    DialogBoxParam(kPlugin.hDllInstance ,MAKEINTRESOURCE(IDD_CONFIG), hWndParent, (DLGPROC)DlgProc, NULL);
 }
 
-static HMENU gFavoritesMenu;
-
-void Quit(){
+void Quit()
+{
    DestroyMenu(gFavoritesMenu);
 }
 
-static CStringArray      gFavorites;         // this one contains the display filename (Really...vorite)
-static CStringArray      gFavoritesFiles;    // this one contains the full filename (SomeFolder\Stuff\Really Long Favorite)
-static CArray<UINT, int> gIcons;
-
-static UINT gNumFavorites;
-
-static int        gInternetShortcutIcon;
-static int        gFolderIcon;
-static HIMAGELIST gSystemImages;
-static CSize      gSysImageSize;
-
-int BuildFavoritesMenu(char * strPath, HMENU mainMenu){
-   const int nStart = gNumFavorites;
-   int nPos;
-
-   vector<char *> dirsArray;
-
-   int pathLen = strlen(strPath);
-
-   char * searchString = new char[gFavoritesPathLen + pathLen + 2];
-   strcpy(searchString, gFavoritesPath);
-   strcat(searchString, strPath);
-   strcat(searchString, "*");
-
-   char * urlFile;
-   char * subPath;
-
-   // now scan the directory, first for .URL files and then for subdirectories
-   // that may also contain .URL files
-   WIN32_FIND_DATA wfd;
-   HANDLE h = FindFirstFile(searchString, &wfd);
-
-   delete [] searchString;
-
-   if(h == INVALID_HANDLE_VALUE) {
-      return gNumFavorites;
-   }
-
-   do {
-      if(wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
-         // ignore the current and parent directory entries
-         if(lstrcmp(wfd.cFileName, _T(".")) == 0 || lstrcmp(wfd.cFileName, _T("..")) == 0)
-            continue;
-
-         subPath = new char[pathLen + strlen(wfd.cFileName) + 2];
-         strcpy(subPath, strPath);
-         strcat(subPath, wfd.cFileName);
-         strcat(subPath, "/");
-
-         dirsArray.push_back(subPath);
-
-      }else if ((wfd.dwFileAttributes & (FILE_ATTRIBUTE_HIDDEN|FILE_ATTRIBUTE_SYSTEM))==0) {
-         // if it's not a hidden or system file
-
-         char *dot = strrchr(wfd.cFileName, '.');
-         if(dot && stricmp(dot, ".url") == 0) {
-
-            // scan through the array and perform an insertion sort
-            // to make sure the menu ends up in alphabetic order
-            for(nPos = nStart; nPos < gNumFavorites; nPos++)	{
-               if(stricmp(wfd.cFileName, gFavorites[nPos]) < 0)
-                  break;
-            }
-
-            int filenameLen = (dot - wfd.cFileName) + 4;
-            urlFile = new char[pathLen + filenameLen + 1];
-            strcpy(urlFile, strPath);
-            strcat(urlFile, wfd.cFileName);
-
-            gFavoritesFiles.InsertAt(nPos, urlFile);
-
-            // format for display in the menu
-            // chop off the .url
-            *dot = 0;
-            // shrink the string
-            CondenseString(wfd.cFileName, 40);
-            // escape &
-            EscapeAmpersands(wfd.cFileName);
-
-            gFavorites.InsertAt(nPos, wfd.cFileName);
-
-            /*
-            HACK HACK HACK
-            We append the filename to gFavoritesPath, get the icon, then chop the file off again
-            this is a really lame way of doing this...
-            */
-            strcpy(gFavoritesPath + gFavoritesPathLen, urlFile);
-            // Retrieve icon
-            SHFILEINFO sfi;
-            if (SHGetFileInfo (gFavoritesPath, 0, &sfi, sizeof(SHFILEINFO), SHGFI_SMALLICON | SHGFI_SYSICONINDEX) && sfi.iIcon >= 0) {
-               gIcons.InsertAt(nPos, sfi.iIcon);
-
-               if (gInternetShortcutIcon == -1) {
-                  gInternetShortcutIcon = sfi.iIcon;
-               }
-            }else{
-               gIcons.InsertAt(nPos, 0);
-            }
-            gFavoritesPath[gFavoritesPathLen] = 0;
-
-            delete [] urlFile;
-
-            gNumFavorites++;
-         }
-      }
-   } while(FindNextFile(h, &wfd));
-   FindClose(h);
-
-   // Now add these items to the menu
-   for (nPos = nStart; nPos < gNumFavorites; nPos++) {
-      AppendMenu(mainMenu, MF_STRING | MF_ENABLED, nFirstFavoriteCommand + nPos, gFavorites[nPos]);
-   }
-
-   // then do the directories
-   HMENU subMenu;
-
-   int nSize = dirsArray.size();
-   for (nPos = 0; nPos < nSize; nPos++){
-      subMenu = CreatePopupMenu();
-
-      subPath = dirsArray[nPos];
-
-      // call this function recursively.
-      if(BuildFavoritesMenu(subPath, subMenu))	{
-         // only insert a submenu if there are in fact .URL files in the subdirectory
-         subPath[strlen(subPath)-1] = 0; // chop off the trailing slash
-         InsertMenu(mainMenu, nFirstFavoriteCommand, MF_BYCOMMAND | MF_POPUP | MF_STRING, (UINT)subMenu, subPath);
-      }else{
-         DestroyMenu(subMenu);
-      }
-
-      delete [] subPath;
-   }
-
-   return gNumFavorites - nStart;
-}
-
-
-void DoMenu(HMENU menu, char *param){
-
+void DoMenu(HMENU menu, char *param)
+{
    // there are no favorites
    if (!*gFavoritesPath)
       return;
@@ -317,8 +206,6 @@ void DoMenu(HMENU menu, char *param){
       gFolderIcon = sfi.iIcon;
    }
 }
-
-#define SUBMENU_OFFSET 5000 // this is here to distinguish between submenus and menu items, which may have the same id
 
 void DoRebar(HWND rebarWnd){
 
@@ -361,7 +248,7 @@ void DoRebar(HWND rebarWnd){
    // Register the band name and child hwnd
     kPlugin.kf->RegisterBand(hwndTB, "Favorites");
 
-    SetWindowText(hwndTB, "Links");
+    SetWindowText(hwndTB, TOOLBAND_LABEL);
 
    //SendMessage(hwndTB, TB_SETEXTENDEDSTYLE, 0, TBSTYLE_EX_DRAWDDARROWS);
 
@@ -463,39 +350,142 @@ void DoRebar(HWND rebarWnd){
    SendMessage(rebarWnd, RB_INSERTBAND, (WPARAM)-1, (LPARAM)&rbBand);
 }
 
-BOOL gbContinueMenu;
-int giCurrentItem; 
-HWND ghToolbarWnd;
-HHOOK ghhookMsg;
-LRESULT CALLBACK MsgHook(int code, WPARAM wParam, LPARAM lParam){
-   if (code == MSGF_MENU){
-      MSG *msg = (MSG *)lParam;
-      if (msg->message == WM_MOUSEMOVE){
-         POINT mouse;
-         mouse.x = LOWORD(msg->lParam);
-         mouse.y = HIWORD(msg->lParam);
+int BuildFavoritesMenu(char * strPath, HMENU mainMenu)
+{
+   const int nStart = gNumFavorites;
+   int nPos;
 
-         if (ghToolbarWnd){
-            ScreenToClient(ghToolbarWnd, &mouse);
-            int ndx = SendMessage(ghToolbarWnd, TB_HITTEST, 0, (LPARAM)&mouse);
+   std::vector<char *> dirsArray;
 
-            if (ndx >= 0){
-               TBBUTTON button;
-               SendMessage(ghToolbarWnd, TB_GETBUTTON, ndx, (LPARAM)&button);
-               if (giCurrentItem != button.idCommand && IsMenu((HMENU)(button.idCommand-SUBMENU_OFFSET))){
-                  SendMessage(msg->hwnd, WM_CANCELMODE, 0, 0);
+   int pathLen = strlen(strPath);
 
-                  // this basically tells the loop, "we would like to enter a new menu loop with this item:"
-                  giCurrentItem = button.idCommand;
-                  gbContinueMenu = true;
+   char * searchString = new char[gFavoritesPathLen + pathLen + 2];
+   strcpy(searchString, gFavoritesPath);
+   strcat(searchString, strPath);
+   strcat(searchString, "*");
 
-                  return true;
+   char * urlFile;
+   char * subPath;
+
+   // now scan the directory, first for .URL files and then for subdirectories
+   // that may also contain .URL files
+   WIN32_FIND_DATA wfd;
+   HANDLE h = FindFirstFile(searchString, &wfd);
+
+   delete [] searchString;
+
+   if(h == INVALID_HANDLE_VALUE) {
+      return gNumFavorites;
+   }
+
+   int tooMany = false;
+
+   do {
+      if(wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+         // ignore the current and parent directory entries
+         if(lstrcmp(wfd.cFileName, _T(".")) == 0 || lstrcmp(wfd.cFileName, _T("..")) == 0)
+            continue;
+
+         subPath = new char[pathLen + strlen(wfd.cFileName) + 2];
+         strcpy(subPath, strPath);
+         strcat(subPath, wfd.cFileName);
+         strcat(subPath, "/");
+
+         dirsArray.push_back(subPath);
+
+      }else if ((wfd.dwFileAttributes & (FILE_ATTRIBUTE_HIDDEN|FILE_ATTRIBUTE_SYSTEM))==0) {
+         // if it's not a hidden or system file
+
+         char *dot = strrchr(wfd.cFileName, '.');
+         if(dot && stricmp(dot, ".url") == 0) {
+
+            // scan through the array and perform an insertion sort
+            // to make sure the menu ends up in alphabetic order
+            for(nPos = nStart; nPos < gNumFavorites; nPos++)	{
+               if(stricmp(wfd.cFileName, gFavorites[nPos]) < 0)
+                  break;
+            }
+
+            int filenameLen = (dot - wfd.cFileName) + 4;
+            urlFile = new char[pathLen + filenameLen + 1];
+            strcpy(urlFile, strPath);
+            strcat(urlFile, wfd.cFileName);
+
+            gFavoritesFiles.InsertAt(nPos, urlFile);
+
+            // format for display in the menu
+            // chop off the .url
+            *dot = 0;
+            // shrink the string
+            CondenseString(wfd.cFileName, 40);
+            // escape &
+            EscapeAmpersands(wfd.cFileName);
+
+            gFavorites.InsertAt(nPos, wfd.cFileName);
+
+            /*
+            HACK HACK HACK
+            We append the filename to gFavoritesPath, get the icon, then chop the file off again
+            this is a really lame way of doing this...
+            */
+            strcpy(gFavoritesPath + gFavoritesPathLen, urlFile);
+            // Retrieve icon
+            SHFILEINFO sfi;
+            if (SHGetFileInfo (gFavoritesPath, 0, &sfi, sizeof(SHFILEINFO), SHGFI_SMALLICON | SHGFI_SYSICONINDEX) && sfi.iIcon >= 0) {
+               gIcons.InsertAt(nPos, sfi.iIcon);
+
+               if (gInternetShortcutIcon == -1) {
+                  gInternetShortcutIcon = sfi.iIcon;
                }
+            }else{
+               gIcons.InsertAt(nPos, 0);
+            }
+            gFavoritesPath[gFavoritesPathLen] = 0;
+
+            delete [] urlFile;
+
+            gNumFavorites++;
+            if (gNumFavorites >= MAX_FAVORITES) {
+               tooMany = true;
+               break;
             }
          }
       }
+   } while(FindNextFile(h, &wfd));
+   FindClose(h);
+
+   // Now add these items to the menu
+   for (nPos = nStart; nPos < gNumFavorites; nPos++) {
+      AppendMenu(mainMenu, MF_STRING | MF_ENABLED, nFirstFavoriteCommand + nPos, gFavorites[nPos]);
    }
-   return CallNextHookEx(ghhookMsg, code, wParam, lParam);
+
+   if (tooMany) {
+      MessageBox(NULL, ERROR_TOO_MANY_FAVORITES, PLUGIN_NAME, 0);
+      return gNumFavorites - nStart;
+   }
+
+   // then do the directories
+   HMENU subMenu;
+
+   int nSize = dirsArray.size();
+   for (nPos = 0; nPos < nSize; nPos++){
+      subMenu = CreatePopupMenu();
+
+      subPath = dirsArray[nPos];
+
+      // call this function recursively.
+      if(gNumFavorites < MAX_FAVORITES && BuildFavoritesMenu(subPath, subMenu))	{
+         // only insert a submenu if there are in fact .URL files in the subdirectory
+         subPath[strlen(subPath)-1] = 0; // chop off the trailing slash
+         InsertMenu(mainMenu, nFirstFavoriteCommand, MF_BYCOMMAND | MF_POPUP | MF_STRING, (UINT)subMenu, subPath);
+      }else{
+         DestroyMenu(subMenu);
+      }
+
+      delete [] subPath;
+   }
+
+   return gNumFavorites - nStart;
 }
 
 char *GetURL(int index){
@@ -553,33 +543,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
      if (hdr->code == TBN_DROPDOWN){
        NMTOOLBAR *tbhdr = (LPNMTOOLBAR)lParam;
        if (IsMenu((HMENU)(tbhdr->iItem-SUBMENU_OFFSET))){
-         ghToolbarWnd = tbhdr->hdr.hwndFrom;
-         giCurrentItem = tbhdr->iItem;
+          char toolbarName[11];
+          GetWindowText(tbhdr->hdr.hwndFrom, toolbarName, 10);
+          if (strcmp(toolbarName, TOOLBAND_LABEL) != 0) {
+             // oops, this isn't our toolbar
+             return CallWindowProc(KMeleonWndProc, hWnd, message, wParam, lParam);
+          }
 
-         int lastItem;
+          BeginHotTrack(tbhdr, kPlugin.hDllInstance, hWnd);
 
-         do {
-            gbContinueMenu = false;
-
-            SendMessage(ghToolbarWnd, TB_PRESSBUTTON, giCurrentItem, MAKELONG(true, 0));
-            ghhookMsg = SetWindowsHookEx(WH_MSGFILTER, MsgHook, kPlugin.hDllInstance, GetCurrentThreadId());
-
-            RECT rc;
-            WPARAM index = SendMessage(ghToolbarWnd, TB_COMMANDTOINDEX, giCurrentItem, 0);
-            SendMessage(ghToolbarWnd, TB_GETITEMRECT, index, (LPARAM) &rc);
-            POINT pt = { rc.left, rc.bottom };
-            ClientToScreen(ghToolbarWnd, &pt);
-
-            // the hook may change this, so we need to save it for the TB_PRESSBUTTON
-            lastItem = giCurrentItem; 
-
-            TrackPopupMenu((HMENU)(giCurrentItem-SUBMENU_OFFSET), TPM_LEFTALIGN, pt.x, pt.y, 0, hWnd, NULL);
-
-            UnhookWindowsHookEx(ghhookMsg);
-            SendMessage(ghToolbarWnd, TB_PRESSBUTTON, lastItem, MAKELONG(false, 0));
-         } while (gbContinueMenu);
-
-         return DefWindowProc(hWnd, message, wParam, lParam);
+          return DefWindowProc(hWnd, message, wParam, lParam);
        }
      }
    }
@@ -644,5 +617,4 @@ extern "C" {
       }
       return 0;
    }
-
 }
