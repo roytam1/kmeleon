@@ -49,7 +49,7 @@
 #include "BrowserImpl.h"
 #include "nsIWindowWatcher.h"
 #include "kmeleonConst.h"
-//#include "UnknownContentTypeHandler.h"
+#include "UnknownContentTypeHandler.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -132,7 +132,7 @@ nsresult CMfcEmbedApp::OverrideComponents()
       } else
        ::FreeLibrary(overlib);
    }
-/*
+
    // Override the UnknownContentHandler
    nsCOMPtr<nsIFactory> unkFactory;
    rv = NewUnknownContentHandlerFactory(getter_AddRefs(unkFactory));
@@ -142,15 +142,13 @@ nsresult CMfcEmbedApp::OverrideComponents()
 	   NS_IUNKNOWNCONTENTTYPEHANDLER_CONTRACTID ,
 	   unkFactory,
 	   PR_TRUE); // replace existing
-*/
-/*
+
    rv = nsComponentManager::RegisterFactory(kUnknownContentTypeHandlerCID,
 	   NS_IHELPERAPPLAUNCHERDLG_CLASSNAME,
 	   NS_IHELPERAPPLAUNCHERDLG_CONTRACTID,
 	   unkFactory,
 	   PR_TRUE); // replace existing
 
-*/
 /*
    // Override the nsIHelperAppLauncherDialog
    nsCOMPtr<nsIFactory> helpFactory;
@@ -326,6 +324,9 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
    // at the end of this function
    CBrowserFrame* pOldRecentFrame = m_pMostRecentBrowserFrame;   
    theApp.m_pMostRecentBrowserFrame = pFrame;
+
+   if (!pOldRecentFrame)
+      pOldRecentFrame = pFrame;
    
    // restore the saved window size
    RECT winSize;
@@ -509,8 +510,8 @@ BOOL CMfcEmbedApp::OnIdle(LONG lCount)
 }
 
 void CMfcEmbedApp::OnPreferences () {
-  CPreferencesDlg prefDlg;
-  prefDlg.DoModal();
+   CPreferencesDlg prefDlg;
+   prefDlg.DoModal();
 }
 
 void CMfcEmbedApp::OnManageProfiles()
