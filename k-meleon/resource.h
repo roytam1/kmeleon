@@ -15,6 +15,7 @@
 #define IDD_PROFILES                    137
 #define IDD_PROFILE_NEW                 138
 #define IDD_PROFILE_RENAME              139
+#define IDD_FINDDLG                     140
 #define IDB_TOOLBAR_HOT                 143
 #define IDB_TOOLBAR_COLD                144
 #define IDR_MFCAVI                      145
@@ -72,13 +73,14 @@
 #define IDC_BUTTON_MENUS                1035
 #define IDC_BUTTON_ACCEL                1036
 #define IDC_BUTTON_HELP                 1037
-#define IDC_BUTTON2                     1039
-#define IDC_CHECK_SOURCE_ENABLED        1040
-#define IDC_EDIT_SOURCE_COMMAND         1042
-#define IDC_BUTTON_SOURCE_BROWSE        1043
-#define IDC_BROWSE                      1044
-#define IDC_EDIT_ADDRESS                1045
-#define IDC_PROMPT_ADDRESS_TEXT         1046
+#define IDC_MATCH_WHOLE_WORD            1040
+#define IDC_MATCH_CASE                  1041
+#define IDC_WRAP_AROUND                 1042
+#define IDC_SEARCH_BACKWARDS            1043
+#define IDC_CHECK_SOURCE_ENABLED        1050
+#define IDC_EDIT_SOURCE_COMMAND         1051
+#define IDC_EDIT_ADDRESS                1055
+#define IDC_PROMPT_ADDRESS_TEXT         1056
 #define IDC_CONTAINER                   1110
 #define IDC_EDIT_TOOLBAR_BACKGROUND     1111
 #define IDC_EDIT_SETTINGS_DIR           1111
@@ -91,6 +93,7 @@
 #define IDC_BUTTON_BROWSE               1117
 #define IDC_LIST_PLUGINS                1118
 #define IDC_BUTTON_CONFIG               1119
+#define IDC_FIND_EDIT                   1152
 #define ID_NAV_BACK                     32773
 #define ID_NAV_FORWARD                  32774
 #define ID_NAV_HOME                     32775
@@ -112,7 +115,6 @@
 #define ID_FULLSCREEN                   32793
 #define ID_LINK_KMELEON_HOME            32800
 #define ID_LINK_KMELEON_FORUM           32801
-#define ID_GO_HISTORY                   33000
 
 // Next default values for new objects
 // 
@@ -121,7 +123,7 @@
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        163
 #define _APS_NEXT_COMMAND_VALUE         32791
-#define _APS_NEXT_CONTROL_VALUE         1047
+#define _APS_NEXT_CONTROL_VALUE         1050
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
