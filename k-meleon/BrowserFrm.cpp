@@ -338,11 +338,10 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct){
 
 	SetupFrameChrome();
 
-   // Create a tooltip control that centers its text horizontally.
-   m_tooltip.Create(_T("Tooltip"), WS_CHILD|SS_CENTER,
-      CRect(10,10,150,50), this);
+   // Create the tooltip window
+   m_wndToolTip.Create(this);
 
-	return 0;
+   return 0;
 }
 
 

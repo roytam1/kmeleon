@@ -38,6 +38,7 @@
 #include "ToolBarEx.h"
 #include "KmeleonConst.h"
 #include "ReBarEx.h"
+#include "Tooltips.h"
 
 #include "MfcEmbed.h"
 extern CMfcEmbedApp theApp;
@@ -210,7 +211,7 @@ public:
 	CBrowserView   m_wndBrowserView;
 
    // note: right now it's just a CStatic, but eventually it will become something better
-   CStatic        m_tooltip;
+   CKmToolTip     m_wndToolTip;
 
 	// This specifies what UI elements this frame will sport
 	// w.r.t. toolbar, statusbar, urlbar etc.

@@ -16,6 +16,8 @@
 *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
+#pragma once
+
 #include "stdafx.h"
 
 // {0b666e3e-569a-462c-a7f0-b16bb15d42ff}
@@ -46,3 +48,27 @@ public:
 
 nsresult NewTooltipTextProviderFactory(nsIFactory** aFactory);
 
+
+
+class CKmToolTip :  public CWnd {
+
+public:
+   CKmToolTip();
+   void Create(CWnd *pWnd);
+   ~CKmToolTip();
+   void Hide();
+   void Show(const char *text, int x, int y);
+
+   char *pszText;
+
+protected:
+	//{{AFX_MSG(CKmToolTip)
+   afx_msg void OnPaint();
+   //}}AFX_MSG
+   DECLARE_MESSAGE_MAP()
+
+private:
+   LPCSTR m_pszWndClass;
+   HFONT  m_pFont;
+
+};

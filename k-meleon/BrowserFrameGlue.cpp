@@ -273,14 +273,14 @@ void CBrowserFrame::BrowserFrameGlueObj::FocusAvailable(PRBool *aFocusAvail)
 void CBrowserFrame::BrowserFrameGlueObj::ShowBrowserFrame(PRBool aShow)
 {
    METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
-
-      if(aShow){
-         pThis->ShowWindow(SW_SHOW);
-         pThis->SetActiveWindow();
-         pThis->UpdateWindow();
-      }else{
-         pThis->ShowWindow(SW_HIDE);
-      }
+      
+   if(aShow){
+      pThis->ShowWindow(SW_SHOW);
+      pThis->SetActiveWindow();
+      pThis->UpdateWindow();
+   }else{
+      pThis->ShowWindow(SW_HIDE);
+   }
 }
 
 void CBrowserFrame::BrowserFrameGlueObj::GetBrowserFrameVisibility(PRBool *aVisible)
@@ -348,7 +348,7 @@ void CBrowserFrame::BrowserFrameGlueObj::DestroyBrowserFrame()
 }
 
 void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags, nsIDOMNode *aNode)
-{
+{  
 
    METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
 
@@ -545,41 +545,20 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowTooltip(PRInt32 x, PRInt32 y, const
 {
    METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
 
-   if (text) {
 
-      POINT point;
-      point.x = x;
-      point.y = y;
-
-      pThis->m_wndBrowserView.ClientToScreen(&point);
-      pThis->ScreenToClient(&point);
-
-      point.y += GetSystemMetrics(SM_CYCURSOR); // jump to below the cursor, otherwise we appear right on top of the cursor
-
-      NONCLIENTMETRICS ncm = {0};
-      ncm.cbSize = sizeof(ncm);
-      SystemParametersInfo(SPI_GETNONCLIENTMETRICS,0,(PVOID)&ncm,FALSE);
-      
-      CDC *dc = pThis->m_tooltip.GetWindowDC(); //  CreateCompatibleDC(NULL);
-      CSize size = dc->GetTextExtent(text);      
-      size.cx += 10; // padding
-      size.cy += 2;  // padding
-      
-      pThis->m_tooltip.SetWindowText(text);
-
-
-      // keep the tooltip from running off the window
-      CRect rect;
-      pThis->GetWindowRect(&rect);
-      pThis->ScreenToClient(&rect);
-      if ( point.x + size.cx > rect.right)
-         point.x = rect.right - size.cx;
-      if (point.y + size.cy > rect.bottom)
-         point.y = rect.bottom - size.cy;
-
-      pThis->m_tooltip.SetWindowPos(NULL, point.x, point.y, size.cx, size.cy, SWP_NOZORDER | SWP_DRAWFRAME);
-      pThis->m_tooltip.ShowWindow(SW_SHOW);
-   } else {
-      pThis->m_tooltip.ShowWindow(SW_HIDE);
+   if (!text) {
+      pThis->m_wndToolTip.Hide();
+      return;
    }
+
+   POINT point;
+   point.x = x;
+   point.y = y;
+
+   pThis->m_wndBrowserView.ClientToScreen(&point);
+   pThis->ScreenToClient(&point);
+
+   point.y += GetSystemMetrics(SM_CYCURSOR); // jump to below the cursor, otherwise we appear right on top of the cursor
+
+   pThis->m_wndToolTip.Show(text, point.x, point.y);      
 }
