@@ -5,6 +5,7 @@
 #include <afxpriv.h>
 #include "mfcembed.h"
 #include "ProfilesDlg.h"
+#include "nsCRT.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
