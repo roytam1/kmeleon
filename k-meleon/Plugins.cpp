@@ -52,7 +52,13 @@ CPlugins::~CPlugins(){
 }
 
 // returns a pointer to the char after the last \ or /
+// also strips the .dll
 const char *FileNoPath(const char *filepath){
+   char *d = strrchr(filepath, '.');
+   if (d && strcmpi(d, ".dll") == 0){
+      *d = 0;
+   }
+
    char *p1 = strrchr(filepath, '\\');
    char *p2 = strrchr(filepath, '/');
    if (p1 > p2) {
