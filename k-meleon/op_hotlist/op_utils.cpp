@@ -29,6 +29,7 @@
 #include "../KMeleonConst.h"
 
 #include "../Utils.h"
+#include "../macros/macros.h"
 #include <sys/stat.h>
 #include <errno.h>
 
@@ -116,11 +117,28 @@ LRESULT APIENTRY WndTBSubclassProc(
 
 void findNick(char *nick, char *url)
 {
-   CBookmarkNode *retNode =   gHotlistRoot.FindNick(nick);
+   CBookmarkNode *retNode = (*nick ? gHotlistRoot.FindNick(nick) : NULL);
    
    *url = 0;
    if (retNode) {
-      strcpy(url, (char*)retNode->url.c_str());
+      if (retNode->type == BOOKMARK_BOOKMARK) {
+         strcpy(url, (char*)retNode->url.c_str());
+      }
+      else if (retNode->type == BOOKMARK_FOLDER) {
+         int len = MSGEX_LENGTH-2;
+         CBookmarkNode *c =   retNode->child;
+         while (c && len > 0) {
+            if (c->type == BOOKMARK_BOOKMARK && c->url.c_str()) {
+               strncpy(url, c->url.c_str(), len);
+               int slen = strlen(url);
+               len -= slen;
+               url += slen;
+               *url++ = '\t';
+            }
+            c = c->next;
+         }
+         *url = 0;
+      }
    }
 }
 
