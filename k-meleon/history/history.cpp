@@ -150,7 +150,7 @@ void CreateBackMenu (HWND hWndParent, UINT button) {
 	   DestroyMenu(submenu);
 	   DestroyMenu(menu);
 
-	   PostMessage(hWndParent, WM_REFRESHTOOLBARITEM, (WPARAM) ID_NAV_BACK, 0);
+	   PostMessage(hWndParent, UWM_REFRESHTOOLBARITEM, (WPARAM) ID_NAV_BACK, 0);
 
       if (SelectionMade > 0) {
 		   kPlugin.kf->GotoHistoryIndex(SelectionMade-1);
@@ -202,7 +202,7 @@ void CreateForwardMenu (HWND hWndParent, UINT button) {
 	   DestroyMenu(submenu);
 	   DestroyMenu(menu);
 
-	   PostMessage(hWndParent, WM_REFRESHTOOLBARITEM, (WPARAM) ID_NAV_FORWARD, 0);
+	   PostMessage(hWndParent, UWM_REFRESHTOOLBARITEM, (WPARAM) ID_NAV_FORWARD, 0);
 
       if (SelectionMade > 0) {
 		   kPlugin.kf->GotoHistoryIndex(SelectionMade-1);
@@ -261,7 +261,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 
 	switch (message) {
 
-		case WM_UPDATESESSIONHISTORY:
+		case UWM_UPDATESESSIONHISTORY:
 			UpdateHistoryMenu(hWnd);
 			return true;
 		case TB_LBUTTONHOLD:
