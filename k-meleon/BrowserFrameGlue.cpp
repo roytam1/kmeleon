@@ -86,7 +86,7 @@ void CBrowserFrame::BrowserFrameGlueObj::UpdateBusyState(PRBool aBusy)
       // updating the STOP toolbar btn. etc
 
       pThis->m_wndBrowserView.UpdateBusyState(aBusy);
-      if (aBusy)
+      if (!aBusy)
          pThis->PostMessage(UWM_UPDATEBUSYSTATE, 0, 0);
 }
 
