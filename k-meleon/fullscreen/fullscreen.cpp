@@ -80,8 +80,8 @@ BOOL APIENTRY DllMain(HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserv
 }
 
 int Init(){
-   kPlugin.kf->GetPreference(PREF_BOOL, _T("kmeleon.plugin.fullscreen.hide_rebar"), &bHideReBar, "1");
-   kPlugin.kf->GetPreference(PREF_BOOL, _T("kmeleon.plugin.fullscreen.hide_statusbar"), &bHideStatusBar, "1");
+   kPlugin.kf->GetPreference(PREF_BOOL, _T("kmeleon.plugins.fullscreen.hide_rebar"), &bHideReBar, "1");
+   kPlugin.kf->GetPreference(PREF_BOOL, _T("kmeleon.plugins.fullscreen.hide_statusbar"), &bHideStatusBar, "1");
 	id_fullscreen = kPlugin.kf->GetCommandIDs(1);
    return true;
 }
@@ -212,8 +212,8 @@ BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 						case IDOK:
                      bHideReBar = SendDlgItemMessage(hWnd, IDC_HIDEREBAR, BM_GETCHECK, 0, 0);
                      bHideStatusBar = SendDlgItemMessage(hWnd, IDC_HIDESTATUSBAR, BM_GETCHECK, 0, 0);
-                     kPlugin.kf->SetPreference(PREF_BOOL, _T("kmeleon.plugin.fullscreen.hide_rebar"), &bHideReBar);
-                     kPlugin.kf->SetPreference(PREF_BOOL, _T("kmeleon.plugin.fullscreen.hide_statusbar"), &bHideStatusBar);
+                     kPlugin.kf->SetPreference(PREF_BOOL, _T("kmeleon.plugins.fullscreen.hide_rebar"), &bHideReBar);
+                     kPlugin.kf->SetPreference(PREF_BOOL, _T("kmeleon.plugins.fullscreen.hide_statusbar"), &bHideStatusBar);
                   case IDCANCEL:
                      SendMessage(hWnd, WM_CLOSE, 0, 0);
                }
