@@ -326,8 +326,31 @@ void ExecuteCommand (int command, char *data) {
 
             data = SkipWhiteSpace(c+1);
             TrimWhiteSpace(data);
+            
 
-            kPlugin.kf->SetPreference(preftype, pref, data);
+            /* Thanks to Mynen (mark_yen@hotmail.com) for pointing out this bug
+               as well as submitting a patch */
+            
+            if (data && *data) {
+
+               if (preftype == PREF_STRING)
+                  kPlugin.kf->SetPreference(preftype, pref, data);
+
+               else if (preftype == PREF_INT) {
+                  // note that SetPreference() expects third param
+                  // to be a pointer in all cases, even for int and bool
+                  int iData = atoi(data);
+                  kPlugin.kf->SetPreference(preftype, pref, &iData);
+               } 
+
+               else {   // boolean
+                  int bData = FALSE;
+                  if (!strcmpi(data, "true"))
+                     bData = TRUE;
+                  kPlugin.kf->SetPreference(preftype, pref, &bData);
+               }
+            }
+
          }
       }
       CMD(togglepref) {
