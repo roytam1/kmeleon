@@ -126,6 +126,19 @@ SOURCE=.\BrowserView.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\defineMap.cpp
+
+!IF  "$(CFG)" == "kmeleon - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "kmeleon - Win32 Debug"
+
+# PROP Exclude_From_Build 1
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
 SOURCE=.\Dialogs.cpp
 # End Source File
 # Begin Source File
@@ -332,13 +345,5 @@ SOURCE=.\res\Tool2.bmp
 SOURCE=.\res\Tool3.bmp
 # End Source File
 # End Group
-# Begin Source File
-
-SOURCE=.\res\menus.cfg
-# End Source File
-# Begin Source File
-
-SOURCE=.\res\out.avi
-# End Source File
 # End Target
 # End Project
