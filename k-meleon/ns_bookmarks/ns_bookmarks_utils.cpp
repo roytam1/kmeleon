@@ -349,9 +349,16 @@ void BuildMenu(HMENU menu, CBookmarkNode *node, BOOL isContinuation)
    // screen height
    int cy = GetSystemMetrics(SM_CYSCREEN);
    // menu line height
-   int cmenu = GetSystemMetrics(SM_CYMENU);
+//   int cmenu = GetSystemMetrics(SM_CYMENU);
+   // if bmp_menu is enabled, the menu items will actually be at least 18 pixels... but this system call won't reflect that
+   // in any case, SM_CYMENU gets the height of the menu bar, not a menu item
+   // for now we'll just assume bmp_menu is enabled and they're 18 pixels...
+#define cmenu 18
 
-   int maxLength = (gMenuAutoDetect) ? (int)(cy/cmenu) : gMaxMenuLength;
+// space to allow above menu for title bar, menu bar (assuming maximized window), and extra frame junk
+#define MENUPADDING 50
+
+   int maxLength = (gMenuAutoDetect) ? (int)((cy-MENUPADDING)/cmenu) : gMaxMenuLength;
 
    CBookmarkNode *child;
    int count = GetMenuItemCount(menu);
@@ -362,7 +369,7 @@ void BuildMenu(HMENU menu, CBookmarkNode *node, BOOL isContinuation)
          AppendMenu(menu, MF_STRING|MF_POPUP, (UINT)childMenu, "[more]");
          BuildMenu(childMenu, child, true);
          break;
-	  }
+      }
       else if (child->type == BOOKMARK_SEPARATOR) {
          AppendMenu(menu, MF_SEPARATOR, 0, "");
       }
