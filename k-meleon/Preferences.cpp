@@ -105,7 +105,7 @@ void CPreferences::Load() {
       // -- General preferences
 
       _GetBool(_T("kmeleon.general.startHome"), bStartHome, true);
-      _GetString(_T("kmeleon.general.homePage"), homePage, _T("http://kmeleon.sourceforge.net"));
+      _GetString(_T("kmeleon.general.homePage"), homePage, _T("http://kmeleon.sourceforge.net/start"));
 
       _GetString(_T("kmeleon.general.searchEngine"), searchEngine, _T("http://www.google.com/search?q="));
 
@@ -174,7 +174,7 @@ void CPreferences::Load() {
      // -- Cache
       _GetString(_T("browser.cache.disk.parent_directory"), cacheDir, _T(""));
       if (cacheDir.IsEmpty())
-         cacheDir = settingsDir + "cache\\";
+         cacheDir = settingsDir;
       else if (cacheDir[cacheDir.GetLength() - 1] != '\\')
          cacheDir += '\\';
 
