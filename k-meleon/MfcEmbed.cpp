@@ -271,14 +271,17 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
 
 void CMfcEmbedApp::OnNewBrowser()
 {
+   char *sURI;
+   if (preferences.iNewWindowOpenAs == PREF_NEW_WINDOW_CURRENT) {
+      sURI = new char[m_pMostRecentBrowserFrame->m_wndBrowserView.GetCurrentURI(NULL)+1];
+      m_pMostRecentBrowserFrame->m_wndBrowserView.GetCurrentURI(sURI);
+   }
+         
    CBrowserFrame *pBrowserFrame = CreateNewBrowserFrame();
    if(pBrowserFrame) {
 	   //Load the new window start page into the browser view
       switch (preferences.iNewWindowOpenAs) {
       case PREF_NEW_WINDOW_CURRENT:
-         char *sURI;
-         sURI = new char[m_pMostRecentBrowserFrame->m_wndBrowserView.GetCurrentURI(NULL)+1];
-         m_pMostRecentBrowserFrame->m_wndBrowserView.GetCurrentURI(sURI);
          pBrowserFrame->m_wndBrowserView.OpenURL(sURI);
          delete sURI;
          break;
