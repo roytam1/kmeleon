@@ -93,3 +93,22 @@ BEGIN
     PUSHBUTTON      "OK",IDOK,205,255,45,15
     PUSHBUTTON      "Cancel",IDCANCEL,255,255,45,15
 END
+
+
+IDR_CONTEXTMENU MENU DISCARDABLE 
+BEGIN
+    POPUP "."
+    BEGIN
+        MENUITEM "&Open in Current Browser Window", ID__OPEN
+        MENUITEM "Open in Back&ground",         ID__OPEN_BACKGROUND
+        MENUITEM SEPARATOR
+        MENUITEM "New &Folder",                 ID__NEW_FOLDER
+        MENUITEM "New &Bookmark",               ID__NEW_BOOKMARK
+        MENUITEM SEPARATOR
+        MENUITEM "Set as &Toolbar Folder",      ID__SETAS_TOOLBARFOLDER
+        MENUITEM SEPARATOR
+        MENUITEM "&Delete",                     ID__BOOKMARK_DELETE
+    END
+END
+
+IDC_DRAG_CURSOR         CURSOR  DISCARDABLE     "../ns_bookmarks/cursor1.cur"
