@@ -37,7 +37,7 @@ CAboutDlg::CAboutDlg() : CDialog(CAboutDlg::IDD)
       \r\n
       Current Contributors:\r\n
    );
-   if (rand() % 2 == 1){
+   if ((int)(time(NULL)/60) %2 == 1){
       m_credits += _QUOTE(
          Jeff Doozan <jeff@tcbnetworks.com>\r\n
          Brian Harris <binaryc@teamreaction.com>\r\n
@@ -48,6 +48,7 @@ CAboutDlg::CAboutDlg() : CDialog(CAboutDlg::IDD)
          Jeff Doozan <jeff@tcbnetworks.com>\r\n
       );
    }
+
    m_credits += _QUOTE(
       \r\n
       Past Contributors:\r\n
