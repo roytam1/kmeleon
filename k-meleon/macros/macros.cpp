@@ -202,6 +202,11 @@ int Init() {
    LoadMacros(szMacroFile);
    ID_START = kFuncs->GetCommandIDs(iMacroCount);
    ID_END = ID_START+iMacroCount-1;
+
+   int index = FindMacro("OnInit");
+   if (index != NOTFOUND)
+      ExecuteMacro(NULL, index);
+
    return 1;
 }
 
@@ -212,6 +217,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 void Create(HWND hWndParent) {
 	KMeleonWndProc = (WNDPROC) GetWindowLong(hWndParent, GWL_WNDPROC);
 	SetWindowLong(hWndParent, GWL_WNDPROC, (LONG)WndProc);
+
+   int index = FindMacro("OnCreate");
+   if (index != NOTFOUND)
+      ExecuteMacro(hWndParent, index);
 }
 
 void Config(HWND hWndParent) {
@@ -242,6 +251,10 @@ int GetConfigFiles(configFileType **configFiles)
 
 void Quit() {
    if (iMacroCount == 0) return;
+
+   int index = FindMacro("OnQuit");
+   if (index != NOTFOUND)
+      ExecuteMacro(NULL, index);
 
    for (int curMacro=0;curMacro<iMacroCount;curMacro++) {
       // delete macros
