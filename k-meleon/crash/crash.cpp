@@ -83,21 +83,31 @@ kmeleonPlugin kPlugin =
 };
 kmeleonFunctions *kFuncs;
 
+#define lenof(a) (sizeof(a) / sizeof((a)[0]))
+
 // Global variables initialization
-void InitGlobals()
+BOOL InitGlobals()
 {
-    HMODULE  hKernel32;
+    const char *dllname[] = { "kernel32.dll", "tlhelp32.dll" };
+    HMODULE  hModule;
+    int i;
 
-    hKernel32 = GetModuleHandle("KERNEL32");
+    for ( i = 0; i < lenof( dllname ); ++ i ) {
+        hModule = GetModuleHandle(dllname[i]);
+        if (hModule) {
+            CreateToolhelp32Snapshot_ =
+                (CREATE_TOOL_HELP32_SNAPSHOT)GetProcAddress(hModule,
+                                                            "CreateToolhelp32Snapshot");
+            Module32First_ = (MODULE32_FIRST)GetProcAddress(hModule,
+                                                            "Module32First");
+            Module32Next_ = (MODULE32_NEXT)GetProcAddress(hModule,
+                                                          "Module32Next");
 
-    if (hKernel32) {
-      CreateToolhelp32Snapshot_ =
-          (CREATE_TOOL_HELP32_SNAPSHOT)GetProcAddress(hKernel32,
-                                                      "CreateToolhelp32Snapshot");
-      Module32First_ = (MODULE32_FIRST)GetProcAddress(hKernel32,
-                                                      "Module32First");
-      Module32Next_ = (MODULE32_NEXT)GetProcAddress(hKernel32,
-                                                    "Module32Next");
+            if (CreateToolhelp32Snapshot_ && Module32First_ && Module32Next_)
+                break;
+
+            hModule = NULL;
+        }
     }
 
     Str = (CHAR*) malloc(DUMP_SIZE_MAX * sizeof(CHAR));
@@ -124,13 +134,14 @@ void InitGlobals()
     if (TmpStr)
       TmpStr[0] = '\0';
 
+    return hModule != NULL;
 }
 
 INT Load()
 {
     kFuncs = kPlugin.kFuncs;
-    InitGlobals();
-    SetUnhandledExceptionFilter(CrashHandlerExceptionFilter);
+    if (InitGlobals())
+        SetUnhandledExceptionFilter(CrashHandlerExceptionFilter);
     return TRUE;
 }
 
