@@ -63,6 +63,7 @@ extern BOOL gBookmarksModified;
 extern BOOL gGeneratedByUs;
 extern BOOL gToolbarEnabled;
 extern int gMaxMenuLength;
+extern BOOL gMenuAutoDetect;
 extern int gMaxTBSize;
 
 extern CBookmarkNode gBookmarkRoot;

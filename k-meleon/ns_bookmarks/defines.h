@@ -27,6 +27,7 @@
 #define PREFERENCE_TOOLBAR_FOLDER  "kmeleon.plugins.bookmarks.toolbarFolder"
 #define PREFERENCE_TOOLBAR_ENABLED "kmeleon.plugins.bookmarks.toolbarEnabled"
 #define PREFERENCE_MAX_MENU_LENGTH "kmeleon.plugins.bookmarks.maxMenuLength"
+#define PREFERENCE_MENU_AUTODETECT "kmeleon.plugins.bookmarks.menuAutoDetect"
 #define PREFERENCE_MAX_TB_SIZE     "kmeleon.plugins.bookmarks.maxToolbarSize"
 #define PREFERENCE_SETTINGS_DIR    "kmeleon.general.settingsDir"
 

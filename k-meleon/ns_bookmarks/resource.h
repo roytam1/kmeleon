@@ -27,6 +27,7 @@
 #define IDC_STATIC_OTHER                1053
 #define IDC_STATIC_PROPERTIES           1054
 #define IDC_STATIC_TITLE                1055
+#define IDC_MENU_AUTODETECT             1055
 #define ID_BOOKMARK_DELETE              32791
 #define ID_SET_TOOLBAR_FOLDER           32792
 #define ID__NEW_FOLDER                  32795
@@ -43,7 +44,7 @@
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        169
 #define _APS_NEXT_COMMAND_VALUE         32813
-#define _APS_NEXT_CONTROL_VALUE         1055
+#define _APS_NEXT_CONTROL_VALUE         1056
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

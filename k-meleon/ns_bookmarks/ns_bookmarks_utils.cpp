@@ -40,12 +40,24 @@ BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
          SendDlgItemMessage(hWnd, IDC_REBARENABLED, BM_SETCHECK, gToolbarEnabled, 0);
          SetDlgItemText(hWnd, IDC_BOOKMARKS_FILE, gBookmarkFile);
          SetDlgItemInt(hWnd, IDC_MAX_MENU_LENGTH, gMaxMenuLength, false);
+         SendDlgItemMessage(hWnd, IDC_MENU_AUTODETECT, BM_SETCHECK, gMenuAutoDetect, 0);
+         if (gMenuAutoDetect) {
+            EnableWindow(GetDlgItem(hWnd, IDC_MAX_MENU_LENGTH), false);
+         }
          SetDlgItemInt(hWnd, IDC_MAX_TB_SIZE, gMaxTBSize, false);
          break;
       case WM_COMMAND:
          switch(HIWORD(wParam)) {
             case BN_CLICKED:
                switch (LOWORD(wParam)) {
+               case IDC_MENU_AUTODETECT:
+                  if (SendDlgItemMessage(hWnd, IDC_MENU_AUTODETECT, BM_GETCHECK, 0, 0)) {
+                     EnableWindow(GetDlgItem(hWnd, IDC_MAX_MENU_LENGTH), false);
+				  }
+                  else {
+                     EnableWindow(GetDlgItem(hWnd, IDC_MAX_MENU_LENGTH), true);
+				  }
+                  break;
                case IDC_BROWSE:
                   {
                      char tempPath[MAX_PATH];
@@ -76,6 +88,9 @@ BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
                   gMaxMenuLength = GetDlgItemInt(hWnd, IDC_MAX_MENU_LENGTH, NULL, false);
                   if (gMaxMenuLength < 1) gMaxMenuLength = 20;
                   kPlugin.kFuncs->SetPreference(PREF_INT, PREFERENCE_MAX_MENU_LENGTH, &gMaxMenuLength);
+
+                  gMenuAutoDetect = SendDlgItemMessage(hWnd, IDC_MENU_AUTODETECT, BM_GETCHECK, 0, 0);
+                  kPlugin.kFuncs->SetPreference(PREF_BOOL, PREFERENCE_MENU_AUTODETECT, &gMenuAutoDetect);
 
                   gMaxTBSize = GetDlgItemInt(hWnd, IDC_MAX_TB_SIZE, NULL, false);
                   if (gMaxTBSize < 1) gMaxTBSize = 20;
@@ -320,11 +335,18 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
 // Build Menu
 void BuildMenu(HMENU menu, CBookmarkNode *node, BOOL isContinuation)
 {
-   CBookmarkNode *child;
-   int count = 0;
+   // screen height
+   int cy = GetSystemMetrics(SM_CYSCREEN);
+   // menu line height
+   int cmenu = GetSystemMetrics(SM_CYMENU);
 
-   for (child = (isContinuation) ? node : node->child ; child ; child = child->next) {
-      if (++count > gMaxMenuLength) {
+   int maxLength = (gMenuAutoDetect) ? (int)(cy/cmenu) : gMaxMenuLength;
+
+   CBookmarkNode *child;
+   int count = GetMenuItemCount(menu);
+
+   for (child = (isContinuation) ? node : node->child ; child ; child = child->next , count++) {
+      if (count == maxLength) {
          HMENU childMenu = CreatePopupMenu();
          AppendMenu(menu, MF_STRING|MF_POPUP, (UINT)childMenu, "[more]");
          BuildMenu(childMenu, child, true);
