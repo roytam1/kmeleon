@@ -47,10 +47,13 @@ pref("font.name.sans-serif.el", "Arial");
 pref("font.name.monospace.el", "Courier New");
 pref("font.name.cursive.el", "Comic Sans MS");
 
-pref("font.name.serif.he", "Times New Roman");
+pref("font.name.serif.he", "Narkisim");
 pref("font.name.sans-serif.he", "Arial");
-pref("font.name.monospace.he", "Courier New");
-pref("font.name.cursive.he", "Comic Sans MS");
+pref("font.name.monospace.he", "Fixed Miriam Transparent");
+pref("font.name.cursive.he", "Gutmann Yad");
+pref("font.name-list.serif.he", "Narkisim, David");
+pref("font.name-list.monospace.he", "Fixed Miriam Transparent, Miriam Fixed, Rod, Courier New");
+pref("font.name-list.cursive.he", "Gutmann Yad, Ktav, Arial");
 
 pref("font.name.serif.ja", "ＭＳ Ｐ明朝"); // "MS PMincho"
 pref("font.name.sans-serif.ja", "ＭＳ Ｐゴシック"); // "MS PGothic"
@@ -115,6 +118,18 @@ pref("font.name-list.serif.zh-TW", "MingLiU");
 pref("font.name-list.sans-serif.zh-TW", "MingLiU"); 
 pref("font.name-list.monospace.zh-TW", "MingLiU"); 
 
+pref("font.name.serif.x-devanagari", "Mangal");
+pref("font.name.sans-serif.x-devanagari", "Raghindi");
+pref("font.name.monospace.x-devanagari", "Mangal");
+pref("font.name-list.serif.x-devanagari", "Mangal, Raghindi");
+pref("font.name-list.monospace.x-devanagari", "Mangal, Raghindi");
+
+pref("font.name.serif.x-tamil", "Latha");
+pref("font.name.sans-serif.x-tamil", "Code2000");
+pref("font.name.monospace.x-tamil", "Latha");
+pref("font.name-list.serif.x-tamil", "Latha, Code2000");
+pref("font.name-list.monospace.x-tamil", "Latha, Code2000");
+
 pref("font.default", "serif");
 pref("font.size.variable.ar", 16);
 pref("font.size.fixed.ar", 13);
@@ -146,6 +161,12 @@ pref("font.size.fixed.x-central-euro", 13);
 pref("font.size.variable.x-cyrillic", 16);
 pref("font.size.fixed.x-cyrillic", 13);
 
+pref("font.size.variable.x-devanagari", 16);
+pref("font.size.fixed.x-devanagari", 13);
+
+pref("font.size.variable.x-tamil", 16);
+pref("font.size.fixed.x-tamil", 13);
+
 pref("font.size.variable.x-unicode", 16);
 pref("font.size.fixed.x-unicode", 13);
 
@@ -174,7 +195,6 @@ pref("mail.windows_xp_integration.unread_count_interval", 300);
 
 // override double-click word selection behavior.
 pref("layout.word_select.eat_space_to_next_word", true);
-pref("layout.word_select.stop_at_punctuation", false);
 
 // print_extra_margin enables platforms to specify an extra gap or margin
 // around the content of the page for Print Preview only
@@ -196,9 +216,27 @@ pref("plugin.scan.Quicktime", "5.0");
 // Locate and scan the Window Media Player installation directory for plugins with a minimum version
 pref("plugin.scan.WindowsMediaPlayer", "7.0");
 
+// Locate plugins by the directories specified in the Windows registry for PLIDs
+// Which is currently HKLM\Software\MozillaPlugins\xxxPLIDxxx\Path
+pref("plugin.scan.plid.all", true);
+
 // Controls the scanning of the Navigator 4.x directory for plugins
 // When pref is missing, the default is to pickup popular plugins such as
 // Flash, Shockwave, Acrobat, and Quicktime. If set to true, ALL plugins
 // will be picked up and if set to false the scan will not happen at all
 //pref("plugin.scan.4xPluginFolder", false);
+
+// Help Windows NT, 2000, and XP dialup a RAS connection
+// when a network address is unreachable.
+pref("network.autodial-helper.enabled", true);
+
+// Pref to control whether we set ddeexec subkeys for the http
+// Internet shortcut protocol if we are handling it.  These
+// subkeys will be set only while we are running (to avoid the
+// problem of Windows showing an alert when it tries to use DDE
+// and we're not already running).
+pref("advanced.system.supportDDEExec", true);
+
+// Use CP932 compatible map for JIS X 0208
+pref("intl.jis0208.map", "CP932");
 
