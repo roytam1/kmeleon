@@ -38,10 +38,10 @@
 #define REG_SHELL_FOLDERS _T("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders")
 #define REG_FAVORITES_KEY _T("Favorites")
 
-#define MAX_FAVORITES 512
+#define MAX_FAVORITES 4096
 
 #define ERROR_TOO_MANY_FAVORITES "Error! You have too many favorites!\n\n" \
-                                 "Right now, only 512 favorites are supported"
+                                 "Right now, only 4096 favorites are supported"
 
 static CStringArray      gFavorites;         // this one contains the display filename (Really...vorite)
 static CStringArray      gFavoritesFiles;    // this one contains the full filename (SomeFolder\Stuff\Really Long Favorite)
@@ -71,36 +71,58 @@ static WNDPROC KMeleonWndProc;
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 int BuildFavoritesMenu(char * strPath, HMENU mainMenu);
 
+BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
 int Init();
 void Create(HWND parent);
 void Config(HWND parent);
 void Quit();
 void DoMenu(HMENU menu, char *param);
 void DoRebar(HWND rebarWnd);
-BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-pluginFunctions pFuncs = {
-   Init,
-   Create,
-   Config,
-   Quit,
-   DoMenu,
-   DoRebar
-};
+long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2);
 
 kmeleonPlugin kPlugin = {
    KMEL_PLUGIN_VER,
    PLUGIN_NAME,
-   &pFuncs
+   DoMessage
 };
+
+/* End K-Meleon Plugin Header */
+
+long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2)
+{
+   if (to[0] == '*' || stricmp(to, kPlugin.dllname) == 0) {
+      if (stricmp(subject, "Init") == 0) {
+         Init();
+      }
+      else if (stricmp(subject, "Config") == 0) {
+         Config((HWND)data1);
+      }
+      else if (stricmp(subject, "Quit") == 0) {
+         Quit();
+      }
+      else if (stricmp(subject, "DoRebar") == 0) {
+         DoRebar((HWND)data1);
+      }
+      else if (stricmp(subject, "DoMenu") == 0) {
+         DoMenu((HMENU)data1, (char *)data2);
+      }
+      else return 0;
+
+      return 1;
+   }
+   return 0;
+}
+
 
 int Init()
 {
-   nConfigCommand = kPlugin.kf->GetCommandIDs(1);
-   nAddCommand = kPlugin.kf->GetCommandIDs(1);
-   nEditCommand = kPlugin.kf->GetCommandIDs(1);
+   nConfigCommand = kPlugin.kFuncs->GetCommandIDs(1);
+   nAddCommand = kPlugin.kFuncs->GetCommandIDs(1);
+   nEditCommand = kPlugin.kFuncs->GetCommandIDs(1);
 
-   nFirstFavoriteCommand = kPlugin.kf->GetCommandIDs(MAX_FAVORITES);
+   nFirstFavoriteCommand = kPlugin.kFuncs->GetCommandIDs(MAX_FAVORITES);
 
    TCHAR           sz[MAX_PATH];
    HKEY            hKey;
@@ -154,7 +176,7 @@ int Init()
 
    // Get the rebar status
    int pref = 0;
-   kPlugin.kf->GetPreference(PREF_BOOL, PREFERENCE_REBAR_ENABLED, &bRebarEnabled, &pref);
+   kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_REBAR_ENABLED, &bRebarEnabled, &pref);
 
    return true;
 }
@@ -270,7 +292,7 @@ void DoRebar(HWND rebarWnd){
    }
 
    // Register the band name and child hwnd
-    kPlugin.kf->RegisterBand(hwndTB, "Favorites");
+    kPlugin.kFuncs->RegisterBand(hwndTB, "Favorites");
 
     SetWindowText(hwndTB, TOOLBAND_LABEL);
 
@@ -546,7 +568,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
          return true;
       }
       if (command == nAddCommand){
-         kmeleonDocInfo *dInfo = kPlugin.kf->GetDocInfo(hWnd);
+         kmeleonDocInfo *dInfo = kPlugin.kFuncs->GetDocInfo(hWnd);
 
          CString filename = gFavoritesPath;
          filename += dInfo->title;
@@ -572,7 +594,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
          return true;
       }
       if (command >= nFirstFavoriteCommand && command < (nFirstFavoriteCommand + MAX_FAVORITES)){
-         kPlugin.kf->NavigateTo(GetURL(command-nFirstFavoriteCommand), OPEN_NORMAL);
+         kPlugin.kFuncs->NavigateTo(GetURL(command-nFirstFavoriteCommand), OPEN_NORMAL);
          return true;
       }
    }
@@ -610,7 +632,7 @@ BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 					switch (LOWORD(wParam)) {
 						case IDOK:
                      bRebarEnabled = SendDlgItemMessage(hWnd, IDC_REBARENABLED, BM_GETCHECK, 0, 0);
-                     kPlugin.kf->SetPreference(PREF_BOOL, _T("kmeleon.plugins.favorites.rebar"), &bRebarEnabled);
+                     kPlugin.kFuncs->SetPreference(PREF_BOOL, _T("kmeleon.plugins.favorites.rebar"), &bRebarEnabled);
                   case IDCANCEL:
                      SendMessage(hWnd, WM_CLOSE, 0, 0);
                }
@@ -656,3 +678,81 @@ extern "C" {
       return 0;
    }
 }
+
+
+/*
+
+From: "Nathan Fredrickson" <8nrf@qlink.queensu.ca>
+To: <kmeleon-dev@lists.sourceforge.net>
+Subject: [Kmeleon-dev] favorites plugin
+Date: Fri, 2 Nov 2001 11:17:40 -0500
+
+Hello,
+
+I like how favorites can be shared between IE and Kmeleon, but I miss the
+ability to custom order my favorites in IE.  While I would ideally like to
+re-order favorites in Kmeleon, a good first step would be just using the IE
+ordering when displaying the favorites.
+
+I have done some investigating of how IE stores the menu order of favorites.
+The favorites directory and each subdirectory has a corresponding key in the
+registry:
+
+HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\MenuOrder\\Favorites
+
+HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\MenuOrder\\Favorites\\subdir
+
+These keys contain a binary value named "Order".  If the key does not exist
+for a specified directory, alphabetical order should be used.  I have not
+found the format of the binary data specified anywhere, so this is what I
+have discovered so far:
+
+Order = {
+	4	0x08 0x00 0x00 0x00
+	4	0x02 0x00 0x00 0x00
+	4	(total size of data) - (first 8 bytes) - (last byte)
+	4	0x01 0x00 0x00 0x00
+	4	N (number of records)
+	record 1
+	record 2
+	...
+	record N
+	1	terminating byte 0x00
+}
+
+record = {
+	4	size of record in bytes
+	4	position of item in menu
+		range: [0, recordcount-1] or negative if no order is defined
+	14	unknown ???
+	X	null-terminated string of full filename: "Yahoo!.url"
+	X	null-terminated string of 8.3 filename: "YAHOO!.URL__"
+	6	unknown ???
+}
+
+The above is enough info to extract the positions and the filenames (I have
+written bits of code to do that while experimenting).  If I have time, I may
+try to add this to the favorites plugin.  Not sure what is the best approach
+to correlate this data with the URL files read from the directory...
+
+*/
+
+/*
+
+   Brian's Notes:
+
+  Implementation:
+   Build a list of menu items in order from the registry keys (ordered favorites)
+   Build a list of menu items in alphabetical order from the directories (actual favorites)
+  
+   Loop through ordered favorites.
+      If the ordered favorite is in actual favorites
+         Remove it from actual favorites
+         Add it to merged favorites
+      If the ordered favorite is not found in actual favorites
+         Remove it from ordered favorites
+   Append all remaining actual favorites to merged favorites
+
+  We should store the favorites lists as a linked tree list thing (like the bookmarks)
+
+*/
