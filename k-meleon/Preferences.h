@@ -96,7 +96,7 @@ public:
    int  GetInt(const char *preference, int defaultVal);
 
    void SetString(const char *preference, char * value);
-   void GetString(const char *preference, char * retValue, char * defaultVal);
+   int GetString(const char *preference, char * retValue, char * defaultVal);
 };
 
 class CPreferencePage : public CDialog {

@@ -304,14 +304,17 @@ void CPreferences::SetInt(const char *preference, int value){
 
 }
 
-void CPreferences::GetString(const char *preference, char *retVal, char *defaultVal){
+int CPreferences::GetString(const char *preference, char *retVal, char *defaultVal){
    nsresult rv;
    NS_WITH_SERVICE(nsIPref, prefs, NS_PREF_CONTRACTID, &rv);
    if (NS_SUCCEEDED(rv)) {
       CString string;
       _GetString(preference, string, defaultVal);
-      strcpy(retVal, string);
+      if (retVal)
+         strcpy(retVal, string);
+      return string.GetLength();
    }
+   return 0;
 }
 
 void CPreferences::SetString(const char *preference, char *value){
