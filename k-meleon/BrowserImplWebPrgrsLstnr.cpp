@@ -38,103 +38,109 @@
 //	  to do the actual statusbar/progress bar updates. 
 //
 
-NS_IMETHODIMP CBrowserImpl::OnProgressChange(nsIWebProgress *progress, nsIRequest *request,
-                                             PRInt32 curSelfProgress, PRInt32 maxSelfProgress,
-                                             PRInt32 curTotalProgress, PRInt32 maxTotalProgress)
+NS_IMETHODIMP CBrowserImpl::OnProgressChange(nsIWebProgress *progress,
+                                             nsIRequest *request,
+                                             PRInt32 curSelfProgress,
+                                             PRInt32 maxSelfProgress,
+                                             PRInt32 curTotalProgress,
+                                             PRInt32 maxTotalProgress)
 {
-   if(! m_pBrowserFrameGlue)
-      return NS_ERROR_FAILURE;
+  if(! m_pBrowserFrameGlue) {
+    // always return NS_OK
+    return NS_OK;
+  }
 
-   PRInt32 nProgress = curTotalProgress;
-   PRInt32 nProgressMax = maxTotalProgress;
+  PRInt32 nProgress = curTotalProgress;
+  PRInt32 nProgressMax = maxTotalProgress;
 
-   if (nProgressMax == 0)
-      nProgressMax = LONG_MAX;
+  if (nProgressMax == 0)
+    nProgressMax = LONG_MAX;
 
-   if (nProgress > nProgressMax)
-      nProgress = nProgressMax; // Progress complete
+  if (nProgress > nProgressMax)
+    nProgress = nProgressMax; // Progress complete
 
-   m_pBrowserFrameGlue->UpdateProgress(nProgress, nProgressMax);
+  m_pBrowserFrameGlue->UpdateProgress(nProgress, nProgressMax);
 
-   return NS_OK;
+  return NS_OK;
 }
 
-NS_IMETHODIMP CBrowserImpl::OnStateChange(nsIWebProgress *progress, nsIRequest *request,
-                                          PRInt32 progressStateFlags, PRUint32 status)
+NS_IMETHODIMP CBrowserImpl::OnStateChange(nsIWebProgress *progress,
+                                          nsIRequest *request,
+                                          PRUint32 progressStateFlags,
+                                          nsresult status)
 {
-   if(! m_pBrowserFrameGlue)
-      return NS_ERROR_FAILURE;
+  if(! m_pBrowserFrameGlue) {
+    // always return NS_OK
+    return NS_OK;
+  }
 
-   if ((progressStateFlags & STATE_START) && (progressStateFlags & STATE_IS_DOCUMENT))
-   {
-      // Navigation has begun
+  if ((progressStateFlags & STATE_START) && (progressStateFlags & STATE_IS_DOCUMENT))
+  {
+    // Navigation has begun
+    m_pBrowserFrameGlue->UpdateBusyState(PR_TRUE);
+  }
 
-      if(m_pBrowserFrameGlue)
-         m_pBrowserFrameGlue->UpdateBusyState(PR_TRUE);
-   }
+  if ((progressStateFlags & STATE_STOP) && (progressStateFlags & STATE_IS_DOCUMENT))
+  {
+    // We've completed the navigation
 
-   if ((progressStateFlags & STATE_STOP) && (progressStateFlags & STATE_IS_DOCUMENT))
-   {
-      // We've completed the navigation
+    m_pBrowserFrameGlue->UpdateBusyState(PR_FALSE);
+    m_pBrowserFrameGlue->UpdateProgress(0, 100);       // Clear the prog bar
+    m_pBrowserFrameGlue->UpdateStatusBarText(nsnull);  // Clear the status bar
+  }
 
-      m_pBrowserFrameGlue->UpdateBusyState(PR_FALSE);
-      m_pBrowserFrameGlue->UpdateProgress(0, 100);       // Clear the prog bar
-      m_pBrowserFrameGlue->UpdateStatusBarText(nsnull);  // Clear the status bar
-   }
-
-   return NS_OK;
+  return NS_OK;
 }
 
 
 NS_IMETHODIMP CBrowserImpl::OnLocationChange(nsIWebProgress* aWebProgress,
-                                             nsIRequest* aRequest,
-                                             nsIURI *location)
+                                                 nsIRequest* aRequest,
+                                                 nsIURI *location)
 {
-   if(! m_pBrowserFrameGlue)
-      return NS_ERROR_FAILURE;
+  if(! m_pBrowserFrameGlue) {
+    // always return NS_OK
+    return NS_OK;
+  }
 
-   PRBool isSubFrameLoad = PR_FALSE; // Is this a subframe load                  
-   if (aWebProgress) {
-      nsCOMPtr<nsIDOMWindow> domWindow;
-      nsCOMPtr<nsIDOMWindow> topDomWindow;
-      aWebProgress->GetDOMWindow(getter_AddRefs(domWindow));
+  PRBool isSubFrameLoad = PR_FALSE; // Is this a subframe load
+  if (aWebProgress) {
+    nsCOMPtr<nsIDOMWindow>  domWindow;
+    nsCOMPtr<nsIDOMWindow>  topDomWindow;
+    aWebProgress->GetDOMWindow(getter_AddRefs(domWindow));
+    if (domWindow) { // Get root domWindow
+      domWindow->GetTop(getter_AddRefs(topDomWindow));
+    }
+    if (domWindow != topDomWindow)
+      isSubFrameLoad = PR_TRUE;
 
-      if (domWindow) {   // Get root domWindow
-         domWindow->GetTop(getter_AddRefs(topDomWindow));
-      }
+  }
 
-      if (domWindow != topDomWindow)
-         isSubFrameLoad = PR_TRUE;
-   }
+  if (!isSubFrameLoad) // Update urlbar only if it is not a subframe load
+    m_pBrowserFrameGlue->UpdateCurrentURI(location);
 
-   if (!isSubFrameLoad) // Update urlbar only if it is not a subframe load
-   m_pBrowserFrameGlue->UpdateCurrentURI(location);
-
-   return NS_OK;
+    return NS_OK;
 }
 
 NS_IMETHODIMP 
 CBrowserImpl::OnStatusChange(nsIWebProgress* aWebProgress,
-                             nsIRequest* aRequest,
-                             nsresult aStatus,
-                             const PRUnichar* aMessage)
+                                 nsIRequest* aRequest,
+                                 nsresult aStatus,
+                                 const PRUnichar* aMessage)
 {
-   if(! m_pBrowserFrameGlue)
-      return NS_ERROR_FAILURE;
+  if(m_pBrowserFrameGlue)
+    m_pBrowserFrameGlue->UpdateStatusBarText(aMessage);
 
-   m_pBrowserFrameGlue->UpdateStatusBarText(aMessage);
-
-   return NS_OK;
+  return NS_OK;
 }
 
 
 
 NS_IMETHODIMP 
-CBrowserImpl::OnSecurityChange(nsIWebProgress *aWebProgress,
-                               nsIRequest *aRequest,
-                               PRInt32 state)
+CBrowserImpl::OnSecurityChange(nsIWebProgress *aWebProgress, 
+                                    nsIRequest *aRequest, 
+                                    PRUint32 state)
 {
-   m_pBrowserFrameGlue->UpdateSecurityStatus(state);
+  m_pBrowserFrameGlue->UpdateSecurityStatus(state);
 
-   return NS_OK;
+  return NS_OK;
 }

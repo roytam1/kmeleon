@@ -52,6 +52,8 @@
 #include "PromptService.h"
 #include "Utils.h"
 #include "Tooltips.h"
+#include "nsCRT.h"
+
 
 #ifdef _DEBUG
 #define new DEBUG_NEW

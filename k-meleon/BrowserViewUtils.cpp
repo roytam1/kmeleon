@@ -79,8 +79,8 @@ BOOL CBrowserView::OpenViewSourceWindow(const char* pUrl)
             NS_NewLocalFile(tempfile, TRUE, getter_AddRefs(file));
 
 
-//            persist->SaveDocument(nsnull, file, nsnull, nsnull, 0, 0);
-            persist->SaveURI(nsnull, nsnull, file);
+            persist->SaveDocument(nsnull, file, nsnull, nsnull, 0, 0);
+//            persist->SaveURI(nsnull, nsnull, file);
 
             char *command = new char[theApp.preferences.sourceCommand.GetLength() + tempfile.Length() +2];
             
@@ -364,6 +364,23 @@ void CBrowserView::UpdateBusyState(PRBool aBusy)
 {
 	mbDocumentLoading = aBusy;
 
+
+   if (m_InPrintPreview) {
+      nsCOMPtr<nsIWebBrowserPrint> print(do_GetInterface(mWebBrowser));
+      if(print) {
+         PRBool isDoingPP;
+         print->GetDoingPrintPreview(&isDoingPP);
+         if (!isDoingPP) {
+            m_InPrintPreview = FALSE;
+            CMenu* menu = mpBrowserFrame->GetMenu();
+            if (menu) {
+               menu->CheckMenuItem( ID_FILE_PRINTPREVIEW, MF_UNCHECKED );
+            }
+         }
+      }
+   }
+   
+   
    if (mbDocumentLoading){
 		mpBrowserFrame->m_wndAnimate.Play(0, -1, -1);
 	}
