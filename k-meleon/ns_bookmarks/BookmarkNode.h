@@ -20,19 +20,22 @@
 #define BOOKMARK_NODE_H
 
 #include <string>
-#include <vector>
 
 const BOOKMARK_BOOKMARK = 0;  // this node is a real bookmark, all fields valid
 const BOOKMARK_FOLDER   = 1;  // "children" is not empty.  url is not used
-const BOOKMARK_FOLDER_TB= 2;  // Toolbar Folder, "children" is not empty.  url is not used
-const BOOKMARK_SEPARATOR= 3;  // this node is a separator, url, title, and children are not used
+const BOOKMARK_SEPARATOR= 2;  // this node is a separator, url, title, and children are not used
+
+const BOOKMARK_FLAG_TB = 0x1;	// Toolbar Folder
+const BOOKMARK_FLAG_NB = 0x2;	// New Bookmarks Folder
+const BOOKMARK_FLAG_BM = 0x4;	// Bookmark Menu Folder
 
 class CBookmarkNode {
 public:
-	int id;
+   int id;
    std::string text;
-	std::string url;
-	int type;
+   std::string url;
+   int type;
+   int flags;
    time_t addDate;
    time_t lastVisit;
    time_t lastModified;
@@ -46,6 +49,7 @@ public:
       text = "";
       url = "";
       type = 0;
+	  flags = 0;
       next = NULL;
       child = NULL;
       lastChild = NULL;
@@ -60,6 +64,7 @@ public:
       this->text = text;
       this->url = url;
       this->type = type;
+	  this->flags = 0;
       this->next = NULL;
       this->child = NULL;
       this->lastChild = NULL;
@@ -73,6 +78,7 @@ public:
       this->text = text;
       this->url = url;
       this->type = type;
+	  this->flags = 0;
       this->next = NULL;
       this->child = NULL;
       this->lastChild = NULL;
@@ -96,6 +102,7 @@ public:
       text = n2.text;
       url = n2.url;
       type = n2.type;
+      flags = n2.flags;
       addDate = n2.addDate;
       lastVisit = n2.lastVisit;
       lastModified = n2.lastModified;
@@ -110,6 +117,10 @@ public:
       if (n2.child) {
          child = new CBookmarkNode();
          (*child) = (*n2.child);
+
+         // need to rebuild pointer to lastChild - can't just grab it from n2
+         lastChild = child;
+         while (lastChild->next) lastChild = lastChild->next;
       }
 
       if (n2.next) {
@@ -173,7 +184,7 @@ public:
          if (c->type == BOOKMARK_SEPARATOR) {
             continue;
          }
-         else if (c->type == BOOKMARK_FOLDER || c->type == BOOKMARK_FOLDER_TB) {
+         else if (c->type == BOOKMARK_FOLDER) {
             CBookmarkNode *lc = c->lastChild;
 
             // this little bit of code is for optimizations
@@ -186,7 +197,7 @@ public:
 
             CBookmarkNode *retNode = c->FindNode(id);
 
-            if (retNode != c) {
+            if (retNode) {
                // found it in a sub-node
                return retNode;
             }
@@ -196,21 +207,21 @@ public:
             return c;
          }
       }
-      // We couldn't find it.  Rather than returning null and risking a null pointer crash, return ourself
-      return this;
+//      // We couldn't find it.  Rather than returning null and risking a null pointer crash, return ourself
+//      return this;
+      // Scratch that.  We return NULL and just fix anything that crashes.
+      return NULL;
    }
-   CBookmarkNode *FindToolbarNode()
+   CBookmarkNode *FindSpecialNode(int flag)
    {
       CBookmarkNode *c;
       for (c=child; c; c=c->next) {
-         if (c->type == BOOKMARK_FOLDER_TB) {
+         if (c->flags & flag) {
             // this is it!
             return c;
          }
          else if (c->type == BOOKMARK_FOLDER) {
-            CBookmarkNode *lc = c->lastChild;
-
-            CBookmarkNode *retNode = c->FindToolbarNode();
+            CBookmarkNode *retNode = c->FindSpecialNode(flag);
 
             if (retNode != c) {
                // found it in a sub-node
