@@ -254,6 +254,11 @@ public:
             continue;
          }
          else if (c->type == BOOKMARK_FOLDER) {
+            if (strcmp((char*)c->nick.c_str(), nick) == 0) {
+               // this is it!
+               return c;
+            }
+
             CBookmarkNode *retNode = c->FindNick(nick);
 
             if (retNode) {

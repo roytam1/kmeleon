@@ -710,8 +710,9 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                SetDlgItemText(hDlg, IDC_LAST_VISIT, "");
                EnableWindow(GetDlgItem(hDlg, IDC_STATIC_URL), false);
                EnableWindow(GetDlgItem(hDlg, IDC_URL), false);
-               EnableWindow(GetDlgItem(hDlg, IDC_STATIC_NICK), false);
-               EnableWindow(GetDlgItem(hDlg, IDC_NICK), false);
+               EnableWindow(GetDlgItem(hDlg, IDC_STATIC_NICK), true);
+               EnableWindow(GetDlgItem(hDlg, IDC_NICK), true);
+               SetDlgItemText(hDlg, IDC_NICK, newNode->nick.c_str());
                EnableWindow(GetDlgItem(hDlg, IDC_STATIC_VISITED), false);
                EnableWindow(GetDlgItem(hDlg, IDC_STATIC_DESC), true);
                EnableWindow(GetDlgItem(hDlg, IDC_DESC), true);
@@ -1555,7 +1556,7 @@ static void UpdateNick(HWND hDlg, HTREEITEM item) {
    HWND hTree = GetDlgItem(hDlg, IDC_TREE_BOOKMARK);
    CBookmarkNode *node = GetBookmarkNode(hTree, item);
 
-   if (node->type == BOOKMARK_BOOKMARK) {
+   if (node->type == BOOKMARK_BOOKMARK || node->type == BOOKMARK_FOLDER) {
       char szBuffer[1024];
       GetDlgItemText(hDlg, IDC_NICK, szBuffer, 1023);
       if (node->nick.compare(szBuffer) != 0) {
