@@ -119,9 +119,6 @@ void CBrowserFrame::OnClose()
 	DestroyWindow();
 }
 
-#undef TRACE0
-#define TRACE0(msg) MessageBox(msg);
-
 // This is where the UrlBar, ToolBar, StatusBar, ProgressBar
 // get created
 //
@@ -186,6 +183,8 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
   m_wndToolBar.GetToolBarCtrl().SetDisabledImageList(&m_toolbarDisabledImageList);
 
   m_wndToolBar.SetButtons(buttons, 6);
+
+  m_wndUrlBar.SetImageList(&m_toolbarHotImageList);
 
   // Create the animation control..
 	if (!m_wndAnimate.Create(WS_CHILD | WS_VISIBLE, CRect(0, 0, 10, 10), this, AFX_IDW_TOOLBAR + 2) ||
@@ -333,8 +332,8 @@ BOOL CBrowserFrame::PreCreateWindow(CREATESTRUCT& cs)
 // CBrowserFrame message handlers
 void CBrowserFrame::OnSetFocus(CWnd* pOldWnd)
 {
-	// forward focus to the view window
-	m_wndBrowserView.SetFocus();
+	// forward focus to the browser window
+	m_wndBrowserView.mBaseWindow->SetFocus();
 }
 
 LRESULT CBrowserFrame::WindowProc( UINT message, WPARAM wParam, LPARAM lParam ){
