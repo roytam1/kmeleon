@@ -639,6 +639,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
          return true;
       }
    }
+   else if (message == WM_MENUSELECT) {
+      WORD command = LOWORD(wParam);
+      if (command >= nFirstFavoriteCommand && command < (nFirstFavoriteCommand + MAX_FAVORITES)){
+         kPlugin.kFuncs->SetStatusBarText(GetURL(command-nFirstFavoriteCommand));
+         return true;
+      }
+   }
    else if (message == WM_NOTIFY) {
       hdr = *((LPNMHDR)lParam);
       if (hdr.code == TBN_DROPDOWN) {
