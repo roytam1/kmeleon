@@ -172,7 +172,8 @@ enum commands {
    substr,
    basename,
    dirname,
-   hostname
+   hostname,
+   forcecharset
 };
 
 
@@ -349,6 +350,7 @@ int FindCommand(char *cmd) {
       CMD_TEST(basename)
       CMD_TEST(dirname)
       CMD_TEST(hostname)
+      CMD_TEST(forcecharset)
 
    return cmdVal;
 }
@@ -1232,6 +1234,20 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
 		 std::string retval;
 		 retval = protectString( (char*)params[0].c_str() );
 		 return retval;
+      }
+
+      /*
+         forcecharset( charset );
+      */
+
+      CMD(forcecharset) {
+         if (nparam > 1) {  // forcecharset( $0 )
+            parseError(WRONGARGS, "forcecharset", data, 1, nparam);
+            return "";
+         }
+
+         kFuncs->SetForceCharset(nparam < 1 ? "" : (char*)params[0].c_str());
+        return "";
       }
 
    return "";

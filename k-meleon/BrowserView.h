@@ -107,6 +107,9 @@ public:
    
     nsIDOMWindow *FindDOMWindow(nsIDOMWindow *window, nsIDOMDocument *document);
 
+    nsIDocShell *CBrowserView::GetDocShell();
+    BOOL ForceCharset(char *aCharSet);
+
     void SetCtxMenuLinkUrl(nsAutoString& strLinkUrl);
 	nsAutoString mCtxMenuLinkUrl;
 

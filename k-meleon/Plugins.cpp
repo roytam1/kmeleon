@@ -514,6 +514,10 @@ HMENU GetMenu(char *menuName){
    return menu ? menu->m_hMenu : NULL;
 }
 
+void SetForceCharset(char *aCharset) {
+   theApp.m_pMostRecentBrowserFrame->m_wndBrowserView.ForceCharset(aCharset);
+}
+
 long CPlugins::SendMessage(const char *to, const char *from, const char *subject, long data1, long data2)
 {
    long retVal = 0;
@@ -559,7 +563,8 @@ kmeleonFunctions kmelFuncs = {
    EncodeUTF8,
    DecodeUTF8,
    GetBrowserviewRect,
-   GetMenu
+   GetMenu,
+   SetForceCharset
 };
 
 BOOL CPlugins::TestLoad(const char *file, const char *description)
