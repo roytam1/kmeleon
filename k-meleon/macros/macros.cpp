@@ -1651,6 +1651,56 @@ std::string EvalExpression(HWND hWnd,std::string exp) {
       }
    }
 
+   // while (expression) statement;
+   if (exp.find_first_of("while") == 0) {
+      int lpos, rpos;
+      int lparen, rparen;
+      bool instr;
+      
+      lpos = rpos = NOTFOUND;
+      lparen = rparen = 0;
+      instr = false;
+      
+      for (int j=1; j<exp.length(); ++j) {
+	 if (exp.at(j) == '"' && exp.at(j-1) != '\\') {
+	    instr = (instr) ? false : true;
+	    continue;
+	 }
+	 if (!instr) {
+	    if(exp.at(j) == '(') {
+	       ++lparen;
+	       if (lparen == 1)
+		  lpos = j;
+	       continue;
+	    }
+	    if(exp.at(j) == ')') {
+	       ++rparen;
+	       if (lparen == rparen)
+		  rpos = j;
+	       break;
+	    }
+	 }
+      }
+      
+      if (lpos != NOTFOUND && rpos != NOTFOUND) {
+	 std::string pre = strTrim(exp.substr(0,lpos));
+	 std::string expr = strTrim(exp.substr(lpos+1,rpos-(lpos+1)));
+	 std::string stmt = strTrim(exp.substr(rpos+1));
+	 
+	 std::string copy;
+	 std::string result = "";
+	 
+	 copy = expr.c_str();
+	 int b = BoolVal(EvalExpression(hWnd, copy));
+	 while (b) {
+	    copy = stmt.c_str();
+	    result = EvalExpression(hWnd, copy);
+	    copy = expr.c_str();
+	    b = BoolVal(EvalExpression(hWnd, copy));
+	 }
+	 return result;
+      }
+   }
 
    // conditional expression?
    if (exp.find_first_of('?') != std::string::npos &&
