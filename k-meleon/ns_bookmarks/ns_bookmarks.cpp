@@ -36,23 +36,6 @@
 
 #define _T(blah) blah
 
-/*
-// MFC handles this for us (how nice)
-BOOL APIENTRY DllMain( HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved )
-{
-  switch (ul_reason_for_call)
-  {
-		case DLL_PROCESS_ATTACH:
-      case DLL_THREAD_ATTACH:
-      case DLL_THREAD_DETACH:
-      case DLL_PROCESS_DETACH:
-      break;
-      }
-
-  return TRUE;
-  }
-*/
-
 int Init();
 void Create(HWND parent);
 void Config(HWND parent);
@@ -310,6 +293,10 @@ void DoMenu(HMENU menu, char *param){
 #define SUBMENU_OFFSET 5000 // this is here to distinguish between submenus and menu items, which may have the same id otherwise
 
 void DoRebar(HWND rebarWnd) {
+
+// disabled to fix "create new window pauses for several seconds" bug
+#if 0
+   
    DWORD dwStyle = 0x40 | /*the 40 gets rid of an ugly border on top.  I have no idea what flag it corresponds to...*/
       CCS_NOPARENTALIGN | CCS_NORESIZE | //CCS_ADJUSTABLE |
       TBSTYLE_FLAT | TBSTYLE_TRANSPARENT | TBSTYLE_LIST | TBSTYLE_TOOLTIPS;
@@ -350,48 +337,50 @@ void DoRebar(HWND rebarWnd) {
    mInfo.cbSize = sizeof(mInfo);
    int i;
    int count = GetMenuItemCount(m_toolbarMenu);
+
    for (i=0; i<count; i++){
-     if (GetMenuState(m_toolbarMenu, i, MF_BYPOSITION) & MF_POPUP){
-        char temp[128];
-        mInfo.fMask = MIIM_TYPE | MIIM_SUBMENU;
-        mInfo.cch = 127;
-        mInfo.dwTypeData = temp;
-        GetMenuItemInfo(m_toolbarMenu, i, MF_BYPOSITION, &mInfo);
+      if (GetMenuState(m_toolbarMenu, i, MF_BYPOSITION) & MF_POPUP){
+         char temp[128];
+         mInfo.fMask = MIIM_TYPE | MIIM_SUBMENU;
+         mInfo.cch = 127;
+         mInfo.dwTypeData = temp;
+         GetMenuItemInfo(m_toolbarMenu, i, MF_BYPOSITION, &mInfo);
 
-        stringID = SendMessage(hwndTB, TB_ADDSTRING, (WPARAM)NULL, (LPARAM)(LPCTSTR)mInfo.dwTypeData);
+         stringID = SendMessage(hwndTB, TB_ADDSTRING, (WPARAM)NULL, (LPARAM)(LPCTSTR)mInfo.dwTypeData);
 
-        TBBUTTON button = {0};
-        button.iBitmap = 0; //m_iFolderIcon;
-        button.idCommand = (int)mInfo.hSubMenu + SUBMENU_OFFSET;
-        button.fsState = TBSTATE_ENABLED;
-        button.fsStyle = TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE | TBSTYLE_DROPDOWN;
-        //button.bReserved = NULL;
-        button.iString = stringID;
+         TBBUTTON button = {0};
+         button.iBitmap = 0; //m_iFolderIcon;
+         button.idCommand = (int)mInfo.hSubMenu + SUBMENU_OFFSET;
+         button.fsState = TBSTATE_ENABLED;
+         button.fsStyle = TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE | TBSTYLE_DROPDOWN;
+         //button.bReserved = NULL;
+         button.iString = stringID;
 
-        SendMessage(hwndTB, TB_INSERTBUTTON, (WPARAM)-1, (LPARAM)&button);
-     }
-     else{
-        char temp[128];
-        mInfo.fMask = MIIM_TYPE | MIIM_ID;
-        mInfo.cch = 127;
-        mInfo.dwTypeData = temp;
-        GetMenuItemInfo(m_toolbarMenu, i, MF_BYPOSITION, &mInfo);
+         SendMessage(hwndTB, TB_INSERTBUTTON, (WPARAM)-1, (LPARAM)&button);
+      }
 
-        if (mInfo.wID >= nFirstBookmarkCommand && mInfo.wID < nFirstBookmarkCommand + MAX_BOOKMARKS){
-           index = mInfo.wID - nFirstBookmarkCommand;
+      else {
+         char temp[128];
+         mInfo.fMask = MIIM_TYPE | MIIM_ID;
+         mInfo.cch = 127;
+         mInfo.dwTypeData = temp;
+         GetMenuItemInfo(m_toolbarMenu, i, MF_BYPOSITION, &mInfo);
 
-           stringID = SendMessage(hwndTB, TB_ADDSTRING, (WPARAM)NULL, (LPARAM)(LPCTSTR)mInfo.dwTypeData);
+         if (mInfo.wID >= nFirstBookmarkCommand && mInfo.wID < nFirstBookmarkCommand + MAX_BOOKMARKS){
+            index = mInfo.wID - nFirstBookmarkCommand;
 
-           TBBUTTON button = {0};
-           button.iBitmap = 1;
-           button.idCommand = mInfo.wID;
-           button.fsState = TBSTATE_ENABLED;
-           button.fsStyle = TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE;
-           button.iString = stringID;
+            stringID = SendMessage(hwndTB, TB_ADDSTRING, (WPARAM)NULL, (LPARAM)(LPCTSTR)mInfo.dwTypeData);
 
-           SendMessage(hwndTB, TB_INSERTBUTTON, (WPARAM)-1, (LPARAM)&button);
-        }
-     }
+            TBBUTTON button = {0};
+            button.iBitmap = 1;
+            button.idCommand = mInfo.wID;
+            button.fsState = TBSTATE_ENABLED;
+            button.fsStyle = TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE;
+            button.iString = stringID;
+
+            SendMessage(hwndTB, TB_INSERTBUTTON, (WPARAM)-1, (LPARAM)&button);
+         }
+      }
    }
 
    TBBUTTON button = {0};
@@ -428,6 +417,7 @@ void DoRebar(HWND rebarWnd) {
    // Add the band that has the toolbar.
    SendMessage(rebarWnd, RB_INSERTBAND, (WPARAM)-1, (LPARAM)&rbBand);
 
+#endif
 }
 
 CALLBACK EditProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
@@ -494,48 +484,48 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
       }
    }
    else if (message == WM_NOTIFY){
-     NMHDR *hdr = (LPNMHDR)lParam;
-     if (hdr->code == TBN_DROPDOWN){
-       NMTOOLBAR *tbhdr = (LPNMTOOLBAR)lParam;
+      NMHDR *hdr = (LPNMHDR)lParam;
+      if (hdr->code == TBN_DROPDOWN){
+         NMTOOLBAR *tbhdr = (LPNMTOOLBAR)lParam;
 
-       if (tbhdr->iItem == nDropdownCommand){
-         RECT rc;
-         WPARAM index = 0;
-         SendMessage(tbhdr->hdr.hwndFrom, TB_GETITEMRECT, index, (LPARAM) &rc);
-         POINT pt = { rc.left, rc.bottom };
-         ClientToScreen(tbhdr->hdr.hwndFrom, &pt);
-         TrackPopupMenu((HMENU)m_menuBookmarks, TPM_LEFTALIGN, pt.x, pt.y, 0, hWnd, NULL);
-       }
-       else if (IsMenu((HMENU)(tbhdr->iItem-SUBMENU_OFFSET))){
-         ghToolbarWnd = tbhdr->hdr.hwndFrom;
-         giCurrentItem = tbhdr->iItem;
-
-         int lastItem;
-
-         do {
-            gbContinueMenu = false;
-
-            SendMessage(ghToolbarWnd, TB_PRESSBUTTON, giCurrentItem, MAKELONG(true, 0));
-            ghhookMsg = SetWindowsHookEx(WH_MSGFILTER, MsgHook, kPlugin.hDllInstance, GetCurrentThreadId());
-
+         if (tbhdr->iItem == nDropdownCommand){
             RECT rc;
-            WPARAM index = SendMessage(ghToolbarWnd, TB_COMMANDTOINDEX, giCurrentItem, 0);
-            SendMessage(ghToolbarWnd, TB_GETITEMRECT, index, (LPARAM) &rc);
+            WPARAM index = 0;
+            SendMessage(tbhdr->hdr.hwndFrom, TB_GETITEMRECT, index, (LPARAM) &rc);
             POINT pt = { rc.left, rc.bottom };
-            ClientToScreen(ghToolbarWnd, &pt);
+            ClientToScreen(tbhdr->hdr.hwndFrom, &pt);
+            TrackPopupMenu((HMENU)m_menuBookmarks, TPM_LEFTALIGN, pt.x, pt.y, 0, hWnd, NULL);
+         }
+         else if (IsMenu((HMENU)(tbhdr->iItem-SUBMENU_OFFSET))){
+            ghToolbarWnd = tbhdr->hdr.hwndFrom;
+            giCurrentItem = tbhdr->iItem;
 
-            // the hook may change this, so we need to save it for the TB_PRESSBUTTON
-            lastItem = giCurrentItem; 
+            int lastItem;
 
-            TrackPopupMenu((HMENU)(giCurrentItem-SUBMENU_OFFSET), TPM_LEFTALIGN, pt.x, pt.y, 0, hWnd, NULL);
+            do {
+               gbContinueMenu = false;
 
-            UnhookWindowsHookEx(ghhookMsg);
-            SendMessage(ghToolbarWnd, TB_PRESSBUTTON, lastItem, MAKELONG(false, 0));
-         } while (gbContinueMenu);
+               SendMessage(ghToolbarWnd, TB_PRESSBUTTON, giCurrentItem, MAKELONG(true, 0));
+               ghhookMsg = SetWindowsHookEx(WH_MSGFILTER, MsgHook, kPlugin.hDllInstance, GetCurrentThreadId());
 
-         return DefWindowProc(hWnd, message, wParam, lParam);
-       }
-     }
+               RECT rc;
+               WPARAM index = SendMessage(ghToolbarWnd, TB_COMMANDTOINDEX, giCurrentItem, 0);
+               SendMessage(ghToolbarWnd, TB_GETITEMRECT, index, (LPARAM) &rc);
+               POINT pt = { rc.left, rc.bottom };
+               ClientToScreen(ghToolbarWnd, &pt);
+
+               // the hook may change this, so we need to save it for the TB_PRESSBUTTON
+               lastItem = giCurrentItem; 
+
+               TrackPopupMenu((HMENU)(giCurrentItem-SUBMENU_OFFSET), TPM_LEFTALIGN, pt.x, pt.y, 0, hWnd, NULL);
+
+               UnhookWindowsHookEx(ghhookMsg);
+               SendMessage(ghToolbarWnd, TB_PRESSBUTTON, lastItem, MAKELONG(false, 0));
+            } while (gbContinueMenu);
+
+            return DefWindowProc(hWnd, message, wParam, lParam);
+         }
+      }
    }
    else if (message == WM_NCDESTROY){
       Save();
