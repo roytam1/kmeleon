@@ -1,103 +1,54 @@
-//Microsoft Developer Studio generated resource script.
-//
-#include "resource.h"
+#define COMPILING_RC
 
-#define APSTUDIO_READONLY_SYMBOLS
-/////////////////////////////////////////////////////////////////////////////
-//
-// Generated from the TEXTINCLUDE 2 resource.
-//
-#include "afxres.h"
+#ifdef __MINGW32__
+#  define _WIN32_IE 0x0500
+#  include <windows.h>
+#  include <commctrl.h>
+#  include "../missing.h"
+#endif
 
-/////////////////////////////////////////////////////////////////////////////
-#undef APSTUDIO_READONLY_SYMBOLS
+#include "ie_favorites.h"
+#include "../resource.h"
+#include <windows.h>
 
-/////////////////////////////////////////////////////////////////////////////
-// English (U.S.) resources
+#ifndef IDC_STATIC
+#define IDC_STATIC (-1)
+#endif
 
-#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
-#ifdef _WIN32
-LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
-#pragma code_page(1252)
-#endif //_WIN32
 
-/////////////////////////////////////////////////////////////////////////////
-//
-// Dialog
-//
-
-IDD_CONFIG DIALOG DISCARDABLE  0, 0, 166, 95
+IDD_CONFIG DIALOGEX 0, 0, 166, 190
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "IE Favorites Settings"
 FONT 8, "MS Sans Serif"
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,7,73,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,108,73,50,14
-    GROUPBOX        "Options",IDC_STATIC,7,7,152,61
+    GROUPBOX        "Options",IDC_STATIC,7,7,152,154
+    LTEXT           "Favorites Directory:",IDC_STATIC,20,20,75,8
+    EDITTEXT        IDC_FAVORITES_PATH,20,30,114,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",IDC_BROWSE,133,30,15,12,BS_FLAT,WS_EX_STATICEDGE
+    LTEXT           "Menu Spillover Length:",IDC_STATIC,20,50,75,10,
+                    SS_CENTERIMAGE
+    EDITTEXT        IDC_MAX_MENU_LENGTH,20,60,25,12,ES_AUTOHSCROLL
+    CONTROL         "Height of Screen",IDC_MENU_AUTODETECT,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,54,62,69,10
+
+    GROUPBOX        "Sorting",IDC_STATIC,16,76,134,33
+    CONTROL         "Ascending (a-z)",IDC_SORTORDER_AZ,"Button",
+                    BS_AUTORADIOBUTTON | WS_TABSTOP,20,86,65,11
+    CONTROL         "Descending (z-a)",IDC_SORTORDER_ZA,"Button",
+                    BS_AUTORADIOBUTTON | WS_TABSTOP,20,97,65,11
+    CONTROL         "Folders first",IDC_FOLDERFIRST,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,98,86,50,11
+
     CONTROL         "Enable Favorites Toolbar",IDC_REBARENABLED,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,25,24,106,11
-    LTEXT           "You must restart K-Meleon for any changes to take effect.",
-                    IDC_STATIC,27,42,125,18
+                    BS_AUTOCHECKBOX | WS_TABSTOP,20,114,128,11
+    LTEXT           "Min Toolbar Button Size:",IDC_STATIC,20,128,80,12,
+                    SS_CENTERIMAGE
+    EDITTEXT        IDC_MIN_TB_SIZE,105,129,25,12,ES_AUTOHSCROLL
+    LTEXT           "Max Toolbar Button Size:",IDC_STATIC,20,142,80,12,
+                    SS_CENTERIMAGE
+    EDITTEXT        IDC_MAX_TB_SIZE,105,143,25,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,55,169,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,109,169,50,14
 END
 
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// DESIGNINFO
-//
-
-#ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO DISCARDABLE 
-BEGIN
-    IDD_CONFIG, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 159
-        VERTGUIDE, 99
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 88
-    END
-END
-#endif    // APSTUDIO_INVOKED
-
-
-#ifdef APSTUDIO_INVOKED
-/////////////////////////////////////////////////////////////////////////////
-//
-// TEXTINCLUDE
-//
-
-1 TEXTINCLUDE DISCARDABLE 
-BEGIN
-    "resource.h\0"
-END
-
-2 TEXTINCLUDE DISCARDABLE 
-BEGIN
-    "#include ""afxres.h""\r\n"
-    "\0"
-END
-
-3 TEXTINCLUDE DISCARDABLE 
-BEGIN
-    "\r\n"
-    "\0"
-END
-
-#endif    // APSTUDIO_INVOKED
-
-#endif    // English (U.S.) resources
-/////////////////////////////////////////////////////////////////////////////
-
-
-
-#ifndef APSTUDIO_INVOKED
-/////////////////////////////////////////////////////////////////////////////
-//
-// Generated from the TEXTINCLUDE 3 resource.
-//
-
-
-/////////////////////////////////////////////////////////////////////////////
-#endif    // not APSTUDIO_INVOKED
-
+IDB_IMAGES              BITMAP  DISCARDABLE     "bitmap1.bmp"
