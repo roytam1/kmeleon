@@ -187,41 +187,7 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct){
 
    // Load the Most Recently Used(MRU) Urls into the UrlBar                                                                              
    m_wndUrlBar.LoadMRUList();  
-
-	// Create the toolbar with Back, Fwd, Stop, etc. buttons..
-	if (!m_wndToolBar.CreateEx (this, 0x40 | /*CCS_NOPARENTALIGN | CCS_NORESIZE | */ TBSTYLE_FLAT | TBSTYLE_TRANSPARENT | TBSTYLE_AUTOSIZE | TBSTYLE_TOOLTIPS) )
-   {
-      TRACE0("Failed to create toolbar\n");
-		return -1;      // fail to create
-   }
-   // back, forward, stop, reload, home, search, print
-   UINT buttons[7] = {
-      ID_NAV_BACK,
-      ID_NAV_FORWARD,
-      ID_NAV_STOP,
-      ID_NAV_RELOAD,
-      ID_NAV_HOME,
-      ID_NAV_SEARCH,
-      ID_FILE_PRINT
-   };
-
-   HBITMAP bitmap;
-
-   m_toolbarColdImageList.Create(16, 16, ILC_MASK, 16, 32);
-   bitmap = (HBITMAP)LoadImage(NULL, theApp.preferences.settingsDir + "Tool1.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-   ImageList_AddMasked(m_toolbarColdImageList.m_hImageList, bitmap, RGB(192, 192, 192));
-   DeleteObject(bitmap);
-   m_wndToolBar.GetToolBarCtrl().SetImageList(&m_toolbarColdImageList);
-
-   m_toolbarHotImageList.Create(16, 16, ILC_MASK, 16, 32);
-   bitmap = (HBITMAP)LoadImage(NULL, theApp.preferences.settingsDir + "Tool2.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-   ImageList_AddMasked(m_toolbarHotImageList.m_hImageList, bitmap, RGB(192, 192, 192));
-   DeleteObject(bitmap);
-   m_wndToolBar.GetToolBarCtrl().SetHotImageList(&m_toolbarHotImageList);
-
-   m_wndToolBar.SetButtons(buttons, 7);
-
-   m_wndUrlBar.SetImageList(&m_toolbarHotImageList);
+//   m_wndUrlBar.SetImageList(&m_toolbarHotImageList);
 
    // Create the animation control..
    if (!m_wndAnimate.Create(WS_CHILD | WS_VISIBLE, CRect(0, 0, 10, 10), this, AFX_IDW_TOOLBAR + 2))
@@ -242,11 +208,9 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct){
 	}
 
 	//Add the ToolBar and UrlBar windows to the rebar
-	m_wndReBar.AddBar(&m_wndToolBar, NULL);
 	m_wndReBar.AddBar(&m_wndUrlBar, "URL:");
    m_wndReBar.AddBar(&m_wndAnimate, NULL, NULL, RBBS_FIXEDSIZE | RBBS_FIXEDBMP);
 
-   m_wndReBar.RegisterBand(m_wndToolBar.m_hWnd, "Tool Bar", true);
    m_wndReBar.RegisterBand(m_wndUrlBar.m_hWnd,  "URL Bar", true);
 //   m_wndReBar.RegisterBand(m_wndAnimate.m_hWnd, "Throbber");
 
@@ -266,19 +230,7 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct){
 	rbbi.cyMinChild = rectAddress.Height() + 7;
 	rbbi.cxIdeal = 200;
    rbbi.cx = 200;
-	rebarControl->SetBandInfo (1, &rbbi);
-
-   // Toolbar
-	CRect rectToolBar;
-	m_wndToolBar.GetItemRect(0, &rectToolBar);
-
-   rbbi.cbSize = sizeof(rbbi);
-   rbbi.fMask = RBBIM_CHILDSIZE | RBBIM_IDEALSIZE | RBBIM_SIZE;
-   rbbi.cxMinChild = 0;
-   rbbi.cyMinChild = rectToolBar.Height();
-   rbbi.cxIdeal = rectToolBar.Width() * m_wndToolBar.GetCount();
-   rbbi.cx = rbbi.cxIdeal + 10;
-   rebarControl->SetBandInfo (0, &rbbi);
+	rebarControl->SetBandInfo (0, &rbbi);
 
    theApp.plugins.DoRebars(m_wndReBar.GetReBarCtrl().m_hWnd);
 
@@ -624,6 +576,11 @@ BOOL CBrowserFrame::Create(LPCTSTR lpszClassName,
 	}
 
 	return TRUE;
+}
+
+// create a linked list of CToolBarEx controls, return the hwnd
+HWND CBrowserFrame::CreateToolbar() {
+   return m_tbList.Add(this);
 }
 
 

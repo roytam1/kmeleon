@@ -128,6 +128,54 @@ protected:
 	DECLARE_MESSAGE_MAP()
 };
 
+class CToolBarList;
+class CToolBarItem {
+friend class CToolBarList;
+public:
+   CToolBarItem(CWnd *wnd) {
+      m_tb = new CToolBarEx;
+      m_tb->CreateEx (wnd, 0x40 | /*CCS_NOPARENTALIGN | CCS_NORESIZE | */ TBSTYLE_FLAT | TBSTYLE_TRANSPARENT | TBSTYLE_AUTOSIZE | TBSTYLE_TOOLTIPS);
+      m_next = NULL;
+   }
+   ~CToolBarItem() {
+      delete m_tb;
+   }
+private:
+   CToolBarEx    *m_tb;
+   CToolBarItem  *m_next;
+};
+
+class CToolBarList {
+public:
+   CToolBarList() {
+      m_head = NULL;
+      m_tail = NULL;
+   };
+   ~CToolBarList() {
+      CToolBarItem *cur=m_head, *temp;
+      while (cur) {
+         temp = cur;
+         cur = cur->m_next;
+         delete temp;
+      }
+   }
+   HWND Add(CWnd *wnd) {
+      CToolBarItem *newTB = new CToolBarItem(wnd);
+
+      if (!m_head)
+         m_head = m_tail = newTB;
+      else {
+         m_tail->m_next = newTB;
+         m_tail = newTB;
+      }
+      return newTB->m_tb->m_hWnd;
+   }
+private:
+   CToolBarItem  *m_head;
+   CToolBarItem  *m_tail;
+};
+
+
 
 class CBrowserFrame : public CFrameWnd
 {	
@@ -140,16 +188,11 @@ protected:
 public:
    inline CBrowserImpl *GetBrowserImpl() { return m_wndBrowserView.mpBrowserImpl; }
 
-   CToolBarEx      m_wndToolBar;
 	CMyStatusBar    m_wndStatusBar;
 	CProgressCtrl   m_wndProgressBar;
 	CUrlBar         m_wndUrlBar;
 	CReBarEx        m_wndReBar;
    CAnimateCtrl	 m_wndAnimate;
-
-   CImageList      m_toolbarHotImageList;
-   CImageList      m_toolbarColdImageList;
-   CImageList      m_toolbarDisabledImageList;
 
    CBitmap         m_bmpBack;
 
@@ -168,6 +211,9 @@ public:
 
    void UpdateSecurityStatus(PRInt32 aState);
    void ShowSecurityInfo();
+
+   CToolBarList m_tbList;
+   HWND CreateToolbar();
 
 protected:
 	//
