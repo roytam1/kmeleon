@@ -1151,6 +1151,11 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
          }
 	 int i, j;
 
+	 int len = params[0].length();
+	 if (params[0].at(len-1) == '/' ||
+		 params[0].at(len-1) == '\\')
+		params[0] = params[0].substr(0, len-1);
+
 	 i = params[0].rfind( "/" );
 	 j = params[0].rfind( "\\" );
 
@@ -1160,7 +1165,7 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
 	   i = j;
 
 	 if (i != NOTFOUND)
-	   params[0] = params[0].substr(0, i);
+	   params[0] = params[0].substr(0, i>0 ? i : 1);
 		 else
 			params[0] = ".";
 
