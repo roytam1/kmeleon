@@ -1,0 +1,4 @@
+K-Meleon bugfixes and implemented features
+==========================================
+since 0.21:
+ - CTRL-N is not assignable as Accelerator key (Open in New Window now)
