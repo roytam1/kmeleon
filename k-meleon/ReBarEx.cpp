@@ -98,9 +98,9 @@ void CReBarEx::DrawToolBarMenu() {
    for (int x=0; x<tbCount; x++) {
       if (tbIndex[x]->name) {
          if (tbIndex[x]->visibility)
-            AppendMenu(m_menu, MF_CHECKED	| MF_STRING, TOOLBAR_MENU_START_ID+x, tbIndex[x]->name);
+            InsertMenu(m_menu, 0, MF_BYPOSITION | MF_CHECKED | MF_STRING, TOOLBAR_MENU_START_ID+x, tbIndex[x]->name);
          else
-            AppendMenu(m_menu, MF_STRING, TOOLBAR_MENU_START_ID+x, tbIndex[x]->name);
+            InsertMenu(m_menu, 0, MF_BYPOSITION | MF_STRING, TOOLBAR_MENU_START_ID+x, tbIndex[x]->name);
       }
    }
 }
