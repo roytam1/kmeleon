@@ -68,6 +68,8 @@ void quicksort(char *a, size_t n, size_t es, cmp_t *cmp, unsigned int flag);
 #define TOOLBAND_NAME "Favorites"
 #define TOOLBAND_TITLE "Links"
 #define TOOLBAND_FOLDER "Links"
+#define MENU_FOLDER ""
+#define NEWITEM_FOLDER ""
 #define TOOLBAND_FAILED_TO_CREATE "Failed to create favorites toolbar"
 #define PLUGIN_NAME "IE Favorites Plugin"
 #define MENU_TO_COMMAND(x) (x+SUBMENU_OFFSET)
@@ -135,6 +137,8 @@ void Config(HWND parent);
 #define PREFERENCE_MENU_AUTOLEN _T("kmeleon.plugins.favorites.menuAutoDetect")
 #define PREFERENCE_MENU_SORTORDER _T("kmeleon.plugins.favorites.sortOrder")
 #define PREFERENCE_TOOLBAR_FOLDER _T("kmeleon.plugins.favorites.toolbarFolder")
+#define PREFERENCE_MENU_FOLDER _T("kmeleon.plugins.favorites.menuFolder")
+#define PREFERENCE_NEWITEM_FOLDER _T("kmeleon.plugins.favorites.newitemFolder")
 #define PREFERENCE_BUTTON_MINWIDTH  _T("kmeleon.plugins.favorites.buttonMinWidth")
 #define PREFERENCE_BUTTON_MAXWIDTH  _T("kmeleon.plugins.favorites.buttonMaxWidth")
 #define PREFERENCE_BUTTON_ICONS  _T("kmeleon.plugins.favorites.buttonIcons")
@@ -154,6 +158,8 @@ WHERE BOOL bCreate;
 WHERE BOOL bIgnore;
 WHERE CHAR gFavoritesPath[MAX_PATH];
 WHERE CHAR gToolbarFolder[MAX_PATH];
+WHERE CHAR gMenuFolder[MAX_PATH];
+WHERE CHAR gNewitemFolder[MAX_PATH];
 WHERE CHAR szTitle[MAX_PATH];
 WHERE BOOL bTitleSet;
 

@@ -158,6 +158,8 @@ void BuildMenu(HMENU menu, CBookmarkNode *node, BOOL isContinuation)
       else if (child->type == BOOKMARK_BOOKMARK) {
          // condense the title and escape ampersands
          char *pszTemp = fixString(child->text.c_str(), 40);
+         if (!pszTemp)
+	   pszTemp = strdup("");
          AppendMenu(menu, MF_STRING, child->id, pszTemp);
          delete pszTemp;
       }
@@ -171,7 +173,7 @@ void RebuildMenu() {
 
    if (gMenuSortOrder)
       gFavoritesRoot.sort(gMenuSortOrder);
-   BuildMenu(gMenuFavorites, &gFavoritesRoot, false);
+   BuildMenu(gMenuFavorites, gFavoritesRoot.FindSpecialNode(BOOKMARK_FLAG_BM), false);
 
    // need to rebuild the rebar, too, in case it had submenus (whose ids are now invalid)
    TB *ptr = root;
@@ -343,7 +345,7 @@ int addLink(char *url, char *title)
          ;
    }
    bEmpty = true;
-   BuildMenu(gMenuFavorites, &gFavoritesRoot, false);
+   BuildMenu(gMenuFavorites, gFavoritesRoot.FindSpecialNode(BOOKMARK_FLAG_BM), false);
 
 #if 0
    TB *ptr = root;
