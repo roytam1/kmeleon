@@ -437,24 +437,11 @@ void MeasureMenuItem(MEASUREITEMSTRUCT *mis, HDC hDC) {
 
    char *string = (char *)menuData->data;
 
-   SIZE size;
-   int tabWidth = 0;
-   char *tab = strrchr(string, '\t');
-   if (tab) {
-      char *buf = new char[strlen(string)+11];
-      *tab=0;
-      strcpy(buf, string);
-      strcat(buf, "          "); // 10 spaces
-      strcat(buf, tab+1);
-      *tab='\t';
+   RECT rc = {0,0,0,0};
+   DrawText(hDC, string, -1, &rc,DT_SINGLELINE|DT_VCENTER|DT_LEFT|DT_CALCRECT|DT_EXPANDTABS);
 
-      GetTextExtentPoint32(hDC, buf, strlen(buf), &size);
-      delete buf;
-   }
-   else 
-      GetTextExtentPoint32(hDC, string, strlen(string), &size);
-
-   mis->itemWidth = size.cx;
+   // size = width of the bitmap + width of the text
+   mis->itemWidth = LEFT_SPACE + rc.right-rc.left;
    mis->itemHeight = GetSystemMetrics(SM_CYMENUSIZE);
 
    SelectObject(hDC, oldFont);
