@@ -178,8 +178,6 @@ void CHiddenWnd::ShowBrowser(char *URI) {
       if (theApp.preferences.bMaximized) m_pHiddenBrowser->ShowWindow(SW_MAXIMIZE);
       else m_pHiddenBrowser->ShowWindow(SW_SHOW);
       m_pHiddenBrowser->SetWindowPos(&wndTop, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_SHOWWINDOW);
-
-      m_bPersisting = FALSE;
    }
 
    // otherwise, just create a new browser
@@ -200,6 +198,7 @@ void CHiddenWnd::ShowBrowser(char *URI) {
       }
    }
 
+   m_bPersisting = FALSE;
 }
 
 int CHiddenWnd::Persisting() {
