@@ -695,28 +695,89 @@ void CBrowserView::GetBrowserWindowTitle(nsCString& title)
 
 void CBrowserView::OnFileSaveAs()
 {
-	nsCString fileName;
+	// Try to get the file name part from the URL
+	// To do that we first construct an obj which supports 
+	// nsIRUI interface. Makes it easy to extract portions
+	// of a URL like the filename, scheme etc. + We'll also
+	// use it while saving this link to a file
 
-	GetBrowserWindowTitle(fileName); // Suggest the window title as the filename
+   nsresult rv   = NS_OK;
 
-	char *lpszFilter =
+   nsCOMPtr<nsIURI> currentURI;
+	rv = mWebNav->GetCurrentURI(getter_AddRefs(currentURI));
+	if(NS_FAILED(rv) || !currentURI)
+      return;
+
+	// Get the "path" portion (see nsIURI.h for more info
+	// on various parts of a URI)
+	nsXPIDLCString path;
+	currentURI->GetPath(getter_Copies(path));
+
+   char sDefault[] = "default.htm";
+   char *pBuf = NULL, *pFileName = sDefault;
+   
+   if (strlen(path.get()) > 1) {
+	   // The path may have the "/" char in it - strip those
+	   pBuf = new char[strlen(path.get()) + 5];      // +5 for ".htm" to be safely appended, if necessary
+      strcpy(pBuf, path.get());
+	   char* slash = strrchr(pBuf, '/');
+      if (strlen(slash) > 1)
+        pFileName = slash+1;                                   // filename = file.ext
+      else {
+         while ((slash > pBuf) && (strlen(slash) <= 1)) {     // strip off extra /es
+            *slash = 0;
+            slash--;
+   	      slash = strrchr(pBuf, '/');
+         }
+         if (slash && (strlen(slash) > 0)) {
+            pFileName=slash+1;                                // filename = directory.htm
+            strcat(pFileName, ".htm");
+         }
+      }
+   }
+   else {
+   	currentURI->GetHost(getter_Copies(path));
+      if (strlen(path.get()) >= 1) {
+   	   pBuf = new char[strlen(path.get()) + 5];  // +5 for ".htm" to be safely appended, if necessary
+         strcpy(pBuf, path.get());
+         pFileName = pBuf;
+         for (int x=strlen(pBuf)-1; x>=0; x--)
+            if (pBuf[x] == '.') pBuf[x] = '_';
+         strcat(pBuf, ".htm");                     // filename = www_host_com.htm
+      }
+   }
+
+   char *extension = strrchr(pFileName, '.')+1;
+   if (!extension)
+      extension = strrchr(sDefault, '.')+1;
+
+   char lpszFilter[256];
+      strcpy(lpszFilter, extension);
+      strcat(lpszFilter, " Files (*.");
+      strcat(lpszFilter, extension);
+      strcat(lpszFilter, ")|*.");
+      strcat(lpszFilter, extension);
+      strcat(lpszFilter, "|");
+      strcat(lpszFilter,
         "Web Page, HTML Only (*.htm;*.html)|*.htm;*.html|"
         "Web Page, Complete (*.htm;*.html)|*.htm;*.html|" 
-        "Text File (*.txt)|*.txt||";
-
-	CFileDialog cf(FALSE, "htm", (const char *)fileName, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
+        "Text File (*.txt)|*.txt|"
+        "All Files (*.*)|*.*||");
+  
+   CFileDialog cf(FALSE, extension, (const char *)pFileName, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
 					lpszFilter, this);
 
-	if(cf.DoModal() == IDOK)
+
+   if(cf.DoModal() == IDOK)
 	{
 		CString strFullPath = cf.GetPathName(); // Will be like: c:\tmp\junk.htm
 		char *pStrFullPath = strFullPath.GetBuffer(0); // Get char * for later use
 		
 		CString strDataPath; 
 		char *pStrDataPath = NULL;
-		if(cf.m_ofn.nFilterIndex == 2) 
+		if(cf.m_ofn.nFilterIndex == 3) 
 		{
-			// cf.m_ofn.nFilterIndex == 2 indicates
+			// cf.m_ofn.nFilterIndex == 3 indicates
 			// user want to save the complete document including
 			// all frames, images, scripts, stylesheets etc.
 
@@ -733,11 +794,14 @@ void CBrowserView::OnFileSaveAs()
 			pStrDataPath = strDataPath.GetBuffer(0); //Get char * for later use
 		}
 
-    // Save the file
-    nsCOMPtr<nsIWebBrowserPersist> persist(do_QueryInterface(mWebBrowser));
-		if(persist)
-			persist->SaveDocument(nsnull, pStrFullPath, pStrDataPath);
+      // Save the file
+      nsCOMPtr<nsIWebBrowserPersist> persist(do_QueryInterface(mWebBrowser));
+      if(persist)
+         persist->SaveDocument(nsnull, pStrFullPath, pStrDataPath);
 	}
+
+   if (pBuf)
+      delete pBuf;
 }
 
 void CBrowserView::OpenURL(const char* pUrl){
