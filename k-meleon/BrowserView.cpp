@@ -53,7 +53,6 @@ extern CMfcEmbedApp theApp;
 #include "BrowserView.h"
 #include "BrowserImpl.h"
 #include "BrowserFrm.h"
-#include "Dialogs.h"
 #include "PrintProgressDialog.h"    
 #include "ToolBarEx.h"
 #include "Utils.h"
@@ -66,7 +65,6 @@ extern CMfcEmbedApp theApp;
 static char THIS_FILE[] = __FILE__;
 #endif
 
-//static const char* g_HomeURL = "http://www.mozilla.org/projects/embedding";
 static const char* KMELEON_HOMEPAGE_URL = "http://www.kmeleon.org";
 static const char* KMELEON_FORUM_URL = "http://www.kmeleon.org/forum/";
 
@@ -277,7 +275,8 @@ HRESULT CBrowserView::CreateBrowser()
 	return S_OK;
 }
 
-HRESULT CBrowserView::DestroyBrowser() {
+HRESULT CBrowserView::DestroyBrowser()
+{
 
    DeleteTempFiles();   
 
@@ -330,7 +329,8 @@ void CBrowserView::SetBrowserFrameGlue(PBROWSERFRAMEGLUE pBrowserFrameGlue)
 	mpBrowserFrameGlue = pBrowserFrameGlue;
 }
 
-void CBrowserView::Activate(UINT nState, CWnd* pWndOther, BOOL bMinimized) {
+void CBrowserView::Activate(UINT nState, CWnd* pWndOther, BOOL bMinimized)
+{
    nsCOMPtr<nsIWebBrowserFocus> focus(do_GetInterface(mWebBrowser));
    if(!focus)      
       return;
@@ -351,21 +351,22 @@ void CBrowserView::Activate(UINT nState, CWnd* pWndOther, BOOL bMinimized) {
    }
 }
 
-void CBrowserView::OnDropFiles( HDROP drop ){
-  UINT size = DragQueryFile(drop, 0, NULL, 0) + 1;
-  char *filename = new char[size];
-  DragQueryFile(drop, 0, filename, size);
+void CBrowserView::OnDropFiles( HDROP drop )
+{
+   UINT size = DragQueryFile(drop, 0, NULL, 0) + 1;
+   char *filename = new char[size];
+   DragQueryFile(drop, 0, filename, size);
 
-  if (stricmp(filename + (size-5), _T(".url")) == 0){
-    char tempUrl[1024];
-    ::GetPrivateProfileString(_T("InternetShortcut"), _T("Url"), filename, tempUrl, 1023, filename);
-    OpenURL(tempUrl);
-  }else{
-    OpenURL(filename);
-  }
+   if (stricmp(filename + (size-5), _T(".url")) == 0){
+      char tempUrl[1024];
+      ::GetPrivateProfileString(_T("InternetShortcut"), _T("Url"), filename, tempUrl, 1023, filename);
+      OpenURL(tempUrl);
+   }else{
+      OpenURL(filename);
+   }
 
-  delete filename;
-  DragFinish(drop);
+   delete filename;
+   DragFinish(drop);
 }
 
 // A new URL was entered in the URL bar
@@ -408,78 +409,27 @@ void CBrowserView::OnUrlSelectedInUrlBar()
    SetFocus();
 }
 
-void CBrowserView::OnSelectUrl(){
+void CBrowserView::OnSelectUrl()
+{
    mpBrowserFrame->m_wndUrlBar.SetFocus();
 }
 
-void CBrowserView::OnUrlKillFocus() {
+void CBrowserView::OnUrlKillFocus()
+{
    if (mpBrowserFrame->m_wndUrlBar.CheckFocus())
       mpBrowserFrame->m_wndUrlBar.ReturnFocus();
 
    mpBrowserFrame->m_wndUrlBar.EditChanged(FALSE);
 }
 
-void CBrowserView::OnUrlEditChange() {
+void CBrowserView::OnUrlEditChange()
+{
    mpBrowserFrame->m_wndUrlBar.EditChanged(TRUE);
 }
-
-BOOL CBrowserView::IsViewSourceUrl(CString& strUrl) {
-   return (strUrl.Find("view-source:", 0) != -1) ? TRUE : FALSE;
-}
-
-BOOL CBrowserView::OpenViewSourceWindow(const char* pUrl) {
-
-   // Use external viewer
-   if (theApp.preferences.bSourceUseExternalCommand) {
-      if (theApp.preferences.sourceCommand) {
-
-         char *tempfile = GetTempFile();
-
-         nsCOMPtr<nsIWebBrowserPersist> persist(do_QueryInterface(mWebBrowser));
-         if(persist) {
-            persist->SaveDocument(nsnull, tempfile, 0);
-
-            char *command = new char[theApp.preferences.sourceCommand.GetLength() + strlen(tempfile) +2];
-            
-            strcpy(command, theApp.preferences.sourceCommand);
-            strcat(command, " ");                              //append " filename" to the viewer command
-            strcat(command, tempfile);
-            
-            STARTUPINFO si = { 0 };
-            PROCESS_INFORMATION pi;
-            si.cb = sizeof STARTUPINFO;
-            si.dwFlags = STARTF_USESHOWWINDOW;
-            si.wShowWindow = SW_SHOW;
-
-            CreateProcess(0,command,0,0,0,0,0,0,&si,&pi);      // launch external viewer
-         }
-         return TRUE;
-      }
-   }
-   
-   // use the internal viewer
-
-	// Create a new browser frame in which we'll show the document source
-	// Note that we're getting rid of the toolbars etc. by specifying
-	// the appropriate chromeFlags
-	PRUint32 chromeFlags =  nsIWebBrowserChrome::CHROME_WINDOW_BORDERS |
-							nsIWebBrowserChrome::CHROME_TITLEBAR |
-							nsIWebBrowserChrome::CHROME_WINDOW_RESIZE;
-	CBrowserFrame* pFrm = CreateNewBrowserFrame(chromeFlags);
-	if(!pFrm)
-		return FALSE;
-
-	// Finally, load this URI into the newly created frame
-	pFrm->m_wndBrowserView.OpenURL(pUrl);
-
-   pFrm->BringWindowToTop();
-
-   return TRUE;
-}                                                                               
-
-void CBrowserView::OnViewSource() {
-	if(! mWebNav)
-		return;
+void CBrowserView::OnViewSource()
+{
+   if(! mWebNav)
+      return;
 
 	// Get the URI object whose source we want to view.
    nsresult rv = NS_OK;
@@ -504,7 +454,7 @@ void CBrowserView::OnViewSource() {
 
 void CBrowserView::OnViewInfo() 
 {
-	AfxMessageBox("To Be Done...");
+	ShowSecurityInfo();
 }
 
 void CBrowserView::OnNavBack() 
@@ -517,18 +467,6 @@ void CBrowserView::OnNavForward()
 {
 	if(mWebNav)
 		mWebNav->GoForward();
-}
-
-
-void CBrowserView::RefreshToolBarItem(WPARAM ItemID, LPARAM unused) {
-	switch (ItemID) {
-		case ID_NAV_BACK:
-			m_refreshBackButton = TRUE;
-			break;
-		case ID_NAV_FORWARD:
-			m_refreshForwardButton = TRUE;
-			break;
-	}
 }
 
 void CBrowserView::OnUpdateNavBack(CCmdUI* pCmdUI)
@@ -567,11 +505,14 @@ void CBrowserView::OnUpdateNavForward(CCmdUI* pCmdUI)
 	pCmdUI->Enable(canGoFwd);
 }
 
-void CBrowserView::OnNavHome(){
-  OpenURL(theApp.preferences.homePage);
+void CBrowserView::OnNavHome()
+{
+   OpenURL(theApp.preferences.homePage);
 }
 
-BOOL CALLBACK SearchProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam){
+// this should probably go in BrowserViewUtils.cpp, but I don't want to add a function prototype :)
+BOOL CALLBACK SearchProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
    static CString *search;
 
    if (uMsg == WM_INITDIALOG) {
@@ -595,7 +536,8 @@ BOOL CALLBACK SearchProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam){
    return false;
 }
 
-void CBrowserView::OnNavSearch(){
+void CBrowserView::OnNavSearch()
+{
    CString search;
    if (DialogBoxParam(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDD_SEARCH_DIALOG), m_hWnd, SearchProc, (LPARAM)&search))
       OpenURL(theApp.preferences.searchEngine + search);
@@ -618,11 +560,12 @@ void CBrowserView::OnUpdateNavStop(CCmdUI* pCmdUI)
 	pCmdUI->Enable(mbDocumentLoading);
 }
 
-void CBrowserView::OnCut(){
-  if (mpBrowserFrame->m_wndUrlBar.IsChild(GetFocus())){
-    mpBrowserFrame->m_wndUrlBar.Cut();
-    return;
-  }
+void CBrowserView::OnCut()
+{
+   if (mpBrowserFrame->m_wndUrlBar.IsChild(GetFocus())){
+      mpBrowserFrame->m_wndUrlBar.Cut();
+      return;
+   }
 
 	nsCOMPtr<nsIClipboardCommands> clipCmds = do_GetInterface(mWebBrowser);
 
@@ -630,72 +573,77 @@ void CBrowserView::OnCut(){
 		clipCmds->CutSelection();
 }
 
-void CBrowserView::OnUpdateCut(CCmdUI* pCmdUI){
-  if (mpBrowserFrame->m_wndUrlBar.IsChild(GetFocus())){
-    DWORD selPosition = mpBrowserFrame->m_wndUrlBar.GetEditSel();
-    pCmdUI->Enable(LOWORD(selPosition) != HIWORD(selPosition));
-    return;
-  }
-	PRBool canCutSelection = PR_FALSE;
+void CBrowserView::OnUpdateCut(CCmdUI* pCmdUI)
+{
+   if (mpBrowserFrame->m_wndUrlBar.IsChild(GetFocus())){
+      DWORD selPosition = mpBrowserFrame->m_wndUrlBar.GetEditSel();
+      pCmdUI->Enable(LOWORD(selPosition) != HIWORD(selPosition));
+      return;
+   }
+   PRBool canCutSelection = PR_FALSE;
 
-	nsCOMPtr<nsIClipboardCommands> clipCmds = do_GetInterface(mWebBrowser);
+   nsCOMPtr<nsIClipboardCommands> clipCmds = do_GetInterface(mWebBrowser);
 	if (clipCmds)
-        clipCmds->CanCutSelection(&canCutSelection);
+      clipCmds->CanCutSelection(&canCutSelection);
 
 	pCmdUI->Enable(canCutSelection);
 }
 
-void CBrowserView::OnCopy(){
-  if (mpBrowserFrame->m_wndUrlBar.IsChild(GetFocus())){
-    mpBrowserFrame->m_wndUrlBar.Copy();
-    return;
-  }
+void CBrowserView::OnCopy()
+{
+   if (mpBrowserFrame->m_wndUrlBar.IsChild(GetFocus())){
+      mpBrowserFrame->m_wndUrlBar.Copy();
+      return;
+   }
 
-	nsCOMPtr<nsIClipboardCommands> clipCmds = do_GetInterface(mWebBrowser);
+   nsCOMPtr<nsIClipboardCommands> clipCmds = do_GetInterface(mWebBrowser);
 
-	if(clipCmds)
-		clipCmds->CopySelection();
+   if(clipCmds)
+      clipCmds->CopySelection();
 }
 
-void CBrowserView::OnUpdateCopy(CCmdUI* pCmdUI){
-  if (mpBrowserFrame->m_wndUrlBar.IsChild(GetFocus())){
-    DWORD selPosition = mpBrowserFrame->m_wndUrlBar.GetEditSel();
-    pCmdUI->Enable(LOWORD(selPosition) != HIWORD(selPosition));
-    return;
-  }
-	PRBool canCopySelection = PR_FALSE;
+void CBrowserView::OnUpdateCopy(CCmdUI* pCmdUI)
+{
+   if (mpBrowserFrame->m_wndUrlBar.IsChild(GetFocus())){
+      DWORD selPosition = mpBrowserFrame->m_wndUrlBar.GetEditSel();
+      pCmdUI->Enable(LOWORD(selPosition) != HIWORD(selPosition));
+      return;
+   }
+   PRBool canCopySelection = PR_FALSE;
 
-	nsCOMPtr<nsIClipboardCommands> clipCmds = do_GetInterface(mWebBrowser);
-    if (clipCmds)
-        clipCmds->CanCopySelection(&canCopySelection);
+   nsCOMPtr<nsIClipboardCommands> clipCmds = do_GetInterface(mWebBrowser);
+   if (clipCmds)
+      clipCmds->CanCopySelection(&canCopySelection);
 
-	pCmdUI->Enable(canCopySelection);
+   pCmdUI->Enable(canCopySelection);
 }
 
-void CBrowserView::OnPaste(){
-  if (mpBrowserFrame->m_wndUrlBar.IsChild(GetFocus())){
-    mpBrowserFrame->m_wndUrlBar.Paste();
-    return;
-  }
-  
-  nsCOMPtr<nsIClipboardCommands> clipCmds = do_GetInterface(mWebBrowser);
+void CBrowserView::OnPaste()
+{
+   if (mpBrowserFrame->m_wndUrlBar.IsChild(GetFocus())){
+      mpBrowserFrame->m_wndUrlBar.Paste();
+      return;
+   }
+   
+   nsCOMPtr<nsIClipboardCommands> clipCmds = do_GetInterface(mWebBrowser);
 
-	if(clipCmds)
-		clipCmds->Paste();
+   if(clipCmds)
+      clipCmds->Paste();
 }
 
-void CBrowserView::OnUpdatePaste(CCmdUI* pCmdUI){
-  if (mpBrowserFrame->m_wndUrlBar.IsChild(GetFocus())){
-    pCmdUI->Enable();
-    return;
-  }
-	PRBool canPaste = PR_FALSE;
+void CBrowserView::OnUpdatePaste(CCmdUI* pCmdUI)
+{
+   if (mpBrowserFrame->m_wndUrlBar.IsChild(GetFocus())){
+      pCmdUI->Enable();
+      return;
+   }
+   PRBool canPaste = PR_FALSE;
 
-	nsCOMPtr<nsIClipboardCommands> clipCmds = do_GetInterface(mWebBrowser);
-    if (clipCmds)
-        clipCmds->CanPaste(&canPaste);
+   nsCOMPtr<nsIClipboardCommands> clipCmds = do_GetInterface(mWebBrowser);
+   if (clipCmds)
+      clipCmds->CanPaste(&canPaste);
 
-	pCmdUI->Enable(canPaste);
+   pCmdUI->Enable(canPaste);
 }
 
 void CBrowserView::OnSelectAll()
@@ -720,14 +668,15 @@ void CBrowserView::OnFileOpen()
         "HTML Files Only (*.htm;*.html)|*.htm;*.html|"
         "All Files (*.*)|*.*||";
 
-	CFileDialog cf(TRUE, NULL, NULL, OFN_NOVALIDATE | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
-					lpszFilter, this);
+	CFileDialog cf(TRUE, NULL, NULL, OFN_NOVALIDATE | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,	lpszFilter, this);
    cf.m_ofn.lpstrTitle = "Select a file or type in a URL";
-	if(cf.DoModal() == IDOK)
-	{
+
+   if(cf.DoModal() == IDOK) {
 		CString strFullPath = cf.GetPathName(); // Will be like: c:\tmp\junk.htm
+
       FILE *test = fopen(strFullPath, "r");
-      if (!test){
+
+      if (!test) {
          // if the file doesn't exist, they probably typed a url...
          // so chop off the path (for some reason GetFileName doesn't work for us...
          strFullPath = strFullPath.Mid(strFullPath.ReverseFind('\\')+1);
@@ -738,27 +687,13 @@ void CBrowserView::OnFileOpen()
 	}
 }
 
-void CBrowserView::OnFileClose() {
+void CBrowserView::OnFileClose()
+{
    mpBrowserFrame->PostMessage(WM_CLOSE);
 }
 
-void CBrowserView::GetBrowserWindowTitle(nsCString& title)
+void CBrowserView::OnFileSaveAs()
 {
-   nsXPIDLString idlStrTitle;
-	if(mBaseWindow)
-		mBaseWindow->GetTitle(getter_Copies(idlStrTitle));
-
-	title.AssignWithConversion(idlStrTitle);
-
-	// Sanitize the title of all illegal characters
-   title.CompressWhitespace();     // Remove whitespace from the ends
-   title.StripChars("\\*|:\"><?"); // Strip illegal characters
-   title.ReplaceChar('.', L'_');   // Dots become underscores
-   title.ReplaceChar('/', L'-');   // Forward slashes become hyphens
-}
-
-void CBrowserView::OnFileSaveAs() {
-
 	// Try to get the file name part from the URL
 	// To do that we first construct an obj which supports 
 	// nsIRUI interface. Makes it easy to extract portions
@@ -773,177 +708,6 @@ void CBrowserView::OnFileSaveAs() {
       return;
 
    URISaveAs(currentURI, true);
-
-}
-
-NS_IMETHODIMP CBrowserView::URISaveAs(nsIURI* aURI, bool bDocument) {
-
-   NS_ENSURE_ARG_POINTER(aURI);
-
-	// Get the "path" portion (see nsIURI.h for more info
-	// on various parts of a URI)
-	nsXPIDLCString path;
-	aURI->GetPath(getter_Copies(path));
-
-   char sDefault[] = "default.htm";
-   char *pBuf = NULL, *pFileName = sDefault;
-
-   if (strlen(path.get()) > 1) {
-	   // The path may have the "/" char in it - strip those
-	   pBuf = new char[strlen(path.get()) + 5];      // +5 for ".htm" to be safely appended, if necessary
-      strcpy(pBuf, path.get());
-	   char* slash = strrchr(pBuf, '/');
-      if (strlen(slash) > 1)
-         pFileName = slash+1;                                  // filename = file.ext
-      else {
-         while ((slash > pBuf) && (strlen(slash) <= 1)) {      // strip off extra /es
-            *slash = 0;
-            slash--;
-   	      slash = strrchr(pBuf, '/');
-         }
-         if (slash && (strlen(slash) > 0)) {
-            pFileName=slash+1;                                 // filename = directory.htm
-            strcat(pFileName, ".htm");
-         }
-      }
-   }
-   else {
-   	aURI->GetHost(getter_Copies(path));
-      if (strlen(path.get()) >= 1) {
-   	   pBuf = new char[strlen(path.get()) + 5];  // +5 for ".htm" to be safely appended, if necessary
-         strcpy(pBuf, path.get());
-         pFileName = pBuf;
-         for (int x=strlen(pBuf)-1; x>=0; x--)
-            if (pBuf[x] == '.') pBuf[x] = '_';
-         strcat(pBuf, ".htm");                     // filename = www_host_com.htm
-      }
-   }
-
-   char *extension = strrchr(pFileName, '.');
-   if (!extension) {
-      extension = strrchr(sDefault, '.');
-      strcat(pFileName, extension);
-   }
-   extension++;
-
-   char lpszFilter[256];
-      strcpy(lpszFilter, extension);
-      strcat(lpszFilter, " Files (*.");
-      strcat(lpszFilter, extension);
-      strcat(lpszFilter, ")|*.");
-      strcat(lpszFilter, extension);
-      strcat(lpszFilter, "|");
-      strcat(lpszFilter, "Web Page, HTML Only (*.htm;*.html)|*.htm;*.html|");
-      if (bDocument)
-        strcat(lpszFilter, "Web Page, Complete (*.htm;*.html)|*.htm;*.html|");
-      strcat(lpszFilter,"Text File (*.txt)|*.txt|"
-        "All Files (*.*)|*.*||");
-  
-   CFileDialog cf(FALSE, extension, (const char *)pFileName, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
-					lpszFilter, this);
-
-   cf.m_ofn.lpstrInitialDir = theApp.preferences.saveDir;
-
-   if(cf.DoModal() == IDOK) {
-		CString strFullPath = cf.GetPathName();            // Will be like: c:\tmp\junk.htm
-      theApp.preferences.saveDir = cf.GetPathName();
-      int idxSlash;
-      idxSlash = theApp.preferences.saveDir.ReverseFind('\\');
-      theApp.preferences.saveDir = theApp.preferences.saveDir.Mid(0, idxSlash+1);
-		char *pStrFullPath = strFullPath.GetBuffer(0);     // Get char * for later use
-		
-		CString strDataPath; 
-		char *pStrDataPath = NULL;
-      if (bDocument && (cf.m_ofn.nFilterIndex == 3)) {
-
-         // cf.m_ofn.nFilterIndex == 3 indicates that the
-			// user wants to save the complete document including
-			// all frames, images, scripts, stylesheets etc.
-
-			int idxPeriod = strFullPath.ReverseFind('.');
-			strDataPath = strFullPath.Mid(0, idxPeriod);
-			strDataPath += "_files";
-
-			// At this stage strDataPath will be of the form
-			// c:\tmp\junk_files - assuming we're saving to a file
-			// named junk.htm
-			// Any images etc in the doc will be saved to a dir
-			// with the name c:\tmp\junk_files
-
-			pStrDataPath = strDataPath.GetBuffer(0); //Get char * for later use
-		}
-
-      // Save the file
-      nsCOMPtr<nsIWebBrowserPersist> persist(do_QueryInterface(mWebBrowser));
-      if(persist) {
-         if (bDocument)
-            persist->SaveDocument(nsnull, pStrFullPath, pStrDataPath);
-         else
-            persist->SaveURI(aURI, nsnull, strFullPath);
-      }
-	}
-
-   if (pBuf)
-      delete pBuf;
-
-   return NS_OK;
-}
-
-void CBrowserView::OpenURL(const char* pUrl){
-   if(mWebNav)
-      mWebNav->LoadURI(NS_ConvertASCIItoUCS2(pUrl).get(), nsIWebNavigation::LOAD_FLAGS_NONE);
-}
-
-void CBrowserView::OpenURL(const PRUnichar* pUrl) {
-   if(mWebNav)
-      mWebNav->LoadURI(pUrl, nsIWebNavigation::LOAD_FLAGS_NONE);
-}
-
-CBrowserFrame* CBrowserView::CreateNewBrowserFrame(PRUint32 chromeMask, 
-									PRInt32 x, PRInt32 y, 
-									PRInt32 cx, PRInt32 cy,
-									PRBool bShowWindow)
-{  
-   CMfcEmbedApp *pApp = (CMfcEmbedApp *)AfxGetApp();
-	if(!pApp)
-		return NULL;
-
-  return pApp->CreateNewBrowserFrame(chromeMask, x, y, cx, cy, bShowWindow);
-}
-
-void CBrowserView::OpenURLInNewWindow(const PRUnichar* pUrl, BOOL bBackground){
-	if(!pUrl)
-		return;
-
-   // create hidden window
-   CBrowserFrame* pFrm = CreateNewBrowserFrame(nsIWebBrowserChrome::CHROME_ALL, -1, -1, -1, -1, false);
-	if(!pFrm)
-		return;
-
-   // show the window
-   if (bBackground)
-         pFrm->SetWindowPos(&wndBottom, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | SWP_SHOWWINDOW);
-   else
-      pFrm->ShowWindow(SW_SHOW);
-
-   pFrm->UpdateWindow();
-   
-   // Load the URL into it...
-
-	// Note that OpenURL() is overloaded - one takes a "char *"
-	// and the other a "PRUniChar *". We're using the "PRUnichar *"
-	// version here
-
-	pFrm->m_wndBrowserView.OpenURL(pUrl);
-}
-
-
-void CBrowserView::LoadHomePage()
-{
-  if (theApp.preferences.bStartHome)
-    OnNavHome();
-  else
-    OpenURL("about:blank");
 }
 
 void CBrowserView::OnCopyImageLocation()
@@ -1014,7 +778,8 @@ void CBrowserView::OnViewImageInNewWindow()
 		OpenURLInNewWindow(mCtxMenuImgSrc.get());
 }
 
-void CBrowserView::OnSaveLinkAs() {
+void CBrowserView::OnSaveLinkAs()
+{
    
    if(! mCtxMenuLinkUrl.Length())
 		return;
@@ -1052,152 +817,6 @@ void CBrowserView::OnSaveImageAs()
    URISaveAs(imageURI);
 }
 
-void CBrowserView::OnKmeleonHome()
-{
-   OpenURL(KMELEON_HOMEPAGE_URL);
-}
-
-void CBrowserView::OnKmeleonForum()
-{
-   OpenURL(KMELEON_FORUM_URL);
-}
-
-void CBrowserView::OnShowFindDlg() {
-
-   // When the the user chooses the Find menu item
-	// and if a Find dlg. is already being shown
-	// just set focus to the existing dlg instead of
-	// creating a new one
-	if(m_pFindDlg)	{
-		m_pFindDlg->SetFocus();
-		return;
-	}
-
-	CString csSearchStr;
-	PRBool bMatchCase = PR_FALSE;
-	PRBool bMatchWholeWord = PR_FALSE;
-	PRBool bWrapAround = PR_TRUE;
-	PRBool bSearchBackwards = PR_FALSE;
-
-	// See if we can get and initialize the dlg box with
-	// the values/settings the user specified in the previous search
-	nsCOMPtr<nsIWebBrowserFind> finder(do_GetInterface(mWebBrowser));
-	if(finder) {
-		nsXPIDLString stringBuf;
-		finder->GetSearchString(getter_Copies(stringBuf));
-		csSearchStr = stringBuf.get();
-
-      if (csSearchStr != "") {
-		   finder->GetMatchCase(&bMatchCase);
-		   finder->GetEntireWord(&bMatchWholeWord);
-		   finder->GetWrapFind(&bWrapAround);
-		   finder->GetFindBackwards(&bSearchBackwards);		
-      }
-      else {
-         csSearchStr = theApp.preferences.findSearchStr;
-	      bMatchCase = theApp.preferences.bFindMatchCase;
-	      bMatchWholeWord = theApp.preferences.bFindMatchWholeWord;
-	      bWrapAround = theApp.preferences.bFindWrapAround;
-	      bSearchBackwards = theApp.preferences.bFindSearchBackwards;
-      }
-	}
-
-	m_pFindDlg = new CFindDialog(csSearchStr, bMatchCase, bMatchWholeWord, bWrapAround, bSearchBackwards, this);
-	m_pFindDlg->Create(TRUE, NULL, NULL, 0, this);
-}
-
-void CBrowserView::OnFindNext() {
-	nsCOMPtr<nsIWebBrowserFind> finder(do_GetInterface(mWebBrowser));
-
-   if(!finder) return;
-
-	nsXPIDLString stringBuf;
-   finder->GetSearchString(getter_Copies(stringBuf));
-   if (stringBuf.get()[0]) {
-
-      PRBool didFind;
-	   finder->FindNext(&didFind);
-   }
-   else {
-      OnShowFindDlg();
-   }
-}
-
-void CBrowserView::OnFindPrev() {
-	nsCOMPtr<nsIWebBrowserFind> finder(do_GetInterface(mWebBrowser));
-
-   if(!finder) return;
-
-   PRBool rv;
-
-   finder->GetFindBackwards(&rv);
-   finder->SetFindBackwards(rv^2);  // reverse the find direction
-
-	nsXPIDLString stringBuf;
-   finder->GetSearchString(getter_Copies(stringBuf));
-   if (stringBuf.get()[0]) {
-      PRBool didFind;
-	   finder->FindNext(&didFind);
-   }
-   else {
-      OnShowFindDlg();
-   }
-      
-   finder->GetFindBackwards(&rv);
-   finder->SetFindBackwards(rv^2);  // reset the initial find direction
-}
-
-// This will be called whenever the user pushes the Find
-// button in the Find dialog box
-// This method gets bound to the WM_FINDMSG windows msg via the
-//
-// ON_REGISTERED_MESSAGE(WM_FINDMSG, OnFindMsg)
-//
-//  message map entry.
-//
-// WM_FINDMSG (which is registered towards the beginning of this file)
-// is the message via which the FindDialog communicates with this view
-//
-LRESULT CBrowserView::OnFindMsg(WPARAM wParam, LPARAM lParam) {
-	nsCOMPtr<nsIWebBrowserFind> finder(do_GetInterface(mWebBrowser));
-
-	if(!finder) return NULL;
-
-	// Get the pointer to the current Find dialog box
-	CFindDialog* dlg = (CFindDialog *) CFindReplaceDialog::GetNotifier(lParam);
-	if(!dlg) return NULL;
-
-	// Has the user decided to terminate the dialog box?
-	if(dlg->IsTerminating()) return NULL;
-
-	if(dlg->FindNext()) {
-
-      // save the find settings
-      theApp.preferences.findSearchStr = dlg->GetFindString().GetBuffer(0);
-	   theApp.preferences.bFindMatchCase = dlg->MatchCase();
-	   theApp.preferences.bFindMatchWholeWord = dlg->MatchWholeWord();
-	   theApp.preferences.bFindWrapAround = dlg->WrapAround();
-	   theApp.preferences.bFindSearchBackwards = dlg->SearchBackwards();
-
-
-      // create the find query
-      nsString searchString;
-		searchString.AssignWithConversion(theApp.preferences.findSearchStr.GetBuffer(0));
-		finder->SetSearchString(searchString.get());
-      
-      finder->SetMatchCase((theApp.preferences.bFindMatchCase) ? PR_TRUE : PR_FALSE);
-		finder->SetEntireWord((theApp.preferences.bFindMatchWholeWord) ? PR_TRUE : PR_FALSE);
-		finder->SetWrapFind((theApp.preferences.bFindWrapAround) ? PR_TRUE : PR_FALSE);
-		finder->SetFindBackwards((theApp.preferences.bFindSearchBackwards) ? PR_TRUE : PR_FALSE);
-
-		PRBool didFind;
-		nsresult rv = finder->FindNext(&didFind);
-      
-      return (NS_SUCCEEDED(rv) && didFind);
-	}
-	return 0;
-}
-
 void CBrowserView::OnFilePrint()
 {
    nsCOMPtr<nsIDOMWindow> domWindow;
@@ -1222,187 +841,38 @@ void CBrowserView::OnFilePrint()
    }  
 }
 
-void CBrowserView::OnUpdateViewStatusBar(CCmdUI* pCmdUI) {
+void CBrowserView::OnUpdateViewStatusBar(CCmdUI* pCmdUI)
+{
    HWND hWndStatus = FindWindowEx(this->GetParent()->GetSafeHwnd(), NULL, STATUSCLASSNAME, NULL);
    BOOL bVis = ::IsWindowVisible(hWndStatus);
 
    pCmdUI->SetCheck(bVis);
 }
 
-/////////////////////////////////////////////////////////////////////////////
 void CBrowserView::OnUpdateFilePrint(CCmdUI* pCmdUI)
 {
     pCmdUI->Enable(!m_bCurrentlyPrinting);
 }
 
-// Called from the busy state related methods in the 
-// BrowserFrameGlue object
-//
-// When aBusy is TRUE it means that browser is busy loading a URL
-// When aBusy is FALSE, it's done loading
-// We use this to update our STOP tool bar button
-//
-// We basically note this state into a member variable
-// The actual toolbar state will be updated in response to the
-// ON_UPDATE_COMMAND_UI method - OnUpdateNavStop() being called
-//
-void CBrowserView::UpdateBusyState(PRBool aBusy) {
-	mbDocumentLoading = aBusy;
 
-	if (mbDocumentLoading)
-		mpBrowserFrame->m_wndAnimate.Play(0, -1, -1);   
-
-   else {
-      mpBrowserFrame->m_wndAnimate.Stop();
-		mpBrowserFrame->m_wndAnimate.Seek(0);
-  }
-}
-
-void CBrowserView::SetCtxMenuLinkUrl(nsAutoString& strLinkUrl)
+void CBrowserView::OnKmeleonHome()
 {
-	mCtxMenuLinkUrl = strLinkUrl;
+   OpenURL(KMELEON_HOMEPAGE_URL);
 }
 
-void CBrowserView::SetCtxMenuImageSrc(nsAutoString& strImgSrc)
+void CBrowserView::OnKmeleonForum()
 {
-	mCtxMenuImgSrc = strImgSrc;
+   OpenURL(KMELEON_FORUM_URL);
 }
 
-
-/*
-** Middle button panning shit
-*/
-int CBrowserView::OnMouseActivate(CWnd* pDesktopWnd, UINT nHitTest, UINT message) {
-	switch (message) {
-		case WM_MBUTTONDOWN:
-			if(m_panning) StopPanning();
-			else StartPanning();
-			return TRUE;
-		case WM_MBUTTONUP:
-			{
-			}
-			return TRUE;
-	}
-	
-	return CWnd::OnMouseActivate(pDesktopWnd, nHitTest, message);
-}
-
-void CBrowserView::OnTimer(UINT nIDEvent){
-	switch(nIDEvent){
-		case 0x1:
-			if(m_panning) {
-				nsCOMPtr<nsIScrollable> s(do_QueryInterface(mWebBrowser));
-        
-        if(!s) return;
-
-				POINT p;
-				GetCursorPos(&p);
-
-				int scroll_x,scroll_y;
-
-				s->GetCurScrollPos(s->ScrollOrientation_X,&scroll_x);
-				s->GetCurScrollPos(s->ScrollOrientation_Y,&scroll_y);
-
-				if(abs(p.y-m_panningPoint.y)>4)
-					if(p.y>m_panningPoint.y)	scroll_y+=(p.y-m_panningPoint.y)*2;
-					else scroll_y-=(m_panningPoint.y-p.y)*2;
-
-				if(abs(p.x-m_panningPoint.x)>4)
-					if(p.x>m_panningPoint.x)	scroll_x+=(p.x-m_panningPoint.x)*2;
-					else scroll_x-=(m_panningPoint.x-p.x)*2;
-
-				s->SetCurScrollPosEx(scroll_x,scroll_y);
-
-        int cursorx=p.x-m_panningPoint.x,cursory=p.y-m_panningPoint.y;
-        int cursor=IDC_PAN;
-        if(cursory<-4) cursor=IDC_PAN_UP;
-        if(cursory>4) cursor=IDC_PAN_DOWN;
-        if(cursorx<-4)
-        {
-          if(cursor==IDC_PAN_UP) cursor=IDC_PAN_UPLEFT;
-          else if(cursor==IDC_PAN_DOWN) cursor=IDC_PAN_DOWNLEFT;
-          else cursor=IDC_PAN_LEFT;
-        }
-        if(cursorx>4)
-        {
-          if(cursor==IDC_PAN_UP) cursor=IDC_PAN_UPRIGHT;
-          else if(cursor==IDC_PAN_DOWN) cursor=IDC_PAN_DOWNRIGHT;
-          else cursor=IDC_PAN_RIGHT;
-        }
-
-        HCURSOR c=LoadCursor(theApp.m_hInstance,MAKEINTRESOURCE(cursor));
-        SetCursor(c);
-			}
-			return;
-	}
-	
-	CWnd::OnTimer(nIDEvent);
-}
-
-void CBrowserView::StartPanning(){
-	m_panning = 1;
-	GetCursorPos(&m_panningPoint);
-	SetCapture();
-	SetTimer(0x1,10,NULL);
-
-	SetFocus();
-}
-
-void CBrowserView::StopPanning(){
-	ReleaseCapture();
-	KillTimer(0x1);
-	m_panning = 0;
-}
-
-BOOL CBrowserView::PreTranslateMessage(MSG* pMsg) {
-  if(m_panning && (pMsg->message==WM_SETCURSOR || pMsg->message==WM_MOUSEMOVE))
-    return TRUE;
-
-  if(m_panning && (pMsg->message==WM_LBUTTONDOWN || pMsg->message==WM_RBUTTONDOWN))
-    StopPanning();
-	
-	return CWnd::PreTranslateMessage(pMsg);
-}
-
-char * CBrowserView::GetTempFile() {
-
-   m_tempFileCount++;
-   
-   char ** newFileList = new char*[m_tempFileCount];                             // create new index
-
-   memcpy(newFileList, m_tempFileList, ((m_tempFileCount-1)*sizeof(char**)) );   // copy old index
-
-   if (m_tempFileCount>1) delete m_tempFileList;                                 // delete old index
-   m_tempFileList = newFileList;
-
-   char *newFile = new char[MAX_PATH];
- 
-   char temppath[MAX_PATH];
-   GetTempPath(MAX_PATH, temppath);
-   GetTempFileName(temppath, "kme", 0, newFile);                                 // create tempfile name
-   
-   m_tempFileList[m_tempFileCount-1] = newFile;
-
-   return newFile;
-}
-
-void CBrowserView::DeleteTempFiles() {
-
-   for (int x=0;x<m_tempFileCount;x++) {
-      DeleteFile(m_tempFileList[x]);
-      delete m_tempFileList[x];
-   }
-   if (m_tempFileCount > 0) delete m_tempFileList;
-
-}
-
-// Show the AboutDlg
-void CBrowserView::OnAppAbout() {
+void CBrowserView::OnAppAbout()
+{
 	CAboutDlg aboutDlg;
 	aboutDlg.DoModal();
 }
 
-void CBrowserView::OnWindowNext() {
+void CBrowserView::OnWindowNext()
+{
    CBrowserFrame* pFrame;
 	POSITION pos = theApp.m_FrameWndLst.Find(mpBrowserFrame);
    theApp.m_FrameWndLst.GetNext(pos);
@@ -1412,7 +882,8 @@ void CBrowserView::OnWindowNext() {
    pFrame->ActivateFrame();
 }
 
-void CBrowserView::OnWindowPrev() {
+void CBrowserView::OnWindowPrev()
+{
    CBrowserFrame* pFrame;
 	POSITION pos = theApp.m_FrameWndLst.Find(mpBrowserFrame);
    theApp.m_FrameWndLst.GetPrev(pos);
@@ -1420,44 +891,4 @@ void CBrowserView::OnWindowPrev() {
    else      pFrame = (CBrowserFrame *) theApp.m_FrameWndLst.GetTail();
    
    pFrame->ActivateFrame();
-}
-
-int CBrowserView::GetCurrentURI(char *sURI) {
-   if(! mWebNav)
-		return 0;
-
-	nsresult rv = NS_OK;
-   
-   nsCOMPtr<nsIURI> currentURI;
-	rv = mWebNav->GetCurrentURI(getter_AddRefs(currentURI));
-	if(NS_FAILED(rv) || !currentURI)
-      return 0;
-
-   // Get the uri string associated with the nsIURI object
-	nsXPIDLCString uriString;
-	rv = currentURI->GetSpec(getter_Copies(uriString));
-	if(NS_FAILED(rv))
-		return 0;
-
-   int len = strlen(uriString.get());
-   if (sURI)
-      strcpy(sURI, uriString.get());
-   return len;
-}
-
- 
-
-void CBrowserView::ShowSecurityInfo()                                           
-{
-   HWND hParent = mpBrowserFrame->m_hWnd;
-
-   if(m_SecurityState == SECURITY_STATE_INSECURE) { 
-      CString csMsg;
-      csMsg.LoadString(IDS_NOSECURITY_INFO);
-
-      ::MessageBox(hParent, csMsg, "K-Meleon", MB_OK);
-
-      return;
-   }                                                                           
-   ::MessageBox(hParent, "This page is secure.", "K-Meleon", MB_OK);
 }
