@@ -810,14 +810,6 @@ BOOL CHiddenWnd::StayResident() {
 
 void CHiddenWnd::ShowBrowser(char *URI) {
 
-   if (m_bPreloadStartPage)
-      ::MessageBox(NULL, "Start", NULL, MB_OK);
-   else if (m_bPreloadWindow)
-      ::MessageBox(NULL, "Window", NULL, MB_OK);
-   else if (m_bStayResident)
-      ::MessageBox(NULL, "Browser", NULL, MB_OK);
-
-
    // if we already have a browser, load home page (if necessary), and show the window
    if (m_bPersisting && m_bPreloadWindow) {
       if (URI)
