@@ -210,7 +210,7 @@ int Init(){
 
       strtok(cfgFileBuffer, "\n");
       ParseConfig(cfgFileBuffer);
-      
+
       delete [] cfgFileBuffer;
     }
     fclose(cfgFile);

@@ -31,7 +31,7 @@
 #define KMELEON_PLUGIN_EXPORTS
 #include "../kmeleon_plugin.h"
 
-#define MAX_BOOKMARKS 255
+#define MAX_BOOKMARKS 512
 
 #define _T(blah) blah
 
@@ -165,20 +165,24 @@ void DoMenu(HMENU menu, char *param){
     urlVector.reserve(MAX_BOOKMARKS);
 
     FILE *bmFile = fopen(szPath, "r");
-    fseek(bmFile, 0, SEEK_END);
+    if (bmFile){
+      fseek(bmFile, 0, SEEK_END);
 
-    long bmFileSize = ftell(bmFile);
-    fseek(bmFile, 0, SEEK_SET);
+      long bmFileSize = ftell(bmFile);
+      fseek(bmFile, 0, SEEK_SET);
 
-    char *bmFileBuffer = new char[bmFileSize];
-    fread(bmFileBuffer, sizeof(char), bmFileSize, bmFile);
+      char *bmFileBuffer = new char[bmFileSize];
+      if (bmFileBuffer){
+        fread(bmFileBuffer, sizeof(char), bmFileSize, bmFile);
 
-    strtok(bmFileBuffer, "\n");
-    ParseBookmarks(bmFileBuffer, menu);
-    m_menuBookmarks = menu;
+        strtok(bmFileBuffer, "\n");
+        ParseBookmarks(bmFileBuffer, menu);
+        m_menuBookmarks = menu;
 
-    delete [] bmFileBuffer;
-    fclose(bmFile);
+        delete [] bmFileBuffer;
+      }
+      fclose(bmFile);
+    }
   }
 }
 
