@@ -42,6 +42,7 @@ void Config(HWND parent);
 void Quit();
 void DoMenu(HMENU menu, char *param);
 void DoRebar(HWND rebarWnd);
+void OnSize(int height, int width);
 
 pluginFunctions pFuncs = {
    Init,
@@ -576,11 +577,14 @@ void FillTree(HWND hTree, HTREEITEM parent, HMENU menu){
 
 HCURSOR hCursorDrag;
 BOOL bDragging;
+HWND hEditWnd;
 
 CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam){
    switch (uMsg){
    case WM_INITDIALOG:
       {
+         hEditWnd = hDlg;   
+
          HWND hTree = GetDlgItem(hDlg, IDC_TREE_BOOKMARK);
          FillTree(hTree, NULL, m_menuBookmarks);
 
@@ -797,6 +801,19 @@ CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam){
          ReleaseCapture();
       }
       break;
+
+   case WM_SIZE:
+	   if(wParam != SIZE_MINIMIZED)
+		   OnSize(HIWORD(lParam), LOWORD(lParam));
+      break;
+
+   case WM_GETMINMAXINFO:
+      LPMINMAXINFO lpminmaxinfo;
+      lpminmaxinfo=(LPMINMAXINFO)lParam;
+      lpminmaxinfo->ptMinTrackSize.x = 300;
+      lpminmaxinfo->ptMinTrackSize.y = 300;
+      break;
+
    case WM_COMMAND:
       {
          if (HIWORD(wParam) == BN_CLICKED){
@@ -851,4 +868,53 @@ extern "C" {
       return 0;
    }
 
+}
+
+int oldheight = 0, oldwidth = 0;
+
+void OnSize(int height, int width) {
+
+   if ((height == oldheight) && (width == oldwidth))
+      return;
+ 
+   if (oldheight) {
+
+      int dy = height - oldheight;
+      int dx = width - oldwidth;
+
+      HWND pWnd;
+      RECT rect;
+      POINT pt;
+      int newwidth, newheight;
+         
+      // resize tree
+      pWnd = GetDlgItem(hEditWnd, IDC_TREE_BOOKMARK);
+      GetWindowRect(pWnd, &rect);
+      newwidth = rect.right - rect.left + dx;
+      newheight = rect.bottom - rect.top + dy;
+      SetWindowPos(pWnd, NULL, 0, 0, newwidth, newheight, SWP_NOMOVE + SWP_NOZORDER);
+
+      // resize and move edit box
+      pWnd = GetDlgItem(hEditWnd, IDC_EDIT_URL);
+      GetWindowRect(pWnd, &rect);
+      pt.x = rect.left;
+      pt.y = rect.top;
+      ScreenToClient(hEditWnd, &pt);
+      newwidth = rect.right - rect.left + dx;
+      newheight = rect.bottom - rect.top;
+
+      MoveWindow(pWnd, pt.x, pt.y + dy, newwidth, newheight, TRUE);
+
+      // move ok button
+      pWnd = GetDlgItem(hEditWnd, IDOK);
+      GetWindowRect(pWnd, &rect);
+      pt.x = rect.left;
+      pt.y = rect.top;
+      ScreenToClient(hEditWnd, &pt);
+      SetWindowPos(pWnd, NULL, pt.x + dx, pt.y + dy, 0, 0, SWP_NOSIZE + SWP_NOZORDER); 
+
+   }
+
+	oldheight = height;
+	oldwidth = width;
 }
