@@ -98,8 +98,8 @@ void CPlugins::OnCreate(HWND wnd){
   CString s;
   while (pos){
     pluginList.GetNextAssoc( pos, s, kPlugin);
-    if (kPlugin && kPlugin->Create){
-      kPlugin->Create(wnd);
+    if (kPlugin && kPlugin->pf->Create){
+      kPlugin->pf->Create(wnd);
     }
   }
 }
@@ -130,6 +130,42 @@ kmeleonDocInfo * GetDocInfo(HWND mainWnd){
   return &kDocInfo;
 }
 
+void GetPreference(enum PREFTYPE type, char *preference, void *ret, void *defVal){
+  switch (type){
+  case PREF_BOOL:
+    *(int *)ret = theApp.preferences.GetBool(preference, *(int *)defVal);
+    break;
+  case PREF_INT:
+    *(int *)ret = theApp.preferences.GetInt(preference, *(int *)defVal);
+    break;
+  case PREF_STRING:
+    theApp.preferences.GetString(preference, (char *)ret, (char *)defVal);
+    break;
+  }
+}
+
+void SetPreference(enum PREFTYPE type, char *preference, void *val){
+  switch (type){
+  case PREF_BOOL:
+    theApp.preferences.SetBool(preference, *(int *)val);
+    break;
+  case PREF_INT:
+    theApp.preferences.SetInt(preference, *(int *)val);
+    break;
+  case PREF_STRING:
+    theApp.preferences.SetString(preference, (char *)val);
+    break;
+  }
+}
+
+kmeleonFunctions kmelFuncs = {
+  GetCommandIDs,
+  NavigateTo,
+  GetDocInfo,
+  GetPreference,
+  SetPreference
+};
+
 kmeleonPlugin * CPlugins::Load(const char *file){
   kmeleonPlugin * kPlugin;
   if (pluginList.Lookup(FileNoPath(file), kPlugin)){
@@ -154,11 +190,9 @@ kmeleonPlugin * CPlugins::Load(const char *file){
   kPlugin->hParentInstance = AfxGetInstanceHandle();
   kPlugin->hDllInstance = plugin;
 
-  kPlugin->GetCommandIDs = GetCommandIDs;
-  kPlugin->NavigateTo = NavigateTo;
-  kPlugin->GetDocInfo = GetDocInfo;
+  kPlugin->kf = &kmelFuncs;
 
-  kPlugin->Init();
+  kPlugin->pf->Init();
 
   pluginList.SetAt(FileNoPath(file), kPlugin);
 
@@ -189,7 +223,7 @@ void CPlugins::UnLoadAll(){
   while (pos){
     pluginList.GetNextAssoc( pos, s, kPlugin);
     if (kPlugin){
-      kPlugin->Quit();
+      kPlugin->pf->Quit();
       FreeLibrary(kPlugin->hDllInstance);
     }
   }
@@ -203,8 +237,8 @@ void CPlugins::DoRebars(HWND rebarWnd){
   CString s;
   while (pos){
     pluginList.GetNextAssoc( pos, s, kPlugin);
-    if (kPlugin && kPlugin->DoRebar){
-      kPlugin->DoRebar(rebarWnd);
+    if (kPlugin && kPlugin->pf->DoRebar){
+      kPlugin->pf->DoRebar(rebarWnd);
     }
   }
 }

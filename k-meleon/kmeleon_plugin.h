@@ -30,28 +30,50 @@ typedef struct {
   char url[256];  
 } kmeleonDocInfo;
 
+enum PREFTYPE {
+  PREF_BOOL,
+  PREF_INT,
+  PREF_STRING
+};
+
 typedef struct {
-  // Filled in by the plugin
-	int version;
-	char *description;
+  // this function allocates <num> successive ids for the plugin, then returns the first one.
+  // use it to get an unused command id.  this way plugins won't step on others toes.
+  UINT (*GetCommandIDs)(int num);
+
+  // if newWindow, open in a new window, otherwise use the current window
+  void (*NavigateTo)(char *url, int newWindow);
+
+  kmeleonDocInfo * (*GetDocInfo)(HWND mainWnd);
+
+  // gets the preference, stores it in ret, returns false if it didn't exist
+  void (*GetPreference)(enum PREFTYPE type, char *preference, void *ret, void *defaultVal);
+  // sets the preference
+  void (*SetPreference)(enum PREFTYPE type, char *preference, void *val);
+} kmeleonFunctions;
+
+typedef struct {
 	int (*Init)();
 	void (*Create)(HWND parent);
   void (*Config)(HWND parent);
 	void (*Quit)();
   void (*DoMenu)(HMENU menu, char *param);
   void (*DoRebar)(HWND rebarWnd);
+} pluginFunctions;
+
+typedef struct {
+  // Filled in by the plugin
+	int version;
+	char *description;
+
+  pluginFunctions *pf;
 
   // Filled in by k-meleon
 	HINSTANCE hParentInstance;
 	HINSTANCE hDllInstance;
 
-  // this function allocates <num> successive ids for the plugin, then returns the first one.
-  // use it to get an unused command id.  this way plugins won't step on others toes.
-  UINT (*GetCommandIDs)(int num);
-  // if newWindow, open in a new window, otherwise use the current window
-  void (*NavigateTo)(char *url, int newWindow);
+  kmeleonFunctions *kf;
 
-  kmeleonDocInfo * (*GetDocInfo)(HWND mainWnd);
 } kmeleonPlugin;
 
 #define KMEL_PLUGIN_VER 0x10

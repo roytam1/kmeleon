@@ -54,15 +54,19 @@ HGLOBAL GetMenu();
 void DoMenu(HMENU menu, char *param);
 void DoRebar(HWND rebarWnd);
 
-kmeleonPlugin kPlugin = {
-  KMEL_PLUGIN_VER,
-  "IE Favorites Plugin",
+pluginFunctions pFuncs = {
   Init,
   Create,
   Config,
   Quit,
   DoMenu,
   DoRebar
+};
+
+kmeleonPlugin kPlugin = {
+  KMEL_PLUGIN_VER,
+  "IE Favorites Plugin",
+  &pFuncs
 };
 
 CMenu m_menuFavorites;
@@ -75,11 +79,11 @@ UINT nFirstFavoriteCommand;
 TCHAR szPath[MAX_PATH];
 
 int Init(){
-  nConfigCommand = kPlugin.GetCommandIDs(1);
-  nAddCommand = kPlugin.GetCommandIDs(1);
-  nEditCommand = kPlugin.GetCommandIDs(1);
+  nConfigCommand = kPlugin.kf->GetCommandIDs(1);
+  nAddCommand = kPlugin.kf->GetCommandIDs(1);
+  nEditCommand = kPlugin.kf->GetCommandIDs(1);
 
-  nFirstFavoriteCommand = kPlugin.GetCommandIDs(MAX_FAVORITES);
+  nFirstFavoriteCommand = kPlugin.kf->GetCommandIDs(MAX_FAVORITES);
 
 	TCHAR           sz[MAX_PATH];
 	HKEY            hKey;
@@ -301,7 +305,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
       return true;
     }
     if (command == nAddCommand){
-      kmeleonDocInfo *dInfo = kPlugin.GetDocInfo(hWnd);
+      kmeleonDocInfo *dInfo = kPlugin.kf->GetDocInfo(hWnd);
 
       CString filename = szPath;
       filename += _T('\\');
@@ -323,13 +327,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
       return true;
     }
     if (command >= nFirstFavoriteCommand && command < (nFirstFavoriteCommand + MAX_FAVORITES)){
-      kPlugin.NavigateTo((char *)(LPCTSTR)m_astrFavoriteURLs.GetAt(command - nFirstFavoriteCommand), 0);
+      kPlugin.kf->NavigateTo((char *)(LPCTSTR)m_astrFavoriteURLs.GetAt(command - nFirstFavoriteCommand), 0);
       return true;
     }
-  }else if (message == WM_COMMAND){
+  }else if (message == WM_NCDESTROY){
     WndProcIterator = KMeleonWndProcs.find(hWnd); 
-    KMeleonWndProcs.erase(WndProcIterator);
-    return 0;
+    
+    if (WndProcIterator != KMeleonWndProcs.end()){
+      SetWindowLong(hWnd, GWL_WNDPROC, (LONG)WndProcIterator->second);
+
+      LRESULT result = CallWindowProc((WNDPROC)WndProcIterator->second, hWnd, message, wParam, lParam);
+
+      KMeleonWndProcs.erase(WndProcIterator);
+    
+      return result;
+    }
   }
   WndProcIterator = KMeleonWndProcs.find(hWnd);
 

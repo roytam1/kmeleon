@@ -52,15 +52,19 @@ HGLOBAL GetMenu();
 void DoMenu(HMENU menu, char *param);
 void DoRebar(HWND rebarWnd);
 
-kmeleonPlugin kPlugin = {
-  KMEL_PLUGIN_VER,
-  "Winamp Plugin",
+pluginFunctions pFunc = {
   Init,
   Create,
   Config,
   Quit,
   DoMenu,
   DoRebar
+};
+
+kmeleonPlugin kPlugin = {
+  KMEL_PLUGIN_VER,
+  "Winamp Plugin",
+  &pFunc
 };
 
 HBITMAP prevBmp;
@@ -81,7 +85,7 @@ DWORD commandTable[numCommands] = {
 int Init(){
 
   // allocate some ids
-  commandIDs = kPlugin.GetCommandIDs(numCommands);
+  commandIDs = kPlugin.kf->GetCommandIDs(numCommands);
 
   mainMenu = CreateMenu();
 
