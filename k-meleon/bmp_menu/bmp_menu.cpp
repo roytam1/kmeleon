@@ -172,9 +172,7 @@ int Init() {
 
    FILE *cfgFile = fopen(cfgPath, "r");
    if (cfgFile){
-      fseek(cfgFile, 0, SEEK_END);
-      long cfgFileSize = ftell(cfgFile);
-      fseek(cfgFile, 0, SEEK_SET);
+      long cfgFileSize = FileSize(cfgFile);
 
       char *cfgFileBuffer = new char[cfgFileSize];
       if (cfgFileBuffer) {
