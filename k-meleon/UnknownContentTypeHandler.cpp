@@ -436,8 +436,12 @@ NS_IMETHODIMP CProgressDialog::OnProgressChange(nsIWebProgress *aWebProgress, ns
       int percent = (int)(((float)aCurTotalProgress / (float)aMaxTotalProgress) * 100.0f);
 
       CString progressString;
-      progressString.Format(IDS_DOWNLOAD_PROGRESS, percent, ((double)aCurTotalProgress)/1024, ((double)aMaxTotalProgress)/1024);
+      if (percent>=0 && percent<=100)
+        progressString.Format(IDS_DOWNLOAD_PROGRESS, percent, ((double)aCurTotalProgress)/1024, ((double)aMaxTotalProgress)/1024);
+      else
+        progressString.Format(IDS_DOWNLOAD_PROGRESS2, ((double)aCurTotalProgress)/1024, ((double)aMaxTotalProgress)/1024);
       SetDlgItemText(IDC_STATUS, progressString);
+      
 
       PRInt64 now = PR_Now();
       PRInt64 timeSpent = now - mStartTime;
