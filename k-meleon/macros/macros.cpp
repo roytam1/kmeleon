@@ -19,6 +19,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <shellapi.h>
+#include <stdlib.h>
 
 #define KMELEON_PLUGIN_EXPORTS
 #include "..\kmeleon_plugin.h"
@@ -90,7 +91,9 @@ int iMacroCount = 0;
 enum commands {
    open = 1000,
    opennew,
-   openbg
+   openbg,
+   setpref,
+   togglepref
 };
 
 
@@ -212,6 +215,8 @@ int FindCommand(char *cmd) {
       CMD_TEST(open)
       CMD_TEST(opennew)
       CMD_TEST(openbg)
+      CMD_TEST(setpref)
+      CMD_TEST(togglepref)
 
    return cmdVal;
 }
@@ -294,7 +299,129 @@ void ExecuteCommand (int command, char *data) {
       CMD(open)      kPlugin.kf->NavigateTo(data, OPEN_NORMAL);
       CMD(opennew)   kPlugin.kf->NavigateTo(data, OPEN_NEW);
       CMD(openbg)    kPlugin.kf->NavigateTo(data, OPEN_BACKGROUND);
+      CMD(setpref)   {
+         enum PREFTYPE preftype;
+         char *c = strchr(data, ',');
+         if (c) {
+            *c = 0;
+            TrimWhiteSpace(data);
+            if (!strcmpi(data, "bool")) preftype = PREF_BOOL;
+            else if (!strcmpi(data, "int")) preftype = PREF_INT;
+            else if (!strcmpi(data, "string")) preftype = PREF_STRING;
+            else {
+               MessageBox(NULL, "Invalid pref command", data, MB_OK);
+               return;
+            }
+            char *pref = SkipWhiteSpace(c+1);
+            c = strchr(pref, ',');
+            *c = 0;
+            TrimWhiteSpace(pref);
 
+            if (!pref) {
+               MessageBox(NULL, "No Preference defined", "Macros", MB_OK);
+               return;
+            }
+
+            data = SkipWhiteSpace(c+1);
+            TrimWhiteSpace(data);
+
+            kPlugin.kf->SetPreference(preftype, pref, data);
+         }
+      }
+      CMD(togglepref) {
+         char *datacopy = _strdup(data);
+
+         enum PREFTYPE preftype;
+         char *c = strchr(datacopy, ',');
+         if (!c) return;
+
+         *c = 0;
+         TrimWhiteSpace(datacopy);
+         if (!strcmpi(datacopy, "bool")) preftype = PREF_BOOL;
+         else if (!strcmpi(datacopy, "int")) preftype = PREF_INT;
+         else if (!strcmpi(datacopy, "string")) preftype = PREF_STRING;
+         else {
+            MessageBox(NULL, "Invalid pref command", datacopy, MB_OK);
+            return;
+         }
+
+         char *pref = SkipWhiteSpace(c+1);
+         c = strchr(pref, ',');
+         if (c) *c = 0;
+         TrimWhiteSpace(pref);
+         if (!pref) {
+            MessageBox(NULL, "No Preference defined", "Macros", MB_OK);
+            return;
+         }
+
+         char sVal[256];
+         int  iVal=0;
+         if (preftype == PREF_STRING)
+            kPlugin.kf->GetPreference(preftype, pref, &sVal, NULL);
+         else {
+            kPlugin.kf->GetPreference(preftype, pref, &iVal, &iVal);
+            if (preftype == PREF_BOOL) {
+               iVal = !iVal;
+               kPlugin.kf->SetPreference(preftype, pref, &iVal, TRUE);
+               return;
+            }
+         }
+
+         char *prefdata = SkipWhiteSpace(c+1);
+         c = prefdata;
+         BOOL bPrefWritten = FALSE;
+         while (c && *c && !bPrefWritten) {
+            char *param = SkipWhiteSpace(c);
+            TrimWhiteSpace(param);
+            if ((c = strchr(c, ','))) {
+               *c = 0;
+               c++;
+            }
+            if (preftype == PREF_STRING) {
+               if (!strcmp(param, sVal)) {
+                  if (c) {
+                     param = SkipWhiteSpace(c);
+                     if ((c = strchr(c, ','))) {
+                        *c = 0;
+                        c++;
+                     }
+                     kPlugin.kf->SetPreference(preftype, pref, param, TRUE);
+                  }
+                  else
+                     kPlugin.kf->SetPreference(preftype, pref, prefdata, TRUE);
+                  bPrefWritten = TRUE;
+               }
+            }
+            else if (preftype == PREF_INT) {
+               int dataVal = atoi(param);
+               if (dataVal == iVal) {
+                  if (c) {
+                     param = SkipWhiteSpace(c);
+                     if ((c = strchr(c, ','))) {
+                        *c = 0;
+                        c++;
+                     }
+                     dataVal = atoi(param);
+                  }
+                  else
+                     dataVal = atoi(prefdata);
+                  kPlugin.kf->SetPreference(preftype, pref, &dataVal, TRUE);
+                  bPrefWritten = TRUE;
+               }
+            }
+         }
+
+         if (!bPrefWritten) {
+            if (preftype == PREF_STRING)
+               kPlugin.kf->SetPreference(preftype, pref, prefdata, TRUE);
+            else if (preftype == PREF_INT) {
+               int val = atoi(prefdata);
+               kPlugin.kf->SetPreference(preftype, pref, &val, TRUE);
+            }
+         }
+
+         delete datacopy;
+      }
 }
 
 void LoadMacros(char *filename) {
