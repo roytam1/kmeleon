@@ -997,7 +997,8 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
             return "";
          }
 
-         char cRetval[2048];  // 2k should be enough?
+         char cRetval[MSGEX_LENGTH];
+         cRetval[0] = 0;
          int nRetval = 0;
          if (preftype == PREF_STRING) {
             kFuncs->SendMessage((char*)params[0].c_str(), PLUGIN_NAME, (char*)params[1].c_str(), (long) params[2].c_str(), (long) &cRetval);
