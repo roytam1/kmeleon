@@ -105,7 +105,7 @@ CUnknownContentTypeHandler::PromptForSaveToFile(nsISupports * aWindowContext, co
 #else
    nsresult rv = NS_OK;
 
-   nsCOMPtr<nsIFilePicker> filePicker = do_CreateInstance("@mozilla.org/filepicker;1", &rv);
+   nsCOMPtr<nsIFilePicker> filePicker = do_CreateInstance(NS_FILEPICKER_CID, &rv);
    if (filePicker)
    {
       nsAFlatString title = NS_LITERAL_STRING ("Save As:");
