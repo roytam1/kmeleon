@@ -52,7 +52,6 @@ int Init();
 void Create(HWND parent);
 void Config(HWND parent);
 void Quit();
-HGLOBAL GetMenu();
 void DoMenu(HMENU menu, char *param);
 void DoRebar(HWND rebarWnd);
 
@@ -78,13 +77,12 @@ int Init(){
 	return true;
 }
 
-typedef std::map<HWND, void *> WndProcMap;
-WndProcMap KMeleonWndProcs;
+WNDPROC KMeleonWndProc;
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 void Create(HWND parent){
-	KMeleonWndProcs[parent] = (void *) GetWindowLong(parent, GWL_WNDPROC);
+	KMeleonWndProc = (WNDPROC) GetWindowLong(parent, GWL_WNDPROC);
 	SetWindowLong(parent, GWL_WNDPROC, (LONG)WndProc);
 }
 
@@ -295,11 +293,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 			break;
 	}
 	
-	WndProcMap::iterator WndProcIterator;
-	WndProcIterator = KMeleonWndProcs.find(hWnd);
-
-	return CallWindowProc((WNDPROC)WndProcIterator->second, hWnd, message, wParam, lParam);
-
+	return CallWindowProc(KMeleonWndProc, hWnd, message, wParam, lParam);
 }
 
 

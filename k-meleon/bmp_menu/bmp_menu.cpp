@@ -61,7 +61,6 @@ int Init();
 void Create(HWND parent);
 void Config(HWND parent);
 void Quit();
-HGLOBAL GetMenu();
 void DoMenu(HMENU menu, char *param);
 void DoRebar(HWND rebarWnd);
 
@@ -197,13 +196,12 @@ int Init(){
   return true;
 }
 
-typedef std::map<HWND, void *> WndProcMap;
-WndProcMap KMeleonWndProcs;
+WNDPROC KMeleonWndProc;
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 void Create(HWND parent){
-	KMeleonWndProcs[parent] = (void *) GetWindowLong(parent, GWL_WNDPROC);
+	KMeleonWndProc = (WNDPROC) GetWindowLong(parent, GWL_WNDPROC);
 	SetWindowLong(parent, GWL_WNDPROC, (LONG)WndProc);
 
   refCount++;
@@ -418,66 +416,70 @@ void UnSetOwnerDrawn(HMENU menu){
 }
 
 void SetOwnerDrawn(HMENU menu, HINSTANCE plugin){
-  MENUITEMINFO mmi;
-  mmi.cbSize = sizeof(mmi);
-  int count = ::GetMenuItemCount(menu);
-  int i;
-  int state;
+   MENUITEMINFO mmi;
+   mmi.cbSize = sizeof(mmi);
+   int count = ::GetMenuItemCount(menu);
+   int i;
+   int state;
 
-  DRAWBITMAPPROC DrawProc;
-  if (plugin){
-    DrawProc = (DRAWBITMAPPROC)GetProcAddress(plugin, "DrawBitmap");
-    if (!DrawProc){
-      DrawProc = DrawBitmap;
-    }
-  }else{
-    DrawProc = DrawBitmap;
-  }
-
-  for (i=0; i<count; i++){
-    state = ::GetMenuState(menu, i, MF_BYPOSITION);
-    if (state & MF_POPUP){
-      SetOwnerDrawn(GetSubMenu(menu, i), plugin);
-      if (plugin){
-        mmi.fMask = MIIM_TYPE;
-        mmi.cch = 0;
-        mmi.dwTypeData = NULL;
-        GetMenuItemInfo(menu, i, true, &mmi);
-        mmi.cch ++;
-        mmi.dwTypeData = new char[mmi.cch];
-        GetMenuItemInfo(menu, i, true, &mmi);
-
-        MenuDataT *mData = new MenuDataT;
-        mData->version = BMP_MENU_VERSION;
-        mData->data = mmi.dwTypeData;
-        mData->DrawBitmap = DrawProc;
-        
-        ModifyMenu(menu, i, MF_BYPOSITION | MF_OWNERDRAW | MF_POPUP, (UINT)GetSubMenu(menu, i), (LPCTSTR)(void *)mData);
+   DRAWBITMAPPROC DrawProc;
+   if (plugin) {
+      DrawProc = (DRAWBITMAPPROC)GetProcAddress(plugin, "DrawBitmap");
+      if (!DrawProc){
+         DrawProc = DrawBitmap;
       }
-    }else if (state == 0){
-      mmi.fMask = MIIM_TYPE;
-      mmi.cch = 0;
-      mmi.dwTypeData = NULL;
-      GetMenuItemInfo(menu, i, true, &mmi);
-      mmi.cch ++;
-      mmi.dwTypeData = new char[mmi.cch];
-      GetMenuItemInfo(menu, i, true, &mmi);
+   }
+   else
+    DrawProc = DrawBitmap;
 
-      MenuDataT *mData = new MenuDataT;
-      mData->version = BMP_MENU_VERSION;
-      mData->data = mmi.dwTypeData;
-      mData->DrawBitmap = DrawProc;
+   for (i=0; i<count; i++){
+      state = ::GetMenuState(menu, i, MF_BYPOSITION);
+      if (state & MF_POPUP){
+         SetOwnerDrawn(GetSubMenu(menu, i), plugin);
+         if (plugin){
+            mmi.fMask = MIIM_TYPE;
+            mmi.cch = 0;
+            mmi.dwTypeData = NULL;
+            GetMenuItemInfo(menu, i, true, &mmi);
+            mmi.cch ++;
+            mmi.dwTypeData = new char[mmi.cch];
+            GetMenuItemInfo(menu, i, true, &mmi);
 
-      ModifyMenu(menu, i, MF_BYPOSITION | MF_OWNERDRAW, GetMenuItemID(menu, i), (LPCTSTR)(void *)mData);
-    }
-  }
+            MenuDataT *mData = new MenuDataT;
+            mData->version = BMP_MENU_VERSION;
+            mData->data = mmi.dwTypeData;
+            mData->DrawBitmap = DrawProc;
+        
+            ModifyMenu(menu, i, MF_BYPOSITION | MF_OWNERDRAW | MF_POPUP, (UINT)GetSubMenu(menu, i), (LPCTSTR)(void *)mData);
+         }
+      }
+      else if (state == 0) {
+         mmi.fMask = MIIM_TYPE;
+         mmi.cch = 0;
+         mmi.dwTypeData = NULL;
+         GetMenuItemInfo(menu, i, true, &mmi);
+         mmi.cch ++;
+         mmi.dwTypeData = new char[mmi.cch];
+         GetMenuItemInfo(menu, i, true, &mmi);
+
+         MenuDataT *mData = new MenuDataT;
+         mData->version = BMP_MENU_VERSION;
+         mData->data = mmi.dwTypeData;
+         mData->DrawBitmap = DrawProc;
+
+         ModifyMenu(menu, i, MF_BYPOSITION | MF_OWNERDRAW, GetMenuItemID(menu, i), (LPCTSTR)(void *)mData);
+      }
+   }
 }
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
-   if (message == WM_MEASUREITEM){
+
+   if (message == WM_MEASUREITEM) {
+
       MEASUREITEMSTRUCT *mis = (MEASUREITEMSTRUCT *)lParam;
       MenuDataT * mdt = (MenuDataT *)mis->itemData;
-      if (mis->CtlType == ODT_MENU && mdt->version == BMP_MENU_VERSION){
+
+      if (mis->CtlType == ODT_MENU && mdt->version == BMP_MENU_VERSION) {
          RECT rc = {0};
          HDC hDC = GetDC(hWnd);
 
@@ -492,7 +494,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 
          char *tab = strrchr(string, '\t');
          int tabWidth;
-         if (tab) tabWidth = tab - string +5;
+         if (tab) tabWidth = tab - string +8;      // +8 gives us a little extra edge on the right after the accelerator
          else tabWidth = 0;
 
          DWORD size = GetTabbedTextExtent(hDC, string, strlen(string), 1, &tabWidth);
@@ -527,10 +529,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
          }
       }
    }
-   WndProcMap::iterator WndProcIterator;
-   WndProcIterator = KMeleonWndProcs.find(hWnd);
-
-   return CallWindowProc((WNDPROC)WndProcIterator->second, hWnd, message, wParam, lParam);
+   return CallWindowProc(KMeleonWndProc, hWnd, message, wParam, lParam);
 }
 
 // so it doesn't munge the function name

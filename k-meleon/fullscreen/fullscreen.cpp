@@ -81,13 +81,12 @@ int Init(){
    return true;
 }
 
-typedef std::map<HWND, void *> WndProcMap;
-WndProcMap KMeleonWndProcs;
+WNDPROC KMeleonWndProc;
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 void Create(HWND hWndParent) {
-	KMeleonWndProcs[hWndParent] = (void *) GetWindowLong(hWndParent, GWL_WNDPROC);
+	KMeleonWndProc = (WNDPROC) GetWindowLong(hWndParent, GWL_WNDPROC);
 	SetWindowLong(hWndParent, GWL_WNDPROC, (LONG)WndProc);
 }
 
@@ -187,10 +186,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
       }
    }
 
-   WndProcMap::iterator WndProcIterator;
-   WndProcIterator = KMeleonWndProcs.find(hWnd);
-
-   return CallWindowProc((WNDPROC)WndProcIterator->second, hWnd, message, wParam, lParam);
+   return CallWindowProc(KMeleonWndProc, hWnd, message, wParam, lParam);
 }
 
 

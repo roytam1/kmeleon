@@ -110,13 +110,12 @@ int Init(){
    return true;
 }
 
-typedef std::map<HWND, void *> WndProcMap;
-WndProcMap KMeleonWndProcs;
+WNDPROC KMeleonWndProc;
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 void Create(HWND parent){
-   KMeleonWndProcs[parent] = (void *) GetWindowLong(parent, GWL_WNDPROC);
+   KMeleonWndProc = (WNDPROC) GetWindowLong(parent, GWL_WNDPROC);
    SetWindowLong(parent, GWL_WNDPROC, (LONG)WndProc);
 }
 
@@ -291,6 +290,8 @@ void DoRebar(HWND rebarWnd){
       MessageBox(NULL, "Failed to create bookmark toolbar", NULL, 0);
       return;
    }
+   kPlugin.kf->RegisterToolBar(hwndTB, "Bookmarks");
+
 
    if (!m_toolbarMenu){
       m_toolbarMenu = m_menuBookmarks;
@@ -428,7 +429,6 @@ LRESULT CALLBACK MsgHook(int code, WPARAM wParam, LPARAM lParam){
 }
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
-   WndProcMap::iterator WndProcIterator;
    if (message == WM_COMMAND){
       WORD command = LOWORD(wParam);
       if (command == nConfigCommand){
@@ -452,21 +452,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
       if (command >= nFirstBookmarkCommand && command < (nFirstBookmarkCommand + MAX_BOOKMARKS)){
          kPlugin.kf->NavigateTo((char *)urlVector[command-nFirstBookmarkCommand].c_str(), OPEN_NORMAL);
          return true;
-      }
-   }
-   else if (message == WM_NCDESTROY){
-      WndProcIterator = KMeleonWndProcs.find(hWnd); 
-
-      if (WndProcIterator != KMeleonWndProcs.end()){
-         SetWindowLong(hWnd, GWL_WNDPROC, (LONG)WndProcIterator->second);
-
-         LRESULT result = CallWindowProc((WNDPROC)WndProcIterator->second, hWnd, message, wParam, lParam);
-
-         KMeleonWndProcs.erase(WndProcIterator);
-
-         Save();
-
-         return result;
       }
    }
    else if (message == WM_NOTIFY){
@@ -513,12 +498,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
        }
      }
    }
-   WndProcIterator = KMeleonWndProcs.find(hWnd);
-
-   if (WndProcIterator != KMeleonWndProcs.end()){
-      return CallWindowProc((WNDPROC)WndProcIterator->second, hWnd, message, wParam, lParam);
-   }
-   return 0;
+   return CallWindowProc(KMeleonWndProc, hWnd, message, wParam, lParam);
 }
 
 void FillTree(HWND hTree, HTREEITEM parent, HMENU menu){

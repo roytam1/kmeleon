@@ -103,13 +103,12 @@ int Init(){
    return true;
 }
 
-typedef std::map<HWND, void *> WndProcMap;
-WndProcMap KMeleonWndProcs;
+WNDPROC KMeleonWndProc;
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 void Create(HWND parent){
-   KMeleonWndProcs[parent] = (void *) GetWindowLong(parent, GWL_WNDPROC);
+   KMeleonWndProc = (WNDPROC) GetWindowLong(parent, GWL_WNDPROC);
    SetWindowLong(parent, GWL_WNDPROC, (LONG)WndProc);
 }
 
@@ -319,6 +318,8 @@ void DoRebar(HWND rebarWnd){
       return;
    }
 
+   kPlugin.kf->RegisterToolBar(hwndTB, "IE Links");
+
    SetWindowText(hwndTB, "Links");
 
    //SendMessage(hwndTB, TB_SETEXTENDEDSTYLE, 0, TBSTYLE_EX_DRAWDDARROWS);
@@ -457,7 +458,6 @@ LRESULT CALLBACK MsgHook(int code, WPARAM wParam, LPARAM lParam){
 }
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
-   WndProcMap::iterator WndProcIterator;
    if (message == WM_COMMAND){
       WORD command = LOWORD(wParam);
       if (command == nConfigCommand){
@@ -526,25 +526,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
        }
      }
    }
-   else if (message == WM_NCDESTROY){
-      WndProcIterator = KMeleonWndProcs.find(hWnd); 
-      
-      if (WndProcIterator != KMeleonWndProcs.end()){
-         SetWindowLong(hWnd, GWL_WNDPROC, (LONG)WndProcIterator->second);
-
-         LRESULT result = CallWindowProc((WNDPROC)WndProcIterator->second, hWnd, message, wParam, lParam);
-
-         KMeleonWndProcs.erase(WndProcIterator);
-         
-         return result;
-      }
-   }
-   WndProcIterator = KMeleonWndProcs.find(hWnd);
-
-   if (WndProcIterator != KMeleonWndProcs.end()){
-      return CallWindowProc((WNDPROC)WndProcIterator->second, hWnd, message, wParam, lParam);
-   }
-   return 0;
+   return CallWindowProc(KMeleonWndProc, hWnd, message, wParam, lParam);
 }
 
 
