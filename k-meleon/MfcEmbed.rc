@@ -72,9 +72,10 @@ BEGIN
     EDITTEXT        IDC_CREDITS,0,1,227,163,ES_CENTER | ES_MULTILINE | 
                     ES_READONLY | WS_VSCROLL | NOT WS_TABSTOP
     CTEXT           "Static",IDC_VERSION,0,188,227,12,WS_BORDER
-    PUSHBUTTON      "&Ok",IDOK,6,168,61,16
-    PUSHBUTTON      "K-Meleon &Home",IDC_KMELEON_HOME,83,168,61,16
-    PUSHBUTTON      "K-Meleon &Forums",IDC_KMELEON_FORUM,160,168,61,16
+    PUSHBUTTON      "&OK",IDOK,83,168,61,16
+    PUSHBUTTON      "K-Meleon &Home",IDC_KMELEON_HOME,9,168,61,16,BS_FLAT
+    PUSHBUTTON      "K-Meleon &Forums",IDC_KMELEON_FORUM,156,168,61,16,
+                    BS_FLAT
 END
 
 IDD_PROFILES DIALOG DISCARDABLE  0, 0, 196, 95
@@ -200,7 +201,7 @@ END
 IDD_PREFERENCES_PLUGINS DIALOGEX 0, 0, 233, 154
 STYLE WS_CHILD
 EXSTYLE WS_EX_CLIENTEDGE | WS_EX_CONTROLPARENT
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     CONTROL         "List1",IDC_LIST_PLUGINS,"SysListView32",LVS_LIST | 
                     LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | 
@@ -422,6 +423,7 @@ BEGIN
     IDD_ABOUTBOX, DIALOG
     BEGIN
         HORZGUIDE, 123
+        HORZGUIDE, 176
     END
 
     IDD_PROFILES, DIALOG
@@ -554,7 +556,6 @@ IDR_SECURITY_LOCK       ICON    DISCARDABLE     "res\\ssecur.ico"
 IDR_SECURITY_UNLOCK     ICON    DISCARDABLE     "res\\sinsecur.ico"
 IDR_SECURITY_BROKEN     ICON    DISCARDABLE     "res\\broken.ico"
 
-
 /////////////////////////////////////////////////////////////////////////////
 //
 // Cursor
@@ -675,7 +676,15 @@ BEGIN
     ID_PROG_BAR             "####################"
 END
 
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_NOSECURITY_INFO     "This page is not secure!"
+END
+
 #endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
 
 #ifndef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
