@@ -427,21 +427,42 @@ void DrawMenuItem(DRAWITEMSTRUCT *dis) {
 void MeasureMenuItem(MEASUREITEMSTRUCT *mis, HDC hDC) {
    MenuDataT *menuData = (MenuDataT *)mis->itemData;
 
+//   mis->itemWidth = 0;
+//   mis->itemHeight = GetSystemMetrics(SM_CYMENUSIZE);
+
+//   return;
+
+   
    NONCLIENTMETRICS ncm = {0};
    ncm.cbSize = sizeof(ncm);
    SystemParametersInfo(SPI_GETNONCLIENTMETRICS,0,(PVOID)&ncm,FALSE);
-   
+
    HFONT font;
    font = CreateFontIndirect(&ncm.lfMenuFont);
-   HFONT oldFont = (HFONT)SelectObject(hDC, font);
+   HFONT oldFont = (HFONT)SelectObject(hDC, font); 
 
    char *string = (char *)menuData->data;
+   SIZE size;
+   int tabWidth = 0;
+   char *tab = strrchr(string, '\t');
+   if (tab) {
+      OSVERSIONINFO info;
+      info.dwOSVersionInfoSize = sizeof( OSVERSIONINFO );
+      if (GetVersionEx(&info)) {
+         // detect NT4 and Win95
+         if ( ( ( info.dwPlatformId == VER_PLATFORM_WIN32_NT ) && (info.dwMajorVersion == 4) ) \
+            || ( (info.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS) && (info.dwMinorVersion == 0) ) ) {
 
-   RECT rc = {0,0,0,0};
-   DrawText(hDC, string, -1, &rc,DT_SINGLELINE|DT_VCENTER|DT_LEFT|DT_CALCRECT|DT_EXPANDTABS);
+            DWORD sz = GetTabbedTextExtent(hDC, string, strlen(string), 0, 0);
+            size.cx = LOWORD(sz);
+         }
+         else GetTextExtentPoint32(hDC, string, tab-string-1, &size);
+      }
+   }
+   else
+      GetTextExtentPoint32(hDC, string, strlen(string), &size);
 
-   // size = width of the bitmap + width of the text
-   mis->itemWidth = LEFT_SPACE + rc.right-rc.left;
+   mis->itemWidth = size.cx;
    mis->itemHeight = GetSystemMetrics(SM_CYMENUSIZE);
 
    SelectObject(hDC, oldFont);
