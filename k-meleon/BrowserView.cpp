@@ -331,6 +331,7 @@ void CBrowserView::Activate(UINT nState, CWnd* pWndOther, BOOL bMinimized) {
 
    switch(nState) {
    case WA_ACTIVE:
+   case WA_CLICKACTIVE:
       // don't activate it if the window is minimized
       // this was sending a WM_SIZE message, which lost the bMaximized state
       if(!bMinimized)
@@ -371,8 +372,11 @@ void CBrowserView::OnNewUrlEnteredInUrlBar()
 	CString strUrl;
 	mpBrowserFrame->m_wndUrlBar.GetEnteredURL(strUrl);
 
-	// Navigate to that URL
-	OpenURL(strUrl.GetBuffer(0));	
+   if(IsViewSourceUrl(strUrl))
+      OpenViewSourceWindow(strUrl.GetBuffer(0));
+   else 
+      // Navigate to that URL
+	   OpenURL(strUrl.GetBuffer(0));
 
 	// Add what was just entered into the UrlBar
 	mpBrowserFrame->m_wndUrlBar.AddURLToList(strUrl);
@@ -386,14 +390,21 @@ void CBrowserView::OnUrlSelectedInUrlBar()
 	
 	mpBrowserFrame->m_wndUrlBar.GetSelectedURL(strUrl);
 
-	OpenURL(strUrl.GetBuffer(0));
+   if(IsViewSourceUrl(strUrl))
+      OpenViewSourceWindow(strUrl.GetBuffer(0));
+   else 
+   	OpenURL(strUrl.GetBuffer(0));
 }
 
 void CBrowserView::OnSelectUrl(){
   mpBrowserFrame->m_wndUrlBar.SetFocus();
 }
 
-void CBrowserView::OnViewSource()  {
+BOOL CBrowserView::IsViewSourceUrl(CString& strUrl) {
+   return (strUrl.Find("view-source:", 0) != -1) ? TRUE : FALSE;
+}
+
+BOOL CBrowserView::OpenViewSourceWindow(const char* pUrl) {
 
    // Use external viewer
    if (theApp.preferences.bSourceUseExternalCommand) {
@@ -419,53 +430,53 @@ void CBrowserView::OnViewSource()  {
 
             CreateProcess(0,command,0,0,0,0,0,0,&si,&pi);      // launch external viewer
          }
-      return;
+         return TRUE;
       }
    }
    
-   // Use internal viewer
-   nsCOMPtr<nsIDocShell> curDocShell( do_GetInterface(mWebBrowser) );
-	if(!curDocShell)
-		return;
+   // use the internal viewer
 
-   nsresult rv;
-
-	// Get the ViewMode of the current docshell
-	PRInt32 viewMode;
-	rv = curDocShell->GetViewMode(&viewMode);
-	if(NS_FAILED(rv))
-		return;
-
-	// Are we already in ViewSource Mode?
-	if (viewMode == nsIDocShell::viewSource)
-		return;
-
-	// We're not in ViewSource mode. So, create a new browser frame
-	// in which we'll show the document source
+	// Create a new browser frame in which we'll show the document source
 	// Note that we're getting rid of the toolbars etc. by specifying
 	// the appropriate chromeFlags
 	PRUint32 chromeFlags =  nsIWebBrowserChrome::CHROME_WINDOW_BORDERS |
 							nsIWebBrowserChrome::CHROME_TITLEBAR |
-							nsIWebBrowserChrome::CHROME_WINDOW_RESIZE |
-              nsIWebBrowserChrome::CHROME_MENUBAR;
+							nsIWebBrowserChrome::CHROME_WINDOW_RESIZE;
 	CBrowserFrame* pFrm = CreateNewBrowserFrame(chromeFlags);
 	if(!pFrm)
-		return;
-	
-	// Get the docshell associated with the newly created frame (actually
-	// that of the embedded browser) and set it's viewmode to "viewSource"
-	nsCOMPtr<nsIDocShell> newFramesDocShell(do_GetInterface(pFrm->m_wndBrowserView.mWebBrowser) );
-	if(!newFramesDocShell)
-		return;
-	newFramesDocShell->SetViewMode(nsIDocShell::viewSource);
+		return FALSE;
 
 	// Finally, load this URI into the newly created frame
-	//(who's mode was set to "ViewSource" earlier
-	
-	char *sURI = new char[GetCurrentURI(NULL)+1];
-   GetCurrentURI(sURI);
-   pFrm->m_wndBrowserView.OpenURL(sURI);
-   delete sURI;
+	pFrm->m_wndBrowserView.OpenURL(pUrl);
+
+   pFrm->BringWindowToTop();
+
+   return TRUE;
+}                                                                               
+
+void CBrowserView::OnViewSource() {
+	if(! mWebNav)
+		return;
+
+	// Get the URI object whose source we want to view.
+   nsresult rv = NS_OK;
+   nsCOMPtr<nsIURI> currentURI;
+   rv = mWebNav->GetCurrentURI(getter_AddRefs(currentURI));
+   if(NS_FAILED(rv) || !currentURI)
+      return;
+
+   // Get the uri string associated with the nsIURI object
+   nsXPIDLCString uriString;
+   rv = currentURI->GetSpec(getter_Copies(uriString));
+   if(NS_FAILED(rv))
+      return;
+
+   // Build the view-source: url
+   nsCAutoString viewSrcUrl;
+   viewSrcUrl.Append("view-source:");
+   viewSrcUrl.Append(uriString);
+
+   OpenViewSourceWindow(viewSrcUrl.get());
 }
 
 void CBrowserView::OnViewInfo() 

@@ -95,6 +95,9 @@ public:
 
    void Activate(UINT nState, CWnd* pWndOther, BOOL bMinimized);
 
+   BOOL OpenViewSourceWindow(const char* pUrl);  
+   BOOL IsViewSourceUrl(CString& strUrl);
+
    void StartPanning();
    void StopPanning();
    BOOL m_panning;
