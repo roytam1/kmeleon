@@ -201,17 +201,16 @@ int Init() {
    SystemParametersInfo(SPI_GETNONCLIENTMETRICS,0,(PVOID)&ncm,FALSE);
 
    HDC hDC = CreateCompatibleDC(NULL);
-   HFONT font;
-   font = CreateFontIndirect(&ncm.lfMenuFont);
-   HFONT oldFont = (HFONT)SelectObject(hDC, font); 
+   HFONT font = CreateFontIndirect(&ncm.lfMenuFont);
+   SelectObject(hDC, font); 
    
    SIZE size;
    GetTextExtentPoint32(hDC, "X", 1, &size);
 
    SPACE_BETWEEN = size.cx;
 
-   SelectObject(hDC, oldFont);
    DeleteObject(font);
+   DeleteDC(hDC);
 
 
    char cfgPath[MAX_PATH];
