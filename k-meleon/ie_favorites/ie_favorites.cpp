@@ -350,6 +350,8 @@ void DoRebar(HWND rebarWnd){
         }
      }
    }
+   if (hLinksMenu == NULL)
+      hLinksMenu = m_menuFavorites;
    count = GetMenuItemCount(hLinksMenu);
    for (i=0; i<count; i++){
      if (GetMenuState(hLinksMenu, i, MF_BYPOSITION) & MF_POPUP){
