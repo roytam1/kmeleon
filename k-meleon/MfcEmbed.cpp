@@ -339,7 +339,7 @@ BOOL CMfcEmbedApp::InitInstance()
       if (HWND hwndPrev = FindWindowEx(NULL, NULL, GetMainWindowClassName(), NULL) ) {
          if(*m_lpCmdLine) {
             COPYDATASTRUCT copyData;
-            copyData.cbData = strlen(m_lpCmdLine);
+            copyData.cbData = strlen(m_lpCmdLine)+1;
             copyData.lpData = (void *) m_lpCmdLine;
             SendMessage(hwndPrev, WM_COPYDATA, NULL, (LPARAM) &copyData);
          }
