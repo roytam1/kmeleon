@@ -303,7 +303,7 @@ CProgressDialog::CProgressDialog(BOOL bAuto) {
    // assume we're done until we get data
    // for small files, we'll be done before the box even pops up
    mDone = true;
-
+   mTotalBytes = 0;
 
    m_bClose = theApp.preferences.GetBool("kmeleon.general.CloseDownloadDialog", true);
    
@@ -368,16 +368,20 @@ NS_IMETHODIMP CProgressDialog::OnStateChange(nsIWebProgress *aWebProgress,
       }
       else
       {
-
-         mStartTime = 0;
-         if (!mStartTime || !mTotalBytes)
-            return NS_OK;
-
-
          CString statusText;
          PRInt64 now = PR_Now();
          PRInt64 timeSpent = now - mStartTime;
          statusText.Format(IDS_DOWNLOAD_DONE, ((double)mTotalBytes)/1024, (int)(timeSpent/1000000.0l));
+
+
+         // "save link as..." saving never gets the final progress change,
+         // which leaves the progress bar hanging around 90% or so
+         HWND progressBar;
+         GetDlgItem(IDC_DOWNLOAD_PROGRESS, &progressBar);
+         ::SendMessage(progressBar, PBM_SETRANGE, 0, MAKELPARAM(0, 100)); 
+         ::SendMessage(progressBar, PBM_SETPOS, (WPARAM) 100, 0);
+
+         
          SetDlgItemText(IDC_STATUS, statusText);
 
          SetDlgItemText(IDCANCEL, "Close");
@@ -403,21 +407,31 @@ NS_IMETHODIMP CProgressDialog::OnStateChange(nsIWebProgress *aWebProgress,
 /* void onProgressChange (in nsIWebProgress aWebProgress, in nsIRequest aRequest, in long aCurSelfProgress, in long aMaxSelfProgress, in long aCurTotalProgress, in long aMaxTotalProgress); */
 NS_IMETHODIMP CProgressDialog::OnProgressChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest, PRInt32 aCurSelfProgress, PRInt32 aMaxSelfProgress, PRInt32 aCurTotalProgress, PRInt32 aMaxTotalProgress){
 
+   if (!mTotalBytes)
+      mTotalBytes = aMaxTotalProgress;
+
+/*
+   
+   if (aMaxTotalProgress <= 0)
+      return NS_OK;
+   else if (!mTotalBytes)
+      // strangely enough, this isn't a parameter in nsIDownload::Init()
+      mTotalBytes = aMaxTotalProgress;
+   
    if (!m_bWindow)   // if there's no window, there's no need to update it :)
       return NS_OK;
-   
+
+   if (mStartTime <= 0)
+       return NS_OK;
+*/   
+
    if (aMaxTotalProgress && (
          PR_Now() > mLastUpdateTime + 100000.0l    // enforce a minimum delay between updates - gives a large speed increase for super-fast downloads which wasted CPU cycles updating the dialog constantly
-         || aCurTotalProgress == aMaxTotalProgress // and be sure to catch the very last one, in case it would otherwise be skipped by the time check
+         || aCurTotalProgress >= aMaxTotalProgress // and be sure to catch the very last one, in case it would otherwise be skipped by the time check
          ) )
    {
       mLastUpdateTime = PR_Now();
       mDone = false;
-
-      // strangely enough, this isn't a parameter in nsIDownload::Init()
-      if (aMaxTotalProgress) {
-         mTotalBytes = aMaxTotalProgress;
-      }
 
       int percent = (int)(((float)aCurTotalProgress / (float)aMaxTotalProgress) * 100.0f);
 
@@ -595,6 +609,7 @@ void CProgressDialog::InitPersist(nsIURI *aSource, nsILocalFile *aTarget, nsIWeb
    
    mStartTime = PR_Now();
    mLastUpdateTime = 0;
+   mTotalBytes = 0;
 
    if (m_bWindow) {
       Create(IDD_PROGRESS, GetDesktopWindow());
