@@ -222,6 +222,7 @@ protected:
 	afx_msg void OnSelectNone();
 	afx_msg void OnCopyLinkLocation();
 	afx_msg void OnCopyImageLocation();
+    afx_msg void OnCopyImageContent();
     afx_msg void OnOpenLink();
     afx_msg void OnOpenLinkInNewWindow();
 	afx_msg void OnOpenLinkInBackground();

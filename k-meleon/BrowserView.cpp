@@ -123,6 +123,7 @@ BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
     ON_COMMAND(ID_VIEW_IMAGE, OnViewImageInNewWindow)
     ON_COMMAND(ID_COPY_LINK_LOCATION, OnCopyLinkLocation)
     ON_COMMAND(ID_COPY_IMAGE_LOCATION, OnCopyImageLocation)
+    ON_COMMAND(ID_COPY_IMAGE_CONTENT, OnCopyImageContent)
     ON_COMMAND(ID_OPEN_LINK, OnOpenLink)
     ON_COMMAND(ID_SAVE_LINK_AS, OnSaveLinkAs)
     ON_COMMAND(ID_SAVE_IMAGE_AS, OnSaveImageAs)
@@ -1390,6 +1391,18 @@ void CBrowserView::OnCopyImageLocation()
     EmptyClipboard();
     SetClipboardData(CF_TEXT, hClipData);
     CloseClipboard();
+}
+
+void CBrowserView::OnCopyImageContent()
+{
+   if(! mCtxMenuImgSrc.Length())
+      return;
+	PRBool ok = TRUE;
+    nsCOMPtr<nsIClipboardCommands> clipCmds = do_GetInterface(mWebBrowser);
+	clipCmds->CanCopyImageContents(&ok);
+	if (ok != TRUE)
+	   return;
+	clipCmds->CopyImageContents();
 }
 
 void CBrowserView::OnUpdateViewStatusBar(CCmdUI* pCmdUI)
