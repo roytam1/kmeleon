@@ -43,7 +43,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MD /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_AFXDLL" /Yu"stdafx.h" /FD /c
-# ADD CPP /nologo /MD /W3 /GX /O1 /I "..\mozilla\mozilla\dist\include" /I "..\mozilla\mozilla\dist\include\docshell" /I "..\mozilla\mozilla\dist\include\dom" /I "..\mozilla\mozilla\dist\include\embed_base" /I "..\mozilla\mozilla\dist\include\exthandler" /I "..\mozilla\mozilla\dist\include\find" /I "..\mozilla\mozilla\dist\include\gfx" /I "..\mozilla\mozilla\dist\include\helperAppDlg" /I "..\mozilla\mozilla\dist\include\intl" /I "..\mozilla\mozilla\dist\include\layout" /I "..\mozilla\mozilla\dist\include\necko" /I "..\mozilla\mozilla\dist\include\pref" /I "..\mozilla\mozilla\dist\include\profile" /I "..\mozilla\mozilla\dist\include\shistory" /I "..\mozilla\mozilla\dist\include\string" /I "..\mozilla\mozilla\dist\include\uriloader" /I "..\mozilla\mozilla\dist\include\wallet" /I "..\mozilla\mozilla\dist\include\webBrowser_core" /I "..\mozilla\mozilla\dist\include\webshell" /I "..\mozilla\mozilla\dist\include\widget" /I "..\mozilla\mozilla\dist\include\windowwatcher" /I "..\mozilla\mozilla\dist\include\xpcom" /I "..\mozilla\mozilla\dist\include\nspr" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "HW_THREADS" /D "XP_PC" /D "XP_WIN" /D "XP_WIN32" /D WINVER=0x400 /D _WIN32_IE=0x0500 /D "_AFXDLL" /Fr /Yu"StdAfx.h" /FD /c
+# ADD CPP /nologo /MD /W3 /GX /O1 /I "../mozilla/mozilla/dist/include/docshell" /I "../mozilla/mozilla/dist/include/dom" /I "../mozilla/mozilla/dist/include/embed_base" /I "../mozilla/mozilla/dist/include/exthandler" /I "../mozilla/mozilla/dist/include/find" /I "../mozilla/mozilla/dist/include/gfx" /I "../mozilla/mozilla/dist/include/helperAppDlg" /I "../mozilla/mozilla/dist/include/intl" /I "../mozilla/mozilla/dist/include/layout" /I "../mozilla/mozilla/dist/include/necko" /I "../mozilla/mozilla/dist/include/nkcache" /I "../mozilla/mozilla/dist/include/pref" /I "../mozilla/mozilla/dist/include/profile" /I "../mozilla/mozilla/dist/include/shistory" /I "../mozilla/mozilla/dist/include/string" /I "../mozilla/mozilla/dist/include/uriloader" /I "../mozilla/mozilla/dist/include/wallet" /I "../mozilla/mozilla/dist/include/webBrowser_core" /I "../mozilla/mozilla/dist/include/webbrowserpersist" /I "../mozilla/mozilla/dist/include/webshell" /I "../mozilla/mozilla/dist/include/widget" /I "../mozilla/mozilla/dist/include/windowwatcher" /I "../mozilla/mozilla/dist/include/xpcom" /I "../mozilla/mozilla/dist/include/nspr" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "HW_THREADS" /D "XP_PC" /D "XP_WIN" /D "XP_WIN32" /D WINVER=0x400 /D _WIN32_IE=0x0500 /D "_AFXDLL" /Fr /Yu"StdAfx.h" /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "NDEBUG" /d "_AFXDLL"
@@ -63,18 +63,18 @@ LINK32=link.exe
 # PROP BASE Output_Dir "Debug"
 # PROP BASE Intermediate_Dir "Win32_Debug"
 # PROP BASE Target_Dir ""
-# PROP Use_MFC 6
+# PROP Use_MFC 5
 # PROP Use_Debug_Libraries 1
 # PROP Output_Dir "Debug"
 # PROP Intermediate_Dir "Debug"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_AFXDLL" /Yu"stdafx.h" /FD /GZ /c
-# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "..\mozilla\mozilla\dist\include" /I "..\mozilla\mozilla\dist\include\docshell" /I "..\mozilla\mozilla\dist\include\dom" /I "..\mozilla\mozilla\dist\include\embed_base" /I "..\mozilla\mozilla\dist\include\exthandler" /I "..\mozilla\mozilla\dist\include\find" /I "..\mozilla\mozilla\dist\include\gfx" /I "..\mozilla\mozilla\dist\include\helperAppDlg" /I "..\mozilla\mozilla\dist\include\intl" /I "..\mozilla\mozilla\dist\include\layout" /I "..\mozilla\mozilla\dist\include\necko" /I "..\mozilla\mozilla\dist\include\pref" /I "..\mozilla\mozilla\dist\include\profile" /I "..\mozilla\mozilla\dist\include\shistory" /I "..\mozilla\mozilla\dist\include\string" /I "..\mozilla\mozilla\dist\include\uriloader" /I "..\mozilla\mozilla\dist\include\wallet" /I "..\mozilla\mozilla\dist\include\webBrowser_core" /I "..\mozilla\mozilla\dist\include\webshell" /I "..\mozilla\mozilla\dist\include\widget" /I "..\mozilla\mozilla\dist\include\windowwatcher" /I "..\mozilla\mozilla\dist\include\xpcom" /I "..\mozilla\mozilla\dist\include\nspr" /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "HW_THREADS" /D "XP_PC" /D "XP_WIN" /D "XP_WIN32" /D WINVER=0x400 /D "_AFXDLL" /FR /Yu"stdafx.h" /FD /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I "../mozilla/mozilla/dist/include/docshell" /I "../mozilla/mozilla/dist/include/dom" /I "../mozilla/mozilla/dist/include/embed_base" /I "../mozilla/mozilla/dist/include/exthandler" /I "../mozilla/mozilla/dist/include/find" /I "../mozilla/mozilla/dist/include/gfx" /I "../mozilla/mozilla/dist/include/helperAppDlg" /I "../mozilla/mozilla/dist/include/intl" /I "../mozilla/mozilla/dist/include/layout" /I "../mozilla/mozilla/dist/include/necko" /I "../mozilla/mozilla/dist/include/nkcache" /I "../mozilla/mozilla/dist/include/pref" /I "../mozilla/mozilla/dist/include/profile" /I "../mozilla/mozilla/dist/include/shistory" /I "../mozilla/mozilla/dist/include/string" /I "../mozilla/mozilla/dist/include/uriloader" /I "../mozilla/mozilla/dist/include/wallet" /I "../mozilla/mozilla/dist/include/webBrowser_core" /I "../mozilla/mozilla/dist/include/webbrowserpersist" /I "../mozilla/mozilla/dist/include/webshell" /I "../mozilla/mozilla/dist/include/widget" /I "../mozilla/mozilla/dist/include/windowwatcher" /I "../mozilla/mozilla/dist/include/xpcom" /I "../mozilla/mozilla/dist/include/nspr" /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "HW_THREADS" /D "XP_PC" /D "XP_WIN" /D "XP_WIN32" /D WINVER=0x400 /FR /Yu"stdafx.h" /FD /c
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "_DEBUG" /d "_AFXDLL"
-# ADD RSC /l 0x409 /d "_DEBUG" /d "_AFXDLL"
+# ADD RSC /l 0x409 /d "_DEBUG"
 BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
@@ -176,10 +176,6 @@ SOURCE=.\MostRecentUrls.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\nsPrintSettingsImpl.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=.\Parser.cpp
 # End Source File
 # Begin Source File
@@ -209,6 +205,10 @@ SOURCE=.\ProfileMgr.cpp
 # Begin Source File
 
 SOURCE=.\ProfilesDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\PromptService.cpp
 # End Source File
 # Begin Source File
 
@@ -313,10 +313,6 @@ SOURCE=.\MfcEmbed.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\nsPrintSettingsImpl.h
-# End Source File
-# Begin Source File
-
 SOURCE=.\Parser.h
 # End Source File
 # Begin Source File
@@ -342,6 +338,10 @@ SOURCE=.\ProfileMgr.h
 # Begin Source File
 
 SOURCE=.\ProfilesDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\PromptService.h
 # End Source File
 # Begin Source File
 
