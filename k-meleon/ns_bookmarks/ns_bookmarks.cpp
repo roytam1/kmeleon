@@ -160,11 +160,11 @@ void DoMenu(HMENU menu, char *param){
       char *string = strchr(param, ',');
       if (string) {
          *string = 0;
-         string++;
+         string = SkipWhiteSpace(string+1);
       }
-      else {
+      else
          string = action;
-      }
+
       int command = 0;
       if (stricmp(action, "Config") == 0){
          command = nConfigCommand;
