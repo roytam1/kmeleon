@@ -240,6 +240,7 @@ public:
 	// w.r.t. toolbar, statusbar, urlbar etc.
 	PRUint32 m_chromeMask;
 	LONG m_style;
+	int m_ignoreMoveResize;
 
    BOOL m_created; // set after we are created
 

@@ -356,13 +356,41 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
        !(m_pMostRecentBrowserFrame->m_style & WS_POPUP))
       m_pMostRecentBrowserFrame->m_wndReBar.SaveBandSizes();
    
+   int openedByGecko = 0;
+   if (chromeMask == 0) {
+       chromeMask = nsIWebBrowserChrome::CHROME_ALL;
+   } 
+   else
+       openedByGecko = 1;
+
+   LONG style = WS_OVERLAPPEDWINDOW;
+
+   if (chromeMask && (chromeMask != nsIWebBrowserChrome::CHROME_DEFAULT) && 
+       (!(chromeMask & (nsIWebBrowserChrome::CHROME_WINDOW_BORDERS)) ||
+        !(chromeMask & (nsIWebBrowserChrome::CHROME_WINDOW_CLOSE)) || 
+        !(chromeMask & (nsIWebBrowserChrome::CHROME_WINDOW_RESIZE)) || 
+        !(chromeMask & (nsIWebBrowserChrome::CHROME_MENUBAR)) ||
+        !(chromeMask & (nsIWebBrowserChrome::CHROME_TOOLBAR)) ||
+        !(chromeMask & (nsIWebBrowserChrome::CHROME_LOCATIONBAR)) ||
+        !(chromeMask & (nsIWebBrowserChrome::CHROME_STATUSBAR)) ||
+        !(chromeMask & (nsIWebBrowserChrome::CHROME_PERSONAL_TOOLBAR)) ||
+        !(chromeMask & (nsIWebBrowserChrome::CHROME_SCROLLBARS)) ||
+        !(chromeMask & (nsIWebBrowserChrome::CHROME_TITLEBAR)) )) {
+       style = WS_POPUPWINDOW | WS_CAPTION;
+   }
+   else if (preferences.bMaximized && (chromeMask & nsIWebBrowserChrome::CHROME_WINDOW_RESIZE))
+       style |= WS_MAXIMIZE;
+
+   style &= ~WS_VISIBLE;
+   
    RECT winSize;   
    winSize.left   = CW_USEDEFAULT;
    winSize.top    = CW_USEDEFAULT;
    winSize.bottom = CW_USEDEFAULT;
    winSize.right  = CW_USEDEFAULT;
 
-   if (x>0 && y>0 && cx>0 && cy>0) {
+   if (x>0 && y>0 && cx>100 && cy>100 || 
+       ((style & WS_POPUP) && x==-1 && y==-1 && cx==-1 && cy==-1)) {
        winSize.left = x;
        winSize.top = y;
        winSize.right = cx;
@@ -383,10 +411,6 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
                    WINDOWPLACEMENT wp;
                    wp.length = sizeof(WINDOWPLACEMENT);
                    m_pMostRecentBrowserFrame->GetWindowPlacement(&wp);
-
-                   // try to compensate for getwindowplacement
-                   wp.rcNormalPosition.top += 28;      // for some reason, it always thinks the window
-                   wp.rcNormalPosition.bottom += 28;   // is higher than it really is
 
                    // if the window is not maximized, let's use use GetWindowRect, which works      
                    if (wp.showCmd == SW_SHOWNORMAL)
@@ -431,26 +455,6 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
            }
        }
    }
-   
-   LONG style = WS_OVERLAPPEDWINDOW;
-
-   if (chromeMask && (chromeMask != nsIWebBrowserChrome::CHROME_DEFAULT) && 
-       (!(chromeMask & (nsIWebBrowserChrome::CHROME_WINDOW_BORDERS)) ||
-        !(chromeMask & (nsIWebBrowserChrome::CHROME_WINDOW_CLOSE)) || 
-        !(chromeMask & (nsIWebBrowserChrome::CHROME_WINDOW_RESIZE)) || 
-        !(chromeMask & (nsIWebBrowserChrome::CHROME_MENUBAR)) ||
-        !(chromeMask & (nsIWebBrowserChrome::CHROME_TOOLBAR)) ||
-        !(chromeMask & (nsIWebBrowserChrome::CHROME_LOCATIONBAR)) ||
-        !(chromeMask & (nsIWebBrowserChrome::CHROME_STATUSBAR)) ||
-        !(chromeMask & (nsIWebBrowserChrome::CHROME_PERSONAL_TOOLBAR)) ||
-        !(chromeMask & (nsIWebBrowserChrome::CHROME_SCROLLBARS)) ||
-        !(chromeMask & (nsIWebBrowserChrome::CHROME_TITLEBAR)) )) {
-       style = WS_POPUPWINDOW | WS_CAPTION;
-   }
-   else if (preferences.bMaximized && (chromeMask & nsIWebBrowserChrome::CHROME_WINDOW_RESIZE))
-       style |= WS_MAXIMIZE;
-
-   style &= ~WS_VISIBLE;
 
    // Now, create the browser frame
    CBrowserFrame* pFrame = new CBrowserFrame(chromeMask, style);
@@ -502,6 +506,7 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
    m_FrameWndLst.AddHead(pFrame);
    
    pFrame->m_created = true;
+   pFrame->m_ignoreMoveResize = (openedByGecko && !(style & WS_POPUP)) ? 2 : 0;
    
    theApp.m_pMostRecentBrowserFrame = pOldRecentFrame;
    

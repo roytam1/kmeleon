@@ -151,7 +151,18 @@ void CBrowserFrame::BrowserFrameGlueObj::SetBrowserFrameTitle(const PRUnichar *a
 void CBrowserFrame::BrowserFrameGlueObj::SetBrowserFrameSize(PRInt32 aCX, PRInt32 aCY)
 {
    METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
-      
+   
+   if (pThis->m_ignoreMoveResize > 0) {
+       pThis->m_ignoreMoveResize--;
+       return;
+   }
+
+   WINDOWPLACEMENT wp;
+   wp.length = sizeof(WINDOWPLACEMENT);
+   pThis->GetWindowPlacement(&wp);
+   if (wp.showCmd != SW_SHOWNORMAL)
+       return;
+
    pThis->SetWindowPos(NULL, 0, 0, aCX, aCY, 
       SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOZORDER
       );
@@ -160,6 +171,17 @@ void CBrowserFrame::BrowserFrameGlueObj::SetBrowserFrameSize(PRInt32 aCX, PRInt3
 void CBrowserFrame::BrowserFrameGlueObj::SetBrowserSize(PRInt32 aCX, PRInt32 aCY)
 {
    METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
+   
+   if (pThis->m_ignoreMoveResize > 0) {
+       pThis->m_ignoreMoveResize--;
+       return;
+   }
+
+   WINDOWPLACEMENT wp;
+   wp.length = sizeof(WINDOWPLACEMENT);
+   pThis->GetWindowPlacement(&wp);
+   if (wp.showCmd != SW_SHOWNORMAL)
+       return;
 
    // first we have to figure out how much bigger the frame is than the view
    RECT frameRect, viewRect;
@@ -191,6 +213,17 @@ void CBrowserFrame::BrowserFrameGlueObj::GetBrowserFrameSize(PRInt32 *aCX, PRInt
 void CBrowserFrame::BrowserFrameGlueObj::SetBrowserFramePosition(PRInt32 aX, PRInt32 aY)
 {
    METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)  
+   
+   if (pThis->m_ignoreMoveResize > 0) {
+       pThis->m_ignoreMoveResize--;
+       return;
+   }
+
+   WINDOWPLACEMENT wp;
+   wp.length = sizeof(WINDOWPLACEMENT);
+   pThis->GetWindowPlacement(&wp);
+   if (wp.showCmd != SW_SHOWNORMAL)
+       return;
 
    pThis->SetWindowPos(NULL, aX, aY, 0, 0, 
       SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOZORDER);
@@ -233,6 +266,17 @@ void CBrowserFrame::BrowserFrameGlueObj::GetBrowserFramePositionAndSize(PRInt32 
 void CBrowserFrame::BrowserFrameGlueObj::SetBrowserFramePositionAndSize(PRInt32 aX, PRInt32 aY, PRInt32 aCX, PRInt32 aCY, PRBool fRepaint)
 {
    METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
+   
+   if (pThis->m_ignoreMoveResize > 0) {
+       pThis->m_ignoreMoveResize--;
+       return;
+   }
+
+   WINDOWPLACEMENT wp;
+   wp.length = sizeof(WINDOWPLACEMENT);
+   pThis->GetWindowPlacement(&wp);
+   if (wp.showCmd != SW_SHOWNORMAL)
+       return;
 
    pThis->SetWindowPos(NULL, aX, aY, aCX, aCY, 
       SWP_NOACTIVATE | SWP_NOZORDER);
@@ -241,6 +285,17 @@ void CBrowserFrame::BrowserFrameGlueObj::SetBrowserFramePositionAndSize(PRInt32 
 void CBrowserFrame::BrowserFrameGlueObj::SetBrowserPositionAndSize(PRInt32 aX, PRInt32 aY, PRInt32 aCX, PRInt32 aCY, PRBool fRepaint)
 {
    METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
+   
+   if (pThis->m_ignoreMoveResize > 0) {
+       pThis->m_ignoreMoveResize--;
+       return;
+   }
+   
+   WINDOWPLACEMENT wp;
+   wp.length = sizeof(WINDOWPLACEMENT);
+   pThis->GetWindowPlacement(&wp);
+   if (wp.showCmd != SW_SHOWNORMAL)
+       return;
 
    // first we have to figure out how much bigger the frame is than the view
    RECT frameRect, viewRect;

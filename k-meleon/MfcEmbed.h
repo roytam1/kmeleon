@@ -71,7 +71,7 @@ public:
     NS_DECL_NSIOBSERVER
     NS_DECL_NSIWINDOWCREATOR
 
-	CBrowserFrame* CreateNewBrowserFrame(PRUint32 chromeMask = nsIWebBrowserChrome::CHROME_ALL, 
+	CBrowserFrame* CreateNewBrowserFrame(PRUint32 chromeMask = 0, 
 							PRInt32 x = -1, PRInt32 y = -1, 
 							PRInt32 cx = -1, PRInt32 cy = -1,
 							PRBool bShowWindow = PR_TRUE);
