@@ -211,9 +211,14 @@ int BuildFavoritesMenu(char * strPath, HMENU mainMenu){
 
             gFavoritesFiles.InsertAt(nPos, urlFile);
 
+            // format for display in the menu
             // chop off the .url
             *dot = 0;
+            // shrink the string
             CondenseString(wfd.cFileName, 40);
+            // escape &
+            EscapeAmpersands(wfd.cFileName);
+
             gFavorites.InsertAt(nPos, wfd.cFileName);
 
             /*
