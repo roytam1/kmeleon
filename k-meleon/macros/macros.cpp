@@ -271,14 +271,22 @@ void Quit() {
 
 void DoMenu(HMENU menu, char *param) {
    if (*param) {
+      char *string = strchr(param, ',');
+      if (string) {
+         *string = 0;
+         do {
+            string++;
+         } while (*string==' ' || *string=='\t');
+      }
+
       int index = FindMacro(param);
       if (index != NOTFOUND) {
          if (macroList[index]->menuString)
-            AppendMenu(menu, MF_STRING, ID_START+index, macroList[index]->menuString);
+            AppendMenu(menu, MF_STRING, ID_START+index, string ? string : macroList[index]->menuString);
          else if (macroList[index]->macroName)
-            AppendMenu(menu, MF_STRING, ID_START+index, macroList[index]->macroName);
+            AppendMenu(menu, MF_STRING, ID_START+index, string ? string : macroList[index]->macroName);
          else 
-            AppendMenu(menu, MF_STRING, ID_START+index, "Untitled Macro");
+            AppendMenu(menu, MF_STRING, ID_START+index, string ? string : "Untitled Macro");
       }
    }
 }
@@ -1422,7 +1430,7 @@ void LoadMacros(char *filename) {
                      needBreak = true; break;
                   }
                   if(macroList[iMacroCount-1]->menuString) delete macroList[iMacroCount-1]->menuString;
-                   strtemp = strVal(rval);
+                  strtemp = strVal(rval, -1); // FIXME: ugly misuse to convert '\'+'t' to '\t'
                   macroList[iMacroCount-1]->menuString = new char[strtemp.length()+1];
                   strcpy(macroList[iMacroCount-1]->menuString,strtemp.c_str());
                   continue;
@@ -2033,10 +2041,18 @@ std::string strVal(std::string input, int bOnlyQuotes) {
             break;
          }           
          if(input.at(pos+1) == 'n') { //newline
-
+           if (bOnlyQuotes==-1) { // FIXME: why not always convert '\'+'n' to '\n'?
+             input.replace(pos,2,"\n");
+             ++pos;
+             continue;
+           }				 
          }
          if(input.at(pos+1) == 't') { //tab
-
+           if (bOnlyQuotes==-1) { // FIXME: why not always convert '\'+'t' to '\t'?
+             input.replace(pos,2,"\t");
+             ++pos;
+             continue;
+           }
          }
          if(input.at(pos+1) == '\\') {
             input.replace(pos,1,"");
