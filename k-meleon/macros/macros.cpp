@@ -518,12 +518,14 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
             return "";
          }
 
-         std::string strRet = "";
          char cRetval[256];
          int nRetval = 0;
          if (preftype == PREF_STRING) {
             kFuncs->GetPreference(preftype,(char*)params[1].c_str(),&cRetval,NULL);
-            return cRetval;
+            std::string strRet = "\"";
+            strRet += cRetval;
+            strRet += "\"";
+            return strRet;
          }
          else if (preftype == PREF_INT) {
             kFuncs->GetPreference(preftype,(char*)params[1].c_str(),&nRetval,&nRetval);
@@ -567,7 +569,7 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
             kFuncs->GetPreference(preftype, pref, &iVal, &iVal);
             if (preftype == PREF_BOOL) {
                iVal = !iVal;
-               kFuncs->SetPreference(preftype, pref, &iVal/*, TRUE*/);
+               kFuncs->SetPreference(preftype, pref, &iVal, TRUE);
                return "";
             }
          }
@@ -589,7 +591,7 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
                      kFuncs->SetPreference(preftype, pref, param);
                   }
                   else
-                     kFuncs->SetPreference(preftype, pref, prefdata/*, TRUE*/);
+                     kFuncs->SetPreference(preftype, pref, prefdata, TRUE);
                   bPrefWritten = TRUE;
                }
             }
@@ -603,7 +605,7 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
                   else
                      dataVal = atoi(prefdata);
 
-                  kFuncs->SetPreference(preftype, pref, &dataVal/*, TRUE*/);
+                  kFuncs->SetPreference(preftype, pref, &dataVal, TRUE);
                   bPrefWritten = TRUE;
                }
             }
@@ -611,10 +613,10 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
 
          if (!bPrefWritten) {
             if (preftype == PREF_STRING)
-               kFuncs->SetPreference(preftype, pref, prefdata/*, TRUE*/);
+               kFuncs->SetPreference(preftype, pref, prefdata, TRUE);
             else if (preftype == PREF_INT) {
                int val = atoi(prefdata);
-               kFuncs->SetPreference(preftype, pref, &val/*, TRUE*/);
+               kFuncs->SetPreference(preftype, pref, &val, TRUE);
             }
          }
       }
