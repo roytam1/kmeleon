@@ -78,6 +78,7 @@ void Create(HWND parent);
 void Config(HWND parent);
 void Quit();
 void DoMenu(HMENU menu, char *param);
+int DoAccel(char *param);
 void DoRebar(HWND rebarWnd);
 
 long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2);
@@ -110,6 +111,9 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
       }
       else if (stricmp(subject, "DoMenu") == 0) {
          DoMenu((HMENU)data1, (char *)data2);
+      }
+      else if (stricmp(subject, "DoAccel") == 0) {
+          *(int *)data2 = DoAccel((char *)data1);
       }
       else return 0;
 
@@ -255,6 +259,21 @@ void DoMenu(HMENU menu, char *param)
       }
    }
 }
+
+int DoAccel(char *param)
+{
+   if (stricmp(param, "Config") == 0){
+      return nConfigCommand;
+   }
+   if (stricmp(param, "Add") == 0){
+      return nAddCommand;
+   }
+   if (stricmp(param, "Edit") == 0){
+      return nEditCommand;
+   }
+   return nAddCommand;
+}
+
 
 void DoRebar(HWND rebarWnd){
 
