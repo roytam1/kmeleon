@@ -26,6 +26,7 @@ extern CMfcEmbedApp theApp;
 #include "kmeleon_plugin.h"
 
 #include "MenuParser.h"
+#include "Utils.h"
 
 CMenuParser::CMenuParser(){
 }
@@ -45,39 +46,6 @@ CMenuParser::~CMenuParser(){
       delete m;
     }
   }
-}
-
-void TranslateTabs(char *buffer){
-  char *p;
-  for (p=buffer; *p; p++){
-    if (*p == '\\'){
-      if (*(p+1) == 't'){
-        *p = ' ';
-        *(p+1) = '\t';
-      }
-    }
-  }
-}
-
-void TrimWhiteSpace(char *string){
-  char *p;
-  for ( p = string + strlen(string) - 1; p >= string; p-- ){
-    if (*p == ' ' || *p == '\t'){
-      *p = 0;
-    }else{
-      break;
-    }
-  }
-}
-
-char *SkipWhiteSpace(char *string){
-  char *p;
-  for (p = string; *p; p++){
-    if (*p != ' ' && *p != '\t'){
-      return p;
-    }
-  }
-  return string;
 }
 
 BOOL CALLBACK MenuLogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam){
@@ -159,8 +127,6 @@ public:
      log->WriteString("\r\n");   \
    }
 
-#define DEFINEMAP_ADD(entry) defineMap[#entry] = entry;
-
 int CMenuParser::Load(CString &filename){
   CFile *menuFile;
   TRY {
@@ -196,35 +162,7 @@ int CMenuParser::Load(CString &filename){
 
   TranslateTabs(buffer);
 
-  CMap<CString, LPCSTR, int, int &> defineMap;
-  DEFINEMAP_ADD(ID_NAV_BACK)
-  DEFINEMAP_ADD(ID_NAV_FORWARD)
-  DEFINEMAP_ADD(ID_NAV_HOME)
-  DEFINEMAP_ADD(ID_NAV_STOP)
-  DEFINEMAP_ADD(ID_NAV_RELOAD)
-  DEFINEMAP_ADD(ID_NAV_SEARCH)
-  DEFINEMAP_ADD(ID_VIEW_SOURCE)
-  DEFINEMAP_ADD(ID_VIEW_TOOLBAR)
-  DEFINEMAP_ADD(ID_VIEW_STATUS_BAR)
-  DEFINEMAP_ADD(ID_PREFERENCES)
-  DEFINEMAP_ADD(ID_NEW_BROWSER)
-  DEFINEMAP_ADD(ID_FILE_SAVE_AS)
-  DEFINEMAP_ADD(ID_FILE_OPEN)
-  DEFINEMAP_ADD(ID_FILE_CLOSE)
-  DEFINEMAP_ADD(ID_EDIT_CUT)
-  DEFINEMAP_ADD(ID_EDIT_COPY)
-  DEFINEMAP_ADD(ID_EDIT_PASTE)
-  DEFINEMAP_ADD(ID_EDIT_SELECT_ALL)
-  DEFINEMAP_ADD(ID_EDIT_SELECT_NONE)
-  DEFINEMAP_ADD(ID_VIEW_IMAGE)
-  DEFINEMAP_ADD(ID_SAVE_IMAGE_AS)
-  DEFINEMAP_ADD(ID_APP_EXIT)
-  DEFINEMAP_ADD(ID_APP_ABOUT)
-  DEFINEMAP_ADD(ID_OPEN_LINK_IN_NEW_WINDOW)
-  DEFINEMAP_ADD(ID_COPY_LINK_LOCATION)
-  DEFINEMAP_ADD(ID_MANAGE_PROFILES)
-  DEFINEMAP_ADD(ID_LINK_KMELEON_HOME)
-  DEFINEMAP_ADD(ID_LINK_KMELEON_FORUM)
+#include "defineMap.cpp"
 
   CMenu *currentMenu = NULL;
 
@@ -296,8 +234,8 @@ int CMenuParser::Load(CString &filename){
           kmeleonPlugin * kPlugin = theApp.plugins.Load(p);
 
           if (kPlugin) {
-            if (kPlugin->DoMenu){
-              kPlugin->DoMenu(currentMenu->GetSafeHmenu(), parameter);
+            if (kPlugin->pf->DoMenu){
+              kPlugin->pf->DoMenu(currentMenu->GetSafeHmenu(), parameter);
 
               LOG_2("Called plugin %s with parameter %s", p, parameter);
             }else{
@@ -332,8 +270,9 @@ int CMenuParser::Load(CString &filename){
 
   delete [] buffer;
 
-  delete menuFile;
-  delete log;
+  if (log){
+    delete log;
+  }
 
   return 1;
 }

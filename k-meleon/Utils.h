@@ -16,24 +16,6 @@
 *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
-#ifndef __MENUPARSER_H__
-#define __MENUPARSER_H__
-
-#include "StdAfx.h"
-
-class CMenuParser {
-protected:
-  CMap<CString, LPCSTR, CMenu *, CMenu *&> menus;
-
-public:
-	CMenuParser();
-  CMenuParser(CString &filename);
-
-	~CMenuParser();
-
-  int Load(CString &filename);
-
-  CMenu *GetMenu(char * menuName);
-};
-
-#endif // __MENUPARSER_H__
+void TranslateTabs(char *buffer);
+void TrimWhiteSpace(char *string);
+char *SkipWhiteSpace(char *string);

@@ -53,6 +53,7 @@ static char THIS_FILE[] = __FILE__;
 #endif
 
 #define MENU_CONFIG_FILE "menus.cfg"
+#define ACCEL_CONFIG_FILE "accel.cfg"
 
 BEGIN_MESSAGE_MAP(CMfcEmbedApp, CWinApp)
 	//{{AFX_MSG_MAP(CMfcEmbedApp)
@@ -165,7 +166,8 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
   pFrame->SetIcon(LoadIcon(IDR_MAINFRAME), false);
 
 	// load accelerator resource
-	pFrame->LoadAccelTable(MAKEINTRESOURCE(IDR_MAINFRAME));
+	//pFrame->LoadAccelTable(MAKEINTRESOURCE(IDR_MAINFRAME));
+  pFrame->m_hAccelTable = accel.GetTable();
 
 	// Show the window...
 	if(bShowWindow){
@@ -314,6 +316,9 @@ nsresult CMfcEmbedApp::InitializePrefs(){
     // we used to create the file if it didn't exist
     // but now it should be copied automagically from defaults when the profile is created
     MessageBox(NULL, "Could not find " MENU_CONFIG_FILE, NULL, 0);
+  }
+  if (!accel.Load(preferences.settingsDir + ACCEL_CONFIG_FILE)){
+    MessageBox(NULL, "Could not find " ACCEL_CONFIG_FILE, NULL, 0);
   }
 
   return rv;

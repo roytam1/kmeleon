@@ -145,6 +145,10 @@ SOURCE=.\Preferences.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\PreferencesDlg.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\ProfileMgr.cpp
 # End Source File
 # Begin Source File

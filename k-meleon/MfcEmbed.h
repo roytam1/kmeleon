@@ -38,6 +38,7 @@
 #include "Plugins.h"
 #include "Preferences.h"
 #include "MenuParser.h"
+#include "AccelParser.h"
 
 #include "resource.h"       // main symbols
 
@@ -79,6 +80,7 @@ public:
   CPlugins      plugins;
   CPreferences  preferences;
   CMenuParser   menus;
+  CAccelParser  accel;
 
 // Implementation
 

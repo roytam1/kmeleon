@@ -16,24 +16,37 @@
 *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
-#ifndef __MENUPARSER_H__
-#define __MENUPARSER_H__
+#include "string.h"
 
-#include "StdAfx.h"
+void TranslateTabs(char *buffer){
+  char *p;
+  for (p=buffer; *p; p++){
+    if (*p == '\\'){
+      if (*(p+1) == 't'){
+        *p = ' ';
+        *(p+1) = '\t';
+      }
+    }
+  }
+}
 
-class CMenuParser {
-protected:
-  CMap<CString, LPCSTR, CMenu *, CMenu *&> menus;
+void TrimWhiteSpace(char *string){
+  char *p;
+  for ( p = string + strlen(string) - 1; p >= string; p-- ){
+    if (*p == ' ' || *p == '\t'){
+      *p = 0;
+    }else{
+      break;
+    }
+  }
+}
 
-public:
-	CMenuParser();
-  CMenuParser(CString &filename);
-
-	~CMenuParser();
-
-  int Load(CString &filename);
-
-  CMenu *GetMenu(char * menuName);
-};
-
-#endif // __MENUPARSER_H__
+char *SkipWhiteSpace(char *string){
+  char *p;
+  for (p = string; *p; p++){
+    if (*p != ' ' && *p != '\t'){
+      return p;
+    }
+  }
+  return string;
+}

@@ -16,24 +16,29 @@
 *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
-#ifndef __MENUPARSER_H__
-#define __MENUPARSER_H__
+#ifndef __ACCELPARSER_H__
+#define __ACCELPARSER_H__
 
 #include "StdAfx.h"
 
-class CMenuParser {
+#define MAX_ACCEL 127
+
+class CAccelParser {
 protected:
-  CMap<CString, LPCSTR, CMenu *, CMenu *&> menus;
+  ACCEL accelerators[MAX_ACCEL];
+  int numAccelerators;
+
+  HACCEL accelTable;
 
 public:
-	CMenuParser();
-  CMenuParser(CString &filename);
+  CAccelParser();
+  CAccelParser(CString &filename);
 
-	~CMenuParser();
+  ~CAccelParser();
 
   int Load(CString &filename);
 
-  CMenu *GetMenu(char * menuName);
+  HACCEL GetTable();
 };
 
-#endif // __MENUPARSER_H__
+#endif // __ACCELPARSER_H__
