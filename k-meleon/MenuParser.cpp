@@ -53,6 +53,7 @@ void CMenuParser::Destroy(){
          delete m;
       }
    }
+   menus.RemoveAll();
 }
 
 int CMenuParser::Load(CString &filename){
