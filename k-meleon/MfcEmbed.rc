@@ -954,7 +954,7 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    ID_PROG_BAR             "####################"
+    ID_PROG_BAR             "                                        "
 END
 
 STRINGTABLE DISCARDABLE 
