@@ -37,6 +37,8 @@ void quicksort(char *a, size_t n, size_t es, cmp_t *cmp, unsigned int flag);
 #define IDD_CONFIG                      101
 #define IDD_INSTALL                     102
 #define IDD_EDIT_HOTLIST		103
+#define IDR_CONTEXTMENU                 159
+#define IDC_DRAG_CURSOR                 160
 
 #define IDC_REBARENABLED                1000
 #define IDC_HOTLIST_FILE                1001
@@ -65,6 +67,17 @@ void quicksort(char *a, size_t n, size_t es, cmp_t *cmp, unsigned int flag);
 #define IDC_SORTORDER_ZA		1024
 #define IDC_FOLDERFIRST			1025
 #define IDC_USEORDER			1026
+
+#define ID__BOOKMARK_DELETE             32791
+#define ID__SET_TOOLBAR_FOLDER          32792
+#define ID__NEW_FOLDER                  32795
+#define ID__NEW_SEPARATOR               32796
+#define ID__NEW_BOOKMARK                32797
+#define ID__SETAS_TOOLBARFOLDER         32800
+#define ID__SETAS_NEWBOOKMARKFOLDER     32802
+#define ID__SETAS_BOOKMARKMENU          32803
+#define ID__OPEN_BACKGROUND             32814
+#define ID__OPEN                        32815
 
 #define TOOLBAND_NAME "Hotlist"
 #define TOOLBAND_FAILED_TO_CREATE "Failed to create hotlist toolbar"
