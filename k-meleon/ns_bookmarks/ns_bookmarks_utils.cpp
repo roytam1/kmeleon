@@ -159,7 +159,7 @@ static void SaveBookmarks(FILE *bmFile, CBookmarkNode *node)
       if (type == BOOKMARK_FOLDER){
          char szFolderFlags[64] = {0};
          if (child->flags & BOOKMARK_FLAG_TB)
-            strcat(szFolderFlags, "PERSONAL_TOOLBAR_FOLDER=\"true\" ");
+            strcat(szFolderFlags, "PERSONAL_TOOLBAR_FOLDER=\"true\" ID=\"NC:PersonalToolbarFolder\" ");
          if (child->flags & BOOKMARK_FLAG_NB)
             strcat(szFolderFlags, "NEWITEMHEADER ");
          if (child->flags & BOOKMARK_FLAG_BM)
