@@ -232,6 +232,16 @@ protected:
   DECLARE_MESSAGE_MAP()
 };
 
+
+class CPreferencePageMozConfigs: public CPreferencePageConfigs {
+public:
+  CPreferencePageMozConfigs();
+  ~CPreferencePageMozConfigs();
+protected:
+  virtual BOOL OnInitDialog();
+};
+
+
 class CPreferencesDlg : public CDialog{
   friend CPreferencePage;
 protected:

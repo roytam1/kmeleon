@@ -63,6 +63,7 @@ CPreferencesDlg::OnInitDialog(){
    AddItem(_T("Cache"),   IDD_PREFERENCES_CACHE);
    AddItem(_T("Proxy"),   IDD_PREFERENCES_PROXY);
    AddItem(_T("Configs"), IDD_PREFERENCES_CONFIGS);
+   AddItem(_T("Settings"), IDD_PREFERENCES_MOZCONFIGS);
    AddItem(_T("Plugins"), IDD_PREFERENCES_PLUGINS);
 
    m_list.SetItemState(0, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
@@ -133,6 +134,9 @@ void CPreferencesDlg::ShowPage(UINT idd){
 
   else if (idd == IDD_PREFERENCES_CONFIGS)
      page = new CPreferencePageConfigs;
+
+  else if (idd == IDD_PREFERENCES_MOZCONFIGS)
+     page = new CPreferencePageMozConfigs;
 
   else
     page = new CPreferencePage;
@@ -267,8 +271,7 @@ void CPreferencePage::DoDataExchange(CDataExchange* pDX){
       DDX_Radio(pDX, IDC_IMAGES_ALL, theApp.preferences.iImagesEnabled);
       DDX_Radio(pDX, IDC_COOKIES_ALL, theApp.preferences.iCookiesEnabled);      
       DDX_Check(pDX, IDC_CHECK_LOAD, theApp.preferences.bDisablePopupsOnLoad);
-      DDX_Check(pDX, IDC_CHECK_RESTRICT, theApp.preferences.bRestrictPopups);
-      DDX_Text(pDX, IDC_EDIT_RESTRICT, theApp.preferences.restrictedPopupSites);
+
       DDX_Text(pDX, IDC_EDIT_USERAGENT, theApp.preferences.userAgent);
       break;
   }
@@ -494,7 +497,6 @@ BOOL CPreferencePageConfigs::OnInitDialog(){
 
    AddTab("Menus", theApp.preferences.settingsDir + "menus.cfg", "");
    AddTab("Accelerators", theApp.preferences.settingsDir + "accel.cfg", "");
-   AddTab("Prefs", theApp.preferences.profileDir + "prefs.js", "");
 
    configFileType pluginConfigFiles[10];
    int numConfigFiles = theApp.plugins.GetConfigFiles(pluginConfigFiles, 10);
@@ -538,18 +540,6 @@ void CPreferencePageConfigs::SaveFile(const char *filename)
       /* binary is so Write treats cr/lf as 2 characters */
       file.Write(m_fileText, m_fileText.GetLength());
       file.Close();
-
-      if (strstr(filename, "prefs.js")) {
-         nsresult rv;
-         nsCOMPtr<nsIPref> prefs(do_GetService(NS_PREF_CONTRACTID, &rv));
-         if (NS_SUCCEEDED(rv)) {
-            nsCOMPtr<nsILocalFile> prefFile(do_CreateInstance(NS_LOCAL_FILE_CONTRACTID));
-            rv = prefFile->InitWithNativePath(nsDependentCString(filename));
-
-            prefs->ReadUserPrefs(prefFile);
-            theApp.preferences.Load();
-         }
-      }
    }
    else
       MessageBox("Error opening file");
@@ -557,7 +547,7 @@ void CPreferencePageConfigs::SaveFile(const char *filename)
 
 void CPreferencePageConfigs::ShowFile(const char *filename){
    CFile file;
-   if (file.Open(filename, CFile::modeRead)){
+   if (file.Open(filename, CFile::modeRead | CFile::typeBinary)){
       int length = file.GetLength();
       char *buffer = new char[length+1];
       buffer[file.Read(buffer, length)] = 0;
@@ -609,3 +599,39 @@ BEGIN_MESSAGE_MAP(CPreferencePageConfigs, CPreferencePage)
    ON_NOTIFY(TCN_SELCHANGE, IDC_TAB1, OnSelChange)
    //}}AFX_MSG_MAP
 END_MESSAGE_MAP()
+
+/**/
+
+CPreferencePageMozConfigs::CPreferencePageMozConfigs() {
+   nsCOMPtr<nsIObserverService> observerService;
+   observerService = do_GetService("@mozilla.org/observer-service;1");
+   if (observerService) {
+     observerService->NotifyObservers(nsnull, "profile-before-change", nsnull);      
+   }
+}
+
+BOOL CPreferencePageMozConfigs::OnInitDialog(){
+   CDialog::OnInitDialog();
+
+   CEdit *editBox = (CEdit *)GetDlgItem(IDC_EDIT1);
+   editBox->SetTabStops(6);
+
+   AddTab("Prefs.js", theApp.preferences.profileDir + "prefs.js", "");
+   AddTab("User.js", theApp.preferences.profileDir + "user.js", "");
+   AddTab("userContent.css", theApp.preferences.profileDir + "chrome\\userContent.css", "");
+   AddTab("Cookies", theApp.preferences.profileDir + "cookies.txt", "");
+   AddTab("Permissions", theApp.preferences.profileDir + "cookperm.txt", "");
+   AddTab("History", theApp.preferences.profileDir + "history.txt", "");
+
+   ShowFile(m_configFiles[0]);
+
+	return FALSE;  // return TRUE  unless you set the focus to a control
+}
+
+CPreferencePageMozConfigs::~CPreferencePageMozConfigs() {
+   nsCOMPtr<nsIObserverService> observerService;
+   observerService = do_GetService("@mozilla.org/observer-service;1");
+   if (observerService) {
+     observerService->NotifyObservers(nsnull, "profile-do-change", nsnull);      
+   }
+}

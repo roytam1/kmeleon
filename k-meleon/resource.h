@@ -39,6 +39,7 @@
 #define IDC_PAN_UP                      161
 #define IDD_PREFERENCES_CACHE           161
 #define IDD_ERRORBOX                    162
+#define IDD_PREFERENCES_MOZCONFIGS      163
 #define IDC_PAN_RIGHT                   163
 #define IDC_PAN_LEFT                    164
 #define IDC_PAN                         165
