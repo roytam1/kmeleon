@@ -164,8 +164,12 @@ void CHiddenWnd::ShowBrowser(char *URI) {
 
    // if we already have a browser, load home page (if necessary), and show the window
    if (m_bPersisting && m_bPreloadWindow) {
-      if (URI && *URI)
+      if (URI && *URI) {
+         if (*URI == '\"') URI++;
+         int len = strlen(URI);
+         if (URI[len-1] == '\"') URI[len-1] = 0;
          m_pHiddenBrowser->m_wndBrowserView.OpenURL(URI);
+      }
       else {
          m_pHiddenBrowser->SetFocus();
          m_pHiddenBrowser->m_wndUrlBar.MaintainFocus();
