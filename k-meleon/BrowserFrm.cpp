@@ -175,6 +175,30 @@ void CBrowserFrame::OnClose()
       }
    }
 
+    WINDOWPLACEMENT wp;
+    wp.length = sizeof (WINDOWPLACEMENT);
+    GetWindowPlacement(&wp);
+
+    // only record the window size for non-popup windows
+    if (!(m_style & WS_POPUP)){
+        // record the maximized state
+        if (wp.showCmd == SW_SHOWMAXIMIZED)
+            theApp.preferences.bMaximized = true;
+        // record the window size/pos
+        else if (wp.showCmd == SW_SHOWNORMAL) {
+            theApp.preferences.bMaximized = false;
+
+            RECT rc; // = wp.rcNormalPosition;
+            GetWindowRect(&rc);
+            if (rc.left >= 0 && rc.top >= 0 ) {
+                theApp.preferences.windowWidth = rc.right - rc.left;
+                theApp.preferences.windowHeight = rc.bottom - rc.top;
+                theApp.preferences.windowXPos = rc.left;
+                theApp.preferences.windowYPos = rc.top;
+            }
+        }
+    }
+
    DestroyWindow();
    theApp.RemoveFrameFromList(this);
 }
@@ -519,6 +543,7 @@ void CBrowserFrame::OnSize(UINT nType, int cx, int cy)
     }
 }
 
+#if 0
 void CBrowserFrame::OnMove(int x, int y)
 { 
     CFrameWnd::OnMove(x, y);
@@ -540,6 +565,7 @@ void CBrowserFrame::OnMove(int x, int y)
         }
     }
 }
+#endif
 
 #ifdef _DEBUG
 void CBrowserFrame::AssertValid() const
