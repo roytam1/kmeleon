@@ -36,12 +36,15 @@
 #define BMP_HEIGHT 16
 #define BMP_WIDTH  16
 
+typedef int (*DRAWBITMAPPROC)(DRAWITEMSTRUCT *dis);
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 WNDPROC KMeleonWndProc;
 
+int DrawBitmap(DRAWITEMSTRUCT *dis);
+
 void DrawCheckMark(HDC pDC,int x,int y,COLORREF color);
-void SetOwnerDrawn(HMENU menu, HINSTANCE plugin);
+void SetOwnerDrawn(HMENU menu, DRAWBITMAPPROC DrawProc);
 void UnSetOwnerDrawn(HMENU menu);
 
 int Init();
@@ -81,7 +84,9 @@ ID_BLARG2
 
 char settingsPath[MAX_PATH];
 
-std::vector<HMENU> menus;
+// this maps HMENU's to DrawProcs
+typedef std::map<HMENU, DRAWBITMAPPROC> menuMap;
+menuMap menus;
 
 BOOL bFirstRun;
 
@@ -212,7 +217,6 @@ void Quit(){
       ImageList_Destroy(hImageList);
 
    while(menus.size()) {
-      UnSetOwnerDrawn(menus.front());
       menus.erase(menus.begin());
    }
 }
@@ -220,26 +224,19 @@ void Quit(){
 void DoMenu(HMENU menu, char *param){
    // only do this the first time
    if (bFirstRun) {
-      menus.push_back(menu);
+      DRAWBITMAPPROC DrawProc = NULL;
       if (*param) {
          HINSTANCE plugin = LoadLibrary(param);
          if (plugin) {
-            SetOwnerDrawn(menu, plugin);
-            FreeLibrary(plugin);
-            return;
+            DrawProc = (DRAWBITMAPPROC)GetProcAddress(plugin, "DrawBitmap");
          }
       }
-      SetOwnerDrawn(menu, NULL);
+      if (!DrawProc) {
+         DrawProc = DrawBitmap;
+      }
+      SetOwnerDrawn(menu, DrawProc);
    }
 }
-
-typedef int (*DRAWBITMAPPROC)(DRAWITEMSTRUCT *dis);
-
-typedef struct {
-   long version; // this is just to differentiate between our ownerdraw menus and someone else's menus
-   void *data;
-   DRAWBITMAPPROC DrawBitmap;
-} MenuDataT;
 
 int DrawBitmap(DRAWITEMSTRUCT *dis) {
 	BmpMapT::iterator bmpMapIt;
@@ -311,27 +308,24 @@ char *GetMaxTab(HMENU menu){
 	char *string;
 	char *tab;
 
-	int count = ::GetMenuItemCount(menu);
+	int count = GetMenuItemCount(menu);
 	int i;
 	for (i=0; i<count; i++) {
 
-		state = ::GetMenuState(menu, i, MF_BYPOSITION);
+		state = GetMenuState(menu, i, MF_BYPOSITION);
 
 		if (state & MF_OWNERDRAW){
 			mmi.fMask = MIIM_DATA;
-			::GetMenuItemInfo(menu, i, true, &mmi);
+			GetMenuItemInfo(menu, i, true, &mmi);
 
-			MenuDataT *mdt = (MenuDataT *)mmi.dwItemData;
-			if (mdt) {
-				string = (char *)mdt->data;
+         string = (char *)mmi.dwItemData;
 
-				tab = strchr(string, '\t');
+         tab = strchr(string, '\t');
 
-				if (tab) {
-					if (strlen(tab) > maxChars) {
-                  maxChars = strlen(tab);
-						maxTab = tab+1;
-					}
+         if (tab) {
+            if (strlen(tab) > maxChars) {
+               maxChars = strlen(tab);
+               maxTab = tab+1;
 				}
 			}
 		}
@@ -345,8 +339,7 @@ void DrawMenuItem(DRAWITEMSTRUCT *dis) {
 
 	// make sure itemID is a valid int
 	//dis->itemID = LOWORD(dis->itemID);
-	MenuDataT *mdt = (MenuDataT *)dis->itemData;
-   char *string = (char *)mdt->data;
+   char *string = (char *)dis->itemData;
 
 	BOOL hasBitmap = false;
 
@@ -360,8 +353,11 @@ void DrawMenuItem(DRAWITEMSTRUCT *dis) {
 		FillRect(dis->hDC, &dis->rcItem, GetSysColorBrush(COLOR_3DFACE));
 	}
 
-   if (mdt->DrawBitmap){
-      int space = mdt->DrawBitmap(dis);
+   DRAWBITMAPPROC DrawProc;
+   menuMap::iterator menuIter = menus.find(menu);
+   if (menuIter != menus.end()){
+      DrawProc = menuIter->second;
+      int space = DrawProc(dis);
       if (space>0) {
          dis->rcItem.left += space;
          hasBitmap = true;
@@ -430,7 +426,6 @@ void DrawMenuItem(DRAWITEMSTRUCT *dis) {
 }
 
 void MeasureMenuItem(MEASUREITEMSTRUCT *mis, HDC hDC) {
-   MenuDataT *menuData = (MenuDataT *)mis->itemData;
    
    NONCLIENTMETRICS ncm = {0};
    ncm.cbSize = sizeof(ncm);
@@ -450,7 +445,7 @@ void MeasureMenuItem(MEASUREITEMSTRUCT *mis, HDC hDC) {
       }
    }
 
-   char *string = (char *)menuData->data;
+   char *string = (char *)mis->itemData;
    SIZE size;
    int tabWidth = 0;
    char *tab = strrchr(string, '\t');
@@ -485,39 +480,26 @@ void UnSetOwnerDrawn(HMENU menu){
    MENUITEMINFO mmi;
    mmi.cbSize = sizeof(mmi);
 
-   MenuDataT *mdt;
    int state;
 
    int i;
-   int count = ::GetMenuItemCount(menu);
+   int count = GetMenuItemCount(menu);
    for (i=0; i<count; i++) {
-      state = ::GetMenuState(menu, i, MF_BYPOSITION);
+      state = GetMenuState(menu, i, MF_BYPOSITION);
       if (state & MF_POPUP){
          UnSetOwnerDrawn(GetSubMenu(menu, i));
       }
       if (state & MF_OWNERDRAW) {
-         mmi.fMask = MIIM_DATA;
-         ::GetMenuItemInfo(menu, i, true, &mmi);
+         mmi.fMask = MIIM_DATA | MIIM_ID;
+         GetMenuItemInfo(menu, i, true, &mmi);
 
-         mdt = (MenuDataT *)mmi.dwItemData;
-         if (mdt && mdt->version == BMP_MENU_VERSION) {
-
-            // remove our mdt structure from the menu's dwItemData
-            MENUITEMINFO mmiNew;
-            mmiNew.cbSize = sizeof ( MENUITEMINFO );
-            mmi.dwItemData = NULL;
-            mmi.fMask = MIIM_DATA;
-            SetMenuItemInfo(menu, i, TRUE, &mmi);
-
-            delete [] (char *)mdt->data;
-            delete mdt;
-         }
+         ModifyMenu(menu, i, MF_BYPOSITION | MF_STRING, mmi.wID, mmi.dwTypeData);
       }
    }
 }
 
 // this oddly named function converts a menu of type MF_STRING to MF_OWNERDRAW
-void StringToOwnerDrawn(HMENU menu, int i, UINT flags, UINT id, DRAWBITMAPPROC DrawProc){
+void StringToOwnerDrawn(HMENU menu, int i, UINT flags, UINT id){
    MENUITEMINFO mmi;
    mmi.cbSize = sizeof(mmi);
 
@@ -529,20 +511,16 @@ void StringToOwnerDrawn(HMENU menu, int i, UINT flags, UINT id, DRAWBITMAPPROC D
    mmi.dwTypeData = new char[mmi.cch];
    GetMenuItemInfo(menu, i, true, &mmi);
 
-   MenuDataT *mData = new MenuDataT;
-   mData->version = BMP_MENU_VERSION;
-   mData->data = mmi.dwTypeData;
-   mData->DrawBitmap = DrawProc;
-
-   ModifyMenu(menu, i, MF_BYPOSITION | MF_OWNERDRAW | flags, id, (LPCTSTR)(void *)mData);
+   ModifyMenu(menu, i, MF_BYPOSITION | MF_OWNERDRAW | flags, id, mmi.dwTypeData);
 }
 
-void SetOwnerDrawn(HMENU menu, HINSTANCE plugin){
-   DRAWBITMAPPROC DrawProc = NULL;
-   if (plugin)
-      DrawProc = (DRAWBITMAPPROC)GetProcAddress(plugin, "DrawBitmap");
-   if (!DrawProc)
-      DrawProc = DrawBitmap;
+void SetOwnerDrawn(HMENU menu, DRAWBITMAPPROC DrawProc){
+   menuMap::iterator menuIter = menus.find(menu);
+   if (menuIter != menus.end()){
+      // if this menu already has a DrawProc, just exit now
+      return;
+   }
+   menus[menu] = DrawProc;
 
    int state;
 
@@ -552,13 +530,11 @@ void SetOwnerDrawn(HMENU menu, HINSTANCE plugin){
       state = GetMenuState(menu, i, MF_BYPOSITION);
       if (state & MF_POPUP) {
          HMENU subMenu = GetSubMenu(menu, i);
-         SetOwnerDrawn(subMenu, plugin);
-         if (plugin) {
-            StringToOwnerDrawn(menu, i, MF_POPUP, (UINT)subMenu, DrawProc);
-         }
+         SetOwnerDrawn(subMenu, DrawProc);
+         StringToOwnerDrawn(menu, i, MF_POPUP, (UINT)subMenu);
       }
       else if (state == 0) {
-         StringToOwnerDrawn(menu, i, 0, GetMenuItemID(menu, i), DrawProc);
+         StringToOwnerDrawn(menu, i, 0, GetMenuItemID(menu, i));
       }
    }
 }
@@ -567,8 +543,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 
    if (message == WM_MEASUREITEM) {
       MEASUREITEMSTRUCT *mis = (MEASUREITEMSTRUCT *)lParam;
-      MenuDataT * mdt = (MenuDataT *)mis->itemData;
-     if (mis->CtlType == ODT_MENU && mdt && mdt->version == BMP_MENU_VERSION) {
+     if (mis->CtlType == ODT_MENU && mis->itemData) {
          HDC hDC = GetWindowDC(hWnd);
          MeasureMenuItem(mis, hDC);
          ReleaseDC(hWnd, hDC);
@@ -577,8 +552,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
    }
    else if (message == WM_DRAWITEM){
       DRAWITEMSTRUCT *dis = (DRAWITEMSTRUCT *)lParam;
-      MenuDataT * mdt = (MenuDataT *)dis->itemData;
-      if (dis->CtlType == ODT_MENU && mdt && mdt->version == BMP_MENU_VERSION){
+      if (dis->CtlType == ODT_MENU && dis->itemData){
          DrawMenuItem(dis);
          return true;
       }
