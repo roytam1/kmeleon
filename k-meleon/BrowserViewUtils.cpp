@@ -178,6 +178,7 @@ NS_IMETHODIMP CBrowserView::URISaveAs(nsIURI* aURI, bool bDocument)
 	   // The path may have the "/" char in it - strip those
 	   pBuf = new char[strlen(path.get()) + 5];      // +5 for ".htm" to be safely appended, if necessary
       strcpy(pBuf, path.get());
+      nsUnescape(pBuf);
 	   char* slash = strrchr(pBuf, '/');
 
       if (slash) {
