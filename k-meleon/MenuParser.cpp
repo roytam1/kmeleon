@@ -183,10 +183,10 @@ int CMenuParser::Load(CString &filename){
 
         currentMenu = new CMenu();
 
-        if (strstr(p, _T("Popup"))){
-          currentMenu->CreatePopupMenu();
+        if (strstr(p, _T("Main"))){
+           currentMenu->CreateMenu();
         }else{
-          currentMenu->CreateMenu();
+           currentMenu->CreatePopupMenu();
         }
         CMenu *popup = NULL;
         if (menus.Lookup(CString(p), popup)){

@@ -178,6 +178,8 @@ int GetMozillaSessionHistory (char ***titles, int *count, int *index) {
 	if (!mainFrame)	return FALSE;
 
 	nsCOMPtr<nsISHistory> h;
+   if (!h)
+      return FALSE;
 
 	result = mainFrame->m_wndBrowserView.mWebNav->GetSessionHistory(getter_AddRefs (h));
    if (!NS_SUCCEEDED (result) || (!h)) return FALSE;

@@ -337,7 +337,7 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags,
 
    if(aContextFlags & nsIContextMenuListener::CONTEXT_DOCUMENT)
       menuType = _T("DocumentPopup");
-   else if(aContextFlags & nsIContextMenuListener::CONTEXT_TEXT)		
+   else if((aContextFlags & nsIContextMenuListener::CONTEXT_TEXT) || (aContextFlags & nsIContextMenuListener::CONTEXT_INPUT))
       menuType = _T("TextPopup");
    else if(aContextFlags & nsIContextMenuListener::CONTEXT_LINK)
    {
