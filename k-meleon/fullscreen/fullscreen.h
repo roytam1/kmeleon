@@ -16,6 +16,13 @@
 *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
+/*
+*  Mark Yen, Dec 2001:
+*  - support for multiple windows
+*    (moved backup window info into data struct)
+*/
+
+
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
@@ -27,6 +34,15 @@ void DoMenu(HMENU menu, char *param);
 void DoRebar(HWND rebarWnd, char *name);
 int DoAccel(char *param);
 
-void HideClutter(HWND hWndParent);
+// each window has a WindowInfo struct
+struct WindowInfo {
+   BOOL bMaximized;
+   BOOL bReBarVisible, bStatusBarVisible;
+
+   WINDOWPLACEMENT wpOld;
+   BOOL bFullScreen;
+};
+
+void HideClutter(HWND hWndParent, WindowInfo *wndinfo);
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
