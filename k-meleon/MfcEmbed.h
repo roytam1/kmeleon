@@ -51,52 +51,6 @@ class CProfileMgr;
 
 
 /////////////////////////////////////////////////////////////////////////////
-// CHiddenWnd:
-// The Evil Hidden window is used to keep mozilla running while all browser
-// windows are closed during a profile change
-// Now also used to receive notification messages from the tray icon
-
-class CHiddenWnd : public CFrameWnd {
-
-public:
-   BOOL  StayResident();
-   void  GetPersist();
-
-public:
-   BOOL  m_bStayResident;
-   BOOL  m_bPreloadWindow;
-   BOOL  m_bPreloadStartPage;
-   BOOL  m_bShowNow;
-
-private:
-
-   // Overrides
-	// ClassWizard generated virtual function overrides
-	//{{AFX_VIRTUAL(CHiddenWnd)
-	public:
-	virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
-	//}}AFX_VIRTUAL
-
-
-	//{{AFX_MSG(CHiddenWnd)
-	afx_msg void OnCreate(LPCREATESTRUCT lpCreateStruct);
-   afx_msg void OnClose();
-   afx_msg void OnSetPersist(DWORD flags);
-   afx_msg void OnCopyData(CWnd* pWnd, COPYDATASTRUCT* pCopyDataStruct);
-   afx_msg void OnNewWindow();
-   afx_msg void ShowBrowser(char *URI=NULL);
-	//}}AFX_MSG
-
-	DECLARE_MESSAGE_MAP()
-
-private:
-   BOOL           m_bPersisting;
-   CBrowserFrame* m_pHiddenBrowser;
-
-};
-
-
-/////////////////////////////////////////////////////////////////////////////
 // CMfcEmbedApp:
 // See mozembed.cpp for the implementation of this class
 //

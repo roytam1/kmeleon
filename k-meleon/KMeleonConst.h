@@ -21,9 +21,9 @@
 
 #define UWM_NEWWINDOW                  WM_APP + 115
 
-#define UWM_PERSIST_SET                WM_APP + 116
-#define UWM_PERSIST_GET                WM_APP + 117
-#define UWM_PERSIST_SHOW               WM_APP + 118
+#define UWM_PERSIST_SET                WM_APP + 1116
+#define UWM_PERSIST_GET                WM_APP + 1117
+#define UWM_PERSIST_SHOW               WM_APP + 1118
 
 #define TB_LBUTTONDOWN	               WM_APP + 120
 #define TB_MBUTTONDOWN	               WM_APP + 121
@@ -56,4 +56,6 @@
 #define PERSIST_STARTPAGE              0x0004
 #define PERSIST_SHOWNOW                0x0008
 
-
+#define PERSIST_STATE_DISABLED         0
+#define PERSIST_STATE_ENABLED          1
+#define PERSIST_STATE_PERSISTING       2
