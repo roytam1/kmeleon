@@ -408,10 +408,6 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags,
       }
       display =! display;
    }
-   {
-      CString blah = "aContextFlags:" + aContextFlags;
-      ::MessageBox(NULL, blah, NULL, 0);
-   }
 }
 
 
