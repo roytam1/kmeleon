@@ -339,7 +339,8 @@ void CPreferencePage::OnComboChanged() {
          index = SendDlgItemMessage(IDC_COMBO, CB_GETCURSEL, 0, 0);
 
           if (index == 0)
-             theApp.preferences.GetString("general.useragent.override", buf, "");
+	    // theApp.preferences.GetString("general.useragent.override", buf, "");
+	    *buf = 0;
           else {
              sprintf(pref, "kmeleon.privacy.useragent%d.string", index);
              theApp.preferences.GetString(pref, buf, "");
@@ -558,6 +559,21 @@ void CPreferencePageConfigs::SaveFile(const char *filename)
 
       file.Write(m_fileText, m_fileText.GetLength());
       file.Close();
+
+#if 1
+      if (strstr(filename, "prefs.js")) {
+         nsresult rv;
+         nsCOMPtr<nsIPref> prefs(do_GetService(NS_PREF_CONTRACTID, &rv));
+         if (NS_SUCCEEDED(rv)) {
+            nsCOMPtr<nsILocalFile> prefFile(do_CreateInstance(NS_LOCAL_FILE_CONTRACTID));
+            rv = prefFile->InitWithNativePath(nsDependentCString(filename));
+
+            prefs->ReadUserPrefs(prefFile);
+            theApp.preferences.Load();
+	 }
+      }
+#endif
+
    }
    else
       MessageBox("Error opening file");
@@ -646,12 +662,16 @@ END_MESSAGE_MAP()
 /**/
 
 CPreferencePageMozConfigs::CPreferencePageMozConfigs() {
+#if 0
    nsCOMPtr<nsIObserverService> observerService;
    observerService = do_GetService("@mozilla.org/observer-service;1");
    if (observerService) {
      observerService->NotifyObservers(nsnull, "profile-before-change", nsnull);
      observerService->NotifyObservers(nsnull, "profile-do-change", nsnull);
+     observerService->NotifyObservers(nsnull, "profile-after-change", nsnull);
+     observerService->NotifyObservers(nsnull, "profile-initial-state", nsnull);
    }
+#endif
 }
 
 BOOL CPreferencePageMozConfigs::OnInitDialog(){
@@ -663,9 +683,11 @@ BOOL CPreferencePageMozConfigs::OnInitDialog(){
    AddTab("Prefs.js", theApp.preferences.profileDir + "prefs.js", "");
    AddTab("User.js", theApp.preferences.profileDir + "user.js", "");
    AddTab("userContent.css", theApp.preferences.profileDir + "chrome\\userContent.css", "");
+#if 0
    AddTab("Cookies", theApp.preferences.profileDir + "cookies.txt", "");
    AddTab("Permissions", theApp.preferences.profileDir + "cookperm.txt", "");
    AddTab("History", theApp.preferences.profileDir + "history.txt", "");
+#endif
 
    ShowFile(m_configFiles[0]);
 
@@ -673,6 +695,7 @@ BOOL CPreferencePageMozConfigs::OnInitDialog(){
 }
 
 void CPreferencePageMozConfigs::SaveFile(const char *filename){
+#if 0
    nsCOMPtr<nsIObserverService> observerService;
    observerService = do_GetService("@mozilla.org/observer-service;1");
    if (observerService) {
@@ -702,5 +725,10 @@ void CPreferencePageMozConfigs::SaveFile(const char *filename){
      }
 
      observerService->NotifyObservers(nsnull, "profile-do-change", nsnull);
+     observerService->NotifyObservers(nsnull, "profile-after-change", nsnull);
+     observerService->NotifyObservers(nsnull, "profile-initial-state", nsnull);
    }
+#else
+   CPreferencePageConfigs::SaveFile(filename);
+#endif
 }
