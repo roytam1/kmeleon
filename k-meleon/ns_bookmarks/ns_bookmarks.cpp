@@ -500,6 +500,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
        }
      }
    }
+   else if (message == WM_NCDESTROY){
+      Save();
+   }
    return CallWindowProc(KMeleonWndProc, hWnd, message, wParam, lParam);
 }
 
