@@ -295,13 +295,17 @@ void DoRebar(HWND rebarWnd){
    }
 
    TBBUTTON button;
+   button.fsState = TBSTATE_ENABLED;
+   button.fsStyle = TBSTYLE_SEP;
+   //button.bReserved = NULL;
+   SendMessage(hwndTB, TB_INSERTBUTTON, (WPARAM)0, (LPARAM)&button);
+
    button.iBitmap = 2;
    button.idCommand = nDropdownCommand;
    button.fsState = TBSTATE_ENABLED;
    button.fsStyle = TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE | TBSTYLE_DROPDOWN;
    //button.bReserved = NULL;
    button.iString = -1;
-
    SendMessage(hwndTB, TB_INSERTBUTTON, (WPARAM)0, (LPARAM)&button);
 
    // Get the height of the toolbar.
