@@ -89,8 +89,11 @@
 #define IDC_COOKIES_NONE                1036
 #define IDC_BUTTON_HELP                 1037
 #define IDC_COMBO_USERAGENT             1038
+#define IDC_RADIO_CURRENT               1039
 #define IDC_MATCH_WHOLE_WORD            1040
+#define IDC_RADIO_HOME                  1040
 #define IDC_MATCH_CASE                  1041
+#define IDC_RADIO_URL                   1041
 #define IDC_WRAP_AROUND                 1042
 #define IDC_SEARCH_BACKWARDS            1043
 #define IDC_CHECK_SOURCE_ENABLED        1050
@@ -109,6 +112,7 @@
 #define IDC_EDIT_TOOLBAR_BACKGROUND     1111
 #define IDC_EDIT_SETTINGS_DIR           1111
 #define IDC_RADIO_START_HOME            1112
+#define IDC_EDIT_URL                    1112
 #define IDC_RADIO_START_BLANK           1113
 #define IDC_EDIT_HOMEPAGE               1114
 #define IDC_EDIT_PROXY                  1115
@@ -156,7 +160,7 @@
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        181
 #define _APS_NEXT_COMMAND_VALUE         32801
-#define _APS_NEXT_CONTROL_VALUE         1039
+#define _APS_NEXT_CONTROL_VALUE         1043
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
