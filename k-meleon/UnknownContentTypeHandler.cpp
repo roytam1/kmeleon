@@ -459,6 +459,9 @@ NS_IMETHODIMP CProgressDialog::OnProgressChange(nsIWebProgress *aWebProgress, ns
 		if (speed) {
          PRInt32 remaining = (PRInt32)((aMaxTotalProgress - aCurTotalProgress)/speed +.5);
 
+         CString timeString;
+
+         if (remaining >= 0) {
          int remainHours=0, remainMin=0, remainSec=0, remainTemp;
          remainTemp = remaining;
          
@@ -472,7 +475,6 @@ NS_IMETHODIMP CProgressDialog::OnProgressChange(nsIWebProgress *aWebProgress, ns
          }
          remainSec = remainTemp;
 	
-         CString timeString;
          if (remainHours)
             timeString.Format(IDS_TIMELEFT_HOURS, remainHours, remainMin, remainSec);
          else if (remainMin) {
@@ -483,13 +485,20 @@ NS_IMETHODIMP CProgressDialog::OnProgressChange(nsIWebProgress *aWebProgress, ns
          }
          else
             timeString.Format(IDS_TIMELEFT_SECONDS, remainSec);
-
+         }
+         else
+            timeString.Format("Time Left: Unknown");
          SetDlgItemText(IDC_TIME_LEFT, timeString);
       }
 
-      CString titleString;
-      titleString.Format(IDS_PERCENT_OF_FILE, percent, mFileName);
-      SetWindowText(titleString);
+      if (percent>=0 && percent<=100) {
+         CString titleString;
+         titleString.Format(IDS_PERCENT_OF_FILE, percent, mFileName);
+         SetWindowText(titleString);
+      } 
+      else
+         SetWindowText(mFileName);
+
 
       HWND progressBar;
       GetDlgItem(IDC_DOWNLOAD_PROGRESS, &progressBar);
