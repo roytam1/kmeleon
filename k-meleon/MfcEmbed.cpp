@@ -441,7 +441,7 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
       pOldRecentFrame = pFrame;
 
 
-   if (!pFrame->Create(BROWSER_WINDOW_CLASS, strTitle, style, winSize, m_pMainWnd, NULL, 0L, NULL))
+   if (!pFrame->Create(BROWSER_WINDOW_CLASS, strTitle, style, winSize, NULL, NULL, 0L, NULL))
       return NULL;
    
    pFrame->SetIcon(LoadIcon(IDR_MAINFRAME), true);
@@ -693,7 +693,7 @@ BOOL CMfcEmbedApp::CreateHiddenWindow()
    // do this before Create so the window spawned in Create will know who it's parent is
    m_pMainWnd = hiddenWnd;
    
-   RECT bounds = { -10, -10, -1, -1 };
+   RECT bounds = { 0 };
    hiddenWnd->Create(HIDDEN_WINDOW_CLASS, "K-Meleon hidden window", 0, bounds, NULL, NULL, 0, NULL);
 
    return TRUE;
