@@ -65,6 +65,13 @@
 #include <fcntl.h>
 
 #include "ProfileMgr.h"
+//#include "nsXPIProxy.h"
+#include "nsCOMPtr.h"
+#include "nsString.h"
+#include "nsIPluginManager.h"
+#include "nsIServiceManager.h"
+#include "nsIObserverService.h"
+#include "nsIPromptService.h"
 
 #ifdef MOZ_PROFILESHARING
 #include "nsIProfileSharingSetup.h"
@@ -198,6 +205,21 @@ nsresult CMfcEmbedApp::OverrideComponents()
 }
 
 
+static NS_IMETHODIMP
+RefreshPlugins(PRBool aReloadPages)
+{
+    NS_DEFINE_CID(pluginManagerCID,NS_PLUGINMANAGER_CID);
+
+    nsCOMPtr<nsIPluginManager> plugins(do_GetService(pluginManagerCID));
+
+    if (!plugins)
+        return NS_ERROR_FAILURE;
+
+    return plugins->ReloadPlugins(aReloadPages);
+}
+
+
+
 // Initialize our MFC application and also init
 // the Gecko embedding APIs
 // Note that we're also init'ng the profile switching
@@ -296,7 +318,7 @@ BOOL CMfcEmbedApp::InitInstance()
    InitializeMenusAccels();
    
 
-
+   RefreshPlugins(PR_FALSE);
    
    
    // Register the hidden window class
