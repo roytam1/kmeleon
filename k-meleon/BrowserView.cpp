@@ -825,22 +825,85 @@ void CBrowserView::OnFileClose()
    mpBrowserFrame->PostMessage(WM_CLOSE);
 }
 
+void CBrowserView::GetBrowserWindowTitle(nsCString& title)
+{
+	nsXPIDLString idlStrTitle;
+	if(mBaseWindow)
+		mBaseWindow->GetTitle(getter_Copies(idlStrTitle));
+
+	title.AssignWithConversion(idlStrTitle);
+
+	// Sanitize the title of all illegal characters
+    title.CompressWhitespace();     // Remove whitespace from the ends
+    title.StripChars("\\*|:\"><?"); // Strip illegal characters
+    title.ReplaceChar('.', L'_');   // Dots become underscores
+    title.ReplaceChar('/', L'-');   // Forward slashes become hyphens
+}
+
 void CBrowserView::OnFileSaveAs()
 {
-	// Try to get the file name part from the URL
-	// To do that we first construct an obj which supports 
-	// nsIRUI interface. Makes it easy to extract portions
-	// of a URL like the filename, scheme etc. + We'll also
-	// use it while saving this link to a file
+  
+	nsCString fileName;
 
-   nsresult rv   = NS_OK;
+	GetBrowserWindowTitle(fileName); // Suggest the window title as the filename
 
-   nsCOMPtr<nsIURI> currentURI;
-	rv = mWebNav->GetCurrentURI(getter_AddRefs(currentURI));
-	if(NS_FAILED(rv) || !currentURI)
-      return;
+	char *lpszFilter =
+        "Web Page, HTML Only (*.htm;*.html)|*.htm;*.html|"
+        "Web Page, Complete (*.htm;*.html)|*.htm;*.html|" 
+        "Text File (*.txt)|*.txt||";
 
-   URISaveAs(currentURI, true);
+	CFileDialog cf(FALSE, "htm", fileName.get(), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
+					lpszFilter, this);
+
+	if(cf.DoModal() == IDOK)
+	{
+		CString strFullPath = cf.GetPathName(); // Will be like: c:\tmp\junk.htm
+		char *pStrFullPath = strFullPath.GetBuffer(0); // Get char * for later use
+		
+		BOOL bSaveAll = FALSE;		
+		CString strDataPath; 
+		char *pStrDataPath = NULL;
+		if(cf.m_ofn.nFilterIndex == 2) 
+		{
+			// cf.m_ofn.nFilterIndex == 2 indicates
+			// user want to save the complete document including
+			// all frames, images, scripts, stylesheets etc.
+
+			bSaveAll = TRUE;
+
+			int idxPeriod = strFullPath.ReverseFind('.');
+			strDataPath = strFullPath.Mid(0, idxPeriod);
+			strDataPath += "_files";
+
+			// At this stage strDataPath will be of the form
+			// c:\tmp\junk_files - assuming we're saving to a file
+			// named junk.htm
+			// Any images etc in the doc will be saved to a dir
+			// with the name c:\tmp\junk_files
+
+			pStrDataPath = strDataPath.GetBuffer(0); //Get char * for later use
+		}
+
+        // Save the file
+        nsCOMPtr<nsIWebBrowserPersist> persist(do_QueryInterface(mWebBrowser));
+        if(persist)
+        {
+            nsCOMPtr<nsILocalFile> file;
+            NS_NewNativeLocalFile(nsDependentCString(T2A(pStrFullPath)), TRUE, getter_AddRefs(file));
+
+            nsCOMPtr<nsILocalFile> dataPath;
+            if (pStrDataPath)
+            {
+                NS_NewNativeLocalFile(nsDependentCString(pStrDataPath), TRUE, getter_AddRefs(dataPath));
+            }
+
+            if(bSaveAll)
+                persist->SaveDocument(nsnull, file, dataPath, nsnull, 0, 0);
+            else
+                persist->SaveURI(nsnull, nsnull, file);
+        }
+    }
+      
 }
 
 void CBrowserView::OnCopyImageLocation()

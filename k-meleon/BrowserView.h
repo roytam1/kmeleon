@@ -133,6 +133,8 @@ public:
 
    inline void ClearFindDialog() { m_pFindDlg = NULL; }
 
+   void GetBrowserWindowTitle(nsCString& title);
+
    NS_IMETHODIMP URISaveAs(nsIURI *aURI, bool bDocument=FALSE);
 
 protected:
