@@ -149,22 +149,29 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
 												   PRInt32 cx, PRInt32 cy,
 												   PRBool bShowWindow)
 {
-	// Setup a CRect with the requested window dimensions
-	CRect winSize(x, y, cx, cy);
-
-   LONG style = WS_OVERLAPPEDWINDOW;
-	// Use the Windows default if all are specified as -1
-   if(x == -1 && y == -1 && cx == -1 && cy == -1){
-		winSize = CFrameWnd::rectDefault;
-   }
-
+ 
 	// Load the window title from the string resource table
 	CString strTitle;
 	strTitle.LoadString(IDR_MAINFRAME);
 
 	// Now, create the browser frame
 	CBrowserFrame* pFrame = new CBrowserFrame(chromeMask);
-	if (!pFrame->Create(NULL, strTitle, style, 
+
+   // Restore window position if all are -1
+   if (x==-1 && y==-1 && cx==-1 && cy==-1) {
+      pFrame->RestoreWindowPos(&x, &y, &cx, &cy);   
+   }
+
+   // Setup a CRect with the requested window dimensions
+	CRect winSize(x, y, cx, cy);
+
+	// Use the Windows default if all are still specified as -1
+   if(x == -1 && y == -1 && cx == -1 && cy == -1) {
+		winSize = CFrameWnd::rectDefault;
+   }
+
+   LONG style = WS_OVERLAPPEDWINDOW;
+   if (!pFrame->Create(NULL, strTitle, style, 
 					winSize, NULL, MAKEINTRESOURCE(IDR_MAINFRAME), 0L, NULL))
 	{
 		return NULL;
@@ -230,29 +237,27 @@ int CMfcEmbedApp::ExitInstance()
 	// When File/Exit is chosen and if the user
 	// has opened multiple browser windows shut all
 	// of them down properly before exiting the app
-
-	CBrowserFrame* pBrowserFrame = NULL;
+  
+   CBrowserFrame* pBrowserFrame = NULL;
 
 	POSITION pos = m_FrameWndLst.GetHeadPosition();
-	while( pos != NULL )
-	{
+   while( pos != NULL ) {
 		pBrowserFrame = (CBrowserFrame *) m_FrameWndLst.GetNext(pos);
-		if(pBrowserFrame)
-		{
+		if(pBrowserFrame)	{
 			pBrowserFrame->ShowWindow(false);
 			pBrowserFrame->DestroyWindow();
 		}
 	}
 	m_FrameWndLst.RemoveAll();
 
-  if (m_pMainWnd)
-    m_pMainWnd->DestroyWindow();
+   if (m_pMainWnd)
+      m_pMainWnd->DestroyWindow();
 
-  delete m_ProfileMgr;
+   delete m_ProfileMgr;
 
-  preferences.Save();
+   theApp.preferences.Save();
 
-	NS_TermEmbedding();
+   NS_TermEmbedding();
 
 	return 1;
 }

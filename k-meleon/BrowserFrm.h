@@ -142,13 +142,15 @@ protected:
 public:
 	void SetupFrameChrome();
 
-  void LoadBackImage ();
-  void SetBackImage ();
+   void LoadBackImage ();
+   void SetBackImage ();
 
-  void SaveBandSizes();
-  void RestoreBandSizes();
+   void SaveBandSizes();
+   void RestoreBandSizes();
+   void SaveWindowPos();
+   void CBrowserFrame::RestoreWindowPos(PRInt32 *x, PRInt32 *y, PRInt32 *cx, PRInt32 *cy);
 
-// Overrides
+   // Overrides
 	// ClassWizard generated virtual function overrides
 	//{{AFX_VIRTUAL(CBrowserFrame)
 	public:
