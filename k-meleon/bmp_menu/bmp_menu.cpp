@@ -249,6 +249,8 @@ void DoMenu(HMENU menu, char *param){
 void DoRebar(HWND rebarWnd){
 }
 
+#define LEFT_SPACE 18
+
 int GetTabWidth(HMENU menu){
   MENUITEMINFO mmi;
   mmi.cbSize = sizeof(mmi);
@@ -302,7 +304,7 @@ void DrawMenuItem(DRAWITEMSTRUCT *dis){
 
     hasBitmap = true;
 
-    dis->rcItem.left += 18;
+    dis->rcItem.left += LEFT_SPACE;
   }
 
   SetBkMode(dis->hDC, TRANSPARENT);
@@ -313,7 +315,7 @@ void DrawMenuItem(DRAWITEMSTRUCT *dis){
     FillRect(dis->hDC, &dis->rcItem, GetSysColorBrush(COLOR_3DFACE));
   }
   if (!hasBitmap){
-    dis->rcItem.left += 10;
+    dis->rcItem.left += LEFT_SPACE;
   }
   char *tab = strrchr((char *)mmi.dwItemData, '\t');
   int leftLen, rightLen;
@@ -332,15 +334,9 @@ void DrawMenuItem(DRAWITEMSTRUCT *dis){
       dis->rcItem.top += 1;
       DrawText(dis->hDC, (char *)mmi.dwItemData, leftLen, &dis->rcItem, DT_SINGLELINE | DT_VCENTER | DT_EXPANDTABS | DT_TABSTOP | (0<<8) /* 0 spaces/tab */ );
       if (tab){
-        if (hasBitmap){
-          dis->rcItem.left -= 8;
-        }
         int tabWidth;
         tabWidth = GetTabWidth(menu);
         DrawText(dis->hDC, tab, rightLen, &dis->rcItem, DT_SINGLELINE | DT_VCENTER | DT_EXPANDTABS | DT_TABSTOP | (tabWidth<<8) );
-        if (hasBitmap){
-          dis->rcItem.left += 8;
-        }
       }
       dis->rcItem.left -= 3;
       dis->rcItem.top -= 1;
@@ -351,15 +347,9 @@ void DrawMenuItem(DRAWITEMSTRUCT *dis){
   dis->rcItem.left += 2;
   DrawText(dis->hDC, (char *)mmi.dwItemData, leftLen, &dis->rcItem, DT_SINGLELINE | DT_VCENTER | DT_EXPANDTABS | DT_TABSTOP | (0<<8) /* 0 spaces/tab */ );
   if (tab){
-    if (hasBitmap){
-      dis->rcItem.left -= 8;
-    }
     int tabWidth;
     tabWidth = GetTabWidth(menu);
     DrawText(dis->hDC, tab, rightLen, &dis->rcItem, DT_SINGLELINE | DT_VCENTER | DT_EXPANDTABS | DT_TABSTOP | (tabWidth<<8) );
-    if (hasBitmap){
-      dis->rcItem.left += 8;
-    }
   }
 }
 
@@ -414,9 +404,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
     if (mis->CtlType == ODT_MENU){
       RECT rc = {0};
       HDC hDC = GetDC(hWnd);
-      DrawText(hDC, (char *)mis->itemData, strlen((char *)mis->itemData), &rc, DT_CALCRECT | DT_SINGLELINE | DT_VCENTER);
+
+      NONCLIENTMETRICS ncm = {0};
+		  ncm.cbSize = sizeof(ncm);
+		  SystemParametersInfo(SPI_GETNONCLIENTMETRICS,0,(PVOID)&ncm,FALSE);
+		  HFONT font;
+		  font = CreateFontIndirect(&ncm.lfMenuFont);
+		  HFONT oldFont = (HFONT)SelectObject(hDC, font);
+
+      DrawText(hDC, (char *)mis->itemData, strlen((char *)mis->itemData), &rc, DT_CALCRECT | DT_SINGLELINE);
+
+      SelectObject(hDC, oldFont);
+      DeleteObject(font);
       ReleaseDC(hWnd, hDC);
-      mis->itemWidth = rc.right;
+
+      mis->itemWidth = rc.right + LEFT_SPACE;
       mis->itemHeight = GetSystemMetrics(SM_CYMENUSIZE);
       return true;
     }
