@@ -164,8 +164,8 @@ BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
     ON_MESSAGE(UWM_REFRESHTOOLBARITEM, RefreshToolBarItem)
 
     ON_NOTIFY(CBEN_BEGINEDIT, ID_URL_BAR, OnEditURL)
-    ON_NOTIFY(CBEN_DRAGBEGIN, ID_URL_BAR, OnDragURL)
-    ON_WM_DROPFILES()
+    //ON_NOTIFY(CBEN_DRAGBEGIN, ID_URL_BAR, OnDragURL)
+    //ON_WM_DROPFILES()
     //}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -1172,6 +1172,7 @@ void CBrowserView::OnOpenFrameInBackground()
 
 /* ** */
 
+#if 0
 void CBrowserView::OnDropFiles( HDROP drop )
 {
    UINT size = DragQueryFile(drop, 0, NULL, 0) + 1;
@@ -1189,7 +1190,9 @@ void CBrowserView::OnDropFiles( HDROP drop )
    delete filename;
    DragFinish(drop);
 }
+#endif
 
+#if 0
 void CBrowserView::OnDragURL( NMHDR * pNotifyStruct, LRESULT * result )
 {
    USES_CONVERSION;
@@ -1241,6 +1244,7 @@ void CBrowserView::OnDragURL( NMHDR * pNotifyStruct, LRESULT * result )
    GlobalFree(hFileDescriptor);
    GlobalFree(hFileContents);
 }
+#endif
 
 // this should probably go in BrowserViewUtils.cpp, but I don't want to add a function prototype :)
 BOOL CALLBACK SearchProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
