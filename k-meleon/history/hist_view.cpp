@@ -487,13 +487,10 @@ int readHistory() {
    char szHistFile[MAX_PATH];
    int ret = -1;
    
-   kPlugin.kFuncs->GetPreference(PREF_STRING, "kmeleon.general.settingsDir", szHistFile, (char*)"");
+   kPlugin.kFuncs->GetPreference(PREF_STRING, "kmeleon.general.profileDir", szHistFile, (char*)"");
    strcat(szHistFile, "history.txt");
    FILE *hFile = fopen(szHistFile, "r");
-   if (!hFile){
-      kPlugin.kFuncs->GetPreference(PREF_STRING, "kmeleon.plugins.history.historyFile", szHistFile, (char*)"");
-      hFile = fopen(szHistFile, "r");
-   }
+
    if (hFile){
       long hFileSize = FileSize(hFile);
       
