@@ -190,6 +190,7 @@ protected:
 	afx_msg void OnNavSearch();
 	afx_msg void OnNavHome();
 	afx_msg void OnNavReload();
+	afx_msg void OnNavForceReload(); 
 	afx_msg void OnNavStop();
 	afx_msg void OnCut();
 	afx_msg void OnCopy();

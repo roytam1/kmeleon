@@ -98,6 +98,7 @@ BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
 	ON_COMMAND(ID_NAV_SEARCH, OnNavSearch)
 	ON_COMMAND(ID_NAV_HOME, OnNavHome)
 	ON_COMMAND(ID_NAV_RELOAD, OnNavReload)
+	ON_COMMAND(ID_NAV_FORCE_RELOAD, OnNavForceReload)
 	ON_COMMAND(ID_NAV_STOP, OnNavStop)
 	ON_COMMAND(ID_EDIT_CUT, OnCut)
 	ON_COMMAND(ID_EDIT_COPY, OnCopy)
@@ -690,6 +691,12 @@ void CBrowserView::OnNavReload()
 {
 	if(mWebNav)
 		mWebNav->Reload(nsIWebNavigation::LOAD_FLAGS_NONE);
+}
+
+void CBrowserView::OnNavForceReload()
+{
+    if(mWebNav)
+        mWebNav->Reload(nsIWebNavigation::LOAD_FLAGS_BYPASS_CACHE);
 }
 
 void CBrowserView::OnNavStop() 
