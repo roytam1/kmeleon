@@ -34,9 +34,7 @@ class nsIFile;
 class winEmbedFileLocProvider : public nsIDirectoryServiceProvider
 {
 public:
-                        // productDirName is the name (not path) of the dir
-                        // in which the application registry and profiles live.
-                        winEmbedFileLocProvider(const char* productDirName);
+   winEmbedFileLocProvider();
 
    NS_DECL_ISUPPORTS
    NS_DECL_NSIDIRECTORYSERVICEPROVIDER
@@ -47,7 +45,6 @@ protected:
    NS_METHOD            CloneMozBinDirectory(nsILocalFile **aLocalFile);   
    NS_METHOD            GetProductDirectory(nsILocalFile **aLocalFile);
    NS_METHOD            GetDefaultUserProfileRoot(nsILocalFile **aLocalFile);
- 
-   char                 mProductDirName[256];
+
    nsCOMPtr<nsILocalFile> mMozBinDirectory;
 };

@@ -353,7 +353,7 @@ BOOL CMfcEmbedApp::InitInstance()
 	// http://www.mozilla.org/projects/xpcom/file_locations.html
 	// for more info on File Locations
 
-   winEmbedFileLocProvider *provider = new winEmbedFileLocProvider("KMeleon");
+   winEmbedFileLocProvider *provider = new winEmbedFileLocProvider();
    if(!provider){
       ASSERT(FALSE);
       return FALSE;
@@ -367,7 +367,7 @@ BOOL CMfcEmbedApp::InitInstance()
    }
 
    rv = OverrideComponents();
-   if(NS_FAILED(rv)) {                                                                           
+   if(NS_FAILED(rv)) {
       ASSERT(FALSE);
       return FALSE;
    }
