@@ -861,7 +861,7 @@ void DoRebar(HWND rebarWnd){
    
    DWORD dwStyle = 0x40 | /*the 40 gets rid of an ugly border on top.  I have no idea what flag it corresponds to...*/
       CCS_NOPARENTALIGN | CCS_NORESIZE | //CCS_ADJUSTABLE |
-      ((nButtonStyle & BS_3D) ? 0 : (TBSTYLE_FLAT | TBSTYLE_TRANSPARENT)) | TBSTYLE_LIST | TBSTYLE_TOOLTIPS;
+      ((nButtonStyle & BS_3D) ? TBSTYLE_TRANSPARENT : (TBSTYLE_FLAT | TBSTYLE_TRANSPARENT)) | TBSTYLE_LIST | TBSTYLE_TOOLTIPS;
    
    // Create the toolbar control to be added.
    //ghWndTB = CreateWindowEx(0, TOOLBARCLASSNAME, "",
