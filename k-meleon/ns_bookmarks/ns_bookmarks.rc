@@ -87,7 +87,7 @@ BEGIN
 END
 
 IDD_EDIT_BOOKMARKS DIALOGEX 0, 0, 306, 262
-STYLE DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+STYLE WS_BORDER | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_THICKFRAME | WS_VISIBLE
 CAPTION "Bookmarks"
 FONT 8, "MS Sans Serif"
 BEGIN
@@ -161,6 +161,7 @@ END
 //
 
 IDB_IMAGES              BITMAP  DISCARDABLE     "bitmap1.bmp"
+IDB_ICON                ICON    DISCARDABLE     "icon1.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //

@@ -766,11 +766,19 @@ int CALLBACK ViewProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
          
          freeNode = new CHistoryNode("Delete", HISTORY_FOLDER, 0);
 
-         HICON hIcon = LoadIcon(kPlugin.hDllInstance, MAKEINTRESOURCE(IDB_ICON));
-         if (hIcon) {
+         HICON hIcon;
+         char szFullPath[MAX_PATH];
+         FindSkinFile(szFullPath, "history-view.ico");
+
+         if (*szFullPath==0 || (hIcon = (HICON)LoadImage( NULL, szFullPath, IMAGE_ICON, 0,0, LR_DEFAULTSIZE | LR_LOADFROMFILE ))==NULL)
+            hIcon = (HICON)LoadImage( kPlugin.hDllInstance, MAKEINTRESOURCE(IDB_ICON), IMAGE_ICON, 0,0, LR_DEFAULTSIZE );
+         if (hIcon)
             SendMessage(hDlg, WM_SETICON, ICON_BIG, (LPARAM) hIcon);
+
+         if (*szFullPath==0 || (hIcon = (HICON)LoadImage( NULL, szFullPath, IMAGE_ICON, 16,16, LR_LOADFROMFILE ))==NULL)
+            hIcon = (HICON)LoadImage( kPlugin.hDllInstance, MAKEINTRESOURCE(IDB_ICON), IMAGE_ICON, 16,16, 0 );
+         if (hIcon)
             SendMessage(hDlg, WM_SETICON, ICON_SMALL, (LPARAM) hIcon);
-         }
 
          hTree = GetDlgItem(hDlg, IDC_TREE_HOTLIST);
          TreeView_SetImageList(hTree, gImagelist, TVSIL_NORMAL);

@@ -269,7 +269,19 @@ BOOL CMfcEmbedApp::InitInstance()
    wc.lpfnWndProc =  AfxWndProc;
    wc.hInstance = AfxGetInstanceHandle();
    wc.lpszClassName = HIDDEN_WINDOW_CLASS;
-   wc.hIcon = LoadIcon( IDR_MAINFRAME );
+
+
+   if (!(m_hMainIcon = (HICON)LoadImage( NULL, theApp.preferences.settingsDir + "main.ico", IMAGE_ICON, 0,0, LR_DEFAULTSIZE | LR_LOADFROMFILE )))
+       if (!(m_hMainIcon = (HICON)LoadImage( NULL, theApp.preferences.skinsDir + theApp.preferences.skinsCurrent + "main.ico", IMAGE_ICON, 0,0, LR_DEFAULTSIZE | LR_LOADFROMFILE )))
+           if (!(m_hMainIcon = (HICON)LoadImage( NULL, theApp.preferences.skinsDir + "default\\main.ico", IMAGE_ICON, 0,0, LR_DEFAULTSIZE | LR_LOADFROMFILE )))
+               m_hMainIcon = LoadIcon( IDR_MAINFRAME );
+
+   if (!(m_hSmallIcon = (HICON)LoadImage( NULL, theApp.preferences.settingsDir + "main.ico", IMAGE_ICON, 16,16, LR_LOADFROMFILE )))
+       if (!(m_hSmallIcon = (HICON)LoadImage( NULL, theApp.preferences.skinsDir + theApp.preferences.skinsCurrent + "main.ico", IMAGE_ICON, 16,16, LR_LOADFROMFILE )))
+           if (!(m_hSmallIcon = (HICON)LoadImage( NULL, theApp.preferences.skinsDir + "default\\main.ico", IMAGE_ICON, 16,16, LR_LOADFROMFILE )))
+               m_hSmallIcon = LoadIcon( IDR_MAINFRAME );
+
+   wc.hIcon=m_hMainIcon;
    AfxRegisterClass( &wc );
    
 
@@ -472,8 +484,8 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
    if (!pFrame->Create(BROWSER_WINDOW_CLASS, strTitle, style, winSize, NULL, NULL, 0L, NULL))
       return NULL;
    
-   pFrame->SetIcon(LoadIcon(IDR_MAINFRAME), true);
-   pFrame->SetIcon(LoadIcon(IDR_MAINFRAME), false);
+   pFrame->SetIcon(m_hMainIcon, true);
+   pFrame->SetIcon(m_hSmallIcon, false);
    
    // load accelerator resource
    //pFrame->LoadAccelTable(MAKEINTRESOURCE(IDR_MAINFRAME));

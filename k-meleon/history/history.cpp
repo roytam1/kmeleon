@@ -83,7 +83,7 @@ int ID_CONFIG_HISTORY = -1;
 int wm_deferbringtotop = -1;
 HWND hWndFront;
 
-HWND ghWndView;
+HWND ghWndView = NULL;
 HIMAGELIST gImagelist;
 
 

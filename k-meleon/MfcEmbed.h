@@ -134,6 +134,8 @@ private:
    BOOL        m_bAlreadyRunning;
    BOOL        m_bFirstWindowCreated;
    BOOL        m_bSwitchingProfiles;
+   HICON       m_hMainIcon;
+   HICON       m_hSmallIcon;
    // used to process the rebar DrawToolbarMenu function, which must only
    // be called once, but must be called after the first window has been created
 
