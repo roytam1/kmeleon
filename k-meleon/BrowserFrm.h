@@ -58,7 +58,6 @@ public:
       
       m_preserveUrlBarFocus = FALSE;
       m_changed = FALSE;
-      m_changing = FALSE;
       
       return ret;
    }
@@ -69,8 +68,10 @@ public:
       GetLBText(GetCurSel(), url);
    }   
    inline SetCurrentURL(LPCTSTR pUrl) {
-      SetWindowText(pUrl);
-      m_changed = FALSE;
+      if (!m_changed) {
+         SetWindowText(pUrl);
+         m_changed = FALSE;
+      }
    }   
    inline AddURLToList(CString& url, bool bAddToMRUList = true) {
       COMBOBOXEXITEM ci;
@@ -117,7 +118,6 @@ protected:
    CMostRecentUrls m_MRUList;
    BOOL m_preserveUrlBarFocus;
    BOOL m_changed;
-   BOOL m_changing;
 };
 
 // CMyStatusBar class
