@@ -293,7 +293,7 @@ LRESULT CALLBACK WndProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
          case BN_CLICKED:
             switch (LOWORD(wParam)) {
             case 1: // about
-               MessageBox(NULL, "K-Meleon Loader .2\n\nCopyright 2001, Jeff Doozan\nPart of the kmeleon.org project.", "K-Meleon Loader", MB_OK);
+               MessageBox(NULL, "K-Meleon Loader .2\n\nCopyright 2001 - 2003, Jeff Doozan\nPart of the K-Meleon project.", "K-Meleon Loader", MB_OK);
                break;
             case 2: // config
                ShowDialog(ghInstance, hWnd);
