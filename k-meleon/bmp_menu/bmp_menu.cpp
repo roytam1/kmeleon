@@ -54,6 +54,7 @@ BOOL APIENTRY DllMain( HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
 }
 */
 
+void DrawCheckMark(HDC pDC,int x,int y,COLORREF color);
 void SetOwnerDrawn(HMENU menu, HINSTANCE plugin);
 void UnSetOwnerDrawn(HMENU menu);
 
@@ -229,8 +230,8 @@ void DoMenu(HMENU menu, char *param){
       menus.push_back(menu);
 
       HINSTANCE plugin = LoadLibrary(param);
+      SetOwnerDrawn(menu, plugin);
       if (plugin) {
-         SetOwnerDrawn(menu, plugin);
          FreeLibrary(plugin);
       }
    }
@@ -244,9 +245,9 @@ void DoRebar(HWND rebarWnd) {
 typedef int (*DRAWBITMAPPROC)(DRAWITEMSTRUCT *dis);
 
 typedef struct {
-  long version; // this is just to differenciate between our ownerdraw menus and someone else's menus
-  void *data;
-  DRAWBITMAPPROC DrawBitmap;
+   long version; // this is just to differenciate between our ownerdraw menus and someone else's menus
+   void *data;
+   DRAWBITMAPPROC DrawBitmap;
 } MenuDataT;
 
 #define LEFT_SPACE 18
@@ -257,20 +258,24 @@ int DrawBitmap(DRAWITEMSTRUCT *dis) {
 
 	// Load the corresponding bitmap
 	if (bmpMapIt != bmpMap.end()){
-    int top = (dis->rcItem.bottom - dis->rcItem.top - 16) / 2;
-    top += dis->rcItem.top;
-    if (dis->itemState & ODS_GRAYED){
-      ImageList_DrawEx(hImageList, bmpMapIt->second, dis->hDC, dis->rcItem.left+1, top, 0, 0, CLR_NONE, GetSysColor(COLOR_3DFACE), ILD_BLEND  | ILD_TRANSPARENT);
-    }
-    else if (dis->itemState & ODS_SELECTED){
-      ImageList_Draw(hImageList, bmpMapIt->second, dis->hDC, dis->rcItem.left+1, top, ILD_TRANSPARENT);
-    }
-    else{
-      ImageList_Draw(hImageList, bmpMapIt->second, dis->hDC, dis->rcItem.left+1, top, ILD_TRANSPARENT);
-    }
-		return LEFT_SPACE;
+      int top = (dis->rcItem.bottom - dis->rcItem.top - 16) / 2;
+      top += dis->rcItem.top;
+
+      if (dis->itemState & ODS_GRAYED)
+         ImageList_DrawEx(hImageList, bmpMapIt->second, dis->hDC, dis->rcItem.left+1, top, 0, 0, CLR_NONE, GetSysColor(COLOR_3DFACE), ILD_BLEND  | ILD_TRANSPARENT);
+
+      else if (dis->itemState & ODS_SELECTED)
+         ImageList_Draw(hImageList, bmpMapIt->second, dis->hDC, dis->rcItem.left+1, top, ILD_TRANSPARENT);
+
+      else
+         ImageList_Draw(hImageList, bmpMapIt->second, dis->hDC, dis->rcItem.left+1, top, ILD_TRANSPARENT);
+
+      return LEFT_SPACE;
 	}
-  return 0;
+   else if (dis->itemState & ODS_CHECKED)
+      DrawCheckMark(dis->hDC, dis->rcItem.left+6, dis->rcItem.top+5, GetSysColor(COLOR_MENUTEXT));
+
+   return 0;
 }
 
 int GetTabWidth(HMENU menu){
@@ -315,7 +320,7 @@ void DrawMenuItem(DRAWITEMSTRUCT *dis) {
 	// make sure itemID is a valid int
 	//dis->itemID = LOWORD(dis->itemID);
 	MenuDataT *mdt = (MenuDataT *)dis->itemData;
-  char *string = (char *)mdt->data;
+   char *string = (char *)mdt->data;
 
 	BOOL hasBitmap = false;
 
@@ -329,19 +334,19 @@ void DrawMenuItem(DRAWITEMSTRUCT *dis) {
 		FillRect(dis->hDC, &dis->rcItem, GetSysColorBrush(COLOR_3DFACE));
 	}
 
-  if (mdt->DrawBitmap){
-    int space = mdt->DrawBitmap(dis);
-    if (space > 0){
-      dis->rcItem.left += space;
-      hasBitmap = true;
-    }
-  }
+   if (mdt->DrawBitmap){
+      int space = mdt->DrawBitmap(dis);
+      if (space > 0){
+         dis->rcItem.left += space;
+         hasBitmap = true;
+      }
+   }
 
 	if (!hasBitmap){
 		dis->rcItem.left += LEFT_SPACE;
 	}
 
-  dis->rcItem.left += 2;
+   dis->rcItem.left += 2;
 
 	char *tab = strrchr(string, '\t');
 	int leftLen, rightLen;
@@ -353,7 +358,7 @@ void DrawMenuItem(DRAWITEMSTRUCT *dis) {
 		leftLen = strlen(string);
 		rightLen = 0;
 	}
-  short tabWidth = GetTabWidth(menu);
+   short tabWidth = GetTabWidth(menu);
 
 	if (dis->itemState & ODS_GRAYED) {
 
@@ -385,11 +390,41 @@ void DrawMenuItem(DRAWITEMSTRUCT *dis) {
 	}
 
 	DrawText(dis->hDC, string, leftLen, &dis->rcItem, DT_SINGLELINE | DT_VCENTER | DT_EXPANDTABS | DT_TABSTOP | (0<<8) /* 0 spaces/tab */ );
-	if (tab){
+	if (tab) {
 		//dis->rcItem.right -= 16;
 		DrawText(dis->hDC, tab, rightLen, &dis->rcItem, DT_SINGLELINE | DT_VCENTER | DT_EXPANDTABS | DT_TABSTOP | (tabWidth<<8));
 		//dis->rcItem.right += 16;
 	}
+}
+
+void DrawCheckMark(HDC pDC,int x,int y,COLORREF color) {
+   SetPixel(pDC, x,   y+2, color);
+   SetPixel(pDC, x,   y+3, color);
+   SetPixel(pDC, x,   y+4, color);
+
+   SetPixel(pDC, x+1, y+3, color);
+   SetPixel(pDC, x+1, y+4, color);
+   SetPixel(pDC, x+1, y+5, color);
+
+   SetPixel(pDC, x+2, y+4, color);
+   SetPixel(pDC, x+2, y+5, color);
+   SetPixel(pDC, x+2, y+6, color);
+
+   SetPixel(pDC, x+3, y+3, color);
+   SetPixel(pDC, x+3, y+4, color);
+   SetPixel(pDC, x+3, y+5, color);
+
+   SetPixel(pDC, x+4, y+2, color);
+   SetPixel(pDC, x+4, y+3, color);
+   SetPixel(pDC, x+4, y+4, color);
+
+   SetPixel(pDC, x+5, y+1, color);
+   SetPixel(pDC, x+5, y+2, color);
+   SetPixel(pDC, x+5, y+3, color);
+
+   SetPixel(pDC, x+6, y,   color);
+   SetPixel(pDC, x+6, y+1, color);
+   SetPixel(pDC, x+6, y+2, color);
 }
 
 void UnSetOwnerDrawn(HMENU menu){
