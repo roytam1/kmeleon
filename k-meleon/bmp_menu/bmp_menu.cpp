@@ -199,21 +199,22 @@ int Init(){
   strcat(cfgPath, "menuicons.cfg");
 
   FILE *cfgFile = fopen(cfgPath, "r");
-
+  if (cfgFile){
     fseek(cfgFile, 0, SEEK_END);
     long cfgFileSize = ftell(cfgFile);
     fseek(cfgFile, 0, SEEK_SET);
 
     char *cfgFileBuffer = new char[cfgFileSize];
-
+    if (cfgFileBuffer){
       fread(cfgFileBuffer, sizeof(char), cfgFileSize, cfgFile);
 
       strtok(cfgFileBuffer, "\n");
       ParseConfig(cfgFileBuffer);
-
-    delete [] cfgFileBuffer;
-
-  fclose(cfgFile);
+      
+      delete [] cfgFileBuffer;
+    }
+    fclose(cfgFile);
+  }
 
   return true;
 }
