@@ -65,11 +65,7 @@ void CBrowserFrame::BrowserFrameGlueObj::UpdateStatusBarText(const PRUnichar *aM
    if(aMessage)
       strStatus.AssignWithConversion(aMessage);
 
-#ifdef NIGHTLY
-   pThis->m_wndStatusBar.SetPaneText(0, strStatus);
-#else
-   pThis->m_wndStatusBar.SetPaneText(0, strStatus.GetBuffer());
-#endif
+   pThis->m_wndStatusBar.SetPaneText(0, strStatus.get());
 }
 
 void CBrowserFrame::BrowserFrameGlueObj::UpdateProgress(PRInt32 aCurrent, PRInt32 aMax)
@@ -414,41 +410,6 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags,
    }
 }
 
-nsresult CBrowserFrame::BrowserFrameGlueObj::FindNamedBrowserItem(const PRUnichar *aName, nsIWebBrowserChrome* aWebBrowserChrome, nsIDocShellTreeItem ** aBrowserItem)
-{
-   NS_ENSURE_ARG(aName);
-   NS_ENSURE_ARG_POINTER(aBrowserItem);
-
-   *aBrowserItem = nsnull;
-
-   // Get pointer to our App
-   CMfcEmbedApp *pApp = (CMfcEmbedApp *)AfxGetApp();
-   if(!pApp)
-      return NS_ERROR_FAILURE;
-
-   // Now walk thru' all frames to see if we can find the 
-   // named item
-   //
-   CBrowserFrame* pFrm = NULL;
-   POSITION pos = pApp->m_FrameWndLst.GetHeadPosition();
-   while( pos != NULL )
-   {
-      pFrm = (CBrowserFrame *) pApp->m_FrameWndLst.GetNext(pos);
-      if(pFrm)
-      {
-         nsCOMPtr<nsIDocShellTreeItem> docShellAsItem(do_QueryInterface(pFrm->m_wndBrowserView.mWebBrowser));
-         NS_ENSURE_TRUE(docShellAsItem, NS_ERROR_FAILURE);
-
-         docShellAsItem->FindItemWithName(aName, aWebBrowserChrome, aBrowserItem);
-
-	        if(*aBrowserItem)
-              break;
-      }
-   }
-
-   return NS_OK;
-}
-
 void CBrowserFrame::BrowserFrameGlueObj::Alert(const PRUnichar *dialogTitle, const PRUnichar *text)
 {
    METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
@@ -532,7 +493,8 @@ void CBrowserFrame::BrowserFrameGlueObj::PromptUserNamePassword(const PRUnichar 
 
    CPromptUsernamePasswordDialog dlg(pThis, W2T(dialogTitle), W2T(text), 
       W2T(userNameLabel), W2T(passwordLabel), 
-      W2T(checkboxMsg));
+      W2T(checkboxMsg), W2T(*username), W2T(*password),
+      checkboxState ? (*checkboxState) : PR_FALSE);
 
    if(dlg.DoModal() == IDOK)
    {

@@ -34,43 +34,58 @@
 
 #include "BrowserView.h"
 #include "IBrowserFrameGlue.h"
-
+#include "MostRecentUrls.h"
 #include "ToolBarEx.h"
 
 // A simple UrlBar class...
-class CUrlBar : public CComboBoxEx
-{
+class CUrlBar : public CComboBoxEx {
 public:
-  int Create(DWORD style, RECT &rect, CWnd *parentWnd, UINT id){
-    int ret = CComboBoxEx::Create(style | CBS_AUTOHSCROLL, rect, parentWnd, id);
+   int Create(DWORD style, RECT &rect, CWnd *parentWnd, UINT id){
+      int ret = CComboBoxEx::Create(style | CBS_AUTOHSCROLL, rect, parentWnd, id);
 
-    COMBOBOXEXITEM ci;
-    ci.mask = CBEIF_IMAGE;
-    ci.iItem = -1;
-    ci.iImage = 15;
-    SetItem(&ci);
+      COMBOBOXEXITEM ci;
+      ci.mask = CBEIF_IMAGE;
+      ci.iItem = -1;
+      ci.iImage = 15;
+      SetItem(&ci);
 
-    return ret;
-  }
+      return ret;
+   }
 	inline GetEnteredURL(CString& url) {
-    GetEditCtrl()->GetWindowText(url);
+      GetEditCtrl()->GetWindowText(url);
 	}
 	inline GetSelectedURL(CString& url) {
-		GetLBText(GetCurSel(), url);
+      GetLBText(GetCurSel(), url);
 	}
 	inline SetCurrentURL(LPCTSTR pUrl) {
 		SetWindowText(pUrl);
 	}
-	inline AddURLToList(CString& url) {
-		COMBOBOXEXITEM ci;
+	inline AddURLToList(CString& url, bool bAddToMRUList = true) {
+      COMBOBOXEXITEM ci;
 		ci.mask = CBEIF_TEXT | CBEIF_IMAGE | CBEIF_SELECTEDIMAGE;
-    ci.iItem = 0;
-    ci.iImage = 15;
-    ci.iSelectedImage = 15;
+      ci.iItem = 0;
+      ci.iImage = 15;
+      ci.iSelectedImage = 15;
 		ci.pszText = (LPTSTR)(LPCTSTR)url;
 		InsertItem(&ci);
-	}
+
+      if(bAddToMRUList) {
+		   m_MRUList.AddURL((LPTSTR)(LPCTSTR)url);
+         ResetContent();
+         LoadMRUList();
+      }
+   }
+   inline LoadMRUList() {
+      for (int i=m_MRUList.GetURLCount()-1;i>=0;i--) {
+         CString urlStr(_T(m_MRUList.GetURL(i)));
+         AddURLToList(urlStr, false);
+      }
+   }
+
+protected:
+   CMostRecentUrls m_MRUList;
 };
+
 
 class CBrowserFrame : public CFrameWnd
 {	
@@ -79,21 +94,23 @@ public:
 
 protected: 
 	DECLARE_DYNAMIC(CBrowserFrame)
-
    BOOL m_created; // set after we are created
+
 public:
-	CToolBarEx    m_wndToolBar;
+   inline CBrowserImpl *GetBrowserImpl() { return m_wndBrowserView.mpBrowserImpl; }
+
+   CToolBarEx    m_wndToolBar;
 	CStatusBar  m_wndStatusBar;
 	CProgressCtrl m_wndProgressBar;
 	CUrlBar m_wndUrlBar;
 	CReBar m_wndReBar;
    CAnimateCtrl	m_wndAnimate;
 
-   CImageList m_toolbarHotImageList;
-   CImageList m_toolbarColdImageList;
-   CImageList m_toolbarDisabledImageList;
+  CImageList m_toolbarHotImageList;
+  CImageList m_toolbarColdImageList;
+  CImageList m_toolbarDisabledImageList;
 
-   CBitmap m_bmpBack;
+  CBitmap m_bmpBack;
 
 	// The view inside which the embedded browser will
 	// be displayed in
@@ -125,11 +142,11 @@ protected:
 public:
 	void SetupFrameChrome();
 
-   void LoadBackImage ();
-   void SetBackImage ();
+  void LoadBackImage ();
+  void SetBackImage ();
 
-   void SaveBandSizes();
-   void RestoreBandSizes();
+  void SaveBandSizes();
+  void RestoreBandSizes();
 
 // Overrides
 	// ClassWizard generated virtual function overrides

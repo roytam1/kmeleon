@@ -67,7 +67,6 @@ extern CMfcEmbedApp theApp;
 #include "ToolBarEx.h"
 #include "KmeleonMessages.h"
 
-
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
@@ -136,8 +135,8 @@ void CBrowserFrame::OnClose()
 // 
 int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct){
    m_created = false;
-
-	if (CFrameWnd::OnCreate(lpCreateStruct) == -1)
+   
+   if (CFrameWnd::OnCreate(lpCreateStruct) == -1)
 		return -1;
 
   // tell all our plugins that we were created
@@ -172,6 +171,9 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct){
 		TRACE0("Failed to create URL Bar\n");
 		return -1;      // fail to create
 	}
+
+   // Load the Most Recently Used(MRU) Urls into the UrlBar                                                                              
+   m_wndUrlBar.LoadMRUList();  
 
 	// Create the toolbar with Back, Fwd, Stop, etc. buttons..
 	if (!m_wndToolBar.CreateEx (this, 0x40 | /*CCS_NOPARENTALIGN | CCS_NORESIZE | */ TBSTYLE_FLAT | TBSTYLE_TRANSPARENT | TBSTYLE_AUTOSIZE | TBSTYLE_TOOLTIPS) )
@@ -479,24 +481,22 @@ BOOL CBrowserFrame::OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERIN
 void CBrowserFrame::OnSize(UINT nType, int cx, int cy) {
    CFrameWnd::OnSize(nType, cx, cy);
 
-  if (!m_created){
-     return;
-  }
+   if (!m_created) return;
+   
+   // Get the ItemRect of the status bar's Pane 0
+   // That's where the progress bar will be located
+   RECT rc;
+   if (m_wndStatusBar.m_hWnd)
+      m_wndStatusBar.GetItemRect(m_wndStatusBar.CommandToIndex(ID_PROG_BAR), &rc);
 
-  // Get the ItemRect of the status bar's Pane 0
-  // That's where the progress bar will be located
-  RECT rc;
-  m_wndStatusBar.GetItemRect(m_wndStatusBar.CommandToIndex(ID_PROG_BAR), &rc);
+   // Move the progress bar into it's correct location
+   //
+   if (m_wndProgressBar.m_hWnd)
+      m_wndProgressBar.MoveWindow(&rc);
 
-  // Move the progress bar into it's correct location
-  //
-  m_wndProgressBar.MoveWindow(&rc);
+   if (nType == SIZE_MAXIMIZED) theApp.preferences.bMaximized = true;
+   else if (nType == SIZE_RESTORED) theApp.preferences.bMaximized = false;
 
-  if (nType == SIZE_MAXIMIZED){
-    theApp.preferences.bMaximized = true;
-  }else if (nType == SIZE_RESTORED){
-    theApp.preferences.bMaximized = false;
-  }
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -555,9 +555,9 @@ void CBrowserFrame::LoadBackImage ()
 
   HBITMAP hbmp;
   if (theApp.preferences.toolbarBackground.IsEmpty()){
-     theApp.preferences.toolbarBackground = theApp.preferences.settingsDir + "Back.bmp";
-  }
-  hbmp = (HBITMAP) ::LoadImage (NULL,
+    theApp.preferences.toolbarBackground = theApp.preferences.settingsDir + "Back.bmp";
+	}
+  hbmp = (HBITMAP) ::LoadImage (AfxGetResourceHandle (),
     theApp.preferences.toolbarBackground,
     IMAGE_BITMAP,
     0, 0,

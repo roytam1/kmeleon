@@ -53,9 +53,9 @@ extern CMfcEmbedApp theApp;
 #include "BrowserView.h"
 #include "BrowserImpl.h"
 #include "BrowserFrm.h"
+#include "Dialogs.h"
 
 #include "ToolBarEx.h"
-
 #include "Utils.h"
 #include "KmeleonMessages.h"
 
@@ -69,6 +69,9 @@ static char THIS_FILE[] = __FILE__;
 //static const char* g_HomeURL = "http://www.mozilla.org/projects/embedding";
 static const char* KMELEON_HOMEPAGE_URL = "http://www.kmeleon.org";
 static const char* KMELEON_FORUM_URL = "http://www.kmeleon.org/forum/";
+
+// Register message for FindDialog communication                                                                                
+static UINT WM_FINDMSG = ::RegisterWindowMessage(FINDMSGSTRING);
 
 BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
 	//{{AFX_MSG_MAP(CBrowserView)
@@ -102,8 +105,10 @@ BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
 	ON_COMMAND(ID_SAVE_LINK_AS, OnSaveLinkAs)
 	ON_COMMAND(ID_SAVE_IMAGE_AS, OnSaveImageAs)
    ON_COMMAND(ID_LINK_KMELEON_HOME, OnKmeleonHome)
-   ON_COMMAND(ID_LINK_KMELEON_FORUM, OnKmeleonForum)
-	ON_UPDATE_COMMAND_UI(ID_NAV_BACK, OnUpdateNavBack)
+   ON_COMMAND(ID_LINK_KMELEON_FORUM, OnShowFindDlg)
+   ON_COMMAND(ID_EDIT_FIND, OnShowFindDlg)
+   ON_REGISTERED_MESSAGE(WM_FINDMSG, OnFindMsg) 
+   ON_UPDATE_COMMAND_UI(ID_NAV_BACK, OnUpdateNavBack)
 	ON_UPDATE_COMMAND_UI(ID_NAV_FORWARD, OnUpdateNavForward)
 	ON_UPDATE_COMMAND_UI(ID_NAV_STOP, OnUpdateNavStop)
 	ON_UPDATE_COMMAND_UI(ID_EDIT_CUT, OnUpdateCut)
@@ -125,6 +130,8 @@ CBrowserView::CBrowserView()
 	mpBrowserFrameGlue = nsnull;
 
 	mbDocumentLoading = PR_FALSE;
+
+   m_pFindDlg = NULL;
 
    m_tempFileCount = 0;
 }
@@ -237,14 +244,8 @@ HRESULT CBrowserView::CreateBrowser()
   // These callbacks will be used to update the status/progress bars
 
 
-#ifdef NIGHTLY
    nsWeakPtr weakling( dont_AddRef(NS_GetWeakReference(NS_STATIC_CAST(nsIWebProgressListener*, mpBrowserImpl))));
    (void)mWebBrowser->AddWebBrowserListener(weakling, NS_GET_IID(nsIWebProgressListener));
-#else
-   nsCOMPtr<nsIWebProgressListener> listener = NS_STATIC_CAST(nsIWebProgressListener*, mpBrowserImpl);  // Nightly Fix
-   nsCOMPtr<nsISupports> supports = do_QueryInterface(listener);
-   (void)mWebBrowser->AddWebBrowserListener(supports, NS_GET_IID(nsIWebProgressListener));
-#endif
 
 	// Finally, show the web browser window
 	mBaseWindow->SetVisibility(PR_TRUE);
@@ -252,7 +253,7 @@ HRESULT CBrowserView::CreateBrowser()
 	return S_OK;
 }
 
-HRESULT CBrowserView::DestroyBrowser() {	   
+HRESULT CBrowserView::DestroyBrowser() {
 
    DeleteTempFiles();   
 
@@ -910,6 +911,84 @@ void CBrowserView::OnKmeleonHome()
 void CBrowserView::OnKmeleonForum()
 {
   OpenURL(KMELEON_FORUM_URL);
+}
+
+void CBrowserView::OnShowFindDlg() {
+
+
+	// When the the user chooses the Find menu item
+	// and if a Find dlg. is already being shown
+	// just set focus to the existing dlg instead of
+	// creating a new one
+	if(m_pFindDlg)	{
+		m_pFindDlg->SetFocus();
+		return;
+	}
+
+	CString csSearchStr;
+	PRBool bMatchCase = PR_FALSE;
+	PRBool bMatchWholeWord = PR_FALSE;
+	PRBool bWrapAround = PR_FALSE;
+	PRBool bSearchBackwards = PR_FALSE;
+
+	// See if we can get and initialize the dlg box with
+	// the values/settings the user specified in the previous search
+	nsCOMPtr<nsIWebBrowserFind> finder(do_GetInterface(mWebBrowser));
+	if(finder) {
+		nsXPIDLString stringBuf;
+		finder->GetSearchString(getter_Copies(stringBuf));
+		csSearchStr = stringBuf.get();
+
+		finder->GetMatchCase(&bMatchCase);
+		finder->GetEntireWord(&bMatchWholeWord);
+		finder->GetWrapFind(&bWrapAround);
+		finder->GetFindBackwards(&bSearchBackwards);		
+	}
+
+	m_pFindDlg = new CFindDialog(csSearchStr, bMatchCase, bMatchWholeWord, bWrapAround, bSearchBackwards, this);
+	m_pFindDlg->Create(TRUE, NULL, NULL, 0, this);
+
+}
+
+// This will be called whenever the user pushes the Find
+// button in the Find dialog box
+// This method gets bound to the WM_FINDMSG windows msg via the
+//
+// ON_REGISTERED_MESSAGE(WM_FINDMSG, OnFindMsg)
+//
+//  message map entry.
+//
+// WM_FINDMSG (which is registered towards the beginning of this file)
+// is the message via which the FindDialog communicates with this view
+//
+LRESULT CBrowserView::OnFindMsg(WPARAM wParam, LPARAM lParam) {
+	nsCOMPtr<nsIWebBrowserFind> finder(do_GetInterface(mWebBrowser));
+
+	if(!finder) return NULL;
+
+	// Get the pointer to the current Find dialog box
+	CFindDialog* dlg = (CFindDialog *) CFindReplaceDialog::GetNotifier(lParam);
+	if(!dlg) return NULL;
+
+	// Has the user decided to terminate the dialog box?
+	if(dlg->IsTerminating()) return NULL;
+
+	if(dlg->FindNext()) {
+		nsString searchString;
+		searchString.AssignWithConversion(dlg->GetFindString().GetBuffer(0));
+		finder->SetSearchString(searchString.GetUnicode());
+
+		finder->SetMatchCase(dlg->MatchCase() ? PR_TRUE : PR_FALSE);
+		finder->SetEntireWord(dlg->MatchWholeWord() ? PR_TRUE : PR_FALSE);
+		finder->SetWrapFind(dlg->WrapAround() ? PR_TRUE : PR_FALSE);
+		finder->SetFindBackwards(dlg->SearchBackwards() ? PR_TRUE : PR_FALSE);
+
+		PRBool didFind;
+		nsresult rv = finder->FindNext(&didFind);
+
+		return (NS_SUCCEEDED(rv) && didFind);
+	}
+	return 0;
 }
 
 // Called from the busy state related methods in the 

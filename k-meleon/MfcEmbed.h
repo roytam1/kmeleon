@@ -24,8 +24,6 @@
 // mozembed.h : main header file for the MOZEMBED application
 //
 
-#define NIGHTLY
-
 #ifndef _MFCEMBED_H
 #define _MFCEMBED_H
 
@@ -54,6 +52,7 @@ class CProfileMgr;
 
 class CMfcEmbedApp : public CWinApp,
                      public nsIObserver,
+                     public nsIWindowCreator,
                      public nsSupportsWeakReference
 {
 public:
@@ -61,6 +60,7 @@ public:
 	
     NS_DECL_ISUPPORTS
     NS_DECL_NSIOBSERVER
+    NS_DECL_NSIWINDOWCREATOR
 
 	CBrowserFrame* CreateNewBrowserFrame(PRUint32 chromeMask = nsIWebBrowserChrome::CHROME_ALL, 
 							PRInt32 x = -1, PRInt32 y = -1, 
@@ -100,8 +100,9 @@ public:
 private:
 	BOOL			InitializeProfiles();
 	BOOL			CreateHiddenWindow();  
-  nsresult        InitializePrefs();
-  nsresult        InitializeCachePrefs();
+   nsresult    InitializePrefs();
+   nsresult    InitializeCachePrefs();
+   nsresult    InitializeWindowCreator();
 
 private:
     CProfileMgr     *m_ProfileMgr;

@@ -45,6 +45,10 @@
 #include "BrowserFrm.h"
 #include "winEmbedFileLocProvider.h"
 #include "ProfileMgr.h"
+#include "BrowserImpl.h"
+#include "nsIWindowWatcher.h"
+
+
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -102,13 +106,17 @@ BOOL CMfcEmbedApp::InitInstance()
       return FALSE;
    }
 
+   rv = InitializeWindowCreator();
+   if (NS_FAILED(rv)) {
+      ASSERT(FALSE);
+      return FALSE;
+   }
+
    if(!InitializeProfiles()){
       ASSERT(FALSE);
       NS_TermEmbedding();
       return FALSE;
    }
-
-   InitializePrefs();
 
    plugins.FindAndLoad("kmeleon_*.dll");
 
@@ -258,7 +266,7 @@ BOOL CMfcEmbedApp::OnIdle(LONG lCount)
 	return FALSE;
 }
 
-void CMfcEmbedApp::OnPreferences (){
+void CMfcEmbedApp::OnPreferences () {
   CPreferencesDlg prefDlg;
   prefDlg.DoModal();
 }
@@ -273,20 +281,14 @@ BOOL CMfcEmbedApp::InitializeProfiles() {
    if (!m_ProfileMgr)
       return FALSE;
 
-   m_ProfileMgr->StartUp();
-
    nsresult rv;
    NS_WITH_SERVICE(nsIObserverService, observerService, NS_OBSERVERSERVICE_CONTRACTID, &rv);
 
-#ifdef NIGHTLY  
    observerService->AddObserver(this, NS_LITERAL_STRING("profile-approve-change").get());
    observerService->AddObserver(this, NS_LITERAL_STRING("profile-change-teardown").get());
    observerService->AddObserver(this, NS_LITERAL_STRING("profile-after-change").get());
-#else
-   observerService->AddObserver(this, PROFILE_APPROVE_CHANGE_TOPIC);
-   observerService->AddObserver(this, PROFILE_CHANGE_TEARDOWN_TOPIC);
-   observerService->AddObserver(this, PROFILE_AFTER_CHANGE_TOPIC);
-#endif
+
+   m_ProfileMgr->StartUp();
 
    return TRUE;
 }
@@ -365,11 +367,31 @@ nsresult CMfcEmbedApp::InitializeCachePrefs()
     return prefs->SetFileXPref(CACHE_DIR_PREF, cacheDir);
 }
 
+
+/* InitializeWindowCreator creates and hands off an object with a callback
+   to a window creation function. This will be used by Gecko C++ code
+   (never JS) to create new windows when no previous window is handy
+   to begin with. This is done in a few exceptional cases, like PSM code.
+   Failure to set this callback will only disable the ability to create
+   new windows under these circumstances.
+*/
+nsresult CMfcEmbedApp::InitializeWindowCreator() {
+   // give an nsIWindowCreator to the WindowWatcher service
+   nsCOMPtr<nsIWindowCreator> windowCreator(NS_STATIC_CAST(nsIWindowCreator *, this));
+   if (windowCreator) {
+      nsCOMPtr<nsIWindowWatcher> wwatch(do_GetService("@mozilla.org/embedcomp/window-watcher;1"));
+      if (wwatch) {
+         wwatch->SetWindowCreator(windowCreator);
+         return NS_OK;
+      }
+   }
+   return NS_ERROR_FAILURE;
+}
 // ---------------------------------------------------------------------------
 //  CMfcEmbedApp : nsISupports
 // ---------------------------------------------------------------------------
 
-NS_IMPL_THREADSAFE_ISUPPORTS2(CMfcEmbedApp, nsIObserver, nsISupportsWeakReference);
+NS_IMPL_THREADSAFE_ISUPPORTS3(CMfcEmbedApp, nsIObserver, nsIWindowCreator, nsISupportsWeakReference);
 
 // ---------------------------------------------------------------------------
 //  CMfcEmbedApp : nsIObserver
@@ -381,11 +403,7 @@ NS_IMETHODIMP CMfcEmbedApp::Observe(nsISupports *aSubject, const PRUnichar *aTop
 {
     nsresult rv = NS_OK;
     
-#ifdef NIGHTLY  
     if (nsCRT::strcmp(aTopic, NS_LITERAL_STRING("profile-approve-change").get()) == 0)
-#else
-    if (nsCRT::strcmp(aTopic, PROFILE_APPROVE_CHANGE_TOPIC) == 0)
-#endif
     {
         // Ask the user if they want to
         int result = MessageBox(NULL, "Do you want to close all windows in order to switch the profile?", "Confirm", MB_YESNO | MB_ICONQUESTION);
@@ -396,11 +414,7 @@ NS_IMETHODIMP CMfcEmbedApp::Observe(nsISupports *aSubject, const PRUnichar *aTop
             status->VetoChange();
         }
     }
-#ifdef NIGHTLY  
     else if (nsCRT::strcmp(aTopic, NS_LITERAL_STRING("profile-change-teardown").get()) == 0)
-#else
-    else if (nsCRT::strcmp(aTopic, PROFILE_CHANGE_TEARDOWN_TOPIC) == 0)
-#endif
     {
         // Close all open windows. Alternatively, we could just call CBrowserWindow::Stop()
         // on each. Either way, we have to stop all network activity on this phase.
@@ -425,19 +439,40 @@ NS_IMETHODIMP CMfcEmbedApp::Observe(nsISupports *aSubject, const PRUnichar *aTop
         if (NS_SUCCEEDED(rv))
           cacheMgr->Clear(nsINetDataCacheManager::MEM_CACHE);
     }
-#ifdef NIGHTLY
     else if (nsCRT::strcmp(aTopic, NS_LITERAL_STRING("profile-after-change").get()) == 0)
-#else
-    else if (nsCRT::strcmp(aTopic, PROFILE_AFTER_CHANGE_TOPIC) == 0)
-#endif
     {
         plugins.UnLoadAll();
         InitializePrefs(); // In case we have just switched to a newly created profile.
         
-        OnNewBrowser();
+         // Only make a new browser window on a switch. This also gets
+         // called at start up and we already make a window then.
+         if (!nsCRT::strcmp(someData, NS_LITERAL_STRING("switch").get()))      
+            OnNewBrowser();
     }
     return rv;
 }
+
+
+
+// ---------------------------------------------------------------------------
+//  CMfcEmbedApp : nsIWindowCreator
+// ---------------------------------------------------------------------------
+NS_IMETHODIMP CMfcEmbedApp::CreateChromeWindow(nsIWebBrowserChrome *parent,
+                                               PRUint32 chromeFlags,
+                                               nsIWebBrowserChrome **_retval)
+{
+   // XXX we're ignoring the "parent" parameter
+   NS_ENSURE_ARG_POINTER(_retval);
+   *_retval = 0;
+
+   CBrowserFrame *pBrowserFrame = CreateNewBrowserFrame(chromeFlags);
+   if(pBrowserFrame) {
+      *_retval = NS_STATIC_CAST(nsIWebBrowserChrome *, pBrowserFrame->GetBrowserImpl());
+      NS_ADDREF(*_retval);
+   }
+   return NS_OK;
+}
+
 
 #include "version.h"
 

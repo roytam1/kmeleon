@@ -56,6 +56,7 @@
 #include "nsIWebNavigation.h"
 #include "nsIWebBrowserChrome.h"
 #include "nsIWebProgressListener.h"
+#include "nsIWindowCreator.h"
 #include "nsIInterfaceRequestor.h"
 #include "nsIDocShellTreeOwner.h"
 #include "nsIDocShellTreeItem.h"
@@ -79,7 +80,8 @@
 #include "nsError.h"
 #include "nsIObserver.h"
 #include "nsWeakReference.h"
-#include "nsIWebBrowserSiteWindow.h"
+#include "nsIEmbeddingSiteWindow.h"
+#include "nsIWebBrowserFind.h"
 
 //{{AFX_INSERT_LOCATION}}
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.

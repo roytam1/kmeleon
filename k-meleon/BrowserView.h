@@ -39,6 +39,7 @@
 
 class CBrowserFrame;
 class CBrowserImpl;
+class CFindDialog;
 
 class CBrowserView : public CWnd
 {
@@ -101,6 +102,7 @@ public:
    char * GetTempFile();
    void DeleteTempFiles();
 
+   inline void ClearFindDialog() { m_pFindDlg = NULL; }
 
 protected:
 	BOOL m_refreshBackButton;
@@ -108,12 +110,14 @@ protected:
    char **m_tempFileList;
    int m_tempFileCount;
   
-  // Overrides
+   CFindDialog* m_pFindDlg;
+
+   // Overrides
 	// ClassWizard generated virtual function overrides
 	//{{AFX_VIRTUAL(CBrowserView)
 	protected:
 	virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
-  virtual BOOL PreTranslateMessage(MSG* pMsg);
+   virtual BOOL PreTranslateMessage(MSG* pMsg);
 	//}}AFX_VIRTUAL  
   
   // Generated message map functions
@@ -148,6 +152,8 @@ protected:
 	afx_msg void OnViewImageInNewWindow();
 	afx_msg void OnSaveLinkAs();
 	afx_msg void OnSaveImageAs();
+   afx_msg void OnShowFindDlg();
+   afx_msg LRESULT OnFindMsg(WPARAM wParam, LPARAM lParam);
    afx_msg void OnKmeleonHome();
    afx_msg void OnKmeleonForum();
 	afx_msg void OnUpdateNavBack(CCmdUI* pCmdUI);
