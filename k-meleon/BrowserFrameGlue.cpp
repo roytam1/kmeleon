@@ -510,6 +510,8 @@ BUILD_CTX_MENU:
         switch (nIDResource) {
         case IDR_CTXMENU_DOCUMENT:
             menuType = _T("DocumentPopup");
+            if (bContentHasImage)
+                menuType = _T("DocumentImagePopup");
             break;
         case IDR_CTXMENU_TEXT:
             menuType = _T("TextPopup");
@@ -528,6 +530,8 @@ BUILD_CTX_MENU:
         switch (nIDResource) {
         case IDR_CTXMENU_DOCUMENT:
             menuType = _T("FrameDocumentPopup");
+            if (bContentHasImage)
+                menuType = _T("FrameDocumentImagePopup");
             break;
         case IDR_CTXMENU_TEXT:
             menuType = _T("FrameTextPopup");
