@@ -140,6 +140,9 @@ protected:
 	afx_msg void OnSaveLinkAs();
 	afx_msg void OnSaveImageAs();
 
+  afx_msg void OnKmeleonHome();
+  afx_msg void OnKmeleonForum();
+
 	// Handlers to keep the toolbar/menu items up to date
 	//
 	afx_msg void OnUpdateNavBack(CCmdUI* pCmdUI);

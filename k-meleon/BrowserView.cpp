@@ -61,6 +61,8 @@ static char THIS_FILE[] = __FILE__;
 #endif
 
 //static const char* g_HomeURL = "http://www.mozilla.org/projects/embedding";
+static const char* KMELEON_HOMEPAGE_URL = "http://www.kmeleon.org";
+static const char* KMELEON_FORUM_URL = "http://www.kmeleon.org/forum/";
 
 BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
 	//{{AFX_MSG_MAP(CBrowserView)
@@ -94,6 +96,9 @@ BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
 	ON_COMMAND(ID_COPY_LINK_LOCATION, OnCopyLinkLocation)
 	ON_COMMAND(ID_SAVE_LINK_AS, OnSaveLinkAs)
 	ON_COMMAND(ID_SAVE_IMAGE_AS, OnSaveImageAs)
+
+  ON_COMMAND(ID_LINK_KMELEON_HOME, OnKmeleonHome)
+  ON_COMMAND(ID_LINK_KMELEON_FORUM, OnKmeleonForum)
 
 	// Menu/Toolbar UI update handlers
 	ON_UPDATE_COMMAND_UI(ID_NAV_BACK, OnUpdateNavBack)
@@ -744,6 +749,16 @@ void CBrowserView::OnSaveImageAs()
 		if(persist)
 			persist->SaveURI(linkURI, nsnull, strFullPath.GetBuffer(0));
 	}
+}
+
+void CBrowserView::OnKmeleonHome()
+{
+  OpenURL(KMELEON_HOMEPAGE_URL);
+}
+
+void CBrowserView::OnKmeleonForum()
+{
+  OpenURL(KMELEON_FORUM_URL);
 }
 
 // Called from the busy state related methods in the 

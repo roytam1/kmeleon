@@ -82,6 +82,8 @@
 #define ID_COPY_LINK_LOCATION           32789
 #define ID_PREFERENCES                  32790
 #define ID_MANAGE_PROFILES              32791
+#define ID_LINK_KMELEON_HOME            32800
+#define ID_LINK_KMELEON_FORUM           32801
 
 // Next default values for new objects
 // 
