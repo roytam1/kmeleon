@@ -110,6 +110,7 @@ kmeleonPlugin kPlugin = {
 struct layer {
    HWND hWnd;
    HWND hWndTB;
+   BOOL popup;
    struct layer *next;
 };
 
@@ -593,8 +594,25 @@ void Create(HWND parent, LPCREATESTRUCT pCS){
    KMeleonWndProc = (void *) GetWindowLong(parent, GWL_WNDPROC);
    SetWindowLong(parent, GWL_WNDPROC, (LONG)WndProc);
 
+   HWND prevHwnd = NULL;
    int popup = (pCS->style & WS_POPUP) != 0;
-   int found = add_layer(parent, popup ? NULL : ghParent);
+   if (!popup && ghParent) {
+     struct layer *pParentLayer = find_layer( ghParent );
+     if (pParentLayer && !pParentLayer->popup)
+       prevHwnd = ghParent;
+   }
+   if (!prevHwnd && bCatchOpenWindow && !popup && ghCurHwnd) {
+     struct layer *pParentLayer = find_layer( ghCurHwnd );
+     if (pParentLayer && !pParentLayer->popup) {
+       prevHwnd = ghCurHwnd;
+       ghParent = ghCurHwnd;
+     }
+   }
+   int found = add_layer(parent, prevHwnd);
+   struct layer *pNewLayer = find_layer( parent );
+   if (pNewLayer && popup)
+     pNewLayer->popup = 1;
+
    if (found && bLayer) {
       if (ghParent) {
          gwpOld.length = sizeof (WINDOWPLACEMENT);
@@ -990,6 +1008,12 @@ void DoRebar(HWND rebarWnd){
    if (!bRebarEnabled)
       return;
 
+   struct layer *pNewLayer = find_layer( GetParent(rebarWnd) );
+   if (!pNewLayer)
+     return;
+   if (pNewLayer->popup)
+     return;
+
    readMenu();
    
    DWORD dwStyle = 0x40 | /*the 40 gets rid of an ugly border on top.  I have no idea what flag it corresponds to...*/
@@ -1011,10 +1035,7 @@ void DoRebar(HWND rebarWnd){
       return;
    }
    
-   struct layer *pNewLayer = find_layer( GetParent(rebarWnd) );
-   if (pNewLayer) {
-      pNewLayer->hWndTB = ghWndTB;
-   }
+   pNewLayer->hWndTB = ghWndTB;
    
    // Register the band name and child hwnd
    if (szTitle && *szTitle) {
@@ -1500,7 +1521,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
             
             else if (command == id_close_layer) {
 
-               if (lParam) {
+               if (lParam > 0) {
                   pFrame = find_frame(hWnd);
                   if (pFrame) {
                      int i = lParam - id_layer;
@@ -1546,7 +1567,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                   pFrame->hWndLast = closebg ? 
                      (pFrame->hWndLast != hWnd ? pFrame->hWndLast : NULL) :
                      NULL;
-                  if (bCatchCloseWindow && !newLayer)
+                  if (!newLayer)
                      ghParent = pFrame->hWndFront;
                   UpdateRebarMenu( find_layer(pFrame->hWndFront) );
                   UpdateRebarMenu( find_layer(hWnd) );
