@@ -679,7 +679,7 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
       }
       CMD(statusbar) {
          if (nparam != 1) {  // statusbar( $0 )
-            parseError(WRONGARGS, "statusbar", data, 2, nparam);
+            parseError(WRONGARGS, "statusbar", data, 1, nparam);
             return "";
          }
          kPlugin.kFuncs->SetStatusBarText((char*)params[0].c_str());
