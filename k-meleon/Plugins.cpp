@@ -728,7 +728,7 @@ kmeleonPlugin * CPlugins::Load(char *file)
 
    // If the plugin is enabled, tell it to Init
    if ( loaded ) {
-      kPlugin->DoMessage(kPlugin->dllname, "* Plugin Manager", "Init", 0, 0);
+      kPlugin->DoMessage(kPlugin->dllname, "* Plugin Manager", "Load", 0, 0);
    }
    // otherwise, make a copy of the descripion, and unload it
    else {
@@ -776,6 +776,7 @@ int CPlugins::FindAndLoad(const char *pattern)
          i++;
       filepath.UnlockBuffer();
    }
+   SendMessage("*", "* Plugin Manager", "Init");
    return i;
 }
 
