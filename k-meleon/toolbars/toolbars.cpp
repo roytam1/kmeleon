@@ -421,7 +421,7 @@ void DoRebar(HWND rebarWnd) {
       rbBand.fStyle     = RBBS_FIXEDBMP;
       rbBand.lpText     = NULL;
       rbBand.hwndChild  = toolbar->hWnd;
-      rbBand.cxMinChild = 0;
+      rbBand.cxMinChild = LOWORD(dwBtnSize) * toolbar->iButtonCount;
       rbBand.cyMinChild = HIWORD(dwBtnSize);
       rbBand.cyIntegral = 1;
       rbBand.cyMaxChild = rbBand.cyMinChild;
