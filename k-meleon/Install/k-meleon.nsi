@@ -2,8 +2,8 @@
 # This script requires a custom build of nsis to support the APPDATADIR variable
 
 Name "K-Meleon"
-ComponentText "This will install K-Meleon v0.4"
-OutFile "kmeleon04.exe"
+ComponentText "This will install K-Meleon v0.45 (preview)"
+OutFile "kmeleon045.exe"
 
 UninstallText "This will uninstall K-Meleon. You need to agree to the following registry changes to completely get rid of it."
 UninstallExeName "Uninstall.exe"
@@ -14,20 +14,19 @@ LicenseData "GNUlicense.txt"
 DirText "Please select the directory where you want to install K-Meleon."
 InstallDir "$PROGRAMFILES\K-Meleon"
 InstallDirRegKey HKEY_CURRENT_USER "Software\K-Meleon\K-Meleon\General" "InstallDir"
-EnabledBitmap yes.bmp
-DisabledBitmap no.bmp
 SetOverwrite on
 SetCompress auto
 SetDatablockOptimize on
+ShowInstDetails show
+AutoCloseWindow true
 
 InstType Standard
 
 #------------------------------------------------------------------------------------------
 Section "K-Meleon (required)"
 
-# First trying to shut down running instances, the Window class is called: Afx:400000:0
-# but a couple of other programs use that (ICQ), so we'll better leave it for now
-;FindWindow "close" "Afx:400000:0" ""
+# Close any running instances
+FindWindow "prompt" "KMeleon" "You must close KMeleon before continuing with the install process"
 
 # and copying regular files
 SetOutPath "$INSTDIR\uninstall"
@@ -36,11 +35,17 @@ File K-MeleonUNINST.ini
 SetOutPath "$INSTDIR"
 File ..\*
 
+SetOutPath $INSTDIR
+File License.txt
+
 SetOutPath $INSTDIR\chrome
 File ..\chrome\*
 
 SetOutPath $INSTDIR\components
 File ..\components\*
+
+SetOutPath $INSTDIR\plugins
+File ..\plugins\*
 
 SetOutPath $INSTDIR\defaults
 SetOutPath $INSTDIR\defaults\pref
@@ -49,14 +54,14 @@ File ..\defaults\pref\*
 SetOutPath $INSTDIR\defaults\profile
 File ..\defaults\profile\*
 
-SetOutPath $INSTDIR\plugins
-File ..\plugins\*
-
 SetOutPath $INSTDIR\res
 File ..\res\*
 
 SetOutPath $INSTDIR\res\builtin
 File ..\res\builtin\*
+
+SetOutPath $INSTDIR\res\fonts
+File ..\res\fonts\*
 
 IfFileExists $APPDATADIR\KMeleon 0 KeepProfiles
 MessageBox MB_YESNO "User profiles from a previous installation of K-Meleon have been detected$\n \
@@ -64,6 +69,88 @@ These files must be removed for KMeleon to properly function.$\n \
 Do you want to remove the stored user profiles?" IDNO KeepProfiles
 RMDir /r $APPDATADIR\KMeleon
 KeepProfiles:
+
+SectionEnd
+
+
+#------------------------------------------------------------------------------------------
+Section "K-Meleon loader"
+SectionIn 1
+
+SetOutPath $INSTDIR
+File ..\loader\loader.exe
+
+SectionEnd
+
+#------------------------------------------------------------------------------------------
+Section "History Plugin (recommended)"
+SectionIn 1
+
+SetOutPath $INSTDIR\kplugins
+File ..\kplugins\history.dll
+
+SectionEnd
+
+#------------------------------------------------------------------------------------------
+Section "Bitmapped Menus Plugin (recommended)"
+SectionIn 1
+
+SetOutPath $INSTDIR\kplugins
+File ..\kplugins\bmpmenu.dll
+
+SectionEnd
+
+#------------------------------------------------------------------------------------------
+Section "Rebar Menu Plugin (recommended)"
+SectionIn 1
+
+SetOutPath $INSTDIR\kplugins
+File ..\kplugins\rebarmenu.dll
+
+SectionEnd
+
+#------------------------------------------------------------------------------------------
+Section "Bookmarks Plugin (recommended for Netscape users)"
+SectionIn 1
+
+SetOutPath $INSTDIR\kplugins
+File ..\kplugins\bookmarks.dll
+
+SectionEnd
+
+#------------------------------------------------------------------------------------------
+Section "IE Favorites Plugin (recommended for IE users)"
+SectionIn 1
+
+SetOutPath $INSTDIR\kplugins
+File ..\kplugins\favorites.dll
+
+SectionEnd
+
+#------------------------------------------------------------------------------------------
+Section "Full Screen Plugin"
+SectionIn 1
+
+SetOutPath $INSTDIR\kplugins
+File ..\kplugins\fullscreen.dll
+
+SectionEnd
+
+#------------------------------------------------------------------------------------------
+Section "Macros Plugin"
+SectionIn 1
+
+SetOutPath $INSTDIR\kplugins
+File ..\kplugins\macros.dll
+
+SectionEnd
+
+#------------------------------------------------------------------------------------------
+Section "Winamp Control Plugin"
+SectionIn 1
+
+SetOutPath $INSTDIR\kplugins
+File ..\kplugins\winamp.dll
 
 SectionEnd
 
@@ -124,7 +211,7 @@ WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\K-Meleon" 
 Delete $TEMP\K-Meleon\*
 RMDir $TEMP\K-Meleon
 
-;Exec '"$INSTDIR\k-meleon.exe" "$INSTDIR\ReadMe.txt"'
+#;Exec '"$INSTDIR\k-meleon.exe" "$INSTDIR\ReadMe.txt"'
 ExecShell "open" "$INSTDIR\ReadMe.txt"
 
 SectionEnd
