@@ -116,7 +116,7 @@ BOOL BrowseForHotlist(char *file)
    ofn.Flags = OFN_PATHMUSTEXIST |  OFN_LONGNAMES | OFN_EXPLORER | OFN_HIDEREADONLY;
    ofn.lpstrTitle = PLUGIN_NAME;
    
-   if (GetOpenFileName(&ofn)) {
+   if (file && GetOpenFileName(&ofn)) {
       return true;
    }
    else {
@@ -146,8 +146,8 @@ void getHotlistFile() {
       strcat(tmp, "'\n");
       
       while (!bmFile && 
-				 MessageBox(NULL, tmp, PLUGIN_NAME, 
-								MB_ICONQUESTION | MB_YESNO) == IDNO) {
+             MessageBox(NULL, tmp, PLUGIN_NAME, 
+                        MB_ICONQUESTION | MB_YESNO) == IDNO) {
          if (!BrowseForHotlist(gHotlistFile)) {
             goto retry;
          }
@@ -268,7 +268,7 @@ void DoMenu(HMENU menu, char *param){
       }
       if (stricmp(param, "Config") == 0)
          command = nConfigCommand;
-      if (command) {
+      if (command && string && *string) {
          AppendMenu(menu, MF_STRING, command, string);
          return;
       }
@@ -276,7 +276,10 @@ void DoMenu(HMENU menu, char *param){
    }
    
    gMenuHotlist = menu;
-   nFirstHotlistPosition = GetMenuItemCount(menu);
+   if (gMenuHotlist)
+      nFirstHotlistPosition = GetMenuItemCount(gMenuHotlist);
+   else
+      return;
    
    int ret = -1;
    lpszHotlistFile = strdup(gHotlistFile);
@@ -329,21 +332,20 @@ void DoRebar(HWND rebarWnd) {
                                kPlugin.hDllInstance, NULL
                                );
       
-      
-      // Register the band name and child hwnd
-      kPlugin.kFuncs->RegisterBand(ghWndTB, TOOLBAND_NAME);
-      
       if (!ghWndTB){
          MessageBox(NULL, TOOLBAND_FAILED_TO_CREATE, NULL, 0);
          return;
       }
+      
+      // Register the band name and child hwnd
+      kPlugin.kFuncs->RegisterBand(ghWndTB, TOOLBAND_NAME);
       
       BuildRebar(ghWndTB);
       
       // Get the height of the toolbar.
       DWORD dwBtnSize = SendMessage(ghWndTB, TB_GETBUTTONSIZE, 0,0);
       
-      REBARBANDINFO rbBand;
+      REBARBANDINFO rbBand = {0};
       rbBand.cbSize = sizeof(REBARBANDINFO);  // Required
       rbBand.fMask  = //RBBIM_TEXT |
          RBBIM_STYLE | RBBIM_CHILD  | RBBIM_CHILDSIZE |
@@ -371,6 +373,7 @@ extern "C" {
    }
    
    KMELEON_PLUGIN int DrawBitmap(DRAWITEMSTRUCT *dis) {
+      if (dis==NULL || gImagelist==NULL) return 0;
       int top = (dis->rcItem.bottom - dis->rcItem.top - 16) / 2;
       top += dis->rcItem.top;
       

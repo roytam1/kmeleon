@@ -40,7 +40,7 @@ int ParseHotlistFolder(char **p, CBookmarkNode &node)
    int size = 0;
    char szName[HOTLIST_TITLE_LEN] = {0};
    
-   while (*p && **p && (q = strchr(*p, '\n')) != NULL) {
+   while (p && *p && **p && (q = strchr(*p, '\n')) != NULL) {
       *q++ = 0;
       
       while (isspace(**p))
@@ -64,9 +64,11 @@ int ParseHotlistFolder(char **p, CBookmarkNode &node)
    if (szName[0]) {
       CBookmarkNode * newNode = 
          new CBookmarkNode(0, szName, "", BOOKMARK_FOLDER, 0);
-      node.AddChild(newNode);
-      
-      size += ParseHotlist(p, *newNode);
+      if (newNode) {
+         node.AddChild(newNode);
+         
+         size += ParseHotlist(p, *newNode);
+      }
    }
    
    return size;
@@ -126,8 +128,12 @@ int ParseHotlistUrl(char **p, CBookmarkNode &node)
       int id = kPlugin.kFuncs->GetCommandIDs(1);
       CBookmarkNode * newNode = 
          new CBookmarkNode(id, szName[0] ? szName : szURL, szURL, BOOKMARK_BOOKMARK, 0, 0, 0);
-      node.AddChild(newNode);
-      return 1;
+      if (newNode) {
+         node.AddChild(newNode);
+         return 1;
+      } 
+      else
+         return 0;
    }
    
    return 0;
@@ -169,14 +175,16 @@ int op_readFile(char *file) {
    if (bmFile){
       long bmFileSize = FileSize(bmFile);
       
-      char *bmFileBuffer = new char[bmFileSize];
+      char *bmFileBuffer = new char[bmFileSize+1];
       if (bmFileBuffer){
          struct stat st = {0};
 
          fread(bmFileBuffer, sizeof(char), bmFileSize, bmFile);
+         bmFileBuffer[bmFileSize] = 0;
          
          // strtok(bmFileBuffer, "\n");
-         ret = ParseHotlist(&bmFileBuffer, gHotlistRoot);
+         char *szTmpBuf = bmFileBuffer;
+         ret = ParseHotlist(&szTmpBuf, gHotlistRoot);
          
          delete [] bmFileBuffer;
 

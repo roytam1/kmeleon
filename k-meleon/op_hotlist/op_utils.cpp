@@ -204,6 +204,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
                CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), 
                              title ? title : url, url, 
                              BOOKMARK_BOOKMARK, time(NULL));
+            if (!newNode)
+               return false;
+
             gHotlistRoot.AddChild(newNode);
             
             if (lpszHotlistFile && *lpszHotlistFile) {
@@ -302,16 +305,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
       if (hdr.code == TBN_DROPDOWN) {
          tbhdr = *((LPNMTOOLBAR)lParam);
          
-         // this is the little down arrow thing
-         if (tbhdr.iItem == nDropdownCommand){
-            RECT rc;
-            WPARAM index = 0;
-            SendMessage(tbhdr.hdr.hwndFrom, TB_GETITEMRECT, index, (LPARAM) &rc);
-            POINT pt = { rc.left, rc.bottom };
-            ClientToScreen(tbhdr.hdr.hwndFrom, &pt);
-            TrackPopupMenu((HMENU)gMenuHotlist, TPM_LEFTALIGN, pt.x, pt.y, 0, hWnd, NULL);
-         }
-         else if (IsMenu((HMENU)(tbhdr.iItem-SUBMENU_OFFSET))){
+         /*
+           // this is the little down arrow thing
+           if (tbhdr.iItem == nDropdownCommand){
+              RECT rc;
+              WPARAM index = 0;
+              SendMessage(tbhdr.hdr.hwndFrom, TB_GETITEMRECT, index, (LPARAM) &rc);
+              POINT pt = { rc.left, rc.bottom };
+              ClientToScreen(tbhdr.hdr.hwndFrom, &pt);
+              TrackPopupMenu((HMENU)gMenuHotlist, TPM_LEFTALIGN, pt.x, pt.y, 0, hWnd, NULL);
+            }
+            else 
+         */
+         if (IsMenu((HMENU)(tbhdr.iItem-SUBMENU_OFFSET))){
             char toolbarName[11];
             GetWindowText(tbhdr.hdr.hwndFrom, toolbarName, 10);
             if (strcmp(toolbarName, TOOLBAND_NAME) != 0) {
