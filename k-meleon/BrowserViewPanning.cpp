@@ -53,7 +53,7 @@ void CBrowserView::OnTimer(UINT nIDEvent)
    case 0x1:
       if(m_panning) {
          nsCOMPtr<nsIScrollable> s(do_QueryInterface(mWebBrowser));
-         
+
          if(!s) return;
 
          POINT p;
@@ -64,33 +64,36 @@ void CBrowserView::OnTimer(UINT nIDEvent)
          s->GetCurScrollPos(s->ScrollOrientation_X,&scroll_x);
          s->GetCurScrollPos(s->ScrollOrientation_Y,&scroll_y);
 
-         if(abs(p.y-m_panningPoint.y)>4){
-            if(p.y>m_panningPoint.y)	scroll_y+=(p.y-m_panningPoint.y)*2;
-            else scroll_y-=(m_panningPoint.y-p.y)*2;
+         int dx = (p.x-m_panningPoint.x)/5;
+         int dy = (p.y-m_panningPoint.y)/5;
+
+         if(dy!=0) {
+            if(dy>0)	scroll_y += dy*dy+7; // dy=1 => 8, which is the smallest number that makes it stcroll (it's in NS "twips", not pixels, apparently)
+            else scroll_y -= dy*dy+7;
+            s->SetCurScrollPosEx(scroll_x,scroll_y);
          }
 
-         if(abs(p.x-m_panningPoint.x)>4){
-            if(p.x>m_panningPoint.x)	scroll_x+=(p.x-m_panningPoint.x)*2;
-            else scroll_x-=(m_panningPoint.x-p.x)*2;
+         if(dx!=0) {
+            if(dx>0)	scroll_x += dx*dx+7;
+            else scroll_x -= dx*dx+7;
+            s->SetCurScrollPosEx(scroll_x,scroll_y);
          }
 
-         s->SetCurScrollPosEx(scroll_x,scroll_y);
-
-         int cursorx=p.x-m_panningPoint.x,cursory=p.y-m_panningPoint.y;
-         int cursor=IDC_PAN;
-         if(cursory<-4) cursor=IDC_PAN_UP;
-         if(cursory>4) cursor=IDC_PAN_DOWN;
-         if(cursorx<-4)
-         {
-            if(cursor==IDC_PAN_UP) cursor=IDC_PAN_UPLEFT;
-            else if(cursor==IDC_PAN_DOWN) cursor=IDC_PAN_DOWNLEFT;
-            else cursor=IDC_PAN_LEFT;
+         int cursor;
+         if (dx < 0) {
+            if (dy < 0) cursor = IDC_PAN_UPLEFT;
+            else if (dy > 0) cursor = IDC_PAN_DOWNLEFT;
+            else cursor = IDC_PAN_LEFT;
          }
-         if(cursorx>4)
-         {
-            if(cursor==IDC_PAN_UP) cursor=IDC_PAN_UPRIGHT;
-            else if(cursor==IDC_PAN_DOWN) cursor=IDC_PAN_DOWNRIGHT;
-            else cursor=IDC_PAN_RIGHT;
+         else if (dx > 0) {
+            if (dy < 0) cursor = IDC_PAN_UPRIGHT;
+            else if (dy > 0) cursor = IDC_PAN_DOWNRIGHT;
+            else cursor = IDC_PAN_RIGHT;
+         }
+         else {
+            if (dy < 0) cursor = IDC_PAN_UP;
+            else if (dy > 0) cursor = IDC_PAN_DOWN;
+            else cursor = IDC_PAN;
          }
 
          HCURSOR c=LoadCursor(theApp.m_hInstance,MAKEINTRESOURCE(cursor));
@@ -107,13 +110,14 @@ void CBrowserView::StartPanning()
 	m_panning = 1;
 	GetCursorPos(&m_panningPoint);
 	SetCapture();
-	SetTimer(0x1,10,NULL);
+	SetTimer(0x1,20,NULL);
 
 	SetFocus();
 }
 
 void CBrowserView::StopPanning()
 {
+   SetCursor(LoadCursor(NULL,IDC_ARROW));   // return to the normal cursor
 	ReleaseCapture();
 	KillTimer(0x1);
 	m_panning = 0;
