@@ -519,6 +519,10 @@ void SetForceCharset(char *aCharset) {
    theApp.m_pMostRecentBrowserFrame->m_wndBrowserView.ForceCharset(aCharset);
 }
 
+void SetCheck(int id, BOOL mark) {
+  theApp.menus.SetCheck(id, mark);
+}
+
 long CPlugins::SendMessage(const char *to, const char *from, const char *subject, long data1, long data2)
 {
    long retVal = 0;
@@ -565,7 +569,8 @@ kmeleonFunctions kmelFuncs = {
    DecodeUTF8,
    GetBrowserviewRect,
    GetMenu,
-   SetForceCharset
+   SetForceCharset,
+   SetCheck
 };
 
 BOOL CPlugins::TestLoad(const char *file, const char *description)

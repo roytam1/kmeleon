@@ -125,6 +125,8 @@ typedef struct {
 
    void (*SetForceCharset)(char *aCharset);
 
+   void (*SetCheck)(int id, BOOL mark=TRUE);
+
 } kmeleonFunctions;
 
 /*
