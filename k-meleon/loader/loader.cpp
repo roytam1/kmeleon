@@ -189,7 +189,7 @@ void OnClose (HWND hWnd) {
 
    DestroyMenu(popup);
 
-   ExitProcess(1);
+   PostQuitMessage(0);
 }
 
 LRESULT OnGetPersist() {
@@ -269,6 +269,9 @@ LRESULT CALLBACK WndProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
    case WM_CREATE:
       OnCreate(hWnd);
       break;
+
+   case WM_ENDSESSION:
+	  if (wParam == FALSE) break;
 
    case WM_CLOSE:
       OnClose(hWnd);
