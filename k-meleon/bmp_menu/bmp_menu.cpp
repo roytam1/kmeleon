@@ -42,7 +42,7 @@
 #define BMP_HEIGHT 16
 #define BMP_WIDTH  16
 int     SPACE_BETWEEN = 0; // the space between the text and the accelerator, set to the width of 'X'
-#define MARGIN_LEFT BMP_WIDTH + BMP_PADDING_LEFT + BMP_PADDING_RIGHT
+LONG MARGIN_LEFT = max(GetSystemMetrics(SM_CXMENUCHECK)+ BMP_PADDING_LEFT + BMP_PADDING_RIGHT, BMP_WIDTH + BMP_PADDING_LEFT + BMP_PADDING_RIGHT);
 #define MARGIN_RIGHT 16
 
 typedef int (*DRAWBITMAPPROC)(DRAWITEMSTRUCT *dis);
@@ -109,7 +109,7 @@ int   giMaxTextMeasured;    // the longest text (used by MeasureMenuItem)
 int   giMaxAccelMeasured;   // the longest accelerator (used by MeasureMenuItem)
 BOOL  gbDrawn = TRUE;      // after the menu is drawn, we should reset iMaxText and iMaxAccel
 BOOL  gbMeasureAccel = TRUE; // win98 workaround - win98 automatically adjusts measuremenuitem for the width of the accel
-
+HFONT gMenuFont = NULL;
 
 
 long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2)
@@ -260,15 +260,14 @@ int Init() {
    SystemParametersInfo(SPI_GETNONCLIENTMETRICS,0,(PVOID)&ncm,FALSE);
 
    HDC hDC = CreateCompatibleDC(NULL);
-   HFONT font = CreateFontIndirect(&ncm.lfMenuFont);
-   SelectObject(hDC, font); 
+   gMenuFont = CreateFontIndirect(&ncm.lfMenuFont);
+   SelectObject(hDC, gMenuFont); 
    
    SIZE size;
    GetTextExtentPoint32(hDC, "X", 1, &size);
 
    SPACE_BETWEEN = size.cx;
 
-   DeleteObject(font);
    DeleteDC(hDC);
 
 
@@ -326,7 +325,9 @@ int GetConfigFiles(configFileType **configFiles)
 void Quit(){
    if (hImageList)
       ImageList_Destroy(hImageList);
-
+   
+   DeleteObject(gMenuFont);
+   
    while(menus.size()) {
       menus.erase(menus.begin());
    }
@@ -385,17 +386,56 @@ int DrawBitmap(DRAWITEMSTRUCT *dis) {
    }
    else if (dis->itemState & ODS_CHECKED) {
 
-      // the check mark is only 6x6, so we need to offset its drawing position
+	   // The checkmark doesn't have a fixed size !!!
+	   HDC hdcMem = CreateCompatibleDC(dis->hDC);
+	   if (hdcMem) {
+
+		   int cxCheck = GetSystemMetrics(SM_CXMENUCHECK);
+		   int cyCheck = GetSystemMetrics(SM_CYMENUCHECK);
+		   HBITMAP hbmMono = CreateBitmap(cxCheck, cyCheck, 1, 1, NULL);
+		   if (hbmMono) {
+			   HBITMAP hbmPrev = (HBITMAP)SelectObject(hdcMem, (HGDIOBJ)hbmMono);
+			   if (hbmPrev) {
+				   RECT rc = { 0, 0, cxCheck, cyCheck };
+				   DrawFrameControl(hdcMem, &rc, DFC_MENU, DFCS_MENUCHECK);
+
+				   /*COLORREF text, bgk;
+				   if (dis->itemState & ODS_SELECTED) {
+					   text = GetSysColor(COLOR_HIGHLIGHTTEXT);
+					   bgk = GetSysColor(COLOR_HIGHLIGHT);
+				   } else {
+					   text = GetSysColor(COLOR_MENUTEXT);
+					   bgk = GetSysColor(COLOR_MENU);
+				   }
+
+				   if (dis->itemState & ODS_GRAYED) 
+					   text = GetSysColor(COLOR_GRAYTEXT);
+				*/
+				// COLORREF clrTextPrev = SetTextColor(dis->hDC, text );
+				 //COLORREF clrBkPrev = SetBkColor(dis->hDC, bgk );
+				   BitBlt(dis->hDC, dis->rcItem.left + BMP_PADDING_LEFT, 
+					   dis->rcItem.top + (dis->rcItem.bottom - dis->rcItem.top - cyCheck)/2, // Seems like it need some margin
+					   cxCheck, cyCheck, hdcMem, 0, 0, SRCCOPY);
+				 //SetBkColor(dis->hDC, clrBkPrev);
+				 //SetTextColor(dis->hDC, clrTextPrev);
+				   SelectObject(hdcMem, (HGDIOBJ)hbmPrev);
+			   }
+			   DeleteObject(hbmMono);
+		   }
+		   DeleteDC(hdcMem);
+	   }
+
+    /*  // the check mark is only 6x6, so we need to offset its drawing position
       if (dis->itemState & ODS_SELECTED)
          DrawCheckMark(dis->hDC, dis->rcItem.left+BMP_PADDING_LEFT+4, dis->rcItem.top+5, GetSysColor(COLOR_HIGHLIGHTTEXT));
       else
          DrawCheckMark(dis->hDC, dis->rcItem.left+BMP_PADDING_LEFT+4, dis->rcItem.top+5, GetSysColor(COLOR_MENUTEXT));
-      return BMP_WIDTH;
+      return BMP_WIDTH;*/
    }
-
+	
    return 0;
 }
-
+/*
 void DrawCheckMark(HDC pDC,int x,int y,COLORREF color) {
    SetPixel(pDC, x,   y+2, color);
    SetPixel(pDC, x,   y+3, color);
@@ -425,7 +465,7 @@ void DrawCheckMark(HDC pDC,int x,int y,COLORREF color) {
    SetPixel(pDC, x+6, y+1, color);
    SetPixel(pDC, x+6, y+2, color);
 }
-
+*/
 int GetMaxAccelWidth(HDC hDC, HMENU hMenu){
    MENUITEMINFO mmi;
    mmi.cbSize = sizeof(mmi);
@@ -487,10 +527,20 @@ void DrawMenuItem(DRAWITEMSTRUCT *dis) {
    if (dis->itemState & ODS_SELECTED) {
       FillRect(dis->hDC, &dis->rcItem, GetSysColorBrush(COLOR_HIGHLIGHT));
       SetTextColor(dis->hDC, GetSysColor(COLOR_HIGHLIGHTTEXT));
+	  SetBkColor(dis->hDC, GetSysColor(COLOR_HIGHLIGHT));
    }
    else {
       FillRect(dis->hDC, &dis->rcItem, GetSysColorBrush(COLOR_MENU));
+	  SetTextColor(dis->hDC, GetSysColor(COLOR_MENUTEXT));
+	  SetBkColor(dis->hDC, GetSysColor(COLOR_MENU));
    }
+
+   if (dis->itemState & ODS_GRAYED)
+	  if (dis->itemState & ODS_SELECTED)
+		 SetTextColor(dis->hDC, GetSysColor(COLOR_MENU));
+      else
+	     SetTextColor(dis->hDC, GetSysColor(COLOR_GRAYTEXT));
+		
    
    DRAWBITMAPPROC DrawProc;
    menuMap::iterator menuIter = menus.find(menu);
@@ -520,6 +570,7 @@ void DrawMenuItem(DRAWITEMSTRUCT *dis) {
       itemLen = strlen(string);
       tabLen = 0;
    }
+   /*
    if (dis->itemState & ODS_GRAYED) {
       // setup pen to draw selected, grayed text
       if (dis->itemState & ODS_SELECTED) {
@@ -527,6 +578,7 @@ void DrawMenuItem(DRAWITEMSTRUCT *dis) {
       }
       // Draw shadow for unselected grayed items
       else {
+		  // Problematic on XP
          dis->rcItem.left += 1;
          dis->rcItem.top += 1;
          
@@ -543,7 +595,7 @@ void DrawMenuItem(DRAWITEMSTRUCT *dis) {
          // set pen to draw normal text colour
          SetTextColor(dis->hDC, GetSysColor(COLOR_GRAYTEXT));
       }
-   }
+   }*/
    
    DrawText(dis->hDC, string, itemLen, &dis->rcItem, DT_SINGLELINE | DT_VCENTER | DT_NOCLIP );
    if (tab) {
@@ -553,13 +605,7 @@ void DrawMenuItem(DRAWITEMSTRUCT *dis) {
 
 void MeasureMenuItem(MEASUREITEMSTRUCT *mis, HDC hDC) {
    
-   NONCLIENTMETRICS ncm = {0};
-   ncm.cbSize = sizeof(ncm);
-   SystemParametersInfo(SPI_GETNONCLIENTMETRICS,0,(PVOID)&ncm,FALSE);
-
-   HFONT font;
-   font = CreateFontIndirect(&ncm.lfMenuFont);
-   HFONT oldFont = (HFONT)SelectObject(hDC, font); 
+   HFONT oldFont = (HFONT)SelectObject(hDC, gMenuFont); 
 
    SIZE size;
    char *string = (char *)mis->itemData;
@@ -615,7 +661,6 @@ void MeasureMenuItem(MEASUREITEMSTRUCT *mis, HDC hDC) {
       mis->itemHeight = 18;
 
    SelectObject(hDC, oldFont);
-   DeleteObject(font);
 }
 
 void UnSetOwnerDrawn(HMENU menu){
