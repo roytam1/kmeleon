@@ -71,6 +71,7 @@
 #undef DEBUG
 #endif
 
+#define MOZILLA_INTERNAL_API
 
 // Please don't change the line below, I have a perl script that depends on it being here :)
 // - BEGIN MOZILLA INCLUDES -
@@ -84,7 +85,7 @@
 #include "nsIDocShellTreeItem.h"
 
 // dom: 
-#include "nsIDOMNamedNodeMap.h"
+//#include "nsIDOMNamedNodeMap.h"
 #include "nsIDOMNode.h"
 #include "nsIDOMHTMLImageElement.h"
 #include "nsIDOMWindow.h"
@@ -143,6 +144,7 @@
 #include "nsXPIDLString.h"
 #include "nsReadableUtils.h"
 #include "nsString.h"
+#include "nsEmbedString.h"
 
 // uriloader: 
 #include "nsIWebProgress.h"
@@ -189,7 +191,7 @@
 #include "nsIServiceManager.h"
 #include "nsError.h"
 #include "nsObserverService.h"
-#include "imgIContainer.h"
+//#include "imgIContainer.h"
 #include "nsAppDirectoryServiceDefs.h"
 #include "nsIObserver.h"
 #include "nsCOMPtr.h"

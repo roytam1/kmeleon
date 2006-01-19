@@ -40,7 +40,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="xpcom.lib xpcomglue_s.lib embed_base_s.lib nspr4.lib plc4_s.lib"
+				AdditionalDependencies="xpcom.lib xpcom_core.lib embed_base_s.lib nspr4.lib"
 				OutputFile="\Program Files\K-Meleon\debug\$(ProjectName).dll"
 				SuppressStartupBanner="TRUE"
 				AdditionalLibraryDirectories="..\mozilla\mozilla\dist\lib_debug"
@@ -111,7 +111,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="xpcom.lib xpcomglue_s.lib embed_base_s.lib nspr4.lib plc4_s.lib"
+				AdditionalDependencies="xpcom.lib xpcom_core.lib embed_base_s.lib nspr4.lib"
 				OutputFile="\program files\k-meleon\release\k-meleon.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
@@ -706,27 +706,6 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="PromptService.cpp">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="1"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
-			</File>
-			<File
 				RelativePath="ReBarEx.cpp">
 				<FileConfiguration
 					Name="Debug|Win32">
@@ -813,27 +792,6 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="UnknownContentTypeHandler.cpp">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="1"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
-			</File>
-			<File
 				RelativePath="Utils.cpp">
 				<FileConfiguration
 					Name="Debug|Win32">
@@ -879,6 +837,58 @@
 						BrowseInformation="1"/>
 				</FileConfiguration>
 			</File>
+			<Filter
+				Name="Components"
+				Filter="">
+				<File
+					RelativePath=".\Components.cpp">
+				</File>
+				<File
+					RelativePath="PromptService.cpp">
+					<FileConfiguration
+						Name="Debug|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							AdditionalIncludeDirectories=""
+							PreprocessorDefinitions=""
+							BrowseInformation="1"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="1"
+							AdditionalIncludeDirectories=""
+							PreprocessorDefinitions=""
+							BrowseInformation="1"/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\TooltipsProvider.cpp">
+				</File>
+				<File
+					RelativePath="UnknownContentTypeHandler.cpp">
+					<FileConfiguration
+						Name="Debug|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="0"
+							AdditionalIncludeDirectories=""
+							PreprocessorDefinitions=""
+							BrowseInformation="1"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							Optimization="1"
+							AdditionalIncludeDirectories=""
+							PreprocessorDefinitions=""
+							BrowseInformation="1"/>
+					</FileConfiguration>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -947,9 +957,6 @@
 				RelativePath="ProfilesDlg.h">
 			</File>
 			<File
-				RelativePath="PromptService.h">
-			</File>
-			<File
 				RelativePath="ReBarEx.h">
 			</File>
 			<File
@@ -968,9 +975,6 @@
 				RelativePath="Tooltips.h">
 			</File>
 			<File
-				RelativePath="UnknownContentTypeHandler.h">
-			</File>
-			<File
 				RelativePath="Utils.h">
 			</File>
 			<File
@@ -979,6 +983,19 @@
 			<File
 				RelativePath="winEmbedFileLocProvider.h">
 			</File>
+			<Filter
+				Name="Components"
+				Filter="">
+				<File
+					RelativePath="PromptService.h">
+				</File>
+				<File
+					RelativePath=".\TooltipsProvider.h">
+				</File>
+				<File
+					RelativePath="UnknownContentTypeHandler.h">
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Resource Files"

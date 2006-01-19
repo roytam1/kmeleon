@@ -20,34 +20,8 @@
 
 #include "stdafx.h"
 
-// {0b666e3e-569a-462c-a7f0-b16bb15d42ff}
-#define NS_TOOLTIPTEXTPROVIDER_CID     \
-{ 0x0b666e3e, 0x569a, 0x462c, \
-   {0xa7, 0xf0, 0xb1, 0x6b, 0xb1, 0x5d, 0x42, 0xff} }
-static NS_DEFINE_CID(kTooltipTextProviderCID, NS_TOOLTIPTEXTPROVIDER_CID);
-
-class CTooltipTextProvider : public nsITooltipTextProvider {
-public:
-    NS_DEFINE_STATIC_CID_ACCESSOR( NS_TOOLTIPTEXTPROVIDER_CID );
-
-    // ctor/dtor
-    CTooltipTextProvider() {
-        NS_INIT_ISUPPORTS();
-    }
-    virtual ~CTooltipTextProvider() {
-    }
-
-    // This class implements the nsISupports interface functions.
-    NS_DECL_ISUPPORTS
-
-    // This class implements the nsITooltipTextProvider interface functions.
-    NS_DECL_NSITOOLTIPTEXTPROVIDER
-
-}; // CTooltipTextProvider
-
 
 nsresult NewTooltipTextProviderFactory(nsIFactory** aFactory);
-
 
 
 class CKmToolTip :  public CWnd {

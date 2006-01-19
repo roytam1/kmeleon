@@ -288,6 +288,7 @@
 #define IDS_PROFILE_SWITCH              61217
 #define IDS_OLD_PLUGIN                  61218
 #define IDS_DOWNLOAD_PROGRESS2          61219
+#define IDS_UNABLE_REGISTER_FACTORY     61228
 
 // Next default values for new objects
 // 
