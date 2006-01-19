@@ -221,11 +221,11 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
                   node->lastVisit = time(NULL);
                   bookmarksEdited = true;
                   if (GetKeyState(VK_CONTROL) & 0x80) {
-                     kPlugin.kFuncs->NavigateTo(node->url.c_str(), OPEN_BACKGROUND);
+                     kPlugin.kFuncs->NavigateTo(node->url.c_str(), OPEN_BACKGROUND, NULL);
                      TreeView_SelectItem(hTree, hItem);  // just to fire off a SELCHANGED notifier to update the status (last visited!)
                   }
                   else {
-                     kPlugin.kFuncs->NavigateTo(node->url.c_str(), OPEN_NORMAL);
+                     kPlugin.kFuncs->NavigateTo(node->url.c_str(), OPEN_NORMAL, NULL);
                      TreeView_SelectItem(hTree, hItem);  // just to fire off a SELCHANGED notifier to update the status (last visited!)
                      PostMessage(hWndFront, WM_COMMAND, wm_deferbringtotop, (LPARAM)NULL);
                   }
@@ -749,7 +749,7 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                if (node->type == BOOKMARK_BOOKMARK) {
                   node->lastVisit = time(NULL);
                   bookmarksEdited = true;
-                  kPlugin.kFuncs->NavigateTo(node->url.c_str(), OPEN_NORMAL);
+                  kPlugin.kFuncs->NavigateTo(node->url.c_str(), OPEN_NORMAL, NULL);
                   TreeView_SelectItem(hTree, hItem);  // just to fire off a SELCHANGED notifier to update the status (last visited!)
                   PostMessage(hWndFront, WM_COMMAND, wm_deferbringtotop, (LPARAM)NULL);
 
@@ -1012,16 +1012,16 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                wp.length = sizeof(wp);
                GetWindowPlacement(hDlg, &wp);
 
-               kPlugin.kFuncs->SetPreference(PREF_INT, PREFERENCE_EDIT_DLG_LEFT, &wp.rcNormalPosition.left);
-               kPlugin.kFuncs->SetPreference(PREF_INT, PREFERENCE_EDIT_DLG_TOP, &wp.rcNormalPosition.top);
+               kPlugin.kFuncs->SetPreference(PREF_INT, PREFERENCE_EDIT_DLG_LEFT, &wp.rcNormalPosition.left, FALSE);
+               kPlugin.kFuncs->SetPreference(PREF_INT, PREFERENCE_EDIT_DLG_TOP, &wp.rcNormalPosition.top, FALSE);
                int temp;
                temp = wp.rcNormalPosition.right - wp.rcNormalPosition.left;
-               kPlugin.kFuncs->SetPreference(PREF_INT, PREFERENCE_EDIT_DLG_WIDTH, &temp);
+               kPlugin.kFuncs->SetPreference(PREF_INT, PREFERENCE_EDIT_DLG_WIDTH, &temp, FALSE);
                temp = wp.rcNormalPosition.bottom - wp.rcNormalPosition.top;
-               kPlugin.kFuncs->SetPreference(PREF_INT, PREFERENCE_EDIT_DLG_HEIGHT, &temp);
-               kPlugin.kFuncs->SetPreference(PREF_BOOL, PREFERENCE_EDIT_ZOOM, &zoom);
+               kPlugin.kFuncs->SetPreference(PREF_INT, PREFERENCE_EDIT_DLG_HEIGHT, &temp, FALSE);
+               kPlugin.kFuncs->SetPreference(PREF_BOOL, PREFERENCE_EDIT_ZOOM, &zoom, FALSE);
                temp = (wp.showCmd == SW_SHOWMAXIMIZED);
-               kPlugin.kFuncs->SetPreference(PREF_BOOL, PREFERENCE_EDIT_MAX, &temp);
+               kPlugin.kFuncs->SetPreference(PREF_BOOL, PREFERENCE_EDIT_MAX, &temp, FALSE);
 
                UnhookWindowsHookEx(hHook);
                if (hWndFront)
@@ -1644,7 +1644,7 @@ static void OnRClick(HWND hTree)
             if (node->type == BOOKMARK_BOOKMARK) {
                node->lastVisit = time(NULL);
                bookmarksEdited = true;
-               kPlugin.kFuncs->NavigateTo(node->url.c_str(), OPEN_NORMAL);
+               kPlugin.kFuncs->NavigateTo(node->url.c_str(), OPEN_NORMAL, NULL);
                TreeView_SelectItem(hTree, hItem);  // just to fire off a SELCHANGED notifier to update the status (last visited!)
                PostMessage(hWndFront, WM_COMMAND, wm_deferbringtotop, (LPARAM)NULL);
             }
@@ -1656,7 +1656,7 @@ static void OnRClick(HWND hTree)
             if (node->type == BOOKMARK_BOOKMARK) {
                node->lastVisit = time(NULL);
                bookmarksEdited = true;
-               kPlugin.kFuncs->NavigateTo(node->url.c_str(), OPEN_BACKGROUND);
+               kPlugin.kFuncs->NavigateTo(node->url.c_str(), OPEN_BACKGROUND, NULL);
                TreeView_SelectItem(hTree, hItem);  // just to fire off a SELCHANGED notifier to update the status (last visited!)
             }
          }

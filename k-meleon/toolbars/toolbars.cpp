@@ -365,7 +365,7 @@ void DoRebar(HWND rebarWnd) {
 
 
       // Register the band name and child hwnd
-      kPlugin.kFuncs->RegisterBand(toolbar->hWnd, toolbar->sTitle);
+      kPlugin.kFuncs->RegisterBand(toolbar->hWnd, toolbar->sTitle, true);
 
       REBARBANDINFO rbBand;
       rbBand.cbSize = sizeof(REBARBANDINFO);  // Required

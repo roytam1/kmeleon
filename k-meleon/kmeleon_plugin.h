@@ -70,14 +70,14 @@ typedef struct {
    UINT (*GetCommandIDs)(int num);
 
    // changing windowstate will open the url in a current, new, or background window
-   void (*NavigateTo)(const char *url, int windowState, HWND mainWnd=NULL);
+   void (*NavigateTo)(const char *url, int windowState, HWND mainWnd/*=NULL*/);
 
    kmeleonDocInfo * (*GetDocInfo)(HWND mainWnd);
 
    // gets the preference, stores it in ret
    void (*GetPreference)(enum PREFTYPE type, char *preference, void *ret, void *defaultVal);
    // sets the preference
-   void (*SetPreference)(enum PREFTYPE type, char *preference, void *val, BOOL update = FALSE);
+   void (*SetPreference)(enum PREFTYPE type, char *preference, void *val, BOOL update /*= FALSE*/);
 
    // sets the status bar text
    void (*SetStatusBarText)(const char *s);
@@ -86,7 +86,7 @@ typedef struct {
 	void (*GotoHistoryIndex)(UINT index);
 
    // Register a rebar band
-   void (*RegisterBand) (HWND hWnd, char *name, int visibleOnMenu = true);
+   void (*RegisterBand) (HWND hWnd, char *name, int visibleOnMenu /*= true*/);
 
    /*
    CCS_NODIVIDER | CCS_NOPARENTALIGN | CCS_NORESIZE | //CCS_ADJUSTABLE |
@@ -103,7 +103,7 @@ typedef struct {
    0x0000994F
    */
 
-   HWND (*CreateToolbar) (HWND parentWnd, UINT style = 0x0000994F);
+   HWND (*CreateToolbar) (HWND parentWnd, UINT style/* = 0x0000994F*/);
 
 
    // get the value of an identifier, eg "ID_NAV_BACK"
@@ -126,11 +126,11 @@ typedef struct {
 
    void (*SetForceCharset)(char *aCharset);
 
-   void (*SetCheck)(int id, BOOL mark=TRUE);
+   void (*SetCheck)(int id, BOOL mark/*=TRUE*/);
 
    struct kmeleonPlugin * (*Load)(char *kplugin);
 
-   void (*ClearCache)(int cache=0); /* STORE_ANYWHERE (nsICache.h) */
+   void (*ClearCache)(int cache/*=0*/); /* STORE_ANYWHERE (nsICache.h) */
 
    void (*BroadcastMessage)(UINT Msg, WPARAM wParam, LPARAM lParam);
 

@@ -747,21 +747,21 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
 			parseError(WRONGARGS, "open", data, 1, nparam);
             return "";
          }
-         kFuncs->NavigateTo((char*)params[0].c_str(), OPEN_NORMAL);
+         kFuncs->NavigateTo((char*)params[0].c_str(), OPEN_NORMAL, NULL);
       }
       CMD(opennew) {
          if (nparam != 1) {  // opennew( $0 )
             parseError(WRONGARGS, "opennew", data, 1, nparam);
             return "";
          }
-         kFuncs->NavigateTo((char*)params[0].c_str(), OPEN_NEW);
+         kFuncs->NavigateTo((char*)params[0].c_str(), OPEN_NEW, NULL);
       }
       CMD(openbg) {
          if (nparam != 1) {  // openbg( $0 )
             parseError(WRONGARGS, "openbg", data, 1, nparam);
             return "";
          }
-         kFuncs->NavigateTo((char*)params[0].c_str(), OPEN_BACKGROUND);
+         kFuncs->NavigateTo((char*)params[0].c_str(), OPEN_BACKGROUND, NULL);
       }
       CMD(setpref)   {
          enum PREFTYPE preftype;

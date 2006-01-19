@@ -184,7 +184,7 @@ int Load(){
          gGeneratedByUs = true;
       }
    }
-   kPlugin.kFuncs->SetPreference(PREF_STRING, PREFERENCE_BOOKMARK_FILE, gBookmarkFile);
+   kPlugin.kFuncs->SetPreference(PREF_STRING, PREFERENCE_BOOKMARK_FILE, gBookmarkFile, FALSE);
 
    kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_TOOLBAR_FOLDER, gToolbarFolder, (char*)"");
    kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_TOOLBAR_ENABLED, &gToolbarEnabled, &gToolbarEnabled);
@@ -356,7 +356,7 @@ void DoRebar(HWND rebarWnd) {
    CopyRebar(hWndTmp, ghWndTB);
 
    // Register the band name and child hwnd
-   kPlugin.kFuncs->RegisterBand(hWndTmp, TOOLBAND_NAME);
+   kPlugin.kFuncs->RegisterBand(hWndTmp, TOOLBAND_NAME, true);
 
    // Get the height of the toolbar.
    DWORD dwBtnSize = SendMessage(hWndTmp, TB_GETBUTTONSIZE, 0,0);

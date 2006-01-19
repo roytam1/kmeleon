@@ -315,7 +315,7 @@ void DoRebar(HWND rebarWnd){
    }
 
    // Register the band name and child hwnd
-   kPlugin.kFuncs->RegisterBand(hwndTB, "Favorites");
+   kPlugin.kFuncs->RegisterBand(hwndTB, "Favorites", true);
 
    SetWindowText(hwndTB, TOOLBAND_LABEL);
 
@@ -635,7 +635,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
          return true;
       }
       if (command >= nFirstFavoriteCommand && command < (nFirstFavoriteCommand + MAX_FAVORITES)){
-         kPlugin.kFuncs->NavigateTo(GetURL(command-nFirstFavoriteCommand), OPEN_NORMAL);
+         kPlugin.kFuncs->NavigateTo(GetURL(command-nFirstFavoriteCommand), OPEN_NORMAL, NULL);
          return true;
       }
    }
@@ -686,7 +686,7 @@ BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 					switch (LOWORD(wParam)) {
 						case IDOK:
                      bRebarEnabled = SendDlgItemMessage(hWnd, IDC_REBARENABLED, BM_GETCHECK, 0, 0);
-                     kPlugin.kFuncs->SetPreference(PREF_BOOL, _T("kmeleon.plugins.favorites.rebar"), &bRebarEnabled);
+                     kPlugin.kFuncs->SetPreference(PREF_BOOL, _T("kmeleon.plugins.favorites.rebar"), &bRebarEnabled, FALSE);
                   case IDCANCEL:
                      SendMessage(hWnd, WM_CLOSE, 0, 0);
                }

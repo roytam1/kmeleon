@@ -158,8 +158,8 @@ LRESULT CHiddenWnd::OnSetPersist(WPARAM flags, LPARAM lParam) {
    return 0;
 }
 
-LRESULT CHiddenWnd::OnShowBrowser(char *URI, LPARAM lParam) {
-   ShowBrowser(URI);
+LRESULT CHiddenWnd::OnShowBrowser(WPARAM URI, LPARAM lParam) {
+   ShowBrowser((char*)URI);
 
    return 0;
 }

@@ -184,7 +184,7 @@ void DoRebar(HWND rebarWnd){
    }
 
    // Register the band name and child hwnd
-    kFuncs->RegisterBand(hwndTB, "Winamp");
+    kFuncs->RegisterBand(hwndTB, "Winamp", TRUE);
     
    //SetWindowText(hwndTB, "Winamp");
 

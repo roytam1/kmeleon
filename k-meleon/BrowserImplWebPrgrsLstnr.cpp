@@ -29,9 +29,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
  
-#ifdef _WINDOWS
-  #include "stdafx.h"
-#endif
+
+#include "stdafx.h"
+
 #include "BrowserImpl.h"
 #include "IBrowserFrameGlue.h"
 

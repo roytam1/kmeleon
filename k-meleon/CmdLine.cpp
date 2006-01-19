@@ -20,7 +20,7 @@ CCmdLine::~CCmdLine() {
       delete m_sProfilesDir;
 }
 
-CCmdLine::Initialize(char *cmdLine) {
+void CCmdLine::Initialize(char *cmdLine) {
    int len;
 
    m_sCmdLine = cmdLine;

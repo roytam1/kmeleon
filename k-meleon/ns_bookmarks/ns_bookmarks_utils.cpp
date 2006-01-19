@@ -93,21 +93,21 @@ BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
                   break;
                case IDOK:
                   gToolbarEnabled = SendDlgItemMessage(hWnd, IDC_REBARENABLED, BM_GETCHECK, 0, 0);
-                  kPlugin.kFuncs->SetPreference(PREF_BOOL, PREFERENCE_TOOLBAR_ENABLED, &gToolbarEnabled);
+                  kPlugin.kFuncs->SetPreference(PREF_BOOL, PREFERENCE_TOOLBAR_ENABLED, &gToolbarEnabled, FALSE);
 
                   GetDlgItemText(hWnd, IDC_BOOKMARKS_FILE, gBookmarkFile, MAX_PATH);
-                  kPlugin.kFuncs->SetPreference(PREF_STRING, PREFERENCE_BOOKMARK_FILE, gBookmarkFile);
+                  kPlugin.kFuncs->SetPreference(PREF_STRING, PREFERENCE_BOOKMARK_FILE, gBookmarkFile, FALSE);
 
                   gMaxMenuLength = GetDlgItemInt(hWnd, IDC_MAX_MENU_LENGTH, NULL, false);
                   if (gMaxMenuLength < 1) gMaxMenuLength = 20;
-                  kPlugin.kFuncs->SetPreference(PREF_INT, PREFERENCE_MAX_MENU_LENGTH, &gMaxMenuLength);
+                  kPlugin.kFuncs->SetPreference(PREF_INT, PREFERENCE_MAX_MENU_LENGTH, &gMaxMenuLength, FALSE);
 
                   gMenuAutoDetect = SendDlgItemMessage(hWnd, IDC_MENU_AUTODETECT, BM_GETCHECK, 0, 0);
-                  kPlugin.kFuncs->SetPreference(PREF_BOOL, PREFERENCE_MENU_AUTODETECT, &gMenuAutoDetect);
+                  kPlugin.kFuncs->SetPreference(PREF_BOOL, PREFERENCE_MENU_AUTODETECT, &gMenuAutoDetect, FALSE);
 
                   gMaxTBSize = GetDlgItemInt(hWnd, IDC_MAX_TB_SIZE, NULL, false);
                   if (gMaxTBSize < 1) gMaxTBSize = 20;
-                  kPlugin.kFuncs->SetPreference(PREF_INT, PREFERENCE_MAX_TB_SIZE, &gMaxTBSize);
+                  kPlugin.kFuncs->SetPreference(PREF_INT, PREFERENCE_MAX_TB_SIZE, &gMaxTBSize, FALSE);
 
                   // rebuild menu and toolbars to provide instant gratification to users
                   Rebuild();
@@ -416,7 +416,7 @@ void SaveBM(const char *file)
    gBookmarksModified = false;
 
    /* this is to support both NS 4 and NS 6 style bookmarks */
-   kPlugin.kFuncs->SetPreference(PREF_STRING, PREFERENCE_TOOLBAR_FOLDER, (void *)gBookmarkRoot.FindSpecialNode(BOOKMARK_FLAG_TB)->text.c_str());
+   kPlugin.kFuncs->SetPreference(PREF_STRING, PREFERENCE_TOOLBAR_FOLDER, (void *)gBookmarkRoot.FindSpecialNode(BOOKMARK_FLAG_TB)->text.c_str(), FALSE);
 
    ReleaseMutex(ghMutex);
 }
@@ -1009,18 +1009,18 @@ void OpenURL(char *url)
 
         switch (idOpen) {
         case ID_OPEN_LINK:
-            kPlugin.kFuncs->NavigateTo(url, OPEN_NORMAL);
+            kPlugin.kFuncs->NavigateTo(url, OPEN_NORMAL, NULL);
             return;
         case ID_OPEN_LINK_IN_BACKGROUND:
-            kPlugin.kFuncs->NavigateTo(url, OPEN_BACKGROUND);
+            kPlugin.kFuncs->NavigateTo(url, OPEN_BACKGROUND, NULL);
             return;
         case ID_OPEN_LINK_IN_NEW_WINDOW:
-            kPlugin.kFuncs->NavigateTo(url, OPEN_NEW);
+            kPlugin.kFuncs->NavigateTo(url, OPEN_NEW, NULL);
             return;
         }
     }
 
-    kPlugin.kFuncs->NavigateTo(url, OPEN_NORMAL);
+    kPlugin.kFuncs->NavigateTo(url, OPEN_NORMAL, NULL);
 }
 
 
