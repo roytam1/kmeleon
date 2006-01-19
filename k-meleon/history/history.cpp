@@ -195,7 +195,7 @@ BOOL CALLBACK PrefDlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 
                   case IDOK:
                      nTmp = GetDlgItemInt(hWnd, IDC_EXPIRE_DAYS, NULL, TRUE);
-                     kPlugin.kFuncs->SetPreference(PREF_INT, PREF_BROWSER_HISTORY_EXPIRE_DAYS, &nTmp);
+                     kPlugin.kFuncs->SetPreference(PREF_INT, PREF_BROWSER_HISTORY_EXPIRE_DAYS, &nTmp, FALSE);
                      // fall through...
 
                   case IDCANCEL:

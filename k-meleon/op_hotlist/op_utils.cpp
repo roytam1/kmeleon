@@ -461,18 +461,18 @@ void OpenURL(char *url)
 
         switch (idOpen) {
         case ID_OPEN_LINK:
-            kPlugin.kFuncs->NavigateTo(url, OPEN_NORMAL);
+            kPlugin.kFuncs->NavigateTo(url, OPEN_NORMAL, NULL);
             return;
         case ID_OPEN_LINK_IN_BACKGROUND:
-            kPlugin.kFuncs->NavigateTo(url, OPEN_BACKGROUND);
+            kPlugin.kFuncs->NavigateTo(url, OPEN_BACKGROUND, NULL);
             return;
         case ID_OPEN_LINK_IN_NEW_WINDOW:
-            kPlugin.kFuncs->NavigateTo(url, OPEN_NEW);
+            kPlugin.kFuncs->NavigateTo(url, OPEN_NEW, NULL);
             return;
         }
     }
 
-    kPlugin.kFuncs->NavigateTo(url, OPEN_NORMAL);
+    kPlugin.kFuncs->NavigateTo(url, OPEN_NORMAL, NULL);
 }
 
 void Destroy(HWND hWnd){

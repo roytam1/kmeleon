@@ -217,13 +217,13 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
          ghParent = ghCurHwnd;
          bBack = 0;
          bLayer = 1;
-         kPlugin.kFuncs->NavigateTo((char *)data1, OPEN_BACKGROUND);
+         kPlugin.kFuncs->NavigateTo((char *)data1, OPEN_BACKGROUND, NULL);
       }
       else if (stricmp(subject, "OpenURLBg") == 0) {
          ghParent = ghCurHwnd;
          bBack = 1;
          bLayer = 1;
-         kPlugin.kFuncs->NavigateTo((char *)data1, OPEN_BACKGROUND);
+         kPlugin.kFuncs->NavigateTo((char *)data1, OPEN_BACKGROUND, NULL);
       }
       else if (stricmp(subject, "NumberOfWindows") == 0) {
          int frames = 0;
@@ -346,7 +346,7 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
                   bBack = 1;
                   bLayer = 1;
                   numLayers++;
-                  kPlugin.kFuncs->NavigateTo(cPtr, OPEN_BACKGROUND);
+                  kPlugin.kFuncs->NavigateTo(cPtr, OPEN_BACKGROUND, NULL);
                }
 
                if (p)
@@ -700,7 +700,7 @@ BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
                switch (LOWORD(wParam)) {
                   case IDOK:
                      bRebarEnabled = SendDlgItemMessage(hWnd, IDC_REBARENABLED, BM_GETCHECK, 0, 0);
-                     kPlugin.kFuncs->SetPreference(PREF_BOOL, PREFERENCE_REBAR_ENABLED, &bRebarEnabled);
+                     kPlugin.kFuncs->SetPreference(PREF_BOOL, PREFERENCE_REBAR_ENABLED, &bRebarEnabled, FALSE);
                   case IDCANCEL:
                      SendMessage(hWnd, WM_CLOSE, 0, 0);
                }
@@ -1057,12 +1057,12 @@ void DoRebar(HWND rebarWnd){
       char c = szTitle[len-1];
       if (c == ':')
          szTitle[len-1] = 0;
-      kPlugin.kFuncs->RegisterBand(ghWndTB, szTitle);
+      kPlugin.kFuncs->RegisterBand(ghWndTB, szTitle, true);
       if (c == ':')
          strcat(szTitle, ":");
    }
    else
-      kPlugin.kFuncs->RegisterBand(ghWndTB, "Layers");
+      kPlugin.kFuncs->RegisterBand(ghWndTB, "Layers", true);
    
    BuildRebar(ghWndTB, NULL);
    
@@ -1383,7 +1383,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                         char *cTmp = new char[12 + strlen(dInfo->url)+1];
                         strcpy(cTmp, "view-source:");
                         strcat(cTmp, dInfo->url);
-                        kPlugin.kFuncs->NavigateTo(cTmp, OPEN_BACKGROUND);
+                        kPlugin.kFuncs->NavigateTo(cTmp, OPEN_BACKGROUND, NULL);
                         delete cTmp;
                         return 0;
                      }
@@ -1508,23 +1508,23 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                   
                   case PREF_NEW_WINDOW_CURRENT:
                      dInfo = kPlugin.kFuncs->GetDocInfo(hWnd);
-                     kPlugin.kFuncs->NavigateTo((dInfo && dInfo->url) ? dInfo->url : "", command == id_open_new_layer ? OPEN_BACKGROUND : OPEN_NEW);
+                     kPlugin.kFuncs->NavigateTo((dInfo && dInfo->url) ? dInfo->url : "", command == id_open_new_layer ? OPEN_BACKGROUND : OPEN_NEW, NULL);
                      break;
                      
                   case PREF_NEW_WINDOW_HOME:
                      kPlugin.kFuncs->GetPreference(PREF_STRING, "kmeleon.general.homePage", 
                                                    &cRetval, &cRetval);
-                     kPlugin.kFuncs->NavigateTo(cRetval, command == id_open_new_layer ? OPEN_BACKGROUND : OPEN_NEW);
+                     kPlugin.kFuncs->NavigateTo(cRetval, command == id_open_new_layer ? OPEN_BACKGROUND : OPEN_NEW, NULL);
                      break;
                      
                   case PREF_NEW_WINDOW_BLANK:
-                     kPlugin.kFuncs->NavigateTo("about:blank", command == id_open_new_layer ? OPEN_BACKGROUND : OPEN_NEW);
+                     kPlugin.kFuncs->NavigateTo("about:blank", command == id_open_new_layer ? OPEN_BACKGROUND : OPEN_NEW, NULL);
                      break;
                      
                   case PREF_NEW_WINDOW_URL:
                      kPlugin.kFuncs->GetPreference(PREF_STRING, "kmeleon.display.newWindowURL", 
                                                    &cRetval, &cRetval);
-                     kPlugin.kFuncs->NavigateTo(cRetval, command == id_open_new_layer ? OPEN_BACKGROUND : OPEN_NEW);
+                     kPlugin.kFuncs->NavigateTo(cRetval, command == id_open_new_layer ? OPEN_BACKGROUND : OPEN_NEW, NULL);
                      break;
                }
                
@@ -1575,7 +1575,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                      bLayer = 0;
                      ghParent = NULL;
                      ghCurHwnd = NULL;
-                     kPlugin.kFuncs->NavigateTo((char*)"", OPEN_BACKGROUND);
+                     kPlugin.kFuncs->NavigateTo((char*)"", OPEN_BACKGROUND, NULL);
                   }
                   
                   bIgnore = true;
@@ -1675,7 +1675,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                   bDoClose = 0;
                   if (pLayer)
                      pLayer->state = Closed;
-                  kPlugin.kFuncs->NavigateTo((char*)"", OPEN_BACKGROUND);
+                  kPlugin.kFuncs->NavigateTo((char*)"", OPEN_BACKGROUND, NULL);
                   if (bCaught)
                      CallWindowProc((WNDPROC)KMeleonWndProc, hWnd, WM_CLOSE, 0, 0);
                   else

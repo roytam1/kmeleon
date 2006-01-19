@@ -254,7 +254,7 @@ void getHotlistFile() {
       fclose(bmFile);
    
    if (!bIgnore)
-      kPlugin.kFuncs->SetPreference(PREF_STRING, PREFERENCE_HOTLIST_FILE, gHotlistFile);
+      kPlugin.kFuncs->SetPreference(PREF_STRING, PREFERENCE_HOTLIST_FILE, gHotlistFile, FALSE);
 }
 
 #include "../findskin.cpp"
@@ -446,7 +446,7 @@ BOOL CALLBACK PrefDlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
                            gHotlistRoot.next = NULL;
                            if (op_readFile(lpszHotlistFile)) {
                               strcpy(gHotlistFile, szTmp);
-                              kPlugin.kFuncs->SetPreference(PREF_STRING, PREFERENCE_HOTLIST_FILE, szTmp);
+                              kPlugin.kFuncs->SetPreference(PREF_STRING, PREFERENCE_HOTLIST_FILE, szTmp, FALSE);
                            } else {
                               free(lpszHotlistFile);
                               lpszHotlistFile = strdup(gHotlistFile);
@@ -464,14 +464,14 @@ BOOL CALLBACK PrefDlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 
                      nTmp = GetDlgItemInt(hWnd, IDC_MAX_MENU_LENGTH, NULL, TRUE);
                      if (nTmp < 1) nTmp = 20;
-                     kPlugin.kFuncs->SetPreference(PREF_INT, PREFERENCE_MENU_MAXLEN, &nTmp);
+                     kPlugin.kFuncs->SetPreference(PREF_INT, PREFERENCE_MENU_MAXLEN, &nTmp, FALSE);
                      if (nTmp != gMaxMenuLength) {
                         gMaxMenuLength = nTmp;
                         rebuild = 1;
                      }
 
                      nTmp = SendDlgItemMessage(hWnd, IDC_MENU_AUTODETECT, BM_GETCHECK, 0, 0);
-                     kPlugin.kFuncs->SetPreference(PREF_BOOL, PREFERENCE_MENU_AUTOLEN, &nTmp);
+                     kPlugin.kFuncs->SetPreference(PREF_BOOL, PREFERENCE_MENU_AUTOLEN, &nTmp, FALSE);
                      if (nTmp != gMenuAutoDetect) {
                         gMenuAutoDetect = nTmp;
                         rebuild = 1;
@@ -494,20 +494,20 @@ BOOL CALLBACK PrefDlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
                         if (nTmp == BST_CHECKED)
                            sorting = 8*sorting + 1;
 
-                        kPlugin.kFuncs->SetPreference(PREF_INT, PREFERENCE_MENU_SORTORDER, &sorting);
+                        kPlugin.kFuncs->SetPreference(PREF_INT, PREFERENCE_MENU_SORTORDER, &sorting, FALSE);
                         gMenuSortOrder = sorting;
                         rebuild = 1;
                      }
 
                      nTmp = SendDlgItemMessage(hWnd, IDC_REBARENABLED, BM_GETCHECK, 0, 0);
-                     kPlugin.kFuncs->SetPreference(PREF_BOOL, PREFERENCE_REBAR_ENABLED, &nTmp);
+                     kPlugin.kFuncs->SetPreference(PREF_BOOL, PREFERENCE_REBAR_ENABLED, &nTmp, FALSE);
 
                      nTmp = GetDlgItemInt(hWnd, IDC_MIN_TB_SIZE, NULL, TRUE);
                      if (nTmp < 1) nTmp = 0;
-                     kPlugin.kFuncs->SetPreference(PREF_INT, PREFERENCE_BUTTON_MINWIDTH, &nTmp);
+                     kPlugin.kFuncs->SetPreference(PREF_INT, PREFERENCE_BUTTON_MINWIDTH, &nTmp, FALSE);
 
                      nTmp = GetDlgItemInt(hWnd, IDC_MAX_TB_SIZE, NULL, TRUE);
-                     kPlugin.kFuncs->SetPreference(PREF_INT, PREFERENCE_BUTTON_MAXWIDTH, &nTmp);
+                     kPlugin.kFuncs->SetPreference(PREF_INT, PREFERENCE_BUTTON_MAXWIDTH, &nTmp, FALSE);
 
                      if (rebuild)
                         RebuildMenu();
@@ -687,7 +687,7 @@ void DoRebar(HWND rebarWnd) {
       pNewTB = NULL;
 
       // Register the band name and child hwnd
-      kPlugin.kFuncs->RegisterBand(hWndTB, TOOLBAND_NAME);
+      kPlugin.kFuncs->RegisterBand(hWndTB, TOOLBAND_NAME, true);
       
       // Add the band that has the toolbar.
       SendMessage(rebarWnd, RB_INSERTBAND, (WPARAM)-1, (LPARAM)&rbBand);

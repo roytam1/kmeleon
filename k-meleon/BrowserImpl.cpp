@@ -68,9 +68,9 @@
 //			implementation details
 //
 
-#ifdef _WINDOWS
-  #include "stdafx.h"
-#endif
+
+#include "stdafx.h"
+
 
 #include "nsIDOMWindow.h"
 #include "BrowserImpl.h"
