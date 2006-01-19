@@ -957,6 +957,7 @@ BEGIN
     IDS_PERCENT_OF_FILE     "%d%% of %s"
     IDS_PROFILE_SWITCH      "Do you want to close all windows in order to switch the profile?\nThis will cancel any files being downloaded."
     IDS_OLD_PLUGIN          "Sorry, ""%s"" was compiled for an older version of K-Meleon.\nChanges in the Plugin API have caused this plugin to not function any more.  Please download a newer version of the plugin."
+   IDS_UNABLE_REGISTER_FACTORY "Unable to register factory!"
 END
 
 #endif    // English (U.S.) resources

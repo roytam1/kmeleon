@@ -97,22 +97,6 @@ static char THIS_FILE[] = __FILE__;
 #define MENU_CONFIG_FILE "menus.cfg"
 #define ACCEL_CONFIG_FILE "accel.cfg"
 
-// this is for overriding the Mozilla default PromptService component
-//#define kComponentsLibname "kmeleonComponents.dll"
-
-#define NS_PROMPTSERVICE_CID \
-{0xa2112d6a, 0x0e28, 0x421f, {0xb4, 0x6a, 0x25, 0xc0, 0xb3, 0x8, 0xcb, 0xd0}}
-static NS_DEFINE_CID(kPromptServiceCID, NS_PROMPTSERVICE_CID);
-
-// this is for overriding the Mozilla default HelperAppLauncherDialog
-#define NS_HELPERAPPLAUNCHERDIALOG_CID \
-{0xf68578eb, 0x6ec2, 0x4169, {0xae, 0x19, 0x8c, 0x62, 0x43, 0xf0, 0xab, 0xe1}}
-static NS_DEFINE_CID(kHelperAppLauncherDialogCID, NS_HELPERAPPLAUNCHERDIALOG_CID);
-
-#define NS_DOWNLOAD_CID \
-{ 0xe3fa9d0a, 0x1dd1, 0x11b2, { 0xbd, 0xef, 0x8c, 0x72, 0x0b, 0x59, 0x74, 0x45 } }
-static NS_DEFINE_CID(kDownloadCID, NS_DOWNLOAD_CID);
-
 BEGIN_MESSAGE_MAP(CMfcEmbedApp, CWinApp)
 //{{AFX_MSG_MAP(CMfcEmbedApp)
 ON_COMMAND(ID_NEW_BROWSER, OnNewBrowser)
@@ -136,74 +120,6 @@ CMfcEmbedApp::CMfcEmbedApp()
 }
 
 CMfcEmbedApp theApp;
-
-/* Some Gecko interfaces are implemented as components, automatically
-registered at application initialization. nsIPrompt is an example:
-the default implementation uses XUL, not native windows. Embedding
-apps can override the default implementation by implementing the
-nsIPromptService interface and registering a factory for it with
-the same CID and Contract ID as the default's.
-
-  Note that this example implements the service in a separate DLL,
-  replacing the default if the override DLL is present. This could
-  also have been done in the same module, without a separate DLL.
-  See the PowerPlant example for, well, an example.
-*/
-nsresult CMfcEmbedApp::OverrideComponents()
-{
-   nsresult rv = NS_OK;
-   
-   // replace Mozilla's default PromptService with our own, if the
-   // expected override DLL is present
-   /*
-   Brian - 1/8/01
-      Moved the prompt stuff back into the main exe since
-      it's a pain in the ass having it outside the exe
-   */
-
-   nsCOMPtr<nsIFactory> promptFactory;
-   rv = NS_NewPromptServiceFactory(getter_AddRefs(promptFactory));
-   if (NS_SUCCEEDED(rv)) {
-      nsComponentManager::RegisterFactory(kPromptServiceCID,
-         "Prompt Service",
-         "@mozilla.org/embedcomp/prompt-service;1",
-         promptFactory,
-         PR_TRUE);
-   }
-
-   nsCOMPtr<nsIFactory> helperAppDlgFactory;
-   rv = NewUnknownContentHandlerFactory(getter_AddRefs(helperAppDlgFactory));
-   if (NS_SUCCEEDED(rv)) {
-      nsComponentManager::RegisterFactory(kHelperAppLauncherDialogCID,
-         "Helper App Launcher Dialog",
-         "@mozilla.org/helperapplauncherdialog;1",
-         helperAppDlgFactory,
-         PR_TRUE); // replace existing
-   }
-
-   nsCOMPtr<nsIFactory> dlFactory;
-   rv = NewDownloadFactory(getter_AddRefs(dlFactory));
-   if (NS_SUCCEEDED(rv)) {
-      nsComponentManager::RegisterFactory(kDownloadCID,
-         "Download",
-         NS_DOWNLOAD_CONTRACTID,
-         dlFactory,
-         PR_TRUE); // replace existing
-   }
-
-   nsCOMPtr<nsIFactory> tooltipTextProviderFactory;
-   rv = NewTooltipTextProviderFactory(getter_AddRefs(tooltipTextProviderFactory));
-   if (NS_SUCCEEDED(rv)) {
-      nsComponentManager::RegisterFactory(kTooltipTextProviderCID,
-         "Tooltip Text Provider",
-         "@mozilla.org/embedcomp/tooltiptextprovider;1",
-         tooltipTextProviderFactory,
-         PR_TRUE); // replace existing
-   }
-   
-   return rv;
-}
-
 
 static NS_IMETHODIMP
 RefreshPlugins(PRBool aReloadPages)

@@ -30,6 +30,29 @@
 
 class nsIFactory;
 
+#include "nsIPromptService.h"
+#include "nsIWindowWatcher.h"
+#include "nsEmbedCID.h"
+
+#define NS_PROMPTSERVICE_CID \
+{0xa2112d6a, 0x0e28, 0x421f, {0xb4, 0x6a, 0x25, 0xc0, 0xb3, 0x8, 0xcb, 0xd0}}
+static NS_DEFINE_CID(kPromptServiceCID, NS_PROMPTSERVICE_CID);
+
+class CPromptService: public nsIPromptService
+
+{
+public:
+                 CPromptService();
+  virtual       ~CPromptService();
+
+  NS_DECL_ISUPPORTS
+  NS_DECL_NSIPROMPTSERVICE
+  
+private:
+  nsCOMPtr<nsIWindowWatcher> mWWatch;
+  CWnd *CWndForDOMWindow(nsIDOMWindow *aWindow);
+};
+
 // factory creator, in hard and soft link formats
 extern "C" NS_EXPORT nsresult NS_NewPromptServiceFactory(nsIFactory** aFactory);
 typedef nsresult (__cdecl *MakeFactoryType)(nsIFactory **);
