@@ -77,7 +77,6 @@
 
 CBrowserImpl::CBrowserImpl()
 {
-    NS_INIT_ISUPPORTS();
 
     m_pBrowserFrameGlue = NULL;
     mWebBrowser = nsnull;
@@ -261,6 +260,8 @@ NS_IMETHODIMP CBrowserImpl::ShowAsModal(void)
                     break;
                 }
             }
+			// Avoid getting stuck
+			if (!IsWindow(h)) { aRunCondition = PR_FALSE; break;}
             
             if (!GetMessage(&msg, NULL, 0, 0)) {
                 // WM_QUIT
