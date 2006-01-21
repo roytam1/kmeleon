@@ -353,6 +353,7 @@ protected:
     afx_msg void ToggleToolBar(UINT uID);
     afx_msg void ToggleToolbarLock();
     afx_msg void OnUpdateToggleToolbarLock(CCmdUI* pCmdUI);
+	afx_msg void OnUpdateToolBarMenu(CCmdUI*);
     //}}AFX_MSG
     DECLARE_MESSAGE_MAP()
 };

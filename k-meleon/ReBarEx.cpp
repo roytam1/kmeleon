@@ -140,10 +140,6 @@ void CReBarEx::ShowBand(int index, BOOL visibility) {
 void CReBarEx::SetVisibility(int index, BOOL visibility) {
    GetReBarCtrl().ShowBand(FindByIndex(index), visibility);
 
-   if (m_index[index]->visibility)
-      CheckMenuItem(m_menu, index+TOOLBAR_MENU_START_ID, MF_BYCOMMAND | MF_UNCHECKED);
-   else
-      CheckMenuItem(m_menu, index+TOOLBAR_MENU_START_ID, MF_BYCOMMAND | MF_CHECKED);
 
    DrawMenuBar();
 
