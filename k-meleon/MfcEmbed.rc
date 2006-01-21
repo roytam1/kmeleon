@@ -1,4 +1,4 @@
-//Microsoft Developer Studio generated resource script.
+// Microsoft Visual C++ generated resource script.
 //
 #include "resource.h"
 
@@ -27,18 +27,18 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 // TEXTINCLUDE
 //
 
-1 TEXTINCLUDE DISCARDABLE 
+1 TEXTINCLUDE 
 BEGIN
     "resource.h\0"
 END
 
-2 TEXTINCLUDE DISCARDABLE 
+2 TEXTINCLUDE 
 BEGIN
     "#include ""afxres.h""\r\n"
     "\0"
 END
 
-3 TEXTINCLUDE DISCARDABLE 
+3 TEXTINCLUDE 
 BEGIN
     "#define _AFX_NO_SPLITTER_RESOURCES\r\n"
     "#define _AFX_NO_OLE_RESOURCES\r\n"
@@ -64,8 +64,8 @@ END
 // Dialog
 //
 
-IDD_ABOUTBOX DIALOG DISCARDABLE  0, 0, 228, 260
-STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+IDD_ABOUTBOX DIALOG  0, 0, 228, 260
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "About K-Meleon"
 FONT 8, "MS Sans Serif"
 BEGIN
@@ -78,8 +78,8 @@ BEGIN
                     ES_READONLY
 END
 
-IDD_PROFILES DIALOG DISCARDABLE  0, 0, 193, 110
-STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+IDD_PROFILES DIALOG  0, 0, 193, 110
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Manage Profiles"
 FONT 8, "MS Sans Serif"
 BEGIN
@@ -94,8 +94,8 @@ BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,133,89,50,14
 END
 
-IDD_PROFILE_NEW DIALOG DISCARDABLE  0, 0, 177, 79
-STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+IDD_PROFILE_NEW DIALOG  0, 0, 177, 79
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "New Profile"
 FONT 8, "MS Sans Serif"
 BEGIN
@@ -108,8 +108,8 @@ BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,120,58,50,14
 END
 
-IDD_PROFILE_RENAME DIALOG DISCARDABLE  0, 0, 177, 71
-STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+IDD_PROFILE_RENAME DIALOG  0, 0, 177, 71
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Rename Profile"
 FONT 8, "MS Sans Serif"
 BEGIN
@@ -120,7 +120,7 @@ BEGIN
 END
 
 IDD_PREFERENCES DIALOGEX 0, 0, 345, 235
-STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_CONTROLPARENT
 CAPTION "Preferences"
 FONT 8, "MS Sans Serif", 0, 0, 0x1
@@ -134,7 +134,7 @@ BEGIN
 END
 
 IDD_PREFERENCES_DISPLAY DIALOGEX 0, 0, 271, 204
-STYLE WS_CHILD
+STYLE DS_SETFONT | WS_CHILD
 EXSTYLE WS_EX_CLIENTEDGE | WS_EX_CONTROLPARENT
 FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
@@ -152,9 +152,8 @@ BEGIN
     CONTROL         "&URL",IDC_RADIO_URL,"Button",BS_AUTORADIOBUTTON,139,101,
                     30,8
     EDITTEXT        IDC_EDIT_URL,171,99,87,12,ES_AUTOHSCROLL | WS_GROUP
-    COMBOBOX        IDC_COMBO_SKIN,17,140,241,121,CBS_DROPDOWNLIST | WS_VSCROLL | 
-                    WS_GROUP | WS_TABSTOP
-//    PUSHBUTTON      "B&rowse...",IDC_BUTTON_BROWSE,219,140,39,14
+    COMBOBOX        IDC_COMBO_SKIN,17,140,241,121,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_GROUP | WS_TABSTOP
     CONTROL         "Show &Toolbar Background",IDC_CHECK_TOOLBAR_BACKGROUND,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,159,137,10
     GROUPBOX        "Skin",IDC_STATIC,4,125,263,52
@@ -165,7 +164,7 @@ BEGIN
 END
 
 IDD_PREFERENCES_PROXY DIALOGEX 0, 0, 271, 204
-STYLE WS_CHILD
+STYLE DS_SETFONT | WS_CHILD
 EXSTYLE WS_EX_CLIENTEDGE | WS_EX_CONTROLPARENT
 FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
@@ -211,7 +210,7 @@ BEGIN
 END
 
 IDD_PREFERENCES_GENERAL DIALOGEX 0, 0, 271, 204
-STYLE WS_CHILD
+STYLE DS_SETFONT | WS_CHILD
 EXSTYLE WS_EX_CLIENTEDGE | WS_EX_CONTROLPARENT
 FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
@@ -242,7 +241,7 @@ BEGIN
 END
 
 IDD_PREFERENCES_PLUGINS DIALOGEX 0, 0, 271, 204
-STYLE WS_CHILD
+STYLE DS_SETFONT | WS_CHILD
 EXSTYLE WS_EX_CLIENTEDGE | WS_EX_CONTROLPARENT
 FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
@@ -256,7 +255,7 @@ BEGIN
 END
 
 IDD_PREFERENCES_CONFIGS DIALOGEX 0, 0, 271, 204
-STYLE WS_CHILD
+STYLE DS_SETFONT | WS_CHILD
 EXSTYLE WS_EX_CLIENTEDGE | WS_EX_CONTROLPARENT
 FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
@@ -267,7 +266,7 @@ BEGIN
 END
 
 IDD_PREFERENCES_MOZCONFIGS DIALOGEX 0, 0, 271, 204
-STYLE WS_CHILD
+STYLE DS_SETFONT | WS_CHILD
 EXSTYLE WS_EX_CLIENTEDGE | WS_EX_CONTROLPARENT
 FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
@@ -277,9 +276,9 @@ BEGIN
                     WS_TABSTOP,4,4,263,196
 END
 
-IDD_FINDDLG DIALOG DISCARDABLE  30, 73, 212, 77
-STYLE DS_MODALFRAME | DS_3DLOOK | DS_CONTEXTHELP | WS_POPUP | WS_CAPTION | 
-    WS_SYSMENU
+IDD_FINDDLG DIALOG  30, 73, 212, 77
+STYLE DS_SETFONT | DS_MODALFRAME | DS_3DLOOK | DS_CONTEXTHELP | WS_POPUP | 
+    WS_CAPTION | WS_SYSMENU
 CAPTION "Find"
 FONT 8, "MS Shell Dlg"
 BEGIN
@@ -299,7 +298,7 @@ BEGIN
 END
 
 IDD_PREFERENCES_CACHE DIALOGEX 0, 0, 271, 204
-STYLE WS_CHILD
+STYLE DS_SETFONT | WS_CHILD
 EXSTYLE WS_EX_CLIENTEDGE | WS_EX_CONTROLPARENT
 FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
@@ -307,10 +306,7 @@ BEGIN
                     WS_GROUP
     EDITTEXT        IDC_EDIT_DISK_CACHE,79,48,41,13,ES_AUTOHSCROLL
     EDITTEXT        IDC_EDIT_CACHE_DIRECTORY,79,72,171,13,ES_AUTOHSCROLL
-//    PUSHBUTTON      "Clear &Memory Cache",IDC_BUTTON_CLEAR_MEM_CACHE,165,28,
-//                    82,14
-    PUSHBUTTON      "Clear &Cache",IDC_BUTTON_CLEAR_DISK_CACHE,165,48,
-                    82,14
+    PUSHBUTTON      "Clear &Cache",IDC_BUTTON_CLEAR_DISK_CACHE,165,48,82,14
     CONTROL         "&Once per session",IDC_RADIO_CACHE,"Button",
                     BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,28,138,71,10
     CONTROL         "&Always",IDC_RADIO2,"Button",BS_AUTORADIOBUTTON,28,150,
@@ -330,8 +326,8 @@ BEGIN
     GROUPBOX        "Cache Comparison",IDC_STATIC,7,104,256,89
 END
 
-IDD_ERRORBOX DIALOG DISCARDABLE  200, 200, 228, 149
-STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+IDD_ERRORBOX DIALOG  200, 200, 228, 149
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 FONT 8, "MS Sans Serif"
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,90,129,47,15
@@ -339,9 +335,9 @@ BEGIN
                     ES_READONLY | WS_VSCROLL
 END
 
-IDD_PRINT_PROGRESS_DIALOG DIALOG DISCARDABLE  0, 0, 294, 55
-STYLE DS_SYSMODAL | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_VISIBLE | 
-    WS_CAPTION
+IDD_PRINT_PROGRESS_DIALOG DIALOG  0, 0, 294, 55
+STYLE DS_SYSMODAL | DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | 
+    WS_VISIBLE | WS_CAPTION
 CAPTION "Printing..."
 FONT 8, "MS Sans Serif"
 BEGIN
@@ -350,8 +346,9 @@ BEGIN
     LTEXT           "",IDC_PPD_DOC_TXT,43,7,244,8
 END
 
-IDD_SEARCH_DIALOG DIALOG DISCARDABLE  0, 0, 249, 58
-STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+IDD_SEARCH_DIALOG DIALOG  0, 0, 249, 58
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
+    WS_SYSMENU
 CAPTION "Search"
 FONT 8, "MS Sans Serif"
 BEGIN
@@ -361,8 +358,8 @@ BEGIN
     LTEXT           "Enter search query:",IDC_PROMPT_TEXT,10,7,229,13
 END
 
-IDD_DIALOG_OPEN DIALOG DISCARDABLE  0, 0, 213, 62
-STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+IDD_DIALOG_OPEN DIALOG  0, 0, 213, 62
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Open"
 FONT 8, "MS Sans Serif"
 BEGIN
@@ -374,15 +371,15 @@ BEGIN
                     IDC_STATIC,7,7,160,8
 END
 
-IDD_PROGRESS DIALOG DISCARDABLE  0, 0, 291, 100
-STYLE DS_MODALFRAME | WS_MINIMIZEBOX | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
-    WS_SYSMENU
+IDD_PROGRESS DIALOG  0, 0, 291, 100
+STYLE DS_SETFONT | DS_MODALFRAME | WS_MINIMIZEBOX | WS_POPUP | WS_VISIBLE | 
+    WS_CAPTION | WS_SYSMENU
 CAPTION "Downloading..."
 FONT 8, "MS Sans Serif"
 BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,234,79,50,14
     CONTROL         "Progress1",IDC_DOWNLOAD_PROGRESS,"msctls_progress32",
-                    PBS_SMOOTH | WS_BORDER,7,61,277,8
+                    WS_BORDER | 0x1,7,61,277,8
     EDITTEXT        IDC_SOURCE,40,7,244,14,ES_AUTOHSCROLL | ES_READONLY
     EDITTEXT        IDC_DESTINATION,40,22,244,14,ES_AUTOHSCROLL | 
                     ES_READONLY
@@ -402,7 +399,7 @@ BEGIN
 END
 
 IDD_PREFERENCES_PRIVACY DIALOGEX 0, 0, 271, 204
-STYLE WS_CHILD
+STYLE DS_SETFONT | WS_CHILD
 EXSTYLE WS_EX_CLIENTEDGE | WS_EX_CONTROLPARENT
 FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
@@ -423,9 +420,8 @@ BEGIN
     COMBOBOX        IDC_COMBO,77,94,183,121,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_GROUP | WS_TABSTOP
     EDITTEXT        IDC_EDIT_USERAGENT,77,108,183,12,ES_AUTOHSCROLL
-    CONTROL         "Block &popup windows",
-                    IDC_CHECK_LOAD,"Button",BS_AUTOCHECKBOX | WS_GROUP | 
-                    WS_TABSTOP,13,143,166,10
+    CONTROL         "Block &popup windows",IDC_CHECK_LOAD,"Button",
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,13,143,166,10
     GROUPBOX        "Popup Control",IDC_STATIC,3,131,264,30
     LTEXT           "Image Loading",IDC_STATIC,13,9,75,9
     LTEXT           "Cookie Acceptance",IDC_STATIC,142,9,81,9
@@ -436,7 +432,7 @@ BEGIN
 END
 
 IDD_PREFERENCES_LANGUAGE DIALOGEX 0, 0, 271, 204
-STYLE WS_CHILD
+STYLE DS_SETFONT | WS_CHILD
 EXSTYLE WS_EX_CLIENTEDGE | WS_EX_CONTROLPARENT
 FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
@@ -454,8 +450,9 @@ BEGIN
                     12
 END
 
-IDD_PROMPT_DIALOG DIALOG DISCARDABLE  0, 0, 249, 92
-STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+IDD_PROMPT_DIALOG DIALOG  0, 0, 249, 92
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
+    WS_SYSMENU
 CAPTION "Prompt Dialog"
 FONT 8, "MS Sans Serif"
 BEGIN
@@ -467,9 +464,9 @@ BEGIN
     LTEXT           "Please enter something....",IDC_PROMPT_TEXT,10,7,229,29
 END
 
-IDD_PROMPT_PASSWORD_DIALOG DIALOG DISCARDABLE  0, 0, 248, 93
-STYLE DS_SYSMODAL | DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
-    WS_SYSMENU
+IDD_PROMPT_PASSWORD_DIALOG DIALOG  0, 0, 248, 93
+STYLE DS_SYSMODAL | DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_VISIBLE | 
+    WS_CAPTION | WS_SYSMENU
 CAPTION "Password Entry Dialog"
 FONT 8, "MS Sans Serif"
 BEGIN
@@ -481,8 +478,9 @@ BEGIN
     LTEXT           "Please enter your password:",IDC_PROMPT_TEXT,5,7,232,20
 END
 
-IDD_PROMPT_USERPASS_DIALOG DIALOG DISCARDABLE  0, 0, 214, 119
-STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+IDD_PROMPT_USERPASS_DIALOG DIALOG  0, 0, 214, 119
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
+    WS_SYSMENU
 CAPTION "Username and Password Required"
 FONT 8, "MS Sans Serif"
 BEGIN
@@ -498,8 +496,9 @@ BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,109,97,50,14
 END
 
-IDD_ALERT_CHECK_DIALOG DIALOG DISCARDABLE  0, 0, 233, 151
-STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+IDD_ALERT_CHECK_DIALOG DIALOG  0, 0, 233, 151
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
+    WS_SYSMENU
 CAPTION "Alert"
 FONT 8, "MS Sans Serif"
 BEGIN
@@ -509,8 +508,9 @@ BEGIN
     EDITTEXT        IDC_MSG_TEXT,10,10,214,88,ES_MULTILINE | ES_READONLY
 END
 
-IDD_CONFIRM_CHECK_DIALOG DIALOG DISCARDABLE  0, 0, 321, 102
-STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+IDD_CONFIRM_CHECK_DIALOG DIALOG  0, 0, 321, 102
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
+    WS_SYSMENU
 CAPTION "ConfirmCheck"
 FONT 8, "MS Sans Serif"
 BEGIN
@@ -522,9 +522,9 @@ BEGIN
                     59,305,15
 END
 
-IDD_CHOOSE_ACTION_DIALOG DIALOG DISCARDABLE  0, 0, 285, 114
-STYLE DS_MODALFRAME | WS_MINIMIZEBOX | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
-    WS_SYSMENU
+IDD_CHOOSE_ACTION_DIALOG DIALOG  0, 0, 285, 114
+STYLE DS_SETFONT | DS_MODALFRAME | WS_MINIMIZEBOX | WS_POPUP | WS_VISIBLE | 
+    WS_CAPTION | WS_SYSMENU
 CAPTION "Choose An Action"
 FONT 8, "MS Sans Serif"
 BEGIN
@@ -543,8 +543,9 @@ BEGIN
                     IDC_STATIC,8,24,268,61
 END
 
-IDD_PRINTSETUP_DIALOG DIALOG DISCARDABLE  0, 0, 319, 193
-STYLE DS_SYSMODAL | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+IDD_PRINTSETUP_DIALOG DIALOG  0, 0, 319, 193
+STYLE DS_SYSMODAL | DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
 CAPTION "Page Setup"
 FONT 8, "MS Sans Serif"
 BEGIN
@@ -600,7 +601,6 @@ BEGIN
 END
 
 
-#ifndef _MAC
 /////////////////////////////////////////////////////////////////////////////
 //
 // Version
@@ -623,18 +623,13 @@ BEGIN
     BEGIN
         BLOCK "040904b0"
         BEGIN
-            VALUE "Comments", "\0"
-            VALUE "CompanyName", "http://kmeleon.sf.net/\0"
-            VALUE "FileDescription", "K-Meleon Web Browser\0"
-            VALUE "FileVersion", "0, 9, 0, 0\0"
-            VALUE "InternalName", "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2001-2005\0"
-            VALUE "LegalTrademarks", "\0"
-            VALUE "OriginalFilename", "k-meleon.exe\0"
-            VALUE "PrivateBuild", "\0"
-            VALUE "ProductName", "K-Meleon\0"
-            VALUE "ProductVersion", "0.9\0"
-            VALUE "SpecialBuild", "\0"
+            VALUE "CompanyName", "http://kmeleon.sf.net/"
+            VALUE "FileDescription", "K-Meleon Web Browser"
+            VALUE "FileVersion", "0, 9, 0, 0"
+            VALUE "LegalCopyright", "Copyright (C) 2001-2005"
+            VALUE "OriginalFilename", "k-meleon.exe"
+            VALUE "ProductName", "K-Meleon"
+            VALUE "ProductVersion", "0.9"
         END
     END
     BLOCK "VarFileInfo"
@@ -643,8 +638,6 @@ BEGIN
     END
 END
 
-#endif    // !_MAC
-
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -652,7 +645,7 @@ END
 //
 
 #ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO DISCARDABLE 
+GUIDELINES DESIGNINFO 
 BEGIN
     IDD_ABOUTBOX, DIALOG
     BEGIN
@@ -816,54 +809,54 @@ END
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDR_MAINFRAME           ICON    DISCARDABLE     "res\\MozillaBrowser.ico"
-IDI_DOCUMENT            ICON    DISCARDABLE     "res\\KmeleonDocument.ico"
-IDI_OFF                 ICON    DISCARDABLE     "res\\off.ico"
-IDI_OFFCHECK            ICON    DISCARDABLE     "res\\offcheck.ico"
-IDI_ONCHECK             ICON    DISCARDABLE     "res\\oncheck.ico"
-IDI_ON                  ICON    DISCARDABLE     "res\\on.ico"
-IDR_SECURITY_LOCK       ICON    DISCARDABLE     "res\\ssecur.ico"
-IDR_SECURITY_UNLOCK     ICON    DISCARDABLE     "res\\sinsecur.ico"
-IDR_SECURITY_BROKEN     ICON    DISCARDABLE     "res\\broken.ico"
+IDR_MAINFRAME           ICON                    "res\\MozillaBrowser.ico"
+IDI_DOCUMENT            ICON                    "res\\KmeleonDocument.ico"
+IDI_OFF                 ICON                    "res\\off.ico"
+IDI_OFFCHECK            ICON                    "res\\offcheck.ico"
+IDI_ONCHECK             ICON                    "res\\oncheck.ico"
+IDI_ON                  ICON                    "res\\on.ico"
+IDR_SECURITY_LOCK       ICON                    "res\\ssecur.ico"
+IDR_SECURITY_UNLOCK     ICON                    "res\\sinsecur.ico"
+IDR_SECURITY_BROKEN     ICON                    "res\\broken.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
 // Cursor
 //
 
-IDC_PAN_UP              CURSOR  DISCARDABLE     "res\\Cursor_10.cur"
-IDC_PAN_DOWN            CURSOR  DISCARDABLE     "res\\Cursor_11.cur"
-IDC_PAN_RIGHT           CURSOR  DISCARDABLE     "res\\Cursor_12.cur"
-IDC_PAN_LEFT            CURSOR  DISCARDABLE     "res\\Cursor_13.cur"
-IDC_PAN                 CURSOR  DISCARDABLE     "res\\Cursor_27.cur"
-IDC_PAN_UPLEFT          CURSOR  DISCARDABLE     "res\\Cursor_15.cur"
-IDC_PAN_DOWNLEFT        CURSOR  DISCARDABLE     "res\\Cursor_17.cur"
-IDC_PAN_UPRIGHT         CURSOR  DISCARDABLE     "res\\Cursor_14.cur"
-IDC_PAN_DOWNRIGHT       CURSOR  DISCARDABLE     "res\\Cursor_16.cur"
+IDC_PAN_UP              CURSOR                  "res\\Cursor_10.cur"
+IDC_PAN_DOWN            CURSOR                  "res\\Cursor_11.cur"
+IDC_PAN_RIGHT           CURSOR                  "res\\Cursor_12.cur"
+IDC_PAN_LEFT            CURSOR                  "res\\Cursor_13.cur"
+IDC_PAN                 CURSOR                  "res\\Cursor_27.cur"
+IDC_PAN_UPLEFT          CURSOR                  "res\\Cursor_15.cur"
+IDC_PAN_DOWNLEFT        CURSOR                  "res\\Cursor_17.cur"
+IDC_PAN_UPRIGHT         CURSOR                  "res\\Cursor_14.cur"
+IDC_PAN_DOWNRIGHT       CURSOR                  "res\\Cursor_16.cur"
 
 /////////////////////////////////////////////////////////////////////////////
 //
 // String Table
 //
 
-STRINGTABLE PRELOAD DISCARDABLE 
+STRINGTABLE 
 BEGIN
     IDR_MAINFRAME           "K-Meleon"
 END
 
-STRINGTABLE PRELOAD DISCARDABLE 
+STRINGTABLE 
 BEGIN
     AFX_IDS_APP_TITLE       "K-Meleon"
     AFX_IDS_IDLEMESSAGE     "Ready"
 END
 
-STRINGTABLE DISCARDABLE 
+STRINGTABLE 
 BEGIN
     ID_APP_ABOUT            "Display program information, version number and copyright\nAbout"
     ID_APP_EXIT             "Quit the application; prompts to save documents\nExit"
 END
 
-STRINGTABLE DISCARDABLE 
+STRINGTABLE 
 BEGIN
     ID_EDIT_CLEAR           "Erase the selection\nErase"
     ID_EDIT_CLEAR_ALL       "Erase everything\nErase All"
@@ -876,22 +869,28 @@ BEGIN
     ID_EDIT_REDO            "Redo the previously undone action\nRedo"
 END
 
-STRINGTABLE DISCARDABLE 
+STRINGTABLE 
 BEGIN
     ID_PREFERENCES          "Change preferences and settings"
     ID_MANAGE_PROFILES      "Manage the user profiles on this computer"
     ID_LINK_KMELEON_HOME    "Go to the K-Meleon home page"
     ID_LINK_KMELEON_FORUM   "Go to the K-Meleon forums"
-    ID_LINK_KMELEON_FAQ     "View the K-Meleon FAQ"
-    ID_LINK_KMELEON_MANUAL  "View the K-Meleon User's Guide and Reference Manual"
-    ID_LINK_ABOUT_PLUGINS   "View information on installed third party plugins"
     ID_EDIT_FINDNEXT        "Find the next occurence of the specified text"
     ID_EDIT_FINDPREV        "Find the previous occurence of the specified text"
     ID_WINDOW_NEXT          "Switch to next K-Meleon window"
-    ID_WINDOW_PREV          "Switch to previous K-Meleon window"
 END
 
-STRINGTABLE DISCARDABLE 
+STRINGTABLE 
+BEGIN
+    ID_WINDOW_PREV          "Switch to previous K-Meleon window"
+    ID_FONT_INCREASE        "Increase font size"
+    ID_FONT_DECREASE        "Decrease font size"
+    ID_LINK_KMELEON_FAQ     "View the K-Meleon FAQ"
+    ID_LINK_KMELEON_MANUAL  "View the K-Meleon User's Guide and Reference Manual"
+    ID_LINK_ABOUT_PLUGINS   "View information on installed third party plugins"
+END
+
+STRINGTABLE 
 BEGIN
     ID_NAV_BACK             "Return to the previous document in history list"
     ID_NAV_FORWARD          "Move forward to next document in history list"
@@ -904,15 +903,13 @@ BEGIN
     ID_VIEW_SOURCE          "View the source of the current page"
 END
 
-STRINGTABLE DISCARDABLE 
+STRINGTABLE 
 BEGIN
     ID_VIEW_TOOLBAR         "Show or hide the toolbar\nToggle ToolBar"
     ID_VIEW_STATUS_BAR      "Show or hide the status bar\nToggle StatusBar"
-    ID_FONT_INCREASE        "Increase font size"
-    ID_FONT_DECREASE        "Decrease font size"
 END
 
-STRINGTABLE DISCARDABLE 
+STRINGTABLE 
 BEGIN
     AFX_IDS_SCSIZE          "Change the window size"
     AFX_IDS_SCMOVE          "Change the window position"
@@ -923,7 +920,7 @@ BEGIN
     AFX_IDS_SCCLOSE         "Close the active window and prompts to save the documents"
 END
 
-STRINGTABLE DISCARDABLE 
+STRINGTABLE 
 BEGIN
     AFX_IDS_SCRESTORE       "Restore the window to normal size"
     AFX_IDS_SCTASKLIST      "Activate Task List"
@@ -935,29 +932,25 @@ BEGIN
     IDS_PROFILE_BAD_CHARS   "Error: A profile name cannot contain the characters \\ or /."
     IDS_DOWNLOAD_DONE       "Done! Downloaded %.2f KBytes in %d seconds"
     IDS_DOWNLOAD_PROGRESS   "Downloaded %d%% (%.2f K of %.2f KBytes)"
-    IDS_DOWNLOAD_PROGRESS2  "Downloaded %.2f KBytes"
     IDS_TIMELEFT_HOURS      "Time Left: %d:%02d:%02d"
     IDS_TIMELEFT_SECONDS    "Time Left: %d Seconds"
     IDS_TIMELEFT_MINUTES    "Time Left: %d Minutes, %0d Seconds"
     IDS_TIMELEFT_MINUTE     "Time Left: 1 Minute, %0d Seconds"
 END
 
-STRINGTABLE DISCARDABLE 
-BEGIN
-    ID_PROG_BAR             "                                        "
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    IDS_NOSECURITY_INFO     "This page is not secure!"
-END
-
-STRINGTABLE DISCARDABLE 
+STRINGTABLE 
 BEGIN
     IDS_PERCENT_OF_FILE     "%d%% of %s"
     IDS_PROFILE_SWITCH      "Do you want to close all windows in order to switch the profile?\nThis will cancel any files being downloaded."
     IDS_OLD_PLUGIN          "Sorry, ""%s"" was compiled for an older version of K-Meleon.\nChanges in the Plugin API have caused this plugin to not function any more.  Please download a newer version of the plugin."
-   IDS_UNABLE_REGISTER_FACTORY "Unable to register factory!"
+    IDS_DOWNLOAD_PROGRESS2  "Downloaded %.2f KBytes"
+    IDS_UNABLE_REGISTER_FACTORY "Unable to register factory!"
+    IDS_NOSECURITY_INFO     "This page is not secure!"
+END
+
+STRINGTABLE 
+BEGIN
+    ID_PROG_BAR             "                                        "
 END
 
 #endif    // English (U.S.) resources

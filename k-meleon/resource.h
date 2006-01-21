@@ -1,5 +1,5 @@
 //{{NO_DEPENDENCIES}}
-// Microsoft Developer Studio generated include file.
+// Microsoft Visual C++ generated include file.
 // Used by MfcEmbed.rc
 //
 #define IDD_ABOUTBOX                    100
@@ -59,7 +59,6 @@
 #define IDR_SECURITY_UNLOCK             184
 #define IDD_PREFERENCES_LANGUAGE        184
 #define IDR_SECURITY_BROKEN             185
-#define IDS_NOSECURITY_INFO             186
 #define IDS_ENCRYPTION_HIGH_GRADE       187
 #define IDS_ENCRYPTION_LOW_GRADE        188
 #define IDS_ENCRYPTION_NONE             189
@@ -251,8 +250,8 @@
 #define ID_OPEN_LINK_IN_BACKGROUND      32798
 #define ID_WINDOW_NEXT                  32799
 #define ID_WINDOW_PREV                  32800
-#define ID_FILE_PRINTPREVIEW            ID_FILE_PRINT_PREVIEW
-#define ID_FILE_PRINTSETUP              ID_FILE_PRINT_SETUP
+#define ID_FILE_PRINTPREVIEW            32801
+#define ID_FILE_PRINTSETUP              32802
 #define ID_TOOLBARS_LOCK                32803
 #define ID_VIEW_FRAME_SOURCE            32804
 #define ID_OPEN_FRAME_IN_NEW_WINDOW     32805
@@ -289,6 +288,7 @@
 #define IDS_OLD_PLUGIN                  61218
 #define IDS_DOWNLOAD_PROGRESS2          61219
 #define IDS_UNABLE_REGISTER_FACTORY     61228
+#define IDS_NOSECURITY_INFO             61229
 
 // Next default values for new objects
 // 
