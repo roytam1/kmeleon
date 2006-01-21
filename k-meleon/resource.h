@@ -305,6 +305,7 @@
 #define IDS_PREFS_PROXY                 61248
 #define IDS_PREFS_CONFIGS               61249
 #define IDS_PREFS_PLUGINS               61250
+#define IDS_DOWNLOAD_FAILED             61254
 
 
 // Next default values for new objects
