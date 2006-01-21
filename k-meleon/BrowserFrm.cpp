@@ -97,6 +97,7 @@ BEGIN_MESSAGE_MAP(CBrowserFrame, CFrameWnd)
     ON_COMMAND_RANGE(TOOLBAR_MENU_START_ID, TOOLBAR_MENU_END_ID, ToggleToolBar)
     ON_COMMAND(ID_TOOLBARS_LOCK, ToggleToolbarLock)
     ON_UPDATE_COMMAND_UI(ID_TOOLBARS_LOCK, OnUpdateToggleToolbarLock)
+	ON_UPDATE_COMMAND_UI_RANGE(TOOLBAR_MENU_START_ID, TOOLBAR_MENU_END_ID, OnUpdateToolBarMenu)
     //}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -830,6 +831,12 @@ void CBrowserFrame::ToggleToolbarLock()
     m_wndReBar.LockBars(locked);
 }
 
+void CBrowserFrame::OnUpdateToolBarMenu(CCmdUI* pCmdUI)
+{
+	pCmdUI->SetCheck(
+		m_wndReBar.GetVisibility(pCmdUI->m_nID - TOOLBAR_MENU_START_ID)
+	);
+}
 void CBrowserFrame::OnUpdateToggleToolbarLock(CCmdUI* pCmdUI)
 {
     pCmdUI->SetCheck(theApp.preferences.GetBool(PREF_TOOLBAND_LOCKED, false));
