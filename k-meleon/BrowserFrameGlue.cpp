@@ -401,7 +401,7 @@ void CBrowserFrame::BrowserFrameGlueObj::GetBrowserFrameVisibility(PRBool *aVisi
    WINDOWPLACEMENT wpl;
    pThis->GetWindowPlacement(&wpl);
 
-   if ((wpl.showCmd == SW_RESTORE) || (wpl.showCmd == SW_MAXIMIZE))
+   if ((wpl.showCmd == SW_NORMAL) || (wpl.showCmd == SW_MAXIMIZE))
       *aVisible = PR_TRUE;
    else
       *aVisible = PR_FALSE;
