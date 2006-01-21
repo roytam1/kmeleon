@@ -60,13 +60,21 @@ CPreferencesDlg::OnInitDialog(){
 
    m_list.InsertColumn(0, "Blah", LVCFMT_LEFT, rect.right);
 
-   AddItem(_T("Display"), IDD_PREFERENCES_DISPLAY);
-   AddItem(_T("General"), IDD_PREFERENCES_GENERAL);
-   AddItem(_T("Privacy"), IDD_PREFERENCES_PRIVACY);
-   AddItem(_T("Cache"),   IDD_PREFERENCES_CACHE);
-   AddItem(_T("Proxy"),   IDD_PREFERENCES_PROXY);
-   AddItem(_T("Configs"), IDD_PREFERENCES_CONFIGS);
-   AddItem(_T("Plugins"), IDD_PREFERENCES_PLUGINS);
+   CString title;
+   title.LoadString(IDS_PREFS_DISPLAY);
+   AddItem(title, IDD_PREFERENCES_DISPLAY);
+   title.LoadString(IDS_PREFS_GENERAL);
+   AddItem(title, IDD_PREFERENCES_GENERAL);
+   title.LoadString(IDS_PREFS_PRIVACY);
+   AddItem(title, IDD_PREFERENCES_PRIVACY);
+   title.LoadString(IDS_PREFS_CACHE);
+   AddItem(title,   IDD_PREFERENCES_CACHE);
+   title.LoadString(IDS_PREFS_PROXY);
+   AddItem(title,   IDD_PREFERENCES_PROXY);
+   title.LoadString(IDS_PREFS_CONFIGS);
+   AddItem(title,   IDD_PREFERENCES_CONFIGS);
+   title.LoadString(IDS_PREFS_PLUGINS);
+   AddItem(title, IDD_PREFERENCES_PLUGINS);
 
    m_list.SetItemState(0, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
 
@@ -102,7 +110,7 @@ void CPreferencesDlg::OnCancel(){
   CDialog::OnCancel();
 }
 
-void CPreferencesDlg::AddItem(char *text, UINT idd){
+void CPreferencesDlg::AddItem(LPCTSTR text, UINT idd){
   int item = m_list.GetItemCount();
   m_list.InsertItem(item, text, 0);
   m_list.SetItemData(item, idd);
@@ -561,7 +569,7 @@ void CPreferencePageConfigs::SaveFile(const char *filename)
    } else {
       prettyFilename = filename;
    }
-   if (MessageBox("Do you wish to save your changes?", prettyFilename, MB_YESNO) == IDNO){
+   if (AfxMessageBox(IDS_SAVE_CHANGES,  MB_YESNO, 0) == IDNO){
       return;
    }
    CFile file;
@@ -602,7 +610,7 @@ void CPreferencePageConfigs::SaveFile(const char *filename)
 
    }
    else
-      MessageBox("Error opening file");
+      AfxMessageBox(IDS_ERROR_OPEN);
 }
 
 void CPreferencePageConfigs::ShowFile(const char *filename){

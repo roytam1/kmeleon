@@ -419,9 +419,8 @@ NS_IMETHODIMP CProgressDialog::OnProgressChange64(nsIWebProgress *aWebProgress, 
 
       double speed_kbs = speed/1024;
 
-      char speedString[50];
-      sprintf(speedString, "Speed: %.2f KBps ", speed_kbs);
-
+      CString speedString;
+	  speedString.Format(IDS_SPEED_STRING, speed_kbs);
       SetDlgItemText(IDC_SPEED, speedString);
 
 		if (speed) {
@@ -455,7 +454,7 @@ NS_IMETHODIMP CProgressDialog::OnProgressChange64(nsIWebProgress *aWebProgress, 
             timeString.Format(IDS_TIMELEFT_SECONDS, remainSec);
          }
          else
-            timeString.Format("Time Left: Unknown");
+            timeString.Format(IDS_TIMELEFT_UNKNOWN);
          SetDlgItemText(IDC_TIME_LEFT, timeString);
       }
 
@@ -532,7 +531,8 @@ NS_IMETHODIMP CProgressDialog::OnStateChange(nsIWebProgress *aWebProgress,
          
          SetDlgItemText(IDC_STATUS, statusText);
 
-         SetDlgItemText(IDCANCEL, "Close");
+         statusText.LoadString(IDS_CLOSE);
+		 SetDlgItemText(IDCANCEL, statusText);
 
          GetDlgItem(IDC_OPEN)->ShowWindow(SW_SHOW);
          GetDlgItem(IDC_CLOSE_WHEN_DONE)->ShowWindow(SW_HIDE);
@@ -541,13 +541,17 @@ NS_IMETHODIMP CProgressDialog::OnStateChange(nsIWebProgress *aWebProgress,
          theApp.preferences.SetBool("kmeleon.general.CloseDownloadDialog", false);
       }
    }else if (aStateFlags & nsIWebProgressListener::STATE_REDIRECTING){
-      SetDlgItemText(IDC_STATUS, "Redirecting...");
+      statusText.LoadString(IDS_REDIRECTING);
+	  SetDlgItemText(IDC_STATUS, statusText);
    }else if (aStateFlags & nsIWebProgressListener::STATE_TRANSFERRING){
-      SetDlgItemText(IDC_STATUS, "Downloading...");
+      statusText.LoadString(IDS_DOWNLOADING);
+	  SetDlgItemText(IDC_STATUS, statusText);
    }else if (aStateFlags & nsIWebProgressListener::STATE_NEGOTIATING){
-      SetDlgItemText(IDC_STATUS, "Negotiating...");
+      statusText.LoadString(IDS_NEGOTIATING);
+	  SetDlgItemText(IDC_STATUS, statusText);
    }else if (aStateFlags & nsIWebProgressListener::STATE_START){
-      SetDlgItemText(IDC_STATUS, "Contacting...");
+	  statusText.LoadString(IDS_CONTACTING);
+      SetDlgItemText(IDC_STATUS, statusText);
    }
    
    return NS_OK;

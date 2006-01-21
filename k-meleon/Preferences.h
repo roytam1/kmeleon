@@ -274,7 +274,7 @@ protected:
   void Init();
   void ShowPage(UINT idd);
 
-  void AddItem(char *text, UINT idd);
+  void AddItem(LPCTSTR text, UINT idd);
 
 };
 

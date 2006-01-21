@@ -944,12 +944,32 @@ BEGIN
     IDS_PROFILE_SWITCH      "Do you want to close all windows in order to switch the profile?\nThis will cancel any files being downloaded."
     IDS_OLD_PLUGIN          "Sorry, ""%s"" was compiled for an older version of K-Meleon.\nChanges in the Plugin API have caused this plugin to not function any more.  Please download a newer version of the plugin."
     IDS_DOWNLOAD_PROGRESS2  "Downloaded %.2f KBytes"
-    IDS_UNABLE_REGISTER_FACTORY "Unable to register factory!"
     IDS_NOSECURITY_INFO     "This page is not secure!"
+    IDS_SPEED_STRING        "Speed: %.2f KBps "
+    IDS_REDIRECTING         "Redirecting..."
+    IDS_DOWNLOADING         "Downloading..."
+    IDS_NEGOTIATING         "Negotiating..."
+    IDS_CONTACTING          "Contacting..."
+    IDS_SAVE_CHANGES        "Do you wish to save your changes?"
+    IDS_ERROR_OPEN          "Error opening file!"
+    IDS_CLOSE               "Close"
+    IDS_TIMELEFT_UNKNOWN    "Time Left: Unknown"
 END
 
 STRINGTABLE 
 BEGIN
+    IDS_PREFS_GENERAL       "General"
+    IDS_PREFS_DISPLAY       "Display"
+    IDS_PREFS_PRIVACY       "Privacy"
+    IDS_PREFS_CACHE         "Cache"
+    IDS_PREFS_PROXY         "Proxy"
+    IDS_PREFS_CONFIGS       "Configs"
+    IDS_PREFS_PLUGINS       "Plugins"
+END
+
+STRINGTABLE 
+BEGIN
+    IDS_UNABLE_REGISTER_FACTORY "Unable to register factory!"
     ID_PROG_BAR             "                                        "
 END
 
