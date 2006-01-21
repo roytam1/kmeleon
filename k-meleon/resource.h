@@ -288,7 +288,24 @@
 #define IDS_OLD_PLUGIN                  61218
 #define IDS_DOWNLOAD_PROGRESS2          61219
 #define IDS_UNABLE_REGISTER_FACTORY     61228
-#define IDS_NOSECURITY_INFO             61229
+#define IDS_NOSECURITY_INFO             61220
+#define IDS_SPEED_STRING                61221
+#define IDS_REDIRECTING                 61222
+#define IDS_DOWNLOADING                 61223
+#define IDS_NEGOTIATING                 61224
+#define IDS_CONTACTING                  61225
+#define IDS_SAVE_CHANGES                61226
+#define IDS_ERROR_OPEN                  61227
+#define IDS_CLOSE                       61229
+#define IDS_TIMELEFT_UNKNOWN            61230
+#define IDS_PREFS_GENERAL               61244
+#define IDS_PREFS_DISPLAY               61245
+#define IDS_PREFS_PRIVACY               61246
+#define IDS_PREFS_CACHE                 61247
+#define IDS_PREFS_PROXY                 61248
+#define IDS_PREFS_CONFIGS               61249
+#define IDS_PREFS_PLUGINS               61250
+
 
 // Next default values for new objects
 // 
