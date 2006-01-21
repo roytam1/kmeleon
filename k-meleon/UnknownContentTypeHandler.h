@@ -39,7 +39,8 @@ nsresult NewDownloadFactory(nsIFactory** aFactory);
 #include "nsITransfer.h"
 
 class CProgressDialog : public CDialog,
-						public nsITransfer
+						public nsITransfer,
+						public nsSupportsWeakReference
 					    //,public nsIWebProgressListener2
 {
 public:

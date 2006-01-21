@@ -32,6 +32,7 @@
 #include "MfcEmbed.h"
 extern CMfcEmbedApp theApp;
 
+#include "nsIHttpChannel.h"
 // Show the helper app launch confirmation dialog as instructed.
 NS_IMETHODIMP
 CUnknownContentTypeHandler::Show( nsIHelperAppLauncher *aLauncher, nsISupports *aContext,  PRUint32 aReason) {
@@ -312,10 +313,7 @@ file save progress dialog box
 */
 
 
-
-// WeakReference not needed?
-//NS_IMPL_ISUPPORTS2(CProgressDialog, nsIWebProgressListener2, nsISupportsWeakReference)
-NS_IMPL_ISUPPORTS3(CProgressDialog, nsITransfer, nsIWebProgressListener2, nsIWebProgressListener)
+NS_IMPL_ISUPPORTS4(CProgressDialog, nsITransfer, nsIWebProgressListener2, nsIWebProgressListener, nsISupportsWeakReference)
 
 CProgressDialog::CProgressDialog(BOOL bAuto) {
    NS_INIT_ISUPPORTS();
@@ -480,6 +478,21 @@ NS_IMETHODIMP CProgressDialog::OnStateChange(nsIWebProgress *aWebProgress,
                                           nsresult aStatus)
 {
 
+	if (aStateFlags & nsIWebProgressListener::STATE_START &&
+	    aStateFlags & nsIWebProgressListener::STATE_IS_REQUEST)
+	{
+		// Failing on a http error instead of downloading an erroneous file
+		nsCOMPtr<nsIHttpChannel> httpchannel = do_QueryInterface(aRequest);
+		if (httpchannel)
+		{
+			PRBool b;
+			httpchannel->GetRequestSucceeded(&b);
+			if (!b)	{
+				Cancel();
+				return NS_OK;
+			}
+		}
+	}
    if (m_bViewer && aStateFlags & nsIWebProgressListener::STATE_STOP) {
 
       char *command = new char[strlen(mViewer) + strlen(mFilePath) +4];
@@ -508,6 +521,7 @@ NS_IMETHODIMP CProgressDialog::OnStateChange(nsIWebProgress *aWebProgress,
    CString statusText;
    if (aStateFlags & nsIWebProgressListener::STATE_STOP){
 	   	   
+	   if (NS_SUCCEEDED(aStatus)) {
       if (IsDlgButtonChecked(IDC_CLOSE_WHEN_DONE)) {
          if (!m_bAuto)
             theApp.preferences.SetBool("kmeleon.general.CloseDownloadDialog", true);
@@ -539,7 +553,34 @@ NS_IMETHODIMP CProgressDialog::OnStateChange(nsIWebProgress *aWebProgress,
 
          mDone = true;
          theApp.preferences.SetBool("kmeleon.general.CloseDownloadDialog", false);
-      }
+		   }
+	   }
+	   else
+	   {	
+		   statusText.LoadString(IDS_DOWNLOAD_FAILED);
+
+		   nsCOMPtr<nsIHttpChannel> httpchannel = do_QueryInterface(aRequest);
+		   if (httpchannel)
+		   {
+			   PRBool b;
+				httpchannel->GetRequestSucceeded(&b);
+				if (!b)	{
+					nsEmbedCString str;
+					httpchannel->GetResponseStatusText(str);
+					statusText.Append(str.get());
+					statusText.AppendChar('!');
+				}
+
+		   }
+		   if (m_bWindow) {
+			SetDlgItemText(IDC_STATUS, statusText);
+			GetDlgItem(IDC_CLOSE_WHEN_DONE)->ShowWindow(SW_HIDE);
+			statusText.LoadString(IDS_CLOSE);
+			SetDlgItemText(IDCANCEL, statusText);
+		   }
+
+		   mDone = true;
+	   }
    }else if (aStateFlags & nsIWebProgressListener::STATE_REDIRECTING){
       statusText.LoadString(IDS_REDIRECTING);
 	  SetDlgItemText(IDC_STATUS, statusText);
@@ -605,7 +646,6 @@ void CProgressDialog::Cancel() {
 		if (mTempFile) DeleteFile(mTempFile);
    }
 
-	Close();
 	
    //Close();
 
@@ -619,6 +659,7 @@ void CProgressDialog::Close() {
    
 	theApp.UnregisterWindow(this);
     DestroyWindow();
+	this->m_bWindow = false;
 	
 	if (mPersist)
 		mPersist = nsnull;
@@ -648,6 +689,7 @@ void CProgressDialog::OnCancel() {
    }
    else {
       Cancel();
+	  Close();
    }
 }
 
@@ -657,6 +699,7 @@ void CProgressDialog::OnClose() {
    }
    else {
       Cancel();
+      Close();
    }
 }
 

@@ -965,6 +965,7 @@ BEGIN
     IDS_PREFS_PROXY         "Proxy"
     IDS_PREFS_CONFIGS       "Configs"
     IDS_PREFS_PLUGINS       "Plugins"
+    IDS_DOWNLOAD_FAILED     "Download failed! "
 END
 
 STRINGTABLE 
