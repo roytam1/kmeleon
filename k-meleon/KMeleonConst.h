@@ -44,7 +44,7 @@
 #define TB_RBUTTONDBLCLK                  WM_APP + 131
 
 
-#define PLUGIN_COMMAND_START_ID        5000
+#define PLUGIN_COMMAND_START_ID        6000
 #define PLUGIN_REBAR_START_ID          200
 
 #define TOOLBAR_MENU_START_ID          2000
