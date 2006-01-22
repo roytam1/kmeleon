@@ -11,7 +11,10 @@ the same CID and Contract ID as the default's.
 #include "mfcembed.h"
 #include "UnknownContentTypeHandler.h"
 #include "PromptService.h"
+#include "CookiePromptService.h"
 #include "TooltipsProvider.h"
+#include "NSSDialogs.h"
+#include "FontPackageHandler.h"
 
 //#include "nsEmbedCID.h" //NS_PROMPTSERVICE_CONTRACTID
 //#include "nsICookiePromptService.h" ////NS_COOKIEPROMPTSERVICE_CONTRACTID
@@ -21,9 +24,12 @@ the same CID and Contract ID as the default's.
 //#include "nsCTooltipTextProvider.h" //NS_TOOLTIPTEXTPROVIDER_CONTRACTID
 
 NS_GENERIC_FACTORY_CONSTRUCTOR(CPromptService)
+NS_GENERIC_FACTORY_CONSTRUCTOR(CCookiePromptService)
 NS_GENERIC_FACTORY_CONSTRUCTOR(CUnknownContentTypeHandler)
 NS_GENERIC_FACTORY_CONSTRUCTOR(CTooltipTextProvider)
+NS_GENERIC_FACTORY_CONSTRUCTOR(CNSSDialogs)
 NS_GENERIC_FACTORY_CONSTRUCTOR(CProgressDialog)
+NS_GENERIC_FACTORY_CONSTRUCTOR(CFontPackageHandler)
 
 static const nsModuleComponentInfo sAppComps[] = {
 	{
@@ -44,12 +50,35 @@ static const nsModuleComponentInfo sAppComps[] = {
 		NS_TOOLTIPTEXTPROVIDER_CONTRACTID,
 		CTooltipTextProviderConstructor
 	},
+ 	{
+		"Cookie Prompt Service",
+		NS_COOKIEPROMPTSERVICE_CID,
+		NS_COOKIEPROMPTSERVICE_CONTRACTID,
+		CCookiePromptServiceConstructor
+	} 
+	,{
+		"PSM Dialog Impl",
+		NS_NSSDIALOGS_CID,
+		NS_BADCERTLISTENER_CONTRACTID,
+		CNSSDialogsConstructor
+	},
+	{
+		"PSM Dialog Impl",
+		NS_NSSDIALOGS_CID,
+		NS_CERTIFICATEDIALOGS_CONTRACTID,
+		CNSSDialogsConstructor
+	},
 	{
 	    "Download",
 		NS_DOWNLOAD_CID,
 		NS_TRANSFER_CONTRACTID,
 		CProgressDialogConstructor
-	}
+	},
+	{ "nsFontPackageHandler", 
+	   NS_FONTPACKAGEHANDLER_CID,
+       "@mozilla.org/locale/default-font-package-handler;1",
+       CFontPackageHandlerConstructor
+	 }
 };
 
 #define NB_COMPONENTS sizeof(sAppComps)/sizeof(nsModuleComponentInfo)

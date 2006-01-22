@@ -48,9 +48,6 @@ public:
   NS_DECL_ISUPPORTS
   NS_DECL_NSIPROMPTSERVICE
   
-private:
-  nsCOMPtr<nsIWindowWatcher> mWWatch;
-  CWnd *CWndForDOMWindow(nsIDOMWindow *aWindow);
 };
 
 // factory creator, in hard and soft link formats
