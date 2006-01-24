@@ -195,11 +195,11 @@ void CBrowserFrame::BrowserFrameGlueObj::SetBrowserSize(PRInt32 aCX, PRInt32 aCY
 
    // first we have to figure out how much bigger the frame is than the view
    RECT frameRect, viewRect;
-   pThis->GetWindowRect(&frameRect);
+   pThis->GetClientRect(&frameRect);
    pThis->m_wndBrowserView.GetClientRect(&viewRect);
 
-   int deltax = (frameRect.right-frameRect.left)-(viewRect.right-viewRect.left);
-   int deltay = (frameRect.bottom-frameRect.top)-(viewRect.bottom-viewRect.top);
+   int deltax = (frameRect.right - viewRect.right);
+   int deltay = (frameRect.bottom - viewRect.bottom);
 
    pThis->SetWindowPos(NULL, 0, 0, aCX+deltax, aCY+deltay,
       SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOZORDER
