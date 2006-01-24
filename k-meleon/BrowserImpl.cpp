@@ -239,7 +239,7 @@ NS_IMETHODIMP CBrowserImpl::SizeBrowserTo(PRInt32 aCX, PRInt32 aCY)
    rcNewFrame.right += rcFrame.Width() - rcClient.Width();
    rcNewFrame.bottom += rcFrame.Height() - rcClient.Height();
    
-   m_pBrowserFrameGlue->SetBrowserFrameSize(rcNewFrame.Width(), rcNewFrame.Height());
+   m_pBrowserFrameGlue->SetBrowserSize(rcNewFrame.Width(), rcNewFrame.Height());
    
    return NS_OK;
 }
