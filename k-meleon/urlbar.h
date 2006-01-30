@@ -37,6 +37,7 @@ public:
 	PRBool AddEltToList(nsISupports* aElement);
 	nsCOMPtr<nsIAutoCompleteResults> m_oldResult;
 
+	BOOL m_bBack;
 	DECLARE_MESSAGE_MAP()
 	afx_msg void OnKillFocus(CWnd* pNewWnd);
 	afx_msg void OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags);
@@ -85,6 +86,9 @@ protected:
 	virtual void PreSubclassWindow();
 public:
 	virtual BOOL PreTranslateMessage(MSG* pMsg);
+#ifndef URLBAR_USE_SETWORDBREAKPROC	
+	afx_msg void OnLButtonDblClk(UINT nFlags, CPoint point);
+#endif
 };
 
 
@@ -111,17 +115,14 @@ public:
 		m_brBkgnd[2].CreateSolidBrush(m_crBkclr[2]);
 	}
 
-	virtual ~CUrlBar(){
-		m_brBkgnd[0].DeleteObject();
-		m_brBkgnd[1].DeleteObject();
-		m_brBkgnd[2].DeleteObject();
+	~CUrlBar(){
 	}
 
     HWND m_hwndEdit;
 
 	int Create(DWORD style, RECT &rect, CWnd *parentWnd, UINT id) {
         int ret = CComboBoxEx::Create(style | CBS_AUTOHSCROLL, rect, parentWnd, id);
-        SetExtendedStyle(CBES_EX_CASESENSITIVE, CBES_EX_CASESENSITIVE);
+        SetExtendedStyle(/*CBES_EX_PATHWORDBREAKPROC|*/CBES_EX_CASESENSITIVE, CBES_EX_PATHWORDBREAKPROC|CBES_EX_CASESENSITIVE);
       
         COMBOBOXEXITEM ci;
         ci.mask = CBEIF_IMAGE;
@@ -134,9 +135,10 @@ public:
             m_hwndEdit = edit->m_hWnd;
 
 		// Bug #783
+#ifdef URLBAR_USE_SETWORDBREAKPROC
 		edit->SendMessage(EM_SETWORDBREAKPROC, 0,
 			(LPARAM)&(CUrlBarEdit::UrlBreakProc)) ;
-
+#endif
 		//Subclassing edit box for autocomplete
 		//Making our own combo box would be better
 		if (theApp.preferences.GetBool("browser.urlbar.autocomplete.enabled", true))
