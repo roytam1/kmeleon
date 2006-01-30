@@ -624,14 +624,17 @@ void CBrowserFrame::UpdateSecurityStatus(PRInt32 aState)
    if(IS_SECURE(aState)) {
       iResID = IDR_SECURITY_LOCK;
       m_wndBrowserView.m_SecurityState = CBrowserView::SECURITY_STATE_SECURE;
+	  m_wndUrlBar.Highlight(1);
    }
    else if(aState == nsIWebProgressListener::STATE_IS_INSECURE) {
       iResID = IDR_SECURITY_UNLOCK;
       m_wndBrowserView.m_SecurityState = CBrowserView::SECURITY_STATE_INSECURE;
+	  m_wndUrlBar.Highlight(0);
    }
    else if(aState == nsIWebProgressListener::STATE_IS_BROKEN) {
       iResID = IDR_SECURITY_BROKEN;
       m_wndBrowserView.m_SecurityState = CBrowserView::SECURITY_STATE_BROKEN;
+	  m_wndUrlBar.Highlight(2);
    }
 
    CStatusBarCtrl& sb = m_wndStatusBar.GetStatusBarCtrl();

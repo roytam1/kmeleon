@@ -52,6 +52,8 @@ protected:
 		return  ((CACListBox*)aData)->AddEltToList(aElement);
 	}
 	CEdit *m_edit;
+
+	int m_ignoreMousemove;
 	
 };
 
@@ -86,16 +88,39 @@ public:
 };
 
 
+#define SECURE_COLOR RGB(255,249,168)
+#define BROKEN_COLOR RGB(255,132,132)
 // A simple UrlBar class...
 class CUrlBar : public CComboBoxEx
 {
 public:
+	CUrlBar(){
+		m_bFocusEnabled = theApp.preferences.bNewWindowHasUrlFocus;
+        m_preserveUrlBarFocus = FALSE;
+        m_changed = FALSE;
+        m_bSelected = FALSE;
+        m_iFocusCount = 0;
+
+		// Initialise background brushs & colors for highlight
+		m_HighlightType = 0;
+		m_crBkclr[0] = GetSysColor(COLOR_WINDOW);
+		m_crBkclr[1] = theApp.preferences.GetInt("browser.urlbar.highlight.secure", SECURE_COLOR);
+		m_crBkclr[2] = theApp.preferences.GetInt("browser.urlbar.highlight.broken", BROKEN_COLOR);
+		m_brBkgnd[0].CreateSysColorBrush(COLOR_WINDOW);
+		m_brBkgnd[1].CreateSolidBrush(m_crBkclr[1]); 
+		m_brBkgnd[2].CreateSolidBrush(m_crBkclr[2]);
+	}
+
+	virtual ~CUrlBar(){
+		m_brBkgnd[0].DeleteObject();
+		m_brBkgnd[1].DeleteObject();
+		m_brBkgnd[2].DeleteObject();
+	}
 
     HWND m_hwndEdit;
 
 	int Create(DWORD style, RECT &rect, CWnd *parentWnd, UINT id) {
         int ret = CComboBoxEx::Create(style | CBS_AUTOHSCROLL, rect, parentWnd, id);
-		
         SetExtendedStyle(CBES_EX_CASESENSITIVE, CBES_EX_CASESENSITIVE);
       
         COMBOBOXEXITEM ci;
@@ -104,24 +129,25 @@ public:
         ci.iImage = 15;
         SetItem(&ci);
       
-        m_bFocusEnabled = theApp.preferences.bNewWindowHasUrlFocus;
-        m_preserveUrlBarFocus = FALSE;
-        m_changed = FALSE;
-        m_bSelected = FALSE;
-        m_iFocusCount = 0;
-
         CEdit *edit = GetEditCtrl();
         if (edit)
             m_hwndEdit = edit->m_hWnd;
 
 		// Bug #783
-		::SendMessage(m_hwndEdit, EM_SETWORDBREAKPROC, 0,
+		edit->SendMessage(EM_SETWORDBREAKPROC, 0,
 			(LPARAM)&(CUrlBarEdit::UrlBreakProc)) ;
 
+		//Subclassing edit box for autocomplete
+		//Making our own combo box would be better
 		if (theApp.preferences.GetBool("browser.urlbar.autocomplete.enabled", true))
 			m_UrlBarEdit.SubclassWindow(m_hwndEdit);
 
-        return ret;
+		// Set the height of the dropdown
+		edit->GetClientRect(&rect);
+		int height = rect.bottom + 4 + GetItemHeight(0) * (theApp.preferences.GetInt("kmeleon.urlbar.dropdown_lines", 10));
+		GetComboBoxCtrl()->SetWindowPos(0,0,0,50,height,SWP_NOMOVE|SWP_NOZORDER);
+		return ret;
+
     }
     inline void GetEnteredURL(CString& url) {
         GetWindowText(url);
@@ -214,13 +240,28 @@ public:
         m_changed = state;
     }
 
+	void Highlight(int type){
+		m_HighlightType = type;
+		//Have to invalidate both for correct redrawing
+		GetEditCtrl()->Invalidate();
+		Invalidate();
+	}
+
 protected:
-    BOOL m_preserveUrlBarFocus;
+	COLORREF m_crBkclr[3]; // Background colors (for text)
+	CBrush m_brBkgnd[3]; // Background brushs
+    int m_HighlightType; // Current background color
+
+	BOOL m_preserveUrlBarFocus;
     BOOL m_changed;
     BOOL m_bSelected;
     BOOL m_bFocusEnabled;
     int  m_iFocusCount;
 	
 	CUrlBarEdit m_UrlBarEdit;
+public:
+	DECLARE_MESSAGE_MAP()
+	afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
+	
 };
 
