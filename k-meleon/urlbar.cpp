@@ -53,9 +53,10 @@ NS_IMETHODIMP CACListBox::OnStatus(const PRUnichar *statusText){
 	return NS_OK;
 }
 
+
 NS_IMETHODIMP CACListBox::OnAutoComplete(nsIAutoCompleteResults *result, AutoCompleteStatus status)
 {
-	m_oldResult = result;
+	m_oldResult = result; // Keep the old result for optimization
 	ResetContent();
 	if (status == nsIAutoCompleteStatus::matchFound)
 	{
@@ -67,20 +68,27 @@ NS_IMETHODIMP CACListBox::OnAutoComplete(nsIAutoCompleteResults *result, AutoCom
 		int height = GetItemHeight(0);
 		
 		CRect rec;
-		m_edit->GetWindowRect(rec);
+		m_edit->GetParent()->GetWindowRect(rec);
 		
-		rec.bottom += ::GetSystemMetrics(SM_CYEDGE)*2;
+		//rec.bottom += ::GetSystemMetrics(SM_CYEDGE)*2;
 
 		theApp.m_pMostRecentBrowserFrame->ScreenToClient(rec);
 
-		if(nLine > 6) 
+		int maxline = theApp.preferences.GetInt("kmeleon.urlbar.dropdown_lines", 6);
+		if(nLine > maxline) 
 		{
-			nLine = 6;
-			rec.right += ::GetSystemMetrics(SM_CXVSCROLL);
+			nLine = maxline;
+			//rec.right += ::GetSystemMetrics(SM_CXVSCROLL); // size of the scrollbar
 		}
-				
+		
+		// I'm not sure what I'm missing but it works with that
 		nLine++;
 		
+		// Prevent the mouse to select an element when the 
+		// autocomplete list popup.
+		//if (!IsWindowVisible())
+		m_ignoreMousemove = 2;
+
 		SetWindowPos(&(CWnd::wndTop),rec.left,rec.bottom,rec.Width(),height*nLine,SWP_SHOWWINDOW);
 	}
 	else
@@ -111,7 +119,23 @@ PRBool CACListBox::AddEltToList(nsISupports* aElement)
 	acItem->GetValue(nsStr);
 	NS_UTF16ToCString(nsStr,NS_CSTRING_ENCODING_ASCII,nsCStr);
 	CString cstr(nsCStr.get());
+	
+	if (GetCount() == 0 && theApp.preferences.GetBool("kmeleon.urlbar.autoSelection", false))
+	{
+		CString text,toSelect;
+		m_edit->GetWindowText(text);
+		toSelect = cstr;
+		int start = toSelect.Find(text,0);
+        toSelect.Delete(0, start+text.GetLength());
+		int i;
+		if ( (i = toSelect.FindOneOf(_T("/?&=#"))) != -1)
+			toSelect.Truncate(i+1);
+		m_edit->SetWindowText(text+toSelect);
+		m_edit->SetSel(text.GetLength(), text.GetLength() + toSelect.GetLength(), TRUE);
+	}
+
 	AddString(cstr);
+	
 	return PR_TRUE;
 }
 
@@ -182,6 +206,11 @@ int CACListBox::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 void CACListBox::OnMouseMove(UINT nFlags, CPoint point)
 {
+	if (m_ignoreMousemove>0){
+		m_ignoreMousemove--;
+		return;
+	}
+	
 	CListBox::OnMouseMove(nFlags, point);
 	BOOL b;
 	SetCurSel(ItemFromPoint(point, b));
@@ -206,8 +235,9 @@ void CUrlBarEdit::StopACSession()
 {
 	KillTimer(1);
 	oldResult = nsnull;
-	// Useless
-	//if (m_AutoComplete)	m_AutoComplete->OnStopLookup();
+	
+	if (m_AutoComplete)	m_AutoComplete->OnStopLookup();
+	
 	if (m_list&&IsWindow(m_list->m_hWnd))
 	{
 		m_list->ResetContent();
@@ -228,7 +258,11 @@ void CUrlBarEdit::OnTimer(UINT nIDEvent)
 	KillTimer(nIDEvent);
 	GetWindowText(text);
 
-	m_AutoComplete->OnStartLookup(T2CW(text), nsnull/*m_list->m_oldResult*/, m_list);
+	// I'm not using oldresult to partially fix a weird behavior
+	// of mozilla who always cut prefix of url before searching  
+	// (so if you type 'w', there will be no result beginning by "www.") 
+	// whatever the search string is. A setting to change?
+	m_AutoComplete->OnStartLookup(T2CW(text), nsnull /*m_list->m_oldResult*/, m_list);
 		
 	CEdit::OnTimer(nIDEvent);
 }
@@ -243,8 +277,17 @@ void CUrlBarEdit::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
 		::SendMessage(theApp.m_pMostRecentBrowserFrame->m_hWnd, WM_COMMAND, MAKEWORD(IDOK,0), (LPARAM)m_hWnd);
 		return;
 	}
+	
+	if (nChar == VK_BACK && theApp.preferences.GetBool("kmeleon.urlbar.autoSelection", false)) {
+		StopACSession(); 
+		return;
+	}
 
-	SetTimer(1, 100, NULL);
+    // We don't want to autocomplete if ctrl is pressed 
+	if (!(GetKeyState(VK_CONTROL) & 0x8000))
+		SetTimer(1, 100, NULL);
+
+
 	return;
 }
 
@@ -305,11 +348,14 @@ void CUrlBarEdit::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 			if (nChar == VK_DOWN)
 				m_list->SetCurSel( m_list->GetCurSel() + 1);
 			else
-				m_list->SetCurSel( m_list->GetCurSel() - 1);
+				if (m_list->GetCurSel()>0) m_list->SetCurSel( m_list->GetCurSel() - 1);
 
 		m_list->GetText(m_list->GetCurSel(), str);
 		SetWindowText(str);
-		::SetFocus(m_list->m_hWnd);
+
+		//Set the cursor at the end of the text for easy editing
+		SetSel(str.GetLength(),str.GetLength(),true);
+		//::SetFocus(m_list->m_hWnd);
 		return;
 
 	case VK_ESCAPE:	{
@@ -373,7 +419,7 @@ int CALLBACK CUrlBarEdit::UrlBreakProc(LPWSTR lpszEditText, int ichCurrent,
 	switch (wActionCode) {
 		case WB_ISDELIMITER:
 			//Because the cursor is set on the delimiter, not on 
-			//the character following it, the delimiter, become
+			//the character following it, the delimiter have to be
 			//the next character.
 			ichCurrent--;
 			switch (lpszEditText[ichCurrent]) {
@@ -428,3 +474,22 @@ BOOL CUrlBarEdit::PreTranslateMessage(MSG* pMsg)
 		
 	return CEdit::PreTranslateMessage(pMsg);
 }
+BEGIN_MESSAGE_MAP(CUrlBar, CComboBoxEx)
+	ON_WM_CTLCOLOR()
+END_MESSAGE_MAP()
+
+HBRUSH CUrlBar::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
+{
+	// Use the background color depending on the security 
+	// state except for the list box
+	if (nCtlColor != CTLCOLOR_LISTBOX)
+	{
+		pDC->SetBkColor(m_crBkclr[m_HighlightType]);
+		return m_brBkgnd[m_HighlightType];    
+	}
+
+	HBRUSH hbr = CComboBoxEx::OnCtlColor(pDC, pWnd, nCtlColor);
+	return hbr;
+}
+
+
