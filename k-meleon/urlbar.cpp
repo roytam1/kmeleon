@@ -31,6 +31,7 @@ BEGIN_MESSAGE_MAP(CUrlBarEdit, CEdit)
 	ON_WM_KEYDOWN()
 	ON_WM_MOUSEWHEEL()
 	ON_WM_DESTROY()
+	ON_WM_LBUTTONDBLCLK()
 END_MESSAGE_MAP()
 
 BEGIN_MESSAGE_MAP(CACListBox, CListBox)
@@ -120,7 +121,7 @@ PRBool CACListBox::AddEltToList(nsISupports* aElement)
 	NS_UTF16ToCString(nsStr,NS_CSTRING_ENCODING_ASCII,nsCStr);
 	CString cstr(nsCStr.get());
 	
-	if (GetCount() == 0 && theApp.preferences.GetBool("kmeleon.urlbar.autoSelection", false))
+	if (GetCount() == 0 && theApp.preferences.GetBool("browser.urlbar.autoFill", false) && !m_bBack)
 	{
 		CString text,toSelect;
 		m_edit->GetWindowText(text);
@@ -174,7 +175,7 @@ void CACListBox::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 	if (nChar == VK_RETURN)
 	{
 		m_edit->SetWindowText(str);
-		::SendMessage(theApp.m_pMostRecentBrowserFrame->m_hWnd, WM_COMMAND, MAKEWORD(IDOK,0), (LPARAM)m_hWnd);
+		GetParentFrame()->SendMessage(WM_COMMAND, MAKEWORD(IDOK,0), (LPARAM)m_hWnd);
 		return;
 	}
 
@@ -191,7 +192,7 @@ void CACListBox::OnLButtonDown(UINT nFlags, CPoint point)
 		CString str;
 		GetText(pos,str);
 		m_edit->SetWindowText(str);
-		::SendMessage(theApp.m_pMostRecentBrowserFrame->m_hWnd, WM_COMMAND, MAKEWORD(IDOK,0), (LPARAM)m_hWnd);
+		GetParentFrame()->SendMessage(WM_COMMAND, MAKEWORD(IDOK,0), (LPARAM)m_hWnd);
 	}
 }
 
@@ -274,14 +275,14 @@ void CUrlBarEdit::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
 	if (nChar == VK_RETURN)
 	{
 		StopACSession();
-		::SendMessage(theApp.m_pMostRecentBrowserFrame->m_hWnd, WM_COMMAND, MAKEWORD(IDOK,0), (LPARAM)m_hWnd);
+		GetParentFrame()->SendMessage(WM_COMMAND, MAKEWORD(IDOK,0), (LPARAM)m_hWnd);
 		return;
 	}
 	
-	if (nChar == VK_BACK && theApp.preferences.GetBool("kmeleon.urlbar.autoSelection", false)) {
-		StopACSession(); 
-		return;
-	}
+	if (nChar == VK_BACK) 
+		m_list->m_bBack = TRUE;
+	else
+		m_list->m_bBack = FALSE;
 
     // We don't want to autocomplete if ctrl is pressed 
 	if (!(GetKeyState(VK_CONTROL) & 0x8000))
@@ -333,6 +334,97 @@ void CUrlBarEdit::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 	CString str;
 	switch (nChar)
 	{
+#ifndef URLBAR_USE_SETWORDBREAKPROC	
+	// Since the EM_SETWORDBREAKPROC doesn't work on W9x I'm implementing
+	// my own Ctrl+Arrow and double click handler.
+	case VK_RIGHT:
+	case VK_LEFT:
+		if ((GetKeyState(VK_CONTROL) & 0x8000))
+		{
+			int sel = GetSel();
+			WORD cursorPos = HIWORD(sel);
+			WORD cursorStart = LOWORD(sel);
+			
+			CString text;
+			GetWindowText(text);
+			int len = text.GetLength();
+
+			if ((cursorStart == len && cursorPos == len && nChar == VK_RIGHT) || 
+				(cursorStart == 0 && cursorPos == 0 && nChar == VK_LEFT))
+				return;
+
+			int dir = (nChar == VK_RIGHT ? WB_RIGHT : WB_LEFT);
+
+			// Get the caret position. I set the caret to the right or to the left
+			// of the selection depending of the "direction" of the selection
+			CPoint ptCaret = GetCaretPos();
+			WORD caretPos = LOWORD(SendMessage(EM_CHARFROMPOS, 0, MAKELPARAM(ptCaret.x, ptCaret.y)));
+			if (caretPos == -1) return; // 
+
+			if (caretPos != cursorPos && caretPos!=cursorStart)
+				// W9x shitty hack
+				caretPos = (cursorPos - caretPos) > (caretPos - cursorStart) ? cursorStart : cursorPos ;
+			
+			USES_CONVERSION;
+						
+			if ((GetKeyState(VK_SHIFT) & 0x8000))
+			{
+				int newPos = UrlBreakProc(T2W(text.GetBuffer(0)), caretPos, len, dir);
+				if (caretPos == cursorPos)
+				{
+					if (newPos < cursorStart)
+						// The selection is beggining in the middle of a "word"
+						// and so it's going to change side.
+						cursorPos = cursorStart;
+					SetSel(cursorStart, newPos, FALSE);
+				}
+				else
+					SetSel(newPos, cursorPos, FALSE);
+				
+				
+				// Set the caret to the new position ** Totally Useless **
+				//int newCaretPos = SendMessage(EM_POSFROMCHAR, newPos, 0);
+				//if (newCaretPos!=-1)
+				//	SetCaretPos(CPoint(LOWORD(newCaretPos), HIWORD(newCaretPos)));
+
+				// ** HACK **
+				// There is no way to set the caret to the beginning of the selection.
+				// So I'm sending mouse messages like we're doing a selection with the
+				// mouse to simulate this behavior
+				
+				if ( (caretPos == cursorStart && newPos < cursorPos)
+					|| (nChar==VK_LEFT && newPos < cursorStart) )
+
+				{
+					int newMousePos;
+					if ( cursorPos == len )
+					// Since EM_POSFROMCHAR return always -1 for the last character *sigh*
+					// I'm hacking my way to get a somewhat correct value
+					{
+						newMousePos = SendMessage(EM_POSFROMCHAR, cursorPos-1, 0);
+						newMousePos = MAKELPARAM(LOWORD(newMousePos)+20, HIWORD(newMousePos));
+					}
+					else
+						newMousePos = SendMessage(EM_POSFROMCHAR, cursorPos, 0);
+					
+					SendMessage(WM_LBUTTONDOWN, 0, newMousePos);
+				
+					newMousePos = SendMessage(EM_POSFROMCHAR, newPos, 0);
+					newMousePos = MAKELPARAM(LOWORD(newMousePos)-1, HIWORD(newMousePos)); // Another shitty W9x hack
+					SendMessage(WM_MOUSEMOVE, 0, newMousePos);
+					SendMessage(WM_LBUTTONUP, 0, newMousePos);
+				}
+			}
+			else
+			{
+				int newPos = UrlBreakProc(T2W(text.GetBuffer(0)), caretPos, len, dir);
+				SetSel(newPos, newPos, FALSE);
+			}
+			return;
+		}
+#endif
+		break;
+
 	case VK_UP:
 	case VK_DOWN:
 		if (!m_list->IsWindowVisible()) break;
@@ -367,6 +459,10 @@ void CUrlBarEdit::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 		delete oldUri;
 		return;
 		}
+	case VK_DELETE: {
+		m_list->m_bBack = TRUE;
+		SetTimer(1, 100, NULL);
+		}
 
 
 	/*
@@ -395,7 +491,27 @@ void CUrlBarEdit::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 
 	CEdit::OnKeyDown(nChar, nRepCnt, nFlags);
 }
+#ifndef URLBAR_USE_SETWORDBREAKPROC	
+// Used to select a "word"
+void CUrlBarEdit::OnLButtonDblClk(UINT nFlags, CPoint point)
+{
+	int pos = LOWORD(SendMessage(EM_CHARFROMPOS, 0, MAKELPARAM(point.x, point.y)));
+	
+	CString text;
+	GetWindowText(text);
+	int len = text.GetLength();
 
+	USES_CONVERSION;
+	
+	int newPos = UrlBreakProc(T2W(text.GetBuffer(0)), pos, text.GetLength(), WB_RIGHT);
+	if (newPos != len) newPos--; // We don't want to select the delimiter
+
+	SetSel(
+		UrlBreakProc(T2W(text.GetBuffer(0)), pos, text.GetLength(), WB_LEFT),
+		newPos,
+		FALSE);
+}
+#endif
 
 BOOL CUrlBarEdit::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 {
@@ -444,9 +560,19 @@ int CALLBACK CUrlBarEdit::UrlBreakProc(LPWSTR lpszEditText, int ichCurrent,
 			}}
 			return 0;
 		
-		case WB_RIGHT:
+		case WB_RIGHT: {
 			if (ichCurrent>cchEditText-1) break;
-			{/*VC6*/for (int i=ichCurrent;i<cchEditText;i++)
+			
+			// i should be initialised to ichCurrent if using windows internal
+			// routine. Windows call this function twice, one  time with ichCurrent
+			// = the current position and the second time with ichCurrent = the 
+			// result of the previous call + 1
+			
+#ifdef URLBAR_USE_SETWORDBREAKPROC
+			for (int i=ichCurrent;i<cchEditText;i++)
+#else
+			for (int i=ichCurrent+1;i<cchEditText;i++)
+#endif
 			{
 				if (UrlBreakProc(lpszEditText,i,cchEditText,WB_ISDELIMITER))
 					return i;
@@ -465,7 +591,8 @@ BOOL CUrlBarEdit::PreTranslateMessage(MSG* pMsg)
 		USES_CONVERSION;
 		GetWindowText(str);
 		int cursorPos = HIWORD(GetSel());
-		int newPos = UrlBreakProc(T2W(str), cursorPos, str.GetLength(),WB_LEFT);
+		int newPos = UrlBreakProc(T2W(str.LockBuffer()), cursorPos, str.GetLength(),WB_LEFT);
+		str.UnlockBuffer();
 		str.Delete(newPos,cursorPos);
 		SetWindowText(str);
 		SetSel(newPos,newPos,true); 
