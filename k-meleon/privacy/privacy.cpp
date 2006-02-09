@@ -126,11 +126,11 @@ void LoadPluginPreferences()
 // Save the plugin preferences
 void SavePluginPreferences()
 {
-    kFuncs->SetPreference(PREF_INT, PREFERENCE_CLEARCOOKIES, &prefClearCookies);
-    kFuncs->SetPreference(PREF_INT, PREFERENCE_CLEARCACHE, &prefClearCache);
-    kFuncs->SetPreference(PREF_INT, PREFERENCE_CLEARMRU, &prefClearMRU);
-    kFuncs->SetPreference(PREF_INT, PREFERENCE_CLEARSIGNON, &prefClearSignon);
-    kFuncs->SetPreference(PREF_INT, PREFERENCE_CLEARHISTORY, &prefClearHistory);
+    kFuncs->SetPreference(PREF_INT, PREFERENCE_CLEARCOOKIES, &prefClearCookies, FALSE);
+    kFuncs->SetPreference(PREF_INT, PREFERENCE_CLEARCACHE, &prefClearCache, FALSE);
+    kFuncs->SetPreference(PREF_INT, PREFERENCE_CLEARMRU, &prefClearMRU, FALSE);
+    kFuncs->SetPreference(PREF_INT, PREFERENCE_CLEARSIGNON, &prefClearSignon, FALSE);
+    kFuncs->SetPreference(PREF_INT, PREFERENCE_CLEARHISTORY, &prefClearHistory, FALSE);
 }
 
 // Clear the cookies
@@ -233,7 +233,7 @@ void ClearMRU()
     for (i=0; i<NbMRUs; i++)
     {
         sprintf(PrefName, "%s%i", PREFERENCE_MRU_URL, i);
-        kFuncs->SetPreference(PREF_STRING, PrefName, (void*)"");
+        kFuncs->SetPreference(PREF_STRING, PrefName, (void*)"", FALSE);
     }
     kFuncs->BroadcastMessage(UWM_REFRESHMRULIST, 0, 0);
 }
