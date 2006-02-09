@@ -55,19 +55,15 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "toolbars", "toolbars\toolba
 	ProjectSection(ProjectDependencies) = postProject
 	EndProjectSection
 EndProject
-Project("{059D6162-CD51-11D0-AE1F-00A0C90FFFC3}") = "urlbar", "urlbar\urlbar.dsp", "{E020E21F-1DF3-4D5E-991F-12AFA55F77DF}"
-	ProjectSection(ProjectDependencies) = postProject
-	EndProjectSection
-	ProjectSection(ProjectDependencies) = postProject
-	EndProjectSection
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "weasel", "weasel\weasel.vcproj", "{AA71AE8A-FD92-43BF-8BA4-65F57BDE8F3C}"
 	ProjectSection(ProjectDependencies) = postProject
 	EndProjectSection
 EndProject
-Project("{059D6162-CD51-11D0-AE1F-00A0C90FFFC3}") = "windowmanager", "windowmanager\windowmanager.dsp", "{AD8F6226-4563-49B3-950D-0F5774A4918E}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "privacy", "..\..\visual studio projects\k-meleon\privacy\privacy.vcproj", "{F80DCDF9-D001-47F7-97D5-26EF62BF91AF}"
 	ProjectSection(ProjectDependencies) = postProject
 	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gestures", "gestures\gestures.vcproj", "{2E6C70BF-E9CA-416A-B341-2B8550919D9E}"
 	ProjectSection(ProjectDependencies) = postProject
 	EndProjectSection
 EndProject
@@ -133,6 +129,14 @@ Global
 		{97C153A5-A4F6-4AD7-971B-F6C747558AC4}.Release.Build.0 = Release|Win32
 		{AA71AE8A-FD92-43BF-8BA4-65F57BDE8F3C}.Debug.ActiveCfg = Debug|Win32
 		{AA71AE8A-FD92-43BF-8BA4-65F57BDE8F3C}.Release.ActiveCfg = Release|Win32
+		{F80DCDF9-D001-47F7-97D5-26EF62BF91AF}.Debug.ActiveCfg = Debug|Win32
+		{F80DCDF9-D001-47F7-97D5-26EF62BF91AF}.Debug.Build.0 = Debug|Win32
+		{F80DCDF9-D001-47F7-97D5-26EF62BF91AF}.Release.ActiveCfg = Release|Win32
+		{F80DCDF9-D001-47F7-97D5-26EF62BF91AF}.Release.Build.0 = Release|Win32
+		{2E6C70BF-E9CA-416A-B341-2B8550919D9E}.Debug.ActiveCfg = Debug|Win32
+		{2E6C70BF-E9CA-416A-B341-2B8550919D9E}.Debug.Build.0 = Debug|Win32
+		{2E6C70BF-E9CA-416A-B341-2B8550919D9E}.Release.ActiveCfg = Release|Win32
+		{2E6C70BF-E9CA-416A-B341-2B8550919D9E}.Release.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 	EndGlobalSection
