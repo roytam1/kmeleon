@@ -107,8 +107,18 @@ NS_IMETHODIMP CNSSDialogs::NotifyCACertExists(nsIInterfaceRequestor *ctx)
 NS_IMETHODIMP CNSSDialogs::SetPKCS12FilePassword(nsIInterfaceRequestor *ctx, nsAString & password, PRBool *_retval)
 {
 	//chrome://pippki/content/setp12password.xul
+	nsCOMPtr<nsIDOMWindow> parent = do_GetInterface (ctx);
+	CSetPKCS12FilePasswordDialog dlg(CWndForDOMWindow(parent));
+	if (dlg.DoModal() == IDOK)
+	{
+		*_retval = PR_TRUE;
+		USES_CONVERSION;
+		password = T2CW(dlg.m_csPwd);
+	}
+	else *_retval = PR_FALSE;
 
-    return NS_ERROR_NOT_IMPLEMENTED;
+
+    return NS_OK;
 }
 
 /* boolean getPKCS12FilePassword (in nsIInterfaceRequestor ctx, out AString password); */
@@ -367,12 +377,12 @@ NS_IMETHODIMP CNSSDialogs::ConfirmCertExpired(nsIInterfaceRequestor *socketInfo,
 
   if (LL_CMP(now, >, notAfter)) {
     msg.LoadString(IDS_CERTEXPIREDTITLE); 
-	t = notAfter / PR_USEC_PER_SEC;
+	LL_DIV(t, notAfter, PR_USEC_PER_SEC);
 	strftime (fDate, sizeof(fDate), "%a %d %b %Y", localtime (&t));
 	title.Format(IDS_CERTEXPIREDMSG, cName, fDate);
   } else {
     msg.LoadString(IDS_CERTNOTVALIDTITLE);
-	t = notBefore / PR_USEC_PER_SEC;
+	LL_DIV(t, notBefore, PR_USEC_PER_SEC);
     strftime (fDate, sizeof(fDate), "%a %d %b %Y", localtime (&t));
 	title.Format(IDS_CERTNOTVALIDMSG, cName, fDate);
   }
@@ -428,7 +438,7 @@ NS_IMETHODIMP CNSSDialogs::NotifyCrlNextupdate(nsIInterfaceRequestor *socketInfo
 
 // Boîte de dialogue CConfirmCertExpiredDialog
 
-IMPLEMENT_DYNAMIC(CConfirmCertExpiredDialog, CDialog)
+//IMPLEMENT_DYNAMIC(CConfirmCertExpiredDialog, CDialog)
 CConfirmCertExpiredDialog::CConfirmCertExpiredDialog(CWnd* pParent, const TCHAR* title, 
 		const TCHAR* msg, const TCHAR* ctime,
 		nsIInterfaceRequestor *ctx,	nsIX509Cert *cert)
@@ -501,7 +511,7 @@ void CConfirmCertExpiredDialog::OnBnClickedViewCert()
 
 // Boîte de dialogue CNewServerDialog
 
-IMPLEMENT_DYNAMIC(CNewServerDialog, CDialog)
+//IMPLEMENT_DYNAMIC(CNewServerDialog, CDialog)
 CNewServerDialog::CNewServerDialog(CWnd* pParent, const TCHAR* intro, 
 		const TCHAR *reason3, const TCHAR* question, 
 		nsIInterfaceRequestor *ctx,	nsIX509Cert *cert)
@@ -555,7 +565,7 @@ BOOL CNewServerDialog::OnInitDialog()
 
 // Boîte de dialogue CDomainMismatchDialog
 
-IMPLEMENT_DYNAMIC(CDomainMismatchDialog, CDialog)
+//IMPLEMENT_DYNAMIC(CDomainMismatchDialog, CDialog)
 CDomainMismatchDialog::CDomainMismatchDialog(CWnd* pParent, 
 		const TCHAR* msg1, const TCHAR* msg2,
 		nsIInterfaceRequestor *ctx,	nsIX509Cert *cert)
@@ -599,7 +609,7 @@ void CDomainMismatchDialog::OnBnClickedViewCert()
 
 // Boîte de dialogue CServerCrlNextupdateDialog
 
-IMPLEMENT_DYNAMIC(CServerCrlNextupdateDialog, CDialog)
+//IMPLEMENT_DYNAMIC(CServerCrlNextupdateDialog, CDialog)
 CServerCrlNextupdateDialog::CServerCrlNextupdateDialog(CWnd* pParent, const TCHAR* msg1, const TCHAR* msg2)
 	: CDialog(CServerCrlNextupdateDialog::IDD, pParent)
 {
@@ -625,7 +635,7 @@ END_MESSAGE_MAP()
 
 // Boîte de dialogue CDownloadCertDialog
 
-IMPLEMENT_DYNAMIC(CDownloadCertDialog, CDialog)
+//IMPLEMENT_DYNAMIC(CDownloadCertDialog, CDialog)
 CDownloadCertDialog::CDownloadCertDialog(CWnd* pParent, const TCHAR* msg2, 
 		nsIInterfaceRequestor *ctx,	nsIX509Cert *cert)
 	: CDialog(CDownloadCertDialog::IDD, pParent)
@@ -672,7 +682,7 @@ void CDownloadCertDialog::OnBnClickedViewCert()
 
 // Boîte de dialogue CGetPKCS12FilePasswordDialog
 
-IMPLEMENT_DYNAMIC(CGetPKCS12FilePasswordDialog, CDialog)
+//IMPLEMENT_DYNAMIC(CGetPKCS12FilePasswordDialog, CDialog)
 CGetPKCS12FilePasswordDialog::CGetPKCS12FilePasswordDialog(CWnd* pParent /*=NULL*/)
 	: CDialog(CGetPKCS12FilePasswordDialog::IDD, pParent)
 {
@@ -693,9 +703,44 @@ void CGetPKCS12FilePasswordDialog::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(CGetPKCS12FilePasswordDialog, CDialog)
 END_MESSAGE_MAP()
 
+// Boîte de dialogue CSetPKCS12FilePasswordDialog
+
+//IMPLEMENT_DYNAMIC(CSetPKCS12FilePasswordDialog, CDialog)
+CSetPKCS12FilePasswordDialog::CSetPKCS12FilePasswordDialog(CWnd* pParent /*=NULL*/)
+	: CDialog(CSetPKCS12FilePasswordDialog::IDD, pParent)
+{
+}
+
+CSetPKCS12FilePasswordDialog::~CSetPKCS12FilePasswordDialog()
+{
+}
+
+void CSetPKCS12FilePasswordDialog::DoDataExchange(CDataExchange* pDX)
+{
+	CDialog::DoDataExchange(pDX);
+}
+
+
+void CSetPKCS12FilePasswordDialog::OnOK()
+{
+	CString pwd1,pwd2;
+	GetDlgItemText(IDC_PWD1, pwd1);
+	GetDlgItemText(IDC_PWD2, pwd2);
+	if (pwd1.Compare(pwd2) == 0)
+	{
+		m_csPwd = pwd1;
+		CDialog::OnOK();
+	}
+	else
+		AfxMessageBox(IDS_PASSWORD_MISMATCH, MB_OK|MB_ICONERROR);
+}
+
+BEGIN_MESSAGE_MAP(CSetPKCS12FilePasswordDialog, CDialog)
+END_MESSAGE_MAP()
+
 // Boîte de dialogue CViewCertGeneralPage
 
-IMPLEMENT_DYNAMIC(CViewCertGeneralPage, CPropertyPage)
+//IMPLEMENT_DYNAMIC(CViewCertGeneralPage, CPropertyPage)
 CViewCertGeneralPage::CViewCertGeneralPage()
 	: CPropertyPage(CViewCertGeneralPage::IDD)
 {
@@ -731,7 +776,7 @@ END_MESSAGE_MAP()
 
 // Boîte de dialogue CViewCertDetailsPage
 
-IMPLEMENT_DYNAMIC(CViewCertDetailsPage, CPropertyPage)
+//IMPLEMENT_DYNAMIC(CViewCertDetailsPage, CPropertyPage)
 CViewCertDetailsPage::CViewCertDetailsPage(nsIArray* certChain, CWnd* pParent /*=NULL*/)
 	: CPropertyPage(CViewCertDetailsPage::IDD)
 {
@@ -744,7 +789,7 @@ CViewCertDetailsPage::~CViewCertDetailsPage()
 
 void CViewCertDetailsPage::DoDataExchange(CDataExchange* pDX)
 {
-	CDialog::DoDataExchange(pDX);
+	CPropertyPage::DoDataExchange(pDX);
 }
 
 
@@ -758,7 +803,7 @@ END_MESSAGE_MAP()
 
 BOOL CViewCertDetailsPage::OnInitDialog()
 {
-	CDialog::OnInitDialog();
+	CPropertyPage::OnInitDialog();
 
 	PRUint32 numCerts;
 	m_certChain->GetLength(&numCerts);

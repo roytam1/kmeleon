@@ -53,7 +53,7 @@ public:
 
 class CConfirmCertExpiredDialog : public CDialog
 {
-	DECLARE_DYNAMIC(CConfirmCertExpiredDialog)
+	//DECLARE_DYNAMIC(CConfirmCertExpiredDialog)
 
 public:
 	CConfirmCertExpiredDialog(CWnd* pParent, const TCHAR* title, 
@@ -85,7 +85,7 @@ public:
 
 class CNewServerDialog : public CDialog
 {
-	DECLARE_DYNAMIC(CNewServerDialog)
+	//DECLARE_DYNAMIC(CNewServerDialog)
 
 public:
 	CNewServerDialog(CWnd* pParent, const TCHAR* intro, 
@@ -116,7 +116,7 @@ public:
 
 class CDomainMismatchDialog : public CDialog
 {
-	DECLARE_DYNAMIC(CDomainMismatchDialog)
+	//DECLARE_DYNAMIC(CDomainMismatchDialog)
 
 public:
 	CDomainMismatchDialog(CWnd* pParent, 
@@ -144,7 +144,7 @@ public:
 
 class CServerCrlNextupdateDialog : public CDialog
 {
-	DECLARE_DYNAMIC(CServerCrlNextupdateDialog)
+	//DECLARE_DYNAMIC(CServerCrlNextupdateDialog)
 
 public:
 	CServerCrlNextupdateDialog(CWnd* pParent, const TCHAR* msg1, const TCHAR* msg2);   // constructeur standard
@@ -165,7 +165,7 @@ protected:
 
 class CDownloadCertDialog : public CDialog
 {
-	DECLARE_DYNAMIC(CDownloadCertDialog)
+	//DECLARE_DYNAMIC(CDownloadCertDialog)
 
 public:
 	CDownloadCertDialog(CWnd* pParent, const TCHAR* msg2, 
@@ -193,7 +193,7 @@ public:
 
 class CGetPKCS12FilePasswordDialog : public CDialog
 {
-	DECLARE_DYNAMIC(CGetPKCS12FilePasswordDialog)
+	//DECLARE_DYNAMIC(CGetPKCS12FilePasswordDialog)
 
 public:
 	CGetPKCS12FilePasswordDialog(CWnd* pParent = NULL);   // constructeur standard
@@ -209,11 +209,32 @@ protected:
 	DECLARE_MESSAGE_MAP()
 };
 
+// Boîte de dialogue CSetPKCS12FilePasswordDialog
+
+class CSetPKCS12FilePasswordDialog : public CDialog
+{
+	//DECLARE_DYNAMIC(CSetPKCS12FilePasswordDialog)
+
+public:
+	CSetPKCS12FilePasswordDialog(CWnd* pParent = NULL);   // constructeur standard
+	virtual ~CSetPKCS12FilePasswordDialog();
+	CString m_csPwd;
+
+// Données de boîte de dialogue
+	enum { IDD = IDD_SETPKCS12FILEPASSWORD };
+
+protected:
+	virtual void DoDataExchange(CDataExchange* pDX);    // Prise en charge DDX/DDV
+
+	DECLARE_MESSAGE_MAP()
+	virtual void OnOK();
+};
+
 // Boîte de dialogue CViewCertGeneralPage
 
 class CViewCertGeneralPage : public CPropertyPage
 {
-	DECLARE_DYNAMIC(CViewCertGeneralPage)
+	//DECLARE_DYNAMIC(CViewCertGeneralPage)
 
 public:
 	CViewCertGeneralPage();
@@ -246,7 +267,7 @@ protected:
 
 class CViewCertDetailsPage : public CPropertyPage
 {
-	DECLARE_DYNAMIC(CViewCertDetailsPage)
+	//DECLARE_DYNAMIC(CViewCertDetailsPage)
 	nsIArray* m_certChain;
 
 public:
