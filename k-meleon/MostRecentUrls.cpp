@@ -26,6 +26,7 @@ extern CMfcEmbedApp theApp;
 
 CMostRecentUrls::CMostRecentUrls() {
   m_hMutex = CreateMutex(NULL, FALSE, NULL);
+  m_URLs = NULL;
   LoadURLs();
 }
 
@@ -46,6 +47,7 @@ void CMostRecentUrls::LoadURLs() {
       return;
    }
 
+   ASSERT(!m_URLs);
    m_URLs = new char*[m_maxURLs];
    
    char sPref[20] = "kmeleon.MRU.URL", sBuf[5];
@@ -117,6 +119,7 @@ void CMostRecentUrls::DeleteURLs() {
       if(m_URLs[x]) delete m_URLs[x];
 
    delete m_URLs;
+   m_URLs = NULL;
 
    ReleaseMutex(m_hMutex);
 }
@@ -133,6 +136,7 @@ void CMostRecentUrls::RefreshURLs() {
 
 void CMostRecentUrls::AddURL(const char * aURL) {
 
+   char * newurl;
    if (m_maxURLs<1) return;
 
   DWORD dwWaitResult; 
@@ -142,7 +146,7 @@ void CMostRecentUrls::AddURL(const char * aURL) {
   } while (dwWaitResult != WAIT_OBJECT_0);
 
    // check list for previous entry
-   for (int x=0; x<m_URLCount-1; x++)	{
+   for (int x=0; x<m_URLCount; x++)	{
       if(m_URLs[x]) {
          if(strcmp(m_URLs[x], aURL) == 0)
             break; 
@@ -150,14 +154,17 @@ void CMostRecentUrls::AddURL(const char * aURL) {
    }
 
    // if no match
-   if((x==m_URLCount-1) || (m_URLCount == 0)) {
+   if((x==m_URLCount) || (m_URLCount == 0)) {
       if (m_URLCount==m_maxURLs)
-         delete m_URLs[x];            // if list is full, remove the bottom entry
+         delete m_URLs[--x];            // if list is full, remove the bottom entry
       else {                          // otherwise add a new entry and increase the count
          m_URLCount++;
-         x++;
       }
+	  newurl = new char[strlen(aURL)+1]; // Allocating the new entry
+	  strcpy(newurl,aURL);
    }
+   else
+	   newurl = m_URLs[x];
 
    // shift everything down
    while (x) {
@@ -166,7 +173,7 @@ void CMostRecentUrls::AddURL(const char * aURL) {
    }
 
 	// add the new url
-   m_URLs[0] = _strdup(aURL);
+   m_URLs[0] = newurl;
 
    ReleaseMutex(m_hMutex);
 }
