@@ -53,6 +53,12 @@ class CPrintProgressDialog;
 class nsIPrintSettings;                                                         
 
 
+#define UTF16ToCString(source,dest) \
+{\
+	USES_CONVERSION;\
+	strcpy(dest, W2CA(source.get()));\
+}
+
 class CBrowserView : public CWnd
 {
 public:
@@ -111,17 +117,18 @@ public:
     nsIDocShell *CBrowserView::GetDocShell();
     BOOL ForceCharset(char *aCharSet);
 
-    void SetCtxMenuLinkUrl(nsAutoString& strLinkUrl);
-	nsAutoString mCtxMenuLinkUrl;
+    void SetCtxMenuLinkUrl(nsEmbedString& strLinkUrl);
+	nsEmbedString mCtxMenuLinkUrl;
 
-	void SetCtxMenuImageSrc(nsAutoString& strImgSrc);
-	nsAutoString mCtxMenuImgSrc;
+	void SetCtxMenuImageSrc(nsEmbedString& strImgSrc);
+	nsEmbedString mCtxMenuImgSrc;
 
-    void SetCurrentFrameURL(nsAutoString& strcCurrentFrameURL);
-    nsString mCtxMenuCurrentFrameURL;
+    void SetCurrentFrameURL(nsEmbedString& strcCurrentFrameURL);
+    nsEmbedString mCtxMenuCurrentFrameURL;
 
     void Activate(UINT nState, CWnd* pWndOther, BOOL bMinimized);
 
+	BOOL OpenViewSourceWindow(const PRUnichar* pUrl);
     BOOL OpenViewSourceWindow(const char* pUrl);  
     BOOL IsViewSourceUrl(CString& strUrl);
 
@@ -152,7 +159,7 @@ public:
 
     inline void ClearFindDialog() { m_pFindDlg = NULL; }
 
-    void GetBrowserWindowTitle(nsCString& title);
+    void GetBrowserWindowTitle(nsEmbedString& title);
 
     NS_IMETHODIMP URISaveAs(nsIURI *aURI, bool bDocument=FALSE);
 

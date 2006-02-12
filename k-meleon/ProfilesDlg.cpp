@@ -34,7 +34,7 @@
 #include <afxpriv.h>
 #include "mfcembed.h"
 #include "ProfilesDlg.h"
-#include "nsCRT.h"
+#include "nsIProfile.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -206,14 +206,13 @@ BOOL CProfilesDlg::OnInitDialog()
 
 	CDialog::OnInitDialog();
 	
-    nsCAutoString   cStr;        
-    nsXPIDLString   curProfileName;
+    PRUnichar *curProfileName = nsnull;
 
    // Fill the list of profiles
    nsresult rv;
    nsCOMPtr<nsIProfile> profileService = 
       do_GetService(NS_PROFILE_CONTRACTID, &rv);
-   profileService->GetCurrentProfile(getter_Copies(curProfileName));
+   profileService->GetCurrentProfile(&curProfileName);
 
     PRInt32     selectedRow = 0;
     PRUint32    listLen;
@@ -224,10 +223,10 @@ BOOL CProfilesDlg::OnInitDialog()
     {
         CString tmpStr(W2T(profileList[index]));
         m_ProfileList.AddString(tmpStr);
-        if (nsCRT::strcmp(profileList[index], curProfileName.get()) == 0)
+        if (wcscmp(profileList[index], curProfileName) == 0)
             selectedRow = index;
     }
-
+	nsMemory::Free(curProfileName);
     m_ProfileList.SetCurSel(selectedRow);
     /*
     if (m_bAtStartUp)

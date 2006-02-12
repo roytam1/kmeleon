@@ -52,14 +52,15 @@ void CBrowserView::OnShowFindDlg()
     nsCOMPtr<nsIWebBrowserFind> finder(do_GetInterface(mWebBrowser));
     if(finder)
     {
-	nsXPIDLString stringBuf;
-	finder->GetSearchString(getter_Copies(stringBuf));
-	csSearchStr = stringBuf.get();
+		PRUnichar *stringBuf = nsnull;
+        finder->GetSearchString(&stringBuf);
+        csSearchStr = stringBuf;
+        nsMemory::Free(stringBuf);
 
-	finder->GetMatchCase(&bMatchCase);
-	finder->GetEntireWord(&bMatchWholeWord);
-	finder->GetWrapFind(&bWrapAround);
-	finder->GetFindBackwards(&bSearchBackwards);		
+		finder->GetMatchCase(&bMatchCase);
+		finder->GetEntireWord(&bMatchWholeWord);
+		finder->GetWrapFind(&bWrapAround);
+		finder->GetFindBackwards(&bSearchBackwards);		
     }
 
     m_pFindDlg = new CFindDialog(csSearchStr, bMatchCase, bMatchWholeWord,
@@ -122,9 +123,9 @@ void CBrowserView::OnFindNext() {
 
    if(!finder) return;
 
-	nsXPIDLString stringBuf;
-   finder->GetSearchString(getter_Copies(stringBuf));
-   if (stringBuf.get()[0]) {
+   PRUnichar* stringBuf = nsnull;
+   finder->GetSearchString(&stringBuf);
+   if (stringBuf[0]) {
 
       PRBool didFind;
 	   finder->FindNext(&didFind);
@@ -132,6 +133,7 @@ void CBrowserView::OnFindNext() {
    else {
       OnShowFindDlg();
    }
+   nsMemory::Free(stringBuf);
 }
 
 void CBrowserView::OnFindPrev() {
@@ -144,16 +146,16 @@ void CBrowserView::OnFindPrev() {
    finder->GetFindBackwards(&rv);
    finder->SetFindBackwards(rv^2);  // reverse the find direction
 
-	nsXPIDLString stringBuf;
-   finder->GetSearchString(getter_Copies(stringBuf));
-   if (stringBuf.get()[0]) {
+   PRUnichar* stringBuf = nsnull;
+   finder->GetSearchString(&stringBuf);
+   if (stringBuf[0]) {
       PRBool didFind;
 	   finder->FindNext(&didFind);
    }
    else {
       OnShowFindDlg();
    }
-      
+   nsMemory::Free(stringBuf);
    finder->GetFindBackwards(&rv);
    finder->SetFindBackwards(rv^2);  // reset the initial find direction
 }

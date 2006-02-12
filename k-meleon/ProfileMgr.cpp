@@ -35,13 +35,11 @@
 #include "ProfilesDlg.h"
 
 // Mozilla Includes
-#include "nsString.h"
-#include "nsXPIDLString.h"
 #include "nsIRegistry.h"
 #include "nsIProfile.h"
 
 // Constants
-#define kRegistryGlobalPrefsSubtreeString (NS_LITERAL_STRING("global-prefs"))
+#define kRegistryGlobalPrefsSubtreeString (nsEmbedString(L"global-prefs"))
 #define kRegistryShowProfilesAtStartup "start-show-dialog"
 
 //*****************************************************************************
@@ -75,7 +73,7 @@ nsresult CProfileMgr::StartUp()
     if (profileCount == 0)
     {
         // Make a new default profile
-        NS_NAMED_LITERAL_STRING(newProfileName, "default");
+        nsEmbedString newProfileName(L"default");
 
         rv = profileService->CreateNewProfile(newProfileName.get(), nsnull, nsnull, PR_FALSE);
         if (NS_FAILED(rv)) return rv;
@@ -102,10 +100,11 @@ nsresult CProfileMgr::StartUp()
             // GetCurrentProfile returns the profile which was last used but is not nescesarily
             // active. Call SetCurrentProfile to make it installed and active.
 
-            nsXPIDLString   currProfileName;
-            rv = profileService->GetCurrentProfile(getter_Copies(currProfileName));
+            PRUnichar *currProfileName;
+            rv = profileService->GetCurrentProfile(&currProfileName);
             if (NS_FAILED(rv)) return rv;
             rv = profileService->SetCurrentProfile(currProfileName);
+			nsMemory::Free(currProfileName);
             if (NS_FAILED(rv)) return rv;
         }    
     }
@@ -120,7 +119,9 @@ BOOL CProfileMgr::SetCurrentProfile(const char *profile) {
       do_GetService(NS_PROFILE_CONTRACTID, &rv);
    if (NS_FAILED(rv)) return FALSE;
 
-   rv = profileService->SetCurrentProfile(NS_ConvertASCIItoUCS2(profile).get());
+   nsEmbedString str;
+   NS_CStringToUTF16(nsEmbedCString(profile), NS_CSTRING_ENCODING_ASCII, str);
+   rv = profileService->SetCurrentProfile(str.get());
    if (NS_FAILED(rv)) return FALSE;
 
    return TRUE;
@@ -133,10 +134,11 @@ BOOL CProfileMgr::SetMostRecentProfile() {
       do_GetService(NS_PROFILE_CONTRACTID, &rv);
    if (NS_FAILED(rv)) return FALSE;
 
-   nsXPIDLString   currProfileName;
-   rv = profileService->GetCurrentProfile(getter_Copies(currProfileName));
-   if (NS_FAILED(rv)) return FALSE;
+   PRUnichar *currProfileName = nsnull;
+   rv = profileService->GetCurrentProfile(&currProfileName);
+   if (NS_FAILED(rv)) {nsMemory::Free(currProfileName);return FALSE;}
    rv = profileService->SetCurrentProfile(currProfileName);
+   nsMemory::Free(currProfileName);
    if (NS_FAILED(rv)) return FALSE;
 
    return TRUE;

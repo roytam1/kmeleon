@@ -116,16 +116,19 @@ void NavigateTo(const char *url, int windowState, HWND mainWnd)
    if (!mainFrame) {
       return;
    }
+   nsEmbedString str;
 
    switch(windowState) {
    case OPEN_NORMAL:
       mainFrame->m_wndBrowserView.OpenURL(url);
       break;
    case OPEN_NEW:
-      mainFrame->m_wndBrowserView.OpenURLInNewWindow(NS_ConvertASCIItoUCS2(url).get());
+      NS_CStringToUTF16(nsEmbedCString(url), NS_CSTRING_ENCODING_ASCII, str);
+      mainFrame->m_wndBrowserView.OpenURLInNewWindow(str.get());
       break;
    case OPEN_BACKGROUND:
-      mainFrame->m_wndBrowserView.OpenURLInNewWindow(NS_ConvertASCIItoUCS2(url).get(), true);
+	  NS_CStringToUTF16(nsEmbedCString(url), NS_CSTRING_ENCODING_ASCII, str);
+      mainFrame->m_wndBrowserView.OpenURLInNewWindow(str.get(), true);
       break;
    }
 }
@@ -374,7 +377,7 @@ kmeleonPointInfo *GetInfoAtPoint(int x, int y) {
 
 
    
-   nsAutoString strBuf;
+   nsEmbedString strBuf;
    nsresult rv = NS_OK;
 
 
@@ -396,7 +399,7 @@ kmeleonPointInfo *GetInfoAtPoint(int x, int y) {
       if(NS_SUCCEEDED(rv)) {
          if (strBuf.Length()) {
             gPointInfo.link = new char[strBuf.Length() + 1];
-            strBuf.ToCString(gPointInfo.link, strBuf.Length() + 1);
+			UTF16ToCString(strBuf, gPointInfo.link);
          }
       }
    }
@@ -408,7 +411,7 @@ kmeleonPointInfo *GetInfoAtPoint(int x, int y) {
       rv = imgPointInfo->GetSrc(strBuf);
       if(NS_SUCCEEDED(rv)) {
          gPointInfo.image = new char[strBuf.Length() + 1];
-         strBuf.ToCString(gPointInfo.image, strBuf.Length() + 1);
+		 UTF16ToCString(strBuf, gPointInfo.image);
       }
    }
 
@@ -423,7 +426,7 @@ kmeleonPointInfo *GetInfoAtPoint(int x, int y) {
          rv = htmlDoc->GetURL(strBuf);
          if(NS_SUCCEEDED(rv)) {
             gPointInfo.frame = new char[strBuf.Length() +1];
-            strBuf.ToCString(gPointInfo.frame , strBuf.Length() +1);
+			UTF16ToCString(strBuf, gPointInfo.frame);
          }
       }
    }
@@ -508,15 +511,18 @@ int GetGlobalVar(enum PREFTYPE type, char *preference, void *ret) {
       }
       if (!stricmp(preference, "LinkURL")) {
          retLen = pBrowserView->mCtxMenuLinkUrl.Length();
-         if (ret) pBrowserView->mCtxMenuLinkUrl.ToCString((char*)ret , retLen+1);
+         if (ret) 
+			 UTF16ToCString(pBrowserView->mCtxMenuLinkUrl, (char*)ret);
       }
       if (!stricmp(preference, "ImageURL")) {
          retLen = pBrowserView->mCtxMenuImgSrc.Length();
-         if (ret) pBrowserView->mCtxMenuImgSrc.ToCString((char*)ret , retLen+1);
+         if (ret) 
+			 UTF16ToCString(pBrowserView->mCtxMenuImgSrc, (char*)ret);
       }
       if (!stricmp(preference, "FrameURL")) {
          retLen = pBrowserView->mCtxMenuCurrentFrameURL.Length();
-         if (ret) pBrowserView->mCtxMenuCurrentFrameURL.ToCString((char*)ret , retLen+1);
+         if (ret)
+			 UTF16ToCString(pBrowserView->mCtxMenuCurrentFrameURL, (char*)ret);
       }
       if (!stricmp(preference, "TITLE")) {
          CString title;
@@ -538,15 +544,19 @@ static char *safe_strdup(const char *ptr) {
 
 char *EncodeUTF8(const char *str) {
   USES_CONVERSION;
-  nsAutoString aStr;
+  nsEmbedString aStr;
   aStr.Append(T2W(str));
-  char *pszStr = safe_strdup(NS_ConvertUCS2toUTF8(aStr).get());
+  nsEmbedCString _str;
+  NS_UTF16ToCString(aStr, NS_CSTRING_ENCODING_UTF8, _str);
+  char *pszStr = safe_strdup(_str.get());
   return pszStr;
 }
 
 char *DecodeUTF8(const char *str) {
   USES_CONVERSION;
-  char *pszStr = safe_strdup(W2T(NS_ConvertUTF8toUCS2(str).get()));
+  nsEmbedString _str;
+  NS_CStringToUTF16(nsEmbedCString(str), NS_CSTRING_ENCODING_UTF8, _str);
+  char *pszStr = safe_strdup(W2CT(_str.get()));
   return pszStr;
 }
 

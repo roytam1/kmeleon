@@ -24,6 +24,8 @@ extern CMfcEmbedApp theApp;
 #include "BrowserView.h"
 #include "BrowserFrm.h"
 
+#include "nsIDOMWindowInternal.h"
+#include "nsIDOMWindowCollection.h"
 /*
 ** Middle button panning shit
 */

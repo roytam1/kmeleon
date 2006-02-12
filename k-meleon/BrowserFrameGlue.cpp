@@ -110,9 +110,11 @@ void CBrowserFrame::BrowserFrameGlueObj::UpdateCurrentURI(nsIURI *aLocation)
     if(aLocation) 
     {
         USES_CONVERSION;
-        nsCAutoString uriString;
+        nsEmbedCString uriString;
         aLocation->GetSpec(uriString);
-        pThis->m_wndUrlBar.SetCurrentURL(W2CT(NS_ConvertUTF8toUCS2(uriString).get()));
+        nsEmbedString uriString2;
+        NS_CStringToUTF16(uriString, NS_CSTRING_ENCODING_UTF8, uriString2);
+        pThis->m_wndUrlBar.SetCurrentURL(W2CT(uriString2.get()));
     }
 }
 
@@ -131,9 +133,9 @@ void CBrowserFrame::BrowserFrameGlueObj::GetBrowserFrameTitle(PRUnichar **aTitle
     if(!title.IsEmpty())
     {
         USES_CONVERSION;
-        nsString nsTitle;
+        nsEmbedString nsTitle;
         nsTitle.Assign(T2CW(title.GetBuffer(0)));
-        *aTitle = ToNewUnicode(nsTitle);
+        *aTitle = NS_StringCloneData(nsTitle);
     }
 }
 
@@ -471,7 +473,7 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags,
          
     // Reset the values from the last invocation
     // Clear image src & link url
-    nsAutoString empty;
+    nsEmbedString empty;
     pThis->m_wndBrowserView.SetCtxMenuImageSrc(empty);  
     pThis->m_wndBrowserView.SetCtxMenuLinkUrl(empty);
     pThis->m_wndBrowserView.SetCurrentFrameURL(empty);
@@ -512,11 +514,13 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags,
             aInfo->GetBackgroundImageSrc(getter_AddRefs(imgURI));
             if (!imgURI)
                 return; 
-            nsCAutoString uri;
+            nsEmbedCString uri;
             imgURI->GetSpec(uri);
             bContentHasImage = TRUE;
 
-            pThis->m_wndBrowserView.SetCtxMenuImageSrc(NS_ConvertUTF8toUCS2(uri)); // Set the new Img Src
+            nsEmbedString uri2;
+            NS_CStringToUTF16(uri, NS_CSTRING_ENCODING_UTF8, uri2);
+            pThis->m_wndBrowserView.SetCtxMenuImageSrc(uri2); // Set the new Img Src
         }
     }
     else if(aContextFlags & nsIContextMenuListener2::CONTEXT_TEXT || 
@@ -533,7 +537,7 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags,
         // BrowserView will be invoked and the value of the URL
         // will be accesible in the view
         
-        nsAutoString strUrlUcs2;
+        nsEmbedString strUrlUcs2;
         nsresult rv = aInfo->GetAssociatedLink(strUrlUcs2);
         if(NS_FAILED(rv))
             return;
@@ -547,12 +551,14 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags,
         aInfo->GetImageSrc(getter_AddRefs(imgURI));
         if(imgURI)
         {
-            nsCAutoString strImgSrcUtf8;
+            nsEmbedCString strImgSrcUtf8;
             imgURI->GetSpec(strImgSrcUtf8);
             if(!strImgSrcUtf8.IsEmpty())
             {
                 // Set the new Img Src
-                pThis->m_wndBrowserView.SetCtxMenuImageSrc(NS_ConvertUTF8toUCS2(strImgSrcUtf8));
+                nsEmbedString strImgSrc;
+                NS_CStringToUTF16(strImgSrcUtf8, NS_CSTRING_ENCODING_UTF8, strImgSrc);
+                pThis->m_wndBrowserView.SetCtxMenuImageSrc(strImgSrc);
                 bContentHasImage = TRUE;
             }
         }
@@ -566,13 +572,15 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags,
         aInfo->GetImageSrc(getter_AddRefs(imgURI));
         if(!imgURI)
             return;
-        nsCAutoString strImgSrcUtf8;
+        nsEmbedCString strImgSrcUtf8;
         imgURI->GetSpec(strImgSrcUtf8);
         if(strImgSrcUtf8.IsEmpty())
             return;
 
         // Set the new Img Src
-        pThis->m_wndBrowserView.SetCtxMenuImageSrc(NS_ConvertUTF8toUCS2(strImgSrcUtf8));
+        nsEmbedString strImgSrc;
+        NS_CStringToUTF16(strImgSrcUtf8, NS_CSTRING_ENCODING_UTF8, strImgSrc);
+        pThis->m_wndBrowserView.SetCtxMenuImageSrc(strImgSrc);
     }
 
     // Determine if we need to add the Frame related context menu items
@@ -599,7 +607,7 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags,
         if(NS_FAILED(rv))
             GOTO_BUILD_CTX_MENU;
 
-        nsAutoString strFrameURL;
+        nsEmbedString strFrameURL;
         rv = htmlDoc->GetURL(strFrameURL);
         if(NS_FAILED(rv))
             GOTO_BUILD_CTX_MENU;

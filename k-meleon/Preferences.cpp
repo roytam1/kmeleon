@@ -25,6 +25,7 @@
 extern CMfcEmbedApp theApp;
 
 #include "Preferences.h"
+#include "nsDirectoryServiceUtils.h"
 
 CPreferences::CPreferences() {
 }
@@ -51,10 +52,10 @@ CPreferences::~CPreferences() {
   }
 
 #define _GetString(_pref, _value, _defaultValue) { \
-    nsXPIDLCString tempString;                    \
+    nsEmbedCString tempString;                    \
     rv = prefs->CopyCharPref(_pref, getter_Copies(tempString));  \
     if (NS_SUCCEEDED(rv))                         \
-      _value = tempString;                        \
+      _value = tempString.get();                        \
     else                                          \
       _value = _defaultValue;                     \
   }
@@ -141,7 +142,7 @@ void CPreferences::Load() {
       NS_ASSERTION(nsProfileDir, "NS_APP_USER_PROFILE_50_DIR is not defined");
       
       if (NS_SUCCEEDED(rv)){         
-         nsCAutoString pathBuf;
+         nsEmbedCString pathBuf;
          rv = nsProfileDir->GetNativePath(pathBuf);
          profileDir = pathBuf.get();
 
