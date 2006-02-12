@@ -48,7 +48,8 @@ int CHiddenWnd::OnCreate(LPCREATESTRUCT lpCreateStruct) {
    if (m_bStayResident)
       StayResident();
    else
-      ShowBrowser(theApp.m_lpCmdLine);
+      if (!ShowBrowser(theApp.m_lpCmdLine))
+		  return -1;
 
    return CFrameWnd::OnCreate(lpCreateStruct);
 }
@@ -164,7 +165,7 @@ LRESULT CHiddenWnd::OnShowBrowser(WPARAM URI, LPARAM lParam) {
    return 0;
 }
 
-void CHiddenWnd::ShowBrowser(char *URI) {
+BOOL CHiddenWnd::ShowBrowser(char *URI) {
 
    // if we already have a browser, load home page (if necessary), and show the window
    if (m_bPersisting && m_bPreloadWindow) {
@@ -193,7 +194,7 @@ void CHiddenWnd::ShowBrowser(char *URI) {
 
       if (!browser) {
          AfxMessageBox(IDS_FAILED_TO_CREATE_BROWSER);
-         return;
+         return FALSE;
       }
 
       if (URI && *URI) {
@@ -213,6 +214,7 @@ void CHiddenWnd::ShowBrowser(char *URI) {
    }
 
    m_bPersisting = FALSE;
+   return TRUE;
 }
 
 int CHiddenWnd::Persisting() {
