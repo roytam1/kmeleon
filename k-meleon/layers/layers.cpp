@@ -1508,7 +1508,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                   
                   case PREF_NEW_WINDOW_CURRENT:
                      dInfo = kPlugin.kFuncs->GetDocInfo(hWnd);
-                     kPlugin.kFuncs->NavigateTo((dInfo && dInfo->url) ? dInfo->url : "", command == id_open_new_layer ? OPEN_BACKGROUND : OPEN_NEW, NULL);
+                     kPlugin.kFuncs->NavigateTo((dInfo && dInfo->url) ? dInfo->url : "", OPEN_CLONE | (command == id_open_new_layer ? OPEN_BACKGROUND : OPEN_NEW), NULL);
                      break;
                      
                   case PREF_NEW_WINDOW_HOME:

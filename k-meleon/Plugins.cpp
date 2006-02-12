@@ -107,7 +107,7 @@ int CPlugins::OnUpdate(UINT command)
 
 void NavigateTo(const char *url, int windowState, HWND mainWnd)
 {
-   CBrowserFrame *mainFrame;
+   CBrowserFrame *mainFrame, *newFrame = NULL;
    if (mainWnd)
       mainFrame = (CBrowserFrame *)CWnd::FromHandle(mainWnd);
    else
@@ -118,19 +118,21 @@ void NavigateTo(const char *url, int windowState, HWND mainWnd)
    }
    nsEmbedString str;
 
-   switch(windowState) {
+   switch(windowState&15) {
    case OPEN_NORMAL:
       mainFrame->m_wndBrowserView.OpenURL(url);
       break;
    case OPEN_NEW:
       NS_CStringToUTF16(nsEmbedCString(url), NS_CSTRING_ENCODING_ASCII, str);
-      mainFrame->m_wndBrowserView.OpenURLInNewWindow(str.get());
+      newFrame = mainFrame->m_wndBrowserView.OpenURLInNewWindow(str.get());
       break;
    case OPEN_BACKGROUND:
 	  NS_CStringToUTF16(nsEmbedCString(url), NS_CSTRING_ENCODING_ASCII, str);
-      mainFrame->m_wndBrowserView.OpenURLInNewWindow(str.get(), true);
+      newFrame = mainFrame->m_wndBrowserView.OpenURLInNewWindow(str.get(), true);
       break;
    }
+   if (newFrame && (windowState & OPEN_CLONE))
+	   mainFrame->m_wndBrowserView.CloneSHistory(newFrame->m_wndBrowserView);
 }
 
 kmeleonDocInfo * GetDocInfo(HWND mainWnd)

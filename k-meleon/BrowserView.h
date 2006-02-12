@@ -77,8 +77,8 @@ public:
 							PRInt32 x = -1, PRInt32 y = -1, 
 							PRInt32 cx = -1, PRInt32 cy = -1,
 							PRBool bShowWindow = PR_TRUE);
-	void OpenURLInNewWindow(const char* pUrl, BOOL bBackground=FALSE, nsIURI *refURI=nsnull);
-    void OpenURLInNewWindow(const PRUnichar* pUrl, BOOL bBackground=FALSE, nsIURI *refURI=nsnull);
+	CBrowserFrame* OpenURLInNewWindow(const char* pUrl, BOOL bBackground=FALSE, nsIURI *refURI=nsnull);
+    CBrowserFrame* OpenURLInNewWindow(const PRUnichar* pUrl, BOOL bBackground=FALSE, nsIURI *refURI=nsnull);
 	void LoadHomePage();
 
 	void GetPageTitle(CString& title);
@@ -168,6 +168,7 @@ public:
     void ChangeTextSize(PRInt32 change);
 
     BOOL GetPrintSettings();
+	BOOL CloneSHistory(CBrowserView& newWebBrowser);
 
 
 protected:
