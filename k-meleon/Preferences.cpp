@@ -221,6 +221,7 @@ void CPreferences::Load() {
       _GetBool(_T("security.enable_java"), bJavaEnabled, true);
       _GetBool(_T("signon.rememberSignons"), bRememberSignons, true);
 
+	  _GetInt("kmeleon.MRU.behavior", MRUbehavior, 2);
       // 0 = Always, 1 = site, 2 = never
       _GetInt(_T("network.cookie.cookieBehavior"), iCookiesEnabled, 0);
 

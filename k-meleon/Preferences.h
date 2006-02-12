@@ -118,6 +118,7 @@ public:
 
    CString httpVersion;
 
+   int MRUbehavior;
 
    // -- Privacy
 

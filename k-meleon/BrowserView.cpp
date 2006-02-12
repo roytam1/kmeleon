@@ -575,6 +575,7 @@ void CBrowserView::OnNewUrlEnteredInUrlBar()
    mpBrowserFrame->m_wndUrlBar.GetEnteredURL(strUrl);
 
    // Add what was just entered into the MRI list
+   if (theApp.preferences.MRUbehavior == 2)
    mpBrowserFrame->m_wndUrlBar.AddURLToList(strUrl);
 
    if(IsViewSourceUrl(strUrl))

@@ -115,6 +115,33 @@ void CBrowserFrame::BrowserFrameGlueObj::UpdateCurrentURI(nsIURI *aLocation)
         nsEmbedString uriString2;
         NS_CStringToUTF16(uriString, NS_CSTRING_ENCODING_UTF8, uriString2);
         pThis->m_wndUrlBar.SetCurrentURL(W2CT(uriString2.get()));
+
+		// Add a MRU entry. Note that I'm only only allowing
+		// http or https uri
+		
+		PRBool allowMRU,b;
+		aLocation->SchemeIs("http", &b);
+		allowMRU = b;
+		aLocation->SchemeIs("https", &b);
+		allowMRU |= b;
+
+		if ( allowMRU ){
+			if (theApp.preferences.MRUbehavior == 0){
+				nsEmbedCString password;
+				aLocation->GetUsername(password);
+				aLocation->SetUserPass(password);
+				aLocation->GetSpec(uriString);
+				pThis->m_wndUrlBar.AddURLToList(CString(uriString.get()));
+			}
+			else if (theApp.preferences.MRUbehavior == 1){
+				nsEmbedCString nsScheme, nsHost;
+				aLocation->GetScheme(nsScheme);
+				aLocation->GetHost(nsHost);
+				nsHost.Insert("://",0);
+				nsHost.Insert(nsScheme,0);
+				pThis->m_wndUrlBar.AddURLToList(CString(nsHost.get()));
+			}
+		}
     }
 }
 
