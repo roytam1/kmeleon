@@ -199,9 +199,12 @@ void BuildMenu(HMENU menu, CBookmarkNode *node, BOOL isContinuation)
       }
       else if (child->type == BOOKMARK_BOOKMARK) {
          // condense the title and escape ampersands
-         char *pszTemp = fixString(child->text.c_str(), 40);
-         AppendMenu(menu, MF_STRING, child->id, pszTemp);
-         delete pszTemp;
+	     if (!child->text.empty()) // BUG #785
+		 {
+			char *pszTemp = fixString(child->text.c_str(), 40);
+			AppendMenu(menu, MF_STRING, child->id, pszTemp);
+			delete pszTemp;
+		}
       }
    }
    kPlugin.kFuncs->SendMessage("bmpmenu", PLUGIN_NAME, "SetOwnerDrawn", (long)menu, (long)DrawBitmap);

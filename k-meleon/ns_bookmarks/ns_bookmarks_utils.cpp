@@ -791,9 +791,12 @@ void BuildMenu(HMENU menu, CBookmarkNode *node, BOOL isContinuation)
       else if (child->type == BOOKMARK_BOOKMARK) {
 #if 1
          // condense the title and escape ampersands
-         char *pszTemp = fixString(child->text.c_str(), 40);
-         AppendMenu(menu, MF_STRING, child->id, pszTemp);
-         delete pszTemp;
+		 if (!child->text.empty()) // BUG #785
+		 {
+			char *pszTemp = fixString(child->text.c_str(), 40);
+			AppendMenu(menu, MF_STRING, child->id, pszTemp);
+			delete pszTemp;
+		 }
 #else
          char *szTitle = (char*) child->text.c_str();
          int len = strlen(szTitle)+1;
