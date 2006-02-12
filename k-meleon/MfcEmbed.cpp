@@ -715,13 +715,13 @@ void CMfcEmbedApp::RemoveFrameFromList(CBrowserFrame* pFrm)
                                strcpy((LPSTR)pData, pszData);
                                GlobalUnlock(hData);
                                SetClipboardData(CF_TEXT, hData);
-
-                               CloseClipboard();
                            }
                        }
-                   }
+				   }
+				   free(pszData);
                }
-           }
+		   }
+		   CloseClipboard();
        }
    }
    
