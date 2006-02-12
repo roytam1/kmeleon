@@ -38,7 +38,7 @@ NS_IMETHODIMP CCookiePromptService::CookieDialog(nsIDOMWindow *parent, nsICookie
 {
   USES_CONVERSION;
   CString q;
-  static bool accept = true;
+  static BOOL accept = TRUE;
   char fDate[128];
 
   char *host = NS_CStringCloneData(hostname);
