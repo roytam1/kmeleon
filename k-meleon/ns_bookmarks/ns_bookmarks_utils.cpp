@@ -35,7 +35,7 @@
 #include "../kmeleon_plugin.h"
 #include "../resource.h"
 #include "../Utils.h"
-
+#include <tchar.h>
 #include "..\\rebar_menu\\hot_tracking.h"
 
 #include "BookmarkNode.h"
@@ -73,15 +73,15 @@ BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
                   break;
                case IDC_BROWSE:
                   {
-                     char tempPath[MAX_PATH];
+                     TCHAR tempPath[MAX_PATH];
                      HWND hBookmarksFileWnd = GetDlgItem(hWnd, IDC_BOOKMARKS_FILE);
 
                      GetWindowText(hBookmarksFileWnd, tempPath, MAX_PATH);
                      if (BrowseForBookmarks(tempPath)) {
                         // if the file they chose doesn't exist, create it
-                        FILE *bmFile = fopen(gBookmarkFile, "r");
+                        FILE *bmFile = _tfopen(gBookmarkFile, _T("r"));
                         if (!bmFile) {
-                           bmFile = fopen(gBookmarkFile, "w");
+                           bmFile = _tfopen(gBookmarkFile, _T("w"));
                            gGeneratedByUs = true;
                         }
                         fclose(bmFile);
@@ -91,13 +91,33 @@ BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
                      }
                   }
                   break;
-               case IDOK:
+			   case IDOK: {
                   gToolbarEnabled = SendDlgItemMessage(hWnd, IDC_REBARENABLED, BM_GETCHECK, 0, 0);
                   kPlugin.kFuncs->SetPreference(PREF_BOOL, PREFERENCE_TOOLBAR_ENABLED, &gToolbarEnabled, FALSE);
 
-                  GetDlgItemText(hWnd, IDC_BOOKMARKS_FILE, gBookmarkFile, MAX_PATH);
-                  kPlugin.kFuncs->SetPreference(PREF_STRING, PREFERENCE_BOOKMARK_FILE, gBookmarkFile, FALSE);
+				  TCHAR tempPath[MAX_PATH];
+				  GetDlgItemText(hWnd, IDC_BOOKMARKS_FILE, tempPath, MAX_PATH); 
+				  if (_tcsicmp(tempPath, gBookmarkFile) != 0) {
+					 GetDlgItemText(hWnd, IDC_BOOKMARKS_FILE, gBookmarkFile, MAX_PATH);
+					 kPlugin.kFuncs->SetPreference(PREF_STRING, PREFERENCE_BOOKMARK_FILE, gBookmarkFile, false);
+					 delete gBookmarkRoot.child;
+					 delete gBookmarkRoot.next;
+					 gBookmarkRoot.child = NULL;
+					 gBookmarkRoot.next = NULL;
+					 FILE *bmFile = _tfopen(gBookmarkFile, _T("a"));
+					 if (bmFile)
+						fclose(bmFile);
+					 else {
+						 MessageBox(NULL, BOOKMARKS_CREATING_NEW, _T(PLUGIN_NAME), 0);
+						 bmFile = _tfopen(gBookmarkFile, _T("w"));
+						 if (bmFile) {
+							fclose(bmFile);
+							gGeneratedByUs = true;
+						 }
 
+					 }
+					 LoadBM(gBookmarkFile);
+				  }
                   gMaxMenuLength = GetDlgItemInt(hWnd, IDC_MAX_MENU_LENGTH, NULL, false);
                   if (gMaxMenuLength < 1) gMaxMenuLength = 20;
                   kPlugin.kFuncs->SetPreference(PREF_INT, PREFERENCE_MAX_MENU_LENGTH, &gMaxMenuLength, FALSE);
@@ -111,7 +131,7 @@ BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 
                   // rebuild menu and toolbars to provide instant gratification to users
                   Rebuild();
-
+				 }
                   // fall through...
                case IDCANCEL:
                   SendMessage(hWnd, WM_CLOSE, 0, 0);
