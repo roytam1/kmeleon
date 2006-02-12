@@ -660,7 +660,8 @@ void CMfcEmbedApp::OnNewBrowser()
       switch (preferences.iNewWindowOpenAs) {
       case PREF_NEW_WINDOW_CURRENT:
          if (sURI) {
-            pBrowserFrame->m_wndBrowserView.OpenURL(sURI);
+            m_pOpenNewBrowserFrame->m_wndBrowserView.CloneSHistory(pBrowserFrame->m_wndBrowserView);
+			//pBrowserFrame->m_wndBrowserView.OpenURL(sURI);
             delete sURI;
          }
          break;

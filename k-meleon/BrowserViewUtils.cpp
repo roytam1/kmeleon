@@ -28,6 +28,7 @@
 
 #include "nsIContentViewer.h"
 #include "nsIMarkupDocumentViewer.h" 
+#include "nsISHistoryInternal.h"
 
 #include "UnknownContentTypeHandler.h"
 #include "nsCWebBrowserPersist.h"
@@ -397,22 +398,22 @@ CBrowserFrame* CBrowserView::CreateNewBrowserFrame(PRUint32 chromeMask,
     return pApp->CreateNewBrowserFrame(chromeMask, x, y, cx, cy, bShowWindow);
 }
 
-void CBrowserView::OpenURLInNewWindow(const char* pUrl, BOOL bBackground, nsIURI *refURI )
+CBrowserFrame* CBrowserView::OpenURLInNewWindow(const char* pUrl, BOOL bBackground, nsIURI *refURI )
 {
 	nsEmbedString str;
     NS_CStringToUTF16(nsEmbedCString(pUrl), NS_CSTRING_ENCODING_ASCII, str);
     return OpenURLInNewWindow(str.get(), bBackground, refURI);
 }
 
-void CBrowserView::OpenURLInNewWindow(const PRUnichar* pUrl, BOOL bBackground, nsIURI *refURI)
+CBrowserFrame* CBrowserView::OpenURLInNewWindow(const PRUnichar* pUrl, BOOL bBackground, nsIURI *refURI)
 {
     if(!pUrl)
-        return; 
+        return NULL; 
    
     // create hidden window
     CBrowserFrame* pFrm = CreateNewBrowserFrame(nsIWebBrowserChrome::CHROME_ALL, -1, -1, -1, -1, PR_FALSE);
     if(!pFrm)
-	return;
+	return NULL;
 
     // Load the URL into it...
 
@@ -421,7 +422,6 @@ void CBrowserView::OpenURLInNewWindow(const PRUnichar* pUrl, BOOL bBackground, n
     // version here 
 
     pFrm->m_wndBrowserView.OpenURL(pUrl, refURI);
-
 
    /* Show the window minimized, instead of on the bottom, because mozilla freaks out if we put it on the bottom */
    /* As of Oct 30, 2002, this seems to be working again.  Good. */  
@@ -439,9 +439,52 @@ void CBrowserView::OpenURLInNewWindow(const PRUnichar* pUrl, BOOL bBackground, n
     // show the window
     else
     {
-	pFrm->ShowWindow(SW_SHOW);
+		pFrm->ShowWindow(SW_SHOW);
         pFrm->SetFocus();
-    }
+	}
+
+	return pFrm;
+}
+
+BOOL CBrowserView::CloneSHistory(CBrowserView& newWebBrowser)
+{
+	nsCOMPtr<nsISHistory> oldSH;
+	nsCOMPtr<nsISHistory> newSH;
+	nsCOMPtr<nsISHistoryInternal> shi;
+		
+	mWebNav->GetSessionHistory(getter_AddRefs(oldSH));
+	newWebBrowser.mWebNav->GetSessionHistory(getter_AddRefs(newSH));
+	shi = do_QueryInterface(newSH);
+	if (shi)
+	{
+		nsCOMPtr<nsISHEntry> she;
+		nsCOMPtr<nsIHistoryEntry> he;
+
+		PRInt32 count;
+		oldSH->GetCount(&count);
+		for (int i=0;i<count;i++)
+		{
+	        nsCOMPtr<nsISHEntry> sheN;
+			oldSH->GetEntryAtIndex(i, PR_FALSE, getter_AddRefs(he));
+
+			she = do_QueryInterface(he);
+			if (she) {
+				she->Clone(getter_AddRefs(sheN));
+				if (sheN) shi->AddEntry(sheN, PR_TRUE);
+			}
+		}
+
+		if (count>0)
+		{
+			PRInt32 index;
+			oldSH->GetIndex(&index);
+			newWebBrowser.mWebNav->GotoIndex(index);
+		}
+	}
+	else
+		return false;
+
+	return true;
 }
 
 void CBrowserView::LoadHomePage()

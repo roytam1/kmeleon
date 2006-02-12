@@ -35,6 +35,7 @@
 #define OPEN_NORMAL      0    // valid windowState values in NavigateTo()
 #define OPEN_NEW         1
 #define OPEN_BACKGROUND  2
+#define OPEN_CLONE       16
 
 typedef struct {
    char label[16];
