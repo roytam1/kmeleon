@@ -219,7 +219,7 @@ int CBrowserView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	if (NS_FAILED(rv))
 		return -1;
 
-    DragAcceptFiles();
+    // DragAcceptFiles();
     return 0;
 }
 
