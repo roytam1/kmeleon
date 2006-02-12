@@ -215,7 +215,9 @@ CBrowserView::~CBrowserView()
 //
 int CBrowserView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
-    CreateBrowser();
+    nsresult rv = CreateBrowser();
+	if (NS_FAILED(rv))
+		return -1;
 
     DragAcceptFiles();
     return 0;
@@ -318,7 +320,7 @@ HRESULT CBrowserView::CreateBrowser()
     // Finally, show the web browser window
     mBaseWindow->SetVisibility(PR_TRUE);
 
-    return S_OK;
+    return NS_OK;
 }
 
 HRESULT CBrowserView::DestroyBrowser()

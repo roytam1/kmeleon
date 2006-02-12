@@ -895,10 +895,7 @@ BOOL CMfcEmbedApp::CreateHiddenWindow()
    m_pMainWnd = hiddenWnd;
    
    RECT bounds = { 0 };
-   hiddenWnd->Create(HIDDEN_WINDOW_CLASS, "K-Meleon hidden window", 0, bounds, NULL, NULL, 0, NULL);
-
-   return TRUE;
-
+   return hiddenWnd->Create(HIDDEN_WINDOW_CLASS, _T("K-Meleon hidden window"), 0, bounds, NULL, NULL, 0, NULL);
 }
 
 nsresult CMfcEmbedApp::InitializePrefs(){
