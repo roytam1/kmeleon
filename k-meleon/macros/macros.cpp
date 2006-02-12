@@ -306,7 +306,6 @@ void Quit() {
    delete varList;
 
 }
-
 std::string sGlobalArg;
 
 class ArgList {
@@ -367,7 +366,6 @@ public:
     return FALSE;
   }
 } arglist;
-
 void DoMenu(HMENU menu, char *param) {
    if (*param) {
       char *string = strchr(param, ',');
@@ -569,7 +567,7 @@ void ExecuteMacro (HWND hWnd, int macro) {
 class Tokenizer {
 protected:
    std::string strData;
-   int pos,lpos;
+   unsigned int pos,lpos;
    char lastchar;
    bool instr;
 public:
@@ -680,7 +678,7 @@ std::string protectString( char *pszData ) {
    std::string retval = "\"";
    retval.append(pszData);  // the clipboard data
    // escape any " or \ in the clipboard data
-   int pos=0;
+   unsigned int pos=0;
    while(++pos < retval.length()) {
 	  if(retval.at(pos) == '"') {
 		 retval.insert(pos++,"\\");               
@@ -845,7 +843,6 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
          return "";
       }
       CMD(delpref)   {
-         enum PREFTYPE preftype;
 
          if (nparam != 1) {  // setpref( $0 )
             parseError(WRONGARGS, "delpref", data, 1, nparam);
@@ -1041,6 +1038,10 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
          LPVOID pData;
          HANDLE hcb;
          hcb = GetClipboardData(CF_TEXT);
+		 if (!hcb) {
+			 CloseClipboard();
+			 return ""; 
+		 }
          pData = GlobalLock(hcb);
          pszData = (char*)malloc(strlen((char*)pData) + 1);
          strcpy(pszData, (LPSTR)pData);
@@ -1051,6 +1052,7 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
          // put the clipboard data in quotes to distinguish it from commands
          std::string retval;
 		 retval = protectString( pszData );
+		 free(pszData);
          return retval;
      }
 
@@ -1551,7 +1553,7 @@ void LoadMacros(char *filename) {
          char* badlist = "!@#$%^&*(){}[]<>/ \\\"'`~=?;";
          pos = -1;
          bool isBad = false;
-         for(int i=0; i<strlen(badlist); ++i) {
+         for(unsigned int i=0; i<strlen(badlist); ++i) {
             pos = strtemp.find(badlist[i]);
             if(pos != std::string::npos) {
                isBad = true;
@@ -1745,7 +1747,7 @@ std::string EvalExpression(HWND hWnd,std::string exp) {
       lparen = rparen = 0;
       instr = false;
       
-      for (int j=1; j<exp.length(); ++j) {
+      for (unsigned int j=1; j<exp.length(); ++j) {
 	 if (exp.at(j) == '"' && exp.at(j-1) != '\\') {
 	    instr = (instr) ? false : true;
 	    continue;
@@ -1800,7 +1802,7 @@ std::string EvalExpression(HWND hWnd,std::string exp) {
       
       if (exp.at(0) == '"') instr = true;
       else if (exp.at(0) == '(') ++lparen;
-      for (int j=1; j<exp.length(); ++j) {
+      for (unsigned int j=1; j<exp.length(); ++j) {
 	 if (exp.at(j) == '"' && exp.at(j-1) != '\\') {
 	    instr = (instr) ? false : true;
 	    continue;
@@ -2153,7 +2155,7 @@ int AddNewVar(std::string strin) {
    bool isBad = false;
    if(strin.length()<1) isBad = true;
    char* badlist = "!@#$%^&*(){}[]<>/ \\\"'`~=?;";
-   for(int i=0; i<strlen(badlist); ++i) {
+   for(unsigned int i=0; i<strlen(badlist); ++i) {
       pos = strin.find_first_of(badlist[i]);
       if(pos != std::string::npos) {
          isBad = true;
@@ -2291,7 +2293,7 @@ std::string strTrim(std::string instr) {
 int strFindFirst(std::string instring,char findchar,bool notinparen) {
 
    bool instr = false;
-   int pos = 0;
+   unsigned int pos = 0;
    int lparen = 0;
    int rparen = 0;
    if(instring.at(0) == '"') instr = true;
