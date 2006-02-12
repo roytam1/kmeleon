@@ -23,29 +23,35 @@
 */
 
 #include "stdafx.h"
-#include "nsEscape.h"
 #include <wininet.h>
+#include "Utils.h"
 
 #include "nsIContentViewer.h"
 #include "nsIMarkupDocumentViewer.h" 
 
 #include "UnknownContentTypeHandler.h"
+#include "nsCWebBrowserPersist.h"
 
 #include "MfcEmbed.h"
 extern CMfcEmbedApp theApp;
 
 #include "BrowserFrm.h"
 #include "BrowserView.h"
-#define NS_WEBBROWSERPERSIST_CID \
-{ 0x7e677795, 0xc582, 0x4cd1, { 0x9e, 0x8d, 0x82, 0x71, 0xb3, 0x47, 0x4d, 0x2a } }
-#define NS_WEBBROWSERPERSIST_CONTRACTID \
-"@mozilla.org/embedding/browser/nsWebBrowserPersist;1"
+
+extern NewURI(nsIURI **result, const nsAString &spec);
 
 BOOL CBrowserView::IsViewSourceUrl(CString& strUrl)
 {
     return (strUrl.Find(_T("view-source:"), 0) != -1) ? TRUE : FALSE;
 }
 
+BOOL CBrowserView::OpenViewSourceWindow(const PRUnichar* pUrl)
+{
+    nsEmbedString wUrl( pUrl );
+	nsEmbedCString cUrl;
+	NS_UTF16ToCString(wUrl,NS_CSTRING_ENCODING_ASCII,cUrl);
+    return OpenViewSourceWindow(cUrl.get());
+}
 BOOL CBrowserView::OpenViewSourceWindow(const char* pUrl)
 {
     // Use external viewer
@@ -58,7 +64,7 @@ BOOL CBrowserView::OpenViewSourceWindow(const char* pUrl)
 	    char *url = strdup(pUrl);
          
 	    if (url && strnicmp(url, "view-source:file:///", 20) == 0) {
-		int i;
+		unsigned int i;
 		for (i=0; i<strlen(url); i++)
 		    if (url[i]=='/')
 			url[i]='\\';
@@ -78,11 +84,11 @@ BOOL CBrowserView::OpenViewSourceWindow(const char* pUrl)
 		CProgressDialog *progress = new CProgressDialog(FALSE);      
 		progress->InitViewer(persist, theApp.preferences.sourceCommand.GetBuffer(0), tempfile.GetBuffer(0));
 		
-		nsAutoString sURI;
-		sURI.AssignWithConversion(pUrl+strlen("View-Source:"));
-
-         	nsCOMPtr<nsIURI> srcURI;
-		nsresult rv = NS_NewURI(getter_AddRefs(srcURI), sURI);
+		nsEmbedString sURI;
+		NS_CStringToUTF16(nsEmbedCString(pUrl+strlen("View-Source:")), NS_CSTRING_ENCODING_ASCII, sURI);
+		
+		nsCOMPtr<nsIURI> srcURI;
+		nsresult rv = NewURI(getter_AddRefs(srcURI), sURI);
 		if (NS_FAILED(rv)) {
 		    if (url)
 			delete url;
@@ -171,7 +177,7 @@ NS_IMETHODIMP CBrowserView::URISaveAs(nsIURI* aURI, bool bDocument)
 
 	// Get the "path" portion (see nsIURI.h for more info
 	// on various parts of a URI)
-	nsCAutoString path;
+	nsEmbedCString path;
 	aURI->GetPath(path);
 
    char sDefault[] = "default.htm";
@@ -219,6 +225,7 @@ NS_IMETHODIMP CBrowserView::URISaveAs(nsIURI* aURI, bool bDocument)
    }
 
    // This is so saving cgi-scripts doesn't produce invalid filenames
+   // but create empty string with url beginning with '?' ...
    char *questionMark = strchr(pFileName, '?');
    if (questionMark)
       *questionMark = 0;
@@ -249,9 +256,10 @@ NS_IMETHODIMP CBrowserView::URISaveAs(nsIURI* aURI, bool bDocument)
      i++;
    }
 
-   nsCString fileName;
+   nsEmbedString fileName;
    GetBrowserWindowTitle(fileName); // Suggest the window title as the filename
-  
+   USES_CONVERSION;
+
    OPENFILENAME ofn;
    char *szFileName = new char[INTERNET_MAX_URL_LENGTH];
 
@@ -262,7 +270,7 @@ NS_IMETHODIMP CBrowserView::URISaveAs(nsIURI* aURI, bool bDocument)
    ofn.lpstrFilter = lpszFilter;
    ofn.lpstrFile = szFileName;
    if (bDocument && strstr(extension, "htm")) {
-     const char *pszTitle = fileName.get();
+     const char *pszTitle = W2CT(fileName.get());
      if (theApp.preferences.iSaveType == 3 && pszTitle && *pszTitle)
        strcpy(szFileName, pszTitle);
      ofn.nFilterIndex = theApp.preferences.iSaveType == 3 ? 3 : 2;
@@ -313,8 +321,8 @@ NS_IMETHODIMP CBrowserView::URISaveAs(nsIURI* aURI, bool bDocument)
       if(!persist)
          return NS_ERROR_FAILURE;
 
-      nsString filename;
-      filename.AssignWithConversion(strFullPath.GetBuffer(0));
+      //nsString filename;
+      //filename.AssignWithConversion(strFullPath.GetBuffer(0));
 
       nsCOMPtr<nsILocalFile> file;
       NS_NewNativeLocalFile(nsDependentCString(T2A(strFullPath.GetBuffer(0))), TRUE, getter_AddRefs(file));
@@ -358,7 +366,9 @@ NS_IMETHODIMP CBrowserView::URISaveAs(nsIURI* aURI, bool bDocument)
 
 void CBrowserView::OpenURL(const char* pUrl, nsIURI *refURI)
 {
-  OpenURL(NS_ConvertASCIItoUCS2(pUrl).get(), refURI);
+    nsEmbedString str;
+    NS_CStringToUTF16(nsEmbedCString(pUrl), NS_CSTRING_ENCODING_ASCII, str);
+    OpenURL(str.get(), refURI);
 }
 
 void CBrowserView::OpenURL(const PRUnichar* pUrl, nsIURI *refURI)
@@ -389,7 +399,9 @@ CBrowserFrame* CBrowserView::CreateNewBrowserFrame(PRUint32 chromeMask,
 
 void CBrowserView::OpenURLInNewWindow(const char* pUrl, BOOL bBackground, nsIURI *refURI )
 {
-    OpenURLInNewWindow(NS_ConvertASCIItoUCS2(pUrl).get(), bBackground, refURI);
+	nsEmbedString str;
+    NS_CStringToUTF16(nsEmbedCString(pUrl), NS_CSTRING_ENCODING_ASCII, str);
+    return OpenURLInNewWindow(str.get(), bBackground, refURI);
 }
 
 void CBrowserView::OpenURLInNewWindow(const PRUnichar* pUrl, BOOL bBackground, nsIURI *refURI)
@@ -484,17 +496,17 @@ void CBrowserView::UpdateBusyState(PRBool aBusy)
 }
 
 
-void CBrowserView::SetCtxMenuLinkUrl(nsAutoString& strLinkUrl)
+void CBrowserView::SetCtxMenuLinkUrl(nsEmbedString& strLinkUrl)
 {
     mCtxMenuLinkUrl = strLinkUrl;
 }
 
-void CBrowserView::SetCtxMenuImageSrc(nsAutoString& strImgSrc)
+void CBrowserView::SetCtxMenuImageSrc(nsEmbedString& strImgSrc)
 {
     mCtxMenuImgSrc = strImgSrc;
 }
 
-void CBrowserView::SetCurrentFrameURL(nsAutoString& strCurrentFrameURL)
+void CBrowserView::SetCurrentFrameURL(nsEmbedString& strCurrentFrameURL)
 {
     mCtxMenuCurrentFrameURL = strCurrentFrameURL;
 }
@@ -556,7 +568,7 @@ int CBrowserView::GetCurrentURI(char *sURI)
       return 0;
 
    // Get the uri string associated with the nsIURI object
-	nsCAutoString uriString;
+	nsEmbedCString uriString;
 	rv = currentURI->GetSpec(uriString);
 	if(NS_FAILED(rv))
 		return 0;

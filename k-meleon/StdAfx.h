@@ -39,6 +39,8 @@
 #define NEW_H <new>
 #endif
 
+#include "mozilla-config.h"
+
 //
 // These headers are very evil, as they will define DEBUG if _DEBUG is
 //  defined, which is lame and not what we want for things like
@@ -59,9 +61,9 @@
 #ifndef _AFX_NO_AFXCMN_SUPPORT
 #include <afxcmn.h>			// MFC support for Windows Common Controls
 #endif // _AFX_NO_AFXCMN_SUPPORT
-#include <afxtempl.h>
+//#include <afxtempl.h>
 
-#include <afxole.h>
+//#include <afxole.h>
 
 //{{AFX_INSERT_LOCATION}}
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.
@@ -71,7 +73,7 @@
 #undef DEBUG
 #endif
 
-#define MOZILLA_INTERNAL_API
+#define MOZILLA_STRICT_API
 
 // Please don't change the line below, I have a perl script that depends on it being here :)
 // - BEGIN MOZILLA INCLUDES -
@@ -87,12 +89,10 @@
 // dom: 
 //#include "nsIDOMNamedNodeMap.h"
 #include "nsIDOMNode.h"
-#include "nsIDOMHTMLImageElement.h"
 #include "nsIDOMWindow.h"
 #include "nsIDOMWindowCollection.h"
 #include "nsIDOMHTMLAnchorElement.h"
-#include "nsIScriptGlobalObject.h"
-#include "nsIDOMWindowInternal.h"
+#include "nsIDOMHTMLImageElement.h"
 #include "nsIDOMDocument.h"
 #include "nsIDOMHTMLDocument.h"
 #include "nsIDOMHTMLFrameSetElement.h"
@@ -108,25 +108,18 @@
 #include "nsIWebBrowserFind.h"
 
 // gfx: 
-#include "nsIPrintOptions.h"
 
 // helperAppDlg: 
 #include "nsIHelperAppLauncherDialog.h"
 
 // intl: 
-#include "nsIStringBundle.h"
 
 // necko: 
-#include "nsIHTTPChannel.h"
-#include "nsIChannel.h"
-#include "nsNetUtil.h"
 #include "nsIPrompt.h"
 #include "nsIURI.h"
-#include "nsIRequestObserver.h"
 
 // nkcache: 
 #include "nsICacheService.h"
-#include "nsICache.h"
 
 // pref: 
 #include "nsIPref.h"
@@ -137,33 +130,26 @@
 
 // shistory: 
 #include "nsISHistory.h"
-#include "nsIHistoryEntry.h"
 #include "nsISHEntry.h"
 
 // string: 
-#include "nsXPIDLString.h"
-#include "nsReadableUtils.h"
-#include "nsString.h"
 #include "nsEmbedString.h"
 
 // uriloader: 
 #include "nsIWebProgress.h"
-#include "nsIWebProgressListener.h"
-#include "nsIDownload.h"
+#include "nsIWebProgressListener2.h"
 
 // wallet: 
 #include "nsIWalletService.h"
 
 // webBrowser_core: 
-#include "nsITooltipTextProvider.h"
 #include "nsIWebBrowser.h"
 #include "nsIContextMenuListener2.h"
 #include "nsIWebBrowserPrint.h"
-#include "nsIEmbeddingSiteWindow.h"
 #include "nsIWebBrowserChrome.h"
 #include "nsITooltipListener.h"
 #include "nsIWebBrowserFocus.h"
-#include "nsCTooltipTextProvider.h"
+#include "nsIEmbeddingSiteWindow2.h"
 #include "nsCWebBrowser.h"
 #include "nsIWebBrowserChromeFocus.h"
 
@@ -179,23 +165,24 @@
 #include "nsIFilePicker.h"
 #include "nsIWidget.h"
 
-// windowwatcher: 
-#include "nsIPromptService.h"
-#include "nsIWindowWatcher.h"
-
-// xpcom: 
+// xpcom:
+#include "nsCOMPtr.h"
 #include "nsWeakReference.h"
-#include "nsIGenericFactory.h"
+#include "nsIGenericFactory.h" 
 #include "nsIInterfaceRequestor.h"
-#include "nsVoidArray.h"
 #include "nsIServiceManager.h"
 #include "nsError.h"
-#include "nsObserverService.h"
 //#include "imgIContainer.h"
 #include "nsAppDirectoryServiceDefs.h"
 #include "nsIObserver.h"
-#include "nsCOMPtr.h"
+#include "nsIObserverService.h"
+#include "nsMemory.h"
+#include "nsServiceManagerUtils.h"
+#include "nsComponentManagerUtils.h"
+#include "nsNetCID.h"
+#include "nsIInterfaceRequestorUtils.h"
 
+#include "nsIPrintSettings.h"
 // nspr: 
 
 // Not Found in ../mozilla/mozilla/dist/include: 
@@ -206,16 +193,6 @@
 
 
 
-#if defined(THERECANBENODEBUG) && defined(DEBUG)
-#undef DEBUG
-#endif
-
-#include "nsIInterfaceRequestorUtils.h"
-#include "nsIObserverService.h"
-#ifdef MOZ_OLD_CACHE
-#include "nsINetDataCacheManager.h"
-#endif
-#include "nsIEmbeddingSiteWindow2.h"
 
 // MfcEmbed #defines
 

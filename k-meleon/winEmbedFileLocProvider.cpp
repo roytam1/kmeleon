@@ -26,43 +26,49 @@
  *
  * Contributor(s):
  *   Conrad Carlen <conrad@ingress.com>
+ *   Benjamin Smedberg <bsmedberg@covad.net>
  *
  * ***** END LICENSE BLOCK ***** */
 
 #include "StdAfx.h"
 #include "winEmbedFileLocProvider.h"
+#ifndef XP_WIN
+#define XP_WIN
+#endif
 #include "nsAppDirectoryServiceDefs.h"
 #include "nsDirectoryServiceDefs.h"
 #include "nsILocalFile.h"
-#include "nsString.h"
-#include "nsXPIDLString.h"
-#include "nsCRT.h"
+#include "nsIProperties.h"
+#include "nsServiceManagerUtils.h"
 
+#include <windows.h>
+#include <shlobj.h>
 #include "MfcEmbed.h"
 extern CMfcEmbedApp theApp;
 
 
 // WARNING: These hard coded names need to go away. They need to
 // come from localizable resources
-#define APP_REGISTRY_NAME           NS_LITERAL_CSTRING("profiles.dat")
+#define APP_REGISTRY_NAME nsEmbedCString("registry.dat")
 
-#define PROFILE_ROOT_DIR_NAME       NS_LITERAL_CSTRING("Profiles")
-#define DEFAULTS_DIR_NAME           NS_LITERAL_CSTRING("defaults")
-#define DEFAULTS_PREF_DIR_NAME      NS_LITERAL_CSTRING("pref")
-#define DEFAULTS_PROFILE_DIR_NAME   NS_LITERAL_CSTRING("profile")
-#define RES_DIR_NAME                NS_LITERAL_CSTRING("res")
-#define CHROME_DIR_NAME             NS_LITERAL_CSTRING("chrome")
-#define PLUGINS_DIR_NAME            NS_LITERAL_CSTRING("plugins")
-#define SEARCH_DIR_NAME             NS_LITERAL_CSTRING("searchplugins")
 
+#define PROFILE_ROOT_DIR_NAME       nsEmbedCString("Profiles")
+#define DEFAULTS_DIR_NAME           nsEmbedCString("defaults")
+#define DEFAULTS_PREF_DIR_NAME      nsEmbedCString("pref")
+#define DEFAULTS_PROFILE_DIR_NAME   nsEmbedCString("profile")
+#define RES_DIR_NAME                nsEmbedCString("res")
+#define CHROME_DIR_NAME             nsEmbedCString("chrome")
+#define PLUGINS_DIR_NAME            nsEmbedCString("plugins")
+#define SEARCH_DIR_NAME             nsEmbedCString("searchplugins")
+#define COMPONENTS_DIR_NAME         nsEmbedCString("components")
 
 //*****************************************************************************
 // winEmbedFileLocProvider::Constructor/Destructor
 //*****************************************************************************   
 
-winEmbedFileLocProvider::winEmbedFileLocProvider()
+winEmbedFileLocProvider::winEmbedFileLocProvider(const nsACString& aAppDataDirName)
 {
-   NS_INIT_ISUPPORTS();
+    mProductDirName = aAppDataDirName;
 }
 
 winEmbedFileLocProvider::~winEmbedFileLocProvider()
@@ -89,7 +95,7 @@ winEmbedFileLocProvider::GetFile(const char *prop, PRBool *persistant, nsIFile *
    *_retval = nsnull;
    *persistant = PR_TRUE;
    
-   if (nsCRT::strcmp(prop, NS_APP_APPLICATION_REGISTRY_DIR) == 0)
+    if (strcmp(prop, NS_APP_APPLICATION_REGISTRY_DIR) == 0)
    {
       if (theApp.cmdline.m_sProfilesDir) {
          nsCOMPtr<nsILocalFile> tempPath(do_CreateInstance(NS_LOCAL_FILE_CONTRACTID));
@@ -104,7 +110,7 @@ winEmbedFileLocProvider::GetFile(const char *prop, PRBool *persistant, nsIFile *
             rv = localFile->AppendRelativeNativePath(PROFILE_ROOT_DIR_NAME);
       }
    }
-   else if (nsCRT::strcmp(prop, NS_APP_APPLICATION_REGISTRY_FILE) == 0)
+    else if (strcmp(prop, NS_APP_APPLICATION_REGISTRY_FILE) == 0)
    {
       if (theApp.cmdline.m_sProfilesDir) {
          nsCOMPtr<nsILocalFile> tempPath(do_CreateInstance(NS_LOCAL_FILE_CONTRACTID));
@@ -121,13 +127,13 @@ winEmbedFileLocProvider::GetFile(const char *prop, PRBool *persistant, nsIFile *
       if (NS_SUCCEEDED(rv))
          rv = localFile->AppendNative(APP_REGISTRY_NAME);
    }
-   else if (nsCRT::strcmp(prop, NS_APP_DEFAULTS_50_DIR) == 0)
+    else if (strcmp(prop, NS_APP_DEFAULTS_50_DIR) == 0)
    {
       rv = CloneMozBinDirectory(getter_AddRefs(localFile));
       if (NS_SUCCEEDED(rv))
          rv = localFile->AppendRelativeNativePath(DEFAULTS_DIR_NAME);
    }
-   else if (nsCRT::strcmp(prop, NS_APP_PREF_DEFAULTS_50_DIR) == 0)
+    else if (strcmp(prop, NS_APP_PREF_DEFAULTS_50_DIR) == 0)
    {
       rv = CloneMozBinDirectory(getter_AddRefs(localFile));
       if (NS_SUCCEEDED(rv)) {
@@ -136,44 +142,60 @@ winEmbedFileLocProvider::GetFile(const char *prop, PRBool *persistant, nsIFile *
             rv = localFile->AppendRelativeNativePath(DEFAULTS_PREF_DIR_NAME);
       }
    }
-   else if (nsCRT::strcmp(prop, NS_APP_PROFILE_DEFAULTS_NLOC_50_DIR) == 0 ||
-      nsCRT::strcmp(prop, NS_APP_PROFILE_DEFAULTS_50_DIR) == 0)
+    else if (strcmp(prop, NS_APP_PROFILE_DEFAULTS_NLOC_50_DIR) == 0 ||
+             strcmp(prop, NS_APP_PROFILE_DEFAULTS_50_DIR) == 0)
    {
       rv = CloneMozBinDirectory(getter_AddRefs(localFile));
-      if (NS_SUCCEEDED(rv))
+        if (NS_SUCCEEDED(rv)) {
          rv = localFile->AppendRelativeNativePath(DEFAULTS_DIR_NAME);
       if (NS_SUCCEEDED(rv))
          rv = localFile->AppendRelativeNativePath(DEFAULTS_PROFILE_DIR_NAME);
-   }
-   else if (nsCRT::strcmp(prop, NS_APP_USER_PROFILES_ROOT_DIR) == 0)
+        }
+    }
+    else if (strcmp(prop, NS_APP_USER_PROFILES_ROOT_DIR) == 0)
    {
       rv = GetDefaultUserProfileRoot(getter_AddRefs(localFile));   
    }
-   else if (nsCRT::strcmp(prop, NS_APP_RES_DIR) == 0)
+    else if (strcmp(prop, NS_APP_RES_DIR) == 0)
    {
       rv = CloneMozBinDirectory(getter_AddRefs(localFile));
       if (NS_SUCCEEDED(rv))
          rv = localFile->AppendRelativeNativePath(RES_DIR_NAME);
    }
-   else if (nsCRT::strcmp(prop, NS_APP_CHROME_DIR) == 0)
+    else if (strcmp(prop, NS_APP_CHROME_DIR) == 0)
    {
       rv = CloneMozBinDirectory(getter_AddRefs(localFile));
       if (NS_SUCCEEDED(rv))
          rv = localFile->AppendRelativeNativePath(CHROME_DIR_NAME);
    }
-   else if (nsCRT::strcmp(prop, NS_APP_PLUGINS_DIR) == 0)
+    else if (strcmp(prop, NS_APP_PLUGINS_DIR) == 0)
    {
       rv = CloneMozBinDirectory(getter_AddRefs(localFile));
       if (NS_SUCCEEDED(rv))
          rv = localFile->AppendRelativeNativePath(PLUGINS_DIR_NAME);
    }
-   else if (nsCRT::strcmp(prop, NS_APP_SEARCH_DIR) == 0)
+    else if (strcmp(prop, NS_APP_SEARCH_DIR) == 0)
    {
       rv = CloneMozBinDirectory(getter_AddRefs(localFile));
       if (NS_SUCCEEDED(rv))
          rv = localFile->AppendRelativeNativePath(SEARCH_DIR_NAME);
    }
 
+#ifdef XPCOM_GLUE
+    //---------------------------------------------------------------
+    // Note that by returning a valid localFile's for NS_GRE_DIR and
+    // NS_GRE_COMPONENT_DIR your app is indicating to XPCOM that 
+    // it found an GRE version with which it's compatible with and 
+    // it intends to be "run against" that GRE
+    //
+    // Please see http://www.mozilla.org/projects/embedding/GRE.html
+    // for more info. on GRE
+    //---------------------------------------------------------------
+    else if (strcmp(prop, NS_GRE_DIR) == 0)
+    {
+        rv = GRE_GetGREDirectory(getter_AddRefs(localFile));
+    }
+#endif
    if (localFile && NS_SUCCEEDED(rv))
       return localFile->QueryInterface(NS_GET_IID(nsIFile), (void**)_retval);
    
@@ -230,47 +252,38 @@ NS_METHOD winEmbedFileLocProvider::GetProductDirectory(nsILocalFile **aLocalFile
 {
    NS_ENSURE_ARG_POINTER(aLocalFile);    
    nsresult rv;
-   
-/*
-   // nt based systems should keep the profile data inside the appdata dir
-   OSVERSIONINFO info;
-   info.dwOSVersionInfoSize = sizeof( OSVERSIONINFO );
-   if (GetVersionEx(&info) && (info.dwPlatformId == VER_PLATFORM_WIN32_NT)) {
-      PRBool exists;
-      nsCOMPtr<nsILocalFile> localDir;
       
-      nsCOMPtr<nsIProperties> directoryService = 
-         do_GetService(NS_DIRECTORY_SERVICE_CONTRACTID, &rv);
-      
-      if (NS_FAILED(rv)) return rv;
-      rv = directoryService->Get(NS_WIN_APPDATA_DIR, NS_GET_IID(nsILocalFile), getter_AddRefs(localDir));
-      if (NS_SUCCEEDED(rv))
-         rv = localDir->Exists(&exists);
-      if (NS_FAILED(rv) || !exists)
-      {
-         // On some Win95 machines, NS_WIN_APPDATA_DIR does not exist - revert to NS_WIN_WINDOWS_DIR
-         localDir = nsnull;
-         rv = directoryService->Get(NS_WIN_WINDOWS_DIR, NS_GET_IID(nsILocalFile), getter_AddRefs(localDir));
-      }
-      if (NS_FAILED(rv)) return rv;
-      
-      rv = localDir->AppendRelativeNativePath("K-Meleon");
-      if (NS_FAILED(rv)) return rv;
-      rv = localDir->Exists(&exists);
-      if (NS_SUCCEEDED(rv) && !exists)
-         rv = localDir->Create(nsIFile::DIRECTORY_TYPE, 0775);
-      if (NS_FAILED(rv)) return rv;
-      
-      *aLocalFile = localDir;
-      NS_ADDREF(*aLocalFile);      
-   }
-   // non-nt based systems should use the kmeleon directory
-   else {
-*/
-      rv = CloneMozBinDirectory(aLocalFile);
-//   }
-   
-   return rv;   
+	rv = CloneMozBinDirectory(aLocalFile);
+	return rv;
+
+  /* 
+   PRBool exists;
+   nsCOMPtr<nsILocalFile> localDir;
+
+    nsCOMPtr<nsIProperties> directoryService = 
+             do_GetService(NS_DIRECTORY_SERVICE_CONTRACTID, &rv);
+    if (NS_FAILED(rv)) return rv;
+    rv = directoryService->Get(NS_WIN_APPDATA_DIR, NS_GET_IID(nsILocalFile), getter_AddRefs(localDir));
+    if (NS_SUCCEEDED(rv))
+        rv = localDir->Exists(&exists);
+    if (NS_FAILED(rv) || !exists)
+    {
+        // On some Win95 machines, NS_WIN_APPDATA_DIR does not exist - revert to NS_WIN_WINDOWS_DIR
+        localDir = nsnull;
+        rv = directoryService->Get(NS_WIN_WINDOWS_DIR, NS_GET_IID(nsILocalFile), getter_AddRefs(localDir));
+    }
+    if (NS_FAILED(rv)) return rv;
+
+    rv = localDir->AppendNative(mProductDirName);
+    if (NS_FAILED(rv)) return rv;
+    rv = localDir->Exists(&exists);
+    if (NS_SUCCEEDED(rv) && !exists)
+        rv = localDir->Create(nsIFile::DIRECTORY_TYPE, 0775);
+    if (NS_FAILED(rv)) return rv;
+
+    *aLocalFile = localDir;
+    NS_ADDREF(*aLocalFile);
+   return rv;   */
 }
 
 
@@ -295,7 +308,7 @@ NS_METHOD winEmbedFileLocProvider::GetDefaultUserProfileRoot(nsILocalFile **aLoc
       if (NS_FAILED(rv)) return rv;
    }   
    else {      
-      rv = CloneMozBinDirectory(getter_AddRefs(localDir));
+    rv = GetProductDirectory(getter_AddRefs(localDir));
       if (NS_FAILED(rv)) return rv;
       
       // These 3 platforms share this part of the path - do them as one

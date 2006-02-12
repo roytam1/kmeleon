@@ -1,5 +1,21 @@
 #include "stdafx.h"
 #include "nsIWindowWatcher.h"
+#include "nsIIOService.h"
+
+NewURI(nsIURI **result, const nsACString &spec)
+{
+  nsCOMPtr<nsIIOService> ios = do_GetService("@mozilla.org/network/io-service;1");
+  NS_ENSURE_TRUE(ios, NS_ERROR_UNEXPECTED);
+
+  return ios->NewURI(spec, nsnull, nsnull, result);
+}
+
+NewURI(nsIURI **result, const nsAString &spec)
+{
+  nsEmbedCString specUtf8;
+  NS_UTF16ToCString(spec, NS_CSTRING_ENCODING_UTF8, specUtf8);
+  return NewURI(result, specUtf8);
+}
 
 CWnd* CWndForDOMWindow(nsIDOMWindow *aWindow)
 {

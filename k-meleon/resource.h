@@ -7,8 +7,10 @@
 #define IDD_PROMPT_DIALOG               128
 #define IDR_MOZEMBTYPE                  129
 #define IDD_PROMPT_PASSWORD_DIALOG      129
+#define IDS_PROFILES_FOLDER_NAME        129
 #define IDR_CTXMENU_DOCUMENT            130
 #define IDD_PROMPT_USERPASS_DIALOG      130
+#define IDS_PROFILES_NONSHARED_NAME     130
 #define IDR_CTXMENU_LINK                131
 #define IDD_ALERT_CHECK_DIALOG          131
 #define IDR_CTXMENU_TEXT                132

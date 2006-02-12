@@ -24,3 +24,4 @@ char *SkipWhiteSpace(char *string);
 int CondenseString(char *buf, int size);
 char *fixString(const char *inString, int size);
 long FileSize(FILE *file);
+char* nsUnescape(char * str);

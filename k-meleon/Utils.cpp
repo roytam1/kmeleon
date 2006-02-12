@@ -157,3 +157,65 @@ long FileSize(FILE *file)
    return filesize;
 }
 
+//Got it from nsEscape.cpp
+
+#define HEX_ESCAPE '%'
+
+#define UNHEX(C) \
+    ((C >= '0' && C <= '9') ? C - '0' : \
+     ((C >= 'A' && C <= 'F') ? C - 'A' + 10 : \
+     ((C >= 'a' && C <= 'f') ? C - 'a' + 10 : 0)))
+
+//----------------------------------------------------------------------------------------
+int nsUnescapeCount(char * str)
+//----------------------------------------------------------------------------------------
+{
+    register char *src = str;
+    register char *dst = str;
+    static const char hexChars[] = "0123456789ABCDEFabcdef";
+
+    char c1[] = " ";
+    char c2[] = " ";
+    char* const pc1 = c1;
+    char* const pc2 = c2;
+
+    while (*src)
+    {
+        c1[0] = *(src+1);
+        if (*(src+1) == '\0') 
+            c2[0] = '\0';
+        else
+            c2[0] = *(src+2);
+
+        if (*src != HEX_ESCAPE || strpbrk(pc1, hexChars) == 0 || 
+                                  strpbrk(pc2, hexChars) == 0 )
+        	*dst++ = *src++;
+        else 	
+		{
+        	src++; /* walk over escape */
+        	if (*src)
+            {
+            	*dst = UNHEX(*src) << 4;
+            	src++;
+            }
+        	if (*src)
+            {
+            	*dst = (*dst + UNHEX(*src));
+            	src++;
+            }
+        	dst++;
+        }
+    }
+
+    *dst = 0;
+    return (int)(dst - str);
+
+} /* NET_UnEscapeCnt */
+
+//----------------------------------------------------------------------------------------
+char* nsUnescape(char * str)
+//----------------------------------------------------------------------------------------
+{
+	nsUnescapeCount(str);
+	return str;
+}

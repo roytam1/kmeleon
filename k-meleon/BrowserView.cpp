@@ -69,6 +69,7 @@
 #include <wininet.h>
 
 extern CMfcEmbedApp theApp;
+extern NewURI(nsIURI **result, const nsAString &spec);
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -645,14 +646,13 @@ void CBrowserView::OnViewSource()
         return;
 
     // Get the uri string associated with the nsIURI object
-    nsCAutoString uriString;
+    nsEmbedCString uriString;
     rv = currentURI->GetSpec(uriString);
     if(NS_FAILED(rv))
         return;
 
    // Build the view-source: url
-   nsCAutoString viewSrcUrl;
-   viewSrcUrl.Append("view-source:");
+   nsEmbedCString viewSrcUrl("view-source:");
    viewSrcUrl.Append(uriString);
 
    OpenViewSourceWindow(viewSrcUrl.get());
@@ -891,19 +891,28 @@ void CBrowserView::OnFileOpen()
     delete szFileName;
 }
 
-void CBrowserView::GetBrowserWindowTitle(nsCString& title)
+void CBrowserView::GetBrowserWindowTitle(nsEmbedString& title)
 {
-    nsXPIDLString idlStrTitle;
+    PRUnichar *idlStrTitle = nsnull;
     if(mBaseWindow)
-        mBaseWindow->GetTitle(getter_Copies(idlStrTitle));
+        mBaseWindow->GetTitle(&idlStrTitle);
+	
+	USES_CONVERSION;
+    //title.Assign(T2CW(idlStrTitle));
+	title = idlStrTitle;
+	CString csTitle;
+	csTitle = W2CT(idlStrTitle);
+	csTitle.Trim();
 
-    title.AssignWithConversion(idlStrTitle);
+	int pos;
+	while ( (pos=csTitle.FindOneOf(_T("\\*|:\"><?"))) != -1)
+		csTitle.Delete(pos,1);
 
-    // Sanitize the title of all illegal characters
-    title.CompressWhitespace();     // Remove whitespace from the ends
-    title.StripChars("\\*|:\"><?"); // Strip illegal characters
-    title.ReplaceChar('.', L'_');   // Dots become underscores
-    title.ReplaceChar('/', L'-');   // Forward slashes become hyphens
+	csTitle.Replace(_T('.'),_T('_'));
+	csTitle.Replace(_T('/'),_T('-'));
+
+	title = T2CW(csTitle);
+	nsMemory::Free(idlStrTitle);
 }
 
 void CBrowserView::OnFileSaveAs()
@@ -938,7 +947,7 @@ void CBrowserView::OnCopyLinkLocation()
     if(!pszClipData)
         return;
 
-    mCtxMenuLinkUrl.ToCString(pszClipData, mCtxMenuLinkUrl.Length() + 1);
+	UTF16ToCString(mCtxMenuLinkUrl,pszClipData);
 
     GlobalUnlock(hClipData);
 
@@ -1016,7 +1025,7 @@ void CBrowserView::OnSaveLinkAs()
     // use it while saving this link to a file
     nsresult rv   = NS_OK;
     nsCOMPtr<nsIURI> linkURI;
-    rv = NS_NewURI(getter_AddRefs(linkURI), mCtxMenuLinkUrl);
+    rv = NewURI(getter_AddRefs(linkURI), mCtxMenuLinkUrl);
     if (NS_FAILED(rv)) 
         return;
 
@@ -1035,7 +1044,7 @@ void CBrowserView::OnSaveImageAs()
     // use it while saving this link to a file
     nsresult rv   = NS_OK;
     nsCOMPtr<nsIURI> imageURI;
-    rv = NS_NewURI(getter_AddRefs(imageURI), mCtxMenuImgSrc);
+    rv = NewURI(getter_AddRefs(imageURI), mCtxMenuImgSrc);
     if (NS_FAILED(rv)) 
         return;
 
@@ -1068,7 +1077,7 @@ void CBrowserView::OnFilePrint()
         nsresult rv = mWebNav->GetCurrentURI(getter_AddRefs(currentURI));
         if(NS_SUCCEEDED(rv) || currentURI) 
         {
-            nsCAutoString path;
+            nsEmbedCString path;
             currentURI->GetPath(path);
             dlg.SetURI(path.get());
         }
@@ -1101,9 +1110,9 @@ void CBrowserView::OnFilePrintPreview()
 
 static PRUnichar* GetUnicodeFromCString(const CString& aStr)
 {
-  nsString str;
-  str.AssignWithConversion(LPCSTR(aStr));
-  return ToNewUnicode(str);
+    nsEmbedString str;
+    NS_CStringToUTF16(nsEmbedCString(aStr), NS_CSTRING_ENCODING_ASCII, str);
+    return NS_StringCloneData(str);
 }
 
 static float GetFloatFromStr(const char* aStr)
@@ -1267,9 +1276,9 @@ void CBrowserView::OnViewFrameSource()
 
     // Build the view-source: url
     //
-    nsCAutoString viewSrcUrl;
-    viewSrcUrl.Append("view-source:");
-    viewSrcUrl.Append(W2T(mCtxMenuCurrentFrameURL.get()));
+    nsEmbedString viewSrcUrl;
+    viewSrcUrl.Append(L"view-source:");
+    viewSrcUrl.Append(mCtxMenuCurrentFrameURL.get());
 
     OpenViewSourceWindow(viewSrcUrl.get());
 }
@@ -1449,7 +1458,7 @@ void CBrowserView::OnFileSaveFrameAs()
     // use it while saving this link to a file
     nsresult rv   = NS_OK;
     nsCOMPtr<nsIURI> frameURI;
-    rv = NS_NewURI(getter_AddRefs(frameURI), mCtxMenuCurrentFrameURL);
+    rv = NewURI(getter_AddRefs(frameURI), mCtxMenuCurrentFrameURL);
     if(NS_FAILED(rv))
         return;
     URISaveAs(frameURI, TRUE);
@@ -1468,15 +1477,14 @@ void CBrowserView::OnViewPageInfo()
       return;
 
    // Get the uri string associated with the nsIURI object
-   nsCAutoString uriString;
+   nsEmbedCString uriString;
    rv = currentURI->GetSpec(uriString);
    if(NS_FAILED(rv))
       return;
  
    // Build the page info url
-   nsCAutoString viewPageInfoUrl;
- 
-   if(uriString.Find("https://", 0) == -1)
+   nsEmbedCString viewPageInfoUrl;
+   if (strstr((char*)uriString.get(),"https://") == NULL)
       viewPageInfoUrl.Append("about:cache-entry?client=HTTP&sb=1&key=");
    else
       viewPageInfoUrl.Append("about:cache-entry?client=HTTP-memory-only&sb=1&key=");
@@ -1494,20 +1502,20 @@ void CBrowserView::OnViewFrameInfo()
    // Get the URI object we want to view from the cache.
    nsresult rv = NS_OK;
    nsCOMPtr<nsIURI> frameURI;
-   rv = NS_NewURI(getter_AddRefs(frameURI), mCtxMenuCurrentFrameURL);
+   rv = NewURI(getter_AddRefs(frameURI), mCtxMenuCurrentFrameURL);
    if(NS_FAILED(rv))
       return;
  
    // Get the uri string associated with the nsIURI object
-   nsCAutoString uriString;
+   nsEmbedCString uriString;
    rv = frameURI->GetSpec(uriString);
    if(NS_FAILED(rv))
      return;
 
    // Build the page info url
-   nsCAutoString viewFrameInfoUrl;
+   nsEmbedCString viewFrameInfoUrl;
 
-   if(uriString.Find("https://", 0) == -1)
+   if (strstr((char*)uriString.get(),"https://") == NULL)
       viewFrameInfoUrl.Append("about:cache-entry?client=HTTP&sb=1&key=");
    else
       viewFrameInfoUrl.Append("about:cache-entry?client=HTTP-memory-only&sb=1&key=");
@@ -1533,7 +1541,7 @@ void CBrowserView::OnCopyImageLocation()
     if(!pszClipData)
         return;
 
-    mCtxMenuImgSrc.ToCString(pszClipData, mCtxMenuImgSrc.Length() + 1);
+	UTF16ToCString(mCtxMenuImgSrc, pszClipData);
 
     GlobalUnlock(hClipData);
 

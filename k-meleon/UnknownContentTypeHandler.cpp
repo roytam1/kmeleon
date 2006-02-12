@@ -22,7 +22,7 @@
  */
 
 #include "stdafx.h"
-#include "nsEscape.h"
+#include "Utils.h"
 #include "nsIFileURL.h"
 #include <wininet.h>
 

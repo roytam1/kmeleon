@@ -49,6 +49,8 @@
 
 // Local Includes
 #include "stdafx.h"
+#include "nsXPCOM.h"
+#include "nsXPCOMGlue.h"
 #include "MfcEmbed.h"
 #include "HiddenWnd.h"
 #include "BrowserFrm.h"
@@ -57,21 +59,12 @@
 #include "BrowserImpl.h"
 #include "kmeleonConst.h"
 #include "UnknownContentTypeHandler.h"
-#include "PromptService.h"
-#include "Utils.h"
-#include "Tooltips.h"
-#include "nsCRT.h"
 #include <io.h>
 #include <fcntl.h>
 
-#include "ProfileMgr.h"
-//#include "nsXPIProxy.h"
-#include "nsCOMPtr.h"
-#include "nsString.h"
 #include "nsIPluginManager.h"
-#include "nsIServiceManager.h"
-#include "nsIObserverService.h"
-#include "nsIPromptService.h"
+#include "nsIIOService.h"
+#include "nsIWindowWatcher.h"
 
 #ifdef MOZ_PROFILESHARING
 #include "nsIProfileSharingSetup.h"
@@ -161,7 +154,12 @@ BOOL CMfcEmbedApp::InitInstance()
     // Initialize XPCOM's module info table
     NSGetStaticModuleInfo = app_getModuleInfo;
 #endif
-
+#ifdef XPCOM_GLUE
+    if (NS_FAILED(XPCOMGlueStartup(GRE_GetXPCOMPath()))) {
+        MessageBox(NULL, _T("Could not initialize XPCOM. Perhaps the GRE\nis not installed or could not be found?"), _T("Kmeleon"), MB_OK | MB_ICONERROR);
+        return FALSE;
+    }
+#endif
    m_hMutex = CreateMutex(NULL, FALSE, NULL);
 
    // parse the command line
@@ -198,19 +196,42 @@ BOOL CMfcEmbedApp::InitInstance()
    }
    
    Enable3dControls();   
+   //
+    // 1. Determine the name of the dir from which the GRE based app is being run
+    // from [It's OK to do this even if you're not running in an GRE env]
+    //
+    // 2. Create an nsILocalFile out of it which will passed in to NS_InitEmbedding()
+    //
+    // Please see http://www.mozilla.org/projects/embedding/GRE.html
+    // for more info. on GRE
 
+    TCHAR path[_MAX_PATH+1];
+    ::GetModuleFileName(0, path, _MAX_PATH);
+    TCHAR* lastSlash = _tcsrchr(path, _T('\\'));
+    if (!lastSlash) {
+        NS_ERROR("No slash in module file name... something is wrong.");
+        return FALSE;
+    }
+    *lastSlash = _T('\0');
+
+    
+    nsresult rv;
+    nsCOMPtr<nsILocalFile> mreAppDir;
+    rv = NS_NewNativeLocalFile(nsEmbedCString(T2A(path)), TRUE, getter_AddRefs(mreAppDir));
+    NS_ASSERTION(NS_SUCCEEDED(rv), "failed to create mreAppDir localfile");
    // Take a look at 
    // http://www.mozilla.org/projects/xpcom/file_locations.html
    // for more info on File Locations
    
-   winEmbedFileLocProvider *provider = new winEmbedFileLocProvider();
+   CString strRes;
+   strRes.LoadString(IDS_PROFILES_FOLDER_NAME);
+   winEmbedFileLocProvider *provider = new winEmbedFileLocProvider(nsEmbedCString(T2A(strRes.GetBuffer(0))));
    if(!provider){
       ASSERT(FALSE);
       return FALSE;
    }
    
-   nsresult rv;
-   rv = NS_InitEmbedding(nsnull, provider);
+   rv = NS_InitEmbedding(mreAppDir, provider);
    if(NS_FAILED(rv))
    { 
       ASSERT(FALSE);
@@ -793,6 +814,9 @@ int CMfcEmbedApp::ExitInstance()
    if (m_ProfileMgr) delete m_ProfileMgr;
    
    NS_TermEmbedding();
+#ifdef XPCOM_GLUE
+    XPCOMGlueShutdown();
+#endif
    plugins.UnLoadAll();
    
    return 1;
@@ -825,7 +849,7 @@ BOOL CMfcEmbedApp::InitializeProfiles() {
    nsresult rv;
    nsCOMPtr<nsIObserverService> observerService = 
       do_GetService("@mozilla.org/observer-service;1", &rv);
-   
+   if (!observerService) return FALSE;
    observerService->AddObserver(this, "profile-approve-change", PR_TRUE);
    observerService->AddObserver(this, "profile-change-teardown", PR_TRUE);
    observerService->AddObserver(this, "profile-after-change", PR_TRUE);
@@ -942,7 +966,11 @@ nsresult CMfcEmbedApp::InitializeWindowCreator() {
 //  CMfcEmbedApp : nsISupports
 // ---------------------------------------------------------------------------
 
+#ifdef XPCOM_GLUE
+NS_IMPL_ISUPPORTS3(CMfcEmbedApp, nsIObserver, nsIWindowCreator, nsISupportsWeakReference);
+#else
 NS_IMPL_THREADSAFE_ISUPPORTS3(CMfcEmbedApp, nsIObserver, nsIWindowCreator, nsISupportsWeakReference);
+#endif
 
 // ---------------------------------------------------------------------------
 //  CMfcEmbedApp : nsIObserver
@@ -956,10 +984,10 @@ NS_IMETHODIMP CMfcEmbedApp::Observe(nsISupports *aSubject, const char *aTopic, c
    
    USES_CONVERSION;
 
-   if (nsCRT::strcmp(aTopic, "profile-approve-change") == 0 &&
+   if (strcmp(aTopic, "profile-approve-change") == 0 &&
        (!someData ||
-        nsCRT::strcmp(W2A(someData), "shutdown-cleanse") != 0 &&
-        nsCRT::strcmp(W2A(someData), "shutdown-persist") != 0))
+        strcmp(W2A(someData), "shutdown-cleanse") != 0 &&
+        strcmp(W2A(someData), "shutdown-persist") != 0))
    {
       // Ask the user if they want to
       int result = AfxMessageBox(IDS_PROFILE_SWITCH, MB_YESNO | MB_ICONQUESTION, 0);
@@ -970,7 +998,7 @@ NS_IMETHODIMP CMfcEmbedApp::Observe(nsISupports *aSubject, const char *aTopic, c
          status->VetoChange();
       }
    }
-   else if (nsCRT::strcmp(aTopic, "profile-change-teardown") == 0)
+   else if (strcmp(aTopic, "profile-change-teardown") == 0)
    {
       // Close all open windows. Alternatively, we could just call CBrowserWindow::Stop()
       // on each. Either way, we have to stop all network activity on this phase.
@@ -992,11 +1020,11 @@ NS_IMETHODIMP CMfcEmbedApp::Observe(nsISupports *aSubject, const char *aTopic, c
       }
       m_bSwitchingProfiles = FALSE;
    }
-   else if (nsCRT::strcmp(aTopic, "profile-after-change") == 0)
+   else if (strcmp(aTopic, "profile-after-change") == 0)
    {        
       // Only reinitialize everything if this is a profile switch, since this
       // called at start up and we already do evenything once already
-      if (!nsCRT::strcmp(someData, NS_LITERAL_STRING("switch").get())) {
+      if (!wcscmp(someData, NS_LITERAL_STRING("switch").get())) {
          
          
       /* Unloading a plugin that has subclassed a browser window crashes us, even if the
