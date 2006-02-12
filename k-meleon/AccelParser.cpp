@@ -120,6 +120,7 @@ int CAccelParser::Parse(char *p)
          }
          else {
             LOG_ERROR_2( "Plugin %s has no accelerator %s", e, parameter);
+			return false;
          }
       }
       
