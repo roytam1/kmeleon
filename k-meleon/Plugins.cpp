@@ -282,6 +282,7 @@ int GetMozillaSessionHistory (char ***titles, char ***urls, int *count, int *ind
       len = WideCharToMultiByte(CP_OEMCP, 0, title, -1, s, len, NULL, NULL);
       s[len] = 0;
       pHistory[i] = s;
+	  nsMemory::Free(title);
    }
    
    if (titles)
