@@ -67,6 +67,9 @@ extern CMfcEmbedApp theApp;
 
 void CBrowserFrame::BrowserFrameGlueObj::UpdateStatusBarText(const PRUnichar *aMessage)
 {
+#ifndef _UNICODE
+   if (aMessage && (wcslen(aMessage) > 1024)) return;
+#endif
    METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
    USES_CONVERSION;
    pThis->m_wndStatusBar.SetPaneText(0, aMessage ? W2CT(aMessage) : _T(""));
@@ -89,12 +92,12 @@ void CBrowserFrame::BrowserFrameGlueObj::UpdateBusyState(PRBool aBusy)
     // updating the STOP toolbar btn. etc
 
     pThis->m_wndBrowserView.UpdateBusyState(aBusy);
-    if (!aBusy)
-        pThis->PostMessage(UWM_UPDATEBUSYSTATE, 0, 0);
+    //if (!aBusy)	
+		pThis->PostMessage(UWM_UPDATEBUSYSTATE, aBusy == PR_TRUE ? 1 : 0, 0);
 
     CString szUrl;
     pThis->m_wndUrlBar.GetEnteredURL(szUrl);
-    if (strcmp(szUrl, "about:blank")==0)
+    if (_tcscmp(szUrl, _T("about:blank"))==0)
        pThis->m_wndUrlBar.MaintainFocus();
 }
 
@@ -131,7 +134,7 @@ void CBrowserFrame::BrowserFrameGlueObj::UpdateCurrentURI(nsIURI *aLocation)
 				aLocation->GetUsername(password);
 				aLocation->SetUserPass(password);
 				aLocation->GetSpec(uriString);
-				pThis->m_wndUrlBar.AddURLToList(CString(uriString.get()));
+				pThis->m_wndUrlBar.AddURLToList(CString(A2W(uriString.get())));
 			}
 			else if (theApp.preferences.MRUbehavior == 1){
 				nsEmbedCString nsScheme, nsHost;
@@ -139,7 +142,7 @@ void CBrowserFrame::BrowserFrameGlueObj::UpdateCurrentURI(nsIURI *aLocation)
 				aLocation->GetHost(nsHost);
 				nsHost.Insert("://",0);
 				nsHost.Insert(nsScheme,0);
-				pThis->m_wndUrlBar.AddURLToList(CString(nsHost.get()));
+				pThis->m_wndUrlBar.AddURLToList(CString(A2W(nsHost.get())));
 			}
 		}
     }
@@ -168,6 +171,9 @@ void CBrowserFrame::BrowserFrameGlueObj::GetBrowserFrameTitle(PRUnichar **aTitle
 
 void CBrowserFrame::BrowserFrameGlueObj::SetBrowserFrameTitle(const PRUnichar *aTitle)
 {
+#ifndef _UNICODE
+    if (wcslen(aTitle) > 1024) return;
+#endif
     METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
 
     CString appTitle;
@@ -364,11 +370,16 @@ void CBrowserFrame::BrowserFrameGlueObj::SetBrowserPositionAndSize(PRInt32 aX, P
 
 void CBrowserFrame::BrowserFrameGlueObj::SetFocus(){
    METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
-
+/*
    if (pThis->m_ignoreFocus > 0)
        pThis->m_ignoreFocus--;
    else
-       pThis->SetFocus();
+*/
+  // How to fix	https://bugzilla.mozilla.org/show_bug.cgi?id=149987 ?
+  // When we get there we seem to have already the focus and steal it
+  // from gecko ?
+  if (!::IsChild(pThis->m_hWnd,::GetFocus()))
+	   pThis->SetFocus();
 }
 
 void CBrowserFrame::BrowserFrameGlueObj::FocusAvailable(PRBool *aFocusAvail)
@@ -644,7 +655,7 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags,
 
 BUILD_CTX_MENU:
 
-    char *menuType = _T("<nothing>");
+    TCHAR *menuType = _T("<nothing>");
     if (!bContentHasFrames) {
         switch (nIDResource) {
         case IDR_CTXMENU_DOCUMENT:
@@ -707,7 +718,7 @@ BUILD_CTX_MENU:
       RECT desktopRect;
       SystemParametersInfo(SPI_GETWORKAREA, NULL, &desktopRect, 0);
       int menuHeight = 0;
-      int i;
+      unsigned int i;
       MENUITEMINFO info;
       for (i=0; i<ctxMenu->GetMenuItemCount(); i++) {
           ctxMenu->GetMenuItemInfo(i, &info, TRUE);
@@ -750,6 +761,8 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowTooltip(PRInt32 x, PRInt32 y, const
 
     if (!text) {
         pThis->m_wndToolTip.Hide();
+		// WORKAROUND: Because the tooltip is not erased correctly when using the mouse wheel
+		pThis->m_wndBrowserView.mBaseWindow->Repaint(PR_FALSE);
         return;
     }
 
