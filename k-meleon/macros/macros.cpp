@@ -2444,9 +2444,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
      break;
    case UWM_UPDATEBUSYSTATE:
       {
+		  if (wParam == 0) {
          int index = FindMacro("OnLoad");
          if (index != NOTFOUND)
             ExecuteMacro(hWnd, index);
+      }
       }
       break;
    }
