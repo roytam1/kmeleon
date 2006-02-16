@@ -169,7 +169,9 @@ public:
    int  GetInt(const char *preference, int defaultVal);
 
    void SetString(const char *preference, char * value);
+   void SetString(const char *preference, wchar_t * value);
    int GetString(const char *preference, char * retValue, char * defaultVal);
+   int GetString(const char *preference, wchar_t * retValue, wchar_t * defaultVal);
 
    void Clear(const char *preference);
    void DeleteBranch(const char *startingAt);
