@@ -221,7 +221,7 @@ protected:
 
   CStringArray m_configFiles;
 
-  void AddTab(const char *label, const char *file, const char *help);
+  void AddTab(const TCHAR *label, const TCHAR *file, const char *help);
 
   ~CPreferencePageConfigs();
   
@@ -230,8 +230,8 @@ protected:
   virtual BOOL OnInitDialog();
   //  afx_msg void OnDestroy();
 
-  void ShowFile(const char *);
-  void SaveFile(const char *);
+  void ShowFile(const TCHAR *);
+  void SaveFile(const TCHAR *);
 
   afx_msg void OnHelp();
   afx_msg void OnSelChanging(NMHDR *nmHdr, LRESULT *result);
