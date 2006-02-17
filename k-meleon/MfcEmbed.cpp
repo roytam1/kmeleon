@@ -831,7 +831,17 @@ BOOL CMfcEmbedApp::OnIdle(LONG lCount)
    
    return FALSE;
 }
+BOOL CMfcEmbedApp::IsIdleMessage( MSG* pMsg )
+{
+   if (!CWinApp::IsIdleMessage( pMsg ) || 
+       pMsg->message == WM_TIMER ||
+	   pMsg->message == WM_USER+1 || // WM_CALLMETHOD
+	   pMsg->message == WM_GETDLGCODE ) // FIXME: shouldn't happen
 
+      return FALSE;
+   else
+      return TRUE;
+}
 void CMfcEmbedApp::OnPreferences () {
    CPreferencesDlg prefDlg;
    prefDlg.DoModal();
