@@ -20,10 +20,6 @@
 
 #include "stdafx.h"
 
-
-nsresult NewTooltipTextProviderFactory(nsIFactory** aFactory);
-
-
 class CKmToolTip :  public CWnd {
 
 public:
@@ -31,9 +27,9 @@ public:
    void Create(CWnd *pWnd);
    ~CKmToolTip();
    void Hide();
-   void Show(const char *text, int x, int y);
+   void Show(const TCHAR *text, int x, int y);
 
-   char *pszText;
+   TCHAR *pszText;
 
 protected:
 	//{{AFX_MSG(CKmToolTip)
@@ -42,7 +38,7 @@ protected:
    DECLARE_MESSAGE_MAP()
 
 private:
-   LPCSTR m_pszWndClass;
+   LPCTSTR m_pszWndClass;
    HFONT  m_pFont;
 
 };
