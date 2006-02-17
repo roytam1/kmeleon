@@ -262,5 +262,5 @@ void CPrintProgressDialog::OnCancel()
 
 void CPrintProgressDialog::SetURI(const char* aTitle)
 {
-  m_URL = _T(aTitle);
+	m_URL = aTitle;
 }
