@@ -100,6 +100,7 @@ public:
 	virtual BOOL InitInstance();
 	virtual int ExitInstance();
 	virtual BOOL OnIdle(LONG lCount);
+	virtual BOOL IsIdleMessage( MSG* pMsg );
 	//}}AFX_VIRTUAL
 
    // list of browser windows
