@@ -233,7 +233,14 @@ void Destroy(HWND hWnd) {
          else {
             toolbar_head = toolbar->nextWindow;
          }
-         delete tempbar;
+
+		 s_toolbar *bar;
+		 while (tempbar)
+		 {
+			 bar = tempbar;
+			 tempbar = tempbar->next;
+			 delete bar;
+		 }
          break;
       }
       else {
@@ -264,6 +271,8 @@ void Quit() {
             delete button->sName;
          if (button->sToolTip)
             delete button->sToolTip;
+		 if (button->sImagePath)
+			 delete button->sImagePath;
 
          tempbtn = button;
          button = button->next;
