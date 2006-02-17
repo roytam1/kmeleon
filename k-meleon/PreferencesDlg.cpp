@@ -58,7 +58,7 @@ CPreferencesDlg::OnInitDialog(){
    m_list.SetParent(this);
    m_list.GetClientRect(&rect);
 
-   m_list.InsertColumn(0, "Blah", LVCFMT_LEFT, rect.right);
+   m_list.InsertColumn(0, _T("Blah"), LVCFMT_LEFT, rect.right);
 
    CString title;
    title.LoadString(IDS_PREFS_DISPLAY);
@@ -169,26 +169,28 @@ void CPreferencesDlg::ShowPage(UINT idd){
 /**/
 
 BOOL CPreferencePage::OnInitDialog(){
+	CDialog::OnInitDialog();
    switch (idd) {
       case IDD_PREFERENCES_PRIVACY:
       {
-         char buf[256], uabuf[256], pref[34];
+         TCHAR buf[256], uabuf[256];
+		 char pref[34];
          int x=1,y,index=0;
-         SendDlgItemMessage(IDC_COMBO, CB_ADDSTRING, 0, (LONG) "Default");
+         SendDlgItemMessage(IDC_COMBO, CB_ADDSTRING, 0, (LONG) _T("Default"));
          do {
             sprintf(pref, "kmeleon.privacy.useragent%d.name", x);
-            theApp.preferences.GetString(pref, buf, "");
+            theApp.preferences.GetString(pref, buf, _T(""));
             if (*buf)
                SendDlgItemMessage(IDC_COMBO, CB_ADDSTRING, 0, (LONG) buf);
             x++;
          } while (*buf);
          
-         theApp.preferences.GetString("general.useragent.override", uabuf, "");
+         theApp.preferences.GetString("general.useragent.override", uabuf, _T(""));
          if (*uabuf) {
             for (y=1; y<x; y++) {
                sprintf(pref, "kmeleon.privacy.useragent%d.string", y);
-               theApp.preferences.GetString(pref, buf, "");
-               if (strcmp(buf, uabuf) == 0)
+               theApp.preferences.GetString(pref, buf, _T(""));
+               if (_tcscmp(buf, uabuf) == 0)
                   index=y;
             }
          }
@@ -201,7 +203,7 @@ BOOL CPreferencePage::OnInitDialog(){
       {
          int i=0, index=0;
          WIN32_FIND_DATA ffd;
-         CString fname = theApp.preferences.skinsDir + "*.*";
+         CString fname = theApp.preferences.skinsDir + _T("*.*");
          HANDLE hFind = FindFirstFile(fname.GetBuffer(0), &ffd);
          if (hFind != INVALID_HANDLE_VALUE) {
             fname = theApp.preferences.skinsCurrent;
@@ -222,7 +224,6 @@ BOOL CPreferencePage::OnInitDialog(){
       }
    }
        
-   CDialog::OnInitDialog();
 
 	return FALSE;  // return TRUE  unless you set the focus to a control
 }
@@ -321,10 +322,10 @@ void CPreferencePage::OnClearDiskCache() {
 void CPreferencePage::OnBrowse() {
    CString oldstr;
    OPENFILENAME ofn;
-   char *szFileName = new char[INTERNET_MAX_URL_LENGTH];
+   TCHAR *szFileName = new TCHAR[INTERNET_MAX_URL_LENGTH];
 
    memset(&ofn, 0, sizeof(ofn));
-   memset(szFileName, 0, INTERNET_MAX_URL_LENGTH);
+   memset(szFileName, 0, sizeof(TCHAR)*INTERNET_MAX_URL_LENGTH);
    ofn.lStructSize = sizeof(ofn);
    ofn.lpstrFile = szFileName;
    ofn.nMaxFile = INTERNET_MAX_URL_LENGTH;
@@ -332,17 +333,17 @@ void CPreferencePage::OnBrowse() {
 
    switch (idd){
       case IDD_PREFERENCES_DISPLAY:
-         ofn.lpstrFilter = "Bitmaps\0*.bmp\0\0";
+         ofn.lpstrFilter = _T("Bitmaps\0*.bmp\0\0");
 	 ::GetOpenFileName(&ofn);
          theApp.preferences.toolbarBackground = szFileName;
          UpdateData(FALSE);
          break;
       case IDD_PREFERENCES_GENERAL:
-         ofn.lpstrFilter = "Executable Files\0*.exe\0\0";
+         ofn.lpstrFilter = _T("Executable Files\0*.exe\0\0");
 	 ::GetOpenFileName(&ofn);
          oldstr = theApp.preferences.sourceCommand;
          theApp.preferences.sourceCommand = szFileName;
-	 if (theApp.preferences.sourceCommand != "") {
+	 if (theApp.preferences.sourceCommand != _T("")) {
 	   if (oldstr != theApp.preferences.sourceCommand)
 	     theApp.preferences.bSourceUseExternalCommand = TRUE;
 	 }
@@ -362,7 +363,8 @@ void CPreferencePage::OnComboChanged() {
       case IDD_PREFERENCES_PRIVACY:
       {
          int index;
-         char buf[256], pref[34];
+         TCHAR buf[256];
+		 char pref[34];
 
          index = SendDlgItemMessage(IDC_COMBO, CB_GETCURSEL, 0, 0);
 
@@ -371,27 +373,27 @@ void CPreferencePage::OnComboChanged() {
 	    *buf = 0;
           else {
              sprintf(pref, "kmeleon.privacy.useragent%d.string", index);
-             theApp.preferences.GetString(pref, buf, "");
+             theApp.preferences.GetString(pref, buf, _T(""));
           }
 
          if (*buf)
             SetDlgItemText(IDC_EDIT_USERAGENT, buf);
          else
-            SetDlgItemText(IDC_EDIT_USERAGENT, "");
+            SetDlgItemText(IDC_EDIT_USERAGENT, _T(""));
 
          break;
       }
       case IDD_PREFERENCES_DISPLAY:
       {
          int index;
-         char buf[256];
+         TCHAR buf[256];
 
          index = SendDlgItemMessage(IDC_COMBO_SKIN, CB_GETCURSEL, 0, 0);
 
          if (index != CB_ERR) {
             SendDlgItemMessage(IDC_COMBO_SKIN, CB_GETLBTEXT, index, (LPARAM)buf);
             theApp.preferences.skinsCurrent = buf;
-            theApp.preferences.skinsCurrent = theApp.preferences.skinsCurrent + "\\";
+            theApp.preferences.skinsCurrent = theApp.preferences.skinsCurrent + _T("\\");
          }
          break;
       }
@@ -413,7 +415,7 @@ BOOL CPreferencePagePlugins::OnInitDialog(){
    m_pluginList.SetParent(this);
    m_pluginList.GetClientRect(&rect);
 
- 	m_pluginList.InsertColumn(0, "Blah", LVCFMT_LEFT, rect.right);
+ 	m_pluginList.InsertColumn(0, _T("Blah"), LVCFMT_LEFT, rect.right);
 
    POSITION pos = theApp.plugins.pluginList.GetStartPosition();
    kmeleonPlugin * kPlugin;
@@ -437,7 +439,8 @@ BOOL CPreferencePagePlugins::OnInitDialog(){
 
       int image=kPlugin->loaded;
       if(theApp.preferences.GetBool(preference, 1)) image+=2;
-      m_pluginList.InsertItem(item, kPlugin->description, image);
+      USES_CONVERSION;
+	  m_pluginList.InsertItem(item, A2T(kPlugin->description), image);
    }
    m_pluginList.SetItemState(0, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
 
@@ -526,12 +529,12 @@ BOOL CPreferencePageConfigs::OnInitDialog(){
    CEdit *editBox = (CEdit *)GetDlgItem(IDC_EDIT1);
    editBox->SetTabStops(6);
 
-   AddTab("Menus", theApp.preferences.settingsDir + "menus.cfg", "");
-   AddTab("Accelerators", theApp.preferences.settingsDir + "accel.cfg", "");
+   AddTab(_T("Menus"), theApp.preferences.settingsDir + _T("menus.cfg"), "");
+   AddTab(_T("Accelerators"), theApp.preferences.settingsDir + _T("accel.cfg"), "");
 
-   AddTab("Prefs.js", theApp.preferences.profileDir + "prefs.js", "");
-   AddTab("User.js", theApp.preferences.profileDir + "user.js", "");
-   AddTab("userContent.css", theApp.preferences.profileDir + "chrome\\userContent.css", "");
+   AddTab(_T("Prefs.js"), theApp.preferences.profileDir + _T("prefs.js"), "");
+   AddTab(_T("User.js"), theApp.preferences.profileDir + _T("user.js"), "");
+   AddTab(_T("userContent.css"), theApp.preferences.profileDir + _T("chrome\\userContent.css"), "");
 
 #if 0
    configFileType pluginConfigFiles[10];
@@ -550,7 +553,7 @@ BOOL CPreferencePageConfigs::OnInitDialog(){
 CPreferencePageConfigs::~CPreferencePageConfigs() {
 }
 
-void CPreferencePageConfigs::AddTab(const char *label, const char *file, const char *help)
+void CPreferencePageConfigs::AddTab(const TCHAR *label, const TCHAR *file, const char *help)
 {
    int newItem = m_tabCtrl.GetItemCount();
    m_tabCtrl.InsertItem(newItem, label);
@@ -558,12 +561,12 @@ void CPreferencePageConfigs::AddTab(const char *label, const char *file, const c
 }
 
 void CPreferencePageConfigs::OnHelp(){
-   MessageBox("Somewhere on kmeleon.org there should be a help file.  Eventually, the information will be here too.");
+   MessageBox(_T("Somewhere on kmeleon.org there should be a help file.  Eventually, the information will be here too."));
 }
 
-void CPreferencePageConfigs::SaveFile(const char *filename)
+void CPreferencePageConfigs::SaveFile(const TCHAR *filename)
 {
-   const char *prettyFilename = strrchr(filename, '\\');
+	const TCHAR *prettyFilename = _tcsrchr(filename, _T('\\'));
    if (prettyFilename) {
       prettyFilename++; // hop over the '\'
    } else {
@@ -595,13 +598,16 @@ void CPreferencePageConfigs::SaveFile(const char *filename)
       file.Close();
 
 #if 1
-      if (strstr(filename, "prefs.js")) {
+      if (_tcsstr(filename, _T("prefs.js"))) {
          nsresult rv;
          nsCOMPtr<nsIPref> prefs(do_GetService(NS_PREF_CONTRACTID, &rv));
          if (NS_SUCCEEDED(rv)) {
             nsCOMPtr<nsILocalFile> prefFile(do_CreateInstance(NS_LOCAL_FILE_CONTRACTID));
-            rv = prefFile->InitWithNativePath(nsDependentCString(filename));
-
+#if defined _UNICODE
+			rv = prefFile->InitWithPath(nsDependentString(filename));
+#else
+			rv = prefFile->InitWithNativePath(nsDependentCString(filename));
+#endif
             prefs->ReadUserPrefs(prefFile);
             theApp.preferences.Load();
 	 }
@@ -613,7 +619,7 @@ void CPreferencePageConfigs::SaveFile(const char *filename)
       AfxMessageBox(IDS_ERROR_OPEN);
 }
 
-void CPreferencePageConfigs::ShowFile(const char *filename){
+void CPreferencePageConfigs::ShowFile(const TCHAR *filename){
    CFile file;
    if (file.Open(filename, CFile::modeRead)){
       ULONGLONG length = file.GetLength();
@@ -650,11 +656,12 @@ void CPreferencePageConfigs::ShowFile(const char *filename){
       delete [] buffer;
 
       UpdateData(FALSE);
+	  file.Close();
    }
    else{
-      MessageBox("Error opening file");
+	  m_fileText = _T("");
+      UpdateData(FALSE);
    }
-   file.Close();
 }
 
 void CPreferencePageConfigs::OnSelChange(NMHDR *nmHdr, LRESULT *result)
