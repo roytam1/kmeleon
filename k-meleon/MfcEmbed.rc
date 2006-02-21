@@ -1080,6 +1080,26 @@ IDC_PAN_DOWNRIGHT       CURSOR                  "res\\Cursor_16.cur"
 
 /////////////////////////////////////////////////////////////////////////////
 //
+// Toolbar
+//
+
+IDR_TOOLBAR1 TOOLBAR  10, 9
+BEGIN
+    BUTTON      ID_CLOSE
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDR_TOOLBAR1            BITMAP                  "res\\toolbar1.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////////////////
+//
 // String Table
 //
 
@@ -1162,6 +1182,7 @@ BEGIN
     IDR_MAINFRAME           "K-Meleon"
     IDS_PROFILES_FOLDER_NAME "K-Meleon"
     IDS_PROFILES_NONSHARED_NAME "Browser"
+    IDS_SRCH_STR_NOT_FOUND  "Not found."
 END
 
 STRINGTABLE 
@@ -1275,10 +1296,13 @@ BEGIN
     IDS_UNABLE_REGISTER_FACTORY "Unable to register factory!"
     IDS_CLOSE               "Close"
     IDS_TIMELEFT_UNKNOWN    "Time Left: Unknown"
+    IDS_FINDNEXT            "Find Next"
 END
 
 STRINGTABLE 
 BEGIN
+    IDS_FINDPREV            "Find Previous"
+    IDS_FIND_MATCHCASE      "Match case"
     IDS_PREFS_GENERAL       "General"
     IDS_PREFS_DISPLAY       "Display"
     IDS_PREFS_PRIVACY       "Privacy"
@@ -1290,6 +1314,9 @@ BEGIN
     IDS_PREFS_PROXY         "Proxy"
     IDS_PREFS_CONFIGS       "Configs"
     IDS_PREFS_PLUGINS       "Plugins"
+    IDS_FIND_WRAPAROUND     "Wrap Around"
+    IDS_FIND                "Find:"
+    IDS_FIND_HIGHLIGHT      "Highlight"
     IDS_DOWNLOAD_FAILED     "Download failed! "
 END
 

@@ -780,8 +780,12 @@ void CBrowserFrame::BrowserFrameGlueObj::FocusNextElement() {
 
    nsCOMPtr<nsIWebBrowserFocus> focus(do_GetInterface(pThis->m_wndBrowserView.mWebBrowser));
    if(focus) {
-      // pThis->m_wndUrlBar.MaintainFocus();   
-      ::SetFocus(pThis->m_wndUrlBar.m_hwndEdit);
+	   focus->Deactivate();
+	   if (pThis->m_wndFindBar)
+		   pThis->m_wndFindBar->SetFocus();
+	   else
+		   // pThis->m_wndUrlBar.MaintainFocus();   
+		   ::SetFocus(pThis->m_wndUrlBar.m_hwndEdit);
    }
 }
 
@@ -791,6 +795,7 @@ void CBrowserFrame::BrowserFrameGlueObj::FocusPrevElement() {
    nsCOMPtr<nsIWebBrowserFocus> focus(do_GetInterface(pThis->m_wndBrowserView.mWebBrowser));
    if(focus) {
       // pThis->m_wndUrlBar.MaintainFocus();
+	  focus->Deactivate();
       ::SetFocus(pThis->m_wndUrlBar.m_hwndEdit);
    }
 }

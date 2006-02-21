@@ -43,6 +43,71 @@
 #include "resource.h"
 
 class CBrowserView;
+class CBrowserFrame;
+
+class CFindRebar: public CReBar
+{
+public:
+	CFindRebar(CString& csSearchStr, PRBool bMatchCase,
+				PRBool bMatchWholeWord, PRBool bWrapAround, CBrowserFrame* pOwner);
+	virtual ~CFindRebar();
+	BOOL Create(CWnd* parent, DWORD dwStyle);
+	void OnNotFound() {
+		if (!m_NotFound) {
+			m_NotFound=true;
+			m_cEdit.Invalidate();
+			m_cEdit.SetFocus();
+			MessageBeep(MB_ICONASTERISK);
+		}
+	}
+	void OnFound() {m_NotFound=false;m_cEdit.Invalidate();}
+	inline CString GetFindString( ) const {return m_csSearchStr;}
+	inline BOOL WrapAround() {return m_cToolbar.GetToolBarCtrl().IsButtonChecked(IDC_WRAP_AROUND);}
+	inline BOOL MatchCase() {return m_cToolbar.GetToolBarCtrl().IsButtonChecked(IDC_MATCH_CASE);}
+//	inline BOOL Hightlight() {return m_cToolbar.GetToolBarCtrl().IsButtonChecked(IDC_HIGHLIGHT);}
+	inline bool StartSel() {return m_bStartsel;}
+
+	CEdit m_cEdit;
+
+private:
+	CString m_csSearchStr;
+	PRBool m_bMatchCase;
+	PRBool m_bMatchWholeWord;
+	PRBool m_bWrapAround;
+	UINT m_hid;
+
+	CBrowserFrame* m_pOwner;
+	CBrush m_brBkgnd;
+	COLORREF m_clrBkgnd;
+	
+	CToolBar m_cToolbar;
+	CToolBar closeBar;
+	CImageList m_ilHot;
+	CImageList m_ilCold;
+
+	bool m_NotFound;
+	bool m_bStartsel;
+	bool m_bAutoSearch; 
+
+public:
+	DECLARE_MESSAGE_MAP()
+	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
+	afx_msg void Close();
+	afx_msg void OnSetFocus(CWnd* pOldWnd);
+#ifndef FINDBAR_USE_TYPEAHEAD
+	afx_msg void OnEnChangeSearchStr();
+#endif
+	virtual BOOL PreTranslateMessage(MSG* pMsg);
+	afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
+	afx_msg void OnWrapAround();
+	afx_msg void OnMatchCase();
+	
+protected:
+	virtual void PostNcDestroy();
+public:
+	afx_msg void OnTimer(UINT nIDEvent);
+	
+};
 
 class CFindDialog : public CFindReplaceDialog	
 {

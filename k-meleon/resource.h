@@ -13,6 +13,7 @@
 #define IDS_PROFILES_NONSHARED_NAME     130
 #define IDR_CTXMENU_LINK                131
 #define IDD_ALERT_CHECK_DIALOG          131
+#define IDS_SRCH_STR_NOT_FOUND          131
 #define IDR_CTXMENU_TEXT                132
 #define IDD_CONFIRM_CHECK_DIALOG        132
 #define IDR_CTXMENU_IMAGE               133
@@ -67,6 +68,7 @@
 #define IDD_FILE_PRINTSETUP             190
 #define IDD_PRINTSETUP_DIALOG           191
 #define IDD_CHOOSE_ACTION_DIALOG        192
+#define IDR_TOOLBAR1                    194
 #define ID_URL_BAR                      1001
 #define ID_PROG_BAR                     1002
 #define ID_THROBBER                     1003
@@ -273,6 +275,8 @@
 #define ID_NAV_GO                       32819
 #define ID_OFFLINE                      32820
 #define ID_COPY_IMAGE_CONTENT           32821
+#define ID_CLOSE                        33822
+#define ID_CLOSE_FINDBAR                33822
 #define IDS_FAILED_TO_CREATE_BROWSER    61204
 #define IDS_NEW_PLUGIN_FOUND            61205
 #define IDS_PLUGIN_NO_OPTIONS           61206
@@ -300,6 +304,9 @@
 #define IDS_ERROR_OPEN                  61227
 #define IDS_CLOSE                       61229
 #define IDS_TIMELEFT_UNKNOWN            61230
+#define IDS_FINDNEXT                    61231
+#define IDS_FINDPREV                    61232
+#define IDS_FIND_MATCHCASE              61234
 #define IDS_PREFS_GENERAL               61244
 #define IDS_PREFS_DISPLAY               61245
 #define IDS_PREFS_PRIVACY               61246
@@ -307,6 +314,9 @@
 #define IDS_PREFS_PROXY                 61248
 #define IDS_PREFS_CONFIGS               61249
 #define IDS_PREFS_PLUGINS               61250
+#define IDS_FIND_WRAPAROUND             61251
+#define IDS_FIND                        61252
+#define IDS_FIND_HIGHLIGHT              61253
 #define IDS_DOWNLOAD_FAILED             61254
 
 #define IDD_CONFIRM_COOKIE              2100

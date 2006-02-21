@@ -94,10 +94,12 @@ BEGIN_MESSAGE_MAP(CBrowserFrame, CFrameWnd)
     ON_WM_SYSCOLORCHANGE()
     ON_MESSAGE(UWM_REFRESHTOOLBARITEM, RefreshToolBarItem)
     ON_MESSAGE(UWM_REFRESHMRULIST, RefreshMRUList)
+	ON_COMMAND(ID_CLOSE, CloseNothing)
     ON_COMMAND_RANGE(TOOLBAR_MENU_START_ID, TOOLBAR_MENU_END_ID, ToggleToolBar)
     ON_COMMAND(ID_TOOLBARS_LOCK, ToggleToolbarLock)
     ON_UPDATE_COMMAND_UI(ID_TOOLBARS_LOCK, OnUpdateToggleToolbarLock)
 	ON_UPDATE_COMMAND_UI_RANGE(TOOLBAR_MENU_START_ID, TOOLBAR_MENU_END_ID, OnUpdateToolBarMenu)
+	ON_COMMAND(ID_EDIT_FIND, OnShowFindBar)
     //}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -124,6 +126,7 @@ CBrowserFrame::CBrowserFrame(PRUint32 chromeMask, LONG style = 0)
     m_created = FALSE;
     m_ignoreFocus = 2;
     m_hSecurityIcon = NULL;
+	m_wndFindBar = NULL;
 }
 
 CBrowserFrame::~CBrowserFrame()
@@ -134,16 +137,38 @@ CBrowserFrame::~CBrowserFrame()
 
 BOOL CBrowserFrame::PreTranslateMessage(MSG* pMsg)
 {
-   if (pMsg->message==WM_KEYDOWN && pMsg->wParam == VK_TAB && pMsg->hwnd == m_wndUrlBar.m_hwndEdit) {
-      
-      nsCOMPtr<nsIWebBrowserFocus> focus(do_GetInterface(m_wndBrowserView.mWebBrowser));
-      if(focus) {
-         focus->Activate();
-         focus->SetFocusAtFirstElement();
-         return 1;
-      }
-   }
-
+   if (pMsg->message==WM_KEYDOWN)
+   {
+	   if ( pMsg->wParam == VK_TAB) {
+		nsCOMPtr<nsIWebBrowserFocus> focus(do_GetInterface(m_wndBrowserView.mWebBrowser));
+		if(focus) {
+				if (pMsg->hwnd == m_wndUrlBar.m_hwndEdit) {
+				if (GetKeyState(VK_SHIFT)  & 0x8000)
+					if (m_wndFindBar) 
+						m_wndFindBar->SetFocus();
+					else {
+						focus->Activate();
+						focus->SetFocusAtLastElement();
+					}
+				else {
+					focus->Activate();
+					focus->SetFocusAtFirstElement();
+				}
+				return 1;
+			}
+			else if ( m_wndFindBar && (pMsg->hwnd == m_wndFindBar->m_cEdit.m_hWnd)) { 
+				
+				if (GetKeyState(VK_SHIFT)  & 0x8000) {
+					focus->Activate();
+					focus->SetFocusAtLastElement();
+				}
+				else
+					::SetFocus(m_wndUrlBar.m_hwndEdit);
+				return 1;
+			}
+		}
+	  }
+   }  
    return CFrameWnd::PreTranslateMessage(pMsg);
 }
 
@@ -846,7 +871,88 @@ void CBrowserFrame::OnUpdateToggleToolbarLock(CCmdUI* pCmdUI)
 }
 
 
+BOOL CALLBACK EnumToolbar(HWND hwnd, LPARAM lParam)
+{
+	TCHAR pszName[20];
+	GetClassName(hwnd, pszName, 20);
+	if ( GetParent(hwnd) == GetParent((HWND)lParam) && _tcscmp(TOOLBARCLASSNAME, pszName) == 0
+		&& ( (GetWindowLong(hwnd, GWL_STYLE) & CCS_BOTTOM) == CCS_BOTTOM))
+	{
+		SetWindowPos((HWND)lParam, hwnd ,0,0,0,0,SWP_NOMOVE);
+		//return FALSE;
+	}
+	return TRUE;
+}
+
 // create a linked list of CToolBarEx controls, return the hwnd
 HWND CBrowserFrame::CreateToolbar(UINT style) {
     return m_tbList.Add(this, style);
+}
+
+#include "nsITypeAheadFind.h"
+
+void CBrowserFrame::OnShowFindBar()
+{
+   // When the the user chooses the Find menu item
+    // and if a Find dlg. is already being shown
+    // just set focus to the existing dlg instead of
+    // creating a new one
+    if(m_wndFindBar)
+    {
+		m_wndFindBar->SetFocus();
+		return;
+    }
+
+    CString csSearchStr;
+    PRBool bMatchCase = PR_FALSE;
+    PRBool bMatchWholeWord = PR_FALSE;
+    PRBool bWrapAround = PR_TRUE;
+    //PRBool bSearchBackwards = PR_FALSE;
+#ifdef FINDBAR_USE_TYPEAHEAD
+	nsresult rv;
+    nsCOMPtr<nsITypeAheadFind> tafinder = do_GetService(NS_TYPEAHEADFIND_CONTRACTID, &rv);
+	if (NS_SUCCEEDED(rv))
+	{
+		PRBool b;
+		tafinder->GetIsActive(&b);
+		if (b == PR_FALSE)
+		{
+			nsCOMPtr<nsIDOMWindow> dom(do_GetInterface(m_wndBrowserView.mWebBrowser));
+			tafinder->StartNewFind(dom, PR_FALSE);
+		}
+	}
+#endif
+	// See if we can get and initialize the dlg box with
+    // the values/settings the user specified in the previous search
+	nsCOMPtr<nsIWebBrowserFind> finder(do_GetInterface(m_wndBrowserView.mWebBrowser));	
+    if(finder)
+    {
+		PRUnichar *stringBuf = nsnull;
+        finder->GetSearchString(&stringBuf);
+        csSearchStr = stringBuf;
+        nsMemory::Free(stringBuf);
+
+		finder->GetMatchCase(&bMatchCase);
+		finder->GetEntireWord(&bMatchWholeWord);
+		finder->GetWrapFind(&bWrapAround);
+		//finder->GetFindBackwards(&bSearchBackwards);		
+    }
+
+	// Create the find bar
+	m_wndFindBar = new CFindRebar(csSearchStr, bMatchCase, bMatchWholeWord, bWrapAround, this);
+	m_wndFindBar->Create(this, CBRS_BOTTOM);
+
+	// It must stay above the sidebar 
+	m_wndFindBar->SetWindowPos(&m_wndStatusBar ,0,0,0,0,SWP_NOMOVE);
+	// And above any bottom toolbar ?
+	EnumChildWindows(m_hWnd, EnumToolbar, (LPARAM)m_wndFindBar->m_hWnd); 
+
+	// Update the layout
+	RecalcLayout();
+}
+
+void CBrowserFrame::ClearFindBar()
+{
+	m_wndFindBar = NULL;
+	RecalcLayout();
 }
