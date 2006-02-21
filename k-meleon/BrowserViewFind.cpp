@@ -1,5 +1,5 @@
 /*
-*  Copyright (C) 2000 Christophe Thibault, Brian Harris, Jeff Doozan
+*  Copyright (C) 2005 Dorian Boissonnade
 *
 *  This program is free software; you can redistribute it and/or modify
 *  it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
 */
 
 /*
-  This code handles the Find... dialog box stuff
+  This code handles the Findbar
 */
 
 #include "stdafx.h"
@@ -28,134 +28,143 @@ extern CMfcEmbedApp theApp;
 #include "Dialogs.h"
 #include "BrowserFrm.h"
 #include "BrowserView.h"
+#include "nsISelection.h"
+#include "nsIDOMWindowCollection.h"
 
-void CBrowserView::OnShowFindDlg() 
+
+// A new handler for WM_FINDMSG, if a plugin want to use it.
+// At first I wanted to put the findbar in a plugin but...
+// wParam (char*) Text to search for in UTF8
+// lParam flags
+
+#define FM_WRAPAROUND		0x1
+#define FM_MATCHCASE		0x2
+#define FM_SEARCHBACKWARD	0x4
+
+/*LRESULT CBrowserView::OnFindMsg(WPARAM wParam, LPARAM lParam)
 {
-    // When the the user chooses the Find menu item
-    // and if a Find dlg. is already being shown
-    // just set focus to the existing dlg instead of
-    // creating a new one
-    if(m_pFindDlg)
-    {
-	m_pFindDlg->SetFocus();
-	return;
-    }
-
-    CString csSearchStr;
-    PRBool bMatchCase = PR_FALSE;
-    PRBool bMatchWholeWord = PR_FALSE;
-    PRBool bWrapAround = PR_FALSE;
-    PRBool bSearchBackwards = PR_FALSE;
-
-    // See if we can get and initialize the dlg box with
-    // the values/settings the user specified in the previous search
-    nsCOMPtr<nsIWebBrowserFind> finder(do_GetInterface(mWebBrowser));
-    if(finder)
-    {
-		PRUnichar *stringBuf = nsnull;
-        finder->GetSearchString(&stringBuf);
-        csSearchStr = stringBuf;
-        nsMemory::Free(stringBuf);
-
-		finder->GetMatchCase(&bMatchCase);
-		finder->GetEntireWord(&bMatchWholeWord);
-		finder->GetWrapFind(&bWrapAround);
-		finder->GetFindBackwards(&bSearchBackwards);		
-    }
-
-    m_pFindDlg = new CFindDialog(csSearchStr, bMatchCase, bMatchWholeWord,
-				 bWrapAround, bSearchBackwards, this);
-    m_pFindDlg->Create(TRUE, NULL, NULL, 0, this);
-}
-
-// This will be called whenever the user pushes the Find
-// button in the Find dialog box
-// This method gets bound to the WM_FINDMSG windows msg via the 
-//
-//	   ON_REGISTERED_MESSAGE(WM_FINDMSG, OnFindMsg) 
-//
-//	message map entry.
-//
-// WM_FINDMSG (which is registered towards the beginning of this file)
-// is the message via which the FindDialog communicates with this view
-//
-LRESULT CBrowserView::OnFindMsg(WPARAM wParam, LPARAM lParam)
-{
-    nsCOMPtr<nsIWebBrowserFind> finder(do_GetInterface(mWebBrowser));
+	nsCOMPtr<nsIWebBrowserFind> finder(do_GetInterface(mWebBrowser));
     if(!finder)
-	return NULL;
-
-    // Get the pointer to the current Find dialog box
-    CFindDialog* dlg = (CFindDialog *) CFindReplaceDialog::GetNotifier(lParam);
-    if(!dlg) 
-	return NULL;
-
-    // Has the user decided to terminate the dialog box?
-    if(dlg->IsTerminating())
-	return NULL;
-
-    if(dlg->FindNext())
-    {
-        USES_CONVERSION;
-        finder->SetSearchString(T2W(dlg->GetFindString().GetBuffer(0)));
-        finder->SetMatchCase(dlg->MatchCase() ? PR_TRUE : PR_FALSE);
-        finder->SetEntireWord(dlg->MatchWholeWord() ? PR_TRUE : PR_FALSE);
-        finder->SetWrapFind(dlg->WrapAround() ? PR_TRUE : PR_FALSE);
-        finder->SetFindBackwards(dlg->SearchBackwards() ? PR_TRUE : PR_FALSE);
- 
-	PRBool didFind;
-	nsresult rv = finder->FindNext(&didFind);
+		return 0;
 	
-        if(!didFind)
+	nsEmbedString searchStrUTF16;
+    NS_CStringToUTF16(nsEmbedCString((char*)wParam), NS_CSTRING_ENCODING_UTF8, searchStrUTF16);
+
+	finder->SetFindBackwards( lParam & FM_SEARCHBACKWARD ? PR_TRUE : PR_FALSE);
+	finder->SetMatchCase( lParam & FM_MATCHCASE ? PR_TRUE : PR_FALSE);
+	finder->SetWrapFind( lParam & FM_WRAPAROUND ? PR_TRUE : PR_FALSE);
+	finder->SetSearchString(searchStrUTF16.get());
+
+	PRBool didFind;
+    finder->FindNext(&didFind);
+
+	return (didFind == PR_TRUE ? 1 : 0);
+}*/
+#include "nsITypeAheadFind.h"
+
+#ifndef FINDBAR_USE_TYPEAHEAD
+// This function collapse the current selection in
+// the window and in frames. See below for its purpose.
+void CollapseSelToStartInFrame(nsIDOMWindow* dom)
+{
+	if (!dom) return;
+
+	// Because IFrame exists
+	nsCOMPtr<nsISelection> sel;
+	dom->GetSelection(getter_AddRefs(sel));
+	if (sel) sel->CollapseToStart();
+
+	nsCOMPtr<nsIDOMWindowCollection> frames;
+	dom->GetFrames(getter_AddRefs(frames));
+	if (frames)
 	{
-            MessageBox("Not found.");
-            dlg->SetFocus();
-        }
-
-        return (NS_SUCCEEDED(rv) && didFind);
-    }
-
-    return 0;
+		PRUint32 nbframes;
+		frames->GetLength(&nbframes);
+		if (nbframes>0)
+		{
+			nsCOMPtr<nsIDOMWindow> frame;
+			for (PRUint32 i = 0; i<nbframes; i++)
+			{
+				frames->Item(i, getter_AddRefs(frame));
+				CollapseSelToStartInFrame(frame);
+			}
+		}
+	}
 }
+#endif
 
 void CBrowserView::OnFindNext() {
+
 	nsCOMPtr<nsIWebBrowserFind> finder(do_GetInterface(mWebBrowser));
-
    if(!finder) return;
-
-   PRUnichar* stringBuf = nsnull;
+	USES_CONVERSION;
+#ifndef FINDBAR_USE_TYPEAHEAD	
+	if(mpBrowserFrame->m_wndFindBar)
+    {
+		finder->SetSearchString(T2CW(mpBrowserFrame->m_wndFindBar->GetFindString()));
+		//finder->SetMatchCase(mpBrowserFrame->m_wndFindBar->MatchCase() ? PR_TRUE : PR_FALSE);
+		//finder->SetWrapFind(mpBrowserFrame->m_wndFindBar->WrapAround() ? PR_TRUE : PR_FALSE);
+		
+		// HACK because not use typeahead
+		// The problem with the autosearch feature is that 
+		// webbrowserfind start to search at the end of the 
+		// current selection. But with autosearch it should
+		// start at the beginning. So I collapse the selection.
+        if (mpBrowserFrame->m_wndFindBar->StartSel())
+		{
+			nsCOMPtr<nsIDOMWindow> dom(do_GetInterface(mWebBrowser));
+			if (dom)
+			{
+				// Have to look if we have frames. It's a little violent
+				// currently. The observer is also passing the root and 
+				// not the frame so it's useless.
+				
+				CollapseSelToStartInFrame(dom);
+			}
+		}
+    }
+#endif
+   PRUnichar *stringBuf = nsnull;
    finder->GetSearchString(&stringBuf);
    if (stringBuf[0]) {
-
-      PRBool didFind;
-	   finder->FindNext(&didFind);
+	   PRBool didFind;
+       finder->FindNext(&didFind);
+	   if (!didFind)
+	   {
+			if (!mpBrowserFrame->m_wndFindBar) mpBrowserFrame->OnShowFindBar();
+			mpBrowserFrame->m_wndFindBar->OnNotFound();
+	   }
+	   else if (mpBrowserFrame->m_wndFindBar) mpBrowserFrame->m_wndFindBar->OnFound();
    }
    else {
-      OnShowFindDlg();
+      mpBrowserFrame->OnShowFindBar();
+	  mpBrowserFrame->m_wndFindBar->OnFound();
    }
+   
    nsMemory::Free(stringBuf);
 }
 
 void CBrowserView::OnFindPrev() {
 	nsCOMPtr<nsIWebBrowserFind> finder(do_GetInterface(mWebBrowser));
-
    if(!finder) return;
 
-   PRBool rv;
+   finder->SetFindBackwards(PR_TRUE);
+   OnFindNext();
+   finder->SetFindBackwards(PR_FALSE);
+}
 
-   finder->GetFindBackwards(&rv);
-   finder->SetFindBackwards(rv^2);  // reverse the find direction
+void CBrowserView::OnWrapAround()
+{
+   theApp.preferences.bFindWrapAround = mpBrowserFrame->m_wndFindBar->WrapAround();
+   nsCOMPtr<nsIWebBrowserFind> finder(do_GetInterface(mWebBrowser));
+   if(finder)
+   finder->SetWrapFind(theApp.preferences.bFindWrapAround ? PR_TRUE : PR_FALSE);
+}
 
-   PRUnichar* stringBuf = nsnull;
-   finder->GetSearchString(&stringBuf);
-   if (stringBuf[0]) {
-      PRBool didFind;
-	   finder->FindNext(&didFind);
-   }
-   else {
-      OnShowFindDlg();
-   }
-   nsMemory::Free(stringBuf);
-   finder->GetFindBackwards(&rv);
-   finder->SetFindBackwards(rv^2);  // reset the initial find direction
+void CBrowserView::OnMatchCase()
+{
+	theApp.preferences.bFindMatchCase = mpBrowserFrame->m_wndFindBar->MatchCase();
+	nsCOMPtr<nsIWebBrowserFind> finder(do_GetInterface(mWebBrowser));
+	if(finder)
+	finder->SetMatchCase(theApp.preferences.bFindMatchCase ? PR_TRUE : PR_FALSE);
 }

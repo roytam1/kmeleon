@@ -472,7 +472,7 @@ NS_IMETHODIMP CBrowserImpl::OnShowTooltip(PRInt32 aXCoords, PRInt32 aYCoords, co
     if(! m_pBrowserFrameGlue)
         return NS_ERROR_FAILURE;
 
-    char *text = W2T(aTipText);
+    const TCHAR *text = W2CT(aTipText);
 
     m_pBrowserFrameGlue->ShowTooltip(aXCoords, aYCoords, text);
 

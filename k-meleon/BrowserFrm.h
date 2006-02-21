@@ -48,6 +48,7 @@
 #include "ReBarEx.h"
 #include "Tooltips.h"
 #include "urlbar.h"
+#include "Dialogs.h"
 
 #include "MfcEmbed.h"
 extern CMfcEmbedApp theApp;
@@ -135,6 +136,7 @@ public:
     CUrlBar         m_wndUrlBar;
     CReBarEx        m_wndReBar;
     CAnimateCtrl     m_wndAnimate;
+	CFindRebar*		m_wndFindBar;
 
     CBitmap         m_bmpBack;
 
@@ -144,6 +146,8 @@ public:
 
     void UpdateSecurityStatus(PRInt32 aState);
     void ShowSecurityInfo();
+	void ClearFindBar();
+	void CloseNothing(){}
 
     // note: right now it's just a CStatic, but eventually it will become something better
     CKmToolTip     m_wndToolTip;
@@ -211,6 +215,7 @@ public:
     virtual void Dump(CDumpContext& dc) const;
 #endif
 
+	afx_msg void OnShowFindBar();
 // Generated message map functions
 protected:
     //{{AFX_MSG(CBrowserFrame)

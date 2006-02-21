@@ -243,7 +243,7 @@ protected:
 	afx_msg void OnSaveImageAs();
 	afx_msg void OnViewPageInfo();
 	afx_msg void OnViewFrameInfo();
-    afx_msg void OnShowFindDlg();
+    //afx_msg void OnShowFindDlg();
     afx_msg void OnFilePrint();
     afx_msg void OnFilePrintPreview();
     afx_msg void OnFilePrintSetup();
@@ -252,7 +252,7 @@ protected:
     afx_msg void OnUpdateViewStatusBar(CCmdUI* pCmdUI);
     afx_msg void OnFindNext();
     afx_msg void OnFindPrev();
-    afx_msg LRESULT OnFindMsg(WPARAM wParam, LPARAM lParam);
+    //afx_msg LRESULT OnFindMsg(WPARAM wParam, LPARAM lParam);
     afx_msg void OnKmeleonHome();
     afx_msg void OnKmeleonForum();
     afx_msg void OnKmeleonFAQ();
@@ -273,6 +273,8 @@ protected:
     afx_msg void OnOpenFrameInBackground();
     afx_msg void OnOpenFrameInNewWindow();   
     afx_msg void OnMouseAction();
+	afx_msg void OnWrapAround();
+	afx_msg void OnMatchCase();
 
     afx_msg void OnEditURL( NMHDR * pNotifyStruct, LRESULT * result );
     //afx_msg void OnDragURL( NMHDR * pNotifyStruct, LRESULT * result );
