@@ -800,3 +800,10 @@ void CBrowserFrame::BrowserFrameGlueObj::FocusPrevElement() {
    }
 }
 
+void CBrowserFrame::BrowserFrameGlueObj::MouseAction(nsIDOMNode *node)
+{
+	METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
+	pThis->m_wndBrowserView.m_lastMouseActionNode = node;
+}
+
+

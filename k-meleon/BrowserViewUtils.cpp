@@ -39,7 +39,7 @@ extern CMfcEmbedApp theApp;
 #include "BrowserFrm.h"
 #include "BrowserView.h"
 
-extern NewURI(nsIURI **result, const nsAString &spec);
+extern nsresult NewURI(nsIURI **result, const nsAString &spec);
 
 BOOL CBrowserView::IsViewSourceUrl(CString& strUrl)
 {
