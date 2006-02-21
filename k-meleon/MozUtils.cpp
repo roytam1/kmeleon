@@ -1,8 +1,9 @@
 #include "stdafx.h"
 #include "nsIWindowWatcher.h"
 #include "nsIIOService.h"
+#include "nsIDOMWindow2.h"
 
-NewURI(nsIURI **result, const nsACString &spec)
+nsresult NewURI(nsIURI **result, const nsACString &spec)
 {
   nsCOMPtr<nsIIOService> ios = do_GetService("@mozilla.org/network/io-service;1");
   NS_ENSURE_TRUE(ios, NS_ERROR_UNEXPECTED);
@@ -10,12 +11,27 @@ NewURI(nsIURI **result, const nsACString &spec)
   return ios->NewURI(spec, nsnull, nsnull, result);
 }
 
-NewURI(nsIURI **result, const nsAString &spec)
+nsresult NewURI(nsIURI **result, const nsAString &spec)
 {
   nsEmbedCString specUtf8;
   NS_UTF16ToCString(spec, NS_CSTRING_ENCODING_UTF8, specUtf8);
   return NewURI(result, specUtf8);
 }
+
+
+nsresult GetDOMEventTarget (nsIWebBrowser* aWebBrowser, nsIDOMEventTarget** aTarget)
+{
+	NS_ENSURE_ARG(aWebBrowser);
+	nsCOMPtr<nsIDOMWindow> domWin;
+	aWebBrowser->GetContentDOMWindow (getter_AddRefs(domWin));
+	NS_ENSURE_TRUE (domWin, NS_ERROR_FAILURE);
+
+  	nsCOMPtr<nsIDOMWindow2> domWin2 (do_QueryInterface (domWin));
+	NS_ENSURE_TRUE (domWin2, NS_ERROR_FAILURE);
+	
+	return domWin2->GetWindowRoot (aTarget);
+}
+
 
 CWnd* CWndForDOMWindow(nsIDOMWindow *aWindow)
 {
@@ -45,3 +61,4 @@ CWnd* CWndForDOMWindow(nsIDOMWindow *aWindow)
 
   return val;
 }
+

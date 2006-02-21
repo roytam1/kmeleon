@@ -66,10 +66,12 @@
 #include "Utils.h"
 #include "KmeleonConst.h"
 #include "kmeleon_plugin.h"
+#include "nsIDOMEventTarget.h"
 #include <wininet.h>
 
 extern CMfcEmbedApp theApp;
-extern NewURI(nsIURI **result, const nsAString &spec);
+extern nsresult NewURI(nsIURI **result, const nsAString &spec);
+extern nsresult GetDOMEventTarget (nsIWebBrowser* aWebBrowser, nsIDOMEventTarget** aTarget);
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -320,14 +322,33 @@ HRESULT CBrowserView::CreateBrowser()
                                 NS_GET_IID(nsIWebProgressListener));
     
     // Finally, show the web browser window
+	rv = GetDOMEventTarget(mWebBrowser, (getter_AddRefs(mEventTarget)));
+	if (NS_SUCCEEDED(rv) && !(mpBrowserFrame->m_chromeMask & nsIWebBrowserChrome::CHROME_OPENAS_CHROME ))
+	{
+		rv = mEventTarget->AddEventListener(NS_LITERAL_STRING("mousedown"),
+			                        mpBrowserImpl, PR_FALSE);
+	}
     mBaseWindow->SetVisibility(PR_TRUE);
 
+	nsCOMPtr<nsIWebBrowserFind> finder(do_GetInterface(mWebBrowser));	
+    if(finder)
+	{
+		finder->SetWrapFind(theApp.preferences.bFindWrapAround ? PR_TRUE:PR_FALSE);
+		finder->SetMatchCase(theApp.preferences.bFindMatchCase ? PR_TRUE:PR_FALSE);
+	}
+	
     return NS_OK;
 }
 
 HRESULT CBrowserView::DestroyBrowser()
 {
     DeleteTempFiles();   
+
+	if (mEventTarget && !(mpBrowserFrame->m_chromeMask & nsIWebBrowserChrome::CHROME_OPENAS_CHROME ))
+	{
+		mEventTarget->RemoveEventListener(NS_LITERAL_STRING("mousedown"),
+				  mpBrowserImpl, PR_FALSE);
+	}
 
     if(mBaseWindow)
     {

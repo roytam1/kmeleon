@@ -118,6 +118,7 @@ NS_INTERFACE_MAP_BEGIN(CBrowserImpl)
    NS_INTERFACE_MAP_ENTRY(nsIContextMenuListener2)
    NS_INTERFACE_MAP_ENTRY(nsITooltipListener)
    NS_INTERFACE_MAP_ENTRY(nsISupportsWeakReference)
+   NS_INTERFACE_MAP_ENTRY(nsIDOMEventListener)
 NS_INTERFACE_MAP_END
 
 //*****************************************************************************
@@ -487,4 +488,55 @@ NS_IMETHODIMP CBrowserImpl::OnHideTooltip()
     m_pBrowserFrameGlue->ShowTooltip(0, 0, nsnull);
 
     return NS_OK;
+}
+
+//*****************************************************************************
+// CBrowserImpl::nsIDOMEventListener
+//***************************************************************************** 
+
+#include "nsIDOMContextMenuListener.h"
+#include "nsIDOMEventTarget.h"
+
+#define XP_WIN
+#include "nsIDOMAbstractView.h"
+#include "nsIDOMDocumentView.h"
+#include "nsIDOMEventTarget.h"
+#include "nsIDOM3Document.h"
+#include "nsIDOMWindow2.h"
+#include "nsIScriptSecurityManager.h" 
+
+extern NewURI(nsIURI **result, const nsAString &spec);
+extern NewURI(nsIURI **result, const nsACString &spec);
+
+NS_IMETHODIMP CBrowserImpl::HandleEvent(nsIDOMEvent *event)
+{
+	nsresult rv;
+
+	nsEmbedString type;
+	event->GetType(type);
+	if (type.Equals(NS_LITERAL_STRING("mousedown"))) {
+        nsCOMPtr<nsIDOMEventTarget> target;
+		event->GetTarget(getter_AddRefs(target));
+
+		nsCOMPtr<nsIDOMNode> node = do_QueryInterface(target);
+		m_pBrowserFrameGlue->MouseAction(node);
+		/*
+		nsCOMPtr<nsIBaseWindow>  mBaseWindow;
+		mBaseWindow = do_QueryInterface(mWebBrowser, &rv);
+	    if(NS_FAILED(rv))
+			return rv;
+	
+		nsCOMPtr<nsIDocShellTreeItem> tree = do_QueryInterface(mBaseWindow, &rv);
+		if(NS_FAILED(rv))
+			return rv;
+
+		nsCOMPtr<nsIDocShellTreeOwner> treeOwner;
+		tree->GetTreeOwner(getter_AddRefs(treeOwner));
+
+		ChromeContextMenuListener* ccml = new ChromeContextMenuListener(mWebBrowser, webBrowserChrome);
+		*/
+		return NS_OK;
+	}
+
+	return NS_ERROR_NOT_IMPLEMENTED;
 }

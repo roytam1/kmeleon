@@ -42,7 +42,6 @@
 #endif
 
 #include "IBrowserFrameGlue.h"
-
 /////////////////////////////////////////////////////////////////////////////
 // CBrowserView window
 
@@ -104,6 +103,7 @@ public:
 	nsCOMPtr<nsIWebBrowser> mWebBrowser;
 	nsCOMPtr<nsIBaseWindow>  mBaseWindow;
 	nsCOMPtr<nsIWebNavigation> mWebNav;
+	nsCOMPtr<nsIDOMEventTarget> mEventTarget;
 
 	void UpdateBusyState(PRBool aBusy);
 	PRBool mbDocumentLoading;
@@ -111,6 +111,7 @@ public:
     nsIDOMNode *GetNodeAtPoint(int x, int y, BOOL bPrepareMenu);
     int m_iGetNodeHack;
     nsCOMPtr<nsIDOMNode> m_pGetNode;
+	nsCOMPtr<nsIDOMNode> m_lastMouseActionNode;
    
     nsIDOMWindow *FindDOMWindow(nsIDOMWindow *window, nsIDOMDocument *document);
 

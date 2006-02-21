@@ -26,6 +26,7 @@ extern CMfcEmbedApp theApp;
 
 #include "nsIDOMWindowInternal.h"
 #include "nsIDOMWindowCollection.h"
+#include "nsIDOMEventTarget.h"
 /*
 ** Middle button panning shit
 */
@@ -49,7 +50,7 @@ int CBrowserView::OnMouseActivate(CWnd* pDesktopWnd, UINT nHitTest, UINT message
 	  if (id) {
 		 maccel_cmd = id;
 		 maccel_key = message;
-		 PostMessage(WM_COMMAND, (WPARAM)ID_MOUSE_ACTION, (LPARAM)id);
+		 PostMessage(WM_COMMAND, (WPARAM)ID_MOUSE_ACTION, 0/*(LPARAM)id*/);
 		 return MA_ACTIVATE;
 	  }
 	  else {
@@ -77,7 +78,7 @@ nsIDOMWindow *CBrowserView::FindDOMWindow(nsIDOMWindow *window, nsIDOMDocument *
     frameset->GetLength(&length);
     
     if (length) {
-      for (int i=0; i<length; i++) {
+      for (unsigned i=0; i<length; i++) {
 	nsCOMPtr<nsIDOMWindow> tmpwin;
 	frameset->Item(i, getter_AddRefs(tmpwin));
 	tmpwin = FindDOMWindow(tmpwin, document);
@@ -95,35 +96,8 @@ void CBrowserView::OnTimer(UINT nIDEvent)
    switch(nIDEvent){
    case 0x1:
       if(m_panning) {
-         if(!s) {
-            mWebBrowser->GetContentDOMWindow(getter_AddRefs(s)); 
-            
-            if(!s) return;
-            
-            nsCOMPtr<nsIDOMWindowCollection> frameset;
-            s->GetFrames(getter_AddRefs(frameset));
-            
-            if (frameset) {
-               PRUint32 length;
-               frameset->GetLength(&length);
-               
-               if (length) {
-                  // get the DOMNode at the point
-                  nsCOMPtr<nsIDOMNode> aNode;
-                  aNode = GetNodeAtPoint(m_panningPoint.x, m_panningPoint.y, TRUE);
-                  if (aNode) {
-		    nsCOMPtr<nsIDOMDocument> ownerdoc;
-		    aNode->GetOwnerDocument(getter_AddRefs(ownerdoc));
-                  
-		    if (ownerdoc)
-		      s = FindDOMWindow(s, ownerdoc);
-		  }
+         if (!s) return;
 
-                  if(!s) return;
-               }
-            }
-         }
-         
          POINT p;
          GetCursorPos(&p);
 
@@ -179,6 +153,33 @@ void CBrowserView::StartPanning()
    m_panning = 1;
    m_panningQuick = theApp.preferences.GetBool("kmeleon.general.quickAutoscroll", FALSE);
    GetCursorPos(&m_panningPoint);
+
+   mWebBrowser->GetContentDOMWindow(getter_AddRefs(s)); 
+   if(!s) return;
+
+   nsCOMPtr<nsIDOMWindowCollection> frameset;
+   s->GetFrames(getter_AddRefs(frameset));
+
+   if (frameset) {
+	   PRUint32 length;
+	   frameset->GetLength(&length);
+
+	   if (length) {
+		   // get the DOMNode at the point
+		 //  nsCOMPtr<nsIDOMNode> aNode;
+		 //  GetNodeAtPoint(m_panningPoint.x, m_panningPoint.y, TRUE);
+		   if (m_lastMouseActionNode) {
+			   nsCOMPtr<nsIDOMDocument> ownerdoc;
+			   m_lastMouseActionNode->GetOwnerDocument(getter_AddRefs(ownerdoc));
+
+			   if (ownerdoc)
+				   s = FindDOMWindow(s, ownerdoc);
+		   }
+
+		   if(!s) return;
+	   }
+   }
+
    SetCapture();
    SetTimer(0x1,20,NULL);
    

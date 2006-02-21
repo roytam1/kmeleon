@@ -85,6 +85,7 @@ struct IBrowserFrameGlue {
 
     virtual void FocusNextElement() = 0;
     virtual void FocusPrevElement() = 0;
+	virtual void MouseAction(nsIDOMNode *node) = 0;
 };
 
 #define NS_DECL_BROWSERFRAMEGLUE    \
@@ -115,7 +116,8 @@ struct IBrowserFrameGlue {
         virtual HWND GetBrowserFrameNativeWnd();                          \
         virtual void ShowTooltip(PRInt32 x, PRInt32 y, const TCHAR *text); \
         virtual void FocusNextElement(); \
-        virtual void FocusPrevElement();
+        virtual void FocusPrevElement(); \
+		virtual void MouseAction(nsIDOMNode *node);\
 
 typedef IBrowserFrameGlue *PBROWSERFRAMEGLUE;
 
