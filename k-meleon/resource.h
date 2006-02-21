@@ -69,6 +69,7 @@
 #define IDD_PRINTSETUP_DIALOG           191
 #define IDD_CHOOSE_ACTION_DIALOG        192
 #define IDR_TOOLBAR1                    194
+#define IDD_OPENSAVE                    197
 #define IDD_PREFERENCES_DOWNLOAD        204
 #define ID_URL_BAR                      1001
 #define ID_PROG_BAR                     1002
@@ -199,6 +200,10 @@
 #define IDC_BUTTON_CLEAR_DISK_CACHE     1076
 #define IDC_CHECK_DISABLERESIZE         1077
 #define IDC_COMBO_SKIN                  1078
+#define IDC_DOWNLOAD_TYPE               1034
+#define IDC_DOWNLOAD_SOURCE             1035
+#define IDOPEN                          1054
+#define IDC_DOWNLOAD_NAME               1087
 #define IDC_CONTAINER                   1110
 #define IDC_EDIT_TOOLBAR_BACKGROUND     1111
 #define IDC_EDIT_SETTINGS_DIR           1111
@@ -241,6 +246,7 @@
 #define IDC_RADIO_DOWNLOAD_DIR2         1192
 #define IDC_EDIT_FONT_MINSIZE           1193
 #define IDC_HIGHLIGHT                   1194
+#define IDC_FILE_ICON                   2115
 #define ID_NAV_BACK                     32773
 #define ID_NAV_FORWARD                  32774
 #define ID_NAV_HOME                     32775

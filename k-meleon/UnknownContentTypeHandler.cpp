@@ -22,117 +22,210 @@
  */
 
 #include "stdafx.h"
-#include "Utils.h"
-#include "nsIFileURL.h"
+//#include "nsEscape.h"
 #include <wininet.h>
-
+#include <cderr.h>
 #include "UnknownContentTypeHandler.h"
 #include "Utils.h"
-//#include "BrowserFrm.h"
+
 #include "MfcEmbed.h"
 extern CMfcEmbedApp theApp;
 
+#include "nsIFileURL.h"
 #include "nsIHttpChannel.h"
+#include "nsIMIMEInfo.h"
+#include ".\unknowncontenttypehandler.h"
+
+extern CWnd* CWndForDOMWindow(nsIDOMWindow *aWindow);
+
 // Show the helper app launch confirmation dialog as instructed.
 NS_IMETHODIMP
 CUnknownContentTypeHandler::Show( nsIHelperAppLauncher *aLauncher, nsISupports *aContext,  PRUint32 aReason) {
 
-    // we always want to download it.
-    // later on, we may want to say, "hey, we have no clue how to handle this, do you want to
-    // save it or open it in some application?"
-  nsresult rv;
-  
+	nsresult rv;
 
-  if (theApp.preferences.GetBool("kmeleon.general.SaveUnkownContent", true))
-  { 
-	 rv = aLauncher->SaveToDisk(nsnull, false);
-  }
-  else
-    rv = aLauncher->Cancel(NS_ERROR_ABORT);
+	NS_ENSURE_ARG_POINTER(aLauncher);
 
-   return rv;
+	if (theApp.preferences.GetBool("kmeleon.download.SaveUnkownContent", true))
+	{ 
+		if (theApp.preferences.bAskOpenSave)
+		{
+			CoInitialize(NULL);
+
+			nsCOMPtr<nsIDOMWindow> parent = do_GetInterface (aContext);
+			CWnd* wnd = CWndForDOMWindow(parent);
+			COpenSaveDlg dlg(wnd);
+
+			USES_CONVERSION;
+			// Set the filename
+			nsEmbedString filename;
+			aLauncher->GetSuggestedFileName(filename);
+			dlg.m_csFilename = W2CT(filename.get());
+
+			// Set the mime type
+			nsCOMPtr<nsIMIMEInfo> mimeInfo;
+			aLauncher->GetMIMEInfo(getter_AddRefs(mimeInfo));
+			
+			PRBool b;
+			mimeInfo->GetHasDefaultHandler(&b);
+			
+			if(mimeInfo) 
+			{
+				nsEmbedCString mimeType;
+				rv = mimeInfo->GetMIMEType(mimeType);
+				//nsEmbedString mimeDesc;
+				//rv = mimeInfo->GetDescription(mimeDesc);
+				if(NS_SUCCEEDED(rv)) {
+					//dlg.m_csFiletype = CString(W2CA(mimeDesc.get())) + _T(" ("); 
+					dlg.m_csFiletype = CString(A2CT(mimeType.get())) + _T(")");
+				}
+					
+			}
+
+			SHFILEINFO shfi;
+			if (SHGetFileInfo(dlg.m_csFilename, 0, &shfi, sizeof(SHFILEINFO),SHGFI_USEFILEATTRIBUTES|SHGFI_TYPENAME)) 
+				dlg.m_csFiletype = shfi.szTypeName;
+
+			// Set the source
+			nsCOMPtr<nsIURI> uri;
+			rv = aLauncher->GetSource(getter_AddRefs(uri));
+			if(NS_SUCCEEDED(rv))
+			{
+				nsEmbedCString sourceURI;
+				uri->GetHost(sourceURI);
+				dlg.m_csSource = A2CT(sourceURI.get());
+			}
+
+			switch (dlg.DoModal()) {
+
+				case IDOK:
+					rv = aLauncher->SaveToDisk(nsnull, false);
+					break;
+				case IDOPEN:
+					// I believe I shouldn't do that, and what about that
+					// stupid boolean not used?
+					mimeInfo->SetPreferredAction(nsIMIMEInfo::useSystemDefault);
+					rv = aLauncher->LaunchWithApplication(nsnull, PR_FALSE);
+					break;
+				default:
+					rv = aLauncher->Cancel(NS_ERROR_ABORT);
+			}
+
+			CoUninitialize();
+		}
+		else
+			rv = aLauncher->SaveToDisk(nsnull, false);
+	}
+	else
+		rv = aLauncher->Cancel(NS_ERROR_ABORT);
+
+	return rv;
 }
 
+#include "nsIDOMWindowInternal.h"
 // prompt the user for a file name to save the unknown content to as instructed
 NS_IMETHODIMP
 CUnknownContentTypeHandler::PromptForSaveToFile(nsIHelperAppLauncher *aLauncher, nsISupports * aWindowContext, const PRUnichar * aDefaultFile, const PRUnichar * aSuggestedFileExtension, nsILocalFile ** aNewFile)
 {
-// change this to 0 to use the mozilla file picker
+	NS_ENSURE_ARG_POINTER(aNewFile);
+	NS_ENSURE_ARG(aDefaultFile);
+	NS_ENSURE_ARG(aSuggestedFileExtension);
+
+	// change this to 0 to use the mozilla file picker
 #if 1
-   USES_CONVERSION;
+	USES_CONVERSION;
 
-   CString filter = W2T(aSuggestedFileExtension);
-   filter += " files|*";
-   filter += W2T(aSuggestedFileExtension);
-   filter += "|All Files|*.*||";
+	CString pathName;
 
-   TCHAR *tmp = strdup(nsUnescape(W2T(aDefaultFile)));
-   CString defaultFile = tmp;
-   free(tmp);
+	//TCHAR *tmp = _tcsdup(W2CT(aDefaultFile));
+	CString defaultFile = W2CT(aDefaultFile);
 
-   defaultFile = theApp.preferences.saveDir + defaultFile;
+	//free(tmp);
 
-   TCHAR *ext = W2T(aSuggestedFileExtension);
-   if (*ext == _T('.'))
-     ext++;
+	if (theApp.preferences.bUseDownloadDir && !theApp.preferences.downloadDir.IsEmpty())
+		pathName = theApp.preferences.downloadDir + defaultFile;
+	else
+	{
+		CString filter = W2CT(aSuggestedFileExtension);
+		filter += " files|*";
+		filter += W2CT(aSuggestedFileExtension);
+		filter += "|All Files|*.*||";
 
-   TCHAR lpszFilter[1024];
-   _tcscpy(lpszFilter, filter);
-   for (int i=0; lpszFilter[i]; ) {
-     if (lpszFilter[i] == _T('|'))
-       lpszFilter[i] = _T('\0');
-     i++;
-   }
+		defaultFile = theApp.preferences.lastDownloadDir + defaultFile;
 
-   OPENFILENAME ofn;
-   TCHAR *szFileName = new TCHAR[INTERNET_MAX_URL_LENGTH];
+		const TCHAR *ext = W2CT(aSuggestedFileExtension);
+		if (*ext == _T('.'))
+			ext++;
 
-   memset(&ofn, 0, sizeof(ofn));
-   memset(szFileName, 0, sizeof(TCHAR)*INTERNET_MAX_URL_LENGTH);
-   strcat(szFileName, defaultFile);
-   ofn.lStructSize = sizeof(ofn);
-   ofn.lpstrFilter = lpszFilter;
-   ofn.lpstrFile = szFileName;
-   ofn.nMaxFile = INTERNET_MAX_URL_LENGTH;
-   ofn.Flags = OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
-   ofn.lpstrInitialDir = theApp.preferences.saveDir;
-   ofn.lpstrDefExt = ext;
+		TCHAR lpszFilter[1024];
+		_tcscpy(lpszFilter, filter);
+		for (int i=0; lpszFilter[i]; ) {
+			if (lpszFilter[i] == _T('|'))
+				lpszFilter[i] = _T('\0');
+			i++;
+		}
 
-   if( ::GetSaveFileName(&ofn) ) {
-      NS_ENSURE_ARG_POINTER(aNewFile);
+		OPENFILENAME ofn;
+		TCHAR *szFileName = new TCHAR[INTERNET_MAX_URL_LENGTH];
 
-      CString pathName = szFileName;
-      delete szFileName;
-      szFileName = NULL;
+		memset(&ofn, 0, sizeof(ofn));
+		memset(szFileName, 0, sizeof(TCHAR)*INTERNET_MAX_URL_LENGTH);
+		_tcscat(szFileName, defaultFile);
+		ofn.lStructSize = sizeof(ofn);
+		ofn.lpstrFilter = lpszFilter;
+		ofn.lpstrFile = szFileName;
+		ofn.nMaxFile = INTERNET_MAX_URL_LENGTH;
+		ofn.Flags = OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
+		ofn.lpstrInitialDir = theApp.preferences.lastDownloadDir;
+		ofn.lpstrDefExt = ext;
 
-      if (!pathName.IsEmpty()){
-         nsCOMPtr<nsILocalFile> file(do_CreateInstance("@mozilla.org/file/local;1"));
+		BOOL bGetFile;
+		if( !(bGetFile=::GetSaveFileName(&ofn)) ) 
+		{
+			// Fix: If the download dir contains invalid character, it'll
+			// never show up
+			if (CommDlgExtendedError() == FNERR_INVALIDFILENAME)
+			{
+				_tcscpy(szFileName, W2CT(aDefaultFile));
+				theApp.preferences.downloadDir = "";
+				bGetFile = ::GetSaveFileName(&ofn);
+			}
+		}
+		if (bGetFile)
+			pathName = szFileName;
 
-         NS_ENSURE_TRUE(file, NS_ERROR_FAILURE);
-		
-		 nsEmbedString str;
-		NS_CStringToUTF16(nsEmbedCString(pathName), NS_CSTRING_ENCODING_ASCII, str);
-       file->InitWithPath(str);
+		delete szFileName;
+		szFileName = NULL;
+	}
+	
+	if (!pathName.IsEmpty())
+	{
+		nsCOMPtr<nsILocalFile> file(do_CreateInstance("@mozilla.org/file/local;1"));
 
-         NS_ADDREF(*aNewFile = file);
+		NS_ENSURE_TRUE(file, NS_ERROR_FAILURE);
 
-         // Be sure to save off the new default saveDir
-         int slash = pathName.ReverseFind('\\');
-         if (slash == -1) {
-            pathName.ReverseFind('/');
-         }
-         if (slash != -1) {
-            theApp.preferences.saveDir = pathName.Left(slash+1);
-         }
+#ifdef _UNICODE
+		nsresult rv = file->InitWithPath(nsDependentString(pathName));
+#else
+		nsresult rv = file->InitWithNativePath(nsDependentCString(pathName));
+#endif
+		NS_ENSURE_SUCCESS(rv, NS_ERROR_FAILURE);
 
-		 return NS_OK;
-      }
-   }
+		NS_ADDREF(*aNewFile = file);
 
-   if (szFileName)
-      delete szFileName;
+		// Be sure to save off the new default saveDir
+		int slash = pathName.ReverseFind('\\');
+		if (slash == -1) {
+			pathName.ReverseFind('/');
+		}
+		if (slash != -1) {
+			theApp.preferences.lastDownloadDir = pathName.Left(slash+1);
+		}
 
-   return NS_ERROR_FAILURE;
+		return NS_OK;
+	}
+
+	return NS_ERROR_FAILURE;
 #else
 
    nsresult rv = NS_OK;
@@ -141,15 +234,15 @@ CUnknownContentTypeHandler::PromptForSaveToFile(nsIHelperAppLauncher *aLauncher,
 //   nsCOMPtr<nsIFilePicker> filePicker = do_CreateInstance(NS_FILEPICKER_CID, &rv);
    if (filePicker)
    {
-      nsAFlatString title = NS_LITERAL_STRING ("Save As:");
+      nsEmbedString title = NS_LITERAL_STRING ("Save As:");
 
       nsCOMPtr<nsIDOMWindowInternal> parent( do_GetInterface( aWindowContext ) );
-      filePicker->Init(parent, title.get(), nsIFilePicker::modeSave);
-      filePicker->SetDefaultString(aDefaultFile);
+      filePicker->Init(parent, title, nsIFilePicker::modeSave);
+      filePicker->SetDefaultString(nsDependentString(aDefaultFile));
       nsEmbedString wildCardExtension (NS_LITERAL_STRING("*").get());
       if (aSuggestedFileExtension) {
          wildCardExtension.Append(aSuggestedFileExtension);
-         filePicker->AppendFilter(wildCardExtension.get(), wildCardExtension.get());
+         filePicker->AppendFilter(wildCardExtension, wildCardExtension);
       }
 
       filePicker->AppendFilters(nsIFilePicker::filterAll);
@@ -313,14 +406,19 @@ file save progress dialog box
 */
 
 
+/* It's even more a hack now with the favicon support, but I'm sure somedays
+it will be rewritten to support persist download and stream properly. *-) */
+
+// WeakReference not needed?
+//NS_IMPL_ISUPPORTS2(CProgressDialog, nsIWebProgressListener2, nsISupportsWeakReference)
 NS_IMPL_ISUPPORTS4(CProgressDialog, nsITransfer, nsIWebProgressListener2, nsIWebProgressListener, nsISupportsWeakReference)
 
 CProgressDialog::CProgressDialog(BOOL bAuto) {
    NS_INIT_ISUPPORTS();
 
    //mObserver = NULL;
-   mPersist = NULL;
-   m_HelperAppLauncher = NULL;
+   mCancelable = nsnull;
+   m_HelperAppLauncher = nsnull;
    mFileName = NULL;
    mFilePath = NULL;
    mViewer = NULL;
@@ -330,12 +428,14 @@ CProgressDialog::CProgressDialog(BOOL bAuto) {
 
    mStartTime = 0;
 
+   m_HandleContentOp = 0;
+
    // assume we're done until we get data
    // for small files, we'll be done before the box even pops up
    mDone = true;
    mTotalBytes = 0;
 
-   m_bClose = theApp.preferences.GetBool("kmeleon.general.CloseDownloadDialog", true);
+   m_bClose = theApp.preferences.bCloseDownloadDialog;
       
    // the instance was created automatically by a download
    // if it's false, then we can expect an Attach() call to bind this to a persist object
@@ -350,6 +450,9 @@ CProgressDialog::CProgressDialog(BOOL bAuto) {
    }
    else*/
       m_bWindow = FALSE;
+	  mUri = NULL;
+
+	  mCallback = NULL;
 }
 
 CProgressDialog::~CProgressDialog(){
@@ -361,6 +464,8 @@ CProgressDialog::~CProgressDialog(){
       delete mViewer;
    if (mTempFile)
 	  delete mTempFile;
+   if (mUri)
+	   delete mUri;
 }
 
 NS_IMETHODIMP CProgressDialog::OnProgressChange64(nsIWebProgress *aWebProgress, nsIRequest *aRequest, PRInt64 aCurSelfProgress, PRInt64 aMaxSelfProgress, PRInt64 aCurTotalProgress, PRInt64 aMaxTotalProgress)
@@ -477,7 +582,6 @@ NS_IMETHODIMP CProgressDialog::OnStateChange(nsIWebProgress *aWebProgress,
                                           nsIRequest *aRequest, PRUint32 aStateFlags, 
                                           nsresult aStatus)
 {
-
 	if (aStateFlags & nsIWebProgressListener::STATE_START &&
 	    aStateFlags & nsIWebProgressListener::STATE_IS_REQUEST)
 	{
@@ -486,21 +590,23 @@ NS_IMETHODIMP CProgressDialog::OnStateChange(nsIWebProgress *aWebProgress,
 		if (httpchannel)
 		{
 			PRBool b;
-			httpchannel->GetRequestSucceeded(&b);
-			if (!b)	{
+			nsresult rv = httpchannel->GetRequestSucceeded(&b);
+			if (NS_SUCCEEDED(rv) && b == PR_FALSE)	{
 				Cancel();
 				return NS_OK;
 			}
 		}
 	}
+	
+	// Hack for viewer
    if (m_bViewer && aStateFlags & nsIWebProgressListener::STATE_STOP) {
 
-      char *command = new char[strlen(mViewer) + strlen(mFilePath) +4];
+      TCHAR *command = new TCHAR[_tcsclen(mViewer) + _tcsclen(mFilePath) +4];
       
-      strcpy(command, mViewer);
-      strcat(command, " \"");                              //append " filename" to the viewer command
-      strcat(command, mFilePath);
-      strcat(command, "\"");
+      _tcscpy(command, mViewer);
+      _tcscat(command, _T(" \""));                              //append " filename" to the viewer command
+      _tcscat(command, mFilePath);
+      _tcscat(command, _T("\""));
       
       STARTUPINFO si = { 0 };
       PROCESS_INFORMATION pi;
@@ -514,45 +620,59 @@ NS_IMETHODIMP CProgressDialog::OnStateChange(nsIWebProgress *aWebProgress,
       
    }
 
+   if ( (aStateFlags & nsIWebProgressListener::STATE_STOP))
+   {
+		if (mCallback)
+			mCallback(mUri, mFilePath, aStatus, mParam);
+		mCancelable = nsnull;
+   }
+
 
    if (!m_bWindow)    // if there's no window, there's no need to update it :)
       return NS_OK;
-
+	
    CString statusText;
    if (aStateFlags & nsIWebProgressListener::STATE_STOP){
-	   	   
+
 	   if (NS_SUCCEEDED(aStatus)) {
-      if (IsDlgButtonChecked(IDC_CLOSE_WHEN_DONE)) {
-         if (!m_bAuto)
-            theApp.preferences.SetBool("kmeleon.general.CloseDownloadDialog", true);
-		 Close();
-      }
-      else
-      {
-         
-         PRInt64 now = PR_Now();
-         PRInt64 timeSpent = now - mStartTime;
-         statusText.Format(IDS_DOWNLOAD_DONE, ((double)mTotalBytes)/1024, (int)(timeSpent/1000000.0l));
+
+		   if (IsDlgButtonChecked(IDC_CLOSE_WHEN_DONE)) {
+			   if (!m_bAuto)
+				   theApp.preferences.bCloseDownloadDialog = true;
+			   Close();
+		   }
+		   else
+		   {
+
+			   PRInt64 now = PR_Now();
+			   PRInt64 timeSpent = now - mStartTime;
+			   statusText.Format(IDS_DOWNLOAD_DONE, ((double)mTotalBytes)/1024, (int)(timeSpent/1000000.0l));
 
 
-         // "save link as..." saving never gets the final progress change,
-         // which leaves the progress bar hanging around 90% or so
-         HWND progressBar;
-         GetDlgItem(IDC_DOWNLOAD_PROGRESS, &progressBar);
-         ::SendMessage(progressBar, PBM_SETRANGE, 0, MAKELPARAM(0, 100)); 
-         ::SendMessage(progressBar, PBM_SETPOS, (WPARAM) 100, 0);
+			   // "save link as..." saving never gets the final progress change,
+			   // which leaves the progress bar hanging around 90% or so
+			   HWND progressBar;
+			   GetDlgItem(IDC_DOWNLOAD_PROGRESS, &progressBar);
+			   ::SendMessage(progressBar, PBM_SETRANGE, 0, MAKELPARAM(0, 100)); 
+			   ::SendMessage(progressBar, PBM_SETPOS, (WPARAM) 100, 0);
 
-         
-         SetDlgItemText(IDC_STATUS, statusText);
 
-         statusText.LoadString(IDS_CLOSE);
-		 SetDlgItemText(IDCANCEL, statusText);
+			   SetDlgItemText(IDC_STATUS, statusText);
 
-         GetDlgItem(IDC_OPEN)->ShowWindow(SW_SHOW);
-         GetDlgItem(IDC_CLOSE_WHEN_DONE)->ShowWindow(SW_HIDE);
+			   statusText.LoadString(IDS_CLOSE);
+			   SetDlgItemText(IDCANCEL, statusText);
 
-         mDone = true;
-         theApp.preferences.SetBool("kmeleon.general.CloseDownloadDialog", false);
+			   if (m_HandleContentOp!=1) {
+				GetDlgItem(IDC_OPEN)->ShowWindow(SW_SHOW);
+			   }
+
+			   //GetDlgItem(IDC_CLOSE_WHEN_DONE)->ShowWindow(SW_HIDE);
+
+			   mDone = true;
+			   theApp.preferences.bCloseDownloadDialog = false;
+				
+			   if (theApp.preferences.bFlashWhenCompleted)
+				 FlashWindow(TRUE);
 		   }
 	   }
 	   else
@@ -563,12 +683,12 @@ NS_IMETHODIMP CProgressDialog::OnStateChange(nsIWebProgress *aWebProgress,
 		   if (httpchannel)
 		   {
 			   PRBool b;
-				httpchannel->GetRequestSucceeded(&b);
-				if (!b)	{
+				nsresult rv = httpchannel->GetRequestSucceeded(&b);
+				if (NS_SUCCEEDED(rv) && b == PR_FALSE)	{
 					nsEmbedCString str;
 					httpchannel->GetResponseStatusText(str);
-					statusText.Append(str.get());
-					statusText.AppendChar('!');
+					statusText += A2CT(str.get());
+					statusText += _T('!');
 				}
 
 		   }
@@ -580,7 +700,10 @@ NS_IMETHODIMP CProgressDialog::OnStateChange(nsIWebProgress *aWebProgress,
 		   }
 
 		   mDone = true;
+		   if (theApp.preferences.GetBool("kmeleon.download.flashWhenCompleted", false))
+		     FlashWindow(TRUE);
 	   }
+
    }else if (aStateFlags & nsIWebProgressListener::STATE_REDIRECTING){
       statusText.LoadString(IDS_REDIRECTING);
 	  SetDlgItemText(IDC_STATUS, statusText);
@@ -611,6 +734,13 @@ NS_IMETHODIMP CProgressDialog::OnLocationChange(nsIWebProgress *aWebProgress, ns
 
 /* void onStatusChange (in nsIWebProgress aWebProgress, in nsIRequest aRequest, in nsresult aStatus, in wstring aMessage); */
 NS_IMETHODIMP CProgressDialog::OnStatusChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest, nsresult aStatus, const PRUnichar *aMessage){
+	if (m_bWindow)
+	{
+		CString statusText;
+		USES_CONVERSION;
+		statusText = W2CA(aMessage);
+	    SetDlgItemText(IDC_STATUS, statusText);
+	}
 	return NS_OK;
 }
 
@@ -629,19 +759,14 @@ NS_IMETHODIMP CProgressDialog::OnSecurityChange(nsIWebProgress *aWebProgress, ns
 BEGIN_MESSAGE_MAP(CProgressDialog, CDialog)
 	ON_COMMAND(IDC_OPEN, OnOpen)
 	ON_COMMAND(WM_CLOSE, OnClose)
+	ON_BN_CLICKED(IDC_CLOSE_WHEN_DONE, OnBnClickedCloseWhenDone)
 END_MESSAGE_MAP()
 
 void CProgressDialog::Cancel() {
    
-   if (mPersist) {
-      mPersist->CancelSave();
-      if (mFilePath && !mDone) {
-        DeleteFile(mFilePath);
-      }
-   }
-
    if (mCancelable)
    {
+
 		mCancelable->Cancel(NS_BINDING_ABORTED);
 		if (mTempFile) DeleteFile(mTempFile);
    }
@@ -659,17 +784,14 @@ void CProgressDialog::Close() {
    
 	theApp.UnregisterWindow(this);
     DestroyWindow();
-	this->m_bWindow = false;
-	
-	if (mPersist)
-		mPersist = nsnull;
-	if (mCancelable)
-		mCancelable = nsnull;
-	
-	NS_RELEASE_THIS(); //Bye
-   
-	
 
+	m_bWindow = false;
+	
+/*	if (mCancelable)
+		mCancelable = nsnull;*/
+	
+	NS_RELEASE_THIS();
+	NS_NOTREACHED("ProgressDialog still alive after closing");
 	/*
 	// Not needed, mozilla have corrected the bug
    if (m_bAuto) {
@@ -699,77 +821,105 @@ void CProgressDialog::OnClose() {
    }
    else {
       Cancel();
-      Close();
    }
 }
 
 void CProgressDialog::OnOpen() {
-   char *directory = strdup(mFilePath);
-   char *last_slash = strrchr(directory, '\\');
+   TCHAR *directory = _tcsdup(mFilePath);
+   TCHAR *last_slash = _tcsrchr(directory, '\\');
    *last_slash = 0;
 
    ShellExecute(NULL, _T("open"), mFilePath, _T(""), directory, SW_SHOW);
-
+   Close();
    delete directory;
 }
 
+void CProgressDialog::OnBnClickedCloseWhenDone()
+{
+	if (IsDlgButtonChecked(IDC_CLOSE_WHEN_DONE)) 
+		theApp.preferences.bCloseDownloadDialog = true;
+	else
+		theApp.preferences.bCloseDownloadDialog = false;
+}
 
-void CProgressDialog::InitViewer(nsIWebBrowserPersist *aPersist, char *pExternalViewer, char *pLocalFile) {
+void CProgressDialog::InitViewer(nsIWebBrowserPersist *aPersist, TCHAR *pExternalViewer, TCHAR *pLocalFile) {
 
-   mPersist = aPersist;
-   mPersist->SetProgressListener(this);
+   mCancelable = aPersist;
+   aPersist->SetProgressListener(this);
 
-   mFilePath = strdup(pLocalFile);   
-   mViewer = strdup(pExternalViewer);
+   mFilePath = _tcsdup(pLocalFile);   
+   mViewer = _tcsdup(pExternalViewer);
 
    m_bViewer = TRUE;
 }
 
-void CProgressDialog::InitControl(const char *uri, const char *filepath)
+void CProgressDialog::InitControl(const char *uri, const TCHAR *filepath)
 { 
-   //To avoid behind released by HelperAppLauncher when the
-   //download is finished.
-   NS_ADDREF_THIS();
-
-   char *file = strrchr(filepath, '\\')+1;
-   mFileName = strdup(file);
-   mFilePath = strdup(filepath);
+  
+   TCHAR *file = _tcsrchr(filepath, '\\')+1;
+   mFileName = _tcsdup(file);
+   mFilePath = _tcsdup(filepath);
+   mUri = strdup(uri);
    
    mLastUpdateTime = 0;
    mTotalBytes = 0;
 
    if (m_bWindow) {
+	   //To avoid behind released by HelperAppLauncher when the
+	   //download is finished.
+   	   NS_ADDREF_THIS();
+	  
       Create(IDD_PROGRESS, GetDesktopWindow());
       CheckDlgButton(IDC_CLOSE_WHEN_DONE, m_bClose);
       theApp.RegisterWindow(this);
       USES_CONVERSION;
       SetDlgItemText(IDC_SOURCE, A2CT(uri));
-      SetDlgItemText(IDC_DESTINATION, A2CT(filepath));      
+      SetDlgItemText(IDC_DESTINATION, filepath); 
+	  if (theApp.preferences.bShowMinimized)
+          ShowWindow(SW_MINIMIZE);
+	  else
+		  ShowWindow(SW_SHOW);
    }
 }
 
+void CProgressDialog::SetCallBack(ProgressDialogCallback aCallback, void* aParam)
+{
+	mCallback = aCallback;
+	mParam = aParam;
+}
 
-void CProgressDialog::InitPersist(nsIURI *aSource, nsILocalFile *aTarget, nsIWebBrowserPersist *aPersist, BOOL bShowDialog) {
-   mPersist = aPersist;
-   mPersist->SetProgressListener(this);
+void CProgressDialog::InitPersist(nsIURI *aSource, nsILocalFile *aTarget, nsIWebBrowserPersist *aPersist, BOOL bShowDialog)
+{
+   mCancelable = aPersist;
+   aPersist->SetProgressListener(this);
    m_bWindow = bShowDialog;
 
    nsEmbedCString uri;
-   nsEmbedCString filepath;
-   
    aSource->GetSpec(uri);
+#ifdef _UNICODE
+   nsEmbedString filepath;
+   aTarget->GetPath(filepath);
+#else
+   nsEmbedCString filepath;
    aTarget->GetNativePath(filepath);
-   
+#endif
+
    mStartTime = PR_Now();
 
    InitControl(uri.get(), filepath.get());
 }
 
 NS_IMETHODIMP CProgressDialog::Init(nsIURI *aSource, nsIURI *aTarget, const nsAString & aDisplayName, nsIMIMEInfo *aMIMEInfo, PRTime startTime, nsILocalFile *aTempFile, nsICancelable *aCancelable) 
+//NS_IMETHODIMP CProgressDialog::Init(nsIURI *aSource, nsIURI *aTarget, const nsAString & aDisplayName, nsIMIMEInfo *aMIMEInfo, PRTime startTime, nsICancelable *aCancelable) 
 {
    nsEmbedCString uri;
+#ifdef _UNICODE  
+   nsEmbedString filepath;
+   nsEmbedString tempfile;
+#else
    nsEmbedCString filepath;
    nsEmbedCString tempfile;
+#endif
 
    aSource->GetSpec(uri);
 
@@ -779,15 +929,30 @@ NS_IMETHODIMP CProgressDialog::Init(nsIURI *aSource, nsIURI *aTarget, const nsAS
      nsCOMPtr<nsIFile> tFileRef;
 	 nsCOMPtr<nsIFile> tTempRef;
      tFileUrl->GetFile(getter_AddRefs(tFileRef));
-     tFileRef->GetNativePath(filepath);
+	 //tTempRef->GetFile(getter_AddRefs(aTempFile));
+#ifdef _UNICODE 
+	 tFileRef->GetPath(filepath);
+	  aTempFile->GetPath(tempfile);
+#else
+	 tFileRef->GetNativePath(filepath);
 	 aTempFile->GetNativePath(tempfile);
+#endif
    }
+
+   if (aMIMEInfo)
+	{
+		nsMIMEInfoHandleAction action;
+		if (NS_SUCCEEDED(aMIMEInfo->GetPreferredAction(&action)))
+		{
+			if (action == nsIMIMEInfo::useHelperApp || action == nsIMIMEInfo::useSystemDefault )
+				m_HandleContentOp = 1;
+		}
+	}
 
    mStartTime = startTime;
    mCancelable = aCancelable;
    m_bWindow = TRUE;
-
-   mTempFile = strdup(tempfile.get());
+   mTempFile = _tcsdup(tempfile.get());
 
    InitControl(uri.get(), filepath.get());
 /*
@@ -805,11 +970,16 @@ NS_IMETHODIMP CProgressDialog::Init(nsIURI *aSource, nsIURI *aTarget, const nsAS
    return NS_OK;
 }
 
+void CProgressDialog::OnOK()
+{
+	// Prevent the window to close when hitting return
+	//__super::OnOK();
+}
 
 //*****************************************************************************
 // CUnknownContentHandlerFactory
 //*****************************************************************************   
-
+/*
 class CDownloadFactory : public nsIFactory
 {
 public:
@@ -822,7 +992,7 @@ public:
 
 
 //*****************************************************************************   
-/*
+
 NS_IMPL_ISUPPORTS1(CDownloadFactory, nsIFactory)
 
 CDownloadFactory::CDownloadFactory()
@@ -870,3 +1040,147 @@ nsresult NewDownloadFactory(nsIFactory** aFactory) {
 }
 
 */
+
+// Boû‘e de dialogue COpenSaveDlg
+
+//IMPLEMENT_DYNAMIC(COpenSaveDlg, CDialog)
+COpenSaveDlg::COpenSaveDlg(CWnd* pParent /*=NULL*/)
+	: CDialog(COpenSaveDlg::IDD, pParent)
+	, m_csFilename(_T(""))
+	, m_csFiletype(_T(""))
+	, m_csSource(_T(""))
+{
+}
+
+COpenSaveDlg::~COpenSaveDlg()
+{
+}
+
+void COpenSaveDlg::DoDataExchange(CDataExchange* pDX)
+{
+	CDialog::DoDataExchange(pDX);
+	DDX_Text(pDX, IDC_DOWNLOAD_NAME, m_csFilename);
+	DDX_Text(pDX, IDC_DOWNLOAD_TYPE, m_csFiletype);
+	DDX_Text(pDX, IDC_DOWNLOAD_SOURCE, m_csSource);
+	DDX_Control(pDX, IDC_FILE_ICON, m_cFileIcon);
+}
+
+
+BEGIN_MESSAGE_MAP(COpenSaveDlg, CDialog)
+	ON_BN_CLICKED(IDOPEN, OnBnClickedOpen)
+	ON_WM_TIMER()
+	ON_WM_DESTROY()
+END_MESSAGE_MAP()
+
+void COpenSaveDlg::OnBnClickedOpen()
+{
+	EndDialog(IDOPEN);
+}
+
+// Use the same routine than mozilla to avoid trouble
+BOOL IsExecutable(const TCHAR* filename)
+{
+    // Get extension.
+    TCHAR * _ext = (TCHAR *) _tcsrchr(filename, _T('.'));
+	USES_CONVERSION;
+	char* ext = T2A(_ext);
+    if ( ext ) {
+        // Convert extension to lower case.
+        for( char *p = ext; *p; p++ )
+            *p = tolower(*p);
+        
+        // Search for any of the set of executable extensions.
+        const char * const executableExts[] = {
+            ".ad",
+            ".adp",
+            ".asp",
+            ".bas",
+            ".bat",
+            ".chm",
+            ".cmd",
+            ".com",
+            ".cpl",
+            ".crt",
+            ".exe",
+            ".hlp",
+            ".hta",
+            ".inf",
+            ".ins",
+            ".isp",
+            ".js",
+            ".jse",
+            ".lnk",
+            ".mdb",
+            ".mde",
+            ".msc",
+            ".msi",
+            ".msp",
+            ".mst",
+            ".pcd",
+            ".pif",
+            ".reg",
+            ".scr",
+            ".sct",
+            ".shb",
+            ".shs",
+            ".url",
+            ".vb",
+            ".vbe",
+            ".vbs",
+            ".vsd",
+            ".vss",
+            ".vst",
+            ".vsw",
+            ".ws",
+            ".wsc",
+            ".wsf",
+            ".wsh",
+            0 };
+        for ( int i = 0; executableExts[i]; i++ ) {
+            if ( strcmp( executableExts[i], ext ) == 0 ) {
+				return TRUE;
+            }
+        }
+	}
+	return FALSE;
+}
+
+BOOL COpenSaveDlg::OnInitDialog()
+{
+	CDialog::OnInitDialog();
+
+	// If we have an application disable the open button 
+	if (IsExecutable(m_csFilename))
+	{
+		CWnd* openButton = GetDlgItem(IDOPEN);
+		openButton->EnableWindow(FALSE);
+		//SetTimer(2, 2000, NULL);
+	}
+
+	// Set the icon
+	SHFILEINFO shfi;
+	if (SHGetFileInfo(m_csFilename, 0, &shfi, sizeof(SHFILEINFO),SHGFI_USEFILEATTRIBUTES|SHGFI_ICON|SHGFI_SHELLICONSIZE)) 
+		m_cFileIcon.SetIcon(shfi.hIcon);
+	
+	return TRUE;  // return TRUE unless you set the focus to a control
+}
+
+void COpenSaveDlg::OnTimer(UINT nIDEvent)
+{
+	if (nIDEvent == 2)
+	{
+		KillTimer(nIDEvent);
+		CWnd* openButton = GetDlgItem(IDOPEN);
+		openButton->EnableWindow();
+	}
+
+	CDialog::OnTimer(nIDEvent);
+}
+
+void COpenSaveDlg::OnDestroy()
+{
+	CDialog::OnDestroy();
+	DestroyIcon(m_cFileIcon.GetIcon());
+}
+
+

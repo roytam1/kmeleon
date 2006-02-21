@@ -12,6 +12,8 @@ static NS_DEFINE_CID(kUnknownContentTypeHandlerCID, NS_UNKNOWNCONTENTTYPEHANDLER
 { 0xe3fa9d0a, 0x1dd1, 0x11b2, { 0xbd, 0xef, 0x8c, 0x72, 0x0b, 0x59, 0x74, 0x45 } }
 static NS_DEFINE_CID(kDownloadCID, NS_DOWNLOAD_CID);
 
+#include "Dialogs.h"
+
 class CUnknownContentTypeHandler : public nsIHelperAppLauncherDialog {
 public:
     NS_DEFINE_STATIC_CID_ACCESSOR( NS_UNKNOWNCONTENTTYPEHANDLER_CID );
@@ -37,6 +39,10 @@ nsresult NewDownloadFactory(nsIFactory** aFactory);
 
 #include "resource.h"
 #include "nsITransfer.h"
+#include "afxwin.h"
+
+// Idiot callback function
+typedef void (*ProgressDialogCallback)(char* uri, TCHAR* file, nsresult, void*);
 
 class CProgressDialog : public CDialog,
 						public nsITransfer,
@@ -54,8 +60,12 @@ public:
    CProgressDialog(BOOL bAuto=TRUE);
    virtual ~CProgressDialog();
 
-   void InitViewer(nsIWebBrowserPersist *aPersist, char *pExternalViewer, char *pLocalFile);
+   void InitViewer(nsIWebBrowserPersist *aPersist, TCHAR *pExternalViewer, TCHAR *pLocalFile);
    void InitPersist(nsIURI *aSource, nsILocalFile *aTarget, nsIWebBrowserPersist *aPersist, BOOL bShowDialog);
+
+   void SetCallBack(ProgressDialogCallback, void*);
+
+   //void InitLauncher(nsIHelperAppLauncher *aLauncher, int aHandleContentOp = 0);
 
    void Cancel();
    void Close();
@@ -67,9 +77,13 @@ public:
 
 protected:
    //nsCOMPtr<nsIObserver> mObserver;
-   nsCOMPtr<nsIWebBrowserPersist> mPersist;
+   //nsCOMPtr<nsIWebBrowserPersist> mPersist;
    nsCOMPtr<nsIHelperAppLauncher> m_HelperAppLauncher;
    nsCOMPtr<nsICancelable> mCancelable;
+
+   ProgressDialogCallback mCallback;
+   void*  mParam;
+
    int m_HandleContentOp;
 
    // this is used to calculate speed
@@ -88,17 +102,50 @@ protected:
    
    nsEmbedCString m_uri;
 
-   char *mFileName;
-   char *mFilePath;
-   char *mViewer;
-   char *mTempFile;
+   TCHAR *mFileName;
+   TCHAR *mFilePath;
+   TCHAR *mViewer;
+   TCHAR *mTempFile;
+   char *mUri;
 
-   void InitControl(const char *uri, const char *filepath);
+   void InitControl(const char *uri, const TCHAR *filepath);
    virtual void OnCancel();
    afx_msg void OnOpen();
    afx_msg void OnClose();
 
 	DECLARE_MESSAGE_MAP()
+	virtual void OnOK();
+public:
+	afx_msg void OnBnClickedCloseWhenDone();
+};
+
+// Boîte de dialogue COpenSaveDlg
+
+class COpenSaveDlg : public CDialog
+{
+	//DECLARE_DYNAMIC(COpenSaveDlg)
+
+public:
+	COpenSaveDlg(CWnd* pParent = NULL);   // constructeur standard
+	virtual ~COpenSaveDlg();
+
+// Données de boîte de dialogue
+	enum { IDD = IDD_OPENSAVE };
+
+protected:
+	virtual void DoDataExchange(CDataExchange* pDX);    // Prise en charge DDX/DDV
+
+	DECLARE_MESSAGE_MAP()
+	
+public:
+	CString m_csFilename;
+	CString m_csFiletype;
+	CString m_csSource;
+	afx_msg void OnBnClickedOpen();
+	virtual BOOL OnInitDialog();
+	afx_msg void OnTimer(UINT nIDEvent);
+	CStatic m_cFileIcon;
+	afx_msg void OnDestroy();
 };
 
 #endif
