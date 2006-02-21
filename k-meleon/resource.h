@@ -69,6 +69,7 @@
 #define IDD_PRINTSETUP_DIALOG           191
 #define IDD_CHOOSE_ACTION_DIALOG        192
 #define IDR_TOOLBAR1                    194
+#define IDD_PREFERENCES_DOWNLOAD        204
 #define ID_URL_BAR                      1001
 #define ID_PROG_BAR                     1002
 #define ID_THROBBER                     1003
@@ -228,6 +229,18 @@
 #define IDC_SCALE_TXT                   1129
 #define IDC_PRT_BGIMAGES                1130
 #define IDC_FIND_EDIT                   1152
+#define IDC_EDIT_SAVE_DIR               1182
+#define IDC_EDIT_DOWNLOAD_DIR           1183
+#define IDC_CHECK_FLASH                 1184
+#define IDC_CHECK_MINIMIZE              1185
+#define IDC_RADIO_DOWNLOAD_DIR          1186
+#define IDC_CHECK_OPENSAVE              1187
+#define IDC_CHECK_SAVE_UNKNOW           1188
+#define IDC_CHECK_CLOSE_DOWNLOAD        1189
+#define IDC_CHECK_PAGETITLE             1191
+#define IDC_RADIO_DOWNLOAD_DIR2         1192
+#define IDC_EDIT_FONT_MINSIZE           1193
+#define IDC_HIGHLIGHT                   1194
 #define ID_NAV_BACK                     32773
 #define ID_NAV_FORWARD                  32774
 #define ID_NAV_HOME                     32775
@@ -318,6 +331,7 @@
 #define IDS_FIND                        61252
 #define IDS_FIND_HIGHLIGHT              61253
 #define IDS_DOWNLOAD_FAILED             61254
+#define IDS_PREFS_DOWNLOAD              61276
 
 #define IDD_CONFIRM_COOKIE              2100
 #define IDC_CHECK_REMEMBER              2101
