@@ -152,15 +152,18 @@ BEGIN
     CONTROL         "&URL",IDC_RADIO_URL,"Button",BS_AUTORADIOBUTTON,139,101,
                     30,8
     EDITTEXT        IDC_EDIT_URL,171,99,87,12,ES_AUTOHSCROLL | WS_GROUP
-    COMBOBOX        IDC_COMBO_SKIN,17,140,241,121,CBS_DROPDOWNLIST | 
+    COMBOBOX        IDC_COMBO_SKIN,17,135,241,121,CBS_DROPDOWNLIST | 
                     WS_VSCROLL | WS_GROUP | WS_TABSTOP
     CONTROL         "Show &Toolbar Background",IDC_CHECK_TOOLBAR_BACKGROUND,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,159,137,10
-    GROUPBOX        "Skin",IDC_STATIC,4,125,263,52
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,154,137,10
+    GROUPBOX        "Skin",IDC_STATIC,4,120,263,49
     GROUPBOX        "Page Display Settings",IDC_STATIC,4,6,263,112
     LTEXT           "Home Page:",IDC_STATIC,17,21,43,10
     LTEXT           "When K-Meleon starts, display:",IDC_STATIC,17,41,109,10
     LTEXT           "New windows should display:",IDC_STATIC,129,41,115,8
+    EDITTEXT        IDC_EDIT_FONT_MINSIZE,112,176,19,12,ES_RIGHT | ES_NUMBER
+    LTEXT           "Minimun font size for web page :",IDC_STATIC,4,177,102,
+                    8
 END
 
 IDD_PREFERENCES_PROXY DIALOGEX 0, 0, 271, 204
@@ -844,6 +847,40 @@ BEGIN
                     ES_READONLY | WS_VSCROLL
 END
 
+IDD_PREFERENCES_DOWNLOAD DIALOGEX 0, 0, 271, 204
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD
+EXSTYLE WS_EX_CLIENTEDGE
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    EDITTEXT        IDC_EDIT_SAVE_DIR,72,19,187,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDIT_DOWNLOAD_DIR,72,37,187,14,ES_AUTOHSCROLL
+    CONTROL         "Ask to open/save the files",IDC_CHECK_OPENSAVE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,13,77,99,10
+    CONTROL         "Prompt for location",IDC_RADIO_DOWNLOAD_DIR,"Button",
+                    BS_AUTORADIOBUTTON | WS_GROUP,12,92,77,10
+    CONTROL         "Automatically download to the download folder",
+                    IDC_RADIO_DOWNLOAD_DIR2,"Button",BS_AUTORADIOBUTTON,99,
+                    93,166,10
+    CONTROL         "Minimize the download dialog on start",
+                    IDC_CHECK_MINIMIZE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    13,108,135,10
+    CONTROL         "Use web page title to sugggest the filename",
+                    IDC_CHECK_PAGETITLE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,13,122,157,10
+    CONTROL         "Close the download dialog",IDC_CHECK_CLOSE_DOWNLOAD,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,11,152,99,10
+    CONTROL         "Flash the download dialog",IDC_CHECK_FLASH,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,11,165,99,10
+    CONTROL         " Save unknow content",IDC_CHECK_SAVE_UNKNOW,"Button",
+                    BS_AUTOCHECKBOX | NOT WS_VISIBLE | WS_TABSTOP,6,185,87,
+                    10
+    GROUPBOX        "Folders",IDC_STATIC,3,7,263,52
+    LTEXT           "Save Folder:",IDC_STATIC,27,22,42,8
+    LTEXT           "Download Folder:",IDC_STATIC,12,39,57,8
+    GROUPBOX        "When saving",IDC_STATIC,3,64,263,72
+    GROUPBOX        "When complete",IDC_STATIC,3,140,263,40
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -851,8 +888,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 0,9,0,0
- PRODUCTVERSION 0,9,0,0
+ FILEVERSION 1,0,0,0
+ PRODUCTVERSION 1,0,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -869,11 +906,11 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "http://kmeleon.sf.net/"
             VALUE "FileDescription", "K-Meleon Web Browser"
-            VALUE "FileVersion", "0, 9, 0, 0"
+            VALUE "FileVersion", "1, 0, 0, 0"
             VALUE "LegalCopyright", "Copyright (C) 2001-2005"
             VALUE "OriginalFilename", "k-meleon.exe"
             VALUE "ProductName", "K-Meleon"
-            VALUE "ProductVersion", "0.9"
+            VALUE "ProductVersion", "1.0"
         END
     END
     BLOCK "VarFileInfo"
@@ -938,6 +975,7 @@ BEGIN
         LEFTMARGIN, 4
         RIGHTMARGIN, 267
         VERTGUIDE, 17
+        VERTGUIDE, 83
         VERTGUIDE, 258
         HORZGUIDE, 29
         HORZGUIDE, 117
@@ -1041,6 +1079,12 @@ BEGIN
         BOTTOMMARGIN, 186
         HORZGUIDE, 108
         HORZGUIDE, 168
+    IDD_PREFERENCES_DOWNLOAD, DIALOG
+    BEGIN
+        LEFTMARGIN, 3
+        RIGHTMARGIN, 266
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 197
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -1323,6 +1367,7 @@ END
 STRINGTABLE 
 BEGIN
     ID_PROG_BAR             "                                        "
+    IDS_PREFS_DOWNLOAD      "Download"
 END
 
 #endif    // Anglais (États-Unis) resources

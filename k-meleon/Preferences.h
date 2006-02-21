@@ -51,7 +51,6 @@ public:
    CString searchEngine;
  
    int iSaveType;
-   CString saveDir;
    CString settingsDir;
    CString pluginsDir;
    CString profileDir;
@@ -61,6 +60,7 @@ public:
    CString skinsPath;
 
    int bDisableResize;
+   int iFontMinSize;
 
    // true if we should hide the taskbar buttons
    int bHideTaskBarButtons;
@@ -151,6 +151,18 @@ public:
    CString printFooterMiddle;
 
 
+   // -- Download
+   
+   CString saveDir;
+   CString downloadDir;
+   CString lastDownloadDir;
+   int bUseDownloadDir;
+   int bAskOpenSave;
+   int bCloseDownloadDialog;
+   int bShowMinimized;
+   int bFlashWhenCompleted;
+   int bSaveUnknowContent;
+   int bSaveUseTitle;
 
 
    // -- functions

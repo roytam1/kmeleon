@@ -120,6 +120,7 @@ void CPreferences::Load() {
       
       _GetBool("kmeleon.display.NewWindowHasUrlFocus", bNewWindowHasUrlFocus, true);
 
+	  _GetInt("font.minimum-size.x-western", iFontMinSize, 0);
       // -- Find settings
       
 	   _GetBool("kmeleon.find.matchCase", bFindMatchCase, false);
@@ -170,6 +171,7 @@ void CPreferences::Load() {
 	     nsEmbedCString pathBuf;
          rv = nsProfileDir->GetNativePath(pathBuf);
 #endif
+         profileDir = pathBuf.get();
 
          if (profileDir.Right(1) != '\\')
             profileDir += '\\';
@@ -248,7 +250,7 @@ void CPreferences::Load() {
 
 	  _GetInt("kmeleon.MRU.behavior", MRUbehavior, 2);
       // 0 = Always, 1 = site, 2 = never
-      _GetInt(_T("network.cookie.cookieBehavior"), iCookiesEnabled, 0);
+      // 0 = Always, 1 = site, 2 = never, 3 = P3P
       _GetInt("network.cookie.cookieBehavior", iCookiesEnabled, 0);
 
       // 1 = Always, 2 = never, 3 = site
@@ -306,6 +308,22 @@ void CPreferences::Load() {
       _GetString("kmeleon.print.paperWidth", printWidth, "8.5");
       _GetString("kmeleon.print.paperHeight", printHeight, "11");
 
+	  // -- Download
+
+	  _GetInt("kmeleon.general.saveType", iSaveType, 0);
+      _GetString("kmeleon.download.saveDir", saveDir, _T(""));   
+	  _GetString("kmeleon.download.dir", downloadDir, _T(""));
+	  _GetString("kmeleon.download.lastDir", lastDownloadDir, _T(""));
+	  if (lastDownloadDir.IsEmpty())
+		lastDownloadDir = downloadDir;
+	  if (downloadDir.IsEmpty())
+		  downloadDir = lastDownloadDir;
+	  _GetBool("kmeleon.download.useDownloadDir", bUseDownloadDir, false);
+	  _GetBool("kmeleon.download.askOpenSave", bAskOpenSave, true);
+	  _GetBool("kmeleon.download.showMinimizedDialog", bShowMinimized, false);
+	  _GetBool("kmeleon.download.flashWhenCompleted", bFlashWhenCompleted, false);
+	  _GetBool("kmeleon.download.closeDownloadDialog", bCloseDownloadDialog, false);
+	  _GetBool("kmeleon.download.saveUseTitle", bSaveUseTitle, true);
    }
    else
       NS_ASSERTION(PR_FALSE, "Could not get preferences service");
@@ -335,7 +353,6 @@ void CPreferences::Save() {
 
       _SetString("kmeleon.general.searchEngine",searchEngine)
 
-      rv = prefs->SetCharPref("kmeleon.general.saveDir", saveDir);
       _SetString("kmeleon.general.settingsDir",settingsDir)
       _SetString("kmeleon.general.pluginsDir",pluginsDir)
 
@@ -423,6 +440,8 @@ void CPreferences::Save() {
       rv = prefs->SetBoolPref("kmeleon.display.disableResize", bDisableResize);
 
       rv = prefs->SetBoolPref("kmeleon.display.NewWindowHasUrlFocus", bNewWindowHasUrlFocus);
+	  rv = prefs->SetIntPref("font.minimum-size.x-western", iFontMinSize);
+	  rv = prefs->SetIntPref("font.minimum-size.x-unicode", iFontMinSize);
 
       // -- Find settings
 	   rv = prefs->SetBoolPref("kmeleon.find.matchCase", bFindMatchCase);
@@ -455,6 +474,22 @@ void CPreferences::Save() {
       _SetString("kmeleon.print.paperHeight",printHeight)
       
       
+
+	  	  // -- Download
+
+	  prefs->SetIntPref("kmeleon.general.saveType", iSaveType);
+      _SetString("kmeleon.download.saveDir", saveDir);   
+	  _SetString("kmeleon.download.dir", downloadDir);
+	  _SetString("kmeleon.download.lastDir", lastDownloadDir);
+
+	  
+	  prefs->SetBoolPref("kmeleon.download.useDownloadDir", bUseDownloadDir);
+	  prefs->SetBoolPref("kmeleon.download.askOpenSave", bAskOpenSave);
+	  prefs->SetBoolPref("kmeleon.download.showMinimizedDialog", bShowMinimized);
+	  prefs->SetBoolPref("kmeleon.download.flashWhenCompleted", bFlashWhenCompleted);
+	  prefs->SetBoolPref("kmeleon.download.closeDownloadDialog", bCloseDownloadDialog);
+	  prefs->SetBoolPref("kmeleon.download.saveUseTitle", bSaveUseTitle);
+
       rv = prefs->SavePrefFile(nsnull);   
    
    }

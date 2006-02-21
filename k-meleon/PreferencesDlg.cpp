@@ -75,6 +75,8 @@ CPreferencesDlg::OnInitDialog(){
    AddItem(title,   IDD_PREFERENCES_CONFIGS);
    title.LoadString(IDS_PREFS_PLUGINS);
    AddItem(title, IDD_PREFERENCES_PLUGINS);
+   title.LoadString(IDS_PREFS_DOWNLOAD);
+   AddItem(title, IDD_PREFERENCES_DOWNLOAD);
 
    m_list.SetItemState(0, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
 
@@ -239,6 +241,7 @@ void CPreferencePage::DoDataExchange(CDataExchange* pDX){
       DDX_Check(pDX, IDC_CHECK_TOOLBAR_BACKGROUND, theApp.preferences.bToolbarBackground);
       DDX_Radio(pDX, IDC_RADIO_NEWWINDOW, theApp.preferences.iNewWindowOpenAs);
       DDX_Text(pDX, IDC_EDIT_URL, theApp.preferences.newWindowURL);
+	  DDX_Text(pDX, IDC_EDIT_FONT_MINSIZE, theApp.preferences.iFontMinSize);
       break;
     case IDD_PREFERENCES_GENERAL:
       DDX_Check(pDX, IDC_CHECK_JAVASCRIPT, theApp.preferences.bJavascriptEnabled);
@@ -281,6 +284,18 @@ void CPreferencePage::DoDataExchange(CDataExchange* pDX){
       DDX_Check(pDX, IDC_CHECK_LOAD, theApp.preferences.bDisablePopupsOnLoad);
 
       DDX_Text(pDX, IDC_EDIT_USERAGENT, theApp.preferences.userAgent);
+      break;
+   case IDD_PREFERENCES_DOWNLOAD:
+	   DDX_Text(pDX, IDC_EDIT_DOWNLOAD_DIR, theApp.preferences.downloadDir);
+	   DDX_Text(pDX, IDC_EDIT_SAVE_DIR, theApp.preferences.saveDir);
+	   DDX_Radio(pDX, IDC_RADIO_DOWNLOAD_DIR, theApp.preferences.bUseDownloadDir);
+	   DDX_Check(pDX, IDC_CHECK_PAGETITLE, theApp.preferences.bSaveUseTitle);
+	   DDX_Check(pDX, IDC_CHECK_OPENSAVE, theApp.preferences.bAskOpenSave);
+	   DDX_Check(pDX, IDC_CHECK_MINIMIZE, theApp.preferences.bShowMinimized);
+	   DDX_Check(pDX, IDC_CHECK_CLOSE_DOWNLOAD, theApp.preferences.bCloseDownloadDialog);
+	   DDX_Check(pDX, IDC_CHECK_FLASH, theApp.preferences.bFlashWhenCompleted);
+
+
       break;
   }
   //}}AFX_DATA_MAP
