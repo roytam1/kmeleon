@@ -81,7 +81,7 @@ struct IBrowserFrameGlue {
     virtual HWND GetBrowserFrameNativeWnd() = 0;
 
     // Tooltip function
-    virtual void ShowTooltip(PRInt32 x, PRInt32 y, const char *text) = 0;
+    virtual void ShowTooltip(PRInt32 x, PRInt32 y, const TCHAR *text) = 0;
 
     virtual void FocusNextElement() = 0;
     virtual void FocusPrevElement() = 0;
@@ -113,7 +113,7 @@ struct IBrowserFrameGlue {
         virtual void GetBrowserFrameVisibility(PRBool *aVisible);       \
         virtual void ShowContextMenu(PRUint32 aContextFlags, nsIContextMenuInfo *aInfo); \
         virtual HWND GetBrowserFrameNativeWnd();                          \
-        virtual void ShowTooltip(PRInt32 x, PRInt32 y, const char *text); \
+        virtual void ShowTooltip(PRInt32 x, PRInt32 y, const TCHAR *text); \
         virtual void FocusNextElement(); \
         virtual void FocusPrevElement();
 

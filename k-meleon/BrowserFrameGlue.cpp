@@ -134,7 +134,7 @@ void CBrowserFrame::BrowserFrameGlueObj::UpdateCurrentURI(nsIURI *aLocation)
 				aLocation->GetUsername(password);
 				aLocation->SetUserPass(password);
 				aLocation->GetSpec(uriString);
-				pThis->m_wndUrlBar.AddURLToList(CString(A2W(uriString.get())));
+				pThis->m_wndUrlBar.AddURLToList(CString(A2CW(uriString.get())));
 			}
 			else if (theApp.preferences.MRUbehavior == 1){
 				nsEmbedCString nsScheme, nsHost;
@@ -142,7 +142,7 @@ void CBrowserFrame::BrowserFrameGlueObj::UpdateCurrentURI(nsIURI *aLocation)
 				aLocation->GetHost(nsHost);
 				nsHost.Insert("://",0);
 				nsHost.Insert(nsScheme,0);
-				pThis->m_wndUrlBar.AddURLToList(CString(A2W(nsHost.get())));
+				pThis->m_wndUrlBar.AddURLToList(CString(A2CW(nsHost.get())));
 			}
 		}
     }
@@ -755,7 +755,7 @@ void CBrowserFrame::BrowserFrameGlueObj::UpdateSecurityStatus(PRInt32 aState)
     pThis->UpdateSecurityStatus(aState);
 }
 
-void CBrowserFrame::BrowserFrameGlueObj::ShowTooltip(PRInt32 x, PRInt32 y, const char *text)
+void CBrowserFrame::BrowserFrameGlueObj::ShowTooltip(PRInt32 x, PRInt32 y, const TCHAR *text)
 {
     METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
 
