@@ -88,6 +88,7 @@ public:
    void RegisterWindow(CDialog *window);
    void UnregisterWindow(CDialog *window);
     void BroadcastMessage(UINT Msg, WPARAM wParam, LPARAM lParam);
+	bool FindSkinFile( CString& szSkinFile, TCHAR *filename );
 
    nsresult SetOffline(BOOL offline);
 

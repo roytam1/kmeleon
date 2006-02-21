@@ -141,6 +141,46 @@ nsresult CMfcEmbedApp::SetOffline(BOOL offline)
 }
 
 
+bool CMfcEmbedApp::FindSkinFile( CString& szSkinFile, TCHAR *filename ) 
+{
+   WIN32_FIND_DATA FindData;
+   HANDLE hFile;
+   
+   if (!szSkinFile || !filename || !*filename)
+      return false;
+
+   CString file = theApp.preferences.settingsDir + filename;
+   hFile = FindFirstFile(file, &FindData);
+   if(hFile != INVALID_HANDLE_VALUE) {   
+         FindClose(hFile);
+         szSkinFile = file;
+         return true;
+      }   
+
+    CString tmp = theApp.preferences.skinsCurrent;
+	while (tmp.GetLength()>0) {
+		if (tmp.GetAt( tmp.GetLength()-1 ) != '\\')
+			tmp = tmp + "\\";
+		file = theApp.preferences.skinsDir + tmp + filename;
+		hFile = FindFirstFile(file, &FindData);
+		if(hFile != INVALID_HANDLE_VALUE) {   
+			FindClose(hFile);
+			szSkinFile = file;
+			return true;
+		}   
+		tmp = tmp.Left( tmp.GetLength()-2 );
+	}
+
+	file = theApp.preferences.skinsDir + CString("default\\") + filename;
+	hFile = FindFirstFile(file, &FindData);
+	if(hFile != INVALID_HANDLE_VALUE) {   
+		FindClose(hFile);
+		szSkinFile = file;
+		return true;
+	}  
+
+	return false;
+}
 // Initialize our MFC application and also init
 // the Gecko embedding APIs
 // Note that we're also init'ng the profile switching
