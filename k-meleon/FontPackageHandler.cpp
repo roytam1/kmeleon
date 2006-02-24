@@ -28,7 +28,8 @@ NS_IMETHODIMP CFontPackageHandler::NeedFontPackage(const char *aFontPackID)
   // Should get that from chrome
   CString cshandledLanguages;
   cshandledLanguages.LoadString(IDS_HANDLED_LANGUAGES);
-  TCHAR* handledLanguages = cshandledLanguages.GetBuffer(0);
+  USES_CONVERSION;
+  const char* handledLanguages = T2CA(cshandledLanguages);
   
   // aFontPackID is of the form lang:xx or lang:xx-YY
   char *langCode = strchr(aFontPackID,':');
@@ -76,7 +77,7 @@ NS_IMETHODIMP CFontPackageHandler::NeedFontPackage(const char *aFontPackID)
 
 // Boîte de dialogue CDownloadFontDialog
 
-IMPLEMENT_DYNAMIC(CDownloadFontDialog, CDialog)
+//IMPLEMENT_DYNAMIC(CDownloadFontDialog, CDialog)
 CDownloadFontDialog::CDownloadFontDialog(const char* langcode, CWnd* pParent /*=NULL*/)
 	: CDialog(CDownloadFontDialog::IDD, pParent)
 {
@@ -124,7 +125,7 @@ END_MESSAGE_MAP()
 
 // Boîte de dialogue CFontNeededDialog
 
-IMPLEMENT_DYNAMIC(CFontNeededDialog, CDialog)
+//IMPLEMENT_DYNAMIC(CFontNeededDialog, CDialog)
 CFontNeededDialog::CFontNeededDialog(const char* langcode, CWnd* pParent /*=NULL*/)
 	: CDialog(CFontNeededDialog::IDD, pParent)
 {

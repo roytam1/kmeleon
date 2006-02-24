@@ -413,6 +413,9 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\CookiesViewerDlg.cpp">
+			</File>
+			<File
 				RelativePath="defineMap.cpp">
 				<FileConfiguration
 					Name="Debug|Win32"
@@ -563,6 +566,12 @@
 						PreprocessorDefinitions=""
 						BrowseInformation="1"/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\PasswordViewerDlg.cpp">
+			</File>
+			<File
+				RelativePath=".\Permissions.cpp">
 			</File>
 			<File
 				RelativePath="Plugins.cpp">
@@ -931,6 +940,12 @@
 				RelativePath="CmdLine.h">
 			</File>
 			<File
+				RelativePath=".\Cookies.h">
+			</File>
+			<File
+				RelativePath=".\CookiesViewerDlg.h">
+			</File>
+			<File
 				RelativePath="Dialogs.h">
 			</File>
 			<File
@@ -956,6 +971,12 @@
 			</File>
 			<File
 				RelativePath="Parser.h">
+			</File>
+			<File
+				RelativePath=".\PasswordViewerDlg.h">
+			</File>
+			<File
+				RelativePath=".\Permissions.h">
 			</File>
 			<File
 				RelativePath="Plugins.h">

@@ -32,8 +32,6 @@
 #include "nsIDialogParamBlock.h"
 #include "nsIWindowWatcher.h"
 
-#include "mfcembed.h"
-extern CMfcEmbedApp theApp;
 extern CWnd* CWndForDOMWindow(nsIDOMWindow *aWindow);
 
 NS_DEFINE_CID (kX509CertCID, NS_IX509CERT_IID);

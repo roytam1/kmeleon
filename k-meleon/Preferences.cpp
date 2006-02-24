@@ -142,8 +142,6 @@ void CPreferences::Load() {
       _GetBool("kmeleon.general.sourceEnabled", bSourceUseExternalCommand, false);
       _GetString("kmeleon.general.sourceCommand", sourceCommand, _T(""));
 
-      _GetInt(_T("kmeleon.general.saveType"), iSaveType, 0);
-      _GetString(_T("kmeleon.general.saveDir"), saveDir, _T(""));   
       _GetString("kmeleon.general.settingsDir", settingsDir, _T(""));
       _GetString("kmeleon.general.pluginsDir", pluginsDir, _T(""));
 

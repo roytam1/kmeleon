@@ -22,6 +22,7 @@
 #include "CookiePromptService.h"
 #include "nsICookieAcceptDialog.h"
 #include "nsICookie.h"
+#include "Cookies.h"
 
 
 extern CWnd* CWndForDOMWindow(nsIDOMWindow *aWindow);
@@ -34,12 +35,12 @@ CCookiePromptService::CCookiePromptService(){
 CCookiePromptService::~CCookiePromptService() {
 }
 
-NS_IMETHODIMP CCookiePromptService::CookieDialog(nsIDOMWindow *parent, nsICookie *cookie, const nsACString & hostname, PRInt32 cookiesFromHost, PRBool changingCookie, PRBool *rememberDecision, PRInt32 *_retval)
+NS_IMETHODIMP CCookiePromptService::CookieDialog(nsIDOMWindow *parent, nsICookie *aCookie, const nsACString & hostname, PRInt32 cookiesFromHost, PRBool changingCookie, PRBool *rememberDecision, PRInt32 *_retval)
 {
   USES_CONVERSION;
   CString q;
   static BOOL accept = TRUE;
-  char fDate[128];
+  //char fDate[128];
 
   char *host = NS_CStringCloneData(hostname);
 
@@ -57,47 +58,31 @@ NS_IMETHODIMP CCookiePromptService::CookieDialog(nsIDOMWindow *parent, nsICookie
   CWnd *wnd = CWndForDOMWindow(parent);
   CConfirmCookieDialog dlg(wnd, q, accept);
 	
-  if (cookie) {
-  nsEmbedCString str;
-  cookie->GetName(str);
-  dlg.m_csName = str.get();
+  if (aCookie) {
+	CCookie* cookie = new CCookie(aCookie);
+	dlg.m_csName = cookie->m_csName;
+	dlg.m_csValue = cookie->m_csValue;
+	dlg.m_csHost = cookie->m_csHost;
+	dlg.m_csPath = cookie->m_csPath;
+	dlg.m_csExpires = cookie->m_csExpire;
 
-  cookie->GetValue(str);
-  dlg.m_csValue = str.get();
-
-  cookie->GetHost(str);
-  dlg.m_csHost = str.get();
-
-  cookie->GetPath(str);
-  dlg.m_csPath = str.get();
-
-  PRBool bIsSecure;
-  cookie->GetIsSecure(&bIsSecure);
-  if (bIsSecure == PR_TRUE)
+	if (cookie->m_secure)
 	  dlg.m_csSendFor.LoadString(IDS_FOR_SECURE);
   else
 	  dlg.m_csSendFor.LoadString(IDS_FOR_ANY);
 
-  PRUint64 expires;
-  cookie->GetExpires(&expires);
-  if (expires>0){
-	strftime (fDate, sizeof(fDate), "%a %d %b %Y %H:%M", localtime ((time_t*)&expires));
-	dlg.m_csExpires = fDate;
+  
+	  *_retval = dlg.DoModal();
+	  accept = *rememberDecision = dlg.m_bCheckBoxValue;
+	  delete cookie;	  
   }
-  else
-	dlg.m_csExpires.LoadString(IDS_ESPIRES_EOS);
-
-  }
-  *_retval = dlg.DoModal();
-  accept = *rememberDecision = dlg.m_bCheckBoxValue;
-	  
   return NS_OK;
 }
 
 // Boîte de dialogue CConfimCookieDialog
 
-IMPLEMENT_DYNAMIC(CConfirmCookieDialog, CDialog)
-CConfirmCookieDialog::CConfirmCookieDialog(CWnd* pParent, const TCHAR* pText, bool bAcceptSite)
+//IMPLEMENT_DYNAMIC(CConfirmCookieDialog, CDialog)
+CConfirmCookieDialog::CConfirmCookieDialog(CWnd* pParent, const TCHAR* pText, BOOL bAcceptSite)
 	: CDialog(CConfirmCookieDialog::IDD, pParent)
 {
 	if(pText)
@@ -136,7 +121,7 @@ END_MESSAGE_MAP()
 BOOL CConfirmCookieDialog::OnInitDialog()
 {
 	CDialog::OnInitDialog();
-	HICON icon = (HICON)LoadImage(0,IDI_QUESTION,IMAGE_ICON,0,0,LR_DEFAULTSIZE|LR_SHARED);
+	HICON icon = (HICON)LoadImage(0,MAKEINTRESOURCE(32514),IMAGE_ICON,0,0,LR_DEFAULTSIZE|LR_SHARED);
 	m_bIcon.SetIcon(icon);
 	return TRUE;
 }

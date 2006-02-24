@@ -2,6 +2,7 @@
 
 #include "resource.h"
 #include "nsIFontPackageHandler.h"
+#include "DialogEx.h"
 
 /* a3328b5b-388c-4c9a-a5b7-2213621e1744 */
 #define NS_FONTPACKAGEHANDLER_CID \
@@ -25,7 +26,7 @@ public:
 
 class CDownloadFontDialog : public CDialog
 {
-	DECLARE_DYNAMIC(CDownloadFontDialog)
+	//DECLARE_DYNAMIC(CDownloadFontDialog)
 
 public:
 	CDownloadFontDialog(const char* langcode, CWnd* pParent = NULL);   // constructeur standard
@@ -50,7 +51,7 @@ public:
 
 class CFontNeededDialog : public CDialog
 {
-	DECLARE_DYNAMIC(CFontNeededDialog)
+	//DECLARE_DYNAMIC(CFontNeededDialog)
 
 public:
 	CFontNeededDialog(const char* langcode, CWnd* pParent = NULL);   // constructeur standard

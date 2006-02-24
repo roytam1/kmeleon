@@ -18,6 +18,7 @@
 
 #include "resource.h"
 #include "BrowserView.h"
+#include "DialogEx.h"
 
 class CAboutDlg : public CDialog
 {
