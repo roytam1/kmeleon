@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include "DialogEx.h"
 #include "nsICertificateDialogs.h"
 #include "nsIBadCertListener.h"
 #include "nsIArray.h"

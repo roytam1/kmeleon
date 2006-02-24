@@ -41,6 +41,7 @@
 #define _DIALOGS_H_
 
 #include "resource.h"
+#include "DialogEx.h"
 
 class CBrowserView;
 class CBrowserFrame;
@@ -135,9 +136,9 @@ protected:
 class CPromptDialog : public CDialog
 {
 public:
-    CPromptDialog(CWnd* pParent, const char* pTitle, const char* pText,
-                  const char* pInitPromptText,
-                  BOOL bHasCheck, const char* pCheckText, int initCheckVal);
+    CPromptDialog(CWnd* pParent, const TCHAR* pTitle, const TCHAR* pText,
+                  const TCHAR* pInitPromptText,
+                  BOOL bHasCheck, const TCHAR* pCheckText, int initCheckVal);
 	
 	// Dialog Data
     enum { IDD = IDD_PROMPT_DIALOG };
@@ -164,9 +165,9 @@ public:
 class CPromptPasswordDialog : public CDialog
 {
 public:
-    CPromptPasswordDialog(CWnd* pParent, const char* pTitle, const char* pText,
-                          const char* pInitPasswordText,
-                          BOOL bHasCheck, const char* pCheckText, int initCheckVal);
+    CPromptPasswordDialog(CWnd* pParent, const TCHAR* pTitle, const TCHAR* pText,
+                          const TCHAR* pInitPasswordText,
+                          BOOL bHasCheck, const TCHAR* pCheckText, int initCheckVal);
 	
 	// Dialog Data
     enum { IDD = IDD_PROMPT_PASSWORD_DIALOG };
@@ -193,9 +194,9 @@ public:
 class CPromptUsernamePasswordDialog : public CDialog
 {
 public:
-    CPromptUsernamePasswordDialog(CWnd* pParent, const char* pTitle, const char* pText,
-                                  const char* pInitUsername, const char* pInitPassword, 
-		                          BOOL bHasCheck, const char* pCheckText, int initCheckVal);
+    CPromptUsernamePasswordDialog(CWnd* pParent, const TCHAR* pTitle, const TCHAR* pText,
+                                  const TCHAR* pInitUsername, const TCHAR* pInitPassword, 
+		                          BOOL bHasCheck, const TCHAR* pCheckText, int initCheckVal);
 	
 	// Dialog Data
     enum { IDD = IDD_PROMPT_USERPASS_DIALOG };
@@ -226,8 +227,8 @@ public:
 class CAlertCheckDialog : public CDialog
 {
 public:
-    CAlertCheckDialog(CWnd* pParent, const char* pTitle, const char* pText,
-                  const char* pCheckText, int initCheckVal);
+    CAlertCheckDialog(CWnd* pParent, const TCHAR* pTitle, const TCHAR* pText,
+                  const TCHAR* pCheckText, int initCheckVal);
 	
     // Dialog Data
     enum { IDD = IDD_ALERT_CHECK_DIALOG };
@@ -253,10 +254,10 @@ public:
 class CConfirmCheckDialog : public CDialog
 {
 public:
-    CConfirmCheckDialog(CWnd* pParent, const char* pTitle, const char* pText,
-                  const char* pCheckText, int initCheckVal,
-                  const char *pBtn1Text, const char *pBtn2Text, 
-                  const char *pBtn3Text);
+    CConfirmCheckDialog(CWnd* pParent, const TCHAR* pTitle, const TCHAR* pText,
+                  const TCHAR* pCheckText, int initCheckVal,
+                  const TCHAR *pBtn1Text, const TCHAR *pBtn2Text, 
+                  const TCHAR *pBtn3Text);
 	
     // Dialog Data
     enum { IDD = IDD_CONFIRM_CHECK_DIALOG };

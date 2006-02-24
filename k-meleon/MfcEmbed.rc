@@ -223,9 +223,9 @@ BEGIN
                     BS_CENTER | WS_TABSTOP,11,5,131,12
     EDITTEXT        IDC_EDIT_SOURCE_COMMAND,12,22,203,14,ES_AUTOHSCROLL
     PUSHBUTTON      "&Browse...",IDC_BUTTON_BROWSE,218,22,42,14
-    EDITTEXT        IDC_EDIT_SETTINGS_DIR,56,65,204,14,ES_AUTOHSCROLL | 
+    EDITTEXT        IDC_EDIT_SETTINGS_DIR,62,65,198,14,ES_AUTOHSCROLL | 
                     WS_GROUP
-    EDITTEXT        IDC_EDIT_PLUGINS_DIR,56,84,204,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDIT_PLUGINS_DIR,62,84,198,14,ES_AUTOHSCROLL
     CONTROL         "Enable &Java",IDC_CHECK_JAVA,"Button",BS_AUTOCHECKBOX | 
                     WS_GROUP | WS_TABSTOP,14,130,79,10
     CONTROL         "Enable Java&Script",IDC_CHECK_JAVASCRIPT,"Button",
@@ -236,11 +236,12 @@ BEGIN
                     IDC_CHECK_DISABLERESIZE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,13,171,133,11
     EDITTEXT        IDC_EDIT_HTTP,185,129,30,12,ES_AUTOHSCROLL | WS_GROUP
-    RTEXT           "Plugins Dir:",IDC_STATIC,13,87,36,8
-    RTEXT           "Settings Dir:",IDC_STATIC,5,69,44,12
+    RTEXT           "Plugins Folder:",IDC_STATIC,6,87,49,8
+    RTEXT           "Settings Folder:",IDC_STATIC,4,69,53,12
     GROUPBOX        "Enhancements",IDC_STATIC,4,114,263,85
     LTEXT           "HTTP Version:",IDC_STATIC,128,131,54,8
-    GROUPBOX        "Directories",IDC_STATIC,4,50,263,58
+    GROUPBOX        "Folders",IDC_STATIC,4,50,263,58
+    PUSHBUTTON      "Display Passwords...",IDC_VIEW_PASSWORDS,127,155,71,14
 END
 
 IDD_PREFERENCES_PLUGINS DIALOGEX 0, 0, 271, 204
@@ -380,7 +381,7 @@ STYLE DS_SETFONT | DS_MODALFRAME | WS_MINIMIZEBOX | WS_POPUP | WS_VISIBLE |
 CAPTION "Downloading..."
 FONT 8, "MS Sans Serif"
 BEGIN
-    PUSHBUTTON      "Cancel",IDCANCEL,234,79,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,234,80,50,14
     CONTROL         "Progress1",IDC_DOWNLOAD_PROGRESS,"msctls_progress32",
                     WS_BORDER | 0x1,7,61,277,8
     EDITTEXT        IDC_SOURCE,40,7,244,14,ES_AUTOHSCROLL | ES_READONLY
@@ -389,16 +390,16 @@ BEGIN
     LTEXT           "From:",IDC_STATIC,7,10,18,8
     LTEXT           "To:",IDC_STATIC,7,25,12,8
     LTEXT           "Status:",IDC_STATIC,7,39,23,8
-    CONTROL         "",IDC_STATUS,"Static",SS_LEFTNOWORDWRAP | WS_GROUP,40,
-                    39,244,8
     CONTROL         "Time Left:",IDC_TIME_LEFT,"Static",SS_LEFTNOWORDWRAP | 
-                    WS_GROUP,7,50,202,8
+                    WS_GROUP,7,50,195,8
     CONTROL         "Speed:",IDC_SPEED,"Static",SS_LEFTNOWORDWRAP | WS_GROUP,
                     209,50,75,8
     CONTROL         "Close Dialog When Download Completes",
                     IDC_CLOSE_WHEN_DONE,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,40,83,145,10
-    PUSHBUTTON      "Open File",IDC_OPEN,40,79,50,14,NOT WS_VISIBLE
+                    WS_TABSTOP,16,82,145,10
+    PUSHBUTTON      "Open File",IDC_OPEN,175,80,50,14,NOT WS_VISIBLE
+    EDITTEXT        IDC_STATUS,40,39,244,11,ES_AUTOHSCROLL | ES_READONLY | 
+                    NOT WS_BORDER
 END
 
 IDD_PREFERENCES_PRIVACY DIALOGEX 0, 0, 271, 204
@@ -408,30 +409,35 @@ FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     CONTROL         "&Accept all images",IDC_IMAGES_ALL,"Button",
                     BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,22,20,71,10
-    CONTROL         "Accept &site images",IDC_IMAGES_SITE,"Button",
-                    BS_AUTORADIOBUTTON,22,32,75,10
     CONTROL         "&Do not load images",IDC_IMAGES_NONE,"Button",
-                    BS_AUTORADIOBUTTON,22,44,77,10
+                    BS_AUTORADIOBUTTON,22,32,77,10
+    CONTROL         "Accept &site images",IDC_IMAGES_SITE,"Button",
+                    BS_AUTORADIOBUTTON,22,44,75,10
     CONTROL         "&Enable Animated Images",IDC_CHECK_ANIMATIONS,"Button",
-                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,13,59,94,10
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,13,74,94,10
     CONTROL         "A&ccept all cookies",IDC_COOKIES_ALL,"Button",
                     BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,152,20,74,10
     CONTROL         "Accept s&ite cookies",IDC_COOKIES_SITE,"Button",
                     BS_AUTORADIOBUTTON,152,32,78,10
     CONTROL         "Do &not accept cookies",IDC_COOKIES_NONE,"Button",
                     BS_AUTORADIOBUTTON,152,44,88,10
-    COMBOBOX        IDC_COMBO,77,94,183,121,CBS_DROPDOWNLIST | WS_VSCROLL | 
+    COMBOBOX        IDC_COMBO,77,102,183,121,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_GROUP | WS_TABSTOP
-    EDITTEXT        IDC_EDIT_USERAGENT,77,108,183,12,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDIT_USERAGENT,77,116,183,12,ES_AUTOHSCROLL
     CONTROL         "Block &popup windows",IDC_CHECK_LOAD,"Button",
-                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,13,143,166,10
-    GROUPBOX        "Popup Control",IDC_STATIC,3,131,264,30
+                    BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,13,147,129,10
+    GROUPBOX        "Popup Control",IDC_STATIC,3,135,264,30
     LTEXT           "Image Loading",IDC_STATIC,13,9,75,9
     LTEXT           "Cookie Acceptance",IDC_STATIC,142,9,81,9
-    GROUPBOX        "",IDC_STATIC,3,0,261,74
-    GROUPBOX        "Browser Identification",IDC_STATIC,3,81,264,43
-    LTEXT           "Identify browser as:",IDC_STATIC,13,95,64,8
-    LTEXT           "UserAgent string:",IDC_STATIC,13,110,64,8
+    GROUPBOX        "",IDC_STATIC,3,0,261,87
+    GROUPBOX        "Browser Identification",IDC_STATIC,3,89,264,43
+    LTEXT           "Identify browser as:",IDC_STATIC,13,103,64,8
+    LTEXT           "UserAgent string:",IDC_STATIC,13,118,64,8
+    PUSHBUTTON      "Display Cookies...",IDC_VIEW_COOKIES,142,56,63,14
+    PUSHBUTTON      "Exceptions...",IDC_COOKIE_PERMISSIONS,206,56,54,14
+    PUSHBUTTON      "Authorized websites...",IDC_POPUP_PERMISSIONS,147,145,
+                    79,14
+    PUSHBUTTON      "Exceptions...",IDC_IMAGE_PERMISSIONS,33,57,50,14
 END
 
 IDD_PREFERENCES_LANGUAGE DIALOGEX 0, 0, 271, 204
@@ -517,12 +523,12 @@ STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION |
 CAPTION "ConfirmCheck"
 FONT 8, "MS Sans Serif"
 BEGIN
-    DEFPUSHBUTTON   "Btn1",IDC_BTN1,50,78,68,14
-    PUSHBUTTON      "Btn2",IDC_BTN2,129,78,68,14
-    PUSHBUTTON      "Btn3",IDC_BTN3,208,78,68,14
-    LTEXT           "",IDC_MSG_TEXT,7,10,305,37
+    DEFPUSHBUTTON   "Btn1",IDC_BTN1,38,87,68,14
+    PUSHBUTTON      "Btn2",IDC_BTN2,109,87,68,14
+    PUSHBUTTON      "Btn3",IDC_BTN3,181,87,68,14
+    LTEXT           "",IDC_MSG_TEXT,10,10,266,49
     CONTROL         "",IDC_CHECKBOX,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,
-                    59,305,15
+                    65,272,15
 END
 
 IDD_CHOOSE_ACTION_DIALOG DIALOG  0, 0, 285, 114
@@ -624,6 +630,82 @@ BEGIN
                     ES_READONLY | NOT WS_BORDER
     PUSHBUTTON      "Open",IDOPEN,60,82,50,14
     ICON            "",IDC_FILE_ICON,12,35,21,20,SS_CENTERIMAGE
+END
+
+IDD_COOKIES_VIEWER DIALOGEX 0, 0, 240, 268
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "Cookies Viewer"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    CONTROL         "",IDC_LIST_COOKIES,"SysListView32",LVS_REPORT | 
+                    LVS_SORTASCENDING | LVS_ALIGNLEFT | WS_BORDER | 
+                    WS_TABSTOP,7,7,226,115
+    EDITTEXT        IDC_COOKIE_NAME,48,137,185,12,ES_AUTOHSCROLL | 
+                    ES_READONLY | NOT WS_BORDER
+    EDITTEXT        IDC_COOKIE_VALUE,48,149,185,12,ES_AUTOHSCROLL | 
+                    ES_READONLY | NOT WS_BORDER
+    EDITTEXT        IDC_COOKIE_HOST,48,161,185,12,ES_AUTOHSCROLL | 
+                    ES_READONLY | NOT WS_BORDER
+    EDITTEXT        IDC_COOKIE_PATH,48,173,185,12,ES_AUTOHSCROLL | 
+                    ES_READONLY | NOT WS_BORDER
+    EDITTEXT        IDC_COOKIE_SENDFOR,48,185,185,12,ES_AUTOHSCROLL | 
+                    ES_READONLY | NOT WS_BORDER
+    EDITTEXT        IDC_COOKIE_EXPIRES,48,197,185,12,ES_AUTOHSCROLL | 
+                    ES_READONLY | NOT WS_BORDER
+    PUSHBUTTON      "Delete selected cookies",IDC_DELETE_COOKIES,15,215,99,
+                    14
+    PUSHBUTTON      "Delete all cookies",IDC_DELETE_ALL_COOKIES,123,215,99,
+                    14
+    CONTROL         "Delete cookie permanently",IDC_ALLOW_DELETED,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,16,230,123,13
+    DEFPUSHBUTTON   "Close",IDOK,94,247,50,14
+    LTEXT           "Content:",IDC_STATIC,13,149,30,8
+    LTEXT           "Name:",IDC_STATIC,21,137,22,8
+    LTEXT           "Host:",IDC_STATIC,25,161,18,8
+    LTEXT           "Path:",IDC_STATIC,25,173,18,8
+    LTEXT           "Send For:",IDC_STATIC,11,185,32,8
+    LTEXT           "Expires:",IDC_STATIC,16,197,27,8
+    GROUPBOX        "Selected cookie details",IDC_STATUS,7,125,226,88
+END
+
+IDD_PASSWORDS_VIEWER DIALOGEX 0, 0, 240, 164
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "Passwords Viewer"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "Close",IDOK,183,144,50,14
+    CONTROL         "",IDC_LIST_PASSWORDS,"SysListView32",LVS_REPORT | 
+                    LVS_SORTASCENDING | LVS_ALIGNLEFT | WS_BORDER | 
+                    WS_TABSTOP,6,7,227,115
+    PUSHBUTTON      "Remove selected",IDC_DELETE_PASSWORDS,7,144,60,14
+    PUSHBUTTON      "Remove all",IDC_DELETE_ALL_PASSWORDS,67,144,60,14
+    CONTROL         "Saved password",IDC_RADIO1,"Button",BS_AUTORADIOBUTTON | 
+                    WS_GROUP,58,126,69,10
+    CONTROL         "Rejected site",IDC_RADIO2,"Button",BS_AUTORADIOBUTTON,
+                    127,126,58,10
+END
+
+IDD_PERMISSIONS DIALOGEX 0, 0, 217, 206
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "Dialog"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    EDITTEXT        IDC_URL,7,29,203,13,ES_AUTOHSCROLL
+    PUSHBUTTON      "Allow",IDC_ALLOW,7,44,50,14
+    PUSHBUTTON      "Block",IDC_BLOCK,57,44,50,14
+    PUSHBUTTON      "Allow for session",IDC_ALLOWSESSION,107,44,103,14,NOT 
+                    WS_VISIBLE
+    CONTROL         "",IDC_LIST_PERMISSIONS,"SysListView32",LVS_REPORT | 
+                    LVS_SORTASCENDING | LVS_ALIGNLEFT | WS_BORDER | 
+                    WS_TABSTOP,7,65,202,115
+    PUSHBUTTON      "Remove selected",IDC_DELETE_PERMISSIONS,7,185,64,14
+    PUSHBUTTON      "Remove all",IDC_DELETE_ALL_PERMISSIONS,72,185,65,14
+    DEFPUSHBUTTON   "Close",IDOK,160,185,50,14
+    LTEXT           "You can specify what website are always, or never authorized to use cookies. Write the url below and click on block, allow, or allow only for session.",
+                    IDC_HEAD,7,3,203,26
 END
 
 IDD_CONFIRM_COOKIE DIALOGEX 0, 0, 217, 157
@@ -1068,7 +1150,7 @@ BEGIN
         VERTGUIDE, 129
         VERTGUIDE, 209
         TOPMARGIN, 7
-        BOTTOMMARGIN, 93
+        BOTTOMMARGIN, 94
         HORZGUIDE, 14
         HORZGUIDE, 29
         HORZGUIDE, 43
@@ -1091,7 +1173,9 @@ BEGIN
 
     IDD_CONFIRM_CHECK_DIALOG, DIALOG
     BEGIN
-        BOTTOMMARGIN, 100
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 279
+        BOTTOMMARGIN, 101
     END
 
     IDD_PRINTSETUP_DIALOG, DIALOG
@@ -1110,6 +1194,30 @@ BEGIN
         RIGHTMARGIN, 214
         TOPMARGIN, 7
         BOTTOMMARGIN, 99
+    END
+
+    IDD_COOKIES_VIEWER, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 233
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 261
+    END
+
+    IDD_PASSWORDS_VIEWER, DIALOG
+    BEGIN
+        LEFTMARGIN, 6
+        RIGHTMARGIN, 233
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 158
+    END
+
+    IDD_PERMISSIONS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 210
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 199
     END
 
     IDD_PREFERENCES_DOWNLOAD, DIALOG
@@ -1378,6 +1486,11 @@ END
 
 STRINGTABLE 
 BEGIN
+    ID_PROG_BAR             "                                        "
+END
+
+STRINGTABLE 
+BEGIN
     IDS_FINDPREV            "Find Previous"
     IDS_FIND_MATCHCASE      "Match case"
     IDS_PREFS_GENERAL       "General"
@@ -1395,11 +1508,25 @@ BEGIN
     IDS_FIND                "Find:"
     IDS_FIND_HIGHLIGHT      "Highlight"
     IDS_DOWNLOAD_FAILED     "Download failed! "
+    IDS_CONFIRM_DELETEALLCOOKIES 
+                            "Are you sure you want to delete all cookies?"
+    IDS_CONFIRM_DELETEALLPASSWORDS 
+                            "Are you sure you want to delete all passwords?"
+    IDS_FAILED_PERMISSION   "Failed to enter the new permission!"
+    IDS_FAILED_DELETE_COOKIE "Failed to delete the cookie(s)"
+    IDS_FAILED_DELETE_PERMISSION "Failed to delete the permission(s)"
+    IDS_CONFIRM_DELETEALLPERMISSIONS 
+                            "Are you sure you want to delete all permissions?"
+    IDS_FAILED_DELETE_PASSWORD "Failed to delete the password(s)"
+    IDS_PERMISSION_COOKIE   "You can specify what website are always, or never authorized to use cookies. Write the url below and click on block or allow."
+    IDS_PERMISSION_IMAGE    "You can specify what website are always, or never authorized to display images. Write the url below and click on block or allow."
 END
 
 STRINGTABLE 
 BEGIN
-    ID_PROG_BAR             "                                        "
+    IDS_PERMISSION_POPUP    "You can specify what website are authorized to open popup. Write the url below and click on allow."
+    IDS_AUTHORIZED          "Authorized"
+    IDS_DENIED              "Denied"
     IDS_PREFS_DOWNLOAD      "Download"
 END
 

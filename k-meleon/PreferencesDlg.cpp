@@ -25,6 +25,9 @@
 extern CMfcEmbedApp theApp;
 
 #include "Preferences.h"
+#include "CookiesViewerDlg.h"
+#include "PasswordViewerDlg.h"
+#include "Permissions.h"
 #include "Plugins.h"
 #include <wininet.h>
 
@@ -197,7 +200,7 @@ BOOL CPreferencePage::OnInitDialog(){
             }
          }
          SendDlgItemMessage(IDC_COMBO, CB_SETCURSEL, index, 0);
-         
+		 OnBnClickedDisablePopup();
          break;
       }
       
@@ -304,11 +307,17 @@ void CPreferencePage::DoDataExchange(CDataExchange* pDX){
 BEGIN_MESSAGE_MAP(CPreferencePage, CDialog)
 	//{{AFX_MSG_MAP(CPreferencePage)
 	ON_BN_CLICKED(IDC_BUTTON_BROWSE, OnBrowse)
+	ON_BN_CLICKED(IDC_VIEW_COOKIES, OnViewCookies)
+	ON_BN_CLICKED(IDC_VIEW_PASSWORDS, OnViewPasswords)
+	ON_BN_CLICKED(IDC_COOKIE_PERMISSIONS, OnCookiePermissions)
+	ON_BN_CLICKED(IDC_IMAGE_PERMISSIONS, OnImagePermissions)
+	ON_BN_CLICKED(IDC_POPUP_PERMISSIONS, OnPopupPermissions)
 	ON_BN_CLICKED(IDC_BUTTON_CLEAR_MEM_CACHE, OnClearMemCache)
 	ON_BN_CLICKED(IDC_BUTTON_CLEAR_DISK_CACHE, OnClearDiskCache)
    ON_CBN_SELCHANGE(IDC_COMBO, OnComboChanged)
    ON_CBN_SELCHANGE(IDC_COMBO_SKIN, OnComboChanged)
   //}}AFX_MSG_MAP
+  ON_BN_CLICKED(IDC_CHECK_LOAD, OnBnClickedDisablePopup)
 END_MESSAGE_MAP()
 
 void CPreferencePage::OnClearMemCache() {
@@ -332,6 +341,38 @@ void CPreferencePage::OnClearDiskCache() {
    CacheService->EvictEntries(nsICache::STORE_IN_MEMORY);
    CacheService->EvictEntries(nsICache::STORE_ON_DISK);
    CacheService->EvictEntries(nsICache::STORE_ON_DISK_AS_FILE);
+}
+
+void CPreferencePage::OnViewCookies() {
+	CCookiesViewerDlg dlg(this);
+	dlg.DoModal();
+}
+
+void CPreferencePage::OnViewPasswords() {
+	CPasswordViewerDlg dlg(this);
+	dlg.DoModal();
+}
+
+void CPreferencePage::OnCookiePermissions() {
+	CPermissionsDlg dlg("cookie", this);
+	dlg.DoModal();
+}
+
+void CPreferencePage::OnImagePermissions() {
+	CPermissionsDlg dlg("image", this);
+	dlg.DoModal();
+}
+
+void CPreferencePage::OnPopupPermissions() {
+	CPermissionsDlg dlg("popup", this);
+	dlg.DoModal();
+}
+
+void CPreferencePage::OnBnClickedDisablePopup()
+{
+	CWnd* button = GetDlgItem(IDC_POPUP_PERMISSIONS);
+	if (button)
+		button->EnableWindow(IsDlgButtonChecked(IDC_CHECK_LOAD));
 }
 
 void CPreferencePage::OnBrowse() {
@@ -637,13 +678,13 @@ void CPreferencePageConfigs::SaveFile(const TCHAR *filename)
 void CPreferencePageConfigs::ShowFile(const TCHAR *filename){
    CFile file;
    if (file.Open(filename, CFile::modeRead)){
-      ULONGLONG length = file.GetLength();
+      UINT length = (UINT)file.GetLength();
       char *buffer = new char[length+1];
       buffer[file.Read(buffer, length)] = 0;
 
       char *p = strchr(buffer, '\n');
       if (p && *(p-1)!='\r') {
-        ULONGLONG i = 1;
+        UINT i = 1;
 	while ( (p = strchr(p+1, '\n')) )
 	  i++;
 	char *buffer2 = new char[length+i+1];

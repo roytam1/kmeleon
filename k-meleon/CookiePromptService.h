@@ -21,6 +21,7 @@
 
 #include "nsICookiePromptService.h"
 #include "resource.h"
+#include "DialogEx.h"
 
 #ifndef XP_WIN
 #define XP_WIN
@@ -48,10 +49,10 @@ public:
 
 class CConfirmCookieDialog : public CDialog
 {
-	DECLARE_DYNAMIC(CConfirmCookieDialog)
+	//DECLARE_DYNAMIC(CConfirmCookieDialog)
 
 public:
-	CConfirmCookieDialog::CConfirmCookieDialog(CWnd* pParent, const TCHAR* pText, bool bAcceptSite);
+	CConfirmCookieDialog::CConfirmCookieDialog(CWnd* pParent, const TCHAR* pText, BOOL bAcceptSite);
 	virtual ~CConfirmCookieDialog();
 	int m_bCheckBoxValue;
 	CString m_csMsg,

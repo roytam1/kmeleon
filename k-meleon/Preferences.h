@@ -23,7 +23,7 @@
 #include "StdAfx.h"
 
 #include "resource.h"
-
+#include "DialogEx.h"
 
 class CPreferences {
 public:
@@ -202,6 +202,12 @@ protected:
    afx_msg void OnClearMemCache();
    afx_msg void OnBrowse();
    afx_msg void OnComboChanged();
+   afx_msg void OnViewCookies();
+   afx_msg void OnViewPasswords();
+   afx_msg void OnCookiePermissions();
+   afx_msg void OnImagePermissions();
+   afx_msg void OnPopupPermissions();
+   afx_msg void OnBnClickedDisablePopup();
 
    virtual void OnOK();
    virtual void OnCancel();
