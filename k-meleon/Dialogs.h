@@ -257,7 +257,7 @@ public:
     CConfirmCheckDialog(CWnd* pParent, const TCHAR* pTitle, const TCHAR* pText,
                   const TCHAR* pCheckText, int initCheckVal,
                   const TCHAR *pBtn1Text, const TCHAR *pBtn2Text, 
-                  const TCHAR *pBtn3Text);
+                  const TCHAR *pBtn3Text, int defButton);
 	
     // Dialog Data
     enum { IDD = IDD_CONFIRM_CHECK_DIALOG };
@@ -266,6 +266,7 @@ public:
     CString m_csMsgText;
     CString m_csCheckBoxText;
     int m_bCheckBoxValue;
+	int m_defButton;
     CString m_csBtn1Text;
     CString m_csBtn2Text;
     CString m_csBtn3Text;
@@ -284,6 +285,7 @@ public:
     //}}AFX_MSG
 
     DECLARE_MESSAGE_MAP()
+	virtual void OnCancel();
 };
 
 #endif //_DIALOG_H_

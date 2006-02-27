@@ -383,6 +383,13 @@
 #define IDS_DENIED                      61272
 #define IDS_PREFS_DOWNLOAD              61276
 
+#define IDS_OK                          61279
+#define IDS_CANCEL                      61280
+#define IDS_NO                          61281
+#define IDS_YES                         61282
+#define IDS_SAVE                        61283
+#define IDS_DONTSAVE                    61284
+#define IDS_REVERT                      61285
 #define IDD_CONFIRM_COOKIE              2100
 #define IDC_CHECK_REMEMBER              2101
 #define IDOKSESSION                     2104
