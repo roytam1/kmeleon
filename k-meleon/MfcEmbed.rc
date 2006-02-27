@@ -1530,6 +1530,16 @@ BEGIN
     IDS_PREFS_DOWNLOAD      "Download"
 END
 
+STRINGTABLE 
+BEGIN
+    IDS_OK                  "Ok"
+    IDS_CANCEL              "Cancel"
+    IDS_NO                  "No"
+    IDS_YES                 "Yes"
+    IDS_SAVE                "Save"
+    IDS_DONTSAVE            "Don't Save"
+    IDS_REVERT              "Revert"
+END
 #endif    // Anglais (États-Unis) resources
 /////////////////////////////////////////////////////////////////////////////
 

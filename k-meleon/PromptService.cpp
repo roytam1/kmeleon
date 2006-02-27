@@ -114,9 +114,12 @@ NS_IMETHODIMP CPromptService::ConfirmCheck(nsIDOMWindow *parent,
     USES_CONVERSION;
 
     CWnd *wnd = CWndForDOMWindow(parent);
+	CString sYes, sNo;
+	sYes.LoadString(IDS_YES);
+	sNo.LoadString(IDS_NO);
     CConfirmCheckDialog dlg(wnd, W2CT(dialogTitle), W2CT(text),
                     W2CT(checkboxMsg), checkValue ? *checkValue : 0,
-                    _T("Yes"), _T("No"), NULL);
+                    sYes, sNo, NULL, 1);
 
     int iBtnClicked = dlg.DoModal();
 
@@ -276,29 +279,32 @@ NS_IMETHODIMP CPromptService::ConfirmEx(nsIDOMWindow *parent,
     const PRUnichar* buttonStrings[] = { button0Title, button1Title, button2Title };
     CString csBtnTitles[3];
 
+	int defButton = 
+		(buttonFlags & BUTTON_POS_1_DEFAULT) ? 1 :
+		(buttonFlags & BUTTON_POS_2_DEFAULT) ? 2 : 0;
     for(int i=0; i<3; i++)
     {
         switch(buttonFlags & 0xff) {
             case BUTTON_TITLE_OK:
-                csBtnTitles[i] = "OK";
+                csBtnTitles[i].LoadString(IDS_OK);
                 break;
             case BUTTON_TITLE_CANCEL:
-                csBtnTitles[i] = "Cancel";
+                csBtnTitles[i].LoadString(IDS_CANCEL);
                 break;
             case BUTTON_TITLE_YES:
-                csBtnTitles[i] = "Yes";
+                csBtnTitles[i].LoadString(IDS_YES);
                 break;
             case BUTTON_TITLE_NO:
-                csBtnTitles[i] = "No";
+                csBtnTitles[i].LoadString(IDS_NO);
                 break;
             case BUTTON_TITLE_SAVE:
-                csBtnTitles[i] = "Save";
+                csBtnTitles[i].LoadString(IDS_SAVE);
                 break;
             case BUTTON_TITLE_DONT_SAVE:
-                csBtnTitles[i] = "DontSave";
+                csBtnTitles[i].LoadString(IDS_DONTSAVE);
                 break;
             case BUTTON_TITLE_REVERT:
-                csBtnTitles[i] = "Revert";
+                csBtnTitles[i].LoadString(IDS_REVERT);
                 break;
             case BUTTON_TITLE_IS_STRING:
                 csBtnTitles[i] = W2CT(buttonStrings[i]);
@@ -313,7 +319,8 @@ NS_IMETHODIMP CPromptService::ConfirmEx(nsIDOMWindow *parent,
         checkMsg ? W2CT(checkMsg) : NULL, checkValue ? *checkValue : 0,
                     csBtnTitles[0].IsEmpty() ? NULL : (LPCTSTR)csBtnTitles[0], 
                     csBtnTitles[1].IsEmpty() ? NULL : (LPCTSTR)csBtnTitles[1], 
-                    csBtnTitles[2].IsEmpty() ? NULL : (LPCTSTR)csBtnTitles[2]);
+                    csBtnTitles[2].IsEmpty() ? NULL : (LPCTSTR)csBtnTitles[2],
+					defButton);
 
     *buttonPressed = dlg.DoModal();
 

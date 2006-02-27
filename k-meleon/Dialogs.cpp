@@ -706,7 +706,7 @@ int CAlertCheckDialog::OnInitDialog()
 CConfirmCheckDialog::CConfirmCheckDialog(CWnd* pParent, const TCHAR* pTitle, const TCHAR* pText,
                             const TCHAR* pCheckText, int initCheckVal,
                             const TCHAR*pBtn1Text, const TCHAR*pBtn2Text, 
-                            const TCHAR*pBtn3Text)
+                            const TCHAR*pBtn3Text, int defButton)
             : CDialog(CConfirmCheckDialog::IDD, pParent)
 {   
     if(pTitle)
@@ -717,6 +717,7 @@ CConfirmCheckDialog::CConfirmCheckDialog(CWnd* pParent, const TCHAR* pTitle, con
         m_csCheckBoxText = pCheckText; 
 
     m_bCheckBoxValue = initCheckVal;
+	m_defButton = defButton;
 
     if(pBtn1Text)
         m_csBtn1Text = pBtn1Text;
@@ -827,4 +828,10 @@ void CConfirmCheckDialog::OnBtn3Clicked()
     UpdateData();
 
     EndDialog(2); // where 2 indicates that the btn pressed was at index 2
+}
+
+void CConfirmCheckDialog::OnCancel()
+{
+	UpdateData();
+	EndDialog(m_defButton);
 }
