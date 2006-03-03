@@ -328,10 +328,20 @@ int GetID(char *strID) {
       char *plugin = strID;
       char *parameter = strchr(strID, '(');
       if (parameter) {
-         *parameter++ = 0;
-         char *close = strchr(parameter, ')');
-         if (close)
-            *close = 0;
+         *parameter = 0;
+
+		 int c = 1;
+		 char* close = parameter++;
+
+		 while ( *(++close) ) {
+			 if (*close == '(')
+				 c++;
+			 else if (*close == ')') {
+				 c--;
+				 if (!c) break;
+			 }
+		 }
+		 *close = 0;
       }
       
       theApp.plugins.SendMessage(plugin, "* GetID", "DoAccel", (long) parameter, (long)&ID);
