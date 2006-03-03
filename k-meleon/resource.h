@@ -273,6 +273,7 @@
 #define IDC_RADIO_DOWNLOAD_DIR2         1192
 #define IDC_EDIT_FONT_MINSIZE           1193
 #define IDC_HIGHLIGHT                   1194
+#define IDC_SHRINK_TOFIT                1195
 #define IDC_FILE_ICON                   2115
 #define ID_NAV_BACK                     32773
 #define ID_NAV_FORWARD                  32774

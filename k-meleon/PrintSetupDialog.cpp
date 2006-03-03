@@ -43,6 +43,7 @@ CPrintSetupDialog::CPrintSetupDialog(nsIPrintSettings* aPrintSettings, CWnd* pPa
 	m_RightMargin = _T("");
 	m_TopMargin = _T("");
 	m_Scaling = 0;
+	m_ShrinkToFit = FALSE;
 	m_PrintBGImages = FALSE;
 	m_PrintBGColors = FALSE;
 	m_PaperSize = _T("");
@@ -72,6 +73,7 @@ void CPrintSetupDialog::DoDataExchange(CDataExchange* pDX)
 	DDX_Slider(pDX, IDC_SCALE, m_Scaling);
 	DDX_Check(pDX, IDC_PRT_BGIMAGES, m_PrintBGImages);
 	DDX_Check(pDX, IDC_PRT_BGCOLORS, m_PrintBGColors);
+	DDX_Check(pDX, IDC_SHRINK_TOFIT, m_ShrinkToFit);
 	DDX_CBString(pDX, IDC_PAPER_SIZE_CBX, m_PaperSize);
 	DDX_Text(pDX, IDC_UD_PAPER_HGT, m_PaperHeight);
 	DDX_Text(pDX, IDC_UD_PAPER_WDTH, m_PaperWidth);
@@ -92,6 +94,7 @@ BEGIN_MESSAGE_MAP(CPrintSetupDialog, CDialog)
 	ON_EN_KILLFOCUS(IDC_SCALE_TXT, OnKillfocusScaleTxt)
 	ON_CBN_SELCHANGE(IDC_PAPER_SIZE_CBX, OnSelchangePaperSizeCbx)
 	//}}AFX_MSG_MAP
+	ON_BN_CLICKED(IDC_SHRINK_TOFIT, OnBnClickedShrinkTofit)
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -120,6 +123,8 @@ void CPrintSetupDialog::SetPrintSettings(nsIPrintSettings* aPrintSettings)
 	  m_Scaling = int(scaling * 100.0);
 
     PRBool boolVal;
+	aPrintSettings->GetShrinkToFit(&boolVal);
+	m_ShrinkToFit = boolVal == PR_TRUE;
     aPrintSettings->GetPrintBGColors(&boolVal);
     m_PrintBGColors = boolVal == PR_TRUE;
     aPrintSettings->GetPrintBGImages(&boolVal);
@@ -205,15 +210,16 @@ void CPrintSetupDialog::GetPaperSizeInfo(short& aUnit, double& aWidth, double& a
 
 BOOL CPrintSetupDialog::OnInitDialog() 
 {
-	CDialog::OnInitDialog();
 	
   CSliderCtrl* scale = (CSliderCtrl*)GetDlgItem(IDC_SCALE);
   CWnd* scaleTxt     = GetDlgItem(IDC_SCALE_TXT);
   if (scale != NULL) {
-    scale->SetRange(50, 100);
+    scale->SetRange(50, 150);
     scale->SetBuddy(scaleTxt, FALSE);
     scale->SetTicFreq(10);
   }
+
+  CDialog::OnInitDialog();
 
 	CComboBox* cbx = (CComboBox*)GetDlgItem(IDC_PAPER_SIZE_CBX);
   if (cbx != NULL) {
@@ -261,6 +267,7 @@ BOOL CPrintSetupDialog::OnInitDialog()
     }
   }
 
+  OnBnClickedShrinkTofit();
 	return TRUE;  // return TRUE unless you set the focus to a control
 	              // EXCEPTION: OCX Property Pages should return FALSE
 }
@@ -329,4 +336,17 @@ void CPrintSetupDialog::OnSelchangePaperSizeCbx()
     EnableUserDefineControls(gPaperSize[m_PaperSizeInx].mIsUserDefined);
   }
 	
+}
+
+void CPrintSetupDialog::OnBnClickedShrinkTofit()
+{
+	CSliderCtrl* scale = (CSliderCtrl*)GetDlgItem(IDC_SCALE);
+	CWnd* scaleTxt     = GetDlgItem(IDC_SCALE_TXT);
+	if (IsDlgButtonChecked(IDC_SHRINK_TOFIT)) {
+		scale->EnableWindow(FALSE);
+		scaleTxt->EnableWindow(FALSE);
+	} else {
+		scale->EnableWindow(TRUE);
+		scaleTxt->EnableWindow(TRUE);
+	}
 }

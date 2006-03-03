@@ -135,6 +135,7 @@ public:
    CString printMarginLeft;
    CString printMarginBottom;
    int printScaling;
+   int printShrinkToFit;
    
    int printBGColors;
    int printBGImages;
