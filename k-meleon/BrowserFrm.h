@@ -232,6 +232,7 @@ protected:
     afx_msg void ToggleToolbarLock();
     afx_msg void OnUpdateToggleToolbarLock(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateToolBarMenu(CCmdUI*);
+	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
     //}}AFX_MSG
     DECLARE_MESSAGE_MAP()
 };
