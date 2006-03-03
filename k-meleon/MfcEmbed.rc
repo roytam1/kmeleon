@@ -1542,6 +1542,9 @@ BEGIN
     IDS_SAVE                "Save"
     IDS_DONTSAVE            "Don't Save"
     IDS_REVERT              "Revert"
+    IDS_TEXT_ZOOM           "Text Zoom: %.0f"
+    IDS_ONLINE              "Online"
+    IDS_OFFLINE             "Offline"
 END
 #endif    // Anglais (États-Unis) resources
 /////////////////////////////////////////////////////////////////////////////

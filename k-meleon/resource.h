@@ -391,6 +391,9 @@
 #define IDS_SAVE                        61283
 #define IDS_DONTSAVE                    61284
 #define IDS_REVERT                      61285
+#define IDS_TEXT_ZOOM                   61286
+#define IDS_ONLINE                      61287
+#define IDS_OFFLINE                     61288
 #define IDD_CONFIRM_COOKIE              2100
 #define IDC_CHECK_REMEMBER              2101
 #define IDOKSESSION                     2104
