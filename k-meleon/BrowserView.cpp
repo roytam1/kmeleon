@@ -406,11 +406,11 @@ void CBrowserView::OnEditURL( NMHDR * pNotifyStruct, LRESULT * result )
 }
 
 
-char* CBrowserView::NicknameLookup(char* pUrl)
+char* CBrowserView::NicknameLookup(const char* pUrl)
 {
     char *p, *q, *r;
     char *nickUrl;
-    
+    char *retUrl;
     // Check for a nickname
     nickUrl = NULL;
     p = strdup(pUrl);                   // get entered URL
@@ -435,17 +435,17 @@ char* CBrowserView::NicknameLookup(char* pUrl)
             if (q)                        // if more than one word
                 strcat(custUrl, q+1);     // copy second word
             strcat(custUrl, r+2);         // copy string after %s
-            pUrl = custUrl;
+            retUrl = custUrl;
             free(nickUrl);
         }
         else
-            pUrl = nickUrl;
+            retUrl = nickUrl;
     }
     else 
-        pUrl = strdup(pUrl);
+        retUrl = strdup(pUrl);
 
     free(p);
-    return pUrl;
+    return retUrl;
 } 
 
 
@@ -606,7 +606,7 @@ void CBrowserView::OnNewUrlEnteredInUrlBar()
    if(IsViewSourceUrl(strUrl))
       OpenViewSourceWindow(strUrl.GetBuffer(0));
    else {
-       char *pUrl = NicknameLookup((char*)strUrl.GetBuffer(0));
+       char *pUrl = NicknameLookup(strUrl);
 
        // Navigate to that URL
        if (strchr(pUrl, '\t'))
@@ -647,7 +647,7 @@ void CBrowserView::OnUrlSelectedInUrlBar()
    if(IsViewSourceUrl(strUrl))
       OpenViewSourceWindow(strUrl.GetBuffer(0));
    else {
-       char *pUrl = NicknameLookup((char*)strUrl.GetBuffer(0));
+       char *pUrl = NicknameLookup(strUrl);
 
        // Navigate to that URL
        if (strchr(pUrl, '\t'))
@@ -896,11 +896,11 @@ void CBrowserView::OnSelectNone()
 void CBrowserView::OnFileOpen()
 {
     TCHAR *lpszFilter =
-        "HTML Files Only (*.htm;*.html)\0*.htm;*.html\0"
-        "All Files (*.*)\0*.*\0\0";
+        _T("HTML Files Only (*.htm;*.html)\0*.htm;*.html\0")
+        _T("All Files (*.*)\0*.*\0\0");
 
     OPENFILENAME ofn;
-    char *szFileName = new char[INTERNET_MAX_URL_LENGTH];
+    TCHAR *szFileName = new TCHAR[INTERNET_MAX_URL_LENGTH];
 
     memset(&ofn, 0, sizeof(ofn));
     memset(szFileName, 0, INTERNET_MAX_URL_LENGTH);
@@ -913,22 +913,25 @@ void CBrowserView::OnFileOpen()
     if( ::GetOpenFileName(&ofn) ) {
         CString strFullPath = szFileName;
 
-        FILE *test = fopen(strFullPath, "r");
+        FILE *test = _tfopen(strFullPath, _T("r"));
+        USES_CONVERSION;
 
         if (!test) {
             // if the file doesn't exist, they probably typed a url...
             // so chop off the path (for some reason GetFileName doesn't work for us...
             strFullPath = strFullPath.Mid(strFullPath.ReverseFind('\\')+1);
-            char *pUrl = NicknameLookup((char*)strFullPath.GetBuffer(0));
-            strFullPath = pUrl;
+            char *pUrl = NicknameLookup(strFullPath);
+            strFullPath = A2T(pUrl);
             free(pUrl);
         }else{
             fclose(test);
         }
-        if (strchr(strFullPath.GetBuffer(0), '\t'))
-            OpenMultiURL(strFullPath.GetBuffer(0));
+		
+		char* path = T2A(strFullPath.GetBuffer(0));
+        if (strchr(path, '\t'))
+            OpenMultiURL(path);
         else
-            OpenSingleURL(strFullPath.GetBuffer(0));
+            OpenSingleURL(path);
     }
 
     delete szFileName;
@@ -1160,15 +1163,19 @@ void CBrowserView::OnFilePrintPreview()
 
 static PRUnichar* GetUnicodeFromCString(const CString& aStr)
 {
+#ifdef _UNICODE
+    nsEmbedString str(aStr);
+#else
     nsEmbedString str;
     NS_CStringToUTF16(nsEmbedCString(aStr), NS_CSTRING_ENCODING_ASCII, str);
+#endif
     return NS_StringCloneData(str);
 }
 
-static float GetFloatFromStr(const char* aStr)
+static float GetFloatFromStr(const TCHAR* aStr)
 {                                                                               
    float val;                                                                    
-   sscanf(aStr, "%f", &val);                                                     
+   _stscanf(aStr, _T("%f"), &val);                                                     
    return val;                                                                 
 }
 
@@ -1215,8 +1222,8 @@ void CBrowserView::OnFilePrintSetup()
       dlg.GetPaperSizeInfo(unit, width, height);
 
       theApp.preferences.printUnit = unit;
-      theApp.preferences.printWidth.Format("%f",width);
-      theApp.preferences.printHeight.Format("%f",height);
+      theApp.preferences.printWidth.Format(_T("%f"),width);
+      theApp.preferences.printHeight.Format(_T("%f"),height);
 
       m_PrintSettings->SetPaperSizeType(unit);
       m_PrintSettings->SetPaperWidth(width);
@@ -1483,7 +1490,7 @@ BOOL CALLBACK SearchProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
    else if (uMsg == WM_COMMAND) {
       if (LOWORD(wParam) == IDOK){
-         char buffer[256];
+         TCHAR buffer[256];
          ::GetDlgItemText(hwndDlg, IDC_SEARCH_QUERY, buffer, 255);
          *search = buffer;
          search = NULL;
@@ -1739,7 +1746,7 @@ void CBrowserView::OnMouseAction()
         if (hWnd && ::IsChild(m_hWnd, hWnd)) {
             m_iGetNodeHack = 2;
             ::SendMessage(hWnd, WM_CONTEXTMENU, (WPARAM) hWnd, MAKELONG(pt.x, pt.y));
-            if (mCtxMenuLinkUrl.Length() > 0)
+            if ( (maccel_key!=WM_MBUTTONDOWN && mCtxMenuImgSrc.Length()>0) || mCtxMenuLinkUrl.Length() > 0)
                 ::PostMessage(mpBrowserFrame->m_hWnd, WM_COMMAND, (WPARAM)maccel_cmd, (LPARAM)0);
             else if (!m_panning && maccel_key==WM_MBUTTONDOWN) {
                 maccel_pan=1;
@@ -1799,9 +1806,9 @@ void CBrowserView::ChangeTextSize(PRInt32 change)
    if (textzoom > 0 && textzoom <= 4) {
       domWindow->SetTextZoom(textzoom);
 
-      char szStatus[128];
-      sprintf(szStatus, "Text Zoom: %.0f", textzoom*10);
-      mpBrowserFrame->m_wndStatusBar.SetPaneText(0, szStatus);
+	  CString status;
+	  status.Format(IDS_TEXT_ZOOM, textzoom*10);
+      mpBrowserFrame->m_wndStatusBar.SetPaneText(0, status);
    }
 }
 
@@ -1811,6 +1818,9 @@ void CBrowserView::OnToggleOffline()
 
     theApp.SetOffline(!theApp.preferences.bOffline);
     theApp.menus.SetCheck(ID_OFFLINE, theApp.preferences.bOffline);
-    mpBrowserFrame->m_wndStatusBar.SetPaneText(0, 
-       (theApp.preferences.bOffline ? "Offline" : "Online"));
+
+	CString status;
+	status.LoadString( theApp.preferences.bOffline ? IDS_OFFLINE : IDS_ONLINE );
+
+    mpBrowserFrame->m_wndStatusBar.SetPaneText(0, status); 
 }
