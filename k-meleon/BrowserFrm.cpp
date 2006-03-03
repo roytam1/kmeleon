@@ -133,6 +133,8 @@ CBrowserFrame::~CBrowserFrame()
 {
     if (m_hSecurityIcon)
         DestroyIcon(m_hSecurityIcon);
+	if (m_wndFindBar)
+		delete m_wndFindBar;
 }
 
 BOOL CBrowserFrame::PreTranslateMessage(MSG* pMsg)
@@ -345,21 +347,10 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
         bThrobber = FALSE;
     }
 
-
-    if (bThrobber && !m_wndAnimate.Open(theApp.preferences.settingsDir + "Throbber.avi")) {
-        CString tmp = theApp.preferences.skinsCurrent;
-        while (tmp.GetLength()>0) {
-            if (tmp.GetAt( tmp.GetLength()-1 ) != '\\')
-                tmp = tmp + "\\";
-            if (m_wndAnimate.Open(theApp.preferences.skinsDir + tmp + "Throbber.avi"))
-                break;
-            tmp = tmp.Left( tmp.GetLength()-2 );
-        }
-        if (tmp.GetLength()<1) {
-            if (!m_wndAnimate.Open(theApp.preferences.skinsDir + "default\\Throbber.avi"))
-                bThrobber = FALSE;
-        }
-    }
+	CString throbberPath;
+	theApp.FindSkinFile(throbberPath, _T("Throbber.avi"));
+	if (!m_wndAnimate.Open(throbberPath))
+		bThrobber = FALSE;
 
     // Create a ReBar window to which the toolbar and UrlBar 
     // will be added
@@ -729,6 +720,9 @@ void CBrowserFrame::OnSysColorChange()
 /////////////////////////////////////////////////////////////////////////////
 void CBrowserFrame::SetBackImage ()
 {
+	if (m_bmpBack.GetSafeHandle() == NULL)
+		return;
+
     CReBarCtrl& rc = m_wndReBar.GetReBarCtrl ();
 
     REBARBANDINFO info;
@@ -768,52 +762,14 @@ void CBrowserFrame::LoadBackImage ()
     if (m_bmpBack.GetSafeHandle () != NULL)
         m_bmpBack.DeleteObject ();
 
-    HBITMAP hbmp;
-    CString file;
-
-    file = theApp.preferences.toolbarBackground;
-    hbmp = (HBITMAP) ::LoadImage (AfxGetResourceHandle (),
-        file,
-        IMAGE_BITMAP,
-        0, 0,
-        LR_LOADMAP3DCOLORS | LR_LOADFROMFILE);
-
-    if (!hbmp) {
-        file = theApp.preferences.settingsDir + "Back.bmp";
-        hbmp = (HBITMAP) ::LoadImage (AfxGetResourceHandle (),
-            file,
-            IMAGE_BITMAP,
-            0, 0,
-            LR_LOADMAP3DCOLORS | LR_LOADFROMFILE);
-    }
-
-    if (!hbmp) {
-        CString tmp = theApp.preferences.skinsCurrent;
-        while (tmp.GetLength()>0) {
-            if (tmp.GetAt( tmp.GetLength()-1 ) != '\\')
-                tmp = tmp + "\\";
-            file = theApp.preferences.skinsDir + tmp + "Back.bmp";
-            hbmp = (HBITMAP) ::LoadImage (AfxGetResourceHandle (),
-                file,
-                IMAGE_BITMAP,
-                0, 0,
-                LR_LOADMAP3DCOLORS | LR_LOADFROMFILE);
-            if (hbmp)
-                break;
-            tmp = tmp.Left( tmp.GetLength()-2 );
-        }
-    }
-
-    if (!hbmp) {
-        file = theApp.preferences.skinsDir + "default\\Back.bmp";
-        hbmp = (HBITMAP) ::LoadImage (AfxGetResourceHandle (),
-            file,
-            IMAGE_BITMAP,
-            0, 0,
-            LR_LOADMAP3DCOLORS | LR_LOADFROMFILE);
-    }
-
-    m_bmpBack.Attach (hbmp);
+	CString skinFile;
+	if (theApp.FindSkinFile(skinFile, _T("Back.bmp")))
+	{
+		HBITMAP hbmp = (HBITMAP) ::LoadImage (NULL,
+						skinFile, IMAGE_BITMAP, 0, 0,
+						LR_LOADMAP3DCOLORS | LR_LOADFROMFILE);
+		m_bmpBack.Attach (hbmp);
+	}
 }
 
 LRESULT CBrowserFrame::RefreshToolBarItem(WPARAM ItemID, LPARAM unused)
