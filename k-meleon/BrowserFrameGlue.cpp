@@ -72,7 +72,13 @@ void CBrowserFrame::BrowserFrameGlueObj::UpdateStatusBarText(const PRUnichar *aM
 #endif
    METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
    USES_CONVERSION;
-   pThis->m_wndStatusBar.SetPaneText(0, aMessage ? W2CT(aMessage) : _T(""));
+   CString str;
+   if (aMessage && wcslen(aMessage) > 0)
+	 str = W2CT(aMessage);
+   else
+	 str.LoadString(AFX_IDS_IDLEMESSAGE);
+
+   pThis->m_wndStatusBar.SetPaneText(0, str);
 }
 
 void CBrowserFrame::BrowserFrameGlueObj::UpdateProgress(PRInt32 aCurrent, PRInt32 aMax)
@@ -157,8 +163,13 @@ void CBrowserFrame::BrowserFrameGlueObj::GetBrowserFrameTitle(PRUnichar **aTitle
 
     CString appTitle;
     appTitle.LoadString(AFX_IDS_APP_TITLE);
+	int len = theApp.preferences.GetString("kmeleon.display.title", NULL, appTitle.GetBuffer(0));
+	TCHAR* psz = new TCHAR[len+1];
+	theApp.preferences.GetString("kmeleon.display.title", psz, appTitle.GetBuffer(0));
+	appTitle = psz;
+	free(psz);
 
-    title.Replace(" (" + appTitle + ')', "");
+    title.Replace(_T(" (") + appTitle + _T(')'), _T(""));
 
     if(!title.IsEmpty())
     {
@@ -178,6 +189,11 @@ void CBrowserFrame::BrowserFrameGlueObj::SetBrowserFrameTitle(const PRUnichar *a
 
     CString appTitle;
     appTitle.LoadString(AFX_IDS_APP_TITLE);
+	int len = theApp.preferences.GetString("kmeleon.display.title", NULL, appTitle.GetBuffer(0));
+	TCHAR* psz = new TCHAR[len+1];
+	theApp.preferences.GetString("kmeleon.display.title", psz, appTitle.GetBuffer(0));
+	appTitle = psz;
+	free(psz);
 
     CString title;
     USES_CONVERSION;
@@ -187,7 +203,8 @@ void CBrowserFrame::BrowserFrameGlueObj::SetBrowserFrameTitle(const PRUnichar *a
         pThis->m_wndUrlBar.GetEnteredURL(title);
     }
 
-    title += " (" + appTitle + ')';
+	if (!appTitle.IsEmpty())
+		title += _T(" (") + appTitle + _T(")");
     pThis->SetWindowText(title);
 
     pThis->PostMessage(UWM_UPDATESESSIONHISTORY, 0, 0);
@@ -425,7 +442,7 @@ void CBrowserFrame::BrowserFrameGlueObj::GetBrowserFrameVisibility(PRBool *aVisi
 
    // Is the current BrowserFrame the active one?
    CWnd *pWnd = GetActiveWindow();
-   if (pWnd && pWnd->m_hWnd != pThis->m_hWnd)
+   if (!pWnd || pWnd->m_hWnd != pThis->m_hWnd)
    {
       *aVisible = PR_FALSE;
       return;
