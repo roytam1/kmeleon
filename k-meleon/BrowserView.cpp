@@ -1125,7 +1125,14 @@ void CBrowserView::OnFilePrintPreview()
         }
         if (!m_InPrintPreview) {
             if (NS_SUCCEEDED(print->PrintPreview(m_PrintSettings, nsnull, nsnull)))
+			{
+				// WORKAROUND - FIX ME: Why the print preview doesn't use all the width?
+				// So I'm forcing the window to reposition itself.
+				CRect rect;
+				GetClientRect(rect);
+				mBaseWindow->SetPositionAndSize(0, 0, rect.right, rect.bottom, PR_TRUE);
                 m_InPrintPreview = TRUE;
+			}
         }
         else {
             if (NS_SUCCEEDED(print->ExitPrintPreview()))
@@ -1175,10 +1182,12 @@ void CBrowserView::OnFilePrintSetup()
       m_PrintSettings->SetMarginBottom(GetFloatFromStr(theApp.preferences.printMarginBottom));
 
 
+	  theApp.preferences.printShrinkToFit = dlg.m_ShrinkToFit;
       theApp.preferences.printScaling = dlg.m_Scaling;
       theApp.preferences.printBGColors = dlg.m_PrintBGColors;
       theApp.preferences.printBGImages = dlg.m_PrintBGImages;
 
+	  m_PrintSettings->SetShrinkToFit(theApp.preferences.printShrinkToFit);
       m_PrintSettings->SetScaling(double(theApp.preferences.printScaling) / 100.0);
       m_PrintSettings->SetPrintBGColors(theApp.preferences.printBGColors);
       m_PrintSettings->SetPrintBGImages(theApp.preferences.printBGImages);
@@ -1226,6 +1235,21 @@ void CBrowserView::OnFilePrintSetup()
       m_PrintSettings->SetFooterStrRight(uStr);
       if (uStr != nsnull) nsMemory::Free(uStr);
       theApp.preferences.printFooterRight = dlg.m_FooterRight;
+   }
+   if (m_InPrintPreview) 
+   {
+	    nsCOMPtr<nsIWebBrowserPrint> print(do_GetInterface(mWebBrowser));
+		if(print)
+		{
+			if (NS_SUCCEEDED(print->PrintPreview(m_PrintSettings, nsnull, nsnull)))
+			{
+				// WORKAROUND - FIX ME: Why the print preview doesn't use all the width?
+				// So I'm forcing the window to reposition itself.
+				CRect rect;
+				GetClientRect(rect);
+				mBaseWindow->SetPositionAndSize(0, 0, rect.right, rect.bottom, PR_TRUE);
+			}
+		}
    }
 }
 
@@ -1615,6 +1639,7 @@ BOOL CBrowserView::GetPrintSettings() {
    m_PrintSettings->SetMarginRight(GetFloatFromStr(theApp.preferences.printMarginRight));
    m_PrintSettings->SetMarginBottom(GetFloatFromStr(theApp.preferences.printMarginBottom));
 
+   m_PrintSettings->SetShrinkToFit(theApp.preferences.printShrinkToFit);
    m_PrintSettings->SetScaling(double(theApp.preferences.printScaling) / 100.0);
    m_PrintSettings->SetPrintBGColors(theApp.preferences.printBGColors);
    m_PrintSettings->SetPrintBGImages(theApp.preferences.printBGImages);
