@@ -105,7 +105,11 @@ nsresult CProfileMgr::StartUp()
             if (NS_FAILED(rv)) return rv;
             rv = profileService->SetCurrentProfile(currProfileName);
 			nsMemory::Free(currProfileName);
-            if (NS_FAILED(rv)) return rv;
+			if (NS_FAILED(rv)) {
+				rv = DoManageProfilesDialog(TRUE);
+				if (NS_FAILED(rv))
+					exit(1);	
+			}
         }    
     }
 
@@ -160,27 +164,37 @@ BOOL CProfileMgr::ShutDownCurrentProfile(BOOL cleanup) {
 
 nsresult CProfileMgr::DoManageProfilesDialog(PRBool bAtStartUp)
 {
-    CProfilesDlg    dialog;
     nsresult        rv;
     PRBool          showIt;
 
     rv = GetShowDialogOnStart(&showIt);
-    dialog.m_bAtStartUp = bAtStartUp;
-    dialog.m_bAskAtStartUp = NS_SUCCEEDED(rv) ? showIt : TRUE;
 
-   if (dialog.DoModal() == IDOK)
+	int res;
+	do
    {
+	  CProfilesDlg dialog;
+	  dialog.m_bAtStartUp = bAtStartUp;
+	  dialog.m_bAskAtStartUp = NS_SUCCEEDED(rv) ? showIt : TRUE;
+      res = dialog.DoModal();
+
       SetShowDialogOnStart(dialog.m_bAskAtStartUp);
-         
-      nsCOMPtr<nsIProfile> profileService = 
-         do_GetService(NS_PROFILE_CONTRACTID, &rv);
-      if (NS_SUCCEEDED(rv))
-         if (bAtStartUp)
-            rv = profileService->SetCurrentProfile(dialog.m_SelectedProfile.get());
-   }
-   else if (bAtStartUp)
-     return NS_ERROR_FAILURE;
-   return NS_OK;
+      
+	  if (res == IDOK) {
+		nsCOMPtr<nsIProfile> profileService = 
+			do_GetService(NS_PROFILE_CONTRACTID, &rv);
+		if (NS_SUCCEEDED(rv))
+			if (bAtStartUp) {
+				rv = profileService->SetCurrentProfile(dialog.m_SelectedProfile.get());
+				if (NS_FAILED(rv)) AfxMessageBox(IDS_PROFILE_LOAD_FAILED, MB_OK|MB_ICONERROR);
+			}
+	  }
+
+   } while ( NS_FAILED(rv) && res == IDOK);
+
+   if (bAtStartUp && res != IDOK)
+	return NS_ERROR_FAILURE;
+
+   return rv;
 }
     
  
