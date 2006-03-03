@@ -912,3 +912,16 @@ void CBrowserFrame::ClearFindBar()
 	m_wndFindBar = NULL;
 	RecalcLayout();
 }
+
+void CBrowserFrame::OnSysCommand(UINT nID, LPARAM lParam)
+{
+	if (nID == SC_MINIMIZE) {
+		// We're taking care of the focus here, because it will
+		// be lost after that and not correctly memorized.
+		nsCOMPtr<nsIWebBrowserFocus> focus(do_GetInterface(m_wndBrowserView.mWebBrowser));
+		if(focus)
+			focus->Deactivate();
+	}
+
+	CFrameWnd::OnSysCommand(nID, lParam);
+}
