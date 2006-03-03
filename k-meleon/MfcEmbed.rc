@@ -1528,6 +1528,7 @@ BEGIN
     IDS_AUTHORIZED          "Authorized"
     IDS_DENIED              "Denied"
     IDS_PREFS_DOWNLOAD      "Download"
+    IDS_PROFILE_LOAD_FAILED "The selected profile can't be loaded. It's probably already in use."
 END
 
 STRINGTABLE 
