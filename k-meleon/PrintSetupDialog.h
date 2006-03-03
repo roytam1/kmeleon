@@ -27,6 +27,7 @@ public:
 	CString	m_RightMargin;
 	CString	m_TopMargin;
 	int		m_Scaling;
+	BOOL    m_ShrinkToFit;
 	BOOL	m_PrintBGImages;
 	BOOL	m_PrintBGColors;
 	CString	m_PaperSize;
@@ -65,6 +66,7 @@ protected:
 	afx_msg void OnCustomdrawScale(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnKillfocusScaleTxt();
 	afx_msg void OnSelchangePaperSizeCbx();
+	afx_msg void OnBnClickedShrinkTofit();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };

@@ -302,6 +302,7 @@ void CPreferences::Load() {
       _GetString("kmeleon.print.marginBottom", printMarginBottom, "0.5");
       
       _GetInt("kmeleon.print.scaling", printScaling, 100);
+	  _GetBool("kmeleon.print.shrinkToFit", printShrinkToFit, true);
       _GetInt("kmeleon.print.paperUnit", printUnit, nsIPrintSettings::kPaperSizeInches);
       _GetString("kmeleon.print.paperWidth", printWidth, "8.5");
       _GetString("kmeleon.print.paperHeight", printHeight, "11");
@@ -466,6 +467,7 @@ void CPreferences::Save() {
       _SetString("kmeleon.print.marginTop",printMarginTop)
       _SetString("kmeleon.print.marginBottom",printMarginBottom)
       
+	  rv = prefs->SetBoolPref("kmeleon.print.shrinkToFit", printShrinkToFit);
       rv = prefs->SetIntPref("kmeleon.print.scaling", printScaling);
       rv = prefs->SetIntPref("kmeleon.print.paperUnit", printUnit);
       _SetString("kmeleon.print.paperWidth",printWidth)
