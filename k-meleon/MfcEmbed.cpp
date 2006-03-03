@@ -65,6 +65,7 @@
 #include "nsIPluginManager.h"
 #include "nsIIOService.h"
 #include "nsIWindowWatcher.h"
+static UINT WM_POSTEVENT = RegisterWindowMessage(_T("XPCOM_PostEvent"));
 
 #ifdef MOZ_PROFILESHARING
 #include "nsIProfileSharingSetup.h"
@@ -307,6 +308,19 @@ BOOL CMfcEmbedApp::InitInstance()
 
    m_MRUList = new CMostRecentUrls();
 
+   // Retrieve the default icon
+   CString sSkinIcon;
+   if (FindSkinFile(sSkinIcon, _T("main.ico")))
+   {
+	   m_hMainIcon = (HICON)LoadImage( NULL, sSkinIcon, IMAGE_ICON, 0,0, LR_DEFAULTSIZE | LR_LOADFROMFILE );
+	   m_hSmallIcon = (HICON)LoadImage( NULL, sSkinIcon, IMAGE_ICON, 16,16, LR_LOADFROMFILE );
+   }
+   else
+   {
+	   m_hMainIcon = LoadIcon( IDR_MAINFRAME );
+	   m_hSmallIcon = LoadIcon( IDR_MAINFRAME );
+   }
+
    plugins.FindAndLoad();
    plugins.SendMessage("*", "* Plugin Manager", "Init");
    InitializeMenusAccels();
@@ -322,35 +336,6 @@ BOOL CMfcEmbedApp::InitInstance()
    wc.hInstance = AfxGetInstanceHandle();
    wc.lpszClassName = HIDDEN_WINDOW_CLASS;
 
-   if (!(m_hMainIcon = (HICON)LoadImage( NULL, theApp.preferences.settingsDir + "main.ico", IMAGE_ICON, 0,0, LR_DEFAULTSIZE | LR_LOADFROMFILE ))) {
-      CString tmp = theApp.preferences.skinsCurrent;
-      while (tmp.GetLength()>0) {
-         if (tmp.GetAt( tmp.GetLength()-1 ) != '\\')
-            tmp = tmp + "\\";
-         if ((m_hMainIcon = (HICON)LoadImage( NULL, theApp.preferences.skinsDir + tmp + "main.ico", IMAGE_ICON, 0,0, LR_DEFAULTSIZE | LR_LOADFROMFILE )))
-            break;
-         tmp = tmp.Left( tmp.GetLength()-2 );
-      }
-      if (tmp.GetLength()<1) {
-         if (!(m_hMainIcon = (HICON)LoadImage( NULL, theApp.preferences.skinsDir + "default\\main.ico", IMAGE_ICON, 0,0, LR_DEFAULTSIZE | LR_LOADFROMFILE )))
-            m_hMainIcon = LoadIcon( IDR_MAINFRAME );
-      }
-   }
-
-   if (!(m_hSmallIcon = (HICON)LoadImage( NULL, theApp.preferences.settingsDir + "main.ico", IMAGE_ICON, 16,16, LR_LOADFROMFILE ))) {
-      CString tmp = theApp.preferences.skinsCurrent;
-      while (tmp.GetLength()>0) {
-         if (tmp.GetAt( tmp.GetLength()-1 ) != '\\')
-            tmp = tmp + "\\";
-         if ((m_hSmallIcon = (HICON)LoadImage( NULL, theApp.preferences.skinsDir + tmp + "main.ico", IMAGE_ICON, 16,16, LR_LOADFROMFILE )))
-             break;
-         tmp = tmp.Left( tmp.GetLength()-2 );
-      }
-      if (tmp.GetLength()<1) {
-           if (!(m_hSmallIcon = (HICON)LoadImage( NULL, theApp.preferences.skinsDir + "default\\main.ico", IMAGE_ICON, 16,16, LR_LOADFROMFILE )))
-               m_hSmallIcon = LoadIcon( IDR_MAINFRAME );
-      }
-   }
 
    wc.hIcon=m_hMainIcon;
    AfxRegisterClass( &wc );
@@ -874,9 +859,9 @@ BOOL CMfcEmbedApp::OnIdle(LONG lCount)
 BOOL CMfcEmbedApp::IsIdleMessage( MSG* pMsg )
 {
    if (!CWinApp::IsIdleMessage( pMsg ) || 
-       pMsg->message == WM_TIMER ||
-	   pMsg->message == WM_USER+1 || // WM_CALLMETHOD
-	   pMsg->message == WM_GETDLGCODE ) // FIXME: shouldn't happen
+       pMsg->message == WM_USER+1 || // WM_CALLMETHOD
+	   pMsg->message == WM_POSTEVENT ||
+	   pMsg->message == WM_TIMER) 
 
       return FALSE;
    else
