@@ -173,6 +173,7 @@ public:
 
 
 protected:
+	void _OnNavReload(BOOL force = FALSE);
 	BOOL m_refreshBackButton;
 	BOOL m_refreshForwardButton; 
     BOOL m_InPrintPreview;

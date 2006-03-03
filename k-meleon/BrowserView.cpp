@@ -745,21 +745,38 @@ void CBrowserView::OnNavHome()
         OpenURL("about:blank");
 }
 
+void CBrowserView::_OnNavReload(BOOL force) 
+{
+	PRUint32 loadFlags = nsIWebNavigation::LOAD_FLAGS_NONE;
+	if (force)
+		loadFlags = nsIWebNavigation::LOAD_FLAGS_BYPASS_CACHE | 
+                    nsIWebNavigation::LOAD_FLAGS_BYPASS_PROXY;
+
+	if (mWebNav)
+	{
+		// If there is no URI to reload, load the address in the url bar
+		nsCOMPtr<nsIURI> currentURI;
+		nsresult rv = mWebNav->GetCurrentURI(getter_AddRefs(currentURI));
+		if(NS_FAILED(rv) || !currentURI)
+		{
+			CString url;
+			mpBrowserFrame->m_wndUrlBar.GetEnteredURL(url);
+			if (!url.IsEmpty())
+				OpenURL(url);
+		}
+		else 
+			mWebNav->Reload(loadFlags); 
+	}
+}
+
 void CBrowserView::OnNavReload() 
 {
-    PRUint32 loadFlags = nsIWebNavigation::LOAD_FLAGS_NONE;
-    if (GetKeyState(VK_SHIFT))
-        loadFlags = nsIWebNavigation::LOAD_FLAGS_BYPASS_CACHE | 
-                    nsIWebNavigation::LOAD_FLAGS_BYPASS_PROXY;
-    if (mWebNav)
-        mWebNav->Reload(loadFlags); 
+	_OnNavReload(FALSE);
 }
 
 void CBrowserView::OnNavForceReload()
 {
-    if(mWebNav)
-        mWebNav->Reload(nsIWebNavigation::LOAD_FLAGS_BYPASS_CACHE |
-                        nsIWebNavigation::LOAD_FLAGS_BYPASS_PROXY);
+	_OnNavReload(TRUE);
 }
 
 void CBrowserView::OnNavStop() 
