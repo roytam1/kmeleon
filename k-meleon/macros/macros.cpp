@@ -1335,6 +1335,8 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
 	 int i, j;
 
 	 int len = params[0].length();
+	 if (len < 1) return protectString("");
+
 	 if (params[0].at(len-1) == '/' ||
 		 params[0].at(len-1) == '\\')
 		params[0] = params[0].substr(0, len-1);
