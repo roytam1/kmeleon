@@ -169,21 +169,30 @@ kmeleonDocInfo * GetDocInfo(HWND mainWnd)
    return &kDocInfo;
 }
 
-void GetPreference(enum PREFTYPE type, char *preference, void *ret, void *defVal)
+long GetPreference(enum PREFTYPE type, char *preference, void *ret, void *defVal)
 {
+   long result;
    switch (type) {
    case PREF_BOOL:
-      *(int *)ret = theApp.preferences.GetBool(preference, *(int *)defVal);
+      *(int *)ret = result = theApp.preferences.GetBool(preference, *(int *)defVal);
       break;
    case PREF_INT:
-      *(int *)ret = theApp.preferences.GetInt(preference, *(int *)defVal);
+      *(int *)ret = result = theApp.preferences.GetInt(preference, *(int *)defVal);
       break;
    case PREF_STRING:
-      theApp.preferences.GetString(preference, (char *)ret, (char *)defVal);
+      result = theApp.preferences.GetString(preference, (char *)ret, (char *)defVal);
+      break;
+   case PREF_UNISTRING:
+      result = theApp.preferences.GetString(preference, (wchar_t *)ret, (wchar_t *)defVal);
       break;
    }
+   return result;
 }
 
+void _GetPreference(enum PREFTYPE type, char *preference, void *ret, void *defVal)
+{
+   GetPreference(type, preference, ret, defVal);
+}
 void SetPreference(enum PREFTYPE type, char *preference, void *val, BOOL update)
 {
    theApp.preferences.Save();
@@ -197,6 +206,9 @@ void SetPreference(enum PREFTYPE type, char *preference, void *val, BOOL update)
          break;
       case PREF_STRING:
          theApp.preferences.SetString(preference, (char *)val);
+         break;
+      case PREF_UNISTRING:
+         theApp.preferences.SetString(preference, (wchar_t *)val);
          break;
    }
 
@@ -647,7 +659,7 @@ kmeleonFunctions kmelFuncs = {
    GetCommandIDs,
    NavigateTo,
    GetDocInfo,
-   GetPreference,
+   _GetPreference,
    SetPreference,
    SetStatusBarText,
    GetMozillaSessionHistory,
@@ -668,7 +680,8 @@ kmeleonFunctions kmelFuncs = {
    ClearCache,
    BroadcastMessage,
    ParseAccel,
-   DelPreference
+   DelPreference,
+   GetPreference
 };
 
 BOOL CPlugins::TestLoad(const char *file, const char *description)
