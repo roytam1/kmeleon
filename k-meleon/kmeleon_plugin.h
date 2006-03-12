@@ -58,7 +58,8 @@ typedef struct {
 enum PREFTYPE {
    PREF_BOOL,
    PREF_INT,
-   PREF_STRING
+   PREF_STRING,
+   PREF_UNISTRING
 };
 
 struct kmeleonPlugin;
@@ -76,7 +77,7 @@ typedef struct {
    kmeleonDocInfo * (*GetDocInfo)(HWND mainWnd);
 
    // gets the preference, stores it in ret
-   void (*GetPreference)(enum PREFTYPE type, char *preference, void *ret, void *defaultVal);
+   void (*_GetPreference)(enum PREFTYPE type, char *preference, void *ret, void *defaultVal);
    // sets the preference
    void (*SetPreference)(enum PREFTYPE type, char *preference, void *val, BOOL update /*= FALSE*/);
 
@@ -139,6 +140,7 @@ typedef struct {
 
    void (*DelPreference)(char *preference);
 
+   long (*GetPreference)(enum PREFTYPE type, char *preference, void *ret, void *defaultVal);
 } kmeleonFunctions;
 
 /*
