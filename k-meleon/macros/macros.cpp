@@ -821,12 +821,15 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
             return "";
          }
 
-         char cRetval[4096];
+         char* cRetval;
          int nRetval = 0;
          if (preftype == PREF_STRING) {
-            kFuncs->GetPreference(preftype,(char*)params[1].c_str(),&cRetval,NULL);
+			long len = kFuncs->GetPreference(preftype,(char*)params[1].c_str(),0,0);			
+			cRetval = (char*)calloc(sizeof(char), len+1);
+			kFuncs->GetPreference(preftype,(char*)params[1].c_str(),cRetval,"");
             std::string strRet;
             strRet = protectString( cRetval );
+			free(cRetval);
             return strRet;
          }
          else if (preftype == PREF_INT) {
