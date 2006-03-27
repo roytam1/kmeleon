@@ -24,9 +24,9 @@
 #endif
 
 #define KMELEON_PLUGIN_EXPORTS
+//#include "../resource.h"
 #include "op_hotlist.h"
 #include "../kmeleon_plugin.h"
-#include "../resource.h"
 #include "..\\rebar_menu\\hot_tracking.h"
 #include "../KMeleonConst.h"
 
@@ -461,15 +461,13 @@ void OpenURL(char *url)
         }
 
         int idOpen = kPlugin.kFuncs->GetID(szOpenURLcmd);
-
-        switch (idOpen) {
-        case ID_OPEN_LINK:
+		if (idOpen == kPlugin.kFuncs->GetID("ID_OPEN_LINK")) {
             kPlugin.kFuncs->NavigateTo(url, OPEN_NORMAL, NULL);
             return;
-        case ID_OPEN_LINK_IN_BACKGROUND:
+		}else if (idOpen == kPlugin.kFuncs->GetID("ID_OPEN_LINK_IN_BACKGROUND")) {
             kPlugin.kFuncs->NavigateTo(url, OPEN_BACKGROUND, NULL);
             return;
-        case ID_OPEN_LINK_IN_NEW_WINDOW:
+		}else if (idOpen == kPlugin.kFuncs->GetID("ID_OPEN_LINK_IN_NEW_WINDOW")) {
             kPlugin.kFuncs->NavigateTo(url, OPEN_NEW, NULL);
             return;
         }
