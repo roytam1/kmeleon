@@ -41,9 +41,7 @@ public:
 
 	CPermission(nsIPermission* permission)
 	{
-		nsEmbedCString str;
-		permission->GetHost(str);
-		m_host = strdup(str.get());
+		permission->GetHost(m_host);
 
 		PRUint32 cap;
 		permission->GetCapability(&cap);
