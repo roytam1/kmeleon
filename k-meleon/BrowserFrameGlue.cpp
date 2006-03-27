@@ -105,6 +105,8 @@ void CBrowserFrame::BrowserFrameGlueObj::UpdateBusyState(PRBool aBusy)
     pThis->m_wndUrlBar.GetEnteredURL(szUrl);
     if (_tcscmp(szUrl, _T("about:blank"))==0)
        pThis->m_wndUrlBar.MaintainFocus();
+
+	pThis->m_wndBrowserView.m_lastMouseActionNode = nsnull;
 }
 
 // Called from the OnLocationChange() method in the nsIWebProgressListener 
@@ -387,16 +389,10 @@ void CBrowserFrame::BrowserFrameGlueObj::SetBrowserPositionAndSize(PRInt32 aX, P
 
 void CBrowserFrame::BrowserFrameGlueObj::SetFocus(){
    METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
-/*
-   if (pThis->m_ignoreFocus > 0)
-       pThis->m_ignoreFocus--;
-   else
-*/
-  // How to fix	https://bugzilla.mozilla.org/show_bug.cgi?id=149987 ?
-  // When we get there we seem to have already the focus and steal it
-  // from gecko ?
-  if (!::IsChild(pThis->m_hWnd,::GetFocus()))
-	   pThis->SetFocus();
+  //if (!::IsChild(pThis->m_hWnd,::GetFocus()))
+	   //pThis->SetFocus();
+
+   pThis->m_wndBrowserView.mBaseWindow->SetFocus();
 }
 
 void CBrowserFrame::BrowserFrameGlueObj::FocusAvailable(PRBool *aFocusAvail)
@@ -730,7 +726,7 @@ BUILD_CTX_MENU:
       POINT cursorPos;
       GetCursorPos(&cursorPos);
       
-      int offset = theApp.menus.GetOffset(ctxMenu);
+   /*   int offset = theApp.menus.GetOffset(ctxMenu);
       
       RECT desktopRect;
       SystemParametersInfo(SPI_GETWORKAREA, NULL, &desktopRect, 0);
@@ -752,7 +748,7 @@ BUILD_CTX_MENU:
          }
       } else if (cursorPos.y + menuHeight > desktopRect.bottom) {
           cursorPos.y = desktopRect.bottom - menuHeight;
-      }
+      }*/
       
       ctxMenu->TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, cursorPos.x, cursorPos.y, pThis);
    
