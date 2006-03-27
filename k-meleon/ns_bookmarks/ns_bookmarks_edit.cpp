@@ -1433,8 +1433,8 @@ static void ChangeSpecialFolder(HWND hTree, HTREEITEM *htiOld, HTREEITEM htiNew,
    if (*htiOld) {
       itemData.mask = TVIF_PARAM;
       itemData.hItem = *htiOld;
-      TreeView_GetItem(hTree, &itemData);
-
+      if (!TreeView_GetItem(hTree, &itemData))
+		  return;
       node = (CBookmarkNode *)itemData.lParam;
 
       node->flags &= ~flag;
