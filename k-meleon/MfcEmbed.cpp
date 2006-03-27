@@ -634,19 +634,17 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
            pFrame->ShowWindow(SW_SHOWMAXIMIZED);
        else 
            pFrame->ShowWindow(SW_SHOW);
-       pFrame->BringWindowToTop();
-       pFrame->SetActiveWindow();
-       pFrame->SetFocus();
-       pFrame->UpdateWindow();
+    
+	   pFrame->SetForegroundWindow();
        pFrame->m_created = true;
    }
-
+   else 
+	   theApp.m_pMostRecentBrowserFrame = pOldRecentFrame;
    // Add to the list of BrowserFrame windows
    m_FrameWndLst.AddHead(pFrame);
    
    pFrame->m_ignoreMoveResize = (openedByGecko && !(style & WS_POPUP)) ? 2 : 0;
    
-   theApp.m_pMostRecentBrowserFrame = pOldRecentFrame;
    
    ReleaseMutex(m_hMutex);
    return pFrame;
