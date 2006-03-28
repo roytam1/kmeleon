@@ -224,6 +224,24 @@ BOOL CPreferencePage::OnInitDialog(){
             } while ( FindNextFile(hFind, &ffd) );
             FindClose(hFind);
             SendDlgItemMessage(IDC_COMBO_SKIN, CB_SETCURSEL, index, 0);
+		}
+
+		 fname = theApp.preferences.settingsDir + _T("Skins\\*.*");
+         hFind = FindFirstFile(fname.GetBuffer(0), &ffd);
+         if (hFind != INVALID_HANDLE_VALUE) {
+            fname = theApp.preferences.skinsCurrent;
+            fname = fname.Left(fname.GetLength()-1);
+            do {
+               if (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY && 
+                   ffd.cFileName[0]!='.') {
+                  SendDlgItemMessage(IDC_COMBO_SKIN, CB_ADDSTRING, 0, (LONG)ffd.cFileName);
+                  if (fname.CompareNoCase(ffd.cFileName) == 0)
+                     index=i;
+                  i++;
+               }
+            } while ( FindNextFile(hFind, &ffd) );
+            FindClose(hFind);
+		    SendDlgItemMessage(IDC_COMBO_SKIN, CB_SETCURSEL, index, 0);
          }
          break;
       }
