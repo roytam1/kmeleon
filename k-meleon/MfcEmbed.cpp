@@ -88,8 +88,8 @@ app_getModuleInfo(nsStaticModuleInfo **info, PRUint32 *count);
 static char THIS_FILE[] = __FILE__;
 #endif
 
-#define MENU_CONFIG_FILE "menus.cfg"
-#define ACCEL_CONFIG_FILE "accel.cfg"
+#define MENU_CONFIG_FILE _T("menus.cfg")
+#define ACCEL_CONFIG_FILE _T("accel.cfg")
 
 BEGIN_MESSAGE_MAP(CMfcEmbedApp, CWinApp)
 //{{AFX_MSG_MAP(CMfcEmbedApp)
@@ -207,7 +207,7 @@ BOOL CMfcEmbedApp::InitInstance()
    cmdline.Initialize(m_lpCmdLine);
    
    // check for prior instances
-   HANDLE hMutexOneInstance = CreateMutex( NULL, TRUE, "K-Meleon Instance Mutex" );
+   HANDLE hMutexOneInstance = CreateMutex( NULL, TRUE, _T("K-Meleon Instance Mutex") );
    m_bAlreadyRunning = ( GetLastError() == ERROR_ALREADY_EXISTS );
    
    if ( hMutexOneInstance )
@@ -226,7 +226,7 @@ BOOL CMfcEmbedApp::InitInstance()
 
          if(*m_lpCmdLine) {
             COPYDATASTRUCT copyData;
-            copyData.cbData = strlen(m_lpCmdLine)+1;
+            copyData.cbData = (_tcsclen(m_lpCmdLine)+1)*sizeof(TCHAR);
             copyData.lpData = (void *) m_lpCmdLine;
             SendMessage(hwndPrev, WM_COPYDATA, NULL, (LPARAM) &copyData);
          }
@@ -332,7 +332,11 @@ BOOL CMfcEmbedApp::InitInstance()
    
    // Register the hidden window class
    WNDCLASS wc = { 0 };
+#ifdef _UNICODE
+   wc.lpfnWndProc =  DefWindowProc; // MSLU incompatibility
+#else
    wc.lpfnWndProc =  AfxWndProc;
+#endif
    wc.hInstance = AfxGetInstanceHandle();
    wc.lpszClassName = HIDDEN_WINDOW_CLASS;
 
@@ -653,12 +657,12 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
 void CMfcEmbedApp::OnNewBrowser()
 {
 
-   char *sURI = NULL;
+   TCHAR *sURI = NULL;
    if (preferences.iNewWindowOpenAs == PREF_NEW_WINDOW_CURRENT) {
       // check that the current window has a URI loaded
       int len = m_pMostRecentBrowserFrame->m_wndBrowserView.GetCurrentURI(NULL);
       if (len > 0) {
-         sURI = new char[len+1];
+         sURI = new TCHAR[len+1];
          m_pMostRecentBrowserFrame->m_wndBrowserView.GetCurrentURI(sURI);
          // save the frame that called us, in case it calls again
          // before the newly created frame has had time to load the URI
@@ -667,7 +671,7 @@ void CMfcEmbedApp::OnNewBrowser()
       else if (m_pOpenNewBrowserFrame) {
          len = m_pOpenNewBrowserFrame->m_wndBrowserView.GetCurrentURI(NULL);
          if (len > 0) {
-            sURI = new char[len+1];
+            sURI = new TCHAR[len+1];
             m_pOpenNewBrowserFrame->m_wndBrowserView.GetCurrentURI(sURI);
          }
       }
@@ -719,6 +723,7 @@ void CMfcEmbedApp::RemoveFrameFromList(CBrowserFrame* pFrm)
    POSITION pos = m_FrameWndLst.Find(pFrm);
    m_FrameWndLst.RemoveAt(pos);
    
+   /*
    if(IsClipboardFormatAvailable(CF_TEXT)) {
        if(OpenClipboard(NULL)) {
            HANDLE hcb = GetClipboardData(CF_TEXT);
@@ -749,6 +754,7 @@ void CMfcEmbedApp::RemoveFrameFromList(CBrowserFrame* pFrm)
        }
    }
    
+   */
    // Unless we are set to stay resident,
    // send a WM_QUIT msg. to the hidden window if we've
    // just closed the last browserframe window and
@@ -820,6 +826,8 @@ int CMfcEmbedApp::ExitInstance()
    }
    m_FrameWndLst.RemoveAll();
    
+   m_pMostRecentBrowserFrame = NULL; // In case plugins are weird
+
    if (m_pMainWnd) {
       m_pMainWnd->SendMessage(WM_CLOSE);
       delete (CHiddenWnd *) m_pMainWnd;
@@ -947,12 +955,12 @@ nsresult CMfcEmbedApp::InitializeMenusAccels(){
    filename = preferences.settingsDir + MENU_CONFIG_FILE;
 
    if (!menus.Load(filename)){
-      MessageBox(NULL, "Could not find " MENU_CONFIG_FILE, NULL, 0);
+      MessageBox(NULL, _T("Could not find ") MENU_CONFIG_FILE, NULL, 0);
 
-      if (!fopen(filename, "r")) {
+      if (!_tfopen(filename, _T("r"))) {
          // if it doesn't exist, create it
-         FILE *f = fopen(filename, "w");
-         fclose(f);
+         FILE *f = _tfopen(filename, _T("w"));
+         if (f) fclose(f);
       }
 
       nResult = FALSE;
@@ -961,12 +969,12 @@ nsresult CMfcEmbedApp::InitializeMenusAccels(){
 
    filename = preferences.settingsDir + ACCEL_CONFIG_FILE;
    if (!accel.Load(filename)){
-      MessageBox(NULL, "Could not find " ACCEL_CONFIG_FILE, NULL, 0);
+      MessageBox(NULL, _T("Could not find ") ACCEL_CONFIG_FILE, NULL, 0);
 
-      if (!fopen(filename, "r")) {
+      if (!_tfopen(filename, _T("r"))) {
          // if it doesn't exist, create it
-         FILE *f = fopen(filename, "w");
-         fclose(f);
+         FILE *f = _tfopen(filename, _T("w"));
+         if (f) fclose(f);
       }
 
       nResult = FALSE;
@@ -1073,7 +1081,7 @@ NS_IMETHODIMP CMfcEmbedApp::Observe(nsISupports *aSubject, const char *aTopic, c
          browser = CreateNewBrowserFrame();
          
          if (!browser) {
-            MessageBox(NULL, "Could not create browser frame", NULL, MB_OK);
+            MessageBox(NULL, _T("Could not create browser frame"), NULL, MB_OK);
             m_pMainWnd->PostMessage(WM_QUIT);
             return NS_ERROR_FAILURE;
          }
@@ -1121,6 +1129,7 @@ void CMfcEmbedApp::InitializeDefineMap() {
 
 int CMfcEmbedApp::GetID(char *strID) {
    int val = 0;
-   defineMap.Lookup(strID, val);
+   USES_CONVERSION;
+   defineMap.Lookup(A2T(strID), val);
    return val;
 }
