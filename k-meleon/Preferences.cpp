@@ -296,16 +296,20 @@ void CPreferences::Load() {
       _GetBool("kmeleon.print.BGColors", printBGColors, false);
       _GetBool("kmeleon.print.BGImages", printBGImages, false);
 
-      _GetString("kmeleon.print.marginLeft", printMarginLeft, "0.5");
-      _GetString("kmeleon.print.marginRight", printMarginRight, "0.5");
-      _GetString("kmeleon.print.marginTop", printMarginTop, "0.5");
-      _GetString("kmeleon.print.marginBottom", printMarginBottom, "0.5");
+	  CString def;
+	  def.Format("%.2f", 0.5);
+      _GetString("kmeleon.print.marginLeft", printMarginLeft, def);
+      _GetString("kmeleon.print.marginRight", printMarginRight, def);
+      _GetString("kmeleon.print.marginTop", printMarginTop, def);
+      _GetString("kmeleon.print.marginBottom", printMarginBottom, def);
       
       _GetInt("kmeleon.print.scaling", printScaling, 100);
 	  _GetBool("kmeleon.print.shrinkToFit", printShrinkToFit, true);
       _GetInt("kmeleon.print.paperUnit", printUnit, nsIPrintSettings::kPaperSizeInches);
-      _GetString("kmeleon.print.paperWidth", printWidth, "8.5");
-      _GetString("kmeleon.print.paperHeight", printHeight, "11");
+	   def.Format("%.2f", 8.5);
+      _GetString("kmeleon.print.paperWidth", printWidth, def);
+	  def.Format("%d", 11);
+      _GetString("kmeleon.print.paperHeight", printHeight, def);
 
 	  // -- Download
 
