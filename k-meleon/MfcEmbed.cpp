@@ -162,6 +162,20 @@ bool CMfcEmbedApp::FindSkinFile( CString& szSkinFile, TCHAR *filename )
 	while (tmp.GetLength()>0) {
 		if (tmp.GetAt( tmp.GetLength()-1 ) != '\\')
 			tmp = tmp + "\\";
+		file = theApp.preferences.settingsDir + _T("Skins\\") + tmp + filename;
+		hFile = FindFirstFile(file, &FindData);
+		if(hFile != INVALID_HANDLE_VALUE) {   
+			FindClose(hFile);
+			szSkinFile = file;
+			return true;
+		}   
+		tmp = tmp.Left( tmp.GetLength()-2 );
+	}
+
+    tmp = theApp.preferences.skinsCurrent;
+	while (tmp.GetLength()>0) {
+		if (tmp.GetAt( tmp.GetLength()-1 ) != '\\')
+			tmp = tmp + "\\";
 		file = theApp.preferences.skinsDir + tmp + filename;
 		hFile = FindFirstFile(file, &FindData);
 		if(hFile != INVALID_HANDLE_VALUE) {   
