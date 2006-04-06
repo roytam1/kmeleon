@@ -60,7 +60,7 @@ static void ValidateProfileName(const CString& profileName, CDataExchange* pDX)
     if (NS_SUCCEEDED(rv) && exists)
     {
         CString errMsg;
-        errMsg.Format(IDS_PROFILE_EXISTS, (const char *)profileName);
+        errMsg.Format(IDS_PROFILE_EXISTS, (const TCHAR *)profileName);
         AfxMessageBox( errMsg, MB_ICONEXCLAMATION );
         errMsg.Empty();
         pDX->Fail();
@@ -287,7 +287,7 @@ void CProfilesDlg::OnRenameProfile()
         ASSERT(NS_SUCCEEDED(rv));
         if (NS_SUCCEEDED(rv))
         {
-            rv = profileService->RenameProfile(T2CW(dialog.m_CurrentName), T2W(dialog.m_NewName));
+            rv = profileService->RenameProfile(T2CW(dialog.m_CurrentName), T2CW(dialog.m_NewName));
             ASSERT(NS_SUCCEEDED(rv));
         }
     }	
