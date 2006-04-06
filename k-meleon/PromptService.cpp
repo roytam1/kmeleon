@@ -279,9 +279,8 @@ NS_IMETHODIMP CPromptService::ConfirmEx(nsIDOMWindow *parent,
     const PRUnichar* buttonStrings[] = { button0Title, button1Title, button2Title };
     CString csBtnTitles[3];
 
-	int defButton = 
-		(buttonFlags & BUTTON_POS_1_DEFAULT) ? 1 :
-		(buttonFlags & BUTTON_POS_2_DEFAULT) ? 2 : 0;
+	//Set the cancel button to 1, and the default one.
+	int defButton = 256 + ((buttonFlags & 0x03000000) >> 24);
     for(int i=0; i<3; i++)
     {
         switch(buttonFlags & 0xff) {

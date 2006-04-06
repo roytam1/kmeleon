@@ -805,8 +805,21 @@ int CConfirmCheckDialog::OnInitDialog()
         else
             pBtn3->SetWindowText(m_csBtn3Text);
     }
+	
+	switch (m_defButton & 0xff)
+	{
+		case 1:
+			if (pBtn2) pBtn2->SetFocus();
+			break;
+		case 2:
+			if (pBtn3) pBtn3->SetFocus();
+			break;
+		case 0:
+		default:
+			if (pBtn1) pBtn1->SetFocus();
+	}
 
-    return TRUE;
+    return FALSE;
 }
 
 void CConfirmCheckDialog::OnBtn1Clicked()
@@ -833,5 +846,5 @@ void CConfirmCheckDialog::OnBtn3Clicked()
 void CConfirmCheckDialog::OnCancel()
 {
 	UpdateData();
-	EndDialog(m_defButton);
+	EndDialog((m_defButton&0xff00) >> 8);
 }
