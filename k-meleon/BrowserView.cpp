@@ -1812,6 +1812,18 @@ void CBrowserView::ChangeTextSize(PRInt32 change)
    }
 }
 
+int CBrowserView::GetTextSize()
+{
+   nsresult rv;
+   class nsIDOMWindow *domWindow;
+   rv = mWebBrowser->GetContentDOMWindow(&domWindow);
+   NS_ENSURE_SUCCESS(rv, -1);
+   
+   float textzoom;
+   rv = domWindow->GetTextZoom(&textzoom);
+   return NS_SUCCEEDED(rv) ? (int)(textzoom*10.0) : -1;
+}
+
 void CBrowserView::OnToggleOffline()
 {
     theApp.BroadcastMessage(WM_COMMAND, ID_NAV_STOP, (LPARAM) 0);

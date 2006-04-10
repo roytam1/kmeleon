@@ -116,6 +116,7 @@ public:
     nsIDOMWindow *FindDOMWindow(nsIDOMWindow *window, nsIDOMDocument *document);
 
     nsIDocShell *CBrowserView::GetDocShell();
+    BOOL GetCharset(char* aCharset);
     BOOL ForceCharset(char *aCharSet);
 
     void SetCtxMenuLinkUrl(nsEmbedString& strLinkUrl);
@@ -167,7 +168,9 @@ public:
     void OnIncreaseFont();
     void OnDecreaseFont();
     void ChangeTextSize(PRInt32 change);
+	int GetTextSize();
 
+	BOOL GetSelection(CString&);
     BOOL GetPrintSettings();
 	BOOL CloneSHistory(CBrowserView& newWebBrowser);
 
