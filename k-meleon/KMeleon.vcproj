@@ -481,6 +481,9 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\LangParser.cpp">
+			</File>
+			<File
 				RelativePath="MenuParser.cpp">
 				<FileConfiguration
 					Name="Debug|Win32">
@@ -959,6 +962,9 @@
 			</File>
 			<File
 				RelativePath="KmeleonConst.h">
+			</File>
+			<File
+				RelativePath=".\LangParser.h">
 			</File>
 			<File
 				RelativePath="Log.h">

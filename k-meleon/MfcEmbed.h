@@ -47,6 +47,7 @@
 
 #include "Plugins.h"
 #include "Preferences.h"
+#include "LangParser.h"
 #include "MenuParser.h"
 #include "AccelParser.h"
 #include "KmeleonConst.h"
@@ -113,6 +114,7 @@ public:
 
    CPlugins      plugins;
    CPreferences  preferences;
+   CLangParser   lang;
    CMenuParser   menus;
    CAccelParser  accel;
    CCmdLine      cmdline;

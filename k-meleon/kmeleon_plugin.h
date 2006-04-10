@@ -141,6 +141,17 @@ typedef struct {
    void (*DelPreference)(char *preference);
 
    long (*GetPreference)(enum PREFTYPE type, char *preference, void *ret, void *defaultVal);
+
+// ----------------------------------------------------
+// Addition in K-meleon 1.0
+
+   int (*reserved) ();
+   int (*reserved1) ();
+
+   int (*TranslateEx)(const char* originalText, TCHAR* translatedText, int bufferlen, BOOL forMenu);
+	
+   int (*reserved2)();
+
 } kmeleonFunctions;
 
 /*

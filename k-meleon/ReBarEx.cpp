@@ -109,10 +109,7 @@ void CReBarEx::DrawToolBarMenu() {
 
    for (int x=0; x<m_iCount; x++) {
       if (m_index[x]->name && m_index[x]->visibleOnMenu) {
-         if (m_index[x]->visibility)
-            InsertMenu(m_menu, 0, MF_BYPOSITION | MF_CHECKED | MF_STRING, TOOLBAR_MENU_START_ID+x, m_index[x]->name);
-         else
-            InsertMenu(m_menu, 0, MF_BYPOSITION | MF_STRING, TOOLBAR_MENU_START_ID+x, m_index[x]->name);
+		  InsertMenu(m_menu, 0, MF_BYPOSITION | MF_STRING, TOOLBAR_MENU_START_ID+x, theApp.lang.Translate(m_index[x]->name));
       }
    }
 }
