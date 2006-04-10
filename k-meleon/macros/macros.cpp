@@ -2228,7 +2228,7 @@ std::string GetGlobalVarVal(HWND hWnd, char *name, int *found)
    }
 
    int retLen = kPlugin.kFuncs->GetGlobalVar(PREF_STRING, name, NULL);
-   if (retLen) {
+   if (retLen!=-1) {
       *found = 1;
       char *retVal = new char[retLen+1];
       kPlugin.kFuncs->GetGlobalVar(PREF_STRING, name, retVal);
@@ -2237,6 +2237,15 @@ std::string GetGlobalVarVal(HWND hWnd, char *name, int *found)
       return sGlobalVar;
    }
 
+   int retVal;
+   retLen = kPlugin.kFuncs->GetGlobalVar(PREF_INT, name, &retVal);
+   if (retLen!=-1) {
+	  *found = 1;
+	  char buf[33];
+	  _itoa(retVal, buf, 10);
+	  sGlobalVar = buf;
+	  return sGlobalVar;
+   }
 
 /*
    if (strcmp(name, "URL") == 0) {
