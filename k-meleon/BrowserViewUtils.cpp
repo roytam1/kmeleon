@@ -28,6 +28,8 @@
 
 #include "nsIContentViewer.h"
 #include "nsIMarkupDocumentViewer.h" 
+#include "nsIDocCharset.h"
+#include "nsISelection.h"
 #include "nsISHistoryInternal.h"
 
 #include "UnknownContentTypeHandler.h"
@@ -622,6 +624,52 @@ int CBrowserView::GetCurrentURI(char *sURI)
    return len;
 }
 
+_GetSelection(nsIDOMWindow* dom, CString& aSelText)
+{
+	nsCOMPtr<nsISelection> sel;
+	dom->GetSelection(getter_AddRefs(sel));
+	if (sel) {
+		USES_CONVERSION;
+		
+		PRUnichar* selText;
+		nsresult rv = sel->ToString(&selText);
+		NS_ENSURE_SUCCESS(rv, FALSE);
+
+		aSelText = W2CT(selText);
+		nsMemory::Free(selText);
+		if (aSelText.GetLength()>0)
+			return TRUE;
+	}
+
+	BOOL ret = FALSE;
+
+	nsCOMPtr<nsIDOMWindowCollection> frames;
+	dom->GetFrames(getter_AddRefs(frames));
+	NS_ENSURE_TRUE(frames, FALSE);
+
+	PRUint32 nbframes;
+	frames->GetLength(&nbframes);
+	if (nbframes>0)
+	{
+		nsCOMPtr<nsIDOMWindow> frame;
+		for (PRUint32 i = 0; i<nbframes; i++)
+		{
+			frames->Item(i, getter_AddRefs(frame));
+			ret = ret || _GetSelection(frame, aSelText);
+		}
+	}
+	return ret;
+}
+
+BOOL CBrowserView::GetSelection(CString& aSelText)
+{
+	nsresult rv;
+
+	nsCOMPtr<nsIDOMWindow> dom(do_GetInterface(mWebBrowser));
+	NS_ENSURE_TRUE(dom, FALSE);
+	return _GetSelection(dom, aSelText);
+}
+
 /*
 
    The GetNodeAtPoint function is a really gross hack.
@@ -712,6 +760,55 @@ nsIDocShell *CBrowserView::GetDocShell()
    return docShell;
 } 
 
+BOOL CBrowserView::GetCharset(char* aCharset)
+{
+   NS_ENSURE_TRUE(mWebBrowser, FALSE);
+
+   // Look for the forced charset
+   nsresult result;
+   nsCOMPtr<nsIDocShell> DocShell;
+
+   DocShell = GetDocShell();
+
+   if (!DocShell) 
+     return FALSE;
+
+   nsCOMPtr<nsIContentViewer> contentViewer;
+   result = DocShell->GetContentViewer (getter_AddRefs(contentViewer));
+   if (NS_FAILED(result) || !contentViewer) 
+     return FALSE;
+
+   nsCOMPtr<nsIMarkupDocumentViewer> mdv = do_QueryInterface(contentViewer,&result);
+   if (NS_FAILED(result) || !mdv) 
+     return FALSE;
+
+   nsCString mCharset;
+   result = mdv->GetForceCharacterSet(mCharset);
+
+   if (NS_FAILED(result) || mCharset.IsEmpty() )
+   {
+	   // If no forced charset look for the document charset
+	   nsCOMPtr<nsIDocCharset> docCharset = do_GetInterface(mWebBrowser);
+	   NS_ENSURE_TRUE(docCharset, FALSE);
+
+	   char *charset;
+	   result = docCharset->GetCharset (&charset);
+	   if (!charset)
+	   {
+		   // If no document charset use default
+		   result = mdv->GetDefaultCharacterSet(mCharset);
+	   }
+	   else
+	   {
+		   mCharset = charset;
+		   nsMemory::Free (charset);
+	   }
+   }
+
+   strncpy(aCharset, mCharset.get(), 63);
+   aCharset[63] = 0;
+   return NS_SUCCEEDED(result);
+}
 
 BOOL CBrowserView::ForceCharset(char *aCharSet)
 {

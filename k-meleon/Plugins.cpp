@@ -37,6 +37,12 @@ kmeleonDocInfo kDocInfo;
 kmeleonPointInfo gPointInfo;
 
 
+static char *safe_strdup(const char *ptr) {
+  if (ptr)
+    return strdup(ptr);
+  return NULL;
+}
+
 CPlugins::CPlugins()
 {
 }
@@ -515,7 +521,10 @@ int CommandAtPoint(int command, WORD x, WORD y) {
 
 int GetGlobalVar(enum PREFTYPE type, char *preference, void *ret) {
 
-   int retLen = 0;
+   if (!theApp.m_pMostRecentBrowserFrame) 
+     return -1;
+
+   int retLen = -1;
 
    CBrowserView *pBrowserView;  
    pBrowserView = &theApp.m_pMostRecentBrowserFrame->m_wndBrowserView;
@@ -534,37 +543,68 @@ int GetGlobalVar(enum PREFTYPE type, char *preference, void *ret) {
          if (ret)
             pBrowserView->GetCurrentURI((char *)ret);
       }
-      if (!stricmp(preference, "LinkURL")) {
+	  else if (!stricmp(preference, "URLBAR")) {
+		 CString url;
+		 theApp.m_pMostRecentBrowserFrame->m_wndUrlBar.GetEnteredURL(url);
+         retLen = url.GetLength();
+		 if (ret) {
+			 USES_CONVERSION;
+			 strcpy((char*)ret, T2CA(url));
+		 }
+      }
+      else if (!stricmp(preference, "LinkURL")) {
          retLen = pBrowserView->mCtxMenuLinkUrl.Length();
          if (ret) 
 			 UTF16ToCString(pBrowserView->mCtxMenuLinkUrl, (char*)ret);
       }
-      if (!stricmp(preference, "ImageURL")) {
+      else if (!stricmp(preference, "ImageURL")) {
          retLen = pBrowserView->mCtxMenuImgSrc.Length();
          if (ret) 
 			 UTF16ToCString(pBrowserView->mCtxMenuImgSrc, (char*)ret);
       }
-      if (!stricmp(preference, "FrameURL")) {
+      else if (!stricmp(preference, "FrameURL")) {
          retLen = pBrowserView->mCtxMenuCurrentFrameURL.Length();
          if (ret)
 			 UTF16ToCString(pBrowserView->mCtxMenuCurrentFrameURL, (char*)ret);
       }
-      if (!stricmp(preference, "TITLE")) {
+      else if (!stricmp(preference, "TITLE")) {
          CString title;
          pBrowserView->GetPageTitle(title);
          retLen = title.GetLength();
          if (ret) strcpy((char *)ret, title);
       }
+	  else if (!stricmp(preference, "SelectedText")) {
+		CString sel;  
+		pBrowserView->GetSelection(sel);
+		retLen = sel.GetLength();
+		 if (ret) {
+			 USES_CONVERSION;
+			 strcpy((char*)ret, T2CA(sel));
+		 }
+	  }
+	  else if (!stricmp(preference, "CHARSET")) {
+         char charset[64];
+         pBrowserView->GetCharset(charset);
+		 USES_CONVERSION;
+         retLen = strlen(charset);
+		 if (ret) {
+			 strcpy((char *)ret, T2CA(charset));
+			 for(unsigned int i=0;i<retLen;i++)
+				((char*)ret)[i] = tolower(((char*)ret)[i]);
+		 }
+      }
+	  break;
+
+	case PREF_INT:
+	  if (!stricmp(preference, "TextZoom"))  {
+		  int tz = pBrowserView->GetTextSize();
+		  if (ret) *(int*)ret = tz;
+		  return 0;
+	  }
       break;
    }
     
    return retLen;
-}
-
-static char *safe_strdup(const char *ptr) {
-  if (ptr)
-    return strdup(ptr);
-  return NULL;
 }
 
 char *EncodeUTF8(const char *str) {
