@@ -88,6 +88,7 @@ app_getModuleInfo(nsStaticModuleInfo **info, PRUint32 *count);
 static char THIS_FILE[] = __FILE__;
 #endif
 
+#define LANG_CONFIG_FILE _T("language.cfg")
 #define MENU_CONFIG_FILE _T("menus.cfg")
 #define ACCEL_CONFIG_FILE _T("accel.cfg")
 
@@ -333,6 +334,11 @@ BOOL CMfcEmbedApp::InitInstance()
    {
 	   m_hMainIcon = LoadIcon( IDR_MAINFRAME );
 	   m_hSmallIcon = LoadIcon( IDR_MAINFRAME );
+   }
+
+   // Look for language file
+   if (!lang.Load(preferences.settingsDir + LANG_CONFIG_FILE)) {
+		lang.Load(CString(LANG_CONFIG_FILE));
    }
 
    plugins.FindAndLoad();

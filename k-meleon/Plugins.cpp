@@ -694,6 +694,50 @@ long SendMessage(const char *to, const char *from, const char *subject, long dat
    return theApp.plugins.SendMessage(to, from, subject, data1, data2);
 }
 
+int TranslateEx(const char* originalText,  TCHAR* translatedText, int bufferlen, BOOL forMenu)
+{
+	CString csTrans;
+	char* accel = 0;
+	int IsTranslated;
+
+	if (forMenu)
+	{
+	   // Strip the accelerator part if any.
+	   accel = strchr(originalText, '\t');
+	   if (accel) *accel = 0;
+	}
+
+	USES_CONVERSION;
+	IsTranslated = theApp.lang.Translate(A2CT(originalText), csTrans);
+	
+	if (accel) *accel = '\t';
+
+	if (translatedText == NULL)
+	{
+		if (!IsTranslated) return 0;
+		
+		int len = csTrans.GetLength();
+		if (forMenu)
+		{
+			accel = strchr(originalText, '\t');
+			if (accel) len = len + strlen(accel);
+		}
+		
+		return len;
+	}
+
+	if (IsTranslated)
+	{
+		if (accel)
+		    csTrans += accel; 
+		translatedText[0] = 0;
+		_tcsncat(translatedText, csTrans, bufferlen);
+		return csTrans.GetLength();
+	}
+	
+	return 0;
+}
+
 kmeleonFunctions kmelFuncs = {
    SendMessage,
    GetCommandIDs,
@@ -721,7 +765,11 @@ kmeleonFunctions kmelFuncs = {
    BroadcastMessage,
    ParseAccel,
    DelPreference,
-   GetPreference
+   GetPreference,
+   NULL,
+   NULL,
+   TranslateEx,
+   NULL
 };
 
 BOOL CPlugins::TestLoad(const char *file, const char *description)

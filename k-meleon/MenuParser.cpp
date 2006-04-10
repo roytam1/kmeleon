@@ -24,9 +24,32 @@ extern CMfcEmbedApp theApp;
 
 #include "Plugins.h"
 #include "kmeleon_plugin.h"
-
+#include "LangParser.h"
 #include "MenuParser.h"
 #include "Utils.h"
+
+int Translate(char* originalText, CString& translatedText)
+{
+	USES_CONVERSION;
+	int r;
+
+	// I have to remove the accel text for translation..
+	char* accel = strchr(originalText, '\t');
+	if (accel) *accel = 0;
+	TrimWhiteSpace(originalText);
+
+	if (!(r=theApp.lang.Translate(A2T(originalText), translatedText)))
+		translatedText = A2T(originalText);
+
+	//.. and put it back
+	if (accel) {
+		*accel = '\t';
+		TrimWhiteSpace(accel);
+		translatedText += A2T(accel);
+	}
+
+	return r;
+}	
 
 CMenuParser::CMenuParser()
 {
@@ -108,7 +131,8 @@ int CMenuParser::Parse(char *p)
          CMenu *popup = NULL;
          menus.Lookup(CString(p), popup);
          if (popup){
-            currentMenu->AppendMenu(MF_POPUP | MF_STRING, (UINT)popup->m_hMenu, p);
+			 USES_CONVERSION;
+            currentMenu->AppendMenu(MF_POPUP | MF_STRING, (UINT)popup->m_hMenu, theApp.lang.Translate(A2T(p)));
             LOG_1("Added popup %s", p);
          }
          else
@@ -173,14 +197,24 @@ int CMenuParser::Parse(char *p)
             if (cp) *cp = 0;
             *op = 0;
 
-            TrimWhiteSpace(p);
-
-            if (theApp.plugins.SendMessage(p, "* MenuParser", "DoMenu", (long)currentMenu->GetSafeHmenu(), (long)parameter)) {
+            CString param = parameter;
+			char* sep = strchr(parameter, ',');
+		    if (sep) {
+				char * string = SkipWhiteSpace(sep+1);
+				CString pTranslated;
+			    if (Translate(string, pTranslated))  {
+					*(sep+1) = 0;
+					param = parameter + pTranslated;
+				}
+			}
+			USES_CONVERSION;
+            if (theApp.plugins.SendMessage(p, "* MenuParser", "DoMenu", (long)currentMenu->GetSafeHmenu(), (long)T2A(param.LockBuffer()))) {
                LOG_2("Called plugin %s with parameter %s", p, parameter);
             }
             else {
                LOG_ERROR_1( "Plugin %s has no menu", p);
             }
+			param.UnlockBuffer();
          }
          else {
             char *e = strrchr(p, '=');
@@ -194,8 +228,10 @@ int CMenuParser::Parse(char *p)
                if (!val)
                   val = atoi(e);
 
-               TrimWhiteSpace(p);
-               currentMenu->AppendMenu(MF_STRING, val, p);
+			   CString pTranslated;
+			   Translate(p, pTranslated);
+			   
+			   currentMenu->AppendMenu(MF_STRING, val, pTranslated);
 
                LOG_2("Added menu item %s with command %d", p, val);
             }
