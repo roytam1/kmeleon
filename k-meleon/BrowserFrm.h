@@ -160,6 +160,7 @@ public:
 
     BOOL m_created; // set after we are created
     INT m_ignoreFocus;
+	HWND m_wndLastFocused;
 
     CToolBarList m_tbList;
     HWND CreateToolbar(UINT style);

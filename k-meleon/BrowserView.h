@@ -104,6 +104,7 @@ public:
 	nsCOMPtr<nsIBaseWindow>  mBaseWindow;
 	nsCOMPtr<nsIWebNavigation> mWebNav;
 	nsCOMPtr<nsIDOMEventTarget> mEventTarget;
+	nsCOMPtr<nsIWebBrowserFocus> mWebBrowserFocus;
 
 	void UpdateBusyState(PRBool aBusy);
 	PRBool mbDocumentLoading;
@@ -128,7 +129,7 @@ public:
     void SetCurrentFrameURL(nsEmbedString& strcCurrentFrameURL);
     nsEmbedString mCtxMenuCurrentFrameURL;
 
-    void Activate(UINT nState, CWnd* pWndOther, BOOL bMinimized);
+	void Activate(BOOL bActive);
 
 	BOOL OpenViewSourceWindow(const PRUnichar* pUrl);
     BOOL OpenViewSourceWindow(const char* pUrl);  
