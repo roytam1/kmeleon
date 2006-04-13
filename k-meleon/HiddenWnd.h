@@ -59,6 +59,7 @@ private:
    afx_msg BOOL OnCopyData(CWnd* pWnd, COPYDATASTRUCT* pCopyDataStruct);
    afx_msg LRESULT OnNewWindow(WPARAM wParam, LPARAM lParam);
    afx_msg LRESULT OnShowBrowser(WPARAM URI, LPARAM lParam);
+   afx_msg LRESULT OnDeferShow(WPARAM wParam, LPARAM lParam);
 	//}}AFX_MSG
 
 	DECLARE_MESSAGE_MAP()

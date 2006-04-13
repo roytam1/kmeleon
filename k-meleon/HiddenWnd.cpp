@@ -28,6 +28,7 @@ BEGIN_MESSAGE_MAP(CHiddenWnd, CFrameWnd)
 	ON_MESSAGE(UWM_NEWWINDOW, OnNewWindow)
    ON_MESSAGE(UWM_PERSIST_SET, OnSetPersist)
    ON_MESSAGE(UWM_PERSIST_SHOW, OnShowBrowser)
+   ON_MESSAGE(WM_DEFERSHOW, OnDeferShow)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -274,3 +275,15 @@ BOOL CHiddenWnd::OnCopyData(CWnd* pWnd, COPYDATASTRUCT* pCopyDataStruct) {
 
    return true;
 }
+
+////////////////////////////////////////////////////////////////////////
+// Lame download defering
+
+#include "UnknownContentTypeHandler.h"
+
+LRESULT CHiddenWnd::OnDeferShow(WPARAM wParam, LPARAM lParam)
+{
+	if (!lParam) return 0;
+	return ((CUnknownContentTypeHandler*)lParam)->Show((CWnd*)wParam);
+}
+
