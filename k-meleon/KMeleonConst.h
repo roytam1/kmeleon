@@ -16,6 +16,7 @@
 *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
+#define WM_DEFERSHOW				   WM_USER + 150
 #define UWM_UPDATESESSIONHISTORY       WM_APP + 110
 #define UWM_REFRESHTOOLBARITEM         WM_APP + 111
 #define UWM_UPDATEBUSYSTATE            WM_APP + 112

@@ -38,13 +38,11 @@ extern CMfcEmbedApp theApp;
 
 extern CWnd* CWndForDOMWindow(nsIDOMWindow *aWindow);
 
-// Show the helper app launch confirmation dialog as instructed.
 NS_IMETHODIMP
-CUnknownContentTypeHandler::Show( nsIHelperAppLauncher *aLauncher, nsISupports *aContext,  PRUint32 aReason) {
-
+CUnknownContentTypeHandler::Show(CWnd* parent)
+{
 	nsresult rv;
-
-	NS_ENSURE_ARG_POINTER(aLauncher);
+	nsCOMPtr<nsIHelperAppLauncherDialog> kungFuDeathGrip(this);
 
 	if (theApp.preferences.GetBool("kmeleon.download.SaveUnkownContent", true))
 	{ 
@@ -52,19 +50,17 @@ CUnknownContentTypeHandler::Show( nsIHelperAppLauncher *aLauncher, nsISupports *
 		{
 			CoInitialize(NULL);
 
-			nsCOMPtr<nsIDOMWindow> parent = do_GetInterface (aContext);
-			CWnd* wnd = CWndForDOMWindow(parent);
-			COpenSaveDlg dlg(wnd);
+			COpenSaveDlg dlg(parent);
 
 			USES_CONVERSION;
 			// Set the filename
 			nsEmbedString filename;
-			aLauncher->GetSuggestedFileName(filename);
+			mAppLauncher->GetSuggestedFileName(filename);
 			dlg.m_csFilename = W2CT(filename.get());
 
 			// Set the mime type
 			nsCOMPtr<nsIMIMEInfo> mimeInfo;
-			aLauncher->GetMIMEInfo(getter_AddRefs(mimeInfo));
+			mAppLauncher->GetMIMEInfo(getter_AddRefs(mimeInfo));
 			
 			PRBool b;
 			mimeInfo->GetHasDefaultHandler(&b);
@@ -88,7 +84,7 @@ CUnknownContentTypeHandler::Show( nsIHelperAppLauncher *aLauncher, nsISupports *
 
 			// Set the source
 			nsCOMPtr<nsIURI> uri;
-			rv = aLauncher->GetSource(getter_AddRefs(uri));
+			rv = mAppLauncher->GetSource(getter_AddRefs(uri));
 			if(NS_SUCCEEDED(rv))
 			{
 				nsEmbedCString sourceURI;
@@ -99,27 +95,44 @@ CUnknownContentTypeHandler::Show( nsIHelperAppLauncher *aLauncher, nsISupports *
 			switch (dlg.DoModal()) {
 
 				case IDOK:
-					rv = aLauncher->SaveToDisk(nsnull, false);
+					rv = mAppLauncher->SaveToDisk(nsnull, false);
 					break;
 				case IDOPEN:
 					// I believe I shouldn't do that, and what about that
 					// stupid boolean not used?
 					mimeInfo->SetPreferredAction(nsIMIMEInfo::useSystemDefault);
-					rv = aLauncher->LaunchWithApplication(nsnull, PR_FALSE);
+					rv = mAppLauncher->LaunchWithApplication(nsnull, PR_FALSE);
 					break;
 				default:
-					rv = aLauncher->Cancel(NS_ERROR_ABORT);
+					rv = mAppLauncher->Cancel(NS_ERROR_ABORT);
 			}
 
 			CoUninitialize();
 		}
 		else
-			rv = aLauncher->SaveToDisk(nsnull, false);
+			rv = mAppLauncher->SaveToDisk(nsnull, false);
 	}
 	else
-		rv = aLauncher->Cancel(NS_ERROR_ABORT);
+		rv = mAppLauncher->Cancel(NS_ERROR_ABORT);
 
 	return rv;
+}
+
+// Show the helper app launch confirmation dialog as instructed.
+NS_IMETHODIMP
+CUnknownContentTypeHandler::Show( nsIHelperAppLauncher *aLauncher, nsISupports *aContext,  PRUint32 aReason)
+{
+	NS_ENSURE_ARG_POINTER(aLauncher);
+	mAppLauncher = aLauncher;
+	
+	// This function must return immediately or all transferts are stalled.
+
+	nsCOMPtr<nsIDOMWindow> parent = do_GetInterface (aContext);
+	CWnd* wnd = CWndForDOMWindow(parent);
+
+	theApp.m_pMainWnd->PostMessage(WM_DEFERSHOW, (WPARAM)wnd, (LPARAM)this);
+
+	return NS_OK;
 }
 
 #include "nsIDOMWindowInternal.h"
@@ -146,6 +159,8 @@ CUnknownContentTypeHandler::PromptForSaveToFile(nsIHelperAppLauncher *aLauncher,
 		pathName = theApp.preferences.downloadDir + defaultFile;
 	else
 	{
+		aSuggestedFileExtension++;
+
 		CString filter = W2CT(aSuggestedFileExtension);
 		filter += " files|*";
 		filter += W2CT(aSuggestedFileExtension);
@@ -687,8 +702,15 @@ NS_IMETHODIMP CProgressDialog::OnStateChange(nsIWebProgress *aWebProgress,
 				if (NS_SUCCEEDED(rv) && b == PR_FALSE)	{
 					nsEmbedCString str;
 					httpchannel->GetResponseStatusText(str);
-					statusText += A2CT(str.get());
-					statusText += _T('!');
+					// Fix me : text can be encoded in anything
+#ifdef UNICODE					
+					nsEmbedString _str;
+					NS_CStringToUTF16(str, NS_CSTRING_ENCODING_ASCII, _str);
+					statusText += _str.get();
+#else
+					statusText += str.get();
+#endif
+					statusText += _T("!");
 				}
 
 		   }
@@ -700,7 +722,7 @@ NS_IMETHODIMP CProgressDialog::OnStateChange(nsIWebProgress *aWebProgress,
 		   }
 
 		   mDone = true;
-		   if (theApp.preferences.GetBool("kmeleon.download.flashWhenCompleted", false))
+		   if (theApp.preferences.bFlashWhenCompleted)
 		     FlashWindow(TRUE);
 	   }
 

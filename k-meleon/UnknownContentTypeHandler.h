@@ -12,15 +12,15 @@ static NS_DEFINE_CID(kUnknownContentTypeHandlerCID, NS_UNKNOWNCONTENTTYPEHANDLER
 { 0xe3fa9d0a, 0x1dd1, 0x11b2, { 0xbd, 0xef, 0x8c, 0x72, 0x0b, 0x59, 0x74, 0x45 } }
 static NS_DEFINE_CID(kDownloadCID, NS_DOWNLOAD_CID);
 
-#include "Dialogs.h"
+#include "DialogEx.h"
 
-class CUnknownContentTypeHandler : public nsIHelperAppLauncherDialog {
+class CUnknownContentTypeHandler : public nsIHelperAppLauncherDialog
+{
 public:
     NS_DEFINE_STATIC_CID_ACCESSOR( NS_UNKNOWNCONTENTTYPEHANDLER_CID );
 
     // ctor/dtor
     CUnknownContentTypeHandler() {
-        NS_INIT_ISUPPORTS();
     }
     virtual ~CUnknownContentTypeHandler() {
     }
@@ -30,6 +30,12 @@ public:
 
     // This class implements the nsIHelperAppLauncherDialog interface functions.
     NS_DECL_NSIHELPERAPPLAUNCHERDIALOG
+
+	// Defered show
+	NS_IMETHOD Show(CWnd* parent = NULL);
+
+protected:
+	nsCOMPtr<nsIHelperAppLauncher> mAppLauncher;
 
 }; // CUnknownContentTypeHandler
 
