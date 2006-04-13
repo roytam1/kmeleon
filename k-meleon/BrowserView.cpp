@@ -204,6 +204,7 @@ CBrowserView::CBrowserView()
 
     m_iGetNodeHack = 0;
     m_pGetNode = NULL;
+	m_lastMouseActionNode = nsnull;
 
     m_panning = FALSE;
     maccel_pan = FALSE;
@@ -321,13 +322,18 @@ HRESULT CBrowserView::CreateBrowser()
     (void)mWebBrowser->AddWebBrowserListener(weakling, 
                                 NS_GET_IID(nsIWebProgressListener));
     
-    // Finally, show the web browser window
+
+	// Get the focus object
+	mWebBrowserFocus = do_QueryInterface(mWebBrowser);
+	NS_ENSURE_TRUE(mWebBrowserFocus, NS_ERROR_FAILURE);
+
 	rv = GetDOMEventTarget(mWebBrowser, (getter_AddRefs(mEventTarget)));
 	if (NS_SUCCEEDED(rv) && !(mpBrowserFrame->m_chromeMask & nsIWebBrowserChrome::CHROME_OPENAS_CHROME ))
 	{
 		rv = mEventTarget->AddEventListener(NS_LITERAL_STRING("mousedown"),
 			                        mpBrowserImpl, PR_FALSE);
 	}
+    // Finally, show the web browser window
     mBaseWindow->SetVisibility(PR_TRUE);
 
 	nsCOMPtr<nsIWebBrowserFind> finder(do_GetInterface(mWebBrowser));	
@@ -586,12 +592,7 @@ void CBrowserView::OpenMultiURL(char *urls)
 //
 void CBrowserView::OnNewUrlEnteredInUrlBar()
 {
-   nsCOMPtr<nsIWebBrowserFocus> focus(do_GetInterface(mWebBrowser));
-
-   if(!focus)
-      return;
-
-   focus->Activate();
+   mWebBrowserFocus->Activate();
 
    mpBrowserFrame->m_wndUrlBar.EditChanged(FALSE);
    
@@ -641,6 +642,8 @@ void CBrowserView::OnUrlSelectedInUrlBar()
 
    if (!mpBrowserFrame->m_wndUrlBar.GetSelectedURL(strUrl))
       return;
+
+   mWebBrowserFocus->Activate();
 
    mpBrowserFrame->m_wndUrlBar.RefreshMRUList();
    
@@ -1290,27 +1293,12 @@ void CBrowserView::OnUpdatePrintSetup(CCmdUI* pCmdUI)
     pCmdUI->Enable(!m_bCurrentlyPrinting && !m_InPrintPreview);
 } 
 */
-
-void CBrowserView::Activate(UINT nState, CWnd* pWndOther, BOOL bMinimized)
+void CBrowserView::Activate(BOOL bActive)
 {
-    if(bMinimized)  // This isn't an activate event that Gecko cares about
-        return;
- 
-    nsCOMPtr<nsIWebBrowserFocus> focus(do_GetInterface(mWebBrowser));
-    if(!focus)
-        return;
-
-    switch(nState) {
-        case WA_ACTIVE:
-        case WA_CLICKACTIVE:
-            focus->Activate();
-            break;
-        case WA_INACTIVE:
-            focus->Deactivate();
-            break;
-        default:
-            break;
-    }
+	if (bActive)
+		mWebBrowserFocus->Activate();
+	else
+		mWebBrowserFocus->Deactivate();
 }
 
 // Determintes if the currently loaded document

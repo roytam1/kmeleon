@@ -101,6 +101,7 @@ BEGIN_MESSAGE_MAP(CBrowserFrame, CFrameWnd)
 	ON_UPDATE_COMMAND_UI_RANGE(TOOLBAR_MENU_START_ID, TOOLBAR_MENU_END_ID, OnUpdateToolBarMenu)
 	ON_COMMAND(ID_EDIT_FIND, OnShowFindBar)
     //}}AFX_MSG_MAP
+	ON_WM_SYSCOMMAND()
 END_MESSAGE_MAP()
 
 static UINT indicators[] =
@@ -627,9 +628,45 @@ void CBrowserFrame::Dump(CDumpContext& dc) const
 
 void CBrowserFrame::OnActivate(UINT nState, CWnd* pWndOther, BOOL bMinimized) 
 {
-   CFrameWnd::OnActivate(nState, pWndOther, bMinimized);
+	if (nState != WA_INACTIVE && theApp.m_pMostRecentBrowserFrame != this) {
+        theApp.m_pMostRecentBrowserFrame = this;
 
-   m_wndBrowserView.Activate(nState, pWndOther, bMinimized);
+        // update session history for the current window
+        PostMessage(UWM_UPDATESESSIONHISTORY, 0, 0);
+    }
+
+   CFrameWnd::OnActivate(nState, pWndOther, bMinimized);
+   if (pWndOther == this)
+	   return;
+
+   	if(bMinimized) // This isn't an activate event that Gecko cares about
+	{
+		// When we get there, the focus is already lost !!
+		// So CBrowserFrame::OnSysCommand take care of it
+		return;
+	}
+
+    switch(nState) {
+        case WA_ACTIVE:
+        case WA_CLICKACTIVE:
+			if (!m_wndLastFocused || m_wndLastFocused == m_wndBrowserView.m_hWnd 
+				|| ::IsChild(m_wndBrowserView.m_hWnd, m_wndLastFocused)) {
+				m_wndBrowserView.Activate(TRUE);
+			}
+			else
+				::SetFocus(m_wndLastFocused);
+			break;
+		case WA_INACTIVE:
+			m_wndLastFocused = ::GetFocus();
+			if ( ::IsChild(m_wndBrowserView.m_hWnd, m_wndLastFocused) 
+				|| m_wndLastFocused == m_wndBrowserView.m_hWnd)
+				m_wndBrowserView.Activate(FALSE);
+
+			break;
+		default:
+            break;
+	}
+  // m_wndBrowserView.Activate(nState, pWndOther, bMinimized);
 }
 
 #define IS_SECURE(state) ((state & 0xFFFF) == nsIWebProgressListener::STATE_IS_SECURE)
@@ -918,9 +955,9 @@ void CBrowserFrame::OnSysCommand(UINT nID, LPARAM lParam)
 	if (nID == SC_MINIMIZE) {
 		// We're taking care of the focus here, because it will
 		// be lost after that and not correctly memorized.
-		nsCOMPtr<nsIWebBrowserFocus> focus(do_GetInterface(m_wndBrowserView.mWebBrowser));
-		if(focus)
-			focus->Deactivate();
+        m_wndLastFocused = ::GetFocus();
+		if (::IsChild(m_wndBrowserView.m_hWnd, m_wndLastFocused))
+		   m_wndBrowserView.Activate(FALSE);
 	}
 
 	CFrameWnd::OnSysCommand(nID, lParam);
