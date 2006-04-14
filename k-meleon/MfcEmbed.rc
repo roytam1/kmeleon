@@ -517,13 +517,13 @@ BEGIN
     EDITTEXT        IDC_MSG_TEXT,10,10,214,88,ES_MULTILINE | ES_READONLY
 END
 
-IDD_CONFIRM_CHECK_DIALOG DIALOG  0, 0, 321, 102
+IDD_CONFIRM_CHECK_DIALOG DIALOGEX 0, 0, 286, 112
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU
 CAPTION "ConfirmCheck"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x0
 BEGIN
-    DEFPUSHBUTTON   "Btn1",IDC_BTN1,38,87,68,14
+    PUSHBUTTON      "Btn1",IDC_BTN1,38,87,68,14
     PUSHBUTTON      "Btn2",IDC_BTN2,109,87,68,14
     PUSHBUTTON      "Btn3",IDC_BTN3,181,87,68,14
     LTEXT           "",IDC_MSG_TEXT,10,10,266,49
@@ -778,7 +778,7 @@ END
 
 IDD_CONFIRM_EXPIRED_CERT DIALOGEX 0, 0, 251, 89
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Dialog"
+CAPTION "Expired Certificate"
 FONT 8, "MS Shell Dlg", 400, 0, 0x0
 BEGIN
     DEFPUSHBUTTON   "Confirm",IDOK,94,68,50,14
@@ -795,8 +795,8 @@ STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Website Certified by an Unknown Authority"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,113,196,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,163,196,50,14
+    PUSHBUTTON      "OK",IDOK,113,196,50,14
+    DEFPUSHBUTTON   "Cancel",IDCANCEL,163,196,50,14
     LTEXT           "Possible reasons for this error: \n  - Your browser does not recognize the Certificate Authority that issued the site's certificate.\n  - The site's certificate is incomplete due to a server misconfiguration.",
                     IDC_STATIC,18,24,243,32
     LTEXT           "  - Static",IDC_REASON3,18,56,245,26
@@ -819,8 +819,8 @@ STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Security Error: Domain Name Mismatch"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,117,97,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,167,97,50,14
+    PUSHBUTTON      "OK",IDOK,117,97,50,14
+    DEFPUSHBUTTON   "Cancel",IDCANCEL,167,97,50,14
     PUSHBUTTON      "Help",IDHELP,217,97,50,14,WS_DISABLED
     PUSHBUTTON      "View Certificate",IDC_VIEW_CERT,7,97,77,14
     LTEXT           "Static",IDC_MSG1,7,7,260,41
@@ -887,7 +887,7 @@ CAPTION "Choose a Certificate Backup Password"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,165,122,50,14
-    PUSHBUTTON      "Annuler",IDCANCEL,217,122,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,217,122,50,14
     LTEXT           "The certificate backup password you set here protects the backup file that you are about to create.  You must set this password to proceed with the backup.",
                     IDC_STATIC,7,7,260,19
     LTEXT           "Important: If you forget your certificate backup password, you will not be able to restore this backup later.  Please record it in a safe location.",
@@ -903,7 +903,7 @@ BEGIN
                     WS_VISIBLE
 END
 
-IDD_GETPKCS12FILEPASSWORD DIALOGEX 0, 0, 273, 68
+IDD_GETPKCS12FILEPASSWORD DIALOGEX 0, 0, 273, 64
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Password Entry Dialog"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
@@ -952,6 +952,18 @@ BEGIN
     LTEXT           "Static",IDC_VERIFIED,9,6,252,8
     EDITTEXT        IDC_USAGE,8,19,256,30,ES_MULTILINE | ES_AUTOHSCROLL | 
                     ES_READONLY | WS_VSCROLL
+END
+
+IDD_GENKEYPAIR DIALOGEX 0, 0, 212, 52
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "Generating A Private Key"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,83,31,50,14
+    LTEXT           "This may take a few minutes...",IDC_STATIC,8,18,198,8
+    LTEXT           "Please Wait... Key Generation in progress...",
+                    IDC_STATIC,8,8,143,8
 END
 
 IDD_PREFERENCES_DOWNLOAD DIALOGEX 0, 0, 271, 204
@@ -1229,7 +1241,110 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 197
     END
+    IDD_CONFIRM_EXPIRED_CERT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 244
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 82
+    END
+
+    IDD_NEWSERVER, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 263
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 210
+    END
+
+    IDD_DOMAIN_MISMATCH, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 267
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 111
+    END
+
+    IDD_VIEW_CERT_DETAILS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 261
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 251
+    END
+
+    IDD_SERVERCRLNEXTUPDATE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 267
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 89
+    END
+
+    IDD_DOWNLOAD_CERT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 266
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 137
+    END
+
+    IDD_SETPKCS12FILEPASSWORD, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 267
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 136
+    END
+
+    IDD_GETPKCS12FILEPASSWORD, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 266
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 57
+    END
+
+    IDD_VIEWCERT_GENERAL, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 266
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 248
+    END
+
+    IDD_GENKEYPAIR, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 205
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 45
+    END
+
+    IDD_CONFIRM_COOKIE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 209
+        BOTTOMMARGIN, 150
+    END
+    IDD_DOWNLOADFONT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 179
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 77
+    END
+
+    IDD_NEEDFONT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 178
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 80
+    END
+
 END
+
 #endif    // APSTUDIO_INVOKED
 
 
