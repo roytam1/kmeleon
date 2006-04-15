@@ -54,6 +54,8 @@
 #define BOOKMARKS_CREATING_NEW "K-Meleon will create a new, empty bookmark file for you"
 #define BOOKMARKS_NOT_BY_US "The Bookmarks file was not created by this plugin.  Would you like to save your changes?"
 #define BOOKMARKS_SAVE_CHANGES "Would you like to save your changes?"
+#define BOOKMARKS_CANCEL_CHANGES "Warning: all changes will be lost. Are you sure you want to close the bookmark editor?"
+#define BOOKMARKS_CANCEL_CAPTION "Close Bookmarks Editor"
 
 #define TOOLBAND_NAME "Bookmarks"
 #define TOOLBAND_FAILED_TO_CREATE "Failed to create bookmark toolbar"

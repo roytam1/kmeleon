@@ -977,6 +977,10 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
             case IDCANCEL:
                if (!zoom) {
                   if (bookmarksEdited) {
+
+					 if (MessageBox(hDlg, BOOKMARKS_CANCEL_CHANGES, BOOKMARKS_CANCEL_CAPTION, MB_OKCANCEL) == IDCANCEL)
+						 return 0;
+						 
                      FILE *bmFile = fopen(gBookmarkFile, "r");
                      if (bmFile){
                         long bmFileSize = FileSize(bmFile);
