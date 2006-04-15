@@ -8,7 +8,6 @@
 #endif
 
 #include "ie_favorites.h"
-#include "../resource.h"
 #include <windows.h>
 
 #ifndef IDC_STATIC
