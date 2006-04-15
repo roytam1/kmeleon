@@ -28,6 +28,7 @@
 #include "resource.h"
 #include "wininet.h"    // for INTERNET_MAX_URL_LENGTH
 #include "windows.h"    // for hook functions
+#include "imm.h"
 
 #include "defines.h"
 
@@ -130,6 +131,8 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
 
    BOOL fEatKeystroke = false;
    BOOL fakedKey = false;
+   BOOL fIME = false;
+   HIMC hIMC = (HIMC) NULL;
    HWND hasFocus = GetFocus();
    HWND hTree = GetDlgItem(hEditWnd, IDC_TREE_BOOKMARK);
 
@@ -145,6 +148,13 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
       return  CallNextHookEx(NULL, nCode, wParam, lParam);
 
    int searching = 0;
+
+   hIMC = ImmGetContext(hasFocus);
+   if (hIMC) { 
+     //fIME = ImmGetOpenStatus(hIMC);
+	 fIME = (ImmGetCompositionString(hIMC, GCS_COMPSTR, NULL, 0) > 0) ? TRUE : FALSE;
+     ImmReleaseContext(hasFocus, hIMC);
+   }
 
    if (wParam == VK_ESCAPE && !bTracking) {
       fEatKeystroke = true;
@@ -503,7 +513,7 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
    else if ((hasFocus == GetDlgItem(hEditWnd, IDC_URL) ||
              hasFocus == GetDlgItem(hEditWnd, IDC_DESC) ||
              hasFocus == GetDlgItem(hEditWnd, IDC_NICK)) && 
-            wParam == VK_RETURN) {
+             wParam == VK_RETURN && ! fIME) {
       fEatKeystroke = true;
       SetFocus(GetDlgItem(hEditWnd, IDC_TREE_BOOKMARK));
    }
