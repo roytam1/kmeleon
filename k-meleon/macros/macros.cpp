@@ -236,6 +236,78 @@ enum commands {
    urlencode
 };
 
+std::string sGlobalArg;
+
+class ArgList {
+
+  class Node {
+  public:
+    int id;
+    std::string macro;
+    std::string arg;
+    class Node *next;
+    Node(char *macro, char *arg) {
+      this->macro = macro;
+      this->arg = arg;
+      id = kFuncs->GetCommandIDs(1);
+      next = NULL;
+    }
+  };
+
+protected:
+  int min;
+  int max;
+  class Node *root;
+
+public:
+  ArgList() {
+    root = NULL;
+  }
+  ~ArgList() {
+	  class Node *ptr;
+	  while (root)
+	  {
+		  ptr = root;
+		  root = ptr->next;
+		  delete ptr;
+	  }
+
+  }
+
+  int add(char *macro, char *arg) {
+    class Node *ptr = root;
+    while (ptr && (strcmp(ptr->macro.c_str(), macro) || strcmp(ptr->arg.c_str(), arg)))
+      ptr = ptr->next;
+    if (ptr)
+      return ptr->id;
+    ptr = new Node(macro, arg);
+    if (root == NULL)
+      min = max = ptr->id;
+    if (max < ptr->id)
+      max = ptr->id;
+    ptr->next = root;
+    root = ptr;
+    return ptr->id;
+  }
+  BOOL execute(HWND hWnd, int id) {
+    if (id < min || id > max)
+      return FALSE;
+    class Node *ptr = root;
+    while (ptr && ptr->id != id)
+      ptr = ptr->next;
+    if (ptr && ptr->id == id) {
+      int cmdid = FindMacro((char*)ptr->macro.c_str());
+      if (cmdid != NOTFOUND) {
+	sGlobalArg = ptr->arg;
+	ExecuteMacro(hWnd, cmdid);
+	sGlobalArg = "";
+	return TRUE;
+      }
+    }
+    return FALSE;
+  }
+}* arglist;
+
 
 BOOL APIENTRY DllMain(HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved ) {
    switch (ul_reason_for_call) {
@@ -253,6 +325,7 @@ BOOL APIENTRY DllMain(HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserv
 
 int Load() {
    kFuncs = kPlugin.kFuncs;
+   arglist = new ArgList;
 
    char szMacroFile[MAX_PATH];
 
@@ -353,68 +426,9 @@ void Quit() {
       }
    }
    delete varList;
+   delete arglist;
 
 }
-std::string sGlobalArg;
-
-class ArgList {
-
-  class Node {
-  public:
-    int id;
-    std::string macro;
-    std::string arg;
-    class Node *next;
-    Node(char *macro, char *arg) {
-      this->macro = macro;
-      this->arg = arg;
-      id = kFuncs->GetCommandIDs(1);
-      next = NULL;
-    }
-  };
-
-protected:
-  int min;
-  int max;
-  class Node *root;
-
-public:
-  ArgList() {
-    root = NULL;
-  }
-  int add(char *macro, char *arg) {
-    class Node *ptr = root;
-    while (ptr && (strcmp(ptr->macro.c_str(), macro) || strcmp(ptr->arg.c_str(), arg)))
-      ptr = ptr->next;
-    if (ptr)
-      return ptr->id;
-    ptr = new Node(macro, arg);
-    if (root == NULL)
-      min = max = ptr->id;
-    if (max < ptr->id)
-      max = ptr->id;
-    ptr->next = root;
-    root = ptr;
-    return ptr->id;
-  }
-  BOOL execute(HWND hWnd, int id) {
-    if (id < min || id > max)
-      return FALSE;
-    class Node *ptr = root;
-    while (ptr && ptr->id != id)
-      ptr = ptr->next;
-    if (ptr && ptr->id == id) {
-      int cmdid = FindMacro((char*)ptr->macro.c_str());
-      if (cmdid != NOTFOUND) {
-	sGlobalArg = ptr->arg;
-	ExecuteMacro(hWnd, cmdid);
-	sGlobalArg = "";
-	return TRUE;
-      }
-    }
-    return FALSE;
-  }
-} arglist;
 void DoMenu(HMENU menu, char *param) {
    if (*param) {
       char *string = strchr(param, ',');
@@ -433,7 +447,7 @@ void DoMenu(HMENU menu, char *param) {
 	char *p = strchr(arg, ')');
 	if (p) {
 	  *p = 0;
-	  id = arglist.add(param, arg);
+	  id = arglist->add(param, arg);
 	}
       }
 
@@ -474,7 +488,7 @@ int DoAccel(char *param) {
 	char *p = strchr(arg, ')');
 	if (p) {
 	  *p = 0;
-	  id = arglist.add(param, arg);
+	  id = arglist->add(param, arg);
 	}
       }
 
@@ -2514,7 +2528,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
      else if ( (LOWORD(wParam) >= ID_START) && (LOWORD(wParam) <= ID_END) )
          ExecuteMacro(hWnd, LOWORD(wParam)-ID_START);
      else
-         arglist.execute(hWnd, LOWORD(wParam));
+         arglist->execute(hWnd, LOWORD(wParam));
      break;
    case UWM_UPDATEBUSYSTATE:
       {
