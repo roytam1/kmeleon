@@ -628,6 +628,49 @@ int CBrowserView::GetCurrentURI(char *sURI)
    return len;
 }
 
+BOOL GetSelectionInsideForm(nsIDOMElement *element, nsEmbedString &aSelText)
+{
+	nsCOMPtr<nsIDOMNSHTMLInputElement> domnsinput = do_QueryInterface(element);
+	if (domnsinput)
+	{
+		PRInt32 start, end;
+		domnsinput->GetSelectionStart(&start);
+		domnsinput->GetSelectionEnd(&end);
+		if (start >= end) return FALSE;
+
+		nsCOMPtr<nsIDOMHTMLInputElement> dominput = do_QueryInterface(element);
+		if (!dominput) return FALSE;
+
+		nsEmbedString value;
+		dominput->GetValue(value);
+		value.Cut(end,-1);
+
+		aSelText = value.get()+start;
+		return TRUE;
+	}
+
+	nsCOMPtr<nsIDOMNSHTMLTextAreaElement> tansinput = do_QueryInterface(element);
+	if (tansinput)
+	{
+		PRInt32 start, end;
+		tansinput->GetSelectionStart(&start);
+		tansinput->GetSelectionEnd(&end);
+		if (start >= end) return FALSE;
+
+		nsCOMPtr<nsIDOMHTMLTextAreaElement> tainput = do_QueryInterface(element);
+		if (!tansinput) return FALSE;
+
+		nsEmbedString value;
+		tainput->GetValue(value);
+		value.Cut(end,-1);
+
+		aSelText = value.get()+start;
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
 _GetSelection(nsIDOMWindow* dom, CString& aSelText)
 {
 	nsCOMPtr<nsISelection> sel;
@@ -671,6 +714,22 @@ BOOL CBrowserView::GetSelection(CString& aSelText)
 
 	nsCOMPtr<nsIDOMWindow> dom(do_GetInterface(mWebBrowser));
 	NS_ENSURE_TRUE(dom, FALSE);
+
+	// Check selection inside the focused element if it's an 
+	// input text or a textarea element.
+	nsCOMPtr<nsIDOMElement> element;
+	mWebBrowserFocus->GetFocusedElement(getter_AddRefs(element));
+	if (element)
+	{
+		nsEmbedString selText;
+		if (GetSelectionInsideForm(element, selText)) {
+			USES_CONVERSION;
+			aSelText = W2CT(selText.get());
+			return TRUE;
+		}
+	}
+
+	// Check normal selection inside the document
 	return _GetSelection(dom, aSelText);
 }
 
