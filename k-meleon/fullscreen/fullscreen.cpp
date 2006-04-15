@@ -34,10 +34,6 @@
 #include <stdlib.h>
 #include <shellapi.h>
 
-#include "resource.h"
-
-#define _T(x) x
-
 #define KMELEON_PLUGIN_EXPORTS
 #include "..\kmeleon_plugin.h"
 
@@ -95,7 +91,7 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
 }
 
 
-BOOL bHideReBar, bHideStatusBar, bAutoFullscreen;
+BOOL bHideReBar=1, bHideStatusBar=1, bAutoFullscreen=0, bHideTaskbar=1;
 
 HINSTANCE ghInstance;
 
@@ -165,9 +161,6 @@ BOOL APIENTRY DllMain(HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserv
 }
 
 int Load(){
-   kPlugin.kFuncs->GetPreference(PREF_BOOL, _T("kmeleon.plugins.fullscreen.hide_rebar"), &bHideReBar, (void *)"1");
-   kPlugin.kFuncs->GetPreference(PREF_BOOL, _T("kmeleon.plugins.fullscreen.hide_statusbar"), &bHideStatusBar, (void *)"1");
-   kPlugin.kFuncs->GetPreference(PREF_BOOL, _T("kmeleon.plugins.fullscreen.auto"), &bAutoFullscreen, (void *)&bAutoFullscreen);
 	id_fullscreen = kPlugin.kFuncs->GetCommandIDs(1);
    return true;
 }
@@ -180,7 +173,7 @@ void Create(HWND hWndParent) {
 	KMeleonWndProc = (WNDPROC) GetWindowLong(hWndParent, GWL_WNDPROC);
 	SetWindowLong(hWndParent, GWL_WNDPROC, (LONG)WndProc);
 	BOOL bLast = FALSE;
-	kPlugin.kFuncs->GetPreference(PREF_BOOL, _T("kmeleon.plugins.fullscreen.last"), &bLast, (void *)&bLast);
+	kPlugin.kFuncs->GetPreference(PREF_BOOL, "kmeleon.plugins.fullscreen.last", &bLast, (void *)&bLast);
 	if (bAutoFullscreen || bLast)
 	  PostMessage(hWndParent, WM_COMMAND, id_fullscreen, 0);
 }
@@ -274,34 +267,63 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 
          if (!fs->bFullScreen) {
 
+			kPlugin.kFuncs->GetPreference(PREF_BOOL, "kmeleon.plugins.fullscreen.hide_rebar", &bHideReBar, (void *)&bHideReBar);
+			kPlugin.kFuncs->GetPreference(PREF_BOOL, "kmeleon.plugins.fullscreen.hide_statusbar", &bHideStatusBar, (void *)&bHideStatusBar);
+			kPlugin.kFuncs->GetPreference(PREF_BOOL, "kmeleon.plugins.fullscreen.auto", &bAutoFullscreen, (void *)&bAutoFullscreen);
+		    kPlugin.kFuncs->GetPreference(PREF_BOOL, "kmeleon.plugins.fullscreen.hide_taskbar", &bHideTaskbar, (void *)&bHideTaskbar);
+
             RECT rectWindow;
+			RECT rectDesktop;
+
             fs->bFullScreen=TRUE;
 
             fs->wpOld.length = sizeof (fs->wpOld);
             GetWindowPlacement(hWnd, &fs->wpOld);
   
-            GetWindowRect(GetDesktopWindow(), &rectWindow );
-            AdjustWindowRectEx(&rectWindow, GetWindowLong(hWnd, GWL_STYLE), (GetMenu(hWnd)?true:false), GetWindowLong(hWnd, GWL_EXSTYLE));
+            GetWindowRect(GetDesktopWindow(), &rectDesktop );
+			rectWindow = rectDesktop;
 
-	    APPBARDATA abd;
-	    UINT uState = (UINT) SHAppBarMessage(ABM_GETSTATE, &abd); 
+			APPBARDATA abd;
+			abd.cbSize = sizeof(abd);
+			UINT uState = (UINT) SHAppBarMessage(ABM_GETSTATE, &abd); 
 
-	    if ((uState & ABS_ALWAYSONTOP) && !(uState & ABS_AUTOHIDE)) {
-	      BOOL fResult = (BOOL) SHAppBarMessage(ABM_GETTASKBARPOS, &abd); 
-	      if (abd.rc.left <= 1 && abd.rc.top <= 1) {
-		RECT rectDesktop;
-		GetWindowRect(GetDesktopWindow(), &rectDesktop );
-		if (abd.rc.right >= rectDesktop.right)
-		  rectWindow.top -= (abd.rc.bottom-abd.rc.top);
-		else if (abd.rc.bottom >= rectDesktop.bottom)
-		  rectWindow.left -= (abd.rc.right-abd.rc.left);
-	      }
-	    }
+			if ((uState & ABS_ALWAYSONTOP) && !(uState & ABS_AUTOHIDE))
+			{
+				BOOL fResult = (BOOL) SHAppBarMessage(ABM_GETTASKBARPOS, &abd); 
+				if (!bHideTaskbar)
+				{
+					// Idiotic try to get the taskbar position
+					if (abd.rc.top - rectDesktop.top > 10)
+						rectWindow.bottom = abd.rc.top;
+					else if (rectDesktop.right - abd.rc.right > 10)
+						rectWindow.right -= abd.rc.right - abd.rc.left;
+						//rectWindow.left = abd.rc.right;
+					else if (rectDesktop.bottom - abd.rc.bottom > 10)
+						//rectWindow.top = abd.rc.bottom;
+						rectWindow.bottom -= abd.rc.bottom - abd.rc.top;
+					else
+						rectWindow.right = abd.rc.left;
+				}
 
-            rectWindow.top    -= 2;
-            rectWindow.left   -= 2;
-            rectWindow.bottom += 2;
-            rectWindow.right  += 2;
+				else if (abd.rc.left <= 1 && abd.rc.top <= 1)
+				{
+					if (abd.rc.right >= rectDesktop.right) {
+						rectWindow.top -= (abd.rc.bottom-abd.rc.top);
+						rectWindow.bottom -= abd.rc.bottom - abd.rc.top - 2;
+					}
+					else if (abd.rc.bottom >= rectDesktop.bottom) {
+                        rectWindow.left -= (abd.rc.right-abd.rc.left);
+						rectWindow.right -= abd.rc.right - abd.rc.left - 2;
+					}
+				}
+			}
+
+			AdjustWindowRectEx(&rectWindow, GetWindowLong(hWnd, GWL_STYLE), (GetMenu(hWnd)?true:false), GetWindowLong(hWnd, GWL_EXSTYLE)); 
+    	    
+            rectWindow.top    -= 1;
+            rectWindow.left   -= 1;
+            rectWindow.bottom += 1;
+            rectWindow.right  += 1;
 
             rectFullScreenWindowRect = rectWindow;
             wpNew = fs->wpOld;
@@ -318,7 +340,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
             HideClutter(hWnd, fs);
             if (fs->bMaximized) ShowWindow(hWnd, SW_MAXIMIZE);
          }
-	 kPlugin.kFuncs->SetPreference(PREF_BOOL, _T("kmeleon.plugins.fullscreen.last"), &fs->bFullScreen, FALSE);
+		 kPlugin.kFuncs->SetPreference(PREF_BOOL, "kmeleon.plugins.fullscreen.last", &fs->bFullScreen, false);
          SetWindowPlacement (hWnd, &wpNew);
          return true;
       }
@@ -346,9 +368,9 @@ BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
                      bHideReBar = SendDlgItemMessage(hWnd, IDC_HIDEREBAR, BM_GETCHECK, 0, 0);
                      bHideStatusBar = SendDlgItemMessage(hWnd, IDC_HIDESTATUSBAR, BM_GETCHECK, 0, 0);
                      bAutoFullscreen = SendDlgItemMessage(hWnd, IDC_AUTOFULLSCREEN, BM_GETCHECK, 0, 0);
-                     kPlugin.kFuncs->SetPreference(PREF_BOOL, _T("kmeleon.plugins.fullscreen.hide_rebar"), &bHideReBar, FALSE);
-                     kPlugin.kFuncs->SetPreference(PREF_BOOL, _T("kmeleon.plugins.fullscreen.hide_statusbar"), &bHideStatusBar, FALSE);
-                     kPlugin.kFuncs->SetPreference(PREF_BOOL, _T("kmeleon.plugins.fullscreen.auto"), &bAutoFullscreen, FALSE);
+                     kPlugin.kFuncs->SetPreference(PREF_BOOL, "kmeleon.plugins.fullscreen.hide_rebar", &bHideReBar, false);
+                     kPlugin.kFuncs->SetPreference(PREF_BOOL, "kmeleon.plugins.fullscreen.hide_statusbar", &bHideStatusBar, false);
+                     kPlugin.kFuncs->SetPreference(PREF_BOOL, "kmeleon.plugins.fullscreen.auto", &bAutoFullscreen, false);
                   case IDCANCEL:
                      SendMessage(hWnd, WM_CLOSE, 0, 0);
                }
