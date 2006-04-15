@@ -172,11 +172,14 @@ public:
 	int GetTextSize();
 
 	BOOL GetSelection(CString&);
+	BOOL InjectCSS(const wchar_t* userStyleSheet);
+	BOOL InjectJS(const wchar_t* userJS, bool bTopWindow = true);
     BOOL GetPrintSettings();
 	BOOL CloneSHistory(CBrowserView& newWebBrowser);
 
 
 protected:
+	BOOL _InjectCSS(nsIDOMWindow* dom, const wchar_t* userStyleSheet);
 	void _OnNavReload(BOOL force = FALSE);
 	BOOL m_refreshBackButton;
 	BOOL m_refreshForwardButton; 
