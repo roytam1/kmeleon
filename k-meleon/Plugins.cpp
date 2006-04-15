@@ -738,6 +738,46 @@ int TranslateEx(const char* originalText,  TCHAR* translatedText, int bufferlen,
 	return 0;
 }
 
+BOOL GetMozillaWebBrowser(HWND hWnd, nsIWebBrowser** webBrowser)
+{
+	CBrowserFrame *browserFrm = (CBrowserFrame *)CWnd::FromHandle(hWnd);
+	if (!browserFrm || !browserFrm->m_wndBrowserView.mWebBrowser) return FALSE;
+
+	*webBrowser = browserFrm->m_wndBrowserView.mWebBrowser;
+	NS_ADDREF(*webBrowser);
+	return TRUE;
+}
+
+BOOL InjectJS(const char* js, bool bTopWindow, HWND hWnd)
+{
+	CBrowserFrame *browserFrm;
+	if (hWnd) 
+		browserFrm = (CBrowserFrame *)CWnd::FromHandle(hWnd);
+	else
+		browserFrm = theApp.m_pMostRecentBrowserFrame;
+
+	if (!browserFrm) return FALSE;
+	
+	nsEmbedString js2;
+	NS_CStringToUTF16(nsDependentCString(js), NS_CSTRING_ENCODING_ASCII, js2);
+	return browserFrm->m_wndBrowserView.InjectJS(js2.get(), bTopWindow);
+}
+
+BOOL InjectCSS(const char* css, bool bAll, HWND hWnd)
+{
+	CBrowserFrame *browserFrm;
+	if (hWnd) 
+		browserFrm = (CBrowserFrame *)CWnd::FromHandle(hWnd);
+	else
+		browserFrm = theApp.m_pMostRecentBrowserFrame;
+
+	if (!browserFrm) return FALSE;
+
+	nsEmbedString css2;
+	NS_CStringToUTF16(nsDependentCString(css), NS_CSTRING_ENCODING_ASCII, css2);
+	return browserFrm->m_wndBrowserView.InjectCSS(css2.get());
+}
+
 kmeleonFunctions kmelFuncs = {
    SendMessage,
    GetCommandIDs,
@@ -769,7 +809,12 @@ kmeleonFunctions kmelFuncs = {
    NULL,
    NULL,
    TranslateEx,
-   NULL
+   NULL,
+   GetMozillaWebBrowser,
+   NULL,
+   NULL,
+   InjectJS,
+   InjectCSS
 };
 
 BOOL CPlugins::TestLoad(const char *file, const char *description)

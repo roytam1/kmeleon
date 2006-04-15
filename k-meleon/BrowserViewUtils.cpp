@@ -31,6 +31,10 @@
 #include "nsIDocCharset.h"
 #include "nsISelection.h"
 #include "nsISHistoryInternal.h"
+#include "nsIDOMText.h"
+#include "nsIDOMNodeList.h"
+#include "nsIDOMHTMLScriptElement.h"
+#include "nsIDOMWindowCollection.h"
 
 #include "UnknownContentTypeHandler.h"
 #include "nsCWebBrowserPersist.h"
@@ -838,3 +842,154 @@ BOOL CBrowserView::ForceCharset(char *aCharSet)
 
    return NS_SUCCEEDED(result);
 } 
+
+
+BOOL CBrowserView::_InjectCSS(nsIDOMWindow* dom, const wchar_t* userStyleSheet)
+{
+	if (!dom) return FALSE;
+	
+	nsresult rv;
+
+	nsCOMPtr<nsIDOMDocument> document;
+	rv = dom->GetDocument(getter_AddRefs(document));
+	NS_ENSURE_SUCCESS(rv, FALSE);
+
+	nsCOMPtr<nsIDOMElement> styleElement;
+	rv = document->CreateElement(nsDependentString(L"style"), getter_AddRefs(styleElement));
+	NS_ENSURE_SUCCESS(rv, FALSE);
+
+	nsCOMPtr<nsIDOMText> textStyle;
+	rv = document->CreateTextNode(nsDependentString(userStyleSheet), getter_AddRefs(textStyle));
+	NS_ENSURE_SUCCESS(rv, FALSE);
+
+	nsCOMPtr<nsIDOMNode> notused;
+	rv = styleElement->AppendChild(textStyle, getter_AddRefs(notused));
+	NS_ENSURE_SUCCESS(rv, FALSE);
+
+	nsCOMPtr<nsIDOMNodeList> headList;
+	rv = document->GetElementsByTagName(nsDependentString(L"head"), getter_AddRefs(headList));
+	if (headList)
+	{
+		nsCOMPtr<nsIDOMNode> headNode;
+		rv = headList->Item(0, getter_AddRefs(headNode));
+		NS_ENSURE_SUCCESS(rv, FALSE);
+
+		rv = headNode->AppendChild(styleElement, getter_AddRefs(notused));
+	}
+	else
+	{
+		nsCOMPtr<nsIDOMElement> documentElement;
+		document->GetDocumentElement(getter_AddRefs(documentElement));
+		rv = documentElement->AppendChild(styleElement, getter_AddRefs(notused));
+	}
+
+	BOOL b = TRUE;
+	nsCOMPtr<nsIDOMWindowCollection> frames;
+	dom->GetFrames(getter_AddRefs(frames));
+	if (frames)
+	{
+		PRUint32 nbframes;
+		frames->GetLength(&nbframes);
+		if (nbframes>0)
+		{
+			nsCOMPtr<nsIDOMWindow> frame;
+			for (PRUint32 i = 0; i<nbframes; i++)
+			{
+				rv = frames->Item(i, getter_AddRefs(frame));
+				if (NS_FAILED(rv)) return FALSE;
+				b = b && _InjectCSS(frame, userStyleSheet);
+			}
+		}
+	}
+
+	return b && NS_SUCCEEDED(rv);
+}
+
+BOOL CBrowserView::InjectCSS(const wchar_t* userStyleSheet)
+{
+	nsresult rv;
+	nsCOMPtr<nsIDOMWindow> dom;
+	
+	rv = mWebBrowser->GetContentDOMWindow(getter_AddRefs(dom));
+	NS_ENSURE_SUCCESS(rv, FALSE);
+	
+	// Use a recursive function to inject the CSS in all frames.
+	return _InjectCSS(dom, userStyleSheet);
+}
+
+BOOL CBrowserView::InjectJS(const wchar_t* userScript, bool bTopWindow)
+{
+	nsresult rv;
+	nsCOMPtr<nsIDOMDocument> document;
+	
+	int jsEnabled = theApp.preferences.GetBool("javascript.enabled", true);
+	theApp.preferences.SetBool("javascript.enabled", true);
+
+	if (!bTopWindow)
+	{
+		if (m_lastMouseActionNode)
+			rv = m_lastMouseActionNode->GetOwnerDocument(getter_AddRefs(document));
+		else
+		{
+			nsCOMPtr<nsIDOMWindow> dom;
+			mWebBrowserFocus->GetFocusedWindow(getter_AddRefs(dom));
+			if (dom)
+				rv = dom->GetDocument(getter_AddRefs(document));
+		}
+		
+	}
+
+	if (!document)
+	{
+		nsCOMPtr<nsIDOMWindow> dom;
+		rv = mWebBrowser->GetContentDOMWindow(getter_AddRefs(dom));
+		NS_ENSURE_SUCCESS(rv, FALSE);
+
+		rv = dom->GetDocument(getter_AddRefs(document));
+	}
+
+	NS_ENSURE_SUCCESS(rv, FALSE);
+
+	nsCOMPtr<nsIDOMElement> body;
+	nsCOMPtr<nsIDOMHTMLDocument> htmlDoc(do_QueryInterface(document));
+	/*if (htmlDoc)
+	{
+		nsCOMPtr<nsIDOMHTMLElement> htmlBody;
+		htmlDoc->GetBody (getter_AddRefs(htmlBody));
+		body = do_QueryInterface(htmlBody);
+		NS_ENSURE_TRUE(body, FALSE);
+	}	
+	else*/
+	{
+		rv = document->GetDocumentElement (getter_AddRefs(body));
+		NS_ENSURE_SUCCESS(rv, FALSE);
+	}
+
+	nsCOMPtr<nsIDOMElement> scriptElement;
+	rv = document->CreateElement(nsDependentString(L"script"), getter_AddRefs(scriptElement));
+	NS_ENSURE_SUCCESS(rv, FALSE);
+/*
+	nsCOMPtr<nsIDOMText> textScript;
+	rv = document->CreateTextNode(nsDependentString(userScript), getter_AddRefs(textScript));
+	NS_ENSURE_SUCCESS(rv, FALSE);
+
+	nsCOMPtr<nsIDOMNode> notused;
+	rv = scriptElement->AppendChild(textScript, getter_AddRefs(notused));
+	NS_ENSURE_SUCCESS(rv, FALSE);*/
+
+	nsCOMPtr<nsIDOMHTMLScriptElement> scriptTag = do_QueryInterface(scriptElement);
+	NS_ENSURE_TRUE(scriptTag, FALSE);
+
+	scriptTag->SetText(nsDependentString(userScript));
+	scriptTag->SetType(nsDependentString(L"text/javascript"));
+
+	nsCOMPtr<nsIDOMNode> notused;
+	rv = body->AppendChild(scriptTag, getter_AddRefs(notused));
+	NS_ENSURE_SUCCESS(rv, FALSE);
+
+	rv = body->RemoveChild(scriptTag, getter_AddRefs(notused));
+
+	theApp.preferences.SetBool("javascript.enabled", jsEnabled);
+
+	return TRUE;
+}

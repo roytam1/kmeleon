@@ -19,11 +19,12 @@
 
 #include <windows.h>
 
+class nsIWebBrowser;
 #ifndef __KMELEON_PLUGIN_H__
 #define __KMELEON_PLUGIN_H__
 
 #define KMEL_PLUGIN_VER_MAJOR 0x0200
-#define KMEL_PLUGIN_VER_MINOR 0x0001
+#define KMEL_PLUGIN_VER_MINOR 0x0002
 #define KMEL_PLUGIN_VER KMEL_PLUGIN_VER_MAJOR | KMEL_PLUGIN_VER_MINOR
 
 #ifdef KMELEON_PLUGIN_EXPORTS
@@ -61,6 +62,12 @@ enum PREFTYPE {
    PREF_STRING,
    PREF_UNISTRING
 };
+
+#ifdef _UNICODE
+#define PREF_TSTRING PREF_UNISTRING
+#else
+#define PREF_TSTRING PREF_STRING
+#endif
 
 struct kmeleonPlugin;
 
@@ -151,6 +158,15 @@ typedef struct {
    int (*TranslateEx)(const char* originalText, TCHAR* translatedText, int bufferlen, BOOL forMenu);
 	
    int (*reserved2)();
+
+   /* Is it possible to get it otherwise ? */
+   BOOL (*GetMozillaWebBrowser)(HWND hWnd, nsIWebBrowser** webBrowser);
+
+   int (*reserved3)();
+   int (*reserved4)();
+   
+   BOOL (*InjectJS)(const char*, bool, HWND);
+   BOOL (*InjectCSS)(const char*, bool, HWND);
 
 } kmeleonFunctions;
 
