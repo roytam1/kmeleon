@@ -18,6 +18,7 @@
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <commdlg.h>
 #include <shellapi.h>
 #include <stdlib.h>
 #include <string>
@@ -231,7 +232,11 @@ enum commands {
    basename,
    dirname,
    hostname,
+   injectJS,
+   injectCSS,
    forcecharset,
+   readfile,
+   promptforfile,
    setcheck, 
    urlencode
 };
@@ -542,6 +547,10 @@ int FindCommand(char *cmd) {
       CMD_TEST(basename)
       CMD_TEST(dirname)
       CMD_TEST(hostname)
+	  CMD_TEST(injectJS)
+	  CMD_TEST(injectCSS)
+	  CMD_TEST(readfile)
+	  CMD_TEST(promptforfile)
       CMD_TEST(forcecharset)
 
    return cmdVal;
@@ -681,7 +690,7 @@ public:
 
 static void parseError(int err, char *cmd, char *args, int data1=0, int data2=0) {
    char title[256];
-   char msg[256];
+   char* msg = new char[strlen(cmd) + strlen(args) + 70];
 #define WRONGARGS 0
 #define WRONGTYPE 1
 
@@ -698,6 +707,7 @@ static void parseError(int err, char *cmd, char *args, int data1=0, int data2=0)
 	  break;
    }
    MessageBox(NULL, msg, title, MB_OK);
+   delete [] msg;
 }
 
 std::string title = "";
@@ -1462,6 +1472,79 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
 		 return retval;
       }
 
+	  CMD(injectJS) {
+		  if (nparam > 2) {  
+            parseError(WRONGARGS, "injectJS", data, 2, nparam);
+            return "";
+         }
+		 bool bTopWindow = (params[1] != "frame");
+		 kPlugin.kFuncs->InjectJS(params[0].c_str(), bTopWindow, hWnd);
+	  }
+
+	  CMD(injectCSS) {
+		  if (nparam != 1) {  
+            parseError(WRONGARGS, "injectCSS", data, 1, nparam);
+            return "";
+         }
+
+		  kPlugin.kFuncs->InjectCSS(params[0].c_str(), true, hWnd);
+	  }
+
+	  CMD(readfile) {
+		 if (nparam != 1) {  
+            parseError(WRONGARGS, "readfile", data, 1, nparam);
+            return "";
+         }
+
+		 FILE* f = fopen(params[0].c_str(), "r");
+		 if (f) {
+			 char* buffer = new char[32768];
+			 int size = fread(buffer, sizeof(char), 32768-1, f);
+			 buffer[size] = 0;
+			 std::string ret = protectString(buffer);
+			 fclose(f);
+             delete  [] buffer;
+			 return ret;
+		 }
+		 return protectString("");
+	  }
+
+	  CMD(promptforfile) {
+		  if (nparam != 3) {  
+            parseError(WRONGARGS, "promptforfile", data, 3, nparam);
+            return "";
+         }
+		 
+		  std::string filter = params[1] + std::string("|") + params[2] + std::string("||");
+
+		 TCHAR* pszFilter = (TCHAR*)filter.c_str();
+		 if (!pszFilter) return "";
+
+		 for (TCHAR* p = pszFilter; *p; p++)
+			if ((*p) == '|') (*p) = 0;
+
+		 OPENFILENAME ofn;
+		 memset(&ofn, 0, sizeof(ofn));
+		 ofn.lStructSize = sizeof(ofn);
+		 ofn.hwndOwner = hWnd;
+		 ofn.lpstrFilter =pszFilter;
+		 ofn.lpstrFile = new TCHAR[MAX_PATH]; 
+		 ofn.lpstrFile[0] = 0;
+		 ofn.nMaxFile = MAX_PATH;
+		 if (!params[0].empty()) {
+			ofn.lpstrFilter = params[0].c_str();
+		 }
+		 ofn.Flags = OFN_HIDEREADONLY | OFN_FILEMUSTEXIST;
+		 std::string ret;
+		 if( ::GetOpenFileName(&ofn) ) 
+			ret = protectString(ofn.lpstrFile);
+		 else
+		 	ret = protectString("");
+		 delete[] ofn.lpstrFile;
+		 free(pszFilter);
+         
+		 return ret;
+	  }
       /*
          forcecharset( charset );
       */
