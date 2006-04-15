@@ -35,6 +35,10 @@
 #include "nsIDOMNodeList.h"
 #include "nsIDOMHTMLScriptElement.h"
 #include "nsIDOMWindowCollection.h"
+#include "nsIDOMNSHTMLTextAreaElement.h"
+#include "nsIDOMHTMLTextAreaElement.h"
+#include "nsIDOMNSHTMLInputElement.h"
+#include "nsIDOMHTMLInputElement.h"
 
 #include "UnknownContentTypeHandler.h"
 #include "nsCWebBrowserPersist.h"
