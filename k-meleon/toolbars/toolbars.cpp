@@ -1278,6 +1278,7 @@ void ShowMenuUnderButton(HWND hWndParent, HMENU hMenu, UINT uMouseButton, int iI
 }
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
+	static WCHAR* tip = NULL;
   if (message == TB_RBUTTONDOWN || message == TB_LBUTTONHOLD) {
     int command = LOWORD(wParam);
     s_toolbar   *pToolbar = toolbar_head;
@@ -1303,7 +1304,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
   else if (message == WM_NOTIFY){
 
       LPNMHDR lpNmhdr = (LPNMHDR) lParam;
-      if (lpNmhdr->code == TTN_NEEDTEXT) {
+      if (lpNmhdr->code == TTN_NEEDTEXTA || lpNmhdr->code == TTN_NEEDTEXTW) {
 
          s_toolbar   *toolbar = toolbar_head;
          s_button    *button;
@@ -1314,9 +1315,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
             button = toolbar->pButtonTail;
             while (button) {
                if (button->iID == (int) wParam) {
-                  
-                  LPTOOLTIPTEXT lpTiptext = (LPTOOLTIPTEXT) lParam;                  
-                  lpTiptext->lpszText = button->sToolTip;
+                  if (lpNmhdr->code == TTN_NEEDTEXTA)
+				  {
+	                  LPTOOLTIPTEXTA lpTiptext = (LPTOOLTIPTEXTA) lParam;                  
+					  lpTiptext->lpszText = button->sToolTip;
+				  }
+				  else
+				  {
+					  LPTOOLTIPTEXTW lpTiptext = (LPTOOLTIPTEXTW) lParam;                  
+
+					  if (tip) free(tip);
+					  unsigned lengthDst = strlen(button->sToolTip) + 1;
+					  tip = (WCHAR*)malloc(sizeof(WCHAR) * lengthDst);
+					  MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, button->sToolTip, -1, tip, lengthDst);
+					  lpTiptext->lpszText = tip;
+				  }
                   return NULL;
 
                }
@@ -1327,6 +1340,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 
       }
    }
+	else if (message == WM_CLOSE){
+		if (tip) {
+			free(tip);
+			tip = NULL;
+		}
+	}
 
    return CallWindowProc(KMeleonWndProc, hWnd, message, wParam, lParam);
 }
