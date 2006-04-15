@@ -368,8 +368,8 @@ int GetID(char *strID) {
    return ID;
 }
 
-kmeleonPointInfo *GetInfoAtPoint(int x, int y) {
-
+kmeleonPointInfo *GetInfoAtNode(nsIDOMNode* aNode)
+{
    delete gPointInfo.image;
    delete gPointInfo.link;
    delete gPointInfo.frame;
@@ -378,7 +378,9 @@ kmeleonPointInfo *GetInfoAtPoint(int x, int y) {
    gPointInfo.link  = NULL;
    gPointInfo.frame = NULL;
    gPointInfo.page  = NULL;
-
+	
+   if (!aNode) 
+		return &gPointInfo;
 
    if (!theApp.m_pMostRecentBrowserFrame || !theApp.m_pMostRecentBrowserFrame->m_wndBrowserView)
       return &gPointInfo;
@@ -398,16 +400,6 @@ kmeleonPointInfo *GetInfoAtPoint(int x, int y) {
    }
 
 
-   // get the DOMNode at the point
-   nsCOMPtr<nsIDOMNode> aNode;
-   aNode = pBrowserView->GetNodeAtPoint(x, y, TRUE);
-   if (!aNode) {
-      // MessageBox(NULL, "no node", NULL, MB_OK);
-      return &gPointInfo;
-   }
-
-
-   
    nsEmbedString strBuf;
    nsresult rv = NS_OK;
 
@@ -466,6 +458,35 @@ kmeleonPointInfo *GetInfoAtPoint(int x, int y) {
    return &gPointInfo;
 }
 
+kmeleonPointInfo *GetInfoAtClick(HWND hWnd)
+{
+	CBrowserFrame *frame;
+	frame = (CBrowserFrame *)CWnd::FromHandle(hWnd);
+
+	if (!frame || !::IsWindow(frame->m_wndBrowserView.m_hWnd)) {
+      return GetInfoAtNode(nsnull);
+   }
+
+   if (!theApp.m_pMostRecentBrowserFrame || !theApp.m_pMostRecentBrowserFrame->m_wndBrowserView)
+	   return GetInfoAtNode(nsnull);
+
+   return GetInfoAtNode(frame->m_wndBrowserView.m_lastMouseActionNode);
+}
+
+kmeleonPointInfo *GetInfoAtPoint(int x, int y)
+{
+
+   if (!theApp.m_pMostRecentBrowserFrame || !theApp.m_pMostRecentBrowserFrame->m_wndBrowserView)
+	   return GetInfoAtNode(nsnull);
+
+   CBrowserView *pBrowserView;  
+   pBrowserView = &theApp.m_pMostRecentBrowserFrame->m_wndBrowserView;
+
+   // get the DOMNode at the point
+   nsCOMPtr<nsIDOMNode> aNode;
+   aNode = pBrowserView->GetNodeAtPoint(x, y, TRUE);
+   return GetInfoAtNode(aNode);
+}
 
 // return 0 if the function did not succeed (ie, trying to open a link from
 // a point that is not a link)
@@ -776,6 +797,11 @@ BOOL InjectCSS(const char* css, bool bAll, HWND hWnd)
 	nsEmbedString css2;
 	NS_CStringToUTF16(nsDependentCString(css), NS_CSTRING_ENCODING_ASCII, css2);
 	return browserFrm->m_wndBrowserView.InjectCSS(css2.get());
+}
+
+int GetKmeleonVersion()
+{
+	return KMELEON_VERSION;
 }
 
 kmeleonFunctions kmelFuncs = {
