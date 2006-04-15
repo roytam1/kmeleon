@@ -168,6 +168,11 @@ typedef struct {
    BOOL (*InjectJS)(const char*, bool, HWND);
    BOOL (*InjectCSS)(const char*, bool, HWND);
 
+   kmeleonPointInfo *(*GetInfoAtClick) (HWND);
+
+   int (*GetKmeleonVersion)();
+
+
 } kmeleonFunctions;
 
 /*
