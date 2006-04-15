@@ -20,16 +20,18 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <math.h>
-
-#define PLUGIN_NAME "Mouse Gestures Plugin"
-#define NO_OPTIONS "This plugin has no user configurable options."
+#include <tchar.h>
 
 #define KMELEON_PLUGIN_EXPORTS
 #include "..\\kmeleon_plugin.h"
 #include "..\\KMeleonConst.h"
 #include "..\\resource.h"
 
-#define _T(x) x
+#define PLUGIN_NAME "Mouse Gestures Plugin"
+#define NO_OPTIONS _T("This plugin has no user configurable options.")
+
+#define PREF_ "kmeleon.plugins.gestures."
+
 
 #define NOTFOUND -1
 
@@ -49,7 +51,7 @@ LRESULT CALLBACK WndProc (
 
 void * KMeleonWndProc;
 
-int Load();
+int Init();
 void Create(HWND parent);
 void Config(HWND parent);
 void Quit();
@@ -67,8 +69,8 @@ kmeleonPlugin kPlugin = {
 long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2)
 {
     if (to[0] == '*' || stricmp(to, kPlugin.dllname) == 0) {
-        if (stricmp(subject, "Load") == 0) {
-            Load();
+        if (stricmp(subject, "Init") == 0) {
+            Init();
         }
         else if (stricmp(subject, "Create") == 0) {
             Create((HWND)data1);
@@ -95,10 +97,29 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
     return 0;
 }
 
+void InitDefaultPreferences(){
+	char szPref[100], szTxt[100];
+    strcpy(szPref, PREF_);
+    strcat(szPref, "LR");	
+	kPlugin.kFuncs->GetPreference(PREF_STRING, szPref, szTxt, (char*)"");        
+    if (!*szTxt){
+    	strcpy(szTxt, "ID_NAV_FORWARD");
+		kPlugin.kFuncs->SetPreference(PREF_STRING, szPref, szTxt, FALSE);
+	}
+    strcpy(szPref, PREF_);
+    strcat(szPref, "RL");	
+	kPlugin.kFuncs->GetPreference(PREF_STRING, szPref, szTxt, (char*)"");        
+    if (!*szTxt){
+    	strcpy(szTxt, "ID_NAV_BACK");
+		kPlugin.kFuncs->SetPreference(PREF_STRING, szPref, szTxt, FALSE);
+	}
+}
+
 UINT id_defercapture;
 
-int Load(){
+int Init(){
     id_defercapture = kPlugin.kFuncs->GetCommandIDs(1);
+    InitDefaultPreferences();
     return true;
 }
 
@@ -196,6 +217,9 @@ static POINT m_posDown;
 static SYSTEMTIME m_stDown;
 static int m_virt;
 
+static BOOL m_rocking = FALSE;
+static BOOL m_preventpopup = FALSE;
+
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
     if (message == WM_COMMAND){
         WORD command = LOWORD(wParam);
@@ -205,7 +229,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
             SetCapture(hWnd);
         }
     }
-    else if (message == WM_MOUSEACTIVATE){
+	else if (m_rocking && ((message == WM_RBUTTONUP) || (message == WM_LBUTTONUP)))
+	{
+		m_preventpopup--;
+		if (!m_preventpopup) {
+			m_rocking = FALSE;
+			ReleaseCapture();
+			if (m_defercapture == WM_LBUTTONDOWN)
+				PostMessage(GetFocus(), WM_LBUTTONUP, wParam, lParam);
+			m_defercapture = 0;
+	    }
+		return 0;
+	}
+    else if (message == WM_MOUSEACTIVATE && !m_captured){
         HWND hDesktopWnd = (HWND) wParam;
         UINT nHitTest = LOWORD(lParam);
         UINT mouseMsg = HIWORD(lParam);
@@ -227,7 +263,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                 if (GetKeyState(VK_MENU) < 0)
                     m_virt |= FALT;
 
-                if (mouseMsg == WM_RBUTTONDOWN || m_virt != 0) {
+                if ((mouseMsg == WM_RBUTTONDOWN || m_virt != 0 || mouseMsg == WM_LBUTTONDOWN)) {
 
                     SetCapture(hWnd);
                     m_defercapture = m_captured = mouseMsg;
@@ -241,12 +277,55 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
         else
             m_captured = m_defercapture = 0;
     }
-    else if (message == WM_CAPTURECHANGED ||
+    else if (
              message == WM_LBUTTONDBLCLK || 
              message == WM_MBUTTONDBLCLK || 
              message == WM_RBUTTONDBLCLK){
         ReleaseCapture();
         m_captured = 0;
+    }
+	else if (message == WM_CAPTURECHANGED && (HWND)lParam!=hWnd)
+	{
+		ReleaseCapture();
+        m_captured = 0;
+	}
+    else if (message == WM_LBUTTONDOWN && m_captured == WM_RBUTTONDOWN ||
+    		 message == WM_RBUTTONDOWN && m_captured == WM_LBUTTONDOWN)
+    {
+        char szPref[100], szTxt[100];
+        strcpy(szPref, PREF_);
+		
+        if (m_captured == WM_LBUTTONDOWN)
+        	strcat(szPref, "LR");
+    	else if (m_captured == WM_RBUTTONDOWN)
+    		strcat(szPref, "RL");
+		kPlugin.kFuncs->GetPreference(PREF_STRING, szPref, szTxt, (char*)"");        
+        INT id = 0;
+        if (*szTxt)
+           	id = kPlugin.kFuncs->GetID(szTxt);
+        SendMessage(hWnd, WM_COMMAND, id, 0L);
+        m_rocking = TRUE;
+		m_preventpopup = 2;
+		m_captured = 0;
+    }
+    else if (message == WM_MOUSEMOVE && m_captured == WM_LBUTTONDOWN && m_virt == 0) {
+    
+        POINT m_posMove;
+        GetCursorPos(&m_posMove);
+        
+        if (abs(m_posMove.x - m_posDown.x) > 1 ||
+            abs(m_posMove.y - m_posDown.y) > 1)
+        {
+	        ReleaseCapture();
+	        m_captured = 0;
+			
+			POINT m_posDownClient = m_posDown;
+			ScreenToClient(WindowFromPoint(m_posDown), &m_posDownClient);
+			
+			SetCursorPos(m_posDown.x, m_posDown.y);
+			PostMessage(WindowFromPoint(m_posDown), WM_LBUTTONDOWN, wParam, MAKELONG(m_posDownClient.x, m_posDownClient.y));
+			SetCursorPos(m_posMove.x, m_posMove.y);
+     	}
     }
     else if (message == WM_LBUTTONUP && m_captured == WM_LBUTTONDOWN ||
              message == WM_MBUTTONUP && m_captured == WM_MBUTTONDOWN ||
@@ -308,14 +387,26 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
         if (*szTxt)
             id = kPlugin.kFuncs->GetID(szTxt);
         
-        if (dir == NOMOVE && m_captured == WM_RBUTTONDOWN && m_virt == 0 && id <= 0)
-            PostMessage(GetFocus(), WM_CONTEXTMENU, (WPARAM) hWnd, MAKELONG(m_posUp.x, m_posUp.y));
+		HWND targetWnd = WindowFromPoint(m_posDown);
+		if (m_captured == WM_LBUTTONDOWN && (id == 0 || m_virt == 0)) {
+			ScreenToClient(targetWnd, &m_posUp);
+			//PostMessage(targetWnd, WM_LBUTTONDOWN, MK_LBUTTON, MAKELONG(m_posDown.x, m_posDown.y));
+        	PostMessage(targetWnd, WM_LBUTTONUP, wParam, MAKELONG(m_posUp.x, m_posUp.y));
+		}
+        else if (m_rocking)
+            m_rocking = FALSE;
+		else if (dir == NOMOVE && m_captured == WM_RBUTTONDOWN && m_virt == 0 && id <= 0) {
+			ScreenToClient(targetWnd, &m_posDown);
+			//PostMessage(targetWnd, WM_RBUTTONDOWN, wParam, MAKELONG(m_posDown.x, m_posDown.y));
+			PostMessage(targetWnd, WM_RBUTTONUP, wParam, MAKELONG(m_posDown.x, m_posDown.y));
+            //PostMessage(GetFocus(), WM_CONTEXTMENU, (WPARAM) hWnd, MAKELONG(m_posUp.x, m_posUp.y));
+		}
         else if (dir != BADMOVE && id > 0)
             SendMessage(hWnd, WM_COMMAND, id, 0L);
 
         ReleaseCapture();
         m_captured = m_defercapture = 0;
-        if (dir != BADMOVE)
+       // if (dir != BADMOVE)
             return 0;
     }
 
