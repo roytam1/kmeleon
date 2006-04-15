@@ -79,6 +79,54 @@ kmeleonPlugin kPlugin = {
    PLUGIN_NAME,
    DoMessage
 };
+bool mustEscape(unsigned char c)
+{
+	static const char chars[]= " $&+,/:;=?@";
+	if (c>127 || strchr(chars, c)) return true;
+	return false;
+}
+
+std::string Escape(std::string url)
+{	
+	static const char hexChars[] = "0123456789ABCDEF";
+
+	std::string ret;
+	int len = url.length();
+	for (int i=0;i<len;i++) {
+		register unsigned char c = (unsigned char)url[i];
+		if ( !mustEscape( c ) )
+			ret += url[i];
+		else if (url[i]==' ')
+			ret += '+';
+		else{
+			ret += "%";
+			ret += hexChars[c >> 4];
+			ret += hexChars[c & 0x0f];
+		}
+	}
+	return ret;
+}
+
+std::string EscapeURL(std::string url)
+{	
+	static const char hexChars[] = "0123456789ABCDEF";
+
+	std::string ret;
+	int len = url.length();
+	bool escaped = false;
+	for (int i=0;i<len;i++) {
+		register unsigned char c = (unsigned char)url[i];
+		if (  ! (c > 127 || (c == '|' && escaped)) )
+			ret += url[i];
+		else{
+			ret += "%";
+			ret += hexChars[c >> 4];
+			ret += hexChars[c & 0x0f];
+		}
+		if (c > 127) escaped = true;
+	}
+	return ret;
+}
 
 long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2)
 {  
@@ -184,7 +232,8 @@ enum commands {
    dirname,
    hostname,
    forcecharset,
-   setcheck
+   setcheck, 
+   urlencode
 };
 
 
@@ -449,6 +498,7 @@ int FindCommand(char *cmd) {
    int cmdVal = NOTFOUND;
    
    BEGIN_CMD_TEST
+	  CMD_TEST(setcheck)
       CMD_TEST(open)
       CMD_TEST(opennew)
       CMD_TEST(openbg)
@@ -474,11 +524,11 @@ int FindCommand(char *cmd) {
       CMD_TEST(length)
       CMD_TEST(sub)
       CMD_TEST(substr)
+	  CMD_TEST(urlencode)
       CMD_TEST(basename)
       CMD_TEST(dirname)
       CMD_TEST(hostname)
       CMD_TEST(forcecharset)
-      CMD_TEST(setcheck)
 
    return cmdVal;
 }
@@ -745,21 +795,21 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
 			parseError(WRONGARGS, "open", data, 1, nparam);
             return "";
          }
-         kFuncs->NavigateTo((char*)params[0].c_str(), OPEN_NORMAL, NULL);
+         kFuncs->NavigateTo((char*)(EscapeURL(params[0]).c_str()), OPEN_NORMAL, NULL);
       }
       CMD(opennew) {
          if (nparam != 1) {  // opennew( $0 )
             parseError(WRONGARGS, "opennew", data, 1, nparam);
             return "";
          }
-         kFuncs->NavigateTo((char*)params[0].c_str(), OPEN_NEW, NULL);
+         kFuncs->NavigateTo((char*)EscapeURL(params[0]).c_str(), OPEN_NEW, NULL);
       }
       CMD(openbg) {
          if (nparam != 1) {  // openbg( $0 )
             parseError(WRONGARGS, "openbg", data, 1, nparam);
             return "";
          }
-         kFuncs->NavigateTo((char*)params[0].c_str(), OPEN_BACKGROUND, NULL);
+         kFuncs->NavigateTo((char*)EscapeURL(params[0]).c_str(), OPEN_BACKGROUND, NULL);
       }
       CMD(setpref)   {
          enum PREFTYPE preftype;
@@ -1287,6 +1337,16 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
 		 return retval;
       }
 
+	  /* escape( string ) */
+	  CMD(urlencode) {
+	      if (nparam != 1) { 
+            parseError(WRONGARGS, "urlencode", data, 1, nparam);
+            return "";
+         }
+
+	     return protectString( (char*)Escape(params[0]).c_str() );
+	  }
+      
       /*
          basename( NAME [, SUFFIX] );
 
