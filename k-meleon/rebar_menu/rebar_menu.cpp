@@ -123,7 +123,7 @@ void Setup(){
          mInfo.cch = 127;
          mInfo.dwTypeData = temp;
          GetMenuItemInfo(hMenu, i, MF_BYPOSITION, &mInfo);
-
+		 if (mInfo.fType != MFT_STRING) continue;
 	 char *p = strchr((LPCTSTR)mInfo.dwTypeData, '&');
 	 if (p && *(p+1)) {
 	   char szBuf[16] = {0};
