@@ -343,11 +343,12 @@ void DoMenu(HMENU menu, char *param){
       
       // Don't ownerdraw the top level menu items (File, Edit, View, etc)
       // We can't actually be sure that this is going to be that menu.
-      // Perhaps someone who only wants menuicons on the File menu will decide
-      // to move the bmpmenu() call from the top level menu into the file menu...
-      // In that circumstance, none of the entries under "File" will be ownerdrawn...oops
-
-      BOOL topLevel = TRUE;
+      // To identify it, the user MUST put bmpmenu(top) for this menu
+	  BOOL topLevel;
+	  if (strcmp(param, "top") == 0)
+		topLevel = TRUE;
+	  else
+	    topLevel = FALSE;
 
       DRAWBITMAPPROC DrawProc = NULL;
       if (*param) {
