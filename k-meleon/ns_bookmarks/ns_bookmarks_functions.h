@@ -69,6 +69,7 @@ extern UINT nFirstBookmarkPosition;
 extern UINT wm_deferbringtotop;
 
 extern CHAR gBookmarkFile[];
+extern bool gBookmarkDefFile;
 extern CHAR gToolbarFolder[];
 extern CHAR gBookmarksTitle[];
 

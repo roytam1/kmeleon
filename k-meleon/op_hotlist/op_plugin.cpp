@@ -196,12 +196,13 @@ BOOL CALLBACK HotlistFileDlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 void getHotlistFile() {
    FILE *bmFile;
    char tmp[2048];
-   
+   bool defFile =  false;
    kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_HOTLIST_FILE, gHotlistFile, (char*)"");
    
    if (!gHotlistFile[0]) {
       kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_SETTINGS_DIR, gHotlistFile, (char*)"");
       strcat(gHotlistFile, HOTLIST_DEFAULT_FILENAME);
+	  defFile = true;
    }
    
    bmFile = fopen(gHotlistFile, "a");
@@ -253,8 +254,8 @@ void getHotlistFile() {
    if (bmFile)
       fclose(bmFile);
    
-   if (!bIgnore)
-      kPlugin.kFuncs->SetPreference(PREF_STRING, PREFERENCE_HOTLIST_FILE, gHotlistFile, FALSE);
+   if (!bIgnore && !defFile)
+      kPlugin.kFuncs->SetPreference(PREF_STRING, PREFERENCE_HOTLIST_FILE, gHotlistFile, false);
 }
 
 #include "../findskin.cpp"
@@ -544,6 +545,12 @@ void Quit(){
    }
    while (root)
       remove_TB(root->hWnd);
+
+   TCHAR tmp[MAX_PATH];
+   kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_SETTINGS_DIR, &tmp, (TCHAR*)_T(""));
+   strcat(tmp, HOTLIST_DEFAULT_FILENAME);
+   if (_tcscmp(tmp, gHotlistFile) == 0)
+	   kPlugin.kFuncs->DelPreference(PREFERENCE_HOTLIST_FILE);
 }
 
 void DoMenu(HMENU menu, char *param){

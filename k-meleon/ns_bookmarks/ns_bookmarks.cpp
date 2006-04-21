@@ -52,6 +52,7 @@ UINT nFirstBookmarkPosition;
 UINT wm_deferbringtotop;
 
 CHAR gBookmarkFile[MAX_PATH];
+bool gBookmarkDefFile = false;
 CHAR gToolbarFolder[MAX_PATH];
 
 char gBookmarksTitle[BOOKMARKS_TITLE_LEN];
@@ -147,8 +148,8 @@ int Load(){
    if (!gBookmarkFile[0]) {
       kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_SETTINGS_DIR, gBookmarkFile, (char*)"");
       strcat(gBookmarkFile, BOOKMARKS_DEFAULT_FILENAME);
+	  gBookmarkDefFile = true;
    }
-
    FILE *bmFile = fopen(gBookmarkFile, "a");
    if (bmFile)
       fclose(bmFile);
@@ -163,6 +164,7 @@ int Load(){
                bmFile = fopen(gBookmarkFile, "w");
                gGeneratedByUs = true;
             }
+			gBookmarkDefFile = false;
             fclose(bmFile);
          }
          else {
@@ -184,6 +186,7 @@ int Load(){
          gGeneratedByUs = true;
       }
    }
+   if (!gBookmarkDefFile)
    kPlugin.kFuncs->SetPreference(PREF_STRING, PREFERENCE_BOOKMARK_FILE, gBookmarkFile, FALSE);
 
    kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_TOOLBAR_FOLDER, gToolbarFolder, (char*)"");
@@ -247,6 +250,14 @@ void Quit(){
    }
    
    kPlugin.kFuncs->SendMessage("bmpmenu", PLUGIN_NAME, "UnSetOwnerDrawn", (long)gMenuBookmarks, 0);
+
+    TCHAR tmp[MAX_PATH];
+	kPlugin.kFuncs->GetPreference(PREF_TSTRING, PREFERENCE_SETTINGS_DIR, &tmp, (TCHAR*)_T(""));
+	_tcscat(tmp, BOOKMARKS_DEFAULT_FILENAME);
+ 
+   if (gBookmarkDefFile || _tcscmp(tmp, gBookmarkFile) == 0)
+	   kPlugin.kFuncs->DelPreference(PREFERENCE_BOOKMARK_FILE);
+
 }
 
 void Config(HWND hWndParent){
