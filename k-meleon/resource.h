@@ -426,6 +426,7 @@
 #define IDD_GETPKCS12FILEPASSWORD       111
 #define IDD_VIEWCERT_GENERAL            112
 #define IDD_VIEW_CERT_DETAILS           115
+#define IDD_GENKEYPAIR                  116
 #define IDD_CONFIRM_EXPIRED_CERT        2000
 #define IDC_VIEW_CERT                   2002
 #define IDC_HELP_CERT                   2004
