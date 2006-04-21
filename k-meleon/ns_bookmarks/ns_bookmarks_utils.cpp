@@ -935,6 +935,7 @@ void BuildRebar(HWND hWndTB)
 
 void Rebuild() {
    // delete the old bookmarks from the menu (FIXME - needs to be more robust than "delete everything after the first bookmark position" - there may be normal menu items there (if the user is weird))
+   kPlugin.kFuncs->SendMessage("bmpmenu", PLUGIN_NAME, "UnSetOwnerDrawn", (long)gMenuBookmarks, 0);
    while (DeleteMenu(gMenuBookmarks, nFirstBookmarkPosition, MF_BYPOSITION));
    // and rebuild
    BuildMenu(gMenuBookmarks, gBookmarkRoot.FindSpecialNode(BOOKMARK_FLAG_BM), false);

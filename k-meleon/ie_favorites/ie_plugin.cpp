@@ -366,6 +366,7 @@ void Config(HWND hWndParent){
 }
 
 void Quit(){
+   kPlugin.kFuncs->SendMessage("bmpmenu", PLUGIN_NAME, "UnSetOwnerDrawn", (long)gMenuFavorites, 0);
    if (gImagelist)
       ImageList_Destroy(gImagelist);
    while (root)
