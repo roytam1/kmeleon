@@ -212,6 +212,7 @@ void BuildMenu(HMENU menu, CBookmarkNode *node, BOOL isContinuation)
 
 void RebuildMenu() {
    // delete the old bookmarks from the menu (FIXME - needs to be more robust than "delete everything after the first bookmark position" - there may be normal menu items there (if the user is weird))
+   kPlugin.kFuncs->SendMessage("bmpmenu", PLUGIN_NAME, "UnSetOwnerDrawn", (long)gMenuHotlist, 0);
    while (DeleteMenu(gMenuHotlist, nFirstHotlistPosition, MF_BYPOSITION));
    // and rebuild
    if (gMenuSortOrder)

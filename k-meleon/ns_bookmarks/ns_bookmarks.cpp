@@ -245,6 +245,8 @@ void Quit(){
    if (gBookmarksModified) {
       SaveBM(gBookmarkFile);
    }
+   
+   kPlugin.kFuncs->SendMessage("bmpmenu", PLUGIN_NAME, "UnSetOwnerDrawn", (long)gMenuBookmarks, 0);
 }
 
 void Config(HWND hWndParent){

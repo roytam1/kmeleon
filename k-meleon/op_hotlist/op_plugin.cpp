@@ -533,6 +533,7 @@ void Config(HWND hWndParent){
 }
 
 void Quit(){
+   kPlugin.kFuncs->SendMessage("bmpmenu", PLUGIN_NAME, "UnSetOwnerDrawn", (long)gMenuHotlist, 0);
    hWndFront = NULL;
    if (ghWndEdit)
       SendMessage(ghWndEdit, WM_CLOSE, 0, 0);
