@@ -100,6 +100,7 @@ BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 				  if (_tcsicmp(tempPath, gBookmarkFile) != 0) {
 					 GetDlgItemText(hWnd, IDC_BOOKMARKS_FILE, gBookmarkFile, MAX_PATH);
 					 kPlugin.kFuncs->SetPreference(PREF_STRING, PREFERENCE_BOOKMARK_FILE, gBookmarkFile, false);
+					 gBookmarkDefFile = false;
 					 delete gBookmarkRoot.child;
 					 delete gBookmarkRoot.next;
 					 gBookmarkRoot.child = NULL;
