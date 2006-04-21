@@ -46,6 +46,7 @@
 class CBrowserView;
 class CBrowserFrame;
 
+#include <afxtempl.h>
 class CFindRebar: public CReBar
 {
 public:
@@ -286,6 +287,32 @@ public:
 
     DECLARE_MESSAGE_MAP()
 	virtual void OnCancel();
+};
+
+class CSelectDialog : public CDialog
+{
+//	DECLARE_DYNAMIC(CSelectDialog)
+
+public:
+	CSelectDialog(CWnd* pParent, LPCTSTR pTitle, LPCTSTR pText);   // constructeur standard
+	virtual ~CSelectDialog();
+	inline int GetChoice() {return m_iChoice;}
+	void AddChoice(LPCTSTR);
+
+// Données de boîte de dialogue
+	enum { IDD = IDD_PROMPT_SELECT };
+
+protected:
+	virtual void DoDataExchange(CDataExchange* pDX);    // Prise en charge DDX/DDV
+	CString m_csDialogTitle;
+	CString m_csMsgText;
+	CListBox m_cList;
+	CList<CString, LPCTSTR> m_clChoices;
+	int m_iChoice;
+	DECLARE_MESSAGE_MAP()
+public:
+	virtual BOOL OnInitDialog();
+	afx_msg void OnBnClickedOk();
 };
 
 #endif //_DIALOG_H_

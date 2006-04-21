@@ -259,7 +259,17 @@ NS_IMETHODIMP CPromptService::Select(nsIDOMWindow *parent,
                                      PRInt32 *outSelection,
                                      PRBool *_retval)
 {
-  return NS_ERROR_NOT_IMPLEMENTED;
+	USES_CONVERSION;
+	CWnd *wnd = CWndForDOMWindow(parent);
+    CSelectDialog dlg(wnd, W2CT(dialogTitle), W2CT(text));
+
+	for (PRUint32 i = 0; i<count; i++)
+		dlg.AddChoice(W2CT(selectList[i]));
+
+	*_retval = dlg.DoModal() == IDOK ? PR_TRUE : PR_FALSE;
+	*outSelection = dlg.GetChoice();
+  
+	return NS_OK;
 }
 
 NS_IMETHODIMP CPromptService::ConfirmEx(nsIDOMWindow *parent,

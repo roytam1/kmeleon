@@ -848,3 +848,59 @@ void CConfirmCheckDialog::OnCancel()
 	UpdateData();
 	EndDialog((m_defButton&0xff00) >> 8);
 }
+
+//IMPLEMENT_DYNAMIC(CSelectDialog, CDialog)
+CSelectDialog::CSelectDialog(CWnd* pParent, LPCTSTR pTitle, LPCTSTR pText)
+	: CDialog(CSelectDialog::IDD, pParent)
+{
+	if(pTitle) m_csDialogTitle = pTitle;
+    if(pText) m_csMsgText = pText;
+	m_iChoice = 0;
+}
+
+CSelectDialog::~CSelectDialog()
+{
+}
+
+void CSelectDialog::DoDataExchange(CDataExchange* pDX)
+{
+	CDialog::DoDataExchange(pDX);
+	DDX_Control(pDX, IDC_LIST_SELECT, m_cList);
+}
+
+
+BEGIN_MESSAGE_MAP(CSelectDialog, CDialog)
+	ON_BN_CLICKED(IDOK, OnBnClickedOk)
+END_MESSAGE_MAP()
+
+
+// Gestionnaires de messages SelectDialog
+
+BOOL CSelectDialog::OnInitDialog()
+{
+	CDialog::OnInitDialog();
+
+	POSITION pos = m_clChoices.GetHeadPosition();
+	for (int i=0;i < m_clChoices.GetCount();i++)
+		m_cList.AddString(m_clChoices.GetNext(pos));
+	
+   	SetWindowText(m_csDialogTitle);
+  
+    CWnd *pWnd = GetDlgItem(IDC_MSG_TEXT);
+    if(pWnd)
+        pWnd->SetWindowText(m_csMsgText);
+
+	return TRUE;  // return TRUE unless you set the focus to a control
+	// EXCEPTION : les pages de propriétés OCX devraient retourner FALSE
+}
+
+void CSelectDialog::AddChoice(LPCTSTR text)
+{
+	m_clChoices.AddTail(text);
+}
+
+void CSelectDialog::OnBnClickedOk()
+{
+	m_iChoice = m_cList.GetCaretIndex();
+	OnOK();
+}
