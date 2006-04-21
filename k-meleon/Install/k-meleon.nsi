@@ -1,40 +1,50 @@
-!packhdr		tmp.dat "c:\apps\upx\upx.exe -9 --best --strip-relocs=1 tmp.dat"
+!packhdr	tmp.dat "C:\Progra~1\Upx\bin\upx.exe -9 --best --strip-relocs=1 tmp.dat"
 
-!define		NAME "K-Meleon"
-!define		VERSION "0.9"
+!define		NAME "K-MeleonSM"
+!define		VERSION "1.0b7"
+!define		ADDRESS "http://kmeleon.sourceforge.net/"  
+!define		GECKO_VERSION "1.8.0.1"
+
+!define		PRODUCT_KEY "Software\${NAME}"
+!define		PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${NAME}"
+!define 	CLIENT_INTERNET_KEY "Software\Clients\StartMenuInternet"
+!define		PRODUCT_CLIENT_INTERNET_KEY "${CLIENT_INTERNET_KEY}\k-meleon.exe"
+!define		MOZILLA_REG_KEY "Software\Mozilla\${NAME}"
 
 ;--------------------------------
 ;Include Modern UI
 
-  !include "MUI.nsh"
-  !include "Sections.nsh"
+!include "MUI.nsh"
+!include "Sections.nsh"
 
 ;--------------------------------
 ;General
 
-  ;Name and file
-  Name			"${NAME} ${VERSION}"
-  Caption		"${NAME} ${VERSION} - Setup"
-  OutFile		"${NAME}.exe"
 
-  ;Default installation folder
-  InstallDir 		"$PROGRAMFILES\${NAME}"
+
+;Default installation folder
+InstallDir 		"$PROGRAMFILES\${NAME}"
   
-  ;Get installation folder from registry if available
-  InstallDirRegKey 	HKEY_CURRENT_USER "Software\${NAME}\${NAME}\General" "InstallDir"
+;Get installation folder from registry if available
+InstallDirRegKey 	HKEY_CURRENT_USER "${PRODUCT_KEY}\General" "InstallDir"
 
-SetCompressor		lzma
-; SetCompressor		best
-; SetCompressor		zlib
+SetCompressor	/SOLID	lzma
+;SetCompressor		zlib
 SetDatablockOptimize	on
 ShowInstDetails		show
 AutoCloseWindow		false
-SetOverwrite		on
+SetOverwrite			on
 
-;--------------------------------
+;Name and file
+Name		"${NAME} ${VERSION}"
+Caption		$(INST_Caption)
+OutFile		"${NAME}.exe"
+
+;----------------------------------------
+
 ;Interface Settings
 
-  !define MUI_ABORTWARNING
+!define MUI_ABORTWARNING
  
 !define MUI_NAME		"${NAME} ${VERSION}"
 
@@ -48,10 +58,6 @@ SetOverwrite		on
 
 !define MUI_UNINSTPAGE
 
-; !define MUI_UI			"${NSISDIR}\Contrib\UIs\modern.exe"
-; !define MUI_INTERFACE
-; !define MUI_SYSTEM
-; !define MUI_LANGUAGEFILE_BEGIN
 
 ;--------------------------------
 ;Pages
@@ -68,59 +74,201 @@ BrandingText		/TRIMRIGHT "${NAME} ${VERSION}"
 LicenseBkColor		"ffffff"
 
 
-!define MUI_WELCOMEPAGE_TITLE "${NAME} ${VERSION} Install Wizard"
-; !define MUI_WELCOMEPAGE_TEXT "Text"
-
-
-;!define MUI_COMPONENTSPAGE_TEXT_TOP "top"
-;!define MUI_COMPONENTSPAGE_TEXT_COMPLIST "complist"
-;!define MUI_COMPONENTSPAGE_TEXT_INSTTYPE "insttype"
-;!define MUI_COMPONENTSPAGE_TEXT_DESCRIPTION_TITLE "desc.title"
-;!define MUI_COMPONENTSPAGE_TEXT_DESCRIPTION_INFO  "desc.info"
+!define MUI_WELCOMEPAGE_TITLE $(INST_Welcome)
 
 
 !insertmacro MUI_PAGE_WELCOME
+!insertmacro MUI_PAGE_LICENSE "license.txt"
 !insertmacro MUI_PAGE_COMPONENTS
+
 !define MUI_PAGE_CUSTOMFUNCTION_LEAVE DirectoryLeave
-  !insertmacro MUI_PAGE_DIRECTORY
-  !insertmacro MUI_PAGE_INSTFILES
-  !insertmacro MUI_PAGE_FINISH
+!insertmacro MUI_PAGE_DIRECTORY
+;Page custom ProfilePage ProfilePageLeave
+
+!insertmacro MUI_PAGE_INSTFILES
+!insertmacro MUI_PAGE_FINISH
   
-  !insertmacro MUI_UNPAGE_CONFIRM
-  !insertmacro MUI_UNPAGE_INSTFILES
-  
+!insertmacro MUI_UNPAGE_CONFIRM
+!insertmacro MUI_UNPAGE_INSTFILES
+
 ;--------------------------------
 ;Languages
  
   !insertmacro MUI_LANGUAGE "English"
+  !include "english.nlf"
+  
+  ;!insertmacro MUI_LANGUAGE "French"
+  ;!include "french.nlf"
 
 ;--------------------------------
 
+
 # ----------------------------------------------------------------------
 
-Section "K-Meleon" SecMain
-	SectionIn RO
+!macro GET_PROFILES_LOCATION
+	Push $R1
+	Push $R2
+	IfFileExists "$INSTDIR\profile.ini" 0 AppDataProfile
+	ReadINIStr $R1 "$INSTDIR\profile.ini" "Profile" "path"
+	ReadINIStr $R2 "$INSTDIR\profile.ini" "Profile" "isrelative"
+	StrCmp $R1 "" 0 +2       ; If path empty 
+	StrCpy $R1 "Profiles"    ; Copy default folder name
+	StrCmp $R2 "1" 0 +2      ; If path is relative
+	StrCpy $R0 "$INSTDIR\$R1" ; add the install dir to the path
+	Goto +2					 ; else
+	StrCpy $R0 $R1			 ; use the path only
+		
+	Goto End_proflocation
+AppDataProfile:
+	StrCpy $R0 "$APPDATA\K-Meleon"
+End_proflocation:
 
+	Pop $R2
+	Pop $R1
+!macroend
+
+# ----------------------------------------------------------------------
+/*
+LangString PROFILEPAGE_TITLE ${LANG_ENGLISH} "Profiles Location"
+LangString PROFILEPAGE_SUBTITLE ${LANG_ENGLISH} "Choose the location of the profiles."
+LangString PROFILEPAGE_CHOOSEDIRDIALOG ${LANG_ENGLISH} "Select a folder to be the root location for the profiles."
+LangString PROFILEPAGE_CHOOSEDIR ${LANG_ENGLISH} "Choose Folder:"
+LangString PROFILEPAGE_CHECK ${LANG_ENGLISH} "Use default Application Data location (uncheck to set a custom location)."
+LangString PROFILEPAGE_HEADER ${LANG_ENGLISH} ""
+
+Var HWND
+Var DLGITEM
+
+Function ProfilePageLeave
+	
+	ReadINIStr $0 "$PLUGINSDIR\profpage.ini" "Settings" "State"
+	StrCmp $0 0 validate
+	StrCmp $0 1 checkbutton
+	Abort
+
+checkbutton:	
+	ReadINIStr $0 "$PLUGINSDIR\profpage.ini" "Field 1" "State"
+	ReadINIStr $1 "$PLUGINSDIR\profpage.ini" "Field 2" "HWND"
+	ReadINIStr $2 "$PLUGINSDIR\profpage.ini" "Field 2" "HWND2"
+	StrCmp $0 0 Notchecked
+
+	EnableWindow $1 0
+	EnableWindow $2 0
+	Goto checkbutton_end
+
+NotChecked:
+	EnableWindow $1 1
+	EnableWindow $2 1
+		
+checkbutton_end:	
+	Abort
+validate:
+	
+FunctionEnd
+
+Function ProfilePage
+  Push $R0
+  WriteINIStr "$PLUGINSDIR\profpage.ini" "Field 1" "Text" "$(PROFILEPAGE_CHECK)"
+  WriteINIStr "$PLUGINSDIR\profpage.ini" "Field 2" "Text" "$(PROFILEPAGE_CHOOSEDIRDIALOG)"
+  WriteINIStr "$PLUGINSDIR\profpage.ini" "Field 3" "Text" "$(PROFILEPAGE_CHOOSEDIR)"
+  WriteINIStr "$PLUGINSDIR\profpage.ini" "Field 4" "Text" "$(PROFILEPAGE_HEADER)"
+  !insertmacro MUI_HEADER_TEXT "$(PROFILEPAGE_TITLE)" "$(PROFILEPAGE_SUBTITLE)"
+  !insertmacro MUI_INSTALLOPTIONS_INITDIALOG "profpage.ini"
+  Pop $HWND
+   
+  IfFileExists "$INSTDIR\profile.ini" 0 NoProfileIni
+  ReadINIStr $1 "$PLUGINSDIR\profpage.ini" "Field 2" "HWND"
+  ReadINIStr $2 "$PLUGINSDIR\profpage.ini" "Field 2" "HWND2"
+  EnableWindow $1 1
+  EnableWindow $2 1
+
+NoProfileIni:    
+  !insertmacro GET_PROFILES_LOCATION
+  GetDlgItem $DLGITEM $HWND 1201
+  SendMessage $DLGITEM ${WM_SETTEXT} 0 "STR:$R0"
+
+  Pop $R0
+  !insertmacro MUI_INSTALLOPTIONS_SHOW
+FunctionEnd
+*/
+# ----------------------------------------------------------------------
+
+
+Section ${NAME} SecMain
+	SectionIn RO
+	
+	Delete $INSTDIR\chrome\*.*
+	RMdir /r $INSTDIR\components
+	RMdir /r $INSTDIR\greprefs
+	RMdir /r $INSTDIR\ipc
+	RMdir /r $INSTDIR\res
+	
 	SetOutPath "$INSTDIR"
 	File /r .\k-meleon\*.*
 	Delete   $INSTDIR\chrome\chrome.rdf
+	Delete   $INSTDIR\chrome\overlays.rdf
 	RMDir /r "$INSTDIR\chrome\overlayinfo"
 	Delete   $INSTDIR\component\compreg.dat
 	Delete   $INSTDIR\component\xpti.dat
+	
+	;Call IsUserAdmin
+	;StrCmp $R0 "true" 0 +3
+	;SetOutPath $SYSDIR
+	;Goto +2
+	SetOutPath $INSTDIR
+	File /nonfatal .\dll\*.*
+	
 
-	WriteRegStr HKLM "Software\Mozilla\K-Meleon" "GeckoVer" "1.7.5"
-	WriteRegStr HKLM "Software\Mozilla\K-Meleon\bin" "PathToExe" "$INSTDIR"
-	WriteRegStr HKLM "Software\Mozilla\K-Meleon\Extensions" "Plugins" "$INSTDIR\Plugins"
-	WriteRegStr HKLM "Software\Mozilla\K-Meleon\Extensions" "Components" "$INSTDIR\Components"
-	WriteRegStr HKLM "Software\mozilla.org\Mozilla" "CurrentVersion" "1.7.5"
 
-	WriteRegStr HKCR "K-Meleon.HTML" "" "Hypertext Markup Language Document"
-	WriteRegStr HKCR "K-Meleon.HTML\DefaultIcon" "" "$INSTDIR\K-Meleon.exe,1"
-	WriteRegStr HKCR "K-Meleon.HTML\shell\open\command" "" '"$INSTDIR\K-Meleon.exe" "%1"'
+	
+	WriteRegStr HKLM ${MOZILLA_REG_KEY} "GeckoVer" GECKO_VERSION
+	WriteRegStr HKLM "${MOZILLA_REG_KEY}\bin" "PathToExe" "$INSTDIR"
+	WriteRegStr HKLM "${MOZILLA_REG_KEY}\Extensions" "Plugins" "$INSTDIR\Plugins"
+	WriteRegStr HKLM "${MOZILLA_REG_KEY}\Extensions" "Components" "$INSTDIR\Components"
+	WriteRegStr HKLM "Software\mozilla.org\Mozilla" "CurrentVersion" GECKO_VERSION
 
+
+	Call GetWindowsVersion
+	pop $R0
+	StrCpy $R1 $R0 1 0
+	StrCmp $R1 "5" 0 NoClientInternet
+		
+	WriteRegStr HKLM "${PRODUCT_CLIENT_INTERNET_KEY}" "" ${NAME}
+#	WriteRegStr HKLM "Software\Clients\StartMenuInternet\${NAME}.exe" "LocalizedString" "@$INSTDIR\K-Meleon.exe,-9"
+	WriteRegStr HKLM "${PRODUCT_CLIENT_INTERNET_KEY}\DefaultIcon" "" "$INSTDIR\K-Meleon.exe,0"
+	WriteRegStr HKLM "${PRODUCT_CLIENT_INTERNET_KEY}\Shell\Open\Command" "" "$INSTDIR\K-Meleon.exe"
+	WriteRegStr HKLM "${PRODUCT_CLIENT_INTERNET_KEY}\InstallInfo" "ReinstallCommand" '"$INSTDIR\SetDefault.exe" /S'
+	WriteRegStr HKLM "${PRODUCT_CLIENT_INTERNET_KEY}\InstallInfo" "HideIconsCommand" '"$INSTDIR\SetDefault.exe" /hide'
+	WriteRegStr HKLM "${PRODUCT_CLIENT_INTERNET_KEY}\InstallInfo" "ShowIconsCommand" '"$INSTDIR\SetDefault.exe" /show'
+	WriteRegDWORD HKLM "${PRODUCT_CLIENT_INTERNET_KEY}\InstallInfo" "IconsVisible" 0
+
+NoClientInternet:
+	
+#	WriteRegStr HKCR "K-Meleon.HTML" "" "Hypertext Markup Language Document"
+#	WriteRegStr HKCR "K-Meleon.HTML\DefaultIcon" "" "$INSTDIR\K-Meleon.exe,1"
+#	WriteRegStr HKCR "K-Meleon.HTML\shell\open\command" "" '"$INSTDIR\K-Meleon.exe" "%1"'
+
+	WriteRegStr HKEY_CURRENT_USER "${PRODUCT_KEY}\General" "InstallDir" $INSTDIR
+	
 	WriteUninstaller $INSTDIR\uninstall.exe
-	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\K-Meleon" "DisplayName" "K-Meleon (remove only)"
-	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\K-Meleon" "UninstallString" "$INSTDIR\uninstall.exe"
+	WriteRegStr HKLM ${PRODUCT_UNINST_KEY} "DisplayName" $(UN_Title)
+	WriteRegStr HKLM ${PRODUCT_UNINST_KEY} "UninstallString" "$INSTDIR\uninstall.exe"
+   	WriteRegStr HKLM ${PRODUCT_UNINST_KEY} "DisplayIcon" "$INSTDIR\k-meleon.exe,0"
+	WriteRegStr HKLM ${PRODUCT_UNINST_KEY} "DisplayVersion" "${VERSION}"
+	WriteRegStr HKLM ${PRODUCT_UNINST_KEY} "InstallLocation" "$INSTDIR"
+	WriteRegStr HKLM ${PRODUCT_UNINST_KEY} "NoModify" "1"
+	WriteRegStr HKLM ${PRODUCT_UNINST_KEY} "NoRepair" "1"
+	WriteRegStr HKLM ${PRODUCT_UNINST_KEY} "Publisher" "K-Meleon Team"
+	WriteRegStr HKLM ${PRODUCT_UNINST_KEY} "HelpLink" ${ADDRESS}
+	WriteRegStr HKLM ${PRODUCT_UNINST_KEY} "URLInfoAbout" ${ADDRESS}
+	WriteRegStr HKLM ${PRODUCT_UNINST_KEY} "URLUpdateInfo" ${ADDRESS}    
+	
+	IfFileExists "$INSTDIR\profile.ini" AlreadyProfile 0
+	FileOpen $1 "$INSTDIR\profile.ini" "w"
+	FileClose $1 
+	WriteINIStr "$INSTDIR\profile.ini" "Profile" "path" "Profiles"
+	WriteINIStr "$INSTDIR\profile.ini" "Profile" "isrelative" "1"
+AlreadyProfile: 
 
 #	IfFileExists "$INSTDIR\Profiles" 0 KeepProfiles
 #		MessageBox MB_YESNO|MB_ICONEXCLAMATION "User profiles from a previous installation of K-Meleon have been detected$\n\
@@ -134,8 +282,8 @@ SectionEnd ; }}}
 
 # ----------------------------------------------------------------------
 
-SubSection "Bookmark Support" SecBookmarks ; {{{
-	Section /o "Internet Explorer Favorites" SecIEFavorites
+SubSection $(SECT_Bookmarks) SecBookmarks ; {{{
+	Section /o $(SECT_IEFavorites) SecIEFavorites
 		FileOpen $1 "$INSTDIR\defaults\profile\Prefs.js" "a"
 		FileSeek $1 0 END
 		FileWrite $1 'user_pref("kmeleon.plugins.favorites.load", true);'
@@ -144,7 +292,7 @@ SubSection "Bookmark Support" SecBookmarks ; {{{
 		FileClose $1
 	SectionEnd
 
-	Section "Netscape Bookmarks" SecNetscapeBookmarks
+	Section $(SECT_NSBookmarks) SecNetscapeBookmarks
 		FileOpen $1 "$INSTDIR\defaults\profile\Prefs.js" "a"
 		FileSeek $1 0 END
 		FileWrite $1 'user_pref("kmeleon.plugins.bookmarks.load", true);'
@@ -153,7 +301,7 @@ SubSection "Bookmark Support" SecBookmarks ; {{{
 		FileClose $1
 	SectionEnd
 
-	Section /o "Opera Hotlist" SecOperaHotlist
+	Section /o $(SECT_Hotlist) SecOperaHotlist
 		FileOpen $1 "$INSTDIR\defaults\profile\Prefs.js" "a"
 		FileSeek $1 0 END
 		FileWrite $1 'user_pref("kmeleon.plugins.hotlist.load", true);'
@@ -163,123 +311,43 @@ SubSection "Bookmark Support" SecBookmarks ; {{{
 	SectionEnd
 SubSectionEnd ; }}}
 
-# ----------------------------------------------------------------------
+Section $(SECT_Profile) SecProfile
+	Delete $INSTDIR\profile.ini
+SectionEnd
 
-!macro assocProtocol proto desc
-	push $0
-
-	ReadRegStr $0 HKCR "${proto}" ""
-	WriteRegStr HKCR "${proto}" "" "${desc}"
-
-	ReadRegStr $0 HKCR "${proto}\shell\open\command" ""
-	WriteRegStr HKCR "${proto}\DefaultIcon" "" ""
-	WriteRegStr HKCR "${proto}\shell\open\command" "" '"$INSTDIR\K-Meleon.exe" "%1"'
-	DeleteRegKey HKCR "${proto}\shell\open\ddeexec"
-	WriteRegStr HKCR "${proto}\shell\open\ddeexec\Application" "" "K-Meleon"
-
-	pop $0
-!macroend
-
-
-!macro assocExtension ext type
-	push $0
-
-	ReadRegStr $0 HKCR "${ext}" ""
-	WriteRegStr HKCR "${ext}" "" "K-Meleon.HTML"
-
-	ReadRegStr $0 HKCR "${ext}" "Content Type"
-	WriteRegStr HKCR "${ext}" "Content Type" "${type}"
-
-	DeleteRegKey HKCR "${ext}\PersistentHandler"
-
-	pop $0
-!macroend
+Section $(SECT_DefaultBrowser) SecAssoc  
+SectionIn 1 2
+	Exec '"$INSTDIR\SetDefault.exe" /S'
+SectionEnd
 
 # ----------------------------------------------------------------------
 
-SubSection "Set K-Meleon as your default browser" SecAssoc ; {{{
-	Section
-		SectionIn 1 2 RO
-	SectionEnd
+SubSection $(SECT_CreateShortcut) SecShortcuts ; {{{
 
-	SubSection "Protocols" SecAssocProto ; {{{
-		Section /o "http" SecHttp
-			SectionIn 1
-			DetailPrint "Set K-Meleon as your default application for the http protocol"
-			!insertmacro assocProtocol  "http"	"URL:HTTP (HyperText Transfer-Protocol)"
-		SectionEnd
-
-		Section /o "https" SecHttps
-			SectionIn 1
-			DetailPrint "Set K-Meleon as your default application for the https protocol"
-			!insertmacro assocProtocol  "https"	"URL:HTTPS (HyperText Transfer-Protocol with Security)"
-		SectionEnd
-
-	SubSectionEnd ; }}}
-
-	SubSection "File types" SecAssocExt ; {{{
-		Section /o ".htm files" SecHtm
-			SectionIn 1
-			DetailPrint "Set K-Meleon as your default application for .htm files"
-			!insertmacro assocExtension ".htm"	"text/html"
-		SectionEnd
-
-		Section /o ".html files" SecHtml
-			SectionIn 1
-			DetailPrint "Set K-Meleon as your default application for .html files"
-			!insertmacro assocExtension ".html"	"text/html"
-		SectionEnd
-
-		Section /o ".shtml files" SecShtml
-			SectionIn 1
-			DetailPrint "Set K-Meleon as your default application for .shtml files"
-			!insertmacro assocExtension ".shtml"	"text/html"
-		SectionEnd
-	SubSectionEnd ; }}}
-
-;	ReadRegStr $0 HKCR "shtml_auto_file\shell\open\command" ""
-;	WriteINIStr "$INSTDIR\uninstall\K-MeleonUNINST.ini" "HKCR" "shtml_auto_file\shell\open\command" $0
-;	WriteRegStr HKCR "shtml_auto_file\shell\open\command" "" '"$INSTDIR\K-Meleon.exe" "%1"'
-;
-;	ReadRegStr $0 HKLM "Software\CLASSES\http\shell\open\command" ""
-;	WriteINIStr "$INSTDIR\uninstall\K-MeleonUNINST.ini" "HKLM" "Software\CLASSES\http\shell\open\command" $0
-;	WriteRegStr HKLM "Software\CLASSES\http\shell\open\command" "" '"$INSTDIR\K-Meleon.exe" "%1"'
-;
-;	ReadRegStr $0 HKLM "Software\CLASSES\InternetShortcut\shell\open\command" ""
-;	WriteINIStr "$INSTDIR\uninstall\K-MeleonUNINST.ini" "HKLM" "Software\CLASSES\InternetShortcut\shell\open\command" $0
-;	WriteRegStr HKLM "Software\CLASSES\InternetShortcut\shell\open\command" "" '"$INSTDIR\K-Meleon.exe" "%l" %1'
-;
-;	ReadRegStr $0 HKLM "Software\CLASSES\shtml_auto_file\shell\open\command" ""
-;	WriteINIStr "$INSTDIR\uninstall\K-MeleonUNINST.ini" "HKLM" "Software\CLASSES\shtml_auto_file\shell\open\command" $0
-;	WriteRegStr HKLM "Software\CLASSES\shtml_auto_file\shell\open\command" "" '"$INSTDIR\K-Meleon.exe" "%1"'
-
-SubSectionEnd
-
-# ----------------------------------------------------------------------
-
-SubSection "Create Windows Shortcuts for K-Meleon" SecShortcuts ; {{{
-
-	Section /o "Desktop Shortcut" SecDesktop
+	Section /o $(SECT_WSShortcut) SecDesktop
 		CreateShortCut "$DESKTOP\K-Meleon.lnk" "$INSTDIR\K-Meleon.exe" "" "" 0
+		WriteRegDWORD HKLM "Software\Clients\StartMenuInternet\k-meleon.exe\InstallInfo" "IconsVisible" 1
 	SectionEnd
 
-	Section /o "Start Menu Shortcuts" SecStartMenu
+	Section /o $(SECT_SMShortcut) SecStartMenu
 		CreateDirectory "$SMPROGRAMS\K-Meleon"
 		CreateShortCut "$SMPROGRAMS\K-Meleon\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
 		CreateShortCut "$SMPROGRAMS\K-Meleon\K-Meleon.lnk" "$INSTDIR\k-meleon.exe" "" "$INSTDIR\k-meleon.exe" 0
+		WriteRegDWORD HKLM "Software\Clients\StartMenuInternet\k-meleon.exe\InstallInfo" "IconsVisible" 1
 	SectionEnd
 
-	Section /o "Quick Launch Shortcuts" SecQuickLaunch
+	Section /o $(SECT_QLShortcut) SecQuickLaunch
 		CreateShortCut "$QUICKLAUNCH\K-Meleon.lnk" "$INSTDIR\K-Meleon.exe" "" "" 0
+		WriteRegDWORD HKLM "Software\Clients\StartMenuInternet\k-meleon.exe\InstallInfo" "IconsVisible" 1
 	SectionEnd
 
 SubSectionEnd
 
 # ----------------------------------------------------------------------
 
-SubSection "Miscellaneous K-Meleon Tools" SecTools ; {{{
+SubSection $(SECT_Tools) SecTools ; {{{
 
-	Section /o "K-Meleon Loader" SecLoader ; {{{
+	Section /o $(SECT_Loader) SecLoader ; {{{
 		SetOutPath $INSTDIR
 		File .\misc\loader.exe
 		CreateShortCut "$SMSTARTUP\K-Meleon Loader.lnk" "$INSTDIR\loader.exe"
@@ -300,44 +368,23 @@ SubSectionEnd
 
 # ----------------------------------------------------------------------
 
-UninstallText "This will remove K-Meleon from your computer. Click Uninstall to start the uninstallation."
+UninstallText UN_confirm
 
 Section Uninstall ; {{{
 
 	Call un.CloseKMeleon
 	Sleep 1000
+	
+	ExecWait '"$INSTDIR\SetDefault.exe" /u'
 
 	Delete   $INSTDIR\k-meleon.exe
 	Delete   $INSTDIR\k-meleon.exe.manifest
 	Delete   $INSTDIR\readme.html
-	Delete   $INSTDIR\relnotes09b.html
 	Delete   $INSTDIR\License.txt
-	Delete   $INSTDIR\SetDefault.exe
 	Delete   $INSTDIR\loader.exe
-	Delete   $INSTDIR\km-remote.exe
-	Delete   $INSTDIR\splash.exe
-	Delete   $INSTDIR\splash.ini
-	Delete   $INSTDIR\!K-meleon.nsi
 	Delete   $INSTDIR\uninstall.exe
-	Delete   $INSTDIR\mozilla-ipcd.exe
-	Delete   $INSTDIR\mfcembed.exe
-	Delete   $INSTDIR\mfcEmbedComponents.dll
 
-	RMdir /r $INSTDIR\kplugins
-	RMdir /r $INSTDIR\skins\default
-	Delete   $INSTDIR\skins\commands.txt
-	RMdir    $INSTDIR\skins
-
-	Delete   $INSTDIR\plugins\npnul32.dll
-	RMdir    $INSTDIR\plugins
-
-	RMdir /r $INSTDIR\chrome
-	RMdir /r $INSTDIR\components
-	RMdir /r $INSTDIR\defaults
-	RMdir /r $INSTDIR\greprefs
-	RMdir /r $INSTDIR\ipc
-	RMdir /r $INSTDIR\res
-
+	Delete   $INSTDIR\AccessibleMarshal.dll
 	Delete   $INSTDIR\gkgfx.dll
 	Delete   $INSTDIR\js3250.dll
 	Delete   $INSTDIR\jsj3250.dll
@@ -356,22 +403,51 @@ Section Uninstall ; {{{
 	Delete   $INSTDIR\ssl3.dll
 	Delete   $INSTDIR\xpcom.dll
 	Delete   $INSTDIR\xpcom_compat.dll
+	Delete   $INSTDIR\xpcom_core.dll
+	Delete   $INSTDIR\msvcr71.dll
+	Delete   $INSTDIR\msvcp71.dll
+	
+	RMdir /r $INSTDIR\chrome
+	RMdir /r $INSTDIR\components
+	RMdir /r $INSTDIR\defaults
+	RMdir /r $INSTDIR\greprefs
+	RMdir /r $INSTDIR\ipc
+	RMdir /r $INSTDIR\res
+	RMdir /r $INSTDIR\kplugins
+	
+	Delete   $INSTDIR\plugins\npnul32.dll
+	RMdir    $INSTDIR\plugins
+	
+	RMdir /r $INSTDIR\skins\Phoenity
+	RMdir /r $INSTDIR\skins\Phoenity(Large)
+	RMdir /r $INSTDIR\skins\Klassic
+	Delete   $INSTDIR\skins\commands.txt
+	RMdir    $INSTDIR\skins
 
-	IfFileExists "$INSTDIR\Profiles" 0 KeepProfiles
-		MessageBox MB_YESNO|MB_ICONEXCLAMATION|MB_DEFBUTTON2 "Would you like to remove the user profiles?$\n$\n(The user profile contains your personal preferences, bookmarks, and history)" IDNO KeepProfiles
-		RMDir /r "$INSTDIR\Profiles"
+	Delete   $INSTDIR\SetDefault.exe
+
+	Push $R0
+    !insertmacro GET_PROFILES_LOCATION
+	
+
+AskProfile:
+	IfFileExists "$R0" 0 KeepProfiles
+		MessageBox MB_YESNO|MB_ICONEXCLAMATION|MB_DEFBUTTON2 "$(UN_RemoveProfile)$R0" IDNO KeepProfiles
+		RMDir /r "$R0"
+		Delete $INSTDIR\profile.ini
+
 KeepProfiles:
-
 	RMdir    $INSTDIR
 
 	IfFileExists "$INSTDIR" 0 KeepInstDir
-		MessageBox MB_YESNO|MB_ICONEXCLAMATION|MB_DEFBUTTON2 "There seems to be more files left in the install directory, would you like to remove everything?$\n$\n(This is most likely installed plugins, skins, or other downloaded files)" IDNO KeepInstDir
+		MessageBox MB_YESNO|MB_ICONEXCLAMATION|MB_DEFBUTTON2 $(UN_everything) IDNO KeepInstDir
 		FindFirst $R2 $R3 "$INSTDIR\*.*"
 FindNextFile:
 		StrCmp $R3 "" NoFiles
 		StrCmp $R3 "." KeepProfilesDir
 		StrCmp $R3 ".." KeepProfilesDir
 		StrCmp $R3 "Profiles" KeepProfilesDir
+		StrCmp $R3 "Profile.ini" KeepProfilesDir
 		RMDir /r "$INSTDIR\$R3"
 KeepProfilesDir:
 		FindNext $R2 $R3
@@ -381,10 +457,31 @@ NoFiles:
 		RMdir    $INSTDIR
 KeepInstDir:
 
-	DeleteRegKey HKEY_LOCAL_MACHINE "SOFTWARE\K-Meleon"
- 	DeleteRegKey HKEY_LOCAL_MACHINE "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\K-Meleon"
+	Pop $R0
+	
+	DeleteRegKey HKLM ${PRODUCT_KEY}
+ 	DeleteRegKey HKLM ${PRODUCT_UNINST_KEY}
+ 	DeleteRegKey HKLM ${PRODUCT_CLIENT_INTERNET_KEY}
+ 	DeleteRegKey HKCR "K-Meleon.HTML"
+ 	DeleteRegKey HKLM ${MOZILLA_REG_KEY}
+ 	
+ 	DeleteRegKey HKCU ${PRODUCT_KEY}
+ 	DeleteRegKey HKCU ${PRODUCT_UNINST_KEY}
+ 	DeleteRegKey HKCU ${PRODUCT_CLIENT_INTERNET_KEY}
+ 	DeleteRegKey HKCU "Software\Classes\K-Meleon.HTML"
+ 	
 	Delete $DESKTOP\K-Meleon.lnk
 	RMDir /r $SMPROGRAMS\K-Meleon
+	Delete "$QUICKLAUNCH\K-Meleon.lnk"
+	Delete "$SMSTARTUP\K-Meleon Loader.lnk"
+	
+	SetShellVarContext all
+	Delete $DESKTOP\K-Meleon.lnk
+	RMDir /r $SMPROGRAMS\K-Meleon
+	Delete "$QUICKLAUNCH\K-Meleon.lnk"
+	Delete "$SMSTARTUP\K-Meleon Loader.lnk"
+	
+UnEnd:
 
 SectionEnd ; }}}
 
@@ -432,8 +529,12 @@ FunctionEnd
 # ----------------------------------------------------------------------
 
 Function .onInit ; {{{
+		
+#  StrCpy $1 ${SecFull} ; Group 1 - Option 1 is selected by default
 
-#        StrCpy $1 ${SecFull} ; Group 1 - Option 1 is selected by default
+#  !insertmacro MUI_LANGDLL_DISPLAY  ; Uncomment for multi language installer
+   !insertmacro MUI_INSTALLOPTIONS_EXTRACT "profpage.ini"
+
 
 	FindWindow $0 "KMeleon Tray Control"
 	StrCmp $0 0 FindKM 0
@@ -442,13 +543,14 @@ FindKM:
 	FindWindow $0 "KMeleon"
 	StrCmp $0 0 NoKMrunning 0
 QueryClose:
-	MessageBox MB_OKCANCEL|MB_ICONSTOP "It appears that K-Meleon or the loader is currently running.$\r$\nIt must be closed before ${NAME} ${VERSION} can continue installation.$\r$\n$\r$\nPress Ok to close now, or Cancel to abort installation" IDCANCEL 0 IDOK CloseKM
+	MessageBox MB_OKCANCEL|MB_ICONSTOP $(INIT_KmeleonRunning) IDCANCEL 0 IDOK CloseKM
 	Abort
 CloseKM:
 	Call CloseKMeleon
 NoKMrunning:
-
+	
 FunctionEnd ; }}}
+
 
 # ----------------------------------------------------------------------
 
@@ -459,14 +561,13 @@ Function DirectoryLeave
 	IfFileExists "$INSTDIR\Profiles" KMFound
 	Goto Done
 KMFound:
-		MessageBox MB_YESNOCANCEL|MB_ICONEXCLAMATION "An earlier install of ${NAME} has been detected in ''$INSTDIR'' !$\n\
-Are you sure you want to install ${NAME} in this directory?" IDYES Done IDNO Retry
-		MessageBox MB_YESNO|MB_ICONEXCLAMATION "Are you sure you want to quit ${NAME} ${VERSION} - Setup?" IDNO Retry
+		MessageBox MB_YESNOCANCEL|MB_ICONEXCLAMATION $(INST_AlreadyInstalled) IDYES Done IDNO Retry
+		MessageBox MB_YESNO|MB_ICONEXCLAMATION $(INST_Quit) IDNO Retry
 		Quit
 Retry:
 		Abort
 Done:
-	WriteRegStr HKEY_CURRENT_USER "Software\${NAME}\${NAME}\General" "InstallDir" $INSTDIR
+	
 FunctionEnd
 
 # ----------------------------------------------------------------------
@@ -477,50 +578,99 @@ FunctionEnd
 
 ;; !insertmacro MUI_SYSTEM
 
-LangString DESC_SecMain				${LANG_ENGLISH} "Install the required ${NAME} files."
-LangString DESC_SecBookmarks			${LANG_ENGLISH} "Choose what type of bookmark support you wish to have enabled by default."
-LangString DESC_SecNetscapeBookmarks		${LANG_ENGLISH} "Enable support for Netscape compatible bookmarks."
-LangString DESC_SecIEFavorites			${LANG_ENGLISH} "Enable support for Internet Explorer compatible Favorites."
-LangString DESC_SecOperaHotlist			${LANG_ENGLISH} "Enable support for Opera compatible bookmarks (Hotlist)."
-LangString DESC_SecAssoc			${LANG_ENGLISH} 'These entries in the register ask other applications to use ${NAME} when opening web pages.'
-LangString DESC_SecAssocProto			${LANG_ENGLISH} "Chose what web protocols to open with ${NAME}."
-LangString DESC_SecHttp				${LANG_ENGLISH} "Always open http:// urls with ${NAME}."
-LangString DESC_SecHttps			${LANG_ENGLISH} "Always open https:// urls with ${NAME}."
-LangString DESC_SecAssocExt			${LANG_ENGLISH} "Chose what file types to open with ${NAME}."
-LangString DESC_SecHtm				${LANG_ENGLISH} "Always open .HTM files with ${NAME}."
-LangString DESC_SecHtml				${LANG_ENGLISH} "Always open .HTML files with ${NAME}."
-LangString DESC_SecShtml			${LANG_ENGLISH} "Always open .SHTML files with ${NAME}."
-LangString DESC_SecShortcuts			${LANG_ENGLISH} "Select which shortcuts you would like to have created."
-LangString DESC_SecDesktop			${LANG_ENGLISH} "Create a desktop shortcut."
-LangString DESC_SecStartMenu			${LANG_ENGLISH} "Create a Start Menu folder with shortcuts."
-LangString DESC_SecQuickLaunch			${LANG_ENGLISH} "Create a Quick Launch shortcut."
-LangString DESC_SecTools			${LANG_ENGLISH} "Select which extra ${NAME} tools you would like to install."
-LangString DESC_SecLoader 			${LANG_ENGLISH} "Install the ${NAME} Loader, for significantly faster startup times."
-#LangString DESC_SecRemote 			${LANG_ENGLISH} "Install the ${NAME} Remote Control tool. (requires the external program control plugin to be enabled)"
-#LangString DESC_SecSplash 			${LANG_ENGLISH} "Install a splash screen tool."
-
-
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
 	!insertmacro MUI_DESCRIPTION_TEXT ${SecMain}			$(DESC_SecMain)
+	#!insertmacro MUI_DESCRIPTION_TEXT ${SecAllUser}			$(DESC_SecAllUser)
 	!insertmacro MUI_DESCRIPTION_TEXT ${SecShortcuts}		$(DESC_SecShortcuts)
 	!insertmacro MUI_DESCRIPTION_TEXT ${SecDesktop}			$(DESC_SecDesktop)
 	!insertmacro MUI_DESCRIPTION_TEXT ${SecStartmenu}		$(DESC_SecStartmenu)
 	!insertmacro MUI_DESCRIPTION_TEXT ${SecQuickLaunch}		$(DESC_SecQuickLaunch)
 	!insertmacro MUI_DESCRIPTION_TEXT ${SecAssoc}			$(DESC_SecAssoc)
-	!insertmacro MUI_DESCRIPTION_TEXT ${SecAssocProto}		$(DESC_SecAssocProto)
-	!insertmacro MUI_DESCRIPTION_TEXT ${SecHttp}			$(DESC_SecHttp)
-	!insertmacro MUI_DESCRIPTION_TEXT ${SecHttps}			$(DESC_SecHttps)
-	!insertmacro MUI_DESCRIPTION_TEXT ${SecAssocExt}		$(DESC_SecAssocExt)
-	!insertmacro MUI_DESCRIPTION_TEXT ${SecHtm}			$(DESC_SecHtm)
-	!insertmacro MUI_DESCRIPTION_TEXT ${SecHtml}			$(DESC_SecHtml)
-	!insertmacro MUI_DESCRIPTION_TEXT ${SecShtml}			$(DESC_SecShtml)
 	!insertmacro MUI_DESCRIPTION_TEXT ${SecBookmarks}		$(DESC_SecBookmarks)
 	!insertmacro MUI_DESCRIPTION_TEXT ${SecNetscapeBookmarks}	$(DESC_SecNetscapeBookmarks)
 	!insertmacro MUI_DESCRIPTION_TEXT ${SecIEFavorites}		$(DESC_SecIEFavorites)
 	!insertmacro MUI_DESCRIPTION_TEXT ${SecOperaHotlist}		$(DESC_SecOperaHotList)
 	!insertmacro MUI_DESCRIPTION_TEXT ${SecTools}			$(DESC_SecTools)
 	!insertmacro MUI_DESCRIPTION_TEXT ${SecLoader}			$(DESC_SecLoader)
+	!insertmacro MUI_DESCRIPTION_TEXT ${SecProfile}		$(DESC_SecProfile)
 #	!insertmacro MUI_DESCRIPTION_TEXT ${SecRemote}			$(DESC_SecRemote)
 #	!insertmacro MUI_DESCRIPTION_TEXT ${SecSplash}			$(DESC_SecSplash)
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
 ; }}}
+
+
+; Author: Lilla (lilla@earthlink.net) 2003-06-13
+; function IsUserAdmin uses plugin \NSIS\PlusgIns\UserInfo.dll
+; This function is based upon code in \NSIS\Contrib\UserInfo\UserInfo.nsi
+; This function was tested under NSIS 2 beta 4 (latest CVS as of this writing).
+;
+; Usage:
+;   Call IsUserAdmin
+;   Pop $R0   ; at this point $R0 is "true" or "false"
+;
+
+Function IsUserAdmin
+Push $R0
+Push $R1
+Push $R2
+ 
+ClearErrors
+UserInfo::GetName
+IfErrors Win9x
+Pop $R1
+UserInfo::GetAccountType
+Pop $R2
+ 
+StrCmp $R2 "Admin" 0 Continue
+; Observation: I get here when running Win98SE. (Lilla)
+; The functions UserInfo.dll looks for are there on Win98 too, 
+; but just don't work. So UserInfo.dll, knowing that admin isn't required
+; on Win98, returns admin anyway. (per kichik)
+; MessageBox MB_OK 'User "$R1" is in the Administrators group'
+StrCpy $R0 "true"
+Goto Done
+ 
+Continue:
+; You should still check for an empty string because the functions
+; UserInfo.dll looks for may not be present on Windows 95. (per kichik)
+StrCmp $R2 "" Win9x
+StrCpy $R0 "false"
+;MessageBox MB_OK 'User "$R1" is in the "$R2" group'
+Goto Done
+ 
+Win9x:
+; comment/message below is by UserInfo.nsi author:
+; This one means you don't need to care about admin or
+; not admin because Windows 9x doesn't either
+;MessageBox MB_OK "Error! This DLL can't run under Windows 9x!"
+StrCpy $R0 "true"
+ 
+Done:
+;MessageBox MB_OK 'User= "$R1"  AccountType= "$R2"  IsUserAdmin= "$R0"'
+ 
+Pop $R2
+Pop $R1
+Exch $R0
+FunctionEnd
+
+ Function GetWindowsVersion
+ 
+   Push $R0
+ 
+   ClearErrors
+ 
+   ReadRegStr $R0 HKLM \
+   "SOFTWARE\Microsoft\Windows NT\CurrentVersion" CurrentVersion
+
+   IfErrors 0 lbl_winnt
+   
+   ; we are not NT
+   ReadRegStr $R0 HKLM \
+   "SOFTWARE\Microsoft\Windows\CurrentVersion" VersionNumber
+ 
+lbl_winnt:
+
+   Exch $R0
+ 
+ FunctionEnd
+

@@ -1,0 +1,93 @@
+!ifdef ULANG
+!undef ULANG
+!endif
+
+!define ULANG ${LANG_ENGLISH}
+
+LangString INST_Welcome						ULANG "${NAME} ${VERSION} Install Wizard"
+LangString INST_Caption						ULANG "${NAME} ${VERSION} - Setup"
+
+LangString DESC_SecMain						ULANG "Install the required ${NAME} files."
+LangString DESC_SecAllUser					ULANG "Install K-Meleon for all user account. You need administration privileges."
+LangString DESC_SecBookmarks				ULANG "Choose what type of bookmark support you wish to have enabled by default."
+LangString DESC_SecNetscapeBookmarks		ULANG "Enable support for Netscape compatible bookmarks."
+LangString DESC_SecIEFavorites				ULANG "Enable support for Internet Explorer compatible Favorites."
+LangString DESC_SecOperaHotlist				ULANG "Enable support for Opera compatible bookmarks (Hotlist)."
+LangString DESC_SecAssoc					ULANG 'Set ${NAME} as your default browser. You need administration privileges.'
+LangString DESC_SecShortcuts				ULANG "Select which shortcuts you would like to have created."
+LangString DESC_SecDesktop					ULANG "Create a desktop shortcut."
+LangString DESC_SecStartMenu				ULANG "Create a Start Menu folder with shortcuts."
+LangString DESC_SecQuickLaunch				ULANG "Create a Quick Launch shortcut."
+LangString DESC_SecTools					ULANG "Select which extra ${NAME} tools you would like to install."
+LangString DESC_SecLoader 					ULANG "Install the ${NAME} Loader, for significantly faster startup times."
+#LangString DESC_SecRemote 					ULANG "Install the ${NAME} Remote Control tool. (requires the external program control plugin to be enabled)"
+#LangString DESC_SecSplash 					ULANG "Install a splash screen tool."
+
+LangString UN_confirm				ULANG "This will remove ${NAME} from your computer. Click Uninstall to start the uninstallation."
+LangString UN_RemoveProfile 		ULANG "Would you like to remove the user profiles?$\n$\nThe user profile contains your personal preferences, bookmarks, and history and is located in "
+LangString UN_everything			ULANG "There seems to be more files left in the install directory, would you like to remove everything?$\n$\n(This is most likely installed plugins, skins, or other downloaded files)"
+LangString UN_Title 				ULANG "${NAME} (remove only)"
+
+LangString INIT_KmeleonRunning 		ULANG  "It appears that ${NAME} or the loader is currently running.$\r$\nIt must be closed before ${NAME} ${VERSION} can continue installation.$\r$\n$\r$\nPress Ok to close now, or Cancel to abort installation."
+LangString INST_AlreadyInstalled 	ULANG "An earlier install of ${NAME} has been detected in ''$INSTDIR'' !$\n\Are you sure you want to install ${NAME} in this directory?"
+LangString INST_Quit 				ULANG "Are you sure you want to quit ${NAME} ${VERSION} - Setup?"
+
+LangString SECT_Loader 				ULANG "K-Meleon Loader"
+LangString SECT_AllUser				ULANG "Install for all user"
+LangString SECT_Bookmarks 			ULANG "Bookmark Support"
+LangString SECT_IEFavorites			ULANG "Internet Explorer Favorites"
+LangString SECT_NSBookmarks			ULANG "Netscape Bookmarks"
+LangString SECT_Hotlist				ULANG "Opera Hotlist"
+LangString SECT_DefaultBrowser		ULANG "Set K-Meleon as your default browser"
+
+LangString SECT_CreateShortcut 		ULANG "Create Windows Shortcuts for ${NAME}"
+LangString SECT_WSShortcut 			ULANG "Desktop Shortcut"
+LangString SECT_SMShortcut 			ULANG "Start Menu Shortcut"
+LangString SECT_QLShortcut 			ULANG "Quick Launch Shortcut"
+LangString SECT_Tools				ULANG "Miscellaneous K-Meleon Tools"
+LangString SECT_Profile				ULANG "Multi-user Profiles"
+LangString DESC_SecProfile			ULANG "Uncheck this option to store k-meleon profiles in the k-meleon folder instead of the application data folder."
+
+# SetDefault Strings
+
+LangString SD_DocumentName 			ULANG "Hypertext Markup Language Document"
+
+LangString SECT_BrowserList			ULANG "Register ${NAME} as Windows Browser"
+LangString SECT_MainSD				ULANG "Register ${NAME} as a Mozilla/Gecko product"
+
+LangString DESC_SecMainSD			ULANG "These registry entries are needed for a correct use of Netscape/Mozilla's plugins."
+LangString DESC_SecBrowserList		ULANG "Add ${NAME} in the Windows browser application list (XP and 2000).  You need administration privileges."
+LangString DESC_SecAssocHTML		ULANG 'These entries in the register ask other applications to use ${NAME} when opening web pages.'
+LangString DESC_SecAssocProto		ULANG "Choose the protocols to open with ${NAME}."
+LangString DESC_SecAssocExt			ULANG "Chose file types to open with ${NAME}."
+LangString DESC_SecHttp				ULANG "Always open http:// urls with ${NAME}."
+LangString DESC_SecHttps			ULANG "Always open https:// urls with ${NAME}."
+LangString DESC_SecHtm				ULANG "Always open .htm files with ${NAME}."
+LangString DESC_SecHtml				ULANG "Always open .html files with ${NAME}."
+LangString DESC_SecShtml			ULANG "Always open .shtml files with ${NAME}."
+LangString DESC_SecXht				ULANG "Always open .xht files with ${NAME}."
+LangString DESC_SecXhtml			ULANG "Always open .xhtml files with ${NAME}."
+LangString SET_Default_http			ULANG "Set ${NAME} as your default application for the http protocol"
+LangString SET_Default_https		ULANG "Set ${NAME} as your default application for the http protocol"
+LangString SET_Default_htm			ULANG "Set ${NAME} as your default application for .htm files"
+LangString SET_Default_html			ULANG "Set ${NAME} as your default application for .html files"
+LangString SET_Default_shtml		ULANG "Set ${NAME} as your default application for .html files"
+LangString SET_Default_xht			ULANG "Set ${NAME} as your default application for .xtm files"
+LangString SET_Default_xhtml		ULANG "Set ${NAME} as your default application for .xhtml files"
+
+LangString SECT_Protocols 			ULANG "Protocols"
+LangString SECT_FileTypes 			ULANG "File types"
+
+LangString SECT_HtmFiles 			ULANG ".htm files"
+LangString SECT_HtmlFiles 			ULANG ".html files"
+LangString SECT_ShtmlFiles 			ULANG ".shtml files"
+LangString SECT_XhtFiles 			ULANG ".xht files"
+LangString SECT_XhtmlFiles 			ULANG ".xhtml files"
+
+LangString SD_NotDetected  			ULANG "No ${NAME} install detected in ''$INSTDIR'' !$\n"
+LangString SD_QuitConfirm			ULANG "Are-you sure you want to quit ${NAME} ${VERSION} setup program?"
+
+LangString SD_HeaderText			ULANG "Choose K-Meleon location"
+LangString SD_HeaderSubText			ULANG "Choose the folder where K-Meleon is installed."
+LangString SD_DirectoryText			ULANG "SetDefault will set the following ${NAME} ${VERSION} installation as the default browser. To select a different instalation, click browse and select another folder. Click next to continue."
+LangString SD_ComponentText			ULANG "Check the the features and associations you want, and uncheck those you don't want. Click Install to continue."
