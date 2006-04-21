@@ -368,9 +368,9 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
     if (bThrobber)
         m_wndReBar.AddBar(&m_wndAnimate, NULL, NULL, RBBS_FIXEDSIZE | RBBS_FIXEDBMP);
 
-    m_wndReBar.RegisterBand(m_wndUrlBar.m_hWnd,  "URL Bar", true);
+    m_wndReBar.RegisterBand(m_wndUrlBar.m_hWnd, (LPTSTR)theApp.lang.Translate(_T("URL Bar")), true);
     if (bThrobber)
-        m_wndReBar.RegisterBand(m_wndAnimate.m_hWnd, "Throbber", false);
+        m_wndReBar.RegisterBand(m_wndAnimate.m_hWnd, (LPTSTR)theApp.lang.Translate(_T("Throbber")), false);
 
     //--------------------------------------------------------------
     // Set up min/max sizes and ideal sizes for pieces of the rebar:
