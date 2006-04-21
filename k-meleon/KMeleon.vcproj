@@ -45,7 +45,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="xpcomglue.lib embed_base_s.lib nspr4.lib"
-				OutputFile="\Program Files\K-Meleon\debug\$(ProjectName).exe"
+				OutputFile="f:\Program Files\K-Meleon\debug\$(ProjectName).exe"
 				SuppressStartupBanner="TRUE"
 				AdditionalLibraryDirectories="..\mozilla\mozilla\dist\lib_debug"
 				IgnoreDefaultLibraryNames=""
@@ -869,6 +869,9 @@
 					RelativePath=".\FontPackageHandler.cpp">
 				</File>
 				<File
+					RelativePath=".\GenKeyPairDialogs.cpp">
+				</File>
+				<File
 					RelativePath=".\nsGenericFactory.cpp">
 				</File>
 				<File
@@ -1040,6 +1043,9 @@
 				</File>
 				<File
 					RelativePath=".\FontPackageHandler.h">
+				</File>
+				<File
+					RelativePath=".\GenKeyPairDialogs.h">
 				</File>
 				<File
 					RelativePath=".\NSSDialogs.h">
