@@ -37,7 +37,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="advapi32.lib comctl32.lib gdi32.lib user32.lib comdlg32.lib shell32.lib"
+				AdditionalDependencies="advapi32.lib comctl32.lib gdi32.lib user32.lib comdlg32.lib shell32.lib imm32.lib"
 				OutputFile="\Program Files\K-Meleon\debug\kplugins\$(ProjectName).dll"
 				SuppressStartupBanner="TRUE"
 				GenerateDebugInformation="TRUE"
@@ -100,7 +100,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="comctl32.lib gdi32.lib user32.lib comdlg32.lib shell32.lib advapi32.lib"
+				AdditionalDependencies="comctl32.lib gdi32.lib user32.lib comdlg32.lib shell32.lib advapi32.lib imm32.lib"
 				OutputFile="\Program Files\K-Meleon\release\kplugins\$(ProjectName).dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
@@ -326,10 +326,10 @@
 			</File>
 		</Filter>
 		<File
-			RelativePath="ReadMe.txt">
+			RelativePath="..\Readme.txt">
 		</File>
 		<File
-			RelativePath="..\Readme.txt">
+			RelativePath="ReadMe.txt">
 		</File>
 	</Files>
 	<Globals>
