@@ -76,6 +76,7 @@
 #define IDI_POPUPBLOCK                  202
 #define IDI_POPUP_BLOCKED               202
 #define IDD_PREFERENCES_DOWNLOAD        204
+#define IDD_PROMPT_SELECT               207
 #define ID_URL_BAR                      1001
 #define ID_PROG_BAR                     1002
 #define ID_THROBBER                     1003
@@ -274,6 +275,7 @@
 #define IDC_EDIT_FONT_MINSIZE           1193
 #define IDC_HIGHLIGHT                   1194
 #define IDC_SHRINK_TOFIT                1195
+#define IDC_LIST_SELECT                 1196
 #define IDC_FILE_ICON                   2115
 #define ID_NAV_BACK                     32773
 #define ID_NAV_FORWARD                  32774

@@ -1000,6 +1000,19 @@ BEGIN
     GROUPBOX        "When complete",IDC_STATIC,3,140,263,40
 END
 
+IDD_PROMPT_SELECT DIALOGEX 0, 0, 186, 141
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "Dialog"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,77,120,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,129,120,50,14
+    LISTBOX         IDC_LIST_SELECT,7,30,172,84,LBS_SORT | 
+                    LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Static",IDC_MSG_TEXT,7,7,172,22
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -1342,7 +1355,13 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 80
     END
-
+    IDD_PROMPT_SELECT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 179
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 134
+    END
 END
 
 #endif    // APSTUDIO_INVOKED
