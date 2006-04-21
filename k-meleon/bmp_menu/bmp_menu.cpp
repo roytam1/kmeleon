@@ -329,8 +329,10 @@ void Quit(){
    DeleteObject(gMenuFont);
    
    while(menus.size()) {
+	  UnSetOwnerDrawn(menus.begin()->first);
       menus.erase(menus.begin());
    }
+   bmpMap.clear();
 }
 
 void DoMenu(HMENU menu, char *param){
@@ -658,8 +660,8 @@ void MeasureMenuItem(MEASUREITEMSTRUCT *mis, HDC hDC) {
    // compensate for the width of a chekmark (minus one pixel!) that windows so graciously adds for us
    mis->itemWidth -= (GetSystemMetrics(SM_CXMENUCHECK)-1);
    mis->itemHeight = GetSystemMetrics(SM_CYMENUSIZE);
-   if (mis->itemHeight < 18)
-      mis->itemHeight = 18;
+   if (mis->itemHeight < BMP_HEIGHT+2)
+      mis->itemHeight = BMP_HEIGHT+2;
 
    SelectObject(hDC, oldFont);
 }
@@ -670,21 +672,32 @@ void UnSetOwnerDrawn(HMENU menu){
 
    int state;
 
+   OSVERSIONINFO osinfo;
+   osinfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+   GetVersionEx(&osinfo);
+   bool w95 = (osinfo.dwMajorVersion == 4) && (osinfo.dwMinorVersion == 0);
+		
    int i;
    int count = GetMenuItemCount(menu);
    for (i=0; i<count; i++) {
+
+	   mmi.fMask =  (w95 ? MIIM_TYPE : MIIM_FTYPE);
+	  GetMenuItemInfo(menu, i, true, &mmi);
+	  
       state = GetMenuState(menu, i, MF_BYPOSITION);
       if (state & MF_POPUP){
          UnSetOwnerDrawn(GetSubMenu(menu, i));
       }
-      if (state & MF_OWNERDRAW) {
+	  if (mmi.fType & MFT_OWNERDRAW) {
          mmi.fMask = MIIM_DATA | MIIM_ID;
          GetMenuItemInfo(menu, i, true, &mmi);
 
          if (!mmi.dwItemData ||  !*( (char *)mmi.dwItemData) )
             ModifyMenu(menu, i, MF_BYPOSITION | MF_SEPARATOR, mmi.wID, NULL);
-         else
+		 else {
             ModifyMenu(menu, i, MF_BYPOSITION | MF_STRING, mmi.wID, mmi.dwTypeData);
+			delete[] (char*)mmi.dwItemData; 
+		}
       }
    }
 }
