@@ -15,6 +15,7 @@ the same CID and Contract ID as the default's.
 #include "TooltipsProvider.h"
 #include "NSSDialogs.h"
 #include "FontPackageHandler.h"
+#include "GenKeyPairDialogs.h"
 
 //#include "nsEmbedCID.h" //NS_PROMPTSERVICE_CONTRACTID
 //#include "nsICookiePromptService.h" ////NS_COOKIEPROMPTSERVICE_CONTRACTID
@@ -30,6 +31,7 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(CTooltipTextProvider)
 NS_GENERIC_FACTORY_CONSTRUCTOR(CNSSDialogs)
 NS_GENERIC_FACTORY_CONSTRUCTOR(CProgressDialog)
 NS_GENERIC_FACTORY_CONSTRUCTOR(CFontPackageHandler)
+NS_GENERIC_FACTORY_CONSTRUCTOR(CGenKeyPairDialogs)
 
 static const nsModuleComponentInfo sAppComps[] = {
 	{
@@ -67,6 +69,12 @@ static const nsModuleComponentInfo sAppComps[] = {
 		NS_NSSDIALOGS_CID,
 		NS_CERTIFICATEDIALOGS_CONTRACTID,
 		CNSSDialogsConstructor
+	},
+	{
+		GTK_NSSKEYPAIRDIALOGS_CLASSNAME,
+		NS_NSSKEYPAIRDIALOGS_CID,
+		NS_GENERATINGKEYPAIRINFODIALOGS_CONTRACTID,
+		CGenKeyPairDialogsConstructor
 	},
 	{
 	    "Download",
