@@ -493,7 +493,7 @@ int ifplugin(char *p)
 void LoadToolbars(char *filename) {
    HANDLE configFile;
 
-   configFile = CreateFile(filename, GENERIC_READ, 0, NULL, OPEN_ALWAYS, NULL, NULL);
+   configFile = CreateFile(filename, GENERIC_READ, 0, NULL, OPEN_EXISTING, NULL, NULL);
    if (configFile == INVALID_HANDLE_VALUE) {
       MessageBox(NULL, "Could not open file", filename, MB_OK);
       return;
