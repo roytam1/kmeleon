@@ -126,7 +126,7 @@ LRESULT CHiddenWnd::OnSetPersist(WPARAM flags, LPARAM lParam) {
       // exit kmeleon if the stay resident flag is cleared
       if (!bNewStayResident)
          PostMessage(WM_QUIT);
-
+/*
       // preload the window
       if (bNewPreloadWindow && !m_bPreloadWindow) {
          m_pHiddenBrowser = theApp.CreateNewBrowserFrame(nsIWebBrowserChrome::CHROME_ALL,
@@ -150,7 +150,7 @@ LRESULT CHiddenWnd::OnSetPersist(WPARAM flags, LPARAM lParam) {
 
       // don't preload the start page
       if (bNewPreloadWindow && !bNewPreloadStartPage && m_bPreloadStartPage)
-         m_pHiddenBrowser->m_wndBrowserView.OpenURL("about:blank");
+         m_pHiddenBrowser->m_wndBrowserView.OpenURL("about:blank");*/
    }
 
    m_bStayResident = bNewStayResident;
@@ -169,7 +169,7 @@ LRESULT CHiddenWnd::OnShowBrowser(WPARAM URI, LPARAM lParam) {
 BOOL CHiddenWnd::ShowBrowser(char *URI) {
 
    // if we already have a browser, load home page (if necessary), and show the window
-   if (m_bPersisting && m_bPreloadWindow) {
+  /* if (m_bPersisting && m_bPreloadWindow) {
       if (URI && *URI) {
          if (*URI == '\"') URI++;
          int len = strlen(URI);
@@ -189,9 +189,15 @@ BOOL CHiddenWnd::ShowBrowser(char *URI) {
    }
 
    // otherwise, just create a new browser
-   else {
-      CBrowserFrame* browser;
-      browser = theApp.CreateNewBrowserFrame();
+   else */{
+	  int openmode = theApp.preferences.GetInt("browser.link.open_external", 2);
+	  CBrowserFrame* browser;
+	  if (openmode == 1 && theApp.m_pMostRecentBrowserFrame ) {
+		browser = theApp.m_pMostRecentBrowserFrame;
+		if (browser->IsIconic()) browser->ShowWindow(SW_RESTORE); else browser->SetForegroundWindow();
+	  } else {
+		browser = theApp.CreateNewBrowserFrame();
+	  }
 
       if (!browser) {
          AfxMessageBox(IDS_FAILED_TO_CREATE_BROWSER);
@@ -241,7 +247,7 @@ BOOL CHiddenWnd::StayResident() {
 
    else {
       m_bPersisting = TRUE;
-
+/*
       if (m_bPreloadWindow) {
          m_pHiddenBrowser = theApp.CreateNewBrowserFrame(nsIWebBrowserChrome::CHROME_ALL,
                                                      -1, -1, -1, -1, PR_FALSE);
@@ -252,7 +258,7 @@ BOOL CHiddenWnd::StayResident() {
             m_pHiddenBrowser->m_wndBrowserView.LoadHomePage();
          else
             m_pHiddenBrowser->m_wndBrowserView.OpenURL("about:blank");
-      }
+      }*/
    }
 
    return TRUE;
