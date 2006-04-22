@@ -143,6 +143,8 @@ public:
 
     int m_SecurityState;
     void ShowSecurityInfo();
+	BOOL GetCertificate(nsIX509Cert** certificate);
+	BOOL GetSecurityInfo(CString &sign);
 
     BOOL ViewContentContainsFrames();
 
