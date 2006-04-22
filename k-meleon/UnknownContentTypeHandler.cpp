@@ -421,11 +421,8 @@ file save progress dialog box
 */
 
 
-/* It's even more a hack now with the favicon support, but I'm sure somedays
-it will be rewritten to support persist download and stream properly. *-) */
-
 // WeakReference not needed?
-//NS_IMPL_ISUPPORTS2(CProgressDialog, nsIWebProgressListener2, nsISupportsWeakReference)
+//NS_IMPL_ISUPPORTS3(CProgressDialog, nsITransfer, nsIWebProgressListener2, nsIWebProgressListener)
 NS_IMPL_ISUPPORTS4(CProgressDialog, nsITransfer, nsIWebProgressListener2, nsIWebProgressListener, nsISupportsWeakReference)
 
 CProgressDialog::CProgressDialog(BOOL bAuto) {
@@ -447,7 +444,8 @@ CProgressDialog::CProgressDialog(BOOL bAuto) {
 
    // assume we're done until we get data
    // for small files, we'll be done before the box even pops up
-   mDone = true;
+   // mDone = true;
+   mDone = false;
    mTotalBytes = 0;
 
    m_bClose = theApp.preferences.bCloseDownloadDialog;
@@ -480,7 +478,7 @@ CProgressDialog::~CProgressDialog(){
    if (mTempFile)
 	  delete mTempFile;
    if (mUri)
-	   delete mUri;
+	  delete mUri;
 }
 
 NS_IMETHODIMP CProgressDialog::OnProgressChange64(nsIWebProgress *aWebProgress, nsIRequest *aRequest, PRInt64 aCurSelfProgress, PRInt64 aMaxSelfProgress, PRInt64 aCurTotalProgress, PRInt64 aMaxTotalProgress)
@@ -613,41 +611,40 @@ NS_IMETHODIMP CProgressDialog::OnStateChange(nsIWebProgress *aWebProgress,
 		}
 	}
 	
-	// Hack for viewer
-   if (m_bViewer && aStateFlags & nsIWebProgressListener::STATE_STOP) {
-
-      TCHAR *command = new TCHAR[_tcsclen(mViewer) + _tcsclen(mFilePath) +4];
-      
-      _tcscpy(command, mViewer);
-      _tcscat(command, _T(" \""));                              //append " filename" to the viewer command
-      _tcscat(command, mFilePath);
-      _tcscat(command, _T("\""));
-      
-      STARTUPINFO si = { 0 };
-      PROCESS_INFORMATION pi;
-      si.cb = sizeof STARTUPINFO;
-      si.dwFlags = STARTF_USESHOWWINDOW;
-      si.wShowWindow = SW_SHOW;
-      
-      CreateProcess(0,command,0,0,0,0,0,0,&si,&pi);      // launch external viewer
-
-      delete command;
-      
-   }
+	CString statusText;
 
    if ( (aStateFlags & nsIWebProgressListener::STATE_STOP))
    {
-		if (mCallback)
+ 		if (mCallback)
 			mCallback(mUri, mFilePath, aStatus, mParam);
-		mCancelable = nsnull;
-   }
 
+		if (m_bViewer) {
+			TCHAR *command = new TCHAR[_tcsclen(mViewer) + _tcsclen(mFilePath) +4];
+      
+			_tcscpy(command, mViewer);
+			_tcscat(command, _T(" \""));                              //append " filename" to the viewer command
+			_tcscat(command, mFilePath);
+			_tcscat(command, _T("\""));
+      
+			STARTUPINFO si = { 0 };
+			PROCESS_INFORMATION pi;
+			si.cb = sizeof STARTUPINFO;
+			si.dwFlags = STARTF_USESHOWWINDOW;
+			si.wShowWindow = SW_SHOW;
+      
+		    CreateProcess(0,command,0,0,0,0,0,0,&si,&pi);      // launch external viewer
+			
+		    delete command;
+		}
+		//nsCOMPtr<nsITransfer> kungFuDeathGrip(this);
+		mCancelable = nsnull;
+   
 
    if (!m_bWindow)    // if there's no window, there's no need to update it :)
       return NS_OK;
 	
-   CString statusText;
-   if (aStateFlags & nsIWebProgressListener::STATE_STOP){
+   
+   
 
 	   if (NS_SUCCEEDED(aStatus)) {
 
@@ -725,8 +722,12 @@ NS_IMETHODIMP CProgressDialog::OnStateChange(nsIWebProgress *aWebProgress,
 		   if (theApp.preferences.bFlashWhenCompleted)
 		     FlashWindow(TRUE);
 	   }
+   }
 
-   }else if (aStateFlags & nsIWebProgressListener::STATE_REDIRECTING){
+   if (!m_bWindow)   
+      return NS_OK;
+
+   if (aStateFlags & nsIWebProgressListener::STATE_REDIRECTING){
       statusText.LoadString(IDS_REDIRECTING);
 	  SetDlgItemText(IDC_STATUS, statusText);
    }else if (aStateFlags & nsIWebProgressListener::STATE_TRANSFERRING){
@@ -736,8 +737,13 @@ NS_IMETHODIMP CProgressDialog::OnStateChange(nsIWebProgress *aWebProgress,
       statusText.LoadString(IDS_NEGOTIATING);
 	  SetDlgItemText(IDC_STATUS, statusText);
    }else if (aStateFlags & nsIWebProgressListener::STATE_START){
-	  statusText.LoadString(IDS_CONTACTING);
-      SetDlgItemText(IDC_STATUS, statusText);
+	  // Since fix for BUG #752 the download can be finished before the 
+	  // progress dialog is created. In that case, mozilla send a 
+	  // STATE_START after a STATE_STOP ...
+	  if (!mDone) {
+		statusText.LoadString(IDS_CONTACTING);
+        SetDlgItemText(IDC_STATUS, statusText);
+	  }
    }
    
    return NS_OK;
@@ -756,13 +762,19 @@ NS_IMETHODIMP CProgressDialog::OnLocationChange(nsIWebProgress *aWebProgress, ns
 
 /* void onStatusChange (in nsIWebProgress aWebProgress, in nsIRequest aRequest, in nsresult aStatus, in wstring aMessage); */
 NS_IMETHODIMP CProgressDialog::OnStatusChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest, nsresult aStatus, const PRUnichar *aMessage){
+	USES_CONVERSION;
+	::AfxMessageBox(W2CA(aMessage),MB_OK|MB_ICONEXCLAMATION);
+	Cancel();
+	if (m_bWindow) 
+		Close();
+	/*MessageBox(W2CA(aMessage), "", MB_OK|MB_ICONERROR);
 	if (m_bWindow)
 	{
 		CString statusText;
 		USES_CONVERSION;
 		statusText = W2CA(aMessage);
 	    SetDlgItemText(IDC_STATUS, statusText);
-	}
+	}*/
 	return NS_OK;
 }
 
@@ -788,10 +800,14 @@ void CProgressDialog::Cancel() {
    
    if (mCancelable)
    {
-
 		mCancelable->Cancel(NS_BINDING_ABORTED);
-		if (mTempFile) DeleteFile(mTempFile);
+		if (mTempFile) 
+			DeleteFile(mTempFile);
+		else if (mFileName) 
+			DeleteFile(mFileName);
    }
+   else
+	   if (mFileName) DeleteFile(mFileName);
 
 	
    //Close();
@@ -913,7 +929,7 @@ void CProgressDialog::SetCallBack(ProgressDialogCallback aCallback, void* aParam
 void CProgressDialog::InitPersist(nsIURI *aSource, nsILocalFile *aTarget, nsIWebBrowserPersist *aPersist, BOOL bShowDialog)
 {
    mCancelable = aPersist;
-   aPersist->SetProgressListener(this);
+   //aPersist->SetProgressListener(this);
    m_bWindow = bShowDialog;
 
    nsEmbedCString uri;
