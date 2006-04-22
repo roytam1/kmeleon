@@ -35,6 +35,14 @@
 #include "nsIDOMNodeList.h"
 #include "nsIDOMHTMLScriptElement.h"
 #include "nsIDOMWindowCollection.h"
+#include "nsIWebPageDescriptor.h"
+
+#include "nsISecureBrowserUI.h"
+#include "nsISSLStatus.h"
+#include "nsISSLStatusProvider.h"
+#include "nsICertificateDialogs.h"
+#include "nsIX509Cert.h"
+
 #include "nsIDOMNSHTMLTextAreaElement.h"
 #include "nsIDOMHTMLTextAreaElement.h"
 #include "nsIDOMNSHTMLInputElement.h"
@@ -113,11 +121,10 @@ BOOL CBrowserView::OpenViewSourceWindow(const char* pUrl)
 
 			CProgressDialog *progress = new CProgressDialog(FALSE);      
 			progress->InitViewer(persist, theApp.preferences.sourceCommand.GetBuffer(0), tempfile.GetBuffer(0));
-			persist->SetProgressListener(progress);
 			persist->SetPersistFlags(
 				nsIWebBrowserPersist::PERSIST_FLAGS_AUTODETECT_APPLY_CONVERSION|
 				nsIWebBrowserPersist::PERSIST_FLAGS_REPLACE_EXISTING_FILES);
-			persist->SaveURI(srcURI, descriptor, referrer, nsnull, nsnull, file);
+			rv = persist->SaveURI(srcURI, descriptor, referrer, nsnull, nsnull, file);
 			if (NS_FAILED(rv))
 				persist->SetProgressListener(nsnull);
 
@@ -578,15 +585,80 @@ void CBrowserView::SetCurrentFrameURL(nsEmbedString& strCurrentFrameURL)
     mCtxMenuCurrentFrameURL = strCurrentFrameURL;
 }
 
+BOOL CBrowserView::GetSecurityInfo(CString &sign)
+{
+	nsresult rv;
+
+	nsCOMPtr<nsIDocShell> docShell (do_GetInterface (mWebBrowser, &rv));
+	NS_ENSURE_SUCCESS(rv, FALSE);
+		
+	nsCOMPtr<nsISecureBrowserUI> securityInfo;
+	rv = docShell->GetSecurityUI (getter_AddRefs (securityInfo));
+	NS_ENSURE_SUCCESS(rv, FALSE);
+
+	nsEmbedString tooltip;
+	rv = securityInfo->GetTooltipText (tooltip);
+	NS_ENSURE_SUCCESS(rv, FALSE);
+
+	sign = tooltip.get();
+    
+	return TRUE;
+}
+
+BOOL CBrowserView::GetCertificate(nsIX509Cert** certificate)
+{
+	nsresult rv;
+	
+	nsCOMPtr<nsIDocShell> docShell(do_GetInterface(mWebBrowser, &rv));
+	NS_ENSURE_SUCCESS(rv, FALSE);
+		
+	nsCOMPtr<nsISecureBrowserUI> securityInfo;
+	rv = docShell->GetSecurityUI(getter_AddRefs(securityInfo));
+	NS_ENSURE_SUCCESS(rv, FALSE);
+
+	nsCOMPtr<nsISSLStatusProvider> SSLProvider = do_QueryInterface(securityInfo,&rv);
+	if (!SSLProvider) return FALSE;
+
+	nsCOMPtr<nsISSLStatus> SSLStatus;
+	SSLProvider->GetSSLStatus(getter_AddRefs(SSLStatus));
+	if (!SSLStatus) return FALSE;
+
+	nsCOMPtr<nsIX509Cert> cert;
+	SSLStatus->GetServerCert(getter_AddRefs (cert));
+	if (!cert) return FALSE;
+	
+	*certificate = cert;
+	NS_ADDREF(*certificate);
+	
+	return TRUE;
+}
+
 void CBrowserView::ShowSecurityInfo()                                           
 {
     HWND hParent = mpBrowserFrame->m_hWnd;
 
     if(m_SecurityState == SECURITY_STATE_INSECURE) { 
-	::MessageBox(m_hWnd, "This page has not been transferred over a secure connection.", "Security Information", MB_OK);
+	::MessageBox(m_hWnd, _T("This page has not been transferred over a secure connection."), _T("Security Information"), MB_OK);
     } else {
-	// TEMPORARY.  this should be replaced with something more permanent
-	::MessageBox(m_hWnd, "This page has been transferred over a secure connection.", "Security Information", MB_OK);
+		
+		nsresult rv;
+		
+		nsCOMPtr<nsIDocShell> docShell (do_GetInterface (mWebBrowser, &rv));
+		if (NS_FAILED(rv)) return;
+		
+		nsCOMPtr<nsIX509Cert> cert;
+		nsCOMPtr<nsISecureBrowserUI> securityInfo;
+		rv = docShell->GetSecurityUI (getter_AddRefs (securityInfo));
+		if (NS_FAILED(rv) || !(GetCertificate(getter_AddRefs(cert))))
+		{
+			::MessageBox(m_hWnd, _T("Failed to get the security information."), _T("Security Information"), MB_OK);
+			return;
+		}
+	
+		nsCOMPtr<nsICertificateDialogs> certDialogs = do_GetService (NS_CERTIFICATEDIALOGS_CONTRACTID, &rv);
+		if (!certDialogs) return;
+	
+		certDialogs->ViewCert(NULL, cert);
     }
 }
 
