@@ -79,34 +79,48 @@ BOOL CBrowserView::OpenViewSourceWindow(const char* pUrl)
 		for (i=0; i<strlen(url); i++)
 		    if (url[i]=='/')
 			url[i]='\\';
-		tempfile = url+strlen("view-source:file:///");
+		tempfile = nsUnescape(url+strlen("view-source:file:///"));
 	    }
 	    
-	    nsCOMPtr<nsIWebBrowserPersist> persist(do_QueryInterface(mWebBrowser));
+	    nsCOMPtr<nsIWebBrowserPersist> persist(do_CreateInstance(NS_WEBBROWSERPERSIST_CONTRACTID));
 	    if(persist)
 	    {
-	        char *tmp = strdup(nsUnescape(tempfile.GetBuffer(0)));
-                tempfile = tmp;
-                free(tmp);
+			nsresult rv;
 
-		nsCOMPtr<nsILocalFile> file;
-		NS_NewNativeLocalFile(nsDependentCString(T2A(tempfile.GetBuffer(0))), TRUE, getter_AddRefs(file));
+			nsCOMPtr<nsIWebPageDescriptor> descriptor;
+			nsCOMPtr<nsIDocShell> docShell = do_GetInterface(mWebBrowser);
+			if (docShell)
+				descriptor = do_QueryInterface(docShell);
+
+			nsCOMPtr<nsIURI> referrer;
+			mWebNav->GetReferringURI(getter_AddRefs(referrer));
 		
-		CProgressDialog *progress = new CProgressDialog(FALSE);      
-		progress->InitViewer(persist, theApp.preferences.sourceCommand.GetBuffer(0), tempfile.GetBuffer(0));
-		
-		nsEmbedString sURI;
-		NS_CStringToUTF16(nsEmbedCString(pUrl+strlen("View-Source:")), NS_CSTRING_ENCODING_ASCII, sURI);
-		
-		nsCOMPtr<nsIURI> srcURI;
-		nsresult rv = NewURI(getter_AddRefs(srcURI), sURI);
-		if (NS_FAILED(rv)) {
-		    if (url)
-			delete url;
-		    return FALSE;
-		}
- 
-		persist->SaveURI(srcURI, nsnull, nsnull, nsnull, nsnull, file);
+			nsCOMPtr<nsILocalFile> file;
+#ifdef _UNICODE
+			rv = NS_NewLocalFile(nsDependentString(tempfile.GetBuffer(0)), TRUE, getter_AddRefs(file));
+#else
+			rv = NS_NewNativeLocalFile(nsDependentCString(tempfile.GetBuffer(0)), TRUE, getter_AddRefs(file));
+#endif
+			nsEmbedString sURI;
+			NS_CStringToUTF16(nsDependentCString(pUrl+strlen("View-Source:")), NS_CSTRING_ENCODING_UTF8, sURI);
+
+			nsCOMPtr<nsIURI> srcURI;
+			rv = NewURI(getter_AddRefs(srcURI), sURI);
+			if (NS_FAILED(rv)) {
+			    if (url) delete url;
+			    return FALSE;
+			}
+
+			CProgressDialog *progress = new CProgressDialog(FALSE);      
+			progress->InitViewer(persist, theApp.preferences.sourceCommand.GetBuffer(0), tempfile.GetBuffer(0));
+			persist->SetProgressListener(progress);
+			persist->SetPersistFlags(
+				nsIWebBrowserPersist::PERSIST_FLAGS_AUTODETECT_APPLY_CONVERSION|
+				nsIWebBrowserPersist::PERSIST_FLAGS_REPLACE_EXISTING_FILES);
+			persist->SaveURI(srcURI, descriptor, referrer, nsnull, nsnull, file);
+			if (NS_FAILED(rv))
+				persist->SetProgressListener(nsnull);
+
 	    }
 	    if (url)
 		delete url;
