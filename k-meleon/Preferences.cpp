@@ -348,6 +348,40 @@ void CPreferences::Save() {
    nsCOMPtr<nsIPref> prefs(do_GetService(NS_PREF_CONTRACTID, &rv));
    if (NS_SUCCEEDED(rv)) {
 
+	   // If the skin was changed, replace skin.js in the 
+	   // default/pref folder
+	   CString oldSkin;
+	  _GetString("kmeleon.general.skinsCurrent", oldSkin, skinsCurrent);
+      
+	  if  (skinsCurrent.CompareNoCase(oldSkin) != 0)
+	  {
+		  CString skinFile;
+		  theApp.FindSkinFile(skinFile, _T("skin.js"));
+		  if (!skinFile.IsEmpty()) 
+		  {
+
+			  nsCOMPtr<nsIFile> nsProfileDir;
+			  rv = NS_GetSpecialDirectory(NS_APP_PREF_DEFAULTS_50_DIR, getter_AddRefs(nsProfileDir));
+			  NS_ASSERTION(nsProfileDir, "NS_APP_PREF_DEFAULTS_50_DIR is not defined");
+
+			  if (NS_SUCCEEDED(rv))
+			  {         
+#ifdef _UNICODE
+				  nsEmbedString pathBuf;
+				  rv = nsProfileDir->GetPath(pathBuf);
+#else
+				  nsEmbedCString pathBuf;
+				  rv = nsProfileDir->GetNativePath(pathBuf);
+#endif
+				  CString defaultDir = pathBuf.get();
+				  if (defaultDir.Right(1) != '\\')
+					  defaultDir += '\\';
+
+				  CopyFile(skinFile, defaultDir + _T("skin.js"), FALSE);
+			  }
+		  }
+	  }
+
       // -- General preferences
       rv = prefs->SetBoolPref("kmeleon.general.startHome", bStartHome);
       _SetString("kmeleon.general.homePage",homePage)
