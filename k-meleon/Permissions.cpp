@@ -81,8 +81,8 @@ void CPermissionsDlg::FillList()
 	RECT rect;
 	m_cPermissionsList.GetClientRect(&rect);
 	int width = (rect.right - rect.left);
-	m_cPermissionsList.SetColumnWidth(0, width-80);
-	m_cPermissionsList.SetColumnWidth(1, 80);
+	m_cPermissionsList.SetColumnWidth(0, width-90);
+	m_cPermissionsList.SetColumnWidth(1, 90);
 
 	m_cPermissionsList.SortItems(SortPermissionsList, (LPARAM) &m_PermissionsList);
 }
@@ -102,6 +102,7 @@ BEGIN_MESSAGE_MAP(CPermissionsDlg, CDialog)
 	ON_BN_CLICKED(IDC_ALLOW, OnBnClickedAllow)
 	ON_BN_CLICKED(IDC_DELETE_PERMISSIONS, OnBnClickedDeletePermissions)
 	ON_BN_CLICKED(IDC_DELETE_ALL_PERMISSIONS, OnBnClickedDeleteAllPermissions)
+	ON_EN_CHANGE(IDC_URL, OnEnChangeUrl)
 END_MESSAGE_MAP()
 
 
@@ -240,4 +241,17 @@ void CPermissionsDlg::OnBnClickedDeleteAllPermissions()
 		}
 		m_cPermissionsList.DeleteAllItems();
 	}
+}
+
+void CPermissionsDlg::OnEnChangeUrl()
+{
+	LVFINDINFO info = {0};
+	info.flags = LVFI_PARTIAL;
+	
+	CString csUrl;
+	GetDlgItemText(IDC_URL, csUrl);
+	info.psz = csUrl.GetBuffer(0);
+
+	int nIndex = m_cPermissionsList.FindItem(&info, -1);
+	m_cPermissionsList.EnsureVisible(nIndex, FALSE);
 }
