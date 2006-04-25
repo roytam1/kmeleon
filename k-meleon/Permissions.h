@@ -163,4 +163,5 @@ public:
 	afx_msg void OnBnClickedAllow();
 	afx_msg void OnBnClickedDeletePermissions();
 	afx_msg void OnBnClickedDeleteAllPermissions();
+	afx_msg void OnEnChangeUrl();
 };
