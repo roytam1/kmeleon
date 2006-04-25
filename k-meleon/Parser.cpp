@@ -128,15 +128,13 @@ int ifplugin(char *p)
 CParser::Load(CString &filename)
 {
    CFile *file;
-   TRY {
-      file = new CFile(filename, CFile::modeRead);
+    
+   file = new CFile;
+   if (!file->Open(filename, CFile::modeRead, NULL)) {
+	   delete file;
+	   return 0;
    }
-   CATCH (CFileException, e) {
-      file = NULL;
-      return 0;
-   }
-   END_CATCH
-
+   
    long length = file->GetLength();
    char *buffer = new char[length + 3]; // CR+LF+NUL
    file->Read(buffer, length);
