@@ -71,6 +71,7 @@ BOOL CBrowserView::OpenViewSourceWindow(const PRUnichar* pUrl)
 	NS_UTF16ToCString(wUrl,NS_CSTRING_ENCODING_ASCII,cUrl);
     return OpenViewSourceWindow(cUrl.get());
 }
+
 BOOL CBrowserView::OpenViewSourceWindow(const char* pUrl)
 {
     // Use external viewer
@@ -184,10 +185,10 @@ LRESULT CBrowserView::RefreshToolBarItem(WPARAM ItemID, LPARAM unused)
 void CBrowserView::GetPageTitle(CString& title)
 {
    USES_CONVERSION;
-
    PRUnichar *aTitle;
    mpBrowserFrameGlue->GetBrowserFrameTitle(&aTitle);
    title = W2T(aTitle);
+   nsMemory::Free(aTitle);
 }
 
 BOOL MultiSave(nsIURI* aURI, nsILocalFile* file) {
@@ -405,8 +406,8 @@ void CBrowserView::OpenURL(const char* pUrl, nsIURI *refURI)
 
 void CBrowserView::OpenURL(const PRUnichar* pUrl, nsIURI *refURI)
 {
-   CString str = pUrl;
-   mpBrowserFrame->m_wndUrlBar.SetCurrentURL((char*)str.GetBuffer(0));
+   USES_CONVERSION;
+   mpBrowserFrame->m_wndUrlBar.SetCurrentURL(W2CT(pUrl));
    mpBrowserFrame->m_wndUrlBar.EditChanged(FALSE);
 
    if(mWebNav)
@@ -432,7 +433,7 @@ CBrowserFrame* CBrowserView::CreateNewBrowserFrame(PRUint32 chromeMask,
 CBrowserFrame* CBrowserView::OpenURLInNewWindow(const char* pUrl, BOOL bBackground, nsIURI *refURI )
 {
 	nsEmbedString str;
-    NS_CStringToUTF16(nsEmbedCString(pUrl), NS_CSTRING_ENCODING_ASCII, str);
+    NS_CStringToUTF16(nsEmbedCString(pUrl), NS_CSTRING_ENCODING_UTF8, str);
     return OpenURLInNewWindow(str.get(), bBackground, refURI);
 }
 
@@ -441,8 +442,22 @@ CBrowserFrame* CBrowserView::OpenURLInNewWindow(const PRUnichar* pUrl, BOOL bBac
     if(!pUrl)
         return NULL; 
    
-    // create hidden window
-    CBrowserFrame* pFrm = CreateNewBrowserFrame(nsIWebBrowserChrome::CHROME_ALL, -1, -1, -1, -1, PR_FALSE);
+	PRUnichar* ext = wcsrchr(pUrl, L'.');
+	CBrowserFrame* pFrm;
+	PRUint32 chromeFlags;
+	
+
+	if (!bBackground && ext && ( wcsstr(ext, L".xul") == ext ))
+		chromeFlags =  nsIWebBrowserChrome::CHROME_WINDOW_BORDERS |
+	                    nsIWebBrowserChrome::CHROME_TITLEBAR |
+	                    nsIWebBrowserChrome::CHROME_WINDOW_RESIZE|
+						nsIWebBrowserChrome::CHROME_OPENAS_CHROME;
+	else
+    	chromeFlags = nsIWebBrowserChrome::CHROME_ALL;
+
+	// create hidden window
+	pFrm = CreateNewBrowserFrame(chromeFlags, -1, -1, -1, -1, PR_FALSE);
+
     if(!pFrm)
 	return NULL;
 
@@ -481,12 +496,12 @@ BOOL CBrowserView::CloneSHistory(CBrowserView& newWebBrowser)
 {
 	nsCOMPtr<nsISHistory> oldSH;
 	nsCOMPtr<nsISHistory> newSH;
-	nsCOMPtr<nsISHistoryInternal> shi;
 		
 	mWebNav->GetSessionHistory(getter_AddRefs(oldSH));
 	newWebBrowser.mWebNav->GetSessionHistory(getter_AddRefs(newSH));
-	shi = do_QueryInterface(newSH);
-	if (shi)
+	
+	nsCOMPtr<nsISHistoryInternal> newSHInternal(do_QueryInterface(newSH));
+	if (newSHInternal)
 	{
 		nsCOMPtr<nsISHEntry> she;
 		nsCOMPtr<nsIHistoryEntry> he;
@@ -495,13 +510,13 @@ BOOL CBrowserView::CloneSHistory(CBrowserView& newWebBrowser)
 		oldSH->GetCount(&count);
 		for (int i=0;i<count;i++)
 		{
-	        nsCOMPtr<nsISHEntry> sheN;
 			oldSH->GetEntryAtIndex(i, PR_FALSE, getter_AddRefs(he));
 
 			she = do_QueryInterface(he);
 			if (she) {
-				she->Clone(getter_AddRefs(sheN));
-				if (sheN) shi->AddEntry(sheN, PR_TRUE);
+				nsCOMPtr<nsISHEntry> newSHEntry;
+				she->Clone(getter_AddRefs(newSHEntry));
+				if (newSHEntry) newSHInternal->AddEntry(newSHEntry, PR_TRUE);
 			}
 		}
 
@@ -568,7 +583,6 @@ void CBrowserView::UpdateBusyState(PRBool aBusy)
 	}
     }
 }
-
 
 void CBrowserView::SetCtxMenuLinkUrl(nsEmbedString& strLinkUrl)
 {
@@ -663,22 +677,22 @@ void CBrowserView::ShowSecurityInfo()
 }
 
 
-char * CBrowserView::GetTempFile()
+TCHAR * CBrowserView::GetTempFile()
 {
    m_tempFileCount++;
    
-   char ** newFileList = new char*[m_tempFileCount];                             // create new index
+   TCHAR ** newFileList = new TCHAR*[m_tempFileCount];                             // create new index
 
-   memcpy(newFileList, m_tempFileList, ((m_tempFileCount-1)*sizeof(char**)) );   // copy old index
+   memcpy(newFileList, m_tempFileList, ((m_tempFileCount-1)*sizeof(TCHAR**)) );   // copy old index
 
    if (m_tempFileCount>1) delete m_tempFileList;                                 // delete old index
    m_tempFileList = newFileList;
 
-   char *newFile = new char[MAX_PATH];
+   TCHAR *newFile = new TCHAR[MAX_PATH];
  
-   char temppath[MAX_PATH];
+   TCHAR temppath[MAX_PATH];
    GetTempPath(MAX_PATH, temppath);
-   GetTempFileName(temppath, "kme", 0, newFile);                                 // create tempfile name
+   GetTempFileName(temppath, _T("kme"), 0, newFile);                                 // create tempfile name
    
    m_tempFileList[m_tempFileCount-1] = newFile;
 
@@ -857,8 +871,6 @@ nsIDOMNode *CBrowserView::GetNodeAtPoint(int x, int y, BOOL bPrepareMenu) {
    if(NS_FAILED(rv) || !currentURI)
       return NULL;
 
-   m_iGetNodeHack = bPrepareMenu ? 2 : 1;
-
    HWND hWnd = ::GetFocus();  
    if (!::IsChild(m_hWnd, hWnd)) {
       SetFocus();
@@ -880,6 +892,8 @@ nsIDOMNode *CBrowserView::GetNodeAtPoint(int x, int y, BOOL bPrepareMenu) {
       }
    } 
    
+   m_iGetNodeHack = bPrepareMenu ? 2 : 1;
+
    ::SendMessage(hWnd, WM_CONTEXTMENU, (WPARAM) hWnd, MAKELONG(x, y));
    ::SetCursorPos(pt.x, pt.y);
    ::ShowCursor(TRUE);
