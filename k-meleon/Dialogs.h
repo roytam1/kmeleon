@@ -313,6 +313,7 @@ protected:
 public:
 	virtual BOOL OnInitDialog();
 	afx_msg void OnBnClickedOk();
+	afx_msg void OnLbnDblclkListSelect();
 };
 
 #endif //_DIALOG_H_

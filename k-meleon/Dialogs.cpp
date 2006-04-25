@@ -745,6 +745,8 @@ END_MESSAGE_MAP()
 
 int CConfirmCheckDialog::OnInitDialog()
 {   
+	CDialog::OnInitDialog();
+
    	SetWindowText(m_csDialogTitle);
   
     CWnd *pWnd = GetDlgItem(IDC_MSG_TEXT);
@@ -810,13 +812,17 @@ int CConfirmCheckDialog::OnInitDialog()
 	{
 		case 1:
 			if (pBtn2) pBtn2->SetFocus();
+			SetDefID(pBtn2->GetDlgCtrlID()); 
 			break;
 		case 2:
 			if (pBtn3) pBtn3->SetFocus();
+			SetDefID(pBtn3->GetDlgCtrlID()); 
 			break;
 		case 0:
 		default:
 			if (pBtn1) pBtn1->SetFocus();
+			SetDefID(pBtn1->GetDlgCtrlID()); 
+			break;
 	}
 
     return FALSE;
@@ -871,6 +877,7 @@ void CSelectDialog::DoDataExchange(CDataExchange* pDX)
 
 BEGIN_MESSAGE_MAP(CSelectDialog, CDialog)
 	ON_BN_CLICKED(IDOK, OnBnClickedOk)
+	ON_LBN_DBLCLK(IDC_LIST_SELECT, OnLbnDblclkListSelect)
 END_MESSAGE_MAP()
 
 
@@ -903,4 +910,9 @@ void CSelectDialog::OnBnClickedOk()
 {
 	m_iChoice = m_cList.GetCaretIndex();
 	OnOK();
+}
+
+void CSelectDialog::OnLbnDblclkListSelect()
+{
+	OnBnClickedOk();
 }
