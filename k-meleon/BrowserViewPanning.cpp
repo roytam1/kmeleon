@@ -32,6 +32,12 @@ extern CMfcEmbedApp theApp;
 */
 int CBrowserView::OnMouseActivate(CWnd* pDesktopWnd, UINT nHitTest, UINT message)
 {
+	// Give the focus to the browser if it don't have it.
+	if (!::IsChild(m_hWnd, ::GetFocus())) {
+		mWebBrowserFocus->Activate();
+		mpBrowserFrame->m_wndLastFocused = NULL;
+	}
+
    int id;
    id = theApp.accel.CheckMouse(message);
 
@@ -120,7 +126,7 @@ void CBrowserView::OnTimer(UINT nIDEvent)
             else scroll_x -= dx*dx;
             s->ScrollTo(scroll_x,scroll_y);
          }
-
+         /* cursor flickering : https://bugzilla.mozilla.org/show_bug.cgi?id=316352 */
          int cursor;
          if (dx < 0) {
             if (dy < 0) cursor = IDC_PAN_UPLEFT;
@@ -182,7 +188,6 @@ void CBrowserView::StartPanning()
 
    SetCapture();
    SetTimer(0x1,20,NULL);
-   
    SetFocus();
 }
 
