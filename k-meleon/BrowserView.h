@@ -158,7 +158,7 @@ public:
   
 	afx_msg LRESULT RefreshToolBarItem(WPARAM ItemID, LPARAM unused);
 
-    char * GetTempFile();
+    TCHAR * GetTempFile();
     void DeleteTempFiles();
 
     int GetCurrentURI(char *sURI);
