@@ -72,7 +72,7 @@ static UINT WM_POSTEVENT = RegisterWindowMessage(_T("XPCOM_PostEvent"));
 #endif
 
 #ifdef _BUILD_STATIC_BIN
-#include "nsStaticComponent.h"
+#include "nsStaticComponents.h"
 nsresult PR_CALLBACK
 app_getModuleInfo(nsStaticModuleInfo **info, PRUint32 *count);
 #endif
@@ -197,6 +197,7 @@ bool CMfcEmbedApp::FindSkinFile( CString& szSkinFile, TCHAR *filename )
 
 	return false;
 }
+
 // Initialize our MFC application and also init
 // the Gecko embedding APIs
 // Note that we're also init'ng the profile switching
@@ -251,7 +252,7 @@ BOOL CMfcEmbedApp::InitInstance()
       return FALSE;
    }
    
-   Enable3dControls();   
+   //Enable3dControls();   
    //
     // 1. Determine the name of the dir from which the GRE based app is being run
     // from [It's OK to do this even if you're not running in an GRE env]
@@ -275,6 +276,7 @@ BOOL CMfcEmbedApp::InitInstance()
     nsCOMPtr<nsILocalFile> mreAppDir;
     rv = NS_NewNativeLocalFile(nsEmbedCString(T2A(path)), TRUE, getter_AddRefs(mreAppDir));
     NS_ASSERTION(NS_SUCCEEDED(rv), "failed to create mreAppDir localfile");
+
    // Take a look at 
    // http://www.mozilla.org/projects/xpcom/file_locations.html
    // for more info on File Locations
@@ -287,7 +289,12 @@ BOOL CMfcEmbedApp::InitInstance()
       return FALSE;
    }
    
+#ifdef _BUILD_STATIC_BIN
+	rv = NS_InitEmbedding(mreAppDir, provider, kPStaticModules, kStaticModuleCount);
+#else
    rv = NS_InitEmbedding(mreAppDir, provider);
+#endif
+   
    if(NS_FAILED(rv))
    { 
       ASSERT(FALSE);
@@ -364,13 +371,9 @@ BOOL CMfcEmbedApp::InitInstance()
    wc.hIcon=m_hMainIcon;
    AfxRegisterClass( &wc );
    
-
    // Register the browser window class
    wc.lpszClassName = BROWSER_WINDOW_CLASS;
    AfxRegisterClass( &wc );
-   
-   
-   
    
    // the hidden window will take care of creating the first
    // browser window for us
@@ -383,7 +386,7 @@ BOOL CMfcEmbedApp::InitInstance()
    return TRUE;
 }
 
-// add new download dialags to the internal window list so we won't exit
+// add new download dialogs to the internal window list so we won't exit
 // the app while downloads are in progress
 void CMfcEmbedApp::RegisterWindow(CDialog *window) {
    m_MiscWndLst.AddHead(window);
@@ -866,9 +869,11 @@ int CMfcEmbedApp::ExitInstance()
    if (m_ProfileMgr) delete m_ProfileMgr;
    
    NS_TermEmbedding();
+
 #ifdef XPCOM_GLUE
     XPCOMGlueShutdown();
 #endif
+
    plugins.UnLoadAll();
    
    return 1;
@@ -882,6 +887,7 @@ BOOL CMfcEmbedApp::OnIdle(LONG lCount)
    
    return FALSE;
 }
+
 BOOL CMfcEmbedApp::IsIdleMessage( MSG* pMsg )
 {
    if (!CWinApp::IsIdleMessage( pMsg ) || 
@@ -893,6 +899,7 @@ BOOL CMfcEmbedApp::IsIdleMessage( MSG* pMsg )
    else
       return TRUE;
 }
+
 void CMfcEmbedApp::OnPreferences () {
    CPreferencesDlg prefDlg;
    prefDlg.DoModal();
