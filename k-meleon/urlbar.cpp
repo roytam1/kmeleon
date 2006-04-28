@@ -18,6 +18,7 @@
 *
 */
 
+
 #include "stdafx.h"
 #include "BrowserFrm.h"
 #include ".\urlbar.h"
@@ -108,6 +109,38 @@ NS_IMETHODIMP CACListBox::SetParam(nsISupports * aParam){
 	return NS_OK;
 }
 
+void CACListBox::Scroll(short dir, short q)
+{
+	if (!IsWindowVisible()) 
+		return;
+	
+	if (GetCurSel() == LB_ERR || q==2)
+	{
+		if (dir>0)
+			SetCurSel(0);
+		else
+			SetCurSel(GetCount()-1);
+	}
+    else
+	{
+		if (q == 1) 
+			dir = dir * theApp.preferences.GetInt("kmeleon.urlbar.dropdown_lines", 6);
+
+		int newsel = GetCurSel() + dir;
+		if (newsel < 0) 
+			newsel = 0;
+		else if (newsel >=GetCount())
+			newsel = GetCount()-1;
+		SetCurSel(newsel);
+	}
+    CString str;
+	GetText(GetCurSel(), str);
+	m_edit->SetWindowText(str);
+
+	//Set the cursor at the end of the text for easy editing
+	m_edit->SetSel(str.GetLength(),str.GetLength(),true);
+}
+
 PRBool CACListBox::AddEltToList(nsISupports* aElement)
 {
 	nsCOMPtr<nsIAutoCompleteItem> acItem = do_QueryInterface(aElement);
@@ -115,11 +148,14 @@ PRBool CACListBox::AddEltToList(nsISupports* aElement)
 		return PR_FALSE;
 	
 	nsEmbedString nsStr;
-	nsEmbedCString nsCStr;
-
 	acItem->GetValue(nsStr);
+#ifdef _UNICODE
+	CString cstr(nsStr.get());
+#else
+	nsEmbedCString nsCStr;
 	NS_UTF16ToCString(nsStr,NS_CSTRING_ENCODING_ASCII,nsCStr);
 	CString cstr(nsCStr.get());
+#endif
 	
 	if (GetCount() == 0 && theApp.preferences.GetBool("browser.urlbar.autoFill", false) && !m_bBack)
 	{
@@ -154,7 +190,7 @@ void CACListBox::OnKillFocus(CWnd* pNewWnd)
 	ShowWindow(SW_HIDE);
 	ResetContent();
 }
-
+/*
 void CACListBox::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 {
 	
@@ -181,7 +217,7 @@ void CACListBox::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 
 	m_edit->SetWindowText(str);
 }
-
+*/
 void CACListBox::OnLButtonDown(UINT nFlags, CPoint point)
 {
 	CListBox::OnLButtonDown(nFlags, point);
@@ -275,7 +311,7 @@ void CUrlBarEdit::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
 	if (nChar == VK_RETURN)
 	{
 		StopACSession();
-		GetParentFrame()->SendMessage(WM_COMMAND, MAKEWORD(IDOK,0), (LPARAM)m_hWnd);
+		GetParentFrame()->SendMessage(WM_COMMAND, MAKEWPARAM(IDOK,0), (LPARAM)m_hWnd);
 		return;
 	}
 	
@@ -314,7 +350,7 @@ void CUrlBarEdit::PreSubclassWindow()
 		LBS_NOTIFY|WS_VISIBLE|WS_CHILD|WS_BORDER|WS_VSCROLL,
 		CRect(0,0,0,0),
 		//GetDesktopWindow(),
-		theApp.m_pMostRecentBrowserFrame,
+		GetParentFrame(),
 		0,this))
 	{
         TRACE0("Failed to create ACListBox\n");
@@ -425,40 +461,35 @@ void CUrlBarEdit::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 #endif
 		break;
 
+	/*case VK_END:
+		if (!m_list->IsWindowVisible()) break;
+		m_list->Scroll(-1, 2);
+		return;
+
+	case VK_HOME:
+		if (!m_list->IsWindowVisible()) break;
+		m_list->Scroll(1, 2);
+		return;*/
+
+	case VK_PRIOR:
+		if (!m_list->IsWindowVisible()) break;
+		m_list->Scroll(-1,1);
+		return;
+
+	case VK_NEXT:
+		if (!m_list->IsWindowVisible()) break;
+		m_list->Scroll(1,1);
+		return;
+
 	case VK_UP:
+		if (!m_list->IsWindowVisible()) break;
+		m_list->Scroll(-1);
+		return;
+
 	case VK_DOWN:
 		if (!m_list->IsWindowVisible()) break;
-		if (m_list->GetCurSel() == LB_ERR)
-		{
-			if (nChar == VK_DOWN)
-				m_list->SetCurSel( m_list->GetTopIndex());
-			else
-				m_list->SetCurSel(m_list->GetCount()-1);
-		
-		}
-		else
-			if (nChar == VK_DOWN)
-				m_list->SetCurSel( m_list->GetCurSel() + 1);
-			else
-				if (m_list->GetCurSel()>0) m_list->SetCurSel( m_list->GetCurSel() - 1);
-
-		m_list->GetText(m_list->GetCurSel(), str);
-		SetWindowText(str);
-
-		//Set the cursor at the end of the text for easy editing
-		SetSel(str.GetLength(),str.GetLength(),true);
-		//::SetFocus(m_list->m_hWnd);
+		m_list->Scroll(1);
 		return;
-
-	case VK_ESCAPE:	{
-		USES_CONVERSION;
-		StopACSession();
-		char* oldUri = new char[theApp.m_pMostRecentBrowserFrame->m_wndBrowserView.GetCurrentURI(NULL)+1];
-		theApp.m_pMostRecentBrowserFrame->m_wndBrowserView.GetCurrentURI(oldUri);
-		SetWindowText(A2T(oldUri));
-		delete oldUri;
-		return;
-		}
 	case VK_DELETE: {
 		m_list->m_bBack = TRUE;
 		SetTimer(1, 100, NULL);
@@ -491,6 +522,7 @@ void CUrlBarEdit::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 
 	CEdit::OnKeyDown(nChar, nRepCnt, nFlags);
 }
+
 #ifndef URLBAR_USE_SETWORDBREAKPROC	
 // Used to select a "word"
 void CUrlBarEdit::OnLButtonDblClk(UINT nFlags, CPoint point)
@@ -534,10 +566,12 @@ int CALLBACK CUrlBarEdit::UrlBreakProc(LPWSTR lpszEditText, int ichCurrent,
 {
 	switch (wActionCode) {
 		case WB_ISDELIMITER:
+
 			//Because the cursor is set on the delimiter, not on 
 			//the character following it, the delimiter have to be
 			//the next character.
 			ichCurrent--;
+
 			switch (lpszEditText[ichCurrent]) {
 				case L'.':
 				case L'?':
@@ -585,18 +619,34 @@ int CALLBACK CUrlBarEdit::UrlBreakProc(LPWSTR lpszEditText, int ichCurrent,
 BOOL CUrlBarEdit::PreTranslateMessage(MSG* pMsg)
 {
 	CString str;
-	if (pMsg->message==WM_KEYDOWN && pMsg->wParam == VK_BACK
-		&& GetKeyState(VK_CONTROL) & 0x8000 ) 
-	{// Bug #764 
-		USES_CONVERSION;
-		GetWindowText(str);
-		int cursorPos = HIWORD(GetSel());
-		int newPos = UrlBreakProc(T2W(str.LockBuffer()), cursorPos, str.GetLength(),WB_LEFT);
-		str.UnlockBuffer();
-		str.Delete(newPos,cursorPos);
-		SetWindowText(str);
-		SetSel(newPos,newPos,true); 
-		return TRUE;
+	if (pMsg->message==WM_KEYDOWN)
+	{
+		if (pMsg->wParam == VK_BACK && GetKeyState(VK_CONTROL) & 0x8000 ) 
+		{// Bug #764 
+			USES_CONVERSION;
+			GetWindowText(str);
+			int cursorPos = HIWORD(GetSel());
+			int newPos = UrlBreakProc(T2W(str.LockBuffer()), cursorPos, str.GetLength(),WB_LEFT);
+			str.UnlockBuffer();
+			str.Delete(newPos,cursorPos);
+			SetWindowText(str);
+			SetSel(newPos,newPos,TRUE); 
+			return TRUE;
+		}
+		else if (pMsg->wParam == VK_ESCAPE)
+		{
+			StopACSession();
+			TCHAR* oldUrl;
+			int len = ((CBrowserFrame*)GetParentFrame())->m_wndBrowserView.GetCurrentURI(NULL);
+			oldUrl = new TCHAR[len+1];
+			((CBrowserFrame*)GetParentFrame())->m_wndBrowserView.GetCurrentURI(oldUrl);
+			if (oldUrl) {
+				SetWindowText(oldUrl);
+				SetSel(0,-1,FALSE);
+				free(oldUrl);
+			}
+			return TRUE;
+		}
 	}
 		
 	return CEdit::PreTranslateMessage(pMsg);
