@@ -34,13 +34,13 @@ class CACListBox : public CListBox, public nsIAutoCompleteListener
 	NS_DECL_NSIAUTOCOMPLETELISTENER
 
 public:	
+	void Scroll(short dir, short q = 0);
 	PRBool AddEltToList(nsISupports* aElement);
 	nsCOMPtr<nsIAutoCompleteResults> m_oldResult;
 
 	BOOL m_bBack;
 	DECLARE_MESSAGE_MAP()
 	afx_msg void OnKillFocus(CWnd* pNewWnd);
-	afx_msg void OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags);
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
