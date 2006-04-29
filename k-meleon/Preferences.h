@@ -31,6 +31,7 @@ public:
    // -- Find settings
    CString findSearchStr;
 	int bFindMatchCase;
+	int bFindHighlight;
 	int bFindMatchWholeWord;
    int bFindWrapAround;
 	int bFindSearchBackwards;

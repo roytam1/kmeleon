@@ -184,6 +184,9 @@ public:
 protected:
 	BOOL _InjectCSS(nsIDOMWindow* dom, const wchar_t* userStyleSheet);
 	void _OnNavReload(BOOL force = FALSE);
+    void Highlight(BOOL);
+
+	nsEmbedString m_lastHighlightWord;
 	BOOL m_refreshBackButton;
 	BOOL m_refreshForwardButton; 
     BOOL m_InPrintPreview;
@@ -287,6 +290,7 @@ protected:
     afx_msg void OnMouseAction();
 	afx_msg void OnWrapAround();
 	afx_msg void OnMatchCase();
+	afx_msg void OnHighlight();
 
     afx_msg void OnEditURL( NMHDR * pNotifyStruct, LRESULT * result );
     //afx_msg void OnDragURL( NMHDR * pNotifyStruct, LRESULT * result );

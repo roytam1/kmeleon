@@ -124,6 +124,7 @@ void CPreferences::Load() {
       // -- Find settings
       
 	   _GetBool("kmeleon.find.matchCase", bFindMatchCase, false);
+	   _GetBool("kmeleon.find.highlight", bFindHighlight, false);
 //	   _GetBool("kmeleon.find.matchWholeWord", bFindMatchWholeWord, false);
 	   _GetBool("kmeleon.find.searchBackwards", bFindSearchBackwards, false);
 	   _GetBool("kmeleon.find.wrapAround", bFindWrapAround, false);
@@ -482,6 +483,7 @@ void CPreferences::Save() {
 
       // -- Find settings
 	   rv = prefs->SetBoolPref("kmeleon.find.matchCase", bFindMatchCase);
+	   rv = prefs->SetBoolPref("kmeleon.find.highlight", bFindHighlight);
 // don't set this - it might confuse the users :)  (okay, we *should* remove all references to it, perhaps, but I'm being lazy - sorry)
 //	   rv = prefs->SetBoolPref("kmeleon.find.matchWholeWord", bFindMatchWholeWord);
 	   rv = prefs->SetBoolPref("kmeleon.find.wrapAround", bFindWrapAround);
