@@ -177,6 +177,7 @@ typedef struct {
    HWND (*NavigateTo)(const char *url, int windowState, HWND mainWnd/*=NULL*/);
 
    const TCHAR* (*Translate) (const char* text); 
+   int (*SetGlobalVar)(PREFTYPE, const char*, void*);
 
 } kmeleonFunctions;
 
