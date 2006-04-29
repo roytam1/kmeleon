@@ -840,7 +840,9 @@ kmeleonFunctions kmelFuncs = {
    NULL,
    NULL,
    InjectJS,
-   InjectCSS
+   InjectCSS,
+   GetInfoAtClick,
+   GetKmeleonVersion
 };
 
 BOOL CPlugins::TestLoad(const char *file, const char *description)
