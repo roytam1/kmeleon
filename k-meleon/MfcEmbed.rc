@@ -1679,6 +1679,7 @@ BEGIN
     IDS_TEXT_ZOOM           "Text Zoom: %.0f"
     IDS_ONLINE              "Online"
     IDS_OFFLINE             "Offline"
+    IDS_HIGHLIGHTING        "Highlighting... Please Wait..."
 END
 #endif    // Anglais (États-Unis) resources
 /////////////////////////////////////////////////////////////////////////////

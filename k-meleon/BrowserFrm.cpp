@@ -918,23 +918,25 @@ void CBrowserFrame::OnShowFindBar()
 	// See if we can get and initialize the dlg box with
     // the values/settings the user specified in the previous search
 	nsCOMPtr<nsIWebBrowserFind> finder(do_GetInterface(m_wndBrowserView.mWebBrowser));	
-    if(finder)
-    {
-		PRUnichar *stringBuf = nsnull;
-        finder->GetSearchString(&stringBuf);
-        csSearchStr = stringBuf;
-        nsMemory::Free(stringBuf);
-
-		finder->GetMatchCase(&bMatchCase);
-		finder->GetEntireWord(&bMatchWholeWord);
-		finder->GetWrapFind(&bWrapAround);
-		//finder->GetFindBackwards(&bSearchBackwards);		
-    }
-
+	if (!finder) return;
+    
+	PRUnichar *stringBuf = nsnull;
+	
+	USES_CONVERSION;
+    finder->GetSearchString(&stringBuf);
+    csSearchStr = W2CT(stringBuf);
+   
+	finder->GetMatchCase(&bMatchCase);
+	finder->GetEntireWord(&bMatchWholeWord);
+	finder->GetWrapFind(&bWrapAround);
+	//finder->GetFindBackwards(&bSearchBackwards);		
+    
 	// Create the find bar
-	m_wndFindBar = new CFindRebar(csSearchStr, bMatchCase, bMatchWholeWord, bWrapAround, this);
+	m_wndFindBar = new CFindRebar(W2CT(stringBuf), bMatchCase, bMatchWholeWord, bWrapAround, theApp.preferences.bFindHighlight, this);
 	m_wndFindBar->Create(this, CBRS_BOTTOM);
 
+	if (stringBuf)
+		nsMemory::Free(stringBuf);
 	// It must stay above the sidebar 
 	m_wndFindBar->SetWindowPos(&m_wndStatusBar ,0,0,0,0,SWP_NOMOVE);
 	// And above any bottom toolbar ?

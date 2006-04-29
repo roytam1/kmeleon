@@ -396,6 +396,7 @@
 #define IDS_TEXT_ZOOM                   61286
 #define IDS_ONLINE                      61287
 #define IDS_OFFLINE                     61288
+#define IDS_HIGHLIGHTING                61289
 #define IDD_CONFIRM_COOKIE              2100
 #define IDC_CHECK_REMEMBER              2101
 #define IDOKSESSION                     2104

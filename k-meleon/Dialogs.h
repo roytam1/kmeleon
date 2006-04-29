@@ -50,8 +50,9 @@ class CBrowserFrame;
 class CFindRebar: public CReBar
 {
 public:
-	CFindRebar(CString& csSearchStr, PRBool bMatchCase,
-				PRBool bMatchWholeWord, PRBool bWrapAround, CBrowserFrame* pOwner);
+	CFindRebar(CString csSearchStr, PRBool bMatchCase,
+		PRBool bMatchWholeWord, PRBool bWrapAround, 
+		PRBool bHighlight, CBrowserFrame* pOwner);
 	virtual ~CFindRebar();
 	BOOL Create(CWnd* parent, DWORD dwStyle);
 	void OnNotFound() {
@@ -66,7 +67,7 @@ public:
 	inline CString GetFindString( ) const {return m_csSearchStr;}
 	inline BOOL WrapAround() {return m_cToolbar.GetToolBarCtrl().IsButtonChecked(IDC_WRAP_AROUND);}
 	inline BOOL MatchCase() {return m_cToolbar.GetToolBarCtrl().IsButtonChecked(IDC_MATCH_CASE);}
-//	inline BOOL Hightlight() {return m_cToolbar.GetToolBarCtrl().IsButtonChecked(IDC_HIGHLIGHT);}
+	inline BOOL Highlight() {return m_cToolbar.GetToolBarCtrl().IsButtonChecked(IDC_HIGHLIGHT);}
 	inline bool StartSel() {return m_bStartsel;}
 
 	CEdit m_cEdit;
@@ -76,6 +77,7 @@ private:
 	PRBool m_bMatchCase;
 	PRBool m_bMatchWholeWord;
 	PRBool m_bWrapAround;
+	PRBool m_bHighlight;
 	UINT m_hid;
 
 	CBrowserFrame* m_pOwner;

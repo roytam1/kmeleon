@@ -49,14 +49,16 @@ extern CMfcEmbedApp theApp;
 //				CFindReBar 
 //--------------------------------------------------------------------------//
 
-CFindRebar::CFindRebar(CString& csSearchStr, PRBool bMatchCase,
-				PRBool bMatchWholeWord, PRBool bWrapAround, CBrowserFrame* pOwner)
+CFindRebar::CFindRebar(CString csSearchStr, PRBool bMatchCase,
+				PRBool bMatchWholeWord, PRBool bWrapAround, 
+				PRBool bHighlight, CBrowserFrame* pOwner)
 				: CReBar()
 {
     m_csSearchStr = csSearchStr;
 	m_bMatchCase = bMatchCase;
 	m_bMatchWholeWord = bMatchWholeWord;
 	m_bWrapAround = bWrapAround;
+	m_bHighlight = bHighlight;
 	m_pOwner = pOwner;
 	m_hid = 0;
 
@@ -95,7 +97,7 @@ void CFindRebar::Close()
 void CFindRebar::PostNcDestroy()
 {
 	m_pOwner->ClearFindBar();
-	delete this;
+	CReBar::PostNcDestroy();
 }
 
 #ifndef FINDBAR_USE_TYPEAHEAD
@@ -110,9 +112,8 @@ void CFindRebar::OnEnChangeSearchStr()
 		disabled = true;
 	
 	m_cEdit.GetWindowText(m_csSearchStr);
-
-	if (m_hid && m_cToolbar.GetToolBarCtrl().IsButtonChecked(m_hid))
-		SetTimer(12345, 200, NULL);
+	if (Highlight())
+		SetTimer(12345, 300, NULL);
 	m_bStartsel = true;
 	m_pOwner->SendMessage(WM_COMMAND, ID_EDIT_FINDNEXT, 0);
 	m_bStartsel = false;
@@ -122,8 +123,8 @@ void CFindRebar::OnEnChangeSearchStr()
 void CFindRebar::OnTimer(UINT nIDEvent)
 {
 	if (nIDEvent == 12345){
-	KillTimer(nIDEvent);
-	m_pOwner->SendMessage(WM_COMMAND, m_hid, 0);
+		KillTimer(nIDEvent);
+		m_pOwner->SendMessage(WM_COMMAND, IDC_HIGHLIGHT, 0);
 	}
 	CReBar::OnTimer(nIDEvent);
 }
@@ -164,7 +165,6 @@ int CFindRebar::OnCreate(LPCREATESTRUCT lpCreateStruct)
 		if (bitmap) {
 			ImageList_AddMasked(m_ilHot.GetSafeHandle(), bitmap, RGB(255, 0, 255));
 			DeleteObject(bitmap);
-			int x = m_ilHot.GetImageCount();
 			m_cToolbar.GetToolBarCtrl().SetHotImageList(&m_ilHot);
 		}
 	}
@@ -230,11 +230,13 @@ int CFindRebar::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	//toolbar->SetButtonStyle(2, TBBS_CHECKBOX);
 	
 	// Highlight button
-	//button.fsState = TBSTATE_ENABLED;
-	//button.idCommand = IDC_HIGHLIGHT;
-	//m_cToolbar.GetToolBarCtrl().InsertButton(4,&button);
-	//str.LoadString(IDS_FIND_HIGHLIGHT);
-	//m_cToolbar.SetButtonText(4, (LPCTSTR)str);
+	button.fsState = TBSTATE_ENABLED;
+	if (m_bHighlight)
+		button.fsState = TBSTATE_CHECKED;
+	button.idCommand = IDC_HIGHLIGHT;
+	m_cToolbar.GetToolBarCtrl().InsertButton(4,&button);
+	str.LoadString(IDS_FIND_HIGHLIGHT);
+	m_cToolbar.SetButtonText(4, (LPCTSTR)str);
 
 
 	AddBar(&m_cToolbar, _T(""), NULL, RBBS_NOGRIPPER);
