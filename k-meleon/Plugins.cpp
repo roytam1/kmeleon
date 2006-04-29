@@ -547,6 +547,46 @@ int CommandAtPoint(int command, WORD x, WORD y) {
    return 1;
 }
 
+int SetGlobalVar(enum PREFTYPE type, const char *preference, void *value)
+{
+	if (!theApp.m_pMostRecentBrowserFrame || !value || !preference) 
+		return 0;
+
+   int ret = 0;
+
+   CBrowserView *pBrowserView;  
+   pBrowserView = &theApp.m_pMostRecentBrowserFrame->m_wndBrowserView;
+
+   switch (type) {
+   case PREF_STRING:
+	   if (!stricmp(preference, "URLBAR")) {
+		 theApp.m_pMostRecentBrowserFrame->m_wndUrlBar.EditChanged(FALSE);
+		 theApp.m_pMostRecentBrowserFrame->m_wndUrlBar.SetCurrentURL((char*)value);
+		 ret = 1;
+	   }
+	   else if (!stricmp(preference, "CHARSET")) {
+         USES_CONVERSION;
+         pBrowserView->ForceCharset(T2A((char*)value));
+		 ret = 1;
+      }
+	   else if (!stricmp(preference, "TITLE")) {
+		 if (pBrowserView->mpBrowserFrameGlue) {
+		   USES_CONVERSION;
+		   pBrowserView->mpBrowserFrameGlue->SetBrowserFrameTitle(T2CW((char*)value));
+		 }
+		 ret = 1;
+      }
+	   break;
+   case PREF_INT:
+	   if (!stricmp(preference, "TextZoom")) {
+		 int zoom = pBrowserView->GetTextSize();
+		 pBrowserView->ChangeTextSize(*(int*)value - zoom);
+		 ret = 1;
+	   }
+   }
+   return ret;
+}
+
 int GetGlobalVar(enum PREFTYPE type, char *preference, void *ret) {
 
    if (!theApp.m_pMostRecentBrowserFrame) 
@@ -858,7 +898,8 @@ kmeleonFunctions kmelFuncs = {
    GetKmeleonVersion,
    NULL,
    NavigateTo,
-   Translate
+   Translate,
+   SetGlobalVar
 };
 
 BOOL CPlugins::TestLoad(const char *file, const char *description)
