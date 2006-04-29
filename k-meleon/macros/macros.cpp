@@ -238,6 +238,7 @@ enum commands {
    readfile,
    promptforfile,
    setcheck, 
+   _,
    urlencode
 };
 
@@ -517,6 +518,7 @@ int FindCommand(char *cmd) {
    int cmdVal = NOTFOUND;
    
    BEGIN_CMD_TEST
+	  CMD_TEST(_)
 	  CMD_TEST(setcheck)
       CMD_TEST(open)
       CMD_TEST(opennew)
@@ -814,6 +816,14 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
    }
 
    BEGIN_CMD_TEST
+	   CMD(_) {
+		   if (nparam != 1) {  // open( $0 )
+			parseError(WRONGARGS, "_", data, 1, nparam);
+            return "";
+         }
+		   return protectString( (char*)kFuncs->Translate(params[0].c_str()) );
+	   }
+
       CMD(open) {
          if (nparam != 1) {  // open( $0 )
 			parseError(WRONGARGS, "open", data, 1, nparam);
