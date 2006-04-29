@@ -94,6 +94,9 @@ public:
    nsresult SetOffline(BOOL offline);
 
    nsresult OverrideComponents();
+#ifdef _DEBUG
+   void ShowDebugConsole();
+#endif
 
 	// Overrides
 	// ClassWizard generated virtual function overrides
