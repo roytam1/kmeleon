@@ -65,6 +65,7 @@
 #include "nsIPluginManager.h"
 #include "nsIIOService.h"
 #include "nsIWindowWatcher.h"
+
 static UINT WM_POSTEVENT = RegisterWindowMessage(_T("XPCOM_PostEvent"));
 
 #ifdef MOZ_PROFILESHARING
@@ -142,6 +143,48 @@ nsresult CMfcEmbedApp::SetOffline(BOOL offline)
     return result;
 }
 
+#ifdef _DEBUG
+void CMfcEmbedApp::ShowDebugConsole()
+{
+
+    // Show console only in debug mode
+
+    if(! AllocConsole())
+        return;
+
+    // Redirect stdout to the console
+    int hCrtOut = _open_osfhandle(
+                (long) GetStdHandle(STD_OUTPUT_HANDLE),
+                _O_TEXT);
+    if(hCrtOut == -1)
+        return;
+
+    FILE *hfOut = _fdopen(hCrtOut, "w");
+    if(hfOut != NULL)
+    {
+        // Setup for unbuffered I/O so the console 
+        // output shows up right away
+        *stdout = *hfOut;
+        setvbuf(stdout, NULL, _IONBF, 0); 
+    }
+
+    // Redirect stderr to the console
+    int hCrtErr = _open_osfhandle(
+                (long) GetStdHandle(STD_ERROR_HANDLE),
+                _O_TEXT);
+    if(hCrtErr == -1)
+        return;
+
+    FILE *hfErr = _fdopen(hCrtErr, "w");
+    if(hfErr != NULL)
+    {
+        // Setup for unbuffered I/O so the console 
+        // output shows up right away
+        *stderr = *hfErr;
+        setvbuf(stderr, NULL, _IONBF, 0); 
+    }
+}
+#endif
 
 bool CMfcEmbedApp::FindSkinFile( CString& szSkinFile, TCHAR *filename ) 
 {
@@ -207,10 +250,11 @@ bool CMfcEmbedApp::FindSkinFile( CString& szSkinFile, TCHAR *filename )
 //
 BOOL CMfcEmbedApp::InitInstance()
 {
-#ifdef _BUILD_STATIC_BIN
-    // Initialize XPCOM's module info table
-    NSGetStaticModuleInfo = app_getModuleInfo;
+	CWinApp::InitInstance();
+#ifdef _DEBUG
+	ShowDebugConsole();
 #endif
+
 #ifdef XPCOM_GLUE
     if (NS_FAILED(XPCOMGlueStartup(GRE_GetXPCOMPath()))) {
         MessageBox(NULL, _T("Could not initialize XPCOM. Perhaps the GRE\nis not installed or could not be found?"), _T("Kmeleon"), MB_OK | MB_ICONERROR);
@@ -252,8 +296,8 @@ BOOL CMfcEmbedApp::InitInstance()
       return FALSE;
    }
    
-   //Enable3dControls();   
-   //
+    //Enable3dControls();   
+    //
     // 1. Determine the name of the dir from which the GRE based app is being run
     // from [It's OK to do this even if you're not running in an GRE env]
     //
