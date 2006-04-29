@@ -111,7 +111,7 @@ int CPlugins::OnUpdate(UINT command)
    return false;
 }
 
-void NavigateTo(const char *url, int windowState, HWND mainWnd)
+HWND NavigateTo(const char *url, int windowState, HWND mainWnd)
 {
    CBrowserFrame *mainFrame, *newFrame = NULL;
    if (mainWnd)
@@ -120,7 +120,7 @@ void NavigateTo(const char *url, int windowState, HWND mainWnd)
       mainFrame = theApp.m_pMostRecentBrowserFrame;
 
    if (!mainFrame) {
-      return;
+      return NULL;
    }
    nsEmbedString str;
 
@@ -139,6 +139,13 @@ void NavigateTo(const char *url, int windowState, HWND mainWnd)
    }
    if (newFrame && (windowState & OPEN_CLONE))
 	   mainFrame->m_wndBrowserView.CloneSHistory(newFrame->m_wndBrowserView);
+
+   return newFrame ? newFrame->m_hWnd:NULL;
+}
+
+void _NavigateTo(const char *url, int windowState, HWND mainWnd)
+{
+	NavigateTo(url, windowState, mainWnd);
 }
 
 kmeleonDocInfo * GetDocInfo(HWND mainWnd)
@@ -715,6 +722,12 @@ long SendMessage(const char *to, const char *from, const char *subject, long dat
    return theApp.plugins.SendMessage(to, from, subject, data1, data2);
 }
 
+const TCHAR* Translate(const char* text)
+{
+	USES_CONVERSION;
+	return theApp.lang.Translate(A2CT(text));
+}
+
 int TranslateEx(const char* originalText,  TCHAR* translatedText, int bufferlen, BOOL forMenu)
 {
 	CString csTrans;
@@ -807,7 +820,7 @@ int GetKmeleonVersion()
 kmeleonFunctions kmelFuncs = {
    SendMessage,
    GetCommandIDs,
-   NavigateTo,
+   _NavigateTo,
    GetDocInfo,
    _GetPreference,
    SetPreference,
@@ -842,7 +855,10 @@ kmeleonFunctions kmelFuncs = {
    InjectJS,
    InjectCSS,
    GetInfoAtClick,
-   GetKmeleonVersion
+   GetKmeleonVersion,
+   NULL,
+   NavigateTo,
+   Translate
 };
 
 BOOL CPlugins::TestLoad(const char *file, const char *description)
