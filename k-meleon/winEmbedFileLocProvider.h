@@ -46,17 +46,17 @@ public:
     // in which the application registry and profiles live.
     winEmbedFileLocProvider(const nsACString& aProductDirName);
 
-   NS_DECL_ISUPPORTS
-   NS_DECL_NSIDIRECTORYSERVICEPROVIDER
+    NS_DECL_ISUPPORTS
+    NS_DECL_NSIDIRECTORYSERVICEPROVIDER
 
 protected:
-   virtual              ~winEmbedFileLocProvider();
+    virtual              ~winEmbedFileLocProvider();
 
-   NS_METHOD            CloneMozBinDirectory(nsILocalFile **aLocalFile);   
+    NS_METHOD            CloneMozBinDirectory(nsILocalFile **aLocalFile);   
     NS_METHOD            GetProductDirectory(nsILocalFile **aLocalFile, PRBool aLocal = PR_FALSE);
     NS_METHOD            GetDefaultUserProfileRoot(nsILocalFile **aLocalFile, PRBool aLocal = PR_FALSE);
 
     nsEmbedCString         mProductDirName;
-   nsCOMPtr<nsILocalFile> mMozBinDirectory;
+    nsCOMPtr<nsILocalFile> mMozBinDirectory;
 	nsCOMPtr<nsILocalFile> mProfileDirectory;
 };
