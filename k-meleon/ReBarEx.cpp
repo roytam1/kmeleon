@@ -45,7 +45,7 @@ void CReBarEx::MaximizeBand( UINT uBand ) {
 }
 */
 
-void CReBarEx::RegisterBand(HWND hWnd, char *name, int visibleOnMenu) {
+void CReBarEx::RegisterBand(HWND hWnd, TCHAR *name, int visibleOnMenu) {
 
    if (FindByName(name) != -1)
       return;
@@ -65,8 +65,8 @@ void CReBarEx::RegisterBand(HWND hWnd, char *name, int visibleOnMenu) {
    m_index[m_iCount]->visibleOnMenu = visibleOnMenu;
 
    if (*name) {
-      m_index[m_iCount]->name = new char[strlen(name)+1];
-      strcpy(m_index[m_iCount]->name, name);
+      m_index[m_iCount]->name = new TCHAR[_tcslen(name)+1];
+      _tcscpy(m_index[m_iCount]->name, name);
    }
 
    m_iCount++;
@@ -86,9 +86,9 @@ int CReBarEx::FindByChild(HWND hWnd) {
    return -1;
 }
 
-int CReBarEx::FindByName(char *name) {
+int CReBarEx::FindByName(TCHAR *name) {
    for (int x=0; x<m_iCount; x++)
-      if (strcmpi(name, m_index[x]->name) == 0)
+      if (_tcsicmp(name, m_index[x]->name) == 0)
          return FindByChild(m_index[x]->hWnd);
    return -1;
 }
@@ -142,8 +142,8 @@ void CReBarEx::SetVisibility(int index, BOOL visibility) {
 
    m_index[index]->visibility = visibility;
 
-   char tempPref[256] = _T("kmeleon.toolband."); // 17 chars
-   sprintf(tempPref + 17, _T("%s.visibility"), m_index[index]->name);
+   char tempPref[256] = "kmeleon.toolband."; // 17 chars
+   sprintf(tempPref + 17, "%s.visibility", m_index[index]->name);
    theApp.preferences.SetBool(tempPref, m_index[index]->visibility);
 }
 
@@ -156,7 +156,7 @@ void CReBarEx::ToggleVisibility(int index) {
 
 void CReBarEx::SaveBandSizes() {
    int x, index;
-   char tempPref[256] = _T("kmeleon.toolband."); // 17 chars
+   char tempPref[256] = "kmeleon.toolband."; // 17 chars
 
    BOOL locked = theApp.preferences.GetBool(PREF_TOOLBAND_LOCKED, false);
    if (locked)
@@ -176,16 +176,21 @@ void CReBarEx::SaveBandSizes() {
       index = ChildToListIndex(rbbi.hwndChild);
 
       if ((index != -1) && m_index[index]->name) {
-         sprintf(tempPref + 17, _T("%s.size"), m_index[index]->name);
+
+		 // Bad conversion
+		 USES_CONVERSION;
+		 char *name = T2A(m_index[index]->name);
+
+         sprintf(tempPref + 17, "%s.size", name);
          theApp.preferences.SetInt(tempPref, rbbi.cx);
 
-         sprintf(tempPref + 17, _T("%s.index"), m_index[index]->name);
+         sprintf(tempPref + 17, "%s.index", name);
          theApp.preferences.SetInt(tempPref, x-iSkipped);
 
-         sprintf(tempPref + 17, _T("%s.visibility"), m_index[index]->name);
+         sprintf(tempPref + 17, "%s.visibility", name);
          theApp.preferences.SetBool(tempPref, m_index[index]->visibility);
 
-         sprintf(tempPref + 17, _T("%s.break"), m_index[index]->name);
+         sprintf(tempPref + 17, "%s.break", name);
          theApp.preferences.SetInt(tempPref, rbbi.fStyle & RBBS_BREAK);
       }
       else iSkipped++;
@@ -206,8 +211,10 @@ void CReBarEx::RestoreBandSizes() {
    for (x=0; x<m_iCount; x++) {
       int barIndex = FindByIndex(x); // index of the bar on the Rebar
 
-      strcpy(tempPref + 17, m_index[x]->name);
-      int offset = strlen(m_index[x]->name) + 17;
+	  // Bad conversion
+      USES_CONVERSION;
+      strcpy(tempPref + 17, T2A(m_index[x]->name));
+      int offset = _tcslen(m_index[x]->name) + 17;
 
       strcpy(tempPref + offset, ".index");
       
@@ -233,8 +240,10 @@ void CReBarEx::RestoreBandSizes() {
 
       rbbi.fMask = 0;
 
-      strcpy(tempPref + 17, m_index[x]->name);
-      int offset = strlen(m_index[x]->name) + 17;
+	  // Bad conversion
+      USES_CONVERSION;
+      strcpy(tempPref + 17, T2A(m_index[x]->name));
+      int offset = _tcslen(m_index[x]->name) + 17;
 
       strcpy(tempPref + offset, ".break");
       barbreak = theApp.preferences.GetInt(tempPref, 1);
