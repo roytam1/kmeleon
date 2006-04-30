@@ -21,4 +21,5 @@
 #define IDC_AUTOFULLSCREEN              1002
 #define ID_OK                           1003
 #define ID_CANCEL                       1004
+#define IDC_HIDETASKBAR                 1005
 #define IDD_PREFS                101
