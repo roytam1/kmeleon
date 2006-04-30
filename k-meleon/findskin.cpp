@@ -67,7 +67,6 @@ void FindSkinFile( TCHAR *szSkinFile, TCHAR *filename )
    HANDLE hFile;
    
    TCHAR szTmpSkinDir[MAX_PATH];
-   TCHAR szTmpSkinName[MAX_PATH];
    TCHAR szTmpSkinFile[MAX_PATH] = _T("");
 
    if (!szSkinFile || !filename || !*filename)
@@ -103,5 +102,4 @@ void FindSkinFile( TCHAR *szSkinFile, TCHAR *filename )
       _tcscpy(szSkinFile, filename);
    else
       _tcscat(szSkinFile, filename);
-}
 }
