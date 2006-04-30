@@ -120,17 +120,21 @@ BOOL CPermissionsDlg::OnInitDialog()
 	FillList();
 
 	CString headstr;
-	if (strcmp(m_type, "cookie") == 0)
+	CString title;
+	if (strcmp(m_type, "cookie") == 0) {
+		title.LoadString(IDS_PERMISSION_COOKIE_TITLE);
 		headstr.LoadString(IDS_PERMISSION_COOKIE);
-	else if (strcmp(m_type, "image") == 0)
+	} else if (strcmp(m_type, "image") == 0) {
+		title.LoadString(IDS_PERMISSION_IMAGE_TITLE);
 		headstr.LoadString(IDS_PERMISSION_IMAGE);
-	else if (strcmp(m_type, "popup") == 0)
-	{
+	} else if (strcmp(m_type, "popup") == 0) {
+		title.LoadString(IDS_PERMISSION_POPUP_TITLE);
 		headstr.LoadString(IDS_PERMISSION_POPUP);
 		CWnd* b = GetDlgItem(IDC_BLOCK);
 		if (b) b->ShowWindow(SW_HIDE);
 	}
 
+	SetWindowText(title);
 	SetDlgItemText(IDC_HEAD, headstr);
 	
 	return TRUE;  // return TRUE unless you set the focus to a control
