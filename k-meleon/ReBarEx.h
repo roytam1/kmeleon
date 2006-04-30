@@ -24,7 +24,7 @@ class CReBarEx : public CReBar {
 public:
    CReBarEx();
    ~CReBarEx();
-   void RegisterBand(HWND hWnd, char *name, int visibleOnMenu);
+   void RegisterBand(HWND hWnd, TCHAR *name, int visibleOnMenu);
    void DrawToolBarMenu();
    void ToggleVisibility(int index);
    void SaveBandSizes();
@@ -37,7 +37,7 @@ public:
 public:
    HMENU m_menu;
 
-   int FindByName(char *name);
+   int FindByName(TCHAR *name);
    void ShowBand(int index, BOOL visibility);
    int count() { return m_iCount; }
    void lineup();
@@ -49,7 +49,7 @@ private:
 
    struct tbBand {
       UINT uID;
-      char *name;
+      TCHAR *name;
       HWND hWnd;
       BOOL visibility;
       BOOL visibleOnMenu;
