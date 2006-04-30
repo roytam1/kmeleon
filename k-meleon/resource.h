@@ -397,6 +397,10 @@
 #define IDS_ONLINE                      61287
 #define IDS_OFFLINE                     61288
 #define IDS_HIGHLIGHTING                61289
+#define IDS_PERMISSION_COOKIE_TITLE     61290
+#define IDS_PERMISSION_IMAGE_TITLE      61291
+#define IDS_PERMISSION_POPUP_TITLE      61292
+#define IDS_LANG_VERSION                62000
 #define IDD_CONFIRM_COOKIE              2100
 #define IDC_CHECK_REMEMBER              2101
 #define IDOKSESSION                     2104

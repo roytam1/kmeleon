@@ -1686,7 +1686,16 @@ BEGIN
     IDS_ONLINE              "Online"
     IDS_OFFLINE             "Offline"
     IDS_HIGHLIGHTING        "Highlighting... Please Wait..."
+    IDS_PERMISSION_COOKIE_TITLE "Cookies Permissions"
+    IDS_PERMISSION_IMAGE_TITLE "Images Permissions"
+    IDS_PERMISSION_POPUP_TITLE "Popups Permissions"
 END
+
+STRINGTABLE 
+BEGIN
+    IDS_LANG_VERSION        "1.0.0.0"
+END
+
 #endif    // Anglais (États-Unis) resources
 /////////////////////////////////////////////////////////////////////////////
 
