@@ -359,6 +359,7 @@ BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
          SendDlgItemMessage(hWnd, IDC_HIDEREBAR, BM_SETCHECK, bHideReBar, 0);
          SendDlgItemMessage(hWnd, IDC_HIDESTATUSBAR, BM_SETCHECK, bHideStatusBar, 0);
          SendDlgItemMessage(hWnd, IDC_AUTOFULLSCREEN, BM_SETCHECK, bAutoFullscreen, 0);
+		 SendDlgItemMessage(hWnd, IDC_HIDETASKBAR, BM_SETCHECK, bHideTaskbar, 0);
          break;
       case WM_COMMAND:
 			switch(HIWORD(wParam)) {
@@ -368,9 +369,11 @@ BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
                      bHideReBar = SendDlgItemMessage(hWnd, IDC_HIDEREBAR, BM_GETCHECK, 0, 0);
                      bHideStatusBar = SendDlgItemMessage(hWnd, IDC_HIDESTATUSBAR, BM_GETCHECK, 0, 0);
                      bAutoFullscreen = SendDlgItemMessage(hWnd, IDC_AUTOFULLSCREEN, BM_GETCHECK, 0, 0);
+					 bHideTaskbar = SendDlgItemMessage(hWnd, IDC_HIDETASKBAR, BM_GETCHECK, 0, 0);
                      kPlugin.kFuncs->SetPreference(PREF_BOOL, "kmeleon.plugins.fullscreen.hide_rebar", &bHideReBar, false);
                      kPlugin.kFuncs->SetPreference(PREF_BOOL, "kmeleon.plugins.fullscreen.hide_statusbar", &bHideStatusBar, false);
                      kPlugin.kFuncs->SetPreference(PREF_BOOL, "kmeleon.plugins.fullscreen.auto", &bAutoFullscreen, false);
+					 kPlugin.kFuncs->SetPreference(PREF_BOOL, "kmeleon.plugins.fullscreen.auto", &bHideTaskbar, false);
                   case IDCANCEL:
                      SendMessage(hWnd, WM_CLOSE, 0, 0);
                }
