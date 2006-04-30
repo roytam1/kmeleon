@@ -22,24 +22,46 @@
  */
 
 // stdafx.h : include file for standard system include files,
-//  or project specific include files that are used frequently, but
-//      are changed infrequently
-//
+// or project specific include files that are used frequently, but
+// are changed infrequently
 
-#ifndef _STDAFX_H
-#define _STDAFX_H
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
 
+//unicows.lib  xpcom.lib xpcomglue_s.lib nspr4.lib embed_base_s.lib plc4.lib plds4.lib kernel32.lib user32.lib gdi32.lib wsock32.lib advapi32.lib comdlg32.lib shell32.lib version.lib winspool.lib oleacc.lib oledlg.lib uafxcwd.lib msimg32.lib shlwapi.lib comctl32.lib atl.lib ..\pngdib-3.0.1\lib\pngdib_u_s.lib "..\lpng128\projects\visualc71\lib\libpng_u.lib" "..\lpng128\projects\visualc71\lib\zlib\zlib_u.lib"
+
+#ifndef VC_EXTRALEAN
 #define VC_EXTRALEAN		// Exclude rarely-used stuff from Windows headers
+#endif
 
 #ifndef NEW_H
 #define NEW_H <new>
 #endif
 
-#include "mozilla-config.h"
+#ifndef WINVER				// Autorise l'utilisation des fonctionnalités spécifiques à Windows 95 et Windows NT 4 ou version ultérieure.
+#ifdef _UNICODE
+#define WINVER 0x0500
+#else
+#define WINVER 0x0400		// Attribuez la valeur appropriée à cet élément pour cibler Windows 98 et Windows 2000 ou version ultérieure.
+#endif
+#endif
+#define _WIN32_WINNT 0x0400
+
+#ifdef XPCOM_GLUE
+	#pragma comment(lib, "xpcomglue.lib")
+#else
+#ifdef _BUILD_STATIC_BIN
+	// Lot of shit to put here.
+#else
+	#pragma comment(lib, "xpcomglue_s.lib")
+	#pragma comment(lib, "xpcom.lib")
+#endif
+#endif
+#pragma comment(lib, "nspr4.lib")
+#pragma comment(lib, "embed_base_s.lib")
+#define _ATL_CSTRING_EXPLICIT_CONSTRUCTORS	// some CString constructors will be explicit 
+
+// turns off MFC's hiding of some common and often safely ignored warning messages 
+#define _AFX_ALL_WARNINGS
 
 //
 // These headers are very evil, as they will define DEBUG if _DEBUG is
@@ -61,13 +83,7 @@
 #ifndef _AFX_NO_AFXCMN_SUPPORT
 #include <afxcmn.h>			// MFC support for Windows Common Controls
 #endif // _AFX_NO_AFXCMN_SUPPORT
-//#include <afxtempl.h>
-
-//#include <afxole.h>
-
-//{{AFX_INSERT_LOCATION}}
-// Microsoft Visual C++ will insert additional declarations immediately before the previous line.
-//}}AFX_INSERT_LOCATION
+#include <afxtempl.h>
 
 #if defined(THERECANBENODEBUG) && defined(DEBUG)
 #undef DEBUG
@@ -82,12 +98,11 @@
 
 // docshell: 
 #include "nsIDocShell.h"
-#include "nsIDocShellTreeOwner.h"
 #include "nsIWebNavigation.h"
+#include "nsIDocShellTreeOwner.h"
 #include "nsIDocShellTreeItem.h"
 
-// dom: 
-//#include "nsIDOMNamedNodeMap.h"
+// dom:
 #include "nsIDOMNode.h"
 #include "nsIDOMWindow.h"
 #include "nsIDOMWindowCollection.h"
@@ -112,30 +127,28 @@
 // helperAppDlg: 
 #include "nsIHelperAppLauncherDialog.h"
 
-// intl: 
-
 // necko: 
 #include "nsIPrompt.h"
 #include "nsIURI.h"
 
-// nkcache: 
+// nkcache:
 #include "nsICacheService.h"
 
-// pref: 
+// pref:
 #include "nsIPref.h"
 
-// profile: 
+// profile:
 #include "nsIProfile.h"
 #include "nsIProfileChangeStatus.h"
 
-// shistory: 
+// shistory:
 #include "nsISHistory.h"
 #include "nsISHEntry.h"
 
-// string: 
+// string:
 #include "nsEmbedString.h"
 
-// uriloader: 
+// uriloader:
 #include "nsIWebProgress.h"
 #include "nsIWebProgressListener2.h"
 
@@ -151,7 +164,6 @@
 #include "nsIWebBrowserFocus.h"
 #include "nsIEmbeddingSiteWindow2.h"
 #include "nsCWebBrowser.h"
-#include "nsIWebBrowserChromeFocus.h"
 
 // webbrowserpersist: 
 #include "nsIWebBrowserPersist.h"
@@ -159,7 +171,7 @@
 // webshell: 
 #include "nsIClipboardCommands.h"
 
-// widget: 
+// widget:
 #include "nsIBaseWindow.h"
 #include "nsWidgetsCID.h"
 #include "nsIFilePicker.h"
@@ -172,7 +184,7 @@
 #include "nsIInterfaceRequestor.h"
 #include "nsIServiceManager.h"
 #include "nsError.h"
-//#include "imgIContainer.h"
+#include "imgIContainer.h"
 #include "nsAppDirectoryServiceDefs.h"
 #include "nsIObserver.h"
 #include "nsIObserverService.h"
@@ -183,6 +195,7 @@
 #include "nsIInterfaceRequestorUtils.h"
 
 #include "nsIPrintSettings.h"
+
 // nspr: 
 
 // Not Found in ../mozilla/mozilla/dist/include: 
@@ -202,5 +215,3 @@
 // In the case, the mozilla profile DLL is not needed.
 
 #define USE_PROFILES 1
-
-#endif //_STDAFX_H
