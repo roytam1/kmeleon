@@ -723,29 +723,9 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
 
 void CMfcEmbedApp::OnNewBrowser()
 {
-
-   TCHAR *sURI = NULL;
-   if (preferences.iNewWindowOpenAs == PREF_NEW_WINDOW_CURRENT) {
-      // check that the current window has a URI loaded
-      int len = m_pMostRecentBrowserFrame->m_wndBrowserView.GetCurrentURI(NULL);
-      if (len > 0) {
-         sURI = new TCHAR[len+1];
-         m_pMostRecentBrowserFrame->m_wndBrowserView.GetCurrentURI(sURI);
-         // save the frame that called us, in case it calls again
-         // before the newly created frame has had time to load the URI
-         m_pOpenNewBrowserFrame = m_pMostRecentBrowserFrame;
-      }
-      else if (m_pOpenNewBrowserFrame) {
-         len = m_pOpenNewBrowserFrame->m_wndBrowserView.GetCurrentURI(NULL);
-         if (len > 0) {
-            sURI = new TCHAR[len+1];
-            m_pOpenNewBrowserFrame->m_wndBrowserView.GetCurrentURI(sURI);
-         }
-      }
-   }
+   m_pOpenNewBrowserFrame = m_pMostRecentBrowserFrame;
    
    CBrowserFrame *pBrowserFrame = CreateNewBrowserFrame();
-   
    if(pBrowserFrame) {
 
       //Load the new window start page into the browser view
@@ -753,11 +733,8 @@ void CMfcEmbedApp::OnNewBrowser()
       // pBrowserFrame->m_wndUrlBar.MaintainFocus();
       switch (preferences.iNewWindowOpenAs) {
       case PREF_NEW_WINDOW_CURRENT:
-         if (sURI) {
-            m_pOpenNewBrowserFrame->m_wndBrowserView.CloneSHistory(pBrowserFrame->m_wndBrowserView);
-			//pBrowserFrame->m_wndBrowserView.OpenURL(sURI);
-            delete sURI;
-         }
+	     if (m_pOpenNewBrowserFrame)
+			m_pOpenNewBrowserFrame->m_wndBrowserView.CloneSHistory(pBrowserFrame->m_wndBrowserView);
          break;
       case PREF_NEW_WINDOW_HOME:
          pBrowserFrame->m_wndBrowserView.LoadHomePage();
@@ -769,7 +746,7 @@ void CMfcEmbedApp::OnNewBrowser()
          if (preferences.newWindowURL.IsEmpty())
             pBrowserFrame->m_wndBrowserView.OpenURL("about:blank");
          else
-            pBrowserFrame->m_wndBrowserView.OpenURL(preferences.newWindowURL);
+			pBrowserFrame->m_wndBrowserView.OpenURL(preferences.newWindowURL);
          break;
       }
    }

@@ -636,15 +636,10 @@ BOOL CUrlBarEdit::PreTranslateMessage(MSG* pMsg)
 		else if (pMsg->wParam == VK_ESCAPE)
 		{
 			StopACSession();
-			TCHAR* oldUrl;
-			int len = ((CBrowserFrame*)GetParentFrame())->m_wndBrowserView.GetCurrentURI(NULL);
-			oldUrl = new TCHAR[len+1];
+			CString oldUrl;
 			((CBrowserFrame*)GetParentFrame())->m_wndBrowserView.GetCurrentURI(oldUrl);
-			if (oldUrl) {
-				SetWindowText(oldUrl);
-				SetSel(0,-1,FALSE);
-				free(oldUrl);
-			}
+			SetWindowText(oldUrl);
+			SetSel(0,-1,FALSE);
 			return TRUE;
 		}
 	}

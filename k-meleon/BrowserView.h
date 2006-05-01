@@ -161,7 +161,7 @@ public:
     TCHAR * GetTempFile();
     void DeleteTempFiles();
 
-    int GetCurrentURI(char *sURI);
+    BOOL GetCurrentURI(CString& uri);
 
     inline void ClearFindDialog() { m_pFindDlg = NULL; }
 
