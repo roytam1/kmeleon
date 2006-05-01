@@ -150,25 +150,25 @@ void _NavigateTo(const char *url, int windowState, HWND mainWnd)
 
 kmeleonDocInfo * GetDocInfo(HWND mainWnd)
 {
-   CBrowserFrame *frame = (CBrowserFrame *)CWnd::FromHandle(mainWnd);
+   CBrowserFrame *frame;
+   if (mainWnd)
+	   frame = (CBrowserFrame *)CWnd::FromHandle(mainWnd);
+   else
+	   frame = theApp.m_pMostRecentBrowserFrame;
 
    if (!frame) {
       return NULL;
    }
 
-   char *url;
-   int len = frame->m_wndBrowserView.GetCurrentURI(NULL);
-   if (len) {
-      url = new char[len+1];
-      frame->m_wndBrowserView.GetCurrentURI(url);
-   }
-   else
-      url = NULL;
+   CString url;
+   frame->m_wndBrowserView.GetCurrentURI(url);
+   TCHAR* docurl = new TCHAR[url.GetLength()+1];
+   _tcscpy(docurl, url);
 
    CString title;
    frame->m_wndBrowserView.GetPageTitle(title);
-   char *doctitle = new char[title.GetLength()+1];
-   strcpy(doctitle, title);
+   TCHAR* doctitle = new TCHAR[title.GetLength()+1];
+   _tcscpy(doctitle, title);
 
    if (kDocInfo.url)
       delete kDocInfo.url;
@@ -177,7 +177,7 @@ kmeleonDocInfo * GetDocInfo(HWND mainWnd)
       delete kDocInfo.title;
 
    kDocInfo.title = doctitle;
-   kDocInfo.url = url;
+   kDocInfo.url = docurl;
 
    return &kDocInfo;
 }
@@ -398,14 +398,11 @@ kmeleonPointInfo *GetInfoAtNode(nsIDOMNode* aNode)
    if (!pBrowserView)
       return &gPointInfo;
 
-
    // get the page url
-   int len = pBrowserView->GetCurrentURI(NULL);
-   if (len) {
-      gPointInfo.page = new char[len+1];
-      pBrowserView->GetCurrentURI(gPointInfo.page);
-   }
-
+   USES_CONVERSION;
+   CString url;
+   pBrowserView->GetCurrentURI(url);
+   gPointInfo.page = strdup(T2CA(url));
 
    nsEmbedString strBuf;
    nsresult rv = NS_OK;
@@ -597,19 +594,16 @@ int GetGlobalVar(enum PREFTYPE type, char *preference, void *ret) {
    CBrowserView *pBrowserView;  
    pBrowserView = &theApp.m_pMostRecentBrowserFrame->m_wndBrowserView;
 
-
-   if (!pBrowserView)
-      return retLen;
-
-
-
-   
    switch (type) {
    case PREF_STRING:
-      if (!stricmp(preference, "URL")) {
-         retLen = pBrowserView->GetCurrentURI(NULL);
-         if (ret)
-            pBrowserView->GetCurrentURI((char *)ret);
+	  if (!stricmp(preference, "URL")) {
+	     CString url;
+		 theApp.m_pMostRecentBrowserFrame->m_wndBrowserView.GetCurrentURI(url);
+		 retLen = url.GetLength();
+		 if (ret) {
+			 USES_CONVERSION;
+			 strcpy((char*)ret, T2CA(url));
+		 }
       }
 	  else if (!stricmp(preference, "URLBAR")) {
 		 CString url;
@@ -638,8 +632,9 @@ int GetGlobalVar(enum PREFTYPE type, char *preference, void *ret) {
       else if (!stricmp(preference, "TITLE")) {
          CString title;
          pBrowserView->GetPageTitle(title);
+		 USES_CONVERSION;
          retLen = title.GetLength();
-         if (ret) strcpy((char *)ret, title);
+         if (ret) strcpy((char *)ret, T2CA(title));
       }
 	  else if (!stricmp(preference, "SelectedText")) {
 		CString sel;  
@@ -656,7 +651,7 @@ int GetGlobalVar(enum PREFTYPE type, char *preference, void *ret) {
 		 USES_CONVERSION;
          retLen = strlen(charset);
 		 if (ret) {
-			 strcpy((char *)ret, T2CA(charset));
+			 strcpy((char *)ret, charset);
 			 for(unsigned int i=0;i<retLen;i++)
 				((char*)ret)[i] = tolower(((char*)ret)[i]);
 		 }

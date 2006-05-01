@@ -708,28 +708,30 @@ void CBrowserView::DeleteTempFiles()
    if (m_tempFileCount > 0) delete m_tempFileList;
 }
 
-int CBrowserView::GetCurrentURI(char *sURI)
+BOOL CBrowserView::GetCurrentURI(CString& uri)
 {
-   if(! mWebNav)
-		return 0;
-
+   NS_ENSURE_TRUE(mWebNav, FALSE);
+   
 	nsresult rv = NS_OK;
    
    nsCOMPtr<nsIURI> currentURI;
 	rv = mWebNav->GetCurrentURI(getter_AddRefs(currentURI));
 	if(NS_FAILED(rv) || !currentURI)
-      return 0;
+      return FALSE;
 
    // Get the uri string associated with the nsIURI object
 	nsEmbedCString uriString;
 	rv = currentURI->GetSpec(uriString);
-	if(NS_FAILED(rv))
-		return 0;
+	NS_ENSURE_SUCCESS(rv, FALSE);
 
-   int len = strlen(uriString.get());
-   if (sURI)
-      strcpy(sURI, uriString.get());
-   return len;
+#ifdef _UNICODE
+	nsEmbedString str;
+    NS_CStringToUTF16(uriString, NS_CSTRING_ENCODING_UTF8, str);
+	uri = str.get();
+#else
+   uri = uriString.get();
+#endif
+   return TRUE;
 }
 
 BOOL GetSelectionInsideForm(nsIDOMElement *element, nsEmbedString &aSelText)
