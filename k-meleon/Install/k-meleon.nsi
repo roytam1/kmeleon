@@ -1,9 +1,9 @@
 !packhdr	tmp.dat "C:\Progra~1\Upx\bin\upx.exe -9 --best --strip-relocs=1 tmp.dat"
 
 !define		NAME "K-MeleonSM"
-!define		VERSION "1.0b7"
+!define		VERSION "1.0"
 !define		ADDRESS "http://kmeleon.sourceforge.net/"  
-!define		GECKO_VERSION "1.8.0.1"
+!define		GECKO_VERSION "1.8.0.2"
 
 !define		PRODUCT_KEY "Software\${NAME}"
 !define		PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${NAME}"
