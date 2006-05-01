@@ -123,8 +123,16 @@ void CBrowserFrame::BrowserFrameGlueObj::UpdateCurrentURI(nsIURI *aLocation)
         USES_CONVERSION;
         nsEmbedCString uriString;
         aLocation->GetSpec(uriString);
+
         nsEmbedString uriString2;
         NS_CStringToUTF16(uriString, NS_CSTRING_ENCODING_UTF8, uriString2);
+
+		// Prevent to move the caret in the urlbar
+		CString currentURL;
+		pThis->m_wndUrlBar.GetEnteredURL(currentURL);
+		if (currentURL.Compare(W2CT(uriString2.get())) == 0)
+			return;
+
         pThis->m_wndUrlBar.SetCurrentURL(W2CT(uriString2.get()));
 
 		// Add a MRU entry. Note that I'm only only allowing
@@ -136,7 +144,7 @@ void CBrowserFrame::BrowserFrameGlueObj::UpdateCurrentURI(nsIURI *aLocation)
 		aLocation->SchemeIs("https", &b);
 		allowMRU |= b;
 
-		if ( allowMRU ){
+		if ( allowMRU ) {
 			if (theApp.preferences.MRUbehavior == 0){
 				nsEmbedCString password;
 				aLocation->GetUsername(password);
@@ -163,21 +171,19 @@ void CBrowserFrame::BrowserFrameGlueObj::GetBrowserFrameTitle(PRUnichar **aTitle
     CString title;
     pThis->GetWindowText(title);
 
-    CString appTitle;
+/*    TCHAR psz[256];
+	CString appTitle;
     appTitle.LoadString(AFX_IDS_APP_TITLE);
-	int len = theApp.preferences.GetString("kmeleon.display.title", NULL, appTitle.GetBuffer(0));
-	TCHAR* psz = new TCHAR[len+1];
 	theApp.preferences.GetString("kmeleon.display.title", psz, appTitle.GetBuffer(0));
 	appTitle = psz;
-	free(psz);
 
     title.Replace(_T(" (") + appTitle + _T(')'), _T(""));
-
+*/
     if(!title.IsEmpty())
     {
         USES_CONVERSION;
         nsEmbedString nsTitle;
-        nsTitle.Assign(T2CW(title.GetBuffer(0)));
+        nsTitle.Assign(T2CW(title));
         *aTitle = NS_StringCloneData(nsTitle);
     }
 }
@@ -187,16 +193,15 @@ void CBrowserFrame::BrowserFrameGlueObj::SetBrowserFrameTitle(const PRUnichar *a
 #ifndef _UNICODE
     if (wcslen(aTitle) > 1024) return;
 #endif
+	
     METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
 
-    CString appTitle;
+    TCHAR psz[256];
+	CString appTitle;
     appTitle.LoadString(AFX_IDS_APP_TITLE);
-	int len = theApp.preferences.GetString("kmeleon.display.title", NULL, appTitle.GetBuffer(0));
-	TCHAR* psz = new TCHAR[len+1];
 	theApp.preferences.GetString("kmeleon.display.title", psz, appTitle.GetBuffer(0));
 	appTitle = psz;
-	free(psz);
-
+	
     CString title;
     USES_CONVERSION;
     title = W2CT(aTitle);
@@ -722,7 +727,6 @@ BUILD_CTX_MENU:
    CMenu *ctxMenu = theApp.menus.GetMenu(menuType);
    if(ctxMenu)
    {
-
       POINT cursorPos;
       GetCursorPos(&cursorPos);
       
