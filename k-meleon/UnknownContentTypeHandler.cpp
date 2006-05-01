@@ -431,13 +431,6 @@ CProgressDialog::CProgressDialog(BOOL bAuto) {
    //mObserver = NULL;
    mCancelable = nsnull;
    m_HelperAppLauncher = nsnull;
-   mFileName = NULL;
-   mFilePath = NULL;
-   mViewer = NULL;
-   mTempFile = NULL;
-
-   m_bViewer = FALSE;
-
    mStartTime = 0;
 
    m_HandleContentOp = 0;
@@ -469,14 +462,6 @@ CProgressDialog::CProgressDialog(BOOL bAuto) {
 }
 
 CProgressDialog::~CProgressDialog(){
-   if (mFileName)
-      delete mFileName;
-   if (mFilePath)
-      delete mFilePath;
-   if (mViewer)
-      delete mViewer;
-   if (mTempFile)
-	  delete mTempFile;
    if (mUri)
 	  delete mUri;
 }
@@ -616,26 +601,8 @@ NS_IMETHODIMP CProgressDialog::OnStateChange(nsIWebProgress *aWebProgress,
    if ( (aStateFlags & nsIWebProgressListener::STATE_STOP))
    {
  		if (mCallback)
-			mCallback(mUri, mFilePath, aStatus, mParam);
+			mCallback(mUri, (LPTSTR)(LPCTSTR)mFilePath, aStatus, mParam);
 
-		if (m_bViewer) {
-			TCHAR *command = new TCHAR[_tcsclen(mViewer) + _tcsclen(mFilePath) +4];
-      
-			_tcscpy(command, mViewer);
-			_tcscat(command, _T(" \""));                              //append " filename" to the viewer command
-			_tcscat(command, mFilePath);
-			_tcscat(command, _T("\""));
-      
-			STARTUPINFO si = { 0 };
-			PROCESS_INFORMATION pi;
-			si.cb = sizeof STARTUPINFO;
-			si.dwFlags = STARTF_USESHOWWINDOW;
-			si.wShowWindow = SW_SHOW;
-      
-		    CreateProcess(0,command,0,0,0,0,0,0,&si,&pi);      // launch external viewer
-			
-		    delete command;
-		}
 		//nsCOMPtr<nsITransfer> kungFuDeathGrip(this);
 		mCancelable = nsnull;
    
@@ -763,7 +730,7 @@ NS_IMETHODIMP CProgressDialog::OnLocationChange(nsIWebProgress *aWebProgress, ns
 /* void onStatusChange (in nsIWebProgress aWebProgress, in nsIRequest aRequest, in nsresult aStatus, in wstring aMessage); */
 NS_IMETHODIMP CProgressDialog::OnStatusChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest, nsresult aStatus, const PRUnichar *aMessage){
 	USES_CONVERSION;
-	::AfxMessageBox(W2CA(aMessage),MB_OK|MB_ICONEXCLAMATION);
+	::AfxMessageBox(W2CT(aMessage),MB_OK|MB_ICONEXCLAMATION);
 	Cancel();
 	if (m_bWindow) 
 		Close();
@@ -801,13 +768,13 @@ void CProgressDialog::Cancel() {
    if (mCancelable)
    {
 		mCancelable->Cancel(NS_BINDING_ABORTED);
-		if (mTempFile) 
+		if (mTempFile.GetLength()) 
 			DeleteFile(mTempFile);
-		else if (mFileName) 
+		else if (mFileName.GetLength()) 
 			DeleteFile(mFileName);
    }
    else
-	   if (mFileName) DeleteFile(mFileName);
+	   if (mFileName.GetLength()) DeleteFile(mFileName);
 
 	
    //Close();
@@ -863,13 +830,11 @@ void CProgressDialog::OnClose() {
 }
 
 void CProgressDialog::OnOpen() {
-   TCHAR *directory = _tcsdup(mFilePath);
-   TCHAR *last_slash = _tcsrchr(directory, '\\');
-   *last_slash = 0;
-
+   CString directory = mFilePath;
+   int last_slash = directory.ReverseFind(_T('\\'));
+   directory.Truncate(last_slash);
    ShellExecute(NULL, _T("open"), mFilePath, _T(""), directory, SW_SHOW);
    Close();
-   delete directory;
 }
 
 void CProgressDialog::OnBnClickedCloseWhenDone()
@@ -880,23 +845,12 @@ void CProgressDialog::OnBnClickedCloseWhenDone()
 		theApp.preferences.bCloseDownloadDialog = false;
 }
 
-void CProgressDialog::InitViewer(nsIWebBrowserPersist *aPersist, TCHAR *pExternalViewer, TCHAR *pLocalFile) {
-
-   mCancelable = aPersist;
-   aPersist->SetProgressListener(this);
-
-   mFilePath = _tcsdup(pLocalFile);   
-   mViewer = _tcsdup(pExternalViewer);
-
-   m_bViewer = TRUE;
-}
-
 void CProgressDialog::InitControl(const char *uri, const TCHAR *filepath)
 { 
   
    TCHAR *file = _tcsrchr(filepath, '\\')+1;
-   mFileName = _tcsdup(file);
-   mFilePath = _tcsdup(filepath);
+   mFileName = file;
+   mFilePath = filepath;
    mUri = strdup(uri);
    
    mLastUpdateTime = 0;
@@ -929,7 +883,7 @@ void CProgressDialog::SetCallBack(ProgressDialogCallback aCallback, void* aParam
 void CProgressDialog::InitPersist(nsIURI *aSource, nsILocalFile *aTarget, nsIWebBrowserPersist *aPersist, BOOL bShowDialog)
 {
    mCancelable = aPersist;
-   //aPersist->SetProgressListener(this);
+   aPersist->SetProgressListener(this);
    m_bWindow = bShowDialog;
 
    nsEmbedCString uri;
@@ -990,7 +944,7 @@ NS_IMETHODIMP CProgressDialog::Init(nsIURI *aSource, nsIURI *aTarget, const nsAS
    mStartTime = startTime;
    mCancelable = aCancelable;
    m_bWindow = TRUE;
-   mTempFile = _tcsdup(tempfile.get());
+   mTempFile = tempfile.get();
 
    InitControl(uri.get(), filepath.get());
 /*
