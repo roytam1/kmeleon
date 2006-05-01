@@ -205,7 +205,7 @@ bool CMfcEmbedApp::FindSkinFile( CString& szSkinFile, TCHAR *filename )
     CString tmp = theApp.preferences.skinsCurrent;
 	while (tmp.GetLength()>0) {
 		if (tmp.GetAt( tmp.GetLength()-1 ) != '\\')
-			tmp = tmp + "\\";
+			tmp = tmp + _T("\\");
 		file = theApp.preferences.settingsDir + _T("Skins\\") + tmp + filename;
 		hFile = FindFirstFile(file, &FindData);
 		if(hFile != INVALID_HANDLE_VALUE) {   
@@ -219,7 +219,7 @@ bool CMfcEmbedApp::FindSkinFile( CString& szSkinFile, TCHAR *filename )
     tmp = theApp.preferences.skinsCurrent;
 	while (tmp.GetLength()>0) {
 		if (tmp.GetAt( tmp.GetLength()-1 ) != '\\')
-			tmp = tmp + "\\";
+			tmp = tmp + _T("\\");
 		file = theApp.preferences.skinsDir + tmp + filename;
 		hFile = FindFirstFile(file, &FindData);
 		if(hFile != INVALID_HANDLE_VALUE) {   
@@ -336,7 +336,7 @@ BOOL CMfcEmbedApp::InitInstance()
 #ifdef _BUILD_STATIC_BIN
 	rv = NS_InitEmbedding(mreAppDir, provider, kPStaticModules, kStaticModuleCount);
 #else
-   rv = NS_InitEmbedding(mreAppDir, provider);
+	rv = NS_InitEmbedding(mreAppDir, provider);
 #endif
    
    if(NS_FAILED(rv))
@@ -365,7 +365,7 @@ BOOL CMfcEmbedApp::InitInstance()
       NS_TermEmbedding();
       return FALSE;
    }
-   
+
    // These have to be done in this order!
    InitializeDefineMap();
 
@@ -386,6 +386,14 @@ BOOL CMfcEmbedApp::InitInstance()
 	   m_hMainIcon = LoadIcon( IDR_MAINFRAME );
 	   m_hSmallIcon = LoadIcon( IDR_MAINFRAME );
    }
+
+   // Minimal unicode support
+   #ifndef _UNICODE
+   OSVERSIONINFO osinfo;
+   osinfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+   GetVersionEx(&osinfo);
+   m_bUnicode = (osinfo.dwPlatformId == VER_PLATFORM_WIN32_NT);
+   #endif
 
    // Look for language file
    if (!lang.Load(preferences.settingsDir + LANG_CONFIG_FILE)) {

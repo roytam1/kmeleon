@@ -57,8 +57,8 @@
 #include "resource.h"       // main symbols
 
 
-#define HIDDEN_WINDOW_CLASS  "KMeleon"
-#define BROWSER_WINDOW_CLASS "KMeleon Browser Window"
+#define HIDDEN_WINDOW_CLASS  _T("KMeleon")
+#define BROWSER_WINDOW_CLASS _T("KMeleon Browser Window")
 
 class CBrowserFrame;
 class CProfileMgr;
@@ -92,7 +92,6 @@ public:
 	bool FindSkinFile( CString& szSkinFile, TCHAR *filename );
 
    nsresult SetOffline(BOOL offline);
-
    nsresult OverrideComponents();
 #ifdef _DEBUG
    void ShowDebugConsole();
@@ -114,7 +113,6 @@ public:
    // list of download windows
    CObList m_MiscWndLst;
 
-
    CPlugins      plugins;
    CPreferences  preferences;
    CLangParser   lang;
@@ -132,6 +130,9 @@ public:
 public:
    HANDLE m_hMutex;
    CMostRecentUrls *m_MRUList;
+#ifndef _UNICODE 
+   BOOL m_bUnicode;
+#endif
    //{{AFX_MSG(CMfcEmbedApp)
    afx_msg void OnNewBrowser();
    afx_msg void OnManageProfiles();
@@ -160,7 +161,7 @@ private:
    // used to process the rebar DrawToolbarMenu function, which must only
    // be called once, but must be called after the first window has been created
 
-   CMap<CString, LPCSTR, int, int &> defineMap;
+   CMap<CString, LPCTSTR, int, int &> defineMap;
 
 };
 
