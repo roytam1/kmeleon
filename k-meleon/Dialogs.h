@@ -50,9 +50,15 @@ class CBrowserFrame;
 class CFindRebar: public CReBar
 {
 public:
+#ifndef _UNICODE
+	CFindRebar(WCHAR* szSearch, PRBool bMatchCase,
+				PRBool bMatchWholeWord, PRBool bWrapAround, 
+				PRBool bHighlight, CBrowserFrame* pOwner);
+#else
 	CFindRebar(CString csSearchStr, PRBool bMatchCase,
 		PRBool bMatchWholeWord, PRBool bWrapAround, 
 		PRBool bHighlight, CBrowserFrame* pOwner);
+#endif
 	virtual ~CFindRebar();
 	BOOL Create(CWnd* parent, DWORD dwStyle);
 	void OnNotFound() {
@@ -65,6 +71,7 @@ public:
 	}
 	void OnFound() {m_NotFound=false;m_cEdit.Invalidate();}
 	inline CString GetFindString( ) const {return m_csSearchStr;}
+
 	inline BOOL WrapAround() {return m_cToolbar.GetToolBarCtrl().IsButtonChecked(IDC_WRAP_AROUND);}
 	inline BOOL MatchCase() {return m_cToolbar.GetToolBarCtrl().IsButtonChecked(IDC_MATCH_CASE);}
 	inline BOOL Highlight() {return m_cToolbar.GetToolBarCtrl().IsButtonChecked(IDC_HIGHLIGHT);}
@@ -72,8 +79,18 @@ public:
 
 	CEdit m_cEdit;
 
+#ifndef _UNICODE
+	inline const WCHAR* GetUFindString( ) const { return m_szUStr; }
+#else 
+	inline const WCHAR* GetUFindString( ) const { return m_csSearchStr; }
+#endif
+
+
 private:
 	CString m_csSearchStr;
+#ifndef _UNICODE
+	WCHAR m_szUStr[256];
+#endif
 	PRBool m_bMatchCase;
 	PRBool m_bMatchWholeWord;
 	PRBool m_bWrapAround;
@@ -254,6 +271,9 @@ public:
     DECLARE_MESSAGE_MAP()
 };
 
+// defButton = 0xaabb
+//   aa = cancel button
+//   bb = default button
 class CConfirmCheckDialog : public CDialog
 {
 public:
