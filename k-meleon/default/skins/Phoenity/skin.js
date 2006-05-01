@@ -1,5 +1,3 @@
-#Default Toolbar position for Phoenity
-
 pref("kmeleon.toolband.GO.break", 0);
 pref("kmeleon.toolband.GO.index", 8);
 pref("kmeleon.toolband.GO.size", 59);
