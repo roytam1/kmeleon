@@ -53,7 +53,6 @@ CAccelParser::CAccelParser()
    memset(accelerators, 0, sizeof(ACCEL) * MAX_ACCEL);
    numMKeys = 0;
    memset(mouse, 0, sizeof(ACCEL) * MAX_MOUSE);
-
 }
 
 CAccelParser::CAccelParser(CString &filename)
@@ -120,7 +119,6 @@ int CAccelParser::Parse(char *p)
          }
          else {
             LOG_ERROR_2( "Plugin %s has no accelerator %s", e, parameter);
-			return false;
          }
       }
       
