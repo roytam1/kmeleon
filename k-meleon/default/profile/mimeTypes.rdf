@@ -22,7 +22,7 @@
   <RDF:Description RDF:about="urn:mimetype:externalApplication:video/quicktime"
                    NC:prettyName=""
                    NC:path="" />
-  <RDF:Description RDF:about="urn:mimetype: audio/x-mp3"
+  <RDF:Description RDF:about="urn:mimetype:audio/x-mp3"
                    NC:value=" audio/x-mp3"
                    NC:description=""
                    NC:editable="true">
@@ -74,7 +74,7 @@
   <RDF:Description RDF:about="urn:mimetype:externalApplication: audio/scpls"
                    NC:path=""
                    NC:prettyName="" />
-  <RDF:Description RDF:about="urn:mimetype: audio/m3u"
+  <RDF:Description RDF:about="urn:mimetype:audio/m3u"
                    NC:value=" audio/m3u"
                    NC:description=""
                    NC:editable="true">
@@ -93,7 +93,7 @@
   <RDF:Description RDF:about="urn:mimetype:externalApplication:audio/x-m3u"
                    NC:path=""
                    NC:prettyName="" />
-  <RDF:Description RDF:about="urn:mimetype: audio/x-mpegurl"
+  <RDF:Description RDF:about="urn:mimetype:audio/x-mpegurl"
                    NC:value=" audio/x-mpegurl"
                    NC:description=""
                    NC:editable="true">
@@ -182,7 +182,7 @@
                    NC:editable="true">
     <NC:handlerProp RDF:resource="urn:mimetype:handler:video/quicktime"/>
   </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype: audio/pl"
+  <RDF:Description RDF:about="urn:mimetype:audio/pl"
                    NC:value=" audio/pl"
                    NC:description=""
                    NC:editable="true">
@@ -233,7 +233,7 @@
                    NC:useSystemDefault="true">
     <NC:externalApplication RDF:resource="urn:mimetype:externalApplication: audio/m3u"/>
   </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype: application/vnd.rn-mplayer2"
+  <RDF:Description RDF:about="urn:mimetype:application/vnd.rn-mplayer2"
                    NC:value=" application/vnd.rn-mplayer2"
                    NC:description=""
                    NC:editable="true">
@@ -279,16 +279,16 @@
     <RDF:li RDF:resource="urn:mimetype:audio/mid"/>
     <RDF:li RDF:resource="urn:mimetype:application/x-zip-compressed"/>
     <RDF:li RDF:resource="urn:mimetype:audio/x-m3u"/>
-    <RDF:li RDF:resource="urn:mimetype: audio/x-mp3"/>
-    <RDF:li RDF:resource="urn:mimetype: audio/x-mpegurl"/>
-    <RDF:li RDF:resource="urn:mimetype: audio/x-scpls"/>
-    <RDF:li RDF:resource="urn:mimetype: audio/scpls"/>
-    <RDF:li RDF:resource="urn:mimetype: audio/mp3"/>
-    <RDF:li RDF:resource="urn:mimetype: audio/m3u"/>
-    <RDF:li RDF:resource="urn:mimetype: audio/pl"/>
-    <RDF:li RDF:resource="urn:mimetype: audio/x-pn-windows-pcm"/>
-    <RDF:li RDF:resource="urn:mimetype: video/x-ms-wmv"/>
-    <RDF:li RDF:resource="urn:mimetype: application/vnd.rn-mplayer2"/>
+    <RDF:li RDF:resource="urn:mimetype:audio/x-mp3"/>
+    <RDF:li RDF:resource="urn:mimetype:audio/x-mpegurl"/>
+    <RDF:li RDF:resource="urn:mimetype:audio/x-scpls"/>
+    <RDF:li RDF:resource="urn:mimetype:audio/scpls"/>
+    <RDF:li RDF:resource="urn:mimetype:audio/mp3"/>
+    <RDF:li RDF:resource="urn:mimetype:audio/m3u"/>
+    <RDF:li RDF:resource="urn:mimetype:audio/pl"/>
+    <RDF:li RDF:resource="urn:mimetype:audio/x-pn-windows-pcm"/>
+    <RDF:li RDF:resource="urn:mimetype:video/x-ms-wmv"/>
+    <RDF:li RDF:resource="urn:mimetype:application/vnd.rn-mplayer2"/>
     <RDF:li RDF:resource="urn:mimetype:audio/x-scpls"/>
   </RDF:Seq>
   <RDF:Description RDF:about="urn:mimetype:audio/x-m4a"
@@ -342,7 +342,7 @@
                    NC:editable="true">
     <NC:handlerProp RDF:resource="urn:mimetype:handler:application/msword"/>
   </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype: video/x-ms-wmv"
+  <RDF:Description RDF:about="urn:mimetype:video/x-ms-wmv"
                    NC:value=" video/x-ms-wmv"
                    NC:description=""
                    NC:editable="true">
@@ -380,7 +380,7 @@
                    NC:useSystemDefault="true">
     <NC:externalApplication RDF:resource="urn:mimetype:externalApplication: application/vnd.rn-mplayer2"/>
   </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype: audio/mp3"
+  <RDF:Description RDF:about="urn:mimetype:audio/mp3"
                    NC:value=" audio/mp3"
                    NC:description=""
                    NC:editable="true">
@@ -401,13 +401,13 @@
                    NC:saveToDisk="true">
     <NC:externalApplication RDF:resource="urn:mimetype:externalApplication:application/x-zip-compressed"/>
   </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype: audio/x-scpls"
+  <RDF:Description RDF:about="urn:mimetype:audio/x-scpls"
                    NC:value=" audio/x-scpls"
                    NC:description=""
                    NC:editable="true">
     <NC:handlerProp RDF:resource="urn:mimetype:handler: audio/x-scpls"/>
   </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype: audio/scpls"
+  <RDF:Description RDF:about="urn:mimetype:audio/scpls"
                    NC:value=" audio/scpls"
                    NC:description=""
                    NC:editable="true">
