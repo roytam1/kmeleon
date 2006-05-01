@@ -321,7 +321,6 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
     // create a view to occupy the client area of the frame
     // This will be the view in which the embedded browser will
     // be displayed in
-    //
     if (!m_wndBrowserView.Create(NULL, NULL, AFX_WS_DEFAULT_VIEW,
         CRect(0, 0, 0, 0), this, AFX_IDW_PANE_FIRST, NULL))
     {
@@ -932,7 +931,7 @@ void CBrowserFrame::OnShowFindBar()
 	//finder->GetFindBackwards(&bSearchBackwards);		
     
 	// Create the find bar
-	m_wndFindBar = new CFindRebar(W2CT(stringBuf), bMatchCase, bMatchWholeWord, bWrapAround, theApp.preferences.bFindHighlight, this);
+	m_wndFindBar = new CFindRebar(stringBuf, bMatchCase, bMatchWholeWord, bWrapAround, theApp.preferences.bFindHighlight, this);
 	m_wndFindBar->Create(this, CBRS_BOTTOM);
 
 	if (stringBuf)

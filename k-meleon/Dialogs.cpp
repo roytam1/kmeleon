@@ -49,12 +49,22 @@ extern CMfcEmbedApp theApp;
 //				CFindReBar 
 //--------------------------------------------------------------------------//
 
+#ifndef _UNICODE
+CFindRebar::CFindRebar(WCHAR* szSearch, PRBool bMatchCase,
+				PRBool bMatchWholeWord, PRBool bWrapAround, 
+				PRBool bHighlight, CBrowserFrame* pOwner)
+{
+	memset(m_szUStr, 0, sizeof(m_szUStr)*sizeof(char));
+	if (szSearch)
+		wcsncpy(m_szUStr, szSearch, sizeof(m_szUStr)/sizeof(WCHAR)-1);
+#else
 CFindRebar::CFindRebar(CString csSearchStr, PRBool bMatchCase,
 				PRBool bMatchWholeWord, PRBool bWrapAround, 
 				PRBool bHighlight, CBrowserFrame* pOwner)
 				: CReBar()
 {
     m_csSearchStr = csSearchStr;
+#endif
 	m_bMatchCase = bMatchCase;
 	m_bMatchWholeWord = bMatchWholeWord;
 	m_bWrapAround = bWrapAround;
@@ -97,6 +107,11 @@ void CFindRebar::Close()
 void CFindRebar::PostNcDestroy()
 {
 	m_pOwner->ClearFindBar();
+#ifndef _UNICODE
+	if (theApp.m_bUnicode){
+		::DestroyWindow(m_cEdit.Detach());
+	}
+#endif
 	CReBar::PostNcDestroy();
 }
 
@@ -110,10 +125,21 @@ void CFindRebar::OnEnChangeSearchStr()
 	
 	if (m_csSearchStr.GetLength()==0)
 		disabled = true;
-	
+#ifndef _UNICODE
+	if (theApp.m_bUnicode) {
+		//int len = ::GetWindowTextLengthW(m_hWnd);
+		::GetWindowTextW(m_cEdit.m_hWnd, m_szUStr, sizeof(m_szUStr)/sizeof(WCHAR)-1);
+	}else{
+#endif
 	m_cEdit.GetWindowText(m_csSearchStr);
+#ifndef _UNICODE
+	USES_CONVERSION;
+	wcsncpy(m_szUStr, A2W(m_csSearchStr), sizeof(m_szUStr)/sizeof(WCHAR)-1);
+	}
+#endif
 	if (Highlight())
 		SetTimer(12345, 300, NULL);
+
 	m_bStartsel = true;
 	m_pOwner->SendMessage(WM_COMMAND, ID_EDIT_FINDNEXT, 0);
 	m_bStartsel = false;
@@ -144,9 +170,22 @@ int CFindRebar::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	AddBar(&closeBar, _T(""), NULL, RBBS_NOGRIPPER);
 
 	// Band with the edit control
+#ifndef _UNICODE 
+	if (theApp.m_bUnicode){
+		HWND hWnd = ::CreateWindowExW(WS_EX_CLIENTEDGE, L"EDIT",
+			NULL, WS_CHILD|ES_AUTOHSCROLL, 0, 0, 150, 18,
+			this->m_hWnd, (HMENU)(UINT_PTR)IDC_FIND_EDIT, AfxGetInstanceHandle(), NULL);
+
+		m_cEdit.Attach(hWnd);
+		::SetWindowTextW(hWnd, m_szUStr);
+	}else{
+#endif
 	m_cEdit.Create(WS_CHILD|ES_AUTOHSCROLL, CRect(0,0,150,18), this, IDC_FIND_EDIT);
 	m_cEdit.ModifyStyleEx(0, WS_EX_CLIENTEDGE);
 	m_cEdit.SetWindowText(m_csSearchStr);
+#ifndef _UNICODE 
+	}
+#endif
 	
 	str.LoadString(IDS_FIND);
 	AddBar(&m_cEdit, str, NULL, RBBS_NOGRIPPER);
