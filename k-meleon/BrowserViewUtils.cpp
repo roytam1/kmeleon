@@ -72,6 +72,32 @@ BOOL CBrowserView::OpenViewSourceWindow(const PRUnichar* pUrl)
     return OpenViewSourceWindow(cUrl.get());
 }
 
+void OpenFileExternal(char* uri, TCHAR* file, nsresult status, void* param)
+{
+	LPTSTR viewer = (TCHAR*)param;
+	if (NS_SUCCEEDED(status))
+	{
+		TCHAR *command = new TCHAR[_tcsclen(viewer) + _tcsclen(file) +4];
+      
+		_tcscpy(command, viewer);
+		_tcscat(command, _T(" \""));                              //append " filename" to the viewer command
+		_tcscat(command, file);
+		_tcscat(command, _T("\""));
+      
+		STARTUPINFO si = { 0 };
+		PROCESS_INFORMATION pi;
+		si.cb = sizeof STARTUPINFO;
+		si.dwFlags = STARTF_USESHOWWINDOW;
+		si.wShowWindow = SW_SHOW;
+      
+		CreateProcess(0,command,0,0,0,0,0,0,&si,&pi);      // launch external viewer
+			
+		delete command;
+	}
+	free(viewer);
+	// Have to show an error message
+}
+
 BOOL CBrowserView::OpenViewSourceWindow(const char* pUrl)
 {
     // Use external viewer
@@ -121,7 +147,10 @@ BOOL CBrowserView::OpenViewSourceWindow(const char* pUrl)
 			}
 
 			CProgressDialog *progress = new CProgressDialog(FALSE);      
-			progress->InitViewer(persist, theApp.preferences.sourceCommand.GetBuffer(0), tempfile.GetBuffer(0));
+			progress->SetCallBack(OpenFileExternal, 
+				 _tcsdup(theApp.preferences.sourceCommand.GetBuffer(0)));
+			progress->InitPersist(srcURI, file, persist, FALSE);
+//			progress->InitViewer(persist, theApp.preferences.sourceCommand.GetBuffer(0), tempfile.GetBuffer(0));
 			persist->SetPersistFlags(
 				nsIWebBrowserPersist::PERSIST_FLAGS_AUTODETECT_APPLY_CONVERSION|
 				nsIWebBrowserPersist::PERSIST_FLAGS_REPLACE_EXISTING_FILES);
