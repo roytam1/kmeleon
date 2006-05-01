@@ -93,7 +93,7 @@ public:
       if (uMsg == WM_INITDIALOG) {
          CString *log = &((CLog *)lParam)->log;
          SetDlgItemText(hwndDlg, IDC_ERRORS, *log);
-         SetWindowText(hwndDlg, ((CLog *)lParam)->title + " Log");
+         SetWindowText(hwndDlg, ((CLog *)lParam)->title + _T(" Log"));
          return true;
       }
       else if (uMsg == WM_COMMAND) {

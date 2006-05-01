@@ -25,7 +25,7 @@
 
 class CMenuParser : public CParser{
 protected:
-  CMap<CString, LPCSTR, CMenu *, CMenu *&> menus;
+  CMap<CString, LPCTSTR, CMenu *, CMenu *&> menus;
   CMap<CMenu *, CMenu *&, int, int&> menuOffsets;
 
   int Parse(char *p);
@@ -39,7 +39,7 @@ public:
    int Load(CString &filename);
    void Destroy();
 
-   CMenu *GetMenu(char * menuName);
+   CMenu *GetMenu(TCHAR * menuName);
    int GetOffset(CMenu *menu);
 
    void SetCheck(UINT id, BOOL checked = TRUE);
