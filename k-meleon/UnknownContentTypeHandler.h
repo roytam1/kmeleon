@@ -40,12 +40,11 @@ protected:
 }; // CUnknownContentTypeHandler
 
 
-nsresult NewUnknownContentHandlerFactory(nsIFactory** aFactory);
-nsresult NewDownloadFactory(nsIFactory** aFactory);
+//nsresult NewUnknownContentHandlerFactory(nsIFactory** aFactory);
+//nsresult NewDownloadFactory(nsIFactory** aFactory);
 
 #include "resource.h"
 #include "nsITransfer.h"
-#include "afxwin.h"
 
 // Idiot callback function
 typedef void (*ProgressDialogCallback)(char* uri, TCHAR* file, nsresult, void*);
@@ -66,7 +65,6 @@ public:
    CProgressDialog(BOOL bAuto=TRUE);
    virtual ~CProgressDialog();
 
-   void InitViewer(nsIWebBrowserPersist *aPersist, TCHAR *pExternalViewer, TCHAR *pLocalFile);
    void InitPersist(nsIURI *aSource, nsILocalFile *aTarget, nsIWebBrowserPersist *aPersist, BOOL bShowDialog);
 
    void SetCallBack(ProgressDialogCallback, void*);
@@ -104,14 +102,12 @@ protected:
    BOOL m_bAuto;     // automatically invoked by a download
    BOOL m_bClose;    // close the window when the download is finished
    BOOL m_bWindow;   // display a progress window
-   BOOL m_bViewer;   // open the downloaded file in external viewer
    
    nsEmbedCString m_uri;
 
-   TCHAR *mFileName;
-   TCHAR *mFilePath;
-   TCHAR *mViewer;
-   TCHAR *mTempFile;
+   CString mFileName;
+   CString mFilePath;
+   CString mTempFile;
    char *mUri;
 
    void InitControl(const char *uri, const TCHAR *filepath);
