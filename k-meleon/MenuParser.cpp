@@ -107,7 +107,7 @@ int CMenuParser::Parse(char *p)
 
          currentMenu = new CMenu();
 
-         if (strstr(p, _T("Main")))
+         if (strstr(p, "Main"))
             currentMenu->CreateMenu();
          else
             currentMenu->CreatePopupMenu();
@@ -117,7 +117,8 @@ int CMenuParser::Parse(char *p)
             popup->DestroyMenu();
             delete popup;
          }
-         menus[p] = currentMenu;
+		 USES_CONVERSION;
+         menus[A2T(p)] = currentMenu;
 
          LOG_1("Created Menu %s", p);
       }
@@ -182,6 +183,7 @@ int CMenuParser::Parse(char *p)
          if (strcmpi(p, "ToolBars") == 0) 
             theApp.m_toolbarControlsMenu = currentMenu->GetSafeHmenu();
 
+
          if (strcmpi(p, "EntryPoint") == 0) {
             menuOffsets[currentMenu] = (currentMenu->GetMenuItemCount() * GetSystemMetrics(SM_CYMENUSIZE)) + GetSystemMetrics(SM_CYEDGE);
          }
@@ -244,7 +246,7 @@ int CMenuParser::Parse(char *p)
    return 1;
 }
 
-CMenu *CMenuParser::GetMenu(char *menuName){
+CMenu *CMenuParser::GetMenu(TCHAR *menuName){
    CMenu *menu;
    if (!menus.Lookup(menuName, menu))
       return NULL;
