@@ -43,7 +43,7 @@ public:
 private:
 
    void  QueryPersistFlags();
-   BOOL ShowBrowser(char *URI=NULL);
+   BOOL ShowBrowser(LPTSTR URI=NULL);
 
    // Overrides
 	// ClassWizard generated virtual function overrides
