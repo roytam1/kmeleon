@@ -199,17 +199,18 @@ int CMenuParser::Parse(char *p)
             if (cp) *cp = 0;
             *op = 0;
 
-            CString param = parameter;
+			USES_CONVERSION;
+            CString param = A2T(parameter);
 			char* sep = strchr(parameter, ',');
 		    if (sep) {
 				char * string = SkipWhiteSpace(sep+1);
 				CString pTranslated;
 			    if (Translate(string, pTranslated))  {
 					*(sep+1) = 0;
-					param = parameter + pTranslated;
+					param = A2T(parameter) + pTranslated;
 				}
 			}
-			USES_CONVERSION;
+			
             if (theApp.plugins.SendMessage(p, "* MenuParser", "DoMenu", (long)currentMenu->GetSafeHmenu(), (long)T2A(param.LockBuffer()))) {
                LOG_2("Called plugin %s with parameter %s", p, parameter);
             }

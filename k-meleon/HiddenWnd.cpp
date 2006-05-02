@@ -25,7 +25,7 @@ BEGIN_MESSAGE_MAP(CHiddenWnd, CFrameWnd)
    ON_WM_CREATE()
    ON_WM_CLOSE()
    ON_WM_COPYDATA()
-	ON_MESSAGE(UWM_NEWWINDOW, OnNewWindow)
+   ON_MESSAGE(UWM_NEWWINDOW, OnNewWindow)
    ON_MESSAGE(UWM_PERSIST_SET, OnSetPersist)
    ON_MESSAGE(UWM_PERSIST_SHOW, OnShowBrowser)
    ON_MESSAGE(WM_DEFERSHOW, OnDeferShow)
@@ -56,7 +56,7 @@ int CHiddenWnd::OnCreate(LPCREATESTRUCT lpCreateStruct) {
 }
 
 void CHiddenWnd::QueryPersistFlags() {
-   HWND hwndLoader = ::FindWindowEx(NULL, NULL, "KMeleon Tray Control", NULL);
+   HWND hwndLoader = ::FindWindowEx(NULL, NULL, _T("KMeleon Tray Control"), NULL);
    if (hwndLoader) {
       LRESULT flags = ::SendMessage(hwndLoader, UWM_PERSIST_GET, NULL, NULL);
 
@@ -87,7 +87,7 @@ void CHiddenWnd::OnClose() {
    }
 
    // make sure the loader hasn't exited without notifying us
-   HWND hwndLoader = ::FindWindowEx(NULL, NULL, "KMeleon Tray Control", NULL);
+   HWND hwndLoader = ::FindWindowEx(NULL, NULL, _T("KMeleon Tray Control"), NULL);
    if (!hwndLoader)
       CFrameWnd::OnClose();
 
@@ -161,19 +161,20 @@ LRESULT CHiddenWnd::OnSetPersist(WPARAM flags, LPARAM lParam) {
 }
 
 LRESULT CHiddenWnd::OnShowBrowser(WPARAM URI, LPARAM lParam) {
-   ShowBrowser((char*)URI);
+   USES_CONVERSION;
+   ShowBrowser(A2T((char*)URI));
 
    return 0;
 }
 
-BOOL CHiddenWnd::ShowBrowser(char *URI) {
+BOOL CHiddenWnd::ShowBrowser(LPTSTR URI) {
 
    // if we already have a browser, load home page (if necessary), and show the window
   /* if (m_bPersisting && m_bPreloadWindow) {
       if (URI && *URI) {
-         if (*URI == '\"') URI++;
-         int len = strlen(URI);
-         if (URI[len-1] == '\"') URI[len-1] = 0;
+         if (*URI == _T('\"')) URI++;
+         int len = _tcslen(URI);
+         if (URI[len-1] == _T('\"')) URI[len-1] = 0;
          m_pHiddenBrowser->m_wndBrowserView.OpenURL(URI);
       }
       else {
@@ -206,12 +207,12 @@ BOOL CHiddenWnd::ShowBrowser(char *URI) {
 
       if (URI && *URI) {
          // if the URI is in quotes, strip them off
-         int len = strlen(URI);
-         if (URI[0] == '"')
+         int len = _tcslen(URI);
+         if (URI[0] == _T('"'))
 		 {
-			 if (URI[len-1] == '"')
+			 if (URI[len-1] == _T('"'))
 				URI[len-1] = 0;
-            URI++;
+			 URI++;
          }
          browser->m_wndBrowserView.OpenURL(URI);
       }
@@ -277,7 +278,7 @@ LRESULT CHiddenWnd::OnNewWindow(WPARAM wParam, LPARAM lParam) {
 // This is called from another instance of Kmeleon,
 // and contains any command line parameters specified
 BOOL CHiddenWnd::OnCopyData(CWnd* pWnd, COPYDATASTRUCT* pCopyDataStruct) {
-   ShowBrowser((char *) pCopyDataStruct->lpData);
+   ShowBrowser((LPTSTR) pCopyDataStruct->lpData);
 
    return true;
 }
