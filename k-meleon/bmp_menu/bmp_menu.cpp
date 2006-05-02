@@ -19,9 +19,10 @@
 //
 
 #include "stdafx.h"
+#include <tchar.h>
+#include <malloc.h>
 #include "../resource.h"
 #include "../Utils.h"
-#include <afxres.h>
 
 #define PLUGIN_NAME "Bitmapped Menus"
 
@@ -33,7 +34,7 @@
 #define KMELEON_PLUGIN_EXPORTS
 #include "../kmeleon_plugin.h"
 
-#define CONFIG_FILE "menuicons.cfg"
+#define CONFIG_FILE _T("menuicons.cfg")
 
 //#define BMP_PADDING_LEFT 3
 //#define BMP_PADDING_RIGHT 4
@@ -61,7 +62,7 @@ void Create(HWND parent);
 void Config(HWND parent);
 void Quit();
 void DoMenu(HMENU menu, char *param);
-int GetConfigFiles(configFileType **configFiles);
+//int GetConfigFiles(configFileType **configFiles);
 
 long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2);
 
@@ -180,16 +181,21 @@ void ParseConfig(char *buffer) {
             *b = 0;
             TrimWhiteSpace(p);
             p = SkipWhiteSpace(p);
-            
+#ifdef _UNICODE            
+			wchar_t q[MAX_PATH];
+			MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, p, -1, q, MAX_PATH);
+#else
+			char* q = p;
+#endif
             HBITMAP bitmap;
             // if it's relative to the root (ie: c:\blah or \blah or /blah
             if (*p == '/' || *p == '\\' || *(p+1) == ':') {
-               bitmap = (HBITMAP)LoadImage(NULL, p, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE);
+               bitmap = (HBITMAP)LoadImage(NULL, q, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE);
             }
             // else it's relative to the settings directory (just plain blah)
             else {
-               char bmpPath[MAX_PATH];
-               FindSkinFile(bmpPath, p);
+               TCHAR bmpPath[MAX_PATH];
+               FindSkinFile(bmpPath, q);
                bitmap = (HBITMAP)LoadImage(NULL, bmpPath, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE);
             }
             ImageList_AddMasked(hImageList, bitmap, RGB(255, 0, 255));
@@ -264,17 +270,17 @@ int Init() {
    SelectObject(hDC, gMenuFont); 
    
    SIZE size;
-   GetTextExtentPoint32(hDC, "X", 1, &size);
+   GetTextExtentPoint32(hDC, _T("X"), 1, &size);
 
    SPACE_BETWEEN = size.cx;
 
    DeleteDC(hDC);
 
 
-   char cfgPath[MAX_PATH];
+   TCHAR cfgPath[MAX_PATH];
    FindSkinFile(cfgPath, CONFIG_FILE);
 
-   FILE *cfgFile = fopen(cfgPath, "r");
+   FILE *cfgFile = _tfopen(cfgPath, _T("r"));
    if (cfgFile){
       long cfgFileSize = FileSize(cfgFile);
 
@@ -301,15 +307,15 @@ void Create(HWND parent){
 
 void Config(HWND parent)
 {
-   char cfgPath[MAX_PATH];
+   TCHAR cfgPath[MAX_PATH];
    FindSkinFile(cfgPath, CONFIG_FILE);
 
-   ShellExecute(parent, NULL, "notepad.exe", cfgPath, NULL, SW_SHOW);
+   ShellExecute(parent, NULL, _T("notepad.exe"), cfgPath, NULL, SW_SHOW);
 }
 
 configFileType g_configFiles[1];
 
-int GetConfigFiles(configFileType **configFiles)
+/*int GetConfigFiles(configFileType **configFiles)
 {
    FindSkinFile(g_configFiles[0].file, CONFIG_FILE);
 
@@ -320,7 +326,7 @@ int GetConfigFiles(configFileType **configFiles)
    *configFiles = g_configFiles;
 
    return 1;
-}
+}*/
 
 void Quit(){
    if (hImageList)
@@ -347,19 +353,21 @@ void DoMenu(HMENU menu, char *param){
       // We can't actually be sure that this is going to be that menu.
       // To identify it, the user MUST put bmpmenu(top) for this menu
 	  BOOL topLevel;
+	  DRAWBITMAPPROC DrawProc = NULL;
+
 	  if (strcmp(param, "top") == 0)
 		topLevel = TRUE;
-	  else
+	  else {
 	    topLevel = FALSE;
 
-      DRAWBITMAPPROC DrawProc = NULL;
-      if (*param) {
-         HINSTANCE plugin = LoadLibrary(param);
-         if (plugin) {
-            DrawProc = (DRAWBITMAPPROC)GetProcAddress(plugin, "DrawBitmap");
-            topLevel = FALSE;  // plugin menus probably won't be top level
-         }
-      }
+        if (*param) {
+		   // plugin menus probably won't be top level
+           HINSTANCE plugin = LoadLibraryA(param);
+           if (plugin) {
+             DrawProc = (DRAWBITMAPPROC)GetProcAddress(plugin, "DrawBitmap");
+           }
+        }
+	  }
       if (!DrawProc) {
          DrawProc = DrawBitmap;
       }
@@ -474,8 +482,8 @@ int GetMaxAccelWidth(HDC hDC, HMENU hMenu){
    mmi.cbSize = sizeof(mmi);
    
    int iMaxAccel = 0;
-   char *string;
-   char *tab;
+   TCHAR *string;
+   TCHAR *tab;
    SIZE size;
    
    int count = GetMenuItemCount(hMenu);
@@ -485,14 +493,14 @@ int GetMaxAccelWidth(HDC hDC, HMENU hMenu){
       if (state & MF_OWNERDRAW) {
          mmi.fMask = MIIM_DATA;
          GetMenuItemInfo(hMenu, i, true, &mmi);            
-         string = (char *)mmi.dwItemData;
+         string = (TCHAR *)mmi.dwItemData;
 
          if (string) {
       
-            tab = strchr(string, '\t');
+            tab = _tcschr(string, '\t');
       
             if (tab) {
-               GetTextExtentPoint32(hDC, tab+1, strlen(tab+1), &size);
+               GetTextExtentPoint32(hDC, tab+1, _tcslen(tab+1), &size);
                if (size.cx > iMaxAccel) iMaxAccel = size.cx;
             }
          }
@@ -513,7 +521,7 @@ void DrawMenuItem(DRAWITEMSTRUCT *dis) {
       }
    }
 
-   char *string = (char *)dis->itemData;
+   TCHAR *string = (TCHAR *)dis->itemData;
 
    if (!*string) {
       RECT rc;
@@ -556,13 +564,13 @@ void DrawMenuItem(DRAWITEMSTRUCT *dis) {
 
    RECT rcTab;
    
-   char *tab = strrchr(string, '\t');
+   TCHAR *tab = _tcsrchr(string, _T('\t'));
    int itemLen, tabLen;
    
    if (tab) {
       itemLen = tab - string;
       tab++;
-      tabLen = strlen(tab);
+      tabLen = lstrlen(tab);
       
       rcTab.top = dis->rcItem.top;
       rcTab.left = dis->rcItem.right - giMaxAccelWidth - MARGIN_RIGHT;
@@ -570,7 +578,7 @@ void DrawMenuItem(DRAWITEMSTRUCT *dis) {
       rcTab.bottom = dis->rcItem.bottom;
    }
    else {
-      itemLen = strlen(string);
+      itemLen = lstrlen(string);
       tabLen = 0;
    }
    /*
@@ -611,7 +619,7 @@ void MeasureMenuItem(MEASUREITEMSTRUCT *mis, HDC hDC) {
    HFONT oldFont = (HFONT)SelectObject(hDC, gMenuFont); 
 
    SIZE size;
-   char *string = (char *)mis->itemData;
+   TCHAR *string = (TCHAR *)mis->itemData;
    if (!*string)  { // it's a separator
       mis->itemWidth = 0;
       mis->itemHeight = GetSystemMetrics(SM_CYMENUSIZE) >> 1;
@@ -625,22 +633,22 @@ void MeasureMenuItem(MEASUREITEMSTRUCT *mis, HDC hDC) {
    }
 
 #if 1
-   char *tab = strrchr(string, '\t');
+   TCHAR *tab = _tcsrchr(string, _T('\t'));
    if (tab) {
       int len = tab-string-1;
-      while (*(string+len) == ' ')  // trim trailing spaces (to compensate for sloppy menus and TranslateTabs())
+      while (*(string+len) == _T(' '))  // trim trailing spaces (to compensate for sloppy menus and TranslateTabs())
          len--;
       GetTextExtentPoint32(hDC, string, len+1, &size);
       if (size.cx > giMaxTextMeasured) giMaxTextMeasured = size.cx;
       
-      GetTextExtentPoint32(hDC, tab+1, strlen(tab+1), &size);
+      GetTextExtentPoint32(hDC, tab+1, lstrlen(tab+1), &size);
       if (size.cx > giMaxAccelMeasured) giMaxAccelMeasured = size.cx;
          
       mis->itemWidth = SPACE_BETWEEN;
 
    }
    else {
-      GetTextExtentPoint32(hDC, string, strlen(string), &size);
+      GetTextExtentPoint32(hDC, string, lstrlen(string), &size);
       if (size.cx > giMaxTextMeasured) giMaxTextMeasured = size.cx;
       mis->itemWidth = 0;
    }
@@ -692,11 +700,11 @@ void UnSetOwnerDrawn(HMENU menu){
          mmi.fMask = MIIM_DATA | MIIM_ID;
          GetMenuItemInfo(menu, i, true, &mmi);
 
-         if (!mmi.dwItemData ||  !*( (char *)mmi.dwItemData) )
+         if (!mmi.dwItemData ||  !*( (TCHAR *)mmi.dwItemData) )
             ModifyMenu(menu, i, MF_BYPOSITION | MF_SEPARATOR, mmi.wID, NULL);
 		 else {
-            ModifyMenu(menu, i, MF_BYPOSITION | MF_STRING, mmi.wID, mmi.dwTypeData);
-			delete[] (char*)mmi.dwItemData; 
+            ModifyMenu(menu, i, MF_BYPOSITION | MF_STRING, mmi.wID, (TCHAR*)mmi.dwItemData);
+			delete[] (TCHAR*)mmi.dwItemData; 
 		}
       }
    }
@@ -712,7 +720,7 @@ void StringToOwnerDrawn(HMENU menu, int i, UINT flags, UINT id){
    mmi.dwTypeData = NULL;
    GetMenuItemInfo(menu, i, true, &mmi);
    mmi.cch ++;
-   mmi.dwTypeData = new char[mmi.cch];
+   mmi.dwTypeData = new TCHAR[mmi.cch];
    GetMenuItemInfo(menu, i, true, &mmi);
 
    // at first glance it appears as though dwTypeData is never delete[]d, but that's not so.   in
@@ -749,7 +757,7 @@ void SetOwnerDrawn(HMENU menu, DRAWBITMAPPROC DrawProc, BOOL topLevel){
       // subclassing the separator is the key, otherwise widows will do all sorts
       // of weird things with the numbers we tell it to use in measuremenuitem
       else if (state & MF_SEPARATOR)
-         ModifyMenu(menu, i, MF_BYPOSITION  | MF_OWNERDRAW, i, "");
+         ModifyMenu(menu, i, MF_BYPOSITION  | MF_OWNERDRAW, i, _T(""));
       else if (state == 0)
          StringToOwnerDrawn(menu, i, 0, GetMenuItemID(menu, i));
    }

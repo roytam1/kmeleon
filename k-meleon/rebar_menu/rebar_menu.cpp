@@ -21,6 +21,7 @@
 #include "stdafx.h"
 #include <commctrl.h>
 #include <stdlib.h>
+#include <tchar.h>
 
 #define KMELEON_PLUGIN_EXPORTS
 #include "../kmeleon_plugin.h"
@@ -28,16 +29,17 @@
 
 #include "hot_tracking.h"
 
-#define _T(blah) blah
 #define _Q(x) #x
 
-#define PLUGIN_NAME "Rebar Menu Plugin"
-#define MENU_NAME "Menu"
-#define NO_OPTIONS "This plugin has no user configurable options."
-#define ERROR_NO_MENU "Error! Could not get the menu"
-#define ERROR_FAILED_TO_CREATE "Error! Failed to create menu toolbar"
+#define _Tr(x) kPlugin.kFuncs->Translate(x)
 
-#define PREFERENCE_MENUTYPE _T("kmeleon.plugins.rebarmenu.menutype")
+#define PLUGIN_NAME "Rebar Menu Plugin"
+#define MENU_NAME _T("Menu")
+#define NO_OPTIONS _Tr("This plugin has no user configurable options.")
+#define ERROR_NO_MENU _Tr("Error! Could not get the menu")
+#define ERROR_FAILED_TO_CREATE _Tr("Error! Failed to create menu toolbar")
+
+#define PREFERENCE_MENUTYPE "kmeleon.plugins.rebarmenu.menutype"
 
 WNDPROC KMeleonWndProc;
 
@@ -118,23 +120,29 @@ void Setup(){
    int count = GetMenuItemCount(hMenu);
    for (i=0; i<count; i++) {
       if ( GetMenuState(hMenu, i, MF_BYPOSITION) & MF_POPUP) {
-         char temp[128] = {0};
+         TCHAR temp[128] = {0};
          mInfo.fMask = MIIM_TYPE | MIIM_SUBMENU;
          mInfo.cch = 127;
          mInfo.dwTypeData = temp;
          GetMenuItemInfo(hMenu, i, MF_BYPOSITION, &mInfo);
 		 if (mInfo.fType != MFT_STRING) continue;
-	 char *p = strchr((LPCTSTR)mInfo.dwTypeData, '&');
-	 if (p && *(p+1)) {
-	   char szBuf[16] = {0};
-	   char szId[6] = {0};
-	   strcpy(szBuf, "ALT ? = ");
-	   szBuf[4] = toupper(*(p+1));
-	   int id = DoAccel((LPTSTR)mInfo.dwTypeData, TRUE);
-	   itoa(id, szId, 10);
-	   strcat(szBuf, szId);
-	   kPlugin.kFuncs->ParseAccel(szBuf);
-	 }
+#ifdef _UNICODE
+         char q[256];
+         WideCharToMultiByte(CP_ACP, WC_COMPOSITECHECK, mInfo.dwTypeData, -1, q, 256, "_", NULL);
+#else
+         char *q = mInfo.dwTypeData;
+#endif
+         char *p = strchr(q, '&');
+         if (p && *(p+1)) {
+	       char szBuf[16] = {0};
+	       char szId[6] = {0};
+	       strcpy(szBuf, "ALT ? = ");
+	       szBuf[4] = toupper(*(p+1));
+	       int id = DoAccel(q, TRUE);
+	       itoa(id, szId, 10);
+	       strcat(szBuf, szId);
+	       kPlugin.kFuncs->ParseAccel(szBuf);
+	     }
       }
    }
 }
@@ -145,7 +153,7 @@ void Create(HWND parent){
 }
 
 void Config(HWND parent){
-   MessageBox(parent, NO_OPTIONS, PLUGIN_NAME, 0);
+   MessageBox(parent, NO_OPTIONS, _T(PLUGIN_NAME), 0);
 }
 
 void Quit(){
@@ -162,13 +170,18 @@ int DoAccel(char *param, BOOL bSubmenu) {
    int i;
    int count = GetMenuItemCount(hMenu);
    for (i=0; i<count; i++) {
-     char temp[128];
+     TCHAR temp[128];
      mInfo.fMask = MIIM_TYPE | MIIM_SUBMENU;
      mInfo.cch = 127;
      mInfo.dwTypeData = temp;
      GetMenuItemInfo(hMenu, i, MF_BYPOSITION, &mInfo);
-     
-     if (stricmp(param, temp) == 0)
+#ifdef _UNICODE
+     char q[128];
+     WideCharToMultiByte(CP_ACP, WC_COMPOSITECHECK, temp, -1, q, 128, "_", NULL);
+#else
+	 char *q = temp;
+#endif
+	 if (stricmp(param, q) == 0)
        break;
    }
 
@@ -214,7 +227,7 @@ void DoRebar(HWND rebarWnd) {
 	 );
 
       if (!hwndTB){
-	 MessageBox(NULL, ERROR_FAILED_TO_CREATE, PLUGIN_NAME, 0);
+	 MessageBox(NULL, ERROR_FAILED_TO_CREATE, _T(PLUGIN_NAME), 0);
 	 return;
       }
 
@@ -233,12 +246,12 @@ void DoRebar(HWND rebarWnd) {
       int count = GetMenuItemCount(m_menu);
       for (i=0; i<count; i++) {
 	 if ( GetMenuState(m_menu, i, MF_BYPOSITION) & MF_POPUP) {
-	    char temp[128];
+	    TCHAR temp[128];
 	    mInfo.fMask = MIIM_TYPE | MIIM_SUBMENU;
 	    mInfo.cch = 126;
 	    mInfo.dwTypeData = temp;
 	    GetMenuItemInfo(m_menu, i, MF_BYPOSITION, &mInfo);
-	    temp[strlen(temp)+1] = '\0';
+	    temp[_tcslen(temp)+1] = '\0';
 
 	    stringID = SendMessage(hwndTB, TB_ADDSTRING, (WPARAM)NULL, (LPARAM)(LPCTSTR)mInfo.dwTypeData);
 
@@ -252,12 +265,12 @@ void DoRebar(HWND rebarWnd) {
 	    SendMessage(hwndTB, TB_INSERTBUTTON, (WPARAM)-1, (LPARAM)&button);
 	 }
 	 else{
-	    char temp[128];
+	    TCHAR temp[128];
 	    mInfo.fMask = MIIM_TYPE | MIIM_ID;
 	    mInfo.cch = 126;
 	    mInfo.dwTypeData = temp;
 	    GetMenuItemInfo(m_menu, i, MF_BYPOSITION, &mInfo);
-	    temp[strlen(temp)+1] = '\0';
+	    temp[_tcslen(temp)+1] = '\0';
 
 	    stringID = SendMessage(hwndTB, TB_ADDSTRING, (WPARAM)NULL, (LPARAM)(LPCTSTR)mInfo.dwTypeData);
 
@@ -282,7 +295,7 @@ void DoRebar(HWND rebarWnd) {
 	 RBBIM_SIZE | RBBIM_IDEALSIZE;
 
       rbBand.fStyle = RBBS_CHILDEDGE | RBBS_FIXEDBMP | RBBS_VARIABLEHEIGHT;
-      rbBand.lpText     = "";
+      rbBand.lpText     = _T("");
       rbBand.hwndChild  = hwndTB;
       rbBand.cxMinChild = 0;
       rbBand.cyMinChild = HIWORD(dwBtnSize);
@@ -323,9 +336,9 @@ void ShowMenuUnderButton(HWND hWndParent, HMENU hMenu, int iID) {
       if (!tb) 
 	continue;
 
-      char toolbarName[11];
+      TCHAR toolbarName[11];
       GetWindowText(tb, toolbarName, 10);
-      if (strcmp(toolbarName, MENU_NAME) != 0) {
+      if (_tcscmp(toolbarName, MENU_NAME) != 0) {
 	// oops, this isn't our toolbar
 	continue;
       }
@@ -344,7 +357,7 @@ void ShowMenuUnderButton(HWND hWndParent, HMENU hMenu, int iID) {
       MENUITEMINFO mInfo;
       mInfo.cbSize = sizeof(mInfo);
 
-      char temp[128];
+      TCHAR temp[128];
       mInfo.fMask = MIIM_TYPE | MIIM_SUBMENU;
       mInfo.cch = 127;
       mInfo.dwTypeData = temp;
@@ -379,9 +392,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
       if (hdr.code == TBN_DROPDOWN) {
          tbhdr = *((LPNMTOOLBAR)lParam);
          if (IsMenu((HMENU)(tbhdr.iItem-SUBMENU_OFFSET))){
-            char toolbarName[11];
+            TCHAR toolbarName[11];
             GetWindowText(tbhdr.hdr.hwndFrom, toolbarName, 10);
-            if (strcmp(toolbarName, MENU_NAME) != 0) {
+            if (_tcscmp(toolbarName, MENU_NAME) != 0) {
                // oops, this isn't our toolbar
                return CallWindowProc(KMeleonWndProc, hWnd, message, wParam, lParam);
             }
