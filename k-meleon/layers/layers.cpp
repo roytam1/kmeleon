@@ -217,7 +217,12 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
          ghParent = ghCurHwnd;
          bBack = 0;
          bLayer = 1;
-         kPlugin.kFuncs->NavigateTo((char *)data1, OPEN_BACKGROUND, NULL);
+
+		 kmeleonDocInfo* docinfo = kPlugin.kFuncs->GetDocInfo(NULL);
+		 if (docinfo && (!docinfo->url || _tcscmp(docinfo->url, _T("about:blank"))) == 0)
+		   kPlugin.kFuncs->NavigateTo((char *)data1, OPEN_NORMAL, NULL);
+		 else
+		   kPlugin.kFuncs->NavigateTo((char *)data1, OPEN_BACKGROUND, NULL);
       }
       else if (stricmp(subject, "OpenURLBg") == 0) {
          ghParent = ghCurHwnd;
@@ -887,12 +892,12 @@ void BuildRebar(HWND hWndTB, HWND hWndParent)
 {
    if (!bRebarEnabled || !hWndTB || bIgnore)
       return;
-   
+   /*
    kPlugin.kFuncs->GetPreference(PREF_INT,  PREFERENCE_BUTTON_MINWIDTH, &nButtonMinWidth, &nButtonMinWidth);
    kPlugin.kFuncs->GetPreference(PREF_INT,  PREFERENCE_BUTTON_MAXWIDTH, &nButtonMaxWidth, &nButtonMaxWidth);
    kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_BUTTON_NUMBER, &bButtonNumbers, &bButtonNumbers);
    kPlugin.kFuncs->GetPreference(PREF_INT, PREFERENCE_BUTTON_STYLE, &nButtonStyle, &nButtonStyle);
-   
+   */
    int nMinWidth = nButtonMinWidth > 0 ? nButtonMinWidth * nHRes / nHSize : nButtonMinWidth;
    int nMaxWidth = nButtonMaxWidth > 0 ? nButtonMaxWidth * nHRes / nHSize : nButtonMaxWidth;
 
