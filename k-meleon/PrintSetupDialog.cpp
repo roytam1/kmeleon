@@ -237,18 +237,16 @@ BOOL CPrintSetupDialog::OnInitDialog()
     m_PaperSizeInx = GetPaperSizeIndexFromData(unit, paperWidth, paperHeight);
     if (m_PaperSizeInx == -1) { // couldn't find a match
       m_PaperSizeInx = 0;
-      unit        = gPaperSize[m_PaperSizeInx].mUnit;
-      paperWidth  = gPaperSize[m_PaperSizeInx].mWidth;
-      paperHeight = gPaperSize[m_PaperSizeInx].mHeight;
     }
 
     cbx->SetCurSel(m_PaperSizeInx);
 
     EnableUserDefineControls(gPaperSize[m_PaperSizeInx].mIsUserDefined);
 
-    if (gPaperSize[m_PaperSizeInx].mIsUserDefined) {
-      CString wStr;
-      CString hStr;
+	CString wStr;
+    CString hStr;
+	
+	if (gPaperSize[m_PaperSizeInx].mIsUserDefined) {
       if (unit == nsIPrintSettings::kPaperSizeInches) {
         wStr.Format(_T("%6.2f"), paperWidth);
         hStr.Format(_T("%6.2f"), paperHeight);
@@ -258,13 +256,15 @@ BOOL CPrintSetupDialog::OnInitDialog()
         hStr.Format(_T("%d"), int(paperHeight));
         CheckRadioButton(IDC_INCHES_RD, IDC_MILLI_RD, IDC_MILLI_RD);
       }
-	    CWnd* widthTxt  = GetDlgItem(IDC_UD_PAPER_WDTH);
-	    CWnd* heightTxt = GetDlgItem(IDC_UD_PAPER_HGT);
-      widthTxt->SetWindowText(wStr);
-      heightTxt->SetWindowText(hStr);
     } else {
+      wStr.Format(_T("%6.2f"), paperWidth);
+      hStr.Format(_T("%6.2f"), paperHeight);
       CheckRadioButton(IDC_INCHES_RD, IDC_MILLI_RD, IDC_INCHES_RD);
     }
+	  CWnd* widthTxt  = GetDlgItem(IDC_UD_PAPER_WDTH);
+	  CWnd* heightTxt = GetDlgItem(IDC_UD_PAPER_HGT);
+	  if (widthTxt) widthTxt->SetWindowText(wStr);
+      if (heightTxt) heightTxt->SetWindowText(hStr);
   }
 
   OnBnClickedShrinkTofit();
