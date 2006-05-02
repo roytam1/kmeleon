@@ -25,6 +25,8 @@
 
 #define PLUGIN_NAME "Toolbar Control Plugin"
 
+#define _Tr(x) kPlugin.kFuncs->Translate(x)
+
 #define KMELEON_PLUGIN_EXPORTS
 #include "..\kmeleon_plugin.h"
 #include "..\utils.h"
@@ -33,8 +35,6 @@
 
 #include <afxres.h>
 #include "..\resource.h"
-
-#define _T(x) x
 
 /* Begin K-Meleon Plugin Header */
 
@@ -112,8 +112,8 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
 }
 
 struct s_button {
-   char *sName;
-   char *sToolTip;
+   TCHAR *sName;
+   TCHAR *sToolTip;
    char *sImagePath;
    HMENU menu;
    int iID;
@@ -146,7 +146,7 @@ s_toolbar *toolbar_head = NULL;
 int giToolbarCount = 0;
 
 
-void LoadToolbars(char *filename);
+void LoadToolbars(TCHAR *filename);
 void AddImageToList(s_toolbar *pToolbar, s_button *pButton, HIMAGELIST list, char *file);
 s_toolbar *AddToolbar(char *name, int width, int height);
 s_button  *AddButton(s_toolbar *toolbar, char *name, int width, int height);
@@ -161,9 +161,9 @@ BOOL APIENTRY DllMain(HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserv
 
 
 int Setup() {
-   char szConfigFile[MAX_PATH];
+   TCHAR szConfigFile[MAX_PATH];
 
-   FindSkinFile(szConfigFile, "toolbars.cfg");
+   FindSkinFile(szConfigFile, _T("toolbars.cfg"));
    LoadToolbars(szConfigFile);
 
    return 1;
@@ -198,15 +198,15 @@ void Create(HWND parent){
 }
 
 void Config(HWND hWndParent) {
-   char cfgPath[MAX_PATH];
-   FindSkinFile(cfgPath, "toolbars.cfg");
-   ShellExecute(NULL, NULL, "notepad.exe", cfgPath, NULL, SW_SHOW);
+   TCHAR cfgPath[MAX_PATH];
+   FindSkinFile(cfgPath, _T("toolbars.cfg"));
+   ShellExecute(NULL, NULL, _T("notepad.exe"), cfgPath, NULL, SW_SHOW);
 }
 
 configFileType g_configFiles[1];
 int GetConfigFiles(configFileType **configFiles)
 {
-   FindSkinFile(g_configFiles[0].file, "toolbars.cfg");
+   FindSkinFile(g_configFiles[0].file, _T("toolbars.cfg"));
 
    strcpy(g_configFiles[0].label, "Toolbars");
 
@@ -299,7 +299,7 @@ void DoRebar(HWND rebarWnd) {
       // Create the toolbar control to be added.
       toolbar->hWnd = kPlugin.kFuncs->CreateToolbar(GetParent(rebarWnd), CCS_NODIVIDER | CCS_NOPARENTALIGN | CCS_NORESIZE | TBSTYLE_FLAT | TBSTYLE_TRANSPARENT | TBSTYLE_TOOLTIPS);
       if (!toolbar->hWnd){
-         MessageBox(NULL, "Failed to create toolbar", PLUGIN_NAME, MB_OK);
+         MessageBox(NULL, _Tr("Failed to create toolbar"), _T(PLUGIN_NAME), MB_OK);
          return;
       }
 
@@ -339,14 +339,14 @@ void DoRebar(HWND rebarWnd) {
 
       // if no images were specified, then we'll be using text buttons
       if (!toolbar->hot) {
-         char buf[4096]; // you'd have to be crazy to use more than 1K worth of toolbar text on a single toolbar       
+         TCHAR buf[4096]; // you'd have to be crazy to use more than 1K worth of toolbar text on a single toolbar       
          int buflen = 0;
          button = toolbar->pButtonHead;
          while (button) {
             if (button->sName != NULL) {
-               int len = strlen(button->sName);
+               int len = _tcslen(button->sName);
                if (buflen + len > 4096) break;
-               strcpy(buf+buflen, button->sName);
+               _tcscpy(buf+buflen, button->sName);
                buflen += len;
             }
             buf[buflen] = 0;
@@ -490,12 +490,12 @@ int ifplugin(char *p)
   return 0;
 }
 
-void LoadToolbars(char *filename) {
+void LoadToolbars(TCHAR *filename) {
    HANDLE configFile;
 
    configFile = CreateFile(filename, GENERIC_READ, 0, NULL, OPEN_EXISTING, NULL, NULL);
    if (configFile == INVALID_HANDLE_VALUE) {
-      MessageBox(NULL, "Could not open file", filename, MB_OK);
+      MessageBox(NULL, _Tr("Could not open file"), filename, MB_OK);
       return;
    }
    DWORD length = GetFileSize(configFile, NULL);
@@ -623,7 +623,7 @@ void LoadToolbars(char *filename) {
                iBuildState++;
             }
             else {
-               MessageBox(NULL, "Extra { found", NULL, MB_OK);
+               MessageBox(NULL, _Tr("Extra { found"), NULL, MB_OK);
             }
          }
          cb = strchr(p, '-');
@@ -692,13 +692,15 @@ void LoadToolbars(char *filename) {
             break;
          case DESC:
 	   if (strcmp(p, "\"\"") != 0) {
-                  curButton->sToolTip = new char[strlen(p) + 1];
+                  char* tooltip = p;
                   if (strlen(p)>1 && p[0] == '\"' && p[strlen(p)-1] == '\"') {
-                    strcpy(curButton->sToolTip, p+1);
-                    curButton->sToolTip[strlen(curButton->sToolTip)-1] = 0;
+                    tooltip++;
+                    tooltip[strlen(tooltip)-1] = 0;
                   }
-                  else
-                    strcpy(curButton->sToolTip, p);
+
+				  const TCHAR* lpText = kPlugin.kFuncs->Translate(tooltip);
+				  curButton->sToolTip = new TCHAR[_tcslen(lpText)+1];
+				  _tcscpy(curButton->sToolTip, lpText);
 		  }
                iBuildState++;
                break;
@@ -759,8 +761,14 @@ s_toolbar *AddToolbar(char *name, int width, int height) {
 s_button  *AddButton(s_toolbar *toolbar, char *name, int width, int height) {
    s_button *newButton = new s_button; 
    if (name) {
-      newButton->sName = new char[strlen(name) + 1];
-      strcpy (newButton->sName, name);
+#ifdef _UNICODE
+	  wchar_t q[256];
+	  MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, name, -1, q, 256);
+#else
+	  char* q = name;
+#endif
+	  newButton->sName = new TCHAR[_tcslen(q) + 1];
+	  _tcscpy (newButton->sName, q);
    }
    else
       newButton->sName = NULL;
@@ -854,12 +862,18 @@ HBITMAP LoadButtonImage(s_toolbar *pToolbar, s_button *pButton, char *sFile) {
    HBITMAP hButton, hBitmap;
    HBRUSH hBrush;
    
+#ifdef _UNICODE            
+   wchar_t _sFile[MAX_PATH];
+   MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, sFile, -1, _sFile, MAX_PATH);
+#else
+   char* _sFile = sFile;
+#endif
    if (strchr(sFile, '\\')) {
-      hBitmap = (HBITMAP)LoadImage(NULL, sFile, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+      hBitmap = (HBITMAP)LoadImage(NULL, _sFile, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
    }
    else {
-      char fullpath[MAX_PATH];
-      FindSkinFile(fullpath, sFile);
+      TCHAR fullpath[MAX_PATH];
+      FindSkinFile(fullpath, _sFile);
       hBitmap = (HBITMAP)LoadImage(NULL, fullpath, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
    }
    
@@ -1056,7 +1070,6 @@ void SetButtonImage(char *sParams) {//WORD iToolbar, WORD iButton, char *sImage)
 
    delete pButton->sImagePath;
    pButton->sImagePath = strdup(sImage);
-
 }
 
 
@@ -1317,21 +1330,30 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                if (button->iID == (int) wParam) {
                   if (lpNmhdr->code == TTN_NEEDTEXTA)
 				  {
-	                  LPTOOLTIPTEXTA lpTiptext = (LPTOOLTIPTEXTA) lParam;                  
+					  LPTOOLTIPTEXTA lpTiptext = (LPTOOLTIPTEXTA) lParam;                  
+#ifdef _UNICODE
+					  if (tip) free(tip);
+					  unsigned lengthDst = lstrlen(button->sToolTip)*2 + 1;
+	                  WideCharToMultiByte(CP_ACP, WC_COMPOSITECHECK, button->sToolTip, -1, tip, lengthDst, "_", NULL);
+					  lpTiptext->lpszText = tip;
+#else
 					  lpTiptext->lpszText = button->sToolTip;
+#endif
 				  }
 				  else
 				  {
 					  LPTOOLTIPTEXTW lpTiptext = (LPTOOLTIPTEXTW) lParam;                  
-
+#ifdef _UNICODE
+					  lpTiptext->lpszText = button->sToolTip;
+#else				  
 					  if (tip) free(tip);
 					  unsigned lengthDst = strlen(button->sToolTip) + 1;
 					  tip = (WCHAR*)malloc(sizeof(WCHAR) * lengthDst);
 					  MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, button->sToolTip, -1, tip, lengthDst);
 					  lpTiptext->lpszText = tip;
+#endif
 				  }
                   return NULL;
-
                }
                button = button->prev;
             }
