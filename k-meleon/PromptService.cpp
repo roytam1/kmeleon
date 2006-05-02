@@ -119,7 +119,7 @@ NS_IMETHODIMP CPromptService::ConfirmCheck(nsIDOMWindow *parent,
 	sNo.LoadString(IDS_NO);
     CConfirmCheckDialog dlg(wnd, W2CT(dialogTitle), W2CT(text),
                     W2CT(checkboxMsg), checkValue ? *checkValue : 0,
-                    sYes, sNo, NULL, 1);
+                    sYes, sNo, NULL, 0x0100);
 
     int iBtnClicked = dlg.DoModal();
 
@@ -142,7 +142,7 @@ NS_IMETHODIMP CPromptService::Prompt(nsIDOMWindow *parent,
 
   CWnd *wnd = CWndForDOMWindow(parent);
   CPromptDialog dlg(wnd, W2CT(dialogTitle), W2CT(text),
-					*value ? W2CT(*value) : NULL,
+					*value ? W2CT(*value) : nsnull,
                     checkValue && checkboxMsg, W2CT(checkboxMsg),
                     checkValue ? *checkValue : 0);
   if(dlg.DoModal() == IDOK) {
@@ -250,8 +250,6 @@ NS_IMETHODIMP CPromptService::PromptPassword(nsIDOMWindow *parent,
   return NS_OK;
 }
 
-// Used to add boolean value in about:config
-// Maybe for something else too?
 NS_IMETHODIMP CPromptService::Select(nsIDOMWindow *parent,
                                      const PRUnichar *dialogTitle,
                                      const PRUnichar *text, PRUint32 count,
@@ -289,8 +287,10 @@ NS_IMETHODIMP CPromptService::ConfirmEx(nsIDOMWindow *parent,
     const PRUnichar* buttonStrings[] = { button0Title, button1Title, button2Title };
     CString csBtnTitles[3];
 
+	//https://bugzilla.mozilla.org/show_bug.cgi?id=329414
 	//Set the cancel button to 1, and the default one.
 	int defButton = 256 + ((buttonFlags & 0x03000000) >> 24);
+
     for(int i=0; i<3; i++)
     {
         switch(buttonFlags & 0xff) {
