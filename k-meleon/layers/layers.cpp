@@ -32,6 +32,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <time.h>
+#include <tchar.h>
 
 #define KMELEON_PLUGIN_EXPORTS
 #include "../kmeleon_plugin.h"
@@ -50,7 +51,8 @@
 
 
 static BOOL bRebarEnabled  =   1;
-static char szTitle[MAX_PATH > 256 ? MAX_PATH : 256] = "Layers:";
+static BOOL bRebarBottom   =   0;
+static TCHAR szTitle[MAX_PATH > 256 ? MAX_PATH : 256] = _T("Layers:");
 static int  nButtonMinWidth   =  10;
 static int  nButtonMaxWidth;  // 35;
 static BOOL bButtonNumbers =   0;
@@ -68,6 +70,7 @@ static long lastTime;
 #define _T(x) x
 #define PREFERENCE_SETTINGS_DIR  _T("kmeleon.general.settingsDir")
 #define PREFERENCE_REBAR_ENABLED _T("kmeleon.plugins.layers.rebar")
+#define PREFERENCE_REBAR_BOTTOM "kmeleon.plugins.layers.rebarBottom"
 #define PREFERENCE_REBAR_TITLE   _T("kmeleon.plugins.layers.title")
 #define PREFERENCE_BUTTON_WIDTH  _T("kmeleon.plugins.layers.width")
 #define PREFERENCE_BUTTON_MINWIDTH  _T("kmeleon.plugins.layers.minWidth")
@@ -569,6 +572,7 @@ int Load(){
    
    // Get the rebar status
    kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_REBAR_ENABLED, &bRebarEnabled, &bRebarEnabled);
+   kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_REBAR_BOTTOM, &bRebarBottom, &bRebarBottom);
    kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_REBAR_TITLE, &szTitle, &szTitle);
    kPlugin.kFuncs->GetPreference(PREF_INT,  PREFERENCE_BUTTON_MINWIDTH, &nButtonMinWidth, &nButtonMinWidth);
    int tmpWidth = 0;
@@ -694,10 +698,13 @@ void Create(HWND parent, LPCREATESTRUCT pCS){
 
 // Preferences Dialog function
 BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-   
+   BOOL b;
    switch (uMsg) {
       case WM_INITDIALOG:
          SendDlgItemMessage(hWnd, IDC_REBARENABLED, BM_SETCHECK, bRebarEnabled, 0);
+		 b = bRebarBottom;
+		 kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_REBAR_BOTTOM, &b, &b);
+		 SendDlgItemMessage(hWnd, IDC_REBARBOTTOM, BM_SETCHECK, b, 0);
          break;
       case WM_COMMAND:
          switch(HIWORD(wParam)) {
@@ -706,8 +713,18 @@ BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
                   case IDOK:
                      bRebarEnabled = SendDlgItemMessage(hWnd, IDC_REBARENABLED, BM_GETCHECK, 0, 0);
                      kPlugin.kFuncs->SetPreference(PREF_BOOL, PREFERENCE_REBAR_ENABLED, &bRebarEnabled, FALSE);
+					 b = SendDlgItemMessage(hWnd, IDC_REBARBOTTOM, BM_GETCHECK, 0, 0);
+					 kPlugin.kFuncs->SetPreference(PREF_BOOL, PREFERENCE_REBAR_BOTTOM, &b, false);
+					 // Changing bRebarBottom now would only bring utter confusion
                   case IDCANCEL:
                      SendMessage(hWnd, WM_CLOSE, 0, 0);
+					 break;
+				  case IDC_REBARENABLED:
+					  GetDlgItem(hWnd, IDC_REBARENABLED);
+					  if (IsDlgButtonChecked(hWnd, IDC_REBARENABLED))
+						  EnableWindow(GetDlgItem(hWnd, IDC_REBARBOTTOM), TRUE);
+					  else
+						  EnableWindow(GetDlgItem(hWnd, IDC_REBARBOTTOM), FALSE);						  
                }
          }
          break;
@@ -1039,6 +1056,7 @@ void DoRebar(HWND rebarWnd){
       CS_DBLCLKS | CCS_NOPARENTALIGN | CCS_NORESIZE | //CCS_ADJUSTABLE |
       ((nButtonStyle & BS_3D) ? TBSTYLE_TRANSPARENT : (TBSTYLE_FLAT | TBSTYLE_TRANSPARENT)) | TBSTYLE_LIST | TBSTYLE_TOOLTIPS;
    
+   if (bRebarBottom) dwStyle |= CCS_BOTTOM;
    // Create the toolbar control to be added.
    //ghWndTB = CreateWindowEx(0, TOOLBARCLASSNAME, "",
    //                         WS_CHILD | dwStyle,
@@ -1075,6 +1093,8 @@ void DoRebar(HWND rebarWnd){
    SIZE size;
    SendMessage(ghWndTB, TB_GETMAXSIZE, 0, (LPARAM)&size);
    
+   if (!bRebarBottom)
+   {
    REBARBANDINFO rbBand = {0};
    rbBand.cbSize = sizeof(REBARBANDINFO);  // Required
    rbBand.fMask  = RBBIM_TEXT |
@@ -1093,8 +1113,12 @@ void DoRebar(HWND rebarWnd){
    
    // Add the band that has the toolbar.
    SendMessage(rebarWnd, RB_INSERTBAND, (WPARAM)-1, (LPARAM)&rbBand);
-}
+   }
+   else
+	   SendMessage(ghWndTB, TB_SETBUTTONSIZE, 0, 
+               MAKELONG(24, size.cy + ((nButtonStyle & BS_3D) ? 4 : 0)));
 
+}
 
 void UpdateLayersMenu (HWND hWndParent) {
    
@@ -1150,6 +1174,7 @@ void UpdateRebarMenu(struct layer *pLayer)
 
 void ShowMenuUnderButton(HWND hWndParent, HMENU hMenu, UINT uMouseButton, int iID) {
    // Find the toolbar
+   if (!bRebarBottom) {
    HWND hReBar = FindWindowEx(GetForegroundWindow(), NULL, REBARCLASSNAME, NULL);
    int uBandCount = SendMessage(hReBar, RB_GETBANDCOUNT, 0, 0);  
    int x = 0;
@@ -1189,8 +1214,23 @@ void ShowMenuUnderButton(HWND hWndParent, HMENU hMenu, UINT uMouseButton, int iI
 
       bFound = TRUE;
    }
-}
+   }
+   else
+   { // FIXME
+	   POINT pt;
+	   GetCursorPos(&pt);
 
+	   DWORD SelectionMade = TrackPopupMenu(hMenu, TPM_LEFTALIGN | uMouseButton | TPM_NONOTIFY | TPM_RETURNCMD, pt.x, pt.y, 0, hWndParent, 0);
+      
+      PostMessage(hWndParent, UWM_REFRESHTOOLBARITEM, (WPARAM) iID, 0);
+      
+      if (SelectionMade > 0) {
+         PostMessage(hWndParent, WM_COMMAND, (WPARAM) SelectionMade, iID);
+      }
+
+   }
+
+}
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
    struct frame *pFrame;
