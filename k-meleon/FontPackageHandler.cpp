@@ -203,7 +203,7 @@ void CDownloadFontDialog::OnBnClickedOk()
 		return;
 
     pFrm->m_wndBrowserView.OpenURL(
-		"http://www.mozilla.org/projects/intl/fonts/win/redirect/package_" + m_LangCode + ".html", nsnull);
+		_T("http://www.mozilla.org/projects/intl/fonts/win/redirect/package_") + m_LangCode + _T(".html"), nsnull);
 
 	pFrm->ShowWindow(SW_SHOW);
     pFrm->SetFocus();
