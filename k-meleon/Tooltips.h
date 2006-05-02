@@ -18,8 +18,6 @@
 
 #pragma once
 
-#include "stdafx.h"
-
 class CKmToolTip :  public CWnd {
 
 public:
