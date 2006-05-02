@@ -3,7 +3,7 @@
 #include "KmeleonConst.h"
 
 #ifndef DEFINEMAP_ADD
-#define DEFINEMAP_ADD(entry) defineMap[#entry] = entry;
+#define DEFINEMAP_ADD(entry) defineMap[_T(#entry)] = entry;
 #endif
 
 DEFINEMAP_ADD(ID_NAV_BACK)
