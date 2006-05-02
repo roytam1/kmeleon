@@ -16,6 +16,7 @@
 *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
+#include <tchar.h>
 #include <windows.h>
 #include <stdio.h>
 #include "privacy_res.h"
@@ -27,19 +28,17 @@
 
 #define PLUGIN_NAME "Privacy Plugin"
 
-#define _T(x) x
+#define PREFERENCE_SETTINGS_DIR         "kmeleon.general.settingsDir"
+#define PREFERENCE_CACHE_PARENTDIR      "browser.cache.disk.parent_directory"
+#define PREFERENCE_MRU_MAXURLS          "kmeleon.MRU.maxURLs"
+#define PREFERENCE_MRU_URL              "kmeleon.MRU.URL"
+#define PREFERENCE_SIGNON_FILE          "signon.SignonFileName"
 
-#define PREFERENCE_SETTINGS_DIR         _T("kmeleon.general.settingsDir")
-#define PREFERENCE_CACHE_PARENTDIR      _T("browser.cache.disk.parent_directory")
-#define PREFERENCE_MRU_MAXURLS          _T("kmeleon.MRU.maxURLs")
-#define PREFERENCE_MRU_URL              _T("kmeleon.MRU.URL")
-#define PREFERENCE_SIGNON_FILE          _T("signon.SignonFileName")
-
-#define PREFERENCE_CLEARCOOKIES  _T("kmeleon.plugins.privacy.clearCookies")
-#define PREFERENCE_CLEARCACHE    _T("kmeleon.plugins.privacy.clearCache")
-#define PREFERENCE_CLEARMRU      _T("kmeleon.plugins.privacy.clearMRU")
-#define PREFERENCE_CLEARSIGNON   _T("kmeleon.plugins.privacy.clearSignOn")
-#define PREFERENCE_CLEARHISTORY  _T("kmeleon.plugins.privacy.clearHistory")
+#define PREFERENCE_CLEARCOOKIES  "kmeleon.plugins.privacy.clearCookies"
+#define PREFERENCE_CLEARCACHE    "kmeleon.plugins.privacy.clearCache"
+#define PREFERENCE_CLEARMRU      "kmeleon.plugins.privacy.clearMRU"
+#define PREFERENCE_CLEARSIGNON   "kmeleon.plugins.privacy.clearSignOn"
+#define PREFERENCE_CLEARHISTORY  "kmeleon.plugins.privacy.clearHistory"
 
 #define PRV_ONSTARTUP 1
 #define PRV_ONSHUTDOWN 2
@@ -87,9 +86,9 @@ void Config(HWND parent);
 void Quit();
 void Exit();
 void DoMenu(HMENU menu, char *param);
-LONG DoMessage(LPCTSTR to, LPCTSTR from, LPCTSTR subject, LONG data1, LONG data2);
+LONG DoMessage(LPCSTR to, LPCSTR from, LPCSTR subject, LONG data1, LONG data2);
 void DoRebar(HWND rebarWnd);
-INT DoAccel(LPTSTR param);
+INT DoAccel(LPSTR param);
 
 kmeleonPlugin kPlugin =
 {
@@ -168,22 +167,22 @@ void EmptyDirectory(LPCTSTR sDirectory)
     TCHAR fileToDelete[MAX_PATH];
     TCHAR sDirMask[MAX_PATH];
         
-    strcpy(sDirMask, sDirectory);
-    strcat(sDirMask, "*");
+    _tcscpy(sDirMask, sDirectory);
+    _tcscat(sDirMask, _T("*"));
     hFind = FindFirstFile(sDirMask, &FindFileData);
     if (hFind != INVALID_HANDLE_VALUE)
     {
         if (!(FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
         {
-            strcpy(fileToDelete, sDirectory);
-            strcat(fileToDelete, FindFileData.cFileName);
+            _tcscpy(fileToDelete, sDirectory);
+            _tcscat(fileToDelete, FindFileData.cFileName);
             DeleteFile(fileToDelete);
         }
         while (FindNextFile(hFind, &FindFileData) != 0)
             if (!(FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
             {
-                strcpy(fileToDelete, sDirectory);
-                strcat(fileToDelete, FindFileData.cFileName);
+                _tcscpy(fileToDelete, sDirectory);
+                _tcscat(fileToDelete, FindFileData.cFileName);
                 DeleteFile(fileToDelete);
             }
         FindClose(hFind);
@@ -212,13 +211,13 @@ enum
 void RemoveCache()
 {
     TCHAR cacheDir[MAX_PATH];
-    strcpy(cacheDir, cacheParentDir);
-    strcat(cacheDir, "Cache\\");
+    _tcscpy(cacheDir, cacheParentDir);
+    _tcscat(cacheDir, _T("Cache\\"));
     
     EmptyDirectory(cacheDir);
 
-    strcpy(cacheDir, cacheParentDir);
-    strcat(cacheDir, "Cache.Trash\\");
+    _tcscpy(cacheDir, cacheParentDir);
+    _tcscat(cacheDir, _T("Cache.Trash\\"));
 
     EmptyDirectory(cacheDir);
 }
@@ -227,7 +226,7 @@ void RemoveCache()
 void ClearMRU()
 {
     UINT i, NbMRUs = 16;
-    TCHAR PrefName[256];
+    char PrefName[256];
     
     kFuncs->GetPreference(PREF_INT, PREFERENCE_MRU_MAXURLS, &NbMRUs, &NbMRUs);
     for (i=0; i<NbMRUs; i++)
@@ -313,11 +312,11 @@ void Exit()
     DoShutdownTasks();
 }
 
-void DoMenu(HMENU menu, LPTSTR param)
+void DoMenu(HMENU menu, LPSTR param)
 {
    if (*param != 0){
-      LPTSTR action = param;
-      LPTSTR string = strchr(param, ',');
+      LPSTR action = param;
+      LPSTR string = strchr(param, ',');
       if (string) {
          *string = 0;
          string = SkipWhiteSpace(string+1);
@@ -345,12 +344,12 @@ void DoMenu(HMENU menu, LPTSTR param)
          command = cmdClearSignon;
       }
       if (command) {
-         AppendMenu(menu, MF_STRING, command, string);
+         AppendMenuA(menu, MF_STRING, command, string);
       }
    }
 }
 
-INT DoAccel(LPTSTR param)
+INT DoAccel(LPSTR param)
 {
     if (stricmp(param, "Config") == 0){
         return cmdConfig;
@@ -377,7 +376,7 @@ void DoRebar(HWND rebarWnd)
 {
 }
 
-LONG DoMessage(LPCTSTR to, LPCTSTR from, LPCTSTR subject, LONG data1, LONG data2)
+LONG DoMessage(LPCSTR to, LPCSTR from, LPCSTR subject, LONG data1, LONG data2)
 {
    if (to[0] == '*' || stricmp(to, kPlugin.dllname) == 0)
    {
@@ -397,13 +396,13 @@ LONG DoMessage(LPCTSTR to, LPCTSTR from, LPCTSTR subject, LONG data1, LONG data2
          Exit();
       }
       else if (stricmp(subject, "DoMenu") == 0) {
-         DoMenu((HMENU)data1, (LPTSTR)data2);
+         DoMenu((HMENU)data1, (LPSTR)data2);
       }
       else if (stricmp(subject, "DoRebar") == 0) {
          DoRebar((HWND)data1);
       }
       else if (stricmp(subject, "DoAccel") == 0) {
-          *(PINT)data2 = DoAccel((LPTSTR)data1);
+          *(PINT)data2 = DoAccel((LPSTR)data1);
       }
       else return 0;
 
