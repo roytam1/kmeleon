@@ -1,6 +1,6 @@
 !packhdr	tmp.dat "C:\Progra~1\Upx\bin\upx.exe -9 --best --strip-relocs=1 tmp.dat"
 
-!define		NAME "K-MeleonSM"
+!define		NAME "K-Meleon"
 !define		VERSION "1.0"
 !define		ADDRESS "http://kmeleon.sourceforge.net/"  
 !define		GECKO_VERSION "1.8.0.2"
