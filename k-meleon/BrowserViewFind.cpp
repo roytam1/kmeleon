@@ -113,7 +113,7 @@ void CBrowserView::OnFindNext() {
 #ifndef FINDBAR_USE_TYPEAHEAD	
 	if(mpBrowserFrame->m_wndFindBar)
     {
-		finder->SetSearchString(T2CW(mpBrowserFrame->m_wndFindBar->GetFindString()));
+		finder->SetSearchString(mpBrowserFrame->m_wndFindBar->GetUFindString());
 		//finder->SetMatchCase(mpBrowserFrame->m_wndFindBar->MatchCase() ? PR_TRUE : PR_FALSE);
 		//finder->SetWrapFind(mpBrowserFrame->m_wndFindBar->WrapAround() ? PR_TRUE : PR_FALSE);
 		
