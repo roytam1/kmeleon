@@ -683,19 +683,24 @@ void UnSetOwnerDrawn(HMENU menu){
    OSVERSIONINFO osinfo;
    osinfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
    GetVersionEx(&osinfo);
+
+   // Windows 95 works differently
    bool w95 = (osinfo.dwMajorVersion == 4) && (osinfo.dwMinorVersion == 0);
+
+   // Windows 98 crashs, so let it leak.
+   bool w98Me = !w95 && osinfo.dwPlatformId==VER_PLATFORM_WIN32_WINDOWS;
 		
    int i;
    int count = GetMenuItemCount(menu);
-   for (i=0; i<count; i++) {
-
-	   mmi.fMask =  (w95 ? MIIM_TYPE : MIIM_FTYPE);
+   for (i=0; i<count; i++)
+   {
+	  mmi.fMask =  (w95 ? MIIM_TYPE : MIIM_FTYPE);
 	  GetMenuItemInfo(menu, i, true, &mmi);
 	  
       state = GetMenuState(menu, i, MF_BYPOSITION);
-      if (state & MF_POPUP){
+      if (state & MF_POPUP)
          UnSetOwnerDrawn(GetSubMenu(menu, i));
-      }
+      
 	  if (mmi.fType & MFT_OWNERDRAW) {
          mmi.fMask = MIIM_DATA | MIIM_ID;
          GetMenuItemInfo(menu, i, true, &mmi);
@@ -704,8 +709,8 @@ void UnSetOwnerDrawn(HMENU menu){
             ModifyMenu(menu, i, MF_BYPOSITION | MF_SEPARATOR, mmi.wID, NULL);
 		 else {
             ModifyMenu(menu, i, MF_BYPOSITION | MF_STRING, mmi.wID, (TCHAR*)mmi.dwItemData);
-			delete[] (TCHAR*)mmi.dwItemData; 
-		}
+			if (!w98Me) delete[] (TCHAR*)mmi.dwItemData; 
+		 }
       }
    }
 }
