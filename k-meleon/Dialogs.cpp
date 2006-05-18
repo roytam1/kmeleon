@@ -223,7 +223,7 @@ int CFindRebar::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	TBBUTTON button = {0};
 	button.fsState = TBSTATE_ENABLED;
 	button.fsStyle = TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE;
-	
+
 	//int stringID = toolbar->GetToolBarCtrl().AddString(IDS_FINDNEXT);
 	int stringID=-1;
     button.idCommand = ID_EDIT_FINDNEXT;
@@ -243,7 +243,7 @@ int CFindRebar::OnCreate(LPCREATESTRUCT lpCreateStruct)
    
 	//button.fsStyle = TBSTYLE_CHECK | TB_AUTOSIZE;
 	
-	button.fsStyle = TBBS_CHECKBOX;
+	button.fsStyle = TBBS_CHECKBOX | TBSTYLE_AUTOSIZE;
 
 	// Wrap around button
 	if (m_bWrapAround)
