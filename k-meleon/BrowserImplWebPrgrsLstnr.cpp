@@ -34,6 +34,8 @@
 
 #include "BrowserImpl.h"
 #include "IBrowserFrameGlue.h"
+#include "nsIRequest.h"
+#include "nsIChannel.h"
 
 //*****************************************************************************
 // CBrowserImpl::nsIWebProgressListener Implementation
@@ -91,7 +93,24 @@ NS_IMETHODIMP CBrowserImpl::OnStateChange(nsIWebProgress *progress,
 
   if ((progressStateFlags & STATE_STOP) && (progressStateFlags & STATE_IS_NETWORK))
   {
-    // We've completed the navigation
+     // We've completed the navigation
+	  /*if (request)
+	  {
+		  CString msg;
+
+		  nsCOMPtr<nsIChannel> channel = do_QueryInterface(request);
+		  if (channel)
+		  {
+			  switch (status) {
+				case 0x804B0002:
+					msg = "Stopped";
+					break;								
+				case 0x804B000E: 
+					msg = "Time out";
+					break;
+				}
+		  }
+	  }*/
 
     m_pBrowserFrameGlue->UpdateBusyState(PR_FALSE);
     m_pBrowserFrameGlue->UpdateProgress(0, 100);       // Clear the prog bar
@@ -136,7 +155,12 @@ CBrowserImpl::OnStatusChange(nsIWebProgress* aWebProgress,
                                  nsresult aStatus,
                                  const PRUnichar* aMessage)
 {
-  if(m_pBrowserFrameGlue)
+  PRBool b;
+  // Prevent showing status update for download.
+  // Hope it's not a bad way to do that
+  aWebProgress->GetIsLoadingDocument(&b);
+
+  if(b && m_pBrowserFrameGlue)
     m_pBrowserFrameGlue->UpdateStatusBarText(aMessage);
 
   return NS_OK;
