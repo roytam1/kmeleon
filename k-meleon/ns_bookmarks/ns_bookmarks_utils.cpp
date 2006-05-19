@@ -101,10 +101,10 @@ BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 					 GetDlgItemText(hWnd, IDC_BOOKMARKS_FILE, gBookmarkFile, MAX_PATH);
 					 kPlugin.kFuncs->SetPreference(PREF_STRING, PREFERENCE_BOOKMARK_FILE, gBookmarkFile, false);
 					 gBookmarkDefFile = false;
-					 delete gBookmarkRoot.child;
-					 delete gBookmarkRoot.next;
-					 gBookmarkRoot.child = NULL;
-					 gBookmarkRoot.next = NULL;
+					 delete gBookmarkRoot->child;
+					 delete gBookmarkRoot->next;
+					 gBookmarkRoot->child = NULL;
+					 gBookmarkRoot->next = NULL;
 					 FILE *bmFile = _tfopen(gBookmarkFile, _T("a"));
 					 if (bmFile)
 						fclose(bmFile);
@@ -371,10 +371,10 @@ static void create_backup(const char *file, int num=2)
 
 void SaveBM(const char *file)
 {
-   if (!gBookmarkRoot.child && !gBookmarkRoot.next) {
+   if (!gBookmarkRoot->child && !gBookmarkRoot->next) {
       if (MessageBox(NULL, "The bookmarks tree is empty.\nDo you really want to erase all your bookmarks?", PLUGIN_NAME ": WARNING" , MB_YESNO|MB_ICONEXCLAMATION) != IDYES) {
          LoadBM(gBookmarkFile);
-         if (!gBookmarkRoot.child && !gBookmarkRoot.next) {
+         if (!gBookmarkRoot->child && !gBookmarkRoot->next) {
             MessageBox(NULL, "Unable to recover old bookmarks.", PLUGIN_NAME ": BUG WARNING" , MB_OK|MB_ICONSTOP);
             return;
          }
@@ -421,7 +421,7 @@ void SaveBM(const char *file)
       fprintf(bmFile, "<TITLE>%s</TITLE>\n", gBookmarksTitle);
       fprintf(bmFile, "<H1>%s</H1>\n\n", gBookmarksTitle);
 
-      SaveBookmarks(bmFile, &gBookmarkRoot);
+      SaveBookmarks(bmFile, gBookmarkRoot);
 
       fclose(bmFile);
 
@@ -437,7 +437,7 @@ void SaveBM(const char *file)
    gBookmarksModified = false;
 
    /* this is to support both NS 4 and NS 6 style bookmarks */
-   kPlugin.kFuncs->SetPreference(PREF_STRING, PREFERENCE_TOOLBAR_FOLDER, (void *)gBookmarkRoot.FindSpecialNode(BOOKMARK_FLAG_TB)->text.c_str(), FALSE);
+   kPlugin.kFuncs->SetPreference(PREF_STRING, PREFERENCE_TOOLBAR_FOLDER, (void*)gBookmarkRoot->FindSpecialNode(BOOKMARK_FLAG_TB)->text.c_str(), false);
 
    ReleaseMutex(ghMutex);
 }
@@ -705,7 +705,7 @@ void LoadBM(const char *file)
          fread(bmFileBuffer, sizeof(char), bmFileSize, bmFile);
          
          strtok(bmFileBuffer, "\n");
-         ParseBookmarks(bmFileBuffer, gBookmarkRoot);
+         ParseBookmarks(bmFileBuffer, *gBookmarkRoot);
          
          delete [] bmFileBuffer;
       }
@@ -717,7 +717,7 @@ void LoadBM(const char *file)
 
 void findNick(char *nick, char **url)
 {
-   CBookmarkNode *retNode = (*nick ? gBookmarkRoot.FindNick(nick) : NULL);
+   CBookmarkNode *retNode = (*nick ? gBookmarkRoot->FindNick(nick) : NULL);
    
    if (retNode) {
       if (retNode->type == BOOKMARK_BOOKMARK) {
@@ -870,7 +870,7 @@ void CopyRebar(HWND hWndNewTB, HWND hWndOldTB)
 // Build Rebar
 void BuildRebar(HWND hWndTB)
 {
-   CBookmarkNode *toolbarNode = gBookmarkRoot.FindSpecialNode(BOOKMARK_FLAG_TB);
+   CBookmarkNode *toolbarNode = gBookmarkRoot->FindSpecialNode(BOOKMARK_FLAG_TB);
 
    SetWindowText(hWndTB, TOOLBAND_NAME);
 
@@ -939,7 +939,7 @@ void Rebuild() {
    kPlugin.kFuncs->SendMessage("bmpmenu", PLUGIN_NAME, "UnSetOwnerDrawn", (long)gMenuBookmarks, 0);
    while (DeleteMenu(gMenuBookmarks, nFirstBookmarkPosition, MF_BYPOSITION));
    // and rebuild
-   BuildMenu(gMenuBookmarks, gBookmarkRoot.FindSpecialNode(BOOKMARK_FLAG_BM), false);
+   BuildMenu(gMenuBookmarks, gBookmarkRoot->FindSpecialNode(BOOKMARK_FLAG_BM), false);
 
 #if 0
    // need to rebuild the rebar, too, in case it had submenus (whose ids are now invalid)
@@ -955,15 +955,89 @@ void Rebuild() {
 //   DrawMenuBar(hWnd);
 }
 
+void Fill_Combo(HWND hWnd, CBookmarkNode* node, unsigned short depth=0)
+{
+	for (CBookmarkNode* child=node->child; child; child=child->next) {
+		if (child->type == BOOKMARK_FOLDER) {
+			std::basic_string<TCHAR> title = child->text.c_str();
+			title.insert(0, depth*2, ' ');
+			int index = SendMessage(hWnd, CB_ADDSTRING, 0, (LPARAM)title.c_str());
+			SendMessage(hWnd, CB_SETITEMDATA, index, (LPARAM)child);
+			Fill_Combo(hWnd, child, depth+1);
+		}
+	}
+}
 
-int addLink(char *url, char *title, int flag)
+void addLink(TCHAR *url, TCHAR *title, TCHAR* nick, CBookmarkNode* node)
+{
+	if (!node || node->type!=BOOKMARK_FOLDER) return;
+
+	node->AddChild(new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), title, url, _T(""), _T(""), "", BOOKMARK_BOOKMARK, time(NULL)));
+	SaveBM(gBookmarkFile);
+	Rebuild();
+}
+
+int CALLBACK AddProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	switch (uMsg) {
+		case WM_INITDIALOG: {
+			kmeleonDocInfo *dInfo = kPlugin.kFuncs->GetDocInfo((HWND)lParam);
+			if (dInfo && dInfo->url) {
+				if (dInfo->title) {
+					SetDlgItemText(hDlg, IDC_TITLE, dInfo->title);
+				}else{
+					SetDlgItemText(hDlg, IDC_TITLE, dInfo->url);
+				}
+				SetDlgItemText(hDlg, IDC_URL, dInfo->url);
+			}
+			
+			HWND combo = GetDlgItem(hDlg, IDC_FOLDER);
+			int index = SendMessage(combo, CB_ADDSTRING, 0, (LPARAM)"Bookmarks");
+			SendMessage(combo, CB_SETITEMDATA, index, (LPARAM)gBookmarkRoot);
+			SendMessage(combo, CB_SETCURSEL, index, 0);
+			Fill_Combo(combo, gBookmarkRoot, 1);
+
+			// Set the height
+			RECT rect;
+			GetClientRect(combo, &rect);
+			int height = rect.bottom + 4 + SendMessage(combo, CB_GETITEMHEIGHT, 0, 0) * 10;
+			SetWindowPos(combo, 0,0,0,rect.right,height,SWP_NOMOVE|SWP_NOZORDER);
+
+			return TRUE;
+			}
+
+		case WM_COMMAND:
+			switch (LOWORD(wParam)) {
+				case IDOK: {
+					TCHAR title[1024], url[4096], nick[128];
+					GetDlgItemText(hDlg, IDC_TITLE, title, sizeof(title));
+					GetDlgItemText(hDlg, IDC_URL, url, sizeof(url));
+					GetDlgItemText(hDlg, IDC_NICK, nick, sizeof(nick));
+
+					HWND combo = GetDlgItem(hDlg, IDC_FOLDER);
+					int index = SendMessage(combo, CB_GETCURSEL, 0, 0);
+					CBookmarkNode* node = (CBookmarkNode*)SendMessage(combo, CB_GETITEMDATA, index, 0);
+
+					addLink(url, title, nick, node);
+					EndDialog( hDlg, IDOK );
+					break;
+					}
+				case IDCANCEL:
+					EndDialog( hDlg, IDCANCEL );
+					break;
+			}
+	}
+	return FALSE;
+}
+
+int addLink(TCHAR *url, TCHAR *title, int flag)
 {
    if (!url || !(*url))
       return false;
 
-   CBookmarkNode *addNode = gBookmarkRoot.FindSpecialNode(flag);
-   char *pszUrl = DecodeString(url);
-   char *pszTxt = DecodeString(title ? (*title ? title : url) : url);
+   CBookmarkNode *addNode = gBookmarkRoot->FindSpecialNode(flag);
+   TCHAR *pszUrl = DecodeString(url);
+   TCHAR *pszTxt = DecodeString(title ? (*title ? title : url) : url);
    addNode->AddChild(new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), pszTxt, pszUrl, "", "", "", BOOKMARK_BOOKMARK, time(NULL)));
    if (pszUrl)
       free(pszUrl);
@@ -1063,10 +1137,22 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
          return true;
       }
       else if (command == nAddCommand) {
-         kmeleonDocInfo *dInfo = kPlugin.kFuncs->GetDocInfo(hWnd);
-         if (dInfo) {
-            addLink(dInfo->url, dInfo->title, BOOKMARK_FLAG_NB);
-         }
+		 BOOL ask = TRUE;
+		 kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_BOOKMARK_ASKFOLDER, &ask, &ask);
+		 
+		 if (ask) {
+			 BOOL userFont = TRUE;
+			   DialogBoxParam(kPlugin.hDllInstance, MAKEINTRESOURCE(IDD_ADDBOOKMARK), NULL, AddProc, (LPARAM)hWnd);  
+		 }
+		 else
+		 {
+			 kmeleonDocInfo *dInfo = kPlugin.kFuncs->GetDocInfo(hWnd);
+			if (dInfo) {
+				if (dInfo->url) {
+					addLink(dInfo->url, dInfo->title, BOOKMARK_FLAG_NB);
+				}
+			}
+		 }
          return true;
       }
       else if (command == nAddLinkCommand) {
@@ -1102,7 +1188,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
          BringWindowToTop(hWnd);
          return true;
       }
-      else if (CBookmarkNode *node = gBookmarkRoot.FindNode(command)) {
+      else if (CBookmarkNode *node = gBookmarkRoot->FindNode(command)) {
          node->lastVisit = time(NULL);
          gBookmarksModified = true; // this doesn't call for instant saving, it can wait until we add/edit/quit
 
@@ -1189,7 +1275,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
             kPlugin.kFuncs->SetStatusBarText("Edit the bookmarks");
          return true;
       } 
-      else if (CBookmarkNode *node = gBookmarkRoot.FindNode(LOWORD(wParam))) {
+      else if (CBookmarkNode *node = gBookmarkRoot->FindNode(LOWORD(wParam))) {
          kPlugin.kFuncs->SetStatusBarText(node->url.c_str());
          return true;
       }

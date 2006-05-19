@@ -78,7 +78,7 @@ int gMaxTBSize;
 
 WNDPROC KMeleonWndProc;
 
-CBookmarkNode gBookmarkRoot(0, "", "", "", "", "", BOOKMARK_FOLDER, 0);
+CBookmarkNode *gBookmarkRoot;
 
 long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2);
 
@@ -141,6 +141,7 @@ int Load(){
    nDropdownCommand = kPlugin.kFuncs->GetCommandIDs(1);
    wm_deferbringtotop = kPlugin.kFuncs->GetCommandIDs(1);
 
+   gBookmarkRoot = new CBookmarkNode(0, _T(""), _T(""), _T(""), _T(""), "", BOOKMARK_FOLDER, 0);
    ghMutex = CreateMutex(NULL, FALSE, "BookmarksFileMutex");
 
    kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_BOOKMARK_FILE, gBookmarkFile, (char*)"");
@@ -258,6 +259,7 @@ void Quit(){
    if (gBookmarkDefFile || _tcscmp(tmp, gBookmarkFile) == 0)
 	   kPlugin.kFuncs->DelPreference(PREFERENCE_BOOKMARK_FILE);
 
+   delete gBookmarkRoot;
 }
 
 void Config(HWND hWndParent){
@@ -305,7 +307,7 @@ void DoMenu(HMENU menu, char *param){
 
       nFirstBookmarkPosition = GetMenuItemCount(menu);
 
-      BuildMenu(menu, gBookmarkRoot.FindSpecialNode(BOOKMARK_FLAG_BM), false);
+      BuildMenu(menu, gBookmarkRoot->FindSpecialNode(BOOKMARK_FLAG_BM), false);
    }
 }
 
@@ -418,7 +420,7 @@ extern "C" {
          return 18;
       }
 // FIXME - This is probably way too slow to be useful.
-      if (gBookmarkRoot.FindNode(LOWORD(dis->itemID))) {
+      if (gBookmarkRoot->FindNode(LOWORD(dis->itemID))) {
          if (dis->itemState & ODS_SELECTED){
             ImageList_Draw(gImagelist, IMAGE_BOOKMARK, dis->hDC, dis->rcItem.left, top, ILD_TRANSPARENT | ILD_FOCUS);
          }

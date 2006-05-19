@@ -10,6 +10,7 @@
 #define IDR_CONTEXTMENU                 159
 #define IDC_DRAG_CURSOR                 160
 #define IDB_ICON                        161
+#define IDD_ADDBOOKMARK                 170
 #define IDC_REBARENABLED                1000
 #define IDC_TREE_BOOKMARK               1034
 #define IDC_EDIT_URL                    1035
@@ -33,6 +34,7 @@
 #define ID_KEYBINDINGS                  1056
 #define IDC_NICK                        1057
 #define IDC_STATIC_NICK                 1058
+#define IDC_FOLDER                      1058
 #define IDC_INPUT			1059
 #define IDC_SEARCHTEXT			1060
 #define ID_BOOKMARK_DELETE              32791

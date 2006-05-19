@@ -80,7 +80,7 @@ extern int gMaxMenuLength;
 extern BOOL gMenuAutoDetect;
 extern int gMaxTBSize;
 
-extern CBookmarkNode gBookmarkRoot;
+extern CBookmarkNode* gBookmarkRoot;
 
 extern kmeleonPlugin kPlugin;
 

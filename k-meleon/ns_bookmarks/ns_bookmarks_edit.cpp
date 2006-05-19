@@ -86,7 +86,7 @@ static int pos;
 static int circling;
 
 
-static CBookmarkNode workingBookmarks; // this will hold a copy of the bookmarks for us to fuck with
+static CBookmarkNode* workingBookmarks; // this will hold a copy of the bookmarks for us to fuck with
 static BOOL bookmarksEdited;    // separate from gBookmarksModified - only tracks changes within edit dialog
 
 static HTREEITEM hTBitem;   // current toolbar folder treeview item
@@ -412,13 +412,13 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
                   if (len == 1 && !fakedKey) {
                      HTREEITEM hItem = TreeView_GetSelection(hTree);
                      node = GetBookmarkNode(hTree, hItem);
-                     if (workingBookmarks.Index(searchfrom, node) == -1)
+                     if (workingBookmarks->Index(searchfrom, node) == -1)
                         searchfrom = pos;
                      else
                         pos = searchfrom;
                   }
 
-                  int newpos = workingBookmarks.Search(str, searchfrom, mypos, firstpos, &node);
+                  int newpos = workingBookmarks->Search(str, searchfrom, mypos, firstpos, &node);
 
                   if (fakedKey || newpos == -1 || 
                       (circling && len > 1 && str[len-1] == str[len-2])) {
@@ -430,7 +430,7 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
                      mypos = 0;
                      firstpos = -1;
                      if (len > 0) {
-                        newpos = workingBookmarks.Search(str, searchfrom, mypos, firstpos, &node);
+                        newpos = workingBookmarks->Search(str, searchfrom, mypos, firstpos, &node);
                         if (!fakedKey && (newpos == pos || (len > 1 && str[len-1] == str[len-2]))) {
                            circling = 1;
                            while (len > 1 && str[len-1] == str[len-2])
@@ -438,7 +438,7 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
                            str[len] = 0;
                            mypos = 0;
                            firstpos = -1;
-                           newpos = workingBookmarks.Search(str, searchfrom, mypos, firstpos, &node);
+                           newpos = workingBookmarks->Search(str, searchfrom, mypos, firstpos, &node);
                         }
                      }
                   }
@@ -606,7 +606,8 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
          TreeView_SetImageList(hTree, gImagelist, TVSIL_NORMAL);
 
-         workingBookmarks = gBookmarkRoot;
+         workingBookmarks = new CBookmarkNode();
+		 *workingBookmarks = *gBookmarkRoot;
          bookmarksEdited = false;
 
          TVINSERTSTRUCT tvis;
@@ -622,9 +623,9 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
          // root starts out with all specials set to it - FillTree will unset any that are set elsewhere with ChangeSpecialFolders
          hTBitem = hNBitem = hBMitem = newItem;
-         workingBookmarks.flags = BOOKMARK_FLAG_TB | BOOKMARK_FLAG_NB | BOOKMARK_FLAG_BM;
+         workingBookmarks->flags = BOOKMARK_FLAG_TB | BOOKMARK_FLAG_NB | BOOKMARK_FLAG_BM;
 
-         FillTree(hTree, newItem, workingBookmarks);
+         FillTree(hTree, newItem, *workingBookmarks);
 
          TreeView_Expand(hTree, newItem, TVE_EXPAND);
 
@@ -656,7 +657,7 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
             // Put the new url/title into the box
             CBookmarkNode *newNode = (CBookmarkNode *)nmtv->itemNew.lParam;
 
-            if (newNode == &workingBookmarks || newNode->type == BOOKMARK_SEPARATOR) {
+            if (newNode == workingBookmarks || newNode->type == BOOKMARK_SEPARATOR) {
                // root and separators have nothing
                SetDlgItemText(hDlg, IDC_TITLE, "");
                SetDlgItemText(hDlg, IDC_URL, "");
@@ -989,13 +990,13 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                         if (bmFileBuffer){
                            fread(bmFileBuffer, sizeof(char), bmFileSize, bmFile);
 			   if (feof(bmFile)) {
-			     delete gBookmarkRoot.child;
-			     delete gBookmarkRoot.next;
-			     gBookmarkRoot.child = NULL;
-			     gBookmarkRoot.next = NULL;
+			     delete gBookmarkRoot->child;
+			     delete gBookmarkRoot->next;
+			     gBookmarkRoot->child = NULL;
+			     gBookmarkRoot->next = NULL;
 			     
 			     strtok(bmFileBuffer, "\n");
-			     ParseBookmarks(bmFileBuffer, gBookmarkRoot);
+			     ParseBookmarks(bmFileBuffer, *gBookmarkRoot);
                              Rebuild();
                            }
 
@@ -1012,6 +1013,7 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 				  DestroyIcon((HICON)SendMessage(hDlg, WM_GETICON, ICON_SMALL, 0));
 				  DestroyIcon((HICON)SendMessage(hDlg, WM_GETICON, ICON_BIG, 0));
+				  delete workingBookmarks;
                   EndDialog(hDlg, 0);
                   break;
                }
@@ -1019,6 +1021,7 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
             case IDOK:
                if (bookmarksEdited) {
+				  delete gBookmarkRoot;
                   gBookmarkRoot = workingBookmarks;
                   SaveBM(gBookmarkFile);
 
@@ -1163,7 +1166,7 @@ static void MoveItem(HWND hTree, HTREEITEM item, int mode) {
       oldParentNode = GetBookmarkNode(hTree, oldParentItem);
    }
    else {
-      oldParentNode = &workingBookmarks;
+      oldParentNode = workingBookmarks;
    }
 
    // determine the new location in the treeview
@@ -1319,7 +1322,7 @@ static void MoveItem(HWND hTree, HTREEITEM item, int mode) {
       newParentNode = GetBookmarkNode(hTree, tvis.hParent);
    }
    else{
-      newParentNode = &workingBookmarks;
+      newParentNode = workingBookmarks;
    }
 
    // This conditional only works because we check newPreviousNode's existence before checking its nexts, which will crash if the node is NULL)
@@ -1921,7 +1924,7 @@ static void ImportFavorites(HWND hTree) {
 
    // make new node for favorites (child off of WorkingBookmarks)
    CBookmarkNode *newFavoritesNode = new CBookmarkNode(0, "Imported Favorites", "", "", "", "", BOOKMARK_FOLDER, time(NULL));
-   workingBookmarks.AddChild(newFavoritesNode);
+   workingBookmarks->AddChild(newFavoritesNode);
 
    BuildFavoritesTree(FavoritesPath, "", newFavoritesNode);
 
