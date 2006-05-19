@@ -929,8 +929,10 @@ BOOL CSelectDialog::OnInitDialog()
 	CDialog::OnInitDialog();
 
 	POSITION pos = m_clChoices.GetHeadPosition();
-	for (int i=0;i < m_clChoices.GetCount();i++)
-		m_cList.AddString(m_clChoices.GetNext(pos));
+	for (int i=0;i < m_clChoices.GetCount();i++) {
+		int idx = m_cList.AddString(m_clChoices.GetNext(pos));
+		m_cList.SetItemData(idx, i);
+	}
 	
    	SetWindowText(m_csDialogTitle);
   
@@ -949,7 +951,8 @@ void CSelectDialog::AddChoice(LPCTSTR text)
 
 void CSelectDialog::OnBnClickedOk()
 {
-	m_iChoice = m_cList.GetCaretIndex();
+	int idx = m_cList.GetCaretIndex();
+	m_iChoice = m_cList.GetItemData(idx);
 	OnOK();
 }
 
