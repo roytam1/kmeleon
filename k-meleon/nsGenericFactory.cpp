@@ -45,19 +45,15 @@
 #ifdef XPCOM_GLUE
 
 // DO NOT COPY THIS CODE INTO YOUR SOURCE!  USE NS_IMPL_NSGETMODULE()
+
 #include "nsGenericFactory.h"
 #include "nsMemory.h"
 #include "nsCOMPtr.h"
 #include "nsIComponentManager.h"
 #include "nsIComponentRegistrar.h"
 
-#ifdef XPCOM_GLUE
 #include "nsXPCOMGlue.h"
 //#include "nsXPCOMPrivate.h"
-#else
-#include "nsIInterfaceRequestorUtils.h"
-//#include "nsINativeComponentLoader.h"
-#endif
 
 nsGenericFactory::nsGenericFactory(const nsModuleComponentInfo *info)
     : mInfo(info)
