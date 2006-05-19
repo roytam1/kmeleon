@@ -418,6 +418,7 @@ char* CBrowserView::NicknameLookup(const char* pUrl)
     char *p, *q, *r;
     char *nickUrl;
     char *retUrl;
+
     // Check for a nickname
     nickUrl = NULL;
     p = strdup(pUrl);                   // get entered URL
@@ -918,8 +919,8 @@ void CBrowserView::OnFileOpen()
         CString strFullPath = szFileName;
 
         FILE *test = _tfopen(strFullPath, _T("r"));
-        USES_CONVERSION;
 
+        USES_CONVERSION;
         if (!test) {
             // if the file doesn't exist, they probably typed a url...
             // so chop off the path (for some reason GetFileName doesn't work for us...
@@ -1209,7 +1210,6 @@ void CBrowserView::OnFilePrintSetup()
       m_PrintSettings->SetMarginRight(GetFloatFromStr(theApp.preferences.printMarginRight));
       m_PrintSettings->SetMarginBottom(GetFloatFromStr(theApp.preferences.printMarginBottom));
 
-
 	  theApp.preferences.printShrinkToFit = dlg.m_ShrinkToFit;
       theApp.preferences.printScaling = dlg.m_Scaling;
       theApp.preferences.printBGColors = dlg.m_PrintBGColors;
@@ -1264,6 +1264,7 @@ void CBrowserView::OnFilePrintSetup()
       if (uStr != nsnull) nsMemory::Free(uStr);
       theApp.preferences.printFooterRight = dlg.m_FooterRight;
    }
+
    if (m_InPrintPreview) 
    {
 	    nsCOMPtr<nsIWebBrowserPrint> print(do_GetInterface(mWebBrowser));
@@ -1499,7 +1500,7 @@ void CBrowserView::OnNavSearch()
 {
    CString search;
    if (DialogBoxParam(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDD_SEARCH_DIALOG), m_hWnd, SearchProc, (LPARAM)&search)) {
-      search.Replace("+", "%2b");
+      search.Replace(_T("+"), _T("%2b"));
       OpenURL(theApp.preferences.searchEngine + search);
    }
 }
@@ -1786,9 +1787,11 @@ void CBrowserView::OnDecreaseFont() {
 
 void CBrowserView::ChangeTextSize(PRInt32 change)
 {
+   nsresult rv;
    class nsIDOMWindow *domWindow;
-   mWebBrowser->GetContentDOMWindow(&domWindow);
-   
+   rv = mWebBrowser->GetContentDOMWindow(&domWindow);
+   if (NS_FAILED(rv)) return;
+
    float textzoom;
    domWindow->GetTextZoom(&textzoom);
    textzoom += ((float)change) / 10;
