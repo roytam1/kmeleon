@@ -110,11 +110,14 @@ BOOL CBrowserView::OpenViewSourceWindow(const char* pUrl)
 	    char *url = strdup(pUrl);
          
 	    if (url && strnicmp(url, "view-source:file:///", 20) == 0) {
-		unsigned int i;
-		for (i=0; i<strlen(url); i++)
-		    if (url[i]=='/')
-			url[i]='\\';
-		tempfile = nsUnescape(url+strlen("view-source:file:///"));
+			unsigned int i;
+			for (i=0; i<strlen(url); i++)
+				if (url[i]=='/')
+					url[i]='\\';
+			tempfile = nsUnescape(url+strlen("view-source:file:///"));
+			OpenFileExternal("", tempfile.GetBuffer(0), NS_OK,
+				_tcsdup(theApp.preferences.sourceCommand.GetBuffer(0)));
+			return TRUE;
 	    }
 	    
 	    nsCOMPtr<nsIWebBrowserPersist> persist(do_CreateInstance(NS_WEBBROWSERPERSIST_CONTRACTID));
