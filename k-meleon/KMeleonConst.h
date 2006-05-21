@@ -19,6 +19,8 @@
 #define KMELEON_VERSION				   0x00010000
 
 #define WM_DEFERSHOW				   WM_USER + 150
+#define WM_DEFERSAVEAS                 WM_USER + 151
+
 #define UWM_UPDATESESSIONHISTORY       WM_APP + 110
 #define UWM_REFRESHTOOLBARITEM         WM_APP + 111
 #define UWM_UPDATEBUSYSTATE            WM_APP + 112

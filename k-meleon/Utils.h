@@ -17,6 +17,7 @@
 */
 
 #include <stdio.h>
+#include <tchar.h>
 
 void TranslateTabs(char *buffer);
 void TrimWhiteSpace(char *string);
@@ -25,3 +26,4 @@ int CondenseString(char *buf, int size);
 char *fixString(const char *inString, int size);
 long FileSize(FILE *file);
 char* nsUnescape(char * str);
+void MakeFilename(TCHAR* name);

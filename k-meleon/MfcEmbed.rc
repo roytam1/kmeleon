@@ -1669,8 +1669,13 @@ BEGIN
     IDS_PERMISSION_POPUP    "You can specify what website are authorized to open popup. Write the url below and click on allow."
     IDS_AUTHORIZED          "Authorized"
     IDS_DENIED              "Denied"
+    IDS_NOT_FINISHED_LOADING 
+                            "You must wait for the page to be loaded before you can save it."
+    IDS_WEBPAGE_HTMLONLY    "Web Page, HTML Only"
+    IDS_WEBPAGE_COMPLETE    "Web Page, Complete"
     IDS_PREFS_DOWNLOAD      "Download"
     IDS_PROFILE_LOAD_FAILED "The selected profile can't be loaded. It's probably already in use."
+    IDS_SAVE_FAILED         "K-Meleon was unable to save this document."
 END
 
 STRINGTABLE 

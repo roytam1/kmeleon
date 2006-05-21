@@ -58,6 +58,26 @@ class nsIPrintSettings;
 	USES_CONVERSION;\
 	strcpy(dest, W2CA(source.get()));\
 }
+class CSaveAsHandler : public nsIWebProgressListener					    
+{
+public:
+   CSaveAsHandler(nsIWebBrowserPersist* aPersist, nsIFile* aFile, nsIURI* aURL, nsIDOMDocument* aDocument,nsISupports* aDescriptor, nsIURI* aReferrer, CBrowserFrame* aBrower );
+   virtual ~CSaveAsHandler();
+   NS_DECL_ISUPPORTS
+   NS_DECL_NSIWEBPROGRESSLISTENER
+   NS_IMETHOD Save(const char* contentType, const char* disposition = NULL);
+
+protected:
+	nsIWebBrowserPersist* mPersist; 
+	nsCOMPtr<nsISupports> mDescriptor;
+	nsCOMPtr<nsIFile> mFile;
+	nsCOMPtr<nsIURI> mURL;
+	nsCOMPtr<nsIURI> mRealURI;
+	nsCOMPtr<nsIDOMDocument> mDocument;
+	nsCOMPtr<nsIURI> mReferrer;
+	nsEmbedCString mContentDisposition;
+	CBrowserFrame* mBrowser;
+};
 
 class CBrowserView : public CWnd
 {
@@ -109,6 +129,7 @@ public:
 
 	void UpdateBusyState(PRBool aBusy);
 	PRBool mbDocumentLoading;
+	BOOL mbDOMLoaded;
 
     nsIDOMNode *GetNodeAtPoint(int x, int y, BOOL bPrepareMenu);
     int m_iGetNodeHack;
@@ -167,7 +188,8 @@ public:
 
     void GetBrowserWindowTitle(nsEmbedString& title);
 
-    NS_IMETHODIMP URISaveAs(nsIURI *aURI, bool bDocument=FALSE);
+    BOOL URISaveAs(nsIURI *aURI, int bDocument=0);
+	BOOL URISaveAs(PRUnichar* aURI , int bDocument=0);
 
     void OnIncreaseFont();
     void OnDecreaseFont();

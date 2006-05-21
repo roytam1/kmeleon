@@ -384,8 +384,12 @@
 #define IDS_ALLOW_POPUP                 61269
 #define IDS_AUTHORIZED                  61271
 #define IDS_DENIED                      61272
+#define IDS_NOT_FINISHED_LOADING        61273
+#define IDS_WEBPAGE_HTMLONLY            61274
+#define IDS_WEBPAGE_COMPLETE            61275
 #define IDS_PREFS_DOWNLOAD              61276
 #define IDS_PROFILE_LOAD_FAILED         61277
+#define IDS_SAVE_FAILED                 61278
 #define IDS_OK                          61279
 #define IDS_CANCEL                      61280
 #define IDS_NO                          61281

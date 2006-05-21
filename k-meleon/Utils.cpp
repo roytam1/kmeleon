@@ -19,6 +19,22 @@
 #include "string.h"
 #include "Utils.h"
 
+void MakeFilename(TCHAR* name)
+{
+	TCHAR *p;
+	for (p=name; *p; p++)
+	{
+		if (*p==_T('\\') ||
+			*p==_T('/') ||
+			*p==_T('<') ||
+			*p==_T('>') ||
+			*p==_T(':') ||
+			*p==_T('?') ||
+			*p==_T('|') )
+		*p = _T('_');
+	}
+}
+
 void TranslateTabs(char *buffer)
 {
   char *p;
