@@ -1313,7 +1313,7 @@ BOOL GetSelectionInsideForm(nsIDOMElement *element, nsEmbedString &aSelText)
 	return FALSE;
 }
 
-_GetSelection(nsIDOMWindow* dom, CString& aSelText)
+BOOL CBrowserView::_GetSelection(nsIDOMWindow* dom, nsAString &aSelText)
 {
 	nsCOMPtr<nsISelection> sel;
 	dom->GetSelection(getter_AddRefs(sel));
@@ -1324,9 +1324,9 @@ _GetSelection(nsIDOMWindow* dom, CString& aSelText)
 		nsresult rv = sel->ToString(&selText);
 		NS_ENSURE_SUCCESS(rv, FALSE);
 
-		aSelText = W2CT(selText);
+		aSelText = selText;
 		nsMemory::Free(selText);
-		if (aSelText.GetLength()>0)
+		if (aSelText.Length()>0)
 			return TRUE;
 	}
 
@@ -1353,6 +1353,7 @@ _GetSelection(nsIDOMWindow* dom, CString& aSelText)
 BOOL CBrowserView::GetSelection(CString& aSelText)
 {
 	nsresult rv;
+	nsEmbedString selText;
 
 	nsCOMPtr<nsIDOMWindow> dom(do_GetInterface(mWebBrowser));
 	NS_ENSURE_TRUE(dom, FALSE);
@@ -1363,7 +1364,6 @@ BOOL CBrowserView::GetSelection(CString& aSelText)
 	mWebBrowserFocus->GetFocusedElement(getter_AddRefs(element));
 	if (element)
 	{
-		nsEmbedString selText;
 		if (GetSelectionInsideForm(element, selText)) {
 			USES_CONVERSION;
 			aSelText = W2CT(selText.get());
@@ -1372,7 +1372,12 @@ BOOL CBrowserView::GetSelection(CString& aSelText)
 	}
 
 	// Check normal selection inside the document
-	return _GetSelection(dom, aSelText);
+	if (!_GetSelection(dom, selText))
+		return FALSE;
+
+	USES_CONVERSION;
+	aSelText = W2CT(selText.get());
+	return TRUE;
 }
 
 /*
