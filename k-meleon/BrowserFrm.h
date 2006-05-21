@@ -61,10 +61,29 @@ public:
     CMyStatusBar();
     virtual ~CMyStatusBar();
 
-protected:
-    afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
+	BOOL RemoveIcon(UINT nID);
+	BOOL AddIcon(UINT nID);
+	BOOL SetIconInfo(UINT nID, HICON hIcon, LPCTSTR tpText = NULL);
+	void GetItemRect(UINT i, LPRECT r);
 
+protected:
+	struct icon_info 
+	{
+		UINT    nID; 
+		HICON	hIcon;
+		LONG	lWidth;
+		CString csTpText;
+	};
+
+    CArray<struct icon_info, struct icon_info> arrIcons;
+ 	CFont m_statusFont;
+
+	void RefreshPanes();
+	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
     DECLARE_MESSAGE_MAP()
+public:
+	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
+	afx_msg void OnDestroy();
 };
 
 class CToolBarList;

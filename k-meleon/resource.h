@@ -277,6 +277,8 @@
 #define IDC_SHRINK_TOFIT                1195
 #define IDC_LIST_SELECT                 1196
 #define IDC_FILE_ICON                   2115
+#define ID_POPUP_BLOCKED_ICON           2200
+#define ID_SECURITY_STATE_ICON          2201
 #define ID_NAV_BACK                     32773
 #define ID_NAV_FORWARD                  32774
 #define ID_NAV_HOME                     32775
