@@ -202,6 +202,7 @@ public:
     BOOL GetPrintSettings();
 	BOOL CloneSHistory(CBrowserView& newWebBrowser);
 
+	CString m_csHostPopupBlocked;
 
 protected:
 	BOOL _InjectCSS(nsIDOMWindow* dom, const wchar_t* userStyleSheet);
@@ -313,6 +314,8 @@ protected:
 	afx_msg void OnWrapAround();
 	afx_msg void OnMatchCase();
 	afx_msg void OnHighlight();
+	afx_msg void OnSecurityStateIcon();
+	afx_msg void OnPopupBlockedIcon();
 
     afx_msg void OnEditURL( NMHDR * pNotifyStruct, LRESULT * result );
     //afx_msg void OnDragURL( NMHDR * pNotifyStruct, LRESULT * result );

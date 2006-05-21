@@ -131,6 +131,12 @@ void CBrowserFrame::BrowserFrameGlueObj::UpdateCurrentURI(nsIURI *aLocation)
         nsEmbedString uriString2;
         NS_CStringToUTF16(uriString, NS_CSTRING_ENCODING_UTF8, uriString2);
 
+		// Reset the popup notification and the icon uri
+        if (!(pThis->m_wndBrowserView.m_csHostPopupBlocked.IsEmpty())) {
+			pThis->m_wndStatusBar.RemoveIcon(ID_POPUP_BLOCKED_ICON);
+			pThis->m_wndBrowserView.m_csHostPopupBlocked.Truncate(0);
+		}
+
 		// Prevent to move the caret in the urlbar
 		CString currentURL;
 		pThis->m_wndUrlBar.GetEnteredURL(currentURL);
@@ -825,6 +831,31 @@ void CBrowserFrame::BrowserFrameGlueObj::MouseAction(nsIDOMNode *node)
 {
 	METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
 	pThis->m_wndBrowserView.m_lastMouseActionNode = node;
+}
+
+void CBrowserFrame::BrowserFrameGlueObj::PopupBlocked(const char* uri)
+{
+	METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
+	
+	// Do nothing if an icon was set already or if the user
+	// don't want popup notification
+	if (!theApp.preferences.GetBool("browser.popups.showPopupBlocker", PR_TRUE)
+		|| !pThis->m_wndBrowserView.m_csHostPopupBlocked.IsEmpty())
+		return;
+	
+	pThis->m_wndStatusBar.AddIcon(ID_POPUP_BLOCKED_ICON);
+	HICON hTmpPopupIcon = 
+		(HICON)::LoadImage(AfxGetResourceHandle(),
+        MAKEINTRESOURCE(IDI_POPUP_BLOCKED), IMAGE_ICON, 16,16,LR_LOADMAP3DCOLORS);
+	
+	CString tpText;
+	USES_CONVERSION;
+	const TCHAR* turi = A2CT(uri);
+	
+	tpText.Format(IDS_POPUP_BLOCKED, turi);
+	pThis->m_wndStatusBar.SetIconInfo(ID_POPUP_BLOCKED_ICON, hTmpPopupIcon, tpText);
+	
+	pThis->m_wndBrowserView.m_csHostPopupBlocked = turi;
 }
 
 

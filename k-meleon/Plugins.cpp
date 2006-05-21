@@ -817,6 +817,24 @@ BOOL GetMozillaWebBrowser(HWND hWnd, nsIWebBrowser** webBrowser)
 	return TRUE;
 }
 
+void AddStatusBarIcon(HWND hWnd, int id, HICON hIcon, char* tpText)
+{
+	CBrowserFrame *browserFrm = (CBrowserFrame *)CWnd::FromHandle(hWnd);
+	if (!browserFrm) return;
+
+	USES_CONVERSION;
+	browserFrm->m_wndStatusBar.AddIcon(id);
+	browserFrm->m_wndStatusBar.SetIconInfo(id, hIcon, A2CT(tpText));
+}
+
+void RemoveStatusBarIcon(HWND hWnd, int id)
+{
+	CBrowserFrame *browserFrm = (CBrowserFrame *)CWnd::FromHandle(hWnd);
+	if (!browserFrm) return;
+	
+	browserFrm->m_wndStatusBar.RemoveIcon(id);
+}	
+
 BOOL InjectJS(const char* js, bool bTopWindow, HWND hWnd)
 {
 	CBrowserFrame *browserFrm;
@@ -885,8 +903,8 @@ kmeleonFunctions kmelFuncs = {
    TranslateEx,
    NULL,
    GetMozillaWebBrowser,
-   NULL,
-   NULL,
+   AddStatusBarIcon,
+   RemoveStatusBarIcon,
    InjectJS,
    InjectCSS,
    GetInfoAtClick,

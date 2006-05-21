@@ -1389,6 +1389,7 @@ IDI_ON                  ICON                    "res\\on.ico"
 IDR_SECURITY_LOCK       ICON                    "res\\ssecur.ico"
 IDR_SECURITY_UNLOCK     ICON                    "res\\sinsecur.ico"
 IDR_SECURITY_BROKEN     ICON                    "res\\broken.ico"
+IDI_POPUP_BLOCKED       ICON                    "res\\popupblock.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -1667,6 +1668,11 @@ END
 STRINGTABLE 
 BEGIN
     IDS_PERMISSION_POPUP    "You can specify what website are authorized to open popup. Write the url below and click on allow."
+    IDS_SECURITY_LOCK       "This web page is secure. Click to show details."
+    IDS_SECURITY_BROKEN     "The security state is broken"
+    IDS_SECURITY_UNLOCK     "This web page is not secure"
+    IDS_POPUP_BLOCKED       "A popup was blocked. Click to allow popup from %s."
+    IDS_ALLOW_POPUP         "Do you want to allow %s to open popup in the future?"
     IDS_AUTHORIZED          "Authorized"
     IDS_DENIED              "Denied"
     IDS_NOT_FINISHED_LOADING 

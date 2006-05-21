@@ -66,6 +66,7 @@
 #include "Utils.h"
 #include "KmeleonConst.h"
 #include "kmeleon_plugin.h"
+#include "Permissions.h"
 #include "nsIDOMEventTarget.h"
 #include <wininet.h>
 
@@ -168,6 +169,8 @@ BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
     ON_COMMAND(ID_LINK_KMELEON_MANUAL, OnKmeleonManual)
     ON_COMMAND(ID_LINK_ABOUT_PLUGINS, OnAboutPlugins)
     ON_COMMAND(ID_MOUSE_ACTION, OnMouseAction)
+	ON_COMMAND(ID_SECURITY_STATE_ICON, OnSecurityStateIcon)
+	ON_COMMAND(ID_POPUP_BLOCKED_ICON, OnPopupBlockedIcon)
 	ON_COMMAND(IDC_WRAP_AROUND, OnWrapAround)
 	ON_COMMAND(IDC_MATCH_CASE, OnMatchCase)
 	ON_COMMAND(IDC_HIGHLIGHT, OnHighlight)
@@ -197,7 +200,7 @@ CBrowserView::CBrowserView()
     m_pPrintProgressDlg = NULL; 
     m_bCurrentlyPrinting = FALSE;
 
-    m_SecurityState = SECURITY_STATE_INSECURE;
+    m_SecurityState = -1;
 
     m_InPrintPreview = FALSE;
 
@@ -332,6 +335,8 @@ HRESULT CBrowserView::CreateBrowser()
 	if (NS_SUCCEEDED(rv) && !(mpBrowserFrame->m_chromeMask & nsIWebBrowserChrome::CHROME_OPENAS_CHROME ))
 	{
 		rv = mEventTarget->AddEventListener(NS_LITERAL_STRING("mousedown"),
+			                        mpBrowserImpl, PR_TRUE);
+		rv = mEventTarget->AddEventListener(NS_LITERAL_STRING("DOMPopupBlocked"),
 			                        mpBrowserImpl, PR_FALSE);
 	}
     // Finally, show the web browser window
@@ -355,6 +360,8 @@ HRESULT CBrowserView::DestroyBrowser()
 	{
 		mEventTarget->RemoveEventListener(NS_LITERAL_STRING("mousedown"),
 				  mpBrowserImpl, PR_FALSE);
+		mEventTarget->RemoveEventListener(NS_LITERAL_STRING("DOMPopupBlocked"),
+				  mpBrowserImpl, PR_FALSE);
 	}
 
     if(mBaseWindow)
@@ -369,6 +376,10 @@ HRESULT CBrowserView::DestroyBrowser()
         mpBrowserImpl = nsnull;
     }
    
+	if ( !m_csHostPopupBlocked.IsEmpty()) {
+		mpBrowserFrame->m_wndStatusBar.RemoveIcon(ID_POPUP_BLOCKED_ICON);
+	}
+
     return NS_OK;
 }
 
@@ -1812,4 +1823,22 @@ void CBrowserView::OnToggleOffline()
 	status.LoadString( theApp.preferences.bOffline ? IDS_OFFLINE : IDS_ONLINE );
 
     mpBrowserFrame->m_wndStatusBar.SetPaneText(0, status); 
+}
+
+void CBrowserView::OnSecurityStateIcon()
+{
+	ShowSecurityInfo();
+}
+
+void CBrowserView::OnPopupBlockedIcon()
+{
+	CString msg;
+	int x;
+	msg.Format(IDS_ALLOW_POPUP, m_csHostPopupBlocked);
+	if ( (x =::AfxMessageBox(msg, MB_YESNO|MB_ICONQUESTION)) == IDYES)
+	{
+		USES_CONVERSION;
+		CPermissions permissions("popup");
+		permissions.set(T2A(m_csHostPopupBlocked.GetBuffer(0)), 1);
+	}
 }

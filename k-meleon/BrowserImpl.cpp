@@ -70,10 +70,10 @@
 
 
 #include "stdafx.h"
-
+#include "BrowserImpl.h"
 
 #include "nsIDOMWindow.h"
-#include "BrowserImpl.h"
+#include "nsIDOMPopupBlockedEvent.h"
 
 CBrowserImpl::CBrowserImpl()
 {
@@ -510,8 +510,8 @@ NS_IMETHODIMP CBrowserImpl::OnHideTooltip()
 #include "nsIDOMWindow2.h"
 #include "nsIScriptSecurityManager.h" 
 
-extern NewURI(nsIURI **result, const nsAString &spec);
-extern NewURI(nsIURI **result, const nsACString &spec);
+extern nsresult NewURI(nsIURI **result, const nsAString &spec);
+extern nsresult NewURI(nsIURI **result, const nsACString &spec);
 
 NS_IMETHODIMP CBrowserImpl::HandleEvent(nsIDOMEvent *event)
 {
@@ -519,6 +519,23 @@ NS_IMETHODIMP CBrowserImpl::HandleEvent(nsIDOMEvent *event)
 
 	nsEmbedString type;
 	event->GetType(type);
+	if (type.Equals(NS_LITERAL_STRING("DOMPopupBlocked"))) {
+		nsCOMPtr<nsIDOMPopupBlockedEvent> popupEvent = do_QueryInterface(event);
+		NS_ENSURE_TRUE (popupEvent, NS_ERROR_FAILURE);
+
+		nsCOMPtr<nsIURI> uri;
+		popupEvent->GetRequestingWindowURI(getter_AddRefs(uri));
+		NS_ENSURE_TRUE (uri, NS_ERROR_FAILURE);
+
+		nsEmbedCString host;
+		rv = uri->GetHost(host);
+		NS_ENSURE_SUCCESS (rv, rv);
+		NS_ENSURE_TRUE (host.Length(), NS_OK);
+	
+		m_pBrowserFrameGlue->PopupBlocked(host.get());
+		return NS_OK;
+	}
+	
 	if (type.Equals(NS_LITERAL_STRING("mousedown"))) {
         nsCOMPtr<nsIDOMEventTarget> target;
 		event->GetTarget(getter_AddRefs(target));

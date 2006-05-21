@@ -104,13 +104,6 @@ BEGIN_MESSAGE_MAP(CBrowserFrame, CFrameWnd)
 	ON_WM_SYSCOMMAND()
 END_MESSAGE_MAP()
 
-static UINT indicators[] =
-{
-    ID_SEPARATOR,              // For the Status line
-    ID_PROG_BAR,               // For the Progress Bar
-    ID_SEPARATOR
-};
-
 #define PREF_TOOLBAND_LOCKED "kmeleon.general.toolbars_locked"
 
 /////////////////////////////////////////////////////////////////////////////
@@ -128,6 +121,7 @@ CBrowserFrame::CBrowserFrame(PRUint32 chromeMask, LONG style = 0)
     m_ignoreFocus = 2;
     m_hSecurityIcon = NULL;
 	m_wndFindBar = NULL;
+	m_wndLastFocused = NULL;
 }
 
 CBrowserFrame::~CBrowserFrame()
@@ -240,6 +234,8 @@ void CBrowserFrame::OnClose()
 
    // tell all our plugins that we are closing
    theApp.plugins.SendMessage("*", "* OnClose", "Destroy", (long)m_hWnd);
+   
+    m_wndStatusBar.RemoveIcon(ID_SECURITY_STATE_ICON);
 
    DestroyWindow();
    theApp.RemoveFrameFromList(this);
@@ -361,8 +357,8 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
     }
 
     //Add the UrlBar and Throbber windows to the rebar
-    char szTitle[256] = "URL:";
-    theApp.preferences.GetString("kmeleon.display.URLbarTitle", (char*)&szTitle, (char*)&szTitle);
+    TCHAR szTitle[256] = _T("URL:");
+    theApp.preferences.GetString("kmeleon.display.URLbarTitle", (TCHAR*)&szTitle, (TCHAR*)&szTitle);
     m_wndReBar.AddBar(&m_wndUrlBar, szTitle);
     if (bThrobber)
         m_wndReBar.AddBar(&m_wndAnimate, NULL, NULL, RBBS_FIXEDSIZE | RBBS_FIXEDBMP);
@@ -400,13 +396,12 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
     // Create the status bar with two panes - one pane for actual status
     // text msgs. and the other for the progress control
-    if (!m_wndStatusBar.CreateEx(this) ||
-        !m_wndStatusBar.SetIndicators(indicators, sizeof(indicators)/sizeof(UINT)))
+    if (!m_wndStatusBar.CreateEx(this))
     {
         TRACE0("Failed to create status bar\n");
         return -1;      // fail to create
     }
-    m_wndStatusBar.SetPaneStyle(m_wndStatusBar.CommandToIndex(ID_SEPARATOR), SBPS_STRETCH);
+    //m_wndStatusBar.SetPaneStyle(m_wndStatusBar.CommandToIndex(ID_SEPARATOR), SBPS_STRETCH);
 
     // Create the progress bar as a child of the status bar.
     // Note that the ItemRect which we'll get at this stage
@@ -422,6 +417,8 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
         TRACE0("Failed to create progress bar\n");
         return -1;      // fail to create
     }
+
+	m_wndStatusBar.AddIcon(ID_SECURITY_STATE_ICON);
 
     // The third pane(i.e. at index 2) of the status bar will have
     // the security lock icon displayed in it. Set up it's size(16)
@@ -449,7 +446,7 @@ void CBrowserFrame::SetupFrameChrome()
 {
     if(m_chromeMask == nsIWebBrowserChrome::CHROME_ALL)
         return;
-    
+
     if(! (m_chromeMask & nsIWebBrowserChrome::CHROME_TOOLBAR) &&  
        ! (m_chromeMask & nsIWebBrowserChrome::CHROME_MENUBAR) && 
        ! (m_chromeMask & nsIWebBrowserChrome::CHROME_LOCATIONBAR) ) {
@@ -458,8 +455,8 @@ void CBrowserFrame::SetupFrameChrome()
     
     if(! (m_chromeMask & nsIWebBrowserChrome::CHROME_TOOLBAR) ) {
         int i = m_wndReBar.count();
-        int iMenubar = m_wndReBar.FindByName("Menu");
-        int iUrlbar  = m_wndReBar.FindByName("URL Bar");
+        int iMenubar = m_wndReBar.FindByName(_T("Menu"));
+        int iUrlbar  = m_wndReBar.FindByName(_T("URL Bar"));
         while (i-- > 0) {
             if (i != iMenubar && i != iUrlbar)
                 m_wndReBar.ShowBand(i, false);
@@ -470,13 +467,13 @@ void CBrowserFrame::SetupFrameChrome()
     
     if(! (m_chromeMask & nsIWebBrowserChrome::CHROME_MENUBAR) ) {
         SetMenu(NULL); // Hide the MenuBar
-        int iMenubar  = m_wndReBar.FindByName("Menu");
+        int iMenubar  = m_wndReBar.FindByName(_T("Menu"));
         if (iMenubar >= 0)
             m_wndReBar.ShowBand(iMenubar, false);
     }
     
     if(! (m_chromeMask & nsIWebBrowserChrome::CHROME_LOCATIONBAR) ) {
-        int iUrlbar  = m_wndReBar.FindByName("URL Bar");
+        int iUrlbar  = m_wndReBar.FindByName(_T("URL Bar"));
         if (iUrlbar >= 0)
             m_wndReBar.ShowBand(iUrlbar, false);
     }
@@ -668,38 +665,67 @@ void CBrowserFrame::OnActivate(UINT nState, CWnd* pWndOther, BOOL bMinimized)
   // m_wndBrowserView.Activate(nState, pWndOther, bMinimized);
 }
 
-#define IS_SECURE(state) ((state & 0xFFFF) == nsIWebProgressListener::STATE_IS_SECURE)
 void CBrowserFrame::UpdateSecurityStatus(PRInt32 aState)
 {
    int iResID = nsIWebProgressListener::STATE_IS_INSECURE;
+   UINT tpTextId;
 
-   if(IS_SECURE(aState)) {
+   if(aState & nsIWebProgressListener::STATE_IS_SECURE) {
+	  if (m_wndBrowserView.m_SecurityState == CBrowserView::SECURITY_STATE_SECURE)
+		return;
       iResID = IDR_SECURITY_LOCK;
       m_wndBrowserView.m_SecurityState = CBrowserView::SECURITY_STATE_SECURE;
 	  m_wndUrlBar.Highlight(1);
+	  tpTextId = IDS_SECURITY_LOCK;
    }
-   else if(aState == nsIWebProgressListener::STATE_IS_INSECURE) {
+   else if(aState & nsIWebProgressListener::STATE_IS_INSECURE) {
+	  if (m_wndBrowserView.m_SecurityState == CBrowserView::SECURITY_STATE_INSECURE)
+	    return;
       iResID = IDR_SECURITY_UNLOCK;
       m_wndBrowserView.m_SecurityState = CBrowserView::SECURITY_STATE_INSECURE;
 	  m_wndUrlBar.Highlight(0);
+	  tpTextId = IDS_SECURITY_UNLOCK;
    }
-   else if(aState == nsIWebProgressListener::STATE_IS_BROKEN) {
+   else if(aState & nsIWebProgressListener::STATE_IS_BROKEN) {
+	  if (m_wndBrowserView.m_SecurityState == CBrowserView::SECURITY_STATE_BROKEN)
+	    return;
       iResID = IDR_SECURITY_BROKEN;
       m_wndBrowserView.m_SecurityState = CBrowserView::SECURITY_STATE_BROKEN;
 	  m_wndUrlBar.Highlight(2);
+	  tpTextId = IDS_SECURITY_BROKEN;
    }
-
+   else 
+   {
+	   ASSERT(FALSE);
+	   return;
+   }
+  /*
    CStatusBarCtrl& sb = m_wndStatusBar.GetStatusBarCtrl();
+
+   CString tpText;
+   tpText.LoadString(tpTextId);
+   sb.SetTipText(2, tpText);
+   
    HICON hTmpSecurityIcon = 
     (HICON)::LoadImage(AfxGetResourceHandle(),
        MAKEINTRESOURCE(iResID), IMAGE_ICON, 16,16,LR_LOADMAP3DCOLORS);
+   /*
    sb.SetIcon(2, //2 is the pane index of the status bar where the lock icon will be shown
        hTmpSecurityIcon);
    if (m_hSecurityIcon)
        DestroyIcon(m_hSecurityIcon);
    m_hSecurityIcon = hTmpSecurityIcon;
+   m_wndStatusBar.RedrawWindow();*/
 
-   m_wndStatusBar.RedrawWindow();
+   CString tpText;
+   tpText.LoadString(tpTextId);
+
+   HICON hTmpSecurityIcon = 
+    (HICON)::LoadImage(AfxGetResourceHandle(),
+       MAKEINTRESOURCE(iResID), IMAGE_ICON, 16,16,LR_LOADMAP3DCOLORS);
+
+   m_wndStatusBar.SetIconInfo(ID_SECURITY_STATE_ICON, hTmpSecurityIcon, tpText);
+   
 }
 
 void CBrowserFrame::ShowSecurityInfo()
@@ -708,19 +734,171 @@ void CBrowserFrame::ShowSecurityInfo()
 }
 
 // CMyStatusBar Class
+// The current implementation is bad but enough for what I want to do now.
 CMyStatusBar::CMyStatusBar() 
 {
 }
 
 CMyStatusBar::~CMyStatusBar() 
 {
+	int count = arrIcons.GetSize();
+	for (int i=0; i<arrIcons.GetSize(); i++)
+	{
+		struct icon_info* ii = &arrIcons[i];
+		if (ii->hIcon)	DestroyIcon(ii->hIcon);
+	}
+}
+
+void CMyStatusBar::RefreshPanes()
+{
+	if (!m_hWnd) return;
+	int count = arrIcons.GetSize(), i;
+	
+	CString statusText = GetPaneText(0);
+	UINT* indicators = new UINT[2+count];
+	indicators[0] = ID_SEPARATOR;
+	indicators[1] = ID_PROG_BAR;
+	
+	for (i=2;i<count+2;i++)
+		indicators[i] = arrIcons[i-2].nID;
+	
+	SetIndicators(indicators, count+2);
+	SetPaneStyle(0, SBPS_STRETCH);
+	SetPaneText(0, statusText);
+
+	for (i=0;i<count;i++)
+	{
+		SetPaneInfo(i+2, indicators[i+2], SBPS_NORMAL|SBPS_NOBORDERS, arrIcons[i].lWidth);
+		GetStatusBarCtrl().SetTipText(i+2, arrIcons[i].csTpText);
+		if (arrIcons[i].hIcon) GetStatusBarCtrl().SetIcon(i+2, arrIcons[i].hIcon);
+	}
+	
+	RedrawWindow();
+	
+	RECT rc;
+	GetItemRect(CommandToIndex(ID_PROG_BAR), &rc);
+
+    // Move the progress bar into it's correct location
+	CBrowserFrame *pFrame = (CBrowserFrame *)GetParentFrame();
+	if( pFrame!=NULL )
+        pFrame->m_wndProgressBar.MoveWindow(&rc);
+
+	delete indicators;
+}
+
+BOOL CMyStatusBar::RemoveIcon(UINT nID)
+{
+	BOOL done = FALSE;
+	
+	for (int i=0; i<arrIcons.GetSize(); i++)
+	{
+		if (arrIcons[i].nID == nID)	{
+			struct icon_info* ii = &arrIcons[i];
+			DestroyIcon(ii->hIcon);
+			arrIcons.RemoveAt(i);
+			done = TRUE;
+			break;
+		}
+	}
+	if (done) 
+		RefreshPanes();
+	
+	return done;
+}
+
+BOOL CMyStatusBar::SetIconInfo(UINT nID, HICON hIcon, LPCTSTR tpText)
+{
+	for (int i=0; i<arrIcons.GetSize(); i++)
+	{
+		if (arrIcons[i].nID == nID)	{
+			icon_info* ii = &arrIcons[i];
+			if (hIcon) {
+				ii->csTpText = tpText;
+				if (ii->hIcon == hIcon) {
+					int index = CommandToIndex(nID);
+					if (tpText) GetStatusBarCtrl().SetTipText(index, tpText);
+				}
+				else {
+					if (ii->hIcon) DestroyIcon(ii->hIcon);
+					ii->hIcon = hIcon;
+		
+					// Better way to get the width ?
+					BITMAP bm;	
+					ICONINFO iconinfo;
+					GetIconInfo(hIcon, &iconinfo);
+					GetObject(iconinfo.hbmMask, sizeof(BITMAP), &bm);
+					ii->lWidth = bm.bmWidth;
+					DeleteObject(iconinfo.hbmColor);
+					DeleteObject(iconinfo.hbmMask);
+				
+				/*int index = CommandToIndex(nID);
+				SetPaneInfo(index, nID, SBPS_NORMAL|SBPS_NOBORDERS, ii->lWidth);
+				if (hIcon) GetStatusBarCtrl().SetIcon(index, hIcon);
+				if (tpText) GetStatusBarCtrl().SetTipText(index, tpText);
+				RedrawWindow();*/
+
+					// Why do I have to refresh the panes ?
+					RefreshPanes();
+				}
+				return TRUE;
+			}
+		}
+	}
+	return FALSE;
+}
+
+BOOL CMyStatusBar::AddIcon(UINT nID)
+{
+   BOOL idOk = TRUE;
+	int count = arrIcons.GetSize();
+	for (int i=0; i<count; i++)
+		if (arrIcons[i].nID == nID) {
+			idOk = FALSE;
+			break;
+		}
+
+	if (idOk)
+	{
+		struct icon_info ii;
+		ii.nID = nID;
+		ii.csTpText = "";
+		ii.hIcon = NULL;
+		ii.lWidth = 0;
+		arrIcons.Add(ii);
+		RefreshPanes();
+	}
+
+	return (idOk);
 }
 
 BEGIN_MESSAGE_MAP(CMyStatusBar, CStatusBar)
    //{{AFX_MSG_MAP(CMyStatusBar)
    ON_WM_LBUTTONDOWN()
    //}}AFX_MSG_MAP
+   ON_WM_CREATE()
+   ON_WM_DESTROY()
 END_MESSAGE_MAP()
+
+void CMyStatusBar::GetItemRect(UINT idx, LPRECT r)
+{
+	//Stupid fix for a stupid bug
+	
+		ASSERT_VALID(this);
+	ASSERT(::IsWindow(m_hWnd));
+
+	CStatusBar::GetItemRect(idx, r);
+
+	int width = 16;
+	UINT nID = GetItemID(idx);
+	int count = arrIcons.GetSize();
+    for (int i=0;i<count;i++)
+		if (arrIcons[i].nID == nID) {
+			width = arrIcons[i].lWidth;
+			break;
+		}
+
+	if ( idx>1 && r->right-r->left < width) r->right = r->left+width+GetSystemMetrics(SM_CXEDGE);
+}
 
 void CMyStatusBar::OnLButtonDown(UINT nFlags, CPoint point)
 {
@@ -728,8 +906,16 @@ void CMyStatusBar::OnLButtonDown(UINT nFlags, CPoint point)
     // padlock icon pane(at pane index 2) of the status bar...
 
     RECT rc;
-    GetItemRect(2, &rc );
-
+	int count = arrIcons.GetSize();
+    for (int i=0;i<count;i++)
+	{
+		GetItemRect(i+2, &rc );
+		if(PtInRect(&rc, point)) {
+			GetParentFrame()->SendMessage(WM_COMMAND, arrIcons[i].nID, 0);
+			break;
+		}
+	}
+/*
     if(PtInRect(&rc, point)) 
     {
         CBrowserFrame *pFrame = (CBrowserFrame *)GetParent();
@@ -737,9 +923,35 @@ void CMyStatusBar::OnLButtonDown(UINT nFlags, CPoint point)
             pFrame->ShowSecurityInfo();
     }
 
+*/
     CStatusBar::OnLButtonDown(nFlags, point);
 }
 
+int CMyStatusBar::OnCreate(LPCREATESTRUCT lpCreateStruct)
+{
+	if (CStatusBar::OnCreate(lpCreateStruct) == -1)
+		return -1;
+
+	// Set the default status bar font, I wonder why windows doesn't
+	// set it automatically
+	NONCLIENTMETRICS ncm ;
+	ncm.cbSize = sizeof(NONCLIENTMETRICS);
+	if (!SystemParametersInfo(SPI_GETNONCLIENTMETRICS,sizeof(NONCLIENTMETRICS),&ncm,0))
+		return FALSE;
+
+	if (m_statusFont.CreateFontIndirect(&ncm.lfStatusFont))
+		SetFont(&m_statusFont);
+
+	UINT indicators[2] = {ID_SEPARATOR, ID_PROG_BAR};
+	SetIndicators(indicators, 2);
+	SetPaneStyle(0, SBPS_STRETCH);
+	return 0;
+}
+
+void CMyStatusBar::OnDestroy()
+{
+	CStatusBar::OnDestroy();
+}
 
 /////////////////////////////////////////////////////////////////////////////
 void CBrowserFrame::OnSysColorChange() 
@@ -754,7 +966,7 @@ void CBrowserFrame::OnSysColorChange()
 }
 
 /////////////////////////////////////////////////////////////////////////////
-void CBrowserFrame::SetBackImage ()
+void CBrowserFrame::SetBackImage()
 {
 	if (m_bmpBack.GetSafeHandle() == NULL)
 		return;

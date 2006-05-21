@@ -162,8 +162,8 @@ typedef struct {
    /* Is it possible to get it otherwise ? */
    BOOL (*GetMozillaWebBrowser)(HWND hWnd, nsIWebBrowser** webBrowser);
 
-   int (*reserved3)();
-   int (*reserved4)();
+   void (*AddStatusBarIcon)(HWND hWnd, int id, HICON hIcon, char* tpText);
+   void (*RemoveStatusBarIcon)(HWND hWnd, int id);
    
    BOOL (*InjectJS)(const char*, bool, HWND);
    BOOL (*InjectCSS)(const char*, bool, HWND);
