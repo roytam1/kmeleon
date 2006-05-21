@@ -422,7 +422,7 @@ NS_IMETHODIMP CNSSDialogs::NotifyCrlNextupdate(nsIInterfaceRequestor *socketInfo
 	
 	CString msg3;
 	msg3.LoadString(IDS_crlNextUpdateMsg3);
-	CString msg = msg1 + " " + msg2 + " " + msg3;
+	CString msg = msg1 + _T(" ") + msg2 + _T(" ") + msg3;
 	CWnd* wnd = CWndForDOMWindow(parent);
 	if (wnd)
 		wnd->MessageBox(msg, _T(""), MB_OK | MB_ICONEXCLAMATION);
