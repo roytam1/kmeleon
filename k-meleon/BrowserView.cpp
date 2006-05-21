@@ -979,7 +979,8 @@ void CBrowserView::OnFileSaveAs()
     if(NS_FAILED(rv) || !currentURI)
         return;
  
-    URISaveAs(currentURI, TRUE);
+    if (!URISaveAs(currentURI, 1))
+		AfxMessageBox(IDS_SAVE_FAILED, MB_OK|MB_ICONERROR);
 }
 
 void CBrowserView::OnCopyLinkLocation()
@@ -1069,18 +1070,8 @@ void CBrowserView::OnSaveLinkAs()
    if(! mCtxMenuLinkUrl.Length())
         return;
 
-    // Try to get the file name part from the URL
-    // To do that we first construct an obj which supports 
-    // nsIRUI interface. Makes it easy to extract portions
-    // of a URL like the filename, scheme etc. + We'll also
-    // use it while saving this link to a file
-    nsresult rv   = NS_OK;
-    nsCOMPtr<nsIURI> linkURI;
-    rv = NewURI(getter_AddRefs(linkURI), mCtxMenuLinkUrl);
-    if (NS_FAILED(rv)) 
-        return;
-
-    URISaveAs(linkURI);
+   if (!URISaveAs((PRUnichar*)mCtxMenuLinkUrl.get()))
+	   AfxMessageBox(IDS_SAVE_FAILED, MB_OK|MB_ICONERROR);
 }
 
 void CBrowserView::OnSaveImageAs()
@@ -1088,18 +1079,21 @@ void CBrowserView::OnSaveImageAs()
     if(! mCtxMenuImgSrc.Length())
         return;
 
-    // Try to get the file name part from the URL
-    // To do that we first construct an obj which supports 
-    // nsIRUI interface. Makes it easy to extract portions
-    // of a URL like the filename, scheme etc. + We'll also
-    // use it while saving this link to a file
-    nsresult rv   = NS_OK;
+	if (!URISaveAs((PRUnichar*)mCtxMenuImgSrc.get()))
+	   AfxMessageBox(IDS_SAVE_FAILED, MB_OK|MB_ICONERROR);
+	/*
+	nsresult rv;
     nsCOMPtr<nsIURI> imageURI;
     rv = NewURI(getter_AddRefs(imageURI), mCtxMenuImgSrc);
-    if (NS_FAILED(rv)) 
-        return;
+    NS_ENSURE_SUCCESS(rv, );
 
-    URISaveAs(imageURI);
+	nsCOMPtr<nsIURI> referrer;
+	mWebNav->GetCurrentURI(getter_AddRefs(referrer));
+
+	CSaveAsHandler* handler = new CSaveAsHandler(nsnull, nsnull, imageURI, nsnull, nsnull, referrer, mpBrowserFrame);
+	rv = handler->Save(mCtxImgType.get(), mCtxImgDisposition.get());
+    if (NS_FAILED(rv) && rv != NS_ERROR_ABORT)
+		AfxMessageBox(IDS_SAVE_FAILED, MB_OK|MB_ICONERROR);*/
 }
 
 void CBrowserView::OnFilePrint()
@@ -1515,17 +1509,8 @@ void CBrowserView::OnFileSaveFrameAs()
     if(! mCtxMenuCurrentFrameURL.Length())
         return;
 
-    // Try to get the file name part from the URL
-    // To do that we first construct an obj which supports
-    // nsIRUI interface. Makes it easy to extract portions
-    // of a URL like the filename, scheme etc. + We'll also
-    // use it while saving this link to a file
-    nsresult rv   = NS_OK;
-    nsCOMPtr<nsIURI> frameURI;
-    rv = NewURI(getter_AddRefs(frameURI), mCtxMenuCurrentFrameURL);
-    if(NS_FAILED(rv))
-        return;
-    URISaveAs(frameURI, TRUE);
+    if (!URISaveAs((PRUnichar*)mCtxMenuCurrentFrameURL.get(), 2))
+		AfxMessageBox(IDS_SAVE_FAILED, MB_OK|MB_ICONERROR);
 }
 
 void CBrowserView::OnViewPageInfo()

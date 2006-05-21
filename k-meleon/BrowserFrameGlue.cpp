@@ -101,10 +101,14 @@ void CBrowserFrame::BrowserFrameGlueObj::UpdateBusyState(PRBool aBusy)
     //if (!aBusy)	
 		pThis->PostMessage(UWM_UPDATEBUSYSTATE, aBusy == PR_TRUE ? 1 : 0, 0);
 
-    CString szUrl;
-    pThis->m_wndUrlBar.GetEnteredURL(szUrl);
-    if (_tcscmp(szUrl, _T("about:blank"))==0)
-       pThis->m_wndUrlBar.MaintainFocus();
+	if (!aBusy) {
+	  CString szUrl;
+      pThis->m_wndUrlBar.GetEnteredURL(szUrl);
+      if (_tcscmp(szUrl, _T("about:blank"))==0)
+        pThis->m_wndUrlBar.MaintainFocus();
+	}
+	else
+		pThis->m_wndBrowserView.mbDOMLoaded = FALSE;
 
 	pThis->m_wndBrowserView.m_lastMouseActionNode = nsnull;
 }

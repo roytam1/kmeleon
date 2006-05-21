@@ -29,6 +29,7 @@ BEGIN_MESSAGE_MAP(CHiddenWnd, CFrameWnd)
    ON_MESSAGE(UWM_PERSIST_SET, OnSetPersist)
    ON_MESSAGE(UWM_PERSIST_SHOW, OnShowBrowser)
    ON_MESSAGE(WM_DEFERSHOW, OnDeferShow)
+   ON_MESSAGE(WM_DEFERSAVEAS, OnDeferSaveAs)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -294,3 +295,13 @@ LRESULT CHiddenWnd::OnDeferShow(WPARAM wParam, LPARAM lParam)
 	return ((CUnknownContentTypeHandler*)lParam)->Show((CWnd*)wParam);
 }
 
+LRESULT CHiddenWnd::OnDeferSaveAs(WPARAM wParam, LPARAM lParam)
+{
+	if (!lParam || !wParam) return 0;
+	CSaveAsHandler* handler = (CSaveAsHandler*)wParam;
+
+	nsresult rv = handler->Save((char*)lParam);
+	NS_RELEASE(handler);
+	free((char*)lParam);
+	return rv;
+}
