@@ -205,6 +205,7 @@ public:
 	CString m_csHostPopupBlocked;
 
 protected:
+	BOOL _GetSelection(nsIDOMWindow* dom, nsAString& aSelText);
 	BOOL _InjectCSS(nsIDOMWindow* dom, const wchar_t* userStyleSheet);
 	void _OnNavReload(BOOL force = FALSE);
     void Highlight(BOOL);
