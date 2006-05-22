@@ -61,6 +61,7 @@ public:
    CString skinsPath;
 
    int bDisableResize;
+   BOOL bSiteIcons;
    int iFontMinSize;
 
    // true if we should hide the taskbar buttons
@@ -127,6 +128,8 @@ public:
    int bRestrictPopups;
    CString restrictedPopupSites;
    CString userAgent;
+   int historyExpire;
+   int bCacheFavicons;
 
 
    // -- Printing

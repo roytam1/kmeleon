@@ -1116,6 +1116,9 @@ void CBrowserView::UpdateBusyState(PRBool aBusy)
 	else {
 	    mpBrowserFrame->m_wndAnimate.Stop();
 	    mpBrowserFrame->m_wndAnimate.Seek(0);
+#ifdef INTERNAL_SITEICONS
+		mpBrowserFrameGlue->SetFavIcon(nsnull);
+#endif
 	}
     }
 }

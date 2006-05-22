@@ -50,9 +50,6 @@
 #include "urlbar.h"
 #include "Dialogs.h"
 
-#include "MfcEmbed.h"
-extern CMfcEmbedApp theApp;
-
 
 // CMyStatusBar class
 class CMyStatusBar : public CStatusBar
@@ -218,7 +215,9 @@ public:
     void RestoreWindowPos(PRInt32 *x, PRInt32 *y, PRInt32 *cx, PRInt32 *cy);
 
     void SetSoftFocus();
-
+#ifdef INTERNAL_SITEICONS
+	void SetFavIcon(int iIcon);
+#endif
 // Overrides
     // ClassWizard generated virtual function overrides
     //{{AFX_VIRTUAL(CBrowserFrame)
@@ -252,6 +251,9 @@ protected:
     afx_msg void ToggleToolbarLock();
     afx_msg void OnUpdateToggleToolbarLock(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateToolBarMenu(CCmdUI*);
+#ifdef INTERNAL_SITEICONS
+	afx_msg LRESULT OnNewSiteIcon(WPARAM url, LPARAM index);
+#endif
 	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
     //}}AFX_MSG
     DECLARE_MESSAGE_MAP()

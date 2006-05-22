@@ -119,6 +119,7 @@ void CPreferences::Load() {
       _GetBool("kmeleon.display.disableResize", bDisableResize, false);
       
       _GetBool("kmeleon.display.NewWindowHasUrlFocus", bNewWindowHasUrlFocus, true);
+	  _GetBool("kmeleon.favicons.show", bSiteIcons, PR_TRUE);
 
 	  _GetInt("font.minimum-size.x-western", iFontMinSize, 0);
       // -- Find settings
@@ -281,6 +282,9 @@ void CPreferences::Load() {
 
       _GetBool("dom.disable_open_during_load", bDisablePopupsOnLoad, false);
 
+	  _GetInt("browser.history_expire_days", historyExpire, 7);
+	  _GetBool("kmeleon.favicons.cached", bCacheFavicons, true);
+	  bCacheFavicons = !bCacheFavicons;
 
 
       // -- Printing
@@ -298,7 +302,7 @@ void CPreferences::Load() {
       _GetBool("kmeleon.print.BGImages", printBGImages, false);
 
 	  CString def;
-	  def.Format("%.2f", 0.5);
+	  def.Format(_T("%.2f"), 0.5);
       _GetString("kmeleon.print.marginLeft", printMarginLeft, def);
       _GetString("kmeleon.print.marginRight", printMarginRight, def);
       _GetString("kmeleon.print.marginTop", printMarginTop, def);
@@ -307,9 +311,9 @@ void CPreferences::Load() {
       _GetInt("kmeleon.print.scaling", printScaling, 100);
 	  _GetBool("kmeleon.print.shrinkToFit", printShrinkToFit, true);
       _GetInt("kmeleon.print.paperUnit", printUnit, nsIPrintSettings::kPaperSizeInches);
-	   def.Format("%.2f", 8.5);
+	   def.Format(_T("%.2f"), 8.5);
       _GetString("kmeleon.print.paperWidth", printWidth, def);
-	  def.Format("%d", 11);
+	  def.Format(_T("%d"), 11);
       _GetString("kmeleon.print.paperHeight", printHeight, def);
 
 	  // -- Download
@@ -459,6 +463,9 @@ void CPreferences::Save() {
 
       rv = prefs->SetBoolPref("dom.disable_open_during_load", bDisablePopupsOnLoad);
 
+	  rv = prefs->SetIntPref("browser.history_expire_days", historyExpire);
+	  rv = prefs->SetBoolPref("kmeleon.favicons.cached", !bCacheFavicons);
+
      if (!theApp.m_pMostRecentBrowserFrame || !(theApp.m_pMostRecentBrowserFrame->m_style & WS_POPUP)) {
        // -- Display settings
        rv = prefs->SetBoolPref("kmeleon.display.maximized", bMaximized);
@@ -478,6 +485,7 @@ void CPreferences::Save() {
       rv = prefs->SetBoolPref("kmeleon.display.disableResize", bDisableResize);
 
       rv = prefs->SetBoolPref("kmeleon.display.NewWindowHasUrlFocus", bNewWindowHasUrlFocus);
+	  rv = prefs->SetBoolPref("kmeleon.favicons.show", bSiteIcons);
 	  rv = prefs->SetIntPref("font.minimum-size.x-western", iFontMinSize);
 	  rv = prefs->SetIntPref("font.minimum-size.x-unicode", iFontMinSize);
 
@@ -512,7 +520,6 @@ void CPreferences::Save() {
       rv = prefs->SetIntPref("kmeleon.print.paperUnit", printUnit);
       _SetString("kmeleon.print.paperWidth",printWidth)
       _SetString("kmeleon.print.paperHeight",printHeight)
-      
       
 
 	  	  // -- Download

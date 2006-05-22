@@ -460,6 +460,9 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\FavIconList.cpp">
+			</File>
+			<File
 				RelativePath="HiddenWnd.cpp">
 				<FileConfiguration
 					Name="Debug|Win32">
@@ -953,6 +956,9 @@
 			</File>
 			<File
 				RelativePath="Dialogs.h">
+			</File>
+			<File
+				RelativePath=".\FavIconList.h">
 			</File>
 			<File
 				RelativePath="HiddenWnd.h">
