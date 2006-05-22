@@ -161,6 +161,8 @@ BEGIN
     LTEXT           "Home Page:",IDC_STATIC,17,21,43,10
     LTEXT           "When K-Meleon starts, display:",IDC_STATIC,17,41,109,10
     LTEXT           "New windows should display:",IDC_STATIC,129,41,115,8
+    CONTROL         "Display site icons",IDC_SITE_ICONS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,4,191,70,10
     EDITTEXT        IDC_EDIT_FONT_MINSIZE,112,176,19,12,ES_RIGHT | ES_NUMBER
     LTEXT           "Minimun font size for web page :",IDC_STATIC,4,177,102,
                     8
@@ -434,6 +436,12 @@ BEGIN
     GROUPBOX        "Browser Identification",IDC_STATIC,3,89,264,43
     LTEXT           "Identify browser as:",IDC_STATIC,13,103,64,8
     LTEXT           "UserAgent string:",IDC_STATIC,13,118,64,8
+    GROUPBOX        "History",IDC_STATIC,3,170,264,30
+    LTEXT           "Remember visited pages for ",IDC_STATIC,11,182,90,8
+    EDITTEXT        IDC_HISTORY_DAYS,103,180,28,14,ES_NUMBER
+    LTEXT           "days.",IDC_STATIC,133,182,18,8
+    CONTROL         "Don't cache favicons",IDC_CHECK_FAVICONCACHE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,180,182,83,10
     PUSHBUTTON      "Display Cookies...",IDC_VIEW_COOKIES,142,56,63,14
     PUSHBUTTON      "Exceptions...",IDC_COOKIE_PERMISSIONS,206,56,54,14
     PUSHBUTTON      "Authorized websites...",IDC_POPUP_PERMISSIONS,147,145,

@@ -594,23 +594,27 @@ int Load(){
    HBITMAP bitmap;
    int ilc_bits = ILC_COLOR;
 
-   char szFullPath[MAX_PATH];
-   FindSkinFile(szFullPath, "layers.bmp");
-   FILE *fp = fopen(szFullPath, "r");
-   if (fp) {
-      fclose(fp);
-      bitmap = (HBITMAP)LoadImage(NULL, szFullPath, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+   gImagelist = kPlugin.kFuncs->GetIconList();
+   if (!gImagelist)
+   {
+	   TCHAR szFullPath[MAX_PATH];
+	   FindSkinFile(szFullPath, _T("layers.bmp"));
+	   FILE *fp = _tfopen(szFullPath, _T("r"));
+	   if (fp) {
+		   fclose(fp);
+		   bitmap = (HBITMAP)LoadImage(NULL, szFullPath, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 
-      BITMAP bmp;
-      GetObject(bitmap, sizeof(BITMAP), &bmp);
-      
-      ilc_bits = (bmp.bmBitsPixel == 32 ? ILC_COLOR32 : (bmp.bmBitsPixel == 24 ? ILC_COLOR24 : (bmp.bmBitsPixel == 16 ? ILC_COLOR16 : (bmp.bmBitsPixel == 8 ? ILC_COLOR8 : (bmp.bmBitsPixel == 4 ? ILC_COLOR4 : ILC_COLOR)))));
-      gImagelist = ImageList_Create(bmp.bmWidth, bmp.bmHeight, ILC_MASK | ilc_bits, 4, 4);
-      if (gImagelist && bitmap)
-         ImageList_AddMasked(gImagelist, bitmap, RGB(255, 0, 255));
-      if (bitmap)
-         DeleteObject(bitmap);
-   } 
+		   BITMAP bmp;
+		   GetObject(bitmap, sizeof(BITMAP), &bmp);
+
+		   ilc_bits = (bmp.bmBitsPixel == 32 ? ILC_COLOR32 : (bmp.bmBitsPixel == 24 ? ILC_COLOR24 : (bmp.bmBitsPixel == 16 ? ILC_COLOR16 : (bmp.bmBitsPixel == 8 ? ILC_COLOR8 : (bmp.bmBitsPixel == 4 ? ILC_COLOR4 : ILC_COLOR)))));
+		   gImagelist = ImageList_Create(bmp.bmWidth, bmp.bmHeight, ILC_MASK | ilc_bits, 4, 4);
+		   if (gImagelist && bitmap)
+			   ImageList_AddMasked(gImagelist, bitmap, RGB(255, 0, 255));
+		   if (bitmap)
+			   DeleteObject(bitmap);
+	   }
+   }
 
    return true;
 }
@@ -869,7 +873,7 @@ int DoAccel(char *param) {
 }
 
 
-void addRebarButton(HWND hWndTB, char *text, int num, int active)
+void addRebarButton(HWND hWndTB, char *text, int num, int active, int image=0)
 {
    int stringID;
    if (!text || *text==0)
@@ -896,7 +900,7 @@ void addRebarButton(HWND hWndTB, char *text, int num, int active)
       (((nButtonStyle & BS_PRESSED) && active) ? TBSTYLE_CHECK : 0);
    button.idCommand = id_layer + num;
    if (gImagelist)
-      button.iBitmap = MAKELONG(IMAGE_LAYER_BUTTON, 0);
+      button.iBitmap = image; //MAKELONG(IMAGE_LAYER_BUTTON, 0);
    else
       button.iBitmap = 0;
    
@@ -969,6 +973,7 @@ void BuildRebar(HWND hWndTB, HWND hWndParent)
          char *buf = new char[nTextLength + 1];
          buf[0] = 0;
          int len = 0;
+		 int icon = 0;
          
          if (bButtonNumbers) {
             itoa(i, buf, 10);
@@ -993,10 +998,11 @@ void BuildRebar(HWND hWndTB, HWND hWndParent)
                   }
                }
                delete p;
+			   icon = dInfo->idxIcon;
             }
          }
 
-         addRebarButton(hWndTB, buf, i, pLayer->hWnd == pFrame->hWndFront);
+         addRebarButton(hWndTB, buf, i, pLayer->hWnd == pFrame->hWndFront, icon);
 
          delete buf;
          
@@ -1240,6 +1246,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
       
       switch (message) {
 
+		 case UWM_UPDATEBUSYSTATE:
+			 if (wParam != 0) break;
+
+		 case UWM_NEWSITEICON:
+			 pFrame = find_frame(hWnd);
+			 if (!pFrame) break;
+			 if ( (pLayer = find_layer(pFrame->hWndFront)) == NULL) break;
+			 UpdateRebarMenu(pLayer);
+			 break;
+			 
          case UWM_UPDATESESSIONHISTORY:
          case WM_SETFOCUS:
             if (bIgnore)

@@ -178,8 +178,20 @@ kmeleonDocInfo * GetDocInfo(HWND mainWnd)
 
    kDocInfo.title = doctitle;
    kDocInfo.url = docurl;
+#ifdef INTERNAL_SITEICONS
+   kDocInfo.idxIcon = theApp.favicons.GetIcon(frame->m_wndBrowserView.m_IconUri);
+#endif
 
    return &kDocInfo;
+}
+
+HIMAGELIST GetIconList()
+{
+#ifdef INTERNAL_SITEICONS
+	return theApp.favicons.GetSafeHandle();
+#else
+	return NULL;
+#endif
 }
 
 long GetPreference(enum PREFTYPE type, char *preference, void *ret, void *defVal)
@@ -901,7 +913,7 @@ kmeleonFunctions kmelFuncs = {
    NULL,
    NULL,
    TranslateEx,
-   NULL,
+   GetIconList,
    GetMozillaWebBrowser,
    AddStatusBarIcon,
    RemoveStatusBarIcon,

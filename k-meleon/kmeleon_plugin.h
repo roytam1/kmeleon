@@ -18,6 +18,7 @@
 
 
 #include <windows.h>
+#include <commctrl.h>
 
 class nsIWebBrowser;
 #ifndef __KMELEON_PLUGIN_H__
@@ -47,6 +48,7 @@ typedef struct {
 typedef struct {
    char *title;
    char *url;
+   int idxIcon;
 } kmeleonDocInfo;
 
 typedef struct {
@@ -157,7 +159,7 @@ typedef struct {
 
    int (*TranslateEx)(const char* originalText, TCHAR* translatedText, int bufferlen, BOOL forMenu);
 	
-   int (*reserved2)();
+   HIMAGELIST (*GetIconList)();
 
    /* Is it possible to get it otherwise ? */
    BOOL (*GetMozillaWebBrowser)(HWND hWnd, nsIWebBrowser** webBrowser);

@@ -53,7 +53,9 @@
 #include "KmeleonConst.h"
 #include "CmdLine.h"
 #include "MostRecentUrls.h"
-
+#ifdef INTERNAL_SITEICONS
+#include "faviconlist.h"
+#endif
 #include "resource.h"       // main symbols
 
 
@@ -89,6 +91,7 @@ public:
    void RegisterWindow(CDialog *window);
    void UnregisterWindow(CDialog *window);
     void BroadcastMessage(UINT Msg, WPARAM wParam, LPARAM lParam);
+	inline HICON GetDefaultIcon() {return m_hSmallIcon;}
 	bool FindSkinFile( CString& szSkinFile, TCHAR *filename );
 
    nsresult SetOffline(BOOL offline);
@@ -119,6 +122,9 @@ public:
    CMenuParser   menus;
    CAccelParser  accel;
    CCmdLine      cmdline;
+#ifdef INTERNAL_SITEICONS
+   CFavIconList  favicons;
+#endif
 
    HMENU          m_toolbarControlsMenu;
    CBrowserFrame* m_pMostRecentBrowserFrame; // the most recently used frame

@@ -61,6 +61,7 @@
 #include "nsIDOMHTMLAreaElement.h"
 
 extern CMfcEmbedApp theApp;
+extern nsresult NewURI(nsIURI **result, const nsACString &spec);
 
 /////////////////////////////////////////////////////////////////////////////
 // IBrowserFrameGlue implementation
@@ -136,6 +137,12 @@ void CBrowserFrame::BrowserFrameGlueObj::UpdateCurrentURI(nsIURI *aLocation)
 			pThis->m_wndStatusBar.RemoveIcon(ID_POPUP_BLOCKED_ICON);
 			pThis->m_wndBrowserView.m_csHostPopupBlocked.Truncate(0);
 		}
+#ifdef INTERNAL_SITEICONS
+		// Must be done here, before testing if we have the same address
+		// because xul error page have its own icon, and since the address
+		// doesn't change when retrying, the icon may stay in the urlbar.
+		pThis->m_wndBrowserView.m_IconUri = nsnull;
+#endif
 
 		// Prevent to move the caret in the urlbar
 		CString currentURL;
@@ -587,6 +594,9 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags,
             nsEmbedString uri2;
             NS_CStringToUTF16(uri, NS_CSTRING_ENCODING_UTF8, uri2);
             pThis->m_wndBrowserView.SetCtxMenuImageSrc(uri2); // Set the new Img Src
+			nsCOMPtr<imgIContainer> img;
+			aInfo->GetBackgroundImageContainer(getter_AddRefs(img));
+			//pThis->m_wndBrowserView.SetCtxImage(img);
         }
     }
     else if(aContextFlags & nsIContextMenuListener2::CONTEXT_TEXT || 
@@ -626,6 +636,10 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags,
                 NS_CStringToUTF16(strImgSrcUtf8, NS_CSTRING_ENCODING_UTF8, strImgSrc);
                 pThis->m_wndBrowserView.SetCtxMenuImageSrc(strImgSrc);
                 bContentHasImage = TRUE;
+				nsCOMPtr<imgIContainer> img;
+				aInfo->GetImageContainer(getter_AddRefs(img));
+
+				//pThis->m_wndBrowserView.SetCtxImage(img);
             }
         }
     }
@@ -647,6 +661,10 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags,
         nsEmbedString strImgSrc;
         NS_CStringToUTF16(strImgSrcUtf8, NS_CSTRING_ENCODING_UTF8, strImgSrc);
         pThis->m_wndBrowserView.SetCtxMenuImageSrc(strImgSrc);
+
+		nsCOMPtr<imgIContainer> img;
+        aInfo->GetImageContainer(getter_AddRefs(img));
+		//pThis->m_wndBrowserView.SetCtxImage(img);
     }
 
     // Determine if we need to add the Frame related context menu items
@@ -858,4 +876,73 @@ void CBrowserFrame::BrowserFrameGlueObj::PopupBlocked(const char* uri)
 	pThis->m_wndBrowserView.m_csHostPopupBlocked = turi;
 }
 
+void CBrowserFrame::BrowserFrameGlueObj::SetFavIcon(nsIURI* favUri)
+{	
+	METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj);
+#ifdef INTERNAL_SITEICONS	
+	if (favUri == nsnull) 
+	{
+		// XXX Temporary set m_bDOMLoaded here
+		pThis->m_wndBrowserView.mbDOMLoaded = TRUE;
 
+		// No site icon found then we're looking for a IE favicon
+		// Note that this can be called twice, when DOMContentLoaded
+		// is fired, and when the page finished to load.
+		// DOMContentLoaded is not fired when page are loaded from cache
+		// so I'm calling it also when the page is loaded to be sure we
+		// checked for an IE icon. 
+
+		if (pThis->m_wndBrowserView.m_IconUri!=nsnull) return;
+
+		nsCOMPtr<nsIURI> currentURI;
+		nsresult rv = pThis->m_wndBrowserView.mWebNav->GetCurrentURI(getter_AddRefs(currentURI));
+		if(NS_FAILED(rv) || !currentURI) return;
+
+		if (theApp.preferences.GetBool("browser.chrome.favicons", PR_TRUE))
+		{
+			nsCOMPtr<nsIURI> currentURI;
+			nsEmbedCString nsUri;
+			rv = pThis->m_wndBrowserView.mWebNav->GetCurrentURI(getter_AddRefs(currentURI));
+			if (NS_FAILED(rv)) return;
+
+			PRBool ishttp, b;
+			currentURI->SchemeIs("http", &b);
+			ishttp = b;
+			currentURI->SchemeIs("https", &b);
+			ishttp |= b;
+
+			if (ishttp)
+			{
+				currentURI->Resolve(NS_LITERAL_CSTRING("/favicon.ico"), nsUri);
+			/*
+			currentURI->GetHost(nsUri);
+			if (!nsUri.IsEmpty()) // The uri may not contain an host, ressource://, ...
+			{
+				nsUri.Append("/favicon.ico");
+				nsUri.Insert("http://", 0, 7);*/
+				nsCOMPtr<nsIURI> iconURI;
+				rv = NewURI(getter_AddRefs(iconURI), nsUri);
+				if(NS_FAILED(rv) || !iconURI) return;
+				
+				int icon;
+				pThis->m_wndBrowserView.m_IconUri = iconURI;
+				if ( (icon = theApp.favicons.GetIcon(iconURI, TRUE)) != -1)
+					pThis->SetFavIcon(icon);
+				//else
+				//	pThis->SetFavIcon(theApp.favicons.GetDefaultIcon());
+			}
+			else
+				pThis->SetFavIcon(theApp.favicons.GetDefaultIcon());
+		}
+		else
+			pThis->SetFavIcon(theApp.favicons.GetDefaultIcon());
+	}
+	else
+	{
+		pThis->m_wndBrowserView.m_IconUri = favUri;
+		int icon;
+		if ( (icon = theApp.favicons.GetIcon(favUri, TRUE)) != -1)
+			pThis->SetFavIcon(icon);
+	}
+#endif
+}

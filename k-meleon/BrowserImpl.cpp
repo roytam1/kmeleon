@@ -562,3 +562,132 @@ NS_IMETHODIMP CBrowserImpl::HandleEvent(nsIDOMEvent *event)
 
 	return NS_ERROR_NOT_IMPLEMENTED;
 }
+
+NS_IMPL_ISUPPORTS1(CFavIconListener, nsIDOMEventListener)
+
+CFavIconListener::CFavIconListener() : m_pBrowserFrameGlue(NULL)// mBrowser(NULL)
+{
+}
+
+CFavIconListener::~CFavIconListener()
+{
+}
+
+/***********************************************************/
+/*! Part of the following code is from The Galeon Browser !*/
+
+nsresult CFavIconListener::Init(PBROWSERFRAMEGLUE pBrowserFrameGlue)
+{
+	//mBrowser = aBrowser;
+	m_pBrowserFrameGlue = pBrowserFrameGlue;
+	m_bIcon = FALSE;
+	return NS_OK;
+}
+
+NS_IMETHODIMP CFavIconListener::HandleEvent (nsIDOMEvent* event)
+{
+	nsEmbedString type;
+	event->GetType(type);
+
+	if (type.Equals(NS_LITERAL_STRING("DOMContentLoaded")))
+	{
+		// DOMContentLoaded is not send if the page is reloaded from cache
+		// Nevertheless I'm using it to get the IE favicon without waiting
+		// for all images of the page to be loaded
+		m_pBrowserFrameGlue->SetFavIcon(nsnull);
+		return NS_OK;
+	}
+
+	nsresult rv;
+
+	nsCOMPtr<nsIDOMEventTarget> target;
+	event->GetTarget(getter_AddRefs(target));
+	NS_ENSURE_TRUE (target, NS_ERROR_FAILURE);
+
+	nsCOMPtr<nsIDOMElement> elem = do_QueryInterface(target);
+	NS_ENSURE_TRUE (elem, NS_ERROR_FAILURE);
+
+	nsEmbedString value;
+	rv = elem->GetTagName(value);
+
+	rv = elem->GetAttribute(NS_LITERAL_STRING("rel"), value);
+	NS_ENSURE_SUCCESS (rv, rv);
+		
+	if ( wcsicmp(value.get(), L"SHORTCUT ICON") == 0 || 
+		wcsicmp(value.get(), L"ICON") == 0 )
+	{
+
+/*		rv = elem->GetAttribute(NS_LITERAL_STRING("type"), value);
+		NS_ENSURE_SUCCESS (rv, rv);
+		if (value.Equals(NS_LITERAL_STRING("image/png")))
+			return NS_OK;*/
+		
+		rv = elem->GetAttribute (NS_LITERAL_STRING("href"), value);
+		NS_ENSURE_SUCCESS (rv, rv);
+		NS_ENSURE_FALSE (value.IsEmpty(), NS_ERROR_FAILURE);
+
+		nsCOMPtr<nsIDOMDocument> domDoc;
+		elem->GetOwnerDocument (getter_AddRefs(domDoc));
+		NS_ENSURE_TRUE (domDoc, NS_ERROR_FAILURE);
+
+		/* See if this is from the toplevel frame */
+		nsCOMPtr<nsIDOMDocumentView> docView (do_QueryInterface (domDoc));
+		NS_ENSURE_TRUE (docView, NS_ERROR_FAILURE);
+
+		nsCOMPtr<nsIDOMAbstractView> abstractView;
+		docView->GetDefaultView (getter_AddRefs (abstractView));
+
+		nsCOMPtr<nsIDOMWindow> domWin (do_QueryInterface (abstractView));
+		NS_ENSURE_TRUE (domWin, NS_ERROR_FAILURE);
+
+		nsCOMPtr<nsIDOMWindow> topDomWin;
+		domWin->GetTop (getter_AddRefs (topDomWin));
+
+		nsCOMPtr<nsISupports> domWinAsISupports (do_QueryInterface (domWin));
+		nsCOMPtr<nsISupports> topDomWinAsISupports (do_QueryInterface (topDomWin));
+		/* disallow subframes to set favicon */
+		if (domWinAsISupports != topDomWinAsISupports) return NS_OK;
+		
+		nsCOMPtr<nsIDOM3Document> doc = do_QueryInterface (domDoc);
+		NS_ENSURE_TRUE (doc, NS_ERROR_FAILURE);
+
+		nsEmbedString spec;
+		rv = doc->GetDocumentURI (spec);
+		NS_ENSURE_SUCCESS (rv, NS_ERROR_FAILURE);
+		
+		nsCOMPtr<nsIURI> docUri;
+		NewURI (getter_AddRefs (docUri), spec);
+
+		nsEmbedCString favicon;
+		nsEmbedCString cvalue;
+		NS_UTF16ToCString(value, NS_CSTRING_ENCODING_UTF8, cvalue);
+		rv = docUri->Resolve (cvalue, favicon);
+		NS_ENSURE_SUCCESS (rv, NS_ERROR_FAILURE);
+
+		nsCOMPtr<nsIURI> favUri;
+		NewURI (getter_AddRefs (favUri), favicon);
+		NS_ENSURE_TRUE (favUri, NS_ERROR_FAILURE);
+
+		/* check if load is allowed */
+		nsCOMPtr<nsIScriptSecurityManager> secMan
+			(do_GetService("@mozilla.org/scriptsecuritymanager;1"));
+		/* refuse if we can't check */
+		NS_ENSURE_TRUE (secMan, NS_ERROR_FAILURE);
+
+		rv = secMan->CheckLoadURI(docUri, favUri,
+					  nsIScriptSecurityManager::STANDARD);
+		/* failure means it didn't pass the security check */
+		if (NS_FAILED (rv)) return NS_OK;
+		
+		/* Hide password part */
+		nsEmbedCString password;
+		favUri->GetUsername(password);
+		favUri->SetUserPass(password);
+		
+		m_bIcon = TRUE;
+		m_pBrowserFrameGlue->SetFavIcon(favUri);
+		//LoadFavIcon(favUri);
+	}
+	return NS_OK;
+}
+/***************************************************/

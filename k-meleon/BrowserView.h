@@ -51,6 +51,7 @@ class CBrowserImpl;
 class CFindDialog;
 class CPrintProgressDialog; 
 class nsIPrintSettings;                                                         
+class CFavIconListener;
 
 
 #define UTF16ToCString(source,dest) \
@@ -118,7 +119,10 @@ public:
 	// the inerfaces required by Mozilla embedders
 	//
 	CBrowserImpl* mpBrowserImpl;
-
+#ifdef INTERNAL_SITEICONS
+	nsCOMPtr<CFavIconListener> mFavIconListener;
+	nsCOMPtr<nsIURI> m_IconUri;
+#endif
 	// Mozilla interfaces
 	//
 	nsCOMPtr<nsIWebBrowser> mWebBrowser;
@@ -219,6 +223,7 @@ protected:
     int maccel_cmd;
     int maccel_key;
     int maccel_pan;
+	int m_iIcon;
   
     CFindDialog* m_pFindDlg;
     CPrintProgressDialog* m_pPrintProgressDlg;

@@ -185,6 +185,9 @@ END_MESSAGE_MAP()
 
 
 CBrowserView::CBrowserView()
+#ifdef INTERNAL_SITEICONS
+: mFavIconListener(new CFavIconListener())
+#endif
 {
     mWebBrowser = nsnull;
     mBaseWindow = nsnull;
@@ -213,6 +216,9 @@ CBrowserView::CBrowserView()
     m_panning = FALSE;
     maccel_pan = FALSE;
     s = NULL;
+#ifdef INTERNAL_SITEICONS
+	m_IconUri = nsnull;
+#endif
 }
 
 CBrowserView::~CBrowserView()
@@ -338,6 +344,14 @@ HRESULT CBrowserView::CreateBrowser()
 			                        mpBrowserImpl, PR_TRUE);
 		rv = mEventTarget->AddEventListener(NS_LITERAL_STRING("DOMPopupBlocked"),
 			                        mpBrowserImpl, PR_FALSE);
+#ifdef INTERNAL_SITEICONS		
+		mFavIconListener->Init(mpBrowserFrameGlue);
+	
+		rv = mEventTarget->AddEventListener(NS_LITERAL_STRING("DOMLinkAdded"),
+			                        mFavIconListener, PR_FALSE);
+		rv = mEventTarget->AddEventListener(NS_LITERAL_STRING("DOMContentLoaded"),
+			                        mFavIconListener, PR_FALSE);
+#endif
 	}
     // Finally, show the web browser window
     mBaseWindow->SetVisibility(PR_TRUE);
@@ -362,6 +376,13 @@ HRESULT CBrowserView::DestroyBrowser()
 				  mpBrowserImpl, PR_FALSE);
 		mEventTarget->RemoveEventListener(NS_LITERAL_STRING("DOMPopupBlocked"),
 				  mpBrowserImpl, PR_FALSE);
+
+#ifdef INTERNAL_SITEICONS
+		mEventTarget->RemoveEventListener(NS_LITERAL_STRING("DOMLinkAdded"),
+				  mFavIconListener, PR_FALSE);
+		mEventTarget->RemoveEventListener(NS_LITERAL_STRING("DOMContentLoaded"),
+				  mFavIconListener, PR_FALSE);
+#endif
 	}
 
     if(mBaseWindow)
@@ -606,6 +627,9 @@ void CBrowserView::OpenMultiURL(char *urls)
 void CBrowserView::OnNewUrlEnteredInUrlBar()
 {
    mWebBrowserFocus->Activate();
+#ifdef INTERNAL_SITEICONS
+   m_IconUri = nsnull;
+#endif
 
    mpBrowserFrame->m_wndUrlBar.EditChanged(FALSE);
    
@@ -792,6 +816,15 @@ void CBrowserView::OnNavReload()
 
 void CBrowserView::OnNavForceReload()
 {
+#ifdef INTERNAL_SITEICONS
+	if (mWebNav)
+	{
+		nsCOMPtr<nsIURI> currentURI;
+		nsresult rv = mWebNav->GetCurrentURI(getter_AddRefs(currentURI));
+		if(NS_FAILED(rv) || !currentURI) return;
+		theApp.favicons.RefreshIcon(m_IconUri);
+	}
+#endif
 	_OnNavReload(TRUE);
 }
 

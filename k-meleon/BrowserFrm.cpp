@@ -94,6 +94,9 @@ BEGIN_MESSAGE_MAP(CBrowserFrame, CFrameWnd)
     ON_WM_SYSCOLORCHANGE()
     ON_MESSAGE(UWM_REFRESHTOOLBARITEM, RefreshToolBarItem)
     ON_MESSAGE(UWM_REFRESHMRULIST, RefreshMRUList)
+#ifdef INTERNAL_SITEICONS
+	ON_MESSAGE(UWM_NEWSITEICON, OnNewSiteIcon)
+#endif
 	ON_COMMAND(ID_CLOSE, CloseNothing)
     ON_COMMAND_RANGE(TOOLBAR_MENU_START_ID, TOOLBAR_MENU_END_ID, ToggleToolBar)
     ON_COMMAND(ID_TOOLBARS_LOCK, ToggleToolbarLock)
@@ -330,7 +333,9 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
         TRACE0("Failed to create URL Bar\n");
         return -1;      // fail to create
     }
-
+#ifdef INTERNAL_SITEICONS
+	m_wndUrlBar.SetImageList(&theApp.favicons);
+#endif
     // Load the Most Recently Used(MRU) Urls into the UrlBar
     m_wndUrlBar.LoadMRUList();  
 //   m_wndUrlBar.SetImageList(&m_toolbarHotImageList);
@@ -423,7 +428,7 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
     // The third pane(i.e. at index 2) of the status bar will have
     // the security lock icon displayed in it. Set up it's size(16)
     // and style(no border)so that the padlock icons can be properly drawn
-    m_wndStatusBar.SetPaneInfo(2, -1, SBPS_NORMAL|SBPS_NOBORDERS, 16);
+    //m_wndStatusBar.SetPaneInfo(2, -1, SBPS_NORMAL|SBPS_NOBORDERS, 16);
 
     // Create the tooltip window
     m_wndToolTip.Create(&m_wndBrowserView);
@@ -849,7 +854,7 @@ BOOL CMyStatusBar::SetIconInfo(UINT nID, HICON hIcon, LPCTSTR tpText)
 
 BOOL CMyStatusBar::AddIcon(UINT nID)
 {
-   BOOL idOk = TRUE;
+	BOOL idOk = TRUE;
 	int count = arrIcons.GetSize();
 	for (int i=0; i<count; i++)
 		if (arrIcons[i].nID == nID) {
@@ -1162,6 +1167,38 @@ void CBrowserFrame::ClearFindBar()
 	m_wndFindBar = NULL;
 	RecalcLayout();
 }
+
+#ifdef INTERNAL_SITEICONS
+void CBrowserFrame::SetFavIcon(int iIcon)
+{
+	COMBOBOXEXITEM cb;
+	cb.mask = CBEIF_IMAGE|CBEIF_SELECTEDIMAGE;
+	cb.iSelectedImage = cb.iImage = iIcon;
+	cb.iItem = -1;
+	m_wndUrlBar.SetItem(&cb);
+/*	cb.iSelectedImage = cb.iImage = I_IMAGECALLBACK;
+	cb.iItem = 0;
+	mpBrowserFrame->m_wndUrlBar.SetItem(&cb);
+	cb.iItem = 1;
+	mpBrowserFrame->m_wndUrlBar.SetItem(&cb);
+	cb.iItem = 2;
+	mpBrowserFrame->m_wndUrlBar.SetItem(&cb);*/
+}
+
+LRESULT CBrowserFrame::OnNewSiteIcon(WPARAM url, LPARAM index)
+{
+	int i = theApp.favicons.GetIcon(m_wndBrowserView.m_IconUri);
+	
+	if (i==-1) {// The icon doesn't exist anymore, was deleted
+		m_wndBrowserView.m_IconUri = nsnull;
+		SetFavIcon(theApp.favicons.GetDefaultIcon());
+	}
+	else
+		if (index==-1 || index == i) SetFavIcon(i);
+
+	return 0;
+}
+#endif
 
 void CBrowserFrame::OnSysCommand(UINT nID, LPARAM lParam)
 {

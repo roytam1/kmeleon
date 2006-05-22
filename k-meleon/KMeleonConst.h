@@ -27,6 +27,7 @@
 #define UWM_REFRESHMRULIST             WM_APP + 113
 
 #define UWM_NEWWINDOW                  WM_APP + 115
+#define UWM_NEWSITEICON				   WM_APP + 140
 
 #define UWM_PERSIST_SET                WM_APP + 1116
 #define UWM_PERSIST_GET                WM_APP + 1117

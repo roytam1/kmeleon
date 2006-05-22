@@ -170,14 +170,11 @@
 #define IDC_CLOSE_WHEN_DONE             1051
 #define IDC_RADIO_NEVER                 1052
 #define IDC_OPEN                        1052
-#define IDC_CHECK1                      1053
-#define IDC_RADIO_AUTO                  1053
 #define IDC_CHECK_LOAD                  1053
 #define IDC_CHECK_PASSWORDS             1053
-#define IDC_BUTTON2                     1054
 #define IDC_RADIO_CACHE                 1054
 #define IDC_RADIO_NEWWINDOW             1054
-#define IDC_BUTTON3                     1055
+#define IDOPEN                          1054
 #define IDC_PROMPT_ADDRESS_TEXT         1056
 #define IDC_EDIT_MEMORY_CACHE           1056
 #define IDC_CHECK_RESTRICT              1056
@@ -204,7 +201,7 @@
 #define IDC_COMBO_SKIN                  1078
 #define IDC_DOWNLOAD_TYPE               1034
 #define IDC_DOWNLOAD_SOURCE             1035
-#define IDOPEN                          1054
+#define IDC_CHECK_FAVICONCACHE          1086
 #define IDC_DOWNLOAD_NAME               1087
 #define IDC_LIST_COOKIES                1089
 #define IDC_DELETE_COOKIES              1090

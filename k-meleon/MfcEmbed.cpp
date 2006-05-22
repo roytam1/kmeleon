@@ -395,6 +395,12 @@ BOOL CMfcEmbedApp::InitInstance()
    m_bUnicode = (osinfo.dwPlatformId == VER_PLATFORM_WIN32_NT);
    #endif
 
+#ifdef INTERNAL_SITEICONS
+   // Create the favicon list
+   if (preferences.bSiteIcons)
+		favicons.Create(16,16,ILC_COLOR32|ILC_MASK,25,100);
+#endif
+
    // Look for language file
    if (!lang.Load(preferences.settingsDir + LANG_CONFIG_FILE)) {
 		lang.Load(CString(LANG_CONFIG_FILE));

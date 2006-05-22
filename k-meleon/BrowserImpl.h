@@ -71,4 +71,28 @@ protected:
    nsCOMPtr<nsIWebBrowser> mWebBrowser;
 };
 
+class CFavIconListener : public nsIDOMEventListener
+{
+  public:
+	NS_DECL_ISUPPORTS
+	NS_DECL_NSIDOMEVENTLISTENER
+
+	CFavIconListener();
+	virtual ~CFavIconListener();
+
+	//nsresult Init(CBrowserView* aBrowser);
+	nsresult Init(PBROWSERFRAMEGLUE pBrowserFrameGlue);
+	void LoadFavIcon(nsIURI* iconURI);
+	void AddIcon(char* uri, TCHAR* file, nsresult astatus);
+	void Reset(nsIURI*);
+
+	static void DwnCall(char* , TCHAR* , nsresult, void* );
+	
+
+  protected:
+    PBROWSERFRAMEGLUE m_pBrowserFrameGlue;
+//	CBrowserView	*mBrowser;
+	BOOL m_bIcon;
+};
+
 #endif //_BROWSERIMPL_H

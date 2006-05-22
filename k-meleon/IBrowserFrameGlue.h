@@ -87,6 +87,7 @@ struct IBrowserFrameGlue {
     virtual void FocusPrevElement() = 0;
 	virtual void MouseAction(nsIDOMNode *node) = 0;
 	virtual void PopupBlocked(const char* uri) = 0;
+	virtual void SetFavIcon(nsIURI* favUri) = 0;
 };
 
 #define NS_DECL_BROWSERFRAMEGLUE    \
@@ -120,6 +121,7 @@ struct IBrowserFrameGlue {
         virtual void FocusPrevElement(); \
 		virtual void MouseAction(nsIDOMNode *node);\
 		virtual void PopupBlocked(const char* uri);\
+		virtual void SetFavIcon(nsIURI* favUri);\
 
 typedef IBrowserFrameGlue *PBROWSERFRAMEGLUE;
 
