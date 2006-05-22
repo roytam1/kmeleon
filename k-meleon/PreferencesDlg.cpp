@@ -262,6 +262,7 @@ void CPreferencePage::DoDataExchange(CDataExchange* pDX){
       DDX_Check(pDX, IDC_CHECK_TOOLBAR_BACKGROUND, theApp.preferences.bToolbarBackground);
       DDX_Radio(pDX, IDC_RADIO_NEWWINDOW, theApp.preferences.iNewWindowOpenAs);
       DDX_Text(pDX, IDC_EDIT_URL, theApp.preferences.newWindowURL);
+	  DDX_Check(pDX, IDC_SITE_ICONS, theApp.preferences.bSiteIcons);
 	  DDX_Text(pDX, IDC_EDIT_FONT_MINSIZE, theApp.preferences.iFontMinSize);
       break;
     case IDD_PREFERENCES_GENERAL:
@@ -305,6 +306,8 @@ void CPreferencePage::DoDataExchange(CDataExchange* pDX){
       DDX_Check(pDX, IDC_CHECK_LOAD, theApp.preferences.bDisablePopupsOnLoad);
 
       DDX_Text(pDX, IDC_EDIT_USERAGENT, theApp.preferences.userAgent);
+	  DDX_Text(pDX, IDC_HISTORY_DAYS, theApp.preferences.historyExpire);
+	  DDX_Check(pDX, IDC_CHECK_FAVICONCACHE, theApp.preferences.bCacheFavicons);
       break;
    case IDD_PREFERENCES_DOWNLOAD:
 	   DDX_Text(pDX, IDC_EDIT_DOWNLOAD_DIR, theApp.preferences.downloadDir);
@@ -696,13 +699,13 @@ void CPreferencePageConfigs::SaveFile(const TCHAR *filename)
 void CPreferencePageConfigs::ShowFile(const TCHAR *filename){
    CFile file;
    if (file.Open(filename, CFile::modeRead)){
-      UINT length = (UINT)file.GetLength();
+      ULONGLONG length = file.GetLength();
       char *buffer = new char[length+1];
       buffer[file.Read(buffer, length)] = 0;
 
       char *p = strchr(buffer, '\n');
       if (p && *(p-1)!='\r') {
-        UINT i = 1;
+        ULONGLONG i = 1;
 	while ( (p = strchr(p+1, '\n')) )
 	  i++;
 	char *buffer2 = new char[length+i+1];
