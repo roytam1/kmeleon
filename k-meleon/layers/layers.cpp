@@ -896,7 +896,7 @@ void addRebarButton(HWND hWndTB, char *text, int num, int active, int image=0)
       (((nButtonStyle & BS_GRAYED) && active) ? 0 : TBSTATE_ENABLED) |
       (((nButtonStyle & BS_PRESSED) && active) ? TBSTATE_CHECKED : 0);
    button.fsStyle = TBSTYLE_BUTTON | 
-      ((nButtonMaxWidth < 0) ? TBSTYLE_AUTOSIZE : 0) | TBSTYLE_ALTDRAG | TBSTYLE_WRAPABLE |
+      ((nButtonMaxWidth < 0) ? TBSTYLE_AUTOSIZE : 0) | TBSTYLE_GROUP | TBSTYLE_ALTDRAG | TBSTYLE_WRAPABLE |
       (((nButtonStyle & BS_PRESSED) && active) ? TBSTYLE_CHECK : 0);
    button.idCommand = id_layer + num;
    if (gImagelist)
@@ -1241,7 +1241,8 @@ void ShowMenuUnderButton(HWND hWndParent, HMENU hMenu, UINT uMouseButton, int iI
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
    struct frame *pFrame;
    struct layer *pLayer;
-   
+   static TCHAR *tip = NULL;
+
    if (!bIgnore)
       
       switch (message) {
@@ -1295,6 +1296,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
             break;
             
          case WM_CLOSE:
+			 if (tip) free(tip);
+			 tip = NULL;
             if (bIgnore)
                break;
             pLayer = find_layer(hWnd);
@@ -1378,6 +1381,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
             break;
          }
             
+		 case TB_LBUTTONDBLCLK:
          case TB_MBUTTONDOWN:
          {
             WORD command = wParam;
@@ -1390,7 +1394,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
             /* Fall through! */
          }
 
-         case TB_LBUTTONDBLCLK:
+         //case TB_LBUTTONDBLCLK:
          {
             WORD command = wParam;
             if (!command) {
@@ -1736,7 +1740,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                   bDoClose = 0;
                   if (pLayer)
                      pLayer->state = Closed;
-                  kPlugin.kFuncs->NavigateTo((char*)"", OPEN_BACKGROUND, NULL);
+				  kPlugin.kFuncs->NavigateTo((char*)"about:blank", OPEN_BACKGROUND, NULL);
                   if (bCaught)
                      CallWindowProc((WNDPROC)KMeleonWndProc, hWnd, WM_CLOSE, 0, 0);
                   else
@@ -1830,12 +1834,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                      ShowWindowAsync(pFrame->hWndLast, SW_HIDE);
                   }
                }
-               else {
+               /*else {
                  if (clock()-lastTime < 250) {
                    PostMessage(hWnd, WM_COMMAND, id_close_layer, MAKELPARAM(PLUGIN_JUNK,command));
                  }
                }
-               lastTime = clock();
+               lastTime = clock();*/
                return 1;
             }
             
@@ -1917,7 +1921,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
          {
             LPNMHDR lpNmhdr = (LPNMHDR) lParam;
             if (lpNmhdr->code == (UINT)TTN_NEEDTEXT) {
-               static char *tip = NULL;
                int id = LOWORD(wParam);
                if ((id >= id_layer) && (id < id_layer+MAX_LAYERS)) {
                   pFrame = find_frame(hWnd);
