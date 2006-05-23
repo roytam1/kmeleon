@@ -549,9 +549,10 @@ void CondenseMenuText(char *buf, int len, char *title, int index) {
 int nHSize, nHRes;
 
 int Load(){
-   HDC hdcScreen = CreateDC("DISPLAY", NULL, NULL, NULL); 
+   HDC hdcScreen = CreateDC(_T("DISPLAY"), NULL, NULL, NULL); 
    nHSize = GetDeviceCaps(hdcScreen, HORZSIZE);
    nHRes = GetDeviceCaps(hdcScreen, HORZRES);
+   DeleteDC(hdcScreen);
 
    id_layer = kPlugin.kFuncs->GetCommandIDs(MAX_LAYERS);
    
@@ -770,8 +771,16 @@ void Destroy(HWND hWnd){
 }
 
 void Quit(){
-   if (gImagelist)
+   if (gImagelist && gImagelist!=kPlugin.kFuncs->GetIconList())
       ImageList_Destroy(gImagelist);
+   
+   while (gMenuList) {
+	   MenuList *tmp;
+	   tmp = gMenuList;
+	   gMenuList = gMenuList->next;
+	   free(tmp);
+   }
+
 }
 
 void DoMenu(HMENU menu, char *param){
