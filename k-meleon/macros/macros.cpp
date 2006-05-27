@@ -61,6 +61,7 @@ char*        FindVarName(int id);
 int          GetConfigFiles(configFileType **configFiles);
 std::string  GetVarVal(int varid);
 std::string  GetGlobalVarVal(HWND hWnd, char *name, int *found);
+int SetGlobalVarVal(HWND hWnd, char *name, const char* value);
 int          Load();
 int          IntVal(std::string input);
 void         LoadMacros(char *filename);
@@ -2184,6 +2185,8 @@ std::string EvalExpression(HWND hWnd,std::string exp) {
       //make sure the variable exists, or if this appears to be a declaration add it
       lval = lval.substr(1);
       lval = strTrim(lval);
+	  if (SetGlobalVarVal(hWnd, (char*)lval.c_str(), strVal(rval).c_str()))
+		  return "";
       int varid = FindVar((char*)lval.c_str());
       if(varid == NOTFOUND) { //create it
          varid = AddNewVar(lval);
@@ -2382,6 +2385,16 @@ std::string GetVarVal(int varid)
 };
 
 std::string sGlobalVar;
+
+int SetGlobalVarVal(HWND hWnd, char *name, const char* value)
+{
+	int ret = kPlugin.kFuncs->SetGlobalVar(PREF_STRING, name, (void*)value);
+	if (!ret) {
+		int val = IntVal(value);
+		ret = kPlugin.kFuncs->SetGlobalVar(PREF_INT, name, (void*)&val);
+	}
+	return ret;
+}
 
 std::string GetGlobalVarVal(HWND hWnd, char *name, int *found)
 {
