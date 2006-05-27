@@ -1597,6 +1597,17 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
    return "";
 }
 
+bool IsNumber(const char* string)
+{
+	char* p=SkipWhiteSpace((char*)string);
+	if (*p != '+' && *p!='-') return false;
+	while (*++p) {
+		if (*p<'0'||*p>'9')
+			return false;
+	}
+	return true;
+}
+
 void LoadMacros(char *filename) {
    HANDLE macroFile;
 
@@ -2037,7 +2048,12 @@ std::string EvalExpression(HWND hWnd,std::string exp) {
    else if(exp.at(0) == '(') ++lparen;
    for(i=1;i<exp.length();++i) {
       //break; //skip this for now
-      if(exp.at(i) == '"' && exp.at(i-1) != '\\') {
+	  if (instr && exp.at(i) == '\\') {
+		 i++;
+		 continue;
+	  }
+	  if(exp.at(i) == '"') {
+	  //if(exp.at(i) == '"' && exp.at(i-1) != '\\') {
          instr = (instr) ? false : true;
          continue;
       }
@@ -2159,6 +2175,26 @@ std::string EvalExpression(HWND hWnd,std::string exp) {
    if(isComparison) {
       lval = EvalExpression(hWnd,strTrim(lval));
       rval = EvalExpression(hWnd,strTrim(rval));
+	  if (IsNumber(strVal(lval, 1).c_str()) && IsNumber(strVal(rval, 1).c_str()))
+	  {
+		  int lival = IntVal(lval);
+		  int rival = IntVal(rval);
+		  if (strtemp == "==") 
+			  return (lival == rival) ? "1" : "0";
+		  else if (strtemp == "!=") 
+			  return (lival != rival) ? "1" : "0";
+		  else if (strtemp == "<") 
+			  return (lival < rival) ? "1" : "0";
+		  else if (strtemp == ">") 
+			  return (lival > rival) ? "1" : "0";
+		  else if (strtemp == "<=") 
+			  return (lival <= rival) ? "1" : "0";
+		  else if (strtemp == ">=") 
+			  return (lival >= rival) ? "1" : "0";
+		  else
+			  return "";
+	  }
+
       if (strtemp == "==") 
 	return (strVal(lval) == strVal(rval)) ? "1" : "0";
       else if (strtemp == "!=") 
