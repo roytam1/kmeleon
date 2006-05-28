@@ -308,6 +308,7 @@ protected:
 	afx_msg void OnUpdateNavBack(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateNavForward(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateNavStop(CCmdUI* pCmdUI);
+	afx_msg void OnUpdateFileSave(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateCut(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateCopy(CCmdUI* pCmdUI);
 	afx_msg void OnUpdatePaste(CCmdUI* pCmdUI);
