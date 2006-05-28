@@ -54,6 +54,12 @@ END_MESSAGE_MAP()
 
 BOOL CPasswordViewerDlg::OnInitDialog()
 {
+	// XXX Must display an error message
+	if (!m_passwordManager) {
+		PostMessage(WM_CLOSE, 0, 0);
+		return TRUE;
+	}
+
 	CDialog::OnInitDialog();
 	CButton* radio = (CButton*)GetDlgItem(IDC_RADIO1);
 		
