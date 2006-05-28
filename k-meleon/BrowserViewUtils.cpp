@@ -226,11 +226,13 @@ void CBrowserView::GetPageTitle(CString& title)
 {
    USES_CONVERSION;
    PRUnichar *aTitle;
-   mpBrowserFrameGlue->GetBrowserFrameTitle(&aTitle);
-   title = W2T(aTitle);
-   nsMemory::Free(aTitle);
+   //mpBrowserFrameGlue->GetBrowserFrameTitle(&aTitle);
+   if (mBaseWindow) {
+     mBaseWindow->GetTitle(&aTitle);
+     title = W2T(aTitle);
+     nsMemory::Free(aTitle);
+  }
 }
-
 /*
 BOOL MultiSave(nsIURI* aURI, nsILocalFile* file) {
    nsCOMPtr<nsIWebBrowserPersist> persist(do_CreateInstance(NS_WEBBROWSERPERSIST_CONTRACTID));
