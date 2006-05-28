@@ -192,7 +192,7 @@ public:
 
     inline void ClearFindDialog() { m_pFindDlg = NULL; }
 
-    void GetBrowserWindowTitle(nsEmbedString& title);
+   // void GetBrowserWindowTitle(nsEmbedString& title);
 
     BOOL URISaveAs(nsIURI *aURI, int bDocument=0);
 	BOOL URISaveAs(PRUnichar* aURI , int bDocument=0);

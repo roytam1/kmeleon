@@ -1051,7 +1051,7 @@ void CBrowserView::OnFileOpen()
 
     delete szFileName;
 }
-
+#if 0
 void CBrowserView::GetBrowserWindowTitle(nsEmbedString& title)
 {
     PRUnichar *idlStrTitle = nsnull;
@@ -1075,7 +1075,7 @@ void CBrowserView::GetBrowserWindowTitle(nsEmbedString& title)
 	title = T2CW(csTitle);
 	nsMemory::Free(idlStrTitle);
 }
-
+#endif
 void CBrowserView::OnFileSaveAs()
 {
     // Try to get the file name part from the URL
