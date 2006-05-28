@@ -55,6 +55,7 @@ NS_IMETHODIMP CCookiePromptService::CookieDialog(nsIDOMWindow *parent, nsICookie
 
   nsMemory::Free(host);
 
+  HWND activeWnd = GetActiveWindow();
   CWnd *wnd = CWndForDOMWindow(parent);
   CConfirmCookieDialog dlg(wnd, q, accept);
 	
@@ -76,6 +77,7 @@ NS_IMETHODIMP CCookiePromptService::CookieDialog(nsIDOMWindow *parent, nsICookie
 	  accept = *rememberDecision = dlg.m_bCheckBoxValue;
 	  delete cookie;	  
   }
+  SetForegroundWindow(activeWnd);
   return NS_OK;
 }
 
@@ -129,7 +131,7 @@ BOOL CConfirmCookieDialog::OnInitDialog()
 void CConfirmCookieDialog::OnBnClickedAllowsession()
 {
 	UpdateData();
-	EndDialog(nsICookieAcceptDialog::ACCEPT_COOKIE);
+	EndDialog(nsICookiePromptService::ACCEPT_SESSION_COOKIE);
 }
 
 void CConfirmCookieDialog::OnBnClickedDeny()
