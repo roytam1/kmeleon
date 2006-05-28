@@ -106,13 +106,13 @@ void CFindRebar::Close()
 
 void CFindRebar::PostNcDestroy()
 {
-	m_pOwner->ClearFindBar();
 #ifndef _UNICODE
 	if (theApp.m_bUnicode){
 		::DestroyWindow(m_cEdit.Detach());
 	}
 #endif
-	CReBar::PostNcDestroy();
+	m_pOwner->ClearFindBar();
+	//CReBar::PostNcDestroy();
 }
 
 #ifndef FINDBAR_USE_TYPEAHEAD

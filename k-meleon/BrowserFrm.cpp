@@ -244,12 +244,19 @@ void CBrowserFrame::OnClose()
    
     m_wndStatusBar.RemoveIcon(ID_SECURITY_STATE_ICON);
 
+   // XXX: Destroying the window with the findbar open, will activate
+   // it during destruction because I'm setting back the focus to the
+   // view, and m_pMostRecentBrowserFrame will point to an deleted 
+   // object.
+   CBrowserFrame* pTemp = theApp.m_pMostRecentBrowserFrame;
    DestroyWindow();
+
+   if (theApp.m_pMostRecentBrowserFrame == this) {
+	 theApp.m_pMostRecentBrowserFrame = pTemp;
+   }
+
    theApp.RemoveFrameFromList(this);
 }
-
-
-
 
 
 
@@ -1201,8 +1208,12 @@ void CBrowserFrame::OnShowFindBar()
 
 void CBrowserFrame::ClearFindBar()
 {
+	delete m_wndFindBar;
 	m_wndFindBar = NULL;
 	RecalcLayout();
+	// WORKAROUND: Setting back the focus to gecko
+	//m_wndBrowserView.mBaseWindow->SetFocus(); // WHY IT DOES NOTHING ?
+	m_wndBrowserView.Activate(TRUE);
 }
 
 #ifdef INTERNAL_SITEICONS
