@@ -905,7 +905,7 @@ int CMfcEmbedApp::ExitInstance()
    // this way plugins can still call the preference functions
    plugins.SendMessage("*", "* Plugin Manager", "Quit");
 
-   preferences.Save();
+   preferences.Save(true);
    
    m_ProfileMgr->ShutDownCurrentProfile( theApp.preferences.bGuestAccount );
    if (m_ProfileMgr) delete m_ProfileMgr;

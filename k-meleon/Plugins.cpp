@@ -220,7 +220,7 @@ void _GetPreference(enum PREFTYPE type, char *preference, void *ret, void *defVa
 }
 void SetPreference(enum PREFTYPE type, char *preference, void *val, BOOL update)
 {
-   theApp.preferences.Save();
+   theApp.preferences.Save(false);
 
    switch (type) {
       case PREF_BOOL:

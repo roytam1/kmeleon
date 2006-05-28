@@ -55,6 +55,7 @@ public:
    CString settingsDir;
    CString pluginsDir;
    CString profileDir;
+   CString _defProfileDir;
 
    CString skinsDir;
    CString skinsCurrent;
@@ -176,7 +177,7 @@ public:
    ~CPreferences();
 
    void Flush();
-   void Save();
+   void Save(bool clearPath = false);
    void Load();
 
    void SetBool(const char *preference, int value);
