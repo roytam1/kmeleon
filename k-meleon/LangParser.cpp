@@ -42,9 +42,93 @@ int CLangParser::Load(CString &filename)
    return retVal;
 }
 
+char* ParseString(char** input, bool *equal)
+{
+	char* string = *input, *p, *q;
+	bool quotes = false;
+
+	*equal = false;
+	string = SkipWhiteSpace(string);
+	if (*string == '"') {
+		quotes = true;
+		++string;
+	}
+
+	p = string;
+	while ( *p )
+	{
+		if (quotes && *p == '"') {
+			*p = 0;
+			p = SkipWhiteSpace(p+1);
+			if (*p == '=') {
+				p++;
+				*equal = true;
+			}
+
+			*input = p;
+			return string;
+		}
+		else if(!quotes && *p=='=') {
+			*p = 0;
+			TrimWhiteSpace(string);
+			*input = p+1;
+			*equal = true;
+			return string;
+		}
+
+		q = p++;
+		if (*q == '\\') 
+		{
+			switch (*p) {
+				case 'n': 
+					*q = '\n';
+					break;
+				case 'r': 
+					*q = '\r';
+					break;
+				case 't':
+					*q = '\t';
+					break;
+				case '\\': 
+					*q = '\\';
+					break;
+				case '"': 
+					*q = '"';
+					break;
+				default:
+					continue;
+			}
+			if (*p) {
+				strcpy(p, p+1);
+			}
+		}
+	}
+	*input = p;
+	TrimWhiteSpace(string);
+	return string;
+}
+
 int CLangParser::Parse(char *p)
 {
-    char *equal, *original;
+	if (!*p) return 0;
+
+	bool equal;
+	char *original = ParseString(&p, &equal);
+	
+	if (!equal) {
+		if (strlen(p)>25) p[25] = 0;
+		LOG_ERROR_1("Equal '=' expected, found %s", *p ? p : "nothing");
+		return 0;
+	}
+
+	char *translation = ParseString(&p, &equal);
+
+	if (equal) {
+		if (strlen(p)>25) p[25] = 0;
+		LOG_ERROR_1("Equal '=' unexpected, %s", *p ? p : "nothing");
+		return 0;
+	}
+/*
 
 	p = SkipWhiteSpace(p);
 	if (!*p) return 0;
@@ -96,7 +180,7 @@ int CLangParser::Parse(char *p)
 		while (*equal!=0 && (*equal!='"' || *(equal-1)=='\\'))
 			equal++;
 		*equal = 0;
-	}
+	}*/
 
 	USES_CONVERSION;
 	if (*translation) {
