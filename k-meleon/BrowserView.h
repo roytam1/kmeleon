@@ -220,7 +220,7 @@ protected:
 	BOOL m_refreshBackButton;
 	BOOL m_refreshForwardButton; 
     BOOL m_InPrintPreview;
-    char **m_tempFileList;
+    TCHAR **m_tempFileList;
     int m_tempFileCount;
     int maccel_cmd;
     int maccel_key;
