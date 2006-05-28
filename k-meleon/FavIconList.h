@@ -39,7 +39,7 @@ public:
 	void ResetCache();
 	void LoadDefaultIcon();
 	
-	void DwnFavIcon(nsIURI* iconURI);
+	BOOL DwnFavIcon(nsIURI* iconURI);
 	static void DwnCall(char* , TCHAR* , nsresult, void* );
 
 	inline int GetDefaultIcon() {return m_iDefaultIcon;}

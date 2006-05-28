@@ -281,7 +281,9 @@ int CFavIconList::GetIcon(nsIURI *aURI, BOOL download)
 	aURI->GetSpec(nsUri);
 	if (!m_urlMap.Lookup(nsUri.get(), index))
 	{
-		if (download) DwnFavIcon(aURI);
+		if (download) 
+			if (!DwnFavIcon(aURI))
+				return GetDefaultIcon();
 		return -1;
 	}
 
@@ -333,7 +335,7 @@ void CFavIconList::ResetCache()
 	theApp.BroadcastMessage(UWM_NEWSITEICON, 0, -1);
 }
 
-void CFavIconList::DwnFavIcon(nsIURI* iconURI)
+BOOL CFavIconList::DwnFavIcon(nsIURI* iconURI)
 {
 	/*int index;
 	
@@ -350,7 +352,7 @@ void CFavIconList::DwnFavIcon(nsIURI* iconURI)
 	// which is bad. A nsStreamListener have to be 
 	// implemented.
 	nsCOMPtr<nsIWebBrowserPersist> persist(do_CreateInstance(NS_WEBBROWSERPERSIST_CONTRACTID));
-	if(!persist) return;
+	if(!persist) return FALSE;
 
 	TCHAR tempPath[MAX_PATH];
 	GetTempPath(MAX_PATH, tempPath);
@@ -371,8 +373,11 @@ void CFavIconList::DwnFavIcon(nsIURI* iconURI)
 		nsIWebBrowserPersist::PERSIST_FLAGS_AUTODETECT_APPLY_CONVERSION|
 		nsIWebBrowserPersist::PERSIST_FLAGS_REPLACE_EXISTING_FILES);
 	nsresult rv = persist->SaveURI(iconURI, nsnull, nsnull, nsnull, nsnull, file);
-	if (NS_FAILED(rv))
+	if (NS_FAILED(rv)) {
 		persist->SetProgressListener(nsnull);
+		return FALSE;
+	}
+	return TRUE;
 }
 
 void CFavIconList::DwnCall(char* uri, TCHAR* file, nsresult status, void* param)
