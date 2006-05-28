@@ -73,6 +73,9 @@ enum PREFTYPE {
 
 struct kmeleonPlugin;
 
+typedef  HWND(*SideBarInitProc)(HWND);
+
+
 typedef struct {
    long (*SendMessage)(const char *to, const char *from, const char *subject, long data1, long data2);
 
@@ -154,8 +157,8 @@ typedef struct {
 // ----------------------------------------------------
 // Addition in K-meleon 1.0
 
-   int (*reserved) ();
-   int (*reserved1) ();
+   int (*RegisterSideBar) (HWND parentWnd, TCHAR* name, SideBarInitProc proc, int commandID, int visibleOnMenu);
+   void (*ToggleSideBar) (HWND parentWnd, int index);
 
    int (*TranslateEx)(const char* originalText, TCHAR* translatedText, int bufferlen, BOOL forMenu);
 	
@@ -174,7 +177,7 @@ typedef struct {
 
    int (*GetKmeleonVersion)();
 
-   void (*reserved5)();
+   void (*reserved)();
 
    HWND (*NavigateTo)(const char *url, int windowState, HWND mainWnd/*=NULL*/);
 

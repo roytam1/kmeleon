@@ -54,7 +54,9 @@
 #define PLUGIN_REBAR_START_ID          200
 
 #define TOOLBAR_MENU_START_ID          2000
-#define TOOLBAR_MENU_END_ID            TOOLBAR_MENU_START_ID+50  // this limits us to 50 toolbars, should be enough :)
+#define TOOLBAR_MENU_END_ID            TOOLBAR_MENU_START_ID+49  // this limits us to 50 toolbars, should be enough :) 
+#define SIDEBAR_MENU_START_ID          2050
+#define SIDEBAR_MENU_END_ID            SIDEBAR_MENU_START_ID+49 
 #define BAND_BASE_ID                   200
 
 #define PREF_NEW_WINDOW_BLANK          0

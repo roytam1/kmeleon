@@ -704,6 +704,9 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
    // this only needs to be called once
    if (!m_bFirstWindowCreated) {
       pFrame->m_wndReBar.DrawToolBarMenu();
+#ifdef INTERNAL_SIDEBAR
+      pFrame->m_wndSideBar.DrawSideBarMenu();
+#endif
       m_bFirstWindowCreated = TRUE;
    }
 

@@ -48,6 +48,7 @@
 #include "ReBarEx.h"
 #include "Tooltips.h"
 #include "urlbar.h"
+#include "sidebar.h"
 #include "Dialogs.h"
 
 
@@ -152,6 +153,9 @@ public:
     CUrlBar         m_wndUrlBar;
     CReBarEx        m_wndReBar;
     CAnimateCtrl     m_wndAnimate;
+#ifdef INTERNAL_SIDEBAR
+	CSideBar		m_wndSideBar;
+#endif
 	CFindRebar*		m_wndFindBar;
 
     CBitmap         m_bmpBack;
@@ -180,7 +184,6 @@ public:
 
     CToolBarList m_tbList;
     HWND CreateToolbar(UINT style);
-
 
     BOOL Create(LPCTSTR lpszClassName,     LPCTSTR lpszWindowName,
        DWORD dwStyle,      const RECT& rect,       CWnd* pParentWnd,
@@ -251,6 +254,10 @@ protected:
     afx_msg void ToggleToolbarLock();
     afx_msg void OnUpdateToggleToolbarLock(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateToolBarMenu(CCmdUI*);
+#ifdef INTERNAL_SIDEBAR
+	afx_msg void ToggleSideBar(UINT uID);
+	afx_msg void OnUpdateSideBarMenu(CCmdUI*);
+#endif
 #ifdef INTERNAL_SITEICONS
 	afx_msg LRESULT OnNewSiteIcon(WPARAM url, LPARAM index);
 #endif
