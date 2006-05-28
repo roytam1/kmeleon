@@ -648,6 +648,9 @@ BOOL CUrlBarEdit::PreTranslateMessage(MSG* pMsg)
 }
 BEGIN_MESSAGE_MAP(CUrlBar, CComboBoxEx)
 	ON_WM_CTLCOLOR()
+#ifdef INTERNAL_SITEICONS
+	ON_NOTIFY_REFLECT(CBEN_GETDISPINFO, OnCbenGetdispinfo)
+#endif
 END_MESSAGE_MAP()
 
 HBRUSH CUrlBar::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
@@ -664,4 +667,36 @@ HBRUSH CUrlBar::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 	return hbr;
 }
 
+#ifdef INTERNAL_SITEICONS
+void CUrlBar::OnCbenGetdispinfo(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	PNMCOMBOBOXEX pCBEx = reinterpret_cast<PNMCOMBOBOXEX>(pNMHDR);
+	USES_CONVERSION;
+
+	CString url;
+	nsCOMPtr<nsIURI> URI;
+
+	/*if (pCBEx->ceItem.iItem == -1)
+	{
+		int l = frame->m_wndBrowserView.GetCurrentURI(NULL);
+		if (l>0){
+			char* oldUri = new char[l+1];
+			frame->m_wndBrowserView.GetCurrentURI(oldUri);
+			url = oldUri;
+			delete oldUri;
+		}
+		else
+			GetWindowText(url);
+	}
+	else*/
+	if (pCBEx->ceItem.iItem != -1)
+	{
+		//url = W2T(pCBEx->ceItem.pszText); 
+		GetLBText(pCBEx->ceItem.iItem, url);
+		pCBEx->ceItem.iImage = pCBEx->ceItem.iSelectedImage = theApp.favicons.GetHostIcon(url);
+	}
+	
+	*pResult = 0;
+}
+#endif
 
