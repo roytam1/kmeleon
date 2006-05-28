@@ -68,16 +68,15 @@
 //			implementation details
 //
 
-
 #include "stdafx.h"
 #include "BrowserImpl.h"
 
 #include "nsIDOMWindow.h"
 #include "nsIDOMPopupBlockedEvent.h"
+#include "nsIDOMMouseListener.h"
 
 CBrowserImpl::CBrowserImpl()
 {
-
     m_pBrowserFrameGlue = NULL;
     mWebBrowser = nsnull;
 }
@@ -118,9 +117,60 @@ NS_INTERFACE_MAP_BEGIN(CBrowserImpl)
    NS_INTERFACE_MAP_ENTRY(nsIContextMenuListener2)
    NS_INTERFACE_MAP_ENTRY(nsITooltipListener)
    NS_INTERFACE_MAP_ENTRY(nsISupportsWeakReference)
+  // NS_INTERFACE_MAP_ENTRY(nsISHistoryListener)
+   //NS_INTERFACE_MAP_ENTRY(nsIObserver)
    NS_INTERFACE_MAP_ENTRY(nsIDOMEventListener)
+   //NS_INTERFACE_MAP_ENTRY(nsIDOMMouseListener)
 NS_INTERFACE_MAP_END
 
+/*
+NS_IMETHODIMP CBrowserImpl::MouseDown(nsIDOMEvent* aMouseEvent) {return NS_OK;}
+NS_IMETHODIMP CBrowserImpl::MouseUp(nsIDOMEvent* aMouseEvent) {return NS_OK;}
+NS_IMETHODIMP CBrowserImpl::MouseClick(nsIDOMEvent* aMouseEvent){return NS_OK;}
+NS_IMETHODIMP CBrowserImpl::MouseDblClick(nsIDOMEvent* aMouseEvent) {return NS_OK;}
+NS_IMETHODIMP CBrowserImpl::MouseOver(nsIDOMEvent* aMouseEvent) {return NS_OK;} 
+NS_IMETHODIMP CBrowserImpl::MouseOut(nsIDOMEvent* aMouseEvent) {return NS_OK;}
+*/
+/*
+NS_IMETHODIMP CBrowserImpl::Observe(nsISupports *aSubject, const char *aTopic, const PRUnichar *aData)
+{
+	return NS_ERROR_NOT_IMPLEMENTED;
+	
+	//"nsWebBrowserFind_FindAgain"
+	//return m_pBrowserFrameGlue->OnFindNext(aSubject);
+}
+
+NS_IMETHODIMP CBrowserImpl::OnHistoryNewEntry(nsIURI *aNewURI)
+{
+	nsEmbedCString str;
+	aNewURI->GetSpec(str);
+	CString cStr = str.get();
+	m_pBrowserFrameGlue->UpdateMRU(str.get());
+	return NS_OK;
+}
+
+NS_IMETHODIMP CBrowserImpl::OnHistoryGoBack(nsIURI *aBackURI, PRBool *_retval)
+{
+		return NS_ERROR_NOT_IMPLEMENTED;					
+}
+NS_IMETHODIMP CBrowserImpl::OnHistoryGoForward(nsIURI *aForwardURI, PRBool *_retval)
+{
+		return NS_ERROR_NOT_IMPLEMENTED;
+}
+NS_IMETHODIMP CBrowserImpl::OnHistoryReload(nsIURI *aReloadURI, PRUint32 aReloadFlags, PRBool *_retval)
+{
+		return NS_ERROR_NOT_IMPLEMENTED;
+
+}
+NS_IMETHODIMP CBrowserImpl::OnHistoryGotoIndex(PRInt32 aIndex, nsIURI *aGotoURI, PRBool *_retval)
+{
+		return NS_ERROR_NOT_IMPLEMENTED;
+}
+NS_IMETHODIMP CBrowserImpl::OnHistoryPurge(PRInt32 aNumEntries, PRBool *_retval)
+{
+	return NS_ERROR_NOT_IMPLEMENTED;
+}
+*/
 //*****************************************************************************
 // CBrowserImpl::nsIInterfaceRequestor
 //*****************************************************************************   

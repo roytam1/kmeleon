@@ -65,9 +65,12 @@
 #include "ToolBarEx.h"
 #include "Utils.h"
 #include "KmeleonConst.h"
-#include "kmeleon_plugin.h"
+
 #include "Permissions.h"
 #include "nsIDOMEventTarget.h"
+#include "nsIDOMMouseListener.h"
+#include "nsIDOMEventReceiver.h"
+#include "nsPIDOMWindow.h"
 #include <wininet.h>
 
 extern CMfcEmbedApp theApp;
@@ -288,6 +291,12 @@ HRESULT CBrowserView::CreateBrowser()
     mpBrowserImpl->Init(mpBrowserFrameGlue, mWebBrowser);
     mpBrowserImpl->AddRef();
 
+// Find again observer to know when a new search was triggered
+/*	nsCOMPtr<nsIObserverService> observerService = 
+        do_GetService("@mozilla.org/observer-service;1", &rv);
+    if (NS_SUCCEEDED(rv))
+      observerService->AddObserver(mpBrowserImpl, "nsWebBrowserFind_FindAgain", PR_TRUE);*/
+
     mWebBrowser->SetContainerWindow(NS_STATIC_CAST(nsIWebBrowserChrome*, mpBrowserImpl));
 
     rv = NS_OK;
@@ -337,13 +346,21 @@ HRESULT CBrowserView::CreateBrowser()
 	mWebBrowserFocus = do_QueryInterface(mWebBrowser);
 	NS_ENSURE_TRUE(mWebBrowserFocus, NS_ERROR_FAILURE);
 
+	//History listener
+/*	nsWeakPtr weakling2(
+        do_GetWeakReference(NS_STATIC_CAST(nsISHistoryListener*, mpBrowserImpl)));
+    (void)mWebBrowser->AddWebBrowserListener(weakling2, 
+                                NS_GET_IID(nsISHistoryListener));*/
+
 	rv = GetDOMEventTarget(mWebBrowser, (getter_AddRefs(mEventTarget)));
+	
 	if (NS_SUCCEEDED(rv) && !(mpBrowserFrame->m_chromeMask & nsIWebBrowserChrome::CHROME_OPENAS_CHROME ))
 	{
 		rv = mEventTarget->AddEventListener(NS_LITERAL_STRING("mousedown"),
 			                        mpBrowserImpl, PR_TRUE);
 		rv = mEventTarget->AddEventListener(NS_LITERAL_STRING("DOMPopupBlocked"),
 			                        mpBrowserImpl, PR_FALSE);
+
 #ifdef INTERNAL_SITEICONS		
 		mFavIconListener->Init(mpBrowserFrameGlue);
 	
@@ -353,6 +370,24 @@ HRESULT CBrowserView::CreateBrowser()
 			                        mFavIconListener, PR_FALSE);
 #endif
 	}
+	/*
+	nsCOMPtr<nsPIDOMWindow> piWin;
+
+	 // get the content DOM window for that web browser
+	nsCOMPtr<nsIDOMWindow> domWindow;
+	mWebBrowser->GetContentDOMWindow(getter_AddRefs(domWindow));
+	if (!domWindow)
+	   return NS_ERROR_FAILURE;
+
+    // get the private DOM window
+    nsCOMPtr<nsPIDOMWindow> domWindowPrivate = do_QueryInterface(domWindow);
+    // and the root window for that DOM window
+    piWin = domWindowPrivate->GetPrivateRoot();
+
+	nsCOMPtr<nsIDOMEventReceiver> mEventReceiver = do_QueryInterface(piWin->GetChromeEventHandler());
+	rv = mEventReceiver->AddEventListenerByIID(mpBrowserImpl,
+					     NS_GET_IID(nsIDOMMouseListener));
+   */
     // Finally, show the web browser window
     mBaseWindow->SetVisibility(PR_TRUE);
 
@@ -370,6 +405,7 @@ HRESULT CBrowserView::DestroyBrowser()
 {
     DeleteTempFiles();   
 
+	// Remove event listeners
 	if (mEventTarget && !(mpBrowserFrame->m_chromeMask & nsIWebBrowserChrome::CHROME_OPENAS_CHROME ))
 	{
 		mEventTarget->RemoveEventListener(NS_LITERAL_STRING("mousedown"),
@@ -384,6 +420,12 @@ HRESULT CBrowserView::DestroyBrowser()
 				  mFavIconListener, PR_FALSE);
 #endif
 	}
+
+/*	nsresult rv;
+	nsCOMPtr<nsIObserverService> observerService = 
+        do_GetService("@mozilla.org/observer-service;1", &rv);
+    if (NS_SUCCEEDED(rv))
+      observerService->RemoveObserver(mpBrowserImpl, "nsWebBrowserFind_FindAgain");*/
 
     if(mBaseWindow)
     {
@@ -639,7 +681,7 @@ void CBrowserView::OnNewUrlEnteredInUrlBar()
 
    // Add what was just entered into the MRI list
    if (theApp.preferences.MRUbehavior == 2)
-   mpBrowserFrame->m_wndUrlBar.AddURLToList(strUrl);
+	 mpBrowserFrame->m_wndUrlBar.AddURLToList(strUrl);
 
    if(IsViewSourceUrl(strUrl))
       OpenViewSourceWindow(strUrl.GetBuffer(0));
