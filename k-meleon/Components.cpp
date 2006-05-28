@@ -12,7 +12,7 @@ the same CID and Contract ID as the default's.
 #include "UnknownContentTypeHandler.h"
 #include "PromptService.h"
 #include "CookiePromptService.h"
-#include "TooltipsProvider.h"
+//#include "TooltipsProvider.h"
 #include "NSSDialogs.h"
 #include "FontPackageHandler.h"
 #include "GenKeyPairDialogs.h"
@@ -27,7 +27,7 @@ the same CID and Contract ID as the default's.
 NS_GENERIC_FACTORY_CONSTRUCTOR(CPromptService)
 NS_GENERIC_FACTORY_CONSTRUCTOR(CCookiePromptService)
 NS_GENERIC_FACTORY_CONSTRUCTOR(CUnknownContentTypeHandler)
-NS_GENERIC_FACTORY_CONSTRUCTOR(CTooltipTextProvider)
+//NS_GENERIC_FACTORY_CONSTRUCTOR(CTooltipTextProvider)
 NS_GENERIC_FACTORY_CONSTRUCTOR(CNSSDialogs)
 NS_GENERIC_FACTORY_CONSTRUCTOR(CProgressDialog)
 NS_GENERIC_FACTORY_CONSTRUCTOR(CFontPackageHandler)
@@ -46,12 +46,12 @@ static const nsModuleComponentInfo sAppComps[] = {
 		NS_IHELPERAPPLAUNCHERDLG_CONTRACTID,
 		CUnknownContentTypeHandlerConstructor
 	},
-	{
+	/*{
 		"Tooltip Text Provider",
 		NS_TOOLTIPTEXTPROVIDER_CID,
 		NS_TOOLTIPTEXTPROVIDER_CONTRACTID,
 		CTooltipTextProviderConstructor
-	},
+	},*/
  	{
 		"Cookie Prompt Service",
 		NS_COOKIEPROMPTSERVICE_CID,
