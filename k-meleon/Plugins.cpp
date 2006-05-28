@@ -218,6 +218,7 @@ void _GetPreference(enum PREFTYPE type, char *preference, void *ret, void *defVa
 {
    GetPreference(type, preference, ret, defVal);
 }
+
 void SetPreference(enum PREFTYPE type, char *preference, void *val, BOOL update)
 {
    theApp.preferences.Save(false);
@@ -249,7 +250,8 @@ void DelPreference(char *preference)
 }
 
 void SetStatusBarText(const char *s) {
-   theApp.m_pMostRecentBrowserFrame->m_wndStatusBar.SetPaneText(0, s);
+   if (theApp.m_pMostRecentBrowserFrame) // Yes, it can happen
+     theApp.m_pMostRecentBrowserFrame->m_wndStatusBar.SetPaneText(0, s);
 }
 
 int GetMozillaSessionHistory (char ***titles, char ***urls, int *count, int *index)
@@ -257,7 +259,8 @@ int GetMozillaSessionHistory (char ***titles, char ***urls, int *count, int *ind
    nsresult result;
    int i;
 
-   if (!theApp.m_pMostRecentBrowserFrame) return FALSE;
+   if (!theApp.m_pMostRecentBrowserFrame || !theApp.m_pMostRecentBrowserFrame->m_wndBrowserView.mWebNav) 
+	   return FALSE;
    
    nsCOMPtr<nsISHistory> h;
 
@@ -714,7 +717,8 @@ HMENU GetMenu(char *menuName){
 }
 
 void SetForceCharset(char *aCharset) {
-   theApp.m_pMostRecentBrowserFrame->m_wndBrowserView.ForceCharset(aCharset);
+   if (theApp.m_pMostRecentBrowserFrame)
+     theApp.m_pMostRecentBrowserFrame->m_wndBrowserView.ForceCharset(aCharset);
 }
 
 void SetCheck(int id, BOOL mark) {
@@ -877,7 +881,7 @@ BOOL InjectJS(const char* js, bool bTopWindow, HWND hWnd)
 	if (!browserFrm) return FALSE;
 	
 	nsEmbedString js2;
-	NS_CStringToUTF16(nsDependentCString(js), NS_CSTRING_ENCODING_ASCII, js2);
+	NS_CStringToUTF16(nsDependentCString(js), NS_CSTRING_ENCODING_UTF8, js2);
 	return browserFrm->m_wndBrowserView.InjectJS(js2.get(), bTopWindow);
 }
 
@@ -892,7 +896,7 @@ BOOL InjectCSS(const char* css, bool bAll, HWND hWnd)
 	if (!browserFrm) return FALSE;
 
 	nsEmbedString css2;
-	NS_CStringToUTF16(nsDependentCString(css), NS_CSTRING_ENCODING_ASCII, css2);
+	NS_CStringToUTF16(nsDependentCString(css), NS_CSTRING_ENCODING_UTF8, css2);
 	return browserFrm->m_wndBrowserView.InjectCSS(css2.get());
 }
 
