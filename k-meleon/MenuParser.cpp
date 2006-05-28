@@ -182,8 +182,10 @@ int CMenuParser::Parse(char *p)
          TrimWhiteSpace(p);
          if (strcmpi(p, "ToolBars") == 0) 
             theApp.m_toolbarControlsMenu = currentMenu->GetSafeHmenu();
-
-
+#ifdef INTERNAL_SIDEBAR
+		 if (strcmpi(p, "SideBars") == 0) 
+            theApp.m_sidebarControlsMenu = currentMenu->GetSafeHmenu();
+#endif
          if (strcmpi(p, "EntryPoint") == 0) {
             menuOffsets[currentMenu] = (currentMenu->GetMenuItemCount() * GetSystemMetrics(SM_CYMENUSIZE)) + GetSystemMetrics(SM_CYEDGE);
          }
