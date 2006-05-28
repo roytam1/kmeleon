@@ -49,6 +49,7 @@
 #define PLUGIN_NAME  "Layered Windows Plugin"
 #define PLUGIN_JUNK  953
 
+#define _Tr(x) kPlugin.kFuncs->Translate(_T(x))
 
 static BOOL bRebarEnabled  =   1;
 static BOOL bRebarBottom   =   0;
@@ -67,23 +68,22 @@ static long lastTime;
 #define BS_3D      4
 #define BS_BOLD    8
 
-#define _T(x) x
-#define PREFERENCE_SETTINGS_DIR  _T("kmeleon.general.settingsDir")
-#define PREFERENCE_REBAR_ENABLED _T("kmeleon.plugins.layers.rebar")
+#define PREFERENCE_SETTINGS_DIR  "kmeleon.general.settingsDir"
+#define PREFERENCE_REBAR_ENABLED "kmeleon.plugins.layers.rebar"
 #define PREFERENCE_REBAR_BOTTOM "kmeleon.plugins.layers.rebarBottom"
-#define PREFERENCE_REBAR_TITLE   _T("kmeleon.plugins.layers.title")
-#define PREFERENCE_BUTTON_WIDTH  _T("kmeleon.plugins.layers.width")
-#define PREFERENCE_BUTTON_MINWIDTH  _T("kmeleon.plugins.layers.minWidth")
-#define PREFERENCE_BUTTON_MAXWIDTH  _T("kmeleon.plugins.layers.maxWidth")
-#define PREFERENCE_BUTTON_NUMBER _T("kmeleon.plugins.layers.numbers")
-#define PREFERENCE_BUTTON_STYLE  _T("kmeleon.plugins.layers.style")
-#define PREFERENCE_CLOSE_WINDOW  _T("kmeleon.plugins.layers.close")
-#define PREFERENCE_CATCH_WINDOW  _T("kmeleon.plugins.layers.catch")
-#define PREFERENCE_CATCHOPEN_WINDOW  _T("kmeleon.plugins.layers.catchOpen")
-#define PREFERENCE_CATCHCLOSE_WINDOW  _T("kmeleon.plugins.layers.catchClose")
-#define PREFERENCE_ONOPENOPTION  _T("kmeleon.plugins.layers.onOpenOption")
-#define PREFERENCE_ONCLOSEOPTION  _T("kmeleon.plugins.layers.onCloseOption")
-#define PREFERENCE_CONFIRMCLOSE  _T("kmeleon.plugins.layers.confirmClose")
+#define PREFERENCE_REBAR_TITLE   "kmeleon.plugins.layers.title"
+#define PREFERENCE_BUTTON_WIDTH  "kmeleon.plugins.layers.width"
+#define PREFERENCE_BUTTON_MINWIDTH  "kmeleon.plugins.layers.minWidth"
+#define PREFERENCE_BUTTON_MAXWIDTH  "kmeleon.plugins.layers.maxWidth"
+#define PREFERENCE_BUTTON_NUMBER "kmeleon.plugins.layers.numbers"
+#define PREFERENCE_BUTTON_STYLE  "kmeleon.plugins.layers.style"
+#define PREFERENCE_CLOSE_WINDOW  "kmeleon.plugins.layers.close"
+#define PREFERENCE_CATCH_WINDOW  "kmeleon.plugins.layers.catch"
+#define PREFERENCE_CATCHOPEN_WINDOW  "kmeleon.plugins.layers.catchOpen"
+#define PREFERENCE_CATCHCLOSE_WINDOW "kmeleon.plugins.layers.catchClose"
+#define PREFERENCE_ONOPENOPTION  "kmeleon.plugins.layers.onOpenOption"
+#define PREFERENCE_ONCLOSEOPTION "kmeleon.plugins.layers.onCloseOption"
+#define PREFERENCE_CONFIRMCLOSE  "kmeleon.plugins.layers.confirmClose"
 
 BOOL APIENTRY DllMain (
         HANDLE hModule,
@@ -888,10 +888,11 @@ void addRebarButton(HWND hWndTB, char *text, int num, int active, int image=0)
    if (!text || *text==0)
       return;
    if ((nButtonStyle & BS_BOLD) && active) {
-      char *lpszText = (char *)calloc(1, strlen(text)+3);
-      strcpy(lpszText, "*");
-      strcat(lpszText, text);
-      strcat(lpszText, "*");
+      TCHAR *lpszText = (TCHAR *)calloc(sizeof(TCHAR), _tcslen(text)+4 );
+      _tcscpy(lpszText, _T("*"));
+      _tcscat(lpszText, text);
+      _tcscat(lpszText, _T("*"));
+	  lpszText[_tcslen(lpszText) +1 ] = 0;
       stringID = SendMessage(hWndTB, TB_ADDSTRING, (WPARAM)NULL, (LPARAM)lpszText);
       free(lpszText);
    }
@@ -922,12 +923,12 @@ void BuildRebar(HWND hWndTB, HWND hWndParent)
 {
    if (!bRebarEnabled || !hWndTB || bIgnore)
       return;
-   /*
+   
    kPlugin.kFuncs->GetPreference(PREF_INT,  PREFERENCE_BUTTON_MINWIDTH, &nButtonMinWidth, &nButtonMinWidth);
    kPlugin.kFuncs->GetPreference(PREF_INT,  PREFERENCE_BUTTON_MAXWIDTH, &nButtonMaxWidth, &nButtonMaxWidth);
    kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_BUTTON_NUMBER, &bButtonNumbers, &bButtonNumbers);
    kPlugin.kFuncs->GetPreference(PREF_INT, PREFERENCE_BUTTON_STYLE, &nButtonStyle, &nButtonStyle);
-   */
+   
    int nMinWidth = nButtonMinWidth > 0 ? nButtonMinWidth * nHRes / nHSize : nButtonMinWidth;
    int nMaxWidth = nButtonMaxWidth > 0 ? nButtonMaxWidth * nHRes / nHSize : nButtonMaxWidth;
 
@@ -979,38 +980,40 @@ void BuildRebar(HWND hWndTB, HWND hWndParent)
          
          int nTextLength = nMaxWidth < 0 ? -nMaxWidth : 256;
          nTextLength = nTextLength > 4 ? nTextLength : 4;
-         char *buf = new char[nTextLength + 1];
+         TCHAR *buf = new TCHAR[nTextLength + 1];
          buf[0] = 0;
          int len = 0;
 		 int icon = 0;
          
          if (bButtonNumbers) {
-            itoa(i, buf, 10);
-            len = strlen(buf);
+            _itot(i, buf, 10);
+            len = _tcslen(buf);
          }
          
          if (nMaxWidth) {
             kmeleonDocInfo *dInfo = kPlugin.kFuncs->GetDocInfo(pLayer->hWnd);
             if (dInfo && dInfo->title) {
-               char *p = fixString(dInfo->title, 0);
-               strcat(buf, " ");
+
+			   TCHAR *p = fixString(dInfo->title, 0);
+
+               _tcscat(buf, _T(" "));
                len++;
                if (nMaxWidth<0 && 
-                   strlen(p) < (UINT)((-nMaxWidth) < 3 ? 3 : (-nMaxWidth))) {
-                  strcat(buf, p);
+                  _tcslen(p) < (UINT)((-nMaxWidth) < 3 ? 3 : (-nMaxWidth))) {
+                  _tcscat(buf, p);
                }
                else {
-                  strncat(buf, p, nTextLength - len);
+                  _tcsncat(buf, p, nTextLength - len);
                   if (nMaxWidth < 0) {
                      buf[nTextLength - 2] = 0;
-                     strcat(buf, "...");
+                     _tcscat(buf, _T("..."));
                   }
                }
                delete p;
 			   icon = dInfo->idxIcon;
-            }
+			}
          }
-
+		 buf[_tcslen(buf)+1] = 0; // for TB_ADDSTRING
          addRebarButton(hWndTB, buf, i, pLayer->hWnd == pFrame->hWndFront, icon);
 
          delete buf;
@@ -1083,7 +1086,7 @@ void DoRebar(HWND rebarWnd){
    ghWndTB = kPlugin.kFuncs->CreateToolbar(GetParent(rebarWnd), dwStyle);
    
    if (!ghWndTB){
-      MessageBox(NULL, "Failed to create layers toolbar", NULL, 0);
+      MessageBox(NULL, _Tr("Failed to create layers toolbar"), NULL, 0);
       return;
    }
    
@@ -1337,14 +1340,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                      kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_CONFIRMCLOSE, &bConfirmClose, &bConfirmClose);
                      
                      if (bConfirmClose) {
-                        CHAR *szMessage = new char[2048];
-                        CHAR szLayers[10];
-                        itoa(layers, szLayers, 10);
-                        strcpy(szMessage, "There are ");
-                        strcat(szMessage, szLayers);
-                        strcat(szMessage, " layers open in this window.\r\n"
-                               "Do you want to close all of them?");
-                        int ret = MessageBox(hWnd, szMessage, "Confirm Close", MB_YESNOCANCEL | MB_ICONWARNING);
+                        TCHAR *szMessage = new TCHAR[1024];
+                        _stprintf(szMessage, _Tr("There are %d layers open in this window."), layers);
+						_tcscat(szMessage, "\r\n");
+				        _tcscat(szMessage, _Tr("Do you want to close all of them?"));
+						int ret = MessageBox(hWnd, szMessage, _Tr("Confirm Close"), MB_YESNOCANCEL | MB_ICONWARNING);
                         delete szMessage;
                         if (ret == IDCANCEL) {
                            bIgnore = false;
@@ -1887,29 +1887,29 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
             int id = LOWORD(wParam);
             if (id >= id_open_new_layer && id < id_resize) {
                if (id == id_open_new_layer) 
-                  kPlugin.kFuncs->SetStatusBarText("Open a new layer in current window");
+                  kPlugin.kFuncs->SetStatusBarText(_Tr("Open a new layer in current window"));
                else if (id == id_close_layer)
-                  kPlugin.kFuncs->SetStatusBarText("Close the active layer");
+                  kPlugin.kFuncs->SetStatusBarText(_Tr("Close the active layer"));
                else if (id == id_open_link_front)
-                  kPlugin.kFuncs->SetStatusBarText("Open link as a new layer");
+                  kPlugin.kFuncs->SetStatusBarText(_Tr("Open link as a new layer"));
                else if (id == id_open_link_back)
-                  kPlugin.kFuncs->SetStatusBarText("Open link as a new layer in the background");
+                  kPlugin.kFuncs->SetStatusBarText(_Tr("Open link as a new layer in the background"));
                else if (id == id_next_layer)
-                  kPlugin.kFuncs->SetStatusBarText("Switch to next layer");
+                  kPlugin.kFuncs->SetStatusBarText(_Tr("Switch to next layer"));
                else if (id == id_prev_layer)
-                  kPlugin.kFuncs->SetStatusBarText("Switch to previous layer");
+                  kPlugin.kFuncs->SetStatusBarText(_Tr("Switch to previous layer"));
                else if (id == id_last_layer)
-                  kPlugin.kFuncs->SetStatusBarText("Return to the last active layer of current window");
+                  kPlugin.kFuncs->SetStatusBarText(_Tr("Return to the last active layer of current window"));
                else if (id == id_close_all)
-                  kPlugin.kFuncs->SetStatusBarText("Close all layers");
+                  kPlugin.kFuncs->SetStatusBarText(_Tr("Close all layers"));
                else if (id == id_open_frame)
-                  kPlugin.kFuncs->SetStatusBarText("Open a new browser window");
+                  kPlugin.kFuncs->SetStatusBarText(_Tr("Open a new browser window"));
                else if (id == id_close_frame)
-                  kPlugin.kFuncs->SetStatusBarText("Close window");
+                  kPlugin.kFuncs->SetStatusBarText(_Tr("Close window"));
                else if (id == id_close_others)
-                  kPlugin.kFuncs->SetStatusBarText("Close all but the active layer");
+                  kPlugin.kFuncs->SetStatusBarText(_Tr("Close all but the active layer"));
                else if (id == id_config)
-                  kPlugin.kFuncs->SetStatusBarText("Configure the layers plugin");
+                  kPlugin.kFuncs->SetStatusBarText(_Tr("Configure the layers plugin"));
                return 1;
             }
             if ((id >= id_layer) && (id < id_layer+MAX_LAYERS)) {
@@ -1941,15 +1941,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                      if (dInfo && (dInfo->title || dInfo->url)) {
                         if (tip) 
                            free(tip);
-                        tip = (char*)calloc(1, (dInfo->title ? strlen(dInfo->title) : 0) + 
-                                            (dInfo->url ? strlen(dInfo->url) : 0) + 3);
+                        tip = (TCHAR*)calloc(1, ((dInfo->title ? _tcslen(dInfo->title) : 0) + 
+                                            (dInfo->url ? _tcslen(dInfo->url) : 0) + 3)*sizeof(TCHAR));
+						tip[0] = 0;
                         if (dInfo->title) {
-                           strcpy(tip, dInfo->title);
+                           _tcscpy(tip, dInfo->title);
                            if (dInfo->url)
-                              strcat(tip, "\n");
+                              _tcscat(tip, _T("\n"));
                         }
                         if (dInfo->url)
-                           strcat(tip, dInfo->url);
+                           _tcscat(tip, dInfo->url);
                         LPTOOLTIPTEXT lpTiptext = (LPTOOLTIPTEXT) lParam;
                         lpTiptext->lpszText = tip;
                         return 0;
