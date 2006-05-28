@@ -50,6 +50,7 @@ CPreferences::~CPreferences() {
     else                                        \
       _value = _defaultValue;                   \
   }
+
 #ifdef _UNICODE
 
 #define _GetString(_pref, _value, _defaultValue) { \
@@ -64,8 +65,6 @@ CPreferences::~CPreferences() {
 	prefs->SetUnicharPref(_pref, _value);
 
 #else
-
-
 
 #define _SetString(_pref, _value) \
 	prefs->SetCharPref(_pref, _value);
@@ -122,6 +121,7 @@ void CPreferences::Load() {
 	  _GetBool("kmeleon.favicons.show", bSiteIcons, PR_TRUE);
 
 	  _GetInt("font.minimum-size.x-western", iFontMinSize, 0);
+
       // -- Find settings
       
 	   _GetBool("kmeleon.find.matchCase", bFindMatchCase, false);
@@ -156,7 +156,6 @@ void CPreferences::Load() {
       int x=_tcslen(appDir)-1;
       while (x>0 && appDir[x] != _T('\\')) x--;
       if (x>0) appDir[x+1]=0;
-
       
 
       nsCOMPtr<nsIFile> nsProfileDir;
@@ -171,13 +170,15 @@ void CPreferences::Load() {
 	     nsEmbedCString pathBuf;
          rv = nsProfileDir->GetNativePath(pathBuf);
 #endif
-         profileDir = pathBuf.get();
+         _defProfileDir = pathBuf.get();
 
-         if (profileDir.Right(1) != '\\')
-            profileDir += '\\';
+         if (_defProfileDir.Right(1) != '\\')
+            _defProfileDir += '\\';
       }
       else
-         profileDir = appDir;
+         _defProfileDir = appDir;
+
+	  profileDir = _defProfileDir;
       SetString("kmeleon.general.profileDir", profileDir.GetBuffer(0));
 
 
@@ -209,9 +210,7 @@ void CPreferences::Load() {
 
      // -- Cache
       _GetString("browser.cache.disk.parent_directory", cacheDir, _T(""));
-      if (cacheDir.IsEmpty())
-         cacheDir = settingsDir;
-      else if (cacheDir[cacheDir.GetLength() - 1] != '\\')
+      if (!cacheDir.IsEmpty() && cacheDir[cacheDir.GetLength() - 1] != '\\')
          cacheDir += '\\';
 
       _GetInt("browser.cache.disk.capacity", cacheDisk, 4096);
@@ -248,8 +247,8 @@ void CPreferences::Load() {
       _GetBool("security.enable_java", bJavaEnabled, true);
       _GetBool("signon.rememberSignons", bRememberSignons, true);
 
-	  _GetInt("kmeleon.MRU.behavior", MRUbehavior, 2);
-      // 0 = Always, 1 = site, 2 = never
+	  _GetInt("kmeleon.MRU.behavior", MRUbehavior, 1);
+
       // 0 = Always, 1 = site, 2 = never, 3 = P3P
       _GetInt("network.cookie.cookieBehavior", iCookiesEnabled, 0);
 
@@ -258,14 +257,14 @@ void CPreferences::Load() {
 	  iImagesEnabled--;
 
       _GetString("network.http.version", httpVersion, "");
-
+/*
       CString animationMode;
       _GetString("image.animation_mode", animationMode, "");
       if (animationMode == _T("normal"))  // "once" "none" "normal"
          bAnimationsEnabled = true;
       else
          bAnimationsEnabled = false;
-
+*/
 
       // -- Privacy
 
@@ -347,8 +346,7 @@ void CPreferences::Flush() {
       NS_ASSERTION(PR_FALSE, "Could not get preferences service");
 }
 
-
-void CPreferences::Save() {
+void CPreferences::Save(bool clearPath) {
    nsresult rv;
    nsCOMPtr<nsIPref> prefs(do_GetService(NS_PREF_CONTRACTID, &rv));
    if (NS_SUCCEEDED(rv)) {
@@ -405,7 +403,10 @@ void CPreferences::Save() {
       _SetString("kmeleon.general.sourceCommand",sourceCommand)
 
       // -- Cache
-      rv = prefs->SetCharPref("browser.cache.disk.parent_directory", cacheDir);
+	  if (cacheDir.IsEmpty())
+		prefs->ClearUserPref("browser.cache.disk.parent_directory");
+	  else
+		_SetString("browser.cache.disk.parent_directory",cacheDir)
       rv = prefs->SetIntPref("browser.cache.disk.capacity", cacheDisk);
 
       rv = prefs->SetIntPref("browser.cache.memory.capacity", cacheMemory);
@@ -441,12 +442,13 @@ void CPreferences::Save() {
       rv = prefs->SetIntPref("network.cookie.cookieBehavior", iCookiesEnabled);
       rv = prefs->SetIntPref("permissions.default.image", iImagesEnabled+1);
       _SetString("network.http.version",httpVersion)
-
+/*
       if (bAnimationsEnabled)    // "once" "none" "normal"
          _SetString("image.animation_mode", _T("normal"))
       else
          _SetString("image.animation_mode", _T("none"))
-
+		 //rv = prefs->SetCharPref("image.animation_mode", _T("none"));
+*/
 
       // -- Privacy
 
@@ -536,6 +538,32 @@ void CPreferences::Save() {
 	  prefs->SetBoolPref("kmeleon.download.flashWhenCompleted", bFlashWhenCompleted);
 	  prefs->SetBoolPref("kmeleon.download.closeDownloadDialog", bCloseDownloadDialog);
 	  prefs->SetBoolPref("kmeleon.download.saveUseTitle", bSaveUseTitle);
+
+	  if (clearPath) {
+		// XXX: Removing path from profile when equal to default
+		TCHAR _appDir[MAX_PATH];
+		GetModuleFileName(NULL, _appDir, MAX_PATH);
+		int x=_tcslen(_appDir)-1;
+		while (x>0 && _appDir[x] != _T('\\')) x--;
+		if (x>0) _appDir[x+1]=0;
+	
+		CString appDir = _appDir;
+	
+		if (pluginsDir.CompareNoCase(appDir + _T("kplugins\\")) == 0)
+			prefs->ClearUserPref("kmeleon.general.pluginsDir");
+	
+		if (skinsDir.CompareNoCase(appDir + _T("skins\\")) == 0)
+			prefs->ClearUserPref("kmeleon.general.skinsDir");
+
+		if (profileDir.CompareNoCase(_defProfileDir) == 0)
+			prefs->ClearUserPref("kmeleon.general.profileDir");
+
+		if (settingsDir.CompareNoCase(_defProfileDir) == 0)
+			prefs->ClearUserPref("kmeleon.general.settingsDir");
+		
+		if (cacheDir.CompareNoCase(profileDir) == 0)
+			prefs->ClearUserPref("browser.cache.disk.parent_directory");
+	  }
 
       rv = prefs->SavePrefFile(nsnull);   
    
