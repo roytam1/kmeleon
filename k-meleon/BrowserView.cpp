@@ -55,6 +55,7 @@
 //
 
 #include "stdafx.h"
+#include <afxole.h>
 #include "MfcEmbed.h"
 #include "BrowserView.h"
 #include "BrowserImpl.h"
@@ -1513,18 +1514,19 @@ void CBrowserView::OnDropFiles( HDROP drop )
 }
 #endif
 
-#if 0
 void CBrowserView::OnDragURL( NMHDR * pNotifyStruct, LRESULT * result )
 {
    USES_CONVERSION;
    *result = 0;
 
-   DWORD currentURISize = GetCurrentURI(NULL);
+   CString currentURI;
+   GetCurrentURI(currentURI);
+   DWORD currentURISize = currentURI.GetLength()+1;
    const DWORD extraFileSize = 26; // size of [InternetShortcut]\r\nURL=...\r\n
 
    HGLOBAL hURL = GlobalAlloc(GHND, currentURISize);
    char *url = (char *)GlobalLock(hURL);
-   GetCurrentURI(url);
+   strcpy(url, T2CA(currentURI));
    GlobalUnlock(hURL);
 
    HGLOBAL hFileDescriptor = GlobalAlloc(GHND, sizeof(FILEGROUPDESCRIPTOR));
@@ -1535,9 +1537,9 @@ void CBrowserView::OnDragURL( NMHDR * pNotifyStruct, LRESULT * result )
 
    CString title;
    GetPageTitle(title);
-   strncpy(fgd->fgd[0].cFileName, title, 250);
-   strcat(fgd->fgd[0].cFileName, ".url");
-   
+   _tcsncpy(fgd->fgd[0].cFileName, title, 250);
+   _tcscat(fgd->fgd[0].cFileName, _T(".url"));
+   MakeFilename(fgd->fgd[0].cFileName);
    GlobalUnlock(hFileDescriptor);
 
    HGLOBAL hFileContents = GlobalAlloc(GHND, currentURISize+extraFileSize);
@@ -1565,7 +1567,6 @@ void CBrowserView::OnDragURL( NMHDR * pNotifyStruct, LRESULT * result )
    GlobalFree(hFileDescriptor);
    GlobalFree(hFileContents);
 }
-#endif
 
 // this should probably go in BrowserViewUtils.cpp, but I don't want to add a function prototype :)
 BOOL CALLBACK SearchProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
