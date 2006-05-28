@@ -769,6 +769,25 @@ long SendMessage(const char *to, const char *from, const char *subject, long dat
    return theApp.plugins.SendMessage(to, from, subject, data1, data2);
 }
 
+int RegisterSideBar (HWND mainWnd, TCHAR *name, SideBarInitProc proc, int commandID, int visibleOnMenu)
+{
+#ifdef INTERNAL_SIDEBAR
+	CSideBar *sidebar = (CSideBar *)CWnd::FromHandle(mainWnd);
+	USES_CONVERSION;
+	return sidebar->RegisterSideBar(name, proc, commandID, visibleOnMenu);
+#else
+	return -1;
+#endif
+}
+
+void ToggleSideBar (HWND mainWnd, int index)
+{
+#ifdef INTERNAL_SIDEBAR
+	CBrowserFrame *frame = (CBrowserFrame *)CWnd::FromHandle(mainWnd);
+	frame->m_wndSideBar.ToggleVisibility(index);
+#endif
+}
+
 const TCHAR* Translate(const char* text)
 {
 	USES_CONVERSION;
@@ -910,8 +929,8 @@ kmeleonFunctions kmelFuncs = {
    ParseAccel,
    DelPreference,
    GetPreference,
-   NULL,
-   NULL,
+   RegisterSideBar,
+   ToggleSideBar,
    TranslateEx,
    GetIconList,
    GetMozillaWebBrowser,

@@ -748,6 +748,9 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\SideBar.cpp">
+			</File>
+			<File
 				RelativePath="StdAfx.cpp">
 				<FileConfiguration
 					Name="Debug|Win32">
@@ -1016,6 +1019,9 @@
 			</File>
 			<File
 				RelativePath="Resource.h">
+			</File>
+			<File
+				RelativePath=".\SideBar.h">
 			</File>
 			<File
 				RelativePath="StdAfx.h">

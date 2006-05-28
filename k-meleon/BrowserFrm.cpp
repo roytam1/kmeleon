@@ -101,6 +101,10 @@ BEGIN_MESSAGE_MAP(CBrowserFrame, CFrameWnd)
     ON_COMMAND_RANGE(TOOLBAR_MENU_START_ID, TOOLBAR_MENU_END_ID, ToggleToolBar)
     ON_COMMAND(ID_TOOLBARS_LOCK, ToggleToolbarLock)
     ON_UPDATE_COMMAND_UI(ID_TOOLBARS_LOCK, OnUpdateToggleToolbarLock)
+#ifdef INTERNAL_SIDEBAR
+	ON_COMMAND_RANGE(SIDEBAR_MENU_START_ID, SIDEBAR_MENU_END_ID, ToggleSideBar)
+	ON_UPDATE_COMMAND_UI_RANGE(SIDEBAR_MENU_START_ID, SIDEBAR_MENU_END_ID, OnUpdateSideBarMenu)
+#endif
 	ON_UPDATE_COMMAND_UI_RANGE(TOOLBAR_MENU_START_ID, TOOLBAR_MENU_END_ID, OnUpdateToolBarMenu)
 	ON_COMMAND(ID_EDIT_FIND, OnShowFindBar)
     //}}AFX_MSG_MAP
@@ -396,9 +400,6 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
     m_wndReBar.LockBars(theApp.preferences.GetBool(PREF_TOOLBAND_LOCKED, false));
 
-    LoadBackImage();
-    SetBackImage();
-
     // Create the status bar with two panes - one pane for actual status
     // text msgs. and the other for the progress control
     if (!m_wndStatusBar.CreateEx(this))
@@ -435,6 +436,20 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
     // Also, set the padlock icon to be the insecure icon to begin with
     UpdateSecurityStatus(nsIWebProgressListener::STATE_IS_INSECURE);
+
+#ifdef INTERNAL_SIDEBAR
+	// Create the side bar. Must be created last for proper layout calc
+	if (!m_wndSideBar.CreateEx(WS_EX_WINDOWEDGE, NULL, NULL, WS_CLIPSIBLINGS | WS_CHILD, CRect(0, 0, 0, 0), this, ID_SIDE_BAR , NULL))
+    {
+        TRACE0("Failed to create SideBar\n");
+        return -1;      // fail to create
+    }
+	
+	theApp.plugins.SendMessage("*", "* OnCreate", "DoSidebar", (long)m_wndSideBar.m_hWnd);
+#endif
+
+	LoadBackImage();
+    SetBackImage();
 
     // Based on the "chromeMask" we were supplied during construction
     // hide any requested UI elements - statusbar, menubar etc...
@@ -1003,6 +1018,12 @@ void CBrowserFrame::SetBackImage()
             ::UpdateWindow (info.hwndChild);
         }
     }
+#ifdef INTERNAL_SIDEBAR	
+	// Set the backimage to the sidebar title too
+	CReBarCtrl& rc2 = m_wndSideBar.m_wndRebar.GetReBarCtrl();
+	info.fMask = RBBIM_BACKGROUND;
+	rc2.SetBandInfo (0, &info);
+#endif
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1068,12 +1089,28 @@ void CBrowserFrame::ToggleToolbarLock()
     m_wndReBar.LockBars(locked);
 }
 
+#ifdef INTERNAL_SIDEBAR
+void CBrowserFrame::ToggleSideBar(UINT uID)
+{
+    m_wndSideBar.ToggleVisibility(uID - SIDEBAR_MENU_START_ID);
+}
+
+void CBrowserFrame::OnUpdateSideBarMenu(CCmdUI* pCmdUI)
+{
+	if (m_wndSideBar.GetCurrent() == pCmdUI->m_nID)
+        pCmdUI->SetCheck(true);
+	else
+		pCmdUI->SetCheck(false);
+}
+#endif
+
 void CBrowserFrame::OnUpdateToolBarMenu(CCmdUI* pCmdUI)
 {
 	pCmdUI->SetCheck(
 		m_wndReBar.GetVisibility(pCmdUI->m_nID - TOOLBAR_MENU_START_ID)
 	);
 }
+
 void CBrowserFrame::OnUpdateToggleToolbarLock(CCmdUI* pCmdUI)
 {
     pCmdUI->SetCheck(theApp.preferences.GetBool(PREF_TOOLBAND_LOCKED, false));

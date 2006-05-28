@@ -131,10 +131,12 @@
 #define IDC_EDIT_DISK_CACHE             1034
 #define IDC_COOKIES_ALL                 1034
 #define IDC_UD_PAPER_WDTH               1034
+#define IDC_DOWNLOAD_TYPE               1034
 #define IDC_BUTTON_MENUS                1035
 #define IDC_EDIT_CACHE_DIRECTORY        1035
 #define IDC_COOKIES_SITE                1035
 #define IDC_UD_WIDTH_LBL                1035
+#define IDC_DOWNLOAD_SOURCE             1035
 #define IDC_BUTTON_ACCEL                1036
 #define IDC_COOKIES_NONE                1036
 #define IDC_UD_HEIGHT_LBL               1036
@@ -199,8 +201,7 @@
 #define IDC_BUTTON_CLEAR_DISK_CACHE     1076
 #define IDC_CHECK_DISABLERESIZE         1077
 #define IDC_COMBO_SKIN                  1078
-#define IDC_DOWNLOAD_TYPE               1034
-#define IDC_DOWNLOAD_SOURCE             1035
+#define ID_SIDE_BAR                     1079
 #define IDC_CHECK_FAVICONCACHE          1086
 #define IDC_DOWNLOAD_NAME               1087
 #define IDC_LIST_COOKIES                1089
@@ -323,6 +324,7 @@
 #define ID_NAV_GO                       32819
 #define ID_OFFLINE                      32820
 #define ID_COPY_IMAGE_CONTENT           32821
+#define ID_CLOSE_SIDEBAR                33822
 #define ID_CLOSE                        33822
 #define ID_CLOSE_FINDBAR                33822
 #define IDS_FAILED_TO_CREATE_BROWSER    61204
@@ -403,6 +405,8 @@
 #define IDS_PERMISSION_COOKIE_TITLE     61290
 #define IDS_PERMISSION_IMAGE_TITLE      61291
 #define IDS_PERMISSION_POPUP_TITLE      61292
+#define IDS_TIMEOUT                     61293
+#define IDS_STOPPED                     61294
 #define IDS_LANG_VERSION                62000
 #define IDD_CONFIRM_COOKIE              2100
 #define IDC_CHECK_REMEMBER              2101

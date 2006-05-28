@@ -127,6 +127,9 @@ public:
 #endif
 
    HMENU          m_toolbarControlsMenu;
+#ifdef INTERNAL_SIDEBAR
+   HMENU		  m_sidebarControlsMenu;
+#endif
    CBrowserFrame* m_pMostRecentBrowserFrame; // the most recently used frame
    CBrowserFrame* m_pOpenNewBrowserFrame; // used by OnNewBrowser to preserve an initilaized frame
 

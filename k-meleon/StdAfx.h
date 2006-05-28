@@ -90,8 +90,9 @@
 #endif
 
 #define MOZILLA_STRICT_API
-
+#define INTERNAL_SIDEBAR
 #define INTERNAL_SITEICONS
+
 // Please don't change the line below, I have a perl script that depends on it being here :)
 // - BEGIN MOZILLA INCLUDES -
 // Additional include directories: 
