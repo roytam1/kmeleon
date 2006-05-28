@@ -53,9 +53,7 @@ protected:
 		return  ((CACListBox*)aData)->AddEltToList(aElement);
 	}
 	CEdit *m_edit;
-
 	int m_ignoreMousemove;
-	
 };
 
 class CUrlBarEdit : public CEdit
@@ -127,7 +125,9 @@ public:
         COMBOBOXEXITEM ci;
         ci.mask = CBEIF_IMAGE;
         ci.iItem = -1;
-        ci.iImage = 15;
+#ifdef INTERNAL_SITEICONS
+		ci.iImage = theApp.favicons.GetDefaultIcon();
+#endif
         SetItem(&ci);
       
         CEdit *edit = GetEditCtrl();
@@ -181,8 +181,8 @@ public:
         COMBOBOXEXITEM ci;
         ci.mask = CBEIF_TEXT | CBEIF_IMAGE | CBEIF_SELECTEDIMAGE;
         ci.iItem = 0;
-        ci.iImage = 15;
-        ci.iSelectedImage = 15;
+        ci.iImage = ci.iSelectedImage = I_IMAGECALLBACK;
+
         ci.pszText = const_cast<TCHAR *>((LPCTSTR)url);
         InsertItem(&ci);
       
@@ -264,6 +264,8 @@ protected:
 public:
 	DECLARE_MESSAGE_MAP()
 	afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
-	
+#ifdef INTERNAL_SITEICONS
+	afx_msg void OnCbenGetdispinfo(NMHDR *pNMHDR, LRESULT *pResult);
+#endif
 };
 
