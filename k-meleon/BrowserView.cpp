@@ -161,6 +161,7 @@ BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
     ON_UPDATE_COMMAND_UI(ID_EDIT_COPY, OnUpdateCopy)
     ON_UPDATE_COMMAND_UI(ID_EDIT_PASTE, OnUpdatePaste)
     ON_UPDATE_COMMAND_UI(ID_FILE_PRINT, OnUpdateFilePrint)
+    ON_UPDATE_COMMAND_UI(ID_FILE_SAVE_AS, OnUpdateFileSave)
     // ON_UPDATE_COMMAND_UI(ID_FILE_PRINTSETUP, OnUpdatePrintSetup) 
     ON_UPDATE_COMMAND_UI(ID_FILE_PRINTPREVIEW, OnUpdateFilePrintPreview)
     ON_UPDATE_COMMAND_UI(ID_VIEW_STATUS_BAR, OnUpdateViewStatusBar)
@@ -904,6 +905,38 @@ void CBrowserView::OnNavStop()
 void CBrowserView::OnUpdateNavStop(CCmdUI* pCmdUI)
 {
     pCmdUI->Enable(mbDocumentLoading);
+}
+
+#include "nsIDOMNSDocument.h"
+
+void CBrowserView::OnUpdateFileSave(CCmdUI* pCmdUI)
+{
+	nsEmbedCString contentType;
+	nsCOMPtr<nsIDOMDocument> document;
+	nsCOMPtr<nsIDOMWindow> dom;
+
+	nsresult rv = mWebBrowser->GetContentDOMWindow(getter_AddRefs(dom));
+	NS_ENSURE_SUCCESS(rv, );
+
+	rv = dom->GetDocument(getter_AddRefs(document));
+
+	nsCOMPtr<nsIDOMNSDocument> nsdoc = do_QueryInterface(document);
+	NS_ENSURE_TRUE (nsdoc, );
+
+	nsEmbedString type;
+	rv = nsdoc->GetContentType(type);
+	NS_UTF16ToCString(type, NS_CSTRING_ENCODING_ASCII, contentType);
+
+	const char* ctype = contentType.get();
+	PRBool isHTML = 
+	(strcmp(ctype, "text/html") == 0) ||
+	(strcmp(ctype, "text/xml") == 0) ||
+	(strcmp(ctype, "application/xhtml+xml") == 0) ;
+
+	if (mbDocumentLoading && !mbDOMLoaded && isHTML)
+		pCmdUI->Enable(FALSE);
+	else
+		pCmdUI->Enable(TRUE);
 }
 
 void CBrowserView::OnCut()
