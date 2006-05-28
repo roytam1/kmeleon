@@ -105,6 +105,7 @@ BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
     ON_CBN_SELENDOK(ID_URL_BAR, OnUrlSelectedInUrlBarOk)
     ON_CBN_CLOSEUP(ID_URL_BAR, OnUrlSelectedInUrlBar)
     ON_CBN_KILLFOCUS(ID_URL_BAR, OnUrlKillFocus)
+	ON_CBN_SETFOCUS(ID_URL_BAR, OnUrlSetFocus)
     ON_CBN_EDITCHANGE(ID_URL_BAR, OnUrlEditChange)
     ON_COMMAND(IDOK, OnNewUrlEnteredInUrlBar)
     ON_COMMAND(ID_SELECT_URL, OnSelectUrl)
@@ -222,6 +223,7 @@ CBrowserView::CBrowserView()
 #ifdef INTERNAL_SITEICONS
 	m_IconUri = nsnull;
 #endif
+	m_bUrlJustEntered = FALSE;
 }
 
 CBrowserView::~CBrowserView()
@@ -536,6 +538,27 @@ void CBrowserView::OnSelectUrl()
    mpBrowserFrame->m_wndUrlBar.SetFocus();
 }
 
+void CBrowserView::OnUrlSetFocus()
+{
+	//FIX ME: Unfortunately focus is already lost and not correctly memorized
+	if (m_bUrlJustEntered) {
+		m_bUrlJustEntered = FALSE;
+		mWebBrowserFocus->Activate();
+	}
+	else 
+		mWebBrowserFocus->Deactivate();
+
+	//mpBrowserFrame->m_wndUrlBar.MaintainFocus();
+	
+/*	if (!m_bUrlJustEntered)
+		mWebBrowserFocus->Deactivate();
+	else {
+		m_bUrlJustEntered = FALSE;
+		SetFocus();
+	}*/
+
+}
+
 void CBrowserView::OnUrlKillFocus()
 {
    if (mpBrowserFrame->m_wndUrlBar.CheckFocus())
@@ -722,7 +745,8 @@ void CBrowserView::OnUrlSelectedInUrlBar()
    if (!mpBrowserFrame->m_wndUrlBar.GetSelectedURL(strUrl))
       return;
 
-   mWebBrowserFocus->Activate();
+   //mWebBrowserFocus->Activate();
+   m_bUrlJustEntered = TRUE;
 
    mpBrowserFrame->m_wndUrlBar.RefreshMRUList();
    

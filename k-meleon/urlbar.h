@@ -78,6 +78,7 @@ public:
 	afx_msg void OnKillFocus(CWnd* pNewWnd);
 	afx_msg void OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags);
 	afx_msg BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);
+	afx_msg void OnSetFocus(CWnd* pOldWnd);
 	afx_msg void OnDestroy();
 protected:
 	void StopACSession();
@@ -97,7 +98,7 @@ class CUrlBar : public CComboBoxEx
 {
 public:
 	CUrlBar(){
-		m_bFocusEnabled = theApp.preferences.bNewWindowHasUrlFocus;
+		m_bFocusEnabled = theApp.preferences.bNewWindowHasUrlFocus = theApp.preferences.GetBool("kmeleon.display.NewWindowHasUrlFocus", FALSE); //bNewWindowHasUrlFocus;
         m_preserveUrlBarFocus = FALSE;
         m_changed = FALSE;
         m_bSelected = FALSE;
@@ -173,6 +174,10 @@ public:
             if (_tcsncicmp(pUrl, _T("javascript:"), 11))
                 SetWindowText(pUrl);
             m_changed = FALSE;
+			if (!CheckFocus())
+				GetEditCtrl()->SetSel(0,0);
+			else
+				GetEditCtrl()->SetSel(0,-1);
         }
     }   
 
@@ -216,12 +221,12 @@ public:
         return 1;
     }
     void MaintainFocus() {
-       if (m_bFocusEnabled) {
+	   //if (m_bFocusEnabled) {
           if (SetSoftFocus()) {
              m_preserveUrlBarFocus = TRUE;
-             m_iFocusCount = 2;
+             m_iFocusCount = 0;
           }
-       }
+       //}
     }
     BOOL CheckFocus() {
         return m_preserveUrlBarFocus;

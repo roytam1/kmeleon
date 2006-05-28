@@ -130,6 +130,8 @@ public:
 	nsCOMPtr<nsIWebNavigation> mWebNav;
 	nsCOMPtr<nsIDOMEventTarget> mEventTarget;
 	nsCOMPtr<nsIWebBrowserFocus> mWebBrowserFocus;
+	
+	BOOL m_bUrlJustEntered;
 
 	void UpdateBusyState(PRBool aBusy);
 	PRBool mbDocumentLoading;
@@ -255,6 +257,7 @@ protected:
 	afx_msg void OnUrlBarDropDown();
 	afx_msg void OnNewUrlEnteredInUrlBar();
     afx_msg void OnUrlKillFocus();
+	afx_msg void OnUrlSetFocus();
     afx_msg void OnUrlEditChange();
     afx_msg void OnSelectUrl();
 	afx_msg void OnFileOpen();

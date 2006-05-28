@@ -150,6 +150,12 @@ void CBrowserFrame::BrowserFrameGlueObj::UpdateCurrentURI(nsIURI *aLocation)
 		if (currentURL.Compare(W2CT(uriString2.get())) == 0)
 			return;
 
+		// XXX Since Mozilla 1.8.0.2 about:blank is always passed here
+		// before anything else, broking stuffs, so ignore it!
+		if ( stricmp (uriString.get(), "about:blank") == 0 &&
+			currentURL.GetLength())
+			return;
+
         pThis->m_wndUrlBar.SetCurrentURL(W2CT(uriString2.get()));
 
 		// Add a MRU entry. Note that I'm only only allowing

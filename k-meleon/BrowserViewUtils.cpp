@@ -947,6 +947,10 @@ void CBrowserView::OpenURL(const PRUnichar* pUrl, nsIURI *refURI)
    USES_CONVERSION;
    mpBrowserFrame->m_wndUrlBar.SetCurrentURL(W2CT(pUrl));
    mpBrowserFrame->m_wndUrlBar.EditChanged(FALSE);
+  
+   if ( GetActiveWindow() == mpBrowserFrame &&
+	   !::IsChild(m_hWnd, ::GetFocus()))
+	   Activate(TRUE);
 
    if(mWebNav)
        mWebNav->LoadURI(pUrl,                          // URI string
@@ -1014,10 +1018,11 @@ CBrowserFrame* CBrowserView::OpenURLInNewWindow(const PRUnichar* pUrl, BOOL bBac
    /* If the window is not maximized, and is opened on the bottom, the statusbar does not get drawn */
 
     if (bBackground) {
-	if (theApp.preferences.bMaximized)
+	//if (theApp.preferences.bMaximized)
 	    pFrm->SetWindowPos(&wndBottom, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | SWP_SHOWWINDOW);
-	else  
-	    pFrm->ShowWindow(SW_MINIMIZE);
+	/*else  
+	    pFrm->ShowWindow(SW_MINIMIZEDNA);
+		pFrm->SetBackgroundWindow();*/
     }
    
     // show the window

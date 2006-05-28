@@ -33,6 +33,7 @@ BEGIN_MESSAGE_MAP(CUrlBarEdit, CEdit)
 	ON_WM_MOUSEWHEEL()
 	ON_WM_DESTROY()
 	ON_WM_LBUTTONDBLCLK()
+	ON_WM_SETFOCUS()
 END_MESSAGE_MAP()
 
 BEGIN_MESSAGE_MAP(CACListBox, CListBox)
@@ -700,3 +701,10 @@ void CUrlBar::OnCbenGetdispinfo(NMHDR *pNMHDR, LRESULT *pResult)
 }
 #endif
 
+void CUrlBarEdit::OnSetFocus(CWnd* pOldWnd)
+{
+	// Because the combobox is shitty and send focus notification 
+	// only when you click on the arrow.
+	CEdit::OnSetFocus(pOldWnd);
+	GetParentFrame()->SendMessage(WM_COMMAND, MAKEWPARAM(ID_URL_BAR,CBN_SETFOCUS), (LPARAM)m_hWnd);
+}

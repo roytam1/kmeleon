@@ -766,6 +766,10 @@ void CMfcEmbedApp::OnNewBrowser()
 			pBrowserFrame->m_wndBrowserView.OpenURL(preferences.newWindowURL);
          break;
       }
+
+	  theApp.preferences.bNewWindowHasUrlFocus = theApp.preferences.GetBool("kmeleon.display.NewWindowHasUrlFocus", FALSE); 
+	  if (theApp.preferences.bNewWindowHasUrlFocus)
+		pBrowserFrame->m_wndUrlBar.MaintainFocus();
    }
 
 }
