@@ -91,7 +91,8 @@ public:
     CToolBarItem(CWnd *wnd, UINT style)
     {
         m_tb = new CToolBarEx;
-        m_tb->CreateEx (wnd, style);
+		int sstyle = WS_CHILD|WS_VISIBLE| (style&CCS_BOTTOM ? CBRS_ALIGN_BOTTOM : CBRS_ALIGN_TOP);
+        m_tb->CreateEx(wnd, style, sstyle);
         m_next = NULL;
     }
     ~CToolBarItem() {
