@@ -992,9 +992,14 @@ void BuildRebar(HWND hWndTB, HWND hWndParent)
          
          if (nMaxWidth) {
             kmeleonDocInfo *dInfo = kPlugin.kFuncs->GetDocInfo(pLayer->hWnd);
-            if (dInfo && dInfo->title) {
-
-			   TCHAR *p = fixString(dInfo->title, 0);
+            if (dInfo) {
+			   TCHAR *p;
+			   if (dInfo->title && dInfo->title[0])
+				 p = fixString(dInfo->title, 0);
+			   else if (dInfo->url && dInfo->url[0])
+				 p = fixString(dInfo->url, 0);
+			   else
+			     p = _T("");
 
                _tcscat(buf, _T(" "));
                len++;
@@ -1944,7 +1949,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                         tip = (TCHAR*)calloc(1, ((dInfo->title ? _tcslen(dInfo->title) : 0) + 
                                             (dInfo->url ? _tcslen(dInfo->url) : 0) + 3)*sizeof(TCHAR));
 						tip[0] = 0;
-                        if (dInfo->title) {
+                        if (dInfo->title && dInfo->title[0]) {
                            _tcscpy(tip, dInfo->title);
                            if (dInfo->url)
                               _tcscat(tip, _T("\n"));
