@@ -996,10 +996,10 @@ void BuildRebar(HWND hWndTB, HWND hWndParent)
 			   TCHAR *p;
 			   if (dInfo->title && dInfo->title[0])
 				 p = fixString(dInfo->title, 0);
-			   else if (dInfo->url && dInfo->url[0])
+			   else if (dInfo->url)
 				 p = fixString(dInfo->url, 0);
 			   else
-			     p = _T("");
+			     p = _tcsdup(_T(""));
 
                _tcscat(buf, _T(" "));
                len++;
