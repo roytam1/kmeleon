@@ -42,7 +42,7 @@ extern CWnd* CWndForDOMWindow(nsIDOMWindow *aWindow);
 
 //*****************************************************************************
 
-NS_IMPL_ISUPPORTS1(CPromptService, nsIPromptService)
+NS_IMPL_ISUPPORTS2(CPromptService, nsIPromptService, nsINonBlockingAlertService)
 
 CPromptService::CPromptService()
 {
@@ -339,6 +339,15 @@ NS_IMETHODIMP CPromptService::ConfirmEx(nsIDOMWindow *parent,
     return NS_OK;    
 }
  
+NS_IMETHODIMP
+CPromptService::ShowNonBlockingAlert(nsIDOMWindow *aParent,
+                                      const PRUnichar *aDialogTitle,
+                                      const PRUnichar *aText)
+{
+  // XXX: making a modeless messagebox is a pain.
+  return Alert(aParent, aDialogTitle, aText);
+}
+
 //*****************************************************************************
 // CPromptServiceFactory
 //*****************************************************************************   
