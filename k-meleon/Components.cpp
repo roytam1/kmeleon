@@ -40,6 +40,12 @@ static const nsModuleComponentInfo sAppComps[] = {
 		NS_PROMPTSERVICE_CONTRACTID,
 		CPromptServiceConstructor
 	},
+	{ 
+		"Nonblocking Alert Service", 
+		NS_PROMPTSERVICE_CID, 
+		NS_NONBLOCKINGALERTSERVICE_CONTRACTID, 
+		CPromptServiceConstructor
+	},
 	{
 		"Helper App Launcher Dialog",
 		NS_UNKNOWNCONTENTTYPEHANDLER_CID,
