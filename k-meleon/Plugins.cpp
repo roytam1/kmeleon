@@ -661,7 +661,7 @@ int GetGlobalVar(enum PREFTYPE type, char *preference, void *ret) {
 		 }
 	  }
 	  else if (!stricmp(preference, "CHARSET")) {
-         char charset[64];
+		 char charset[64] = {0};
          pBrowserView->GetCharset(charset);
 		 USES_CONVERSION;
          retLen = strlen(charset);
