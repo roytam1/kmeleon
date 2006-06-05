@@ -167,7 +167,7 @@ void BuildMenu(HMENU menu, CBookmarkNode *node, BOOL isContinuation)
    // if bmp_menu is enabled, the menu items will actually be at least 18 pixels... but this system call won't reflect that
    // in any case, SM_CYMENU gets the height of the menu bar, not a menu item
    // for now we'll just assume bmp_menu is enabled and they're 18 pixels...
-#define cmenu 18
+int cmenu = max(18,GetSystemMetrics(SM_CYMENU));
    
    // space to allow above menu for title bar, menu bar (assuming maximized window), and extra frame junk
 #define MENUPADDING 50
@@ -385,25 +385,8 @@ int addLink(char *url, char *title)
       addNode->AddChild(newNode);
       op_writeFile(lpszHotlistFile);
    }
-     
-   if (!bEmpty) {
-      
-      // FIXME!
-      // this "deletes everything after the first bookmark position"
-      // which is not robust as there may be normal menu items there
-      
-      while (DeleteMenu(gMenuHotlist, nFirstHotlistPosition, MF_BYPOSITION))
-         ;
-   }
-   bEmpty = true;
-   BuildMenu(gMenuHotlist, gHotlistRoot.FindSpecialNode(BOOKMARK_FLAG_BM), false);
 
-   TB *ptr = root;
-   while (ptr) {
-     RebuildRebarMenu( ptr->hWndTB );
-     ptr = ptr->next;
-   }
-
+   RebuildMenu();
    return true;
 }
 
