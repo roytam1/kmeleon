@@ -403,7 +403,7 @@ BOOL CMfcEmbedApp::InitInstance()
 
    // Look for language file
    if (!lang.Load(preferences.settingsDir + LANG_CONFIG_FILE)) {
-		lang.Load(CString(LANG_CONFIG_FILE));
+	  lang.Load(CString(path) + _T('\\') + LANG_CONFIG_FILE);
    }
 
    plugins.FindAndLoad();
