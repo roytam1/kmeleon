@@ -267,13 +267,14 @@ int Init() {
 
    HDC hDC = CreateCompatibleDC(NULL);
    gMenuFont = CreateFontIndirect(&ncm.lfMenuFont);
-   SelectObject(hDC, gMenuFont); 
+   HGDIOBJ oldObj = SelectObject(hDC, gMenuFont); 
    
    SIZE size;
    GetTextExtentPoint32(hDC, _T("X"), 1, &size);
 
    SPACE_BETWEEN = size.cx;
 
+   SelectObject(hDC, oldObj);
    DeleteDC(hDC);
 
 
@@ -616,8 +617,6 @@ void DrawMenuItem(DRAWITEMSTRUCT *dis) {
 
 void MeasureMenuItem(MEASUREITEMSTRUCT *mis, HDC hDC) {
    
-   HFONT oldFont = (HFONT)SelectObject(hDC, gMenuFont); 
-
    SIZE size;
    TCHAR *string = (TCHAR *)mis->itemData;
    if (!*string)  { // it's a separator
@@ -625,6 +624,8 @@ void MeasureMenuItem(MEASUREITEMSTRUCT *mis, HDC hDC) {
       mis->itemHeight = GetSystemMetrics(SM_CYMENUSIZE) >> 1;
       return;
    }
+
+   HFONT oldFont = (HFONT)SelectObject(hDC, gMenuFont); 
 
    if (gbDrawn) {
       giMaxTextMeasured = 0;
