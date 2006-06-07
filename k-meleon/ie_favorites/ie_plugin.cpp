@@ -109,6 +109,7 @@ int Load(){
    HDC hdcScreen = CreateDC("DISPLAY", NULL, NULL, NULL); 
    nHSize = GetDeviceCaps(hdcScreen, HORZSIZE);
    nHRes = GetDeviceCaps(hdcScreen, HORZRES);
+   ReleaseDC(hdcScreen);
 
    wm_deferhottrack = kPlugin.kFuncs->GetCommandIDs(1);
 
