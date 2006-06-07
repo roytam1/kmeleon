@@ -960,6 +960,8 @@ int CALLBACK ViewProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                   UnhookWindowsHookEx(hHook);
                   if (hWndFront)
                      PostMessage(hWndFront, WM_COMMAND, wm_deferbringtotop, (LPARAM)NULL);
+				  DestroyIcon((HICON)SendMessage(hDlg, WM_GETICON, ICON_SMALL, 0));
+				  DestroyIcon((HICON)SendMessage(hDlg, WM_GETICON, ICON_BIG, 0));
                   DestroyWindow(hDlg);
                   break;
                }
@@ -996,7 +998,9 @@ int CALLBACK ViewProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                UnhookWindowsHookEx(hHook);
                if (hWndFront)
                   PostMessage(hWndFront, WM_COMMAND, wm_deferbringtotop, (LPARAM)NULL);
-               EndDialog(hDlg, 1);
+			   DestroyIcon((HICON)SendMessage(hDlg, WM_GETICON, ICON_SMALL, 0));
+			   DestroyIcon((HICON)SendMessage(hDlg, WM_GETICON, ICON_BIG, 0));
+               DestroyWindow(hDlg);
 
                // Delete all selected history entries
                if (freeNode && freeNode->child) {
