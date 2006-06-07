@@ -900,7 +900,9 @@ int CMfcEmbedApp::ExitInstance()
    }
 
    delete m_MRUList;
-   
+   DestroyIcon(m_hMainIcon);
+   DestroyIcon(m_hSmallIcon);
+
    // unload the plugins before we terminate embedding,
    // this way plugins can still call the preference functions
    plugins.SendMessage("*", "* Plugin Manager", "Quit");
