@@ -1014,7 +1014,8 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				  DestroyIcon((HICON)SendMessage(hDlg, WM_GETICON, ICON_SMALL, 0));
 				  DestroyIcon((HICON)SendMessage(hDlg, WM_GETICON, ICON_BIG, 0));
 				  delete workingBookmarks;
-                  EndDialog(hDlg, 0);
+				  TreeView_DeleteAllItems(hTree);
+                  DestroyWindow(hDlg);
                   break;
                }
                // fall through!
@@ -1050,7 +1051,8 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
  			   DestroyIcon((HICON)SendMessage(hDlg, WM_GETICON, ICON_SMALL, 0));
 			   DestroyIcon((HICON)SendMessage(hDlg, WM_GETICON, ICON_BIG, 0));
-               EndDialog(hDlg, 1);
+			   TreeView_DeleteAllItems(hTree);
+               DestroyWindow(hDlg);
                break;
 
 

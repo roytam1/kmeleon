@@ -944,7 +944,7 @@ int CALLBACK ViewProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                   ghWndView = NULL;
                   if (hWndFront)
                      PostMessage(hWndFront, WM_COMMAND, wm_deferbringtotop, (LPARAM)NULL);
-                  EndDialog(hDlg, 0);
+                  DestroyWindow(hDlg);
                   break;
                }
                if (!zoom) {
@@ -960,7 +960,7 @@ int CALLBACK ViewProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                   UnhookWindowsHookEx(hHook);
                   if (hWndFront)
                      PostMessage(hWndFront, WM_COMMAND, wm_deferbringtotop, (LPARAM)NULL);
-                  EndDialog(hDlg, 0);
+                  DestroyWindow(hDlg);
                   break;
                }
                // fall through!
