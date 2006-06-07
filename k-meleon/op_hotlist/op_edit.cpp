@@ -953,8 +953,8 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                      PostMessage(hWndFront, WM_COMMAND, wm_deferbringtotop, (LPARAM) NULL);
                   ghWndEdit = NULL;
 				  TreeView_DeleteAllItems(hTree);
-				  DestroyIcon(SendMessage(hDlg, WM_GETICON, ICON_SMALL, (LPARAM) hIcon));
-				  DestroyIcon(SendMessage(hDlg, WM_GETICON, ICON_BIG, (LPARAM) hIcon));
+				  DestroyIcon((HICON)SendMessage(hDlg, WM_GETICON, ICON_SMALL, 0));
+				  DestroyIcon((HICON)SendMessage(hDlg, WM_GETICON, ICON_BIG, 0));
                   DestroyWindow(hDlg);
                   break;
                }
@@ -1004,8 +1004,8 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                   PostMessage(hWndFront, WM_COMMAND, wm_deferbringtotop, (LPARAM) NULL);
                ghWndEdit = NULL;
 			   TreeView_DeleteAllItems(hTree);
-			   DestroyIcon(SendMessage(hDlg, WM_GETICON, ICON_SMALL, (LPARAM) hIcon));
-			   DestroyIcon(SendMessage(hDlg, WM_GETICON, ICON_BIG, (LPARAM) hIcon));
+			   DestroyIcon((HICON)SendMessage(hDlg, WM_GETICON, ICON_SMALL, 0));
+			   DestroyIcon((HICON)SendMessage(hDlg, WM_GETICON, ICON_BIG, 0));
                DestroyWindow(hDlg);
                break;
             }
