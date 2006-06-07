@@ -952,7 +952,10 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                   if (hWndFront)
                      PostMessage(hWndFront, WM_COMMAND, wm_deferbringtotop, (LPARAM) NULL);
                   ghWndEdit = NULL;
-                  EndDialog(hDlg, 0);
+				  TreeView_DeleteAllItems(hTree);
+				  DestroyIcon(SendMessage(hDlg, WM_GETICON, ICON_SMALL, (LPARAM) hIcon));
+				  DestroyIcon(SendMessage(hDlg, WM_GETICON, ICON_BIG, (LPARAM) hIcon));
+                  DestroyWindow(hDlg);
                   break;
                }
                // fall through!
@@ -1000,7 +1003,10 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                if (hWndFront)
                   PostMessage(hWndFront, WM_COMMAND, wm_deferbringtotop, (LPARAM) NULL);
                ghWndEdit = NULL;
-               EndDialog(hDlg, 1);
+			   TreeView_DeleteAllItems(hTree);
+			   DestroyIcon(SendMessage(hDlg, WM_GETICON, ICON_SMALL, (LPARAM) hIcon));
+			   DestroyIcon(SendMessage(hDlg, WM_GETICON, ICON_BIG, (LPARAM) hIcon));
+               DestroyWindow(hDlg);
                break;
             }
          }
