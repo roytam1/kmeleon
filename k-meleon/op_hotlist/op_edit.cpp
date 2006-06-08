@@ -939,6 +939,10 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
             case IDCANCEL:
                if (!zoom) {
                   if (bookmarksEdited) {
+
+					  if (MessageBox(hDlg, _T("Warning: all changes will be lost. Are you sure you want to close the hotlist editor?"), _T("Close Hotlist Editor"), MB_OKCANCEL) == IDCANCEL)
+						 return 0;
+						 
                      delete gHotlistRoot.child;
                      delete gHotlistRoot.next;
                      gHotlistRoot.child = NULL;
@@ -1545,6 +1549,8 @@ static void OnRClick(HWND hTree)
       bTracking = TRUE;
       int command = TrackPopupMenu(contextMenu, TPM_RIGHTBUTTON | TPM_LEFTALIGN | TPM_RETURNCMD, mouse.x, mouse.y, 0, hTree, NULL);
       bTracking = FALSE;
+
+	  DestroyMenu(topMenu);
 
       switch (command) {
       case ID__OPEN:
