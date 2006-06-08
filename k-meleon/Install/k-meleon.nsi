@@ -368,7 +368,7 @@ SubSectionEnd
 
 # ----------------------------------------------------------------------
 
-UninstallText UN_confirm
+UninstallText $(UN_confirm)
 
 Section Uninstall ; {{{
 
@@ -561,10 +561,11 @@ Function DirectoryLeave
 	IfFileExists "$INSTDIR\Profiles" KMFound
 	Goto Done
 KMFound:
-		MessageBox MB_YESNOCANCEL|MB_ICONEXCLAMATION $(INST_AlreadyInstalled) IDYES Done IDNO Retry
-		MessageBox MB_YESNO|MB_ICONEXCLAMATION $(INST_Quit) IDNO Retry
-		Quit
-Retry:
+		MessageBox MB_YESNO|MB_ICONEXCLAMATION $(INST_AlreadyInstalled) IDYES Done
+;		MessageBox MB_YESNOCANCEL|MB_ICONEXCLAMATION $(INST_AlreadyInstalled) IDYES Done IDNO Retry
+;		MessageBox MB_YESNO|MB_ICONEXCLAMATION $(INST_Quit) IDNO Retry
+;		Quit
+;Retry:
 		Abort
 Done:
 	
