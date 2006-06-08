@@ -59,7 +59,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "weasel", "weasel\weasel.vcp
 	ProjectSection(ProjectDependencies) = postProject
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "privacy", "..\..\visual studio projects\k-meleon\privacy\privacy.vcproj", "{F80DCDF9-D001-47F7-97D5-26EF62BF91AF}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "privacy", "privacy\privacy.vcproj", "{F80DCDF9-D001-47F7-97D5-26EF62BF91AF}"
 	ProjectSection(ProjectDependencies) = postProject
 	EndProjectSection
 EndProject
@@ -98,7 +98,6 @@ Global
 		{9C40A520-37BA-4997-BC72-4EE98E32513A}.Release.ActiveCfg = Release|Win32
 		{9C40A520-37BA-4997-BC72-4EE98E32513A}.Release.Build.0 = Release|Win32
 		{9E69231B-D930-42FC-AA81-D271A732EBCA}.Debug.ActiveCfg = Debug|Win32
-		{9E69231B-D930-42FC-AA81-D271A732EBCA}.Debug.Build.0 = Debug|Win32
 		{9E69231B-D930-42FC-AA81-D271A732EBCA}.Release.ActiveCfg = Release|Win32
 		{9E69231B-D930-42FC-AA81-D271A732EBCA}.Release.Build.0 = Release|Win32
 		{A1E2BBD2-452C-41F6-A64A-9476398A17DA}.Debug.ActiveCfg = Debug|Win32
