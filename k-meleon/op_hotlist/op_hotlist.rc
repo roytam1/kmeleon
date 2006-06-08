@@ -4,11 +4,9 @@
 #  define _WIN32_IE 0x0500
 #  include <windows.h>
 #  include <commctrl.h>
-#  include "../missing.h"
 #endif
 
 #include "op_hotlist.h"
-#include "../resource.h"
 #include <windows.h>
 
 #ifndef IDC_STATIC
