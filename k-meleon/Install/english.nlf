@@ -29,7 +29,7 @@ LangString UN_everything			ULANG "There seems to be more files left in the insta
 LangString UN_Title 				ULANG "${NAME} (remove only)"
 
 LangString INIT_KmeleonRunning 		ULANG  "It appears that ${NAME} or the loader is currently running.$\r$\nIt must be closed before ${NAME} ${VERSION} can continue installation.$\r$\n$\r$\nPress Ok to close now, or Cancel to abort installation."
-LangString INST_AlreadyInstalled 	ULANG "An earlier install of ${NAME} has been detected in ''$INSTDIR'' !$\n\Are you sure you want to install ${NAME} in this directory?"
+LangString INST_AlreadyInstalled 	ULANG "An earlier install of ${NAME} has been detected in ''$INSTDIR'' !$\nAre you sure you want to install ${NAME} in this directory?"
 LangString INST_Quit 				ULANG "Are you sure you want to quit ${NAME} ${VERSION} - Setup?"
 
 LangString SECT_Loader 				ULANG "K-Meleon Loader"
