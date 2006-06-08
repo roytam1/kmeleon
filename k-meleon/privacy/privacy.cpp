@@ -132,31 +132,76 @@ void SavePluginPreferences()
     kFuncs->SetPreference(PREF_INT, PREFERENCE_CLEARHISTORY, &prefClearHistory, FALSE);
 }
 
+#define MOZILLA_STRICT_API
+
+#include "nsCOMPtr.h"
+#include "nsICookieManager.h"
+#include "nsServiceManagerUtils.h"
+
 // Clear the cookies
 void ClearCookies()
 {
-    TCHAR cookiesFile[MAX_PATH];    // cookies file with full path
-    strcpy(cookiesFile, settingsDir);
-    strcat(cookiesFile, "cookies.txt");
-    DeleteFile(cookiesFile);
+	nsresult rv;
+
+	//NS_COOKIEMANAGER_CONTRACTID
+	nsCOMPtr<nsICookieManager> CookieManager(do_GetService("@mozilla.org/cookiemanager;1", &rv));
+	if (NS_FAILED(rv)) return;
+
+	CookieManager->RemoveAll();
 }
+
+
+#include "nsIBrowserHistory.h"
 
 // Clear the history
 void ClearHistory()
 {
-    TCHAR historyFile[MAX_PATH];    // history file with full path
-    strcpy(historyFile, settingsDir);
-    strcat(historyFile, "history.txt");
-    DeleteFile(historyFile);
+//	theApp.plugins.SendMessage("history", "privacy", "clear", 0, 0);
+
+	nsresult rv;
+
+	//NS_GLOBALHISTORY2_CONTRACTID
+	nsCOMPtr<nsIBrowserHistory> BrowserHistory(do_GetService("@mozilla.org/browser/global-history;2", &rv));
+	if (NS_FAILED(rv)) return;
+	
+	BrowserHistory->RemoveAllPages();
 }
+
+#include "nsIPasswordManager.h"
+#include "nsIPassword.h"
+#include "nsEmbedString.h" 
 
 // Clear the Sign on data
 void ClearSignon()
 {
-    TCHAR signonFile[MAX_PATH];    // sign on file with full path
-    strcpy(signonFile, settingsDir);
-    strcat(signonFile, signonFileName);
-    DeleteFile(signonFile);
+	nsresult rv;
+
+	//NS_PASSWORDMANAGER_CONTRACTID
+	nsCOMPtr<nsIPasswordManager> PasswordManager(do_GetService("@mozilla.org/passwordmanager;1", &rv));
+	if (NS_FAILED(rv)) return;
+
+	nsCOMPtr<nsISimpleEnumerator> enumPassword;
+	rv = PasswordManager->GetEnumerator(getter_AddRefs(enumPassword));
+	if (NS_FAILED(rv)) return;
+
+	PRBool ret;
+	enumPassword->HasMoreElements(&ret);
+	while (ret)
+    {
+		nsCOMPtr<nsIPassword> password;
+        rv = enumPassword->GetNext(getter_AddRefs(password));
+		if (NS_FAILED(rv)) break;
+
+		nsEmbedCString nshost;
+		password->GetHost(nshost);
+
+		nsEmbedString nsuser;
+		password->GetUser(nsuser);
+
+		PasswordManager->RemoveUser(nshost, nsuser);
+
+		enumPassword->HasMoreElements(&ret);
+	}
 }
 
 // Delete all the files in a directory
