@@ -878,19 +878,22 @@ HBITMAP LoadButtonImage(s_toolbar *pToolbar, s_button *pButton, char *sFile) {
    }
    
    hdcBitmap = CreateCompatibleDC(NULL);
-   SelectObject(hdcBitmap, hBitmap);
+   HGDIOBJ oldBmp = SelectObject(hdcBitmap, hBitmap);
    
    hdcButton = CreateCompatibleDC(hdcBitmap);
    hButton = CreateCompatibleBitmap(hdcBitmap, pToolbar->width, pToolbar->height);
-   SelectObject(hdcButton, hButton);
+   HGDIOBJ oldBmp2 = SelectObject(hdcButton, hButton);
 
    // fill the button with the transparency
    hBrush = CreateSolidBrush(RGB(255,0,255));
-   SelectObject(hdcButton, hBrush);
+   HGDIOBJ oldBrush = SelectObject(hdcButton, hBrush);
    PatBlt(hdcButton, 0, 0, pToolbar->width, pToolbar->height, PATCOPY);
 
    // copy the button from the full bitmap
    BitBlt(hdcButton, xstart, ystart, width, height, hdcBitmap, width*index, 0, SRCCOPY);
+   SelectObject(hdcButton, oldBrush);
+   SelectObject(hdcButton, oldBmp2);
+   SelectObject(hdcBitmap, oldBmp);
    DeleteDC(hdcBitmap);
    DeleteDC(hdcButton);
    
@@ -909,7 +912,7 @@ void AddImageToList(s_toolbar *pToolbar, s_button *pButton, HIMAGELIST list, cha
 
    DeleteObject(hButton);
 
-   delete pButton->sImagePath;
+   free(pButton->sImagePath);
    pButton->sImagePath = strdup(sFile);
 }
 
