@@ -30,6 +30,7 @@ void quicksort(char *a, size_t n, size_t es, cmp_t *cmp, unsigned int flag);
 #include <wininet.h>    // for INTERNET_MAX_URL_LENGTH
 #include <commctrl.h>
 
+#define _Tr(x) kPlugin.kFuncs->Translate(x)
 
 #define ID_CREATE                       501
 #define ID_SEARCH                       502
@@ -155,29 +156,27 @@ void remove_TB(HWND hWnd);
 
 void Config(HWND parent);
 
-
-#define _T(x) x
-#define PREFERENCE_REBAR_ENABLED _T("kmeleon.plugins.hotlist.rebar")
-#define PREFERENCE_CHEVRON_ENABLED _T("kmeleon.plugins.hotlist.chevron")
-#define PREFERENCE_HOTLIST_FILE  _T("kmeleon.plugins.hotlist.hotlistFile")
-#define PREFERENCE_HOTLIST_RESYNCH  _T("kmeleon.plugins.hotlist.resynch")
-#define PREFERENCE_SETTINGS_DIR    _T("kmeleon.general.settingsDir")
-#define PREFERENCE_MENU_MAXLEN _T("kmeleon.plugins.hotlist.maxMenuLength")
-#define PREFERENCE_MENU_AUTOLEN _T("kmeleon.plugins.hotlist.menuAutoDetect")
-#define PREFERENCE_MENU_SORTORDER _T("kmeleon.plugins.hotlist.sortOrder")
-#define PREFERENCE_TOOLBAR_FOLDER _T("kmeleon.plugins.hotlist.toolbarFolder")
-#define PREFERENCE_MENU_FOLDER _T("kmeleon.plugins.hotlist.menuFolder")
-#define PREFERENCE_NEWITEM_FOLDER _T("kmeleon.plugins.hotlist.newitemFolder")
-#define PREFERENCE_BUTTON_MINWIDTH  _T("kmeleon.plugins.hotlist.buttonMinWidth")
-#define PREFERENCE_BUTTON_MAXWIDTH  _T("kmeleon.plugins.hotlist.buttonMaxWidth")
-#define PREFERENCE_BUTTON_ICONS  _T("kmeleon.plugins.hotlist.buttonIcons")
-#define PREFERENCE_EDIT_DLG_LEFT   _T("kmeleon.plugins.hotlist.editdialog.left")
-#define PREFERENCE_EDIT_DLG_TOP    _T("kmeleon.plugins.hotlist.editdialog.top")
-#define PREFERENCE_EDIT_DLG_WIDTH  _T("kmeleon.plugins.hotlist.editdialog.width")
-#define PREFERENCE_EDIT_DLG_HEIGHT _T("kmeleon.plugins.hotlist.editdialog.height")
-#define PREFERENCE_EDIT_ZOOM _T("kmeleon.plugins.hotlist.editdialog.zoom")
-#define PREFERENCE_EDIT_MAX _T("kmeleon.plugins.hotlist.editdialog.maximized")
-#define PREFERENCE_HOTLIST_OPENURL _T("kmeleon.plugins.hotlist.openurl")
+#define PREFERENCE_REBAR_ENABLED "kmeleon.plugins.hotlist.rebar"
+#define PREFERENCE_CHEVRON_ENABLED "kmeleon.plugins.hotlist.chevron"
+#define PREFERENCE_HOTLIST_FILE  "kmeleon.plugins.hotlist.hotlistFile"
+#define PREFERENCE_HOTLIST_RESYNCH  "kmeleon.plugins.hotlist.resynch"
+#define PREFERENCE_SETTINGS_DIR    "kmeleon.general.settingsDir"
+#define PREFERENCE_MENU_MAXLEN "kmeleon.plugins.hotlist.maxMenuLength"
+#define PREFERENCE_MENU_AUTOLEN "kmeleon.plugins.hotlist.menuAutoDetect"
+#define PREFERENCE_MENU_SORTORDER "kmeleon.plugins.hotlist.sortOrder"
+#define PREFERENCE_TOOLBAR_FOLDER "kmeleon.plugins.hotlist.toolbarFolder"
+#define PREFERENCE_MENU_FOLDER "kmeleon.plugins.hotlist.menuFolder"
+#define PREFERENCE_NEWITEM_FOLDER "kmeleon.plugins.hotlist.newitemFolder"
+#define PREFERENCE_BUTTON_MINWIDTH  "kmeleon.plugins.hotlist.buttonMinWidth"
+#define PREFERENCE_BUTTON_MAXWIDTH  "kmeleon.plugins.hotlist.buttonMaxWidth"
+#define PREFERENCE_BUTTON_ICONS  "kmeleon.plugins.hotlist.buttonIcons"
+#define PREFERENCE_EDIT_DLG_LEFT   "kmeleon.plugins.hotlist.editdialog.left"
+#define PREFERENCE_EDIT_DLG_TOP    "kmeleon.plugins.hotlist.editdialog.top"
+#define PREFERENCE_EDIT_DLG_WIDTH  "kmeleon.plugins.hotlist.editdialog.width"
+#define PREFERENCE_EDIT_DLG_HEIGHT "kmeleon.plugins.hotlist.editdialog.height"
+#define PREFERENCE_EDIT_ZOOM "kmeleon.plugins.hotlist.editdialog.zoom"
+#define PREFERENCE_EDIT_MAX "kmeleon.plugins.hotlist.editdialog.maximized"
+#define PREFERENCE_HOTLIST_OPENURL "kmeleon.plugins.hotlist.openurl"
 
 // The globals
 
