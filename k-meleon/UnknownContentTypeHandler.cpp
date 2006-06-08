@@ -126,6 +126,11 @@ CUnknownContentTypeHandler::Show( nsIHelperAppLauncher *aLauncher, nsISupports *
 	mAppLauncher = aLauncher;
 	
 	// This function must return immediately or all transferts are stalled.
+    // XXX: Stupid mozilla
+	// If an error happen (ex: temporary folder is full), an error message 
+	// is show to the user when asking to open/save or for the location. 
+	// The dialogs asking open/save or for the location must be closed at 
+	// the same time than the error message.
 
 	nsCOMPtr<nsIDOMWindow> parent = do_GetInterface (aContext);
 	CWnd* wnd = CWndForDOMWindow(parent);
@@ -871,6 +876,8 @@ void CProgressDialog::InitControl(const char *uri, const TCHAR *filepath)
           ShowWindow(SW_MINIMIZE);
 	  else
 		  ShowWindow(SW_SHOW);
+	  SetIcon(theApp.GetDefaultIcon(FALSE), FALSE);
+	  SetIcon(theApp.GetDefaultIcon(TRUE), TRUE);
    }
 }
 
