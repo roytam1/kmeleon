@@ -147,6 +147,7 @@ BOOL CALLBACK HotlistFileDlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
          HDC hdcScreen = CreateDC("DISPLAY", NULL, NULL, NULL); 
          int nHSize = GetDeviceCaps(hdcScreen, HORZSIZE);
          int nVSize = GetDeviceCaps(hdcScreen, VERTSIZE);
+		 DeleteDC(hdcScreen);
 
          WINDOWPLACEMENT wp;
          wp.length = sizeof (WINDOWPLACEMENT);
@@ -543,6 +544,8 @@ void Quit(){
    if (gHotlistModified) {
       op_writeFile(lpszHotlistFile);
    }
+   if (lpszHotlistFile) free(lpszHotlistFile);
+
    while (root)
       remove_TB(root->hWnd);
 
