@@ -143,7 +143,8 @@ BOOL CBrowserFrame::PreTranslateMessage(MSG* pMsg)
 {
    if (pMsg->message==WM_KEYDOWN)
    {
-	   if ( pMsg->wParam == VK_TAB) {
+	   if ( pMsg->wParam == VK_TAB && !(GetKeyState(VK_CONTROL)  & 0x8000)) {
+
 		nsCOMPtr<nsIWebBrowserFocus> focus(do_GetInterface(m_wndBrowserView.mWebBrowser));
 		if(focus) {
 				if (pMsg->hwnd == m_wndUrlBar.m_hwndEdit) {
@@ -172,7 +173,16 @@ BOOL CBrowserFrame::PreTranslateMessage(MSG* pMsg)
 			}
 		}
 	  }
-   }  
+   }  else if ( pMsg->wParam == 0xff ) {
+	   if  ( (pMsg->lParam & 0x00ff0000) == 0x000b0000) {
+           	m_wndBrowserView.ChangeTextSize(1);		
+			return 1;
+	   }
+	   else if ( (pMsg->lParam  & 0x00ff0000) == 0x00110000) {
+           m_wndBrowserView.ChangeTextSize(-1);
+		   return 1;
+	   }
+   }
    return CFrameWnd::PreTranslateMessage(pMsg);
 }
 
