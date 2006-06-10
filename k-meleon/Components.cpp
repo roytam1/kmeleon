@@ -7,7 +7,6 @@ the same CID and Contract ID as the default's.
 */
 
 #include "stdafx.h"
-#include "nsIComponentRegistrar.h"
 #include "mfcembed.h"
 #include "UnknownContentTypeHandler.h"
 #include "PromptService.h"
@@ -16,6 +15,11 @@ the same CID and Contract ID as the default's.
 #include "NSSDialogs.h"
 #include "FontPackageHandler.h"
 #include "GenKeyPairDialogs.h"
+//#include "SideBarComp.h"
+
+#include "nsIComponentRegistrar.h"
+#include "nsICategoryManager.h"
+#include "nsIComponentManager.h"
 
 //#include "nsEmbedCID.h" //NS_PROMPTSERVICE_CONTRACTID
 //#include "nsICookiePromptService.h" ////NS_COOKIEPROMPTSERVICE_CONTRACTID
@@ -32,6 +36,23 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(CNSSDialogs)
 NS_GENERIC_FACTORY_CONSTRUCTOR(CProgressDialog)
 NS_GENERIC_FACTORY_CONSTRUCTOR(CFontPackageHandler)
 NS_GENERIC_FACTORY_CONSTRUCTOR(CGenKeyPairDialogs)
+//NS_GENERIC_FACTORY_CONSTRUCTOR(CSideBarComp)
+
+/*NS_DECL_CLASSINFO(CSideBarComp)
+
+static NS_METHOD
+RegisterSidebar(nsIComponentManager *aCompMgr, nsIFile *aPath,
+                const char *registryLocation, const char *componentType,
+                const nsModuleComponentInfo *info)
+{
+	nsCOMPtr<nsICategoryManager> cm =
+		do_GetService(NS_CATEGORYMANAGER_CONTRACTID);
+	NS_ENSURE_TRUE (cm, NS_ERROR_FAILURE);
+
+	return cm->AddCategoryEntry("JavaScript global property",
+				    "sidebar", NS_SIDEBAR_CONTRACTID,
+				    PR_FALSE, PR_TRUE, nsnull);
+}*/
 
 static const nsModuleComponentInfo sAppComps[] = {
 	{
@@ -92,17 +113,34 @@ static const nsModuleComponentInfo sAppComps[] = {
 	   NS_FONTPACKAGEHANDLER_CID,
        "@mozilla.org/locale/default-font-package-handler;1",
        CFontPackageHandlerConstructor
-	 }
+	}/*,
+	{	
+		"nsSideBar",
+		NS_SIDEBAR_CID,
+		NS_SIDEBAR_CONTRACTID,
+		CSideBarCompConstructor,
+		RegisterSidebar,
+		nsnull,
+		nsnull,
+		NS_CI_INTERFACE_GETTER_NAME(CSideBarComp),
+		nsnull,
+		&NS_CLASSINFO_NAME(CSideBarComp),
+		nsIClassInfo::DOM_OBJECT
+	}*/
 };
 
 #define NB_COMPONENTS sizeof(sAppComps)/sizeof(nsModuleComponentInfo)
 
 nsresult CMfcEmbedApp::OverrideComponents()
 {
-   nsCOMPtr<nsIComponentRegistrar> compReg;
-   nsresult rv = NS_GetComponentRegistrar(getter_AddRefs(compReg));
-   NS_ENSURE_SUCCESS(rv, rv);
-   
+	nsCOMPtr<nsIComponentRegistrar> compReg;
+	nsresult rv = NS_GetComponentRegistrar(getter_AddRefs(compReg));
+	NS_ENSURE_SUCCESS(rv, rv);
+
+	nsCOMPtr<nsIComponentManager> compManager;
+	rv = NS_GetComponentManager(getter_AddRefs(compManager));
+	NS_ENSURE_SUCCESS(rv, rv);
+
 	for (int i=0; i<NB_COMPONENTS ; i++)
 	{
 		nsCOMPtr<nsIGenericFactory> componentFactory;
@@ -112,12 +150,15 @@ nsresult CMfcEmbedApp::OverrideComponents()
 			AfxMessageBox(IDS_UNABLE_REGISTER_FACTORY, MB_OK, 0);
 			continue;
 		}
-	
+
 		rv = compReg->RegisterFactory(sAppComps[i].mCID,
-					 sAppComps[i].mDescription,
-					 sAppComps[i].mContractID,
-					 componentFactory);
+			sAppComps[i].mDescription,
+			sAppComps[i].mContractID,
+			componentFactory);
+
+		if (sAppComps[i].mRegisterSelfProc)
+			rv = sAppComps[i].mRegisterSelfProc(compManager, nsnull, nsnull, nsnull, &sAppComps[i]);
 	}
-  	   
-   return rv;
+
+	return rv;
 }
