@@ -85,7 +85,9 @@ void CPreferences::Load() {
    nsresult rv;
    nsCOMPtr<nsIPref> prefs(do_GetService(NS_PREF_CONTRACTID, &rv));
    if (NS_SUCCEEDED(rv)) {	  
-
+#ifndef USE_PROFILES
+	 prefs->ReadUserPrefs(nsnull);
+#endif
       PRBool inited;
       rv = prefs->GetBoolPref("kmeleon.prefs_inited", &inited);
       if (NS_FAILED(rv) || !inited) {
@@ -179,7 +181,7 @@ void CPreferences::Load() {
          _defProfileDir = appDir;
 
 	  profileDir = _defProfileDir;
-      SetString("kmeleon.general.profileDir", profileDir.GetBuffer(0));
+      SetString("kmeleon.general.profileDir", (LPCTSTR)profileDir);
 
 
       if (settingsDir.IsEmpty())
@@ -391,7 +393,7 @@ void CPreferences::Save(bool clearPath) {
       rv = prefs->SetBoolPref("kmeleon.general.offline", bOffline);
       rv = prefs->SetBoolPref("kmeleon.general.guest_account", bGuestAccount);
 
-      _SetString("kmeleon.general.searchEngine",searchEngine)
+      //_SetString("kmeleon.general.searchEngine",searchEngine)
 
       _SetString("kmeleon.general.settingsDir",settingsDir)
       _SetString("kmeleon.general.pluginsDir",pluginsDir)
@@ -649,7 +651,7 @@ int CPreferences::GetString(const char *preference, wchar_t *retVal, wchar_t *de
    return 0;
 }
 
-void CPreferences::SetString(const char *preference, wchar_t *value){
+void CPreferences::SetString(const char *preference, const wchar_t *value){
    nsresult rv;
    nsCOMPtr<nsIPref> prefs(do_GetService(NS_PREF_CONTRACTID, &rv));
    if (NS_SUCCEEDED(rv)) {
@@ -657,7 +659,7 @@ void CPreferences::SetString(const char *preference, wchar_t *value){
    }
 }
 
-void CPreferences::SetString(const char *preference, char *value){
+void CPreferences::SetString(const char *preference, const char *value){
    nsresult rv;
    nsCOMPtr<nsIPref> prefs(do_GetService(NS_PREF_CONTRACTID, &rv));
    if (NS_SUCCEEDED(rv)) {

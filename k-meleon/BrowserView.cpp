@@ -1640,7 +1640,13 @@ void CBrowserView::OnNavSearch()
    CString search;
    if (DialogBoxParam(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDD_SEARCH_DIALOG), m_hWnd, SearchProc, (LPARAM)&search)) {
       search.Replace(_T("+"), _T("%2b"));
-      OpenURL(theApp.preferences.searchEngine + search);
+	  int len = theApp.preferences.GetString("kmeleon.general.searchEngine", NULL, _T("http://www.google.com/search?q="));
+	  char* searchEngine = new char[len+strlen(search)+1];
+	  theApp.preferences.GetString("kmeleon.general.searchEngine", searchEngine, _T("http://www.google.com/search?q="));
+	  strcat(searchEngine, search);
+      OpenURL(searchEngine);
+	  delete searchEngine;
+	  //OpenURL(theApp.preferences.searchEngine + search);
    }
 }
 
