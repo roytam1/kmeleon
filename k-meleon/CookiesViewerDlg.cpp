@@ -45,6 +45,7 @@ BEGIN_MESSAGE_MAP(CCookiesViewerDlg, CDialog)
 	ON_NOTIFY(LVN_ITEMCHANGED, IDC_LIST_COOKIES, OnLvnItemchangedListCookies)
 	ON_BN_CLICKED(IDC_DELETE_ALL_COOKIES, OnBnClickedDeleteAllCookies)
 	ON_BN_CLICKED(IDC_DELETE_COOKIES, OnBnClickedDeleteCookies)
+	ON_EN_CHANGE(IDC_COOKIE_SEARCH, OnEnChangeCookieSearch)
 	ON_WM_DESTROY()
 END_MESSAGE_MAP()
 
@@ -221,6 +222,18 @@ void CCookiesViewerDlg::OnBnClickedDeleteCookies()
 	}
 }
 
+void CCookiesViewerDlg::OnEnChangeCookieSearch()
+{
+	LVFINDINFO info = {0};
+	info.flags = LVFI_PARTIAL;
+	
+	CString csSearch;
+	GetDlgItemText(IDC_COOKIE_SEARCH, csSearch);
+	info.psz = csSearch.GetBuffer(0);
+
+	int nIndex = m_cCookiesList.FindItem(&info, -1);
+	m_cCookiesList.EnsureVisible(nIndex, FALSE);
+}
 
 void CCookiesViewerDlg::OnDestroy()
 {

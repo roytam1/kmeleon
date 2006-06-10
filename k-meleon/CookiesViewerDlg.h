@@ -57,5 +57,6 @@ public:
 	afx_msg void OnLvnItemchangedListCookies(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnBnClickedDeleteAllCookies();
 	afx_msg void OnBnClickedDeleteCookies();
+	afx_msg void OnEnChangeCookieSearch();
 	afx_msg void OnDestroy();
 };

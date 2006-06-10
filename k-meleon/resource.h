@@ -274,6 +274,13 @@
 #define IDC_HIGHLIGHT                   1194
 #define IDC_SHRINK_TOFIT                1195
 #define IDC_LIST_SELECT                 1196
+#define IDC_COOKIE_SEARCH               1199
+#define IDC_COOKIE_NAME                 2107
+#define IDC_COOKIE_VALUE                2108
+#define IDC_COOKIE_HOST                 2109
+#define IDC_COOKIE_PATH                 2110
+#define IDC_COOKIE_SENDFOR              2111
+#define IDC_COOKIE_EXPIRES              2112
 #define IDC_FILE_ICON                   2115
 #define ID_POPUP_BLOCKED_ICON           2200
 #define ID_SECURITY_STATE_ICON          2201
@@ -414,12 +421,6 @@
 #define IDALLOWSESSION                  2104
 #define IDALLOW                         2105
 #define IDDENY                          2106
-#define IDC_COOKIE_NAME                 2107
-#define IDC_COOKIE_VALUE                2108
-#define IDC_COOKIE_HOST                 2109
-#define IDC_COOKIE_PATH                 2110
-#define IDC_COOKIE_SENDFOR              2111
-#define IDC_COOKIE_EXPIRES              2112
 #define IDC_COOKIE_ICON                 2115
 #define IDC_COOKIE_TEXT                 2116
 #define IDC_COOKIE_NAME2                2117
