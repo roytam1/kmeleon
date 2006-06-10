@@ -610,6 +610,15 @@ int GetGlobalVar(enum PREFTYPE type, char *preference, void *ret) {
    pBrowserView = &theApp.m_pMostRecentBrowserFrame->m_wndBrowserView;
 
    switch (type) {
+   case PREF_UNISTRING:
+	  if (!stricmp(preference, "SelectedText")) {
+		nsEmbedString sel;  
+		pBrowserView->GetUSelection(sel);
+		retLen = sel.Length();
+		 if (ret)
+			 wcscpy((wchar_t*)ret, sel.get());
+	  }
+	  break;
    case PREF_STRING:
 	  if (!stricmp(preference, "URL")) {
 	     CString url;
