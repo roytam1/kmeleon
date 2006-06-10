@@ -91,8 +91,6 @@ static const char* KMELEON_MANUAL_URL = "http://kmeleon.sourceforge.net/manual/"
 static const char* ABOUT_PLUGINS_URL = "about:plugins";
 static const char* ABOUT_KMELEON = "about:";
 
-// Register message for FindDialog communication
-static UINT WM_FINDMSG = ::RegisterWindowMessage(FINDMSGSTRING);
 
 BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
     //{{AFX_MSG_MAP(CBrowserView)
@@ -218,6 +216,9 @@ CBrowserView::CBrowserView()
     m_iGetNodeHack = 0;
     m_pGetNode = NULL;
 	m_lastMouseActionNode = nsnull;
+
+	m_refreshBackButton = FALSE;
+	m_refreshForwardButton = FALSE;
 
     m_panning = FALSE;
     maccel_pan = FALSE;
