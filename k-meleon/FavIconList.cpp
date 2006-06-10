@@ -161,7 +161,7 @@ int CFavIconList::AddIcon(char* uri, TCHAR* file, nsresult aStatus)
 		HICON favicon = (HICON)LoadImage(NULL, file, IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 		if (favicon){
 			index = Add(favicon);
-			DeleteObject(favicon);
+			DestroyIcon(favicon);
 		}
 		#ifdef PNG_SUPPORT
 		else
