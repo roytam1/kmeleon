@@ -91,7 +91,7 @@ public:
    void RegisterWindow(CDialog *window);
    void UnregisterWindow(CDialog *window);
     void BroadcastMessage(UINT Msg, WPARAM wParam, LPARAM lParam);
-	inline HICON GetDefaultIcon() {return m_hSmallIcon;}
+	inline HICON GetDefaultIcon(BOOL large = FALSE) {HICON ret; large ? ret = m_hMainIcon : ret = m_hSmallIcon; return ret;}
 	bool FindSkinFile( CString& szSkinFile, TCHAR *filename );
 
    nsresult SetOffline(BOOL offline);
