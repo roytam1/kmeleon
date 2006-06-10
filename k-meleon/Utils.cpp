@@ -85,18 +85,13 @@ int CondenseString(char *buf, int size)
 	int firstlen, secondlen, len;
    char *read, *write;
 
-   read=buf+1;
-   for (write=read; *read; read++) {    // condense tabs and spaces
-      if ( (*read == ' ') || (*read == '\t') ) {
-         if (*(write-1) != *read) {    // if we've not already added a space
-            *write = *read;            // assign space
-            write++;
-         }
-      }
-      else {
-         *write = *read;               // assign chars
-         *write++;
-      }
+   for (write=read=buf; *read; read++,write++) {    // condense tabs and spaces
+      if ( isspace((unsigned char)(*read)) ) {
+          *write = *read;
+		  while (*(read+1) && isspace((unsigned char)(*(read+1)))) ++read;
+	  }
+	  else
+		*write = *read;
    }
    *write = 0;                         // null terminator
 
