@@ -1923,7 +1923,7 @@ static void ImportFavorites(HWND hTree) {
 /* new */
 
    // make new node for favorites (child off of WorkingBookmarks)
-   CBookmarkNode *newFavoritesNode = new CBookmarkNode(0, "Imported Favorites", "", "", "", "", BOOKMARK_FOLDER, time(NULL));
+   CBookmarkNode *newFavoritesNode = new CBookmarkNode(0, _Tr("Imported Favorites"), "", "", "", "", BOOKMARK_FOLDER, time(NULL));
    workingBookmarks->AddChild(newFavoritesNode);
 
    BuildFavoritesTree(FavoritesPath, "", newFavoritesNode);
@@ -1937,7 +1937,7 @@ static void ImportFavorites(HWND hTree) {
    tvis.itemex.mask = TVIF_TEXT | TVIF_PARAM | TVIF_IMAGE | TVIF_SELECTEDIMAGE;
    tvis.itemex.iImage = IMAGE_FOLDER_CLOSED;
    tvis.itemex.iSelectedImage = IMAGE_FOLDER_OPEN;
-   tvis.itemex.pszText = "Imported Favorites";
+   tvis.itemex.pszText = (TCHAR*)_Tr("Imported Favorites");
    tvis.itemex.lParam = (long)newFavoritesNode;
 
    HTREEITEM newItem = TreeView_InsertItem(hTree, &tvis);

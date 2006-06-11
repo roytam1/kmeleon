@@ -822,7 +822,7 @@ int cmenu = max(18,GetSystemMetrics(SM_CYMENU));
 		 {
 			TCHAR *pszTemp = fixString(child->text.c_str(), 40);
 			AppendMenu(menu, MF_STRING, child->id, pszTemp);
-			delete pszTemp;
+			free(pszTemp);
 		 }
 #else
          char *szTitle = (char*) child->text.c_str();
@@ -859,8 +859,9 @@ void CopyRebar(HWND hWndNewTB, HWND hWndOldTB)
       SendMessage(hWndOldTB, TB_GETBUTTONTEXT, (WPARAM) button.idCommand, (LPARAM) szTmp);
       szTmp[lResult+1] = 0;
 
-      int stringID = SendMessage(hWndNewTB, TB_ADDSTRING, (WPARAM)NULL, (LPARAM) szTmp);
-      button.iString = stringID;
+	  button.iString = (INT_PTR)szTmp;
+      //int stringID = SendMessage(hWndNewTB, TB_ADDSTRING, (WPARAM)NULL, (LPARAM) szTmp);
+      //button.iString = stringID;
       SendMessage(hWndNewTB, TB_INSERTBUTTON, (WPARAM)-1, (LPARAM)&button);
 
       delete szTmp;
@@ -872,13 +873,20 @@ void CopyRebar(HWND hWndNewTB, HWND hWndOldTB)
   }
 }
 
+BOOL RealDeleteMenu(HMENU menu, UINT pos)
+{
+    if (HMENU m = GetSubMenu(menu, pos))
+		DestroyMenu(m);
+	
+	return DeleteMenu(menu, pos, MF_BYPOSITION);
+}
 
 // Build Rebar
 void BuildRebar(HWND hWndTB)
 {
    CBookmarkNode *toolbarNode = gBookmarkRoot->FindSpecialNode(BOOKMARK_FLAG_TB);
 
-   SetWindowText(hWndTB, TOOLBAND_NAME);
+   SetWindowText(hWndTB, _T(TOOLBAND_NAME));
 
    //SendMessage(hWndTB, TB_SETEXTENDEDSTYLE, 0, TBSTYLE_EX_DRAWDDARROWS);
 
@@ -886,7 +894,7 @@ void BuildRebar(HWND hWndTB)
 
    SendMessage(hWndTB, TB_SETBUTTONWIDTH, 0, MAKELONG(0, 100));
 
-   int stringID;
+   //int stringID;
    CBookmarkNode *child;
    int curButton = 0;
 
@@ -900,12 +908,13 @@ void BuildRebar(HWND hWndTB)
       }
 
       // condense the title and escape ampersands
-      char *buttonString = fixString(child->text.c_str(), gMaxTBSize);
-      stringID = SendMessage(hWndTB, TB_ADDSTRING, (WPARAM)NULL, (LPARAM)buttonString);
-      delete buttonString;
+      TCHAR *buttonString = fixString(child->text.c_str(), gMaxTBSize);
+      //stringID = SendMessage(hWndTB, TB_ADDSTRING, (WPARAM)NULL, (LPARAM)buttonString);
+      
 
       TBBUTTON button = {0};
-      button.iString = stringID;
+      //button.iString = stringID;
+	  button.iString = (int)buttonString;
       button.fsState = TBSTATE_ENABLED;
       button.fsStyle = TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE;
 
@@ -916,13 +925,16 @@ void BuildRebar(HWND hWndTB)
          button.idCommand = MENU_TO_COMMAND((UINT)childMenu);
          button.iBitmap = IMAGE_FOLDER_CLOSED;
          button.fsStyle |= TBSTYLE_DROPDOWN;
+		 button.dwData = (DWORD_PTR)childMenu;
       }
       else {
          button.idCommand = child->id;
          button.iBitmap = IMAGE_BOOKMARK;
+		 button.dwData = NULL;
       }
 
       SendMessage(hWndTB, TB_INSERTBUTTON, (WPARAM)-1, (LPARAM)&button);
+	  free(buttonString);
    }
 
    if (bChevronEnabled) {
@@ -943,9 +955,75 @@ void BuildRebar(HWND hWndTB)
 void Rebuild() {
    // delete the old bookmarks from the menu (FIXME - needs to be more robust than "delete everything after the first bookmark position" - there may be normal menu items there (if the user is weird))
    kPlugin.kFuncs->SendMessage("bmpmenu", PLUGIN_NAME, "UnSetOwnerDrawn", (long)gMenuBookmarks, 0);
-   while (DeleteMenu(gMenuBookmarks, nFirstBookmarkPosition, MF_BYPOSITION));
+   while (RealDeleteMenu(gMenuBookmarks, nFirstBookmarkPosition));
    // and rebuild
    BuildMenu(gMenuBookmarks, gBookmarkRoot->FindSpecialNode(BOOKMARK_FLAG_BM), false);
+
+   int ideal = 0;
+
+   std::map<HWND, HWND>::iterator it = gToolbarList.begin();
+   // It's possible to edit bookmark, without having a toolbar (loader)
+   if (it == gToolbarList.end()) 
+	   return;
+   
+   HWND refToolbar = it->second;
+
+      // delete the old rebar and the menus.
+      TBBUTTON button; 
+      do
+	  {
+		  if (SendMessage(refToolbar, TB_GETBUTTON, (WPARAM)0, (LPARAM)&button))
+			  if (button.dwData) {
+				  kPlugin.kFuncs->SendMessage("bmpmenu", PLUGIN_NAME, "UnSetOwnerDrawn", (long)button.dwData, 0);
+				  DestroyMenu((HMENU)button.dwData);
+			  }
+	  } while (SendMessage(refToolbar, TB_DELETEBUTTON, 0, 0));
+
+	  // and rebuild
+      BuildRebar(refToolbar);
+
+	  // Compute the width needed for the toolbar
+      int iCount, iButtonCount = SendMessage(refToolbar, TB_BUTTONCOUNT, 0,0);
+      for ( iCount = 0 ; iCount < iButtonCount ; iCount++ )
+      { 
+	      RECT rectButton;
+	      SendMessage(refToolbar, TB_GETITEMRECT, iCount, (LPARAM)&rectButton);
+	      ideal += rectButton.right - rectButton.left;
+      }
+  
+
+   ++it;
+
+   // Copy the new toolbar to the other windows.
+   while (it != gToolbarList.end())
+   {
+	   HWND toolbar = it->second;
+
+	   while (SendMessage(toolbar, TB_DELETEBUTTON, 0 /*index*/, 0)) ;
+	   CopyRebar(toolbar, refToolbar);
+
+	   HWND hReBar = FindWindowEx(it->first, NULL, REBARCLASSNAME, NULL);
+	   int uBandCount = SendMessage(hReBar, RB_GETBANDCOUNT, 0, 0);  
+	   REBARBANDINFO rb;
+	   rb.cbSize = sizeof(REBARBANDINFO);
+	   rb.fMask = RBBIM_CHILD;
+
+	   // Update the ideal size 
+	   for(int x=0;x < uBandCount;x++) {
+
+	      if (!SendMessage(hReBar, RB_GETBANDINFO, (WPARAM) x, (LPARAM) &rb))
+             continue;
+
+	      if (rb.hwndChild == toolbar)
+	      {
+			  rb.fMask  = RBBIM_IDEALSIZE;
+			  rb.cxIdeal = ideal;
+			  SendMessage(hReBar, RB_SETBANDINFO, x, (LPARAM)&rb);
+			  break;
+		  }
+	   }
+	   ++it;
+   }
 
 #if 0
    // need to rebuild the rebar, too, in case it had submenus (whose ids are now invalid)
