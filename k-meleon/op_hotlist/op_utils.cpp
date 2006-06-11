@@ -609,13 +609,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
       UINT id = LOWORD(wParam);
       if (id >= nConfigCommand && id < nDropdownCommand) {
          if (id == nConfigCommand) 
-            kPlugin.kFuncs->SetStatusBarText("Configure the hotlist plugin");
+            kPlugin.kFuncs->SetStatusBarText(_Tr("Configure the hotlist plugin"));
          else if (id == nAddCommand) 
-            kPlugin.kFuncs->SetStatusBarText("Add to hotlist");
+            kPlugin.kFuncs->SetStatusBarText(_Tr("Add to hotlist"));
          else if (id == nAddLinkCommand) 
-            kPlugin.kFuncs->SetStatusBarText("Add link to hotlist");
+            kPlugin.kFuncs->SetStatusBarText(_Tr("Add link to hotlist"));
          else if (id == nEditCommand) 
-            kPlugin.kFuncs->SetStatusBarText("Edit the hotlist");
+            kPlugin.kFuncs->SetStatusBarText(_Tr("Edit the hotlist"));
          return true;
       }
       else if (CBookmarkNode *node = gHotlistRoot.FindNode(LOWORD(id))) {
