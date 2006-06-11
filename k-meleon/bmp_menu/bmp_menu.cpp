@@ -337,7 +337,7 @@ void Quit(){
    
    while(menus.size()) {
 	  UnSetOwnerDrawn(menus.begin()->first);
-      menus.erase(menus.begin());
+      //menus.erase(menus.begin());
    }
    bmpMap.clear();
 }
@@ -676,6 +676,11 @@ void MeasureMenuItem(MEASUREITEMSTRUCT *mis, HDC hDC) {
 }
 
 void UnSetOwnerDrawn(HMENU menu){
+   menuMap::iterator menuIter = menus.find(menu);
+   if (menuIter == menus.end())
+      return;
+   menus.erase(menu);
+
    MENUITEMINFO mmi;
    mmi.cbSize = sizeof(mmi);
 
@@ -688,14 +693,11 @@ void UnSetOwnerDrawn(HMENU menu){
    // Windows 95 works differently
    bool w95 = (osinfo.dwMajorVersion == 4) && (osinfo.dwMinorVersion == 0);
 
-   // Windows 98 crashs, so let it leak.
-   bool w98Me = !w95 && osinfo.dwPlatformId==VER_PLATFORM_WIN32_WINDOWS;
-		
    int i;
    int count = GetMenuItemCount(menu);
    for (i=0; i<count; i++)
    {
-	  mmi.fMask =  (w95 ? MIIM_TYPE : MIIM_FTYPE);
+	  mmi.fMask =  MIIM_DATA | MIIM_ID | (w95 ? MIIM_TYPE : MIIM_FTYPE);
 	  GetMenuItemInfo(menu, i, true, &mmi);
 	  
       state = GetMenuState(menu, i, MF_BYPOSITION);
@@ -703,14 +705,11 @@ void UnSetOwnerDrawn(HMENU menu){
          UnSetOwnerDrawn(GetSubMenu(menu, i));
       
 	  if (mmi.fType & MFT_OWNERDRAW) {
-         mmi.fMask = MIIM_DATA | MIIM_ID;
-         GetMenuItemInfo(menu, i, true, &mmi);
-
          if (!mmi.dwItemData ||  !*( (TCHAR *)mmi.dwItemData) )
             ModifyMenu(menu, i, MF_BYPOSITION | MF_SEPARATOR, mmi.wID, NULL);
 		 else {
             ModifyMenu(menu, i, MF_BYPOSITION | MF_STRING, mmi.wID, (TCHAR*)mmi.dwItemData);
-			if (!w98Me) delete[] (TCHAR*)mmi.dwItemData; 
+			delete[] (TCHAR*)mmi.dwItemData; 
 		 }
       }
    }
