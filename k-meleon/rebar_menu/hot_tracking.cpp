@@ -19,9 +19,9 @@
 #include "StdAfx.h"
 
 #include "hot_tracking.h"
-
+#include <tchar.h>
 #define HwndMenuCur() FindWindow(szMenuClass, NULL)
-const char szMenuClass[] = "#32768";
+const TCHAR szMenuClass[] = _T("#32768");
 
 BOOL gbContinueMenu;
 int giCurrentItem; 
@@ -39,7 +39,7 @@ LRESULT CALLBACK MsgHook(int code, WPARAM wParam, LPARAM lParam){
 
             // if we clicked on the button for the current menu, we should close
             TBBUTTON button;
-            SendMessage(ghToolbarWnd, TB_GETBUTTON, ndx, (LPARAM)&button);
+            if (SendMessage(ghToolbarWnd, TB_GETBUTTON, ndx, (LPARAM)&button))
             if (giCurrentItem == button.idCommand){
                SendMessage(msg->hwnd, WM_CANCELMODE, 0, 0);
                gbContinueMenu = false;
@@ -56,7 +56,7 @@ LRESULT CALLBACK MsgHook(int code, WPARAM wParam, LPARAM lParam){
             int ndx = SendMessage(ghToolbarWnd, TB_HITTEST, 0, (LPARAM)&mouse);
 
             TBBUTTON button;
-            SendMessage(ghToolbarWnd, TB_GETBUTTON, ndx, (LPARAM)&button);
+			if (SendMessage(ghToolbarWnd, TB_GETBUTTON, ndx, (LPARAM)&button)) {
             if (giCurrentItem != button.idCommand && IsMenu((HMENU)(button.idCommand-SUBMENU_OFFSET))){
 
                RECT rect = {0};
@@ -75,6 +75,7 @@ LRESULT CALLBACK MsgHook(int code, WPARAM wParam, LPARAM lParam){
                   gbContinueMenu = true;
                   
                   return true;
+               }
                }
             }
          }
