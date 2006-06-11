@@ -445,7 +445,7 @@ void DoRebar(HWND rebarWnd){
                                );
       
       if (!hWndTB){
-         MessageBox(NULL, TOOLBAND_FAILED_TO_CREATE, NULL, 0);
+         MessageBox(NULL, _Tr(TOOLBAND_FAILED_TO_CREATE), NULL, 0);
          return;
       }
 

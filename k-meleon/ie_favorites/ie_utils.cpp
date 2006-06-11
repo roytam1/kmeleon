@@ -169,7 +169,7 @@ void BuildMenu(HMENU menu, CBookmarkNode *node, BOOL isContinuation)
          // condense the title and escape ampersands
          char *pszTemp = fixString(child->text.c_str(), 40);
          AppendMenu(menu, MF_STRING|MF_POPUP, (UINT)childMenu, pszTemp);
-         delete pszTemp;
+         free(pszTemp);
          BuildMenu(childMenu, child, false);
       }
       else if (child->type == BOOKMARK_BOOKMARK) {
@@ -531,13 +531,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
       UINT id = LOWORD(wParam);
       if (id >= nConfigCommand && id < nFirstFavoriteCommand) {
          if (id == nConfigCommand) 
-            kPlugin.kFuncs->SetStatusBarText("Configure the favorites plugin");
+            kPlugin.kFuncs->SetStatusBarText(_Tr("Configure the favorites plugin"));
          else if (id == nAddCommand) 
-            kPlugin.kFuncs->SetStatusBarText("Add to favorites");
+            kPlugin.kFuncs->SetStatusBarText(_Tr("Add to favorites"));
          else if (id == nAddLinkCommand) 
-            kPlugin.kFuncs->SetStatusBarText("Add link to favorites");
+            kPlugin.kFuncs->SetStatusBarText(_Tr("Add link to favorites"));
          else if (id == nEditCommand) 
-            kPlugin.kFuncs->SetStatusBarText("Edit the favorites");
+            kPlugin.kFuncs->SetStatusBarText(_Tr("Edit the favorites"));
          return true;
       }
       else if (CBookmarkNode *node = gFavoritesRoot.FindNode(LOWORD(id))) {

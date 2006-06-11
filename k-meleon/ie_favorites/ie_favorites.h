@@ -19,6 +19,8 @@
 #ifndef __IE_FAVORITES_H__
 #define __IE_FAVORITES_H__
 
+#define _Tr(x) kPlugin.kFuncs->Translate(_T(x))
+
 #ifndef COMPILING_RC
 typedef int cmp_t(const char *, const char *, unsigned int);
 void quicksort(char *a, size_t n, size_t es, cmp_t *cmp, unsigned int flag);
@@ -132,27 +134,26 @@ void remove_TB(HWND hWnd);
 void Config(HWND parent);
 
 
-#define _T(x) x
-#define PREFERENCE_FAVORITES_PATH _T("kmeleon.plugins.favorites.directory")
-#define PREFERENCE_REBAR_ENABLED _T("kmeleon.plugins.favorites.rebar")
-#define PREFERENCE_CHEVRON_ENABLED _T("kmeleon.plugins.favorites.chevron")
-#define PREFERENCE_FAVORITES_RESYNCH  _T("kmeleon.plugins.favorites.resynch")
-#define PREFERENCE_SETTINGS_DIR    _T("kmeleon.general.settingsDir")
-#define PREFERENCE_MENU_MAXLEN _T("kmeleon.plugins.favorites.maxMenuLength")
-#define PREFERENCE_MENU_AUTOLEN _T("kmeleon.plugins.favorites.menuAutoDetect")
-#define PREFERENCE_MENU_SORTORDER _T("kmeleon.plugins.favorites.sortOrder")
-#define PREFERENCE_TOOLBAR_FOLDER _T("kmeleon.plugins.favorites.toolbarFolder")
-#define PREFERENCE_MENU_FOLDER _T("kmeleon.plugins.favorites.menuFolder")
-#define PREFERENCE_NEWITEM_FOLDER _T("kmeleon.plugins.favorites.newitemFolder")
-#define PREFERENCE_BUTTON_MINWIDTH  _T("kmeleon.plugins.favorites.buttonMinWidth")
-#define PREFERENCE_BUTTON_MAXWIDTH  _T("kmeleon.plugins.favorites.buttonMaxWidth")
-#define PREFERENCE_BUTTON_ICONS  _T("kmeleon.plugins.favorites.buttonIcons")
-#define PREFERENCE_EDIT_DLG_LEFT   _T("kmeleon.plugins.favorites.editdialog.left")
-#define PREFERENCE_EDIT_DLG_TOP    _T("kmeleon.plugins.favorites.editdialog.top")
-#define PREFERENCE_EDIT_DLG_WIDTH  _T("kmeleon.plugins.favorites.editdialog.width")
-#define PREFERENCE_EDIT_DLG_HEIGHT _T("kmeleon.plugins.favorites.editdialog.height")
-#define PREFERENCE_REBAR_TITLE   _T("kmeleon.plugins.favorites.title")
-#define PREFERENCE_FAVORITES_OPENURL _T("kmeleon.plugins.favorites.openurl")
+#define PREFERENCE_FAVORITES_PATH "kmeleon.plugins.favorites.directory"
+#define PREFERENCE_REBAR_ENABLED "kmeleon.plugins.favorites.rebar"
+#define PREFERENCE_CHEVRON_ENABLED "kmeleon.plugins.favorites.chevron"
+#define PREFERENCE_FAVORITES_RESYNCH  "kmeleon.plugins.favorites.resynch"
+#define PREFERENCE_SETTINGS_DIR    "kmeleon.general.settingsDir"
+#define PREFERENCE_MENU_MAXLEN "kmeleon.plugins.favorites.maxMenuLength"
+#define PREFERENCE_MENU_AUTOLEN "kmeleon.plugins.favorites.menuAutoDetect"
+#define PREFERENCE_MENU_SORTORDER "kmeleon.plugins.favorites.sortOrder"
+#define PREFERENCE_TOOLBAR_FOLDER "kmeleon.plugins.favorites.toolbarFolder"
+#define PREFERENCE_MENU_FOLDER "kmeleon.plugins.favorites.menuFolder"
+#define PREFERENCE_NEWITEM_FOLDER "kmeleon.plugins.favorites.newitemFolder"
+#define PREFERENCE_BUTTON_MINWIDTH  "kmeleon.plugins.favorites.buttonMinWidth"
+#define PREFERENCE_BUTTON_MAXWIDTH  "kmeleon.plugins.favorites.buttonMaxWidth"
+#define PREFERENCE_BUTTON_ICONS  "kmeleon.plugins.favorites.buttonIcons"
+#define PREFERENCE_EDIT_DLG_LEFT  "kmeleon.plugins.favorites.editdialog.left"
+#define PREFERENCE_EDIT_DLG_TOP   "kmeleon.plugins.favorites.editdialog.top"
+#define PREFERENCE_EDIT_DLG_WIDTH  "kmeleon.plugins.favorites.editdialog.width"
+#define PREFERENCE_EDIT_DLG_HEIGHT "kmeleon.plugins.favorites.editdialog.height"
+#define PREFERENCE_REBAR_TITLE   "kmeleon.plugins.favorites.title"
+#define PREFERENCE_FAVORITES_OPENURL "kmeleon.plugins.favorites.openurl"
 
 // The globals
 
