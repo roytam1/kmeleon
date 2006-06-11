@@ -24,7 +24,7 @@
 #include "fullscreen.h"
 #include "resource.h"
 #include "..\KmeleonConst.h"
-
+#include "..\utils.h"
 #define PLUGIN_NAME "Fullscreen Plugin"
 
 #define WIN32_LEAN_AND_MEAN
@@ -188,9 +188,18 @@ void Quit(){
 }
 
 void DoMenu(HMENU menu, char *param) {
-   if (*param)
-         AppendMenu(menu, MF_STRING, id_fullscreen, param);
-   else AppendMenu(menu, MF_STRING, id_fullscreen, "&Full Screen");
+	if (*param) {
+		char *action = param;
+      char *string = strchr(param, ',');
+      if (string) {
+         *string = 0;
+         string = SkipWhiteSpace(string+1);
+      }
+      else
+         string = action;
+	  AppendMenu(menu, MF_STRING, id_fullscreen, string);
+	}
+   else AppendMenu(menu, MF_STRING, id_fullscreen, kPlugin.kFuncs->Translate("&Full Screen"));
 }
 
 int DoAccel(char *param) {
