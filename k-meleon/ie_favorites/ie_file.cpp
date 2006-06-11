@@ -192,7 +192,7 @@ int ReadFavorites(char *szRoot, char *szPath, CBookmarkNode &newFavoritesNode)
             // insert node
             newFavoritesNode.AddChild(new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), wfd.cFileName, urlFile, BOOKMARK_BOOKMARK, time(NULL)));
             
-            delete pszTemp;
+            free(pszTemp);
             szRoot[gFavoritesPathLen] = 0;
             delete [] urlFile;
             
