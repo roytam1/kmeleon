@@ -223,9 +223,7 @@ void getHotlistFile() {
          }
          bmFile = fopen(gHotlistFile, "r");
          if (!bmFile && errno == ENOENT) {
-            strcpy(tmp, "File not found:\n'");
-            strcat(tmp, gHotlistFile);
-            strcat(tmp, "'\n\nCreate it?\n");
+		    sprintf(tmp, _Tr("File not found:\\n'%s'\\n\\nCreate it?\\n"), gHotlistFile);
             if (MessageBox(NULL, tmp, PLUGIN_NAME, 
                            MB_ICONEXCLAMATION | MB_YESNO) == IDYES)
                break;
@@ -239,15 +237,11 @@ void getHotlistFile() {
                     "Opera Hotlist version 2.0\r\n"
                     "Options:encoding=utf8,version=3\r\n\r\n");
             bDOS = 1;
-            strcpy(tmp, "Hotlist file '");
-            strcat(tmp, gHotlistFile);
-            strcat(tmp, "' created.\n");
+			sprintf(tmp, _Tr("Hotlist file '%s' created."), gHotlistFile);
             MessageBox(NULL, tmp, PLUGIN_NAME, MB_ICONINFORMATION | MB_OK);
          }
          else {
-            strcpy(tmp, "Unable to create file '");
-            strcat(tmp, gHotlistFile);
-            strcat(tmp, "'.\n");
+			sprintf(tmp, _Tr("Unable to create file '%s'."), gHotlistFile);
             MessageBox(NULL, tmp, PLUGIN_NAME, MB_ICONERROR | MB_OK);
          }
       }
@@ -265,6 +259,7 @@ int Load(){
    HDC hdcScreen = CreateDC("DISPLAY", NULL, NULL, NULL); 
    nHSize = GetDeviceCaps(hdcScreen, HORZSIZE);
    nHRes = GetDeviceCaps(hdcScreen, HORZRES);
+   DeleteDC(hdcScreen);
 
    wm_deferhottrack = kPlugin.kFuncs->GetCommandIDs(1);
    wm_deferbringtotop = kPlugin.kFuncs->GetCommandIDs(1);
