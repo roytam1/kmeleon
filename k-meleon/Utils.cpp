@@ -16,8 +16,10 @@
 *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
-#include "string.h"
+// Just a trick for the plugins using it
+
 #include "Utils.h"
+#include <ctype.h>
 
 void MakeFilename(TCHAR* name)
 {
@@ -80,10 +82,10 @@ char *SkipWhiteSpace(char *string)
 //  note, this modifies the string passed to it, so make
 //  a copy if you need to reference the original
 
-int CondenseString(char *buf, int size)
+int CondenseString(TCHAR *buf, int size)
 {
 	int firstlen, secondlen, len;
-   char *read, *write;
+   TCHAR *read, *write;
 
    for (write=read=buf; *read; read++,write++) {    // condense tabs and spaces
       if ( isspace((unsigned char)(*read)) ) {
@@ -95,10 +97,13 @@ int CondenseString(char *buf, int size)
    }
    *write = 0;                         // null terminator
 
-   len = strlen(buf);
+   len = _tcslen(buf);
    if ((size == 0) || (len < size))
       return len;
 
+   memcpy(buf+size-3, _T("..."), 3*sizeof(TCHAR));	
+   buf[size] = 0;
+   return _tcslen(buf);
 
    if (size%2) { // if even
       firstlen = ((size +1) - 3) / 2;
@@ -109,30 +114,30 @@ int CondenseString(char *buf, int size)
       secondlen= firstlen;
    }
 
-   memcpy(buf+firstlen, "...", 3);
-   strcpy(buf+firstlen+3, buf+len-secondlen-1);
+   memcpy(buf+firstlen, _T("..."), 3*sizeof(TCHAR));
+   _tcscpy(buf+firstlen+3, buf+len-secondlen-1);
    
-   return strlen(buf);
+   return _tcslen(buf);
 }
 
 // condenses a string and changes & to && (for display in menus)
 // returns a new string
-char *fixString(const char *inString, int size) {
-   char *string = strdup(inString);
+TCHAR *fixString(const TCHAR *inString, int size) {
+   TCHAR *string = _tcsdup(inString);
 
    CondenseString(string, size);
 
    int iCount = 0;
-   char *p = string;
-   while (p = strchr(p, '&')) {
+   TCHAR *p = string;
+   while (p = _tcschr(p, '&')) {
       p++;
       iCount++;
    }
 
    if (iCount) {
-      char *newString = new char[strlen(string) + iCount + 2];
-      char *out = newString;
-      char *in = string;
+      TCHAR *newString = new TCHAR[_tcslen(string) + iCount + 2];
+      TCHAR *out = newString;
+      TCHAR *in = string;
       while (*in) {
          *out = *in;
          // double up the ampersand
@@ -148,7 +153,7 @@ char *fixString(const char *inString, int size) {
       *(out+1) = 0; // double null for tb_addstring
 
       delete string;
-      string = strdup(newString);
+      string = _tcsdup(newString);
       delete newString;
    }
 
