@@ -19,6 +19,13 @@
 #include "StdAfx.h"
 #include "ReBarEx.h"
 #include "BrowserFrm.h"
+#include "rebar_menu/hot_tracking.cpp"
+
+#if _MSC_VER >= 1300 
+BEGIN_MESSAGE_MAP(CReBarEx, CReBar)
+	ON_NOTIFY_REFLECT( RBN_CHEVRONPUSHED, OnChevronPushed )
+END_MESSAGE_MAP()
+#endif
 
 CReBarEx::CReBarEx() {
    m_menu = theApp.m_toolbarControlsMenu;
@@ -39,6 +46,146 @@ CReBarEx::~CReBarEx() {
    CReBar::~CReBar();
 }
 
+#if _MSC_VER >= 1300 
+void CReBarEx::OnChevronPushed( NMHDR * pNotifyStruct, LRESULT* result )
+{
+	NMREBARCHEVRON* pChev = (NMREBARCHEVRON*) pNotifyStruct;
+
+	// This is currently a simple version that can support only
+	// button with text. It has to be improved to support image too
+
+	// Has the band of the chevron that generated this message
+	int	iBand = pChev->uBand;
+
+	// Have to get the child window handle this band holds
+	REBARBANDINFO	rbinfo;
+	rbinfo.cbSize = sizeof(rbinfo);
+	rbinfo.fMask = RBBIM_CHILD;
+	GetReBarCtrl().GetBandInfo ( iBand, &rbinfo );
+
+	// Have to verify that we have a toolbar and not 
+	// something else !! 
+	// Can't use MFC because I can't create the 
+	// bookmark toolbar with MFC
+		
+	// Create a popup menu to show hidden buttons
+	CMenu	pop;
+	pop.CreatePopupMenu ();
+
+	// Get band rectangle.
+	CRect	rectBand;
+	GetReBarCtrl ().GetRect( iBand, &rectBand );
+	ClientToScreen(&rectBand);
+	
+	// Remove chevron size
+	CRect rectChevron;
+	rectChevron = pChev->rc;
+	rectBand.right -= rectChevron.Width ();
+	
+	// Screen co-ordinates for Menu to be displayed
+	CPoint	ptMenu;
+	ptMenu.x = rectChevron.left;
+	ptMenu.y = rectChevron.bottom;
+	ClientToScreen ( &ptMenu );
+ 
+	// This flag indicates if atleast one has been added to the menu
+	// POPUP Menu is shown only if atleast one item has to be shown
+	BOOL	bAtleastOne=FALSE;
+	int iButtonCount = ::SendMessage(rbinfo.hwndChild, TB_BUTTONCOUNT, 0, 0);
+	//int iButtonCount = pTBar->GetToolBarCtrl().GetButtonCount();
+	for ( int iCount = 0 ; iCount < iButtonCount ; iCount++ )
+	{
+		// Get the id of the toolbar button
+		TBBUTTON button;
+		::SendMessage(rbinfo.hwndChild, TB_GETBUTTON, iCount, (LPARAM)&button);
+		int id = button.idCommand;
+		//int id = pTBar->GetItemID( iCount );
+		
+		// If the button is a separator then we can also add a separator to the
+		// popup menu
+		if (  button.fsStyle /*pTBar->GetButtonStyle ( iCount )*/ & TBSTYLE_SEP )
+		{
+			// It wouldnt be nice if there is a separator as the first item in the menu
+			if ( bAtleastOne )
+				pop.AppendMenu ( MF_SEPARATOR );
+		}
+		else
+		{
+			// Get the button rectangle
+			//RECT rectButton;
+			RECT rectButton;
+			::SendMessage(rbinfo.hwndChild, TB_GETITEMRECT, iCount, (LPARAM)&rectButton);
+			POINT p,p2;
+			p.x = rectButton.left;
+			p.y = rectButton.top;
+			p2.x = rectButton.right;
+			p2.y = rectButton.bottom;
+			::ClientToScreen(rbinfo.hwndChild, &p);
+			::ClientToScreen(rbinfo.hwndChild, &p2);
+			rectButton.left = p.x;
+			rectButton.top = p.y;
+			rectButton.right = p2.x;
+			rectButton.bottom = p2.y;
+
+			//pTBar->GetItemRect ( iCount, &rectButton );
+			//pTBar->ClientToScreen(&rectButton);
+
+			// Get the text of the button
+			//CString csButtonText = pTBar->GetButtonText(iCount);
+			
+			TCHAR* buttonText;
+			int l = ::SendMessage(rbinfo.hwndChild, TB_GETBUTTONTEXT, id, 0);
+			if (l==-1) continue; // Can't support button with no text
+		
+			buttonText = new TCHAR[l+1];
+			::SendMessage(rbinfo.hwndChild, TB_GETBUTTONTEXT, id, (LPARAM)buttonText);
+			
+
+			// Check the intersection of the button and the band
+			CRect interRect;
+			interRect.IntersectRect ( &rectButton, &rectBand );
+
+			// if the intersection is not the same as button then
+			// the button is not completely visible, so add to menu
+			if ( interRect != rectButton )
+			{
+
+				UINT	iMenuStyle = MF_STRING;
+				 
+				
+				// Have to reflect the state of the menu item, so check the state of the 
+				// button and enable or disable the items
+				if (::SendMessage(rbinfo.hwndChild, TB_ISBUTTONENABLED, id, 0))
+				//if ( pTBar->GetToolBarCtrl().IsButtonEnabled ( id ) )
+					iMenuStyle |= MF_ENABLED;
+				else
+					iMenuStyle |= MF_DISABLED;
+
+				// Add the item to the menu with the id of the toolbar button
+				// or add the submenu 
+				if (::IsMenu((HMENU)(id - SUBMENU_OFFSET))) 
+					pop.AppendMenu( iMenuStyle|MF_POPUP, id-SUBMENU_OFFSET, buttonText);
+				else
+					pop.AppendMenu ( iMenuStyle, id, buttonText);
+				
+				bAtleastOne=TRUE;
+			}
+			delete buttonText;
+		}
+	}
+
+//	SendMessage("bmpmenu", "", "SetOwnerDrawn", (long)pop.m_hMenu, (long)DrawBitmap);
+	
+	if ( bAtleastOne )
+		pop.TrackPopupMenu ( TPM_LEFTALIGN|TPM_TOPALIGN, ptMenu.x, ptMenu.y, this );
+
+	// Delete our menu but keep the submenu alive
+	int mCount = pop.GetMenuItemCount();
+	for (int i=0;i<mCount;i++)
+		pop.RemoveMenu(0, MF_BYPOSITION);
+	pop.DestroyMenu ();
+}
+#endif
 /*
 void CReBarEx::MaximizeBand( UINT uBand ) {
    return;
