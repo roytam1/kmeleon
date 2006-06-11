@@ -1,6 +1,8 @@
 /* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /*
- * Copyright (C) 2003 Ulf Erikson <ulferikson@fastmail.fm>
+ * Copyright (C) 2003-2004 Ulf Erikson <ulferikson@fastmail.fm>
+ *                         Romain Vallet <rom@jalix.org>
+ *               2006      Dorian Boissonnade
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -27,8 +29,10 @@
 #include "..\\KMeleonConst.h"
 #include "..\\resource.h"
 
+#define _Tr(x) kPlugin.kFuncs->Translate(_T(x))
+
 #define PLUGIN_NAME "Mouse Gestures Plugin"
-#define NO_OPTIONS _T("This plugin has no user configurable options.")
+#define NO_OPTIONS _Tr("This plugin has no user configurable options.")
 
 #define PREF_ "kmeleon.plugins.gestures."
 
@@ -129,7 +133,7 @@ void Create(HWND parent){
 }
 
 void Config(HWND parent){
-    MessageBox(parent, NO_OPTIONS, PLUGIN_NAME, 0);
+    MessageBox(parent, NO_OPTIONS, _T(PLUGIN_NAME), 0);
 }
 
 void Quit(){
@@ -156,7 +160,6 @@ void DoRebar(HWND rebarWnd){
 enum dir {NOMOVE, RIGHT, UPRIGHT, UP, UPLEFT, LEFT, DOWNLEFT, DOWN, DOWNRIGHT, BADMOVE};
 typedef enum dir DIRECTION;
 
-#define PREF_ "kmeleon.plugins.gestures."
 
 DIRECTION findDir(POINT p1, POINT p2) {
 
@@ -234,10 +237,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 		m_preventpopup--;
 		if (!m_preventpopup) {
 			m_rocking = FALSE;
-			ReleaseCapture();
-			if (m_defercapture == WM_LBUTTONDOWN)
+			//POINT pos;
+			//GetCursorPos(&pos);
+			//m_pInfo = kPlugin.kFuncs->GetInfoAtPoint(pos.x,pos.y);
+			//if (!m_pInfo->link)
+			//if (m_captured == WM_LBUTTONDOWN) // I wonder how mozilla can get a lbuttondown, if it's not the first button clicked ...
 				PostMessage(GetFocus(), WM_LBUTTONUP, wParam, lParam);
-			m_defercapture = 0;
+			m_defercapture = m_captured = 0;
+			ReleaseCapture();
 	    }
 		return 0;
 	}
@@ -306,9 +313,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
         SendMessage(hWnd, WM_COMMAND, id, 0L);
         m_rocking = TRUE;
 		m_preventpopup = 2;
-		m_captured = 0;
+		//m_captured = 0;
     }
-    else if (message == WM_MOUSEMOVE && m_captured == WM_LBUTTONDOWN && m_virt == 0) {
+    else if (message == WM_MOUSEMOVE && m_captured == WM_LBUTTONDOWN && m_virt == 0 && !m_rocking) {
     
         POINT m_posMove;
         GetCursorPos(&m_posMove);
@@ -327,10 +334,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 			SetCursorPos(m_posMove.x, m_posMove.y);
      	}
     }
-    else if (message == WM_LBUTTONUP && m_captured == WM_LBUTTONDOWN ||
-             message == WM_MBUTTONUP && m_captured == WM_MBUTTONDOWN ||
-             message == WM_RBUTTONUP && m_captured == WM_RBUTTONDOWN) {
-        
+    else if ((message == WM_LBUTTONUP && m_captured == WM_LBUTTONDOWN ||
+              message == WM_MBUTTONUP && m_captured == WM_MBUTTONDOWN ||
+              message == WM_RBUTTONUP && m_captured == WM_RBUTTONDOWN)
+			  && !m_rocking)
+	{
         POINT m_posUp;
         GetCursorPos(&m_posUp);
 
