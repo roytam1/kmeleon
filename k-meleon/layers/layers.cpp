@@ -527,17 +527,17 @@ struct frame *del_layer(HWND hWnd) {
    return pFrame;
 }
 
-void CondenseMenuText(char *buf, int len, char *title, int index) {
+void CondenseMenuText(TCHAR *buf, int len, TCHAR *title, int index) {
    if ( (index >= 0) && (index <10) ) {
-      buf[0] = '&';
-      buf[1] = index + '0';
-      buf[2] = ' ';
+      buf[0] = _T('&');
+      buf[1] = index + _T('0');
+      buf[2] = _T(' ');
    }
    else
-      memcpy(buf, "   ", 3);
+      memcpy(buf, _T("   "), 3*sizeof(TCHAR));
    
-   char *p = fixString(title, 0);
-   strncpy(buf+3, p, len-4);
+   TCHAR *p = fixString(title, 0);
+   _tcsncpy(buf+3, p, len-4);
    buf[len-1] = 0;
    delete p;
 }
@@ -574,7 +574,7 @@ int Load(){
    // Get the rebar status
    kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_REBAR_ENABLED, &bRebarEnabled, &bRebarEnabled);
    kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_REBAR_BOTTOM, &bRebarBottom, &bRebarBottom);
-   kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_REBAR_TITLE, &szTitle, &szTitle);
+   kPlugin.kFuncs->GetPreference(PREF_TSTRING, PREFERENCE_REBAR_TITLE, &szTitle, &szTitle);
    kPlugin.kFuncs->GetPreference(PREF_INT,  PREFERENCE_BUTTON_MINWIDTH, &nButtonMinWidth, &nButtonMinWidth);
    int tmpWidth = 0;
    kPlugin.kFuncs->GetPreference(PREF_INT,  PREFERENCE_BUTTON_MAXWIDTH, &nButtonMaxWidth, &tmpWidth);
@@ -882,7 +882,7 @@ int DoAccel(char *param) {
 }
 
 
-void addRebarButton(HWND hWndTB, char *text, int num, int active, int image=0)
+void addRebarButton(HWND hWndTB, TCHAR *text, int num, int active, int image=0)
 {
    int stringID;
    if (!text || *text==0)
@@ -932,7 +932,7 @@ void BuildRebar(HWND hWndTB, HWND hWndParent)
    int nMinWidth = nButtonMinWidth > 0 ? nButtonMinWidth * nHRes / nHSize : nButtonMinWidth;
    int nMaxWidth = nButtonMaxWidth > 0 ? nButtonMaxWidth * nHRes / nHSize : nButtonMaxWidth;
 
-   SetWindowText(hWndTB, "");
+   SetWindowText(hWndTB, _T(""));
    
    // SendMessage(hWndTB, TB_SETEXTENDEDSTYLE, 0, TBSTYLE_EX_DRAWDDARROWS);
    if (gImagelist)
@@ -942,7 +942,7 @@ void BuildRebar(HWND hWndTB, HWND hWndParent)
    struct frame *pFrame = find_frame(hWndParent);
    if (!pFrame) {
      SendMessage(hWndTB, TB_SETBUTTONWIDTH, 0, MAKELONG(nMaxWidth >= 0 ? nMaxWidth : 0, nMaxWidth >= 0 ? nMaxWidth : 0));
-      addRebarButton(hWndTB, "K-Meleon", 0, 0);
+      addRebarButton(hWndTB, _T("K-Meleon"), 0, 0);
       return;
    }
 
@@ -980,7 +980,7 @@ void BuildRebar(HWND hWndTB, HWND hWndParent)
          
          int nTextLength = nMaxWidth < 0 ? -nMaxWidth : 256;
          nTextLength = nTextLength > 4 ? nTextLength : 4;
-         TCHAR *buf = new TCHAR[nTextLength + 1];
+         TCHAR *buf = new TCHAR[nTextLength + 1 + 1];
          buf[0] = 0;
          int len = 0;
 		 int icon = 0;
@@ -1028,7 +1028,7 @@ void BuildRebar(HWND hWndTB, HWND hWndParent)
       }
    }
    else {
-      addRebarButton(hWndTB, "K-Meleon", 0, 0);
+      addRebarButton(hWndTB, _T("K-Meleon"), 0, 0);
    }
 }
 
@@ -1099,16 +1099,16 @@ void DoRebar(HWND rebarWnd){
    
    // Register the band name and child hwnd
    if (szTitle && *szTitle) {
-      int len = strlen(szTitle);
-      char c = szTitle[len-1];
+      int len = _tcslen(szTitle);
+      TCHAR c = szTitle[len-1];
       if (c == ':')
          szTitle[len-1] = 0;
       kPlugin.kFuncs->RegisterBand(ghWndTB, szTitle, true);
       if (c == ':')
-         strcat(szTitle, ":");
+         _tcscat(szTitle, _T(":"));
    }
    else
-      kPlugin.kFuncs->RegisterBand(ghWndTB, "Layers", true);
+      kPlugin.kFuncs->RegisterBand(ghWndTB, _T("Layers"), true);
    
    BuildRebar(ghWndTB, NULL);
    
@@ -1165,13 +1165,13 @@ void UpdateLayersMenu (HWND hWndParent) {
          curLayer = -1;
          while (pLayer && i<MAX_LAYERS) {
 #define TOT_SIZE 3 + BUF_SIZE + 3 + BUF_SIZE + 1
-            char buf[TOT_SIZE];
+            TCHAR buf[TOT_SIZE];
             for (int j=0; j<TOT_SIZE; j++)
                buf[j] = 0;
             kmeleonDocInfo *dInfo = kPlugin.kFuncs->GetDocInfo(pLayer->hWnd);
             if (pLayer->hWnd == pFrame->hWndFront)
                curLayer = i;
-            CondenseMenuText(buf, TOT_SIZE, dInfo ? dInfo->title : (char*)"", i );
+            CondenseMenuText(buf, TOT_SIZE, dInfo ? dInfo->title : (TCHAR*)_T(""), i );
             AppendMenu(ghMenu, MF_ENABLED | MF_STRING | 
                        (i == curLayer ? MF_CHECKED : 0), 
                        id_layer+i , buf);
