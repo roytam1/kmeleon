@@ -55,4 +55,9 @@ private:
       BOOL visibleOnMenu;
    } **m_index;
    int m_iCount;
+protected:
+#if _MSC_VER >= 1300 
+	void OnChevronPushed( NMHDR * pNotifyStruct, LRESULT* result );
+#endif
+	DECLARE_MESSAGE_MAP()
 };
