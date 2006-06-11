@@ -15,7 +15,7 @@
 *  along with this program; if not, write to the Free Software
 *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
-
+#include <map>
 #include "../DialogUtils.h"
 
 // functions exposed to kmeleon
@@ -38,6 +38,7 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 // Utils
 BOOL BrowseForBookmarks(TCHAR *file);
 
+BOOL RealDeleteMenu(HMENU menu, UINT pos);
 void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node);
 void BuildMenu(HMENU menu, CBookmarkNode *node, BOOL isContinuation);
 void BuildRebar(HWND hWndTB);
@@ -60,6 +61,7 @@ extern HMENU gMenuBookmarks;
 extern HWND ghWndTB;
 extern HWND hWndFront;
 extern HWND ghWndEdit;
+extern std::map<HWND, HWND> gToolbarList;
 
 extern UINT nConfigCommand;
 extern UINT nAddCommand;

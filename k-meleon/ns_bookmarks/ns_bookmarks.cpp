@@ -28,6 +28,7 @@
 #include "stdafx.h"
 #include "resource.h"
 
+#include <map>
 #include "defines.h"
 
 #define KMELEON_PLUGIN_EXPORTS
@@ -51,7 +52,7 @@ UINT nDropdownCommand;
 UINT nFirstBookmarkPosition;
 UINT wm_deferbringtotop;
 
-CHAR gBookmarkFile[MAX_PATH];
+TCHAR gBookmarkFile[MAX_PATH];
 bool gBookmarkDefFile = false;
 CHAR gToolbarFolder[MAX_PATH];
 
@@ -65,6 +66,7 @@ HWND ghWndTBParent;
 HWND hWndFront;
 HWND ghWndEdit;
 HANDLE ghMutex;
+std::map<HWND, HWND> gToolbarList;
 
 BOOL gBookmarksModified = false;
 BOOL gGeneratedByUs = false;
@@ -193,7 +195,6 @@ int Load(){
    if (!gBookmarkDefFile)
 	 kPlugin.kFuncs->SetPreference(PREF_TSTRING, PREFERENCE_BOOKMARK_FILE, gBookmarkFile, false);
    kPlugin.kFuncs->GetPreference(PREF_TSTRING, PREFERENCE_TOOLBAR_FOLDER, gToolbarFolder, (TCHAR*)_T(""));
-   kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_TOOLBAR_FOLDER, gToolbarFolder, (char*)"");
    kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_TOOLBAR_ENABLED, &gToolbarEnabled, &gToolbarEnabled);
    kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_CHEVRON_ENABLED, &bChevronEnabled, &bChevronEnabled);
    kPlugin.kFuncs->GetPreference(PREF_INT, PREFERENCE_MAX_MENU_LENGTH, &gMaxMenuLength, &gMaxMenuLength);
@@ -237,10 +238,29 @@ void Create(HWND parent){
    SetWindowLong(parent, GWL_WNDPROC, (LONG)WndProc);
 }
 
-void Close(HWND hWnd) {
-  if (ghWndTB && ghWndTBParent==hWnd) {
-    ghWndTB = NULL;
-  }
+void Close(HWND hWnd) { 
+  
+   if (gToolbarList.size() == 1) {
+	   // All toolbars will be gone, we must remove the menus first.
+	   // We can't just free them on quit because of the loader.
+	   std::map<HWND, HWND>::iterator it = gToolbarList.begin();
+
+	   // XXX: Should assert if (it->first != hWnd)
+	   // We better not clear it if it happens
+	   if (it->first == hWnd) {
+	     HWND toolbar = it->second;
+	     TBBUTTON button;
+	     do {
+	        if (SendMessage(toolbar, TB_GETBUTTON, (WPARAM)0, (LPARAM)&button))
+			    if (button.dwData) {
+				    kPlugin.kFuncs->SendMessage("bmpmenu", PLUGIN_NAME, "UnSetOwnerDrawn", (long)button.dwData, 0);
+			        DestroyMenu((HMENU)button.dwData);
+			    }
+	     } while (SendMessage(toolbar, TB_DELETEBUTTON, 0 /*index*/, 0));
+	   }
+   }
+
+  gToolbarList.erase(hWnd);
 }
 
 void Quit(){
@@ -254,6 +274,7 @@ void Quit(){
    }
    
    kPlugin.kFuncs->SendMessage("bmpmenu", PLUGIN_NAME, "UnSetOwnerDrawn", (long)gMenuBookmarks, 0);
+   while (RealDeleteMenu(gMenuBookmarks, nFirstBookmarkPosition));
 
     TCHAR tmp[MAX_PATH];
 	kPlugin.kFuncs->GetPreference(PREF_TSTRING, PREFERENCE_SETTINGS_DIR, &tmp, (TCHAR*)_T(""));
@@ -261,6 +282,8 @@ void Quit(){
  
    if (gBookmarkDefFile || _tcscmp(tmp, gBookmarkFile) == 0)
 	   kPlugin.kFuncs->DelPreference(PREFERENCE_BOOKMARK_FILE);
+
+   CloseHandle(ghMutex);
 
    delete gBookmarkRoot;
 }
@@ -340,12 +363,13 @@ void DoRebar(HWND rebarWnd) {
       CCS_NOPARENTALIGN | CCS_NORESIZE | //CCS_ADJUSTABLE |
       TBSTYLE_FLAT | TBSTYLE_TRANSPARENT | TBSTYLE_LIST | TBSTYLE_TOOLTIPS;
 
+/*
    if (!ghWndTB) {
      // Create the toolbar control to be added.
-     ghWndTB = CreateWindowEx(0, TOOLBARCLASSNAME, "",
+     ghWndTB = CreateWindowEx(0, TOOLBARCLASSNAME, _T(""),
         WS_CHILD | dwStyle,
         0,0,0,0,
-        rebarWnd, (HMENU)/*id*/200,
+        rebarWnd, (HMENU)200,
         kPlugin.hDllInstance, NULL
         );
      ghWndTBParent = GetParent(rebarWnd);
@@ -356,10 +380,10 @@ void DoRebar(HWND rebarWnd) {
      }
 
      BuildRebar(ghWndTB);
-   }
+   }*/
 
    // Create the toolbar control to be added.
-   HWND hWndTmp = CreateWindowEx(0, TOOLBARCLASSNAME, "",
+   HWND hWndTmp = CreateWindowEx(0, TOOLBARCLASSNAME, _T(""),
       WS_CHILD | dwStyle,
       0,0,0,0,
       rebarWnd, (HMENU)/*id*/200,
@@ -371,13 +395,29 @@ void DoRebar(HWND rebarWnd) {
      return;
    }
 
-   CopyRebar(hWndTmp, ghWndTB);
+   std::map<HWND, HWND>::iterator it = gToolbarList.begin();
+   if (it == gToolbarList.end())
+	   // This is the first toolbar, build it.
+	   BuildRebar(hWndTmp);
+   else // Just copy an existing one.
+	   CopyRebar(hWndTmp, it->second);
+   gToolbarList[GetParent(rebarWnd)] = hWndTmp;
 
    // Register the band name and child hwnd
-   kPlugin.kFuncs->RegisterBand(hWndTmp, TOOLBAND_NAME, true);
+   kPlugin.kFuncs->RegisterBand(hWndTmp, _T(TOOLBAND_NAME), true);
 
    // Get the height of the toolbar.
    DWORD dwBtnSize = SendMessage(hWndTmp, TB_GETBUTTONSIZE, 0,0);
+
+     // Compute the width needed for the toolbar
+   int ideal = 0;
+   int iCount, iButtonCount = SendMessage(hWndTmp, TB_BUTTONCOUNT, 0,0);
+   for ( iCount = 0 ; iCount < iButtonCount ; iCount++ )
+   {
+	   RECT rectButton;
+	   SendMessage(hWndTmp, TB_GETITEMRECT, iCount, (LPARAM)&rectButton);
+	   ideal += rectButton.right - rectButton.left;
+   }
 
    REBARBANDINFO rbBand;
    rbBand.cbSize = sizeof(REBARBANDINFO);  // Required
@@ -385,15 +425,14 @@ void DoRebar(HWND rebarWnd) {
       RBBIM_STYLE | RBBIM_CHILD  | RBBIM_CHILDSIZE |
       RBBIM_SIZE | RBBIM_IDEALSIZE;
 
-   rbBand.fStyle = RBBS_CHILDEDGE | RBBS_FIXEDBMP | RBBS_VARIABLEHEIGHT;
-   rbBand.lpText     = PLUGIN_NAME;
+   rbBand.fStyle = RBBS_USECHEVRON | RBBS_CHILDEDGE | RBBS_FIXEDBMP | RBBS_VARIABLEHEIGHT;
+   rbBand.lpText     = _T(PLUGIN_NAME);
    rbBand.hwndChild  = hWndTmp;
    rbBand.cxMinChild = 0;
    rbBand.cyMinChild = HIWORD(dwBtnSize);
    rbBand.cyIntegral = 1;
    rbBand.cyMaxChild = rbBand.cyMinChild;
-   rbBand.cxIdeal    = 0;
-   rbBand.cx         = rbBand.cxIdeal;
+   rbBand.cx         = rbBand.cxIdeal = ideal;
 
    // Add the band that has the toolbar.
    SendMessage(rebarWnd, RB_INSERTBAND, (WPARAM)-1, (LPARAM)&rbBand);
