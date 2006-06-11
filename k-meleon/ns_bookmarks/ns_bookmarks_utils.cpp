@@ -28,6 +28,7 @@
 #include "wininet.h"    // for INTERNET_MAX_URL_LENGTH
 #include <stdio.h>
 #include <io.h>
+#include <tchar.h>
 
 #include "defines.h"
 
@@ -35,7 +36,7 @@
 #include "../kmeleon_plugin.h"
 //#include "../resource.h"
 #include "../Utils.h"
-#include <tchar.h>
+#include "../DialogUtils.h"
 #include "..\\rebar_menu\\hot_tracking.h"
 
 #include "BookmarkNode.h"
@@ -99,7 +100,7 @@ BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 				  GetDlgItemText(hWnd, IDC_BOOKMARKS_FILE, tempPath, MAX_PATH); 
 				  if (_tcsicmp(tempPath, gBookmarkFile) != 0) {
 					 GetDlgItemText(hWnd, IDC_BOOKMARKS_FILE, gBookmarkFile, MAX_PATH);
-					 kPlugin.kFuncs->SetPreference(PREF_STRING, PREFERENCE_BOOKMARK_FILE, gBookmarkFile, false);
+					 kPlugin.kFuncs->SetPreference(PREF_TSTRING, PREFERENCE_BOOKMARK_FILE, gBookmarkFile, false);
 					 gBookmarkDefFile = false;
 					 delete gBookmarkRoot->child;
 					 delete gBookmarkRoot->next;
@@ -109,7 +110,7 @@ BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 					 if (bmFile)
 						fclose(bmFile);
 					 else {
-						 MessageBox(NULL, BOOKMARKS_CREATING_NEW, _T(PLUGIN_NAME), 0);
+						 MessageBox(NULL, _Tr(BOOKMARKS_CREATING_NEW), _T(PLUGIN_NAME), 0);
 						 bmFile = _tfopen(gBookmarkFile, _T("w"));
 						 if (bmFile) {
 							fclose(bmFile);
@@ -148,7 +149,7 @@ BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
    return true;
 }
 
-BOOL BrowseForBookmarks(char *file)
+BOOL BrowseForBookmarks(TCHAR *file)
 {
    OPENFILENAME ofn;
    ofn.lStructSize = sizeof(OPENFILENAME);
@@ -166,16 +167,21 @@ BOOL BrowseForBookmarks(char *file)
    ofn.lCustData = 0;
    ofn.lpfnHook = NULL;
    ofn.lpTemplateName = NULL;
-   ofn.lpstrFilter = BOOKMARKS_FILTER;
+   TCHAR* filter = _tcsdup(_Tr(BOOKMARKS_FILTER));
+   for (TCHAR* p = filter;*p;p++)
+	   if (*p == '|') *p=0;
+   ofn.lpstrFilter = filter;
    ofn.lpstrFile = file;
    ofn.nMaxFile = MAX_PATH;
    ofn.Flags = OFN_PATHMUSTEXIST | OFN_LONGNAMES | OFN_EXPLORER | OFN_HIDEREADONLY;
-   ofn.lpstrTitle = PLUGIN_NAME;
+   ofn.lpstrTitle = _T(PLUGIN_NAME);
 
    if (GetOpenFileName(&ofn)) {
+      free(filter);
       return true;
    }
    else {
+	  free(filter);
       return false;
    }
 }
@@ -369,20 +375,20 @@ static void create_backup(const char *file, int num=2)
    bBackedUp = 1;
 }
 
-void SaveBM(const char *file)
+void SaveBM(const TCHAR *file)
 {
    if (!gBookmarkRoot->child && !gBookmarkRoot->next) {
-      if (MessageBox(NULL, "The bookmarks tree is empty.\nDo you really want to erase all your bookmarks?", PLUGIN_NAME ": WARNING" , MB_YESNO|MB_ICONEXCLAMATION) != IDYES) {
+      if (MessageBox(NULL, _T("The bookmarks tree is empty.\nDo you really want to erase all your bookmarks?"), _T(PLUGIN_NAME) _T(": WARNING") , MB_YESNO|MB_ICONEXCLAMATION) != IDYES) {
          LoadBM(gBookmarkFile);
          if (!gBookmarkRoot->child && !gBookmarkRoot->next) {
-            MessageBox(NULL, "Unable to recover old bookmarks.", PLUGIN_NAME ": BUG WARNING" , MB_OK|MB_ICONSTOP);
+            MessageBox(NULL, _T("Unable to recover old bookmarks."), _T(PLUGIN_NAME) _T(": BUG WARNING") , MB_OK|MB_ICONSTOP);
             return;
          }
       }
    }
 
    if (!gGeneratedByUs) {
-      if (MessageBox(NULL, BOOKMARKS_NOT_BY_US, PLUGIN_NAME, MB_YESNO) != IDYES) {
+      if (MessageBox(NULL, _Tr(BOOKMARKS_NOT_BY_US), _T(PLUGIN_NAME), MB_YESNO) != IDYES) {
          return;
       }
    }
@@ -390,26 +396,26 @@ void SaveBM(const char *file)
    DWORD dwWaitResult; 
    dwWaitResult = WaitForSingleObject( ghMutex, 1000L);
    if (dwWaitResult == WAIT_TIMEOUT) {
-     MessageBox(NULL, "Unable to get MutEx for bookmarks file.\\nFile not saved.", PLUGIN_NAME ": WARNING" , MB_OK|MB_ICONSTOP);
+     MessageBox(NULL, _T("Unable to get MutEx for bookmarks file.\\nFile not saved."), _T(PLUGIN_NAME) _T(": WARNING") , MB_OK|MB_ICONSTOP);
      return;
    }
 
-   char buf[MAX_PATH];
-   strcpy(buf, file);
-   char *p, *q;
-   p = strrchr(buf, '/');
-   q = strrchr(buf, '\\');
+   TCHAR buf[MAX_PATH];
+   _tcscpy(buf, file);
+   TCHAR *p, *q;
+   p = _tcsrchr(buf, _T('/'));
+   q = _tcsrchr(buf, _T('\\'));
    if (!q || p>q) q = p;
-   p = strrchr(buf, '.');
+   p = _tcsrchr(buf, _T('.'));
    if (!p || q>p)
-     strcat(buf, "XXXXXX");
+     _tcscat(buf, _T("XXXXXX"));
    else if (p)
-     strcat(p, "XXXXXX");
+     _tcscat(p, _T("XXXXXX"));
    else
-     strcat(buf, "XXXXXX");
-   p = mktemp(buf);
+     _tcscat(buf, _T("XXXXXX"));
+   p = _tmktemp(buf);
 
-   FILE *bmFile = fopen(buf, "w");
+   FILE *bmFile = _tfopen(buf, _T("w"));
    if (bmFile){
       fprintf(bmFile, "%s\n", BOOKMARK_TAG);
       fprintf(bmFile, "%s\n", KMELEON_TAG);
@@ -429,8 +435,8 @@ void SaveBM(const char *file)
    create_backup(file);
 #endif
 
-      unlink(file);
-      rename(buf, file);
+      _tunlink(file);
+      _trename(buf, file);
    }
 
    gGeneratedByUs = true;
@@ -687,7 +693,7 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
    return;
 }
 
-void LoadBM(const char *file) 
+void LoadBM(const TCHAR *file) 
 {
    DWORD dwWaitResult; 
    dwWaitResult = WaitForSingleObject( ghMutex, 1000L);
@@ -696,7 +702,7 @@ void LoadBM(const char *file)
      return;
    }
 
-   FILE *bmFile = fopen(file, "r");
+   FILE *bmFile = _tfopen(file, _T("r"));
    if (bmFile){
       long bmFileSize = FileSize(bmFile);
       
@@ -763,7 +769,7 @@ void BuildMenu(HMENU menu, CBookmarkNode *node, BOOL isContinuation)
    // if bmp_menu is enabled, the menu items will actually be at least 18 pixels... but this system call won't reflect that
    // in any case, SM_CYMENU gets the height of the menu bar, not a menu item
    // for now we'll just assume bmp_menu is enabled and they're 18 pixels...
-#define cmenu 18
+int cmenu = max(18,GetSystemMetrics(SM_CYMENU));
 
 // space to allow above menu for title bar, menu bar (assuming maximized window), and extra frame junk
 #define MENUPADDING 50
@@ -776,12 +782,12 @@ void BuildMenu(HMENU menu, CBookmarkNode *node, BOOL isContinuation)
    for (child = (isContinuation) ? node : node->child ; child ; child = child->next , count++) {
       if (count == maxLength) {
          HMENU childMenu = CreatePopupMenu();
-         AppendMenu(menu, MF_STRING|MF_POPUP, (UINT)childMenu, "[more]");
+         AppendMenu(menu, MF_STRING|MF_POPUP, (UINT)childMenu, _T("[more]"));
          BuildMenu(childMenu, child, true);
          break;
       }
       else if (child->type == BOOKMARK_SEPARATOR) {
-         AppendMenu(menu, MF_SEPARATOR, 0, "");
+         AppendMenu(menu, MF_SEPARATOR, 0, _T(""));
       }
       else if (child->type == BOOKMARK_FOLDER) {
          HMENU childMenu = CreatePopupMenu();
@@ -789,7 +795,7 @@ void BuildMenu(HMENU menu, CBookmarkNode *node, BOOL isContinuation)
 
 #if 1
          // condense the title and escape ampersands
-         char *pszTemp = fixString(child->text.c_str(), 40);
+         TCHAR *pszTemp = fixString(child->text.c_str(), 40);
          AppendMenu(menu, MF_STRING|MF_POPUP, (UINT)childMenu, pszTemp);
          delete pszTemp;
 #else         
@@ -814,7 +820,7 @@ void BuildMenu(HMENU menu, CBookmarkNode *node, BOOL isContinuation)
          // condense the title and escape ampersands
 		 if (!child->text.empty()) // BUG #785
 		 {
-			char *pszTemp = fixString(child->text.c_str(), 40);
+			TCHAR *pszTemp = fixString(child->text.c_str(), 40);
 			AppendMenu(menu, MF_STRING, child->id, pszTemp);
 			delete pszTemp;
 		 }
@@ -842,14 +848,14 @@ void CopyRebar(HWND hWndNewTB, HWND hWndOldTB)
   int i = 0;
   TBBUTTON button;
 
-  SetWindowText(hWndNewTB, TOOLBAND_NAME);
+  SetWindowText(hWndNewTB, _T(TOOLBAND_NAME));
   SendMessage(hWndNewTB, TB_SETIMAGELIST, 0, (LPARAM)gImagelist);
   SendMessage(hWndNewTB, TB_SETBUTTONWIDTH, 0, MAKELONG(0, 100));
 
   while (SendMessage(hWndOldTB, TB_GETBUTTON, i, (LPARAM)&button)) {
     LONG lResult = SendMessage(hWndOldTB, TB_GETBUTTONTEXT, (WPARAM) button.idCommand, NULL);
     if (lResult >= 0) {
-      char *szTmp = new char[lResult + 2];
+      TCHAR *szTmp = new TCHAR[lResult + 2];
       SendMessage(hWndOldTB, TB_GETBUTTONTEXT, (WPARAM) button.idCommand, (LPARAM) szTmp);
       szTmp[lResult+1] = 0;
 
@@ -1051,9 +1057,9 @@ int addLink(TCHAR *url, TCHAR *title, int flag)
 }
 
 
-static char szInput[256];
-static char *pszTitle;
-static char *pszPrompt;
+static TCHAR szInput[256];
+static TCHAR *pszTitle;
+static TCHAR *pszPrompt;
 
 BOOL CALLBACK
 PromptDlgProc( HWND hwnd,
@@ -1063,8 +1069,8 @@ PromptDlgProc( HWND hwnd,
 {
     switch (Message) {
       case WM_INITDIALOG:
-         SetWindowText( hwnd, pszTitle ? pszTitle : "Smart bookmark" );
-         SetDlgItemText(hwnd, IDC_SEARCHTEXT, pszPrompt ? pszPrompt : "");
+         SetWindowText( hwnd, pszTitle ? pszTitle : _T("Smart bookmark") );
+         SetDlgItemText(hwnd, IDC_SEARCHTEXT, pszPrompt ? pszPrompt : _T(""));
         return TRUE;
       case WM_COMMAND:
         switch (LOWORD(wParam)) {
@@ -1142,6 +1148,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		 
 		 if (ask) {
 			 BOOL userFont = TRUE;
+			 if (kPlugin.kFuncs->GetPreference(PREF_BOOL, "kmeleon.display.dialogs.useUserFont", &userFont, &userFont))
+			   DialogBoxEx(kPlugin.hDllInstance, MAKEINTRESOURCE(IDD_ADDBOOKMARK), NULL, AddProc, (LPARAM)hWnd);  
+			 else
 			   DialogBoxParam(kPlugin.hDllInstance, MAKEINTRESOURCE(IDD_ADDBOOKMARK), NULL, AddProc, (LPARAM)hWnd);  
 		 }
 		 else
@@ -1180,8 +1189,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
             ShowWindow(ghWndEdit, SW_RESTORE);
             BringWindowToTop(ghWndEdit);
          }
+		 else {
+			 BOOL userFont = TRUE;
+			 if (kPlugin.kFuncs->GetPreference(PREF_BOOL, "kmeleon.display.dialogs.useUserFont", &userFont, &userFont))
+				ghWndEdit = CreateDialogEx(kPlugin.hDllInstance, MAKEINTRESOURCE(IDD_EDIT_BOOKMARKS), NULL, EditProc, 0);
          else
             ghWndEdit = CreateDialogParam(kPlugin.hDllInstance, MAKEINTRESOURCE(IDD_EDIT_BOOKMARKS), NULL, EditProc, 0);
+		 }
          return true;
       }
       else if (command == wm_deferbringtotop) {
@@ -1244,9 +1258,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
             TrackPopupMenu((HMENU)gMenuBookmarks, TPM_LEFTALIGN, pt.x, pt.y, 0, hWnd, NULL);
          }
          else if (IsMenu((HMENU)(tbhdr.iItem-SUBMENU_OFFSET))){
-            char toolbarName[11];
+            TCHAR toolbarName[11];
             GetWindowText(tbhdr.hdr.hwndFrom, toolbarName, 10);
-            if (strcmp(toolbarName, TOOLBAND_NAME) != 0) {
+            if (_tcscmp(toolbarName, _T(TOOLBAND_NAME)) != 0) {
                // oops, this isn't our toolbar
                return CallWindowProc(KMeleonWndProc, hWnd, message, wParam, lParam);
             }
@@ -1266,13 +1280,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
       UINT id = LOWORD(wParam);
       if (id >= nConfigCommand && id < nDropdownCommand) {
          if (id == nConfigCommand)
-            kPlugin.kFuncs->SetStatusBarText("Configure the bookmarks plugin");
+            kPlugin.kFuncs->SetStatusBarText(_Tr("Configure the bookmarks plugin"));
          else if (id == nAddCommand)
-            kPlugin.kFuncs->SetStatusBarText("Add to bookmarks");
+            kPlugin.kFuncs->SetStatusBarText(_Tr("Add to bookmarks"));
          else if (id == nAddLinkCommand)
-            kPlugin.kFuncs->SetStatusBarText("Add link to bookmarks");
+            kPlugin.kFuncs->SetStatusBarText(_Tr("Add link to bookmarks"));
          else if (id == nEditCommand)
-            kPlugin.kFuncs->SetStatusBarText("Edit the bookmarks");
+            kPlugin.kFuncs->SetStatusBarText(_Tr("Edit the bookmarks"));
          return true;
       } 
       else if (CBookmarkNode *node = gBookmarkRoot->FindNode(LOWORD(wParam))) {
