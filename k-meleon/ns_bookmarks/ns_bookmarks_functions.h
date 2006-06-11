@@ -16,6 +16,8 @@
 *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
+#include "../DialogUtils.h"
+
 // functions exposed to kmeleon
 int  Load();
 void Create(HWND parent);
@@ -34,7 +36,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 // Utils
-BOOL BrowseForBookmarks(char *file);
+BOOL BrowseForBookmarks(TCHAR *file);
 
 void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node);
 void BuildMenu(HMENU menu, CBookmarkNode *node, BOOL isContinuation);
@@ -44,7 +46,7 @@ void Rebuild();
 int addLink(char *url, char *title, int flag);
 void findNick(char *nick, char **url);
 char *stristr(const char *String, const char *Pattern);
-void FindSkinFile( char *szSkinFile, char *filename );
+void FindSkinFile( TCHAR *szSkinFile, TCHAR *filename );
 
 #define MENU_TO_COMMAND(x) (x+SUBMENU_OFFSET)
 #define COMMAND_TO_MENU(x) (HMENU)(x-SUBMENU_OFFSET)
@@ -68,7 +70,7 @@ extern UINT nDropdownCommand;
 extern UINT nFirstBookmarkPosition;
 extern UINT wm_deferbringtotop;
 
-extern CHAR gBookmarkFile[];
+extern TCHAR gBookmarkFile[];
 extern bool gBookmarkDefFile;
 extern CHAR gToolbarFolder[];
 extern CHAR gBookmarksTitle[];

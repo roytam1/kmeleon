@@ -452,10 +452,8 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
                      searching = 0;
                   }
                   else {
-                     char tmp[SEARCH_LEN+32];
-                     strcpy(tmp, "Bookmarks -- Find: \"");
-                     strcat(tmp, str);
-                     strcat(tmp, "\"");
+                     TCHAR tmp[SEARCH_LEN+32];
+					 _stprintf(tmp, _Tr("Bookmarks -- Find: \"%s\""), str);
                      SetWindowText( hEditWnd, tmp );
 
                      HTREEITEM hItem = TreeView_GetRoot(hTree);
@@ -488,7 +486,7 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
          }
       }
    }
-   else if (hasFocus == GetDlgItem(hEditWnd, IDC_TITLE) && wParam == VK_RETURN) {
+   else if (hasFocus == GetDlgItem(hEditWnd, IDC_TITLE) && wParam == VK_RETURN && ! fIME) {
       fEatKeystroke = true;
       if (IsWindowEnabled(GetDlgItem(hEditWnd, IDC_URL))) {
          SetFocus(GetDlgItem(hEditWnd, IDC_URL));
@@ -560,7 +558,7 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
       len = 0;
       pos = 0;
       str[len] = 0;
-      SetWindowText( hEditWnd, "Bookmarks" );
+      SetWindowText( hEditWnd, _Tr("Bookmarks" ));
       circling = 0;
    }
 
@@ -589,8 +587,8 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
          circling = 0;
 
          HICON hIcon;
-         char szFullPath[MAX_PATH];
-         FindSkinFile(szFullPath, "bookmarks-edit.ico");
+         TCHAR szFullPath[MAX_PATH];
+         FindSkinFile(szFullPath, _T("bookmarks-edit.ico"));
 
          if (*szFullPath==0 || (hIcon = (HICON)LoadImage( NULL, szFullPath, IMAGE_ICON, 0,0, LR_DEFAULTSIZE | LR_LOADFROMFILE ))==NULL)
             hIcon = (HICON)LoadImage( kPlugin.hDllInstance, MAKEINTRESOURCE(IDB_ICON), IMAGE_ICON, 0,0, LR_DEFAULTSIZE );
@@ -616,8 +614,8 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
          tvis.itemex.mask = TVIF_TEXT | TVIF_PARAM | TVIF_IMAGE | TVIF_SELECTEDIMAGE;
          tvis.itemex.iImage = IMAGE_FOLDER_SPECIAL_CLOSED;
          tvis.itemex.iSelectedImage = IMAGE_FOLDER_SPECIAL_OPEN;
-         tvis.itemex.pszText = "All Bookmarks";
-         tvis.itemex.lParam = (long)&workingBookmarks;
+         tvis.itemex.pszText = (TCHAR*)_Tr("All Bookmarks");
+         tvis.itemex.lParam = (long)workingBookmarks;
 
          HTREEITEM newItem = TreeView_InsertItem(hTree, &tvis);
 
@@ -659,12 +657,12 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
             if (newNode == workingBookmarks || newNode->type == BOOKMARK_SEPARATOR) {
                // root and separators have nothing
-               SetDlgItemText(hDlg, IDC_TITLE, "");
-               SetDlgItemText(hDlg, IDC_URL, "");
-               SetDlgItemText(hDlg, IDC_NICK, "");
-               SetDlgItemText(hDlg, IDC_ADDED, "");
-               SetDlgItemText(hDlg, IDC_LAST_VISIT, "");
-               SetDlgItemText(hDlg, IDC_DESC, "");
+               SetDlgItemText(hDlg, IDC_TITLE, _T(""));
+               SetDlgItemText(hDlg, IDC_URL, _T(""));
+               SetDlgItemText(hDlg, IDC_NICK, _T(""));
+               SetDlgItemText(hDlg, IDC_ADDED, _T(""));
+               SetDlgItemText(hDlg, IDC_LAST_VISIT, _T(""));
+               SetDlgItemText(hDlg, IDC_DESC, _T(""));
                EnableWindow(GetDlgItem(hDlg, IDC_STATIC_TITLE), false);
                EnableWindow(GetDlgItem(hDlg, IDC_TITLE), false);
                EnableWindow(GetDlgItem(hDlg, IDC_STATIC_URL), false);
@@ -687,8 +685,8 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
             EnableWindow(GetDlgItem(hDlg, IDC_STATIC_PROPERTIES), true);
 
             SYSTEMTIME st;
-            char pszTmp[1024];
-            char pszDate[900];
+            TCHAR pszTmp[1024];
+            TCHAR pszDate[900];
 
             if (newNode->type == BOOKMARK_BOOKMARK) {
                EnableWindow(GetDlgItem(hDlg, IDC_STATIC_URL), true);
@@ -705,20 +703,20 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                if (newNode->lastVisit) {
                   UnixTimeToSystemTime(newNode->lastVisit, &st);
                   GetDateFormat(GetThreadLocale(), DATE_SHORTDATE, &st, NULL, pszDate, 899);
-                  strcpy(pszTmp, pszDate);
-                  strcat(pszTmp, " ");
+                  _tcscpy(pszTmp, pszDate);
+                  _tcscat(pszTmp, _T(" "));
                   GetTimeFormat(GetThreadLocale(), (DWORD) NULL, &st, NULL, pszDate, 899);
-                  strcat(pszTmp, pszDate);
+                  _tcscat(pszTmp, pszDate);
                   SetDlgItemText(hDlg, IDC_LAST_VISIT, pszTmp);
                }
                else {
-                  SetDlgItemText(hDlg, IDC_LAST_VISIT, "Never");
+                  SetDlgItemText(hDlg, IDC_LAST_VISIT, _Tr("Never"));
                }
             }
             else {
-               SetDlgItemText(hDlg, IDC_URL, "");
-               SetDlgItemText(hDlg, IDC_NICK, "");
-               SetDlgItemText(hDlg, IDC_LAST_VISIT, "");
+               SetDlgItemText(hDlg, IDC_URL, _T(""));
+               SetDlgItemText(hDlg, IDC_NICK, _T(""));
+               SetDlgItemText(hDlg, IDC_LAST_VISIT, _T(""));
                EnableWindow(GetDlgItem(hDlg, IDC_STATIC_URL), false);
                EnableWindow(GetDlgItem(hDlg, IDC_URL), false);
                EnableWindow(GetDlgItem(hDlg, IDC_STATIC_NICK), true);
@@ -732,10 +730,10 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
             UnixTimeToSystemTime(newNode->addDate, &st);
             GetDateFormat(GetThreadLocale(), DATE_SHORTDATE, &st, NULL, pszDate, 899);
-            strcpy(pszTmp, pszDate);
-            strcat(pszTmp, " ");
+            _tcscpy(pszTmp, pszDate);
+            _tcscat(pszTmp, _T(" "));
             GetTimeFormat(GetThreadLocale(), (DWORD) NULL, &st, NULL, pszDate, 899);
-            strcat(pszTmp, pszDate);
+            _tcscat(pszTmp, pszDate);
             SetDlgItemText(hDlg, IDC_ADDED, pszTmp);
          }
          // start a drag operation
@@ -979,10 +977,10 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                if (!zoom) {
                   if (bookmarksEdited) {
 
-					 if (MessageBox(hDlg, BOOKMARKS_CANCEL_CHANGES, BOOKMARKS_CANCEL_CAPTION, MB_OKCANCEL) == IDCANCEL)
+					 if (MessageBox(hDlg, _Tr(BOOKMARKS_CANCEL_CHANGES), _Tr(BOOKMARKS_CANCEL_CAPTION), MB_OKCANCEL) == IDCANCEL)
 						 return 0;
 						 
-                     FILE *bmFile = fopen(gBookmarkFile, "r");
+                     FILE *bmFile = _tfopen(gBookmarkFile, _T("r"));
                      if (bmFile){
                         long bmFileSize = FileSize(bmFile);
                         
@@ -1061,7 +1059,7 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                break;
 
             case ID_KEYBINDINGS:
-               MessageBox(hDlg, "Next/prev sibling\t\tAlt+Arrows\n\nMove item up/down\t\tShift+Arrows\n\nOpen item in browser\tEnter\n\nOpen item in background\tCtl+Enter\n\nEdit title\t\t\tF2\n\nDelete item\t\tCtl+D or Del\n\nNew bookmark\t\tCtl+N or Ins", "Key-bindings", MB_ICONINFORMATION | MB_OK);
+               MessageBox(hDlg, _Tr("Next/prev sibling\t\tAlt+Arrows\n\nMove item up/down\t\tShift+Arrows\n\nOpen item in browser\tEnter\n\nOpen item in background\tCtl+Enter\n\nEdit title\t\t\tF2\n\nDelete item\t\tCtl+D or Del\n\nNew bookmark\t\tCtl+N or Ins"), _Tr("Key-bindings"), MB_ICONINFORMATION | MB_OK);
                break;
             }
          }
@@ -1121,7 +1119,7 @@ static void FillTree(HWND hTree, HTREEITEM parent, CBookmarkNode &node)
 
 static void CopyBranch(HWND hTree, HTREEITEM item, HTREEITEM newParent)
 {
-   char buffer[MAX_PATH];
+   TCHAR buffer[MAX_PATH];
 
    TVINSERTSTRUCT tvis;
    tvis.hParent = newParent;
@@ -1388,20 +1386,20 @@ static void CreateNewObject(HWND hTree, HTREEITEM fromItem, int type, int mode) 
          newNode = freeNode;
          freeNode = NULL;
       } else
-         newNode = new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), "New Bookmark", "http://kmeleon.sourceforge.net/", "", "", "", BOOKMARK_BOOKMARK, time(NULL));
-      tvis.itemex.pszText = (TCHAR*)newNode->text.c_str();
+         newNode = new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), _Tr("New Bookmark"), "http://kmeleon.sourceforge.net/", "", "", "", BOOKMARK_BOOKMARK, time(NULL));
+      tvis.itemex.pszText = (char*)newNode->text.c_str();
       tvis.itemex.iImage = IMAGE_BOOKMARK;
       tvis.itemex.iSelectedImage = IMAGE_BOOKMARK;
       break;
    case BOOKMARK_FOLDER:
-      newNode = new CBookmarkNode(0, "New Folder", "", "", "", "", BOOKMARK_FOLDER, time(NULL));
-      tvis.itemex.pszText = "New Folder";
+      newNode = new CBookmarkNode(0, _Tr("New Folder"), "", "", "", "", BOOKMARK_FOLDER, time(NULL));
+      tvis.itemex.pszText = (TCHAR*)_Tr("New Folder");
       tvis.itemex.iImage = IMAGE_FOLDER_CLOSED;
       tvis.itemex.iSelectedImage = IMAGE_FOLDER_OPEN;
       break;
    case BOOKMARK_SEPARATOR:
       newNode = new CBookmarkNode(0, "", "", "", "", "", BOOKMARK_SEPARATOR);
-      tvis.itemex.pszText = "---";
+      tvis.itemex.pszText = _T("---");
       tvis.itemex.iImage = IMAGE_BLANK;
       tvis.itemex.iSelectedImage = IMAGE_BLANK;
       break;

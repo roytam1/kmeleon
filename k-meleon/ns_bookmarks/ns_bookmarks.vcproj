@@ -145,6 +145,9 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
 			<File
+				RelativePath="..\DialogUtils.cpp">
+			</File>
+			<File
 				RelativePath="..\rebar_menu\hot_tracking.cpp">
 				<FileConfiguration
 					Name="Debug|Win32">
@@ -326,10 +329,10 @@
 			</File>
 		</Filter>
 		<File
-			RelativePath="..\Readme.txt">
+			RelativePath="ReadMe.txt">
 		</File>
 		<File
-			RelativePath="ReadMe.txt">
+			RelativePath="..\Readme.txt">
 		</File>
 	</Files>
 	<Globals>

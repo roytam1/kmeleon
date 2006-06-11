@@ -142,27 +142,30 @@ int Load(){
    wm_deferbringtotop = kPlugin.kFuncs->GetCommandIDs(1);
 
    gBookmarkRoot = new CBookmarkNode(0, _T(""), _T(""), _T(""), _T(""), "", BOOKMARK_FOLDER, 0);
-   ghMutex = CreateMutex(NULL, FALSE, "BookmarksFileMutex");
+   ghMutex = CreateMutex(NULL, FALSE, _T("BookmarksFileMutex"));
 
-   kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_BOOKMARK_FILE, gBookmarkFile, (char*)"");
+   TCHAR tmp[MAX_PATH];
+   kPlugin.kFuncs->GetPreference(PREF_TSTRING, PREFERENCE_BOOKMARK_FILE, tmp, (TCHAR*)_T(""));
 
-   if (!gBookmarkFile[0]) {
-      kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_SETTINGS_DIR, gBookmarkFile, (char*)"");
-      strcat(gBookmarkFile, BOOKMARKS_DEFAULT_FILENAME);
+   if (!tmp[0]) {
+      kPlugin.kFuncs->GetPreference(PREF_TSTRING, PREFERENCE_SETTINGS_DIR, tmp, (TCHAR*)_T(""));
+	  _tcscat(tmp, BOOKMARKS_DEFAULT_FILENAME);
 	  gBookmarkDefFile = true;
    }
-   FILE *bmFile = fopen(gBookmarkFile, "a");
+   _tcscpy(gBookmarkFile, tmp);
+   
+   FILE *bmFile = _tfopen(gBookmarkFile, _T("a"));
    if (bmFile)
       fclose(bmFile);
    else {
-      if (MessageBox(NULL, BOOKMARKS_NOT_FOUND,
-         PLUGIN_NAME, MB_YESNO) == IDYES) {
+      if (MessageBox(NULL, _Tr(BOOKMARKS_NOT_FOUND),
+         _T(PLUGIN_NAME), MB_YESNO) == IDYES) {
 
          if (BrowseForBookmarks(gBookmarkFile)) {
             // if the file they chose doesn't exist, create it
-            bmFile = fopen(gBookmarkFile, "r");
+            bmFile = _tfopen(gBookmarkFile, _T("r"));
             if (!bmFile) {
-               bmFile = fopen(gBookmarkFile, "w");
+               bmFile = _tfopen(gBookmarkFile, _T("w"));
                gGeneratedByUs = true;
             }
 			gBookmarkDefFile = false;
@@ -170,8 +173,8 @@ int Load(){
          }
          else {
             // this means they hit "Cancel" in the file open dialog
-            MessageBox(NULL, BOOKMARKS_CREATING_NEW, PLUGIN_NAME, 0);
-            bmFile = fopen(gBookmarkFile, "w");
+            MessageBox(NULL, _Tr(BOOKMARKS_CREATING_NEW), _T(PLUGIN_NAME), 0);
+            bmFile = _tfopen(gBookmarkFile, _T("w"));
             if (bmFile) {
                fclose(bmFile);
                gGeneratedByUs = true;
@@ -180,7 +183,7 @@ int Load(){
       }
       // create the default bookmark file
       else {
-         bmFile = fopen(gBookmarkFile, "w");
+         bmFile = _tfopen(gBookmarkFile, _T("w"));
          if (bmFile) {
             fclose(bmFile);
          }
@@ -188,8 +191,8 @@ int Load(){
       }
    }
    if (!gBookmarkDefFile)
-   kPlugin.kFuncs->SetPreference(PREF_STRING, PREFERENCE_BOOKMARK_FILE, gBookmarkFile, FALSE);
-
+	 kPlugin.kFuncs->SetPreference(PREF_TSTRING, PREFERENCE_BOOKMARK_FILE, gBookmarkFile, false);
+   kPlugin.kFuncs->GetPreference(PREF_TSTRING, PREFERENCE_TOOLBAR_FOLDER, gToolbarFolder, (TCHAR*)_T(""));
    kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_TOOLBAR_FOLDER, gToolbarFolder, (char*)"");
    kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_TOOLBAR_ENABLED, &gToolbarEnabled, &gToolbarEnabled);
    kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_CHEVRON_ENABLED, &bChevronEnabled, &bChevronEnabled);
@@ -203,9 +206,9 @@ int Load(){
    int ilc_bits = ILC_COLOR;
    COLORREF bgCol = RGB(255, 0, 255);
 
-   char szFullPath[MAX_PATH];
-   FindSkinFile(szFullPath, "bookmarks.bmp");
-   FILE *fp = fopen(szFullPath, "r");
+   TCHAR szFullPath[MAX_PATH];
+   FindSkinFile(szFullPath, _T("bookmarks.bmp"));
+   FILE *fp = _tfopen(szFullPath, _T("r"));
    if (fp) {
       fclose(fp);
       bitmap = (HBITMAP)LoadImage(NULL, szFullPath, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
@@ -224,7 +227,7 @@ int Load(){
    if (bitmap)
       DeleteObject(bitmap);
 
-   strcpy(gBookmarksTitle, BOOKMARKS_DEFAULT_TITLE);
+   strcpy(gBookmarksTitle, _Tr(BOOKMARKS_DEFAULT_TITLE));
 
    return true;
 }
