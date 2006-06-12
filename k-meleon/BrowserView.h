@@ -203,6 +203,7 @@ public:
 	int GetTextSize();
 
 	BOOL GetSelection(CString&);
+	BOOL GetUSelection(nsEmbedString&);
 	BOOL InjectCSS(const wchar_t* userStyleSheet);
 	BOOL InjectJS(const wchar_t* userJS, bool bTopWindow = true);
     BOOL GetPrintSettings();
