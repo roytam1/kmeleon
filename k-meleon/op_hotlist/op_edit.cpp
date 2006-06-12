@@ -384,10 +384,8 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
                      searching = 0;
                   }
                   else {
-                     char tmp[SEARCH_LEN+32];
-                     strcpy(tmp, "Hotlist -- Find: \"");
-                     strcat(tmp, str);
-                     strcat(tmp, "\"");
+                     TCHAR tmp[SEARCH_LEN+64];
+					 _stprintf(tmp, _Tr("Hotlist -- Find: \"%s\""), str);
                      SetWindowText( hEditWnd, tmp );
 
                      HTREEITEM hItem = TreeView_GetRoot(hTree);
@@ -940,7 +938,7 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                if (!zoom) {
                   if (bookmarksEdited) {
 
-					  if (MessageBox(hDlg, _T("Warning: all changes will be lost. Are you sure you want to close the hotlist editor?"), _T("Close Hotlist Editor"), MB_OKCANCEL) == IDCANCEL)
+					  if (MessageBox(hDlg, _Tr("Warning: all changes will be lost. Are you sure you want to close the hotlist editor?"), _Tr("Close Hotlist Editor"), MB_OKCANCEL) == IDCANCEL)
 						 return 0;
 						 
                      delete gHotlistRoot.child;
