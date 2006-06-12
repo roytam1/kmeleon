@@ -22,6 +22,7 @@
 #include <windows.h>
 #include <commctrl.h>
 #include <stdlib.h>
+#include <tchar.h>
 
 #define KMELEON_PLUGIN_EXPORTS
 #include "../kmeleon_plugin.h"
@@ -29,16 +30,16 @@
 //#include "stdafx.h"
 #include "history.h"
 #include "..\Utils.h"
+#include "..\DialogUtils.h"
 #include "..\KmeleonConst.h"
-#include "..\resource.h"
 
 #include "nsCOMPtr.h"
 #include "nsIBrowserHistory.h"
+#include "nsServiceManagerUtils.h"
 
 #define PLUGIN_NAME "History Plugin"
 
-#define _T(x) x
-#define PREFERENCE_HISTORY_LENGTH _T("kmeleon.plugins.history.length")
+#define PREFERENCE_HISTORY_LENGTH "kmeleon.plugins.history.length"
 static INT nHistoryLength = 25;
 #define PREF_BROWSER_HISTORY_EXPIRE_DAYS "browser.history_expire_days"
 
@@ -84,6 +85,8 @@ int ID_VIEW_HISTORY = -1;
 int ID_CONFIG_HISTORY = -1;
 int ID_CLEAR_HISTORY = -1;
 int wm_deferbringtotop = -1;
+int ID_NAV_BACK = -1;
+int ID_NAV_FORWARD = -1;
 HWND hWndFront;
 
 HWND ghWndView = NULL;
@@ -136,13 +139,15 @@ int Load(){
    ID_VIEW_HISTORY = kPlugin.kFuncs->GetCommandIDs(1);
    ID_CONFIG_HISTORY = kPlugin.kFuncs->GetCommandIDs(1);
    ID_CLEAR_HISTORY = kPlugin.kFuncs->GetCommandIDs(1);
+   ID_NAV_BACK = kPlugin.kFuncs->GetID("ID_NAV_BACK");
+   ID_NAV_FORWARD = kPlugin.kFuncs->GetID("ID_NAV_FORWARD");
 
    HBITMAP bitmap;
    int ilc_bits = ILC_COLOR;
      
-   char szFullPath[MAX_PATH];
-   FindSkinFile(szFullPath, "history.bmp");
-   FILE *fp = fopen(szFullPath, "r");
+   TCHAR szFullPath[MAX_PATH];
+   FindSkinFile(szFullPath, _T("history.bmp"));
+   FILE *fp = _tfopen(szFullPath, _T("r"));
    if (fp) {
       fclose(fp);
       bitmap = (HBITMAP)LoadImage(NULL, szFullPath, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
@@ -159,7 +164,6 @@ int Load(){
       ImageList_AddMasked(gImagelist, bitmap, RGB(255, 0, 255));
    if (bitmap)
       DeleteObject(bitmap);
-
    
    return true;
 }
@@ -191,8 +195,8 @@ BOOL CALLBACK PrefDlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
             case BN_CLICKED:
                switch (LOWORD(wParam)) {
                   case IDB_CLEAR:
-                     if (MessageBox(hWnd, "Delete all items in your History folder?", "History plugin", MB_YESNO) == IDYES) {
-                        MessageBox(NULL, "Deletion is not implemented", "History", MB_OK);
+                     if (MessageBox(hWnd, _Tr("Delete all items in your History folder?"), _Tr("History"), MB_YESNO) == IDYES) {
+                        MessageBox(NULL, _Tr("Deletion is not implemented"), _Tr("History"), MB_OK);
                      }
                      break;
 
@@ -224,6 +228,15 @@ void Config(HWND parent){
 
 void Quit(){
    hWndFront = NULL;
+   
+   MenuList* ml;
+   while (gMenuList)
+   {
+	   ml = gMenuList;
+	   gMenuList = gMenuList->next;
+	   free(ml);
+   }
+
    if (ghWndView)
       SendMessage(ghWndView, WM_CLOSE, 0, 0);
 }
@@ -405,22 +418,28 @@ void UpdateHistoryMenu (HWND hWndParent) {
 }
 
 
-void CondenseMenuText(char *buf, char *title, int index) {
+void CondenseMenuText(TCHAR *buf, TCHAR *title, int index) {
    int len;
-   
+   TCHAR str[3];
+
    if ( (index >= 0) && (index <10) ) {
-      buf[0] = '&';
-      buf[1] = index +48; // convert int to ascii
-      buf[2] = ' ';
+      buf[0] = _T('&');
+      //buf[1] = index +48; // convert int to ascii
+      //buf[2] = ' ';
+	   
+      _itot(index, str, 10); // convert int to ascii
+	  buf[1] = str[0];
+	  buf[2] = _T(' ');
    }
    else
-      memcpy(buf, "   ", 3);
+      memcpy(buf, _T("   "), 3*sizeof(TCHAR));
    
-   len = strlen(title);
+   len = lstrlen(title);
    if (len > 43)
       CondenseString(title, 43);
    
-   strcpy(buf+3, title);
+   _tcscpy(buf+3, title);
+}
 
 void ClearHistory()
 {
@@ -446,24 +465,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
       UpdateHistoryMenu(hWnd);
       break;
    case TB_LBUTTONHOLD:
-      switch (wParam) {
-      case ID_NAV_BACK:
-         CreateBackMenu(hWnd, TPM_LEFTBUTTON);
-         break;
-      case ID_NAV_FORWARD:
-         CreateForwardMenu(hWnd, TPM_LEFTBUTTON);
-         break;
-      }
+	   if (ID_NAV_BACK == wParam)
+          CreateBackMenu(hWnd, TPM_LEFTBUTTON);
+	   else if (ID_NAV_FORWARD == wParam)
+          CreateForwardMenu(hWnd, TPM_LEFTBUTTON);
       break;
    case TB_RBUTTONDOWN:
-      switch (wParam) {
-      case ID_NAV_BACK:
-         CreateBackMenu(hWnd, TPM_RIGHTBUTTON);
-         break;
-      case ID_NAV_FORWARD:
-         CreateForwardMenu(hWnd, TPM_RIGHTBUTTON);
-         break;
-      }
+      if (ID_NAV_BACK == wParam)
+          CreateBackMenu(hWnd, TPM_RIGHTBUTTON);
+	   else if (ID_NAV_FORWARD == wParam)
+          CreateForwardMenu(hWnd, TPM_RIGHTBUTTON);
       break;
       
    case WM_COMMAND:
@@ -479,7 +490,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
             BringWindowToTop(ghWndView);
          }
          else {
-            ghWndView = CreateDialogParam(kPlugin.hDllInstance, MAKEINTRESOURCE(IDD_VIEW_HISTORY), NULL, ViewProc, 0);
+			 BOOL userFont = TRUE;
+			 if (kPlugin.kFuncs->GetPreference(PREF_BOOL, "kmeleon.display.dialogs.useUserFont", &userFont, &userFont))
+			   ghWndView = CreateDialogEx(kPlugin.hDllInstance, MAKEINTRESOURCE(IDD_VIEW_HISTORY), NULL, ViewProc, 0);
+			 else
+               ghWndView = CreateDialogParam(kPlugin.hDllInstance, MAKEINTRESOURCE(IDD_VIEW_HISTORY), NULL, ViewProc, 0);
          }
          return true;
       }
@@ -509,11 +524,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
             }
          }
          else if (command == ID_VIEW_HISTORY) {
-            kPlugin.kFuncs->SetStatusBarText("View global history");
+            kPlugin.kFuncs->SetStatusBarText(_Tr("View global history"));
             return true;
          }
          else if (command == ID_CONFIG_HISTORY) {
-            kPlugin.kFuncs->SetStatusBarText("Configure the history plugin");
+            kPlugin.kFuncs->SetStatusBarText(_Tr("Configure the history plugin"));
             return true;
          }
 

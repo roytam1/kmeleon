@@ -28,6 +28,8 @@ void quicksort(char *a, size_t n, size_t es, cmp_t *cmp, unsigned int flag);
 #  include "../kmeleon_plugin.h"
 #endif
 
+#define _Tr(x) kPlugin.kFuncs->Translate(_T(x))
+
 int Init();
 void Create(HWND parent);
 void Config(HWND parent);
@@ -40,8 +42,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 void CreateBackMenu (HWND hWndParent, UINT button);
 void CreateForwardMenu (HWND hWndParent, UINT button);
 void UpdateHistoryMenu(HWND hWndParent);
-void CondenseMenuText(char *buf, char *title, int index);
-void FindSkinFile( char *szSkinFile, char *filename );
+void CondenseMenuText(TCHAR *buf, TCHAR *title, int index);
+void FindSkinFile( TCHAR *szSkinFile, TCHAR *filename );
+void ClearHistory();
 
 extern int ID_HISTORY_FLAG;
 extern int ID_HISTORY;
@@ -51,13 +54,13 @@ extern HWND hWndFront;
 
 int CALLBACK ViewProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-#define PREFERENCE_VIEW_DLG_LEFT   TEXT("kmeleon.plugins.history.dialog.left")
-#define PREFERENCE_VIEW_DLG_TOP    TEXT("kmeleon.plugins.history.dialog.top")
-#define PREFERENCE_VIEW_DLG_WIDTH  TEXT("kmeleon.plugins.history.dialog.width")
-#define PREFERENCE_VIEW_DLG_HEIGHT TEXT("kmeleon.plugins.history.dialog.height")
-#define PREFERENCE_VIEW_ZOOM       TEXT("kmeleon.plugins.history.dialog.zoom")
-#define PREFERENCE_VIEW_MAX        TEXT("kmeleon.plugins.history.dialog.maximized")
-#define PREFERENCE_VIEW_SORT_ORDER TEXT("kmeleon.plugins.history.dialog.sortOrder")
+#define PREFERENCE_VIEW_DLG_LEFT   "kmeleon.plugins.history.dialog.left"
+#define PREFERENCE_VIEW_DLG_TOP    "kmeleon.plugins.history.dialog.top"
+#define PREFERENCE_VIEW_DLG_WIDTH  "kmeleon.plugins.history.dialog.width"
+#define PREFERENCE_VIEW_DLG_HEIGHT "kmeleon.plugins.history.dialog.height"
+#define PREFERENCE_VIEW_ZOOM       "kmeleon.plugins.history.dialog.zoom"
+#define PREFERENCE_VIEW_MAX        "kmeleon.plugins.history.dialog.maximized"
+#define PREFERENCE_VIEW_SORT_ORDER "kmeleon.plugins.history.dialog.sortOrder"
 
 extern HWND ghWndView;
 extern HIMAGELIST gImagelist;
