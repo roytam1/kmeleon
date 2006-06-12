@@ -27,6 +27,16 @@
 #include "HistoryNode.h"
 #include "../kmeleon_plugin.h"
 #include "../KMeleonConst.h"
+// Include for global history
+#include "nsCOMPtr.h"
+#include "nsEmbedString.h"
+#include "rdf.h"
+#include "nsServiceManagerUtils.h"
+#include "nsISimpleEnumerator.h"
+#include "nsIRDFDataSource.h"
+#include "nsIRDFService.h"
+#include "prtime.h"
+#include "nsMemory.h"
 
 #include "../Utils.h"
 #include <wininet.h>
@@ -423,7 +433,7 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
 
    return(fEatKeystroke ? 1 : CallNextHookEx(NULL, nCode, wParam, lParam));
 }
-
+/*
 int ParseHistoryEntry(char **p, CHistoryNode &node) 
 {
    char *q = NULL;
@@ -482,11 +492,132 @@ int ParseHistory(char **p, CHistoryNode &node)
    return size;
 }
 
+*/
+
+int HistoryAttr(nsCOMPtr<nsIRDFNode> target, TCHAR **v)
+{
+	nsCOMPtr<nsIRDFLiteral> aR = do_QueryInterface(target);
+	if (aR)
+	{
+		PRUnichar *name;
+
+		aR->GetValue(&name);
+		int len;
+		len = WideCharToMultiByte(CP_ACP, 0, name, -1, 0, 0, NULL, NULL);
+		char *s = new char[len +1];
+		len = WideCharToMultiByte(CP_ACP, 0, name, -1, s, len, NULL, NULL);
+		s[len] = 0;
+		*v = s;
+		nsMemory::Free(name);
+
+		
+		return true;
+	}
+	else
+	{	
+		*v = NULL;
+		return false;
+	}
+}
 
 int readHistory() {
-   char szHistFile[MAX_PATH];
-   int ret = -1;
+
+   nsresult rv;
+   unsigned int HistorySize = 0;
+
+   while (gHistoryRoot.child)
+		gHistoryRoot.RemoveChild();
+   while (gHistoryRoot.next)
+	    gHistoryRoot.RemoveNext();
+	
+   nsCOMPtr<nsIRDFDataSource> HistoryRdfDataSource;
+   nsCOMPtr<nsISupports> isupports;
+
+	nsCOMPtr<nsIRDFService> RDFService(do_GetService("@mozilla.org/rdf/rdf-service;1", &rv));
+	if (NS_FAILED(rv)) return false;
+
+	nsIRDFResource *arcChild;
+	nsIRDFResource *HistoryRoot;
+	nsIRDFResource *arcName;
+	nsIRDFResource *arcURL;
+	nsIRDFResource *arcDate;
+
+	rv = RDFService->GetResource(nsDependentCString("NC:HistoryRoot"),&HistoryRoot);
+	if (NS_FAILED(rv)) return false;
+
+	rv = RDFService->GetDataSourceBlocking("rdf:history",getter_AddRefs(HistoryRdfDataSource));
+	if (NS_FAILED(rv)) return false;
+
+	rv = RDFService->GetResource(nsCString("http://home.netscape.com/NC-rdf#child"), &arcChild);
+	if (NS_FAILED(rv)) return false;
+
+	rv = RDFService->GetResource(nsCString("http://home.netscape.com/NC-rdf#URL"), &arcURL);
+	if (NS_FAILED(rv)) return false;
+	rv = RDFService->GetResource(nsCString("http://home.netscape.com/NC-rdf#Name"), &arcName);
+	if (NS_FAILED(rv)) return false;
+	rv = RDFService->GetResource(nsCString("http://home.netscape.com/NC-rdf#Date"), &arcDate);
+	if (NS_FAILED(rv)) return false;
+
+	nsCOMPtr<nsISimpleEnumerator> targets;
+	rv = HistoryRdfDataSource->GetTargets(HistoryRoot,arcChild,true,getter_AddRefs(targets));
+	if (NS_FAILED(rv)) return false;
+
+	// Another way to count the number
+	// of history entries?
+	
+   while ( (rv=targets->GetNext(getter_AddRefs(isupports))) == NS_OK) 
+		HistorySize++;
+
+   // Should be NS_ERROR_FAILURE...
+    if (rv != NS_ERROR_UNEXPECTED) return false;
+
+   	rv = HistoryRdfDataSource->GetTargets(HistoryRoot,arcChild,true,getter_AddRefs(targets));
+	if (NS_FAILED(rv)) return false;
+	
+	for (unsigned int i=0; i < 	HistorySize; i++) 
+	{
+		PRTime date;
+		TCHAR *name = NULL;
+		TCHAR *URL = NULL;
+		
+		nsCOMPtr<nsISupports> isupports;
+		rv = targets->GetNext(getter_AddRefs(isupports));
+		if (NS_FAILED(rv)) break;
+
+		nsCOMPtr<nsIRDFResource> aTarget = do_QueryInterface(isupports);
+
+		nsCOMPtr<nsIRDFNode> target;
+
+		rv = HistoryRdfDataSource->GetTarget(aTarget,arcDate,true,getter_AddRefs(target));
+		if (NS_FAILED(rv)) break;
+
+		nsCOMPtr<nsIRDFDate> nDate;
+		nDate = do_QueryInterface(target);
+		if (nDate)
+		{
+			rv = nDate->GetValue(&date);
+			if (NS_FAILED(rv)) break;
+		}
+		
+		rv = HistoryRdfDataSource->GetTarget(aTarget,arcName,true,getter_AddRefs(target));
+		if (NS_FAILED(rv)) break;
+		HistoryAttr(target, &name);
+
+		rv = HistoryRdfDataSource->GetTarget(aTarget,arcURL,true,getter_AddRefs(target));
+		if (NS_FAILED(rv)) {delete name;break;}
+		HistoryAttr(target, &URL);
+		
+		time_t t =  date / PR_USEC_PER_SEC;
+		CHistoryNode * newNode = new CHistoryNode(URL, name, HISTORY_BOOKMARK, t);
+		if (newNode) gHistoryRoot.AddChild(newNode);
+
+		delete name;
+		delete URL;
+	}
    
+   return true;
+   /*
+// char szHistFile[MAX_PATH];
    kPlugin.kFuncs->GetPreference(PREF_STRING, "kmeleon.general.profileDir", szHistFile, (char*)"");
    strcat(szHistFile, "history.txt");
    FILE *hFile = fopen(szHistFile, "r");
@@ -508,7 +639,7 @@ int readHistory() {
       fclose(hFile);
    }
    
-   return ret;
+   return ret;*/
 }
 
 
@@ -548,12 +679,16 @@ CHistoryNode *groupURLs(CHistoryNode *oldList)
       }
       
       while (tmp && strncmp(str, tmp->url.c_str(), len) == 0) {
-         CHistoryNode *newNode = new CHistoryNode(tmp->url.c_str(), HISTORY_BOOKMARK, tmp->lastVisit);
+         CHistoryNode *newNode = new CHistoryNode(tmp->url.c_str(), tmp->name.c_str(), HISTORY_BOOKMARK, tmp->lastVisit);
          newFolder->AddChild(newNode);
          tmp = tmp->next;
       }
    }
-   
+   while (oldList->child)
+		oldList->RemoveChild();
+   while (oldList->next)
+	    oldList->RemoveNext();
+
    oldList->child = newList->child;
    oldList->next = newList->next;
    return newList;
@@ -715,7 +850,7 @@ CHistoryNode *groupDates(CHistoryNode *oldList)
 
          CHistoryNode *newFolder = new CHistoryNode(str, HISTORY_FOLDER, 0);
          while (tmp && (tmp->lastVisit > date)) {
-            CHistoryNode *newNode = new CHistoryNode(tmp->url.c_str(), HISTORY_BOOKMARK, tmp->lastVisit);
+			 CHistoryNode *newNode = new CHistoryNode(tmp->url.c_str(), tmp->name.c_str(), HISTORY_BOOKMARK, tmp->lastVisit);
             newFolder->AddChild(newNode);
             tmp = tmp->next;
          }
@@ -736,6 +871,11 @@ CHistoryNode *groupDates(CHistoryNode *oldList)
 
       pass++;
    }
+
+   while (oldList->child)
+		oldList->RemoveChild();
+   while (oldList->next)
+	    oldList->RemoveNext();
 
    oldList->child = newList->child;
    oldList->next = newList->next;
@@ -1049,7 +1189,7 @@ static void FillTree(HWND hTree, HTREEITEM parent, CHistoryNode &node, int level
       if (type == HISTORY_FOLDER) {
          tvis.itemex.iImage = level == 0 ? IMAGE_FOLDER_SPECIAL_CLOSED : IMAGE_FOLDER_CLOSED;
          tvis.itemex.iSelectedImage = level == 0 ? IMAGE_FOLDER_SPECIAL_OPEN : IMAGE_FOLDER_OPEN;
-         tvis.itemex.pszText = (char *)child->url.c_str();
+         tvis.itemex.pszText = (char *)child->name.c_str();
 
          HTREEITEM thisItem = TreeView_InsertItem(hTree, &tvis);
          
@@ -1064,7 +1204,7 @@ static void FillTree(HWND hTree, HTREEITEM parent, CHistoryNode &node, int level
       else {
          tvis.itemex.iImage = IMAGE_BOOKMARK;
          tvis.itemex.iSelectedImage = IMAGE_BOOKMARK;
-         tvis.itemex.pszText = (char *)child->url.c_str();
+         tvis.itemex.pszText = (char *)child->name.c_str();
          TreeView_InsertItem(hTree, &tvis);
       }
    }

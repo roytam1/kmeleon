@@ -37,6 +37,7 @@ int compareBookmarks(const char *e1, const char *e2, unsigned int sortorder);
 class CHistoryNode {
 public:
    std::string url;
+   std::string name;
    int type;
    time_t lastVisit;
    CHistoryNode *next;
@@ -46,6 +47,7 @@ public:
    inline CHistoryNode()
    {
       url = "";
+	  name = "";
       type = 0;
       next = NULL;
       child = NULL;
@@ -53,18 +55,20 @@ public:
 
       lastVisit = 0;
    }
-   inline CHistoryNode(const char *url, int type, time_t lastVisit=0)
+   inline CHistoryNode(const char *url, const char *name, int type, time_t lastVisit=0)
    {
-      this->url = url;
+      if (url) this->url = url;
+	  if (name) this->name = name; else this->name = url;
       this->type = type;
       this->next = NULL;
       this->child = NULL;
       this->lastChild = NULL;
       this->lastVisit = lastVisit;
    }
-   inline CHistoryNode(std::string &url, int type, time_t lastVisit=0)
+   inline CHistoryNode(std::string &url, std::string &name, int type, time_t lastVisit=0)
    {
       this->url = url;
+	  this->name = name;
       this->type = type;
       this->next = NULL;
       this->child = NULL;
@@ -115,7 +119,38 @@ public:
       }
 
       return *this;
+   
    }
+
+   inline void RemoveNext()
+   {
+	   if (next) {
+		   CHistoryNode* tmp;
+		   while (next->child) {
+			   next->RemoveChild();
+		   }
+		   tmp = next->next;
+		   next->next = NULL;
+		   delete next;
+		   next = tmp;
+	   }
+   }
+
+   inline void RemoveChild()
+   {
+	   if (child) {
+		   CHistoryNode* tmp;
+		   while (child->child) {
+			   child->RemoveChild();
+		   }
+		   tmp = child->next;
+		   child->next = NULL;
+		   delete child;
+		   child = tmp;
+		   if (!child) lastChild = NULL;
+	   }
+   }
+
    inline void AddChild(CHistoryNode *newChild)
    {
       if (child) {
