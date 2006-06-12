@@ -347,10 +347,8 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
                      searching = 0;
                   }
                   else {
-                     char tmp[SEARCH_LEN+32];
-                     strcpy(tmp, "History -- Find: \"");
-                     strcat(tmp, str);
-                     strcat(tmp, "\"");
+                     TCHAR tmp[SEARCH_LEN+64];
+					 _stprintf(tmp, _Tr("History  -- Find: \"%s\""), str);
                      SetWindowText( hEditWnd, tmp );
 
                      HTREEITEM hItem = TreeView_GetRoot(hTree);
@@ -427,7 +425,7 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
       len = 0;
       pos = 0;
       str[len] = 0;
-      SetWindowText( hEditWnd, "History" );
+      SetWindowText( hEditWnd, _Tr("History") );
       circling = 0;
    }
 
@@ -454,7 +452,7 @@ int ParseHistoryEntry(char **p, CHistoryNode &node)
       szURL[INTERNET_MAX_URL_LENGTH-1] = 0;
 
       CHistoryNode * newNode = 
-         new CHistoryNode(szURL, HISTORY_BOOKMARK, lastVisit);
+         new CHistoryNode(szURL, NULL, HISTORY_BOOKMARK, lastVisit);
       if (newNode) {
          node.AddChild(newNode);
          return 1;
@@ -650,7 +648,7 @@ CHistoryNode *groupURLs(CHistoryNode *oldList)
 
    CHistoryNode *newList;
    CHistoryNode *tmp;
-   newList = new CHistoryNode(oldList->url.c_str(), HISTORY_FOLDER, 0);
+   newList = new CHistoryNode(oldList->url.c_str(), oldList->name.c_str(), HISTORY_FOLDER, 0);
 
    sortOrder = SORT_BY_URL;
    oldList->flatten();
@@ -671,7 +669,7 @@ CHistoryNode *groupURLs(CHistoryNode *oldList)
          len = strlen(str);
       
       CHistoryNode *newFolder = 
-         new CHistoryNode(str, HISTORY_FOLDER, 0);
+         new CHistoryNode(str, str, HISTORY_FOLDER, 0);
       newList->AddChild(newFolder);
 
       if (p) {
@@ -742,15 +740,15 @@ struct tm subYear(struct tm t, int y) {
 
 CHistoryNode *groupDates(CHistoryNode *oldList)
 {
-   char *weekday[] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
-   char *month[] = {"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"};
+   const char *weekday[] = {_Tr("Sunday"), _Tr("Monday"), _Tr("Tuesday"), _Tr("Wednesday"), _Tr("Thursday"), _Tr("Friday"), _Tr("Saturday")};
+   const char *month[] = {_Tr("January"), _Tr("February"), _Tr("March"), _Tr("April"), _Tr("May"), _Tr("June"), _Tr("July"), _Tr("August"), _Tr("September"), _Tr("October"), _Tr("November"), _Tr("December")};
 
    if (!oldList)
       return NULL;
 
    CHistoryNode *newList;
    CHistoryNode *tmp;
-   newList = new CHistoryNode(oldList->url.c_str(), HISTORY_FOLDER, 0);
+   newList = new CHistoryNode(oldList->url.c_str(), oldList->name.c_str(), HISTORY_FOLDER, 0);
 
    sortOrder = SORT_BY_DATE;
    oldList->flatten();
@@ -765,7 +763,7 @@ CHistoryNode *groupDates(CHistoryNode *oldList)
 
    while (tmp) {
       char str[100];
-      strcpy(str, "<error>");
+      strcpy(str, _Tr("<error>"));
 
       pt = localtime(&date);
       struct tm t = *pt;
@@ -774,11 +772,11 @@ CHistoryNode *groupDates(CHistoryNode *oldList)
         case 0:
            t.tm_sec = 0;
            t.tm_min = 0;
-           strcpy(str, "Last Hour");
+           strcpy(str, _Tr("Last Hour"));
            break;
         case 1: 
            t.tm_hour = 0;
-           strcpy(str, "Today");
+           strcpy(str, _Tr("Today"));
            break;
         case 2:
         case 3:
@@ -789,25 +787,25 @@ CHistoryNode *groupDates(CHistoryNode *oldList)
         case 5:
            if (t.tm_wday < n.tm_wday) {
               t = subDay(t, t.tm_wday);
-              strcpy(str, "This Week");
+              strcpy(str, _Tr("This Week"));
            }
            else {
               t = subDay(t, t.tm_wday);
-              strcpy(str, "Last Week");
+              strcpy(str, _Tr("Last Week"));
               pass++;
            }
            break;
         case 6:
            t = subDay(t, 7);
-           strcpy(str, "Last Week");
+           strcpy(str, _Tr("Last Week"));
            break;
         case 7:
            t = subDay(t, 7);
-           strcpy(str, "2 Weeks Ago");
+           strcpy(str, _Tr("2 Weeks Ago"));
            break;
         case 8:
            t = subDay(t, 7);
-           strcpy(str, "3 Weeks Ago");
+           strcpy(str, _Tr("3 Weeks Ago"));
            break;
         case 9:
            if (t.tm_mday < n.tm_mday) {
@@ -840,7 +838,7 @@ CHistoryNode *groupDates(CHistoryNode *oldList)
 	   if (t.tm_year)
 	     itoa(1900 + t.tm_year, str, 10); 
 	   else
-	     strcpy(str, "Never");
+	     strcpy(str, _Tr("Never"));
           break;
       }
 
@@ -848,7 +846,7 @@ CHistoryNode *groupDates(CHistoryNode *oldList)
 
       if (tmp->lastVisit >= date) {
 
-         CHistoryNode *newFolder = new CHistoryNode(str, HISTORY_FOLDER, 0);
+         CHistoryNode *newFolder = new CHistoryNode(str, str, HISTORY_FOLDER, 0);
          while (tmp && (tmp->lastVisit > date)) {
 			 CHistoryNode *newNode = new CHistoryNode(tmp->url.c_str(), tmp->name.c_str(), HISTORY_BOOKMARK, tmp->lastVisit);
             newFolder->AddChild(newNode);
@@ -893,8 +891,8 @@ int CALLBACK ViewProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
    switch (uMsg){
    case WM_INITDIALOG:
       {
-         if (readHistory() == -1) {
-            MessageBox(NULL, "History file not found", "History", MB_OK);
+         if (!readHistory()) {
+            MessageBox(NULL, _Tr("Mozilla history reading failed"), _Tr("History"), MB_OK);
             ghWndView = NULL;
             error = 1;
             PostMessage(GetDlgItem(hDlg, IDCANCEL), BM_CLICK, 0, 0);
@@ -909,11 +907,11 @@ int CALLBACK ViewProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
          pos = 0;
          circling = 0;
          
-         freeNode = new CHistoryNode("Delete", HISTORY_FOLDER, 0);
+         freeNode = new CHistoryNode(_Tr("Delete"), _Tr("Delete"), HISTORY_FOLDER, 0);
 
          HICON hIcon;
-         char szFullPath[MAX_PATH];
-         FindSkinFile(szFullPath, "history-view.ico");
+         TCHAR szFullPath[MAX_PATH];
+         FindSkinFile(szFullPath, _T("history-view.ico"));
 
          if (*szFullPath==0 || (hIcon = (HICON)LoadImage( NULL, szFullPath, IMAGE_ICON, 0,0, LR_DEFAULTSIZE | LR_LOADFROMFILE ))==NULL)
             hIcon = (HICON)LoadImage( kPlugin.hDllInstance, MAKEINTRESOURCE(IDB_ICON), IMAGE_ICON, 0,0, LR_DEFAULTSIZE );
@@ -941,7 +939,7 @@ int CALLBACK ViewProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
          tvis.itemex.mask = TVIF_TEXT | TVIF_PARAM | TVIF_IMAGE | TVIF_SELECTEDIMAGE;
          tvis.itemex.iImage = IMAGE_FOLDER_SPECIAL_CLOSED;
          tvis.itemex.iSelectedImage = IMAGE_FOLDER_SPECIAL_OPEN;
-         tvis.itemex.pszText = "All URLs";
+         tvis.itemex.pszText = (TCHAR*)_Tr("All URLs");
          tvis.itemex.lParam = (long)&workingHist;
 
          // HTREEITEM newItem = TreeView_InsertItem(hTree, &tvis);
@@ -986,8 +984,8 @@ int CALLBACK ViewProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
             if (newNode == workingHist) {
                // root and separators have nothing
-               SetDlgItemText(hDlg, IDC_URL, "");
-               SetDlgItemText(hDlg, IDC_LAST_VISIT, "");
+               SetDlgItemText(hDlg, IDC_URL, _T(""));
+               SetDlgItemText(hDlg, IDC_LAST_VISIT, _T(""));
                EnableWindow(GetDlgItem(hDlg, IDC_STATIC_URL), false);
                EnableWindow(GetDlgItem(hDlg, IDC_URL), false);
                EnableWindow(GetDlgItem(hDlg, IDC_STATIC_VISITED), false);
@@ -999,8 +997,8 @@ int CALLBACK ViewProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
             EnableWindow(GetDlgItem(hDlg, IDC_STATIC_PROPERTIES), true);
 
             SYSTEMTIME st;
-            char pszTmp[1024];
-            char pszDate[900];
+            TCHAR pszTmp[1024];
+            TCHAR pszDate[900];
 
             if (newNode->type == HISTORY_BOOKMARK) {
                EnableWindow(GetDlgItem(hDlg, IDC_STATIC_URL), true);
@@ -1010,7 +1008,7 @@ int CALLBACK ViewProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                EnableWindow(GetDlgItem(hDlg, IDC_LAST_VISIT), true);
             }
             else {
-               SetDlgItemText(hDlg, IDC_URL, "");
+               SetDlgItemText(hDlg, IDC_URL, _T(""));
                EnableWindow(GetDlgItem(hDlg, IDC_STATIC_URL), false);
                EnableWindow(GetDlgItem(hDlg, IDC_URL), false);
                EnableWindow(GetDlgItem(hDlg, IDC_STATIC_VISITED), false);
@@ -1020,14 +1018,14 @@ int CALLBACK ViewProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
             if (newNode->lastVisit) {
                UnixTimeToSystemTime(newNode->lastVisit, &st);
                GetDateFormat(GetThreadLocale(), DATE_SHORTDATE, &st, NULL, pszDate, 899);
-               strcpy(pszTmp, pszDate);
-               strcat(pszTmp, " ");
+               _tcscpy(pszTmp, pszDate);
+               _tcscat(pszTmp, _T(" "));
                GetTimeFormat(GetThreadLocale(), NULL, &st, NULL, pszDate, 899);
-               strcat(pszTmp, pszDate);
+               _tcscat(pszTmp, pszDate);
                SetDlgItemText(hDlg, IDC_LAST_VISIT, pszTmp);
             }
             else {
-               SetDlgItemText(hDlg, IDC_LAST_VISIT, newNode->type == HISTORY_BOOKMARK ? "Never" : "");
+               SetDlgItemText(hDlg, IDC_LAST_VISIT, newNode->type == HISTORY_BOOKMARK ? _Tr("Never") : _T(""));
             }
          }
          else if (nmtv->hdr.code == (UINT) NM_DBLCLK){
@@ -1146,7 +1144,7 @@ int CALLBACK ViewProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                if (freeNode && freeNode->child) {
                   // This is not likely to be implemented in a while..
 
-                  MessageBox(NULL, "Deletion is not implemented", "History", MB_OK);
+                  MessageBox(NULL, _Tr("Deletion is not implemented"), _Tr("History"), MB_OK);
 
                   /*
                   freeNode->flatten();
@@ -1198,7 +1196,7 @@ static void FillTree(HWND hTree, HTREEITEM parent, CHistoryNode &node, int level
       else if (type == HISTORY_SEPARATOR) {
          tvis.itemex.iImage = IMAGE_BLANK;
          tvis.itemex.iSelectedImage = IMAGE_BLANK;
-         tvis.itemex.pszText = "---";
+         tvis.itemex.pszText = _T("---");
          TreeView_InsertItem(hTree, &tvis);
       }
       else {
