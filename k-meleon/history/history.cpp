@@ -32,6 +32,8 @@
 #include "..\KmeleonConst.h"
 #include "..\resource.h"
 
+#include "nsCOMPtr.h"
+#include "nsIBrowserHistory.h"
 
 #define PLUGIN_NAME "History Plugin"
 
@@ -80,6 +82,7 @@ int ID_HISTORY_FLAG = -1;
 int ID_HISTORY = -1;
 int ID_VIEW_HISTORY = -1;
 int ID_CONFIG_HISTORY = -1;
+int ID_CLEAR_HISTORY = -1;
 int wm_deferbringtotop = -1;
 HWND hWndFront;
 
@@ -132,7 +135,7 @@ int Load(){
    ID_HISTORY = kPlugin.kFuncs->GetCommandIDs(nHistoryLength);
    ID_VIEW_HISTORY = kPlugin.kFuncs->GetCommandIDs(1);
    ID_CONFIG_HISTORY = kPlugin.kFuncs->GetCommandIDs(1);
-
+   ID_CLEAR_HISTORY = kPlugin.kFuncs->GetCommandIDs(1);
 
    HBITMAP bitmap;
    int ilc_bits = ILC_COLOR;
@@ -242,6 +245,9 @@ void DoMenu(HMENU menu, char *param){
       }
       if (stricmp(action, "Config") == 0){
          command = ID_CONFIG_HISTORY;
+	  }
+	  if (stricmp(action, "Clear") == 0){
+         command = ID_CLEAR_HISTORY;
       }
       if (command && string && *string) {
          AppendMenu(menu, MF_STRING, command, string);
@@ -263,6 +269,8 @@ int DoAccel(char *param) {
       return ID_VIEW_HISTORY;
    if (stricmp(param, "Config") == 0)
       return ID_CONFIG_HISTORY;
+   if (stricmp(param, "clear") == 0)
+      return ID_CLEAR_HISTORY;
    return 0;
 }
 
@@ -413,6 +421,16 @@ void CondenseMenuText(char *buf, char *title, int index) {
       CondenseString(title, 43);
    
    strcpy(buf+3, title);
+
+void ClearHistory()
+{
+	nsresult rv;
+
+	//NS_GLOBALHISTORY2_CONTRACTID
+	nsCOMPtr<nsIBrowserHistory> BrowserHistory(do_GetService("@mozilla.org/browser/global-history;2", &rv));
+	if (NS_FAILED(rv)) return;
+
+	BrowserHistory->RemoveAllPages();
 }
 
 
@@ -468,6 +486,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
       else if (command == ID_CONFIG_HISTORY) {
          Config(hWnd);
          return 1;
+      }
+	  else if (command == ID_CLEAR_HISTORY) {
+		  ClearHistory();
+		  return TRUE;
       }
       else if (command == wm_deferbringtotop) {
          BringWindowToTop(hWnd);
