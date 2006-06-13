@@ -215,7 +215,7 @@ DIRECTION findDir(POINT p1, POINT p2) {
 
 static UINT  m_captured;
 static UINT  m_defercapture;
-
+kmeleonPointInfo* m_pInfo;
 static POINT m_posDown;
 static SYSTEMTIME m_stDown;
 static int m_virt;
@@ -229,6 +229,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 
         if (command == id_defercapture) {
             m_captured = m_defercapture;
+			m_pInfo = kPlugin.kFuncs->GetInfoAtClick(hWnd);
             SetCapture(hWnd);
         }
     }
@@ -377,11 +378,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 
         kPlugin.kFuncs->GetPreference(PREF_STRING, szPref, szTxt, (char*)"");
 
-        kmeleonPointInfo *pInfo = kPlugin.kFuncs->GetInfoAtPoint(m_posDown.x, m_posDown.y);
+        kmeleonPointInfo *pInfo = m_pInfo;
         if (pInfo) {
             if (pInfo->link)  strcat(szPref, "L");
             if (pInfo->image) strcat(szPref, "I");
         }
+
+		// HACK: Update the context menu variable of the browser
+		// Not doing all the time prevent popup menu to always show up in XUL window.
+		if (pInfo->link || pInfo->image)
+			kPlugin.kFuncs->GetInfoAtPoint(m_posDown.x, m_posDown.y);
 
         kPlugin.kFuncs->GetPreference(PREF_STRING, szPref, szTxt, szTxt);
 
