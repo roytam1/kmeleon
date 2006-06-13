@@ -19,14 +19,14 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
+#define _Tr(x) kPlugin.kFuncs->Translate(_T(x))
+
 #define PLUGIN_NAME "External Program Control Plugin"
-#define NO_OPTIONS "This plugin has no user configurable options."
+#define NO_OPTIONS _Tr("This plugin has no user configurable options.")
 
 #define KMELEON_PLUGIN_EXPORTS
 #include "..\kmeleon_plugin.h"
 #include "..\utils.h"
-
-#define _T(x) x
 
 int Load();
 void Create(HWND parent);
@@ -90,7 +90,7 @@ void Create(HWND hWndParent) {
 }
 
 void Config(HWND parent){
-   MessageBox(parent, NO_OPTIONS, PLUGIN_NAME, 0);
+   MessageBox(parent, NO_OPTIONS, _T(PLUGIN_NAME), 0);
 }
 
 
