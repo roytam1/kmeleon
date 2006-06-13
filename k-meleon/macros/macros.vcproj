@@ -21,7 +21,8 @@
 			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
-				Optimization="2"
+				Optimization="1"
+				GlobalOptimizations="TRUE"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;macros_EXPORTS"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
@@ -32,7 +33,8 @@
 				ProgramDataBaseFileName=".\Release/"
 				BrowseInformation="1"
 				WarningLevel="3"
-				SuppressStartupBanner="TRUE"/>
+				SuppressStartupBanner="TRUE"
+				DebugInformationFormat="3"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
@@ -41,6 +43,7 @@
 				OutputFile="\Program Files\K-Meleon\release\kplugins\$(ProjectName).dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
+				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile=".\Release/macros.pdb"
 				OptimizeForWindows98="1"
 				ImportLibrary=".\Release/macros.lib"
@@ -102,6 +105,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="comctl32.lib gdi32.lib user32.lib comdlg32.lib shell32.lib"
 				OutputFile="\Program Files\K-Meleon\debug\kplugins\$(ProjectName).dll"
+				LinkIncremental="2"
 				SuppressStartupBanner="TRUE"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile=".\Debug/macros.pdb"
