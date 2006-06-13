@@ -761,12 +761,13 @@ void Destroy(HWND hWnd){
     del_layer(hWnd);
     if (!ghCurHwnd || ghCurHwnd==hWnd)
       ghCurHwnd = hWndTmp;
-
+	//if (pLayer) {
     gwpOld.length = sizeof (WINDOWPLACEMENT);
     GetWindowPlacement(hWnd, &gwpOld);
     if (gwpOld.showCmd != SW_SHOWMAXIMIZED)
       gwpOld.showCmd = SW_RESTORE;
     PostMessage(ghCurHwnd, WM_COMMAND, id_resize, (LPARAM)&gwpOld);
+	//}
   }
 }
 
@@ -1124,7 +1125,7 @@ void DoRebar(HWND rebarWnd){
       RBBIM_STYLE | RBBIM_CHILD  | RBBIM_CHILDSIZE |
       RBBIM_SIZE | RBBIM_IDEALSIZE;
    
-   rbBand.fStyle = RBBS_CHILDEDGE | RBBS_FIXEDBMP | RBBS_VARIABLEHEIGHT;
+   rbBand.fStyle = RBBS_USECHEVRON | RBBS_CHILDEDGE | RBBS_FIXEDBMP | RBBS_VARIABLEHEIGHT;
    rbBand.lpText     = szTitle;
    rbBand.hwndChild  = ghWndTB;
    rbBand.cxMinChild = 0;
@@ -1192,6 +1193,41 @@ void UpdateRebarMenu(struct layer *pLayer)
    if (bRebarEnabled && pLayer && pLayer->hWndTB) {
       while (SendMessage(pLayer->hWndTB, TB_DELETEBUTTON, 0 /*index*/, 0));
       BuildRebar(pLayer->hWndTB, pLayer->hWnd);
+
+   // Compute the width needed for the toolbar
+   int ideal = 0;
+   int iCount, iButtonCount = SendMessage(pLayer->hWndTB, TB_BUTTONCOUNT, 0,0);
+   for ( iCount = 0 ; iCount < iButtonCount ; iCount++ )
+   {
+	   RECT rectButton;
+	   SendMessage(pLayer->hWndTB, TB_GETITEMRECT, iCount, (LPARAM)&rectButton);
+	   ideal += rectButton.right - rectButton.left;
+   }
+   HWND hReBar = FindWindowEx(pLayer->hWnd, NULL, REBARCLASSNAME, NULL);
+   int uBandCount = SendMessage(hReBar, RB_GETBANDCOUNT, 0, 0);  
+
+   REBARBANDINFO rb;
+   rb.cbSize = sizeof(REBARBANDINFO);
+   rb.fMask = RBBIM_CHILD;
+   for(int x=0;x < uBandCount;x++) {
+
+	   if (!SendMessage(hReBar, RB_GETBANDINFO, (WPARAM) x, (LPARAM) &rb))
+         continue;
+
+	  if (rb.hwndChild == pLayer->hWndTB)
+	  {
+		  if (iButtonCount<2)
+		      rb.fStyle = RBBS_HIDDEN;
+		  else
+			  rb.fStyle = RBBS_USECHEVRON | RBBS_CHILDEDGE | RBBS_FIXEDBMP | RBBS_VARIABLEHEIGHT;
+
+		  rb.fMask  = RBBIM_IDEALSIZE ;//| RBBIM_STYLE;
+		  rb.cxIdeal = ideal;
+
+		  SendMessage(hReBar, RB_SETBANDINFO, x, (LPARAM)&rb);
+		  break;
+	  }
+   }
    }
 }
 
