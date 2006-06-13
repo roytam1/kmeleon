@@ -29,13 +29,12 @@
 #include "..\\kmeleon_plugin.h"
 #include "..\\KMeleonConst.h"
 #include "..\\utils.h"
+#include "..\\strconv.h"
 #include "macros.h"
 #include <afxres.h>     // for ID_APP_EXIT
 
-#define _T(x) x
 
 #define NOTFOUND -1
-
 
 BOOL         APIENTRY DllMain(HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved );
 int          AddMacro();
@@ -75,6 +74,11 @@ std::string  strTrim(std::string instr);
 std::string  strVal(std::string input, int bOnlyQuotes = 0);
 
 
+#ifdef _UNICODE
+#define gUnicode TRUE
+#else
+BOOL gUnicode = FALSE;
+#endif
 
 kmeleonPlugin kPlugin = {
    KMEL_PLUGIN_VER,
@@ -128,6 +132,86 @@ std::string EscapeURL(std::string url)
 		if (c > 127) escaped = true;
 	}
 	return ret;
+}
+
+BOOL SetWindowTextUTF8(HWND hWnd, LPCTSTR lpString)
+{
+	if (gUnicode)
+		return SetWindowTextW(hWnd, CUTF8_to_UTF16(lpString));
+	else
+		return SetWindowTextA(hWnd, CUTF8_to_ANSI(lpString));
+}
+
+BOOL SetDlgItemTextUTF8(HWND hDlg, int nIDDlgItem, LPCTSTR lpString)
+{
+	if (gUnicode)
+		return SetDlgItemTextW(hDlg, nIDDlgItem, CUTF8_to_UTF16(lpString));
+	else
+		return SetDlgItemTextA(hDlg, nIDDlgItem, CUTF8_to_ANSI(lpString));
+}
+
+BOOL GetWindowTextUTF8(HWND hwnd, std::string & str)
+{
+	int len = GetWindowTextLength(hwnd) + 1;
+	if (len<=1) return FALSE;
+
+	if (gUnicode) {
+		WCHAR* tmp = (WCHAR*)malloc(len * sizeof(WCHAR));
+		if (!tmp) return FALSE;
+	
+		GetWindowTextW(hwnd, tmp, len);
+		str.assign(CUTF16_to_UTF8(tmp));
+		free(tmp);
+	}
+	else {
+		char* tmp = (char*)malloc(len * sizeof(char));
+		if (!tmp) return FALSE;
+
+		GetWindowTextA(hwnd, tmp, len);
+		str.assign(CANSI_to_UTF8(tmp));
+		free(tmp);
+	}
+	return TRUE;
+}
+
+UINT GetDlgItemTextUTF8(HWND hwnd, int nIDDlgItem, std::string & str)
+{
+	return GetWindowTextUTF8(GetDlgItem(hwnd, nIDDlgItem),  str);
+}
+
+UINT GetDlgItemTextUTF8(HWND hwnd, int nIDDlgItem, char* lpString, int nMaxCount)
+{
+	char *res = 0;
+	if (gUnicode)
+	{
+		WCHAR* tmp = (WCHAR*)malloc(nMaxCount * sizeof(WCHAR));
+		GetDlgItemTextW(hwnd, IDC_ANSWER, tmp, nMaxCount);
+		res = utf8_from_utf16(tmp);
+		free(tmp);
+	}
+	else
+	{
+		char* tmp = (char*)malloc(nMaxCount * sizeof(char));
+		GetDlgItemTextA(hwnd, IDC_ANSWER, tmp, nMaxCount);
+		res = utf8_from_ansi(tmp);
+		free(tmp);
+	}
+	if (res) {
+		int len = strlen(res);	
+		if (len>=nMaxCount) res[nMaxCount-1] = 0;
+		strcpy(lpString, res);
+		free(res);
+		return len;
+	}
+	return 0;
+}
+
+int MessageBoxUTF8(HWND hWnd, const char* lpText, const char* lpCaption, UINT uType)
+{
+	if (gUnicode)
+		return MessageBoxW(hWnd, CUTF8_to_UTF16(lpText), CUTF8_to_UTF16(lpCaption), uType);
+	else
+		return MessageBoxA(hWnd, CUTF8_to_ANSI(lpText), CUTF8_to_ANSI(lpCaption), uType);
 }
 
 long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2)
@@ -333,15 +417,22 @@ BOOL APIENTRY DllMain(HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserv
 int Load() {
    kFuncs = kPlugin.kFuncs;
    arglist = new ArgList;
+   
+#ifndef _UNICODE
+   OSVERSIONINFO osinfo;
+   osinfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+   GetVersionEx(&osinfo);
+   gUnicode = (osinfo.dwPlatformId == VER_PLATFORM_WIN32_NT);
+#endif
 
-   char szMacroFile[MAX_PATH];
+   TCHAR szMacroFile[MAX_PATH];
 
-   kFuncs->GetPreference(PREF_STRING, "kmeleon.general.settingsDir", szMacroFile, (void*)"");
+   kFuncs->GetPreference(PREF_TSTRING, "kmeleon.general.settingsDir", szMacroFile, (void*)_T(""));
 
    if (! *szMacroFile)
       return 0;
 
-   strcat(szMacroFile, "macros.cfg");
+   _tcscat(szMacroFile, _T("macros.cfg"));
 
    LoadMacros(szMacroFile);
    ID_START = kFuncs->GetCommandIDs(iMacroCount);
@@ -364,10 +455,10 @@ void Create(HWND hWndParent) {
 }
 
 void Config(HWND hWndParent) {
-   char cfgPath[MAX_PATH];
-   kFuncs->GetPreference(PREF_STRING, _T("kmeleon.general.settingsDir"), cfgPath, (void*)"");
-   strcat(cfgPath, "macros.cfg");
-   ShellExecute(NULL, NULL, "notepad.exe", cfgPath, NULL, SW_SHOW);
+   TCHAR cfgPath[MAX_PATH];
+   kFuncs->GetPreference(PREF_TSTRING, "kmeleon.general.settingsDir", cfgPath, (void*)_T(""));
+   _tcscat(cfgPath, _T("macros.cfg"));
+   ShellExecute(NULL, NULL, _T("notepad.exe"), cfgPath, NULL, SW_SHOW);
 }
 
 configFileType g_configFiles[1];
@@ -375,7 +466,7 @@ configFileType g_configFiles[1];
 int GetConfigFiles(configFileType **configFiles)
 {
    char cfgPath[MAX_PATH];
-   kFuncs->GetPreference(PREF_STRING, _T("kmeleon.general.settingsDir"), cfgPath, (void*)"");
+   kFuncs->GetPreference(PREF_STRING, "kmeleon.general.settingsDir", cfgPath, (void*)_T(""));
 
    strcpy(g_configFiles[0].file, cfgPath);
    strcat(g_configFiles[0].file, "macros.cfg");
@@ -436,6 +527,7 @@ void Quit() {
    delete arglist;
 
 }
+
 void DoMenu(HMENU menu, char *param) {
    if (*param) {
       char *string = strchr(param, ',');
@@ -492,7 +584,7 @@ int DoAccel(char *param) {
       char *arg = strchr(param, '(');
       if (arg) {
 	*(arg++) = 0;
-	char *p = strchr(arg, ')');
+	char *p = strrchr(arg, ')');
 	if (p) {
 	  *p = 0;
 	  id = arglist->add(param, arg);
@@ -725,19 +817,21 @@ PromptDlgProc( HWND hwnd,
 	      LPARAM lParam )
 {
     switch (Message) {
-      case WM_INITDIALOG:
-	SetWindowText(hwnd, (char*)title.c_str());
-	SetDlgItemText(hwnd, IDC_PROMPT, (char*)question.c_str());
-	SetDlgItemText(hwnd, IDC_ANSWER, (char*)instring.c_str());
+      case WM_INITDIALOG: {
+	    SetWindowTextUTF8(hwnd, title.c_str());
+        SetDlgItemTextUTF8(hwnd, IDC_PROMPT, question.c_str());
+        SetDlgItemTextUTF8(hwnd, IDC_ANSWER, instring.c_str());
         return TRUE;
+					}
       case WM_COMMAND:
         switch (LOWORD(wParam)) {
-	  case IDOK:
+	  case IDOK: {
 	    char tmp[256];
-	    GetDlgItemText(hwnd, IDC_ANSWER, tmp, 256);
+		GetDlgItemTextUTF8(hwnd, IDC_ANSWER, tmp, 256);
 	    answer = tmp;
 	    EndDialog( hwnd, IDOK );
 	    break;
+				 }
 	  case IDCANCEL:
 	    EndDialog( hwnd, IDCANCEL );
 	    break;
@@ -822,7 +916,12 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
 			parseError(WRONGARGS, "_", data, 1, nparam);
             return "";
          }
-		   return protectString( (char*)kFuncs->Translate(params[0].c_str()) );
+
+		   return protectString( 
+			 (LPCSTR)CANSI_to_UTF8(
+			   kFuncs->Translate( 
+			     (LPCSTR)CUTF8_to_ANSI(params[0].c_str()) ) ) );
+
 	   }
 
       CMD(open) {
@@ -856,7 +955,7 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
 
          if (!strcmpi((char*)params[0].c_str(), "bool")) preftype = PREF_BOOL;
          else if (!strcmpi((char*)params[0].c_str(), "int")) preftype = PREF_INT;
-         else if (!strcmpi((char*)params[0].c_str(), "string")) preftype = PREF_STRING;
+         else if (!strcmpi((char*)params[0].c_str(), "string")) preftype = PREF_TSTRING;
          else {
             parseError(WRONGTYPE, "setpref", data);
             return "";
@@ -868,8 +967,8 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
          //  as well as submitting a patch
          if (data) {
 
-            if (preftype == PREF_STRING)
-               kFuncs->SetPreference(preftype, pref, data, TRUE);
+			 if (preftype == PREF_TSTRING)
+				 kFuncs->SetPreference(preftype, pref, (void*)(const char*)CUTF8_to_T(data), TRUE);
 
             else if (preftype == PREF_INT) {
 	      if (*data) {
@@ -900,20 +999,19 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
 
          if (!strcmpi((char*)params[0].c_str(), "bool")) preftype = PREF_BOOL;
          else if (!strcmpi((char*)params[0].c_str(), "int")) preftype = PREF_INT;
-         else if (!strcmpi((char*)params[0].c_str(), "string")) preftype = PREF_STRING;
+         else if (!strcmpi((char*)params[0].c_str(), "string")) preftype = PREF_TSTRING;
          else {
 			parseError(WRONGTYPE, "getpref", data);
             return "";
          }
 
-         char* cRetval;
          int nRetval = 0;
-         if (preftype == PREF_STRING) {
-			long len = kFuncs->GetPreference(preftype,(char*)params[1].c_str(),0,0);			
-			cRetval = (char*)calloc(sizeof(char), len+1);
-			kFuncs->GetPreference(preftype,(char*)params[1].c_str(),cRetval,"");
+         if (preftype == PREF_TSTRING) {
+			long len = kFuncs->GetPreference(preftype,(char*)params[1].c_str(),0,&_T(""));			
+			TCHAR* cRetval = (TCHAR*)calloc(sizeof(TCHAR), len+1);
+			kFuncs->GetPreference(preftype,(char*)params[1].c_str(),cRetval,&_T(""));
             std::string strRet;
-            strRet = protectString( cRetval );
+			strRet = protectString(CT_to_UTF8(cRetval));
 			free(cRetval);
             return strRet;
          }
@@ -931,7 +1029,6 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
          return "";
       }
       CMD(delpref)   {
-
          if (nparam != 1) {  // setpref( $0 )
             parseError(WRONGARGS, "delpref", data, 1, nparam);
             return "";
@@ -946,7 +1043,7 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
          if (nparam) {
             if (!strcmpi((char*)params[0].c_str(), "bool")) preftype = PREF_BOOL;
             else if (!strcmpi((char*)params[0].c_str(), "int")) preftype = PREF_INT;
-            else if (!strcmpi((char*)params[0].c_str(), "string")) preftype = PREF_STRING;
+            else if (!strcmpi((char*)params[0].c_str(), "string")) preftype = PREF_TSTRING;
             else {
                parseError(WRONGTYPE, "togglepref", data);
                return "";
@@ -959,12 +1056,18 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
             return "";
          }
 
-         char sVal[256];
          int  iVal=0;
-         char *pref = (char*)params[1].c_str();
+         const char *pref = params[1].c_str();
+		 std::string sVal;
 
-         if (preftype == PREF_STRING)
-            kFuncs->GetPreference(preftype, pref, &sVal, NULL);
+		 if (preftype == PREF_TSTRING) {
+			long len = kFuncs->GetPreference(preftype,(char*)params[1].c_str(),0,0);			
+			TCHAR* tmp = (TCHAR*)calloc(sizeof(TCHAR), len+1);
+			kFuncs->GetPreference(preftype,pref,tmp,&_T(""));
+			sVal = CT_to_UTF8(tmp);
+			free(tmp);
+		 }
+
          else {
             kFuncs->GetPreference(preftype, pref, &iVal, &iVal);
             if (preftype == PREF_BOOL) {
@@ -984,11 +1087,11 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
          BOOL bPrefWritten = FALSE;
          while (!bPrefWritten && t.nextToken( &str)) {
             char *param = (char*)str.c_str();
-            if (preftype == PREF_STRING) {
-               if (!strcmp(param, sVal)) {
+            if (preftype == PREF_TSTRING) {
+               if (!strcmp(param, sVal.c_str())) {
                   if (t.nextToken( &str )) {
                      param = (char*)str.c_str();
-                     kFuncs->SetPreference(preftype, pref, param, TRUE);
+					 kFuncs->SetPreference(preftype, pref, (void*)(const char*)CUTF8_to_T(param), TRUE);
                   }
                   else
                      kFuncs->SetPreference(preftype, pref, prefdata, TRUE);
@@ -1012,8 +1115,8 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
          }
 
          if (!bPrefWritten) {
-            if (preftype == PREF_STRING)
-               kFuncs->SetPreference(preftype, pref, prefdata, TRUE);
+			if (preftype == PREF_TSTRING)
+                 kFuncs->SetPreference(preftype, pref, (void*)(const char*)CUTF8_to_T(prefdata), TRUE);
             else if (preftype == PREF_INT) {
                int val = atoi(prefdata);
                kFuncs->SetPreference(preftype, pref, &val, TRUE);
@@ -1021,11 +1124,18 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
          }
       }
 
-
       CMD(exec) {
          STARTUPINFO si = {0};
          PROCESS_INFORMATION pi = {0};
-         CreateProcess(NULL, (char*)params[0].c_str(), NULL, NULL, FALSE, NORMAL_PRIORITY_CLASS, NULL, NULL, &si, &pi);
+
+#ifdef _UNICODE
+		 CUTF8_to_UTF16 strcommand(params[0].c_str());
+#else
+		 CUTF8_to_ANSI strcommand(params[0].c_str());
+#endif
+		 TCHAR command[MAX_PATH];
+		 ExpandEnvironmentStrings(strcommand, command, MAX_PATH);
+     	 CreateProcess(NULL, command, NULL, NULL, FALSE, NORMAL_PRIORITY_CLASS, NULL, NULL, &si, &pi);
       }
 
       CMD(id) {
@@ -1052,7 +1162,7 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
             parseError(WRONGARGS, "statusbar", data, 1, nparam);
             return "";
          }
-         kPlugin.kFuncs->SetStatusBarText((char*)params[0].c_str());
+	     kPlugin.kFuncs->SetStatusBarText(CUTF8_to_T(params[0].c_str()));
          return "";
       }
       CMD(alert) {
@@ -1064,7 +1174,8 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
          else if(strcmpi(params[2].c_str(),"STOP")==0) icon=MB_ICONSTOP;         
          else if(strcmpi(params[2].c_str(),"QUESTION")==0) icon=MB_ICONQUESTION;         
 
-         MessageBox(hWnd,params[0].c_str(),params[1].c_str(), MB_OK|icon|MB_TASKMODAL);
+		 MessageBoxUTF8(hWnd, params[0].c_str(), params[1].c_str(), MB_OK|icon|MB_TASKMODAL);
+
          return "";
       }
       CMD(confirm) {
@@ -1082,7 +1193,7 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
          else if(strcmpi(params[3].c_str(),"STOP")==0) icon=MB_ICONSTOP;         
          else if(strcmpi(params[3].c_str(),"QUESTION")==0) icon=MB_ICONQUESTION;         
 
-         int result = MessageBox(hWnd,params[0].c_str(),params[1].c_str(), buttons|icon|MB_TASKMODAL);
+	     int result = MessageBoxUTF8(hWnd, strVal(params[0], -1).c_str(), params[1].c_str(), buttons|icon|MB_TASKMODAL);
          if(result == IDOK) return "OK";
          if(result == IDYES) return "YES";
          if(result == IDNO) return "NO";
@@ -1099,11 +1210,20 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
             parseError(WRONGARGS, "prompt", data, 3, nparam);
             return "";
          }
-	question = params[0];
+
+
+	question = strVal(params[0],-1);
 	title = params[1];
 	instring = params[2];
-	int ok = DialogBox(kPlugin.hDllInstance,
-		  MAKEINTRESOURCE(IDD_PROMPT), hWnd, (DLGPROC)PromptDlgProc);
+	int ok;
+
+	if (gUnicode)
+		ok = DialogBoxW(kPlugin.hDllInstance,
+		  MAKEINTRESOURCEW(IDD_PROMPT), hWnd, (DLGPROC)PromptDlgProc);
+	else
+		ok = DialogBoxA(kPlugin.hDllInstance,
+		  MAKEINTRESOURCEA(IDD_PROMPT), hWnd, (DLGPROC)PromptDlgProc);
+
 	PostMessage(hWnd, WM_NULL, 0, 0);
 	if (ok == IDOK) {
 	   answer = protectString( (char*)answer.c_str() );
@@ -1115,59 +1235,107 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
 
       CMD(getclipboard) {
          // get and return data from the clipboard
+	
+         if(  !IsClipboardFormatAvailable(CF_UNICODETEXT)
+			 && !IsClipboardFormatAvailable(CF_TEXT) )
+			 return "";
 
-         if(!IsClipboardFormatAvailable(CF_TEXT)) return "";
          if(!OpenClipboard(NULL)) {
             DoError("Error opening the clipboard.");
             return "";
          }
 
-         char* pszData;
+         void* pszData;
          LPVOID pData;
          HANDLE hcb;
-         hcb = GetClipboardData(CF_TEXT);
+
+		 if (gUnicode) {
+			hcb = GetClipboardData(CF_UNICODETEXT);
+		}
+		 else {
+			hcb = GetClipboardData(CF_TEXT);
+		 }
+		 
 		 if (!hcb) {
 			 CloseClipboard();
 			 return ""; 
 		 }
+
          pData = GlobalLock(hcb);
-         pszData = (char*)malloc(strlen((char*)pData) + 1);
-         strcpy(pszData, (LPSTR)pData);
+		 if (gUnicode){
+             pszData = malloc( sizeof(WCHAR)* (wcslen((WCHAR*)pData) + 1) );
+			 wcscpy((WCHAR*)pszData, (LPWSTR)pData);
+		 }
+		 else
+		 {
+			 pszData = malloc( sizeof(char)* (strlen((char*)pData) + 1) );
+			 strcpy((char*)pszData, (LPSTR)pData);
+		 }
+
          GlobalUnlock(hcb);
           
          CloseClipboard();
 
          // put the clipboard data in quotes to distinguish it from commands
          std::string retval;
-		 retval = protectString( pszData );
+		 char* tmp = 0;
+		 if (gUnicode)
+			 tmp = utf8_from_utf16((const WCHAR*)pszData);
+		 else
+			 tmp = utf8_from_ansi((const char*)pszData);
+		 if (tmp) {
+			retval = protectString( tmp );
+			free(tmp);
+		 }
+
 		 free(pszData);
          return retval;
      }
 
       CMD(setclipboard) {
          // set data to the clipboard
-
          if(!OpenClipboard(NULL)) {
             DoError("Error opening the clipboard.");
             return "";
          }
-
-         char *pszData = (char*)params[0].c_str();
+		 
+		 int len, datasize, clipformat;
+		 void* pszData;
+		 if (gUnicode) {
+			pszData = (void*)utf16_from_utf8(params[0].c_str());
+			datasize = sizeof(wchar_t);
+			len = wcslen((wchar_t*)pszData);
+			clipformat = CF_UNICODETEXT;
+			}
+		 else {
+			 pszData = (void*)ansi_from_utf8(params[0].c_str());
+			 datasize = sizeof(char);
+			 len = strlen((char*)pszData); 
+			 clipformat = CF_TEXT;
+		 }
+		
          HGLOBAL hData;
          LPVOID pData;
 
          EmptyClipboard();
+		 std::string ret = "0";
+		 
+		 hData = GlobalAlloc(GMEM_DDESHARE|GMEM_MOVEABLE,datasize*(len + 1));
+		 if (hData) {
+			pData = GlobalLock(hData);
+			if (gUnicode)
+				wcscpy((LPWSTR)pData, (wchar_t*)pszData);
+			else
+				strcpy((LPSTR)pData, (char*)pszData);
+			GlobalUnlock(hData);
+		
+			SetClipboardData(clipformat, hData);
 
-         hData = GlobalAlloc(GMEM_DDESHARE|GMEM_MOVEABLE,strlen(pszData) + 1);
-
-         pData = GlobalLock(hData);
-         strcpy((LPSTR)pData, pszData);
-         GlobalUnlock(hData);
-
-         SetClipboardData(CF_TEXT, hData);
-         CloseClipboard();
-
-         return "1";
+	        ret = "1";
+		 }
+		 CloseClipboard();
+		 free(pszData);
+		 return ret;
       }
       CMD(macros) {
          // execute another macro
@@ -1199,8 +1367,12 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
             parseError(WRONGARGS, "PluginMsg", data, 4, nparam);
             return "";
          }
-
-         kFuncs->SendMessage((char*)params[0].c_str(), PLUGIN_NAME, (char*)params[1].c_str(), (long) params[2].c_str(), (long) params[3].c_str());
+		 
+		 kFuncs->SendMessage(CUTF8_to_ANSI(params[0].c_str()),
+							 PLUGIN_NAME, 
+							 CUTF8_to_ANSI(params[1].c_str()), 
+							 (long) (const char*)CUTF8_to_ANSI(params[2].c_str()), 
+							 (long) (const char*)CUTF8_to_ANSI(params[3].c_str()));
          return "";
          
       }
@@ -1233,23 +1405,35 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
 			   parseError(WRONGTYPE, "PluginMsgEx", data);
             return "";
          }
-
+		 std::string strRet;
          if (preftype == PREF_STRING) {
             char *cRetval = NULL;
-            kFuncs->SendMessage((char*)params[0].c_str(), PLUGIN_NAME, (char*)params[1].c_str(), (long) params[2].c_str(), (long) &cRetval);
-            std::string strRet;
-            strRet = protectString( cRetval ? cRetval : "" );
-	    if (cRetval) free(cRetval);
-            return strRet;
+			strRet = protectString("");
+           
+			kFuncs->SendMessage(
+				CUTF8_to_ANSI(params[0].c_str()), 
+				PLUGIN_NAME, 
+				CUTF8_to_ANSI(params[1].c_str()), 
+				(long) (const char*)CUTF8_to_ANSI(params[2].c_str()), 
+				(long) &cRetval);
+
+			if (cRetval)
+               strRet = protectString(CANSI_to_UTF8(cRetval));
          }
          else if (preftype == PREF_INT) {
             int nRetval = 0;
-            kFuncs->SendMessage((char*)params[0].c_str(), PLUGIN_NAME, (char*)params[1].c_str(), (long) params[2].c_str(), (long) &nRetval);
+
+            kFuncs->SendMessage(
+				CUTF8_to_ANSI(params[0].c_str()), 
+				PLUGIN_NAME, 
+				CUTF8_to_ANSI(params[1].c_str()), 
+				(long) (const char*)CUTF8_to_ANSI(params[2].c_str()), 
+				(long) &nRetval);
             char buffer[12];
             _itoa(nRetval,buffer,10);
-            return buffer;
+             strRet = buffer;
          }
-         return "";
+         return strRet;
       }
 
       /*
@@ -1526,9 +1710,9 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
             return "";
          }
 		 
-		  std::string filter = params[1] + std::string("|") + params[2] + std::string("||");
+		 std::string filter = params[1] + std::string("|") + params[2] + std::string("||");
 
-		 TCHAR* pszFilter = (TCHAR*)filter.c_str();
+		 TCHAR* pszFilter = t_from_utf8(filter.c_str());
 		 if (!pszFilter) return "";
 
 		 for (TCHAR* p = pszFilter; *p; p++)
@@ -1542,18 +1726,20 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
 		 ofn.lpstrFile = new TCHAR[MAX_PATH]; 
 		 ofn.lpstrFile[0] = 0;
 		 ofn.nMaxFile = MAX_PATH;
-		 if (!params[0].empty()) {
-			ofn.lpstrFilter = params[0].c_str();
-		 }
+		 if (!params[0].empty())
+		    ofn.lpstrInitialDir = t_from_utf8(params[0].c_str());
+
 		 ofn.Flags = OFN_HIDEREADONLY | OFN_FILEMUSTEXIST;
 		 std::string ret;
 		 if( ::GetOpenFileName(&ofn) ) 
-			ret = protectString(ofn.lpstrFile);
+			 ret = protectString(CT_to_UTF8(ofn.lpstrFile));
 		 else
 		 	ret = protectString("");
 		 delete[] ofn.lpstrFile;
 		 free(pszFilter);
-         
+		 if (ofn.lpstrInitialDir)
+			 free((void*)ofn.lpstrInitialDir);
+        
 		 return ret;
 	  }
       /*
@@ -1566,7 +1752,7 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
             return "";
          }
 
-         kFuncs->SetForceCharset(nparam < 1 ? "" : (char*)params[0].c_str());
+         kFuncs->SetForceCharset(nparam < 1 ? "" : (char*)strVal(params[0], 1).c_str());
 	 return "";
       }
 
@@ -1608,12 +1794,12 @@ bool IsNumber(const char* string)
 	return true;
 }
 
-void LoadMacros(char *filename) {
+void LoadMacros(TCHAR *filename) {
    HANDLE macroFile;
 
    macroFile = CreateFile(filename, GENERIC_READ, 0, NULL, OPEN_ALWAYS, (WPARAM)NULL, NULL);
    if (macroFile == INVALID_HANDLE_VALUE) {
-      MessageBox(NULL, "Could not open file", filename, MB_OK);
+      MessageBox(NULL, _Tr("Could not open file"), filename, MB_OK);
       return;
    }
    DWORD length = GetFileSize(macroFile, NULL);
@@ -1681,6 +1867,11 @@ void LoadMacros(char *filename) {
          thisLine = strTrim(thisLine);
       }
 
+        // Convert data to UTF8.
+	    char* utf8 = utf8_from_ansi(thisLine.c_str());
+		thisLine = utf8;
+		free(utf8);
+
       // if the line starts with a ! it's a macro option so we'll strip the ! and
       // any whitespace then set the option if it's recognized
       pos = 0;
@@ -1690,7 +1881,6 @@ void LoadMacros(char *filename) {
          //SetOption(thisLine);
          continue;
       }
-
 
       // the only things that can be outside a macro def are comments,options and 
       // global variable declarations and assignments
@@ -2443,12 +2633,22 @@ std::string GetGlobalVarVal(HWND hWnd, char *name, int *found)
       return sGlobalArg;
    }
 
-   int retLen = kPlugin.kFuncs->GetGlobalVar(PREF_STRING, name, NULL);
+   int retLen = kPlugin.kFuncs->GetGlobalVar(PREF_UNISTRING, name, NULL);
+   if (retLen!=-1) {
+      *found = 1;
+      wchar_t *retVal = new wchar_t[retLen+1];
+      kPlugin.kFuncs->GetGlobalVar(PREF_UNISTRING, name, retVal);
+      sGlobalVar = CUTF16_to_UTF8(retVal);
+      delete retVal;
+      return sGlobalVar;
+   }
+
+   retLen = kPlugin.kFuncs->GetGlobalVar(PREF_STRING, name, NULL);
    if (retLen!=-1) {
       *found = 1;
       char *retVal = new char[retLen+1];
       kPlugin.kFuncs->GetGlobalVar(PREF_STRING, name, retVal);
-      sGlobalVar = retVal;
+      sGlobalVar = CANSI_to_UTF8(retVal);
       delete retVal;
       return sGlobalVar;
    }
@@ -2507,8 +2707,7 @@ int AddVar() {
 /************* misc *******************/
 /**** DoError ******/
 void DoError(char* msg) {
-   MessageBox(NULL,msg,"Error",MB_OK);
-
+   MessageBoxUTF8(NULL,msg,"Error",MB_OK);
 }
 
 /**** strTrim ***/
