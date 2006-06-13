@@ -2681,6 +2681,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
       }
       }
       break;
+   case WM_ACTIVATE:
+	   if ( LOWORD(wParam) == WA_ACTIVE
+		   || LOWORD(wParam) == WA_CLICKACTIVE) {	
+
+	      // Let k-meleon update the last browser frame value.
+		  LRESULT result = CallWindowProc(KMeleonWndProc, hWnd, message, wParam, lParam);
+	   	  int index = FindMacro("OnActivateWindow");
+		  if (index != NOTFOUND) 
+            ExecuteMacro(hWnd, index);
+	      return result;
+	   }
    }
 
    return CallWindowProc(KMeleonWndProc, hWnd, message, wParam, lParam);
