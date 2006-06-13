@@ -17,10 +17,8 @@
 */
 
 #define BOOKMARKS_TITLE_LEN 64
-
-#define _T(x) TEXT(x)
+#define _Tr(x) kPlugin.kFuncs->Translate(x)
 #define _Q(x) #x
-
 #define PLUGIN_NAME "Netscape Bookmark Plugin"
 
 #define PREFERENCE_BOOKMARK_FILE   "kmeleon.plugins.bookmarks.bookmarkFile"
@@ -46,20 +44,20 @@
 // #define CONTENT_TYPE_TAG "<META HTTP-EQUIV=\"Content-Type\" CONTENT=\"text/html; charset=UTF-8\">"
 #define CONTENT_TYPE_TAG "<META HTTP-EQUIV=\"Content-Type\""
 
-#define BOOKMARKS_DEFAULT_FILENAME "bookmarks.html"
-#define BOOKMARKS_FILTER "Bookmark Files\0bookmark.htm;bookmarks.html;bookmark.htm\0HTML Files\0*.htm;*.html\0"
-#define BOOKMARKS_DEFAULT_TITLE "Bookmarks"
-#define BOOKMARKS_NOT_FOUND "Your existing bookmarks file could not be found.\n\n" \
-                            "Would you like to locate this file now?\n\n" \
-                            "(Press No to create a new bookmarks file)"
-#define BOOKMARKS_CREATING_NEW "K-Meleon will create a new, empty bookmark file for you"
-#define BOOKMARKS_NOT_BY_US "The Bookmarks file was not created by this plugin.  Would you like to save your changes?"
-#define BOOKMARKS_SAVE_CHANGES "Would you like to save your changes?"
-#define BOOKMARKS_CANCEL_CHANGES "Warning: all changes will be lost. Are you sure you want to close the bookmark editor?"
-#define BOOKMARKS_CANCEL_CAPTION "Close Bookmarks Editor"
+#define BOOKMARKS_DEFAULT_FILENAME _T("bookmarks.html")
+#define BOOKMARKS_FILTER _T("Bookmark Files|bookmark.htm;bookmarks.html;bookmark.htm|HTML Files|*.htm;*.html|")
+#define BOOKMARKS_DEFAULT_TITLE _T("Bookmarks")
+#define BOOKMARKS_NOT_FOUND _T("Your existing bookmarks file could not be found.\n\n") \
+                            _T("Would you like to locate this file now?\n\n") \
+                            _T("(Press No to create a new bookmarks file)")
+#define BOOKMARKS_CREATING_NEW _T("K-Meleon will create a new, empty bookmark file for you")
+#define BOOKMARKS_NOT_BY_US _T("The Bookmarks file was not created by this plugin.  Would you like to save your changes?")
+#define BOOKMARKS_SAVE_CHANGES _T("Would you like to save your changes?")
+#define BOOKMARKS_CANCEL_CHANGES _T("Warning: all changes will be lost. Are you sure you want to close the bookmark editor?")
+#define BOOKMARKS_CANCEL_CAPTION _T("Close Bookmarks Editor")
 
 #define TOOLBAND_NAME "Bookmarks"
-#define TOOLBAND_FAILED_TO_CREATE "Failed to create bookmark toolbar"
+#define TOOLBAND_FAILED_TO_CREATE _T("Failed to create bookmark toolbar")
 #define TOOLBAND_MAX_BUTTONS  42    // this seems like as good a number as any
 
 #define IMAGE_BLANK         -1
