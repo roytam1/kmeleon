@@ -1757,6 +1757,7 @@ static void OnRClick(HWND hTree)
          }
          break;
       }
+	  DestroyMenu(topMenu);
    }
 }
 
