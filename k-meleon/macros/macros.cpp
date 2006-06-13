@@ -19,6 +19,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <commdlg.h>
+#include <shlobj.h>
 #include <shellapi.h>
 #include <stdlib.h>
 #include <string>
@@ -321,7 +322,9 @@ enum commands {
    injectCSS,
    forcecharset,
    readfile,
+   readreg,
    promptforfile,
+   promptforfolder,
    setcheck, 
    _,
    urlencode
@@ -645,7 +648,9 @@ int FindCommand(char *cmd) {
 	  CMD_TEST(injectJS)
 	  CMD_TEST(injectCSS)
 	  CMD_TEST(readfile)
+	  CMD_TEST(readreg)
 	  CMD_TEST(promptforfile)
+	  CMD_TEST(promptforfolder)
       CMD_TEST(forcecharset)
 
    return cmdVal;
@@ -805,6 +810,20 @@ static void parseError(int err, char *cmd, char *args, int data1=0, int data2=0)
    delete [] msg;
 }
 
+int CALLBACK BrowseProc(      
+    HWND hwnd,
+    UINT uMsg,
+    LPARAM lParam,
+    LPARAM lpData
+)
+{
+	if (uMsg == BFFM_INITIALIZED)
+		SendMessage(hwnd, BFFM_SETSELECTION, true, lpData);
+	else if (uMsg == BFFM_VALIDATEFAILED)
+		return 1;
+	return 0;
+}
+
 std::string title = "";
 std::string question = "";
 std::string instring = "";
@@ -844,7 +863,8 @@ PromptDlgProc( HWND hwnd,
     return TRUE;
 }
 
-std::string protectString( char *pszData ) {
+std::string protectString( const char *pszData ) {
+   if (!pszData) return "\"\"";
    // put the clipboard data in quotes to distinguish it from commands
    std::string retval = "\"";
    retval.append(pszData);  // the clipboard data
@@ -1704,6 +1724,102 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
 		 return protectString("");
 	  }
 
+	  CMD(readreg) {
+		  if (nparam != 2) {
+			parseError(WRONGARGS, "readreg", data, 2, nparam);
+            return "";
+         }
+		
+	     HKEY root;
+         if (params[0] == "HKLM") root = HKEY_LOCAL_MACHINE;
+		 else if (params[0] == "HKCU") root = HKEY_CURRENT_USER;
+		 else if (params[0] == "HKCR") root = HKEY_CLASSES_ROOT;
+		 else if (params[0] == "HKU") root = HKEY_USERS;
+		 else if (params[0] == "HKCC") root = HKEY_CURRENT_CONFIG;
+
+		 TCHAR* keyPath = t_from_utf8(params[1].c_str());
+		 if (!keyPath) return "";
+
+		 TCHAR* name = keyPath + _tcslen(keyPath);
+		 while (name>keyPath && *name!=_T('\\'))
+			 name--;
+		 
+		 if (name != keyPath)
+			*name++ = 0;
+		 else 
+			 name = NULL;
+
+		 HKEY key;
+		 if (RegOpenKeyEx(root, keyPath, 0, KEY_READ, &key) != ERROR_SUCCESS) {
+			free(keyPath);			
+			return "";
+		 }
+      
+		 std::string ret;
+		 DWORD dwSize, dwType;
+		 if (RegQueryValueEx(key, name, 0, &dwType, NULL, &dwSize) == ERROR_SUCCESS &&
+			 dwSize>0)
+		 {
+  		   
+  		   LPBYTE lpData = (LPBYTE)malloc(dwSize);
+		   if (lpData)
+		   {
+			 if (RegQueryValueEx(key, name, 0, &dwType, lpData, &dwSize) == ERROR_SUCCESS)
+			 {
+				if (dwType == REG_DWORD)
+				{
+					char dword[33];
+					_itoa(*((LPDWORD)lpData), dword, 10);
+					ret = protectString(dword);
+				}
+				else
+				{
+					char* str = utf8_from_t((LPTSTR)lpData)
+					if (str) {
+						ret = protectString(str);
+						free(str);
+					}
+				}
+			 }
+			 free(lpData);
+		   }
+		 }
+		 free(keyPath);
+		 RegCloseKey(key);
+		 return ret;
+	  }
+
+	  CMD(promptforfolder) {
+		  if (nparam > 2) {
+			parseError(WRONGARGS, "promptforfolder", data, 1, nparam);
+            return "";
+         }
+
+		  TCHAR* caption = t_from_utf8(params[0].c_str());
+		  if (!caption) return "";
+
+		  TCHAR* initFolder = NULL;
+		  if (params[1].length())
+			  initFolder = t_from_utf8(params[1].c_str());
+
+          LPITEMIDLIST pidlRetBrowse = NULL, pidlRoot = NULL;
+		  
+		  CoInitialize(NULL);
+		  std::string ret;
+		  LPITEMIDLIST idl; 
+		  TCHAR pszDisplayName[MAX_PATH];
+		  BROWSEINFO bi = {hWnd, NULL, pszDisplayName, caption, BIF_EDITBOX | BIF_NEWDIALOGSTYLE,BrowseProc,(LPARAM)initFolder,NULL};
+		  idl = SHBrowseForFolder(&bi);
+		  if (idl != NULL)
+		  {
+			  if (SHGetPathFromIDList(idl, pszDisplayName))
+				  ret = protectString(CT_to_UTF8(pszDisplayName));
+			  CoTaskMemFree(idl);
+		  }
+		  CoUninitialize();
+		  return ret;
+	  }
+
 	  CMD(promptforfile) {
 		  if (nparam != 3) {  
             parseError(WRONGARGS, "promptforfile", data, 3, nparam);
@@ -1799,7 +1915,7 @@ void LoadMacros(TCHAR *filename) {
 
    macroFile = CreateFile(filename, GENERIC_READ, 0, NULL, OPEN_ALWAYS, (WPARAM)NULL, NULL);
    if (macroFile == INVALID_HANDLE_VALUE) {
-      MessageBox(NULL, _Tr("Could not open file"), filename, MB_OK);
+      MessageBox(NULL, _T("Could not open file"), filename, MB_OK);
       return;
    }
    DWORD length = GetFileSize(macroFile, NULL);
