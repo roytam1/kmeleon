@@ -134,7 +134,7 @@ public:
 
 #define LOG_1(msg, var1)        \
    {                            \
-      char err[255];            \
+      char err[1024];            \
       sprintf(err, msg, var1);  \
       log.WriteString(err);     \
       log.WriteString("\r\n");  \
