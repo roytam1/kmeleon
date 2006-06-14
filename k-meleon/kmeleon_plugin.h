@@ -91,7 +91,7 @@ typedef struct {
    // gets the preference, stores it in ret
    void (*_GetPreference)(enum PREFTYPE type, char *preference, void *ret, void *defaultVal);
    // sets the preference
-   void (*SetPreference)(enum PREFTYPE type, char *preference, void *val, BOOL update /*= FALSE*/);
+   void (*SetPreference)(enum PREFTYPE type, const char *preference, void *val, BOOL update /*= FALSE*/);
 
    // sets the status bar text
    void (*SetStatusBarText)(const char *s);
@@ -152,7 +152,7 @@ typedef struct {
 
    void (*DelPreference)(char *preference);
 
-   long (*GetPreference)(enum PREFTYPE type, char *preference, void *ret, void *defaultVal);
+   long (*GetPreference)(enum PREFTYPE type, const char *preference, void *ret, void *defaultVal);
 
 // ----------------------------------------------------
 // Addition in K-meleon 1.0

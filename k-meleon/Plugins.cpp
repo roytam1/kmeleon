@@ -194,7 +194,7 @@ HIMAGELIST GetIconList()
 #endif
 }
 
-long GetPreference(enum PREFTYPE type, char *preference, void *ret, void *defVal)
+long GetPreference(enum PREFTYPE type, const char *preference, void *ret, void *defVal)
 {
    long result;
    switch (type) {
@@ -219,7 +219,7 @@ void _GetPreference(enum PREFTYPE type, char *preference, void *ret, void *defVa
    GetPreference(type, preference, ret, defVal);
 }
 
-void SetPreference(enum PREFTYPE type, char *preference, void *val, BOOL update)
+void SetPreference(enum PREFTYPE type, const char *preference, void *val, BOOL update)
 {
    theApp.preferences.Save(false);
 
