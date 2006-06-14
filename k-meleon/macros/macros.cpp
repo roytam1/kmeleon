@@ -51,7 +51,7 @@ void         DoRebar(HWND rebarWnd);
 int          DoAccel(char *param);
 long         DoMessage(const char *to, const char *from, const char *subject, long data1, long data2);
 std::string  EvalExpression(HWND hWnd,std::string exp);
-void         ExecuteMacro(HWND hWnd, int macro);
+std::string  ExecuteMacro(HWND hWnd, int macro);
 std::string  ExecuteCommand (HWND hWnd, int command, char *data);
 int          FindCommand(char *macroName);
 int          FindMacro(char *macroName);
@@ -70,8 +70,8 @@ void         CloseFrame(HWND hWnd, LONG windows);
 void         Quit();
 void         SetOption(std::string option);
 void         SetVarExp(int varid, std::string value);
-int          strFindFirst(std::string instring,char findchar,bool notinparen=false);
-std::string  strTrim(std::string instr);
+int          strFindFirst(const std::string& instring,char findchar,bool notinparen=false);
+std::string  strTrim(const std::string& instr);
 std::string  strVal(std::string input, int bOnlyQuotes = 0);
 
 
@@ -96,15 +96,18 @@ bool mustEscape(unsigned char c)
 std::string Escape(std::string url)
 {	
 	static const char hexChars[] = "0123456789ABCDEF";
-
+    url = strTrim(url);
 	std::string ret;
 	int len = url.length();
 	for (int i=0;i<len;i++) {
 		register unsigned char c = (unsigned char)url[i];
 		if ( !mustEscape( c ) )
 			ret += url[i];
-		else if (url[i]==' ')
+		else if (url[i]==' ') {
 			ret += '+';
+			while (i+1<len && url[i+1] == ' ') 
+				++i;
+		}
 		else{
 			ret += "%";
 			ret += hexChars[c >> 4];
@@ -717,13 +720,14 @@ void AddMacroEvent(int macro, char *eventData) {
 }
 
 
-void ExecuteMacro (HWND hWnd, int macro) {
+std::string ExecuteMacro (HWND hWnd, int macro) {
    if ((macro < 0) || (macro >= iMacroCount))
-      return;
+      return "";
 
+   std::string ret;
    for (int x=0; x<macroList[macro]->eventCount; x++) {
       if(macroList[macro]->eventList[x]->data) {
-         EvalExpression(hWnd,macroList[macro]->eventList[x]->data);
+         ret = EvalExpression(hWnd,macroList[macro]->eventList[x]->data);
       }
    }
 /*
@@ -734,6 +738,7 @@ void ExecuteMacro (HWND hWnd, int macro) {
       else ExecuteCommand(hWnd, macroList[macro]->eventList[x]->id, macroList[macro]->eventList[x]->data);
    }
 */
+   return ret;
 }
 
 // Thanks to Ulf Erikson for the tokenizer to clean things up in here...
@@ -1368,7 +1373,7 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
             DoError((char*)msg.c_str());
          }
          else {
-            ExecuteMacro(hWnd,cmdid);
+            return ExecuteMacro(hWnd,cmdid);
          }
       }
 
@@ -1449,6 +1454,7 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
 				CUTF8_to_ANSI(params[1].c_str()), 
 				(long) (const char*)CUTF8_to_ANSI(params[2].c_str()), 
 				(long) &nRetval);
+
             char buffer[12];
             _itoa(nRetval,buffer,10);
              strRet = buffer;
@@ -2135,7 +2141,7 @@ void LoadMacros(TCHAR *filename) {
                      needBreak = true; break;
                   }
                   if(macroList[iMacroCount-1]->menuString) delete macroList[iMacroCount-1]->menuString;
-                  strtemp = strVal(rval, -1); // FIXME: ugly misuse to convert '\'+'t' to '\t'
+                  strtemp = strVal(EvalExpression(NULL,rval), -1); // FIXME: ugly misuse to convert '\'+'t' to '\t'
                   macroList[iMacroCount-1]->menuString = new char[strtemp.length()+1];
                   strcpy(macroList[iMacroCount-1]->menuString,strtemp.c_str());
                   continue;
@@ -2827,15 +2833,15 @@ void DoError(char* msg) {
 }
 
 /**** strTrim ***/
-std::string strTrim(std::string instr) {
+std::string strTrim(const std::string& instr) {
    int lpos = 0;
    int rpos = instr.length()-1;
-   while(lpos <= rpos && instr.at(lpos) == ' ') ++lpos;
-   while(rpos >=0 && instr.at(rpos) == ' ') --rpos;
+   while(lpos <= rpos && isspace(instr.at(lpos))) ++lpos;
+   while(rpos >=0 && isspace(instr.at(rpos))) --rpos;
    return instr.substr(lpos,rpos-lpos+1);
 }
 
-int strFindFirst(std::string instring,char findchar,bool notinparen) {
+int strFindFirst(const std::string& instring,char findchar,bool notinparen) {
 
    bool instr = false;
    unsigned int pos = 0;
