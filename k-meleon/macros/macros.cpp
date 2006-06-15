@@ -64,7 +64,7 @@ std::string  GetGlobalVarVal(HWND hWnd, char *name, int *found);
 int SetGlobalVarVal(HWND hWnd, char *name, const char* value);
 int          Load();
 int          IntVal(std::string input);
-void         LoadMacros(char *filename);
+void         LoadMacros(TCHAR *filename);
 void         Close(HWND hWnd);
 void         CloseFrame(HWND hWnd, LONG windows);
 void         Quit();
@@ -73,7 +73,6 @@ void         SetVarExp(int varid, std::string value);
 int          strFindFirst(const std::string& instring,char findchar,bool notinparen=false);
 std::string  strTrim(const std::string& instr);
 std::string  strVal(std::string input, int bOnlyQuotes = 0);
-
 
 #ifdef _UNICODE
 #define gUnicode TRUE
@@ -417,8 +416,6 @@ BOOL APIENTRY DllMain(HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserv
    }
    return TRUE;
 }
-
-
 
 int Load() {
    kFuncs = kPlugin.kFuncs;
@@ -1716,7 +1713,8 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
             parseError(WRONGARGS, "readfile", data, 1, nparam);
             return "";
          }
-
+		 if (params[0].empty())
+			 return "";
 		 FILE* f = fopen(params[0].c_str(), "r");
 		 if (f) {
 			 char* buffer = new char[32768];
@@ -1801,12 +1799,10 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
             return "";
          }
 
-		  TCHAR* caption = t_from_utf8(params[0].c_str());
-		  if (!caption) return "";
+		  CUTF8_to_ANSI caption(params[0].c_str());
+		  if (!(LPCTSTR)caption) return "";
 
-		  TCHAR* initFolder = NULL;
-		  if (params[1].length())
-			  initFolder = t_from_utf8(params[1].c_str());
+		  CUTF8_to_ANSI initFolder(params[1].c_str());
 
           LPITEMIDLIST pidlRetBrowse = NULL, pidlRoot = NULL;
 		  
@@ -1814,7 +1810,7 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
 		  std::string ret;
 		  LPITEMIDLIST idl; 
 		  TCHAR pszDisplayName[MAX_PATH];
-		  BROWSEINFO bi = {hWnd, NULL, pszDisplayName, caption, BIF_EDITBOX | BIF_NEWDIALOGSTYLE,BrowseProc,(LPARAM)initFolder,NULL};
+		  BROWSEINFO bi = {hWnd, NULL, pszDisplayName, caption, BIF_EDITBOX | BIF_NEWDIALOGSTYLE,BrowseProc,(LPARAM)(LPCTSTR)initFolder,NULL};
 		  idl = SHBrowseForFolder(&bi);
 		  if (idl != NULL)
 		  {
