@@ -1439,8 +1439,10 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
 				(long) (const char*)CUTF8_to_ANSI(params[2].c_str()), 
 				(long) &cRetval);
 
-			if (cRetval)
-               strRet = protectString(CANSI_to_UTF8(cRetval));
+			if (cRetval) {
+			   strRet = protectString(CANSI_to_UTF8(cRetval));
+			   free(cRetval);
+			}
          }
          else if (preftype == PREF_INT) {
             int nRetval = 0;
