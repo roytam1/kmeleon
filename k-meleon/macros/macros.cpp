@@ -563,11 +563,11 @@ void DoMenu(HMENU menu, char *param) {
 	if (string)
 	  AppendMenu(menu, MF_STRING, id, string);
 	else if (index != NOTFOUND && macroList[index]->menuString)
-	  AppendMenu(menu, MF_STRING, id, macroList[index]->menuString);
+	  AppendMenu(menu, MF_STRING, id, CUTF8_to_T(macroList[index]->menuString));
 	else if (index != NOTFOUND && macroList[index]->macroName)
-	  AppendMenu(menu, MF_STRING, id, macroList[index]->macroName);
+	  AppendMenu(menu, MF_STRING, id, CUTF8_to_T(macroList[index]->macroName));
 	else 
-	  AppendMenu(menu, MF_STRING, id, "Untitled Macro");
+	  AppendMenu(menu, MF_STRING, id, _T("Untitled Macro"));
       }
    }
 }
@@ -977,7 +977,7 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
 
          if (!strcmpi((char*)params[0].c_str(), "bool")) preftype = PREF_BOOL;
          else if (!strcmpi((char*)params[0].c_str(), "int")) preftype = PREF_INT;
-         else if (!strcmpi((char*)params[0].c_str(), "string")) preftype = PREF_TSTRING;
+         else if (!strcmpi((char*)params[0].c_str(), "string")) preftype = PREF_STRING;
          else {
             parseError(WRONGTYPE, "setpref", data);
             return "";
@@ -989,8 +989,8 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
          //  as well as submitting a patch
          if (data) {
 
-			 if (preftype == PREF_TSTRING)
-				 kFuncs->SetPreference(preftype, pref, (void*)(const char*)CUTF8_to_T(data), TRUE);
+			 if (preftype == PREF_STRING)
+				 kFuncs->SetPreference(preftype, pref, (void*)data, TRUE);
 
             else if (preftype == PREF_INT) {
 	      if (*data) {
@@ -1021,19 +1021,19 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
 
          if (!strcmpi((char*)params[0].c_str(), "bool")) preftype = PREF_BOOL;
          else if (!strcmpi((char*)params[0].c_str(), "int")) preftype = PREF_INT;
-         else if (!strcmpi((char*)params[0].c_str(), "string")) preftype = PREF_TSTRING;
+         else if (!strcmpi((char*)params[0].c_str(), "string")) preftype = PREF_STRING;
          else {
 			parseError(WRONGTYPE, "getpref", data);
             return "";
          }
 
          int nRetval = 0;
-         if (preftype == PREF_TSTRING) {
-			long len = kFuncs->GetPreference(preftype,(char*)params[1].c_str(),0,&_T(""));			
-			TCHAR* cRetval = (TCHAR*)calloc(sizeof(TCHAR), len+1);
-			kFuncs->GetPreference(preftype,(char*)params[1].c_str(),cRetval,&_T(""));
+         if (preftype == PREF_STRING) {
+			long len = kFuncs->GetPreference(preftype,(char*)params[1].c_str(),0,"");			
+			char* cRetval = (char*)calloc(sizeof(char), len+1);
+			kFuncs->GetPreference(preftype,(char*)params[1].c_str(),cRetval,"");
             std::string strRet;
-			strRet = protectString(CT_to_UTF8(cRetval));
+			strRet = protectString(cRetval);
 			free(cRetval);
             return strRet;
          }
@@ -1065,7 +1065,7 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
          if (nparam) {
             if (!strcmpi((char*)params[0].c_str(), "bool")) preftype = PREF_BOOL;
             else if (!strcmpi((char*)params[0].c_str(), "int")) preftype = PREF_INT;
-            else if (!strcmpi((char*)params[0].c_str(), "string")) preftype = PREF_TSTRING;
+            else if (!strcmpi((char*)params[0].c_str(), "string")) preftype = PREF_STRING;
             else {
                parseError(WRONGTYPE, "togglepref", data);
                return "";
@@ -1082,11 +1082,11 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
          const char *pref = params[1].c_str();
 		 std::string sVal;
 
-		 if (preftype == PREF_TSTRING) {
+		 if (preftype == PREF_STRING) {
 			long len = kFuncs->GetPreference(preftype,(char*)params[1].c_str(),0,0);			
-			TCHAR* tmp = (TCHAR*)calloc(sizeof(TCHAR), len+1);
-			kFuncs->GetPreference(preftype,pref,tmp,&_T(""));
-			sVal = CT_to_UTF8(tmp);
+			char* tmp = (char*)calloc(sizeof(char), len+1);
+			kFuncs->GetPreference(preftype,pref,tmp,"");
+			sVal = tmp;
 			free(tmp);
 		 }
 
@@ -1109,11 +1109,11 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
          BOOL bPrefWritten = FALSE;
          while (!bPrefWritten && t.nextToken( &str)) {
             char *param = (char*)str.c_str();
-            if (preftype == PREF_TSTRING) {
+            if (preftype == PREF_STRING) {
                if (!strcmp(param, sVal.c_str())) {
                   if (t.nextToken( &str )) {
                      param = (char*)str.c_str();
-					 kFuncs->SetPreference(preftype, pref, (void*)(const char*)CUTF8_to_T(param), TRUE);
+					 kFuncs->SetPreference(preftype, pref, param, TRUE);
                   }
                   else
                      kFuncs->SetPreference(preftype, pref, prefdata, TRUE);
@@ -1779,13 +1779,7 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
 					ret = protectString(dword);
 				}
 				else
-				{
-					char* str = utf8_from_t((LPTSTR)lpData)
-					if (str) {
-						ret = protectString(str);
-						free(str);
-					}
-				}
+					ret = protectString(CT_to_UTF8((LPTSTR)lpData));
 			 }
 			 free(lpData);
 		   }
