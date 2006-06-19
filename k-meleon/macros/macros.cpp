@@ -977,7 +977,7 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
 
          if (!strcmpi((char*)params[0].c_str(), "bool")) preftype = PREF_BOOL;
          else if (!strcmpi((char*)params[0].c_str(), "int")) preftype = PREF_INT;
-         else if (!strcmpi((char*)params[0].c_str(), "string")) preftype = PREF_STRING;
+         else if (!strcmpi((char*)params[0].c_str(), "string")) preftype = PREF_UNISTRING;
          else {
             parseError(WRONGTYPE, "setpref", data);
             return "";
@@ -989,8 +989,8 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
          //  as well as submitting a patch
          if (data) {
 
-			 if (preftype == PREF_STRING)
-				 kFuncs->SetPreference(preftype, pref, (void*)data, TRUE);
+			 if (preftype == PREF_UNISTRING)
+				 kFuncs->SetPreference(preftype, pref, (void*)(const wchar_t*)CUTF8_to_UTF16(data), TRUE);
 
             else if (preftype == PREF_INT) {
 	      if (*data) {
@@ -1021,19 +1021,19 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
 
          if (!strcmpi((char*)params[0].c_str(), "bool")) preftype = PREF_BOOL;
          else if (!strcmpi((char*)params[0].c_str(), "int")) preftype = PREF_INT;
-         else if (!strcmpi((char*)params[0].c_str(), "string")) preftype = PREF_STRING;
+         else if (!strcmpi((char*)params[0].c_str(), "string")) preftype = PREF_UNISTRING;
          else {
 			parseError(WRONGTYPE, "getpref", data);
             return "";
          }
 
          int nRetval = 0;
-         if (preftype == PREF_STRING) {
+         if (preftype == PREF_UNISTRING) {
 			long len = kFuncs->GetPreference(preftype,(char*)params[1].c_str(),0,"");			
-			char* cRetval = (char*)calloc(sizeof(char), len+1);
+			wchar_t* cRetval = (wchar_t*)calloc(sizeof(wchar_t), len+1);
 			kFuncs->GetPreference(preftype,(char*)params[1].c_str(),cRetval,"");
             std::string strRet;
-			strRet = protectString(cRetval);
+			strRet = protectString(CUTF16_to_UTF8(cRetval));
 			free(cRetval);
             return strRet;
          }
@@ -1065,7 +1065,7 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
          if (nparam) {
             if (!strcmpi((char*)params[0].c_str(), "bool")) preftype = PREF_BOOL;
             else if (!strcmpi((char*)params[0].c_str(), "int")) preftype = PREF_INT;
-            else if (!strcmpi((char*)params[0].c_str(), "string")) preftype = PREF_STRING;
+            else if (!strcmpi((char*)params[0].c_str(), "string")) preftype = PREF_UNISTRING;
             else {
                parseError(WRONGTYPE, "togglepref", data);
                return "";
@@ -1082,11 +1082,11 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
          const char *pref = params[1].c_str();
 		 std::string sVal;
 
-		 if (preftype == PREF_STRING) {
+		 if (preftype == PREF_UNISTRING) {
 			long len = kFuncs->GetPreference(preftype,(char*)params[1].c_str(),0,0);			
-			char* tmp = (char*)calloc(sizeof(char), len+1);
+			wchar_t* tmp = (wchar_t*)calloc(sizeof(wchar_t), len+1);
 			kFuncs->GetPreference(preftype,pref,tmp,"");
-			sVal = tmp;
+			sVal = CUTF16_to_UTF8(tmp);
 			free(tmp);
 		 }
 
@@ -1109,14 +1109,14 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
          BOOL bPrefWritten = FALSE;
          while (!bPrefWritten && t.nextToken( &str)) {
             char *param = (char*)str.c_str();
-            if (preftype == PREF_STRING) {
+            if (preftype == PREF_UNISTRING) {
                if (!strcmp(param, sVal.c_str())) {
                   if (t.nextToken( &str )) {
                      param = (char*)str.c_str();
-					 kFuncs->SetPreference(preftype, pref, param, TRUE);
+					 kFuncs->SetPreference(preftype, pref, (void*)(const wchar_t*)CUTF8_to_UTF16(param), TRUE);
                   }
                   else
-                     kFuncs->SetPreference(preftype, pref, prefdata, TRUE);
+                     kFuncs->SetPreference(preftype, pref, (void*)(const wchar_t*)CUTF8_to_UTF16(prefdata), TRUE);
                   bPrefWritten = TRUE;
                }
             }
