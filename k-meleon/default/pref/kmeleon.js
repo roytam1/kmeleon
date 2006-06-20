@@ -12,13 +12,14 @@ pref("general.useragent.vendorSub", "1.0");
 // General
 
 pref("kmeleon.MRU.maxURLs", 16);
+pref("kmeleon.MRU.behavior", 2); 
 pref("kmeleon.general.guest_account", false);
-pref("kmeleon.general.homePage", "about:");
+pref("kmeleon.general.homePage", "resource://readme.html");
 pref("kmeleon.general.offline", false);
 pref("kmeleon.general.opengroup", "ID_OPEN_LINK|ID_OPEN_LINK_IN_BACKGROUND");
 pref("kmeleon.general.openurl", "ID_OPEN_LINK");
+pref("kmeleon.general.searchEngine", "http://www.google.com/search?q=");
 pref("kmeleon.general.searchEngineName", "Google");
-pref("kmeleon.plugins.macros.search.engineName", "Google");
 pref("kmeleon.plugins.macros.search.locked", true);
 pref("kmeleon.general.skinsCurrent", "Phoenity\\");
 pref("kmeleon.display.newWindowOpenAs", 0);
@@ -82,7 +83,6 @@ pref("kmeleon.display.title", "K-Meleon");
 pref("kmeleon.display.NewWindowHasUrlFocus", false);
 pref("kmeleon.display.backgroundImage", "");
 pref("kmeleon.display.backgroundImageEnabled", true);
-pref("kmeleon.general.mode", "");
 pref("kmeleon.display.maximized", false);
 pref("kmeleon.display.disableResize", false);
 pref("kmeleon.display.backgroundImage", "");
@@ -121,12 +121,12 @@ pref("kmeleon.print.shrinkToFit", true);
 /********************************************************************************************************/
 // Privacy
 
-pref("kmeleon.privacy.useragent0.name", "K-Meleon");
+pref("kmeleon.privacy.useragent0.name", "K-Meleon 1.0 (Default)");
 pref("kmeleon.privacy.useragent0.string", "");
 pref("kmeleon.privacy.useragent1.name", "MSIE 6.0");
 pref("kmeleon.privacy.useragent1.string", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
-pref("kmeleon.privacy.useragent2.name", "Netscape 4.8");
-pref("kmeleon.privacy.useragent2.string", "Mozilla/4.8 [en] (Windows NT 5.1; U)");
+pref("kmeleon.privacy.useragent2.name", "Netscape 8.1");
+pref("kmeleon.privacy.useragent2.string", "Mozilla/5.0 (Windows; U; Windows NT 5.0; en-US; rv:1.7.5) Gecko/20060127 Netscape/8.1");
 pref("kmeleon.privacy.useragent3.name", "Opera 7.54");
 pref("kmeleon.privacy.useragent3.string", "Opera/7.54 (Windows NT 5.1; U) [en]");
 
@@ -182,7 +182,6 @@ pref("browser.urlbar.autocomplete.enabled", true);
 
 pref("aggreg8.stylesheet.title", "grey");
 pref("intl.charset.detector", "universal_charset_detector");
-pref("keyword.eng", "BBN");
 pref("keyword.URL", "http://www.google.com/search?gfns=1&q=");
 
 pref("kmeleon.find.matchCase", false);
