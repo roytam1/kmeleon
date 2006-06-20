@@ -51,34 +51,17 @@ CPreferences::~CPreferences() {
       _value = _defaultValue;                   \
   }
 
-#ifdef _UNICODE
+#define _SetString(_pref, _value) \
+  { prefs->SetUnicharPref(_pref, T2CW(_value)); }
 
 #define _GetString(_pref, _value, _defaultValue) { \
-    nsEmbedString tempString;                    \
-    rv = prefs->CopyUnicharPref(_pref, getter_Copies(tempString));  \
-    if (NS_SUCCEEDED(rv))                         \
-      _value = tempString.get();                        \
-    else                                          \
-      _value = _defaultValue;						\
-}
-#define _SetString(_pref, _value) \
-	prefs->SetUnicharPref(_pref, _value);
-
-#else
-
-#define _SetString(_pref, _value) \
-	prefs->SetCharPref(_pref, _value);
-
-#define _GetString(_pref, _value, _defaultValue) { \
-    nsEmbedCString tempString;                    \
-    rv = prefs->CopyCharPref(_pref, getter_Copies(tempString));  \
-    if (NS_SUCCEEDED(rv))                         \
-      _value = tempString.get();                        \
-    else                                          \
-      _value = _defaultValue;                     \
+    nsEmbedString tempString;                      \
+	rv = prefs->CopyUnicharPref(_pref, getter_Copies(tempString));  \
+    if (NS_SUCCEEDED(rv))                          \
+	   _value = W2CT(tempString.get());            \
+    else                                           \
+       _value = _defaultValue;                     \
   }
-
-#endif
 
 void CPreferences::Load() {
 
@@ -96,6 +79,7 @@ void CPreferences::Load() {
          rv = prefs->SavePrefFile(nsnull);
       }
 
+	  USES_CONVERSION;
 
       // -- Display settings
 
@@ -350,6 +334,8 @@ void CPreferences::Flush() {
 
 void CPreferences::Save(bool clearPath) {
    nsresult rv;
+   USES_CONVERSION;
+
    nsCOMPtr<nsIPref> prefs(do_GetService(NS_PREF_CONTRACTID, &rv));
    if (NS_SUCCEEDED(rv)) {
 
@@ -624,14 +610,18 @@ int CPreferences::GetString(const char *preference, char *retVal, char *defaultV
    nsresult rv;
    nsCOMPtr<nsIPref> prefs(do_GetService(NS_PREF_CONTRACTID, &rv));
    if (NS_SUCCEEDED(rv)) {
-      nsEmbedCString string;
-	  rv = prefs->CopyCharPref(preference, getter_Copies(string));  
-	  if (NS_FAILED(rv))                         
-        string = defaultVal;	
-      	  
-      if (retVal)
-         strcpy(retVal, string.get());
-      return string.Length();
+      nsEmbedString string;
+	  nsEmbedCString stringNat;
+	  rv = prefs->CopyUnicharPref(preference, getter_Copies(string));  
+	  if (NS_FAILED(rv) && defaultVal) 
+		  stringNat = defaultVal;
+	  else
+		  NS_UTF16ToCString(string, NS_CSTRING_ENCODING_NATIVE_FILESYSTEM, stringNat);
+  
+	  if (retVal)
+		  strcpy(retVal, stringNat.get());
+	  
+	  return stringNat.Length();
    }
    return 0;
 }
@@ -642,7 +632,7 @@ int CPreferences::GetString(const char *preference, wchar_t *retVal, wchar_t *de
    if (NS_SUCCEEDED(rv)) {
       nsEmbedString string;
 	  rv = prefs->CopyUnicharPref(preference, getter_Copies(string));  
-	  if (NS_FAILED(rv))                         
+	  if (NS_FAILED(rv) && defaultVal)                         
         string = defaultVal;	
       if (retVal)
          wcscpy(retVal, string.get());
@@ -661,9 +651,11 @@ void CPreferences::SetString(const char *preference, const wchar_t *value){
 
 void CPreferences::SetString(const char *preference, const char *value){
    nsresult rv;
+   nsEmbedString string;
+   NS_CStringToUTF16(nsDependentCString(value), NS_CSTRING_ENCODING_NATIVE_FILESYSTEM, string);
    nsCOMPtr<nsIPref> prefs(do_GetService(NS_PREF_CONTRACTID, &rv));
    if (NS_SUCCEEDED(rv)) {
-      prefs->SetCharPref(preference, value);
+      prefs->SetUnicharPref(preference, string.get());
    }
 }
 
