@@ -1,118 +1,39 @@
+/* ----- DO NOT EDIT ANYTHING ABOVE THIS LINE -------------------------------------------- */
+
 /*
- * THIS FILE CAN BE USED TO APPLY A STYLE TO ALL WEB PAGES YOU VIEW.
- * RULES WITHOUT !IMPORTANT ARE OVERRULED BY AUTHOR RULES IF THE
- * AUTHOR SETS ANY. RULES WITH !IMPORTANT OVERRULE AUTHOR RULES.
- * TO APPLY A STYLE, REMOVE THE BACKSLASHES AND ASTERISKS FROM THE 
- * CODES BELOW THEIR TITLES.
+ * This file can be used to apply a style to all web pages you view
+ * Rules without !important are overruled by author rules if the
+ * author sets any.  Rules with !important overrule author rules.
  */
 
-
-/* ----CONTROL FLASH CONTENT---- */
+/*
+ * example: make K-Meleon center pages' images and linked images
+ *
+ * body.km_lstLinkedImages li, body.km_lstImages li { text-align: center; }
+ */
 
 /*
-* Flash Click to View by Ted Mielczarek (luser_mozilla@perilith.com)
-* Original code by Jesse Ruderman (jruderman@hmc.edu)
-* taken from http://www.squarefree.com/userstyles/xbl.html
-*
-* Change XBL binding for <object> tags, click to view flash
-*/
-
-/* Flash identifiers.*/
+ * example: make K-Meleon not enumerate pages' images and linked images
+ *
+ * body.km_lstLinkedImages ol, body.km_lstImages ol { list-style-type: none; }
+ */
 
 /*
- * object[classid$=":D27CDB6E-AE6D-11cf-96B8-444553540000"],
- * object[codebase*="swflash.cab"],
- * embed[type="application/x-shockwave-flash"],
- * embed[src*=".swf"],
- * object[type="application/x-shockwave-flash"],
- * object[src*=".swf"]
- * { -moz-binding: url("chrome://flashblock/content/flash.xml#flashblock") !important;
+ * example: give all tables a 2px border
+ *
+ * table { border: 2px solid; }
+ */
+
+/*
+ * example: make search fields on www.mozilla.org black-on-white
+ *
+ * @-moz-document url-prefix(http://www.mozilla.org/) {
+ *   #q { background: white ! important; color: black ! important; }
  * }
  */
 
-/* Director identifiers.*/
-
-/*
-* object[classid$=":166B1BCA-3F9C-11CF-8075-444553540000"],
-* object[codebase*="sw.cab"],
-* embed[type="application/x-director"],
-* embed[src*=".dcr"],
-* object[type="application/x-director"],
-* object[src*=".dcr"]
-* { -moz-binding: url("chrome://flashblock/content/director.xml#flashblock")
-* !important; }
-*/
-
-/* Authorware identifiers.*/
-
 /* 
- * object[classid$=":15B782AF-55D8-11D1-B477-006097098764"],
- * object[codebase*="awswaxf.cab"],
- * embed[type="application/x-authorware-map"],
- * embed[src*=".aam"],
- * object[type="application/x-authorware-map"],
- * object[src*=".aam"]
- * { -moz-binding: url("chrome://flashblock/content/authorware.xml#flashblock")
- * !important; }
+ * For more examples see http://www.mozilla.org/unix/customizing.html
  */
 
-/*
-* Load flash files that are called directly by the browser without interference from flashblock.
-*/
-
-/*
- *embed[name="plugin"]
- *{ -moz-binding: none !important; }
- */
-
-
-
-/* ----TURN OFF "BLINK" ELEMENT BLINKING---- */
-
-/*
- *blink { text-decoration: none ! important; }
- */
-
-
-
-/* ----TURN OFF "MARQUEE" ELEMENT---- */
-
-/*
- *marquee { -moz-binding: none ! important; }
- */
-
-
-
-/* ----RED LINKS---- */
-
-/*
- *:link:hover[target="_blank"],:visited:hover[target="_blank"] {
- *color: white important; background: red ! important; }
- *
- *:link:hover[target="_new"],:visited:hover[target="_new"] {
- *color: white important; background: red ! important; }
- */
-
-
-
-/* ----NEW WINDOW LINK CURSOR---- */
- 
-/*
- *:link[target="_blank"], :visited[target="_blank"],
- *:link[target="_new"],   :visited[target="_new"] {
- *  cursor:  crosshair ! important; }
- */
-
-
-/* ----JAVASCRIPT LINK CURSOR---- */
-
-/*
- *a[href^="javascript:"] {
- *  cursor: move ! important; }
- */
-
-
-
-/* ----BLOCK ADS---- */
-
-/* Visit (http://kmeleon.sourceforge.net/wiki/index.php?id=ControllingDisplay) */
+/* ----- DO NOT EDIT ANYTHING BELOW THIS LINE -------------------------------------------- */

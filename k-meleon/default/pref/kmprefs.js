@@ -12,6 +12,7 @@ pref("kmeleon.toolband.Throbber.visibility", true);
 // kPlugins
 
 //pref("kmeleon.plugins.bookmarks.load", false);		// kmeleon.js
+pref("kmeleon.plugins.bookmarks.askforFolder", true);
 //pref("kmeleon.plugins.bookmarks.chevron", false);		// kmeleon.js
 pref("kmeleon.plugins.bookmarks.editdialog.width", 500);
 pref("kmeleon.plugins.bookmarks.editdialog.height", 500);
@@ -79,12 +80,12 @@ pref("kmeleon.plugins.layers.title", "Layers:");
 // Macros
 
 // Domain completion
-pref("kmeleon.plugins.macros.domComplete0.prefix", "http://www.");
-pref("kmeleon.plugins.macros.domComplete0.suffix", ".com/");
-pref("kmeleon.plugins.macros.domComplete1.prefix", "http://www.");
-pref("kmeleon.plugins.macros.domComplete1.suffix", ".net/");
-pref("kmeleon.plugins.macros.domComplete2.prefix", "http://www.");
-pref("kmeleon.plugins.macros.domComplete2.suffix", ".org/");
+pref("kmeleon.plugins.macros.domComplete0.prefix", "www.");
+pref("kmeleon.plugins.macros.domComplete0.suffix", ".com");
+pref("kmeleon.plugins.macros.domComplete1.prefix", "www.");
+pref("kmeleon.plugins.macros.domComplete1.suffix", ".net");
+pref("kmeleon.plugins.macros.domComplete2.prefix", "www.");
+pref("kmeleon.plugins.macros.domComplete2.suffix", ".org");
 
 // Hotlinks
 pref("kmeleon.plugins.macros.hotlink0.new", true);
@@ -97,6 +98,3 @@ pref("kmeleon.plugins.macros.hotlink6.new", true);
 pref("kmeleon.plugins.macros.hotlink7.new", true);
 pref("kmeleon.plugins.macros.hotlink8.new", true);
 pref("kmeleon.plugins.macros.hotlink9.new", true);
-
-// Search
-pref("kmeleon.plugins.macros.search.open", 0);
