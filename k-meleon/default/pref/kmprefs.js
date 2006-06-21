@@ -1,15 +1,15 @@
 /********************************************************************************************************/
-// Default pref for k-meleon - only necessary for XUL pref panel
+// Default pref for k-meleon - only necessary for kmPrefs (Advanced Preferences)
 /********************************************************************************************************/
 
-//pref("kmeleon.display.title", "K-Meleon");			// kmeleon.js
-pref("kmeleon.display.URLbarTitle", "URL:");
+//pref("kmeleon.display.title", "K-Meleon");			// I10n.js
+//pref("kmeleon.display.URLbarTitle", "URL:");			// I10n.js
 
 pref("kmeleon.toolband.Throbber.visibility", true);
 
 
 /********************************************************************************************************/
-// kPlugins
+// Plugins
 
 //pref("kmeleon.plugins.bookmarks.load", false);		// kmeleon.js
 pref("kmeleon.plugins.bookmarks.askforFolder", true);
@@ -38,8 +38,8 @@ pref("kmeleon.plugins.favorites.chevron", false);
 //pref("kmeleon.plugins.favorites.openurl", "ID_OPEN_LINK");	// kmeleon.js
 pref("kmeleon.plugins.favorites.rebar", false);
 pref("kmeleon.plugins.favorites.sortOrder", 17);
-pref("kmeleon.plugins.favorites.title", "Links:");
-pref("kmeleon.plugins.favorites.toolbarFolder", "Links");
+//pref("kmeleon.plugins.favorites.title", "Links:");		// I10n.js
+//pref("kmeleon.plugins.favorites.toolbarFolder", "Links");	// I10n.js
 
 pref("kmeleon.plugins.fullscreen.auto", false);
 pref("kmeleon.plugins.fullscreen.hide_rebar", true);
@@ -73,19 +73,11 @@ pref("kmeleon.plugins.layers.onCloseOption", 0);
 pref("kmeleon.plugins.layers.onOpenOption", 0);
 //pref("kmeleon.plugins.layers.rebar", true);			// kmeleon.js
 //pref("kmeleon.plugins.layers.style", 2);			// kmeleon.js
-pref("kmeleon.plugins.layers.title", "Layers:");
+//pref("kmeleon.plugins.layers.title", "Layers:");		// I10n.js
 
 
 /********************************************************************************************************/
 // Macros
-
-// Domain completion
-pref("kmeleon.plugins.macros.domComplete0.prefix", "www.");
-pref("kmeleon.plugins.macros.domComplete0.suffix", ".com");
-pref("kmeleon.plugins.macros.domComplete1.prefix", "www.");
-pref("kmeleon.plugins.macros.domComplete1.suffix", ".net");
-pref("kmeleon.plugins.macros.domComplete2.prefix", "www.");
-pref("kmeleon.plugins.macros.domComplete2.suffix", ".org");
 
 // Hotlinks
 pref("kmeleon.plugins.macros.hotlink0.new", true);
