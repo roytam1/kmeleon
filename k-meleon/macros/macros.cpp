@@ -2728,7 +2728,7 @@ std::string sGlobalVar;
 
 int SetGlobalVarVal(HWND hWnd, char *name, const char* value)
 {
-	int ret = kPlugin.kFuncs->SetGlobalVar(PREF_STRING, name, (void*)value);
+	int ret = kPlugin.kFuncs->SetGlobalVar(PREF_STRING, name, (void*)(const char*)CUTF8_to_ANSI(value));
 	if (!ret) {
 		int val = IntVal(value);
 		ret = kPlugin.kFuncs->SetGlobalVar(PREF_INT, name, (void*)&val);
