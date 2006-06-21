@@ -12,15 +12,14 @@ pref("general.useragent.vendorSub", "1.0");
 // General
 
 pref("kmeleon.MRU.maxURLs", 16);
-pref("kmeleon.MRU.behavior", 2); 
+pref("kmeleon.MRU.behavior", 2);
 pref("kmeleon.general.guest_account", false);
 pref("kmeleon.general.homePage", "resource://readme.html");
 pref("kmeleon.general.offline", false);
 pref("kmeleon.general.opengroup", "ID_OPEN_LINK|ID_OPEN_LINK_IN_BACKGROUND");
 pref("kmeleon.general.openurl", "ID_OPEN_LINK");
-pref("kmeleon.general.searchEngine", "http://www.google.com/search?q=");
-pref("kmeleon.general.searchEngineName", "Google");
-pref("kmeleon.plugins.macros.search.locked", true);
+//pref("kmeleon.general.searchEngine", "http://www.google.com/search?q=");	// I10n.js
+//pref("kmeleon.general.searchEngineName", "Google");				// I10n.js
 pref("kmeleon.general.skinsCurrent", "Phoenity\\");
 pref("kmeleon.display.newWindowOpenAs", 0);
 pref("kmeleon.display.newWindowURL", "");
@@ -62,11 +61,15 @@ pref("kmeleon.plugins.gestures.upright", "layers(Next)");
 pref("kmeleon.plugins.hotlist.load", false);
 pref("kmeleon.plugins.hotlist.menuAutoDetect", true);
 pref("kmeleon.plugins.hotlist.openurl", "ID_OPEN_LINK");
+
 pref("kmeleon.plugins.layers.confirmClose", true);
 pref("kmeleon.plugins.layers.load", true);
 pref("kmeleon.plugins.layers.rebar", true);
 pref("kmeleon.plugins.layers.style", 2);
+
 pref("kmeleon.plugins.macros.load", true);
+pref("kmeleon.plugins.macros.search.locked", true);
+pref("kmeleon.plugins.macros.selected.openurl", "layers(OpenURL)");
 
 pref("kmeleon.plugins.privacy.load", true);
 pref("kmeleon.plugins.privacy.clearCache", 0);
@@ -79,7 +82,7 @@ pref("kmeleon.plugins.privacy.clearSignOn", 0);
 /********************************************************************************************************/
 // Appearance
 
-pref("kmeleon.display.title", "K-Meleon");
+//pref("kmeleon.display.title", "K-Meleon");	// I10n.js
 pref("kmeleon.display.NewWindowHasUrlFocus", false);
 pref("kmeleon.display.backgroundImage", "");
 pref("kmeleon.display.backgroundImageEnabled", true);
@@ -121,15 +124,16 @@ pref("kmeleon.print.shrinkToFit", true);
 /********************************************************************************************************/
 // Privacy
 
+/* I10n.js
 pref("kmeleon.privacy.useragent0.name", "K-Meleon 1.0 (Default)");
 pref("kmeleon.privacy.useragent0.string", "");
 pref("kmeleon.privacy.useragent1.name", "MSIE 6.0");
 pref("kmeleon.privacy.useragent1.string", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
 pref("kmeleon.privacy.useragent2.name", "Netscape 8.1");
-pref("kmeleon.privacy.useragent2.string", "Mozilla/5.0 (Windows; U; Windows NT 5.0; en-US; rv:1.7.5) Gecko/20060127 Netscape/8.1");
+pref("kmeleon.privacy.useragent2.string", "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.7.5) Gecko/20060127 Netscape/8.1");
 pref("kmeleon.privacy.useragent3.name", "Opera 7.54");
 pref("kmeleon.privacy.useragent3.string", "Opera/7.54 (Windows NT 5.1; U) [en]");
-
+*/
 pref("signon.rememberSignons", true);
 pref("capability.policy.restrictedpopups.Window.open", "allAccess");
 pref("capability.policy.restrictedpopups.sites", "");
@@ -181,8 +185,8 @@ pref("browser.urlbar.autoFill", false);
 pref("browser.urlbar.autocomplete.enabled", true);
 
 pref("aggreg8.stylesheet.title", "grey");
-pref("intl.charset.detector", "universal_charset_detector");
-pref("keyword.URL", "http://www.google.com/search?gfns=1&q=");
+//pref("intl.charset.detector", "universal_charset_detector");		// I10n.js
+//pref("keyword.URL", "http://www.google.com/search?gfns=1&q=");	// I10n.js
 
 pref("kmeleon.find.matchCase", false);
 pref("kmeleon.find.searchBackwards", false);
