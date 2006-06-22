@@ -429,7 +429,12 @@ void SaveBM(const TCHAR *file)
 
       SaveBookmarks(bmFile, gBookmarkRoot);
 
-      fclose(bmFile);
+      if (fclose(bmFile) == EOF) {
+		 _tunlink(buf);
+         MessageBox(NULL, _Tr("Failed to save bookmarks."), _Tr("Error"), MB_OK|MB_ICONERROR);
+         ReleaseMutex(ghMutex);
+         return;
+	  }
 
 #if 0
    create_backup(file);
