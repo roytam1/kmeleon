@@ -588,7 +588,12 @@ int op_writeFile(char *file) {
          bDOS = 1;
          ret = SaveHotlist(bmFile, &gHotlistRoot);
          fprintf(bmFile, "-\r\n");
-         fclose(bmFile);
+         if (fclose(bmFile) == EOF) {
+		    _tunlink(file);
+            MessageBox(NULL, _Tr("Failed to save hotlist."), _Tr("Error"), MB_OK|MB_ICONERROR);
+            ReleaseMutex(ghMutex);
+            return -1;
+	     }
          gHotlistModified = false;
 #if 0
          if (!bHotlistBak)
