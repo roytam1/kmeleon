@@ -1,12 +1,11 @@
-/***********************************************************************/
+/********************************************************************************************************/
 // Locale default pref for k-meleon 
-/***********************************************************************/
+/********************************************************************************************************/
 
 
-/***********************************************************************/
+/********************************************************************************************************/
 // Appearance
 
-pref("kmeleon.display.title", "K-Meleon");
 pref("kmeleon.display.URLbarTitle", "URL:");
 
 pref("kmeleon.plugins.favorites.title", "Links:");
@@ -15,7 +14,24 @@ pref("kmeleon.plugins.favorites.toolbarFolder", "Links");
 pref("kmeleon.plugins.layers.title", "Layers:");
 
 
-/***********************************************************************/
+/********************************************************************************************************/
+// Print
+
+// Letter (8,5" x 11,0"):
+pref("kmeleon.print.paperUnit", 0);
+pref("kmeleon.print.paperWidth", "8,5");
+pref("kmeleon.print.paperHeight", "11,0");
+// Legal (8,5" x 14,0"):
+//pref("kmeleon.print.paperUnit", 0);
+//pref("kmeleon.print.paperWidth", "8,5");
+//pref("kmeleon.print.paperHeight", "14,0");
+// A4 (210 mm x 297 mm):
+//pref("kmeleon.print.paperUnit", 1);
+//pref("kmeleon.print.paperWidth", "210,0");
+//pref("kmeleon.print.paperHeight", "297,0");
+
+
+/********************************************************************************************************/
 // Privacy
 
 pref("kmeleon.privacy.useragent0.name", "K-Meleon 1.0 (Default)");
@@ -28,16 +44,16 @@ pref("kmeleon.privacy.useragent3.name", "Opera 7.54");
 pref("kmeleon.privacy.useragent3.string", "Opera/7.54 (Windows NT 5.1; U) [en]");
 
 
-/***********************************************************************/
+/********************************************************************************************************/
 
 pref("intl.charset.detector", "universal_charset_detector");
 pref("keyword.URL", "http://www.google.com/search?gfns=1&q=");
 
 
 
-/***********************************************************************/
+/********************************************************************************************************/
 // Locale default pref for k-meleon macros
-/***********************************************************************/
+/********************************************************************************************************/
 
 // Custom Proxies
 pref("kmeleon.plugins.macros.proxy1.name", "Custom Proxy 1");
@@ -53,7 +69,7 @@ pref("kmeleon.plugins.macros.domComplete2.prefix", "www.");
 pref("kmeleon.plugins.macros.domComplete2.suffix", ".org");
 
 
-/***********************************************************************/
+/********************************************************************************************************/
 // Web Search
 
 // Default Search Engine URL  (MUST be one out of kmeleon.plugins.macros.search.engine[0..9].url)
@@ -91,5 +107,5 @@ pref("kmeleon.plugins.macros.search.meta0.url", "http://www.google.com/search?nu
 pref("kmeleon.plugins.macros.search.meta1.url", "http://search.msn.com/results.aspx?q=");
 pref("kmeleon.plugins.macros.search.meta2.url", "http://search.yahoo.com/bin/search?p=");
 pref("kmeleon.plugins.macros.search.meta3.url", "http://images.google.com/images?btnG=Google+Search&safe=off&filter=0&q=");
-pref("kmeleon.plugins.macros.search.meta4.url", "http://s.teoma.com/search?q=");
+pref("kmeleon.plugins.macros.search.meta4.url", "http://web.ask.com/web?q=");
 pref("kmeleon.plugins.macros.search.meta5.url", "http://www.gigablast.com/search?q=");
