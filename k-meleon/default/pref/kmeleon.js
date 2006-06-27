@@ -14,7 +14,7 @@ pref("general.useragent.vendorSub", "1.0");
 pref("kmeleon.MRU.maxURLs", 16);
 pref("kmeleon.MRU.behavior", 2);
 pref("kmeleon.general.guest_account", false);
-pref("kmeleon.general.homePage", "resource://readme.html");
+pref("kmeleon.general.homePage", "resource:///readme.html");
 pref("kmeleon.general.offline", false);
 pref("kmeleon.general.opengroup", "ID_OPEN_LINK|ID_OPEN_LINK_IN_BACKGROUND");
 pref("kmeleon.general.openurl", "ID_OPEN_LINK");
@@ -69,7 +69,7 @@ pref("kmeleon.plugins.layers.style", 2);
 
 pref("kmeleon.plugins.macros.load", true);
 pref("kmeleon.plugins.macros.search.locked", true);
-pref("kmeleon.plugins.macros.selected.openurl", "layers(OpenURL)");
+pref("kmeleon.plugins.macros.selected.openurl", "ID_OPEN_LINK");
 
 pref("kmeleon.plugins.privacy.load", true);
 pref("kmeleon.plugins.privacy.clearCache", 0);
@@ -82,7 +82,7 @@ pref("kmeleon.plugins.privacy.clearSignOn", 0);
 /********************************************************************************************************/
 // Appearance
 
-//pref("kmeleon.display.title", "K-Meleon");	// I10n.js
+pref("kmeleon.display.title", "K-Meleon");	
 pref("kmeleon.display.NewWindowHasUrlFocus", false);
 pref("kmeleon.display.backgroundImage", "");
 pref("kmeleon.display.backgroundImageEnabled", true);
@@ -115,7 +115,7 @@ pref("kmeleon.print.headerRight", "&U");
 //pref("kmeleon.print.marginRight", "0,5");
 //pref("kmeleon.print.marginTop", "0,5");
 //pref("kmeleon.print.paperHeight", "11,0");
-pref("kmeleon.print.paperUnit", 0);
+//pref("kmeleon.print.paperUnit", 0);
 //pref("kmeleon.print.paperWidth", "8,5");
 pref("kmeleon.print.scaling", 100);
 pref("kmeleon.print.shrinkToFit", true); 
@@ -124,16 +124,6 @@ pref("kmeleon.print.shrinkToFit", true);
 /********************************************************************************************************/
 // Privacy
 
-/* I10n.js
-pref("kmeleon.privacy.useragent0.name", "K-Meleon 1.0 (Default)");
-pref("kmeleon.privacy.useragent0.string", "");
-pref("kmeleon.privacy.useragent1.name", "MSIE 6.0");
-pref("kmeleon.privacy.useragent1.string", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
-pref("kmeleon.privacy.useragent2.name", "Netscape 8.1");
-pref("kmeleon.privacy.useragent2.string", "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.7.5) Gecko/20060127 Netscape/8.1");
-pref("kmeleon.privacy.useragent3.name", "Opera 7.54");
-pref("kmeleon.privacy.useragent3.string", "Opera/7.54 (Windows NT 5.1; U) [en]");
-*/
 pref("signon.rememberSignons", true);
 pref("capability.policy.restrictedpopups.Window.open", "allAccess");
 pref("capability.policy.restrictedpopups.sites", "");
