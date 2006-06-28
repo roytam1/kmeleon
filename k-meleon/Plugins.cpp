@@ -967,7 +967,8 @@ BOOL CPlugins::TestLoad(const char *file, const char *description)
    
    int load = theApp.preferences.GetBool(preference, -1);
    if (load == -1) {
-      CString message;
+      CString message, title;
+	  title.LoadString(IDS_NEW_PLUGIN_FOUND_TITLE);
 
       message.Format(IDS_NEW_PLUGIN_FOUND, description);
 
