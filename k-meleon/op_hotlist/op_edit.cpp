@@ -531,7 +531,7 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
          tvis.itemex.mask = TVIF_TEXT | TVIF_PARAM | TVIF_IMAGE | TVIF_SELECTEDIMAGE;
          tvis.itemex.iImage = IMAGE_FOLDER_SPECIAL_CLOSED;
          tvis.itemex.iSelectedImage = IMAGE_FOLDER_SPECIAL_OPEN;
-         tvis.itemex.pszText = "All Bookmarks";
+         tvis.itemex.pszText = (TCHAR*)_Tr("All Bookmarks");
          tvis.itemex.lParam = (long)&workingBookmarks;
 
          HTREEITEM newItem = TreeView_InsertItem(hTree, &tvis);
@@ -640,7 +640,7 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                SetDlgItemText(hDlg, IDC_LAST_VISIT, pszTmp);
             }
             else {
-               SetDlgItemText(hDlg, IDC_LAST_VISIT, "Never");
+               SetDlgItemText(hDlg, IDC_LAST_VISIT, _Tr("Never"));
             }
 
             EnableWindow(GetDlgItem(hDlg, IDC_STATIC_ORDER), true);
@@ -1440,7 +1440,7 @@ static void CreateNewObject(HWND hTree, HTREEITEM fromItem, int type, int mode) 
          newNode = freeNode;
          freeNode = NULL;
       } else
-         newNode = new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), "New Bookmark", "http://kmeleon.sourceforge.net/", "", "", BOOKMARK_BOOKMARK, time(NULL));
+         newNode = new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), _Tr("New Bookmark"), "http://kmeleon.sourceforge.net/", "", "", BOOKMARK_BOOKMARK, time(NULL));
       tvis.itemex.pszText = (TCHAR*)newNode->text.c_str();
       tvis.itemex.iImage = IMAGE_BOOKMARK;
       tvis.itemex.iSelectedImage = IMAGE_BOOKMARK;
@@ -1450,7 +1450,7 @@ static void CreateNewObject(HWND hTree, HTREEITEM fromItem, int type, int mode) 
          newNode = freeNode;
          freeNode = NULL;
       } else
-         newNode = new CBookmarkNode(0, "New Folder", "", "", "", BOOKMARK_FOLDER, time(NULL));
+         newNode = new CBookmarkNode(0, _Tr("New Folder"), "", "", "", BOOKMARK_FOLDER, time(NULL));
       tvis.itemex.pszText = (TCHAR*)newNode->text.c_str();
       tvis.itemex.iImage = IMAGE_FOLDER_CLOSED;
       tvis.itemex.iSelectedImage = IMAGE_FOLDER_OPEN;
