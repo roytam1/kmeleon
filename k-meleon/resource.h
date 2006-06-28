@@ -414,6 +414,12 @@
 #define IDS_PERMISSION_POPUP_TITLE      61292
 #define IDS_TIMEOUT                     61293
 #define IDS_STOPPED                     61294
+#define IDS_PRINT_LETTER                61295
+#define IDS_PRINT_LEGAL                 61296
+#define IDS_PRINT_A4                    61297
+#define IDS_PRINT_USERDEFINED           61298
+#define IDS_ALLFILES                    61299
+#define IDS_NEW_PLUGIN_FOUND_TITLE      61300
 #define IDS_LANG_VERSION                62000
 #define IDD_CONFIRM_COOKIE              2100
 #define IDC_CHECK_REMEMBER              2101

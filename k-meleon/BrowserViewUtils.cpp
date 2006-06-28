@@ -489,8 +489,9 @@ NS_IMETHODIMP CSaveAsHandler::Save(const char* contentType, const char* disposit
 			filter = extension + _T(" Files (*.") + extension + _T(")|*.") + extension + _T("|");
 	}
 
-	filter += _T("All Files (*.*)|*.*||");
-	filter.LockBuffer();
+	CString filt;
+	filt.LoadString(IDS_ALLFILES);
+	filter += filt + _T(" (*.*)|*.*||");
 
 	TCHAR* lpszFilter = filter.GetBuffer(0);
 	for (int i=0; lpszFilter[i]; i++)
@@ -589,7 +590,7 @@ NS_IMETHODIMP CSaveAsHandler::Save(const char* contentType, const char* disposit
 		}
 	}
 
-	filter.UnlockBuffer();
+	filter.ReleaseBuffer();
 	delete szFileName;
 
 	return rv;

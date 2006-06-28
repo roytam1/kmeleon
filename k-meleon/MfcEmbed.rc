@@ -1696,13 +1696,13 @@ END
 
 STRINGTABLE 
 BEGIN
-    IDS_OK                  "Ok"
-    IDS_CANCEL              "Cancel"
-    IDS_NO                  "No"
-    IDS_YES                 "Yes"
-    IDS_SAVE                "Save"
-    IDS_DONTSAVE            "Don't Save"
-    IDS_REVERT              "Revert"
+    IDS_OK                  "&Ok"
+    IDS_CANCEL              "&Cancel"
+    IDS_NO                  "&No"
+    IDS_YES                 "&Yes"
+    IDS_SAVE                "&Save"
+    IDS_DONTSAVE            "&Don't Save"
+    IDS_REVERT              "&Revert"
     IDS_TEXT_ZOOM           "Text Zoom: %.0f"
     IDS_ONLINE              "Online"
     IDS_OFFLINE             "Offline"
@@ -1710,6 +1710,9 @@ BEGIN
     IDS_PERMISSION_COOKIE_TITLE "Cookies Permissions"
     IDS_PERMISSION_IMAGE_TITLE "Images Permissions"
     IDS_PERMISSION_POPUP_TITLE "Popups Permissions"
+    IDS_TIMEOUT             "Timeout"
+    IDS_STOPPED             "Stopped"
+    IDS_PRINT_LETTER        "Letter (8.5 x 11.0)"
 END
 
 STRINGTABLE 
@@ -1717,6 +1720,14 @@ BEGIN
     IDS_LANG_VERSION        "1.0.0.0"
 END
 
+STRINGTABLE 
+BEGIN
+    IDS_PRINT_LEGAL         "Legal (8.5 x 14.0)"
+    IDS_PRINT_A4            "A4 (210 x 297mm)"
+    IDS_PRINT_USERDEFINED   "User Defined"
+    IDS_ALLFILES            "All Files"
+    IDS_NEW_PLUGIN_FOUND_TITLE "Plugin Found"
+END
 #endif    // Anglais (États-Unis) resources
 /////////////////////////////////////////////////////////////////////////////
 

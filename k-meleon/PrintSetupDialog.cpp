@@ -12,7 +12,7 @@ static char THIS_FILE[] = __FILE__;
 #endif
 
 typedef struct {
-  TCHAR*   mDesc;
+  UINT    mIdDesc;
   short   mUnit;
   double  mWidth;
   double  mHeight;
@@ -20,10 +20,10 @@ typedef struct {
 } PaperSizes;
 
 static const PaperSizes gPaperSize[] = {
-  {_T("Letter (8.5 x 11.0)"), nsIPrintSettings::kPaperSizeInches, 8.5, 11.0, FALSE},
-  {_T("Legal (8.5 x 14.0)"), nsIPrintSettings::kPaperSizeInches, 8.5, 14.0, FALSE},
-  {_T("A4 (210 x 297mm)"), nsIPrintSettings::kPaperSizeMillimeters, 210.0, 297.0, FALSE},
-  {_T("User Defined"), nsIPrintSettings::kPaperSizeInches, 8.5, 11.0, TRUE}
+  {IDS_PRINT_LEGAL, nsIPrintSettings::kPaperSizeInches, 8.5, 11.0, FALSE},
+  {IDS_PRINT_LETTER, nsIPrintSettings::kPaperSizeInches, 8.5, 14.0, FALSE},
+  {IDS_PRINT_A4, nsIPrintSettings::kPaperSizeMillimeters, 210.0, 297.0, FALSE},
+  {IDS_PRINT_USERDEFINED, nsIPrintSettings::kPaperSizeInches, 8.5, 11.0, TRUE}
 };
 static const int gNumPaperSizes = 4;
 
@@ -186,8 +186,10 @@ int CPrintSetupDialog::GetPaperSizeIndexFromData(short aUnit, double aW, double 
 
 int CPrintSetupDialog::GetPaperSizeIndex(const CString& aStr) 
 {
+  CString desc;
   for (int i=0;i<gNumPaperSizes;i++) {
-    if (!aStr.Compare(gPaperSize[i].mDesc)) {
+    desc.LoadString(gPaperSize[i].mIdDesc);
+    if (!aStr.Compare(desc)) {
       return i;
     }
   }
@@ -224,8 +226,10 @@ BOOL CPrintSetupDialog::OnInitDialog()
 	CComboBox* cbx = (CComboBox*)GetDlgItem(IDC_PAPER_SIZE_CBX);
   if (cbx != NULL) {
     // First Initialize the Combobox
+    CString desc;
     for (int i=0;i<gNumPaperSizes;i++) {
-      cbx->AddString(gPaperSize[i].mDesc);
+      desc.LoadString(gPaperSize[i].mIdDesc);
+      cbx->AddString(desc);
     }
     short  unit;
     double paperWidth  = 0.0;
