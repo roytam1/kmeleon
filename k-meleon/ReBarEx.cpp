@@ -262,7 +262,12 @@ void CReBarEx::DrawToolBarMenu() {
 }
 
 BOOL CReBarEx::GetVisibility(int index) {
-   return m_index[index]->visibility;
+   ASSERT(index>=0 && index<m_iCount);
+   // XXX A bad index can be passed here because of the layers plugin
+   // not always registering the layer bar.
+   if (index>=0 && index<m_iCount)
+      return m_index[index]->visibility;
+   return FALSE;
 }
 
 void CReBarEx::lineup() {
