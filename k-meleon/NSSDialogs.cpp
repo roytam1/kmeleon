@@ -557,6 +557,8 @@ void CNewServerDialog::OnBnClickedViewCert()
 BOOL CNewServerDialog::OnInitDialog()
 {
 	CDialog::OnInitDialog();
+	CheckDlgButton(IDC_REMEMBER, FALSE);
+	CheckDlgButton(IDC_SESSION, TRUE);
 	return TRUE;  
 }
 
