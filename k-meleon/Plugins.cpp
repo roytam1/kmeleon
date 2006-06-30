@@ -1075,10 +1075,12 @@ kmeleonPlugin * CPlugins::Load(char *file)
 
    // If the plugin is enabled, tell it to Init
    if ( loaded ) {
-      kPlugin->DoMessage(kPlugin->dllname, "* Plugin Manager", "Load", 0, 0);
+      if (kPlugin->DoMessage(kPlugin->dllname, "* Plugin Manager", "Load", 0, 0) == -1)
+		  loaded = false;
    }
+   if (!loaded) {
    // otherwise, make a copy of the descripion, and unload it
-   else {
+   //else {
       kmeleonPlugin *temp = new kmeleonPlugin;
 
       char *sBuf = new char[strlen(kPlugin->description)+1];
