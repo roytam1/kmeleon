@@ -254,6 +254,7 @@ NS_IMETHODIMP CNSSDialogs::ViewCert(nsIInterfaceRequestor *ctx, nsIX509Cert *cer
 	cert->GetMd5Fingerprint (value);
 	viewCertGeneral.m_csMD5 = W2CT(value.get());
 	
+	viewCert.m_psh.dwFlags |= PSH_NOAPPLYNOW;
 	viewCert.AddPage(&viewCertGeneral);
 	viewCert.AddPage(&viewCertDetails);
 	//viewCert.Create(CWndForDOMWindow(parent));
