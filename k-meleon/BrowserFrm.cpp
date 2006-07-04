@@ -529,7 +529,8 @@ BOOL CBrowserFrame::PreCreateWindow(CREATESTRUCT& cs)
 
     // Change window style based on the chromeMask
 
-    if(! (m_chromeMask & nsIWebBrowserChrome::CHROME_TITLEBAR) )
+    if( !(m_chromeMask & nsIWebBrowserChrome::CHROME_TITLEBAR) &&
+		!(m_chromeMask & nsIWebBrowserChrome::CHROME_OPENAS_DIALOG) )
         cs.style &= ~WS_CAPTION; // No caption      
 
     cs.style |= WS_SIZEBOX;
