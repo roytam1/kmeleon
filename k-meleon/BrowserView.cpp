@@ -310,7 +310,8 @@ HRESULT CBrowserView::CreateBrowser()
         return rv;
 
     // If the browser window hosting chrome or content?
-    dsti->SetItemType( theApp.cmdline.m_bChrome ?
+    dsti->SetItemType( theApp.cmdline.m_bChrome ||
+		mpBrowserFrame->m_chromeMask & nsIWebBrowserChrome::CHROME_OPENAS_CHROME ?
         nsIDocShellTreeItem::typeChromeWrapper :
         nsIDocShellTreeItem::typeContentWrapper);
 

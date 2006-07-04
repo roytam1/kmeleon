@@ -510,6 +510,14 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
    else if (x==-1 && y==-1 && cx==-1 && cy==-1 && !bShowWindow)
        openedByGecko = 1;
 
+   // XXX Chrome dialogs shouldn't have those.
+   if (chromeMask & nsIWebBrowserChrome::CHROME_OPENAS_CHROME)
+      chromeMask &=  ~nsIWebBrowserChrome::CHROME_MENUBAR
+	                &~nsIWebBrowserChrome::CHROME_TOOLBAR
+					&~nsIWebBrowserChrome::CHROME_LOCATIONBAR
+					&~nsIWebBrowserChrome::CHROME_STATUSBAR
+					&~nsIWebBrowserChrome::CHROME_PERSONAL_TOOLBAR;
+   
    LONG style = WS_OVERLAPPEDWINDOW;
 
    if (chromeMask && (chromeMask != nsIWebBrowserChrome::CHROME_DEFAULT) && 
@@ -697,9 +705,9 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
    pFrame->SetIcon(m_hMainIcon, true);
    pFrame->SetIcon(m_hSmallIcon, false);
    
-   // load accelerator resource
-   //pFrame->LoadAccelTable(MAKEINTRESOURCE(IDR_MAINFRAME));
-   pFrame->m_hAccelTable = accel.GetTable();
+   // Set accelerator only if it's not a chrome window.
+   if (!(chromeMask & nsIWebBrowserChrome::CHROME_OPENAS_CHROME))
+      pFrame->m_hAccelTable = accel.GetTable();
    
    // this only needs to be called once
    if (!m_bFirstWindowCreated) {
