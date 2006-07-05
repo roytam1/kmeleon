@@ -533,7 +533,6 @@ BOOL CBrowserFrame::PreCreateWindow(CREATESTRUCT& cs)
 		!(m_chromeMask & nsIWebBrowserChrome::CHROME_OPENAS_DIALOG) )
         cs.style &= ~WS_CAPTION; // No caption      
 
-    cs.style |= WS_SIZEBOX;
     cs.style |= WS_THICKFRAME;
     cs.style |= WS_MINIMIZEBOX;
     cs.style |= WS_MAXIMIZEBOX;
@@ -541,12 +540,19 @@ BOOL CBrowserFrame::PreCreateWindow(CREATESTRUCT& cs)
     if (!theApp.preferences.bDisableResize) {   
         if(! (m_chromeMask & nsIWebBrowserChrome::CHROME_WINDOW_RESIZE) ) {
             // Can't resize this window
-            cs.style &= ~WS_SIZEBOX;
             cs.style &= ~WS_THICKFRAME;
-            // cs.style &= ~WS_MINIMIZEBOX;
             cs.style &= ~WS_MAXIMIZEBOX;
         }
     }
+
+	if (m_chromeMask & nsIWebBrowserChrome::CHROME_OPENAS_DIALOG) {
+        cs.style &= ~WS_MINIMIZEBOX;
+        cs.style &= ~WS_MAXIMIZEBOX;
+		cs.dwExStyle |= WS_EX_WINDOWEDGE;
+	}
+
+	if (m_chromeMask & nsIWebBrowserChrome::CHROME_WINDOW_MIN) 
+        cs.style |= WS_MINIMIZEBOX;
 
 //  cs.lpszClass = AfxRegisterWndClass(0);
 
