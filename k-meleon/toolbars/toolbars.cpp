@@ -1281,6 +1281,8 @@ void ShowMenuUnderButton(HWND hWndParent, HMENU hMenu, UINT uMouseButton, int iI
       SendMessage(tb, TB_GETITEMRECT, ButtonID, (LPARAM) &rc);
       POINT pt = { rc.left, rc.bottom };
       ClientToScreen(tb, &pt);
+	  if (pt.x<0) pt.x = 0;
+	  if (pt.y<0) pt.y = 0;
       DWORD SelectionMade = TrackPopupMenu(hMenu, TPM_LEFTALIGN | uMouseButton | TPM_RETURNCMD, pt.x, pt.y, 0, hWndParent, &rc);
 
       SendMessage(tb, TB_SETSTATE, (WPARAM) iID, (LPARAM) MAKELONG (TBSTATE_ENABLED , 0));
