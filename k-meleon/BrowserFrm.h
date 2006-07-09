@@ -191,6 +191,8 @@ public:
        DWORD dwStyle,      const RECT& rect,       CWnd* pParentWnd,
        LPCTSTR lpszMenuName,       DWORD dwExStyle,    CCreateContext* pContext);
 
+	INT_PTR DoModal();
+
 protected:
     //
     // This nested class implements the IBrowserFramGlue interface

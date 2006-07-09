@@ -231,7 +231,7 @@ void CBrowserFrame::OnClose()
     GetWindowPlacement(&wp);
 
     // only record the window size for non-popup windows
-    if (!(m_style & WS_POPUP)){
+    if (!(m_style & WS_POPUP) && !(m_chromeMask & nsIWebBrowserChrome::CHROME_OPENAS_CHROME)){
         // record the maximized state
         if (wp.showCmd == SW_SHOWMAXIMIZED)
             theApp.preferences.bMaximized = true;
@@ -260,6 +260,10 @@ void CBrowserFrame::OnClose()
    // view, and m_pMostRecentBrowserFrame will point to an deleted 
    // object.
    CBrowserFrame* pTemp = theApp.m_pMostRecentBrowserFrame;
+   
+   if (m_nFlags & (WF_MODALLOOP|WF_CONTINUEMODAL))
+      EndModalLoop(IDCANCEL);
+   else
    DestroyWindow();
 
    if (theApp.m_pMostRecentBrowserFrame == this) {
@@ -1277,4 +1281,40 @@ void CBrowserFrame::OnSysCommand(UINT nID, LPARAM lParam)
 	}
 
 	CFrameWnd::OnSysCommand(nID, lParam);
+}
+
+INT_PTR CBrowserFrame::DoModal()
+{
+	CWinApp* pApp = AfxGetApp();
+	if (pApp != NULL)
+		pApp->EnableModeless(FALSE);
+
+	HWND hWndTop = NULL;
+    HWND hWndParent = CWnd::GetSafeOwner_(GetParent()->GetSafeHwnd(), &hWndTop);
+
+	BOOL bEnableParent = FALSE;
+	if (hWndParent && hWndParent != ::GetDesktopWindow() && ::IsWindowEnabled(hWndParent))
+	{
+		::EnableWindow(hWndParent, FALSE);
+		::EnableWindow(m_hWnd, TRUE);
+		bEnableParent = TRUE;
+	}
+
+	m_nFlags |= WF_CONTINUEMODAL;
+	RunModalLoop(0);
+	
+	if (bEnableParent)
+		::EnableWindow(hWndParent, TRUE);
+	if (hWndParent != NULL && ::GetActiveWindow() == m_hWnd)
+		::SetActiveWindow(hWndParent);
+
+	if (::IsWindow(hWndTop))
+		::EnableWindow(hWndTop, TRUE);
+
+	if (pApp != NULL)
+		pApp->EnableModeless(TRUE);
+
+	INT_PTR res = m_nModalResult;
+	DestroyWindow();
+	return res;
 }
