@@ -86,7 +86,8 @@ public:
 	CBrowserFrame* CreateNewBrowserFrame(PRUint32 chromeMask = 0, 
 							PRInt32 x = -1, PRInt32 y = -1, 
 							PRInt32 cx = -1, PRInt32 cy = -1,
-							PRBool bShowWindow = PR_TRUE);
+							PRBool bShowWindow = PR_TRUE,
+							CWnd* pParent = NULL);
 	void RemoveFrameFromList(CBrowserFrame* pFrm);
    void RegisterWindow(CDialog *window);
    void UnregisterWindow(CDialog *window);
