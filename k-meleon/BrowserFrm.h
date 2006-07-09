@@ -178,6 +178,7 @@ public:
     PRUint32 m_chromeMask;
     LONG m_style;
     int m_ignoreMoveResize;
+	BOOL m_bSizeOnLoad;
 
     BOOL m_created; // set after we are created
     INT m_ignoreFocus;

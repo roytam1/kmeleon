@@ -485,7 +485,8 @@ void CMfcEmbedApp::UnregisterWindow(CDialog *window) {
 CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
                                                    PRInt32 x, PRInt32 y,
                                                    PRInt32 cx, PRInt32 cy,
-                                                   PRBool bShowWindow)
+                                                   PRBool bShowWindow,
+												   CWnd* pParent)
 {
    DWORD dwWaitResult; 
    dwWaitResult = WaitForSingleObject( m_hMutex, 1000L);
@@ -697,7 +698,7 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
       pOldRecentFrame = pFrame;
 
 
-   if (!pFrame->Create(BROWSER_WINDOW_CLASS, strTitle, style, winSize, NULL, NULL, 0L, NULL)) {
+   if (!pFrame->Create(BROWSER_WINDOW_CLASS, strTitle, style, winSize, chromeMask & nsIWebBrowserChrome::CHROME_DEPENDENT ? pParent : NULL, NULL, 0L, NULL)) {
        ReleaseMutex(m_hMutex);
       return NULL;
    }
@@ -722,6 +723,12 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
       pFrame->ModifyStyleEx(0, WS_EX_APPWINDOW);
    }
 
+   BOOL canResize = !theApp.preferences.GetBool("kmeleon.display.dontResizeXul", FALSE);
+   BOOL sizeOnLoad = FALSE;
+   if (canResize && pParent && chromeMask & nsIWebBrowserChrome::CHROME_OPENAS_CHROME)
+      sizeOnLoad = TRUE;
+
+   pFrame->m_bSizeOnLoad = sizeOnLoad;
    // Show the window...
    if(bShowWindow) 
    {
@@ -739,7 +746,7 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
    // Add to the list of BrowserFrame windows
    m_FrameWndLst.AddHead(pFrame);
    
-   pFrame->m_ignoreMoveResize = (openedByGecko && !(style & WS_POPUP)) ? 2 : 0;
+   pFrame->m_ignoreMoveResize = (!sizeOnLoad && openedByGecko && !(style & WS_POPUP)) ? 2 : 0;
    
    
    ReleaseMutex(m_hMutex);
@@ -1184,11 +1191,20 @@ NS_IMETHODIMP CMfcEmbedApp::CreateChromeWindow(nsIWebBrowserChrome *parent,
     if (theApp.preferences.GetBool("kmeleon.general.BlockAllChromeWindows", false))
         return NS_ERROR_FAILURE;
 
-   // XXX we're ignoring the "parent" parameter
    NS_ENSURE_ARG_POINTER(_retval);
    *_retval = 0;
    
-   CBrowserFrame *pBrowserFrame = CreateNewBrowserFrame(chromeFlags, -1, -1, -1, -1, PR_FALSE);
+   CWnd* pParent = NULL;
+   if (parent) {
+	  HWND w;
+      nsCOMPtr<nsIEmbeddingSiteWindow> site(do_QueryInterface(parent));
+	  if (site) {
+	     site->GetSiteWindow(reinterpret_cast<void **>(&w));
+         pParent = CWnd::FromHandle(w);
+	  }
+   }
+
+   CBrowserFrame *pBrowserFrame = CreateNewBrowserFrame(chromeFlags, -1, -1, -1, -1, PR_FALSE, pParent);
    if(pBrowserFrame) {
       *_retval = NS_STATIC_CAST(nsIWebBrowserChrome *, pBrowserFrame->GetBrowserImpl());
       NS_ADDREF(*_retval);

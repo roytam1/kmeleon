@@ -107,6 +107,24 @@ void CBrowserFrame::BrowserFrameGlueObj::UpdateBusyState(PRBool aBusy)
       pThis->m_wndUrlBar.GetEnteredURL(szUrl);
       if (_tcscmp(szUrl, _T("about:blank"))==0)
         pThis->m_wndUrlBar.MaintainFocus();
+
+	   // XXX We have to resize XUL dialog manually. They should have they own
+	   // glue and window object!
+	   if (pThis->m_bSizeOnLoad) {
+	      nsCOMPtr<nsIDOMWindow> domWindow;
+          pThis->m_wndBrowserView.mWebBrowser->GetContentDOMWindow(getter_AddRefs(domWindow));
+	      if (domWindow) 
+	         domWindow->SizeToContent();
+
+		  // It must be repositionned somewhat after the resize. Centering it
+		  // all the time is not that bad.
+   	      //if (pThis->m_chromeMask & nsIWebBrowserChrome::CHROME_CENTER_SCREEN)
+             pThis->CenterWindow();
+
+		  pThis->ShowWindow(SW_SHOW);
+		  pThis->UpdateWindow();
+		  pThis->m_bSizeOnLoad = FALSE;
+       }
 	}
 	else
 		pThis->m_wndBrowserView.mbDOMLoaded = FALSE;
@@ -441,6 +459,9 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowBrowserFrame(PRBool aShow)
       
     if(aShow)
     {
+		if (pThis->m_bSizeOnLoad) 
+			return; // Not yet, waiting for resize in UpdateBusyState
+
         if (pThis->IsIconic())
             return;
 

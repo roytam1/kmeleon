@@ -129,6 +129,7 @@ CBrowserFrame::CBrowserFrame(PRUint32 chromeMask, LONG style = 0)
     m_hSecurityIcon = NULL;
 	m_wndFindBar = NULL;
 	m_wndLastFocused = NULL;
+	m_bSizeOnLoad = FALSE;
 }
 
 CBrowserFrame::~CBrowserFrame()
