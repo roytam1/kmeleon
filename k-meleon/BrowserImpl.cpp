@@ -75,6 +75,10 @@
 #include "nsIDOMPopupBlockedEvent.h"
 #include "nsIDOMMouseListener.h"
 
+#include "jsapi.h"
+#include "nsIJSContextStack.h"
+#include "BrowserFrm.h"
+
 CBrowserImpl::CBrowserImpl()
 {
     m_pBrowserFrameGlue = NULL;
@@ -282,60 +286,39 @@ NS_IMETHODIMP CBrowserImpl::SizeBrowserTo(PRInt32 aCX, PRInt32 aCY)
 
 NS_IMETHODIMP CBrowserImpl::ShowAsModal(void)
 {
-#if 1
-	return NS_ERROR_NOT_IMPLEMENTED;
-#else // Removing because troublesome
- 	// mostly stolen from WebBrowserChrome.cpp in WinEmbed
-    HWND h = m_pBrowserFrameGlue->GetBrowserFrameNativeWnd();
-    MSG msg;
-    HANDLE hFakeEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
-    bool aRunCondition = true;
-    while (aRunCondition) {
-        // Process pending messages
-        while (PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE)) {
-            if (msg.hwnd == h) {
-                if (msg.message == WM_CLOSE) {
-                    aRunCondition = PR_FALSE;
-                    break;
-                }
-            }
-			
-			// Avoid getting stuck
-			if (!IsWindow(h)) { aRunCondition = PR_FALSE; break;}
-            
-            if (!GetMessage(&msg, NULL, 0, 0)) {
-                // WM_QUIT
-                aRunCondition = PR_FALSE;
-                break;
-            }
-            
-            PRBool wasHandled = PR_FALSE;
-            NS_HandleEmbeddingEvent(msg, wasHandled);
-            if (wasHandled)
-                continue;
-         
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
-        }
-      
-        // Do idle stuff
-        MsgWaitForMultipleObjects(1, &hFakeEvent, FALSE, 100, QS_ALLEVENTS);
-    }
-    CloseHandle(hFakeEvent);
-    return msg.wParam;
-#endif
+	HWND h = m_pBrowserFrameGlue->GetBrowserFrameNativeWnd();
+	CBrowserFrame* frame = (CBrowserFrame*)CWnd::FromHandle(h);
+
+	nsCOMPtr<nsIJSContextStack> stack(do_GetService("@mozilla.org/js/xpc/ContextStack;1"));
+	if (stack && NS_SUCCEEDED(stack->Push(nsnull))) {
+		
+		frame->DoModal();
+
+		JSContext* cx;
+		stack->Pop(&cx);
+		NS_ASSERTION(cx == nsnull, "JSContextStack mismatch");
+	}
+	else
+		return NS_ERROR_FAILURE;
+
+	return NS_OK;
 }
 
 NS_IMETHODIMP CBrowserImpl::IsWindowModal(PRBool *retval)
 {
-  // We're not modal
-  *retval = PR_FALSE;
+   HWND h = m_pBrowserFrameGlue->GetBrowserFrameNativeWnd();
+   CWnd* frame = CWnd::FromHandle(h);
+   *retval = frame->m_nFlags & WF_CONTINUEMODAL;
 
   return NS_OK;
 }
 
 NS_IMETHODIMP CBrowserImpl::ExitModalEventLoop(nsresult aStatus)
 {
+   HWND h = m_pBrowserFrameGlue->GetBrowserFrameNativeWnd();
+   CWnd* frame = CWnd::FromHandle(h);
+   frame->PostMessage(WM_CLOSE, 0, 0);
+   //frame->EndModalLoop(aStatus);
    return NS_OK;
 }
 
@@ -536,8 +519,6 @@ NS_IMETHODIMP CBrowserImpl::OnHideTooltip()
 
 #include "nsIDOMContextMenuListener.h"
 #include "nsIDOMEventTarget.h"
-
-#define XP_WIN
 #include "nsIDOMAbstractView.h"
 #include "nsIDOMDocumentView.h"
 #include "nsIDOMEventTarget.h"
