@@ -3,7 +3,7 @@
 !define		NAME "K-Meleon"
 !define		VERSION "1.0"
 !define		ADDRESS "http://kmeleon.sourceforge.net/"  
-!define		GECKO_VERSION "1.8.0.2"
+!define		GECKO_VERSION "1.8.0.5"
 
 !define		PRODUCT_KEY "Software\${NAME}"
 !define		PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${NAME}"
