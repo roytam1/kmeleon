@@ -89,5 +89,5 @@ LangString SD_QuitConfirm			ULANG "Are-you sure you want to quit ${NAME} ${VERSI
 
 LangString SD_HeaderText			ULANG "Choose K-Meleon location"
 LangString SD_HeaderSubText			ULANG "Choose the folder where K-Meleon is installed."
-LangString SD_DirectoryText			ULANG "SetDefault will set the following ${NAME} ${VERSION} installation as the default browser. To select a different instalation, click browse and select another folder. Click next to continue."
+LangString SD_DirectoryText			ULANG "SetDefault will set the following ${NAME} ${VERSION} installation as the default browser. To select a different installation, click browse and select another folder. Click next to continue."
 LangString SD_ComponentText			ULANG "Check the the features and associations you want, and uncheck those you don't want. Click Install to continue."
