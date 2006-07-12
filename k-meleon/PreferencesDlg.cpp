@@ -517,7 +517,7 @@ BOOL CPreferencePagePlugins::OnInitDialog(){
       int image=kPlugin->loaded;
       if(theApp.preferences.GetBool(preference, 1)) image+=2;
       USES_CONVERSION;
-	  m_pluginList.InsertItem(item, A2T(kPlugin->description), image);
+	  m_pluginList.InsertItem(item, theApp.lang.Translate(A2T(kPlugin->description)), image);
    }
    m_pluginList.SetItemState(0, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
 
