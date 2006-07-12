@@ -1070,6 +1070,8 @@ BOOL CBrowserView::CloneSHistory(CBrowserView& newWebBrowser)
 			oldSH->GetIndex(&index);
 			newWebBrowser.mWebNav->GotoIndex(index);
 		}
+		else
+			newWebBrowser.OpenURL("about:blank");
 	}
 	else
 		return false;
