@@ -1273,8 +1273,8 @@ void ShowMenuUnderButton(HWND hWndParent, HMENU hMenu, UINT uMouseButton, int iI
          continue;
       if (ButtonID == 0) {
          TBBUTTON button;
-         SendMessage(tb, TB_GETBUTTON, 0, (LPARAM) &button);
-         if (button.idCommand != iID)
+         if ((!SendMessage(tb, TB_GETBUTTON, 0, (LPARAM) &button)) ||
+			 (button.idCommand != iID))
             continue;
       }
       
