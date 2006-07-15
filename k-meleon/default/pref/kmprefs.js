@@ -26,7 +26,7 @@ pref("kmeleon.plugins.bookmarks.maxMenuLength", 20); // plugin default: 20
 pref("kmeleon.plugins.bookmarks.maxToolbarSize", 100); // plugin default: 20
 //pref("kmeleon.plugins.bookmarks.menuAutoDetect", true);	// kmeleon.js
 //pref("kmeleon.plugins.bookmarks.openurl", "ID_OPEN_LINK");	// kmeleon.js
-pref("kmeleon.plugins.bookmarks.toolbarEnabled", false);
+pref("kmeleon.plugins.bookmarks.toolbarEnabled", true);
 
 //pref("kmeleon.plugins.favorites.load", false);		// kmeleon.js
 // variable button width (according to the length of the name),
@@ -34,6 +34,7 @@ pref("kmeleon.plugins.bookmarks.toolbarEnabled", false);
 pref("kmeleon.plugins.favorites.buttonMaxWidth", -100);
 pref("kmeleon.plugins.favorites.buttonIcons", true);
 pref("kmeleon.plugins.favorites.chevron", false);
+pref("kmeleon.plugins.favorites.maxMenuLength", 20); // plugin default: 9999
 //pref("kmeleon.plugins.favorites.menuAutoDetect", true);	// kmeleon.js
 //pref("kmeleon.plugins.favorites.openurl", "ID_OPEN_LINK");	// kmeleon.js
 pref("kmeleon.plugins.favorites.rebar", false);
@@ -90,3 +91,4 @@ pref("kmeleon.plugins.macros.hotlink6.new", true);
 pref("kmeleon.plugins.macros.hotlink7.new", true);
 pref("kmeleon.plugins.macros.hotlink8.new", true);
 pref("kmeleon.plugins.macros.hotlink9.new", true);
+

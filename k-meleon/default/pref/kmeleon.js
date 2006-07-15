@@ -48,11 +48,11 @@ pref("kmeleon.plugins.favorites.load", false);
 pref("kmeleon.plugins.favorites.menuAutoDetect", true);
 pref("kmeleon.plugins.favorites.openurl", "ID_OPEN_LINK");
 
+pref("kmeleon.plugins.gestures.load", false);
 pref("kmeleon.plugins.gestures.down", "layers(OpenLinkBg)");
 pref("kmeleon.plugins.gestures.downleft", "layers(Last)");
 pref("kmeleon.plugins.gestures.downright", "layers(Close)");
 pref("kmeleon.plugins.gestures.left", "ID_NAV_BACK");
-pref("kmeleon.plugins.gestures.load", true);
 pref("kmeleon.plugins.gestures.right", "ID_NAV_FORWARD");
 pref("kmeleon.plugins.gestures.up", "macros(up_directory)");
 pref("kmeleon.plugins.gestures.upleft", "layers(Prev)");
