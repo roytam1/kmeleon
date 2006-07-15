@@ -131,7 +131,6 @@ int Load(){
    kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_NEWITEM_FOLDER, gNewitemFolder, (char*)NEWITEM_FOLDER);
    kPlugin.kFuncs->GetPreference(PREF_INT, PREFERENCE_MENU_MAXLEN, &gMaxMenuLength, &gMaxMenuLength);
    kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_MENU_AUTOLEN, &gMenuAutoDetect, &gMenuAutoDetect);
-   gMaxMenuLength = MAX_MENU_LENGTH;
    if (gMaxMenuLength < 1) gMaxMenuLength = MAX_MENU_LENGTH;
    gMenuSortOrder = 17;
    kPlugin.kFuncs->GetPreference(PREF_INT, PREFERENCE_MENU_SORTORDER, &gMenuSortOrder, &gMenuSortOrder);
