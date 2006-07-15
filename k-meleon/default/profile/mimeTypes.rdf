@@ -1,220 +1,137 @@
 <?xml version="1.0"?>
+
+<!--
+ This file is used as a persistent data store for helper application
+ information.
+
+ The root of the data is the <RDF:Seq about="urn:mimetypes:root"/>. This
+ contains one <RDF:li/> entry per MIME type.  Each <RDF:li/> entry corresponds
+ to the "urn:mimetype:major/minor" resource, where "major/minor" is the MIME
+ type.  For example, for HTML we would have "urn:mimetype:text/html".
+ Typically, this resource will be in the <RDF:Description/> node which has the
+ corresponding "about" attribute.
+
+ Each "urn:mimetype:major/minor" resource can have the following properties:
+
+   NC:Value - the MIME type string
+   NC:editable - a "true" or "false" depending on whether this entry is
+                 editable
+   NC:description - a description of the type ("HTML Document" for text/html)
+   NC:fileExtensions - there will be one of these properties per extension that
+                       corresponds to this MIME type, each one having a single
+                       extension as its value.
+   NC:handlerProp - the way the type should be handled.  This corresponds to a
+                    "urn:mimetype:handler:major/minor" resource.  Eg, the way
+                    HTML is handled would be stored in the
+                    "urn:mimetype:handler:text/html" resource
+
+ Each "urn:mimetype:handler:major/minor" resource can have the following
+ properties:
+
+   NC:useSystemDefault - "true" if we should handle per default OS setting,
+                          "false" or not set otherwise
+   NC:saveToDisk - "true" if the data should be saved to disk, "false" or not
+                   set otherwise.
+     (Note - if both of these are false, that means "open in helper app")
+   NC:alwaysAsk - "true" if the user should always be prompted before handling
+                  data of this type, false otherwise.
+   NC:externalApplication - the helper application to use for this type.  This
+                            corresponds to a
+                            "urn:mimetype:externalApplication:major/minor"
+			    resource
+
+ Each "urn:mimetype:externalApplication:major/minor" resource can have the
+ following properties:
+
+   NC:path - the path to the application
+   NC:prettyName - the "pretty name" of the application ("Acrobat Reader" for
+                   /usr/bin/acroread, eg).
+-->
+			
 <RDF:RDF xmlns:NC="http://home.netscape.com/NC-rdf#"
          xmlns:RDF="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-  <RDF:Description RDF:about="urn:mimetype:handler:audio/wav"
-                   NC:alwaysAsk="false"
-                   NC:useSystemDefault="true">
-    <NC:externalApplication RDF:resource="urn:mimetype:externalApplication:audio/wav"/>
+  <RDF:Description RDF:about="urn:mimetypes">
+    <NC:MIME-types RDF:resource="urn:mimetypes:root"/>
   </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype:handler:audio/x-pn-realaudio"
-                   NC:alwaysAsk="false"
-                   NC:useSystemDefault="true">
-    <NC:externalApplication RDF:resource="urn:mimetype:externalApplication:audio/x-pn-realaudio"/>
+  <RDF:Seq RDF:about="urn:mimetypes:root">
+    <RDF:li RDF:resource="urn:mimetype:application/msword"/>
+    <RDF:li RDF:resource="urn:mimetype:application/pdf"/>
+    <RDF:li RDF:resource="urn:mimetype:application/postscript"/>
+    <RDF:li RDF:resource="urn:mimetype:application/vnd.ms-excel"/>
+    <RDF:li RDF:resource="urn:mimetype:application/vnd.ms-powerpoint"/>
+    <RDF:li RDF:resource="urn:mimetype:application/vnd.ms-wpl"/>
+    <RDF:li RDF:resource="urn:mimetype:application/x-java-archive"/>
+    <RDF:li RDF:resource="urn:mimetype:application/x-msdos-program"/>
+    <RDF:li RDF:resource="urn:mimetype:application/zip"/>
+    <RDF:li RDF:resource="urn:mimetype:audio/aiff"/>
+    <RDF:li RDF:resource="urn:mimetype:audio/basic"/>
+    <RDF:li RDF:resource="urn:mimetype:audio/mpeg"/>
+    <RDF:li RDF:resource="urn:mimetype:audio/mid"/>
+    <RDF:li RDF:resource="urn:mimetype:audio/wav"/>
+    <RDF:li RDF:resource="urn:mimetype:audio/x-ms-wma"/>
+    <RDF:li RDF:resource="urn:mimetype:audio/x-pn-realaudio"/>
+    <RDF:li RDF:resource="urn:mimetype:audio/x-mpegurl"/>
+    <RDF:li RDF:resource="urn:mimetype:audio/x-ms-wax"/>
+    <RDF:li RDF:resource="urn:mimetype:video/mpeg"/>
+    <RDF:li RDF:resource="urn:mimetype:video/quicktime"/>
+    <RDF:li RDF:resource="urn:mimetype:video/x-dv"/>
+    <RDF:li RDF:resource="urn:mimetype:video/x-ivf"/>
+    <RDF:li RDF:resource="urn:mimetype:video/x-la-asf"/>
+    <RDF:li RDF:resource="urn:mimetype:video/x-ms-asf"/>
+    <RDF:li RDF:resource="urn:mimetype:video/x-ms-wm"/>
+    <RDF:li RDF:resource="urn:mimetype:video/x-ms-wmv"/>
+    <RDF:li RDF:resource="urn:mimetype:video/x-ms-wvx"/>
+    <RDF:li RDF:resource="urn:mimetype:video/x-msvideo"/>
+  </RDF:Seq>
+
+  <RDF:Description RDF:about="urn:mimetype:externalApplication:application/msword"/>
+  <RDF:Description RDF:about="urn:mimetype:handler:application/msword"
+                   NC:alwaysAsk="true"
+                   NC:saveToDisk="true">
+    <NC:externalApplication RDF:resource="urn:mimetype:externalApplication:application/msword"/>
   </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype:handler:audio/x-m3u"
-                   NC:alwaysAsk="false"
-                   NC:useSystemDefault="true">
-    <NC:externalApplication RDF:resource="urn:mimetype:externalApplication:audio/x-m3u"/>
-  </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype:externalApplication:application/vnd.ms-powerpoint"
-                   NC:prettyName=""
-                   NC:path="" />
-  <RDF:Description RDF:about="urn:mimetype:externalApplication:video/quicktime"
-                   NC:prettyName=""
-                   NC:path="" />
-  <RDF:Description RDF:about="urn:mimetype:audio/x-mp3"
-                   NC:value=" audio/x-mp3"
-                   NC:description=""
-                   NC:editable="true">
-    <NC:handlerProp RDF:resource="urn:mimetype:handler: audio/x-mp3"/>
-  </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype:handler:video/x-ms-asf"
-                   NC:alwaysAsk="false"
-                   NC:useSystemDefault="true">
-    <NC:externalApplication RDF:resource="urn:mimetype:externalApplication:video/x-ms-asf"/>
-  </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype:video/mpeg"
-                   NC:value="video/mpeg"
+  <RDF:Description RDF:about="urn:mimetype:application/msword"
+                   NC:value="application/msword"
                    NC:editable="true"
-                   NC:description=""
-                   NC:fileExtensions="">
-    <NC:handlerProp RDF:resource="urn:mimetype:handler:video/mpeg"/>
+                   NC:fileExtensions="doc"
+                   NC:description="Microsoft Word Document">
+    <NC:handlerProp RDF:resource="urn:mimetype:handler:application/msword"/>
   </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype: audio/x-pn-windows-pcm"
-                   NC:value=" audio/x-pn-windows-pcm"
-                   NC:description=""
-                   NC:editable="true">
-    <NC:handlerProp RDF:resource="urn:mimetype:handler: audio/x-pn-windows-pcm"/>
-  </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype:handler:audio/x-ms-wma"
-                   NC:alwaysAsk="false"
-                   NC:useSystemDefault="true">
-    <NC:externalApplication RDF:resource="urn:mimetype:externalApplication:audio/x-ms-wma"/>
-  </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype:handler:application/vnd.ms-excel"
-                   NC:alwaysAsk="false"
-                   NC:useSystemDefault="true">
-    <NC:externalApplication RDF:resource="urn:mimetype:externalApplication:application/vnd.ms-excel"/>
-  </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype:application/pdf"
-                   NC:value="application/pdf"
-                   NC:editable="true">
-    <NC:handlerProp RDF:resource="urn:mimetype:handler:application/pdf"/>
-  </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype:handler: audio/x-mp3"
-                   NC:alwaysAsk="false"
-                   NC:useSystemDefault="true">
-    <NC:externalApplication RDF:resource="urn:mimetype:externalApplication: audio/x-mp3"/>
-  </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype:audio/mpeg"
-                   NC:value="audio/mpeg"
-                   NC:editable="true">
-    <NC:handlerProp RDF:resource="urn:mimetype:handler:audio/mpeg"/>
-  </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype:externalApplication: audio/scpls"
-                   NC:path=""
-                   NC:prettyName="" />
-  <RDF:Description RDF:about="urn:mimetype:audio/m3u"
-                   NC:value=" audio/m3u"
-                   NC:description=""
-                   NC:editable="true">
-    <NC:handlerProp RDF:resource="urn:mimetype:handler: audio/m3u"/>
-  </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype:handler: audio/x-mpegurl"
-                   NC:alwaysAsk="false"
-                   NC:useSystemDefault="true">
-    <NC:externalApplication RDF:resource="urn:mimetype:externalApplication: audio/x-mpegurl"/>
-  </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype:audio/x-pn-realaudio"
-                   NC:value="audio/x-pn-realaudio"
-                   NC:editable="true">
-    <NC:handlerProp RDF:resource="urn:mimetype:handler:audio/x-pn-realaudio"/>
-  </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype:externalApplication:audio/x-m3u"
-                   NC:path=""
-                   NC:prettyName="" />
-  <RDF:Description RDF:about="urn:mimetype:audio/x-mpegurl"
-                   NC:value=" audio/x-mpegurl"
-                   NC:description=""
-                   NC:editable="true">
-    <NC:handlerProp RDF:resource="urn:mimetype:handler: audio/x-mpegurl"/>
-  </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype:externalApplication: video/x-ms-wmv"
-                   NC:path=""
-                   NC:prettyName="" />
-  <RDF:Description RDF:about="urn:mimetype:video/x-ms-asf"
-                   NC:value="video/x-ms-asf"
-                   NC:editable="true">
-    <NC:handlerProp RDF:resource="urn:mimetype:handler:video/x-ms-asf"/>
-  </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype:externalApplication:audio/x-m4a"
-                   NC:prettyName=""
-                   NC:path="" />
-  <RDF:Description RDF:about="urn:mimetype:video/x-ms-wmv"
-                   NC:value="video/x-ms-wmv"
-                   NC:editable="true"
-                   NC:description=""
-                   NC:fileExtensions="">
-    <NC:handlerProp RDF:resource="urn:mimetype:handler:video/x-ms-wmv"/>
-  </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype:application/x-zip-compressed"
-                   NC:value="application/x-zip-compressed"
-                   NC:editable="true"
-                   NC:fileExtensions="zip"
-                   NC:description="PowerArchiver ZIP File">
-    <NC:handlerProp RDF:resource="urn:mimetype:handler:application/x-zip-compressed"/>
-  </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype:audio/wav"
-                   NC:value="audio/wav"
-                   NC:editable="true">
-    <NC:handlerProp RDF:resource="urn:mimetype:handler:audio/wav"/>
-  </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype:externalApplication:video/avi"
-                   NC:prettyName=""
-                   NC:path="" />
-  <RDF:Description RDF:about="urn:mimetype:handler: audio/x-scpls"
-                   NC:alwaysAsk="false"
-                   NC:useSystemDefault="true">
-    <NC:externalApplication RDF:resource="urn:mimetype:externalApplication: audio/x-scpls"/>
-  </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype:externalApplication:video/x-ms-wmv"
-                   NC:path="C:\Program Files\Windows Media Player\mplayer2.exe"
-                   NC:prettyName="mplayer2.exe" />
-  <RDF:Description RDF:about="urn:mimetype:audio/x-mp3"
-                   NC:value="audio/x-mp3"
-                   NC:editable="true">
-    <NC:handlerProp RDF:resource="urn:mimetype:handler:audio/x-mp3"/>
-  </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype:handler:video/mpeg"
-                   NC:saveToDisk="false"
-                   NC:useSystemDefault="true"
-                   NC:alwaysAsk="false">
-    <NC:externalApplication RDF:resource="urn:mimetype:externalApplication:video/mpeg"/>
-  </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype:handler:audio/mid"
-                   NC:alwaysAsk="false"
-                   NC:useSystemDefault="true">
-    <NC:externalApplication RDF:resource="urn:mimetype:externalApplication:audio/mid"/>
-  </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype:handler:audio/x-scpls"
-                   NC:alwaysAsk="false"
-                   NC:useSystemDefault="true">
-    <NC:externalApplication RDF:resource="urn:mimetype:externalApplication:audio/x-scpls"/>
-  </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype:externalApplication:audio/mid"
-                   NC:prettyName=""
-                   NC:path="" />
+
+  <RDF:Description RDF:about="urn:mimetype:externalApplication:application/pdf"/>
   <RDF:Description RDF:about="urn:mimetype:handler:application/pdf"
                    NC:alwaysAsk="false"
                    NC:useSystemDefault="true">
     <NC:externalApplication RDF:resource="urn:mimetype:externalApplication:application/pdf"/>
   </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype:handler:video/quicktime"
-                   NC:alwaysAsk="false"
-                   NC:useSystemDefault="true">
-    <NC:externalApplication RDF:resource="urn:mimetype:externalApplication:video/quicktime"/>
+  <RDF:Description RDF:about="urn:mimetype:application/pdf"
+                   NC:value="application/pdf"
+                   NC:editable="true"
+                   NC:fileExtensions="pdf"
+                   NC:description="Portable Document Format">
+    <NC:handlerProp RDF:resource="urn:mimetype:handler:application/pdf"/>
   </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype:externalApplication:audio/mpeg"
-                   NC:prettyName=""
-                   NC:path="" />
-  <RDF:Description RDF:about="urn:mimetype:video/quicktime"
-                   NC:value="video/quicktime"
-                   NC:editable="true">
-    <NC:handlerProp RDF:resource="urn:mimetype:handler:video/quicktime"/>
+
+  <RDF:Description RDF:about="urn:mimetype:externalApplication:application/postscript"/>
+  <RDF:Description RDF:about="urn:mimetype:handler:application/postscript"
+                   NC:alwaysAsk="true"
+                   NC:saveToDisk="true">
+    <NC:externalApplication RDF:resource="urn:mimetype:externalApplication:application/postscript"/>
   </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype:audio/pl"
-                   NC:value=" audio/pl"
-                   NC:description=""
-                   NC:editable="true">
-    <NC:handlerProp RDF:resource="urn:mimetype:handler: audio/pl"/>
+  <RDF:Description RDF:about="urn:mimetype:application/postscript"
+                   NC:value="application/postscript"
+                   NC:editable="true"
+                   NC:fileExtensions="ps"
+                   NC:description="PostScript">
+    <NC:handlerProp RDF:resource="urn:mimetype:handler:application/postscript"/>
   </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype:externalApplication:audio/x-pn-realaudio"
-                   NC:prettyName=""
-                   NC:path="" />
-  <RDF:Description RDF:about="urn:mimetypes">
-    <NC:MIME-types RDF:resource="urn:mimetypes:root"/>
+
+  <RDF:Description RDF:about="urn:mimetype:externalApplication:application/vnd.ms-excel"/>
+  <RDF:Description RDF:about="urn:mimetype:handler:application/vnd.ms-excel"
+                   NC:alwaysAsk="true"
+                   NC:saveToDisk="true">
+    <NC:externalApplication RDF:resource="urn:mimetype:externalApplication:application/vnd.ms-excel"/>
   </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype:externalApplication:application/msword"
-                   NC:prettyName=""
-                   NC:path="" />
-  <RDF:Description RDF:about="urn:mimetype:externalApplication:video/x-ms-asf"
-                   NC:prettyName=""
-                   NC:path="" />
-  <RDF:Description RDF:about="urn:mimetype:externalApplication:audio/x-mp3"
-                   NC:prettyName=""
-                   NC:path="" />
-  <RDF:Description RDF:about="urn:mimetype:externalApplication: application/vnd.rn-mplayer2"
-                   NC:path=""
-                   NC:prettyName="" />
-  <RDF:Description RDF:about="urn:mimetype:externalApplication: audio/m3u"
-                   NC:path=""
-                   NC:prettyName="" />
-  <RDF:Description RDF:about="urn:mimetype:externalApplication:audio/x-scpls"
-                   NC:prettyName=""
-                   NC:path="" />
-  <RDF:Description RDF:about="urn:mimetype:externalApplication: audio/x-pn-windows-pcm"
-                   NC:path=""
-                   NC:prettyName="" />
   <RDF:Description RDF:about="urn:mimetype:application/vnd.ms-excel"
                    NC:value="application/vnd.ms-excel"
                    NC:editable="true"
@@ -222,218 +139,361 @@
                    NC:description="Microsoft Excel Worksheet">
     <NC:handlerProp RDF:resource="urn:mimetype:handler:application/vnd.ms-excel"/>
   </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype:audio/x-m3u"
-                   NC:value="audio/x-m3u"
-                   NC:description=""
-                   NC:editable="true">
-    <NC:handlerProp RDF:resource="urn:mimetype:handler:audio/x-m3u"/>
-  </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype:handler: audio/m3u"
-                   NC:alwaysAsk="false"
-                   NC:useSystemDefault="true">
-    <NC:externalApplication RDF:resource="urn:mimetype:externalApplication: audio/m3u"/>
-  </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype:application/vnd.rn-mplayer2"
-                   NC:value=" application/vnd.rn-mplayer2"
-                   NC:description=""
-                   NC:editable="true">
-    <NC:handlerProp RDF:resource="urn:mimetype:handler: application/vnd.rn-mplayer2"/>
-  </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype:handler: audio/pl"
-                   NC:alwaysAsk="false"
-                   NC:useSystemDefault="true">
-    <NC:externalApplication RDF:resource="urn:mimetype:externalApplication: audio/pl"/>
-  </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype:handler: audio/x-pn-windows-pcm"
-                   NC:alwaysAsk="false"
-                   NC:useSystemDefault="true">
-    <NC:externalApplication RDF:resource="urn:mimetype:externalApplication: audio/x-pn-windows-pcm"/>
-  </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype:externalApplication:video/mpeg"
-                   NC:path="C:\Program Files\Windows Media Player\mplayer2.exe"
-                   NC:prettyName="mplayer2.exe" />
-  <RDF:Description RDF:about="urn:mimetype:audio/mid"
-                   NC:value="audio/mid"
-                   NC:editable="true">
-    <NC:handlerProp RDF:resource="urn:mimetype:handler:audio/mid"/>
-  </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype:externalApplication:audio/wav"
-                   NC:prettyName=""
-                   NC:path="" />
-  <RDF:Seq RDF:about="urn:mimetypes:root">
-    <RDF:li RDF:resource="urn:mimetype:application/vnd.ms-excel"/>
-    <RDF:li RDF:resource="urn:mimetype:application/msword"/>
-    <RDF:li RDF:resource="urn:mimetype:application/vnd.ms-powerpoint"/>
-    <RDF:li RDF:resource="urn:mimetype:application/pdf"/>
-    <RDF:li RDF:resource="urn:mimetype:video/avi"/>
-    <RDF:li RDF:resource="urn:mimetype:video/quicktime"/>
-    <RDF:li RDF:resource="urn:mimetype:video/x-ms-wmv"/>
-    <RDF:li RDF:resource="urn:mimetype:video/x-ms-asf"/>
-    <RDF:li RDF:resource="urn:mimetype:video/mpeg"/>
-    <RDF:li RDF:resource="urn:mimetype:audio/x-pn-realaudio"/>
-    <RDF:li RDF:resource="urn:mimetype:audio/x-m4a"/>
-    <RDF:li RDF:resource="urn:mimetype:audio/x-mp3"/>
-    <RDF:li RDF:resource="urn:mimetype:audio/mpeg"/>
-    <RDF:li RDF:resource="urn:mimetype:audio/x-ms-wma"/>
-    <RDF:li RDF:resource="urn:mimetype:audio/wav"/>
-    <RDF:li RDF:resource="urn:mimetype:audio/mid"/>
-    <RDF:li RDF:resource="urn:mimetype:application/x-zip-compressed"/>
-    <RDF:li RDF:resource="urn:mimetype:audio/x-m3u"/>
-    <RDF:li RDF:resource="urn:mimetype:audio/x-mp3"/>
-    <RDF:li RDF:resource="urn:mimetype:audio/x-mpegurl"/>
-    <RDF:li RDF:resource="urn:mimetype:audio/x-scpls"/>
-    <RDF:li RDF:resource="urn:mimetype:audio/scpls"/>
-    <RDF:li RDF:resource="urn:mimetype:audio/mp3"/>
-    <RDF:li RDF:resource="urn:mimetype:audio/m3u"/>
-    <RDF:li RDF:resource="urn:mimetype:audio/pl"/>
-    <RDF:li RDF:resource="urn:mimetype:audio/x-pn-windows-pcm"/>
-    <RDF:li RDF:resource="urn:mimetype:video/x-ms-wmv"/>
-    <RDF:li RDF:resource="urn:mimetype:application/vnd.rn-mplayer2"/>
-    <RDF:li RDF:resource="urn:mimetype:audio/x-scpls"/>
-  </RDF:Seq>
-  <RDF:Description RDF:about="urn:mimetype:audio/x-m4a"
-                   NC:value="audio/x-m4a"
-                   NC:editable="true">
-    <NC:handlerProp RDF:resource="urn:mimetype:handler:audio/x-m4a"/>
-  </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype:externalApplication: audio/pl"
-                   NC:path=""
-                   NC:prettyName="" />
-  <RDF:Description RDF:about="urn:mimetype:handler: video/x-ms-wmv"
-                   NC:alwaysAsk="false"
-                   NC:useSystemDefault="true">
-    <NC:externalApplication RDF:resource="urn:mimetype:externalApplication: video/x-ms-wmv"/>
-  </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype:handler:audio/x-m4a"
-                   NC:alwaysAsk="false"
-                   NC:useSystemDefault="true">
-    <NC:externalApplication RDF:resource="urn:mimetype:externalApplication:audio/x-m4a"/>
-  </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype:video/avi"
-                   NC:value="video/avi"
-                   NC:editable="true">
-    <NC:handlerProp RDF:resource="urn:mimetype:handler:video/avi"/>
-  </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype:externalApplication: audio/x-mpegurl"
-                   NC:path=""
-                   NC:prettyName="" />
-  <RDF:Description RDF:about="urn:mimetype:externalApplication:application/vnd.ms-excel"
-                   NC:prettyName=""
-                   NC:path="" />
-  <RDF:Description RDF:about="urn:mimetype:handler:video/x-ms-wmv"
-                   NC:handleInternal="false"
-                   NC:saveToDisk="false"
-                   NC:useSystemDefault="true"
-                   NC:alwaysAsk="false">
-    <NC:externalApplication RDF:resource="urn:mimetype:externalApplication:video/x-ms-wmv"/>
-  </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype:audio/x-ms-wma"
-                   NC:value="audio/x-ms-wma"
-                   NC:editable="true">
-    <NC:handlerProp RDF:resource="urn:mimetype:handler:audio/x-ms-wma"/>
-  </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype:handler:video/avi"
-                   NC:alwaysAsk="false"
-                   NC:useSystemDefault="true">
-    <NC:externalApplication RDF:resource="urn:mimetype:externalApplication:video/avi"/>
-  </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype:application/msword"
-                   NC:value="application/msword"
-                   NC:editable="true">
-    <NC:handlerProp RDF:resource="urn:mimetype:handler:application/msword"/>
-  </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype:video/x-ms-wmv"
-                   NC:value=" video/x-ms-wmv"
-                   NC:description=""
-                   NC:editable="true">
-    <NC:handlerProp RDF:resource="urn:mimetype:handler: video/x-ms-wmv"/>
-  </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype:externalApplication:audio/x-ms-wma"
-                   NC:prettyName=""
-                   NC:path="" />
-  <RDF:Description RDF:about="urn:mimetype:handler:application/msword"
-                   NC:alwaysAsk="false"
-                   NC:useSystemDefault="true">
-    <NC:externalApplication RDF:resource="urn:mimetype:externalApplication:application/msword"/>
-  </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype:externalApplication: audio/x-mp3"
-                   NC:path=""
-                   NC:prettyName="" />
-  <RDF:Description RDF:about="urn:mimetype:externalApplication:application/pdf"
-                   NC:prettyName=""
-                   NC:path="" />
-  <RDF:Description RDF:about="urn:mimetype:handler:audio/x-mp3"
-                   NC:alwaysAsk="false"
-                   NC:useSystemDefault="true">
-    <NC:externalApplication RDF:resource="urn:mimetype:externalApplication:audio/x-mp3"/>
+
+  <RDF:Description RDF:about="urn:mimetype:externalApplication:application/vnd.ms-powerpoint"/>
+  <RDF:Description RDF:about="urn:mimetype:handler:application/vnd.ms-powerpoint"
+                   NC:alwaysAsk="true"
+                   NC:saveToDisk="true">
+    <NC:externalApplication RDF:resource="urn:mimetype:externalApplication:application/vnd.ms-powerpoint"/>
   </RDF:Description>
   <RDF:Description RDF:about="urn:mimetype:application/vnd.ms-powerpoint"
                    NC:value="application/vnd.ms-powerpoint"
-                   NC:editable="true">
+                   NC:editable="true"
+                   NC:fileExtensions="ppt"
+                   NC:description="Microsoft PowerPoint Presentation">
     <NC:handlerProp RDF:resource="urn:mimetype:handler:application/vnd.ms-powerpoint"/>
   </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype:externalApplication: audio/x-scpls"
-                   NC:path=""
-                   NC:prettyName="" />
-  <RDF:Description RDF:about="urn:mimetype:handler: application/vnd.rn-mplayer2"
+
+  <RDF:Description RDF:about="urn:mimetype:externalApplication:application/vnd.ms-wpl"/>
+  <RDF:Description RDF:about="urn:mimetype:handler:application/vnd.ms-wpl"
                    NC:alwaysAsk="false"
                    NC:useSystemDefault="true">
-    <NC:externalApplication RDF:resource="urn:mimetype:externalApplication: application/vnd.rn-mplayer2"/>
+    <NC:externalApplication RDF:resource="urn:mimetype:externalApplication:application/vnd.ms-wpl"/>
   </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype:audio/mp3"
-                   NC:value=" audio/mp3"
-                   NC:description=""
-                   NC:editable="true">
-    <NC:handlerProp RDF:resource="urn:mimetype:handler: audio/mp3"/>
+  <RDF:Description RDF:about="urn:mimetype:application/vnd.ms-wpl"
+                   NC:value="application/vnd.ms-wpl"
+                   NC:editable="true"
+                   NC:fileExtensions="wpl"
+                   NC:description="Windows Media Player Playlist">
+    <NC:handlerProp RDF:resource="urn:mimetype:handler:application/vnd.ms-wpl"/>
   </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype:handler:application/vnd.ms-powerpoint"
-                   NC:alwaysAsk="false"
-                   NC:useSystemDefault="true">
-    <NC:externalApplication RDF:resource="urn:mimetype:externalApplication:application/vnd.ms-powerpoint"/>
-  </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype:handler: audio/scpls"
-                   NC:alwaysAsk="false"
-                   NC:useSystemDefault="true">
-    <NC:externalApplication RDF:resource="urn:mimetype:externalApplication: audio/scpls"/>
-  </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype:handler:application/x-zip-compressed"
+
+  <RDF:Description RDF:about="urn:mimetype:externalApplication:application/x-java-archive"/>
+  <RDF:Description RDF:about="urn:mimetype:handler:application/x-java-archive"
                    NC:alwaysAsk="true"
                    NC:saveToDisk="true">
-    <NC:externalApplication RDF:resource="urn:mimetype:externalApplication:application/x-zip-compressed"/>
+    <NC:externalApplication RDF:resource="urn:mimetype:externalApplication:application/x-java-archive"/>
   </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype:audio/x-scpls"
-                   NC:value=" audio/x-scpls"
-                   NC:description=""
-                   NC:editable="true">
-    <NC:handlerProp RDF:resource="urn:mimetype:handler: audio/x-scpls"/>
+  <RDF:Description RDF:about="urn:mimetype:application/x-java-archive"
+                   NC:value="application/x-java-archive"
+                   NC:editable="true"
+                   NC:fileExtensions="jar"
+                   NC:description="Java Archive">
+    <NC:handlerProp RDF:resource="urn:mimetype:handler:application/x-java-archive"/>
   </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype:audio/scpls"
-                   NC:value=" audio/scpls"
-                   NC:description=""
-                   NC:editable="true">
-    <NC:handlerProp RDF:resource="urn:mimetype:handler: audio/scpls"/>
+
+  <RDF:Description RDF:about="urn:mimetype:externalApplication:application/x-msdos-program"/>
+  <RDF:Description RDF:about="urn:mimetype:handler:application/x-msdos-program"
+                   NC:alwaysAsk="true"
+                   NC:saveToDisk="true">
+    <NC:externalApplication RDF:resource="urn:mimetype:externalApplication:application/x-msdos-program"/>
   </RDF:Description>
+  <RDF:Description RDF:about="urn:mimetype:application/x-msdos-program"
+                   NC:value="application/x-msdos-program"
+                   NC:editable="true"
+                   NC:description="Binary Executable">
+    <NC:fileExtensions>exe</NC:fileExtensions>
+    <NC:fileExtensions>bin</NC:fileExtensions>
+    <NC:handlerProp RDF:resource="urn:mimetype:handler:application/x-msdos-program"/>
+  </RDF:Description>
+
+  <RDF:Description RDF:about="urn:mimetype:externalApplication:application/zip"/>
+  <RDF:Description RDF:about="urn:mimetype:handler:application/zip"
+                   NC:alwaysAsk="true"
+                   NC:saveToDisk="true">
+    <NC:externalApplication RDF:resource="urn:mimetype:externalApplication:application/zip"/>
+  </RDF:Description>
+  <RDF:Description RDF:about="urn:mimetype:application/zip"
+                   NC:value="application/zip"
+                   NC:editable="true"
+                   NC:fileExtensions="zip"
+                   NC:description="ZIP-Compressed Archive">
+    <NC:handlerProp RDF:resource="urn:mimetype:handler:application/zip"/>
+  </RDF:Description>
+
+  <RDF:Description RDF:about="urn:mimetype:externalApplication:audio/aiff"/>
+  <RDF:Description RDF:about="urn:mimetype:handler:audio/aiff"
+                   NC:alwaysAsk="true"
+                   NC:saveToDisk="true">
+    <NC:externalApplication RDF:resource="urn:mimetype:externalApplication:audio/aiff"/>
+  </RDF:Description>
+  <RDF:Description RDF:about="urn:mimetype:audio/aiff"
+                   NC:value="audio/aiff"
+                   NC:editable="true"
+                   NC:description="Audio Interchange File Format">
+    <NC:fileExtensions>aif</NC:fileExtensions>
+    <NC:fileExtensions>aifc</NC:fileExtensions>
+    <NC:fileExtensions>aiff</NC:fileExtensions>
+    <NC:handlerProp RDF:resource="urn:mimetype:handler:audio/aiff"/>
+  </RDF:Description>
+
+  <RDF:Description RDF:about="urn:mimetype:externalApplication:audio/basic"/>
+  <RDF:Description RDF:about="urn:mimetype:handler:audio/basic"
+                   NC:alwaysAsk="true"
+                   NC:saveToDisk="true">
+    <NC:externalApplication RDF:resource="urn:mimetype:externalApplication:audio/basic"/>
+  </RDF:Description>
+  <RDF:Description RDF:about="urn:mimetype:audio/basic"
+                   NC:value="audio/basic"
+                   NC:editable="true"
+                   NC:description="Basic Audio">
+    <NC:fileExtensions>au</NC:fileExtensions>
+    <NC:fileExtensions>snd</NC:fileExtensions>
+    <NC:handlerProp RDF:resource="urn:mimetype:handler:audio/basic"/>
+  </RDF:Description>
+
+  <RDF:Description RDF:about="urn:mimetype:externalApplication:audio/mpeg"/>
   <RDF:Description RDF:about="urn:mimetype:handler:audio/mpeg"
-                   NC:alwaysAsk="false"
-                   NC:useSystemDefault="true">
+                   NC:alwaysAsk="true"
+                   NC:saveToDisk="true">
     <NC:externalApplication RDF:resource="urn:mimetype:externalApplication:audio/mpeg"/>
   </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype:audio/x-scpls"
-                   NC:value="audio/x-scpls"
+  <RDF:Description RDF:about="urn:mimetype:audio/mpeg"
+                   NC:value="audio/mpeg"
                    NC:editable="true"
-                   NC:fileExtensions="pls"
-                   NC:description="Audio PlayList">
-    <NC:handlerProp RDF:resource="urn:mimetype:handler:audio/x-scpls"/>
+                   NC:fileExtensions="mp3"
+                   NC:description="MPEG Layer 3">
+    <NC:handlerProp RDF:resource="urn:mimetype:handler:audio/mpeg"/>
   </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype:handler: audio/mp3"
+
+  <RDF:Description RDF:about="urn:mimetype:externalApplication:audio/mid"/>
+  <RDF:Description RDF:about="urn:mimetype:handler:audio/mid"
+                   NC:alwaysAsk="true"
+                   NC:saveToDisk="true">
+    <NC:externalApplication RDF:resource="urn:mimetype:externalApplication:audio/mid"/>
+  </RDF:Description>
+  <RDF:Description RDF:about="urn:mimetype:audio/mid"
+                   NC:value="audio/mid"
+                   NC:editable="true"
+                   NC:description="Musical Instrument Digital Interface (MIDI)">
+    <NC:fileExtensions>mid</NC:fileExtensions>
+    <NC:fileExtensions>midi</NC:fileExtensions>
+    <NC:fileExtensions>rmi</NC:fileExtensions>
+    <NC:handlerProp RDF:resource="urn:mimetype:handler:audio/mid"/>
+  </RDF:Description>
+
+  <RDF:Description RDF:about="urn:mimetype:externalApplication:audio/wav"/>
+  <RDF:Description RDF:about="urn:mimetype:handler:audio/wav"
+                   NC:alwaysAsk="true"
+                   NC:saveToDisk="true">
+    <NC:externalApplication RDF:resource="urn:mimetype:externalApplication:audio/wav"/>
+  </RDF:Description>
+  <RDF:Description RDF:about="urn:mimetype:audio/wav"
+                   NC:value="audio/wav"
+                   NC:editable="true"
+                   NC:fileExtensions="wav"
+                   NC:description="Waveform">
+    <NC:handlerProp RDF:resource="urn:mimetype:handler:audio/wav"/>
+  </RDF:Description>
+
+  <RDF:Description RDF:about="urn:mimetype:externalApplication:audio/x-ms-wma"/>
+  <RDF:Description RDF:about="urn:mimetype:handler:audio/x-ms-wma"
+                   NC:alwaysAsk="true"
+                   NC:saveToDisk="true">
+    <NC:externalApplication RDF:resource="urn:mimetype:externalApplication:audio/x-ms-wma"/>
+  </RDF:Description>
+  <RDF:Description RDF:about="urn:mimetype:audio/x-ms-wma"
+                   NC:value="audio/x-ms-wma"
+                   NC:editable="true"
+                   NC:fileExtensions="wma"
+                   NC:description="Windows Media Audio">
+    <NC:handlerProp RDF:resource="urn:mimetype:handler:audio/x-ms-wma"/>
+  </RDF:Description>
+
+  <RDF:Description RDF:about="urn:mimetype:externalApplication:audio/x-pn-realaudio"/>
+  <RDF:Description RDF:about="urn:mimetype:handler:audio/x-pn-realaudio"
+                   NC:alwaysAsk="true"
+                   NC:saveToDisk="true">
+    <NC:externalApplication RDF:resource="urn:mimetype:externalApplication:audio/x-pn-realaudio"/>
+  </RDF:Description>
+  <RDF:Description RDF:about="urn:mimetype:audio/x-pn-realaudio"
+                   NC:value="audio/x-pn-realaudio"
+                   NC:editable="true"
+                   NC:description="RealAudio">
+    <NC:fileExtensions>ra</NC:fileExtensions>
+    <NC:fileExtensions>ram</NC:fileExtensions>
+    <NC:fileExtensions>rm</NC:fileExtensions>
+    <NC:fileExtensions>rmm</NC:fileExtensions>
+    <NC:handlerProp RDF:resource="urn:mimetype:handler:audio/x-pn-realaudio"/>
+  </RDF:Description>
+
+  <RDF:Description RDF:about="urn:mimetype:externalApplication:audio/x-mpegurl"/>
+  <RDF:Description RDF:about="urn:mimetype:handler:audio/x-mpegurl"
+                   NC:alwaysAsk="true"
+                   NC:saveToDisk="true">
+    <NC:externalApplication RDF:resource="urn:mimetype:externalApplication:audio/x-mpegurl"/>
+  </RDF:Description>
+  <RDF:Description RDF:about="urn:mimetype:audio/x-mpegurl"
+                   NC:value="audio/x-mpegurl"
+                   NC:editable="true"
+                   NC:fileExtensions="m3u"
+                   NC:description="WinAMP Playlist">
+    <NC:handlerProp RDF:resource="urn:mimetype:handler:audio/x-mpegurl"/>
+  </RDF:Description>
+
+  <RDF:Description RDF:about="urn:mimetype:externalApplication:audio/x-ms-wax"/>
+  <RDF:Description RDF:about="urn:mimetype:handler:audio/x-ms-wax"
                    NC:alwaysAsk="false"
                    NC:useSystemDefault="true">
-    <NC:externalApplication RDF:resource="urn:mimetype:externalApplication: audio/mp3"/>
+    <NC:externalApplication RDF:resource="urn:mimetype:externalApplication:audio/x-ms-wax"/>
   </RDF:Description>
-  <RDF:Description RDF:about="urn:mimetype:externalApplication:application/x-zip-compressed"
-                   NC:prettyName=""
-                   NC:path="" />
-  <RDF:Description RDF:about="urn:mimetype:externalApplication: audio/mp3"
-                   NC:path=""
-                   NC:prettyName="" />
+  <RDF:Description RDF:about="urn:mimetype:audio/x-ms-wax"
+                   NC:value="audio/x-ms-wax"
+                   NC:editable="true"
+                   NC:fileExtensions="wax"
+                   NC:description="Windows Media Audio XML Metafile">
+    <NC:handlerProp RDF:resource="urn:mimetype:handler:audio/x-ms-wax"/>
+  </RDF:Description>
+
+  <RDF:Description RDF:about="urn:mimetype:externalApplication:video/mpeg"/>
+  <RDF:Description RDF:about="urn:mimetype:handler:video/mpeg"
+                   NC:alwaysAsk="true"
+                   NC:saveToDisk="true">
+    <NC:externalApplication RDF:resource="urn:mimetype:externalApplication:video/mpeg"/>
+  </RDF:Description>
+  <RDF:Description RDF:about="urn:mimetype:video/mpeg"
+                   NC:value="video/mpeg"
+                   NC:editable="true"
+                   NC:description="Motion Picture Experts Group (MPEG)">
+    <NC:fileExtensions>m1v</NC:fileExtensions>
+    <NC:fileExtensions>mp2</NC:fileExtensions>
+    <NC:fileExtensions>mp2v</NC:fileExtensions>
+    <NC:fileExtensions>mpa</NC:fileExtensions>
+    <NC:fileExtensions>mpe</NC:fileExtensions>
+    <NC:fileExtensions>mpeg</NC:fileExtensions>
+    <NC:fileExtensions>mpg</NC:fileExtensions>
+    <NC:fileExtensions>mpv2</NC:fileExtensions>
+    <NC:handlerProp RDF:resource="urn:mimetype:handler:video/mpeg"/>
+  </RDF:Description>
+
+  <RDF:Description RDF:about="urn:mimetype:externalApplication:video/quicktime"/>
+  <RDF:Description RDF:about="urn:mimetype:handler:video/quicktime"
+                   NC:alwaysAsk="true"
+                   NC:saveToDisk="true">
+    <NC:externalApplication RDF:resource="urn:mimetype:externalApplication:video/quicktime"/>
+  </RDF:Description>
+  <RDF:Description RDF:about="urn:mimetype:video/quicktime"
+                   NC:value="video/quicktime"
+                   NC:editable="true"
+                   NC:description="QuickTime Movie">
+    <NC:fileExtensions>mov</NC:fileExtensions>
+    <NC:fileExtensions>qt</NC:fileExtensions>
+    <NC:handlerProp RDF:resource="urn:mimetype:handler:video/quicktime"/>
+  </RDF:Description>
+
+  <RDF:Description RDF:about="urn:mimetype:externalApplication:video/x-dv"/>
+  <RDF:Description RDF:about="urn:mimetype:handler:video/x-dv"
+                   NC:alwaysAsk="true"
+                   NC:saveToDisk="true">
+    <NC:externalApplication RDF:resource="urn:mimetype:externalApplication:video/x-dv"/>
+  </RDF:Description>
+  <RDF:Description RDF:about="urn:mimetype:video/x-dv"
+                   NC:value="video/x-dv"
+                   NC:editable="true"
+                   NC:description="QuickTime Digital Video">
+    <NC:fileExtensions>dif</NC:fileExtensions>
+    <NC:fileExtensions>dv</NC:fileExtensions>
+    <NC:handlerProp RDF:resource="urn:mimetype:handler:video/x-dv"/>
+  </RDF:Description>
+
+  <RDF:Description RDF:about="urn:mimetype:externalApplication:video/x-ivf"/>
+  <RDF:Description RDF:about="urn:mimetype:handler:video/x-ivf"
+                   NC:alwaysAsk="true"
+                   NC:saveToDisk="true">
+    <NC:externalApplication RDF:resource="urn:mimetype:externalApplication:video/x-ivf"/>
+  </RDF:Description>
+  <RDF:Description RDF:about="urn:mimetype:video/x-ivf"
+                   NC:value="video/x-ivf"
+                   NC:editable="true"
+                   NC:fileExtensions="ivf"
+                   NC:description="Indeo Video Format">
+    <NC:handlerProp RDF:resource="urn:mimetype:handler:video/x-ivf"/>
+  </RDF:Description>
+
+  <RDF:Description RDF:about="urn:mimetype:externalApplication:video/x-la-asf"/>
+  <RDF:Description RDF:about="urn:mimetype:handler:video/x-la-asf"
+                   NC:alwaysAsk="true"
+                   NC:saveToDisk="true">
+    <NC:externalApplication RDF:resource="urn:mimetype:externalApplication:video/x-la-asf"/>
+  </RDF:Description>
+  <RDF:Description RDF:about="urn:mimetype:video/x-la-asf"
+                   NC:value="video/x-la-asf"
+                   NC:editable="true"
+                   NC:fileExtensions="lsf"
+                   NC:description="Advanced Systems Format">
+    <NC:handlerProp RDF:resource="urn:mimetype:handler:video/x-la-asf"/>
+  </RDF:Description>
+
+  <RDF:Description RDF:about="urn:mimetype:externalApplication:video/x-ms-asf"/>
+  <RDF:Description RDF:about="urn:mimetype:handler:video/x-ms-asf"
+                   NC:alwaysAsk="false"
+                   NC:useSystemDefault="true">
+    <NC:externalApplication RDF:resource="urn:mimetype:externalApplication:video/x-ms-asf"/>
+  </RDF:Description>
+  <RDF:Description RDF:about="urn:mimetype:video/x-ms-asf"
+                   NC:value="video/x-ms-asf"
+                   NC:editable="true"
+                   NC:description="Advanced Systems Format/Advanced Stream Redirector">
+    <NC:fileExtensions>asf</NC:fileExtensions>
+    <NC:fileExtensions>asx</NC:fileExtensions>
+    <NC:fileExtensions>wmx</NC:fileExtensions>
+    <NC:handlerProp RDF:resource="urn:mimetype:handler:video/x-ms-asf"/>
+  </RDF:Description>
+
+  <RDF:Description RDF:about="urn:mimetype:externalApplication:video/x-ms-wm"/>
+  <RDF:Description RDF:about="urn:mimetype:handler:video/x-ms-wm"
+                   NC:alwaysAsk="true"
+                   NC:saveToDisk="true">
+    <NC:externalApplication RDF:resource="urn:mimetype:externalApplication:video/x-ms-wm"/>
+  </RDF:Description>
+  <RDF:Description RDF:about="urn:mimetype:video/x-ms-wm"
+                   NC:value="video/x-ms-wm"
+                   NC:editable="true"
+                   NC:fileExtensions="wm"
+                   NC:description="Advanced Systems Format">
+    <NC:handlerProp RDF:resource="urn:mimetype:handler:video/x-ms-wm"/>
+  </RDF:Description>
+
+  <RDF:Description RDF:about="urn:mimetype:externalApplication:video/x-ms-wmv"/>
+  <RDF:Description RDF:about="urn:mimetype:handler:video/x-ms-wmv"
+                   NC:alwaysAsk="true"
+                   NC:saveToDisk="true">
+    <NC:externalApplication RDF:resource="urn:mimetype:externalApplication:video/x-ms-wmv"/>
+  </RDF:Description>
+  <RDF:Description RDF:about="urn:mimetype:video/x-ms-wmv"
+                   NC:value="video/x-ms-wmv"
+                   NC:editable="true"
+                   NC:fileExtensions="wmv"
+                   NC:description="Windows Media Video">
+    <NC:handlerProp RDF:resource="urn:mimetype:handler:video/x-ms-wmv"/>
+  </RDF:Description>
+
+  <RDF:Description RDF:about="urn:mimetype:externalApplication:video/x-ms-wvx"/>
+  <RDF:Description RDF:about="urn:mimetype:handler:video/x-ms-wvx"
+                   NC:alwaysAsk="false"
+                   NC:useSystemDefault="true">
+    <NC:externalApplication RDF:resource="urn:mimetype:externalApplication:video/x-ms-wvx"/>
+  </RDF:Description>
+  <RDF:Description RDF:about="urn:mimetype:video/x-ms-wvx"
+                   NC:value="video/x-ms-wvx"
+                   NC:editable="true"
+                   NC:fileExtensions="wvx"
+                   NC:description="Windows Media Video XML Metafile">
+    <NC:handlerProp RDF:resource="urn:mimetype:handler:video/x-ms-wvx"/>
+  </RDF:Description>
+
+  <RDF:Description RDF:about="urn:mimetype:externalApplication:video/x-msvideo"/>
+  <RDF:Description RDF:about="urn:mimetype:handler:video/x-msvideo"
+                   NC:alwaysAsk="true"
+                   NC:saveToDisk="true">
+    <NC:externalApplication RDF:resource="urn:mimetype:externalApplication:video/x-msvideo"/>
+  </RDF:Description>
+  <RDF:Description RDF:about="urn:mimetype:video/x-msvideo"
+                   NC:value="video/x-msvideo"
+                   NC:editable="true"
+                   NC:fileExtensions="avi"
+                   NC:description="Audio Video Interleave">
+    <NC:handlerProp RDF:resource="urn:mimetype:handler:video/x-msvideo"/>
+  </RDF:Description>
+
 </RDF:RDF>
