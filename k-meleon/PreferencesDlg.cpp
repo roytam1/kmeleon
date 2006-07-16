@@ -517,7 +517,8 @@ BOOL CPreferencePagePlugins::OnInitDialog(){
       int image=kPlugin->loaded;
       if(theApp.preferences.GetBool(preference, 1)) image+=2;
       USES_CONVERSION;
-	  m_pluginList.InsertItem(item, theApp.lang.Translate(A2T(kPlugin->description)), image);
+	  item = m_pluginList.InsertItem(item, theApp.lang.Translate(A2T(kPlugin->description)), image);
+	  m_pluginList.SetItemData(item, (DWORD_PTR)kPlugin);
    }
    m_pluginList.SetItemState(0, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
 
@@ -548,23 +549,12 @@ void CPreferencePagePlugins::OnConfig() {
    }
    item = m_pluginList.GetNextSelectedItem(pos);
 
-   kmeleonPlugin * kPlugin;
-   CString s;
-   pos = theApp.plugins.pluginList.GetStartPosition();
-   while (pos){
-      theApp.plugins.pluginList.GetNextAssoc( pos, s, kPlugin);
-
-      if (item == 0) {
-         if (kPlugin->loaded) {
-            theApp.plugins.SendMessage(kPlugin->dllname, "* Prefs Page", "Config", (long)this->m_hWnd);
-         }
-         else
-            AfxMessageBox(IDS_PLUGIN_NOT_LOADED);
-
-         break;
-      }
-      item--;
-   }
+   kmeleonPlugin * kPlugin = (kmeleonPlugin*)(m_pluginList.GetItemData(item));
+   if (kPlugin->loaded) {
+      theApp.plugins.SendMessage(kPlugin->dllname, "* Prefs Page", "Config", (long)this->m_hWnd);
+    }
+   else
+      AfxMessageBox(IDS_PLUGIN_NOT_LOADED);
 }
 
 void CPreferencePagePlugins::OnEnable() {
@@ -576,26 +566,15 @@ void CPreferencePagePlugins::OnEnable() {
    }
    item = m_pluginList.GetNextSelectedItem(pos);
 
-   kmeleonPlugin * kPlugin;
-   CString s;
-   pos = theApp.plugins.pluginList.GetStartPosition();
-   int i=item;
-   while (pos){
-      theApp.plugins.pluginList.GetNextAssoc( pos, s, kPlugin);
+   kmeleonPlugin * kPlugin = (kmeleonPlugin*)(m_pluginList.GetItemData(item));
+   char preference[128] = "kmeleon.plugins.";
+   strcat(preference, kPlugin->dllname);
+   strcat(preference, ".load");
+   theApp.preferences.SetBool(preference, !theApp.preferences.GetBool(preference, 1));
 
-      if (i == 0) {
-         char preference[128] = "kmeleon.plugins.";
-         strcat(preference, kPlugin->dllname);
-         strcat(preference, ".load");
-         theApp.preferences.SetBool(preference, !theApp.preferences.GetBool(preference, 1));
-
-         int image=kPlugin->loaded;
-         if(theApp.preferences.GetBool(preference, 1)) image+=2;
-         m_pluginList.SetItem(item, 0, LVIF_IMAGE, NULL, image, NULL, NULL, NULL);
-         break;
-      }
-      i--;
-   }
+   int image=kPlugin->loaded;
+   if(theApp.preferences.GetBool(preference, 1)) image+=2;
+   m_pluginList.SetItem(item, 0, LVIF_IMAGE, NULL, image, NULL, NULL, NULL);
 }
 
 /**/
