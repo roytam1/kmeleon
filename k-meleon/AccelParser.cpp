@@ -46,6 +46,16 @@ extern CMfcEmbedApp theApp;
 #define VK_PAGE_UP VK_PRIOR
 #define VK_PAGE_DOWN VK_NEXT 
 
+//Standard accel to show in menu 
+
+static const ACCEL stdAccels[] = {
+	{FCONTROL, 'C', ID_EDIT_COPY},
+	{FCONTROL, 'V', ID_EDIT_PASTE},
+	{FCONTROL, 'X', ID_EDIT_CUT},
+	{FVIRTKEY|FALT, VK_F4, ID_FILE_CLOSE}
+};
+
+
 CAccelParser::CAccelParser()
 {
    accelTable = NULL;
@@ -311,6 +321,82 @@ HACCEL CAccelParser::GetTable(){
       accelTable = CreateAcceleratorTable(accelerators, numAccelerators);
    }
    return accelTable;
+}
+
+CString CAccelParser::GetStrAccel(UINT id)
+{
+	const ACCEL* accel = NULL;
+
+	for (int i=0;i<numAccelerators;i++) {
+		if (accelerators[i].cmd == id) {
+			accel = &accelerators[i];
+			break;
+		}
+	}
+
+	if (!accel) {
+		for (int i=0;i<sizeof(stdAccels)/sizeof(ACCEL);i++) {
+			if (stdAccels[i].cmd == id) {
+				accel = &stdAccels[i];
+				break;
+			}
+		}
+	}
+
+	if (accel) {
+		CString str;
+		TCHAR buf[25];
+		if(accel->fVirt & FCONTROL) {
+			GetKeyNameText(MapVirtualKey(VK_CONTROL, 0)<<16, buf, sizeof(buf));
+			if (*buf) {
+				CharLowerBuff(buf+1, strlen(buf)-1);
+				str = str + buf + _T("+");
+			}
+		}
+		if(accel->fVirt & FSHIFT) {
+			GetKeyNameText(MapVirtualKey(VK_SHIFT, 0)<<16, buf, sizeof(buf));
+			if (*buf) {
+				CharLowerBuff(buf+1, strlen(buf)-1);
+				str = str + buf + _T("+");
+			}
+		}
+		if(accel->fVirt & FALT) {
+			GetKeyNameText(MapVirtualKey(VK_MENU, 0)<<16, buf, sizeof(buf));
+			if (*buf) {
+				CharLowerBuff(buf+1, strlen(buf)-1);
+				str = str + buf + _T("+");
+			}
+		}
+		if(accel->fVirt & FVIRTKEY) {
+			WORD key = accel->key;
+			UINT scan = MapVirtualKey(key, 0);
+			if (key == VK_INSERT || 
+				key == VK_DELETE ||
+				key == VK_HOME ||
+				key == VK_END ||
+				key == VK_NEXT ||
+				key == VK_PRIOR ||
+				key == VK_LEFT ||
+				key == VK_RIGHT ||
+				key == VK_UP ||
+				key == VK_DOWN)
+				scan |= 0x100;
+
+			if (GetKeyNameText(scan<<16 , buf, sizeof(buf)) == 0)
+				return _T("");
+			if (*buf) {
+				CharLowerBuff(buf+1, strlen(buf)-1);
+				str += buf;
+			}
+		}
+		else {
+			char c[2] = { accel->key, '\0' };
+			str += A2CT(c);
+		}
+		return str;
+	}
+
+	return _T("");
 }
 
 int CAccelParser::CheckMouse(UINT message){

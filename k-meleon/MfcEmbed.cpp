@@ -265,7 +265,7 @@ BOOL CMfcEmbedApp::InitInstance()
 
    // parse the command line
    cmdline.Initialize(m_lpCmdLine);
-   
+#ifndef _DEBUG
    // check for prior instances
    HANDLE hMutexOneInstance = CreateMutex( NULL, TRUE, _T("K-Meleon Instance Mutex") );
    m_bAlreadyRunning = ( GetLastError() == ERROR_ALREADY_EXISTS );
@@ -295,7 +295,7 @@ BOOL CMfcEmbedApp::InitInstance()
       }
       return FALSE;
    }
-   
+#endif
     //Enable3dControls();   
     //
     // 1. Determine the name of the dir from which the GRE based app is being run
@@ -871,7 +871,7 @@ void CMfcEmbedApp::BroadcastMessage(UINT Msg, WPARAM wParam, LPARAM lParam)
    while( pos != NULL ) {
       pBrowserFrame = (CBrowserFrame *) m_FrameWndLst.GetNext(pos);
       if(pBrowserFrame)
-         pBrowserFrame->SendMessage(Msg, wParam, lParam);
+         pBrowserFrame->PostMessage(Msg, wParam, lParam);
    }
 }
 
@@ -1038,10 +1038,9 @@ nsresult CMfcEmbedApp::InitializeMenusAccels(){
 
    CString filename;
 
-   filename = preferences.settingsDir + MENU_CONFIG_FILE;
-
-   if (!menus.Load(filename)){
-      MessageBox(NULL, _T("Could not find ") MENU_CONFIG_FILE, NULL, 0);
+   filename = preferences.settingsDir + ACCEL_CONFIG_FILE;
+   if (!accel.Load(filename)){
+      MessageBox(NULL, _T("Could not find ") ACCEL_CONFIG_FILE, NULL, 0);
 
       if (!_tfopen(filename, _T("r"))) {
          // if it doesn't exist, create it
@@ -1052,10 +1051,9 @@ nsresult CMfcEmbedApp::InitializeMenusAccels(){
       nResult = FALSE;
    }
 
-
-   filename = preferences.settingsDir + ACCEL_CONFIG_FILE;
-   if (!accel.Load(filename)){
-      MessageBox(NULL, _T("Could not find ") ACCEL_CONFIG_FILE, NULL, 0);
+   filename = preferences.settingsDir + MENU_CONFIG_FILE;
+   if (!menus.Load(filename)){
+      MessageBox(NULL, _T("Could not find ") MENU_CONFIG_FILE, NULL, 0);
 
       if (!_tfopen(filename, _T("r"))) {
          // if it doesn't exist, create it
