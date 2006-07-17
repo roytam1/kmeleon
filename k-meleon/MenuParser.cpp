@@ -42,11 +42,11 @@ int Translate(char* originalText, CString& translatedText)
 		translatedText = A2T(originalText);
 
 	//.. and put it back
-	if (accel) {
+	/*if (accel) {
 		*accel = '\t';
 		TrimWhiteSpace(accel);
 		translatedText += A2T(accel);
-	}
+	}*/
 
 	return r;
 }	
@@ -200,26 +200,32 @@ int CMenuParser::Parse(char *p)
             char *cp = strrchr(parameter, ')');
             if (cp) *cp = 0;
             *op = 0;
-
+			
 			USES_CONVERSION;
             CString param = A2T(parameter);
 			char* sep = strchr(parameter, ',');
 		    if (sep) {
 				char * string = SkipWhiteSpace(sep+1);
 				CString pTranslated;
-			    if (Translate(string, pTranslated))  {
-					*(sep+1) = 0;
-					param = A2T(parameter) + pTranslated;
-				}
+			    Translate(string, pTranslated);
+				*(sep+1) = 0;
+				param = A2T(parameter) + pTranslated;
+				
+				*sep = 0;
+				long val = 0;
+				CString accel;
+				if (theApp.plugins.SendMessage(p, "* MenuParser", "DoAccel", (long)parameter, (long)&val) && val)
+					accel = theApp.accel.GetStrAccel(val);
+				if (accel.GetLength())
+					param += _T("\t")+accel;
 			}
-			
-            if (theApp.plugins.SendMessage(p, "* MenuParser", "DoMenu", (long)currentMenu->GetSafeHmenu(), (long)T2A(param.LockBuffer()))) {
+
+            if (theApp.plugins.SendMessage(p, "* MenuParser", "DoMenu", (long)currentMenu->GetSafeHmenu(), (long)T2CA(param))) {
                LOG_2("Called plugin %s with parameter %s", p, parameter);
             }
             else {
                LOG_ERROR_1( "Plugin %s has no menu", p);
             }
-			param.UnlockBuffer();
          }
          else {
             char *e = strrchr(p, '=');
@@ -233,8 +239,12 @@ int CMenuParser::Parse(char *p)
                if (!val)
                   val = atoi(e);
 
+			   CString accel = theApp.accel.GetStrAccel(val);
+			   //LPCTSTR pTranslated = theApp.lang.Translate(p);
 			   CString pTranslated;
 			   Translate(p, pTranslated);
+			   if (accel.GetLength())
+				  pTranslated += _T("\t") + accel;
 			   
 			   currentMenu->AppendMenu(MF_STRING, val, pTranslated);
 

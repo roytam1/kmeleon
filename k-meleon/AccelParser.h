@@ -46,6 +46,7 @@ public:
   int Parse(char *p);
 
   HACCEL GetTable();
+  CString GetStrAccel(UINT id);
 
   int CheckMouse(UINT message);
 };
