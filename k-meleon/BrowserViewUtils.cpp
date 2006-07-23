@@ -67,6 +67,12 @@ extern CMfcEmbedApp theApp;
 
 extern nsresult NewURI(nsIURI **result, const nsAString &spec);
 
+// Remove when it stops sucking.
+//#define MOZILLA_MIMETYPE_SUCKS
+#ifdef MOZILLA_MIMETYPE_SUCKS
+extern BOOL GetFromTypeAndExtension(LPCTSTR contentType, LPCTSTR ext, CString& resultExt, CString& desc);
+#endif
+
 BOOL CBrowserView::IsViewSourceUrl(CString& strUrl)
 {
     return (strUrl.Find(_T("view-source:"), 0) != -1) ? TRUE : FALSE;
@@ -306,8 +312,6 @@ NS_IMETHODIMP CSaveAsHandler::OnStateChange(nsIWebProgress *aWebProgress,
 	return rv;
 }
 
-
-
 NS_IMETHODIMP CSaveAsHandler::Save(const char* contentType, const char* disposition)
 {
 	NS_ENSURE_ARG(contentType);
@@ -385,7 +389,11 @@ NS_IMETHODIMP CSaveAsHandler::Save(const char* contentType, const char* disposit
 			char * ufn = nsUnescape(strdup(CfileName.get()));
 			CfileName = ufn;
 			free(ufn);
+
 			NS_CStringToUTF16 (CfileName, NS_CSTRING_ENCODING_UTF8, fileName);
+			//XXX for some reason it may not be in UTF8
+			if (CfileName.Length() && !fileName.Length())
+				NS_CStringToUTF16 (CfileName, NS_CSTRING_ENCODING_NATIVE_FILESYSTEM, fileName);
 		}
 	}
 
@@ -410,12 +418,18 @@ NS_IMETHODIMP CSaveAsHandler::Save(const char* contentType, const char* disposit
 	USES_CONVERSION;
 	const WCHAR* pExtension = wcsrchr(fileName.get(), L'.');
 
+#ifdef MOZILLA_MIMETYPE_SUCKS
+	GetFromTypeAndExtension(A2CT(contentType), W2CT(pExtension), extension, description);
+	if (extension.GetLength())
+		extension = extension.Mid(1);
+#else
 	nsCOMPtr<nsIMIMEService> MimeService = do_GetService("@mozilla.org/uriloader/external-protocol-service;1");
 	if (MimeService)
 	{
 		nsCOMPtr<nsIMIMEInfo> mimeInfo;
 
 		nsEmbedCString typeFromExt;
+		
 		MimeService->GetTypeFromExtension(
 			pExtension ? nsDependentCString(W2CA(pExtension+1)) : NS_LITERAL_CSTRING(""),
 			typeFromExt);
@@ -423,7 +437,7 @@ NS_IMETHODIMP CSaveAsHandler::Save(const char* contentType, const char* disposit
 		// If the extension is unknow our better choice for now is to 
 		// ignore the content type.
 
-		if (typeFromExt.Length())
+		//if (typeFromExt.Length())
 		{
 			// If both content type and extension are empty the mime type
 			// editor return windows media file ?????????
@@ -441,12 +455,12 @@ NS_IMETHODIMP CSaveAsHandler::Save(const char* contentType, const char* disposit
 
 			if (NS_SUCCEEDED(rv) && mimeInfo) 
 			{
-			/*	PRBool extMatch = PR_TRUE;
-				if (pExtension)
-					mimeInfo->ExtensionExists(W2CA(pExtension+1), &extMatch);
+				//PRBool extMatch = PR_TRUE;
+				//if (pExtension)
+				//	mimeInfo->ExtensionExists(W2CA(pExtension+1), &extMatch);
 
-				if (extMatch)
-				{*/
+				//if (extMatch)
+				//{
 					nsEmbedCString nsCExt;
 					mimeInfo->GetPrimaryExtension(nsCExt);
 
@@ -464,6 +478,7 @@ NS_IMETHODIMP CSaveAsHandler::Save(const char* contentType, const char* disposit
 
 	if(extension.IsEmpty() && pExtension)
 		extension = W2CT(pExtension + 1);
+#endif
 
 	TCHAR* szFileName = new TCHAR[MAX_PATH+1];
 	_tcsncpy(szFileName, W2CT(fileName.get()), MAX_PATH);
@@ -646,6 +661,7 @@ BOOL CBrowserView::URISaveAs(nsIURI* aURI , int bDocument)
 	nsCOMPtr<nsIDOMDocument> document;
 	nsCOMPtr<nsIURI> referrer;
 	nsEmbedCString contentType;
+	BOOL isHTML = FALSE;
 
 	if (bDocument > 0) // Save Page As 
 	{	
@@ -692,10 +708,10 @@ BOOL CBrowserView::URISaveAs(nsIURI* aURI , int bDocument)
 		NS_UTF16ToCString(type, NS_CSTRING_ENCODING_ASCII, contentType);
 
 		const char* ctype = contentType.get();
-		PRBool isHTML = 
-		(strcmp(ctype, "text/html") == 0) ||
-		(strcmp(ctype, "text/xml") == 0) ||
-		(strcmp(ctype, "application/xhtml+xml") == 0) ;
+		isHTML = 
+		  (strcmp(ctype, "text/html") == 0) ||
+		  (strcmp(ctype, "text/xml") == 0) ||
+		  (strcmp(ctype, "application/xhtml+xml") == 0) ;
 
 		if (mbDocumentLoading && !mbDOMLoaded && isHTML
 			&& !theApp.preferences.GetBool("kmeleon.download.allowIncompleteSave", FALSE))
@@ -727,7 +743,7 @@ BOOL CBrowserView::URISaveAs(nsIURI* aURI , int bDocument)
 
 	CSaveAsHandler* handler = new CSaveAsHandler(persist, file, aURI, document, descriptor, referrer, mpBrowserFrame);
 	
-	if (bDocument || 
+	if (isHTML || 
 		theApp.preferences.GetBool("kmeleon.download.disableContentSniffingOnSave", false)) 
 	{
 		rv = handler->Save(contentType.get());
@@ -1027,7 +1043,7 @@ CBrowserFrame* CBrowserView::OpenURLInNewWindow(const PRUnichar* pUrl, BOOL bBac
     }
    
     // show the window
-    else
+    else if (!(chromeFlags & nsIWebBrowserChrome::CHROME_OPENAS_CHROME))
     {
 		pFrm->ShowWindow(SW_SHOW);
         pFrm->SetFocus();

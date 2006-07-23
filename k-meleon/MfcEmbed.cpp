@@ -714,7 +714,7 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
 
    BOOL canResize = !theApp.preferences.GetBool("kmeleon.display.dontResizeXul", FALSE);
    BOOL sizeOnLoad = FALSE;
-   if (canResize && pParent && chromeMask & nsIWebBrowserChrome::CHROME_OPENAS_CHROME)
+   if (canResize && chromeMask & nsIWebBrowserChrome::CHROME_OPENAS_CHROME)
       sizeOnLoad = TRUE;
 
    pFrame->m_bSizeOnLoad = sizeOnLoad;
