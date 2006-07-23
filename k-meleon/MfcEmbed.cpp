@@ -511,7 +511,7 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
    else if (x==-1 && y==-1 && cx==-1 && cy==-1 && !bShowWindow)
        openedByGecko = 1;
 
-   // XXX Chrome dialogs shouldn't have those.
+   // XXX Chrome dialogs shouldn't have thoses.
    if (chromeMask & nsIWebBrowserChrome::CHROME_OPENAS_CHROME)
       chromeMask &=  ~nsIWebBrowserChrome::CHROME_MENUBAR
 	                &~nsIWebBrowserChrome::CHROME_TOOLBAR
@@ -519,8 +519,49 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
 					&~nsIWebBrowserChrome::CHROME_STATUSBAR
 					&~nsIWebBrowserChrome::CHROME_PERSONAL_TOOLBAR;
    
-   LONG style = WS_OVERLAPPEDWINDOW;
+   LONG style, styleEx = 0L;
 
+   if (chromeMask & nsIWebBrowserChrome::CHROME_WINDOW_POPUP) {
+      style = WS_POPUPWINDOW | WS_CAPTION;
+	  styleEx = WS_EX_TOPMOST | WS_EX_TOOLWINDOW;
+   }
+   else if (chromeMask & nsIWebBrowserChrome::CHROME_OPENAS_DIALOG) {
+	   style =  WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_DLGFRAME;
+	         //| DS_3DLOOK | DS_MODALFRAME;
+	   styleEx = WS_EX_DLGMODALFRAME;
+		       
+	   if (!(chromeMask & nsIWebBrowserChrome::CHROME_DEFAULT)) 
+		   style |= WS_THICKFRAME | WS_MINIMIZEBOX;
+   }
+   else {
+	   style = WS_OVERLAPPEDWINDOW;
+	   if (pParent) // && (chromeMask & nsIWebBrowserChrome::CHROME_DEPENDENT))
+          style |= WS_POPUP;
+   }
+   
+   if ( !(chromeMask & nsIWebBrowserChrome::CHROME_DEFAULT) &&
+	    !(chromeMask & nsIWebBrowserChrome::CHROME_ALL)) {
+   
+      if( !(chromeMask & nsIWebBrowserChrome::CHROME_TITLEBAR) )
+         style &= ~WS_CAPTION; // No caption      
+
+      if (!theApp.preferences.bDisableResize) {   
+         if( !(chromeMask & nsIWebBrowserChrome::CHROME_WINDOW_RESIZE) ) {
+             // Can't resize this window
+             style &= ~WS_THICKFRAME;
+             style &= ~WS_MAXIMIZEBOX;
+         }
+      }
+
+      if ( !(chromeMask & nsIWebBrowserChrome::CHROME_WINDOW_CLOSE) &&
+	       !(chromeMask & nsIWebBrowserChrome::CHROME_MENUBAR) )
+         style &= ~WS_SYSMENU;
+
+      if ( !(chromeMask & nsIWebBrowserChrome::CHROME_WINDOW_MIN) ) 
+         style &= ~WS_MINIMIZEBOX;
+   }
+   
+   /*
    if (chromeMask && (chromeMask != nsIWebBrowserChrome::CHROME_DEFAULT) && 
        (!(chromeMask & (nsIWebBrowserChrome::CHROME_WINDOW_BORDERS)) ||
         !(chromeMask & (nsIWebBrowserChrome::CHROME_WINDOW_CLOSE)) || 
@@ -536,150 +577,93 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
    }
    else if (preferences.bMaximized && (chromeMask & nsIWebBrowserChrome::CHROME_WINDOW_RESIZE))
        style |= WS_MAXIMIZE;
-
-   style &= ~WS_VISIBLE;
+*/
+   //style &= ~WS_VISIBLE;
    
-   RECT screen;
+   RECT screen, winSize;
    SystemParametersInfo(SPI_GETWORKAREA, NULL, &screen, 0);
-
    int screenWidth   = screen.right - screen.left;
    int screenHeight  = screen.bottom - screen.top;
 
-   RECT winSize = CFrameWnd::rectDefault;
-
-   winSize.left = screen.left + screenWidth / 40;
-   winSize.top = screen.top + screenHeight / 40;
-   winSize.right = 15*screenWidth / 20;
-   winSize.bottom = 18*screenHeight/20;
-           
    if (x>0 && y>0 && cx>0 && cy>0) {
-       if (style & WS_POPUP) {
-           winSize.left = x;
-           winSize.top = y;
-           winSize.right = x + cx;
-           winSize.bottom = y + cy;
-           AdjustWindowRectEx(&winSize, style, chromeMask & (nsIWebBrowserChrome::CHROME_MENUBAR), 0);
-           winSize.right = winSize.right - winSize.left;
-           winSize.bottom = winSize.bottom - winSize.top;
-
-           // don't create windows larger than the screen
-           if (winSize.right > screenWidth)
-               winSize.right = screenWidth;
-           if (winSize.bottom > screenHeight)
-               winSize.bottom = screenHeight;
-           
-           // make sure the window isn't going to run off the screen
-           if (screen.right - (winSize.left + winSize.right) < 0)
-               winSize.left = screen.right - winSize.right;
-           if (screen.bottom - (winSize.top + winSize.bottom) < 0) 
-               winSize.top = screen.bottom - winSize.bottom;
-       }
-       else {
-           winSize.left = x;
-           winSize.top = y;
-           winSize.right = cx;
-           winSize.bottom = cy;
-
-           // don't create windows larger than the screen
-           if (winSize.right > screenWidth)
-               winSize.right = screenWidth;
-           if (winSize.bottom > screenHeight)
-               winSize.bottom = screenHeight;
-           
-           // make sure the window isn't going to run off the screen
-           if (screen.right - (winSize.left + winSize.right) < 0)
-               winSize.left = screen.right - winSize.right;
-           if (screen.bottom - (winSize.top + winSize.bottom) < 0) 
-               winSize.top = screen.bottom - winSize.bottom;
-       }
+      winSize.left = x;
+      winSize.top = y;
+      winSize.right = x + cx;
+      winSize.bottom = y + cy;
+      AdjustWindowRectEx(&winSize, style, chromeMask & (nsIWebBrowserChrome::CHROME_MENUBAR), 0);
    }
    else {
-       if (!(style & WS_POPUP)) {
-         if (preferences.windowHeight > 0 && preferences.windowWidth > 0) {
-           winSize.right  = preferences.windowWidth;
-           winSize.bottom = preferences.windowHeight;         
+	  if (m_pMostRecentBrowserFrame && 
+         !(m_pMostRecentBrowserFrame->m_style & WS_POPUP))
+	  {
+	     WINDOWPLACEMENT wp;
+         wp.length = sizeof(WINDOWPLACEMENT);
+         m_pMostRecentBrowserFrame->GetWindowPlacement(&wp);
 
-           if (preferences.windowYPos > 0 && preferences.windowXPos > 0) {
-               winSize.left = preferences.windowXPos;
-               winSize.top  = preferences.windowYPos;
+		 // if the window is not maximized, let's use use GetWindowRect, which works
+         if (wp.showCmd == SW_SHOWNORMAL)
+            m_pMostRecentBrowserFrame->GetWindowRect(&wp.rcNormalPosition);
 
-               if (m_pMostRecentBrowserFrame && 
-                   !(m_pMostRecentBrowserFrame->m_style & WS_POPUP)) {
+		 int offset = GetSystemMetrics(SM_CYSIZE) + GetSystemMetrics(SM_CXBORDER);
+		 winSize.left   = wp.rcNormalPosition.left + offset;
+         winSize.top    = wp.rcNormalPosition.top + offset;
+		 winSize.right  = wp.rcNormalPosition.right + offset;
+         winSize.bottom = wp.rcNormalPosition.bottom + offset;
+		
+		 // Put the window to the top corner if we're too far in 
+		 // the bottom left.
+         if ( (screen.right - winSize.right) < offset
+			  && (screen.bottom - winSize.bottom) < offset)
+		 {
+	        winSize.left = screen.left;
+            winSize.top = screen.top;
+			winSize.right = wp.rcNormalPosition.right - wp.rcNormalPosition.left;
+		    winSize.bottom = wp.rcNormalPosition.bottom - wp.rcNormalPosition.top;
+		 }
+	  }
+	  else if ((preferences.windowHeight > 0 && preferences.windowWidth > 0) 
+	          && (preferences.windowYPos >= 0 && preferences.windowXPos >= 0)) {
+		 winSize.left = preferences.windowXPos;
+         winSize.top  = preferences.windowYPos;
+         winSize.right  = winSize.left + preferences.windowWidth;
+         winSize.bottom = winSize.top + preferences.windowHeight;
+	  }
+	  else {
+		  winSize.left = screen.left + screenWidth / 20;
+          winSize.top = screen.top + screenHeight / 20;
+          winSize.right = winSize.left + 15*screenWidth / 20;
+          winSize.bottom = winSize.top + 18*screenHeight/20;
 
-                   int offset        = GetSystemMetrics(SM_CYSIZE);
-                   offset           += GetSystemMetrics(SM_CXBORDER);
-
-                   WINDOWPLACEMENT wp;
-                   wp.length = sizeof(WINDOWPLACEMENT);
-                   m_pMostRecentBrowserFrame->GetWindowPlacement(&wp);
-
-                   // if the window is not maximized, let's use use GetWindowRect, which works
-                   if (wp.showCmd == SW_SHOWNORMAL)
-                       m_pMostRecentBrowserFrame->GetWindowRect(&wp.rcNormalPosition);
-      
-                   winSize.left   = wp.rcNormalPosition.left + offset;
-                   winSize.top    = wp.rcNormalPosition.top + offset;
-
-                   // the Create function is overloaded to treat "right" and "bottom" as
-                   // "width" and "height"
-                   winSize.right  = wp.rcNormalPosition.right - wp.rcNormalPosition.left;
-                   winSize.bottom = wp.rcNormalPosition.bottom - wp.rcNormalPosition.top;
-
-                   // don't create windows larger than the screen
-                   if (winSize.right > screenWidth)
-                       winSize.right = screenWidth;
-                   if (winSize.bottom > screenHeight)
-                       winSize.bottom = screenHeight;
-
-                   // make sure the window isn't going to run off the screen
-                   if (screen.right - (winSize.left + winSize.right) < 0)
-                       winSize.left = screen.right - winSize.right;
-                   if (screen.bottom - (winSize.top + winSize.bottom) < 0) 
-                       winSize.top = screen.bottom - winSize.bottom;
-      
-                   // if we're going to be positioned right on top of the current window,
-                   // move to the top corner
-                   if ( (abs(winSize.left - wp.rcNormalPosition.left) < offset/3) &&
-                        (abs(winSize.top - wp.rcNormalPosition.top) < offset/3) ) {
-                       winSize.left = screen.left;
-                       winSize.top = screen.top;
-                   }
-               }
-               else {
-                   // don't create windows larger than the screen
-                   if (winSize.right > screenWidth)
-                       winSize.right = screenWidth;
-                   if (winSize.bottom > screenHeight)
-                       winSize.bottom = screenHeight;
-
-                   // make sure the window isn't going to run off the screen
-                   if (screen.right - (winSize.left + winSize.right) < 0)
-                       winSize.left = screen.right - winSize.right;
-                   if (screen.bottom - (winSize.top + winSize.bottom) < 0) 
-                       winSize.top = screen.bottom - winSize.bottom;
-               }
-           }
-           else {
-               // don't create windows larger than the screen
-               if (winSize.right > screenWidth)
-                   winSize.right = screenWidth;
-               if (winSize.bottom > screenHeight)
-                   winSize.bottom = screenHeight;
-           }
-         }
-         else {
-           winSize.left = screen.left + screenWidth / 20;
-           winSize.top = screen.top + screenHeight / 20;
-           winSize.right = 15*screenWidth / 20;
-           winSize.bottom = 18*screenHeight/20;
-
-           preferences.windowXPos   = winSize.left;
-           preferences.windowYPos   = winSize.top;
-           preferences.windowWidth  = winSize.right;
-           preferences.windowHeight = winSize.bottom;
-         }
-       }
+		  preferences.windowXPos   = winSize.left;
+          preferences.windowYPos   = winSize.top;
+          preferences.windowWidth  = winSize.right;
+          preferences.windowHeight = winSize.bottom;
+	  }
    }
+
+   // don't create windows larger than the screen
+   if ((winSize.right - winSize.left) > screenWidth)
+      winSize.right = screenWidth - winSize.left;
+   if ((winSize.bottom - winSize.top) > screenHeight)
+      winSize.bottom = screenHeight - winSize.top;
+
+   
+   // Center the window if needed, useless at this point.
+   //if (chromeMask & nsIWebBrowserChrome::CHROME_CENTER_SCREEN)
+   //{
+   //   int height = winSize.bottom - winSize.top;
+   //   int width = winSize.right - winSize.left;
+   //	winSize.top = screen.top + (screenHeight - height)/2;
+   //   winSize.bottom = winSize.top + height;
+   //   winSize.left = screen.left + (screenWidth - width)/2;
+   //   winSize.right = winSize.left + width;
+   //}
+           
+   // make sure the window isn't going to run off the screen
+   if ((screen.right - winSize.right) < 0)
+      winSize.left = screen.right - (winSize.right - winSize.left);
+   if ((screen.bottom - winSize.bottom) < 0) 
+      winSize.top = screen.bottom - (winSize.bottom - winSize.top);
 
    // Now, create the browser frame
    CBrowserFrame* pFrame = new CBrowserFrame(chromeMask, style);
@@ -697,10 +681,15 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
    if (!pOldRecentFrame)
       pOldRecentFrame = pFrame;
 
+   CMenu *menu = theApp.menus.GetMenu(_T("Main"));
 
-   if (!pFrame->Create(BROWSER_WINDOW_CLASS, strTitle, style, winSize, chromeMask & nsIWebBrowserChrome::CHROME_DEPENDENT ? pParent : NULL, NULL, 0L, NULL)) {
-       ReleaseMutex(m_hMutex);
-      return NULL;
+   if (!pFrame->CreateEx(styleEx, BROWSER_WINDOW_CLASS, strTitle, style,
+      winSize, chromeMask & nsIWebBrowserChrome::CHROME_DEPENDENT ? pParent : NULL,
+	  (UINT)menu->GetSafeHmenu(), NULL))
+   {
+      TRACE0("Warning: failed to create CFrameWnd.\n");
+      ReleaseMutex(theApp.m_hMutex);
+      return FALSE;
    }
 
    pFrame->SetIcon(m_hMainIcon, true);
@@ -746,7 +735,9 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
    // Add to the list of BrowserFrame windows
    m_FrameWndLst.AddHead(pFrame);
    
-   pFrame->m_ignoreMoveResize = (!sizeOnLoad && openedByGecko && !(style & WS_POPUP)) ? 2 : 0;
+   pFrame->m_ignoreMoveResize = 
+      (theApp.preferences.GetBool("kmeleon.display.dontResizeNewWindow", FALSE)) && 
+      (!sizeOnLoad && !(style & WS_POPUP)) ? 2 : 0;
    
    
    ReleaseMutex(m_hMutex);
