@@ -824,12 +824,9 @@ void CBrowserView::OnNavReload()
 void CBrowserView::OnNavForceReload()
 {
 #ifdef INTERNAL_SITEICONS
-	if (mWebNav)
-	{
-		nsCOMPtr<nsIURI> currentURI;
-		nsresult rv = mWebNav->GetCurrentURI(getter_AddRefs(currentURI));
-		if(NS_FAILED(rv) || !currentURI) return;
+	if (m_IconUri) {
 		theApp.favicons.RefreshIcon(m_IconUri);
+		m_IconUri = nsnull;
 	}
 #endif
 	_OnNavReload(TRUE);

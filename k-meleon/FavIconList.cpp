@@ -33,16 +33,25 @@ Bug:	Changing skin need to delete the iconcache.
 #include "UnknownContentTypeHandler.h"
 #include "nscWebBrowserPersist.h"
 
+#include "imgILoader.h"
+#include "gfxIImageFrame.h"
+#include "imgIContainer.h"
+#include "nsIImage.h"
+
 #include "mfcembed.h"
 extern CMfcEmbedApp theApp;
 #include "atlimage.h"
-
-#define PNG_SUPPORT
 
 #ifdef PNG_SUPPORT
 #define PNGDIB_NO_D2P
 #define PNGDIB_S
 #include "../pngdib-3.0.1/pngdib.h"
+
+#ifdef _DEBUG
+#pragma comment(lib,"../pngdib-3.0.1/lib/pngdib.lib")
+#pragma comment(lib,"../lpng128/projects/visualc71/lib/libpng.lib")
+#pragma comment(lib,"../lpng128/projects/visualc71/lib/zlib/zlib.lib")
+#else
 #ifdef _UNICODE
 #pragma comment(lib,"../pngdib-3.0.1/lib/pngdib_u_s_md.lib")
 #pragma comment(lib,"../lpng128/projects/visualc71/lib/libpng_u_md.lib")
@@ -52,9 +61,33 @@ extern CMfcEmbedApp theApp;
 #pragma comment(lib,"../lpng128/projects/visualc71/lib/libpng_md.lib")
 #pragma comment(lib,"../lpng128/projects/visualc71/lib/zlib/zlib_md.lib")
 #endif
-#endif
+#endif // _DEBUG
+#endif 
 
 #define FAVICON_CACHE_FILE _T("IconCache.dat")
+
+// Used to resize the icon if it's not 16x16
+HBITMAP ResizeIcon(HDC hDC, HBITMAP hBitmap, LONG w, LONG h)
+{
+	HDC hDCs = CreateCompatibleDC(hDC);
+
+	HGDIOBJ old = SelectObject(hDCs, hBitmap);
+	if (!old) {
+		DeleteDC(hDCs);
+		return NULL;
+	}
+	
+	HDC hdcScaled = CreateCompatibleDC(hDCs); 
+	HBITMAP hbmSized = CreateCompatibleBitmap(hDCs, 16, 16); 
+	HGDIOBJ old2 = SelectObject(hdcScaled, hbmSized);
+	
+	StretchBlt(hdcScaled,0,0,16,16,hDCs,0,0,w,h,SRCCOPY);
+	SelectObject(hdcScaled, old2);
+	DeleteDC(hdcScaled);
+	SelectObject(hDCs, old);
+	DeleteDC(hDCs);
+	return hbmSized;
+}
 
 CFavIconList::CFavIconList()
 {
@@ -63,7 +96,8 @@ CFavIconList::CFavIconList()
 
 CFavIconList::~CFavIconList()
 {
-	if  (!m_hImageList) return;
+	if (!m_hImageList) 
+		return;
 
 	if (theApp.preferences.GetBool("kmeleon.favicons.cached", true))
 	{
@@ -95,22 +129,6 @@ void CFavIconList::LoadDefaultIcon()
 		}
 
 	}
-	/*else if (theApp.FindSkinFile(szFullPath, "layers.bmp"))
-	{
-		FILE *fp = fopen(szFullPath, "r");
-		if (fp) {
-			fclose(fp);
-		    HBITMAP bitmap = (HBITMAP)LoadImage(NULL, szFullPath, IMAGE_BITMAP, 16, 16, LR_LOADFROMFILE);
-			
-			if (bitmap)
-			{
-				CBitmap cbitmap;
-				cbitmap.Attach(bitmap);
-				m_iDefaultIcon = Add(&cbitmap, RGB(255, 0, 255));
-				cbitmap.DeleteObject();
-			}
-		} 
-	}*/
 
 	// Add can return 0 even if it fails...
 	if (GetImageCount()==0)
@@ -152,7 +170,53 @@ BOOL CFavIconList::Create(int cx, int cy, UINT nFlags, int nInitial, int nGrow)
 extern nsresult NewURI(nsIURI **result, const nsAString &spec);
 extern nsresult NewURI(nsIURI **result, const nsACString &spec);
 
-int CFavIconList::AddIcon(char* uri, TCHAR* file, nsresult aStatus)
+void CFavIconList::AddMap(const char *uri, int index)
+{
+	// This function is called from another thread
+	// if the moz image loader is used.
+
+	m_urlMap[uri] = index;
+
+	// Add an entry for the hostname only. This is for the mru list.
+	// It's not really good to do it like that, because a site may
+	// have several different icons.
+	nsCOMPtr<nsIURI> URI;
+	nsEmbedCString nsUri;
+	nsUri.Assign(uri);
+	nsresult rv = NewURI(getter_AddRefs(URI), nsUri);
+	if (NS_SUCCEEDED(rv)) {
+		URI->GetHost(nsUri);
+		nsUri.Insert("http://", 0, 7);
+		m_urlMap[nsUri.get()] = index;
+	}
+
+	// If it's not really efficient, at least I don't have
+	// to mess with synchronisation.
+	theApp.BroadcastMessage(UWM_NEWSITEICON, (WPARAM)uri, index);
+}
+
+int CFavIconList::AddIcon(const char* uri, CBitmap* icon, COLORREF cr)
+{
+	int index = Add(icon, cr);
+	AddMap(uri, index);
+	return index;
+}
+
+int CFavIconList::AddIcon(const char* uri, CBitmap* icon, CBitmap* mask)
+{
+	int index = Add(icon, mask);
+	AddMap(uri, index);
+	return index;
+}
+
+int CFavIconList::AddIcon(const char* uri, HICON icon)
+{
+	int index = Add(icon);
+	AddMap(uri, index);
+	return index;
+}
+
+int CFavIconList::AddDownloadedIcon(char* uri, TCHAR* file, nsresult aStatus)
 {
 	int index = GetDefaultIcon();
 
@@ -160,7 +224,7 @@ int CFavIconList::AddIcon(char* uri, TCHAR* file, nsresult aStatus)
 	{
 		HICON favicon = (HICON)LoadImage(NULL, file, IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 		if (favicon){
-			index = Add(favicon);
+			index = AddIcon(uri, favicon);
 			DestroyIcon(favicon);
 		}
 		#ifdef PNG_SUPPORT
@@ -196,9 +260,9 @@ int CFavIconList::AddIcon(char* uri, TCHAR* file, nsresult aStatus)
 					unsigned char pr,pg,pb;
 					int r = pngdib_p2d_get_bgcolor(pngdib, &pr, &pg, &pb);
 					if (r)
-						index = Add(&bitmap,RGB(pr,pg,pb));
+						index = AddIcon(uri, &bitmap,RGB(pr,pg,pb));
 					else
-						index = Add(&bitmap, (CBitmap*)NULL);
+						index = AddIcon(uri, &bitmap, (CBitmap*)NULL);
 					
 					bitmap.DeleteObject();
 
@@ -209,42 +273,10 @@ int CFavIconList::AddIcon(char* uri, TCHAR* file, nsresult aStatus)
 
 		}
 		#endif
-	
 	}
-	
 	DeleteFile(file);
-	m_urlMap[uri] = index;
-
-	// Add an entry for the hostname only. This is for the mru list.
-	// It's not really good to do it like that, because a site may
-	// have several different icons.
-	nsCOMPtr<nsIURI> URI;
-	nsEmbedCString nsUri;
-	nsUri.Assign(uri);
-	nsresult rv = NewURI(getter_AddRefs(URI), nsUri);
-	if (NS_SUCCEEDED(rv)) {
-		URI->GetHost(nsUri);
-		nsUri.Insert("http://", 0, 7);
-		m_urlMap[nsUri.get()] = index;
-	}
-
-	// Even if it's not really efficient, at least I don't have
-	// to mess with synchronisation.
-	theApp.BroadcastMessage(UWM_NEWSITEICON, (WPARAM)uri, index);
 	return index;
 }
-
-#ifdef _UNICODE
-#define UTF8ToCString(src, dest) \
-	nsEmbedString _str;\
-	NS_UTF16ToCString(nsDependentString(src), NS_CSTRING_ENCODING_UTF8, _str);\
-	url = _str.get();
-#else
-#define UTF8ToCString(src, dest) \
-	nsEmbedCString _str;\
-	NS_UTF16ToCString(nsDependentString(src), NS_CSTRING_ENCODING_UTF8, _str);\
-	url = _str.get();
-#endif
 
 int CFavIconList::GetHostIcon(const TCHAR* aUrl)
 {
@@ -282,9 +314,8 @@ int CFavIconList::GetIcon(nsIURI *aURI, BOOL download)
 	if (!m_urlMap.Lookup(nsUri.get(), index))
 	{
 		if (download) 
-			if (!DwnFavIcon(aURI))
-				return GetDefaultIcon();
-		return -1;
+			DwnFavIcon(aURI);
+		return GetDefaultIcon();
 	}
 
 	return index;
@@ -292,39 +323,42 @@ int CFavIconList::GetIcon(nsIURI *aURI, BOOL download)
 
 void CFavIconList::RefreshIcon(nsIURI* aURI)
 {
-	if (!m_hImageList || !aURI) return;
+	if (!m_hImageList || !aURI) 
+		return;
+	
 	int index = 0;
 	nsEmbedCString nsUri;
 	aURI->GetSpec(nsUri);
-	if (m_urlMap.Lookup(nsUri.get(), index))
+	
+	if (!m_urlMap.Lookup(nsUri.get(), index))
+		return;
+	
+	m_urlMap.RemoveKey(nsUri.get());
+	
+	// Don't remove the default icon
+	if (index==GetDefaultIcon()) 
+		return;
+
+	Remove(index);
+	
+	// We have to remove all url with this icon.
+	CMap<CStringA, LPCSTR, int, int &>::CPair* pos = m_urlMap.PGetFirstAssoc();
+	while(pos!=NULL)
 	{
-		m_urlMap.RemoveKey(nsUri.get());
-		if (index!=0) 
+		if (pos->value == index)
 		{
-			Remove(index);
-			/*aURI->GetHost(nsUri);
-			nsUri.Insert("http://", 0, 7);
-			m_urlMap.RemoveKey(nsUri.get());*/
-
-			CMap<CStringA, LPCSTR, int, int &>::CPair* pos = m_urlMap.PGetFirstAssoc();
-			while(pos!=NULL)
-			{
-				if (pos->value == index)
-				{
-					CStringA tmpKey = pos->key;
-					pos = m_urlMap.PGetNextAssoc(pos);
-					m_urlMap.RemoveKey(tmpKey);
-				}
-				else
-				{
-					if (pos->value > index) pos->value--;
-					pos = m_urlMap.PGetNextAssoc(pos);
-				}
-			}
-
-			theApp.BroadcastMessage(UWM_NEWSITEICON, 0, -1);
+			CStringA tmpKey = pos->key;
+			pos = m_urlMap.PGetNextAssoc(pos);
+			m_urlMap.RemoveKey(tmpKey);
+		}
+		else
+		{
+			if (pos->value > index) pos->value--;
+			pos = m_urlMap.PGetNextAssoc(pos);
 		}
 	}
+
+	theApp.BroadcastMessage(UWM_NEWSITEICON, 0, -1);
 }
 
 void CFavIconList::ResetCache()
@@ -337,16 +371,19 @@ void CFavIconList::ResetCache()
 
 BOOL CFavIconList::DwnFavIcon(nsIURI* iconURI)
 {
-	/*int index;
-	
-	// Look if we have it already in cache
-	nsEmbedCString nsUri;
-	iconURI->GetSpec(nsUri);
-	if (m_urlMap.Lookup(nsUri.get(), index))
-	{
-		m_pBrowserFrameGlue->SetFavIcon(iconURI);
-		return;
-	}*/
+	nsresult rv;
+#ifndef PNG_SUPPORT
+
+	// Borked way to get the favicon.
+	imgIRequest* request = nsnull;
+	IconObserver* observer = new IconObserver(this);
+	NS_ADDREF(observer);
+
+	if (NS_FAILED(observer->LoadIcon(iconURI, nsnull))) {
+		NS_RELEASE(observer);
+		return FALSE;
+	}
+#else
 
 	// Currently the favicon is downloaded like any other file 
 	// which is bad. A nsStreamListener have to be 
@@ -372,17 +409,231 @@ BOOL CFavIconList::DwnFavIcon(nsIURI* iconURI)
 	persist->SetPersistFlags(
 		nsIWebBrowserPersist::PERSIST_FLAGS_AUTODETECT_APPLY_CONVERSION|
 		nsIWebBrowserPersist::PERSIST_FLAGS_REPLACE_EXISTING_FILES);
-	nsresult rv = persist->SaveURI(iconURI, nsnull, nsnull, nsnull, nsnull, file);
+	rv = persist->SaveURI(iconURI, nsnull, nsnull, nsnull, nsnull, file);
 	if (NS_FAILED(rv)) {
 		persist->SetProgressListener(nsnull);
 		return FALSE;
 	}
+#endif
+
 	return TRUE;
 }
 
 void CFavIconList::DwnCall(char* uri, TCHAR* file, nsresult status, void* param)
 {
-	((CFavIconList*)param)->AddIcon(uri,file,status);
+	((CFavIconList*)param)->AddDownloadedIcon(uri,file,status);
+}
+
+NS_IMPL_ISUPPORTS2(IconObserver, imgIDecoderObserver, imgIContainerObserver)
+
+/* void onStartDecode (in imgIRequest aRequest); */
+NS_IMETHODIMP IconObserver::OnStartDecode(imgIRequest *aRequest)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* void onStartContainer (in imgIRequest aRequest, in imgIContainer aContainer); */
+NS_IMETHODIMP IconObserver::OnStartContainer(imgIRequest *aRequest, imgIContainer *aContainer)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* void onStartFrame (in imgIRequest aRequest, in gfxIImageFrame aFrame); */
+NS_IMETHODIMP IconObserver::OnStartFrame(imgIRequest *aRequest, gfxIImageFrame *aFrame)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* [noscript] void onDataAvailable (in imgIRequest aRequest, in gfxIImageFrame aFrame, [const] in nsIntRect aRect); */
+NS_IMETHODIMP IconObserver::OnDataAvailable(imgIRequest *aRequest, gfxIImageFrame *aFrame, const nsIntRect * aRect)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* void onStopFrame (in imgIRequest aRequest, in gfxIImageFrame aFrame); */
+NS_IMETHODIMP IconObserver::OnStopFrame(imgIRequest *aRequest, gfxIImageFrame *aFrame)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* void onStopContainer (in imgIRequest aRequest, in imgIContainer aContainer); */
+NS_IMETHODIMP IconObserver::OnStopContainer(imgIRequest *aRequest, imgIContainer *aContainer)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* void onStopDecode (in imgIRequest aRequest, in nsresult status, in wstring statusArg); */
+NS_IMETHODIMP IconObserver::OnStopDecode(imgIRequest *aRequest, nsresult status, const PRUnichar *statusArg)
+{
+	if (NS_SUCCEEDED(status))
+		CreateDIB(aRequest);
+			
+	aRequest->Cancel(status);
+	mRequest = nsnull;
+	NS_RELEASE_THIS();
+    return NS_OK;
+}
+
+struct ALPHABITMAPINFO {
+  BITMAPINFOHEADER  bmiHeader;
+  RGBQUAD           bmiColors[256];
+
+
+  ALPHABITMAPINFO(LONG aWidth, LONG aHeight, WORD depth)
+  {
+    memset(&bmiHeader, 0, sizeof(bmiHeader));
+    bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+    bmiHeader.biWidth = aWidth;
+    bmiHeader.biHeight = aHeight;
+    bmiHeader.biPlanes = 1;
+    bmiHeader.biBitCount = depth;
+
+	
+    /* fill in gray scale palette */
+     int i, npal=1<<depth; // 2^depth
+	 BYTE fact = 255/(npal-1); 
+     for(i=0; i < npal; i++){
+	  BYTE color = 255-i*fact;
+      bmiColors[i].rgbBlue = color;
+      bmiColors[i].rgbGreen = color;
+      bmiColors[i].rgbRed = color;
+      bmiColors[i].rgbReserved = 0;
+     }
+  }
+};
+
+NS_IMETHODIMP IconObserver::CreateDIB(imgIRequest *aRequest)
+{
+	nsresult rv;
+	nsCOMPtr<imgIContainer> image;
+	rv = aRequest->GetImage(getter_AddRefs(image));
+	NS_ENSURE_SUCCESS(rv, rv);
+
+	nsCOMPtr<gfxIImageFrame> frame;
+	rv = image->GetFrameAt(0, getter_AddRefs(frame));
+	NS_ENSURE_SUCCESS(rv, rv);
+
+	PRUint32 length;
+	PRUint8 *bits;
+	rv = frame->GetImageData(&bits, &length);
+	NS_ENSURE_SUCCESS(rv, rv);
+
+	PRInt32 w,h;
+	frame->GetWidth(&w);
+	frame->GetHeight(&h);
+
+	PRUint32 bpr;
+	frame->GetImageBytesPerRow(&bpr);
+
+	/*	PRUint32 alphaLength;
+	PRUint8 *alphaBits;
+
+	frame->GetAlphaData(&alphaBits, &alphaLength);
+
+	PRUint32 alphaBpr;
+	frame->GetAlphaBytesPerRow(&alphaBpr);
+
+	PRUint32* fBits = new PRUint32[w*h];
+	PRUint32 offset = 0; 
+	for (int y = 0; y < w*h; y++) {
+	fBits[y] = alphaBits[y];
+	fBits[y] = (fBits[y]<<8) + bits[offset+2];
+	fBits[y] = (fBits[y]<<8) + bits[offset+1];
+	fBits[y] = (fBits[y]<<8) + bits[offset];
+	offset +=3;
+	}*/
+
+	CBitmap bitmap;
+	BITMAPINFO binfo;
+	binfo.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+	binfo.bmiHeader.biWidth = w;
+	binfo.bmiHeader.biHeight = h;
+	binfo.bmiHeader.biPlanes = 1;
+	binfo.bmiHeader.biBitCount = (bpr/w)*8;
+	binfo.bmiHeader.biCompression = BI_RGB;
+	binfo.bmiHeader.biSizeImage = length;     
+	binfo.bmiHeader.biXPelsPerMeter = 0;
+	binfo.bmiHeader.biYPelsPerMeter = 0;
+	binfo.bmiHeader.biClrUsed = 0;
+	binfo.bmiHeader.biClrImportant = 0;
+
+	HDC hDC = GetDC(NULL);
+	HBITMAP hBitmap = ::CreateDIBitmap(hDC,&binfo.bmiHeader,CBM_INIT,bits,&binfo,DIB_RGB_COLORS);
+
+	if (w!=16 && h!=16) {
+		if (HBITMAP hbmSized = ResizeIcon(hDC, hBitmap, w, h)) {
+			DeleteObject(hBitmap);
+			hBitmap = hbmSized;
+		}
+	}
+
+	ReleaseDC(NULL,hDC);
+	bitmap.Attach(hBitmap);
+
+	CString uri;
+	nsCOMPtr<nsIURI> URI;
+	nsEmbedCString nsuri;
+	rv = aRequest->GetURI(getter_AddRefs(URI));
+	NS_ENSURE_SUCCESS(rv, rv);
+	URI->GetSpec(nsuri);
+
+	gfx_color bkgColor = 0;
+	rv = frame->GetBackgroundColor(&bkgColor);
+	if (NS_FAILED(frame->GetBackgroundColor(&bkgColor)))
+	{
+		CBitmap maskbitmap;
+		PRUint32 alphaLength;
+		PRUint8 *alphaBits;
+
+		if (NS_SUCCEEDED(frame->GetAlphaData(&alphaBits, &alphaLength)))
+		{
+			PRUint32 alphaBpr;
+			frame->GetAlphaBytesPerRow(&alphaBpr); // Return a false value??
+			alphaBpr = (8 * alphaLength) / (w*h);
+
+			if (alphaBpr<=8) {
+
+				// XXX: if alphaBpr == 2, must convert to 4
+				ALPHABITMAPINFO binfo(w, h, alphaBpr);
+
+				HDC hDC = GetDC(NULL);
+				HBITMAP hBitmap = ::CreateDIBitmap(hDC,&binfo.bmiHeader,CBM_INIT,alphaBits,(BITMAPINFO*)&binfo,DIB_RGB_COLORS);
+				if (w!=16 && h!=16) {
+					if (HBITMAP hbmSized = ResizeIcon(hDC, hBitmap, w, h)) {
+						DeleteObject(hBitmap);
+						hBitmap = hbmSized;
+					}
+				}
+				ReleaseDC(NULL,hDC);
+
+				maskbitmap.Attach(hBitmap);
+			}
+		}
+
+		mFavList->AddIcon(nsuri.get(),&bitmap, &maskbitmap);
+		maskbitmap.DeleteObject();
+	} else {
+		mFavList->AddIcon(nsuri.get(),&bitmap, bkgColor);
+	}
+
+	bitmap.DeleteObject();
+	return NS_OK;
+}
+
+NS_IMETHODIMP IconObserver::LoadIcon(nsIURI *iconUri, nsIURI* pageUri)
+{
+	nsresult rv;
+	nsCOMPtr<imgILoader> loader = do_GetService("@mozilla.org/image/loader;1", &rv);
+	NS_ENSURE_SUCCESS(rv, rv);
+	
+	return loader->LoadImage(iconUri, pageUri, nsnull, 
+		nsnull, this, this, nsIRequest::LOAD_BYPASS_CACHE, 
+		nsnull, nsnull, getter_AddRefs(mRequest));
+}
+
+NS_IMETHODIMP IconObserver::FrameChanged(imgIContainer *aContainer, gfxIImageFrame *aFrame, nsIntRect * aDirtyRect)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 #endif // INTERNAL_SITEICONS

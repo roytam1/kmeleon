@@ -941,22 +941,13 @@ void CBrowserFrame::BrowserFrameGlueObj::SetFavIcon(nsIURI* favUri)
 			if (ishttp)
 			{
 				currentURI->Resolve(NS_LITERAL_CSTRING("/favicon.ico"), nsUri);
-			/*
-			currentURI->GetHost(nsUri);
-			if (!nsUri.IsEmpty()) // The uri may not contain an host, ressource://, ...
-			{
-				nsUri.Append("/favicon.ico");
-				nsUri.Insert("http://", 0, 7);*/
+
 				nsCOMPtr<nsIURI> iconURI;
 				rv = NewURI(getter_AddRefs(iconURI), nsUri);
 				if(NS_FAILED(rv) || !iconURI) return;
 				
-				int icon;
 				pThis->m_wndBrowserView.m_IconUri = iconURI;
-				if ( (icon = theApp.favicons.GetIcon(iconURI, TRUE)) != -1)
-					pThis->SetFavIcon(icon);
-				//else
-				//	pThis->SetFavIcon(theApp.favicons.GetDefaultIcon());
+				pThis->SetFavIcon(theApp.favicons.GetIcon(iconURI, TRUE));
 			}
 			else
 				pThis->SetFavIcon(theApp.favicons.GetDefaultIcon());
@@ -967,9 +958,7 @@ void CBrowserFrame::BrowserFrameGlueObj::SetFavIcon(nsIURI* favUri)
 	else
 	{
 		pThis->m_wndBrowserView.m_IconUri = favUri;
-		int icon;
-		if ( (icon = theApp.favicons.GetIcon(favUri, TRUE)) != -1)
-			pThis->SetFavIcon(icon);
+		pThis->SetFavIcon(theApp.favicons.GetIcon(favUri, TRUE));
 	}
 #endif
 }
