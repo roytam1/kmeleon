@@ -187,10 +187,6 @@ public:
     CToolBarList m_tbList;
     HWND CreateToolbar(UINT style);
 
-    BOOL Create(LPCTSTR lpszClassName,     LPCTSTR lpszWindowName,
-       DWORD dwStyle,      const RECT& rect,       CWnd* pParentWnd,
-       LPCTSTR lpszMenuName,       DWORD dwExStyle,    CCreateContext* pContext);
-
 	INT_PTR DoModal();
 
 protected:
