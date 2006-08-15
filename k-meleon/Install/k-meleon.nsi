@@ -1,9 +1,9 @@
 !packhdr	tmp.dat "C:\Progra~1\Upx\bin\upx.exe -9 --best --strip-relocs=1 tmp.dat"
 
 !define		NAME "K-Meleon"
-!define		VERSION "1.0"
+!define		VERSION "1.01"
 !define		ADDRESS "http://kmeleon.sourceforge.net/"  
-!define		GECKO_VERSION "1.8.0.5"
+!define		GECKO_VERSION "1.8.0.6"
 
 !define		PRODUCT_KEY "Software\${NAME}"
 !define		PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${NAME}"
@@ -23,17 +23,16 @@
 
 
 ;Default installation folder
-InstallDir 		"$PROGRAMFILES\${NAME}"
-  
-;Get installation folder from registry if available
-InstallDirRegKey 	HKEY_CURRENT_USER "${PRODUCT_KEY}\General" "InstallDir"
+InstallDir "$PROGRAMFILES\${NAME}"
 
-SetCompressor	/SOLID	lzma
-;SetCompressor		zlib
-SetDatablockOptimize	on
-ShowInstDetails		show
-AutoCloseWindow		false
-SetOverwrite			on
+;Get installation folder from registry if available
+InstallDirRegKey HKEY_CURRENT_USER "${PRODUCT_KEY}\General" "InstallDir"
+
+SetCompressor /SOLID lzma
+SetDatablockOptimize on
+ShowInstDetails show
+AutoCloseWindow false
+SetOverwrite on
 
 ;Name and file
 Name		"${NAME} ${VERSION}"
@@ -41,40 +40,29 @@ Caption		$(INST_Caption)
 OutFile		"${NAME}.exe"
 
 ;----------------------------------------
-
 ;Interface Settings
 
 !define MUI_ABORTWARNING
  
-!define MUI_NAME		"${NAME} ${VERSION}"
+!define MUI_ICON "install.ico"
+!define MUI_UNICON "uninstall.ico"
+!define MUI_CHECKBITMAP	"${NSISDIR}\Contrib\Icons\modern.bmp"
+!define MUI_COMPONENTSPAGE_SMALLDESC
+!define MUI_NAME "${NAME} ${VERSION}"
 
-!define MUI_INSTALLCOLORS	/windows
-!define MUI_PROGRESSBAR		smooth
+!define MUI_INSTALLCOLORS /windows
+!define MUI_PROGRESSBAR	 smooth
 
-!define MUI_FINISHPAGE
-!define MUI_FINISHPAGE_NOAUTOCLOSE
-!define MUI_FINISHPAGE_RUN "$INSTDIR\k-meleon.exe"
-;; !define MUI_FINISHPAGE_RUN_PARAMETERS "$INSTDIR\readme.html"
+!define MUI_INSTFILESPAGE_COLORS "000000 ffffff" ;Multiple settings
 
-!define MUI_UNINSTPAGE
+BrandingText /TRIMRIGHT "${NAME} ${VERSION}"
+LicenseBkColor "ffffff"
+
+!define MUI_WELCOMEPAGE_TITLE $(INST_Welcome)
 
 
 ;--------------------------------
 ;Pages
-
-!define MUI_ICON	"install.ico"
-!define MUI_UNICON	"uninstall.ico"
-!define MUI_CHECKBITMAP	"${NSISDIR}\Contrib\Icons\modern.bmp"
-
-!define MUI_COMPONENTSPAGE_SMALLDESC
-!define MUI_INSTFILESPAGE_COLORS "000000 ffffff" ;Multiple settings
-
-BrandingText		/TRIMRIGHT "${NAME} ${VERSION}"
-
-LicenseBkColor		"ffffff"
-
-
-!define MUI_WELCOMEPAGE_TITLE $(INST_Welcome)
 
 
 !insertmacro MUI_PAGE_WELCOME
@@ -86,19 +74,24 @@ LicenseBkColor		"ffffff"
 ;Page custom ProfilePage ProfilePageLeave
 
 !insertmacro MUI_PAGE_INSTFILES
+!define MUI_FINISHPAGE
+!define MUI_FINISHPAGE_NOAUTOCLOSE
+!define MUI_FINISHPAGE_RUN "$INSTDIR\k-meleon.exe"
+;!define MUI_FINISHPAGE_RUN_PARAMETERS "$INSTDIR\readme.html"
 !insertmacro MUI_PAGE_FINISH
   
+!define MUI_UNINSTPAGE
 !insertmacro MUI_UNPAGE_CONFIRM
 !insertmacro MUI_UNPAGE_INSTFILES
 
 ;--------------------------------
 ;Languages
- 
-  !insertmacro MUI_LANGUAGE "English"
-  !include "english.nlf"
-  
-  ;!insertmacro MUI_LANGUAGE "French"
-  ;!include "french.nlf"
+
+!insertmacro MUI_LANGUAGE "English"
+!include "english.nlf"
+
+;!insertmacro MUI_LANGUAGE "French"
+;!include "french.nlf"
 
 ;--------------------------------
 
@@ -111,13 +104,13 @@ LicenseBkColor		"ffffff"
 	IfFileExists "$INSTDIR\profile.ini" 0 AppDataProfile
 	ReadINIStr $R1 "$INSTDIR\profile.ini" "Profile" "path"
 	ReadINIStr $R2 "$INSTDIR\profile.ini" "Profile" "isrelative"
-	StrCmp $R1 "" 0 +2       ; If path empty 
-	StrCpy $R1 "Profiles"    ; Copy default folder name
-	StrCmp $R2 "1" 0 +2      ; If path is relative
-	StrCpy $R0 "$INSTDIR\$R1" ; add the install dir to the path
-	Goto +2					 ; else
-	StrCpy $R0 $R1			 ; use the path only
-		
+	StrCmp $R1 "" 0 +2             ; If path empty 
+	StrCpy $R1 "Profiles"          ; Copy default folder name
+	StrCmp $R2 "1" 0 +2            ; If path is relative
+	StrCpy $R0 "$INSTDIR\$R1"      ; add the install dir to the path
+	Goto +2                        ; else
+	StrCpy $R0 $R1                 ; use the path only
+
 	Goto End_proflocation
 AppDataProfile:
 	StrCpy $R0 "$APPDATA\K-Meleon"
@@ -159,8 +152,8 @@ checkbutton:
 NotChecked:
 	EnableWindow $1 1
 	EnableWindow $2 1
-		
-checkbutton_end:	
+
+checkbutton_end:
 	Abort
 validate:
 	
@@ -234,7 +227,7 @@ Section ${NAME} SecMain
 	StrCmp $R1 "5" 0 NoClientInternet
 		
 	WriteRegStr HKLM "${PRODUCT_CLIENT_INTERNET_KEY}" "" ${NAME}
-#	WriteRegStr HKLM "Software\Clients\StartMenuInternet\${NAME}.exe" "LocalizedString" "@$INSTDIR\K-Meleon.exe,-9"
+#	WriteRegStr HKLM "${CLIENT_INTERNET_KEY}\${NAME}.exe" "LocalizedString" "@$INSTDIR\K-Meleon.exe,-9"
 	WriteRegStr HKLM "${PRODUCT_CLIENT_INTERNET_KEY}\DefaultIcon" "" "$INSTDIR\K-Meleon.exe,0"
 	WriteRegStr HKLM "${PRODUCT_CLIENT_INTERNET_KEY}\Shell\Open\Command" "" "$INSTDIR\K-Meleon.exe"
 	WriteRegStr HKLM "${PRODUCT_CLIENT_INTERNET_KEY}\InstallInfo" "ReinstallCommand" '"$INSTDIR\SetDefault.exe" /S'
@@ -326,19 +319,19 @@ SubSection $(SECT_CreateShortcut) SecShortcuts ; {{{
 
 	Section /o $(SECT_WSShortcut) SecDesktop
 		CreateShortCut "$DESKTOP\K-Meleon.lnk" "$INSTDIR\K-Meleon.exe" "" "" 0
-		WriteRegDWORD HKLM "Software\Clients\StartMenuInternet\k-meleon.exe\InstallInfo" "IconsVisible" 1
+		WriteRegDWORD HKLM "${CLIENT_INTERNET_KEY}\k-meleon.exe\InstallInfo" "IconsVisible" 1
 	SectionEnd
 
 	Section /o $(SECT_SMShortcut) SecStartMenu
 		CreateDirectory "$SMPROGRAMS\K-Meleon"
 		CreateShortCut "$SMPROGRAMS\K-Meleon\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
 		CreateShortCut "$SMPROGRAMS\K-Meleon\K-Meleon.lnk" "$INSTDIR\k-meleon.exe" "" "$INSTDIR\k-meleon.exe" 0
-		WriteRegDWORD HKLM "Software\Clients\StartMenuInternet\k-meleon.exe\InstallInfo" "IconsVisible" 1
+		WriteRegDWORD HKLM "${CLIENT_INTERNET_KEY}\k-meleon.exe\InstallInfo" "IconsVisible" 1
 	SectionEnd
 
 	Section /o $(SECT_QLShortcut) SecQuickLaunch
 		CreateShortCut "$QUICKLAUNCH\K-Meleon.lnk" "$INSTDIR\K-Meleon.exe" "" "" 0
-		WriteRegDWORD HKLM "Software\Clients\StartMenuInternet\k-meleon.exe\InstallInfo" "IconsVisible" 1
+		WriteRegDWORD HKLM "${CLIENT_INTERNET_KEY}\k-meleon.exe\InstallInfo" "IconsVisible" 1
 	SectionEnd
 
 SubSectionEnd
@@ -380,6 +373,8 @@ Section Uninstall ; {{{
 	Delete   $INSTDIR\k-meleon.exe
 	Delete   $INSTDIR\k-meleon.exe.manifest
 	Delete   $INSTDIR\readme.html
+	Delete   $INSTDIR\k-meleonloc.dll
+	Delete   $INSTDIR\Language.cfg
 	Delete   $INSTDIR\License.txt
 	Delete   $INSTDIR\loader.exe
 	Delete   $INSTDIR\uninstall.exe
@@ -427,7 +422,7 @@ Section Uninstall ; {{{
 	Delete   $INSTDIR\SetDefault.exe
 
 	Push $R0
-    !insertmacro GET_PROFILES_LOCATION
+	!insertmacro GET_PROFILES_LOCATION
 	
 
 AskProfile:
@@ -460,16 +455,16 @@ KeepInstDir:
 	Pop $R0
 	
 	DeleteRegKey HKLM ${PRODUCT_KEY}
- 	DeleteRegKey HKLM ${PRODUCT_UNINST_KEY}
- 	DeleteRegKey HKLM ${PRODUCT_CLIENT_INTERNET_KEY}
- 	DeleteRegKey HKCR "K-Meleon.HTML"
- 	DeleteRegKey HKLM ${MOZILLA_REG_KEY}
- 	
- 	DeleteRegKey HKCU ${PRODUCT_KEY}
- 	DeleteRegKey HKCU ${PRODUCT_UNINST_KEY}
- 	DeleteRegKey HKCU ${PRODUCT_CLIENT_INTERNET_KEY}
- 	DeleteRegKey HKCU "Software\Classes\K-Meleon.HTML"
- 	
+	DeleteRegKey HKLM ${PRODUCT_UNINST_KEY}
+	DeleteRegKey HKLM ${PRODUCT_CLIENT_INTERNET_KEY}
+	DeleteRegKey HKCR "K-Meleon.HTML"
+	DeleteRegKey HKLM ${MOZILLA_REG_KEY}
+	
+	DeleteRegKey HKCU ${PRODUCT_KEY}
+	DeleteRegKey HKCU ${PRODUCT_UNINST_KEY}
+	DeleteRegKey HKCU ${PRODUCT_CLIENT_INTERNET_KEY}
+	DeleteRegKey HKCU "Software\Classes\K-Meleon.HTML"
+	
 	Delete $DESKTOP\K-Meleon.lnk
 	RMDir /r $SMPROGRAMS\K-Meleon
 	Delete "$QUICKLAUNCH\K-Meleon.lnk"
@@ -548,7 +543,7 @@ QueryClose:
 CloseKM:
 	Call CloseKMeleon
 NoKMrunning:
-	
+
 FunctionEnd ; }}}
 
 
@@ -568,7 +563,7 @@ KMFound:
 ;Retry:
 		Abort
 Done:
-	
+
 FunctionEnd
 
 # ----------------------------------------------------------------------
@@ -654,24 +649,23 @@ Pop $R1
 Exch $R0
 FunctionEnd
 
- Function GetWindowsVersion
- 
-   Push $R0
- 
-   ClearErrors
- 
-   ReadRegStr $R0 HKLM \
-   "SOFTWARE\Microsoft\Windows NT\CurrentVersion" CurrentVersion
+Function GetWindowsVersion
 
-   IfErrors 0 lbl_winnt
-   
-   ; we are not NT
-   ReadRegStr $R0 HKLM \
-   "SOFTWARE\Microsoft\Windows\CurrentVersion" VersionNumber
- 
+	Push $R0
+
+	ClearErrors
+
+	ReadRegStr $R0 HKLM \
+	"SOFTWARE\Microsoft\Windows NT\CurrentVersion" CurrentVersion
+	IfErrors 0 lbl_winnt
+
+	; we are not NT
+	ReadRegStr $R0 HKLM \
+	"SOFTWARE\Microsoft\Windows\CurrentVersion" VersionNumber
+
 lbl_winnt:
 
-   Exch $R0
- 
- FunctionEnd
+	Exch $R0
+
+FunctionEnd
 
