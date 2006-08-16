@@ -57,7 +57,7 @@ public:
 	}
 };
 
-typedef  CList<CPermission*> CPermissionList;
+typedef CList<CPermission*, CPermission*> CPermissionList;
 
 class CPermissions 
 {

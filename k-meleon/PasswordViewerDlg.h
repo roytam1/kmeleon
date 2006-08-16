@@ -55,6 +55,8 @@ public:
 
 };
 
+typedef CList<CPassword*, CPassword*> CPasswordList;
+
 // Boîte de dialogue CPasswordViewerDlg
 
 class CPasswordViewerDlg : public CDialog
@@ -70,8 +72,8 @@ public:
 	enum { IDD = IDD_PASSWORDS_VIEWER };
 
 protected:
-	typedef CList<CPassword*> PASSWORDLIST;
-	PASSWORDLIST m_PasswordsList;
+
+	CPasswordList m_PasswordsList;
 	nsCOMPtr<nsIPasswordManager> m_passwordManager;
 
     BOOL m_reject;

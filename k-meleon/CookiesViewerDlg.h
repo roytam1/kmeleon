@@ -28,6 +28,7 @@
 
 class CCookie;
 
+typedef CList<CCookie*, CCookie*> CCookieList; 
 
 // Boîte de dialogue CCookiesViewerDlg
 
@@ -45,7 +46,7 @@ public:
 	enum { IDD = IDD_COOKIES_VIEWER };
 
 protected:
-	CList<CCookie*> m_CookiesList;
+	CCookieList m_CookiesList;
 	nsCOMPtr<nsICookieManager> m_cookieManager;
 
 	virtual void DoDataExchange(CDataExchange* pDX);    // Prise en charge DDX/DDV

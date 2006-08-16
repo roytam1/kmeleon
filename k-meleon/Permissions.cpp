@@ -89,7 +89,7 @@ void CPermissionsDlg::FillList()
 
 int CALLBACK CPermissionsDlg::SortPermissionsList(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
 {
-   CList<CPermission*>* pPermissionList = (CList<CPermission*>*) lParamSort;
+   CPermissionList* pPermissionList = (CPermissionList*) lParamSort;
 
    CPermission* permission1 = pPermissionList->GetAt((POSITION)lParam1);
    CPermission* permission2 = pPermissionList->GetAt((POSITION)lParam2);
