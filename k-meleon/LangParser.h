@@ -34,8 +34,15 @@ public:
 
 	int Load(CString &filename);
 	LPCTSTR Translate(LPCTSTR originalText) {
+#if _MSC_VER >= 1300 
 		CMap<CString, LPCTSTR, CString, LPCTSTR>::CPair * p = langMap.PLookup(originalText);
 		return p ? p->value.GetBuffer(0) : originalText;
+#else
+		static CString t;
+		if (langMap.Lookup(originalText, t))
+			return t;
+		return originalText;
+#endif
 	}
 
 	int Translate(LPCTSTR originalText, CString& translatedText){ 

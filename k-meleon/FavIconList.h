@@ -48,7 +48,7 @@ protected:
 class CFavIconList : public CImageList
 {
 private:
-	CMap<CStringA, LPCSTR, int, int &> m_urlMap;
+	CMap<CString, LPCTSTR, int, int &> m_urlMap;
 	int m_iDefaultIcon;
 	
 	void AddMap(const char *uri, int index);
