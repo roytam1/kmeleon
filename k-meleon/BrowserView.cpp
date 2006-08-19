@@ -497,11 +497,14 @@ void CBrowserView::OnEditURL( NMHDR * pNotifyStruct, LRESULT * result )
 CString CBrowserView::NicknameLookup(const CString& typedUrl)
 {
 	CString retUrl = typedUrl;
-	retUrl.Trim();
+	retUrl.TrimRight();
+	retUrl.TrimLeft();
 	int word = retUrl.Find(' ');
 	
-	if (word!=-1)
-		retUrl.Truncate(word);
+	if (word!=-1) {
+		retUrl.GetBuffer(0);
+		retUrl.ReleaseBuffer(word); // Truncate
+	}
 
 	char *nickUrl = NULL;
     theApp.plugins.SendMessage("*",	"* FindNick", "FindNick", (long)T2CA(retUrl), (long)&nickUrl);

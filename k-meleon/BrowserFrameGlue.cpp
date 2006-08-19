@@ -153,7 +153,7 @@ void CBrowserFrame::BrowserFrameGlueObj::UpdateCurrentURI(nsIURI *aLocation)
 		// Reset the popup notification and the icon uri
         if (!(pThis->m_wndBrowserView.m_csHostPopupBlocked.IsEmpty())) {
 			pThis->m_wndStatusBar.RemoveIcon(ID_POPUP_BLOCKED_ICON);
-			pThis->m_wndBrowserView.m_csHostPopupBlocked.Truncate(0);
+			pThis->m_wndBrowserView.m_csHostPopupBlocked.Empty();
 		}
 #ifdef INTERNAL_SITEICONS
 		// Must be done here, before testing if we have the same address
