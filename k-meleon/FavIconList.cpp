@@ -40,7 +40,6 @@ Bug:	Changing skin need to delete the iconcache.
 
 #include "mfcembed.h"
 extern CMfcEmbedApp theApp;
-#include "atlimage.h"
 
 #ifdef PNG_SUPPORT
 #define PNGDIB_NO_D2P
@@ -140,7 +139,7 @@ BOOL CFavIconList::Create(int cx, int cy, UINT nFlags, int nInitial, int nGrow)
 
 	// Try to load the icon cache
 	CFile   iconCache;
-	if (iconCache.Open(theApp.preferences.settingsDir + FAVICON_CACHE_FILE, CFile::osSequentialScan | CFile::modeRead))
+	if (iconCache.Open(theApp.preferences.settingsDir + FAVICON_CACHE_FILE, CFile::modeRead))
 	{
 		if (!theApp.preferences.GetBool("kmeleon.favicons.cached", true)) {
 			iconCache.Close();
@@ -175,7 +174,7 @@ void CFavIconList::AddMap(const char *uri, int index)
 	// This function is called from another thread
 	// if the moz image loader is used.
 
-	m_urlMap[uri] = index;
+	m_urlMap[A2CT(uri)] = index;
 
 	// Add an entry for the hostname only. This is for the mru list.
 	// It's not really good to do it like that, because a site may
@@ -187,7 +186,7 @@ void CFavIconList::AddMap(const char *uri, int index)
 	if (NS_SUCCEEDED(rv)) {
 		URI->GetHost(nsUri);
 		nsUri.Insert("http://", 0, 7);
-		m_urlMap[nsUri.get()] = index;
+		m_urlMap[A2CT(nsUri.get())] = index;
 	}
 
 	// If it's not really efficient, at least I don't have
@@ -298,7 +297,7 @@ int CFavIconList::GetHostIcon(const TCHAR* aUrl)
 
 	URI->GetHost(nsUri);
 	nsUri.Insert("http://", 0, 7);
-	m_urlMap.Lookup(nsUri.get(), index);
+	m_urlMap.Lookup(A2CT(nsUri.get()), index);
 
 	return index;
 }
@@ -311,7 +310,7 @@ int CFavIconList::GetIcon(nsIURI *aURI, BOOL download)
 
 	nsEmbedCString nsUri;
 	aURI->GetSpec(nsUri);
-	if (!m_urlMap.Lookup(nsUri.get(), index))
+	if (!m_urlMap.Lookup(A2CT(nsUri.get()), index))
 	{
 		if (download) 
 			DwnFavIcon(aURI);
@@ -330,10 +329,10 @@ void CFavIconList::RefreshIcon(nsIURI* aURI)
 	nsEmbedCString nsUri;
 	aURI->GetSpec(nsUri);
 	
-	if (!m_urlMap.Lookup(nsUri.get(), index))
+	if (!m_urlMap.Lookup(A2CT(nsUri.get()), index))
 		return;
 	
-	m_urlMap.RemoveKey(nsUri.get());
+	m_urlMap.RemoveKey(A2CT(nsUri.get()));
 	
 	// Don't remove the default icon
 	if (index==GetDefaultIcon()) 
@@ -341,23 +340,20 @@ void CFavIconList::RefreshIcon(nsIURI* aURI)
 
 	Remove(index);
 	
-	// We have to remove all url with this icon.
-	CMap<CStringA, LPCSTR, int, int &>::CPair* pos = m_urlMap.PGetFirstAssoc();
-	while(pos!=NULL)
+   // We have to remove all url with this icon.
+   POSITION pos = m_urlMap.GetStartPosition();
+   while (pos!=NULL)
 	{
-		if (pos->value == index)
-		{
-			CStringA tmpKey = pos->key;
-			pos = m_urlMap.PGetNextAssoc(pos);
-			m_urlMap.RemoveKey(tmpKey);
-		}
+		CString key;
+		int value;
+		m_urlMap.GetNextAssoc(pos, key, value);
+		if (value==index) 
+			m_urlMap.RemoveKey(key);
 		else
-		{
-			if (pos->value > index) pos->value--;
-			pos = m_urlMap.PGetNextAssoc(pos);
-		}
-	}
+			if (value>index)
+				m_urlMap[key] = value-1;
 
+	}
 	theApp.BroadcastMessage(UWM_NEWSITEICON, 0, -1);
 }
 
