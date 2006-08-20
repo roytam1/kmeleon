@@ -3,7 +3,7 @@ Microsoft Developer Studio Workspace File, Format Version 6.00
 
 ###############################################################################
 
-Project: "Layers"=".\layers\Layers.dsp" - Package Owner=<4>
+Project: "Layers"=.\layers\Layers.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -15,7 +15,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "bmp_menu"=".\bmp_menu\bmp_menu.dsp" - Package Owner=<4>
+Project: "bmp_menu"=.\bmp_menu\bmp_menu.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -27,7 +27,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "external"=".\External\external.dsp" - Package Owner=<4>
+Project: "external"=.\External\external.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -39,7 +39,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "fullscreen"=".\fullscreen\fullscreen.dsp" - Package Owner=<4>
+Project: "fullscreen"=.\fullscreen\fullscreen.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -51,7 +51,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "history"=".\history\history.dsp" - Package Owner=<4>
+Project: "history"=.\history\history.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -63,7 +63,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "ie_favorites"=".\ie_favorites\ie_favorites.dsp" - Package Owner=<4>
+Project: "ie_favorites"=.\ie_favorites\ie_favorites.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -75,7 +75,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "kmeleon"=".\KMeleon.dsp" - Package Owner=<4>
+Project: "kmeleon"=.\KMeleon.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -87,7 +87,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "kmeleon_winamp"=".\kmeleon_winamp\kmeleon_winamp.dsp" - Package Owner=<4>
+Project: "kmeleon_winamp"=.\kmeleon_winamp\kmeleon_winamp.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -99,7 +99,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "loader"=".\loader\loader.dsp" - Package Owner=<4>
+Project: "loader"=.\loader\loader.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -111,7 +111,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "macros"=".\macros\macros.dsp" - Package Owner=<4>
+Project: "macros"=.\macros\macros.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -123,7 +123,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "ns_bookmarks"=".\ns_bookmarks\ns_bookmarks.dsp" - Package Owner=<4>
+Project: "ns_bookmarks"=.\ns_bookmarks\ns_bookmarks.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -135,7 +135,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "op_hotlist"=".\op_hotlist\op_hotlist.dsp" - Package Owner=<4>
+Project: "op_hotlist"=.\op_hotlist\op_hotlist.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -147,7 +147,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "rebar_menu"=".\rebar_menu\rebar_menu.dsp" - Package Owner=<4>
+Project: "rebar_menu"=.\rebar_menu\rebar_menu.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -159,43 +159,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "toolbars"=".\toolbars\toolbars.dsp" - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-}}}
-
-###############################################################################
-
-Project: "urlbar"=".\urlbar\urlbar.dsp" - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-}}}
-
-###############################################################################
-
-Project: "weasel"=".\weasel\weasel.dsp" - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-}}}
-
-###############################################################################
-
-Project: "windowmanager"=".\windowmanager\windowmanager.dsp" - Package Owner=<4>
+Project: "toolbars"=.\toolbars\toolbars.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
