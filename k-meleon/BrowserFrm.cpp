@@ -1010,9 +1010,8 @@ LRESULT CBrowserFrame::RefreshToolBarItem(WPARAM ItemID, LPARAM unused)
 
 LRESULT CBrowserFrame::RefreshMRUList(WPARAM ItemID, LPARAM unused)
 {
-    theApp.m_MRUList->RefreshURLs();
+    //theApp.m_MRUList->RefreshURLs();
     m_wndUrlBar.RefreshMRUList();
-
     return 0;
 }
 
