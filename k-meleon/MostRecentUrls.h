@@ -19,7 +19,7 @@
 #ifndef __MOSTRECENTURLS_H__
 #define __MOSTRECENTURLS_H__
 
-class CMostRecentUrls {
+class CMostRecentUrls : public CList<CString, LPCTSTR> {
 public:
 
    CMostRecentUrls();
@@ -27,17 +27,13 @@ public:
 
    void LoadURLs();
    void SaveURLs();
-   void DeleteURLs();
+	void DeleteURLs() { RemoveAll(); };
    void RefreshURLs();
 
-   char * GetURL(int aInx);
-   void AddURL(const char * aURL);
-   inline int GetURLCount() { return m_URLCount; }
+   void AddURL(LPCTSTR aURL);
 
 protected:
-   HANDLE m_hMutex;
-   char ** m_URLs;
-   int    m_URLCount, m_maxURLs;
+   int m_maxURLs;
 };
 
 #endif
