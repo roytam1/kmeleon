@@ -125,7 +125,7 @@ int ifplugin(char *p)
   return 0;
 }
 
-CParser::Load(CString &filename)
+CParser::Load(LPCTSTR filename)
 {
    CFile *file;
     

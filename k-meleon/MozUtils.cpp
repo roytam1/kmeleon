@@ -2,6 +2,7 @@
 #include "nsIWindowWatcher.h"
 #include "nsIIOService.h"
 #include "nsIDOMWindow2.h"
+#include "nsDirectoryServiceUtils.h"
 
 nsresult NewURI(nsIURI **result, const nsACString &spec)
 {
@@ -60,5 +61,23 @@ CWnd* CWndForDOMWindow(nsIDOMWindow *aWindow)
   }
 
   return val;
+}
+
+CString GetMozDirectory(char* dirName)
+{
+   nsCOMPtr<nsIFile> nsDir;
+   nsresult rv = NS_GetSpecialDirectory(dirName, getter_AddRefs(nsDir));
+   if (NS_FAILED(rv))
+      return _T("");
+
+#ifdef _UNICODE
+   nsEmbedString pathBuf;
+   rv = nsDir->GetPath(pathBuf);
+#else
+   nsEmbedCString pathBuf;
+   rv = nsDir->GetNativePath(pathBuf);
+#endif
+
+   return pathBuf.get();
 }
 

@@ -65,7 +65,7 @@ CAccelParser::CAccelParser()
    memset(mouse, 0, sizeof(ACCEL) * MAX_MOUSE);
 }
 
-CAccelParser::CAccelParser(CString &filename)
+CAccelParser::CAccelParser(LPCTSTR filename)
 {
    accelTable = NULL;
    numAccelerators = 0;
@@ -81,7 +81,7 @@ CAccelParser::~CAccelParser()
    }
 }
 
-int CAccelParser::Load(CString &filename)
+int CAccelParser::Load(LPCTSTR filename)
 {
    SETUP_LOG("Accel");
 
