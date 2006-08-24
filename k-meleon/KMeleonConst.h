@@ -16,7 +16,7 @@
 *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
-#define KMELEON_VERSION				   0x00010000
+#define KMELEON_VERSION				   0x01000201
 
 #define WM_DEFERSHOW				   WM_USER + 150
 #define WM_DEFERSAVEAS                 WM_USER + 151

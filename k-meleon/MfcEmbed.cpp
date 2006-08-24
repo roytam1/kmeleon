@@ -65,6 +65,7 @@
 #include "nsIPluginManager.h"
 #include "nsIIOService.h"
 #include "nsIWindowWatcher.h"
+#include "nsIChromeRegistrySea.h"
 
 static UINT WM_POSTEVENT = RegisterWindowMessage(_T("XPCOM_PostEvent"));
 
@@ -92,6 +93,8 @@ static char THIS_FILE[] = __FILE__;
 #define LANG_CONFIG_FILE _T("language.cfg")
 #define MENU_CONFIG_FILE _T("menus.cfg")
 #define ACCEL_CONFIG_FILE _T("accel.cfg")
+
+extern CString GetMozDirectory(char* dirName);
 
 BEGIN_MESSAGE_MAP(CMfcEmbedApp, CWinApp)
 //{{AFX_MSG_MAP(CMfcEmbedApp)
@@ -241,6 +244,62 @@ bool CMfcEmbedApp::FindSkinFile( CString& szSkinFile, TCHAR *filename )
 	return false;
 }
 
+#include <shlwapi.h>
+
+BOOL CMfcEmbedApp::LoadLanguage()
+{
+   TCHAR resDll[MAX_PATH], *extension;
+	
+   // Look for dll resources
+	::GetModuleFileName(m_hInstance, resDll, MAX_PATH);
+   extension = ::PathFindExtension(resDll);
+
+   if ((extension + 7) - resDll  > MAX_PATH)
+      return FALSE;
+
+   lstrcpy(extension, _T("loc.dll"));
+   HINSTANCE hInstResDll = ::LoadLibrary(resDll);
+   if (!hInstResDll) return FALSE;
+
+   // Check dll version
+   CString version, versiondll;
+   version.LoadString(IDS_LANG_VERSION);
+   versiondll.LoadString(hInstResDll, IDS_LANG_VERSION);
+   if (version.Compare(versiondll) != 0) {
+      ::FreeLibrary(hInstResDll);
+      return FALSE;
+   }
+   
+   // Look for language file
+   TCHAR* langFile = resDll;
+   TCHAR* lastSlash = _tcsrchr(resDll, _T('\\'));
+   if (!lastSlash) {
+      ::FreeLibrary(hInstResDll);
+      ASSERT(FALSE);
+      return FALSE;
+   }
+   lastSlash++;
+
+   TCHAR locale[10];
+   ::LoadString(hInstResDll, IDS_LOCALE_ID, locale, 10);
+   
+   lstrcpy(lastSlash, _T("kmeleon."));
+   lstrcat(lastSlash, locale);
+   lstrcat(lastSlash, _T(".kml"));
+
+   if (!lang.Load(langFile)) {
+      lstrcpy(lastSlash, LANG_CONFIG_FILE);
+      if (!lang.Load(langFile)) {
+         ::FreeLibrary(hInstResDll);
+         return FALSE;
+      }
+   }
+
+   AfxSetResourceHandle(hInstResDll);
+   _AtlBaseModule.SetResourceInstance(hInstResDll);
+   return TRUE;
+}
+
 // Initialize our MFC application and also init
 // the Gecko embedding APIs
 // Note that we're also init'ng the profile switching
@@ -250,7 +309,7 @@ bool CMfcEmbedApp::FindSkinFile( CString& szSkinFile, TCHAR *filename )
 //
 BOOL CMfcEmbedApp::InitInstance()
 {
-	CWinApp::InitInstance();
+	LoadLanguage();
 #ifdef _DEBUG
 	ShowDebugConsole();
 #endif
@@ -315,10 +374,13 @@ BOOL CMfcEmbedApp::InitInstance()
     }
     *lastSlash = _T('\0');
 
-    
     nsresult rv;
     nsCOMPtr<nsILocalFile> mreAppDir;
-    rv = NS_NewNativeLocalFile(nsEmbedCString(T2A(path)), TRUE, getter_AddRefs(mreAppDir));
+#ifdef _UNICODE
+    rv = NS_NewLocalFile(nsEmbedString(path), TRUE, getter_AddRefs(mreAppDir));
+#else
+    rv = NS_NewNativeLocalFile(nsEmbedCString(path), TRUE, getter_AddRefs(mreAppDir));
+#endif
     NS_ASSERTION(NS_SUCCEEDED(rv), "failed to create mreAppDir localfile");
 
    // Take a look at 
@@ -372,6 +434,8 @@ BOOL CMfcEmbedApp::InitInstance()
    InitializePrefs();
    SetOffline(theApp.preferences.bOffline);
 
+   CheckProfileVersion();
+
    m_MRUList = new CMostRecentUrls();
 
    // Retrieve the default icon
@@ -400,11 +464,6 @@ BOOL CMfcEmbedApp::InitInstance()
    if (preferences.bSiteIcons)
 		favicons.Create(16,16,ILC_COLOR32|ILC_MASK,25,100);
 #endif
-
-   // Look for language file
-   if (!lang.Load(preferences.settingsDir + LANG_CONFIG_FILE)) {
-	  lang.Load(CString(path) + _T('\\') + LANG_CONFIG_FILE);
-   }
 
    plugins.FindAndLoad();
    plugins.SendMessage("*", "* Plugin Manager", "Init");
@@ -941,9 +1000,9 @@ BOOL CMfcEmbedApp::OnIdle(LONG lCount)
 BOOL CMfcEmbedApp::IsIdleMessage( MSG* pMsg )
 {
    if (!CWinApp::IsIdleMessage( pMsg ) || 
-       pMsg->message == WM_USER+1 || // WM_CALLMETHOD
-	   pMsg->message == WM_POSTEVENT ||
-	   pMsg->message == WM_TIMER) 
+      pMsg->message == WM_USER+1 || // WM_CALLMETHOD
+      pMsg->message == WM_POSTEVENT ||
+      pMsg->message == WM_TIMER) 
 
       return FALSE;
    else
@@ -1182,15 +1241,15 @@ NS_IMETHODIMP CMfcEmbedApp::CreateChromeWindow(nsIWebBrowserChrome *parent,
 
    NS_ENSURE_ARG_POINTER(_retval);
    *_retval = 0;
-   
-   CWnd* pParent = NULL;
+
+      CWnd* pParent = NULL;
    if (parent) {
-	  HWND w;
+      HWND w;
       nsCOMPtr<nsIEmbeddingSiteWindow> site(do_QueryInterface(parent));
-	  if (site) {
-	     site->GetSiteWindow(reinterpret_cast<void **>(&w));
+      if (site) {
+         site->GetSiteWindow(reinterpret_cast<void **>(&w));
          pParent = CWnd::FromHandle(w);
-	  }
+      }
    }
 
    CBrowserFrame *pBrowserFrame = CreateNewBrowserFrame(chromeFlags, -1, -1, -1, -1, PR_FALSE, pParent);
@@ -1216,4 +1275,58 @@ int CMfcEmbedApp::GetID(char *strID) {
    USES_CONVERSION;
    defineMap.Lookup(A2T(strID), val);
    return val;
+}
+
+void CMfcEmbedApp::CheckProfileVersion()
+{
+   CString fileVersion = theApp.preferences.profileDir + _T("version.ini");
+   BOOL needClean = FALSE;
+
+   CString locale;
+   locale.LoadString(IDS_LOCALE_ID);
+
+   TCHAR version[34];
+   _itot(KMELEON_VERSION, version, 10);
+   
+   TCHAR buf[34];
+   if (!GetPrivateProfileString(_T("Version"), _T("LastVersion"), _T(""), buf, 10, fileVersion))
+   {
+      needClean = TRUE;
+      WritePrivateProfileString(_T("Version"), _T("LastVersion"), version, fileVersion);
+      WritePrivateProfileString(_T("Version"), _T("LastLocale"), locale, fileVersion);
+   }
+   else {
+      
+      if (_tcscmp(buf, version) != 0) {
+         needClean = TRUE;
+         WritePrivateProfileString(_T("Version"), _T("LastVersion"), version, fileVersion);
+      }
+
+      if (locale.GetLength()) {
+         GetPrivateProfileString(_T("Version"), _T("LastLocale"), version, buf, 10, fileVersion);
+         if (_tcscmp(buf, locale) != 0) {
+            nsresult rv = NS_OK;
+            nsCOMPtr<nsIChromeRegistrySea> chromeRegistry =
+               do_GetService(NS_CHROMEREGISTRY_CONTRACTID, &rv);
+            if (NS_SUCCEEDED(rv)) {
+               // XXX The first call to SelectLocale shouldn't be here. The current 
+               // global locale should be stored elsewhere
+               // rv = chromeRegistry->SelectLocale(nsEmbedCString(locale), PR_FALSE);
+               rv |= chromeRegistry->SelectLocale(nsEmbedCString(locale), PR_TRUE);
+               if (NS_SUCCEEDED(rv))
+                  WritePrivateProfileString(_T("Version"), _T("LastLocale"), locale, fileVersion);
+            }
+         }
+      }
+   }
+
+   if (needClean) {
+      CString toDelete = theApp.preferences.profileDir + _T("compreg.dat");
+      DeleteFile(toDelete);
+      toDelete = theApp.preferences.profileDir + _T("xpti.dat");
+      DeleteFile(toDelete);
+
+      toDelete = GetMozDirectory(NS_APP_USER_PROFILE_LOCAL_50_DIR) + _T("\\xul.mfl"); 
+      DeleteFile(toDelete);
+   }
 }

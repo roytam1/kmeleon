@@ -14,7 +14,7 @@ protected:
    char *strtok (char * string, const char * control);
 
 public:
-	int Load(CString &filename);
+	int Load(LPCTSTR filename);
 
 };
 

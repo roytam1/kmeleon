@@ -55,7 +55,7 @@ CMenuParser::CMenuParser()
 {
 }
 
-CMenuParser::CMenuParser(CString &filename)
+CMenuParser::CMenuParser(LPCTSTR filename)
 {
 	Load(filename);
 }
@@ -80,7 +80,7 @@ void CMenuParser::Destroy()
    menus.RemoveAll();
 }
 
-int CMenuParser::Load(CString &filename)
+int CMenuParser::Load(LPCTSTR filename)
 {
    SETUP_LOG("Menu");
 

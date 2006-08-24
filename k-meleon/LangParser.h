@@ -29,10 +29,10 @@ protected:
 
 public:
 	CLangParser(void);
-	CLangParser(CString &filename);
+	CLangParser(LPCTSTR filename);
 	~CLangParser(void);
 
-	int Load(CString &filename);
+	int Load(LPCTSTR filename);
 	LPCTSTR Translate(LPCTSTR originalText) {
 #if _MSC_VER >= 1300 
 		CMap<CString, LPCTSTR, CString, LPCTSTR>::CPair * p = langMap.PLookup(originalText);

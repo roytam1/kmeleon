@@ -175,6 +175,10 @@ typedef struct {
 
    kmeleonPointInfo *(*GetInfoAtClick) (HWND);
 
+   /* Return version: 
+        high byte = major, following bytes are minor version, subminor 
+        version and build number for this version.
+   */
    int (*GetKmeleonVersion)();
 
    void (*reserved)();

@@ -37,11 +37,11 @@ protected:
 
 public:
   CAccelParser();
-  CAccelParser(CString &filename);
+  CAccelParser(LPCTSTR filename);
 
   ~CAccelParser();
 
-  int Load(CString &filename);
+  int Load(LPCTSTR filename);
 
   int Parse(char *p);
 
