@@ -1,0 +1,265 @@
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: Mozilla-sample-code 1.0
+ *
+ * Copyright (c) 2002 Netscape Communications Corporation and
+ * other contributors
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this Mozilla sample software and associated documentation files
+ * (the "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to permit
+ * persons to whom the Software is furnished to do so, subject to the
+ * following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ *
+ * Contributor(s):
+ *   Conrad Carlen <ccarlen@netscape.com>
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+// Local Includes
+#include "stdafx.h"
+#include "mfcembed.h"
+#include "ProfileMgr.h"
+#include "ProfilesDlg.h"
+
+// Mozilla Includes
+#include "nsIRegistry.h"
+#include "nsIProfile.h"
+
+// Constants
+#define kRegistryGlobalPrefsSubtreeString (nsEmbedString(L"global-prefs"))
+#define kRegistryShowProfilesAtStartup "start-show-dialog"
+
+//*****************************************************************************
+//***    CProfileMgr: Object Management
+//*****************************************************************************
+
+CProfileMgr::CProfileMgr()
+{
+}
+
+CProfileMgr::~CProfileMgr()
+{
+}
+
+
+//*****************************************************************************
+//***    CProfileMgr: Public Methods
+//*****************************************************************************
+    
+nsresult CProfileMgr::StartUp()
+{
+    nsresult rv;
+
+    nsCOMPtr<nsIProfile> profileService = 
+             do_GetService(NS_PROFILE_CONTRACTID, &rv);
+    if (NS_FAILED(rv)) return rv;
+
+    PRInt32 profileCount;
+    rv = profileService->GetProfileCount(&profileCount);
+    if (NS_FAILED(rv)) return rv;
+    if (profileCount == 0)
+    {
+        // Make a new default profile
+        nsEmbedString newProfileName(L"default");
+
+        rv = profileService->CreateNewProfile(newProfileName.get(), nsnull, nsnull, PR_FALSE);
+        if (NS_FAILED(rv)) return rv;
+        rv = profileService->SetCurrentProfile(newProfileName.get());
+        if (NS_FAILED(rv)) return rv;
+	SetShowDialogOnStart(FALSE);
+    }
+    else
+    {
+        // Use our flag here to check for whether to show profile mgr UI. If the flag
+        // says don't show it, just start with the last used profile.
+
+        PRBool showIt;
+        rv = GetShowDialogOnStart(&showIt);
+
+        if (NS_FAILED(rv) || showIt)
+        {
+            rv = DoManageProfilesDialog(TRUE);
+	    if (NS_FAILED(rv))
+	      exit(1);
+        }
+        else
+        {
+            // GetCurrentProfile returns the profile which was last used but is not nescesarily
+            // active. Call SetCurrentProfile to make it installed and active.
+
+            PRUnichar *currProfileName;
+            rv = profileService->GetCurrentProfile(&currProfileName);
+            if (NS_FAILED(rv)) return rv;
+            rv = profileService->SetCurrentProfile(currProfileName);
+			nsMemory::Free(currProfileName);
+			if (NS_FAILED(rv)) {
+				rv = DoManageProfilesDialog(TRUE);
+				if (NS_FAILED(rv))
+					exit(1);	
+			}
+        }    
+    }
+
+    return NS_OK;
+}
+
+BOOL CProfileMgr::SetCurrentProfile(const char *profile) {
+   nsresult rv;
+
+   nsCOMPtr<nsIProfile> profileService = 
+      do_GetService(NS_PROFILE_CONTRACTID, &rv);
+   if (NS_FAILED(rv)) return FALSE;
+
+   nsEmbedString str;
+   NS_CStringToUTF16(nsEmbedCString(profile), NS_CSTRING_ENCODING_ASCII, str);
+   rv = profileService->SetCurrentProfile(str.get());
+   if (NS_FAILED(rv)) return FALSE;
+
+   return TRUE;
+}
+
+BOOL CProfileMgr::SetMostRecentProfile() {
+   nsresult rv;
+
+   nsCOMPtr<nsIProfile> profileService = 
+      do_GetService(NS_PROFILE_CONTRACTID, &rv);
+   if (NS_FAILED(rv)) return FALSE;
+
+   PRUnichar *currProfileName = nsnull;
+   rv = profileService->GetCurrentProfile(&currProfileName);
+   if (NS_FAILED(rv)) {nsMemory::Free(currProfileName);return FALSE;}
+   rv = profileService->SetCurrentProfile(currProfileName);
+   nsMemory::Free(currProfileName);
+   if (NS_FAILED(rv)) return FALSE;
+
+   return TRUE;
+}
+
+BOOL CProfileMgr::ShutDownCurrentProfile(BOOL cleanup) {
+   nsresult rv;
+
+   nsCOMPtr<nsIProfile> profileService = 
+      do_GetService(NS_PROFILE_CONTRACTID, &rv);
+   if (NS_FAILED(rv)) return FALSE;
+
+   rv = profileService->ShutDownCurrentProfile(
+           cleanup ? nsIProfile::SHUTDOWN_CLEANSE : nsIProfile::SHUTDOWN_PERSIST);
+   if (NS_FAILED(rv)) return FALSE;
+
+   return TRUE;
+}
+
+nsresult CProfileMgr::DoManageProfilesDialog(PRBool bAtStartUp)
+{
+    nsresult        rv;
+    PRBool          showIt;
+
+    rv = GetShowDialogOnStart(&showIt);
+
+	int res;
+	do
+   {
+	  CProfilesDlg dialog;
+	  dialog.m_bAtStartUp = bAtStartUp;
+	  dialog.m_bAskAtStartUp = NS_SUCCEEDED(rv) ? showIt : TRUE;
+      res = dialog.DoModal();
+
+      SetShowDialogOnStart(dialog.m_bAskAtStartUp);
+      
+	  if (res == IDOK) {
+		nsCOMPtr<nsIProfile> profileService = 
+			do_GetService(NS_PROFILE_CONTRACTID, &rv);
+		if (NS_SUCCEEDED(rv))
+			if (bAtStartUp) {
+				rv = profileService->SetCurrentProfile(dialog.m_SelectedProfile.get());
+				if (NS_FAILED(rv)) AfxMessageBox(IDS_PROFILE_LOAD_FAILED, MB_OK|MB_ICONERROR);
+			}
+	  }
+
+   } while ( NS_FAILED(rv) && res == IDOK);
+
+   if (bAtStartUp && res != IDOK)
+	return NS_ERROR_FAILURE;
+
+   return rv;
+}
+    
+ 
+//*****************************************************************************
+//***    CProfileMgr: Protected Methods
+//*****************************************************************************
+     
+nsresult CProfileMgr::GetShowDialogOnStart(PRBool* showIt)
+{
+    nsresult rv = NS_OK;
+        
+    *showIt = PR_TRUE;
+                
+    nsCOMPtr<nsIRegistry> registry(do_CreateInstance(NS_REGISTRY_CONTRACTID, &rv));
+    rv = registry->OpenWellKnownRegistry(nsIRegistry::ApplicationRegistry);
+    if (NS_FAILED(rv)) return rv;
+
+    nsRegistryKey profilesTreeKey;
+    
+    rv = registry->GetKey(nsIRegistry::Common, 
+                          kRegistryGlobalPrefsSubtreeString.get(), 
+                          &profilesTreeKey);
+
+    if (NS_SUCCEEDED(rv)) 
+    {
+        PRInt32 flagValue;
+        rv = registry->GetInt(profilesTreeKey, 
+                              kRegistryShowProfilesAtStartup, 
+                              &flagValue);
+         
+        if (NS_SUCCEEDED(rv))
+            *showIt = (flagValue != 0);
+    }
+    return rv;        
+}
+
+nsresult CProfileMgr::SetShowDialogOnStart(PRBool showIt)
+{
+    nsresult rv = NS_OK;
+                        
+    nsCOMPtr<nsIRegistry> registry(do_CreateInstance(NS_REGISTRY_CONTRACTID, &rv));
+    rv = registry->OpenWellKnownRegistry(nsIRegistry::ApplicationRegistry);
+    if (NS_FAILED(rv)) return rv;
+
+    nsRegistryKey profilesTreeKey;
+    
+    rv = registry->GetKey(nsIRegistry::Common, 
+                          kRegistryGlobalPrefsSubtreeString.get(), 
+                          &profilesTreeKey);
+
+    if (NS_FAILED(rv)) 
+    {
+        rv = registry->AddKey(nsIRegistry::Common, 
+                              kRegistryGlobalPrefsSubtreeString.get(), 
+                              &profilesTreeKey);
+    }
+
+    if (NS_SUCCEEDED(rv))
+    {
+    
+        rv = registry->SetInt(profilesTreeKey, 
+                              kRegistryShowProfilesAtStartup, 
+                              showIt);
+    }
+    
+    return rv;        
+}
+

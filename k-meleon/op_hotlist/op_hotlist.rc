@@ -1,0 +1,127 @@
+#define COMPILING_RC
+
+#ifdef __MINGW32__
+#  define _WIN32_IE 0x0500
+#  include <windows.h>
+#  include <commctrl.h>
+#endif
+
+#include "op_hotlist.h"
+#include <windows.h>
+
+#ifndef IDC_STATIC
+#define IDC_STATIC (-1)
+#endif
+
+IDD_INSTALL DIALOG DISCARDABLE  0, 0, 185, 75
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Opera Hotlist File"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "Create",ID_CREATE,32,53,50,14
+    PUSHBUTTON      "Search",ID_SEARCH,93,53,50,14
+    LTEXT           "The specified Hotlist file was not found.", IDC_STATIC,7,7,171,18
+    LTEXT           "You can either let K-Meleon create a new one,", IDC_STATIC,7,20,171,18
+    LTEXT           "or you could search for your hotlist file manually.", IDC_STATIC,7,29,171,18
+END
+
+IDD_CONFIG DIALOGEX 0, 0, 166, 190
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Opera Hotlist Settings"
+FONT 8, "MS Sans Serif"
+BEGIN
+    GROUPBOX        "Options",IDC_STATIC,7,7,152,154
+    LTEXT           "Hotlist File:",IDC_STATIC,20,20,75,8
+    EDITTEXT        IDC_HOTLIST_FILE,20,30,114,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",IDC_BROWSE,133,30,15,12,BS_FLAT,WS_EX_STATICEDGE
+    LTEXT           "Menu Spillover Length:",IDC_STATIC,20,50,75,10,
+                    SS_CENTERIMAGE
+    EDITTEXT        IDC_MAX_MENU_LENGTH,20,60,25,12,ES_AUTOHSCROLL
+    CONTROL         "Height of Screen",IDC_MENU_AUTODETECT,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,54,62,69,10
+
+    GROUPBOX        "Sorting",IDC_STATIC,16,76,134,33
+    CONTROL         "Ascending (a-z)",IDC_SORTORDER_AZ,"Button",
+                    BS_AUTORADIOBUTTON | WS_TABSTOP,20,86,65,11
+    CONTROL         "Descending (z-a)",IDC_SORTORDER_ZA,"Button",
+                    BS_AUTORADIOBUTTON | WS_TABSTOP,20,97,65,11
+    CONTROL         "Folders first",IDC_FOLDERFIRST,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,98,86,50,11
+    CONTROL         "Use 'Order'",IDC_USEORDER,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,98,97,50,11
+
+    CONTROL         "Enable Hotlist Toolbar",IDC_REBARENABLED,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,20,114,128,11
+    LTEXT           "Min Toolbar Button Size:",IDC_STATIC,20,128,80,12,
+                    SS_CENTERIMAGE
+    EDITTEXT        IDC_MIN_TB_SIZE,105,129,25,12,ES_AUTOHSCROLL
+    LTEXT           "Max Toolbar Button Size:",IDC_STATIC,20,142,80,12,
+                    SS_CENTERIMAGE
+    EDITTEXT        IDC_MAX_TB_SIZE,105,143,25,12,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,55,169,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,109,169,50,14
+END
+
+
+IDD_EDIT_HOTLIST DIALOGEX 0, 0, 306, 276
+STYLE WS_BORDER | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_THICKFRAME | WS_VISIBLE
+CAPTION "Hotlist"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "Tree1",IDC_TREE_HOTLIST,"SysTreeView32",TVS_HASBUTTONS | 
+                    TVS_SHOWSELALWAYS | TVS_FULLROWSELECT | WS_BORDER | 
+                    WS_GROUP | WS_TABSTOP,5,5,295,155,WS_EX_ACCEPTFILES
+    GROUPBOX        "Properties",IDC_STATIC_PROPERTIES,5,162,295,88
+    LTEXT           "Name:",IDC_STATIC_NAME,9,174,20,10,SS_CENTERIMAGE
+    EDITTEXT        IDC_NAME,33,172,260,12,ES_AUTOHSCROLL
+    LTEXT           "URL:",IDC_STATIC_URL,9,190,20,10,SS_CENTERIMAGE
+    EDITTEXT        IDC_URL,33,188,260,12,ES_AUTOHSCROLL
+    LTEXT           "Created:",IDC_STATIC_CREATED,9,205,27,10
+    LTEXT           "",IDC_CREATED,35,205,78,10
+    LTEXT           "Visited:",IDC_STATIC_VISITED,119,205,25,10
+    LTEXT           "",IDC_LAST_VISIT,145,205,78,10
+    LTEXT           "Order:",IDC_STATIC_ORDER,9,220,25,10
+    EDITTEXT        IDC_ORDER,35,218,75,12,ES_AUTOHSCROLL
+    LTEXT           "Desc.:",IDC_STATIC_DESC,119,220,20,10,SS_CENTERIMAGE
+    EDITTEXT        IDC_DESCRIPTION,145,218,150,12,ES_AUTOHSCROLL
+    LTEXT           "Nick:",IDC_STATIC_SHORT,9,235,20,10,SS_CENTERIMAGE
+    EDITTEXT        IDC_SHORT_NAME,35,233,75,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "OK",IDOK,205,255,45,15
+    PUSHBUTTON      "Cancel",IDCANCEL,255,255,45,15
+END
+
+
+IDR_CONTEXTMENU MENU DISCARDABLE 
+BEGIN
+    POPUP "."
+    BEGIN
+        MENUITEM "&Open in Current Browser Window", ID__OPEN
+        MENUITEM "Open in Back&ground",         ID__OPEN_BACKGROUND
+        MENUITEM SEPARATOR
+        MENUITEM "New &Folder",                 ID__NEW_FOLDER
+        MENUITEM "New &Bookmark",               ID__NEW_BOOKMARK
+        MENUITEM SEPARATOR
+        MENUITEM "Set as &Toolbar Folder",      ID__SETAS_TOOLBARFOLDER
+        MENUITEM "Set as &New Bookmark Folder", ID__SETAS_NEWBOOKMARKFOLDER
+        MENUITEM "Set as Bookmark &Menu",       ID__SETAS_BOOKMARKMENU
+        MENUITEM SEPARATOR
+        MENUITEM "Properties",                  ID__ZOOM
+    END
+END
+
+
+// IDB_IMAGES              BITMAP  DISCARDABLE     "bitmap1.bmp"
+IDC_DRAG_CURSOR         CURSOR  DISCARDABLE     "cursor1.cur"
+// IDB_ICON                ICON    DISCARDABLE     "icon1.ico"
+
+
+IDD_SMARTBOOKMARK DIALOG DISCARDABLE  0, 0, 250, 58
+STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+CAPTION "Prompt"
+FONT 8, "MS Sans Serif"
+BEGIN
+    EDITTEXT        IDC_INPUT, 7,20, 236,13, ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,130,39,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,189,39,50,14
+    LTEXT           "Search", IDC_SEARCHTEXT, 10,7, 230,13
+END

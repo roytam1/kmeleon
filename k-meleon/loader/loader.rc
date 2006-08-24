@@ -1,0 +1,19 @@
+#include <windows.h>
+#include "resource.h"
+
+ICON_KMELEON            ICON    DISCARDABLE     "kmeleon.ico"
+
+IDD_DIALOG DIALOG DISCARDABLE  0, 0, 171, 170
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "K-Meleon Tray Manager"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "Slider1",IDC_SLIDER_PRELOAD,"msctls_trackbar32",
+                    TBS_AUTOTICKS | TBS_VERT | TBS_BOTH | WS_TABSTOP,20,22,
+                    26,114
+    PUSHBUTTON      "Ok",IDOK,18,149,50,16
+    PUSHBUTTON      "Cancel",IDCANCEL,102,149,50,16
+    LTEXT           "",IDC_STATIC_TITLE,61,28,85,12
+    LTEXT           "",IDC_STATIC_INFO,61,56,85,71
+    GROUPBOX        "Preload Configuration",IDC_STATIC,11,10,150,134
+END
