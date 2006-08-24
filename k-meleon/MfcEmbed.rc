@@ -253,7 +253,8 @@ FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     CONTROL         "List1",IDC_LIST_PLUGINS,"SysListView32",LVS_LIST | 
                     LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | 
-                    LVS_NOCOLUMNHEADER | WS_BORDER | WS_TABSTOP,4,4,202,179
+                    LVS_NOCOLUMNHEADER | LVS_SORTASCENDING | WS_BORDER | 
+                    WS_TABSTOP,4,4,202,179
     PUSHBUTTON      "&Configure...",IDC_BUTTON_CONFIG,210,4,57,14
     PUSHBUTTON      "&Enable/Disable",IDC_BUTTON_ENABLE,210,20,57,14
     LTEXT           "Checked items will be loaded next time K-Meleon starts",
@@ -1718,6 +1719,7 @@ END
 STRINGTABLE 
 BEGIN
     IDS_LANG_VERSION        "1.0.0.0"
+    IDS_LOCALE_ID           "en-US"
 END
 
 STRINGTABLE 

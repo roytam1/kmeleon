@@ -54,7 +54,7 @@ END_MESSAGE_MAP()
 int CALLBACK CCookiesViewerDlg::SortCookiesList(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
 {
    //CListCtrl* pListCtrl = (CListCtrl*) lParamSort;
-   CList<CCookie*>* pCookieList = (CList<CCookie*>*) lParamSort;
+   CCookieList* pCookieList = (CCookieList*) lParamSort;
 
    CCookie* cookie1 = pCookieList->GetAt((POSITION)lParam1);
    CCookie* cookie2 = pCookieList->GetAt((POSITION)lParam2);

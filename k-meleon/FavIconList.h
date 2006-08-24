@@ -21,17 +21,47 @@
 #pragma once
 
 #include "afxtempl.h"
+#include "imgIDecoderObserver.h"
+#include "imgIRequest.h"
+
+class CFavIconList;
+
+class IconObserver : public imgIDecoderObserver
+					 
+
+{
+	NS_DECL_ISUPPORTS
+	NS_DECL_IMGIDECODEROBSERVER
+	NS_DECL_IMGICONTAINEROBSERVER
+
+	IconObserver(CFavIconList* favlist) : mFavList(favlist) {}
+	virtual ~IconObserver() { }
+
+	NS_IMETHOD LoadIcon(nsIURI* iconUri, nsIURI* pageUri);
+
+protected:
+	CFavIconList* mFavList;
+	nsCOMPtr<imgIRequest> mRequest;
+	NS_IMETHOD CreateDIB(imgIRequest *aRequest);
+};
 
 class CFavIconList : public CImageList
 {
 private:
-	CMap<CStringA, LPCSTR, int, int &> m_urlMap;
+	CMap<CString, LPCTSTR, int, int &> m_urlMap;
 	int m_iDefaultIcon;
+	
+	void AddMap(const char *uri, int index);
+	int AddDownloadedIcon(char* uri, TCHAR* file, nsresult aStatus);
 
 public:
 	CFavIconList();
 	virtual ~CFavIconList();
-	
+
+	int AddIcon(const char* uri, CBitmap*, CBitmap*);
+	int AddIcon(const char* uri, CBitmap*, COLORREF);
+	int AddIcon(const char* uri, HICON icon);
+
 	int GetHostIcon(const TCHAR* aUri);
 	int GetIcon(nsIURI* aUri, BOOL download = FALSE);
 	
@@ -43,8 +73,7 @@ public:
 	static void DwnCall(char* , TCHAR* , nsresult, void* );
 
 	inline int GetDefaultIcon() {return m_iDefaultIcon;}
-	int AddIcon(char* uri, TCHAR* file, nsresult aStatus);
-	//void AddIcon(nsIURI* aURI, TCHAR* file);
+
 	BOOL Create(int, int, UINT, int, int);
 };
 

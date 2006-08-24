@@ -22,7 +22,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../mozilla/mozilla/dist/include;../mozilla/mozilla/dist/include/chardet;../mozilla/mozilla/dist/include/js;../mozilla/mozilla/dist/include/xpconnect;../mozilla/mozilla/dist/include/caps;../mozilla/mozilla/dist/include/mimetype;../mozilla/mozilla/dist/include/imglib2;../mozilla/mozilla/dist/include/content;../mozilla/mozilla/dist/include/locale;../mozilla/mozilla/dist/include/pipboot;../mozilla/mozilla/dist/include/pippki;../mozilla/mozilla/dist/include/pipnss;../mozilla/mozilla/dist/include/cookie;../mozilla/mozilla/dist/include/xpcom_obsolete;../mozilla/mozilla/dist/include/typeaheadfind;../mozilla/mozilla/dist/include/appcomps;../mozilla/mozilla/dist/include/history;../mozilla/mozilla/dist/include/rdf;../mozilla/mozilla/dist/include/docshell;../mozilla/mozilla/dist/include/dom;../mozilla/mozilla/dist/include/embed_base;../mozilla/mozilla/dist/include/exthandler;../mozilla/mozilla/dist/include/find;../mozilla/mozilla/dist/include/gfx;../mozilla/mozilla/dist/include/helperAppDlg;../mozilla/mozilla/dist/include/intl;../mozilla/mozilla/dist/include/layout;../mozilla/mozilla/dist/include/necko;../mozilla/mozilla/dist/include/nkcache;../mozilla/mozilla/dist/include/pref;../mozilla/mozilla/dist/include/profile;../mozilla/mozilla/dist/include/shistory;../mozilla/mozilla/dist/include/string;../mozilla/mozilla/dist/include/uriloader;../mozilla/mozilla/dist/include/wallet;../mozilla/mozilla/dist/include/webBrowser_core;../mozilla/mozilla/dist/include/webbrowserpersist;../mozilla/mozilla/dist/include/webshell;../mozilla/mozilla/dist/include/widget;../mozilla/mozilla/dist/include/windowwatcher;../mozilla/mozilla/dist/include/xpcom;../mozilla/mozilla/dist/include/nspr;../mozilla/mozilla/dist/include/webbrwsr;../mozilla/mozilla/dist/include/commandhandler;../mozilla/mozilla/dist/include/plugin"
+				AdditionalIncludeDirectories="../mozilla/mozilla/dist/include/chrome;../mozilla/mozilla/dist/include;../mozilla/mozilla/dist/include/chardet;../mozilla/mozilla/dist/include/js;../mozilla/mozilla/dist/include/xpconnect;../mozilla/mozilla/dist/include/caps;../mozilla/mozilla/dist/include/mimetype;../mozilla/mozilla/dist/include/imglib2;../mozilla/mozilla/dist/include/content;../mozilla/mozilla/dist/include/locale;../mozilla/mozilla/dist/include/pipboot;../mozilla/mozilla/dist/include/pippki;../mozilla/mozilla/dist/include/pipnss;../mozilla/mozilla/dist/include/cookie;../mozilla/mozilla/dist/include/xpcom_obsolete;../mozilla/mozilla/dist/include/typeaheadfind;../mozilla/mozilla/dist/include/appcomps;../mozilla/mozilla/dist/include/history;../mozilla/mozilla/dist/include/rdf;../mozilla/mozilla/dist/include/docshell;../mozilla/mozilla/dist/include/dom;../mozilla/mozilla/dist/include/embed_base;../mozilla/mozilla/dist/include/exthandler;../mozilla/mozilla/dist/include/find;../mozilla/mozilla/dist/include/gfx;../mozilla/mozilla/dist/include/helperAppDlg;../mozilla/mozilla/dist/include/intl;../mozilla/mozilla/dist/include/layout;../mozilla/mozilla/dist/include/necko;../mozilla/mozilla/dist/include/nkcache;../mozilla/mozilla/dist/include/pref;../mozilla/mozilla/dist/include/profile;../mozilla/mozilla/dist/include/shistory;../mozilla/mozilla/dist/include/string;../mozilla/mozilla/dist/include/uriloader;../mozilla/mozilla/dist/include/wallet;../mozilla/mozilla/dist/include/webBrowser_core;../mozilla/mozilla/dist/include/webbrowserpersist;../mozilla/mozilla/dist/include/webshell;../mozilla/mozilla/dist/include/widget;../mozilla/mozilla/dist/include/windowwatcher;../mozilla/mozilla/dist/include/xpcom;../mozilla/mozilla/dist/include/nspr;../mozilla/mozilla/dist/include/webbrwsr;../mozilla/mozilla/dist/include/commandhandler;../mozilla/mozilla/dist/include/plugin"
 				PreprocessorDefinitions="_DEBUG;WIN32;_WINDOWS;HW_THREADS;XP_PC;XP_WIN;XP_WIN32;WINVER=0x400;XPCOM_GLUE"
 				BasicRuntimeChecks="3"
 				SmallerTypeCheck="TRUE"
@@ -45,7 +45,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="xpcomglue.lib embed_base_s.lib nspr4.lib"
-				OutputFile="f:\Program Files\K-Meleon\debug\$(ProjectName).exe"
+				OutputFile="\Program Files\K-Meleon\debug\$(ProjectName).exe"
 				SuppressStartupBanner="TRUE"
 				AdditionalLibraryDirectories="..\mozilla\mozilla\dist\lib_debug"
 				IgnoreDefaultLibraryNames=""
@@ -95,7 +95,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="1"
-				AdditionalIncludeDirectories="../mozilla/mozilla/dist/include;../mozilla/mozilla/dist/include/chardet;../mozilla/mozilla/dist/include/js;../mozilla/mozilla/dist/include/xpconnect;../mozilla/mozilla/dist/include/caps;../mozilla/mozilla/dist/include/mimetype;../mozilla/mozilla/dist/include/imglib2;../mozilla/mozilla/dist/include/content;../mozilla/mozilla/dist/include/locale;../mozilla/mozilla/dist/include/pipboot;../mozilla/mozilla/dist/include/pippki;../mozilla/mozilla/dist/include/pipnss;../mozilla/mozilla/dist/include/cookie;../mozilla/mozilla/dist/include/xpcom_obsolete;../mozilla/mozilla/dist/include/typeaheadfind;../mozilla/mozilla/dist/include/appcomps;../mozilla/mozilla/dist/include/history;../mozilla/mozilla/dist/include/rdf;../mozilla/mozilla/dist/include/docshell;../mozilla/mozilla/dist/include/dom;../mozilla/mozilla/dist/include/embed_base;../mozilla/mozilla/dist/include/exthandler;../mozilla/mozilla/dist/include/find;../mozilla/mozilla/dist/include/gfx;../mozilla/mozilla/dist/include/helperAppDlg;../mozilla/mozilla/dist/include/intl;../mozilla/mozilla/dist/include/layout;../mozilla/mozilla/dist/include/necko;../mozilla/mozilla/dist/include/nkcache;../mozilla/mozilla/dist/include/pref;../mozilla/mozilla/dist/include/profile;../mozilla/mozilla/dist/include/shistory;../mozilla/mozilla/dist/include/string;../mozilla/mozilla/dist/include/uriloader;../mozilla/mozilla/dist/include/wallet;../mozilla/mozilla/dist/include/webBrowser_core;../mozilla/mozilla/dist/include/webbrowserpersist;../mozilla/mozilla/dist/include/webshell;../mozilla/mozilla/dist/include/widget;../mozilla/mozilla/dist/include/windowwatcher;../mozilla/mozilla/dist/include/xpcom;../mozilla/mozilla/dist/include/nspr;../mozilla/mozilla/dist/include/webbrwsr;../mozilla/mozilla/dist/include/commandhandler;../mozilla/mozilla/dist/include/plugin"
+				AdditionalIncludeDirectories="../mozilla/mozilla/dist/include/chrome;../mozilla/mozilla/dist/include;../mozilla/mozilla/dist/include/chardet;../mozilla/mozilla/dist/include/js;../mozilla/mozilla/dist/include/xpconnect;../mozilla/mozilla/dist/include/caps;../mozilla/mozilla/dist/include/mimetype;../mozilla/mozilla/dist/include/imglib2;../mozilla/mozilla/dist/include/content;../mozilla/mozilla/dist/include/locale;../mozilla/mozilla/dist/include/pipboot;../mozilla/mozilla/dist/include/pippki;../mozilla/mozilla/dist/include/pipnss;../mozilla/mozilla/dist/include/cookie;../mozilla/mozilla/dist/include/xpcom_obsolete;../mozilla/mozilla/dist/include/typeaheadfind;../mozilla/mozilla/dist/include/appcomps;../mozilla/mozilla/dist/include/history;../mozilla/mozilla/dist/include/rdf;../mozilla/mozilla/dist/include/docshell;../mozilla/mozilla/dist/include/dom;../mozilla/mozilla/dist/include/embed_base;../mozilla/mozilla/dist/include/exthandler;../mozilla/mozilla/dist/include/find;../mozilla/mozilla/dist/include/gfx;../mozilla/mozilla/dist/include/helperAppDlg;../mozilla/mozilla/dist/include/intl;../mozilla/mozilla/dist/include/layout;../mozilla/mozilla/dist/include/necko;../mozilla/mozilla/dist/include/nkcache;../mozilla/mozilla/dist/include/pref;../mozilla/mozilla/dist/include/profile;../mozilla/mozilla/dist/include/shistory;../mozilla/mozilla/dist/include/string;../mozilla/mozilla/dist/include/uriloader;../mozilla/mozilla/dist/include/wallet;../mozilla/mozilla/dist/include/webBrowser_core;../mozilla/mozilla/dist/include/webbrowserpersist;../mozilla/mozilla/dist/include/webshell;../mozilla/mozilla/dist/include/widget;../mozilla/mozilla/dist/include/windowwatcher;../mozilla/mozilla/dist/include/xpcom;../mozilla/mozilla/dist/include/nspr;../mozilla/mozilla/dist/include/webbrwsr;../mozilla/mozilla/dist/include/commandhandler;../mozilla/mozilla/dist/include/plugin"
 				PreprocessorDefinitions="WIN32;_WINDOWS;HW_THREADS;XP_PC;XP_WIN;XP_WIN32;WINVER=0x400;_WIN32_IE=0x0500;XPCOM_GLUE"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
@@ -153,6 +153,80 @@
 			<Tool
 				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
+		<Configuration
+			Name="Release MFC Static|Win32"
+			OutputDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="1"
+			UseOfMFC="1"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2"
+			WholeProgramOptimization="TRUE">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="1"
+				AdditionalIncludeDirectories="../mozilla/mozilla/dist/include/chrome;../mozilla/mozilla/dist/include;../mozilla/mozilla/dist/include/chardet;../mozilla/mozilla/dist/include/js;../mozilla/mozilla/dist/include/xpconnect;../mozilla/mozilla/dist/include/caps;../mozilla/mozilla/dist/include/mimetype;../mozilla/mozilla/dist/include/imglib2;../mozilla/mozilla/dist/include/content;../mozilla/mozilla/dist/include/locale;../mozilla/mozilla/dist/include/pipboot;../mozilla/mozilla/dist/include/pippki;../mozilla/mozilla/dist/include/pipnss;../mozilla/mozilla/dist/include/cookie;../mozilla/mozilla/dist/include/xpcom_obsolete;../mozilla/mozilla/dist/include/typeaheadfind;../mozilla/mozilla/dist/include/appcomps;../mozilla/mozilla/dist/include/history;../mozilla/mozilla/dist/include/rdf;../mozilla/mozilla/dist/include/docshell;../mozilla/mozilla/dist/include/dom;../mozilla/mozilla/dist/include/embed_base;../mozilla/mozilla/dist/include/exthandler;../mozilla/mozilla/dist/include/find;../mozilla/mozilla/dist/include/gfx;../mozilla/mozilla/dist/include/helperAppDlg;../mozilla/mozilla/dist/include/intl;../mozilla/mozilla/dist/include/layout;../mozilla/mozilla/dist/include/necko;../mozilla/mozilla/dist/include/nkcache;../mozilla/mozilla/dist/include/pref;../mozilla/mozilla/dist/include/profile;../mozilla/mozilla/dist/include/shistory;../mozilla/mozilla/dist/include/string;../mozilla/mozilla/dist/include/uriloader;../mozilla/mozilla/dist/include/wallet;../mozilla/mozilla/dist/include/webBrowser_core;../mozilla/mozilla/dist/include/webbrowserpersist;../mozilla/mozilla/dist/include/webshell;../mozilla/mozilla/dist/include/widget;../mozilla/mozilla/dist/include/windowwatcher;../mozilla/mozilla/dist/include/xpcom;../mozilla/mozilla/dist/include/nspr;../mozilla/mozilla/dist/include/webbrwsr;../mozilla/mozilla/dist/include/commandhandler;../mozilla/mozilla/dist/include/plugin"
+				PreprocessorDefinitions="WIN32;_WINDOWS;HW_THREADS;XP_PC;XP_WIN;XP_WIN32;WINVER=0x400;_WIN32_IE=0x0500;XPCOM_GLUE"
+				StringPooling="TRUE"
+				RuntimeLibrary="2"
+				TreatWChar_tAsBuiltInType="TRUE"
+				UsePrecompiledHeader="3"
+				PrecompiledHeaderThrough="StdAfx.h"
+				PrecompiledHeaderFile=".\Release/KMeleon.pch"
+				AssemblerListingLocation=".\Release/"
+				ObjectFile=".\Release/"
+				ProgramDataBaseFileName=".\Release/"
+				BrowseInformation="1"
+				BrowseInformationFile=".\Release/"
+				WarningLevel="3"
+				SuppressStartupBanner="TRUE"
+				DebugInformationFormat="3"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="xpcomglue.lib embed_base_s.lib nspr4.lib"
+				OutputFile="\program files\k-meleon\release\k-meleon.exe"
+				LinkIncremental="1"
+				SuppressStartupBanner="TRUE"
+				AdditionalLibraryDirectories="..\mozilla\mozilla\dist\lib"
+				GenerateDebugInformation="TRUE"
+				ProgramDatabaseFile=".\Release/k-meleon.pdb"
+				SubSystem="2"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
+				OptimizeForWindows98="1"
+				TargetMachine="1"/>
+			<Tool
+				Name="VCMIDLTool"
+				PreprocessorDefinitions="NDEBUG"
+				MkTypLibCompatible="TRUE"
+				SuppressStartupBanner="TRUE"
+				TargetEnvironment="1"
+				TypeLibraryName=".\Release/KMeleon.tlb"
+				HeaderFileName=""/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
 	</Configurations>
 	<References>
 	</References>
@@ -162,255 +236,39 @@
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
 			<File
 				RelativePath="About.cpp">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="1"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="AccelParser.cpp">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="1"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="BrowserFrameGlue.cpp">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="1"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="BrowserFrm.cpp">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="1"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="BrowserImpl.cpp">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="1"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="BrowserImplCtxMenuLstnr.cpp">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="1"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="BrowserImplWebPrgrsLstnr.cpp">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="1"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="BrowserView.cpp">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="1"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="BrowserViewFind.cpp">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="1"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="BrowserViewPanning.cpp">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="1"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="BrowserViewUtils.cpp">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="1"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="CmdLine.cpp">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="1"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\CookiesViewerDlg.cpp">
@@ -421,157 +279,47 @@
 					Name="Debug|Win32"
 					ExcludedFromBuild="TRUE">
 					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
+						Name="VCCLCompilerTool"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Release|Win32"
 					ExcludedFromBuild="TRUE">
 					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="1"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
+						Name="VCCLCompilerTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release MFC Static|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"/>
 				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="Dialogs.cpp">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="1"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\FavIconList.cpp">
 			</File>
 			<File
 				RelativePath="HiddenWnd.cpp">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="1"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\LangParser.cpp">
 			</File>
 			<File
 				RelativePath="MenuParser.cpp">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="1"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="MfcEmbed.cpp">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="1"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="MostRecentUrls.cpp">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="1"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\MozUtils.cpp">
 			</File>
 			<File
 				RelativePath="Parser.cpp">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="1"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\PasswordViewerDlg.cpp">
@@ -581,171 +329,27 @@
 			</File>
 			<File
 				RelativePath="Plugins.cpp">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="1"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="Preferences.cpp">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="1"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="PreferencesDlg.cpp">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="1"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="PrintProgressDialog.cpp">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="1"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="PrintSetupDialog.cpp">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="1"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="ProfileMgr.cpp">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="1"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="ProfilesDlg.cpp">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="1"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="ReBarEx.cpp">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="1"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\SideBar.cpp">
@@ -756,64 +360,20 @@
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						UsePrecompiledHeader="1"
-						BrowseInformation="1"/>
+						UsePrecompiledHeader="1"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release|Win32">
+					Name="Release MFC Static|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
-						Optimization="1"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						UsePrecompiledHeader="1"
-						BrowseInformation="1"/>
+						UsePrecompiledHeader="1"/>
 				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="ToolBarEx.cpp">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="1"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="Tooltips.cpp">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="1"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\urlbar.cpp">
@@ -824,43 +384,23 @@
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						UsePrecompiledHeader="0"
-						BrowseInformation="1"/>
+						UsePrecompiledHeader="0"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Release|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
-						Optimization="1"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						UsePrecompiledHeader="0"
-						BrowseInformation="1"/>
+						UsePrecompiledHeader="0"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release MFC Static|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"/>
 				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="winEmbedFileLocProvider.cpp">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="1"
-						AdditionalIncludeDirectories=""
-						PreprocessorDefinitions=""
-						BrowseInformation="1"/>
-				</FileConfiguration>
 			</File>
 			<Filter
 				Name="Components"
@@ -885,48 +425,12 @@
 				</File>
 				<File
 					RelativePath="PromptService.cpp">
-					<FileConfiguration
-						Name="Debug|Win32">
-						<Tool
-							Name="VCCLCompilerTool"
-							Optimization="0"
-							AdditionalIncludeDirectories=""
-							PreprocessorDefinitions=""
-							BrowseInformation="1"/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32">
-						<Tool
-							Name="VCCLCompilerTool"
-							Optimization="1"
-							AdditionalIncludeDirectories=""
-							PreprocessorDefinitions=""
-							BrowseInformation="1"/>
-					</FileConfiguration>
 				</File>
 				<File
 					RelativePath=".\TooltipsProvider.cpp">
 				</File>
 				<File
 					RelativePath="UnknownContentTypeHandler.cpp">
-					<FileConfiguration
-						Name="Debug|Win32">
-						<Tool
-							Name="VCCLCompilerTool"
-							Optimization="0"
-							AdditionalIncludeDirectories=""
-							PreprocessorDefinitions=""
-							BrowseInformation="1"/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32">
-						<Tool
-							Name="VCCLCompilerTool"
-							Optimization="1"
-							AdditionalIncludeDirectories=""
-							PreprocessorDefinitions=""
-							BrowseInformation="1"/>
-					</FileConfiguration>
 				</File>
 			</Filter>
 		</Filter>

@@ -32,11 +32,11 @@ protected:
 
 public:
 	CMenuParser();
-   CMenuParser(CString &filename);
+   CMenuParser(LPCTSTR filename);
 
 	~CMenuParser();
 
-   int Load(CString &filename);
+   int Load(LPCTSTR filename);
    void Destroy();
 
    CMenu *GetMenu(TCHAR * menuName);

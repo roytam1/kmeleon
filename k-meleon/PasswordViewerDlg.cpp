@@ -120,7 +120,7 @@ void CPasswordViewerDlg::FillList(nsISimpleEnumerator* enumPassword)
 
 int CALLBACK CPasswordViewerDlg::SortPasswordsList(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
 {
-   CList<CPassword*>* pPasswordList = (CList<CPassword*>*) lParamSort;
+   CPasswordList* pPasswordList = (CPasswordList*) lParamSort;
 
    CPassword* password1 = pPasswordList->GetAt((POSITION)lParam1);
    CPassword* password2 = pPasswordList->GetAt((POSITION)lParam2);

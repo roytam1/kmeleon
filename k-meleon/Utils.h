@@ -17,6 +17,7 @@
 */
 
 #include <stdio.h>
+#include <string.h>
 #include <tchar.h>
 
 void TranslateTabs(char *buffer);

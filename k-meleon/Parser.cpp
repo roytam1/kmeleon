@@ -115,17 +115,14 @@ int ifplugin(char *p)
       while ( *p && isalpha(*p) )
 	p++;
       *p = 0;
-      kmeleonPlugin * kPlugin = theApp.plugins.Load(plugin);
-      if (!kPlugin || !kPlugin->loaded)
-	return !loaded;
-      else
-	return loaded;
+      USES_CONVERSION;
+      return theApp.plugins.IsLoaded(A2CT(plugin));
     }
   }
   return 0;
 }
 
-CParser::Load(CString &filename)
+CParser::Load(LPCTSTR filename)
 {
    CFile *file;
     

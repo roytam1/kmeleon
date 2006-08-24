@@ -32,7 +32,7 @@ class CPlugins {
   friend CPreferencePagePlugins;
 
 protected:
-   CMap<CString, LPCSTR, kmeleonPlugin *, kmeleonPlugin *> pluginList;
+   CMap<CString, LPCTSTR, kmeleonPlugin *, kmeleonPlugin *> pluginList;
 
 public:
 	CPlugins();
@@ -40,10 +40,11 @@ public:
 
    void UnLoadAll();
 
-   BOOL TestLoad(const char *file, const char *description);
+   BOOL IsLoaded(LPCTSTR pluginName);
+   BOOL TestLoad(LPCTSTR file, const char *description);
 
-   int FindAndLoad(const char *pattern = "*.dll");
-   kmeleonPlugin * Load(char *file);
+   int FindAndLoad(const TCHAR *pattern = _T("*.dll"));
+   kmeleonPlugin * Load(CString file);
    int  OnUpdate(UINT command);
 
    long SendMessage(const char *to, const char *from, const char *subject, long data1=0, long data2=0);

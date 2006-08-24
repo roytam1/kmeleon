@@ -156,19 +156,20 @@ kmeleonDocInfo * GetDocInfo(HWND mainWnd)
    else
 	   frame = theApp.m_pMostRecentBrowserFrame;
 
-   if (!frame) {
+   if (!frame)
       return NULL;
-   }
+
+   USES_CONVERSION;
 
    CString url;
    frame->m_wndBrowserView.GetCurrentURI(url);
-   TCHAR* docurl = new TCHAR[url.GetLength()+1];
-   _tcscpy(docurl, url);
+   char* docurl = new char[url.GetLength()+1];
+   strcpy(docurl, T2CA(url));
 
    CString title;
    frame->m_wndBrowserView.GetPageTitle(title);
-   TCHAR* doctitle = new TCHAR[title.GetLength()+1];
-   _tcscpy(doctitle, title);
+   char* doctitle = new char[title.GetLength()+1];
+   strcpy(doctitle, T2CA(title));
 
    if (kDocInfo.url)
       delete kDocInfo.url;
@@ -250,8 +251,9 @@ void DelPreference(char *preference)
 }
 
 void SetStatusBarText(const char *s) {
+   USES_CONVERSION;
    if (theApp.m_pMostRecentBrowserFrame) // Yes, it can happen
-     theApp.m_pMostRecentBrowserFrame->m_wndStatusBar.SetPaneText(0, s);
+     theApp.m_pMostRecentBrowserFrame->m_wndStatusBar.SetPaneText(0, A2CT(s));
 }
 
 int GetMozillaSessionHistory (char ***titles, char ***urls, int *count, int *index)
@@ -344,7 +346,8 @@ void GotoHistoryIndex(UINT index)
 
 void RegisterBand(HWND hWnd, char *name, int visibleOnMenu)
 {
-   theApp.m_pMostRecentBrowserFrame->m_wndReBar.RegisterBand(hWnd, name, visibleOnMenu);
+   USES_CONVERSION;
+   theApp.m_pMostRecentBrowserFrame->m_wndReBar.RegisterBand(hWnd, A2T(name), visibleOnMenu);
 }
 
 // This lets a plugin create a toolbar within the current browser frame
@@ -572,21 +575,22 @@ int SetGlobalVar(enum PREFTYPE type, const char *preference, void *value)
    switch (type) {
    case PREF_STRING:
 	   if (!stricmp(preference, "URLBAR")) {
-		 theApp.m_pMostRecentBrowserFrame->m_wndUrlBar.EditChanged(FALSE);
-		 theApp.m_pMostRecentBrowserFrame->m_wndUrlBar.SetCurrentURL((char*)value);
-		 ret = 1;
+		   theApp.m_pMostRecentBrowserFrame->m_wndUrlBar.EditChanged(FALSE);
+         USES_CONVERSION;
+		   theApp.m_pMostRecentBrowserFrame->m_wndUrlBar.SetCurrentURL(A2CT((char*)value));
+		   ret = 1;
 	   }
 	   else if (!stricmp(preference, "CHARSET")) {
          USES_CONVERSION;
-         pBrowserView->ForceCharset(T2A((char*)value));
-		 ret = 1;
+         pBrowserView->ForceCharset((char*)value);
+		   ret = 1;
       }
 	   else if (!stricmp(preference, "TITLE")) {
-		 if (pBrowserView->mpBrowserFrameGlue) {
-		   USES_CONVERSION;
-		   pBrowserView->mpBrowserFrameGlue->SetBrowserFrameTitle(T2CW((char*)value));
-		 }
-		 ret = 1;
+		   if (pBrowserView->mpBrowserFrameGlue) {
+		      USES_CONVERSION;
+		      pBrowserView->mpBrowserFrameGlue->SetBrowserFrameTitle(A2CW((char*)value));
+		   }
+		   ret = 1;
       }
 	   break;
    case PREF_INT:
@@ -697,7 +701,7 @@ int GetGlobalVar(enum PREFTYPE type, char *preference, void *ret) {
 char *EncodeUTF8(const char *str) {
   USES_CONVERSION;
   nsEmbedString aStr;
-  aStr.Append(T2W(str));
+  aStr.Append(A2W(str));
   nsEmbedCString _str;
   NS_UTF16ToCString(aStr, NS_CSTRING_ENCODING_UTF8, _str);
   char *pszStr = safe_strdup(_str.get());
@@ -708,7 +712,7 @@ char *DecodeUTF8(const char *str) {
   USES_CONVERSION;
   nsEmbedString _str;
   NS_CStringToUTF16(nsEmbedCString(str), NS_CSTRING_ENCODING_UTF8, _str);
-  char *pszStr = safe_strdup(W2CT(_str.get()));
+  char *pszStr = safe_strdup(W2CA(_str.get()));
   return pszStr;
 }
 
@@ -720,7 +724,8 @@ void GetBrowserviewRect(HWND mainWnd, RECT *rc) {
 
 HMENU GetMenu(char *menuName){
    CMenu *menu;
-   menu = theApp.menus.GetMenu(menuName);
+   USES_CONVERSION;
+   menu = theApp.menus.GetMenu(A2T(menuName));
 
    return menu ? menu->m_hMenu : NULL;
 }
@@ -753,7 +758,8 @@ void ParseAccel(char *str) {
 }
 
 kmeleonPlugin * Load(char *kplugin) {
-  return theApp.plugins.Load(kplugin);
+  USES_CONVERSION;
+  return theApp.plugins.Load(CString(A2T(kplugin)));
 }
 
 long CPlugins::SendMessage(const char *to, const char *from, const char *subject, long data1, long data2)
@@ -801,10 +807,26 @@ void ToggleSideBar (HWND mainWnd, int index)
 #endif
 }
 
-const TCHAR* Translate(const char* text)
+const char* Translate(const char* text)
 {
 	USES_CONVERSION;
+#ifndef _UNICODE
 	return theApp.lang.Translate(A2CT(text));
+#else
+   static char* Translated = NULL;
+   if (Translated) {
+      free(Translated);
+      Translated = NULL;
+   }
+
+   const WCHAR* uText = A2CW(text);
+   const WCHAR* uTranslated = theApp.lang.Translate(uText);
+   if (uTranslated == uText)
+      return text;
+
+   Translated = strdup(W2CA(uTranslated));
+   return Translated;
+#endif
 }
 
 int TranslateEx(const char* originalText,  TCHAR* translatedText, int bufferlen, BOOL forMenu)
@@ -959,20 +981,21 @@ kmeleonFunctions kmelFuncs = {
    SetGlobalVar
 };
 
-BOOL CPlugins::TestLoad(const char *file, const char *description)
+BOOL CPlugins::TestLoad(LPCTSTR file, const char *description)
 {
    char preference[128] = "kmeleon.plugins.";
-   strcat(preference, file);
+
+   USES_CONVERSION;
+   strcat(preference, T2CA(file));
    strcat(preference, ".load");
    
    int load = theApp.preferences.GetBool(preference, -1);
    if (load == -1) {
       CString message, title;
-	  title.LoadString(IDS_NEW_PLUGIN_FOUND_TITLE);
+	   title.LoadString(IDS_NEW_PLUGIN_FOUND_TITLE);
+      message.Format(IDS_NEW_PLUGIN_FOUND, A2CT(description));
 
-      message.Format(IDS_NEW_PLUGIN_FOUND, description);
-
-      if (MessageBox(NULL, message, "Plugin found", MB_YESNO) == IDYES)
+      if (MessageBox(NULL, message, _T("Plugin found"), MB_YESNO) == IDYES)
          load = 1;
       else
          load = 0;
@@ -982,61 +1005,58 @@ BOOL CPlugins::TestLoad(const char *file, const char *description)
    return load;
 }
 
-kmeleonPlugin * CPlugins::Load(char *file)
-{  
-   file = SkipWhiteSpace(file);
-   TrimWhiteSpace(file);
+BOOL CPlugins::IsLoaded(LPCTSTR pluginName)
+{
+   kmeleonPlugin* kPlugin;
+   if (!pluginList.Lookup(pluginName, kPlugin))
+      return FALSE;
 
-   const char *noPath = FileNoPath(file);
-   strlwr((char*)noPath);
+   return kPlugin->loaded;
+}
 
-   // truncate the .dll extension
-   char *dot = strrchr(noPath, '.');
-   if (dot && (strcmpi(dot, ".dll") == 0) )
-      *dot = 0;
+kmeleonPlugin * CPlugins::Load(CString file)
+{
+   file.TrimLeft();
+   file.TrimRight();
+
+   int filePos = file.ReverseFind(_T('\\'));
+   int filePos2 = file.ReverseFind(_T('/'));
+   if (filePos2>filePos) filePos = filePos2;
+   ++filePos;
+
+   CString noPath = file.Mid(filePos);
+   noPath.MakeLower();
+
+   CString pluginName;
+   int extPos = noPath.ReverseFind(_T('.'));
+   if (noPath.Mid(extPos).Compare(_T(".dll"))!=0)
+      extPos = -1;
+
+   if (extPos!=-1)
+      pluginName = noPath.Mid(0, extPos);
    else
-      dot = NULL;
+      pluginName = noPath;
 
    // check if the plugin is already loaded
    kmeleonPlugin * kPlugin;
-   if (pluginList.Lookup(noPath, kPlugin))
+   if (pluginList.Lookup(pluginName, kPlugin))
       return kPlugin; // it's already loaded
-
-   // restore the '.' in the truncated string
-   if (dot)
-      *dot = '.';
 
    HINSTANCE plugin;
 
-   char *c = file;
-   while (*c && *c != ':') c++;
+   // if pattern does not contain ':' we need to prepend pluginsDir
+   if (file.Find(':') == -1)
+      file = theApp.preferences.pluginsDir + file;
 
    // we need to append .dll because NT4 gets confused if a directory in the path
    // contains a '.' and the file to be loaded does not
-   if (!*c || !dot) {        // if pattern does not contain : we need to prepend pluginsDir
-                              // if it doesn't end in .dll, we need to append that
-      int newlen = strlen(file);
-      if (!*c) newlen += strlen(theApp.preferences.pluginsDir);
-      if (!dot) newlen += 4; // ".dll"
+   if (extPos == -1)
+      file +=_T(".dll");
 
-      char *buf = new char[newlen+1];
-      *buf = 0;
-
-      if (!*c) strcpy(buf, theApp.preferences.pluginsDir);
-      strcat(buf, file);
-      if (!dot) strcat(buf, ".dll");
-
-      plugin = LoadLibrary(buf);    // load the full path
-      delete buf;
-   }
-   else {
-      DWORD err = GetLastError();
-      plugin = LoadLibrary(file);
-      err = GetLastError();
-   }
+   plugin = LoadLibrary(file);
+   if (!plugin) return NULL;
 
    KmeleonPluginGetter kpg = (KmeleonPluginGetter)GetProcAddress(plugin, "GetKmeleonPlugin");
-
    if (!kpg) {
       FreeLibrary(plugin);
       return NULL;
@@ -1044,40 +1064,27 @@ kmeleonPlugin * CPlugins::Load(char *file)
 
    kPlugin = kpg();
 
-   if (!kPlugin) {
-      FreeLibrary(plugin);
-      return NULL;
-   }
-
+   USES_CONVERSION;
    kPlugin->hParentInstance = AfxGetInstanceHandle();
    kPlugin->hDllInstance = plugin;
    kPlugin->kFuncs = &kmelFuncs;
+   kPlugin->dllname = safe_strdup(T2CA(pluginName));
 
-   // truncate the .dll extension in noPath
-   if (dot)
-      *dot = 0;
-
-   // save the filename
-   char *name = new char[strlen(noPath)+1];
-   strcpy(name, noPath);
-   kPlugin->dllname=name;
-
-   int loaded = kPlugin->loaded=TestLoad(noPath, kPlugin->description);
+   int loaded = kPlugin->loaded = TestLoad(pluginName, kPlugin->description);
 
    if (kPlugin->version < KMEL_PLUGIN_VER_MAJOR) {
       CString error;
       error.Format(IDS_OLD_PLUGIN, kPlugin->description);
-
       AfxMessageBox(error);
-
       loaded = false;
    }
 
    // If the plugin is enabled, tell it to Init
-   if ( loaded ) {
+   if (loaded) {
       if (kPlugin->DoMessage(kPlugin->dllname, "* Plugin Manager", "Load", 0, 0) == -1)
 		  loaded = false;
    }
+
    if (!loaded) {
    // otherwise, make a copy of the descripion, and unload it
    //else {
@@ -1087,8 +1094,7 @@ kmeleonPlugin * CPlugins::Load(char *file)
       temp->description = sBuf;
       strcpy(temp->description, kPlugin->description);
 
-      temp->dllname = name;
-
+      temp->dllname = kPlugin->dllname;
       temp->loaded = false;
 
       kPlugin=temp;
@@ -1096,18 +1102,17 @@ kmeleonPlugin * CPlugins::Load(char *file)
       FreeLibrary(plugin);
    }
 
-   pluginList.SetAt(noPath, kPlugin);
-   
+   pluginList.SetAt(pluginName, kPlugin);
    return kPlugin;
 }
 
-int CPlugins::FindAndLoad(const char *pattern)
+int CPlugins::FindAndLoad(const TCHAR *pattern)
 {
    CString filepath;
    CFileFind finder;
    BOOL bWorking;
    
-   int x=strlen(pattern);
+   int x=_tcslen(pattern);
    while (x>0 && (pattern[x] != ':')) x--;
    
    if (x==0) {       // if pattern does not contain ':' we need to prepend pluginsDir
@@ -1121,9 +1126,8 @@ int CPlugins::FindAndLoad(const char *pattern)
       bWorking = finder.FindNextFile();
 
       filepath = finder.GetFilePath();
-      if ( Load(filepath.LockBuffer()) )
+      if ( Load(filepath) )
          i++;
-      filepath.UnlockBuffer();
    }
    //   SendMessage("*", "* Plugin Manager", "Init");
    return i;

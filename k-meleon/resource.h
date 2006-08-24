@@ -421,6 +421,7 @@
 #define IDS_ALLFILES                    61299
 #define IDS_NEW_PLUGIN_FOUND_TITLE      61300
 #define IDS_LANG_VERSION                62000
+#define IDS_LOCALE_ID                   62001
 #define IDD_CONFIRM_COOKIE              2100
 #define IDC_CHECK_REMEMBER              2101
 #define IDOKSESSION                     2104
