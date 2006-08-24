@@ -1061,7 +1061,7 @@ void addLink(TCHAR *url, TCHAR *title, TCHAR* nick, CBookmarkNode* node)
 {
 	if (!node || node->type!=BOOKMARK_FOLDER) return;
 
-	node->AddChild(new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), title, url, _T(""), _T(""), "", BOOKMARK_BOOKMARK, time(NULL)));
+	node->AddChild(new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), title, url, nick, "", "", BOOKMARK_BOOKMARK, time(NULL)));
 	SaveBM(gBookmarkFile);
 	Rebuild();
 }
