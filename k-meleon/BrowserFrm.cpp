@@ -113,6 +113,8 @@ END_MESSAGE_MAP()
 
 #define PREF_TOOLBAND_LOCKED "kmeleon.general.toolbars_locked"
 
+CBitmap CBrowserFrame::m_bmpBack;
+
 /////////////////////////////////////////////////////////////////////////////
 // CBrowserFrame construction/destruction
 
@@ -988,7 +990,7 @@ void CBrowserFrame::LoadBackImage ()
     //------------------------------------
 
     if (m_bmpBack.GetSafeHandle () != NULL)
-        m_bmpBack.DeleteObject ();
+        return;
 
 	CString skinFile;
 	if (theApp.FindSkinFile(skinFile, _T("Back.bmp")))

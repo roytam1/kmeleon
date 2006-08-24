@@ -153,13 +153,13 @@ public:
     CProgressCtrl   m_wndProgressBar;
     CUrlBar         m_wndUrlBar;
     CReBarEx        m_wndReBar;
-    CAnimateCtrl     m_wndAnimate;
+    CAnimateCtrl    m_wndAnimate;
 #ifdef INTERNAL_SIDEBAR
-	CSideBar		m_wndSideBar;
+    CSideBar        m_wndSideBar;
 #endif
-	CFindRebar*		m_wndFindBar;
+    CFindRebar*     m_wndFindBar;
 
-    CBitmap         m_bmpBack;
+    static CBitmap  m_bmpBack;
 
     // The view inside which the embedded browser will
     // be displayed in
