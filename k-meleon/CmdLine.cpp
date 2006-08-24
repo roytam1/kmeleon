@@ -45,13 +45,13 @@ void CCmdLine::Initialize(char *cmdLine) {
          ITEMIDLIST *idl;
          if (SHGetSpecialFolderLocation(NULL, CSIDL_APPDATA, &idl) == NOERROR) {
             IMalloc *malloc;
-            SHGetPathFromIDList(idl, m_sProfilesDir);
+            SHGetPathFromIDListA(idl, m_sProfilesDir);
             SHGetMalloc(&malloc);
             malloc->Free(idl);
             malloc->Release();
          }
          else
-            GetWindowsDirectory(m_sProfilesDir, MAX_PATH);
+            GetWindowsDirectoryA(m_sProfilesDir, MAX_PATH);
          int len = strlen(m_sProfilesDir);
          if (m_sProfilesDir[len-1] != '\\') {
             m_sProfilesDir[len] = '\\';

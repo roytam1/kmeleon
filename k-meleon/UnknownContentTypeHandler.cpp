@@ -837,7 +837,8 @@ void CProgressDialog::OnClose() {
 void CProgressDialog::OnOpen() {
    CString directory = mFilePath;
    int last_slash = directory.ReverseFind(_T('\\'));
-   directory.Truncate(last_slash);
+   directory.GetBuffer(0);
+   directory.ReleaseBuffer(last_slash); // Truncate
    ShellExecute(NULL, _T("open"), mFilePath, _T(""), directory, SW_SHOW);
    Close();
 }

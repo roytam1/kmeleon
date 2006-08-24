@@ -65,6 +65,7 @@
 #include "nsIPluginManager.h"
 #include "nsIIOService.h"
 #include "nsIWindowWatcher.h"
+#include "nsIChromeRegistrySea.h"
 
 static UINT WM_POSTEVENT = RegisterWindowMessage(_T("XPCOM_PostEvent"));
 
@@ -92,6 +93,8 @@ static char THIS_FILE[] = __FILE__;
 #define LANG_CONFIG_FILE _T("language.cfg")
 #define MENU_CONFIG_FILE _T("menus.cfg")
 #define ACCEL_CONFIG_FILE _T("accel.cfg")
+
+extern CString GetMozDirectory(char* dirName);
 
 BEGIN_MESSAGE_MAP(CMfcEmbedApp, CWinApp)
 //{{AFX_MSG_MAP(CMfcEmbedApp)
@@ -241,6 +244,62 @@ bool CMfcEmbedApp::FindSkinFile( CString& szSkinFile, TCHAR *filename )
 	return false;
 }
 
+#include <shlwapi.h>
+
+BOOL CMfcEmbedApp::LoadLanguage()
+{
+   TCHAR resDll[MAX_PATH], *extension;
+	
+   // Look for dll resources
+	::GetModuleFileName(m_hInstance, resDll, MAX_PATH);
+   extension = ::PathFindExtension(resDll);
+
+   if ((extension + 7) - resDll  > MAX_PATH)
+      return FALSE;
+
+   lstrcpy(extension, _T("loc.dll"));
+   HINSTANCE hInstResDll = ::LoadLibrary(resDll);
+   if (!hInstResDll) return FALSE;
+
+   // Check dll version
+   CString version, versiondll;
+   version.LoadString(IDS_LANG_VERSION);
+   versiondll.LoadString(hInstResDll, IDS_LANG_VERSION);
+   if (version.Compare(versiondll) != 0) {
+      ::FreeLibrary(hInstResDll);
+      return FALSE;
+   }
+   
+   // Look for language file
+   TCHAR* langFile = resDll;
+   TCHAR* lastSlash = _tcsrchr(resDll, _T('\\'));
+   if (!lastSlash) {
+      ::FreeLibrary(hInstResDll);
+      ASSERT(FALSE);
+      return FALSE;
+   }
+   lastSlash++;
+
+   TCHAR locale[10];
+   ::LoadString(hInstResDll, IDS_LOCALE_ID, locale, 10);
+   
+   lstrcpy(lastSlash, _T("kmeleon."));
+   lstrcat(lastSlash, locale);
+   lstrcat(lastSlash, _T(".kml"));
+
+   if (!lang.Load(langFile)) {
+      lstrcpy(lastSlash, LANG_CONFIG_FILE);
+      if (!lang.Load(langFile)) {
+         ::FreeLibrary(hInstResDll);
+         return FALSE;
+      }
+   }
+
+   AfxSetResourceHandle(hInstResDll);
+   _AtlBaseModule.SetResourceInstance(hInstResDll);
+   return TRUE;
+}
+
 // Initialize our MFC application and also init
 // the Gecko embedding APIs
 // Note that we're also init'ng the profile switching
@@ -250,7 +309,7 @@ bool CMfcEmbedApp::FindSkinFile( CString& szSkinFile, TCHAR *filename )
 //
 BOOL CMfcEmbedApp::InitInstance()
 {
-	CWinApp::InitInstance();
+	LoadLanguage();
 #ifdef _DEBUG
 	ShowDebugConsole();
 #endif
@@ -264,8 +323,10 @@ BOOL CMfcEmbedApp::InitInstance()
    m_hMutex = CreateMutex(NULL, FALSE, NULL);
 
    // parse the command line
-   cmdline.Initialize(m_lpCmdLine);
-   
+   // XXX 
+   USES_CONVERSION;
+   cmdline.Initialize(T2A(m_lpCmdLine));
+#ifndef _DEBUG
    // check for prior instances
    HANDLE hMutexOneInstance = CreateMutex( NULL, TRUE, _T("K-Meleon Instance Mutex") );
    m_bAlreadyRunning = ( GetLastError() == ERROR_ALREADY_EXISTS );
@@ -295,7 +356,7 @@ BOOL CMfcEmbedApp::InitInstance()
       }
       return FALSE;
    }
-   
+#endif
     //Enable3dControls();   
     //
     // 1. Determine the name of the dir from which the GRE based app is being run
@@ -315,10 +376,13 @@ BOOL CMfcEmbedApp::InitInstance()
     }
     *lastSlash = _T('\0');
 
-    
     nsresult rv;
     nsCOMPtr<nsILocalFile> mreAppDir;
-    rv = NS_NewNativeLocalFile(nsEmbedCString(T2A(path)), TRUE, getter_AddRefs(mreAppDir));
+#ifdef _UNICODE
+    rv = NS_NewLocalFile(nsEmbedString(path), TRUE, getter_AddRefs(mreAppDir));
+#else
+    rv = NS_NewNativeLocalFile(nsEmbedCString(path), TRUE, getter_AddRefs(mreAppDir));
+#endif
     NS_ASSERTION(NS_SUCCEEDED(rv), "failed to create mreAppDir localfile");
 
    // Take a look at 
@@ -327,6 +391,7 @@ BOOL CMfcEmbedApp::InitInstance()
    
    CString strRes;
    strRes.LoadString(IDS_PROFILES_FOLDER_NAME);
+
    winEmbedFileLocProvider *provider = new winEmbedFileLocProvider(nsEmbedCString(T2A(strRes.GetBuffer(0))));
    if(!provider){
       ASSERT(FALSE);
@@ -372,6 +437,8 @@ BOOL CMfcEmbedApp::InitInstance()
    InitializePrefs();
    SetOffline(theApp.preferences.bOffline);
 
+   CheckProfileVersion();
+
    m_MRUList = new CMostRecentUrls();
 
    // Retrieve the default icon
@@ -400,11 +467,6 @@ BOOL CMfcEmbedApp::InitInstance()
    if (preferences.bSiteIcons)
 		favicons.Create(16,16,ILC_COLOR32|ILC_MASK,25,100);
 #endif
-
-   // Look for language file
-   if (!lang.Load(preferences.settingsDir + LANG_CONFIG_FILE)) {
-	  lang.Load(CString(path) + _T('\\') + LANG_CONFIG_FILE);
-   }
 
    plugins.FindAndLoad();
    plugins.SendMessage("*", "* Plugin Manager", "Init");
@@ -511,7 +573,7 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
    else if (x==-1 && y==-1 && cx==-1 && cy==-1 && !bShowWindow)
        openedByGecko = 1;
 
-   // XXX Chrome dialogs shouldn't have those.
+   // XXX Chrome dialogs shouldn't have thoses.
    if (chromeMask & nsIWebBrowserChrome::CHROME_OPENAS_CHROME)
       chromeMask &=  ~nsIWebBrowserChrome::CHROME_MENUBAR
 	                &~nsIWebBrowserChrome::CHROME_TOOLBAR
@@ -519,8 +581,49 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
 					&~nsIWebBrowserChrome::CHROME_STATUSBAR
 					&~nsIWebBrowserChrome::CHROME_PERSONAL_TOOLBAR;
    
-   LONG style = WS_OVERLAPPEDWINDOW;
+   LONG style, styleEx = 0L;
 
+   if (chromeMask & nsIWebBrowserChrome::CHROME_WINDOW_POPUP) {
+      style = WS_POPUPWINDOW | WS_CAPTION;
+	  styleEx = WS_EX_TOPMOST | WS_EX_TOOLWINDOW;
+   }
+   else if (chromeMask & nsIWebBrowserChrome::CHROME_OPENAS_DIALOG) {
+	   style =  WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_DLGFRAME;
+	         //| DS_3DLOOK | DS_MODALFRAME;
+	   styleEx = WS_EX_DLGMODALFRAME;
+		       
+	   if (!(chromeMask & nsIWebBrowserChrome::CHROME_DEFAULT)) 
+		   style |= WS_THICKFRAME | WS_MINIMIZEBOX;
+   }
+   else {
+	   style = WS_OVERLAPPEDWINDOW;
+	   if (pParent) // && (chromeMask & nsIWebBrowserChrome::CHROME_DEPENDENT))
+          style |= WS_POPUP;
+   }
+   
+   if ( !(chromeMask & nsIWebBrowserChrome::CHROME_DEFAULT) &&
+	    !(chromeMask & nsIWebBrowserChrome::CHROME_ALL)) {
+   
+      if( !(chromeMask & nsIWebBrowserChrome::CHROME_TITLEBAR) )
+         style &= ~WS_CAPTION; // No caption      
+
+      if (!theApp.preferences.bDisableResize) {   
+         if( !(chromeMask & nsIWebBrowserChrome::CHROME_WINDOW_RESIZE) ) {
+             // Can't resize this window
+             style &= ~WS_THICKFRAME;
+             style &= ~WS_MAXIMIZEBOX;
+         }
+      }
+
+      if ( !(chromeMask & nsIWebBrowserChrome::CHROME_WINDOW_CLOSE) &&
+	       !(chromeMask & nsIWebBrowserChrome::CHROME_MENUBAR) )
+         style &= ~WS_SYSMENU;
+
+      if ( !(chromeMask & nsIWebBrowserChrome::CHROME_WINDOW_MIN) ) 
+         style &= ~WS_MINIMIZEBOX;
+   }
+   
+   /*
    if (chromeMask && (chromeMask != nsIWebBrowserChrome::CHROME_DEFAULT) && 
        (!(chromeMask & (nsIWebBrowserChrome::CHROME_WINDOW_BORDERS)) ||
         !(chromeMask & (nsIWebBrowserChrome::CHROME_WINDOW_CLOSE)) || 
@@ -536,150 +639,93 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
    }
    else if (preferences.bMaximized && (chromeMask & nsIWebBrowserChrome::CHROME_WINDOW_RESIZE))
        style |= WS_MAXIMIZE;
-
-   style &= ~WS_VISIBLE;
+*/
+   //style &= ~WS_VISIBLE;
    
-   RECT screen;
+   RECT screen, winSize;
    SystemParametersInfo(SPI_GETWORKAREA, NULL, &screen, 0);
-
    int screenWidth   = screen.right - screen.left;
    int screenHeight  = screen.bottom - screen.top;
 
-   RECT winSize = CFrameWnd::rectDefault;
-
-   winSize.left = screen.left + screenWidth / 40;
-   winSize.top = screen.top + screenHeight / 40;
-   winSize.right = 15*screenWidth / 20;
-   winSize.bottom = 18*screenHeight/20;
-           
    if (x>0 && y>0 && cx>0 && cy>0) {
-       if (style & WS_POPUP) {
-           winSize.left = x;
-           winSize.top = y;
-           winSize.right = x + cx;
-           winSize.bottom = y + cy;
-           AdjustWindowRectEx(&winSize, style, chromeMask & (nsIWebBrowserChrome::CHROME_MENUBAR), 0);
-           winSize.right = winSize.right - winSize.left;
-           winSize.bottom = winSize.bottom - winSize.top;
-
-           // don't create windows larger than the screen
-           if (winSize.right > screenWidth)
-               winSize.right = screenWidth;
-           if (winSize.bottom > screenHeight)
-               winSize.bottom = screenHeight;
-           
-           // make sure the window isn't going to run off the screen
-           if (screen.right - (winSize.left + winSize.right) < 0)
-               winSize.left = screen.right - winSize.right;
-           if (screen.bottom - (winSize.top + winSize.bottom) < 0) 
-               winSize.top = screen.bottom - winSize.bottom;
-       }
-       else {
-           winSize.left = x;
-           winSize.top = y;
-           winSize.right = cx;
-           winSize.bottom = cy;
-
-           // don't create windows larger than the screen
-           if (winSize.right > screenWidth)
-               winSize.right = screenWidth;
-           if (winSize.bottom > screenHeight)
-               winSize.bottom = screenHeight;
-           
-           // make sure the window isn't going to run off the screen
-           if (screen.right - (winSize.left + winSize.right) < 0)
-               winSize.left = screen.right - winSize.right;
-           if (screen.bottom - (winSize.top + winSize.bottom) < 0) 
-               winSize.top = screen.bottom - winSize.bottom;
-       }
+      winSize.left = x;
+      winSize.top = y;
+      winSize.right = x + cx;
+      winSize.bottom = y + cy;
+      AdjustWindowRectEx(&winSize, style, chromeMask & (nsIWebBrowserChrome::CHROME_MENUBAR), 0);
    }
    else {
-       if (!(style & WS_POPUP)) {
-         if (preferences.windowHeight > 0 && preferences.windowWidth > 0) {
-           winSize.right  = preferences.windowWidth;
-           winSize.bottom = preferences.windowHeight;         
+	  if (m_pMostRecentBrowserFrame && 
+         !(m_pMostRecentBrowserFrame->m_style & WS_POPUP))
+	  {
+	     WINDOWPLACEMENT wp;
+         wp.length = sizeof(WINDOWPLACEMENT);
+         m_pMostRecentBrowserFrame->GetWindowPlacement(&wp);
 
-           if (preferences.windowYPos > 0 && preferences.windowXPos > 0) {
-               winSize.left = preferences.windowXPos;
-               winSize.top  = preferences.windowYPos;
+		 // if the window is not maximized, let's use use GetWindowRect, which works
+         if (wp.showCmd == SW_SHOWNORMAL)
+            m_pMostRecentBrowserFrame->GetWindowRect(&wp.rcNormalPosition);
 
-               if (m_pMostRecentBrowserFrame && 
-                   !(m_pMostRecentBrowserFrame->m_style & WS_POPUP)) {
+		 int offset = GetSystemMetrics(SM_CYSIZE) + GetSystemMetrics(SM_CXBORDER);
+		 winSize.left   = wp.rcNormalPosition.left + offset;
+         winSize.top    = wp.rcNormalPosition.top + offset;
+		 winSize.right  = wp.rcNormalPosition.right + offset;
+         winSize.bottom = wp.rcNormalPosition.bottom + offset;
+		
+		 // Put the window to the top corner if we're too far in 
+		 // the bottom left.
+         if ( (screen.right - winSize.right) < offset
+			  && (screen.bottom - winSize.bottom) < offset)
+		 {
+	        winSize.left = screen.left;
+            winSize.top = screen.top;
+			winSize.right = wp.rcNormalPosition.right - wp.rcNormalPosition.left;
+		    winSize.bottom = wp.rcNormalPosition.bottom - wp.rcNormalPosition.top;
+		 }
+	  }
+	  else if ((preferences.windowHeight > 0 && preferences.windowWidth > 0) 
+	          && (preferences.windowYPos >= 0 && preferences.windowXPos >= 0)) {
+		 winSize.left = preferences.windowXPos;
+         winSize.top  = preferences.windowYPos;
+         winSize.right  = winSize.left + preferences.windowWidth;
+         winSize.bottom = winSize.top + preferences.windowHeight;
+	  }
+	  else {
+		  winSize.left = screen.left + screenWidth / 20;
+          winSize.top = screen.top + screenHeight / 20;
+          winSize.right = winSize.left + 15*screenWidth / 20;
+          winSize.bottom = winSize.top + 18*screenHeight/20;
 
-                   int offset        = GetSystemMetrics(SM_CYSIZE);
-                   offset           += GetSystemMetrics(SM_CXBORDER);
-
-                   WINDOWPLACEMENT wp;
-                   wp.length = sizeof(WINDOWPLACEMENT);
-                   m_pMostRecentBrowserFrame->GetWindowPlacement(&wp);
-
-                   // if the window is not maximized, let's use use GetWindowRect, which works
-                   if (wp.showCmd == SW_SHOWNORMAL)
-                       m_pMostRecentBrowserFrame->GetWindowRect(&wp.rcNormalPosition);
-      
-                   winSize.left   = wp.rcNormalPosition.left + offset;
-                   winSize.top    = wp.rcNormalPosition.top + offset;
-
-                   // the Create function is overloaded to treat "right" and "bottom" as
-                   // "width" and "height"
-                   winSize.right  = wp.rcNormalPosition.right - wp.rcNormalPosition.left;
-                   winSize.bottom = wp.rcNormalPosition.bottom - wp.rcNormalPosition.top;
-
-                   // don't create windows larger than the screen
-                   if (winSize.right > screenWidth)
-                       winSize.right = screenWidth;
-                   if (winSize.bottom > screenHeight)
-                       winSize.bottom = screenHeight;
-
-                   // make sure the window isn't going to run off the screen
-                   if (screen.right - (winSize.left + winSize.right) < 0)
-                       winSize.left = screen.right - winSize.right;
-                   if (screen.bottom - (winSize.top + winSize.bottom) < 0) 
-                       winSize.top = screen.bottom - winSize.bottom;
-      
-                   // if we're going to be positioned right on top of the current window,
-                   // move to the top corner
-                   if ( (abs(winSize.left - wp.rcNormalPosition.left) < offset/3) &&
-                        (abs(winSize.top - wp.rcNormalPosition.top) < offset/3) ) {
-                       winSize.left = screen.left;
-                       winSize.top = screen.top;
-                   }
-               }
-               else {
-                   // don't create windows larger than the screen
-                   if (winSize.right > screenWidth)
-                       winSize.right = screenWidth;
-                   if (winSize.bottom > screenHeight)
-                       winSize.bottom = screenHeight;
-
-                   // make sure the window isn't going to run off the screen
-                   if (screen.right - (winSize.left + winSize.right) < 0)
-                       winSize.left = screen.right - winSize.right;
-                   if (screen.bottom - (winSize.top + winSize.bottom) < 0) 
-                       winSize.top = screen.bottom - winSize.bottom;
-               }
-           }
-           else {
-               // don't create windows larger than the screen
-               if (winSize.right > screenWidth)
-                   winSize.right = screenWidth;
-               if (winSize.bottom > screenHeight)
-                   winSize.bottom = screenHeight;
-           }
-         }
-         else {
-           winSize.left = screen.left + screenWidth / 20;
-           winSize.top = screen.top + screenHeight / 20;
-           winSize.right = 15*screenWidth / 20;
-           winSize.bottom = 18*screenHeight/20;
-
-           preferences.windowXPos   = winSize.left;
-           preferences.windowYPos   = winSize.top;
-           preferences.windowWidth  = winSize.right;
-           preferences.windowHeight = winSize.bottom;
-         }
-       }
+		  preferences.windowXPos   = winSize.left;
+          preferences.windowYPos   = winSize.top;
+          preferences.windowWidth  = winSize.right;
+          preferences.windowHeight = winSize.bottom;
+	  }
    }
+
+   // don't create windows larger than the screen
+   if ((winSize.right - winSize.left) > screenWidth)
+      winSize.right = screenWidth - winSize.left;
+   if ((winSize.bottom - winSize.top) > screenHeight)
+      winSize.bottom = screenHeight - winSize.top;
+
+   
+   // Center the window if needed, useless at this point.
+   //if (chromeMask & nsIWebBrowserChrome::CHROME_CENTER_SCREEN)
+   //{
+   //   int height = winSize.bottom - winSize.top;
+   //   int width = winSize.right - winSize.left;
+   //	winSize.top = screen.top + (screenHeight - height)/2;
+   //   winSize.bottom = winSize.top + height;
+   //   winSize.left = screen.left + (screenWidth - width)/2;
+   //   winSize.right = winSize.left + width;
+   //}
+           
+   // make sure the window isn't going to run off the screen
+   if ((screen.right - winSize.right) < 0)
+      winSize.left = screen.right - (winSize.right - winSize.left);
+   if ((screen.bottom - winSize.bottom) < 0) 
+      winSize.top = screen.bottom - (winSize.bottom - winSize.top);
 
    // Now, create the browser frame
    CBrowserFrame* pFrame = new CBrowserFrame(chromeMask, style);
@@ -697,10 +743,15 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
    if (!pOldRecentFrame)
       pOldRecentFrame = pFrame;
 
+   CMenu *menu = theApp.menus.GetMenu(_T("Main"));
 
-   if (!pFrame->Create(BROWSER_WINDOW_CLASS, strTitle, style, winSize, chromeMask & nsIWebBrowserChrome::CHROME_DEPENDENT ? pParent : NULL, NULL, 0L, NULL)) {
-       ReleaseMutex(m_hMutex);
-      return NULL;
+   if (!pFrame->CreateEx(styleEx, BROWSER_WINDOW_CLASS, strTitle, style,
+      winSize, chromeMask & nsIWebBrowserChrome::CHROME_DEPENDENT ? pParent : NULL,
+	  (UINT)menu->GetSafeHmenu(), NULL))
+   {
+      TRACE0("Warning: failed to create CFrameWnd.\n");
+      ReleaseMutex(theApp.m_hMutex);
+      return FALSE;
    }
 
    pFrame->SetIcon(m_hMainIcon, true);
@@ -725,7 +776,7 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
 
    BOOL canResize = !theApp.preferences.GetBool("kmeleon.display.dontResizeXul", FALSE);
    BOOL sizeOnLoad = FALSE;
-   if (canResize && pParent && chromeMask & nsIWebBrowserChrome::CHROME_OPENAS_CHROME)
+   if (canResize && chromeMask & nsIWebBrowserChrome::CHROME_OPENAS_CHROME)
       sizeOnLoad = TRUE;
 
    pFrame->m_bSizeOnLoad = sizeOnLoad;
@@ -746,7 +797,9 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
    // Add to the list of BrowserFrame windows
    m_FrameWndLst.AddHead(pFrame);
    
-   pFrame->m_ignoreMoveResize = (!sizeOnLoad && openedByGecko && !(style & WS_POPUP)) ? 2 : 0;
+   pFrame->m_ignoreMoveResize = 
+      (theApp.preferences.GetBool("kmeleon.display.dontResizeNewWindow", FALSE)) && 
+      (!sizeOnLoad && !(style & WS_POPUP)) ? 2 : 0;
    
    
    ReleaseMutex(m_hMutex);
@@ -871,7 +924,7 @@ void CMfcEmbedApp::BroadcastMessage(UINT Msg, WPARAM wParam, LPARAM lParam)
    while( pos != NULL ) {
       pBrowserFrame = (CBrowserFrame *) m_FrameWndLst.GetNext(pos);
       if(pBrowserFrame)
-         pBrowserFrame->SendMessage(Msg, wParam, lParam);
+         pBrowserFrame->PostMessage(Msg, wParam, lParam);
    }
 }
 
@@ -950,9 +1003,9 @@ BOOL CMfcEmbedApp::OnIdle(LONG lCount)
 BOOL CMfcEmbedApp::IsIdleMessage( MSG* pMsg )
 {
    if (!CWinApp::IsIdleMessage( pMsg ) || 
-       pMsg->message == WM_USER+1 || // WM_CALLMETHOD
-	   pMsg->message == WM_POSTEVENT ||
-	   pMsg->message == WM_TIMER) 
+      pMsg->message == WM_USER+1 || // WM_CALLMETHOD
+      pMsg->message == WM_POSTEVENT ||
+      pMsg->message == WM_TIMER) 
 
       return FALSE;
    else
@@ -1038,10 +1091,9 @@ nsresult CMfcEmbedApp::InitializeMenusAccels(){
 
    CString filename;
 
-   filename = preferences.settingsDir + MENU_CONFIG_FILE;
-
-   if (!menus.Load(filename)){
-      MessageBox(NULL, _T("Could not find ") MENU_CONFIG_FILE, NULL, 0);
+   filename = preferences.settingsDir + ACCEL_CONFIG_FILE;
+   if (!accel.Load(filename)){
+      MessageBox(NULL, _T("Could not find ") ACCEL_CONFIG_FILE, NULL, 0);
 
       if (!_tfopen(filename, _T("r"))) {
          // if it doesn't exist, create it
@@ -1052,10 +1104,9 @@ nsresult CMfcEmbedApp::InitializeMenusAccels(){
       nResult = FALSE;
    }
 
-
-   filename = preferences.settingsDir + ACCEL_CONFIG_FILE;
-   if (!accel.Load(filename)){
-      MessageBox(NULL, _T("Could not find ") ACCEL_CONFIG_FILE, NULL, 0);
+   filename = preferences.settingsDir + MENU_CONFIG_FILE;
+   if (!menus.Load(filename)){
+      MessageBox(NULL, _T("Could not find ") MENU_CONFIG_FILE, NULL, 0);
 
       if (!_tfopen(filename, _T("r"))) {
          // if it doesn't exist, create it
@@ -1193,15 +1244,15 @@ NS_IMETHODIMP CMfcEmbedApp::CreateChromeWindow(nsIWebBrowserChrome *parent,
 
    NS_ENSURE_ARG_POINTER(_retval);
    *_retval = 0;
-   
-   CWnd* pParent = NULL;
+
+      CWnd* pParent = NULL;
    if (parent) {
-	  HWND w;
+      HWND w;
       nsCOMPtr<nsIEmbeddingSiteWindow> site(do_QueryInterface(parent));
-	  if (site) {
-	     site->GetSiteWindow(reinterpret_cast<void **>(&w));
+      if (site) {
+         site->GetSiteWindow(reinterpret_cast<void **>(&w));
          pParent = CWnd::FromHandle(w);
-	  }
+      }
    }
 
    CBrowserFrame *pBrowserFrame = CreateNewBrowserFrame(chromeFlags, -1, -1, -1, -1, PR_FALSE, pParent);
@@ -1227,4 +1278,59 @@ int CMfcEmbedApp::GetID(char *strID) {
    USES_CONVERSION;
    defineMap.Lookup(A2T(strID), val);
    return val;
+}
+
+void CMfcEmbedApp::CheckProfileVersion()
+{
+   CString fileVersion = theApp.preferences.profileDir + _T("version.ini");
+   BOOL needClean = FALSE;
+
+   CString locale;
+   locale.LoadString(IDS_LOCALE_ID);
+
+   TCHAR version[34];
+   _itot(KMELEON_VERSION, version, 10);
+   
+   TCHAR buf[34];
+   if (!GetPrivateProfileString(_T("Version"), _T("LastVersion"), _T(""), buf, 10, fileVersion))
+   {
+      needClean = TRUE;
+      WritePrivateProfileString(_T("Version"), _T("LastVersion"), version, fileVersion);
+      WritePrivateProfileString(_T("Version"), _T("LastLocale"), locale, fileVersion);
+   }
+   else {
+      
+      if (_tcscmp(buf, version) != 0) {
+         needClean = TRUE;
+         WritePrivateProfileString(_T("Version"), _T("LastVersion"), version, fileVersion);
+      }
+
+      if (locale.GetLength()) {
+         GetPrivateProfileString(_T("Version"), _T("LastLocale"), version, buf, 10, fileVersion);
+         if (_tcscmp(buf, locale) != 0) {
+            nsresult rv = NS_OK;
+            nsCOMPtr<nsIChromeRegistrySea> chromeRegistry =
+               do_GetService(NS_CHROMEREGISTRY_CONTRACTID, &rv);
+            if (NS_SUCCEEDED(rv)) {
+               USES_CONVERSION;
+               // XXX The first call to SelectLocale shouldn't be here. The current 
+               // global locale should be stored elsewhere
+               // rv = chromeRegistry->SelectLocale(nsEmbedCString(T2CA(locale)), PR_FALSE);
+               rv |= chromeRegistry->SelectLocale(nsEmbedCString(T2CA(locale)), PR_TRUE);
+               if (NS_SUCCEEDED(rv))
+                  WritePrivateProfileString(_T("Version"), _T("LastLocale"), locale, fileVersion);
+            }
+         }
+      }
+   }
+
+   if (needClean) {
+      CString toDelete = theApp.preferences.profileDir + _T("compreg.dat");
+      DeleteFile(toDelete);
+      toDelete = theApp.preferences.profileDir + _T("xpti.dat");
+      DeleteFile(toDelete);
+
+      toDelete = GetMozDirectory(NS_APP_USER_PROFILE_LOCAL_50_DIR) + _T("\\xul.mfl"); 
+      DeleteFile(toDelete);
+   }
 }

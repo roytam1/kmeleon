@@ -25,7 +25,7 @@ CLangParser::CLangParser()
 {
 }
 
-CLangParser::CLangParser(CString &filename)
+CLangParser::CLangParser(LPCTSTR filename)
 {
 	Load(filename);
 }
@@ -34,7 +34,7 @@ CLangParser::~CLangParser(void)
 {
 }
 
-int CLangParser::Load(CString &filename)
+int CLangParser::Load(LPCTSTR filename)
 {
    SETUP_LOG("Lang");
    int retVal = CParser::Load(filename);

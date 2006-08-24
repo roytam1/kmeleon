@@ -113,6 +113,8 @@ END_MESSAGE_MAP()
 
 #define PREF_TOOLBAND_LOCKED "kmeleon.general.toolbars_locked"
 
+CBitmap CBrowserFrame::m_bmpBack;
+
 /////////////////////////////////////////////////////////////////////////////
 // CBrowserFrame construction/destruction
 
@@ -271,53 +273,6 @@ void CBrowserFrame::OnClose()
    }
 
    theApp.RemoveFrameFromList(this);
-}
-
-
-
-/*
-
-  This is identical to the MFC CFrameWnd::Create function
-  except that the rect structure passed to it contains
-  x, y, cx, cx values instead of left, top, right, bottom
-  and the menu is loaded differently
-  
-*/
-
-
-BOOL CBrowserFrame::Create(LPCTSTR lpszClassName,
-                           LPCTSTR lpszWindowName,
-                           DWORD dwStyle,
-                           const RECT& rect,
-                           CWnd* pParentWnd,
-                           LPCTSTR lpszMenuName,
-                           DWORD dwExStyle,
-                           CCreateContext* pContext)
-{
-   m_hMenu = NULL;
-   CMenu *menu = theApp.menus.GetMenu(_T("Main"));
-   if (menu){
-      m_hMenu = menu->m_hMenu;
-   }
-   
-   m_strTitle = lpszWindowName;    // save title for later
-   
-   if (!CreateEx(dwExStyle, lpszClassName, lpszWindowName, dwStyle,
-      rect.left, rect.top, rect.right, rect.bottom,
-      pParentWnd->GetSafeHwnd(), m_hMenu, (LPVOID)pContext))
-   {
-      TRACE0("Warning: failed to create CFrameWnd.\n");
-      if (m_hMenu != NULL)
-         DestroyMenu(m_hMenu);
-      m_hMenu = NULL;
-       ReleaseMutex(theApp.m_hMutex);
-      return FALSE;
-   }
-
-   theApp.menus.SetCheck(ID_OFFLINE, theApp.preferences.bOffline);
-       
-       ReleaseMutex(theApp.m_hMutex);
-   return TRUE;
 }
 
 // This is where the UrlBar, ToolBar, StatusBar, ProgressBar
@@ -529,37 +484,9 @@ BOOL CBrowserFrame::PreCreateWindow(CREATESTRUCT& cs)
     if( !CFrameWnd::PreCreateWindow(cs) )
         return FALSE;
  
-    cs.lpszClass = BROWSER_WINDOW_CLASS;
+    //cs.lpszClass = BROWSER_WINDOW_CLASS;
     cs.dwExStyle &= ~WS_EX_CLIENTEDGE;
 
-    // Change window style based on the chromeMask
-
-    if( !(m_chromeMask & nsIWebBrowserChrome::CHROME_TITLEBAR) &&
-		!(m_chromeMask & nsIWebBrowserChrome::CHROME_OPENAS_DIALOG) )
-        cs.style &= ~WS_CAPTION; // No caption      
-
-    cs.style |= WS_THICKFRAME;
-    cs.style |= WS_MINIMIZEBOX;
-    cs.style |= WS_MAXIMIZEBOX;
-
-    if (!theApp.preferences.bDisableResize) {   
-        if(! (m_chromeMask & nsIWebBrowserChrome::CHROME_WINDOW_RESIZE) ) {
-            // Can't resize this window
-            cs.style &= ~WS_THICKFRAME;
-            cs.style &= ~WS_MAXIMIZEBOX;
-        }
-    }
-
-	if (m_chromeMask & nsIWebBrowserChrome::CHROME_OPENAS_DIALOG) {
-        cs.style &= ~WS_MINIMIZEBOX;
-        cs.style &= ~WS_MAXIMIZEBOX;
-		cs.dwExStyle |= WS_EX_WINDOWEDGE;
-	}
-
-	if (m_chromeMask & nsIWebBrowserChrome::CHROME_WINDOW_MIN) 
-        cs.style |= WS_MINIMIZEBOX;
-
-//  cs.lpszClass = AfxRegisterWndClass(0);
 
     return TRUE;
 }
@@ -1063,7 +990,7 @@ void CBrowserFrame::LoadBackImage ()
     //------------------------------------
 
     if (m_bmpBack.GetSafeHandle () != NULL)
-        m_bmpBack.DeleteObject ();
+        return;
 
 	CString skinFile;
 	if (theApp.FindSkinFile(skinFile, _T("Back.bmp")))
@@ -1085,9 +1012,8 @@ LRESULT CBrowserFrame::RefreshToolBarItem(WPARAM ItemID, LPARAM unused)
 
 LRESULT CBrowserFrame::RefreshMRUList(WPARAM ItemID, LPARAM unused)
 {
-    theApp.m_MRUList->RefreshURLs();
+    //theApp.m_MRUList->RefreshURLs();
     m_wndUrlBar.RefreshMRUList();
-
     return 0;
 }
 

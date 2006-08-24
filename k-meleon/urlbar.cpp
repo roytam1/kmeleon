@@ -166,8 +166,10 @@ PRBool CACListBox::AddEltToList(nsISupports* aElement)
 		int start = toSelect.Find(text,0);
         toSelect.Delete(0, start+text.GetLength());
 		int i;
-		if ( (i = toSelect.FindOneOf(_T("/?&=#"))) != -1)
-			toSelect.Truncate(i+1);
+		if ( (i = toSelect.FindOneOf(_T("/?&=#"))) != -1) {
+			toSelect.GetBuffer(0);
+			toSelect.ReleaseBuffer(i+1); // Truncate
+		}
 		m_edit->SetWindowText(text+toSelect);
 		m_edit->SetSel(text.GetLength(), text.GetLength() + toSelect.GetLength(), TRUE);
 	}

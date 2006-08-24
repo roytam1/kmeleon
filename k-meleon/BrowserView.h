@@ -91,9 +91,9 @@ public:
 	HRESULT DestroyBrowser();
 	void OpenURL(const char* pUrl, nsIURI *refURI=nsnull);
 	void OpenURL(const PRUnichar* pUrl, nsIURI *refURI=nsnull);
-	char* CBrowserView::NicknameLookup(const char* pUrl);
-    void OpenSingleURL(char *urls);
-    void OpenMultiURL(char *urls);
+	CString CBrowserView::NicknameLookup(const CString& typedUrl);
+    //void OpenSingleURL(char *urls);
+    void OpenMultiURL(LPTSTR urls);
 	CBrowserFrame* CreateNewBrowserFrame(PRUint32 chromeMask = nsIWebBrowserChrome::CHROME_ALL, 
 							PRInt32 x = -1, PRInt32 y = -1, 
 							PRInt32 cx = -1, PRInt32 cy = -1,

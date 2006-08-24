@@ -180,19 +180,35 @@ public:
    void Save(bool clearPath = false);
    void Load();
 
-   void SetBool(const char *preference, int value);
-   int  GetBool(const char *preference, int defaultVal);
+	inline void SetBool(const char *preference, int value) {
+		   if (m_prefs) m_prefs->SetBoolPref(preference, value);
+	}
 
-   void SetInt(const char *preference, int value);
-   int  GetInt(const char *preference, int defaultVal);
+   int GetBool(const char *preference, int defaultVal);
 
-   void SetString(const char *preference, const char * value);
-   void SetString(const char *preference, const wchar_t * value);
+	inline void SetInt(const char *preference, int value) {
+		   if (m_prefs) m_prefs->SetIntPref(preference, value);
+	}
+
+   int GetInt(const char *preference, int defaultVal);
+
+   void        SetString(const char *preference, const char * value);
+   inline void SetString(const char *preference, const wchar_t * value);
    int GetString(const char *preference, char * retValue, char * defaultVal);
    int GetString(const char *preference, wchar_t * retValue, wchar_t * defaultVal);
 
    void Clear(const char *preference);
    void DeleteBranch(const char *startingAt);
+
+protected:
+   nsCOMPtr<nsIPref> m_prefs;
+
+	inline void _GetBool(const char *preference, int& var, int defaultVal);
+	inline void _GetInt(const char *preference, int& var, int defaultVal);
+	void        _GetString(const char *preference, CString& var, LPCTSTR defaultVal);
+	void        _SetString(const char *preference, LPCTSTR value);
+
+
 };
 
 class CPreferencePage : public CDialog {

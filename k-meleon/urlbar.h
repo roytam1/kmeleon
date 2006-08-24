@@ -192,7 +192,7 @@ public:
         InsertItem(&ci);
       
         if(bAddToMRUList) {    
-			theApp.m_MRUList->AddURL(T2CA(url));
+            theApp.m_MRUList->AddURL(url);
             theApp.m_MRUList->SaveURLs();
             theApp.BroadcastMessage(UWM_REFRESHMRULIST, 0, 0);
         }
@@ -202,11 +202,9 @@ public:
         LoadMRUList();
     }
     inline void LoadMRUList() {
-        for (int i=theApp.m_MRUList->GetURLCount()-1;i>=0;i--) {
-            USES_CONVERSION;
-            CString urlStr(A2CT(theApp.m_MRUList->GetURL(i)));
-            AddURLToList(urlStr, false);
-        }
+         POSITION pos = theApp.m_MRUList->GetTailPosition();
+         while (pos)
+            AddURLToList(theApp.m_MRUList->GetPrev(pos), false);
     }
     int SetSoftFocus() {
         if (IsIconic() || !IsWindowVisible())

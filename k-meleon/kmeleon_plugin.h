@@ -175,13 +175,17 @@ typedef struct {
 
    kmeleonPointInfo *(*GetInfoAtClick) (HWND);
 
+   /* Return version: 
+        high byte = major, following bytes are minor version, subminor 
+        version and build number for this version.
+   */
    int (*GetKmeleonVersion)();
 
    void (*reserved)();
 
    HWND (*NavigateTo)(const char *url, int windowState, HWND mainWnd/*=NULL*/);
 
-   const TCHAR* (*Translate) (const char* text); 
+   const char* (*Translate) (const char* text); 
    int (*SetGlobalVar)(PREFTYPE, const char*, void*);
 
 } kmeleonFunctions;

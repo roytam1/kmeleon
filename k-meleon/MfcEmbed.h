@@ -159,7 +159,8 @@ private:
    nsresult    InitializeMenusAccels();
    nsresult    InitializeWindowCreator();
    void        InitializeDefineMap();
-
+   void        CheckProfileVersion();
+   BOOL        LoadLanguage();
 
 private:
    CProfileMgr *m_ProfileMgr;

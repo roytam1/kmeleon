@@ -21,11 +21,13 @@
 #include "BrowserFrm.h"
 #include "rebar_menu/hot_tracking.cpp"
 
-#if _MSC_VER >= 1300 
+
 BEGIN_MESSAGE_MAP(CReBarEx, CReBar)
+#if _MSC_VER >= 1300 
 	ON_NOTIFY_REFLECT( RBN_CHEVRONPUSHED, OnChevronPushed )
-END_MESSAGE_MAP()
 #endif
+END_MESSAGE_MAP()
+
 
 CReBarEx::CReBarEx() {
    m_menu = theApp.m_toolbarControlsMenu;

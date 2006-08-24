@@ -32,9 +32,22 @@ void MakeFilename(TCHAR* name)
 			*p==_T('>') ||
 			*p==_T(':') ||
 			*p==_T('?') ||
-			*p==_T('|') )
+			*p==_T('|') ||
+			*p==_T('*') ||
+			*p==_T('"') )
 		*p = _T('_');
 	}
+
+	while ( p = _tcsstr(name, _T(" _"))) {
+		_tcscpy(p, p+1);
+		*p = _T(' ');
+	}
+
+	while ( p = _tcsstr(name, _T("  ")))
+		_tcscpy(p, p+1);
+
+	while ( p = _tcsstr(name, _T("...")))
+		_tcscpy(p, p+2);
 }
 
 void TranslateTabs(char *buffer)

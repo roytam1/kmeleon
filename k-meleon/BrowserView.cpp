@@ -394,6 +394,7 @@ HRESULT CBrowserView::CreateBrowser()
 	rv = mEventReceiver->AddEventListenerByIID(mpBrowserImpl,
 					     NS_GET_IID(nsIDOMMouseListener));
    */
+
     // Finally, show the web browser window
     mBaseWindow->SetVisibility(PR_TRUE);
 
@@ -493,47 +494,31 @@ void CBrowserView::OnEditURL( NMHDR * pNotifyStruct, LRESULT * result )
 }
 
 
-char* CBrowserView::NicknameLookup(const char* pUrl)
+CString CBrowserView::NicknameLookup(const CString& typedUrl)
 {
-    char *p, *q, *r;
-    char *nickUrl;
-    char *retUrl;
+	CString retUrl = typedUrl;
+	retUrl.TrimRight();
+	retUrl.TrimLeft();
+	int word = retUrl.Find(' ');
+	
+	if (word!=-1) {
+		retUrl.GetBuffer(0);
+		retUrl.ReleaseBuffer(word); // Truncate
+	}
 
-    // Check for a nickname
-    nickUrl = NULL;
-    p = strdup(pUrl);                   // get entered URL
-    q = SkipWhiteSpace(p);              // skip any leading spaces
-    q = strchr(q, ' ');                 // look for a space
-    
-    if (q)                              // if more than one word
-        *q = 0;                         // terminate first word
-    
-    theApp.plugins.SendMessage("*", "* FindNick", "FindNick", (long)SkipWhiteSpace(p), (long)&nickUrl);
+	char *nickUrl = NULL;
+   USES_CONVERSION;
+   theApp.plugins.SendMessage("*",	"* FindNick", "FindNick", (long)T2CA(retUrl), (long)&nickUrl);
 
-    if (q)                              // if more than one word
-        *q = ' ';                       // restore space
+	if (!nickUrl) return typedUrl;
+		
+	retUrl = A2T(nickUrl);
+	free(nickUrl);
 
-    if (nickUrl) {
-        int len = strlen(nickUrl);
-        r = strstr(nickUrl, "%s");       // look for %s
-        if (r) {                         // if found
-            *r = 0;                      // terminate string up to %s
-            char *custUrl = (char*)malloc(len+INTERNET_MAX_URL_LENGTH);
-            strcpy(custUrl, nickUrl);     // copy string before %s
-            if (q)                        // if more than one word
-                strcat(custUrl, q+1);     // copy second word
-            strcat(custUrl, r+2);         // copy string after %s
-            retUrl = custUrl;
-            free(nickUrl);
-        }
-        else
-            retUrl = nickUrl;
-    }
-    else 
-        retUrl = strdup(pUrl);
+	if (word!=-1)
+		retUrl.Replace(_T("%s"), typedUrl.Mid(word+1));
 
-    free(p);
-    return retUrl;
+	return retUrl;
 } 
 
 
@@ -576,117 +561,87 @@ void CBrowserView::OnUrlEditChange()
    mpBrowserFrame->m_wndUrlBar.EditChanged(TRUE);
 }
 
-void CBrowserView::OpenSingleURL(char *url)
+
+BOOL ParsePluginCommand(char *pszCommand, char** plugin, char **parameter)
 {
-    char szOpenURLcmd[80];
+	if (!pszCommand)
+		return FALSE;
 
-    theApp.preferences.GetString("kmeleon.general.openurl", szOpenURLcmd, "");
+	*plugin = pszCommand;
+	*parameter = strchr(pszCommand, '(');
+	if (!*parameter)
+		return FALSE;
 
-    if (*szOpenURLcmd) {
-        char *plugin = szOpenURLcmd;
-        char *parameter = strchr(szOpenURLcmd, '(');
-        if (parameter) {
-            *parameter++ = 0;
-            char *close = strchr(parameter, ')');
-            if (close) {
-                *close = 0;
-                
-                if (theApp.plugins.SendMessage(plugin, "* kmeleon.exe", parameter, (long)url, 0))
-                    return;
-            }
-        }
+	char *close = strchr(*parameter, ')');
+	if (!close)
+		return FALSE;
 
-        int idOpen = theApp.GetID(szOpenURLcmd);
-
-        if (!idOpen) {
-            char *plugin = szOpenURLcmd;
-            char *parameter = strchr(szOpenURLcmd, '(');
-            if (parameter) {
-                *parameter++ = 0;
-                char *close = strchr(parameter, ')');
-                if (close)
-                    *close = 0;
-            }
-      
-            theApp.plugins.SendMessage(plugin, "* kmeleon.exe", "DoAccel", (long) parameter, (long)&idOpen);
-        }
-
-
-        switch (idOpen) {
-        case ID_OPEN_LINK:
-            OpenURL(url);
-            return;
-        case ID_OPEN_LINK_IN_BACKGROUND:
-            OpenURLInNewWindow(url);
-            return;
-        case ID_OPEN_LINK_IN_NEW_WINDOW:
-            OpenURLInNewWindow(url);
-            return;
-        }
-    }
-
-    OpenURL(url, OPEN_NORMAL);
+	*(*parameter)++ = 0;
+	*close = 0;
+	return TRUE;
 }
 
-void CBrowserView::OpenMultiURL(char *urls)
+void CBrowserView::OpenMultiURL(LPTSTR urls)
 {
     char szOpenURLcmd[80];
+	int idOpen = 0, idOpenX = 0;
+	const char* pref;
 
-    theApp.preferences.GetString("kmeleon.general.opengroup", szOpenURLcmd, "");
+	if (_tcschr(urls, '\t'))
+        pref = "kmeleon.general.opengroup";
+	else
+		pref = "kmeleon.general.openurl";
 
-    if (*szOpenURLcmd) {
-        char *plugin = szOpenURLcmd;
-        char *parameter = strchr(szOpenURLcmd, '(');
-        if (parameter) {
-            *parameter++ = 0;
-            char *close = strchr(parameter, ')');
-            if (close) {
-                *close = 0;
-                
-                if (theApp.plugins.SendMessage(plugin, "* kmeleon.exe", parameter, (long)urls, 0))
+    theApp.preferences.GetString(pref, szOpenURLcmd, "");
+
+	if (*szOpenURLcmd)
+	{
+		idOpen  = theApp.GetID(szOpenURLcmd);
+
+		if (!idOpen) {
+			char *plugin = NULL, *parameter = NULL;
+			if (ParsePluginCommand(szOpenURLcmd, &plugin, &parameter)) {
+				if (theApp.plugins.SendMessage(plugin, "* kmeleon.exe", parameter, (long)urls, 0))
                     return;
-            }
+				else
+					theApp.plugins.SendMessage(plugin, "* kmeleon.exe", "DoAccel", (long) parameter, (long)&idOpen);
+			}
+		}
+	    
+        char *altCommand = strchr(szOpenURLcmd, '|');
+        if (altCommand) {
+            *altCommand = 0;
+            idOpenX = theApp.GetID(altCommand+1);
+        }
+	}
+
+    TCHAR* p = urls;
+    while (p) {
+        TCHAR *q = _tcschr(p, '\t');
+        if (q) *q = 0;
+        if (!*p) break;
+	    switch (idOpen) {
+        case ID_OPEN_LINK:
+            OpenURL(p);
+            break;
+        case ID_OPEN_LINK_IN_BACKGROUND:
+            OpenURLInNewWindow(p, TRUE);
+            break;
+        case ID_OPEN_LINK_IN_NEW_WINDOW:
+            OpenURLInNewWindow(p);
+            break;
+        default:
+            OpenURL(p);
+            return;
         }
 
-        int idOpenX = -1;
-        char *p = strchr(szOpenURLcmd, '|');
-        if (p) {
-            *p = 0;
-            idOpenX = theApp.GetID(p+1);
-        }
-        int idOpen  = theApp.GetID(szOpenURLcmd);
+        idOpen = idOpenX==0 ? idOpen : idOpenX;
 
-        p = urls;
-        while (p) {
-            char *q = strchr(p, '\t');
-            if (q) *q = 0;
-            if (!*p) return;
-
-            switch (idOpen) {
-            case ID_OPEN_LINK:
-                OpenURL(p);
-                break;
-            case ID_OPEN_LINK_IN_BACKGROUND:
-                OpenURLInNewWindow(p, TRUE);
-                break;
-            case ID_OPEN_LINK_IN_NEW_WINDOW:
-                OpenURLInNewWindow(p);
-                break;
-            default:
-                OpenURL(urls);
-                return;
-            }
-
-            idOpen = idOpenX==-1 ? idOpen : idOpenX;
-
-            if (q)
-                p = q+1;
-            else
-                return;
-        }
+        if (q)
+            p = q+1;
+        else
+            break;
     }
-
-    OpenURL(urls);
 }
 
 // A new URL was entered in the URL bar
@@ -713,15 +668,8 @@ void CBrowserView::OnNewUrlEnteredInUrlBar()
    if(IsViewSourceUrl(strUrl))
       OpenViewSourceWindow(strUrl.GetBuffer(0));
    else {
-       char *pUrl = NicknameLookup(strUrl);
-
-       // Navigate to that URL
-       if (strchr(pUrl, '\t'))
-           OpenMultiURL(pUrl);
-       else
-           OpenSingleURL(pUrl);
-
-       free(pUrl);
+       CString urls = NicknameLookup(strUrl);
+       OpenMultiURL(urls.GetBuffer(0));
    }
 }
 
@@ -757,15 +705,8 @@ void CBrowserView::OnUrlSelectedInUrlBar()
    if(IsViewSourceUrl(strUrl))
       OpenViewSourceWindow(strUrl.GetBuffer(0));
    else {
-       char *pUrl = NicknameLookup(strUrl);
-
-       // Navigate to that URL
-       if (strchr(pUrl, '\t'))
-           OpenMultiURL(pUrl);
-       else
-           OpenSingleURL(pUrl);
-
-       free(pUrl);
+       CString urls = NicknameLookup(strUrl);
+       OpenMultiURL(urls.GetBuffer(0));
    }
 }
 
@@ -887,12 +828,9 @@ void CBrowserView::OnNavReload()
 void CBrowserView::OnNavForceReload()
 {
 #ifdef INTERNAL_SITEICONS
-	if (mWebNav)
-	{
-		nsCOMPtr<nsIURI> currentURI;
-		nsresult rv = mWebNav->GetCurrentURI(getter_AddRefs(currentURI));
-		if(NS_FAILED(rv) || !currentURI) return;
+	if (m_IconUri) {
 		theApp.favicons.RefreshIcon(m_IconUri);
+		m_IconUri = nsnull;
 	}
 #endif
 	_OnNavReload(TRUE);
@@ -1071,20 +1009,12 @@ void CBrowserView::OnFileOpen()
             // if the file doesn't exist, they probably typed a url...
             // so chop off the path (for some reason GetFileName doesn't work for us...
             strFullPath = strFullPath.Mid(strFullPath.ReverseFind('\\')+1);
-            char *pUrl = NicknameLookup(strFullPath);
-            strFullPath = A2T(pUrl);
-            free(pUrl);
+            strFullPath = NicknameLookup(strFullPath);
         }else{
             fclose(test);
         }
-		
-		char* path = T2A(strFullPath.GetBuffer(0));
-        if (strchr(path, '\t'))
-            OpenMultiURL(path);
-        else
-            OpenSingleURL(path);
+        OpenMultiURL(strFullPath.GetBuffer(0));
     }
-
     delete szFileName;
 }
 #if 0
@@ -1641,12 +1571,12 @@ void CBrowserView::OnNavSearch()
    CString search;
    if (DialogBoxParam(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDD_SEARCH_DIALOG), m_hWnd, SearchProc, (LPARAM)&search)) {
       search.Replace(_T("+"), _T("%2b"));
-	  int len = theApp.preferences.GetString("kmeleon.general.searchEngine", NULL, _T("http://www.google.com/search?q="));
-	  char* searchEngine = new char[len+strlen(search)+1];
-	  theApp.preferences.GetString("kmeleon.general.searchEngine", searchEngine, _T("http://www.google.com/search?q="));
-	  strcat(searchEngine, search);
+	   int len = theApp.preferences.GetString("kmeleon.general.searchEngine", NULL, _T("http://www.google.com/search?q="));
+	   TCHAR* searchEngine = new TCHAR[len+search.GetLength()+1];
+	   theApp.preferences.GetString("kmeleon.general.searchEngine", searchEngine, _T("http://www.google.com/search?q="));
+	   _tcscat(searchEngine, search);
       OpenURL(searchEngine);
-	  delete searchEngine;
+	   delete searchEngine;
 	  //OpenURL(theApp.preferences.searchEngine + search);
    }
 }
