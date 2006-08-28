@@ -1000,17 +1000,18 @@ CBrowserFrame* CBrowserView::OpenURLInNewWindow(const PRUnichar* pUrl, BOOL bBac
 {
     if(!pUrl)
         return NULL; 
-   
-	PRUnichar* ext = wcsrchr(pUrl, L'.');
+
+   PRUnichar* ext = wcsrchr(pUrl, L'.');
 	CBrowserFrame* pFrm;
 	PRUint32 chromeFlags;
-	
+
 
 	if (!bBackground && ext && ( wcsstr(ext, L".xul") == ext ))
-		chromeFlags =  nsIWebBrowserChrome::CHROME_WINDOW_BORDERS |
-	                    nsIWebBrowserChrome::CHROME_TITLEBAR |
-	                    nsIWebBrowserChrome::CHROME_WINDOW_RESIZE|
-						nsIWebBrowserChrome::CHROME_OPENAS_CHROME;
+	   chromeFlags = nsIWebBrowserChrome::CHROME_WINDOW_BORDERS |
+                    nsIWebBrowserChrome::CHROME_TITLEBAR |
+                    nsIWebBrowserChrome::CHROME_WINDOW_RESIZE|
+                    nsIWebBrowserChrome::CHROME_OPENAS_CHROME|
+                    nsIWebBrowserChrome::CHROME_OPENAS_DIALOG;
 	else
     	chromeFlags = nsIWebBrowserChrome::CHROME_ALL;
 
