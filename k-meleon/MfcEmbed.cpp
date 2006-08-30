@@ -585,7 +585,7 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
 
    if (chromeMask & nsIWebBrowserChrome::CHROME_WINDOW_POPUP) {
       style = WS_POPUPWINDOW | WS_CAPTION;
-	  styleEx = WS_EX_TOPMOST | WS_EX_TOOLWINDOW;
+      styleEx = WS_EX_TOPMOST | WS_EX_TOOLWINDOW;
    }
    else if (chromeMask & nsIWebBrowserChrome::CHROME_OPENAS_DIALOG) {
 	   style =  WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_DLGFRAME;
@@ -597,12 +597,12 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
    }
    else {
 	   style = WS_OVERLAPPEDWINDOW;
-	   if (pParent) // && (chromeMask & nsIWebBrowserChrome::CHROME_DEPENDENT))
+	   if (pParent && (chromeMask & nsIWebBrowserChrome::CHROME_DEPENDENT))
           style |= WS_POPUP;
    }
    
    if ( !(chromeMask & nsIWebBrowserChrome::CHROME_DEFAULT) &&
-	    !(chromeMask & nsIWebBrowserChrome::CHROME_ALL)) {
+	    ((chromeMask & nsIWebBrowserChrome::CHROME_ALL) != nsIWebBrowserChrome::CHROME_ALL)) {
    
       if( !(chromeMask & nsIWebBrowserChrome::CHROME_TITLEBAR) )
          style &= ~WS_CAPTION; // No caption      
@@ -622,8 +622,7 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
       if ( !(chromeMask & nsIWebBrowserChrome::CHROME_WINDOW_MIN) ) 
          style &= ~WS_MINIMIZEBOX;
    }
-   
-   /*
+      
    if (chromeMask && (chromeMask != nsIWebBrowserChrome::CHROME_DEFAULT) && 
        (!(chromeMask & (nsIWebBrowserChrome::CHROME_WINDOW_BORDERS)) ||
         !(chromeMask & (nsIWebBrowserChrome::CHROME_WINDOW_CLOSE)) || 
@@ -635,13 +634,11 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
         !(chromeMask & (nsIWebBrowserChrome::CHROME_PERSONAL_TOOLBAR)) ||
         !(chromeMask & (nsIWebBrowserChrome::CHROME_SCROLLBARS)) ||
         !(chromeMask & (nsIWebBrowserChrome::CHROME_TITLEBAR)) )) {
-       style = WS_POPUPWINDOW | WS_CAPTION;
+       style |= WS_POPUP; // For the sake of layers....
    }
    else if (preferences.bMaximized && (chromeMask & nsIWebBrowserChrome::CHROME_WINDOW_RESIZE))
        style |= WS_MAXIMIZE;
-*/
-   //style &= ~WS_VISIBLE;
-   
+
    RECT screen, winSize;
    SystemParametersInfo(SPI_GETWORKAREA, NULL, &screen, 0);
    int screenWidth   = screen.right - screen.left;

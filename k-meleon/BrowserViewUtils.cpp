@@ -189,7 +189,9 @@ BOOL CBrowserView::OpenViewSourceWindow(const char* pUrl)
     // the appropriate chromeFlags
     PRUint32 chromeFlags =  nsIWebBrowserChrome::CHROME_WINDOW_BORDERS |
 	                    nsIWebBrowserChrome::CHROME_TITLEBAR |
-	                    nsIWebBrowserChrome::CHROME_WINDOW_RESIZE;
+	                    nsIWebBrowserChrome::CHROME_WINDOW_RESIZE |
+                       nsIWebBrowserChrome::CHROME_WINDOW_CLOSE |
+                       nsIWebBrowserChrome::CHROME_WINDOW_MIN;
 
     RECT screen;
     SystemParametersInfo(SPI_GETWORKAREA, NULL, &screen, 0);
@@ -1007,9 +1009,9 @@ CBrowserFrame* CBrowserView::OpenURLInNewWindow(const PRUnichar* pUrl, BOOL bBac
 
 
 	if (!bBackground && ext && ( wcsstr(ext, L".xul") == ext ))
-	   chromeFlags = nsIWebBrowserChrome::CHROME_WINDOW_BORDERS |
+	   chromeFlags = nsIWebBrowserChrome::CHROME_WINDOW_RESIZE |
+                    nsIWebBrowserChrome::CHROME_WINDOW_CLOSE |
                     nsIWebBrowserChrome::CHROME_TITLEBAR |
-                    nsIWebBrowserChrome::CHROME_WINDOW_RESIZE|
                     nsIWebBrowserChrome::CHROME_OPENAS_CHROME|
                     nsIWebBrowserChrome::CHROME_OPENAS_DIALOG;
 	else
