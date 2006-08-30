@@ -138,12 +138,15 @@ public:
 		// Bug #783
 #ifdef URLBAR_USE_SETWORDBREAKPROC
 		edit->SendMessage(EM_SETWORDBREAKPROC, 0,
-			(LPARAM)&(CUrlBarEdit::UrlBreakProc)) ;
-#endif
-		//Subclassing edit box for autocomplete
-		//Making our own combo box would be better
+			(LPARAM)&(CUrlBarEdit::UrlBreakProc));
+		// Subclassing edit box for autocomplete
 		if (theApp.preferences.GetBool("browser.urlbar.autocomplete.enabled", true))
 			m_UrlBarEdit.SubclassWindow(m_hwndEdit);
+#else
+		//Subclassing edit box for autocomplete and ctrl navigation
+		//Making our own combo box would be better
+		m_UrlBarEdit.SubclassWindow(m_hwndEdit);
+#endif
 
 		// Set the height of the dropdown
 		edit->GetClientRect(&rect);
