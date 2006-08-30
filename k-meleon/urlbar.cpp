@@ -99,6 +99,7 @@ NS_IMETHODIMP CACListBox::OnAutoComplete(nsIAutoCompleteResults *result, AutoCom
 		if (IsWindowVisible())
 			ShowWindow(SW_HIDE);
 	}
+	m_bBack = FALSE;
 	return PR_TRUE;
 }
 
@@ -134,7 +135,7 @@ void CACListBox::Scroll(short dir, short q)
 			newsel = GetCount()-1;
 		SetCurSel(newsel);
 	}
-    CString str;
+	CString str;
 	GetText(GetCurSel(), str);
 	m_edit->SetWindowText(str);
 
@@ -288,9 +289,8 @@ void CUrlBarEdit::StopACSession()
 
 void CUrlBarEdit::OnTimer(UINT nIDEvent)
 {
-	nsresult rv;
-	m_AutoComplete = do_GetService(NS_GLOBALHISTORY_AUTOCOMPLETE_CONTRACTID, &rv);
-	if (NS_FAILED(rv)) return;
+	if (!m_AutoComplete || !m_list)
+		return;
 
 	CString text;
     USES_CONVERSION;
@@ -317,18 +317,10 @@ void CUrlBarEdit::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
 		GetParentFrame()->SendMessage(WM_COMMAND, MAKEWPARAM(IDOK,0), (LPARAM)m_hWnd);
 		return;
 	}
-	
-	if (nChar == VK_BACK) 
-		m_list->m_bBack = TRUE;
-	else
-		m_list->m_bBack = FALSE;
 
     // We don't want to autocomplete if ctrl is pressed 
 	if (!(GetKeyState(VK_CONTROL) & 0x8000))
 		SetTimer(1, 100, NULL);
-
-
-	return;
 }
 
 UINT CUrlBarEdit::OnGetDlgCode()
@@ -346,6 +338,15 @@ void CUrlBarEdit::OnKillFocus(CWnd* pNewWnd)
 
 void CUrlBarEdit::PreSubclassWindow()
 {	
+	CEdit::PreSubclassWindow();
+	
+	if (!theApp.preferences.GetBool("browser.urlbar.autocomplete.enabled", true))
+		return;
+
+	nsresult rv;
+	m_AutoComplete = do_GetService(NS_GLOBALHISTORY_AUTOCOMPLETE_CONTRACTID, &rv);
+	if (NS_FAILED(rv)) return;
+
 	m_list = new CACListBox();
 	if (!m_list->CreateEx(
 		WS_EX_TOPMOST|WS_EX_CONTROLPARENT|WS_EX_WINDOWEDGE,
@@ -356,16 +357,14 @@ void CUrlBarEdit::PreSubclassWindow()
 		GetParentFrame(),
 		0,this))
 	{
-        TRACE0("Failed to create ACListBox\n");
+		TRACE0("Failed to create ACListBox\n");
 		delete m_list;
 		m_list = NULL;
-    }
-	else
-	{
-		m_list->SetFont(GetFont());
-		m_list->ShowWindow(SW_HIDE);
+		return;
 	}
-	CEdit::PreSubclassWindow();
+
+	m_list->SetFont(GetFont());
+	m_list->ShowWindow(SW_HIDE);
 }
 
 void CUrlBarEdit::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
@@ -475,28 +474,30 @@ void CUrlBarEdit::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 		return;*/
 
 	case VK_PRIOR:
-		if (!m_list->IsWindowVisible()) break;
+		if (!m_list || !m_list->IsWindowVisible()) break;
 		m_list->Scroll(-1,1);
 		return;
 
 	case VK_NEXT:
-		if (!m_list->IsWindowVisible()) break;
+		if (!m_list || !m_list->IsWindowVisible()) break;
 		m_list->Scroll(1,1);
 		return;
 
 	case VK_UP:
-		if (!m_list->IsWindowVisible()) break;
+		if (!m_list || !m_list->IsWindowVisible()) break;
 		m_list->Scroll(-1);
 		return;
 
 	case VK_DOWN:
-		if (!m_list->IsWindowVisible()) break;
+		if (!m_list || !m_list->IsWindowVisible()) break;
 		m_list->Scroll(1);
 		return;
-	case VK_DELETE: {
+	
+   case VK_BACK:
+   case VK_DELETE:
+		if (!m_list) break;
 		m_list->m_bBack = TRUE;
 		SetTimer(1, 100, NULL);
-		}
 
 
 	/*
@@ -550,8 +551,9 @@ void CUrlBarEdit::OnLButtonDblClk(UINT nFlags, CPoint point)
 
 BOOL CUrlBarEdit::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 {
-	m_list->OnMouseWheel(nFlags, zDelta, pt);
-	return true;
+	if (m_list && m_list->IsWindowVisible())
+		m_list->OnMouseWheel(nFlags, zDelta, pt);
+	return TRUE;
 }
 
 void CUrlBarEdit::OnDestroy()
