@@ -252,8 +252,8 @@ EXSTYLE WS_EX_CLIENTEDGE | WS_EX_CONTROLPARENT
 FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     CONTROL         "List1",IDC_LIST_PLUGINS,"SysListView32",LVS_LIST | 
-                    LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | 
-                    LVS_NOCOLUMNHEADER | LVS_SORTASCENDING | WS_BORDER | 
+                    LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_SORTASCENDING | 
+                    LVS_ALIGNLEFT | LVS_NOCOLUMNHEADER | WS_BORDER | 
                     WS_TABSTOP,4,4,202,179
     PUSHBUTTON      "&Configure...",IDC_BUTTON_CONFIG,210,4,57,14
     PUSHBUTTON      "&Enable/Disable",IDC_BUTTON_ENABLE,210,20,57,14
@@ -683,22 +683,23 @@ BEGIN
     LTEXT           "Search:",IDC_STATIC,8,126,26,8
 END
 
-IDD_PASSWORDS_VIEWER DIALOGEX 0, 0, 240, 164
+IDD_PASSWORDS_VIEWER DIALOGEX 0, 0, 275, 164
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | 
     WS_SYSMENU
 CAPTION "Passwords Viewer"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    DEFPUSHBUTTON   "Close",IDOK,183,144,50,14
+    DEFPUSHBUTTON   "Close",IDOK,218,144,50,14
     CONTROL         "",IDC_LIST_PASSWORDS,"SysListView32",LVS_REPORT | 
                     LVS_SORTASCENDING | LVS_ALIGNLEFT | WS_BORDER | 
-                    WS_TABSTOP,6,7,227,115
+                    WS_TABSTOP,6,7,262,115
     PUSHBUTTON      "Remove selected",IDC_DELETE_PASSWORDS,7,144,60,14
     PUSHBUTTON      "Remove all",IDC_DELETE_ALL_PASSWORDS,67,144,60,14
     CONTROL         "Saved password",IDC_RADIO1,"Button",BS_AUTORADIOBUTTON | 
                     WS_GROUP,58,126,69,10
     CONTROL         "Rejected site",IDC_RADIO2,"Button",BS_AUTORADIOBUTTON,
                     127,126,58,10
+    PUSHBUTTON      "Show passwords",IDC_DISPLAY_PASSWORDS,127,144,68,14
 END
 
 IDD_PERMISSIONS DIALOGEX 0, 0, 217, 206
@@ -1251,7 +1252,7 @@ BEGIN
     IDD_PASSWORDS_VIEWER, DIALOG
     BEGIN
         LEFTMARGIN, 6
-        RIGHTMARGIN, 233
+        RIGHTMARGIN, 268
         TOPMARGIN, 7
         BOTTOMMARGIN, 158
     END
@@ -1264,13 +1265,29 @@ BEGIN
         BOTTOMMARGIN, 199
     END
 
-    IDD_PREFERENCES_DOWNLOAD, DIALOG
+    IDD_CONFIRM_COOKIE, DIALOG
     BEGIN
-        LEFTMARGIN, 3
-        RIGHTMARGIN, 266
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 197
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 209
+        BOTTOMMARGIN, 150
     END
+
+    IDD_DOWNLOADFONT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 179
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 77
+    END
+
+    IDD_NEEDFONT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 178
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 80
+    END
+
     IDD_CONFIRM_EXPIRED_CERT, DIALOG
     BEGIN
         LEFTMARGIN, 7
@@ -1351,27 +1368,14 @@ BEGIN
         BOTTOMMARGIN, 45
     END
 
-    IDD_CONFIRM_COOKIE, DIALOG
+    IDD_PREFERENCES_DOWNLOAD, DIALOG
     BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 209
-        BOTTOMMARGIN, 150
-    END
-    IDD_DOWNLOADFONT, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 179
+        LEFTMARGIN, 3
+        RIGHTMARGIN, 266
         TOPMARGIN, 7
-        BOTTOMMARGIN, 77
+        BOTTOMMARGIN, 197
     END
 
-    IDD_NEEDFONT, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 178
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 80
-    END
     IDD_PROMPT_SELECT, DIALOG
     BEGIN
         LEFTMARGIN, 7
@@ -1380,7 +1384,6 @@ BEGIN
         BOTTOMMARGIN, 134
     END
 END
-
 #endif    // APSTUDIO_INVOKED
 
 
@@ -1434,8 +1437,6 @@ END
 //
 
 IDR_TOOLBAR1            BITMAP                  "res\\toolbar1.bmp"
-
-/////////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -1693,11 +1694,11 @@ BEGIN
     IDS_PREFS_DOWNLOAD      "Download"
     IDS_PROFILE_LOAD_FAILED "The selected profile can't be loaded. It's probably already in use."
     IDS_SAVE_FAILED         "K-Meleon was unable to save this document."
+    IDS_OK                  "&Ok"
 END
 
 STRINGTABLE 
 BEGIN
-    IDS_OK                  "&Ok"
     IDS_CANCEL              "&Cancel"
     IDS_NO                  "&No"
     IDS_YES                 "&Yes"
@@ -1729,7 +1730,10 @@ BEGIN
     IDS_PRINT_USERDEFINED   "User Defined"
     IDS_ALLFILES            "All Files"
     IDS_NEW_PLUGIN_FOUND_TITLE "Plugin Found"
+    IDS_SHOW_PASSWORDS      "Show passwords"
+    IDS_HIDE_PASSWORDS      "Hide passwords"
 END
+
 #endif    // Anglais (États-Unis) resources
 /////////////////////////////////////////////////////////////////////////////
 
