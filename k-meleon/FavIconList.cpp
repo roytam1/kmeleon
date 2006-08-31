@@ -104,7 +104,7 @@ CFavIconList::~CFavIconList()
 	{
 		// Save the icons
 		CFile iconCache;
-		if (iconCache.Open(theApp.preferences.settingsDir + FAVICON_CACHE_FILE, CFile::modeCreate | CFile::modeWrite))
+		if (iconCache.Open(theApp.preferences.profileDir + FAVICON_CACHE_FILE, CFile::modeCreate | CFile::modeWrite))
 		{
 			CArchive ar(&iconCache, CArchive::store);
 			if (Write(&ar))
@@ -141,11 +141,11 @@ BOOL CFavIconList::Create(int cx, int cy, UINT nFlags, int nInitial, int nGrow)
 
 	// Try to load the icon cache
 	CFile   iconCache;
-	if (iconCache.Open(theApp.preferences.settingsDir + FAVICON_CACHE_FILE, CFile::modeRead))
+	if (iconCache.Open(theApp.preferences.profileDir + FAVICON_CACHE_FILE, CFile::modeRead))
 	{
 		if (!theApp.preferences.GetBool("kmeleon.favicons.cached", true)) {
 			iconCache.Close();
-			DeleteFile(theApp.preferences.settingsDir + FAVICON_CACHE_FILE);
+			DeleteFile(theApp.preferences.profileDir + FAVICON_CACHE_FILE);
 		}
 		else
 		{
