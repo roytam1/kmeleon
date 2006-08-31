@@ -59,6 +59,7 @@
 #include "MenuParser.h"
 #include "KmeleonConst.h"
 #include "nsIDOMHTMLAreaElement.h"
+#include "nsIDOMHTMLInputElement.h"
 
 extern CMfcEmbedApp theApp;
 extern nsresult NewURI(nsIURI **result, const nsACString &spec);
@@ -561,7 +562,6 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags,
     METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
 
     BOOL bContentHasFrames = FALSE;
-    BOOL bContentHasImage = FALSE;
     UINT nIDResource = IDR_CTXMENU_DOCUMENT;
 
     if (pThis->m_wndBrowserView.m_iGetNodeHack == 0) {
@@ -601,34 +601,41 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags,
       return;
    }
 
+   nsCOMPtr<nsIURI> imgURI;
+
+    // Check if there is a image first
+    if(aContextFlags & nsIContextMenuListener2::CONTEXT_IMAGE)
+    {
+        nIDResource = IDR_CTXMENU_IMAGE;
+
+        // Get the IMG SRC
+        aInfo->GetImageSrc(getter_AddRefs(imgURI));
+        if(!imgURI)
+           return;
+    }
 
     if(aContextFlags & nsIContextMenuListener2::CONTEXT_DOCUMENT)
     {
         nIDResource = IDR_CTXMENU_DOCUMENT;
-
-        // Background image?
-        if (aContextFlags & nsIContextMenuListener2::CONTEXT_BACKGROUND_IMAGE)
-        {
-            // Get the IMG SRC
-            nsCOMPtr<nsIURI> imgURI;
-            aInfo->GetBackgroundImageSrc(getter_AddRefs(imgURI));
-            if (!imgURI)
-                return; 
-            nsEmbedCString uri;
-            imgURI->GetSpec(uri);
-            bContentHasImage = TRUE;
-
-            nsEmbedString uri2;
-            NS_CStringToUTF16(uri, NS_CSTRING_ENCODING_UTF8, uri2);
-            pThis->m_wndBrowserView.SetCtxMenuImageSrc(uri2); // Set the new Img Src
-			nsCOMPtr<imgIContainer> img;
-			aInfo->GetBackgroundImageContainer(getter_AddRefs(img));
-			//pThis->m_wndBrowserView.SetCtxImage(img);
-        }
     }
-    else if(aContextFlags & nsIContextMenuListener2::CONTEXT_TEXT || 
-            aContextFlags & nsIContextMenuListener2::CONTEXT_INPUT) 
-        nIDResource = IDR_CTXMENU_TEXT;
+    else if(aContextFlags & nsIContextMenuListener2::CONTEXT_TEXT)
+    {
+       nIDResource = IDR_CTXMENU_TEXT;
+    }
+    else if (aContextFlags & nsIContextMenuListener2::CONTEXT_INPUT) 
+    {
+       if (!(aContextFlags & nsIContextMenuListener2::CONTEXT_IMAGE)) {
+          // Mozilla don't tell if the input is of type text or password...
+          nsCOMPtr<nsIDOMHTMLInputElement> inputElement(do_QueryInterface(node));
+          if (inputElement) {
+             nsEmbedString inputElemType;
+             inputElement->GetType(inputElemType);
+             if ((wcsicmp(inputElemType.get(), L"text") == 0) ||
+                 (wcsicmp(inputElemType.get(), L"password") == 0))
+                nIDResource = IDR_CTXMENU_TEXT;
+          }
+       }
+    }
     else if(aContextFlags & nsIContextMenuListener2::CONTEXT_LINK)
     {
         nIDResource = IDR_CTXMENU_LINK;
@@ -648,50 +655,26 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags,
         // Update the view with the new LinkUrl
         // Note that this string is in UCS2 format
         pThis->m_wndBrowserView.SetCtxMenuLinkUrl(strUrlUcs2);
-
-        // Test if there is an image URL as well
-        nsCOMPtr<nsIURI> imgURI;
-        aInfo->GetImageSrc(getter_AddRefs(imgURI));
-        if(imgURI)
-        {
-            nsEmbedCString strImgSrcUtf8;
-            imgURI->GetSpec(strImgSrcUtf8);
-            if(!strImgSrcUtf8.IsEmpty())
-            {
-                // Set the new Img Src
-                nsEmbedString strImgSrc;
-                NS_CStringToUTF16(strImgSrcUtf8, NS_CSTRING_ENCODING_UTF8, strImgSrc);
-                pThis->m_wndBrowserView.SetCtxMenuImageSrc(strImgSrc);
-                bContentHasImage = TRUE;
-				nsCOMPtr<imgIContainer> img;
-				aInfo->GetImageContainer(getter_AddRefs(img));
-
-				//pThis->m_wndBrowserView.SetCtxImage(img);
-            }
-        }
     }
-    else if(aContextFlags & nsIContextMenuListener2::CONTEXT_IMAGE)
-    {
-        nIDResource = IDR_CTXMENU_IMAGE;
 
-        // Get the IMG SRC
-        nsCOMPtr<nsIURI> imgURI;
-        aInfo->GetImageSrc(getter_AddRefs(imgURI));
-        if(!imgURI)
-            return;
-        nsEmbedCString strImgSrcUtf8;
-        imgURI->GetSpec(strImgSrcUtf8);
-        if(strImgSrcUtf8.IsEmpty())
-            return;
+    // Check for a background image if the menu type is document
+    if ( (nIDResource == IDR_CTXMENU_DOCUMENT) && !imgURI  &&
+         (aContextFlags & nsIContextMenuListener2::CONTEXT_BACKGROUND_IMAGE))
+       aInfo->GetBackgroundImageSrc(getter_AddRefs(imgURI));        
 
-        // Set the new Img Src
-        nsEmbedString strImgSrc;
-        NS_CStringToUTF16(strImgSrcUtf8, NS_CSTRING_ENCODING_UTF8, strImgSrc);
-        pThis->m_wndBrowserView.SetCtxMenuImageSrc(strImgSrc);
+    if (imgURI) {
+       nsEmbedCString strImgSrcUtf8;
+       imgURI->GetSpec(strImgSrcUtf8);
+       if(!strImgSrcUtf8.IsEmpty()) {
+          // Set the new Img Src
+          nsEmbedString strImgSrc;
+          NS_CStringToUTF16(strImgSrcUtf8, NS_CSTRING_ENCODING_UTF8, strImgSrc);
+          pThis->m_wndBrowserView.SetCtxMenuImageSrc(strImgSrc);
 
-		nsCOMPtr<imgIContainer> img;
-        aInfo->GetImageContainer(getter_AddRefs(img));
-		//pThis->m_wndBrowserView.SetCtxImage(img);
+          nsCOMPtr<imgIContainer> img;
+          aInfo->GetImageContainer(getter_AddRefs(img));
+          //pThis->m_wndBrowserView.SetCtxImage(img);
+       }
     }
 
     // Determine if we need to add the Frame related context menu items
@@ -733,7 +716,7 @@ BUILD_CTX_MENU:
         switch (nIDResource) {
         case IDR_CTXMENU_DOCUMENT:
             menuType = _T("DocumentPopup");
-            if (bContentHasImage)
+            if (imgURI)
                 menuType = _T("DocumentImagePopup");
             break;
         case IDR_CTXMENU_TEXT:
@@ -741,7 +724,7 @@ BUILD_CTX_MENU:
             break;
         case IDR_CTXMENU_LINK:
             menuType = _T("LinkPopup");
-            if (bContentHasImage)
+            if (imgURI)
                 menuType = _T("ImageLinkPopup");
             break;
         case IDR_CTXMENU_IMAGE:
@@ -753,7 +736,7 @@ BUILD_CTX_MENU:
         switch (nIDResource) {
         case IDR_CTXMENU_DOCUMENT:
             menuType = _T("FrameDocumentPopup");
-            if (bContentHasImage)
+            if (imgURI)
                 menuType = _T("FrameDocumentImagePopup");
             break;
         case IDR_CTXMENU_TEXT:
@@ -761,7 +744,7 @@ BUILD_CTX_MENU:
             break;
         case IDR_CTXMENU_LINK:
             menuType = _T("FrameLinkPopup");
-            if (bContentHasImage)
+            if (imgURI)
                 menuType = _T("FrameImageLinkPopup");
             break;
         case IDR_CTXMENU_IMAGE:
