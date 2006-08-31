@@ -32,6 +32,7 @@ class CPassword {
 public:
 	CString m_csHost;
 	CString m_csUsername;
+	CString m_csPassword;
 	nsEmbedCString m_host;
 	nsEmbedString m_username;
 
@@ -47,6 +48,10 @@ public:
 
 		password->GetUser(m_username);
 		m_csUsername = W2CT(m_username.get());
+
+		nsEmbedString nsPassword;
+		password->GetPassword(nsPassword);
+		m_csPassword = W2CT(nsPassword.get());
 	}
 
 	~CPassword()
@@ -75,11 +80,13 @@ protected:
 
 	CPasswordList m_PasswordsList;
 	nsCOMPtr<nsIPasswordManager> m_passwordManager;
+	BOOL m_bShowPasswords;
 
     BOOL m_reject;
 
 	void FillList(nsISimpleEnumerator* enumPassword);
 	void EmptyList();
+	void ResizeColumns();
 	virtual void DoDataExchange(CDataExchange* pDX);    // Prise en charge DDX/DDV
 
 	DECLARE_MESSAGE_MAP()
@@ -91,4 +98,5 @@ public:
 	afx_msg void OnDestroy();
 	afx_msg void OnBnClickedDeletePasswords();
 	afx_msg void OnBnClickedDeleteAllPasswords();
+	afx_msg void OnBnClickedDisplayPasswords();
 };

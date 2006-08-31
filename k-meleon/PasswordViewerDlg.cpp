@@ -28,6 +28,7 @@ CPasswordViewerDlg::CPasswordViewerDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(CPasswordViewerDlg::IDD, pParent)
 {
 	m_passwordManager = do_GetService(NS_PASSWORDMANAGER_CONTRACTID);
+	m_bShowPasswords = FALSE;
 }
 
 CPasswordViewerDlg::~CPasswordViewerDlg()
@@ -47,6 +48,7 @@ BEGIN_MESSAGE_MAP(CPasswordViewerDlg, CDialog)
 	ON_WM_DESTROY()
 	ON_BN_CLICKED(IDC_DELETE_PASSWORDS, OnBnClickedDeletePasswords)
 	ON_BN_CLICKED(IDC_DELETE_ALL_PASSWORDS, OnBnClickedDeleteAllPasswords)
+   ON_BN_CLICKED(IDC_DISPLAY_PASSWORDS, OnBnClickedDisplayPasswords)
 END_MESSAGE_MAP()
 
 
@@ -109,9 +111,9 @@ void CPasswordViewerDlg::FillList(nsISimpleEnumerator* enumPassword)
 		int index = m_cPasswordsList.InsertItem(&lvItem);
 
 		if (index==-1) continue;
-
-		ListView_SetItemText(m_cPasswordsList.GetSafeHwnd(), index, 0, password->m_csHost.GetBuffer(0))
-		ListView_SetItemText(m_cPasswordsList.GetSafeHwnd(), index, 1, password->m_csUsername.GetBuffer(0))
+		m_cPasswordsList.SetItemText(index, 0, password->m_csHost);
+		m_cPasswordsList.SetItemText(index, 1, password->m_csUsername);
+		m_cPasswordsList.SetItemText(index, 2, password->m_csPassword);
 		
 		enumPassword->HasMoreElements(&ret);
 	}
@@ -140,19 +142,17 @@ void CPasswordViewerDlg::OnBnClickedRadio1()
 	EmptyList();
 
 	m_cPasswordsList.InsertColumn(1, _T("Username"), LVCFMT_LEFT, 0, 1);
+	m_cPasswordsList.InsertColumn(2, _T("Passwords"), LVCFMT_LEFT, 0, 1);
 
 	rv = m_passwordManager->GetEnumerator(getter_AddRefs(enumPassword));
 	if (NS_FAILED(rv)) return;
 
 	FillList(enumPassword);
+	ResizeColumns();
 
-	RECT rect;
-	m_cPasswordsList.GetClientRect(&rect);
-	int width = (rect.right - rect.left)/2;
-	m_cPasswordsList.SetColumnWidth(0, width);
-	m_cPasswordsList.SetColumnWidth(1, width);
-
-	// TODO : ajoutez ici le code de votre gestionnaire de notification de contrôle
+	CWnd* button = GetDlgItem(IDC_DISPLAY_PASSWORDS);
+	if (button)
+		button->ShowWindow(SW_SHOW);
 }
 
 void CPasswordViewerDlg::OnBnClickedRadio2()
@@ -164,6 +164,7 @@ void CPasswordViewerDlg::OnBnClickedRadio2()
 	nsresult rv;
 
 	m_cPasswordsList.DeleteAllItems();
+	m_cPasswordsList.DeleteColumn(2);
 	m_cPasswordsList.DeleteColumn(1);
 	EmptyList();
 
@@ -176,6 +177,9 @@ void CPasswordViewerDlg::OnBnClickedRadio2()
 	m_cPasswordsList.GetClientRect(&rect);
 	int width = (rect.right - rect.left);
 	m_cPasswordsList.SetColumnWidth(0, width);
+	CWnd* button = GetDlgItem(IDC_DISPLAY_PASSWORDS);
+	if (button)
+		button->ShowWindow(SW_HIDE);
 }
 
 void CPasswordViewerDlg::OnDestroy()
@@ -239,4 +243,39 @@ void CPasswordViewerDlg::OnBnClickedDeleteAllPasswords()
 		}
 		m_cPasswordsList.DeleteAllItems();
 	}
+}
+
+void CPasswordViewerDlg::OnBnClickedDisplayPasswords()
+{
+	if (m_reject) return;
+	m_bShowPasswords = !m_bShowPasswords;
+
+	UINT textId;
+	if (!m_bShowPasswords) 
+		textId = IDS_SHOW_PASSWORDS;
+	else
+		textId = IDS_HIDE_PASSWORDS;
+
+	CString buttonText;
+	buttonText.LoadString(textId);
+	SetDlgItemText(IDC_DISPLAY_PASSWORDS, buttonText);
+	ResizeColumns();
+}
+
+void CPasswordViewerDlg::ResizeColumns() 
+{
+	RECT rect;
+	int width;
+	m_cPasswordsList.GetClientRect(&rect);
+	if (m_bShowPasswords) {
+		width = (rect.right - rect.left)/3;
+		m_cPasswordsList.SetColumnWidth(2, width);
+	}
+	else {
+		width = (rect.right - rect.left)/2;
+		m_cPasswordsList.SetColumnWidth(2, 0);
+	}
+	
+	m_cPasswordsList.SetColumnWidth(0, width);
+	m_cPasswordsList.SetColumnWidth(1, width);
 }
