@@ -124,25 +124,21 @@ int ifplugin(char *p)
 
 CParser::Load(LPCTSTR filename)
 {
-   CFile *file;
-    
-   file = new CFile;
-   if (!file->Open(filename, CFile::modeRead, NULL)) {
-	   delete file;
+   CFile file;
+   if (!file.Open(filename, CFile::modeRead, NULL))
 	   return 0;
-   }
    
-   long length = file->GetLength();
+   unsigned long length = (unsigned long)file.GetLength();
    char *buffer = new char[length + 3]; // CR+LF+NUL
-   file->Read(buffer, length);
+   if (!buffer) return 0;
+
+   file.Read(buffer, length);
    // force the terminating 0
    buffer[length] = '\r';
    buffer[length+1] = '\n';
    buffer[length+2] = 0;
 
-   file->Close();
-   delete file;
-   file = NULL;
+   file.Close();
 
    int pauseParsing = 0;
 

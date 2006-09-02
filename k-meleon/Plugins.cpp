@@ -680,7 +680,7 @@ int GetGlobalVar(enum PREFTYPE type, char *preference, void *ret) {
          retLen = strlen(charset);
 		 if (ret) {
 			 strcpy((char *)ret, charset);
-			 for(unsigned int i=0;i<retLen;i++)
+			 for(int i=0;i<retLen;i++)
 				((char*)ret)[i] = tolower(((char*)ret)[i]);
 		 }
       }

@@ -678,13 +678,14 @@ void CPreferencePageConfigs::SaveFile(const TCHAR *filename)
 void CPreferencePageConfigs::ShowFile(const TCHAR *filename){
    CFile file;
    if (file.Open(filename, CFile::modeRead)){
-      ULONGLONG length = file.GetLength();
+      unsigned long length = (unsigned long)file.GetLength();
       char *buffer = new char[length+1];
+	  if (!buffer) return;
       buffer[file.Read(buffer, length)] = 0;
 
       char *p = strchr(buffer, '\n');
       if (p && *(p-1)!='\r') {
-        ULONGLONG i = 1;
+        unsigned long i = 1;
 	while ( (p = strchr(p+1, '\n')) )
 	  i++;
 	char *buffer2 = new char[length+i+1];
