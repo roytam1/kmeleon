@@ -186,6 +186,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalOptions="-HEAP:0x40000"
 				AdditionalDependencies="xpcomglue.lib embed_base_s.lib nspr4.lib"
 				OutputFile="\program files\k-meleon\release\k-meleon.exe"
 				LinkIncremental="1"
@@ -236,6 +237,18 @@
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
 			<File
 				RelativePath="About.cpp">
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release MFC Static|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="AccelParser.cpp">
@@ -635,13 +648,22 @@
 				RelativePath="res\oncheck.ico">
 			</File>
 			<File
+				RelativePath=".\res\popupblock.ico">
+			</File>
+			<File
 				RelativePath="res\sinsecur.ico">
 			</File>
 			<File
 				RelativePath="res\ssecur.ico">
 			</File>
+			<File
+				RelativePath=".\res\toolbar1.bmp">
+			</File>
 		</Filter>
 	</Files>
 	<Globals>
+		<Global
+			Name="RESOURCE_FILE"
+			Value="MfcEmbed.rc"/>
 	</Globals>
 </VisualStudioProject>
