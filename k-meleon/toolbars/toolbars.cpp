@@ -1246,78 +1246,70 @@ int  IsButtonChecked(char *sParams) {
    return NULL;
 }
 
+int ShowMenuUnderButton(HWND hWndParent, UINT uMouseButton, int iID) {
+   
+   s_toolbar   *pToolbar = toolbar_head;
+   s_button    *pButton;
+   HMENU       hMenu = NULL;
 
+   // Find the window
+   while (pToolbar) {
+      if (pToolbar->hwndWindow == hWndParent) break;
+	  pToolbar = pToolbar->nextWindow;
+   }
 
-
-
-void ShowMenuUnderButton(HWND hWndParent, HMENU hMenu, UINT uMouseButton, int iID) {
    // Find the toolbar
-   HWND hReBar = FindWindowEx(GetActiveWindow(), NULL, REBARCLASSNAME, NULL);
-   int uBandCount = SendMessage(hReBar, RB_GETBANDCOUNT, 0, 0);  
-   int x = 0;
-   BOOL bFound = FALSE;
-   REBARBANDINFO rb;
-   rb.cbSize = sizeof(REBARBANDINFO);
-   rb.fMask = RBBIM_CHILD;
-   while (x < uBandCount && !bFound) {
-      
-      if (!SendMessage(hReBar, RB_GETBANDINFO, (WPARAM) x++, (LPARAM) &rb))
-         continue;
-      
-      // toolbar hwnd
-      HWND tb = rb.hwndChild;
-      RECT rc;
-      
-      int ButtonID = SendMessage(tb, TB_COMMANDTOINDEX, iID, 0);
-      if (ButtonID < 0)
-         continue;
-      if (ButtonID == 0) {
-         TBBUTTON button;
-         if ((!SendMessage(tb, TB_GETBUTTON, 0, (LPARAM) &button)) ||
-			 (button.idCommand != iID))
-            continue;
-      }
-      
-      SendMessage(tb, TB_GETITEMRECT, ButtonID, (LPARAM) &rc);
+   bool stop = false;
+   while (pToolbar) {
+      pButton = pToolbar->pButtonTail;
+      while (pButton) {
+          if (pButton->iID == iID && pButton->menu) {
+			  hMenu = pButton->menu;
+			  stop = true;
+			  break;
+		  }
+		  pButton = pButton->prev;
+	  }
+	  if (stop) break;
+	  pToolbar = pToolbar->next;
+   }
+			
+   // Show the menu if any
+   if (hMenu) {
+	  RECT rc;
+	  int ButtonID = SendMessage(pToolbar->hWnd, TB_COMMANDTOINDEX, iID, 0);
+      if (ButtonID < 0) return 0;
+
+	  SendMessage(pToolbar->hWnd, TB_GETITEMRECT, ButtonID, (LPARAM) &rc);
       POINT pt = { rc.left, rc.bottom };
-      ClientToScreen(tb, &pt);
+      ClientToScreen(pToolbar->hWnd, &pt);
 	  if (pt.x<0) pt.x = 0;
 	  if (pt.y<0) pt.y = 0;
       DWORD SelectionMade = TrackPopupMenu(hMenu, TPM_LEFTALIGN | uMouseButton | TPM_RETURNCMD, pt.x, pt.y, 0, hWndParent, &rc);
 
-      SendMessage(tb, TB_SETSTATE, (WPARAM) iID, (LPARAM) MAKELONG (TBSTATE_ENABLED , 0));
-      PostMessage(hWndParent, UWM_REFRESHTOOLBARITEM, (WPARAM) iID, 0);
-      
-      if (SelectionMade > 0)
-	PostMessage(hWndParent, WM_COMMAND, (WPARAM) SelectionMade, iID);
-      
-      bFound = TRUE;
+	  if (SelectionMade > 0) {
+         SendMessage(pToolbar->hWnd, TB_SETSTATE, (WPARAM) iID, (LPARAM) MAKELONG (TBSTATE_ENABLED , 0));
+         PostMessage(hWndParent, UWM_REFRESHTOOLBARITEM, (WPARAM) iID, 0);
+         PostMessage(hWndParent, WM_COMMAND, (WPARAM) SelectionMade, iID);
+	  }
+
+	  return 1;
    }
+   return 0;
 }
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
+#ifdef _UNICODE
+	static char* tip = NULL;
+#else
 	static WCHAR* tip = NULL;
-  if (message == TB_RBUTTONDOWN || message == TB_LBUTTONHOLD) {
-    int command = LOWORD(wParam);
-    s_toolbar   *pToolbar = toolbar_head;
-    s_button    *pButton;
-    
-    while (pToolbar) {
-      if (pToolbar->iButtonCount == 0) continue;
-      
-      pButton = pToolbar->pButtonTail;
-      while (pButton) {
-	if (pButton->iID == command && pButton->menu) {
-	  UINT button = (message == TB_RBUTTONDOWN) ? TPM_RIGHTBUTTON : TPM_LEFTBUTTON;
-	  ShowMenuUnderButton(hWnd, pButton->menu, button, pButton->iID);
-	  return 0;
-
+#endif
+	if (message == TB_RBUTTONDOWN || message == TB_LBUTTONHOLD) {
+    	int command = LOWORD(wParam);
+		UINT button = (message == TB_RBUTTONDOWN) ? TPM_RIGHTBUTTON : TPM_LEFTBUTTON;
+		if (ShowMenuUnderButton(hWnd, button, command))
+		   return 0;
 	}
-	pButton = pButton->prev;
-      }
-      pToolbar = pToolbar->next;
-    }
-  }
 
   else if (message == WM_NOTIFY){
 
