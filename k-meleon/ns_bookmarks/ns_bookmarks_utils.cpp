@@ -909,6 +909,14 @@ void BuildRebar(HWND hWndTB)
       }
 
       if (child->type == BOOKMARK_SEPARATOR) {
+         TBBUTTON button;
+         button.iBitmap = 0;
+         button.idCommand = 0;
+         button.fsState = TBSTATE_ENABLED;
+         button.fsStyle = TBSTYLE_SEP; 
+         button.dwData = 0;
+         button.iString = 0;
+         SendMessage(hWndTB, TB_INSERTBUTTON, (WPARAM)-1, (LPARAM)&button);
          continue;
       }
 
