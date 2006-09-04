@@ -72,6 +72,7 @@
 #include "nsIDOMMouseListener.h"
 #include "nsIDOMEventReceiver.h"
 #include "nsPIDOMWindow.h"
+#include "nsIDOMBarProp.h"
 #include <wininet.h>
 
 extern CMfcEmbedApp theApp;
@@ -376,10 +377,25 @@ HRESULT CBrowserView::CreateBrowser()
 			                        mFavIconListener, PR_FALSE);
 #endif
 	}
+   
+	// Disable scrollbar if needed
+	if (!(mpBrowserFrame->m_chromeMask & nsIWebBrowserChrome::CHROME_SCROLLBARS) &&
+	    !(mpBrowserFrame->m_chromeMask & nsIWebBrowserChrome::CHROME_WINDOW_RESIZE))
+	{
+		nsCOMPtr<nsIDOMWindow> dom;
+		mWebBrowser->GetContentDOMWindow(getter_AddRefs(dom)); 
+		if (dom) {
+			nsCOMPtr<nsIDOMBarProp> scrollbars;
+			dom->GetScrollbars(getter_AddRefs(scrollbars));
+			if (scrollbars)
+				scrollbars->SetVisible(PR_FALSE);
+		}
+	}
+
 	/*
 	nsCOMPtr<nsPIDOMWindow> piWin;
 
-	 // get the content DOM window for that web browser
+	// get the content DOM window for that web browser
 	nsCOMPtr<nsIDOMWindow> domWindow;
 	mWebBrowser->GetContentDOMWindow(getter_AddRefs(domWindow));
 	if (!domWindow)
