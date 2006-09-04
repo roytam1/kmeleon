@@ -532,7 +532,8 @@ CString CBrowserView::NicknameLookup(const CString& typedUrl)
 	free(nickUrl);
 
 	if (word!=-1)
-		retUrl.Replace(_T("%s"), typedUrl.Mid(word+1));
+		if (!retUrl.Replace(_T("%s"), typedUrl.Mid(word+1))) 
+			return typedUrl; // See Bug #849
 
 	return retUrl;
 } 
@@ -612,6 +613,10 @@ void CBrowserView::OpenMultiURL(LPTSTR urls)
 
 	if (*szOpenURLcmd)
 	{
+		char *altCommand = strchr(szOpenURLcmd, '|');
+        if (altCommand)
+            *altCommand = 0;
+
 		idOpen  = theApp.GetID(szOpenURLcmd);
 
 		if (!idOpen) {
@@ -623,12 +628,9 @@ void CBrowserView::OpenMultiURL(LPTSTR urls)
 					theApp.plugins.SendMessage(plugin, "* kmeleon.exe", "DoAccel", (long) parameter, (long)&idOpen);
 			}
 		}
-	    
-        char *altCommand = strchr(szOpenURLcmd, '|');
-        if (altCommand) {
-            *altCommand = 0;
+
+        if (altCommand)
             idOpenX = theApp.GetID(altCommand+1);
-        }
 	}
 
     TCHAR* p = urls;
