@@ -1131,6 +1131,7 @@ static void CopyItem(HWND hTree, HTREEITEM item) {
       
       freeNode = new CBookmarkNode();
       *freeNode = *node;
+      freeNode->id = kPlugin.kFuncs->GetCommandIDs(1);
       freeParentNode = GetBookmarkNode(hTree, parent);
    }
 }
