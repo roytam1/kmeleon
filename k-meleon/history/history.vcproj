@@ -18,10 +18,12 @@
 			ConfigurationType="2"
 			UseOfMFC="2"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
-			CharacterSet="2">
+			CharacterSet="2"
+			WholeProgramOptimization="TRUE">
 			<Tool
 				Name="VCCLCompilerTool"
-				Optimization="2"
+				Optimization="1"
+				GlobalOptimizations="TRUE"
 				AdditionalIncludeDirectories="../../mozilla/mozilla/dist/include/pref;../../mozilla/mozilla/dist/include/appcomps;../../mozilla/mozilla/dist/include/history;../../mozilla/mozilla/dist/include/rdf;../../mozilla/mozilla/dist/include/string;../../mozilla/mozilla/dist/include/docshell;../../mozilla/mozilla/dist/include/xpcom;../../mozilla/mozilla/dist/include/nspr;../../mozilla/mozilla/dist/include/webbrwsr"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;HISTORY_EXPORTS"
 				StringPooling="TRUE"
@@ -34,7 +36,9 @@
 				ObjectFile=".\Release/"
 				ProgramDataBaseFileName=".\Release/"
 				WarningLevel="3"
-				SuppressStartupBanner="TRUE"/>
+				SuppressStartupBanner="TRUE"
+				Detect64BitPortabilityProblems="FALSE"
+				DebugInformationFormat="3"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
@@ -44,8 +48,11 @@
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
 				AdditionalLibraryDirectories="&quot;..\..\mozilla\mozilla\dist\lib&quot;"
+				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile=".\Release/history.pdb"
-				OptimizeForWindows98="1"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
+				OptimizeForWindows98="0"
 				ImportLibrary=".\Release/history.lib"
 				TargetMachine="1"/>
 			<Tool
@@ -155,6 +162,12 @@
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
 			<File
 				RelativePath="..\DialogUtils.cpp">
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\hist_view.cpp">

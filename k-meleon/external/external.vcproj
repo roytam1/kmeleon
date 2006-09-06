@@ -82,10 +82,12 @@
 			ConfigurationType="2"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
-			CharacterSet="2">
+			CharacterSet="2"
+			WholeProgramOptimization="TRUE">
 			<Tool
 				Name="VCCLCompilerTool"
-				Optimization="2"
+				Optimization="1"
+				GlobalOptimizations="TRUE"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;external_EXPORTS"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
@@ -96,7 +98,9 @@
 				ProgramDataBaseFileName=".\Release/"
 				BrowseInformation="1"
 				WarningLevel="3"
-				SuppressStartupBanner="TRUE"/>
+				SuppressStartupBanner="TRUE"
+				Detect64BitPortabilityProblems="FALSE"
+				DebugInformationFormat="3"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
@@ -105,8 +109,11 @@
 				OutputFile="\Program Files\K-Meleon\release\kplugins\$(ProjectName).dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
+				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile=".\Release/external.pdb"
-				OptimizeForWindows98="1"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
+				OptimizeForWindows98="0"
 				ImportLibrary=".\Release/external.lib"
 				TargetMachine="1"/>
 			<Tool

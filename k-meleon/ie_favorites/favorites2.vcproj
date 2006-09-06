@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="7.10"
-	Name="favorites2"
+	Name="favorites"
 	ProjectGUID="{3632B1A3-8D3C-468B-8AA7-1BAC8A367ED5}"
 	Keyword="Win32Proj">
 	<Platforms>
@@ -66,15 +66,18 @@
 			OutputDirectory="Release"
 			IntermediateDirectory="Release"
 			ConfigurationType="2"
-			CharacterSet="2">
+			CharacterSet="2"
+			WholeProgramOptimization="TRUE">
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="1"
+				GlobalOptimizations="TRUE"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;FAVORITES2_EXPORTS"
 				RuntimeLibrary="2"
 				TreatWChar_tAsBuiltInType="TRUE"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="TRUE"
+				Detect64BitPortabilityProblems="FALSE"
 				DebugInformationFormat="3"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
@@ -87,6 +90,7 @@
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
+				OptimizeForWindows98="0"
 				ImportLibrary="$(OutDir)/favorites2.lib"
 				TargetMachine="1"/>
 			<Tool
