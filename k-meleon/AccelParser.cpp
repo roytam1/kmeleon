@@ -379,6 +379,8 @@ CString CAccelParser::GetStrAccel(UINT id)
 				key == VK_LEFT ||
 				key == VK_RIGHT ||
 				key == VK_UP ||
+                key == VK_ADD ||
+                key == VK_MINUS ||
 				key == VK_DOWN)
 				scan |= 0x100;
 
