@@ -67,15 +67,18 @@
 			OutputDirectory="Release"
 			IntermediateDirectory="Release"
 			ConfigurationType="2"
-			CharacterSet="2">
+			CharacterSet="2"
+			WholeProgramOptimization="TRUE">
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="1"
+				GlobalOptimizations="TRUE"
 				AdditionalIncludeDirectories="../../mozilla/mozilla/dist/include/string;../../mozilla/mozilla/dist/include/wallet;../../mozilla/mozilla/dist/include/necko;../../mozilla/mozilla/dist/include/docshell;../../mozilla/mozilla/dist/include/history;../../mozilla/mozilla/dist/include/xpcom;../../mozilla/mozilla/dist/include/nspr"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;PRIVACY_EXPORTS"
-				RuntimeLibrary="0"
+				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="TRUE"
+				Detect64BitPortabilityProblems="FALSE"
 				DebugInformationFormat="3"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
@@ -89,6 +92,7 @@
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
+				OptimizeForWindows98="0"
 				ImportLibrary="$(OutDir)/privacy.lib"
 				TargetMachine="1"/>
 			<Tool

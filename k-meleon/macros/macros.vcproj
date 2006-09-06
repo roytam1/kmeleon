@@ -18,10 +18,11 @@
 			ConfigurationType="2"
 			UseOfMFC="2"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
-			CharacterSet="2">
+			CharacterSet="2"
+			WholeProgramOptimization="TRUE">
 			<Tool
 				Name="VCCLCompilerTool"
-				Optimization="1"
+				Optimization="2"
 				GlobalOptimizations="TRUE"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;macros_EXPORTS"
 				StringPooling="TRUE"
@@ -34,6 +35,7 @@
 				BrowseInformation="1"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
+				Detect64BitPortabilityProblems="FALSE"
 				DebugInformationFormat="3"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
@@ -45,7 +47,9 @@
 				SuppressStartupBanner="TRUE"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile=".\Release/macros.pdb"
-				OptimizeForWindows98="1"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
+				OptimizeForWindows98="0"
 				ImportLibrary=".\Release/macros.lib"
 				TargetMachine="1"/>
 			<Tool
@@ -168,6 +172,9 @@
 						BasicRuntimeChecks="3"
 						BrowseInformation="1"/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\macros.rc">
 			</File>
 			<File
 				RelativePath="..\Utils.cpp">
