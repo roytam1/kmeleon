@@ -662,6 +662,7 @@ void Create(HWND parent, LPCREATESTRUCT pCS){
          if (!bBack) {
             struct frame *pFrame = find_frame(parent);
             ghParent = pFrame->hWndFront;
+            pFrame->hWndLast = pFrame->hWndFront;
             pFrame->hWndFront = parent;
             MoveWindow(parent, 
                        gwpOld.rcNormalPosition.left, gwpOld.rcNormalPosition.top, 
