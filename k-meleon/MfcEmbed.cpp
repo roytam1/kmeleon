@@ -623,21 +623,13 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
          style &= ~WS_MINIMIZEBOX;
    }
       
-   if (chromeMask && (chromeMask != nsIWebBrowserChrome::CHROME_DEFAULT) && 
-       (!(chromeMask & (nsIWebBrowserChrome::CHROME_WINDOW_BORDERS)) ||
-        !(chromeMask & (nsIWebBrowserChrome::CHROME_WINDOW_CLOSE)) || 
-        !(chromeMask & (nsIWebBrowserChrome::CHROME_WINDOW_RESIZE)) || 
-        !(chromeMask & (nsIWebBrowserChrome::CHROME_MENUBAR)) ||
-        !(chromeMask & (nsIWebBrowserChrome::CHROME_TOOLBAR)) ||
-        !(chromeMask & (nsIWebBrowserChrome::CHROME_LOCATIONBAR)) ||
-        !(chromeMask & (nsIWebBrowserChrome::CHROME_STATUSBAR)) ||
-        !(chromeMask & (nsIWebBrowserChrome::CHROME_PERSONAL_TOOLBAR)) ||
-        !(chromeMask & (nsIWebBrowserChrome::CHROME_SCROLLBARS)) ||
-        !(chromeMask & (nsIWebBrowserChrome::CHROME_TITLEBAR)) )) {
-       style |= WS_POPUP; // For the sake of layers....
-   }
-   else if (preferences.bMaximized && (chromeMask & nsIWebBrowserChrome::CHROME_WINDOW_RESIZE))
-       style |= WS_MAXIMIZE;
+   if ( (chromeMask & (nsIWebBrowserChrome::CHROME_OPENAS_CHROME)) ||
+        (!(chromeMask & nsIWebBrowserChrome::CHROME_DEFAULT) &&
+        !(chromeMask & nsIWebBrowserChrome::CHROME_TOOLBAR)) )
+      style |= WS_POPUP; // For the sake of layers....
+
+   if (preferences.bMaximized && (chromeMask & nsIWebBrowserChrome::CHROME_WINDOW_RESIZE))
+      style |= WS_MAXIMIZE;
 
    RECT screen, winSize;
    SystemParametersInfo(SPI_GETWORKAREA, NULL, &screen, 0);
@@ -652,52 +644,55 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
       AdjustWindowRectEx(&winSize, style, chromeMask & (nsIWebBrowserChrome::CHROME_MENUBAR), 0);
    }
    else {
-	  if (m_pMostRecentBrowserFrame && 
+
+      // If the last active window is not a popup use cascading placement
+      if (m_pMostRecentBrowserFrame && 
          !(m_pMostRecentBrowserFrame->m_style & WS_POPUP))
-	  {
-	     WINDOWPLACEMENT wp;
+      {
+         WINDOWPLACEMENT wp;
          wp.length = sizeof(WINDOWPLACEMENT);
          m_pMostRecentBrowserFrame->GetWindowPlacement(&wp);
 
-		 // if the window is not maximized, let's use use GetWindowRect, which works
+         // if the window is not maximized, let's use use GetWindowRect, which works
          if (wp.showCmd == SW_SHOWNORMAL)
             m_pMostRecentBrowserFrame->GetWindowRect(&wp.rcNormalPosition);
 
-		 int offset = GetSystemMetrics(SM_CYSIZE) + GetSystemMetrics(SM_CXBORDER);
-		 winSize.left   = wp.rcNormalPosition.left + offset;
+         int offset = GetSystemMetrics(SM_CYSIZE) + GetSystemMetrics(SM_CXBORDER);
+         winSize.left   = wp.rcNormalPosition.left + offset;
          winSize.top    = wp.rcNormalPosition.top + offset;
-		 winSize.right  = wp.rcNormalPosition.right + offset;
+         winSize.right  = wp.rcNormalPosition.right + offset;
          winSize.bottom = wp.rcNormalPosition.bottom + offset;
-		
-		 // Put the window to the top corner if we're too far in 
-		 // the bottom left.
-         if ( (screen.right - winSize.right) < offset
-			  && (screen.bottom - winSize.bottom) < offset)
-		 {
-	        winSize.left = screen.left;
-            winSize.top = screen.top;
-			winSize.right = wp.rcNormalPosition.right - wp.rcNormalPosition.left;
-		    winSize.bottom = wp.rcNormalPosition.bottom - wp.rcNormalPosition.top;
-		 }
-	  }
-	  else if ((preferences.windowHeight > 0 && preferences.windowWidth > 0) 
-	          && (preferences.windowYPos >= 0 && preferences.windowXPos >= 0)) {
-		 winSize.left = preferences.windowXPos;
-         winSize.top  = preferences.windowYPos;
-         winSize.right  = winSize.left + preferences.windowWidth;
-         winSize.bottom = winSize.top + preferences.windowHeight;
-	  }
-	  else {
-		  winSize.left = screen.left + screenWidth / 20;
-          winSize.top = screen.top + screenHeight / 20;
-          winSize.right = winSize.left + 15*screenWidth / 20;
-          winSize.bottom = winSize.top + 18*screenHeight/20;
 
-		  preferences.windowXPos   = winSize.left;
-          preferences.windowYPos   = winSize.top;
-          preferences.windowWidth  = winSize.right;
-          preferences.windowHeight = winSize.bottom;
-	  }
+         // Put the window to the top corner if we're too far in 
+         // the bottom left.
+         if ( (screen.right - winSize.right) < offset
+            && (screen.bottom - winSize.bottom) < offset)
+         {
+            winSize.left = screen.left;
+            winSize.top = screen.top;
+            winSize.right = wp.rcNormalPosition.right - wp.rcNormalPosition.left;
+            winSize.bottom = wp.rcNormalPosition.bottom - wp.rcNormalPosition.top;
+         }
+      }
+      else {
+         
+         // Use default position 
+         winSize.left = screen.left + screenWidth / 20;
+         winSize.top = screen.top + screenHeight / 20;
+         winSize.right = winSize.left + 15*screenWidth / 20;
+         winSize.bottom = winSize.top + 18*screenHeight/20;
+
+         // Use user preference position if any
+         if (preferences.windowXPos >= 0) 
+            winSize.left = preferences.windowXPos;
+         if (preferences.windowYPos >=0)
+            winSize.top  = preferences.windowYPos;
+         if (preferences.windowWidth > 0)
+            winSize.right  = winSize.left + preferences.windowWidth;
+         if (preferences.windowHeight > 0)
+            winSize.bottom = winSize.top + preferences.windowHeight;
+         
+      }
    }
 
    // don't create windows larger than the screen
@@ -719,10 +714,14 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
    //}
            
    // make sure the window isn't going to run off the screen
-   if ((screen.right - winSize.right) < 0)
+   if ((screen.right - winSize.right) < 0) {
       winSize.left = screen.right - (winSize.right - winSize.left);
-   if ((screen.bottom - winSize.bottom) < 0) 
+      winSize.right = screen.right;
+   }
+   if ((screen.bottom - winSize.bottom) < 0) {
       winSize.top = screen.bottom - (winSize.bottom - winSize.top);
+      winSize.bottom = screen.bottom;
+   }
 
    // Now, create the browser frame
    CBrowserFrame* pFrame = new CBrowserFrame(chromeMask, style);
@@ -741,6 +740,7 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
       pOldRecentFrame = pFrame;
 
    CMenu *menu = theApp.menus.GetMenu(_T("Main"));
+   theApp.menus.SetCheck(ID_OFFLINE, theApp.preferences.bOffline);
 
    if (!pFrame->CreateEx(styleEx, BROWSER_WINDOW_CLASS, strTitle, style,
       winSize, chromeMask & nsIWebBrowserChrome::CHROME_DEPENDENT ? pParent : NULL,
@@ -1209,6 +1209,7 @@ NS_IMETHODIMP CMfcEmbedApp::Observe(nsISupports *aSubject, const char *aTopic, c
          //         plugins.UnLoadAll();
          menus.Destroy();
          InitializePrefs();
+         CheckProfileVersion();
          plugins.FindAndLoad();
          
          CBrowserFrame* browser;
@@ -1288,21 +1289,21 @@ void CMfcEmbedApp::CheckProfileVersion()
    TCHAR version[34];
    _itot(KMELEON_VERSION, version, 10);
    
-   TCHAR buf[34];
-   if (!GetPrivateProfileString(_T("Version"), _T("LastVersion"), _T(""), buf, 10, fileVersion))
+   int oldVersion = GetPrivateProfileInt(_T("Version"), _T("LastVersion"), 0, fileVersion);
+   if (!oldVersion)
    {
-      needClean = TRUE;
+      needClean = TRUE; // XXX This will be done even with a new profile
       WritePrivateProfileString(_T("Version"), _T("LastVersion"), version, fileVersion);
       WritePrivateProfileString(_T("Version"), _T("LastLocale"), locale, fileVersion);
    }
    else {
-      
-      if (_tcscmp(buf, version) != 0) {
+      if (oldVersion != KMELEON_VERSION) {
          needClean = TRUE;
          WritePrivateProfileString(_T("Version"), _T("LastVersion"), version, fileVersion);
       }
 
       if (locale.GetLength()) {
+         TCHAR buf[10];
          GetPrivateProfileString(_T("Version"), _T("LastLocale"), version, buf, 10, fileVersion);
          if (_tcscmp(buf, locale) != 0) {
             nsresult rv = NS_OK;
@@ -1329,5 +1330,21 @@ void CMfcEmbedApp::CheckProfileVersion()
 
       toDelete = GetMozDirectory(NS_APP_USER_PROFILE_LOCAL_50_DIR) + _T("\\xul.mfl"); 
       DeleteFile(toDelete);
+/*
+      if (oldVersion < 0x01000204) {
+         CString backup = theApp.preferences.settingsDir + _T("Backup\\") ;
+         
+         CreateDirectory(backup, NULL);
+         BOOL backupSucceed = CopyFile(theApp.preferences.settingsDir + MENU_CONFIG_FILE, backup + MENU_CONFIG_FILE, FALSE);
+         backupSucceed &= CopyFile(theApp.preferences.settingsDir + ACCEL_CONFIG_FILE, backup + ACCEL_CONFIG_FILE, FALSE);
+         backupSucceed &= CopyFile(theApp.preferences.settingsDir + _T("macros.cfg"), backup + _T("macros.cfg"), FALSE);
+         
+         if (backupSucceed) {
+            CString def = GetMozDirectory(NS_APP_PROFILE_DEFAULTS_NLOC_50_DIR) + _T('\\');
+            CopyFile(def + MENU_CONFIG_FILE, theApp.preferences.settingsDir + MENU_CONFIG_FILE, FALSE);
+            CopyFile(def + ACCEL_CONFIG_FILE, theApp.preferences.settingsDir + ACCEL_CONFIG_FILE, FALSE);
+            CopyFile(def + _T("macros.cfg"), theApp.preferences.settingsDir + _T("macros.cfg"), FALSE);
+         }
+      }*/
    }
 }
