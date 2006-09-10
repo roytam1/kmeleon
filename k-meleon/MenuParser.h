@@ -29,6 +29,7 @@ protected:
   CMap<CMenu *, CMenu *&, int, int&> menuOffsets;
 
   int Parse(char *p);
+  BOOL mAccelText;
 
 public:
 	CMenuParser();
