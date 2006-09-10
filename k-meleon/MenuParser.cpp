@@ -84,6 +84,8 @@ int CMenuParser::Load(LPCTSTR filename)
 {
    SETUP_LOG("Menu");
 
+   mAccelText = theApp.preferences.GetBool("kmeleon.display.accelInMenus", TRUE);
+
    int retVal = CParser::Load(filename);
 
    END_LOG();
@@ -95,6 +97,8 @@ static CMenu *currentMenu = NULL;
 
 int CMenuParser::Parse(char *p)
 {
+   
+
    if (!currentMenu) {
       // There can only be 3 things outside a menu:
       //   comments, metacommands, and the beginning of a menu block
@@ -213,11 +217,16 @@ int CMenuParser::Parse(char *p)
 				
 				*sep = 0;
 				long val = 0;
-				CString accel;
-				if (theApp.plugins.SendMessage(p, "* MenuParser", "DoAccel", (long)parameter, (long)&val) && val)
-					accel = theApp.accel.GetStrAccel(val);
-				if (accel.GetLength())
-					param += _T("\t")+accel;
+				if (mAccelText)
+				{
+				   CString accel;
+				   if (theApp.plugins.SendMessage(p, "* MenuParser", "DoAccel", (long)parameter, (long)&val) && val)
+				   {
+					  accel = theApp.accel.GetStrAccel(val);
+				      if (accel.GetLength())
+					     param += _T("\t")+accel;
+				   }
+				}
 			}
 
             if (theApp.plugins.SendMessage(p, "* MenuParser", "DoMenu", (long)currentMenu->GetSafeHmenu(), (long)T2CA(param))) {
@@ -239,12 +248,16 @@ int CMenuParser::Parse(char *p)
                if (!val)
                   val = atoi(e);
 
-			   CString accel = theApp.accel.GetStrAccel(val);
 			   //LPCTSTR pTranslated = theApp.lang.Translate(p);
 			   CString pTranslated;
 			   Translate(p, pTranslated);
-			   if (accel.GetLength())
-				  pTranslated += _T("\t") + accel;
+			   
+			   if (mAccelText)
+			   {
+			      CString accel = theApp.accel.GetStrAccel(val);
+			      if (accel.GetLength())
+				     pTranslated += _T("\t") + accel;
+			   }
 			   
 			   currentMenu->AppendMenu(MF_STRING, val, pTranslated);
 
