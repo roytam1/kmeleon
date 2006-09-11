@@ -215,17 +215,14 @@ void CBrowserFrame::OnClose()
       CBrowserFrame* pFrame;
 
       POSITION pos = theApp.m_FrameWndLst.Find(this);
-      theApp.m_FrameWndLst.GetPrev(pos);
-      if (pos) pFrame = (CBrowserFrame *) theApp.m_FrameWndLst.GetPrev(pos);  // previous frame
-      else     pFrame = (CBrowserFrame *) theApp.m_FrameWndLst.GetTail();     // last frame
+      if (pos) theApp.m_FrameWndLst.GetPrev(pos);
 
-      if (pFrame != this)  theApp.m_pMostRecentBrowserFrame = pFrame;
-      else                 theApp.m_pMostRecentBrowserFrame = NULL;
+      pFrame = pos ? 
+         (CBrowserFrame *) theApp.m_FrameWndLst.GetPrev(pos) : // previous frame
+         (CBrowserFrame *) theApp.m_FrameWndLst.GetTail();     // last frame
+
       // if no other browser views exist, nullify the pointer
-
-      if (!theApp.m_pMostRecentBrowserFrame && !(m_style & WS_POPUP)){
-          m_wndReBar.SaveBandSizes();
-      }
+      theApp.m_pMostRecentBrowserFrame = (pFrame != this) ? pFrame : NULL;
    }
 
     WINDOWPLACEMENT wp;
@@ -251,6 +248,17 @@ void CBrowserFrame::OnClose()
             }
         }
     }
+
+   // If this is the last window and if it's not a popup, save the 
+   // toolbars position.
+   // XXX should be if it's the last non popup window
+    if ( theApp.m_FrameWndLst.GetCount() == 1 &&
+         !(m_style & WS_POPUP) &&
+         (m_chromeMask & nsIWebBrowserChrome::CHROME_DEFAULT ||
+          (m_chromeMask & nsIWebBrowserChrome::CHROME_TOOLBAR &&
+           m_chromeMask & nsIWebBrowserChrome::CHROME_LOCATIONBAR &&
+           m_chromeMask & nsIWebBrowserChrome::CHROME_MENUBAR)))
+       m_wndReBar.SaveBandSizes();
 
    // tell all our plugins that we are closing
    theApp.plugins.SendMessage("*", "* OnClose", "Destroy", (long)m_hWnd);
