@@ -1145,6 +1145,8 @@ NS_IMETHODIMP CMfcEmbedApp::Observe(nsISupports *aSubject, const char *aTopic, c
             pBrowserFrame->SendMessage(WM_CLOSE);
       }
       m_bSwitchingProfiles = FALSE;
+
+      preferences.Save(true);
    }
    else if (strcmp(aTopic, "profile-after-change") == 0)
    {        
@@ -1152,18 +1154,20 @@ NS_IMETHODIMP CMfcEmbedApp::Observe(nsISupports *aSubject, const char *aTopic, c
       // called at start up and we already do evenything once already
       if (!wcscmp(someData, NS_LITERAL_STRING("switch").get())) {
          
+         /* XXX Plugin that use global vars can't be unloaded/reloaded
+            correctly.
+         */
          
-      /* Unloading a plugin that has subclassed a browser window crashes us, even if the
-         subclassed window has been closed...I don't really know why, so I'll save this 
-         as something to debug later, and just not unload plugins (which will cause problems
-         when switching profiles, but since this feature caused kmeleon .4 to crash and *nobody*
-         submitted a bug report, I have a feeling this isn't a commonly used feature.
-      */
-         //         plugins.UnLoadAll();
+         plugins.SendMessage("*", "* Plugin Manager", "Quit");
+         plugins.UnLoadAll();
          menus.Destroy();
          InitializePrefs();
          CheckProfileVersion();
+
          plugins.FindAndLoad();
+         plugins.SendMessage("*", "* Plugin Manager", "Init");
+         InitializeMenusAccels();
+         plugins.SendMessage("*", "* Plugin Manager", "Setup");
          
          CBrowserFrame* browser;
          browser = CreateNewBrowserFrame();
