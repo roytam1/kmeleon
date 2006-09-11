@@ -55,6 +55,7 @@ private:
 	//{{AFX_MSG(CHiddenWnd)
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
    afx_msg void OnClose();
+   afx_msg void OnEndSession(BOOL bEnding);
    afx_msg LRESULT OnSetPersist(WPARAM flags, LPARAM lParam);
    afx_msg BOOL OnCopyData(CWnd* pWnd, COPYDATASTRUCT* pCopyDataStruct);
    afx_msg LRESULT OnNewWindow(WPARAM wParam, LPARAM lParam);
@@ -76,7 +77,7 @@ private:
    BOOL        m_bFirstWindowCreated;
    // used to process the rebar DrawToolbarMenu function, which must only
    // be called once, but must be called after the first window has been created
-
+   
 };
 
 
