@@ -379,7 +379,8 @@ HRESULT CBrowserView::CreateBrowser()
 	}
    
 	// Disable scrollbar if needed
-	if (!(mpBrowserFrame->m_chromeMask & nsIWebBrowserChrome::CHROME_SCROLLBARS) &&
+	if (!(mpBrowserFrame->m_chromeMask & nsIWebBrowserChrome::CHROME_DEFAULT) &&
+       !(mpBrowserFrame->m_chromeMask & nsIWebBrowserChrome::CHROME_SCROLLBARS) &&
 	    !(mpBrowserFrame->m_chromeMask & nsIWebBrowserChrome::CHROME_WINDOW_RESIZE))
 	{
 		nsCOMPtr<nsIDOMWindow> dom;
