@@ -555,16 +555,20 @@ void CBrowserFrame::BrowserFrameGlueObj::DestroyBrowserFrame()
     pThis->PostMessage(WM_CLOSE, -1, -1);
 }
 
-#define GOTO_BUILD_CTX_MENU { bContentHasFrames = FALSE; goto BUILD_CTX_MENU; }
-
 void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags, nsIContextMenuInfo *aInfo)
 {  
     METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
+    int nodeHack = pThis->m_wndBrowserView.m_iGetNodeHack;
+    pThis->m_wndBrowserView.m_iGetNodeHack = 0;
+
+    // No context menu for dialog
+    if (pThis->m_chromeMask & nsIWebBrowserChrome::CHROME_OPENAS_DIALOG)
+        return;
 
     BOOL bContentHasFrames = FALSE;
     UINT nIDResource = IDR_CTXMENU_DOCUMENT;
 
-    if (pThis->m_wndBrowserView.m_iGetNodeHack == 0) {
+    if (nodeHack == 0) {
          if (GetKeyState(VK_SHIFT) < 0 ||
              GetKeyState(VK_CONTROL) < 0 || 
              GetKeyState(VK_MENU) < 0)
@@ -592,11 +596,11 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags,
 */
 
    nsCOMPtr<nsIDOMNode> node;
-   aInfo->GetTargetNode(getter_AddRefs(node));
+   nsresult rv = aInfo->GetTargetNode(getter_AddRefs(node));
+   if (NS_FAILED(rv)) return;
 
    
-   if (pThis->m_wndBrowserView.m_iGetNodeHack == 1) {
-      pThis->m_wndBrowserView.m_iGetNodeHack = 0;
+   if (nodeHack == 1) {
       pThis->m_wndBrowserView.m_pGetNode = node;
       return;
    }
@@ -679,37 +683,37 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags,
 
     // Determine if we need to add the Frame related context menu items
     // such as "View Frame Source" etc.
-    //
-    if(pThis->m_wndBrowserView.ViewContentContainsFrames())
+    // node is not set for xml documents, ... but we still
+    // want the context menu for them.
+    if (node) 
     {
-        bContentHasFrames = TRUE;
+        nsCOMPtr<nsIDOMDocument> contextDocument;
+        rv = node->GetOwnerDocument(getter_AddRefs(contextDocument));
+        if (NS_FAILED(rv) || !contextDocument) return;
 
-        //Determine the current Frame URL
-        //
-        nsresult rv = NS_OK;
-        nsCOMPtr<nsIDOMNode> node;
-        aInfo->GetTargetNode(getter_AddRefs(node));
-        if(!node)
-            GOTO_BUILD_CTX_MENU;
+        nsCOMPtr<nsIDOMWindow> domWindow;
+        rv = pThis->m_wndBrowserView.mWebBrowser->GetContentDOMWindow(getter_AddRefs(domWindow));
+        if (NS_FAILED(rv) || !domWindow) return;
 
-        nsCOMPtr<nsIDOMDocument> domDoc;
-        rv = node->GetOwnerDocument(getter_AddRefs(domDoc));
-        if(NS_FAILED(rv))
-            GOTO_BUILD_CTX_MENU;
+        nsCOMPtr<nsIDOMDocument> document;
+        rv = domWindow->GetDocument(getter_AddRefs(document));
+        if (NS_FAILED(rv)) return;
 
-        nsCOMPtr<nsIDOMHTMLDocument> htmlDoc(do_QueryInterface(domDoc, &rv));
-        if(NS_FAILED(rv))
-            GOTO_BUILD_CTX_MENU;
-
-        nsEmbedString strFrameURL;
-        rv = htmlDoc->GetURL(strFrameURL);
-        if(NS_FAILED(rv))
-            GOTO_BUILD_CTX_MENU;
-
-        pThis->m_wndBrowserView.SetCurrentFrameURL(strFrameURL); //Set it to the new URL
+        if(document != contextDocument)
+        {
+            //Determine the current Frame URL
+            nsCOMPtr<nsIDOMHTMLDocument> htmlDoc(do_QueryInterface(contextDocument, &rv));
+            if (NS_SUCCEEDED(rv)) {
+                nsEmbedString strFrameURL;
+                rv = htmlDoc->GetURL(strFrameURL);
+                if (NS_SUCCEEDED(rv)) {
+                    //Set it to the new URL
+                    pThis->m_wndBrowserView.SetCurrentFrameURL(strFrameURL); 
+                    bContentHasFrames = TRUE;
+                }
+            }
+        }
     }
-
-BUILD_CTX_MENU:
 
     TCHAR *menuType = _T("<nothing>");
     if (!bContentHasFrames) {
@@ -755,8 +759,7 @@ BUILD_CTX_MENU:
 
 
    /*  !!BAD HACK!!  !!BAD HACK!!  !!BAD HACK!!  !!BAD HACK!!  */
-   if (pThis->m_wndBrowserView.m_iGetNodeHack == 2) {
-      pThis->m_wndBrowserView.m_iGetNodeHack = 0;
+   if (nodeHack == 2) {
       pThis->m_wndBrowserView.m_pGetNode = node;
       return;
    }
