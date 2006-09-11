@@ -517,14 +517,7 @@ void CMfcEmbedApp::UnregisterWindow(CDialog *window) {
    m_MiscWndLst.RemoveAt(pos);
    
    
-   // Unless we are set to stay resident,
-   // send a WM_QUIT msg. to the hidden window if we've
-   // just closed the last browserframe window and
-   // if the bCloseAppOnLastFrame is TRUE. This be FALSE
-   // only in the case we're switching profiles
-   // Without this the hidden window will stick around
-   // i.e. the app will never die even after all the 
-   // visible windows are gone.
+   // See comment in RemoveFrameFromList()
    if ((m_MiscWndLst.GetCount() == 0) && (m_FrameWndLst.GetCount() == 0)) {
       
       if (m_pMainWnd) {
@@ -533,11 +526,8 @@ void CMfcEmbedApp::UnregisterWindow(CDialog *window) {
             ((CHiddenWnd*) m_pMainWnd)->StayResident();
          
          // otherwise we're exiting, close the Evil Hidden Window
-         else {
-            m_pMainWnd->PostMessage(WM_QUIT);
-            delete (CHiddenWnd *) m_pMainWnd;
-            m_pMainWnd = NULL;
-         }
+         else
+             m_pMainWnd->DestroyWindow();
       }
    }
 }
@@ -852,41 +842,10 @@ void CMfcEmbedApp::RemoveFrameFromList(CBrowserFrame* pFrm)
 {
    POSITION pos = m_FrameWndLst.Find(pFrm);
    m_FrameWndLst.RemoveAt(pos);
-   
-   /*
-   if(IsClipboardFormatAvailable(CF_TEXT)) {
-       if(OpenClipboard(NULL)) {
-           HANDLE hcb = GetClipboardData(CF_TEXT);
-           if (hcb) {
-               LPVOID pData = GlobalLock(hcb);
-               if (pData) {
-                   char *pszData = (char*)malloc(strlen((char*)pData) + 1);
-                   if (pszData) {
-                       strcpy(pszData, (LPSTR)pData);
-                       GlobalUnlock(hcb);
 
-                       EmptyClipboard();
-
-                       HGLOBAL hData = GlobalAlloc(GMEM_DDESHARE|GMEM_MOVEABLE,strlen(pszData) + 1);
-                       if (hData) {
-                           pData = GlobalLock(hData);
-                           if (pData) {
-                               strcpy((LPSTR)pData, pszData);
-                               GlobalUnlock(hData);
-                               SetClipboardData(CF_TEXT, hData);
-                           }
-                       }
-				   }
-				   free(pszData);
-               }
-		   }
-		   CloseClipboard();
-       }
-   }
-   
-   */
-   // Unless we are set to stay resident,
-   // send a WM_QUIT msg. to the hidden window if we've
+   // Unless we are set to stay resident, 
+   // destroy the hidden window (which will post a WM_QUIT msg
+   // since this is the main frame window) if we've
    // just closed the last browserframe window and
    // if the bCloseAppOnLastFrame is TRUE. This be FALSE
    // only in the case we're switching profiles
@@ -905,11 +864,8 @@ void CMfcEmbedApp::RemoveFrameFromList(CBrowserFrame* pFrm)
             ((CHiddenWnd*) m_pMainWnd)->StayResident();
          
          // otherwise we're exiting, close the Evil Hidden Window
-         else {
-            m_pMainWnd->PostMessage(WM_QUIT);
-            delete (CHiddenWnd *) m_pMainWnd;
-            m_pMainWnd = NULL;
-         }
+         else
+            m_pMainWnd->DestroyWindow();
       }
    }
 }
@@ -957,12 +913,9 @@ int CMfcEmbedApp::ExitInstance()
    m_FrameWndLst.RemoveAll();
    
    m_pMostRecentBrowserFrame = NULL; // In case plugins are weird
-
-   if (m_pMainWnd) {
-      m_pMainWnd->SendMessage(WM_CLOSE);
-      delete (CHiddenWnd *) m_pMainWnd;
-      m_pMainWnd = NULL;
-   }
+   
+   if (m_pMainWnd)
+      m_pMainWnd->DestroyWindow();
 
    delete m_MRUList;
    DestroyIcon(m_hMainIcon);

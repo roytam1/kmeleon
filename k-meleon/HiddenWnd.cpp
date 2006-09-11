@@ -25,6 +25,7 @@ BEGIN_MESSAGE_MAP(CHiddenWnd, CFrameWnd)
    ON_WM_CREATE()
    ON_WM_CLOSE()
    ON_WM_COPYDATA()
+   ON_WM_ENDSESSION()
    ON_MESSAGE(UWM_NEWWINDOW, OnNewWindow)
    ON_MESSAGE(UWM_PERSIST_SET, OnSetPersist)
    ON_MESSAGE(UWM_PERSIST_SHOW, OnShowBrowser)
@@ -89,24 +90,24 @@ void CHiddenWnd::OnClose() {
 
    // make sure the loader hasn't exited without notifying us
    HWND hwndLoader = ::FindWindowEx(NULL, NULL, _T("KMeleon Tray Control"), NULL);
-   if (!hwndLoader)
+   if (!hwndLoader) {
       CFrameWnd::OnClose();
-
-   // close all the browser windows, stay resident
-   else {
-      CBrowserFrame* pBrowserFrame = NULL;
-
-	   POSITION pos = theApp.m_FrameWndLst.GetHeadPosition();
-      while( pos != NULL ) {
-		   pBrowserFrame = (CBrowserFrame *) theApp.m_FrameWndLst.GetNext(pos);
-		   if(pBrowserFrame)	{
-			   pBrowserFrame->ShowWindow(false);
-   			pBrowserFrame->DestroyWindow();
-	   	}
-	   }
-	   theApp.m_FrameWndLst.RemoveAll();
-      StayResident();
+      return;
    }
+
+   // else close all the browser windows and stay resident
+   CBrowserFrame* pBrowserFrame = NULL;
+
+   POSITION pos = theApp.m_FrameWndLst.GetHeadPosition();
+   while( pos != NULL ) {
+      pBrowserFrame = (CBrowserFrame *) theApp.m_FrameWndLst.GetNext(pos);
+      if(pBrowserFrame)	{
+         pBrowserFrame->ShowWindow(false);
+         pBrowserFrame->DestroyWindow();
+      }
+   }
+   theApp.m_FrameWndLst.RemoveAll();
+   StayResident();
 }
 
 LRESULT CHiddenWnd::OnSetPersist(WPARAM flags, LPARAM lParam) {
@@ -304,4 +305,14 @@ LRESULT CHiddenWnd::OnDeferSaveAs(WPARAM wParam, LPARAM lParam)
 	NS_RELEASE(handler);
 	free((char*)lParam);
 	return rv;
+}
+
+void CHiddenWnd::OnEndSession(BOOL bEnding)
+{
+   if (!bEnding) return;
+   // If we try to close anything then windows will trash us,
+   // so remove all windows from the lists.
+   theApp.m_FrameWndLst.RemoveAll();
+   theApp.m_MiscWndLst.RemoveAll();
+   CFrameWnd::OnEndSession(bEnding);
 }
