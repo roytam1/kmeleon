@@ -244,6 +244,13 @@
 				RelativePath="..\history.h">
 			</File>
 		</Filter>
+		<Filter
+			Name="Resource Files"
+			Filter="">
+			<File
+				RelativePath=".\history.rc">
+			</File>
+		</Filter>
 	</Files>
 	<Globals>
 	</Globals>
