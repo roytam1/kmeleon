@@ -165,7 +165,7 @@ void CReBarEx::OnChevronPushed( NMHDR * pNotifyStruct, LRESULT* result )
 
 				// Add the item to the menu with the id of the toolbar button
 				// or add the submenu 
-				if (::IsMenu((HMENU)(id - SUBMENU_OFFSET))) 
+            if ((button.fsStyle & TBSTYLE_DROPDOWN) && ::IsMenu((HMENU)(id - SUBMENU_OFFSET))) 
 					pop.AppendMenu( iMenuStyle|MF_POPUP, id-SUBMENU_OFFSET, buttonText);
 				else
 					pop.AppendMenu ( iMenuStyle, id, buttonText);
@@ -441,5 +441,3 @@ void CReBarEx::LockBars(BOOL lock)
       GetReBarCtrl().SetBandInfo(barIndex, &rbbi);
    }
 }
-
-
