@@ -618,7 +618,9 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
         !(chromeMask & nsIWebBrowserChrome::CHROME_TOOLBAR)) )
       style |= WS_POPUP; // For the sake of layers....
 
-   if (preferences.bMaximized && (chromeMask & nsIWebBrowserChrome::CHROME_WINDOW_RESIZE))
+   if (preferences.bMaximized &&
+      !(chromeMask & nsIWebBrowserChrome::CHROME_OPENAS_CHROME) &&
+      (chromeMask & nsIWebBrowserChrome::CHROME_WINDOW_RESIZE))
       style |= WS_MAXIMIZE;
 
    RECT screen, winSize;
@@ -761,6 +763,7 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
       pFrame->ModifyStyleEx(0, WS_EX_APPWINDOW);
    }
 
+   // XUL Dialog must be resized after loading.
    BOOL canResize = !theApp.preferences.GetBool("kmeleon.display.dontResizeXul", FALSE);
    BOOL sizeOnLoad = FALSE;
    if (canResize && chromeMask & nsIWebBrowserChrome::CHROME_OPENAS_CHROME)
