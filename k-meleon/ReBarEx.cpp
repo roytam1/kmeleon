@@ -401,11 +401,12 @@ void CReBarEx::RestoreBandSizes() {
 
       strcpy(tempPref + offset, ".break");
       barbreak = theApp.preferences.GetInt(tempPref, 1);
-      if (barbreak) {
-         rbbi.fMask |= RBBIM_STYLE;
-         GetReBarCtrl().GetBandInfo(barIndex, &rbbi);
-         rbbi.fStyle |= RBBS_BREAK;
-      }
+
+      rbbi.fMask |= RBBIM_STYLE;
+      GetReBarCtrl().GetBandInfo(barIndex, &rbbi);
+      
+      rbbi.fStyle = barbreak ? 
+         rbbi.fStyle | RBBS_BREAK : rbbi.fStyle & ~RBBS_BREAK;
 
       strcpy(tempPref + offset, ".size");
       rbbi.cx = theApp.preferences.GetInt(tempPref, 0);

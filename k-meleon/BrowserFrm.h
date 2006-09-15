@@ -262,6 +262,7 @@ protected:
 	afx_msg LRESULT OnNewSiteIcon(WPARAM url, LPARAM index);
 #endif
 	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
+   afx_msg void OnRbnLayoutChanged(NMHDR *pNMHDR, LRESULT *pResult);
     //}}AFX_MSG
     DECLARE_MESSAGE_MAP()
 };
