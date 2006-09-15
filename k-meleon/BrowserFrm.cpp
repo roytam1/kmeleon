@@ -107,6 +107,7 @@ BEGIN_MESSAGE_MAP(CBrowserFrame, CFrameWnd)
 #endif
 	ON_UPDATE_COMMAND_UI_RANGE(TOOLBAR_MENU_START_ID, TOOLBAR_MENU_END_ID, OnUpdateToolBarMenu)
 	ON_COMMAND(ID_EDIT_FIND, OnShowFindBar)
+   ON_NOTIFY(RBN_LAYOUTCHANGED, AFX_IDW_REBAR, OnRbnLayoutChanged)
     //}}AFX_MSG_MAP
 	ON_WM_SYSCOMMAND()
 END_MESSAGE_MAP()
@@ -249,17 +250,6 @@ void CBrowserFrame::OnClose()
         }
     }
 
-   // If this is the last window and if it's not a popup, save the 
-   // toolbars position.
-   // XXX should be if it's the last non popup window
-    if ( theApp.m_FrameWndLst.GetCount() == 1 &&
-         !(m_style & WS_POPUP) &&
-         (m_chromeMask & nsIWebBrowserChrome::CHROME_DEFAULT ||
-          (m_chromeMask & nsIWebBrowserChrome::CHROME_TOOLBAR &&
-           m_chromeMask & nsIWebBrowserChrome::CHROME_LOCATIONBAR &&
-           m_chromeMask & nsIWebBrowserChrome::CHROME_MENUBAR)))
-       m_wndReBar.SaveBandSizes();
-
    // tell all our plugins that we are closing
    theApp.plugins.SendMessage("*", "* OnClose", "Destroy", (long)m_hWnd);
    
@@ -344,7 +334,8 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
     // Create a ReBar window to which the toolbar and UrlBar 
     // will be added
-    if (!m_wndReBar.Create(this, RBS_DBLCLKTOGGLE | RBS_VARHEIGHT | RBS_BANDBORDERS))
+    BOOL hasLine = theApp.preferences.GetBool("kmeleon.display.toolbars_line", TRUE);
+    if (!m_wndReBar.Create(this, RBS_DBLCLKTOGGLE | RBS_VARHEIGHT | (hasLine ? RBS_BANDBORDERS:0)))
     {
         TRACE0("Failed to create ReBar\n");
         return -1;      // fail to create
@@ -1039,17 +1030,25 @@ void CBrowserFrame::SetSoftFocus() {
 
 void CBrowserFrame::ToggleToolBar(UINT uID)
 {
-    m_wndReBar.ToggleVisibility(uID - TOOLBAR_MENU_START_ID);
+   CBrowserFrame* pBrowserFrame;
+   POSITION pos = theApp.m_FrameWndLst.GetHeadPosition();
+   while( pos != NULL ) {
+      pBrowserFrame = (CBrowserFrame *) theApp.m_FrameWndLst.GetNext(pos);
+      pBrowserFrame->m_wndReBar.ToggleVisibility(uID - TOOLBAR_MENU_START_ID);
+   }
 }
 
 void CBrowserFrame::ToggleToolbarLock()
 {
     BOOL locked = theApp.preferences.GetBool(PREF_TOOLBAND_LOCKED, false);
-    if (!locked)
-        m_wndReBar.SaveBandSizes();
     locked = !locked;
     theApp.preferences.SetBool(PREF_TOOLBAND_LOCKED, locked);
-    m_wndReBar.LockBars(locked);
+    CBrowserFrame* pBrowserFrame;
+    POSITION pos = theApp.m_FrameWndLst.GetHeadPosition();
+    while( pos != NULL ) {
+       pBrowserFrame = (CBrowserFrame *) theApp.m_FrameWndLst.GetNext(pos);
+       pBrowserFrame->m_wndReBar.LockBars(locked);
+    }
 }
 
 #ifdef INTERNAL_SIDEBAR
@@ -1251,4 +1250,22 @@ INT_PTR CBrowserFrame::DoModal()
 	INT_PTR res = m_nModalResult;
 	DestroyWindow();
 	return res;
+}
+
+void CBrowserFrame::OnRbnLayoutChanged(NMHDR *pNMHDR, LRESULT *pResult)
+{
+   *pResult = 0;
+
+   if ( !(m_chromeMask & nsIWebBrowserChrome::CHROME_TOOLBAR) ||
+        !(m_chromeMask & nsIWebBrowserChrome::CHROME_MENUBAR) ||
+        !(m_chromeMask & nsIWebBrowserChrome::CHROME_LOCATIONBAR) )
+      return;
+
+   m_wndReBar.SaveBandSizes();
+   CBrowserFrame* pBrowserFrame;
+   POSITION pos = theApp.m_FrameWndLst.GetHeadPosition();
+   while( pos != NULL ) {
+      pBrowserFrame = (CBrowserFrame *) theApp.m_FrameWndLst.GetNext(pos);
+      pBrowserFrame->m_wndReBar.RestoreBandSizes();
+   }
 }
