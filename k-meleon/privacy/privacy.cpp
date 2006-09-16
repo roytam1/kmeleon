@@ -352,11 +352,6 @@ void Quit()
     DoShutdownTasks();
 }
 
-void Exit()
-{
-    DoShutdownTasks();
-}
-
 void DoMenu(HMENU menu, LPSTR param)
 {
    if (*param != 0){
@@ -436,9 +431,6 @@ LONG DoMessage(LPCSTR to, LPCSTR from, LPCSTR subject, LONG data1, LONG data2)
       }
       else if (stricmp(subject, "Quit") == 0) {
          Quit();
-      }
-      else if (stricmp(subject, "Exit") == 0) {
-         Exit();
       }
       else if (stricmp(subject, "DoMenu") == 0) {
          DoMenu((HMENU)data1, (LPSTR)data2);
