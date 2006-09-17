@@ -104,8 +104,7 @@ int CAccelParser::Parse(char *p)
    char *alt, *ctrl, *shift;
    BYTE virt;
    int command;
-   int key;
-   BOOL vkey;
+   SHORT key;
 
    // <modifiers> <key> = <command>
    e = strchr(p, '=');
@@ -168,7 +167,6 @@ int CAccelParser::Parse(char *p)
       if (strncmp(p, "VK_", 3) == 0){
          p+=3;
          key = 0;
-         vkey = TRUE;
 
          // these should be in order of frequency of use to speed up parsing
          BEGIN_VK_TEST
@@ -299,17 +297,14 @@ int CAccelParser::Parse(char *p)
 	return true;
       }
       else {
-         // regular key...
-         key = (WORD)*p;
-         vkey = FALSE;
+         // regular key, convert it to virtual-key code to 
+         // get the associated key on the keyboard.
+         key = VkKeyScanA(*p) & 0xff;
       }
 
       accelerators[numAccelerators].cmd = command;
       accelerators[numAccelerators].fVirt = virt;
-      if ( vkey || ((key >= 'A') && (key <= 'Z')) || ((key >= 'a') && (key <= 'z')) )
-         accelerators[numAccelerators].key = key;
-      else
-         accelerators[numAccelerators].key = VkKeyScan(key);
+      accelerators[numAccelerators].key = key;
       numAccelerators++;
    } // if e
 
@@ -379,20 +374,27 @@ CString CAccelParser::GetStrAccel(UINT id)
 				key == VK_LEFT ||
 				key == VK_RIGHT ||
 				key == VK_UP ||
-                key == VK_ADD ||
-                key == VK_MINUS ||
-				key == VK_DOWN)
-				scan |= 0x100;
+				key == VK_DOWN ||
+				key == VK_ADD ||
+				key == VK_SUBTRACT)
+				scan |= 0x100; // should remove the numpad text
 
 			if (GetKeyNameText(scan<<16 , buf, sizeof(buf)) == 0)
 				return _T("");
+
+			// Since I can't find a way to remove the numpad indication
+			// for /,* or . I'm removing it the hard way.
+			TCHAR* parenthesis = _tcschr(buf, '(');
+			if (parenthesis && parenthesis>buf)
+				*parenthesis = 0;
+
 			if (*buf) {
 				CharLowerBuff(buf+1, _tcslen(buf)-1);
 				str += buf;
 			}
 		}
 		else {
-			char c[2] = { accel->key, '\0' };
+			char c[2] = { accel->key & 0xff, '\0' };
 			USES_CONVERSION;
 			str += A2CT(c);
 		}
