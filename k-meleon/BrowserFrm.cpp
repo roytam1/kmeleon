@@ -370,12 +370,6 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
     rbbi.cx = 200;
     rebarControl->SetBandInfo (0, &rbbi);
 
-    theApp.plugins.SendMessage("*", "* OnCreate", "DoRebar", (long)m_wndReBar.GetReBarCtrl().m_hWnd);
-
-    m_wndReBar.RestoreBandSizes();
-
-    m_wndReBar.LockBars(theApp.preferences.GetBool(PREF_TOOLBAND_LOCKED, false));
-
     // Create the status bar with two panes - one pane for actual status
     // text msgs. and the other for the progress control
     if (!m_wndStatusBar.CreateEx(this))
@@ -406,6 +400,11 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
     // the security lock icon displayed in it. Set up it's size(16)
     // and style(no border)so that the padlock icons can be properly drawn
     //m_wndStatusBar.SetPaneInfo(2, -1, SBPS_NORMAL|SBPS_NOBORDERS, 16);
+    theApp.plugins.SendMessage("*", "* OnCreate", "DoRebar", (long)m_wndReBar.GetReBarCtrl().m_hWnd);
+
+    m_wndReBar.RestoreBandSizes();
+
+    m_wndReBar.LockBars(theApp.preferences.GetBool(PREF_TOOLBAND_LOCKED, false));
 
     // Create the tooltip window
     m_wndToolTip.Create(&m_wndBrowserView);
