@@ -16,9 +16,9 @@
 *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
-#define KMELEON_VERSION				   0x01000203
+#define KMELEON_VERSION                0x01000205
 
-#define WM_DEFERSHOW				   WM_USER + 150
+#define WM_DEFERSHOW                   WM_USER + 150
 #define WM_DEFERSAVEAS                 WM_USER + 151
 
 #define UWM_UPDATESESSIONHISTORY       WM_APP + 110
@@ -27,7 +27,7 @@
 #define UWM_REFRESHMRULIST             WM_APP + 113
 
 #define UWM_NEWWINDOW                  WM_APP + 115
-#define UWM_NEWSITEICON				   WM_APP + 140
+#define UWM_NEWSITEICON                WM_APP + 140
 
 #define UWM_PERSIST_SET                WM_APP + 1116
 #define UWM_PERSIST_GET                WM_APP + 1117
@@ -41,13 +41,13 @@
 #define TB_MBUTTONHOLD	               WM_APP + 124
 #define TB_RBUTTONHOLD	               WM_APP + 125
 
-#define TB_LBUTTONUP	                  WM_APP + 126
-#define TB_MBUTTONUP	                  WM_APP + 127
-#define TB_RBUTTONUP	                  WM_APP + 128
+#define TB_LBUTTONUP                   WM_APP + 126
+#define TB_MBUTTONUP                   WM_APP + 127
+#define TB_RBUTTONUP                   WM_APP + 128
 
-#define TB_LBUTTONDBLCLK                  WM_APP + 129
-#define TB_MBUTTONDBLCLK                  WM_APP + 130
-#define TB_RBUTTONDBLCLK                  WM_APP + 131
+#define TB_LBUTTONDBLCLK               WM_APP + 129
+#define TB_MBUTTONDBLCLK               WM_APP + 130
+#define TB_RBUTTONDBLCLK               WM_APP + 131
 
 
 #define PLUGIN_COMMAND_START_ID        6000
