@@ -1,4 +1,8 @@
 Microsoft Visual Studio Solution File, Format Version 8.00
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "k-meleon", "KMeleon.vcproj", "{A1E2BBD2-452C-41F6-A64A-9476398A17DA}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Layers", "layers\Layers.vcproj", "{A893706A-93AF-4905-B9B9-125F9F961CF2}"
 	ProjectSection(ProjectDependencies) = postProject
 	EndProjectSection
@@ -23,14 +27,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "old_favorites", "ie_favorit
 	ProjectSection(ProjectDependencies) = postProject
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "k-meleon", "KMeleon.vcproj", "{A1E2BBD2-452C-41F6-A64A-9476398A17DA}"
-	ProjectSection(ProjectDependencies) = postProject
-	EndProjectSection
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "kmeleon_winamp", "kmeleon_winamp\kmeleon_winamp.vcproj", "{68BDF469-57D1-4026-B356-499A1B0788E3}"
-	ProjectSection(ProjectDependencies) = postProject
-	EndProjectSection
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "loader", "loader\loader.vcproj", "{DF7D017C-AE43-428E-A575-A329D951529F}"
 	ProjectSection(ProjectDependencies) = postProject
 	EndProjectSection
@@ -52,10 +48,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rebarmenu", "rebar_menu\reb
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "toolbars", "toolbars\toolbars.vcproj", "{97C153A5-A4F6-4AD7-971B-F6C747558AC4}"
-	ProjectSection(ProjectDependencies) = postProject
-	EndProjectSection
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "weasel", "weasel\weasel.vcproj", "{AA71AE8A-FD92-43BF-8BA4-65F57BDE8F3C}"
 	ProjectSection(ProjectDependencies) = postProject
 	EndProjectSection
 EndProject
@@ -118,9 +110,6 @@ Global
 		{A1E2BBD2-452C-41F6-A64A-9476398A17DA}.Release.Build.0 = Release|Win32
 		{A1E2BBD2-452C-41F6-A64A-9476398A17DA}.Release MFC Static.ActiveCfg = Release MFC Static|Win32
 		{A1E2BBD2-452C-41F6-A64A-9476398A17DA}.Release MFC Static.Build.0 = Release MFC Static|Win32
-		{68BDF469-57D1-4026-B356-499A1B0788E3}.Debug.ActiveCfg = Debug|Win32
-		{68BDF469-57D1-4026-B356-499A1B0788E3}.Release.ActiveCfg = Release|Win32
-		{68BDF469-57D1-4026-B356-499A1B0788E3}.Release MFC Static.ActiveCfg = Release|Win32
 		{DF7D017C-AE43-428E-A575-A329D951529F}.Debug.ActiveCfg = Debug|Win32
 		{DF7D017C-AE43-428E-A575-A329D951529F}.Debug.Build.0 = Debug|Win32
 		{DF7D017C-AE43-428E-A575-A329D951529F}.Release.ActiveCfg = Release|Win32
@@ -157,9 +146,6 @@ Global
 		{97C153A5-A4F6-4AD7-971B-F6C747558AC4}.Release.Build.0 = Release|Win32
 		{97C153A5-A4F6-4AD7-971B-F6C747558AC4}.Release MFC Static.ActiveCfg = Release|Win32
 		{97C153A5-A4F6-4AD7-971B-F6C747558AC4}.Release MFC Static.Build.0 = Release|Win32
-		{AA71AE8A-FD92-43BF-8BA4-65F57BDE8F3C}.Debug.ActiveCfg = Debug|Win32
-		{AA71AE8A-FD92-43BF-8BA4-65F57BDE8F3C}.Release.ActiveCfg = Release|Win32
-		{AA71AE8A-FD92-43BF-8BA4-65F57BDE8F3C}.Release MFC Static.ActiveCfg = Release|Win32
 		{F80DCDF9-D001-47F7-97D5-26EF62BF91AF}.Debug.ActiveCfg = Debug|Win32
 		{F80DCDF9-D001-47F7-97D5-26EF62BF91AF}.Debug.Build.0 = Debug|Win32
 		{F80DCDF9-D001-47F7-97D5-26EF62BF91AF}.Release.ActiveCfg = Release|Win32
