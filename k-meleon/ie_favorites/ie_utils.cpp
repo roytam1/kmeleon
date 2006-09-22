@@ -156,7 +156,7 @@ void BuildMenu(HMENU menu, CBookmarkNode *node, BOOL isContinuation)
       bEmpty = false;
       if (count == maxLength) {
          HMENU childMenu = CreatePopupMenu();
-         AppendMenu(menu, MF_STRING|MF_POPUP, (UINT)childMenu, "[more]");
+         AppendMenu(menu, MF_STRING|MF_POPUP, (UINT)childMenu, _Tr("[more]"));
          BuildMenu(childMenu, child, true);
          break;
       }
