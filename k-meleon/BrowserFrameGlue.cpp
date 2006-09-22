@@ -561,8 +561,8 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags,
     int nodeHack = pThis->m_wndBrowserView.m_iGetNodeHack;
     pThis->m_wndBrowserView.m_iGetNodeHack = 0;
 
-    // No context menu for dialog
-    if (pThis->m_chromeMask & nsIWebBrowserChrome::CHROME_OPENAS_DIALOG)
+    // No context menu for chrome
+    if (pThis->m_chromeMask & nsIWebBrowserChrome::CHROME_OPENAS_CHROME)
         return;
 
     BOOL bContentHasFrames = FALSE;
