@@ -43,7 +43,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MD /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_AFXDLL" /Yu"stdafx.h" /FD /c
-# ADD CPP /nologo /MD /W3 /GX /O1 /I "../mozilla/mozilla/dist/include/pippki" /I "../mozilla/mozilla/dist/include/pipnss" /I "../mozilla/mozilla/dist/include/cookie" /I "../mozilla/mozilla/dist/include/xpcom_obsolete" /I "../mozilla/mozilla/dist/include/typeaheadfind" /I "../mozilla/mozilla/dist/include/appcomps" /I "../mozilla/mozilla/dist/include/history" /I "../mozilla/mozilla/dist/include/rdf" /I "../mozilla/mozilla/dist/include/docshell" /I "../mozilla/mozilla/dist/include/dom" /I "../mozilla/mozilla/dist/include/embed_base" /I "../mozilla/mozilla/dist/include/exthandler" /I "../mozilla/mozilla/dist/include/find" /I "../mozilla/mozilla/dist/include/gfx" /I "../mozilla/mozilla/dist/include/helperAppDlg" /I "../mozilla/mozilla/dist/include/intl" /I "../mozilla/mozilla/dist/include/layout" /I "../mozilla/mozilla/dist/include/necko" /I "../mozilla/mozilla/dist/include/nkcache" /I "../mozilla/mozilla/dist/include/pref" /I "../mozilla/mozilla/dist/include/profile" /I "../mozilla/mozilla/dist/include/shistory" /I "../mozilla/mozilla/dist/include/string" /I "../mozilla/mozilla/dist/include/uriloader" /I "../mozilla/mozilla/dist/include/wallet" /I "../mozilla/mozilla/dist/include/webBrowser_core" /I "../mozilla/mozilla/dist/include/webbrowserpersist" /I "../mozilla/mozilla/dist/include/webshell" /I "../mozilla/mozilla/dist/include/widget" /I "../mozilla/mozilla/dist/include/windowwatcher" /I "../mozilla/mozilla/dist/include/xpcom" /I "../mozilla/mozilla/dist/include/nspr" /I "../mozilla/mozilla/dist/include/webbrwsr" /I "../mozilla/mozilla/dist/include/imglib2" /I "../mozilla/mozilla/dist/include/commandhandler" /I "../mozilla/mozilla/dist/include/plugin" /D _WIN32_IE=0x0500 /D "XPCOM_GLUE" /D "_AFXDLL" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "HW_THREADS" /D "XP_PC" /D "XP_WIN" /D "XP_WIN32" /D WINVER=0x400 /Fr /Yu"StdAfx.h" /FD /c
+# ADD CPP /nologo /MD /W3 /GX /O1 /I "../mozilla/mozilla/dist/include/chrome" /I "../mozilla/mozilla/dist/include/imglib2" /I "../mozilla/mozilla/dist/include/windowwatcher" /I "../mozilla/mozilla/dist/include/mimetype" /I "../mozilla/mozilla/dist/include/locale" /I "../mozilla/mozilla/dist/include/chardet" /I "../mozilla/mozilla/dist/include/content" /I "../mozilla/mozilla/dist/include/caps" /I "../mozilla/mozilla/dist/include/xpconnect" /I "../mozilla/mozilla/dist/include/js" /I "../mozilla/mozilla/dist/include/pipboot" /I "../mozilla/mozilla/dist/include/pippki" /I "../mozilla/mozilla/dist/include/pipnss" /I "../mozilla/mozilla/dist/include/cookie" /I "../mozilla/mozilla/dist/include/xpcom_obsolete" /I "../mozilla/mozilla/dist/include/typeaheadfind" /I "../mozilla/mozilla/dist/include/appcomps" /I "../mozilla/mozilla/dist/include/history" /I "../mozilla/mozilla/dist/include/rdf" /I "../mozilla/mozilla/dist/include/docshell" /I "../mozilla/mozilla/dist/include/dom" /I "../mozilla/mozilla/dist/include/embed_base" /I "../mozilla/mozilla/dist/include/exthandler" /I "../mozilla/mozilla/dist/include/find" /I "../mozilla/mozilla/dist/include/gfx" /I "../mozilla/mozilla/dist/include/helperAppDlg" /I "../mozilla/mozilla/dist/include/intl" /I "../mozilla/mozilla/dist/include/layout" /I "../mozilla/mozilla/dist/include/necko" /I "../mozilla/mozilla/dist/include/nkcache" /I "../mozilla/mozilla/dist/include/pref" /I "../mozilla/mozilla/dist/include/profile" /I "../mozilla/mozilla/dist/include/shistory" /I "../mozilla/mozilla/dist/include/string" /I "../mozilla/mozilla/dist/include/uriloader" /I "../mozilla/mozilla/dist/include/wallet" /I "../mozilla/mozilla/dist/include/webBrowser_core" /I "../mozilla/mozilla/dist/include/webbrowserpersist" /I "../mozilla/mozilla/dist/include/webshell" /I "../mozilla/mozilla/dist/include/widget" /I "../mozilla/mozilla/dist/include/xpcom" /I "../mozilla/mozilla/dist/include/nspr" /I "../mozilla/mozilla/dist/include/webbrwsr" /I "../mozilla/mozilla/dist/include/commandhandler" /I "../mozilla/mozilla/dist/include/plugin" /D _WIN32_IE=0x0500 /D "XPCOM_GLUE" /D "_AFXDLL" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "HW_THREADS" /D "XP_PC" /D "XP_WIN" /D "XP_WIN32" /D WINVER=0x400 /Fr /Yu"StdAfx.h" /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "NDEBUG" /d "_AFXDLL"
@@ -70,7 +70,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_AFXDLL" /Yu"stdafx.h" /FD /GZ /c
-# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "../mozilla/mozilla/dist/include/locale" /I "../mozilla/mozilla/dist/include/pippki" /I "../mozilla/mozilla/dist/include/pipnss" /I "../mozilla/mozilla/dist/include/cookie" /I "../mozilla/mozilla/dist/include/xpcom_obsolete" /I "../mozilla/mozilla/dist/include/typeaheadfind" /I "../mozilla/mozilla/dist/include/appcomps" /I "../mozilla/mozilla/dist/include/history" /I "../mozilla/mozilla/dist/include/rdf" /I "../mozilla/mozilla/dist/include/webbrwsr" /I "../mozilla/mozilla/dist/include/imglib2" /I "../mozilla/mozilla/dist/include/commandhandler" /I "../mozilla/mozilla/dist/include/plugin" /I "../mozilla/mozilla/dist/include/docshell" /I "../mozilla/mozilla/dist/include/dom" /I "../mozilla/mozilla/dist/include/embed_base" /I "../mozilla/mozilla/dist/include/exthandler" /I "../mozilla/mozilla/dist/include/find" /I "../mozilla/mozilla/dist/include/gfx" /I "../mozilla/mozilla/dist/include/helperAppDlg" /I "../mozilla/mozilla/dist/include/intl" /I "../mozilla/mozilla/dist/include/layout" /I "../mozilla/mozilla/dist/include/necko" /I "../mozilla/mozilla/dist/include/nkcache" /I "../mozilla/mozilla/dist/include/pref" /I "../mozilla/mozilla/dist/include/profile" /I "../mozilla/mozilla/dist/include/shistory" /I "../mozilla/mozilla/dist/include/string" /I "../mozilla/mozilla/dist/include/uriloader" /I "../mozilla/mozilla/dist/include/wallet" /I "../mozilla/mozilla/dist/include/webBrowser_core" /I "../mozilla/mozilla/dist/include/webbrowserpersist" /I "../mozilla/mozilla/dist/include/webshell" /I "../mozilla/mozilla/dist/include/widget" /I "../mozilla/mozilla/dist/include/windowwatcher" /I "../mozilla/mozilla/dist/include/xpcom" /I "../mozilla/mozilla/dist/include/nspr" /D "_DEBUG" /D "XPCOM_GLUE" /D "_AFXDLL" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "HW_THREADS" /D "XP_PC" /D "XP_WIN" /D "XP_WIN32" /D WINVER=0x400 /FR /Yu"stdafx.h" /FD /c
+# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "../mozilla/mozilla/dist/include/chrome" /I "../mozilla/mozilla/dist/include/imglib2" /I "../mozilla/mozilla/dist/include/windowwatcher" /I "../mozilla/mozilla/dist/include/mimetype" /I "../mozilla/mozilla/dist/include/locale" /I "../mozilla/mozilla/dist/include/pippki" /I "../mozilla/mozilla/dist/include/pipnss" /I "../mozilla/mozilla/dist/include/cookie" /I "../mozilla/mozilla/dist/include/xpcom_obsolete" /I "../mozilla/mozilla/dist/include/typeaheadfind" /I "../mozilla/mozilla/dist/include/appcomps" /I "../mozilla/mozilla/dist/include/history" /I "../mozilla/mozilla/dist/include/rdf" /I "../mozilla/mozilla/dist/include/webbrwsr" /I "../mozilla/mozilla/dist/include/commandhandler" /I "../mozilla/mozilla/dist/include/plugin" /I "../mozilla/mozilla/dist/include/docshell" /I "../mozilla/mozilla/dist/include/dom" /I "../mozilla/mozilla/dist/include/embed_base" /I "../mozilla/mozilla/dist/include/exthandler" /I "../mozilla/mozilla/dist/include/find" /I "../mozilla/mozilla/dist/include/gfx" /I "../mozilla/mozilla/dist/include/helperAppDlg" /I "../mozilla/mozilla/dist/include/intl" /I "../mozilla/mozilla/dist/include/layout" /I "../mozilla/mozilla/dist/include/necko" /I "../mozilla/mozilla/dist/include/nkcache" /I "../mozilla/mozilla/dist/include/pref" /I "../mozilla/mozilla/dist/include/profile" /I "../mozilla/mozilla/dist/include/shistory" /I "../mozilla/mozilla/dist/include/string" /I "../mozilla/mozilla/dist/include/uriloader" /I "../mozilla/mozilla/dist/include/wallet" /I "../mozilla/mozilla/dist/include/webBrowser_core" /I "../mozilla/mozilla/dist/include/webbrowserpersist" /I "../mozilla/mozilla/dist/include/webshell" /I "../mozilla/mozilla/dist/include/widget" /I "../mozilla/mozilla/dist/include/xpcom" /I "../mozilla/mozilla/dist/include/nspr" /D "_DEBUG" /D "XPCOM_GLUE" /D "_AFXDLL" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "HW_THREADS" /D "XP_PC" /D "XP_WIN" /D "XP_WIN32" /D WINVER=0x400 /FR /Yu"stdafx.h" /FD /c
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "_DEBUG" /d "_AFXDLL"
@@ -92,19 +92,6 @@ LINK32=link.exe
 # Begin Group "Source Files"
 
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
-# Begin Source File
-
-SOURCE=.\About.cpp
-
-!IF  "$(CFG)" == "kmeleon - Win32 Release"
-
-!ELSEIF  "$(CFG)" == "kmeleon - Win32 Debug"
-
-# SUBTRACT CPP /YX /Yc /Yu
-
-!ENDIF 
-
-# End Source File
 # Begin Source File
 
 SOURCE=.\AccelParser.cpp
@@ -159,8 +146,7 @@ SOURCE=.\CookiePromptService.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\CookiePromptService.rc
-# PROP Exclude_From_Build 1
+SOURCE=.\CookiesViewerDlg.cpp
 # End Source File
 # Begin Source File
 
@@ -173,7 +159,7 @@ SOURCE=.\Dialogs.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\DialogStuffs.cpp
+SOURCE=.\FavIconList.cpp
 # End Source File
 # Begin Source File
 
@@ -181,7 +167,15 @@ SOURCE=.\FontPackageHandler.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\GenKeyPairDialogs.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\HiddenWnd.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\LangParser.cpp
 # End Source File
 # Begin Source File
 
@@ -194,6 +188,10 @@ SOURCE=.\MfcEmbed.cpp
 # Begin Source File
 
 SOURCE=.\MostRecentUrls.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\MozUtils.cpp
 # End Source File
 # Begin Source File
 
@@ -211,6 +209,14 @@ SOURCE=.\NSSDialogs.rc
 # Begin Source File
 
 SOURCE=.\Parser.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\PasswordViewerDlg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\Permissions.cpp
 # End Source File
 # Begin Source File
 
@@ -443,6 +449,14 @@ SOURCE=.\res\broken.ico
 # End Source File
 # Begin Source File
 
+SOURCE=.\res\cursor1.cur
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\cursor2.cur
+# End Source File
+# Begin Source File
+
 SOURCE=.\res\Cursor_10.cur
 # End Source File
 # Begin Source File
@@ -504,6 +518,10 @@ SOURCE=.\res\on.ico
 # Begin Source File
 
 SOURCE=.\res\oncheck.ico
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\popupblock.ico
 # End Source File
 # Begin Source File
 
