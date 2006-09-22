@@ -1,9 +1,9 @@
 !packhdr	tmp.dat "C:\Progra~1\Upx\bin\upx.exe -9 --best --strip-relocs=1 tmp.dat"
 
 !define		NAME "K-Meleon"
-!define		VERSION "1.01"
+!define		VERSION "1.02"
 !define		ADDRESS "http://kmeleon.sourceforge.net/"  
-!define		GECKO_VERSION "1.8.0.6"
+!define		GECKO_VERSION "1.8.0.7"
 
 !define		PRODUCT_KEY "Software\${NAME}"
 !define		PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${NAME}"
@@ -192,6 +192,7 @@ Section ${NAME} SecMain
 	
 	Delete $INSTDIR\chrome\*.*
 	RMdir /r $INSTDIR\components
+	RMDir /r $INSTDIR\defaults
 	RMdir /r $INSTDIR\greprefs
 	RMdir /r $INSTDIR\ipc
 	RMdir /r $INSTDIR\res
