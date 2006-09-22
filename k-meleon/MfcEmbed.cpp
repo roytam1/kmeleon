@@ -618,7 +618,7 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
         !(chromeMask & nsIWebBrowserChrome::CHROME_TOOLBAR)) )
       style |= WS_POPUP; // For the sake of layers....
 
-   if (preferences.bMaximized &&
+   if (preferences.bMaximized && !(style & WS_POPUP) &&
       !(chromeMask & nsIWebBrowserChrome::CHROME_OPENAS_CHROME) &&
       (chromeMask & nsIWebBrowserChrome::CHROME_WINDOW_RESIZE))
       style |= WS_MAXIMIZE;
