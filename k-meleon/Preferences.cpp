@@ -26,6 +26,16 @@ extern CMfcEmbedApp theApp;
 
 #include "Preferences.h"
 #include "nsDirectoryServiceUtils.h"
+#include "MozUtils.h"
+
+CString MakeAbsolutePath(LPCTSTR root, LPCTSTR path)
+{
+   // Need probably to remove ".." correctly 
+   return ( 
+      (*path=='/' || _tcschr(path, ':')) ? 
+      CString(path) :  
+      CString(root) + _T('\\') + path );
+}
 
 CPreferences::CPreferences() {
 }
@@ -109,64 +119,6 @@ void CPreferences::Load() {
 
    _GetString("kmeleon.general.skinsDir", skinsDir, _T(""));
    _GetString("kmeleon.general.skinsCurrent", skinsCurrent, _T(""));
-
-
-   TCHAR appDir[MAX_PATH];
-   GetModuleFileName(NULL, appDir, MAX_PATH);
-   int x=_tcslen(appDir)-1;
-   while (x>0 && appDir[x] != _T('\\')) x--;
-   if (x>0) appDir[x+1]=0;
-
-
-   nsCOMPtr<nsIFile> nsProfileDir;
-   rv = NS_GetSpecialDirectory(NS_APP_USER_PROFILE_50_DIR, getter_AddRefs(nsProfileDir));
-   _ASSERTE(nsProfileDir && "NS_APP_USER_PROFILE_50_DIR is not defined");
-   
-   if (NS_SUCCEEDED(rv)){         
-#ifdef _UNICODE
-      nsEmbedString pathBuf;
-      rv = nsProfileDir->GetPath(pathBuf);
-#else
-      nsEmbedCString pathBuf;
-      rv = nsProfileDir->GetNativePath(pathBuf);
-#endif
-      _defProfileDir = pathBuf.get();
-
-      if (_defProfileDir.Right(1) != '\\')
-         _defProfileDir += '\\';
-   }
-   else
-      _defProfileDir = appDir;
-
-   profileDir = _defProfileDir;
-   SetString("kmeleon.general.profileDir", (LPCTSTR)profileDir);
-
-
-   if (settingsDir.IsEmpty())
-      settingsDir = profileDir;
-   else if (settingsDir.Right(1) != '\\')
-      settingsDir += '\\';
-
-
-   if (skinsDir.IsEmpty()) {
-      skinsDir = appDir;
-      skinsDir += "skins\\";
-   }
-   else if (skinsDir.Right(1) != "\\")
-      skinsDir += "\\";
-
-   if (skinsCurrent.IsEmpty())
-      skinsCurrent = "Default\\";     
-   else if (skinsCurrent.Right(1) != "\\")
-      skinsCurrent += "\\";
-
-   if (pluginsDir.IsEmpty()) {
-      pluginsDir = appDir;
-      pluginsDir += "kplugins\\";
-   }
-   else if (pluginsDir[pluginsDir.GetLength() - 1] != '\\')
-      pluginsDir += '\\';
-
 
    // -- Cache
    _GetString("browser.cache.disk.parent_directory", cacheDir, _T(""));
@@ -291,6 +243,38 @@ void CPreferences::Load() {
    _GetBool("kmeleon.download.flashWhenCompleted", bFlashWhenCompleted, false);
    _GetBool("kmeleon.download.closeDownloadDialog", bCloseDownloadDialog, false);
    _GetBool("kmeleon.download.saveUseTitle", bSaveUseTitle, true);
+
+
+   // -- Folders XXX have to put this somewhere else
+   
+   profileFolder = GetMozDirectory(NS_APP_USER_PROFILE_50_DIR);
+   settingsFolder = GetMozDirectory(NS_APP_DEFAULTS_50_DIR) + _T("\\Settings");
+
+   userSettingsFolder = settingsDir.IsEmpty() ?
+      profileFolder :
+      MakeAbsolutePath(theApp.m_sRootFolder, settingsDir);
+   
+   pluginsFolder = pluginsDir.IsEmpty() ?
+      theApp.m_sRootFolder + _T("\\kplugins") :
+      MakeAbsolutePath(theApp.m_sRootFolder, pluginsDir);
+
+   userPluginsFolder = profileFolder + _T("\\kplugins"); 
+  
+   skinsFolder = skinsDir.IsEmpty() ?
+      theApp.m_sRootFolder + _T("\\skins") :
+      MakeAbsolutePath(theApp.m_sRootFolder, skinsDir);
+
+   userSkinsFolder = profileFolder + _T("\\skins");
+   resFolder = GetMozDirectory(NS_APP_RES_DIR);
+
+   // XXX
+   currentSkinFolder = userSkinsFolder + _T("\\") + skinsCurrent;
+   WIN32_FIND_DATA FindData;
+   HANDLE hFile = FindFirstFile(currentSkinFolder, &FindData);
+	if(hFile != INVALID_HANDLE_VALUE)
+      FindClose(hFile);
+   else
+      currentSkinFolder = skinsFolder + _T("\\") + skinsCurrent;
 }
 
 void CPreferences::Flush()
@@ -496,28 +480,16 @@ void CPreferences::Save(bool clearPath)
 
    if (clearPath) {
       // XXX: Removing path from profile when equal to default
-      TCHAR _appDir[MAX_PATH];
-      GetModuleFileName(NULL, _appDir, MAX_PATH);
-      int x=_tcslen(_appDir)-1;
-      while (x>0 && _appDir[x] != _T('\\')) x--;
-      if (x>0) _appDir[x+1]=0;
+      CString appDir = GetFolder(RootFolder);
 
-      CString appDir = _appDir;
-
-      if (pluginsDir.CompareNoCase(appDir + _T("kplugins\\")) == 0)
+      if (pluginsDir.CompareNoCase(appDir + _T("\\kplugins")) == 0)
          m_prefs->ClearUserPref("kmeleon.general.pluginsDir");
 
-      if (skinsDir.CompareNoCase(appDir + _T("skins\\")) == 0)
+      if (skinsDir.CompareNoCase(appDir + _T("\\skins")) == 0)
          m_prefs->ClearUserPref("kmeleon.general.skinsDir");
 
-      if (profileDir.CompareNoCase(_defProfileDir) == 0)
-         m_prefs->ClearUserPref("kmeleon.general.profileDir");
-
-      if (settingsDir.CompareNoCase(_defProfileDir) == 0)
+      if (settingsDir.CompareNoCase(profileFolder) == 0)
          m_prefs->ClearUserPref("kmeleon.general.settingsDir");
-
-      if (cacheDir.CompareNoCase(profileDir) == 0)
-         m_prefs->ClearUserPref("browser.cache.disk.parent_directory");
    }
 
    rv = m_prefs->SavePrefFile(nsnull);   

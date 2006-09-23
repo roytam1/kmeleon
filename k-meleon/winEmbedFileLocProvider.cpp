@@ -169,56 +169,55 @@ winEmbedFileLocProvider::GetFile(const char *prop, PRBool *persistant, nsIFile *
         if (NS_SUCCEEDED(rv))
             rv = localFile->AppendRelativeNativePath(SEARCH_DIR_NAME);
     }*/
-#ifndef USE_PROFILES
-	else if ((strcmp(prop, NS_APP_USER_PROFILE_50_DIR) == 0)
-		|| (strcmp(prop, NS_APP_CACHE_PARENT_DIR) == 0)
-		|| (strcmp(prop, NS_APP_USER_PROFILE_LOCAL_50_DIR) ==0)
-		|| (strcmp(prop, NS_APP_PREFS_50_DIR) == 0)
-		)
-    {
-		rv = GetDefaultUserProfileRoot(getter_AddRefs(localFile));
-    }
-	else if (strcmp(prop, NS_APP_HISTORY_50_FILE) == 0)
-	{
-		rv = GetDefaultUserProfileRoot(getter_AddRefs(localFile));
-		if (NS_SUCCEEDED(rv)) {
-            rv = localFile->AppendRelativeNativePath(NS_LITERAL_CSTRING("history.dat"));
-		}
-	}
-
-	else if (strcmp(prop, NS_APP_USER_MIMETYPES_50_FILE) == 0)
-	{
-		rv = GetDefaultUserProfileRoot(getter_AddRefs(localFile));
-        if (NS_SUCCEEDED(rv)){
-			rv = localFile->AppendRelativeNativePath(NS_LITERAL_CSTRING("mimeTypes.rdf"));
-		}
-	}
-
-	else if (strcmp(prop, NS_APP_LOCALSTORE_50_FILE) == 0)
-	{
-		rv = GetDefaultUserProfileRoot(getter_AddRefs(localFile));
-		if (NS_SUCCEEDED(rv)) {
-			rv = localFile->AppendRelativeNativePath(NS_LITERAL_CSTRING("localstore.rdf"));
-		}
-	}
-
-	else if (strcmp(prop, NS_APP_PREFS_50_FILE) == 0)
-	{
-     	rv = GetDefaultUserProfileRoot(getter_AddRefs(localFile));
-		if (NS_SUCCEEDED(rv)) {
-			rv = localFile->AppendRelativeNativePath(NS_LITERAL_CSTRING("prefs.js"));
-		}
-	}
-	
-	else if (strcmp(prop, NS_APP_LOCALSTORE_50_FILE) == 0)
-	{
-		rv = GetDefaultUserProfileRoot(getter_AddRefs(localFile));
-		if (NS_SUCCEEDED(rv)) {
-			rv = localFile->AppendRelativeNativePath(NS_LITERAL_CSTRING("localstore.rdf"));
-		}
-	}
+    else if (strcmp(prop, K_APP_SKINS_DIR) == 0) {
+       CString folder = theApp.GetFolder(SkinsFolder);
+#ifdef _UNICODE
+       rv = NS_NewLocalFile(nsEmbedString(LPCTSTR(folder)), TRUE, getter_AddRefs(localFile));
+#else
+       rv = NS_NewNativeLocalFile(nsEmbedCString(LPCTSTR(folder)), TRUE, getter_AddRefs(localFile));
 #endif
-
+    }
+    else if (strcmp(prop, K_APP_KPLUGINS_DIR) == 0) {
+       CString folder = theApp.GetFolder(PluginsFolder);
+#ifdef _UNICODE
+       rv = NS_NewLocalFile(nsEmbedString(folder), TRUE, getter_AddRefs(localFile));
+#else
+       rv = NS_NewNativeLocalFile(nsEmbedCString(folder), TRUE, getter_AddRefs(localFile));
+#endif
+    }
+    else if (strcmp(prop, K_USER_SKINS_DIR) == 0) {
+       CString folder = theApp.GetFolder(UserSkinsFolder);
+#ifdef _UNICODE
+       rv = NS_NewLocalFile(nsEmbedString(folder), TRUE, getter_AddRefs(localFile));
+#else
+       rv = NS_NewNativeLocalFile(nsEmbedCString(folder), TRUE, getter_AddRefs(localFile));
+#endif
+    }
+    else if (strcmp(prop, K_USER_KPLUGINS_DIR) == 0) {
+       CString folder = theApp.GetFolder(UserPluginsFolder);
+#ifdef _UNICODE
+       rv = NS_NewLocalFile(nsEmbedString(folder), TRUE, getter_AddRefs(localFile));
+#else
+       rv = NS_NewNativeLocalFile(nsEmbedCString(folder), TRUE, getter_AddRefs(localFile));
+#endif
+    }
+    else if (strcmp(prop, K_APP_SETTING_DEFAULTS) == 0) {
+       CString folder = theApp.GetFolder(DefSettingsFolder);
+#ifdef _UNICODE
+       rv = NS_NewLocalFile(nsEmbedString(folder), TRUE, getter_AddRefs(localFile));
+#else
+       rv = NS_NewNativeLocalFile(nsEmbedCString(folder), TRUE, getter_AddRefs(localFile));
+#endif
+    }
+    else if (strcmp(prop, K_USER_SETTING) == 0) {
+       CString folder = theApp.GetFolder(UserSettingsFolder);
+#ifdef _UNICODE
+       rv = NS_NewLocalFile(nsEmbedString(folder), TRUE, getter_AddRefs(localFile));
+#else
+       rv = NS_NewNativeLocalFile(nsEmbedCString(folder), TRUE, getter_AddRefs(localFile));
+#endif
+    }
+    
 #ifdef XPCOM_GLUE
     //---------------------------------------------------------------
     // Note that by returning a valid localFile's for NS_GRE_DIR and
