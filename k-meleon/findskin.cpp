@@ -73,7 +73,9 @@ void FindSkinFile( TCHAR *szSkinFile, TCHAR *filename )
       return;
 
    // check for the file in the settingsDir
-   kPlugin.kFuncs->GetPreference(PREF_TSTRING, "kmeleon.general.settingsDir", szTmpSkinDir, (TCHAR*)_T(""));
+
+   kPlugin.kFuncs->GetFolder(UserSettingsFolder, szTmpSkinDir, MAX_PATH);
+	strcat(szTmpSkinDir, "\\");
    if (*szTmpSkinDir) {
 	  _tcscpy(szTmpSkinFile, szTmpSkinDir);
       _tcscat(szTmpSkinFile, filename);
@@ -92,13 +94,15 @@ void FindSkinFile( TCHAR *szSkinFile, TCHAR *filename )
    if (_FindSkinFile(szSkinFile, szTmpSkinDir, filename))
 	   return;
    
-   kPlugin.kFuncs->GetPreference(PREF_TSTRING, "kmeleon.general.skinsDir", szTmpSkinDir, (TCHAR*)_T(""));
+	kPlugin.kFuncs->GetFolder(SkinsFolder, szTmpSkinDir, MAX_PATH);
+	_tcscat(szTmpSkinDir, _T("\\"));
    if (_FindSkinFile(szSkinFile, szTmpSkinDir, filename))
 	   return;
 
    // it wasn't anywhere, return the path to the settingsDir, in case the file is being created
-   kPlugin.kFuncs->GetPreference(PREF_TSTRING, "kmeleon.general.settingsDir", szSkinFile, (TCHAR*)_T(""));
-   if (! *szSkinFile)      // no settingsDir, bad
+	kPlugin.kFuncs->GetFolder(UserSettingsFolder, szSkinFile, MAX_PATH);
+	_tcscat(szSkinFile, _T("\\"));
+	if (! *szSkinFile)      // no settingsDir, bad
       _tcscpy(szSkinFile, filename);
    else
       _tcscat(szSkinFile, filename);

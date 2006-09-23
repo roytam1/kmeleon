@@ -160,7 +160,6 @@ void Config(HWND parent);
 #define PREFERENCE_CHEVRON_ENABLED "kmeleon.plugins.hotlist.chevron"
 #define PREFERENCE_HOTLIST_FILE  "kmeleon.plugins.hotlist.hotlistFile"
 #define PREFERENCE_HOTLIST_RESYNCH  "kmeleon.plugins.hotlist.resynch"
-#define PREFERENCE_SETTINGS_DIR    "kmeleon.general.settingsDir"
 #define PREFERENCE_MENU_MAXLEN "kmeleon.plugins.hotlist.maxMenuLength"
 #define PREFERENCE_MENU_AUTOLEN "kmeleon.plugins.hotlist.menuAutoDetect"
 #define PREFERENCE_MENU_SORTORDER "kmeleon.plugins.hotlist.sortOrder"

@@ -208,7 +208,7 @@ BOOL CPreferencePage::OnInitDialog(){
       {
          int i=0, index=0;
          WIN32_FIND_DATA ffd;
-         CString fname = theApp.preferences.skinsDir + _T("*.*");
+         CString fname = theApp.GetFolder(SkinsFolder) + _T("\\*.*");
          HANDLE hFind = FindFirstFile(fname.GetBuffer(0), &ffd);
          if (hFind != INVALID_HANDLE_VALUE) {
             fname = theApp.preferences.skinsCurrent;
@@ -226,7 +226,7 @@ BOOL CPreferencePage::OnInitDialog(){
             SendDlgItemMessage(IDC_COMBO_SKIN, CB_SETCURSEL, index, 0);
 		}
 
-		 fname = theApp.preferences.settingsDir + _T("Skins\\*.*");
+		 fname = theApp.GetFolder(UserSkinsFolder) + _T("\\*.*");
          hFind = FindFirstFile(fname.GetBuffer(0), &ffd);
          if (hFind != INVALID_HANDLE_VALUE) {
             fname = theApp.preferences.skinsCurrent;
@@ -585,12 +585,12 @@ BOOL CPreferencePageConfigs::OnInitDialog(){
    CEdit *editBox = (CEdit *)GetDlgItem(IDC_EDIT1);
    editBox->SetTabStops(6);
 
-   AddTab(_T("Menus"), theApp.preferences.settingsDir + _T("menus.cfg"), "");
-   AddTab(_T("Accelerators"), theApp.preferences.settingsDir + _T("accel.cfg"), "");
+   AddTab(_T("Menus"), theApp.GetFolder(UserSettingsFolder) + _T("\\menus.cfg"), "");
+   AddTab(_T("Accelerators"), theApp.GetFolder(UserSettingsFolder) + _T("\\accel.cfg"), "");
 
-   AddTab(_T("Prefs.js"), theApp.preferences.profileDir + _T("prefs.js"), "");
-   AddTab(_T("User.js"), theApp.preferences.profileDir + _T("user.js"), "");
-   AddTab(_T("userContent.css"), theApp.preferences.profileDir + _T("chrome\\userContent.css"), "");
+   AddTab(_T("Prefs.js"), theApp.GetFolder(ProfileFolder) + _T("\\prefs.js"), "");
+   AddTab(_T("User.js"), theApp.GetFolder(ProfileFolder) + _T("\\user.js"), "");
+   AddTab(_T("userContent.css"), theApp.GetFolder(ProfileFolder) + _T("\\chrome\\userContent.css"), "");
 
 #if 0
    configFileType pluginConfigFiles[10];

@@ -28,6 +28,17 @@
 class CPreferences {
 public:
 
+   // -- Folder
+   CString settingsFolder;
+   CString userSettingsFolder;
+   CString profileFolder;
+   CString pluginsFolder;
+   CString userPluginsFolder;
+   CString skinsFolder;
+   CString userSkinsFolder;
+   CString resFolder;
+   CString currentSkinFolder; // XXX
+
    // -- Find settings
    CString findSearchStr;
 	int bFindMatchCase;
@@ -54,12 +65,8 @@ public:
    int iSaveType;
    CString settingsDir;
    CString pluginsDir;
-   CString profileDir;
-   CString _defProfileDir;
-
    CString skinsDir;
    CString skinsCurrent;
-   CString skinsPath;
 
    int bDisableResize;
    BOOL bSiteIcons;

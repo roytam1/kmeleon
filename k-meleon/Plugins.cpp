@@ -936,6 +936,17 @@ int GetKmeleonVersion()
 	return KMELEON_VERSION;
 }
 
+long GetFolder(FolderType type, char* path, size_t size)
+{
+   USES_CONVERSION;
+   CString csPath = theApp.GetFolder(type);
+   if (path) {
+      strncpy(path, T2CA(csPath), size);
+      path[size-1] = 0;
+   }
+   return csPath.GetLength();
+}
+
 kmeleonFunctions kmelFuncs = {
    SendMessage,
    GetCommandIDs,
@@ -978,7 +989,8 @@ kmeleonFunctions kmelFuncs = {
    NULL,
    NavigateTo,
    Translate,
-   SetGlobalVar
+   SetGlobalVar,
+   GetFolder
 };
 
 BOOL CPlugins::TestLoad(LPCTSTR file, const char *description)
@@ -1111,13 +1123,15 @@ int CPlugins::FindAndLoad(const TCHAR *pattern)
    CString filepath;
    CFileFind finder;
    BOOL bWorking;
-   
-   int x=_tcslen(pattern);
-   while (x>0 && (pattern[x] != ':')) x--;
-   
-   if (x==0) {       // if pattern does not contain ':' we need to prepend pluginsDir
-      CString search = theApp.preferences.pluginsDir + pattern;
-      bWorking = finder.FindFile(search);
+
+   if (*pattern!='/' && !strchr(pattern, ':')) {
+      // if pattern does not contain ':' or does not begin with '/'
+      // we need to prepend pluginsDir
+      CString search = theApp.GetFolder(PluginsFolder) + _T('\\') + pattern;
+      int n = FindAndLoad(search);
+      search = theApp.GetFolder(UserPluginsFolder) + _T('\\') + pattern;
+      n += FindAndLoad(search);
+      return n;
    }
    else bWorking = finder.FindFile(pattern);
 

@@ -68,7 +68,6 @@ static long lastTime;
 #define BS_3D      4
 #define BS_BOLD    8
 
-#define PREFERENCE_SETTINGS_DIR  "kmeleon.general.settingsDir"
 #define PREFERENCE_REBAR_ENABLED "kmeleon.plugins.layers.rebar"
 #define PREFERENCE_REBAR_BOTTOM "kmeleon.plugins.layers.rebarBottom"
 #define PREFERENCE_REBAR_TITLE   "kmeleon.plugins.layers.title"

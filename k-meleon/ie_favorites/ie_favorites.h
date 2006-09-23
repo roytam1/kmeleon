@@ -138,7 +138,6 @@ void Config(HWND parent);
 #define PREFERENCE_REBAR_ENABLED "kmeleon.plugins.favorites.rebar"
 #define PREFERENCE_CHEVRON_ENABLED "kmeleon.plugins.favorites.chevron"
 #define PREFERENCE_FAVORITES_RESYNCH  "kmeleon.plugins.favorites.resynch"
-#define PREFERENCE_SETTINGS_DIR    "kmeleon.general.settingsDir"
 #define PREFERENCE_MENU_MAXLEN "kmeleon.plugins.favorites.maxMenuLength"
 #define PREFERENCE_MENU_AUTOLEN "kmeleon.plugins.favorites.menuAutoDetect"
 #define PREFERENCE_MENU_SORTORDER "kmeleon.plugins.favorites.sortOrder"

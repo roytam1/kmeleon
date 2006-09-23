@@ -197,7 +197,7 @@ bool CMfcEmbedApp::FindSkinFile( CString& szSkinFile, TCHAR *filename )
    if (!szSkinFile || !filename || !*filename)
       return false;
 
-   CString file = theApp.preferences.settingsDir + filename;
+   CString file = GetFolder(UserSettingsFolder) + _T('\\') + filename;
    hFile = FindFirstFile(file, &FindData);
    if(hFile != INVALID_HANDLE_VALUE) {   
          FindClose(hFile);
@@ -206,10 +206,11 @@ bool CMfcEmbedApp::FindSkinFile( CString& szSkinFile, TCHAR *filename )
       }   
 
     CString tmp = theApp.preferences.skinsCurrent;
+    CString skinsDir = GetFolder(UserSkinsFolder) + _T("\\");
 	while (tmp.GetLength()>0) {
 		if (tmp.GetAt( tmp.GetLength()-1 ) != '\\')
 			tmp = tmp + _T("\\");
-		file = theApp.preferences.settingsDir + _T("Skins\\") + tmp + filename;
+		file = skinsDir + tmp + filename;
 		hFile = FindFirstFile(file, &FindData);
 		if(hFile != INVALID_HANDLE_VALUE) {   
 			FindClose(hFile);
@@ -220,10 +221,11 @@ bool CMfcEmbedApp::FindSkinFile( CString& szSkinFile, TCHAR *filename )
 	}
 
     tmp = theApp.preferences.skinsCurrent;
+    skinsDir = GetFolder(SkinsFolder) + _T("\\");
 	while (tmp.GetLength()>0) {
 		if (tmp.GetAt( tmp.GetLength()-1 ) != '\\')
 			tmp = tmp + _T("\\");
-		file = theApp.preferences.skinsDir + tmp + filename;
+		file = skinsDir + tmp + filename;
 		hFile = FindFirstFile(file, &FindData);
 		if(hFile != INVALID_HANDLE_VALUE) {   
 			FindClose(hFile);
@@ -233,7 +235,7 @@ bool CMfcEmbedApp::FindSkinFile( CString& szSkinFile, TCHAR *filename )
 		tmp = tmp.Left( tmp.GetLength()-2 );
 	}
 
-	file = theApp.preferences.skinsDir + CString("default\\") + filename;
+	file = GetFolder(SkinsFolder) + "\\default\\" + filename;
 	hFile = FindFirstFile(file, &FindData);
 	if(hFile != INVALID_HANDLE_VALUE) {   
 		FindClose(hFile);
@@ -252,7 +254,7 @@ BOOL CMfcEmbedApp::LoadLanguage()
 	
    // Look for dll resources
 	::GetModuleFileName(m_hInstance, resDll, MAX_PATH);
-   extension = ::PathFindExtension(resDll);
+   extension = _tcsrchr(resDll, _T('.'));//::PathFindExtension(resDll);
 
    if ((extension + 7) - resDll  > MAX_PATH)
       return FALSE;
@@ -264,7 +266,12 @@ BOOL CMfcEmbedApp::LoadLanguage()
    // Check dll version
    CString version, versiondll;
    version.LoadString(IDS_LANG_VERSION);
+#if _MSC_VER >= 1300 
    versiondll.LoadString(hInstResDll, IDS_LANG_VERSION);
+#else
+   LoadString(hInstResDll, IDS_LANG_VERSION, versiondll.GetBuffer(10), 10);
+   versiondll.ReleaseBuffer();
+#endif
    if (version.Compare(versiondll) != 0) {
       ::FreeLibrary(hInstResDll);
       return FALSE;
@@ -296,7 +303,9 @@ BOOL CMfcEmbedApp::LoadLanguage()
    }
 
    AfxSetResourceHandle(hInstResDll);
+#if _MSC_VER >= 1300 
    _AtlBaseModule.SetResourceInstance(hInstResDll);
+#endif
    return TRUE;
 }
 
@@ -307,6 +316,7 @@ BOOL CMfcEmbedApp::LoadLanguage()
 // Then, create a new BrowserFrame and load our
 // default homepage
 //
+
 BOOL CMfcEmbedApp::InitInstance()
 {
 	LoadLanguage();
@@ -375,6 +385,7 @@ BOOL CMfcEmbedApp::InitInstance()
         return FALSE;
     }
     *lastSlash = _T('\0');
+    m_sRootFolder = path;
 
     nsresult rv;
     nsCOMPtr<nsILocalFile> mreAppDir;
@@ -588,6 +599,7 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
    else {
 	   style = WS_OVERLAPPEDWINDOW;
 	   if (pParent && (chromeMask & nsIWebBrowserChrome::CHROME_DEPENDENT))
+
           style |= WS_POPUP;
    }
    
@@ -1044,7 +1056,7 @@ nsresult CMfcEmbedApp::InitializeMenusAccels(){
 
    CString filename;
 
-   filename = preferences.settingsDir + ACCEL_CONFIG_FILE;
+   filename = GetFolder(UserSettingsFolder) + _T('\\') + ACCEL_CONFIG_FILE;
    if (!accel.Load(filename)){
       MessageBox(NULL, _T("Could not find ") ACCEL_CONFIG_FILE, NULL, 0);
 
@@ -1057,7 +1069,7 @@ nsresult CMfcEmbedApp::InitializeMenusAccels(){
       nResult = FALSE;
    }
 
-   filename = preferences.settingsDir + MENU_CONFIG_FILE;
+   filename = GetFolder(UserSettingsFolder) + _T('\\') + MENU_CONFIG_FILE;
    if (!menus.Load(filename)){
       MessageBox(NULL, _T("Could not find ") MENU_CONFIG_FILE, NULL, 0);
 
@@ -1237,10 +1249,103 @@ int CMfcEmbedApp::GetID(char *strID) {
    defineMap.Lookup(A2T(strID), val);
    return val;
 }
+/*
+extern CString GetMozDirectory(char* dirName);
+
+CString CMfcEmbedApp::GetFolder(FolderType folder)
+{
+   switch (folder) {
+      case RootFolder:
+         return m_sRootFolder;
+
+      case DefSettingsFolder:
+         return GetMozDirectory(NS_APP_DEFAULTS_50_DIR) + _T("\\Settings");
+      
+      case UserSettingsFolder:
+         if (theApp.preferences.settingsDir.IsEmpty())
+            return GetFolder(ProfileFolder);
+         else
+            return MakeAbsolutePath(theApp.preferences.settingsDir);
+
+      case ProfileFolder:
+         return GetMozDirectory(NS_APP_USER_PROFILE_50_DIR);
+
+      case PluginsFolder:
+         if (theApp.preferences.pluginsDir.IsEmpty())
+            return m_sRootFolder + _T("\\kplugins");
+         else
+            return MakeAbsolutePath(theApp.preferences.pluginsDir);
+
+      case UserPluginsFolder:
+         return GetMozDirectory(NS_APP_USER_PROFILE_50_DIR) + _T("\\kplugins"); 
+
+      case SkinsFolder:
+         if (theApp.preferences.skinsDir.IsEmpty())
+            return m_sRootFolder + _T("\\skins");
+         else
+            return MakeAbsolutePath(theApp.preferences.skinsDir);
+
+      case UserSkinsFolder:
+         return GetMozDirectory(NS_APP_USER_PROFILE_50_DIR) + _T("\\skins"); 
+
+      case ResFolder:
+         return GetMozDirectory(NS_APP_RES_DIR);
+
+      case CurrentSkinFolder:
+         // XXX
+         CString current = GetFolder(UserSkinsFolder) + _T("\\") + theApp.preferences.skinsCurrent;
+         WIN32_FIND_DATA FindData;
+         HANDLE hFile = FindFirstFile(current, &FindData);
+		   if(hFile != INVALID_HANDLE_VALUE) {
+            FindClose(hFile);
+            return current;
+         }
+         return GetFolder(SkinsFolder) + _T("\\") + theApp.preferences.skinsCurrent;
+   }
+   return "";
+}
+*/
+
+CString CMfcEmbedApp::GetFolder(FolderType folder)
+{
+   // You can call me lazy.
+   switch (folder) {
+      case RootFolder:
+         return m_sRootFolder;
+
+      case DefSettingsFolder:
+         return preferences.settingsFolder;
+      
+      case UserSettingsFolder:
+         return preferences.userSettingsFolder;
+  
+      case ProfileFolder:
+         return preferences.profileFolder;
+
+      case PluginsFolder:
+         return preferences.pluginsFolder;
+        
+      case UserPluginsFolder:
+         return preferences.userPluginsFolder; 
+
+      case SkinsFolder:
+         return preferences.skinsFolder;
+
+      case UserSkinsFolder:
+         return preferences.userSkinsFolder; 
+
+      case ResFolder:
+         return preferences.resFolder;
+
+      case CurrentSkinFolder:
+         return preferences.currentSkinFolder;
+   }
+   return "";
+}
 
 void CMfcEmbedApp::CheckProfileVersion()
 {
-   CString fileVersion = theApp.preferences.profileDir + _T("version.ini");
+   CString fileVersion = GetFolder(ProfileFolder) + _T("version.ini");
    BOOL needClean = FALSE;
 
    CString locale;
@@ -1283,9 +1388,9 @@ void CMfcEmbedApp::CheckProfileVersion()
    }
 
    if (needClean) {
-      CString toDelete = theApp.preferences.profileDir + _T("compreg.dat");
+      CString toDelete = GetFolder(ProfileFolder) + _T("compreg.dat");
       DeleteFile(toDelete);
-      toDelete = theApp.preferences.profileDir + _T("xpti.dat");
+      toDelete = GetFolder(ProfileFolder) + _T("xpti.dat");
       DeleteFile(toDelete);
 
       toDelete = GetMozDirectory(NS_APP_USER_PROFILE_LOCAL_50_DIR) + _T("\\xul.mfl"); 

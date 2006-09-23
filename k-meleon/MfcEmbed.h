@@ -65,7 +65,6 @@
 class CBrowserFrame;
 class CProfileMgr;
 
-
 /////////////////////////////////////////////////////////////////////////////
 // CMfcEmbedApp:
 // See mozembed.cpp for the implementation of this class
@@ -91,9 +90,10 @@ public:
 	void RemoveFrameFromList(CBrowserFrame* pFrm);
    void RegisterWindow(CDialog *window);
    void UnregisterWindow(CDialog *window);
-    void BroadcastMessage(UINT Msg, WPARAM wParam, LPARAM lParam);
+   void BroadcastMessage(UINT Msg, WPARAM wParam, LPARAM lParam);
 	inline HICON GetDefaultIcon(BOOL large = FALSE) {HICON ret; large ? ret = m_hMainIcon : ret = m_hSmallIcon; return ret;}
 	bool FindSkinFile( CString& szSkinFile, TCHAR *filename );
+   CString GetFolder(FolderType folder);
 
    nsresult SetOffline(BOOL offline);
    nsresult OverrideComponents();
@@ -126,6 +126,7 @@ public:
 #ifdef INTERNAL_SITEICONS
    CFavIconList  favicons;
 #endif
+   CString       m_sRootFolder;
 
    HMENU          m_toolbarControlsMenu;
 #ifdef INTERNAL_SIDEBAR
@@ -169,6 +170,7 @@ private:
    BOOL        m_bSwitchingProfiles;
    HICON       m_hMainIcon;
    HICON       m_hSmallIcon;
+
    // used to process the rebar DrawToolbarMenu function, which must only
    // be called once, but must be called after the first window has been created
 
