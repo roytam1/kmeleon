@@ -29,7 +29,7 @@
 #include <stdio.h>
 #include <io.h>
 #include <tchar.h>
-
+#include "../utf.h"
 #include "defines.h"
 
 #define KMELEON_PLUGIN_EXPORTS
@@ -275,7 +275,7 @@ static void SaveBookmarks(FILE *bmFile, CBookmarkNode *node)
             strcat(szFolderFlags, "FOLDER_GROUP=\"true\" ");
          if (child->nick.c_str() && *(child->nick.c_str())) {
 	    strcat(szFolderFlags, "SHORTCUTURL=\"");
-	    psz = kPlugin.kFuncs->EncodeUTF8(child->nick.c_str());
+	    psz = utf8_from_ansi(child->nick.c_str());
 	    strcat(szFolderFlags, psz ? psz : "");
 	    if (psz) free(psz);
 	    strcat(szFolderFlags, "\" ");
@@ -287,13 +287,13 @@ static void SaveBookmarks(FILE *bmFile, CBookmarkNode *node)
          if (child->flags & BOOKMARK_FLAG_BM)
             strcat(szFolderFlags, "MENUHEADER ");
          psz = EncodeString(child->text.c_str());
-         psz2 = kPlugin.kFuncs->EncodeUTF8(psz ? psz : "");
+         psz2 = utf8_from_ansi(psz ? psz : "");
          fprintf(bmFile, "%s<DT><H3 %sADD_DATE=\"%d\">%s</H3>\n", szSpacer, szFolderFlags, child->addDate, psz2 ? psz2 : "");
          if (psz) free(psz);
          if (psz2) free(psz2);
          if (child->desc.c_str() != NULL && *(child->desc.c_str()) != 0) {
             psz = EncodeString(child->desc.c_str());
-            psz2 = kPlugin.kFuncs->EncodeUTF8(psz ? psz : "");
+            psz2 = utf8_from_ansi(psz ? psz : "");
             fprintf(bmFile, "%s<DD>%s\n", szSpacer, psz2 ? psz2 : "");
             if (psz) free(psz);
             if (psz2) free(psz2);
@@ -311,7 +311,7 @@ static void SaveBookmarks(FILE *bmFile, CBookmarkNode *node)
 	 char *psz2;
          fprintf(bmFile, "%s<DT><A", szSpacer);
          psz = EncodeQuotes(child->url.c_str());
-         psz2 = kPlugin.kFuncs->EncodeUTF8(psz ? psz : "");
+         psz2 = utf8_from_ansi(psz ? psz : "");
          fprintf(bmFile, " HREF=\"%s\"", psz2 ? psz2 : "");
          if (psz)  free(psz);
          if (psz2) free(psz2);
@@ -320,7 +320,7 @@ static void SaveBookmarks(FILE *bmFile, CBookmarkNode *node)
          fprintf(bmFile, " LAST_MODIFIED=\"%d\"", child->lastModified);
          psz = (char *) child->nick.c_str();
          if (psz && *psz) {
-            psz2 = kPlugin.kFuncs->EncodeUTF8(psz ? psz : "");
+            psz2 = utf8_from_ansi(psz ? psz : "");
             fprintf(bmFile, " SHORTCUTURL=\"%s\"", psz2 ? psz2 : "");
 	    if (psz2) free(psz2);
 	 }
@@ -328,13 +328,13 @@ static void SaveBookmarks(FILE *bmFile, CBookmarkNode *node)
          if (psz && *psz)
             fprintf(bmFile, " LAST_CHARSET=\"%s\"", psz);
 	 psz = EncodeString(child->text.c_str());
-	 psz2 = kPlugin.kFuncs->EncodeUTF8(psz ? psz : "");
+	 psz2 = utf8_from_ansi(psz ? psz : "");
          fprintf(bmFile, ">%s</A>\n", psz2 ? psz2 : "");
 	 if (psz) free(psz);
 	 if (psz2) free(psz2);
          if (child->desc.c_str() != NULL && *(child->desc.c_str()) != 0) {
             psz = EncodeString(child->desc.c_str());
-            psz2 = kPlugin.kFuncs->EncodeUTF8(psz ? psz : "");
+            psz2 = utf8_from_ansi(psz ? psz : "");
             fprintf(bmFile, "%s<DD>%s\n", szSpacer, psz2 ? psz2 : "");
             if (psz) free(psz);
             if (psz2) free(psz2);
@@ -493,14 +493,14 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
             char *q = strchr(d, '\"');
             if (q) {
                *q = 0;
-               nick = kPlugin.kFuncs->DecodeUTF8(d);
+               nick = ansi_from_utf8(d);
                *q = '\"';
             }
          }
 
 	 char *pszTxt;
 	 char *psz, *psz2;
-	 psz = kPlugin.kFuncs->DecodeUTF8(name);
+	 psz = ansi_from_utf8(name);
 	 psz2 = DecodeString(psz ? psz : "");
 	 if (psz2 && *psz2)
 	   pszTxt = psz2;
@@ -590,7 +590,7 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
             char *q = strchr(d, '\"');
             if (q) {
                *q = 0;
-               nick = kPlugin.kFuncs->DecodeUTF8(d);
+               nick = ansi_from_utf8(d);
                *q = '\"';
             }
          }
@@ -624,11 +624,11 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
 
 	 char *pszTxt, *pszUrl;
 	 char *psz, *psz2;
-	 psz = kPlugin.kFuncs->DecodeUTF8(url);
+	 psz = ansi_from_utf8(url);
 	 pszUrl = DecodeQuotes(psz ? psz : "");
 	 if (psz) free(psz);
 
-	 psz = kPlugin.kFuncs->DecodeUTF8(name);
+	 psz = ansi_from_utf8(name);
 	 psz2 = DecodeString(psz ? psz : "");
 	 if (psz2 && *psz2)
 	   pszTxt = psz2;
@@ -668,7 +668,7 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
          while (*e && *e!='\n')
             e++;
          *e = 0;
-         e = kPlugin.kFuncs->DecodeUTF8(t+4);
+         e = ansi_from_utf8(t+4);
 	 if (e && *e) {
 	   char *tmp = DecodeString(e);
 	   free(e);
