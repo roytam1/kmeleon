@@ -25,7 +25,7 @@ class nsIWebBrowser;
 #define __KMELEON_PLUGIN_H__
 
 #define KMEL_PLUGIN_VER_MAJOR 0x0200
-#define KMEL_PLUGIN_VER_MINOR 0x0002
+#define KMEL_PLUGIN_VER_MINOR 0x0003
 #define KMEL_PLUGIN_VER KMEL_PLUGIN_VER_MAJOR | KMEL_PLUGIN_VER_MINOR
 
 #ifdef KMELEON_PLUGIN_EXPORTS
@@ -34,10 +34,25 @@ class nsIWebBrowser;
 #define KMELEON_PLUGIN __declspec(dllimport)
 #endif
 
-#define OPEN_NORMAL      0    // valid windowState values in NavigateTo()
+// windowState values in NavigateTo()
+#define OPEN_NORMAL      0    
 #define OPEN_NEW         1
 #define OPEN_BACKGROUND  2
 #define OPEN_CLONE       16
+
+// folderType value in GetFolder()
+enum FolderType {
+   RootFolder,
+   DefSettingsFolder,
+   UserSettingsFolder,
+   ProfileFolder,
+   PluginsFolder,
+   UserPluginsFolder,
+   SkinsFolder,
+   UserSkinsFolder,
+   ResFolder,
+   CurrentSkinFolder
+};
 
 typedef struct {
    char label[16];
@@ -187,6 +202,8 @@ typedef struct {
 
    const char* (*Translate) (const char* text); 
    int (*SetGlobalVar)(PREFTYPE, const char*, void*);
+   
+   long (*GetFolder)(FolderType type, char* path, size_t size);
 
 } kmeleonFunctions;
 
