@@ -33,6 +33,13 @@
 #include "nsILocalFile.h"
 #include "nsXPCOMGlue.h"
 
+#define K_APP_SKINS_DIR             "KASkins"
+#define K_APP_KPLUGINS_DIR          "KAPlugins"
+#define K_USER_SKINS_DIR            "KUSkins"
+#define K_USER_KPLUGINS_DIR         "KUPlugins"
+#define K_APP_SETTING_DEFAULTS      "KDefSettings"
+#define K_USER_SETTING              "KUserSettings"
+
 class nsILocalFile;
 
 //*****************************************************************************
