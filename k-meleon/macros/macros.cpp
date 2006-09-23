@@ -330,7 +330,8 @@ enum commands {
    promptforfolder,
    setcheck, 
    _,
-   urlencode
+   urlencode,
+   getfolder
 };
 
 std::string sGlobalArg;
@@ -407,29 +408,22 @@ public:
 
 bool LoadNewMacros()
 {
-    TCHAR macrosDir[MAX_PATH];
-	GetModuleFileName(kPlugin.hParentInstance, macrosDir, MAX_PATH);
-    int x=_tcslen(macrosDir)-1;
-    while (x>0 && macrosDir[x] != _T('\\')) x--;
-    if (x>0)
-		macrosDir[x+1]=0;
-	else 
-		return false;
-
-	_tcscat(macrosDir, "macros\\");
+	TCHAR macrosDir[MAX_PATH];
+	kFuncs->GetFolder(RootFolder, macrosDir, MAX_PATH);
+	_tcscat(macrosDir, "\\macros\\");
 
 	TCHAR profileMacrosDir[MAX_PATH];
-	kFuncs->GetPreference(PREF_TSTRING, "kmeleon.general.settingsDir", profileMacrosDir, (void*)_T(""));
-	_tcscat(profileMacrosDir, "macros\\");
+	kFuncs->GetFolder(UserSettingsFolder, profileMacrosDir, MAX_PATH);
+	_tcscat(profileMacrosDir, "\\macros\\");
 
 	TCHAR szMacroFile[MAX_PATH];
 	_tcscpy(szMacroFile, macrosDir);
-    _tcscat(szMacroFile, _T("main.kmm"));
+	_tcscat(szMacroFile, _T("main.kmm"));
 	if (!LoadMacros(szMacroFile))
 		return false;
 
 	_tcscpy(szMacroFile, macrosDir);
-    _tcscat(szMacroFile, _T("*.kmm"));
+	_tcscat(szMacroFile, _T("*.kmm"));
 
 	WIN32_FIND_DATA FindFileData;
 	HANDLE hFind;
@@ -486,8 +480,7 @@ int Load() {
 #endif
 
    TCHAR szMacroFile[MAX_PATH];
-
-   kFuncs->GetPreference(PREF_TSTRING, "kmeleon.general.settingsDir", szMacroFile, (void*)_T(""));
+   kFuncs->GetFolder(UserSettingsFolder, szMacroFile, MAX_PATH);
 
    if (! *szMacroFile)
       return 0;
@@ -518,7 +511,7 @@ void Create(HWND hWndParent) {
 
 void Config(HWND hWndParent) {
    TCHAR cfgPath[MAX_PATH];
-   kFuncs->GetPreference(PREF_TSTRING, "kmeleon.general.settingsDir", cfgPath, (void*)_T(""));
+   kFuncs->GetFolder(UserSettingsFolder, cfgPath, MAX_PATH);
    _tcscat(cfgPath, _T("macros.cfg"));
    ShellExecute(NULL, NULL, _T("notepad.exe"), cfgPath, NULL, SW_SHOW);
 }
@@ -528,7 +521,7 @@ configFileType g_configFiles[1];
 int GetConfigFiles(configFileType **configFiles)
 {
    char cfgPath[MAX_PATH];
-   kFuncs->GetPreference(PREF_STRING, "kmeleon.general.settingsDir", cfgPath, (void*)_T(""));
+   kFuncs->GetFolder(UserSettingsFolder, cfgPath, MAX_PATH);
 
    strcpy(g_configFiles[0].file, cfgPath);
    strcat(g_configFiles[0].file, "macros.cfg");
@@ -701,6 +694,7 @@ int FindCommand(char *cmd) {
       CMD_TEST(sub)
       CMD_TEST(substr)
 	  CMD_TEST(urlencode)
+     CMD_TEST(getfolder)
       CMD_TEST(basename)
       CMD_TEST(dirname)
       CMD_TEST(hostname)
@@ -1966,6 +1960,31 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
          kFuncs->SetCheck(cmd, mark);
 
 	 return "";
+      }
+
+      CMD(getfolder) {
+         if (nparam != 1) {  
+            parseError(WRONGARGS, "setcheck", data, 1, nparam);
+            return "";
+         }
+         char path[MAX_PATH] = {0};
+         const char *dirname = params[0].c_str();
+			FolderType foldertype;
+         
+         if (stricmp(dirname, "RootFolder") == 0)
+            foldertype = RootFolder;
+         else if (stricmp(dirname, "SettingsFolder") == 0)
+            foldertype = UserSettingsFolder;
+         else if (stricmp(dirname, "ProfileFolder") == 0)
+            foldertype = ProfileFolder;
+         else if (stricmp(dirname, "ResFolder") == 0)
+            foldertype = ResFolder;
+			else if (stricmp(dirname, "SkinFolder") == 0)
+            foldertype = CurrentSkinFolder;
+			else return "";
+
+			kFuncs->GetFolder(foldertype, path, MAX_PATH);
+         return protectString(path);
       }
 
    return "";

@@ -150,9 +150,9 @@ int Load(){
    kPlugin.kFuncs->GetPreference(PREF_TSTRING, PREFERENCE_BOOKMARK_FILE, tmp, (TCHAR*)_T(""));
 
    if (!tmp[0]) {
-      kPlugin.kFuncs->GetPreference(PREF_TSTRING, PREFERENCE_SETTINGS_DIR, tmp, (TCHAR*)_T(""));
-	  _tcscat(tmp, BOOKMARKS_DEFAULT_FILENAME);
-	  gBookmarkDefFile = true;
+      kPlugin.kFuncs->GetFolder(UserSettingsFolder, tmp, MAX_PATH);
+      _tcscat(tmp, "\\" BOOKMARKS_DEFAULT_FILENAME);
+      gBookmarkDefFile = true;
    }
    _tcscpy(gBookmarkFile, tmp);
    
@@ -276,9 +276,9 @@ void Quit(){
    kPlugin.kFuncs->SendMessage("bmpmenu", PLUGIN_NAME, "UnSetOwnerDrawn", (long)gMenuBookmarks, 0);
    while (RealDeleteMenu(gMenuBookmarks, nFirstBookmarkPosition));
 
-    TCHAR tmp[MAX_PATH];
-	kPlugin.kFuncs->GetPreference(PREF_TSTRING, PREFERENCE_SETTINGS_DIR, &tmp, (TCHAR*)_T(""));
-	_tcscat(tmp, BOOKMARKS_DEFAULT_FILENAME);
+   TCHAR tmp[MAX_PATH];
+   kPlugin.kFuncs->GetFolder(UserSettingsFolder, tmp, MAX_PATH);
+   _tcscat(tmp, "\\" BOOKMARKS_DEFAULT_FILENAME);
  
    if (gBookmarkDefFile || _tcscmp(tmp, gBookmarkFile) == 0)
 	   kPlugin.kFuncs->DelPreference(PREFERENCE_BOOKMARK_FILE);

@@ -201,16 +201,16 @@ void getHotlistFile() {
    kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_HOTLIST_FILE, gHotlistFile, (char*)"");
    
    if (!gHotlistFile[0]) {
-      kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_SETTINGS_DIR, gHotlistFile, (char*)"");
-      strcat(gHotlistFile, HOTLIST_DEFAULT_FILENAME);
-	  defFile = true;
+      kPlugin.kFuncs->GetFolder(UserSettingsFolder, gHotlistFile, MAX_PATH);
+      strcat(gHotlistFile, "\\" HOTLIST_DEFAULT_FILENAME);
+      defFile = true;
    }
    
    bmFile = fopen(gHotlistFile, "a");
    while (!bmFile && !bIgnore) {
    retry:
-      kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_SETTINGS_DIR, gHotlistFile, (char*)"");
-      strcat(gHotlistFile, HOTLIST_DEFAULT_FILENAME);
+      kPlugin.kFuncs->GetFolder(UserSettingsFolder, gHotlistFile, MAX_PATH);
+      strcat(gHotlistFile, "\\" HOTLIST_DEFAULT_FILENAME);
       
       while (!bmFile && !bIgnore) {
          int ret = DialogBoxParam(kPlugin.hDllInstance ,MAKEINTRESOURCE(IDD_INSTALL), NULL, (DLGPROC)HotlistFileDlgProc, 0);
@@ -545,7 +545,8 @@ void Quit(){
       remove_TB(root->hWnd);
 
    TCHAR tmp[MAX_PATH];
-   kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_SETTINGS_DIR, &tmp, (TCHAR*)_T(""));
+
+   kPlugin.kFuncs->GetFolder(UserSettingsFolder, tmp, MAX_PATH);
    strcat(tmp, HOTLIST_DEFAULT_FILENAME);
    if (_tcscmp(tmp, gHotlistFile) == 0)
 	   kPlugin.kFuncs->DelPreference(PREFERENCE_HOTLIST_FILE);

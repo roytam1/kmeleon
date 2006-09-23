@@ -28,7 +28,6 @@
 
 #define PLUGIN_NAME "Privacy Plugin"
 
-#define PREFERENCE_SETTINGS_DIR         "kmeleon.general.settingsDir"
 #define PREFERENCE_CACHE_PARENTDIR      "browser.cache.disk.parent_directory"
 #define PREFERENCE_MRU_MAXURLS          "kmeleon.MRU.maxURLs"
 #define PREFERENCE_MRU_URL              "kmeleon.MRU.URL"
@@ -107,7 +106,7 @@ void InitGlobals()
     cmdClearSignon = kFuncs->GetCommandIDs(1);
     cmdClearHistory = kFuncs->GetCommandIDs(1);
     cmdConfig = kFuncs->GetCommandIDs(1);
-    kFuncs->GetPreference(PREF_STRING, PREFERENCE_SETTINGS_DIR, settingsDir, NULL);
+	 kFuncs->GetFolder(UserSettingsFolder, settingsDir, MAX_PATH);
     kFuncs->GetPreference(PREF_STRING, PREFERENCE_CACHE_PARENTDIR, cacheParentDir, NULL);
     kFuncs->GetPreference(PREF_STRING, PREFERENCE_SIGNON_FILE, signonFileName, NULL);
 }

@@ -34,7 +34,6 @@
 #define PREFERENCE_EDIT_DLG_HEIGHT "kmeleon.plugins.bookmarks.editdialog.height"
 #define PREFERENCE_EDIT_ZOOM       "kmeleon.plugins.bookmarks.editdialog.zoom"
 #define PREFERENCE_EDIT_MAX        "kmeleon.plugins.bookmarks.editdialog.maximized"
-#define PREFERENCE_SETTINGS_DIR    "kmeleon.general.settingsDir"
 #define PREFERENCE_BOOKMARKS_OPENURL "kmeleon.plugins.bookmarks.openurl"
 #define PREFERENCE_BOOKMARK_ASKFOLDER "kmeleon.plugins.bookmarks.askforFolder"
 
