@@ -46,6 +46,7 @@ int          BoolVal(std::string input);
 void         Create(HWND parent);
 void         Config(HWND parent);
 void         DoError(char* msg);
+void         DoError(char* msg, char* filename, int line);
 void         DoMenu(HMENU menu, char *param);
 void         DoRebar(HWND rebarWnd);
 int          DoAccel(char *param);
@@ -64,7 +65,7 @@ std::string  GetGlobalVarVal(HWND hWnd, char *name, int *found);
 int SetGlobalVarVal(HWND hWnd, char *name, const char* value);
 int          Load();
 int          IntVal(std::string input);
-void         LoadMacros(TCHAR *filename);
+bool         LoadMacros(TCHAR *filename);
 void         Close(HWND hWnd);
 void         CloseFrame(HWND hWnd, LONG windows);
 void         Quit();
@@ -404,6 +405,62 @@ public:
   }
 }* arglist;
 
+bool LoadNewMacros()
+{
+    TCHAR macrosDir[MAX_PATH];
+	GetModuleFileName(kPlugin.hParentInstance, macrosDir, MAX_PATH);
+    int x=_tcslen(macrosDir)-1;
+    while (x>0 && macrosDir[x] != _T('\\')) x--;
+    if (x>0)
+		macrosDir[x+1]=0;
+	else 
+		return false;
+
+	_tcscat(macrosDir, "macros\\");
+
+	TCHAR profileMacrosDir[MAX_PATH];
+	kFuncs->GetPreference(PREF_TSTRING, "kmeleon.general.settingsDir", profileMacrosDir, (void*)_T(""));
+	_tcscat(profileMacrosDir, "macros\\");
+
+	TCHAR szMacroFile[MAX_PATH];
+	_tcscpy(szMacroFile, macrosDir);
+    _tcscat(szMacroFile, _T("main.kmm"));
+	if (!LoadMacros(szMacroFile))
+		return false;
+
+	_tcscpy(szMacroFile, macrosDir);
+    _tcscat(szMacroFile, _T("*.kmm"));
+
+	WIN32_FIND_DATA FindFileData;
+	HANDLE hFind;
+	hFind = FindFirstFile(szMacroFile, &FindFileData);
+	if (hFind == INVALID_HANDLE_VALUE)
+		return false;
+
+	do {
+		if (_tcsicmp("main.kmm", FindFileData.cFileName) == 0)
+			continue;
+		_tcscpy(szMacroFile, macrosDir);
+		_tcscat(szMacroFile, FindFileData.cFileName);
+		LoadMacros(szMacroFile);
+	} while (FindNextFile(hFind, &FindFileData));
+	
+	_tcscpy(szMacroFile, profileMacrosDir);
+    _tcscat(szMacroFile, _T("*.kmm"));
+
+	hFind = FindFirstFile(szMacroFile, &FindFileData);
+	if (hFind == INVALID_HANDLE_VALUE)
+		return false;
+
+	do {
+		_tcscpy(szMacroFile, profileMacrosDir);
+		_tcscat(szMacroFile, FindFileData.cFileName);
+		LoadMacros(szMacroFile);
+	} while (FindNextFile(hFind, &FindFileData));
+
+	return true;
+}
+
 
 BOOL APIENTRY DllMain(HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved ) {
    switch (ul_reason_for_call) {
@@ -436,8 +493,10 @@ int Load() {
       return 0;
 
    _tcscat(szMacroFile, _T("macros.cfg"));
-
-   LoadMacros(szMacroFile);
+   if (!LoadMacros(szMacroFile)) {
+	  LoadNewMacros();
+   }
+      
    ID_START = kFuncs->GetCommandIDs(iMacroCount);
    ID_END = ID_START+iMacroCount-1;
 
@@ -1361,17 +1420,32 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
       }
       CMD(macros) {
          // execute another macro
+		 std::string ret;
+		 std::string macro;
 
-         int cmdid = FindMacro((char*)params[0].c_str());
-         if(cmdid == NOTFOUND) {
-            std::string msg = "Invalid macro reference. The macro '";
-            msg.append(params[0]);
-            msg.append("' does not exist.");
-            DoError((char*)msg.c_str());
-         }
-         else {
-            return ExecuteMacro(hWnd,cmdid);
-         }
+		 int pos = params[0].find(';');
+		 macro = params[0].substr(0,pos);
+
+		 while (macro.length()) {
+            int cmdid = FindMacro((char*)macro.c_str());
+            if(cmdid == NOTFOUND) {
+               std::string msg = "Invalid macro reference. The macro '";
+               msg.append(macro.c_str());
+               msg.append("' does not exist.");
+               DoError((char*)msg.c_str());
+            }
+            else {
+               ret = ExecuteMacro(hWnd,cmdid);
+            }
+			
+			pos != params[0].npos ?
+			   params[0].erase(0,pos+1) :
+			   params[0].erase();
+
+            pos = params[0].find(';');
+	        macro = params[0].substr(0,pos);
+		 }
+		 return ret;
       }
 
 
@@ -1908,13 +1982,14 @@ bool IsNumber(const char* string)
 	return true;
 }
 
-void LoadMacros(TCHAR *filename) {
+bool LoadMacros(TCHAR *filename) {
    HANDLE macroFile;
 
-   macroFile = CreateFile(filename, GENERIC_READ, 0, NULL, OPEN_ALWAYS, (WPARAM)NULL, NULL);
+   macroFile = CreateFile(filename, GENERIC_READ, 0, NULL, OPEN_EXISTING, (WPARAM)NULL, NULL);
    if (macroFile == INVALID_HANDLE_VALUE) {
-      MessageBox(NULL, _T("Could not open file"), filename, MB_OK);
-      return;
+      //macroFile = CreateFile(filename, GENERIC_READ, 0, NULL, OPEN_ALWAYS, (WPARAM)NULL, NULL);
+      //MessageBox(NULL, _T("Could not open file"), filename, MB_OK);
+      return false;
    }
    DWORD length = GetFileSize(macroFile, NULL);
    char *buf = new char[length + 1];
@@ -2035,7 +2110,7 @@ void LoadMacros(TCHAR *filename) {
          }
          // check for a valid macro name
          if(strtemp.length() < 1) {
-            DoError("Missing macro name.");
+            DoError("Missing macro name.", filename, nLineCount);
             break;
          }
          char* badlist = "!@#$%^&*(){}[]<>/ \\\"'`~=?;";
@@ -2049,7 +2124,7 @@ void LoadMacros(TCHAR *filename) {
             }            
          }
          if(isBad) {
-            DoError("Bad character in macro name.");
+            DoError("Bad character in macro name.", filename, nLineCount);
             break;
          }
          // if we made it this far the macro name looks good
@@ -2061,7 +2136,11 @@ void LoadMacros(TCHAR *filename) {
             buildingMacro = true;
          }
          else {   // macro exists, give a redefinition error and skip the rest of this macro
-            DoError("Macro redefinition.");
+		    const char* tr = "Macro redefinition: %s.";
+		    char* msg = new char[strtemp.length() + strlen(tr) + 1];
+			sprintf(msg, tr, strtemp.c_str());
+            DoError(msg, filename, nLineCount);
+			delete [] msg;
          }
       }
 
@@ -2081,7 +2160,7 @@ void LoadMacros(TCHAR *filename) {
          }
          else {
             // somethings not right here so exit with an error
-            DoError("Invalid macro definition. Missing opening bracket?");
+            DoError("Invalid macro definition. Missing opening bracket?", filename, nLineCount);
             break;
          }
       }
@@ -2129,7 +2208,7 @@ void LoadMacros(TCHAR *filename) {
                if(strcmpi(lval.c_str(),"menu") == 0) {
                   rval = strTrim(thisStatement.substr(pos+1));
                   if(rval.length() < 1) { // trying to set the menu to nothing
-                     DoError("Cannot set menu string to empty value.");
+                     DoError("Cannot set menu string to empty value.", filename, nLineCount);
                      needBreak = true; break;
                   }
                   if(macroList[iMacroCount-1]->menuString) delete macroList[iMacroCount-1]->menuString;
@@ -2145,7 +2224,7 @@ void LoadMacros(TCHAR *filename) {
          if(thisStatement.at(0) == '&') {
             thisStatement = strTrim(thisStatement.substr(1));
             if(thisStatement.length() < 1) {
-               DoError("Invalid macro reference.");
+               DoError("Invalid macro reference.", filename, nLineCount);
                needBreak = true; break;
             }
             thisStatement = "macros(" + thisStatement + ")";
@@ -2164,6 +2243,7 @@ void LoadMacros(TCHAR *filename) {
 
    }//end while
 
+   return true;
 }
 
 /**********/
@@ -2822,6 +2902,25 @@ int AddVar() {
 /**** DoError ******/
 void DoError(char* msg) {
    MessageBoxUTF8(NULL,msg,"Error",MB_OK);
+}
+void DoError(char* msg, TCHAR* filename, int line) {
+   TCHAR* slash = _tcsrchr(filename, '\\');
+   if (slash) filename = slash+1;
+
+#ifdef _UNICODE
+   CANSI_to_UTF16 tMsg(msg);
+#else
+   const char* tMsg = msg;
+#endif
+
+   TCHAR lineBuf[34];
+   _itot(line, lineBuf, 10);
+
+   TCHAR* buf = new TCHAR[lstrlen(tMsg) + lstrlen(filename) + 55];
+   _stprintf(buf, "%s \r\nIn file %s at line %d", tMsg, filename, line);
+
+   MessageBox(NULL,buf,_T("Error"),MB_OK);
+   delete buf;
 }
 
 /**** strTrim ***/
