@@ -480,7 +480,7 @@ void CPreferences::Save(bool clearPath)
 
    if (clearPath) {
       // XXX: Removing path from profile when equal to default
-      CString appDir = GetFolder(RootFolder);
+      CString appDir = theApp.GetFolder(RootFolder);
 
       if (pluginsDir.CompareNoCase(appDir + _T("\\kplugins")) == 0)
          m_prefs->ClearUserPref("kmeleon.general.pluginsDir");
