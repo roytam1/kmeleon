@@ -164,8 +164,8 @@ void CReBarEx::OnChevronPushed( NMHDR * pNotifyStruct, LRESULT* result )
 
 				// Add the item to the menu with the id of the toolbar button
 				// or add the submenu 
-            if (ISMENUBUTTON(id) && IsMenu((HMENU)button.dwData))
-					pop.AppendMenu( iMenuStyle|MF_POPUP, button.dwData, buttonText);
+            if ((button.fsStyle & TBSTYLE_DROPDOWN) && ::IsMenu((HMENU)(id - SUBMENU_OFFSET))) 
+					pop.AppendMenu( iMenuStyle|MF_POPUP, id-SUBMENU_OFFSET, buttonText);
 				else
 					pop.AppendMenu ( iMenuStyle, id, buttonText);
 				
