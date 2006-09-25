@@ -35,6 +35,11 @@ protected:
 
   HACCEL accelTable;
 
+  void DeleteAccel(int idx);
+  void DeleteMAccel(int idx);
+  int FindAccel(WORD virt, DWORD key);
+  int FindMAccel(WORD virt, DWORD key);
+
 public:
   CAccelParser();
   CAccelParser(LPCTSTR filename);
@@ -42,8 +47,11 @@ public:
   ~CAccelParser();
 
   int Load(LPCTSTR filename);
-
   int Parse(char *p);
+
+  int SetAccel(const char* key, char* command);
+  void SetAccel(WORD command, WORD virt, WORD key);
+  void SetMAccel(WORD command, WORD virt, WORD button);
 
   HACCEL GetTable();
   CString GetStrAccel(UINT id);

@@ -154,10 +154,10 @@ public:
 	DECLARE_MESSAGE_MAP()
 
 private:
-	BOOL			InitializeProfiles();
-	BOOL			CreateHiddenWindow();  
-   nsresult    InitializePrefs();
-   nsresult    InitializeMenusAccels();
+   BOOL			InitializeProfiles();
+   BOOL			CreateHiddenWindow();  
+   BOOL        InitializePrefs();
+   BOOL        InitializeMenusAccels();
    nsresult    InitializeWindowCreator();
    void        InitializeDefineMap();
    void        CheckProfileVersion();

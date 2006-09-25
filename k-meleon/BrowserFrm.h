@@ -221,16 +221,18 @@ public:
 #ifdef INTERNAL_SITEICONS
 	void SetFavIcon(int iIcon);
 #endif
+
 // Overrides
+	virtual HACCEL GetDefaultAccelerator();
+
     // ClassWizard generated virtual function overrides
     //{{AFX_VIRTUAL(CBrowserFrame)
     virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
     virtual BOOL PreTranslateMessage(MSG* pMsg);
     virtual BOOL OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERINFO* pHandlerInfo);
-    //}}AFX_VIRTUAL
+	//}}AFX_VIRTUAL
 
 // Implementation
-public:
     virtual ~CBrowserFrame();
 #ifdef _DEBUG
     virtual void AssertValid() const;

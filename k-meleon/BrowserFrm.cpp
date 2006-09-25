@@ -1268,3 +1268,10 @@ void CBrowserFrame::OnRbnLayoutChanged(NMHDR *pNMHDR, LRESULT *pResult)
       pBrowserFrame->m_wndReBar.RestoreBandSizes();
    }
 }
+
+HACCEL CBrowserFrame::GetDefaultAccelerator()
+{
+	if (!(m_chromeMask & nsIWebBrowserChrome::CHROME_OPENAS_CHROME))
+		return theApp.accel.GetTable();
+	return NULL;
+}

@@ -235,7 +235,7 @@ bool CMfcEmbedApp::FindSkinFile( CString& szSkinFile, TCHAR *filename )
 		tmp = tmp.Left( tmp.GetLength()-2 );
 	}
 
-	file = GetFolder(SkinsFolder) + "\\default\\" + filename;
+	file = GetFolder(SkinsFolder) + _T("\\default\\") + filename;
 	hFile = FindFirstFile(file, &FindData);
 	if(hFile != INVALID_HANDLE_VALUE) {   
 		FindClose(hFile);
@@ -481,8 +481,8 @@ BOOL CMfcEmbedApp::InitInstance()
 
    plugins.FindAndLoad();
    plugins.SendMessage("*", "* Plugin Manager", "Init");
-   InitializeMenusAccels();
-   plugins.SendMessage("*", "* Plugin Manager", "Setup");
+	InitializeMenusAccels();
+   
 
 
    RefreshPlugins(PR_FALSE);
@@ -1044,43 +1044,30 @@ BOOL CMfcEmbedApp::CreateHiddenWindow()
    return hiddenWnd->Create(HIDDEN_WINDOW_CLASS, _T("K-Meleon hidden window"), 0, bounds, NULL, NULL, 0, NULL);
 }
 
-nsresult CMfcEmbedApp::InitializePrefs(){
+BOOL CMfcEmbedApp::InitializePrefs(){
    preferences.Load();
-   preferences.Save();
+   //preferences.Save();
 
    return TRUE;
 }
 
-nsresult CMfcEmbedApp::InitializeMenusAccels(){
-   nsresult nResult = TRUE;
-
+BOOL CMfcEmbedApp::InitializeMenusAccels(){
    CString filename;
 
-   filename = GetFolder(UserSettingsFolder) + _T('\\') + ACCEL_CONFIG_FILE;
-   if (!accel.Load(filename)){
-      MessageBox(NULL, _T("Could not find ") ACCEL_CONFIG_FILE, NULL, 0);
+   filename = GetFolder(DefSettingsFolder) + _T("\\") ACCEL_CONFIG_FILE;
+   accel.Load(filename);
 
-      if (!_tfopen(filename, _T("r"))) {
-         // if it doesn't exist, create it
-         FILE *f = _tfopen(filename, _T("w"));
-         if (f) fclose(f);
-      }
+   filename = GetFolder(DefSettingsFolder) + _T("\\") MENU_CONFIG_FILE;
+   menus.Load(filename);
+   
+   plugins.SendMessage("*", "* Plugin Manager", "Setup");
 
-      nResult = FALSE;
-   }
+   filename = GetFolder(UserSettingsFolder) + _T("\\") ACCEL_CONFIG_FILE;
+   accel.Load(filename);
 
-   filename = GetFolder(UserSettingsFolder) + _T('\\') + MENU_CONFIG_FILE;
-   if (!menus.Load(filename)){
-      MessageBox(NULL, _T("Could not find ") MENU_CONFIG_FILE, NULL, 0);
+   filename = GetFolder(UserSettingsFolder) + _T("\\") MENU_CONFIG_FILE;
+   menus.Load(filename);
 
-      if (!_tfopen(filename, _T("r"))) {
-         // if it doesn't exist, create it
-         FILE *f = _tfopen(filename, _T("w"));
-         if (f) fclose(f);
-      }
-
-      nResult = FALSE;
-   }
    return TRUE;
 }
 
@@ -1249,62 +1236,6 @@ int CMfcEmbedApp::GetID(char *strID) {
    defineMap.Lookup(A2T(strID), val);
    return val;
 }
-/*
-extern CString GetMozDirectory(char* dirName);
-
-CString CMfcEmbedApp::GetFolder(FolderType folder)
-{
-   switch (folder) {
-      case RootFolder:
-         return m_sRootFolder;
-
-      case DefSettingsFolder:
-         return GetMozDirectory(NS_APP_DEFAULTS_50_DIR) + _T("\\Settings");
-      
-      case UserSettingsFolder:
-         if (theApp.preferences.settingsDir.IsEmpty())
-            return GetFolder(ProfileFolder);
-         else
-            return MakeAbsolutePath(theApp.preferences.settingsDir);
-
-      case ProfileFolder:
-         return GetMozDirectory(NS_APP_USER_PROFILE_50_DIR);
-
-      case PluginsFolder:
-         if (theApp.preferences.pluginsDir.IsEmpty())
-            return m_sRootFolder + _T("\\kplugins");
-         else
-            return MakeAbsolutePath(theApp.preferences.pluginsDir);
-
-      case UserPluginsFolder:
-         return GetMozDirectory(NS_APP_USER_PROFILE_50_DIR) + _T("\\kplugins"); 
-
-      case SkinsFolder:
-         if (theApp.preferences.skinsDir.IsEmpty())
-            return m_sRootFolder + _T("\\skins");
-         else
-            return MakeAbsolutePath(theApp.preferences.skinsDir);
-
-      case UserSkinsFolder:
-         return GetMozDirectory(NS_APP_USER_PROFILE_50_DIR) + _T("\\skins"); 
-
-      case ResFolder:
-         return GetMozDirectory(NS_APP_RES_DIR);
-
-      case CurrentSkinFolder:
-         // XXX
-         CString current = GetFolder(UserSkinsFolder) + _T("\\") + theApp.preferences.skinsCurrent;
-         WIN32_FIND_DATA FindData;
-         HANDLE hFile = FindFirstFile(current, &FindData);
-		   if(hFile != INVALID_HANDLE_VALUE) {
-            FindClose(hFile);
-            return current;
-         }
-         return GetFolder(SkinsFolder) + _T("\\") + theApp.preferences.skinsCurrent;
-   }
-   return "";
-}
-*/
 
 CString CMfcEmbedApp::GetFolder(FolderType folder)
 {
@@ -1340,7 +1271,7 @@ CString CMfcEmbedApp::GetFolder(FolderType folder)
       case CurrentSkinFolder:
          return preferences.currentSkinFolder;
    }
-   return "";
+   return _T("");
 }
 
 void CMfcEmbedApp::CheckProfileVersion()

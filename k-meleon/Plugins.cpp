@@ -29,6 +29,7 @@ extern CMfcEmbedApp theApp;
 #include "kmeleon_plugin.h"
 #include "Plugins.h"
 #include "Utils.h"
+#include "MenuParser.h"
 
 int SessionSize=0;
 char **pHistory;
@@ -111,6 +112,25 @@ int CPlugins::OnUpdate(UINT command)
    return false;
 }
 
+BOOL ParsePluginCommand(char *pszCommand, char** plugin, char **parameter)
+{
+	if (!pszCommand)
+		return FALSE;
+
+	*plugin = pszCommand;
+	*parameter = strchr(pszCommand, '(');
+	if (!*parameter)
+		return FALSE;
+
+	char *close = strrchr(*parameter, ')');
+	if (!close)
+		return FALSE;
+
+	*(*parameter)++ = 0;
+	*close = 0;
+	return TRUE;
+}
+
 HWND NavigateTo(const char *url, int windowState, HWND mainWnd)
 {
    CBrowserFrame *mainFrame, *newFrame = NULL;
@@ -133,28 +153,28 @@ HWND NavigateTo(const char *url, int windowState, HWND mainWnd)
       newFrame = mainFrame->m_wndBrowserView.OpenURLInNewWindow(str.get());
       break;
    case OPEN_BACKGROUND:
-	  NS_CStringToUTF16(nsEmbedCString(url), NS_CSTRING_ENCODING_ASCII, str);
+      NS_CStringToUTF16(nsEmbedCString(url), NS_CSTRING_ENCODING_ASCII, str);
       newFrame = mainFrame->m_wndBrowserView.OpenURLInNewWindow(str.get(), true);
       break;
    }
    if (newFrame && (windowState & OPEN_CLONE))
-	   mainFrame->m_wndBrowserView.CloneSHistory(newFrame->m_wndBrowserView);
+     mainFrame->m_wndBrowserView.CloneSHistory(newFrame->m_wndBrowserView);
 
    return newFrame ? newFrame->m_hWnd:NULL;
 }
 
 void _NavigateTo(const char *url, int windowState, HWND mainWnd)
 {
-	NavigateTo(url, windowState, mainWnd);
+   NavigateTo(url, windowState, mainWnd);
 }
 
 kmeleonDocInfo * GetDocInfo(HWND mainWnd)
 {
    CBrowserFrame *frame;
    if (mainWnd)
-	   frame = (CBrowserFrame *)CWnd::FromHandle(mainWnd);
+      frame = (CBrowserFrame *)CWnd::FromHandle(mainWnd);
    else
-	   frame = theApp.m_pMostRecentBrowserFrame;
+      frame = theApp.m_pMostRecentBrowserFrame;
 
    if (!frame)
       return NULL;
@@ -262,7 +282,7 @@ int GetMozillaSessionHistory (char ***titles, char ***urls, int *count, int *ind
    int i;
 
    if (!theApp.m_pMostRecentBrowserFrame || !theApp.m_pMostRecentBrowserFrame->m_wndBrowserView.mWebNav) 
-	   return FALSE;
+      return FALSE;
    
    nsCOMPtr<nsISHistory> h;
 
@@ -326,7 +346,7 @@ int GetMozillaSessionHistory (char ***titles, char ***urls, int *count, int *ind
       len = WideCharToMultiByte(CP_ACP, 0, title, -1, s, len, NULL, NULL);
       s[len] = 0;
       pHistory[i] = s;
-	  nsMemory::Free(title);
+     nsMemory::Free(title);
    }
    
    if (titles)
@@ -403,9 +423,9 @@ kmeleonPointInfo *GetInfoAtNode(nsIDOMNode* aNode)
    gPointInfo.link  = NULL;
    gPointInfo.frame = NULL;
    gPointInfo.page  = NULL;
-	
+
    if (!aNode) 
-		return &gPointInfo;
+      return &gPointInfo;
 
    if (!theApp.m_pMostRecentBrowserFrame || !theApp.m_pMostRecentBrowserFrame->m_wndBrowserView)
       return &gPointInfo;
@@ -444,7 +464,7 @@ kmeleonPointInfo *GetInfoAtNode(nsIDOMNode* aNode)
       if(NS_SUCCEEDED(rv)) {
          if (strBuf.Length()) {
             gPointInfo.link = new char[strBuf.Length() + 1];
-			UTF16ToCString(strBuf, gPointInfo.link);
+            UTF16ToCString(strBuf, gPointInfo.link);
          }
       }
    }
@@ -456,7 +476,7 @@ kmeleonPointInfo *GetInfoAtNode(nsIDOMNode* aNode)
       rv = imgPointInfo->GetSrc(strBuf);
       if(NS_SUCCEEDED(rv)) {
          gPointInfo.image = new char[strBuf.Length() + 1];
-		 UTF16ToCString(strBuf, gPointInfo.image);
+         UTF16ToCString(strBuf, gPointInfo.image);
       }
    }
 
@@ -471,7 +491,7 @@ kmeleonPointInfo *GetInfoAtNode(nsIDOMNode* aNode)
          rv = htmlDoc->GetURL(strBuf);
          if(NS_SUCCEEDED(rv)) {
             gPointInfo.frame = new char[strBuf.Length() +1];
-			UTF16ToCString(strBuf, gPointInfo.frame);
+            UTF16ToCString(strBuf, gPointInfo.frame);
          }
       }
    }
@@ -482,15 +502,15 @@ kmeleonPointInfo *GetInfoAtNode(nsIDOMNode* aNode)
 
 kmeleonPointInfo *GetInfoAtClick(HWND hWnd)
 {
-	CBrowserFrame *frame;
-	frame = (CBrowserFrame *)CWnd::FromHandle(hWnd);
+   CBrowserFrame *frame;
+   frame = (CBrowserFrame *)CWnd::FromHandle(hWnd);
 
-	if (!frame || !::IsWindow(frame->m_wndBrowserView.m_hWnd)) {
+   if (!frame || !::IsWindow(frame->m_wndBrowserView.m_hWnd)) {
       return GetInfoAtNode(nsnull);
    }
 
    if (!theApp.m_pMostRecentBrowserFrame || !theApp.m_pMostRecentBrowserFrame->m_wndBrowserView)
-	   return GetInfoAtNode(nsnull);
+      return GetInfoAtNode(nsnull);
 
    return GetInfoAtNode(frame->m_wndBrowserView.m_lastMouseActionNode);
 }
@@ -499,7 +519,7 @@ kmeleonPointInfo *GetInfoAtPoint(int x, int y)
 {
 
    if (!theApp.m_pMostRecentBrowserFrame || !theApp.m_pMostRecentBrowserFrame->m_wndBrowserView)
-	   return GetInfoAtNode(nsnull);
+      return GetInfoAtNode(nsnull);
 
    CBrowserView *pBrowserView;  
    pBrowserView = &theApp.m_pMostRecentBrowserFrame->m_wndBrowserView;
@@ -757,6 +777,27 @@ void ParseAccel(char *str) {
   theApp.accel.Parse(str);
 }
 
+void SetAccel(const char* key, char* command) {
+  theApp.accel.SetAccel(key, command);
+}
+
+void SetMenu(const char* menu, kmeleonMenuItem* kmitem) {
+	MenuItem item;
+	item.type = (MenuType)kmitem->type;
+	item.SetLabel(kmitem->label);
+	item.command = kmitem->command;
+	item.groupid = kmitem->groupid;
+
+   USES_CONVERSION;
+	theApp.menus.SetMenu(A2CT(menu), item, kmitem->before);
+}
+
+void RebuildMenu(const char* menu) {
+	USES_CONVERSION;
+	theApp.menus.Rebuild(A2CT(menu));
+}
+
+
 kmeleonPlugin * Load(char *kplugin) {
   USES_CONVERSION;
   return theApp.plugins.Load(CString(A2T(kplugin)));
@@ -990,7 +1031,10 @@ kmeleonFunctions kmelFuncs = {
    NavigateTo,
    Translate,
    SetGlobalVar,
-   GetFolder
+   GetFolder,
+   SetAccel,
+   SetMenu,
+   RebuildMenu
 };
 
 BOOL CPlugins::TestLoad(LPCTSTR file, const char *description)
@@ -1004,7 +1048,7 @@ BOOL CPlugins::TestLoad(LPCTSTR file, const char *description)
    int load = theApp.preferences.GetBool(preference, -1);
    if (load == -1) {
       CString message, title;
-	   title.LoadString(IDS_NEW_PLUGIN_FOUND_TITLE);
+      title.LoadString(IDS_NEW_PLUGIN_FOUND_TITLE);
       message.Format(IDS_NEW_PLUGIN_FOUND, A2CT(description));
 
       if (MessageBox(NULL, message, _T("Plugin found"), MB_YESNO) == IDYES)
@@ -1094,7 +1138,7 @@ kmeleonPlugin * CPlugins::Load(CString file)
    // If the plugin is enabled, tell it to Init
    if (loaded) {
       if (kPlugin->DoMessage(kPlugin->dllname, "* Plugin Manager", "Load", 0, 0) == -1)
-		  loaded = false;
+         loaded = false;
    }
 
    if (!loaded) {
@@ -1124,7 +1168,7 @@ int CPlugins::FindAndLoad(const TCHAR *pattern)
    CFileFind finder;
    BOOL bWorking;
 
-   if (*pattern!='/' && !strchr(pattern, ':')) {
+   if (*pattern!=_T('/') && !_tcschr(pattern, ':')) {
       // if pattern does not contain ':' or does not begin with '/'
       // we need to prepend pluginsDir
       CString search = theApp.GetFolder(PluginsFolder) + _T('\\') + pattern;

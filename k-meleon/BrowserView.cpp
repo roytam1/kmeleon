@@ -78,6 +78,7 @@
 extern CMfcEmbedApp theApp;
 extern nsresult NewURI(nsIURI **result, const nsAString &spec);
 extern nsresult GetDOMEventTarget (nsIWebBrowser* aWebBrowser, nsIDOMEventTarget** aTarget);
+extern ParsePluginCommand(char *pszCommand, char** plugin, char **parameter);
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -577,26 +578,6 @@ void CBrowserView::OnUrlKillFocus()
 void CBrowserView::OnUrlEditChange()
 {
    mpBrowserFrame->m_wndUrlBar.EditChanged(TRUE);
-}
-
-
-BOOL ParsePluginCommand(char *pszCommand, char** plugin, char **parameter)
-{
-	if (!pszCommand)
-		return FALSE;
-
-	*plugin = pszCommand;
-	*parameter = strchr(pszCommand, '(');
-	if (!*parameter)
-		return FALSE;
-
-	char *close = strchr(*parameter, ')');
-	if (!close)
-		return FALSE;
-
-	*(*parameter)++ = 0;
-	*close = 0;
-	return TRUE;
 }
 
 void CBrowserView::OpenMultiURL(LPTSTR urls)
