@@ -37,7 +37,6 @@ CSideBar::CSideBar()
 	m_iCount = 0;
 	m_iCurrent = -1;
 	m_iBars = NULL;
-	m_menu = theApp.m_sidebarControlsMenu;
 	m_wBorder = 0; // Currently not putting border
 }
 
@@ -97,7 +96,8 @@ void CSideBar::Show(int index)
 
 void CSideBar::DrawSideBarMenu()
 {
-   if (!m_menu) return;
+   if (!theApp.m_sidebarControlsMenu) return;
+   m_menu = theApp.m_sidebarControlsMenu;
    
    if (m_iCount == 0) 
 	   InsertMenu(m_menu, 0, MF_BYPOSITION | MF_GRAYED    | MF_STRING, 0, _T("None"));

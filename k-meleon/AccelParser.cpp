@@ -1,5 +1,6 @@
 /*
 *  Copyright (C) 2000 Brian Harris
+*  Copyright (C) 2006 Dorian Boissonnade
 *
 *  This program is free software; you can redistribute it and/or modify
 *  it under the terms of the GNU General Public License as published by
@@ -49,12 +50,13 @@ extern CMfcEmbedApp theApp;
 //Standard accel to show in menu 
 
 static const ACCEL stdAccels[] = {
-	{FCONTROL, 'C', ID_EDIT_COPY},
-	{FCONTROL, 'V', ID_EDIT_PASTE},
-	{FCONTROL, 'X', ID_EDIT_CUT},
-	{FVIRTKEY|FALT, VK_F4, ID_FILE_CLOSE}
+   {FCONTROL, 'C', ID_EDIT_COPY},
+   {FCONTROL, 'V', ID_EDIT_PASTE},
+   {FCONTROL, 'X', ID_EDIT_CUT},
+   {FVIRTKEY|FALT, VK_F4, ID_FILE_CLOSE}
 };
 
+extern BOOL ParsePluginCommand(char *pszCommand, char** plugin, char **parameter);
 
 CAccelParser::CAccelParser()
 {
@@ -100,69 +102,68 @@ int CAccelParser::Load(LPCTSTR filename)
 
 int CAccelParser::Parse(char *p)
 {
-   char *e, *s;
-   char *alt, *ctrl, *shift;
-   BYTE virt;
-   int command;
-   SHORT key;
-
    // <modifiers> <key> = <command>
-   e = strchr(p, '=');
+   char *e = strchr(p, '=');
    if (e){
       *e = 0;
       e++;
       e = SkipWhiteSpace(e);
       TrimWhiteSpace(e);
+	  TrimWhiteSpace(p);
+	  return SetAccel(p, e);
+   }
+   return 0;
+}
 
-      char *op = strchr(e, '(');
-      if (op) {                        // if there's an open parenthesis, we'll assume it's a plugin
-         char *parameter = op + 1;
-         char *cp = strrchr(parameter, ')');
-         if (cp) *cp = 0;
-         *op = 0;
+int CAccelParser::SetAccel(const char* pKey, char* pCommand)
+{
+	int command = 0;
+	char *alt, *ctrl, *shift;
+	const char* p;
+	BYTE virt;
+    int key;
 
-         TrimWhiteSpace(e);
+	char *plugin, *parameter;
+	if (ParsePluginCommand(pCommand, &plugin, &parameter))
+	{
+		if (theApp.plugins.SendMessage(plugin, "* AccelParser", "DoAccel", (long)parameter, (long)&command)) {
+			LOG_2("Called plugin %s with parameter %s", plugin, parameter);
+		}
+		else {
+			LOG_ERROR_2( "Plugin %s has no accelerator %s", plugin, parameter);
+			return 0;
+		}
+	}
+	else {
+		command = theApp.GetID(pCommand);
+		if (!command)
+			command = atoi(pCommand);
+	}
 
-         if (theApp.plugins.SendMessage(e, "* AccelParser", "DoAccel", (long)parameter, (long)&command)) {
-            LOG_2("Called plugin %s with parameter %s", e, parameter);
-         }
-         else {
-            LOG_ERROR_2( "Plugin %s has no accelerator %s", e, parameter);
-         }
-      }
-      
-      else {
-         command = theApp.GetID(e);
-         if (!command)
-            command = atoi(e);
-      }
+	virt = 0;
+	p = pKey;
+	alt = strstr(pKey, "ALT");
+	if (alt){
+		virt |= FALT;
+		p = alt + 3;
+	}
+	ctrl = strstr(pKey, "CTRL");
+	if (ctrl){
+		virt |= FCONTROL;
+		if (ctrl > alt){
+			p = ctrl + 4;
+		}
+	}
+	shift = strstr(pKey, "SHIFT");
+	if (shift){
+		virt |= FSHIFT;
+		if ((shift > alt) && (shift > ctrl)){
+			p = shift + 5;
+		}
+	}
 
-      TrimWhiteSpace(p);
-      s = p;
-
-      virt = 0;
-      alt = strstr(s, "ALT");
-      if (alt){
-         virt |= FALT;
-         p = alt + 3;
-      }
-      ctrl = strstr(s, "CTRL");
-      if (ctrl){
-         virt |= FCONTROL;
-         if (ctrl > alt){
-            p = ctrl + 4;
-         }
-      }
-      shift = strstr(s, "SHIFT");
-      if (shift){
-         virt |= FSHIFT;
-         if ((shift > alt) && (shift > ctrl)){
-            p = shift + 5;
-         }
-      }
-      virt |= FVIRTKEY;
       // by now, p should be past the modifiers and point to " <key>"
-      p = SkipWhiteSpace(p);
+      p = SkipWhiteSpace((char*)p);
 
       if (strncmp(p, "VK_", 3) == 0){
          p+=3;
@@ -276,25 +277,16 @@ int CAccelParser::Parse(char *p)
             VK_TEST(SCROLL)
       }
       else if (stricmp(p, "LButton") == 0){ 
-	mouse[numMKeys].cmd = command;
-	mouse[numMKeys].fVirt = virt & (~FVIRTKEY);
-	mouse[numMKeys].key = WM_LBUTTONDOWN;
-	numMKeys++;
-	return true;
+         SetMAccel(command, virt, WM_LBUTTONDOWN);
+         return true;
       }
       else if (stricmp(p, "MButton") == 0){ 
-	mouse[numMKeys].cmd = command;
-	mouse[numMKeys].fVirt = virt & (~FVIRTKEY);
-	mouse[numMKeys].key = WM_MBUTTONDOWN;
-	numMKeys++;
-	return true;
+         SetMAccel(command, virt, WM_MBUTTONDOWN);
+         return true;
       }
       else if (stricmp(p, "RButton") == 0){ 
-	mouse[numMKeys].cmd = command;
-	mouse[numMKeys].fVirt = virt & (~FVIRTKEY);
-	mouse[numMKeys].key = WM_RBUTTONDOWN;
-	numMKeys++;
-	return true;
+         SetMAccel(command, virt, WM_RBUTTONDOWN);
+         return true;
       }
       else {
          // regular key, convert it to virtual-key code to 
@@ -302,13 +294,82 @@ int CAccelParser::Parse(char *p)
          key = VkKeyScanA(*p) & 0xff;
       }
 
+      virt |= FVIRTKEY;
+      SetAccel(command, virt, key);
+
+   return true;
+}
+
+void CAccelParser::SetAccel(WORD command, WORD virt, WORD key)
+{
+   int oldAccel;
+   if ((oldAccel = FindAccel(virt, key)) == -1) {
       accelerators[numAccelerators].cmd = command;
       accelerators[numAccelerators].fVirt = virt;
       accelerators[numAccelerators].key = key;
       numAccelerators++;
-   } // if e
+   }
+   else {
+      if (command != 0) 
+         accelerators[oldAccel].cmd = command;
+      else
+         DeleteAccel(oldAccel);
+   }
+   if (accelTable) {
+	   DestroyAcceleratorTable(accelTable);
+	   accelTable = NULL;
+   }
+}
 
-   return true;
+void CAccelParser::SetMAccel(WORD command, WORD virt, WORD button)
+{
+   if (command == 0) {
+      int oldAccel = FindMAccel(virt, button);
+      if (oldAccel != -1)
+         DeleteMAccel(oldAccel);
+   }
+   mouse[numMKeys].cmd = command;
+   mouse[numMKeys].fVirt = virt;
+   mouse[numMKeys].key = button;
+   numMKeys++;
+}
+
+void CAccelParser::DeleteMAccel(int idx) 
+{
+   int i;
+   --numMKeys;
+   for (i=idx;i<numMKeys;i++)
+      mouse[i] = mouse[i+1];
+}
+
+void CAccelParser::DeleteAccel(int idx) 
+{
+   int i;
+   --numAccelerators;
+   for (i=idx;i<numAccelerators;i++)
+      accelerators[i] = accelerators[i+1];
+}
+
+int CAccelParser::FindMAccel(WORD virt, DWORD key)
+{
+   const ACCEL* accel = NULL;
+
+   for (int i=0;i<numAccelerators;i++)
+      if (mouse[i].key == key && mouse[i].fVirt == virt)
+         return i;
+
+   return -1;
+}
+
+int CAccelParser::FindAccel(WORD virt, DWORD key)
+{
+   const ACCEL* accel = NULL;
+
+   for (int i=0;i<numAccelerators;i++)
+      if (accelerators[i].key == key && accelerators[i].fVirt == virt)
+         return i;
+
+   return -1;
 }
 
 HACCEL CAccelParser::GetTable(){
@@ -414,8 +475,8 @@ int CAccelParser::CheckMouse(UINT message){
       virt |= FALT;
    for (i=0; i<numMKeys; i++) {
       if (mouse[i].key == message) {
-	 if (mouse[i].fVirt == virt)
-	    return mouse[i].cmd;
+         if (mouse[i].fVirt == virt)
+            return mouse[i].cmd;
       }
    }
    return 0;

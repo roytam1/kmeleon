@@ -80,6 +80,22 @@ enum PREFTYPE {
    PREF_UNISTRING
 };
 
+typedef struct {
+   short type;
+   const char* label;
+   int command;
+   int groupid;
+   long before;
+} kmeleonMenuItem;
+
+enum MENUTYPE {
+   MENU_COMMAND = 0,
+   MENU_POPUP = 1,
+   MENU_INLINE = 2,
+   MENU_PLUGIN = 3,
+   MENU_SEPARATOR= 4
+};
+
 #ifdef _UNICODE
 #define PREF_TSTRING PREF_UNISTRING
 #else
@@ -204,6 +220,38 @@ typedef struct {
    int (*SetGlobalVar)(PREFTYPE, const char*, void*);
    
    long (*GetFolder)(FolderType type, char* path, size_t size);
+
+   /* Set an accelerator:
+      key: key to use (Ex: "CTRL ALT X")
+      command: id or plugin command. If NULL, delete the accel if it exists
+   */
+   void (*SetAccel)(const char *key, char* command);
+
+   /* Edit a menu
+
+      name : name of the menu to add/edit
+      item : item to add, the values depend of the type of the menu:
+   
+      type ==> MENU_COMMAND
+         label ==> Text of the menu item
+         command ==> id of the command
+
+      type ==> MENU_POPUP
+         type ==> MENU_INLINE
+         label ==> Name of the popup/inline menu to add
+
+      type ==> MENU_PLUGIN
+         label ==> Plugin command
+
+      group ==> not used for now;
+      before ==> id command or pointer to a label to indicate
+                 where to add the item. -1 for end of menu.
+                 Don't work with type = MENU_PLUGIN.
+   */
+   void (*SetMenu)(const char* name, kmeleonMenuItem* item);
+
+   /* Rebuild the menu after editing */
+   void (*RebuildMenu) (const char* name);
 
 } kmeleonFunctions;
 

@@ -19,7 +19,7 @@
 #include "StdAfx.h"
 #include "ReBarEx.h"
 #include "BrowserFrm.h"
-#include "rebar_menu/hot_tracking.cpp"
+#include "rebar_menu/hot_tracking.h"
 
 
 BEGIN_MESSAGE_MAP(CReBarEx, CReBar)
@@ -30,7 +30,6 @@ END_MESSAGE_MAP()
 
 
 CReBarEx::CReBarEx() {
-   m_menu = theApp.m_toolbarControlsMenu;
    m_iCount=0;
 
    CReBar::CReBar();
@@ -165,8 +164,8 @@ void CReBarEx::OnChevronPushed( NMHDR * pNotifyStruct, LRESULT* result )
 
 				// Add the item to the menu with the id of the toolbar button
 				// or add the submenu 
-            if ((button.fsStyle & TBSTYLE_DROPDOWN) && ::IsMenu((HMENU)(id - SUBMENU_OFFSET))) 
-					pop.AppendMenu( iMenuStyle|MF_POPUP, id-SUBMENU_OFFSET, buttonText);
+            if (ISMENUBUTTON(id) && IsMenu((HMENU)button.dwData))
+					pop.AppendMenu( iMenuStyle|MF_POPUP, button.dwData, buttonText);
 				else
 					pop.AppendMenu ( iMenuStyle, id, buttonText);
 				
@@ -254,7 +253,8 @@ int CReBarEx::ChildToListIndex(HWND hWnd) {
 }
 
 void CReBarEx::DrawToolBarMenu() {
-   if (!m_menu) return;
+   if (!theApp.m_toolbarControlsMenu) return;
+   m_menu = theApp.m_toolbarControlsMenu;
 
    for (int x=0; x<m_iCount; x++) {
       if (m_index[x]->name && m_index[x]->visibleOnMenu) {
