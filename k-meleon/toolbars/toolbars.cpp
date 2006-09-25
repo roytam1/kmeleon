@@ -1329,10 +1329,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 				  {
 					  LPTOOLTIPTEXTA lpTiptext = (LPTOOLTIPTEXTA) lParam;                  
 #ifdef _UNICODE
-					  if (tip) free(tip);
-					  unsigned lengthDst = lstrlen(button->sToolTip)*2 + 1;
-	                  WideCharToMultiByte(CP_ACP, WC_COMPOSITECHECK, button->sToolTip, -1, tip, lengthDst, "_", NULL);
-					  lpTiptext->lpszText = tip;
+					  if (button->sToolTip) {
+					     if (tip) free(tip);
+					     unsigned lengthDst = lstrlen(button->sToolTip)*2 + 1;
+                         WideCharToMultiByte(CP_ACP, WC_COMPOSITECHECK, button->sToolTip, -1, tip, lengthDst, "_", NULL);
+					     lpTiptext->lpszText = tip;
+					  }
 #else
 					  lpTiptext->lpszText = button->sToolTip;
 #endif
@@ -1343,14 +1345,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 #ifdef _UNICODE
 					  lpTiptext->lpszText = button->sToolTip;
 #else				  
-					  if (tip) free(tip);
-					  unsigned lengthDst = strlen(button->sToolTip) + 1;
-					  tip = (WCHAR*)malloc(sizeof(WCHAR) * lengthDst);
-					  MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, button->sToolTip, -1, tip, lengthDst);
-					  lpTiptext->lpszText = tip;
+					  if (button->sToolTip) {
+					     if (tip) free(tip);
+					     unsigned lengthDst = strlen(button->sToolTip) + 1;
+					     tip = (WCHAR*)malloc(sizeof(WCHAR) * lengthDst);
+					     MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, button->sToolTip, -1, tip, lengthDst);
+					     lpTiptext->lpszText = tip;
+					  }
 #endif
 				  }
-                  return NULL;
+                  return 0;
                }
                button = button->prev;
             }
