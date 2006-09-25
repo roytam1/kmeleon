@@ -221,8 +221,13 @@ int MessageBoxUTF8(HWND hWnd, const char* lpText, const char* lpCaption, UINT uT
 long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2)
 {  
    if (to[0] == '*' || stricmp(to, kPlugin.dllname) == 0) {
-      if (stricmp(subject, "Load") == 0) {
+      if (stricmp(subject, "Init") == 0) {
          Load();
+      }
+	 	 if (stricmp(subject, "Setup") == 0) {
+         int index = FindMacro("OnSetup");
+         if (index != NOTFOUND)
+            ExecuteMacro(NULL, index);
       }
       else if (stricmp(subject, "Create") == 0) {
          Create((HWND)data1);
@@ -331,7 +336,10 @@ enum commands {
    setcheck, 
    _,
    urlencode,
-   getfolder
+   getfolder,
+   setmenu,
+   setaccel,
+   rebuildmenu
 };
 
 std::string sGlobalArg;
@@ -485,7 +493,7 @@ int Load() {
    if (! *szMacroFile)
       return 0;
 
-   _tcscat(szMacroFile, _T("macros.cfg"));
+   _tcscat(szMacroFile, _T("\\macros.cfg"));
    if (!LoadMacros(szMacroFile)) {
 	  LoadNewMacros();
    }
@@ -666,8 +674,8 @@ int FindCommand(char *cmd) {
    int cmdVal = NOTFOUND;
    
    BEGIN_CMD_TEST
-	  CMD_TEST(_)
-	  CMD_TEST(setcheck)
+      CMD_TEST(_)
+      CMD_TEST(setcheck)
       CMD_TEST(open)
       CMD_TEST(opennew)
       CMD_TEST(openbg)
@@ -693,18 +701,21 @@ int FindCommand(char *cmd) {
       CMD_TEST(length)
       CMD_TEST(sub)
       CMD_TEST(substr)
-	  CMD_TEST(urlencode)
-     CMD_TEST(getfolder)
+      CMD_TEST(urlencode)
+      CMD_TEST(getfolder)
+      CMD_TEST(setmenu)
+      CMD_TEST(setaccel)
       CMD_TEST(basename)
       CMD_TEST(dirname)
       CMD_TEST(hostname)
-	  CMD_TEST(injectJS)
-	  CMD_TEST(injectCSS)
-	  CMD_TEST(readfile)
-	  CMD_TEST(readreg)
-	  CMD_TEST(promptforfile)
-	  CMD_TEST(promptforfolder)
+      CMD_TEST(injectJS)
+      CMD_TEST(injectCSS)
+      CMD_TEST(readfile)
+      CMD_TEST(readreg)
+      CMD_TEST(promptforfile)
+      CMD_TEST(promptforfolder)
       CMD_TEST(forcecharset)
+      CMD_TEST(rebuildmenu)
 
    return cmdVal;
 }
@@ -1935,7 +1946,7 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
          }
 
          kFuncs->SetForceCharset(nparam < 1 ? "" : (char*)strVal(params[0], 1).c_str());
-	 return "";
+         return "";
       }
 
       /*
@@ -1953,13 +1964,101 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
          if (!cmd)
             cmd = atoi((char*)params[0].c_str());
 
-	 BOOL mark = TRUE;
-	 if (nparam == 2)
-	   mark = BoolVal(EvalExpression(hWnd, params[1]));
+         BOOL mark = TRUE;
+         if (nparam == 2)
+            mark = BoolVal(EvalExpression(hWnd, params[1]));
 
          kFuncs->SetCheck(cmd, mark);
 
-	 return "";
+         return "";
+      }
+
+      /*
+         setmenu( name, type, rebuild, ... );
+      */
+
+      CMD(setmenu) {
+         if (nparam < 3) {  
+            parseError(WRONGARGS, "setmenu", data, 3, nparam);
+            return "";
+         }
+
+			//setmenu( "name", "command", where, "label", command)
+			//setmenu( "name", "macro", where, "label", macroname)
+			//setmenu( "name", "popup", where, "label")
+			//setmenu( "name", "inline", where, "label")
+			//setmenu( "name", "separator", where)
+			//setmenu( "name", "plugin", where, plugin)
+
+			kmeleonMenuItem item;
+			int whereparam = 0;
+			item.label = params[2].c_str();
+
+			if (params[1] == "command") {
+				whereparam = 4;
+				item.type = MENU_COMMAND;
+				item.command = kFuncs->GetID((char*)params[3].c_str());
+				if (!item.command)
+					item.command = IntVal(params[3].c_str());
+			}
+			else if (params[1] == "macro") {
+				whereparam = 4;
+				item.type = MENU_COMMAND;
+				item.command = DoAccel((char*)params[3].c_str());
+				if (!item.command)
+					item.command = IntVal(params[3].c_str());
+			}
+			else if (params[1] == "popup") {
+				whereparam = 3;
+				item.type = MENU_POPUP;
+			}
+			else if (params[1] == "inline") {
+				whereparam = 3;
+				item.type = MENU_INLINE;
+			}
+			else if (params[1] == "separator") {
+				whereparam = 2;
+				item.type = MENU_SEPARATOR;
+			}
+			else if (params[1] == "plugin") {
+				whereparam = 2;
+				item.type = MENU_PLUGIN;
+			}
+			else {
+				parseError(WRONGARGS, "setmenu", data, 2, nparam);
+				return "0";
+			}
+
+			if (params[whereparam].empty())
+				item.before = -1;
+			else {
+            item.before = DoAccel((char*)params[whereparam].c_str());
+				if (!item.before)
+					item.before = kFuncs->GetID((char*)params[whereparam].c_str()); 
+				if (!item.before)
+					item.before = (long)params[whereparam].c_str();
+			}
+
+			kFuncs->SetMenu(params[0].c_str(), &item);
+			return "1";
+		}
+
+		CMD(rebuildmenu) {
+			if (nparam != 1) {  
+				parseError(WRONGARGS, "rebuildmenu", data, 1, nparam);
+				return "";
+			}
+			kFuncs->RebuildMenu(params[0].c_str());
+		}
+
+      CMD(setaccel) {
+         if (nparam != 2) {  
+            parseError(WRONGARGS, "setaccel", data, 3, nparam);
+            return "";
+         }
+         
+         kFuncs->SetAccel(params[0].c_str(), (char*)params[1].c_str());
+         return "";
       }
 
       CMD(getfolder) {
@@ -1969,7 +2068,7 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
          }
          char path[MAX_PATH] = {0};
          const char *dirname = params[0].c_str();
-			FolderType foldertype;
+            FolderType foldertype;
          
          if (stricmp(dirname, "RootFolder") == 0)
             foldertype = RootFolder;
@@ -1979,11 +2078,20 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
             foldertype = ProfileFolder;
          else if (stricmp(dirname, "ResFolder") == 0)
             foldertype = ResFolder;
-			else if (stricmp(dirname, "SkinFolder") == 0)
+         else if (stricmp(dirname, "SkinFolder") == 0)
             foldertype = CurrentSkinFolder;
-			else return "";
+         else if (stricmp(dirname, "MacroFolder") == 0) {
+            kFuncs->GetFolder(RootFolder, path, MAX_PATH);
+            strcpy(path, "\\macros");
+            return protectString(path);
+         }
+         else if (stricmp(dirname, "UserMacroFolder") == 0) {
+            kFuncs->GetFolder(UserSettingsFolder, path, MAX_PATH);
+            strcpy(path, "\\macros");
+            return protectString(path);
+         else return "";
 
-			kFuncs->GetFolder(foldertype, path, MAX_PATH);
+         kFuncs->GetFolder(foldertype, path, MAX_PATH);
          return protectString(path);
       }
 
@@ -2523,8 +2631,9 @@ std::string EvalExpression(HWND hWnd,std::string exp) {
 		  res = res_l + res_r;
 	       else if (exp.at(last_op) == '-')
 		  res = res_l - res_r;
-               itoa(res,(char*)exp.data(),10);
-               return exp;
+			   char buf[34];
+               itoa(res,buf,10);
+               return buf;
             }
             else if(exp.at(i) == '*' ||   // multiplication
 		    exp.at(i) == '/' ||   // division
@@ -2560,8 +2669,9 @@ std::string EvalExpression(HWND hWnd,std::string exp) {
 		     return "0";
 		  else
 		     res = res_l % res_r;
-               itoa(res,(char*)exp.data(),10);
-               return exp;
+			   char buf[34];
+               itoa(res,buf,10);
+               return buf;
             }
             else if(exp.at(i) == '.') { // concat
                lval = strVal(EvalExpression(hWnd, strTrim(exp.substr(0,i))),1);
