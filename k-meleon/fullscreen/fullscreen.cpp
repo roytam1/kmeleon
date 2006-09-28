@@ -382,7 +382,7 @@ BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
                      kPlugin.kFuncs->SetPreference(PREF_BOOL, "kmeleon.plugins.fullscreen.hide_rebar", &bHideReBar, false);
                      kPlugin.kFuncs->SetPreference(PREF_BOOL, "kmeleon.plugins.fullscreen.hide_statusbar", &bHideStatusBar, false);
                      kPlugin.kFuncs->SetPreference(PREF_BOOL, "kmeleon.plugins.fullscreen.auto", &bAutoFullscreen, false);
-					 kPlugin.kFuncs->SetPreference(PREF_BOOL, "kmeleon.plugins.fullscreen.auto", &bHideTaskbar, false);
+					 kPlugin.kFuncs->SetPreference(PREF_BOOL, "kmeleon.plugins.fullscreen.hide_taskbar", &bHideTaskbar, false);
                   case IDCANCEL:
                      SendMessage(hWnd, WM_CLOSE, 0, 0);
                }
