@@ -491,30 +491,23 @@ int ifplugin(char *p)
 }
 
 void LoadToolbars(TCHAR *filename) {
-   HANDLE configFile;
 
-   configFile = CreateFile(filename, GENERIC_READ, 0, NULL, OPEN_EXISTING, NULL, NULL);
-   if (configFile == INVALID_HANDLE_VALUE) {
+   FILE* configFile = _tfopen(filename, "r");
+   if (!configFile) {
       MessageBox(NULL, _Tr("Could not open file"), filename, MB_OK);
       return;
    }
-   DWORD length = GetFileSize(configFile, NULL);
-   char *buf = new char[length + 1];
-   ReadFile(configFile, buf, length, &length, NULL);
-   buf[length] = 0;
-   CloseHandle(configFile);  
-   
+
    s_toolbar *curToolbar = NULL;
    s_button  *curButton = NULL;
    int iBuildState = TOOLBAR;
 
    int pauseParsing = 0;
+   char buf[128];
+   while (fgets(buf, 128, configFile)) {
 
-   char *p = strtok(buf, "\r\n");
-   while (p) {
-
-      p = SkipWhiteSpace(p);
-      TrimWhiteSpace(p);
+      char* p = SkipWhiteSpace(buf);
+      TrimWhiteSpace(buf);
 
       if (p[0] == '#') {}
 
@@ -698,6 +691,7 @@ void LoadToolbars(TCHAR *filename) {
                     tooltip[strlen(tooltip)-1] = 0;
                   }
 
+						TrimWhiteSpace(tooltip);
 				  const TCHAR* lpText = kPlugin.kFuncs->Translate(tooltip);
 				  curButton->sToolTip = new TCHAR[_tcslen(lpText)+1];
 				  _tcscpy(curButton->sToolTip, lpText);
@@ -727,9 +721,8 @@ void LoadToolbars(TCHAR *filename) {
             break;
          }
       }
-      p = strtok(NULL, "\r\n");
    } // while
-   delete buf;
+   fclose(configFile);
 }
 
 s_toolbar *AddToolbar(char *name, int width, int height) {
