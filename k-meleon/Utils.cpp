@@ -67,7 +67,7 @@ void TrimWhiteSpace(char *string)
 {
   char *p;
   for ( p = string + strlen(string) - 1; p >= string; p-- ){
-    if (*p == ' ' || *p == '\t'){
+    if (*p == ' ' || *p == '\t' || *p == '\r' || *p == '\n'){
       *p = 0;
     }else{
       break;
