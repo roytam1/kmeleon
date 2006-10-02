@@ -83,6 +83,7 @@ static long lastTime;
 #define PREFERENCE_ONOPENOPTION  "kmeleon.plugins.layers.onOpenOption"
 #define PREFERENCE_ONCLOSEOPTION "kmeleon.plugins.layers.onCloseOption"
 #define PREFERENCE_CONFIRMCLOSE  "kmeleon.plugins.layers.confirmClose"
+#define PREFERENCE_AUTOHIDE      "kmeleon.plugins.layers.autoHide"
 
 BOOL APIENTRY DllMain (
         HANDLE hModule,
@@ -1208,7 +1209,7 @@ void UpdateRebarMenu(struct layer *pLayer)
 
    REBARBANDINFO rb;
    rb.cbSize = sizeof(REBARBANDINFO);
-   rb.fMask = RBBIM_CHILD;
+   rb.fMask = RBBIM_CHILD | RBBIM_STYLE;
    for(int x=0;x < uBandCount;x++) {
 
 	   if (!SendMessage(hReBar, RB_GETBANDINFO, (WPARAM) x, (LPARAM) &rb))
@@ -1216,12 +1217,14 @@ void UpdateRebarMenu(struct layer *pLayer)
 
 	  if (rb.hwndChild == pLayer->hWndTB)
 	  {
-		  if (iButtonCount<2)
-		      rb.fStyle = RBBS_HIDDEN;
+		  BOOL autoHide = FALSE;
+		  kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_AUTOHIDE, &autoHide, &autoHide);
+		  if (autoHide && iButtonCount<2)
+		     rb.fStyle |= RBBS_HIDDEN;
 		  else
-			  rb.fStyle = RBBS_USECHEVRON | RBBS_CHILDEDGE | RBBS_FIXEDBMP | RBBS_VARIABLEHEIGHT;
+			  rb.fStyle &= ~RBBS_HIDDEN;
 
-		  rb.fMask  = RBBIM_IDEALSIZE ;//| RBBIM_STYLE;
+		  rb.fMask  = RBBIM_IDEALSIZE | RBBIM_STYLE;
 		  rb.cxIdeal = ideal;
 
 		  SendMessage(hReBar, RB_SETBANDINFO, x, (LPARAM)&rb);
