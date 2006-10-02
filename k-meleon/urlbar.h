@@ -184,7 +184,7 @@ public:
         }
     }   
 
-    inline void AddURLToList(CString& url, bool bAddToMRUList = true) {
+    inline void AddURLToList(CString& url) {
         USES_CONVERSION;
         COMBOBOXEXITEM ci;
         ci.mask = CBEIF_TEXT | CBEIF_IMAGE | CBEIF_SELECTEDIMAGE;
@@ -193,21 +193,12 @@ public:
 
         ci.pszText = const_cast<TCHAR *>((LPCTSTR)url);
         InsertItem(&ci);
-      
-        if(bAddToMRUList) {    
-            theApp.m_MRUList->AddURL(url);
-            theApp.m_MRUList->SaveURLs();
-            theApp.BroadcastMessage(UWM_REFRESHMRULIST, 0, 0);
-        }
-    }
-    inline void RefreshMRUList() {
-        ResetContent();
-        LoadMRUList();
     }
     inline void LoadMRUList() {
+         ResetContent();
          POSITION pos = theApp.m_MRUList->GetTailPosition();
          while (pos)
-            AddURLToList(theApp.m_MRUList->GetPrev(pos), false);
+            AddURLToList(theApp.m_MRUList->GetPrev(pos));
     }
     int SetSoftFocus() {
         if (IsIconic() || !IsWindowVisible())

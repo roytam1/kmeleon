@@ -1,5 +1,6 @@
 /*
 *  Copyright (C) 2001 Jeff Doozan
+*  Copyright (C) 2006 Dorian Boissonnade
 *
 *  This program is free software; you can redistribute it and/or modify
 *  it under the terms of the GNU General Public License as published by
@@ -24,12 +25,18 @@
 #include "MfcEmbed.h"
 extern CMfcEmbedApp theApp;
 
-CMostRecentUrls::CMostRecentUrls() {
-  LoadURLs();
+CMostRecentUrls::CMostRecentUrls()
+{
+   LoadURLs();
 }
 
-void CMostRecentUrls::LoadURLs() {
+CMostRecentUrls::~CMostRecentUrls()
+{
+   SaveURLs();
+}
 
+void CMostRecentUrls::LoadURLs()
+{
    m_maxURLs = theApp.preferences.GetInt("kmeleon.MRU.maxURLs", 16); 
    if (m_maxURLs <= 0) {
       m_maxURLs=0;
@@ -51,12 +58,6 @@ void CMostRecentUrls::LoadURLs() {
          AddTail(url);
       }
    }
-}
-
-CMostRecentUrls::~CMostRecentUrls()
-{
-   SaveURLs();
-   DeleteURLs();
 }
 
 void CMostRecentUrls::SaveURLs()
@@ -86,7 +87,8 @@ void CMostRecentUrls::RefreshURLs()
 }
 
 void CMostRecentUrls::AddURL(LPCTSTR aURL)
-{
+{  
+   RefreshURLs(); // Else macros/plugins can't delete them
    m_maxURLs = theApp.preferences.GetInt("kmeleon.MRU.maxURLs", 16); 
    while (GetCount() > m_maxURLs)
       RemoveTail();
@@ -104,4 +106,6 @@ void CMostRecentUrls::AddURL(LPCTSTR aURL)
       RemoveAt(pos);
 
    AddHead(aURL);
+   SaveURLs();
+   theApp.BroadcastMessage(UWM_REFRESHMRULIST, 0, 0);
 }

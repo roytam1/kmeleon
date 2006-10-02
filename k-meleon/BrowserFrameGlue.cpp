@@ -192,7 +192,7 @@ void CBrowserFrame::BrowserFrameGlueObj::UpdateCurrentURI(nsIURI *aLocation)
 				aLocation->GetUsername(password);
 				aLocation->SetUserPass(password);
 				aLocation->GetSpec(uriString);
-				pThis->m_wndUrlBar.AddURLToList(CString(A2CW(uriString.get())));
+				theApp.m_MRUList->AddURL(A2CT(uriString.get()));
 			}
 			else if (theApp.preferences.MRUbehavior == 1){
 				nsEmbedCString nsScheme, nsHost;
@@ -200,7 +200,7 @@ void CBrowserFrame::BrowserFrameGlueObj::UpdateCurrentURI(nsIURI *aLocation)
 				aLocation->GetHost(nsHost);
 				nsHost.Insert("://",0);
 				nsHost.Insert(nsScheme,0);
-				pThis->m_wndUrlBar.AddURLToList(CString(A2CW(nsHost.get())));
+				theApp.m_MRUList->AddURL(A2CT(nsHost.get()));
 			}
 		}
     }

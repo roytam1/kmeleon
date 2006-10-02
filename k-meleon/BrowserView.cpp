@@ -600,11 +600,12 @@ void CBrowserView::OpenMultiURL(LPTSTR urls)
             *altCommand = 0;
 
 		idOpen  = theApp.GetID(szOpenURLcmd);
-
+		
 		if (!idOpen) {
 			char *plugin = NULL, *parameter = NULL;
 			if (ParsePluginCommand(szOpenURLcmd, &plugin, &parameter)) {
-				if (theApp.plugins.SendMessage(plugin, "* kmeleon.exe", parameter, (long)urls, 0))
+				USES_CONVERSION;
+				if (theApp.plugins.SendMessage(plugin, "* kmeleon.exe", parameter, (long)T2CA(urls), 0))
                     return;
 				else
 					theApp.plugins.SendMessage(plugin, "* kmeleon.exe", "DoAccel", (long) parameter, (long)&idOpen);
@@ -663,7 +664,7 @@ void CBrowserView::OnNewUrlEnteredInUrlBar()
 
    // Add what was just entered into the MRI list
    if (theApp.preferences.MRUbehavior == 2)
-	 mpBrowserFrame->m_wndUrlBar.AddURLToList(strUrl);
+	   theApp.m_MRUList->AddURL(strUrl);
 
    if(IsViewSourceUrl(strUrl))
       OpenViewSourceWindow(strUrl.GetBuffer(0));
@@ -699,8 +700,6 @@ void CBrowserView::OnUrlSelectedInUrlBar()
 
    //mWebBrowserFocus->Activate();
    m_bUrlJustEntered = TRUE;
-
-   mpBrowserFrame->m_wndUrlBar.RefreshMRUList();
    
    if(IsViewSourceUrl(strUrl))
       OpenViewSourceWindow(strUrl.GetBuffer(0));
