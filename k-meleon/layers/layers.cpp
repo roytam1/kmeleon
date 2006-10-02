@@ -1773,8 +1773,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                int newLayer = 0;
                pLayer = find_prev_layer(hWnd);
                
+               char* url = (kPlugin.kFuncs->GetDocInfo(hWnd))->url;
                kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_CLOSE_WINDOW, &bCloseWindow, &bCloseWindow);
-               if ((!pLayer || pLayer->hWnd==hWnd) && !bCloseWindow && !bDoClose) {
+               if ((!pLayer || pLayer->hWnd==hWnd) && !bCloseWindow && !bDoClose
+                     && ( !url || !(strstr(url, "view-source:") == url))) {
                   gwpOld.length = sizeof (WINDOWPLACEMENT);
                   if (find_frame(GetForegroundWindow()))
                      GetWindowPlacement(GetForegroundWindow(), &gwpOld);
