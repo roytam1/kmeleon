@@ -36,14 +36,15 @@ enum MenuType
 struct MenuItem
 {
 	MenuType type;
-	char label[64];
+	char label[80];
 	int command;
 	int groupid;
 
 	void SetLabel(const char* psz) {
-		strncpy(label, psz, 64);
-		label[63] = 0;
+		strncpy(label, psz, 80);
+		label[79] = 0;
 	}
+
 };
 
 class KMenu {

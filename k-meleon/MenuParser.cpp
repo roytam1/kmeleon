@@ -107,7 +107,16 @@ void KMenu::AddItem(MenuItem& item, long before)
 
 	// Custom position 
 	if (before != -1) {
-		if (before < 0xffff) { // command position
+		if (before < 100) { // Index position
+			POSITION pos = menuDef.GetHeadPosition();
+			while (pos && before--)
+				menuDef.GetNext(pos);
+			if (pos) {
+            menuDef.InsertBefore(pos, item);
+				return;
+			}
+		}
+		else if (before < 0xffff) { // command position
 			POSITION pos = menuDef.GetHeadPosition();
 			while (pos) {
 				MenuItem item2 = menuDef.GetAt(pos);
@@ -398,17 +407,13 @@ int CMenuParser::Parse(char *p)
 								TrimWhiteSpace(parameter);
 
 								int val;
-								if (!theApp.plugins.SendMessage(plugin, "* MenuParser", "DoAccel", (long)parameter, (long)&val)	|| !val)	{
-									LOG_ERROR_1( "Plugin %s has no menu", plugin);
-									return 0;
+								if (theApp.plugins.SendMessage(plugin, "* MenuParser", "DoAccel", (long)parameter, (long)&val)	&& val)	{
+									item.command = val;
+									item.SetLabel(pszLabel);
+									break;
 								}
-
-								item.command = val;
-								item.SetLabel(pszLabel);
-								break;
+								*sep = ',';
 							}
-
-							theApp.plugins.SendMessage(plugin, "* MenuParser", "DoAccel", (long)parameter, (long)&item.command);
 						} 
 
 						*(parameter-1) = '(';
@@ -500,11 +505,6 @@ void CMenuParser::InsertItem(CMenu &menu, MenuItem item, int before)
 				LOG_ERROR_1("Popup %s not found!", label);
 			break;
 
-		case MenuSeparator: // Separator
-			menu.InsertMenu(before, MF_SEPARATOR);
-			LOG_1("Added Separator", 0);
-			break;
-
 		case MenuSpecial: // Special Menu
 
 			if (strcmpi(item.label, "ToolBars") == 0) 
@@ -524,6 +524,11 @@ void CMenuParser::InsertItem(CMenu &menu, MenuItem item, int before)
 				LOG_ERROR_1("Popup %s not found!", label);
 			break;
 		}
+
+		case MenuSeparator: // Separator
+			menu.InsertMenu(before, MF_SEPARATOR);
+			LOG_1("Added Separator", 0);
+			break;
 
 		case MenuPlugin: {
 			char *plugin, *parameter;
