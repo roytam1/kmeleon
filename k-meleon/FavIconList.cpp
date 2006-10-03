@@ -41,7 +41,7 @@ Bug:	Changing skin need to delete the iconcache.
 #include "mfcembed.h"
 extern CMfcEmbedApp theApp;
 
-#define PNG_SUPPORT
+//#define PNG_SUPPORT
 
 #ifdef PNG_SUPPORT
 #define PNGDIB_NO_D2P
@@ -104,7 +104,7 @@ CFavIconList::~CFavIconList()
 	{
 		// Save the icons
 		CFile iconCache;
-		if (iconCache.Open(theApp.GetFolder(ProfileFolder) + FAVICON_CACHE_FILE, CFile::modeCreate | CFile::modeWrite))
+		if (iconCache.Open(theApp.GetFolder(ProfileFolder) + "\\" FAVICON_CACHE_FILE, CFile::modeCreate | CFile::modeWrite))
 		{
 			CArchive ar(&iconCache, CArchive::store);
 			if (Write(&ar))
@@ -141,11 +141,11 @@ BOOL CFavIconList::Create(int cx, int cy, UINT nFlags, int nInitial, int nGrow)
 
 	// Try to load the icon cache
 	CFile   iconCache;
-	if (iconCache.Open(theApp.GetFolder(ProfileFolder) + FAVICON_CACHE_FILE, CFile::modeRead))
+	if (iconCache.Open(theApp.GetFolder(ProfileFolder) + "\\" FAVICON_CACHE_FILE, CFile::modeRead))
 	{
 		if (!theApp.preferences.GetBool("kmeleon.favicons.cached", true)) {
 			iconCache.Close();
-			DeleteFile(theApp.GetFolder(ProfileFolder) + FAVICON_CACHE_FILE);
+			DeleteFile(theApp.GetFolder(ProfileFolder) + "\\" FAVICON_CACHE_FILE);
 		}
 		else
 		{
