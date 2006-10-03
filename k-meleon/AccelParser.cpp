@@ -300,7 +300,7 @@ int CAccelParser::SetAccel(const char* pKey, char* pCommand)
    return true;
 }
 
-void CAccelParser::SetAccel(WORD command, WORD virt, WORD key)
+void CAccelParser::SetAccel(WORD command, BYTE virt, WORD key)
 {
    int oldAccel;
    if ((oldAccel = FindAccel(virt, key)) == -1) {
@@ -321,7 +321,7 @@ void CAccelParser::SetAccel(WORD command, WORD virt, WORD key)
    }
 }
 
-void CAccelParser::SetMAccel(WORD command, WORD virt, WORD button)
+void CAccelParser::SetMAccel(WORD command, BYTE virt, WORD button)
 {
    if (command == 0) {
       int oldAccel = FindMAccel(virt, button);

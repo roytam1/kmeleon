@@ -50,8 +50,8 @@ public:
   int Parse(char *p);
 
   int SetAccel(const char* key, char* command);
-  void SetAccel(WORD command, WORD virt, WORD key);
-  void SetMAccel(WORD command, WORD virt, WORD button);
+  void SetAccel(WORD command, BYTE virt, WORD key);
+  void SetMAccel(WORD command, BYTE virt, WORD button);
 
   HACCEL GetTable();
   CString GetStrAccel(UINT id);
