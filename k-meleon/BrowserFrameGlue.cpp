@@ -843,26 +843,33 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowTooltip(PRInt32 x, PRInt32 y, const
 void CBrowserFrame::BrowserFrameGlueObj::FocusNextElement() {
    METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
 
-   nsCOMPtr<nsIWebBrowserFocus> focus(do_GetInterface(pThis->m_wndBrowserView.mWebBrowser));
-   if(focus) {
-	   focus->Deactivate();
-	   if (pThis->m_wndFindBar)
-		   pThis->m_wndFindBar->SetFocus();
-	   else
-		   // pThis->m_wndUrlBar.MaintainFocus();   
-		   ::SetFocus(pThis->m_wndUrlBar.m_hwndEdit);
+   nsCOMPtr<nsIWebBrowserFocus> focus = pThis->m_wndBrowserView.mWebBrowserFocus;
+   if (!focus) return;
+
+   if (pThis->m_wndFindBar){
+      focus->Deactivate();
+      pThis->m_wndFindBar->SetFocus();
    }
+   else if (pThis->m_wndUrlBar.IsWindowVisible()) {
+      focus->Deactivate();
+      ::SetFocus(pThis->m_wndUrlBar.m_hwndEdit);
+   }
+   else 
+      focus->SetFocusAtFirstElement();
 }
 
 void CBrowserFrame::BrowserFrameGlueObj::FocusPrevElement() {
    METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
 
-   nsCOMPtr<nsIWebBrowserFocus> focus(do_GetInterface(pThis->m_wndBrowserView.mWebBrowser));
-   if(focus) {
-      // pThis->m_wndUrlBar.MaintainFocus();
-	  focus->Deactivate();
+   nsCOMPtr<nsIWebBrowserFocus> focus = pThis->m_wndBrowserView.mWebBrowserFocus;
+   if (!focus) return;
+
+   if (pThis->m_wndUrlBar.IsWindowVisible()) {
+      focus->Deactivate();
       ::SetFocus(pThis->m_wndUrlBar.m_hwndEdit);
    }
+   else
+      focus->SetFocusAtLastElement();
 }
 
 void CBrowserFrame::BrowserFrameGlueObj::MouseAction(nsIDOMNode *node)
