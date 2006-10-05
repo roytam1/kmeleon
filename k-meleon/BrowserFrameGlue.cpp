@@ -715,7 +715,14 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags,
         }
     }
 
-    TCHAR *menuType = _T("<nothing>");
+	 TCHAR *menuType = _T("<nothing>");
+
+	 CString selection;
+	 pThis->m_wndBrowserView.GetSelection(selection);
+	 if (selection.GetLength()) 
+		 menuType = _T("SelectedText");
+	 else {
+    
     if (!bContentHasFrames) {
         switch (nIDResource) {
         case IDR_CTXMENU_DOCUMENT:
@@ -756,7 +763,7 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags,
             break;
         }
     }
-
+	 }
 
    /*  !!BAD HACK!!  !!BAD HACK!!  !!BAD HACK!!  !!BAD HACK!!  */
    if (nodeHack == 2) {
