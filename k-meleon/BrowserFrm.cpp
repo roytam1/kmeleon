@@ -149,34 +149,39 @@ BOOL CBrowserFrame::PreTranslateMessage(MSG* pMsg)
    {
 	   if ( pMsg->wParam == VK_TAB && !(GetKeyState(VK_CONTROL)  & 0x8000)) {
 
-		nsCOMPtr<nsIWebBrowserFocus> focus(do_GetInterface(m_wndBrowserView.mWebBrowser));
-		if(focus) {
-				if (pMsg->hwnd == m_wndUrlBar.m_hwndEdit) {
-				if (GetKeyState(VK_SHIFT)  & 0x8000)
-					if (m_wndFindBar) 
-						m_wndFindBar->SetFocus();
-					else {
-						focus->Activate();
-						focus->SetFocusAtLastElement();
-					}
-				else {
-					focus->Activate();
-					focus->SetFocusAtFirstElement();
-				}
-				return 1;
-			}
-			else if ( m_wndFindBar && (pMsg->hwnd == m_wndFindBar->m_cEdit.m_hWnd)) { 
-				
-				if (GetKeyState(VK_SHIFT)  & 0x8000) {
-					focus->Activate();
-					focus->SetFocusAtLastElement();
-				}
-				else
-					::SetFocus(m_wndUrlBar.m_hwndEdit);
-				return 1;
-			}
-		}
-	  }
+         nsCOMPtr<nsIWebBrowserFocus> focus = m_wndBrowserView.mWebBrowserFocus;
+         if(focus) {
+            if (pMsg->hwnd == m_wndUrlBar.m_hwndEdit) {
+               if (GetKeyState(VK_SHIFT)  & 0x8000)
+                  if (m_wndFindBar) 
+                     m_wndFindBar->SetFocus();
+                  else {
+                     focus->Activate();
+                     focus->SetFocusAtLastElement();
+                  }
+               else {
+                  focus->Activate();
+                  focus->SetFocusAtFirstElement();
+               }
+               return 1;
+            }
+            else if ( m_wndFindBar && (pMsg->hwnd == m_wndFindBar->m_cEdit.m_hWnd)) { 
+
+               if (GetKeyState(VK_SHIFT)  & 0x8000) {
+                  focus->Activate();
+                  focus->SetFocusAtLastElement();
+               }
+               else if (m_wndUrlBar.IsWindowVisible())
+                  ::SetFocus(m_wndUrlBar.m_hwndEdit);
+               else {
+                  focus->Activate();
+                  focus->SetFocusAtFirstElement();
+               }
+
+               return 1;
+            }
+         }
+      }
    }  else if ( pMsg->wParam == 0xff ) {
 	   if  ( (pMsg->lParam & 0x00ff0000) == 0x000b0000) {
            	m_wndBrowserView.ChangeTextSize(1);		
@@ -447,32 +452,33 @@ void CBrowserFrame::SetupFrameChrome()
        ! (m_chromeMask & nsIWebBrowserChrome::CHROME_LOCATIONBAR) ) {
         m_wndReBar.ShowWindow(SW_HIDE); // Hide the Rebar
     }
-    
-    if(! (m_chromeMask & nsIWebBrowserChrome::CHROME_TOOLBAR) ) {
-        int i = m_wndReBar.count();
-        int iMenubar = m_wndReBar.FindByName(_T("Menu"));
-        int iUrlbar  = m_wndReBar.FindByName(_T("URL Bar"));
-        while (i-- > 0) {
-            if (i != iMenubar && i != iUrlbar)
+    else {
+       if(! (m_chromeMask & nsIWebBrowserChrome::CHROME_TOOLBAR) ) {
+          int i = m_wndReBar.count();
+          int iMenubar = m_wndReBar.FindByName(_T("Menu"));
+          int iUrlbar  = m_wndReBar.FindByName(_T("URL Bar"));
+          while (i-- > 0) {
+             if (i != iMenubar && i != iUrlbar)
                 m_wndReBar.ShowBand(i, false);
-        }
-        m_wndReBar.lineup();
-        m_wndReBar.LockBars(true);
+          }
+          m_wndReBar.lineup();
+          m_wndReBar.LockBars(true);
+       }
+
+       if(! (m_chromeMask & nsIWebBrowserChrome::CHROME_MENUBAR) ) {
+          SetMenu(NULL); // Hide the MenuBar
+          int iMenubar  = m_wndReBar.FindByName(_T("Menu"));
+          if (iMenubar >= 0)
+             m_wndReBar.ShowBand(iMenubar, false);
+       }
+
+       if(! (m_chromeMask & nsIWebBrowserChrome::CHROME_LOCATIONBAR) ) {
+          int iUrlbar  = m_wndReBar.FindByName(_T("URL Bar"));
+          if (iUrlbar >= 0)
+             m_wndReBar.ShowBand(iUrlbar, false);
+       }
     }
-    
-    if(! (m_chromeMask & nsIWebBrowserChrome::CHROME_MENUBAR) ) {
-        SetMenu(NULL); // Hide the MenuBar
-        int iMenubar  = m_wndReBar.FindByName(_T("Menu"));
-        if (iMenubar >= 0)
-            m_wndReBar.ShowBand(iMenubar, false);
-    }
-    
-    if(! (m_chromeMask & nsIWebBrowserChrome::CHROME_LOCATIONBAR) ) {
-        int iUrlbar  = m_wndReBar.FindByName(_T("URL Bar"));
-        if (iUrlbar >= 0)
-            m_wndReBar.ShowBand(iUrlbar, false);
-    }
-    
+
     if(! (m_chromeMask & nsIWebBrowserChrome::CHROME_STATUSBAR) )
         m_wndStatusBar.ShowWindow(SW_HIDE); // Hide the StatusBar
 }
