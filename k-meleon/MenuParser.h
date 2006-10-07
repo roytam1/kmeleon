@@ -52,6 +52,7 @@ public:
 
 	CMenu menu;
 	CList<MenuItem, MenuItem&> menuDef;
+	CList<KMenu*, KMenu*> dependencies;
 
 	void RemoveItem(MenuItem& item);
 	void AddItem(MenuItem& item, long before = -1);
@@ -61,7 +62,7 @@ class CMenuParser : public CParser{
 protected:
 	//CMap<CString, LPCTSTR, CMenu *, CMenu *&> menus;
 	CMap<CMenu *, CMenu *&, int, int&> menuOffsets;
-	CMap<CString, LPCTSTR, KMenu*, KMenu*&> menus2;
+	CMap<CString, LPCTSTR, KMenu*, KMenu*> menus2;
 	KMenu* currentKMenu;
 
 	int opEdit;

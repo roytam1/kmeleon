@@ -105,7 +105,7 @@ void KMenu::AddItem(MenuItem& item, long before)
 		}
 	}
 
-	// Custom position 
+   // Custom position 
 	if (before != -1) {
 		if (before < 100) { // Index position
 			POSITION pos = menuDef.GetHeadPosition();
@@ -198,27 +198,16 @@ void CMenuParser::Rebuild(LPCTSTR menu)
 		BuildMenu(kmenu->menu, kmenu->menuDef);
 	}
 
-	// Rebuild all menu using this menu 
-	KMenu *m;
-	CString s;
-	POSITION pos = menus2.GetStartPosition();
+   // Rebuild all menu using this menu 
+   POSITION pos = kmenu->dependencies.GetHeadPosition();
 	while (pos) {
-		menus2.GetNextAssoc(pos, s, m);
-		if (!m->menu.m_hMenu) 
-			continue;
-
-		POSITION itemPos = m->menuDef.GetHeadPosition();
-		while (itemPos) {
-			MenuItem item = m->menuDef.GetNext(itemPos);
-         USES_CONVERSION;
-			if (item.type == MenuInline && _tcscmp(menu, A2CT(item.label)) == 0) {
-				if (s.CompareNoCase(_T("Main")) == 0)
-					mainChanged = true;
-				ResetMenu(m->menu);
-				BuildMenu(m->menu, m->menuDef);
-
-			}
+		KMenu* depMenu = kmenu->dependencies.GetNext(pos);
+		if (depMenu->menu.m_hMenu) {
+			ResetMenu(depMenu->menu);
+			BuildMenu(depMenu->menu, depMenu->menuDef);
 		}
+		if (GetMenu("Main") == &kmenu->menu)
+			mainChanged = true;
 	}
 
 	if (mainChanged || (_tcsicmp(menu, _T("Main")) == 0)) {
@@ -242,6 +231,23 @@ void CMenuParser::SetMenu(LPCTSTR menu, MenuItem item, long before)
    }
 
 	kmenu->AddItem(item, before);
+
+   if (item.command<1) {
+      KMenu* iMenu;
+      if (menus2.Lookup(menu, iMenu)) {
+         POSITION pos = iMenu->dependencies.Find(kmenu);
+         if (pos) iMenu->dependencies.RemoveAt(pos);
+      }
+   }
+   else if (item.type == MenuInline) {
+      KMenu* iMenu;
+      if (!menus2.Lookup(item.label, iMenu)) {
+         iMenu = new KMenu;
+         if (!iMenu) return;
+         menus2[item.label] = iMenu;
+      }
+      iMenu->dependencies.AddHead(kmenu);
+   }
    
 /*
 	if (!kmenu->menu.m_hMenu)
@@ -349,16 +355,26 @@ int CMenuParser::Parse(char *p)
 			case ':': // Popup Menu
 				item.type = MenuPopup;
 				item.SetLabel(++p);
+				LOG_1("Added popup menu %s.", item.label);
 				break;
 
 			case '@': // Special Menu
 				item.type = MenuSpecial;
 				item.SetLabel(++p);
+				LOG_1("Added special menu %s.", item.label);
 				break;
 
 			case '!': // Inline menu
 				item.type = MenuInline;
 				item.SetLabel(++p);
+				KMenu* iMenu;
+				if (!menus2.Lookup(item.label, iMenu)) {
+					iMenu = new KMenu;
+					if (!iMenu) return 0;
+					menus2[item.label] = iMenu;
+				}
+				iMenu->dependencies.AddHead(currentKMenu);
+				LOG_1("Added menu group %s.", item.label);
 				break;
 
 			case '-': 
@@ -368,6 +384,7 @@ int CMenuParser::Parse(char *p)
 				} else { // Separator
 					item.type = MenuSeparator;
 				}
+				LOG_0("Added separator.");
 				break;
 
 			default: { // Normal item
@@ -389,10 +406,12 @@ int CMenuParser::Parse(char *p)
 					if (val) {
 						item.command = val;
 						item.SetLabel(p);
-						LOG_2("Added menu item %s with command %d", p, val);
+						LOG_2("Added menu item %s with command %s", p, pszCmd);
 					}
-					else
+					else {
 						LOG_ERROR_1("Incorrect command value: %s", pszCmd);
+						return 0;
+					}
 				}
 				else {
 					char *plugin, *parameter;
@@ -408,6 +427,7 @@ int CMenuParser::Parse(char *p)
 
 								int val;
 								if (theApp.plugins.SendMessage(plugin, "* MenuParser", "DoAccel", (long)parameter, (long)&val)	&& val)	{
+									LOG_3("Added menu item %s with command %s(%s) [deprecated]", pszLabel, plugin, parameter);
 									item.command = val;
 									item.SetLabel(pszLabel);
 									break;
@@ -416,13 +436,13 @@ int CMenuParser::Parse(char *p)
 							}
 						} 
 
+						LOG_2("Added call to plugin %s with parameter '%s'", plugin, parameter);
+
 						*(parameter-1) = '(';
 						*(parameter+strlen(parameter)) = ')'; //Bleh
 
 						item.type = MenuPlugin;
 						item.SetLabel(p);
-
-						LOG_2("Called plugin %s with parameter %s", plugin, parameter);
 					}
 					else {
 						LOG_ERROR_1("I don't know what to do with %s", p);
@@ -499,7 +519,7 @@ void CMenuParser::InsertItem(CMenu &menu, MenuItem item, int before)
 			popup = GetMenu(label);
 			if (popup) {
 				menu.InsertMenu(before, MF_POPUP | MF_STRING, (UINT)popup->m_hMenu, theApp.lang.Translate(label));
-				LOG_1("Added popup %s", label);
+				//LOG_1("Added popup %s", label);
 			}
 			else
 				LOG_ERROR_1("Popup %s not found!", label);
@@ -527,7 +547,7 @@ void CMenuParser::InsertItem(CMenu &menu, MenuItem item, int before)
 
 		case MenuSeparator: // Separator
 			menu.InsertMenu(before, MF_SEPARATOR);
-			LOG_1("Added Separator", 0);
+			//LOG_1("Added Separator", 0);
 			break;
 
 		case MenuPlugin: {
@@ -535,7 +555,7 @@ void CMenuParser::InsertItem(CMenu &menu, MenuItem item, int before)
 			ParsePluginCommand(item.label, &plugin, &parameter);
 
 			if (theApp.plugins.SendMessage(plugin, "* MenuParser", "DoMenu", (long)menu.GetSafeHmenu(), (long)parameter)) {
-				LOG_2("Called plugin %s with parameter %s", plugin, parameter);
+				//LOG_2("Called plugin %s with parameter %s", plugin, parameter);
 			}
 			else {
 				LOG_ERROR_1( "Plugin %s has no menu", plugin);
@@ -556,7 +576,7 @@ void CMenuParser::InsertItem(CMenu &menu, MenuItem item, int before)
 			}
 
 			menu.InsertMenu(before, MF_STRING, item.command, pTranslated);
-			LOG_2("Added menu item %s with command %d", label, item.command);
+			//LOG_2("Added menu item %s with command %d", label, item.command);
 			break;
 		}
 
