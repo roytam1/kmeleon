@@ -289,7 +289,7 @@ void CMenuParser::SetMenu(LPCTSTR menu, MenuItem item, long before)
 	*/
 }
 
-extern int GetID(char *strID);
+extern int GetID(const char *strID);
 
 int CMenuParser::Parse(char *p)
 {
