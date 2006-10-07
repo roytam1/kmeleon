@@ -383,13 +383,13 @@ HWND CreateToolbar(HWND hWnd, UINT style) {
       return NULL;
 }
 
-int GetID(char *strID) {
+int GetID(const char *strID) {
 
    int ID = theApp.GetID(strID);
 
    if (!ID) {
-      char *plugin = strID;
-      char *parameter = strchr(strID, '(');
+      char *plugin = strdup(strID);
+      char *parameter = strchr(plugin, '(');
       if (parameter) {
          *parameter = 0;
 
@@ -406,8 +406,9 @@ int GetID(char *strID) {
 		 }
 		 *close = 0;
       }
-      
+     
       theApp.plugins.SendMessage(plugin, "* GetID", "DoAccel", (long) parameter, (long)&ID);
+      free(plugin);
    }
 
    return ID;
