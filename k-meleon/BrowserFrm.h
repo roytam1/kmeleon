@@ -77,11 +77,18 @@ protected:
  	CFont m_statusFont;
 
 	void RefreshPanes();
-	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
+   int HitTest(POINT point);
+	
     DECLARE_MESSAGE_MAP()
-public:
+
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	afx_msg void OnDestroy();
+   afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
+   afx_msg void OnLButtonDblClk(UINT nFlags, CPoint point);
+   afx_msg void OnMButtonDown(UINT nFlags, CPoint point);
+   afx_msg void OnMButtonDblClk(UINT nFlags, CPoint point);
+   afx_msg void OnRButtonDblClk(UINT nFlags, CPoint point);
+   afx_msg void OnRButtonDown(UINT nFlags, CPoint point);
 };
 
 class CToolBarList;

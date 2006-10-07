@@ -853,10 +853,14 @@ BOOL CMyStatusBar::AddIcon(UINT nID)
 
 BEGIN_MESSAGE_MAP(CMyStatusBar, CStatusBar)
    //{{AFX_MSG_MAP(CMyStatusBar)
-   ON_WM_LBUTTONDOWN()
-   //}}AFX_MSG_MAP
    ON_WM_CREATE()
-   ON_WM_DESTROY()
+   ON_WM_LBUTTONDOWN()
+   ON_WM_LBUTTONDBLCLK()
+   ON_WM_MBUTTONDOWN()
+   ON_WM_MBUTTONDBLCLK()
+   ON_WM_RBUTTONDBLCLK()
+   ON_WM_RBUTTONDOWN()
+   //}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
 void CMyStatusBar::GetItemRect(UINT idx, LPRECT r)
@@ -882,29 +886,69 @@ void CMyStatusBar::GetItemRect(UINT idx, LPRECT r)
 
 void CMyStatusBar::OnLButtonDown(UINT nFlags, CPoint point)
 {
-    // Check to see if the mouse click was within the
-    // padlock icon pane(at pane index 2) of the status bar...
+   int id = HitTest(point);
+   if (id != -1 ) {
+      GetParentFrame()->SendMessage(WM_COMMAND, id, 0);
+      GetParentFrame()->SendMessage(SB_LBUTTONDOWN, id, 0);
+      return;
+   }
 
-    RECT rc;
-	int count = arrIcons.GetSize();
-    for (int i=0;i<count;i++)
-	{
-		GetItemRect(i+2, &rc );
-		if(PtInRect(&rc, point)) {
-			GetParentFrame()->SendMessage(WM_COMMAND, arrIcons[i].nID, 0);
-			break;
-		}
-	}
-/*
-    if(PtInRect(&rc, point)) 
-    {
-        CBrowserFrame *pFrame = (CBrowserFrame *)GetParent();
-        if(pFrame != NULL)
-            pFrame->ShowSecurityInfo();
-    }
+   CStatusBar::OnLButtonDown(nFlags, point);
+}
 
-*/
-    CStatusBar::OnLButtonDown(nFlags, point);
+void CMyStatusBar::OnLButtonDblClk(UINT nFlags, CPoint point)
+{
+   int id = HitTest(point);
+   if (id != -1 ) {
+      GetParentFrame()->SendMessage(SB_LBUTTONDBLCLK, id, 0);
+      return;
+   }
+
+   CStatusBar::OnLButtonDblClk(nFlags, point);
+}
+
+void CMyStatusBar::OnMButtonDown(UINT nFlags, CPoint point)
+{
+   int id = HitTest(point);
+   if (id != -1 ) {
+      GetParentFrame()->SendMessage(SB_MBUTTONDOWN, id, 0);
+      return;
+   }
+
+   CStatusBar::OnMButtonDown(nFlags, point);
+}
+
+void CMyStatusBar::OnMButtonDblClk(UINT nFlags, CPoint point)
+{
+   int id = HitTest(point);
+   if (id != -1 ) {
+      GetParentFrame()->SendMessage(SB_MBUTTONDBLCLK, id, 0);
+      return;
+   }
+
+   CStatusBar::OnMButtonDblClk(nFlags, point);
+}
+
+void CMyStatusBar::OnRButtonDblClk(UINT nFlags, CPoint point)
+{
+   int id = HitTest(point);
+   if (id != -1 ) {
+      GetParentFrame()->SendMessage(SB_RBUTTONDBLCLK, id, 0);
+      return;
+   }
+
+   CStatusBar::OnRButtonDblClk(nFlags, point);
+}
+
+void CMyStatusBar::OnRButtonDown(UINT nFlags, CPoint point)
+{
+   int id = HitTest(point);
+   if (id != -1 ) {
+      GetParentFrame()->SendMessage(SB_RBUTTONDOWN, id, 0);
+      return;
+   }
+
+   CStatusBar::OnRButtonDown(nFlags, point);
 }
 
 int CMyStatusBar::OnCreate(LPCREATESTRUCT lpCreateStruct)
@@ -928,10 +972,20 @@ int CMyStatusBar::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	return 0;
 }
 
-void CMyStatusBar::OnDestroy()
+int CMyStatusBar::HitTest(POINT point) 
 {
-	CStatusBar::OnDestroy();
+   // Check to see if the mouse click was within one of the icon
+   RECT rc;
+   int count = arrIcons.GetSize();
+   for (int i=0;i<count;i++)
+   {
+      GetItemRect(i+2, &rc );
+      if(PtInRect(&rc, point))
+         return arrIcons[i].nID;
+   }
+   return -1;
 }
+    
 
 /////////////////////////////////////////////////////////////////////////////
 void CBrowserFrame::OnSysColorChange() 
