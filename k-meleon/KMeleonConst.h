@@ -16,7 +16,8 @@
 *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
-#define KMELEON_VERSION                0x01000205
+
+#define KMELEON_VERSION	               0x01010002
 
 #define WM_DEFERSHOW                   WM_USER + 150
 #define WM_DEFERSAVEAS                 WM_USER + 151
@@ -33,13 +34,13 @@
 #define UWM_PERSIST_GET                WM_APP + 1117
 #define UWM_PERSIST_SHOW               WM_APP + 1118
 
-#define TB_LBUTTONDOWN	               WM_APP + 120
-#define TB_MBUTTONDOWN	               WM_APP + 121
-#define TB_RBUTTONDOWN	               WM_APP + 122
+#define TB_LBUTTONDOWN                 WM_APP + 120
+#define TB_MBUTTONDOWN                 WM_APP + 121
+#define TB_RBUTTONDOWN                 WM_APP + 122
 
 #define TB_LBUTTONHOLD                 WM_APP + 123
-#define TB_MBUTTONHOLD	               WM_APP + 124
-#define TB_RBUTTONHOLD	               WM_APP + 125
+#define TB_MBUTTONHOLD                 WM_APP + 124
+#define TB_RBUTTONHOLD                 WM_APP + 125
 
 #define TB_LBUTTONUP                   WM_APP + 126
 #define TB_MBUTTONUP                   WM_APP + 127
@@ -48,6 +49,13 @@
 #define TB_LBUTTONDBLCLK               WM_APP + 129
 #define TB_MBUTTONDBLCLK               WM_APP + 130
 #define TB_RBUTTONDBLCLK               WM_APP + 131
+
+#define SB_LBUTTONDBLCLK               WM_APP + 132
+#define SB_MBUTTONDBLCLK               WM_APP + 133
+#define SB_RBUTTONDBLCLK               WM_APP + 134
+#define SB_LBUTTONDOWN                 WM_APP + 135
+#define SB_MBUTTONDOWN                 WM_APP + 136
+#define SB_RBUTTONDOWN                 WM_APP + 137
 
 
 #define PLUGIN_COMMAND_START_ID        6000
