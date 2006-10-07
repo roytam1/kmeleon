@@ -40,6 +40,12 @@
 
 #define END_LOG() if (log) delete log;
 
+#define LOG_0(msg)              \
+   if (log) {                   \
+      log->WriteString(msg);    \
+      log->WriteString("\r\n"); \
+   }
+
 #define LOG_1(msg, var1)        \
    if (log) {                   \
       char err[255];            \
@@ -52,6 +58,14 @@
    if (log) {                        \
       char err[255];                 \
       sprintf(err, msg, var1, var2); \
+      log->WriteString(err);         \
+      log->WriteString("\r\n");      \
+   }
+
+#define LOG_3(msg, var1, var2, var3) \
+   if (log) {                        \
+      char err[255];                 \
+      sprintf(err, msg, var1, var2, var3); \
       log->WriteString(err);         \
       log->WriteString("\r\n");      \
    }
@@ -126,15 +140,26 @@ public:
    void Error(){
       error = 1;
    }
+
+   void Empty(){
+      log.Empty();
+   }
 };
 
+
 #define DEFINE_LOG CLog log;
-#define SETUP_LOG(x) log.title = x;
+#define SETUP_LOG(x) log.title = x;log.Empty();log.strict=0;log.verbose=0;
 #define END_LOG() log.Show();
+
+#define LOG_0(msg)              \
+   {                            \
+      log.WriteString(msg);     \
+      log.WriteString("\r\n");  \
+   }
 
 #define LOG_1(msg, var1)        \
    {                            \
-      char err[1024];            \
+      char err[1024];           \
       sprintf(err, msg, var1);  \
       log.WriteString(err);     \
       log.WriteString("\r\n");  \
@@ -144,6 +169,14 @@ public:
    {                                 \
       char err[255];                 \
       sprintf(err, msg, var1, var2); \
+      log.WriteString(err);          \
+      log.WriteString("\r\n");       \
+   }
+
+#define LOG_3(msg, var1, var2, var3) \
+   {                                 \
+      char err[255];                 \
+      sprintf(err, msg, var1, var2, var3); \
       log.WriteString(err);          \
       log.WriteString("\r\n");       \
    }
