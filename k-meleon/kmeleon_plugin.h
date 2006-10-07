@@ -152,7 +152,7 @@ typedef struct {
 
 
    // get the value of an identifier, eg "ID_NAV_BACK"
-   int (*GetID) (char *strID);
+   int (*GetID) (const char *strID);
 
 
    // get the link/image/frame at a point

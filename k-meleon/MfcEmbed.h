@@ -135,7 +135,7 @@ public:
    CBrowserFrame* m_pMostRecentBrowserFrame; // the most recently used frame
    CBrowserFrame* m_pOpenNewBrowserFrame; // used by OnNewBrowser to preserve an initilaized frame
 
-   int GetID(char *strID);
+   int GetID(const char *strID);
 
    // Implementation
 public:

@@ -1230,10 +1230,10 @@ void CMfcEmbedApp::InitializeDefineMap() {
 
 }
 
-int CMfcEmbedApp::GetID(char *strID) {
+int CMfcEmbedApp::GetID(const char *strID) {
    int val = 0;
    USES_CONVERSION;
-   defineMap.Lookup(A2T(strID), val);
+   defineMap.Lookup(A2CT(strID), val);
    return val;
 }
 
