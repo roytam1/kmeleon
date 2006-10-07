@@ -221,10 +221,15 @@ int MessageBoxUTF8(HWND hWnd, const char* lpText, const char* lpCaption, UINT uT
 long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2)
 {  
    if (to[0] == '*' || stricmp(to, kPlugin.dllname) == 0) {
-      if (stricmp(subject, "Init") == 0) {
+      if (stricmp(subject, "Load") == 0) {
          Load();
       }
-	 	 if (stricmp(subject, "Setup") == 0) {
+	 	if (stricmp(subject, "Init") == 0) {
+         int index = FindMacro("OnInit");
+         if (index != NOTFOUND)
+            ExecuteMacro(NULL, index);
+      }
+		if (stricmp(subject, "Setup") == 0) {
          int index = FindMacro("OnSetup");
          if (index != NOTFOUND)
             ExecuteMacro(NULL, index);
@@ -286,8 +291,7 @@ struct var {
    char *expression;
 } **varList;
 
-int ID_START    = -1;
-int ID_END      = -1;
+
 int wm_deferopenmsg = -1;
 int iMacroCount = 0;
 int iVarCount   = 0;
@@ -498,9 +502,6 @@ int Load() {
 	  LoadNewMacros();
    }
       
-   ID_START = kFuncs->GetCommandIDs(iMacroCount);
-   ID_END = ID_START+iMacroCount-1;
-
    wm_deferopenmsg = kPlugin.kFuncs->GetCommandIDs(1);
 
    return 1;
@@ -614,10 +615,6 @@ void DoMenu(HMENU menu, char *param) {
       }
 
       int index = FindMacro(param);
-      if (id == -1) {
-	if (index != NOTFOUND)
-	  id = ID_START+index;
-      }
 
       if (id != -1) {
 	if (string)
@@ -644,24 +641,17 @@ int DoAccel(char *param) {
 
       int id = -1;
 
-      char *arg = strchr(param, '(');
-      if (arg) {
-	*(arg++) = 0;
-	char *p = strrchr(arg, ')');
-	if (p) {
-	  *p = 0;
-	  id = arglist->add(param, arg);
-	}
-      }
-
-      if (id == -1) {
-	int index = FindMacro(param);
-	if (index != NOTFOUND)
-	  id = ID_START+index;
-      }
-
-      if (id != -1)
-	return id;
+		char *arg = strchr(param, '(');
+		if (arg) {
+			*(arg++) = 0;
+			char *p = strrchr(arg, ')');
+			if (p) {
+				*p = 0;
+			}
+		}
+		
+		id = arglist->add(param, arg ? arg : "");
+		return id;
    }
    return 0;
 }
@@ -1978,21 +1968,22 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
       */
 
       CMD(setmenu) {
-         if (nparam < 3) {  
-            parseError(WRONGARGS, "setmenu", data, 3, nparam);
+         if (nparam < 2) {  
+            parseError(WRONGARGS, "setmenu", data, 2, nparam);
             return "";
          }
 
-			//setmenu( "name", "command", where, "label", command)
-			//setmenu( "name", "macro", where, "label", macroname)
-			//setmenu( "name", "popup", where, "label")
-			//setmenu( "name", "inline", where, "label")
+			//setmenu( "name", "command", "label", command, where)
+			//setmenu( "name", "macro", "label", macroname, where)
+			//setmenu( "name", "popup", "label", where)
+			//setmenu( "name", "inline", "label", where)
 			//setmenu( "name", "separator", where)
-			//setmenu( "name", "plugin", where, plugin)
+			//setmenu( "name", "plugin", plugin, where)
 
 			kmeleonMenuItem item;
 			int whereparam = 0;
 			item.label = params[2].c_str();
+         item.command = 1;
 
 			if (params[1] == "command") {
 				whereparam = 4;
@@ -2032,11 +2023,12 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
 			if (params[whereparam].empty())
 				item.before = -1;
 			else {
-            item.before = DoAccel((char*)params[whereparam].c_str());
-				if (!item.before)
-					item.before = kFuncs->GetID((char*)params[whereparam].c_str()); 
-				if (!item.before)
-					item.before = (long)params[whereparam].c_str();
+				item.before = IntVal(params[whereparam]);
+            if (!item.before && params[whereparam] != "0") {
+				   item.before = kFuncs->GetID((char*)std::string(params[whereparam]).c_str()); 
+				   if (!item.before)
+					   item.before = (long)params[whereparam].c_str();
+            }
 			}
 
 			kFuncs->SetMenu(params[0].c_str(), &item);
@@ -2082,13 +2074,14 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
             foldertype = CurrentSkinFolder;
          else if (stricmp(dirname, "MacroFolder") == 0) {
             kFuncs->GetFolder(RootFolder, path, MAX_PATH);
-            strcpy(path, "\\macros");
+            strcat(path, "\\macros");
             return protectString(path);
          }
          else if (stricmp(dirname, "UserMacroFolder") == 0) {
             kFuncs->GetFolder(UserSettingsFolder, path, MAX_PATH);
-            strcpy(path, "\\macros");
+            strcat(path, "\\macros");
             return protectString(path);
+			}
          else return "";
 
          kFuncs->GetFolder(foldertype, path, MAX_PATH);
@@ -3189,27 +3182,25 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
      if (LOWORD(wParam)==ID_APP_EXIT) {
        int index = FindMacro("OnWMAppExit");
        if (bStartup && index != NOTFOUND)
-	 ExecuteMacro(hWnd, index);
+         ExecuteMacro(hWnd, index);
      }
 #if 0
      else if (LOWORD(wParam)==WM_CLOSE) {
        int index = FindMacro("OnWMClose");
        if (bStartup && index != NOTFOUND)
-	 ExecuteMacro(hWnd, index);
+         ExecuteMacro(hWnd, index);
      }
 #endif
      else if (LOWORD(wParam)==wm_deferopenmsg) {
        int index = FindMacro("OnStartup");
        if (bStartup && index != NOTFOUND)
-	 ExecuteMacro(hWnd, index);
+          ExecuteMacro(hWnd, index);
        bStartup = 0;
        
        index = FindMacro("OnOpenWindow");
        if (index != NOTFOUND)
-	 ExecuteMacro(hWnd, index);
+          ExecuteMacro(hWnd, index);
      }
-     else if ( (LOWORD(wParam) >= ID_START) && (LOWORD(wParam) <= ID_END) )
-         ExecuteMacro(hWnd, LOWORD(wParam)-ID_START);
      else
          arglist->execute(hWnd, LOWORD(wParam));
      break;
