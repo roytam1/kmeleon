@@ -3,7 +3,7 @@
 /********************************************************************************************************/
 
 pref("general.useragent.vendor", "K-Meleon");
-pref("general.useragent.vendorSub", "1.0");
+pref("general.useragent.vendorSub", "1.02");
 
 /********************************************************************************************************/
 
@@ -90,6 +90,7 @@ pref("kmeleon.display.maximized", false);
 pref("kmeleon.display.disableResize", false);
 pref("kmeleon.display.backgroundImage", "");
 pref("kmeleon.display.backgroundImageEnabled", true);
+pref("kmeleon.display.accelInMenus", true);
 
 pref("kmeleon.favicons.show", true);
 pref("browser.chrome.site_icons", true);
