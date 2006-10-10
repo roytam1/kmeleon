@@ -355,7 +355,8 @@ void DoMenu(HMENU menu, char *param){
       // To identify it, the user MUST put bmpmenu(top) for this menu
 	  BOOL topLevel;
 	  DRAWBITMAPPROC DrawProc = NULL;
-
+	  param = SkipWhiteSpace(param);
+	  TrimWhiteSpace(param);
 	  if (strcmp(param, "top") == 0)
 		topLevel = TRUE;
 	  else {
