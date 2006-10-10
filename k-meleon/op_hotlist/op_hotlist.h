@@ -132,7 +132,7 @@ int addLink(char *url, char *title);
 void findNick(char *nick, char **url);
 LRESULT APIENTRY WndTBSubclassProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
-void FindSkinFile( char *szSkinFile, char *filename );
+void FindSkinFile( char *szSkinFile, const char *filename );
 
 extern "C" {
    KMELEON_PLUGIN int DrawBitmap(DRAWITEMSTRUCT *dis);

@@ -5,11 +5,13 @@
 // copy the full path into "szSkinFile"
 // if it's not anywhere, return settingsDir
 
-
+#include <windows.h>
 #include <tchar.h>
+#include "kmeleon_plugin.h"
 
+extern kmeleonPlugin kPlugin;
 
-BOOL _FindSkinFile( TCHAR* szSkinFile, TCHAR* szSkinDir, TCHAR* filename)
+BOOL _FindSkinFile(TCHAR* szSkinFile, TCHAR* szSkinDir, const TCHAR* filename)
 {
 	WIN32_FIND_DATA FindData;
     HANDLE hFile;
@@ -20,7 +22,7 @@ BOOL _FindSkinFile( TCHAR* szSkinFile, TCHAR* szSkinDir, TCHAR* filename)
 
 	if (*szSkinDir) {
 		while (*szTmpSkinName) {
-			int len = _tcslen(szSkinDir);
+			size_t len = _tcslen(szSkinDir);
 			if (szSkinDir[len-1] != _T('\\'))
 				_tcscat(szSkinDir, _T("\\"));
 
@@ -61,7 +63,7 @@ BOOL _FindSkinFile( TCHAR* szSkinFile, TCHAR* szSkinDir, TCHAR* filename)
 }
 
 //To really do
-void FindSkinFile( TCHAR *szSkinFile, TCHAR *filename ) 
+void FindSkinFile(TCHAR *szSkinFile, const TCHAR *filename) 
 {
    WIN32_FIND_DATA FindData;
    HANDLE hFile;
