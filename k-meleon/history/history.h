@@ -43,7 +43,7 @@ void CreateBackMenu (HWND hWndParent, UINT button);
 void CreateForwardMenu (HWND hWndParent, UINT button);
 void UpdateHistoryMenu(HWND hWndParent);
 void CondenseMenuText(TCHAR *buf, TCHAR *title, int index);
-void FindSkinFile( TCHAR *szSkinFile, TCHAR *filename );
+void FindSkinFile( TCHAR *szSkinFile, const TCHAR *filename );
 void ClearHistory();
 
 extern int ID_HISTORY_FLAG;
