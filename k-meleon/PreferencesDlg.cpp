@@ -470,7 +470,7 @@ void CPreferencePage::OnComboChanged() {
          if (index != CB_ERR) {
             SendDlgItemMessage(IDC_COMBO_SKIN, CB_GETLBTEXT, index, (LPARAM)buf);
             theApp.preferences.skinsCurrent = buf;
-            theApp.preferences.skinsCurrent = theApp.preferences.skinsCurrent + _T("\\");
+            theApp.preferences.skinsCurrent = theApp.preferences.skinsCurrent;
          }
          break;
       }
