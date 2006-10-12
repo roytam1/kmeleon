@@ -212,7 +212,7 @@ void CReBarEx::RegisterBand(HWND hWnd, TCHAR *name, int visibleOnMenu) {
    m_index[m_iCount]->visibility = TRUE;
    m_index[m_iCount]->visibleOnMenu = visibleOnMenu;
 
-   if (*name) {
+   if (name) {
       m_index[m_iCount]->name = new TCHAR[_tcslen(name)+1];
       _tcscpy(m_index[m_iCount]->name, name);
    }
@@ -236,7 +236,7 @@ int CReBarEx::FindByChild(HWND hWnd) {
 
 int CReBarEx::FindByName(TCHAR *name) {
    for (int x=0; x<m_iCount; x++)
-      if (_tcsicmp(name, m_index[x]->name) == 0)
+      if (m_index[x]->name && _tcsicmp(name, m_index[x]->name) == 0)
          return FindByChild(m_index[x]->hWnd);
    return -1;
 }
