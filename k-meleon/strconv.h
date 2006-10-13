@@ -80,7 +80,7 @@ public:
 	{
 		if (!src) return;
 
-		unsigned lengthDst = strlen(src)+1;
+		size_t lengthDst = strlen(src)+1;
 		if (!Init(lengthDst))
 			return;
 
@@ -95,7 +95,7 @@ public:
 	{
 		if (!src) return;
 
-		unsigned lengthDst = strlen(src)+1;
+		size_t lengthDst = strlen(src)+1;
 		if (!Init(lengthDst))
 			return;
 
@@ -125,7 +125,7 @@ public:
 	{
 		if (!src) return;
 
-		unsigned lengthDst = strlen(src)+1;
+		size_t lengthDst = strlen(src)+1;
 		if (!Init(lengthDst))
 			return;
 
@@ -140,7 +140,7 @@ public:
 	{
 		if (!src) return;
 
-		unsigned lengthDst = strlen(src)*3 + 1;
+		size_t lengthDst = strlen(src)*3 + 1;
 		if (!Init(lengthDst))
 			return;
 
