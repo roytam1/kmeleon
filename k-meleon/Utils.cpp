@@ -97,7 +97,7 @@ char *SkipWhiteSpace(char *string)
 
 int CondenseString(TCHAR *buf, int size)
 {
-	int firstlen, secondlen, len;
+	size_t firstlen, secondlen, len;
    TCHAR *read, *write;
 
    for (write=read=buf; *read; read++,write++) {    // condense tabs and spaces

@@ -25,7 +25,7 @@
 #define STACK_BUFFER_SIZE 256
 #endif
 
-inline unsigned utf16_to_utf8(const wchar_t* src, char* dst, unsigned len)
+inline size_t utf16_to_utf8(const wchar_t* src, char* dst, unsigned len)
 {
 #ifdef _UNICODE
 	return WideCharToMultiByte(CP_UTF8, 0, src, -1, dst, len, NULL, NULL);
@@ -102,7 +102,7 @@ inline unsigned utf16_to_utf8(const wchar_t* src, char* dst, unsigned len)
 #endif
 }
 
-inline unsigned utf8_to_utf16(const char* src, wchar_t* dst, unsigned len)
+inline size_t utf8_to_utf16(const char* src, wchar_t* dst, unsigned len)
 {
 #ifdef _UNICODE
 	return MultiByteToWideChar(CP_UTF8, 0, src, -1, dst, len);
@@ -187,21 +187,21 @@ inline unsigned utf8_to_utf16(const char* src, wchar_t* dst, unsigned len)
 }
 
 
-inline unsigned ansi_to_utf16(const char* src, wchar_t* dst, unsigned len)
+inline size_t ansi_to_utf16(const char* src, wchar_t* dst, unsigned len)
 {
 	return MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, src, -1, dst, len);
 }
 
-inline unsigned utf16_to_ansi(const wchar_t* src, char* dst, unsigned len)
+inline size_t utf16_to_ansi(const wchar_t* src, char* dst, unsigned len)
 {
 	return WideCharToMultiByte(CP_ACP, WC_COMPOSITECHECK, src, -1, dst, len, "_", NULL);
 }
 
-inline unsigned ansi_to_utf8(const char* src, char* dst, unsigned len)
+inline size_t ansi_to_utf8(const char* src, char* dst, unsigned len)
 {
 	wchar_t s_unicode[STACK_BUFFER_SIZE];
 
-	unsigned lengthDst = strlen(src) + 1;
+	size_t lengthDst = strlen(src) + 1;
 	wchar_t* unicode = lengthDst < STACK_BUFFER_SIZE ? s_unicode : (wchar_t*)calloc(lengthDst, sizeof(wchar_t));
 
     if (!unicode) return 0;
@@ -214,11 +214,11 @@ inline unsigned ansi_to_utf8(const char* src, char* dst, unsigned len)
 	return result;
 }
 
-inline unsigned utf8_to_ansi(const char* src, char* dst, unsigned len)
+inline size_t utf8_to_ansi(const char* src, char* dst, unsigned len)
 {
 	wchar_t s_unicode[STACK_BUFFER_SIZE];
 
-	unsigned lengthDst = strlen(src) + 1;
+	size_t lengthDst = strlen(src) + 1;
 	wchar_t* unicode = lengthDst < STACK_BUFFER_SIZE ? s_unicode : (wchar_t*)calloc(lengthDst, sizeof(wchar_t));
 
 	if (!unicode) return 0;
@@ -241,7 +241,7 @@ inline char* ansi_from_utf16(const wchar_t* utf16)
 
 inline wchar_t* utf16_from_ansi(const char* ansi)
 {
-	unsigned lengthDst = strlen(ansi)*2 + 1;
+	size_t lengthDst = strlen(ansi)*2 + 1;
 	wchar_t* utf16 = (wchar_t*)malloc(sizeof(wchar_t) * lengthDst);
 	ansi_to_utf16(ansi, utf16, lengthDst);
 	return utf16;
@@ -265,7 +265,7 @@ inline wchar_t* utf16_from_utf8(const char* utf8)
 
 inline char* utf8_from_ansi(const char* ansi)
 {
-	unsigned lengthDst = strlen(ansi)*3 + 1;
+	size_t lengthDst = strlen(ansi)*3 + 1;
 	char* utf8 = (char*)malloc(sizeof(char) * lengthDst);
 	ansi_to_utf8(ansi, utf8, lengthDst);
 	return utf8;
@@ -273,7 +273,7 @@ inline char* utf8_from_ansi(const char* ansi)
 	
 inline char* ansi_from_utf8(const char* utf8)
 {
-	unsigned lengthDst = strlen(utf8) + 1;
+	size_t lengthDst = strlen(utf8) + 1;
 	char* ansi = (char*)malloc(sizeof(char) * lengthDst);
 	utf8_to_ansi(utf8, ansi, lengthDst);
 	return ansi;
