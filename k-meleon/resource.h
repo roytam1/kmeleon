@@ -16,18 +16,13 @@
 #define IDD_VIEW_CERT_DETAILS           115
 #define IDD_GENKEYPAIR                  116
 #define IDR_MAINFRAME                   128
-#define IDD_PROMPT_DIALOG               128
 #define IDR_MOZEMBTYPE                  129
-#define IDD_PROMPT_PASSWORD_DIALOG      129
 #define IDS_PROFILES_FOLDER_NAME        129
 #define IDR_CTXMENU_DOCUMENT            130
-#define IDD_PROMPT_USERPASS_DIALOG      130
 #define IDS_PROFILES_NONSHARED_NAME     130
 #define IDR_CTXMENU_LINK                131
-#define IDD_ALERT_CHECK_DIALOG          131
 #define IDS_SRCH_STR_NOT_FOUND          131
 #define IDR_CTXMENU_TEXT                132
-#define IDD_CONFIRM_CHECK_DIALOG        132
 #define IDR_CTXMENU_IMAGE               133
 #define IDD_SEARCH_DIALOG               134
 #define IDD_PROFILES                    137
@@ -79,7 +74,6 @@
 #define IDS_ENCRYPTION_NONE             189
 #define IDD_FILE_PRINTSETUP             190
 #define IDD_PRINTSETUP_DIALOG           191
-#define IDD_CHOOSE_ACTION_DIALOG        192
 #define IDR_TOOLBAR1                    194
 #define IDD_OPENSAVE                    197
 #define IDD_COOKIES_VIEWER              198

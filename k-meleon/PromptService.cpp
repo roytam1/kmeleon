@@ -27,6 +27,8 @@
 */
 
 #include "stdafx.h"
+#include "resource.h"
+#include "GenericDlg.h"
 #include "Dialogs.h"
 #include "PromptService.h"
 #include "nsIPromptService.h"
@@ -73,12 +75,23 @@ NS_IMETHODIMP CPromptService::AlertCheck(nsIDOMWindow *parent,
   USES_CONVERSION;
 
   CWnd *wnd = CWndForDOMWindow(parent);
-  CAlertCheckDialog dlg(wnd, W2CT(dialogTitle), W2CT(text),
-                    W2CT(checkboxMsg), checkValue ? *checkValue : 0);
+  CGenericDlg dlg(wnd);
+  dlg.SetTitle(W2CT(dialogTitle));
+  dlg.SetMsg(W2CT(text));
+  dlg.AddButton(100, IDS_OK);
+  dlg.SetDefaultButton(100);
+  dlg.SetCancelButton(100);
+  dlg.SetMsgIcon(AfxGetApp()->LoadStandardIcon(IDI_EXCLAMATION));
+  BOOL checkResult;
+  if (checkboxMsg && checkValue) {
+    checkResult = (*checkValue == PR_TRUE ? TRUE : FALSE);
+    dlg.AddCheckBox(&checkResult, W2CT(checkboxMsg));
+  }
 
   dlg.DoModal();
 
-  *checkValue = dlg.m_bCheckBoxValue;
+  if (checkValue)
+	*checkValue = (checkResult == TRUE ? PR_TRUE : PR_FALSE);
 
   return NS_OK;
 }
@@ -111,21 +124,28 @@ NS_IMETHODIMP CPromptService::ConfirmCheck(nsIDOMWindow *parent,
                                            PRBool *checkValue,
                                            PRBool *_retval)
 {
-    USES_CONVERSION;
+	const int COMMAND_OFFSET = 100;
 
+	USES_CONVERSION;
     CWnd *wnd = CWndForDOMWindow(parent);
-	CString sYes, sNo;
-	sYes.LoadString(IDS_YES);
-	sNo.LoadString(IDS_NO);
-    CConfirmCheckDialog dlg(wnd, W2CT(dialogTitle), W2CT(text),
-                    W2CT(checkboxMsg), checkValue ? *checkValue : 0,
-                    sYes, sNo, NULL, 0x0100);
+    CGenericDlg dlg(wnd);
+    dlg.SetTitle(W2CT(dialogTitle));
+    dlg.SetMsg(W2CT(text));
+    BOOL checkResult;
+    if (checkboxMsg && checkValue) {
+       checkResult = (*checkValue == PR_TRUE ? TRUE : FALSE);
+	   dlg.AddCheckBox(&checkResult, W2CT(checkboxMsg));
+    }
 
-    int iBtnClicked = dlg.DoModal();
+	dlg.AddButton(COMMAND_OFFSET, IDS_YES);
+	dlg.AddButton(COMMAND_OFFSET+1, IDS_NO);
+	dlg.SetDefaultButton(COMMAND_OFFSET);
+	dlg.SetCancelButton(COMMAND_OFFSET+1);
+	
+	int iBtnClicked = dlg.DoModal();
 
-    *checkValue = dlg.m_bCheckBoxValue;
-
-    *_retval = iBtnClicked == 0 ? PR_TRUE : PR_FALSE;
+	if (checkValue)
+		*checkValue = (checkResult == TRUE ? PR_TRUE : PR_FALSE);
 
     return NS_OK;
 }
@@ -141,23 +161,34 @@ NS_IMETHODIMP CPromptService::Prompt(nsIDOMWindow *parent,
   USES_CONVERSION;
 
   CWnd *wnd = CWndForDOMWindow(parent);
-  CPromptDialog dlg(wnd, W2CT(dialogTitle), W2CT(text),
-					*value ? W2CT(*value) : nsnull,
-                    checkValue && checkboxMsg, W2CT(checkboxMsg),
-                    checkValue ? *checkValue : 0);
-  if(dlg.DoModal() == IDOK) {
-    // Get the value entered in the editbox of the PromptDlg
-    if (value && *value) {
-      nsMemory::Free(*value);
-      *value = nsnull;
-    }
-    nsString csPromptEditValue;
-    csPromptEditValue.Assign(T2CW(dlg.m_csPromptAnswer.GetBuffer(0)));
+  CGenericDlg dlg(wnd);
+  dlg.SetTitle(W2CT(dialogTitle));
+  dlg.SetMsg(W2CT(text));
+  dlg.AddButton(IDOK, IDS_OK);
+  dlg.AddButton(IDCANCEL, IDS_CANCEL);
+  dlg.SetDefaultButton(IDOK);
+  dlg.SetCancelButton(IDCANCEL);
 
-    *value = NS_StringCloneData(csPromptEditValue);
+  CString csValue;
+  if (value && *value) csValue = W2CT(*value);
+  dlg.AddEdit(&csValue, "", FALSE);
+  
+  BOOL checkResult;
+  if (checkboxMsg && checkValue) {
+    checkResult = (*checkValue == PR_TRUE ? TRUE : FALSE);
+    dlg.AddCheckBox(&checkResult, W2CT(checkboxMsg));
+  }
 
-    *_retval = PR_TRUE;
-  } else
+  if (dlg.DoModal() == IDOK) {
+	 if (value) {
+		if (*value) nsMemory::Free(*value);
+      nsString nsPromptEditValue;
+		nsPromptEditValue.Assign(T2CW(csValue));
+		*value = NS_StringCloneData(nsPromptEditValue);
+	 }
+	 *_retval = PR_TRUE;
+  }
+  else
     *_retval = PR_FALSE;
 
   return NS_OK;
@@ -172,44 +203,46 @@ NS_IMETHODIMP CPromptService::PromptUsernameAndPassword(nsIDOMWindow *parent,
                                                         PRBool *checkValue,
                                                         PRBool *_retval)
 {
-  USES_CONVERSION;
+  NS_ENSURE_ARG_POINTER(username);
+  NS_ENSURE_ARG_POINTER(password);
 
+  USES_CONVERSION;
   CWnd *wnd = CWndForDOMWindow(parent);
-  CPromptUsernamePasswordDialog dlg(wnd, W2CT(dialogTitle), W2CT(text),
-                    username && *username ? W2CT(*username) : 0,
-                    password && *password ? W2CT(*password) : 0, 
-                    checkValue != nsnull, W2CT(checkboxMsg),
-                    checkValue ? *checkValue : 0);
+  CGenericDlg dlg(wnd);
+  dlg.SetTitle(W2CT(dialogTitle));
+  dlg.SetMsg(W2CT(text));
+  dlg.AddButton(IDOK, IDS_OK);
+  dlg.AddButton(IDCANCEL, IDS_CANCEL);
+  dlg.SetDefaultButton(IDOK);
+  dlg.SetCancelButton(IDCANCEL);
+    
+  CString csUsername, csPassword;
+  if (username && *username) csUsername = W2CT(*username);
+  if (password && *password) csPassword = W2CT(*password);
+  dlg.AddEdit(&csUsername, "User Name:", FALSE);
+  dlg.AddEdit(&csPassword, "Password:", TRUE);
+  
+  BOOL checkResult;
+  if (checkboxMsg && checkValue) {
+    checkResult = (*checkValue == PR_TRUE ? TRUE : FALSE);
+    dlg.AddCheckBox(&checkResult, W2CT(checkboxMsg));
+  }
 
   if (dlg.DoModal() == IDOK) {
-    // Get the username entered
-    if (username && *username) {
-        nsMemory::Free(*username);
-        *username = nsnull;
-    }
-	
-	{USES_CONVERSION;
-    nsString csUserName;
-    csUserName.Assign(T2CW(dlg.m_csUserName.GetBuffer(0)));
-	*username = NS_StringCloneData(csUserName);}
+	  if(*username) nsMemory::Free(*username);
+	  *username = NS_StringCloneData(nsEmbedString(T2CW(csUsername)));
 
-    // Get the password entered
-    if (password && *password) {
-      nsMemory::Free(*password);
-      *password = nsnull;
-    }
-	{USES_CONVERSION;
-    nsString csPassword;
-    csPassword.Assign(T2CW(dlg.m_csPassword.GetBuffer(0)));
-	*password = NS_StringCloneData(csPassword);}
+	  if (*password) nsMemory::Free(*password);
+	  *password = NS_StringCloneData(nsEmbedString(T2CW(csPassword)));
 
-    if(checkValue)		
-      *checkValue = dlg.m_bCheckBoxValue;
+     if (checkValue)
+        *checkValue = (checkResult == TRUE ? PR_TRUE : PR_FALSE);
 
-    *_retval = PR_TRUE;
-  } else
+	  *_retval = PR_TRUE;
+  }
+  else
     *_retval = PR_FALSE;
-
+ 
   return NS_OK;
 }
 
@@ -221,30 +254,34 @@ NS_IMETHODIMP CPromptService::PromptPassword(nsIDOMWindow *parent,
                                              PRBool *checkValue,
                                              PRBool *_retval)
 {
+  NS_ENSURE_ARG_POINTER(password);
   USES_CONVERSION;
 
   CWnd *wnd = CWndForDOMWindow(parent);
-  CPromptPasswordDialog dlg(wnd, W2CT(dialogTitle), W2CT(text),
-                            password && *password ? W2CT(*password) : 0,
-                            checkValue != nsnull, W2CT(checkboxMsg),
-                            checkValue ? *checkValue : 0);
-  if(dlg.DoModal() == IDOK) {
-    // Get the password entered
-    if (password && *password) {
-        nsMemory::Free(*password);
-        *password = nsnull;
-    }
-	
-	USES_CONVERSION;
-    nsString csPassword;
-    csPassword.Assign(T2CW(dlg.m_csPassword.GetBuffer(0)));
-    *password = NS_StringCloneData(csPassword);
+  CGenericDlg dlg(wnd);
+  dlg.SetTitle(W2CT(dialogTitle));
+  dlg.SetMsg(W2CT(text));
+  dlg.AddButton(IDOK, IDS_OK);
+  dlg.AddButton(IDCANCEL, IDS_CANCEL);
+  dlg.SetDefaultButton(IDOK);
+  dlg.SetCancelButton(IDCANCEL);
 
-    if(checkValue)
-      *checkValue = dlg.m_bCheckBoxValue;
+  CString csValue;
+  if (*password) csValue = W2CT(*password);
+  dlg.AddEdit(&csValue, "", TRUE);
+  
+  BOOL checkResult;
+  if (checkboxMsg && checkValue) {
+    checkResult = (*checkValue == PR_TRUE ? TRUE : FALSE);
+    dlg.AddCheckBox(&checkResult, W2CT(checkboxMsg));
+  }
 
-    *_retval = PR_TRUE;
-  } else
+  if (dlg.DoModal() == IDOK) {
+     if (*password) nsMemory::Free(*password);
+	  *password = NS_StringCloneData(nsEmbedString(T2CW(csValue)));
+     *_retval = PR_TRUE;
+  }
+  else
     *_retval = PR_FALSE;
 
   return NS_OK;
@@ -259,7 +296,7 @@ NS_IMETHODIMP CPromptService::Select(nsIDOMWindow *parent,
 {
 	USES_CONVERSION;
 	CWnd *wnd = CWndForDOMWindow(parent);
-    CSelectDialog dlg(wnd, W2CT(dialogTitle), W2CT(text));
+   CSelectDialog dlg(wnd, W2CT(dialogTitle), W2CT(text));
 
 	for (PRUint32 i = 0; i<count; i++)
 		dlg.AddChoice(W2CT(selectList[i]));
@@ -281,60 +318,63 @@ NS_IMETHODIMP CPromptService::ConfirmEx(nsIDOMWindow *parent,
                                         PRBool *checkValue,
                                         PRInt32 *buttonPressed)
 {
+	const int COMMAND_OFFSET = 100;
     USES_CONVERSION;
 
-    // First, determine the button titles based on buttonFlags
-    const PRUnichar* buttonStrings[] = { button0Title, button1Title, button2Title };
-    CString csBtnTitles[3];
+	CWnd *wnd = CWndForDOMWindow(parent);
+	CGenericDlg dlg(wnd);
+	dlg.SetTitle(W2CT(dialogTitle));
+	dlg.SetMsg(W2CT(text));
 
 	//https://bugzilla.mozilla.org/show_bug.cgi?id=329414
 	//Set the cancel button to 1, and the default one.
-	int defButton = 256 + ((buttonFlags & 0x03000000) >> 24);
+	dlg.SetDefaultButton(COMMAND_OFFSET + ((buttonFlags & 0x03000000) >> 24));
+	dlg.SetCancelButton(COMMAND_OFFSET + 1);
+
+	// Determine the button titles based on buttonFlags
+    const PRUnichar* buttonStrings[] = { button0Title, button1Title, button2Title };
 
     for(int i=0; i<3; i++)
     {
         switch(buttonFlags & 0xff) {
             case BUTTON_TITLE_OK:
-                csBtnTitles[i].LoadString(IDS_OK);
+				dlg.AddButton(COMMAND_OFFSET+i, IDS_OK);
                 break;
             case BUTTON_TITLE_CANCEL:
-                csBtnTitles[i].LoadString(IDS_CANCEL);
+                dlg.AddButton(COMMAND_OFFSET+i, IDS_CANCEL);
                 break;
             case BUTTON_TITLE_YES:
-                csBtnTitles[i].LoadString(IDS_YES);
+                dlg.AddButton(COMMAND_OFFSET+i, IDS_YES);
                 break;
             case BUTTON_TITLE_NO:
-                csBtnTitles[i].LoadString(IDS_NO);
+                dlg.AddButton(COMMAND_OFFSET+i, IDS_NO);
                 break;
             case BUTTON_TITLE_SAVE:
-                csBtnTitles[i].LoadString(IDS_SAVE);
+                dlg.AddButton(COMMAND_OFFSET+i, IDS_SAVE);
                 break;
             case BUTTON_TITLE_DONT_SAVE:
-                csBtnTitles[i].LoadString(IDS_DONTSAVE);
+                dlg.AddButton(COMMAND_OFFSET+i, IDS_DONTSAVE);
                 break;
             case BUTTON_TITLE_REVERT:
-                csBtnTitles[i].LoadString(IDS_REVERT);
+                dlg.AddButton(COMMAND_OFFSET+i, IDS_REVERT);
                 break;
             case BUTTON_TITLE_IS_STRING:
-                csBtnTitles[i] = W2CT(buttonStrings[i]);
+                dlg.AddButton(COMMAND_OFFSET+i, W2CT(buttonStrings[i]));
                 break;
         }
    
         buttonFlags >>= 8;    
     }
 
-    CWnd *wnd = CWndForDOMWindow(parent);
-    CConfirmCheckDialog dlg(wnd, W2CT(dialogTitle), W2CT(text),
-        checkMsg ? W2CT(checkMsg) : NULL, checkValue ? *checkValue : 0,
-                    csBtnTitles[0].IsEmpty() ? NULL : (LPCTSTR)csBtnTitles[0], 
-                    csBtnTitles[1].IsEmpty() ? NULL : (LPCTSTR)csBtnTitles[1], 
-                    csBtnTitles[2].IsEmpty() ? NULL : (LPCTSTR)csBtnTitles[2],
-					defButton);
-
-    *buttonPressed = dlg.DoModal();
-
-    if(checkValue)
-        *checkValue = dlg.m_bCheckBoxValue;
+	BOOL checkResult;
+	if (checkMsg && checkValue) {
+		checkResult = (*checkValue == PR_TRUE ? TRUE : FALSE);
+		dlg.AddCheckBox(&checkResult, W2CT(checkMsg));
+	}
+	
+	*buttonPressed = dlg.DoModal() - COMMAND_OFFSET;
+	if (checkValue)
+		*checkValue = (checkResult == TRUE ? PR_TRUE : PR_FALSE);
 
     return NS_OK;    
 }
@@ -344,8 +384,21 @@ CPromptService::ShowNonBlockingAlert(nsIDOMWindow *aParent,
                                       const PRUnichar *aDialogTitle,
                                       const PRUnichar *aText)
 {
-  // XXX: making a modeless messagebox is a pain.
-  return Alert(aParent, aDialogTitle, aText);
+  BOOL result;
+  CGenericDlg* dlg = new CGenericDlg();  
+  CWnd *wnd = CWndForDOMWindow(aParent);
+  
+  USES_CONVERSION;
+  dlg->SetTitle(W2CT(aDialogTitle));
+  dlg->SetMsg(W2CT(aText));
+  dlg->SetMsgIcon(AfxGetApp()->LoadStandardIcon(IDI_EXCLAMATION));
+  dlg->AddButton(100, IDS_OK);
+  dlg->SetDefaultButton(100);
+  dlg->SetCancelButton(100);
+
+  result = dlg->DoModeless();
+  
+  return result ? NS_OK : NS_ERROR_FAILURE;
 }
 
 //*****************************************************************************

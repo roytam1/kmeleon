@@ -5,6 +5,16 @@
 #ifndef _DIALOGS_EX_H_
 #define _DIALOGS_EX_H_
 
+#include "afxpriv.h" 
+
+class CDialogTemplateEx: public CDialogTemplate
+{
+public:
+	int SetTemplate(const DLGTEMPLATE *pTemplate) {
+		return CDialogTemplate::SetTemplate(pTemplate, GetTemplateSize(pTemplate));
+	}
+};
+
 class CDialogEx: public CDialog
 {
 public:
@@ -16,15 +26,21 @@ public:
 		: CDialog(nIDTemplate, pParentWnd) {};
 	~CDialogEx() {};
 
-	int DoModal()
+	INT DoModal()
 	{  
 		//CMfcEmbedApp *pApp = (CMfcEmbedApp *)AfxGetApp();
 		//if (pApp->preferences.GetBool("kmeleon.display.dialogs.useUserDialogFont", true)) {
 		//	return CDialog::DoModal();
 		//}
 
-		ASSERT(m_lpszTemplateName != NULL);
-		if (!m_dlt.Load(m_lpszTemplateName)) return -1;
+		ASSERT(m_lpszTemplateName != NULL || m_lpDialogTemplate != NULL);
+		if (m_lpszTemplateName != NULL) {
+			if (!m_dlt.Load(m_lpszTemplateName)) 
+				return -1;
+		}
+		else
+			if (!m_dlt.SetTemplate(m_lpDialogTemplate))
+				return -1;
 
 		struct font_info font;
 		if (GetMessageFont(font))
@@ -33,9 +49,10 @@ public:
 		LPSTR pdata = (LPSTR)GlobalLock(m_dlt.m_hTemplate);
 
 		m_lpszTemplateName = NULL;
+		m_lpDialogTemplate = NULL;
 		InitModalIndirect(pdata);
 
-		int result = CDialog::DoModal();
+		INT result = CDialog::DoModal();
 
 		GlobalUnlock(m_dlt.m_hTemplate);
 
@@ -44,7 +61,7 @@ public:
 
 	BOOL Create(LPCTSTR lpszTemplateName, CWnd* pParentWnd)
 	{
-	//	CMfcEmbedApp *pApp = (CMfcEmbedApp *)AfxGetApp();
+		ASSERT(m_lpszTemplateName == NULL);
 		if (!m_dlt.Load(lpszTemplateName)) return FALSE;
 		struct font_info font;
 		if ( 
@@ -54,11 +71,7 @@ public:
 
 		HINSTANCE hInst = AfxFindResourceHandle(lpszTemplateName, RT_DIALOG);
 
-		BOOL bResult = CreateIndirect(m_dlt.m_hTemplate, pParentWnd, hInst);
-		if (HGLOBAL hg = m_dlt.Detach())
-			GlobalFree(hg);
-
-		return bResult;
+		return CDialog::CreateIndirect(m_dlt.m_hTemplate, pParentWnd, hInst);
 	}
 
 	BOOL Create(UINT nIDTemplate, CWnd* pParentWnd)
@@ -66,8 +79,20 @@ public:
 		return Create(MAKEINTRESOURCE(nIDTemplate), pParentWnd);
 	}
 
+	BOOL CreateIndirect(LPCDLGTEMPLATE lpDialogTemplate, CWnd* pParentWnd = NULL)
+	{
+		if (!m_dlt.SetTemplate(lpDialogTemplate))
+			return FALSE;
+		
+		struct font_info font;
+		if (GetMessageFont(font))
+			m_dlt.SetFont(font.lpFaceName, (WORD)font.nPointSize);
+
+		return CDialog::CreateIndirect(m_dlt.m_hTemplate, pParentWnd);
+	}
+
 protected:
-	CDialogTemplate m_dlt;
+	CDialogTemplateEx m_dlt;
 
 	struct font_info {
 		int nPointSize;
