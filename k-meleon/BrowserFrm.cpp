@@ -71,6 +71,8 @@
 #include "BrowserView.h"
 #include "ToolBarEx.h"
 #include "KmeleonConst.h"
+#include "PasswordViewerDlg.h"
+#include "CookiesViewerDlg.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -100,6 +102,8 @@ BEGIN_MESSAGE_MAP(CBrowserFrame, CFrameWnd)
 	ON_COMMAND(ID_CLOSE, CloseNothing)
     ON_COMMAND_RANGE(TOOLBAR_MENU_START_ID, TOOLBAR_MENU_END_ID, ToggleToolBar)
     ON_COMMAND(ID_TOOLBARS_LOCK, ToggleToolbarLock)
+	 ON_COMMAND(ID_COOKIES_VIEWER, OnCookiesViewer)
+	 ON_COMMAND(ID_PASSWORDS_VIEWER, OnPasswordsViewer)
     ON_UPDATE_COMMAND_UI(ID_TOOLBARS_LOCK, OnUpdateToggleToolbarLock)
 #ifdef INTERNAL_SIDEBAR
 	ON_COMMAND_RANGE(SIDEBAR_MENU_START_ID, SIDEBAR_MENU_END_ID, ToggleSideBar)
@@ -110,6 +114,7 @@ BEGIN_MESSAGE_MAP(CBrowserFrame, CFrameWnd)
    ON_NOTIFY(RBN_LAYOUTCHANGED, AFX_IDW_REBAR, OnRbnLayoutChanged)
     //}}AFX_MSG_MAP
 	ON_WM_SYSCOMMAND()
+	ON_WM_INITMENUPOPUP()
 END_MESSAGE_MAP()
 
 #define PREF_TOOLBAND_LOCKED "kmeleon.general.toolbars_locked"
@@ -1334,4 +1339,24 @@ HACCEL CBrowserFrame::GetDefaultAccelerator()
 	if (!(m_chromeMask & nsIWebBrowserChrome::CHROME_OPENAS_CHROME))
 		return theApp.accel.GetTable();
 	return NULL;
+}
+
+void CBrowserFrame::OnInitMenuPopup(CMenu* pPopupMenu, UINT nIndex, BOOL bSysMenu)
+{
+	// This will rebuild the menu if needed
+	//KmMenu* kmenu = theApp.menus.GetKMenu(pPopupMenu); 
+	//if (kmenu) kmenu->GetMenu();
+	//CFrameWnd::OnInitMenuPopup(pPopupMenu, nIndex, bSysMenu);
+}
+
+void CBrowserFrame::OnCookiesViewer()
+{
+	CCookiesViewerDlg dlg(this);
+	dlg.DoModal();
+}
+
+void CBrowserFrame::OnPasswordsViewer()
+{
+	CPasswordViewerDlg dlg(this);
+	dlg.DoModal();
 }

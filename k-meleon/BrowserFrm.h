@@ -272,6 +272,9 @@ protected:
 #endif
 	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
    afx_msg void OnRbnLayoutChanged(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg void OnInitMenuPopup(CMenu* pPopupMenu, UINT nIndex, BOOL bSysMenu);
+   afx_msg void OnCookiesViewer();
+   afx_msg void OnPasswordsViewer();
     //}}AFX_MSG
     DECLARE_MESSAGE_MAP()
 };
