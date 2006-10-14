@@ -209,4 +209,8 @@ pref("browser.downloadmanager.behavior", 0);
 // Show XUL error pages instead of alerts for errors
 pref("browser.xul.error_pages.enabled", true);
 
+// Mouse wheel zoom 
 pref("mousewheel.withcontrolkey.action",3);
+
+// Prevent window to steal the focus when loading
+pref("dom.disable_window_flip", true);
