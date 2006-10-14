@@ -314,7 +314,13 @@
 				RelativePath=".\FavIconList.cpp">
 			</File>
 			<File
+				RelativePath=".\GenericDlg.cpp">
+			</File>
+			<File
 				RelativePath="HiddenWnd.cpp">
+			</File>
+			<File
+				RelativePath=".\KmMenu.cpp">
 			</File>
 			<File
 				RelativePath=".\LangParser.cpp">
@@ -481,6 +487,9 @@
 				RelativePath=".\FavIconList.h">
 			</File>
 			<File
+				RelativePath=".\GenericDlg.h">
+			</File>
+			<File
 				RelativePath="HiddenWnd.h">
 			</File>
 			<File
@@ -491,6 +500,9 @@
 			</File>
 			<File
 				RelativePath="KmeleonConst.h">
+			</File>
+			<File
+				RelativePath=".\KmMenu.h">
 			</File>
 			<File
 				RelativePath=".\LangParser.h">
@@ -505,7 +517,7 @@
 				RelativePath="MfcEmbed.h">
 			</File>
 			<File
-				RelativePath="Parser.h">
+				RelativePath=".\MozUtils.h">
 			</File>
 			<File
 				RelativePath=".\PasswordViewerDlg.h">

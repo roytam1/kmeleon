@@ -18,6 +18,7 @@
 */
 
 #include "StdAfx.h"
+#include "winuser.h"
 #include <afxtempl.h>
 
 #include "MfcEmbed.h"
@@ -31,120 +32,10 @@ extern CMfcEmbedApp theApp;
 
 extern BOOL ParsePluginCommand(char *pszCommand, char** plugin, char **parameter);
 
-int Translate(LPCTSTR originalText, CString& translatedText)
-{
-	USES_CONVERSION;
-	int r;
-
-	// I have to remove the accel text for translation..
-	TCHAR* accel = _tcschr(originalText, _T('\t'));
-	if (accel) *accel = 0;
-	//TrimWhiteSpace(originalText);
-
-	if (!(r=theApp.lang.Translate(originalText, translatedText)))
-		translatedText = originalText;
-
-	//.. and put it back
-	/*if (accel) {
-	*accel = '\t';
-	TrimWhiteSpace(accel);
-	translatedText += A2T(accel);
-	}*/
-
-	return r;
-}
-
-void KMenu::RemoveItem(MenuItem& item)
-{
-
-	// Deletion by command
-	if (!item.label[0]) { 
-		POSITION pos = menuDef.GetHeadPosition();
-		while (pos) {
-			MenuItem item2 = menuDef.GetAt(pos);
-			if (item2.command == item.command) {
-				menuDef.RemoveAt(pos);
-				return;
-			}
-			menuDef.GetNext(pos);
-		}
-	}
-
-	// Deletion by name
-	if (item.command < 1) {
-		POSITION pos = menuDef.GetHeadPosition();
-		while (pos) {
-			MenuItem item2 = menuDef.GetAt(pos);
-			if (strcmp(item2.label, item.label) == 0) {
-				menuDef.RemoveAt(pos);
-				break;
-			}
-			menuDef.GetNext(pos);
-		}
-		return;
-	}
-}
-
-void KMenu::AddItem(MenuItem& item, long before)
-{
-	if (item.command<1 || !item.label[0]) {
-		RemoveItem(item);
-		return;
-	}
-
-	if (item.type == MenuString) {
-		// There can't be two item with the same id
-		POSITION pos = menuDef.GetHeadPosition();
-		while (pos) {
-			MenuItem* item2 = &menuDef.GetAt(pos);
-			if (item2->command == item.command) {
-				*item2 = item; // Replace old with new
-				return;
-			}
-			menuDef.GetNext(pos);
-		}
-	}
-
-   // Custom position 
-	if (before != -1) {
-		if (before < 100) { // Index position
-			POSITION pos = menuDef.GetHeadPosition();
-			while (pos && before--)
-				menuDef.GetNext(pos);
-			if (pos) {
-            menuDef.InsertBefore(pos, item);
-				return;
-			}
-		}
-		else if (before < 0xffff) { // command position
-			POSITION pos = menuDef.GetHeadPosition();
-			while (pos) {
-				MenuItem item2 = menuDef.GetAt(pos);
-				if (item2.command == before) {
-					menuDef.InsertBefore(pos, item);
-					return;
-				}
-				menuDef.GetNext(pos);
-			}
-		}
-		else { // label position
-			POSITION pos = menuDef.GetHeadPosition();
-			while (pos) {
-				MenuItem item2 = menuDef.GetAt(pos);
-				if (strcmp(item2.label, (char*)before) == 0) {
-					menuDef.InsertBefore(pos, item);
-					return;
-				}
-				menuDef.GetNext(pos);
-			}
-		}
-	}
-
-	menuDef.AddTail(item);
-}
 
 CMenuParser::CMenuParser()
 {
+	menusService = &theApp.menus;
 }
 
 CMenuParser::CMenuParser(LPCTSTR filename)
@@ -154,20 +45,6 @@ CMenuParser::CMenuParser(LPCTSTR filename)
 
 CMenuParser::~CMenuParser()
 {
-   Destroy();
-}
-
-void CMenuParser::Destroy()
-{
-   POSITION pos = menus2.GetStartPosition();
-   KMenu *kmenu;
-   CString s;
-   while (pos) {
-      menus2.GetNextAssoc( pos, s, kmenu);
-      if (kmenu)
-         delete kmenu;
-   }
-   menus2.RemoveAll();
 }
 
 int CMenuParser::Load(LPCTSTR filename)
@@ -176,117 +53,12 @@ int CMenuParser::Load(LPCTSTR filename)
 
    mAccelText = theApp.preferences.GetBool("kmeleon.display.accelInMenus", TRUE);
 
+	currentKMenu = NULL;
    int retVal = CParser::Load(filename);
 
    END_LOG();
 
    return retVal;
-}
-
-void CMenuParser::Rebuild(LPCTSTR menu)
-{
-	KMenu* kmenu;
-	if (!menus2.Lookup(menu, kmenu))
-		return;
-
-   ClearSeparators(kmenu);
-	BOOL mainChanged = FALSE;
-
-	// Rebuild the current menu
-	if (kmenu->menu.m_hMenu) {
-		ResetMenu(kmenu->menu);
-		BuildMenu(kmenu->menu, kmenu->menuDef);
-	}
-
-   // Rebuild all menu using this menu 
-   POSITION pos = kmenu->dependencies.GetHeadPosition();
-	while (pos) {
-		KMenu* depMenu = kmenu->dependencies.GetNext(pos);
-		if (depMenu->menu.m_hMenu) {
-			ResetMenu(depMenu->menu);
-			BuildMenu(depMenu->menu, depMenu->menuDef);
-		}
-		if (GetMenu("Main") == &kmenu->menu)
-			mainChanged = true;
-	}
-
-	if (mainChanged || (_tcsicmp(menu, _T("Main")) == 0)) {
-		CFrameWnd* pBrowserFrame = NULL;
-		POSITION pos = theApp.m_FrameWndLst.GetHeadPosition();
-		while( pos != NULL ) {
-			pBrowserFrame = (CFrameWnd *) theApp.m_FrameWndLst.GetNext(pos);
-			if(pBrowserFrame)
-				pBrowserFrame->DrawMenuBar();
-		}
-	}
-}
-
-void CMenuParser::SetMenu(LPCTSTR menu, MenuItem item, long before)
-{
-   KMenu* kmenu;
-   if (!menus2.Lookup(menu, kmenu)) {
-      kmenu = new KMenu;
-      if (!kmenu) return;
-      menus2[menu] = kmenu;
-   }
-
-	kmenu->AddItem(item, before);
-
-   if (item.command<1) {
-      KMenu* iMenu;
-      if (menus2.Lookup(menu, iMenu)) {
-         POSITION pos = iMenu->dependencies.Find(kmenu);
-         if (pos) iMenu->dependencies.RemoveAt(pos);
-      }
-   }
-   else if (item.type == MenuInline) {
-      KMenu* iMenu;
-      if (!menus2.Lookup(item.label, iMenu)) {
-         iMenu = new KMenu;
-         if (!iMenu) return;
-         menus2[item.label] = iMenu;
-      }
-      iMenu->dependencies.AddHead(kmenu);
-   }
-   
-/*
-	if (!kmenu->menu.m_hMenu)
-		return;
-	
-	
-	// CANT MODIFY MENU BECAUSE OF BMPMENU ....
-	
-	MENUITEMINFO mii;
-	mii.cbSize = sizeof(MENUITEMINFO);
-	mii.dwTypeData = NULL;
-	mii.fMask = MIIM_DATA | MIIM_TYPE;
-   kmenu->menu.GetMenuItemInfo(i, &mii, TRUE);
-
-
-	// Delete by label
-	if (item.command<1) {
-		CString label;
-		int count = kmenu->menu.GetMenuItemCount();
-		for (int i=0; i<count; i++) {
-			kmenu->menu.GetMenuString(i, label, MF_BYPOSISION);
-			if (label.Compare(theApp.lang.Translate(A2CT(item.label))) == 0) {
-				kmenu->menu.DeleteMenu(i, MF_BYPOSITION);
-
-				return;
-			}
-		}
-	}
-
-	// Delete by command
-	if (!item.label[0]) {
-		kmenu->menu.RemoveMenu(item.command, MF_BYCOMMAND);
-		return;
-	}
-
-	if (item.type != MenuSpecial || item.type != MenuPlugin)
-		if (!kmenu->menu.ModifyMenu(item.command, MF_BYCOMMAND | MF_STRING, item.command, theApp.lang.Translate(A2CT(item.label))))
-      	InsertItem(kmenu->menu, item, -1);
-	*/
 }
 
 extern int GetID(const char *strID);
@@ -311,17 +83,15 @@ int CMenuParser::Parse(char *p)
 			else
 				opEdit = 0;
 
-			if (menus2.Lookup(A2CT(p), currentKMenu)) {
+			currentKMenu = menusService->GetKMenu(A2CT(p));
+			if (currentKMenu) {
 				if (!opEdit) {
-					currentKMenu->menuDef.RemoveAll();
-					if (currentKMenu->menu.m_hMenu)
-						ResetMenu(currentKMenu->menu);
+					currentKMenu->Empty();
 					LOG_1("Reset Menu %s", p);
 				}
 			}
 			else {
-				currentKMenu = new KMenu;
-				menus2[A2CT(p)] = currentKMenu;
+				currentKMenu = menusService->CreateMenu(A2CT(p));
 				LOG_1("Created Menu %s", p);
 			}
 		}
@@ -331,13 +101,11 @@ int CMenuParser::Parse(char *p)
 		TrimWhiteSpace(p);
 
 		if (p[0] == '}') {
-			if (opEdit)
-				ClearSeparators(currentKMenu);
 			currentKMenu = NULL;
 			LOG_1("Ended Menu", 0);
 		}
 		else {
-			MenuItem item;
+			KmMenuItem item;
 			item.command = 1;
 			long before = -1;
 
@@ -367,20 +135,16 @@ int CMenuParser::Parse(char *p)
 			case '!': // Inline menu
 				item.type = MenuInline;
 				item.SetLabel(++p);
-				KMenu* iMenu;
-				if (!menus2.Lookup(item.label, iMenu)) {
-					iMenu = new KMenu;
-					if (!iMenu) return 0;
-					menus2[item.label] = iMenu;
-				}
-				iMenu->dependencies.AddHead(currentKMenu);
 				LOG_1("Added menu group %s.", item.label);
 				break;
 
 			case '-': 
 				if (p[1]) { // Deletion
-					item.command = -1;
-					item.SetLabel(++p);
+					item.command = GetID(item.label);
+					if (!item.command) {
+						item.command = -1;
+						item.SetLabel(++p);
+					}
 				} else { // Separator
 					item.type = MenuSeparator;
 				}
@@ -456,169 +220,4 @@ int CMenuParser::Parse(char *p)
 	}
 
 	return 1;
-}
-
-CMenu *CMenuParser::GetMenu(LPCTSTR menuName)
-{
-	KMenu* kmenu;
-	if (!menus2.Lookup(menuName, kmenu))
-		return NULL;
-
-	if (kmenu->menu.m_hMenu)
-		return &kmenu->menu;
-
-	if (_tcsstr(menuName, _T("Main")))
-		kmenu->menu.CreateMenu();
-	else
-		kmenu->menu.CreatePopupMenu();
-
-	BuildMenu(kmenu->menu, kmenu->menuDef);
-
-	return &kmenu->menu;
-}
-
-void CMenuParser::ClearSeparators(KMenu* menu) 
-{
-	CList<MenuItem, MenuItem&> *def = &menu->menuDef;
-
-	// Remove top separators
-	while (!def->IsEmpty()
-		&& def->GetHead().type == MenuSeparator)
-		def->RemoveHead();
-
-	// Remove bottom separators
-	while (!def->IsEmpty()
-		&& def->GetHead().type == MenuSeparator)
-		def->RemoveTail();
-
-	// Remove separators following another one.
-	BOOL sep = FALSE;
-	POSITION pos = def->GetHeadPosition();
-	while (pos)
-	{  
-		POSITION oldpos = pos;
-		BOOL oldsep = sep;
-
-		MenuItem item = def->GetNext(pos);
-		sep = item.type == MenuSeparator;
-		if (sep && oldsep)
-			def->RemoveAt(oldpos);
-	}
-}
-
-void CMenuParser::InsertItem(CMenu &menu, MenuItem item, int before)
-{
-
-	USES_CONVERSION;
-	CMenu *popup;
-	LPCTSTR label;
-
-	switch (item.type) {
-		case MenuPopup: // Popup Menu
-			label = A2CT(item.label);
-			popup = GetMenu(label);
-			if (popup) {
-				menu.InsertMenu(before, MF_POPUP | MF_STRING, (UINT)popup->m_hMenu, theApp.lang.Translate(label));
-				//LOG_1("Added popup %s", label);
-			}
-			else
-				LOG_ERROR_1("Popup %s not found!", label);
-			break;
-
-		case MenuSpecial: // Special Menu
-
-			if (strcmpi(item.label, "ToolBars") == 0) 
-				theApp.m_toolbarControlsMenu = menu.GetSafeHmenu();
-#ifdef INTERNAL_SIDEBAR
-			if (strcmpi(item.label, "SideBars") == 0) 
-				theApp.m_sidebarControlsMenu = menu.GetSafeHmenu();
-#endif
-			break;
-
-		case MenuInline: { // Inline menu
-			label = A2CT(item.label);
-			KMenu* inlineMenu = NULL;
-			if (menus2.Lookup(label, inlineMenu))
-				BuildMenu(menu, inlineMenu->menuDef, before);
-			else
-				LOG_ERROR_1("Popup %s not found!", label);
-			break;
-		}
-
-		case MenuSeparator: // Separator
-			menu.InsertMenu(before, MF_SEPARATOR);
-			//LOG_1("Added Separator", 0);
-			break;
-
-		case MenuPlugin: {
-			char *plugin, *parameter;
-			ParsePluginCommand(item.label, &plugin, &parameter);
-
-			if (theApp.plugins.SendMessage(plugin, "* MenuParser", "DoMenu", (long)menu.GetSafeHmenu(), (long)parameter)) {
-				//LOG_2("Called plugin %s with parameter %s", plugin, parameter);
-			}
-			else {
-				LOG_ERROR_1( "Plugin %s has no menu", plugin);
-			}
-			break;
-		}
-
-		case MenuString: {
-			label = A2CT(item.label); 
-
-			CString pTranslated;
-			Translate(label, pTranslated);
-
-			if (mAccelText) {
-				CString accel = theApp.accel.GetStrAccel(item.command);
-				if (accel.GetLength())
-					pTranslated += _T("\t") + accel;
-			}
-
-			menu.InsertMenu(before, MF_STRING, item.command, pTranslated);
-			//LOG_2("Added menu item %s with command %d", label, item.command);
-			break;
-		}
-
-		default: 
-			label = A2CT(item.label); 
-			LOG_ERROR_1("Undefined menu %s", label);
-	}
-}
-
-BOOL CMenuParser::BuildMenu(CMenu &menu, CList<MenuItem, MenuItem&> &menuDef, int before)
-{
-	POSITION pos = menuDef.GetHeadPosition();
-	for (int i=0;i < menuDef.GetCount();i++)
-		InsertItem(menu, menuDef.GetNext(pos), before);
-	return TRUE;
-}
-
-void CMenuParser::ResetMenu(CMenu& menu)
-{
-	// XXX Crappy hack until we get rid of this crappy plugin
-	theApp.plugins.SendMessage("bmpmenu", "* MenuParser", "UnSetOwnerDrawn", (long)menu.m_hMenu, 0);
-	while (menu.GetMenuItemCount())
-		menu.RemoveMenu(0, MF_BYPOSITION);
-}
-
-int CMenuParser::GetOffset(CMenu *menu){
-   int offset;
-   if (!menuOffsets.Lookup(menu, offset))
-      return 0;
-
-   return offset;
-}
-
-void CMenuParser::SetCheck(UINT id, BOOL checked)
-{
-   POSITION pos = menus2.GetStartPosition();
-   KMenu *m;
-   CString s;
-   while (pos) {
-      menus2.GetNextAssoc(pos, s, m);
-      CMenu *menu = GetMenu(s);
-      if (menu)
-         menu->CheckMenuItem( id, MF_BYCOMMAND | (checked ? MF_CHECKED : MF_UNCHECKED) );
-   }
 }
