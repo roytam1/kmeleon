@@ -437,7 +437,7 @@ void CBrowserFrame::BrowserFrameGlueObj::SetBrowserPositionAndSize(PRInt32 aX, P
 void CBrowserFrame::BrowserFrameGlueObj::SetFocus(){
    METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
   //if (!::IsChild(pThis->m_hWnd,::GetFocus()))
-	   //pThis->SetFocus();
+	// pThis->BringWindowToTop();
 
    pThis->m_wndBrowserView.mBaseWindow->SetFocus();
 }
@@ -457,7 +457,7 @@ void CBrowserFrame::BrowserFrameGlueObj::FocusAvailable(PRBool *aFocusAvail)
 void CBrowserFrame::BrowserFrameGlueObj::ShowBrowserFrame(PRBool aShow)
 {
     METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
-      
+
     if(aShow)
     {
 		if (pThis->m_bSizeOnLoad) 
@@ -486,28 +486,15 @@ void CBrowserFrame::BrowserFrameGlueObj::GetBrowserFrameVisibility(PRBool *aVisi
 {
    METHOD_PROLOGUE(CBrowserFrame, BrowserFrameGlueObj)
 
-   // Is the current BrowserFrame the active one?
+   /*// Is the current BrowserFrame the active one?
    CWnd *pWnd = GetActiveWindow();
    if (!pWnd || pWnd->m_hWnd != pThis->m_hWnd)
    {
       *aVisible = PR_FALSE;
       return;
-   }
+   }*/
 
-   if (pThis->IsIconic() || !pThis->IsWindowVisible()) {
-      *aVisible = PR_FALSE;
-      return;
-   }
-
-   // We're the active one
-   //Return FALSE if we're minimized
-   WINDOWPLACEMENT wpl;
-   pThis->GetWindowPlacement(&wpl);
-
-   if ((wpl.showCmd == SW_NORMAL) || (wpl.showCmd == SW_MAXIMIZE))
-      *aVisible = PR_TRUE;
-   else
-      *aVisible = PR_FALSE;
+	*aVisible = pThis->IsIconic() || !pThis->IsWindowVisible() ? PR_FALSE : PR_TRUE;
 }
 
 PRBool CBrowserFrame::BrowserFrameGlueObj::CreateNewBrowserFrame(PRUint32 chromeMask, 
