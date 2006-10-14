@@ -783,8 +783,8 @@ void SetAccel(const char* key, char* command) {
 }
 
 void SetMenu(const char* menu, kmeleonMenuItem* kmitem) {
-	MenuItem item;
-	item.type = (MenuType)kmitem->type;
+	KmMenuItem item;
+	item.type = (KmMenuType)kmitem->type;
 	item.SetLabel(kmitem->label);
 	item.command = kmitem->command;
 	item.groupid = kmitem->groupid;

@@ -59,6 +59,7 @@
 #include "BrowserImpl.h"
 #include "kmeleonConst.h"
 #include "UnknownContentTypeHandler.h"
+#include "MenuParser.h"
 #include <io.h>
 #include <fcntl.h>
 
@@ -480,8 +481,7 @@ BOOL CMfcEmbedApp::InitInstance()
 #endif
 
    plugins.FindAndLoad();
-   plugins.SendMessage("*", "* Plugin Manager", "Init");
-	InitializeMenusAccels();
+   InitializeMenusAccels();
    
 
 
@@ -1053,20 +1053,23 @@ BOOL CMfcEmbedApp::InitializePrefs(){
 
 BOOL CMfcEmbedApp::InitializeMenusAccels(){
    CString filename;
+	CMenuParser menusParser;
 
    filename = GetFolder(DefSettingsFolder) + _T("\\") ACCEL_CONFIG_FILE;
    accel.Load(filename);
 
    filename = GetFolder(DefSettingsFolder) + _T("\\") MENU_CONFIG_FILE;
-   menus.Load(filename);
+   menusParser.Load(filename);
    
-   plugins.SendMessage("*", "* Plugin Manager", "Setup");
-
+	plugins.SendMessage("*", "* Plugin Manager", "Init");
+   
    filename = GetFolder(UserSettingsFolder) + _T("\\") ACCEL_CONFIG_FILE;
    accel.Load(filename);
 
    filename = GetFolder(UserSettingsFolder) + _T("\\") MENU_CONFIG_FILE;
-   menus.Load(filename);
+   menusParser.Load(filename);
+
+	plugins.SendMessage("*", "* Plugin Manager", "Setup");
 
    return TRUE;
 }
@@ -1276,7 +1279,7 @@ CString CMfcEmbedApp::GetFolder(FolderType folder)
 
 void CMfcEmbedApp::CheckProfileVersion()
 {
-   CString fileVersion = GetFolder(ProfileFolder) + _T("version.ini");
+   CString fileVersion = GetFolder(ProfileFolder) + _T("\\version.ini");
    BOOL needClean = FALSE;
 
    CString locale;

@@ -22,76 +22,24 @@
 #include "StdAfx.h"
 
 #include "Parser.h"
-
-enum MenuType 
-{
-	MenuString = 0,
-	MenuPopup = 1,
-	MenuInline = 2,
-	MenuPlugin = 3,
-	MenuSeparator = 4,
-	MenuSpecial = 5
-};
-
-struct MenuItem
-{
-	MenuType type;
-	char label[80];
-	int command;
-	int groupid;
-
-	void SetLabel(const char* psz) {
-		strncpy(label, psz, 80);
-		label[79] = 0;
-	}
-
-};
-
-class KMenu {
-public:
-
-	CMenu menu;
-	CList<MenuItem, MenuItem&> menuDef;
-	CList<KMenu*, KMenu*> dependencies;
-
-	void RemoveItem(MenuItem& item);
-	void AddItem(MenuItem& item, long before = -1);
-};
+#include "KmMenu.h"
 
 class CMenuParser : public CParser{
 protected:
-	//CMap<CString, LPCTSTR, CMenu *, CMenu *&> menus;
-	CMap<CMenu *, CMenu *&, int, int&> menuOffsets;
-	CMap<CString, LPCTSTR, KMenu*, KMenu*> menus2;
-	KMenu* currentKMenu;
-
+	KmMenuService* menusService;
+	KmMenu* currentKMenu;
 	int opEdit;
 	BOOL mAccelText;
 
 public:
 	CMenuParser();
+
 	CMenuParser(LPCTSTR filename);
 
 	~CMenuParser();
 
 	int Load(LPCTSTR filename);
 	int Parse(char *p);
-	void SetMenu(LPCTSTR menu, MenuItem item, long before = -1);
-	BOOL BuildMenu(CMenu &menu, CList<MenuItem, MenuItem&> &menuDef, int before = -1);
-	void InsertItem(CMenu &menu, MenuItem item, int before = -1);
-	void Rebuild(LPCTSTR menu);
-
-	void Destroy();
-
-	CMenu *GetMenu(LPCTSTR menuName);
-	int GetOffset(CMenu *menu);
-
-	void SetCheck(UINT id, BOOL checked = TRUE);
-
-private:
-	void ClearSeparators(KMenu* menu);
-	inline void ResetMenu(CMenu& menu);
-
 };
 
 #endif // __MENUPARSER_H__
