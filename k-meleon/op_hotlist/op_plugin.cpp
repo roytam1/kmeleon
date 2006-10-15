@@ -318,6 +318,27 @@ int Load(){
      if (bitmap)
         DeleteObject(bitmap);
    }
+
+	int ret = op_readFile(gHotlistFile);
+	
+   if (ret < 0) {
+      if (!gHotlistFile || !*gHotlistFile)
+         MessageBox(NULL, 
+                    "No hotlist specified.",
+                    "Hotlist Error", MB_ICONSTOP|MB_OK);
+      else {
+         if (!bCreate || errno != ENOENT) {
+            char tmp[2048];
+            strcpy(tmp, "Unable to open hotlist file\r\n'");
+            strcat(tmp, gHotlistFile);
+            strcat(tmp, "'.");
+            if (errno == ENOENT) {
+               strcat(tmp, "\r\nFile not found.");
+            }
+            MessageBox(NULL, tmp, "Hotlist Error", MB_ICONSTOP|MB_OK);
+         }
+      }
+   }
    
    return true;
 }
@@ -591,34 +612,10 @@ void DoMenu(HMENU menu, char *param){
    else
       return;
    
-   int ret = -1;
-   lpszHotlistFile = strdup(gHotlistFile);
-   if (lpszHotlistFile && *lpszHotlistFile) {
-      if ((ret = op_readFile(lpszHotlistFile)) > 0) {
-         if (gMenuSortOrder)
-            gHotlistRoot.sort(gMenuSortOrder);
-         BuildMenu(menu, gHotlistRoot.FindSpecialNode(BOOKMARK_FLAG_BM), false);
-      }
-   }
+   if (gMenuSortOrder)
+	   gHotlistRoot.sort(gMenuSortOrder);
+   BuildMenu(menu, gHotlistRoot.FindSpecialNode(BOOKMARK_FLAG_BM), false);
    
-   if (ret < 0) {
-      if (!lpszHotlistFile || !*lpszHotlistFile)
-         MessageBox(NULL, 
-                    "No hotlist specified.",
-                    "Hotlist Error", MB_ICONSTOP|MB_OK);
-      else {
-         if (!bCreate || errno != ENOENT) {
-            char tmp[2048];
-            strcpy(tmp, "Unable to open hotlist file\r\n'");
-            strcat(tmp, lpszHotlistFile);
-            strcat(tmp, "'.");
-            if (errno == ENOENT) {
-               strcat(tmp, "\r\nFile not found.");
-            }
-            MessageBox(NULL, tmp, "Hotlist Error", MB_ICONSTOP|MB_OK);
-         }
-      }
-   }
 }
 
 int DoAccel(char *param) {
