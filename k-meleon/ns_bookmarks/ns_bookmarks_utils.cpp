@@ -46,6 +46,7 @@
 extern WNDPROC KMeleonWndProc;
 extern BOOL bChevronEnabled;
 char szContentType[BOOKMARKS_TITLE_LEN];
+BOOL gLoaded = FALSE;
 
 // Preferences Dialog function
 BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
@@ -346,37 +347,37 @@ static void SaveBookmarks(FILE *bmFile, CBookmarkNode *node)
    fprintf(bmFile, "%s</DL><p>\n", szSpacer);
 }
 
-static BOOL bBackedUp = 0;
-
-static void create_backup(const char *file, int num=2)
+#include <sys/stat.h>
+static void create_backup(const TCHAR *file, int num=2)
 {
-   int i;
-   char buf[MAX_PATH];
-   char buf2[MAX_PATH];
-   
-   if (bBackedUp)
+	static BOOL bBackedUp = 0;
+
+	if (bBackedUp)
       return;
 
-   /* rotate the old backups */
-   for (i=num; i>=1; i--) {
-      sprintf(buf, "%s.bak%d", file, i);
-      sprintf(buf2, "%s.bak%d", file, i+1);
-      unlink(buf2);
-      rename(buf, buf2);
-   }
+	TCHAR buf[MAX_PATH];
+	_tcscpy(buf, file);
+	char* dot = _tcsrchr(buf, '.');
+	if (dot)
+		_tcscpy(dot, "_backup.html");
+	else
+		_tcscat(buf, "_backup");
+   
+	struct _stat s = {0};
+	if (_tstat(buf, &s)!=-1 && s.st_mtime > time(NULL) - 172800)
+		return;
 
-   sprintf(buf, "%s.bak1", file);
-   unlink(buf);
-   if (num)
-     rename(file, buf);
-   else
-     unlink(file);
-
+   _tunlink(buf);
+   _trename(file, buf);
+   
    bBackedUp = 1;
 }
 
 void SaveBM(const TCHAR *file)
 {
+	if (!gLoaded)
+		return;
+
    if (!gBookmarkRoot->child && !gBookmarkRoot->next) {
       if (MessageBox(NULL, _T("The bookmarks tree is empty.\nDo you really want to erase all your bookmarks?"), _T(PLUGIN_NAME) _T(": WARNING") , MB_YESNO|MB_ICONEXCLAMATION) != IDYES) {
          LoadBM(gBookmarkFile);
@@ -436,9 +437,7 @@ void SaveBM(const TCHAR *file)
          return;
 	  }
 
-#if 0
    create_backup(file);
-#endif
 
       _tunlink(file);
       _trename(buf, file);
@@ -717,7 +716,7 @@ void LoadBM(const TCHAR *file)
          
          strtok(bmFileBuffer, "\n");
          ParseBookmarks(bmFileBuffer, *gBookmarkRoot);
-         
+         gLoaded = TRUE;
          delete [] bmFileBuffer;
       }
       fclose(bmFile);
@@ -1091,8 +1090,17 @@ int CALLBACK AddProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			HWND combo = GetDlgItem(hDlg, IDC_FOLDER);
 			int index = SendMessage(combo, CB_ADDSTRING, 0, (LPARAM)"Bookmarks");
 			SendMessage(combo, CB_SETITEMDATA, index, (LPARAM)gBookmarkRoot);
-			SendMessage(combo, CB_SETCURSEL, index, 0);
 			Fill_Combo(combo, gBookmarkRoot, 1);
+
+            CBookmarkNode *defaultNode = gBookmarkRoot->FindSpecialNode(BOOKMARK_FLAG_NB);
+            int count = SendMessage(combo, CB_GETCOUNT, 0, 0);
+            for (index=0;index<count;index++) {
+               CBookmarkNode* node = (CBookmarkNode*)SendMessage(combo, CB_GETITEMDATA, index, 0);
+               if (defaultNode == node) {
+                  SendMessage(combo, CB_SETCURSEL, index, 0);
+                  break;
+               }
+            }
 
 			// Set the height
 			RECT rect;
