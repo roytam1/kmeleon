@@ -229,6 +229,7 @@ int Load(){
       DeleteObject(bitmap);
 
    strcpy(gBookmarksTitle, _Tr(BOOKMARKS_DEFAULT_TITLE));
+	LoadBM(gBookmarkFile);
 
    return true;
 }
@@ -328,8 +329,6 @@ void DoMenu(HMENU menu, char *param){
    }
    else {
       gMenuBookmarks = menu;
-
-      LoadBM(gBookmarkFile);
 
       nFirstBookmarkPosition = GetMenuItemCount(menu);
 
