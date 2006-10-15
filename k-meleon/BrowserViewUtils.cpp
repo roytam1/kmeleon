@@ -503,7 +503,8 @@ NS_IMETHODIMP CSaveAsHandler::Save(const char* contentType, const char* disposit
 		if (!description.IsEmpty())
 			filter = description + _T(" (*.") + extension + _T(")|*.") + extension + _T("|");
 		else if (!extension.IsEmpty())
-			filter = extension + _T(" Files (*.") + extension + _T(")|*.") + extension + _T("|");
+			filter.Format(IDS_UNKNOW_TYPE, extension);
+			filter+=" (*." + extension + _T(")|*.") + extension + _T("|");
 	}
 
 	CString filt;
@@ -577,11 +578,12 @@ NS_IMETHODIMP CSaveAsHandler::Save(const char* contentType, const char* disposit
 					// user want to save the complete document including
 					// all frames, images, scripts, stylesheets etc.
 
-					CString strDataPath;
+					CString strDataPath, suffix;
+					suffix.LoadString(IDS_SAVEPAGE_SUFFIX);
 
 					int idxPeriod = strFullPath.ReverseFind(_T('.'));
 					strDataPath = strFullPath.Mid(0, idxPeriod);
-					strDataPath += _T("_files");
+					strDataPath += suffix;
 
 					// At this stage strDataPath will be of the form
 					// c:\tmp\junk_files - assuming we're saving to a file
@@ -1220,9 +1222,12 @@ BOOL CBrowserView::GetCertificate(nsIX509Cert** certificate)
 void CBrowserView::ShowSecurityInfo()                                           
 {
     HWND hParent = mpBrowserFrame->m_hWnd;
+	 CString title, msg;
+	 title.LoadString(IDS_SECURITY_INFORMATION);
 
-    if(m_SecurityState == SECURITY_STATE_INSECURE) { 
-	::MessageBox(m_hWnd, _T("This page has not been transferred over a secure connection."), _T("Security Information"), MB_OK);
+    if(m_SecurityState == SECURITY_STATE_INSECURE) {
+		 msg.LoadString(IDS_NOT_SECURE);
+	    ::MessageBox(m_hWnd, msg, title, MB_OK);
     } else {
 		
 		nsresult rv;
@@ -1235,7 +1240,8 @@ void CBrowserView::ShowSecurityInfo()
 		rv = docShell->GetSecurityUI (getter_AddRefs (securityInfo));
 		if (NS_FAILED(rv) || !(GetCertificate(getter_AddRefs(cert))))
 		{
-			::MessageBox(m_hWnd, _T("Failed to get the security information."), _T("Security Information"), MB_OK);
+			msg.LoadString(IDS_SECURITY_FAILED);
+			::MessageBox(m_hWnd, msg, title, MB_OK);
 			return;
 		}
 	
@@ -1395,8 +1401,6 @@ BOOL CBrowserView::_GetSelection(nsIDOMWindow* dom, nsAString &aSelText)
 
 BOOL CBrowserView::GetUSelection(nsEmbedString& aSelText)
 {
-	nsresult rv;
-
 	nsCOMPtr<nsIDOMWindow> dom(do_GetInterface(mWebBrowser));
 	NS_ENSURE_TRUE(dom, FALSE);
 

@@ -1619,7 +1619,7 @@ END
 
 STRINGTABLE 
 BEGIN
-    IDS_LANG_VERSION        "1.0.0.0"
+    IDS_LANG_VERSION        "1.1.0.0"
     IDS_LOCALE_ID           "en-US"
 END
 
@@ -1632,6 +1632,11 @@ BEGIN
     IDS_NEW_PLUGIN_FOUND_TITLE "Plugin Found"
     IDS_SHOW_PASSWORDS      "Show passwords"
     IDS_HIDE_PASSWORDS      "Hide passwords"
+    IDS_SECURITY_INFORMATION "Security Information"
+    IDS_SECURITY_FAILED     "Failed to get the security information!"
+    IDS_NOT_SECURE          "This page has not been transferred over a secure connection."
+    IDS_SAVEPAGE_SUFFIX     "_files"
+    IDS_UNKNOW_TYPE         "%s Files"
 END
 
 #endif    // Anglais (États-Unis) resources
