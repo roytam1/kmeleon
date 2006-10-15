@@ -467,27 +467,18 @@ int SaveHotlist(FILE *bmFile, CBookmarkNode *node)
 
 static BOOL bHotlistBak = 0;
 
-static void backup_hotlist(char *file, int num=2)
+static void backup_hotlist(TCHAR *file, int num=2)
 {
-   int i;
    char buf[MAX_PATH];
-   char buf2[MAX_PATH];
+	_tcscpy(buf, file);
+	_tcscat(buf, "_backup");
    
-   /* rotate the old hotlists */
-   for (i=num; i>=1; i--) {
-      sprintf(buf, "%s.bak%d", file, i);
-      sprintf(buf2, "%s.bak%d", file, i+1);
-      unlink(buf2);
-      rename(buf, buf2);
-   }
+	struct _stat s = {0};
+	if (_tstat(buf, &s)!=-1 && s.st_mtime > time(NULL) - 172800)
+		return;
 
-   sprintf(buf, "%s.bak1", file);
-   unlink(buf);
-   if (num)
-      rename(file, buf);
-   else
-      unlink(file);
-
+   _tunlink(buf);
+   _trename(file, buf);
    bHotlistBak = 1;
 }
 
@@ -595,10 +586,10 @@ int op_writeFile(char *file) {
             return -1;
 	     }
          gHotlistModified = false;
-#if 0
+
          if (!bHotlistBak)
             backup_hotlist(file);
-#endif
+
          unlink(file);
          rename(buf, file);
       }
