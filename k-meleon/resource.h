@@ -524,6 +524,11 @@
 #define IDS_NEW_PLUGIN_FOUND_TITLE      61300
 #define IDS_SHOW_PASSWORDS              61301
 #define IDS_HIDE_PASSWORDS              61302
+#define IDS_SECURITY_INFORMATION        61303
+#define IDS_SECURITY_FAILED             61304
+#define IDS_NOT_SECURE                  61305
+#define IDS_SAVEPAGE_SUFFIX             61306
+#define IDS_UNKNOW_TYPE                 61307
 #define IDS_LANG_VERSION                62000
 #define IDS_LOCALE_ID                   62001
 
