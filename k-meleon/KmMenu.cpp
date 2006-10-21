@@ -158,8 +158,14 @@ void KmMenu::AddItem(KmMenuItem& item, long before)
 
 BOOL KmMenu::Build()
 {
+	if (mMenu.m_hMenu)
+		Reset();
+	else {
+		if (mPopup) mMenu.CreatePopupMenu();
+		else mMenu.CreateMenu();
+	}
+
 	ASSERT(mMenu.m_hMenu);
-	Reset();
 
 	if (!Build(mMenu, -1))
 		return FALSE;
@@ -218,17 +224,15 @@ BOOL KmMenu::Build(CMenu &menu, int before)
 				break;
 
 			case MenuInline: { // Inline menu
-				if (!wasSeparator)
-					menu.InsertMenu(before, MF_SEPARATOR);
-
 				label = A2CT(item.label);
 				KmMenu* inlineMenu = theApp.menus.GetKMenu(label);
-				if (inlineMenu)
-					inlineMenu->Build(menu, before);
-				else
-					ASSERT(FALSE);
-					;//LOG_ERROR_1("Popup %s not found!", label);
-				wasSeparator = FALSE;
+				ASSERT(inlineMenu);
+				if (inlineMenu && !inlineMenu->IsEmpty()) {	
+					if (!wasSeparator)
+						menu.InsertMenu(before, MF_SEPARATOR);
+               inlineMenu->Build(menu, before);
+					wasSeparator = FALSE;
+				}
 				break;
 			}
 

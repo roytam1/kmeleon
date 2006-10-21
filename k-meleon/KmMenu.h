@@ -61,13 +61,7 @@ public:
 	}
 
 	CMenu* GetMenu() { 
-		if (!mMenu.m_hMenu) {
-			if (mPopup) mMenu.CreatePopupMenu();
-			else mMenu.CreateMenu();
-			Build();
-		}
-		else if (mInvalid) Build();
-
+		if (mInvalid || !mMenu.m_hMenu) Build();
 		return &mMenu;
 	}
 
@@ -76,6 +70,7 @@ protected:
 	void Reset();
 	void Invalidate();
 	BOOL Build(CMenu &menu, int before);
+	BOOL IsEmpty() { return (mMenuDef.GetCount() == 0); }
 
 	CMenu mMenu;
 	CList<KmMenuItem, KmMenuItem&> mMenuDef;
