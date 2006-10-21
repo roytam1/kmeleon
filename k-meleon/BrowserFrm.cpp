@@ -1346,7 +1346,7 @@ void CBrowserFrame::OnInitMenuPopup(CMenu* pPopupMenu, UINT nIndex, BOOL bSysMen
 	// This will rebuild the menu if needed
 	//KmMenu* kmenu = theApp.menus.GetKMenu(pPopupMenu); 
 	//if (kmenu) kmenu->GetMenu();
-	//CFrameWnd::OnInitMenuPopup(pPopupMenu, nIndex, bSysMenu);
+	CFrameWnd::OnInitMenuPopup(pPopupMenu, nIndex, bSysMenu);
 }
 
 void CBrowserFrame::OnCookiesViewer()
