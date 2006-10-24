@@ -20,7 +20,7 @@ pref("kmeleon.general.opengroup", "ID_OPEN_LINK|ID_OPEN_LINK_IN_BACKGROUND");
 pref("kmeleon.general.openurl", "ID_OPEN_LINK");
 //pref("kmeleon.general.searchEngine", "http://www.google.com/search?q=");	// I10n.js
 //pref("kmeleon.general.searchEngineName", "Google");				// I10n.js
-pref("kmeleon.general.skinsCurrent", "Phoenity\\");
+pref("kmeleon.general.skinsCurrent", "Phoenity");
 pref("kmeleon.display.newWindowOpenAs", 0);
 pref("kmeleon.display.newWindowURL", "");
 pref("kmeleon.general.sourceCommand", "");
