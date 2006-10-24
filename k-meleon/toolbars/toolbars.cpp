@@ -503,8 +503,8 @@ void LoadToolbars(TCHAR *filename) {
    int iBuildState = TOOLBAR;
 
    int pauseParsing = 0;
-   char buf[128];
-   while (fgets(buf, 128, configFile)) {
+   char buf[512];
+   while (fgets(buf, 512, configFile)) {
 
       char* p = SkipWhiteSpace(buf);
       TrimWhiteSpace(buf);
