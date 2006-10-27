@@ -39,18 +39,25 @@
 #include "nsISHistoryListener.h"
 #include "nsIObserver.h"
 #include "nsIDOMMouseListener.h"
+#ifdef USE_WINDOW_PROVIDER
+#include "nsIWindowProvider.h"
+#endif
 
 class CBrowserImpl : public nsIInterfaceRequestor,
 					 public nsIWebBrowserChrome,
-                     public nsIWebBrowserChromeFocus,
+					 public nsIWebBrowserChromeFocus,
 					 public nsIEmbeddingSiteWindow2,
 					 public nsIWebProgressListener,
 					 public nsIContextMenuListener2,
-                     public nsITooltipListener,
+					 public nsITooltipListener,
 					 public nsSupportsWeakReference,
 					 // public nsISHistoryListener,
 					 // public nsIObserver,
+#ifdef USE_WINDOW_PROVIDER
+					 public nsIWindowProvider,
+#endif
 					 public nsIDOMEventListener
+
 					 //public nsIDOMMouseListener
 {
 public:
@@ -71,6 +78,9 @@ public:
    //NS_DECL_NSISHISTORYLISTENER
    //NS_DECL_NSIOBSERVER
    NS_DECL_NSIDOMEVENTLISTENER
+#ifdef USE_WINDOW_PROVIDER
+	NS_DECL_NSIWINDOWPROVIDER
+#endif
    /*NS_IMETHOD MouseDown(nsIDOMEvent* aDOMEvent);
    NS_IMETHOD MouseUp(nsIDOMEvent* aDOMEvent);
    NS_IMETHOD MouseClick(nsIDOMEvent* aDOMEvent);

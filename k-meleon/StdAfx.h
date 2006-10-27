@@ -217,3 +217,8 @@
 // In the case, the mozilla profile DLL is not needed.
 
 #define USE_PROFILES 1
+
+#ifndef USE_PROFILES
+	#pragma comment(lib, "profdirserviceprovidersa_s.lib")
+#endif
+
