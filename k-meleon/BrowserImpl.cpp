@@ -74,7 +74,9 @@
 #include "nsIDOMWindow.h"
 #include "nsIDOMPopupBlockedEvent.h"
 #include "nsIDOMMouseListener.h"
-
+#ifdef USE_WINDOW_PROVIDER
+#include "nsIBrowserDOMWindow.h"
+#endif
 #include "jsapi.h"
 #include "nsIJSContextStack.h"
 #include "BrowserFrm.h"
@@ -113,6 +115,9 @@ NS_IMPL_RELEASE(CBrowserImpl)
 NS_INTERFACE_MAP_BEGIN(CBrowserImpl)
    NS_INTERFACE_MAP_ENTRY_AMBIGUOUS(nsISupports, nsIWebBrowserChrome)
    NS_INTERFACE_MAP_ENTRY(nsIInterfaceRequestor)
+#ifdef USE_WINDOW_PROVIDER
+   NS_INTERFACE_MAP_ENTRY(nsIWindowProvider)
+#endif
    NS_INTERFACE_MAP_ENTRY(nsIWebBrowserChrome)
    NS_INTERFACE_MAP_ENTRY(nsIWebBrowserChromeFocus)
    NS_INTERFACE_MAP_ENTRY(nsIEmbeddingSiteWindow)
@@ -512,6 +517,63 @@ NS_IMETHODIMP CBrowserImpl::OnHideTooltip()
 
     return NS_OK;
 }
+
+#ifdef USE_WINDOW_PROVIDER
+NS_IMETHODIMP CBrowserImpl::ProvideWindow(nsIDOMWindow *aParent, PRUint32 aChromeFlags, PRBool aPositionSpecified, PRBool aSizeSpecified, nsIURI *aURI, const nsAString & aName, const nsACString & aFeatures, PRBool *aWindowIsNew, nsIDOMWindow **_retval)
+{
+	NS_ENSURE_ARG_POINTER(aParent);
+	*_retval = nsnull;
+
+	if(! m_pBrowserFrameGlue)
+		return NS_OK;
+
+	nsCOMPtr<nsIPrefService> prefs = do_GetService(NS_PREFSERVICE_CONTRACTID);
+	NS_ENSURE_TRUE(prefs, NS_OK);
+
+	nsCOMPtr<nsIPrefBranch> branch;
+	prefs->GetBranch("browser.link.", getter_AddRefs(branch));
+	NS_ENSURE_TRUE(branch, NS_OK);
+
+	PRInt32 containerPref;
+	NS_ENSURE_SUCCESS(branch->GetIntPref("open_newwindow", &containerPref), NS_OK);
+
+	if ( /*containerPref != nsIBrowserDOMWindow::OPEN_NEWTAB &&*/
+	    containerPref != nsIBrowserDOMWindow::OPEN_CURRENTWINDOW)
+		return NS_OK;
+
+	/* Now check our restriction pref.  The restriction pref is a power-user's
+	   fine-tuning pref. values:     
+	   770      0: no restrictions - divert everything
+	   771      1: don't divert window.open at all
+	   772      2: don't divert window.open with features
+	   773   */
+
+	PRInt32 restrictionPref;
+	if (NS_FAILED(branch->GetIntPref("open_newwindow.restriction",
+	                                 &restrictionPref)) ||
+	    restrictionPref < 0 ||
+	    restrictionPref > 2) 
+		restrictionPref = 2; // Sane default behavior
+	
+	if (restrictionPref == 1) return NS_OK;
+
+	if (restrictionPref == 2 && 
+	   // Only continue if there are no size/position features and no special
+	   // chrome flags.
+	    (aChromeFlags != nsIWebBrowserChrome::CHROME_ALL ||
+		  aPositionSpecified || aSizeSpecified))
+		 return NS_OK;
+
+	nsCOMPtr<nsIDOMWindow> domWindow;
+	mWebBrowser->GetContentDOMWindow(getter_AddRefs(domWindow));
+	NS_ENSURE_TRUE(domWindow, NS_OK);
+	
+	*aWindowIsNew = (containerPref != nsIBrowserDOMWindow::OPEN_CURRENTWINDOW);
+
+	NS_ADDREF(*_retval = domWindow);
+	return NS_OK;
+}
+#endif
 
 //*****************************************************************************
 // CBrowserImpl::nsIDOMEventListener
