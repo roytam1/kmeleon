@@ -1,5 +1,20 @@
-// GenericDlg.h : fichier d'en-tête
-//
+/*
+*  Copyright (C) 2006 Dorian Boissonnade
+*
+*  This program is free software; you can redistribute it and/or modify
+*  it under the terms of the GNU General Public License as published by
+*  the Free Software Foundation; either version 2, or (at your option)
+*  any later version.
+*
+*  This program is distributed in the hope that it will be useful,
+*  but WITHOUT ANY WARRANTY; without even the implied warranty of
+*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*  GNU General Public License for more details.
+*
+*  You should have received a copy of the GNU General Public License
+*  along with this program; if not, write to the Free Software
+*  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+*/
 
 #ifndef _GENERIC_DLG_H
 #define _GENERIC_DLG_H
@@ -10,13 +25,13 @@
 // boîte de dialogue CGenericDlg
 class CGenericDlg : public CDialog
 {
-// Construction
+	// Construction
 public:
 	CGenericDlg(CWnd* pParent = NULL);	// constructeur standard
 
 	void AddButton(UINT nID, LPCTSTR pszText);
 	void AddButton(UINT nID, UINT nIDText);
-	
+
 	inline void SetDefaultButton(UINT id) { m_uDefault = id; }
 	inline void SetCancelButton(UINT id) { m_uCancel = id; }
 
@@ -38,17 +53,17 @@ public:
 protected:
 	//virtual void DoDataExchange(CDataExchange* pDX);	// Prise en charge DDX/DDV
 
-// Implémentation
+	// Implémentation
 protected:
 	HICON m_hIcon;
 	HICON m_hDlgIcon;
 	CString m_csTitle;
-    CString m_csMsgText;
-    CString m_csCheckBoxText;
-    CStatic m_stIconCtrl;
+	CString m_csMsgText;
+	CString m_csCheckBoxText;
+	CStatic m_stIconCtrl;
 	CStatic m_edCtrl;
 
-    BOOL m_bCheckBoxValue;
+	BOOL m_bCheckBoxValue;
 	UINT m_uDefault;
 	UINT m_uCancel;
 	BOOL m_IsModeless;
@@ -81,17 +96,17 @@ protected:
 	CArray<EditInfos,const EditInfos&> m_aEdits;   
 
 	enum { BORDER_TOP = 10 };
-	enum { BORDER_BOTTOM = 5 };
+	enum { BORDER_BOTTOM = 10 };
 	enum { BORDER_LEFT = 10 };
 	enum { BORDER_RIGHT = 10 };
-	enum { MSG_SPACE = 5 };
+	enum { MSG_SPACE = 8 };
 	enum { BUTTON_SPACE = 5 };
 	enum { BUTTON_MIN = 40 };
 	enum { BUTTON_MARGIN_X = 5 };
 	enum { BUTTON_MARGIN_Y = 3 };
-	
+
 	enum { CHECKBOX_SPACE = 1 };
-	
+
 	enum {EDIT_SPACE = 2};
 	enum {EDIT_LABEL_SPACE = 2};
 	enum {EDIT_SIZE_X = 120};
