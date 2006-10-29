@@ -30,6 +30,7 @@
 #include "resource.h"
 #include "GenericDlg.h"
 #include "Dialogs.h"
+#include "mfcembed.h"
 #include "PromptService.h"
 #include "nsIPromptService.h"
 #include "nsIWindowWatcher.h"
@@ -78,6 +79,7 @@ NS_IMETHODIMP CPromptService::AlertCheck(nsIDOMWindow *parent,
   CGenericDlg dlg(wnd);
   dlg.SetTitle(W2CT(dialogTitle));
   dlg.SetMsg(W2CT(text));
+  dlg.SetDlgIcon(((CMfcEmbedApp*)AfxGetApp())->GetDefaultIcon(TRUE));
   dlg.AddButton(100, IDS_OK);
   dlg.SetDefaultButton(100);
   dlg.SetCancelButton(100);
@@ -131,6 +133,7 @@ NS_IMETHODIMP CPromptService::ConfirmCheck(nsIDOMWindow *parent,
     CGenericDlg dlg(wnd);
     dlg.SetTitle(W2CT(dialogTitle));
     dlg.SetMsg(W2CT(text));
+	 dlg.SetDlgIcon(((CMfcEmbedApp*)AfxGetApp())->GetDefaultIcon(TRUE));
     BOOL checkResult;
     if (checkboxMsg && checkValue) {
        checkResult = (*checkValue == PR_TRUE ? TRUE : FALSE);
@@ -164,6 +167,7 @@ NS_IMETHODIMP CPromptService::Prompt(nsIDOMWindow *parent,
   CGenericDlg dlg(wnd);
   dlg.SetTitle(W2CT(dialogTitle));
   dlg.SetMsg(W2CT(text));
+  dlg.SetDlgIcon(((CMfcEmbedApp*)AfxGetApp())->GetDefaultIcon(TRUE));
   dlg.AddButton(IDOK, IDS_OK);
   dlg.AddButton(IDCANCEL, IDS_CANCEL);
   dlg.SetDefaultButton(IDOK);
@@ -211,6 +215,7 @@ NS_IMETHODIMP CPromptService::PromptUsernameAndPassword(nsIDOMWindow *parent,
   CGenericDlg dlg(wnd);
   dlg.SetTitle(W2CT(dialogTitle));
   dlg.SetMsg(W2CT(text));
+  dlg.SetDlgIcon(((CMfcEmbedApp*)AfxGetApp())->GetDefaultIcon(TRUE));
   dlg.AddButton(IDOK, IDS_OK);
   dlg.AddButton(IDCANCEL, IDS_CANCEL);
   dlg.SetDefaultButton(IDOK);
@@ -261,6 +266,7 @@ NS_IMETHODIMP CPromptService::PromptPassword(nsIDOMWindow *parent,
   CGenericDlg dlg(wnd);
   dlg.SetTitle(W2CT(dialogTitle));
   dlg.SetMsg(W2CT(text));
+  dlg.SetDlgIcon(((CMfcEmbedApp*)AfxGetApp())->GetDefaultIcon(TRUE));
   dlg.AddButton(IDOK, IDS_OK);
   dlg.AddButton(IDCANCEL, IDS_CANCEL);
   dlg.SetDefaultButton(IDOK);
@@ -325,6 +331,7 @@ NS_IMETHODIMP CPromptService::ConfirmEx(nsIDOMWindow *parent,
 	CGenericDlg dlg(wnd);
 	dlg.SetTitle(W2CT(dialogTitle));
 	dlg.SetMsg(W2CT(text));
+	dlg.SetDlgIcon(((CMfcEmbedApp*)AfxGetApp())->GetDefaultIcon(TRUE));
 
 	//https://bugzilla.mozilla.org/show_bug.cgi?id=329414
 	//Set the cancel button to 1, and the default one.
@@ -391,6 +398,7 @@ CPromptService::ShowNonBlockingAlert(nsIDOMWindow *aParent,
   USES_CONVERSION;
   dlg->SetTitle(W2CT(aDialogTitle));
   dlg->SetMsg(W2CT(aText));
+  dlg->SetDlgIcon(((CMfcEmbedApp*)AfxGetApp())->GetDefaultIcon(TRUE));
   dlg->SetMsgIcon(AfxGetApp()->LoadStandardIcon(IDI_EXCLAMATION));
   dlg->AddButton(100, IDS_OK);
   dlg->SetDefaultButton(100);
