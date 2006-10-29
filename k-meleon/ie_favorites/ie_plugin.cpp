@@ -174,6 +174,8 @@ int Load(){
    if (bitmap)
       DeleteObject(bitmap);
 
+	ReadFavorites(gFavoritesPath, "", gFavoritesRoot);
+
    return true;
 }
 
@@ -409,13 +411,9 @@ void DoMenu(HMENU menu, char *param){
    else
       return;
    
-   int ret = -1;
-   if ((ret = ReadFavorites(gFavoritesPath, "", gFavoritesRoot)) > 0) {
-     if (gMenuSortOrder) {
-       gFavoritesRoot.sort(gMenuSortOrder);
-     }
-     BuildMenu(menu, gFavoritesRoot.FindSpecialNode(BOOKMARK_FLAG_BM), false);
-   }
+   if (gMenuSortOrder)
+      gFavoritesRoot.sort(gMenuSortOrder);
+   BuildMenu(menu, gFavoritesRoot.FindSpecialNode(BOOKMARK_FLAG_BM), false);
 }
 
 int DoAccel(char *param) {
@@ -462,6 +460,16 @@ void DoRebar(HWND rebarWnd){
       
       BuildRebar(hWndTB);
 
+		// Compute the width needed for the toolbar
+		int ideal = 0;
+		int iCount, iButtonCount = SendMessage(hWndTB, TB_BUTTONCOUNT, 0,0);
+		for ( iCount = 0 ; iCount < iButtonCount ; iCount++ )
+		{	
+		   RECT rectButton;
+			SendMessage(hWndTB, TB_GETITEMRECT, iCount, (LPARAM)&rectButton);
+			ideal += rectButton.right - rectButton.left;
+		}
+
       // Get the height of the toolbar.
       DWORD dwBtnSize = SendMessage(hWndTB, TB_GETBUTTONSIZE, 0,0);
       
@@ -471,15 +479,14 @@ void DoRebar(HWND rebarWnd){
          RBBIM_STYLE | RBBIM_CHILD  | RBBIM_CHILDSIZE |
          RBBIM_SIZE | RBBIM_IDEALSIZE;
       
-      rbBand.fStyle = RBBS_CHILDEDGE | RBBS_FIXEDBMP | RBBS_VARIABLEHEIGHT;
+      rbBand.fStyle = RBBS_USECHEVRON | RBBS_CHILDEDGE | RBBS_FIXEDBMP | RBBS_VARIABLEHEIGHT;
       rbBand.lpText     = szTitle;
       rbBand.hwndChild  = hWndTB;
       rbBand.cxMinChild = 0;
       rbBand.cyMinChild = HIWORD(dwBtnSize);
       rbBand.cyIntegral = 1;
       rbBand.cyMaxChild = rbBand.cyMinChild;
-      rbBand.cxIdeal    = 100;
-      rbBand.cx         = rbBand.cxIdeal;
+      rbBand.cx         = rbBand.cxIdeal = ideal;
       
       if (nButtonMinWidth > 0)
          wpOrigTBWndProc = (WNDPROC) SetWindowLong(hWndTB, 
