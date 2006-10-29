@@ -33,7 +33,6 @@ CGenericDlg::CGenericDlg(CWnd* pParent /*=NULL*/)
 	m_pParentWnd = pParent;
 	m_hIcon = NULL;
 	m_hDlgIcon = NULL;
-	const BYTE* caca = tplGenericDlg;
 	m_uDefault = -1;
 	m_uCancel = -1;
 	m_IsModeless = FALSE;
@@ -175,7 +174,7 @@ BOOL CGenericDlg::OnInitDialog()
 		cbxSize.cy = max(cbxSize.cy, size.cy);
 	}
 
-	cbxSize.cx += GetSystemMetrics(SM_CXMENUCHECK);
+	cbxSize.cx += GetSystemMetrics(SM_CXMENUCHECK) + 2; // + 2 for crappy OS
 	int totalCheckBoxHeight = cbxSize.cy *ncb + ConvY(CHECKBOX_SPACE) * (ncb - 1);
 
 	// Compute the needed size for the buttons
@@ -190,7 +189,7 @@ BOOL CGenericDlg::OnInitDialog()
 	}
 
 	buttonSize.cx += 2*ConvX(BUTTON_MARGIN_X);
-	buttonSize.cy += 2*ConvX(BUTTON_MARGIN_Y);
+	buttonSize.cy += 2*ConvY(BUTTON_MARGIN_Y);
 
 	// Total width needed for the buttons
 	int totalButtonsWidth = nb*buttonSize.cx + (nb-1)*ConvX(BUTTON_SPACE);
