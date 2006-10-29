@@ -283,6 +283,8 @@ struct macro {
    char *menuString;         // string to be displayed in menus
    char *macroName;          // macro name (as defined in macros.cfg)
    int eventCount;           // number of "events" in this macro
+   std::string menuCheckState;
+   std::string menuGrayState;
    struct event **eventList;
 } **macroList;
 
@@ -343,7 +345,9 @@ enum commands {
    getfolder,
    setmenu,
    setaccel,
-   rebuildmenu
+   rebuildmenu,
+   getwinvar,
+   setwinvar
 };
 
 std::string sGlobalArg;
@@ -399,6 +403,16 @@ public:
     root = ptr;
     return ptr->id;
   }
+
+  BOOL getfromid(int id, char**macro, char** arg) {
+	  class Node *ptr = root;
+	  while (ptr && ptr->id !=id) ptr = ptr->next;
+	  if (!ptr) return FALSE;
+	  *macro = (char*)ptr->macro.c_str();
+	  *arg = (char*)ptr->arg.c_str();
+	  return TRUE;
+  }
+
   BOOL execute(HWND hWnd, int id) {
     if (id < min || id > max)
       return FALSE;
@@ -666,6 +680,8 @@ int FindCommand(char *cmd) {
    BEGIN_CMD_TEST
       CMD_TEST(_)
       CMD_TEST(setcheck)
+      CMD_TEST(getwinvar)
+      CMD_TEST(setwinvar)
       CMD_TEST(open)
       CMD_TEST(opennew)
       CMD_TEST(openbg)
@@ -1419,9 +1435,15 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
 		 std::string macro;
 
 		 int pos = params[0].find(';');
-		 macro = params[0].substr(0,pos);
+		 macro = strTrim(params[0].substr(0,pos));
 
 		 while (macro.length()) {
+				/*int parampos = macro.find('(');
+				if (parampos != macro.npos && (macro[macro.length()-1] == ')')) {
+					sGlobalArg =  EvalExpression(hWnd, macro.substr(parampos+1, macro.length()-parampos-2));
+					macro = macro.substr(0, parampos);
+				}*/
+			
             int cmdid = FindMacro((char*)macro.c_str());
             if(cmdid == NOTFOUND) {
                std::string msg = "Invalid macro reference. The macro '";
@@ -2087,7 +2109,82 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
          kFuncs->GetFolder(foldertype, path, MAX_PATH);
          return protectString(path);
       }
+/*
+		CMD(getwinvar) {
+			if (nparam != 1) {  
+            parseError(WRONGARGS, "getwinvar", data, 1, nparam);
+            return "";
+         }
+         
+			WindowVarType type;
+			if (params[0] == "SelectedText") {
+				int l = kPlugin.kFuncs->GetWindowVar(hWnd, Window_SelectedText, NULL);
+				if (l<1) return "";
 
+				wchar_t* buf = new wchar_t[l];
+				kPlugin.kFuncs->GetWindowVar(hWnd, Window_SelectedText, buf);
+				std::string ret = protectString(CUTF16_to_UTF8(buf));
+				delete [] buf;
+				return ret;
+			}
+
+			if (params[0] == "TextZoom") {
+				int zoom;
+				kPlugin.kFuncs->GetWindowVar(hWnd, Window_TextZoom, &zoom);
+				char buf[34];
+				_itoa(zoom, buf, 10);
+				return buf;
+			}
+			
+			if (params[0] == "URLBAR")
+				type = Window_UrlBar;
+			else if (params[0] == "URL")
+				type = Window_URL;
+			else if (params[0] == "TITLE")
+				type = Window_Title;
+			else if (params[0] == "LinkURL")
+				type = Window_LinkURL;
+			else if (params[0] == "ImageURL")
+				type = Window_ImageURL;
+			else if (params[0] == "FrameURL")
+				type = Window_FrameURL;
+			else if (params[0] == "CHARSET")
+				type = Window_Charset;
+			else return "";
+
+			int l = kPlugin.kFuncs->GetWindowVar(hWnd, type, NULL);
+			if (l<1) return "";
+
+			char* buf = new char[l];
+			kPlugin.kFuncs->GetWindowVar(hWnd, type, buf);
+			std::string ret = protectString(CANSI_to_UTF8(buf));
+			delete [] buf;
+			return ret;
+		}
+
+		CMD(setwinvar) {
+			if (nparam != 2) {  
+            parseError(WRONGARGS, "setwinvar", data, 2, nparam);
+            return "";
+         }
+
+			WindowVarType type;
+			if (params[0] == "TextZoom") {
+				kPlugin.kFuncs->SetWindowVar(hWnd, Window_TextZoom, (void*)IntVal(params[1].c_str()));
+				return "";
+			}
+			else if (params[0] == "URLBAR")
+				type = Window_UrlBar;
+			else if (params[0] == "URL")
+				type = Window_URL;
+			else if (params[0] == "TITLE")
+				type = Window_Title;
+			else
+				return "";
+
+			kPlugin.kFuncs->SetWindowVar(hWnd, type, (void*)(const char*)CUTF8_to_ANSI(params[1].c_str()));
+		}
+*/
    return "";
 }
 
@@ -2337,6 +2434,16 @@ bool LoadMacros(TCHAR *filename) {
                   strcpy(macroList[iMacroCount-1]->menuString,strtemp.c_str());
                   continue;
                }
+					else if(strcmpi(lval.c_str(),"menuchecked") == 0) {
+						rval = strTrim(thisStatement.substr(pos+1));
+						macroList[iMacroCount-1]->menuCheckState = rval;
+						continue;
+					}
+					else if(strcmpi(lval.c_str(),"menugrayed") == 0) {
+						rval = strTrim(thisStatement.substr(pos+1));
+						macroList[iMacroCount-1]->menuGrayState = rval;
+						continue;
+					}
             }
          }
 
@@ -3223,7 +3330,55 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 		  if (index != NOTFOUND) 
             ExecuteMacro(hWnd, index);
 	      return result;
-	   }
+			}
+
+	case WM_INITMENUPOPUP: {
+
+		// Let MFC do his little update
+		LRESULT res = CallWindowProc(KMeleonWndProc, hWnd, message, wParam, lParam);
+
+		HMENU menu = (HMENU)wParam;
+		int count = GetMenuItemCount(menu);
+		for (int i=0;i<count;i++)
+		{
+			int id = GetMenuItemID(menu, i);
+			if (id>0) {
+				char *macro, *param;
+				if (arglist->getfromid(id, &macro, &param)) {
+					sGlobalArg = param;
+					int mid = FindMacro(macro);
+					if (mid != NOTFOUND) {
+
+						MENUITEMINFO mif;
+						mif.cbSize = sizeof(mif);
+						mif.fMask = MIIM_STATE;
+						GetMenuItemInfo(menu, i, TRUE, &mif);
+
+
+						//std::string label = EvalExpression(hWnd, macroList[mid]->menuString);
+						if (macroList[mid]->menuCheckState.length()) {
+							BOOL checked = BoolVal(EvalExpression(hWnd, macroList[mid]->menuCheckState));
+							mif.fState &= ~MF_CHECKED & ~MF_UNCHECKED;
+							mif.fState |= checked ? MF_CHECKED : MF_UNCHECKED;
+						}
+
+						if (macroList[mid]->menuGrayState.length()) {
+							BOOL grayed = BoolVal(EvalExpression(hWnd, macroList[mid]->menuGrayState));
+							mif.fState &= ~MF_GRAYED & ~MF_ENABLED;
+							mif.fState |= grayed ? MF_GRAYED : MF_ENABLED;
+						}
+							
+						::SetMenuItemInfo(menu, i, TRUE, &mif);
+					}
+					sGlobalArg = "";
+				}
+
+			}
+		}
+		return res;
+		}
+		
+		break;
    }
 
    return CallWindowProc(KMeleonWndProc, hWnd, message, wParam, lParam);
