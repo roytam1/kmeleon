@@ -320,7 +320,7 @@ int Load(){
    }
 
 	int ret = op_readFile(gHotlistFile);
-	
+	lpszHotlistFile = strdup(gHotlistFile);
    if (ret < 0) {
       if (!gHotlistFile || !*gHotlistFile)
          MessageBox(NULL, 
@@ -338,7 +338,9 @@ int Load(){
             MessageBox(NULL, tmp, "Hotlist Error", MB_ICONSTOP|MB_OK);
          }
       }
-   }
+	}
+	
+
    
    return true;
 }
