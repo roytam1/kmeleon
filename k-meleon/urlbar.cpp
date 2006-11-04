@@ -633,7 +633,7 @@ BOOL CUrlBarEdit::PreTranslateMessage(MSG* pMsg)
 			int cursorPos = HIWORD(GetSel());
 			int newPos = UrlBreakProc(T2W(str.LockBuffer()), cursorPos, str.GetLength(),WB_LEFT);
 			str.UnlockBuffer();
-			str.Delete(newPos,cursorPos);
+			str.Delete(newPos,cursorPos-newPos);
 			SetWindowText(str);
 			SetSel(newPos,newPos,TRUE); 
 			return TRUE;
