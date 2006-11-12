@@ -456,6 +456,7 @@ void CBrowserFrame::SetupFrameChrome()
        ! (m_chromeMask & nsIWebBrowserChrome::CHROME_MENUBAR) && 
        ! (m_chromeMask & nsIWebBrowserChrome::CHROME_LOCATIONBAR) ) {
         m_wndReBar.ShowWindow(SW_HIDE); // Hide the Rebar
+		  SetMenu(NULL);
     }
     else {
        if(! (m_chromeMask & nsIWebBrowserChrome::CHROME_TOOLBAR) ) {
