@@ -33,6 +33,7 @@ class CPlugins {
 
 protected:
    CMap<CString, LPCTSTR, kmeleonPlugin *, kmeleonPlugin *> pluginList;
+	int _FindAndLoad(const TCHAR *pattern);
 
 public:
 	CPlugins();
