@@ -583,6 +583,140 @@ int CommandAtPoint(int command, WORD x, WORD y) {
    return 1;
 }
 
+UINT GetWindowVar(HWND hWnd, WindowVarType type, void* ret)
+{
+	CBrowserFrame *pBrowserFrame = (CBrowserFrame *)CWnd::FromHandle(hWnd);
+	if (!pBrowserFrame) pBrowserFrame = theApp.m_pMostRecentBrowserFrame;
+	if (!pBrowserFrame) return 0;
+
+	CBrowserView *pBrowserView = &pBrowserFrame->m_wndBrowserView;
+
+	USES_CONVERSION;
+	UINT retLen = 0;
+	switch (type)  {
+
+		case Window_UrlBar: {
+			CString url;
+			pBrowserFrame->m_wndUrlBar.GetEnteredURL(url);
+			retLen = url.GetLength() + 1;
+			if (ret) strcpy((char*)ret, T2CA(url));
+			break;
+		}
+
+		case Window_Charset: {
+			char charset[64] = {0};
+			pBrowserView->GetCharset(charset);
+			retLen = strlen(charset) + 1;
+			if (ret) {
+				strcpy((char *)ret, charset);
+				for(UINT i=0;i<retLen;i++)
+					((char*)ret)[i] = tolower(((char*)ret)[i]);
+			}
+			break;
+		}
+
+		case Window_Title: {
+			CString title;
+         pBrowserView->GetPageTitle(title);
+         retLen = title.GetLength() + 1;
+         if (ret) strcpy((char *)ret, T2CA(title));
+			break;
+		}
+
+		case Window_TextZoom: {
+		  int tz = pBrowserView->GetTextSize();
+		  if (ret) *(int*)ret = tz;
+		  return 1;
+		}
+		
+		case Window_URL: {
+			CString url;
+			pBrowserView->GetCurrentURI(url);
+			retLen = url.GetLength() + 1;
+			if (ret)				
+				strcpy((char*)ret, T2CA(url));
+			break;
+		}
+
+		
+		case Window_SelectedText: {
+			nsEmbedString sel;  
+			pBrowserView->GetUSelection(sel);
+			retLen = sel.Length() + 1;
+			if (ret) wcscpy((wchar_t*)ret, sel.get());
+			break;
+		}
+
+		case Window_LinkURL:
+			retLen = pBrowserView->mCtxMenuLinkUrl.Length() + 1;
+         if (ret) 
+				strcpy((char*)ret, W2CA(pBrowserView->mCtxMenuLinkUrl.get()));
+			break;
+
+		case Window_ImageURL:
+			retLen = pBrowserView->mCtxMenuLinkUrl.Length() + 1;
+         if (ret)
+				strcpy((char*)ret, W2CA(pBrowserView->mCtxMenuImgSrc.get()));
+			break;
+
+		case Window_FrameURL:
+			retLen = pBrowserView->mCtxMenuLinkUrl.Length() + 1;
+         if (ret) 
+				strcpy((char*)ret, W2CA(pBrowserView->mCtxMenuCurrentFrameURL.get()));
+			break;
+
+		default: 
+			retLen = 0;
+	}
+
+	return retLen;
+}
+
+BOOL SetWindowVar(HWND hWnd, WindowVarType type, void* value)
+{
+	CBrowserFrame *pBrowserFrame = (CBrowserFrame *)CWnd::FromHandle(hWnd);
+	if (!pBrowserFrame) pBrowserFrame = theApp.m_pMostRecentBrowserFrame;
+	if (!pBrowserFrame) return FALSE;
+
+	CBrowserView *pBrowserView = &pBrowserFrame->m_wndBrowserView;
+
+	USES_CONVERSION;
+	BOOL result = FALSE;
+
+	switch (type)  {
+
+		case Window_UrlBar:
+			pBrowserFrame->m_wndUrlBar.EditChanged(FALSE);
+			pBrowserFrame->m_wndUrlBar.SetCurrentURL(A2CT((char*)value));
+		   result = TRUE;
+			break;
+
+		case Window_Charset:
+			pBrowserView->ForceCharset((char*)value);
+			result = TRUE;
+			break;
+
+		case Window_Title:
+			 if (pBrowserView->mpBrowserFrameGlue)
+		      pBrowserView->mpBrowserFrameGlue->SetBrowserFrameTitle(A2CW((char*)value));
+			 result = TRUE;
+			break;
+
+		case Window_TextZoom: {
+			 int zoom = pBrowserView->GetTextSize();
+			pBrowserView->ChangeTextSize(*(int*)value - pBrowserView->GetTextSize());
+			result = TRUE;
+			break;
+		}
+
+		case Window_URL:
+			pBrowserView->OpenURL((char*)value);
+			break;
+	}
+
+	return result;
+}
+
 int SetGlobalVar(enum PREFTYPE type, const char *preference, void *value)
 {
 	if (!theApp.m_pMostRecentBrowserFrame || !value || !preference) 
@@ -1035,7 +1169,9 @@ kmeleonFunctions kmelFuncs = {
    GetFolder,
    SetAccel,
    SetMenu,
-   RebuildMenu
+   RebuildMenu,
+   GetWindowVar,
+   SetWindowVar
 };
 
 BOOL CPlugins::TestLoad(LPCTSTR file, const char *description)
@@ -1163,24 +1299,12 @@ kmeleonPlugin * CPlugins::Load(CString file)
    return kPlugin;
 }
 
-int CPlugins::FindAndLoad(const TCHAR *pattern)
+int CPlugins::_FindAndLoad(const TCHAR *pattern)
 {
-   CString filepath;
-   CFileFind finder;
-   BOOL bWorking;
-
-   if (*pattern!=_T('/') && !_tcschr(pattern, ':')) {
-      // if pattern does not contain ':' or does not begin with '/'
-      // we need to prepend pluginsDir
-      CString search = theApp.GetFolder(PluginsFolder) + _T('\\') + pattern;
-      int n = FindAndLoad(search);
-      search = theApp.GetFolder(UserPluginsFolder) + _T('\\') + pattern;
-      n += FindAndLoad(search);
-      return n;
-   }
-   else bWorking = finder.FindFile(pattern);
-
-   int i = 0;
+	CFileFind finder;
+	BOOL bWorking = finder.FindFile(pattern);
+	CString filepath;
+	int i = 0;
    while (bWorking) {
       bWorking = finder.FindNextFile();
 
@@ -1190,6 +1314,20 @@ int CPlugins::FindAndLoad(const TCHAR *pattern)
    }
    //   SendMessage("*", "* Plugin Manager", "Init");
    return i;
+}
+
+int CPlugins::FindAndLoad(const TCHAR *pattern)
+{
+   if (*pattern!=_T('/') && !_tcschr(pattern, ':')) {
+      // if pattern does not contain ':' or does not begin with '/'
+      // we need to prepend pluginsDir
+      CString search = theApp.GetFolder(PluginsFolder) + _T('\\') + pattern;
+      int n = _FindAndLoad(search);
+      search = theApp.GetFolder(UserPluginsFolder) + _T('\\') + pattern;
+      n += _FindAndLoad(search);
+      return n;
+   }
+   else return _FindAndLoad(pattern);
 }
 
 void CPlugins::UnLoadAll()

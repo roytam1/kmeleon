@@ -54,6 +54,20 @@ enum FolderType {
    CurrentSkinFolder
 };
 
+enum WindowVarType {
+	Window_UrlBar = 0,      // char*
+	Window_Charset = 1,     // char*
+	Window_Title = 2,       // char*
+   Window_TextZoom = 3,    // int
+	Window_URL = 4,          // char*
+
+	// Read Only
+	Window_SelectedText = 100, // wchar_t*
+	Window_LinkURL = 101,      // char*
+	Window_ImageURL = 102,     // char*
+	Window_FrameURL = 103      // char*
+};
+
 typedef struct {
    char label[16];
    char file[MAX_PATH];
@@ -72,6 +86,12 @@ typedef struct {
    char *frame;
    char *page;
 } kmeleonPointInfo;
+
+typedef struct {
+	char* value;
+	char* comment;
+	int score;
+} AutoCompleteResult;
 
 enum PREFTYPE {
    PREF_BOOL,
@@ -218,8 +238,11 @@ typedef struct {
 
    const char* (*Translate) (const char* text); 
    int (*SetGlobalVar)(PREFTYPE, const char*, void*);
-   
-   long (*GetFolder)(FolderType type, char* path, size_t size);
+ 
+// ----------------------------------------------------
+// Addition in K-meleon 1.1
+
+	long (*GetFolder)(FolderType type, char* path, size_t size);
 
    /* Set an accelerator:
       key: key to use (Ex: "CTRL ALT X")
@@ -252,6 +275,10 @@ typedef struct {
 
    /* Rebuild the menu after editing */
    void (*RebuildMenu) (const char* name);
+	
+	UINT (*GetWindowVar) (HWND, WindowVarType, void*);
+	BOOL (*SetWindowVar) (HWND, WindowVarType, void*);
+
 
 } kmeleonFunctions;
 
