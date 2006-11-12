@@ -627,6 +627,8 @@ int DoAccel(char *param) {
       return nAddCommand;
    if (stricmp(param, "Edit") == 0)
       return nEditCommand;
+	if (stricmp(param, "AddLink") == 0)
+      return nAddLinkCommand;
    return 0;
 }
 

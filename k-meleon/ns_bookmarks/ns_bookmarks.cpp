@@ -338,19 +338,17 @@ void DoMenu(HMENU menu, char *param){
 
 int DoAccel(char *param)
 {
-   if (stricmp(param, "Config") == 0){
+   if (stricmp(param, "Config") == 0)
       return nConfigCommand;
-   }
-   if (stricmp(param, "Add") == 0){
+   if (stricmp(param, "Add") == 0)
       return nAddCommand;
-   }
-   if (stricmp(param, "AddToolbar") == 0){
+   if (stricmp(param, "AddToolbar") == 0)
       return nAddToolbarCommand;
-   }
-   if (stricmp(param, "Edit") == 0){
+    if (stricmp(param, "Edit") == 0)
       return nEditCommand;
-   }
-   return nConfigCommand;
+	if (stricmp(param, "AddLink") == 0)
+      return nAddLinkCommand;
+   return 0;
 }
 
 void DoRebar(HWND rebarWnd) {
