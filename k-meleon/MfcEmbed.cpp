@@ -337,7 +337,7 @@ BOOL CMfcEmbedApp::InitInstance()
    // XXX 
    USES_CONVERSION;
    cmdline.Initialize(T2A(m_lpCmdLine));
-#ifndef _DEBUG
+   
    // check for prior instances
    HANDLE hMutexOneInstance = CreateMutex( NULL, TRUE, _T("K-Meleon Instance Mutex") );
    m_bAlreadyRunning = ( GetLastError() == ERROR_ALREADY_EXISTS );
@@ -348,7 +348,7 @@ BOOL CMfcEmbedApp::InitInstance()
    // if another instance is already running, pass it our command line paramaters,
    // and ask it to open a new window
    // eventually, we should handle this through DDE
-   if (m_bAlreadyRunning) {
+   if (cmdline.GetSwitch("-new", NULL, TRUE)<0 && m_bAlreadyRunning) {
       // find the hidden window
       if (HWND hwndPrev = ::FindWindowEx(NULL, NULL, HIDDEN_WINDOW_CLASS, NULL) ) {
          // Ignore all command-line options when already open
@@ -358,6 +358,7 @@ BOOL CMfcEmbedApp::InitInstance()
 
          if(*m_lpCmdLine) {
             COPYDATASTRUCT copyData;
+            copyData.dwData = 0;
             copyData.cbData = (_tcsclen(m_lpCmdLine)+1)*sizeof(TCHAR);
             copyData.lpData = (void *) m_lpCmdLine;
             SendMessage(hwndPrev, WM_COPYDATA, NULL, (LPARAM) &copyData);
@@ -367,7 +368,9 @@ BOOL CMfcEmbedApp::InitInstance()
       }
       return FALSE;
    }
-#endif
+   else 
+      m_bAlreadyRunning = FALSE;
+
     //Enable3dControls();   
     //
     // 1. Determine the name of the dir from which the GRE based app is being run
