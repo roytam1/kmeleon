@@ -302,8 +302,8 @@ int CAccelParser::SetAccel(const char* pKey, char* pCommand)
 
 void CAccelParser::SetAccel(WORD command, BYTE virt, WORD key)
 {
-   int oldAccel;
-   if ((oldAccel = FindAccel(virt, key)) == -1) {
+   int oldAccel = FindAccel(virt, key);
+	if (command != 0 && oldAccel == -1) {
       accelerators[numAccelerators].cmd = command;
       accelerators[numAccelerators].fVirt = virt;
       accelerators[numAccelerators].key = key;
@@ -312,7 +312,7 @@ void CAccelParser::SetAccel(WORD command, BYTE virt, WORD key)
    else {
       if (command != 0) 
          accelerators[oldAccel].cmd = command;
-      else
+		else if (oldAccel>=0)
          DeleteAccel(oldAccel);
    }
    if (accelTable) {
@@ -323,11 +323,18 @@ void CAccelParser::SetAccel(WORD command, BYTE virt, WORD key)
 
 void CAccelParser::SetMAccel(WORD command, BYTE virt, WORD button)
 {
-   if (command == 0) {
-      int oldAccel = FindMAccel(virt, button);
-      if (oldAccel != -1)
-         DeleteMAccel(oldAccel);
-   }
+	int oldAccel = FindMAccel(virt, button);
+	if (command == 0) {
+		if(oldAccel != -1)
+			DeleteMAccel(oldAccel);
+	   return;
+	}
+
+	if (oldAccel != -1) { 
+		mouse[oldAccel].cmd = command;
+		return;
+	}
+
    mouse[numMKeys].cmd = command;
    mouse[numMKeys].fVirt = virt;
    mouse[numMKeys].key = button;
@@ -336,6 +343,7 @@ void CAccelParser::SetMAccel(WORD command, BYTE virt, WORD button)
 
 void CAccelParser::DeleteMAccel(int idx) 
 {
+	ASSERT(idx>=0&&idx<=MAX_MOUSE);
    int i;
    --numMKeys;
    for (i=idx;i<numMKeys;i++)
@@ -344,6 +352,7 @@ void CAccelParser::DeleteMAccel(int idx)
 
 void CAccelParser::DeleteAccel(int idx) 
 {
+	ASSERT(idx>=0&&idx<=MAX_ACCEL);
    int i;
    --numAccelerators;
    for (i=idx;i<numAccelerators;i++)
