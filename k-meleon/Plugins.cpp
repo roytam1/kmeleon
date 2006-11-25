@@ -654,13 +654,13 @@ UINT GetWindowVar(HWND hWnd, WindowVarType type, void* ret)
 			break;
 
 		case Window_ImageURL:
-			retLen = pBrowserView->mCtxMenuLinkUrl.Length() + 1;
+			retLen = pBrowserView->mCtxMenuImgSrc.Length() + 1;
          if (ret)
 				strcpy((char*)ret, W2CA(pBrowserView->mCtxMenuImgSrc.get()));
 			break;
 
 		case Window_FrameURL:
-			retLen = pBrowserView->mCtxMenuLinkUrl.Length() + 1;
+			retLen = pBrowserView->mCtxMenuCurrentFrameURL.Length() + 1;
          if (ret) 
 				strcpy((char*)ret, W2CA(pBrowserView->mCtxMenuCurrentFrameURL.get()));
 			break;
