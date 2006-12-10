@@ -480,7 +480,7 @@ void DrawCheckMark(HDC pDC,int x,int y,COLORREF color) {
 }
 */
 int GetMaxAccelWidth(HDC hDC, HMENU hMenu){
-   MENUITEMINFO mmi;
+	MENUITEMINFO mmi = {0};
    mmi.cbSize = sizeof(mmi);
    
    int iMaxAccel = 0;
@@ -682,7 +682,7 @@ void UnSetOwnerDrawn(HMENU menu){
       return;
    menus.erase(menu);
 
-   MENUITEMINFO mmi;
+   MENUITEMINFO mmi = {0};
    mmi.cbSize = sizeof(mmi);
 
    int state;
@@ -698,7 +698,8 @@ void UnSetOwnerDrawn(HMENU menu){
    int count = GetMenuItemCount(menu);
    for (i=0; i<count; i++)
    {
-	  mmi.fMask =  MIIM_DATA | MIIM_ID | (w95 ? MIIM_TYPE : MIIM_FTYPE);
+	  //mmi.fMask =  MIIM_DATA | MIIM_ID | (w95 ? MIIM_TYPE : MIIM_FTYPE);
+	   mmi.fMask =  MIIM_DATA | MIIM_ID | MIIM_TYPE;
 	  GetMenuItemInfo(menu, i, true, &mmi);
 	  
       state = GetMenuState(menu, i, MF_BYPOSITION);
