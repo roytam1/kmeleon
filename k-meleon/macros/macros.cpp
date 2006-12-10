@@ -35,6 +35,26 @@
 #include <afxres.h>     // for ID_APP_EXIT
 
 
+struct GVar {
+	char *name;
+	WindowVarType vartype;
+	short type;
+};
+
+const struct GVar GlobalVars[] = {
+	{ "SelectedText", Window_SelectedText, 3 },
+	{ "TextZoom", Window_TextZoom, 1 },
+	{ "URLBAR", Window_UrlBar, 2 },
+	{ "URL", Window_URL, 2 },
+	{ "TITLE", Window_Title, 2 },
+	{ "LinkURL", Window_LinkURL, 2 },
+	{ "ImageURL", Window_ImageURL, 2 },
+	{ "FrameURL", Window_FrameURL, 2 },
+	{ "CHARSET", Window_Charset, 2 },
+};
+
+#define GLOBALVARSCOUNT (sizeof(GlobalVars) / sizeof(struct GVar))
+
 #define NOTFOUND -1
 
 BOOL         APIENTRY DllMain(HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved );
@@ -2109,6 +2129,8 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
          kFuncs->GetFolder(foldertype, path, MAX_PATH);
          return protectString(path);
       }
+
+
 /*
 		CMD(getwinvar) {
 			if (nparam != 1) {  
@@ -2120,7 +2142,6 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
 			if (params[0] == "SelectedText") {
 				int l = kPlugin.kFuncs->GetWindowVar(hWnd, Window_SelectedText, NULL);
 				if (l<1) return "";
-
 				wchar_t* buf = new wchar_t[l];
 				kPlugin.kFuncs->GetWindowVar(hWnd, Window_SelectedText, buf);
 				std::string ret = protectString(CUTF16_to_UTF8(buf));
@@ -3037,12 +3058,36 @@ std::string sGlobalVar;
 
 int SetGlobalVarVal(HWND hWnd, char *name, const char* value)
 {
+	for (int i=0;i<GLOBALVARSCOUNT;i++) 
+		if ( stricmp(GlobalVars[i].name, name) == 0) {
+			switch (GlobalVars[i].type) {
+				case 0: 
+				case 1:
+					kPlugin.kFuncs->SetWindowVar(hWnd, GlobalVars[i].vartype, (void*)IntVal(value));
+					return 1;
+
+				case 2:
+					kPlugin.kFuncs->SetWindowVar(
+						hWnd, GlobalVars[i].vartype, 
+						(void*)(const char*)CUTF8_to_ANSI(value));
+					return 1;
+
+				case 3:
+					kPlugin.kFuncs->SetWindowVar(
+						hWnd, GlobalVars[i].vartype, 
+						(void*)(const wchar_t*)CUTF8_to_UTF16(value));
+					return 1;
+			}
+		}
+	
+	return 0;
+	/*
 	int ret = kPlugin.kFuncs->SetGlobalVar(PREF_STRING, name, (void*)(const char*)CUTF8_to_ANSI(value));
 	if (!ret) {
 		int val = IntVal(value);
 		ret = kPlugin.kFuncs->SetGlobalVar(PREF_INT, name, (void*)&val);
 	}
-	return ret;
+	return ret;*/
 }
 
 std::string GetGlobalVarVal(HWND hWnd, char *name, int *found)
@@ -3056,47 +3101,40 @@ std::string GetGlobalVarVal(HWND hWnd, char *name, int *found)
       return sGlobalArg;
    }
 
-   int retLen = kPlugin.kFuncs->GetGlobalVar(PREF_UNISTRING, name, NULL);
-   if (retLen!=-1) {
-      *found = 1;
-      wchar_t *retVal = new wchar_t[retLen+1];
-      kPlugin.kFuncs->GetGlobalVar(PREF_UNISTRING, name, retVal);
-      sGlobalVar = CUTF16_to_UTF8(retVal);
-      delete retVal;
-      return sGlobalVar;
-   }
+	for (int i=0;i<GLOBALVARSCOUNT;i++) 
+		if ( stricmp(GlobalVars[i].name, name) == 0) {
+			*found = 1;
+			switch (GlobalVars[i].type) {
+				case 0: 
+				case 1: {
+					int val;
+					kPlugin.kFuncs->GetWindowVar(hWnd, GlobalVars[i].vartype, &val);
+					char buf[34];
+					_itoa(val, buf, 10);
+					return buf;
+				}
 
-   retLen = kPlugin.kFuncs->GetGlobalVar(PREF_STRING, name, NULL);
-   if (retLen!=-1) {
-      *found = 1;
-      char *retVal = new char[retLen+1];
-      kPlugin.kFuncs->GetGlobalVar(PREF_STRING, name, retVal);
-      sGlobalVar = CANSI_to_UTF8(retVal);
-      delete retVal;
-      return sGlobalVar;
-   }
+				case 2: {
+					int l = kPlugin.kFuncs->GetWindowVar(hWnd, GlobalVars[i].vartype, NULL);
+					if (l<1) return "";
+					char* buf = new char[l];
+					kPlugin.kFuncs->GetWindowVar(hWnd, GlobalVars[i].vartype, buf);
+					std::string ret = CANSI_to_UTF8(buf);
+					delete [] buf;
+					return ret;
+				}
 
-   int retVal;
-   retLen = kPlugin.kFuncs->GetGlobalVar(PREF_INT, name, &retVal);
-   if (retLen!=-1) {
-	  *found = 1;
-	  char buf[33];
-	  _itoa(retVal, buf, 10);
-	  sGlobalVar = buf;
-	  return sGlobalVar;
-   }
-
-/*
-   if (strcmp(name, "URL") == 0) {
-      kmeleonDocInfo *dInfo = kPlugin.kFuncs->GetDocInfo(hWnd);
-      if (dInfo && dInfo->url) {
-         return dInfo->url;
-      }
-      else 
-         return "";
-   }
-*/
-   
+				case 3: {
+					int l = kPlugin.kFuncs->GetWindowVar(hWnd, GlobalVars[i].vartype, NULL);
+				   if (l<1) return "";
+				   wchar_t* buf = new wchar_t[l];
+				   kPlugin.kFuncs->GetWindowVar(hWnd, GlobalVars[i].vartype, buf);
+				   std::string ret = CUTF16_to_UTF8(buf);
+				   delete [] buf;
+				   return ret;
+				}
+			}
+		}
   
    *found = 0;
    return "";
