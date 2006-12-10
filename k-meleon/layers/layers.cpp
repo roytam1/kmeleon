@@ -760,15 +760,9 @@ void Destroy(HWND hWnd){
     if (pLayer)
       hWndTmp = pLayer->hWnd;
     del_layer(hWnd);
-    if (!ghCurHwnd || ghCurHwnd==hWnd)
+
+	 if (!ghCurHwnd || ghCurHwnd==hWnd) 
       ghCurHwnd = hWndTmp;
-	//if (pLayer) {
-    gwpOld.length = sizeof (WINDOWPLACEMENT);
-    GetWindowPlacement(hWnd, &gwpOld);
-    if (gwpOld.showCmd != SW_SHOWMAXIMIZED)
-      gwpOld.showCmd = SW_RESTORE;
-    PostMessage(ghCurHwnd, WM_COMMAND, id_resize, (LPARAM)&gwpOld);
-	//}
   }
 }
 
@@ -1266,7 +1260,7 @@ void ShowMenuUnderButton(HWND hWndParent, HMENU hMenu, UINT uMouseButton, int iI
       SendMessage(tb, TB_GETITEMRECT, ButtonID, (LPARAM) &rc);
       POINT pt = { rc.left, rc.bottom };
       ClientToScreen(tb, &pt);
-      DWORD SelectionMade = TrackPopupMenu(hMenu, TPM_LEFTALIGN | uMouseButton | TPM_NONOTIFY | TPM_RETURNCMD, pt.x, pt.y, 0, hWndParent, &rc);
+      DWORD SelectionMade = TrackPopupMenu(hMenu, TPM_LEFTALIGN | uMouseButton | TPM_RETURNCMD, pt.x, pt.y, 0, hWndParent, &rc);
       
       PostMessage(hWndParent, UWM_REFRESHTOOLBARITEM, (WPARAM) iID, 0);
       
