@@ -423,7 +423,7 @@ static int compareBookmarks(const char *e1, const char *e2, unsigned int sortord
              cmp = (c1->order < 0) ? 1 : (c2->order < 0) ? -1 : 0;
           break;
        case 3:
-          cmp = stricmp((char*)c1->text.c_str(), (char*)c2->text.c_str());
+          cmp = lstrcmpi((char*)c1->text.c_str(), (char*)c2->text.c_str());
           break;
        case 4:
          cmp = c2->id - c1->id;
@@ -440,7 +440,7 @@ static int compareBookmarks(const char *e1, const char *e2, unsigned int sortord
              cmp = (c2->order < 0) ? 1 : (c1->order < 0) ? -1 : 0;
           break;
        case 7:
-          cmp = stricmp((char*)c2->text.c_str(), (char*)c1->text.c_str());
+          cmp = lstrcmpi((char*)c2->text.c_str(), (char*)c1->text.c_str());
           break;
        default:
          cmp = c1->id - c2->id;
