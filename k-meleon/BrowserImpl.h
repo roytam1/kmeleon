@@ -31,6 +31,7 @@
 
 #ifndef _BROWSERIMPL_H
 #define _BROWSERIMPL_H
+#define USE_WINDOW_PROVIDER
 
 #include "IBrowserFrameGlue.h"
 #include "nsIWebBrowserChromeFocus.h"

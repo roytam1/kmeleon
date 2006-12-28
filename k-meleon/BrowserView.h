@@ -89,17 +89,17 @@ public:
 	// Some helper methods
 	HRESULT CreateBrowser();
 	HRESULT DestroyBrowser();
-	void OpenURL(const char* pUrl, nsIURI *refURI=nsnull);
-	void OpenURL(const PRUnichar* pUrl, nsIURI *refURI=nsnull);
+	void OpenURL(const char* pUrl, nsIURI *refURI=nsnull, BOOL allowFixup = FALSE);
+	void OpenURL(const PRUnichar* pUrl, nsIURI *refURI=nsnull, BOOL allowFixup = FALSE);
 	CString CBrowserView::NicknameLookup(const CString& typedUrl);
     //void OpenSingleURL(char *urls);
-    void OpenMultiURL(LPTSTR urls);
+    void OpenMultiURL(LPTSTR urls, BOOL allowFixup = FALSE);
 	CBrowserFrame* CreateNewBrowserFrame(PRUint32 chromeMask = nsIWebBrowserChrome::CHROME_ALL, 
 							PRInt32 x = -1, PRInt32 y = -1, 
 							PRInt32 cx = -1, PRInt32 cy = -1,
 							PRBool bShowWindow = PR_TRUE);
-	CBrowserFrame* OpenURLInNewWindow(const char* pUrl, BOOL bBackground=FALSE, nsIURI *refURI=nsnull);
-    CBrowserFrame* OpenURLInNewWindow(const PRUnichar* pUrl, BOOL bBackground=FALSE, nsIURI *refURI=nsnull);
+	CBrowserFrame* OpenURLInNewWindow(const char* pUrl, BOOL bBackground=FALSE, nsIURI *refURI=nsnull, BOOL allowFixup = FALSE);
+    CBrowserFrame* OpenURLInNewWindow(const PRUnichar* pUrl, BOOL bBackground=FALSE, nsIURI *refURI=nsnull, BOOL allowFixup = FALSE);
 	void LoadHomePage();
 
 	void GetPageTitle(CString& title);

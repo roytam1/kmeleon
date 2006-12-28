@@ -580,7 +580,7 @@ void CBrowserView::OnUrlEditChange()
    mpBrowserFrame->m_wndUrlBar.EditChanged(TRUE);
 }
 
-void CBrowserView::OpenMultiURL(LPTSTR urls)
+void CBrowserView::OpenMultiURL(LPTSTR urls, BOOL allowFixup)
 {
     char szOpenURLcmd[80];
 	int idOpen = 0, idOpenX = 0;
@@ -623,16 +623,16 @@ void CBrowserView::OpenMultiURL(LPTSTR urls)
         if (!*p) break;
 	    switch (idOpen) {
         case ID_OPEN_LINK:
-            OpenURL(p);
+            OpenURL(p, nsnull, allowFixup);
             break;
         case ID_OPEN_LINK_IN_BACKGROUND:
-            OpenURLInNewWindow(p, TRUE);
+            OpenURLInNewWindow(p, TRUE, nsnull, allowFixup);
             break;
         case ID_OPEN_LINK_IN_NEW_WINDOW:
-            OpenURLInNewWindow(p);
+            OpenURLInNewWindow(p, FALSE, nsnull, allowFixup);
             break;
         default:
-            OpenURL(p);
+            OpenURL(p, nsnull, allowFixup);
             return;
         }
 
@@ -670,7 +670,7 @@ void CBrowserView::OnNewUrlEnteredInUrlBar()
       OpenViewSourceWindow(strUrl.GetBuffer(0));
    else {
        CString urls = NicknameLookup(strUrl);
-       OpenMultiURL(urls.GetBuffer(0));
+       OpenMultiURL(urls.GetBuffer(0), TRUE);
    }
 }
 
