@@ -956,14 +956,14 @@ NS_IMETHODIMP CBrowserView::URISaveAs(nsIURI* aURI, bool bDocument)
    return NS_OK;
 }
 */
-void CBrowserView::OpenURL(const char* pUrl, nsIURI *refURI)
+void CBrowserView::OpenURL(const char* pUrl, nsIURI *refURI, BOOL allowFixup)
 {
     nsEmbedString str;
     NS_CStringToUTF16(nsEmbedCString(pUrl), NS_CSTRING_ENCODING_ASCII, str);
-    OpenURL(str.get(), refURI);
+    OpenURL(str.get(), refURI, allowFixup);
 }
 
-void CBrowserView::OpenURL(const PRUnichar* pUrl, nsIURI *refURI)
+void CBrowserView::OpenURL(const PRUnichar* pUrl, nsIURI *refURI, BOOL allowFixup)
 {
    USES_CONVERSION;
    mpBrowserFrame->m_wndUrlBar.SetCurrentURL(W2CT(pUrl));
@@ -974,11 +974,13 @@ void CBrowserView::OpenURL(const PRUnichar* pUrl, nsIURI *refURI)
 	   Activate(TRUE);
 
    if(mWebNav)
-       mWebNav->LoadURI(pUrl,                          // URI string
-                    nsIWebNavigation::LOAD_FLAGS_NONE, // Load flags
-                    refURI,                            // Refering URI
-                    nsnull,                            // Post data
-                    nsnull);                           // Extra headers
+       mWebNav->LoadURI(pUrl,                            // URI string
+                    allowFixup ?                         // Load flags
+					  nsIWebNavigation::LOAD_FLAGS_ALLOW_THIRD_PARTY_FIXUP : 
+					  nsIWebNavigation::LOAD_FLAGS_NONE, 
+                    refURI,                              // Refering URI
+                    nsnull,                              // Post data
+                    nsnull);                             // Extra headers
 }
 
 CBrowserFrame* CBrowserView::CreateNewBrowserFrame(PRUint32 chromeMask, 
@@ -993,14 +995,14 @@ CBrowserFrame* CBrowserView::CreateNewBrowserFrame(PRUint32 chromeMask,
     return pApp->CreateNewBrowserFrame(chromeMask, x, y, cx, cy, bShowWindow);
 }
 
-CBrowserFrame* CBrowserView::OpenURLInNewWindow(const char* pUrl, BOOL bBackground, nsIURI *refURI )
+CBrowserFrame* CBrowserView::OpenURLInNewWindow(const char* pUrl, BOOL bBackground, nsIURI *refURI, BOOL allowFixup)
 {
 	nsEmbedString str;
     NS_CStringToUTF16(nsEmbedCString(pUrl), NS_CSTRING_ENCODING_UTF8, str);
-    return OpenURLInNewWindow(str.get(), bBackground, refURI);
+    return OpenURLInNewWindow(str.get(), bBackground, refURI, allowFixup);
 }
 
-CBrowserFrame* CBrowserView::OpenURLInNewWindow(const PRUnichar* pUrl, BOOL bBackground, nsIURI *refURI)
+CBrowserFrame* CBrowserView::OpenURLInNewWindow(const PRUnichar* pUrl, BOOL bBackground, nsIURI *refURI, BOOL allowFixup)
 {
     if(!pUrl)
         return NULL; 
@@ -1033,7 +1035,7 @@ CBrowserFrame* CBrowserView::OpenURLInNewWindow(const PRUnichar* pUrl, BOOL bBac
     // and the other a "PRUniChar *". We're using the "PRUnichar *"
     // version here 
 
-    pFrm->m_wndBrowserView.OpenURL(pUrl, refURI);
+    pFrm->m_wndBrowserView.OpenURL(pUrl, refURI, allowFixup);
 
    /* Show the window minimized, instead of on the bottom, because mozilla freaks out if we put it on the bottom */
    /* As of Oct 30, 2002, this seems to be working again.  Good. */  
