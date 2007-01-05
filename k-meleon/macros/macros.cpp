@@ -108,7 +108,7 @@ kmeleonPlugin kPlugin = {
 };
 bool mustEscape(unsigned char c)
 {
-	static const char chars[]= " $&+,/:;=?@";
+	static const char chars[]= " #$&+,/:;=?@";
 	if (c>127 || strchr(chars, c)) return true;
 	return false;
 }
@@ -124,7 +124,7 @@ std::string Escape(std::string url)
 		if ( !mustEscape( c ) )
 			ret += url[i];
 		else if (url[i]==' ') {
-			ret += '+';
+			ret += "%20";
 			while (i+1<len && url[i+1] == ' ') 
 				++i;
 		}
@@ -452,6 +452,41 @@ public:
   }
 }* arglist;
 
+
+bool LoadDir(TCHAR* macrosDir)
+{
+	TCHAR szMacroFile[MAX_PATH];
+	_tcscpy(szMacroFile, macrosDir);
+    _tcscat(szMacroFile, _T("*.kmm"));
+
+	WIN32_FIND_DATA FindFileData;
+	HANDLE hFind;
+	hFind = FindFirstFile(szMacroFile, &FindFileData);
+	if (hFind == INVALID_HANDLE_VALUE)
+		return false;
+
+	do {
+		if (_tcsicmp("main.kmm", FindFileData.cFileName) == 0)
+			continue;
+
+		char prefload[MAX_PATH+40];
+		strcpy(prefload, "kmeleon.plugins.macros.modules.");
+		strncat(prefload, FindFileData.cFileName, strrchr(FindFileData.cFileName, '.')-FindFileData.cFileName); //uni
+		strcat(prefload, ".load");
+
+		BOOL load = TRUE;
+		kFuncs->GetPreference(PREF_BOOL, prefload, &load, &load);
+
+		if (load) {
+			_tcscpy(szMacroFile, macrosDir);
+			_tcscat(szMacroFile, FindFileData.cFileName);
+			LoadMacros(szMacroFile);
+		}
+	} while (FindNextFile(hFind, &FindFileData));
+	
+	return true;
+}
+
 bool LoadNewMacros()
 {
 	TCHAR macrosDir[MAX_PATH];
@@ -468,39 +503,11 @@ bool LoadNewMacros()
 	if (!LoadMacros(szMacroFile))
 		return false;
 
-	_tcscpy(szMacroFile, macrosDir);
-	_tcscat(szMacroFile, _T("*.kmm"));
-
-	WIN32_FIND_DATA FindFileData;
-	HANDLE hFind;
-	hFind = FindFirstFile(szMacroFile, &FindFileData);
-	if (hFind == INVALID_HANDLE_VALUE)
-		return false;
-
-	do {
-		if (_tcsicmp("main.kmm", FindFileData.cFileName) == 0)
-			continue;
-		_tcscpy(szMacroFile, macrosDir);
-		_tcscat(szMacroFile, FindFileData.cFileName);
-		LoadMacros(szMacroFile);
-	} while (FindNextFile(hFind, &FindFileData));
+	LoadDir(macrosDir);
+	LoadDir(profileMacrosDir);
 	
-	_tcscpy(szMacroFile, profileMacrosDir);
-    _tcscat(szMacroFile, _T("*.kmm"));
-
-	hFind = FindFirstFile(szMacroFile, &FindFileData);
-	if (hFind == INVALID_HANDLE_VALUE)
-		return false;
-
-	do {
-		_tcscpy(szMacroFile, profileMacrosDir);
-		_tcscat(szMacroFile, FindFileData.cFileName);
-		LoadMacros(szMacroFile);
-	} while (FindNextFile(hFind, &FindFileData));
-
 	return true;
 }
-
 
 BOOL APIENTRY DllMain(HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved ) {
    switch (ul_reason_for_call) {
