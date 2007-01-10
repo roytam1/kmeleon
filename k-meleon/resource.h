@@ -529,6 +529,9 @@
 #define IDS_NOT_SECURE                  61305
 #define IDS_SAVEPAGE_SUFFIX             61306
 #define IDS_UNKNOW_TYPE                 61307
+#define IDS_KMELEON_UPDATE              61308
+#define IDS_UPDATE_11                   61309
+#define IDS_STRING61310                 61310
 #define IDS_LANG_VERSION                62000
 #define IDS_LOCALE_ID                   62001
 

@@ -1637,6 +1637,8 @@ BEGIN
     IDS_NOT_SECURE          "This page has not been transferred over a secure connection."
     IDS_SAVEPAGE_SUFFIX     "_files"
     IDS_UNKNOW_TYPE         "%s Files"
+    IDS_KMELEON_UPDATE      "K-Meleon Update"
+    IDS_UPDATE_11           "The new version of K-Meleon includes improvements which make the old configuration files incompatible. You can choose to backup those files or to delete them. If you didn't made any change to those files you can safely delete them. Note that your bookmarks, passwords, and general browser settings are safe and will not be lost.\n\nPress Yes to backup, No to delete your configuration."
 END
 
 #endif    // Anglais (États-Unis) resources
