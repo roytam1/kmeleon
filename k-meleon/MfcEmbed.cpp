@@ -67,6 +67,7 @@
 #include "nsIIOService.h"
 #include "nsIWindowWatcher.h"
 #include "nsIChromeRegistrySea.h"
+#include "nsIProfileInternal.h"
 
 static UINT WM_POSTEVENT = RegisterWindowMessage(_T("XPCOM_PostEvent"));
 
@@ -86,6 +87,14 @@ app_getModuleInfo(nsStaticModuleInfo **info, PRUint32 *count);
 #endif
 
 #ifdef _DEBUG
+/*#include "StackWalker.h"
+
+static struct _test
+{
+  _test() { InitAllocCheck(); }
+  ~_test(){ DeInitAllocCheck(); }
+
+} _myLeakFinder;*/
 #define new DEBUG_NEW
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
@@ -595,14 +604,10 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
 	   style =  WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_DLGFRAME;
 	         //| DS_3DLOOK | DS_MODALFRAME;
 	   styleEx = WS_EX_DLGMODALFRAME;
-		       
-	   if (!(chromeMask & nsIWebBrowserChrome::CHROME_DEFAULT)) 
-		   style |= WS_THICKFRAME | WS_MINIMIZEBOX;
    }
    else {
 	   style = WS_OVERLAPPEDWINDOW;
 	   if (pParent && (chromeMask & nsIWebBrowserChrome::CHROME_DEPENDENT))
-
           style |= WS_POPUP;
    }
    
@@ -624,8 +629,8 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
 	       !(chromeMask & nsIWebBrowserChrome::CHROME_MENUBAR) )
          style &= ~WS_SYSMENU;
 
-      if ( !(chromeMask & nsIWebBrowserChrome::CHROME_WINDOW_MIN) ) 
-         style &= ~WS_MINIMIZEBOX;
+      if (chromeMask & nsIWebBrowserChrome::CHROME_WINDOW_MIN)  
+         style |= WS_MINIMIZEBOX;
    }
       
    if ( (chromeMask & (nsIWebBrowserChrome::CHROME_OPENAS_CHROME)) ||
@@ -1285,7 +1290,7 @@ void CMfcEmbedApp::CheckProfileVersion()
    CString fileVersion = GetFolder(ProfileFolder) + _T("\\version.ini");
    BOOL needClean = FALSE;
 
-   CString locale;
+	CString locale;
    locale.LoadString(IDS_LOCALE_ID);
 
    TCHAR version[34];
@@ -1325,28 +1330,51 @@ void CMfcEmbedApp::CheckProfileVersion()
    }
 
    if (needClean) {
-      CString toDelete = GetFolder(ProfileFolder) + _T("compreg.dat");
-      DeleteFile(toDelete);
-      toDelete = GetFolder(ProfileFolder) + _T("xpti.dat");
-      DeleteFile(toDelete);
 
-      toDelete = GetMozDirectory(NS_APP_USER_PROFILE_LOCAL_50_DIR) + _T("\\xul.mfl"); 
-      DeleteFile(toDelete);
-/*
-      if (oldVersion < 0x01000204) {
-         CString backup = theApp.preferences.settingsDir + _T("Backup\\") ;
-         
-         CreateDirectory(backup, NULL);
-         BOOL backupSucceed = CopyFile(theApp.preferences.settingsDir + MENU_CONFIG_FILE, backup + MENU_CONFIG_FILE, FALSE);
-         backupSucceed &= CopyFile(theApp.preferences.settingsDir + ACCEL_CONFIG_FILE, backup + ACCEL_CONFIG_FILE, FALSE);
-         backupSucceed &= CopyFile(theApp.preferences.settingsDir + _T("macros.cfg"), backup + _T("macros.cfg"), FALSE);
-         
-         if (backupSucceed) {
-            CString def = GetMozDirectory(NS_APP_PROFILE_DEFAULTS_NLOC_50_DIR) + _T('\\');
-            CopyFile(def + MENU_CONFIG_FILE, theApp.preferences.settingsDir + MENU_CONFIG_FILE, FALSE);
-            CopyFile(def + ACCEL_CONFIG_FILE, theApp.preferences.settingsDir + ACCEL_CONFIG_FILE, FALSE);
-            CopyFile(def + _T("macros.cfg"), theApp.preferences.settingsDir + _T("macros.cfg"), FALSE);
-         }
-      }*/
+       CString toDelete = GetFolder(ProfileFolder) + _T("compreg.dat");
+       DeleteFile(toDelete);
+       toDelete = GetFolder(ProfileFolder) + _T("xpti.dat");
+       DeleteFile(toDelete);
+
+       toDelete = GetMozDirectory(NS_APP_USER_PROFILE_LOCAL_50_DIR) + _T("\\xul.mfl"); 
+       DeleteFile(toDelete);
+
+       if (oldVersion < 0x01010001) {
+
+           CString accelFile = GetFolder(UserSettingsFolder) + _T("\\") ACCEL_CONFIG_FILE;
+           CString menuFile = GetFolder(UserSettingsFolder) + _T("\\") MENU_CONFIG_FILE;
+           CString macroFile = GetFolder(UserSettingsFolder) + _T("\\") _T("macros.cfg");
+
+           CFile file;
+           if (file.Open(macroFile, CFile::modeRead, NULL)) {
+               file.Close();
+
+               CString title,msg;
+               title.LoadString(IDS_KMELEON_UPDATE);
+               msg.LoadString(IDS_UPDATE_11);
+
+               int choice = MessageBox(NULL, msg, title, MB_ICONQUESTION|MB_YESNO);
+
+               if (choice == IDNO) {
+                   DeleteFile(menuFile);
+                   DeleteFile(accelFile);
+                   DeleteFile(macroFile);
+               } 
+               else {
+                   CString backup = GetFolder(UserSettingsFolder) + _T("\\Backup\\");
+                   BOOL backupSucceed = FALSE;
+                   CreateDirectory(backup, NULL);
+                   backupSucceed = MoveFile(menuFile, backup + MENU_CONFIG_FILE);
+                   backupSucceed &= MoveFile(accelFile, backup + ACCEL_CONFIG_FILE);
+                   backupSucceed &= MoveFile(macroFile, backup + _T("macros.cfg"));
+
+                   if (backupSucceed) 
+                       AfxMessageBox("Your configuration files where successfully moved in the Backup folder of your profile.", MB_ICONINFORMATION|MB_OK);
+                   else
+                       AfxMessageBox("Your configuration files could not be moved and may prevent k-meleon to function correctly.", MB_ICONEXCLAMATION|MB_OK);
+
+               }
+           }
+       }
    }
 }
