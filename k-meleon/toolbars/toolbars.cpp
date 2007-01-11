@@ -348,9 +348,9 @@ void DoRebar(HWND rebarWnd) {
                if (buflen + len > 4096) break;
                _tcscpy(buf+buflen, button->sName);
                buflen += len;
-            }
-            buf[buflen] = 0;
-            buflen++;
+               buf[buflen] = 0;
+               buflen++;
+			}
             button = button->next;
          }
          buf[buflen] = 0;
