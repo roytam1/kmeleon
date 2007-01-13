@@ -161,7 +161,11 @@ CUnknownContentTypeHandler::PromptForSaveToFile(nsIHelperAppLauncher *aLauncher,
 	//free(tmp);
 
 	if (theApp.preferences.bUseDownloadDir && !theApp.preferences.downloadDir.IsEmpty())
+	{
+		if (theApp.preferences.downloadDir[theApp.preferences.downloadDir.GetLength()-1] != '\\')
+			theApp.preferences.downloadDir += '\\';
 		pathName = theApp.preferences.downloadDir + defaultFile;
+	}
 	else
 	{
 		aSuggestedFileExtension++;
@@ -801,7 +805,6 @@ void CProgressDialog::Close() {
 		mCancelable = nsnull;*/
 	
 	NS_RELEASE_THIS();
-	NS_NOTREACHED("ProgressDialog still alive after closing");
 	/*
 	// Not needed, mozilla have corrected the bug
    if (m_bAuto) {
