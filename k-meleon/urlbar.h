@@ -23,20 +23,12 @@
 #include "mfcembed.h"
 extern CMfcEmbedApp theApp;
 
-#include "nsIAutoCompleteSession.h"
-#include "nsIAutoCompleteListener.h"
-#include "nsIBrowserHistory.h"
-
 // Have to use my own list box because the combobox is buggy
-class CACListBox : public CListBox, public nsIAutoCompleteListener
+class CACListBox : public CListBox
 {
-	NS_DECL_ISUPPORTS
-	NS_DECL_NSIAUTOCOMPLETELISTENER
-
-public:	
+public:
 	void Scroll(short dir, short q = 0);
-	PRBool AddEltToList(nsISupports* aElement);
-	nsCOMPtr<nsIAutoCompleteResults> m_oldResult;
+   void AutoComplete(CString&);
 
 	BOOL m_bBack;
 	DECLARE_MESSAGE_MAP()
@@ -45,13 +37,10 @@ public:
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
 public:
-	afx_msg BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);
+   afx_msg BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);
 	
 
 protected:
-	static PRBool enumStatic(nsISupports* aElement, void *aData){
-		return  ((CACListBox*)aData)->AddEltToList(aElement);
-	}
 	CEdit *m_edit;
 	int m_ignoreMousemove;
 };
@@ -61,15 +50,13 @@ class CUrlBarEdit : public CEdit
 protected:
 	CString m_ACStr;
 	CACListBox* m_list;
-
-	nsCOMPtr<nsIAutoCompleteSession> m_AutoComplete;
-	nsIAutoCompleteResults *oldResult;
 	
 public:
 	CUrlBarEdit();
 	~CUrlBarEdit();
 	int static CALLBACK UrlBreakProc(LPWSTR lpszEditText, int ichCurrent,
                                 int cchEditText, int wActionCode);
+	void StopACSession();
 
 	DECLARE_MESSAGE_MAP()
 	afx_msg void OnChar(UINT nChar, UINT nRepCnt, UINT nFlags);
@@ -80,14 +67,13 @@ public:
 	afx_msg BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);
 	afx_msg void OnSetFocus(CWnd* pOldWnd);
 	afx_msg void OnDestroy();
-protected:
-	void StopACSession();
-	virtual void PreSubclassWindow();
-public:
-	virtual BOOL PreTranslateMessage(MSG* pMsg);
 #ifndef URLBAR_USE_SETWORDBREAKPROC	
 	afx_msg void OnLButtonDblClk(UINT nFlags, CPoint point);
 #endif
+
+protected:
+	virtual void PreSubclassWindow();
+	virtual BOOL PreTranslateMessage(MSG* pMsg);
 };
 
 
@@ -162,14 +148,14 @@ public:
         m_bSelected = aSelected;
     }
     inline BOOL GetSelectedURL(CString& url) {
-        if (!m_bSelected) {
+        //if (!m_bSelected) {
           int nIndex = GetCurSel();
           if (nIndex != LB_ERR) {
               GetLBText(nIndex, url);
               m_bSelected = TRUE;
               return TRUE;
           }
-        }
+        //}
         return FALSE;
     }   
     inline void SetCurrentURL(LPCTSTR pUrl) {

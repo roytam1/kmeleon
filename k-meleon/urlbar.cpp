@@ -50,67 +50,6 @@ END_MESSAGE_MAP()
 // CACListBox
 /////////////////////////////////////////////////////////////////////////////
 
-NS_IMPL_ISUPPORTS1(CACListBox, nsIAutoCompleteListener)
-
-NS_IMETHODIMP CACListBox::OnStatus(const PRUnichar *statusText){
-	return NS_OK;
-}
-
-
-NS_IMETHODIMP CACListBox::OnAutoComplete(nsIAutoCompleteResults *result, AutoCompleteStatus status)
-{
-	m_oldResult = result; // Keep the old result for optimization
-	ResetContent();
-	if (status == nsIAutoCompleteStatus::matchFound)
-	{
-		nsCOMPtr<nsISupportsArray> array;
-		result->GetItems(getter_AddRefs(array));
-		array->EnumerateForwards( CACListBox::enumStatic, this);
-		
-		int nLine = GetCount();
-		int height = GetItemHeight(0);
-		
-		CRect rec;
-		m_edit->GetParent()->GetWindowRect(rec);
-		
-		//rec.bottom += ::GetSystemMetrics(SM_CYEDGE)*2;
-
-		theApp.m_pMostRecentBrowserFrame->ScreenToClient(rec);
-
-		int maxline = theApp.preferences.GetInt("kmeleon.urlbar.dropdown_lines", 6);
-		if(nLine > maxline) 
-		{
-			nLine = maxline;
-			//rec.right += ::GetSystemMetrics(SM_CXVSCROLL); // size of the scrollbar
-		}
-		
-		// I'm not sure what I'm missing but it works with that
-		nLine++;
-		
-		// Prevent the mouse to select an element when the 
-		// autocomplete list popup.
-		//if (!IsWindowVisible())
-		m_ignoreMousemove = 2;
-
-		SetWindowPos(&(CWnd::wndTop),rec.left,rec.bottom,rec.Width(),height*nLine,SWP_SHOWWINDOW);
-	}
-	else
-	{
-		if (IsWindowVisible())
-			ShowWindow(SW_HIDE);
-	}
-	m_bBack = FALSE;
-	return PR_TRUE;
-}
-
-NS_IMETHODIMP CACListBox::GetParam(nsISupports * *aParam){
-	return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-NS_IMETHODIMP CACListBox::SetParam(nsISupports * aParam){
-	return NS_OK;
-}
-
 void CACListBox::Scroll(short dir, short q)
 {
 	if (!IsWindowVisible()) 
@@ -143,56 +82,17 @@ void CACListBox::Scroll(short dir, short q)
 	m_edit->SetSel(str.GetLength(),str.GetLength(),true);
 }
 
-PRBool CACListBox::AddEltToList(nsISupports* aElement)
-{
-	nsCOMPtr<nsIAutoCompleteItem> acItem = do_QueryInterface(aElement);
-	if (!acItem)
-		return PR_FALSE;
-	
-	nsEmbedString nsStr;
-	acItem->GetValue(nsStr);
-#ifdef _UNICODE
-	CString cstr(nsStr.get());
-#else
-	nsEmbedCString nsCStr;
-	NS_UTF16ToCString(nsStr,NS_CSTRING_ENCODING_ASCII,nsCStr);
-	CString cstr(nsCStr.get());
-#endif
-	
-	if (GetCount() == 0 && theApp.preferences.GetBool("browser.urlbar.autoFill", false) && !m_bBack)
-	{
-		CString text,toSelect;
-		m_edit->GetWindowText(text);
-		toSelect = cstr;
-		int start = toSelect.Find(text,0);
-        toSelect.Delete(0, start+text.GetLength());
-		int i;
-		if ( (i = toSelect.FindOneOf(_T("/?&=#"))) != -1) {
-			toSelect.GetBuffer(0);
-			toSelect.ReleaseBuffer(i+1); // Truncate
-		}
-		m_edit->SetWindowText(text+toSelect);
-		m_edit->SetSel(text.GetLength(), text.GetLength() + toSelect.GetLength(), TRUE);
-	}
-
-	AddString(cstr);
-	
-	return PR_TRUE;
-}
-
-
 BOOL CACListBox::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 {
 	return CListBox::OnMouseWheel(nFlags, zDelta, pt);
 }
-
 
 void CACListBox::OnKillFocus(CWnd* pNewWnd)
 {
 	if (pNewWnd == this) return;
 	CListBox::OnKillFocus(pNewWnd);
 	ShowWindow(SW_HIDE);
-	ResetContent();
+	((CUrlBarEdit*)m_edit)->StopACSession();
 }
 /*
 void CACListBox::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
@@ -257,13 +157,79 @@ void CACListBox::OnMouseMove(UINT nFlags, CPoint point)
 	SetCurSel(ItemFromPoint(point, b));
 }
 
+void CACListBox::AutoComplete(CString& text)
+{
+	AutoCompleteResult *results = NULL;
+
+	int count = theApp.plugins.SendMessage("*", "Urlbar", "AutoComplete", (long)text.GetBuffer(0), (long)&results);
+	ResetContent();
+	
+	if (count && results)
+	{
+		USES_CONVERSION;
+		if (theApp.preferences.GetBool("browser.urlbar.autoFill", false) && !m_bBack)
+		{
+			CString text,toSelect;
+			m_edit->GetWindowText(text);
+			toSelect = A2CT(results->value);
+			int start = toSelect.Find(text,0);
+			toSelect.Delete(0, start+text.GetLength());
+			int i;
+			if ( (i = toSelect.FindOneOf(_T("/?&=#"))) != -1) {
+				toSelect.GetBuffer(0);
+				toSelect.ReleaseBuffer(i+1); // Truncate
+			}
+			m_edit->SetWindowText(text+toSelect);
+			m_edit->SetSel(text.GetLength(), text.GetLength() + toSelect.GetLength(), TRUE);
+		}
+
+		for (int i=0; i<count; i++)
+		{
+			AddString(A2CT(results->value));
+			results++;
+		}
+		
+		int nLine = GetCount();
+		int height = GetItemHeight(0);
+		
+		CRect rec;
+		m_edit->GetParent()->GetWindowRect(rec);
+		
+		//rec.bottom += ::GetSystemMetrics(SM_CYEDGE)*2;
+
+		GetParentFrame()->ScreenToClient(rec);
+
+		int maxline = theApp.preferences.GetInt("kmeleon.urlbar.dropdown_lines", 6);
+		if(nLine > maxline) 
+		{
+			nLine = maxline;
+			//rec.right += ::GetSystemMetrics(SM_CXVSCROLL); // size of the scrollbar
+		}
+		
+		// I'm not sure what I'm missing but it works with that
+		nLine++;
+		
+		// Prevent the mouse to select an element when the 
+		// autocomplete list popup.
+		if (!IsWindowVisible())
+			m_ignoreMousemove = 2;
+
+		SetWindowPos(&(CWnd::wndTop),rec.left,rec.bottom,rec.Width(),height*nLine,SWP_SHOWWINDOW);
+	}
+	else
+	{
+		if (IsWindowVisible())
+			ShowWindow(SW_HIDE);
+	}
+	m_bBack = FALSE;
+}
+
 /////////////////////////////////////////////////////////////////////////////
 // CUrlBarEdit
 /////////////////////////////////////////////////////////////////////////////
 
 CUrlBarEdit::CUrlBarEdit()
 {
-	oldResult = NULL;
 	m_list = NULL;
 	//urlbar = GetParent()->GetParent();
 }
@@ -275,34 +241,25 @@ CUrlBarEdit::~CUrlBarEdit()
 void CUrlBarEdit::StopACSession()
 {
 	KillTimer(1);
-	oldResult = nsnull;
 	
-	if (m_AutoComplete)	m_AutoComplete->OnStopLookup();
+	theApp.plugins.SendMessage("*", "Urlbar", "AutoComplete", (long)"", (long)0);
 	
 	if (m_list&&IsWindow(m_list->m_hWnd))
 	{
 		m_list->ResetContent();
 		m_list->ShowWindow(SW_HIDE);
-		m_list->m_oldResult = nsnull;
 	}
 }
 
 void CUrlBarEdit::OnTimer(UINT nIDEvent)
 {
-	if (!m_AutoComplete || !m_list)
+	if (!m_list)
 		return;
 
-	CString text;
-    USES_CONVERSION;
-
 	KillTimer(nIDEvent);
+	CString text;
 	GetWindowText(text);
-
-	// I'm not using oldresult to partially fix a weird behavior
-	// of mozilla who always cut prefix of url before searching  
-	// (so if you type 'w', there will be no result beginning by "www.") 
-	// whatever the search string is. A setting to change?
-	m_AutoComplete->OnStartLookup(T2CW(text), nsnull /*m_list->m_oldResult*/, m_list);
+	m_list->AutoComplete(text);
 		
 	CEdit::OnTimer(nIDEvent);
 }
@@ -342,10 +299,6 @@ void CUrlBarEdit::PreSubclassWindow()
 	
 	if (!theApp.preferences.GetBool("browser.urlbar.autocomplete.enabled", true))
 		return;
-
-	nsresult rv;
-	m_AutoComplete = do_GetService(NS_GLOBALHISTORY_AUTOCOMPLETE_CONTRACTID, &rv);
-	if (NS_FAILED(rv)) return;
 
 	m_list = new CACListBox();
 	if (!m_list->CreateEx(
@@ -540,7 +493,13 @@ void CUrlBarEdit::OnLButtonDblClk(UINT nFlags, CPoint point)
 	USES_CONVERSION;
 	
 	int newPos = UrlBreakProc(T2W(text.GetBuffer(0)), pos, text.GetLength(), WB_RIGHT);
-	if (newPos != len) newPos--; // We don't want to select the delimiter
+	if (newPos>0) {
+		if (newPos != len) newPos--; // We don't want to select the delimiter
+		else {
+			if (UrlBreakProc(T2W(text.GetBuffer(0)), newPos, text.GetLength(), WB_ISDELIMITER))
+				newPos--;
+		}
+	}
 
 	SetSel(
 		UrlBreakProc(T2W(text.GetBuffer(0)), pos, text.GetLength(), WB_LEFT),
@@ -585,7 +544,7 @@ int CALLBACK CUrlBarEdit::UrlBreakProc(LPWSTR lpszEditText, int ichCurrent,
 				case L'#':
 					return TRUE;
 				case L'/':
-					if (ichCurrent+1<cchEditText &&
+					if (ichCurrent+1 >= cchEditText ||
 					    lpszEditText[ichCurrent+1]!=L'/') return TRUE;
 			}
 			return FALSE;
