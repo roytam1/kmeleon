@@ -173,12 +173,15 @@ void BuildMenu(HMENU menu, CBookmarkNode *node, BOOL isContinuation)
          BuildMenu(childMenu, child, false);
       }
       else if (child->type == BOOKMARK_BOOKMARK) {
-         // condense the title and escape ampersands
-         char *pszTemp = fixString(child->text.c_str(), 40);
-         if (!pszTemp)
-	   pszTemp = strdup("");
-         AppendMenu(menu, MF_STRING, child->id, pszTemp);
-         delete pszTemp;
+		 if (!child->text.empty()) 
+         {
+            // condense the title and escape ampersands
+            char *pszTemp = fixString(child->text.c_str(), 40);
+            if (pszTemp) {
+			   AppendMenu(menu, MF_STRING, child->id, pszTemp);
+               delete pszTemp;
+			}
+         }
       }
    }
    kPlugin.kFuncs->SendMessage("bmpmenu", PLUGIN_NAME, "SetOwnerDrawn", (long)menu, (long)DrawBitmap);
@@ -341,6 +344,8 @@ int addLink(char *url, char *title)
 {
    if (!url || !title)
       return false;
+
+   if (!*title) title = url;
 
    CBookmarkNode *newNode = new 
       CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), 
