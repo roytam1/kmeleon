@@ -32,6 +32,7 @@
 #include "..\Utils.h"
 #include "..\DialogUtils.h"
 #include "..\KmeleonConst.h"
+#include "AutoComplete.h"
 
 #include "nsCOMPtr.h"
 #include "nsIBrowserHistory.h"
@@ -108,6 +109,9 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
       else if (stricmp(subject, "Quit") == 0) {
          Quit();
       }
+	  else if (stricmp(subject, "AutoComplete") == 0) {
+		  return AutoComplete((char*)data1, (AutoCompleteResult**)data2);
+	  }
       else if (stricmp(subject, "DoMenu") == 0) {
          DoMenu((HMENU)data1, (char *)data2);
       }
