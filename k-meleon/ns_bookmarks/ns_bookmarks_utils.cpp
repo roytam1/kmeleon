@@ -212,7 +212,7 @@ int GlobalReplace(char *str, char *a, char *b) {
 }
 
 char *EncodeQuotes(const char *str) {
-  char *pszStr = (char *)malloc(strlen(str) + INTERNET_MAX_URL_LENGTH);
+  char *pszStr = (char *)malloc(strlen(str)*3);
   if (pszStr) {
     strcpy(pszStr, str);
     GlobalReplace(pszStr, "\"", "%22");
@@ -221,7 +221,7 @@ char *EncodeQuotes(const char *str) {
 }
 
 char *EncodeString(const char *str) {
-  char *pszStr = (char *)malloc(strlen(str) + INTERNET_MAX_URL_LENGTH);
+  char *pszStr = (char *)malloc(strlen(str)*6);
   if (pszStr) {
     strcpy(pszStr, str);
     GlobalReplace(pszStr, "&",  "&amp;");
@@ -289,9 +289,12 @@ static void SaveBookmarks(FILE *bmFile, CBookmarkNode *node)
             strcat(szFolderFlags, "MENUHEADER ");
          psz = EncodeString(child->text.c_str());
          psz2 = utf8_from_ansi(psz ? psz : "");
-         fprintf(bmFile, "%s<DT><H3 %sADD_DATE=\"%d\">%s</H3>\n", szSpacer, szFolderFlags, child->addDate, psz2 ? psz2 : "");
+		 if (psz2) {
+	        fprintf(bmFile, "%s<DT><H3 %sADD_DATE=\"%d\">%s</H3>\n", szSpacer, szFolderFlags, child->addDate, psz2 ? psz2 : "");
+			free(psz2);
+		 }
          if (psz) free(psz);
-         if (psz2) free(psz2);
+         
          if (child->desc.c_str() != NULL && *(child->desc.c_str()) != 0) {
             psz = EncodeString(child->desc.c_str());
             psz2 = utf8_from_ansi(psz ? psz : "");
@@ -330,9 +333,12 @@ static void SaveBookmarks(FILE *bmFile, CBookmarkNode *node)
             fprintf(bmFile, " LAST_CHARSET=\"%s\"", psz);
 	 psz = EncodeString(child->text.c_str());
 	 psz2 = utf8_from_ansi(psz ? psz : "");
+	 if (psz2) {
          fprintf(bmFile, ">%s</A>\n", psz2 ? psz2 : "");
+		 free(psz2);
+	 }
 	 if (psz) free(psz);
-	 if (psz2) free(psz2);
+
          if (child->desc.c_str() != NULL && *(child->desc.c_str()) != 0) {
             psz = EncodeString(child->desc.c_str());
             psz2 = utf8_from_ansi(psz ? psz : "");
