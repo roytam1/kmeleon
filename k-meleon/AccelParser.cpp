@@ -435,18 +435,7 @@ CString CAccelParser::GetStrAccel(UINT id)
 		if(accel->fVirt & FVIRTKEY) {
 			WORD key = accel->key;
 			UINT scan = MapVirtualKey(key, 0);
-			if (key == VK_INSERT || 
-				key == VK_DELETE ||
-				key == VK_HOME ||
-				key == VK_END ||
-				key == VK_NEXT ||
-				key == VK_PRIOR ||
-				key == VK_LEFT ||
-				key == VK_RIGHT ||
-				key == VK_UP ||
-				key == VK_DOWN ||
-				key == VK_ADD ||
-				key == VK_SUBTRACT)
+			if ((key >= VK_PRIOR) && (key<=VK_DELETE))
 				scan |= 0x100; // should remove the numpad text
 
 			if (GetKeyNameText(scan<<16 , buf, sizeof(buf)) == 0)
