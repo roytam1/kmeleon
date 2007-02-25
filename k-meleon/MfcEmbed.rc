@@ -945,8 +945,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,2,0
- PRODUCTVERSION 1,0,2,0
+ FILEVERSION 1,1,0,3
+ PRODUCTVERSION 1,1,0,3
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -963,11 +963,11 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "http://kmeleon.sf.net/"
             VALUE "FileDescription", "K-Meleon Web Browser"
-            VALUE "FileVersion", "1, 0, 2, 0"
-            VALUE "LegalCopyright", "Copyright (C) 2001-2006"
+            VALUE "FileVersion", "1, 1, 0, 3"
+            VALUE "LegalCopyright", "Copyright (C) 2001-2007"
             VALUE "OriginalFilename", "k-meleon.exe"
             VALUE "ProductName", "K-Meleon"
-            VALUE "ProductVersion", "1.02"
+            VALUE "ProductVersion", "1.10"
         END
     END
     BLOCK "VarFileInfo"
@@ -1639,6 +1639,14 @@ BEGIN
     IDS_UNKNOW_TYPE         "%s Files"
     IDS_KMELEON_UPDATE      "K-Meleon Update"
     IDS_UPDATE_11           "The new version of K-Meleon includes improvements which make the old configuration files incompatible. You can choose to backup those files or to delete them. If you didn't made any change to those files you can safely delete them. Note that your bookmarks, passwords, and general browser settings are safe and will not be lost.\n\nPress Yes to backup, No to delete your configuration."
+    IDS_PASSWORD            "Password:"
+    IDS_USERNAME            "User Name:"
+END
+
+STRINGTABLE 
+BEGIN
+    IDS_UPDATE11_SUCCESS    "Your configuration files where successfully moved in the Backup folder of your profile."
+    IDS_UPDATE11_FAIL       "Your configuration files could not be moved and may prevent k-meleon to function correctly."
 END
 
 #endif    // Anglais (États-Unis) resources

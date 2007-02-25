@@ -532,6 +532,10 @@
 #define IDS_KMELEON_UPDATE              61308
 #define IDS_UPDATE_11                   61309
 #define IDS_STRING61310                 61310
+#define IDS_PASSWORD                    61310
+#define IDS_USERNAME                    61311
+#define IDS_UPDATE11_SUCCESS            61312
+#define IDS_UPDATE11_FAIL               61313
 #define IDS_LANG_VERSION                62000
 #define IDS_LOCALE_ID                   62001
 
