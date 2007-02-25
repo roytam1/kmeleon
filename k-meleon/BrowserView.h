@@ -202,6 +202,7 @@ public:
     void ChangeTextSize(PRInt32 change);
 	int GetTextSize();
 
+	BOOL InputHasFocus();
 	BOOL GetSelection(CString&);
 	BOOL GetUSelection(nsEmbedString&);
 	BOOL InjectCSS(const wchar_t* userStyleSheet);

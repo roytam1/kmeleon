@@ -152,8 +152,7 @@ BOOL CBrowserFrame::PreTranslateMessage(MSG* pMsg)
 {
    if (pMsg->message==WM_KEYDOWN)
    {
-	   if ( pMsg->wParam == VK_TAB && !(GetKeyState(VK_CONTROL)  & 0x8000)) {
-
+	  if ( pMsg->wParam == VK_TAB && !(GetKeyState(VK_CONTROL)  & 0x8000)) {
          nsCOMPtr<nsIWebBrowserFocus> focus = m_wndBrowserView.mWebBrowserFocus;
          if(focus) {
             if (pMsg->hwnd == m_wndUrlBar.m_hwndEdit) {
@@ -187,6 +186,21 @@ BOOL CBrowserFrame::PreTranslateMessage(MSG* pMsg)
             }
          }
       }
+	  // Prevent accels to interfere with input controls
+	  else if (pMsg->wParam >= VK_PRIOR && pMsg->wParam <= VK_DOWN) {
+         if (m_wndBrowserView.InputHasFocus())
+            return 0;
+      }
+	  else if (MapVirtualKey(pMsg->wParam, 2  /*MAPVK_VK_TO_CHAR*/) != 0) {
+         if (!(GetKeyState(VK_CONTROL) & 0x8000) && m_wndBrowserView.InputHasFocus())
+            return 0;
+      }
+
+	 /* else if ( pMsg->wParam == VK_BACK ) {
+	     if (m_wndBrowserView.InputHasFocus())
+		   return 0;
+	  }*/
+
    }  else if ( pMsg->wParam == 0xff ) {
 	   if  ( (pMsg->lParam & 0x00ff0000) == 0x000b0000) {
            	m_wndBrowserView.ChangeTextSize(1);		
