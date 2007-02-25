@@ -104,7 +104,7 @@ CFavIconList::~CFavIconList()
 	{
 		// Save the icons
 		CFile iconCache;
-		if (iconCache.Open(theApp.GetFolder(ProfileFolder) + "\\" FAVICON_CACHE_FILE, CFile::modeCreate | CFile::modeWrite))
+		if (iconCache.Open(theApp.GetFolder(ProfileFolder) + _T("\\") FAVICON_CACHE_FILE, CFile::modeCreate | CFile::modeWrite))
 		{
 			CArchive ar(&iconCache, CArchive::store);
 			if (Write(&ar))
@@ -141,11 +141,11 @@ BOOL CFavIconList::Create(int cx, int cy, UINT nFlags, int nInitial, int nGrow)
 
 	// Try to load the icon cache
 	CFile   iconCache;
-	if (iconCache.Open(theApp.GetFolder(ProfileFolder) + "\\" FAVICON_CACHE_FILE, CFile::modeRead))
+	if (iconCache.Open(theApp.GetFolder(ProfileFolder) + _T("\\") FAVICON_CACHE_FILE, CFile::modeRead))
 	{
 		if (!theApp.preferences.GetBool("kmeleon.favicons.cached", true)) {
 			iconCache.Close();
-			DeleteFile(theApp.GetFolder(ProfileFolder) + "\\" FAVICON_CACHE_FILE);
+			DeleteFile(theApp.GetFolder(ProfileFolder) + _T("\\") FAVICON_CACHE_FILE);
 		}
 		else
 		{
@@ -585,7 +585,8 @@ NS_IMETHODIMP IconObserver::CreateDIB(imgIRequest *aRequest)
 		CBitmap maskbitmap;
 		PRUint32 alphaLength;
 		PRUint8 *alphaBits;
-
+		PRUint8 *alphaBits2 = 0;
+		
 		if (NS_SUCCEEDED(frame->GetAlphaData(&alphaBits, &alphaLength)))
 		{
 			PRUint32 alphaBpr;
@@ -595,6 +596,21 @@ NS_IMETHODIMP IconObserver::CreateDIB(imgIRequest *aRequest)
 			if (alphaBpr<=8) {
 
 				// XXX: if alphaBpr == 2, must convert to 4
+				/*if (alphaBpr == 2)
+				{
+					alphaBits2 = alphaBits;
+					alphaBits = new PRUint8[alphaLength*4];
+					for (int i=0;i<alphaLength;i++) {
+						int ii = i*4;
+						alphaBits[ii] = (alphaBits2[i] & 0xC0) ? 0x0f :  0xf0;
+						alphaBits[ii+1] = (alphaBits2[i] & 0x03) ? 0x0f : 0xf0;
+						alphaBits[ii+2] = (alphaBits2[i] & 0x0C) ? 0x0f :  0xf0;
+						alphaBits[ii+3] = (alphaBits2[i] & 0x03) ? 0x0f :  0xf0;
+					    //alphaBits[i*2+1] = ((alphaBits2[i] & 0x0C)<<4) + ((alphaBits2[i] & 0x0C)<<2) + ((alphaBits2[i] & 0x03)<<2) + (alphaBits2[i] & 0x03);
+					}
+					alphaBpr = 8;
+				}*/
+
 				ALPHABITMAPINFO binfo(w, h, alphaBpr);
 
 				HDC hDC = GetDC(NULL);
@@ -606,8 +622,8 @@ NS_IMETHODIMP IconObserver::CreateDIB(imgIRequest *aRequest)
 					}
 				}
 				ReleaseDC(NULL,hDC);
-
 				maskbitmap.Attach(hBitmap);
+				if (alphaBits2) delete alphaBits;
 			}
 		}
 
