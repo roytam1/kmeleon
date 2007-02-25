@@ -175,7 +175,7 @@ NS_IMETHODIMP CPromptService::Prompt(nsIDOMWindow *parent,
 
   CString csValue;
   if (value && *value) csValue = W2CT(*value);
-  dlg.AddEdit(&csValue, "", FALSE);
+  dlg.AddEdit(&csValue, _T(""), FALSE);
   
   BOOL checkResult;
   if (checkboxMsg && checkValue) {
@@ -224,8 +224,8 @@ NS_IMETHODIMP CPromptService::PromptUsernameAndPassword(nsIDOMWindow *parent,
   CString csUsername, csPassword;
   if (username && *username) csUsername = W2CT(*username);
   if (password && *password) csPassword = W2CT(*password);
-  dlg.AddEdit(&csUsername, "User Name:", FALSE);
-  dlg.AddEdit(&csPassword, "Password:", TRUE);
+  dlg.AddEdit(&csUsername, IDS_USERNAME, FALSE);
+  dlg.AddEdit(&csPassword, IDS_PASSWORD, TRUE);
   
   BOOL checkResult;
   if (checkboxMsg && checkValue) {
@@ -274,7 +274,7 @@ NS_IMETHODIMP CPromptService::PromptPassword(nsIDOMWindow *parent,
 
   CString csValue;
   if (*password) csValue = W2CT(*password);
-  dlg.AddEdit(&csValue, "", TRUE);
+  dlg.AddEdit(&csValue, _T(""), TRUE);
   
   BOOL checkResult;
   if (checkboxMsg && checkValue) {
