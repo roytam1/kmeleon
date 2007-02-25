@@ -55,6 +55,8 @@
 #include "nsIDOMHTMLTextAreaElement.h"
 #include "nsIDOMNSHTMLInputElement.h"
 #include "nsIDOMHTMLInputElement.h"
+#include "nsIDOMHTMLEmbedElement.h"
+#include "nsIDOMHTMLObjectElement.h"
 
 #include "UnknownContentTypeHandler.h"
 #include "nsCWebBrowserPersist.h"
@@ -504,7 +506,7 @@ NS_IMETHODIMP CSaveAsHandler::Save(const char* contentType, const char* disposit
 			filter = description + _T(" (*.") + extension + _T(")|*.") + extension + _T("|");
 		else if (!extension.IsEmpty())
 			filter.Format(IDS_UNKNOW_TYPE, extension);
-			filter+=" (*." + extension + _T(")|*.") + extension + _T("|");
+			filter+=_T(" (*.") + extension + _T(")|*.") + extension + _T("|");
 	}
 
 	CString filt;
@@ -1310,6 +1312,27 @@ BOOL CBrowserView::GetCurrentURI(CString& uri)
    uri = uriString.get();
 #endif
    return TRUE;
+}
+
+BOOL CBrowserView::InputHasFocus()
+{
+	nsCOMPtr<nsIDOMElement> element;
+	mWebBrowserFocus->GetFocusedElement(getter_AddRefs(element));
+	if (!element) return FALSE;
+
+	nsCOMPtr<nsIDOMNSHTMLInputElement> domnsinput = do_QueryInterface(element);
+	if (domnsinput) return TRUE;
+	
+	nsCOMPtr<nsIDOMNSHTMLTextAreaElement> tansinput = do_QueryInterface(element);
+	if (tansinput) return TRUE;
+	
+	nsCOMPtr<nsIDOMHTMLEmbedElement> embed = do_QueryInterface(element);
+	if (embed) return TRUE;
+	
+	nsCOMPtr<nsIDOMHTMLObjectElement> object = do_QueryInterface(element);
+	if (object) return TRUE;
+	
+	return FALSE;
 }
 
 BOOL GetSelectionInsideForm(nsIDOMElement *element, nsEmbedString &aSelText)
