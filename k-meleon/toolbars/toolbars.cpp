@@ -50,6 +50,8 @@ void EnableButton(char *sParams);
 int  IsButtonEnabled(char *sParams);
 void CheckButton(char *sParams);
 int  IsButtonChecked(char *sParams);
+int AddToolbarMsg(char* sParam);
+int AddButtonMsg(char* sParam);
 
 int  GetConfigFiles(configFileType **configFiles);
 
@@ -67,7 +69,7 @@ kmeleonPlugin kPlugin = {
 long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2)
 {
    if (to[0] == '*' || stricmp(to, kPlugin.dllname) == 0) {
-      if (stricmp(subject, "Setup") == 0) {
+      if (stricmp(subject, "Init") == 0) {
          Setup();
       }
       else if (stricmp(subject, "Create") == 0) {
@@ -103,7 +105,12 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
       else if (stricmp(subject, "IsButtonChecked") == 0) {
          *(int *)data2 = IsButtonChecked((char *)data1);
       }
-
+      else if (stricmp(subject, "AddToolbar") == 0) {
+         *(int *)data2 = AddToolbarMsg((char *)data1);
+      }
+      else if (stricmp(subject, "AddButton") == 0) {
+         *(int *)data2 = AddButtonMsg((char *)data1);
+      }
       else return 0;
 
       return 1;
@@ -115,7 +122,8 @@ struct s_button {
    TCHAR *sName;
    TCHAR *sToolTip;
    char *sImagePath;
-   HMENU menu;
+   char *menu;
+	//HMENU menu;
    int iID;
    int width, height;
    s_button *next, *prev;
@@ -269,6 +277,8 @@ void Quit() {
       while (button) {
          if (button->sName)
             delete button->sName;
+			if (button->menu)
+				delete button->menu;
          if (button->sToolTip)
             delete button->sToolTip;
 		 if (button->sImagePath)
@@ -653,7 +663,9 @@ void LoadToolbars(TCHAR *filename) {
                TrimWhiteSpace(p);
 
                TrimWhiteSpace(pipe+1);
-               curButton->menu = kPlugin.kFuncs->GetMenu(SkipWhiteSpace(pipe+1));
+               curButton->menu = new char[strlen(pipe+1) + 1];
+					strcpy(curButton->menu, pipe+1);
+					//kPlugin.kFuncs->GetMenu(SkipWhiteSpace(pipe+1));
             }
             
             // check for call to other plugin
@@ -742,6 +754,7 @@ s_toolbar *AddToolbar(char *name, int width, int height) {
    newToolbar->hot  = NULL;
    newToolbar->cold = NULL;
    newToolbar->dead = NULL;
+	newToolbar->nextWindow = NULL;
 
    newToolbar->iID = ++giToolbarCount;
    newToolbar->pButtonHead = NULL;
@@ -930,6 +943,139 @@ int GetToolbarID(char *sToolbar) {
    return 0;   // return 0 if the toolbar does not exist, the first toolbar number is 1
 }
 
+int AddToolbarMsg(char *sParams) {
+	// sParams = ToolbarName, width, height
+	char *p = SkipWhiteSpace(sParams);
+   char *c = strchr(sParams, ',');
+	if (!c) return 0;
+   *c = 0;
+
+	p = SkipWhiteSpace(c+1);
+   c = strchr(p, ',');
+	if (!c) return 0;
+	*c = 0;
+	int width = atoi(p);
+   int height = atoi(SkipWhiteSpace(c+1));
+
+	if (toolbar_head) {
+		s_toolbar *t = toolbar_head;
+		while (t->next) t = t->next;
+		t->next = AddToolbar(sParams, width, height);
+	}
+	else
+		toolbar_head = AddToolbar(sParams, width, height);
+  
+	return 1;
+}
+
+int AddButtonMsg(char *sParams) {
+	// sParams toolbarname, buttonname, command, menu, tooltip, width, height, hot, cold, head
+	char *p = SkipWhiteSpace(sParams);
+   char *c = strchr(sParams, ',');
+	if (!c) return 0;
+   *c = 0;
+
+	s_toolbar *pToolbar = toolbar_head;
+   while (pToolbar) {
+		if (strcmp(pToolbar->sTitle, sParams) == 0)
+			break;
+      pToolbar = pToolbar->next;
+   }
+
+	if (!pToolbar) return 0;
+
+	p = SkipWhiteSpace(c+1);
+   c = strchr(p, ',');
+	if (!c) return 0;
+   *c = 0;
+	char *buttonname = p;
+
+	p = SkipWhiteSpace(c+1);
+   c = strchr(p, ',');
+	if (!c) return 0;
+	*c = 0;
+	int command = kPlugin.kFuncs->GetID(p);
+	if (!command) return 0;
+
+	p = SkipWhiteSpace(c+1);
+   c = strchr(p, ',');
+	if (!c) return 0;
+	*c = 0;
+	char* menu = p;
+
+	p = SkipWhiteSpace(c+1);
+   c = strchr(p, ',');
+	if (!c) return 0;
+	*c = 0;
+	char* tooltip = p;
+
+	p = SkipWhiteSpace(c+1);
+   c = strchr(p, ',');
+	if (!c) return 0;
+	*c = 0;
+	int width = atoi(p);
+
+	p = SkipWhiteSpace(c+1);
+   c = strchr(p, ',');
+	if (!c) return 0;
+	*c = 0;
+	int height = atoi(p);
+
+	char* hot = 0, *cold = 0, *dead = 0;
+	p = SkipWhiteSpace(c+1);
+	c = strchr(p, ',');
+	if (!c) {
+		hot = p;
+	}
+	else {
+		*c = 0;
+		hot = p;
+		p = SkipWhiteSpace(c+1);
+		c = strchr(p, ',');
+		if (!c) {
+			cold = p;
+		}
+		else {
+			*c = 0;
+			cold = p;
+			p = SkipWhiteSpace(c+1);
+			dead = p;
+		}
+	}
+	
+	s_button* pButton = pToolbar->pButtonHead;
+	while (pButton) {
+		if (pButton->iID == command)
+			return 0;
+	}
+	
+	pButton = AddButton(pToolbar, buttonname, width, height);
+	pButton->sToolTip = new char[strlen(tooltip) + 1];
+	strcpy(pButton->sToolTip,  tooltip);
+   pButton->menu = new char[strlen(menu) + 1];
+	strcpy(pButton->menu, menu);
+	pButton->iID = command;
+
+	if (hot) {
+		if (!pToolbar->hot)
+			pToolbar->hot = ImageList_Create(pToolbar->width, pToolbar->height, ILC_MASK | ILC_COLORDDB, 0, 32);
+		AddImageToList(pToolbar, pButton, pToolbar->hot, hot);
+	}
+	
+	if (cold) {
+		if (!pToolbar->cold)
+			pToolbar->cold = ImageList_Create(pToolbar->width, pToolbar->height, ILC_MASK | ILC_COLORDDB, 0, 32);
+		AddImageToList(pToolbar, pButton, pToolbar->cold, cold);
+	}
+
+	if (dead) {
+		if (!pToolbar->dead)
+			pToolbar->dead = ImageList_Create(pToolbar->width, pToolbar->height, ILC_MASK | ILC_COLORDDB, 0, 32);
+		AddImageToList(pToolbar, pButton, pToolbar->dead, dead);
+	}
+
+	return 1;
+}
 
 s_toolbar *FindToolbar(WORD iToolbar) {
    // make sure the toolbar id is valid
@@ -1239,6 +1385,8 @@ int  IsButtonChecked(char *sParams) {
    return NULL;
 }
 
+
+
 int ShowMenuUnderButton(HWND hWndParent, UINT uMouseButton, int iID) {
    
    s_toolbar   *pToolbar = toolbar_head;
@@ -1257,7 +1405,7 @@ int ShowMenuUnderButton(HWND hWndParent, UINT uMouseButton, int iID) {
       pButton = pToolbar->pButtonTail;
       while (pButton) {
           if (pButton->iID == iID && pButton->menu) {
-			  hMenu = pButton->menu;
+			  hMenu = kPlugin.kFuncs->GetMenu(pButton->menu);
 			  stop = true;
 			  break;
 		  }
@@ -1269,6 +1417,7 @@ int ShowMenuUnderButton(HWND hWndParent, UINT uMouseButton, int iID) {
 			
    // Show the menu if any
    if (hMenu) {
+
 	  RECT rc;
 	  int ButtonID = SendMessage(pToolbar->hWnd, TB_COMMANDTOINDEX, iID, 0);
       if (ButtonID < 0) return 0;
