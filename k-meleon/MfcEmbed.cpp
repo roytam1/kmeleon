@@ -1341,6 +1341,13 @@ void CMfcEmbedApp::CheckProfileVersion()
 
        if (oldVersion < 0x01010001) {
 
+           if (!theApp.preferences.skinsCurrent.IsEmpty() && 
+		      theApp.preferences.skinsCurrent[theApp.preferences.skinsCurrent.GetLength() - 1] == '\\')
+           {
+              theApp.preferences.skinsCurrent.GetBuffer(0);
+              theApp.preferences.skinsCurrent.ReleaseBuffer(theApp.preferences.skinsCurrent.GetLength()-1);
+           }
+
            CString accelFile = GetFolder(UserSettingsFolder) + _T("\\") ACCEL_CONFIG_FILE;
            CString menuFile = GetFolder(UserSettingsFolder) + _T("\\") MENU_CONFIG_FILE;
            CString macroFile = GetFolder(UserSettingsFolder) + _T("\\") _T("macros.cfg");
@@ -1369,9 +1376,9 @@ void CMfcEmbedApp::CheckProfileVersion()
                    backupSucceed &= MoveFile(macroFile, backup + _T("macros.cfg"));
 
                    if (backupSucceed) 
-                       AfxMessageBox("Your configuration files where successfully moved in the Backup folder of your profile.", MB_ICONINFORMATION|MB_OK);
+                       AfxMessageBox(IDS_UPDATE11_SUCCESS, MB_ICONINFORMATION|MB_OK);
                    else
-                       AfxMessageBox("Your configuration files could not be moved and may prevent k-meleon to function correctly.", MB_ICONEXCLAMATION|MB_OK);
+                       AfxMessageBox(IDS_UPDATE11_FAIL, MB_ICONEXCLAMATION|MB_OK);
 
                }
            }
