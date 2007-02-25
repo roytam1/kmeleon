@@ -2134,7 +2134,7 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
          else return "";
 
          kFuncs->GetFolder(foldertype, path, MAX_PATH);
-         return protectString(path);
+         return protectString(CT_to_UTF8(path));
       }
 
 
