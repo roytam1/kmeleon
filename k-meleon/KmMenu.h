@@ -32,6 +32,7 @@ enum KmMenuType
 struct KmMenuItem
 {
 	KmMenuType type;
+	char id[80];
 	char label[80];
 	int command;
 	int groupid;
@@ -39,6 +40,11 @@ struct KmMenuItem
 	void SetLabel(const char* psz) {
 		strncpy(label, psz, 80);
 		label[79] = 0;
+	}
+
+	void SetID(const char* psz) {
+		strncpy(id, psz, 80);
+		id[79] = 0;
 	}
 };
 
@@ -50,6 +56,7 @@ public:
 	void RemoveItem(KmMenuItem& item);
 	void AddItem(KmMenuItem& item, long before = -1);
 	BOOL Build();
+	void Invalidate();
 
 	void Empty() {
 		mMenuDef.RemoveAll();
@@ -68,7 +75,6 @@ public:
 protected:
 
 	void Reset();
-	void Invalidate();
 	BOOL Build(CMenu &menu, int before);
 	BOOL IsEmpty() { return (mMenuDef.GetCount() == 0); }
 
@@ -140,7 +146,7 @@ public:
 		if (!mMenus.Lookup(menu, kmenu))
 			kmenu = CreateMenu(menu);
 
-		//kmenu->Invalidate();
+		kmenu->Invalidate();
 		kmenu->AddItem(item, before);
 	}
 
@@ -150,7 +156,7 @@ public:
 		if (!mMenus.Lookup(menu, kmenu))
 			return FALSE;
 
-		//kmenu->Invalidate();
+		kmenu->Invalidate();
 		kmenu->Build();
 		return TRUE;
 	}

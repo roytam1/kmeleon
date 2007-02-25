@@ -69,7 +69,8 @@ void KmMenu::RemoveItem(KmMenuItem& item)
 			KmMenuItem item2 = mMenuDef.GetAt(pos);
 			if (strcmp(item2.label, item.label) == 0) {
 				mMenuDef.RemoveAt(pos);
-				KmMenu* iMenu = theApp.menus.GetKMenu(item.label);
+				USES_CONVERSION;
+				KmMenu* iMenu = theApp.menus.GetKMenu(A2CT(item.label));
 				if (iMenu) {
 					POSITION pos = iMenu->mDependencies.Find(this);
 					if (pos) iMenu->mDependencies.RemoveAt(pos);
@@ -84,7 +85,7 @@ void KmMenu::RemoveItem(KmMenuItem& item)
 
 void KmMenu::AddItem(KmMenuItem& item, long before)
 {
-	if (item.command<1 || !item.label[0]) {
+	if ((item.command<1) ^ !item.label[0]) {
 		RemoveItem(item);
 		return;
 	}
@@ -111,9 +112,10 @@ void KmMenu::AddItem(KmMenuItem& item, long before)
 			mMenuDef.GetNext(pos);
 		}
 
-		KmMenu* iMenu = theApp.menus.GetKMenu(item.label);
+		USES_CONVERSION;
+		KmMenu* iMenu = theApp.menus.GetKMenu(A2CT(item.label));
 		if (!iMenu) {
-			iMenu = theApp.menus.CreateMenu(item.label);
+			iMenu = theApp.menus.CreateMenu(A2CT(item.label));
 			iMenu->mDependencies.AddHead(this);
 		}
 	}
@@ -158,8 +160,9 @@ void KmMenu::AddItem(KmMenuItem& item, long before)
 
 BOOL KmMenu::Build()
 {
-	if (mMenu.m_hMenu)
+	if (mMenu.m_hMenu) {
 		Reset();
+	}
 	else {
 		if (mPopup) mMenu.CreatePopupMenu();
 		else mMenu.CreateMenu();
@@ -170,7 +173,7 @@ BOOL KmMenu::Build()
 	if (!Build(mMenu, -1))
 		return FALSE;
 
-	if (this == theApp.menus.GetKMenu("Main"))
+	if (this == theApp.menus.GetKMenu(_T("Main")))
 	{
 		CFrameWnd* pBrowserFrame = NULL;
 		POSITION pos = theApp.m_FrameWndLst.GetHeadPosition();
@@ -347,7 +350,7 @@ void KmMenuService::SetMenu(LPCTSTR menu, KmMenuItem item, long before)
 
 	// Delete by command
 	if (!item.label[0]) {
-		kmenu->menu.RemoveMenu(item.command, MF_BYCOMMAND);
+	kmenu->menu.RemoveMenu(item.command, MF_BYCOMMAND);
 		return;
 	}
 
