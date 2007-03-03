@@ -187,12 +187,12 @@ BOOL CBrowserFrame::PreTranslateMessage(MSG* pMsg)
          }
       }
 	  // Prevent accels to interfere with input controls
-	  else if (pMsg->wParam >= VK_PRIOR && pMsg->wParam <= VK_DOWN) {
-         if (m_wndBrowserView.InputHasFocus())
+ 	  else if (pMsg->wParam >= VK_PRIOR && pMsg->wParam <= VK_DOWN) {
+         if ( !m_wndBrowserView.IsChild(GetFocus()) || m_wndBrowserView.InputHasFocus() )
             return 0;
       }
 	  else if (MapVirtualKey(pMsg->wParam, 2  /*MAPVK_VK_TO_CHAR*/) != 0) {
-         if (!(GetKeyState(VK_CONTROL) & 0x8000) && m_wndBrowserView.InputHasFocus())
+         if (!(GetKeyState(VK_CONTROL) & 0x8000) && (!m_wndBrowserView.IsChild(GetFocus()) || m_wndBrowserView.InputHasFocus()))
             return 0;
       }
 
@@ -1359,8 +1359,8 @@ HACCEL CBrowserFrame::GetDefaultAccelerator()
 void CBrowserFrame::OnInitMenuPopup(CMenu* pPopupMenu, UINT nIndex, BOOL bSysMenu)
 {
 	// This will rebuild the menu if needed
-	//KmMenu* kmenu = theApp.menus.GetKMenu(pPopupMenu); 
-	//if (kmenu) kmenu->GetMenu();
+	KmMenu* kmenu = theApp.menus.GetKMenu(pPopupMenu); 
+	if (kmenu) kmenu->GetMenu();
 	CFrameWnd::OnInitMenuPopup(pPopupMenu, nIndex, bSysMenu);
 }
 
