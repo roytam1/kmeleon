@@ -702,15 +702,20 @@ void CBrowserFrame::BrowserFrameGlueObj::ShowContextMenu(PRUint32 aContextFlags,
         }
     }
 
-	 TCHAR *menuType = _T("<nothing>");
+     TCHAR *menuType = _T("<nothing>");
 
-	 CString selection;
-	 pThis->m_wndBrowserView.GetSelection(selection);
-	 if (selection.GetLength()) 
-		 menuType = _T("SelectedText");
+     CString selection;
+     pThis->m_wndBrowserView.GetSelection(selection);
+
+     if ( !(aContextFlags & nsIContextMenuListener2::CONTEXT_LINK) &&
+          !(aContextFlags & nsIContextMenuListener2::CONTEXT_IMAGE) &&
+		  selection.GetLength() )
+     {
+          menuType = _T("SelectedText");
+     }
 	 else {
-    
-    if (!bContentHasFrames) {
+
+	 if (!bContentHasFrames) {
         switch (nIDResource) {
         case IDR_CTXMENU_DOCUMENT:
             menuType = _T("DocumentPopup");
