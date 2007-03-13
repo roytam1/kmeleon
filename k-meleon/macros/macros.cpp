@@ -470,6 +470,7 @@ bool LoadDir(TCHAR* macrosDir)
 			continue;
 
 		char prefload[MAX_PATH+40];
+		CharLowerBuff(FindFileData.cFileName, MAX_PATH);
 		strcpy(prefload, "kmeleon.plugins.macros.modules.");
 		strncat(prefload, FindFileData.cFileName, strrchr(FindFileData.cFileName, '.')-FindFileData.cFileName); //uni
 		strcat(prefload, ".load");
