@@ -187,7 +187,7 @@ BOOL CBrowserFrame::PreTranslateMessage(MSG* pMsg)
          }
       }
 	  // Prevent accels to interfere with input controls
- 	  else if (pMsg->wParam >= VK_PRIOR && pMsg->wParam <= VK_DOWN) {
+ 	  else if (pMsg->wParam >= VK_END && pMsg->wParam <= VK_DOWN) {
          if ( !m_wndBrowserView.IsChild(GetFocus()) || m_wndBrowserView.InputHasFocus() )
             return 0;
       }

@@ -57,6 +57,7 @@
 #include "nsIDOMHTMLInputElement.h"
 #include "nsIDOMHTMLEmbedElement.h"
 #include "nsIDOMHTMLObjectElement.h"
+#include "nsITypeAheadFind.h"
 
 #include "UnknownContentTypeHandler.h"
 #include "nsCWebBrowserPersist.h"
@@ -1332,6 +1333,13 @@ BOOL CBrowserView::InputHasFocus()
 	nsCOMPtr<nsIDOMHTMLObjectElement> object = do_QueryInterface(element);
 	if (object) return TRUE;
 	
+	nsCOMPtr<nsITypeAheadFind> taFinder = do_GetService(NS_TYPEAHEADFIND_CONTRACTID);
+	if (taFinder) {
+		PRBool active = PR_FALSE;
+		taFinder->GetIsActive(&active);
+		if (active) return TRUE;
+	}
+
 	return FALSE;
 }
 
