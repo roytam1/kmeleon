@@ -161,7 +161,8 @@ void CACListBox::AutoComplete(CString& text)
 {
 	AutoCompleteResult *results = NULL;
 
-	int count = theApp.plugins.SendMessage("*", "Urlbar", "AutoComplete", (long)text.GetBuffer(0), (long)&results);
+	USES_CONVERSION;
+	int count = theApp.plugins.SendMessage("*", "Urlbar", "AutoComplete", (long)T2CA(text), (long)&results);
 	ResetContent();
 	
 	if (count && results)
