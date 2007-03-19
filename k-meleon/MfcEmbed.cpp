@@ -125,7 +125,8 @@ CMfcEmbedApp::CMfcEmbedApp()
 
    m_bFirstWindowCreated = FALSE;
    m_pMostRecentBrowserFrame  = NULL;
-   m_toolbarControlsMenu = NULL;     
+   m_toolbarControlsMenu = NULL; 
+   m_hResDll = NULL;
 }
 
 CMfcEmbedApp theApp;
@@ -256,7 +257,70 @@ bool CMfcEmbedApp::FindSkinFile( CString& szSkinFile, TCHAR *filename )
 	return false;
 }
 
-#include <shlwapi.h>
+#define FIREFOX_CHROME
+
+#ifdef FIREFOX_CHROME
+BOOL CMfcEmbedApp::LoadLanguage()
+{
+   nsresult rv;
+   nsCOMPtr<nsIPref> prefs = do_GetService(NS_PREF_CONTRACTID, &rv);
+   NS_ENSURE_SUCCESS(rv, FALSE);
+
+   nsEmbedString nslocale;
+   rv = prefs->CopyUnicharPref("general.useragent.locale", getter_Copies(nslocale));
+   NS_ENSURE_SUCCESS(rv, FALSE);
+
+   USES_CONVERSION;
+   CString locale = W2CT(nslocale.get());
+   CString localeFolder = m_sRootFolder + CString("\\locales\\") + locale + CString("\\");
+   CString resDll = localeFolder + CString("kmeleon.dll");
+
+   HINSTANCE hInstResDll = ::LoadLibrary(resDll);
+   if (!hInstResDll) return FALSE;
+
+   // Check dll version
+   CString version, versiondll;
+   version.LoadString(IDS_LANG_VERSION);
+#if _MSC_VER >= 1300 
+   versiondll.LoadString(hInstResDll, IDS_LANG_VERSION);
+#else
+   LoadString(hInstResDll, IDS_LANG_VERSION, versiondll.GetBuffer(10), 10);
+   versiondll.ReleaseBuffer();
+#endif
+   if (version.Compare(versiondll) != 0) {
+      ::FreeLibrary(hInstResDll);
+      return FALSE;
+   }
+
+   CFile file;
+   if (!file.Open(localeFolder + CString("kmeleon.kml"), CFile::modeRead, NULL)) {
+      ::FreeLibrary(hInstResDll);
+      return FALSE;
+   }
+   file.Close();
+   
+   CFileFind finder;
+   CString langFile, pattern = localeFolder + CString("*.kml");
+   BOOL bWorking = finder.FindFile(pattern);
+   while (bWorking) {
+      bWorking = finder.FindNextFile();
+      langFile = finder.GetFilePath();
+	  lang.Load(langFile);
+   }
+
+   AfxSetResourceHandle(hInstResDll);
+#if _MSC_VER >= 1300 
+   _AtlBaseModule.SetResourceInstance(hInstResDll);
+#endif
+
+   if (m_hResDll && m_hResDll!=hInstResDll)
+      FreeLibrary(m_hResDll);
+   m_hResDll = hInstResDll;
+   
+   return TRUE;
+}
+
+#else
 
 BOOL CMfcEmbedApp::LoadLanguage()
 {
@@ -318,6 +382,7 @@ BOOL CMfcEmbedApp::LoadLanguage()
 #endif
    return TRUE;
 }
+#endif
 
 // Initialize our MFC application and also init
 // the Gecko embedding APIs
@@ -329,7 +394,10 @@ BOOL CMfcEmbedApp::LoadLanguage()
 
 BOOL CMfcEmbedApp::InitInstance()
 {
+#ifndef FIREFOX_CHROME
 	LoadLanguage();
+#endif
+
 #ifdef _DEBUG
 	ShowDebugConsole();
 #endif
@@ -434,6 +502,10 @@ BOOL CMfcEmbedApp::InitInstance()
       return FALSE;
    }
    
+#ifdef FIREFOX_CHROME
+   LoadLanguage();
+#endif
+
    rv = OverrideComponents();
    if(NS_FAILED(rv)) 
    {
@@ -454,6 +526,10 @@ BOOL CMfcEmbedApp::InitInstance()
       NS_TermEmbedding();
       return FALSE;
    }
+
+#ifdef FIREFOX_CHROME
+   LoadLanguage();
+#endif
 
    // These have to be done in this order!
    InitializeDefineMap();
@@ -960,6 +1036,7 @@ int CMfcEmbedApp::ExitInstance()
 #endif
 
    plugins.UnLoadAll();
+   if (m_hResDll) FreeLibrary(m_hResDll);
    
    return 1;
 }
