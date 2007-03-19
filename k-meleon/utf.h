@@ -22,7 +22,7 @@
 #include <stdlib.h>
 
 #ifndef STACK_BUFFER_SIZE
-#define STACK_BUFFER_SIZE 256
+#define STACK_BUFFER_SIZE 128
 #endif
 
 inline size_t utf16_to_utf8(const wchar_t* src, char* dst, unsigned len)
@@ -187,17 +187,17 @@ inline size_t utf8_to_utf16(const char* src, wchar_t* dst, unsigned len)
 }
 
 
-inline size_t ansi_to_utf16(const char* src, wchar_t* dst, unsigned len)
+inline size_t ansi_to_utf16(const char* src, wchar_t* dst, size_t len)
 {
 	return MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, src, -1, dst, len);
 }
 
-inline size_t utf16_to_ansi(const wchar_t* src, char* dst, unsigned len)
+inline size_t utf16_to_ansi(const wchar_t* src, char* dst, size_t len)
 {
 	return WideCharToMultiByte(CP_ACP, WC_COMPOSITECHECK, src, -1, dst, len, "_", NULL);
 }
 
-inline size_t ansi_to_utf8(const char* src, char* dst, unsigned len)
+inline size_t ansi_to_utf8(const char* src, char* dst, size_t len)
 {
 	wchar_t s_unicode[STACK_BUFFER_SIZE];
 
@@ -209,12 +209,12 @@ inline size_t ansi_to_utf8(const char* src, char* dst, unsigned len)
 	if (!ansi_to_utf16(src, unicode, lengthDst))
 		return 0;
 	
-	unsigned result = utf16_to_utf8(unicode, dst, len);
+	size_t result = utf16_to_utf8(unicode, dst, len);
 	if (unicode != s_unicode) free(unicode);
 	return result;
 }
 
-inline size_t utf8_to_ansi(const char* src, char* dst, unsigned len)
+inline size_t utf8_to_ansi(const char* src, char* dst, size_t len)
 {
 	wchar_t s_unicode[STACK_BUFFER_SIZE];
 
@@ -226,7 +226,7 @@ inline size_t utf8_to_ansi(const char* src, char* dst, unsigned len)
 	if (!utf8_to_utf16(src, unicode, lengthDst))
 		return 0;
         
-	unsigned result = utf16_to_ansi(unicode, dst, len);
+	size_t result = utf16_to_ansi(unicode, dst, len);
 	if (unicode != s_unicode) free(unicode);
 	return result;
 }
@@ -257,7 +257,7 @@ inline char* utf8_from_utf16(const wchar_t* utf16)
 
 inline wchar_t* utf16_from_utf8(const char* utf8)
 {
-	unsigned lengthDst = strlen(utf8) + 1;
+	size_t lengthDst = strlen(utf8) + 1;
 	wchar_t* utf16 = (wchar_t*)malloc(sizeof(wchar_t) * lengthDst);
 	utf8_to_utf16(utf8, utf16, lengthDst);
 	return utf16;

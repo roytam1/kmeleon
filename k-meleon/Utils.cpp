@@ -95,7 +95,7 @@ char *SkipWhiteSpace(char *string)
 //  note, this modifies the string passed to it, so make
 //  a copy if you need to reference the original
 
-int CondenseString(TCHAR *buf, int size)
+int CondenseString(TCHAR *buf, size_t size)
 {
 	size_t firstlen, secondlen, len;
    TCHAR *read, *write;

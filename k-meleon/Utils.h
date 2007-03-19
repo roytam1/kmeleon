@@ -23,7 +23,7 @@
 void TranslateTabs(char *buffer);
 void TrimWhiteSpace(char *string);
 char *SkipWhiteSpace(char *string);
-int CondenseString(char *buf, int size);
+int CondenseString(char *buf, size_t size);
 char *fixString(const char *inString, int size);
 long FileSize(FILE *file);
 char* nsUnescape(char * str);
