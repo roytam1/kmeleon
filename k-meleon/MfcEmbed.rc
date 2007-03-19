@@ -1619,7 +1619,7 @@ END
 
 STRINGTABLE 
 BEGIN
-    IDS_LANG_VERSION        "1.1.0.0"
+    IDS_LANG_VERSION        "1.1.0.3"
     IDS_LOCALE_ID           "en-US"
 END
 
@@ -1638,7 +1638,7 @@ BEGIN
     IDS_SAVEPAGE_SUFFIX     "_files"
     IDS_UNKNOW_TYPE         "%s Files"
     IDS_KMELEON_UPDATE      "K-Meleon Update"
-    IDS_UPDATE_11           "The new version of K-Meleon includes improvements which make the old configuration files incompatible. You can choose to backup those files or to delete them. If you didn't made any change to those files you can safely delete them. Note that your bookmarks, passwords, and general browser settings are safe and will not be lost.\n\nPress Yes to backup, No to delete your configuration."
+    IDS_UPDATE_11           "This new version of K-Meleon includes improvements which make the old configuration files incompatible. You can choose to backup those files or to delete them. If you didn't made any change to those files you can safely delete them. Note that your bookmarks, passwords, and general browser settings are safe and will not be lost.\n\nPress Yes to backup, No to delete your configuration."
     IDS_PASSWORD            "Password:"
     IDS_USERNAME            "User Name:"
 END
@@ -1647,6 +1647,7 @@ STRINGTABLE
 BEGIN
     IDS_UPDATE11_SUCCESS    "Your configuration files where successfully moved in the Backup folder of your profile."
     IDS_UPDATE11_FAIL       "Your configuration files could not be moved and may prevent k-meleon to function correctly."
+    IDS_PLUGIN_NO_CONFIG    "This plugin has no user configurable options."
 END
 
 #endif    // Anglais (États-Unis) resources

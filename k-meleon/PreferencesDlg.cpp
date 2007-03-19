@@ -548,7 +548,8 @@ void CPreferencePagePlugins::OnConfig() {
 
    kmeleonPlugin * kPlugin = (kmeleonPlugin*)(m_pluginList.GetItemData(item));
    if (kPlugin->loaded) {
-      theApp.plugins.SendMessage(kPlugin->dllname, "* Prefs Page", "Config", (long)this->m_hWnd);
+      if (!theApp.plugins.SendMessage(kPlugin->dllname, "* Prefs Page", "Config", (long)this->m_hWnd))
+         AfxMessageBox(IDS_PLUGIN_NO_CONFIG);
     }
    else
       AfxMessageBox(IDS_PLUGIN_NOT_LOADED);
