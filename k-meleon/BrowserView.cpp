@@ -705,7 +705,7 @@ void CBrowserView::OnUrlSelectedInUrlBar()
       OpenViewSourceWindow(strUrl.GetBuffer(0));
    else {
        CString urls = NicknameLookup(strUrl);
-       OpenMultiURL(urls.GetBuffer(0));
+       OpenMultiURL(urls.GetBuffer(0), TRUE);
    }
 }
 
