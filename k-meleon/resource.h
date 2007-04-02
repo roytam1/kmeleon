@@ -537,6 +537,11 @@
 #define IDS_UPDATE11_SUCCESS            61312
 #define IDS_UPDATE11_FAIL               61313
 #define IDS_PLUGIN_NO_CONFIG            61314
+#define IDS_HEADER_SITE                 61315
+#define IDS_HEADER_NAME                 61316
+#define IDS_HEADER_STATE                61317
+#define IDS_HEADER_USERNAME             61318
+#define IDS_HEADER_PASSWORD             61319
 #define IDS_LANG_VERSION                62000
 #define IDS_LOCALE_ID                   62001
 

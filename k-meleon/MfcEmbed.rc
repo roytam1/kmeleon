@@ -1648,6 +1648,11 @@ BEGIN
     IDS_UPDATE11_SUCCESS    "Your configuration files where successfully moved in the Backup folder of your profile."
     IDS_UPDATE11_FAIL       "Your configuration files could not be moved and may prevent k-meleon to function correctly."
     IDS_PLUGIN_NO_CONFIG    "This plugin has no user configurable options."
+    IDS_HEADER_SITE         "Site"
+    IDS_HEADER_NAME         "Name"
+    IDS_HEADER_STATE        "State"
+    IDS_HEADER_USERNAME     "Username"
+    IDS_HEADER_PASSWORD     "Password"
 END
 
 #endif    // Anglais (États-Unis) resources

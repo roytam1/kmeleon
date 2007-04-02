@@ -1188,7 +1188,7 @@ BOOL CPlugins::TestLoad(LPCTSTR file, const char *description)
       title.LoadString(IDS_NEW_PLUGIN_FOUND_TITLE);
       message.Format(IDS_NEW_PLUGIN_FOUND, theApp.lang.Translate(A2CT(description)));
 
-      if (MessageBox(NULL, message, _T("Plugin found"), MB_YESNO) == IDYES)
+      if (MessageBox(NULL, message, title, MB_YESNO) == IDYES)
          load = 1;
       else
          load = 0;
