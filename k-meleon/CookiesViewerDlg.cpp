@@ -75,8 +75,11 @@ BOOL CCookiesViewerDlg::OnInitDialog()
 		return TRUE;
 	}
 
-	m_cCookiesList.InsertColumn(0, _T("Site"), LVCFMT_LEFT, 0, 0);
-	m_cCookiesList.InsertColumn(1, _T("Name"), LVCFMT_LEFT, 0, 1);
+	CString header;
+	header.LoadString(IDS_HEADER_SITE);
+	m_cCookiesList.InsertColumn(0, header, LVCFMT_LEFT, 0, 0);
+	header.LoadString(IDS_HEADER_NAME);
+	m_cCookiesList.InsertColumn(1, header, LVCFMT_LEFT, 0, 1);
 
 	m_cCookiesList.SetExtendedStyle(LVS_EX_FULLROWSELECT);
 

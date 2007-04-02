@@ -111,8 +111,11 @@ BOOL CPermissionsDlg::OnInitDialog()
 {
 	CDialog::OnInitDialog();
 
-	m_cPermissionsList.InsertColumn(0, _T("Site"), LVCFMT_LEFT, 0, 0);
-	m_cPermissionsList.InsertColumn(1, _T("State"), LVCFMT_LEFT, 0, 1);
+	CString header;
+	header.LoadString(IDS_HEADER_SITE);
+	m_cPermissionsList.InsertColumn(0, header, LVCFMT_LEFT, 0, 0);
+	header.LoadString(IDS_HEADER_STATE);
+	m_cPermissionsList.InsertColumn(1, header, LVCFMT_LEFT, 0, 1);
 
 	m_cPermissionsList.SetExtendedStyle(LVS_EX_FULLROWSELECT);
 

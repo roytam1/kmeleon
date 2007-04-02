@@ -65,7 +65,9 @@ BOOL CPasswordViewerDlg::OnInitDialog()
 	CDialog::OnInitDialog();
 	CButton* radio = (CButton*)GetDlgItem(IDC_RADIO1);
 		
-	m_cPasswordsList.InsertColumn(0, _T("Site"), LVCFMT_LEFT, 0, 0);
+	CString header;
+	header.LoadString(IDS_HEADER_SITE);
+	m_cPasswordsList.InsertColumn(0, header, LVCFMT_LEFT, 0, 0);
 	m_cPasswordsList.SetExtendedStyle(LVS_EX_FULLROWSELECT);
 
 	m_reject = TRUE;
@@ -141,8 +143,11 @@ void CPasswordViewerDlg::OnBnClickedRadio1()
 	m_cPasswordsList.DeleteAllItems();
 	EmptyList();
 
-	m_cPasswordsList.InsertColumn(1, _T("Username"), LVCFMT_LEFT, 0, 1);
-	m_cPasswordsList.InsertColumn(2, _T("Passwords"), LVCFMT_LEFT, 0, 1);
+	CString header;
+	header.LoadString(IDS_HEADER_USERNAME);
+	m_cPasswordsList.InsertColumn(1, header, LVCFMT_LEFT, 0, 1);
+	header.LoadString(IDS_HEADER_PASSWORD);
+	m_cPasswordsList.InsertColumn(2, header, LVCFMT_LEFT, 0, 1);
 
 	rv = m_passwordManager->GetEnumerator(getter_AddRefs(enumPassword));
 	if (NS_FAILED(rv)) return;
