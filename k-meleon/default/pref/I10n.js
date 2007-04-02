@@ -1,7 +1,8 @@
 /********************************************************************************************************/
 // Locale default pref for k-meleon 
 /********************************************************************************************************/
-
+pref("general.useragent.locale", "en-US");
+pref("general.useragent.contentlocale", "US");
 
 /********************************************************************************************************/
 // Appearance
@@ -34,19 +35,21 @@ pref("kmeleon.print.paperHeight", "11,0");
 /********************************************************************************************************/
 // Privacy
 
-pref("kmeleon.privacy.useragent0.name", "K-Meleon 1.0 (Default)");
-pref("kmeleon.privacy.useragent0.string", "");
-pref("kmeleon.privacy.useragent1.name", "MSIE 6.0");
-pref("kmeleon.privacy.useragent1.string", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
-pref("kmeleon.privacy.useragent2.name", "Netscape 8.1");
-pref("kmeleon.privacy.useragent2.string", "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.7.5) Gecko/20060127 Netscape/8.1");
-pref("kmeleon.privacy.useragent3.name", "Opera 7.54");
-pref("kmeleon.privacy.useragent3.string", "Opera/7.54 (Windows NT 5.1; U) [en]");
+pref("kmeleon.privacy.useragent1.name", "Firefox 2.0");
+pref("kmeleon.privacy.useragent1.string", "Mozilla/5.0 (Windows; U; Windows NT 5.0; en-US; rv:1.8.1) Gecko/20061010 Firefox/2.0");
+pref("kmeleon.privacy.useragent2.name", "MSIE 6.0");
+pref("kmeleon.privacy.useragent2.string", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
+pref("kmeleon.privacy.useragent3.name", "Netscape 8.1");
+pref("kmeleon.privacy.useragent3.string", "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.7.5) Gecko/20060127 Netscape/8.1");
+pref("kmeleon.privacy.useragent4.name", "Opera 7.54");
+pref("kmeleon.privacy.useragent4.string", "Opera/7.54 (Windows NT 5.1; U) [en]");
 
 
 /********************************************************************************************************/
 
 pref("intl.charset.detector", "universal_charset_detector");
+
+// Make sure this engine is defined in search.xml!
 pref("keyword.URL", "http://www.google.com/search?gfns=1&q=");
 
 
@@ -68,19 +71,23 @@ pref("kmeleon.plugins.macros.domComplete1.suffix", ".net");
 pref("kmeleon.plugins.macros.domComplete2.prefix", "www.");
 pref("kmeleon.plugins.macros.domComplete2.suffix", ".org");
 
+// URL Bar access key: Alt+? (set to the key used in IE)
+pref("kmeleon.plugins.macros.accel.urlbar.access", "D");
+
 
 /********************************************************************************************************/
 // Web Search
 
-// Default Search Engine URL  (MUST be one out of kmeleon.plugins.macros.search.engine[0..9].url)
+// Default Search Engine URL  (MUST be one out of kmeleon.plugins.macros.search.engine[0..?].url)
 pref("kmeleon.general.searchEngine", "http://www.google.com/search?q=");
-// Default Search Engine Name (MUST be one out of kmeleon.plugins.macros.search.engine[0..9].name)
+// Default Search Engine Name (MUST be one out of kmeleon.plugins.macros.search.engine[0..?].name)
 pref("kmeleon.general.searchEngineName", "Google");
 
 // K-Meleon Forums Search
-pref("kmeleon.plugins.macros.search.kmforums", "http://kmeleon.sourceforge.net/forum/search.php?f=3&globalsearch=1&match=1&date=0&fldsubject=1&fldbody=1&search=");
+pref("kmeleon.plugins.macros.search.kmforums", "http://kmeleon.sourceforge.net/forum/search.php?0,page=1,match_type=ALL,match_dates=30,match_forum=ALL,search=");
 
-// Web Search (engine[0..9] REQUIRED as far as macros are present in menus)
+// Web Search (engine[0..POSITIVE_INFINITY] possible)
+// Make sure these engines are defined in search.xml!
 pref("kmeleon.plugins.macros.search.engine0.name", "Google");
 pref("kmeleon.plugins.macros.search.engine0.url", "http://www.google.com/search?q=");
 pref("kmeleon.plugins.macros.search.engine1.name", "Google Images");
@@ -102,7 +109,8 @@ pref("kmeleon.plugins.macros.search.engine8.url", "http://www.scholar.google.com
 pref("kmeleon.plugins.macros.search.engine9.name", "Internet Movie Database (English)");
 pref("kmeleon.plugins.macros.search.engine9.url", "http://www.imdb.com/find?q=");
 
-// Metasearch (meta[0..9] possible)
+// Metasearch (meta[0..POSITIVE_INFINITY] possible)
+// Make sure these engines are defined in search.xml!
 pref("kmeleon.plugins.macros.search.meta0.url", "http://www.google.com/search?num=100&q=");
 pref("kmeleon.plugins.macros.search.meta1.url", "http://search.msn.com/results.aspx?q=");
 pref("kmeleon.plugins.macros.search.meta2.url", "http://search.yahoo.com/bin/search?p=");
