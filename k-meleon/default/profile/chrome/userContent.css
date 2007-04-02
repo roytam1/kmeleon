@@ -7,15 +7,22 @@
  */
 
 /*
+ * example: use OS colors if none are specified (like IE)
+ *
+ * body * { color: inherit; background-color: transparent; }
+ * html > *, input, textarea { color: WindowText; background-color: Window; }
+ */
+
+/*
  * example: make K-Meleon center pages' images and linked images
  *
- * body.km_lstLinkedImages li, body.km_lstImages li { text-align: center; }
+ * body.km_DocInfo_lstLinkedImages li, body.km_DocInfo_lstImages li { text-align: center; }
  */
 
 /*
  * example: make K-Meleon not enumerate pages' images and linked images
  *
- * body.km_lstLinkedImages ol, body.km_lstImages ol { list-style-type: none; }
+ * body.km_DocInfo_lstLinkedImages ol, body.km_DocInfo_lstImages ol { list-style-type: none; }
  */
 
 /*

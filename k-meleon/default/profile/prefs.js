@@ -8,3 +8,4 @@
  */
 
 
+user_pref("kmeleon.plugins.bookmarks.load", true);
