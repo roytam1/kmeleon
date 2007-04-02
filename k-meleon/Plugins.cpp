@@ -1186,7 +1186,7 @@ BOOL CPlugins::TestLoad(LPCTSTR file, const char *description)
    if (load == -1) {
       CString message, title;
       title.LoadString(IDS_NEW_PLUGIN_FOUND_TITLE);
-      message.Format(IDS_NEW_PLUGIN_FOUND, A2CT(description));
+      message.Format(IDS_NEW_PLUGIN_FOUND, theApp.lang.Translate(A2CT(description)));
 
       if (MessageBox(NULL, message, _T("Plugin found"), MB_YESNO) == IDYES)
          load = 1;
@@ -1267,7 +1267,7 @@ kmeleonPlugin * CPlugins::Load(CString file)
 
    if (kPlugin->version < KMEL_PLUGIN_VER_MAJOR) {
       CString error;
-      error.Format(IDS_OLD_PLUGIN, kPlugin->description);
+      error.Format(IDS_OLD_PLUGIN, theApp.lang.Translate(A2CT(kPlugin->description)));
       AfxMessageBox(error);
       loaded = false;
    }
