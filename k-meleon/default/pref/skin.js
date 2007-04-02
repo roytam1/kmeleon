@@ -36,7 +36,7 @@ pref("kmeleon.toolband.URL Bar.size", 536);
 pref("kmeleon.toolband.URL Bar.visibility", true);
 pref("kmeleon.toolband.&Zoom Buttons.break", 0);
 pref("kmeleon.toolband.&Zoom Buttons.index", 5);
-pref("kmeleon.toolband.&Zoom Buttons.size", 59);
+pref("kmeleon.toolband.&Zoom Buttons.size", 60);
 pref("kmeleon.toolband.&Zoom Buttons.visibility", true);
 pref("kmeleon.toolband.Bookmarks.break", 1);
 pref("kmeleon.toolband.Bookmarks.index", 9);

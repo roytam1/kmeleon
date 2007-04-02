@@ -5,7 +5,13 @@
 //pref("kmeleon.display.title", "K-Meleon");			// I10n.js
 //pref("kmeleon.display.URLbarTitle", "URL:");			// I10n.js
 
+pref("kmeleon.urlbar.dropdown_lines", 10);
+
 pref("kmeleon.toolband.Throbber.visibility", true);
+
+// Firefox MIME Type Editor
+pref("browser.download.show_plugins_in_list", true);
+pref("browser.download.hide_plugins_without_extensions", true);
 
 
 /********************************************************************************************************/
@@ -42,6 +48,7 @@ pref("kmeleon.plugins.favorites.sortOrder", 17);
 //pref("kmeleon.plugins.favorites.title", "Links:");		// I10n.js
 //pref("kmeleon.plugins.favorites.toolbarFolder", "Links");	// I10n.js
 
+//pref("kmeleon.plugins.fullscreen.load", true);		// kmeleon.js
 pref("kmeleon.plugins.fullscreen.auto", false);
 pref("kmeleon.plugins.fullscreen.hide_rebar", true);
 pref("kmeleon.plugins.fullscreen.hide_statusbar", true);
@@ -65,6 +72,7 @@ pref("kmeleon.plugins.hotlist.rebar", false);
 pref("kmeleon.plugins.hotlist.sortOrder", 209);
 
 //pref("kmeleon.plugins.layers.load", true);			// kmeleon.js
+pref("kmeleon.plugins.layers.autoHide", false);
 pref("kmeleon.plugins.layers.catchOpen", false);
 //pref("kmeleon.plugins.layers.confirmClose", true);		// kmeleon.js
 pref("kmeleon.plugins.layers.maxWidth", 35);
@@ -81,14 +89,13 @@ pref("kmeleon.plugins.layers.onOpenOption", 0);
 // Macros
 
 // Hotlinks
-pref("kmeleon.plugins.macros.hotlink0.new", true);
-pref("kmeleon.plugins.macros.hotlink1.new", true);
-pref("kmeleon.plugins.macros.hotlink2.new", true);
-pref("kmeleon.plugins.macros.hotlink3.new", true);
-pref("kmeleon.plugins.macros.hotlink4.new", true);
-pref("kmeleon.plugins.macros.hotlink5.new", true);
-pref("kmeleon.plugins.macros.hotlink6.new", true);
-pref("kmeleon.plugins.macros.hotlink7.new", true);
-pref("kmeleon.plugins.macros.hotlink8.new", true);
-pref("kmeleon.plugins.macros.hotlink9.new", true);
-
+pref("kmeleon.plugins.macros.hotlink0.new", false);
+pref("kmeleon.plugins.macros.hotlink1.new", false);
+pref("kmeleon.plugins.macros.hotlink2.new", false);
+pref("kmeleon.plugins.macros.hotlink3.new", false);
+pref("kmeleon.plugins.macros.hotlink4.new", false);
+pref("kmeleon.plugins.macros.hotlink5.new", false);
+pref("kmeleon.plugins.macros.hotlink6.new", false);
+pref("kmeleon.plugins.macros.hotlink7.new", false);
+pref("kmeleon.plugins.macros.hotlink8.new", false);
+pref("kmeleon.plugins.macros.hotlink9.new", false);
