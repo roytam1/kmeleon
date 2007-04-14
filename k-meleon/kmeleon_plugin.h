@@ -147,7 +147,7 @@ typedef struct {
    // sets the status bar text
    void (*SetStatusBarText)(const char *s);
 
-   int (*GetMozillaSessionHistory)(char **titles[], char **urls[], int *count, int *index);
+   int (*_GetMozillaSessionHistory)(char **titles[], char **urls[], int *count, int *index);
 	void (*GotoHistoryIndex)(UINT index);
 
    // Register a rebar band
@@ -278,6 +278,8 @@ typedef struct {
 	
 	UINT (*GetWindowVar) (HWND, WindowVarType, void*);
 	BOOL (*SetWindowVar) (HWND, WindowVarType, void*);
+	int (*GetMozillaSessionHistory) (HWND hWnd, char ***titles, char ***urls, int *count, int *index);
+	int (*SetMozillaSessionHistory) (HWND hWnd, const char **titles, const char **urls, int count, int index);
 
 
 } kmeleonFunctions;

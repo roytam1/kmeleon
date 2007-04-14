@@ -276,17 +276,59 @@ void SetStatusBarText(const char *s) {
      theApp.m_pMostRecentBrowserFrame->m_wndStatusBar.SetPaneText(0, A2CT(s));
 }
 
-int GetMozillaSessionHistory (char ***titles, char ***urls, int *count, int *index)
+#include "nsISHistoryInternal.h"
+#include "MozUtils.h"
+
+int SetMozillaSessionHistory (HWND hWnd, const char **titles, const char **urls, int count, int index)
+{
+   nsresult result;
+   if (count<1) return TRUE;
+
+   	CBrowserFrame *pBrowserFrame = (CBrowserFrame *)CWnd::FromHandle(hWnd);
+	if (!pBrowserFrame) pBrowserFrame = theApp.m_pMostRecentBrowserFrame;
+	if (!pBrowserFrame) return FALSE;
+
+   nsCOMPtr<nsISHistory> sHistory;
+   result = pBrowserFrame->m_wndBrowserView.mWebNav->GetSessionHistory(getter_AddRefs(sHistory));
+   if (!NS_SUCCEEDED (result) || (!sHistory)) return FALSE;
+
+   nsCOMPtr<nsISHistoryInternal> sHInternal(do_QueryInterface(sHistory));
+   NS_ENSURE_TRUE(sHInternal, FALSE);
+
+   PRInt32 shcount;
+   sHistory->GetCount(&shcount);
+   sHistory->PurgeHistory(shcount);
+
+   for (int i=0;i<count;i++)
+   {
+	   nsCOMPtr<nsISHEntry> newSHEntry = do_CreateInstance(NS_SHENTRY_CONTRACTID);
+	   if (newSHEntry) {
+		   nsCOMPtr<nsIURI> nsuri;
+		   NewURI(getter_AddRefs(nsuri), nsEmbedCString(urls[i]));
+		   if (!nsuri) continue;
+           
+		   USES_CONVERSION;
+           newSHEntry->Create(nsuri, nsEmbedString(A2CW(titles[i])), nsnull, nsnull, nsnull, nsEmbedCString(""));
+		   sHInternal->AddEntry(newSHEntry, PR_TRUE);
+	   }
+   }
+
+   pBrowserFrame->m_wndBrowserView.mWebNav->GotoIndex(index);
+   return TRUE;
+}
+
+int GetMozillaSessionHistory (HWND hWnd, char ***titles, char ***urls, int *count, int *index)
 {
    nsresult result;
    int i;
 
-   if (!theApp.m_pMostRecentBrowserFrame || !theApp.m_pMostRecentBrowserFrame->m_wndBrowserView.mWebNav) 
-      return FALSE;
-   
+    CBrowserFrame *pBrowserFrame = (CBrowserFrame *)CWnd::FromHandle(hWnd);
+	if (!pBrowserFrame) pBrowserFrame = theApp.m_pMostRecentBrowserFrame;
+	if (!pBrowserFrame) return FALSE;
+
    nsCOMPtr<nsISHistory> h;
 
-   result = theApp.m_pMostRecentBrowserFrame->m_wndBrowserView.mWebNav->GetSessionHistory(getter_AddRefs (h));
+   result = pBrowserFrame->m_wndBrowserView.mWebNav->GetSessionHistory(getter_AddRefs (h));
 
    if (!NS_SUCCEEDED (result) || (!h)) return FALSE;
    
@@ -355,6 +397,11 @@ int GetMozillaSessionHistory (char ***titles, char ***urls, int *count, int *ind
       *urls = pHistUrl;
 
    return TRUE;
+}
+
+int _GetMozillaSessionHistory (char ***titles, char ***urls, int *count, int *index)
+{
+   return GetMozillaSessionHistory(NULL, titles, urls, count, index);
 }
 
 void GotoHistoryIndex(UINT index)
@@ -1131,7 +1178,7 @@ kmeleonFunctions kmelFuncs = {
    _GetPreference,
    SetPreference,
    SetStatusBarText,
-   GetMozillaSessionHistory,
+   _GetMozillaSessionHistory,
    GotoHistoryIndex,
    RegisterBand,
    CreateToolbar,
@@ -1171,7 +1218,9 @@ kmeleonFunctions kmelFuncs = {
    SetMenu,
    RebuildMenu,
    GetWindowVar,
-   SetWindowVar
+   SetWindowVar,
+   GetMozillaSessionHistory,
+   SetMozillaSessionHistory
 };
 
 BOOL CPlugins::TestLoad(LPCTSTR file, const char *description)

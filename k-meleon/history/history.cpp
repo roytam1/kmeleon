@@ -346,7 +346,7 @@ void CreateBackMenu (HWND hWndParent, UINT button) {
    int index, count, i, limit;
    char **titles, **urls, buf[47];
    
-   if (!kPlugin.kFuncs->GetMozillaSessionHistory (&titles, &urls, &count, &index)) {
+   if (!kPlugin.kFuncs->_GetMozillaSessionHistory (&titles, &urls, &count, &index)) {
       return;
    }
    
@@ -373,7 +373,7 @@ void CreateForwardMenu (HWND hWndParent, UINT button) {
    int index, count, i, limit;
    char **titles, **urls, buf[47];
    
-   if (!kPlugin.kFuncs->GetMozillaSessionHistory (&titles, &urls, &count, &index)) {
+   if (!kPlugin.kFuncs->_GetMozillaSessionHistory (&titles, &urls, &count, &index)) {
       return;
    }
    
@@ -412,7 +412,7 @@ void UpdateHistoryMenu (HWND hWndParent) {
          DeleteMenu(ghMenu, i, MF_BYCOMMAND);
       
       // Add the local history to the menu
-      if (!kPlugin.kFuncs->GetMozillaSessionHistory (&titles, &urls, &count, &index)) return;
+      if (!kPlugin.kFuncs->_GetMozillaSessionHistory (&titles, &urls, &count, &index)) return;
       if (count > nHistoryLength) count = nHistoryLength;
       
       for (i=count-1;i>=0;i--) {
@@ -524,7 +524,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
          if ((command >= ID_HISTORY) && (command < ID_HISTORY+nHistoryLength)) {
             char **titles, **urls;
             int count, index;
-            if (kPlugin.kFuncs->GetMozillaSessionHistory (&titles, &urls, &count, &index)) {
+            if (kPlugin.kFuncs->_GetMozillaSessionHistory (&titles, &urls, &count, &index)) {
                kPlugin.kFuncs->SetStatusBarText(urls[command - ID_HISTORY]);
                return true;
             }
