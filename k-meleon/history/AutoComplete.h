@@ -65,6 +65,7 @@ NS_IMETHODIMP CACListener::OnAutoComplete(nsIAutoCompleteResults *result, AutoCo
 		m_ACIt = gACResults;
 		while (gACCountResults--){
 			free(m_ACIt->value);
+			free(m_ACIt->comment);
 			m_ACIt++;
 		}
 		free(gACResults);
@@ -128,6 +129,7 @@ int AutoComplete(char* aSearchString, AutoCompleteResult** results)
 	NS_CStringToUTF16(nsDependentCString(aSearchString),NS_CSTRING_ENCODING_NATIVE_FILESYSTEM,searchString);
 
 	if (!searchString.Equals(previousSearch)) {
+		previousSearch = searchString;
 		CACListener listener;
 
 		// I'm not using oldresult to partially fix a weird behavior
