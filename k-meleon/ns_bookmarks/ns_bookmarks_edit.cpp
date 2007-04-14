@@ -35,6 +35,7 @@
 #define KMELEON_PLUGIN_EXPORTS
 #include "../kmeleon_plugin.h"
 #include "../Utils.h"
+#include "../LocalesUtils.h"
 
 #include "../rebar_menu/hot_tracking.h"
 
@@ -453,7 +454,7 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
                   }
                   else {
                      TCHAR tmp[SEARCH_LEN+32];
-					 _stprintf(tmp, _Tr("Bookmarks -- Find: \"%s\""), str);
+					 _stprintf(tmp, gLoc->GetString(IDS_FIND), str);
                      SetWindowText( hEditWnd, tmp );
 
                      HTREEITEM hItem = TreeView_GetRoot(hTree);
@@ -558,7 +559,7 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
       len = 0;
       pos = 0;
       str[len] = 0;
-      SetWindowText( hEditWnd, _Tr("Bookmarks" ));
+      SetWindowText( hEditWnd, gLoc->GetString(IDS_BOOKMARKS));
       circling = 0;
    }
 
@@ -608,13 +609,14 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		 *workingBookmarks = *gBookmarkRoot;
          bookmarksEdited = false;
 
+		 CResString strAllBookmarks = gLoc->GetString(IDS_ALL_BOOKMARKS);
          TVINSERTSTRUCT tvis;
          tvis.hParent = NULL;
          tvis.hInsertAfter = NULL;
          tvis.itemex.mask = TVIF_TEXT | TVIF_PARAM | TVIF_IMAGE | TVIF_SELECTEDIMAGE;
          tvis.itemex.iImage = IMAGE_FOLDER_SPECIAL_CLOSED;
          tvis.itemex.iSelectedImage = IMAGE_FOLDER_SPECIAL_OPEN;
-         tvis.itemex.pszText = (TCHAR*)_Tr("All Bookmarks");
+         tvis.itemex.pszText = (TCHAR*)(const TCHAR*)strAllBookmarks;
          tvis.itemex.lParam = (long)workingBookmarks;
 
          HTREEITEM newItem = TreeView_InsertItem(hTree, &tvis);
@@ -710,7 +712,7 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                   SetDlgItemText(hDlg, IDC_LAST_VISIT, pszTmp);
                }
                else {
-                  SetDlgItemText(hDlg, IDC_LAST_VISIT, _Tr("Never"));
+                  SetDlgItemText(hDlg, IDC_LAST_VISIT, gLoc->GetString(IDS_NEVER));
                }
             }
             else {
@@ -977,9 +979,9 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                if (!zoom) {
                   if (bookmarksEdited) {
 
-					 if (MessageBox(hDlg, _Tr(BOOKMARKS_CANCEL_CHANGES), _Tr(BOOKMARKS_CANCEL_CAPTION), MB_OKCANCEL) == IDCANCEL)
+					 if (MessageBox(hDlg, gLoc->GetString(IDS_CANCEL_CHANGES), gLoc->GetString(IDS_CANCEL_CAPTION), MB_OKCANCEL) == IDCANCEL)
 						 return 0;
-						 
+						 /*
                      FILE *bmFile = _tfopen(gBookmarkFile, _T("r"));
                      if (bmFile){
                         long bmFileSize = FileSize(bmFile);
@@ -1001,8 +1003,8 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                            delete [] bmFileBuffer;
                         }
                         fclose(bmFile);
-                     }
-                  }
+                     }*/
+				  }
                   UnhookWindowsHookEx(hHook);
 
                   if (hWndFront)
@@ -1026,6 +1028,8 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
                   Rebuild();
                }
+			   else
+				   delete workingBookmarks;
 
                WINDOWPLACEMENT wp;
                wp.length = sizeof(wp);
@@ -1059,7 +1063,7 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                break;
 
             case ID_KEYBINDINGS:
-               MessageBox(hDlg, _Tr("Next/prev sibling\t\tAlt+Arrows\n\nMove item up/down\t\tShift+Arrows\n\nOpen item in browser\tEnter\n\nOpen item in background\tCtl+Enter\n\nEdit title\t\t\tF2\n\nDelete item\t\tCtl+D or Del\n\nNew bookmark\t\tCtl+N or Ins"), _Tr("Key-bindings"), MB_ICONINFORMATION | MB_OK);
+               MessageBox(hDlg, gLoc->GetString(IDS_KEYS_HELP), gLoc->GetString(IDS_KEYBINDINGS), MB_ICONINFORMATION | MB_OK);
                break;
             }
          }
@@ -1379,21 +1383,21 @@ static void CreateNewObject(HWND hTree, HTREEITEM fromItem, int type, int mode) 
 
    TVINSERTSTRUCT tvis;
    tvis.itemex.mask = TVIF_TEXT | TVIF_PARAM | TVIF_IMAGE | TVIF_SELECTEDIMAGE;
-
+   CResString strItem = gLoc->GetString(IDS_NEW_FOLDER);
    switch (type) {
    case BOOKMARK_BOOKMARK:
       if (mode == PASTE && freeNode) {
          newNode = freeNode;
          freeNode = NULL;
       } else
-         newNode = new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), _Tr("New Bookmark"), "http://kmeleon.sourceforge.net/", "", "", "", BOOKMARK_BOOKMARK, time(NULL));
-      tvis.itemex.pszText = (char*)newNode->text.c_str();
+         newNode = new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), gLoc->GetString(IDS_NEW_BOOKMARK), "http://kmeleon.sourceforge.net/", "", "", "", BOOKMARK_BOOKMARK, time(NULL));
+	  tvis.itemex.pszText = (char*)newNode->text.c_str();
       tvis.itemex.iImage = IMAGE_BOOKMARK;
       tvis.itemex.iSelectedImage = IMAGE_BOOKMARK;
       break;
    case BOOKMARK_FOLDER:
-      newNode = new CBookmarkNode(0, _Tr("New Folder"), "", "", "", "", BOOKMARK_FOLDER, time(NULL));
-      tvis.itemex.pszText = (TCHAR*)_Tr("New Folder");
+      newNode = new CBookmarkNode(0, gLoc->GetString(IDS_NEW_FOLDER), "", "", "", "", BOOKMARK_FOLDER, time(NULL));
+	  tvis.itemex.pszText = (TCHAR*)(const TCHAR*)strItem;
       tvis.itemex.iImage = IMAGE_FOLDER_CLOSED;
       tvis.itemex.iSelectedImage = IMAGE_FOLDER_OPEN;
       break;
@@ -1620,7 +1624,7 @@ static void OnRClick(HWND hTree)
    if (hItem) {
       TreeView_SelectItem(hTree, hItem);
 
-      HMENU topMenu = LoadMenu(kPlugin.hDllInstance, MAKEINTRESOURCE(IDR_CONTEXTMENU));
+      HMENU topMenu = gLoc->LoadMenu(IDR_CONTEXTMENU);
       HMENU contextMenu = GetSubMenu(topMenu, 0);
 
       CBookmarkNode *node = GetBookmarkNode(hTree, hItem);
@@ -1925,13 +1929,13 @@ static void ImportFavorites(HWND hTree) {
 /* new */
 
    // make new node for favorites (child off of WorkingBookmarks)
-   CBookmarkNode *newFavoritesNode = new CBookmarkNode(0, _Tr("Imported Favorites"), "", "", "", "", BOOKMARK_FOLDER, time(NULL));
+   CBookmarkNode *newFavoritesNode = new CBookmarkNode(0, gLoc->GetString(IDS_IMPORTED_FAVORITES), "", "", "", "", BOOKMARK_FOLDER, time(NULL));
    workingBookmarks->AddChild(newFavoritesNode);
 
    BuildFavoritesTree(FavoritesPath, "", newFavoritesNode);
 
    bookmarksEdited = true;
-
+   CResString strImpFav = gLoc->GetString(IDS_IMPORTED_FAVORITES);
    // Add the new folder to the TreeView
    TVINSERTSTRUCT tvis;
    tvis.hParent = TreeView_GetRoot(hTree);
@@ -1939,7 +1943,7 @@ static void ImportFavorites(HWND hTree) {
    tvis.itemex.mask = TVIF_TEXT | TVIF_PARAM | TVIF_IMAGE | TVIF_SELECTEDIMAGE;
    tvis.itemex.iImage = IMAGE_FOLDER_CLOSED;
    tvis.itemex.iSelectedImage = IMAGE_FOLDER_OPEN;
-   tvis.itemex.pszText = (TCHAR*)_Tr("Imported Favorites");
+   tvis.itemex.pszText = (TCHAR*)(const TCHAR*)strImpFav;
    tvis.itemex.lParam = (long)newFavoritesNode;
 
    HTREEITEM newItem = TreeView_InsertItem(hTree, &tvis);

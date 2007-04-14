@@ -26,6 +26,8 @@
 #define KMELEON_PLUGIN_EXPORTS
 #include "../kmeleon_plugin.h"
 #include "../Utils.h"
+#include "../LocalesUtils.h"
+Locale* gLoc;
 
 #define WHERE
 #include "ie_favorites.h"
@@ -106,6 +108,7 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
 
 
 int Load(){
+   gLoc = Locale::kmInit(&kPlugin);
    HDC hdcScreen = CreateDC("DISPLAY", NULL, NULL, NULL); 
    nHSize = GetDeviceCaps(hdcScreen, HORZSIZE);
    nHRes = GetDeviceCaps(hdcScreen, HORZRES);
@@ -364,7 +367,7 @@ BOOL CALLBACK PrefDlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 }
 
 void Config(HWND hWndParent){
-   DialogBoxParam(kPlugin.hDllInstance ,MAKEINTRESOURCE(IDD_CONFIG), hWndParent, (DLGPROC)PrefDlgProc, 0);
+   gLoc->DialogBoxParam(MAKEINTRESOURCE(IDD_CONFIG), hWndParent, (DLGPROC)PrefDlgProc, 0);
 }
 
 void Quit(){
@@ -373,6 +376,7 @@ void Quit(){
       ImageList_Destroy(gImagelist);
    while (root)
       remove_TB(root->hWnd);
+   delete gLoc;
 }
 
 void DoMenu(HMENU menu, char *param){
@@ -444,7 +448,7 @@ void DoRebar(HWND rebarWnd){
                                );
       
       if (!hWndTB){
-         MessageBox(NULL, _Tr(TOOLBAND_FAILED_TO_CREATE), NULL, 0);
+         MessageBox(NULL, gLoc->GetString(IDS_TOOLBAND_FAILED), NULL, 0);
          return;
       }
 

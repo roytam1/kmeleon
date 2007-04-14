@@ -17,7 +17,11 @@
 */
 
 #define BOOKMARKS_TITLE_LEN 64
-#define _Tr(x) kPlugin.kFuncs->Translate(x)
+
+class Locale;
+extern Locale* gLoc;
+#define _Tr(x) gLoc->GetString(x)
+
 #define _Q(x) #x
 #define PLUGIN_NAME "Netscape Bookmark Plugin"
 
@@ -44,16 +48,6 @@
 #define CONTENT_TYPE_TAG "<META HTTP-EQUIV=\"Content-Type\""
 
 #define BOOKMARKS_DEFAULT_FILENAME _T("bookmarks.html")
-#define BOOKMARKS_FILTER _T("Bookmark Files|bookmark.htm;bookmarks.html;bookmark.htm|HTML Files|*.htm;*.html|")
-#define BOOKMARKS_DEFAULT_TITLE _T("Bookmarks")
-#define BOOKMARKS_NOT_FOUND _T("Your existing bookmarks file could not be found.\n\n") \
-                            _T("Would you like to locate this file now?\n\n") \
-                            _T("(Press No to create a new bookmarks file)")
-#define BOOKMARKS_CREATING_NEW _T("K-Meleon will create a new, empty bookmark file for you")
-#define BOOKMARKS_NOT_BY_US _T("The Bookmarks file was not created by this plugin.  Would you like to save your changes?")
-#define BOOKMARKS_SAVE_CHANGES _T("Would you like to save your changes?")
-#define BOOKMARKS_CANCEL_CHANGES _T("Warning: all changes will be lost. Are you sure you want to close the bookmark editor?")
-#define BOOKMARKS_CANCEL_CAPTION _T("Close Bookmarks Editor")
 
 #define TOOLBAND_NAME "Bookmarks"
 #define TOOLBAND_FAILED_TO_CREATE _T("Failed to create bookmark toolbar")

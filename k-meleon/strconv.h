@@ -30,20 +30,52 @@ public:
 	{
 	}
 
+	base_convert(base_convert<T>& op)
+	{
+		Steal(op);
+	}
+
+	base_convert<T>& operator=(base_convert<T>& op)
+	{
+		Reset();
+		Steal(op);
+		return (*this);
+	}
+
 	~base_convert()
 	{
-		if( mFBuffer != mBuffer )
-			free(mBuffer);
+		Reset();
 	}
 
 	inline operator const T* () const {return mBuffer;}
 
 protected:
+
+	void Steal(base_convert<T>& op)
+	{
+		if (op.mBuffer && (op.mBuffer == op.mFBuffer)) {
+			mBuffer = mFBuffer;
+			memcpy(mFBuffer, op.mFBuffer, STACK_BUFFER_SIZE);
+		}
+		else {
+			mBuffer = op.mBuffer;
+			op.mBuffer = NULL;
+		}
+	}
+
+	void Reset()
+	{
+		if ( mBuffer && (mFBuffer != mBuffer) ) {
+			delete(mBuffer);
+			mBuffer = NULL;
+		}
+	}
+
 	bool Init(unsigned len)
 	{
 		if(len > STACK_BUFFER_SIZE)
 		{
-			mBuffer = static_cast<T*>(malloc(len*sizeof(T)));
+			mBuffer = new T[len];//static_cast<T*>(malloc(len*sizeof(T)));
 			if (mBuffer == NULL)
 				return false;
 		}
@@ -54,7 +86,6 @@ protected:
 
 	T* mBuffer;
 	T  mFBuffer[STACK_BUFFER_SIZE];
-
 };
 
 

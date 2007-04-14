@@ -242,6 +242,9 @@
 				RelativePath="..\rebar_menu\hot_tracking.h">
 			</File>
 			<File
+				RelativePath=".\resource.h">
+			</File>
+			<File
 				RelativePath="StdAfx.h">
 			</File>
 			<File

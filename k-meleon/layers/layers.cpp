@@ -744,7 +744,8 @@ BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 }
 
 void Config(HWND hWndParent){
-   DialogBoxParam(kPlugin.hDllInstance ,MAKEINTRESOURCE(IDD_CONFIG), hWndParent, (DLGPROC)DlgProc, 0);
+   kPlugin.kFuncs->NavigateTo("chrome://kmprefs/content/pref.xul?layers", OPEN_NEW, NULL);
+//   DialogBoxParam(kPlugin.hDllInstance ,MAKEINTRESOURCE(IDD_CONFIG), hWndParent, (DLGPROC)DlgProc, 0);
 }
 
 void Destroy(HWND hWnd){

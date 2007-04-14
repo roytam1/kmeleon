@@ -23,6 +23,8 @@
 
 #include "op_hotlist.h"
 #include "../kmeleon_plugin.h"
+#include "../LocalesUtils.h"
+extern Locale* gLoc;
 
 #include "../Utils.h"
 #include "BookmarkNode.h"
@@ -581,7 +583,7 @@ int op_writeFile(char *file) {
          fprintf(bmFile, "-\r\n");
          if (fclose(bmFile) == EOF) {
 		    _tunlink(buf);
-            MessageBox(NULL, _Tr("Failed to save hotlist."), _Tr("Error"), MB_OK|MB_ICONERROR);
+            MessageBox(NULL, gLoc->GetString(IDS_SAVE_FAILED), gLoc->GetString(IDS_ERROR), MB_OK|MB_ICONERROR);
             ReleaseMutex(ghMutex);
             return -1;
 	     }

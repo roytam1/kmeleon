@@ -178,7 +178,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="unicows.lib  Imm32.lib kernel32.lib comctl32.lib gdi32.lib user32.lib comdlg32.lib shell32.lib advapi32.lib"
-				OutputFile="F:\Program Files\K-Meleon\release\kplugins\$(ProjectName).dll"
+				OutputFile="\Program Files\K-Meleon\release\kplugins\$(ProjectName).dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
 				IgnoreAllDefaultLibraries="FALSE"
@@ -246,7 +246,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="unicows.lib Imm32.lib advapi32.lib comctl32.lib gdi32.lib user32.lib comdlg32.lib shell32.lib"
-				OutputFile="F:\Program Files\K-Meleon\debug\kplugins\$(ProjectName).dll"
+				OutputFile="\Program Files\K-Meleon\debug\kplugins\$(ProjectName).dll"
 				LinkIncremental="2"
 				SuppressStartupBanner="TRUE"
 				GenerateDebugInformation="TRUE"
@@ -363,9 +363,6 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="ns_bookmarks.rc">
-			</File>
-			<File
 				RelativePath="ns_bookmarks_edit.cpp">
 				<FileConfiguration
 					Name="Debug|Win32">
@@ -480,7 +477,31 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="stristr.cpp">
+				RelativePath="..\stristr.cpp">
+				<FileConfiguration
+					Name="Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release Unicode|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug Unicode|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\Utils.cpp">
@@ -556,6 +577,9 @@
 			</File>
 			<File
 				RelativePath="cursor1.cur">
+			</File>
+			<File
+				RelativePath="ns_bookmarks.rc">
 			</File>
 		</Filter>
 		<File

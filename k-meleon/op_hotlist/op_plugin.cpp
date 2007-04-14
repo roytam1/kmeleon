@@ -26,6 +26,9 @@
 #define KMELEON_PLUGIN_EXPORTS
 #include "../kmeleon_plugin.h"
 #include "../Utils.h"
+#include "../LocalesUtils.h"
+Locale *gLoc = NULL;
+
 #include <errno.h>
 
 #define WHERE
@@ -196,7 +199,6 @@ BOOL CALLBACK HotlistFileDlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
 void getHotlistFile() {
    FILE *bmFile;
-   char tmp[2048];
    bool defFile =  false;
    kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_HOTLIST_FILE, gHotlistFile, (char*)"");
    
@@ -213,7 +215,7 @@ void getHotlistFile() {
       strcat(gHotlistFile, "\\" HOTLIST_DEFAULT_FILENAME);
       
       while (!bmFile && !bIgnore) {
-         int ret = DialogBoxParam(kPlugin.hDllInstance ,MAKEINTRESOURCE(IDD_INSTALL), NULL, (DLGPROC)HotlistFileDlgProc, 0);
+         int ret = gLoc->DialogBoxParam(MAKEINTRESOURCE(IDD_INSTALL), NULL, (DLGPROC)HotlistFileDlgProc, 0);
          if (ret == IDCANCEL || ret == ID_CREATE) {
             bIgnore = (ret == IDCANCEL);
             break;
@@ -223,8 +225,7 @@ void getHotlistFile() {
          }
          bmFile = fopen(gHotlistFile, "r");
          if (!bmFile && errno == ENOENT) {
-		    sprintf(tmp, _Tr("File not found:\\n'%s'\\n\\nCreate it?\\n"), gHotlistFile);
-            if (MessageBox(NULL, tmp, PLUGIN_NAME, 
+            if (MessageBox(NULL, gLoc->GetStringFormat(IDS_FILENOTFOUND, gHotlistFile), PLUGIN_NAME, 
                            MB_ICONEXCLAMATION | MB_YESNO) == IDYES)
                break;
          }
@@ -237,12 +238,10 @@ void getHotlistFile() {
                     "Opera Hotlist version 2.0\r\n"
                     "Options:encoding=utf8,version=3\r\n\r\n");
             bDOS = 1;
-			sprintf(tmp, _Tr("Hotlist file '%s' created."), gHotlistFile);
-            MessageBox(NULL, tmp, PLUGIN_NAME, MB_ICONINFORMATION | MB_OK);
+            MessageBox(NULL, gLoc->GetStringFormat(IDS_FILECREATED, gHotlistFile), PLUGIN_NAME, MB_ICONINFORMATION | MB_OK);
          }
          else {
-			sprintf(tmp, _Tr("Unable to create file '%s'."), gHotlistFile);
-            MessageBox(NULL, tmp, PLUGIN_NAME, MB_ICONERROR | MB_OK);
+            MessageBox(NULL, gLoc->GetStringFormat(IDS_CANTCREATEFILE, gHotlistFile), PLUGIN_NAME, MB_ICONERROR | MB_OK);
          }
       }
    }
@@ -256,6 +255,7 @@ void getHotlistFile() {
 #include "../findskin.cpp"
 
 int Load(){
+   gLoc = Locale::kmInit(&kPlugin);
    HDC hdcScreen = CreateDC("DISPLAY", NULL, NULL, NULL); 
    nHSize = GetDeviceCaps(hdcScreen, HORZSIZE);
    nHRes = GetDeviceCaps(hdcScreen, HORZRES);
@@ -549,7 +549,7 @@ BOOL CALLBACK PrefDlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 }
 
 void Config(HWND hWndParent){
-   DialogBoxParam(kPlugin.hDllInstance ,MAKEINTRESOURCE(IDD_CONFIG), hWndParent, (DLGPROC)PrefDlgProc, 0);
+   gLoc->DialogBoxParam(MAKEINTRESOURCE(IDD_CONFIG), hWndParent, (DLGPROC)PrefDlgProc, 0);
 }
 
 void Quit(){
@@ -573,6 +573,7 @@ void Quit(){
    strcat(tmp, HOTLIST_DEFAULT_FILENAME);
    if (_tcscmp(tmp, gHotlistFile) == 0)
 	   kPlugin.kFuncs->DelPreference(PREFERENCE_HOTLIST_FILE);
+   delete gLoc;
 }
 
 void DoMenu(HMENU menu, char *param){

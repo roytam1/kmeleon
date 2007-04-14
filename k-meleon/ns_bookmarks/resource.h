@@ -1,5 +1,5 @@
 //{{NO_DEPENDENCIES}}
-// Microsoft Developer Studio generated include file.
+// Microsoft Visual C++ generated include file.
 // Used by ns_bookmarks.rc
 //
 #define ID_IMPORT_FAVORITES             3
@@ -12,6 +12,29 @@
 #define IDB_ICON                        161
 #define IDD_ADDBOOKMARK                 170
 #define IDC_REBARENABLED                1000
+#define IDS_FILTER                      1000
+#define IDS_DEFAULT_TITLE               1001
+#define IDS_NOT_FOUND                   1002
+#define IDS_CREATING_NEW                1003
+#define IDS_NOT_BY_US                   1004
+#define IDS_SAVE_CHANGES                1005
+#define IDS_CANCEL_CHANGES              1006
+#define IDS_CANCEL_CAPTION              1007
+#define IDS_FIND                        1008
+#define IDS_BOOKMARKS                   1009
+#define IDS_ALL_BOOKMARKS               1010
+#define IDS_NEVER                       1011
+#define IDS_KEYS_HELP                   1012
+#define IDS_KEYBINDINGS                 1013
+#define IDS_NEW_BOOKMARK                1014
+#define IDS_NEW_FOLDER                  1015
+#define IDS_IMPORTED_FAVORITES          1016
+#define IDS_FAILED_SAVE                 1017
+#define IDS_ERROR                       1018
+#define IDS_CONFIGURE                   1019
+#define IDS_ADD                         1020
+#define IDS_ADDLINK                     1021
+#define IDS_EDIT                        1022
 #define IDC_TREE_BOOKMARK               1034
 #define IDC_EDIT_URL                    1035
 #define IDC_EDIT_TITLE                  1036
@@ -35,8 +58,8 @@
 #define IDC_NICK                        1057
 #define IDC_STATIC_NICK                 1058
 #define IDC_FOLDER                      1058
-#define IDC_INPUT			1059
-#define IDC_SEARCHTEXT			1060
+#define IDC_INPUT                       1059
+#define IDC_SEARCHTEXT                  1060
 #define ID_BOOKMARK_DELETE              32791
 #define ID__BOOKMARK_DELETE             32791
 #define ID_SET_TOOLBAR_FOLDER           32792
@@ -56,8 +79,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
+#define _APS_NO_MFC                     1
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        170
+#define _APS_NEXT_RESOURCE_VALUE        171
 #define _APS_NEXT_COMMAND_VALUE         32816
 #define _APS_NEXT_CONTROL_VALUE         1057
 #define _APS_NEXT_SYMED_VALUE           101
