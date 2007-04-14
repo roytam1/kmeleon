@@ -30,6 +30,7 @@
 #include <io.h>
 #include <tchar.h>
 #include "../utf.h"
+#include "../LocalesUtils.h"
 #include "defines.h"
 
 #define KMELEON_PLUGIN_EXPORTS
@@ -111,7 +112,7 @@ BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 					 if (bmFile)
 						fclose(bmFile);
 					 else {
-						 MessageBox(NULL, _Tr(BOOKMARKS_CREATING_NEW), _T(PLUGIN_NAME), 0);
+						 MessageBox(NULL, gLoc->GetString(IDS_CREATING_NEW), _T(PLUGIN_NAME), 0);
 						 bmFile = _tfopen(gBookmarkFile, _T("w"));
 						 if (bmFile) {
 							fclose(bmFile);
@@ -168,7 +169,7 @@ BOOL BrowseForBookmarks(TCHAR *file)
    ofn.lCustData = 0;
    ofn.lpfnHook = NULL;
    ofn.lpTemplateName = NULL;
-   TCHAR* filter = _tcsdup(_Tr(BOOKMARKS_FILTER));
+   TCHAR* filter = _tcsdup(gLoc->GetString(IDS_FILTER));
    for (TCHAR* p = filter;*p;p++)
 	   if (*p == '|') *p=0;
    ofn.lpstrFilter = filter;
@@ -395,7 +396,7 @@ void SaveBM(const TCHAR *file)
    }
 
    if (!gGeneratedByUs) {
-      if (MessageBox(NULL, _Tr(BOOKMARKS_NOT_BY_US), _T(PLUGIN_NAME), MB_YESNO) != IDYES) {
+      if (MessageBox(NULL, gLoc->GetString(IDS_NOT_BY_US), _T(PLUGIN_NAME), MB_YESNO) != IDYES) {
          return;
       }
    }
@@ -438,7 +439,7 @@ void SaveBM(const TCHAR *file)
 
       if (fclose(bmFile) == EOF) {
 		 _tunlink(buf);
-         MessageBox(NULL, _Tr("Failed to save bookmarks."), _Tr("Error"), MB_OK|MB_ICONERROR);
+         MessageBox(NULL, gLoc->GetString(IDS_FAILED_SAVE), gLoc->GetString(IDS_ERROR), MB_OK|MB_ICONERROR);
          ReleaseMutex(ghMutex);
          return;
 	  }
@@ -1252,11 +1253,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		 kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_BOOKMARK_ASKFOLDER, &ask, &ask);
 		 
 		 if (ask) {
-			 BOOL userFont = TRUE;
-			 if (kPlugin.kFuncs->GetPreference(PREF_BOOL, "kmeleon.display.dialogs.useUserFont", &userFont, &userFont))
-			   DialogBoxEx(kPlugin.hDllInstance, MAKEINTRESOURCE(IDD_ADDBOOKMARK), NULL, AddProc, (LPARAM)hWnd);  
-			 else
-			   DialogBoxParam(kPlugin.hDllInstance, MAKEINTRESOURCE(IDD_ADDBOOKMARK), NULL, AddProc, (LPARAM)hWnd);  
+		   gLoc->DialogBoxParam(MAKEINTRESOURCE(IDD_ADDBOOKMARK), NULL, AddProc, (LPARAM)hWnd);  
 		 }
 		 else
 		 {
@@ -1295,11 +1292,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
             BringWindowToTop(ghWndEdit);
          }
 		 else {
-			 BOOL userFont = TRUE;
-			 if (kPlugin.kFuncs->GetPreference(PREF_BOOL, "kmeleon.display.dialogs.useUserFont", &userFont, &userFont))
-				ghWndEdit = CreateDialogEx(kPlugin.hDllInstance, MAKEINTRESOURCE(IDD_EDIT_BOOKMARKS), NULL, EditProc, 0);
-         else
-            ghWndEdit = CreateDialogParam(kPlugin.hDllInstance, MAKEINTRESOURCE(IDD_EDIT_BOOKMARKS), NULL, EditProc, 0);
+            ghWndEdit = gLoc->CreateDialogParam(MAKEINTRESOURCE(IDD_EDIT_BOOKMARKS), NULL, EditProc, 0);
 		 }
          return true;
       }
@@ -1325,8 +1318,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
             pszTitle = strdup( node->text.c_str() );
             pszPrompt = strdup( node->desc.c_str() );
 
-            int ok = DialogBox(kPlugin.hDllInstance,
-                               MAKEINTRESOURCE(IDD_SMARTBOOKMARK), hWnd, (DLGPROC)PromptDlgProc);
+            int ok = gLoc->DialogBoxParam(MAKEINTRESOURCE(IDD_SMARTBOOKMARK), 
+				            hWnd, (DLGPROC)PromptDlgProc, NULL);
             PostMessage(hWnd, WM_NULL, 0, 0);
             if (ok == IDOK && *szInput) {
                strcat(buff, szInput);
@@ -1385,13 +1378,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
       UINT id = LOWORD(wParam);
       if (id >= nConfigCommand && id < nDropdownCommand) {
          if (id == nConfigCommand)
-            kPlugin.kFuncs->SetStatusBarText(_Tr("Configure the bookmarks plugin"));
+            kPlugin.kFuncs->SetStatusBarText(gLoc->GetString(IDS_CONFIGURE));
          else if (id == nAddCommand)
-            kPlugin.kFuncs->SetStatusBarText(_Tr("Add to bookmarks"));
+            kPlugin.kFuncs->SetStatusBarText(gLoc->GetString(IDS_ADD));
          else if (id == nAddLinkCommand)
-            kPlugin.kFuncs->SetStatusBarText(_Tr("Add link to bookmarks"));
+            kPlugin.kFuncs->SetStatusBarText(gLoc->GetString(IDS_ADDLINK));
          else if (id == nEditCommand)
-            kPlugin.kFuncs->SetStatusBarText(_Tr("Edit the bookmarks"));
+            kPlugin.kFuncs->SetStatusBarText(gLoc->GetString(IDS_EDIT));
          return true;
       } 
       else if (CBookmarkNode *node = gBookmarkRoot->FindNode(LOWORD(wParam))) {

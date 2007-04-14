@@ -36,7 +36,8 @@
 
 #define KMELEON_PLUGIN_EXPORTS
 #include "..\kmeleon_plugin.h"
-
+#include "../LocalesUtils.h"
+Locale* gLoc;
 
 int Load();
 void Create(HWND parent);
@@ -161,6 +162,7 @@ BOOL APIENTRY DllMain(HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserv
 }
 
 int Load(){
+	gLoc = Locale::kmInit(&kPlugin);
 	id_fullscreen = kPlugin.kFuncs->GetCommandIDs(1);
    return true;
 }
@@ -179,12 +181,13 @@ void Create(HWND hWndParent) {
 }
 
 void Config(HWND hWndParent) {
-	DialogBoxParam(kPlugin.hDllInstance ,MAKEINTRESOURCE(IDD_PREFS), hWndParent, (DLGPROC)DlgProc, (LPARAM)NULL);
+	gLoc->DialogBoxParam(MAKEINTRESOURCE(IDD_PREFS), hWndParent, (DLGPROC)DlgProc, (LPARAM)NULL);
 }
 
 void Quit(){
   while (root)
     remove_FS(root->hWnd);
+  delete gLoc;
 }
 
 void DoMenu(HMENU menu, char *param) {

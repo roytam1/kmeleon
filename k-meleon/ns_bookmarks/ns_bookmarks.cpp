@@ -34,6 +34,8 @@
 #define KMELEON_PLUGIN_EXPORTS
 #include "../kmeleon_plugin.h"
 #include "../Utils.h"
+#include "../LocalesUtils.h"
+Locale* gLoc;
 
 #include "../rebar_menu/hot_tracking.h"
 
@@ -135,6 +137,8 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
 
 
 int Load(){
+   gLoc = Locale::kmInit(&kPlugin);
+
    nConfigCommand = kPlugin.kFuncs->GetCommandIDs(1);
    nAddCommand = kPlugin.kFuncs->GetCommandIDs(1);
    nAddToolbarCommand = kPlugin.kFuncs->GetCommandIDs(1);
@@ -160,7 +164,7 @@ int Load(){
    if (bmFile)
       fclose(bmFile);
    else {
-      if (MessageBox(NULL, _Tr(BOOKMARKS_NOT_FOUND),
+      if (MessageBox(NULL, gLoc->GetString(IDS_NOT_FOUND),
          _T(PLUGIN_NAME), MB_YESNO) == IDYES) {
 
          if (BrowseForBookmarks(gBookmarkFile)) {
@@ -175,7 +179,7 @@ int Load(){
          }
          else {
             // this means they hit "Cancel" in the file open dialog
-            MessageBox(NULL, _Tr(BOOKMARKS_CREATING_NEW), _T(PLUGIN_NAME), 0);
+            MessageBox(NULL, gLoc->GetString(IDS_CREATING_NEW), _T(PLUGIN_NAME), 0);
             bmFile = _tfopen(gBookmarkFile, _T("w"));
             if (bmFile) {
                fclose(bmFile);
@@ -228,7 +232,7 @@ int Load(){
    if (bitmap)
       DeleteObject(bitmap);
 
-   strcpy(gBookmarksTitle, _Tr(BOOKMARKS_DEFAULT_TITLE));
+   strcpy(gBookmarksTitle, gLoc->GetString(IDS_DEFAULT_TITLE));
 	LoadBM(gBookmarkFile);
 
    return true;
@@ -287,10 +291,11 @@ void Quit(){
    CloseHandle(ghMutex);
 
    delete gBookmarkRoot;
+   delete gLoc;
 }
 
 void Config(HWND hWndParent){
-   DialogBoxParam(kPlugin.hDllInstance ,MAKEINTRESOURCE(IDD_CONFIG), hWndParent, (DLGPROC)DlgProc, (LPARAM)NULL);
+   gLoc->DialogBoxParam(MAKEINTRESOURCE(IDD_CONFIG), hWndParent, (DLGPROC)DlgProc, (LPARAM)NULL);
 }
 
 // param format <action>, String

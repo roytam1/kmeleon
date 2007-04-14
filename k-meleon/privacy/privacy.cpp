@@ -25,6 +25,8 @@
 #include "..\KMeleonConst.h"
 #include "..\kmeleon_plugin.h"
 #include "..\Utils.h"
+#include "..\LocalesUtils.h"
+Locale* gLoc = NULL;
 
 #define PLUGIN_NAME "Privacy Plugin"
 
@@ -326,6 +328,7 @@ void DoStartupTasks()
 
 INT Load()
 {
+	gLoc = Locale::kmInit(&kPlugin);
     kFuncs = kPlugin.kFuncs;
     InitGlobals();
     LoadPluginPreferences();
@@ -343,11 +346,12 @@ void Create(HWND parent)
 
 void Config(HWND parent)
 {
-   DialogBoxParam(kPlugin.hDllInstance, MAKEINTRESOURCE(DLG_CONFIG), parent, (DLGPROC)DlgProc, (LPARAM)NULL);
+   gLoc->DialogBoxParam(MAKEINTRESOURCE(DLG_CONFIG), parent, (DLGPROC)DlgProc, (LPARAM)NULL);
 }
 
 void Quit()
 {
+	if (gLoc) delete gLoc;
     DoShutdownTasks();
 }
 

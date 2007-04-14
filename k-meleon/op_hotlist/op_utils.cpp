@@ -29,6 +29,8 @@
 #include "../kmeleon_plugin.h"
 #include "..\\rebar_menu\\hot_tracking.h"
 #include "../KMeleonConst.h"
+#include "../LocalesUtils.h"
+extern Locale* gLoc;
 
 #include "../Utils.h"
 #include "../macros/macros.h"
@@ -181,7 +183,7 @@ int cmenu = max(18,GetSystemMetrics(SM_CYMENU));
       bEmpty = false;
       if (count == maxLength) {
          HMENU childMenu = CreatePopupMenu();
-         AppendMenu(menu, MF_STRING|MF_POPUP, (UINT)childMenu, _Tr("[more]"));
+         AppendMenu(menu, MF_STRING|MF_POPUP, (UINT)childMenu, gLoc->GetString(IDS_MORE));
          BuildMenu(childMenu, child, true);
          break;
       }
@@ -524,7 +526,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
             BringWindowToTop(ghWndEdit);
          }
          else
-            ghWndEdit = CreateDialogParam(kPlugin.hDllInstance, MAKEINTRESOURCE(IDD_EDIT_HOTLIST), NULL, EditProc, 0);
+            ghWndEdit = gLoc->CreateDialogParam(MAKEINTRESOURCE(IDD_EDIT_HOTLIST), NULL, EditProc, 0);
          return true;
       }
       else if (command == wm_deferhottrack) {
@@ -553,8 +555,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
             pszTitle = strdup( node->text.c_str() );
             pszPrompt = strdup( node->desc.c_str() );
             
-            int ok = DialogBox(kPlugin.hDllInstance,
-                               MAKEINTRESOURCE(IDD_SMARTBOOKMARK), hWnd, (DLGPROC)PromptDlgProc);
+            int ok = gLoc->DialogBoxParam(MAKEINTRESOURCE(IDD_SMARTBOOKMARK), 
+							   hWnd, (DLGPROC)PromptDlgProc, NULL);
             PostMessage(hWnd, WM_NULL, 0, 0);
             if (ok == IDOK && *szInput) {
                 strcat(buff, szInput);
@@ -609,13 +611,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
       UINT id = LOWORD(wParam);
       if (id >= nConfigCommand && id < nDropdownCommand) {
          if (id == nConfigCommand) 
-            kPlugin.kFuncs->SetStatusBarText(_Tr("Configure the hotlist plugin"));
+            kPlugin.kFuncs->SetStatusBarText(gLoc->GetString(IDS_CONFIGURE));
          else if (id == nAddCommand) 
-            kPlugin.kFuncs->SetStatusBarText(_Tr("Add to hotlist"));
+            kPlugin.kFuncs->SetStatusBarText(gLoc->GetString(IDS_ADD));
          else if (id == nAddLinkCommand) 
-            kPlugin.kFuncs->SetStatusBarText(_Tr("Add link to hotlist"));
+            kPlugin.kFuncs->SetStatusBarText(gLoc->GetString(IDS_ADDLINK));
          else if (id == nEditCommand) 
-            kPlugin.kFuncs->SetStatusBarText(_Tr("Edit the hotlist"));
+            kPlugin.kFuncs->SetStatusBarText(gLoc->GetString(IDS_EDIT));
          return true;
       }
       else if (CBookmarkNode *node = gHotlistRoot.FindNode(LOWORD(id))) {

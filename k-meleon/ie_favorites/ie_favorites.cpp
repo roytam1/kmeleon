@@ -197,7 +197,7 @@ void Create(HWND parent)
 
 void Config(HWND hWndParent)
 {
-   DialogBoxParam(kPlugin.hDllInstance ,MAKEINTRESOURCE(IDD_CONFIG), hWndParent, (DLGPROC)DlgProc, NULL);
+   gLoc->DialogBoxParam(MAKEINTRESOURCE(IDD_CONFIG), hWndParent, (DLGPROC)DlgProc, NULL);
 }
 
 void Quit()

@@ -27,7 +27,8 @@
 #include "../kmeleon_plugin.h"
 #include "..\\rebar_menu\\hot_tracking.h"
 #include "../KMeleonConst.h"
-
+#include "../LocalesUtils.h"
+extern Locale* gLoc;
 #include "../Utils.h"
 
 #define VK_OEM_MINUS 0xBD
@@ -384,9 +385,7 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
                      searching = 0;
                   }
                   else {
-                     TCHAR tmp[SEARCH_LEN+64];
-					 _stprintf(tmp, _Tr("Hotlist -- Find: \"%s\""), str);
-                     SetWindowText( hEditWnd, tmp );
+                     SetWindowText( hEditWnd, gLoc->GetStringFormat(IDS_FIND, str) );
 
                      HTREEITEM hItem = TreeView_GetRoot(hTree);
                      int i = 0;
@@ -525,13 +524,14 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
          workingBookmarks = gHotlistRoot;
          bookmarksEdited = false;
 
+		 CResString all = gLoc->GetString(IDS_ALL_BOOKMARKS);
          TVINSERTSTRUCT tvis;
          tvis.hParent = NULL;
          tvis.hInsertAfter = NULL;
          tvis.itemex.mask = TVIF_TEXT | TVIF_PARAM | TVIF_IMAGE | TVIF_SELECTEDIMAGE;
          tvis.itemex.iImage = IMAGE_FOLDER_SPECIAL_CLOSED;
          tvis.itemex.iSelectedImage = IMAGE_FOLDER_SPECIAL_OPEN;
-         tvis.itemex.pszText = (TCHAR*)_Tr("All Bookmarks");
+         tvis.itemex.pszText = (char*)(const char*)all;
          tvis.itemex.lParam = (long)&workingBookmarks;
 
          HTREEITEM newItem = TreeView_InsertItem(hTree, &tvis);
@@ -640,7 +640,7 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                SetDlgItemText(hDlg, IDC_LAST_VISIT, pszTmp);
             }
             else {
-               SetDlgItemText(hDlg, IDC_LAST_VISIT, _Tr("Never"));
+               SetDlgItemText(hDlg, IDC_LAST_VISIT, gLoc->GetString(IDS_NEVER));
             }
 
             EnableWindow(GetDlgItem(hDlg, IDC_STATIC_ORDER), true);
@@ -938,7 +938,7 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                if (!zoom) {
                   if (bookmarksEdited) {
 
-					  if (MessageBox(hDlg, _Tr("Warning: all changes will be lost. Are you sure you want to close the hotlist editor?"), _Tr("Close Hotlist Editor"), MB_OKCANCEL) == IDCANCEL)
+					  if (MessageBox(hDlg, gLoc->GetString(IDS_WARN_CLOSE), gLoc->GetString(IDS_CLOSE_TITLE), MB_OKCANCEL) == IDCANCEL)
 						 return 0;
 						 
                      delete gHotlistRoot.child;
@@ -1441,7 +1441,7 @@ static void CreateNewObject(HWND hTree, HTREEITEM fromItem, int type, int mode) 
          newNode = freeNode;
          freeNode = NULL;
       } else
-         newNode = new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), _Tr("New Bookmark"), "http://kmeleon.sourceforge.net/", "", "", BOOKMARK_BOOKMARK, time(NULL));
+         newNode = new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), gLoc->GetString(IDS_NEW_BOOKMARK), "http://kmeleon.sourceforge.net/", "", "", BOOKMARK_BOOKMARK, time(NULL));
       tvis.itemex.pszText = (TCHAR*)newNode->text.c_str();
       tvis.itemex.iImage = IMAGE_BOOKMARK;
       tvis.itemex.iSelectedImage = IMAGE_BOOKMARK;
@@ -1451,7 +1451,7 @@ static void CreateNewObject(HWND hTree, HTREEITEM fromItem, int type, int mode) 
          newNode = freeNode;
          freeNode = NULL;
       } else
-         newNode = new CBookmarkNode(0, _Tr("New Folder"), "", "", "", BOOKMARK_FOLDER, time(NULL));
+         newNode = new CBookmarkNode(0, gLoc->GetString(IDS_NEW_FOLDER), "", "", "", BOOKMARK_FOLDER, time(NULL));
       tvis.itemex.pszText = (TCHAR*)newNode->text.c_str();
       tvis.itemex.iImage = IMAGE_FOLDER_CLOSED;
       tvis.itemex.iSelectedImage = IMAGE_FOLDER_OPEN;

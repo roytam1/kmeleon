@@ -13,7 +13,7 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// English (U.S.) resources
+// Anglais (États-Unis) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
 #ifdef _WIN32
@@ -40,18 +40,6 @@ END
 
 3 TEXTINCLUDE 
 BEGIN
-    "#define _AFX_NO_SPLITTER_RESOURCES\r\n"
-    "#define _AFX_NO_OLE_RESOURCES\r\n"
-    "#define _AFX_NO_TRACKER_RESOURCES\r\n"
-    "#define _AFX_NO_PROPERTY_RESOURCES\r\n"
-    "\r\n"
-    "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)\r\n"
-    "#ifdef _WIN32\r\n"
-    "LANGUAGE 9, 1\r\n"
-    "#pragma code_page(1252)\r\n"
-    "#endif //_WIN32\r\n"
-    "#include ""afxres.rc""         // Standard components\r\n"
-    "#endif\r\n"
     "\0"
 END
 
@@ -185,14 +173,6 @@ END
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// Bitmap
-//
-
-// IDB_IMAGES              BITMAP  DISCARDABLE     "bitmap1.bmp"
-// IDB_ICON                ICON    DISCARDABLE     "icon1.ico"
-
-/////////////////////////////////////////////////////////////////////////////
-//
 // Menu
 //
 
@@ -230,29 +210,44 @@ END
 //
 
 IDC_DRAG_CURSOR         CURSOR                  "cursor1.cur"
-#endif    // English (U.S.) resources
-/////////////////////////////////////////////////////////////////////////////
 
-
-
-#ifndef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
 //
-// Generated from the TEXTINCLUDE 3 resource.
+// String Table
 //
-#define _AFX_NO_SPLITTER_RESOURCES
-#define _AFX_NO_OLE_RESOURCES
-#define _AFX_NO_TRACKER_RESOURCES
-#define _AFX_NO_PROPERTY_RESOURCES
 
-#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
-#ifdef _WIN32
-LANGUAGE 9, 1
-#pragma code_page(1252)
-#endif //_WIN32
-#include "afxres.rc"         // Standard components
-#endif
+STRINGTABLE 
+BEGIN
+    IDS_FILTER              "Bookmark Files|bookmark.htm;bookmarks.html;bookmarks.htm|HTML Files|*.htm;*.html|"
+    IDS_DEFAULT_TITLE       "Bookmarks"
+    IDS_NOT_FOUND           "Your existing bookmarks file could not be found.\n\nWould you like to locate this file now?\n\n(Press No to create a new bookmarks file)"
+    IDS_CREATING_NEW        "K-Meleon will create a new, empty bookmark file for you."
+    IDS_NOT_BY_US           "The Bookmarks file was not created by this plugin.  Would you like to save your changes?"
+    IDS_SAVE_CHANGES        "Would you like to save your changes?"
+    IDS_CANCEL_CHANGES      "Warning: all changes will be lost. Are you sure you want to close the bookmark editor?"
+    IDS_CANCEL_CAPTION      "Close Bookmarks Editor"
+END
 
+STRINGTABLE 
+BEGIN
+    IDS_FIND                "Bookmarks -- Find: ""%s"""
+    IDS_BOOKMARKS           "Bookmarks"
+    IDS_ALL_BOOKMARKS       "All Bookmarks"
+    IDS_NEVER               "Never"
+    IDS_KEYS_HELP           "Next/prev sibling\t\tAlt+Arrows\n\nMove item up/down\t\tShift+Arrows\n\nOpen item in browser\tEnter\n\nOpen item in background\tCtl+Enter\n\nEdit title\t\t\tF2\n\nDelete item\t\tCtl+D or Del\n\nNew bookmark\t\tCtl+N or Ins"
+    IDS_KEYBINDINGS         "Key-bindings"
+    IDS_NEW_BOOKMARK        "New Bookmark"
+    IDS_NEW_FOLDER          "New Folder"
+    IDS_IMPORTED_FAVORITES  "Imported Favorites"
+    IDS_FAILED_SAVE         "Failed to save bookmarks."
+    IDS_ERROR               "Error"
+    IDS_CONFIGURE           "Configure the bookmarks plugin"
+    IDS_ADD                 "Add to bookmarks"
+    IDS_ADDLINK             "Add link to bookmarks"
+    IDS_EDIT                "Edit the bookmarks"
+END
+
+#endif    // Anglais (États-Unis) resources
 /////////////////////////////////////////////////////////////////////////////
-#endif    // not APSTUDIO_INVOKED
+
 

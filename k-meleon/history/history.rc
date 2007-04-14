@@ -1,20 +1,26 @@
-#define COMPILING_RC
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
 
-#ifdef __MINGW32__
-#  define _WIN32_IE 0x0500
-#  include <windows.h>
-#  include <commctrl.h>
-#  include "../missing.h"
-#endif
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "winres.h"
 
-#include "history.h"
-#define APSTUDIO_HIDDEN_SYMBOLS
-#include <windows.h>
-#undef APSTUDIO_HIDDEN_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
 
-#ifndef IDC_STATIC
-#define IDC_STATIC (-1)
-#endif
+/////////////////////////////////////////////////////////////////////////////
+// Anglais (États-Unis) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
 /////////////////////////////////////////////////////////////////////////////
 //
 // Dialog
@@ -64,14 +70,116 @@ BEGIN
     POPUP "."
     BEGIN
         MENUITEM "&Open in Current Browser Window", ID__OPEN
-        MENUITEM "Open in Back&ground",             ID__OPEN_BACKGROUND
+        MENUITEM "Open in Back&ground",         ID__OPEN_BACKGROUND
         MENUITEM SEPARATOR
-        MENUITEM "Sort by &Date",                   ID__SORT_DATE
-        MENUITEM "Sort by &URL",                    ID__SORT_URL
+        MENUITEM "Sort by &Date",               ID__SORT_DATE
+        MENUITEM "Sort by &URL",                ID__SORT_URL
         MENUITEM SEPARATOR
-        MENUITEM "Properties",                      ID__ZOOM
+        MENUITEM "Properties",                  ID__ZOOM
     END
 END
 
-// IDB_IMAGES              BITMAP  DISCARDABLE     "bitmap1.bmp"
-// IDB_ICON                ICON    DISCARDABLE     "icon1.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE 
+BEGIN
+    IDS_VIEW                "View global history"
+    IDS_CONFIGURE           "Configure the history plugin"
+    IDS_FIND                "History  -- Find: ""%s"""
+    IDS_HISTORY             "History"
+    IDS_ERROR               "<error>"
+    IDS_LAST_HOUR           "Last Hour"
+    IDS_TODAY               "Today"
+    IDS_THIS_WEEK           "This Week"
+    IDS_LAST_WEEK           "Last Week"
+    IDS_2WEEKS_AGO          "2 Weeks Ago"
+    IDS_3WEEKS_AGO          "3 Weeks Ago"
+    IDS_NEVER               "Never"
+END
+
+STRINGTABLE 
+BEGIN
+    IDS_October             "October"
+    IDS_November            "November"
+    IDS_December            "December"
+    IDS_LOAD_FAILED         "Could not load Mozilla history!"
+    IDS_TITLE               "History"
+END
+
+STRINGTABLE 
+BEGIN
+    IDS_Sunday              "Sunday"
+    IDS_Monday              "Monday"
+    IDS_Tuesday             "Tuesday"
+    IDS_Wednesday           "Wednesday"
+    IDS_Thursday            "Thursday"
+    IDS_Friday              "Friday"
+    IDS_Saturday            "Saturday"
+    IDS_January             "January"
+    IDS_February            "February"
+    IDS_March               "March"
+    IDS_April               "April"
+    IDS_May                 "May"
+    IDS_June                "June"
+    IDS_July                "July"
+    IDS_August              "August"
+    IDS_September           "September"
+END
+
+#endif    // Anglais (États-Unis) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Français (France) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_FRA)
+#ifdef _WIN32
+LANGUAGE LANG_FRENCH, SUBLANG_FRENCH
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""winres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+#endif    // Français (France) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

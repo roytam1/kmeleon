@@ -23,10 +23,13 @@
 #  include "../missing.h"
 #endif
 
+
 #include "history.h"
 #include "HistoryNode.h"
 #include "../kmeleon_plugin.h"
 #include "../KMeleonConst.h"
+#include "../LocalesUtils.h"
+extern Locale* gLoc;
 // Include for global history
 #include "nsCOMPtr.h"
 #include "nsEmbedString.h"
@@ -348,7 +351,7 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
                   }
                   else {
                      TCHAR tmp[SEARCH_LEN+64];
-					 _stprintf(tmp, _Tr("History  -- Find: \"%s\""), str);
+					 _stprintf(tmp, gLoc->GetString(IDS_FIND), str);
                      SetWindowText( hEditWnd, tmp );
 
                      HTREEITEM hItem = TreeView_GetRoot(hTree);
@@ -425,7 +428,7 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
       len = 0;
       pos = 0;
       str[len] = 0;
-      SetWindowText( hEditWnd, _Tr("History") );
+      SetWindowText( hEditWnd, gLoc->GetString(IDS_HISTORY) );
       circling = 0;
    }
 
@@ -740,8 +743,8 @@ struct tm subYear(struct tm t, int y) {
 
 CHistoryNode *groupDates(CHistoryNode *oldList)
 {
-   const char *weekday[] = {_Tr("Sunday"), _Tr("Monday"), _Tr("Tuesday"), _Tr("Wednesday"), _Tr("Thursday"), _Tr("Friday"), _Tr("Saturday")};
-   const char *month[] = {_Tr("January"), _Tr("February"), _Tr("March"), _Tr("April"), _Tr("May"), _Tr("June"), _Tr("July"), _Tr("August"), _Tr("September"), _Tr("October"), _Tr("November"), _Tr("December")};
+   const UINT weekday[] = {IDS_Sunday, IDS_Monday, IDS_Tuesday, IDS_Wednesday, IDS_Thursday, IDS_Friday, IDS_Saturday};
+   const UINT month[] = {IDS_January, IDS_February, IDS_March, IDS_April, IDS_May, IDS_June, IDS_July, IDS_August, IDS_September, IDS_October, IDS_November, IDS_December};
 
    if (!oldList)
       return NULL;
@@ -763,7 +766,7 @@ CHistoryNode *groupDates(CHistoryNode *oldList)
 
    while (tmp) {
       char str[100];
-      strcpy(str, _Tr("<error>"));
+      strcpy(str, gLoc->GetString(IDS_ERROR));
 
       pt = localtime(&date);
       struct tm t = *pt;
@@ -772,49 +775,49 @@ CHistoryNode *groupDates(CHistoryNode *oldList)
         case 0:
            t.tm_sec = 0;
            t.tm_min = 0;
-           strcpy(str, _Tr("Last Hour"));
+           strcpy(str, gLoc->GetString(IDS_LAST_HOUR));
            break;
         case 1: 
            t.tm_hour = 0;
-           strcpy(str, _Tr("Today"));
+           strcpy(str, gLoc->GetString(IDS_TODAY));
            break;
         case 2:
         case 3:
         case 4:
            t = subDay(t, 1);
-           strcpy(str, weekday[t.tm_wday]);
+           strcpy(str, gLoc->GetString(weekday[t.tm_wday]));
            break;
         case 5:
            if (t.tm_wday < n.tm_wday) {
               t = subDay(t, t.tm_wday);
-              strcpy(str, _Tr("This Week"));
+              strcpy(str, gLoc->GetString(IDS_THIS_WEEK));
            }
            else {
               t = subDay(t, t.tm_wday);
-              strcpy(str, _Tr("Last Week"));
+              strcpy(str, gLoc->GetString(IDS_LAST_WEEK));
               pass++;
            }
            break;
         case 6:
            t = subDay(t, 7);
-           strcpy(str, _Tr("Last Week"));
+           strcpy(str, gLoc->GetString(IDS_LAST_WEEK));
            break;
         case 7:
            t = subDay(t, 7);
-           strcpy(str, _Tr("2 Weeks Ago"));
+           strcpy(str, gLoc->GetString(IDS_2WEEKS_AGO));
            break;
         case 8:
            t = subDay(t, 7);
-           strcpy(str, _Tr("3 Weeks Ago"));
+           strcpy(str, gLoc->GetString(IDS_3WEEKS_AGO));
            break;
         case 9:
            if (t.tm_mday < n.tm_mday) {
               t = subDay(t, (t.tm_mday-1));
-              strcpy(str, month[t.tm_mon]);
+              strcpy(str, gLoc->GetString(month[t.tm_mon]));
            }
            else {
               t = subDay(t, (t.tm_mday-1));
-              strcpy(str, month[t.tm_mon]);
+              strcpy(str, gLoc->GetString(month[t.tm_mon]));
               pass++;
            }
            break;
@@ -825,7 +828,7 @@ CHistoryNode *groupDates(CHistoryNode *oldList)
         case 14:
         case 15:
            t = subMonth(t, 1);
-           strcpy(str, month[t.tm_mon]);
+           strcpy(str, gLoc->GetString(month[t.tm_mon]));
            break;
         case 16:
            if (t.tm_yday > n.tm_yday)
@@ -838,7 +841,7 @@ CHistoryNode *groupDates(CHistoryNode *oldList)
 	   if (t.tm_year)
 	     itoa(1900 + t.tm_year, str, 10); 
 	   else
-	     strcpy(str, _Tr("Never"));
+	     strcpy(str, gLoc->GetString(IDS_NEVER));
           break;
       }
 
@@ -892,7 +895,7 @@ int CALLBACK ViewProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
    case WM_INITDIALOG:
       {
          if (!readHistory()) {
-            MessageBox(NULL, _Tr("Mozilla history reading failed"), _Tr("History"), MB_OK);
+            MessageBox(NULL, gLoc->GetString(IDS_LOAD_FAILED), gLoc->GetString(IDS_TITLE), MB_OK);
             ghWndView = NULL;
             error = 1;
             PostMessage(GetDlgItem(hDlg, IDCANCEL), BM_CLICK, 0, 0);
@@ -1252,7 +1255,7 @@ static void OnRClick(HWND hTree)
    if (hItem) {
       TreeView_SelectItem(hTree, hItem);
 
-      HMENU topMenu = LoadMenu(kPlugin.hDllInstance, MAKEINTRESOURCE(IDR_CONTEXTMENU));
+      HMENU topMenu = gLoc->LoadMenu(IDR_CONTEXTMENU);
       HMENU contextMenu = GetSubMenu(topMenu, 0);
 
       CheckMenuItem(contextMenu, ID__SORT_DATE, MF_BYCOMMAND | MF_UNCHECKED);
@@ -1268,7 +1271,7 @@ static void OnRClick(HWND hTree)
 	CheckMenuItem(contextMenu, ID__ZOOM, MF_BYCOMMAND | MF_CHECKED);
       
       int command = TrackPopupMenu(contextMenu, TPM_RIGHTBUTTON | TPM_LEFTALIGN | TPM_RETURNCMD, mouse.x, mouse.y, 0, hTree, NULL);
-
+	  DestroyMenu(topMenu);
       switch (command) {
       case ID__OPEN:
          {

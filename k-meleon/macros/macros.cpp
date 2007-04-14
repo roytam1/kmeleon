@@ -561,10 +561,10 @@ void Create(HWND hWndParent) {
 }
 
 void Config(HWND hWndParent) {
-   TCHAR cfgPath[MAX_PATH];
+   char cfgPath[MAX_PATH];
    kFuncs->GetFolder(UserSettingsFolder, cfgPath, MAX_PATH);
-   _tcscat(cfgPath, _T("macros.cfg"));
-   ShellExecute(NULL, NULL, _T("notepad.exe"), cfgPath, NULL, SW_SHOW);
+   strcat(cfgPath, "\\macros");
+   ShellExecuteA(NULL, NULL, cfgPath, NULL, NULL, SW_SHOW);
 }
 
 configFileType g_configFiles[1];

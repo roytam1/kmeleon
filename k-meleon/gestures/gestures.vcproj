@@ -63,6 +63,7 @@
 			OutputDirectory="Release"
 			IntermediateDirectory="Release"
 			ConfigurationType="2"
+			UseOfMFC="0"
 			CharacterSet="2"
 			WholeProgramOptimization="TRUE">
 			<Tool

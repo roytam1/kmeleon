@@ -28,6 +28,8 @@ void quicksort(char *a, size_t n, size_t es, cmp_t *cmp, unsigned int flag);
 #  include "../kmeleon_plugin.h"
 #endif
 
+#include "resource.h"
+
 #define _Tr(x) kPlugin.kFuncs->Translate(_T(x))
 
 int Init();
@@ -65,28 +67,7 @@ int CALLBACK ViewProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 extern HWND ghWndView;
 extern HIMAGELIST gImagelist;
 
-#define IDD_VIEW_HISTORY		700
-#define IDD_CONFIG                      701
-#define IDR_CONTEXTMENU                 759
 
-#define IDC_REBARENABLED                1000
-#define IDC_HISTORY_FILE                1001
-#define IDC_BROWSE                      1002
-#define IDC_MAX_MENU_LENGTH             1003
-#define IDC_MIN_TB_SIZE                 1004
-#define IDC_MAX_TB_SIZE                 1005
-#define IDC_MENU_AUTODETECT             1006
-#define IDC_TREE_HOTLIST		1007
-#define IDC_STATIC_PROPERTIES		1008
-#define IDC_STATIC_URL			1011
-#define IDC_URL				1012
-#define IDC_STATIC_VISITED		1015
-#define IDC_LAST_VISIT			1016
-#define IDC_EXPIRE_DAYS                 1017
-#define IDB_CLEAR                       1018
-
-#define IDB_IMAGES                      159
-#define IDB_ICON                        160
 
 #define IMAGE_BLANK         -1
 #define IMAGE_FOLDER_CLOSED 0
@@ -96,11 +77,6 @@ extern HIMAGELIST gImagelist;
 #define IMAGE_FOLDER_SPECIAL_CLOSED 4
 #define IMAGE_FOLDER_SPECIAL_OPEN   5
 
-#define ID__BOOKMARK_DELETE             32791
-#define ID__OPEN_BACKGROUND             32814
-#define ID__OPEN                        32815
-#define ID__ZOOM                        32819
-#define ID__SORT_DATE                   32820
-#define ID__SORT_URL                    32821
+
 
 #endif
