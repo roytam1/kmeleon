@@ -1653,6 +1653,7 @@ BEGIN
     IDS_HEADER_STATE        "State"
     IDS_HEADER_USERNAME     "Username"
     IDS_HEADER_PASSWORD     "Password"
+    IDS_AUTHORIZEDSESSION   "Session"
 END
 
 #endif    // Anglais (États-Unis) resources

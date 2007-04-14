@@ -19,6 +19,7 @@
 
 #include "stdafx.h"
 #include "Permissions.h"
+#include ".\permissions.h"
 
 //IMPLEMENT_DYNAMIC(CPermissionsDlg, CDialog)
 CPermissionsDlg::CPermissionsDlg(char* type, CWnd* pParent /*=NULL*/)
@@ -70,10 +71,11 @@ void CPermissionsDlg::FillList()
 		ListView_SetItemText(m_cPermissionsList.GetSafeHwnd(), index, 0, (LPTSTR)A2CT(permission->m_host.get()))
 		
 		CString state;
-		if (permission->m_state) 
-			state.LoadString(IDS_AUTHORIZED);
-		else
-			state.LoadString(IDS_DENIED);
+		switch (permission->m_state) {
+			case 8: state.LoadString(IDS_AUTHORIZEDSESSION); break;
+			case 1: state.LoadString(IDS_AUTHORIZED); break;
+			default: state.LoadString(IDS_DENIED);
+		}
 
 		ListView_SetItemText(m_cPermissionsList.GetSafeHwnd(), index, 1, state.GetBuffer(0))
 	}
@@ -103,6 +105,8 @@ BEGIN_MESSAGE_MAP(CPermissionsDlg, CDialog)
 	ON_BN_CLICKED(IDC_DELETE_PERMISSIONS, OnBnClickedDeletePermissions)
 	ON_BN_CLICKED(IDC_DELETE_ALL_PERMISSIONS, OnBnClickedDeleteAllPermissions)
 	ON_EN_CHANGE(IDC_URL, OnEnChangeUrl)
+	ON_BN_CLICKED(IDC_ALLOWSESSION, OnBnClickedAllowsession)
+	ON_NOTIFY(NM_CLICK, IDC_LIST_PERMISSIONS, OnNMClickListPermissions)
 END_MESSAGE_MAP()
 
 
@@ -127,6 +131,8 @@ BOOL CPermissionsDlg::OnInitDialog()
 	if (strcmp(m_type, "cookie") == 0) {
 		title.LoadString(IDS_PERMISSION_COOKIE_TITLE);
 		headstr.LoadString(IDS_PERMISSION_COOKIE);
+		CWnd* b = GetDlgItem(IDC_ALLOWSESSION);
+		if (b) b->ShowWindow(SW_SHOW);
 	} else if (strcmp(m_type, "image") == 0) {
 		title.LoadString(IDS_PERMISSION_IMAGE_TITLE);
 		headstr.LoadString(IDS_PERMISSION_IMAGE);
@@ -194,12 +200,12 @@ void CPermissionsDlg::OnNewPermission(int state)
 }
 void CPermissionsDlg::OnBnClickedBlock()
 {
-	OnNewPermission(0);
+	OnNewPermission(nsIPermissionManager::DENY_ACTION);
 }
 
 void CPermissionsDlg::OnBnClickedAllow()
 {
-	OnNewPermission(1);
+	OnNewPermission(nsIPermissionManager::ALLOW_ACTION);
 }
 
 void CPermissionsDlg::OnBnClickedDeletePermissions()
@@ -261,4 +267,25 @@ void CPermissionsDlg::OnEnChangeUrl()
 
 	int nIndex = m_cPermissionsList.FindItem(&info, -1);
 	m_cPermissionsList.EnsureVisible(nIndex, FALSE);
+}
+
+void CPermissionsDlg::OnBnClickedAllowsession()
+{
+	OnNewPermission(8);
+}
+
+void CPermissionsDlg::OnNMClickListPermissions(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	// TODO : ajoutez ici le code de votre gestionnaire de notification de contrôle
+	CWnd* edit = GetDlgItem(IDC_URL);
+	if (!edit) return;
+
+	int index = m_cPermissionsList.GetNextItem(-1, LVIS_SELECTED);
+	if (index<0) return;
+
+	if (m_cPermissionsList.GetNextItem(index, LVIS_SELECTED) != -1)
+		return;
+
+	edit->SetWindowText(m_cPermissionsList.GetItemText(index, 0));
+	*pResult = 0;
 }

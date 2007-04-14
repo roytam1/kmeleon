@@ -45,11 +45,7 @@ public:
 
 		PRUint32 cap;
 		permission->GetCapability(&cap);
-		if (cap == nsIPermissionManager::ALLOW_ACTION)
-			m_state = 1;
-		else 
-			m_state = 0;
-
+		m_state = cap;
 	}
 
 	~CPermission()
@@ -92,7 +88,7 @@ public:
 		rv = NewURI(getter_AddRefs(uri), nsurl);
 		NS_ENSURE_SUCCESS(rv, FALSE);
 		
-		rv = m_permissionManager->Add(uri, m_type, state ? nsIPermissionManager::ALLOW_ACTION : nsIPermissionManager::DENY_ACTION);
+		rv = m_permissionManager->Add(uri, m_type, state);
 		NS_ENSURE_SUCCESS(rv, FALSE);
 		return TRUE;
 	}
@@ -164,4 +160,6 @@ public:
 	afx_msg void OnBnClickedDeletePermissions();
 	afx_msg void OnBnClickedDeleteAllPermissions();
 	afx_msg void OnEnChangeUrl();
+	afx_msg void OnBnClickedAllowsession();
+	afx_msg void OnNMClickListPermissions(NMHDR *pNMHDR, LRESULT *pResult);
 };
