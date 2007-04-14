@@ -32,8 +32,10 @@
 #include "..\Utils.h"
 #include "..\DialogUtils.h"
 #include "..\KmeleonConst.h"
-#include "AutoComplete.h"
+#include "../LocalesUtils.h"
+Locale* gLoc;
 
+#include "AutoComplete.h"
 #include "nsCOMPtr.h"
 #include "nsIBrowserHistory.h"
 #include "nsServiceManagerUtils.h"
@@ -107,6 +109,7 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
          Config((HWND)data1);
       }
       else if (stricmp(subject, "Quit") == 0) {
+		 AutoComplete("", NULL);
          Quit();
       }
 	  else if (stricmp(subject, "AutoComplete") == 0) {
@@ -134,6 +137,7 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
 
 
 int Load(){
+   gLoc = Locale::kmInit(&kPlugin);
    kPlugin.kFuncs->GetPreference(PREF_INT,  PREFERENCE_HISTORY_LENGTH, &nHistoryLength, &nHistoryLength);
    if (nHistoryLength<0)
       nHistoryLength = 0;
@@ -227,7 +231,7 @@ BOOL CALLBACK PrefDlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 }
 
 void Config(HWND parent){
-   DialogBoxParam(kPlugin.hDllInstance, MAKEINTRESOURCE(IDD_CONFIG), parent, (DLGPROC)PrefDlgProc, 0);
+   gLoc->DialogBoxParam(MAKEINTRESOURCE(IDD_CONFIG), parent, (DLGPROC)PrefDlgProc, 0);
 }
 
 void Quit(){
@@ -243,6 +247,8 @@ void Quit(){
 
    if (ghWndView)
       SendMessage(ghWndView, WM_CLOSE, 0, 0);
+   
+   delete gLoc;
 }
 
 void DoMenu(HMENU menu, char *param){
@@ -494,11 +500,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
             BringWindowToTop(ghWndView);
          }
          else {
-			 BOOL userFont = TRUE;
-			 if (kPlugin.kFuncs->GetPreference(PREF_BOOL, "kmeleon.display.dialogs.useUserFont", &userFont, &userFont))
-			   ghWndView = CreateDialogEx(kPlugin.hDllInstance, MAKEINTRESOURCE(IDD_VIEW_HISTORY), NULL, ViewProc, 0);
-			 else
-               ghWndView = CreateDialogParam(kPlugin.hDllInstance, MAKEINTRESOURCE(IDD_VIEW_HISTORY), NULL, ViewProc, 0);
+			 ghWndView = gLoc->CreateDialogParam(MAKEINTRESOURCE(IDD_VIEW_HISTORY), NULL, ViewProc, 0);
          }
          return true;
       }
@@ -528,11 +530,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
             }
          }
          else if (command == ID_VIEW_HISTORY) {
-            kPlugin.kFuncs->SetStatusBarText(_Tr("View global history"));
+            kPlugin.kFuncs->SetStatusBarText(gLoc->GetString(IDS_VIEW));
             return true;
          }
          else if (command == ID_CONFIG_HISTORY) {
-            kPlugin.kFuncs->SetStatusBarText(_Tr("Configure the history plugin"));
+            kPlugin.kFuncs->SetStatusBarText(gLoc->GetString(IDS_CONFIGURE));
             return true;
          }
 
