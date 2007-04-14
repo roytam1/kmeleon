@@ -542,6 +542,7 @@
 #define IDS_HEADER_STATE                61317
 #define IDS_HEADER_USERNAME             61318
 #define IDS_HEADER_PASSWORD             61319
+#define IDS_AUTHORIZEDSESSION           61320
 #define IDS_LANG_VERSION                62000
 #define IDS_LOCALE_ID                   62001
 
