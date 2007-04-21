@@ -73,6 +73,9 @@
 #include "nsIDOMEventReceiver.h"
 #include "nsPIDOMWindow.h"
 #include "nsIDOMBarProp.h"
+
+#include "jsapi.h"
+#include "nsIJSContextStack.h"
 #include <wininet.h>
 
 extern CMfcEmbedApp theApp;
@@ -384,6 +387,9 @@ HRESULT CBrowserView::CreateBrowser()
        !(mpBrowserFrame->m_chromeMask & nsIWebBrowserChrome::CHROME_SCROLLBARS) &&
 	    !(mpBrowserFrame->m_chromeMask & nsIWebBrowserChrome::CHROME_WINDOW_RESIZE))
 	{
+		nsCOMPtr<nsIJSContextStack> stack(do_GetService("@mozilla.org/js/xpc/ContextStack;1"));
+	    if (stack && NS_SUCCEEDED(stack->Push(nsnull))) {
+
 		nsCOMPtr<nsIDOMWindow> dom;
 		mWebBrowser->GetContentDOMWindow(getter_AddRefs(dom)); 
 		if (dom) {
@@ -391,6 +397,8 @@ HRESULT CBrowserView::CreateBrowser()
 			dom->GetScrollbars(getter_AddRefs(scrollbars));
 			if (scrollbars)
 				scrollbars->SetVisible(PR_FALSE);
+		stack->Pop(nsnull);
+		}
 		}
 	}
 
