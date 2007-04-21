@@ -54,7 +54,6 @@ public:
 				if (i == uStringID%16)
 				{
 					// The string has been found in the string table.
-					wchar_t *pwchTemp = (wchar_t*)malloc(sizeof(wchar_t)*(cchString+1));
 					Init(cchString+1);
 					wcsncpy(mBuffer, pwchCur, cchString);
 					mBuffer[cchString] = 0;
