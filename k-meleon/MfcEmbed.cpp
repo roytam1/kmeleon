@@ -272,6 +272,21 @@ BOOL CMfcEmbedApp::LoadLanguage()
 
    USES_CONVERSION;
    CString locale = W2CT(nslocale.get());
+
+   if (_tcsncmp(locale, "en", 2) == 0) {
+      if (m_hResDll) {
+         FreeLibrary(m_hResDll);
+		 m_hResDll = NULL;
+	  }
+
+	  lang.Reset();
+	  AfxSetResourceHandle(m_hInstance);
+#if _MSC_VER >= 1300 
+      _AtlBaseModule.SetResourceInstance(m_hInstance);
+#endif
+	  return TRUE;
+   }
+
    CString localeFolder = m_sRootFolder + CString("\\locales\\") + locale + CString("\\");
    CString resDll = localeFolder + CString("kmeleon.dll");
 

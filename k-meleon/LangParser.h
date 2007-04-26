@@ -48,6 +48,10 @@ public:
 	int Translate(LPCTSTR originalText, CString& translatedText){ 
 		return langMap.Lookup(originalText,translatedText);
 	}
+
+	void Reset() {
+		langMap.RemoveAll();
+	}
 };
 
 #endif // __LANGPARSER_H__
