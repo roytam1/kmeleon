@@ -1127,9 +1127,9 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
 
          int nRetval = 0;
          if (preftype == PREF_UNISTRING) {
-			long len = kFuncs->GetPreference(preftype,(char*)params[1].c_str(),0,"");			
+			long len = kFuncs->GetPreference(preftype,(char*)params[1].c_str(),0,L"");			
 			wchar_t* cRetval = (wchar_t*)calloc(sizeof(wchar_t), len+1);
-			kFuncs->GetPreference(preftype,(char*)params[1].c_str(),cRetval,"");
+			kFuncs->GetPreference(preftype,(char*)params[1].c_str(),cRetval,L"");
             std::string strRet;
 			strRet = protectString(CUTF16_to_UTF8(cRetval));
 			free(cRetval);
