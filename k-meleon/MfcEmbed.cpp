@@ -584,6 +584,7 @@ BOOL CMfcEmbedApp::InitInstance()
 #endif
 
    plugins.FindAndLoad();
+   plugins.SendMessage("*", "* Plugin Manager", "Init2");
    InitializeMenusAccels();
    
 
@@ -1162,6 +1163,7 @@ BOOL CMfcEmbedApp::InitializeMenusAccels(){
    menusParser.Load(filename);
    
 	plugins.SendMessage("*", "* Plugin Manager", "Init");
+	plugins.SendMessage("*", "* Plugin Manager", "Setup2");
    
    filename = GetFolder(UserSettingsFolder) + _T("\\") ACCEL_CONFIG_FILE;
    accel.Load(filename);
@@ -1170,6 +1172,7 @@ BOOL CMfcEmbedApp::InitializeMenusAccels(){
    menusParser.Load(filename);
 
 	plugins.SendMessage("*", "* Plugin Manager", "Setup");
+	plugins.SendMessage("*", "* Plugin Manager", "UserSetup");
 
    return TRUE;
 }
