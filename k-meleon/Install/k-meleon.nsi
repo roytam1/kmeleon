@@ -1,15 +1,16 @@
-!packhdr	tmp.dat "C:\Progra~1\Upx\bin\upx.exe -9 --best --strip-relocs=1 tmp.dat"
-
 !define		NAME "K-Meleon"
-!define		VERSION "1.02"
+!define		VERSION "1.1"
+!define		PRODUCT_VERSION_PLUS "1.1.0.5"
 !define		ADDRESS "http://kmeleon.sourceforge.net/"  
-!define		GECKO_VERSION "1.8.0.7"
+!define		GECKO_VERSION "1.8.1.3"
+!define		PRODUCT_BUILD "${NAME} ${VERSION}"
 
 !define		PRODUCT_KEY "Software\${NAME}"
 !define		PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${NAME}"
 !define 	CLIENT_INTERNET_KEY "Software\Clients\StartMenuInternet"
 !define		PRODUCT_CLIENT_INTERNET_KEY "${CLIENT_INTERNET_KEY}\k-meleon.exe"
 !define		MOZILLA_REG_KEY "Software\Mozilla\${NAME}"
+!define		MEDIAPLAYER_REG_KEY "SOFTWARE\Microsoft\MediaPlayer\ShimInclusionList\k-meleon.exe"
 
 ;--------------------------------
 ;Include Modern UI
@@ -33,11 +34,33 @@ SetDatablockOptimize on
 ShowInstDetails show
 AutoCloseWindow false
 SetOverwrite on
+BrandingText /TRIMRIGHT "${NAME} ${VERSION}"
+LicenseBkColor "ffffff"
 
 ;Name and file
 Name		"${NAME} ${VERSION}"
 Caption		$(INST_Caption)
 OutFile		"${NAME}.exe"
+
+;--------------------------------
+;Version tab in properties
+
+  VIProductVersion      "${PRODUCT_VERSION_PLUS}"
+
+  VIAddVersionKey        ProductName      "${NAME}"
+  VIAddVersionKey        Comments         "${PRODUCT_BUILD} Setup"
+  VIAddVersionKey        CompanyName      "${NAME} Team"
+  VIAddVersionKey        LegalCopyright   "${NAME} Team"
+  VIAddVersionKey        FileDescription  "${PRODUCT_BUILD} Setup"
+  VIAddVersionKey        ProductVersion   "${PRODUCT_VERSION_PLUS}"
+  VIAddVersionKey        InternalName     "${NAME} ${VERSION}"
+  VIAddVersionKey        LegalTrademarks  "${ADDRESS}"
+  VIAddVersionKey        OriginalFileName "${NAME}${VERSION}.exe"
+  VIAddVersionKey        FileVersion      ""
+  VIAddVersionKey        PrivateBuild     ""
+  VIAddVersionKey        SpecialBuild     ""
+  VIAddVersionKey        Translation      ""
+  VIAddVersionKey        SetupVersion     ""
 
 ;----------------------------------------
 ;Interface Settings
@@ -55,17 +78,18 @@ OutFile		"${NAME}.exe"
 
 !define MUI_INSTFILESPAGE_COLORS "000000 ffffff" ;Multiple settings
 
-BrandingText /TRIMRIGHT "${NAME} ${VERSION}"
-LicenseBkColor "ffffff"
 
-!define MUI_WELCOMEPAGE_TITLE $(INST_Welcome)
 
 
 ;--------------------------------
 ;Pages
 
+!define MUI_WELCOMEFINISHPAGE_BITMAP "${NAME}.bmp"
+!define MUI_UNWELCOMEFINISHPAGE_BITMAP "${NAME}.bmp"
 
+!define MUI_WELCOMEPAGE_TITLE $(INST_Welcome)
 !insertmacro MUI_PAGE_WELCOME
+  
 !insertmacro MUI_PAGE_LICENSE "license.txt"
 !insertmacro MUI_PAGE_COMPONENTS
 
@@ -104,12 +128,12 @@ LicenseBkColor "ffffff"
 	IfFileExists "$INSTDIR\profile.ini" 0 AppDataProfile
 	ReadINIStr $R1 "$INSTDIR\profile.ini" "Profile" "path"
 	ReadINIStr $R2 "$INSTDIR\profile.ini" "Profile" "isrelative"
-	StrCmp $R1 "" 0 +2             ; If path empty 
-	StrCpy $R1 "Profiles"          ; Copy default folder name
-	StrCmp $R2 "1" 0 +2            ; If path is relative
-	StrCpy $R0 "$INSTDIR\$R1"      ; add the install dir to the path
-	Goto +2                        ; else
-	StrCpy $R0 $R1                 ; use the path only
+	StrCmp $R1 "" 0 +2			; If path empty 
+	StrCpy $R1 "Profiles"		; Copy default folder name
+	StrCmp $R2 "1" 0 +2			; If path is relative
+	StrCpy $R0 "$INSTDIR\$R1"	; add the install dir to the path
+	Goto +2						; else
+	StrCpy $R0 $R1				; use the path only
 
 	Goto End_proflocation
 AppDataProfile:
@@ -133,13 +157,13 @@ Var HWND
 Var DLGITEM
 
 Function ProfilePageLeave
-	
+
 	ReadINIStr $0 "$PLUGINSDIR\profpage.ini" "Settings" "State"
 	StrCmp $0 0 validate
 	StrCmp $0 1 checkbutton
 	Abort
 
-checkbutton:	
+checkbutton:
 	ReadINIStr $0 "$PLUGINSDIR\profpage.ini" "Field 1" "State"
 	ReadINIStr $1 "$PLUGINSDIR\profpage.ini" "Field 2" "HWND"
 	ReadINIStr $2 "$PLUGINSDIR\profpage.ini" "Field 2" "HWND2"
@@ -156,7 +180,7 @@ NotChecked:
 checkbutton_end:
 	Abort
 validate:
-	
+
 FunctionEnd
 
 Function ProfilePage
@@ -168,14 +192,14 @@ Function ProfilePage
   !insertmacro MUI_HEADER_TEXT "$(PROFILEPAGE_TITLE)" "$(PROFILEPAGE_SUBTITLE)"
   !insertmacro MUI_INSTALLOPTIONS_INITDIALOG "profpage.ini"
   Pop $HWND
-   
+
   IfFileExists "$INSTDIR\profile.ini" 0 NoProfileIni
   ReadINIStr $1 "$PLUGINSDIR\profpage.ini" "Field 2" "HWND"
   ReadINIStr $2 "$PLUGINSDIR\profpage.ini" "Field 2" "HWND2"
   EnableWindow $1 1
   EnableWindow $2 1
 
-NoProfileIni:    
+NoProfileIni:
   !insertmacro GET_PROFILES_LOCATION
   GetDlgItem $DLGITEM $HWND 1201
   SendMessage $DLGITEM ${WM_SETTEXT} 0 "STR:$R0"
@@ -190,21 +214,22 @@ FunctionEnd
 Section ${NAME} SecMain
 	SectionIn RO
 	
-	Delete $INSTDIR\chrome\*.*
-	RMdir /r $INSTDIR\components
+	RMDir /r $INSTDIR\components
 	RMDir /r $INSTDIR\defaults
-	RMdir /r $INSTDIR\greprefs
-	RMdir /r $INSTDIR\ipc
-	RMdir /r $INSTDIR\res
-	
-	SetOutPath "$INSTDIR"
-	File /r .\k-meleon\*.*
+	RMDir /r $INSTDIR\greprefs
+	RMDir /r $INSTDIR\ipc
+	RMDir /r $INSTDIR\res
+	Delete $INSTDIR\chrome\installed-chrome.txt
 	Delete   $INSTDIR\chrome\chrome.rdf
 	Delete   $INSTDIR\chrome\overlays.rdf
 	RMDir /r "$INSTDIR\chrome\overlayinfo"
-	Delete   $INSTDIR\component\compreg.dat
-	Delete   $INSTDIR\component\xpti.dat
+
+	; Delete Loader shortcut in Startup Folder to let the choice possible (No by default)
+	Delete "$SMSTARTUP\K-Meleon Loader.lnk"
 	
+	SetOutPath "$INSTDIR"
+	File /r .\k-meleon\*.*
+
 	;Call IsUserAdmin
 	;StrCmp $R0 "true" 0 +3
 	;SetOutPath $SYSDIR
@@ -221,12 +246,15 @@ Section ${NAME} SecMain
 	WriteRegStr HKLM "${MOZILLA_REG_KEY}\Extensions" "Components" "$INSTDIR\Components"
 	WriteRegStr HKLM "Software\mozilla.org\Mozilla" "CurrentVersion" GECKO_VERSION
 
-
+	; Register K-Meleon as a windows browser for windows > 2K 
 	Call GetWindowsVersion
 	pop $R0
 	StrCpy $R1 $R0 1 0
-	StrCmp $R1 "5" 0 NoClientInternet
-		
+	StrCmp $R1 "5" RegClientInternet
+	StrCmp $R1 "6" RegClientInternet
+	Goto NoClientInternet
+
+RegClientInternet:
 	WriteRegStr HKLM "${PRODUCT_CLIENT_INTERNET_KEY}" "" ${NAME}
 #	WriteRegStr HKLM "${CLIENT_INTERNET_KEY}\${NAME}.exe" "LocalizedString" "@$INSTDIR\K-Meleon.exe,-9"
 	WriteRegStr HKLM "${PRODUCT_CLIENT_INTERNET_KEY}\DefaultIcon" "" "$INSTDIR\K-Meleon.exe,0"
@@ -237,11 +265,22 @@ Section ${NAME} SecMain
 	WriteRegDWORD HKLM "${PRODUCT_CLIENT_INTERNET_KEY}\InstallInfo" "IconsVisible" 0
 
 NoClientInternet:
-	
-#	WriteRegStr HKCR "K-Meleon.HTML" "" "Hypertext Markup Language Document"
-#	WriteRegStr HKCR "K-Meleon.HTML\DefaultIcon" "" "$INSTDIR\K-Meleon.exe,1"
-#	WriteRegStr HKCR "K-Meleon.HTML\shell\open\command" "" '"$INSTDIR\K-Meleon.exe" "%1"'
+	StrCpy $R1 $R0 3 0
+	StrCmp $R1 "4.0" OldWindow
+	Goto NotOldWindow
 
+OldWindow:
+	FileOpen $1 "$INSTDIR\defaults\profile\Prefs.js" "a"
+	FileSeek $1 0 END
+	FileWrite $1 'user_pref("kmeleon.plugins.rebarmenu.load", false);'
+	FileWriteByte $1 "13"
+	FileWriteByte $1 "10"
+	FileWrite $1 'user_pref("kmeleon.plugins.bmpmenu.load", false);'
+	FileWriteByte $1 "13"
+	FileWriteByte $1 "10"
+	FileClose $1
+
+NotOldWindow:
 	WriteRegStr HKEY_CURRENT_USER "${PRODUCT_KEY}\General" "InstallDir" $INSTDIR
 	
 	WriteUninstaller $INSTDIR\uninstall.exe
@@ -255,23 +294,17 @@ NoClientInternet:
 	WriteRegStr HKLM ${PRODUCT_UNINST_KEY} "Publisher" "K-Meleon Team"
 	WriteRegStr HKLM ${PRODUCT_UNINST_KEY} "HelpLink" ${ADDRESS}
 	WriteRegStr HKLM ${PRODUCT_UNINST_KEY} "URLInfoAbout" ${ADDRESS}
-	WriteRegStr HKLM ${PRODUCT_UNINST_KEY} "URLUpdateInfo" ${ADDRESS}    
+	WriteRegStr HKLM ${PRODUCT_UNINST_KEY} "URLUpdateInfo" ${ADDRESS}
 	
+	;Mediaplayer support
+	WriteRegStr HKLM ${MEDIAPLAYER_REG_KEY} "" ""
+		
 	IfFileExists "$INSTDIR\profile.ini" AlreadyProfile 0
 	FileOpen $1 "$INSTDIR\profile.ini" "w"
 	FileClose $1 
 	WriteINIStr "$INSTDIR\profile.ini" "Profile" "path" "Profiles"
 	WriteINIStr "$INSTDIR\profile.ini" "Profile" "isrelative" "1"
 AlreadyProfile: 
-
-#	IfFileExists "$INSTDIR\Profiles" 0 KeepProfiles
-#		MessageBox MB_YESNO|MB_ICONEXCLAMATION "User profiles from a previous installation of K-Meleon have been detected$\n\
-#These files might have to be removed for K-Meleon to function properly.$\n\
-#Do you want to remove the stored user profiles?" IDNO KeepProfiles
-#		RMDir /r "$INSTDIR\Profiles"
-#
-#KeepProfiles:
-
 SectionEnd ; }}}
 
 # ----------------------------------------------------------------------
@@ -339,36 +372,21 @@ SubSectionEnd
 
 # ----------------------------------------------------------------------
 
-SubSection $(SECT_Tools) SecTools ; {{{
-
-	Section /o $(SECT_Loader) SecLoader ; {{{
-		SetOutPath $INSTDIR
-		File .\misc\loader.exe
-		CreateShortCut "$SMSTARTUP\K-Meleon Loader.lnk" "$INSTDIR\loader.exe"
-	SectionEnd
-
-#	Section /o "K-Meleon Remote Control" SecRemote ; {{{
-#		SetOutPath $INSTDIR
-#		File .\misc\km-remote.exe
-#	SectionEnd
-#
-#	Section /o "Splash screen tool" SecSplash ; {{{
-#		SetOutPath $INSTDIR
-#		File .\misc\splash.exe
-#		File .\misc\splash.ini
-#	SectionEnd
-
-SubSectionEnd
+Section /o $(SECT_Loader) SecLoader ; {{{
+	SetOutPath $INSTDIR
+	File .\misc\loader.exe
+	CreateShortCut "$SMSTARTUP\K-Meleon Loader.lnk" "$INSTDIR\loader.exe"
+SectionEnd
 
 # ----------------------------------------------------------------------
 
 UninstallText $(UN_confirm)
 
-Section Uninstall ; {{{
+Section Uninstall
 
 	Call un.CloseKMeleon
 	Sleep 1000
-	
+
 	ExecWait '"$INSTDIR\SetDefault.exe" /u'
 
 	Delete   $INSTDIR\k-meleon.exe
@@ -402,7 +420,9 @@ Section Uninstall ; {{{
 	Delete   $INSTDIR\xpcom_core.dll
 	Delete   $INSTDIR\msvcr71.dll
 	Delete   $INSTDIR\msvcp71.dll
-	
+	Delete   $INSTDIR\freebl3.dll
+	Delete   $INSTDIR\freebl3.chk
+
 	RMdir /r $INSTDIR\chrome
 	RMdir /r $INSTDIR\components
 	RMdir /r $INSTDIR\defaults
@@ -410,10 +430,11 @@ Section Uninstall ; {{{
 	RMdir /r $INSTDIR\ipc
 	RMdir /r $INSTDIR\res
 	RMdir /r $INSTDIR\kplugins
-	
+	RMdir /r $INSTDIR\macros
+
 	Delete   $INSTDIR\plugins\npnul32.dll
 	RMdir    $INSTDIR\plugins
-	
+
 	RMdir /r $INSTDIR\skins\Phoenity
 	RMdir /r $INSTDIR\skins\Phoenity(Large)
 	RMdir /r $INSTDIR\skins\Klassic
@@ -438,6 +459,7 @@ KeepProfiles:
 	IfFileExists "$INSTDIR" 0 KeepInstDir
 		MessageBox MB_YESNO|MB_ICONEXCLAMATION|MB_DEFBUTTON2 $(UN_everything) IDNO KeepInstDir
 		FindFirst $R2 $R3 "$INSTDIR\*.*"
+
 FindNextFile:
 		StrCmp $R3 "" NoFiles
 		StrCmp $R3 "." KeepProfilesDir
@@ -445,12 +467,15 @@ FindNextFile:
 		StrCmp $R3 "Profiles" KeepProfilesDir
 		StrCmp $R3 "Profile.ini" KeepProfilesDir
 		RMDir /r "$INSTDIR\$R3"
+
 KeepProfilesDir:
 		FindNext $R2 $R3
 		Goto FindNextFile
+
 NoFiles:
 		FindClose $R2
 		RMdir    $INSTDIR
+
 KeepInstDir:
 
 	Pop $R0
@@ -466,6 +491,8 @@ KeepInstDir:
 	DeleteRegKey HKCU ${PRODUCT_CLIENT_INTERNET_KEY}
 	DeleteRegKey HKCU "Software\Classes\K-Meleon.HTML"
 	
+	DeleteRegKey HKLM ${MEDIAPLAYER_REG_KEY}
+	
 	Delete $DESKTOP\K-Meleon.lnk
 	RMDir /r $SMPROGRAMS\K-Meleon
 	Delete "$QUICKLAUNCH\K-Meleon.lnk"
@@ -479,76 +506,88 @@ KeepInstDir:
 	
 UnEnd:
 
-SectionEnd ; }}}
+SectionEnd
 
-# ----------------------------------------------------------------------
 
-; Close K-Melon Functions {{{
+;--------------------------------
+; Close K-Melon Functions
+
 Function CloseKMeleon
-	Push $0 
-	loop1: 
-		FindWindow $0 "KMeleon" 
+	Push $0
+	loop1:
+		FindWindow $0 "KMeleon"
 		IntCmp $0 0 loop2
-		SendMessage $0 16 0 0 
+		SendMessage $0 16 0 0
 		Sleep 200
-		Goto loop1 
-	loop2: 
+		Goto loop1
+	loop2:
 		FindWindow $0 "KMeleon Tray Control"
 		IntCmp $0 0 done
-		SendMessage $0 16 0 0 
+		SendMessage $0 16 0 0
 		Sleep 200
 		Goto loop2
-	done: 
-		Pop $0 
+	done:
+		Pop $0
 FunctionEnd
-
 
 Function un.CloseKMeleon
-	Push $0 
-	loop1: 
-		FindWindow $0 "KMeleon" 
+	Push $0
+	loop1:
+		FindWindow $0 "KMeleon"
 		IntCmp $0 0 loop2
-		SendMessage $0 16 0 0 
+		SendMessage $0 16 0 0
 		Sleep 200
-		Goto loop1 
-	loop2: 
+		Goto loop1
+	loop2:
 		FindWindow $0 "KMeleon Tray Control"
 		IntCmp $0 0 done
-		SendMessage $0 16 0 0 
+		SendMessage $0 16 0 0
 		Sleep 200
 		Goto loop2
-	done: 
-		Sleep 1000 
-		Pop $0 
+	done:
+		Sleep 1000
+		Pop $0
 FunctionEnd
 
-# ----------------------------------------------------------------------
+;--------------------------------
+Function .onInit
 
-Function .onInit ; {{{
-		
 #  StrCpy $1 ${SecFull} ; Group 1 - Option 1 is selected by default
 
-#  !insertmacro MUI_LANGDLL_DISPLAY  ; Uncomment for multi language installer
-   !insertmacro MUI_INSTALLOPTIONS_EXTRACT "profpage.ini"
-
+;	!insertmacro MUI_LANGDLL_DISPLAY  ; Uncomment for multi language installer
+	!insertmacro MUI_INSTALLOPTIONS_EXTRACT "profpage.ini"
 
 	FindWindow $0 "KMeleon Tray Control"
 	StrCmp $0 0 FindKM 0
 	Goto QueryClose
+
 FindKM:
 	FindWindow $0 "KMeleon"
 	StrCmp $0 0 NoKMrunning 0
+
 QueryClose:
 	MessageBox MB_OKCANCEL|MB_ICONSTOP $(INIT_KmeleonRunning) IDCANCEL 0 IDOK CloseKM
 	Abort
+
 CloseKM:
 	Call CloseKMeleon
+
 NoKMrunning:
 
-FunctionEnd ; }}}
+FunctionEnd
 
+;--------------------------------
+Function un.onInit
+!insertmacro MUI_UNGETLANGUAGE
+  MessageBox MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON2 "$(UN_confirm)" IDYES +2
+  Abort
+FunctionEnd
 
-# ----------------------------------------------------------------------
+;--------------------------------
+Function un.onUninstSuccess
+  HideWindow
+  MessageBox MB_ICONINFORMATION|MB_OK "$(UNINST_OK)"
+FunctionEnd
 
 Function DirectoryLeave
 	Call CloseKMeleon
@@ -567,13 +606,8 @@ Done:
 
 FunctionEnd
 
-# ----------------------------------------------------------------------
-
-
-
-; Modern UI Functions {{{
-
-;; !insertmacro MUI_SYSTEM
+; ----------------------------------------------------------------------
+; Section descriptions
 
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
 	!insertmacro MUI_DESCRIPTION_TEXT ${SecMain}			$(DESC_SecMain)
