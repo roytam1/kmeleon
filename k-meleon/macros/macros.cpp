@@ -960,6 +960,8 @@ PromptDlgProc( HWND hwnd,
 	    SetWindowTextUTF8(hwnd, title.c_str());
         SetDlgItemTextUTF8(hwnd, IDC_PROMPT, question.c_str());
         SetDlgItemTextUTF8(hwnd, IDC_ANSWER, instring.c_str());
+		SetDlgItemText(hwnd, IDCANCEL, kFuncs->Translate("Cancel"));
+		SetDlgItemText(hwnd, IDOK, kFuncs->Translate("Ok"));
         return TRUE;
 					}
       case WM_COMMAND:
