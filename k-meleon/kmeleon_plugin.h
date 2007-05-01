@@ -20,6 +20,22 @@
 #include <windows.h>
 #include <commctrl.h>
 
+#ifdef CallWindowProc
+#undef CallWindowProc
+#endif
+
+#ifdef SetWindowLong
+#undef SetWindowLong
+#endif
+
+#define CallWindowProc(proc, hWnd, message, wParam, lParam) \
+	(IsWindowUnicode(hWnd) ? CallWindowProcW(proc, hWnd, message, wParam, lParam) : \
+	                        CallWindowProcA(proc, hWnd, message, wParam, lParam))
+
+#define SetWindowLong(hWnd, nIndex, dwNewLong) \
+	(IsWindowUnicode(hWnd) ? SetWindowLongW(hWnd, nIndex, dwNewLong) : \
+                            SetWindowLongA(hWnd, nIndex, dwNewLong))
+
 class nsIWebBrowser;
 #ifndef __KMELEON_PLUGIN_H__
 #define __KMELEON_PLUGIN_H__
@@ -58,8 +74,8 @@ enum WindowVarType {
 	Window_UrlBar = 0,      // char*
 	Window_Charset = 1,     // char*
 	Window_Title = 2,       // char*
-   Window_TextZoom = 3,    // int
-	Window_URL = 4,          // char*
+	Window_TextZoom = 3,    // int
+	Window_URL = 4,         // char*
 
 	// Read Only
 	Window_SelectedText = 100, // wchar_t*
@@ -101,12 +117,13 @@ enum PREFTYPE {
 };
 
 typedef struct {
-   short type;
-   const char* label;
-   int command;
-   int groupid;
-   long before;
+   short type; // One of MENUTYPE
+   const char* label; // If either label or command is null then 
+   int command;       // this will be a delete operation
+   int groupid; // Not used
+   long before; // Can be either a int position, a command id or a pointer to a string
 } kmeleonMenuItem;
+
 
 enum MENUTYPE {
    MENU_COMMAND = 0,
