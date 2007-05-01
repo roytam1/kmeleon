@@ -249,8 +249,28 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
          if (index != NOTFOUND)
             ExecuteMacro(NULL, index);
       }
-		if (stricmp(subject, "Setup") == 0) {
+	  if (stricmp(subject, "Init2") == 0) {
+         int index = FindMacro("OnInit2");
+         if (index != NOTFOUND)
+            ExecuteMacro(NULL, index);
+      }
+	  if (stricmp(subject, "Setup") == 0) {
+         int index = FindMacro("OnSetup2");
+         if (index != NOTFOUND)
+            ExecuteMacro(NULL, index);
+      }
+	  if (stricmp(subject, "Setup") == 0) {
          int index = FindMacro("OnSetup");
+         if (index != NOTFOUND)
+            ExecuteMacro(NULL, index);
+      }
+	  if (stricmp(subject, "Setup") == 0) {
+         int index = FindMacro("OnSetup2");
+         if (index != NOTFOUND)
+            ExecuteMacro(NULL, index);
+      }
+	  if (stricmp(subject, "UserSetup") == 0) {
+         int index = FindMacro("OnUserSetup");
          if (index != NOTFOUND)
             ExecuteMacro(NULL, index);
       }
