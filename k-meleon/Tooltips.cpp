@@ -76,13 +76,13 @@ void CKmToolTip::Show(const TCHAR *text, int x, int y) {
    rect.left = 0;
    rect.right = 300; // max width of the tooltip
 
-   DC->DrawText(text, rect, DT_CALCRECT | DT_WORDBREAK );
+   DC->DrawText(text, rect, DT_CALCRECT | DT_WORDBREAK | DT_NOPREFIX);
    DC->RestoreDC(nSavedDC);
    
    // add a bit of padding on the sides
    int width = rect.Width() + 10;
    int height = rect.Height() +5;
-   
+      
    // keep the tooltip from running off the window
    CWnd *pWndParent = GetParent();
    pWndParent->GetWindowRect(&rect);
@@ -117,7 +117,7 @@ void CKmToolTip::OnPaint() {
    
    ClientRect.left += 3;
    
-   DC.DrawText(pszText, -1, ClientRect, DT_WORDBREAK);
+   DC.DrawText(pszText, -1, ClientRect, DT_WORDBREAK | DT_NOPREFIX);
    
    DC.RestoreDC(nSavedDC);
 }
