@@ -34,7 +34,7 @@ $_data==""?0:&_Groups_OpenGroup;
 
 # PRIVATE
 _Groups_OpenFolder{
-$kLayers==true?(((pluginmsgex(layers,NumberOfLayersInWindow,"",INT)==1)*(($URL=="about:blank")+($URL=="")))==1?&_Groups_OpenGroup_LayersReplace:&_Groups_OpenGroup_LayersAdd):($URL=="about:blank"?&_Groups_OpenGroup_WindowsReplace:&_Groups_OpenGroup_WindowsAdd;);
+$kLayers==true?(((pluginmsgex(layers,NumberOfLayersInWindow,"",INT)==1)*(($URL=="about:blank")+($URL=="")))==1?&_Groups_OpenGroup_LayersReplace:&_Groups_OpenGroup_LayersAdd):($URL=="about:blank"?&_Groups_OpenGroup_WindowsReplace:&_Groups_OpenGroup_WindowsAdd);
 $__data=""; index($_Group,$_Groups_User)==0?$_Group=sub($_Groups_User,"",$_Group):0; $OpenURL=$_Group;
 $kBookmarks==true?$__data=$__data.pluginmsgex(bookmarks,FindNick,$_Group,STRING):0;
 $kHotlist==true?$__data=$__data.pluginmsgex(hotlist,FindNick,$_Group,STRING):0;
@@ -43,7 +43,7 @@ $__data==""?alert(sub("%s",$_Group,$_Groups_DlgMsg),$_Groups_DlgTitOpen):&OpenUR
 
 $_Groups_OpenCmd="";
 _Groups_OpenGroup{
-$kLayers==true?(((pluginmsgex(layers,NumberOfLayersInWindow,"",INT)==1)*(($URL=="about:blank")+($URL=="")))==1?&_Groups_OpenGroup_LayersReplace:&_Groups_OpenGroup_LayersAdd):($URL=="about:blank"?&_Groups_OpenGroup_WindowsReplace:&_Groups_OpenGroup_WindowsAdd;);
+$kLayers==true?(((pluginmsgex(layers,NumberOfLayersInWindow,"",INT)==1)*(($URL=="about:blank")+($URL=="")))==1?&_Groups_OpenGroup_LayersReplace:&_Groups_OpenGroup_LayersAdd):($URL=="about:blank"?&_Groups_OpenGroup_WindowsReplace:&_Groups_OpenGroup_WindowsAdd);
 $_Groups_OpenGroup_data=$kLayers==true?"":$_data;
 $_Groups_OpenGroup_init=true;
 $kLayers==true?pluginmsg(layers,$_Groups_OpenCmd,$_data):&_Groups_OpenGroup_Windows;
@@ -122,7 +122,7 @@ $kLayers==true?setpref(STRING,$_Groups_Temp,pluginmsgex(layers,GetLayersInWindow
 }
 _Groups_SaveLayersClosed{
 $__data=$kLayers==true?pluginmsgex(layers,GetLayersInWindow,"",STRING):"";
-$__data==""?0:$__data=sub($URL."\t","",$__data); setpref(STRING,$_Groups_Temp,$__data==""?$URL:$__data)
+$__data==""?0:$__data=sub($URL."\t","",$__data); setpref(STRING,$_Groups_Temp,$__data==""?$URL:$__data);
 }
 _Groups_Delete{
 $_groups=sub("\n".$_group."\n","\n",$_groups); delpref($_Groups_UserPrefBranch.$_group);

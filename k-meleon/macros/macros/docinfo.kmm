@@ -54,14 +54,14 @@ $JS_last="if(cnt){var lnkWin=open('',lnkWinName,'".$_DocInfo_PopupStyle."');with
 $JS_fail=$_DocInfo_FrameError;
 }
 _DocInfo_lstLinkedImages{
-$_DocInfo_ForceLayer=getpref(BOOL,$macroPrefBranch."docinfo.forceLayer.linkedImages")
+$_DocInfo_ForceLayer=getpref(BOOL,$macroPrefBranch."docinfo.forceLayer.linkedImages");
 $JS_func="with(document)var ext=new Array('bmp','gif','giff','jpg','jpeg','png','ico'),cnt=0,nlf='"._("No linked images found.")."',tit='"._("Linked Images: %s")."'.replace(/%s/,(title)?title:unescape(URL)),txt='';";
 $JS_doit="if(getElementsByTagName('body')[0]){var url=new Array();function add(s){for(var j=0;j<url.length;j++)if(s==url[j])return;for(var j=0,x=s.split('.');j<ext.length;j++)if(x[x.length-1].toLowerCase()==ext[j])url[url.length]=s}for(var j=0,l=links;j<l.length;j++)add(l[j].href);txt+='\\n<fieldset><legend>'+((title)?title:unescape(URL)).link(URL)+'</legend><ol>';cnt+=url.length;if(url.length)for(var j=0;j<url.length;j++)txt+='\\n<li><img src=\"'+url[j]+'\"></li>';else txt+='\\n<p>'+nlf+'</p>';txt+='</ol>\\n</fieldset>'}";
 $JS_last="if(cnt){var imgWin=open('','kmLINKIMG'+Math.floor(Math.random()*1000),'".$_DocInfo_PopupStyle."');with(imgWin.document){open();write('<html><head><title>'+tit+'</title><style type=\"text/css\">\\n".gsub("\n","\\n",readfile($_DocInfo_StyleSheet))."\\n</style></head>\\n<body class=\"km_DocInfo_lstLinkedImages\">'+txt+'\\n</body></html>');close()}}else alert(nlf)";
 $JS_fail=$_DocInfo_FrameError;
 }
 _DocInfo_lstImages{
-$_DocInfo_ForceLayer=getpref(BOOL,$macroPrefBranch."docinfo.forceLayer.images")
+$_DocInfo_ForceLayer=getpref(BOOL,$macroPrefBranch."docinfo.forceLayer.images");
 $JS_func="with(document)var cnt=0,nif='"._("No images found.")."',tit='"._("Images: %s")."'.replace(/%s/,(title)?title:unescape(URL)),txt='';";
 $JS_doit="if(getElementsByTagName('body')[0]){var url=new Array();function add(s){for(var j=0;j<url.length;j++)if(s==url[j])return;url[url.length]=s}for(var j=0,i=images;j<i.length;j++)add(i[j].src);for(var j=0,i=getElementsByTagName('input');j<i.length;j++)if((i[j].getAttribute('type')=='image')&&(i[j].getAttribute('src')))add(i[j].src);txt+='\\n<fieldset><legend>'+((title)?title:unescape(URL)).link(URL)+'</legend><ol>';cnt+=url.length;if(url.length)for(var j=0;j<url.length;j++)txt+='\\n<li><img src=\"'+url[j]+'\"></li>';else txt+='\\n<p>'+nif+'</p>';txt+='</ol>\\n</fieldset>'}";
 $JS_last="if(cnt){var imgWin=open('','kmIMG'+Math.floor(Math.random()*1000),'".$_DocInfo_PopupStyle."');with(imgWin.document){open();write('<html><head><title>'+tit+'</title><style type=\"text/css\">\\n".gsub("\n","\\n",readfile($_DocInfo_StyleSheet))."\\n</style></head>\\n<body class=\"km_DocInfo_lstImages\">'+txt+'\\n</body></html>');close()}}else alert(nif)";
