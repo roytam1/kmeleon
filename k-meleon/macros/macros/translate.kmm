@@ -12,7 +12,7 @@ Translate_From{
 $_from=$ARG; &_Translate;
 }
 Translate_To{
-alert(_("Available target languages:").\n\n.sub(%s,en,_("English\t\t = %s")).\n\n.sub(%s,es,_("Spanish\t\t = %s")).\n.sub(%s,pt,_("Portuguese\t = %s")).\n.sub(%s,fr,_("French\t\t = %s")).\n.sub(%s,de,_("German\t\t = %s")).\n.sub(%s,nl,_("Dutch\t\t = %s")).\n.sub(%s,it,_("Italian\t\t = %s")).\n.sub(%s,el,_("Greek\t\t = %s")).\n\n.sub(%s,ru,_("Russian\t\t = %s")).\n.sub(%s,ko,_("Korean\t\t = %s")).\n.sub(%s,ja,_("Japanese\t\t = %s")).\n.sub(%s,zt,_("Chinese (Traditional) = %s")).\n.sub(%s,zh,_("Chinese (Simplified)\t = %s")).\n\n._("Enter the desired language's two-letter code into the following prompt."),$_Translate_srvc,INFO);
+alert(_("Available target languages:")."\n\n".sub("%s",en,_("English\t\t = %s"))."\n\n".sub("%s",es,_("Spanish\t\t = %s"))."\n".sub("%s",pt,_("Portuguese\t = %s"))."\n".sub("%s",fr,_("French\t\t = %s"))."\n".sub("%s",de,_("German\t\t = %s"))."\n".sub("%s",nl,_("Dutch\t\t = %s"))."\n".sub("%s",it,_("Italian\t\t = %s"))."\n".sub("%s",el,_("Greek\t\t = %s"))."\n\n".sub("%s",ru,_("Russian\t\t = %s"))."\n".sub("%s",ko,_("Korean\t\t = %s"))."\n".sub("%s",ja,_("Japanese\t\t = %s"))."\n".sub("%s",zt,_("Chinese (Traditional) = %s"))."\n".sub("%s",zh,_("Chinese (Simplified)\t = %s"))."\n\n"._("Enter the desired language's two-letter code into the following prompt."),$_Translate_srvc,INFO);
 &_Translate_pref;
 $_to=prompt(_("Two-letter target language code:"),$_Translate_srvc,$_to);
 $_to==""?0:setpref(STRING,$_Translate_pref,$_to);
