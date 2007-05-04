@@ -4,6 +4,8 @@
 pref("general.useragent.locale", "en-US");
 pref("general.useragent.contentlocale", "US");
 
+pref("kmeleon.general.homePage", "resource:///readme.html");
+
 /********************************************************************************************************/
 // Appearance
 
