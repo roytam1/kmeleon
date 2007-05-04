@@ -5,6 +5,9 @@
 !define		GECKO_VERSION "1.8.1.3"
 !define		PRODUCT_BUILD "${NAME} ${VERSION}"
 
+!define		LANGUAGE "English"	; see NSIS\Examples\Modern UI\MultiLanguage.nsi: Languages
+!define		LANGCODE "en-US"	; specify "xx-YY" if not "en-US"
+
 !define		PRODUCT_KEY "Software\${NAME}"
 !define		PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${NAME}"
 !define 	CLIENT_INTERNET_KEY "Software\Clients\StartMenuInternet"
@@ -40,7 +43,7 @@ LicenseBkColor "ffffff"
 ;Name and file
 Name		"${NAME} ${VERSION}"
 Caption		$(INST_Caption)
-OutFile		"${NAME}.exe"
+OutFile		"${NAME}${VERSION}${LANGCODE}.exe"
 
 ;--------------------------------
 ;Version tab in properties
@@ -111,11 +114,8 @@ OutFile		"${NAME}.exe"
 ;--------------------------------
 ;Languages
 
-!insertmacro MUI_LANGUAGE "English"
-!include "english.nlf"
-
-;!insertmacro MUI_LANGUAGE "French"
-;!include "french.nlf"
+!insertmacro MUI_LANGUAGE "${LANGUAGE}"
+!include "${LANGUAGE}.nlf"
 
 ;--------------------------------
 
@@ -430,6 +430,7 @@ Section Uninstall
 	RMdir /r $INSTDIR\ipc
 	RMdir /r $INSTDIR\res
 	RMdir /r $INSTDIR\kplugins
+	RMdir /r $INSTDIR\locales
 	RMdir /r $INSTDIR\macros
 
 	Delete   $INSTDIR\plugins\npnul32.dll
@@ -555,7 +556,7 @@ Function .onInit
 #  StrCpy $1 ${SecFull} ; Group 1 - Option 1 is selected by default
 
 ;	!insertmacro MUI_LANGDLL_DISPLAY  ; Uncomment for multi language installer
-	!insertmacro MUI_INSTALLOPTIONS_EXTRACT "profpage.ini"
+;	!insertmacro MUI_INSTALLOPTIONS_EXTRACT "profpage.ini"
 
 	FindWindow $0 "KMeleon Tray Control"
 	StrCmp $0 0 FindKM 0
@@ -577,17 +578,17 @@ NoKMrunning:
 FunctionEnd
 
 ;--------------------------------
-Function un.onInit
-!insertmacro MUI_UNGETLANGUAGE
-  MessageBox MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON2 "$(UN_confirm)" IDYES +2
-  Abort
-FunctionEnd
+;Function un.onInit
+;!insertmacro MUI_UNGETLANGUAGE
+;  MessageBox MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON2 "$(UN_confirm)" IDYES +2
+;  Abort
+;FunctionEnd
 
 ;--------------------------------
-Function un.onUninstSuccess
-  HideWindow
-  MessageBox MB_ICONINFORMATION|MB_OK "$(UNINST_OK)"
-FunctionEnd
+;Function un.onUninstSuccess
+;  HideWindow
+;  MessageBox MB_ICONINFORMATION|MB_OK "$(UNINST_OK)"
+;FunctionEnd
 
 Function DirectoryLeave
 	Call CloseKMeleon
