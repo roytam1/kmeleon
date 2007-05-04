@@ -14,7 +14,7 @@ pref("general.useragent.vendorSub", "1.1");
 pref("kmeleon.MRU.maxURLs", 16);
 pref("kmeleon.MRU.behavior", 2);
 pref("kmeleon.general.guest_account", false);
-pref("kmeleon.general.homePage", "resource:///readme.html");
+//pref("kmeleon.general.homePage", "resource:///readme.html");			// I10n.js
 pref("kmeleon.general.offline", false);
 pref("kmeleon.general.opengroup", "ID_OPEN_LINK|ID_OPEN_LINK_IN_BACKGROUND");
 pref("kmeleon.general.openurl", "ID_OPEN_LINK");
