@@ -7,5 +7,3 @@
  * For more information, see http://www.mozilla.org/unix/customizing.html#prefs
  */
 
-
-user_pref("kmeleon.plugins.bookmarks.load", true);
