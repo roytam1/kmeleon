@@ -17,10 +17,10 @@
 */
 
 
-#define KMELEON_VERSION	               0x01010003
+#define KMELEON_VERSION	               0x01010004
 
-#define WM_DEFERSHOW                   WM_USER + 150
-#define WM_DEFERSAVEAS                 WM_USER + 151
+#define WM_DEFERSHOW                   WM_USER + 200
+#define WM_DEFERSAVEAS                 WM_USER + 201
 
 #define UWM_UPDATESESSIONHISTORY       WM_APP + 110
 #define UWM_REFRESHTOOLBARITEM         WM_APP + 111
@@ -28,7 +28,6 @@
 #define UWM_REFRESHMRULIST             WM_APP + 113
 
 #define UWM_NEWWINDOW                  WM_APP + 115
-#define UWM_NEWSITEICON                WM_APP + 140
 
 #define UWM_PERSIST_SET                WM_APP + 1116
 #define UWM_PERSIST_GET                WM_APP + 1117
@@ -56,7 +55,11 @@
 #define SB_LBUTTONDOWN                 WM_APP + 135
 #define SB_MBUTTONDOWN                 WM_APP + 136
 #define SB_RBUTTONDOWN                 WM_APP + 137
+#define SB_LBUTTONUP                   WM_APP + 138
+#define SB_MBUTTONUP                   WM_APP + 139
+#define SB_RBUTTONUP                   WM_APP + 141
 
+#define UWM_NEWSITEICON                WM_APP + 140
 
 #define PLUGIN_COMMAND_START_ID        6000
 #define PLUGIN_REBAR_START_ID          200
