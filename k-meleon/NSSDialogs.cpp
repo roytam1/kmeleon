@@ -152,8 +152,11 @@ public:
 		if (wnd = GetDlgItem(IDOK))
 			wnd->ShowWindow(SW_HIDE);
 
-		if (wnd=GetDlgItem(IDCANCEL))
-			wnd->SetWindowText(_T("Close"));
+		if (wnd=GetDlgItem(IDCANCEL)) {
+			CString text;
+			text.LoadString(IDS_CLOSE);
+			wnd->SetWindowText(text);
+		}
 
 		return bResult;
 	}
