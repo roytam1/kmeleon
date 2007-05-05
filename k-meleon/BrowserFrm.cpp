@@ -881,6 +881,9 @@ BEGIN_MESSAGE_MAP(CMyStatusBar, CStatusBar)
    ON_WM_RBUTTONDBLCLK()
    ON_WM_RBUTTONDOWN()
    //}}AFX_MSG_MAP
+   ON_WM_LBUTTONUP()
+   ON_WM_RBUTTONUP()
+   ON_WM_MBUTTONUP()
 END_MESSAGE_MAP()
 
 void CMyStatusBar::GetItemRect(UINT idx, LPRECT r)
@@ -969,6 +972,39 @@ void CMyStatusBar::OnRButtonDown(UINT nFlags, CPoint point)
    }
 
    CStatusBar::OnRButtonDown(nFlags, point);
+}
+
+void CMyStatusBar::OnLButtonUp(UINT nFlags, CPoint point)
+{
+   int id = HitTest(point);
+   if (id != -1 ) {
+      GetParentFrame()->SendMessage(SB_LBUTTONUP, id, 0);
+      return;
+   }
+   
+   CStatusBar::OnLButtonUp(nFlags, point);
+}
+
+void CMyStatusBar::OnRButtonUp(UINT nFlags, CPoint point)
+{
+   int id = HitTest(point);
+   if (id != -1 ) {
+      GetParentFrame()->SendMessage(SB_RBUTTONUP, id, 0);
+      return;
+   }
+
+   CStatusBar::OnRButtonUp(nFlags, point);
+}
+
+void CMyStatusBar::OnMButtonUp(UINT nFlags, CPoint point)
+{
+   int id = HitTest(point);
+   if (id != -1 ) {
+      GetParentFrame()->SendMessage(SB_MBUTTONUP, id, 0);
+      return;
+   }
+   
+   CStatusBar::OnMButtonUp(nFlags, point);
 }
 
 int CMyStatusBar::OnCreate(LPCREATESTRUCT lpCreateStruct)
@@ -1090,7 +1126,7 @@ LRESULT CBrowserFrame::RefreshToolBarItem(WPARAM ItemID, LPARAM unused)
 
 LRESULT CBrowserFrame::RefreshMRUList(WPARAM ItemID, LPARAM unused)
 {
-    //theApp.m_MRUList->RefreshURLs();
+    theApp.m_MRUList->RefreshURLs();
     m_wndUrlBar.LoadMRUList();
     return 0;
 }
@@ -1177,6 +1213,7 @@ HWND CBrowserFrame::CreateToolbar(UINT style) {
 }
 
 #include "nsITypeAheadFind.h"
+#include ".\browserfrm.h"
 
 void CBrowserFrame::OnShowFindBar()
 {
@@ -1375,3 +1412,4 @@ void CBrowserFrame::OnPasswordsViewer()
 	CPasswordViewerDlg dlg(this);
 	dlg.DoModal();
 }
+
