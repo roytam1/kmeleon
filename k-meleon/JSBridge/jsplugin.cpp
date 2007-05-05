@@ -24,10 +24,9 @@ kmeleonPlugin kPlugin = {
 #include <nsServiceManagerUtils.h>
 #include "nsIJSBridge.h"
 #include "jscomp.h"
+#include "nsEmbedString.h"
 
 NS_IMPL_ISUPPORTS1(CJSBridge, nsIJSBridge); 
-
-
 NS_GENERIC_FACTORY_CONSTRUCTOR(CJSBridge) 
 
 static const nsModuleComponentInfo components = 
@@ -40,12 +39,10 @@ static const nsModuleComponentInfo components =
 
 static nsCOMPtr<nsIGenericFactory> componentFactory;
 
-BOOL Init() 
+BOOL Init()
 {
+	nsresult rv;
 	nsCOMPtr<nsIComponentRegistrar> compReg;
-   nsresult rv = NS_GetComponentRegistrar(getter_AddRefs(compReg));
-   NS_ENSURE_SUCCESS(rv, FALSE);
-   
 	rv = NS_NewGenericFactory(getter_AddRefs(componentFactory), &components);
 	if (NS_FAILED(rv) || !componentFactory)
 		return FALSE;
@@ -70,18 +67,6 @@ BOOL Quit()
 	return NS_SUCCEEDED(rv) ? TRUE : FALSE;
 }
 
-void Create()
-{
-	/*nsCOMPtr<nsIServiceManager> servMan; 
-	nsresult rv = NS_GetServiceManager(getter_AddRefs(servMan)); 
-	NS_ENSURE_SUCCESS(rv, );
-
-	nsCOMPtr<nsIJSBridge> jsb;
-	rv = servMan->GetServiceByContractID("@kmeleon/jsbridge;1",  NS_GET_IID(nsIJSBridge), getter_AddRefs(jsb));
-	NS_ENSURE_SUCCESS(rv, );
-
-	jsb->Test();*/
-}
 
 long DoMessage(const char *to, const char *from, const char *subject,
 			   long data1, long data2)
@@ -89,9 +74,6 @@ long DoMessage(const char *to, const char *from, const char *subject,
 	if (to[0] == '*' || stricmp(to, kPlugin.dllname) == 0) {
 		if (stricmp(subject, "Init") == 0) {
 			Init();
-		}
-		else if (stricmp(subject, "Create") == 0) {
-			Create();
 		}
 		else if (stricmp(subject, "Quit") == 0) {
 			Quit();
