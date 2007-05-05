@@ -34,7 +34,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="xpcom.lib xpcomglue_s.lib"
-				OutputFile="F:\Program Files\K-Meleon\debug\kplugins\JSBridge.dll"
+				OutputFile="\Program Files\K-Meleon\debug\kplugins\JSBridge.dll"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="..\..\mozilla\mozilla\dist\lib_debug"
 				GenerateDebugInformation="TRUE"
@@ -83,7 +83,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="xpcom.lib xpcomglue_s.lib"
-				OutputFile="$(OutDir)/JSBridge.dll"
+				OutputFile="\Program Files\K-Meleon\release\kplugins\JSBridge.dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\..\mozilla\mozilla\dist\lib"
 				GenerateDebugInformation="TRUE"
