@@ -39,10 +39,12 @@ static const nsModuleComponentInfo components =
 
 static nsCOMPtr<nsIGenericFactory> componentFactory;
 
-BOOL Init()
+BOOL Init() 
 {
-	nsresult rv;
 	nsCOMPtr<nsIComponentRegistrar> compReg;
+   nsresult rv = NS_GetComponentRegistrar(getter_AddRefs(compReg));
+   NS_ENSURE_SUCCESS(rv, FALSE);
+   
 	rv = NS_NewGenericFactory(getter_AddRefs(componentFactory), &components);
 	if (NS_FAILED(rv) || !componentFactory)
 		return FALSE;
