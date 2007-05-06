@@ -376,6 +376,10 @@ void Quit(){
       ImageList_Destroy(gImagelist);
    while (root)
       remove_TB(root->hWnd);
+   delete gFavoritesRoot.child;
+   delete gFavoritesRoot.next;
+   gFavoritesRoot.child = NULL;
+   gFavoritesRoot.next = NULL;
    delete gLoc;
 }
 
