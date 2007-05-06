@@ -70,13 +70,27 @@ BOOL CALLBACK _EnumTranslate(HWND hWnd, LPARAM lParam)
 {
 	TCHAR text[1024];
 	TranslateProc tp = (TranslateProc)lParam;
-	GetWindowText(hWnd, text, sizeof(text)/sizeof(TCHAR));
-	SetWindowText(hWnd, tp(text));
+	if (GetDlgCtrlID(hWnd)>0) {
+		GetWindowText(hWnd, text, sizeof(text)/sizeof(TCHAR));
+		SetWindowText(hWnd, tp(text));
+	}
 	return TRUE;
 }
 
 BOOL TranslateDialog(HWND hWnd, TranslateProc tp)
 {
+	TCHAR text[1024];
+	GetWindowText(hWnd, text, sizeof(text)/sizeof(TCHAR));
+	SetWindowText(hWnd, tp(text));
+
+/*	HWND child = GetWindow(hWnd, GW_CHILD | GW_HWNDFIRST);
+	if (!child) return FALSE;
+
+	do {
+		GetDlgCtrlID
+
+	} while (child = GetWindow(child, GW_HWNDNEXT));
+*/
 	return EnumChildWindows(hWnd, _EnumTranslate, (LPARAM)tp);
 }
 

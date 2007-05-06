@@ -71,7 +71,7 @@ protected:
 		}
 	}
 
-	bool Init(unsigned len)
+	bool Init(size_t len)
 	{
 		if(len > STACK_BUFFER_SIZE)
 		{
