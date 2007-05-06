@@ -344,7 +344,7 @@ void Quit(){
 
 void DoMenu(HMENU menu, char *param){
    // only do this the first time
-   if (bFirstRun) {
+//   if (bFirstRun) {
 
       // WinNT4 is unhappy when we subclass the top level menus, it's probably a bug in
       // the way we do it now (since it worked before the recent changes), this is a bad
@@ -374,7 +374,7 @@ void DoMenu(HMENU menu, char *param){
          DrawProc = DrawBitmap;
       }
       SetOwnerDrawn(menu, DrawProc, topLevel);
-   }
+ //  }
 }
 
 int DrawBitmap(DRAWITEMSTRUCT *dis) {
