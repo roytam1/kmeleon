@@ -2,7 +2,7 @@
 ; This script is a multi-language setup for K-Meleon
 
 ; K-Meleon SetDefault version
-!define SETUP_VERSION        "1.3.1.1"
+!define SETUP_VERSION        "1.3.1.2"
 
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME         "K-Meleon"
@@ -31,6 +31,8 @@
   Var /Global _MUI_DIRECTORYPAGE_HEADER_TEXT
   Var /Global _MUI_DIRECTORYPAGE_HEADER_SUBTEXT
   Var /Global _MUI_DIRECTORYPAGE_TEXT_TOP
+  Var /Global _MUI_DIRECTORYPAGE_TEXT_TOP_1
+  Var /Global _MUI_DIRECTORYPAGE_TEXT_TOP_2
   Var /Global _DirSubText
   Var /Global _BrowseBtn
   Var /Global _DirBrowseText
@@ -124,7 +126,6 @@
   Var /Global _SecLoader
   Var /Global _DESC_SecLoader
   Var /Global _SET_SecLoader
-  Var /Global _UNSET_SecLoader
 ; No K-Meleon Folder Message
   Var /Global _NotDetected
 ; Abort message
@@ -738,7 +739,10 @@ Function Translate_Strings
    ReadIniStr $_MUI_WELCOMEPAGE_TITLE $1 SetDefault MUI_WELCOMEPAGE_TITLE
    ReadIniStr $_MUI_WELCOMEPAGE_TEXT $1 SetDefault MUI_WELCOMEPAGE_TEXT
 ; Directory
-   ReadIniStr $_MUI_DIRECTORYPAGE_TEXT_TOP $1 SetDefault MUI_DIRECTORYPAGE_TEXT_TOP
+   ReadIniStr $_MUI_DIRECTORYPAGE_TEXT_TOP_1 $1 SetDefault MUI_DIRECTORYPAGE_TEXT_TOP_1
+   ReadIniStr $_MUI_DIRECTORYPAGE_TEXT_TOP_2 $1 SetDefault MUI_DIRECTORYPAGE_TEXT_TOP_2
+   strcpy $_MUI_DIRECTORYPAGE_TEXT_TOP "$_MUI_DIRECTORYPAGE_TEXT_TOP_1 $\n$\n$_MUI_DIRECTORYPAGE_TEXT_TOP_2"
+
    ReadIniStr $_MUI_DIRECTORYPAGE_HEADER_TEXT $1 SetDefault MUI_DIRECTORYPAGE_HEADER_TEXT
    ReadIniStr $_MUI_DIRECTORYPAGE_HEADER_SUBTEXT $1 SetDefault MUI_DIRECTORYPAGE_HEADER_SUBTEXT
    ReadIniStr $_DirSubText $1 SetDefault DirSubText

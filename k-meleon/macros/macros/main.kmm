@@ -656,7 +656,7 @@ open("http://kmeleon.sourceforge.net/wiki/index.php?id=Welcome");
 _Open_BuildMenu{
 # help menu
 setmenu(KMDocs,separator,-1);
-setmenu(KMDocs,macro,sub("%1",$KM_Version,_("Wel&come to K-Meleon %1 !")),Open_KMReadme);
+setmenu(KMDocs,macro,"Wel&come to K-Meleon !",Open_KMReadme);
 setmenu(KMHome,macro,"K-Meleon &Wiki",Open_KMWiki);
 # context menus
 setmenu(FrameOpen,macro,"Open In &Background",Open_Frame_InBg);

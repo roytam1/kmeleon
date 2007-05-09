@@ -49,7 +49,7 @@ _UserAgent_BuildMenu{
 # tools menu
 $_u="&User Agent";
 setmenu(PrivacySecurity,popup,$_u);
-setmenu($_u,macro,sub("%1",$KM_Version,_("K-Meleon %1 (Default)")),"UserAgent()");
+setmenu($_u,macro,"Default","UserAgent()");
 $_i=1; while($_i>0) &_UserAgent_BuildMenuLoop;
 setmenu($_u,macro,"&Custom...",UserAgent_Custom);
 setmenu($_u,macro,"&Reset To Default On Exit",UserAgent_ToggleReset);
