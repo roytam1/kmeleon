@@ -40,9 +40,7 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
-#include "BrowserView.h"
 #include "IBrowserFrameGlue.h"
-#include "MostRecentUrls.h"
 #include "ToolBarEx.h"
 #include "KmeleonConst.h"
 #include "ReBarEx.h"
@@ -51,6 +49,46 @@
 #include "sidebar.h"
 #include "Dialogs.h"
 
+class CBrowserView;
+
+class CBrowserGlue : public IBrowserGlue
+{
+public:
+	CString mTitle;
+	CString mLocation;
+	CString mStatusText;
+	CString mPopupBlockedHost;
+	int     mIcon;
+	int     mSecurityState;
+	BOOL    mLoading;
+	BOOL    mDOMLoaded;
+	int     mProgressCurrent;
+	int     mProgressMax;
+
+	nsCOMPtr<nsIURI> mIconURI;
+	nsCOMPtr<nsIDOMNode> mContextNode;
+
+	CBrowserGlue(CBrowserFrame* frame, CBrowserView* view) : mIcon(0),
+		mSecurityState(nsIWebProgressListener::STATE_IS_INSECURE),
+		mProgressCurrent(0),
+		mProgressMax(100),
+		mLoading(FALSE),
+		mDOMLoaded(FALSE),
+		mpBrowserFrame(frame),
+		mpBrowserView(view)
+	{
+	}
+
+	virtual ~CBrowserGlue();
+
+	//SetFrame(CBrowserFrame* frame)  {mpBrowserFrame = }
+
+	NS_DECL_BROWSERGLUE;
+
+protected:
+	CBrowserFrame* mpBrowserFrame;
+	CBrowserView* mpBrowserView;
+};
 
 // CMyStatusBar class
 class CMyStatusBar : public CStatusBar
@@ -149,64 +187,89 @@ private:
 
 class CBrowserFrame : public CFrameWnd
 {   
-public:
-    CBrowserFrame(PRUint32 chromeMask, LONG style);
-
-protected: 
-    DECLARE_DYNAMIC(CBrowserFrame)
-
-public:
-    inline CBrowserImpl *GetBrowserImpl() { return m_wndBrowserView.mpBrowserImpl; }
-
-    HMENU           m_hMenu;
-    HICON           m_hSecurityIcon;
-    CMyStatusBar    m_wndStatusBar;
-    CProgressCtrl   m_wndProgressBar;
-    CUrlBar         m_wndUrlBar;
-    CReBarEx        m_wndReBar;
-    CAnimateCtrl    m_wndAnimate;
-#ifdef INTERNAL_SIDEBAR
-    CSideBar        m_wndSideBar;
-#endif
-    CFindRebar*     m_wndFindBar;
-
-    static CBitmap  m_bmpBack;
-
+protected:
     // The view inside which the embedded browser will
     // be displayed in
-    CBrowserView   m_wndBrowserView;
+	CBrowserView*	m_wndBrowserView;	
 
-    void UpdateSecurityStatus(PRInt32 aState);
-    void ShowSecurityInfo();
-	void ClearFindBar();
-	void CloseNothing(){}
+	CAnimateCtrl    m_wndAnimate;
+	CFindRebar*     m_wndFindBar;
+	wchar_t*        m_searchString;
 
-    // note: right now it's just a CStatic, but eventually it will become something better
-    CKmToolTip     m_wndToolTip;
+    HICON           m_hSecurityIcon;
+    
+	static CBitmap  m_bmpBack;
 
-    // This specifies what UI elements this frame will sport
+	// This specifies what UI elements this frame will support
     // w.r.t. toolbar, statusbar, urlbar etc.
     PRUint32 m_chromeMask;
     LONG m_style;
-    int m_ignoreMoveResize;
-	BOOL m_bSizeOnLoad;
 
     BOOL m_created; // set after we are created
-    INT m_ignoreFocus;
-	HWND m_wndLastFocused;
-
     CToolBarList m_tbList;
+
+	int m_cx;
+	int m_cy;
+
+public:
+	CUrlBar         m_wndUrlBar;
+	// note: right now it's just a CStatic, but eventually it will become something better
+	CKmToolTip      m_wndToolTip;
+    CReBarEx        m_wndReBar;
+    CMyStatusBar    m_wndStatusBar;
+	CProgressCtrl   m_wndProgressBar;
+	HWND            m_wndLastFocused;
+    
+#ifdef INTERNAL_SIDEBAR
+    CSideBar        m_wndSideBar;
+#endif
+
+	friend CBrowserGlue;
+    DECLARE_DYNAMIC(CBrowserFrame);
+
+	CBrowserFrame(PRUint32 chromeMask, LONG style);
+	virtual ~CBrowserFrame();
+	
+	void OpenURL(LPCTSTR url, LPCTSTR refferer = NULL, BOOL focusUrl = FALSE, BOOL allowFixup = TRUE);
+
+	virtual CBrowserView* GetActiveView() { return m_wndBrowserView; }
+	BOOL IsDialog() { return (m_chromeMask & nsIWebBrowserChrome::CHROME_OPENAS_CHROME); }
+	BOOL IsPopup() { return (m_style & WS_POPUP); } 
+
+    void UpdateSecurityStatus(PRInt32 aState);
+	void UpdateStatus(LPCTSTR aStatus);
+	void UpdateSiteIcon(int aIcon);
+	void UpdateLocation(LPCTSTR aLocation, BOOL aIgnoreTyping = FALSE);
+	void UpdateProgress(int aCurrent, int aMax); 
+	void UpdateLoading(BOOL aLoading);
+	void UpdateTitle(LPCTSTR aTitle);
+	void UpdatePopupNotification(LPCTSTR uri);
+
+	void ClearFindBar();
+	void CloseNothing(){}
+	INT_PTR DoModal();
+	
     HWND CreateToolbar(UINT style);
 
-	INT_PTR DoModal();
+	
 
 protected:
-    //
+	int InitLayout();
+	void SetupFrameChrome();
+
+	void LoadBackImage ();
+	void SetBackImage ();
+	void SaveWindowPos();
+#ifdef INTERNAL_SITEICONS
+	void SetFavIcon(int iIcon);
+#endif
+
+	//
     // This nested class implements the IBrowserFramGlue interface
     // The Gecko embedding interfaces call on this interface
     // to update the status bars etc.
     //
-    class BrowserFrameGlueObj : public IBrowserFrameGlue 
+   /* class BrowserFrameGlueObj : public IBrowserFrameGlue 
     {
         //
         // NS_DECL_BROWSERFRAMEGLUE below is a macro which expands
@@ -217,42 +280,25 @@ protected:
         NS_DECL_BROWSERFRAMEGLUE
 
     } m_xBrowserFrameGlueObj;
-    friend class BrowserFrameGlueObj;
-
-public:
-    void SetupFrameChrome();
-
-    void LoadBackImage ();
-    void SetBackImage ();
-
-    void SaveWindowPos();
-    void RestoreWindowPos(PRInt32 *x, PRInt32 *y, PRInt32 *cx, PRInt32 *cy);
-
-    void SetSoftFocus();
-#ifdef INTERNAL_SITEICONS
-	void SetFavIcon(int iIcon);
-#endif
-
-// Overrides
-	virtual HACCEL GetDefaultAccelerator();
+    friend class BrowserFrameGlueObj;*/
 
     // ClassWizard generated virtual function overrides
     //{{AFX_VIRTUAL(CBrowserFrame)
+	virtual HACCEL GetDefaultAccelerator();
     virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
     virtual BOOL PreTranslateMessage(MSG* pMsg);
     virtual BOOL OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERINFO* pHandlerInfo);
 	//}}AFX_VIRTUAL
-
-// Implementation
-    virtual ~CBrowserFrame();
+   
 #ifdef _DEBUG
     virtual void AssertValid() const;
     virtual void Dump(CDumpContext& dc) const;
 #endif
 
 	afx_msg void OnShowFindBar();
-// Generated message map functions
+
 protected:
+// Generated message map functions
     //{{AFX_MSG(CBrowserFrame)
     afx_msg void OnClose();
     afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
@@ -261,6 +307,10 @@ protected:
     // afx_msg void OnMove(int x, int y);
     afx_msg void OnActivate(UINT nState, CWnd* pWndOther, BOOL bMinimized);
     afx_msg void OnSysColorChange();
+	
+	afx_msg void OnSelectUrl();
+	afx_msg void OnWindowNext();
+	afx_msg void OnWindowPrev();
     afx_msg LRESULT RefreshToolBarItem(WPARAM ItemID, LPARAM unused);
     afx_msg LRESULT RefreshMRUList(WPARAM ItemID, LPARAM unused);
     afx_msg void ToggleToolBar(UINT uID);
@@ -275,12 +325,24 @@ protected:
 	afx_msg LRESULT OnNewSiteIcon(WPARAM url, LPARAM index);
 #endif
 	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
+	afx_msg LRESULT OnEnterSizeMove(WPARAM, LPARAM); 
    afx_msg void OnRbnLayoutChanged(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnInitMenuPopup(CMenu* pPopupMenu, UINT nIndex, BOOL bSysMenu);
+	afx_msg void OnUpdateViewStatusBar(CCmdUI* pCmdUI);
+
+    afx_msg void OnFindNext();
+    afx_msg void OnFindPrev();
+	afx_msg void OnWrapAround();
+	afx_msg void OnMatchCase();
+	afx_msg void OnHighlight();
+
    afx_msg void OnCookiesViewer();
    afx_msg void OnPasswordsViewer();
     //}}AFX_MSG
     DECLARE_MESSAGE_MAP()
+public:
+	afx_msg void OnMoving(UINT fwSide, LPRECT pRect);
+	afx_msg void OnDestroy();
 };
 
 /////////////////////////////////////////////////////////////////////////////

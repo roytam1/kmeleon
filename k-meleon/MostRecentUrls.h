@@ -27,13 +27,14 @@ public:
 
    void LoadURLs();
    void SaveURLs();
-	void DeleteURLs() { RemoveAll(); };
+   void DeleteURLs() { RemoveAll(); };
    void RefreshURLs();
 
    void AddURL(LPCTSTR aURL);
 
 protected:
    int m_maxURLs;
+   BOOL m_locked;
 };
 
 #endif

@@ -28,6 +28,7 @@ extern CMfcEmbedApp theApp;
 CMostRecentUrls::CMostRecentUrls()
 {
    LoadURLs();
+   m_locked = FALSE;
 }
 
 CMostRecentUrls::~CMostRecentUrls()
@@ -50,13 +51,8 @@ void CMostRecentUrls::LoadURLs()
    for (x=0; x<m_maxURLs; x++) {
       itoa(x, sBuf, 10);
       strcpy(sCount, sBuf);                              // create  "kmeleon.MRU.URL##" string
-      int len = theApp.preferences.GetString(sPref, NULL, "");
-      if (len > 0) {
-         CString url;
-         theApp.preferences.GetString(sPref, url.GetBufferSetLength(len), _T(""));
-         url.ReleaseBuffer(len);
-         AddTail(url);
-      }
+      CString url = theApp.preferences.GetString(sPref, _T(""));
+      if (url.GetLength()) AddTail(url);
    }
 }
 
@@ -69,6 +65,7 @@ void CMostRecentUrls::SaveURLs()
 
    theApp.preferences.SetInt("kmeleon.MRU.maxURLs", m_maxURLs); 
 
+   m_locked = TRUE;
    int y = 0;
    POSITION pos = GetHeadPosition();
    while (pos) {
@@ -78,22 +75,25 @@ void CMostRecentUrls::SaveURLs()
       if (!url.IsEmpty())
          theApp.preferences.SetString(sPref, url);
    }
+   m_locked = FALSE;
 }
 
 void CMostRecentUrls::RefreshURLs()
 {
+   if(m_locked) return;
    DeleteURLs();
    LoadURLs();
+   theApp.BroadcastMessage(UWM_REFRESHMRULIST, 0, 0);
 }
 
 void CMostRecentUrls::AddURL(LPCTSTR aURL)
 {  
-   RefreshURLs(); // Else macros/plugins can't delete them
    m_maxURLs = theApp.preferences.GetInt("kmeleon.MRU.maxURLs", 16); 
    while (GetCount() > m_maxURLs)
       RemoveTail();
    
    if (m_maxURLs<1) return;
+   m_locked = TRUE;
 
    // check list for previous entry
    POSITION pos = Find(aURL);
@@ -108,4 +108,5 @@ void CMostRecentUrls::AddURL(LPCTSTR aURL)
    AddHead(aURL);
    SaveURLs();
    theApp.BroadcastMessage(UWM_REFRESHMRULIST, 0, 0);
+   m_locked = FALSE;
 }

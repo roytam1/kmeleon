@@ -21,8 +21,11 @@
 #pragma once
 
 #include "KMeleonConst.h"
-#include "Kmeleon_plugin.h"
+//#include "Kmeleon_plugin.h"
+typedef  HWND(*SideBarInitProc)(HWND);
+
 // CSideBar
+
 
 #define MINSIDEBAR_SIZE 100
 

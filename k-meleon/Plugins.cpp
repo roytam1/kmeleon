@@ -1,5 +1,6 @@
 /*
 *  Copyright (C) 2000 Brian Harris
+*  Copyright (C) 2006 Dorian Boissonnade
 *
 *  This program is free software; you can redistribute it and/or modify
 *  it under the terms of the GNU General Public License as published by
@@ -20,6 +21,9 @@
 
 #include "StdAfx.h"
 
+#include "nsISHistory.h"
+#include "nsISHEntry.h"
+
 #include "MfcEmbed.h"
 extern CMfcEmbedApp theApp;
 
@@ -37,6 +41,28 @@ char **pHistUrl;
 kmeleonDocInfo kDocInfo;
 kmeleonPointInfo gPointInfo;
 
+
+CBrowserFrame* pBrowserFrame = NULL;
+CBrowserView* pBrowserView = NULL;
+
+CBrowserFrame* GetFrame(HWND hWnd = NULL) 
+{
+	return hWnd ? 
+		(CBrowserFrame *)CWnd::FromHandle(hWnd) 
+		: theApp.m_pMostRecentBrowserFrame;
+}
+
+CBrowserWrapper* GetWrapper(HWND hWnd = NULL) 
+{
+	CBrowserFrame* frame = GetFrame(hWnd);
+	if (!frame) return NULL;
+	ASSERT(frame->IsKindOf(RUNTIME_CLASS(CBrowserFrame)));
+
+	CBrowserView* view = frame->GetActiveView();
+	if (!view) return NULL;
+
+	return view->GetBrowserWrapper();
+}
 
 static char *safe_strdup(const char *ptr) {
   if (ptr)
@@ -133,32 +159,29 @@ BOOL ParsePluginCommand(char *pszCommand, char** plugin, char **parameter)
 
 HWND NavigateTo(const char *url, int windowState, HWND mainWnd)
 {
-   CBrowserFrame *mainFrame, *newFrame = NULL;
-   if (mainWnd)
-      mainFrame = (CBrowserFrame *)CWnd::FromHandle(mainWnd);
-   else
-      mainFrame = theApp.m_pMostRecentBrowserFrame;
-
-   if (!mainFrame) {
-      return NULL;
-   }
-   nsEmbedString str;
+   CBrowserFrame *frame = GetFrame(mainWnd);
+   
+   USES_CONVERSION;
+   LPCTSTR lpctUrl = A2CT(url);
+   CBrowserFrame* newFrame = NULL;
 
    switch(windowState&15) {
    case OPEN_NORMAL:
-      mainFrame->m_wndBrowserView.OpenURL(url);
+      if (!frame) return NULL;
+      frame->OpenURL(lpctUrl);
       break;
    case OPEN_NEW:
-      NS_CStringToUTF16(nsEmbedCString(url), NS_CSTRING_ENCODING_ASCII, str);
-      newFrame = mainFrame->m_wndBrowserView.OpenURLInNewWindow(str.get());
+	  newFrame = theApp.CreateNewBrowserFrameWithUrl(lpctUrl);
       break;
    case OPEN_BACKGROUND:
-      NS_CStringToUTF16(nsEmbedCString(url), NS_CSTRING_ENCODING_ASCII, str);
-      newFrame = mainFrame->m_wndBrowserView.OpenURLInNewWindow(str.get(), true);
+      newFrame = theApp.CreateNewBrowserFrameWithUrl(lpctUrl, NULL, TRUE);
       break;
    }
-   if (newFrame && (windowState & OPEN_CLONE))
-     mainFrame->m_wndBrowserView.CloneSHistory(newFrame->m_wndBrowserView);
+   
+   if (newFrame && frame && (windowState & OPEN_CLONE)) {
+	   CBrowserView *view = frame->GetActiveView(); 
+	   if (view) view->CloneBrowser(newFrame->GetActiveView());
+   }
 
    return newFrame ? newFrame->m_hWnd:NULL;
 }
@@ -170,24 +193,22 @@ void _NavigateTo(const char *url, int windowState, HWND mainWnd)
 
 kmeleonDocInfo * GetDocInfo(HWND mainWnd)
 {
-   CBrowserFrame *frame;
-   if (mainWnd)
-      frame = (CBrowserFrame *)CWnd::FromHandle(mainWnd);
-   else
-      frame = theApp.m_pMostRecentBrowserFrame;
+	CBrowserFrame *frame = GetFrame(mainWnd);
+	if (!frame) return 0;
 
-   if (!frame)
-      return NULL;
+	CBrowserView *view = frame->GetActiveView(); 
+	if (!view) return 0;
+
+	CBrowserWrapper *browser = GetWrapper(mainWnd);
+	if (!browser) return 0;
 
    USES_CONVERSION;
 
-   CString url;
-   frame->m_wndBrowserView.GetCurrentURI(url);
+   CString url = browser->GetURI();
    char* docurl = new char[url.GetLength()+1];
    strcpy(docurl, T2CA(url));
 
-   CString title;
-   frame->m_wndBrowserView.GetPageTitle(title);
+   CString title = browser->GetTitle();
    char* doctitle = new char[title.GetLength()+1];
    strcpy(doctitle, T2CA(title));
 
@@ -200,7 +221,7 @@ kmeleonDocInfo * GetDocInfo(HWND mainWnd)
    kDocInfo.title = doctitle;
    kDocInfo.url = docurl;
 #ifdef INTERNAL_SITEICONS
-   kDocInfo.idxIcon = theApp.favicons.GetIcon(frame->m_wndBrowserView.m_IconUri);
+   kDocInfo.idxIcon = theApp.favicons.GetIcon(view->GetBrowserGlue()->mIconURI);
 #endif
 
    return &kDocInfo;
@@ -259,7 +280,8 @@ void SetPreference(enum PREFTYPE type, const char *preference, void *val, BOOL u
          break;
    }
 
-   theApp.preferences.Flush();
+   if (update)
+      theApp.preferences.Flush();
    theApp.preferences.Load();
 }
 
@@ -281,16 +303,15 @@ void SetStatusBarText(const char *s) {
 
 int SetMozillaSessionHistory (HWND hWnd, const char **titles, const char **urls, int count, int index)
 {
-   nsresult result;
+   nsresult rv;
    if (count<1) return TRUE;
 
-   	CBrowserFrame *pBrowserFrame = (CBrowserFrame *)CWnd::FromHandle(hWnd);
-	if (!pBrowserFrame) pBrowserFrame = theApp.m_pMostRecentBrowserFrame;
-	if (!pBrowserFrame) return FALSE;
+   CBrowserWrapper *browser = GetWrapper(hWnd);
+   if (!browser) return 0;
 
    nsCOMPtr<nsISHistory> sHistory;
-   result = pBrowserFrame->m_wndBrowserView.mWebNav->GetSessionHistory(getter_AddRefs(sHistory));
-   if (!NS_SUCCEEDED (result) || (!sHistory)) return FALSE;
+   if (!browser->GetSHistory(getter_AddRefs(sHistory)))
+		return 0;
 
    nsCOMPtr<nsISHistoryInternal> sHInternal(do_QueryInterface(sHistory));
    NS_ENSURE_TRUE(sHInternal, FALSE);
@@ -302,18 +323,18 @@ int SetMozillaSessionHistory (HWND hWnd, const char **titles, const char **urls,
    for (int i=0;i<count;i++)
    {
 	   nsCOMPtr<nsISHEntry> newSHEntry = do_CreateInstance(NS_SHENTRY_CONTRACTID);
-	   if (newSHEntry) {
-		   nsCOMPtr<nsIURI> nsuri;
-		   NewURI(getter_AddRefs(nsuri), nsEmbedCString(urls[i]));
-		   if (!nsuri) continue;
-           
-		   USES_CONVERSION;
-           newSHEntry->Create(nsuri, nsEmbedString(A2CW(titles[i])), nsnull, nsnull, nsnull, nsEmbedCString(""));
-		   sHInternal->AddEntry(newSHEntry, PR_TRUE);
-	   }
+	   if (!newSHEntry) continue;
+
+	   nsCOMPtr<nsIURI> nsuri;
+	   NewURI(getter_AddRefs(nsuri), nsEmbedCString(urls[i]));
+	   if (!nsuri) continue;
+
+	   USES_CONVERSION;
+	   rv = newSHEntry->Create(nsuri, nsEmbedString(A2CW(titles[i])), nsnull, nsnull, nsnull, nsEmbedCString(""));
+	   if (NS_SUCCEEDED(rv)) sHInternal->AddEntry(newSHEntry, PR_TRUE);
    }
 
-   pBrowserFrame->m_wndBrowserView.mWebNav->GotoIndex(index);
+   browser->GotoHistoryIndex(index);
    return TRUE;
 }
 
@@ -322,15 +343,12 @@ int GetMozillaSessionHistory (HWND hWnd, char ***titles, char ***urls, int *coun
    nsresult result;
    int i;
 
-    CBrowserFrame *pBrowserFrame = (CBrowserFrame *)CWnd::FromHandle(hWnd);
-	if (!pBrowserFrame) pBrowserFrame = theApp.m_pMostRecentBrowserFrame;
-	if (!pBrowserFrame) return FALSE;
+   CBrowserWrapper *browser = GetWrapper(hWnd);
+   if (!browser) return 0;
 
-   nsCOMPtr<nsISHistory> h;
-
-   result = pBrowserFrame->m_wndBrowserView.mWebNav->GetSessionHistory(getter_AddRefs (h));
-
-   if (!NS_SUCCEEDED (result) || (!h)) return FALSE;
+	nsCOMPtr<nsISHistory> h;
+	if (!browser->GetSHistory(getter_AddRefs(h)))
+		return 0;
    
    h->GetCount (count);
    h->GetIndex (index);
@@ -406,9 +424,10 @@ int _GetMozillaSessionHistory (char ***titles, char ***urls, int *count, int *in
 
 void GotoHistoryIndex(UINT index)
 {
-	CBrowserFrame	*mainFrame = theApp.m_pMostRecentBrowserFrame;
-	if (mainFrame)
-		mainFrame->m_wndBrowserView.mWebNav->GotoIndex(index);
+   CBrowserWrapper *browser = GetWrapper();
+   if (!browser) return;
+
+   browser->GotoHistoryIndex(index);
 }
 
 void RegisterBand(HWND hWnd, char *name, int visibleOnMenu)
@@ -422,12 +441,10 @@ void RegisterBand(HWND hWnd, char *name, int visibleOnMenu)
 // be handled through MFC, which will handle the button states through
 // UPDATE_UI calls
 HWND CreateToolbar(HWND hWnd, UINT style) {
-   CBrowserFrame *browserFrm = (CBrowserFrame *)CWnd::FromHandle(hWnd);
+   CBrowserFrame *frame = GetFrame(hWnd);
+   if (!frame) return NULL;
 
-   if (browserFrm)
-      return browserFrm->CreateToolbar(style);
-   else
-      return NULL;
+   return frame->CreateToolbar(style);
 }
 
 int GetID(const char *strID) {
@@ -460,7 +477,7 @@ int GetID(const char *strID) {
 
    return ID;
 }
-
+/*
 kmeleonPointInfo *GetInfoAtNode(nsIDOMNode* aNode)
 {
    delete gPointInfo.image;
@@ -475,19 +492,15 @@ kmeleonPointInfo *GetInfoAtNode(nsIDOMNode* aNode)
    if (!aNode) 
       return &gPointInfo;
 
-   if (!theApp.m_pMostRecentBrowserFrame || !theApp.m_pMostRecentBrowserFrame->m_wndBrowserView)
-      return &gPointInfo;
-      
-   CBrowserView *pBrowserView;  
-   pBrowserView = &theApp.m_pMostRecentBrowserFrame->m_wndBrowserView;
+   	CBrowserFrame *pBrowserFrame = GetFrame(NULL);
+	if (!pBrowserFrame) return &gPointInfo;
 
-   if (!pBrowserView)
-      return &gPointInfo;
+	CBrowserView *pBrowserView = pBrowserFrame->GetActiveView(); 
+	if (!pBrowserView) return &gPointInfo;
 
    // get the page url
    USES_CONVERSION;
-   CString url;
-   pBrowserView->GetCurrentURI(url);
+   CString url = pBrowserView->GetCurrentURI();
    gPointInfo.page = strdup(T2CA(url));
 
    nsEmbedString strBuf;
@@ -547,25 +560,40 @@ kmeleonPointInfo *GetInfoAtNode(nsIDOMNode* aNode)
 
    return &gPointInfo;
 }
-
+*/
 kmeleonPointInfo *GetInfoAtClick(HWND hWnd)
 {
-   CBrowserFrame *frame;
-   frame = (CBrowserFrame *)CWnd::FromHandle(hWnd);
+	delete gPointInfo.image;
+	delete gPointInfo.link;
+	delete gPointInfo.frame;
+	delete gPointInfo.page;
+	delete gPointInfo.linktitle;
+	gPointInfo.image = NULL;
+	gPointInfo.link  = NULL;
+	gPointInfo.frame = NULL;
+	gPointInfo.page  = NULL;
+	gPointInfo.linktitle = NULL;
 
-   if (!frame || !::IsWindow(frame->m_wndBrowserView.m_hWnd)) {
-      return GetInfoAtNode(nsnull);
-   }
+	CBrowserFrame *pBrowserFrame = GetFrame(hWnd);
+	if (!pBrowserFrame) return &gPointInfo;
 
-   if (!theApp.m_pMostRecentBrowserFrame || !theApp.m_pMostRecentBrowserFrame->m_wndBrowserView)
-      return GetInfoAtNode(nsnull);
+	CBrowserView *pBrowserView = pBrowserFrame->GetActiveView(); 
+	if (!pBrowserView) return &gPointInfo;
 
-   return GetInfoAtNode(frame->m_wndBrowserView.m_lastMouseActionNode);
+	USES_CONVERSION;
+	gPointInfo.page = strdup(T2CA(pBrowserView->GetCurrentURI()));
+	gPointInfo.link = strdup(T2CA(pBrowserView->GetContextLinkUrl()));
+	gPointInfo.frame = strdup(T2CA(pBrowserView->GetContextFrameUrl()));
+	gPointInfo.image = strdup(T2CA(pBrowserView->GetContextImageUrl()));
+	gPointInfo.linktitle = strdup(T2CA(pBrowserView->GetContextLinkTitle()));
+
+	return &gPointInfo;
 }
 
 kmeleonPointInfo *GetInfoAtPoint(int x, int y)
 {
-
+	return NULL;
+	/*
    if (!theApp.m_pMostRecentBrowserFrame || !theApp.m_pMostRecentBrowserFrame->m_wndBrowserView)
       return GetInfoAtNode(nsnull);
 
@@ -575,26 +603,27 @@ kmeleonPointInfo *GetInfoAtPoint(int x, int y)
    // get the DOMNode at the point
    nsCOMPtr<nsIDOMNode> aNode;
    aNode = pBrowserView->GetNodeAtPoint(x, y, TRUE);
-   return GetInfoAtNode(aNode);
+   return GetInfoAtNode(aNode);*/
 }
 
 // return 0 if the function did not succeed (ie, trying to open a link from
 // a point that is not a link)
 // return 1 if it does succeed
 
-int CommandAtPoint(int command, WORD x, WORD y) {
-   CBrowserView *pBrowserView;  
-   pBrowserView = &theApp.m_pMostRecentBrowserFrame->m_wndBrowserView;
+int CommandAtPoint(int command, WORD x, WORD y)
+{
+	return 0;
+	/*
+	CBrowserFrame *pBrowserFrame = theApp.m_pMostRecentBrowserFrame;
+	if (!pBrowserFrame) return FALSE;
 
+	CBrowserView *pBrowserView = pBrowserFrame->GetActiveView(); 
+	if (!pBrowserView) return FALSE;
 
-   if (!pBrowserView)
-      return FALSE;
+	CBrowserWrapper *browser = pBrowserView->GetBrowserWrapper(); 
+	if (!browser) return FALSE;
 
-   nsCOMPtr<nsIWebBrowserFocus> focus(do_GetInterface(pBrowserView->mWebBrowser));
-   if(!focus)
-      return FALSE;
-
-   focus->Activate();
+  pBrowserView->Activate(TRUE);
 
    
    pBrowserView->GetNodeAtPoint(x, y, TRUE);
@@ -627,16 +656,19 @@ int CommandAtPoint(int command, WORD x, WORD y) {
    }
 
    pBrowserView->mpBrowserFrame->PostMessage(WM_COMMAND, command, NULL);
-   return 1;
+   return 1;*/
 }
 
 UINT GetWindowVar(HWND hWnd, WindowVarType type, void* ret)
 {
-	CBrowserFrame *pBrowserFrame = (CBrowserFrame *)CWnd::FromHandle(hWnd);
-	if (!pBrowserFrame) pBrowserFrame = theApp.m_pMostRecentBrowserFrame;
-	if (!pBrowserFrame) return 0;
+	CBrowserFrame *pBrowserFrame = GetFrame(hWnd);
+	if (!pBrowserFrame) return FALSE;
 
-	CBrowserView *pBrowserView = &pBrowserFrame->m_wndBrowserView;
+	CBrowserView *pBrowserView = pBrowserFrame->GetActiveView(); 
+	if (!pBrowserView) return FALSE;
+
+	CBrowserWrapper *browser = pBrowserView->GetBrowserWrapper(); 
+	if (!browser) return FALSE;
 
 	USES_CONVERSION;
 	UINT retLen = 0;
@@ -652,7 +684,7 @@ UINT GetWindowVar(HWND hWnd, WindowVarType type, void* ret)
 
 		case Window_Charset: {
 			char charset[64] = {0};
-			pBrowserView->GetCharset(charset);
+			browser->GetCharset(charset);
 			retLen = strlen(charset) + 1;
 			if (ret) {
 				strcpy((char *)ret, charset);
@@ -663,22 +695,20 @@ UINT GetWindowVar(HWND hWnd, WindowVarType type, void* ret)
 		}
 
 		case Window_Title: {
-			CString title;
-         pBrowserView->GetPageTitle(title);
-         retLen = title.GetLength() + 1;
-         if (ret) strcpy((char *)ret, T2CA(title));
-			break;
+			CString title = browser->GetTitle();
+			retLen = title.GetLength() + 1;
+			if (ret) strcpy((char *)ret, T2CA(title));
+				break;
 		}
 
 		case Window_TextZoom: {
-		  int tz = pBrowserView->GetTextSize();
-		  if (ret) *(int*)ret = tz;
-		  return 1;
+			int tz = (int)(browser->GetTextSize() * 10.0);
+			if (ret) *(int*)ret = tz;
+			return 1;
 		}
 		
 		case Window_URL: {
-			CString url;
-			pBrowserView->GetCurrentURI(url);
+			CString url = browser->GetURI();
 			retLen = url.GetLength() + 1;
 			if (ret)				
 				strcpy((char*)ret, T2CA(url));
@@ -688,29 +718,39 @@ UINT GetWindowVar(HWND hWnd, WindowVarType type, void* ret)
 		
 		case Window_SelectedText: {
 			nsEmbedString sel;  
-			pBrowserView->GetUSelection(sel);
+			browser->GetUSelection(sel);
 			retLen = sel.Length() + 1;
 			if (ret) wcscpy((wchar_t*)ret, sel.get());
 			break;
 		}
 
-		case Window_LinkURL:
-			retLen = pBrowserView->mCtxMenuLinkUrl.Length() + 1;
-         if (ret) 
-				strcpy((char*)ret, W2CA(pBrowserView->mCtxMenuLinkUrl.get()));
+		case Window_LinkURL: {
+			CString url = pBrowserView->GetContextLinkUrl();
+			retLen = url.GetLength() + 1;
+			if (ret) strcpy((char*)ret, T2CA(url));
 			break;
+		}
 
-		case Window_ImageURL:
-			retLen = pBrowserView->mCtxMenuImgSrc.Length() + 1;
-         if (ret)
-				strcpy((char*)ret, W2CA(pBrowserView->mCtxMenuImgSrc.get()));
+		case Window_ImageURL: {
+			CString url = pBrowserView->GetContextImageUrl();
+			retLen = url.GetLength() + 1;
+			if (ret) strcpy((char*)ret, T2CA(url));
 			break;
+		}
 
-		case Window_FrameURL:
-			retLen = pBrowserView->mCtxMenuCurrentFrameURL.Length() + 1;
-         if (ret) 
-				strcpy((char*)ret, W2CA(pBrowserView->mCtxMenuCurrentFrameURL.get()));
+		case Window_LinkTitle: {
+			CString title = pBrowserView->GetContextLinkTitle();
+			retLen = title.GetLength() + 1;
+			if (ret) strcpy((char*)ret, T2CA(title));
 			break;
+		}
+
+		case Window_FrameURL: {
+			CString url = pBrowserView->GetContextFrameUrl();
+			retLen = url.GetLength() + 1;
+			if (ret) strcpy((char*)ret, T2CA(url));
+			break;
+		}
 
 		default: 
 			retLen = 0;
@@ -721,11 +761,14 @@ UINT GetWindowVar(HWND hWnd, WindowVarType type, void* ret)
 
 BOOL SetWindowVar(HWND hWnd, WindowVarType type, void* value)
 {
-	CBrowserFrame *pBrowserFrame = (CBrowserFrame *)CWnd::FromHandle(hWnd);
-	if (!pBrowserFrame) pBrowserFrame = theApp.m_pMostRecentBrowserFrame;
+	CBrowserFrame *pBrowserFrame = GetFrame(hWnd);
 	if (!pBrowserFrame) return FALSE;
 
-	CBrowserView *pBrowserView = &pBrowserFrame->m_wndBrowserView;
+	CBrowserView *pBrowserView = pBrowserFrame->GetActiveView(); 
+	if (!pBrowserView) return FALSE;
+
+	CBrowserWrapper *browser = pBrowserView->GetBrowserWrapper(); 
+	if (!browser) return FALSE;
 
 	USES_CONVERSION;
 	BOOL result = FALSE;
@@ -733,31 +776,31 @@ BOOL SetWindowVar(HWND hWnd, WindowVarType type, void* value)
 	switch (type)  {
 
 		case Window_UrlBar:
-			pBrowserFrame->m_wndUrlBar.EditChanged(FALSE);
-			pBrowserFrame->m_wndUrlBar.SetCurrentURL(A2CT((char*)value));
-		   result = TRUE;
+			pBrowserFrame->UpdateLocation(A2CT((char*)value), TRUE);
+		    result = TRUE;
 			break;
 
 		case Window_Charset:
-			pBrowserView->ForceCharset((char*)value);
+			browser->ForceCharset((char*)value);
 			result = TRUE;
 			break;
 
 		case Window_Title:
-			 if (pBrowserView->mpBrowserFrameGlue)
-		      pBrowserView->mpBrowserFrameGlue->SetBrowserFrameTitle(A2CW((char*)value));
+			pBrowserFrame->UpdateTitle(A2CT((char*)value));
+			 //if (pBrowserView->m_pBrowserFrameGlue)
+		      //pBrowserView->m_pBrowserFrameGlue->SetBrowserFrameTitle(A2CW((char*)value));
 			 result = TRUE;
 			break;
 
 		case Window_TextZoom: {
-			 int zoom = pBrowserView->GetTextSize();
-			pBrowserView->ChangeTextSize(*(int*)value - pBrowserView->GetTextSize());
+			int zoom = (int)(browser->GetTextSize() * 10.0);
+			browser->ChangeTextSize(*(int*)value - zoom);
 			result = TRUE;
 			break;
 		}
 
 		case Window_URL:
-			pBrowserView->OpenURL((char*)value);
+			browser->LoadURL(A2CT((char*)value));
 			break;
 	}
 
@@ -766,119 +809,115 @@ BOOL SetWindowVar(HWND hWnd, WindowVarType type, void* value)
 
 int SetGlobalVar(enum PREFTYPE type, const char *preference, void *value)
 {
-	if (!theApp.m_pMostRecentBrowserFrame || !value || !preference) 
-		return 0;
+	if (type == PREF_STRING) {
+		if (!stricmp(preference, "URLBAR")) return SetWindowVar(NULL, Window_UrlBar, value);
+		else if (!stricmp(preference, "CHARSET")) return SetWindowVar(NULL, Window_Charset, value);
+		else if (!stricmp(preference, "TITLE")) return SetWindowVar(NULL, Window_Title, value);
+	}
+	else if (type == PREF_INT)
+		if (!stricmp(preference, "TextZoom")) return SetWindowVar(NULL, Window_TextZoom, value);
 
-   int ret = 0;
-
-   CBrowserView *pBrowserView;  
-   pBrowserView = &theApp.m_pMostRecentBrowserFrame->m_wndBrowserView;
-
-   switch (type) {
-   case PREF_STRING:
-	   if (!stricmp(preference, "URLBAR")) {
-		   theApp.m_pMostRecentBrowserFrame->m_wndUrlBar.EditChanged(FALSE);
-         USES_CONVERSION;
-		   theApp.m_pMostRecentBrowserFrame->m_wndUrlBar.SetCurrentURL(A2CT((char*)value));
-		   ret = 1;
-	   }
-	   else if (!stricmp(preference, "CHARSET")) {
-         USES_CONVERSION;
-         pBrowserView->ForceCharset((char*)value);
-		   ret = 1;
-      }
-	   else if (!stricmp(preference, "TITLE")) {
-		   if (pBrowserView->mpBrowserFrameGlue) {
-		      USES_CONVERSION;
-		      pBrowserView->mpBrowserFrameGlue->SetBrowserFrameTitle(A2CW((char*)value));
-		   }
-		   ret = 1;
-      }
-	   break;
-   case PREF_INT:
-	   if (!stricmp(preference, "TextZoom")) {
-		 int zoom = pBrowserView->GetTextSize();
-		 pBrowserView->ChangeTextSize(*(int*)value - zoom);
-		 ret = 1;
-	   }
-   }
-   return ret;
+	return 0;
 }
 
 int GetGlobalVar(enum PREFTYPE type, char *preference, void *ret) {
 
+	switch (type) {
+	case PREF_UNISTRING:
+		 if (!stricmp(preference, "SelectedText")) 
+			return GetWindowVar(NULL, Window_SelectedText, ret);
+		 break;
+	 case PREF_STRING:
+		 if (!stricmp(preference, "URL")) return GetWindowVar(NULL, Window_URL, ret);
+		 else if (!stricmp(preference, "URLBAR")) return GetWindowVar(NULL, Window_URL, ret);
+		 else if (!stricmp(preference, "LinkURL")) return GetWindowVar(NULL, Window_LinkURL, ret);
+		 else if (!stricmp(preference, "ImageURL")) return GetWindowVar(NULL, Window_ImageURL, ret);
+		 else if (!stricmp(preference, "FrameURL")) return GetWindowVar(NULL, Window_FrameURL, ret);
+		 else if (!stricmp(preference, "TITLE")) return GetWindowVar(NULL, Window_LinkTitle, ret);
+		 else if (!stricmp(preference, "SelectedText")) {
+			 if (!ret) return GetWindowVar(NULL, Window_SelectedText, 0);
+			 else {
+				 USES_CONVERSION;
+			    wchar_t* uret = new wchar_t[GetWindowVar(NULL, Window_SelectedText, 0) + 1];
+				int retlen = GetWindowVar(NULL, Window_SelectedText, ret);
+				strcpy((char*)ret, W2A(uret));
+				delete uret;
+				return retlen;
+			  }
+		 }
+		 else if (!stricmp(preference, "CHARSET")) return GetWindowVar(NULL, Window_Charset, ret);
+		 break;
+
+	case PREF_INT:
+	  if (!stricmp(preference, "TextZoom")) return GetWindowVar(NULL, Window_TextZoom, ret);
+      break;
+	}
+
+	return 0;
+/*
+
+
    if (!theApp.m_pMostRecentBrowserFrame) 
      return -1;
 
-   int retLen = -1;
+	CBrowserView *view = theApp.m_pMostRecentBrowserFrame->GetActiveView(); 
+	if (!view) return -1;
 
-   CBrowserView *pBrowserView;  
-   pBrowserView = &theApp.m_pMostRecentBrowserFrame->m_wndBrowserView;
+	CBrowserWrapper *browser = view->GetBrowserWrapper(); 
+	if (!browser) return -1;
+
+	int retLen = -1;
+USES_CONVERSION;
 
    switch (type) {
    case PREF_UNISTRING:
 	  if (!stricmp(preference, "SelectedText")) {
 		nsEmbedString sel;  
-		pBrowserView->GetUSelection(sel);
+		browser->GetUSelection(sel);
 		retLen = sel.Length();
-		 if (ret)
-			 wcscpy((wchar_t*)ret, sel.get());
+		 if (ret) wcscpy((wchar_t*)ret, sel.get());
 	  }
 	  break;
    case PREF_STRING:
 	  if (!stricmp(preference, "URL")) {
-	     CString url;
-		 theApp.m_pMostRecentBrowserFrame->m_wndBrowserView.GetCurrentURI(url);
+	     CString url = browser->GetURI();
 		 retLen = url.GetLength();
-		 if (ret) {
-			 USES_CONVERSION;
-			 strcpy((char*)ret, T2CA(url));
-		 }
+		 if (ret) strcpy((char*)ret, T2CA(url));
       }
 	  else if (!stricmp(preference, "URLBAR")) {
 		 CString url;
 		 theApp.m_pMostRecentBrowserFrame->m_wndUrlBar.GetEnteredURL(url);
          retLen = url.GetLength();
-		 if (ret) {
-			 USES_CONVERSION;
-			 strcpy((char*)ret, T2CA(url));
-		 }
+		 if (ret) strcpy((char*)ret, T2CA(url));
       }
       else if (!stricmp(preference, "LinkURL")) {
-         retLen = pBrowserView->mCtxMenuLinkUrl.Length();
-         if (ret) 
-			 UTF16ToCString(pBrowserView->mCtxMenuLinkUrl, (char*)ret);
+		 retLen = view->m_ctxData.linkUrl.GetLength();
+         if (ret) strcpy((char *)ret, T2CA(view->m_ctxData.linkUrl));
       }
       else if (!stricmp(preference, "ImageURL")) {
-         retLen = pBrowserView->mCtxMenuImgSrc.Length();
-         if (ret) 
-			 UTF16ToCString(pBrowserView->mCtxMenuImgSrc, (char*)ret);
+         retLen = view->m_ctxData.imageUrl.GetLength();
+         if (ret) strcpy((char *)ret, T2CA(view->m_ctxData.imageUrl));
       }
       else if (!stricmp(preference, "FrameURL")) {
-         retLen = pBrowserView->mCtxMenuCurrentFrameURL.Length();
-         if (ret)
-			 UTF16ToCString(pBrowserView->mCtxMenuCurrentFrameURL, (char*)ret);
+         retLen = view->m_ctxData.frameUrl.GetLength();
+         if (ret) strcpy((char *)ret, T2CA(view->m_ctxData.frameUrl));
       }
       else if (!stricmp(preference, "TITLE")) {
-         CString title;
-         pBrowserView->GetPageTitle(title);
-		 USES_CONVERSION;
+         CString title = view->GetPageTitle();
          retLen = title.GetLength();
          if (ret) strcpy((char *)ret, T2CA(title));
       }
 	  else if (!stricmp(preference, "SelectedText")) {
 		CString sel;  
-		pBrowserView->GetSelection(sel);
+		browser->GetSelection(sel);
 		retLen = sel.GetLength();
 		 if (ret) {
-			 USES_CONVERSION;
 			 strcpy((char*)ret, T2CA(sel));
 		 }
 	  }
 	  else if (!stricmp(preference, "CHARSET")) {
 		 char charset[64] = {0};
-         pBrowserView->GetCharset(charset);
-		 USES_CONVERSION;
+         browser->GetCharset(charset);
          retLen = strlen(charset);
 		 if (ret) {
 			 strcpy((char *)ret, charset);
@@ -890,14 +929,15 @@ int GetGlobalVar(enum PREFTYPE type, char *preference, void *ret) {
 
 	case PREF_INT:
 	  if (!stricmp(preference, "TextZoom"))  {
-		  int tz = pBrowserView->GetTextSize();
-		  if (ret) *(int*)ret = tz;
+		  float textzoom;
+		  browser->GetTextSize(textzoom);
+		  if (ret) *(int*)ret = (int)(textzoom * 10.0);
 		  return 0;
 	  }
       break;
    }
-    
-   return retLen;
+ 
+   return retLen;*/   
 }
 
 char *EncodeUTF8(const char *str) {
@@ -918,10 +958,15 @@ char *DecodeUTF8(const char *str) {
   return pszStr;
 }
 
-void GetBrowserviewRect(HWND mainWnd, RECT *rc) {
-   CBrowserFrame *frame = (CBrowserFrame *)CWnd::FromHandle(mainWnd);
-   if (frame)
-      frame->m_wndBrowserView.GetWindowRect(rc);
+void GetBrowserviewRect(HWND mainWnd, RECT *rc)
+{
+   	CBrowserFrame *frame = GetFrame(mainWnd);
+	if (!frame) return;
+
+	CBrowserView *view = frame->GetActiveView(); 
+	if (!view) return;
+
+	view->GetWindowRect(rc);
 }
 
 HMENU GetMenu(char *menuName){
@@ -932,9 +977,12 @@ HMENU GetMenu(char *menuName){
    return menu ? menu->m_hMenu : NULL;
 }
 
-void SetForceCharset(char *aCharset) {
-   if (theApp.m_pMostRecentBrowserFrame)
-     theApp.m_pMostRecentBrowserFrame->m_wndBrowserView.ForceCharset(aCharset);
+void SetForceCharset(char *aCharset)
+{
+	CBrowserWrapper* browser = GetWrapper();
+	if (!browser) return;
+
+    browser->ForceCharset(aCharset);
 }
 
 void SetCheck(int id, BOOL mark) {
@@ -1015,6 +1063,7 @@ int RegisterSideBar (HWND mainWnd, TCHAR *name, SideBarInitProc proc, int comman
 {
 #ifdef INTERNAL_SIDEBAR
 	CSideBar *sidebar = (CSideBar *)CWnd::FromHandle(mainWnd);
+	if (!sidebar) return -1;
 	USES_CONVERSION;
 	return sidebar->RegisterSideBar(name, proc, commandID, visibleOnMenu);
 #else
@@ -1025,7 +1074,9 @@ int RegisterSideBar (HWND mainWnd, TCHAR *name, SideBarInitProc proc, int comman
 void ToggleSideBar (HWND mainWnd, int index)
 {
 #ifdef INTERNAL_SIDEBAR
-	CBrowserFrame *frame = (CBrowserFrame *)CWnd::FromHandle(mainWnd);
+	CBrowserFrame *frame = GetFrame(mainWnd);
+	if (!frame) return;
+
 	frame->m_wndSideBar.ToggleVisibility(index);
 #endif
 }
@@ -1098,60 +1149,66 @@ int TranslateEx(const char* originalText,  TCHAR* translatedText, int bufferlen,
 
 BOOL GetMozillaWebBrowser(HWND hWnd, nsIWebBrowser** webBrowser)
 {
-	CBrowserFrame *browserFrm = (CBrowserFrame *)CWnd::FromHandle(hWnd);
-	if (!browserFrm || !browserFrm->m_wndBrowserView.mWebBrowser) return FALSE;
+	CBrowserFrame *frame = GetFrame(hWnd);
+	if (!frame) return FALSE;
 
-	*webBrowser = browserFrm->m_wndBrowserView.mWebBrowser;
-	NS_ADDREF(*webBrowser);
-	return TRUE;
+	CBrowserView *view = frame->GetActiveView(); 
+	if (!view) return FALSE;
+
+	CBrowserWrapper* browser = GetWrapper(hWnd);
+	if (!browser) return FALSE;
+
+	return NS_SUCCEEDED(browser->GetWebBrowser(webBrowser));
 }
 
 void AddStatusBarIcon(HWND hWnd, int id, HICON hIcon, char* tpText)
 {
-	CBrowserFrame *browserFrm = (CBrowserFrame *)CWnd::FromHandle(hWnd);
-	if (!browserFrm) return;
+	CBrowserFrame *frame = GetFrame(hWnd);
+	if (!frame) return;
 
 	USES_CONVERSION;
-	browserFrm->m_wndStatusBar.AddIcon(id);
-	browserFrm->m_wndStatusBar.SetIconInfo(id, hIcon, A2CT(tpText));
+	frame->m_wndStatusBar.AddIcon(id);
+	frame->m_wndStatusBar.SetIconInfo(id, hIcon, A2CT(tpText));
 }
 
 void RemoveStatusBarIcon(HWND hWnd, int id)
 {
-	CBrowserFrame *browserFrm = (CBrowserFrame *)CWnd::FromHandle(hWnd);
-	if (!browserFrm) return;
+	CBrowserFrame *frame = GetFrame(hWnd);
+	if (!frame) return;
 	
-	browserFrm->m_wndStatusBar.RemoveIcon(id);
+	frame->m_wndStatusBar.RemoveIcon(id);
 }	
 
 BOOL InjectJS(const char* js, bool bTopWindow, HWND hWnd)
 {
-	CBrowserFrame *browserFrm;
-	if (hWnd) 
-		browserFrm = (CBrowserFrame *)CWnd::FromHandle(hWnd);
-	else
-		browserFrm = theApp.m_pMostRecentBrowserFrame;
+	CBrowserFrame *frame = GetFrame(hWnd);
+	if (!frame) return FALSE;
 
-	if (!browserFrm) return FALSE;
+	CBrowserView *view = frame->GetActiveView(); 
+	if (!view) return FALSE;
+
+	CBrowserWrapper* browser = view->GetBrowserWrapper();
+	if (!browser) return FALSE;
 	
 	nsEmbedString js2;
 	NS_CStringToUTF16(nsDependentCString(js), NS_CSTRING_ENCODING_UTF8, js2);
-	return browserFrm->m_wndBrowserView.InjectJS(js2.get(), bTopWindow);
+	return browser->InjectJS(js2.get(), bTopWindow);
 }
 
 BOOL InjectCSS(const char* css, bool bAll, HWND hWnd)
 {
-	CBrowserFrame *browserFrm;
-	if (hWnd) 
-		browserFrm = (CBrowserFrame *)CWnd::FromHandle(hWnd);
-	else
-		browserFrm = theApp.m_pMostRecentBrowserFrame;
+	CBrowserFrame *frame = GetFrame(hWnd);
+	if (!frame) return FALSE;
 
-	if (!browserFrm) return FALSE;
+	CBrowserView *view = frame->GetActiveView(); 
+	if (!view) return FALSE;
+
+	CBrowserWrapper* browser = view->GetBrowserWrapper();
+	if (!browser) return FALSE;
 
 	nsEmbedString css2;
 	NS_CStringToUTF16(nsDependentCString(css), NS_CSTRING_ENCODING_UTF8, css2);
-	return browserFrm->m_wndBrowserView.InjectCSS(css2.get());
+	return browser->InjectCSS(css2.get());
 }
 
 int GetKmeleonVersion()

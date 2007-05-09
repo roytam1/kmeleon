@@ -194,18 +194,13 @@ END_MESSAGE_MAP()
 
 void CDownloadFontDialog::OnBnClickedOk()
 {
-	CMfcEmbedApp *pApp = (CMfcEmbedApp *)AfxGetApp();
-    if(!pApp)
-		return;
-
-    CBrowserFrame* pFrm = pApp->CreateNewBrowserFrame(nsIWebBrowserChrome::CHROME_ALL, -1, -1, -1, -1, PR_FALSE);
+    CBrowserFrame* pFrm = theApp.CreateNewBrowserFrame(nsIWebBrowserChrome::CHROME_ALL, FALSE);
     if(!pFrm)
 		return;
 
-    pFrm->m_wndBrowserView.OpenURL(
-		_T("http://www.mozilla.org/projects/intl/fonts/win/redirect/package_") + m_LangCode + _T(".html"), nsnull);
+    pFrm->OpenURL(
+		_T("http://www.mozilla.org/projects/intl/fonts/win/redirect/package_") + m_LangCode + _T(".html"));
 
 	pFrm->ShowWindow(SW_SHOW);
-    pFrm->SetFocus();
 	OnOK();
 }

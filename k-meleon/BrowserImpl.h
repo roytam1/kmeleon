@@ -34,12 +34,13 @@
 #define USE_WINDOW_PROVIDER
 
 #include "IBrowserFrameGlue.h"
+
 #include "nsIWebBrowserChromeFocus.h"
-#include "nsICommandParams.h"
 #include "nsIDOMEventListener.h"
 #include "nsISHistoryListener.h"
 #include "nsIObserver.h"
 #include "nsIDOMMouseListener.h"
+#include "nsITooltipListener.h"
 #ifdef USE_WINDOW_PROVIDER
 #include "nsIWindowProvider.h"
 #endif
@@ -64,7 +65,7 @@ class CBrowserImpl : public nsIInterfaceRequestor,
 public:
    CBrowserImpl();
    ~CBrowserImpl();
-   NS_METHOD Init(PBROWSERFRAMEGLUE pBrowserFrameGlue,
+   NS_METHOD Init(PBROWSERGLUE pBrowserFrameGlue,
                   nsIWebBrowser* aWebBrowser);
 
    NS_DECL_ISUPPORTS
@@ -91,9 +92,10 @@ public:
 
 protected:
    
-   PBROWSERFRAMEGLUE m_pBrowserFrameGlue;
-    
+   PBROWSERGLUE m_pBrowserFrameGlue;
    nsCOMPtr<nsIWebBrowser> mWebBrowser;
+   PRUint32 mChromeFlags;
+   PRBool mChromeLoaded;
 };
 
 class CFavIconListener : public nsIDOMEventListener
@@ -106,7 +108,7 @@ class CFavIconListener : public nsIDOMEventListener
 	virtual ~CFavIconListener();
 
 	//nsresult Init(CBrowserView* aBrowser);
-	nsresult Init(PBROWSERFRAMEGLUE pBrowserFrameGlue);
+	nsresult Init(PBROWSERGLUE pBrowserFrameGlue);
 	void LoadFavIcon(nsIURI* iconURI);
 	void AddIcon(char* uri, TCHAR* file, nsresult astatus);
 	void Reset(nsIURI*);

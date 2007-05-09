@@ -18,7 +18,7 @@
 
 #include "StdAfx.h"
 #include "ReBarEx.h"
-#include "BrowserFrm.h"
+#include "mfcembed.h"
 #include "rebar_menu/hot_tracking.h"
 
 

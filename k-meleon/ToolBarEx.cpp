@@ -24,10 +24,6 @@
 */
 
 #include "stdafx.h"
-#include "mfcembed.h"
-extern CMfcEmbedApp theApp;
-
-#include "BrowserFrm.h"
 #include "ToolBarEx.h"
 
 #ifdef _DEBUG

@@ -6,6 +6,7 @@
 #endif // _MSC_VER > 1000
 // PrintSetupDialog.h : header file
 //
+#include "resource.h"
 class nsIPrintSettings;
 
 /////////////////////////////////////////////////////////////////////////////
@@ -15,8 +16,9 @@ class CPrintSetupDialog : public CDialog
 {
 // Construction
 public:
-	CPrintSetupDialog(nsIPrintSettings* aPrintSettings, CWnd* pParent = NULL);   // standard constructor
+	CPrintSetupDialog(CWnd* pParent = NULL);   // standard constructor
    void SetPrintSettings(nsIPrintSettings* aPrintSettings);
+   void GetPrintSettings(nsIPrintSettings* aPrintSettings);
   void GetPaperSizeInfo(short& aType, double& aWidth, double& aHeight);
 
 // Dialog Data
@@ -43,6 +45,7 @@ public:
 	//}}AFX_DATA
 
 	int		m_PaperSizeInx;
+	PRInt16 m_PaperUnit;
 
 // Overrides
 	// ClassWizard generated virtual function overrides
@@ -53,8 +56,6 @@ public:
 
 // Implementation
 protected:
-  nsIPrintSettings* m_PrintSettings;
-
   void EnableUserDefineControls(BOOL aEnable);
   int  GetPaperSizeIndexFromData(short aType, double aW, double aH);
   int  GetPaperSizeIndex(const CString& aStr);

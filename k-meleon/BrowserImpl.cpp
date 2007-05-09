@@ -70,21 +70,35 @@
 
 #include "stdafx.h"
 #include "BrowserImpl.h"
+#include "BrowserWindow.h"
+#include "MozUtils.h"
 
-#include "nsIDOMWindow.h"
+#include "nsIDOMEvent.h"
 #include "nsIDOMPopupBlockedEvent.h"
-#include "nsIDOMMouseListener.h"
+#include "nsIDOMMouseEvent.h"
+#include "nsIDOMContextMenuListener.h"
+#include "nsIDOMEventTarget.h"
+#include "nsIDOMAbstractView.h"
+#include "nsIDOMDocumentView.h"
+#include "nsIDOMEventTarget.h"
+#include "nsIDOM3Document.h"
+#include "nsIDOMNSDocument.h"
+#include "nsIDOMWindow2.h"
+#include "nsIScriptSecurityManager.h" 
+
 #ifdef USE_WINDOW_PROVIDER
 #include "nsIBrowserDOMWindow.h"
 #endif
 #include "jsapi.h"
 #include "nsIJSContextStack.h"
-#include "BrowserFrm.h"
+#include "BrowserFrm.h" // XXXXX
 
 CBrowserImpl::CBrowserImpl()
 {
     m_pBrowserFrameGlue = NULL;
     mWebBrowser = nsnull;
+	mChromeFlags = 0;
+	mChromeLoaded = PR_FALSE;
 }
 
 
@@ -95,7 +109,7 @@ CBrowserImpl::~CBrowserImpl()
 // It's very important that the creator of this CBrowserImpl object
 // Call on this Init() method with proper values after creation
 //
-NS_METHOD CBrowserImpl::Init(PBROWSERFRAMEGLUE pBrowserFrameGlue, 
+NS_METHOD CBrowserImpl::Init(PBROWSERGLUE pBrowserFrameGlue, 
 							  nsIWebBrowser* aWebBrowser)
 {
 	  m_pBrowserFrameGlue = pBrowserFrameGlue;
@@ -217,10 +231,14 @@ NS_IMETHODIMP CBrowserImpl::GetInterface(const nsIID &aIID, void** aInstancePtr)
 //
 NS_IMETHODIMP CBrowserImpl::SetStatus(PRUint32 aType, const PRUnichar* aStatus)
 {
-	if(! m_pBrowserFrameGlue)
-		return NS_ERROR_FAILURE;
+   NS_ENSURE_TRUE(m_pBrowserFrameGlue, NS_ERROR_FAILURE);
 
-	m_pBrowserFrameGlue->UpdateStatusBarText(aStatus);
+#ifndef _UNICODE
+	if (wcslen(aStatus) > 1024)
+		return NS_OK;
+#endif
+
+	m_pBrowserFrameGlue->UpdateStatusBarText(PRUnicharToCString(aStatus));
 
 	return NS_OK;
 }
@@ -250,20 +268,22 @@ NS_IMETHODIMP CBrowserImpl::SetWebBrowser(nsIWebBrowser* aWebBrowser)
 
 NS_IMETHODIMP CBrowserImpl::GetChromeFlags(PRUint32* aChromeMask)
 {
-   return NS_ERROR_NOT_IMPLEMENTED;
+	NS_ENSURE_ARG_POINTER(aChromeMask);
+	*aChromeMask = mChromeFlags;
+	return NS_OK;
 }
 
 NS_IMETHODIMP CBrowserImpl::SetChromeFlags(PRUint32 aChromeMask)
 {
-   return NS_ERROR_NOT_IMPLEMENTED;
+	mChromeFlags = aChromeMask;
+	return NS_OK;
 }
 
 // Will get called in response to JavaScript window.close()
 //
 NS_IMETHODIMP CBrowserImpl::DestroyBrowserWindow()
 {
-	if(! m_pBrowserFrameGlue)
-		return NS_ERROR_FAILURE;
+	NS_ENSURE_TRUE(m_pBrowserFrameGlue, NS_ERROR_FAILURE);
 
 	m_pBrowserFrameGlue->DestroyBrowserFrame();
 
@@ -281,8 +301,7 @@ NS_IMETHODIMP CBrowserImpl::DestroyBrowserWindow()
 //
 NS_IMETHODIMP CBrowserImpl::SizeBrowserTo(PRInt32 aCX, PRInt32 aCY)
 {
-   if(! m_pBrowserFrameGlue)
-      return NS_ERROR_FAILURE;
+   NS_ENSURE_TRUE(m_pBrowserFrameGlue, NS_ERROR_FAILURE);
 
    m_pBrowserFrameGlue->SetBrowserSize(aCX, aCY);
 
@@ -291,6 +310,8 @@ NS_IMETHODIMP CBrowserImpl::SizeBrowserTo(PRInt32 aCX, PRInt32 aCY)
 
 NS_IMETHODIMP CBrowserImpl::ShowAsModal(void)
 {
+	NS_ENSURE_TRUE(m_pBrowserFrameGlue, NS_ERROR_FAILURE);
+
 	HWND h = m_pBrowserFrameGlue->GetBrowserFrameNativeWnd();
 	CBrowserFrame* frame = (CBrowserFrame*)CWnd::FromHandle(h);
 
@@ -311,6 +332,8 @@ NS_IMETHODIMP CBrowserImpl::ShowAsModal(void)
 
 NS_IMETHODIMP CBrowserImpl::IsWindowModal(PRBool *retval)
 {
+   NS_ENSURE_TRUE(m_pBrowserFrameGlue, NS_ERROR_FAILURE);
+
    HWND h = m_pBrowserFrameGlue->GetBrowserFrameNativeWnd();
    CWnd* frame = CWnd::FromHandle(h);
    *retval = frame->m_nFlags & WF_CONTINUEMODAL;
@@ -320,6 +343,8 @@ NS_IMETHODIMP CBrowserImpl::IsWindowModal(PRBool *retval)
 
 NS_IMETHODIMP CBrowserImpl::ExitModalEventLoop(nsresult aStatus)
 {
+   NS_ENSURE_TRUE(m_pBrowserFrameGlue, NS_ERROR_FAILURE);
+
    HWND h = m_pBrowserFrameGlue->GetBrowserFrameNativeWnd();
    CWnd* frame = CWnd::FromHandle(h);
    frame->PostMessage(WM_CLOSE, 0, 0);
@@ -354,13 +379,19 @@ CBrowserImpl::GetPersistence(PRBool* aPersistX, PRBool* aPersistY,
 
 NS_IMETHODIMP CBrowserImpl::FocusNextElement()
 {
-    m_pBrowserFrameGlue->FocusNextElement();
+	NS_ENSURE_TRUE(m_pBrowserFrameGlue, NS_ERROR_FAILURE);
+
+    if (!m_pBrowserFrameGlue->FocusNextElement())
+		return NS_ERROR_FAILURE;
     return NS_OK;
 }
 
 NS_IMETHODIMP CBrowserImpl::FocusPrevElement()
 {
-    m_pBrowserFrameGlue->FocusPrevElement();
+	NS_ENSURE_TRUE(m_pBrowserFrameGlue, NS_ERROR_FAILURE);
+
+    if (!m_pBrowserFrameGlue->FocusPrevElement())
+		return NS_ERROR_FAILURE;
     return NS_OK;
 }
 
@@ -370,47 +401,72 @@ NS_IMETHODIMP CBrowserImpl::FocusPrevElement()
 
 NS_IMETHODIMP CBrowserImpl::SetDimensions(PRUint32 aFlags, PRInt32 x, PRInt32 y, PRInt32 cx, PRInt32 cy)
 {
-    if(! m_pBrowserFrameGlue)
-        return NS_ERROR_FAILURE;
+    NS_ENSURE_TRUE(m_pBrowserFrameGlue, NS_ERROR_FAILURE);
 
-    if (aFlags & nsIEmbeddingSiteWindow::DIM_FLAGS_POSITION){
-        if (aFlags & nsIEmbeddingSiteWindow::DIM_FLAGS_SIZE_OUTER){
-            m_pBrowserFrameGlue->SetBrowserFramePositionAndSize(x, y, cx, cy, PR_TRUE);
-        }
-        else if (aFlags & nsIEmbeddingSiteWindow::DIM_FLAGS_SIZE_INNER){
-            m_pBrowserFrameGlue->SetBrowserPositionAndSize(x, y, cx, cy, PR_TRUE);
-        }
-        else {
-            m_pBrowserFrameGlue->SetBrowserFramePosition(x, y);
-        }
-    }
-    else{
-        if (aFlags & nsIEmbeddingSiteWindow::DIM_FLAGS_SIZE_OUTER){
-            m_pBrowserFrameGlue->SetBrowserFrameSize(cx, cy);
-        }else if (aFlags & nsIEmbeddingSiteWindow::DIM_FLAGS_SIZE_INNER){
-            m_pBrowserFrameGlue->SetBrowserSize(cx, cy);
-        }
-    }
+	HWND h = m_pBrowserFrameGlue->GetBrowserFrameNativeWnd();
+	CBrowserFrame* frame = (CBrowserFrame*)CWnd::FromHandle(h);
+
+	UINT flags = SWP_NOACTIVATE | SWP_NOZORDER;
+
+	if (!(aFlags & nsIEmbeddingSiteWindow::DIM_FLAGS_POSITION)) 
+		flags |= SWP_NOMOVE;
+	
+	if ((aFlags & nsIEmbeddingSiteWindow::DIM_FLAGS_SIZE_INNER))
+	{
+		CWnd* view = (CWnd*)frame->GetActiveView();
+		NS_ENSURE_TRUE(view, NS_ERROR_FAILURE);
+		
+		RECT frameRect, viewRect;
+		frame->GetWindowRect(&frameRect);
+		view->GetClientRect(&viewRect);
+
+		int deltax = frameRect.right - frameRect.left - viewRect.right;
+		int deltay = frameRect.bottom - frameRect.top - viewRect.bottom;
+
+		frame->SetWindowPos(NULL, x, y, cx+deltax, cy+deltay, flags);
+	}
+	else if ((aFlags & nsIEmbeddingSiteWindow::DIM_FLAGS_SIZE_OUTER))
+	{
+		frame->SetWindowPos(NULL, x, y, cx, cy, flags);
+	}
+	else
+	{
+		flags |= SWP_NOSIZE;
+		frame->SetWindowPos(NULL, x, y, 0, 0, flags);
+	}
 
     return NS_OK;
 }
 
 NS_IMETHODIMP CBrowserImpl::GetDimensions(PRUint32 aFlags, PRInt32 *x, PRInt32 *y, PRInt32 *cx, PRInt32 *cy)
 {
-	if(! m_pBrowserFrameGlue)
-		return NS_ERROR_FAILURE;
+	NS_ENSURE_TRUE(m_pBrowserFrameGlue, NS_ERROR_FAILURE);
+
+	RECT wndRect;
+	HWND h = m_pBrowserFrameGlue->GetBrowserFrameNativeWnd();
+	CBrowserFrame* frame = (CBrowserFrame*)CWnd::FromHandle(h);
     
     if (aFlags & nsIEmbeddingSiteWindow::DIM_FLAGS_POSITION)
     {
-    	m_pBrowserFrameGlue->GetBrowserFramePosition(x, y);
+		frame->GetWindowRect(&wndRect);
+		*x = wndRect.left;
+		*y = wndRect.top;
     }
-    if (aFlags & nsIEmbeddingSiteWindow::DIM_FLAGS_SIZE_INNER)
+    
+	if (aFlags & nsIEmbeddingSiteWindow::DIM_FLAGS_SIZE_INNER)
     {
-    	m_pBrowserFrameGlue->GetBrowserSize(cx, cy);
+		CWnd* view = (CWnd*)frame->GetActiveView();
+		NS_ENSURE_TRUE(view, NS_ERROR_FAILURE);
+
+		view->GetClientRect(&wndRect);
+		*cx = wndRect.right;
+		*cy = wndRect.bottom;
     }
-    if (aFlags & nsIEmbeddingSiteWindow::DIM_FLAGS_SIZE_OUTER)
+	else if (aFlags & nsIEmbeddingSiteWindow::DIM_FLAGS_SIZE_OUTER)
     {
-    	m_pBrowserFrameGlue->GetBrowserFrameSize(cx, cy);
+    	frame->GetWindowRect(&wndRect);
+		*cx = wndRect.right - wndRect.left;
+		*cy = wndRect.bottom - wndRect.top;
     }
 
     return NS_OK;
@@ -431,50 +487,65 @@ NS_IMETHODIMP CBrowserImpl::GetSiteWindow(void** aSiteWindow)
 
 NS_IMETHODIMP CBrowserImpl::SetFocus()
 {
-	if(! m_pBrowserFrameGlue)
-		return NS_ERROR_FAILURE;
+	NS_ENSURE_TRUE(m_pBrowserFrameGlue, NS_ERROR_FAILURE);
+	
+	m_pBrowserFrameGlue->SetFocus();
 
-    m_pBrowserFrameGlue->SetFocus();
+	nsresult rv;
+	nsCOMPtr<nsIBaseWindow> baseWindow = do_QueryInterface(mWebBrowser, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+	
+	rv = baseWindow->SetFocus();
 
-	return NS_OK;
+	return rv;
 }
 
 NS_IMETHODIMP CBrowserImpl::GetTitle(PRUnichar** aTitle)
 {
-	if(! m_pBrowserFrameGlue)
-		return NS_ERROR_FAILURE;
+	NS_ENSURE_ARG_POINTER(aTitle);
+	NS_ENSURE_TRUE(m_pBrowserFrameGlue, NS_ERROR_FAILURE);
 
-	m_pBrowserFrameGlue->GetBrowserFrameTitle(aTitle);
+	CString title;
+	m_pBrowserFrameGlue->GetBrowserTitle(title);
+
+    nsEmbedString nsTitle;
+    *aTitle = NS_StringCloneData(CStringToNSString(title));
 	
 	return NS_OK;
 }
 
 NS_IMETHODIMP CBrowserImpl::SetTitle(const PRUnichar* aTitle)
 {
-	if(! m_pBrowserFrameGlue)
-		return NS_ERROR_FAILURE;
+	NS_ENSURE_ARG_POINTER(aTitle);
+	NS_ENSURE_TRUE(m_pBrowserFrameGlue, NS_ERROR_FAILURE);
 
-	m_pBrowserFrameGlue->SetBrowserFrameTitle(aTitle);
+#ifndef _UNICODE
+	if (wcslen(aTitle)>1024)
+		return NS_OK;
+#endif
+
+	m_pBrowserFrameGlue->SetBrowserTitle(PRUnicharToCString(aTitle));
 	
 	return NS_OK;
 }
 
 NS_IMETHODIMP CBrowserImpl::GetVisibility(PRBool *aVisibility)
 {
-	if(! m_pBrowserFrameGlue)
-		return NS_ERROR_FAILURE;
+	NS_ENSURE_TRUE(m_pBrowserFrameGlue, NS_ERROR_FAILURE);
 
-    m_pBrowserFrameGlue->GetBrowserFrameVisibility(aVisibility);
+    m_pBrowserFrameGlue->GetVisibility(aVisibility);
 
 	return NS_OK;
 }
 
 NS_IMETHODIMP CBrowserImpl::SetVisibility(PRBool aVisibility)
 {
-    if(! m_pBrowserFrameGlue)
-        return NS_ERROR_FAILURE;
+    NS_ENSURE_TRUE(m_pBrowserFrameGlue, NS_ERROR_FAILURE);
 
-    m_pBrowserFrameGlue->ShowBrowserFrame(aVisibility);
+	if (!mChromeLoaded && (mChromeFlags & nsIWebBrowserChrome::CHROME_OPENAS_CHROME))
+		return NS_OK; // Not yet, waiting for resize in UpdateBusyState
+
+    m_pBrowserFrameGlue->SetVisibility(aVisibility);
 
     return NS_OK;
 }
@@ -485,7 +556,7 @@ NS_IMETHODIMP CBrowserImpl::SetVisibility(PRBool aVisibility)
 
 NS_IMETHODIMP CBrowserImpl::Blur()
 {
-    return NS_OK;
+    return NS_ERROR_NOT_IMPLEMENTED;
 } 
 
 
@@ -496,22 +567,22 @@ NS_IMETHODIMP CBrowserImpl::Blur()
 /* void onShowTooltip (in long aXCoords, in long aYCoords, in wstring aTipText); */
 NS_IMETHODIMP CBrowserImpl::OnShowTooltip(PRInt32 aXCoords, PRInt32 aYCoords, const PRUnichar *aTipText)
 {
-    USES_CONVERSION;
-   
-    if(! m_pBrowserFrameGlue)
-        return NS_ERROR_FAILURE;
+	NS_ENSURE_ARG_POINTER(aTipText);
+	NS_ENSURE_TRUE(m_pBrowserFrameGlue, NS_ERROR_FAILURE);
 
-    const TCHAR *text = W2CT(aTipText);
-
-    m_pBrowserFrameGlue->ShowTooltip(aXCoords, aYCoords, text);
+    m_pBrowserFrameGlue->ShowTooltip(aXCoords, aYCoords, PRUnicharToCString(aTipText));
 
     return NS_OK;
 }
 
 NS_IMETHODIMP CBrowserImpl::OnHideTooltip()
 {
-    if(! m_pBrowserFrameGlue)
-        return NS_ERROR_FAILURE;
+	NS_ENSURE_TRUE(m_pBrowserFrameGlue, NS_ERROR_FAILURE);
+
+	// WORKAROUND: Because the tooltip is not erased correctly when using the mouse wheel
+	// XXXX
+	nsCOMPtr<nsIBaseWindow> baseWindow = do_QueryInterface(mWebBrowser);
+	if (baseWindow) baseWindow->Repaint(PR_FALSE);
 
     m_pBrowserFrameGlue->ShowTooltip(0, 0, nsnull);
 
@@ -523,9 +594,7 @@ NS_IMETHODIMP CBrowserImpl::ProvideWindow(nsIDOMWindow *aParent, PRUint32 aChrom
 {
 	NS_ENSURE_ARG_POINTER(aParent);
 	*_retval = nsnull;
-
-	if(! m_pBrowserFrameGlue)
-		return NS_OK;
+	NS_ENSURE_TRUE(m_pBrowserFrameGlue, NS_OK);
 
 	nsCOMPtr<nsIPrefService> prefs = do_GetService(NS_PREFSERVICE_CONTRACTID);
 	NS_ENSURE_TRUE(prefs, NS_OK);
@@ -537,7 +606,7 @@ NS_IMETHODIMP CBrowserImpl::ProvideWindow(nsIDOMWindow *aParent, PRUint32 aChrom
 	PRInt32 containerPref;
 	NS_ENSURE_SUCCESS(branch->GetIntPref("open_newwindow", &containerPref), NS_OK);
 
-	if ( /*containerPref != nsIBrowserDOMWindow::OPEN_NEWTAB &&*/
+	if ( containerPref != nsIBrowserDOMWindow::OPEN_NEWTAB &&
 	    containerPref != nsIBrowserDOMWindow::OPEN_CURRENTWINDOW)
 		return NS_OK;
 
@@ -564,11 +633,22 @@ NS_IMETHODIMP CBrowserImpl::ProvideWindow(nsIDOMWindow *aParent, PRUint32 aChrom
 		  aPositionSpecified || aSizeSpecified))
 		 return NS_OK;
 
+	CBrowserWrapper* window = m_pBrowserFrameGlue->ReuseWindow(containerPref == nsIBrowserDOMWindow::OPEN_CURRENTWINDOW);
+	if (!window) return NS_OK;
+
+	nsCOMPtr<nsIWebBrowser> browser = window->GetWebBrowser();
+	NS_ENSURE_TRUE(browser, NS_OK);
+
 	nsCOMPtr<nsIDOMWindow> domWindow;
-	mWebBrowser->GetContentDOMWindow(getter_AddRefs(domWindow));
+	browser->GetContentDOMWindow(getter_AddRefs(domWindow));
 	NS_ENSURE_TRUE(domWindow, NS_OK);
 	
-	*aWindowIsNew = (containerPref != nsIBrowserDOMWindow::OPEN_CURRENTWINDOW);
+	nsCOMPtr<nsIDOMWindow> currentWindow;
+	mWebBrowser->GetContentDOMWindow(getter_AddRefs(currentWindow));
+	NS_ENSURE_TRUE(currentWindow, NS_OK);
+	
+	//*aWindowIsNew = (containerPref != nsIBrowserDOMWindow::OPEN_CURRENTWINDOW);
+	*aWindowIsNew = (currentWindow != domWindow);
 
 	NS_ADDREF(*_retval = domWindow);
 	return NS_OK;
@@ -579,25 +659,154 @@ NS_IMETHODIMP CBrowserImpl::ProvideWindow(nsIDOMWindow *aParent, PRUint32 aChrom
 // CBrowserImpl::nsIDOMEventListener
 //***************************************************************************** 
 
-#include "nsIDOMContextMenuListener.h"
-#include "nsIDOMEventTarget.h"
-#include "nsIDOMAbstractView.h"
-#include "nsIDOMDocumentView.h"
-#include "nsIDOMEventTarget.h"
-#include "nsIDOM3Document.h"
-#include "nsIDOMWindow2.h"
-#include "nsIScriptSecurityManager.h" 
-
-extern nsresult NewURI(nsIURI **result, const nsAString &spec);
-extern nsresult NewURI(nsIURI **result, const nsACString &spec);
-
 NS_IMETHODIMP CBrowserImpl::HandleEvent(nsIDOMEvent *event)
 {
-	nsresult rv;
+	NS_ENSURE_TRUE(m_pBrowserFrameGlue, NS_OK);
 
+	nsresult rv;
 	nsEmbedString type;
 	event->GetType(type);
-	if (type.Equals(NS_LITERAL_STRING("DOMPopupBlocked"))) {
+
+	if (type.Equals(NS_LITERAL_STRING("click")))
+	{
+		//event->PreventDefault();
+
+		nsCOMPtr<nsIDOMMouseEvent> mouseEvent(do_QueryInterface(event));
+		NS_ENSURE_TRUE(mouseEvent, NS_ERROR_FAILURE);
+
+		PRUint16 button;
+		mouseEvent->GetButton(&button);
+
+		PRBool altKey, shiftKey, ctrlKey;
+		mouseEvent->GetCtrlKey(&ctrlKey);
+		mouseEvent->GetShiftKey(&shiftKey);
+		mouseEvent->GetAltKey(&altKey);
+
+		UINT flags = 0;
+
+		switch (button) {
+			case 0: flags = MK_LBUTTON; break;
+			case 1: flags = MK_MBUTTON; break;
+			case 2: flags = MK_RBUTTON; break;
+			default : ;
+		}
+
+		if (altKey) flags |= FALT << 8;
+		if (shiftKey) flags |= FSHIFT << 8;
+		if (ctrlKey) flags |= FCONTROL << 8;
+
+		nsCOMPtr<nsIDOMEventTarget> target;
+		event->GetTarget(getter_AddRefs(target));
+		nsCOMPtr<nsIDOMNode> node = do_QueryInterface(target);
+		
+		if (m_pBrowserFrameGlue->MouseAction(node, flags))
+			event->PreventDefault();
+
+		return NS_OK;
+	}
+
+	if (type.Equals(NS_LITERAL_STRING("DOMContentLoaded")))
+	{
+		// DOMContentLoaded is not send if the page is reloaded from cache
+		// Nevertheless I'm using it to get the IE favicon without waiting
+		// for all images of the page to be loaded
+		m_pBrowserFrameGlue->SetFavIcon(nsnull);
+		return NS_OK;
+	}
+
+	if (type.Equals(NS_LITERAL_STRING("DOMLinkAdded")))
+	{
+		nsCOMPtr<nsIDOMEventTarget> target;
+		event->GetTarget(getter_AddRefs(target));
+		NS_ENSURE_TRUE (target, NS_ERROR_FAILURE);
+
+		nsCOMPtr<nsIDOMElement> elem = do_QueryInterface(target);
+		NS_ENSURE_TRUE (elem, NS_ERROR_FAILURE);
+
+		nsEmbedString value;
+		rv = elem->GetTagName(value);
+
+		rv = elem->GetAttribute(NS_LITERAL_STRING("rel"), value);
+		NS_ENSURE_SUCCESS (rv, rv);
+
+		if ( wcsicmp(value.get(), L"SHORTCUT ICON") == 0 || 
+			wcsicmp(value.get(), L"ICON") == 0 )
+		{
+
+			/*		rv = elem->GetAttribute(NS_LITERAL_STRING("type"), value);
+			NS_ENSURE_SUCCESS (rv, rv);
+			if (value.Equals(NS_LITERAL_STRING("image/png")))
+			return NS_OK;*/
+
+			rv = elem->GetAttribute (NS_LITERAL_STRING("href"), value);
+			NS_ENSURE_SUCCESS (rv, rv);
+			NS_ENSURE_FALSE (value.IsEmpty(), NS_ERROR_FAILURE);
+
+			nsCOMPtr<nsIDOMDocument> domDoc;
+			elem->GetOwnerDocument (getter_AddRefs(domDoc));
+			NS_ENSURE_TRUE (domDoc, NS_ERROR_FAILURE);
+
+			/* See if this is from the toplevel frame */
+			nsCOMPtr<nsIDOMDocumentView> docView (do_QueryInterface (domDoc));
+			NS_ENSURE_TRUE (docView, NS_ERROR_FAILURE);
+
+			nsCOMPtr<nsIDOMAbstractView> abstractView;
+			docView->GetDefaultView (getter_AddRefs (abstractView));
+
+			nsCOMPtr<nsIDOMWindow> domWin (do_QueryInterface (abstractView));
+			NS_ENSURE_TRUE (domWin, NS_ERROR_FAILURE);
+
+			nsCOMPtr<nsIDOMWindow> topDomWin;
+			domWin->GetTop (getter_AddRefs (topDomWin));
+
+			nsCOMPtr<nsISupports> domWinAsISupports (do_QueryInterface (domWin));
+			nsCOMPtr<nsISupports> topDomWinAsISupports (do_QueryInterface (topDomWin));
+			/* disallow subframes to set favicon */
+			if (domWinAsISupports != topDomWinAsISupports) return NS_OK;
+
+			nsCOMPtr<nsIDOM3Document> doc = do_QueryInterface (domDoc);
+			NS_ENSURE_TRUE (doc, NS_ERROR_FAILURE);
+
+			nsEmbedString spec;
+			rv = doc->GetDocumentURI (spec);
+			NS_ENSURE_SUCCESS (rv, NS_ERROR_FAILURE);
+
+			nsCOMPtr<nsIURI> docUri;
+			NewURI (getter_AddRefs (docUri), spec);
+
+			nsEmbedCString favicon;
+			nsEmbedCString cvalue;
+			NS_UTF16ToCString(value, NS_CSTRING_ENCODING_UTF8, cvalue);
+			rv = docUri->Resolve (cvalue, favicon);
+			NS_ENSURE_SUCCESS (rv, NS_ERROR_FAILURE);
+
+			nsCOMPtr<nsIURI> favUri;
+			NewURI (getter_AddRefs (favUri), favicon);
+			NS_ENSURE_TRUE (favUri, NS_ERROR_FAILURE);
+
+			/* check if load is allowed */
+			nsCOMPtr<nsIScriptSecurityManager> secMan
+				(do_GetService("@mozilla.org/scriptsecuritymanager;1"));
+			/* refuse if we can't check */
+			NS_ENSURE_TRUE (secMan, NS_ERROR_FAILURE);
+
+			rv = secMan->CheckLoadURI(docUri, favUri,
+				nsIScriptSecurityManager::STANDARD);
+			/* failure means it didn't pass the security check */
+			if (NS_FAILED (rv)) return NS_OK;
+
+			/* Hide password part */
+			nsEmbedCString password;
+			favUri->GetUsername(password);
+			favUri->SetUserPass(password);
+
+			m_pBrowserFrameGlue->SetFavIcon(favUri);
+		}
+		return NS_OK;
+	}
+
+	if (type.Equals(NS_LITERAL_STRING("DOMPopupBlocked")))
+	{
 		nsCOMPtr<nsIDOMPopupBlockedEvent> popupEvent = do_QueryInterface(event);
 		NS_ENSURE_TRUE (popupEvent, NS_ERROR_FAILURE);
 
@@ -613,159 +822,6 @@ NS_IMETHODIMP CBrowserImpl::HandleEvent(nsIDOMEvent *event)
 		m_pBrowserFrameGlue->PopupBlocked(host.get());
 		return NS_OK;
 	}
-	
-	if (type.Equals(NS_LITERAL_STRING("mousedown"))) {
-        nsCOMPtr<nsIDOMEventTarget> target;
-		event->GetTarget(getter_AddRefs(target));
-
-		nsCOMPtr<nsIDOMNode> node = do_QueryInterface(target);
-		m_pBrowserFrameGlue->MouseAction(node);
-		/*
-		nsCOMPtr<nsIBaseWindow>  mBaseWindow;
-		mBaseWindow = do_QueryInterface(mWebBrowser, &rv);
-	    if(NS_FAILED(rv))
-			return rv;
-	
-		nsCOMPtr<nsIDocShellTreeItem> tree = do_QueryInterface(mBaseWindow, &rv);
-		if(NS_FAILED(rv))
-			return rv;
-
-		nsCOMPtr<nsIDocShellTreeOwner> treeOwner;
-		tree->GetTreeOwner(getter_AddRefs(treeOwner));
-
-		ChromeContextMenuListener* ccml = new ChromeContextMenuListener(mWebBrowser, webBrowserChrome);
-		*/
-		return NS_OK;
-	}
 
 	return NS_ERROR_NOT_IMPLEMENTED;
 }
-
-NS_IMPL_ISUPPORTS1(CFavIconListener, nsIDOMEventListener)
-
-CFavIconListener::CFavIconListener() : m_pBrowserFrameGlue(NULL)// mBrowser(NULL)
-{
-}
-
-CFavIconListener::~CFavIconListener()
-{
-}
-
-/***********************************************************/
-/*! Part of the following code is from The Galeon Browser !*/
-
-nsresult CFavIconListener::Init(PBROWSERFRAMEGLUE pBrowserFrameGlue)
-{
-	//mBrowser = aBrowser;
-	m_pBrowserFrameGlue = pBrowserFrameGlue;
-	m_bIcon = FALSE;
-	return NS_OK;
-}
-
-NS_IMETHODIMP CFavIconListener::HandleEvent (nsIDOMEvent* event)
-{
-	nsEmbedString type;
-	event->GetType(type);
-
-	if (type.Equals(NS_LITERAL_STRING("DOMContentLoaded")))
-	{
-		// DOMContentLoaded is not send if the page is reloaded from cache
-		// Nevertheless I'm using it to get the IE favicon without waiting
-		// for all images of the page to be loaded
-		m_pBrowserFrameGlue->SetFavIcon(nsnull);
-		return NS_OK;
-	}
-
-	nsresult rv;
-
-	nsCOMPtr<nsIDOMEventTarget> target;
-	event->GetTarget(getter_AddRefs(target));
-	NS_ENSURE_TRUE (target, NS_ERROR_FAILURE);
-
-	nsCOMPtr<nsIDOMElement> elem = do_QueryInterface(target);
-	NS_ENSURE_TRUE (elem, NS_ERROR_FAILURE);
-
-	nsEmbedString value;
-	rv = elem->GetTagName(value);
-
-	rv = elem->GetAttribute(NS_LITERAL_STRING("rel"), value);
-	NS_ENSURE_SUCCESS (rv, rv);
-		
-	if ( wcsicmp(value.get(), L"SHORTCUT ICON") == 0 || 
-		wcsicmp(value.get(), L"ICON") == 0 )
-	{
-
-/*		rv = elem->GetAttribute(NS_LITERAL_STRING("type"), value);
-		NS_ENSURE_SUCCESS (rv, rv);
-		if (value.Equals(NS_LITERAL_STRING("image/png")))
-			return NS_OK;*/
-		
-		rv = elem->GetAttribute (NS_LITERAL_STRING("href"), value);
-		NS_ENSURE_SUCCESS (rv, rv);
-		NS_ENSURE_FALSE (value.IsEmpty(), NS_ERROR_FAILURE);
-
-		nsCOMPtr<nsIDOMDocument> domDoc;
-		elem->GetOwnerDocument (getter_AddRefs(domDoc));
-		NS_ENSURE_TRUE (domDoc, NS_ERROR_FAILURE);
-
-		/* See if this is from the toplevel frame */
-		nsCOMPtr<nsIDOMDocumentView> docView (do_QueryInterface (domDoc));
-		NS_ENSURE_TRUE (docView, NS_ERROR_FAILURE);
-
-		nsCOMPtr<nsIDOMAbstractView> abstractView;
-		docView->GetDefaultView (getter_AddRefs (abstractView));
-
-		nsCOMPtr<nsIDOMWindow> domWin (do_QueryInterface (abstractView));
-		NS_ENSURE_TRUE (domWin, NS_ERROR_FAILURE);
-
-		nsCOMPtr<nsIDOMWindow> topDomWin;
-		domWin->GetTop (getter_AddRefs (topDomWin));
-
-		nsCOMPtr<nsISupports> domWinAsISupports (do_QueryInterface (domWin));
-		nsCOMPtr<nsISupports> topDomWinAsISupports (do_QueryInterface (topDomWin));
-		/* disallow subframes to set favicon */
-		if (domWinAsISupports != topDomWinAsISupports) return NS_OK;
-		
-		nsCOMPtr<nsIDOM3Document> doc = do_QueryInterface (domDoc);
-		NS_ENSURE_TRUE (doc, NS_ERROR_FAILURE);
-
-		nsEmbedString spec;
-		rv = doc->GetDocumentURI (spec);
-		NS_ENSURE_SUCCESS (rv, NS_ERROR_FAILURE);
-		
-		nsCOMPtr<nsIURI> docUri;
-		NewURI (getter_AddRefs (docUri), spec);
-
-		nsEmbedCString favicon;
-		nsEmbedCString cvalue;
-		NS_UTF16ToCString(value, NS_CSTRING_ENCODING_UTF8, cvalue);
-		rv = docUri->Resolve (cvalue, favicon);
-		NS_ENSURE_SUCCESS (rv, NS_ERROR_FAILURE);
-
-		nsCOMPtr<nsIURI> favUri;
-		NewURI (getter_AddRefs (favUri), favicon);
-		NS_ENSURE_TRUE (favUri, NS_ERROR_FAILURE);
-
-		/* check if load is allowed */
-		nsCOMPtr<nsIScriptSecurityManager> secMan
-			(do_GetService("@mozilla.org/scriptsecuritymanager;1"));
-		/* refuse if we can't check */
-		NS_ENSURE_TRUE (secMan, NS_ERROR_FAILURE);
-
-		rv = secMan->CheckLoadURI(docUri, favUri,
-					  nsIScriptSecurityManager::STANDARD);
-		/* failure means it didn't pass the security check */
-		if (NS_FAILED (rv)) return NS_OK;
-		
-		/* Hide password part */
-		nsEmbedCString password;
-		favUri->GetUsername(password);
-		favUri->SetUserPass(password);
-		
-		m_bIcon = TRUE;
-		m_pBrowserFrameGlue->SetFavIcon(favUri);
-		//LoadFavIcon(favUri);
-	}
-	return NS_OK;
-}
-/***************************************************/

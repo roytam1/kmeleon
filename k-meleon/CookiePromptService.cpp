@@ -37,7 +37,6 @@ CCookiePromptService::~CCookiePromptService() {
 
 NS_IMETHODIMP CCookiePromptService::CookieDialog(nsIDOMWindow *parent, nsICookie *aCookie, const nsACString & hostname, PRInt32 cookiesFromHost, PRBool changingCookie, PRBool *rememberDecision, PRInt32 *_retval)
 {
-  USES_CONVERSION;
   CString q;
   static BOOL accept = TRUE;
   //char fDate[128];

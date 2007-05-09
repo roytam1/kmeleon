@@ -20,8 +20,8 @@
 
 
 #include "stdafx.h"
-#include "BrowserFrm.h"
-#include ".\urlbar.h"
+#include "urlbar.h"
+#include "kmeleon_plugin.h"
 #include <wininet.h>
 
 BEGIN_MESSAGE_MAP(CUrlBarEdit, CEdit)
@@ -601,9 +601,8 @@ BOOL CUrlBarEdit::PreTranslateMessage(MSG* pMsg)
 		else if (pMsg->wParam == VK_ESCAPE)
 		{
 			StopACSession();
-			CString oldUrl;
-			((CBrowserFrame*)GetParentFrame())->m_wndBrowserView.GetCurrentURI(oldUrl);
-			SetWindowText(oldUrl);
+			CString url;
+			((CUrlBar*)GetParent()->GetParent())->ResetURL();
 			SetSel(0,-1,FALSE);
 			return TRUE;
 		}
@@ -616,6 +615,9 @@ BEGIN_MESSAGE_MAP(CUrlBar, CComboBoxEx)
 #ifdef INTERNAL_SITEICONS
 	ON_NOTIFY_REFLECT(CBEN_GETDISPINFO, OnCbenGetdispinfo)
 #endif
+	ON_NOTIFY_REFLECT(CBEN_ENDEDIT, OnCbenEndedit)
+	ON_CONTROL_REFLECT(CBN_EDITCHANGE, OnCbnEditchange)
+	ON_CONTROL_REFLECT(CBN_SELCHANGE, OnCbnSelchange)
 END_MESSAGE_MAP()
 
 HBRUSH CUrlBar::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
@@ -670,5 +672,24 @@ void CUrlBarEdit::OnSetFocus(CWnd* pOldWnd)
 	// Because the combobox is shitty and send focus notification 
 	// only when you click on the arrow.
 	CEdit::OnSetFocus(pOldWnd);
-	GetParentFrame()->SendMessage(WM_COMMAND, MAKEWPARAM(ID_URL_BAR,CBN_SETFOCUS), (LPARAM)m_hWnd);
+	//GetParentFrame()->SendMessage(WM_COMMAND, MAKEWPARAM(ID_URL_BAR,CBN_SETFOCUS), (LPARAM)m_hWnd);
+}
+
+void CUrlBar::OnCbenEndedit(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	TRACE0("EditChanged FALSE in OnCbenEndedit\n");
+	EditChanged(FALSE);
+	*pResult = 0;
+}
+
+void CUrlBar::OnCbnEditchange()
+{
+	TRACE0("EditChanged TRUE in OnCbnEditchange\n");
+	EditChanged(TRUE);
+}
+
+void CUrlBar::OnCbnSelchange()
+{
+	TRACE0("EditChanged TRUE in OnCbnSelchange\n");
+	EditChanged(FALSE);
 }

@@ -210,7 +210,7 @@ BOOL KmMenu::Build(CMenu &menu, int before)
 					//LOG_1("Added popup %s", label);
 				}
 				else
-					ASSERT(FALSE);
+					ASSERT(TRUE);
 					//LOG_ERROR_1("Popup %s not found!", label);
 				wasSeparator = FALSE;
 				break;

@@ -68,7 +68,7 @@ void CPermissionsDlg::FillList()
 		permission = m_PermissionsList.GetNext(pos);
 
 		USES_CONVERSION;
-		ListView_SetItemText(m_cPermissionsList.GetSafeHwnd(), index, 0, (LPTSTR)A2CT(permission->m_host.get()))
+		ListView_SetItemText(m_cPermissionsList.GetSafeHwnd(), index, 0, (TCHAR*)A2CT(permission->m_host.get()))
 		
 		CString state;
 		switch (permission->m_state) {
