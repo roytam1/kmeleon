@@ -1,12 +1,21 @@
+!define         SETUP_VERSION "1.3.0"
+
 !define		NAME "K-Meleon"
+!define		YEAR "2007"
 !define		VERSION "1.1"
 !define		PRODUCT_VERSION_PLUS "1.1.0.5"
 !define		ADDRESS "http://kmeleon.sourceforge.net/"  
 !define		GECKO_VERSION "1.8.1.3"
-!define		PRODUCT_BUILD "${NAME} ${VERSION}"
 
-!define		LANGUAGE "English"	; see NSIS\Examples\Modern UI\MultiLanguage.nsi: Languages
+!define		LANG     "English"	; see NSIS\Examples\Modern UI\MultiLanguage.nsi: Languages
 !define		LANGCODE "en-US"	; specify "xx-YY" if not "en-US"
+
+!if "${LANGCODE}" == ""
+  !define	PRODUCT_BUILD "${NAME} ${VERSION}"
+!endif
+!if "${LANGCODE}" != ""
+  !define	PRODUCT_BUILD "${NAME} ${VERSION} ${LANGCODE}"
+!endif
 
 !define		PRODUCT_KEY "Software\${NAME}"
 !define		PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${NAME}"
@@ -14,6 +23,9 @@
 !define		PRODUCT_CLIENT_INTERNET_KEY "${CLIENT_INTERNET_KEY}\k-meleon.exe"
 !define		MOZILLA_REG_KEY "Software\Mozilla\${NAME}"
 !define		MEDIAPLAYER_REG_KEY "SOFTWARE\Microsoft\MediaPlayer\ShimInclusionList\k-meleon.exe"
+
+; uncomment if IsUserAdmin function is used
+#!define _IsUserAdmin
 
 ;--------------------------------
 ;Include Modern UI
@@ -27,7 +39,7 @@
 
 
 ;Default installation folder
-InstallDir "$PROGRAMFILES\${NAME}"
+InstallDir "$PROGRAMFILES\${NAME}\"
 
 ;Get installation folder from registry if available
 InstallDirRegKey HKEY_CURRENT_USER "${PRODUCT_KEY}\General" "InstallDir"
@@ -50,20 +62,18 @@ OutFile		"${NAME}${VERSION}${LANGCODE}.exe"
 
   VIProductVersion      "${PRODUCT_VERSION_PLUS}"
 
-  VIAddVersionKey        ProductName      "${NAME}"
   VIAddVersionKey        Comments         "${PRODUCT_BUILD} Setup"
   VIAddVersionKey        CompanyName      "${NAME} Team"
-  VIAddVersionKey        LegalCopyright   "${NAME} Team"
   VIAddVersionKey        FileDescription  "${PRODUCT_BUILD} Setup"
-  VIAddVersionKey        ProductVersion   "${PRODUCT_VERSION_PLUS}"
-  VIAddVersionKey        InternalName     "${NAME} ${VERSION}"
+  VIAddVersionKey        FileVersion      "${PRODUCT_VERSION_PLUS}"
+  VIAddVersionKey        InternalName     "${PRODUCT_BUILD}"
+  VIAddVersionKey        LegalCopyright   "Copyright (C) ${YEAR} ${NAME} Team"
   VIAddVersionKey        LegalTrademarks  "${ADDRESS}"
-  VIAddVersionKey        OriginalFileName "${NAME}${VERSION}.exe"
-  VIAddVersionKey        FileVersion      ""
+  VIAddVersionKey        OriginalFilename "${NAME}${VERSION}${LANGCODE}.exe"
   VIAddVersionKey        PrivateBuild     ""
+  VIAddVersionKey        ProductName      "${NAME}"
+  VIAddVersionKey        ProductVersion   "${PRODUCT_VERSION_PLUS}"
   VIAddVersionKey        SpecialBuild     ""
-  VIAddVersionKey        Translation      ""
-  VIAddVersionKey        SetupVersion     ""
 
 ;----------------------------------------
 ;Interface Settings
@@ -91,6 +101,7 @@ OutFile		"${NAME}${VERSION}${LANGCODE}.exe"
 !define MUI_UNWELCOMEFINISHPAGE_BITMAP "${NAME}.bmp"
 
 !define MUI_WELCOMEPAGE_TITLE $(INST_Welcome)
+!define MUI_WELCOMEPAGE_TEXT $(MUI_WELCOMEPAGE_TEXT)
 !insertmacro MUI_PAGE_WELCOME
   
 !insertmacro MUI_PAGE_LICENSE "license.txt"
@@ -114,8 +125,12 @@ OutFile		"${NAME}${VERSION}${LANGCODE}.exe"
 ;--------------------------------
 ;Languages
 
-!insertmacro MUI_LANGUAGE "${LANGUAGE}"
-!include "${LANGUAGE}.nlf"
+!if ${LANG} != "English"
+   !insertmacro MUI_LANGUAGE "English"
+   !include "English.nlf"
+!endif
+!insertmacro MUI_LANGUAGE "${LANG}"
+!include "${LANG}.nlf"
 
 ;--------------------------------
 
@@ -230,14 +245,16 @@ Section ${NAME} SecMain
 	SetOutPath "$INSTDIR"
 	File /r .\k-meleon\*.*
 
-	;Call IsUserAdmin
-	;StrCmp $R0 "true" 0 +3
-	;SetOutPath $SYSDIR
-	;Goto +2
+        !ifdef _IsUserAdmin
+	  Call IsUserAdmin
+	  StrCmp $R0 "true" 0 +3
+	  SetOutPath $SYSDIR
+	  Goto +2
+	!endif
 	SetOutPath $INSTDIR
 	File /nonfatal .\dll\*.*
+	File /nonfatal .\misc\*.*
 	
-
 
 	
 	WriteRegStr HKLM ${MOZILLA_REG_KEY} "GeckoVer" GECKO_VERSION
@@ -373,8 +390,6 @@ SubSectionEnd
 # ----------------------------------------------------------------------
 
 Section /o $(SECT_Loader) SecLoader ; {{{
-	SetOutPath $INSTDIR
-	File .\misc\loader.exe
 	CreateShortCut "$SMSTARTUP\K-Meleon Loader.lnk" "$INSTDIR\loader.exe"
 SectionEnd
 
@@ -446,7 +461,7 @@ Section Uninstall
 
 	Push $R0
 	!insertmacro GET_PROFILES_LOCATION
-	
+	goto AskProfile
 
 AskProfile:
 	IfFileExists "$R0" 0 KeepProfiles
@@ -504,6 +519,7 @@ KeepInstDir:
 	RMDir /r $SMPROGRAMS\K-Meleon
 	Delete "$QUICKLAUNCH\K-Meleon.lnk"
 	Delete "$SMSTARTUP\K-Meleon Loader.lnk"
+	goto UnEnd
 	
 UnEnd:
 
@@ -579,7 +595,7 @@ FunctionEnd
 
 ;--------------------------------
 ;Function un.onInit
-;!insertmacro MUI_UNGETLANGUAGE
+;!insertmacro MUI_UNGET
 ;  MessageBox MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON2 "$(UN_confirm)" IDYES +2
 ;  Abort
 ;FunctionEnd
@@ -622,15 +638,15 @@ FunctionEnd
 	!insertmacro MUI_DESCRIPTION_TEXT ${SecNetscapeBookmarks}	$(DESC_SecNetscapeBookmarks)
 	!insertmacro MUI_DESCRIPTION_TEXT ${SecIEFavorites}		$(DESC_SecIEFavorites)
 	!insertmacro MUI_DESCRIPTION_TEXT ${SecOperaHotlist}		$(DESC_SecOperaHotList)
-	!insertmacro MUI_DESCRIPTION_TEXT ${SecTools}			$(DESC_SecTools)
+#	!insertmacro MUI_DESCRIPTION_TEXT ${SecTools}			$(DESC_SecTools)
 	!insertmacro MUI_DESCRIPTION_TEXT ${SecLoader}			$(DESC_SecLoader)
-	!insertmacro MUI_DESCRIPTION_TEXT ${SecProfile}		$(DESC_SecProfile)
+	!insertmacro MUI_DESCRIPTION_TEXT ${SecProfile}		        $(DESC_SecProfile)
 #	!insertmacro MUI_DESCRIPTION_TEXT ${SecRemote}			$(DESC_SecRemote)
 #	!insertmacro MUI_DESCRIPTION_TEXT ${SecSplash}			$(DESC_SecSplash)
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
 ; }}}
 
-
+;-------------------------------------------------------------------------------------------------
 ; Author: Lilla (lilla@earthlink.net) 2003-06-13
 ; function IsUserAdmin uses plugin \NSIS\PlusgIns\UserInfo.dll
 ; This function is based upon code in \NSIS\Contrib\UserInfo\UserInfo.nsi
@@ -640,6 +656,8 @@ FunctionEnd
 ;   Call IsUserAdmin
 ;   Pop $R0   ; at this point $R0 is "true" or "false"
 ;
+
+!ifdef _IsUserAdmin
 
 Function IsUserAdmin
 Push $R0
@@ -685,6 +703,9 @@ Pop $R1
 Exch $R0
 FunctionEnd
 
+!endif
+
+;-----------------------------------------------------------------------------------------------
 Function GetWindowsVersion
 
 	Push $R0
