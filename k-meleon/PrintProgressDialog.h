@@ -6,7 +6,7 @@
 #endif // _MSC_VER > 1000
 // PrintProgressDialog.h : header file
 //
-
+#include "resource.h"
 #include "nsIWebProgressListener.h"
 class nsIWebBrowser;
 
@@ -17,19 +17,19 @@ class CPrintProgressDialog : public CDialog
 {
 // Construction
 public:
-	CPrintProgressDialog(nsIWebBrowser* aWebBrowser, 
-                       nsIPrintSettings* aPrintSettings,
+	CPrintProgressDialog(/*nsIWebBrowser* aWebBrowser, 
+                       nsIPrintSettings* aPrintSettings,*/
                        CWnd* pParent = NULL);
 	virtual ~CPrintProgressDialog();
   virtual int DoModal( );
 
   // Helper
-  void SetURI(const char* aTitle);
+  void SetURI(LPCTSTR aTitle);
 
   NS_IMETHOD OnStartPrinting(void);
   NS_IMETHOD OnProgressPrinting(PRUint32 aProgress, PRUint32 aProgressMax);
   NS_IMETHOD OnEndPrinting(PRUint32 aStatus);
-
+nsCOMPtr<nsIWebProgressListener> m_PrintListener;
 // Dialog Data
 	//{{AFX_DATA(CPrintProgressDialog)
 	enum { IDD = IDD_PRINT_PROGRESS_DIALOG };
@@ -45,11 +45,12 @@ public:
 	//}}AFX_VIRTUAL
 
 // Implementation
+	
 protected:
-	CProgressCtrl              m_wndProgress;
+  CProgressCtrl              m_wndProgress;
   CString                    m_URL;
   nsIWebBrowser*             m_WebBrowser;
-  nsCOMPtr<nsIWebProgressListener> m_PrintListener;
+  
   nsIPrintSettings*          m_PrintSettings;
   BOOL                       m_InModalMode;
 

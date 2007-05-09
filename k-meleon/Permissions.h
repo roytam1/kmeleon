@@ -73,7 +73,7 @@ public:
 	~CPermissions()
 	{}
 
-	BOOL set(char* url, int state)
+	BOOL set(const char* url, int state)
 	{
 		nsresult rv;
 		

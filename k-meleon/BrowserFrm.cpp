@@ -94,7 +94,13 @@ BEGIN_MESSAGE_MAP(CBrowserFrame, CFrameWnd)
     ON_WM_CLOSE()
     ON_WM_ACTIVATE()
     ON_WM_SYSCOLORCHANGE()
-    ON_MESSAGE(UWM_REFRESHTOOLBARITEM, RefreshToolBarItem)
+	ON_WM_SYSCOMMAND()
+	ON_WM_INITMENUPOPUP()
+
+	ON_COMMAND(ID_SELECT_URL, OnSelectUrl)
+	ON_COMMAND(ID_WINDOW_NEXT, OnWindowNext)
+    ON_COMMAND(ID_WINDOW_PREV, OnWindowPrev)
+
     ON_MESSAGE(UWM_REFRESHMRULIST, RefreshMRUList)
 #ifdef INTERNAL_SITEICONS
 	ON_MESSAGE(UWM_NEWSITEICON, OnNewSiteIcon)
@@ -102,19 +108,30 @@ BEGIN_MESSAGE_MAP(CBrowserFrame, CFrameWnd)
 	ON_COMMAND(ID_CLOSE, CloseNothing)
     ON_COMMAND_RANGE(TOOLBAR_MENU_START_ID, TOOLBAR_MENU_END_ID, ToggleToolBar)
     ON_COMMAND(ID_TOOLBARS_LOCK, ToggleToolbarLock)
-	 ON_COMMAND(ID_COOKIES_VIEWER, OnCookiesViewer)
-	 ON_COMMAND(ID_PASSWORDS_VIEWER, OnPasswordsViewer)
+    ON_COMMAND(ID_COOKIES_VIEWER, OnCookiesViewer)
+    ON_COMMAND(ID_PASSWORDS_VIEWER, OnPasswordsViewer)
     ON_UPDATE_COMMAND_UI(ID_TOOLBARS_LOCK, OnUpdateToggleToolbarLock)
 #ifdef INTERNAL_SIDEBAR
 	ON_COMMAND_RANGE(SIDEBAR_MENU_START_ID, SIDEBAR_MENU_END_ID, ToggleSideBar)
 	ON_UPDATE_COMMAND_UI_RANGE(SIDEBAR_MENU_START_ID, SIDEBAR_MENU_END_ID, OnUpdateSideBarMenu)
 #endif
 	ON_UPDATE_COMMAND_UI_RANGE(TOOLBAR_MENU_START_ID, TOOLBAR_MENU_END_ID, OnUpdateToolBarMenu)
+	ON_UPDATE_COMMAND_UI(ID_VIEW_STATUS_BAR, OnUpdateViewStatusBar)
 	ON_COMMAND(ID_EDIT_FIND, OnShowFindBar)
-   ON_NOTIFY(RBN_LAYOUTCHANGED, AFX_IDW_REBAR, OnRbnLayoutChanged)
-    //}}AFX_MSG_MAP
-	ON_WM_SYSCOMMAND()
-	ON_WM_INITMENUPOPUP()
+    ON_NOTIFY(RBN_LAYOUTCHANGED, AFX_IDW_REBAR, OnRbnLayoutChanged)
+    
+    ON_COMMAND(ID_EDIT_FINDNEXT, OnFindNext)
+	ON_COMMAND(ID_EDIT_FINDPREV, OnFindPrev)
+	ON_COMMAND(IDC_WRAP_AROUND, OnWrapAround)
+	ON_COMMAND(IDC_MATCH_CASE, OnMatchCase)
+	ON_COMMAND(IDC_HIGHLIGHT, OnHighlight)
+
+//	ON_MESSAGE(WM_ENTERSIZEMOVE, OnEnterSizeMove)
+
+	//}}AFX_MSG_MAP
+
+//	ON_WM_MOVING()
+	ON_WM_DESTROY()
 END_MESSAGE_MAP()
 
 #define PREF_TOOLBAND_LOCKED "kmeleon.general.toolbars_locked"
@@ -133,11 +150,11 @@ CBrowserFrame::CBrowserFrame(PRUint32 chromeMask, LONG style = 0)
     m_chromeMask = chromeMask;
     m_style = style;
     m_created = FALSE;
-    m_ignoreFocus = 2;
     m_hSecurityIcon = NULL;
 	m_wndFindBar = NULL;
+	m_searchString = NULL;
 	m_wndLastFocused = NULL;
-	m_bSizeOnLoad = FALSE;
+	m_wndBrowserView = NULL;
 }
 
 CBrowserFrame::~CBrowserFrame()
@@ -146,6 +163,8 @@ CBrowserFrame::~CBrowserFrame()
         DestroyIcon(m_hSecurityIcon);
 	if (m_wndFindBar)
 		delete m_wndFindBar;
+	if (m_searchString)
+		free(m_searchString);
 }
 
 BOOL CBrowserFrame::PreTranslateMessage(MSG* pMsg)
@@ -153,48 +172,46 @@ BOOL CBrowserFrame::PreTranslateMessage(MSG* pMsg)
    if (pMsg->message==WM_KEYDOWN)
    {
 	  if ( pMsg->wParam == VK_TAB && !(GetKeyState(VK_CONTROL)  & 0x8000)) {
-         nsCOMPtr<nsIWebBrowserFocus> focus = m_wndBrowserView.mWebBrowserFocus;
-         if(focus) {
             if (pMsg->hwnd == m_wndUrlBar.m_hwndEdit) {
                if (GetKeyState(VK_SHIFT)  & 0x8000)
                   if (m_wndFindBar) 
                      m_wndFindBar->SetFocus();
-                  else {
-                     focus->Activate();
-                     focus->SetFocusAtLastElement();
+				  else {
+					  CBrowserView* view = GetActiveView();
+					  if (view) view->GetBrowserWrapper()->FocusLastElement();
                   }
                else {
-                  focus->Activate();
-                  focus->SetFocusAtFirstElement();
+					CBrowserView* view = GetActiveView();
+					if (view) view->GetBrowserWrapper()->FocusFirstElement();
                }
                return 1;
             }
             else if ( m_wndFindBar && (pMsg->hwnd == m_wndFindBar->m_cEdit.m_hWnd)) { 
 
                if (GetKeyState(VK_SHIFT)  & 0x8000) {
-                  focus->Activate();
-                  focus->SetFocusAtLastElement();
+					  CBrowserView* view = GetActiveView();
+					  if (view) view->GetBrowserWrapper()->FocusLastElement();
                }
                else if (m_wndUrlBar.IsWindowVisible())
                   ::SetFocus(m_wndUrlBar.m_hwndEdit);
                else {
-                  focus->Activate();
-                  focus->SetFocusAtFirstElement();
+					  CBrowserView* view = GetActiveView();
+					  if (view) view->GetBrowserWrapper()->FocusFirstElement();
                }
 
                return 1;
             }
          }
-      }
+ 
 	  // Prevent accels to interfere with input controls
- 	  else if (pMsg->wParam >= VK_END && pMsg->wParam <= VK_DOWN) {
-         if ( !m_wndBrowserView.IsChild(GetFocus()) || m_wndBrowserView.InputHasFocus() )
+ 	  else if (pMsg->wParam >= VK_PRIOR && pMsg->wParam <= VK_DOWN) {
+         if ( GetActiveView()->IsChild(GetFocus()) && GetActiveView()->GetBrowserWrapper()->InputHasFocus() )
             return 0;
       }
 	  else if (MapVirtualKey(pMsg->wParam, 2  /*MAPVK_VK_TO_CHAR*/) != 0) {
-         if (!(GetKeyState(VK_CONTROL) & 0x8000) && (!m_wndBrowserView.IsChild(GetFocus()) || m_wndBrowserView.InputHasFocus()))
+         if (!(GetKeyState(VK_CONTROL) & 0x8000) && (GetActiveView()->IsChild(GetFocus()) && GetActiveView()->GetBrowserWrapper()->InputHasFocus()))
             return 0;
-      }
+	  }
 
 	 /* else if ( pMsg->wParam == VK_BACK ) {
 	     if (m_wndBrowserView.InputHasFocus())
@@ -203,11 +220,11 @@ BOOL CBrowserFrame::PreTranslateMessage(MSG* pMsg)
 
    }  else if ( pMsg->wParam == 0xff ) {
 	   if  ( (pMsg->lParam & 0x00ff0000) == 0x000b0000) {
-           	m_wndBrowserView.ChangeTextSize(1);		
+           	GetActiveView()->GetBrowserWrapper()->ChangeTextSize(1);		
 			return 1;
 	   }
 	   else if ( (pMsg->lParam  & 0x00ff0000) == 0x00110000) {
-           m_wndBrowserView.ChangeTextSize(-1);
+           GetActiveView()->GetBrowserWrapper()->ChangeTextSize(-1);
 		   return 1;
 	   }
    }
@@ -223,18 +240,12 @@ void CBrowserFrame::OnClose()
    }
 
    // tell all our plugins that we are closing
+   if (!IsDialog())
    theApp.plugins.SendMessage("*", "* OnClose", "Close", (long)m_hWnd);
 
-   // if we don't do this, then our menu will be destroyed when the first window is.
-   // that's bad because our menu is shared between all windows
-   SetMenu(NULL);
-
-   // Make sure we don't leave screen residue
-   if (m_wndBrowserView.mWebNav)
-      m_wndBrowserView.mWebNav->Stop(nsIWebNavigation::STOP_ALL);
-
    // the browserframeglue will be deleted soon, so we set it to null so it won't try to access it after it's deleted.
-   m_wndBrowserView.SetBrowserFrameGlue(NULL);
+   //GetActiveView()->SetBrowserFrameGlue(NULL);
+   //GetActiveView()->SetBrowserGlue(NULL);
 
    if (theApp.m_pMostRecentBrowserFrame == this) {
       CBrowserFrame* pFrame;
@@ -250,41 +261,18 @@ void CBrowserFrame::OnClose()
       theApp.m_pMostRecentBrowserFrame = (pFrame != this) ? pFrame : NULL;
    }
 
-    WINDOWPLACEMENT wp;
-    wp.length = sizeof (WINDOWPLACEMENT);
-    GetWindowPlacement(&wp);
+	SaveWindowPos();
 
-    // only record the window size for non-popup windows
-    if (!(m_style & WS_POPUP) && !(m_chromeMask & nsIWebBrowserChrome::CHROME_OPENAS_CHROME)){
-        // record the maximized state
-        if (wp.showCmd == SW_SHOWMAXIMIZED)
-            theApp.preferences.bMaximized = true;
-        // record the window size/pos
-        else if (wp.showCmd == SW_SHOWNORMAL) {
-            theApp.preferences.bMaximized = false;
-
-            RECT rc; // = wp.rcNormalPosition;
-            GetWindowRect(&rc);
-            if (rc.left >= 0 && rc.top >= 0 ) {
-                theApp.preferences.windowWidth = rc.right - rc.left;
-                theApp.preferences.windowHeight = rc.bottom - rc.top;
-                theApp.preferences.windowXPos = rc.left;
-                theApp.preferences.windowYPos = rc.top;
-            }
-        }
-    }
-
-   // tell all our plugins that we are closing
-   theApp.plugins.SendMessage("*", "* OnClose", "Destroy", (long)m_hWnd);
    
-    m_wndStatusBar.RemoveIcon(ID_SECURITY_STATE_ICON);
+   
+   
 
    // XXX: Destroying the window with the findbar open, will activate
    // it during destruction because I'm setting back the focus to the
    // view, and m_pMostRecentBrowserFrame will point to an deleted 
    // object.
    CBrowserFrame* pTemp = theApp.m_pMostRecentBrowserFrame;
-   
+
    if (m_nFlags & (WF_MODALLOOP|WF_CONTINUEMODAL))
       EndModalLoop(IDCANCEL);
    else
@@ -293,9 +281,22 @@ void CBrowserFrame::OnClose()
    if (theApp.m_pMostRecentBrowserFrame == this) {
 	 theApp.m_pMostRecentBrowserFrame = pTemp;
    }
-
-   theApp.RemoveFrameFromList(this);
 }
+
+void CBrowserFrame::OnDestroy()
+{
+	// if we don't do this, then our menu will be destroyed when the first window is.
+    // that's bad because our menu is shared between all windows
+    SetMenu(NULL);
+
+	if (!IsDialog())
+       theApp.plugins.SendMessage("*", "* OnClose", "Destroy", (long)m_hWnd);
+	
+	theApp.RemoveFrameFromList(this);
+	m_wndStatusBar.RemoveIcon(ID_SECURITY_STATE_ICON);
+	CFrameWnd::OnDestroy();
+}
+
 
 // This is where the UrlBar, ToolBar, StatusBar, ProgressBar
 // get created
@@ -305,32 +306,51 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
     if (CFrameWnd::OnCreate(lpCreateStruct) == -1)
         return -1;
 
+	// Will be deleted in CBrowserView::PostNcDestroy()
+	m_wndBrowserView = new CBrowserView();
+
     // tell all our plugins that we were created
+	if (!IsDialog())
     theApp.plugins.SendMessage("*", "* OnCreate", "Create", (long)this->m_hWnd, (long)lpCreateStruct);
+
+	// Create a ReBar window to which the toolbar and UrlBar 
+    // will be added
+    BOOL hasLine = theApp.preferences.GetBool("kmeleon.display.toolbars_line", TRUE);
+    if (!m_wndReBar.Create(this, RBS_DBLCLKTOGGLE | RBS_VARHEIGHT | (hasLine ? RBS_BANDBORDERS:0)))
+    {
+        TRACE0("Failed to create ReBar\n");
+        return -1;      // fail to create
+    }
 
     // Pass "this" to the View for later callbacks
     // and/or access to any public data members, if needed
     //
-    m_wndBrowserView.SetBrowserFrame(this);
+    m_wndBrowserView->SetBrowserFrame(this);
 
     // Pass on the BrowserFrameGlue also to the View which
     // it will use during the Init() process after creation
     // of the BrowserImpl obj. Essentially, the View object
     // hooks up the Embedded browser's callbacks to the BrowserFrame
     // via this BrowserFrameGlue object
-    m_wndBrowserView.SetBrowserFrameGlue((PBROWSERFRAMEGLUE)&m_xBrowserFrameGlueObj);
+    //m_wndBrowserView.SetBrowserFrameGlue((PBROWSERFRAMEGLUE)&m_xBrowserFrameGlueObj);
+	m_wndBrowserView->SetBrowserGlue(new CBrowserGlue(this, m_wndBrowserView));
 
     // create a view to occupy the client area of the frame
     // This will be the view in which the embedded browser will
     // be displayed in
-    if (!m_wndBrowserView.Create(NULL, NULL, AFX_WS_DEFAULT_VIEW,
+    if (!m_wndBrowserView->Create(NULL, NULL, AFX_WS_DEFAULT_VIEW,
         CRect(0, 0, 0, 0), this, AFX_IDW_PANE_FIRST, NULL))
     {
         TRACE0("Failed to create view window\n");
         return -1;
     }
 
-    // create the URL bar (essentially a ComboBoxEx object)
+	return InitLayout();
+}
+
+int CBrowserFrame::InitLayout()
+{
+	// create the URL bar (essentially a ComboBoxEx object)
     if (!m_wndUrlBar.Create(CBS_DROPDOWN | WS_CHILD, CRect(0, 0, 200, 150), this, ID_URL_BAR))
     {
         TRACE0("Failed to create URL Bar\n");
@@ -339,12 +359,12 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 #ifdef INTERNAL_SITEICONS
 	m_wndUrlBar.SetImageList(&theApp.favicons);
 #endif
-    // Load the Most Recently Used(MRU) Urls into the UrlBar
-    m_wndUrlBar.LoadMRUList();  
-//   m_wndUrlBar.SetImageList(&m_toolbarHotImageList);
 
-    BOOL bThrobber = TRUE;
+	// Load the Most Recently Used(MRU) Urls into the UrlBar
+    m_wndUrlBar.LoadMRUList();  
+
     // Create the animation control..
+	BOOL bThrobber = TRUE;
     if (!m_wndAnimate.Create(WS_CHILD | WS_VISIBLE, CRect(0, 0, 10, 10), this, ID_THROBBER))
     {
         TRACE0("Failed to create animation\n");
@@ -356,53 +376,21 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	if (!m_wndAnimate.Open(throbberPath))
 		bThrobber = FALSE;
 
-    // Create a ReBar window to which the toolbar and UrlBar 
-    // will be added
-    BOOL hasLine = theApp.preferences.GetBool("kmeleon.display.toolbars_line", TRUE);
-    if (!m_wndReBar.Create(this, RBS_DBLCLKTOGGLE | RBS_VARHEIGHT | (hasLine ? RBS_BANDBORDERS:0)))
-    {
-        TRACE0("Failed to create ReBar\n");
-        return -1;      // fail to create
-    }
-
     //Add the UrlBar and Throbber windows to the rebar
-    TCHAR szTitle[256] = _T("URL:");
-    theApp.preferences.GetString("kmeleon.display.URLbarTitle", (TCHAR*)&szTitle, (TCHAR*)&szTitle);
-    m_wndReBar.AddBar(&m_wndUrlBar, szTitle);
-    if (bThrobber)
+    m_wndReBar.AddBar(&m_wndUrlBar, theApp.preferences.GetString("kmeleon.display.URLbarTitle", _T("URL:")));
+	m_wndReBar.RegisterBand(m_wndUrlBar.m_hWnd, _T("URL Bar"), true);
+
+	if (bThrobber) {
         m_wndReBar.AddBar(&m_wndAnimate, NULL, NULL, RBBS_FIXEDSIZE | RBBS_FIXEDBMP);
-
-    m_wndReBar.RegisterBand(m_wndUrlBar.m_hWnd, _T("URL Bar"), true);
-    if (bThrobber)
-        m_wndReBar.RegisterBand(m_wndAnimate.m_hWnd, _T("Throbber"), false);
-
-    //--------------------------------------------------------------
-    // Set up min/max sizes and ideal sizes for pieces of the rebar:
-    //--------------------------------------------------------------
-    CReBarCtrl *rebarControl = &m_wndReBar.GetReBarCtrl();
-  
-    // Address Bar
-    CRect rectAddress;
-    m_wndUrlBar.GetEditCtrl()->GetWindowRect(&rectAddress);
-
-    REBARBANDINFO rbbi;
-    rbbi.cbSize = sizeof(rbbi);
-    rbbi.fMask = RBBIM_CHILDSIZE | RBBIM_IDEALSIZE | RBBIM_SIZE;
-    rbbi.cxMinChild = 0;
-    rbbi.cyMinChild = rectAddress.Height() + 7;
-    rbbi.cxIdeal = 200;
-    rbbi.cx = 200;
-    rebarControl->SetBandInfo (0, &rbbi);
-
-    // Create the status bar with two panes - one pane for actual status
-    // text msgs. and the other for the progress control
+		m_wndReBar.RegisterBand(m_wndAnimate.m_hWnd, _T("Throbber"), false);
+	}
+    
     if (!m_wndStatusBar.CreateEx(this))
     {
         TRACE0("Failed to create status bar\n");
         return -1;      // fail to create
     }
-    //m_wndStatusBar.SetPaneStyle(m_wndStatusBar.CommandToIndex(ID_SEPARATOR), SBPS_STRETCH);
-
+   
     // Create the progress bar as a child of the status bar.
     // Note that the ItemRect which we'll get at this stage
     // is bogus since the status bar panes are not fully
@@ -420,18 +408,14 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 	m_wndStatusBar.AddIcon(ID_SECURITY_STATE_ICON);
 
-    // The third pane(i.e. at index 2) of the status bar will have
-    // the security lock icon displayed in it. Set up it's size(16)
-    // and style(no border)so that the padlock icons can be properly drawn
-    //m_wndStatusBar.SetPaneInfo(2, -1, SBPS_NORMAL|SBPS_NOBORDERS, 16);
+	if (!IsDialog())
     theApp.plugins.SendMessage("*", "* OnCreate", "DoRebar", (long)m_wndReBar.GetReBarCtrl().m_hWnd);
 
     m_wndReBar.RestoreBandSizes();
-
     m_wndReBar.LockBars(theApp.preferences.GetBool(PREF_TOOLBAND_LOCKED, false));
 
     // Create the tooltip window
-    m_wndToolTip.Create(&m_wndBrowserView);
+    m_wndToolTip.Create(this);
 
     // Also, set the padlock icon to be the insecure icon to begin with
     UpdateSecurityStatus(nsIWebProgressListener::STATE_IS_INSECURE);
@@ -456,10 +440,9 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
     // of PreCreateWindow()
 
     SetupFrameChrome();
-
-    return 0;
+	m_created = TRUE;
+	return 0;
 }
-
 
 void CBrowserFrame::SetupFrameChrome()
 {
@@ -501,6 +484,10 @@ void CBrowserFrame::SetupFrameChrome()
 
     if(! (m_chromeMask & nsIWebBrowserChrome::CHROME_STATUSBAR) )
         m_wndStatusBar.ShowWindow(SW_HIDE); // Hide the StatusBar
+
+	if (!(m_chromeMask & nsIWebBrowserChrome::CHROME_DEFAULT) &&
+	    !(m_chromeMask & nsIWebBrowserChrome::CHROME_SCROLLBARS))
+		GetActiveView()->GetBrowserWrapper()->ShowScrollbars(FALSE);
 }
 
 BOOL CBrowserFrame::PreCreateWindow(CREATESTRUCT& cs)
@@ -527,7 +514,7 @@ void CBrowserFrame::OnSetFocus(CWnd* pOldWnd)
     }
 
     // forward focus to the browser window
-    m_wndBrowserView.SetFocus();
+    GetActiveView()->SetFocus();
 }
 
 BOOL CBrowserFrame::OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERINFO* pHandlerInfo)
@@ -539,7 +526,8 @@ BOOL CBrowserFrame::OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERIN
     }
 
     // let the view have first crack at the command
-    if (m_wndBrowserView.OnCmdMsg(nID, nCode, pExtra, pHandlerInfo))
+	CBrowserView* pView = GetActiveView();
+    if (pView && pView->OnCmdMsg(nID, nCode, pExtra, pHandlerInfo))
         return TRUE;
 
     // otherwise, do default handling
@@ -565,24 +553,36 @@ void CBrowserFrame::OnSize(UINT nType, int cx, int cy)
 
     if (!m_created) return;
 
-    // only record the window size for non-popup windows
-    if (!(m_style & WS_POPUP)){
-        // record the maximized state
-        if (nType == SIZE_MAXIMIZED)
-            theApp.preferences.bMaximized = true;
-        // record the window size/pos
-        else if (nType == SIZE_RESTORED) {
-            theApp.preferences.bMaximized = false;
+	SaveWindowPos();
+}
 
-            GetWindowRect(&rc);
-            if (rc.left > 0 && rc.top > 0 ) {
-                theApp.preferences.windowWidth = rc.right - rc.left;
-                theApp.preferences.windowHeight = rc.bottom - rc.top;
-                theApp.preferences.windowXPos = rc.left;
-                theApp.preferences.windowYPos = rc.top;
-            }
-        }
-    }
+void CBrowserFrame::SaveWindowPos()
+{
+	// only record the window size for non-popup windows
+	if (IsPopup() || IsDialog())
+		return;
+
+	WINDOWPLACEMENT wp;
+    wp.length = sizeof (WINDOWPLACEMENT);
+    GetWindowPlacement(&wp);
+	
+	if (wp.showCmd == SW_SHOWMAXIMIZED)
+		// record the maximized state
+		theApp.preferences.bMaximized = true;
+	else if (wp.showCmd == SW_SHOWNORMAL) {
+		// record the window size/pos
+		theApp.preferences.bMaximized = false;
+
+		RECT rc; // = wp.rcNormalPosition;
+		GetWindowRect(&rc);
+		if (rc.left >= 0 && rc.top >= 0 ) {
+			theApp.preferences.windowWidth = rc.right - rc.left;
+			theApp.preferences.windowHeight = rc.bottom - rc.top;
+			theApp.preferences.windowXPos = rc.left;
+			theApp.preferences.windowYPos = rc.top;
+		}
+	}
+
 }
 
 #if 0
@@ -642,95 +642,31 @@ void CBrowserFrame::OnActivate(UINT nState, CWnd* pWndOther, BOOL bMinimized)
 		return;
 	}
 
+	CBrowserView* view = GetActiveView();
+	if (!view) 
+		return;
+
     switch(nState) {
         case WA_ACTIVE:
         case WA_CLICKACTIVE:
-			if (!m_wndLastFocused || m_wndLastFocused == m_wndBrowserView.m_hWnd 
-				|| ::IsChild(m_wndBrowserView.m_hWnd, m_wndLastFocused)) {
-				m_wndBrowserView.Activate(TRUE);
+			if (!m_wndLastFocused || m_wndLastFocused == view->GetSafeHwnd() 
+				|| ::IsChild(view->m_hWnd, m_wndLastFocused)) {
+				view->Activate(TRUE);
 			}
 			else
 				::SetFocus(m_wndLastFocused);
 			break;
 		case WA_INACTIVE:
 			m_wndLastFocused = ::GetFocus();
-			if ( ::IsChild(m_wndBrowserView.m_hWnd, m_wndLastFocused) 
-				|| m_wndLastFocused == m_wndBrowserView.m_hWnd)
-				m_wndBrowserView.Activate(FALSE);
+			if ( ::IsChild(view->m_hWnd, m_wndLastFocused) 
+				|| m_wndLastFocused == view->GetSafeHwnd())
+				view->Activate(FALSE);
 
 			break;
 		default:
             break;
 	}
   // m_wndBrowserView.Activate(nState, pWndOther, bMinimized);
-}
-
-void CBrowserFrame::UpdateSecurityStatus(PRInt32 aState)
-{
-   int iResID = nsIWebProgressListener::STATE_IS_INSECURE;
-   UINT tpTextId;
-
-   if(aState & nsIWebProgressListener::STATE_IS_SECURE) {
-	  if (m_wndBrowserView.m_SecurityState == CBrowserView::SECURITY_STATE_SECURE)
-		return;
-      iResID = IDR_SECURITY_LOCK;
-      m_wndBrowserView.m_SecurityState = CBrowserView::SECURITY_STATE_SECURE;
-	  m_wndUrlBar.Highlight(1);
-	  tpTextId = IDS_SECURITY_LOCK;
-   }
-   else if(aState & nsIWebProgressListener::STATE_IS_INSECURE) {
-	  if (m_wndBrowserView.m_SecurityState == CBrowserView::SECURITY_STATE_INSECURE)
-	    return;
-      iResID = IDR_SECURITY_UNLOCK;
-      m_wndBrowserView.m_SecurityState = CBrowserView::SECURITY_STATE_INSECURE;
-	  m_wndUrlBar.Highlight(0);
-	  tpTextId = IDS_SECURITY_UNLOCK;
-   }
-   else if(aState & nsIWebProgressListener::STATE_IS_BROKEN) {
-	  if (m_wndBrowserView.m_SecurityState == CBrowserView::SECURITY_STATE_BROKEN)
-	    return;
-      iResID = IDR_SECURITY_BROKEN;
-      m_wndBrowserView.m_SecurityState = CBrowserView::SECURITY_STATE_BROKEN;
-	  m_wndUrlBar.Highlight(2);
-	  tpTextId = IDS_SECURITY_BROKEN;
-   }
-   else 
-   {
-	   ASSERT(FALSE);
-	   return;
-   }
-  /*
-   CStatusBarCtrl& sb = m_wndStatusBar.GetStatusBarCtrl();
-
-   CString tpText;
-   tpText.LoadString(tpTextId);
-   sb.SetTipText(2, tpText);
-   
-   HICON hTmpSecurityIcon = 
-    (HICON)::LoadImage(AfxGetResourceHandle(),
-       MAKEINTRESOURCE(iResID), IMAGE_ICON, 16,16,LR_LOADMAP3DCOLORS);
-   /*
-   sb.SetIcon(2, //2 is the pane index of the status bar where the lock icon will be shown
-       hTmpSecurityIcon);
-   if (m_hSecurityIcon)
-       DestroyIcon(m_hSecurityIcon);
-   m_hSecurityIcon = hTmpSecurityIcon;
-   m_wndStatusBar.RedrawWindow();*/
-
-   CString tpText;
-   tpText.LoadString(tpTextId);
-
-   HICON hTmpSecurityIcon = 
-    (HICON)::LoadImage(AfxGetResourceHandle(),
-       MAKEINTRESOURCE(iResID), IMAGE_ICON, 16,16,LR_LOADMAP3DCOLORS);
-
-   m_wndStatusBar.SetIconInfo(ID_SECURITY_STATE_ICON, hTmpSecurityIcon, tpText);
-   
-}
-
-void CBrowserFrame::ShowSecurityInfo()
-{
-    m_wndBrowserView.ShowSecurityInfo();
 }
 
 // CMyStatusBar Class
@@ -1116,31 +1052,11 @@ void CBrowserFrame::LoadBackImage ()
 	}
 }
 
-LRESULT CBrowserFrame::RefreshToolBarItem(WPARAM ItemID, LPARAM unused)
-{
-    // Drop this through to BrowserView
-    m_wndBrowserView.RefreshToolBarItem(ItemID, unused);
-
-    return 0;
-}
-
 LRESULT CBrowserFrame::RefreshMRUList(WPARAM ItemID, LPARAM unused)
 {
     theApp.m_MRUList->RefreshURLs();
     m_wndUrlBar.LoadMRUList();
     return 0;
-}
-
-void CBrowserFrame::SetSoftFocus() {
-   if (IsIconic() || !IsWindowVisible())
-      return;
-   HWND toplevelWnd = m_hWnd;
-   while (::GetParent(toplevelWnd))
-      toplevelWnd = ::GetParent(toplevelWnd);
-   if (toplevelWnd != ::GetForegroundWindow() || 
-      toplevelWnd != ::GetActiveWindow())
-      return;
-   SetFocus();
 }
 
 void CBrowserFrame::ToggleToolBar(UINT uID)
@@ -1227,11 +1143,6 @@ void CBrowserFrame::OnShowFindBar()
 		return;
     }
 
-    CString csSearchStr;
-    PRBool bMatchCase = PR_FALSE;
-    PRBool bMatchWholeWord = PR_FALSE;
-    PRBool bWrapAround = PR_TRUE;
-    //PRBool bSearchBackwards = PR_FALSE;
 #ifdef FINDBAR_USE_TYPEAHEAD
 	nsresult rv;
     nsCOMPtr<nsITypeAheadFind> tafinder = do_GetService(NS_TYPEAHEADFIND_CONTRACTID, &rv);
@@ -1241,35 +1152,24 @@ void CBrowserFrame::OnShowFindBar()
 		tafinder->GetIsActive(&b);
 		if (b == PR_FALSE)
 		{
-			nsCOMPtr<nsIDOMWindow> dom(do_GetInterface(m_wndBrowserView.mWebBrowser));
+			nsCOMPtr<nsIDOMWindow> dom(do_GetInterface(GetActiveView()->mWebBrowser));
 			tafinder->StartNewFind(dom, PR_FALSE);
 		}
 	}
 #endif
-	// See if we can get and initialize the dlg box with
-    // the values/settings the user specified in the previous search
-	nsCOMPtr<nsIWebBrowserFind> finder(do_GetInterface(m_wndBrowserView.mWebBrowser));	
-	if (!finder) return;
-    
-	PRUnichar *stringBuf = nsnull;
-	
-	USES_CONVERSION;
-    finder->GetSearchString(&stringBuf);
-    csSearchStr = W2CT(stringBuf);
-   
-	finder->GetMatchCase(&bMatchCase);
-	finder->GetEntireWord(&bMatchWholeWord);
-	finder->GetWrapFind(&bWrapAround);
-	//finder->GetFindBackwards(&bSearchBackwards);		
     
 	// Create the find bar
-	m_wndFindBar = new CFindRebar(stringBuf, bMatchCase, bMatchWholeWord, bWrapAround, theApp.preferences.bFindHighlight, this);
-	m_wndFindBar->Create(this, CBRS_BOTTOM);
+	m_wndFindBar = new CFindRebar(m_searchString, 
+		theApp.preferences.bFindMatchCase, 
+		FALSE, 
+		theApp.preferences.bFindWrapAround, 
+		theApp.preferences.bFindHighlight, this);
 
-	if (stringBuf)
-		nsMemory::Free(stringBuf);
+	m_wndFindBar->Create(this, CBRS_BOTTOM);
+	
 	// It must stay above the sidebar 
 	m_wndFindBar->SetWindowPos(&m_wndStatusBar ,0,0,0,0,SWP_NOMOVE);
+	
 	// And above any bottom toolbar ?
 	EnumChildWindows(m_hWnd, EnumToolbar, (LPARAM)m_wndFindBar->m_hWnd); 
 
@@ -1284,7 +1184,7 @@ void CBrowserFrame::ClearFindBar()
 	RecalcLayout();
 	// WORKAROUND: Setting back the focus to gecko
 	//m_wndBrowserView.mBaseWindow->SetFocus(); // WHY IT DOES NOTHING ?
-	m_wndBrowserView.Activate(TRUE);
+	GetActiveView()->Activate(TRUE);
 }
 
 #ifdef INTERNAL_SITEICONS
@@ -1306,10 +1206,10 @@ void CBrowserFrame::SetFavIcon(int iIcon)
 
 LRESULT CBrowserFrame::OnNewSiteIcon(WPARAM url, LPARAM index)
 {
-	int i = theApp.favicons.GetIcon(m_wndBrowserView.m_IconUri);
+	int i = theApp.favicons.GetIcon(GetActiveView()->GetBrowserGlue()->mIconURI);
 	
 	if (i==-1) {// The icon doesn't exist anymore, was deleted
-		m_wndBrowserView.m_IconUri = nsnull;
+		GetActiveView()->GetBrowserGlue()->mIconURI = nsnull;
 		SetFavIcon(theApp.favicons.GetDefaultIcon());
 	}
 	else
@@ -1325,8 +1225,8 @@ void CBrowserFrame::OnSysCommand(UINT nID, LPARAM lParam)
 		// We're taking care of the focus here, because it will
 		// be lost after that and not correctly memorized.
         m_wndLastFocused = ::GetFocus();
-		if (::IsChild(m_wndBrowserView.m_hWnd, m_wndLastFocused))
-		   m_wndBrowserView.Activate(FALSE);
+		if (::IsChild(GetActiveView()->m_hWnd, m_wndLastFocused))
+		   GetActiveView()->Activate(FALSE);
 	}
 
 	CFrameWnd::OnSysCommand(nID, lParam);
@@ -1339,7 +1239,7 @@ INT_PTR CBrowserFrame::DoModal()
 		pApp->EnableModeless(FALSE);
 
 	HWND hWndTop = NULL;
-    HWND hWndParent = CWnd::GetSafeOwner_(GetParent()->GetSafeHwnd(), &hWndTop);
+	HWND hWndParent = CWnd::GetSafeOwner_(GetParent()->GetSafeHwnd(), &hWndTop);
 
 	BOOL bEnableParent = FALSE;
 	if (hWndParent && hWndParent != ::GetDesktopWindow() && ::IsWindowEnabled(hWndParent))
@@ -1413,3 +1313,255 @@ void CBrowserFrame::OnPasswordsViewer()
 	dlg.DoModal();
 }
 
+void CBrowserFrame::OnWindowPrev()
+{
+	CFrameWnd* pFrame;
+	POSITION pos = theApp.m_FrameWndLst.Find(this);
+	theApp.m_FrameWndLst.GetNext(pos);
+	if (pos)  pFrame = (CFrameWnd *) theApp.m_FrameWndLst.GetNext(pos);
+	else      pFrame = (CFrameWnd *) theApp.m_FrameWndLst.GetHead();
+
+	pFrame->ActivateFrame();
+}
+
+void CBrowserFrame::OnWindowNext()
+{
+	CFrameWnd* pFrame;
+	POSITION pos = theApp.m_FrameWndLst.Find(this);
+	theApp.m_FrameWndLst.GetPrev(pos);
+	if (pos)  pFrame = (CFrameWnd *) theApp.m_FrameWndLst.GetPrev(pos);
+	else      pFrame = (CFrameWnd *) theApp.m_FrameWndLst.GetTail();
+
+	pFrame->ActivateFrame();
+}
+
+void CBrowserFrame::OnSelectUrl()
+{
+	m_wndUrlBar.SetFocus();
+}
+
+void CBrowserFrame::OnUpdateViewStatusBar(CCmdUI* pCmdUI)
+{
+	pCmdUI->SetCheck(m_wndStatusBar.IsWindowVisible());
+}
+
+void CBrowserFrame::OnFindNext()
+{
+	CBrowserView* view = GetActiveView();
+	if (!view) return;
+
+	CBrowserWrapper* wrapper = view->GetBrowserWrapper();
+
+	if(!m_wndFindBar) {
+		if (!m_searchString || !*m_searchString)
+			OnShowFindBar();
+		else {
+			BOOL didFind = wrapper->Find(m_searchString, 
+					theApp.preferences.bFindMatchCase, 
+					theApp.preferences.bFindWrapAround, 
+					FALSE, FALSE);
+
+			if (!didFind) {
+				OnShowFindBar();
+				if (m_wndFindBar) m_wndFindBar->OnNotFound();
+			}
+		}
+	}
+	else
+	{
+		if (m_searchString) {
+			free(m_searchString);
+			m_searchString = NULL;
+		}
+
+		if (m_wndFindBar->GetUFindString())
+			m_searchString = wcsdup(m_wndFindBar->GetUFindString());
+
+		if (m_searchString) {
+
+			BOOL didFind = wrapper->Find(m_searchString, 
+					theApp.preferences.bFindMatchCase, 
+					theApp.preferences.bFindWrapAround, 
+					FALSE, m_wndFindBar->StartSel());
+
+			if (*m_searchString && !didFind)
+				m_wndFindBar->OnNotFound();
+			else
+				m_wndFindBar->OnFound();
+		}
+	}
+}
+
+void CBrowserFrame::OnFindPrev()
+{
+	CBrowserView* view = GetActiveView();
+	if (!view) return;
+
+	CBrowserWrapper* wrapper = view->GetBrowserWrapper();
+	BOOL didFind = wrapper->Find(m_searchString, 
+					theApp.preferences.bFindMatchCase, 
+					theApp.preferences.bFindWrapAround, 
+					TRUE, FALSE);
+
+	if (!didFind) {
+		OnShowFindBar();
+		m_wndFindBar->OnNotFound();
+	}
+	else if (m_wndFindBar)
+		m_wndFindBar->OnFound();
+}
+
+void CBrowserFrame::OnWrapAround()
+{
+	if (!m_wndFindBar)
+		theApp.preferences.bFindWrapAround = !theApp.preferences.bFindWrapAround;
+	else
+		theApp.preferences.bFindWrapAround = m_wndFindBar->WrapAround();
+}
+
+void CBrowserFrame::OnMatchCase()
+{
+	if (theApp.preferences.bFindHighlight) 
+		GetActiveView()->Highlight(NULL, theApp.preferences.bFindMatchCase);
+
+	if (!m_wndFindBar) 
+		theApp.preferences.bFindMatchCase = !theApp.preferences.bFindMatchCase;
+	else
+		theApp.preferences.bFindMatchCase = m_wndFindBar->MatchCase();
+
+	if (theApp.preferences.bFindHighlight) 
+		GetActiveView()->Highlight(m_searchString, theApp.preferences.bFindMatchCase);
+}
+
+void CBrowserFrame::OnHighlight()
+{
+	theApp.preferences.bFindHighlight = m_wndFindBar->Highlight();
+	GetActiveView()->Highlight(NULL, theApp.preferences.bFindMatchCase);
+	if (theApp.preferences.bFindHighlight)
+		GetActiveView()->Highlight(m_searchString, theApp.preferences.bFindMatchCase);
+}
+
+void CBrowserFrame::OpenURL(LPCTSTR url, LPCTSTR refferer, BOOL focusUrl, BOOL allowFixup)
+{
+	GetActiveView()->OpenURL(url, refferer, allowFixup);
+	if (focusUrl) m_wndUrlBar.SetFocus();
+}
+
+/****************************************************************************/
+
+void CBrowserFrame::UpdateSecurityStatus(PRInt32 aState)
+{
+	UINT tpTextId, iconResID;
+
+	if(aState & nsIWebProgressListener::STATE_IS_INSECURE) {
+		iconResID = IDR_SECURITY_UNLOCK;
+		m_wndUrlBar.Highlight(0);
+		tpTextId = IDS_SECURITY_UNLOCK;
+	}
+	else if(aState & nsIWebProgressListener::STATE_IS_BROKEN) {
+		iconResID = IDR_SECURITY_BROKEN;
+		m_wndUrlBar.Highlight(2);
+		tpTextId = IDS_SECURITY_BROKEN;
+	}  
+	else if(aState & nsIWebProgressListener::STATE_IS_SECURE) {
+		iconResID = IDR_SECURITY_LOCK;
+		m_wndUrlBar.Highlight(1);
+		tpTextId = IDS_SECURITY_LOCK;
+	}
+	else 
+	{
+		ASSERT(FALSE);
+		return;
+	}
+
+   CString tpText;
+   tpText.LoadString(tpTextId);
+
+   HICON hTmpSecurityIcon = 
+    (HICON)::LoadImage(AfxGetResourceHandle(),
+       MAKEINTRESOURCE(iconResID), IMAGE_ICON, 16,16,LR_LOADMAP3DCOLORS);
+
+   m_wndStatusBar.SetIconInfo(ID_SECURITY_STATE_ICON, hTmpSecurityIcon, tpText);
+}
+
+void CBrowserFrame::UpdateStatus(LPCTSTR aStatus)
+{
+	m_wndStatusBar.SetPaneText(0, aStatus);
+}
+
+void CBrowserFrame::UpdateSiteIcon(int aIcon)
+{
+	SetFavIcon(aIcon);
+}
+
+void CBrowserFrame::UpdateLocation(LPCTSTR aLocation, BOOL aIgnoreTyping)
+{
+	// Prevent to move the caret in the urlbar
+	CString currentURL;
+	m_wndUrlBar.GetEnteredURL(currentURL);
+	if (currentURL.Compare(aLocation) == 0)
+		return;
+
+	// XXX Since Mozilla 1.8.0.2 about:blank is always passed here
+	// before anything else, broking stuffs, so ignore it!
+	if ( _tcscmp(aLocation, _T("about:blank")) == 0 &&
+		currentURL.GetLength())
+		return;
+
+	m_wndUrlBar.SetCurrentURL(aLocation, aIgnoreTyping);
+}
+
+void CBrowserFrame::UpdateProgress(int aCurrent, int aMax)
+{
+   m_wndProgressBar.SetRange32(0, aMax);
+   m_wndProgressBar.SetPos(aCurrent);
+}
+
+void CBrowserFrame::UpdateLoading(BOOL aLoading)
+{
+	if (!aLoading) {
+		m_wndAnimate.Stop();
+		m_wndAnimate.Seek(0);
+
+		CString szUrl;
+		m_wndUrlBar.GetEnteredURL(szUrl);
+		if (szUrl.CompareNoCase(_T("about:blank"))==0)
+			m_wndUrlBar.SetFocus();
+	}
+	else
+		m_wndAnimate.Play(0, -1, -1);
+}
+
+void CBrowserFrame::UpdateTitle(LPCTSTR aTitle)
+{
+	CString appTitle;
+    appTitle.LoadString(AFX_IDS_APP_TITLE);
+    appTitle = theApp.preferences.GetString("kmeleon.display.title", appTitle);
+	
+	CString title = aTitle;
+    if (title.IsEmpty()){
+        m_wndUrlBar.GetEnteredURL(title);
+    }
+
+	if (!appTitle.IsEmpty())
+		title += _T(" (") + appTitle + _T(")");
+
+    SetWindowText(title);
+}
+
+void CBrowserFrame::UpdatePopupNotification(LPCTSTR uri)
+{
+	if (uri && *uri) {
+		if (m_wndStatusBar.AddIcon(ID_POPUP_BLOCKED_ICON)) {
+			HICON hTmpPopupIcon = 
+				(HICON)::LoadImage(AfxGetResourceHandle(),
+				MAKEINTRESOURCE(IDI_POPUP_BLOCKED), IMAGE_ICON, 16,16,LR_LOADMAP3DCOLORS);
+
+			CString tpText;
+			tpText.Format(IDS_POPUP_BLOCKED, uri);
+			m_wndStatusBar.SetIconInfo(ID_POPUP_BLOCKED_ICON, hTmpPopupIcon, tpText);
+		}
+	}
+	else
+		m_wndStatusBar.RemoveIcon(ID_POPUP_BLOCKED_ICON);
+}

@@ -57,9 +57,11 @@
 #include "winEmbedFileLocProvider.h"
 #include "ProfileMgr.h"
 #include "BrowserImpl.h"
+#include "BrowserView.h"
 #include "kmeleonConst.h"
 #include "UnknownContentTypeHandler.h"
 #include "MenuParser.h"
+#include "kmeleon_plugin.h"
 #include <io.h>
 #include <fcntl.h>
 
@@ -108,9 +110,13 @@ extern CString GetMozDirectory(char* dirName);
 
 BEGIN_MESSAGE_MAP(CMfcEmbedApp, CWinApp)
 //{{AFX_MSG_MAP(CMfcEmbedApp)
+ON_COMMAND(ID_APP_ABOUT, OnAppAbout)
 ON_COMMAND(ID_NEW_BROWSER, OnNewBrowser)
 ON_COMMAND(ID_MANAGE_PROFILES, OnManageProfiles)
 ON_COMMAND(ID_PREFERENCES, OnPreferences)
+ON_COMMAND(ID_OFFLINE, OnToggleOffline)
+ON_UPDATE_COMMAND_UI(ID_OFFLINE, OnUpdateToggleOffline)
+
 // NOTE - the ClassWizard will add and remove mapping macros here.
 //    DO NOT EDIT what you see in these blocks of generated code!
 //}}AFX_MSG_MAP
@@ -125,7 +131,7 @@ CMfcEmbedApp::CMfcEmbedApp()
 
    m_bFirstWindowCreated = FALSE;
    m_pMostRecentBrowserFrame  = NULL;
-   m_toolbarControlsMenu = NULL; 
+   m_toolbarControlsMenu = NULL;     
    m_hResDll = NULL;
 }
 
@@ -273,7 +279,7 @@ BOOL CMfcEmbedApp::LoadLanguage()
    USES_CONVERSION;
    CString locale = W2CT(nslocale.get());
 
-   if (_tcsncmp(locale, "en", 2) == 0) {
+   if (_tcsncmp(locale, _T("en"), 2) == 0) {
       if (m_hResDll) {
          FreeLibrary(m_hResDll);
 		 m_hResDll = NULL;
@@ -590,8 +596,7 @@ BOOL CMfcEmbedApp::InitInstance()
 
 
    RefreshPlugins(PR_FALSE);
-   
-   
+
    // Register the hidden window class
    WNDCLASS wc = { 0 };
 #ifdef _UNICODE
@@ -647,12 +652,53 @@ void CMfcEmbedApp::UnregisterWindow(CDialog *window) {
    }
 }
 
+CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrameWithUrl(LPCTSTR pUrl, LPCTSTR refferer,
+							BOOL bBackground, 
+							CWnd* pParent)
+{
+	CBrowserFrame* pFrame;
+	const TCHAR* ext = _tcschr(pUrl, L'.');
+	
+	if (ext && (_tcsstr(ext, _T(".xul")) == ext) &&
+		(_tcsncmp(pUrl, _T("chrome:"), 7) == 0)) {
+	   pFrame = CreateNewChromeDialog(pUrl, pParent);
+		}
+	else {
+		pFrame = CreateNewBrowserFrame(nsIWebBrowserChrome::CHROME_ALL, bBackground, pParent);
+		pFrame->OpenURL(pUrl, refferer, FALSE);
+		pFrame->ShowWindow(SW_SHOW);
+	}
+	return pFrame;
+}
+/*
+	CDialog* diag = new CDialog();
+	diag->CreateIndirect((LPCDLGTEMPLATE)tplGenericDlg, pParent);
 
+	CBrowserView* view = new CBrowserView();
+	
+	if (!view->CreateEx(0, NULL, NULL, WS_CHILD|WS_VISIBLE,
+        CRect(0, 0, 0, 0), diag, AFX_IDW_PANE_FIRST, NULL)) return 0;
+	view->OpenURL(url);
+	diag->ShowWindow(SW_SHOW);
+	return diag;
+	*/
+
+CBrowserFrame* CMfcEmbedApp::CreateNewChromeDialog(LPCTSTR url, CWnd* pParent)
+{
+	//XXXX We have to make a real Dialog!
+	PRUint32 chromeMask = nsIWebBrowserChrome::CHROME_WINDOW_RESIZE |
+                     nsIWebBrowserChrome::CHROME_WINDOW_CLOSE |
+                     nsIWebBrowserChrome::CHROME_TITLEBAR |
+                     nsIWebBrowserChrome::CHROME_OPENAS_CHROME|
+                     nsIWebBrowserChrome::CHROME_WINDOW_MIN;
+	
+	CBrowserFrame* pFrame = CreateNewBrowserFrame(chromeMask, FALSE, pParent);
+	pFrame->OpenURL(url);
+	return pFrame;
+}
 
 CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
-                                                   PRInt32 x, PRInt32 y,
-                                                   PRInt32 cx, PRInt32 cy,
-                                                   PRBool bShowWindow,
+                                                   BOOL inBackground,
 												   CWnd* pParent)
 {
    DWORD dwWaitResult; 
@@ -665,26 +711,19 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
    CString strTitle;
    strTitle.LoadString(IDR_MAINFRAME);
 
-   // save the current band sizes before creating new window
-   // this way the new window will "inherit" the current settings
-   if (m_pMostRecentBrowserFrame && 
-       !(m_pMostRecentBrowserFrame->m_style & WS_POPUP))
-      m_pMostRecentBrowserFrame->m_wndReBar.SaveBandSizes();
+   BOOL isPopupOrDialog = FALSE;
    
-   int openedByGecko = 0;
-   if (chromeMask == 0) {
-       chromeMask = nsIWebBrowserChrome::CHROME_ALL;
-   } 
-   else if (x==-1 && y==-1 && cx==-1 && cy==-1 && !bShowWindow)
-       openedByGecko = 1;
-
    // XXX Chrome dialogs shouldn't have thoses.
-   if (chromeMask & nsIWebBrowserChrome::CHROME_OPENAS_CHROME)
+   if (chromeMask & nsIWebBrowserChrome::CHROME_OPENAS_CHROME) {
       chromeMask &=  ~nsIWebBrowserChrome::CHROME_MENUBAR
 	                &~nsIWebBrowserChrome::CHROME_TOOLBAR
 					&~nsIWebBrowserChrome::CHROME_LOCATIONBAR
 					&~nsIWebBrowserChrome::CHROME_STATUSBAR
 					&~nsIWebBrowserChrome::CHROME_PERSONAL_TOOLBAR;
+
+	  isPopupOrDialog = TRUE;
+   }
+	 
    
    LONG style, styleEx = 0L;
 
@@ -727,11 +766,12 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
       
    if ( (chromeMask & (nsIWebBrowserChrome::CHROME_OPENAS_CHROME)) ||
         (!(chromeMask & nsIWebBrowserChrome::CHROME_DEFAULT) &&
-        !(chromeMask & nsIWebBrowserChrome::CHROME_TOOLBAR)) )
-      style |= WS_POPUP; // For the sake of layers....
+		!(chromeMask & nsIWebBrowserChrome::CHROME_TOOLBAR)) ) {
+			isPopupOrDialog = TRUE;  
+			style |= WS_POPUP; // XXX
+		}
 
-   if (preferences.bMaximized && !(style & WS_POPUP) &&
-      !(chromeMask & nsIWebBrowserChrome::CHROME_OPENAS_CHROME) &&
+   if (preferences.bMaximized && !isPopupOrDialog &&
       (chromeMask & nsIWebBrowserChrome::CHROME_WINDOW_RESIZE))
       style |= WS_MAXIMIZE;
 
@@ -739,7 +779,7 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
    SystemParametersInfo(SPI_GETWORKAREA, NULL, &screen, 0);
    int screenWidth   = screen.right - screen.left;
    int screenHeight  = screen.bottom - screen.top;
-
+/*
    if (x>0 && y>0 && cx>0 && cy>0) {
       winSize.left = x;
       winSize.top = y;
@@ -747,19 +787,34 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
       winSize.bottom = y + cy;
       AdjustWindowRectEx(&winSize, style, chromeMask & (nsIWebBrowserChrome::CHROME_MENUBAR), 0);
    }
-   else {
+   else {*/
 
-      // If the last active window is not a popup use cascading placement
-      if (m_pMostRecentBrowserFrame && 
-         !(m_pMostRecentBrowserFrame->m_style & WS_POPUP))
+  
+   // If the last active window is not a popup use cascading placement
+   //if (m_pMostRecentBrowserFrame) { 
+
+      CBrowserFrame* pCascadeWnd = NULL;
+	  if (inBackground && !m_FrameWndLst.IsEmpty()) {
+         pCascadeWnd = (CBrowserFrame*)m_FrameWndLst.GetHead();
+		 if (pCascadeWnd->IsPopup() || pCascadeWnd->IsDialog())
+			 pCascadeWnd = NULL;
+	  }
+		 
+	  if (!pCascadeWnd && m_pMostRecentBrowserFrame) {
+	     pCascadeWnd = m_pMostRecentBrowserFrame;
+	     if (pCascadeWnd->IsPopup() || pCascadeWnd->IsDialog())
+			 pCascadeWnd = NULL;
+	  }
+      
+	  if (pCascadeWnd)
       {
          WINDOWPLACEMENT wp;
          wp.length = sizeof(WINDOWPLACEMENT);
-         m_pMostRecentBrowserFrame->GetWindowPlacement(&wp);
+         pCascadeWnd->GetWindowPlacement(&wp);
 
-         // if the window is not maximized, let's use use GetWindowRect, which works
+ 	     // if the window is not maximized, let's use use GetWindowRect, which works
          if (wp.showCmd == SW_SHOWNORMAL)
-            m_pMostRecentBrowserFrame->GetWindowRect(&wp.rcNormalPosition);
+            pCascadeWnd->GetWindowRect(&wp.rcNormalPosition);
 
          int offset = GetSystemMetrics(SM_CYSIZE) + GetSystemMetrics(SM_CXBORDER);
          winSize.left   = wp.rcNormalPosition.left + offset;
@@ -777,7 +832,7 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
             winSize.right = wp.rcNormalPosition.right - wp.rcNormalPosition.left;
             winSize.bottom = wp.rcNormalPosition.bottom - wp.rcNormalPosition.top;
          }
-      }
+	  }
       else {
          
          // Use default position 
@@ -797,25 +852,13 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
             winSize.bottom = winSize.top + preferences.windowHeight;
          
       }
-   }
+   
 
    // don't create windows larger than the screen
    if ((winSize.right - winSize.left) > screenWidth)
       winSize.right = screenWidth - winSize.left;
    if ((winSize.bottom - winSize.top) > screenHeight)
       winSize.bottom = screenHeight - winSize.top;
-
-   
-   // Center the window if needed, useless at this point.
-   //if (chromeMask & nsIWebBrowserChrome::CHROME_CENTER_SCREEN)
-   //{
-   //   int height = winSize.bottom - winSize.top;
-   //   int width = winSize.right - winSize.left;
-   //	winSize.top = screen.top + (screenHeight - height)/2;
-   //   winSize.bottom = winSize.top + height;
-   //   winSize.left = screen.left + (screenWidth - width)/2;
-   //   winSize.right = winSize.left + width;
-   //}
            
    // make sure the window isn't going to run off the screen
    if ((screen.right - winSize.right) < 0) {
@@ -844,7 +887,6 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
       pOldRecentFrame = pFrame;
 
    CMenu *menu = theApp.menus.GetMenu(_T("Main"));
-   theApp.menus.SetCheck(ID_OFFLINE, theApp.preferences.bOffline);
 
    if (!pFrame->CreateEx(styleEx, BROWSER_WINDOW_CLASS, strTitle, style,
       winSize, chromeMask & nsIWebBrowserChrome::CHROME_DEPENDENT ? pParent : NULL,
@@ -855,12 +897,14 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
       return FALSE;
    }
 
+   //XXXX
+   pFrame->GetActiveView()->GetBrowserWrapper()->mpBrowserImpl->SetChromeFlags(chromeMask);
    pFrame->SetIcon(m_hMainIcon, true);
    pFrame->SetIcon(m_hSmallIcon, false);
    
    // Set accelerator only if it's not a chrome window.
-   if (!(chromeMask & nsIWebBrowserChrome::CHROME_OPENAS_CHROME))
-      pFrame->m_hAccelTable = accel.GetTable();
+   // if (!(chromeMask & nsIWebBrowserChrome::CHROME_OPENAS_CHROME))
+   //   pFrame->m_hAccelTable = accel.GetTable();
    
    // this only needs to be called once
    if (!m_bFirstWindowCreated) {
@@ -871,77 +915,100 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
       m_bFirstWindowCreated = TRUE;
    }
 
-   if (!preferences.bHideTaskBarButtons) {
+   if (!preferences.bHideTaskBarButtons)
       pFrame->ModifyStyleEx(0, WS_EX_APPWINDOW);
-   }
 
-   // XUL Dialog must be resized after loading.
-   BOOL canResize = !theApp.preferences.GetBool("kmeleon.display.dontResizeXul", FALSE);
-   BOOL sizeOnLoad = FALSE;
-   if (canResize && chromeMask & nsIWebBrowserChrome::CHROME_OPENAS_CHROME)
-      sizeOnLoad = TRUE;
+ /*  if (preferences.bMaximized && 
+	   (!pFrame->IsDialog()) && (!pFrame->IsPopup()) &&
+	   !(chromeMask & nsIWebBrowserChrome::CHROME_WINDOW_RESIZE))
+      pFrame->ShowWindow(SW_MAXIMIZE);*/
 
-   pFrame->m_bSizeOnLoad = sizeOnLoad;
-   // Show the window...
-   if(bShowWindow) 
-   {
-       if (preferences.bMaximized && !(style & WS_POPUP) && 
-           (chromeMask & nsIWebBrowserChrome::CHROME_WINDOW_RESIZE))
-           pFrame->ShowWindow(SW_SHOWMAXIMIZED);
-       else 
-           pFrame->ShowWindow(SW_SHOW);
-    
-	   pFrame->SetForegroundWindow();
-       pFrame->m_created = true;
-   }
-   else 
-	   theApp.m_pMostRecentBrowserFrame = pOldRecentFrame;
+   if (inBackground)
+	   pFrame->SetWindowPos((CWnd*)theApp.m_FrameWndLst.GetHead(),
+			0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | SWP_SHOWWINDOW);
+
+   theApp.m_pMostRecentBrowserFrame = pOldRecentFrame;
+   
    // Add to the list of BrowserFrame windows
    m_FrameWndLst.AddHead(pFrame);
-   
-   pFrame->m_ignoreMoveResize = 
-      (theApp.preferences.GetBool("kmeleon.display.dontResizeNewWindow", FALSE)) && 
-      (!sizeOnLoad && !(style & WS_POPUP)) ? 2 : 0;
-   
    
    ReleaseMutex(m_hMutex);
    return pFrame;
 }
 
-void CMfcEmbedApp::OnNewBrowser()
+void CMfcEmbedApp::OnAppAbout()
 {
+	CBrowserFrame* pFrm = CreateNewBrowserFrame(
+					 nsIWebBrowserChrome::CHROME_WINDOW_RESIZE |
+                     nsIWebBrowserChrome::CHROME_WINDOW_CLOSE |
+                     nsIWebBrowserChrome::CHROME_TITLEBAR |
+					 nsIWebBrowserChrome::CHROME_SCROLLBARS, 
+					 FALSE);
+	
+	if (!pFrm) return;
+	pFrm->OpenURL(_T("about:"));
+	pFrm->ShowWindow(SW_SHOW);
+}
+
+void CMfcEmbedApp::OnNewBrowser()
+{/*
+	 if (m_pMostRecentBrowserFrame) {
+		  ((CBrowserFrmTab*)m_pMostRecentBrowserFrame)->OnNewTab();
+		  return;
+	  }*/
+
    m_pOpenNewBrowserFrame = m_pMostRecentBrowserFrame;
-   
+   BOOL urlFocus = theApp.preferences.GetBool("kmeleon.display.NewWindowHasUrlFocus", FALSE);
+
    CBrowserFrame *pBrowserFrame = CreateNewBrowserFrame();
    if(pBrowserFrame) {
 
       //Load the new window start page into the browser view
-      pBrowserFrame->SetFocus();
-      // pBrowserFrame->m_wndUrlBar.MaintainFocus();
       switch (preferences.iNewWindowOpenAs) {
       case PREF_NEW_WINDOW_CURRENT:
+	     pBrowserFrame->OpenURL(_T("about:blank"), NULL, urlFocus);
 	     if (m_pOpenNewBrowserFrame)
-			m_pOpenNewBrowserFrame->m_wndBrowserView.CloneSHistory(pBrowserFrame->m_wndBrowserView);
+			m_pOpenNewBrowserFrame->GetActiveView()->CloneBrowser(pBrowserFrame->GetActiveView());
          break;
       case PREF_NEW_WINDOW_HOME:
-         pBrowserFrame->m_wndBrowserView.LoadHomePage();
+         pBrowserFrame->GetActiveView()->LoadHomePage();
          break;
       case PREF_NEW_WINDOW_BLANK:
-         pBrowserFrame->m_wndBrowserView.OpenURL("about:blank");
+         pBrowserFrame->OpenURL(_T("about:blank"), NULL, urlFocus);
          break;
-      case PREF_NEW_WINDOW_URL:
-         if (preferences.newWindowURL.IsEmpty())
-            pBrowserFrame->m_wndBrowserView.OpenURL("about:blank");
+	  case PREF_NEW_WINDOW_URL: {
+	     CString newUrl = preferences.newWindowURL;
+         if (newUrl.IsEmpty())
+            pBrowserFrame->OpenURL(_T("about:blank"), NULL, urlFocus);
          else
-			pBrowserFrame->m_wndBrowserView.OpenURL(preferences.newWindowURL);
+			pBrowserFrame->OpenURL(newUrl, NULL, urlFocus);
          break;
       }
+	  }
 
-	  theApp.preferences.bNewWindowHasUrlFocus = theApp.preferences.GetBool("kmeleon.display.NewWindowHasUrlFocus", FALSE); 
+	  pBrowserFrame->ShowWindow(SW_SHOW);
+	  
 	  if (theApp.preferences.bNewWindowHasUrlFocus)
-		pBrowserFrame->m_wndUrlBar.MaintainFocus();
+		pBrowserFrame->m_wndUrlBar.SetFocus();
    }
+}
 
+void CMfcEmbedApp::OnToggleOffline()
+{
+	BroadcastMessage(WM_COMMAND, ID_NAV_STOP, (LPARAM) 0);
+
+    SetOffline(!theApp.preferences.bOffline);
+    //theApp.menus.SetCheck(ID_OFFLINE, theApp.preferences.bOffline);
+
+	CString status;
+	status.LoadString( theApp.preferences.bOffline ? IDS_OFFLINE : IDS_ONLINE );
+
+	m_pMostRecentBrowserFrame->UpdateStatus(status); 
+}
+
+void CMfcEmbedApp::OnUpdateToggleOffline(CCmdUI* pCmdUI)
+{
+	pCmdUI->SetCheck(preferences.bOffline);
 }
 
 // This gets called anytime a BrowserFrameWindow is
@@ -1023,7 +1090,7 @@ int CMfcEmbedApp::ExitInstance()
    while( pos != NULL ) {
       pBrowserFrame = (CBrowserFrame *) m_FrameWndLst.GetNext(pos);
       if(pBrowserFrame)
-         pBrowserFrame->SendMessage(WM_CLOSE);
+		 pBrowserFrame->DestroyWindow();
    }
    m_FrameWndLst.RemoveAll();
    
@@ -1053,7 +1120,7 @@ int CMfcEmbedApp::ExitInstance()
 
    plugins.UnLoadAll();
    if (m_hResDll) FreeLibrary(m_hResDll);
-   
+
    return 1;
 }
 
@@ -1062,7 +1129,19 @@ BOOL CMfcEmbedApp::OnIdle(LONG lCount)
    CWinApp::OnIdle(lCount);
    
    //NS_DoIdleEmbeddingStuff();
-   
+   /*
+   CBrowserFrame* pBrowserFrame = NULL;
+   POSITION pos = m_FrameWndLst.GetHeadPosition();
+   BOOL visible = FALSE;
+   while( pos != NULL ) {
+      pBrowserFrame = (CBrowserFrame *) m_FrameWndLst.GetNext(pos);
+	  visible = visible || pBrowserFrame->IsWindowVisible();
+   }
+   if (!visible) {
+		ASSERT(FALSE);
+		pBrowserFrame->ShowWindow(SW_SHOW);
+   }*/
+      
    return FALSE;
 }
 
@@ -1147,7 +1226,7 @@ BOOL CMfcEmbedApp::CreateHiddenWindow()
 
 BOOL CMfcEmbedApp::InitializePrefs(){
    preferences.Load();
-   //preferences.Save();
+   preferences.Save();
 
    return TRUE;
 }
@@ -1234,7 +1313,7 @@ NS_IMETHODIMP CMfcEmbedApp::Observe(nsISupports *aSubject, const char *aTopic, c
    }
    else if (strcmp(aTopic, "profile-change-teardown") == 0)
    {
-      // Close all open windows. Alternatively, we could just call CBrowserWindow::Stop()
+      // Close all open windows. Alternatively, we could just call CBrowserWrapper::Stop()
       // on each. Either way, we have to stop all network activity on this phase.
       
       POSITION pos = m_MiscWndLst.GetHeadPosition();
@@ -1288,7 +1367,7 @@ NS_IMETHODIMP CMfcEmbedApp::Observe(nsISupports *aSubject, const char *aTopic, c
          
          browser->SetFocus();
          // browser->m_wndUrlBar.MaintainFocus();
-         browser->m_wndBrowserView.LoadHomePage();
+         browser->GetActiveView()->LoadHomePage();
       }
    }
    
@@ -1308,7 +1387,7 @@ NS_IMETHODIMP CMfcEmbedApp::CreateChromeWindow(nsIWebBrowserChrome *parent,
    NS_ENSURE_ARG_POINTER(_retval);
    *_retval = 0;
 
-      CWnd* pParent = NULL;
+   CWnd* pParent = NULL;
    if (parent) {
       HWND w;
       nsCOMPtr<nsIEmbeddingSiteWindow> site(do_QueryInterface(parent));
@@ -1318,9 +1397,17 @@ NS_IMETHODIMP CMfcEmbedApp::CreateChromeWindow(nsIWebBrowserChrome *parent,
       }
    }
 
-   CBrowserFrame *pBrowserFrame = CreateNewBrowserFrame(chromeFlags, -1, -1, -1, -1, PR_FALSE, pParent);
-   if(pBrowserFrame) {
-      *_retval = NS_STATIC_CAST(nsIWebBrowserChrome *, pBrowserFrame->GetBrowserImpl());
+   if (!pParent) {
+	   // This means a popup opened when closing a window. NEVER >-]
+	   return NS_ERROR_FAILURE;
+   }
+
+  //nsCOMPtr<nsIWindowCreator> browserChrome(do_QueryInterface(parent));
+  //return browserChrome->CreateChromeWindow(parent, chromeFlags, _retval);
+
+   CBrowserFrame *pBrowserFrame = CreateNewBrowserFrame(chromeFlags, FALSE, pParent);
+   if(pBrowserFrame) {//XXXX
+      *_retval = NS_STATIC_CAST(nsIWebBrowserChrome *, pBrowserFrame->GetActiveView()->GetBrowserWrapper()->mpBrowserImpl);
       NS_ADDREF(*_retval);
    }
    return NS_OK;

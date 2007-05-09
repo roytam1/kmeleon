@@ -44,6 +44,70 @@
 #ifndef _IBROWSERFRAMEGLUE_H
 #define _IBROWSERFRAMEGLUE_H
 
+class CBrowserWrapper;
+
+struct IBrowserGlue {
+    // Progress Related Methods
+    virtual void UpdateStatusBarText(LPCTSTR aMessage) = 0;
+    virtual void UpdateProgress(int aCurrent, int aMax) = 0;
+    virtual void UpdateBusyState(BOOL aBusy) = 0;
+    virtual void UpdateCurrentURI(nsIURI *aLocation) = 0;
+    virtual void UpdateSecurityStatus(int aState) = 0;
+
+    // BrowserFrame Related Methods
+    virtual CBrowserWrapper* ReuseWindow(BOOL useCurrent) = 0;
+    virtual void DestroyBrowserFrame() = 0;
+    virtual void GetBrowserTitle(CString& aTitle) = 0;
+    virtual void SetBrowserTitle(LPCTSTR aTitle) = 0;
+    virtual void SetBrowserSize(int aCX, int aCY) = 0;
+    virtual void SetVisibility(BOOL aVisible) = 0;
+	virtual void GetVisibility(BOOL *aVisible) = 0;
+	virtual void SetFocus() = 0;
+
+    // ContextMenu Related Methods
+    virtual void ShowContextMenu(UINT aContextFlags, nsIDOMNode* node) = 0;
+
+    //Prompt Related Methods
+    virtual HWND GetBrowserFrameNativeWnd() = 0;
+
+    // Tooltip function
+    virtual void ShowTooltip(int x, int y, LPCTSTR text) = 0;
+
+    virtual BOOL FocusNextElement() = 0;
+    virtual BOOL FocusPrevElement() = 0;
+	virtual BOOL MouseAction(nsIDOMNode *node, UINT flags) = 0;
+	virtual void PopupBlocked(const char* uri) = 0;
+	virtual void SetFavIcon(nsIURI* favUri) = 0;
+	virtual ~IBrowserGlue() {};
+};
+
+#define NS_DECL_BROWSERGLUE    \
+    public: \
+        virtual void UpdateStatusBarText(LPCTSTR aMessage);    \
+        virtual void UpdateProgress(int aCurrent, int aMax);    \
+        virtual void UpdateBusyState(PRBool aBusy);                     \
+        virtual void UpdateCurrentURI(nsIURI *aLocation);               \
+        virtual void UpdateSecurityStatus(int aState);         \
+        virtual CBrowserWrapper* ReuseWindow(BOOL useCurrent); \
+		virtual CBrowserWrapper* CreateNewBrowser(PRUint32 chromeMask);   \
+        virtual void DestroyBrowserFrame();                         \
+		virtual void SetBrowserSize(int aCX, int aCY);  \
+		virtual void GetBrowserTitle(CString& aTitle);  \
+        virtual void SetBrowserTitle(LPCTSTR aTitle); \
+        virtual void SetVisibility(BOOL aVisible);                    \
+		virtual void GetVisibility(BOOL *aVisible);       \
+        virtual void SetFocus();                                        \
+        virtual void ShowContextMenu(UINT aContextFlags, nsIDOMNode* node); \
+        virtual HWND GetBrowserFrameNativeWnd();                          \
+        virtual void ShowTooltip(int x, int y, LPCTSTR text); \
+        virtual BOOL FocusNextElement(); \
+        virtual BOOL FocusPrevElement(); \
+		virtual BOOL MouseAction(nsIDOMNode *node, UINT flags);\
+		virtual void PopupBlocked(const char* uri);\
+		virtual void SetFavIcon(nsIURI* favUri);\
+
+typedef IBrowserGlue *PBROWSERGLUE;
+
 struct IBrowserFrameGlue {
     // Progress Related Methods
     virtual void UpdateStatusBarText(const PRUnichar *aMessage) = 0;
@@ -60,15 +124,15 @@ struct IBrowserFrameGlue {
     virtual void DestroyBrowserFrame() = 0;
     virtual void GetBrowserFrameTitle(PRUnichar **aTitle) = 0;
     virtual void SetBrowserFrameTitle(const PRUnichar *aTitle) = 0;
-    virtual void GetBrowserFramePosition(PRInt32 *aX, PRInt32 *aY) = 0;
+    virtual void SetBrowserSize(PRInt32 aCX, PRInt32 aCY) = 0;
+	/*virtual void GetBrowserFramePosition(PRInt32 *aX, PRInt32 *aY) = 0;
     virtual void SetBrowserFramePosition(PRInt32 aX, PRInt32 aY) = 0;
     virtual void GetBrowserFrameSize(PRInt32 *aCX, PRInt32 *aCY) = 0;
     virtual void SetBrowserFrameSize(PRInt32 aCX, PRInt32 aCY) = 0;
     virtual void GetBrowserSize(PRInt32 *aCX, PRInt32 *aCY) = 0;
-    virtual void SetBrowserSize(PRInt32 aCX, PRInt32 aCY) = 0;
     virtual void GetBrowserFramePositionAndSize(PRInt32 *aX, PRInt32 *aY, PRInt32 *aCX, PRInt32 *aCY) = 0;
     virtual void SetBrowserFramePositionAndSize(PRInt32 aX, PRInt32 aY, PRInt32 aCX, PRInt32 aCY, PRBool fRepaint) = 0;
-   virtual void SetBrowserPositionAndSize(PRInt32 aX, PRInt32 aY, PRInt32 aCX, PRInt32 aCY, PRBool fRepaint) = 0;
+   virtual void SetBrowserPositionAndSize(PRInt32 aX, PRInt32 aY, PRInt32 aCX, PRInt32 aCY, PRBool fRepaint) = 0;*/
     virtual void ShowBrowserFrame(PRBool aShow) = 0;
     virtual void SetFocus() = 0;
     virtual void FocusAvailable(PRBool *aFocusAvail) = 0;
@@ -83,9 +147,9 @@ struct IBrowserFrameGlue {
     // Tooltip function
     virtual void ShowTooltip(PRInt32 x, PRInt32 y, const TCHAR *text) = 0;
 
-    virtual void FocusNextElement() = 0;
-    virtual void FocusPrevElement() = 0;
-	virtual void MouseAction(nsIDOMNode *node) = 0;
+    virtual BOOL FocusNextElement() = 0;
+    virtual BOOL FocusPrevElement() = 0;
+	virtual BOOL MouseAction(nsIDOMNode *node, UINT flags) = 0;
 	virtual void PopupBlocked(const char* uri) = 0;
 	virtual void SetFavIcon(nsIURI* favUri) = 0;
 };
@@ -99,17 +163,17 @@ struct IBrowserFrameGlue {
         virtual void UpdateSecurityStatus(PRInt32 aState);         \
         virtual PRBool CreateNewBrowserFrame(PRUint32 chromeMask, PRInt32 x, PRInt32 y, PRInt32 cx, PRInt32 cy, nsIWebBrowser** aWebBrowser);   \
         virtual void DestroyBrowserFrame();                         \
-        virtual void GetBrowserFrameTitle(PRUnichar **aTitle);  \
+		virtual void SetBrowserSize(PRInt32 aCX, PRInt32 aCY);  \
+		virtual void GetBrowserFrameTitle(PRUnichar **aTitle);  \
         virtual void SetBrowserFrameTitle(const PRUnichar *aTitle); \
-        virtual void GetBrowserFramePosition(PRInt32 *aX, PRInt32 *aY); \
+        /*virtual void GetBrowserFramePosition(PRInt32 *aX, PRInt32 *aY); \
         virtual void SetBrowserFramePosition(PRInt32 aX, PRInt32 aY);   \
         virtual void GetBrowserFrameSize(PRInt32 *aCX, PRInt32 *aCY);   \
         virtual void SetBrowserFrameSize(PRInt32 aCX, PRInt32 aCY);     \
         virtual void GetBrowserSize(PRInt32 *aCX, PRInt32 *aCY);        \
-        virtual void SetBrowserSize(PRInt32 aCX, PRInt32 aCY);          \
         virtual void GetBrowserFramePositionAndSize(PRInt32 *aX, PRInt32 *aY, PRInt32 *aCX, PRInt32 *aCY);  \
         virtual void SetBrowserFramePositionAndSize(PRInt32 aX, PRInt32 aY, PRInt32 aCX, PRInt32 aCY, PRBool fRepaint); \
-        virtual void SetBrowserPositionAndSize(PRInt32 aX, PRInt32 aY, PRInt32 aCX, PRInt32 aCY, PRBool fRepaint);  \
+        virtual void SetBrowserPositionAndSize(PRInt32 aX, PRInt32 aY, PRInt32 aCX, PRInt32 aCY, PRBool fRepaint);  */\
         virtual void ShowBrowserFrame(PRBool aShow);                    \
         virtual void SetFocus();                                        \
         virtual void FocusAvailable(PRBool *aFocusAvail);               \
@@ -117,9 +181,9 @@ struct IBrowserFrameGlue {
         virtual void ShowContextMenu(PRUint32 aContextFlags, nsIContextMenuInfo *aInfo); \
         virtual HWND GetBrowserFrameNativeWnd();                          \
         virtual void ShowTooltip(PRInt32 x, PRInt32 y, const TCHAR *text); \
-        virtual void FocusNextElement(); \
-        virtual void FocusPrevElement(); \
-		virtual void MouseAction(nsIDOMNode *node);\
+        virtual BOOL FocusNextElement(); \
+        virtual BOOL FocusPrevElement(); \
+		virtual BOOL MouseAction(nsIDOMNode *node, UINT flags);\
 		virtual void PopupBlocked(const char* uri);\
 		virtual void SetFavIcon(nsIURI* favUri);\
 

@@ -2,11 +2,7 @@
 //
 
 #include "stdafx.h"
-#include "mfcembed.h"
 #include "PrintProgressDialog.h"
-#include "BrowserView.h"
-#include "nsIWebBrowser.h"
-#include "nsIWebBrowserPrint.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -21,7 +17,8 @@ class CDlgPrintListener : public nsIWebProgressListener
 {
 // Construction
 public:
-	CDlgPrintListener(CPrintProgressDialog* aDlg); 
+	CDlgPrintListener(CPrintProgressDialog* aDlg);
+	~CDlgPrintListener();
 
   NS_DECL_ISUPPORTS
   NS_DECL_NSIWEBPROGRESSLISTENER
@@ -45,8 +42,10 @@ NS_INTERFACE_MAP_END
 CDlgPrintListener::CDlgPrintListener(CPrintProgressDialog* aDlg) :
   m_PrintDlg(aDlg)
 {
-  NS_INIT_ISUPPORTS();
-  //NS_ADDREF_THIS();
+}
+
+CDlgPrintListener::~CDlgPrintListener()
+{
 }
 
 /* void onStateChange (in nsIWebProgress aWebProgress, in nsIRequest aRequest, in unsigned long aStateFlags, in nsresult aStatus); */
@@ -100,15 +99,16 @@ CDlgPrintListener::OnSecurityChange(nsIWebProgress *aWebProgress, nsIRequest *aR
 // CPrintProgressDialog dialog
 
 
-CPrintProgressDialog::CPrintProgressDialog(nsIWebBrowser* aWebBrowser,
-                                           nsIPrintSettings* aPrintSettings,
+CPrintProgressDialog::CPrintProgressDialog(/*nsIWebBrowser* aWebBrowser,
+                                           nsIPrintSettings* aPrintSettings,*/
                                            CWnd* pParent /*=NULL*/)
 	: CDialog(CPrintProgressDialog::IDD, pParent),
-  m_WebBrowser(aWebBrowser),
+//  m_WebBrowser(aWebBrowser),
   m_PrintListener(nsnull),
-  m_PrintSettings(aPrintSettings),
+//  m_PrintSettings(aPrintSettings),
   m_InModalMode(PR_FALSE)
 {
+	m_PrintListener = new CDlgPrintListener(this);
 	//{{AFX_DATA_INIT(CPrintProgressDialog)
 		// NOTE: the ClassWizard will add member initialization here
 	//}}AFX_DATA_INIT
@@ -188,23 +188,8 @@ BOOL CPrintProgressDialog::OnInitDialog()
 
 int CPrintProgressDialog::DoModal( )
 {
-  PRBool doModal = PR_FALSE;
-  nsCOMPtr<nsIWebBrowserPrint> print(do_GetInterface(m_WebBrowser));
-  if(print) 
-  {
-    m_PrintListener = new CDlgPrintListener(this); // constructor addrefs
-    if (m_PrintListener) {
-      // doModal will be set to false if the print job was cancelled
-      nsIWebProgressListener * wpl = NS_STATIC_CAST(nsIWebProgressListener*, m_PrintListener);
-      doModal = NS_SUCCEEDED(print->Print(m_PrintSettings, wpl)) == PR_TRUE;
-    }
-  }
-
-  if (doModal) {
-    m_InModalMode = PR_TRUE;
+	m_InModalMode = TRUE;
     return CDialog::DoModal();
-  }
-  return 0;
 }
 
 
@@ -251,16 +236,16 @@ CPrintProgressDialog::OnEndPrinting(PRUint32 aStatus)
 }
 
 void CPrintProgressDialog::OnCancel() 
-{
+{/*
   nsCOMPtr<nsIWebBrowserPrint> print(do_GetInterface(m_WebBrowser));
   if (print) {
     print->Cancel();
-  }
+  }*/
 
 	CDialog::OnCancel();
 }
 
-void CPrintProgressDialog::SetURI(const char* aTitle)
+void CPrintProgressDialog::SetURI(LPCTSTR aTitle)
 {
 	m_URL = aTitle;
 }

@@ -20,14 +20,12 @@
 #include "StdAfx.h"
 
 #include "MfcEmbed.h"
-extern CMfcEmbedApp theApp;
 
 #include "AccelParser.h"
 #include "Utils.h"
 #include "resource.h"
-
 #include "Plugins.h"
-#include "kmeleon_plugin.h"
+
 
 #define BEGIN_VK_TEST if (0){}
 #define VK_TEST(KEY)  else if (stricmp(p, #KEY) == 0){ key = VK_##KEY; }
@@ -464,13 +462,18 @@ CString CAccelParser::GetStrAccel(UINT id)
 }
 
 int CAccelParser::CheckMouse(UINT message){
-   int i, virt = 0;
-   if (GetKeyState(VK_SHIFT) < 0)
-      virt |= FSHIFT;
-   if (GetKeyState(VK_CONTROL) < 0)
-      virt |= FCONTROL;
-   if (GetKeyState(VK_MENU) < 0)
-      virt |= FALT;
+
+	int i, virt = 0;
+   virt = message >> 8;
+		switch (message & 0xff) {
+			case MK_LBUTTON: message = WM_LBUTTONDOWN; break;
+			case MK_RBUTTON: message = WM_RBUTTONDOWN; break;
+			case MK_MBUTTON: message = WM_MBUTTONDOWN; break;
+			default : ;
+		}
+
+   
+
    for (i=0; i<numMKeys; i++) {
       if (mouse[i].key == message) {
          if (mouse[i].fVirt == virt)

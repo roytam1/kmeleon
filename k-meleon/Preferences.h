@@ -21,14 +21,13 @@
 #define __PREFERENCES_H__
 
 #include "StdAfx.h"
-
 #include "resource.h"
 #include "DialogEx.h"
 
 class CPreferences {
 public:
 
-   // -- Folder
+	// -- Folder
    CString settingsFolder;
    CString userSettingsFolder;
    CString profileFolder;
@@ -40,7 +39,6 @@ public:
    CString currentSkinFolder; // XXX
 
    // -- Find settings
-   CString findSearchStr;
 	int bFindMatchCase;
 	int bFindHighlight;
 	int bFindMatchWholeWord;
@@ -177,6 +175,20 @@ public:
    int bSaveUnknowContent;
    int bSaveUseTitle;
 
+   
+   // -- Tabs
+
+   int bAutoHideTabControl;
+   int iOnCloseTab;
+   int iOnOpenTab;
+   int iOnCloseLastTab;
+   int iWindowTabMode;
+   int bConfirmClose;
+   int iTabOnDoubleClick;
+   int iTabOnMiddleClick;
+   int iTabOnRightClick;
+	   
+
 
    // -- functions
 
@@ -201,8 +213,9 @@ public:
 
    void        SetString(const char *preference, const char * value);
    inline void SetString(const char *preference, const wchar_t * value);
-   int GetString(const char *preference, char * retValue, char * defaultVal);
-   int GetString(const char *preference, wchar_t * retValue, wchar_t * defaultVal);
+   int GetString(const char *preference, char * retValue, const char * defaultVal);
+   int GetString(const char *preference, wchar_t * retValue, const wchar_t * defaultVal);
+	CString GetString(const char *preference, LPCTSTR defaultVal);
 
    void Clear(const char *preference);
    void DeleteBranch(const char *startingAt);

@@ -58,6 +58,7 @@
 #endif
 #include "resource.h"       // main symbols
 
+enum FolderType;
 
 #define HIDDEN_WINDOW_CLASS  _T("KMeleon")
 #define BROWSER_WINDOW_CLASS _T("KMeleon Browser Window")
@@ -82,11 +83,16 @@ public:
     NS_DECL_NSIOBSERVER
     NS_DECL_NSIWINDOWCREATOR
 
-	CBrowserFrame* CreateNewBrowserFrame(PRUint32 chromeMask = 0, 
-							PRInt32 x = -1, PRInt32 y = -1, 
-							PRInt32 cx = -1, PRInt32 cy = -1,
-							PRBool bShowWindow = PR_TRUE,
+	CBrowserFrame* CreateNewBrowserFrame(PRUint32 chromeMask = nsIWebBrowserChrome::CHROME_ALL, 
+							PRBool inBackground = FALSE,
 							CWnd* pParent = NULL);
+
+	CBrowserFrame* CreateNewBrowserFrameWithUrl(LPCTSTR url, LPCTSTR refferer = NULL,
+							BOOL bBackground = FALSE, 
+							CWnd* pParent = NULL);
+
+	CBrowserFrame* CreateNewChromeDialog(LPCTSTR url, CWnd* pParent = NULL);
+
 	void RemoveFrameFromList(CBrowserFrame* pFrm);
    void RegisterWindow(CDialog *window);
    void UnregisterWindow(CDialog *window);
@@ -144,10 +150,15 @@ public:
 #ifndef _UNICODE 
    BOOL m_bUnicode;
 #endif
+   BOOL        LoadLanguage();
    //{{AFX_MSG(CMfcEmbedApp)
+   afx_msg void OnAppAbout();
    afx_msg void OnNewBrowser();
    afx_msg void OnManageProfiles();
    afx_msg void OnPreferences();
+   afx_msg void OnToggleOffline();
+   afx_msg void OnUpdateToggleOffline(CCmdUI* pCmdUI);
+
    // NOTE - the ClassWizard will add and remove member functions here.
    // DO NOT EDIT what you see in these blocks of generated code !
    //}}AFX_MSG
@@ -161,9 +172,7 @@ private:
    nsresult    InitializeWindowCreator();
    void        InitializeDefineMap();
    void        CheckProfileVersion();
-   BOOL        LoadLanguage();
 
-private:
    CProfileMgr *m_ProfileMgr;
    BOOL        m_bAlreadyRunning;
    BOOL        m_bFirstWindowCreated;
@@ -178,6 +187,8 @@ private:
    CMap<CString, LPCTSTR, int, int &> defineMap;
 
 };
+
+extern CMfcEmbedApp theApp;
 
 //{{AFX_INSERT_LOCATION}}
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.

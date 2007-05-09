@@ -13,6 +13,8 @@ static NS_DEFINE_CID(kUnknownContentTypeHandlerCID, NS_UNKNOWNCONTENTTYPEHANDLER
 static NS_DEFINE_CID(kDownloadCID, NS_DOWNLOAD_CID);
 
 #include "DialogEx.h"
+#include "nsIExternalHelperAppService.h"
+#include "nsIHelperAppLauncherDialog.h"
 
 class CUnknownContentTypeHandler : public nsIHelperAppLauncherDialog
 {
@@ -47,7 +49,7 @@ protected:
 #include "nsITransfer.h"
 
 // Idiot callback function
-typedef void (*ProgressDialogCallback)(char* uri, TCHAR* file, nsresult, void*);
+typedef void (*ProgressDialogCallback)(char* uri, LPCTSTR file, nsresult, void*);
 
 class CProgressDialog : public CDialog,
 						public nsITransfer,

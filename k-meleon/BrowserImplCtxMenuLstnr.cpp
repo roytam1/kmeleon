@@ -38,6 +38,8 @@
 
 #include "nsIDOMEvent.h"
 #include "nsIDOMEventTarget.h"
+#include "nsIDOMHTMLInputElement.h"
+
 
 //*****************************************************************************
 // CBrowserImpl::nsIContextMenuListener
@@ -45,8 +47,42 @@
 
 NS_IMETHODIMP CBrowserImpl::OnShowContextMenu(PRUint32 aContextFlags, nsIContextMenuInfo *aInfo)
 {
-   if(m_pBrowserFrameGlue)
-      m_pBrowserFrameGlue->ShowContextMenu(aContextFlags, aInfo);
+   NS_ENSURE_TRUE(m_pBrowserFrameGlue, NS_OK);
+   
+   // No context menu for chrome
+   if (mChromeFlags & nsIWebBrowserChrome::CHROME_OPENAS_CHROME)
+        return NS_OK;
 
-   return NS_OK;
+   /*
+   SContextData ctx;
+    
+   nsCOMPtr<nsIDOMNode> node;
+   nsresult rv = aInfo->GetTargetNode(getter_AddRefs(node));
+   NS_ENSURE_SUCCESS(rv, rv);
+
+   ctx.node = node;
+
+   */
+
+	nsCOMPtr<nsIDOMNode> node;
+	nsresult rv = aInfo->GetTargetNode(getter_AddRefs(node));
+	NS_ENSURE_SUCCESS(rv, rv);
+
+	if (aContextFlags & nsIContextMenuListener2::CONTEXT_INPUT) 
+	{
+		if (!(aContextFlags & nsIContextMenuListener2::CONTEXT_IMAGE)) {
+			// Mozilla don't tell if the input is of type text or password...
+			nsCOMPtr<nsIDOMHTMLInputElement> inputElement(do_QueryInterface(node));
+			if (inputElement) {
+				nsEmbedString inputElemType;
+				inputElement->GetType(inputElemType);
+				if ((wcsicmp(inputElemType.get(), L"text") == 0) ||
+					(wcsicmp(inputElemType.get(), L"password") == 0))
+					aContextFlags |= nsIContextMenuListener2::CONTEXT_TEXT;
+			}
+		}
+	}
+	m_pBrowserFrameGlue->ShowContextMenu(aContextFlags, node);
+
+	return NS_OK;
 }

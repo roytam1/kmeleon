@@ -18,15 +18,9 @@
 */
 
 #include "StdAfx.h"
-#include "winuser.h"
-#include <afxtempl.h>
 
 #include "MfcEmbed.h"
-extern CMfcEmbedApp theApp;
-
 #include "Plugins.h"
-#include "kmeleon_plugin.h"
-#include "LangParser.h"
 #include "MenuParser.h"
 #include "Utils.h"
 

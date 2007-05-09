@@ -29,6 +29,7 @@ extern CMfcEmbedApp theApp;
 #include "PasswordViewerDlg.h"
 #include "Permissions.h"
 #include "Plugins.h"
+#include "kmeleon_plugin.h"
 #include <wininet.h>
 
 CPreferencesDlg::CPreferencesDlg() : CDialog(IDD) {

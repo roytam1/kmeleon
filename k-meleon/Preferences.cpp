@@ -19,6 +19,7 @@
 
 #include "StdAfx.h"
 #include "kmeleonConst.h"
+#include "kmeleon_plugin.h"
 
 #include "MfcEmbed.h"
 #include "BrowserFrm.h"
@@ -31,13 +32,19 @@ extern CMfcEmbedApp theApp;
 CString MakeAbsolutePath(LPCTSTR root, LPCTSTR path)
 {
    // Need probably to remove ".." correctly 
-   return ( 
-      (*path=='/' || _tcschr(path, ':')) ? 
-      CString(path) :  
-      CString(root) + _T('\\') + path );
+   CString absPath = (*path=='/' || _tcschr(path, ':')) ? path : CString(root) + _T('\\') + path;
+
+   // Remove slash at the end if any.
+   if (absPath.GetAt(absPath.GetLength()-1) == '\\') {
+      absPath.GetBuffer(0);
+      absPath.ReleaseBuffer(absPath.GetLength()-1);
+   }
+
+   return absPath;
 }
 
 CPreferences::CPreferences() {
+
 }
 
 CPreferences::~CPreferences() {
@@ -51,7 +58,7 @@ void CPreferences::Load() {
       _ASSERTE(m_prefs && "Could not get preferences service");
       return;
    }
-
+	
 #ifndef USE_PROFILES
    prefs->ReadUserPrefs(nsnull);
 #endif
@@ -69,7 +76,7 @@ void CPreferences::Load() {
 
    _GetBool("kmeleon.display.hideTaskBarButtons", bHideTaskBarButtons, false);
 
-   if (!theApp.m_pMostRecentBrowserFrame || !(theApp.m_pMostRecentBrowserFrame->m_style & WS_POPUP)) {
+   if (!theApp.m_pMostRecentBrowserFrame || !(theApp.m_pMostRecentBrowserFrame->IsPopup())) {
       _GetBool("kmeleon.display.maximized", bMaximized, true);
 
       _GetInt("kmeleon.display.width", windowWidth, -1);
@@ -197,35 +204,6 @@ void CPreferences::Load() {
    _GetBool("kmeleon.favicons.cached", bCacheFavicons, true);
    bCacheFavicons = !bCacheFavicons;
 
-
-   // -- Printing
-
-
-   _GetString("kmeleon.print.headerLeft", printHeaderLeft, _T("&T"));
-   _GetString("kmeleon.print.headerMiddle", printHeaderMiddle, _T(""));
-   _GetString("kmeleon.print.headerRight", printHeaderRight, _T("&U"));
-
-   _GetString("kmeleon.print.footerLeft", printFooterLeft, _T("&PT"));
-   _GetString("kmeleon.print.footerMiddle", printFooterMiddle, _T(""));
-   _GetString("kmeleon.print.footerRight", printFooterRight, _T("&D"));
-
-   _GetBool("kmeleon.print.BGColors", printBGColors, false);
-   _GetBool("kmeleon.print.BGImages", printBGImages, false);
-
-   CString def;
-   def.Format(_T("%.2f"), 0.5);
-   _GetString("kmeleon.print.marginLeft", printMarginLeft, def);
-   _GetString("kmeleon.print.marginRight", printMarginRight, def);
-   _GetString("kmeleon.print.marginTop", printMarginTop, def);
-   _GetString("kmeleon.print.marginBottom", printMarginBottom, def);
-
-   _GetInt("kmeleon.print.scaling", printScaling, 100);
-   _GetBool("kmeleon.print.shrinkToFit", printShrinkToFit, true);
-   _GetInt("kmeleon.print.paperUnit", printUnit, nsIPrintSettings::kPaperSizeInches);
-   def.Format(_T("%.2f"), 8.5);
-   _GetString("kmeleon.print.paperWidth", printWidth, def);
-   def.Format(_T("%d"), 11);
-   _GetString("kmeleon.print.paperHeight", printHeight, def);
 
    // -- Download
 
@@ -407,7 +385,7 @@ void CPreferences::Save(bool clearPath)
    rv = m_prefs->SetIntPref("browser.history_expire_days", historyExpire);
    rv = m_prefs->SetBoolPref("kmeleon.favicons.cached", !bCacheFavicons);
 
-   if (!theApp.m_pMostRecentBrowserFrame || !(theApp.m_pMostRecentBrowserFrame->m_style & WS_POPUP)) {
+   if (!theApp.m_pMostRecentBrowserFrame || !(theApp.m_pMostRecentBrowserFrame->IsPopup())) {
       // -- Display settings
       rv = m_prefs->SetBoolPref("kmeleon.display.maximized", bMaximized);
       rv = m_prefs->SetIntPref("kmeleon.display.width", windowWidth);
@@ -437,30 +415,6 @@ void CPreferences::Save(bool clearPath)
    //	   rv = m_prefs->SetBoolPref("kmeleon.find.matchWholeWord", bFindMatchWholeWord);
    rv = m_prefs->SetBoolPref("kmeleon.find.wrapAround", bFindWrapAround);
    rv = m_prefs->SetBoolPref("kmeleon.find.searchBackwards", bFindSearchBackwards);
-
-
-   // -- Print Settings
-   _SetString("kmeleon.print.headerLeft",printHeaderLeft);
-   _SetString("kmeleon.print.headerMiddle",printHeaderMiddle);
-   _SetString("kmeleon.print.headerRight",printHeaderRight);
-
-   _SetString("kmeleon.print.footerLeft",printFooterLeft);
-   _SetString("kmeleon.print.footerMiddle",printFooterMiddle);
-   _SetString("kmeleon.print.footerRight",printFooterRight);
-
-   rv = m_prefs->SetBoolPref("kmeleon.print.BGColors", printBGColors);
-   rv = m_prefs->SetBoolPref("kmeleon.print.BGImages", printBGImages);
-
-   _SetString("kmeleon.print.marginLeft",printMarginLeft);
-   _SetString("kmeleon.print.marginRight",printMarginRight);
-   _SetString("kmeleon.print.marginTop",printMarginTop);
-   _SetString("kmeleon.print.marginBottom",printMarginBottom);
-
-   rv = m_prefs->SetBoolPref("kmeleon.print.shrinkToFit", printShrinkToFit);
-   rv = m_prefs->SetIntPref("kmeleon.print.scaling", printScaling);
-   rv = m_prefs->SetIntPref("kmeleon.print.paperUnit", printUnit);
-   _SetString("kmeleon.print.paperWidth",printWidth);
-   _SetString("kmeleon.print.paperHeight",printHeight);
 
 
    // -- Download
@@ -517,7 +471,7 @@ int CPreferences::GetInt(const char *preference, int defaultVal)
       return defaultVal;
 }
 
-int CPreferences::GetString(const char *preference, char *retVal, char *defaultVal)
+int CPreferences::GetString(const char *preference, char *retVal, const char *defaultVal)
 {
 	nsEmbedString string;
 	nsEmbedCString stringNat;
@@ -530,7 +484,7 @@ int CPreferences::GetString(const char *preference, char *retVal, char *defaultV
    return stringNat.Length();
 }
 
-int CPreferences::GetString(const char *preference, wchar_t *retVal, wchar_t *defaultVal)
+int CPreferences::GetString(const char *preference, wchar_t *retVal, const wchar_t *defaultVal)
 {
    nsEmbedString string;
    if (!m_prefs || !NS_SUCCEEDED(m_prefs->CopyUnicharPref(preference, getter_Copies(string))))
@@ -538,6 +492,15 @@ int CPreferences::GetString(const char *preference, wchar_t *retVal, wchar_t *de
    if (retVal)
       wcscpy(retVal, string.get());
    return string.Length();
+}
+
+CString CPreferences::GetString(const char *preference, LPCTSTR defaultVal)
+{
+	nsEmbedString string;
+   if (!m_prefs || !NS_SUCCEEDED(m_prefs->CopyUnicharPref(preference, getter_Copies(string))))
+		return defaultVal;
+	USES_CONVERSION;
+	return W2CT(string.get());
 }
 
 inline void CPreferences::SetString(const char *preference, const wchar_t *value)

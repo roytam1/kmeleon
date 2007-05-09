@@ -42,195 +42,203 @@
 #endif
 
 #include "IBrowserFrameGlue.h"
-#include "nsIX509Cert.h"
+#include "BrowserWindow.h"
+#include "MozUtils.h"
+
 /////////////////////////////////////////////////////////////////////////////
 // CBrowserView window
 
 class CBrowserFrame;
+class CBrowserGlue;
 class CBrowserImpl;
-class CFindDialog;
-class CPrintProgressDialog; 
-class nsIPrintSettings;                                                         
 class CFavIconListener;
+class CBrowserWrapper;
+class CFindDialog;
+class CPrintProgressDialog;
 
-
-#define UTF16ToCString(source,dest) \
-{\
-	USES_CONVERSION;\
-	strcpy(dest, W2CA(source.get()));\
-}
-class CSaveAsHandler : public nsIWebProgressListener					    
+typedef enum
 {
-public:
-   CSaveAsHandler(nsIWebBrowserPersist* aPersist, nsIFile* aFile, nsIURI* aURL, nsIDOMDocument* aDocument,nsISupports* aDescriptor, nsIURI* aReferrer, CBrowserFrame* aBrower );
-   virtual ~CSaveAsHandler();
-   NS_DECL_ISUPPORTS
-   NS_DECL_NSIWEBPROGRESSLISTENER
-   NS_IMETHOD Save(const char* contentType, const char* disposition = NULL);
+	CONTEXT_NONE		= 0,
+    CONTEXT_LINK		= 1, 
+    CONTEXT_IMAGE		= 2,
+    CONTEXT_DOCUMENT	= 4,
+    CONTEXT_TEXT		= 8,
+    CONTEXT_INPUT		= 16,
+	CONTEXT_BACKGROUND_IMAGE = 32,
+	CONTEXT_FRAME		= 64,
+	CONTEXT_SELECTION   = 128
+} ContextFlags;
 
-protected:
-	nsIWebBrowserPersist* mPersist; 
-	nsCOMPtr<nsISupports> mDescriptor;
-	nsCOMPtr<nsIFile> mFile;
-	nsCOMPtr<nsIURI> mURL;
-	nsCOMPtr<nsIURI> mRealURI;
-	nsCOMPtr<nsIDOMDocument> mDocument;
-	nsCOMPtr<nsIURI> mReferrer;
-	nsEmbedCString mContentDisposition;
-	CBrowserFrame* mBrowser;
-};
+	struct SContextData
+	{
+		PRInt32 flags;
+		nsCOMPtr<nsIDOMNode> node;
+		//nsCOMPtr<nsIDOMEvent> event;
+
+		BOOL contextMenu;
+		CString linkUrl;
+		CString imageUrl;
+		CString frameUrl;
+
+		SContextData() : node(nsnull), /*event(nsnull),*/ contextMenu(FALSE), flags(0) {}
+	};
+
 
 class CBrowserView : public CWnd
 {
+
 public:
+
+	DECLARE_DYNAMIC(CBrowserView)
+
+	/*** XXXXXXXXXXXXXXXXX  */
+
+	CString GetCurrentURI() { return m_pWindow->GetURI(); }
+	CString GetPageTitle() { return m_pWindow->GetTitle(); }
+
+	nsCOMPtr<nsIDOMNode> m_contextNode;
+	CString GetContextLinkUrl() {
+		CString url, title;
+		::GetLinkTitleAndHref(m_contextNode, url, title);
+		return url;
+	}
+		
+	CString GetContextLinkTitle() {
+		CString url, title;
+		::GetLinkTitleAndHref(m_contextNode, url, title);
+		return title;
+	}
+
+	CString GetContextImageUrl() {
+		CString imgSrc;
+		if (!::GetImageSrc(m_contextNode, imgSrc))
+			::GetBackgroundImageSrc(m_contextNode, imgSrc);
+		return imgSrc;
+	}
+
+	CString GetContextFrameUrl() {
+		return m_pWindow->GetFrameURL(m_contextNode);
+	}
+
+	//nsCOMPtr<nsIURI> m_IconUri;
+	int GetSiteIcon(); 
+
+	void Highlight(const wchar_t* string, BOOL matchCase);
+	/**************************/
+
+protected:
+	PBROWSERGLUE m_pBrowserGlue;
+	CBrowserFrame* mpBrowserFrame;
+
+public:
+	PBROWSERFRAMEGLUE m_pBrowserFrameGlue;
+	
 	CBrowserView();
 	virtual ~CBrowserView();
 
-	// Some helper methods
-	HRESULT CreateBrowser();
-	HRESULT DestroyBrowser();
-	void OpenURL(const char* pUrl, nsIURI *refURI=nsnull, BOOL allowFixup = FALSE);
-	void OpenURL(const PRUnichar* pUrl, nsIURI *refURI=nsnull, BOOL allowFixup = FALSE);
-	CString CBrowserView::NicknameLookup(const CString& typedUrl);
-    //void OpenSingleURL(char *urls);
-    void OpenMultiURL(LPTSTR urls, BOOL allowFixup = FALSE);
-	CBrowserFrame* CreateNewBrowserFrame(PRUint32 chromeMask = nsIWebBrowserChrome::CHROME_ALL, 
-							PRInt32 x = -1, PRInt32 y = -1, 
-							PRInt32 cx = -1, PRInt32 cy = -1,
-							PRBool bShowWindow = PR_TRUE);
-	CBrowserFrame* OpenURLInNewWindow(const char* pUrl, BOOL bBackground=FALSE, nsIURI *refURI=nsnull, BOOL allowFixup = FALSE);
-    CBrowserFrame* OpenURLInNewWindow(const PRUnichar* pUrl, BOOL bBackground=FALSE, nsIURI *refURI=nsnull, BOOL allowFixup = FALSE);
+	CString NicknameLookup(const CString& typedUrl);
+	//void OpenURL(LPCTSTR url, BOOL sendRef = FALSE, BOOL allowFixup = FALSE);
+	void OpenURL(LPCTSTR url, LPCTSTR refferer = NULL, BOOL allowFixup = FALSE);
+	void OpenMultiURL(LPCTSTR urls, BOOL allowFixup = FALSE);
+	//CBrowserFrame* OpenURLInNewWindow(LPCTSTR url, BOOL bBackground=FALSE, BOOL sendRef = FALSE, BOOL allowFixup = FALSE);
+	CBrowserFrame* OpenURLInNewWindow(LPCTSTR url, LPCTSTR refferer = NULL, BOOL bBackground=FALSE, BOOL allowFixup = FALSE);
 	void LoadHomePage();
 
-	void GetPageTitle(CString& title);
+	CBrowserWrapper* GetBrowserWrapper() { ASSERT(this!=NULL); if (this==NULL) return NULL; return m_pWindow; }
+	CBrowserGlue*    GetBrowserGlue() { ASSERT(this!=NULL); return (CBrowserGlue*)m_pBrowserGlue; }
+
+
+	BOOL CloneBrowser(CBrowserView* browserView) { return m_pWindow->CloneSHistory(browserView->m_pWindow); }
+
+	CBrowserFrame* CreateNewBrowserFrame(
+						PRUint32 chromeMask = nsIWebBrowserChrome::CHROME_ALL, 
+						PRInt32 x = -1, PRInt32 y = -1, 
+						PRInt32 cx = -1, PRInt32 cy = -1,
+						PRBool bShowWindow = PR_TRUE);
+	/*
+	void OpenURL(const char* pUrl, nsIURI *refURI=nsnull, BOOL allowFixup = FALSE);
+	void OpenURL(const PRUnichar* pUrl, nsIURI *refURI=nsnull, BOOL allowFixup = FALSE);
 	
+    //void OpenSingleURL(char *urls);
+   
+
+	CBrowserFrame* OpenURLInNewWindow(const char* pUrl, BOOL bBackground=FALSE, nsIURI *refURI=nsnull, BOOL allowFixup = FALSE);
+    CBrowserFrame* OpenURLInNewWindow(const PRUnichar* pUrl, BOOL bBackground=FALSE, nsIURI *refURI=nsnull, BOOL allowFixup = FALSE);
+	*/
+
 	// Called by the CBrowserFrame after it creates the view
 	// Essentially a back pointer to the BrowserFrame
 	void SetBrowserFrame(CBrowserFrame* pBrowserFrame);
-	CBrowserFrame* mpBrowserFrame;
 
 	// Called by the CBrowserFrame after it creates the view
 	// The view passes this on to the embedded Browser's Impl
 	// obj
 	void SetBrowserFrameGlue(PBROWSERFRAMEGLUE pBrowserFrameGlue);
-	PBROWSERFRAMEGLUE mpBrowserFrameGlue;
-
-	// Pointer to the object which implements
-	// the inerfaces required by Mozilla embedders
-	//
-	CBrowserImpl* mpBrowserImpl;
-#ifdef INTERNAL_SITEICONS
-	nsCOMPtr<CFavIconListener> mFavIconListener;
-	nsCOMPtr<nsIURI> m_IconUri;
-#endif
-	// Mozilla interfaces
-	//
-	nsCOMPtr<nsIWebBrowser> mWebBrowser;
-	nsCOMPtr<nsIBaseWindow>  mBaseWindow;
-	nsCOMPtr<nsIWebNavigation> mWebNav;
-	nsCOMPtr<nsIDOMEventTarget> mEventTarget;
-	nsCOMPtr<nsIWebBrowserFocus> mWebBrowserFocus;
+	void SetBrowserGlue(PBROWSERGLUE pBrowserGlue);
 	
-	BOOL m_bUrlJustEntered;
+	
 
-	void UpdateBusyState(PRBool aBusy);
-	PRBool mbDocumentLoading;
-	BOOL mbDOMLoaded;
+//    nsIDOMWindow *FindDOMWindow(nsIDOMWindow *window, nsIDOMDocument *document);
 
-    nsIDOMNode *GetNodeAtPoint(int x, int y, BOOL bPrepareMenu);
-    int m_iGetNodeHack;
-    nsCOMPtr<nsIDOMNode> m_pGetNode;
-	nsCOMPtr<nsIDOMNode> m_lastMouseActionNode;
-   
-    nsIDOMWindow *FindDOMWindow(nsIDOMWindow *window, nsIDOMDocument *document);
-
-    nsIDocShell *CBrowserView::GetDocShell();
-    BOOL GetCharset(char* aCharset);
-    BOOL ForceCharset(char *aCharSet);
-
-    void SetCtxMenuLinkUrl(nsEmbedString& strLinkUrl);
+/*    void SetCtxMenuLinkUrl(nsEmbedString& strLinkUrl);
 	nsEmbedString mCtxMenuLinkUrl;
 
 	void SetCtxMenuImageSrc(nsEmbedString& strImgSrc);
 	nsEmbedString mCtxMenuImgSrc;
 
     void SetCurrentFrameURL(nsEmbedString& strcCurrentFrameURL);
-    nsEmbedString mCtxMenuCurrentFrameURL;
+    nsEmbedString mCtxMenuCurrentFrameURL;*/
 
 	void Activate(BOOL bActive);
 
-	BOOL OpenViewSourceWindow(const PRUnichar* pUrl);
-    BOOL OpenViewSourceWindow(const char* pUrl);  
+	//BOOL OpenViewSourceWindow(const PRUnichar* pUrl);
+    BOOL OpenViewSourceWindow(const char* pUrl = NULL);  
     BOOL IsViewSourceUrl(CString& strUrl);
+	BOOL SaveLink(LPCTSTR url);
 
-    enum _securityState {
+/*    enum _securityState {
         SECURITY_STATE_SECURE,
         SECURITY_STATE_INSECURE,
         SECURITY_STATE_BROKEN
-    };
-
-    int m_SecurityState;
+    };*/
+    
     void ShowSecurityInfo();
-	BOOL GetCertificate(nsIX509Cert** certificate);
-	BOOL GetSecurityInfo(CString &sign);
-
-    BOOL ViewContentContainsFrames();
-
-    void StartPanning();
+    void StartPanning(BOOL accel);
     void StopPanning();
-    BOOL m_panning;
-    BOOL m_panningQuick;
-    CPoint m_panningPoint;
-    nsCOMPtr<nsIDOMWindow> s;
-  
-	afx_msg LRESULT RefreshToolBarItem(WPARAM ItemID, LPARAM unused);
+
+	//afx_msg LRESULT RefreshToolBarItem(WPARAM ItemID, LPARAM unused);
 
     TCHAR * GetTempFile();
     void DeleteTempFiles();
 
-    BOOL GetCurrentURI(CString& uri);
-
-    inline void ClearFindDialog() { m_pFindDlg = NULL; }
-
-   // void GetBrowserWindowTitle(nsEmbedString& title);
-
-    BOOL URISaveAs(nsIURI *aURI, int bDocument=0);
-	BOOL URISaveAs(PRUnichar* aURI , int bDocument=0);
-
-    void OnIncreaseFont();
-    void OnDecreaseFont();
-    void ChangeTextSize(PRInt32 change);
-	int GetTextSize();
-
-	BOOL InputHasFocus();
-	BOOL GetSelection(CString&);
-	BOOL GetUSelection(nsEmbedString&);
-	BOOL InjectCSS(const wchar_t* userStyleSheet);
-	BOOL InjectJS(const wchar_t* userJS, bool bTopWindow = true);
-    BOOL GetPrintSettings();
-	BOOL CloneSHistory(CBrowserView& newWebBrowser);
-
-	CString m_csHostPopupBlocked;
+  //  inline void ClearFindDialog() { m_pFindDlg = NULL; }
+	void AddURLAndPerformDrag(COleDataSource& datasource);
 
 protected:
-	BOOL _GetSelection(nsIDOMWindow* dom, nsAString& aSelText);
-	BOOL _InjectCSS(nsIDOMWindow* dom, const wchar_t* userStyleSheet);
 	void _OnNavReload(BOOL force = FALSE);
-    void Highlight(BOOL);
+	
+	virtual void PostNcDestroy() {
+		delete this;
+	}
+   
 
+	CBrowserWrapper* m_pWindow;
 	nsEmbedString m_lastHighlightWord;
-	BOOL m_refreshBackButton;
-	BOOL m_refreshForwardButton; 
+//	BOOL m_refreshBackButton;
+//	BOOL m_refreshForwardButton; 
     BOOL m_InPrintPreview;
     TCHAR **m_tempFileList;
     int m_tempFileCount;
-    int maccel_cmd;
-    int maccel_key;
-    int maccel_pan;
-	int m_iIcon;
+    
+    BOOL maccel_pan;
+	BOOL m_panning;
+    BOOL m_panningQuick;
+    CPoint m_panningPoint;
+	
+	
   
-    CFindDialog* m_pFindDlg;
-    CPrintProgressDialog* m_pPrintProgressDlg;
+   // CFindDialog* m_pFindDlg;
+   // CPrintProgressDialog* m_pPrintProgressDlg;
 
     // Indicates whether we are currently printing      
     BOOL m_bCurrentlyPrinting;   
@@ -242,11 +250,7 @@ protected:
 	virtual BOOL PreCreateWindow(CREATESTRUCT& cs);
     virtual BOOL PreTranslateMessage(MSG* pMsg);
 	//}}AFX_VIRTUAL  
-  
     // Generated message map functions
-protected:
-	nsCOMPtr<nsIPrintSettings> m_PrintSettings;
-    
 	//{{AFX_MSG(CBrowserView)
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	afx_msg void OnDestroy();
@@ -261,7 +265,6 @@ protected:
     afx_msg void OnUrlKillFocus();
 	afx_msg void OnUrlSetFocus();
     afx_msg void OnUrlEditChange();
-    afx_msg void OnSelectUrl();
 	afx_msg void OnFileOpen();
 	afx_msg void OnFileSaveAs();
 	afx_msg void OnFileSaveFrameAs();
@@ -275,10 +278,10 @@ protected:
 	afx_msg void OnNavReload();
 	afx_msg void OnNavForceReload(); 
 	afx_msg void OnNavStop();
-    afx_msg void OnToggleOffline();
 	afx_msg void OnCut();
 	afx_msg void OnCopy();
 	afx_msg void OnPaste();
+	afx_msg void OnUndo();
 	afx_msg void OnSelectAll();
 	afx_msg void OnSelectNone();
 	afx_msg void OnCopyLinkLocation();
@@ -298,9 +301,6 @@ protected:
     afx_msg void OnFilePrintSetup();
     afx_msg void OnUpdateFilePrint(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateFilePrintPreview(CCmdUI* pCmdUI);
-    afx_msg void OnUpdateViewStatusBar(CCmdUI* pCmdUI);
-    afx_msg void OnFindNext();
-    afx_msg void OnFindPrev();
     //afx_msg LRESULT OnFindMsg(WPARAM wParam, LPARAM lParam);
     afx_msg void OnKmeleonHome();
     afx_msg void OnKmeleonForum();
@@ -314,22 +314,19 @@ protected:
 	afx_msg void OnUpdateCut(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateCopy(CCmdUI* pCmdUI);
 	afx_msg void OnUpdatePaste(CCmdUI* pCmdUI);
+	afx_msg void OnUpdateUndo(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateViewImage(CCmdUI* pCmdUI);
-	afx_msg void OnAppAbout();
-	afx_msg void OnWindowNext();
-	afx_msg void OnWindowPrev();
     afx_msg void OnViewFrameSource();
     afx_msg void OnOpenFrame();
     afx_msg void OnOpenFrameInBackground();
     afx_msg void OnOpenFrameInNewWindow();   
     afx_msg void OnMouseAction();
-	afx_msg void OnWrapAround();
-	afx_msg void OnMatchCase();
-	afx_msg void OnHighlight();
 	afx_msg void OnSecurityStateIcon();
 	afx_msg void OnPopupBlockedIcon();
-
-    afx_msg void OnEditURL( NMHDR * pNotifyStruct, LRESULT * result );
+	afx_msg void OnIncreaseFont();
+    afx_msg void OnDecreaseFont();
+    afx_msg void OnBeginEditURL( NMHDR * pNotifyStruct, LRESULT * result );
+	afx_msg void OnEndEditURL( NMHDR * pNotifyStruct, LRESULT * result );
     afx_msg void OnDragURL( NMHDR * pNotifyStruct, LRESULT * result );
     //afx_msg void OnDropFiles( HDROP );
 	//}}AFX_MSG

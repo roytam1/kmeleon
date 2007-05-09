@@ -27,9 +27,9 @@
 #include <cderr.h>
 #include "UnknownContentTypeHandler.h"
 #include "Utils.h"
-
+#include "MozUtils.h"
 #include "MfcEmbed.h"
-extern CMfcEmbedApp theApp;
+
 
 #include "nsIFileURL.h"
 #include "nsIHttpChannel.h"
@@ -155,16 +155,12 @@ CUnknownContentTypeHandler::PromptForSaveToFile(nsIHelperAppLauncher *aLauncher,
 
 	CString pathName;
 
-	//TCHAR *tmp = _tcsdup(W2CT(aDefaultFile));
-	CString defaultFile = W2CT(aDefaultFile);
-
-	//free(tmp);
-
-	if (theApp.preferences.bUseDownloadDir && !theApp.preferences.downloadDir.IsEmpty())
+	CString downloadDir = theApp.preferences.downloadDir;
+	if (theApp.preferences.bUseDownloadDir && !downloadDir.IsEmpty())
 	{
-		if (theApp.preferences.downloadDir[theApp.preferences.downloadDir.GetLength()-1] != '\\')
-			theApp.preferences.downloadDir += '\\';
-		pathName = theApp.preferences.downloadDir + defaultFile;
+		if (downloadDir[downloadDir.GetLength()-1] != '\\')
+			downloadDir += '\\';
+		pathName = downloadDir + PRUnicharToCString(aDefaultFile);
 	}
 	else
 	{
@@ -175,7 +171,7 @@ CUnknownContentTypeHandler::PromptForSaveToFile(nsIHelperAppLauncher *aLauncher,
 		filter += W2CT(aSuggestedFileExtension);
 		filter += "|All Files|*.*||";
 
-		defaultFile = theApp.preferences.lastDownloadDir + defaultFile;
+		CString defaultFile = (CString)theApp.preferences.lastDownloadDir + PRUnicharToCString(aDefaultFile);
 
 		const TCHAR *ext = W2CT(aSuggestedFileExtension);
 		if (*ext == _T('.'))
@@ -211,7 +207,7 @@ CUnknownContentTypeHandler::PromptForSaveToFile(nsIHelperAppLauncher *aLauncher,
 			if (CommDlgExtendedError() == FNERR_INVALIDFILENAME)
 			{
 				_tcscpy(szFileName, W2CT(aDefaultFile));
-				theApp.preferences.downloadDir = "";
+				theApp.preferences.lastDownloadDir = _T("");
 				bGetFile = ::GetSaveFileName(&ofn);
 			}
 		}

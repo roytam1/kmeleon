@@ -39,7 +39,8 @@ Bug:	Changing skin need to delete the iconcache.
 #include "nsIImage.h"
 
 #include "mfcembed.h"
-extern CMfcEmbedApp theApp;
+#include "kmeleon_plugin.h"
+
 
 //#define PNG_SUPPORT
 

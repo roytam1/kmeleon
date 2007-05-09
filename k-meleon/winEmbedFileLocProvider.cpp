@@ -49,6 +49,7 @@
 #include <shlobj.h>
 
 #include "MfcEmbed.h"
+#include "kmeleon_plugin.h"
 extern CMfcEmbedApp theApp;
 
 

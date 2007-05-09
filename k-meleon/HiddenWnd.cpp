@@ -18,7 +18,8 @@
 
 #include "stdafx.h"
 #include "HiddenWnd.h"
-
+#include "BrowserView.h" //XX
+#include "SaveAsHandler.h"
 
 BEGIN_MESSAGE_MAP(CHiddenWnd, CFrameWnd)
 	//{{AFX_MSG_MAP(CHiddenWnd)
@@ -48,10 +49,11 @@ int CHiddenWnd::OnCreate(LPCREATESTRUCT lpCreateStruct) {
 
    // Check if the tray control is running, and get the persist setting from it
    QueryPersistFlags();
+   USES_CONVERSION;
    if (m_bStayResident)
       StayResident();
    else
-      if (!ShowBrowser(theApp.m_lpCmdLine))
+	   if (!ShowBrowser(A2T(theApp.cmdline.m_sCmdLine)))
 		  return -1;
 
    return CFrameWnd::OnCreate(lpCreateStruct);
@@ -194,12 +196,16 @@ BOOL CHiddenWnd::ShowBrowser(LPTSTR URI) {
    // otherwise, just create a new browser
    else */{
 	  int openmode = theApp.preferences.GetInt("browser.link.open_external", 2);
-	  CBrowserFrame* browser;
-	  if (openmode == 1 && theApp.m_pMostRecentBrowserFrame ) {
-		browser = theApp.m_pMostRecentBrowserFrame;
-		if (browser->IsIconic()) browser->ShowWindow(SW_RESTORE); else browser->SetForegroundWindow();
-	  } else {
+	  CBrowserFrame* browser = NULL;
+	  if (openmode == 2 || !theApp.m_pMostRecentBrowserFrame ) {
 		browser = theApp.CreateNewBrowserFrame();
+		browser->ShowWindow(SW_SHOW);
+	  } else  {
+		  if (theApp.m_pMostRecentBrowserFrame) {
+			  browser = theApp.m_pMostRecentBrowserFrame;
+			  CBrowserGlue* glue = browser->GetActiveView()->GetBrowserGlue();
+			  if (glue) if (!glue->ReuseWindow(openmode == 1)) browser = theApp.CreateNewBrowserFrame(); //XXXXXX
+		  }
 	  }
 
       if (!browser) {
@@ -210,19 +216,20 @@ BOOL CHiddenWnd::ShowBrowser(LPTSTR URI) {
       if (URI && *URI) {
          // if the URI is in quotes, strip them off
          int len = _tcslen(URI);
-         if (URI[0] == _T('"'))
-		 {
-			 if (URI[len-1] == _T('"'))
-				URI[len-1] = 0;
+         if (URI[0] == _T('"')) {
+			 if (URI[len-1] == _T('"')) URI[len-1] = 0;
 			 URI++;
          }
-         browser->m_wndBrowserView.OpenURL(URI);
+         browser->OpenURL(URI);
       }
-      else {
-         browser->SetFocus();
-         // browser->m_wndUrlBar.MaintainFocus();
-         browser->m_wndBrowserView.LoadHomePage();
-      }
+	  else {
+		  // browser->m_wndUrlBar.MaintainFocus();
+		  browser->GetActiveView()->LoadHomePage();
+	  }
+	  
+	  if (browser->IsIconic()) browser->ShowWindow(SW_RESTORE);
+	  browser->BringWindowToTop(); 
+	  browser->SetForegroundWindow();
    }
 
    m_bPersisting = FALSE;

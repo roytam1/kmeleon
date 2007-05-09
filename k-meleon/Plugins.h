@@ -26,7 +26,10 @@
 #include <afxtempl.h>
 
 #include "Preferences.h"
-#include "kmeleon_plugin.h"
+
+struct kmeleonPlugin;
+struct configFileType;
+
 
 class CPlugins {
   friend CPreferencePagePlugins;

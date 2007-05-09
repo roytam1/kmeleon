@@ -34,10 +34,11 @@ int CBrowserView::OnMouseActivate(CWnd* pDesktopWnd, UINT nHitTest, UINT message
 {
 	// Give the focus to the browser if it don't have it.
 	if (!::IsChild(m_hWnd, ::GetFocus())) {
-		mWebBrowserFocus->Activate();
+		m_pWindow->SetActive(TRUE);
 		mpBrowserFrame->m_wndLastFocused = NULL;
 	}
 
+/*
    int id;
    id = theApp.accel.CheckMouse(message);
 
@@ -56,7 +57,7 @@ int CBrowserView::OnMouseActivate(CWnd* pDesktopWnd, UINT nHitTest, UINT message
 	  if (id) {
 		 maccel_cmd = id;
 		 maccel_key = message;
-		 PostMessage(WM_COMMAND, (WPARAM)ID_MOUSE_ACTION, 0/*(LPARAM)id*/);
+		 PostMessage(WM_COMMAND, (WPARAM)ID_MOUSE_ACTION, 0);
 		 return MA_ACTIVATE;
 	  }
 	  else {
@@ -66,10 +67,10 @@ int CBrowserView::OnMouseActivate(CWnd* pDesktopWnd, UINT nHitTest, UINT message
 		 }
 	  }
    }
-
+*/
    return CWnd::OnMouseActivate(pDesktopWnd, nHitTest, message);
 }
-
+/*
 nsIDOMWindow *CBrowserView::FindDOMWindow(nsIDOMWindow *window, nsIDOMDocument *document) {
   nsCOMPtr<nsIDOMDocument> windoc;
   window->GetDocument(getter_AddRefs(windoc));
@@ -96,25 +97,26 @@ nsIDOMWindow *CBrowserView::FindDOMWindow(nsIDOMWindow *window, nsIDOMDocument *
 
   return NULL;
 }
-
+*/
 void CBrowserView::OnTimer(UINT nIDEvent)
 {
    switch(nIDEvent){
    case 0x1:
       if(m_panning) {
-         if (!s) return;
+         //if (!s) return;
 
          POINT p;
          GetCursorPos(&p);
 
-         int scroll_x,scroll_y;
+         //int scroll_x,scroll_y;
 
-         s->GetScrollX(&scroll_x);
-         s->GetScrollY(&scroll_y);
+         //s->GetScrollX(&scroll_x);
+         //s->GetScrollY(&scroll_y);
 
          int dx = (p.x-m_panningPoint.x)/10;
          int dy = (p.y-m_panningPoint.y)/10;
-
+		 m_pWindow->ScrollBy(dx, dy);
+/*
          if(dy!=0) {
             if(dy>0)	scroll_y += dy*dy; 
             else scroll_y -= dy*dy;
@@ -125,7 +127,7 @@ void CBrowserView::OnTimer(UINT nIDEvent)
             if(dx>0)	scroll_x += dx*dx;
             else scroll_x -= dx*dx;
             s->ScrollTo(scroll_x,scroll_y);
-         }
+         }*/
          /* cursor flickering : https://bugzilla.mozilla.org/show_bug.cgi?id=316352 */
          int cursor;
          if (dx < 0) {
@@ -153,14 +155,16 @@ void CBrowserView::OnTimer(UINT nIDEvent)
    CWnd::OnTimer(nIDEvent);
 }
 
-void CBrowserView::StartPanning()
+void CBrowserView::StartPanning(BOOL accel)
 {
-   s = NULL;
+   if (accel) maccel_pan = 1;
+
    m_panning = 1;
    m_panningQuick = theApp.preferences.GetBool("kmeleon.general.quickAutoscroll", FALSE);
    GetCursorPos(&m_panningPoint);
-
-   mWebBrowser->GetContentDOMWindow(getter_AddRefs(s)); 
+/*
+   nsCOMPtr<nsIWebBrowser> browser = m_pWindow->GetWebBrowser();
+   browser->GetContentDOMWindow(getter_AddRefs(s)); 
    if(!s) return;
 
    nsCOMPtr<nsIDOMWindowCollection> frameset;
@@ -174,9 +178,9 @@ void CBrowserView::StartPanning()
 		   // get the DOMNode at the point
 		 //  nsCOMPtr<nsIDOMNode> aNode;
 		 //  GetNodeAtPoint(m_panningPoint.x, m_panningPoint.y, TRUE);
-		   if (m_lastMouseActionNode) {
+		   if (m_contextNode) {
 			   nsCOMPtr<nsIDOMDocument> ownerdoc;
-			   m_lastMouseActionNode->GetOwnerDocument(getter_AddRefs(ownerdoc));
+			   m_contextNode->GetOwnerDocument(getter_AddRefs(ownerdoc));
 
 			   if (ownerdoc)
 				   s = FindDOMWindow(s, ownerdoc);
@@ -185,10 +189,10 @@ void CBrowserView::StartPanning()
 		   if(!s) return;
 	   }
    }
-
+*/
    SetCapture();
    SetTimer(0x1,20,NULL);
-   SetFocus();
+   //SetFocus();
 }
 
 void CBrowserView::StopPanning()
@@ -198,19 +202,13 @@ void CBrowserView::StopPanning()
    KillTimer(0x1);
    m_panning = 0;
    maccel_pan = 0;
-   
-   nsCOMPtr<nsIDOMWindowInternal> pWin ( do_QueryInterface(s) );
-   if ( pWin )
-     pWin->Focus();
-
-   s = NULL;
 }
 
 BOOL CBrowserView::PreTranslateMessage(MSG* pMsg)
-{
+{/*
   if(m_panning && (pMsg->message==WM_SETCURSOR || pMsg->message==WM_MOUSEMOVE))
     return 1;
-
+*/
   if(m_panning && (pMsg->message==WM_LBUTTONDOWN || (pMsg->message==WM_MBUTTONDOWN && maccel_pan) || (pMsg->message==WM_MBUTTONUP && m_panningQuick) || pMsg->message==WM_RBUTTONDOWN || pMsg->message==WM_MOUSEWHEEL))
     StopPanning();
 

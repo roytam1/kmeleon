@@ -84,6 +84,7 @@
 #include <afxcmn.h>			// MFC support for Windows Common Controls
 #endif // _AFX_NO_AFXCMN_SUPPORT
 #include <afxtempl.h>
+#include <afxole.h>
 
 #if defined(THERECANBENODEBUG) && defined(DEBUG)
 #undef DEBUG
@@ -100,37 +101,30 @@
 
 // docshell: 
 #include "nsIDocShell.h"
-#include "nsIWebNavigation.h"
-#include "nsIDocShellTreeOwner.h"
-#include "nsIDocShellTreeItem.h"
 
 // dom:
 #include "nsIDOMNode.h"
 #include "nsIDOMWindow.h"
+#include "nsIDOMDocument.h"
+#include "nsIDOMElement.h"
+#include "nsIDOMHTMLDocument.h"
+
+/*
 #include "nsIDOMWindowCollection.h"
 #include "nsIDOMHTMLAnchorElement.h"
 #include "nsIDOMHTMLImageElement.h"
-#include "nsIDOMDocument.h"
-#include "nsIDOMHTMLDocument.h"
+#include "nsIWebNavigation.h"
+#include "nsIDocShellTreeOwner.h"
+#include "nsIDocShellTreeItem.h"
 #include "nsIDOMHTMLFrameSetElement.h"
+*/
 
 // embed_base: 
 #include "nsEmbedAPI.h"
 #include "nsIWindowCreator.h"
 
-// exthandler: 
-#include "nsIExternalHelperAppService.h"
-
-// find: 
-#include "nsIWebBrowserFind.h"
-
-// gfx: 
-
-// helperAppDlg: 
-#include "nsIHelperAppLauncherDialog.h"
-
 // necko: 
-#include "nsIPrompt.h"
+//#include "nsIPrompt.h"
 #include "nsIURI.h"
 
 // nkcache:
@@ -142,10 +136,6 @@
 // profile:
 #include "nsIProfile.h"
 #include "nsIProfileChangeStatus.h"
-
-// shistory:
-#include "nsISHistory.h"
-#include "nsISHEntry.h"
 
 // string:
 #include "nsEmbedString.h"
@@ -159,11 +149,9 @@
 
 // webBrowser_core: 
 #include "nsIWebBrowser.h"
+#include "nsIWebBrowserChrome.h"
 #include "nsIContextMenuListener2.h"
 #include "nsIWebBrowserPrint.h"
-#include "nsIWebBrowserChrome.h"
-#include "nsITooltipListener.h"
-#include "nsIWebBrowserFocus.h"
 #include "nsIEmbeddingSiteWindow2.h"
 #include "nsCWebBrowser.h"
 
@@ -174,10 +162,11 @@
 #include "nsIClipboardCommands.h"
 
 // widget:
+/*
 #include "nsIBaseWindow.h"
 #include "nsWidgetsCID.h"
 #include "nsIFilePicker.h"
-#include "nsIWidget.h"
+#include "nsIWidget.h"*/
 
 // xpcom:
 #include "nsCOMPtr.h"
@@ -195,8 +184,6 @@
 #include "nsComponentManagerUtils.h"
 #include "nsNetCID.h"
 #include "nsIInterfaceRequestorUtils.h"
-
-#include "nsIPrintSettings.h"
 
 // nspr: 
 

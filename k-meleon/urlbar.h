@@ -84,11 +84,7 @@ class CUrlBar : public CComboBoxEx
 {
 public:
 	CUrlBar(){
-		m_bFocusEnabled = theApp.preferences.bNewWindowHasUrlFocus = theApp.preferences.GetBool("kmeleon.display.NewWindowHasUrlFocus", FALSE); //bNewWindowHasUrlFocus;
-        m_preserveUrlBarFocus = FALSE;
         m_changed = FALSE;
-        m_bSelected = FALSE;
-        m_iFocusCount = 0;
 
 		// Initialise background brushs & colors for highlight
 		m_HighlightType = 0;
@@ -141,32 +137,40 @@ public:
 		return ret;
 
     }
-    inline void GetEnteredURL(CString& url) {
-        GetWindowText(url);
+    inline void GetEnteredURL(CString& url, BOOL ignoreTyped = FALSE) {
+		if (!ignoreTyped)
+			GetWindowText(url);
+		else
+			url = m_currentURL;
     }
-    inline void SetSelected(BOOL aSelected) {
-        m_bSelected = aSelected;
-    }
+	inline void ResetURL()
+	{
+		SetWindowText(m_currentURL);
+	}
+
     inline BOOL GetSelectedURL(CString& url) {
-        //if (!m_bSelected) {
           int nIndex = GetCurSel();
           if (nIndex != LB_ERR) {
               GetLBText(nIndex, url);
-              m_bSelected = TRUE;
               return TRUE;
           }
-        //}
         return FALSE;
     }   
-    inline void SetCurrentURL(LPCTSTR pUrl) {
-		if (!m_changed) {
+    inline void SetCurrentURL(LPCTSTR pUrl, BOOL always = FALSE) {
+		m_currentURL = pUrl;
+		if (!m_changed || always) {
+			DWORD oldSelection = GetEditCtrl()->GetSel();
+			if (HIWORD(oldSelection) != LOWORD(oldSelection) || GetWindowTextLength() == 0)
+				oldSelection = MAKELONG(LOWORD(oldSelection), -1);
+
             if (_tcsncicmp(pUrl, _T("javascript:"), 11))
                 SetWindowText(pUrl);
-            m_changed = FALSE;
-			if (!CheckFocus())
-				GetEditCtrl()->SetSel(0,0);
-			else
-				GetEditCtrl()->SetSel(0,-1);
+			TRACE0("EditChanged FALSE in SetCurrentURL\n");
+            EditChanged(FALSE);
+			//if (!CheckFocus())
+				GetEditCtrl()->SetSel(oldSelection, TRUE);
+			//else
+//				GetEditCtrl()->SetSel(0,-1, TRUE);
         }
     }   
 
@@ -186,7 +190,7 @@ public:
          while (pos)
             AddURLToList(theApp.m_MRUList->GetPrev(pos));
     }
-    int SetSoftFocus() {
+    /*int SetSoftFocus() {
         if (IsIconic() || !IsWindowVisible())
 	        return 0;
         HWND toplevelWnd = m_hWnd;
@@ -220,7 +224,7 @@ public:
     }
     void EndFocus() {
         m_preserveUrlBarFocus = FALSE;
-    }
+    }*/
     inline void EditChanged(BOOL state) {
         m_changed = state;
     }
@@ -237,11 +241,8 @@ protected:
 	CBrush m_brBkgnd[3]; // Background brushs
     int m_HighlightType; // Current background color
 
-	BOOL m_preserveUrlBarFocus;
     BOOL m_changed;
-    BOOL m_bSelected;
-    BOOL m_bFocusEnabled;
-    int  m_iFocusCount;
+    CString m_currentURL;
 	
 	CUrlBarEdit m_UrlBarEdit;
 public:
@@ -250,5 +251,8 @@ public:
 #ifdef INTERNAL_SITEICONS
 	afx_msg void OnCbenGetdispinfo(NMHDR *pNMHDR, LRESULT *pResult);
 #endif
+	afx_msg void OnCbenEndedit(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg void OnCbnEditchange();
+	afx_msg void OnCbnSelchange();
 };
 

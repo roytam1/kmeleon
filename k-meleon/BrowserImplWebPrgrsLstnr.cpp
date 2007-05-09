@@ -56,10 +56,7 @@ NS_IMETHODIMP CBrowserImpl::OnProgressChange(nsIWebProgress *progress,
                                              PRInt32 curTotalProgress,
                                              PRInt32 maxTotalProgress)
 {
-  if(! m_pBrowserFrameGlue) {
-    // always return NS_OK
-    return NS_OK;
-  }
+  NS_ENSURE_TRUE(m_pBrowserFrameGlue, NS_OK);
 
   PRInt32 nProgress = curTotalProgress;
   PRInt32 nProgressMax = maxTotalProgress;
@@ -80,10 +77,7 @@ NS_IMETHODIMP CBrowserImpl::OnStateChange(nsIWebProgress *progress,
                                           PRUint32 progressStateFlags,
                                           nsresult status)
 {
-  if(! m_pBrowserFrameGlue) {
-    // always return NS_OK
-    return NS_OK;
-  }
+  NS_ENSURE_TRUE(m_pBrowserFrameGlue, NS_OK);
 
   if ((progressStateFlags & STATE_START) && (progressStateFlags & STATE_IS_NETWORK))
   {
@@ -112,6 +106,24 @@ NS_IMETHODIMP CBrowserImpl::OnStateChange(nsIWebProgress *progress,
 		  }
 	  }*/
 
+	  if (!mChromeLoaded && mChromeFlags & nsIWebBrowserChrome::CHROME_OPENAS_CHROME)
+	  {
+		  mChromeLoaded = PR_TRUE;
+
+		  nsCOMPtr<nsIDOMWindow> domWindow;
+		  mWebBrowser->GetContentDOMWindow(getter_AddRefs(domWindow));
+		  NS_ENSURE_TRUE(domWindow, NS_OK);
+
+		  domWindow->SizeToContent();
+
+		  // It must be repositionned somewhat after the resize. Centering it
+		  // all the time is not that bad.
+		  //if (pThis->m_chromeMask & nsIWebBrowserChrome::CHROME_CENTER_SCREEN)
+		  HWND h = m_pBrowserFrameGlue->GetBrowserFrameNativeWnd();
+		  CWnd* frame = CWnd::FromHandle(h);
+		  frame->CenterWindow();
+		  SetVisibility(PR_TRUE);
+	  }
     m_pBrowserFrameGlue->UpdateBusyState(PR_FALSE);
     m_pBrowserFrameGlue->UpdateProgress(0, 100);       // Clear the prog bar
     m_pBrowserFrameGlue->UpdateStatusBarText(nsnull);  // Clear the status bar
@@ -120,15 +132,11 @@ NS_IMETHODIMP CBrowserImpl::OnStateChange(nsIWebProgress *progress,
   return NS_OK;
 }
 
-
 NS_IMETHODIMP CBrowserImpl::OnLocationChange(nsIWebProgress* aWebProgress,
                                                  nsIRequest* aRequest,
                                                  nsIURI *location)
 {
-  if(! m_pBrowserFrameGlue) {
-    // always return NS_OK
-    return NS_OK;
-  }
+  NS_ENSURE_TRUE(m_pBrowserFrameGlue, NS_OK);
 
   PRBool isSubFrameLoad = PR_FALSE; // Is this a subframe load
   if (aWebProgress) {
@@ -143,7 +151,9 @@ NS_IMETHODIMP CBrowserImpl::OnLocationChange(nsIWebProgress* aWebProgress,
 
   }
 
-  if (!isSubFrameLoad) // Update urlbar only if it is not a subframe load
+  if (isSubFrameLoad)
+	  return NS_OK;
+
     m_pBrowserFrameGlue->UpdateCurrentURI(location);
 
     return NS_OK;
@@ -160,8 +170,7 @@ CBrowserImpl::OnStatusChange(nsIWebProgress* aWebProgress,
   // Hope it's not a bad way to do that
   aWebProgress->GetIsLoadingDocument(&b);
 
-  if(b && m_pBrowserFrameGlue)
-    m_pBrowserFrameGlue->UpdateStatusBarText(aMessage);
+  if (b) SetStatus(0, aMessage);
 
   return NS_OK;
 }
@@ -173,6 +182,7 @@ CBrowserImpl::OnSecurityChange(nsIWebProgress *aWebProgress,
                                     nsIRequest *aRequest, 
                                     PRUint32 state)
 {
+  NS_ENSURE_TRUE(m_pBrowserFrameGlue, NS_OK);
   m_pBrowserFrameGlue->UpdateSecurityStatus(state);
 
   return NS_OK;

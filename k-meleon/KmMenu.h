@@ -150,6 +150,18 @@ public:
 		kmenu->AddItem(item, before);
 	}
 
+	void RebuildAll() 
+	{
+		KmMenu* kmenu;
+		CString s;
+		POSITION pos = mMenus.GetStartPosition();
+		while (pos) {
+			mMenus.GetNextAssoc(pos, s, kmenu);
+			kmenu->Invalidate();
+			if (s == _T("Main")) kmenu->GetMenu(); // To force the rebuild
+		}
+	}
+
 	BOOL Rebuild(LPCTSTR menu) 
 	{
 		KmMenu* kmenu;

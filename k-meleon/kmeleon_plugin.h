@@ -16,6 +16,7 @@
 *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
+#pragma once
 
 #include <windows.h>
 #include <commctrl.h>
@@ -51,10 +52,12 @@ class nsIWebBrowser;
 #endif
 
 // windowState values in NavigateTo()
-#define OPEN_NORMAL      0    
-#define OPEN_NEW         1
-#define OPEN_BACKGROUND  2
-#define OPEN_CLONE       16
+#define OPEN_NORMAL         0    
+#define OPEN_NEW            1
+#define OPEN_BACKGROUND     2
+#define OPEN_NEWTAB         3
+#define OPEN_BACKGROUNDTAB  4
+#define OPEN_CLONE         16
 
 // folderType value in GetFolder()
 enum FolderType {
@@ -81,10 +84,11 @@ enum WindowVarType {
 	Window_SelectedText = 100, // wchar_t*
 	Window_LinkURL = 101,      // char*
 	Window_ImageURL = 102,     // char*
-	Window_FrameURL = 103      // char*
+	Window_FrameURL = 103,     // char*
+	Window_LinkTitle = 104     // char*
 };
 
-typedef struct {
+typedef struct configFileType {
    char label[16];
    char file[MAX_PATH];
    char helpUrl[MAX_PATH];
@@ -101,6 +105,7 @@ typedef struct {
    char *link;
    char *frame;
    char *page;
+   char *linktitle;
 } kmeleonPointInfo;
 
 typedef struct {
