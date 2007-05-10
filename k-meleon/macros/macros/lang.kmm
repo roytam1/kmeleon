@@ -9,7 +9,7 @@
 # ------------------------------------------------------------------------------------------------------------------
 
 $Lang_Codes="en-US;";
-$Lang_Names=_("&English/International").";";
+$Lang_Names="&English/International;";
 
 Lang_SetLanguage{
 menuchecked=($KM_Locale==$ARG);
