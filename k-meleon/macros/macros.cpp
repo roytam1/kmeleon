@@ -2054,7 +2054,7 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
 
 			kmeleonMenuItem item;
 			int whereparam = 0;
-			item.label = params[2].c_str();
+			item.label = CUTF8_to_ANSI(params[2].c_str());
          item.command = 1;
 
 			if (params[1] == "command") {
