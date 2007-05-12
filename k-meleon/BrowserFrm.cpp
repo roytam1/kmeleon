@@ -188,11 +188,11 @@ BOOL CBrowserFrame::PreTranslateMessage(MSG* pMsg)
       }
 	  // Prevent accels to interfere with input controls
  	  else if (pMsg->wParam >= VK_END && pMsg->wParam <= VK_DOWN) {
-         if ( !m_wndBrowserView.IsChild(GetFocus()) || m_wndBrowserView.InputHasFocus() )
+         if ( m_wndBrowserView.IsChild(GetFocus()) && m_wndBrowserView.InputHasFocus() )
             return 0;
       }
 	  else if (MapVirtualKey(pMsg->wParam, 2  /*MAPVK_VK_TO_CHAR*/) != 0) {
-         if (!(GetKeyState(VK_CONTROL) & 0x8000) && (!m_wndBrowserView.IsChild(GetFocus()) || m_wndBrowserView.InputHasFocus()))
+         if (!(GetKeyState(VK_CONTROL) & 0x8000) && (m_wndBrowserView.IsChild(GetFocus()) && m_wndBrowserView.InputHasFocus()))
             return 0;
       }
 
