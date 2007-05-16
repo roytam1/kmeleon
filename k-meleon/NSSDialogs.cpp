@@ -31,6 +31,7 @@
 
 #include "nsIDialogParamBlock.h"
 #include "nsIWindowWatcher.h"
+#include ".\nssdialogs.h"
 
 extern CWnd* CWndForDOMWindow(nsIDOMWindow *aWindow);
 
@@ -354,7 +355,7 @@ NS_IMETHODIMP CNSSDialogs::ConfirmCertExpired(nsIInterfaceRequestor *socketInfo,
   PRTime notAfter, notBefore;
   nsCOMPtr<nsIX509CertValidity> validity;
   CString msg, title, ctime;
-  char fDate[128];
+  TCHAR fDate[128];
   __time64_t t;
 
   *_retval = PR_FALSE;
@@ -380,17 +381,17 @@ NS_IMETHODIMP CNSSDialogs::ConfirmCertExpired(nsIInterfaceRequestor *socketInfo,
   if (LL_CMP(now, >, notAfter)) {
     msg.LoadString(IDS_CERTEXPIREDTITLE); 
 	LL_DIV(t, notAfter, PR_USEC_PER_SEC);
-	strftime (fDate, sizeof(fDate), "%a %d %b %Y", _localtime64 (&t));
+	_tcsftime (fDate, sizeof(fDate), _T("%a %d %b %Y"), _localtime64 (&t));
 	title.Format(IDS_CERTEXPIREDMSG, cName, fDate);
   } else {
     msg.LoadString(IDS_CERTNOTVALIDTITLE);
 	LL_DIV(t, notBefore, PR_USEC_PER_SEC);
-    strftime (fDate, sizeof(fDate), "%a %d %b %Y", _localtime64 (&t));
+    _tcsftime (fDate, sizeof(fDate), _T("%a %d %b %Y"), _localtime64 (&t));
 	title.Format(IDS_CERTNOTVALIDMSG, cName, fDate);
   }
 
   _time64(&t);
-  strftime (fDate, sizeof(fDate), "%a %d %b %Y", _localtime64 (&t));
+  _tcsftime (fDate, sizeof(fDate), _T("%a %d %b %Y"), _localtime64 (&t));
   ctime.Format(IDS_CORRECT_COMPUTER_TIME, fDate);
   
   nsCOMPtr<nsIDOMWindow> parent = do_GetInterface (socketInfo);
