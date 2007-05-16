@@ -181,7 +181,9 @@ BOOL CPreferencePage::OnInitDialog(){
          TCHAR buf[256], uabuf[256];
 		 char pref[34];
          int x=1,y,index=0;
-         SendDlgItemMessage(IDC_COMBO, CB_ADDSTRING, 0, (LONG) _T("Default"));
+		 CString def;
+		 def.LoadString(IDS_DEFAULT);
+         SendDlgItemMessage(IDC_COMBO, CB_ADDSTRING, 0, (LPARAM)(LPCTSTR)def);
          do {
             sprintf(pref, "kmeleon.privacy.useragent%d.name", x);
             theApp.preferences.GetString(pref, buf, _T(""));
