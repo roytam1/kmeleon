@@ -374,7 +374,7 @@ BOOL GetBackgroundImageSrc(nsIDOMNode *aNode, CString& aUrl)
 				nsCOMPtr<nsIDOMHTMLElement> body;
 				htmlDocument->GetBody(getter_AddRefs(body));
 				node = do_QueryInterface(body);
-				NS_ENSURE_TRUE(body, FALSE);
+				NS_ENSURE_TRUE(node, FALSE);
 			}
 		}
 	}
@@ -388,7 +388,7 @@ BOOL GetBackgroundImageSrc(nsIDOMNode *aNode, CString& aUrl)
 
 			node->GetParentNode(getter_AddRefs(next));
 			node = next;
-		}while (aNode);
+		}while (node);
 	}
 
 	if (bgImg.IsEmpty())
