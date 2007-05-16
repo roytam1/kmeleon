@@ -961,7 +961,7 @@ PromptDlgProc( HWND hwnd,
         SetDlgItemTextUTF8(hwnd, IDC_PROMPT, question.c_str());
         SetDlgItemTextUTF8(hwnd, IDC_ANSWER, instring.c_str());
 		SetDlgItemText(hwnd, IDCANCEL, kFuncs->Translate("Cancel"));
-		SetDlgItemText(hwnd, IDOK, kFuncs->Translate("Ok"));
+		SetDlgItemText(hwnd, IDOK, kFuncs->Translate("OK"));
         return TRUE;
 					}
       case WM_COMMAND:
@@ -2054,8 +2054,8 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
 
 			kmeleonMenuItem item;
 			int whereparam = 0;
-			item.label = CUTF8_to_ANSI(params[2].c_str());
-         item.command = 1;
+			item.label = ansi_from_utf8(params[2].c_str());
+			item.command = 1;
 
 			if (params[1] == "command") {
 				whereparam = 4;
@@ -2104,6 +2104,7 @@ std::string ExecuteCommand (HWND hWnd, int command, char *data) {
 			}
 
 			kFuncs->SetMenu(params[0].c_str(), &item);
+			if (item.label) free((void*)item.label);
 			return "1";
 		}
 
