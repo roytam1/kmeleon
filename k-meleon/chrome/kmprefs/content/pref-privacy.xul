@@ -1,0 +1,125 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/css" href="chrome://global/skin/"?>
+<?xul-overlay href="chrome://kmprefs/content/kmprefs/ovrl-history.xul"?>
+<?xul-overlay href="chrome://kmprefs/content/kmprefs/ovrl-javascript.xul"?>
+<?xul-overlay href="chrome://kmprefs/content/kmprefs/ovrl-referrer.xul"?>
+<!DOCTYPE page SYSTEM "chrome://kmprefs/locale/pref-privacy.dtd">
+<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" 
+id="prefPrivacy" onload="init()">
+
+<stringbundle id="pref_bundle" src="chrome://kmprefs/locale/pref.properties"/>
+
+<script type="application/x-javascript" src="chrome://kmprefs/content/pref.js"/>
+<script type="application/x-javascript">
+<![CDATA[
+function init() {
+	initCheckbox("signon.rememberSignons"); setInterval("initCheckbox('signon.rememberSignons')",100);
+	Cookies.init(); setInterval("Cookies.init()",100);
+	History.init();
+	Referrer.init();
+}
+
+var Cookies = {
+
+init: function() {
+	initCheckbox("network.cookie.alwaysAcceptSessionCookies");
+	initTextbox("network.cookie.lifetime.days",false);
+	initRadiogroup("network.cookie.cookieBehavior");
+	initRadiogroup("network.cookie.lifetimePolicy");
+	this.initAcceptance();
+},
+initAcceptance: function() {
+	if("@mozilla.org/cookie-consent;1" in Components.classes)
+		document.getElementById("p3p").removeAttribute("hidden");
+	var elem = document.getElementById("network.cookie.cookieBehavior");
+	document.getElementById("network.cookie.lifetimePolicy").disabled = (elem.value==2);
+	document.getElementById("network.cookie.lifetime.days").nextSibling.disabled = (elem.value==2);
+	document.getElementById("cookieP3P").disabled = (elem.value!=3);
+	this.initLifetime();
+},
+initLifetime: function() {
+	var elem = document.getElementById("network.cookie.lifetimePolicy");
+	document.getElementById("network.cookie.alwaysAcceptSessionCookies").disabled = (elem.value!=1);
+	document.getElementById("network.cookie.lifetime.days").disabled = (elem.value!=3);
+},
+toggleAcceptance: function() {
+	toggleRadiogroup("network.cookie.cookieBehavior");
+	this.initAcceptance();
+},
+toggleLifetime: function() {
+	toggleRadiogroup("network.cookie.lifetimePolicy");
+	this.initLifetime();
+	if(document.getElementById("network.cookie.lifetimePolicy").value==3) document.getElementById("network.cookie.lifetime.days").focus();
+}
+
+};
+]]>
+</script>
+
+<vbox flex="1" style="overflow:auto">
+  <dialogheader title="&privacy.header;"/>
+  <separator class="thin"/>
+  <tabcontrol flex="1">
+    <tabbox flex="1">
+      <tabs>
+        <tab label="&general;"/>
+        <tab label="&history.label;"/>
+        <tab label="&privacy.paranoia;"/>
+      </tabs>
+      <tabpanels flex="1">
+        <tabpanel flex="1" orient="vertical" style="overflow:auto">
+<!-- General -->
+<separator class="thin"/>
+<checkbox oncommand="toggleCheckbox(this.id)" id="signon.rememberSignons" label="&privacy.signons;" disabled="true"/>
+<description>&privacy.protect;</description>
+<separator class="thick"/>
+<hbox>
+  <groupbox flex="1">
+    <caption label="&cookies.accept;"/>
+    <radiogroup oncommand="Cookies.toggleAcceptance()" id="network.cookie.cookieBehavior">
+      <radio disabled="true" value="2" label="&cookies.accept.never;"/>
+      <radio disabled="true" value="0" label="&cookies.accept.always;"/>
+      <radio disabled="true" value="1" label="&cookies.accept.noForeign;"/>
+      <vbox id="p3p" hidden="true">
+        <radio disabled="true" value="3" label="&cookies.accept.p3p;"/>
+        <hbox>
+          <button id="cookieP3P" label="&cookies.view.p3p;" oncommand="window.openDialog('chrome://communicator/content/permissions/cookieP3P.xul','_blank','modal,centerscreen')" style="margin-left:2.25em"/>
+        </hbox>
+      </vbox>
+    </radiogroup>
+  </groupbox>
+  <groupbox flex="1">
+    <caption label="&cookies.keep;"/>
+    <radiogroup oncommand="Cookies.toggleLifetime()" id="network.cookie.lifetimePolicy">
+      <radio value="0" label="&cookies.keep.normally;"/>
+      <radio value="2" label="&cookies.keep.session;"/>
+      <hbox align="center">
+        <radio value="3" label="&cookies.keep.daysBefore;"/>
+        <textbox id="network.cookie.lifetime.days" size="4" class="uri-element" oninput="setIntPref(this.id,this.value)"/>
+        <label value="&cookies.keep.daysAfter;"/>
+      </hbox>
+      <radio value="1" label="&cookies.keep.ask;"/>
+      <checkbox oncommand="toggleCheckbox(this.id)" id="network.cookie.alwaysAcceptSessionCookies" label="&cookies.keep.ask.notForSession;" style="margin-left:2em"/>
+    </radiogroup>
+  </groupbox>
+</hbox>
+<!-- General -->
+	</tabpanel>
+        <tabpanel flex="1" orient="vertical" style="overflow:auto">
+<!-- History -->
+<separator class="thin"/>
+<vbox id="history"/>
+<!-- History -->
+	</tabpanel>
+        <tabpanel flex="1" orient="vertical" style="overflow:auto">
+<!-- Paranoia -->
+<separator class="thin"/>
+<groupbox id="referrer"/>
+<!-- Paranoia -->
+	</tabpanel>
+      </tabpanels>
+    </tabbox>
+  </tabcontrol>
+</vbox>
+
+</page>

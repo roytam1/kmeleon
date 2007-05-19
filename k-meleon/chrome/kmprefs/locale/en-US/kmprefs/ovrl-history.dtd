@@ -1,0 +1,15 @@
+<!ENTITY % prefDTD SYSTEM "chrome://kmprefs/locale/pref.dtd">%prefDTD;
+<!ENTITY history.header			"History Settings">
+<!ENTITY history.global.label		"Global History">
+<!ENTITY history.global.keepBefore	"Keep a list of all pages visited in the last">
+<!ENTITY history.global.keepAfter	"days">
+<!ENTITY history.global.clear		"Clear History">
+<!ENTITY history.plugin			"Enable History Plugin (&restartRequired;)">
+<!ENTITY history.urlbar.label		"URL Bar History">
+<!ENTITY history.urlbar.keepBefore	"Keep a list of">
+<!ENTITY history.urlbar.keepAfter	"most recently visited locations">
+<!ENTITY history.urlbar.descr		"Determine what locations should be added to the list:">
+<!ENTITY history.urlbar.everything	"Any visited location">
+<!ENTITY history.urlbar.domains		"Visited domains only">
+<!ENTITY history.urlbar.typed		"Typed URLs only">
+<!ENTITY history.urlbar.nothing		"None at all (Keep the list as it is)">

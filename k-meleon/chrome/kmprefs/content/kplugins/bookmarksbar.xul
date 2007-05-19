@@ -1,0 +1,109 @@
+<?xml version="1.0"?>
+<!DOCTYPE overlay SYSTEM "chrome://kmprefs/locale/kplugins/bookmarksbar.dtd">
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+<script type="application/x-javascript">
+<![CDATA[
+var kBookmarksBar = {
+
+_base: null,
+_pref: null,
+_ctrl: null,
+
+init : function() {
+	if(kPlugin.absent("bookmarks")) {
+		var node = document.getElementById("kBookmarksTBar");
+		node.parentNode.removeChild(node);
+		node = document.getElementById("kBookmarksTBarTab");
+		node.parentNode.removeChild(node);
+	} else {
+		this._base = "kmeleon.plugins.bookmarks.";
+		this._pref = new Array(	"chevron",
+					"toolbarEnabled");
+		this._ctrl = new Array(	"maxToolbarSize",
+					"toolbarFolder");
+		this._initWidth();
+		this._setControls();
+		for(var j=0;j<this._pref.length;j++) initCheckbox(this._base+this._pref[j]);
+		initTextbox(this._base+this._ctrl[1],false);
+	}
+},
+clrWidth: function() {
+	restoreDefault(this._base+this._ctrl[0]);
+	this._initWidth();
+},
+setWidth: function(elemID,prefVal) {
+	var val = parseInt(prefVal);
+
+	if(prefVal)
+		if(isNaN(val) || val<0)
+			alert(document.getElementById("pref_bundle").getString("positive_integer_expected"));
+		else	pref.setIntPref(this._base+this._ctrl[0],++val);
+	else restoreDefault(this._base+this._ctrl[0]);
+},
+_initWidth: function() {
+	var max = document.getElementById(this._base+this._ctrl[0]), val;
+
+	try {
+		val = pref.getIntPref(this._base+this._ctrl[0]);
+	} catch(e) {
+		max.disabled = true;
+		document.getElementById("kBookmarksTBar1").disabled = true;
+	}
+	if(!isNaN(val)) max.value = (--val).toString(10);
+},
+_setControls: function() {
+	var dis = !kPlugin.load("bookmarks");
+	for(var j=0;j<this._pref.length;j++)
+		document.getElementById(this._base+this._pref[j]).disabled = dis;
+	for(var j=0;j<this._ctrl.length;j++)
+		document.getElementById(this._base+this._ctrl[j]).disabled = dis;
+	for(var j=0;j<2;j++)
+		document.getElementById("kBookmarksTBar"+[j]).disabled = dis;
+	try {
+		document.getElementById("kBookmarksTBarTab").setAttribute("disabled",dis);
+	} catch(e) {}
+}
+
+};
+/*addEventListener("load",kBookmarksBar.init,true);
+try{
+	document.getElementById("kmeleon.plugins.bookmarks.load").addEventListener("command",kBookmarksBar._setControls,true);
+} catch(e) {}*/
+]]>
+</script>
+
+<tabpanel id="kBookmarksTBar" flex="1" orient="vertical" style="overflow:auto">
+  <separator class="thin"/>
+  <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.plugins.bookmarks.toolbarEnabled" label="&bookmarksbar.enable;"/>
+  <separator class="thin"/>
+  <hbox align="center">
+    <label value="&toolbar.folder;"/>
+    <textbox id="kmeleon.plugins.bookmarks.toolbarFolder" flex="1" class="uri-element" oninput="setCharPref(this.id,this.value)"/>
+    <button id="kBookmarksTBar0" label="&restoreDefault;" oncommand="restoreDefault(this.previousSibling.id);initTextbox(this.previousSibling.id,false)"/>
+  </hbox>
+  <separator class="thin"/>
+  <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.plugins.bookmarks.chevron" label="&bookmarksbar.chevron;"/>
+  <separator class="thin"/>
+  <groupbox>
+    <caption label="&toolbar.buttonWidth;"/>
+    <separator class="thin"/>
+    <hbox align="center">
+      <label value="&bookmarksbar.variableBefore;"/>
+      <textbox id="kmeleon.plugins.bookmarks.maxToolbarSize" size="4" class="uri-element" oninput="kBookmarksBar.setWidth(this.id,this.value)"/>
+      <label value="&bookmarksbar.variableAfter;"/>
+    </hbox>
+    <separator class="thin"/>
+    <hbox>
+      <button id="kBookmarksTBar1" label="&restoreDefault;" oncommand="kBookmarksBar.clrWidth()"/>
+      <hbox flex="1"/>
+    </hbox>
+    <separator class="thin"/>
+  </groupbox>
+  <separator class="thick"/>
+  <description>&restartNote1;</description>
+</tabpanel>
+
+<tab id="kBookmarksTBarTab" label="&bookmarksbar.label;"/>
+
+</overlay>
