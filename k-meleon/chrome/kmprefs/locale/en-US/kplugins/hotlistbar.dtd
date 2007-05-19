@@ -1,0 +1,5 @@
+<!ENTITY % prefDTD SYSTEM "chrome://kmprefs/locale/pref.dtd">%prefDTD;
+<!ENTITY % plugDTD SYSTEM "chrome://kmprefs/locale/kplugins/kplugins.dtd">%plugDTD;
+<!ENTITY hotlistbar.label	"Hotlist Toolbar">
+<!ENTITY hotlistbar.enable	"Enable Hotlist Toolbar">
+<!ENTITY hotlistbar.chevron	"Show a button to open Hotlist menu">

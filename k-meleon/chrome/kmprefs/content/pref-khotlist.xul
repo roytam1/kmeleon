@@ -1,0 +1,294 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/css" href="chrome://global/skin/"?>
+<?xul-overlay href="chrome://kmprefs/content/kplugins/hotlistbar.xul"?>
+<?xul-overlay href="chrome://kmprefs/content/kplugins/booklistmanager.xul"?>
+<!DOCTYPE page SYSTEM "chrome://kmprefs/locale/pref-khotlist.dtd">
+<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" 
+id="prefHotlist" onload="kHotlist.init()">
+
+<stringbundle id="pref_bundle" src="chrome://kmprefs/locale/pref.properties"/>
+<stringbundle id="brws_bundle" src="chrome://kmprefs/locale/pref-browsing.properties"/>
+
+<script type="application/x-javascript" src="chrome://kmprefs/content/pref.js"/>
+<script type="application/x-javascript">
+<![CDATA[
+var kHotlist = {
+
+_base: null,
+_pref: null,
+_ctrl: null,
+_bndl: null,
+
+_url: null,
+_mAD: null,
+_mML: null,
+__sO: null,
+
+load : null,
+init : function() {
+	kLayers.init();
+	this.load  = kPlugin.load("hotlist");
+	this._base = "kmeleon.plugins.hotlist.";
+	this._pref = new Array(	"load");
+	this._ctrl = new Array(	"menuFolder",
+				"newitemFolder");
+	this._url  = this._base + "openurl";
+	this._mAD  = this._base + "menuAutoDetect";
+	this._mML  = this._base + "maxMenuLength";
+	this.__sO  = this._base + "sortOrder";
+	this._bndl = document.getElementById("brws_bundle");
+	this._setControls();
+
+	document.getElementById("openURLInCurrent").label = this._bndl.getString(kLayers.load?"layer_current":"window_current");
+	document.getElementById("openURLInLayer"  ).label = this._bndl.getString("layer_new");
+	document.getElementById("openURLInWindow" ).label = this._bndl.getString("window_new");
+
+	for(var j=0;j<this._pref.length;j++) initCheckbox(this._base+this._pref[j]);
+	for(var j=0;j<this._ctrl.length;j++) initTextbox(this._base+this._ctrl[j],false);
+	kHotlistBar.init();
+	kBooklistManager.init("hotlist");
+},
+setLength: function(elemID,prefVal) {
+	var val = parseInt(prefVal);
+
+	if(prefVal)
+		if(isNaN(val) || val<0)
+			alert(document.getElementById("pref_bundle").getString("positive_integer_expected"));
+		else {
+			pref.setBoolPref(this._mAD,false);
+			// bug: Hotlist menu disappears when kmeleon.plugins.hotlist.maxMenuLength is in [1,6]
+			pref.setIntPref(this._mML,(val<7)?7:val);
+		}
+	else restoreDefault(elemID);
+},
+setOpen: function() {
+	pref.setCharPref(this._url,document.getElementById(this._url).value);
+	this._initOpen();
+},
+setOrder: function() {
+	var val = document.getElementById(this.__sO).value;
+
+	if(document.getElementById("useOrder").checked)
+		val = val * 8 + 2;
+	if(document.getElementById("foldersFirst").checked)
+		val = val * 8 + 1;
+	pref.setIntPref(this.__sO,val);
+},
+toggle: function() {
+	toggleCheckbox(this._base+this._pref[0]);
+	this.load = !this.load;
+	this._setControls();
+	kHotlistBar._setControls();
+	kBooklistManager._setControls();
+},
+toggleForce: function(elem) {
+	pref.setBoolPref(this._mAD,!elem.checked);
+	elem.nextSibling.disabled = !elem.checked;
+	if(elem.nextSibling.value == 9999) elem.nextSibling.value = "";
+	elem.nextSibling.focus();
+},
+toggleOpen: function(chkBox) {
+	if(chkBox.checked)
+		pref.setCharPref(this._url,chkBox.id);
+	else
+		pref.setCharPref(this._url,chkBox.previousSibling.value);
+	this._initOpen();
+},
+toggleSpillover: function() {
+	var val = document.getElementById(this._mAD).value;
+
+	val = (val == "true") ? true : false;
+	pref.setBoolPref(this._mAD,val);
+	if(!val) pref.setIntPref(this._mML,9999);
+	this._initSpillover();
+},
+_initOpen: function() {
+	var grp = document.getElementById(this._url), val;
+
+	try {
+		val = pref.getCharPref(this._url);
+	} catch(e) {
+		if(this.load) for(var j=0,c=document.getElementById(this._url).childNodes;j<c.length;j++) c[j].setAttribute("disabled",true);
+	}
+
+	document.getElementById("layers(OpenURLBg)").checked = false;
+	document.getElementById("ID_OPEN_LINK_IN_BACKGROUND").checked = false;
+	switch(val) {
+		case "ID_OPEN_LINK"              : grp.selectedIndex = 0; break;
+		case "layers(OpenURL)"           : grp.selectedIndex = 1; break;
+		case "layers(OpenURLBg)"         : grp.selectedIndex = 1; document.getElementById("layers(OpenURLBg)").checked = true; break;
+		case "ID_OPEN_LINK_IN_NEW_WINDOW": grp.selectedIndex = 2; break;
+		case "ID_OPEN_LINK_IN_BACKGROUND": grp.selectedIndex = 2; document.getElementById("ID_OPEN_LINK_IN_BACKGROUND").checked = true; break;
+		default                          : grp.selectedIndex =-1;
+	}
+},
+_initOrder: function() {
+	var grp = document.getElementById(this.__sO), val;
+
+	try {
+		val = pref.getIntPref(this.__sO);
+	} catch(e) {
+		grp.selectedIndex = -1;
+		return;
+	}
+
+	if(val % 8 == 1) {
+		val = (val - 1) / 8;
+		document.getElementById("foldersFirst").checked = true;
+	}
+	if(val % 8 == 2) {
+		val = (val - 2) / 8;
+		document.getElementById("useOrder").checked = true;
+	}
+	switch(val) {
+		case  3: grp.selectedIndex = 0; break;
+		case  7: grp.selectedIndex = 1; break;
+		default: grp.selectedIndex =-1;
+	}
+},
+_initSpillover: function() {
+	var auto, grp = document.getElementById(this._mAD), val;
+
+	try {
+		auto = pref.getBoolPref(this._mAD);
+	} catch(e) {
+		grp.selectedIndex = -1;
+		for(var j=0,c=grp.childNodes;j<2;j++) c[j].setAttribute("disabled",true);
+		document.getElementById("force").disabled = true;
+		document.getElementById(this._mML).disabled = true;
+		return;
+	}
+
+	try {
+		val = pref.getIntPref(this._mML);
+	} catch(e) {
+		val = "";
+	}
+	document.getElementById(this._mML).value = val;
+	if(isNaN(val)) val = 0;
+
+	if(auto) {
+		grp.selectedIndex = 1;
+		document.getElementById("force").checked = false;
+		document.getElementById("force").disabled = false;
+		document.getElementById(this._mML).disabled = true;
+	} else {
+		grp.selectedIndex = (val == 9999) ? 0 : 1;
+		document.getElementById("force").checked = (val>6 && val<9999) ? true : false;
+		document.getElementById("force").disabled = (grp.selectedIndex == 0) ? true : false;
+		document.getElementById(this._mML).disabled = !document.getElementById("force").checked;
+	}
+},
+_setControls: function() {
+	if(this.load) {
+		disableAll(false);
+		this._initOpen();
+		this._initOrder();
+		this._initSpillover();
+		document.getElementById("openURLInLayer"            ).disabled = !kLayers.load;
+		document.getElementById("layers(OpenURLBg)"         ).disabled = !kLayers.load;
+		document.getElementById("openURLInWindow"           ).disabled =  kLayers.only;
+		document.getElementById("ID_OPEN_LINK_IN_BACKGROUND").disabled =  kLayers.only;
+	} else {
+		this._initOpen();
+		this._initOrder();
+		this._initSpillover();
+		disableAll(true);
+		document.getElementById("force").disabled = true;
+		document.getElementById(this._mML).disabled = true;
+	}
+	document.getElementById(this._base+this._pref[0]).disabled = kPlugin.absent("bookmarks");
+}
+
+};
+]]>
+</script>
+
+<vbox flex="1" style="overflow:auto">
+  <dialogheader title="&hotlist.header;"/>
+  <separator class="thin"/>
+  <checkbox oncommand="kHotlist.toggle()" id="kmeleon.plugins.hotlist.load" label="&hotlist.enable;"/>
+  <separator class="thin"/>
+  <hbox align="center">
+    <label value="&hotlist.newitemFolder;"/>
+    <textbox id="kmeleon.plugins.hotlist.newitemFolder" flex="1" class="uri-element" oninput="setCharPref(this.id,this.value)"/>
+    <button label="&restoreDefault;" oncommand="restoreDefault(this.previousSibling.id);initTextbox(this.previousSibling.id,false)"/>
+  </hbox>
+  <separator class="thick"/>
+  <tabcontrol flex="1">
+    <tabbox flex="1">
+      <tabs>
+        <tab id="kHotlistMenuTab" label="&hotlist.menu;"/>
+        <tab id="kHotlistTBarTab"/>
+        <tab id="kBooklistManagTab" label="&hotlist.manager;"/>
+      </tabs>
+      <tabpanels flex="1">
+        <tabpanel flex="1" orient="vertical" style="overflow:auto">
+<!-- Hotlist Menu -->
+<grid>
+  <columns>
+    <column flex="1"/>
+    <column flex="1"/>
+  </columns>
+  <rows>
+    <row>
+      <groupbox>
+        <caption label="&hotlist.open;"/>
+        <separator class="thin"/>
+        <radiogroup id="kmeleon.plugins.hotlist.openurl">
+          <radio oncommand="kHotlist.setOpen()" value="ID_OPEN_LINK" id="openURLInCurrent"/>
+          <radio oncommand="kHotlist.setOpen()" value="layers(OpenURL)" id="openURLInLayer"/>
+          <checkbox oncommand="kHotlist.toggleOpen(this)" id="layers(OpenURLBg)" label="&inBackground;" style="margin-left:2em"/>
+          <radio oncommand="kHotlist.setOpen()" value="ID_OPEN_LINK_IN_NEW_WINDOW" id="openURLInWindow"/>
+          <checkbox oncommand="kHotlist.toggleOpen(this)" id="ID_OPEN_LINK_IN_BACKGROUND" label="&inBackground;" style="margin-left:2em"/>
+        </radiogroup>
+        <separator class="thin"/>
+      </groupbox>
+      <groupbox>
+        <caption label="&spillover.label;"/>
+        <separator class="thin"/>
+        <description>&spillover.descr;</description>
+        <radiogroup id="kmeleon.plugins.hotlist.menuAutoDetect">
+          <radio oncommand="kHotlist.toggleSpillover()" value="false" label="&spillover.arrows;"/>
+          <radio oncommand="kHotlist.toggleSpillover()" value="true" label="&spillover.submenu;"/>
+          <hbox align="center">
+            <checkbox oncommand="kHotlist.toggleForce(this)" id="force" label="&spillover.forceBefore;" style="margin-left:2em"/>
+            <textbox id="kmeleon.plugins.hotlist.maxMenuLength" size="4" class="uri-element" oninput="kHotlist.setLength(this.id,this.value)"/>
+            <label value="&spillover.forceAfter;"/>
+          </hbox>
+        </radiogroup>
+      </groupbox>
+    </row>
+    <row>
+      <hbox/>
+      <groupbox flex="1">
+        <caption label="&menu.order;"/>
+        <separator class="thin"/>
+        <radiogroup id="kmeleon.plugins.hotlist.sortOrder" oncommand="kHotlist.setOrder()">
+          <radio value="3" label="&menu.sortAscending;"/>
+          <radio value="7" label="&menu.sortDescending;"/>
+          <checkbox oncommand="kHotlist.setOrder()" id="foldersFirst" label="&menu.foldersFirst;"/>
+          <checkbox oncommand="kHotlist.setOrder()" id="useOrder" label="&hotlist.useOrder;"/>
+        </radiogroup>
+      </groupbox>
+    </row>
+  </rows>
+</grid>
+<separator class="thin"/>
+<hbox align="center">
+  <label value="&menu.folder;"/>
+  <textbox id="kmeleon.plugins.hotlist.menuFolder" flex="1" class="uri-element" oninput="setCharPref(this.id,this.value)"/>
+  <button label="&restoreDefault;" oncommand="restoreDefault(this.previousSibling.id);initTextbox(this.previousSibling.id,false)"/>
+</hbox>
+<separator class="thick"/>
+<description>&restartNote2;</description>
+<!-- Hotlist Menu -->
+	</tabpanel>
+	<tabpanel id="kHotlistTBar"/>
+        <tabpanel id="kBooklistManag"/>
+      </tabpanels>
+    </tabbox>
+  </tabcontrol>
+</vbox>
+
+</page>
