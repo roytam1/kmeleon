@@ -368,19 +368,19 @@ SectionEnd
 
 SubSection $(SECT_CreateShortcut) SecShortcuts ; {{{
 
-	Section /o $(SECT_WSShortcut) SecDesktop
+	Section $(SECT_WSShortcut) SecDesktop
 		CreateShortCut "$DESKTOP\K-Meleon.lnk" "$INSTDIR\K-Meleon.exe" "" "" 0
 		WriteRegDWORD HKLM "${CLIENT_INTERNET_KEY}\k-meleon.exe\InstallInfo" "IconsVisible" 1
 	SectionEnd
 
-	Section /o $(SECT_SMShortcut) SecStartMenu
+	Section $(SECT_SMShortcut) SecStartMenu
 		CreateDirectory "$SMPROGRAMS\K-Meleon"
 		CreateShortCut "$SMPROGRAMS\K-Meleon\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
 		CreateShortCut "$SMPROGRAMS\K-Meleon\K-Meleon.lnk" "$INSTDIR\k-meleon.exe" "" "$INSTDIR\k-meleon.exe" 0
 		WriteRegDWORD HKLM "${CLIENT_INTERNET_KEY}\k-meleon.exe\InstallInfo" "IconsVisible" 1
 	SectionEnd
 
-	Section /o $(SECT_QLShortcut) SecQuickLaunch
+	Section $(SECT_QLShortcut) SecQuickLaunch
 		CreateShortCut "$QUICKLAUNCH\K-Meleon.lnk" "$INSTDIR\K-Meleon.exe" "" "" 0
 		WriteRegDWORD HKLM "${CLIENT_INTERNET_KEY}\k-meleon.exe\InstallInfo" "IconsVisible" 1
 	SectionEnd
