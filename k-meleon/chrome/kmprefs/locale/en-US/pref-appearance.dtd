@@ -1,0 +1,12 @@
+<!ENTITY % prefDTD SYSTEM "chrome://kmprefs/locale/pref.dtd">%prefDTD;
+<!ENTITY % popuDTD SYSTEM "chrome://kmprefs/locale/kmprefs/ovrl-popups.dtd">%popuDTD;
+<!ENTITY appearance.header	"GUI Appearance Settings">
+<!ENTITY appearance.windowTitle	"Window Title:">
+<!ENTITY appearance.menuIcons	"Display icons in menus">
+<!ENTITY appearance.menuAccels	"Display keyboard accelerators in menus">
+<!ENTITY appearance.throbber	"Display throbber">
+<!ENTITY appearance.startup	"At Startup">
+<!ENTITY fullscreen		"Fullscreen">
+<!ENTITY always			"Always">
+<!ENTITY never			"Never">
+<!ENTITY asClosed		"As on exit">

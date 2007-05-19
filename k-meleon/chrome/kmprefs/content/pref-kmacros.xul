@@ -1,0 +1,144 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/css" href="chrome://global/skin/"?>
+<!DOCTYPE page SYSTEM "chrome://kmprefs/locale/pref-kmacros.dtd">
+<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" 
+id="prefKMacros" onload="kMacros.init()">
+
+<stringbundle id="pref_bundle" src="chrome://kmprefs/locale/pref.properties"/>
+<stringbundle id="macro_bundle" src="chrome://kmprefs/locale/kplugins/macros.properties"/>
+
+<script type="application/x-javascript" src="chrome://kmprefs/content/pref.js"/>
+<script type="application/x-javascript">
+<![CDATA[
+var kMacros = {
+
+_base: null,
+_pref: null,
+_bndl: null,
+_list: null,
+
+load: null,
+mods: null,
+init: function() {
+	this.load  = kPlugin.load("macros");
+	this.mods  = [];
+	this._base = "kmeleon.plugins.macros.";
+	this._pref = "load";
+	this._list = document.getElementById("modules");
+	this._bndl = document.getElementById("macro_bundle");
+
+	initCheckbox(this._base+this._pref);
+
+	this._getModules(getFolder("CurProcD"),this.mods);
+	this._getModules(getFolder("KUserSettings"),this.mods);
+	this.mods = this.mods.sort(this._alphabetical);
+	for(var j=0,litem,lcell;j<this.mods.length;j++) {
+		litem = document.createElement("listitem");
+		litem.setAttribute("onclick","kMacros.toggleModule(this)");
+
+		lcell = document.createElement("listcell");
+		lcell.setAttribute("checked",kMacrosModule.load(this.mods[j]));
+		lcell.setAttribute("label",this.mods[j]);
+		lcell.setAttribute("type","checkbox");
+		litem.appendChild(lcell);
+
+		lcell = document.createElement("listcell");
+		try {
+				lcell.setAttribute("label",this._bndl.getString(this.mods[j]));
+		} catch(e) {
+			if(this.mods[j].match(/^lang_[a-z]{2}-[a-z]{2}$/)==null)
+				lcell.setAttribute("label",this._bndl.getString("custom"));
+			else
+				lcell.setAttribute("label",this._bndl.getString("lang_xx-yy"));
+		}
+		litem.appendChild(lcell);
+
+		this._list.appendChild(litem);
+	}
+	this._setControls();
+},
+toggle: function(prefID) {
+	toggleCheckbox(prefID);
+	this.load = !this.load;
+	this._setControls();
+},
+toggleModule: function(elem) {
+	elem = elem.firstChild;
+
+	var prefID = this._base + "modules." + elem.getAttribute("label") + "." + this._pref;
+
+	if(elem.disabled) return;
+	if(elem.getAttribute("checked")=="true") {
+		pref.setBoolPref(prefID,false);
+		elem.setAttribute("checked",false);
+	} else {
+		restoreDefault(prefID);
+		elem.setAttribute("checked",true);
+	}
+},
+_alphabetical: function(x,y) {
+	return (x.toLowerCase() > y.toLowerCase()) ? 1 : -1;
+},
+_getModules: function(folderPath,aArray) {
+	var folder = Components.classes["@mozilla.org/file/local;1"]
+			       .createInstance(nsILocalFile);
+
+	folder.initWithPath(folderPath);
+	folder.append("macros");
+	try {
+		var OK = folder.isDirectory();
+	} catch(e) {
+		return;
+	}
+	if(OK) {
+		var name, file, files = folder.directoryEntries;
+		while(files.hasMoreElements()) {
+			file = files.getNext();
+			if(file instanceof Components.interfaces.nsILocalFile)
+				if(file.isFile()) {
+					name = file.leafName.toLowerCase();
+					if((name!="main.kmm") && (name.substr(name.lastIndexOf("."))==".kmm"))
+						aArray[aArray.length] = name.substr(0,name.lastIndexOf("."));
+				}
+		}
+	}
+},
+_loaded: function(moduleName) {
+	return (getPrefValue(this._base+"modules."+moduleName+"."+this._pref) != "false");
+},
+_setControls: function() {
+	this._list.disabled = !this.load;
+	for(var j=0,c=document.getElementsByTagName("listcell");j<c.length;j+=2)
+		c[j].disabled = !this.load;
+}
+
+};
+]]>
+</script>
+
+<vbox flex="1" style="overflow:auto">
+  <dialogheader title="&kmacros.header;"/>
+  <separator class="thin"/>
+  <checkbox oncommand="kMacros.toggle(this.id)" id="kmeleon.plugins.macros.load" label="&kmacros.enable;"/>
+  <separator class="thin"/>
+  <groupbox flex="1">
+    <caption label="&kmacros.modules;"/>
+    <separator class="thin"/>
+    <label value="&kmacros.modules.hint;"/>
+    <separator class="thin"/>
+    <listbox id="modules" flex="1" seltype="single">
+      <listcols>
+        <listcol flex="1"/>
+        <listcol flex="5"/>
+      </listcols>
+      <listhead>
+        <listheader label="&kmacros.modules.name;"/>
+        <listheader label="&kmacros.modules.descr;"/>
+      </listhead>
+    </listbox>
+    <separator class="thin"/>
+    <description>&restartNote1;</description>
+  </groupbox>
+</vbox>
+
+</page>

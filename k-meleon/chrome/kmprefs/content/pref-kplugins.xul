@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/css" href="chrome://global/skin/"?>
+<?xul-overlay href="chrome://kmprefs/content/kplugins/fullscreen.xul"?>
+
+<!DOCTYPE page SYSTEM "chrome://kmprefs/locale/pref-kplugins.dtd">
+<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" 
+id="prefKPlugins" onload="init()">
+
+<stringbundle id="pref_bundle" src="chrome://kmprefs/locale/pref.properties"/>
+
+<script type="application/x-javascript" src="chrome://kmprefs/content/pref.js"/>
+<script type="application/x-javascript">
+<![CDATA[
+function init() {
+	var p = new Array("history","macros","external","bmpmenu","toolbars","rebarmenu");
+	for(var j=0,e;j<p.length;j++) {
+		e = document.getElementById("kmeleon.plugins."+p[j]+".load");
+		e.checked  = kPlugin.load(p[j]);
+		e.disabled = kPlugin.absent(p[j]);
+	}
+	kFullscreen.init();
+	if(kMacrosModule.load("main"))
+		document.getElementById("kmeleon.plugins.macros.load").style.display = "none";
+}
+]]>
+</script>
+
+<vbox flex="1" style="overflow:auto">
+  <dialogheader title="&kplugins.header;"/>
+  <separator class="thin"/>
+  <groupbox>
+    <caption label="&kplugins.misc.label;"/>
+    <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.plugins.history.load" label="&kplugins.history;"/>
+    <separator class="thin"/>
+    <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.plugins.macros.load" label="&kplugins.macros;"/>
+    <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.plugins.external.load" label="&kplugins.external;"/>
+    <separator class="thin"/>
+    <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.plugins.bmpmenu.load" label="&kplugins.bmpmenu;"/>
+    <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.plugins.toolbars.load" label="&kplugins.toolbars;"/>
+    <checkbox oncommand="toggleCheckbox(this.id);kFullscreen._setLabel()" id="kmeleon.plugins.rebarmenu.load" label="&kplugins.rebarmenu;"/>
+  </groupbox>
+  <vbox>
+    <separator class="thin"/>
+    <groupbox id="kFullscreenDisplay" flex="1"/>
+  </vbox>
+  <separator class="thick"/>
+  <description>&restartNote1;</description>
+</vbox>
+
+</page>

@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/css" href="chrome://global/skin/"?>
+<!DOCTYPE page SYSTEM "chrome://kmprefs/locale/pref-filters.dtd">
+<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" 
+id="prefFilters" onload="init()">
+
+<script type="application/x-javascript" src="chrome://kmprefs/content/pref.js"/>
+<script type="application/x-javascript">
+<![CDATA[
+function init() {
+	document.getElementById("Flashblock").checked = testMultiline(getFileContents(getFile(getFolder("UChrm"),UserStyle)),flashblockRegExp);
+	document.getElementById("CSSAdblock").checked = testMultiline(getFileContents(getFile(getFolder("UChrm"),UserStyle)),cssAdblockRegExp);
+}
+
+// handle Flashblock
+const flashblockImport = "@import url(chrome://flashblock/content/flashblock.css);";
+const flashblockRegExp = "@import url.chrome://flashblock/content/flashblock.css.;";
+function toggleFlashblock(elem) {
+	if(elem.checked)
+		addToUserStyle(flashblockImport);
+	else
+		removeFromFile(getFile(getFolder("UChrm"),UserStyle),flashblockRegExp);
+}
+// handle CSS filters
+const cssAdblockImport = "@import url(adblock.css);";
+const cssAdblockRegExp = "@import url.adblock.css.;";
+function toggleCSSAdblock(elem) {
+	if(elem.checked)
+		addToUserStyle(cssAdblockImport);
+	else
+		removeFromFile(getFile(getFolder("UChrm"),UserStyle),cssAdblockRegExp);
+}
+]]>
+</script>
+
+<vbox flex="1" style="overflow:auto">
+  <dialogheader title="&filters.header;"/>
+  <separator class="thin"/>
+  <groupbox>
+    <caption label="&flashblock.label;"/>
+    <description>&flashblock.descr;</description>
+    <checkbox oncommand="toggleFlashblock(this)" id="Flashblock" label="&flashblock.enable;"/>
+    <separator class="thin"/>
+    <description>&flash.note;</description>
+  </groupbox>
+  <separator class="thin"/>
+  <groupbox>
+    <caption label="&cssAdblock.label;"/>
+    <description>&cssAdblock.descr;</description>
+    <checkbox oncommand="toggleCSSAdblock(this)" id="CSSAdblock" label="&cssAdblock.enable;"/>
+    <separator class="thin"/>
+    <description>&cssAdblock.note;</description>
+    <separator class="thin"/>
+    <description>&cssAdblock.warning;</description>
+  </groupbox>
+</vbox>
+
+</page>

@@ -1,0 +1,244 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/css" href="chrome://communicator/skin/"?>
+<!DOCTYPE dialog SYSTEM "chrome://kmprefs/locale/pref.dtd">
+<dialog xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" 
+id="prefDialog" title="&prefDialog.title;" 
+style="&prefDialog.style;" contextmenu="0" 
+buttons="cancel,extra1,extra2" 
+buttonlabelcancel="&prefDialog.close.label;" 
+buttonaccesskeycancel="&prefDialog.close.ackey;" 
+ondialogcancel="closePrefDialog()" 
+buttonlabelextra1="&prefDialog.next.label; &#62;" 
+buttonaccesskeyextra1="&prefDialog.next.ackey;" 
+ondialogextra1="nextItem()" 
+buttonlabelextra2="&#60; &prefDialog.prev.label;" 
+buttonaccesskeyextra2="&prefDialog.prev.ackey;" 
+ondialogextra2="prevItem()" 
+persist="screenX screenY width height">
+
+<stringbundle id="pref_bundle" src="chrome://kmprefs/locale/pref.properties"/>
+<stringbundle id="kplugin_bundle" src="chrome://kmprefs/locale/kplugins/kplugins.properties"/>
+
+<script type="application/x-javascript" src="chrome://kmprefs/content/pref.js"/>
+<script type="application/x-javascript">
+<![CDATA[
+var ifrm, page, tree, url;
+function init() {
+	var kplugins = new Array("bookmarks","favorites","hotlist","layers","macros","gestures"), elem;
+	for(var j=0;j<kplugins.length;j++)
+		if(kPlugin.absent(kplugins[j]))
+			document.getElementById("kplugins_children").removeChild(document.getElementById(kplugins[j]));
+	if(!kPlugin.load("macros") || !kMacrosModule.load("hotlink")) {
+		elem = document.getElementById("hotlinks");
+		elem.parentNode.removeChild(elem);
+	}
+	if(kPlugin.load("macros") && !kMacrosModule.load("main")) {
+		elem = document.getElementById("macros");
+		elem.parentNode.removeChild(elem);
+	}
+	ifrm = document.getElementById("panelFrame");
+	page = document.location.search;
+	page = (page) ? page.substring(1,page.length) : "browsing";
+	url = "chrome://kmprefs/content/pref-" + page + ".xul";
+	ifrm.setAttribute("src",url);
+	tree = document.getElementById("prefTree");
+	initTree(0);
+}
+function closePrefDialog() {
+	try {
+		Components.classes["@mozilla.org/preferences-service;1"]
+			  .getService(Components.interfaces.nsIPrefService)
+			  .savePrefFile(null);
+	} catch (e) {}
+	this.close();
+}
+function nextItem() {
+	openTree();
+	var index = tree.currentIndex;
+	if (++index < document.getElementsByTagName("treeitem").length)
+		tree.view.selection.select(index);
+}
+function prevItem() {
+	openTree();
+	var index = tree.currentIndex;
+	if (--index > -1)
+		tree.view.selection.select(index);
+}
+function initTree(oldCnt) {
+	var items = document.getElementsByTagName("treeitem");
+	var newCnt = items.length;
+	if((newCnt) && (newCnt == oldCnt)) {
+		var item = document.getElementById(page);
+		if(item)
+			openBranch(item.parentNode.parentNode,item);
+		else
+			for(var j=0;j<newCnt;j++)
+				if(items[j].firstChild.firstChild.getAttribute("url")==url)
+					openBranch(items[j].parentNode.parentNode,items[j]);
+		if(!document.location.search)
+			openTree();
+	} else
+		setTimeout("initTree("+newCnt+")",100);
+}
+function openTree() {
+	var items = document.getElementsByTagName("treeitem");
+	for(var j=0,index;j<items.length;j++) {
+		index = tree.contentView.getIndexOfItem(items[j]);
+	if(index != -1 && !tree.view.isContainerOpen(index))
+		tree.view.toggleOpenState(index);
+	}
+}
+function openBranch(selectItemroot,selectItem) {
+	var parentIndex = tree.contentView.getIndexOfItem(selectItemroot);
+	if(parentIndex > -1 && !tree.view.isContainerOpen(parentIndex))
+		tree.view.toggleOpenState(parentIndex);
+	var index = tree.view.getIndexOfItem(selectItem);
+	if(index > -1) {
+		tree.view.selection.select(index);
+		if(!tree.view.isContainerOpen(index))
+			tree.view.toggleOpenState(index);
+	}
+}
+function switchPage() {
+	var item = tree.contentView.getItemAtIndex(tree.currentIndex);
+	var src = ifrm.getAttribute("src");
+	var url = item.firstChild.firstChild.getAttribute("url");
+	if(url!=src) {
+		ifrm.setAttribute("src",url);
+		panelFrame.location.replace(url);
+	}
+}
+]]>
+</script>
+
+
+<hbox flex="1">
+  <vbox>
+    <label value="&category.label;" accesskey="&category.ackey;" control="prefTree"/>
+    <tree id="prefTree" style="&prefTree.width;" flex="1" seltype="single" hidecolumnpicker="true" onselect="switchPage();">
+      <treecols><treecol flex="1" primary="true" hideheader="true"/></treecols>
+      <treechildren>
+
+        <treeitem id="appearance" container="true">
+          <treerow>
+            <treecell url="chrome://kmprefs/content/pref-appearance.xul" label="&appearance.label;"/>
+          </treerow>
+          <treechildren>
+            <treeitem id="toolbars">
+              <treerow>
+                <treecell url="chrome://kmprefs/content/pref-toolbars.xul" label="&toolbars.label;"/>
+              </treerow>
+            </treeitem>
+          </treechildren>
+        </treeitem>
+
+        <treeitem id="display" container="true">
+          <treerow>
+            <treecell url="chrome://kmprefs/content/pref-display.xul" label="&display.label;"/>
+          </treerow>
+          <treechildren>
+            <treeitem id="filters">
+              <treerow>
+                <treecell url="chrome://kmprefs/content/pref-filters.xul" label="&filters.label;"/>
+              </treerow>
+            </treeitem>
+          </treechildren>
+        </treeitem>
+
+        <treeitem id="browsing" container="true">
+          <treerow>
+            <treecell url="chrome://kmprefs/content/pref-browsing.xul" label="&browsing.label;"/>
+          </treerow>
+          <treechildren>
+            <treeitem id="filetypes">
+              <treerow>
+                <treecell url="chrome://kmprefs/content/pref-filetypes.xul" label="&filetypes.label;"/>
+              </treerow>
+            </treeitem>
+            <treeitem id="webfind">
+              <treerow>
+                <treecell url="chrome://kmprefs/content/pref-webfind.xul" label="&webfind.label;"/>
+              </treerow>
+            </treeitem>
+            <treeitem id="history">
+              <treerow>
+                <treecell url="chrome://kmprefs/content/pref-history.xul" label="&history.label;"/>
+              </treerow>
+            </treeitem>
+            <treeitem id="hotlinks">
+              <treerow>
+                <treecell url="chrome://kmprefs/content/pref-hotlinks.xul" label="&hotlinks.label;"/>
+              </treerow>
+            </treeitem>
+          </treechildren>
+        </treeitem>
+
+        <treeitem id="privacy" container="true">
+          <treerow>
+            <treecell url="chrome://kmprefs/content/pref-privacy.xul" label="&privacy.label;"/>
+          </treerow>
+          <treechildren>
+            <treeitem id="encryption">
+              <treerow>
+                <treecell url="chrome://kmprefs/content/pref-encryption.xul" label="&encryption.label;"/>
+              </treerow>
+            </treeitem>
+          </treechildren>
+        </treeitem>
+
+        <treeitem id="javascript">
+          <treerow>
+            <treecell url="chrome://kmprefs/content/pref-javascript.xul" label="&javascript.label;"/>
+          </treerow>
+        </treeitem>
+
+        <treeitem id="kplugins" container="true">
+          <treerow>
+            <treecell url="chrome://kmprefs/content/pref-kplugins.xul" label="&kplugins.label;"/>
+          </treerow>
+          <treechildren id="kplugins_children">
+            <treeitem id="bookmarks">
+              <treerow>
+                <treecell url="chrome://kmprefs/content/pref-kbookmarks.xul" label="&kbookmarks.label;"/>
+              </treerow>
+            </treeitem>
+            <treeitem id="favorites">
+              <treerow>
+                <treecell url="chrome://kmprefs/content/pref-kfavorites.xul" label="&kfavorites.label;"/>
+              </treerow>
+            </treeitem>
+            <treeitem id="hotlist">
+              <treerow>
+                <treecell url="chrome://kmprefs/content/pref-khotlist.xul" label="&khotlist.label;"/>
+              </treerow>
+            </treeitem>
+            <treeitem id="layers">
+              <treerow>
+                <treecell url="chrome://kmprefs/content/pref-klayers.xul" label="&klayers.label;"/>
+              </treerow>
+            </treeitem>
+            <treeitem id="macros">
+              <treerow>
+                <treecell url="chrome://kmprefs/content/pref-kmacros.xul" label="&kmacros.label;"/>
+              </treerow>
+            </treeitem>
+            <treeitem id="gestures">
+              <treerow>
+                <treecell url="chrome://kmprefs/content/pref-kgestures.xul" label="&kgestures.label;"/>
+              </treerow>
+            </treeitem>
+          </treechildren>
+        </treeitem>
+
+      </treechildren>
+    </tree>
+  </vbox>
+  <splitter collapse="before"><grippy/></splitter>
+  <iframe id="panelFrame" name="panelFrame" flex="1"/>
+</hbox>
+
+<script type="application/x-javascript">
+init();
+</script>
+
+</dialog>

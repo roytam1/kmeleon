@@ -1,0 +1,9 @@
+<!ENTITY % prefDTD SYSTEM "chrome://kmprefs/locale/pref.dtd">%prefDTD;
+<!ENTITY kplugins.header	"K-Meleon Plugins">
+<!ENTITY kplugins.misc.label	"Miscellaneous">
+<!ENTITY kplugins.history	"Enable History">
+<!ENTITY kplugins.macros	"Enable Macro Extension">
+<!ENTITY kplugins.external	"Enable External Program Control">
+<!ENTITY kplugins.bmpmenu	"Enable Bitmapped Menus">
+<!ENTITY kplugins.toolbars	"Enable Toolbar Control">
+<!ENTITY kplugins.rebarmenu	"Enable Rebar Menu">
