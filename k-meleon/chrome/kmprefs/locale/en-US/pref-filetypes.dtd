@@ -1,0 +1,3 @@
+<!ENTITY % downDTD SYSTEM "chrome://kmprefs/locale/firefox/downloadactions.dtd">%downDTD;
+<!ENTITY filetypes.header	 "File Type Handling">
+<!ENTITY filetypes.extColWidth	 "width:12ex">

@@ -1,0 +1,213 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/css" href="chrome://global/skin/"?>
+<?xul-overlay href="chrome://kmprefs/content/kplugins/layers.xul"?>
+<?xul-overlay href="chrome://kmprefs/content/kmprefs/ovrl-popups.xul"?>
+<!DOCTYPE page SYSTEM "chrome://kmprefs/locale/pref-browsing.dtd">
+<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" 
+id="prefBrowsing" onload="Browsing.init();kLayers.init()">
+
+<stringbundle id="pref_bundle" src="chrome://kmprefs/locale/pref.properties"/>
+<stringbundle id="brws_bundle" src="chrome://kmprefs/locale/pref-browsing.properties"/>
+
+<script type="application/x-javascript" src="chrome://kmprefs/content/pref.js"/>
+<script type="application/x-javascript">
+<![CDATA[
+var Browsing = {
+
+lst : null,
+grp : null,
+
+init: function() {
+	this.lst = document.getElementById("openURL");
+	this.grp = document.getElementById("openHow");
+
+	var brwsBundle = document.getElementById("brws_bundle"), tag, val;
+
+	kLayers.init();
+	document.getElementById("openURLInCurrent").label = brwsBundle.getString((kLayers.load)?"layer_current":"window_current");
+	document.getElementById("openURLInLayer").label = brwsBundle.getString("layer_new");
+	document.getElementById("openURLInLayer").disabled = (kLayers.load) ? false : true;
+	document.getElementById("layers(OpenURLBg)").disabled = document.getElementById("openURLInLayer").disabled;
+	document.getElementById("openURLInWindow").label = brwsBundle.getString("window_new");
+	document.getElementById("openURLInWindow").disabled = (kLayers.only) ? true : false;
+	document.getElementById("ID_OPEN_LINK_IN_BACKGROUND").disabled = document.getElementById("openURLInWindow").disabled
+
+	for(var j=0,p=new Array("macros","favorites","bookmarks","hotlist");j<p.length;j++)
+		if(!kPlugin.load(p[j])) document.getElementById(p[j]).setAttribute("disabled",true);
+
+	this.initOpen();
+},
+initOpen: function() {
+	var val;
+
+	try {
+		val = pref.getCharPref(this.lst.value);
+	} catch(e) {
+		for(var j=0,c=this.grp.childNodes;j<c.length;j++) c[j].setAttribute("disabled",true);
+	}
+
+	document.getElementById("layers(OpenURLBg)").checked = false;
+	document.getElementById("ID_OPEN_LINK_IN_BACKGROUND").checked = false;
+	switch(val) {
+		case "ID_OPEN_LINK"              : this.grp.selectedIndex = 0; break;
+		case "layers(OpenURL)"           : this.grp.selectedIndex = 1; break;
+		case "layers(OpenURLBg)"         : this.grp.selectedIndex = 1; document.getElementById("layers(OpenURLBg)").checked = true; break;
+		case "ID_OPEN_LINK_IN_NEW_WINDOW": this.grp.selectedIndex = 2; break;
+		case "ID_OPEN_LINK_IN_BACKGROUND": this.grp.selectedIndex = 2; document.getElementById("ID_OPEN_LINK_IN_BACKGROUND").checked = true; break;
+		default                          : this.grp.selectedIndex =-1;
+	}
+},
+setDefault: function() {
+	var proc = Components.classes["@mozilla.org/process/util;1"]
+			     .createInstance(Components.interfaces.nsIProcess);
+	proc.init(getFile(getFolder("CurProcD"),"SetDefault.exe"));
+	proc.run(true,[pref.getCharPref("general.useragent.locale")],1);
+},
+setOpen: function() {
+	pref.setCharPref(this.lst.value,this.grp.value);
+	this.initOpen();
+},
+toggleOpen: function(chkBox) {
+	if(chkBox.checked)
+		pref.setCharPref(this.lst.value,chkBox.id);
+	else
+		pref.setCharPref(this.lst.value,chkBox.previousSibling.value);
+	this.initOpen();
+}
+
+};
+var Diversion = {
+
+lst : null,
+grp : null,
+
+init: function() {
+	this.lst = document.getElementById("openDivURL");
+	this.grp = document.getElementById("openDivHow");
+
+	var layerBundle = document.getElementById("brws_bundle");
+
+	kLayers.init();
+	document.getElementById("browser.tabs.loadDivertedInBackground").disabled = (kLayers.load) ? true : false;
+	initCheckbox("browser.tabs.loadDivertedInBackground");
+
+	document.getElementById("openDivURLInCurrent").label = layerBundle.getString((kLayers.load)?"layer_current":"window_current");
+	document.getElementById("openDivURLInLayer").label = layerBundle.getString("layer_new");
+	document.getElementById("openDivURLInLayer").disabled = (kLayers.only) ? false : true;
+	document.getElementById("openDivURLInLayer").value = (kLayers.only) ? 2 : 3;
+	document.getElementById("openDivURLInWindow").label = layerBundle.getString("window_new");
+	document.getElementById("openDivURLInWindow").disabled = (kLayers.only) ? true : false;
+
+	this.initOpen();
+	initRadiogroup("browser.link.open_newwindow.restriction");
+},
+initOpen: function() {
+	var val;
+
+	try {
+		val = pref.getIntPref(this.lst.value);
+		for(this.grp.selectedIndex=0;this.grp.selectedItem.value!=val;this.grp.selectedIndex++);
+	} catch(e) {
+		try {
+			for(this.grp.selectedIndex=0;this.grp.selectedItem.value;this.grp.selectedIndex++);
+				this.grp.selectedItem.disabled = true;
+		} catch(e) {}
+	}
+}
+
+};
+]]>
+</script>
+
+
+<vbox flex="1" style="overflow:auto">
+  <dialogheader title="&browsing.header;"/>
+  <separator class="thin"/>
+  <tabcontrol flex="1">
+    <tabbox flex="1">
+      <tabs>
+        <tab label="&general;" oncommand="Browsing.init()"/>
+        <tab label="&browsing.layered;"/>
+        <tab label="&browsing.diverted;" oncommand="Diversion.init()"/>
+      </tabs>
+      <tabpanels flex="1">
+        <tabpanel flex="1" orient="vertical" style="overflow:auto">
+<!-- General Browsing -->
+<hbox>
+  <groupbox flex="1">
+    <caption>
+      <hbox align="center">
+        <label value="&browsing.open;"/>
+        <menulist id="openURL" oncommand="Browsing.initOpen()">
+          <menupopup>
+            <menuitem value="kmeleon.general.openurl" label="&browsing.typedURL;"/>
+            <menuitem value="kmeleon.plugins.macros.selected.openurl" label="&browsing.selectedText;" id="macros"/>
+            <menuitem value="kmeleon.plugins.favorites.openurl" label="&browsing.favorites;" id="favorites"/>
+            <menuitem value="kmeleon.plugins.bookmarks.openurl" label="&browsing.bookmarks;" id="bookmarks"/>
+            <menuitem value="kmeleon.plugins.hotlist.openurl" label="&browsing.hotlist;" id="hotlist"/>
+          </menupopup>
+        </menulist>
+      </hbox>
+    </caption>
+    <separator class="thin"/>
+    <radiogroup id="openHow">
+      <radio oncommand="Browsing.setOpen()" value="ID_OPEN_LINK" id="openURLInCurrent"/>
+      <radio oncommand="Browsing.setOpen()" value="layers(OpenURL)" id="openURLInLayer"/>
+      <checkbox oncommand="Browsing.toggleOpen(this)" id="layers(OpenURLBg)" label="&inBackground;" style="margin-left:2em"/>
+      <radio oncommand="Browsing.setOpen()" value="ID_OPEN_LINK_IN_NEW_WINDOW" id="openURLInWindow"/>
+      <checkbox oncommand="Browsing.toggleOpen(this)" id="ID_OPEN_LINK_IN_BACKGROUND" label="&inBackground;" style="margin-left:2em"/>
+    </radiogroup>
+    <separator class="thin"/>
+  </groupbox>
+  <hbox style="padding-top:0.6em" flex="1">
+    <groupbox flex="1">
+      <caption label="&DefaultBrowser;"/>
+      <separator class="thin"/>
+      <description flex="1">&DefaultBrowser.descr;</description>
+      <separator class="thin"/>
+      <button label="&DefaultBrowser.set;" oncommand="Browsing.setDefault()"/>
+    </groupbox>
+  </hbox>
+</hbox>
+<!-- General Browsing -->
+	</tabpanel>
+        <tabpanel flex="1" orient="vertical" style="overflow:auto">
+          <separator class="thin"/>
+          <vbox id="kLayersLoad"/>
+          <separator class="thin"/>
+          <vbox id="kLayersOpen"/>
+	</tabpanel>
+        <tabpanel flex="1" orient="vertical" style="overflow:auto">
+<!-- Window Diversion (Mozilla 1.8) -->
+<groupbox>
+  <caption>
+    <hbox align="center">
+      <label value="&browsing.open;"/>
+      <menulist id="openDivURL" oncommand="Diversion.initOpen()">
+        <menupopup>
+          <menuitem value="browser.link.open_newwindow" label="&browsing.newwindow;"/>
+          <menuitem value="browser.link.open_external" label="&browsing.external;"/>
+        </menupopup>
+      </menulist>
+    </hbox>
+  </caption>
+  <separator class="thin"/>
+  <radiogroup id="openDivHow" oncommand="pref.setIntPref(Diversion.lst.value,parseInt(Diversion.grp.value))">
+    <radio value="1" id="openDivURLInCurrent"/>
+    <radio value="3" id="openDivURLInLayer"/>
+    <radio value="2" id="openDivURLInWindow"/>
+  </radiogroup>
+  <separator class="thin"/>
+</groupbox>
+<separator class="thin"/>
+<checkbox oncommand="toggleCheckbox(this.id)" id="browser.tabs.loadDivertedInBackground" label="&browsing.inBackground;"/>
+<separator class="thin"/>
+<groupbox id="popups.diversion"/>
+<!-- Window Diversion (Mozilla 1.8) -->
+	</tabpanel>
+      </tabpanels>
+    </tabbox>
+  </tabcontrol>
+</vbox>
+
+</page>

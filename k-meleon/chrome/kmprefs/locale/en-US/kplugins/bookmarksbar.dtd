@@ -1,0 +1,7 @@
+<!ENTITY % prefDTD SYSTEM "chrome://kmprefs/locale/pref.dtd">%prefDTD;
+<!ENTITY % plugDTD SYSTEM "chrome://kmprefs/locale/kplugins/kplugins.dtd">%plugDTD;
+<!ENTITY bookmarksbar.label		"Bookmarks Toolbar">
+<!ENTITY bookmarksbar.enable		"Enable Bookmarks Toolbar">
+<!ENTITY bookmarksbar.chevron		"Show a button to open Bookmarks menu">
+<!ENTITY bookmarksbar.variableBefore	"Variable width (shorten names with more than">
+<!ENTITY bookmarksbar.variableAfter	"characters)">

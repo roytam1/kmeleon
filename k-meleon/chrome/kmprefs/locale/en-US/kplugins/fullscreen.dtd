@@ -1,0 +1,5 @@
+<!ENTITY fullscreen.label	"Fullscreen Display">
+<!ENTITY fullscreen.enable	"Enable support for Fullscreen Display">
+<!ENTITY fullscreen.mode	"In Fullscreen Mode">
+<!ENTITY fullscreen.status	"Hide status bar">
+<!ENTITY fullscreen.taskbar	"Hide task bar">

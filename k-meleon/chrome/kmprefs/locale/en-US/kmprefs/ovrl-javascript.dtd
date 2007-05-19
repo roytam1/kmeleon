@@ -1,0 +1,11 @@
+<!ENTITY % prefDTD SYSTEM "chrome://kmprefs/locale/pref.dtd">%prefDTD;
+<!ENTITY enableJS	"Enable JavaScript">
+<!ENTITY contentManip	"Content Manipulation">
+<!ENTITY domDISS	"Disallow scripts to change images (Disable roll-over effects)">
+<!ENTITY domDISS.note	"&note; Even if disabled, sites may use other methods to show roll-over effects.">
+<!ENTITY windowManip	"Window Manipulation">
+<!ENTITY domASTCW	"Disallow scripts to close windows">
+<!ENTITY domDWF		"Disallow scripts to raise or lower windows">
+<!ENTITY domDWMR	"Disallow scripts to move or resize windows">
+<!ENTITY domDWSC	"Disallow scripts to manipulate status bar text">
+<!ENTITY domECE		"Disallow scripts to manipulate context menus">
