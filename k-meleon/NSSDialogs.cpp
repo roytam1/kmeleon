@@ -20,6 +20,8 @@
 #include "stdafx.h"
 #include <time.h>
 #include "NSSDialogs.h"
+#include "MozUtils.h"
+
 //#include "nsIPKIParamBlock.h"
 #include "nsIX509Cert.h"
 #include "nsIX509CertDB.h"
@@ -325,20 +327,14 @@ NS_IMETHODIMP CNSSDialogs::ConfirmMismatchDomain(nsIInterfaceRequestor *socketIn
 	// chrome://pippki/content/domainMismatch.xul
 
 	CString msg1,msg2;
-	LPCTSTR sCName;
-	char* sTUrl =  NS_CStringCloneData(targetURL);
-	nsEmbedString commonName;
+	CString sTUrl =  NSUTF8StringToCString(nsEmbedCString(targetURL));
 
-	USES_CONVERSION;
-	
+	nsEmbedString commonName;
 	cert->GetCommonName (commonName);
-	sCName = W2CT(commonName.get());
 	
-	msg1.Format(IDS_mismatchDomainMsg1, sTUrl, sCName);
+	msg1.Format(IDS_mismatchDomainMsg1, sTUrl, NSStringToCString(commonName));
 	msg2.Format(IDS_mismatchDomainMsg2, sTUrl);
 	
-	nsMemory::Free(sTUrl);
-
 	nsCOMPtr<nsIDOMWindow> parent = do_GetInterface (socketInfo);
 	CDomainMismatchDialog dlg(CWndForDOMWindow(parent), msg1, msg2, socketInfo, cert);
 
@@ -408,7 +404,7 @@ NS_IMETHODIMP CNSSDialogs::NotifyCrlNextupdate(nsIInterfaceRequestor *socketInfo
 	// chrome://pippki/content/serverCrlNextupdate.xul
 	CString msg1,msg2;
 	LPCTSTR sCName;
-	char* sTUrl = NS_CStringCloneData(targetURL);
+	CString sTUrl =  NSUTF8StringToCString(nsEmbedCString(targetURL));
 	nsEmbedString commonName;
 
 	USES_CONVERSION;
@@ -419,8 +415,6 @@ NS_IMETHODIMP CNSSDialogs::NotifyCrlNextupdate(nsIInterfaceRequestor *socketInfo
 	msg1.Format(IDS_crlNextUpdateMsg1, sTUrl);
 	msg2.Format(IDS_crlNextUpdateMsg2, sCName);
 	
-	nsMemory::Free(sTUrl);
-
 	nsCOMPtr<nsIDOMWindow> parent = do_GetInterface (socketInfo);
 /*	CServerCrlNextupdateDialog dlg(CWndForDOMWindow(parent), msg1, msg2);
 	dlg.DoModal();*/
