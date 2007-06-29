@@ -137,12 +137,17 @@ public:
 		return ret;
 
     }
-    inline void GetEnteredURL(CString& url, BOOL ignoreTyped = FALSE) {
-		if (!ignoreTyped)
+    
+	inline CString GetEnteredURL(BOOL ignoreTyped = FALSE) {
+		if (!ignoreTyped) {
+			CString url;
 			GetWindowText(url);
-		else
-			url = m_currentURL;
+			return url;
+		}
+
+		return m_currentURL;
     }
+
 	inline void ResetURL()
 	{
 		SetWindowText(m_currentURL);
@@ -158,13 +163,13 @@ public:
     }   
     inline void SetCurrentURL(LPCTSTR pUrl, BOOL always = FALSE) {
 		m_currentURL = pUrl;
-		if (!m_changed || always) {
+		if (!m_changed || always && m_currentURL != GetEnteredURL()) {
 			DWORD oldSelection = GetEditCtrl()->GetSel();
 			if (HIWORD(oldSelection) != LOWORD(oldSelection) || GetWindowTextLength() == 0)
 				oldSelection = MAKELONG(LOWORD(oldSelection), -1);
 
             if (_tcsncicmp(pUrl, _T("javascript:"), 11))
-                SetWindowText(pUrl);
+                SetWindowText(m_currentURL);
 			TRACE0("EditChanged FALSE in SetCurrentURL\n");
             EditChanged(FALSE);
 			//if (!CheckFocus())

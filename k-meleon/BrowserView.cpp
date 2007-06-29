@@ -292,8 +292,8 @@ void CBrowserView::OnNewUrlEnteredInUrlBar()
    //mpBrowserFrame->m_wndUrlBar.EditChanged(FALSE);
    
    // Get the currently entered URL
-   CString strUrl;
-   mpBrowserFrame->m_wndUrlBar.GetEnteredURL(strUrl);
+   CString strUrl = mpBrowserFrame->m_wndUrlBar.GetEnteredURL();
+   
 
    // Add what was just entered into the MRI list
    if (theApp.preferences.MRUbehavior == 2)
@@ -392,8 +392,7 @@ void CBrowserView::_OnNavReload(BOOL force)
 	CString url = m_pWindow->GetURI();
 	if (url.IsEmpty() || url.Compare(_T("about:blank")) == 0)
 	{
-		CString url;
-		mpBrowserFrame->m_wndUrlBar.GetEnteredURL(url);
+		CString url = mpBrowserFrame->m_wndUrlBar.GetEnteredURL();
 		if (!url.IsEmpty())
 			OpenURL(url);
 	}
@@ -570,6 +569,7 @@ void CBrowserView::OnOpenLink()
 void CBrowserView::OnOpenLinkInNewWindow()
 {
 	CString url, title;
+
 	if (!GetLinkTitleAndHref(m_contextNode, url, title))
 		return;
 
