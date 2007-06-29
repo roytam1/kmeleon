@@ -140,6 +140,8 @@ public:
 	//void OpenURL(LPCTSTR url, BOOL sendRef = FALSE, BOOL allowFixup = FALSE);
 	void OpenURL(LPCTSTR url, LPCTSTR refferer = NULL, BOOL allowFixup = FALSE);
 	void OpenMultiURL(LPCTSTR urls, BOOL allowFixup = FALSE);
+	virtual void OpenURLWithCommand(UINT idCommand, LPCTSTR url, LPCTSTR refferer = NULL, BOOL allowFixup = FALSE);
+
 	//CBrowserFrame* OpenURLInNewWindow(LPCTSTR url, BOOL bBackground=FALSE, BOOL sendRef = FALSE, BOOL allowFixup = FALSE);
 	CBrowserFrame* OpenURLInNewWindow(LPCTSTR url, LPCTSTR refferer = NULL, BOOL bBackground=FALSE, BOOL allowFixup = FALSE);
 	void LoadHomePage();

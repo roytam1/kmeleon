@@ -240,6 +240,25 @@ BOOL CBrowserView::OpenViewSourceWindow(const char* pUrl)
     return TRUE;
 }
 
+void CBrowserView::OpenURLWithCommand(UINT idCommand, LPCTSTR url, LPCTSTR refferer, BOOL allowFixup)
+{
+	switch (idCommand)
+	{
+        case ID_OPEN_LINK:
+            OpenURL(url, refferer, allowFixup);
+            break;
+        case ID_OPEN_LINK_IN_BACKGROUND:
+            OpenURLInNewWindow(url, refferer, TRUE, allowFixup);
+            break;
+        case ID_OPEN_LINK_IN_NEW_WINDOW:
+            OpenURLInNewWindow(url, refferer, FALSE, allowFixup);
+            break;
+        default:
+            OpenURL(url, refferer, allowFixup);
+            return;
+    }
+}
+
 void CBrowserView::OpenMultiURL(LPCTSTR urls, BOOL allowFixup)
 {
     char szOpenURLcmd[80];
@@ -281,21 +300,8 @@ void CBrowserView::OpenMultiURL(LPCTSTR urls, BOOL allowFixup)
         TCHAR *q = _tcschr(p, '\t');
         if (q) *q = 0;
         if (!*p) break;
-	    switch (idOpen) {
-        case ID_OPEN_LINK:
-            OpenURL(p, nsnull, allowFixup);
-            break;
-        case ID_OPEN_LINK_IN_BACKGROUND:
-            OpenURLInNewWindow(p, GetCurrentURI(), nsnull, allowFixup);
-            break;
-        case ID_OPEN_LINK_IN_NEW_WINDOW:
-            OpenURLInNewWindow(p, GetCurrentURI(), nsnull, allowFixup);
-            break;
-        default:
-            OpenURL(p, nsnull, allowFixup);
-            return;
-        }
-
+		OpenURLWithCommand(idOpen, p, GetCurrentURI(), allowFixup);
+	    
         idOpen = idOpenX==0 ? idOpen : idOpenX;
 
         if (q)
@@ -402,6 +408,11 @@ CBrowserFrame* CBrowserView::OpenURLInNewWindow(LPCTSTR pUrl, LPCTSTR referrer, 
 {
 	if(!pUrl)
         return NULL; 
+
+	if (GetCurrentURI() == "about:blank") {
+		OpenURL(pUrl, referrer, allowFixup);
+		return mpBrowserFrame;
+	}
 
 	return theApp.CreateNewBrowserFrameWithUrl(pUrl, referrer, bBackground);
 }
