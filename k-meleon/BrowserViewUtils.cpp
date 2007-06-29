@@ -356,13 +356,16 @@ void CBrowserView::OpenURL(const char* pUrl, nsIURI *refURI, BOOL allowFixup)
 
 void CBrowserView::OpenURL(LPCTSTR url, LPCTSTR referrer, BOOL allowFixup)
 {
-   mpBrowserFrame->UpdateLocation(url, TRUE);
+   //mpBrowserFrame->UpdateLocation(url, TRUE);
      
    if ( GetActiveWindow() == mpBrowserFrame &&
 	   !::IsChild(m_hWnd, ::GetFocus()))
 	  m_pWindow->SetActive(TRUE);
 
-   m_pWindow->LoadURL(url, referrer, allowFixup);
+   ((CBrowserGlue*)m_pBrowserGlue)->mPendingLocation = url; // XXXX
+   if (!m_pWindow->LoadURL(url, referrer, allowFixup) && m_pBrowserGlue)
+	   ((CBrowserGlue*)m_pBrowserGlue)->mPendingLocation = _T("");
+
 }
 /*
 void CBrowserView::OpenURL(LPCTSTR url, BOOL sendRef, BOOL allowFixup)

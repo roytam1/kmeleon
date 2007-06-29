@@ -58,6 +58,7 @@ public:
 	CString mLocation;
 	CString mStatusText;
 	CString mPopupBlockedHost;
+	CString mPendingLocation;
 	int     mIcon;
 	int     mSecurityState;
 	BOOL    mLoading;
@@ -338,6 +339,10 @@ protected:
 
    afx_msg void OnCookiesViewer();
    afx_msg void OnPasswordsViewer();
+   afx_msg void OnCookiePermissions();
+   afx_msg void OnImagePermissions();
+   afx_msg void OnPopupPermissions();
+
     //}}AFX_MSG
     DECLARE_MESSAGE_MAP()
 public:

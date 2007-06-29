@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+ /* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
 /*
  *  Copyright (C) 2006 Dorian Boissonnade
@@ -18,6 +18,7 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *
  * ***** END LICENSE BLOCK ***** */
+ 
 
 #include "stdafx.h"
 #include "BrowserFrm.h"
@@ -58,10 +59,12 @@ void CBrowserGlue::UpdateBusyState(BOOL aBusy)
 		mContextNode = nsnull;
 		mpBrowserView->m_contextNode = nsnull;
 	}
-	else
+	else {
 		SetFavIcon(nsnull);
+		mPendingLocation = _T("");
+	}
 
-	mpBrowserFrame->PostMessage(UWM_UPDATEBUSYSTATE, aBusy == PR_TRUE ? 1 : 0, 0);
+	mpBrowserFrame->PostMessage(UWM_UPDATEBUSYSTATE, aBusy == PR_TRUE ? 1 : 0, (LPARAM)mpBrowserView->GetSafeHwnd());
 	if (mpBrowserFrame->GetActiveView() == mpBrowserView)
 		mpBrowserFrame->UpdateLoading(aBusy);
 }
@@ -78,11 +81,6 @@ void CBrowserGlue::UpdateCurrentURI(nsIURI *aLocation)
 		else
 			aLocation->GetSpec(uriString);
 
-		// Reset the popup notification and the icon uri
-        if (!(mPopupBlockedHost.IsEmpty())) {
-			mpBrowserFrame->UpdatePopupNotification(NULL);
-			mPopupBlockedHost.Empty();
-		}
 #ifdef INTERNAL_SITEICONS
 		// Must be done here, before testing if we have the same address
 		// because xul error page have its own icon, and since the address
@@ -91,8 +89,20 @@ void CBrowserGlue::UpdateCurrentURI(nsIURI *aLocation)
 #endif
 		mLocation = NSUTF8StringToCString(uriString);
 
-		if (mpBrowserFrame->GetActiveView() == mpBrowserView)
+		// XXX Since Mozilla 1.8.0.2 about:blank is always passed here
+	    // before anything else, broking stuffs, so ignore it!
+		if (mLocation.Compare(_T("about:blank")) == 0 &&
+			mPendingLocation.GetLength())
+			mLocation = mPendingLocation;
+
+
+		if (mpBrowserFrame->GetActiveView() == mpBrowserView) {
 			mpBrowserFrame->UpdateLocation(mLocation);
+			if (!(mPopupBlockedHost.IsEmpty()))
+				mpBrowserFrame->UpdatePopupNotification(NULL);
+		}
+		
+		mPopupBlockedHost.Empty();
 
 		// Add a MRU entry. Note that I'm only only allowing
 		// http or https uri
@@ -227,7 +237,14 @@ void CBrowserGlue::ShowTooltip(PRInt32 x, PRInt32 y, const TCHAR *text)
     POINT point;
     ::GetCursorPos(&point);
 
-    mpBrowserFrame->ScreenToClient(&point);
+	// XXX For an unknow reason the tooltips are also displayed when the cursor is 
+	// outside the view, so verify that the mouse is on the view ...
+	CRect r;
+	mpBrowserView->GetWindowRect(r);
+	if (!r.PtInRect(point))
+		return;
+
+	mpBrowserFrame->ScreenToClient(&point);
     point.y += GetSystemMetrics(SM_CYCURSOR)/2 + 4; // jump to below the cursor, otherwise we appear right on top of the cursor
 
     mpBrowserFrame->m_wndToolTip.Show(text, point.x, point.y);
@@ -248,6 +265,7 @@ BOOL CBrowserGlue::MouseAction(nsIDOMNode *node, UINT flags)
 	if (flags == MK_MBUTTON &&
 	   (!id || !::GetLinkTitleAndHref(node, href, title))) {
 		mpBrowserView->StartPanning(TRUE);
+		return TRUE;
 	} else if (id>0) {
 		mpBrowserFrame->PostMessage(WM_COMMAND, (WPARAM)id, 0);
 		return TRUE;
@@ -383,6 +401,10 @@ void  CBrowserGlue::ShowContextMenu(UINT aContextFlags, nsIDOMNode* node)
 				menu += _T("ImageLinkPopup");
 			else
 				menu += _T("LinkPopup");
+		}
+		else if(aContextFlags & nsIContextMenuListener2::CONTEXT_IMAGE)
+		{
+			menu += _T("ImagePopup");
 		}
 		else menu += _T("DocumentPopup");
 	}

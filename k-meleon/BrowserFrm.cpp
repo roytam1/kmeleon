@@ -73,6 +73,7 @@
 #include "KmeleonConst.h"
 #include "PasswordViewerDlg.h"
 #include "CookiesViewerDlg.h"
+#include "Permissions.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -110,6 +111,10 @@ BEGIN_MESSAGE_MAP(CBrowserFrame, CFrameWnd)
     ON_COMMAND(ID_TOOLBARS_LOCK, ToggleToolbarLock)
     ON_COMMAND(ID_COOKIES_VIEWER, OnCookiesViewer)
     ON_COMMAND(ID_PASSWORDS_VIEWER, OnPasswordsViewer)
+	ON_COMMAND(ID_COOKIE_PERM, OnCookiePermissions)
+	ON_COMMAND(ID_IMAGE_PERM, OnImagePermissions)
+	ON_COMMAND(ID_POPUP_PERM, OnPopupPermissions)
+	
     ON_UPDATE_COMMAND_UI(ID_TOOLBARS_LOCK, OnUpdateToggleToolbarLock)
 #ifdef INTERNAL_SIDEBAR
 	ON_COMMAND_RANGE(SIDEBAR_MENU_START_ID, SIDEBAR_MENU_END_ID, ToggleSideBar)
@@ -263,9 +268,6 @@ void CBrowserFrame::OnClose()
 
 	SaveWindowPos();
 
-   
-   
-   
 
    // XXX: Destroying the window with the findbar open, will activate
    // it during destruction because I'm setting back the focus to the
@@ -281,6 +283,8 @@ void CBrowserFrame::OnClose()
    if (theApp.m_pMostRecentBrowserFrame == this) {
 	 theApp.m_pMostRecentBrowserFrame = pTemp;
    }
+
+   ReleaseMutex(theApp.m_hMutex);
 }
 
 void CBrowserFrame::OnDestroy()
@@ -649,8 +653,12 @@ void CBrowserFrame::OnActivate(UINT nState, CWnd* pWndOther, BOOL bMinimized)
     switch(nState) {
         case WA_ACTIVE:
         case WA_CLICKACTIVE:
-			if (!m_wndLastFocused || m_wndLastFocused == view->GetSafeHwnd() 
-				|| ::IsChild(view->m_hWnd, m_wndLastFocused)) {
+
+			// The window dirrectly inside the view always change o_o breaking
+			// this code so I'm testing if the windows still exist
+			if (!IsWindow(m_wndLastFocused) || !m_wndLastFocused || 
+				m_wndLastFocused == view->GetSafeHwnd() ||
+				::IsChild(view->m_hWnd, m_wndLastFocused)) {
 				view->Activate(TRUE);
 			}
 			else
@@ -987,6 +995,7 @@ void CBrowserFrame::OnSysColorChange()
     //-------------------------
     // Reload background image:
     //-------------------------
+	m_bmpBack.DeleteObject();
     LoadBackImage ();
     SetBackImage ();
 }
@@ -1054,7 +1063,6 @@ void CBrowserFrame::LoadBackImage ()
 
 LRESULT CBrowserFrame::RefreshMRUList(WPARAM ItemID, LPARAM unused)
 {
-    theApp.m_MRUList->RefreshURLs();
     m_wndUrlBar.LoadMRUList();
     return 0;
 }
@@ -1313,6 +1321,21 @@ void CBrowserFrame::OnPasswordsViewer()
 	dlg.DoModal();
 }
 
+void CBrowserFrame::OnCookiePermissions() {
+	CPermissionsDlg dlg("cookie", this);
+	dlg.DoModal();
+}
+
+void CBrowserFrame::OnImagePermissions() {
+	CPermissionsDlg dlg("image", this);
+	dlg.DoModal();
+}
+
+void CBrowserFrame::OnPopupPermissions() {
+	CPermissionsDlg dlg("popup", this);
+	dlg.DoModal();
+}
+
 void CBrowserFrame::OnWindowPrev()
 {
 	CFrameWnd* pFrame;
@@ -1496,17 +1519,12 @@ void CBrowserFrame::UpdateSiteIcon(int aIcon)
 
 void CBrowserFrame::UpdateLocation(LPCTSTR aLocation, BOOL aIgnoreTyping)
 {
-	// Prevent to move the caret in the urlbar
-	CString currentURL;
-	m_wndUrlBar.GetEnteredURL(currentURL);
-	if (currentURL.Compare(aLocation) == 0)
-		return;
-
+	if (!aLocation) return;
 	// XXX Since Mozilla 1.8.0.2 about:blank is always passed here
 	// before anything else, broking stuffs, so ignore it!
-	if ( _tcscmp(aLocation, _T("about:blank")) == 0 &&
-		currentURL.GetLength())
-		return;
+	//if ( _tcscmp(aLocation, _T("about:blank")) == 0 &&
+//		m_wndUrlBar.GetEnteredURL().GetLength())
+		//return;
 
 	m_wndUrlBar.SetCurrentURL(aLocation, aIgnoreTyping);
 }
@@ -1523,8 +1541,8 @@ void CBrowserFrame::UpdateLoading(BOOL aLoading)
 		m_wndAnimate.Stop();
 		m_wndAnimate.Seek(0);
 
-		CString szUrl;
-		m_wndUrlBar.GetEnteredURL(szUrl);
+		CString szUrl = m_wndUrlBar.GetEnteredURL();
+		
 		if (szUrl.CompareNoCase(_T("about:blank"))==0)
 			m_wndUrlBar.SetFocus();
 	}
@@ -1539,9 +1557,8 @@ void CBrowserFrame::UpdateTitle(LPCTSTR aTitle)
     appTitle = theApp.preferences.GetString("kmeleon.display.title", appTitle);
 	
 	CString title = aTitle;
-    if (title.IsEmpty()){
-        m_wndUrlBar.GetEnteredURL(title);
-    }
+    if (title.IsEmpty())
+		title = GetActiveView()->GetBrowserGlue()->mLocation;
 
 	if (!appTitle.IsEmpty())
 		title += _T(" (") + appTitle + _T(")");
