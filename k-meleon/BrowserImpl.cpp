@@ -92,6 +92,7 @@
 #include "jsapi.h"
 #include "nsIJSContextStack.h"
 #include "BrowserFrm.h" // XXXXX
+#include "BrowserView.h" 
 
 CBrowserImpl::CBrowserImpl()
 {
@@ -666,6 +667,20 @@ NS_IMETHODIMP CBrowserImpl::HandleEvent(nsIDOMEvent *event)
 	nsresult rv;
 	nsEmbedString type;
 	event->GetType(type);
+
+	if (type.Equals(NS_LITERAL_STRING("mousedown")))
+	{
+		// XXXXXXXXXX: Quick fix for the gesture plugin 
+		nsCOMPtr<nsIDOMEventTarget> target;
+		event->GetTarget(getter_AddRefs(target));
+		nsCOMPtr<nsIDOMNode> node = do_QueryInterface(target);
+
+		HWND h = m_pBrowserFrameGlue->GetBrowserFrameNativeWnd();
+		CBrowserFrame* frame = (CBrowserFrame*)CWnd::FromHandle(h);
+		CBrowserView* view = (CBrowserView*)frame->GetActiveView();
+		view->m_contextNode = node;
+		return NS_OK;
+	}
 
 	if (type.Equals(NS_LITERAL_STRING("click")))
 	{

@@ -296,6 +296,8 @@ BOOL CBrowserWrapper::AddListeners(void)
 */
 	rv = mEventTarget->AddEventListener(NS_LITERAL_STRING("click"),
 		mpBrowserImpl, PR_TRUE);
+	rv = mEventTarget->AddEventListener(NS_LITERAL_STRING("mousedown"),
+		mpBrowserImpl, PR_TRUE);
 	rv = mEventTarget->AddEventListener(NS_LITERAL_STRING("DOMPopupBlocked"),
 		mpBrowserImpl, PR_FALSE);
 	rv = mEventTarget->AddEventListener(NS_LITERAL_STRING("DOMLinkAdded"),
@@ -310,6 +312,8 @@ void CBrowserWrapper::RemoveListeners(void)
 {
 	mEventTarget->RemoveEventListener(NS_LITERAL_STRING("click"),
 		mpBrowserImpl, PR_FALSE);
+	mEventTarget->RemoveEventListener(NS_LITERAL_STRING("mousedown"),
+		mpBrowserImpl, PR_TRUE);
 	mEventTarget->RemoveEventListener(NS_LITERAL_STRING("DOMPopupBlocked"),
 		mpBrowserImpl, PR_FALSE);
 	mEventTarget->RemoveEventListener(NS_LITERAL_STRING("DOMLinkAdded"),
