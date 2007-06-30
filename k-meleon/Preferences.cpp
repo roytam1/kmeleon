@@ -1,5 +1,5 @@
 /*
-*  Copyright (C) 2000 Brian Harris
+*  Copyright (C) 2006 Dorian Boissonnade
 *
 *  This program is free software; you can redistribute it and/or modify
 *  it under the terms of the GNU General Public License as published by
@@ -27,7 +27,41 @@ extern CMfcEmbedApp theApp;
 
 #include "Preferences.h"
 #include "nsDirectoryServiceUtils.h"
+#include "nsIStyleSheetService.h"
+#include "nsIIOService.h"
 #include "MozUtils.h"
+
+
+	CPrefString::operator CString() {
+		return theApp.preferences.GetString(GetPrefName(), def);
+	}
+
+	CPrefString::operator LPCTSTR() {
+		return theApp.preferences.GetString(GetPrefName(), def);
+	}
+
+	CString CPrefString::operator =(LPCTSTR s) {
+		theApp.preferences.SetString(GetPrefName(), s);
+		return s;
+	}
+
+	CPrefInt::operator int() {
+		return theApp.preferences.GetInt(GetPrefName(), def);
+	}
+
+	int CPrefInt::operator =(int i) {
+		theApp.preferences.SetInt(GetPrefName(), i);
+		return i;
+	}
+
+	CPrefBool::operator BOOL() {
+		return theApp.preferences.GetBool(GetPrefName(), def);
+	}
+
+	BOOL CPrefBool::operator =(BOOL b) {
+		theApp.preferences.SetBool(GetPrefName(), b);
+		return b;
+	}
 
 CString MakeAbsolutePath(LPCTSTR root, LPCTSTR path)
 {
@@ -43,11 +77,180 @@ CString MakeAbsolutePath(LPCTSTR root, LPCTSTR path)
    return absPath;
 }
 
-CPreferences::CPreferences() {
+typedef void (CPreferences::*PrefChangedMethod)();
 
+#include "nsiPrefBranch2.h"
+
+class CPrefObserver : public nsIObserver
+{
+	PrefChangedMethod m_method;
+
+public:
+	
+	
+	CPrefObserver(char* prefname, PrefChangedMethod method)
+	{
+		nsCOMPtr<nsIPrefBranch2> pb = do_GetService(NS_PREFSERVICE_CONTRACTID);
+		NS_ENSURE_TRUE(pb, );
+	    pb->AddObserver(prefname, this, PR_FALSE);
+		m_method = method;
+	}
+
+	~CPrefObserver() {}
+
+	NS_DECL_ISUPPORTS;
+	NS_DECL_NSIOBSERVER;
+
+};
+
+	NS_IMETHODIMP CPrefObserver::Observe(
+		nsISupports* aSubject, const char* aTopic, const PRUnichar* aSomeData)
+	{
+		if (strcmp(aTopic, "nsPref:changed") != 0)
+			return NS_OK;  
+
+		(theApp.preferences.*m_method)();
+		return NS_OK;
+	}
+
+
+NS_IMPL_ISUPPORTS1(CPrefObserver, nsIObserver);
+
+CPreferences::CPreferences() :
+    iSaveType("kmeleon.general.saveType", 0),
+    saveDir("kmeleon.download.saveDir", _T("")),   
+    downloadDir("kmeleon.download.dir", _T("")),
+    lastDownloadDir("kmeleon.download.lastDir", _T("")),
+    bUseDownloadDir("kmeleon.download.useDownloadDir", false),
+    bAskOpenSave("kmeleon.download.askOpenSave", true),
+    bShowMinimized("kmeleon.download.showMinimizedDialog", false),
+    bFlashWhenCompleted("kmeleon.download.flashWhenCompleted", false),
+    bCloseDownloadDialog("kmeleon.download.closeDownloadDialog", false),
+	bSaveUseTitle("kmeleon.download.saveUseTitle", true),
+
+    bMaximized("kmeleon.display.maximized", true),
+    windowWidth("kmeleon.display.width", -1),
+    windowHeight("kmeleon.display.height", -1),
+    windowXPos("kmeleon.display.XPos", -1),
+    windowYPos("kmeleon.display.YPos", -1),
+
+    bFindMatchCase("kmeleon.find.matchCase", false),
+    bFindHighlight("kmeleon.find.highlight", false),
+    bFindSearchBackwards("kmeleon.find.searchBackwards", false),
+    bFindWrapAround("kmeleon.find.wrapAround", false),
+
+	MRUbehavior("kmeleon.MRU.behavior", 1),
+	
+	bOffline("kmeleon.general.offline", false),
+	bGuestAccount("kmeleon.general.guest_account", false),
+
+	bSiteIcons("kmeleon.favicons.show", PR_TRUE),
+	bDisableResize("kmeleon.display.disableResize", false),
+    bHideTaskBarButtons("kmeleon.display.hideTaskBarButtons", false),
+	bToolbarBackground("kmeleon.display.backgroundImageEnabled", true),
+
+	bStartHome("kmeleon.general.startHome", true),
+	iNewWindowOpenAs("kmeleon.display.newWindowOpenAs", 0),
+    newWindowURL("kmeleon.display.newWindowURL", _T("")),
+	homePage("kmeleon.general.homePage", _T("http://kmeleon.sourceforge.net/start")),
+
+//    searchEngine("kmeleon.general.searchEngine", _T("http://www.google.com/search?q=")),
+
+    bSourceUseExternalCommand("kmeleon.general.sourceEnabled", false),
+    sourceCommand("kmeleon.general.sourceCommand", _T("")),
+	bNewWindowHasUrlFocus("kmeleon.display.NewWindowHasUrlFocus", false),
+	bAutoHideTabControl("browser.tabs.autoHide", true),
+	iTabOnMiddleClick("kmeleon.plugins.tabs.OnMiddleClick", 0),
+	iTabOnDoubleClick("kmeleon.plugins.tabs.OnDoubleClick", 0),
+	iTabOnRightClick("kmeleon.plugins.tabs.OnRightClick", 2),
+	iOnCloseLastTab("kmeleon.plugins.tabs.onCloseLast", 1),
+	iOnCloseTab("kmeleon.plugins.tabs.onCloseOption", 0),
+	iOnOpenTab("kmeleon.plugins.tabs.onOpenOption", 1)
+{
 }
 
 CPreferences::~CPreferences() {
+}
+
+
+
+void CPreferences::LocaleChanged()
+{
+	if (theApp.LoadLanguage())
+		theApp.menus.RebuildAll();
+}
+
+void CPreferences::MRUListChanged()
+{
+	theApp.m_MRUList->RefreshURLs();
+}
+
+void CPreferences::SkinChanged()
+{
+	CString skinFile;
+	theApp.FindSkinFile(skinFile, _T("skin.js"));
+	if (!skinFile.IsEmpty()) 
+	{
+		CString defaultDir = ::GetMozDirectory(NS_APP_PREF_DEFAULTS_50_DIR);
+		if (defaultDir.GetLength())  
+			CopyFile(skinFile, defaultDir + _T("skin.js"), FALSE);
+	}
+}
+
+void LoadStyleSheet(nsIURI* uri, BOOL load)
+{
+  nsCOMPtr<nsIStyleSheetService> ssService = do_GetService("@mozilla.org/content/style-sheet-service;1");
+  NS_ENSURE_TRUE(ssService, );
+
+  PRBool alreadyRegistered = PR_FALSE;
+  ssService->SheetRegistered(uri, nsIStyleSheetService::USER_SHEET, &alreadyRegistered);
+  if (alreadyRegistered)
+    ssService->UnregisterSheet(uri, nsIStyleSheetService::USER_SHEET);
+  
+  if (load)
+    ssService->LoadAndRegisterSheet(uri, nsIStyleSheetService::USER_SHEET);
+}
+
+void LoadAdBlock(BOOL load)
+{
+	CString adblockpath = theApp.GetFolder(DefSettingsFolder) + _T("adblock.css");
+
+	nsresult rv;
+	nsCOMPtr<nsILocalFile> adfile;
+#ifdef _UNICODE
+	rv = NS_NewLocalFile(nsDependentString(adblockpath), TRUE, getter_AddRefs(adfile));
+#else
+	rv = NS_NewNativeLocalFile(nsDependentCString(adblockpath), TRUE, getter_AddRefs(adfile));
+#endif
+	NS_ENSURE_SUCCESS(rv, );
+
+	nsCOMPtr<nsIIOService> ios = do_GetService("@mozilla.org/network/io-service;1");
+	NS_ENSURE_TRUE(ios, );
+    
+	nsCOMPtr<nsIURI> aduri;
+	rv = ios->NewFileURI(adfile, getter_AddRefs(aduri));
+	NS_ENSURE_SUCCESS(rv, );
+ 
+	LoadStyleSheet(aduri, load);
+}
+
+void LoadFlashBlock(BOOL load)
+{
+	nsCOMPtr<nsIURI> fburi;
+	nsresult rv = NewURI(getter_AddRefs(fburi), nsEmbedCString("chrome://flashblock/content/flashblock.css"));
+	NS_ENSURE_SUCCESS(rv, ); 
+
+	LoadStyleSheet(fburi, load);
+}
+
+void CPreferences::FlashBlockChanged()
+{
+	LoadFlashBlock(GetBool("kmeleon.flashblock", false));
+}
+
+void CPreferences::AdBlockChanged()
+{
+	LoadAdBlock(GetBool("kmeleon.adblocking", false));
 }
 
 void CPreferences::Load() {
@@ -70,161 +273,25 @@ void CPreferences::Load() {
       rv = m_prefs->SavePrefFile(nsnull);
    }
 
-   USES_CONVERSION;
+   // Well, since the observer own them, and release them at shutdown, we don't
+   // have to care about them.
+   new CPrefObserver("general.useragent.locale", &CPreferences::LocaleChanged);
+   new CPrefObserver("kmeleon.flashblock", &CPreferences::FlashBlockChanged);
+   new CPrefObserver("kmeleon.adblocking", &CPreferences::AdBlockChanged);
+   new CPrefObserver("kmeleon.MRU", &CPreferences::MRUListChanged);
+   new CPrefObserver("kmeleon.general.skinsCurrent", &CPreferences::SkinChanged);
 
-   // -- Display settings
-
-   _GetBool("kmeleon.display.hideTaskBarButtons", bHideTaskBarButtons, false);
-
-   if (!theApp.m_pMostRecentBrowserFrame || !(theApp.m_pMostRecentBrowserFrame->IsPopup())) {
-      _GetBool("kmeleon.display.maximized", bMaximized, true);
-
-      _GetInt("kmeleon.display.width", windowWidth, -1);
-      _GetInt("kmeleon.display.height", windowHeight, -1);
-      _GetInt("kmeleon.display.XPos", windowXPos, -1);
-      _GetInt("kmeleon.display.YPos", windowYPos, -1);
-   }
-
-   _GetBool("kmeleon.display.backgroundImageEnabled", bToolbarBackground, true);
-
-   _GetString("kmeleon.display.backgroundImage", toolbarBackground, _T(""));
-
-   _GetInt("kmeleon.display.newWindowOpenAs", iNewWindowOpenAs, 0);
-   _GetString("kmeleon.display.newWindowURL", newWindowURL, _T(""));
-
-   _GetBool("kmeleon.display.disableResize", bDisableResize, false);
-
-   _GetBool("kmeleon.display.NewWindowHasUrlFocus", bNewWindowHasUrlFocus, true);
-   _GetBool("kmeleon.favicons.show", bSiteIcons, PR_TRUE);
-
-   _GetInt("font.minimum-size.x-western", iFontMinSize, 0);
-
-   // -- Find settings
-
-   _GetBool("kmeleon.find.matchCase", bFindMatchCase, false);
-   _GetBool("kmeleon.find.highlight", bFindHighlight, false);
-   //	   _GetBool("kmeleon.find.matchWholeWord", bFindMatchWholeWord, false);
-   _GetBool("kmeleon.find.searchBackwards", bFindSearchBackwards, false);
-   _GetBool("kmeleon.find.wrapAround", bFindWrapAround, false);
-
-   // -- General preferences
-
-   _GetBool("kmeleon.general.offline", bOffline, false);
-
-   _GetBool("kmeleon.general.guest_account", bGuestAccount, false);
-
-   _GetBool("kmeleon.general.startHome", bStartHome, true);
-   _GetString("kmeleon.general.homePage", homePage, _T("http://kmeleon.sourceforge.net/start"));
-
-   _GetString("kmeleon.general.searchEngine", searchEngine, _T("http://www.google.com/search?q="));
-
-   _GetBool("kmeleon.general.sourceEnabled", bSourceUseExternalCommand, false);
-   _GetString("kmeleon.general.sourceCommand", sourceCommand, _T(""));
-
-   _GetString("kmeleon.general.settingsDir", settingsDir, _T(""));
-   _GetString("kmeleon.general.pluginsDir", pluginsDir, _T(""));
-
-   _GetString("kmeleon.general.skinsDir", skinsDir, _T(""));
-   _GetString("kmeleon.general.skinsCurrent", skinsCurrent, _T(""));
-
-   // -- Cache
-   _GetString("browser.cache.disk.parent_directory", cacheDir, _T(""));
-   if (!cacheDir.IsEmpty() && cacheDir[cacheDir.GetLength() - 1] != '\\')
-      cacheDir += '\\';
-
-   _GetInt("browser.cache.disk.capacity", cacheDisk, 4096);
-   _GetInt("browser.cache.memory.capacity", cacheMemory, 1024);
-   _GetInt("browser.cache.check_doc_frequency", cacheCheckFrequency, 0);
-
-   // -- Proxies      
-
-
-   _GetString  ("network.proxy.http",          proxyHTTP,     _T(""));
-   _GetInt     ("network.proxy.http_port",     proxyHTTPPort, 0);
-   _GetString  ("network.proxy.ftp",           proxyFTP,     _T(""));
-   _GetInt     ("network.proxy.ftp_port",      proxyFTPPort,  0);
-   _GetString  ("network.proxy.ssl",           proxySSL,     _T(""));
-   _GetInt     ("network.proxy.ssl_port",      proxySSLPort, 0);
-   _GetString  ("network.proxy.gopher",        proxyGopher,     _T(""));
-   _GetInt     ("network.proxy.gopher_port",   proxyGopherPort, 0);
-   _GetString  ("network.proxy.socks",         proxySOCKS,     _T(""));
-   _GetInt     ("network.proxy.socks_port",    proxySOCKSPort, 0);
-   _GetInt     ("network.proxy.socks_version", proxySOCKSVersion, 5);
-
-   if (proxySOCKSVersion == 5) proxySOCKSRadio = 1;    // the radio button state
-   else proxySOCKSRadio = 0;
-
-   _GetString("network.proxy.autoconfig_url", proxyAutoURL, _T(""));
-   _GetString("network.proxy.no_proxies_on", proxyNoProxy, _T("localhost"));
-
-   _GetInt("network.proxy.type", proxyType, 0);
-
-
-   // -- Advanced     
-
-   _GetBool("javascript.enabled", bJavascriptEnabled, true);
-   _GetBool("security.enable_java", bJavaEnabled, true);
-   _GetBool("signon.rememberSignons", bRememberSignons, true);
-
-   _GetInt("kmeleon.MRU.behavior", MRUbehavior, 1);
-
-   // 0 = Always, 1 = site, 2 = never, 3 = P3P
-   _GetInt("network.cookie.cookieBehavior", iCookiesEnabled, 0);
-
-   // 1 = Always, 2 = never, 3 = site
-   _GetInt("permissions.default.image", iImagesEnabled, 0);
-   iImagesEnabled--;
-
-   _GetString("network.http.version", httpVersion, _T(""));
-   /*
-   CString animationMode;
-   _GetString("image.animation_mode", animationMode, "");
-   if (animationMode == _T("normal"))  // "once" "none" "normal"
-   bAnimationsEnabled = true;
-   else
-   bAnimationsEnabled = false;
-   */
-
-   // -- Privacy
-
-   _GetString("general.useragent.override", userAgent, _T(""));
-
-   CString restrictPopups;
-   _GetString("capability.policy.restrictedpopups.Window.open", restrictPopups, _T(""));
-   if (restrictPopups == _T("noAccess"))
-      bRestrictPopups = TRUE;
-   else
-      bRestrictPopups = FALSE;
-
-   _GetString("capability.policy.restrictedpopups.sites", restrictedPopupSites, _T(""));
-
-   _GetBool("dom.disable_open_during_load", bDisablePopupsOnLoad, false);
-
-   _GetInt("browser.history_expire_days", historyExpire, 7);
-   _GetBool("kmeleon.favicons.cached", bCacheFavicons, true);
-   bCacheFavicons = !bCacheFavicons;
-
-
-   // -- Download
-
-   _GetInt("kmeleon.general.saveType", iSaveType, 0);
-   _GetString("kmeleon.download.saveDir", saveDir, _T(""));   
-   _GetString("kmeleon.download.dir", downloadDir, _T(""));
-   _GetString("kmeleon.download.lastDir", lastDownloadDir, _T(""));
-   if (lastDownloadDir.IsEmpty())
-      lastDownloadDir = downloadDir;
-   if (downloadDir.IsEmpty())
-      downloadDir = lastDownloadDir;
-   _GetBool("kmeleon.download.useDownloadDir", bUseDownloadDir, false);
-   _GetBool("kmeleon.download.askOpenSave", bAskOpenSave, true);
-   _GetBool("kmeleon.download.showMinimizedDialog", bShowMinimized, false);
-   _GetBool("kmeleon.download.flashWhenCompleted", bFlashWhenCompleted, false);
-   _GetBool("kmeleon.download.closeDownloadDialog", bCloseDownloadDialog, false);
-   _GetBool("kmeleon.download.saveUseTitle", bSaveUseTitle, true);
-
+   FlashBlockChanged();
+   AdBlockChanged();
 
    // -- Folders XXX have to put this somewhere else
    
+   settingsDir = GetString("kmeleon.general.settingsDir", _T(""));
+   pluginsDir = GetString("kmeleon.general.pluginsDir", _T(""));
+
+   skinsDir = GetString("kmeleon.general.skinsDir", _T(""));
+   skinsCurrent = GetString("kmeleon.general.skinsCurrent",  _T(""));
+
    profileFolder = GetMozDirectory(NS_APP_USER_PROFILE_50_DIR);
    settingsFolder = GetMozDirectory(NS_APP_DEFAULTS_50_DIR) + _T("\\Settings");
 
@@ -261,194 +328,6 @@ void CPreferences::Flush()
    m_prefs->SavePrefFile(nsnull);      
 }
 
-void CPreferences::Save(bool clearPath)
-{
-   if (!m_prefs) return;
-
-   nsresult rv;
-   USES_CONVERSION;
-
-   // If the skin was changed, replace skin.js in the 
-   // default/pref folder
-   CString oldSkin;
-   _GetString("kmeleon.general.skinsCurrent", oldSkin, skinsCurrent);
-
-   if  (skinsCurrent.CompareNoCase(oldSkin) != 0)
-   {
-      CString skinFile;
-      theApp.FindSkinFile(skinFile, _T("skin.js"));
-      if (!skinFile.IsEmpty()) 
-      {
-
-         nsCOMPtr<nsIFile> nsProfileDir;
-         rv = NS_GetSpecialDirectory(NS_APP_PREF_DEFAULTS_50_DIR, getter_AddRefs(nsProfileDir));
-         _ASSERTE(nsProfileDir && "NS_APP_USER_PROFILE_50_DIR is not defined");
-
-         if (NS_SUCCEEDED(rv))
-         {         
-#ifdef _UNICODE
-            nsEmbedString pathBuf;
-            rv = nsProfileDir->GetPath(pathBuf);
-#else
-            nsEmbedCString pathBuf;
-            rv = nsProfileDir->GetNativePath(pathBuf);
-#endif
-            CString defaultDir = pathBuf.get();
-            if (defaultDir.Right(1) != '\\')
-               defaultDir += '\\';
-
-            CopyFile(skinFile, defaultDir + _T("skin.js"), FALSE);
-         }
-      }
-   }
-
-   // -- General preferences
-   rv = m_prefs->SetBoolPref("kmeleon.general.startHome", bStartHome);
-   _SetString("kmeleon.general.homePage",homePage);
-   rv = m_prefs->SetBoolPref("kmeleon.general.offline", bOffline);
-   rv = m_prefs->SetBoolPref("kmeleon.general.guest_account", bGuestAccount);
-
-   //_SetString("kmeleon.general.searchEngine",searchEngine)
-
-   _SetString("kmeleon.general.settingsDir",settingsDir);
-   _SetString("kmeleon.general.pluginsDir",pluginsDir);
-
-   _SetString("kmeleon.general.skinsDir",skinsDir);
-   _SetString("kmeleon.general.skinsCurrent",skinsCurrent);
-
-   rv = m_prefs->SetBoolPref("kmeleon.general.sourceEnabled", bSourceUseExternalCommand);
-   _SetString("kmeleon.general.sourceCommand",sourceCommand);
-
-   // -- Cache
-   if (cacheDir.IsEmpty())
-      m_prefs->ClearUserPref("browser.cache.disk.parent_directory");
-   else
-      _SetString("browser.cache.disk.parent_directory",cacheDir);
-   rv = m_prefs->SetIntPref("browser.cache.disk.capacity", cacheDisk);
-
-   rv = m_prefs->SetIntPref("browser.cache.memory.capacity", cacheMemory);
-   rv = m_prefs->SetIntPref("browser.cache.check_doc_frequency", cacheCheckFrequency);
-
-   // -- Proxies
-   _SetString("network.proxy.http",       proxyHTTP);
-   rv = m_prefs->SetIntPref ("network.proxy.http_port",   proxyHTTPPort);
-   _SetString("network.proxy.ftp",        proxyFTP);
-   rv = m_prefs->SetIntPref ("network.proxy.ftp_port",    proxyFTPPort);
-   _SetString("network.proxy.ssl",        proxySSL);
-   rv = m_prefs->SetIntPref ("network.proxy.ssl_port",    proxySSLPort);
-   _SetString("network.proxy.gopher",     proxyGopher);
-   rv = m_prefs->SetIntPref ("network.proxy.gopher_port", proxyGopherPort);
-   _SetString("network.proxy.socks",      proxySOCKS);
-   rv = m_prefs->SetIntPref ("network.proxy.socks_port",  proxySOCKSPort);
-
-   if (proxySOCKSRadio == 1) proxySOCKSVersion = 5;    // the radio button state
-   else proxySOCKSVersion = 4;
-   rv = m_prefs->SetIntPref ("network.proxy.socks_version",  proxySOCKSVersion);
-
-
-   _SetString("network.proxy.autoconfig_url",proxyAutoURL);
-   _SetString("network.proxy.no_proxies_on",proxyNoProxy);
-
-   rv = m_prefs->SetIntPref("network.proxy.type", proxyType);
-
-   //  -- Advanced
-   rv = m_prefs->SetBoolPref("javascript.enabled", bJavascriptEnabled);
-   rv = m_prefs->SetBoolPref("security.enable_java", bJavaEnabled);
-   rv = m_prefs->SetBoolPref("signon.rememberSignons", bRememberSignons);
-
-   rv = m_prefs->SetIntPref("network.cookie.cookieBehavior", iCookiesEnabled);
-   rv = m_prefs->SetIntPref("permissions.default.image", iImagesEnabled+1);
-   _SetString("network.http.version",httpVersion);
-   /*
-   if (bAnimationsEnabled)    // "once" "none" "normal"
-   _SetString("image.animation_mode", _T("normal"))
-   else
-   _SetString("image.animation_mode", _T("none"))
-   //rv = m_prefs->SetCharPref("image.animation_mode", _T("none"));
-   */
-
-   // -- Privacy
-
-   if (!userAgent.IsEmpty())
-      _SetString("general.useragent.override",userAgent);
-   else
-      rv = m_prefs->ClearUserPref("general.useragent.override");
-
-   if (bRestrictPopups)
-      _SetString("capability.policy.restrictedpopups.Window.open",_T("noAccess"));
-   else
-      _SetString("capability.policy.restrictedpopups.Window.open",_T("allAccess"));
-   _SetString("capability.policy.restrictedpopups.sites",restrictedPopupSites);
-
-   rv = m_prefs->SetBoolPref("dom.disable_open_during_load", bDisablePopupsOnLoad);
-
-   rv = m_prefs->SetIntPref("browser.history_expire_days", historyExpire);
-   rv = m_prefs->SetBoolPref("kmeleon.favicons.cached", !bCacheFavicons);
-
-   if (!theApp.m_pMostRecentBrowserFrame || !(theApp.m_pMostRecentBrowserFrame->IsPopup())) {
-      // -- Display settings
-      rv = m_prefs->SetBoolPref("kmeleon.display.maximized", bMaximized);
-      rv = m_prefs->SetIntPref("kmeleon.display.width", windowWidth);
-      rv = m_prefs->SetIntPref("kmeleon.display.height", windowHeight);
-      rv = m_prefs->SetIntPref("kmeleon.display.XPos", windowXPos);
-      rv = m_prefs->SetIntPref("kmeleon.display.YPos", windowYPos);
-   }
-
-   rv = m_prefs->SetIntPref("kmeleon.general.saveType", iSaveType);
-   rv = m_prefs->SetBoolPref("kmeleon.display.backgroundImageEnabled", bToolbarBackground);
-   _SetString("kmeleon.display.backgroundImage",toolbarBackground);
-
-   rv = m_prefs->SetIntPref("kmeleon.display.newWindowOpenAs", iNewWindowOpenAs);
-   _SetString("kmeleon.display.newWindowURL",newWindowURL);
-
-   rv = m_prefs->SetBoolPref("kmeleon.display.disableResize", bDisableResize);
-
-   rv = m_prefs->SetBoolPref("kmeleon.display.NewWindowHasUrlFocus", bNewWindowHasUrlFocus);
-   rv = m_prefs->SetBoolPref("kmeleon.favicons.show", bSiteIcons);
-   rv = m_prefs->SetIntPref("font.minimum-size.x-western", iFontMinSize);
-   rv = m_prefs->SetIntPref("font.minimum-size.x-unicode", iFontMinSize);
-
-   // -- Find settings
-   rv = m_prefs->SetBoolPref("kmeleon.find.matchCase", bFindMatchCase);
-   rv = m_prefs->SetBoolPref("kmeleon.find.highlight", bFindHighlight);
-   // don't set this - it might confuse the users :)  (okay, we *should* remove all references to it, perhaps, but I'm being lazy - sorry)
-   //	   rv = m_prefs->SetBoolPref("kmeleon.find.matchWholeWord", bFindMatchWholeWord);
-   rv = m_prefs->SetBoolPref("kmeleon.find.wrapAround", bFindWrapAround);
-   rv = m_prefs->SetBoolPref("kmeleon.find.searchBackwards", bFindSearchBackwards);
-
-
-   // -- Download
-
-   m_prefs->SetIntPref("kmeleon.general.saveType", iSaveType);
-   _SetString("kmeleon.download.saveDir", saveDir);   
-   _SetString("kmeleon.download.dir", downloadDir);
-   _SetString("kmeleon.download.lastDir", lastDownloadDir);
-
-
-   m_prefs->SetBoolPref("kmeleon.download.useDownloadDir", bUseDownloadDir);
-   m_prefs->SetBoolPref("kmeleon.download.askOpenSave", bAskOpenSave);
-   m_prefs->SetBoolPref("kmeleon.download.showMinimizedDialog", bShowMinimized);
-   m_prefs->SetBoolPref("kmeleon.download.flashWhenCompleted", bFlashWhenCompleted);
-   m_prefs->SetBoolPref("kmeleon.download.closeDownloadDialog", bCloseDownloadDialog);
-   m_prefs->SetBoolPref("kmeleon.download.saveUseTitle", bSaveUseTitle);
-
-   if (clearPath) {
-      // XXX: Removing path from profile when equal to default
-      CString appDir = theApp.GetFolder(RootFolder);
-
-      if (pluginsDir.CompareNoCase(appDir + _T("\\kplugins")) == 0)
-         m_prefs->ClearUserPref("kmeleon.general.pluginsDir");
-
-      if (skinsDir.CompareNoCase(appDir + _T("\\skins")) == 0)
-         m_prefs->ClearUserPref("kmeleon.general.skinsDir");
-
-      if (settingsDir.CompareNoCase(profileFolder) == 0)
-         m_prefs->ClearUserPref("kmeleon.general.settingsDir");
-   }
-
-   rv = m_prefs->SavePrefFile(nsnull);   
-}
-
 int CPreferences::GetBool(const char *preference, int defaultVal)
 {
    if (!m_prefs) return defaultVal;
@@ -473,6 +352,20 @@ int CPreferences::GetInt(const char *preference, int defaultVal)
 
 int CPreferences::GetString(const char *preference, char *retVal, const char *defaultVal)
 {
+	nsEmbedCString string;
+    if (!m_prefs || !NS_SUCCEEDED(m_prefs->GetCharPref(preference, getter_Copies(string))))
+		string = defaultVal;
+	else {
+		nsEmbedString unicode;
+		NS_CStringToUTF16(string, NS_CSTRING_ENCODING_UTF8, unicode);
+		NS_UTF16ToCString(unicode, NS_CSTRING_ENCODING_NATIVE_FILESYSTEM, string);
+	}
+	
+	if (retVal)
+      strcpy(retVal, string.get());
+   return string.Length();
+
+	/*
 	nsEmbedString string;
 	nsEmbedCString stringNat;
    if (!m_prefs || !NS_SUCCEEDED(m_prefs->CopyUnicharPref(preference, getter_Copies(string))))
@@ -481,32 +374,51 @@ int CPreferences::GetString(const char *preference, char *retVal, const char *de
 		NS_UTF16ToCString(string, NS_CSTRING_ENCODING_NATIVE_FILESYSTEM, stringNat);
    if (retVal)
       strcpy(retVal, stringNat.get());
-   return stringNat.Length();
+   return stringNat.Length();*/
 }
 
 int CPreferences::GetString(const char *preference, wchar_t *retVal, const wchar_t *defaultVal)
 {
+	nsEmbedCString string;
+	nsEmbedString unicode;
+    if (!m_prefs || !NS_SUCCEEDED(m_prefs->GetCharPref(preference, getter_Copies(string))))
+		unicode = defaultVal;
+	else
+		NS_CStringToUTF16(string, NS_CSTRING_ENCODING_UTF8, unicode);
+	
+	if (retVal)
+      wcscpy(retVal, unicode.get());
+   return unicode.Length();
+/*
    nsEmbedString string;
    if (!m_prefs || !NS_SUCCEEDED(m_prefs->CopyUnicharPref(preference, getter_Copies(string))))
       string = defaultVal;	
    if (retVal)
       wcscpy(retVal, string.get());
-   return string.Length();
+   return string.Length();*/
 }
 
 CString CPreferences::GetString(const char *preference, LPCTSTR defaultVal)
 {
-	nsEmbedString string;
-   if (!m_prefs || !NS_SUCCEEDED(m_prefs->CopyUnicharPref(preference, getter_Copies(string))))
+	nsEmbedCString string;
+    if (!m_prefs || !NS_SUCCEEDED(m_prefs->GetCharPref(preference, getter_Copies(string))))
+		return defaultVal;
+	return NSUTF8StringToCString(string);
+
+  /* if (!m_prefs || !NS_SUCCEEDED(m_prefs->CopyUnicharPref(preference, getter_Copies(string))))
 		return defaultVal;
 	USES_CONVERSION;
-	return W2CT(string.get());
+	return W2CT(string.get());*/
 }
 
 inline void CPreferences::SetString(const char *preference, const wchar_t *value)
 {
    if (!m_prefs) return;
-   m_prefs->SetUnicharPref(preference, value);
+   nsEmbedCString string;
+   NS_UTF16ToCString(nsEmbedString(value), NS_CSTRING_ENCODING_UTF8, string);
+   m_prefs->SetCharPref(preference, string.get());
+   
+//   m_prefs->SetUnicharPref(preference, value);
 }
 
 void CPreferences::SetString(const char *preference, const char *value)
@@ -527,7 +439,7 @@ void CPreferences::DeleteBranch(const char *startingAt)
    if (!m_prefs) return;
    m_prefs->DeleteBranch(startingAt);
 }
-
+/*
 void CPreferences::_GetBool(const char *preference, int& var, int defaultVal)
 {
    ASSERT(m_prefs);
@@ -568,4 +480,4 @@ void CPreferences::_SetString(const char *preference, LPCTSTR value)
    ASSERT(m_prefs);
    USES_CONVERSION;
    m_prefs->SetUnicharPref(preference, T2CW(value));
-}
+}*/

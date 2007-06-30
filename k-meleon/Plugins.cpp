@@ -29,6 +29,7 @@ extern CMfcEmbedApp theApp;
 
 #include "BrowserView.h"
 #include "BrowserFrm.h"
+#include "BrowserFrmTab.h"
 
 #include "kmeleon_plugin.h"
 #include "Plugins.h"
@@ -45,23 +46,66 @@ kmeleonPointInfo gPointInfo;
 CBrowserFrame* pBrowserFrame = NULL;
 CBrowserView* pBrowserView = NULL;
 
+#define PLUGIN_HEADER(hWnd, ret) \
+	CBrowserFrame* frame;\
+	CBrowserView* view;\
+	CBrowserWrapper* browser;\
+	if (!GetWindows(hWnd, &frame, &view))\
+		return ret;\
+	browser = view->GetBrowserWrapper();\
+	if (!browser)\
+		return ret;
+
+BOOL GetWindows(HWND hWnd, CBrowserFrame** frame, CBrowserView** view)
+{
+	CWnd* wnd = CWnd::FromHandle(hWnd);
+
+	if (!wnd) {
+		*frame = theApp.m_pMostRecentBrowserFrame;
+		*view = (*frame)->GetActiveView();
+		return TRUE;
+	}
+
+	if (wnd->IsKindOf(RUNTIME_CLASS(CBrowserFrame))) {
+		*frame = (CBrowserFrame*)wnd;
+		*view = (*frame)->GetActiveView();
+	}
+	else if (wnd->IsKindOf(RUNTIME_CLASS(CBrowserView))) {
+		*view = (CBrowserView*)wnd;
+		*frame = (CBrowserFrame*)wnd->GetParentFrame();
+	}
+	else {
+		ASSERT(FALSE);
+		return FALSE;
+	}
+	return TRUE;
+}
+
 CBrowserFrame* GetFrame(HWND hWnd = NULL) 
 {
-	return hWnd ? 
-		(CBrowserFrame *)CWnd::FromHandle(hWnd) 
-		: theApp.m_pMostRecentBrowserFrame;
+	if (!hWnd) return theApp.m_pMostRecentBrowserFrame;
+	CWnd* wnd = CWnd::FromHandle(hWnd);
+
+	return (CBrowserFrame*)(wnd->IsFrameWnd() ? wnd : wnd->GetParentFrame());
 }
 
 CBrowserWrapper* GetWrapper(HWND hWnd = NULL) 
 {
-	CBrowserFrame* frame = GetFrame(hWnd);
-	if (!frame) return NULL;
-	ASSERT(frame->IsKindOf(RUNTIME_CLASS(CBrowserFrame)));
+	if (!hWnd) 
+		return theApp.m_pMostRecentBrowserFrame->GetActiveView()->GetBrowserWrapper();
 
-	CBrowserView* view = frame->GetActiveView();
-	if (!view) return NULL;
+	CWnd* wnd = CWnd::FromHandle(hWnd);
+	if (!wnd) return NULL;
 
-	return view->GetBrowserWrapper();
+	if (wnd->IsFrameWnd()) {
+		ASSERT(wnd->IsKindOf(RUNTIME_CLASS(CBrowserFrame)));
+		wnd = ((CBrowserFrame*)wnd)->GetActiveView();
+		if (!wnd) return NULL;
+	}
+
+	ASSERT(wnd->IsKindOf(RUNTIME_CLASS(CBrowserView)));
+
+	return ((CBrowserView*)wnd)->GetBrowserWrapper();
 }
 
 static char *safe_strdup(const char *ptr) {
@@ -164,17 +208,54 @@ HWND NavigateTo(const char *url, int windowState, HWND mainWnd)
    USES_CONVERSION;
    LPCTSTR lpctUrl = A2CT(url);
    CBrowserFrame* newFrame = NULL;
+   CBrowserTab* newTab = NULL;
 
    switch(windowState&15) {
    case OPEN_NORMAL:
       if (!frame) return NULL;
-      frame->OpenURL(lpctUrl);
+      if (lpctUrl) frame->OpenURL(lpctUrl);
       break;
    case OPEN_NEW:
-	  newFrame = theApp.CreateNewBrowserFrameWithUrl(lpctUrl);
+      newFrame = lpctUrl ? 
+         theApp.CreateNewBrowserFrameWithUrl(lpctUrl) :  
+         theApp.CreateNewBrowserFrame();
       break;
    case OPEN_BACKGROUND:
-      newFrame = theApp.CreateNewBrowserFrameWithUrl(lpctUrl, NULL, TRUE);
+      newFrame = lpctUrl ? 
+         theApp.CreateNewBrowserFrameWithUrl(lpctUrl, NULL, TRUE) :  
+         theApp.CreateNewBrowserFrame(nsIWebBrowserChrome::CHROME_ALL, TRUE);
+      break;
+   case OPEN_NEWTAB:
+      if (!frame) return NULL;
+      if (!frame->IsKindOf(RUNTIME_CLASS(CBrowserFrmTab)))
+         return NULL;
+      
+	  newTab = ((CBrowserFrmTab*)frame)->CreateBrowserTab();
+	  if (!newTab) return NULL;
+
+      if (windowState & OPEN_CLONE) {
+         CBrowserView *view = frame->GetActiveView(); 
+         if (view) view->CloneBrowser(newTab);
+	  } else newTab->OpenURL(lpctUrl);
+
+	  ((CBrowserFrmTab*)frame)->SetActiveBrowser(newTab);
+      break;
+
+   case OPEN_BACKGROUNDTAB:
+      if (!frame) return NULL;
+      
+	  if (!frame->IsKindOf(RUNTIME_CLASS(CBrowserFrmTab)))
+		   return NULL;
+      
+	  newTab = ((CBrowserFrmTab*)frame)->CreateBrowserTab();
+	  if (!newTab) return NULL;
+
+	  if (windowState & OPEN_CLONE) {
+         CBrowserView *view = frame->GetActiveView(); 
+         if (view) view->CloneBrowser(newTab);
+	  } 
+	  else newTab->OpenURL(lpctUrl);
+
       break;
    }
    
@@ -183,7 +264,9 @@ HWND NavigateTo(const char *url, int windowState, HWND mainWnd)
 	   if (view) view->CloneBrowser(newFrame->GetActiveView());
    }
 
-   return newFrame ? newFrame->m_hWnd:NULL;
+   return newTab ? newTab->m_hWnd : 
+      (newFrame ? newFrame->m_hWnd : 
+	     (frame ? frame->GetActiveView()->m_hWnd : NULL));
 }
 
 void _NavigateTo(const char *url, int windowState, HWND mainWnd)
@@ -193,15 +276,7 @@ void _NavigateTo(const char *url, int windowState, HWND mainWnd)
 
 kmeleonDocInfo * GetDocInfo(HWND mainWnd)
 {
-	CBrowserFrame *frame = GetFrame(mainWnd);
-	if (!frame) return 0;
-
-	CBrowserView *view = frame->GetActiveView(); 
-	if (!view) return 0;
-
-	CBrowserWrapper *browser = GetWrapper(mainWnd);
-	if (!browser) return 0;
-
+   PLUGIN_HEADER(mainWnd, NULL);
    USES_CONVERSION;
 
    CString url = browser->GetURI();
@@ -211,12 +286,6 @@ kmeleonDocInfo * GetDocInfo(HWND mainWnd)
    CString title = browser->GetTitle();
    char* doctitle = new char[title.GetLength()+1];
    strcpy(doctitle, T2CA(title));
-
-   if (kDocInfo.url)
-      delete kDocInfo.url;
-   
-   if (kDocInfo.title)
-      delete kDocInfo.title;
 
    kDocInfo.title = doctitle;
    kDocInfo.url = docurl;
@@ -263,7 +332,7 @@ void _GetPreference(enum PREFTYPE type, char *preference, void *ret, void *defVa
 
 void SetPreference(enum PREFTYPE type, const char *preference, void *val, BOOL update)
 {
-   theApp.preferences.Save(false);
+   //theApp.preferences.Save(false);
 
    switch (type) {
       case PREF_BOOL:
@@ -282,14 +351,13 @@ void SetPreference(enum PREFTYPE type, const char *preference, void *val, BOOL u
 
    if (update)
       theApp.preferences.Flush();
-   theApp.preferences.Load();
+   //theApp.preferences.Load();
 }
 
 void DelPreference(char *preference)
 {
    theApp.preferences.Clear(preference);
-   theApp.preferences.Flush();
-   theApp.preferences.Load();
+   //theApp.preferences.Flush();
 }
 
 void SetStatusBarText(const char *s) {
@@ -661,22 +729,14 @@ int CommandAtPoint(int command, WORD x, WORD y)
 
 UINT GetWindowVar(HWND hWnd, WindowVarType type, void* ret)
 {
-	CBrowserFrame *pBrowserFrame = GetFrame(hWnd);
-	if (!pBrowserFrame) return FALSE;
-
-	CBrowserView *pBrowserView = pBrowserFrame->GetActiveView(); 
-	if (!pBrowserView) return FALSE;
-
-	CBrowserWrapper *browser = pBrowserView->GetBrowserWrapper(); 
-	if (!browser) return FALSE;
+    PLUGIN_HEADER(hWnd, 0);
 
 	USES_CONVERSION;
 	UINT retLen = 0;
 	switch (type)  {
 
 		case Window_UrlBar: {
-			CString url;
-			pBrowserFrame->m_wndUrlBar.GetEnteredURL(url);
+			CString url = frame->m_wndUrlBar.GetEnteredURL();
 			retLen = url.GetLength() + 1;
 			if (ret) strcpy((char*)ret, T2CA(url));
 			break;
@@ -725,28 +785,28 @@ UINT GetWindowVar(HWND hWnd, WindowVarType type, void* ret)
 		}
 
 		case Window_LinkURL: {
-			CString url = pBrowserView->GetContextLinkUrl();
+			CString url = view->GetContextLinkUrl();
 			retLen = url.GetLength() + 1;
 			if (ret) strcpy((char*)ret, T2CA(url));
 			break;
 		}
 
 		case Window_ImageURL: {
-			CString url = pBrowserView->GetContextImageUrl();
+			CString url = view->GetContextImageUrl();
 			retLen = url.GetLength() + 1;
 			if (ret) strcpy((char*)ret, T2CA(url));
 			break;
 		}
 
 		case Window_LinkTitle: {
-			CString title = pBrowserView->GetContextLinkTitle();
+			CString title = view->GetContextLinkTitle();
 			retLen = title.GetLength() + 1;
 			if (ret) strcpy((char*)ret, T2CA(title));
 			break;
 		}
 
 		case Window_FrameURL: {
-			CString url = pBrowserView->GetContextFrameUrl();
+			CString url = view->GetContextFrameUrl();
 			retLen = url.GetLength() + 1;
 			if (ret) strcpy((char*)ret, T2CA(url));
 			break;
@@ -761,14 +821,7 @@ UINT GetWindowVar(HWND hWnd, WindowVarType type, void* ret)
 
 BOOL SetWindowVar(HWND hWnd, WindowVarType type, void* value)
 {
-	CBrowserFrame *pBrowserFrame = GetFrame(hWnd);
-	if (!pBrowserFrame) return FALSE;
-
-	CBrowserView *pBrowserView = pBrowserFrame->GetActiveView(); 
-	if (!pBrowserView) return FALSE;
-
-	CBrowserWrapper *browser = pBrowserView->GetBrowserWrapper(); 
-	if (!browser) return FALSE;
+	PLUGIN_HEADER(hWnd, FALSE);
 
 	USES_CONVERSION;
 	BOOL result = FALSE;
@@ -776,7 +829,7 @@ BOOL SetWindowVar(HWND hWnd, WindowVarType type, void* value)
 	switch (type)  {
 
 		case Window_UrlBar:
-			pBrowserFrame->UpdateLocation(A2CT((char*)value), TRUE);
+			frame->UpdateLocation(A2CT((char*)value), TRUE);
 		    result = TRUE;
 			break;
 
@@ -786,7 +839,7 @@ BOOL SetWindowVar(HWND hWnd, WindowVarType type, void* value)
 			break;
 
 		case Window_Title:
-			pBrowserFrame->UpdateTitle(A2CT((char*)value));
+			frame->UpdateTitle(A2CT((char*)value));
 			 //if (pBrowserView->m_pBrowserFrameGlue)
 		      //pBrowserView->m_pBrowserFrameGlue->SetBrowserFrameTitle(A2CW((char*)value));
 			 result = TRUE;

@@ -24,6 +24,58 @@
 #include "resource.h"
 #include "DialogEx.h"
 
+
+class CPreferences;
+
+class CPref {
+
+protected:
+	const char* m_prefname;
+
+	CPref(const char* prefname) {
+		m_prefname = prefname;
+	}
+	
+	inline const char* GetPrefName() { return m_prefname; }
+};
+
+class CPrefString : public CPref
+{
+	LPCTSTR def;
+public:
+	CPrefString(const char* prefname, LPCTSTR defValue) : CPref(prefname) {
+		def = defValue;
+	}
+
+	operator CString();
+	operator LPCTSTR();
+	CString operator =(LPCTSTR s);
+};
+
+class CPrefInt : public CPref
+{
+	int def;
+public:
+	CPrefInt(const char* prefname, int defValue) : CPref(prefname){
+		def = defValue;
+	}
+	
+	int operator =(int i);
+	operator int();
+};
+
+class CPrefBool : public CPref
+{
+	BOOL def;
+public:
+	CPrefBool(const char* prefname, BOOL defValue) : CPref(prefname){
+		def = defValue;
+	}
+	
+	int operator =(BOOL b);
+	operator BOOL();
+};
+
 class CPreferences {
 public:
 
@@ -38,7 +90,64 @@ public:
    CString resFolder;
    CString currentSkinFolder; // XXX
 
-   // -- Find settings
+   CString settingsDir;
+   CString pluginsDir;
+   CString skinsDir;
+   CString skinsCurrent;
+
+
+    CPrefInt    iSaveType;
+    CPrefString saveDir;
+    CPrefString downloadDir;
+    CPrefString lastDownloadDir;
+    CPrefBool   bUseDownloadDir;
+    CPrefBool   bAskOpenSave;
+    CPrefBool   bShowMinimized;
+    CPrefBool   bFlashWhenCompleted;
+    CPrefBool   bCloseDownloadDialog;
+	CPrefBool   bSaveUseTitle;
+	
+    CPrefBool   bMaximized;
+	CPrefInt    windowWidth;
+	CPrefInt    windowHeight;
+	CPrefInt    windowXPos;
+	CPrefInt    windowYPos;
+    //CPrefString toolbarBackground;
+    //CPrefInt    bToolbarBackground;
+
+	// -- Find settings
+	CPrefBool bFindMatchCase;
+	CPrefBool bFindHighlight;
+	CPrefBool bFindWrapAround;
+	CPrefBool bFindSearchBackwards;
+
+	CPrefInt MRUbehavior;
+	
+	CPrefBool bOffline;
+	CPrefBool bGuestAccount;
+
+	CPrefBool   bSiteIcons;
+	CPrefBool   bDisableResize;
+    CPrefBool   bHideTaskBarButtons;
+	CPrefBool   bToolbarBackground;
+
+	CPrefBool   bStartHome;
+	CPrefInt    iNewWindowOpenAs;
+    CPrefString newWindowURL;
+	CPrefString homePage;
+
+    CPrefBool    bSourceUseExternalCommand;
+	CPrefString  sourceCommand;
+
+	CPrefBool bNewWindowHasUrlFocus;
+	CPrefBool bAutoHideTabControl;
+	CPrefInt  iTabOnMiddleClick;
+	CPrefInt  iTabOnDoubleClick;
+	CPrefInt  iTabOnRightClick;
+	CPrefInt  iOnCloseLastTab;
+	CPrefInt  iOnCloseTab;
+	CPrefInt  iOnOpenTab;
+   /*// -- Find settings
 	int bFindMatchCase;
 	int bFindHighlight;
 	int bFindMatchWholeWord;
@@ -61,10 +170,6 @@ public:
    CString searchEngine;
  
    int iSaveType;
-   CString settingsDir;
-   CString pluginsDir;
-   CString skinsDir;
-   CString skinsCurrent;
 
    int bDisableResize;
    BOOL bSiteIcons;
@@ -173,21 +278,7 @@ public:
    int bShowMinimized;
    int bFlashWhenCompleted;
    int bSaveUnknowContent;
-   int bSaveUseTitle;
-
-   
-   // -- Tabs
-
-   int bAutoHideTabControl;
-   int iOnCloseTab;
-   int iOnOpenTab;
-   int iOnCloseLastTab;
-   int iWindowTabMode;
-   int bConfirmClose;
-   int iTabOnDoubleClick;
-   int iTabOnMiddleClick;
-   int iTabOnRightClick;
-	   
+   int bSaveUseTitle;*/
 
 
    // -- functions
@@ -195,19 +286,18 @@ public:
    CPreferences();
    ~CPreferences();
 
-   void Flush();
-   void Save(bool clearPath = false);
    void Load();
-
-	inline void SetBool(const char *preference, int value) {
-		   if (m_prefs) m_prefs->SetBoolPref(preference, value);
-	}
+   void Flush();
+   
+   inline void SetBool(const char *preference, int value) {
+      if (m_prefs) m_prefs->SetBoolPref(preference, value);
+   }
 
    int GetBool(const char *preference, int defaultVal);
 
-	inline void SetInt(const char *preference, int value) {
-		   if (m_prefs) m_prefs->SetIntPref(preference, value);
-	}
+   inline void SetInt(const char *preference, int value) {
+      if (m_prefs) m_prefs->SetIntPref(preference, value);
+   }
 
    int GetInt(const char *preference, int defaultVal);
 
@@ -215,19 +305,25 @@ public:
    inline void SetString(const char *preference, const wchar_t * value);
    int GetString(const char *preference, char * retValue, const char * defaultVal);
    int GetString(const char *preference, wchar_t * retValue, const wchar_t * defaultVal);
-	CString GetString(const char *preference, LPCTSTR defaultVal);
+   CString GetString(const char *preference, LPCTSTR defaultVal);
 
    void Clear(const char *preference);
    void DeleteBranch(const char *startingAt);
 
+   void FlashBlockChanged();
+   void LocaleChanged();
+   void MRUListChanged();
+   void AdBlockChanged();
+   void SkinChanged();
+
 protected:
    nsCOMPtr<nsIPref> m_prefs;
 
-	inline void _GetBool(const char *preference, int& var, int defaultVal);
+	/*inline void _GetBool(const char *preference, int& var, int defaultVal);
 	inline void _GetInt(const char *preference, int& var, int defaultVal);
 	void        _GetString(const char *preference, CString& var, LPCTSTR defaultVal);
 	void        _SetString(const char *preference, LPCTSTR value);
-
+*/
 
 };
 

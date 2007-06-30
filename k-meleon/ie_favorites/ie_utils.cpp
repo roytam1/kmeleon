@@ -414,6 +414,12 @@ void OpenURL(char *url)
 		}else if (idOpen == kPlugin.kFuncs->GetID("ID_OPEN_LINK_IN_NEW_WINDOW")) {
             kPlugin.kFuncs->NavigateTo(url, OPEN_NEW, NULL);
             return;
+        }else if (idOpen == kPlugin.kFuncs->GetID("ID_OPEN_LINK_IN_NEW_TAB")) {
+            kPlugin.kFuncs->NavigateTo(url, OPEN_NEWTAB, NULL);
+            return;
+        }else if (idOpen == kPlugin.kFuncs->GetID("ID_OPEN_LINK_IN_BACKGROUNDTAB")) {
+            kPlugin.kFuncs->NavigateTo(url, OPEN_BACKGROUNDTAB, NULL);
+            return;
         }
     }
 
