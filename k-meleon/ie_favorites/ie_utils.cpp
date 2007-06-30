@@ -274,8 +274,12 @@ void BuildRebar(HWND hWndTB)
       
       // condense the title and escape ampersands
       char *buttonString = fixString(child->text.c_str(), nMaxWidth > 0 ? 0 : -nMaxWidth);
-      stringID = SendMessage(hWndTB, TB_ADDSTRING, (WPARAM)NULL, (LPARAM)buttonString);
-      delete buttonString;
+	  char *buttonString2 = new char[strlen(buttonString)+2];
+	  strcpy(buttonString2, buttonString);
+	  buttonString2[strlen(buttonString)+1] = 0;
+      stringID = SendMessage(hWndTB, TB_ADDSTRING, (WPARAM)NULL, (LPARAM)buttonString2);
+      delete buttonString2;
+	  delete buttonString;
       
       TBBUTTON button = {0};
       button.iString = stringID;
