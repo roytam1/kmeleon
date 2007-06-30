@@ -57,7 +57,7 @@ void CCmdLine::Initialize(char *cmdLine) {
             m_sProfilesDir[len] = '\\';
             m_sProfilesDir[len+1] = 0;
          }
-         strcat(m_sProfilesDir, "KMeleon");
+         strcat(m_sProfilesDir, "K-Meleon");
       }
    }  
 }
