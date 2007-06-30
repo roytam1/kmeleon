@@ -20,8 +20,8 @@ typedef struct {
 } PaperSizes;
 
 static const PaperSizes gPaperSize[] = {
-  {IDS_PRINT_LEGAL, nsIPrintSettings::kPaperSizeInches, 8.5, 11.0, FALSE},
-  {IDS_PRINT_LETTER, nsIPrintSettings::kPaperSizeInches, 8.5, 14.0, FALSE},
+  {IDS_PRINT_LEGAL, nsIPrintSettings::kPaperSizeInches, 8.5, 14.0, FALSE},
+  {IDS_PRINT_LETTER, nsIPrintSettings::kPaperSizeInches, 8.5, 11.0, FALSE},
   {IDS_PRINT_A4, nsIPrintSettings::kPaperSizeMillimeters, 210.0, 297.0, FALSE},
   {IDS_PRINT_USERDEFINED, nsIPrintSettings::kPaperSizeInches, 8.5, 11.0, TRUE}
 };
