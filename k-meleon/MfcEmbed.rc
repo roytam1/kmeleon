@@ -476,7 +476,7 @@ BEGIN
     CONTROL         "Millimeters",IDC_MILLI_RD,"Button",BS_AUTORADIOBUTTON | 
                     WS_DISABLED,53,52,48,10
     CONTROL         "Slider1",IDC_SCALE,"msctls_trackbar32",TBS_AUTOTICKS | 
-                    TBS_BOTH | WS_TABSTOP,9,81,100,19
+                    TBS_BOTH | WS_GROUP | WS_TABSTOP,9,81,100,19
     EDITTEXT        IDC_SCALE_TXT,110,86,19,14,ES_AUTOHSCROLL
     CONTROL         "Print Background C&olors",IDC_PRT_BGCOLORS,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,163,84,92,10
@@ -539,6 +539,67 @@ BEGIN
                     ES_READONLY | NOT WS_BORDER
     PUSHBUTTON      "Open",IDOPEN,60,82,50,14
     ICON            "",IDC_FILE_ICON,12,35,21,20,SS_CENTERIMAGE
+END
+
+IDD_PREFERENCES_TABS DIALOGEX 0, 0, 273, 220
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_SYSMENU
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "Use :",IDC_STATIC,7,8,18,8
+    CONTROL         "Tab and window",IDC_WINDOWTABMODE,"Button",
+                    BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,68,8,68,10
+    CONTROL         "Tab only",IDC_RADIO1,"Button",BS_AUTORADIOBUTTON | 
+                    WS_TABSTOP,141,8,43,10
+    CONTROL         "Window only",IDC_RADIO2,"Button",BS_AUTORADIOBUTTON | 
+                    WS_TABSTOP,200,8,57,10
+    LTEXT           "Open Options",IDC_STATIC,12,28,45,8
+    CONTROL         "Open next current tab",IDC_ONOPENTAB,"Button",
+                    BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,20,39,88,10
+    CONTROL         "Open last",IDC_RADIO6,"Button",BS_AUTORADIOBUTTON | 
+                    WS_TABSTOP,20,50,47,10
+    LTEXT           "Close Options",IDC_STATIC,137,28,45,8
+    CONTROL         "Select next tab",IDC_ONCLOSETAB,"Button",
+                    BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,145,39,65,10
+    CONTROL         "Select previous tab",IDC_RADIO7,"Button",
+                    BS_AUTORADIOBUTTON | WS_TABSTOP,145,50,77,10
+    CONTROL         "Select previous selected tab",IDC_RADIO8,"Button",
+                    BS_AUTORADIOBUTTON | WS_TABSTOP,145,61,106,10
+    LTEXT           "Closing last tab:",IDC_STATIC,11,80,52,8
+    CONTROL         "Close the window",IDC_ONCLOSELASTTAB,"Button",
+                    BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,65,80,72,10
+    CONTROL         "Blank the tab",IDC_RADIO10,"Button",BS_AUTORADIOBUTTON | 
+                    WS_TABSTOP,137,80,58,10
+    CONTROL         "Do nothing",IDC_RADIO11,"Button",BS_AUTORADIOBUTTON | 
+                    WS_TABSTOP,197,80,51,10
+    GROUPBOX        "Tab contol options",IDC_STATIC,3,106,265,72,WS_TABSTOP
+    LTEXT           "On double click",IDC_STATIC,16,118,52,8
+    CONTROL         "Close tab",IDC_ONDOUBLECLICK,"Button",
+                    BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,73,118,46,10
+    CONTROL         "Open a new tab",IDC_RADIO13,"Button",BS_AUTORADIOBUTTON | 
+                    WS_TABSTOP,127,119,67,10
+    CONTROL         "Show menu",IDC_RADIO14,"Button",BS_AUTORADIOBUTTON | 
+                    WS_TABSTOP,197,119,53,10
+    LTEXT           "On middle click",IDC_STATIC,16,131,52,8
+    CONTROL         "Close tab",IDC_ONMIDDLECLICK,"Button",
+                    BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,73,130,46,10
+    CONTROL         "Open a new tab",IDC_RADIO16,"Button",BS_AUTORADIOBUTTON | 
+                    WS_TABSTOP,127,131,67,10
+    CONTROL         "Show menu",IDC_RADIO17,"Button",BS_AUTORADIOBUTTON | 
+                    WS_TABSTOP,197,131,53,10
+    LTEXT           "On right click",IDC_STATIC,16,144,42,8
+    CONTROL         "Close tab",IDC_ONRIGHTCLICK,"Button",BS_AUTORADIOBUTTON | 
+                    WS_GROUP | WS_TABSTOP,73,143,46,10
+    CONTROL         "Open a new tab",IDC_RADIO19,"Button",BS_AUTORADIOBUTTON | 
+                    WS_TABSTOP,127,144,67,10
+    CONTROL         "Show menu",IDC_RADIO20,"Button",BS_AUTORADIOBUTTON | 
+                    WS_TABSTOP,197,144,53,10
+    CONTROL         "Autohide tab bar when only one tab",IDC_TABAUTOHIDE,
+                    "Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,11,160,
+                    131,10
+    CONTROL         "Confirm when closing multiple tabs",IDC_CONFIRMCLOSE,
+                    "Button",BS_AUTOCHECKBOX | WS_GROUP | WS_TABSTOP,3,182,
+                    125,10
+    GROUPBOX        "Close/open options",IDC_STATIC,3,18,265,84
 END
 
 IDD_COOKIES_VIEWER DIALOGEX 0, 0, 240, 283
@@ -686,18 +747,19 @@ BEGIN
                     NOT WS_BORDER
 END
 
-IDD_CONFIRM_EXPIRED_CERT DIALOGEX 0, 0, 251, 89
-STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+IDD_CONFIRM_EXPIRED_CERT DIALOGEX 0, 0, 252, 98
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
 CAPTION "Expired Certificate"
 FONT 8, "MS Shell Dlg", 400, 0, 0x0
 BEGIN
-    PUSHBUTTON      "Confirm",IDOK,94,68,50,14
-    DEFPUSHBUTTON   "Cancel",IDCANCEL,144,68,50,14
-    PUSHBUTTON      "&View Certificate",IDC_VIEW_CERT,7,68,59,14
-    PUSHBUTTON      "&Help",IDC_HELP_CERT,194,68,50,14,WS_DISABLED
-    LTEXT           "Would you like to continue ?",IDC_STATIC,7,52,90,8
-    LTEXT           "Static",IDC_STATIC_MSG,7,7,237,18
-    LTEXT           "Static",IDC_STATIC_CORRECTIME,7,29,237,18
+    PUSHBUTTON      "Confirm",IDOK,94,77,50,14
+    DEFPUSHBUTTON   "Cancel",IDCANCEL,144,77,50,14
+    PUSHBUTTON      "&View Certificate",IDC_VIEW_CERT,7,77,59,14
+    PUSHBUTTON      "&Help",IDC_HELP_CERT,195,77,50,14,WS_DISABLED
+    LTEXT           "Would you like to continue ?",IDC_STATIC,7,58,90,8
+    LTEXT           "Static",IDC_STATIC_MSG,7,7,238,24
+    LTEXT           "Static",IDC_STATIC_CORRECTIME,7,35,238,18
 END
 
 IDD_NEWSERVER DIALOGEX 0, 0, 274, 216
@@ -1134,6 +1196,14 @@ BEGIN
         BOTTOMMARGIN, 99
     END
 
+    IDD_PREFERENCES_TABS, DIALOG
+    BEGIN
+        LEFTMARGIN, 3
+        RIGHTMARGIN, 268
+        TOPMARGIN, 8
+        BOTTOMMARGIN, 215
+    END
+
     IDD_COOKIES_VIEWER, DIALOG
     BEGIN
         LEFTMARGIN, 7
@@ -1184,9 +1254,9 @@ BEGIN
     IDD_CONFIRM_EXPIRED_CERT, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 244
+        RIGHTMARGIN, 245
         TOPMARGIN, 7
-        BOTTOMMARGIN, 82
+        BOTTOMMARGIN, 91
     END
 
     IDD_NEWSERVER, DIALOG
@@ -1653,6 +1723,20 @@ BEGIN
     IDS_HEADER_USERNAME     "Username"
     IDS_HEADER_PASSWORD     "Password"
     IDS_AUTHORIZEDSESSION   "Session"
+    IDS_DEFAULT             "Default"
+END
+
+STRINGTABLE 
+BEGIN
+    IDS_EMPTY               "Empty"
+END
+
+STRINGTABLE 
+BEGIN
+    IDS_LOADING             "Loading..."
+    IDS_CLOSE_SEVERAL_TABS  "There are %d tabs open in this window.\r\nDo you want to close all of them?"
+    IDS_MAXTABSNUMBER       "The maximun number of tabs has been reached!"
+    IDS_PREFS_TABS          "Tabs"
 END
 
 #endif    // Anglais (États-Unis) resources

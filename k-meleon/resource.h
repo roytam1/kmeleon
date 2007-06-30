@@ -83,6 +83,7 @@
 #define IDI_POPUP_BLOCKED               202
 #define IDD_PREFERENCES_DOWNLOAD        204
 #define IDD_PROMPT_SELECT               207
+#define IDD_PREFERENCES_TABS            250
 #define ID_URL_BAR                      1001
 #define ID_PROG_BAR                     1002
 #define IDC_FONTSPEC                    1002
@@ -212,6 +213,7 @@
 #define IDC_COMBO_SKIN                  1078
 #define IDC_DISPLAY_PASSWORDS           1078
 #define ID_SIDE_BAR                     1079
+#define ID_TABS_BAR                     1080
 #define IDC_CHECK_FAVICONCACHE          1086
 #define IDC_DOWNLOAD_NAME               1087
 #define IDC_LIST_COOKIES                1089
@@ -285,6 +287,24 @@
 #define IDC_SHRINK_TOFIT                1195
 #define IDC_LIST_SELECT                 1196
 #define IDC_COOKIE_SEARCH               1199
+#define IDC_CONFIRMCLOSE                1500
+#define IDC_ONCLOSELASTTAB              1501
+#define IDC_WINDOWTABMODE               1502
+#define IDC_ONOPENTAB                   1503
+#define IDC_ONCLOSETAB                  1504
+#define IDC_ONDOUBLECLICK               1505
+#define IDC_ONMIDDLECLICK               1506
+#define IDC_ONRIGHTCLICK                1507
+#define IDC_RADIO6						1508
+#define IDC_RADIO10						1509
+#define IDC_RADIO11						1510
+#define IDC_RADIO13						1511
+#define IDC_RADIO14						1512
+#define IDC_RADIO16						1513
+#define IDC_RADIO17						1514
+#define IDC_RADIO19						1515
+#define IDC_RADIO20						1516
+#define IDC_TABAUTOHIDE                 1517
 #define IDD_CONFIRM_EXPIRED_CERT        2000
 #define IDC_VIEW_CERT                   2002
 #define IDC_HELP_CERT                   2004
@@ -439,6 +459,17 @@
 #define ID_COOKIE_PERM                  33825
 #define ID_IMAGE_PERM                   33826
 #define ID_POPUP_PERM                   33827
+#define ID_NEW_TAB                      33900
+#define ID_TAB_NEXT                     33901
+#define ID_TAB_PREV                     33902
+#define ID_CLOSE_TAB                    33903
+#define ID_OPEN_LINK_IN_NEW_TAB         33904
+#define ID_OPEN_LINK_IN_BACKGROUNDTAB   33905
+#define ID_OPEN_FRAME_IN_NEW_TAB        33906
+#define ID_OPEN_FRAME_IN_BACKGROUNDTAB  33907
+#define ID_CLOSE_ALLTAB                 33908
+#define ID_CLOSE_ALLOTHERTAB            33909
+
 #define IDS_FAILED_TO_CREATE_BROWSER    61204
 #define IDS_NEW_PLUGIN_FOUND            61205
 #define IDS_PLUGIN_NO_OPTIONS           61206
@@ -546,8 +577,15 @@
 #define IDS_HEADER_USERNAME             61318
 #define IDS_HEADER_PASSWORD             61319
 #define IDS_AUTHORIZEDSESSION           61320
+#define IDS_STRING5007                  61321
+#define IDS_DEFAULT                     61321
 #define IDS_LANG_VERSION                62000
 #define IDS_LOCALE_ID                   62001
+#define IDS_EMPTY                       62255
+#define IDS_LOADING                     62256
+#define IDS_CLOSE_SEVERAL_TABS          62257
+#define IDS_MAXTABSNUMBER               62258
+#define IDS_PREFS_TABS                  62259
 
 // Next default values for new objects
 // 

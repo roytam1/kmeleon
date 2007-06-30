@@ -31,6 +31,7 @@ extern CMfcEmbedApp theApp;
 #include "Plugins.h"
 #include "kmeleon_plugin.h"
 #include <wininet.h>
+#include ".\preferences.h"
 
 CPreferencesDlg::CPreferencesDlg() : CDialog(IDD) {
   page = NULL;
@@ -51,6 +52,7 @@ BEGIN_MESSAGE_MAP(CPreferencesDlg, CDialog)
 	//{{AFX_MSG_MAP(CPreferencesDlg)
   ON_NOTIFY(LVN_ITEMCHANGED, IDC_LIST1, OnListSelect)
   //}}AFX_MSG_MAP
+  ON_WM_DESTROY()
 END_MESSAGE_MAP()
 
 CPreferencesDlg::OnInitDialog(){
@@ -79,6 +81,8 @@ CPreferencesDlg::OnInitDialog(){
    AddItem(title,   IDD_PREFERENCES_CONFIGS);
    title.LoadString(IDS_PREFS_PLUGINS);
    AddItem(title, IDD_PREFERENCES_PLUGINS);
+   title.LoadString(IDS_PREFS_TABS);
+   AddItem(title, IDD_PREFERENCES_TABS);
    title.LoadString(IDS_PREFS_DOWNLOAD);
    AddItem(title, IDD_PREFERENCES_DOWNLOAD);
 
@@ -317,6 +321,17 @@ void CPreferencePage::DoDataExchange(CDataExchange* pDX){
 	   DDX_Check(pDX, IDC_CHECK_CLOSE_DOWNLOAD, theApp.preferences.bCloseDownloadDialog);
 	   DDX_Check(pDX, IDC_CHECK_FLASH, theApp.preferences.bFlashWhenCompleted);
 
+   case IDD_PREFERENCES_TABS:
+	   DDX_Radio(pDX, IDC_WINDOWTABMODE, theApp.preferences.iWindowTabMode);
+	   DDX_Radio(pDX, IDC_ONCLOSETAB, theApp.preferences.iOnCloseTab);
+	   DDX_Radio(pDX, IDC_ONOPENTAB, theApp.preferences.iOnOpenTab);
+	   DDX_Radio(pDX, IDC_ONCLOSELASTTAB, theApp.preferences.iOnCloseLastTab);
+	   DDX_Check(pDX, IDC_TABAUTOHIDE, theApp.preferences.bAutoHideTabControl);
+	   DDX_Check(pDX, IDC_CONFIRMCLOSE, theApp.preferences.bConfirmClose);
+	   DDX_Radio(pDX, IDC_ONDOUBLECLICK, theApp.preferences.iTabOnDoubleClick);
+	   DDX_Radio(pDX, IDC_ONMIDDLECLICK, theApp.preferences.iTabOnMiddleClick);
+	   DDX_Radio(pDX, IDC_ONRIGHTCLICK, theApp.preferences.iTabOnRightClick);
+	  break;
 
       break;
   }
@@ -755,3 +770,10 @@ BEGIN_MESSAGE_MAP(CPreferencePageConfigs, CPreferencePage)
    ON_NOTIFY(TCN_SELCHANGE, IDC_TAB1, OnSelChange)
    //}}AFX_MSG_MAP
 END_MESSAGE_MAP()
+
+void CPreferencesDlg::OnDestroy()
+{
+	CDialog::OnDestroy();
+
+	// TODO : ajoutez ici le code de votre gestionnaire de messages
+}

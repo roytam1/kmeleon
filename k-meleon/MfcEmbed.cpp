@@ -54,10 +54,10 @@
 #include "MfcEmbed.h"
 #include "HiddenWnd.h"
 #include "BrowserFrm.h"
+#include "BrowserFrmTab.h"
 #include "winEmbedFileLocProvider.h"
 #include "ProfileMgr.h"
 #include "BrowserImpl.h"
-#include "BrowserView.h"
 #include "kmeleonConst.h"
 #include "UnknownContentTypeHandler.h"
 #include "MenuParser.h"
@@ -89,14 +89,14 @@ app_getModuleInfo(nsStaticModuleInfo **info, PRUint32 *count);
 #endif
 
 #ifdef _DEBUG
-/*#include "StackWalker.h"
+#include "StackWalker.h"
 
 static struct _test
 {
   _test() { InitAllocCheck(); }
   ~_test(){ DeInitAllocCheck(); }
 
-} _myLeakFinder;*/
+} _myLeakFinder;
 #define new DEBUG_NEW
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
@@ -596,6 +596,7 @@ BOOL CMfcEmbedApp::InitInstance()
 
 
    RefreshPlugins(PR_FALSE);
+   OleInitialize(NULL);
 
    // Register the hidden window class
    WNDCLASS wc = { 0 };
@@ -656,6 +657,8 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrameWithUrl(LPCTSTR pUrl, LPCTSTR 
 							BOOL bBackground, 
 							CWnd* pParent)
 {
+	if (!pUrl) return NULL;
+
 	CBrowserFrame* pFrame;
 	const TCHAR* ext = _tcschr(pUrl, L'.');
 	
@@ -871,8 +874,11 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
    }
 
    // Now, create the browser frame
-   CBrowserFrame* pFrame = new CBrowserFrame(chromeMask, style);
-
+   CBrowserFrame* pFrame = NULL;
+   if (isPopupOrDialog || preferences.GetBool("kmeleon.notab", FALSE))
+       pFrame = new CBrowserFrame(chromeMask, style);
+   else
+       pFrame = (CBrowserFrame*)new CBrowserFrmTab(chromeMask, style);
 
    // this backup is made as part of a bad workaround:
    // m_pMostRecentBrowserFrame needs to be this frame for the life of this function so that
@@ -926,8 +932,8 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
    if (inBackground)
 	   pFrame->SetWindowPos((CWnd*)theApp.m_FrameWndLst.GetHead(),
 			0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | SWP_SHOWWINDOW);
-
-   theApp.m_pMostRecentBrowserFrame = pOldRecentFrame;
+   else
+      theApp.m_pMostRecentBrowserFrame = pOldRecentFrame;
    
    // Add to the list of BrowserFrame windows
    m_FrameWndLst.AddHead(pFrame);
@@ -1107,7 +1113,7 @@ int CMfcEmbedApp::ExitInstance()
    // this way plugins can still call the preference functions
    plugins.SendMessage("*", "* Plugin Manager", "Quit");
 
-   preferences.Save(true);
+   preferences.Flush();
    
    m_ProfileMgr->ShutDownCurrentProfile( theApp.preferences.bGuestAccount );
    if (m_ProfileMgr) delete m_ProfileMgr;
@@ -1121,6 +1127,8 @@ int CMfcEmbedApp::ExitInstance()
    plugins.UnLoadAll();
    if (m_hResDll) FreeLibrary(m_hResDll);
 
+   OleUninitialize();
+   
    return 1;
 }
 
@@ -1158,8 +1166,9 @@ BOOL CMfcEmbedApp::IsIdleMessage( MSG* pMsg )
 }
 
 void CMfcEmbedApp::OnPreferences () {
-   CPreferencesDlg prefDlg;
-   prefDlg.DoModal();
+	CreateNewChromeDialog(_T("chrome://kmprefs/content/pref.xul"));
+   //CPreferencesDlg prefDlg;
+   //prefDlg.DoModal();
 }
 
 void CMfcEmbedApp::OnManageProfiles()
@@ -1226,7 +1235,7 @@ BOOL CMfcEmbedApp::CreateHiddenWindow()
 
 BOOL CMfcEmbedApp::InitializePrefs(){
    preferences.Load();
-   preferences.Save();
+   //preferences.Save();
 
    return TRUE;
 }
@@ -1333,7 +1342,7 @@ NS_IMETHODIMP CMfcEmbedApp::Observe(nsISupports *aSubject, const char *aTopic, c
       }
       m_bSwitchingProfiles = FALSE;
 
-      preferences.Save(true);
+      preferences.Flush();
    }
    else if (strcmp(aTopic, "profile-after-change") == 0)
    {        
