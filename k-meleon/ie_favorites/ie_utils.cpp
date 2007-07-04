@@ -362,20 +362,15 @@ int addLink(char *url, char *title)
 
    newNode->url = url;
    
-   if (CreateFavorite(newNode) == 0)
-     gFavoritesRoot.AddChild(newNode);
-   
-   if (!bEmpty) {
-      
-      // FIXME!
-      // this "deletes everything after the first bookmark position"
-      // which is not robust as there may be normal menu items there
-      
-      while (DeleteMenu(gMenuFavorites, nFirstFavoritesPosition, MF_BYPOSITION))
-         ;
+   if (CreateFavorite(newNode) == 0) {
+      delete gFavoritesRoot.child;
+      delete gFavoritesRoot.next;
+      gFavoritesRoot.child = NULL;
+      gFavoritesRoot.next = NULL;
+      ReadFavorites(gFavoritesPath, "", gFavoritesRoot);
    }
-   bEmpty = true;
-   BuildMenu(gMenuFavorites, gFavoritesRoot.FindSpecialNode(BOOKMARK_FLAG_BM), false);
+   
+	RebuildMenu();
 
 #if 0
    TB *ptr = root;
