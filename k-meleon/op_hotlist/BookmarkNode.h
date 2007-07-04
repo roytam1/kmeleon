@@ -40,6 +40,7 @@ char *stristr(const char *String, const char *Pattern);
 class CBookmarkNode {
 public:
    int id;
+   int id_opera;
    long order;
    std::string text;
    std::string url;
@@ -47,9 +48,13 @@ public:
    std::string desc;
    int type;
    int flags;
+   bool on_personalbar;
+   bool trash;
    std::string in_panel;
    std::string panel_pos;
    std::string bar_pos;
+   std::string icon;
+
    time_t addDate;
    time_t lastVisit;
    time_t lastModified;
@@ -60,6 +65,7 @@ public:
    inline CBookmarkNode()
    {
       id = 0;
+	  id_opera = 0;
       order = 0;
       text = "";
       url = "";
@@ -70,6 +76,8 @@ public:
       next = NULL;
       child = NULL;
       lastChild = NULL;
+	  on_personalbar = false;
+	  trash = false;
 
       in_panel = "";
       panel_pos = "";
@@ -79,16 +87,20 @@ public:
       lastVisit = 0;
       lastModified = 0;
    }
-   inline CBookmarkNode(int id, const char *text, const char *url, const char *nick, const char *desc, int type, time_t addDate=0, time_t lastVisit=0, time_t lastModified=0, long order=-1, const char *in_panel=NULL, const char *panel_pos=NULL, const char *bar_pos=NULL)
+   inline CBookmarkNode(int id, const char *text, const char *url, const char *nick, const char *desc, int type, time_t addDate=0, time_t lastVisit=0, time_t lastModified=0, long order=-1, const char *in_panel=NULL, const char *panel_pos=NULL, const char *bar_pos=NULL, bool onpb = FALSE, bool trash = FALSE, int id_opera = 0, const char* icon = 0)
    {
       this->id = id;
+	  this->id_opera = id_opera;
       this->order = order;
       this->text = text;
       this->url = url;
       this->nick = nick;
       this->desc = desc;
       this->type = type;
+	  this->icon = icon ? icon : "";
       this->flags = 0;
+	  this->on_personalbar = onpb;
+	  this->trash = trash;
       this->in_panel = in_panel ? in_panel : "";
       this->panel_pos = panel_pos ? panel_pos : "";
       this->bar_pos = bar_pos ? bar_pos : "";
@@ -145,6 +157,10 @@ public:
       addDate = n2.addDate;
       lastVisit = n2.lastVisit;
       lastModified = n2.lastModified;
+	  icon = n2.icon;
+	  on_personalbar = n2.on_personalbar;
+	  trash = n2.trash;
+	  id_opera = n2.id_opera;
 
       if (child) {
          delete child;
