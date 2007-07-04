@@ -57,14 +57,23 @@ int ParseHotlistFolder(char **p, CBookmarkNode &node)
    char szPanelPos[HOTLIST_STRING_LEN] = {0};
    char szBarPos[HOTLIST_STRING_LEN] = {0};
    char *pszTmp;
-   
+   bool onpb = false, trash = false;
+   int id_opera = 0;
+
    while (p && *p && **p && (q = strchr(*p, '\n')) != NULL) {
       *q++ = 0;
       
       while (isspace(**p))
          (*p)++;
       
-      if (strnicmp(*p, "NAME=", 5) == 0) {
+	  if (strnicmp(*p, "ID=", 3) == 0 ) {
+         *p += 3;
+         // while (*p && **p && isspace(**p))
+         //   (*p)++;
+		 id_opera = atoi(*p);
+      }
+
+      else if (strnicmp(*p, "NAME=", 5) == 0) {
          pszTmp = kPlugin.kFuncs->DecodeUTF8(*p+5);
          strncpy(szName, (pszTmp && *pszTmp) ? pszTmp : *p+5, HOTLIST_TITLE_LEN);
          szName[HOTLIST_TITLE_LEN-1] = 0;
@@ -135,6 +144,27 @@ int ParseHotlistFolder(char **p, CBookmarkNode &node)
             free(pszTmp);
       }
 
+	  else if (strnicmp(*p, "TRASH FOLDER=", 13) == 0 && *((*p)+13) != 0) {
+         *p += 13;
+         //while (*p && **p && isspace(**p))
+         //   (*p)++;
+		 if (*p) {
+		 if (strcmp(*p, "YES") == 0)
+			 trash = true;
+		 }
+      }
+
+	  else if (strnicmp(*p, "ON PERSONALBAR=", 15) == 0 && *((*p)+15) != 0) {
+         *p += 15;
+         //while (*p && **p && isspace(**p))
+         //   (*p)++;
+
+		 if (*p) {
+		 if (strcmp(*p, "YES") == 0)
+			 onpb = true;
+		 }
+      }
+
       else if (**p == 0 || **p == '#' || **p == '-') {
          if (**p) {
             *(q-1) = '\n';
@@ -148,7 +178,7 @@ int ParseHotlistFolder(char **p, CBookmarkNode &node)
    
    if (szName[0]) {
       CBookmarkNode * newNode = 
-         new CBookmarkNode(0, szName, "", szNick, szDesc, BOOKMARK_FOLDER, addDate, lastVisit, 0, order, szInPanel, szPanelPos, szBarPos);
+         new CBookmarkNode(0, szName, "", szNick, szDesc, BOOKMARK_FOLDER, addDate, lastVisit, 0, order, szInPanel, szPanelPos, szBarPos, onpb, trash, id_opera);
       if (newNode) {
          node.AddChild(newNode);
          
@@ -186,20 +216,30 @@ int ParseHotlistUrl(char **p, CBookmarkNode &node)
    char szURL[INTERNET_MAX_URL_LENGTH] = {0};
    char szTmp[HOTLIST_STRING_LEN] = {0};
    char szDesc[HOTLIST_STRING_LEN] = {0};
+   char szIcon[HOTLIST_STRING_LEN] = {0};
    time_t addDate=0, lastVisit=0;
    long order=-1;
    char szInPanel[HOTLIST_STRING_LEN] = {0};
    char szPanelPos[HOTLIST_STRING_LEN] = {0};
    char szBarPos[HOTLIST_STRING_LEN] = {0};
    char *pszTmp;
-   
+   bool onpb = false;
+   int id_opera  = 0;
+
    while (*p && **p && (q = strchr(*p, '\n')) != NULL) {
       *q++ = 0;
       
       while (*p && **p && isspace(**p))
          (*p)++;
       
-      if (strnicmp(*p, "NAME=", 5) == 0 && szName[0] == 0) {
+	   if (strnicmp(*p, "ID=", 3) == 0) {
+         *p += 3;
+         // while (*p && **p && isspace(**p))
+         //   (*p)++;
+		 id_opera = atoi(*p);
+      }
+
+      else if (strnicmp(*p, "NAME=", 5) == 0 && szName[0] == 0) {
          *p += 5;
          // while (*p && **p && isspace(**p))
          //   (*p)++;
@@ -277,6 +317,28 @@ int ParseHotlistUrl(char **p, CBookmarkNode &node)
          if (pszTmp)
             free(pszTmp);
       }
+
+	  else if (strnicmp(*p, "ON PERSONALBAR=", 15) == 0 && *((*p)+15) != 0) {
+         *p += 15;
+         //while (*p && **p && isspace(**p))
+         //   (*p)++;
+         pszTmp = kPlugin.kFuncs->DecodeUTF8(*p);
+		 if (*p) {
+		 if (strcmp(*p, "YES") == 0)
+			 onpb = true;
+		 }
+      }
+
+	  else if (strnicmp(*p, "ICONFILE=", 9) == 0 && *((*p)+9) != 0) {
+         *p += 9;
+         //while (*p && **p && isspace(**p))
+         //   (*p)++;
+         pszTmp = kPlugin.kFuncs->DecodeUTF8(*p);
+         strncpy(szNick, (pszTmp && *pszTmp) ? pszTmp : *p, HOTLIST_STRING_LEN);
+         szNick[HOTLIST_STRING_LEN-1] = 0;
+         if (pszTmp)
+            free(pszTmp);
+      }
       
       else if (**p == '#' || **p == '-') {
          *(q-1) = '\n';
@@ -290,7 +352,7 @@ int ParseHotlistUrl(char **p, CBookmarkNode &node)
    if (szURL[0]) {
       int id = kPlugin.kFuncs->GetCommandIDs(1);
       CBookmarkNode * newNode = 
-         new CBookmarkNode(id, szName[0] ? szName : szURL, szURL, szNick, szDesc, BOOKMARK_BOOKMARK, addDate, lastVisit, 0, order, szInPanel, szPanelPos, szBarPos);
+         new CBookmarkNode(id, szName[0] ? szName : szURL, szURL, szNick, szDesc, BOOKMARK_BOOKMARK, addDate, lastVisit, 0, order, szInPanel, szPanelPos, szBarPos, onpb, false, id_opera, szIcon);
       if (newNode) {
          node.AddChild(newNode);
          return 1;
@@ -394,28 +456,45 @@ int SaveHotlistEntry(FILE *bmFile, CBookmarkNode *node)
 {
    char *pszTmp;
    fprintf(bmFile, "#URL%s", EOL);
+   if (node->id_opera>0)
+      fprintf(bmFile, "\tID=%ld%s", node->id_opera, EOL);
+
    pszTmp = kPlugin.kFuncs->EncodeUTF8((char*)node->text.c_str());
    fprintf(bmFile, "\tNAME=%s%s", (pszTmp && *pszTmp) ? pszTmp : (char*)node->text.c_str(), EOL);
    if (pszTmp)
       free(pszTmp);
    fprintf(bmFile, "\tURL=%s%s", (char*)node->url.c_str(), EOL);
-   fprintf(bmFile, "\tCREATED=%ld%s", node->addDate, EOL);
-   fprintf(bmFile, "\tVISITED=%ld%s", node->lastVisit, EOL);
-   fprintf(bmFile, "\tORDER=%ld%s", node->order, EOL);
-   pszTmp = kPlugin.kFuncs->EncodeUTF8((char*)node->desc.c_str());
-   fprintf(bmFile, "\tDESCRIPTION=%s%s", (pszTmp && *pszTmp) ? pszTmp : (char*)node->desc.c_str(), EOL);
-   if (pszTmp)
-      free(pszTmp);
-   pszTmp = kPlugin.kFuncs->EncodeUTF8((char*)node->nick.c_str());
-   fprintf(bmFile, "\tSHORT NAME=%s%s", (pszTmp && *pszTmp) ? pszTmp : (char*)node->nick.c_str(), EOL);
-   if (pszTmp)
-      free(pszTmp);
+   if (node->addDate>0)
+      fprintf(bmFile, "\tCREATED=%ld%s", node->addDate, EOL);
+   if (node->lastVisit>0)
+      fprintf(bmFile, "\tVISITED=%ld%s", node->lastVisit, EOL);
+   if (node->order!=-1) 
+      fprintf(bmFile, "\tORDER=%ld%s", node->order, EOL);
+   
+   		 if (node->desc.length()>0 && (pszTmp = kPlugin.kFuncs->EncodeUTF8((char*)node->desc.c_str()))) {
+            fprintf(bmFile, "\tDESCRIPTION=%s%s", pszTmp, EOL);
+            free(pszTmp);
+		 }
+
+		 if (node->nick.length()>0 && (pszTmp = kPlugin.kFuncs->EncodeUTF8((char*)node->nick.c_str()))) {
+            fprintf(bmFile, "\tSHORT NAME=%s%s", pszTmp, EOL);
+            free(pszTmp);
+		 }
+
+		 if (node->icon.length()>0 && (pszTmp = kPlugin.kFuncs->EncodeUTF8((char*)node->icon.c_str()))) {
+            fprintf(bmFile, "\tSHORT NAME=%s%s", pszTmp, EOL);
+            free(pszTmp);
+		 }
+   
    if (node->bar_pos.length() > 0)
       fprintf(bmFile, "\tPERSONALBAR_POS=%s%s", (char*)node->bar_pos.c_str(), EOL);
    if (node->in_panel.length() > 0)
       fprintf(bmFile, "\tIN PANEL=%s%s", (char*)node->in_panel.c_str(), EOL);
    if (node->panel_pos.length() > 0)
       fprintf(bmFile, "\tPANEL_POS=%s%s", (char*)node->panel_pos.c_str(), EOL);
+   if (node->on_personalbar)
+      fprintf(bmFile, "\tON PERSONALBAR=YES%s", EOL);
+
    
    return 0;
 }
@@ -429,29 +508,41 @@ int SaveHotlist(FILE *bmFile, CBookmarkNode *node)
       if (type == BOOKMARK_FOLDER) {
          char *pszTmp;
          fprintf(bmFile, "#FOLDER%s", EOL);
-         pszTmp = kPlugin.kFuncs->EncodeUTF8((char*)child->text.c_str());
+		 if (child->id_opera>0)
+            fprintf(bmFile, "\tID=%ld%s", child->id_opera, EOL);
+		 pszTmp = kPlugin.kFuncs->EncodeUTF8((char*)child->text.c_str());
          fprintf(bmFile, "\tNAME=%s%s", (pszTmp && *pszTmp) ? pszTmp : (char*)child->text.c_str(), EOL);
          if (pszTmp)
             free(pszTmp);
-         fprintf(bmFile, "\tCREATED=%ld%s", child->addDate, EOL);
-         fprintf(bmFile, "\tVISITED=%ld%s", child->lastVisit, EOL);
-         fprintf(bmFile, "\tORDER=%ld%s", child->order, EOL);
-         pszTmp = kPlugin.kFuncs->EncodeUTF8((char*)child->desc.c_str());
-         fprintf(bmFile, "\tDESCRIPTION=%s%s", (pszTmp && *pszTmp) ? pszTmp : (char*)child->desc.c_str(), EOL);
-         if (pszTmp)
+
+         if (child->addDate>0)
+            fprintf(bmFile, "\tCREATED=%ld%s", child->addDate, EOL);
+		 if (child->lastVisit>0)
+            fprintf(bmFile, "\tVISITED=%ld%s", child->lastVisit, EOL);
+         if (child->order!=-1) 
+		    fprintf(bmFile, "\tORDER=%ld%s", child->order, EOL);
+         
+		 if (child->desc.length()>0 && (pszTmp = kPlugin.kFuncs->EncodeUTF8((char*)child->desc.c_str()))) {
+            fprintf(bmFile, "\tDESCRIPTION=%s%s", pszTmp, EOL);
             free(pszTmp);
-         pszTmp = kPlugin.kFuncs->EncodeUTF8((char*)child->nick.c_str());
-         fprintf(bmFile, "\tSHORT NAME=%s%s", (pszTmp && *pszTmp) ? pszTmp : (char*)child->nick.c_str(), EOL);
-         if (pszTmp)
+		 }
+
+		 if (child->nick.length()>0 && (pszTmp = kPlugin.kFuncs->EncodeUTF8((char*)child->nick.c_str()))){
+            fprintf(bmFile, "\tSHORT NAME=%s%s", pszTmp, EOL);
             free(pszTmp);
-         fprintf(bmFile, "\tDESCRIPTION=%s%s", (char*)child->desc.c_str(), EOL);
-         fprintf(bmFile, "\tSHORT NAME=%s%s", (char*)child->nick.c_str(), EOL);
+		 }
+
          if (child->bar_pos.length() > 0)
             fprintf(bmFile, "\tPERSONALBAR_POS=%s%s", (char*)child->bar_pos.c_str(), EOL);
          if (child->in_panel.length() > 0)
             fprintf(bmFile, "\tIN PANEL=%s%s", (char*)child->in_panel.c_str(), EOL);
          if (child->panel_pos.length() > 0)
             fprintf(bmFile, "\tPANEL_POS=%s%s", (char*)child->panel_pos.c_str(), EOL);
+         if (child->on_personalbar)
+            fprintf(bmFile, "\tON PERSONALBAR=YES%s", EOL);
+		 if (child->trash)
+            fprintf(bmFile, "\tTRASH FOLDER=YES%s", EOL);
+
          fprintf(bmFile, "%s", EOL);
          SaveHotlist(bmFile, child);
          fprintf(bmFile, "-%s", EOL);
