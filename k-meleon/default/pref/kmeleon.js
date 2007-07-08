@@ -3,7 +3,7 @@
 /********************************************************************************************************/
 
 pref("general.useragent.vendor", "K-Meleon");
-pref("general.useragent.vendorSub", "1.1");
+pref("general.useragent.vendorSub", "1.5a1pre");
 
 /********************************************************************************************************/
 
@@ -14,7 +14,7 @@ pref("general.useragent.vendorSub", "1.1");
 pref("kmeleon.MRU.maxURLs", 16);
 pref("kmeleon.MRU.behavior", 2);
 pref("kmeleon.general.guest_account", false);
-//pref("kmeleon.general.homePage", "resource:///readme.html");			// I10n.js
+pref("kmeleon.general.homePage", "resource:///readme.html");
 pref("kmeleon.general.offline", false);
 pref("kmeleon.general.opengroup", "ID_OPEN_LINK|ID_OPEN_LINK_IN_BACKGROUND");
 pref("kmeleon.general.openurl", "ID_OPEN_LINK");
@@ -159,14 +159,19 @@ pref("kmeleon.download.flashWhenCompleted", false);
 // For the tab version only
 
 pref("browser.tabs.autoHide", true);
-pref("kmeleon.plugins.tabs.OnDoubleClick", 0);
-pref("kmeleon.plugins.tabs.OnMiddleClick", 0);
-pref("kmeleon.plugins.tabs.OnRightClick", 2);
-pref("kmeleon.plugins.tabs.catchOpen", 1);
-pref("kmeleon.plugins.tabs.confirmClose", 0);
-pref("kmeleon.plugins.tabs.onCloseLast", 1);
-pref("kmeleon.plugins.tabs.onCloseOption", 1);
-pref("kmeleon.plugins.tabs.onOpenOption", 0);
+pref("browser.tabs.warnOnClose", true);
+pref("kmeleon.tabs.OnDoubleClick", 0);
+pref("kmeleon.tabs.OnMiddleClick", 0);
+pref("kmeleon.tabs.OnRightClick", 2);
+pref("kmeleon.tabs.onCloseLast", 1);
+pref("kmeleon.tabs.onCloseOption", 1);
+pref("kmeleon.tabs.onOpenOption", 0);
+pref("kmeleon.tabs.useLoadingTitle", false);
+pref("kmeleon.notab", false);
+pref("kmeleon.tabs.title", "");
+pref("kmeleon.tabs.minWidth", 10);
+pref("kmeleon.tabs.maxWidth", 35);
+pref("kmeleon.tabs.style", 2);
 
 
 /********************************************************************************************************/
