@@ -160,12 +160,12 @@ CPreferences::CPreferences() :
     sourceCommand("kmeleon.general.sourceCommand", _T("")),
 	bNewWindowHasUrlFocus("kmeleon.display.NewWindowHasUrlFocus", false),
 	bAutoHideTabControl("browser.tabs.autoHide", true),
-	iTabOnMiddleClick("kmeleon.plugins.tabs.OnMiddleClick", 0),
-	iTabOnDoubleClick("kmeleon.plugins.tabs.OnDoubleClick", 0),
-	iTabOnRightClick("kmeleon.plugins.tabs.OnRightClick", 2),
-	iOnCloseLastTab("kmeleon.plugins.tabs.onCloseLast", 1),
-	iOnCloseTab("kmeleon.plugins.tabs.onCloseOption", 0),
-	iOnOpenTab("kmeleon.plugins.tabs.onOpenOption", 1)
+	iTabOnMiddleClick("kmeleon.tabs.OnMiddleClick", 0),
+	iTabOnDoubleClick("kmeleon.tabs.OnDoubleClick", 0),
+	iTabOnRightClick("kmeleon.tabs.OnRightClick", 2),
+	iOnCloseLastTab("kmeleon.tabs.onCloseLast", 1),
+	iOnCloseTab("kmeleon.tabs.onCloseOption", 0),
+	iOnOpenTab("kmeleon.tabs.onOpenOption", 1)
 {
 }
 
