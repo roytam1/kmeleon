@@ -44,6 +44,9 @@ public:
    std::string nick;
    std::string desc;
    std::string charset;
+   std::string m_id;
+   std::string feedurl;
+   std::string icon;
    int type;
    int flags;
    time_t addDate;
@@ -71,7 +74,7 @@ public:
       lastVisit = 0;
       lastModified = 0;
    }
-   inline CBookmarkNode(int id, const char *text, const char *url, const char *nick, const char *desc, const char *charset, int type, time_t addDate=0, time_t lastVisit=0, time_t lastModified=0)
+   inline CBookmarkNode(int id, const char *text, const char *url, const char *nick, const char *desc, const char *charset, int type, time_t addDate=0, time_t lastVisit=0, time_t lastModified=0, const char* m_id="", const char* feedurl="", const char* icon = "")
    {
       this->id = id;
       this->text = text;
@@ -79,6 +82,9 @@ public:
       this->nick = nick ? nick : "";
       this->desc = desc ? desc : "";
       this->charset = charset ? charset : "";
+	  this->m_id = m_id ? m_id : "";
+	  this->feedurl = feedurl ? feedurl : "";
+	  this->icon = icon ? icon: "";
       this->type = type;
 	  this->flags = 0;
       this->next = NULL;
@@ -88,7 +94,7 @@ public:
       this->lastVisit = lastVisit;
       this->lastModified = lastModified;
    }
-   inline CBookmarkNode(int id, std::string &text, std::string &url, std::string &nick, std::string &desc, std::string &charset, int type, time_t addDate=0, time_t lastVisit=0, time_t lastModified=0)
+   inline CBookmarkNode(int id, std::string &text, std::string &url, std::string &nick, std::string &desc, std::string &charset, int type, time_t addDate=0, time_t lastVisit=0, time_t lastModified=0, std::string m_id ="", std::string feedurl="", std::string icon="")
    {
       this->id = id;
       this->text = text;
@@ -96,6 +102,9 @@ public:
       this->nick = nick;
       this->desc = desc;
       this->charset = charset;
+	  this->m_id = m_id;
+	  this->feedurl = feedurl;
+	  this->icon = icon;
       this->type = type;
 	  this->flags = 0;
       this->next = NULL;
@@ -123,6 +132,9 @@ public:
       nick = n2.nick;
       desc = n2.desc;
       charset = n2.charset;
+	  m_id = n2.m_id;
+	  feedurl = n2.feedurl;
+	  icon = n2.icon;
       type = n2.type;
       flags = n2.flags;
       addDate = n2.addDate;

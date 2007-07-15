@@ -282,8 +282,14 @@ static void SaveBookmarks(FILE *bmFile, CBookmarkNode *node)
 	    if (psz) free(psz);
 	    strcat(szFolderFlags, "\" ");
 	 }
+		 if (child->m_id.length()) {
+			strcat(szFolderFlags, "ID=\"");
+			strcat(szFolderFlags, child->m_id.c_str());
+			strcat(szFolderFlags, "\" ");
+		 }
+		
          if (child->flags & BOOKMARK_FLAG_TB)
-            strcat(szFolderFlags, "PERSONAL_TOOLBAR_FOLDER=\"true\" ID=\"NC:PersonalToolbarFolder\" ");
+            strcat(szFolderFlags, "PERSONAL_TOOLBAR_FOLDER=\"true\" "); //ID=\"NC:PersonalToolbarFolder\" ");
          if (child->flags & BOOKMARK_FLAG_NB)
             strcat(szFolderFlags, "NEWITEMHEADER ");
          if (child->flags & BOOKMARK_FLAG_BM)
@@ -323,6 +329,12 @@ static void SaveBookmarks(FILE *bmFile, CBookmarkNode *node)
          fprintf(bmFile, " ADD_DATE=\"%d\"", child->addDate);
          fprintf(bmFile, " LAST_VISIT=\"%d\"", child->lastVisit);
          fprintf(bmFile, " LAST_MODIFIED=\"%d\"", child->lastModified);
+		 if (child->m_id.length())
+			fprintf(bmFile, " ID=\"%s\"", child->m_id.c_str());
+		 if (child->icon.length())
+			fprintf(bmFile, " ICON=\"%s\"", child->icon.c_str());
+		 if (child->feedurl.length())
+			fprintf(bmFile, " FEEDURL=\"%s\"", child->feedurl.c_str());
          psz = (char *) child->nick.c_str();
          if (psz && *psz) {
             psz2 = utf8_from_ansi(psz ? psz : "");
@@ -483,6 +495,7 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
          if (end) *end = 0;
 
          time_t addDate=0;
+		 char *id = NULL;
 
          char *d;
          d = strstr(t, "ADD_DATE=\"");
@@ -504,6 +517,20 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
             }
          }
 
+		 d = strstr(t, "ID=\"");
+         if (d) {
+            d+=4;
+
+            char *q = strchr(d, '\"');
+            if (q) {
+               *q = 0;
+               id = ansi_from_utf8(d);
+               *q = '\"';
+            }
+         }
+
+
+
 	 char *pszTxt;
 	 char *psz, *psz2;
 	 psz = ansi_from_utf8(name);
@@ -515,7 +542,7 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
 	 if (psz) free(psz);
 	 if (psz2 && psz2 != pszTxt) free(psz2);
 
-         CBookmarkNode * newNode = new CBookmarkNode(0, pszTxt, "", nick, "", "", BOOKMARK_FOLDER, addDate);
+         CBookmarkNode * newNode = new CBookmarkNode(0, pszTxt, "", nick, "", "", BOOKMARK_FOLDER, addDate, 0, 0, id);
          node.AddChild(newNode);
          if (pszTxt) free(pszTxt);
          if (nick)   free(nick);
@@ -572,9 +599,22 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
          time_t lastModified=0;
          char *nick = NULL;
          char *charset = NULL;
-
+		 char *id = NULL;
+		 char *icon = NULL;
+		 char *feedurl = NULL;
+         
          char *d;
-         d = strstr(t, "ADD_DATE=\"");
+         d = strstr(t, "ID=\"");
+         if (d) {
+            d+=4;
+            char *q = strchr(d, '\"');
+            if (q) {
+               *q = 0;
+               id = ansi_from_utf8(d);
+               *q = '\"';
+            }
+         }
+		 d = strstr(t, "ADD_DATE=\"");
          if (d) {
             d+=10;
             addDate = atol(d);
@@ -597,6 +637,29 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
             if (q) {
                *q = 0;
                nick = ansi_from_utf8(d);
+               *q = '\"';
+            }
+         }
+		 d = strstr(t, "ICON=\"");
+         if (d) {
+            d+=6;
+
+            char *q = strchr(d, '\"');
+            if (q) {
+               *q = 0;
+               icon = ansi_from_utf8(d);
+               *q = '\"';
+            }
+         }
+
+		 d = strstr(t, "FEEDURL=\"");
+         if (d) {
+            d+=9;
+
+            char *q = strchr(d, '\"');
+            if (q) {
+               *q = 0;
+               feedurl = ansi_from_utf8(d);
                *q = '\"';
             }
          }
@@ -643,7 +706,7 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
 	 if (psz) free(psz);
 	 if (psz2 && psz2 != pszTxt) free(psz2);
 
-         lastNode = new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), pszTxt, pszUrl, nick, NULL, charset, BOOKMARK_BOOKMARK, addDate, lastVisit, lastModified);
+         lastNode = new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), pszTxt, pszUrl, nick, NULL, charset, BOOKMARK_BOOKMARK, addDate, lastVisit, lastModified, id, feedurl, icon);
          node.AddChild(lastNode);
          if (pszUrl) free(pszUrl);
          if (pszTxt) free(pszTxt);
@@ -1273,15 +1336,23 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
          return true;
       }
       else if (command == nAddLinkCommand) {
-         char *title = 0;
-         char *url = 0;
+         
          int retLen = kPlugin.kFuncs->GetGlobalVar(PREF_STRING, "LinkURL", NULL);
          if (retLen) {
-            char *retVal = new char[retLen+1];
-            kPlugin.kFuncs->GetGlobalVar(PREF_STRING, "LinkURL", retVal);
-            url = title = retVal;
+			char *title = 0;
+            char *url = new char[retLen+1];
+            kPlugin.kFuncs->GetGlobalVar(PREF_STRING, "LinkURL", url);
+			
+			retLen = kPlugin.kFuncs->GetWindowVar(hWnd, Window_LinkTitle, NULL);
+			if (retLen > 0) {
+				title = new char[retLen+1];
+				kPlugin.kFuncs->GetWindowVar(hWnd, Window_LinkTitle, title);
+			}
+            else title = url;
+
             addLink(url, title, BOOKMARK_FLAG_NB);
-            delete retVal;
+            delete url;
+			if (title!=url) delete title;
          }
          return true;
       }
