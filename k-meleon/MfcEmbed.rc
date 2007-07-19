@@ -524,8 +524,9 @@ STYLE DS_SETFONT | DS_MODALFRAME | DS_3DLOOK | DS_FIXEDSYS | WS_POPUP |
 CAPTION "Download"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    DEFPUSHBUTTON   "Save",IDOK,112,82,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,164,82,50,14
+    PUSHBUTTON      "&Open",IDOPEN,60,82,50,14
+    DEFPUSHBUTTON   "&Save",IDOK,112,82,50,14
+    PUSHBUTTON      "&Cancel",IDCANCEL,164,82,50,14
     LTEXT           "Do you want to open or save this file ?",IDC_STATIC,10,
                     17,124,8
     LTEXT           "Name :",IDC_STATIC,47,31,24,8
@@ -537,8 +538,7 @@ BEGIN
                     ES_READONLY | NOT WS_BORDER
     EDITTEXT        IDC_DOWNLOAD_SOURCE,75,55,139,12,ES_AUTOHSCROLL | 
                     ES_READONLY | NOT WS_BORDER
-    PUSHBUTTON      "Open",IDOPEN,60,82,50,14
-    ICON            "",IDC_FILE_ICON,12,35,21,20,SS_CENTERIMAGE
+    ICON            "",IDC_FILE_ICON,12,35,20,20,SS_CENTERIMAGE
 END
 
 IDD_PREFERENCES_TABS DIALOGEX 0, 0, 273, 220
@@ -1006,8 +1006,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,1,0,3
- PRODUCTVERSION 1,1,0,3
+ FILEVERSION 1,5,0,0
+ PRODUCTVERSION 1,5,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -1024,11 +1024,11 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "http://kmeleon.sf.net/"
             VALUE "FileDescription", "K-Meleon Web Browser"
-            VALUE "FileVersion", "1, 1, 0, 3"
+            VALUE "FileVersion", "1, 5, 0, 0"
             VALUE "LegalCopyright", "Copyright (C) 2001-2007"
             VALUE "OriginalFilename", "k-meleon.exe"
             VALUE "ProductName", "K-Meleon"
-            VALUE "ProductVersion", "1.10"
+            VALUE "ProductVersion", "1.5a1"
         END
     END
     BLOCK "VarFileInfo"
