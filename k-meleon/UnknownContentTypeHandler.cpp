@@ -437,6 +437,7 @@ CProgressDialog::CProgressDialog(BOOL bAuto) {
    mCancelable = nsnull;
    m_HelperAppLauncher = nsnull;
    mStartTime = 0;
+   mPaused = FALSE;
 
    m_HandleContentOp = 0;
 
@@ -473,9 +474,15 @@ CProgressDialog::~CProgressDialog(){
 
 NS_IMETHODIMP CProgressDialog::OnProgressChange64(nsIWebProgress *aWebProgress, nsIRequest *aRequest, PRInt64 aCurSelfProgress, PRInt64 aMaxSelfProgress, PRInt64 aCurTotalProgress, PRInt64 aMaxTotalProgress)
 {
-	 if (!mTotalBytes)
-      mTotalBytes = aMaxTotalProgress;
+	if (!mTotalBytes)
+		mTotalBytes = aMaxTotalProgress;
 
+	if (!mRequest) {
+		mRequest = aRequest;
+		CWnd* button = GetDlgItem(IDC_PAUSE);
+		if (button)
+			button->ShowWindow(SW_SHOW);
+	}
 /*
    
    if (aMaxTotalProgress <= 0)
@@ -650,6 +657,12 @@ NS_IMETHODIMP CProgressDialog::OnStateChange(nsIWebProgress *aWebProgress,
 				GetDlgItem(IDC_OPEN)->ShowWindow(SW_SHOW);
 			   }
 
+			   CWnd* button = GetDlgItem(IDC_PAUSE);
+			   if (button)
+			      button->ShowWindow(SW_HIDE);
+
+			   mRequest = nsnull;
+
 			   //GetDlgItem(IDC_CLOSE_WHEN_DONE)->ShowWindow(SW_HIDE);
 
 			   mDone = true;
@@ -764,6 +777,7 @@ NS_IMETHODIMP CProgressDialog::OnSecurityChange(nsIWebProgress *aWebProgress, ns
 
 BEGIN_MESSAGE_MAP(CProgressDialog, CDialog)
 	ON_COMMAND(IDC_OPEN, OnOpen)
+	ON_COMMAND(IDC_PAUSE, OnPause)
 	ON_COMMAND(WM_CLOSE, OnClose)
 	ON_BN_CLICKED(IDC_CLOSE_WHEN_DONE, OnBnClickedCloseWhenDone)
 END_MESSAGE_MAP()
@@ -812,6 +826,24 @@ void CProgressDialog::Close() {
       }
    }*/
  
+}
+
+void CProgressDialog::OnPause()
+{
+	if (!mRequest) return;
+	CString label;
+	if (mPaused) {
+		mRequest->Resume();
+		label.LoadString(IDS_PAUSE);
+		SetDlgItemText(IDC_PAUSE, label);
+		mPaused = FALSE;
+	}
+	else {
+		mRequest->Suspend();
+		label.LoadString(IDS_RESUME);
+		SetDlgItemText(IDC_PAUSE, label);
+		mPaused = TRUE;
+	}
 }
 
 void CProgressDialog::OnCancel() {

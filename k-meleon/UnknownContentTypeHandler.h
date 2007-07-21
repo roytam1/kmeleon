@@ -86,9 +86,11 @@ protected:
    //nsCOMPtr<nsIWebBrowserPersist> mPersist;
    nsCOMPtr<nsIHelperAppLauncher> m_HelperAppLauncher;
    nsCOMPtr<nsICancelable> mCancelable;
+   nsCOMPtr<nsIRequest> mRequest;
 
    ProgressDialogCallback mCallback;
    void*  mParam;
+   BOOL mPaused;
 
    int m_HandleContentOp;
 
@@ -116,6 +118,7 @@ protected:
    virtual void OnCancel();
    afx_msg void OnOpen();
    afx_msg void OnClose();
+   afx_msg void OnPause();
 
 	DECLARE_MESSAGE_MAP()
 	virtual void OnOK();

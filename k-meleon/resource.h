@@ -150,6 +150,7 @@
 #define IDC_BUTTON_ACCEL                1036
 #define IDC_COOKIES_NONE                1036
 #define IDC_UD_HEIGHT_LBL               1036
+#define IDC_PAUSE                       1036
 #define IDC_BUTTON_HELP                 1037
 #define IDC_INCHES_RD                   1037
 #define IDC_COMBO_USERAGENT             1038
@@ -295,15 +296,15 @@
 #define IDC_ONDOUBLECLICK               1505
 #define IDC_ONMIDDLECLICK               1506
 #define IDC_ONRIGHTCLICK                1507
-#define IDC_RADIO6						1508
-#define IDC_RADIO10						1509
-#define IDC_RADIO11						1510
-#define IDC_RADIO13						1511
-#define IDC_RADIO14						1512
-#define IDC_RADIO16						1513
-#define IDC_RADIO17						1514
-#define IDC_RADIO19						1515
-#define IDC_RADIO20						1516
+#define IDC_RADIO6                      1508
+#define IDC_RADIO10                     1509
+#define IDC_RADIO11                     1510
+#define IDC_RADIO13                     1511
+#define IDC_RADIO14                     1512
+#define IDC_RADIO16                     1513
+#define IDC_RADIO17                     1514
+#define IDC_RADIO19                     1515
+#define IDC_RADIO20                     1516
 #define IDC_TABAUTOHIDE                 1517
 #define IDD_CONFIRM_EXPIRED_CERT        2000
 #define IDC_VIEW_CERT                   2002
@@ -469,7 +470,6 @@
 #define ID_OPEN_FRAME_IN_BACKGROUNDTAB  33907
 #define ID_CLOSE_ALLTAB                 33908
 #define ID_CLOSE_ALLOTHERTAB            33909
-
 #define IDS_FAILED_TO_CREATE_BROWSER    61204
 #define IDS_NEW_PLUGIN_FOUND            61205
 #define IDS_PLUGIN_NO_OPTIONS           61206
@@ -579,6 +579,8 @@
 #define IDS_AUTHORIZEDSESSION           61320
 #define IDS_STRING5007                  61321
 #define IDS_DEFAULT                     61321
+#define IDS_PAUSE                       61322
+#define IDS_RESUME                      61323
 #define IDS_LANG_VERSION                62000
 #define IDS_LOCALE_ID                   62001
 #define IDS_EMPTY                       62255
