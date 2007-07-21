@@ -427,10 +427,11 @@ void CReBarEx::LockBars(BOOL lock)
    REBARBANDINFO rbbi;
    rbbi.cbSize = sizeof(rbbi);
 
+   GetReBarCtrl().SetRedraw(FALSE);
    for (x=0; x<m_iCount; x++) {
       int barIndex = FindByIndex(x); // index of the bar on the Rebar
 
-      rbbi.fMask = RBBIM_STYLE;
+      rbbi.fMask = RBBIM_STYLE | RBBIM_STYLE;
 
       GetReBarCtrl().GetBandInfo(barIndex, &rbbi);
 
@@ -440,5 +441,10 @@ void CReBarEx::LockBars(BOOL lock)
          rbbi.fStyle &= ~RBBS_NOGRIPPER;
 
       GetReBarCtrl().SetBandInfo(barIndex, &rbbi);
+	  
+	  // Force the rebar to recalculate the header size
+	  if (!(rbbi.fStyle & RBBS_HIDDEN))
+		GetReBarCtrl().ShowBand(barIndex, TRUE);
    }
+   GetReBarCtrl().SetRedraw(TRUE);
 }
