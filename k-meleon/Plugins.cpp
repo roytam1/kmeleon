@@ -52,6 +52,7 @@ CBrowserView* pBrowserView = NULL;
 	CBrowserWrapper* browser;\
 	if (!GetWindows(hWnd, &frame, &view))\
 		return ret;\
+	if (!view) return ret;\
 	browser = view->GetBrowserWrapper();\
 	if (!browser)\
 		return ret;
@@ -91,8 +92,11 @@ CBrowserFrame* GetFrame(HWND hWnd = NULL)
 
 CBrowserWrapper* GetWrapper(HWND hWnd = NULL) 
 {
-	if (!hWnd) 
-		return theApp.m_pMostRecentBrowserFrame->GetActiveView()->GetBrowserWrapper();
+	if (!hWnd) {
+		CBrowserView *view = theApp.m_pMostRecentBrowserFrame->GetActiveView();
+		if (view) return view->GetBrowserWrapper();
+		return NULL;
+	}
 
 	CWnd* wnd = CWnd::FromHandle(hWnd);
 	if (!wnd) return NULL;
@@ -116,6 +120,8 @@ static char *safe_strdup(const char *ptr) {
 
 CPlugins::CPlugins()
 {
+	kDocInfo.url = NULL;
+	kDocInfo.title = NULL;
 }
 
 CPlugins::~CPlugins()
@@ -286,6 +292,12 @@ kmeleonDocInfo * GetDocInfo(HWND mainWnd)
    CString title = browser->GetTitle();
    char* doctitle = new char[title.GetLength()+1];
    strcpy(doctitle, T2CA(title));
+
+   if (kDocInfo.url)
+      delete kDocInfo.url;
+   
+   if (kDocInfo.title)
+      delete kDocInfo.title;
 
    kDocInfo.title = doctitle;
    kDocInfo.url = docurl;
@@ -1232,7 +1244,7 @@ void RemoveStatusBarIcon(HWND hWnd, int id)
 	frame->m_wndStatusBar.RemoveIcon(id);
 }	
 
-BOOL InjectJS(const char* js, bool bTopWindow, HWND hWnd)
+BOOL InjectJS(const char* js, int bTopWindow, HWND hWnd)
 {
 	CBrowserFrame *frame = GetFrame(hWnd);
 	if (!frame) return FALSE;
@@ -1245,7 +1257,18 @@ BOOL InjectJS(const char* js, bool bTopWindow, HWND hWnd)
 	
 	nsEmbedString js2;
 	NS_CStringToUTF16(nsDependentCString(js), NS_CSTRING_ENCODING_UTF8, js2);
-	return browser->InjectJS(js2.get(), bTopWindow);
+
+	if (bTopWindow == 2 && frame->IsKindOf(RUNTIME_CLASS(CBrowserFrmTab)))
+	{
+		BOOL ret = TRUE;
+		CBrowserFrmTab* frameTab = (CBrowserFrmTab*)frame;
+		int tabCount = frameTab->GetTabCount();
+		for (int i=0;i<tabCount;i++) 
+			ret &= frameTab->GetTabIndex(i)->GetBrowserWrapper()->InjectJS(js2.get());
+		return ret;
+	}
+
+	return browser->InjectJS(js2.get(), bTopWindow==1);
 }
 
 BOOL InjectCSS(const char* css, bool bAll, HWND hWnd)
@@ -1278,6 +1301,49 @@ long GetFolder(FolderType type, char* path, size_t size)
       path[size-1] = 0;
    }
    return csPath.GetLength();
+}
+
+BOOL GetWindowsList(HWND* list, unsigned* count)
+{
+	if (!count) return FALSE;
+
+	*count = theApp.m_FrameWndLst.GetCount();
+	if (!*count) return FALSE;
+
+	if (list) {
+		POSITION pos = theApp.m_FrameWndLst.GetHeadPosition();
+		unsigned i = 0;
+		while (pos) {
+			CFrameWnd* frame = (CFrameWnd*)theApp.m_FrameWndLst.GetNext(pos);
+			*(list+i) = frame->GetSafeHwnd();
+			i++;
+		}
+	}
+
+	return TRUE;
+}
+
+BOOL GetTabsList(HWND hWnd, HWND* list, unsigned* count)
+{
+	if (!count) return FALSE;
+
+	CBrowserFrame* frame = GetFrame(hWnd);
+	if (!frame) return FALSE;
+
+	if (!frame->IsKindOf(RUNTIME_CLASS(CBrowserFrmTab))) {
+		*count = 1;
+		if (list) *list = frame->m_hWnd;
+	}
+
+	CBrowserFrmTab* tabFrame = (CBrowserFrmTab*)frame;
+	*count = tabFrame->m_iBrowserCount;
+	if (!*count) return FALSE;
+	
+	if (list) 
+		for (unsigned i=0; i<*count; i++) 
+			list[i] = tabFrame->m_Tabs[i]->GetSafeHwnd();
+
+	return TRUE;
 }
 
 kmeleonFunctions kmelFuncs = {
@@ -1330,7 +1396,9 @@ kmeleonFunctions kmelFuncs = {
    GetWindowVar,
    SetWindowVar,
    GetMozillaSessionHistory,
-   SetMozillaSessionHistory
+   SetMozillaSessionHistory,
+   GetWindowsList,
+   GetTabsList
 };
 
 BOOL CPlugins::TestLoad(LPCTSTR file, const char *description)
