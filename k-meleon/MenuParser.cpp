@@ -134,15 +134,17 @@ int CMenuParser::Parse(char *p)
 
 			case '-': 
 				if (p[1]) { // Deletion
-					item.command = GetID(item.label);
+					item.command = GetID(++p);
+					item.SetLabel("");
 					if (!item.command) {
 						item.command = -1;
-						item.SetLabel(++p);
+						item.SetLabel(p);
 					}
+					LOG_1("Removed item %s.", p);
 				} else { // Separator
 					item.type = MenuSeparator;
+					LOG_0("Added separator.");
 				}
-				LOG_0("Added separator.");
 				break;
 
 			default: { // Normal item
