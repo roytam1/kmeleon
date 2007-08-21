@@ -243,7 +243,7 @@ typedef struct {
    void (*AddStatusBarIcon)(HWND hWnd, int id, HICON hIcon, char* tpText);
    void (*RemoveStatusBarIcon)(HWND hWnd, int id);
    
-   BOOL (*InjectJS)(const char*, bool, HWND);
+   BOOL (*InjectJS)(const char*, int, HWND);
    BOOL (*InjectCSS)(const char*, bool, HWND);
 
    kmeleonPointInfo *(*GetInfoAtClick) (HWND);
@@ -302,6 +302,8 @@ typedef struct {
 	BOOL (*SetWindowVar) (HWND, WindowVarType, void*);
 	int (*GetMozillaSessionHistory) (HWND hWnd, char ***titles, char ***urls, int *count, int *index);
 	int (*SetMozillaSessionHistory) (HWND hWnd, const char **titles, const char **urls, int count, int index);
+	BOOL (*GetWindowsList) (HWND* list, unsigned* count);
+	BOOL (*GetTabsList)(HWND hWnd, HWND* list, unsigned* count);
 
 
 } kmeleonFunctions;
