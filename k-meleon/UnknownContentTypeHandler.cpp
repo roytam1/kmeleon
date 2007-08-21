@@ -654,18 +654,17 @@ NS_IMETHODIMP CProgressDialog::OnStateChange(nsIWebProgress *aWebProgress,
 			   SetDlgItemText(IDCANCEL, statusText);
 
 			   if (m_HandleContentOp!=1) {
-				GetDlgItem(IDC_OPEN)->ShowWindow(SW_SHOW);
+			      GetDlgItem(IDC_OPEN)->ShowWindow(SW_SHOW);
+			      CWnd* button = GetDlgItem(IDC_OPENFOLDER);
+			      if (button) button->ShowWindow(SW_SHOW);
+				  GetDlgItem(IDC_CLOSE_WHEN_DONE)->ShowWindow(SW_HIDE);
 			   }
 
 			   CWnd* button = GetDlgItem(IDC_PAUSE);
-			   if (button)
-			      button->ShowWindow(SW_HIDE);
-
-			   mRequest = nsnull;
-
-			   //GetDlgItem(IDC_CLOSE_WHEN_DONE)->ShowWindow(SW_HIDE);
+			   if (button) button->ShowWindow(SW_HIDE);
 
 			   mDone = true;
+			   mRequest = nsnull;
 			   theApp.preferences.bCloseDownloadDialog = false;
 				
 			   if (theApp.preferences.bFlashWhenCompleted)
@@ -778,6 +777,7 @@ NS_IMETHODIMP CProgressDialog::OnSecurityChange(nsIWebProgress *aWebProgress, ns
 BEGIN_MESSAGE_MAP(CProgressDialog, CDialog)
 	ON_COMMAND(IDC_OPEN, OnOpen)
 	ON_COMMAND(IDC_PAUSE, OnPause)
+	ON_COMMAND(IDC_OPENFOLDER, OnOpenFolder)
 	ON_COMMAND(WM_CLOSE, OnClose)
 	ON_BN_CLICKED(IDC_CLOSE_WHEN_DONE, OnBnClickedCloseWhenDone)
 END_MESSAGE_MAP()
@@ -826,6 +826,16 @@ void CProgressDialog::Close() {
       }
    }*/
  
+}
+
+void CProgressDialog::OnOpenFolder()
+{
+   CString directory = mFilePath;
+   int last_slash = directory.ReverseFind(_T('\\'));
+   directory.GetBuffer(0);
+   directory.ReleaseBuffer(last_slash); // Truncate
+   ShellExecute(NULL, _T("open"), directory, _T(""), directory, SW_SHOW);
+   Close();
 }
 
 void CProgressDialog::OnPause()

@@ -119,6 +119,7 @@ protected:
    afx_msg void OnOpen();
    afx_msg void OnClose();
    afx_msg void OnPause();
+   afx_msg void OnOpenFolder();
 
 	DECLARE_MESSAGE_MAP()
 	virtual void OnOK();

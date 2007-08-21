@@ -214,6 +214,7 @@
 #define IDC_COMBO_SKIN                  1078
 #define IDC_DISPLAY_PASSWORDS           1078
 #define ID_SIDE_BAR                     1079
+#define IDC_OPENFOLDER                  1079
 #define ID_TABS_BAR                     1080
 #define IDC_CHECK_FAVICONCACHE          1086
 #define IDC_DOWNLOAD_NAME               1087
@@ -596,7 +597,7 @@
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        192
 #define _APS_NEXT_COMMAND_VALUE         32814
-#define _APS_NEXT_CONTROL_VALUE         1079
+#define _APS_NEXT_CONTROL_VALUE         1080
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
