@@ -292,6 +292,10 @@ void CUrlBarEdit::OnKillFocus(CWnd* pNewWnd)
 	CEdit::OnKillFocus(pNewWnd);
 	if(m_list && IsWindow(m_list->m_hWnd) && pNewWnd && pNewWnd->m_hWnd != m_list->m_hWnd )
 		StopACSession();
+
+	// Ugly hack: needed because I can get an OnCbnEditchange 
+	// and no OnCbenEndedit
+	((CUrlBar*)GetParent()->GetParent())->EditChanged(FALSE);
 }
 
 void CUrlBarEdit::PreSubclassWindow()
@@ -452,33 +456,13 @@ void CUrlBarEdit::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 		if (!m_list) break;
 		m_list->m_bBack = TRUE;
 		SetTimer(1, 100, NULL);
+   
+   case 'A':
+      if ((GetKeyState(VK_CONTROL) & 0x8000))
+         this->SetSel(0,-1, 0);
+   }
 
-
-	/*
-    	case VK_TAB:
-		GetWindowText(str);
-		if (str.Length>0 && m_list->GetCount()>0)
-		{
-			if (m_list->GetCurSel() != LB_ERR)
-			{
-				m_list->GetCurSel();
-				m_list->SetCurSel(m_list->GetCurSel()+1);
-				m_list->GetText(m_list->GetCurSel(),str);
-				SetWindowText(str);
-			}
-			else
-			{
-				m_list->SetCurSel(0);
-				m_list->GetText(0, str);
-				SetWindowText(str);
-			}
-		}
-		return; */
-
-		
-	}
-
-	CEdit::OnKeyDown(nChar, nRepCnt, nFlags);
+   CEdit::OnKeyDown(nChar, nRepCnt, nFlags);
 }
 
 #ifndef URLBAR_USE_SETWORDBREAKPROC	
@@ -606,6 +590,29 @@ BOOL CUrlBarEdit::PreTranslateMessage(MSG* pMsg)
 			SetSel(0,-1,FALSE);
 			return TRUE;
 		}
+		else if (pMsg->wParam == VK_TAB)
+		{
+			CString str;
+			GetWindowText(str);
+			if (str.GetLength()>0 && m_list->GetCount()>0)
+			{
+				int curSel = m_list->GetCurSel();
+				if (curSel != LB_ERR)
+				{
+					curSel = (curSel == m_list->GetCount()-1 ? 0 : curSel+1);
+					m_list->SetCurSel(curSel);
+					m_list->GetText(curSel, str);
+					SetWindowText(str);
+				}
+				else
+				{
+					m_list->SetCurSel(0);
+					m_list->GetText(0, str);
+					SetWindowText(str);
+				}
+				return TRUE;
+			}
+		}
 	}
 		
 	return CEdit::PreTranslateMessage(pMsg);
@@ -622,15 +629,16 @@ END_MESSAGE_MAP()
 
 HBRUSH CUrlBar::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 {
+	HBRUSH hbr = CComboBoxEx::OnCtlColor(pDC, pWnd, nCtlColor);
+
 	// Use the background color depending on the security 
 	// state except for the list box
 	if (nCtlColor != CTLCOLOR_LISTBOX)
 	{
 		pDC->SetBkColor(m_crBkclr[m_HighlightType]);
-		return m_brBkgnd[m_HighlightType];    
+		hbr = m_brBkgnd[m_HighlightType];    
 	}
-
-	HBRUSH hbr = CComboBoxEx::OnCtlColor(pDC, pWnd, nCtlColor);
+	
 	return hbr;
 }
 
