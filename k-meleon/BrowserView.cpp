@@ -495,10 +495,10 @@ void CBrowserView::OnSelectNone()
 void CBrowserView::OnFileOpen()
 {
 	TCHAR lpszFilter[] =
-        _T("HTML Files Only (*.htm;*.html)\0*.htm;*.html\0")
-        _T("All Files (*.*)\0*.*\0\0");
+        _T("HTML Files Only (*.htm;*.html)|*.htm;*.html|")
+        _T("All Files (*.*)|*.*||");
 
-	CFileDialog fileDlg (TRUE, NULL, NULL, OFN_HIDEREADONLY | OFN_NOVALIDATE, lpszFilter, this);
+	CFileDialog fileDlg (TRUE, NULL, NULL, 0, lpszFilter, this);
 	if (fileDlg.DoModal() == IDOK)
 	{
 		CString pathName = fileDlg.GetPathName();
