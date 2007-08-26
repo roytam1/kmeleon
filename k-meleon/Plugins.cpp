@@ -63,6 +63,7 @@ BOOL GetWindows(HWND hWnd, CBrowserFrame** frame, CBrowserView** view)
 
 	if (!wnd) {
 		*frame = theApp.m_pMostRecentBrowserFrame;
+		if (!*frame) return FALSE;
 		*view = (*frame)->GetActiveView();
 		return TRUE;
 	}
