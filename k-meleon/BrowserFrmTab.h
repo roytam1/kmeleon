@@ -116,6 +116,16 @@ public:
 	BOOL GetTabTitle(CBrowserTab* tab, CString& title){
 		return m_wndTabs->GetItemText(TABINDEXTOID(tab->m_iIndex), title);
 	}
+	
+	int GetTabCount() {
+		return m_iBrowserCount;
+	}
+
+	CBrowserTab* GetTabIndex(int index) {
+		if (index<0||index>=m_iBrowserCount)
+			return NULL;
+		return m_Tabs[index];
+	}
 
 	virtual void RecalcLayout(BOOL bNotify = TRUE);
 
