@@ -38,7 +38,8 @@ public:
 			return mpBrowserView->GetBrowserWrapper();
 
 		CBrowserTab* tab = ((CBrowserFrmTab*)mpBrowserFrame)->CreateBrowserTab();
-		if (mpBrowserView == mpBrowserFrame->GetActiveView())
+		if ( !theApp.preferences.GetBool("kmeleon.tabs.loadDivertedInBackground", FALSE)
+			&& mpBrowserView == mpBrowserFrame->GetActiveView())
 			((CBrowserFrmTab*)mpBrowserFrame)->SetActiveBrowser(tab);
 		return tab->GetBrowserWrapper();
 	}
@@ -81,6 +82,14 @@ public:
 			mpBrowserFrame->GetActiveView() != mpBrowserView ? PR_FALSE : PR_TRUE;
 	}
 
+	void DestroyBrowserFrame()
+	{
+		CBrowserFrmTab* frame = ((CBrowserFrmTab*)mpBrowserFrame);
+		if (frame->GetTabCount()>1)
+			frame->CloseTab((CBrowserTab*)mpBrowserView);
+		else
+			frame->PostMessage(WM_CLOSE, -1, -1);
+	}
 
 };
 
@@ -157,7 +166,7 @@ int CBrowserFrmTab::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	// Create a ReBar window to which the toolbar and UrlBar 
     // will be added
 	BOOL hasLine = theApp.preferences.GetBool("kmeleon.display.toolbars_line", TRUE);
-    if (!m_wndReBar.Create(this, RBS_DBLCLKTOGGLE | RBS_VARHEIGHT | RBS_BANDBORDERS | (hasLine ? RBS_BANDBORDERS:0)))
+    if (!m_wndReBar.Create(this, RBS_DBLCLKTOGGLE | RBS_VARHEIGHT | (hasLine ? RBS_BANDBORDERS:0)))
     {
         TRACE0("Failed to create ReBar\n");
         return -1;      // fail to create
@@ -282,7 +291,8 @@ void CBrowserFrmTab::SetActiveBrowser(CBrowserTab* aNewActiveTab)
 		m_wndCBrowserTab->SetActive(false); 
 		m_pPreviousSelectedTab = m_wndCBrowserTab;
 	}
-	SendMessage(WM_SWITCHTAB, (WPARAM)m_wndCBrowserTab, (LPARAM)aNewActiveTab);
+	//SendMessage(WM_SWITCHTAB, (WPARAM)m_wndCBrowserTab, (LPARAM)aNewActiveTab);
+	theApp.plugins.SendMessage("*", "*", "SwitchTab", (long)aNewActiveTab, (long)m_wndCBrowserTab);
 	
 	m_iCBrowserView = aNewActiveTab->m_iIndex;
 	m_wndCBrowserTab = aNewActiveTab;
