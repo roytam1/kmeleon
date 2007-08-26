@@ -111,6 +111,12 @@ static bool found_nb = false;
 int ReadFavorites(char *szRoot, char *szPath, CBookmarkNode &newFavoritesNode)
 {
    int numFavoritesInFolder = 0;
+   
+   if (!szPath[0]) {
+      found_tb = false;
+      found_bm = false;
+      found_nb = false;
+   }
 
    int pathLen = strlen(szPath);
    int gFavoritesPathLen = strlen(szRoot);
