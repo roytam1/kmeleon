@@ -296,9 +296,10 @@ void CReBarEx::SetVisibility(int index, BOOL visibility) {
 
    m_index[index]->visibility = visibility;
 
-   char tempPref[256] = "kmeleon.toolband."; // 17 chars
-   sprintf(tempPref + 17, "%s.visibility", m_index[index]->name);
-   theApp.preferences.SetBool(tempPref, m_index[index]->visibility);
+   char prefName[256];
+   USES_CONVERSION;
+   sprintf(prefName, "kmeleon.toolband.%s.visibility", T2CA(m_index[index]->name));
+   theApp.preferences.SetBool(prefName, m_index[index]->visibility);
 }
 
 void CReBarEx::ToggleVisibility(int index) {
