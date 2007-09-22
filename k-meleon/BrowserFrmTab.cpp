@@ -54,7 +54,7 @@ public:
 	void SetFavIcon(nsIURI *favUri) 
 	{
 		CBrowserGlue::SetFavIcon(favUri);
-		((CBrowserFrmTab*)mpBrowserFrame)->SetTabIcon((CBrowserTab*)mpBrowserView, mIcon);
+		((CBrowserFrmTab*)mpBrowserFrame)->SetTabIcon((CBrowserTab*)mpBrowserView, theApp.favicons.GetIcon(mIconURI));
 	}
 
 	void UpdateBusyState(BOOL aBusy)
@@ -111,6 +111,7 @@ BEGIN_MESSAGE_MAP(CBrowserFrmTab, CBrowserFrame)
 	ON_NOTIFY(TBN_BEGINDRAG, ID_TABS_BAR, OnTbnBeginDrag)
 	//ON_NOTIFY(TBN_GETINFOTIP, ID_TABS_BAR, OnTbnGetInfoTip)
 	ON_NOTIFY_EX(TTN_NEEDTEXTA, ID_TABS_BAR, OnTtnNeedText)
+	ON_MESSAGE(UWM_NEWSITEICON, OnNewSiteIcon)
 //	ON_MESSAGE(UWM_GETFAVICON, OnGetFavIcon)
 ON_WM_KEYDOWN()
 END_MESSAGE_MAP()
@@ -311,7 +312,7 @@ void CBrowserFrmTab::SetActiveBrowser(CBrowserTab* aNewActiveTab)
 	UpdateLocation(m_wndCBrowserTab->GetBrowserGlue()->mLocation);
 	UpdateLoading(m_wndCBrowserTab->GetBrowserGlue()->mLoading);
 	UpdateProgress(m_wndCBrowserTab->GetBrowserGlue()->mProgressCurrent, m_wndCBrowserTab->GetBrowserGlue()->mProgressMax);
-	UpdateSiteIcon(m_wndCBrowserTab->GetBrowserGlue()->mIcon);
+	UpdateSiteIcon(theApp.favicons.GetIcon(m_wndCBrowserTab->GetBrowserGlue()->mIconURI));
 	
 	// Remove a possible tooltip
 	m_wndToolTip.Hide();
@@ -580,6 +581,26 @@ LRESULT CBrowserFrmTab::OnGetFavIcon(WPARAM wParam, LPARAM lParam)
 	}
 */
 	return iIcon;
+}
+
+LRESULT CBrowserFrmTab::OnNewSiteIcon(WPARAM url, LPARAM index)
+{
+	for  (int i =0; i<this->m_iBrowserCount; i++)
+	{	
+		int icon = theApp.favicons.GetIcon(m_Tabs[i]->GetBrowserGlue()->mIconURI);
+		if (icon==-1) {// The icon doesn't exist anymore, was deleted
+			m_Tabs[i]->GetBrowserGlue()->mIconURI = nsnull;
+			SetFavIcon(theApp.favicons.GetDefaultIcon());
+			SetTabIcon(m_Tabs[i], theApp.favicons.GetDefaultIcon());
+		}
+		else
+			if (index==-1 || index == icon) {
+				SetFavIcon(icon);
+				SetTabIcon(m_Tabs[i], icon);
+			}
+	}
+
+	return 0;
 }
 
 void CBrowserFrmTab::OnTbnBeginDrag(NMHDR *pNMHDR, LRESULT *pResult)

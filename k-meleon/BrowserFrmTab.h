@@ -154,6 +154,7 @@ protected:
 	afx_msg void OnPrevTab();
 	afx_msg void OnTabSelect(UINT id);
 	afx_msg LRESULT OnGetFavIcon(WPARAM wParam, LPARAM lParam);
+	afx_msg LRESULT OnNewSiteIcon(WPARAM url, LPARAM index);
 	afx_msg void OnTbnBeginDrag(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnTbnGetInfoTip(NMHDR *pNMHDR, LRESULT *pResult);
 	BOOL OnTtnNeedText(UINT, NMHDR*, LRESULT*);
