@@ -89,7 +89,8 @@ class KmMenuService
 {
 public:
 
-	KmMenuService() {
+	KmMenuService() : mLastActivated(NULL) {
+
 	}
 
 	KmMenu* CreateMenu(LPCTSTR name) {
@@ -198,12 +199,27 @@ public:
 		mMenus.RemoveAll();
 	}
 
+	KmMenu* Activate(CMenu* menu) {
+		KmMenu* kmenu = GetKMenu(menu);
+		if (kmenu) kmenu->GetMenu();
+		mLastActivated = kmenu;
+		return kmenu;
+	}
+
+	BOOL MenuCommand(UINT id) {
+		if (!mLastActivated)
+			return FALSE;
+		
+		return FALSE;
+	}
+
 	~KmMenuService() {
 		Destroy();
 	}
 
 protected:
 	CMap<CString, LPCTSTR, KmMenu*, KmMenu*> mMenus;
+	KmMenu* mLastActivated;
 };
 
 
