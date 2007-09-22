@@ -123,6 +123,7 @@ BEGIN_MESSAGE_MAP(CBrowserFrame, CFrameWnd)
 	ON_UPDATE_COMMAND_UI_RANGE(TOOLBAR_MENU_START_ID, TOOLBAR_MENU_END_ID, OnUpdateToolBarMenu)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_STATUS_BAR, OnUpdateViewStatusBar)
 	ON_COMMAND(ID_EDIT_FIND, OnShowFindBar)
+	ON_COMMAND(ID_VIEW_STATUS_BAR, OnViewStatusBar)
     ON_NOTIFY(RBN_LAYOUTCHANGED, AFX_IDW_REBAR, OnRbnLayoutChanged)
     
     ON_COMMAND(ID_EDIT_FINDNEXT, OnFindNext)
@@ -404,13 +405,16 @@ int CBrowserFrame::InitLayout()
     // in response to OnSize()
     RECT rc;
     m_wndStatusBar.GetItemRect (m_wndStatusBar.CommandToIndex(ID_PROG_BAR), &rc);
-    if (!m_wndProgressBar.Create(WS_CHILD|WS_VISIBLE|PBS_SMOOTH, rc, &m_wndStatusBar, ID_PROG_BAR))
+    if (!m_wndProgressBar.Create(WS_CHILD|PBS_SMOOTH, rc, &m_wndStatusBar, ID_PROG_BAR))
     {
         TRACE0("Failed to create progress bar\n");
         return -1;      // fail to create
     }
 
 	m_wndStatusBar.AddIcon(ID_SECURITY_STATE_ICON);
+
+	if (!theApp.preferences.GetBool("kmeleon.display.statusbar", TRUE))
+		m_wndStatusBar.ShowWindow(SW_HIDE);
 
 	if (!IsDialog())
     theApp.plugins.SendMessage("*", "* OnCreate", "DoRebar", (long)m_wndReBar.GetReBarCtrl().m_hWnd);
@@ -486,7 +490,7 @@ void CBrowserFrame::SetupFrameChrome()
        }
     }
 
-    if(! (m_chromeMask & nsIWebBrowserChrome::CHROME_STATUSBAR) )
+    if(! (m_chromeMask & nsIWebBrowserChrome::CHROME_STATUSBAR))
         m_wndStatusBar.ShowWindow(SW_HIDE); // Hide the StatusBar
 
 	if (!(m_chromeMask & nsIWebBrowserChrome::CHROME_DEFAULT) &&
@@ -518,7 +522,7 @@ void CBrowserFrame::OnSetFocus(CWnd* pOldWnd)
     }
 
     // forward focus to the browser window
-    GetActiveView()->SetFocus();
+    if (GetActiveView()) GetActiveView()->SetFocus();
 }
 
 BOOL CBrowserFrame::OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERINFO* pHandlerInfo)
@@ -536,6 +540,16 @@ BOOL CBrowserFrame::OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERIN
 
     // otherwise, do default handling
     return CFrameWnd::OnCmdMsg(nID, nCode, pExtra, pHandlerInfo);
+}
+
+BOOL CBrowserFrame::OnCommand(WPARAM wParam, LPARAM lParam)
+{
+	// Intercept menu item click
+	if (HIWORD(wParam) == 0 && lParam == 0)
+		if (theApp.menus.MenuCommand(LOWORD(wParam)))
+			return TRUE;
+
+	return CFrameWnd::OnCommand(wParam, lParam);
 }
 
 // Needed to properly position/resize the progress bar
@@ -1304,8 +1318,7 @@ HACCEL CBrowserFrame::GetDefaultAccelerator()
 void CBrowserFrame::OnInitMenuPopup(CMenu* pPopupMenu, UINT nIndex, BOOL bSysMenu)
 {
 	// This will rebuild the menu if needed
-	KmMenu* kmenu = theApp.menus.GetKMenu(pPopupMenu); 
-	if (kmenu) kmenu->GetMenu();
+	theApp.menus.Activate(pPopupMenu); 
 	CFrameWnd::OnInitMenuPopup(pPopupMenu, nIndex, bSysMenu);
 }
 
@@ -1470,6 +1483,18 @@ void CBrowserFrame::OpenURL(LPCTSTR url, LPCTSTR refferer, BOOL focusUrl, BOOL a
 	if (focusUrl) m_wndUrlBar.SetFocus();
 }
 
+void CBrowserFrame::OnViewStatusBar()
+{
+	if (m_wndStatusBar.IsVisible()) {
+		theApp.preferences.SetBool("kmeleon.display.statusbar", FALSE);
+		m_wndStatusBar.ShowWindow(SW_HIDE);
+	} else {
+		theApp.preferences.SetBool("kmeleon.display.statusbar", TRUE);
+		m_wndStatusBar.ShowWindow(SW_SHOW);
+	}
+	RecalcLayout();
+}
+
 /****************************************************************************/
 
 void CBrowserFrame::UpdateSecurityStatus(PRInt32 aState)
@@ -1540,14 +1565,17 @@ void CBrowserFrame::UpdateLoading(BOOL aLoading)
 	if (!aLoading) {
 		m_wndAnimate.Stop();
 		m_wndAnimate.Seek(0);
+		m_wndProgressBar.ShowWindow(SW_HIDE);
 
 		CString szUrl = m_wndUrlBar.GetEnteredURL();
 		
 		if (szUrl.CompareNoCase(_T("about:blank"))==0)
 			m_wndUrlBar.SetFocus();
 	}
-	else
+	else {
 		m_wndAnimate.Play(0, -1, -1);
+		m_wndProgressBar.ShowWindow(SW_SHOW);
+	}
 }
 
 void CBrowserFrame::UpdateTitle(LPCTSTR aTitle)

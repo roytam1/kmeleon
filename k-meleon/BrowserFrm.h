@@ -330,6 +330,7 @@ protected:
    afx_msg void OnRbnLayoutChanged(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnInitMenuPopup(CMenu* pPopupMenu, UINT nIndex, BOOL bSysMenu);
 	afx_msg void OnUpdateViewStatusBar(CCmdUI* pCmdUI);
+	afx_msg void OnViewStatusBar();
 
     afx_msg void OnFindNext();
     afx_msg void OnFindPrev();
@@ -348,6 +349,8 @@ protected:
 public:
 	afx_msg void OnMoving(UINT fwSide, LPRECT pRect);
 	afx_msg void OnDestroy();
+protected:
+	virtual BOOL OnCommand(WPARAM wParam, LPARAM lParam);
 };
 
 /////////////////////////////////////////////////////////////////////////////
