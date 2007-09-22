@@ -70,9 +70,12 @@ BOOL CTBOleDropTarget::OnDrop(CWnd* pWnd, COleDataObject* pDataObject,
 
 		if (destIndex == index)
 			return TRUE;
-
+		
+		TBBUTTON buttonDest = {0};
+		tabbar->GetToolBarCtrl().GetButton(destIndex, &buttonDest);
 		tabbar->GetToolBarCtrl().DeleteButton(index);
 		tabbar->GetToolBarCtrl().InsertButton(destIndex,&button);
+		theApp.plugins.SendMessage("*", "*", "MoveTab", (long)tab->m_hWnd, (long)((CBrowserTab*)(buttonDest.dwData))->GetSafeHwnd());
 		return TRUE;
 
 	} else {
