@@ -39,6 +39,8 @@ extern Locale* gLoc;
 #define PREFERENCE_EDIT_ZOOM       "kmeleon.plugins.bookmarks.editdialog.zoom"
 #define PREFERENCE_EDIT_MAX        "kmeleon.plugins.bookmarks.editdialog.maximized"
 #define PREFERENCE_BOOKMARKS_OPENURL "kmeleon.plugins.bookmarks.openurl"
+#define PREFERENCE_BOOKMARKS_OPENURLM "kmeleon.plugins.bookmarks.openurlm"
+#define PREFERENCE_BOOKMARKS_OPENURLR "kmeleon.plugins.bookmarks.openurlr"
 #define PREFERENCE_BOOKMARK_ASKFOLDER "kmeleon.plugins.bookmarks.askforFolder"
 
 #define BOOKMARK_TAG "<!DOCTYPE NETSCAPE-Bookmark-file-1>"

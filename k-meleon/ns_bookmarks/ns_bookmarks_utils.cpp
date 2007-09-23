@@ -35,10 +35,10 @@
 
 #define KMELEON_PLUGIN_EXPORTS
 #include "../kmeleon_plugin.h"
-//#include "../resource.h"
+#include "../KMeleonConst.h"
 #include "../Utils.h"
 #include "../DialogUtils.h"
-#include "..\\rebar_menu\\hot_tracking.h"
+#include "../rebar_menu/hot_tracking.h"
 
 #include "BookmarkNode.h"
 
@@ -407,7 +407,9 @@ void SaveBM(const TCHAR *file)
       }
    }
 
-   if (!gGeneratedByUs) {
+   BOOL warn = TRUE;
+   kPlugin.kFuncs->GetPreference(PREF_BOOL, "kmeleon.bookmarks.warnOnSave", &warn, &warn);
+   if (!gGeneratedByUs && warn) {
       if (MessageBox(NULL, gLoc->GetString(IDS_NOT_BY_US), _T(PLUGIN_NAME), MB_YESNO) != IDYES) {
          return;
       }
@@ -1259,11 +1261,19 @@ PromptDlgProc( HWND hwnd,
     return TRUE;
 }
 
-void OpenURL(char *url)
+void OpenURL(char *url, int mode = 0)
 {
     char szOpenURLcmd[80];
-    
-    kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_BOOKMARKS_OPENURL, szOpenURLcmd, (char*)"");
+    const char* pref;
+	switch (mode) {
+		
+		case 1: pref = PREFERENCE_BOOKMARKS_OPENURLM; break;
+		case 2: pref = PREFERENCE_BOOKMARKS_OPENURLR; break;
+		case 0: pref = PREFERENCE_BOOKMARKS_OPENURL; break;
+		default: return;
+	}
+
+    kPlugin.kFuncs->GetPreference(PREF_STRING, pref, szOpenURLcmd, (char*)"");
     
     if (*szOpenURLcmd) {
         char *plugin = szOpenURLcmd;
@@ -1301,6 +1311,47 @@ void OpenURL(char *url)
     kPlugin.kFuncs->NavigateTo(url, OPEN_NORMAL, NULL);
 }
 
+void OpenBookmark(CBookmarkNode* node, HWND hWnd = NULL, int mode = 0)
+{
+	if (!node) return;
+
+	node->lastVisit = time(NULL);
+	gBookmarksModified = true; // this doesn't call for instant saving, it can wait until we add/edit/quit
+
+	if (node->url.c_str() == NULL || *node->url.c_str() == 0)
+		return;
+
+	char *str = strdup(node->url.c_str());
+	char *ptr = strstr(str, "%s");
+	if (ptr) {
+		char buff[INTERNET_MAX_URL_LENGTH];
+		*ptr = 0;
+		strcpy(buff, str);
+		ptr += 2;
+
+		pszTitle = strdup( node->text.c_str() );
+		pszPrompt = strdup( node->desc.c_str() );
+
+		int ok = gLoc->DialogBoxParam(MAKEINTRESOURCE(IDD_SMARTBOOKMARK), 
+			hWnd, (DLGPROC)PromptDlgProc, NULL);
+		PostMessage(hWnd, WM_NULL, 0, 0);
+		if (ok == IDOK && *szInput) {
+			strcat(buff, szInput);
+			strcat(buff, ptr);
+			OpenURL(buff, mode);
+		}
+
+		if (pszTitle) 
+			free(pszTitle);
+		if (pszPrompt) 
+			free(pszPrompt);
+
+	}
+	else {
+		OpenURL(str, mode);
+	}
+	free(str);
+}
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
    // store these in static vars so that the BeginHotTrack call can access them
@@ -1377,44 +1428,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
          BringWindowToTop(hWnd);
          return true;
       }
-      else if (CBookmarkNode *node = gBookmarkRoot->FindNode(command)) {
-         node->lastVisit = time(NULL);
-         gBookmarksModified = true; // this doesn't call for instant saving, it can wait until we add/edit/quit
-
-         if (node->url.c_str() == NULL || *node->url.c_str() == 0)
-            return true;
-
-         char *str = strdup(node->url.c_str());
-         char *ptr = strstr(str, "%s");
-         if (ptr) {
-            char buff[INTERNET_MAX_URL_LENGTH];
-            *ptr = 0;
-            strcpy(buff, str);
-            ptr += 2;
-
-            pszTitle = strdup( node->text.c_str() );
-            pszPrompt = strdup( node->desc.c_str() );
-
-            int ok = gLoc->DialogBoxParam(MAKEINTRESOURCE(IDD_SMARTBOOKMARK), 
-				            hWnd, (DLGPROC)PromptDlgProc, NULL);
-            PostMessage(hWnd, WM_NULL, 0, 0);
-            if (ok == IDOK && *szInput) {
-               strcat(buff, szInput);
-               strcat(buff, ptr);
-               OpenURL(buff);
-            }
-
-            if (pszTitle) 
-               free(pszTitle);
-            if (pszPrompt) 
-               free(pszPrompt);
-
-         }
-         else {
-            OpenURL(str);
-         }
-         free(str);
-
+	  else if (CBookmarkNode *node = gBookmarkRoot->FindNode(command)) {
+	     OpenBookmark(node, hWnd);
          return true;
       }
    }
@@ -1475,5 +1490,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
          kPlugin.kFuncs->SetStatusBarText("");
       }
    }
+   else if (message == TB_MBUTTONDOWN || message == TB_RBUTTONDOWN) {
+      int command = LOWORD(wParam);
+	  if (CBookmarkNode *node = gBookmarkRoot->FindNode(command)) {
+		  OpenBookmark(node, hWnd, message-(TB_MBUTTONDOWN) + 1);
+	      return true;
+	  }
+   }
+
    return CallWindowProc(KMeleonWndProc, hWnd, message, wParam, lParam);
 }
