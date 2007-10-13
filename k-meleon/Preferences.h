@@ -42,6 +42,7 @@ protected:
 class CPrefString : public CPref
 {
 	LPCTSTR def;
+	CString val;
 public:
 	CPrefString(const char* prefname, LPCTSTR defValue) : CPref(prefname) {
 		def = defValue;
