@@ -471,6 +471,7 @@
 #define ID_OPEN_FRAME_IN_BACKGROUNDTAB  33907
 #define ID_CLOSE_ALLTAB                 33908
 #define ID_CLOSE_ALLOTHERTAB            33909
+#define ID_TAB_LAST                     33910
 #define IDS_FAILED_TO_CREATE_BROWSER    61204
 #define IDS_NEW_PLUGIN_FOUND            61205
 #define IDS_PLUGIN_NO_OPTIONS           61206
