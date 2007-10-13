@@ -1217,6 +1217,23 @@ void CBrowserFrame::SetFavIcon(int iIcon)
 	cb.iSelectedImage = cb.iImage = iIcon;
 	cb.iItem = -1;
 	m_wndUrlBar.SetItem(&cb);
+
+	if (theApp.preferences.GetBool("kmeleon.favicons.titleBar", FALSE))
+	{
+		HICON icon = GetIcon(FALSE);
+		if (icon!=theApp.GetDefaultIcon(FALSE))
+			DestroyIcon(icon);
+
+		if (iIcon == theApp.favicons.GetDefaultIcon())
+		{
+			SetIcon(theApp.GetDefaultIcon(TRUE), TRUE);
+			SetIcon(theApp.GetDefaultIcon(FALSE), FALSE);
+		} else {
+			icon = theApp.favicons.ExtractIcon(iIcon);
+			SetIcon(icon, FALSE);
+			SetIcon(icon, TRUE);
+		}
+	}
 /*	cb.iSelectedImage = cb.iImage = I_IMAGECALLBACK;
 	cb.iItem = 0;
 	mpBrowserFrame->m_wndUrlBar.SetItem(&cb);
