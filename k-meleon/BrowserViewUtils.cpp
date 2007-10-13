@@ -94,9 +94,10 @@ BOOL CBrowserView::OpenViewSourceWindow(const char* pUrl)
 			USES_CONVERSION;
 
 			// We want to show the source of a local file. Just open this file.
-			if (pUrl && strnicmp(pUrl, "file:///", 20) == 0)
+			if ( (!pUrl && _tcsncmp((LPCTSTR)this->GetCurrentURI(), _T("file:///"), 8) == 0) ||
+				 (pUrl && strncmp(pUrl, "file:///", 8) == 0))
 			{
-				char *url = strdup(pUrl);
+				char *url = strdup(pUrl?pUrl:T2CA(this->GetCurrentURI()));
 				if (!url) return FALSE;
 
 				unsigned int i;
@@ -106,7 +107,7 @@ BOOL CBrowserView::OpenViewSourceWindow(const char* pUrl)
 
 				tempfile = A2CT(nsUnescape(url+strlen("file:///")));
 				OpenFileExternal("", tempfile, NS_OK,
-					_tcsdup(theApp.preferences.sourceCommand));
+					_tcsdup((CString)theApp.preferences.sourceCommand));
 
 				delete url;
 				return TRUE;
