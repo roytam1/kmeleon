@@ -37,7 +37,8 @@ extern CMfcEmbedApp theApp;
 	}
 
 	CPrefString::operator LPCTSTR() {
-		return theApp.preferences.GetString(GetPrefName(), def);
+		val = theApp.preferences.GetString(GetPrefName(), def);
+		return val;
 	}
 
 	CString CPrefString::operator =(LPCTSTR s) {
