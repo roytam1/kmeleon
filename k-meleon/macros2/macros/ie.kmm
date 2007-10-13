@@ -1,0 +1,63 @@
+# K-Meleon Macros (http://kmeleon.sourceforge.net/wiki/index.php?id=MacroLanguage)
+
+# ---------- Microsoft Internet Explorer ---------------------------------------------------------------------------
+#
+# Dependencies	: main.kmm (Go), sendto.kmm (menus)
+# Resources	: -
+# Preferences	: -
+#
+# ------------------------------------------------------------------------------------------------------------------
+
+IE_OpenPage{
+$_IE_Open=$URL;      &_IE_Open;
+}
+IE_OpenLink{
+$_IE_Open=$LinkURL;  &_IE_Open;
+}
+IE_OpenImage{
+$_IE_Open=$ImageURL; &_IE_Open;
+}
+IE_OpenURL{
+$__text=$URLBAR; $__text==""?$__text=$URL:0;
+$_IE_Open=$__text;   &_IE_Open;
+}
+
+# ----- PRIVATE
+
+_IE_Open{
+# try to locate the Program Files directory:
+$__data=readreg("HKLM","SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\ProgramFilesDir");
+$__data==""?$__data="C:\\"._("Program Files"):0;
+# fallback command line:
+$_IE="\"".$__data."\\Internet Explorer\\iexplore.exe\" %1";
+# try to get IE's command line from the registry:
+$__data=readreg("HKCR","Applications\\iexplore.exe\\shell\\open\\command\\");
+# catch invalid IE7 registry data:
+index($__data,".")>index($__data,"%1")?$__data="":0;
+$__data==""?0:$_IE=$__data; exec(sub("%1",$_IE_Open,$_IE));
+}
+
+_IE_BuildMenu{
+index($macroModules,";SendTo;")>-1?&_IE_BuildMenu_SendTo:&_IE_BuildMenu_Default;
+}
+_IE_BuildMenu_Default{
+$__m="Open In &Internet Explorer";
+setmenu(DocumentOpenExternal,macro,$__m,IE_OpenPage);
+setmenu(LinkOpenExternal,macro,$__m,IE_OpenLink);
+#setmenu(ImageOpenExternal,macro,$__m,IE_OpenImage);
+setmenu(_Go_Open,macro,$__m,IE_OpenURL);
+}
+_IE_BuildMenu_SendTo{
+$__m="&Internet Explorer";
+setmenu($_SendTo_Page,macro,$__m,IE_OpenPage);
+setmenu($_SendTo_Link,macro,$__m,IE_OpenLink);
+#setmenu($_SendTo_Image,macro,$__m,IE_OpenImage);
+setmenu($_SendTo_URL,macro,$__m,IE_OpenURL);
+}
+_IE_SetAccels{
+setaccel("CTRL ALT I","macros(IE_OpenPage)");
+}
+$OnInit=$OnInit."_IE_SetAccels;_IE_BuildMenu;";
+
+# ------------------------------------------------------------------------------------------------------------------
+$macroModules=$macroModules."IE;";

@@ -1,0 +1,96 @@
+# K-Meleon Macros (http://kmeleon.sourceforge.net/wiki/index.php?id=MacroLanguage)
+
+# ---------- Browser Configuration ---------------------------------------------------------------------------------
+#
+# Dependencies	: main.kmm (getExtensionHandler)
+# Resources	: -
+# Preferences	: -
+#
+# ------------------------------------------------------------------------------------------------------------------
+
+cfg_FileNotFound{
+alert(sub("%s",$cfg_File,_("The file %s could not be found.")),sub("&","",_($_cfg)),EXCLAIM);
+}
+
+cfg_ProfileDir{
+exec("explorer.exe \"".getfolder(ProfileFolder)."\"");
+}
+cfg_SettingsDir{
+exec("explorer.exe \"".getfolder(SettingsFolder)."\"");
+}
+
+cfg_Macros{
+exec("explorer.exe \"".getfolder(MacroFolder)."\"");
+}
+cfg_UserMacros{
+exec("explorer.exe \"".getfolder(UserMacroFolder)."\"");
+}
+
+cfg_Commands{
+$ext="txt"; &getExtensionHandler; $cfg_File="commands.txt";
+$__path=getfolder(RootFolder)."\\skins\\".$cfg_File; $__data=readfile($__path);
+$__data==""?&cfg_FileNotFound:exec(sub("%1",$__path,$cmdline));
+}
+cfg_Skin{
+$ext="cfg"; &getExtensionHandler; $cfg_File=$ARG.".".$ext;
+$__file="\\".$cfg_File; $__skin="\\".basename(getfolder(SkinFolder));
+$__root=getpref(STRING,"kmeleon.general.skinsDir")?getpref(STRING,"kmeleon.general.skinsDir"):getfolder(RootFolder)."\\skins";
+$__path=getfolder(SettingsFolder)."\\skins".$__skin.$__file; $__data=readfile($__path);
+$__data==""?$__path=$__root.$__skin.$__file:0; $__data=readfile($__path);
+index($__skin,"(")?$__skin=substr($__skin,0,index($__skin,"(")):0;
+$__data==""?$__path=$__root.$__skin.$__file:0; $__data=readfile($__path);
+$__data==""?&cfg_FileNotFound:exec(sub("%1",$__path,$cmdline));
+}
+
+cfg_Settings{
+$ext="cfg"; &getExtensionHandler; $cfg_File=$ARG.".".$ext; $__temp="\\defaults\\settings\\";
+$__path=getfolder(SettingsFolder)."\\".$cfg_File; $__data=readfile($__path);
+$__data==""?$__path=getfolder(RootFolder).$__temp.$cfg_File:0;
+$__data==""?&cfg_FileNotFound:exec(sub("%1",$__path,$cmdline));
+}
+cfg_UserPrefs{
+$ext="js";  &getSecureExtensionHandler; $cfg_File=$ARG.".".$ext;
+$__path=getfolder(ProfileFolder)."\\".$cfg_File; $__data=readfile($__path);
+$__data==""?&cfg_FileNotFound:exec(sub("%1",$__path,$cmdline));
+}
+cfg_UserStyle{
+$ext="css"; &getExtensionHandler; $cfg_File=$ARG.".".$ext;
+$__path=getfolder(ProfileFolder)."\\chrome\\".$cfg_File; $__data=readfile($__path);
+$__data==""?&cfg_FileNotFound:exec(sub("%1",$__path,$cmdline));
+}
+
+# ----- PRIVATE
+
+$_cfg="Config&uration";
+
+_cfg_BuildMenu{
+# edit menu
+setmenu(Preferences,popup,$_cfg,moz_AboutConfig);
+setmenu(Preferences,macro,"",moz_AboutConfig);
+$__m=_Config_General;
+setmenu($_cfg,inline,$__m);
+setmenu($__m,macro,"Browser Con&figuration",moz_AboutConfig);
+#setmenu($__m,macro,"&Profile Settings","cfg_UserPrefs(prefs)");
+setmenu($__m,macro,"&User Settings","cfg_UserPrefs(user)");
+$__m=_Config_Appearance;
+setmenu($_cfg,inline,$__m);
+setmenu($__m,macro,"User-Defined &StyleSheet","cfg_UserStyle(userContent)");
+setmenu($__m,macro,"Ad-&Blocking StyleSheet","cfg_UserStyle(adblock)");
+setmenu($__m,macro,"&Toolbars","cfg_Skin(toolbars)");
+setmenu($__m,macro,"Me&nu Icons","cfg_Skin(menuicons)");
+$__m=_Config_Settings;
+setmenu($_cfg,inline,$__m);
+setmenu($__m,macro,"A&ccelerators","cfg_Settings(accel)");
+setmenu($__m,macro,"M&acros","cfg_Macros");
+setmenu($__m,macro,"User-Defined Macr&os","cfg_UserMacros");
+setmenu($__m,macro,"M&enus","cfg_Settings(menus)");
+setmenu($__m,macro,"Co&mmands List",cfg_Commands);
+$__m=_Config_Folders;
+setmenu($_cfg,inline,$__m);
+setmenu($__m,macro,"Profile &Directory",cfg_ProfileDir);
+getfolder(ProfileFolder)==getfolder(SettingsFolder)?0:setmenu($__m,macro,"Settings D&irectory",cfg_SettingsDir);
+}
+$OnInit=$OnInit."_cfg_BuildMenu;";
+
+# ------------------------------------------------------------------------------------------------------------------
+$macroModules=$macroModules."cfg;";
