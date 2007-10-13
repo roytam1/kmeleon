@@ -152,6 +152,7 @@ protected:
 	afx_msg void OnUpdateTabs(CCmdUI*);
 	afx_msg void OnNextTab();
 	afx_msg void OnPrevTab();
+	afx_msg void OnLastTab();
 	afx_msg void OnTabSelect(UINT id);
 	afx_msg LRESULT OnGetFavIcon(WPARAM wParam, LPARAM lParam);
 	afx_msg LRESULT OnNewSiteIcon(WPARAM url, LPARAM index);

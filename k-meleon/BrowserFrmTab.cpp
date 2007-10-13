@@ -102,6 +102,7 @@ BEGIN_MESSAGE_MAP(CBrowserFrmTab, CBrowserFrame)
 	ON_MESSAGE(WM_CLOSETAB, OnCloseTab)
 	ON_COMMAND(ID_TAB_NEXT, OnNextTab)
 	ON_COMMAND(ID_TAB_PREV, OnPrevTab)
+	ON_COMMAND(ID_TAB_LAST, OnLastTab)
 	ON_COMMAND(ID_NEW_TAB, OnNewTab)
 	ON_COMMAND(ID_CLOSE_TAB, OnCloseTab)
 	ON_COMMAND(ID_CLOSE_ALLTAB, OnCloseAllTab)
@@ -565,6 +566,10 @@ void CBrowserFrmTab::OnPrevTab()
 	SetActiveBrowser(m_Tabs[newTabID]);
 }
 
+void CBrowserFrmTab::OnLastTab()
+{
+	SetActiveBrowser(m_pPreviousSelectedTab);
+}
 
 LRESULT CBrowserFrmTab::OnGetFavIcon(WPARAM wParam, LPARAM lParam)
 {
