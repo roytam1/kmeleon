@@ -1,7 +1,0 @@
-<!ENTITY % prefDTD SYSTEM "chrome://kmprefs/locale/pref.dtd">%prefDTD;
-<!ENTITY % plugDTD SYSTEM "chrome://kmprefs/locale/kplugins/kplugins.dtd">%plugDTD;
-<!ENTITY favorites.header		"Internet Explorer Favorites Plugin">
-<!ENTITY favorites.enable		"Enable support for Internet Explorer Favorites (&restartRequired;)">
-<!ENTITY favorites.newitemFolder	"Folder for new Favorites:">
-<!ENTITY favorites.menu			"Favorites Menu">
-<!ENTITY favorites.open			"Open Favorites">

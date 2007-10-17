@@ -1,7 +1,0 @@
-<!ENTITY % prefDTD SYSTEM "chrome://kmprefs/locale/pref.dtd">%prefDTD;
-<!ENTITY referrer.label		"HTTP Referer Header">
-<!ENTITY referrer.HTTP		"Send HTTP referers">
-<!ENTITY referrer.HTTPS		"Send HTTPS referers to other HTTPS sites">
-<!ENTITY referrer.forClicks	"When clicking links">
-<!ENTITY referrer.forImages	"When clicking links or loading images">
-<!ENTITY referrer.note		"&note; Blocking referers may prevent important features of some websites from working. Even if blocked, sites may use other methods to track your movements.">
