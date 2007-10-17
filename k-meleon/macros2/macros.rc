@@ -7,7 +7,7 @@
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
-#include "macros.h"
+
 #include "..\resource.h"
 #define APSTUDIO_HIDDEN_SYMBOLS
 #include "windows.h"
