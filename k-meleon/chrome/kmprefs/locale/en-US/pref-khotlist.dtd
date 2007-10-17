@@ -1,9 +1,0 @@
-<!ENTITY % prefDTD SYSTEM "chrome://kmprefs/locale/pref.dtd">%prefDTD;
-<!ENTITY % plugDTD SYSTEM "chrome://kmprefs/locale/kplugins/kplugins.dtd">%plugDTD;
-<!ENTITY hotlist.header		"Opera Hotlist Plugin">
-<!ENTITY hotlist.enable		"Enable support for Opera Hotlist (&restartRequired;)">
-<!ENTITY hotlist.newitemFolder	"Folder for new bookmarks:">
-<!ENTITY hotlist.menu		"Hotlist Menu">
-<!ENTITY hotlist.open		"Open Opera Bookmarks">
-<!ENTITY hotlist.manager	"Hotlist Manager">
-<!ENTITY hotlist.useOrder	"Use 'Order' property">

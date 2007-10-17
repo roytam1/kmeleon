@@ -1,8 +1,0 @@
-<!ENTITY % prefDTD SYSTEM "chrome://kmprefs/locale/pref.dtd">%prefDTD;
-<!ENTITY % plugDTD SYSTEM "chrome://kmprefs/locale/kplugins/kplugins.dtd">%plugDTD;
-<!ENTITY bookmarks.header	"Netscape Bookmarks Plugin">
-<!ENTITY bookmarks.enable	"Enable support for Netscape Bookmarks (&restartRequired;)">
-<!ENTITY bookmarks.askforFolder	"Use dialog to create new Bookmarks">
-<!ENTITY bookmarks.menu		"Bookmarks Menu">
-<!ENTITY bookmarks.open		"Open Netscape Bookmarks">
-<!ENTITY bookmarks.manager	"Bookmarks Manager">
