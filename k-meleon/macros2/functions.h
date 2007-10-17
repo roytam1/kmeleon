@@ -401,7 +401,7 @@
 		if (!cmd)
 			cmd = data->getint(1);
 
-		SendMessage(data->c.hWnd, WM_COMMAND, MAKELONG(1, cmd), (LPARAM)NULL);
+		SendMessage(data->c.hWnd, WM_COMMAND, MAKELONG(cmd, 1), (LPARAM)NULL);
 		return "";
 	}
 
