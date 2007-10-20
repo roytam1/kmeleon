@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "MozSaveAs.h"
+#include "SaveAsHandler.h"
 #include "Utils.h"
 #include "MfcEmbed.h"
 extern CMfcEmbedApp theApp;
