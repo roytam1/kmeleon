@@ -37,7 +37,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="comctl32.lib odbc32.lib odbccp32.lib"
-				OutputFile="\Program Files\K-Meleon\debug\kplugins\$(ProjectName).dll"
+				OutputFile="..\..debug\kplugins\$(ProjectName).dll"
 				SuppressStartupBanner="TRUE"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile=".\Debug/bmpmenu.pdb"
@@ -102,7 +102,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="comctl32.lib odbc32.lib odbccp32.lib"
-				OutputFile="\Program Files\K-Meleon\release\kplugins\$(ProjectName).dll"
+				OutputFile="..\..\release\kplugins\$(ProjectName).dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
 				GenerateDebugInformation="TRUE"

@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="imm32.lib advapi32.lib comctl32.lib gdi32.lib user32.lib comdlg32.lib shell32.lib"
-				OutputFile="\Program Files\K-Meleon\debug\kplugins\$(ProjectName).dll"
+				OutputFile="..\..\debug\kplugins\$(ProjectName).dll"
 				LinkIncremental="2"
 				SuppressStartupBanner="TRUE"
 				GenerateDebugInformation="TRUE"
@@ -109,7 +109,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies=" Imm32.lib comctl32.lib gdi32.lib user32.lib comdlg32.lib shell32.lib advapi32.lib"
-				OutputFile="\Program Files\K-Meleon\release\kplugins\$(ProjectName).dll"
+				OutputFile="..\..\release\kplugins\$(ProjectName).dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
 				GenerateDebugInformation="TRUE"
