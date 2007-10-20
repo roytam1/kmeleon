@@ -111,6 +111,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalOptions="-HEAP:0x40000"
 				AdditionalDependencies="xpcomglue.lib embed_base_s.lib nspr4.lib"
 				OutputFile="..\release\k-meleon.exe"
 				LinkIncremental="1"
@@ -235,7 +236,6 @@
 				RuntimeLibrary="2"
 				TreatWChar_tAsBuiltInType="TRUE"
 				UsePrecompiledHeader="3"
-				PrecompiledHeaderThrough="StdAfx.h"
 				BrowseInformation="1"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
@@ -387,6 +387,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalOptions="-HEAP:0x40000"
 				AdditionalDependencies="xpcomglue.lib embed_base_s.lib nspr4.lib"
 				OutputFile="..\release\k-meleon.exe"
 				LinkIncremental="1"
@@ -671,25 +672,43 @@
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="1"/>
+						UsePrecompiledHeader="1"
+						PrecompiledHeaderThrough="stdafx.h"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="1"
+						PrecompiledHeaderThrough="stdafx.h"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Release MFC Static|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="1"/>
+						UsePrecompiledHeader="1"
+						PrecompiledHeaderThrough="stdafx.h"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Release MFC Static Unicode|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="1"/>
+						UsePrecompiledHeader="1"
+						PrecompiledHeaderThrough="stdafx.h"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug Unicode|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="1"/>
+						UsePrecompiledHeader="1"
+						PrecompiledHeaderThrough="stdafx.h"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release Unicode|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="1"
+						PrecompiledHeaderThrough="stdafx.h"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -979,7 +998,7 @@
 				RelativePath="res\KmeleonDocument.ico">
 			</File>
 			<File
-				RelativePath="MfcEmbed.rc">
+				RelativePath=".\MfcEmbed.rc">
 			</File>
 			<File
 				RelativePath="res\MozillaBrowser.ico">
