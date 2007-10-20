@@ -408,7 +408,7 @@ int CTabReBar::FindByData(DWORD_PTR data)
 	for ( iCount = 0 ; iCount < iButtonCount ; iCount++ )
 	{
 		TBBUTTON button;
-		_GetButton(iCount, &button);
+		GetToolBarCtrl().GetButton(iCount, &button);
 		if ( button.dwData == data) {found=true; break;}
 	}
 
