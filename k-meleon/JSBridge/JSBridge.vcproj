@@ -20,7 +20,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\mozilla\mozilla\dist\sdk\include"
+				AdditionalIncludeDirectories="..\..\mozilla\mozilla\dist\include\dom;..\..\mozilla\mozilla\dist\include\xpcom;..\..\mozilla\mozilla\dist\include\nspr;..\..\mozilla\mozilla\dist\include\windowwatcher;..\..\mozilla\mozilla\dist\include\webbrwsr"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;JSBRIDGE_EXPORTS"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
@@ -34,7 +34,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="xpcom.lib xpcomglue_s.lib"
-				OutputFile="\Program Files\K-Meleon\debug\kplugins\JSBridge.dll"
+				OutputFile="..\..\debug\kplugins\JSBridge.dll"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="..\..\mozilla\mozilla\dist\lib_debug"
 				GenerateDebugInformation="TRUE"
@@ -45,9 +45,11 @@
 			<Tool
 				Name="VCMIDLTool"/>
 			<Tool
-				Name="VCPostBuildEventTool"/>
+				Name="VCPostBuildEventTool"
+				CommandLine="copy js_bridge.xpt ..\..\debug\components\"/>
 			<Tool
-				Name="VCPreBuildEventTool"/>
+				Name="VCPreBuildEventTool"
+				CommandLine="$(ProjectDir)genidl.cmd"/>
 			<Tool
 				Name="VCPreLinkEventTool"/>
 			<Tool
@@ -71,7 +73,7 @@
 			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\..\mozilla\mozilla\dist\sdk\include"
+				AdditionalIncludeDirectories="..\..\mozilla\mozilla\dist\include\dom;..\..\mozilla\mozilla\dist\include\xpcom;..\..\mozilla\mozilla\dist\include\nspr;..\..\mozilla\mozilla\dist\include\windowwatcher;..\..\mozilla\mozilla\dist\include\webbrwsr"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;JSBRIDGE_EXPORTS"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
@@ -83,7 +85,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="xpcom.lib xpcomglue_s.lib"
-				OutputFile="\Program Files\K-Meleon\release\kplugins\JSBridge.dll"
+				OutputFile="..\..\release\kplugins\JSBridge.dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\..\mozilla\mozilla\dist\lib"
 				GenerateDebugInformation="TRUE"
@@ -95,7 +97,8 @@
 			<Tool
 				Name="VCMIDLTool"/>
 			<Tool
-				Name="VCPostBuildEventTool"/>
+				Name="VCPostBuildEventTool"
+				CommandLine="copy js_bridge.xpt ..\..\release\components\"/>
 			<Tool
 				Name="VCPreBuildEventTool"
 				CommandLine="$(ProjectDir)genidl.cmd"/>

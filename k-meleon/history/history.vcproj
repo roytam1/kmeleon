@@ -43,7 +43,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies=" xpcom.lib xpcomglue_s.lib nspr4.lib embed_base_s.lib user32.lib gdi32.lib  advapi32.lib comctl32.lib "
-				OutputFile="\Program Files\K-Meleon\release\kplugins\$(ProjectName).dll"
+				OutputFile="..\..\release\kplugins\$(ProjectName).dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
 				AdditionalLibraryDirectories="&quot;..\..\mozilla\mozilla\dist\lib&quot;"
@@ -113,7 +113,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="xpcom.lib xpcomglue_s.lib nspr4.lib embed_base_s.lib user32.lib gdi32.lib  advapi32.lib comctl32.lib "
-				OutputFile="\Program Files\K-Meleon\debug\kplugins\$(ProjectName).dll"
+				OutputFile="..\..\debug\kplugins\$(ProjectName).dll"
 				LinkIncremental="2"
 				SuppressStartupBanner="TRUE"
 				AdditionalLibraryDirectories="..\..\mozilla\mozilla\dist\lib_debug"

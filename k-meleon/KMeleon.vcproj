@@ -3,6 +3,7 @@
 	ProjectType="Visual C++"
 	Version="7.10"
 	Name="k-meleon"
+	RootNamespace="k-meleon"
 	SccProjectName=""
 	SccLocalPath=""
 	Keyword="MFCProj">
@@ -16,7 +17,7 @@
 			OutputDirectory=".\Debug"
 			IntermediateDirectory=".\Debug"
 			ConfigurationType="1"
-			UseOfMFC="1"
+			UseOfMFC="2"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
 			CharacterSet="2">
 			<Tool
@@ -42,12 +43,11 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="xpcomglue.lib embed_base_s.lib nspr4.lib"
-				OutputFile="\Program Files\K-Meleon\debug\$(ProjectName).exe"
+				OutputFile="..\debug\$(ProjectName).exe"
 				SuppressStartupBanner="TRUE"
 				AdditionalLibraryDirectories="..\mozilla\mozilla\dist\lib_debug"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile=".\Debug/k-meleon.pdb"
 				GenerateMapFile="TRUE"
 				MapFileName=".\Debug/k-meleon.map"
 				SubSystem="2"
@@ -88,7 +88,8 @@
 			ConfigurationType="1"
 			UseOfMFC="2"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
-			CharacterSet="2">
+			CharacterSet="2"
+			WholeProgramOptimization="TRUE">
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="1"
@@ -111,11 +112,10 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="xpcomglue.lib embed_base_s.lib nspr4.lib"
-				OutputFile="\program files\k-meleon\release\k-meleon.exe"
+				OutputFile="..\release\k-meleon.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
 				AdditionalLibraryDirectories="..\mozilla\mozilla\dist\lib"
-				ProgramDatabaseFile=".\Release/k-meleon.pdb"
 				SubSystem="2"
 				OptimizeForWindows98="1"
 				TargetMachine="1"/>
@@ -178,12 +178,11 @@
 				Name="VCLinkerTool"
 				AdditionalOptions="-HEAP:0x40000"
 				AdditionalDependencies="xpcomglue.lib embed_base_s.lib nspr4.lib"
-				OutputFile="\program files\k-meleon\release\k-meleonW9x.exe"
+				OutputFile="..\release\k-meleonW9x.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
 				AdditionalLibraryDirectories="..\mozilla\mozilla\dist\lib"
 				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile=".\Release/k-meleon.pdb"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
@@ -219,7 +218,7 @@
 				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="Release Unicode|Win32"
+			Name="Release MFC Static Unicode|Win32"
 			OutputDirectory="$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
@@ -248,13 +247,12 @@
 				Name="VCLinkerTool"
 				AdditionalOptions="-HEAP:0x40000"
 				AdditionalDependencies="xpcomglue.lib embed_base_s.lib nspr4.lib uafxcw.lib atls.lib comsupp.lib msvcrt.lib msvcprt.lib libunicows.lib kernel32.lib user32.lib gdi32.lib msimg32.lib comdlg32.lib winspool.lib advapi32.lib shell32.lib comctl32.lib shlwapi.lib ole32.lib oleaut32.lib oldnames.lib uuid.lib oleacc.lib"
-				OutputFile="\program files\k-meleon\release\k-meleon.exe"
+				OutputFile="..\release\k-meleon.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
 				AdditionalLibraryDirectories="..\mozilla\mozilla\dist\lib"
 				IgnoreAllDefaultLibraries="TRUE"
 				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile=".\Release/k-meleon.pdb"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
@@ -294,7 +292,7 @@
 			OutputDirectory="$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
-			UseOfMFC="1"
+			UseOfMFC="2"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
 			CharacterSet="1">
 			<Tool
@@ -319,14 +317,13 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="uafxcwd.lib comsupp.lib atlsd.lib xpcomglue.lib embed_base_s.lib nspr4.lib msvcrtd.lib msvcprtd.lib libunicows.lib kernel32.lib user32.lib gdi32.lib msimg32.lib comdlg32.lib winspool.lib advapi32.lib shell32.lib comctl32.lib shlwapi.lib ole32.lib oleaut32.lib oldnames.lib uuid.lib oleacc.lib"
-				OutputFile="\Program Files\K-Meleon\debug\$(ProjectName).exe"
+				AdditionalDependencies="xpcomglue.lib embed_base_s.lib nspr4.lib"
+				OutputFile="..\debug\$(ProjectName).exe"
 				SuppressStartupBanner="TRUE"
 				AdditionalLibraryDirectories="..\mozilla\mozilla\dist\lib_debug"
-				IgnoreAllDefaultLibraries="TRUE"
+				IgnoreAllDefaultLibraries="FALSE"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile=".\Debug/k-meleon.pdb"
 				GenerateMapFile="TRUE"
 				MapFileName=".\Debug/k-meleon.map"
 				SubSystem="2"
@@ -360,6 +357,73 @@
 			<Tool
 				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
+		<Configuration
+			Name="Release Unicode|Win32"
+			OutputDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="1"
+			UseOfMFC="2"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="1"
+			WholeProgramOptimization="TRUE">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="1"
+				AdditionalIncludeDirectories="../mozilla/mozilla/dist/include/chrome;../mozilla/mozilla/dist/include;../mozilla/mozilla/dist/include/chardet;../mozilla/mozilla/dist/include/js;../mozilla/mozilla/dist/include/xpconnect;../mozilla/mozilla/dist/include/caps;../mozilla/mozilla/dist/include/mimetype;../mozilla/mozilla/dist/include/imglib2;../mozilla/mozilla/dist/include/content;../mozilla/mozilla/dist/include/locale;../mozilla/mozilla/dist/include/pipboot;../mozilla/mozilla/dist/include/pippki;../mozilla/mozilla/dist/include/pipnss;../mozilla/mozilla/dist/include/cookie;../mozilla/mozilla/dist/include/xpcom_obsolete;../mozilla/mozilla/dist/include/typeaheadfind;../mozilla/mozilla/dist/include/appcomps;../mozilla/mozilla/dist/include/history;../mozilla/mozilla/dist/include/rdf;../mozilla/mozilla/dist/include/docshell;../mozilla/mozilla/dist/include/dom;../mozilla/mozilla/dist/include/embed_base;../mozilla/mozilla/dist/include/exthandler;../mozilla/mozilla/dist/include/find;../mozilla/mozilla/dist/include/gfx;../mozilla/mozilla/dist/include/helperAppDlg;../mozilla/mozilla/dist/include/intl;../mozilla/mozilla/dist/include/layout;../mozilla/mozilla/dist/include/necko;../mozilla/mozilla/dist/include/nkcache;../mozilla/mozilla/dist/include/pref;../mozilla/mozilla/dist/include/profile;../mozilla/mozilla/dist/include/shistory;../mozilla/mozilla/dist/include/string;../mozilla/mozilla/dist/include/uriloader;../mozilla/mozilla/dist/include/wallet;../mozilla/mozilla/dist/include/webBrowser_core;../mozilla/mozilla/dist/include/webbrowserpersist;../mozilla/mozilla/dist/include/webshell;../mozilla/mozilla/dist/include/widget;../mozilla/mozilla/dist/include/windowwatcher;../mozilla/mozilla/dist/include/xpcom;../mozilla/mozilla/dist/include/nspr;../mozilla/mozilla/dist/include/webbrwsr;../mozilla/mozilla/dist/include/commandhandler;../mozilla/mozilla/dist/include/plugin"
+				PreprocessorDefinitions="WIN32;_WINDOWS;HW_THREADS;XP_PC;XP_WIN;XP_WIN32;WINVER=0x400;_WIN32_IE=0x0500;XPCOM_GLUE"
+				StringPooling="TRUE"
+				RuntimeLibrary="2"
+				EnableFunctionLevelLinking="TRUE"
+				UsePrecompiledHeader="3"
+				PrecompiledHeaderThrough="StdAfx.h"
+				AssemblerListingLocation=".\Release/"
+				ObjectFile=".\Release/"
+				ProgramDataBaseFileName=".\Release/"
+				BrowseInformation="1"
+				WarningLevel="3"
+				SuppressStartupBanner="TRUE"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="xpcomglue.lib embed_base_s.lib nspr4.lib"
+				OutputFile="..\release\k-meleon.exe"
+				LinkIncremental="1"
+				SuppressStartupBanner="TRUE"
+				AdditionalLibraryDirectories="..\mozilla\mozilla\dist\lib"
+				SubSystem="2"
+				OptimizeForWindows98="1"
+				TargetMachine="1"/>
+			<Tool
+				Name="VCMIDLTool"
+				PreprocessorDefinitions="NDEBUG"
+				MkTypLibCompatible="TRUE"
+				SuppressStartupBanner="TRUE"
+				TargetEnvironment="1"
+				TypeLibraryName=".\Release/KMeleon.tlb"
+				HeaderFileName=""/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
 	</Configurations>
 	<References>
 	</References>
@@ -376,19 +440,31 @@
 						Name="VCCLCompilerTool"/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release MFC Static|Win32"
 					ExcludedFromBuild="TRUE">
 					<Tool
 						Name="VCCLCompilerTool"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release Unicode|Win32"
+					Name="Release MFC Static Unicode|Win32"
 					ExcludedFromBuild="TRUE">
 					<Tool
 						Name="VCCLCompilerTool"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug Unicode|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release Unicode|Win32"
 					ExcludedFromBuild="TRUE">
 					<Tool
 						Name="VCCLCompilerTool"/>
@@ -454,13 +530,19 @@
 						Name="VCCLCompilerTool"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release Unicode|Win32"
+					Name="Release MFC Static Unicode|Win32"
 					ExcludedFromBuild="TRUE">
 					<Tool
 						Name="VCCLCompilerTool"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug Unicode|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release Unicode|Win32"
 					ExcludedFromBuild="TRUE">
 					<Tool
 						Name="VCCLCompilerTool"/>
@@ -477,9 +559,6 @@
 			</File>
 			<File
 				RelativePath="HiddenWnd.cpp">
-			</File>
-			<File
-				RelativePath=".\KmAccel.cpp">
 			</File>
 			<File
 				RelativePath=".\KmMenu.cpp">
@@ -523,13 +602,19 @@
 						Name="VCCLCompilerTool"/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release MFC Static|Win32"
 					ExcludedFromBuild="TRUE">
 					<Tool
 						Name="VCCLCompilerTool"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release Unicode|Win32"
+					Name="Release MFC Static Unicode|Win32"
 					ExcludedFromBuild="TRUE">
 					<Tool
 						Name="VCCLCompilerTool"/>
@@ -540,12 +625,30 @@
 					<Tool
 						Name="VCCLCompilerTool"/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="Release Unicode|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="PrintProgressDialog.cpp">
 			</File>
 			<File
 				RelativePath="PrintSetupDialog.cpp">
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="1"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release Unicode|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="1"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="ProfileMgr.cpp">
@@ -577,7 +680,7 @@
 						UsePrecompiledHeader="1"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release Unicode|Win32">
+					Name="Release MFC Static Unicode|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						UsePrecompiledHeader="1"/>
@@ -622,13 +725,19 @@
 						UsePrecompiledHeader="0"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release Unicode|Win32">
+					Name="Release MFC Static Unicode|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						UsePrecompiledHeader="0"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug Unicode|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release Unicode|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						UsePrecompiledHeader="0"/>

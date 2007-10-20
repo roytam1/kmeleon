@@ -32,7 +32,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="nspr4.lib xpcom.lib xpcomglue_s.lib"
-				OutputFile="\Program Files\K-Meleon\debug\kplugins\$(ProjectName).dll"
+				OutputFile="..\..\debug\kplugins\$(ProjectName).dll"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="../../mozilla/mozilla/dist/lib"
 				GenerateDebugInformation="TRUE"
@@ -85,7 +85,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="nspr4.lib xpcom.lib xpcomglue_s.lib"
-				OutputFile="\Program Files\K-Meleon\release\kplugins\$(ProjectName).dll"
+				OutputFile="..\..\release\kplugins\$(ProjectName).dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="../../mozilla/mozilla/dist/lib"
 				GenerateDebugInformation="TRUE"
