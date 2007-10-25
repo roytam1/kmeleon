@@ -594,7 +594,7 @@ BOOL CUrlBarEdit::PreTranslateMessage(MSG* pMsg)
 		{
 			CString str;
 			GetWindowText(str);
-			if (str.GetLength()>0 && m_list->GetCount()>0)
+			if (m_list && str.GetLength()>0 && m_list->GetCount()>0)
 			{
 				int curSel = m_list->GetCurSel();
 				if (curSel != LB_ERR)
