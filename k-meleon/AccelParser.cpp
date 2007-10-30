@@ -116,7 +116,7 @@ int CAccelParser::Parse(char *p)
 int CAccelParser::SetAccel(const char* pKey, char* pCommand)
 {
 	int command = 0;
-	char *alt, *ctrl, *shift;
+	const char *alt, *ctrl, *shift;
 	const char* p;
 	BYTE virt;
     int key;

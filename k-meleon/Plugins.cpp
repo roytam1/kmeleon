@@ -160,8 +160,8 @@ CPlugins::~CPlugins()
 // returns a pointer to the char after the last \ or /
 const char *FileNoPath(const char *filepath)
 {
-   char *p1 = strrchr(filepath, '\\');
-   char *p2 = strrchr(filepath, '/');
+   const char *p1 = strrchr(filepath, '\\');
+   const char *p2 = strrchr(filepath, '/');
    if (p1 > p2) {
       return p1 + 1;
    }
@@ -1178,7 +1178,7 @@ int TranslateEx(const char* originalText,  TCHAR* translatedText, int bufferlen,
 	if (forMenu)
 	{
 	   // Strip the accelerator part if any.
-	   accel = strchr(originalText, '\t');
+	   accel = (char*)strchr(originalText, '\t');
 	   if (accel) *accel = 0;
 	}
 
@@ -1194,7 +1194,7 @@ int TranslateEx(const char* originalText,  TCHAR* translatedText, int bufferlen,
 		int len = csTrans.GetLength();
 		if (forMenu)
 		{
-			accel = strchr(originalText, '\t');
+			accel = (char*)strchr(originalText, '\t');
 			if (accel) len = len + strlen(accel);
 		}
 		

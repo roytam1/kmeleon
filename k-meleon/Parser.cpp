@@ -122,7 +122,7 @@ int ifplugin(char *p)
   return 0;
 }
 
-CParser::Load(LPCTSTR filename)
+int CParser::Load(LPCTSTR filename)
 {
    CFile file;
    if (!file.Open(filename, CFile::modeRead, NULL))

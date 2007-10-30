@@ -42,7 +42,7 @@ extern CMfcEmbedApp theApp;
 extern BOOL GetFromTypeAndExtension(LPCTSTR contentType, LPCTSTR ext, CString& resultExt, CString& desc);
 #endif
 
-extern ParsePluginCommand(char *pszCommand, char** plugin, char **parameter);
+extern int ParsePluginCommand(char *pszCommand, char** plugin, char **parameter);
 
 BOOL CBrowserView::IsViewSourceUrl(CString& strUrl)
 {

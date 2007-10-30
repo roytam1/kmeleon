@@ -55,11 +55,12 @@ NS_IMETHODIMP CFontPackageHandler::NeedFontPackage(const char *aFontPackID)
   const char* handledLanguages = T2CA(cshandledLanguages);
   
   // aFontPackID is of the form lang:xx or lang:xx-YY
-  char *langCode = strchr(aFontPackID,':');
-  if (!langCode || !*(langCode + 1))
+  const char *_langCode = strchr(aFontPackID,':');
+  if (!_langCode || !*(_langCode + 1))
     return NS_ERROR_UNEXPECTED;
   
-  langCode = strdup(langCode + 1);
+  char *langCode;
+  langCode = strdup(_langCode + 1);
   strlwr(langCode);
   
   // check for xx or xx-yy in handled_languages
