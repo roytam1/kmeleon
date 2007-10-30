@@ -895,7 +895,7 @@ void CProgressDialog::OnBnClickedCloseWhenDone()
 void CProgressDialog::InitControl(const char *uri, const TCHAR *filepath)
 { 
   
-   TCHAR *file = _tcsrchr(filepath, '\\')+1;
+   const TCHAR *file = _tcsrchr(filepath, '\\')+1;
    mFileName = file;
    mFilePath = filepath;
    mUri = strdup(uri);

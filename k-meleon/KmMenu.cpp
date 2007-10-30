@@ -23,7 +23,7 @@
 extern CMfcEmbedApp theApp;
 extern BOOL ParsePluginCommand(char *pszCommand, char** plugin, char **parameter);
 
-int Translate(LPCTSTR originalText, CString& translatedText)
+int Translate(LPTSTR originalText, CString& translatedText)
 {
 	USES_CONVERSION;
 	int r;
@@ -261,10 +261,10 @@ BOOL KmMenu::Build(CMenu &menu, int before)
 								  }
 
 			case MenuString: {
-				label = A2CT(item.label); 
+				TCHAR* _label = A2T(item.label); 
 
 				CString pTranslated;
-				Translate(label, pTranslated);
+				Translate(_label, pTranslated);
 
 				if (mAccelText) {
 					CString accel = theApp.accel.GetStrAccel(item.command);
@@ -273,7 +273,7 @@ BOOL KmMenu::Build(CMenu &menu, int before)
 				}
 
 				menu.InsertMenu(before, MF_STRING, item.command, pTranslated);
-				//LOG_2("Added menu item %s with command %d", label, item.command);
+				//LOG_2("Added menu item %s with command %d", _label, item.command);
 				wasSeparator = FALSE;
 				break;
 								  }

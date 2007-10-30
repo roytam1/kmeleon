@@ -248,7 +248,8 @@ void CPrintSetupDialog::OnOK()
 // Search for Sizes in Pape Size Data
 int CPrintSetupDialog::GetPaperSizeIndexFromData(short aUnit, double aW, double aH) 
 {
-  for (int i=0;i<gNumPaperSizes;i++) {
+  int i;
+  for (i=0;i<gNumPaperSizes;i++) {
     if (gPaperSize[i].mUnit == aUnit && 
         gPaperSize[i].mWidth == aW &&
         gPaperSize[i].mHeight == aH) {
@@ -257,7 +258,7 @@ int CPrintSetupDialog::GetPaperSizeIndexFromData(short aUnit, double aW, double 
   }
 
   // find the first user defined
-  for ( i=0;i<gNumPaperSizes;i++) {
+  for (i=0;i<gNumPaperSizes;i++) {
     if (gPaperSize[i].mIsUserDefined) {
       return i;
     }
