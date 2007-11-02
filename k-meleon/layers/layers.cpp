@@ -222,7 +222,7 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
          bLayer = 1;
 
 		 kmeleonDocInfo* docinfo = kPlugin.kFuncs->GetDocInfo(NULL);
-		 if (docinfo && (!docinfo->url || _tcscmp(docinfo->url, _T("about:blank"))) == 0)
+		 if (docinfo && (!docinfo->url || _tcscmp(docinfo->url, _T("about:blank")) == 0))
 		   kPlugin.kFuncs->NavigateTo((char *)data1, OPEN_NORMAL, NULL);
 		 else
 		   kPlugin.kFuncs->NavigateTo((char *)data1, OPEN_BACKGROUND, NULL);
@@ -231,7 +231,11 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
          ghParent = ghCurHwnd;
          bBack = 1;
          bLayer = 1;
-         kPlugin.kFuncs->NavigateTo((char *)data1, OPEN_BACKGROUND, NULL);
+		 kmeleonDocInfo* docinfo = kPlugin.kFuncs->GetDocInfo(NULL);
+		 if (docinfo && (!docinfo->url || _tcscmp(docinfo->url, _T("about:blank")) == 0))
+		   kPlugin.kFuncs->NavigateTo((char *)data1, OPEN_NORMAL, NULL);
+		 else
+           kPlugin.kFuncs->NavigateTo((char *)data1, OPEN_BACKGROUND, NULL);
       }
       else if (stricmp(subject, "NumberOfWindows") == 0) {
          int frames = 0;
@@ -894,7 +898,11 @@ void addRebarButton(HWND hWndTB, TCHAR *text, int num, int active, int image=0)
       free(lpszText);
    }
    else {
+      TCHAR *lpszText = (TCHAR *)calloc(sizeof(TCHAR), _tcslen(text)+2 );
+	  strcpy(lpszText, text);
+	  lpszText[_tcslen(text)+1] = 0;
       stringID = SendMessage(hWndTB, TB_ADDSTRING, (WPARAM)NULL, (LPARAM)text);
+	  free(lpszText);
    }
    
    TBBUTTON button = {0};
