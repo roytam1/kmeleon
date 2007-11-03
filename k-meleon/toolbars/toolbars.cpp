@@ -504,7 +504,7 @@ void LoadToolbars(TCHAR *filename) {
 
    FILE* configFile = _tfopen(filename, "r");
    if (!configFile) {
-      MessageBox(NULL, _Tr("Could not open file"), filename, MB_OK);
+      MessageBox(NULL, _Tr("K-Meleon was not able to find your toolbar settings. Your selected skin may be missing or corrupt. Please, check your skin settings in the GUI appearance section of k-meleon preferences."), _Tr(PLUGIN_NAME), MB_OK);
       return;
    }
 
