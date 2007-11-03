@@ -972,7 +972,7 @@ void CMfcEmbedApp::OnNewBrowser()
       //Load the new window start page into the browser view
       switch (preferences.iNewWindowOpenAs) {
       case PREF_NEW_WINDOW_CURRENT:
-	     pBrowserFrame->OpenURL(_T("about:blank"), NULL, urlFocus);
+		  pBrowserFrame->OpenURL(m_pOpenNewBrowserFrame->GetActiveView()->GetCurrentURI(), NULL, urlFocus);
 	     if (m_pOpenNewBrowserFrame)
 			m_pOpenNewBrowserFrame->GetActiveView()->CloneBrowser(pBrowserFrame->GetActiveView());
          break;
@@ -1405,11 +1405,11 @@ NS_IMETHODIMP CMfcEmbedApp::CreateChromeWindow(nsIWebBrowserChrome *parent,
          pParent = CWnd::FromHandle(w);
       }
    }
-
+/*
    if (!pParent) {
 	   // This means a popup opened when closing a window. NEVER >-]
 	   return NS_ERROR_FAILURE;
-   }
+   }*/
 
   //nsCOMPtr<nsIWindowCreator> browserChrome(do_QueryInterface(parent));
   //return browserChrome->CreateChromeWindow(parent, chromeFlags, _retval);
