@@ -52,9 +52,11 @@ int CHiddenWnd::OnCreate(LPCREATESTRUCT lpCreateStruct) {
    USES_CONVERSION;
    if (m_bStayResident)
       StayResident();
-   else
-	   if (!ShowBrowser(A2T(theApp.cmdline.m_sCmdLine)))
+   else {
+      BOOL webapp = theApp.cmdline.GetSwitch("-webapp", NULL, TRUE)>=0;
+      if (!ShowBrowser(A2T(theApp.cmdline.m_sCmdLine), webapp))
 		  return -1;
+   }
 
    return CFrameWnd::OnCreate(lpCreateStruct);
 }
@@ -171,7 +173,7 @@ LRESULT CHiddenWnd::OnShowBrowser(WPARAM URI, LPARAM lParam) {
    return 0;
 }
 
-BOOL CHiddenWnd::ShowBrowser(LPTSTR URI) {
+BOOL CHiddenWnd::ShowBrowser(LPTSTR URI, BOOL webapp) {
 
    // if we already have a browser, load home page (if necessary), and show the window
   /* if (m_bPersisting && m_bPreloadWindow) {
@@ -197,7 +199,13 @@ BOOL CHiddenWnd::ShowBrowser(LPTSTR URI) {
    else */{
 	  int openmode = theApp.preferences.GetInt("browser.link.open_external", 2);
 	  CBrowserFrame* browser = NULL;
-	  if (openmode == 2 || !theApp.m_pMostRecentBrowserFrame ) {
+	  if (webapp) {
+		  PRUint32 chromeMask = nsIWebBrowserChrome::CHROME_WINDOW_RESIZE |
+                     nsIWebBrowserChrome::CHROME_WINDOW_CLOSE |
+                     nsIWebBrowserChrome::CHROME_TITLEBAR |
+                     nsIWebBrowserChrome::CHROME_WINDOW_MIN;
+		  browser = theApp.CreateNewBrowserFrame(chromeMask, FALSE, NULL);
+	  } else if (openmode == 2 || !theApp.m_pMostRecentBrowserFrame ) {
 		browser = theApp.CreateNewBrowserFrame();
 		browser->ShowWindow(SW_SHOW);
 	  } else  {
@@ -287,7 +295,12 @@ LRESULT CHiddenWnd::OnNewWindow(WPARAM wParam, LPARAM lParam) {
 // This is called from another instance of Kmeleon,
 // and contains any command line parameters specified
 BOOL CHiddenWnd::OnCopyData(CWnd* pWnd, COPYDATASTRUCT* pCopyDataStruct) {
-   ShowBrowser((LPTSTR) pCopyDataStruct->lpData);
+   
+   CCmdLine cmdline;
+   USES_CONVERSION;
+   cmdline.Initialize((LPSTR) pCopyDataStruct->lpData);
+   BOOL webapp = cmdline.GetSwitch("-webapp", NULL, TRUE)>=0;
+   ShowBrowser(A2T(cmdline.m_sCmdLine), webapp);
 
    return true;
 }
