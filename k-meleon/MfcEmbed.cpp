@@ -449,17 +449,13 @@ BOOL CMfcEmbedApp::InitInstance()
    if (cmdline.GetSwitch("-new", NULL, TRUE)<0 && m_bAlreadyRunning) {
       // find the hidden window
       if (HWND hwndPrev = ::FindWindowEx(NULL, NULL, HIDDEN_WINDOW_CLASS, NULL) ) {
-         // Ignore all command-line options when already open
-         cmdline.GetSwitch("-P", NULL, TRUE);  
-         cmdline.GetSwitch("-chrome", NULL, TRUE);
-         cmdline.GetSwitch("-profilesDir", NULL, TRUE);
 
          if(*m_lpCmdLine) {
             COPYDATASTRUCT copyData;
             copyData.dwData = 0;
-            copyData.cbData = (_tcsclen(m_lpCmdLine)+1)*sizeof(TCHAR);
-            copyData.lpData = (void *) m_lpCmdLine;
-            SendMessage(hwndPrev, WM_COPYDATA, NULL, (LPARAM) &copyData);
+			copyData.cbData = (strlen(cmdline.m_sCmdLine)+1)*sizeof(char);
+            copyData.lpData = (void *) cmdline.m_sCmdLine;
+	           SendMessage(hwndPrev, WM_COPYDATA, NULL, (LPARAM) &copyData);
          }
          else
             SendMessage(hwndPrev, UWM_NEWWINDOW, NULL, NULL);
