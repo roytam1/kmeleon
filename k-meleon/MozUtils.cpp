@@ -43,13 +43,13 @@ nsEmbedCString CStringToNSUTF8String(LPCTSTR aStr)
 	return aCStr;
 }
 
-CString NSStringToCString(nsEmbedString& aStr)
+CString NSStringToCString(const nsEmbedString& aStr)
 {
 	USES_CONVERSION;
 	return CString(W2CT(aStr.get()));
 }
 
-CString NSUTF8StringToCString(nsEmbedCString& aStr)
+CString NSUTF8StringToCString(const nsEmbedCString& aStr)
 {
 	USES_CONVERSION;
 	nsEmbedString aUStr;
@@ -57,7 +57,7 @@ CString NSUTF8StringToCString(nsEmbedCString& aStr)
 	return CString(W2CT(aUStr.get()));
 }
 
-CString NSCStringToCString(nsEmbedCString& aStr)
+CString NSCStringToCString(const nsEmbedCString& aStr)
 {
 	USES_CONVERSION;
 	return CString(A2CT(aStr.get()));
