@@ -289,6 +289,11 @@ void CBrowserView::OnNewUrlEnteredInUrlBar()
    GetBrowserGlue()->mIconURI = nsnull;
 #endif
 
+	// Ugly hack: needed because I can get an OnCbnEditchange 
+	// and no OnCbenEndedit
+   TRACE0("EditChanged FALSE in CBrowserView::OnNewUrlEnteredInUrlBar\n");
+   mpBrowserFrame->m_wndUrlBar.EditChanged(FALSE);
+
    //mpBrowserFrame->m_wndUrlBar.EditChanged(FALSE);
    
    // Get the currently entered URL
