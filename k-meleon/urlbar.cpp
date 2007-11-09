@@ -292,10 +292,6 @@ void CUrlBarEdit::OnKillFocus(CWnd* pNewWnd)
 	CEdit::OnKillFocus(pNewWnd);
 	if(m_list && IsWindow(m_list->m_hWnd) && pNewWnd && pNewWnd->m_hWnd != m_list->m_hWnd )
 		StopACSession();
-
-	// Ugly hack: needed because I can get an OnCbnEditchange 
-	// and no OnCbenEndedit
-	((CUrlBar*)GetParent()->GetParent())->EditChanged(FALSE);
 }
 
 void CUrlBarEdit::PreSubclassWindow()
