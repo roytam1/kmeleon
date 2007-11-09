@@ -483,6 +483,13 @@ void CTabReBar::HandleMouseClick(int flag, CPoint point)
 	int buttonID = GetButtonIDFromPoint(point);
 
 	switch (flag) {
+		case 3:
+			if (buttonID<0) 
+			{
+				GetParentFrame()->PostMessage(WM_COMMAND, ID_NEW_TAB,0);
+				break;
+			} 
+			// Fall through
 		case 0: {
 			if (buttonID<0) return;
 			TBBUTTON button;
