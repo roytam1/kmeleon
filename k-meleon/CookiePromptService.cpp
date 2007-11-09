@@ -1,5 +1,5 @@
 /*
-*  
+* 
 *
 *  This program is free software; you can redistribute it and/or modify
 *  it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@
 #include "nsICookieAcceptDialog.h"
 #include "nsICookie.h"
 #include "Cookies.h"
+#include "MozUtils.h"
 
 
 extern CWnd* CWndForDOMWindow(nsIDOMWindow *aWindow);
@@ -37,28 +38,25 @@ CCookiePromptService::~CCookiePromptService() {
 
 NS_IMETHODIMP CCookiePromptService::CookieDialog(nsIDOMWindow *parent, nsICookie *aCookie, const nsACString & hostname, PRInt32 cookiesFromHost, PRBool changingCookie, PRBool *rememberDecision, PRInt32 *_retval)
 {
-  CString q;
-  static BOOL accept = TRUE;
-  //char fDate[128];
+	NS_ENSURE_ARG_POINTER(aCookie);
 
-  char *host = NS_CStringCloneData(hostname);
+	CString q;
+	static BOOL accept = TRUE;
+	CString host = NSUTF8StringToCString(nsEmbedCString(hostname));
 
 	if (changingCookie)
 		q.Format(IDS_COOKIE_MODIFY, host);
 	else if (cookiesFromHost == 0)
-		q.Format(IDS_COOKIE_SET,host);
+		q.Format(IDS_COOKIE_SET, host);
 	else if (cookiesFromHost == 1)
-		q.Format(IDS_COOKIE_SET2,host);
+		q.Format(IDS_COOKIE_SET2, host);
 	else
-		q.Format(IDS_COOKIE_ANOTHER,host,cookiesFromHost);
+		q.Format(IDS_COOKIE_ANOTHER, host, cookiesFromHost);
 
-  nsMemory::Free(host);
+	HWND activeWnd = GetActiveWindow();
+	CWnd *wnd = CWndForDOMWindow(parent);
+	CConfirmCookieDialog dlg(wnd, q, accept);
 
-  HWND activeWnd = GetActiveWindow();
-  CWnd *wnd = CWndForDOMWindow(parent);
-  CConfirmCookieDialog dlg(wnd, q, accept);
-	
-  if (aCookie) {
 	CCookie* cookie = new CCookie(aCookie);
 	dlg.m_csName = cookie->m_csName;
 	dlg.m_csValue = cookie->m_csValue;
@@ -67,28 +65,27 @@ NS_IMETHODIMP CCookiePromptService::CookieDialog(nsIDOMWindow *parent, nsICookie
 	dlg.m_csExpires = cookie->m_csExpire;
 
 	if (cookie->m_secure)
-	  dlg.m_csSendFor.LoadString(IDS_FOR_SECURE);
-  else
-	  dlg.m_csSendFor.LoadString(IDS_FOR_ANY);
+		dlg.m_csSendFor.LoadString(IDS_FOR_SECURE);
+	else
+		dlg.m_csSendFor.LoadString(IDS_FOR_ANY);
 
-  
-	  *_retval = dlg.DoModal();
-	  accept = *rememberDecision = dlg.m_bCheckBoxValue;
-	  delete cookie;	  
-  }
-  SetForegroundWindow(activeWnd);
-  return NS_OK;
+	*_retval = dlg.DoModal();
+	accept = *rememberDecision = dlg.m_bCheckBoxValue;
+	delete cookie;	  
+
+	SetForegroundWindow(activeWnd);
+	return NS_OK;
 }
 
 // Boîte de dialogue CConfimCookieDialog
 
 //IMPLEMENT_DYNAMIC(CConfirmCookieDialog, CDialog)
 CConfirmCookieDialog::CConfirmCookieDialog(CWnd* pParent, const TCHAR* pText, BOOL bAcceptSite)
-	: CDialog(CConfirmCookieDialog::IDD, pParent)
+: CDialog(CConfirmCookieDialog::IDD, pParent)
 {
 	if(pText)
-        m_csText = pText;
-    m_bCheckBoxValue = bAcceptSite;
+		m_csText = pText;
+	m_bCheckBoxValue = bAcceptSite;
 }
 
 CConfirmCookieDialog::~CConfirmCookieDialog()
@@ -99,7 +96,7 @@ void CConfirmCookieDialog::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
 	//{{AFX_DATA_MAP(CAlertCheckDialog)
-    DDX_Check(pDX, IDC_CHECK_REMEMBER, m_bCheckBoxValue);
+	DDX_Check(pDX, IDC_CHECK_REMEMBER, m_bCheckBoxValue);
 	DDX_Text(pDX, IDC_COOKIE_TEXT, m_csText);
 	DDX_Text(pDX, IDC_COOKIE_NAME, m_csName);
 	DDX_Text(pDX, IDC_COOKIE_HOST, m_csHost);
@@ -108,7 +105,7 @@ void CConfirmCookieDialog::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_COOKIE_EXPIRES, m_csExpires);
 	DDX_Text(pDX, IDC_COOKIE_VALUE, m_csValue);
 	DDX_Control(pDX, IDC_COOKIE_ICON, m_bIcon);
-    //}}AFX_DATA_MAP
+	//}}AFX_DATA_MAP
 }
 
 
