@@ -428,7 +428,6 @@ void CReBarEx::LockBars(BOOL lock)
    REBARBANDINFO rbbi;
    rbbi.cbSize = sizeof(rbbi);
 
-   GetReBarCtrl().SetRedraw(FALSE);
    for (x=0; x<m_iCount; x++) {
       int barIndex = FindByIndex(x); // index of the bar on the Rebar
 
@@ -447,5 +446,4 @@ void CReBarEx::LockBars(BOOL lock)
 	  if (!(rbbi.fStyle & RBBS_HIDDEN))
 		GetReBarCtrl().ShowBand(barIndex, TRUE);
    }
-   GetReBarCtrl().SetRedraw(TRUE);
 }
