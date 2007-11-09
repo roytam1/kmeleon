@@ -347,11 +347,28 @@ public:
 
         bool active = state & 16;
 		state = state & 0xf;
-		if (state != SW_SHOWMINIMIZED && state != SW_SHOWMAXIMIZED && state != SW_SHOWNORMAL)
-			state = SW_SHOWNORMAL;
-		
-		if (posx>0 && posy>0 && width>0 && height>0)
-			SetWindowPos(hWnd, NULL, posx, posy, width, height, SWP_NOZORDER);
+
+		RECT screen;
+		::SystemParametersInfo(SPI_GETWORKAREA, NULL, &screen, 0);
+		int screenWidth   = screen.right - screen.left;
+		int screenHeight  = screen.bottom - screen.top;
+
+		if (width>screenWidth) width = screenWidth;
+		if (height>screenHeight) height = screenHeight;
+		if (posx<0) posx = 0;
+		if (posy<0) posy = 0;
+		if (posx>screenWidth) posx = screenWidth - width; 
+		if (posy>screenHeight) posy = screenHeight - height; 
+
+		WINDOWPLACEMENT wp;
+		wp.length = sizeof(WINDOWPLACEMENT);
+		wp.flags = 0;
+		wp.showCmd = state;
+		wp.rcNormalPosition.left = posx;
+		wp.rcNormalPosition.top = posy;
+		wp.rcNormalPosition.right =  posx + width;
+		wp.rcNormalPosition.bottom = posy + height;
+		::SetWindowPlacement(hWnd, &wp);
 
 		if (tabcount > 0)  {
 			TABLIST::iterator iter;
