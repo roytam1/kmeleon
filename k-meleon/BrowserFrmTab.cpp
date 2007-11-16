@@ -693,7 +693,7 @@ bool CBrowserTab::SetActive(bool state, bool haveFocus)
 	return old;
 }
 
-CBrowserTab* CBrowserTab::OpenURLInNewTab(LPCTSTR url, LPCTSTR refferer, BOOL bBackground)
+CBrowserTab* CBrowserTab::OpenURLInNewTab(LPCTSTR url, LPCTSTR refferer, BOOL bBackground, BOOL allowFixup)
 {
 	CBrowserTab* tab;
 	if (!bBackground && GetCurrentURI().Compare(_T("about:blank")) == 0)
@@ -704,7 +704,7 @@ CBrowserTab* CBrowserTab::OpenURLInNewTab(LPCTSTR url, LPCTSTR refferer, BOOL bB
         return NULL;
     }
 
-	tab->OpenURL(url, refferer);
+	tab->OpenURL(url, refferer, allowFixup);
 	//CloseSHistory(m_wndBrowserViews[id]);
 
 	if (!bBackground)
@@ -749,10 +749,10 @@ void CBrowserTab::OpenURLWithCommand(UINT idCommand, LPCTSTR url, LPCTSTR reffer
 	switch (idCommand)
 	{
         case ID_OPEN_LINK_IN_NEW_TAB:
-            OpenURLInNewTab(url, refferer, FALSE);
+            OpenURLInNewTab(url, refferer, FALSE, allowFixup);
             break;
         case ID_OPEN_LINK_IN_BACKGROUNDTAB:
-            OpenURLInNewTab(url, refferer, TRUE);
+            OpenURLInNewTab(url, refferer, TRUE, allowFixup);
             break;
         default:
 			CBrowserView::OpenURLWithCommand(idCommand, url, refferer, allowFixup);
