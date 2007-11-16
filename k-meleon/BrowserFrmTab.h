@@ -50,8 +50,8 @@ public:
 	inline bool IsActive() {return m_bActive;}
 	inline bool SetActive(bool state, bool haveFocus=true);
 
-	CBrowserTab*   OpenURLInNewTab(LPCTSTR url, LPCTSTR refferer = NULL, BOOL bBackground=FALSE);
-	CBrowserFrame* OpenURLInNewWindow(LPCTSTR url, LPCTSTR refferer = NULL, BOOL bBackground=FALSE);
+	CBrowserTab*   OpenURLInNewTab(LPCTSTR url, LPCTSTR refferer = NULL, BOOL bBackground = FALSE, BOOL allowFixup = FALSE);
+	CBrowserFrame* OpenURLInNewWindow(LPCTSTR url, LPCTSTR refferer = NULL, BOOL bBackground = FALSE);
 	virtual void OpenURLWithCommand(UINT idCommand, LPCTSTR url, LPCTSTR refferer = NULL, BOOL allowFixup = FALSE);
 /*	void SetFrameGlue(PBROWSERFRAMEGLUE glue){
 		m_wndView.SetBrowserFrameGlue(glue);
