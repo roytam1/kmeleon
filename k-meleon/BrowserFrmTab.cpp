@@ -110,16 +110,52 @@ BEGIN_MESSAGE_MAP(CBrowserFrmTab, CBrowserFrame)
 	ON_UPDATE_COMMAND_UI_RANGE(TABS_START_ID, TABS_STOP_ID, OnUpdateTabs)
 	ON_COMMAND_RANGE(TABS_START_ID, TABS_STOP_ID, OnTabSelect)
 	ON_NOTIFY(TBN_BEGINDRAG, ID_TABS_BAR, OnTbnBeginDrag)
-	//ON_NOTIFY(TBN_GETINFOTIP, ID_TABS_BAR, OnTbnGetInfoTip)
-	ON_NOTIFY_EX(TTN_NEEDTEXTA, ID_TABS_BAR, OnTtnNeedText)
 	ON_MESSAGE(UWM_NEWSITEICON, OnNewSiteIcon)
+	ON_NOTIFY_EX_RANGE(TTN_NEEDTEXTW, 0, 0xFFFF, OnToolTipText)
+	ON_NOTIFY_EX_RANGE(TTN_NEEDTEXTA, 0, 0xFFFF, OnToolTipText)
 //	ON_MESSAGE(UWM_GETFAVICON, OnGetFavIcon)
 ON_WM_KEYDOWN()
 END_MESSAGE_MAP()
 
-BOOL CBrowserFrmTab::OnTtnNeedText(UINT, NMHDR*, LRESULT*)
+BOOL CBrowserFrmTab::OnToolTipText(UINT id, NMHDR* pNMHDR, LRESULT* pResult)
 {
-	return FALSE;
+	static char* tip = NULL;
+	static WCHAR* wtip = NULL;
+
+	if (pNMHDR->idFrom < TABS_START_ID || pNMHDR->idFrom > TABS_STOP_ID) 
+		return CFrameWnd::OnToolTipText(id, pNMHDR, pResult);
+
+	CBrowserTab* tab = (CBrowserTab*)m_Tabs[IDTOTABINDEX(pNMHDR->idFrom)];
+	if (!tab) return CFrameWnd::OnToolTipText(id, pNMHDR, pResult);
+
+	TOOLTIPTEXTA* pTTTA = (TOOLTIPTEXTA*)pNMHDR;
+	TOOLTIPTEXTW* pTTTW = (TOOLTIPTEXTW*)pNMHDR;
+	
+	CString tabBarTip = tab->GetBrowserGlue()->mLocation;
+	if (!tab->GetBrowserGlue()->mTitle.IsEmpty())
+		tabBarTip = tab->GetBrowserGlue()->mTitle + _T("\n") + tabBarTip;
+
+	USES_CONVERSION;
+	if (pNMHDR->code == TTN_NEEDTEXTA)
+	{
+		if (tip) free(tip);
+		tip = strdup(T2CA(tabBarTip));
+		pTTTA->lpszText = tip;
+	}
+	else
+	{
+		if (wtip) free(wtip);
+		wtip = wcsdup(T2CW(tabBarTip));
+		pTTTW->lpszText = wtip;
+	}
+
+	*pResult = 0;
+
+	// bring the tooltip window above other popup windows
+	::SetWindowPos(pNMHDR->hwndFrom, HWND_TOP, 0, 0, 0, 0,
+		SWP_NOACTIVATE|SWP_NOSIZE|SWP_NOMOVE|SWP_NOOWNERZORDER);
+
+	return TRUE;   
 }
 
 CBrowserFrmTab::CBrowserFrmTab(PRUint32 chromeMask, LONG style)
@@ -630,15 +666,6 @@ void CBrowserFrmTab::OnTbnBeginDrag(NMHDR *pNMHDR, LRESULT *pResult)
 
    GlobalFree(hTab);
 }
-
-void CBrowserFrmTab::OnTbnGetInfoTip(NMHDR *pNMHDR, LRESULT *pResult)
-{
-	LPNMTBGETINFOTIP pNMTB = reinterpret_cast<LPNMTBGETINFOTIP>(pNMHDR);
-	CBrowserTab* tab = (CBrowserTab*)m_Tabs[IDTOTABINDEX(pNMTB->iItem)];
-	CString tabBarTip = tab->GetBrowserGlue()->mLocation;
-	_tcsncpy(pNMTB->pszText, tabBarTip, pNMTB->cchTextMax);
-}
-
 
 /**********************************************/
 

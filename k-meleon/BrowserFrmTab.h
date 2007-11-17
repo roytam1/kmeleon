@@ -110,6 +110,7 @@ public:
 	}
 
 	BOOL SetTabTitle(CBrowserTab* tab, CString title){
+		title.Replace(_T("&"), _T("&&"));
 		return m_wndTabs->SetItemText(TABINDEXTOID(tab->m_iIndex), title);
 	}
 
@@ -157,8 +158,7 @@ protected:
 	afx_msg LRESULT OnGetFavIcon(WPARAM wParam, LPARAM lParam);
 	afx_msg LRESULT OnNewSiteIcon(WPARAM url, LPARAM index);
 	afx_msg void OnTbnBeginDrag(NMHDR *pNMHDR, LRESULT *pResult);
-	afx_msg void OnTbnGetInfoTip(NMHDR *pNMHDR, LRESULT *pResult);
-	BOOL OnTtnNeedText(UINT, NMHDR*, LRESULT*);
+	afx_msg BOOL OnToolTipText(UINT, NMHDR* pNMHDR, LRESULT* pResult);
 public: // Temporary
 	afx_msg void OnNewTab();
 };
