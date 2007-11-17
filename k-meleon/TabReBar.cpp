@@ -604,24 +604,24 @@ void CTabReBar::OnMouseMove(UINT nFlags, CPoint point)
 {
 	if (!mDrag && mDragItem>=0 && (abs(mDragPoint.x-point.x)+abs(mDragPoint.y-point.y)>=5))
 	{
-   			TBBUTTON button;
-			this->GetToolBarCtrl().GetButton(mDragItem, &button);
+		TBBUTTON button;
+		this->GetToolBarCtrl().GetButton(mDragItem, &button);
 
-   UINT cfTabPt = ::RegisterClipboardFormat(CFSTR_TABPT);
-   
-   HGLOBAL hTab = GlobalAlloc(GHND, sizeof(button.dwData));
-   DWORD* pTab = (DWORD*)GlobalLock(hTab);
-   *pTab = button.dwData;
-   GlobalUnlock(hTab);
+		UINT cfTabPt = ::RegisterClipboardFormat(CFSTR_TABPT);
 
-   CBrowserTab* tab = (CBrowserTab*)button.dwData;
+		HGLOBAL hTab = GlobalAlloc(GHND, sizeof(button.dwData));
+		DWORD* pTab = (DWORD*)GlobalLock(hTab);
+		*pTab = button.dwData;
+		GlobalUnlock(hTab);
 
-   COleDataSource datasource;
-   datasource.CacheGlobalData(cfTabPt, hTab);
-   tab->AddURLAndPerformDrag(datasource);
-   mDragItem = -1;
-   GlobalFree(hTab);
-   return;
+		CBrowserTab* tab = (CBrowserTab*)button.dwData;
+
+		COleDataSource datasource;
+		datasource.CacheGlobalData(cfTabPt, hTab);
+		tab->AddURLAndPerformDrag(datasource);
+		mDragItem = -1;
+		GlobalFree(hTab);
+		return;
 
 		mDrag = TRUE;
 		theApp.favicons.DragShowNolock(TRUE);
@@ -634,7 +634,9 @@ void CTabReBar::OnMouseMove(UINT nFlags, CPoint point)
 		SetCursor(cursor);
 	}
 
-	if (!mDrag) return;
+	if (!mDrag) 
+		CToolBar::OnMouseMove(nFlags, point);
+
 	//ClientToScreen(&point);
 	theApp.favicons.DragMove(point);
 }
