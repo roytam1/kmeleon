@@ -122,6 +122,8 @@ BOOL CBrowserFrmTab::OnToolTipText(UINT id, NMHDR* pNMHDR, LRESULT* pResult)
 	static char* tip = NULL;
 	static WCHAR* wtip = NULL;
 
+	int tooltipWidth = theApp.preferences.GetInt("kmeleon.tabs.tooltipWidth", 100);
+
 	if (pNMHDR->idFrom < TABS_START_ID || pNMHDR->idFrom > TABS_STOP_ID) 
 		return CFrameWnd::OnToolTipText(id, pNMHDR, pResult);
 
@@ -132,7 +134,9 @@ BOOL CBrowserFrmTab::OnToolTipText(UINT id, NMHDR* pNMHDR, LRESULT* pResult)
 	TOOLTIPTEXTW* pTTTW = (TOOLTIPTEXTW*)pNMHDR;
 	
 	CString tabBarTip = tab->GetBrowserGlue()->mLocation;
-	if (!tab->GetBrowserGlue()->mTitle.IsEmpty())
+	if (tabBarTip.GetLength()>tooltipWidth)
+		tabBarTip = tabBarTip.Mid(0, tooltipWidth-3) + _T("...");
+	if (!tab->GetBrowserGlue()->mTitle.IsEmpty() && tab->GetBrowserGlue()->mTitle.Compare(tab->GetBrowserGlue()->mLocation) != 0) 
 		tabBarTip = tab->GetBrowserGlue()->mTitle + _T("\n") + tabBarTip;
 
 	USES_CONVERSION;
@@ -199,7 +203,7 @@ int CBrowserFrmTab::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 	// tell all our plugins that we were created
 	if (!IsDialog())
-    theApp.plugins.SendMessage("*", "* OnCreate", "Create", (long)this->m_hWnd, (long)lpCreateStruct);
+		theApp.plugins.SendMessage("*", "* OnCreate", "Create", (long)this->m_hWnd, 1);
 
 	// Create a ReBar window to which the toolbar and UrlBar 
     // will be added
