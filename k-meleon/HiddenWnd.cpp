@@ -207,7 +207,7 @@ BOOL CHiddenWnd::ShowBrowser(LPTSTR URI, BOOL webapp) {
 		  browser = theApp.CreateNewBrowserFrame(chromeMask, FALSE, NULL);
 	  } else if (openmode == 2 || !theApp.m_pMostRecentBrowserFrame ) {
 		browser = theApp.CreateNewBrowserFrame();
-		browser->ShowWindow(SW_SHOW);
+		//browser->ShowWindow(SW_SHOW);
 	  } else  {
 		  if (theApp.m_pMostRecentBrowserFrame) {
 			  browser = theApp.m_pMostRecentBrowserFrame;
