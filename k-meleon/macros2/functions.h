@@ -1188,7 +1188,7 @@
 			item.before = -1;
 		else {
 			item.before = data->getint(whereparam);
-			if (!item.before) {
+			if (!item.before && where != "0") {
 				item.before = kFuncs->GetID((char*)where.c_str()); 
 				if (!item.before)
 					item.before = (long)(char*)where.c_str();
