@@ -479,6 +479,7 @@ public:
 class MacroDef : public StatList {
 public:
 	std::string name;
+	std::string macroinfo;
 	Expression* menuString;
 	Expression* menuChecked;
 	Expression* menuGrayed;
