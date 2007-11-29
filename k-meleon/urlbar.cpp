@@ -523,6 +523,7 @@ int CALLBACK CUrlBarEdit::UrlBreakProc(LPWSTR lpszEditText, int ichCurrent,
 				case L'&':
 				case L'=':
 				case L'#':
+				case L' ':
 					return TRUE;
 				case L'/':
 					if (ichCurrent+1 >= cchEditText ||
