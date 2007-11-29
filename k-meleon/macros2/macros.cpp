@@ -790,7 +790,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 	case UWM_UPDATEBUSYSTATE:
 		if (wParam == 0)
-			ExecuteMacro(hWnd, "OnLoad", false);
+			ExecuteMacro(IsWindow((HWND)lParam)?(HWND)lParam:hWnd, "OnLoad", false);
 		break;
 
 	case WM_ACTIVATE:
@@ -803,6 +803,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			return result;
 		}
 		break;
+
+	case WM_MENUSELECT: {
+		UINT id = LOWORD(wParam);
+		char *macroname, *param;
+		if (!arglist->getfromid(id, &macroname, &param))
+			break;
+		
+		Value* macro = M->FindSymbol(macroname);
+		if (macro && macro->ismacro()) {
+			kPlugin.kFuncs->SetStatusBarText(ansi_from_utf8(macro->md->macroinfo.c_str()));
+			return 0;
+		}
+
+		break;
+	}
 
 	case WM_INITMENUPOPUP: {
 
