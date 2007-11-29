@@ -96,6 +96,8 @@ public:
 	void RemoveFrameFromList(CBrowserFrame* pFrm);
    void RegisterWindow(CDialog *window);
    void UnregisterWindow(CDialog *window);
+   void UpdateWindowListMenu();
+   void DrawWindowListMenu(HMENU menu);
    void BroadcastMessage(UINT Msg, WPARAM wParam, LPARAM lParam);
 	inline HICON GetDefaultIcon(BOOL large = FALSE) {HICON ret; large ? ret = m_hMainIcon : ret = m_hSmallIcon; return ret;}
 	bool FindSkinFile( CString& szSkinFile, TCHAR *filename );
@@ -134,10 +136,6 @@ public:
 #endif
    CString       m_sRootFolder;
 
-   HMENU          m_toolbarControlsMenu;
-#ifdef INTERNAL_SIDEBAR
-   HMENU		  m_sidebarControlsMenu;
-#endif
    CBrowserFrame* m_pMostRecentBrowserFrame; // the most recently used frame
    CBrowserFrame* m_pOpenNewBrowserFrame; // used by OnNewBrowser to preserve an initilaized frame
 
@@ -158,6 +156,8 @@ public:
    afx_msg void OnPreferences();
    afx_msg void OnToggleOffline();
    afx_msg void OnUpdateToggleOffline(CCmdUI* pCmdUI);
+   afx_msg void OnUpdateWindows(CCmdUI* pCmdUI);
+   afx_msg void OnWindowSelect(UINT id);
 
    // NOTE - the ClassWizard will add and remove member functions here.
    // DO NOT EDIT what you see in these blocks of generated code !

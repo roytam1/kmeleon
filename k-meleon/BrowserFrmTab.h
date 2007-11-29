@@ -97,8 +97,13 @@ class CBrowserFrmTab : public CBrowserFrame
 {
 
 public:
+	DECLARE_DYNAMIC(CBrowserFrmTab)
+
 	CBrowserFrmTab(PRUint32 chromeMask, LONG style);
 	~CBrowserFrmTab();
+
+	void DrawTabListMenu(HMENU menu);
+	void UpdateTabListMenu();
 
 	CBrowserTab* CreateBrowserTab(bool first=false);
 	void SetActiveBrowser(CBrowserTab*);
@@ -110,6 +115,7 @@ public:
 	}
 
 	BOOL SetTabTitle(CBrowserTab* tab, CString title){
+		UpdateTabListMenu();
 		title.Replace(_T("&"), _T("&&"));
 		return m_wndTabs->SetItemText(TABINDEXTOID(tab->m_iIndex), title);
 	}
@@ -131,9 +137,8 @@ public:
 	virtual void RecalcLayout(BOOL bNotify = TRUE);
 
 protected:
-	DECLARE_DYNAMIC(CBrowserFrmTab)
 
-	CBrowserTab*    m_wndCBrowserTab;
+	CBrowserTab* m_wndCBrowserTab;
 	CBrowserTab* m_Tabs[MAX_TABS_NUMBER];
 	CBrowserTab* m_pPreviousSelectedTab;
 	

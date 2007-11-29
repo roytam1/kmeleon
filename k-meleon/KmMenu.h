@@ -209,7 +209,8 @@ public:
 	BOOL MenuCommand(UINT id) {
 		if (!mLastActivated)
 			return FALSE;
-		
+
+		mLastActivated = NULL;
 		return FALSE;
 	}
 

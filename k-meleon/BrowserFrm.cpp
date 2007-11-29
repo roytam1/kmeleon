@@ -316,7 +316,7 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
     // tell all our plugins that we were created
 	if (!IsDialog())
-    theApp.plugins.SendMessage("*", "* OnCreate", "Create", (long)this->m_hWnd, (long)lpCreateStruct);
+    theApp.plugins.SendMessage("*", "* OnCreate", "Create", (long)this->m_hWnd, 0);
 
 	// Create a ReBar window to which the toolbar and UrlBar 
     // will be added
@@ -570,7 +570,6 @@ void CBrowserFrame::OnSize(UINT nType, int cx, int cy)
         m_wndProgressBar.MoveWindow(&rc);
 
     if (!m_created) return;
-
 	SaveWindowPos();
 }
 
@@ -1598,17 +1597,18 @@ void CBrowserFrame::UpdateLoading(BOOL aLoading)
 void CBrowserFrame::UpdateTitle(LPCTSTR aTitle)
 {
 	CString appTitle;
-    appTitle.LoadString(AFX_IDS_APP_TITLE);
-    appTitle = theApp.preferences.GetString("kmeleon.display.title", appTitle);
-	
+	appTitle.LoadString(AFX_IDS_APP_TITLE);
+	appTitle = theApp.preferences.GetString("kmeleon.display.title", appTitle);
+
 	CString title = aTitle;
-    if (title.IsEmpty())
+	if (title.IsEmpty())
 		title = GetActiveView()->GetBrowserGlue()->mLocation;
 
 	if (!appTitle.IsEmpty())
 		title += _T(" (") + appTitle + _T(")");
 
-    SetWindowText(title);
+	SetWindowText(title);
+	theApp.UpdateWindowListMenu();
 }
 
 void CBrowserFrame::UpdatePopupNotification(LPCTSTR uri)

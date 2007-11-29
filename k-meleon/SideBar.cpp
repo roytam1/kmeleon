@@ -93,11 +93,10 @@ void CSideBar::Show(int index)
 	theApp.preferences.SetString("kmeleon.sidebar.lastVisible", m_iBars[index]->name);
 }
 
-
-void CSideBar::DrawSideBarMenu()
+void CSideBar::DrawSideBarMenu(HMENU menu)
 {
-   if (!theApp.m_sidebarControlsMenu) return;
-   m_menu = theApp.m_sidebarControlsMenu;
+   ASSERT(::IsMenu(menu));
+   m_menu = menu;
    
    if (m_iCount == 0) 
 	   InsertMenu(m_menu, 0, MF_BYPOSITION | MF_GRAYED    | MF_STRING, 0, _T("None"));
