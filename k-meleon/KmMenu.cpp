@@ -20,6 +20,9 @@
 #include ".\kmmenu.h"
 
 #include "mfcembed.h"
+#include "browserfrm.h"
+#include "browserfrmtab.h"
+
 extern CMfcEmbedApp theApp;
 extern BOOL ParsePluginCommand(char *pszCommand, char** plugin, char **parameter);
 
@@ -102,22 +105,17 @@ void KmMenu::AddItem(KmMenuItem& item, long before)
 			mMenuDef.GetNext(pos);
 		}
 	} 
-	else if (item.type == MenuInline) {
-		// There can't be twice the same inline menu
-		POSITION pos = mMenuDef.GetHeadPosition();
-		while (pos) {
-			KmMenuItem* item2 = &mMenuDef.GetAt(pos);
-			if (strcmp(item2->label, item.label) == 0)
-				return;
-			mMenuDef.GetNext(pos);
-		}
-
+	else if (item.type == MenuInline || item.type == MenuSpecial) {
 		USES_CONVERSION;
 		KmMenu* iMenu = theApp.menus.GetKMenu(A2CT(item.label));
-		if (!iMenu) {
+		if (!iMenu)
 			iMenu = theApp.menus.CreateMenu(A2CT(item.label));
-			iMenu->mDependencies.AddHead(this);
+		else {
+			// There can't be twice the same inline menu
+			if (iMenu->mDependencies.Find(this) != NULL)
+				return;
 		}
+		iMenu->mDependencies.AddHead(this);
 	}
 
 	// Custom position 
@@ -217,11 +215,27 @@ BOOL KmMenu::Build(CMenu &menu, int before)
 
 			case MenuSpecial: // Special Menu
 
-				if (strcmpi(item.label, "ToolBars") == 0) 
-					theApp.m_toolbarControlsMenu = menu.GetSafeHmenu();
+				if (strcmpi(item.label+1, "TabList") == 0) 
+				{
+					if (!theApp.m_pMostRecentBrowserFrame ||
+						!theApp.m_pMostRecentBrowserFrame->IsKindOf(RUNTIME_CLASS(CBrowserFrmTab)))
+					   break;
+
+					((CBrowserFrmTab*)theApp.m_pMostRecentBrowserFrame)->DrawTabListMenu(menu.GetSafeHmenu());
+				}
+				else if (strcmpi(item.label+1, "WindowList") == 0) 
+					theApp.DrawWindowListMenu(menu.GetSafeHmenu());
+				else if (strcmpi(item.label+1, "ToolBars") == 0) 
+				{
+					if (!theApp.m_pMostRecentBrowserFrame) break;
+					theApp.m_pMostRecentBrowserFrame->m_wndReBar.DrawToolBarMenu(menu.GetSafeHmenu());
+				}
 #ifdef INTERNAL_SIDEBAR
-				if (strcmpi(item.label, "SideBars") == 0) 
-					theApp.m_sidebarControlsMenu = menu.GetSafeHmenu();
+				else if (strcmpi(item.label+1, "SideBars") == 0) 
+				{
+					if (!theApp.m_pMostRecentBrowserFrame) break;
+					theApp.m_pMostRecentBrowserFrame->m_wndSideBar.DrawSideBarMenu(menu.GetSafeHmenu());
+				}
 #endif
 				wasSeparator = FALSE;
 				break;
@@ -233,8 +247,8 @@ BOOL KmMenu::Build(CMenu &menu, int before)
 				if (inlineMenu && !inlineMenu->IsEmpty()) {	
 					if (!wasSeparator)
 						menu.InsertMenu(before, MF_SEPARATOR);
-               inlineMenu->Build(menu, before);
-					wasSeparator = FALSE;
+				inlineMenu->Build(menu, before);
+				wasSeparator = FALSE;
 				}
 				break;
 			}

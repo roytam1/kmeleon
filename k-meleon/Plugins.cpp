@@ -1337,12 +1337,12 @@ BOOL GetTabsList(HWND hWnd, HWND* list, unsigned* count)
 	}
 
 	CBrowserFrmTab* tabFrame = (CBrowserFrmTab*)frame;
-	*count = tabFrame->m_iBrowserCount;
+	*count = tabFrame->GetTabCount();
 	if (!*count) return FALSE;
 	
 	if (list) 
 		for (unsigned i=0; i<*count; i++) 
-			list[i] = tabFrame->m_Tabs[i]->GetSafeHwnd();
+			list[i] = tabFrame->GetTabIndex(i)->GetSafeHwnd();
 
 	return TRUE;
 }

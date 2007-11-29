@@ -122,7 +122,7 @@ int CMenuParser::Parse(char *p)
 
 			case '@': // Special Menu
 				item.type = MenuSpecial;
-				item.SetLabel(++p);
+				item.SetLabel(p);
 				LOG_1("Added special menu %s.", item.label);
 				break;
 

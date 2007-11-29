@@ -116,6 +116,8 @@ ON_COMMAND(ID_MANAGE_PROFILES, OnManageProfiles)
 ON_COMMAND(ID_PREFERENCES, OnPreferences)
 ON_COMMAND(ID_OFFLINE, OnToggleOffline)
 ON_UPDATE_COMMAND_UI(ID_OFFLINE, OnUpdateToggleOffline)
+ON_UPDATE_COMMAND_UI_RANGE(WINDOW_MENU_START_ID, WINDOW_MENU_STOP_ID, OnUpdateWindows)
+ON_COMMAND_RANGE(WINDOW_MENU_START_ID, WINDOW_MENU_STOP_ID, OnWindowSelect)
 
 // NOTE - the ClassWizard will add and remove mapping macros here.
 //    DO NOT EDIT what you see in these blocks of generated code!
@@ -131,7 +133,6 @@ CMfcEmbedApp::CMfcEmbedApp()
 
    m_bFirstWindowCreated = FALSE;
    m_pMostRecentBrowserFrame  = NULL;
-   m_toolbarControlsMenu = NULL;     
    m_hResDll = NULL;
 }
 
@@ -632,8 +633,7 @@ void CMfcEmbedApp::RegisterWindow(CDialog *window) {
 void CMfcEmbedApp::UnregisterWindow(CDialog *window) {
    POSITION pos = m_MiscWndLst.Find(window);
    m_MiscWndLst.RemoveAt(pos);
-   
-   
+    
    // See comment in RemoveFrameFromList()
    if ((m_MiscWndLst.GetCount() == 0) && (m_FrameWndLst.GetCount() == 0)) {
       
@@ -910,13 +910,19 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
    
    // this only needs to be called once
    if (!m_bFirstWindowCreated) {
+      KmMenu* menu = menus.GetKMenu(_T("@Toolbars"));
+      if (menu) menu->Invalidate();
+	  
+      menu = menus.GetKMenu(_T("@Sidebars"));
+      if (menu) menu->Invalidate();
+/*
       pFrame->m_wndReBar.DrawToolBarMenu();
 #ifdef INTERNAL_SIDEBAR
       pFrame->m_wndSideBar.DrawSideBarMenu();
-#endif
+#endif*/
       m_bFirstWindowCreated = TRUE;
    }
-
+	
    if (!preferences.bHideTaskBarButtons)
       pFrame->ModifyStyleEx(0, WS_EX_APPWINDOW);
 
@@ -1026,6 +1032,7 @@ void CMfcEmbedApp::RemoveFrameFromList(CBrowserFrame* pFrm)
 {
    POSITION pos = m_FrameWndLst.Find(pFrm);
    m_FrameWndLst.RemoveAt(pos);
+   UpdateWindowListMenu();
 
    // Unless we are set to stay resident, 
    // destroy the hidden window (which will post a WM_QUIT msg
@@ -1052,6 +1059,51 @@ void CMfcEmbedApp::RemoveFrameFromList(CBrowserFrame* pFrm)
             m_pMainWnd->DestroyWindow();
       }
    }
+}
+
+void CMfcEmbedApp::UpdateWindowListMenu()
+{
+   KmMenu* menu = menus.GetKMenu(_T("@WindowList"));
+   if (menu) menu->Invalidate();
+}
+
+void CMfcEmbedApp::DrawWindowListMenu(HMENU menu)
+{
+   CBrowserFrame* pBrowserFrame = NULL;
+   POSITION pos = m_FrameWndLst.GetHeadPosition();
+   int i = 0;
+   while( pos != NULL ) {
+      pBrowserFrame = (CBrowserFrame *) m_FrameWndLst.GetNext(pos);
+      CBrowserWrapper* wrapper = pBrowserFrame->GetActiveView()->GetBrowserWrapper();
+      if (!wrapper) continue;
+
+      CString title = wrapper->GetTitle();
+	  if (title.IsEmpty())
+		  title = wrapper->GetURI();
+
+	  AppendMenu(menu, MF_ENABLED | MF_STRING | ((pBrowserFrame == m_pMostRecentBrowserFrame) ? MF_CHECKED : 0), WINDOW_MENU_START_ID + i++ , title);
+   }
+}
+
+void CMfcEmbedApp::OnUpdateWindows(CCmdUI *pCmd)
+{
+   POSITION pos = m_FrameWndLst.FindIndex(pCmd->m_nID - WINDOW_MENU_START_ID);
+   if (pos == NULL) return;
+
+   CBrowserFrame* pBrowserFrame = (CBrowserFrame *)m_FrameWndLst.GetAt(pos);
+   if (m_pMostRecentBrowserFrame == pBrowserFrame) 
+      pCmd->SetCheck(1);
+   else
+      pCmd->SetCheck(0);
+}
+
+void CMfcEmbedApp::OnWindowSelect(UINT id)
+{
+   POSITION pos = m_FrameWndLst.FindIndex(id - WINDOW_MENU_START_ID);
+   if (pos == NULL) return;
+
+   CBrowserFrame* pBrowserFrame = (CBrowserFrame *)m_FrameWndLst.GetAt(pos);
+   if (pBrowserFrame) pBrowserFrame->BringWindowToTop();
 }
 
 void CMfcEmbedApp::BroadcastMessage(UINT Msg, WPARAM wParam, LPARAM lParam)

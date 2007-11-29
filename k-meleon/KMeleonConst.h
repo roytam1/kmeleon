@@ -17,7 +17,7 @@
 */
 
 
-#define KMELEON_VERSION	               0x01050000
+#define KMELEON_VERSION	               0x01050002
 
 
 #define WM_DEFERSHOW                   WM_USER + 200
@@ -65,6 +65,8 @@
 #define PLUGIN_COMMAND_START_ID        6000
 #define PLUGIN_REBAR_START_ID          200
 
+#define WINDOW_MENU_START_ID           1500 // 500 windows is more than enough :p
+#define WINDOW_MENU_STOP_ID            1999
 #define TOOLBAR_MENU_START_ID          2000
 #define TOOLBAR_MENU_END_ID            TOOLBAR_MENU_START_ID+49  // this limits us to 50 toolbars, should be enough :) 
 #define SIDEBAR_MENU_START_ID          2050

@@ -252,10 +252,9 @@ int CReBarEx::ChildToListIndex(HWND hWnd) {
    return -1;
 }
 
-void CReBarEx::DrawToolBarMenu() {
-   if (!theApp.m_toolbarControlsMenu) return;
-   m_menu = theApp.m_toolbarControlsMenu;
-
+void CReBarEx::DrawToolBarMenu(HMENU menu) {
+   ASSERT(::IsMenu(menu));
+   m_menu = menu;
    for (int x=0; x<m_iCount; x++) {
       if (m_index[x]->name && m_index[x]->visibleOnMenu) {
 		  InsertMenu(m_menu, 0, MF_BYPOSITION | MF_STRING, TOOLBAR_MENU_START_ID+x, theApp.lang.Translate(m_index[x]->name));

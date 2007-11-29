@@ -307,7 +307,7 @@ CBrowserTab* CBrowserFrmTab::CreateBrowserTab(bool first)
 		}
 		//else
 		//	m_Tabs[m_iBrowserCount]->SetActive(false);
-
+		UpdateTabListMenu();
 		return m_Tabs[m_iBrowserCount++];
 	}
 	
@@ -423,13 +423,11 @@ void CBrowserFrmTab::OnNewTab()
 
 void CBrowserFrmTab::OnUpdateTabs(CCmdUI* pCmd)
 {
-	// TODO so we don't need it
 	pCmd->Enable();
 	if (pCmd->m_nID == TABINDEXTOID(m_wndCBrowserTab->m_iIndex))
 		pCmd->SetCheck(1);
 	else
 		pCmd->SetCheck(0);
-	
 }
 
 #include "nsISHistory.h"
@@ -576,6 +574,7 @@ BOOL CBrowserFrmTab::CloseTab(CBrowserTab* tab)
 	else if (index<m_iCBrowserView)
 		m_iCBrowserView--;
 
+	UpdateTabListMenu();
 	return TRUE;
 }
 
@@ -669,6 +668,27 @@ void CBrowserFrmTab::OnTbnBeginDrag(NMHDR *pNMHDR, LRESULT *pResult)
    tab->AddURLAndPerformDrag(datasource);
 
    GlobalFree(hTab);
+}
+
+void CBrowserFrmTab::DrawTabListMenu(HMENU menu)
+{
+	for (int i=0; i<m_iBrowserCount; i++)
+	{
+		CBrowserWrapper* wrapper = m_Tabs[i]->GetBrowserWrapper();
+		if (!wrapper) continue;
+
+		CString title = wrapper->GetTitle();
+		if (title.IsEmpty())
+			title = wrapper->GetURI();
+		
+		AppendMenu(menu, MF_ENABLED | MF_STRING, TABINDEXTOID(i), title);
+	}
+}
+
+void CBrowserFrmTab::UpdateTabListMenu()
+{
+	KmMenu* menu = theApp.menus.GetKMenu(_T("@TabList"));
+	if (menu) menu->Invalidate();
 }
 
 /**********************************************/

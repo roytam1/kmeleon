@@ -25,7 +25,7 @@ public:
    CReBarEx();
    ~CReBarEx();
    void RegisterBand(HWND hWnd, TCHAR *name, int visibleOnMenu);
-   void DrawToolBarMenu();
+   void DrawToolBarMenu(HMENU menu);
    void ToggleVisibility(int index);
    void SaveBandSizes();
    void RestoreBandSizes();

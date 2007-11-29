@@ -39,7 +39,7 @@ public:
 
 	void Show(int index);
 	void Hide();
-	void DrawSideBarMenu();
+	void DrawSideBarMenu(HMENU menu);
 	void SetVisibility(int index, bool visible);
 	void ToggleVisibility(int index);
 	UINT GetCurrent() {return m_iCurrent + SIDEBAR_MENU_START_ID;}
