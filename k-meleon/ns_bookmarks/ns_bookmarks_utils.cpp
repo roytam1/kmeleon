@@ -548,6 +548,7 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
          node.AddChild(newNode);
          if (pszTxt) free(pszTxt);
          if (nick)   free(nick);
+		 if (id)     free(id);
          lastNode = newNode;
 
          ParseBookmarks(end, *newNode);
@@ -715,6 +716,8 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
          
          if (nick)    free(nick);
          if (charset) free(charset);
+		 if (feedurl) free(feedurl);
+		 if (icon)    free(icon);
       }
       else if ((t = strstr(p, "</DL>")) != NULL) {
          return;
