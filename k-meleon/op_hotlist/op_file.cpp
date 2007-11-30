@@ -327,6 +327,7 @@ int ParseHotlistUrl(char **p, CBookmarkNode &node)
 		 if (strcmp(*p, "YES") == 0)
 			 onpb = true;
 		 }
+		 if (pszTmp) free(pszTmp);
       }
 
 	  else if (strnicmp(*p, "ICONFILE=", 9) == 0 && *((*p)+9) != 0) {
