@@ -62,7 +62,7 @@ public:
 	BOOL CreateBrowser(CWnd* parent, BOOL chromeContent = FALSE);
 	BOOL DestroyBrowser();
     CString GetTitle();
-	CString GetURI();
+	CString GetURI(BOOL unescape = FALSE);
 	BOOL LoadURL(LPCTSTR url, BOOL currentForRef = FALSE, BOOL allowFixup = FALSE);
 	BOOL LoadURL(LPCTSTR url, LPCTSTR referrer, BOOL allowFixup = FALSE);
 	
@@ -288,8 +288,9 @@ public:
 	BOOL ViewContentContainsFrames();
 	BOOL Highlight(const PRUnichar* backcolor, const PRUnichar* word, BOOL matchCase);
 	BOOL InputHasFocus();
-	CString GetFrameURL(nsIDOMNode* aNode);
-
+	CString GetFrameURL(nsIDOMNode* aNode = NULL);
+	
+	already_AddRefed<nsISupports> GetPageDescriptor(BOOL focus = FALSE);
 	BOOL CanSave();
 	BOOL SaveURL(LPCTSTR url, LPCTSTR filename = NULL);
 	BOOL SaveDocument(BOOL frame, LPCTSTR filename = NULL);

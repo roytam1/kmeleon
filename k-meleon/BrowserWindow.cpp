@@ -25,6 +25,7 @@
 #include "PrintProgressDialog.h"
 #include "SaveAsHandler.h"
 #include "mfcembed.h"
+#include "Utils.h"
 
 #include "nsIWidget.h"
 #include "nsISHistory.h"
@@ -45,6 +46,7 @@
 
 #include "nsIDOMNSDocument.h"
 #include "nsIDOMEventTarget.h"
+#include "nsIScriptGlobalObject.h"
 
 #include "nsISecureBrowserUI.h"
 #include "nsISSLStatus.h"
@@ -324,7 +326,7 @@ void CBrowserWrapper::RemoveListeners(void)
 
 BOOL CBrowserWrapper::LoadURL(LPCTSTR url, LPCTSTR referrer, BOOL allowFixup)
 {
-	ASSERT(url);
+	//ASSERT(url);
 	ASSERT(mWebNav);
 	NS_ENSURE_TRUE(url, FALSE);
 	NS_ENSURE_TRUE(mWebNav, FALSE);
@@ -380,7 +382,7 @@ CString CBrowserWrapper::GetTitle()
 	return title;
 }
 
-CString CBrowserWrapper::GetURI()
+CString CBrowserWrapper::GetURI(BOOL unescape)
 {
 	NS_ENSURE_TRUE(mWebNav, _T(""));
 	nsCOMPtr<nsIURI> currentURI;
@@ -392,6 +394,12 @@ CString CBrowserWrapper::GetURI()
 	nsEmbedCString uriString;
 	rv = currentURI->GetSpec(uriString);
 	NS_ENSURE_SUCCESS(rv, _T(""));
+
+	if (unescape) {
+		char* temp = strdup(uriString.get());
+		uriString.Assign(nsUnescape(temp));
+		free(temp);
+	}
 
 	return NSUTF8StringToCString(uriString);
 }
@@ -1365,6 +1373,35 @@ BOOL CBrowserWrapper::_Highlight(nsIDOMWindow* dom, const PRUnichar* backcolor, 
 	}
 
 	return TRUE;
+}
+
+already_AddRefed<nsISupports> CBrowserWrapper::GetPageDescriptor(BOOL focus)
+{
+	nsCOMPtr<nsIDocShell> docShell;
+	if (!focus) {
+		docShell = do_GetInterface(mWebBrowser);
+		if (!docShell) return NULL;
+	} else {
+		nsCOMPtr<nsIDOMWindow> domWindow;
+		mWebBrowserFocus->GetFocusedWindow(getter_AddRefs(domWindow));
+
+		if (!domWindow)
+			mWebBrowser->GetContentDOMWindow(getter_AddRefs(domWindow));
+		
+		if (!domWindow)	return NULL;
+		
+		nsCOMPtr<nsIScriptGlobalObject> global(do_QueryInterface(domWindow));
+		if (!global) return NULL;
+		
+		docShell = global->GetDocShell();
+	}
+
+	nsCOMPtr<nsIWebPageDescriptor> wpd = do_QueryInterface(docShell);
+	if (!wpd) return NULL;
+
+	nsISupports* descriptor;
+	wpd->GetCurrentDescriptor(&descriptor);
+	return descriptor;
 }
 
 BOOL CBrowserWrapper::CanSave()

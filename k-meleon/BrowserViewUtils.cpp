@@ -76,13 +76,14 @@ void OpenFileExternal(const char* uri, LPCTSTR file, nsresult status, void* para
 	// Have to show an error message
 }
 
-BOOL CBrowserView::OpenViewSourceWindow(const char* pUrl)
+BOOL CBrowserView::OpenViewSourceWindow(BOOL frame)
 {
 	nsCOMPtr<nsIWebBrowser> browser;
 	m_pWindow->GetWebBrowser(getter_AddRefs(browser));
 	NS_ENSURE_TRUE(browser, FALSE);
 
 	nsresult rv;
+	CString url = !frame ? m_pWindow->GetURI(TRUE) : m_pWindow->GetFrameURL();
 
 	// Use external viewer
 	if (theApp.preferences.bSourceUseExternalCommand && 
@@ -91,25 +92,12 @@ BOOL CBrowserView::OpenViewSourceWindow(const char* pUrl)
 			CString tempfile;
 			tempfile = GetTempFile();
 
-			USES_CONVERSION;
-
 			// We want to show the source of a local file. Just open this file.
-			if ( (!pUrl && _tcsncmp((LPCTSTR)this->GetCurrentURI(), _T("file:///"), 8) == 0) ||
-				 (pUrl && strncmp(pUrl, "file:///", 8) == 0))
+			if (_tcsncmp(url, _T("file:///"), 8) == 0)
 			{
-				char *url = strdup(pUrl?pUrl:T2CA(this->GetCurrentURI()));
-				if (!url) return FALSE;
-
-				unsigned int i;
-				for (i=0; i<strlen(url); i++)
-					if (url[i]=='/')
-						url[i]='\\';
-
-				tempfile = A2CT(nsUnescape(url+strlen("file:///")));
-				OpenFileExternal("", tempfile, NS_OK,
+				url.Replace(_T('/'), _T('\\'));
+				OpenFileExternal("", url.Mid(8), NS_OK,
 					_tcsdup((CString)theApp.preferences.sourceCommand));
-
-				delete url;
 				return TRUE;
 			}
 
@@ -123,29 +111,10 @@ BOOL CBrowserView::OpenViewSourceWindow(const char* pUrl)
 			webNav->GetReferringURI(getter_AddRefs(referrer));
 
 			nsCOMPtr<nsIURI> srcURI;
-			nsCOMPtr<nsISupports> cacheDescriptor;
-			if (!pUrl)
-			{
-				nsCOMPtr<nsIDocShell> docShell = do_GetInterface(browser, &rv);
-				NS_ENSURE_SUCCESS(rv, FALSE);
-
-				nsCOMPtr<nsIWebPageDescriptor> descriptor;
-				descriptor = do_QueryInterface(docShell);
-				if (descriptor)
-					descriptor->GetCurrentDescriptor(getter_AddRefs(cacheDescriptor));
-
-				rv = webNav->GetCurrentURI(getter_AddRefs(srcURI));
-			}
-			else
-			{
-				nsEmbedCString url;
-				if (!IsViewSourceUrl(CString(A2CT(pUrl)))) url.Append("view-source://");
-				USES_CONVERSION;
-				url.Append(pUrl);
-				rv = NewURI(getter_AddRefs(srcURI), nsDependentCString(pUrl));
-			}
-
+			rv = NewURI(getter_AddRefs(srcURI), CStringToNSString(url));
 			NS_ENSURE_SUCCESS(rv, FALSE);
+
+			nsCOMPtr<nsISupports> cacheDescriptor = m_pWindow->GetPageDescriptor(frame);
 
 			nsCOMPtr<nsILocalFile> file;
 #ifdef _UNICODE
@@ -153,7 +122,6 @@ BOOL CBrowserView::OpenViewSourceWindow(const char* pUrl)
 #else
 			rv = NS_NewNativeLocalFile(nsDependentCString(tempfile.GetBuffer(0)), TRUE, getter_AddRefs(file));
 #endif
-
 
 			CProgressDialog *progress = new CProgressDialog(FALSE);      
 			progress->SetCallBack((ProgressDialogCallback)OpenFileExternal, 
@@ -195,31 +163,11 @@ BOOL CBrowserView::OpenViewSourceWindow(const char* pUrl)
     int w = 15*screenWidth / 20;
     int h = 18*screenHeight/20;
 
-	CString url;
-	nsCOMPtr<nsISupports> cacheDescriptor;
-	nsCOMPtr<nsIDocShell> docShell = do_GetInterface(browser, &rv);
-	NS_ENSURE_SUCCESS(rv, FALSE);
+	nsCOMPtr<nsISupports> cacheDescriptor = m_pWindow->GetPageDescriptor(frame);
 
 	CBrowserFrame* pFrm = CreateNewBrowserFrame(chromeFlags);
     if(!pFrm) return FALSE;
 	pFrm->SetWindowPos(NULL, x, y, w, h, SWP_NOZORDER|SWP_SHOWWINDOW);    	
-
-	if (!pUrl)
-	{
-		nsCOMPtr<nsIWebPageDescriptor> descriptor;
-		descriptor = do_QueryInterface(docShell);
-		if (descriptor)
-			descriptor->GetCurrentDescriptor(getter_AddRefs(cacheDescriptor));
-
-		if (!cacheDescriptor) url = m_pWindow->GetURI();
-	}
-	else
-	{
-		USES_CONVERSION;	
-		if (IsViewSourceUrl(CString(A2CT(pUrl))))
-			url = _T("view-source://");
-		url += A2CT(pUrl);
-	}
 
 	// Finally, load this URI into the newly created frame
 	if (cacheDescriptor) {
@@ -229,12 +177,14 @@ BOOL CBrowserView::OpenViewSourceWindow(const char* pUrl)
 		nsCOMPtr<nsIDocShell> docShell = do_GetInterface(browser);
 		NS_ENSURE_TRUE(docShell, FALSE);
 
-		 nsCOMPtr<nsIWebPageDescriptor> wpd = do_QueryInterface(docShell);
-		 NS_ENSURE_TRUE(wpd, FALSE);
-		 wpd->LoadPage(cacheDescriptor, nsIWebPageDescriptor::DISPLAY_AS_SOURCE);
+		nsCOMPtr<nsIWebPageDescriptor> wpd = do_QueryInterface(docShell);
+		NS_ENSURE_TRUE(wpd, FALSE);
+		wpd->LoadPage(cacheDescriptor, nsIWebPageDescriptor::DISPLAY_AS_SOURCE);
 	}
-	else
-		pFrm->OpenURL(CString("view-source:") + url);
+	else {
+		url = _T("view-source://") + url;
+		pFrm->OpenURL(url);
+	}
     
     pFrm->BringWindowToTop();
 

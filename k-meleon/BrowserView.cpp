@@ -339,7 +339,7 @@ void CBrowserView::OnViewSource()
 void CBrowserView::OnViewFrameSource()
 {
 	USES_CONVERSION;
-	OpenViewSourceWindow(T2CA(m_pWindow->GetFrameURL(m_contextNode)));
+	OpenViewSourceWindow(TRUE);
 }
 
 void CBrowserView::OnViewInfo() 
