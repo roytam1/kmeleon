@@ -194,7 +194,7 @@ public:
 	void Activate(BOOL bActive);
 
 	//BOOL OpenViewSourceWindow(const PRUnichar* pUrl);
-    BOOL OpenViewSourceWindow(const char* pUrl = NULL);  
+    BOOL OpenViewSourceWindow(BOOL frame = FALSE);  
     BOOL IsViewSourceUrl(CString& strUrl);
 	BOOL SaveLink(LPCTSTR url);
 
