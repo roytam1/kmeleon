@@ -59,24 +59,22 @@ CUnknownContentTypeHandler::Show(CWnd* parent)
 			dlg.m_csFilename = W2CT(filename.get());
 
 			// Set the mime type
+			
 			nsCOMPtr<nsIMIMEInfo> mimeInfo;
 			mAppLauncher->GetMIMEInfo(getter_AddRefs(mimeInfo));
 			
-			PRBool b;
-			mimeInfo->GetHasDefaultHandler(&b);
-			
+			/*
 			if(mimeInfo) 
 			{
 				nsEmbedCString mimeType;
 				rv = mimeInfo->GetMIMEType(mimeType);
-				//nsEmbedString mimeDesc;
-				//rv = mimeInfo->GetDescription(mimeDesc);
+				nsEmbedString mimeDesc;
+				rv = mimeInfo->GetDescription(mimeDesc);
 				if(NS_SUCCEEDED(rv)) {
-					//dlg.m_csFiletype = CString(W2CA(mimeDesc.get())) + _T(" ("); 
+					dlg.m_csFiletype = CString(W2CA(mimeDesc.get())) + _T(" ("); 
 					dlg.m_csFiletype = CString(A2CT(mimeType.get())) + _T(")");
 				}
-					
-			}
+			}*/
 
 			SHFILEINFO shfi;
 			if (SHGetFileInfo(dlg.m_csFilename, 0, &shfi, sizeof(SHFILEINFO),SHGFI_USEFILEATTRIBUTES|SHGFI_TYPENAME)) 
@@ -89,7 +87,15 @@ CUnknownContentTypeHandler::Show(CWnd* parent)
 			{
 				nsEmbedCString sourceURI;
 				uri->GetHost(sourceURI);
-				dlg.m_csSource = A2CT(sourceURI.get());
+				
+				if (!sourceURI.IsEmpty())
+					dlg.m_csSource = NSUTF8StringToCString(sourceURI);
+				else
+				{
+					uri->GetScheme(sourceURI);
+					if (sourceURI.Equals(nsCString("file")))
+						dlg.m_csSource = _T("localhost");		
+				}
 			}
 
 			switch (dlg.DoModal()) {
@@ -98,9 +104,14 @@ CUnknownContentTypeHandler::Show(CWnd* parent)
 					rv = mAppLauncher->SaveToDisk(nsnull, false);
 					break;
 				case IDOPEN:
-					// I believe I shouldn't do that, and what about that
-					// stupid boolean not used?
-					mimeInfo->SetPreferredAction(nsIMIMEInfo::useSystemDefault);
+					if (mimeInfo) {
+						// This code prevent gecko to throw an error when 
+						// trying to open a file with no association
+						PRBool hasHandler;
+						mimeInfo->GetHasDefaultHandler(&hasHandler);
+						if (!hasHandler)
+							mimeInfo->SetPreferredAction(nsIMIMEInfo::useSystemDefault);
+					}
 					rv = mAppLauncher->LaunchWithApplication(nsnull, PR_FALSE);
 					break;
 				default:
@@ -164,18 +175,31 @@ CUnknownContentTypeHandler::PromptForSaveToFile(nsIHelperAppLauncher *aLauncher,
 	}
 	else
 	{
-		aSuggestedFileExtension++;
-
-		CString filter = W2CT(aSuggestedFileExtension);
-		filter += " files|*";
-		filter += W2CT(aSuggestedFileExtension);
-		filter += "|All Files|*.*||";
-
 		CString defaultFile = (CString)theApp.preferences.lastDownloadDir + PRUnicharToCString(aDefaultFile);
+		CString fileType;
 
-		const TCHAR *ext = W2CT(aSuggestedFileExtension);
-		if (*ext == _T('.'))
-			ext++;
+		CString filter;
+		const TCHAR *ext = _T("");
+		if (*aSuggestedFileExtension) {
+			
+			SHFILEINFO shfi;
+			if (SHGetFileInfo(defaultFile, 0, &shfi, sizeof(SHFILEINFO),SHGFI_USEFILEATTRIBUTES|SHGFI_TYPENAME)) 
+				fileType = shfi.szTypeName;
+
+			if (_tcslen(shfi.szTypeName))
+				filter = shfi.szTypeName;
+			else {
+				filter = _T("*");
+				filter += W2CT(aSuggestedFileExtension);
+			}
+			filter += _T("|*");
+			filter += W2CT(aSuggestedFileExtension);
+			filter += _T("|");
+
+			ext = W2CT(aSuggestedFileExtension+1);
+		}
+
+		filter += _T("All Files|*.*||");
 
 		TCHAR lpszFilter[1024];
 		_tcscpy(lpszFilter, filter);
@@ -795,7 +819,11 @@ void CProgressDialog::Cancel() {
    else
 	   if (mFileName.GetLength()) DeleteFile(mFileName);
 
-	
+   // Connection is not correctly closed when download 
+   // is in pause. This fix it. // XXX MOZILLA
+   if (mRequest)
+	   mRequest->Cancel(NS_BINDING_ABORTED);
+   
    //Close();
 
 /*   if (mObserver) {
