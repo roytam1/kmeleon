@@ -150,21 +150,19 @@ void CReBarEx::OnChevronPushed( NMHDR * pNotifyStruct, LRESULT* result )
 			// the button is not completely visible, so add to menu
 			if ( interRect != rectButton )
 			{
-
 				UINT	iMenuStyle = MF_STRING;
-				 
-				
+					
 				// Have to reflect the state of the menu item, so check the state of the 
 				// button and enable or disable the items
-				if (::SendMessage(rbinfo.hwndChild, TB_ISBUTTONENABLED, id, 0))
-				//if ( pTBar->GetToolBarCtrl().IsButtonEnabled ( id ) )
-					iMenuStyle |= MF_ENABLED;
-				else
+				if (!::SendMessage(rbinfo.hwndChild, TB_ISBUTTONENABLED, id, 0))
 					iMenuStyle |= MF_DISABLED;
+
+				if (::SendMessage(rbinfo.hwndChild, TB_ISBUTTONCHECKED, id, 0))
+					iMenuStyle |= MF_CHECKED;
 
 				// Add the item to the menu with the id of the toolbar button
 				// or add the submenu 
-            if ((button.fsStyle & TBSTYLE_DROPDOWN) && ::IsMenu((HMENU)(id - SUBMENU_OFFSET))) 
+				if ((button.fsStyle & TBSTYLE_DROPDOWN) && ::IsMenu((HMENU)(id - SUBMENU_OFFSET))) 
 					pop.AppendMenu( iMenuStyle|MF_POPUP, id-SUBMENU_OFFSET, buttonText);
 				else
 					pop.AppendMenu ( iMenuStyle, id, buttonText);
