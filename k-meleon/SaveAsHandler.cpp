@@ -263,9 +263,10 @@ NS_IMETHODIMP CSaveAsHandler::Save(const char* contentType, const char* disposit
 	{
 		if (!description.IsEmpty())
 			filter = description + _T(" (*.") + extension + _T(")|*.") + extension + _T("|");
-		else if (!extension.IsEmpty())
+		else if (!extension.IsEmpty()) {
 			filter.Format(IDS_UNKNOW_TYPE, extension);
 			filter+=_T(" (*.") + extension + _T(")|*.") + extension + _T("|");
+		}
 	}
 
 	CString filt;
