@@ -253,7 +253,7 @@ public:
 	int GetSecurityState();
 
 	BOOL GetCharset(char* aCharset);
-    BOOL ForceCharset(char *aCharSet);
+    BOOL ForceCharset(const char *aCharSet);
 
 	BOOL Print();
 	BOOL PrintPreview();

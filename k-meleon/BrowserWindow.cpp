@@ -450,7 +450,7 @@ BOOL CBrowserWrapper::GetCharset(char* aCharset)
 	return NS_SUCCEEDED(result);
 }
 
-BOOL CBrowserWrapper::ForceCharset(char *aCharSet)
+BOOL CBrowserWrapper::ForceCharset(const char *aCharSet)
 {
 	nsresult result;
 	nsCOMPtr<nsIDocShell> DocShell = do_GetInterface (mWebBrowser);
