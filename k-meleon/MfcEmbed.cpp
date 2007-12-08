@@ -931,11 +931,11 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
 	   !(chromeMask & nsIWebBrowserChrome::CHROME_WINDOW_RESIZE))
       pFrame->ShowWindow(SW_MAXIMIZE);*/
 
-   if (inBackground)
-	   pFrame->SetWindowPos((CWnd*)theApp.m_FrameWndLst.GetHead(),
-			0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | SWP_SHOWWINDOW);
-   else
+   if (inBackground) {
+      pFrame->SetWindowPos((CWnd*)theApp.m_FrameWndLst.GetHead(),
+         0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | SWP_SHOWWINDOW);
       theApp.m_pMostRecentBrowserFrame = pOldRecentFrame;
+   }
    
    // Add to the list of BrowserFrame windows
    m_FrameWndLst.AddHead(pFrame);
