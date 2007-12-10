@@ -51,6 +51,7 @@ UINT nAddLinkCommand;
 UINT nAddToolbarCommand;
 UINT nEditCommand;
 UINT nDropdownCommand;
+UINT nAddBookmarkHereCommand;
 UINT nFirstBookmarkPosition;
 UINT wm_deferbringtotop;
 
@@ -145,6 +146,7 @@ int Load(){
    nAddLinkCommand = kPlugin.kFuncs->GetCommandIDs(1);
    nEditCommand = kPlugin.kFuncs->GetCommandIDs(1);
    nDropdownCommand = kPlugin.kFuncs->GetCommandIDs(1);
+   nAddBookmarkHereCommand = kPlugin.kFuncs->GetCommandIDs(1);
    wm_deferbringtotop = kPlugin.kFuncs->GetCommandIDs(1);
 
    gBookmarkRoot = new CBookmarkNode(0, _T(""), _T(""), _T(""), _T(""), "", BOOKMARK_FOLDER, 0);

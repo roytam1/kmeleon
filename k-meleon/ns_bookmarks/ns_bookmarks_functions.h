@@ -69,6 +69,7 @@ extern UINT nAddLinkCommand;
 extern UINT nAddToolbarCommand;
 extern UINT nEditCommand;
 extern UINT nDropdownCommand;
+extern UINT nAddBookmarkHereCommand;
 extern UINT nFirstBookmarkPosition;
 extern UINT wm_deferbringtotop;
 
