@@ -220,11 +220,27 @@ public:
       }
       return false;
    }
+
+   CBookmarkNode *FindFolder(HMENU id)
+   {
+      CBookmarkNode *c;
+      for (c=child; c; c=c->next) {
+         if (c->type == BOOKMARK_FOLDER) {
+            if (c->id == (int)id)
+               return c;
+		    CBookmarkNode *retNode = c->FindFolder(id);
+            if (retNode) return retNode;
+         }
+      }
+
+	  return NULL;
+   }
+
    CBookmarkNode *FindNode(int id)
    {
       CBookmarkNode *c;
       for (c=child; c; c=c->next) {
-         if (c->type == BOOKMARK_SEPARATOR) {
+         if (c->type == BOOKMARK_FOLDER) {
             continue;
          }
          else if (c->type == BOOKMARK_FOLDER) {
@@ -240,7 +256,6 @@ public:
                continue;
             }
 */
-
             CBookmarkNode *retNode = c->FindNode(id);
 
             if (retNode) {

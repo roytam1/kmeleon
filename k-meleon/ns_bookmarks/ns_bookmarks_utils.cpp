@@ -893,6 +893,12 @@ int cmenu = max(18,GetSystemMetrics(SM_CYMENU));
 #endif
 
          BuildMenu(childMenu, child, false);
+		 BOOL addBookmark = TRUE;
+		 kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_BOOKMARK_MENUADD, &addBookmark, &addBookmark);
+		 if (addBookmark) {
+			AppendMenu(childMenu, MF_SEPARATOR, 0, _T(""));
+			AppendMenu(childMenu, MF_STRING, nAddBookmarkHereCommand, "Add Bookmark Here");
+		 }
       }
       else if (child->type == BOOKMARK_BOOKMARK) {
 #if 1
@@ -1360,6 +1366,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
    // store these in static vars so that the BeginHotTrack call can access them
    static NMTOOLBAR tbhdr;
    static NMHDR hdr;
+   static HMENU lastMenu = NULL;
 
    if (message == WM_SETFOCUS) {
       hWndFront = hWnd;
@@ -1431,10 +1438,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
          BringWindowToTop(hWnd);
          return true;
       }
+	  else if (command == nAddBookmarkHereCommand) {
+          CBookmarkNode* node = gBookmarkRoot->FindFolder(lastMenu);
+          if (node) {
+             kmeleonDocInfo *dInfo = kPlugin.kFuncs->GetDocInfo(hWnd); 
+             if (dInfo) addLink(dInfo->url, dInfo->title, "", node);
+          }
+          return true;
+	  }
 	  else if (CBookmarkNode *node = gBookmarkRoot->FindNode(command)) {
 	     OpenBookmark(node, hWnd);
          return true;
       }
+	  
    }
    else if (message == WM_NOTIFY) {
       hdr = *((LPNMHDR)lParam);
@@ -1464,6 +1480,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
             return DefWindowProc(hWnd, message, wParam, lParam);
          }
       }
+   }
+   else if (message == WM_INITMENUPOPUP) {
+		lastMenu = (HMENU)wParam;
    }
    else if (message == WM_DEFERHOTTRACK) {
       BeginHotTrack(&tbhdr, kPlugin.hDllInstance, hWnd);
