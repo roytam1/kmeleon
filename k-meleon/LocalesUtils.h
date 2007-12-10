@@ -20,6 +20,7 @@
 #define __LOCALESUTILS_H_
 
 #define KMELEON_PLUGIN_EXPORTS
+#pragma warning(disable:4996) 
 
 #include <windows.h>
 #include <tchar.h>
@@ -153,9 +154,9 @@ private:
 
 	static Locale* mLocale;
 	
-	Locale(HINSTANCE hModule, TCHAR* localedir, TCHAR* name, BOOL userFont)
+	Locale(HINSTANCE hModule, const char* localedir, const char* name, BOOL userFont)
 	{
-		TCHAR* resfilename = new TCHAR[6 + strlen(localedir) + strlen(name)];
+		char* resfilename = new char[6 + strlen(localedir) + strlen(name)];
 		strcpy(resfilename, localedir);
 		strcat(resfilename, "\\");
 		strcat(resfilename, name);

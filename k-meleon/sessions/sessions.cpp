@@ -38,7 +38,6 @@ sessions(undo)
 
 #include "stdafx.h"
 #include <stdlib.h>
-#include <atlconv.h>
 
 #define KMELEON_PLUGIN_EXPORTS
 #include "..\kmeleon_plugin.h"
@@ -212,8 +211,9 @@ void DeleteSession(const char* name)
 
 	kFuncs->DelPreference(prefname);
 	delete [] prefname;*/
-
-	for(int i=0;sessions_list[i];i++)
+	
+	int i;
+	for(i=0;sessions_list[i];i++)
 	{
 		if (strcmp(name, sessions_list[i]) == 0) {
 			delete sessions_list[i];
@@ -451,7 +451,7 @@ void DoMenu(HMENU menu, char *param){
 		  if (sessionsMenu) return;
 	     sessionsMenu = CreateMenu();
 		  BuildSessionMenu();
-		  AppendMenuA(menu, MF_POPUP, (UINT)sessionsMenu, string);
+		  AppendMenuA(menu, MF_POPUP, (UINT_PTR)sessionsMenu, string);
 	  }
 	  /*else if (stricmp(action, "Delete") == 0){
 		  AppendMenu(menu, MF_POPUP, (UINT)sessionsMenu, string);
@@ -522,17 +522,16 @@ ConfigDlgProc( HWND hwnd,
 			
 		  for (int i=0;sessions_list[i];i++)
 		  {
-			  int index;
-			  USES_CONVERSION;
+			  LRESULT index;
 			  index = SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST, CB_ADDSTRING, 
-				0, (LPARAM)(LPTSTR)A2T(sessions_list[i])); 
+				0, (LPARAM)CANSI_to_T(sessions_list[i])); 
 			  SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST, CB_SETITEMDATA, 
 				index, (LPARAM)i);
 			  if (strcmp(name, sessions_list[i]) == 0)
 				  SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST, CB_SETCURSEL, index, 0); 
 
 			  index = SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST2, CB_ADDSTRING, 
-				0, (LPARAM)(LPTSTR)A2T(sessions_list[i])); 
+				0, (LPARAM)CANSI_to_T(sessions_list[i])); 
 			  SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST2, CB_SETITEMDATA, 
 				index, (LPARAM)i); 
 
@@ -557,7 +556,7 @@ ConfigDlgProc( HWND hwnd,
 
 		  switch (LOWORD(wParam)) {
 			case IDOK: {
-				int i = SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST, CB_GETITEMDATA, SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST, CB_GETCURSEL, 0, 0), 0); 
+				LRESULT i = SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST, CB_GETITEMDATA, SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST, CB_GETCURSEL, 0, 0), 0); 
 				if (i!=-1) 
 					kFuncs->SetPreference(PREF_STRING, PREFERENCE_SESSION_OPENSTART, sessions_list[i], FALSE);
 				else
@@ -577,8 +576,8 @@ ConfigDlgProc( HWND hwnd,
 				break;
 
 			case IDC_BUTTON_DELETE: {
-				int index = SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST2, CB_GETCURSEL, 0, 0);
-				int i = SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST2, CB_GETITEMDATA, index , 0); 
+				LRESULT index = SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST2, CB_GETCURSEL, 0, 0);
+				LRESULT i = SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST2, CB_GETITEMDATA, index , 0); 
 				
 				DeleteSession(sessions_list[i]);
 				BuildSessionMenu();
@@ -593,7 +592,7 @@ ConfigDlgProc( HWND hwnd,
 
 		  for (int i=0;sessions_list[i];i++)
 		  {
-			  int index;
+			  LRESULT index;
 			  index = SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST, CB_ADDSTRING, 
 				0, (LPARAM) sessions_list[i]); 
 			  SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST, CB_SETITEMDATA, 
@@ -661,9 +660,7 @@ PromptDlgProc( HWND hwnd,
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-   struct frame* pFrame;
-
-   switch (message) {
+    switch (message) {
 		
 	   case PWM_HACKRESTORE:
 		/*   if (wParam  == SW_SHOWNOACTIVATE)
@@ -749,16 +746,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				// Ask for a session name
 				TCHAR* answer = new TCHAR[256];
 				answer[0]=0;
-				int ok = gLoc->DialogBoxParam(
+				INT_PTR ok = gLoc->DialogBoxParam(
 				  MAKEINTRESOURCE(IDD_PROMPT), hWnd, (DLGPROC)PromptDlgProc,(LPARAM)answer);
 				
 				// Save the session, first remove closed frame
 				// Then rebuild the menu
 				if (ok == IDOK && _tcslen(answer)>0) {
 					currentSession.flush();
-					USES_CONVERSION;
-					currentSession.saveSession((LPSTR)T2A(answer));
-					AddSessionList((LPSTR)T2A(answer));
+					currentSession.saveSession(CT_to_ANSI(answer));
+					AddSessionList(CT_to_ANSI(answer));
 					BuildSessionMenu();
 				}
 				delete [] answer;
