@@ -240,7 +240,7 @@ public:
    {
       CBookmarkNode *c;
       for (c=child; c; c=c->next) {
-         if (c->type == BOOKMARK_FOLDER) {
+         if (c->type == BOOKMARK_SEPARATOR) {
             continue;
          }
          else if (c->type == BOOKMARK_FOLDER) {

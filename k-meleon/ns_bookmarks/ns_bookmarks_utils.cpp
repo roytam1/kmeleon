@@ -49,6 +49,48 @@ extern BOOL bChevronEnabled;
 char szContentType[BOOKMARKS_TITLE_LEN];
 BOOL gLoaded = FALSE;
 
+UINT GetSiteIcon(char* url)
+{
+   char* begin = strstr(url, "://");
+   if (!begin) return 0;
+   char* end = strchr(begin+3, '/');
+   if (end) *end = 0;
+   UINT i = kPlugin.kFuncs->GetIconIdx(url);
+   if (end) *end = '/';
+   return i;
+}
+
+void InitImageList(HIMAGELIST& imageList)
+{
+   if (imageList)
+      ImageList_Destroy(imageList);
+
+   HBITMAP bitmap;
+   int ilc_bits = ILC_COLOR;
+   COLORREF bgCol = RGB(255, 0, 255);
+
+   TCHAR szFullPath[MAX_PATH];
+   FindSkinFile(szFullPath, _T("bookmarks.bmp"));
+   FILE *fp = _tfopen(szFullPath, _T("r"));
+   if (fp) {
+      fclose(fp);
+      bitmap = (HBITMAP)LoadImage(NULL, szFullPath, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+   } else {
+      bitmap = LoadBitmap(kPlugin.hDllInstance, MAKEINTRESOURCE(IDB_IMAGES));
+      bgCol = RGB(192, 192, 192);
+   }
+
+   BITMAP bmp;
+   GetObject(bitmap, sizeof(BITMAP), &bmp);
+
+   ilc_bits = (bmp.bmBitsPixel == 32 ? ILC_COLOR32 : (bmp.bmBitsPixel == 24 ? ILC_COLOR24 : (bmp.bmBitsPixel == 16 ? ILC_COLOR16 : (bmp.bmBitsPixel == 8 ? ILC_COLOR8 : (bmp.bmBitsPixel == 4 ? ILC_COLOR4 : ILC_COLOR)))));
+   imageList = ImageList_Create(bmp.bmWidth/6, bmp.bmHeight, ILC_MASK | ilc_bits, 4, 4);
+   if (imageList && bitmap)
+      ImageList_AddMasked(imageList, bitmap, bgCol);
+   if (bitmap)
+      DeleteObject(bitmap);
+}
+
 // Preferences Dialog function
 BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
    switch (uMsg) {
@@ -222,7 +264,7 @@ char *EncodeQuotes(const char *str) {
 }
 
 char *EncodeString(const char *str) {
-  char *pszStr = (char *)malloc(strlen(str)*6);
+  char *pszStr = (char *)malloc(strlen(str)*6+1);
   if (pszStr) {
     strcpy(pszStr, str);
     GlobalReplace(pszStr, "&",  "&amp;");
@@ -897,7 +939,7 @@ int cmenu = max(18,GetSystemMetrics(SM_CYMENU));
 		 kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_BOOKMARK_MENUADD, &addBookmark, &addBookmark);
 		 if (addBookmark) {
 			AppendMenu(childMenu, MF_SEPARATOR, 0, _T(""));
-			AppendMenu(childMenu, MF_STRING, nAddBookmarkHereCommand, "Add Bookmark Here");
+			AppendMenu(childMenu, MF_STRING, nAddBookmarkHereCommand, gLoc->GetString(IDS_ADD_BOOKMARK_HERE));
 		 }
       }
       else if (child->type == BOOKMARK_BOOKMARK) {
@@ -969,6 +1011,14 @@ BOOL RealDeleteMenu(HMENU menu, UINT pos)
 // Build Rebar
 void BuildRebar(HWND hWndTB)
 {
+   InitImageList(gImagelist);
+
+   HIMAGELIST siteIcons = kPlugin.kFuncs->GetIconList();
+   
+   BOOL useSiteicon = TRUE;
+   kPlugin.kFuncs->GetPreference(PREF_BOOL, "kmeleon.plugins.bookmarks.displaySiteicon", &useSiteicon, &useSiteicon);
+   useSiteicon &= (siteIcons != NULL); 
+
    CBookmarkNode *toolbarNode = gBookmarkRoot->FindSpecialNode(BOOKMARK_FLAG_TB);
 
    SetWindowText(hWndTB, _T(TOOLBAND_NAME));
@@ -1022,7 +1072,20 @@ void BuildRebar(HWND hWndTB)
       }
       else {
          button.idCommand = child->id;
-         button.iBitmap = IMAGE_BOOKMARK;
+		 button.iBitmap = IMAGE_BOOKMARK;
+         if (useSiteicon) {
+            UINT idx = GetSiteIcon((char*)child->url.c_str());
+            if (idx>0) {
+               HICON icon = ImageList_GetIcon(siteIcons, idx, ILD_NORMAL);
+			   if (icon) {
+                  idx = ImageList_AddIcon(gImagelist, icon);
+                  if (idx != -1) button.iBitmap = idx;
+                  DestroyIcon(icon);
+			   }
+            }
+		 }
+		 else
+			
 		 button.dwData = NULL;
       }
 
@@ -1490,6 +1553,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
    }
    else if (message == WM_MENUSELECT) {
       UINT id = LOWORD(wParam);
+	  
       if (id >= nConfigCommand && id < nDropdownCommand) {
          if (id == nConfigCommand)
             kPlugin.kFuncs->SetStatusBarText(gLoc->GetString(IDS_CONFIGURE));
@@ -1501,8 +1565,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
             kPlugin.kFuncs->SetStatusBarText(gLoc->GetString(IDS_EDIT));
          return true;
       } 
-      else if (CBookmarkNode *node = gBookmarkRoot->FindNode(LOWORD(wParam))) {
-         kPlugin.kFuncs->SetStatusBarText(node->url.c_str());
+	  else if (id > 0) {
+         CBookmarkNode *node = gBookmarkRoot->FindNode(id);
+         if (node) 
+			 kPlugin.kFuncs->SetStatusBarText(node->url.c_str());
          return true;
       }
 // this would be a hack to clean the status bar for separators, popups

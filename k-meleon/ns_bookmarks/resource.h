@@ -35,6 +35,7 @@
 #define IDS_ADD                         1020
 #define IDS_ADDLINK                     1021
 #define IDS_EDIT                        1022
+#define IDS_ADD_BOOKMARK_HERE           1023
 #define IDC_TREE_BOOKMARK               1034
 #define IDC_EDIT_URL                    1035
 #define IDC_EDIT_TITLE                  1036

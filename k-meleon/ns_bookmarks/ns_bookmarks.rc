@@ -245,6 +245,7 @@ BEGIN
     IDS_ADD                 "Add to bookmarks"
     IDS_ADDLINK             "Add link to bookmarks"
     IDS_EDIT                "Edit the bookmarks"
+    IDS_ADD_BOOKMARK_HERE   "Add bookmark here"
 END
 
 #endif    // Anglais (États-Unis) resources

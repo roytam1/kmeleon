@@ -61,21 +61,21 @@ CHAR gToolbarFolder[MAX_PATH];
 
 char gBookmarksTitle[BOOKMARKS_TITLE_LEN];
 
-HIMAGELIST gImagelist; // the one and only imagelist...
+HIMAGELIST gImagelist = NULL; // the one and only imagelist...
 
-HMENU gMenuBookmarks;
-HWND ghWndTB;
-HWND ghWndTBParent;
-HWND hWndFront;
-HWND ghWndEdit;
-HANDLE ghMutex;
+HMENU gMenuBookmarks = NULL;
+HWND ghWndTB = NULL;
+HWND ghWndTBParent = NULL;
+HWND hWndFront = NULL;
+HWND ghWndEdit = NULL;
+HANDLE ghMutex = NULL;
 std::map<HWND, HWND> gToolbarList;
 
-BOOL gBookmarksModified = false;
-BOOL gGeneratedByUs = false;
+BOOL gBookmarksModified = FALSE;
+BOOL gGeneratedByUs = FALSE;
 
-BOOL gToolbarEnabled;
-BOOL bChevronEnabled = true;
+BOOL gToolbarEnabled = FALSE;
+BOOL bChevronEnabled = TRUE;
 
 int gMaxMenuLength;
 BOOL gMenuAutoDetect;
@@ -209,30 +209,7 @@ int Load(){
    kPlugin.kFuncs->GetPreference(PREF_INT, PREFERENCE_MAX_TB_SIZE, &gMaxTBSize, &gMaxTBSize);
    if (gMaxTBSize < 1) gMaxTBSize = 20;
 
-   HBITMAP bitmap;
-   int ilc_bits = ILC_COLOR;
-   COLORREF bgCol = RGB(255, 0, 255);
-
-   TCHAR szFullPath[MAX_PATH];
-   FindSkinFile(szFullPath, _T("bookmarks.bmp"));
-   FILE *fp = _tfopen(szFullPath, _T("r"));
-   if (fp) {
-      fclose(fp);
-      bitmap = (HBITMAP)LoadImage(NULL, szFullPath, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-   } else {
-      bitmap = LoadBitmap(kPlugin.hDllInstance, MAKEINTRESOURCE(IDB_IMAGES));
-      bgCol = RGB(192, 192, 192);
-   }
-
-   BITMAP bmp;
-   GetObject(bitmap, sizeof(BITMAP), &bmp);
-
-   ilc_bits = (bmp.bmBitsPixel == 32 ? ILC_COLOR32 : (bmp.bmBitsPixel == 24 ? ILC_COLOR24 : (bmp.bmBitsPixel == 16 ? ILC_COLOR16 : (bmp.bmBitsPixel == 8 ? ILC_COLOR8 : (bmp.bmBitsPixel == 4 ? ILC_COLOR4 : ILC_COLOR)))));
-   gImagelist = ImageList_Create(bmp.bmWidth/6, bmp.bmHeight, ILC_MASK | ilc_bits, 4, 4);
-   if (gImagelist && bitmap)
-      ImageList_AddMasked(gImagelist, bitmap, bgCol);
-   if (bitmap)
-      DeleteObject(bitmap);
+   InitImageList(gImagelist);
 
    strcpy(gBookmarksTitle, gLoc->GetString(IDS_DEFAULT_TITLE));
 	LoadBM(gBookmarkFile);
@@ -390,10 +367,11 @@ void DoRebar(HWND rebarWnd) {
    HWND hWndTmp = CreateWindowEx(0, TOOLBARCLASSNAME, _T(""),
       WS_CHILD | dwStyle,
       0,0,0,0,
-      rebarWnd, (HMENU)/*id*/200,
+      rebarWnd, (HMENU)200,
       kPlugin.hDllInstance, NULL
       );
-
+	
+   //HWND hWndTmp = kPlugin.kFuncs->CreateToolbar(GetParent(rebarWnd), CCS_NODIVIDER | CCS_NOPARENTALIGN | CCS_NORESIZE | TBSTYLE_FLAT | TBSTYLE_TRANSPARENT | TBSTYLE_TOOLTIPS | TBSTYLE_LIST );
    if (!hWndTmp){
      MessageBox(NULL, TOOLBAND_FAILED_TO_CREATE, NULL, 0);
      return;
@@ -444,7 +422,6 @@ void DoRebar(HWND rebarWnd) {
    }
 }
 
-
 // so it doesn't munge the function name
 extern "C" {
 
@@ -466,13 +443,22 @@ extern "C" {
          return 18;
       }
 // FIXME - This is probably way too slow to be useful.
-      if (gBookmarkRoot->FindNode(LOWORD(dis->itemID))) {
-         if (dis->itemState & ODS_SELECTED){
-            ImageList_Draw(gImagelist, IMAGE_BOOKMARK, dis->hDC, dis->rcItem.left, top, ILD_TRANSPARENT | ILD_FOCUS);
-         }
-         else{
-            ImageList_Draw(gImagelist, IMAGE_BOOKMARK, dis->hDC, dis->rcItem.left, top, ILD_TRANSPARENT);
-         }
+	  CBookmarkNode* node = gBookmarkRoot->FindNode(LOWORD(dis->itemID));
+      if (node) {
+		 UINT flags = ILD_NORMAL;
+		 if (dis->itemState & ODS_SELECTED)
+			flags |= ILD_FOCUS;
+
+         HIMAGELIST hList = gImagelist;
+         UINT idx = IMAGE_BOOKMARK;
+
+		 UINT i = GetSiteIcon((char*)node->url.c_str());
+		 if (i > 0) {
+            idx = i;
+            hList = kPlugin.kFuncs->GetIconList();
+		 }
+
+         ImageList_Draw(hList, idx, dis->hDC, dis->rcItem.left, top, flags);
 
          return 18;
       }
