@@ -1685,11 +1685,16 @@ BOOL CBrowserWrapper::Find(const wchar_t* searchString,
 	nsCOMPtr<nsIWebBrowserFind> finder = do_GetInterface(mWebBrowser);
 	NS_ENSURE_TRUE(finder, FALSE);
 
-	finder->SetSearchString(searchString);
-	finder->SetWrapFind(wrapAround);
-	finder->SetMatchCase(matchCase);
+	// Not setting the search parameter when no searchString so that
+	// if a typeahead search is active, it will be used.
+	if (searchString) {
+		finder->SetSearchString(searchString);
+		finder->SetWrapFind(wrapAround);
+		finder->SetMatchCase(matchCase);
+	}
+	
 	finder->SetFindBackwards(backwards);
-
+	
 	// HACK because not use typeahead
 	// The problem with the autosearch feature is that 
 	// webbrowserfind start to search at the end of the 
