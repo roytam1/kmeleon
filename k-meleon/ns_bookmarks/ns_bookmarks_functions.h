@@ -37,7 +37,8 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 // Utils
 BOOL BrowseForBookmarks(TCHAR *file);
-
+UINT GetSiteIcon(char* url);
+void InitImageList(HIMAGELIST& imageList);
 BOOL RealDeleteMenu(HMENU menu, UINT pos);
 void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node);
 void BuildMenu(HMENU menu, CBookmarkNode *node, BOOL isContinuation);
