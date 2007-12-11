@@ -211,7 +211,7 @@ typedef struct {
 
    HMENU (*GetMenu) (char *menu);
 
-   void (*SetForceCharset)(char *aCharset);
+   void (*SetForceCharset)(const char *aCharset);
 
    void (*SetCheck)(int id, BOOL mark/*=TRUE*/);
 
@@ -223,7 +223,7 @@ typedef struct {
 
    void (*ParseAccel)(char *str);
 
-   void (*DelPreference)(char *preference);
+   void (*DelPreference)(const char *preference);
 
    long (*GetPreference)(enum PREFTYPE type, const char *preference, void *ret, void *defaultVal);
 
@@ -240,7 +240,7 @@ typedef struct {
    /* Is it possible to get it otherwise ? */
    BOOL (*GetMozillaWebBrowser)(HWND hWnd, nsIWebBrowser** webBrowser);
 
-   void (*AddStatusBarIcon)(HWND hWnd, int id, HICON hIcon, char* tpText);
+   void (*AddStatusBarIcon)(HWND hWnd, int id, HICON hIcon, const char* tpText);
    void (*RemoveStatusBarIcon)(HWND hWnd, int id);
    
    BOOL (*InjectJS)(const char*, int, HWND);
@@ -302,9 +302,14 @@ typedef struct {
 	BOOL (*SetWindowVar) (HWND, WindowVarType, void*);
 	int (*GetMozillaSessionHistory) (HWND hWnd, char ***titles, char ***urls, int *count, int *index);
 	int (*SetMozillaSessionHistory) (HWND hWnd, const char **titles, const char **urls, int count, int index);
+
+// ----------------------------------------------------
+// Addition in K-meleon 1.5
+
 	BOOL (*GetWindowsList) (HWND* list, unsigned* count);
 	BOOL (*GetTabsList)(HWND hWnd, HWND* list, unsigned* count);
 
+	UINT (*GetIconIdx) (const char* host);
 
 } kmeleonFunctions;
 

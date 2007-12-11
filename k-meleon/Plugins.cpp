@@ -367,7 +367,7 @@ void SetPreference(enum PREFTYPE type, const char *preference, void *val, BOOL u
    //theApp.preferences.Load();
 }
 
-void DelPreference(char *preference)
+void DelPreference(const char *preference)
 {
    theApp.preferences.Clear(preference);
    //theApp.preferences.Flush();
@@ -1043,7 +1043,7 @@ HMENU GetMenu(char *menuName){
    return menu ? menu->m_hMenu : NULL;
 }
 
-void SetForceCharset(char *aCharset)
+void SetForceCharset(const char *aCharset)
 {
 	CBrowserWrapper* browser = GetWrapper();
 	if (!browser) return;
@@ -1227,7 +1227,7 @@ BOOL GetMozillaWebBrowser(HWND hWnd, nsIWebBrowser** webBrowser)
 	return NS_SUCCEEDED(browser->GetWebBrowser(webBrowser));
 }
 
-void AddStatusBarIcon(HWND hWnd, int id, HICON hIcon, char* tpText)
+void AddStatusBarIcon(HWND hWnd, int id, HICON hIcon, const char* tpText)
 {
 	CBrowserFrame *frame = GetFrame(hWnd);
 	if (!frame) return;
@@ -1347,6 +1347,12 @@ BOOL GetTabsList(HWND hWnd, HWND* list, unsigned* count)
 	return TRUE;
 }
 
+UINT GetIconIdx(const char* host)
+{
+	USES_CONVERSION;
+	return theApp.favicons.GetHostIcon(A2CT(host));
+}
+
 kmeleonFunctions kmelFuncs = {
    SendMessage,
    GetCommandIDs,
@@ -1399,7 +1405,8 @@ kmeleonFunctions kmelFuncs = {
    GetMozillaSessionHistory,
    SetMozillaSessionHistory,
    GetWindowsList,
-   GetTabsList
+   GetTabsList,
+   GetIconIdx
 };
 
 BOOL CPlugins::TestLoad(LPCTSTR file, const char *description)
