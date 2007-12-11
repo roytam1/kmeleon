@@ -1397,70 +1397,43 @@ void CBrowserFrame::OnUpdateViewStatusBar(CCmdUI* pCmdUI)
 	pCmdUI->SetCheck(m_wndStatusBar.IsWindowVisible());
 }
 
-void CBrowserFrame::OnFindNext()
+void CBrowserFrame::OnFind(BOOL backward)
 {
 	CBrowserView* view = GetActiveView();
 	if (!view) return;
 
 	CBrowserWrapper* wrapper = view->GetBrowserWrapper();
-
-	if(!m_wndFindBar) {
-		if (!m_searchString || !*m_searchString)
-			OnShowFindBar();
-		else {
-			BOOL didFind = wrapper->Find(m_searchString, 
-					theApp.preferences.bFindMatchCase, 
-					theApp.preferences.bFindWrapAround, 
-					FALSE, FALSE);
-
-			if (!didFind) {
-				OnShowFindBar();
-				if (m_wndFindBar) m_wndFindBar->OnNotFound();
-			}
-		}
+	
+	const wchar_t* searchString = NULL;
+	BOOL ahead = FALSE;
+	if (m_wndFindBar) {
+		searchString = m_wndFindBar->GetUFindString();
+		ahead = m_wndFindBar->StartSel();
+		if (m_searchString) free(m_searchString);
+		m_searchString = wcsdup(searchString);
 	}
-	else
-	{
-		if (m_searchString) {
-			free(m_searchString);
-			m_searchString = NULL;
-		}
 
-		if (m_wndFindBar->GetUFindString())
-			m_searchString = wcsdup(m_wndFindBar->GetUFindString());
+	BOOL didFind = wrapper->Find(searchString, 
+				theApp.preferences.bFindMatchCase, 
+				theApp.preferences.bFindWrapAround, 
+				backward, ahead);
 
-		if (m_searchString) {
+	if (!didFind) {
+		if (!m_wndFindBar) OnShowFindBar();
+		if (m_wndFindBar && m_searchString && *m_searchString) 
+			m_wndFindBar->OnNotFound();
+	} else if (m_wndFindBar)
+		m_wndFindBar->OnFound();
+}
 
-			BOOL didFind = wrapper->Find(m_searchString, 
-					theApp.preferences.bFindMatchCase, 
-					theApp.preferences.bFindWrapAround, 
-					FALSE, m_wndFindBar->StartSel());
-
-			if (*m_searchString && !didFind)
-				m_wndFindBar->OnNotFound();
-			else
-				m_wndFindBar->OnFound();
-		}
-	}
+void CBrowserFrame::OnFindNext()
+{
+	OnFind(FALSE);
 }
 
 void CBrowserFrame::OnFindPrev()
 {
-	CBrowserView* view = GetActiveView();
-	if (!view) return;
-
-	CBrowserWrapper* wrapper = view->GetBrowserWrapper();
-	BOOL didFind = wrapper->Find(m_searchString, 
-					theApp.preferences.bFindMatchCase, 
-					theApp.preferences.bFindWrapAround, 
-					TRUE, FALSE);
-
-	if (!didFind) {
-		OnShowFindBar();
-		m_wndFindBar->OnNotFound();
-	}
-	else if (m_wndFindBar)
-		m_wndFindBar->OnFound();
+	OnFind(TRUE);
 }
 
 void CBrowserFrame::OnWrapAround()
