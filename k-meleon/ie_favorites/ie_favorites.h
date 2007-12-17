@@ -31,9 +31,10 @@ void quicksort(char *a, size_t n, size_t es, cmp_t *cmp, unsigned int flag);
 #include <commctrl.h>
 #include "resource.h"
 
+#define _Tr(x) kPlugin.kFuncs->Translate(x)
+
 #define TOOLBAND_NAME "Favorites"
-#define TOOLBAND_TITLE "Links"
-#define TOOLBAND_FOLDER "Links"
+#define TOOLBAND_TITLE _Tr("Links")
 #define MENU_FOLDER ""
 #define NEWITEM_FOLDER ""
 #define TOOLBAND_FAILED_TO_CREATE "Failed to create favorites toolbar"

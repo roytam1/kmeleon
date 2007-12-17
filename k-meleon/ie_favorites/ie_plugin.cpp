@@ -129,7 +129,16 @@ int Load(){
    nDropdownCommand = kPlugin.kFuncs->GetCommandIDs(1);
    kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_REBAR_ENABLED, &bRebarEnabled, &bRebarEnabled);
    kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_CHEVRON_ENABLED, &bChevronEnabled, &bChevronEnabled);
-   kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_TOOLBAR_FOLDER, gToolbarFolder, (char*)TOOLBAND_FOLDER);
+
+   char toolbandFolder[MAX_PATH] = {0};
+   DWORD type, size = MAX_PATH;
+   HKEY key;
+   if (RegOpenKeyEx(HKEY_CURRENT_USER, "Software\\Microsoft\\Internet Explorer\\Toolbar", 0, KEY_READ, &key) == ERROR_SUCCESS) {
+	  RegQueryValueEx(key, "LinksFolderName", NULL, &type, (LPBYTE)toolbandFolder, &size);
+      RegCloseKey(key);			
+   }
+
+   kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_TOOLBAR_FOLDER, gToolbarFolder, toolbandFolder);
    kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_MENU_FOLDER, gMenuFolder, (char*)MENU_FOLDER);
    kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_NEWITEM_FOLDER, gNewitemFolder, (char*)NEWITEM_FOLDER);
    kPlugin.kFuncs->GetPreference(PREF_INT, PREFERENCE_MENU_MAXLEN, &gMaxMenuLength, &gMaxMenuLength);
