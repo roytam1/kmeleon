@@ -6,45 +6,18 @@ pref("general.useragent.contentlocale", "US");
 
 pref("kmeleon.general.homePage", "resource:///readme.html");
 
-/********************************************************************************************************/
-// Appearance
-
-pref("kmeleon.display.URLbarTitle", "URL:");
-
-pref("kmeleon.plugins.favorites.title", "Links:");
-pref("kmeleon.plugins.favorites.toolbarFolder", "Links");
-
-pref("kmeleon.plugins.layers.title", "Layers:");
-
-
-/********************************************************************************************************/
-// Print
-
-// Letter (8,5" x 11,0"):
-pref("kmeleon.print.paperUnit", 0);
-pref("kmeleon.print.paperWidth", "8,5");
-pref("kmeleon.print.paperHeight", "11,0");
-// Legal (8,5" x 14,0"):
-//pref("kmeleon.print.paperUnit", 0);
-//pref("kmeleon.print.paperWidth", "8,5");
-//pref("kmeleon.print.paperHeight", "14,0");
-// A4 (210 mm x 297 mm):
-//pref("kmeleon.print.paperUnit", 1);
-//pref("kmeleon.print.paperWidth", "210,0");
-//pref("kmeleon.print.paperHeight", "297,0");
-
 
 /********************************************************************************************************/
 // Privacy
 
 pref("kmeleon.privacy.useragent1.name", "Firefox 2.0");
-pref("kmeleon.privacy.useragent1.string", "Mozilla/5.0 (Windows; U; Windows NT 5.0; en-US; rv:1.8.1) Gecko/20061010 Firefox/2.0");
-pref("kmeleon.privacy.useragent2.name", "MSIE 6.0");
-pref("kmeleon.privacy.useragent2.string", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
-pref("kmeleon.privacy.useragent3.name", "Netscape 8.1");
-pref("kmeleon.privacy.useragent3.string", "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.7.5) Gecko/20060127 Netscape/8.1");
-pref("kmeleon.privacy.useragent4.name", "Opera 7.54");
-pref("kmeleon.privacy.useragent4.string", "Opera/7.54 (Windows NT 5.1; U) [en]");
+pref("kmeleon.privacy.useragent1.string", "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.6) Gecko/20070725 Firefox/2.0.0.6");
+pref("kmeleon.privacy.useragent2.name", "MSIE 7.0");
+pref("kmeleon.privacy.useragent2.string", "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)");
+pref("kmeleon.privacy.useragent3.name", "Opera 9.23");
+pref("kmeleon.privacy.useragent3.string", "Opera/9.23 (Windows NT 5.1; U; en)");
+pref("kmeleon.privacy.useragent4.name", "SeaMonkey 1.1");
+pref("kmeleon.privacy.useragent4.string", "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.6) Gecko/20070802 SeaMonkey/1.1.4");
 
 
 /********************************************************************************************************/
