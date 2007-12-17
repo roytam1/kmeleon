@@ -590,6 +590,7 @@
 #define IDS_CLOSE_SEVERAL_TABS          62257
 #define IDS_MAXTABSNUMBER               62258
 #define IDS_PREFS_TABS                  62259
+#define IDS_TOOLBAR_URL                 62260
 
 // Next default values for new objects
 // 
