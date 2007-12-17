@@ -1741,6 +1741,7 @@ BEGIN
     IDS_CLOSE_SEVERAL_TABS  "There are %d tabs open in this window.\r\nDo you want to close all of them?"
     IDS_MAXTABSNUMBER       "The maximun number of tabs has been reached!"
     IDS_PREFS_TABS          "Tabs"
+    IDS_TOOLBAR_URL         "URL:"
 END
 
 #endif    // Anglais (États-Unis) resources
