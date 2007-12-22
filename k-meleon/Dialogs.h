@@ -69,7 +69,7 @@ public:
 			MessageBeep(MB_ICONASTERISK);
 		}
 	}
-	void OnFound() {m_NotFound=false;m_cEdit.Invalidate();}
+	void OnFound() {m_NotFound=false;Invalidate();m_cEdit.Invalidate();}
 	inline CString GetFindString( ) const {return m_csSearchStr;}
 
 	inline BOOL WrapAround() {return m_cToolbar.GetToolBarCtrl().IsButtonChecked(IDC_WRAP_AROUND);}
