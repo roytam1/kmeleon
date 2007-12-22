@@ -151,9 +151,12 @@ BOOL CFavIconList::Create(int cx, int cy, UINT nFlags, int nInitial, int nGrow)
 		else
 		{
 			CArchive ar(&iconCache, CArchive::load );
-			if (Read(&ar)) {
-				m_urlMap.Serialize(ar);
-			}
+			TRY
+				if (Read(&ar))
+					m_urlMap.Serialize(ar);
+			CATCH (CArchiveException, e)
+				DeleteImageList();
+			END_CATCH
 		}
 	}
 
