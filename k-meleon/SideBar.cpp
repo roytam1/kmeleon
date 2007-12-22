@@ -419,7 +419,7 @@ int CSideBar::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	//CToolBar *toolbar = new CToolBar();
 	closeBar.CreateEx(&m_wndRebar, TBSTYLE_FLAT|TBSTYLE_TRANSPARENT,
 		WS_CHILD|WS_VISIBLE);
-	closeBar.LoadToolBar(IDR_TOOLBAR1);
+	closeBar.LoadToolBar(IDR_TOOLBAR_CLOSE);
 	closeBar.GetToolBarCtrl().SetBitmapSize(CSize(10,10));
 
    	// Add the bar for the top toolbar and the title

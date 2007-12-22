@@ -92,6 +92,7 @@ END_MESSAGE_MAP()
 
 CFindRebar::~CFindRebar()
 {
+	m_bStartsel = false;
 }
 
 BOOL CFindRebar::Create(CWnd* parent, DWORD dwStyle)
@@ -164,7 +165,7 @@ int CFindRebar::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 	// Band with the close button
 	closeBar.CreateEx(this, TBSTYLE_FLAT|TBSTYLE_TRANSPARENT);
-	closeBar.LoadToolBar(IDR_TOOLBAR1);
+	closeBar.LoadToolBar(IDR_TOOLBAR_CLOSE);
 	closeBar.GetToolBarCtrl().SetBitmapSize(CSize(10,10));
 
 	AddBar(&closeBar, _T(""), NULL, RBBS_NOGRIPPER);

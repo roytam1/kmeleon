@@ -1493,17 +1493,17 @@ void CBrowserFrame::UpdateSecurityStatus(PRInt32 aState)
 	UINT tpTextId, iconResID;
 
 	if(aState & nsIWebProgressListener::STATE_IS_INSECURE) {
-		iconResID = IDR_SECURITY_UNLOCK;
+		iconResID = IDI_SECURITY_UNLOCK;
 		m_wndUrlBar.Highlight(0);
 		tpTextId = IDS_SECURITY_UNLOCK;
 	}
 	else if(aState & nsIWebProgressListener::STATE_IS_BROKEN) {
-		iconResID = IDR_SECURITY_BROKEN;
+		iconResID = IDI_SECURITY_BROKEN;
 		m_wndUrlBar.Highlight(2);
 		tpTextId = IDS_SECURITY_BROKEN;
 	}  
 	else if(aState & nsIWebProgressListener::STATE_IS_SECURE) {
-		iconResID = IDR_SECURITY_LOCK;
+		iconResID = IDI_SECURITY_LOCK;
 		m_wndUrlBar.Highlight(1);
 		tpTextId = IDS_SECURITY_LOCK;
 	}

@@ -186,12 +186,12 @@ BOOL CPreferencePage::OnInitDialog(){
          TCHAR buf[256], uabuf[256];
 		 char pref[34];
          int x=1,y,index=0;
-         SendDlgItemMessage(IDC_COMBO, CB_ADDSTRING, 0, (LONG) _T("Default"));
+         SendDlgItemMessage(IDC_COMBO_USERAGENT, CB_ADDSTRING, 0, (LONG) _T("Default"));
          do {
             sprintf(pref, "kmeleon.privacy.useragent%d.name", x);
             theApp.preferences.GetString(pref, buf, _T(""));
             if (*buf)
-               SendDlgItemMessage(IDC_COMBO, CB_ADDSTRING, 0, (LONG) buf);
+               SendDlgItemMessage(IDC_COMBO_USERAGENT, CB_ADDSTRING, 0, (LONG) buf);
             x++;
          } while (*buf);
          
@@ -204,7 +204,7 @@ BOOL CPreferencePage::OnInitDialog(){
                   index=y;
             }
          }
-         SendDlgItemMessage(IDC_COMBO, CB_SETCURSEL, index, 0);
+         SendDlgItemMessage(IDC_COMBO_USERAGENT, CB_SETCURSEL, index, 0);
 		 OnBnClickedDisablePopup();
          break;
       }
@@ -348,7 +348,7 @@ BEGIN_MESSAGE_MAP(CPreferencePage, CDialog)
 	ON_BN_CLICKED(IDC_POPUP_PERMISSIONS, OnPopupPermissions)
 	ON_BN_CLICKED(IDC_BUTTON_CLEAR_MEM_CACHE, OnClearMemCache)
 	ON_BN_CLICKED(IDC_BUTTON_CLEAR_DISK_CACHE, OnClearDiskCache)
-   ON_CBN_SELCHANGE(IDC_COMBO, OnComboChanged)
+   ON_CBN_SELCHANGE(IDC_COMBO_USERAGENT, OnComboChanged)
    ON_CBN_SELCHANGE(IDC_COMBO_SKIN, OnComboChanged)
   //}}AFX_MSG_MAP
   ON_BN_CLICKED(IDC_CHECK_LOAD, OnBnClickedDisablePopup)
@@ -456,7 +456,7 @@ void CPreferencePage::OnComboChanged() {
          TCHAR buf[256];
 		 char pref[34];
 
-         index = SendDlgItemMessage(IDC_COMBO, CB_GETCURSEL, 0, 0);
+         index = SendDlgItemMessage(IDC_COMBO_USERAGENT, CB_GETCURSEL, 0, 0);
 
           if (index == 0)
 	    // theApp.preferences.GetString("general.useragent.override", buf, "");
