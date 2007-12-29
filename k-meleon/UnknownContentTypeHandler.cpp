@@ -30,13 +30,10 @@
 #include "MozUtils.h"
 #include "MfcEmbed.h"
 
-
 #include "nsIFileURL.h"
 #include "nsIHttpChannel.h"
 #include "nsIMIMEInfo.h"
-#include ".\unknowncontenttypehandler.h"
-
-extern CWnd* CWndForDOMWindow(nsIDOMWindow *aWindow);
+#include "nsIWindowWatcher.h"
 
 NS_IMETHODIMP
 CUnknownContentTypeHandler::Show(CWnd* parent)
@@ -126,6 +123,23 @@ CUnknownContentTypeHandler::Show(CWnd* parent)
 	else
 		rv = mAppLauncher->Cancel(NS_ERROR_ABORT);
 
+	// If the window that launched the download is "about:blank"
+	// then we need to close it.
+	BOOL closeParent = !GetUriForDOMWindow(mDomWindow).Compare(_T("about:blank"));
+	if (mDomWindow && closeParent)
+	{
+		nsCOMPtr<nsIWindowWatcher> mWWatch(do_GetService(NS_WINDOWWATCHER_CONTRACTID));
+		if (mWWatch) {
+			nsCOMPtr<nsIWebBrowserChrome> chrome;
+			CWnd *val = 0;
+
+			nsCOMPtr<nsIDOMWindow> fosterParent;
+			mWWatch->GetChromeForWindow(mDomWindow, getter_AddRefs(chrome));
+			if (chrome)
+				chrome->DestroyBrowserWindow();
+		}
+	}
+
 	return rv;
 }
 
@@ -143,8 +157,8 @@ CUnknownContentTypeHandler::Show( nsIHelperAppLauncher *aLauncher, nsISupports *
 	// The dialogs asking open/save or for the location must be closed at 
 	// the same time than the error message.
 
-	nsCOMPtr<nsIDOMWindow> parent = do_GetInterface (aContext);
-	CWnd* wnd = CWndForDOMWindow(parent);
+	mDomWindow = do_GetInterface (aContext);
+	CWnd* wnd = CWndForDOMWindow(mDomWindow);
 
 	theApp.m_pMainWnd->PostMessage(WM_DEFERSHOW, (WPARAM)wnd, (LPARAM)this);
 
