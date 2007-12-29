@@ -107,8 +107,10 @@ public:
 
 	CBrowserTab* CreateBrowserTab(bool first=false);
 	void SetActiveBrowser(CBrowserTab*);
+	BOOL SafeSetActiveBrowser(CBrowserTab*);
 	BOOL CloseTab(CBrowserTab*);
 	virtual CBrowserView* GetActiveView() { return (CBrowserView*)m_wndCBrowserTab; }
+	CBrowserTab* GetActiveTab() { return m_wndCBrowserTab; }
 
 	BOOL SetTabIcon(CBrowserTab* tab, int icon) {
 		return m_wndTabs->SetItemImage(TABINDEXTOID(tab->m_iIndex), icon);

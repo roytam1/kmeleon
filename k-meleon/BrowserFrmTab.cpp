@@ -323,6 +323,20 @@ void CBrowserFrmTab::OnTabSelect(UINT id)
 	SetActiveBrowser(m_Tabs[index]);
 }
 
+BOOL CBrowserFrmTab::SafeSetActiveBrowser(CBrowserTab* aNewActiveTab)
+{
+	unsigned count = GetTabCount();
+	if (!count) return FALSE;
+	
+	for (unsigned i=0; i<count; i++) 
+		if (GetTabIndex(i) == aNewActiveTab) {
+			SetActiveBrowser(aNewActiveTab);
+			return TRUE;
+		}
+
+	return FALSE;
+}
+
 //void CBrowserFrame::SetActiveBrowser(int index)
 void CBrowserFrmTab::SetActiveBrowser(CBrowserTab* aNewActiveTab)
 {
@@ -478,7 +492,7 @@ LRESULT CBrowserFrmTab::OnOpenTab(WPARAM wParam, LPARAM lParam)
 	USES_CONVERSION;
 	if (wParam) tab->OpenURL(A2CT((char*)wParam));
 	SetActiveBrowser(tab);
-	return (LRESULT)tab;
+	return (LRESULT)tab;	
 }
 
 LRESULT CBrowserFrmTab::OnCloseTab(WPARAM wParam, LPARAM lParam)
