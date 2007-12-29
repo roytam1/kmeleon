@@ -22,7 +22,7 @@ public:
     NS_DEFINE_STATIC_CID_ACCESSOR( NS_UNKNOWNCONTENTTYPEHANDLER_CID );
 
     // ctor/dtor
-    CUnknownContentTypeHandler() {
+	CUnknownContentTypeHandler() {
     }
     virtual ~CUnknownContentTypeHandler() {
     }
@@ -38,6 +38,7 @@ public:
 
 protected:
 	nsCOMPtr<nsIHelperAppLauncher> mAppLauncher;
+	nsCOMPtr<nsIDOMWindow> mDomWindow;
 
 }; // CUnknownContentTypeHandler
 

@@ -98,34 +98,54 @@ nsresult GetDOMEventTarget (nsIWebBrowser* aWebBrowser, nsIDOMEventTarget** aTar
 	return domWin2->GetWindowRoot (aTarget);
 }
 
-
 CWnd* CWndForDOMWindow(nsIDOMWindow *aWindow)
 {
-  nsCOMPtr<nsIWindowWatcher> mWWatch(do_GetService(NS_WINDOWWATCHER_CONTRACTID));
-  NS_ENSURE_TRUE (mWWatch, nsnull);
+	nsCOMPtr<nsIWindowWatcher> mWWatch(do_GetService(NS_WINDOWWATCHER_CONTRACTID));
+	NS_ENSURE_TRUE(mWWatch, NULL);
 
-  nsCOMPtr<nsIWebBrowserChrome> chrome;
-  CWnd *val = 0;
+	nsCOMPtr<nsIWebBrowserChrome> chrome;
+	CWnd *val = 0;
+	
+	if (!aWindow) {
+		// it will be a dependent window. try to find a foster parent.
+		nsCOMPtr<nsIDOMWindow> fosterParent;
+		mWWatch->GetActiveWindow(getter_AddRefs(fosterParent));
+		aWindow = fosterParent;
+	}
 
-  if (mWWatch) {
-    nsCOMPtr<nsIDOMWindow> fosterParent;
-    if (!aWindow) { // it will be a dependent window. try to find a foster parent.
-      mWWatch->GetActiveWindow(getter_AddRefs(fosterParent));
-      aWindow = fosterParent;
-    }
-    mWWatch->GetChromeForWindow(aWindow, getter_AddRefs(chrome));
-  }
+	mWWatch->GetChromeForWindow(aWindow, getter_AddRefs(chrome));
+	NS_ENSURE_TRUE(chrome, NULL);
 
-  if (chrome) {
-    nsCOMPtr<nsIEmbeddingSiteWindow> site(do_QueryInterface(chrome));
-    if (site) {
-      HWND w;
-      site->GetSiteWindow(reinterpret_cast<void **>(&w));
-      val = CWnd::FromHandle(w);
-    }
-  }
+	nsCOMPtr<nsIEmbeddingSiteWindow> site(do_QueryInterface(chrome));
+	NS_ENSURE_TRUE(site, NULL);
 
-  return val;
+	HWND w;
+	site->GetSiteWindow(reinterpret_cast<void **>(&w));
+
+	return CWnd::FromHandle(w);
+}
+
+CString GetUriForDOMWindow(nsIDOMWindow *aWindow)
+{
+	NS_ENSURE_TRUE(aWindow, _T(""));
+
+	nsresult rv;
+	nsCOMPtr<nsIDOMDocument> document;
+	rv = aWindow->GetDocument(getter_AddRefs(document));
+	NS_ENSURE_SUCCESS(rv, _T(""));
+
+	nsCOMPtr<nsIDOMNSDocument> nsDoc = do_QueryInterface(document);
+	NS_ENSURE_TRUE(nsDoc, _T(""));
+
+	nsCOMPtr<nsIDOMLocation> location;
+	nsDoc->GetLocation(getter_AddRefs(location));
+	NS_ENSURE_TRUE(location, _T(""));
+	
+	nsEmbedString url;
+	rv = location->GetHref(url);
+	NS_ENSURE_SUCCESS(rv, _T(""));
+
+	return NSStringToCString(url);
 }
 
 CString GetMozDirectory(char* dirName)

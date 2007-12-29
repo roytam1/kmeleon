@@ -23,6 +23,7 @@ nsresult NewURI(nsIURI **result, const nsACString &spec);
 nsresult NewURI(nsIURI **result, const nsAString &spec);
 nsresult GetDOMEventTarget (nsIWebBrowser* aWebBrowser, nsIDOMEventTarget** aTarget);
 CWnd* CWndForDOMWindow(nsIDOMWindow *aWindow);
+CString GetUriForDOMWindow(nsIDOMWindow *aWindow);
 
 CString GetMozDirectory(char* dirName);
 BOOL GetLinkTitleAndHref(nsIDOMNode* node, CString& aHref, CString& aTitle);
