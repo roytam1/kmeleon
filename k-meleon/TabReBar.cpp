@@ -504,14 +504,33 @@ void CTabReBar::HandleMouseClick(int flag, CPoint point)
 			CMenu* menu = theApp.menus.GetMenu(_T("TabButtonPopup"));
 			if (!menu) return;
 			RECT* rect = 0;
-			if (buttonID>0)
+			CBrowserTab* tab = NULL;
+			if (buttonID>=0)
 			{
 				rect = new RECT;
 				GetToolBarCtrl().GetItemRect(buttonID, rect);	
+				TBBUTTON button;
+				GetToolBarCtrl().GetButton(buttonID, &button);
+				tab = (CBrowserTab*)button.dwData;
 			}
-			GetToolBarCtrl().GetItemRect(buttonID, rect);
 			ClientToScreen(&point);
-			menu->TrackPopupMenu(TPM_LEFTALIGN | TPM_RIGHTBUTTON, point.x, point.y, GetParentFrame(), rect);
+			UINT cmd = menu->TrackPopupMenu(TPM_NONOTIFY | TPM_RETURNCMD | TPM_LEFTALIGN | TPM_RIGHTBUTTON, point.x, point.y, GetParentFrame(), rect);
+			
+			// XXX Change temporarily the active tab so that the menu 
+			// action affect the focussed tab
+
+			CBrowserFrmTab* frame =(CBrowserFrmTab*)GetParentFrame();
+			ASSERT(frame->IsKindOf(RUNTIME_CLASS(CBrowserFrmTab)));
+			
+			CBrowserTab* pTab = frame->GetActiveTab();
+			if (tab && pTab!= tab)
+				frame->SetActiveBrowser(tab);
+
+			frame->SendMessage(WM_COMMAND,  MAKELONG(cmd,0), 0);
+			
+			if (tab && pTab!= tab)
+				frame->SafeSetActiveBrowser(pTab);
+
 			if (rect) delete rect;
 			break;
 		}
@@ -622,23 +641,9 @@ void CTabReBar::OnMouseMove(UINT nFlags, CPoint point)
 		mDragItem = -1;
 		GlobalFree(hTab);
 		return;
-
-		mDrag = TRUE;
-		theApp.favicons.DragShowNolock(TRUE);
-		theApp.favicons.BeginDrag(0, CPoint(16,16));
-		theApp.favicons.SetDragCursorImage(GetItemImage(GetItemID(GetButtonIDFromPoint(mDragPoint))), CPoint(0,0));
-		//theApp.favicons.DragMove(ptAction);
-		theApp.favicons.DragEnter(this, point);	// NULL means desktop screen
-
-		HCURSOR cursor = ::LoadCursor(NULL, IDC_SIZEALL);
-		SetCursor(cursor);
 	}
 
-	if (!mDrag) 
-		CToolBar::OnMouseMove(nFlags, point);
-
-	//ClientToScreen(&point);
-	theApp.favicons.DragMove(point);
+	CToolBar::OnMouseMove(nFlags, point);
 }
 
 void CTabReBar::OnSize(UINT nType, int cx, int cy)
