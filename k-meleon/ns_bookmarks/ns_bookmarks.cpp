@@ -435,10 +435,10 @@ extern "C" {
 
       if (GetMenuState((HMENU)dis->hwndItem, dis->itemID, 0) & MF_POPUP){
          if (dis->itemState & ODS_SELECTED){
-            ImageList_Draw(gImagelist, IMAGE_FOLDER_OPEN, dis->hDC, dis->rcItem.left, top, ILD_TRANSPARENT | ILD_FOCUS );
+            ImageList_Draw(gImagelist, IMAGE_FOLDER_OPEN, dis->hDC, dis->rcItem.left+2, top, ILD_TRANSPARENT | ILD_FOCUS );
          }
          else{
-            ImageList_Draw(gImagelist, IMAGE_FOLDER_CLOSED, dis->hDC, dis->rcItem.left, top, ILD_TRANSPARENT);
+            ImageList_Draw(gImagelist, IMAGE_FOLDER_CLOSED, dis->hDC, dis->rcItem.left+2, top, ILD_TRANSPARENT);
          }
          return 18;
       }
@@ -458,7 +458,7 @@ extern "C" {
             hList = kPlugin.kFuncs->GetIconList();
 		 }
 
-         ImageList_Draw(hList, idx, dis->hDC, dis->rcItem.left, top, flags);
+         ImageList_Draw(hList, idx, dis->hDC, dis->rcItem.left+2, top, flags);
 
          return 18;
       }
