@@ -165,7 +165,7 @@ BOOL CBrowserView::OpenViewSourceWindow(BOOL frame)
 
 	nsCOMPtr<nsISupports> cacheDescriptor = m_pWindow->GetPageDescriptor(frame);
 
-	CBrowserFrame* pFrm = CreateNewBrowserFrame(chromeFlags);
+	CBrowserFrame* pFrm = theApp.CreateNewBrowserFrame(chromeFlags);
     if(!pFrm) return FALSE;
 	pFrm->SetWindowPos(NULL, x, y, w, h, SWP_NOZORDER|SWP_SHOWWINDOW);    	
 
@@ -313,8 +313,9 @@ void CBrowserView::OpenURL(const char* pUrl, nsIURI *refURI, BOOL allowFixup)
 
 void CBrowserView::OpenURL(LPCTSTR url, LPCTSTR referrer, BOOL allowFixup)
 {
-   //mpBrowserFrame->UpdateLocation(url, TRUE);
-     
+   if (!url) return;
+	//mpBrowserFrame->UpdateLocation(url, TRUE);
+
    if ( GetActiveWindow() == mpBrowserFrame &&
 	   !::IsChild(m_hWnd, ::GetFocus()))
 	  m_pWindow->SetActive(TRUE);
@@ -336,17 +337,6 @@ void CBrowserView::OpenURL(LPCTSTR url, BOOL sendRef, BOOL allowFixup)
    m_pWindow->LoadURL(url, sendRef, allowFixup);
 }*/
 
-CBrowserFrame* CBrowserView::CreateNewBrowserFrame(PRUint32 chromeMask, 
-				    PRInt32 x, PRInt32 y, 
-				    PRInt32 cx, PRInt32 cy,
-				    PRBool bShowWindow)
-{  
-    CMfcEmbedApp *pApp = (CMfcEmbedApp *)AfxGetApp();
-    if(!pApp)
-	return NULL;
-
-    return pApp->CreateNewBrowserFrame(chromeMask, bShowWindow);
-}
 /*
 CBrowserFrame* CBrowserView::OpenURLInNewWindow(const char* pUrl, BOOL bBackground, nsIURI *refURI, BOOL allowFixup)
 {
@@ -357,9 +347,6 @@ CBrowserFrame* CBrowserView::OpenURLInNewWindow(const char* pUrl, BOOL bBackgrou
 
 CBrowserFrame* CBrowserView::OpenURLInNewWindow(LPCTSTR pUrl, LPCTSTR referrer, BOOL bBackground, BOOL allowFixup)
 {
-	if(!pUrl)
-        return NULL; 
-
 	if (GetCurrentURI() == "about:blank") {
 		OpenURL(pUrl, referrer, allowFixup);
 		return mpBrowserFrame;

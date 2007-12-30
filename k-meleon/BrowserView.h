@@ -152,22 +152,6 @@ public:
 
 	BOOL CloneBrowser(CBrowserView* browserView) { return m_pWindow->CloneSHistory(browserView->m_pWindow); }
 
-	CBrowserFrame* CreateNewBrowserFrame(
-						PRUint32 chromeMask = nsIWebBrowserChrome::CHROME_ALL, 
-						PRInt32 x = -1, PRInt32 y = -1, 
-						PRInt32 cx = -1, PRInt32 cy = -1,
-						PRBool bShowWindow = PR_TRUE);
-	/*
-	void OpenURL(const char* pUrl, nsIURI *refURI=nsnull, BOOL allowFixup = FALSE);
-	void OpenURL(const PRUnichar* pUrl, nsIURI *refURI=nsnull, BOOL allowFixup = FALSE);
-	
-    //void OpenSingleURL(char *urls);
-   
-
-	CBrowserFrame* OpenURLInNewWindow(const char* pUrl, BOOL bBackground=FALSE, nsIURI *refURI=nsnull, BOOL allowFixup = FALSE);
-    CBrowserFrame* OpenURLInNewWindow(const PRUnichar* pUrl, BOOL bBackground=FALSE, nsIURI *refURI=nsnull, BOOL allowFixup = FALSE);
-	*/
-
 	// Called by the CBrowserFrame after it creates the view
 	// Essentially a back pointer to the BrowserFrame
 	void SetBrowserFrame(CBrowserFrame* pBrowserFrame);
