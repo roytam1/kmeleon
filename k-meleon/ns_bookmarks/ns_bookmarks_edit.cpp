@@ -57,7 +57,7 @@ extern void * KMeleonWndProc;
 
 // Our functions
 
-static void FillTree(HWND hTree, HTREEITEM parent, CBookmarkNode &node);
+static void FillTree(HWND hTree, HTREEITEM parent, CBookmarkNode &node, BOOL useSiteicon);
 static void OnSize(int height, int width);
 static void OnRClick(HWND hTree);
 static void ImportFavorites(HWND hTree);
@@ -625,7 +625,12 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
          hTBitem = hNBitem = hBMitem = newItem;
          workingBookmarks->flags = BOOKMARK_FLAG_TB | BOOKMARK_FLAG_NB | BOOKMARK_FLAG_BM;
 
-         FillTree(hTree, newItem, *workingBookmarks);
+		 HIMAGELIST siteIcons = kPlugin.kFuncs->GetIconList();
+         BOOL useSiteicon = TRUE;
+         kPlugin.kFuncs->GetPreference(PREF_BOOL, "kmeleon.plugins.bookmarks.displaySiteicon", &useSiteicon, &useSiteicon);
+         useSiteicon &= (siteIcons != NULL); 
+            		
+         FillTree(hTree, newItem, *workingBookmarks, useSiteicon);
 
          TreeView_Expand(hTree, newItem, TVE_EXPAND);
 
@@ -1072,7 +1077,7 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
    return false;
 }
 
-static void FillTree(HWND hTree, HTREEITEM parent, CBookmarkNode &node)
+static void FillTree(HWND hTree, HTREEITEM parent, CBookmarkNode &node, BOOL useSiteicon)
 {
    TVINSERTSTRUCT tvis;
    tvis.hParent = parent;
@@ -1104,7 +1109,7 @@ static void FillTree(HWND hTree, HTREEITEM parent, CBookmarkNode &node)
             ChangeSpecialFolder(hTree, &hNBitem, thisItem, BOOKMARK_FLAG_NB);
          }
 
-         FillTree(hTree, thisItem, *child);
+         FillTree(hTree, thisItem, *child, useSiteicon);
       }
       else if (type == BOOKMARK_SEPARATOR) {
          tvis.itemex.iImage = IMAGE_BLANK;
@@ -1114,7 +1119,19 @@ static void FillTree(HWND hTree, HTREEITEM parent, CBookmarkNode &node)
       }
       else {
          tvis.itemex.iImage = IMAGE_BOOKMARK;
-         tvis.itemex.iSelectedImage = IMAGE_BOOKMARK;
+         if (useSiteicon) {
+            UINT idx = GetSiteIcon((char*)child->url.c_str());
+            if (idx>0) {
+			   HICON icon = ImageList_GetIcon(kPlugin.kFuncs->GetIconList(), idx, ILD_NORMAL);
+			   if (icon) {
+                  idx = ImageList_AddIcon(gImagelist, icon);
+				  if (idx != -1)
+					  tvis.itemex.iImage = idx;
+                  DestroyIcon(icon);
+			   }
+            }
+		 }
+         tvis.itemex.iSelectedImage = tvis.itemex.iImage;
          tvis.itemex.pszText = (char *)child->text.c_str();
          TreeView_InsertItem(hTree, &tvis);
       }
@@ -1742,7 +1759,10 @@ static void OnRClick(HWND hTree)
             int order = 21;
             node->sort( (order << 1) | (command==ID__SORT_ALL) );
             
-            FillTree(hTree, hItem, *node);
+            BOOL useSiteicon = TRUE;
+            kPlugin.kFuncs->GetPreference(PREF_BOOL, "kmeleon.plugins.bookmarks.displaySiteicon", &useSiteicon, &useSiteicon);
+            useSiteicon &= (kPlugin.kFuncs->GetIconList() != NULL); 
+            FillTree(hTree, hItem, *node, useSiteicon);
             
             TreeView_Expand(hTree, hItem, TVE_EXPAND);
             TreeView_SelectItem(hTree, hItem);
@@ -1947,8 +1967,11 @@ static void ImportFavorites(HWND hTree) {
    tvis.itemex.lParam = (long)newFavoritesNode;
 
    HTREEITEM newItem = TreeView_InsertItem(hTree, &tvis);
-
-   FillTree(hTree, newItem, *newFavoritesNode);
+   
+   BOOL useSiteicon = TRUE;
+   kPlugin.kFuncs->GetPreference(PREF_BOOL, "kmeleon.plugins.bookmarks.displaySiteicon", &useSiteicon, &useSiteicon);
+   useSiteicon &= (kPlugin.kFuncs->GetIconList() != NULL); 
+   FillTree(hTree, newItem, *newFavoritesNode, useSiteicon);
 
    TreeView_SelectItem(hTree, newItem);
 }
