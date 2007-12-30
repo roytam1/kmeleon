@@ -255,7 +255,7 @@ int GlobalReplace(char *str, char *a, char *b) {
 }
 
 char *EncodeQuotes(const char *str) {
-  char *pszStr = (char *)malloc(strlen(str)*3);
+  char *pszStr = (char *)malloc(strlen(str)*3+1);
   if (pszStr) {
     strcpy(pszStr, str);
     GlobalReplace(pszStr, "\"", "%22");
@@ -1084,8 +1084,6 @@ void BuildRebar(HWND hWndTB)
 			   }
             }
 		 }
-		 else
-			
 		 button.dwData = NULL;
       }
 
