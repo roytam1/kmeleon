@@ -211,58 +211,53 @@ BOOL ParsePluginCommand(char *pszCommand, char** plugin, char **parameter)
 HWND NavigateTo(const char *url, int windowState, HWND mainWnd)
 {
    CBrowserFrame *frame = GetFrame(mainWnd);
-   
+   CBrowserView *view = frame ? frame->GetActiveView() : NULL;
+
    USES_CONVERSION;
    LPCTSTR lpctUrl = A2CT(url);
    CBrowserFrame* newFrame = NULL;
    CBrowserTab* newTab = NULL;
+   BOOL bBackground = FALSE;
 
    switch(windowState&15) {
    case OPEN_NORMAL:
       if (!frame) return NULL;
       if (lpctUrl) frame->OpenURL(lpctUrl);
       break;
+   
+   case OPEN_BACKGROUND: 
+	   bBackground = TRUE;
    case OPEN_NEW:
-      newFrame = lpctUrl ? 
-         theApp.CreateNewBrowserFrameWithUrl(lpctUrl) :  
-         theApp.CreateNewBrowserFrame();
-      break;
-   case OPEN_BACKGROUND:
-      newFrame = lpctUrl ? 
-         theApp.CreateNewBrowserFrameWithUrl(lpctUrl, NULL, TRUE) :  
-         theApp.CreateNewBrowserFrame(nsIWebBrowserChrome::CHROME_ALL, TRUE);
-      break;
-   case OPEN_NEWTAB:
-      if (!frame) return NULL;
-      if (!frame->IsKindOf(RUNTIME_CLASS(CBrowserFrmTab)))
-         return NULL;
-      
-	  newTab = ((CBrowserFrmTab*)frame)->CreateBrowserTab();
-	  if (!newTab) return NULL;
-
-      if (windowState & OPEN_CLONE) {
-         CBrowserView *view = frame->GetActiveView(); 
-         if (view) view->CloneBrowser(newTab);
-	  } else newTab->OpenURL(lpctUrl);
-
-	  ((CBrowserFrmTab*)frame)->SetActiveBrowser(newTab);
+      if (!lpctUrl)
+         newFrame = theApp.CreateNewBrowserFrame(nsIWebBrowserChrome::CHROME_ALL, bBackground);
+	  else if (view)
+         newFrame = view->OpenURLInNewWindow(lpctUrl, NULL, bBackground);
+	  else 
+         newFrame = theApp.CreateNewBrowserFrameWithUrl(lpctUrl, NULL, bBackground);
       break;
 
    case OPEN_BACKGROUNDTAB:
+      bBackground = TRUE;
+   case OPEN_NEWTAB:
       if (!frame) return NULL;
-      
 	  if (!frame->IsKindOf(RUNTIME_CLASS(CBrowserFrmTab)))
 		   return NULL;
       
-	  newTab = ((CBrowserFrmTab*)frame)->CreateBrowserTab();
-	  if (!newTab) return NULL;
+      if (!lpctUrl)
+         newTab = ((CBrowserFrmTab*)frame)->CreateBrowserTab();
+      else if (view)
+         newTab = ((CBrowserTab*)view)->OpenURLInNewTab(lpctUrl, NULL, TRUE);
+      else {
+         newTab = ((CBrowserFrmTab*)frame)->CreateBrowserTab();
+         if (!newTab) return NULL;
+         newTab->OpenURL(lpctUrl);
+	  }
 
-	  if (windowState & OPEN_CLONE) {
-         CBrowserView *view = frame->GetActiveView(); 
-         if (view) view->CloneBrowser(newTab);
-	  } 
-	  else newTab->OpenURL(lpctUrl);
+      if (!newTab) return NULL;
+      if (!bBackground) ((CBrowserFrmTab*)frame)->SetActiveBrowser(newTab);
 
+      if ((windowState & OPEN_CLONE) && view)
+         view->CloneBrowser(newTab);
       break;
    }
    
