@@ -173,15 +173,15 @@
 						BrowseInformation="1"/>
 				</FileConfiguration>
 			</File>
+			<File
+				RelativePath="..\Utils.cpp">
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
 			<File
 				RelativePath=".\functions.h">
-			</File>
-			<File
-				RelativePath=".\macros.h">
 			</File>
 			<File
 				RelativePath=".\object.h">

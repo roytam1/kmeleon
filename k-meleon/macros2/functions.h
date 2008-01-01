@@ -18,6 +18,7 @@
 */
 
 #include <map>
+#include "../Utils.h"
 
 ///////////////////////////
 // Utilities 
@@ -818,6 +819,16 @@
 		return  Escape(data->getstr(1)).c_str() ;
 	}
 
+	Value urldecode(FunctionData* data)
+	{
+		checkArgs(__FUNCTION__, data, 1);
+		char* str = strdup(data->getstr(1));
+		nsUnescape(str);
+		Value ret(str);
+		free(str);
+		return ret;
+	}
+
 	/*
 	basename( NAME [, SUFFIX] );
 
@@ -1334,6 +1345,7 @@ void InitFunctions(Mac* m)
 	MACROSFUNC_ADD(sub);
 	MACROSFUNC_ADD(substr);
 	MACROSFUNC_ADD(urlencode);
+	MACROSFUNC_ADD(urldecode);
 	MACROSFUNC_ADD(getfolder);
 	MACROSFUNC_ADD(basename);
 	MACROSFUNC_ADD(dirname);
