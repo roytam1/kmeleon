@@ -96,6 +96,8 @@ BOOL CBrowserView::OpenViewSourceWindow(BOOL frame)
 			if (_tcsncmp(url, _T("file:///"), 8) == 0)
 			{
 				url.Replace(_T('/'), _T('\\'));
+				url.ReleaseBuffer(url.ReverseFind('#')); // Truncate
+				url.ReleaseBuffer(url.ReverseFind('?')); // Truncate
 				OpenFileExternal("", url.Mid(8), NS_OK,
 					_tcsdup((CString)theApp.preferences.sourceCommand));
 				return TRUE;
