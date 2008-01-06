@@ -288,21 +288,30 @@ void DoRebar(HWND rebarWnd) {
       // Get the height of the toolbar.
       DWORD dwBtnSize = SendMessage(hwndTB, TB_GETBUTTONSIZE, 0,0);
 
+     // Compute the width needed for the toolbar
+      int ideal = 0;
+      int iCount, iButtonCount = SendMessage(hwndTB, TB_BUTTONCOUNT, 0,0);
+      for ( iCount = 0 ; iCount < iButtonCount ; iCount++ )
+      {
+         RECT rectButton;
+         SendMessage(hwndTB, TB_GETITEMRECT, iCount, (LPARAM)&rectButton);
+         ideal += rectButton.right - rectButton.left;
+      }
+
       REBARBANDINFO rbBand;
       rbBand.cbSize = sizeof(REBARBANDINFO);  // Required
       rbBand.fMask  = //RBBIM_TEXT |
-	 RBBIM_STYLE | RBBIM_CHILD  | RBBIM_CHILDSIZE |
-	 RBBIM_SIZE | RBBIM_IDEALSIZE;
+        RBBIM_STYLE | RBBIM_CHILD  | RBBIM_CHILDSIZE |
+        RBBIM_SIZE | RBBIM_IDEALSIZE;
 
-      rbBand.fStyle = RBBS_CHILDEDGE | RBBS_FIXEDBMP | RBBS_VARIABLEHEIGHT;
+      rbBand.fStyle = RBBS_USECHEVRON | RBBS_CHILDEDGE | RBBS_FIXEDBMP | RBBS_VARIABLEHEIGHT;
       rbBand.lpText     = _T("");
       rbBand.hwndChild  = hwndTB;
       rbBand.cxMinChild = 0;
       rbBand.cyMinChild = HIWORD(dwBtnSize);
       rbBand.cyIntegral = 1;
       rbBand.cyMaxChild = rbBand.cyMinChild;
-      rbBand.cxIdeal    = 0;
-      rbBand.cx         = rbBand.cxIdeal;
+      rbBand.cx         = rbBand.cxIdeal = ideal;
 
       // Add the band that has the toolbar.
       SendMessage(rebarWnd, RB_INSERTBAND, (WPARAM)-1, (LPARAM)&rbBand);
