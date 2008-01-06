@@ -112,6 +112,7 @@ CTabReBar::CTabReBar()
 	bButtonNumbers =   0;
 	mDrag = FALSE;
 	mDragItem = -1;
+	mBottomBar = theApp.preferences.GetBool("kmeleon.tabs.bottom", FALSE);
 
 	theApp.preferences.GetString(PREFERENCE_REBAR_TITLE, szTitle, _T(""));
 	nButtonStyle = theApp.preferences.GetInt(PREFERENCE_BUTTON_STYLE, 2);
@@ -145,14 +146,17 @@ CTabReBar::~CTabReBar()
 
 BOOL CTabReBar::Create(CReBarEx* rebar, UINT idwnd)
 {
-		if (!CreateEx(rebar->GetParentFrame(), TBSTYLE_FLAT | TBSTYLE_LIST | TBSTYLE_TRANSPARENT | TBSTYLE_TOOLTIPS,
-			WS_CHILD|WS_VISIBLE|CBRS_ALIGN_TOP ,CRect(0,0,0,0),idwnd))
+		if (!CreateEx(rebar->GetParentFrame(), CCS_BOTTOM | TBSTYLE_FLAT | TBSTYLE_LIST | TBSTYLE_TRANSPARENT | TBSTYLE_TOOLTIPS,
+			WS_CHILD|WS_VISIBLE|(mBottomBar ? CBRS_ALIGN_BOTTOM : CBRS_ALIGN_TOP) ,CRect(0,0,0,0),idwnd))
 			return FALSE;
 		//ModifyStyle(0, CCS_ADJUSTABLE);
 		
-		rebar->RegisterBand(m_hWnd, _T("Tabs"), false);
-		rebar->AddBar(this, szTitle,0, RBBS_USECHEVRON | RBBS_FIXEDBMP );
 		m_wndParent = rebar;
+		if (!mBottomBar) {
+			rebar->RegisterBand(m_hWnd, _T("Tabs"), false);
+			rebar->AddBar(this, szTitle,0, RBBS_USECHEVRON | RBBS_FIXEDBMP );
+		}
+		
 
 		// Get the width & height of the toolbar.
 		// SIZE size;
@@ -233,6 +237,35 @@ void CTabReBar::UpdateButtonsSize()
 		m_wndParent->GetReBarCtrl().SetBandInfo(iband, &rb);
 }
 
+void CTabReBar::UpdateVisibility(BOOL canHide)
+{
+	if (mBottomBar)
+	{
+		SIZE s;
+		CToolBarCtrl& tc = GetToolBarCtrl();
+
+		if (tc.GetButtonCount()>1)
+		{
+			if (!tc.IsWindowVisible()) tc.ShowWindow(SW_SHOW);
+			tc.GetMaxSize(&s);
+			tc.SetButtonSize(CSize(24, s.cy));
+			tc.SetWindowPos(&(((CBrowserFrame*)GetParentFrame())->m_wndStatusBar),0,0,0,0,SWP_NOMOVE);
+		}
+		else if (theApp.preferences.bAutoHideTabControl)
+			tc.ShowWindow(SW_HIDE);
+		GetParentFrame()->RecalcLayout();
+	}
+	else
+	{
+		int index = m_wndParent->FindByName(_T("Tabs"));
+
+		if (GetToolBarCtrl().GetButtonCount()>1)
+			m_wndParent->GetReBarCtrl().ShowBand(index, TRUE);
+		else
+			if (canHide && theApp.preferences.bAutoHideTabControl)
+				m_wndParent->GetReBarCtrl().ShowBand(index, FALSE);
+	}
+}
 
 LONG CTabReBar::InsertItem(int nItem, int idCommand, LPCTSTR lpszItem, DWORD data, int nImage)
 {
@@ -250,14 +283,7 @@ LONG CTabReBar::InsertItem(int nItem, int idCommand, LPCTSTR lpszItem, DWORD dat
 
 		// Set buttons size & ideal size
 		UpdateButtonsSize();
-
-		int index = m_wndParent->FindByName(_T("Tabs"));
-
-		if (GetToolBarCtrl().GetButtonCount()>1)
-			m_wndParent->GetReBarCtrl().ShowBand(index, TRUE);
-		else
-			if (nItem!=0 && theApp.preferences.bAutoHideTabControl)
-				m_wndParent->GetReBarCtrl().ShowBand(index, FALSE);
+		UpdateVisibility(nItem!=0);
 
 		return 1;
 }
@@ -386,14 +412,7 @@ BOOL CTabReBar::DeleteItem(int idCommand)
 
 	BOOL r = GetToolBarCtrl().DeleteButton(i);
 	UpdateButtonsSize();
-
-	int index = m_wndParent->FindByName(_T("Tabs"));
-
-	if (GetToolBarCtrl().GetButtonCount()>1)
-		m_wndParent->GetReBarCtrl().ShowBand(index, TRUE);
-	else
-		if (theApp.preferences.bAutoHideTabControl)
-			m_wndParent->GetReBarCtrl().ShowBand(index, FALSE);
+	UpdateVisibility();
 
 	mDragItem = -1;
 
