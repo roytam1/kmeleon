@@ -119,10 +119,11 @@ protected:
 	int  mDragItem;
 	POINT mDragPoint;
 	CTBOleDropTarget mDropTarget;
-	
+	BOOL mBottomBar;
 	
 	int GetButtonIDFromData(DWORD data);
 	void UpdateButtonsSize();
+	void UpdateVisibility(BOOL canHide = TRUE);
 	void HandleMouseClick(int flag, CPoint point);
 	
 	CReBarEx* m_wndParent;
@@ -139,5 +140,6 @@ public:
 	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
 	afx_msg void OnDestroy();
 };
+
 
 
