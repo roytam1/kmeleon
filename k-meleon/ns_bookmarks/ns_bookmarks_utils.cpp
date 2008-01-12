@@ -1565,9 +1565,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
       } 
 	  else if (id > 0) {
          CBookmarkNode *node = gBookmarkRoot->FindNode(id);
-         if (node) 
-			 kPlugin.kFuncs->SetStatusBarText(node->url.c_str());
-         return true;
+		 if (node) {
+			kPlugin.kFuncs->SetStatusBarText(node->url.c_str());
+			return true;
+		}
       }
 // this would be a hack to clean the status bar for separators, popups
 // (they work (clear the status bar) for CMenu-added separators/popups,
