@@ -30,6 +30,7 @@
 struct kmeleonPlugin;
 struct configFileType;
 
+extern UINT currentCmdID;
 
 class CPlugins {
   friend CPreferencePagePlugins;
@@ -46,6 +47,7 @@ public:
 
    BOOL IsLoaded(LPCTSTR pluginName);
    BOOL TestLoad(LPCTSTR file, const char *description);
+   BOOL IsPluginCommand(UINT id);
 
    int FindAndLoad(const TCHAR *pattern = _T("*.dll"));
    kmeleonPlugin * Load(CString file);

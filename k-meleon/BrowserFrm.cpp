@@ -535,6 +535,12 @@ BOOL CBrowserFrame::OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERIN
         }
     }
 
+    // Don't let MFC mess with plugin command
+    if (nCode == CN_UPDATE_COMMAND_UI && theApp.plugins.IsPluginCommand(nID)) {
+        ((CCmdUI*)pExtra)->m_bEnableChanged = TRUE;
+        return TRUE;
+    }
+
     // let the view have first crack at the command
 	CBrowserView* pView = GetActiveView();
     if (pView && pView->OnCmdMsg(nID, nCode, pExtra, pHandlerInfo))
@@ -571,8 +577,7 @@ void CBrowserFrame::OnSize(UINT nType, int cx, int cy)
     if (m_wndProgressBar.m_hWnd)
         m_wndProgressBar.MoveWindow(&rc);
 
-    if (!m_created) return;
-	SaveWindowPos();
+	if (m_created) SaveWindowPos();
 }
 
 void CBrowserFrame::SaveWindowPos()
