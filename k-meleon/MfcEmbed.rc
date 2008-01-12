@@ -1407,7 +1407,7 @@ END
 // Bitmap
 //
 
-IDR_TOOLBAR1            BITMAP                  "res\\toolbar1.bmp"
+IDR_TOOLBAR_CLOSE            BITMAP                  "res\\toolbar1.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //
