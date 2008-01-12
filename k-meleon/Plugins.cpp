@@ -20,6 +20,7 @@
 // this handles plugin loading/unloading
 
 #include "StdAfx.h"
+#include "rebar_menu/hot_tracking.h"
 
 #include "nsISHistory.h"
 #include "nsISHEntry.h"
@@ -1442,6 +1443,8 @@ kmeleonPlugin * CPlugins::Load(CString file)
    file.TrimLeft();
    file.TrimRight();
 
+   LogMessage("javascript", "Coucou", CT2A(file), 10, 0);
+
    int filePos = file.ReverseFind(_T('\\'));
    int filePos2 = file.ReverseFind(_T('/'));
    if (filePos2>filePos) filePos = filePos2;
@@ -1605,3 +1608,9 @@ int CPlugins::GetConfigFiles(configFileType *configFiles, int maxFiles)
    }
    return numFiles;
 }
+
+BOOL CPlugins::IsPluginCommand(UINT id)
+{ 
+   return (id >= PLUGIN_COMMAND_START_ID && id <= currentCmdID) || IsMenu((HMENU)(id-SUBMENU_OFFSET));
+}
+
