@@ -3,7 +3,7 @@
 /********************************************************************************************************/
 
 pref("general.useragent.vendor", "K-Meleon");
-pref("general.useragent.vendorSub", "1.5a1pre");
+pref("general.useragent.vendorSub", "1.5");
 
 /********************************************************************************************************/
 
@@ -14,7 +14,7 @@ pref("general.useragent.vendorSub", "1.5a1pre");
 pref("kmeleon.MRU.maxURLs", 16);
 pref("kmeleon.MRU.behavior", 2);
 pref("kmeleon.general.guest_account", false);
-pref("kmeleon.general.homePage", "resource:///readme.html");
+//pref("kmeleon.general.homePage", "resource:///readme.html");			// I10n.js
 pref("kmeleon.general.offline", false);
 pref("kmeleon.general.opengroup", "ID_OPEN_LINK|ID_OPEN_LINK_IN_BACKGROUND");
 pref("kmeleon.general.openurl", "ID_OPEN_LINK");
@@ -25,6 +25,10 @@ pref("kmeleon.display.newWindowOpenAs", 0);
 pref("kmeleon.display.newWindowURL", "");
 pref("kmeleon.general.sourceCommand", "");
 pref("kmeleon.general.sourceEnabled", false);
+
+pref("kmeleon.flashblock", false);
+pref("kmeleon.adblocking", false);
+
 
 //pref("browser.startup.autoload_homepage",   true);
 
@@ -55,17 +59,17 @@ pref("kmeleon.plugins.hotlist.menuAutoDetect", true);
 pref("kmeleon.plugins.hotlist.openurl", "ID_OPEN_LINK");
 
 pref("kmeleon.plugins.gestures.load", false);
-pref("kmeleon.plugins.gestures.down", "layers(OpenLinkBg)");
+pref("kmeleon.plugins.gestures.down", "ID_OPEN_LINK_IN_BACKGROUNDTAB");
 pref("kmeleon.plugins.gestures.downleft", "layers(Last)");
-pref("kmeleon.plugins.gestures.downright", "layers(Close)");
+pref("kmeleon.plugins.gestures.downright", "ID_CLOSE_TAB");
 pref("kmeleon.plugins.gestures.left", "ID_NAV_BACK");
 pref("kmeleon.plugins.gestures.right", "ID_NAV_FORWARD");
-pref("kmeleon.plugins.gestures.up", "layers(OpenLink)");
-pref("kmeleon.plugins.gestures.upleft", "layers(Prev)");
-pref("kmeleon.plugins.gestures.upright", "layers(Next)");
+pref("kmeleon.plugins.gestures.up", "ID_OPEN_LINK_IN_NEW_TAB");
+pref("kmeleon.plugins.gestures.upleft", "ID_TAB_PREV");
+pref("kmeleon.plugins.gestures.upright", "ID_TAB_NEXT");
 
 pref("kmeleon.plugins.layers.confirmClose", true);
-pref("kmeleon.plugins.layers.load", true);
+pref("kmeleon.plugins.layers.load", false);
 pref("kmeleon.plugins.layers.rebar", true);
 pref("kmeleon.plugins.layers.style", 2);
 
@@ -146,6 +150,7 @@ pref("kmeleon.download.saveDir", "");
 pref("kmeleon.download.saveUseTitle", true);
 
 pref("kmeleon.download.useDownloadDir", false);
+pref("kmeleon.download.useSaveDir", false);
 pref("kmeleon.download.askOpenSave", true);
 pref("kmeleon.download.SaveUnkownContent", true);
 pref("kmeleon.download.showMinimizedDialog", false);
@@ -224,3 +229,4 @@ pref("mousewheel.withcontrolkey.action",3);
 pref("dom.disable_window_flip", true);
 
 pref("prefs.converted-to-utf8", true);
+pref("wallet.captureForms", false);
