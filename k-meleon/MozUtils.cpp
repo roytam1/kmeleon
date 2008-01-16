@@ -23,6 +23,10 @@
 #include "nsIDOM3Document.h"
 #include "nsIImageLoadingContent.h"
 
+#include "nsIConsoleService.h"
+#include "nsIScriptError.h"
+
+
 nsEmbedString CStringToNSString(LPCTSTR aStr)
 {
 	USES_CONVERSION;
@@ -148,7 +152,7 @@ CString GetUriForDOMWindow(nsIDOMWindow *aWindow)
 	return NSStringToCString(url);
 }
 
-CString GetMozDirectory(char* dirName)
+CString GetMozDirectory(const char* dirName)
 {
    nsCOMPtr<nsIFile> nsDir;
    nsresult rv = NS_GetSpecialDirectory(dirName, getter_AddRefs(nsDir));
@@ -416,4 +420,26 @@ BOOL GetBackgroundImageSrc(nsIDOMNode *aNode, CString& aUrl)
 
 	aUrl = NSStringToCString(bgImg);
 	return TRUE;
+}
+
+BOOL LogMessage(const char* category, const char* message, const char* file, uint line, uint flags)
+{
+	nsCOMPtr<nsIConsoleService> consoleService = do_GetService(NS_CONSOLESERVICE_CONTRACTID);
+	if (!consoleService) FALSE;
+	
+	nsCOMPtr<nsIScriptError> scriptError = do_CreateInstance(NS_SCRIPTERROR_CONTRACTID);
+	if (!scriptError) FALSE;
+	
+	USES_CONVERSION;
+	nsresult rv = scriptError->Init(
+		A2CW(message),
+		A2CW(file),
+		L"",	line, 0,
+		flags,
+		category);
+	
+	if (NS_FAILED(rv)) return FALSE;
+
+	rv = consoleService->LogMessage(scriptError);
+	return NS_SUCCEEDED(rv);
 }

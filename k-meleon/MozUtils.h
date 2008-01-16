@@ -25,9 +25,11 @@ nsresult GetDOMEventTarget (nsIWebBrowser* aWebBrowser, nsIDOMEventTarget** aTar
 CWnd* CWndForDOMWindow(nsIDOMWindow *aWindow);
 CString GetUriForDOMWindow(nsIDOMWindow *aWindow);
 
-CString GetMozDirectory(char* dirName);
+CString GetMozDirectory(const char* dirName);
 BOOL GetLinkTitleAndHref(nsIDOMNode* node, CString& aHref, CString& aTitle);
 BOOL GetBackgroundImageSrc(nsIDOMNode *aNode, CString& aUrl);
 BOOL GetImageSrc(nsIDOMNode *aNode, CString& aUrl);
+
+BOOL LogMessage(const char* category, const char* message, const char* file, uint line, uint flags);
 
 #endif
