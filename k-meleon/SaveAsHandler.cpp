@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "SaveAsHandler.h"
 #include "Utils.h"
+#include "MozUtils.h"
 #include "MfcEmbed.h"
 extern CMfcEmbedApp theApp;
 
@@ -250,6 +251,14 @@ NS_IMETHODIMP CSaveAsHandler::Save(const char* contentType, const char* disposit
 
 	//["@mozilla.org/intl/texttosuburi;1"]
 
+	if (theApp.preferences.GetBool("kmeleon.download.useSaveDir", FALSE))
+	{
+		CString saveDir = theApp.preferences.GetString("kmeleon.download.saveDir", _T(""));
+		if (!saveDir.IsEmpty())
+			return DownloadTo(CStringToNSString(saveDir + _T('\\') + szFileName + _T('.') + extension),
+					isHTML, theApp.preferences.iSaveType == 2);
+	}
+
 	CString filter;
 
 	if (isHTML && mDocument) {
@@ -312,13 +321,12 @@ NS_IMETHODIMP CSaveAsHandler::Save(const char* contentType, const char* disposit
 		if (isHTML)
 			theApp.preferences.iSaveType = ofn.nFilterIndex;
 		
-		USES_CONVERSION;
-		rv = DownloadTo(nsDependentString(T2CW(strFullPath)), isHTML, theApp.preferences.iSaveType == 2);
+		rv = DownloadTo(CStringToNSString(strFullPath), isHTML, theApp.preferences.iSaveType == 2);
 	}
 	
 	filter.ReleaseBuffer();
 	delete szFileName;
-
+	
 	return rv;
 }
 
