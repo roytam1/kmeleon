@@ -1525,21 +1525,10 @@ BOOL CBrowserWrapper::_Save(nsIURI* aURI,
 		  (strcmp(ctype, "application/xhtml+xml") == 0) ;
 	}
 
-	TCHAR tempFile[MAX_PATH];
-	::GetTempPath(MAX_PATH, tempFile);
-	::GetTempFileName(tempFile, _T("kme"), 0, tempFile); 
-
-	nsCOMPtr<nsILocalFile> file;
-#ifdef _UNICODE
-	NS_NewLocalFile(nsDependentString(tempFile), TRUE, getter_AddRefs(file));
-#else
-	NS_NewNativeLocalFile(nsDependentCString(tempFile), TRUE, getter_AddRefs(file));
-#endif
-	
 	nsCOMPtr<nsIWebBrowserPersist> persist = do_CreateInstance(NS_WEBBROWSERPERSIST_CONTRACTID);
 	if (!persist) return FALSE;
 
-	CSaveAsHandler* handler = new CSaveAsHandler(persist, file, aURI, aDocument, aDescriptor, aReferrer);
+	CSaveAsHandler* handler = new CSaveAsHandler(persist, aURI, aDocument, aDescriptor, aReferrer);
 	
 	if (filename)
 	{
@@ -1559,6 +1548,19 @@ BOOL CBrowserWrapper::_Save(nsIURI* aURI,
 		// Initiate a download only to get the content type.
 		// XXX Need to merge this with the standard download so that we can download
 		// in the background and ask for the location as soon as we have the content type.
+
+		TCHAR tempFile[MAX_PATH];
+		::GetTempPath(MAX_PATH, tempFile);
+		::GetTempFileName(tempFile, _T("kme"), 0, tempFile); 
+
+		nsCOMPtr<nsILocalFile> file;
+#ifdef _UNICODE
+		NS_NewLocalFile(nsDependentString(tempFile), TRUE, getter_AddRefs(file));
+#else
+		NS_NewNativeLocalFile(nsDependentCString(tempFile), TRUE, getter_AddRefs(file));
+#endif
+
+		handler->SetTempFile(file);
 		persist->SetProgressListener(handler);
 		rv = persist->SaveURI(aURI, aDescriptor, aReferrer, nsnull, nsnull, file);
 		if (NS_FAILED(rv))
