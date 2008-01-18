@@ -19,14 +19,14 @@ extern CMfcEmbedApp theApp;
 NS_IMPL_ISUPPORTS1(CSaveAsHandler, nsIWebProgressListener);
 
 CSaveAsHandler::CSaveAsHandler(
-		nsIWebBrowserPersist* aPersist, nsIFile* aFile, 
+		nsIWebBrowserPersist* aPersist, 
 		nsIURI* aURL, nsIDOMDocument* aDocument, 
 		nsISupports* aDescriptor, nsIURI* aReferrer)
 {
 	mPersist = aPersist;
 	mDescriptor = aDescriptor;
-	mFile = aFile;
 	mURL = aURL;
+	mFile = nsnull;
 	mDocument = aDocument;
 	mReferrer = aReferrer;
 }
@@ -64,7 +64,7 @@ NS_IMETHODIMP CSaveAsHandler::OnStateChange(nsIWebProgress *aWebProgress,
 			httpchannel->GetResponseHeader(nsEmbedCString("content-disposition"), mContentDisposition);
 		}
 		mPersist->CancelSave();
-		mFile->Remove(PR_FALSE);
+		if (mFile) mFile->Remove(PR_FALSE);
 
 		// Defering the save as dialog to not stall other transferts
 		
