@@ -1333,52 +1333,49 @@ PromptDlgProc( HWND hwnd,
 
 void OpenURL(char *url, int mode = 0)
 {
-    char szOpenURLcmd[80];
-    const char* pref;
+	char szOpenURLcmd[80];
+	const char* pref;
 	switch (mode) {
-		
+
 		case 1: pref = PREFERENCE_BOOKMARKS_OPENURLM; break;
 		case 2: pref = PREFERENCE_BOOKMARKS_OPENURLR; break;
 		case 0: pref = PREFERENCE_BOOKMARKS_OPENURL; break;
 		default: return;
 	}
 
-    kPlugin.kFuncs->GetPreference(PREF_STRING, pref, szOpenURLcmd, (char*)"");
-    
-    if (*szOpenURLcmd) {
-        char *plugin = szOpenURLcmd;
-        char *parameter = strchr(szOpenURLcmd, '(');
-        if (parameter) {
-            *parameter++ = 0;
-            char *close = strchr(parameter, ')');
-            if (close) {
-                *close = 0;
-                
-                if (kPlugin.kFuncs->SendMessage(plugin, PLUGIN_NAME, parameter, (long)url, 0))
-                    return;
-            }
-        }
+	kPlugin.kFuncs->GetPreference(PREF_STRING, pref, szOpenURLcmd, (char*)"");
 
-        int idOpen = kPlugin.kFuncs->GetID(szOpenURLcmd);
-		if (idOpen == kPlugin.kFuncs->GetID("ID_OPEN_LINK")) {
-            kPlugin.kFuncs->NavigateTo(url, OPEN_NORMAL, NULL);
-            return;
-		}else if (idOpen == kPlugin.kFuncs->GetID("ID_OPEN_LINK_IN_BACKGROUND")) {
-            kPlugin.kFuncs->NavigateTo(url, OPEN_BACKGROUND, NULL);
-            return;
-		}else if (idOpen == kPlugin.kFuncs->GetID("ID_OPEN_LINK_IN_NEW_WINDOW")) {
-            kPlugin.kFuncs->NavigateTo(url, OPEN_NEW, NULL);
-            return;
-        }else if (idOpen == kPlugin.kFuncs->GetID("ID_OPEN_LINK_IN_NEW_TAB")) {
-            kPlugin.kFuncs->NavigateTo(url, OPEN_NEWTAB, NULL);
-            return;
-        }else if (idOpen == kPlugin.kFuncs->GetID("ID_OPEN_LINK_IN_BACKGROUNDTAB")) {
-            kPlugin.kFuncs->NavigateTo(url, OPEN_BACKGROUNDTAB, NULL);
-            return;
-        }
-    }
+	if (!*szOpenURLcmd) {
+		if (mode != 0) return;
+		kPlugin.kFuncs->NavigateTo(url, OPEN_NORMAL, NULL);
+		return;
+	}
 
-    kPlugin.kFuncs->NavigateTo(url, OPEN_NORMAL, NULL);
+	char *plugin = szOpenURLcmd;
+	char *parameter = strchr(szOpenURLcmd, '(');
+	if (parameter) {
+		*parameter++ = 0;
+		char *close = strchr(parameter, ')');
+		if (close) {
+			*close = 0;
+
+			if (kPlugin.kFuncs->SendMessage(plugin, PLUGIN_NAME, parameter, (long)url, 0))
+				return;
+		}
+	}
+
+	int idOpen = kPlugin.kFuncs->GetID(szOpenURLcmd);
+	if (idOpen == kPlugin.kFuncs->GetID("ID_OPEN_LINK")) {
+		kPlugin.kFuncs->NavigateTo(url, OPEN_NORMAL, NULL);
+	}else if (idOpen == kPlugin.kFuncs->GetID("ID_OPEN_LINK_IN_BACKGROUND")) {
+		kPlugin.kFuncs->NavigateTo(url, OPEN_BACKGROUND, NULL);
+	}else if (idOpen == kPlugin.kFuncs->GetID("ID_OPEN_LINK_IN_NEW_WINDOW")) {
+		kPlugin.kFuncs->NavigateTo(url, OPEN_NEW, NULL);
+	}else if (idOpen == kPlugin.kFuncs->GetID("ID_OPEN_LINK_IN_NEW_TAB")) {
+		kPlugin.kFuncs->NavigateTo(url, OPEN_NEWTAB, NULL);
+	}else if (idOpen == kPlugin.kFuncs->GetID("ID_OPEN_LINK_IN_BACKGROUNDTAB")) {
+		kPlugin.kFuncs->NavigateTo(url, OPEN_BACKGROUNDTAB, NULL);
+	}
 }
 
 void OpenBookmark(CBookmarkNode* node, HWND hWnd = NULL, int mode = 0)
