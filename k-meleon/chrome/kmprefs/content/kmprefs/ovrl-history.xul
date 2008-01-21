@@ -5,45 +5,59 @@
 
 <script type="application/x-javascript">
 <![CDATA[
+var kHistory = {
+
+name: "history",
+pref: "kmeleon.plugins.history.load",
+init: function() {
+	if(kPlugin.absent(this.name))
+		document.getElementById(this.pref).setAttribute("hidden",true);
+	else
+		initCheckbox(this.pref);	
+}
+
+};
+
 var History = {
 
-init: function() {
+_srvc: null,
+
+init : function() {
+	kHistory.init();
 	URLBarHeight.init();
-	var tmp = "kmeleon.plugins.history.load";
-	if(kPlugin.absent("history")) {
-		var elem = document.getElementById(tmp);
-		elem.parentNode.removeChild(elem);
-	} else
-		initCheckbox(tmp);
 
-	tmp = "browser.history_expire_days";
-	document.getElementById("toggleHistory").checked = (pref.getIntPref(tmp));
-	initTextbox(tmp,false);
-//	document.getElementById(tmp).disabled = !document.getElementById("toggleHistory").checked;
+	this._srvc = Components.classes["@mozilla.org/browser/global-history;2"]
+			       .getService(Components.interfaces.nsIBrowserHistory);
+	var _elem,_pref;
 
-	tmp = "kmeleon.MRU.maxURLs";
-	document.getElementById("mru").checked = (pref.getIntPref(tmp));
-	initTextbox(tmp,false);
-//	document.getElementById(tmp).disabled = !document.getElementById("mru").checked;
-	initRadiogroup("kmeleon.MRU.behavior");
-	document.getElementById("kmeleon.MRU.behavior").disabled = !document.getElementById("mru").checked;
+	_pref = "browser.history_expire_days",
+	_elem = document.getElementById("toggleHistory");
+	_elem.checked = (pref.getIntPref(_pref));
+	initTextbox(_pref,false);
+	document.getElementById(_pref).disabled = !_elem.checked;
 
-	var history = Components.classes["@mozilla.org/browser/global-history;2"]
-				.getService(Components.interfaces.nsIBrowserHistory);
-	document.getElementById("clearHistory").disabled = !history.count;
+	_pref = "kmeleon.MRU.maxURLs";
+	_elem = document.getElementById("mru");
+	_elem.checked = (pref.getIntPref(_pref));
+	initTextbox(_pref,false);
+	document.getElementById(_pref).disabled = !_elem.checked;
+
+	_pref = "kmeleon.MRU.behavior";
+	initRadiogroup(_pref);
+	document.getElementById(_pref).disabled = !_elem.checked;
+
+	document.getElementById("clearHistory").disabled = !this._srvc.count;
 },
 clear: function() {
-	var history = Components.classes["@mozilla.org/browser/global-history;2"]
-				.getService(Components.interfaces.nsIBrowserHistory);
-	history.removeAllPages();
+	this._srvc.removeAllPages();
 },
 toggle: function(elem) {
 	if(elem.checked)
 		restoreDefault(elem.nextSibling.id);
 	else
 		pref.setIntPref(elem.nextSibling.id,0);
-	init();
-		elem.nextSibling.focus();
+	this.init();
+	elem.nextSibling.focus();
 }
 
 };
@@ -55,21 +69,22 @@ toggle: function(elem) {
   <groupbox>
     <caption label="&history.global.label;"/>
     <hbox align="center">
-      <checkbox disabled="true" oncommand="History.toggle(this)" id="toggleHistory" label="&history.global.keepBefore;"/>
-      <textbox disabled="true" id="browser.history_expire_days" size="4" class="uri-element" oninput="setIntPref(this.id,this.value)"/>
-      <label disabled="true" value="&history.global.keepAfter;"/>
+      <checkbox oncommand="History.toggle(this)" id="toggleHistory" label="&history.global.keepBefore;"/>
+      <textbox id="browser.history_expire_days" size="4" class="uri-element" oninput="setIntPref(this.id,this.value)"/>
+      <label value="&history.global.keepAfter;"/>
       <spacer flex="1"/>
       <button oncommand="History.clear();this.disabled=true" id="clearHistory" label="&history.global.clear;"/>
     </hbox>
     <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.plugins.history.load" label="&history.plugin;"/>
+    <separator class="thin"/>
   </groupbox>
   <separator class="thin"/>
   <groupbox>
     <caption label="&history.urlbar.label;"/>
     <hbox align="center">
-      <checkbox disabled="true" oncommand="History.toggle(this)" id="mru" label="&history.urlbar.keepBefore;"/>
-      <textbox disabled="true" id="kmeleon.MRU.maxURLs" size="4" class="uri-element" oninput="setIntPref(this.id,this.value)"/>
-      <label disabled="true" value="&history.urlbar.keepAfter;"/>
+      <checkbox oncommand="History.toggle(this)" id="mru" label="&history.urlbar.keepBefore;"/>
+      <textbox id="kmeleon.MRU.maxURLs" size="4" class="uri-element" oninput="setIntPref(this.id,this.value)"/>
+      <label value="&history.urlbar.keepAfter;"/>
     </hbox>
     <separator class="thin"/>
     <hbox id="urlbarheight"/>
@@ -81,6 +96,7 @@ toggle: function(elem) {
       <radio value="2" label="&history.urlbar.typed;"/>
       <radio value="3" label="&history.urlbar.nothing;"/>
     </radiogroup>
+    <separator class="thin"/>
   </groupbox>
 </vbox>
 
