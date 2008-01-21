@@ -89,7 +89,7 @@ function toggleRadiogroup(prefID) {
 	try {
 		switch(pref.getPrefType(prefID)) {
 			case PREF_BOOL	: pref.setBoolPref(prefID,(val=="true")?true:false); break;
-			case PREF_INT	: val = parseInt(val); if(val!=NaN) pref.setIntPref(prefID,val); break;
+			case PREF_INT	: val = parseInt(val); if(!isNaN(val)) pref.setIntPref(prefID,val); break;
 			case PREF_STRING: pref.setCharPref(prefID,val); break;
 		}
 	} catch(e) {}
@@ -136,9 +136,10 @@ function initMenulist(prefName,prefRoot,invalidNote) {
 		lst.selectedItem = lst.firstChild.lastChild;
 	}
 }
-/* --- String Conversion ---------------------------------------------------------------------------------------- */
-const kmPrefsTemp = "kmprefs.temp";
-
+/* --- String Functions ----------------------------------------------------------------------------------------- */
+function alphabetical(x,y) {
+	return x.toLowerCase().localeCompare(y.toLowerCase());
+}
 function makeUTF8(string) {
 	setCharPref(kmPrefsTemp,string);
 	var ret = pref.getCharPref(kmPrefsTemp);
@@ -209,6 +210,14 @@ function getFile(filePath,fileName) {
 	if(fileName) file.append(fileName);
 	return file;
 }
+function getFileURL(file) {
+	var ios = Components.classes["@mozilla.org/network/io-service;1"]
+			    .getService(Components.interfaces.nsIIOService);
+	var fph = ios.getProtocolHandler("file")
+		     .QueryInterface(Components.interfaces.nsIFileProtocolHandler);
+        return fph.getURLSpecFromFile(file);
+
+}
 function getFileContents(file) {
 	var fileContents = "";
 
@@ -253,15 +262,15 @@ function setFileContents(file,fileContents) {
 	return ret;
 }
 /* --- User StyleSheet Functions -------------------------------------------------------------------------------- */
-var UserPrefs = "user.js";
-var UserStyle = "userContent.css";
+var UserPrefs = getFile(getFolder("ProfD"),"user.js");
+var UserStyle = getFile(getFolder("UChrm"),"userContent.css");
 var testInverse = false;
 var testResult  = true;
 
 function getIntUserPref(prefID,emptyStr) {
 	var re = new RegExp("user_pref[\\s]*\\([\\s]*."+prefID+".[\\s]*,[\\s]*([\\d]+)[\\s]*\\)[\\s]*;","m");
 	try {
-		var ret = getFileContents(getFile(getFolder("ProfD"),UserPrefs)).match(re)[1];
+		var ret = getFileContents(UserPrefs).match(re)[1];
 	} catch(e) {
 		var ret = emptyStr;
 	}
@@ -273,7 +282,7 @@ function testMultiline(aString,aRegExpString) {
 	return re.test(aString);
 }
 function addToUserStyle(aString) {
-	var fileContents = getFileContents(getFile(getFolder("UChrm"),UserStyle));
+	var fileContents = getFileContents(UserStyle);
 
 	if(aString.indexOf("@import") > -1)
 		// insert @import rules on top of others
@@ -281,14 +290,14 @@ function addToUserStyle(aString) {
 	else
 		fileContents += "\r\n" + aString;
 
-	return (setFileContents(getFile(getFolder("UChrm"),UserStyle),fileContents) == fileContents.length);
+	return (setFileContents(UserStyle,fileContents) == fileContents.length);
 }
 function addToUserPrefs(aString) {
-	var fileContents = getFileContents(getFile(getFolder("ProfD"),UserPrefs));
+	var fileContents = getFileContents(UserPrefs);
 
 	fileContents = aString + "\r\n" + fileContents;
 
-	return (setFileContents(getFile(getFolder("ProfD"),UserPrefs),fileContents) == fileContents.length);
+	return (setFileContents(UserPrefs,fileContents) == fileContents.length);
 }
 function removeFromFile(file,aRegExpString) {
 	var fileContents = getFileContents(file);
@@ -338,20 +347,14 @@ fullName: function(pluginName) {
 
 };
 
-var kLayers = {
-
-load : null,
-only : null,
-init : function() {
-	this.load = kPlugin.load("layers");
+function kTabs() {
 	try {
-		this.only = this.load && pref.getBoolPref("kmeleon.plugins.layers.catchOpen");
+		var val = pref.getBoolPref("kmeleon.notab");
 	} catch(e) {
-		this.only = false;
+		return true;
 	}
+	return !val;
 }
-
-};
 
 var kMacrosModule = {
 
@@ -373,3 +376,17 @@ function disableAll(disable) {
 	for(var j=0,t=document.getElementsByTagName("tab");j<t.length;j++)
 		t[j].setAttribute("disabled",disable);
 }
+
+var kmPrefs = {
+
+last: "kmprefs.last",
+temp: "kmprefs.temp",
+save: function() {
+	try {
+		Components.classes["@mozilla.org/preferences-service;1"]
+			  .getService(Components.interfaces.nsIPrefService)
+			  .savePrefFile(null);
+	} catch(e) {}
+}
+
+};
