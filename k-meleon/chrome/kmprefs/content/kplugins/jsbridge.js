@@ -12,6 +12,14 @@ function JSBridge() {
 }
 JSBridge.prototype = {
 
+id: function(commandID) {
+	if(this.load)
+		this._jsb.id(top,commandID);
+},
+rebuildmenu: function(menuName) {
+	if(this.load)
+		this._jsb.RebuildMenu(menuName);
+},
 setmenu: function(menuName,itemType,itemName,command,location) {
 	if(this.load) {
 		// Remap the JSBridge item types to those of the setmenu() macro method.
@@ -32,10 +40,7 @@ setmenu: function(menuName,itemType,itemName,command,location) {
 		}
 		this._jsb.SetMenu(menuName,itemType,itemName,command,location);
 	}
-},
-rebuildmenu: function(menuName) {
-	if(this.load)
-		this._jsb.RebuildMenu(menuName);
 }
 
-}
+};
+var JSB = new JSBridge();
