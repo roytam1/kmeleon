@@ -12,12 +12,14 @@ id="prefJavaScript" onload="init()">
 <script type="application/x-javascript">
 <![CDATA[
 function init() {
+	if(JSB.load)
+		document.getElementById("popupsPerm").removeAttribute("hidden");
 	for(var j=0,b=document.getElementsByTagName("checkbox");j<b.length;j++)
 		initCheckbox(b[j].getAttribute("id"));
 	for(var j=0,r=document.getElementsByTagName("radiogroup");j<r.length;j++)
 		initRadiogroup(r[j].getAttribute("id"));
-	setInterval("initCheckbox('javascript.enabled')",100);
-	setInterval("initCheckbox('dom.disable_open_during_load')",100);
+//	setInterval("initCheckbox('javascript.enabled')",100);
+//	setInterval("initCheckbox('dom.disable_open_during_load')",100);
 }
 ]]>
 </script>
@@ -25,17 +27,18 @@ function init() {
 <vbox flex="1" style="overflow:auto">
   <dialogheader title="&javascript.header;"/>
   <separator class="thin"/>
-  <checkbox id="javascript.enabled"/>
-  <separator class="thick"/>
   <tabcontrol flex="1">
     <tabbox flex="1">
       <tabs>
         <tab label="&general;"/>
-        <tab label="&popups.label;"/>
+        <tab id="popups.tab"/>
       </tabs>
       <tabpanels flex="1">
         <tabpanel flex="1" orient="vertical" style="overflow:auto">
 <!-- General -->
+<separator class="thin"/>
+<checkbox id="javascript.enabled"/>
+<separator class="thick"/>
 <groupbox>
   <caption label="&contentManip;"/>
   <vbox id="domDISS"/>
@@ -47,8 +50,7 @@ function init() {
         <tabpanel flex="1" orient="vertical" style="overflow:auto">
 <!-- Popups -->
 <separator class="thin"/>
-<checkbox oncommand="toggleCheckbox(this.id)" id="dom.disable_open_during_load" label="&domDODL;" disabled="true"/>
-<description>&popups.note;</description>
+<groupbox id="popups.blocker"/>
 <separator class="thin"/>
 <groupbox id="popups.diversion"/>
 <separator class="thin"/>
