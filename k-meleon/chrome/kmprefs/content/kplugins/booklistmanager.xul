@@ -59,7 +59,7 @@ _setControls: function() {
 <tabpanel id="kBooklistManag" flex="1" orient="vertical" style="overflow:auto">
   <separator class="thin"/>
   <checkbox oncommand="toggleCheckbox(this.id)" id="zoom" label="&manager.hide;" disabled="true"/>
-  <separator class="thin"/>
+  <separator class="thick"/>
   <hbox>
     <groupbox flex="1">
       <caption label="&window.size;"/>
@@ -114,7 +114,6 @@ _setControls: function() {
         <button id="kBooklistManag0" label="&center;" oncommand="kBooklistManager.center()"/>
         <hbox flex="1"/>
       </hbox>
-      <separator class="thin"/>
     </groupbox>
   </hbox>
 </tabpanel>
