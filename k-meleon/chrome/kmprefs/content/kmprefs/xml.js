@@ -1,6 +1,6 @@
 /* --- XML Helpers ---------------------------------------------------------------------------------------------- */
 
-// prefs.js and xml.properties (xml_bundle) required!
+// pref.js and xml.properties (xml_bundle) required!
 
 // Helper for the kmPrefs 1.1 mouse gestures and search engines XML databases
 function XML(url) {
