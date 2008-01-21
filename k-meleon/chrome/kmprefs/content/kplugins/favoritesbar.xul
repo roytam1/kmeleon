@@ -155,17 +155,14 @@ _setControls: function() {
 }
 
 };
-/*addEventListener("load",kFavoritesBar.init,true);
-try{
-	document.getElementById("kmeleon.plugins.favorites.load").addEventListener("command",kFavoritesBar._setControls,true);
-} catch(e) {}*/
+//addEventListener("load",kFavoritesBar.init,true);
 ]]>
 </script>
 
 <tabpanel id="kFavoritesTBar" flex="1" orient="vertical" style="overflow:auto">
   <separator class="thin"/>
   <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.plugins.favorites.rebar" label="&favoritesbar.enable;"/>
-  <separator class="thin"/>
+  <separator class="thick"/>
   <grid>
     <columns>
       <column/>
@@ -188,10 +185,10 @@ try{
       </row>
     </rows>
   </grid>
-  <separator class="thin"/>
+  <separator class="thick"/>
   <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.plugins.favorites.chevron" label="&favoritesbar.chevron;"/>
   <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.plugins.favorites.buttonIcons" label="&toolbar.buttonIcons;"/>
-  <separator class="thin"/>
+  <separator class="thick"/>
   <groupbox>
     <caption label="&toolbar.buttonWidth;"/>
     <separator class="thin"/>
@@ -213,9 +210,8 @@ try{
       <button id="kFavoritesTBar4" label="&restoreDefault;" oncommand="restoreDefault('kmeleon.plugins.favorites.buttonMaxWidth');kFavoritesBar._initWidth()"/>
       <hbox flex="1"/>
     </hbox>
-    <separator class="thin"/>
   </groupbox>
-  <separator class="thick"/>
+  <vbox flex="1"/>
   <description>&restartNote1;</description>
 </tabpanel>
 

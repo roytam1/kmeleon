@@ -31,7 +31,7 @@ init: function() {
 
 	this._getModules(getFolder("CurProcD"),this.mods);
 	this._getModules(getFolder("KUserSettings"),this.mods);
-	this.mods = this.mods.sort(this._alphabetical);
+	this.mods = this.mods.sort(alphabetical);
 	for(var j=0,litem,lcell;j<this.mods.length;j++) {
 		litem = document.createElement("listitem");
 		litem.setAttribute("onclick","kMacros.toggleModule(this)");
@@ -55,6 +55,7 @@ init: function() {
 
 		this._list.appendChild(litem);
 	}
+	this._list.selectedIndex = 0;
 	this._setControls();
 },
 toggle: function(prefID) {
@@ -75,9 +76,6 @@ toggleModule: function(elem) {
 		restoreDefault(prefID);
 		elem.setAttribute("checked",true);
 	}
-},
-_alphabetical: function(x,y) {
-	return (x.toLowerCase() > y.toLowerCase()) ? 1 : -1;
 },
 _getModules: function(folderPath,aArray) {
 	var folder = Components.classes["@mozilla.org/file/local;1"]
@@ -124,7 +122,7 @@ _setControls: function() {
   <groupbox flex="1">
     <caption label="&kmacros.modules;"/>
     <separator class="thin"/>
-    <label value="&kmacros.modules.hint;"/>
+    <description>&kmacros.modules.hint;</description>
     <separator class="thin"/>
     <listbox id="modules" flex="1" seltype="single">
       <listcols>
