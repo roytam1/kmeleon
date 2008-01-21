@@ -179,6 +179,7 @@ function init() {
   <checkbox id="security.enable_tls" label="&ssl.enable_tls;" oncommand="toggleCheckbox(this.id)"/>
   <separator class="thin"/>
 </groupbox>
+<separator class="thin"/>
 <groupbox>
   <caption label="&ssl.warnings;"/>
   <separator class="thin"/>
