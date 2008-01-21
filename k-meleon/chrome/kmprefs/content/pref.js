@@ -141,9 +141,9 @@ function alphabetical(x,y) {
 	return x.toLowerCase().localeCompare(y.toLowerCase());
 }
 function makeUTF8(string) {
-	setCharPref(kmPrefsTemp,string);
-	var ret = pref.getCharPref(kmPrefsTemp);
-	restoreDefault(kmPrefsTemp);
+	setCharPref(kmPrefs.temp,string);
+	var ret = pref.getCharPref(kmPrefs.temp);
+	restoreDefault(kmPrefs.temp);
 	return ret;
 }
 /* --- Windows Registry Functions (Mozilla 1.8) ----------------------------------------------------------------- */
