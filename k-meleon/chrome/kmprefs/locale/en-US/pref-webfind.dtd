@@ -1,0 +1,32 @@
+<!ENTITY % prefDTD SYSTEM "chrome://kmprefs/locale/pref.dtd">%prefDTD;
+<!ENTITY webfind.header		"Finding Websites">
+<!ENTITY webfind.urlbar		"URL Bar">
+<!ENTITY webfind.websearch	"Web Search">
+<!ENTITY webfind.metasearch	"Multisearch">
+<!ENTITY webfind.database	"Search Engines">
+<!ENTITY webfind.addEntry	"Add Entry">
+<!ENTITY autocomplete.label	"URL Bar Autocompletion">
+<!ENTITY autocomplete.enable	"Find fitting pages in global history as you type">
+<!ENTITY autofill.enable	"Autocomplete as you type">
+<!ENTITY domCompletion.label	"Manual Domain Completion">
+<!ENTITY domCompletion.prefix	"Add Prefix:">
+<!ENTITY domCompletion.suffix	"Add Suffix:">
+<!ENTITY domCompletion.key0	"&CtrlKey;+&EnterKey;">
+<!ENTITY domCompletion.key1	"&CtrlKey;+&AltKey;+&EnterKey;">
+<!ENTITY domCompletion.key2	"&CtrlKey;+&ShiftKey;+&EnterKey;">
+<!ENTITY fixupAlt.label		"Domain Autocompletion">
+<!ENTITY fixupAlt.enable	"When a typed URL failed to load, autocomplete and retry">
+<!ENTITY keyword.label		"Keyword Autosearch">
+<!ENTITY keyword.enable		"When a typed URL failed to load, automatically consult a search engine to find fitting pages">
+<!ENTITY keyword.engine		"Search Engine:">
+<!ENTITY websearch.descr	"Determine which search engines are displayed in the Web Search menu:">
+<!ENTITY websearch.note		"&macrosNote; You have to restart K-Meleon to make changes take visual effect in menus.">
+<!ENTITY meta.descr		"Determine which search engines are used for macro-based Multisearch:">
+<!ENTITY database.descr		"Determine which search engines can be selected in the previous tabs:">
+<!ENTITY database.caption	"Caption">
+<!ENTITY database.url		"URL">
+<!ENTITY webfind.dlg.titleEdit	"Edit Search Engine">
+<!ENTITY webfind.dlg.titleAdd	"Add Search Engine">
+<!ENTITY webfind.dlg.style	"width: 40em;">
+<!ENTITY webfind.dlg.caption	"&database.caption;:">
+<!ENTITY webfind.dlg.url	"&database.url;:">
