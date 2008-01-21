@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
 <?xml-stylesheet type="text/css" href="chrome://global/skin/"?>
+<?xul-overlay href="chrome://kmprefs/content/kmprefs/ovrl-popups.xul"?>
 <!DOCTYPE page SYSTEM "chrome://kmprefs/locale/pref-filters.dtd">
 <page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" 
 id="prefFilters" onload="init()">
@@ -8,38 +9,42 @@ id="prefFilters" onload="init()">
 <script type="application/x-javascript">
 <![CDATA[
 function init() {
-	document.getElementById("Flashblock").checked = testMultiline(getFileContents(getFile(getFolder("UChrm"),UserStyle)),flashblockRegExp);
-	document.getElementById("CSSAdblock").checked = testMultiline(getFileContents(getFile(getFolder("UChrm"),UserStyle)),cssAdblockRegExp);
+	if(JSB.load)
+		document.getElementById("popupsPerm").removeAttribute("hidden");
+	initCheckbox("dom.disable_open_during_load");
+	var Flashblock = new StyleSheet("kmeleon.flashblock","@import url.chrome://flashblock/content/flashblock.css.;");
+	var Adblocking = new StyleSheet("kmeleon.adblocking","@import url.adblock.css.;");
 }
 
-// handle Flashblock
-const flashblockImport = "@import url(chrome://flashblock/content/flashblock.css);";
-const flashblockRegExp = "@import url.chrome://flashblock/content/flashblock.css.;";
-function toggleFlashblock(elem) {
-	if(elem.checked)
-		addToUserStyle(flashblockImport);
-	else
-		removeFromFile(getFile(getFolder("UChrm"),UserStyle),flashblockRegExp);
+function StyleSheet(prefID,regExp) {
+	this._pref = prefID;
+	this._rexp = regExp;
+	this.init();
 }
-// handle CSS filters
-const cssAdblockImport = "@import url(adblock.css);";
-const cssAdblockRegExp = "@import url.adblock.css.;";
-function toggleCSSAdblock(elem) {
-	if(elem.checked)
-		addToUserStyle(cssAdblockImport);
-	else
-		removeFromFile(getFile(getFolder("UChrm"),UserStyle),cssAdblockRegExp);
+StyleSheet.prototype = {
+
+init : function() {
+	if(testMultiline(getFileContents(UserStyle),this._rexp)) {
+	// remove static pre-1.5 style rules in favour of dynamic 1.5 prefs
+		removeFromFile(UserStyle,this._rexp);
+		pref.setBoolPref(this._pref,true);
+	}
+	initCheckbox(this._pref);
 }
+
+};
 ]]>
 </script>
 
 <vbox flex="1" style="overflow:auto">
   <dialogheader title="&filters.header;"/>
   <separator class="thin"/>
+  <groupbox id="popups.blocker"/>
+  <separator class="thin"/>
   <groupbox>
     <caption label="&flashblock.label;"/>
     <description>&flashblock.descr;</description>
-    <checkbox oncommand="toggleFlashblock(this)" id="Flashblock" label="&flashblock.enable;"/>
+    <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.flashblock" label="&flashblock.enable;"/>
     <separator class="thin"/>
     <description>&flash.note;</description>
   </groupbox>
@@ -47,7 +52,7 @@ function toggleCSSAdblock(elem) {
   <groupbox>
     <caption label="&cssAdblock.label;"/>
     <description>&cssAdblock.descr;</description>
-    <checkbox oncommand="toggleCSSAdblock(this)" id="CSSAdblock" label="&cssAdblock.enable;"/>
+    <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.adblocking" label="&cssAdblock.enable;"/>
     <separator class="thin"/>
     <description>&cssAdblock.note;</description>
     <separator class="thin"/>
