@@ -1,139 +1,122 @@
 <?xml version="1.0"?>
-<!--
-# ***** BEGIN LICENSE BLOCK *****
-# Version: MPL 1.1/GPL 2.0/LGPL 2.1
-#
-# The contents of this file are subject to the Mozilla Public License Version
-# 1.1 (the "License"); you may not use this file except in compliance with
-# the License. You may obtain a copy of the License at
-# http://www.mozilla.org/MPL/
-#
-# Software distributed under the License is distributed on an "AS IS" basis,
-# WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
-# for the specific language governing rights and limitations under the
-# License.
-#
-# The Original Code is the Firefox Preferences System.
-#
-# The Initial Developer of the Original Code is
-# Ben Goodger.
-# Portions created by the Initial Developer are Copyright (C) 2005
-# the Initial Developer. All Rights Reserved.
-#
-# Contributor(s):
-#   Ben Goodger <ben@mozilla.org>
-#
-# Alternatively, the contents of this file may be used under the terms of
-# either the GNU General Public License Version 2 or later (the "GPL"), or
-# the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
-# in which case the provisions of the GPL or the LGPL are applicable instead
-# of those above. If you wish to allow use of your version of this file only
-# under the terms of either the GPL or the LGPL, and not to allow others to
-# use your version of this file under the terms of the MPL, indicate your
-# decision by deleting the provisions above and replace them with the notice
-# and other provisions required by the GPL or the LGPL. If you do not delete
-# the provisions above, a recipient may use your version of this file under
-# the terms of any one of the MPL, the GPL or the LGPL.
-#
-# ***** END LICENSE BLOCK *****
--->
-<?xml-stylesheet href="chrome://global/skin/"?>
-<!--?xml-stylesheet href="chrome://browser/skin/preferences/preferences.css"?-->
-<?xml-stylesheet href="chrome://kmprefs/skin/firefox/preferences.css"?>
-
-<!--DOCTYPE prefwindow [
-  <!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd">
-  <!ENTITY % downloadactionsDTD SYSTEM "chrome://browser/locale/preferences/downloadactions.dtd">
-  %brandDTD;
-  %downloadactionsDTD;
-]-->
+<?xml-stylesheet type="text/css" href="chrome://global/skin/"?>
+<?xul-overlay href="chrome://kmprefs/content/firefox/downloadactions.xul"?>
 <!DOCTYPE page SYSTEM "chrome://kmprefs/locale/pref-filetypes.dtd">
-
-<!--window id="DownloadActionsWindow" class="windowDialog"
-        windowtype="Preferences:DownloadActions"
-        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-        onload="gDownloadActionsWindow.init();"
-        onunload="gDownloadActionsWindow.uninit();"
-        title="&downloadactionsWindow.title;"
-        width="&window.width;" height="&window.height;" persist="width height screenX screenY"-->
 <page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" 
-id="prefFiletypes" onload="gDownloadActionsWindow.init();" onunload="gDownloadActionsWindow.uninit();">
+id="prefFiletypes" onload="Download.init()" onunload="gDownloadActionsWindow.uninit()">
 
-  <!--script type="application/x-javascript" src="chrome://mozapps/content/preferences/actionsshared.js"/-->
-  <script type="application/x-javascript" src="chrome://kmprefs/content/firefox/actionsshared.js"/>
-  <!--script type="application/x-javascript" src="chrome://browser/content/preferences/downloadactions.js"/-->
-  <script type="application/x-javascript" src="chrome://kmprefs/content/firefox/downloadactions.js"/>
+<stringbundle id="pref_bundle" src="chrome://kmprefs/locale/pref.properties"/>
+<stringbundle id="bundlePreferences"/>
 
-  <!--stringbundle id="bundlePreferences" src="chrome://browser/locale/preferences/preferences.properties"/-->
-  <stringbundle id="bundlePreferences" src="chrome://kmprefs/locale/firefox/preferences.properties"/>
+<script type="application/x-javascript" src="chrome://kmprefs/content/pref.js"/>
+<script type="application/x-javascript">
+<![CDATA[
+var Download = {
 
-  <keyset>
-    <!--key key="&windowClose.key;" modifiers="accel" oncommand="window.close();"/-->
-    <key key="&focusSearch1.key;" modifiers="accel" oncommand="gDownloadActionsWindow.focusFilterBox();"/>
-    <key key="&focusSearch2.key;" modifiers="accel" oncommand="gDownloadActionsWindow.focusFilterBox();"/>
-  </keyset>
-           
-  <!--vbox flex="1" class="contentPane"-->
-  <vbox flex="1" style="overflow:auto">
-    <dialogheader title="&filetypes.header;"/>
-    <separator class="thin"/>
-  <!-- -->
-    <hbox align="center">
-      <label accesskey="&filter.accesskey;" control="filter">&filter.label;</label>
-      <textbox id="filter" flex="1" oninput="gDownloadActionsWindow.onFilterInput();" 
-              onkeypress="gDownloadActionsWindow.onFilterKeyPress(event);"/>
-      <button id="clearFilter" icon="clear" label="&clear.label;" accesskey="&clear.accesskey;" 
-              oncommand="gDownloadActionsWindow.clearFilter();" disabled="true"/>
-    </hbox>
-    <separator class="thin"/>
-    <label id="actionsIntro" control="fileHandlersList">
-      &fileTypesDescription.label;
-    </label>
-    <separator class="thin"/>
-    <tree id="fileHandlersList" flex="1"
-          lastSelected="0" persist="lastSelected"
-          onselect="gDownloadActionsWindow.onSelectionChanged();"
-          ondblclick="gDownloadActionsWindow.editFileHandler();">
-      <treechildren id="extensionChildren"/>
-      <treecols>
-        <!--treecol id="fileExtension" ignoreincolumnpicker="true" fiex="true"
-                  class="sortDirectionIndicator" persist="width"-->
-        <treecol id="fileExtension" ignoreincolumnpicker="true" fixed="true"
-                  class="sortDirectionIndicator" style="&filetypes.extColWidth;"
-                  label="&fileExtensionColumn.label;" accesskey="&fileExtensionColumn.accesskey;"
-                  onclick="gDownloadActionsWindow.sort('extension');"/>
-        <treecol id="fileType" flex="1"
-                  class="sortDirectionIndicator" persist="width"
-                  label="&fileTypeColumn.label;" accesskey="&fileTypeColumn.accesskey;"
-                  onclick="gDownloadActionsWindow.sort('typeName');"/>
-        <splitter class="tree-splitter" />
-        <treecol id="fileMIMEType" flex="1" hidden="true"
-                  class="sortDirectionIndicator" persist="width"
-                  label="&fileMIMETypeColumn.label;" accesskey="&fileMIMETypeColumn.accesskey;"
-                  onclick="gDownloadActionsWindow.sort('type');"/>
-        <splitter class="tree-splitter" />
-        <treecol id="fileHandler" flex="1"
-                  class="sortDirectionIndicator" persist="width"
-                  label="&fileHandlerColumn.label;" accesskey="&fileHandlerColumn.accesskey;"
-                  onclick="gDownloadActionsWindow.sort('action');"/>                
-      </treecols>
-    </tree>
-  </vbox>
+_base: null,
+_done: null,
+_pref: null,
+
+init: function() {
+	this._base = "kmeleon.download.";
+	this._pref = new Array(	"saveUseTitle",
+				"showMinimizedDialog",
+				"flashWhenCompleted",
+				"closeDownloadDialog");
+
+	for(var j=0;j<this._pref.length;j++)
+		initCheckbox(this._base+this._pref[j]);
+	this.initSave();
+},
+initSave: function() {
+	var prefs = new Array(	"SaveUnkownContent",
+				"askOpenSave",
+				"useDownloadDir",
+				"dir");
+	initCheckbox(this._base+prefs[0]);
+	initCheckbox(this._base+prefs[1]);
+	initRadiogroup(this._base+prefs[2]);
+	initTextbox(this._base+prefs[3],document.getElementById("pref_bundle").getString("pref_not_set"));
+
+	var off = !document.getElementById(this._base+prefs[0]).checked;
+	for(var j=1;j<prefs.length;j++)
+		document.getElementById(this._base+prefs[j]).disabled = off;
+	document.getElementById(this._base+prefs[3]).previousSibling.disabled = off;
+	document.getElementById(this._base+prefs[3]).nextSibling.disabled = off;
+},
+initTypes: function() {
+	if(!this._done) {
+		gDownloadActionsWindow.init();
+		this._done = true;
+	}
+},
+select: function(prefID) {
+	var dir = getFolder(prefID);
+	var fp  = Components.classes["@mozilla.org/filepicker;1"]
+			    .createInstance(nsIFilePicker);
+
+	fp.init(window,document.getElementById("pref_bundle").getString("select_"+prefID),nsIFilePicker.modeGetFolder);
+	fp.appendFilters(nsIFilePicker.filterAll);
+	if(dir) fp.displayDirectory = getFile(dir,"");
+
+	var ret = fp.show();
+	if (ret == nsIFilePicker.returnOK) {
+		document.getElementById(prefID).value = fp.file.path;
+		setCharPref(prefID,fp.file.path);
+	}
+}
+
+};
+]]>
+</script>
+
+<vbox flex="1" style="overflow:auto">
+  <dialogheader title="&filetypes.label;"/>
   <separator class="thin"/>
-  <hbox>
-    <hbox flex="1" class="actionButtons">
-      <button id="removeFileHandler" icon="remove"
-              label="&remove.label;" accesskey="&remove.accesskey;"
-              oncommand="gDownloadActionsWindow.removeFileHandler();"/>
-      <button id="editFileHandler"
-              label="&edit.label;" accesskey="&edit.accesskey;"
-              oncommand="gDownloadActionsWindow.editFileHandler();"/>
-      <spacer flex="1"/>
-      <!--button oncommand="close();" icon="close"
-              label="&button.close.label;" accesskey="&button.close.accesskey;"/-->
-    </hbox>
-    <!--resizer dir="bottomright"/-->
+  <tabcontrol flex="1">
+    <tabbox flex="1">
+      <tabs>
+        <tab label="&general;"/>
+        <tab label="&filetypes.byType;" oncommand="Download.initTypes()" onfocus="Download.initTypes()"/>
+      </tabs>
+      <tabpanels flex="1">
+        <tabpanel flex="1" orient="vertical" style="overflow:auto">
+<!-- General -->
+<separator class="thin"/>
+<checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.download.saveUseTitle" label="&download.suggestTitle;"/>
+<separator class="thick"/>
+<groupbox>
+  <caption label="&download.whenUnknown;"/>
+  <separator class="thin"/>
+  <checkbox oncommand="toggleCheckbox(this.id);Download.initSave()" id="kmeleon.download.SaveUnkownContent" label="&download.offerSave;"/>
+  <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.download.askOpenSave" label="&download.askOpenSave;" style="margin-left:2em"/>
+  <separator class="thin"/>
+  <radiogroup id="kmeleon.download.useDownloadDir" oncommand="toggleRadiogroup(this.id)" style="margin-left:1.65em">
+    <radio value="false" label="&download.askLocation;"/>
+    <radio value="true"  label="&download.useDownloadDir;"/>
+  </radiogroup>
+  <hbox align="center" style="margin-left:3.65em">
+    <label value="&download.folder;"/>
+    <textbox id="kmeleon.download.dir" flex="1" class="uri-element" readonly="true"/>
+    <button label="&browse;" oncommand="Download.select(this.previousSibling.id)"/>
   </hbox>
-<!--/window-->
+</groupbox>
+<separator class="thick"/>
+<checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.download.showMinimizedDialog" label="&download.minimizeDialog;"/>
+<separator class="thick"/>
+<groupbox>
+  <caption label="&download.whenComplete;"/>
+  <separator class="thin"/>
+  <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.download.flashWhenCompleted" label="&download.whenComplete.flash;"/>
+  <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.download.closeDownloadDialog" label="&download.whenComplete.close;"/>
+  <separator class="thin"/>
+</groupbox>
+<!-- General -->
+	</tabpanel>
+        <tabpanel id="prefMimetypes"/>
+      </tabpanels>
+    </tabbox>
+  </tabcontrol>
+</vbox>
 
 </page>
