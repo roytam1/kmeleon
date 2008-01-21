@@ -1,0 +1,12 @@
+<!ENTITY % prefDTD SYSTEM "chrome://kmprefs/locale/pref.dtd">%prefDTD;
+<!ENTITY % plugDTD SYSTEM "chrome://kmprefs/locale/kplugins/kplugins.dtd">%plugDTD;
+<!ENTITY tabbar.label		"Tab Bar">
+<!ENTITY tabbar.autoHide	"Hide tab bar when there is only one tab">
+<!ENTITY tabbar.loading		"Indicate page loading in the tab button title">
+<!ENTITY tabbar.mouse		"Mouse Control">
+<!ENTITY tabbar.mouse.dClick	"On Double-Click:">
+<!ENTITY tabbar.mouse.mClick	"On Middle-Click:">
+<!ENTITY tabbar.mouse.rClick	"On Right-Click:">
+<!ENTITY tabbar.mouse.open	"Open a new tab">
+<!ENTITY tabbar.mouse.close	"Close the current tab">
+<!ENTITY tabbar.mouse.menu	"Show the tab bar menu">
