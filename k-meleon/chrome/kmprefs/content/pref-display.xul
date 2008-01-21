@@ -6,57 +6,98 @@
 id="prefDisplay" onload="init()">
 
 <stringbundle id="pref_bundle" src="chrome://kmprefs/locale/pref.properties"/>
-<stringbundle id="dspl_bundle" src="chrome://kmprefs/locale/pref-display.properties"/>
 
 <script type="application/x-javascript" src="chrome://kmprefs/content/pref.js"/>
+<script type="application/x-javascript" src="chrome://kmprefs/content/kplugins/jsbridge.js"/>
 <script type="application/x-javascript">
 <![CDATA[
 function init() {
-	kLayers.init();
-	document.getElementById("browser.frames.enabled").label = document.getElementById("dspl_bundle").getString((kLayers.load)?((kLayers.only)?"layers":"windows_layers"):"windows");
-
+	if(JSB.load) {
+		document.getElementById("imagePerm").removeAttribute("hidden");
+	}
 	for(var j=0,b=document.getElementsByTagName("checkbox");j<b.length;j++)
 		if(b[j].getAttribute("id") == "CSS")
-			b[j].checked = testMultiline(getFileContents(getFile(getFolder("UChrm"),UserStyle)),brokenRegExp);
+			b[j].checked = testMultiline(getFileContents(UserStyle),Placeholder._RegExp);
 		else
 		if(b[j].getAttribute("id") == "Marquee")
-			b[j].checked = testMultiline(getFileContents(getFile(getFolder("UChrm"),UserStyle)),marqueeRegExp);
+			b[j].checked = testMultiline(getFileContents(UserStyle),Marquee._RegExp);
 		else
 			initCheckbox(b[j].getAttribute("id"));
-	for(var j=0,r=document.getElementsByTagName("radiogroup");j<r.length-1;j++)
+	for(var j=0,r=document.getElementsByTagName("radiogroup");j<r.length;j++)
 		initRadiogroup(r[j].getAttribute("id"));
-	setInterval("initCheckbox('browser.frames.enabled');initRadiogroup('image.animation_mode');initRadiogroup('permissions.default.image')",100);
+	Source.init();
+//	setInterval("initCheckbox('browser.frames.enabled');initRadiogroup('image.animation_mode');initRadiogroup('permissions.default.image')",100);
 }
 
-// handle Marquee
-const marqueeImport = "marquee { -moz-binding: none; }";
-const marqueeRegExp = "marquee[\\s]*\\{[\\s]*-moz-binding:[\\s]*none[\\s]*;[\\s]*\\}";
-function toggleMarquee(elem) {
+var Marquee = {
+
+_Import: "marquee { -moz-binding: none; }",
+_RegExp: "marquee[\\s]*\\{[\\s]*-moz-binding:[\\s]*none[\\s]*;[\\s]*\\}",
+
+toggle: function(elem) {
 	if(elem.checked)
-		addToUserStyle(marqueeImport);
+		addToUserStyle(this._Import);
 	else
-		removeFromFile(getFile(getFolder("UChrm"),UserStyle),marqueeRegExp);
+		removeFromFile(UserStyle,this._RegExp);
 }
 
-// handle Broken Images
-const brokenImport = "img { -moz-force-broken-image-icon: 1; }";
-const brokenRegExp = "img[\\s]*\\{[\\s]*-moz-force-broken-image-icon:[\\s]*1[\\s]*;[\\s]*\\}";
-const brokenElmnts = [	"browser.display.show_image_placeholders",
-			"browser.display.force_inline_alttext",
-			"CSS"];
-function toggleBroken(elem) {
+};
+
+var Placeholder = {
+
+_Import: "img { -moz-force-broken-image-icon: 1; }",
+_RegExp: "img[\\s]*\\{[\\s]*-moz-force-broken-image-icon:[\\s]*1[\\s]*;[\\s]*\\}",
+_Elmnts: [	"browser.display.show_image_placeholders",
+		"browser.display.force_inline_alttext",
+		"CSS"],
+
+toggle: function(elem) {
 	switch(elem.id) {
-		case brokenElmnts[0] :	toggleCheckbox(brokenElmnts[0]); if(document.getElementById(brokenElmnts[1]).checked) toggleCheckbox(brokenElmnts[1]); init(); break;
-		case brokenElmnts[1] :	toggleCheckbox(brokenElmnts[1]); if(document.getElementById(brokenElmnts[0]).checked) toggleCheckbox(brokenElmnts[0]);
-					removeFromFile(getFile(getFolder("UChrm"),UserStyle),brokenRegExp); init(); break;
-		case brokenElmnts[2] :	if(document.getElementById(brokenElmnts[2]).checked) {
-						if(document.getElementById(brokenElmnts[1]).checked) toggleCheckbox(brokenElmnts[1]);
-						addToUserStyle(brokenImport);
+		case this._Elmnts[0] :	toggleCheckbox(this._Elmnts[0]); if(document.getElementById(this._Elmnts[1]).checked) toggleCheckbox(this._Elmnts[1]); break;
+		case this._Elmnts[1] :	toggleCheckbox(this._Elmnts[1]); if(document.getElementById(this._Elmnts[0]).checked) toggleCheckbox(this._Elmnts[0]);
+					removeFromFile(UserStyle,this._RegExp); break;
+		case this._Elmnts[2] :	if(document.getElementById(this._Elmnts[2]).checked) {
+						if(document.getElementById(this._Elmnts[1]).checked) toggleCheckbox(this._Elmnts[1]);
+						addToUserStyle(this._Import);
 					} else
-						removeFromFile(getFile(getFolder("UChrm"),UserStyle),brokenRegExp);
-					init(); break;
+						removeFromFile(UserStyle,this._RegExp);
+					break;
 	}
 }
+
+};
+
+var Source = {
+
+pref: null,
+init: function() {
+	this.pref = new Array(	"kmeleon.general.sourceEnabled",
+				"kmeleon.general.sourceCommand");
+	initCheckbox(this.pref[0]);
+	initTextbox(this.pref[1],document.getElementById("pref_bundle").getString("pref_not_set"));
+	var elem = document.getElementById(this.pref[1]);
+	elem.disabled = !pref.getBoolPref(this.pref[0]);
+	elem.previousSibling.disabled = elem.disabled;
+	elem.nextSibling.disabled = elem.disabled;
+},
+selectFile: function() {
+	var bnd = document.getElementById("pref_bundle");
+	var dir = getFile(getFolder("ProgF"),"");
+	var fp  = Components.classes["@mozilla.org/filepicker;1"]
+			    .createInstance(nsIFilePicker);
+
+	fp.init(window,bnd.getString("select_"+this.pref[1]),nsIFilePicker.modeOpen);
+	fp.appendFilters(nsIFilePicker.filterApps);
+	fp.displayDirectory = dir;
+
+	var ret = fp.show();
+	if (ret == nsIFilePicker.returnOK) {
+		setCharPref(this.pref[1],fp.file.path);
+		initTextbox(this.pref[1],"");
+	}
+}
+
+};
 ]]>
 </script>
 
@@ -75,15 +116,26 @@ function toggleBroken(elem) {
 <separator class="thin"/>
 <groupbox>
   <caption label="&frames.label;"/>
-  <checkbox oncommand="toggleCheckbox(this.id)" id="browser.frames.enabled"/>
+  <checkbox oncommand="toggleCheckbox(this.id)" id="browser.frames.enabled" label="&frames.enable;"/>
   <checkbox oncommand="toggleCheckbox(this.id)" id="layout.frames.force_resizability" label="&frames.resizable;"/>
+  <separator class="thin"/>
 </groupbox>
 <separator class="thin"/>
 <groupbox>
   <caption label="&text.label;"/>
   <checkbox oncommand="toggleCheckbox(this.id)" id="browser.blink_allowed" label="&text.blink;"/>
-  <checkbox oncommand="toggleMarquee(this)" id="Marquee" label="&text.marquee;"/>
+  <checkbox oncommand="Marquee.toggle(this)" id="Marquee" label="&text.marquee;"/>
   <description>&marquee.note;</description>
+</groupbox>
+<separator class="thin"/>
+<groupbox>
+  <caption label="&source.label;"/>
+  <checkbox oncommand="toggleCheckbox(this.id);Source.init()" id="kmeleon.general.sourceEnabled" label="&source.external;"/>
+  <hbox align="center" style="padding-left:2em">
+    <label value="&source.viewer;"/>
+    <textbox id="kmeleon.general.sourceCommand" flex="1" class="uri-element" oninput="setCharPref(this.id,this.value)"/>
+    <button label="&browse;" oncommand="Source.selectFile()"/>
+  </hbox>
 </groupbox>
 <!-- General Display -->
 	</tabpanel>
@@ -94,10 +146,15 @@ function toggleBroken(elem) {
   <groupbox flex="1">
     <caption label="&images.load;"/>
     <radiogroup oncommand="toggleRadiogroup(this.id)" id="permissions.default.image">
-      <radio disabled="true" value="2" label="&images.load.never;"/>
-      <radio disabled="true" value="1" label="&images.load.always;"/>
-      <radio disabled="true" value="3" label="&images.load.noForeign;"/>
+      <radio value="2" label="&images.load.never;"/>
+      <radio value="1" label="&images.load.always;"/>
+      <radio value="3" label="&images.load.noForeign;"/>
     </radiogroup>
+    <separator class="thin"/>
+    <hbox id="imagePerm" hidden="true">
+      <button label="&exceptions;" oncommand="JSB.id('ID_IMAGE_PERM')"/>
+      <hbox flex="1"/>
+    </hbox>
   </groupbox>
   <groupbox flex="1">
     <caption label="&images.loop;"/>
@@ -106,19 +163,20 @@ function toggleBroken(elem) {
       <radio value="normal" label="&images.loop.normal;"/>
       <radio value="once" label="&images.loop.once;"/>
     </radiogroup>
+    <separator class="thin"/>
   </groupbox>
 </hbox>
-<separator class="thin"/>
+<separator class="thick"/>
 <checkbox oncommand="toggleCheckbox(this.id)" id="browser.enable_automatic_image_resizing" label="&images.resizing;"/>
 <separator class="thin"/>
 <vbox id="domDISS"/>
-<separator class="thin"/>
+<separator class="thick"/>
 <groupbox>
   <caption label="&images.missing;"/>
-  <checkbox oncommand="toggleBroken(this)" id="browser.display.show_image_placeholders" label="&images.placeholders;"/>
-  <checkbox oncommand="toggleBroken(this)" id="browser.display.force_inline_alttext" label="&images.inline.force;"/>
+  <checkbox oncommand="Placeholder.toggle(this);init()" id="browser.display.show_image_placeholders" label="&images.placeholders;"/>
+  <checkbox oncommand="Placeholder.toggle(this);init()" id="browser.display.force_inline_alttext" label="&images.inline.force;"/>
   <description>&images.inline.note;</description>
-  <checkbox oncommand="toggleBroken(this)" id="CSS" label="&images.block.force;"/>
+  <checkbox oncommand="Placeholder.toggle(this);init()" id="CSS" label="&images.block.force;"/>
   <description>&restartNote1;</description>
 </groupbox>
 <!-- Images Display -->
