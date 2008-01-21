@@ -14,7 +14,7 @@ id="prefHotlinks" onload="init()">
 function init() {
 	var off = !kPlugin.load("macros");
 	var bndl = document.getElementById("brws_bundle");
-	document.getElementById("open").value = (kPlugin.load("layers")?bndl.getString("layer_new"):bndl.getString("window_new")) + document.getElementById("open").value;
+	document.getElementById("open").value = (kTabs()?bndl.getString("tab_new"):bndl.getString("window_new")) + document.getElementById("open").value;
 	for(var j=0,t=document.getElementsByTagName("textbox");j<t.length;j++) {
 		t[j].id = "kmeleon.plugins.macros.hotlink" + t[j].id;
 		t[j].nextSibling.id = "kmeleon.plugins.macros.hotlink" + t[j].nextSibling.id;
