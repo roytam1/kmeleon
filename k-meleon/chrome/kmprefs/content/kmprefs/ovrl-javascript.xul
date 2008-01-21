@@ -2,7 +2,7 @@
 <!DOCTYPE overlay SYSTEM "chrome://kmprefs/locale/kmprefs/ovrl-javascript.dtd">
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-<checkbox oncommand="toggleCheckbox(this.id)" id="javascript.enabled" label="&enableJS;" disabled="true"/>
+<checkbox oncommand="toggleCheckbox(this.id)" id="javascript.enabled" label="&enableJS;"/>
 
 <vbox id="domDISS">
   <checkbox oncommand="toggleCheckbox(this.id)" id="dom.disable_image_src_set" label="&domDISS;"/>
@@ -16,6 +16,7 @@
   <checkbox oncommand="toggleCheckbox(this.id)" id="dom.disable_window_move_resize" label="&domDWMR;"/>
   <checkbox oncommand="toggleCheckbox(this.id)" id="dom.disable_window_status_change" label="&domDWSC;"/>
   <checkbox oncommand="toggleCheckbox(this.id)" id="dom.event.contextmenu.enabled" label="&domECE;" inverse="true"/>
+  <separator class="thin"/>
 </groupbox>
 
 </overlay>
