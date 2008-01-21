@@ -1,7 +1,7 @@
 <!ENTITY % prefDTD SYSTEM "chrome://kmprefs/locale/pref.dtd">%prefDTD;
 <!ENTITY kmacros.header		"Macro Extension Plugin">
 <!ENTITY kmacros.enable		"Enable Macro Extension (&restartRequired;)">
-<!ENTITY kmacros.modules	"Macro Modules">
+<!ENTITY kmacros.modules	"Enable/Disable Macro Modules">
 <!ENTITY kmacros.modules.hint	"Determine which modules you want to use:">
 <!ENTITY kmacros.modules.name	"Name">
 <!ENTITY kmacros.modules.descr	"Description">

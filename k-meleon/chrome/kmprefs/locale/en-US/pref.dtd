@@ -1,4 +1,4 @@
-<!ENTITY prefDialog.title	"Advanced Preferences">
+<!ENTITY prefDialog.title	"Preferences">
 <!ENTITY prefDialog.style	"width: 65.5em; height: 51.5em;">
 <!ENTITY prefDialog.close.label	"Close">
 <!ENTITY prefDialog.close.ackey	"C">
@@ -18,6 +18,7 @@
 <!ENTITY display.label		"Page Display">
 <!ENTITY filters.label		"Content Filters">
 <!ENTITY browsing.label		"Browsing">
+<!ENTITY tabs.label		"Tabbed Browsing">
 <!ENTITY filetypes.label	"File Handling">
 <!ENTITY webfind.label		"Finding Websites">
 <!ENTITY history.label		"History">
@@ -29,7 +30,7 @@
 <!ENTITY kbookmarks.label	"Netscape Bookmarks">
 <!ENTITY kfavorites.label	"IE Favorites">
 <!ENTITY khotlist.label		"Opera Hotlist">
-<!ENTITY klayers.label		"Layered Windows">
+<!ENTITY kfullscreen.label	"Full Screen">
 <!ENTITY kmacros.label		"Macro Extension">
 <!ENTITY kgestures.label	"Mouse Gestures">
 
@@ -44,6 +45,7 @@
 <!ENTITY clear			"Clear">
 <!ENTITY delete			"Delete">
 <!ENTITY edit			"Edit...">
+<!ENTITY exceptions		"Exceptions...">
 <!ENTITY macrosRequired		"This feature requires the Macro Extension">
 <!ENTITY restoreDefault		"Restore Default">
 <!ENTITY restartRequired	"You have to restart K-Meleon to make changes take effect">
@@ -55,6 +57,7 @@
 <!ENTITY window.size		"Window Size">
 <!ENTITY window.position	"Window Position">
 <!ENTITY general		"General">
+<!ENTITY startup		"At Startup"><!-- From pref-appearance.dtd -->
 <!ENTITY pixels			"Pixels">
 <!ENTITY maximized		"Maximized">
 <!ENTITY width			"Width:">

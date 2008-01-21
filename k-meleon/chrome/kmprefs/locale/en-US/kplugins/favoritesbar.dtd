@@ -1,7 +1,7 @@
 <!ENTITY % prefDTD SYSTEM "chrome://kmprefs/locale/pref.dtd">%prefDTD;
 <!ENTITY % plugDTD SYSTEM "chrome://kmprefs/locale/kplugins/kplugins.dtd">%plugDTD;
-<!ENTITY favoritesbar.label		"Favorites Toolbar">
-<!ENTITY favoritesbar.enable		"Enable Favorites Toolbar">
+<!ENTITY favoritesbar.label		"Favorites Bar">
+<!ENTITY favoritesbar.enable		"Enable Favorites Bar">
 <!ENTITY favoritesbar.chevron		"Show a button to open Favorites menu">
 <!ENTITY favoritesbar.fixedAuto		"Fixed width (choose automatically)">
 <!ENTITY favoritesbar.fixedPixelsBefore	"Fixed width of">

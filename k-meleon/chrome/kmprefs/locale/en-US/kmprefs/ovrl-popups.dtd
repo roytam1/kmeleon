@@ -1,6 +1,8 @@
+<!ENTITY % prefDTD SYSTEM "chrome://kmprefs/locale/pref.dtd">%prefDTD;
 <!ENTITY popups.label		 "Popup Windows">
-<!ENTITY popups.note		 "&note; Blocking all popups may prevent important features of some websites from working, such as login windows for banks and shopping sites. Even if blocked, sites may use other methods to show popups.">
-<!ENTITY domDODL		 "Disallow scripts to open windows during page load (Block unrequested popup windows)">
+<!ENTITY popups.blocker.label	 "Popup Blocker">
+<!ENTITY popups.blocker.descr	 "Disallow scripts to open windows during page load (Block unrequested popup windows)">
+<!ENTITY popups.blocker.note	 "&note; Blocking all popups may prevent important features of some websites from working, such as login windows for banks and shopping sites. Even if blocked, sites may use other methods to show popups.">
 <!ENTITY popups.diversion.label	 "Popup Window Diversion">
 <!ENTITY popups.diversion.descr	 "Determine how to treat a script's request for a new window:">
 <!ENTITY treatAsLink		 "Treat the request as if it was originated from a link meant to open a new window">
