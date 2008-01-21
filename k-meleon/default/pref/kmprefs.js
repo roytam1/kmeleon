@@ -1,13 +1,14 @@
 /********************************************************************************************************/
-// Default pref for k-meleon - only necessary for kmPrefs (Advanced Preferences)
+// Default pref for k-meleon - only necessary for kmPrefs (Preferences)
 /********************************************************************************************************/
 
 //pref("kmeleon.display.title", "K-Meleon");			// I10n.js
 //pref("kmeleon.display.URLbarTitle", "URL:");			// I10n.js
-
+pref("kmeleon.general.startHome", true);
 pref("kmeleon.urlbar.dropdown_lines", 10);
-
 pref("kmeleon.toolband.Throbber.visibility", true);
+
+pref("browser.tabs.loadDivertedInBackground", false);
 
 // Firefox MIME Type Editor
 pref("browser.download.show_plugins_in_list", true);
@@ -70,19 +71,6 @@ pref("kmeleon.plugins.hotlist.maxMenuLength", 20); // plugin default: 20
 //pref("kmeleon.plugins.hotlist.openurl", "ID_OPEN_LINK");	// kmeleon.js
 pref("kmeleon.plugins.hotlist.rebar", false);
 pref("kmeleon.plugins.hotlist.sortOrder", 209);
-
-//pref("kmeleon.plugins.layers.load", true);			// kmeleon.js
-pref("kmeleon.plugins.layers.autoHide", false);
-pref("kmeleon.plugins.layers.catchOpen", false);
-//pref("kmeleon.plugins.layers.confirmClose", true);		// kmeleon.js
-pref("kmeleon.plugins.layers.maxWidth", 35);
-pref("kmeleon.plugins.layers.minWidth", 10);
-pref("kmeleon.plugins.layers.numbers", false);
-pref("kmeleon.plugins.layers.onCloseOption", 0);
-pref("kmeleon.plugins.layers.onOpenOption", 0);
-//pref("kmeleon.plugins.layers.rebar", true);			// kmeleon.js
-//pref("kmeleon.plugins.layers.style", 2);			// kmeleon.js
-//pref("kmeleon.plugins.layers.title", "Layers:");		// I10n.js
 
 
 /********************************************************************************************************/
