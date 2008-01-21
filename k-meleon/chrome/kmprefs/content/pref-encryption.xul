@@ -1,0 +1,201 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/css" href="chrome://global/skin/"?>
+<!DOCTYPE page SYSTEM "chrome://kmprefs/locale/pref-encryption.dtd">
+<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" 
+id="prefEncryption" onload="init()" onunload="Masterpass.toggleTimeout(false)">
+
+<stringbundle id="pref_bundle" src="chrome://kmprefs/locale/pref.properties"/>
+
+<script type="application/x-javascript" src="chrome://kmprefs/content/pref.js"/>
+<script type="application/x-javascript">
+<![CDATA[
+var Masterpass = {
+
+_isset: null,
+_isold: null,
+_times: null,
+_tmout: null,
+_token: null,
+
+init: function() {
+	this._isset = this._isSet();
+	this._token = Components.classes["@mozilla.org/security/pk11tokendb;1"]
+				.getService(Components.interfaces.nsIPK11TokenDB)
+				.getInternalKeyToken();
+	this._initEncryption();
+	this._setControls();
+	this._initTimeout();
+
+	document.getElementsByTagName("checkbox")[0].checked = this._isset;
+},
+change: function() {
+	var dpb = Components.classes["@mozilla.org/embedcomp/dialogparam;1"]
+			    .createInstance(Components.interfaces.nsIDialogParamBlock);
+
+	dpb.SetString(1,"");
+	window.openDialog("chrome://pippki/content/changepassword.xul","","chrome,centerscreen,modal",dpb);
+},
+devices: function() {
+	window.openDialog("chrome://pippki/content/device_manager.xul","","chrome,centerscreen,modal");
+	this.init();
+},
+toggle: function(elem) {
+	if(elem.checked)
+		this.change();
+	else
+		this._reset();
+	this.init();
+},
+toggleTimeout: function(init) {
+	const nsIPK11Token = Components.interfaces.nsIPK11Token;
+
+	var b=document.getElementById("security.password_lifetime"),t,x;
+	switch(document.getElementById("security.ask_for_password").value) {
+		case "0": t=nsIPK11Token.ASK_FIRST_TIME;  x=false; b.disabled=true; break;
+		case "1": t=nsIPK11Token.ASK_EVERY_TIME;  x=true;  b.disabled=true; break;
+		case "2": t=nsIPK11Token.ASK_EXPIRE_TIME; x=false; b.disabled=!this._isset; if(!init) b.focus(); this._tmout=b.value; var r=new RegExp("^[0-9]+$"); if(!r.test(this._tmout)) this._tmout="1"; break;
+	}
+	this._token.setAskPasswordDefaults(t,this._tmout);
+	pref.setBoolPref("signon.expireMasterPassword",x);
+},
+_initEncryption: function() {
+	if(this._isold==null)
+		this._isold = this._isset;
+	else {
+		if(this._isold!=this._isset) this._reencrypt();
+		this._isold = this._isset;
+		return;
+	}
+	if(this._isset && (getPrefValue("wallet.crypto")!="true"))
+		this._reencrypt();
+},
+_reencrypt: function() {
+	var ws = Components.classes["@mozilla.org/wallet/wallet-service;1"]
+			   .getService()
+			   .QueryInterface(Components.interfaces.nsIWalletService);
+
+	ws.WALLET_InitReencryptCallback(window);
+	pref.setBoolPref("wallet.crypto",this._isset);
+},
+_initTimeout: function() {
+	this._times = this._token.getAskPasswordTimes();
+	this._tmout = this._token.getAskPasswordTimeout();
+
+	const nsIPK11Token = Components.interfaces.nsIPK11Token;
+
+	var i;
+	switch(this._times) {
+		case nsIPK11Token.ASK_FIRST_TIME : i=0; break;
+		case nsIPK11Token.ASK_EVERY_TIME : i=1; break;
+		case nsIPK11Token.ASK_EXPIRE_TIME: i=2; break;
+	}
+	document.getElementById("security.ask_for_password").selectedItem = document.getElementsByTagName("radio")[i];
+
+	if(this._tmout)
+		document.getElementById("security.password_lifetime").value = this._tmout;
+	else
+		initTextbox("security.password_lifetime",false);
+
+	this.toggleTimeout(true);
+},
+_isSet: function() {
+	var mdb = Components.classes["@mozilla.org/security/pkcs11moduledb;1"]
+			    .getService(Components.interfaces.nsIPKCS11ModuleDB);
+
+	var slot = mdb.findSlotByName("");
+	if(slot) {
+		return ((slot.status!=Components.interfaces.nsIPKCS11Slot.SLOT_UNINITIALIZED) && 
+			(slot.status!=Components.interfaces.nsIPKCS11Slot.SLOT_READY));
+	} else	return false;
+},
+_reset: function() {
+	window.openDialog("chrome://pippki/content/resetpassword.xul",this._token.tokenName,"chrome,centerscreen,modal");
+},
+_setControls: function() {
+	document.getElementsByTagName("label")[0].disabled = !this._isset;
+	document.getElementsByTagName("button")[0].disabled = !this._isset;
+	document.getElementsByTagName("button")[1].disabled = false;
+	document.getElementsByTagName("radiogroup")[0].disabled = !this._isset;
+}
+
+};
+
+function init() {
+	Masterpass.init();
+	for(var j=1,b=document.getElementsByTagName("checkbox");j<b.length;j++) initCheckbox(b[j].id);
+}
+]]>
+</script>
+
+<vbox flex="1" style="overflow:auto">
+  <dialogheader title="&encryption.header;"/>
+  <separator class="thin"/>
+  <tabcontrol flex="1">
+    <tabbox flex="1">
+      <tabs>
+        <tab label="&encryption.storage;"/>
+        <tab label="&encryption.transmission;"/>
+      </tabs>
+      <tabpanels flex="1">
+        <tabpanel flex="1" orient="vertical" style="overflow:auto">
+<!-- Protected Storage -->
+<separator class="thin"/>
+<description>&masterpass.descr;</description>
+<separator class="thin"/>
+<checkbox oncommand="Masterpass.toggle(this)" label="&masterpass.enable;"/>
+<separator class="thin"/>
+<hbox>
+  <button label="&masterpass.change;" oncommand="Masterpass.change()" style="margin-left:2.25em"/>
+  <button label="&encryption.devices;" oncommand="Masterpass.devices()"/>
+  <hbox flex="1"/>
+</hbox>
+<separator class="thick"/>
+<description>&masterpass.warning;</description>
+<separator class="thick"/>
+<groupbox>
+  <caption label="&masterpass.timeout;"/>
+  <separator class="thin"/>
+  <description>&masterpass.ask;</description>
+  <radiogroup id="security.ask_for_password">
+    <radio value="0" label="&masterpass.askfirsttime;" oncommand="Masterpass.toggleTimeout(false)"/>
+    <radio value="1" label="&masterpass.askeverytime;" oncommand="Masterpass.toggleTimeout(false)"/>
+    <hbox align="center">
+      <radio value="2" label="&masterpass.askminutes.before;" oncommand="Masterpass.toggleTimeout(false)"/>
+      <textbox id="security.password_lifetime" size="4" class="uri-element" oninput="setIntPref(this.id,this.value)"/>
+      <label value="&masterpass.askminutes.after;"/>
+    </hbox>
+  </radiogroup>
+  <separator class="thin"/>
+</groupbox>
+<!-- Protected Storage -->
+	</tabpanel>
+        <tabpanel flex="1" orient="vertical" style="overflow:auto">
+<!-- Encrypted Transmission -->
+<separator class="thin"/>
+<groupbox>
+  <caption label="&ssl.protocols;"/>
+  <separator class="thin"/>
+  <checkbox id="security.enable_ssl3" label="&ssl.enable_ssl3;" oncommand="toggleCheckbox(this.id)"/>
+  <checkbox id="security.enable_tls" label="&ssl.enable_tls;" oncommand="toggleCheckbox(this.id)"/>
+  <separator class="thin"/>
+</groupbox>
+<separator class="thin"/>
+<groupbox>
+  <caption label="&ssl.warnings;"/>
+  <separator class="thin"/>
+  <description>&warn.description;</description>
+  <checkbox id="security.warn_entering_secure" label="&warn.enteringsecure;" oncommand="toggleCheckbox(this.id)"/>
+  <checkbox id="security.warn_entering_weak" label="&warn.enteringweak;" oncommand="toggleCheckbox(this.id)"/>
+  <checkbox id="security.warn_leaving_secure" label="&warn.leavingsecure;" oncommand="toggleCheckbox(this.id)"/>
+  <checkbox id="security.warn_submit_insecure" label="&warn.insecurepost;" oncommand="toggleCheckbox(this.id)"/>
+  <checkbox id="security.warn_viewing_mixed" label="&warn.viewmixed;" oncommand="toggleCheckbox(this.id)"/>
+  <separator class="thin"/>
+</groupbox>
+<!-- Encrypted Transmission -->
+	</tabpanel>
+      </tabpanels>
+    </tabbox>
+  </tabcontrol>
+</vbox>
+
+</page>
