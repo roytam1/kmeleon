@@ -11,16 +11,22 @@ _pref: null,
 _bndl: null,
 
 load : null,
+name : "fullscreen",
 init : function() {
-	if(kPlugin.absent("fullscreen")) {
+	if(kPlugin.absent(this.name)) {
 		this.load   = false;
-
 		var node = document.getElementById("kFullscreenDisplay").parentNode;
-		node.parentNode.removeChild(node);
+		try {
+			node.parentNode.removeChild(node);
+		} catch(e) {}
+		node = document.getElementById("kFullscreenTab");
+		try {
+			node.parentNode.removeChild(node);
+		} catch(e) {}
 	} else {
-		this.load   = kPlugin.load("fullscreen");
+		this.load   = kPlugin.load(this.name);
 		this._bndl  = document.getElementById("kFullscreenBundle");
-		this._base  = "kmeleon.plugins.fullscreen.";
+		this._base  = "kmeleon.plugins."+this.name+".";
 		this._pref  = new Array("load",
 					"hide_rebar",
 					"hide_statusbar",
@@ -40,29 +46,30 @@ _setControls: function() {
 		document.getElementById(this._base+this._pref[j]).disabled = !this.load;
 },
 _setLabel: function() {
-	if(!kPlugin.absent("fullscreen"))
+	if(!kPlugin.absent(this.name))
 		document.getElementById(this._base+this._pref[1]).label = this._bndl.getString("hide_toolbars").replace(/%S/,kPlugin.load("rebarmenu")?this._bndl.getString("menu_bar_too"):this._bndl.getString("not_menu_bar"));
 }
 
 };
-/*addEventListener("load",kFullscreen.init,true);
-try{
-	document.getElementById("kmeleon.plugins.rebarmenu.load").addEventListener("command",kFullscreen._setLabel,true);
-} catch(e) {}*/
+//addEventListener("load",kFullscreen.init,true);
 ]]>
 </script>
 
-<groupbox id="kFullscreenDisplay">
+<vbox id="kFullscreenDisplay">
   <stringbundle id="kFullscreenBundle" src="chrome://kmprefs/locale/kplugins/fullscreen.properties"/>
-  <caption label="&fullscreen.label;"/>
+  <separator class="thin"/>
   <checkbox oncommand="kFullscreen.toggle()" id="kmeleon.plugins.fullscreen.load" label="&fullscreen.enable;"/>
   <separator class="thin"/>
   <groupbox>
     <caption label="&fullscreen.mode;"/>
+    <separator class="thin"/>
     <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.plugins.fullscreen.hide_rebar"/>
     <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.plugins.fullscreen.hide_statusbar" label="&fullscreen.status;"/>
     <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.plugins.fullscreen.hide_taskbar" label="&fullscreen.taskbar;"/>
+    <separator class="thin"/>
   </groupbox>
-</groupbox>
+</vbox>
+
+<tab id="kFullscreenTab" label="&fullscreen.label;"/>
 
 </overlay>

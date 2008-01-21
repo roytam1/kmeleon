@@ -132,6 +132,7 @@ _addMenu: function(n,elemID) {
 	elem = document.createElement("menuitem");
 	elem.setAttribute("value","");
 	elem.setAttribute("label",document.getElementById("pref_bundle").getString("remove_entry"));
+	elem.setAttribute("style","font-weight:bold");
 	prnt.lastChild.firstChild.insertBefore(elem,prnt.lastChild.firstChild.firstChild);
 	prnt.lastChild.selectedIndex = 0;
 
@@ -225,6 +226,7 @@ init: function() {
 			titem.firstChild.appendChild(tcell);
 			this.tree.appendChild(titem);
 		}
+		this.tree.parentNode.view.selection.select(0);
 	}
 },
 del: function() {
@@ -282,9 +284,9 @@ _refresh: function() {
     <tabbox flex="1">
       <tabs>
         <tab label="&webfind.urlbar;"/>
-        <tab label="&webfind.websearch;" oncommand="Search.init(0)"/>
-        <tab label="&webfind.metasearch;" oncommand="Search.init(1)"/>
-        <tab label="&webfind.database;" oncommand="Database.init()"/>
+        <tab label="&webfind.websearch;" oncommand="Search.init(0)" onfocus="Search.init(0)"/>
+        <tab label="&webfind.metasearch;" oncommand="Search.init(1)" onfocus="Search.init(1)"/>
+        <tab label="&webfind.database;" oncommand="Database.init()" onfocus="Database.init()"/>
       </tabs>
       <tabpanels flex="1">
         <tabpanel flex="1" orient="vertical" style="overflow:auto">

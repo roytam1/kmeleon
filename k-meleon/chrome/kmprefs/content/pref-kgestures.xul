@@ -130,15 +130,16 @@ init: function() {
 		try {
 			this.fill(UsrActions,this.tree);
 		} catch(e) {
-			this.done = false;alert(e);
+			this.done = false;
 		}
+		this.tree.parentNode.parentNode.parentNode.view.selection.select(0);
 	}
 	if(!this.dflt) {
 		this.dflt = true;
 		try {
 			this.fill(DefActions,document.getElementById("default"));
 		} catch(e) {
-			this.dflt = false;alert(e);
+			this.dflt = false;
 		}
 	}
 },
@@ -215,7 +216,7 @@ _refresh: function() {
     <tabbox flex="1">
       <tabs>
         <tab label="&gestures.label;"/>
-        <tab label="&actions.label;" oncommand="Database.init()"/>
+        <tab label="&actions.label;" oncommand="Database.init()" onfocus="Database.init()"/>
       </tabs>
       <tabpanels flex="1">
         <tabpanel flex="1" orient="vertical" style="overflow:auto">
@@ -327,7 +328,7 @@ _refresh: function() {
     </row>
   </rows>
 </grid>
-<separator class="thick"/>
+<vbox flex="1"/>
 <description>&gestures.note;</description>
 <!-- Gesture Actions -->
 	</tabpanel>

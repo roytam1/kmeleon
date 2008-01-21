@@ -66,25 +66,22 @@ _setControls: function() {
 }
 
 };
-/*addEventListener("load",kBookmarksBar.init,true);
-try{
-	document.getElementById("kmeleon.plugins.bookmarks.load").addEventListener("command",kBookmarksBar._setControls,true);
-} catch(e) {}*/
+//addEventListener("load",kBookmarksBar.init,true);
 ]]>
 </script>
 
 <tabpanel id="kBookmarksTBar" flex="1" orient="vertical" style="overflow:auto">
   <separator class="thin"/>
   <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.plugins.bookmarks.toolbarEnabled" label="&bookmarksbar.enable;"/>
-  <separator class="thin"/>
+  <separator class="thick"/>
   <hbox align="center">
     <label value="&toolbar.folder;"/>
     <textbox id="kmeleon.plugins.bookmarks.toolbarFolder" flex="1" class="uri-element" oninput="setCharPref(this.id,this.value)"/>
     <button id="kBookmarksTBar0" label="&restoreDefault;" oncommand="restoreDefault(this.previousSibling.id);initTextbox(this.previousSibling.id,false)"/>
   </hbox>
-  <separator class="thin"/>
+  <separator class="thick"/>
   <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.plugins.bookmarks.chevron" label="&bookmarksbar.chevron;"/>
-  <separator class="thin"/>
+  <separator class="thick"/>
   <groupbox>
     <caption label="&toolbar.buttonWidth;"/>
     <separator class="thin"/>
@@ -98,9 +95,8 @@ try{
       <button id="kBookmarksTBar1" label="&restoreDefault;" oncommand="kBookmarksBar.clrWidth()"/>
       <hbox flex="1"/>
     </hbox>
-    <separator class="thin"/>
   </groupbox>
-  <separator class="thick"/>
+  <vbox flex="1"/>
   <description>&restartNote1;</description>
 </tabpanel>
 

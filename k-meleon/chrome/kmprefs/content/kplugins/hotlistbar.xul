@@ -43,17 +43,14 @@ _setControls: function() {
 }
 
 };
-/*addEventListener("load",kHotlistBar.init,true);
-try{
-	document.getElementById("kmeleon.plugins.hotlist.load").addEventListener("command",kHotlistBar._setControls,true);
-} catch(e) {}*/
+//addEventListener("load",kHotlistBar.init,true);
 ]]>
 </script>
 
 <tabpanel id="kHotlistTBar" flex="1" orient="vertical" style="overflow:auto">
   <separator class="thin"/>
   <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.plugins.hotlist.rebar" label="&hotlistbar.enable;"/>
-  <separator class="thin"/>
+  <separator class="thick"/>
   <grid>
     <columns>
       <column/>
@@ -78,10 +75,10 @@ try{
       </row>
     </rows>
   </grid>
-  <separator class="thin"/>
+  <separator class="thick"/>
   <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.plugins.hotlist.chevron" label="&hotlistbar.chevron;"/>
   <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.plugins.hotlist.buttonIcons" label="&toolbar.buttonIcons;"/>
-  <separator class="thick"/>
+  <vbox flex="1"/>
   <description>&restartNote1;</description>
 </tabpanel>
 
