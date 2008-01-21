@@ -1,6 +1,7 @@
 <!ENTITY % prefDTD SYSTEM "chrome://kmprefs/locale/pref.dtd">%prefDTD;
 <!ENTITY display.header		"Page Display Settings">
 <!ENTITY frames.label		"Frames">
+<!ENTITY frames.enable		"Enable frames (Changes may not take effect in windows/tabs opened before changing)">
 <!ENTITY frames.resizable	"Allow all frames to be resized">
 <!ENTITY text.label		"Text">
 <!ENTITY text.blink		"Allow blinking text">
@@ -8,6 +9,9 @@
 <!ENTITY text.marquee		"Disable the 'marquee' element (&restartRequired;)">
 <!-- LOCALIZATION NOTE: Don't translate "&note;"! This string is going to be replaced by the value of entity "note" defined in file "pref.dtd". -->
 <!ENTITY marquee.note		"&note; Even if disabled, sites may use other methods to show sliding text. JavaScript must be enabled for 'marquee' elements to be displayed.">
+<!ENTITY source.label		"Source Code">
+<!ENTITY source.external	"Use external source code viewer">
+<!ENTITY source.viewer		"Source Code Viewer:">
 <!ENTITY images.label		"Images">
 <!ENTITY images.load		"Load Images">
 <!ENTITY images.load.always	"Always">

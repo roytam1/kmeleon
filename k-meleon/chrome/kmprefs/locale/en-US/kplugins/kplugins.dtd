@@ -13,6 +13,6 @@
 <!ENTITY toolbar.folder		"Toolbar Folder:">
 <!ENTITY toolbar.title		"Toolbar Title:">
 <!ENTITY toolbar.buttonWidth	"Toolbar Button Width">
-<!ENTITY toolbar.buttonMinWidth	"Min. Button Width (in Pixels):">
-<!ENTITY toolbar.buttonMaxWidth	"Max. Button Width (in Pixels):">
+<!ENTITY toolbar.buttonMinWidth	"Min. Button Width (in mm):">
+<!ENTITY toolbar.buttonMaxWidth	"Max. Button Width (in mm):">
 <!ENTITY toolbar.buttonIcons	"Show button icons">
