@@ -7,11 +7,11 @@
   </RDF:Seq>
 
   <RDF:Description about="urn:mozilla:package:kmprefs"
-	chrome:displayName="kmPrefs 1.1.2"
+	chrome:displayName="kmPrefs 1.5alpha2"
 	chrome:author="Klaus Kohler"
 	chrome:name="kmprefs"
 	chrome:extension="true"
-	chrome:description="Advanced Preferences Panel for K-Meleon 1.1">
+	chrome:description="Preferences panel for K-Meleon 1.5">
   </RDF:Description>
 
 </RDF:RDF>
