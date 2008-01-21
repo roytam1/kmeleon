@@ -7,200 +7,347 @@
 id="prefAppearance" onload="init()">
 
 <stringbundle id="pref_bundle" src="chrome://kmprefs/locale/pref.properties"/>
+<stringbundle id="lang_bundle" src="chrome://global/locale/languageNames.properties"/>
+<stringbundle id="regn_bundle" src="chrome://global/locale/regionNames.properties"/>
 
 <script type="application/x-javascript" src="chrome://kmprefs/content/pref.js"/>
+<script type="application/x-javascript" src="chrome://kmprefs/content/kmprefs/homepage.js"/>
 <script type="application/x-javascript">
 <![CDATA[
-var prefBndl = document.getElementById("pref_bundle");
-var buttons  = document.getElementsByTagName("button");
-var txtboxs  = document.getElementsByTagName("textbox");
 function init() {
-	const bmp = "kmeleon.plugins.bmpmenu.load";
-	if(kPlugin.absent("bmpmenu")) {
-		var elem = document.getElementById(bmp);
-		elem.parentNode.removeChild(elem);
-	} else
-	initCheckbox(bmp);
 	initCheckbox("kmeleon.display.accelInMenus");
+	initCheckbox("kmeleon.favicons.show");
 	initTextbox("kmeleon.display.title",false);
 
+	Skin = new kmSkin;
+	Throbber = new kmThrobber;
+	kBMPMenu.init();
 	kFullscreen.init();
+	Language.init();
 
-	if(kPlugin.absent("fullscreen")) {
-		var elem = document.getElementById("kmeleon.plugins.fullscreen.auto").parentNode;
-		elem.parentNode.removeChild(elem);
-	}
-	initFullscreenPlugin();
-	initThrobber();
+	main();
 
-	for(var j=0,b=document.getElementById("popups.appearance").getElementsByTagName("checkbox");j<b.length;j++)
+	for(var j=0,b=document.getElementById("popups.appearance").getElementsByTagName("checkbox"),d=!getPrefValue("javascript.enabled");j<b.length;j++)
 		initCheckbox(b[j].id);
-}
-function initFullscreenPlugin() {
-	if(!kPlugin.absent("fullscreen"))
-		for(var j=3,r=document.getElementsByTagName("radio");j<6;j++) {
-			// r[j].disabled = !enabled;
-			// bug: Option "Never fullscreen at startup" doesn't work
-			r[j].disabled = (j==4) ? true : !kFullscreen.load;
+
+	if(getPrefValue(kmPrefs.last)=="appearance") {
+		Language.elem.focus();
+		restoreDefault(kmPrefs.last);
 	}
-	initWindow(initMaximized(initFullscreen(kFullscreen.load)));
 }
-function initWindow(off) {
-	for(var j=1;j<5;j++) {
-		txtboxs[j].disabled = off;
-		txtboxs[j].setAttribute("readonly",true);
-		txtboxs[j].value = getIntUserPref(txtboxs[j].id,"");
-	}
-	buttons[0].label = prefBndl.getString("edit");
-	buttons[0].disabled = off;
-	buttons[1].disabled = off;
-	buttons[2].label = prefBndl.getString("edit");
-	buttons[2].disabled = off;
-	buttons[3].disabled = off;
-	buttons[4].disabled = off ? off : !((getIntUserPref(txtboxs[1].id,"")) && (getIntUserPref(txtboxs[2].id,"")));
+function main() {
+	Window.init(Maximized.init(Fullscreen.init()));
 }
 
-function center() {
-	var w = parseInt(getIntUserPref(txtboxs[1].id,""));
-	var h = parseInt(getIntUserPref(txtboxs[2].id,""));
-	clear(3,4);
-	addToUserPrefs("user_pref(\""+txtboxs[4].id+"\", "+Math.floor((screen.height-h)/2).toString(10)+");");
-	addToUserPrefs("user_pref(\""+txtboxs[3].id+"\", "+Math.floor((screen.width-w)/2).toString(10)+");");
-	initFullscreenPlugin();
-}
-function clear(start,end) {
-	for(var j=start;j<end+1;j++)
-		removeFromFile(getFile(getFolder("ProfD"),UserPrefs),"user_pref[\\s]*\\([\\s]*."+txtboxs[j].id+".[\\s]*,[\\s]*[\\d]+[\\s]*\\)[\\s]*;");
-}
-function editSave(elem,start,end) {
-	for(var j=0;j<buttons.length;j++)
-		buttons[j].disabled = true;
-	if(elem.label == prefBndl.getString("save")) {
-		for(var j=start;j<end+1;j++)
-			txtboxs[j].setAttribute("readonly",true);
-		clear(start,end);
-		for(var j=end,val;j>start-1;j--) {
-			val = parseInt(txtboxs[j].value);
-			if(!isNaN(val))
-				addToUserPrefs("user_pref(\""+txtboxs[j].id+"\", "+val.toString(10)+");");
-			else
-				txtboxs[j].value = "";
+var Language = {
+
+lang: null,
+regn: null,
+pref: null,
+elem: null,
+lcls: null,
+init: function() {
+	this.lang = document.getElementById("lang_bundle");
+	this.regn = document.getElementById("regn_bundle");
+	this.pref = new Array(	"general.useragent.locale",
+				"general.useragent.contentlocale");
+	this.elem = document.getElementById(this.pref[0]);
+	this.lcls = new Array();
+	this._getLocales();
+	this.elem.appendChild(document.createElement("menupopup"));
+	for(var j=0,l,r,item=document.createElement("menuitem");j<this.lcls.length;j++) {
+		item.setAttribute("value",this.lcls[j]);
+		l = this.lcls[j].substr(0,2).toLowerCase();
+		r = this.lcls[j].substr(3,2).toLowerCase();
+		if(l==r)
+			r = "";
+		else try {
+			r = this.regn.getString(r);
+		} catch(e) {
+			r = "";
 		}
-		initFullscreenPlugin();
-	} else {
-		for(var j=start;j<end+1;j++)
-			txtboxs[j].removeAttribute("readonly");
-		txtboxs[start].focus();
-		elem.label = prefBndl.getString("save");
-		buttons[start-1].disabled = false;
-		if(!kPlugin.absent("fullscreen")) document.getElementById("kmeleon.plugins.fullscreen.auto").disabled = true;
-		document.getElementById("kmeleon.display.maximized").disabled = true;
+		try {
+			l = this.lang.getString(l);
+			if(r) l += " ("+r+")";
+		} catch(e) {
+			l = this.lcls[j];
+		}
+		item.setAttribute("label",l);
+		this.elem.firstChild.appendChild(item.cloneNode(true));
 	}
+	if(j==1)
+		this.elem.disabled = true;
+	initMenulist(this.pref[0],"","");
+},
+_getLocales: function() {
+	this.lcls[0] = "en-US";
+
+	var dir = getFile(getFolder("CurProcD"),"locales");
+	if(dir.exists() && dir.isDirectory()) {
+		var file, files = dir.directoryEntries;
+		while(files.hasMoreElements()) {
+			file = files.getNext();
+			if(file instanceof Components.interfaces.nsILocalFile)
+				if(file.isDirectory())
+					this.lcls[this.lcls.length] = file.leafName;
+				
+		}
+	}
+},
+setLocale: function(locale) {
+	pref.setCharPref(this.pref[0],locale);
+	pref.setCharPref(this.pref[1],locale.substr(3,2));
+	if(Homepage.isDefault())
+		Homepage.restoreDefault();
+	pref.setCharPref(kmPrefs.last,"appearance");
+	kmPrefs.save();
+	setTimeout("top.location.reload()",100);
 }
 
-// handle Fullscreen
-const fullscreenImport1 = "user_pref(\"kmeleon.plugins.fullscreen.auto\", ";
-const fullscreenImport2 = ");";
-const fullscreenRegExp1 = "user_pref[\\s]*\\([\\s]*.kmeleon.plugins.fullscreen.auto.[\\s]*,[\\s]*";
-const fullscreenRegExp2 = "[\\s]*\\)[\\s]*;";
-var fullscreenImport = new Array(fullscreenImport1+"false"+fullscreenImport2,fullscreenImport1+"true"+fullscreenImport2);
-var fullscreenRegExp = new Array(fullscreenRegExp1+"false"+fullscreenRegExp2,fullscreenRegExp1+"true"+fullscreenRegExp2);
-function initFullscreen(on) {
-	var txt = getFileContents(getFile(getFolder("ProfD"),UserPrefs));
-	var off = testMultiline(txt,fullscreenRegExp[1]);
+};
 
-	if(!kPlugin.absent("fullscreen")) {
-		var grp = document.getElementById("kmeleon.plugins.fullscreen.auto");
+var kBMPMenu = {
 
-		if(off)
-				grp.selectedIndex = 0;
-		else
-			if(testMultiline(txt,fullscreenRegExp[0]))
-				grp.selectedIndex = 1;
-			else
-				grp.selectedIndex = 2;
-	}
-	return on && off;
-}
-function toggleFullscreen(elem) {
-	var fil = getFile(getFolder("ProfD"),UserPrefs);
-
-	removeFromFile(fil,fullscreenRegExp[0]);
-	removeFromFile(fil,fullscreenRegExp[1]);
-
-	if(elem.value)
-		addToUserPrefs(fullscreenImport1+elem.value+fullscreenImport2);
+name: "bmpmenu",
+pref: "kmeleon.plugins.bmpmenu.load",
+init: function() {
+	if(kPlugin.absent(this.name))
+		document.getElementById(this.pref).setAttribute("hidden",true);
 	else
-		pref.setBoolPref(elem.id,false);
-	initFullscreenPlugin();
+		initCheckbox(this.pref);
 }
 
-// handle Maximized
-const maximizedImport1 = "user_pref(\"kmeleon.display.maximized\", ";
-const maximizedImport2 = ");";
-const maximizedRegExp1 = "user_pref[\\s]*\\([\\s]*.kmeleon.display.maximized.[\\s]*,[\\s]*";
-const maximizedRegExp2 = "[\\s]*\\)[\\s]*;";
-var maximizedImport = new Array(maximizedImport1+"false"+maximizedImport2,maximizedImport1+"true"+maximizedImport2);
-var maximizedRegExp = new Array(maximizedRegExp1+"false"+maximizedRegExp2,maximizedRegExp1+"true"+maximizedRegExp2);
-function initMaximized(on) {
-	var txt = getFileContents(getFile(getFolder("ProfD"),UserPrefs));
-	var grp = document.getElementById("kmeleon.display.maximized");
-	var off = testMultiline(txt,maximizedRegExp[1]);
+};
+
+var Skin;
+function kmSkin() {
+	this.elem  = document.getElementById(this.pref);
+	this.skins = new Array();
+
+// bug: this._getSkins("KUSkins",false);
+	this._getSkins("KUserSettings","skins");
+	this._getSkins("KASkins",false);
+	this.skins = this.skins.sort(alphabetical);
+	this.init();
+}
+kmSkin.prototype = {
+
+pref: "kmeleon.general.skinsCurrent",
+init: function() {
+	this.elem.appendChild(document.createElement("menupopup"));
+	for(var j=0,item=document.createElement("menuitem");j<this.skins.length;j++) {
+		item.setAttribute("value",this.skins[j]);
+		item.setAttribute("label",this.skins[j]);
+		this.elem.firstChild.appendChild(item.cloneNode(true));
+	}
+	initMenulist(this.pref,"",document.getElementById("pref_bundle").getString("file_not_found"));
+	initCheckbox("kmeleon.display.backgroundImageEnabled");
+},
+_getSkins: function(folder,subfolder) {
+	folder = getFolder(folder);
+
+	var dir = getFile(folder,subfolder);
+	if(dir.exists() && dir.isDirectory()) {
+		var file, files = dir.directoryEntries;
+		while(files.hasMoreElements()) {
+			file = files.getNext();
+			if(file instanceof Components.interfaces.nsILocalFile)
+				if(file.isDirectory()) {
+					for(var j=0,k=true,l=file.leafName;j<this.skins.length;j++)
+						if(l==this.skins[j])
+							k = false;
+					if(k)
+						this.skins[this.skins.length] = l;
+				}
+		}
+	}
+}
+
+};
+
+var Throbber;
+function kmThrobber() {
+	this.elem = document.getElementById(this.pref);
+	this._im1 = "user_pref(\""+this.pref+"\", ";
+	this._im2 = ");";
+	this._rx1 = "user_pref[\\s]*\\([\\s]*."+this.pref+".[\\s]*,[\\s]*";
+	this._rx2 = "[\\s]*\\)[\\s]*;";
+	this._Import = new Array(this._im1+"false"+this._im2,this._im1+"true"+this._im2);
+	this._RegExp = new Array(this._rx1+"false"+this._rx2,this._rx1+"true"+this._rx2);
+	this.init();
+}
+kmThrobber.prototype = {
+
+pref: "kmeleon.toolband.Throbber.visibility",
+init: function() {
+	var txt = getFileContents(UserPrefs);
+	if(testMultiline(txt,this._RegExp[0]))
+		this.elem.checked = false;
+	else
+		if(testMultiline(txt,this._RegExp[1]))
+			this.elem.checked = true;
+		else
+			initCheckbox(this.pref);
+},
+toggle: function() {
+	removeFromFile(UserPrefs,this._RegExp[0]);
+	removeFromFile(UserPrefs,this._RegExp[1]);
+
+	if(this.elem.checked)
+		pref.setBoolPref(this.pref,true);
+	else
+		addToUserPrefs(this._Import[0]);
+	this.init();
+}
+
+};
+
+var Fullscreen = {
+
+name: "fullscreen",
+auto: "kmeleon.plugins.fullscreen.auto", // ineffective
+pref: "kmeleon.plugins.fullscreen.last",
+init: function() {
+	// remove pre-1.5 settings:
+	removeFromFile(UserPrefs,"user_pref[\\s]*\\([\\s]*."+this.auto+".[\\s]*,[\\s]*true[\\s]*\\)[\\s]*;");
+	removeFromFile(UserPrefs,"user_pref[\\s]*\\([\\s]*."+this.auto+".[\\s]*,[\\s]*false[\\s]*\\)[\\s]*;");
+
+	this.elem = document.getElementById(this.pref);
+	this._im1 = "user_pref(\""+this.pref+"\", ";
+	this._im2 = ");";
+	this._rx1 = "user_pref[\\s]*\\([\\s]*."+this.pref+".[\\s]*,[\\s]*";
+	this._rx2 = "[\\s]*\\)[\\s]*;";
+	this._Import = new Array(this._im1+"false"+this._im2,this._im1+"true"+this._im2);
+	this._RegExp = new Array(this._rx1+"false"+this._rx2,this._rx1+"true"+this._rx2);
+
+	var txt = getFileContents(UserPrefs);
+	var off = testMultiline(txt,this._RegExp[1]);
+
+	if(kPlugin.absent(this.name))
+		this.elem.parentNode.setAttribute("hidden",true);
+	else {
+		this.elem.disabled = !kPlugin.load(this.name);
+		if(off)
+				this.elem.selectedIndex = 0;
+		else
+			if(testMultiline(txt,this._RegExp[0]))
+				this.elem.selectedIndex = 1;
+			else
+				this.elem.selectedIndex = 2;
+	}
+	return kPlugin.load(this.name) && off;
+},
+toggle: function(elem) {
+	removeFromFile(UserPrefs,this._RegExp[0]);
+	removeFromFile(UserPrefs,this._RegExp[1]);
+
+	if(this.elem.value)
+		addToUserPrefs(this._im1+this.elem.value+this._im2);
+	else
+		pref.setBoolPref(this.pref,false);
+	main();
+}
+
+};
+
+var Maximized = {
+
+pref: "kmeleon.display.maximized",
+init: function(on) {
+	this.elem = document.getElementById(this.pref);
+	this._im1 = "user_pref(\""+this.pref+"\", ";
+	this._im2 = ");";
+	this._rx1 = "user_pref[\\s]*\\([\\s]*."+this.pref+".[\\s]*,[\\s]*";
+	this._rx2 = "[\\s]*\\)[\\s]*;";
+	this._Import = new Array(this._im1+"false"+this._im2,this._im1+"true"+this._im2);
+	this._RegExp = new Array(this._rx1+"false"+this._rx2,this._rx1+"true"+this._rx2);
+
+	var txt = getFileContents(UserPrefs);
+	var off = testMultiline(txt,this._RegExp[1]);
 
 	if(off)
-			grp.selectedIndex = 0;
+			this.elem.selectedIndex = 0;
 	else
-		if(testMultiline(txt,maximizedRegExp[0]))
-			grp.selectedIndex = 1;
+		if(testMultiline(txt,this._RegExp[0]))
+			this.elem.selectedIndex = 1;
 		else
-			grp.selectedIndex = 2;
-	grp.disabled = on;
+			this.elem.selectedIndex = 2;
+	this.elem.disabled = on;
 	return on || off;
-}
-function toggleMaximized(elem) {
-	var fil = getFile(getFolder("ProfD"),UserPrefs);
+},
+toggle: function() {
+	removeFromFile(UserPrefs,this._RegExp[0]);
+	removeFromFile(UserPrefs,this._RegExp[1]);
 
-	removeFromFile(fil,maximizedRegExp[0]);
-	removeFromFile(fil,maximizedRegExp[1]);
-
-	if(elem.value) {
-		addToUserPrefs(maximizedImport1+elem.value+maximizedImport2);
-	} else
-		pref.setBoolPref(elem.id,false);
-	initFullscreenPlugin();
-}
-
-// handle Throbber
-const throbberImport1 = "user_pref(\"kmeleon.toolband.Throbber.visibility\", ";
-const throbberImport2 = ");";
-const throbberRegExp1 = "user_pref[\\s]*\\([\\s]*.kmeleon.toolband.Throbber.visibility.[\\s]*,[\\s]*";
-const throbberRegExp2 = "[\\s]*\\)[\\s]*;";
-var throbberImport = new Array(throbberImport1+"false"+throbberImport2,throbberImport1+"true"+throbberImport2);
-var throbberRegExp = new Array(throbberRegExp1+"false"+throbberRegExp2,throbberRegExp1+"true"+throbberRegExp2);
-function initThrobber() {
-	var txt = getFileContents(getFile(getFolder("ProfD"),UserPrefs));
-	var box = document.getElementById("kmeleon.toolband.Throbber.visibility");
-
-	if(testMultiline(txt,throbberRegExp[0]))
-		box.checked = false;
+	if(this.elem.value)
+		addToUserPrefs(this._im1+this.elem.value+this._im2);
 	else
-		if(testMultiline(txt,throbberRegExp[1]))
-			box.checked = true;
-		else
-			initCheckbox("kmeleon.toolband.Throbber.visibility");
+		pref.setBoolPref(this.pref,false);
+	main();
 }
-function toggleThrobber(elem) {
-	var fil = getFile(getFolder("ProfD"),UserPrefs);
 
-	removeFromFile(fil,throbberRegExp[0]);
-	removeFromFile(fil,throbberRegExp[1]);
+};
 
-	if(elem.checked) {
-		pref.setBoolPref(elem.id,true);
-	} else
-		addToUserPrefs(throbberImport[0]);
-	initThrobber();
+var Window = {
+
+init: function(off) {
+	this.bndl = document.getElementById("pref_bundle");
+	this.bttn = document.getElementsByTagName("button");
+	this.tbox = document.getElementsByTagName("textbox");
+
+	for(var j=1;j<5;j++) {
+		this.tbox[j].disabled = off;
+		this.tbox[j].setAttribute("readonly",true);
+		this.tbox[j].value = getIntUserPref(this.tbox[j].id,"");
+	}
+	this.bttn[0].label = this.bndl.getString("edit");
+	this.bttn[0].disabled = off;
+	this.bttn[1].disabled = off;
+	this.bttn[2].label = this.bndl.getString("edit");
+	this.bttn[2].disabled = off;
+	this.bttn[3].disabled = off;
+	this.bttn[4].disabled = off ? off : !((getIntUserPref(this.tbox[1].id,"")) && (getIntUserPref(this.tbox[2].id,"")));
+},
+clear: function(start,end) {
+	for(var j=start;j<end+1;j++)
+		removeFromFile(UserPrefs,"user_pref[\\s]*\\([\\s]*."+this.tbox[j].id+".[\\s]*,[\\s]*[\\d]+[\\s]*\\)[\\s]*;");
+},
+center: function() {
+	var w = parseInt(getIntUserPref(this.tbox[1].id,""));
+	var h = parseInt(getIntUserPref(this.tbox[2].id,""));
+	this.clear(3,4);
+	addToUserPrefs("user_pref(\""+this.tbox[4].id+"\", "+Math.floor((screen.height-h)/2).toString(10)+");");
+	addToUserPrefs("user_pref(\""+this.tbox[3].id+"\", "+Math.floor((screen.width-w)/2).toString(10)+");");
+	main();
+},
+editSave: function(elem,start,end) {
+	for(var j=0;j<this.bttn.length;j++)
+		this.bttn[j].disabled = true;
+	if(elem.label == this.bndl.getString("save")) {
+		for(var j=start;j<end+1;j++)
+			this.tbox[j].setAttribute("readonly",true);
+		this.clear(start,end);
+		for(var j=end,val;j>start-1;j--) {
+			val = parseInt(this.tbox[j].value);
+			if(!isNaN(val))
+				addToUserPrefs("user_pref(\""+this.tbox[j].id+"\", "+val.toString(10)+");");
+			else
+				this.tbox[j].value = "";
+		}
+		main();
+	} else {
+		for(var j=start;j<end+1;j++)
+			this.tbox[j].removeAttribute("readonly");
+		this.tbox[start].focus();
+		elem.label = this.bndl.getString("save");
+		this.bttn[start-1].disabled = false;
+		if(!kPlugin.absent(Fullscreen.name))
+			Fullscreen.elem.disabled = true;
+			Maximized.elem.disabled = true;
+	}
 }
+
+};
 ]]>
 </script>
 
@@ -211,29 +358,62 @@ function toggleThrobber(elem) {
     <tabbox flex="1">
       <tabs>
         <tab label="&general;"/>
-        <tab label="&appearance.startup;" oncommand="initFullscreenPlugin()"/>
-        <tab label="&popups.label;"/>
+	<tab id="kFullscreenTab"/>
+        <tab label="&startup;" oncommand="main()" onfocus="main()"/>
+        <tab id="popups.tab"/>
       </tabs>
       <tabpanels flex="1">
         <tabpanel flex="1" orient="vertical" style="overflow:auto">
 <!-- General Appearance -->
 <separator class="thin"/>
-<checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.plugins.bmpmenu.load" label="&appearance.menuIcons;"/>
-<checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.display.accelInMenus" label="&appearance.menuAccels;"/>
-<separator class="thin"/>
-<checkbox oncommand="toggleThrobber(this)" id="kmeleon.toolband.Throbber.visibility" label="&appearance.throbber;"/>
-<separator class="thick"/>
-<hbox align="center">
-  <label value="&appearance.windowTitle;" style="padding-left:1em"/>
-  <textbox id="kmeleon.display.title" flex="1" class="uri-element" oninput="setCharPref(this.id,this.value)"/>
-</hbox>
-<separator class="thick"/>
-<vbox>
-  <groupbox id="kFullscreenDisplay" flex="1"/>
-  <separator class="thick"/>
-</vbox>
-<description>&restartNote1;</description>
+<grid>
+  <columns>
+    <column flex="1"/>
+    <column flex="1"/>
+  </columns>
+  <rows>
+    <row>
+      <groupbox flex="1">
+        <caption label="&appearance.language;"/>
+	<menulist id="general.useragent.locale" oncommand="Language.setLocale(this.value)"/>
+        <separator class="thin"/>
+      </groupbox>
+      <spacer/>
+    </row>
+    <groupbox style="border-top:0;border-left:0;border-right:0"/>
+    <row>
+      <groupbox flex="1">
+        <caption label="&appearance.skin;"/>
+        <menulist id="kmeleon.general.skinsCurrent" oncommand="setCharPref(this.id,this.value)"/>
+        <separator class="thin"/>
+        <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.plugins.bmpmenu.load" label="&appearance.menuIcons;"/>
+        <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.display.backgroundImageEnabled" label="&appearance.backBMP;"/>
+        <checkbox oncommand="Throbber.toggle()" id="kmeleon.toolband.Throbber.visibility" label="&appearance.throbber;"/>
+        <separator class="thin"/>
+      </groupbox>
+      <vbox flex="1">
+        <separator class="thick"/>
+        <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.display.accelInMenus" label="&appearance.menuAccels;"/>
+        <separator class="thin"/>
+        <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.favicons.show" label="&appearance.siteIcons;"/>
+        <vbox flex="1"/>
+        <separator class="thin"/>
+        <hbox align="center">
+          <label value="&appearance.windowTitle;"/>
+          <textbox id="kmeleon.display.title" flex="1" class="uri-element" oninput="setCharPref(this.id,this.value)"/>
+        </hbox>
+        <separator class="thin"/>
+      </vbox>
+    </row>
+    <groupbox style="border-top:0;border-left:0;border-right:0">
+      <description>&restartNote1;</description>
+    </groupbox>
+  </rows>
+</grid>
 <!-- General Appearance -->
+	</tabpanel>
+        <tabpanel flex="1" orient="vertical" style="overflow:auto">
+          <vbox id="kFullscreenDisplay"/>
 	</tabpanel>
         <tabpanel flex="1" orient="vertical" style="overflow:auto">
 <!-- Startup Appearance -->
@@ -262,8 +442,8 @@ function toggleThrobber(elem) {
       </rows>
     </grid>
     <hbox>
-      <button oncommand="editSave(this,1,2)"/>
-      <button label="&clear;" oncommand="clear(1,2);initFullscreenPlugin()"/>
+      <button oncommand="Window.editSave(this,1,2)"/>
+      <button label="&clear;" oncommand="Window.clear(1,2);main()"/>
       <hbox flex="1"/>
     </hbox>
   </hbox>
@@ -271,7 +451,7 @@ function toggleThrobber(elem) {
   <hbox>
     <groupbox>
       <caption label="&maximized;"/>
-      <radiogroup id="kmeleon.display.maximized" oncommand="toggleMaximized(this)">
+      <radiogroup id="kmeleon.display.maximized" oncommand="Maximized.toggle()">
         <radio value="true" label="&always;"/>
         <radio value="false" label="&never;"/>
         <radio value="" label="&asClosed;"/>
@@ -279,7 +459,7 @@ function toggleThrobber(elem) {
     </groupbox>
     <groupbox>
       <caption label="&fullscreen;"/>
-      <radiogroup id="kmeleon.plugins.fullscreen.auto" oncommand="toggleFullscreen(this)">
+      <radiogroup id="kmeleon.plugins.fullscreen.last" oncommand="Fullscreen.toggle()">
         <radio value="true" label="&always;"/>
         <radio value="false" label="&never;"/>
         <radio value="" label="&asClosed;"/>
@@ -287,6 +467,7 @@ function toggleThrobber(elem) {
     </groupbox>
   </hbox>
 </groupbox>
+<separator class="thin"/>
 <groupbox>
   <caption label="&window.position;"/>
   <separator class="thin"/>
@@ -311,26 +492,24 @@ function toggleThrobber(elem) {
       </rows>
     </grid>
     <hbox>
-      <button oncommand="editSave(this,3,4)"/>
-      <button label="&clear;" oncommand="clear(3,4);initFullscreenPlugin()"/>
+      <button oncommand="Window.editSave(this,3,4)"/>
+      <button label="&clear;" oncommand="Window.clear(3,4);main()"/>
       <hbox flex="1"/>
     </hbox>
   </hbox>
   <separator class="thin"/>
   <hbox>
-    <button label="&center;" oncommand="center()"/>
+    <button label="&center;" oncommand="Window.center()"/>
     <hbox flex="1"/>
   </hbox>
 </groupbox>
-<separator class="thick"/>
+<vbox flex="1"/>
 <description>&restartNote1;</description>
 <!-- Startup Appearance -->
 	</tabpanel>
         <tabpanel flex="1" orient="vertical" style="overflow:auto">
-<!-- Popup Appearance -->
-<separator class="thin"/>
-<groupbox id="popups.appearance"/>
-<!-- Popup Appearance -->
+          <separator class="thin"/>
+          <groupbox id="popups.appearance"/>
 	</tabpanel>
       </tabpanels>
     </tabbox>
