@@ -18,6 +18,9 @@
 */
 
 #include "stdafx.h"
+
+#if GECKO_VERSION < 19
+
 #include "Fontpackagehandler.h"
 #include "nsIFontPackageService.h"
 #include "BrowserFrm.h"
@@ -205,3 +208,5 @@ void CDownloadFontDialog::OnBnClickedOk()
 	pFrm->ShowWindow(SW_SHOW);
 	OnOK();
 }
+
+#endif // GECKO_VERSION

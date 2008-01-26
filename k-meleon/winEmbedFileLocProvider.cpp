@@ -231,7 +231,9 @@ winEmbedFileLocProvider::GetFile(const char *prop, PRBool *persistant, nsIFile *
     //---------------------------------------------------------------
     else if (strcmp(prop, NS_GRE_DIR) == 0)
     {
+#if GECKO_VERSION < 19 
         rv = GRE_GetGREDirectory(getter_AddRefs(localFile));
+#endif
     }
 #endif
 

@@ -22,7 +22,9 @@
 
 #include "DialogEx.h"
 #include "nsICertificateDialogs.h"
+#if GECKO_VERSION < 19
 #include "nsIBadCertListener.h"
+#endif
 #include "nsIArray.h"
 #include "nsIASN1Object.h"
 #include "resource.h"
@@ -37,15 +39,20 @@
 static NS_DEFINE_CID(kNSSDialogsCID, NS_NSSDIALOGS_CID);
 
 
-class CNSSDialogs:  public nsIBadCertListener,
-					public nsICertificateDialogs
+class CNSSDialogs:  
+#if GECKO_VERSION < 19
+	public nsIBadCertListener,
+#endif					
+	public nsICertificateDialogs
 {
 public:
                  CNSSDialogs();
   virtual       ~CNSSDialogs();
 
   NS_DECL_ISUPPORTS
+#if GECKO_VERSION < 19
   NS_DECL_NSIBADCERTLISTENER
+#endif	
   NS_DECL_NSICERTIFICATEDIALOGS
 };
 

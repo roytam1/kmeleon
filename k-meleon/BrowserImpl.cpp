@@ -481,7 +481,7 @@ NS_IMETHODIMP CBrowserImpl::GetSiteWindow(void** aSiteWindow)
    *aSiteWindow = 0;
    if (m_pBrowserFrameGlue) {
        HWND w = m_pBrowserFrameGlue->GetBrowserFrameNativeWnd();
-       *aSiteWindow = NS_REINTERPRET_CAST(void *, w);
+       *aSiteWindow = reinterpret_cast<void *>(w);
    }
    return NS_OK;
 }
@@ -826,7 +826,12 @@ NS_IMETHODIMP CBrowserImpl::HandleEvent(nsIDOMEvent *event)
 		NS_ENSURE_TRUE (popupEvent, NS_ERROR_FAILURE);
 
 		nsCOMPtr<nsIURI> uri;
+#if GECKO_VERSION > 18
+		// FIXME
+		popupEvent->GetPopupWindowURI(getter_AddRefs(uri));
+#else
 		popupEvent->GetRequestingWindowURI(getter_AddRefs(uri));
+#endif
 		NS_ENSURE_TRUE (uri, NS_ERROR_FAILURE);
 
 		nsEmbedCString host;
