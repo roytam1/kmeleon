@@ -133,7 +133,7 @@ BEGIN_MESSAGE_MAP(CBrowserFrame, CFrameWnd)
 	ON_COMMAND(IDC_HIGHLIGHT, OnHighlight)
 
 //	ON_MESSAGE(WM_ENTERSIZEMOVE, OnEnterSizeMove)
-
+//	ON_MESSAGE(WM_EXITSIZEMOVE, OnExitSizeMove)
 	//}}AFX_MSG_MAP
 
 //	ON_WM_MOVING()
@@ -152,7 +152,7 @@ CBrowserFrame::CBrowserFrame(PRUint32 chromeMask, LONG style = 0)
     // Save the chromeMask off. It'll be used
     // later to determine whether this browser frame
     // will have menubar, toolbar, statusbar etc.
-
+	
     m_chromeMask = chromeMask;
     m_style = style;
     m_created = FALSE;
@@ -565,7 +565,7 @@ BOOL CBrowserFrame::OnCommand(WPARAM wParam, LPARAM lParam)
 void CBrowserFrame::OnSize(UINT nType, int cx, int cy)
 {
     CFrameWnd::OnSize(nType, cx, cy);
- 
+	
     // Get the ItemRect of the status bar's Pane 0
     // That's where the progress bar will be located
     RECT rc;
@@ -578,6 +578,10 @@ void CBrowserFrame::OnSize(UINT nType, int cx, int cy)
         m_wndProgressBar.MoveWindow(&rc);
 
 	if (m_created) SaveWindowPos();
+	
+	// Fix rebar redrawing bug when xp themes are enabled 
+	// and the background image is disabled and the the tabbar is fixed.
+	m_wndReBar.RedrawWindow(0, 0, RDW_ALLCHILDREN|RDW_INVALIDATE|RDW_UPDATENOW|RDW_ERASE);
 }
 
 void CBrowserFrame::SaveWindowPos()

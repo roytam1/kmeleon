@@ -24,6 +24,7 @@ class CReBarEx : public CReBar {
 public:
    CReBarEx();
    ~CReBarEx();
+   void UnregisterBand(TCHAR *name);
    void RegisterBand(HWND hWnd, TCHAR *name, int visibleOnMenu);
    void DrawToolBarMenu(HMENU menu);
    void ToggleVisibility(int index);

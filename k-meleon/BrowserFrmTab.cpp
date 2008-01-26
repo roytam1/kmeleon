@@ -213,6 +213,9 @@ int CBrowserFrmTab::OnCreate(LPCREATESTRUCT lpCreateStruct)
         TRACE0("Failed to create ReBar\n");
         return -1;      // fail to create
     }
+
+	if (CBrowserFrame::InitLayout() == -1)
+		return -1;
 	
 	// Create the bar which will contain the tab list
 	// It would be better to use a tabcontrol but, currently
@@ -245,7 +248,7 @@ int CBrowserFrmTab::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	if (CFrameWnd::OnCreate(lpCreateStruct) == -1)
        return -1;
 
-	int ret = CBrowserFrame::InitLayout();
+	m_wndReBar.RestoreBandSizes();
 
 	// If we try to hide it sooner then CrashBadaboum
 	if (theApp.preferences.bAutoHideTabControl) {
@@ -253,7 +256,7 @@ int CBrowserFrmTab::OnCreate(LPCREATESTRUCT lpCreateStruct)
 		m_wndReBar.ShowBand(index, FALSE);
 	}
 	
-	return ret;
+	return 0;
 }
 
 CBrowserTab* CBrowserFrmTab::CreateBrowserTab(bool first)
@@ -368,7 +371,8 @@ void CBrowserFrmTab::SetActiveBrowser(CBrowserTab* aNewActiveTab)
 	UpdateLoading(m_wndCBrowserTab->GetBrowserGlue()->mLoading);
 	UpdateProgress(m_wndCBrowserTab->GetBrowserGlue()->mProgressCurrent, m_wndCBrowserTab->GetBrowserGlue()->mProgressMax);
 	UpdateSiteIcon(theApp.favicons.GetIcon(m_wndCBrowserTab->GetBrowserGlue()->mIconURI));
-	
+	UpdateStatus(m_wndCBrowserTab->GetBrowserGlue()->mStatusText);
+
 	// Remove a possible tooltip
 	m_wndToolTip.Hide();
 

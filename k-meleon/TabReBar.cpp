@@ -22,7 +22,7 @@
 #include "BrowserFrmTab.h" // XXX
 #include "TabReBar.h"
 #include "mfcembed.h"
-#include ".\tabrebar.h"
+//#include "VisualStylesXP.h"
 
 DROPEFFECT CTBOleDropTarget::OnDragOver(CWnd* pWnd, COleDataObject* pDataObject,
 					  DWORD dwKeyState, CPoint point)
@@ -110,38 +110,21 @@ CTabReBar::CTabReBar()
 {
 	bRebarEnabled  =   1;
 	bButtonNumbers =   0;
-	mDrag = FALSE;
 	mDragItem = -1;
-	mBottomBar = theApp.preferences.GetBool("kmeleon.tabs.bottom", FALSE);
+	m_wndParent = NULL;	
+	mBottomBar = theApp.preferences.GetBool(PREFERENCE_REBAR_BOTTOM, FALSE);
+	mFixedBar = mBottomBar || theApp.preferences.GetBool(PREFERENCE_REBAR_FIXED, FALSE);
+	mChevron = FALSE;
+	mTemp = NULL;
 
 	theApp.preferences.GetString(PREFERENCE_REBAR_TITLE, szTitle, _T(""));
 	nButtonStyle = theApp.preferences.GetInt(PREFERENCE_BUTTON_STYLE, 2);
-	
-   // theApp.preferences.GetInt(PREFERENCE_BUTTON_WIDTH, &tmpWidth, &tmpWidth);
-
-	gImagelist = 0;
-   /*char szFullPath[MAX_PATH];
-   FindSkinFile(szFullPath, "layers.bmp");
-   FILE *fp = fopen(szFullPath, "r");
-   if (fp) {
-      fclose(fp);
-      bitmap = (HBITMAP)LoadImage(NULL, szFullPath, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-
-      BITMAP bmp;
-      GetObject(bitmap, sizeof(BITMAP), &bmp);
-      
-      ilc_bits = (bmp.bmBitsPixel == 32 ? ILC_COLOR32 : (bmp.bmBitsPixel == 24 ? ILC_COLOR24 : (bmp.bmBitsPixel == 16 ? ILC_COLOR16 : (bmp.bmBitsPixel == 8 ? ILC_COLOR8 : (bmp.bmBitsPixel == 4 ? ILC_COLOR4 : ILC_COLOR)))));
-      gImagelist = ImageList_Create(bmp.bmWidth, bmp.bmHeight, ILC_MASK | ilc_bits, 4, 4);
-      if (gImagelist && bitmap)
-         ImageList_AddMasked(gImagelist, bitmap, RGB(255, 0, 255));
-      if (bitmap)
-         DeleteObject(bitmap);
-   } */
-
 }
 
 CTabReBar::~CTabReBar()
 {
+	if (mTemp)
+		delete mTemp;
 }
 
 BOOL CTabReBar::Create(CReBarEx* rebar, UINT idwnd)
@@ -151,30 +134,63 @@ BOOL CTabReBar::Create(CReBarEx* rebar, UINT idwnd)
 			return FALSE;
 		//ModifyStyle(0, CCS_ADJUSTABLE);
 		
-		m_wndParent = rebar;
-		if (!mBottomBar) {
+		if (!mFixedBar) {
 			rebar->RegisterBand(m_hWnd, _T("Tabs"), false);
-			rebar->AddBar(this, szTitle,0, RBBS_USECHEVRON | RBBS_FIXEDBMP );
-		}
+			rebar->AddBar(this, szTitle, 0, RBBS_USECHEVRON | RBBS_FIXEDBMP );
+
+			REBARBANDINFO rbBand = {0};
+			rbBand.cbSize = sizeof(REBARBANDINFO);  
+			rbBand.fMask  =  RBBIM_BACKGROUND;// RBBIM_SIZE |RBBIM_CHILDSIZE;
+			rbBand.hbmBack = theApp.preferences.bToolbarBackground ? (HBITMAP)CBrowserFrame::m_bmpBack : NULL;
+
+			// Get the width & height of the toolbar.
+			// SIZE size;
+			// GetToolBarCtrl().GetMaxSize(&size);
+
+			//rbBand.cxMinChild = 0;
+			//rbBand.cyMinChild = size.cy + 5;
+			//rbBand.cyIntegral = 1;
+			//rbBand.cyMaxChild = rbBand.cyMinChild * 2;
+
+			int iband = rebar->FindByName(_T("Tabs"));
+			rebar->GetReBarCtrl().SetBandInfo(iband, &rbBand);
+			m_wndParent = rebar;
+		} else {
+			mTemp = new CReBarEx();
+			mTemp->Create(GetParentFrame(), RBS_BANDBORDERS, WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS|WS_CLIPCHILDREN|(mBottomBar ? CBRS_BOTTOM : CBRS_TOP));
+			mTemp->AddBar(this, _T(""), NULL,  RBBS_USECHEVRON | RBBS_NOGRIPPER);
+			
+			REBARBANDINFO rbi;
+			rbi.cbSize = sizeof(REBARBANDINFO);
+			rbi.fMask  = RBBIM_CHILD;
+			int idx = rebar->FindByName(_T("Tab/&Window Buttons"));
+			if (idx>=0) {
+				rebar->GetReBarCtrl().GetBandInfo(idx, &rbi);
+				CWnd* toolbar = CWnd::FromHandle(rbi.hwndChild);
+				if (toolbar) {
+					mTemp->AddBar(toolbar, _T(""), NULL, RBBS_NOGRIPPER);
+					rebar->UnregisterBand(_T("Tab/&Window Buttons"));
+					rebar->GetReBarCtrl().DeleteBand(idx);
+					mTemp->GetReBarCtrl().ShowBand(1);
+					KmMenu* menu = theApp.menus.GetKMenu(_T("@Toolbars"));
+					if (menu) menu->Invalidate();
+				}
+			}
+
+			CRect rectDesktop;
+			::GetWindowRect(::GetDesktopWindow(), rectDesktop);
+			rbi.fMask = RBBIM_SIZE;
+			rbi.cx = rectDesktop.Width();
+			mTemp->GetReBarCtrl().SetBandInfo(0, &rbi);
 		
+			if (!mBottomBar && theApp.preferences.bToolbarBackground) {
+				rbi.hbmBack = CBrowserFrame::m_bmpBack;
+				rbi.fMask = RBBIM_BACKGROUND;
+				mTemp->GetReBarCtrl().SetBandInfo(0, &rbi);
+				mTemp->GetReBarCtrl().SetBandInfo(1, &rbi);
+			}
+		}
 
-		// Get the width & height of the toolbar.
-		// SIZE size;
-		// GetToolBarCtrl().GetMaxSize(&size);
-				
-		REBARBANDINFO rbBand = {0};
-        rbBand.cbSize = sizeof(REBARBANDINFO);  
-        rbBand.fMask  =  0;// RBBIM_SIZE |RBBIM_CHILDSIZE;
-   
-		//rbBand.cxMinChild = 0;
-		//rbBand.cyMinChild = size.cy + 5;
-		//rbBand.cyIntegral = 1;
-		//rbBand.cyMaxChild = rbBand.cyMinChild * 2;
-
-		int iband = rebar->FindByName(_T("Tabs"));
-		rebar->GetReBarCtrl().SetBandInfo(iband, &rbBand);
-
-		m_wndParent = rebar;
 		mDropTarget.Register(this);
 		return TRUE;
 }
@@ -184,8 +200,8 @@ void CTabReBar::UpdateButtonsSize()
 	int count = this->GetToolBarCtrl().GetButtonCount();
 	if (!count) return;
 
-	nButtonMinWidth = theApp.preferences.GetInt(PREFERENCE_BUTTON_MINWIDTH, 10);
-	nButtonMaxWidth = theApp.preferences.GetInt(PREFERENCE_BUTTON_MAXWIDTH, 35);
+	int nButtonMinWidth = theApp.preferences.GetInt(PREFERENCE_BUTTON_MINWIDTH, 10);
+	int nButtonMaxWidth = theApp.preferences.GetInt(PREFERENCE_BUTTON_MAXWIDTH, 35);
 	
 	// If the sizes are 0 the toolbar get crazy so avoid it!
 	if (nButtonMinWidth>nButtonMaxWidth) nButtonMaxWidth = nButtonMinWidth;
@@ -196,51 +212,68 @@ void CTabReBar::UpdateButtonsSize()
 	int nHSize = dc.GetDeviceCaps(HORZSIZE);
 	int nHRes = dc.GetDeviceCaps(HORZRES);
 	dc.DeleteDC();
+	if (nHSize == 0) nHSize = nHRes;
 
-	int nMinWidth = nButtonMinWidth > 0 ? nButtonMinWidth * nHRes / nHSize : nButtonMinWidth;
-	int nMaxWidth = nButtonMaxWidth > 0 ? nButtonMaxWidth * nHRes / nHSize : nButtonMaxWidth;
+	int nMinWidth = nButtonMinWidth * nHRes / nHSize;
+	int nMaxWidth = nButtonMaxWidth * nHRes / nHSize;
 
 	RECT rect;
 	GetWindowRect(&rect);
+	mChevron = FALSE;
+
 	int width = rect.right - rect.left;
-	width = width / count;
-	if (width > nMaxWidth) width = nMaxWidth;
-	else if (width < nMinWidth) width = nMinWidth;
+	int buttonWidth = width / count;
+	if (buttonWidth > nMaxWidth)
+		buttonWidth = nMaxWidth;
+	else if (buttonWidth < nMinWidth) {
+		mChevron = TRUE;
+		buttonWidth = nMinWidth;
+		if (width>nMinWidth)
+			buttonWidth = width / (width/nMinWidth);
+	}
 
-	GetToolBarCtrl().SetButtonWidth(width, width);
-/*
 
-		// Compute the width needed for the toolbar
-		RECT rectButton;
-		int ideal = 0;	
-		int iCount, iButtonCount = GetToolBarCtrl().GetButtonCount();
-		for ( iCount = 0 ; iCount < iButtonCount ; iCount++ )
-		{
+	GetToolBarCtrl().SetButtonWidth(buttonWidth, buttonWidth);
 
-			GetToolBarCtrl().GetItemRect(iCount, &rectButton);
-			ideal += rectButton.right - rectButton.left;
-		}*/
+	SIZE size;
+	GetToolBarCtrl().GetMaxSize(&size);
 
-		SIZE size;
-		GetToolBarCtrl().GetMaxSize(&size);
-
-		// Set the ideal size for chevron
-        REBARBANDINFO rb;
-        rb.cbSize = sizeof(REBARBANDINFO);
-		rb.fMask  = RBBIM_IDEALSIZE | RBBIM_CHILDSIZE; 
-		rb.cxIdeal = size.cx;
-		rb.cxMinChild = 0;
-		rb.cyMinChild = rb.cyChild = rb.cyMaxChild = size.cy;
-		rb.cyIntegral = 1;
-
+	// Set the ideal size for chevron
+	REBARBANDINFO rb;
+	rb.cbSize = sizeof(REBARBANDINFO);
+	rb.fMask  = RBBIM_IDEALSIZE | RBBIM_CHILDSIZE; 
+	rb.cxIdeal = size.cx;
+	rb.cxMinChild = 0;
+	rb.cyMinChild = rb.cyChild = rb.cyMaxChild = size.cy;
+	rb.cyIntegral = 1;
+	if (!mFixedBar) {
 		int iband = m_wndParent->FindByName(_T("Tabs"));
 		m_wndParent->GetReBarCtrl().SetBandInfo(iband, &rb);
+	} 
+	else {
+		mTemp->GetReBarCtrl().SetBandInfo(0, &rb);
+		mTemp->GetReBarCtrl().MaximizeBand(0);
+	}
 }
 
 void CTabReBar::UpdateVisibility(BOOL canHide)
 {
-	if (mBottomBar)
+	if (mFixedBar)
 	{
+
+		if (GetToolBarCtrl().GetButtonCount()>1) {
+			mTemp->ShowWindow(SW_SHOW);//GetReBarCtrl().ShowBand(0, TRUE);
+			if (mBottomBar)
+				mTemp->SetWindowPos(&(((CBrowserFrame*)GetParentFrame())->m_wndStatusBar),0,0,0,0,SWP_NOMOVE);
+		}
+
+		else
+			if (theApp.preferences.bAutoHideTabControl)
+				mTemp->ShowWindow(SW_HIDE);
+				//mTemp->GetReBarCtrl().ShowBand(0, FALSE);
+		GetParentFrame()->RecalcLayout();
+/*
+		mTemp->GetReBarCtrl().ShowBand(0, TRUE);
 		SIZE s;
 		CToolBarCtrl& tc = GetToolBarCtrl();
 
@@ -253,10 +286,11 @@ void CTabReBar::UpdateVisibility(BOOL canHide)
 		}
 		else if (theApp.preferences.bAutoHideTabControl)
 			tc.ShowWindow(SW_HIDE);
-		GetParentFrame()->RecalcLayout();
+		GetParentFrame()->RecalcLayout();*/
 	}
 	else
 	{
+		ASSERT(m_wndParent);
 		int index = m_wndParent->FindByName(_T("Tabs"));
 
 		if (GetToolBarCtrl().GetButtonCount()>1)
@@ -269,23 +303,23 @@ void CTabReBar::UpdateVisibility(BOOL canHide)
 
 LONG CTabReBar::InsertItem(int nItem, int idCommand, LPCTSTR lpszItem, DWORD data, int nImage)
 {
-	    // Add the button to the toolbar.
-		TBBUTTON button = {0};
-		button.iBitmap = theApp.favicons.GetDefaultIcon();
-		button.fsState = TBSTATE_ENABLED;
-		button.fsStyle = TBSTYLE_CHECKGROUP;
-		button.idCommand = idCommand;
-		button.dwData = data;
-		button.iString = -1;
-		GetToolBarCtrl().InsertButton(nItem,&button);
+	// Add the button to the toolbar.
+	TBBUTTON button = {0};
+	button.iBitmap = theApp.favicons.GetDefaultIcon();
+	button.fsState = TBSTATE_ENABLED;
+	button.fsStyle = TBSTYLE_CHECKGROUP;
+	button.idCommand = idCommand;
+	button.dwData = data;
+	button.iString = -1;
+	GetToolBarCtrl().InsertButton(nItem,&button);
 
-		SetButtonText(nItem, lpszItem);
+	SetButtonText(nItem, lpszItem);
 
-		// Set buttons size & ideal size
-		UpdateButtonsSize();
-		UpdateVisibility(nItem!=0);
+	// Set buttons size & ideal size
+	UpdateButtonsSize();
+	UpdateVisibility(nItem!=0);
 
-		return 1;
+	return 1;
 }
 
 void CTabReBar::RefreshFavIcon()
@@ -482,9 +516,9 @@ BOOL CTabReBar::SetItemInfo(int idCommand, LPTSTR lpszItem, int nImage)
 // Gestionnaires de messages CTabReBar
 
 BEGIN_MESSAGE_MAP(CTabReBar, CToolBar)
-	ON_WM_MBUTTONDOWN()
+	ON_WM_MBUTTONUP()
 	ON_WM_LBUTTONDBLCLK()
-	ON_WM_RBUTTONDOWN()
+	ON_WM_RBUTTONUP()
 	// Doesn't work otherwise ....
 //	ON_NOTIFY_REFLECT(64819, OnTbnGetDispInfo)
 	//ON_NOTIFY_REFLECT(TBN_GETDISPINFO, OnTbnGetDispInfo)
@@ -495,6 +529,7 @@ BEGIN_MESSAGE_MAP(CTabReBar, CToolBar)
 	ON_WM_SIZE()
 	ON_WM_MOUSEMOVE()
 	ON_WM_DESTROY()
+	//ON_NOTIFY_REFLECT(NM_CUSTOMDRAW, OnNMCustomdraw)
 END_MESSAGE_MAP()
 
 void CTabReBar::HandleMouseClick(int flag, CPoint point)
@@ -556,7 +591,7 @@ void CTabReBar::HandleMouseClick(int flag, CPoint point)
 	}
 }
 
-void CTabReBar::OnMButtonDown(UINT nFlags, CPoint point)
+void CTabReBar::OnMButtonUp(UINT nFlags, CPoint point)
 {
 	HandleMouseClick(theApp.preferences.iTabOnMiddleClick, point);
 	CToolBar::OnMButtonDown(nFlags, point);
@@ -568,7 +603,7 @@ void CTabReBar::OnLButtonDblClk(UINT nFlags, CPoint point)
 	CToolBar::OnLButtonDblClk(nFlags, point);
 }
 
-void CTabReBar::OnRButtonDown(UINT nFlags, CPoint point)
+void CTabReBar::OnRButtonUp(UINT nFlags, CPoint point)
 {
 	HandleMouseClick(theApp.preferences.iTabOnRightClick, point);
 	CToolBar::OnRButtonDown(nFlags, point);
@@ -598,39 +633,8 @@ void CTabReBar::OnTbnEndDrag(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	LPNMTOOLBAR pNMTB = reinterpret_cast<LPNMTOOLBAR>(pNMHDR);
 	KillTimer(100);
-	
+	*pResult = 0;	
 	mDragItem = -1;
-	
-	if (!mDrag) return;
-
-	mDrag = FALSE;
-	theApp.favicons.DragLeave(NULL);
-	theApp.favicons.EndDrag();
-	
-	int index;
-	index = FindById(pNMTB->iItem);
-	ASSERT(index>=0);
-
-	CPoint pos;
-	GetCursorPos(&pos);
-	ScreenToClient(&pos);
-	int destIndex = GetButtonIDFromPoint(pos);
-	
-	TBBUTTON button = {0};
-	GetToolBarCtrl().GetButton(index, &button);
-	button.fsState &= ~TBSTATE_PRESSED;
-
-	if (destIndex<0 || destIndex == index)
-		return;
-		
-	GetToolBarCtrl().DeleteButton(index);
-	GetToolBarCtrl().InsertButton(destIndex,&button);
-
-	HCURSOR cursor = ::LoadCursor(NULL, IDC_ARROW);
-	SetCursor(cursor);
-	UpdateWindow();
-	
-	*pResult = 0;
 }
 
 void CTabReBar::OnTimer(UINT nIDEvent)
@@ -640,7 +644,7 @@ void CTabReBar::OnTimer(UINT nIDEvent)
 
 void CTabReBar::OnMouseMove(UINT nFlags, CPoint point)
 {
-	if (!mDrag && mDragItem>=0 && (abs(mDragPoint.x-point.x)+abs(mDragPoint.y-point.y)>=5))
+	if (mDragItem>=0 && (abs(mDragPoint.x-point.x)+abs(mDragPoint.y-point.y)>=5))
 	{
 		TBBUTTON button;
 		this->GetToolBarCtrl().GetButton(mDragItem, &button);
@@ -675,5 +679,122 @@ void CTabReBar::OnDestroy()
 {
 	CToolBar::OnDestroy();
 	mDropTarget.Revoke();
-	// TODO : ajoutez ici le code de votre gestionnaire de messages
 }
+/*
+void CTabReBar::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
+
+	
+	*pResult = CDRF_DODEFAULT;
+
+	LPNMTBCUSTOMDRAW pNMCD = reinterpret_cast<LPNMTBCUSTOMDRAW>(pNMHDR);
+	switch(pNMCD->nmcd.dwDrawStage)
+	{
+	case CDDS_PREPAINT:
+		break;
+	
+	case CDDS_POSTPAINT:
+		break;
+
+	case CDDS_ITEMPOSTPAINT:
+		break;
+
+	case CDDS_ITEMPREPAINT: {
+		HTHEME hTheme = NULL;
+		if (g_xpStyle.IsThemeActive() && g_xpStyle.IsAppThemed())// && (SendMessage(0x0129, 0, 0) & 0x4))
+			hTheme = g_xpStyle.OpenThemeData (m_hWnd, L"TOOLBAR");
+		
+		CDC *pDC = CDC::FromHandle(pNMCD->nmcd.hdc);
+		pDC->SetBkMode(TRANSPARENT);
+		pDC->SelectObject(GetFont());
+		int index = CommandToIndex(pNMCD->nmcd.dwItemSpec);
+		UINT style = GetButtonStyle(index);
+		CRect contentRect(pNMCD->nmcd.rc); 
+		int stateId = TS_NORMAL;
+
+		if (hTheme) {
+
+			if (style & WS_DISABLED)
+				stateId = TS_DISABLED;
+			else if (pNMCD->nmcd.uItemState & CDIS_SELECTED)
+				stateId = TS_PRESSED;		
+			else if (pNMCD->nmcd.uItemState & CDIS_HOT && pNMCD->nmcd.uItemState & CDIS_CHECKED)
+				stateId = TS_HOTCHECKED; 
+			else if (pNMCD->nmcd.uItemState & CDIS_CHECKED)
+				stateId = TS_CHECKED;
+			else if (pNMCD->nmcd.uItemState & CDIS_HOT)
+				stateId = TS_HOT;
+
+			g_xpStyle.DrawThemeBackground(hTheme, pDC->m_hDC, TP_BUTTON, stateId, &pNMCD->nmcd.rc, NULL);
+			g_xpStyle.GetThemeBackgroundContentRect(hTheme, pDC->m_hDC, TP_BUTTON, stateId, &pNMCD->nmcd.rc, &contentRect);
+		}
+		else
+		{	
+			UINT nState = DFCS_FLAT;
+			//CBrush brBackground(GetSysColor(COLOR_BTNFACE));
+			//pDC->FillRect(&pNMCD->nmcd.rc, &brBackground);
+			if (style & WS_DISABLED)
+				nState = DFCS_INACTIVE;
+			else if (pNMCD->nmcd.uItemState & CDIS_SELECTED)
+				nState = DFCS_PUSHED;		
+			else if(pNMCD->nmcd.uItemState & CDIS_HOT && pNMCD->nmcd.uItemState & CDIS_CHECKED)
+				nState = DFCS_PUSHED | 0x1000; //DFCS_HOT; 
+			else if (pNMCD->nmcd.uItemState & CDIS_CHECKED)
+				nState = DFCS_CHECKED;
+			else if (pNMCD->nmcd.uItemState & CDIS_HOT)
+				nState = 0x1000; // DFCS_HOT;
+
+			if (nState != DFCS_FLAT) {
+				nState |= 0x0800 | DFCS_BUTTONPUSH | DFCS_ADJUSTRECT;
+				pDC->DrawFrameControl(&pNMCD->nmcd.rc, DFC_BUTTON, nState);
+			}
+			
+		}
+
+
+		UINT textFlag = DT_LEFT | DT_SINGLELINE | DT_VCENTER | DT_NOPREFIX | DT_WORD_ELLIPSIS;
+		
+		CString text = GetButtonText(index);
+		int image = GetItemImage(pNMCD->nmcd.dwItemSpec);
+		CImageList* imageList = GetToolBarCtrl().GetImageList();
+		
+		IMAGEINFO ii;
+		imageList->GetImageInfo(image, &ii);
+		if (ii.hbmMask) DeleteObject(ii.hbmMask);
+		if (ii.hbmImage) DeleteObject(ii.hbmImage);
+
+		CPoint imagePoint;
+		CRect textRect;
+		
+		int btMargin = 3;
+		int iconPadding = 4;
+
+		if (pNMCD->nmcd.uItemState & CDIS_SELECTED || pNMCD->nmcd.uItemState & CDIS_CHECKED)
+			contentRect.OffsetRect(1,1);
+
+		imagePoint.y = contentRect.top + (contentRect.Height() - ii.rcImage.bottom + ii.rcImage.top)/2;
+		imagePoint.x = btMargin + contentRect.left;
+		
+		imageList->Draw(pDC, image, imagePoint, ILD_TRANSPARENT);
+		contentRect.left += btMargin + iconPadding + ii.rcImage.right - ii.rcImage.left;
+		contentRect.right -= btMargin;
+
+		if (hTheme) {
+			USES_CONVERSION;
+			g_xpStyle.DrawThemeText(hTheme, pDC->m_hDC, TP_BUTTON, stateId,
+				T2CW(text), text.GetLength(), textFlag, 0, &contentRect);
+		}
+		else {
+			pDC->SetTextColor(::GetSysColor(COLOR_BTNTEXT));
+			pDC->SetBkColor(::GetSysColor(COLOR_BTNFACE));
+			pDC->DrawText(text, -1, &contentRect, textFlag);
+		}
+		
+		g_xpStyle.CloseThemeData(hTheme);
+		*pResult = CDRF_SKIPDEFAULT;
+		break;
+		}
+	}
+
+	*pResult |= CDRF_NOTIFYITEMDRAW | CDRF_NOTIFYPOSTPAINT;
+}
+*/

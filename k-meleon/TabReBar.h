@@ -20,14 +20,12 @@
 
 #pragma once
 
-
-
-#define PREFERENCE_REBAR_TITLE   "kmeleon.tabs.title"
+#define PREFERENCE_REBAR_TITLE		"kmeleon.tabs.title"
 #define PREFERENCE_BUTTON_MINWIDTH  "kmeleon.tabs.minWidth"
 #define PREFERENCE_BUTTON_MAXWIDTH  "kmeleon.tabs.maxWidth"
-#define PREFERENCE_BUTTON_STYLE  "kmeleon.tabs.style"
-#define PREFERENCE_CONFIRMCLOSE  "kmeleontabs.confirmClose"
-
+#define PREFERENCE_BUTTON_STYLE		"kmeleon.tabs.style"
+#define PREFERENCE_REBAR_BOTTOM		"kmeleon.tabs.bottomBar"
+#define PREFERENCE_REBAR_FIXED		"kmeleon.tabs.fixedBar"
 
 // CTabReBar
 
@@ -35,7 +33,7 @@
 #include "ReBarEx.h"
 #include "resource.h"
 
-#define CFSTR_TABPT       TEXT("KmeleonTabPointer")
+#define CFSTR_TABPT TEXT("KmeleonTabPointer")
 
 class CTBOleDropTarget : public COleDropTarget
 {
@@ -110,16 +108,14 @@ protected:
 	
 	BOOL bRebarEnabled ;
 	TCHAR szTitle[MAX_PATH > 256 ? MAX_PATH : 256];
-	int  nButtonMinWidth;
-	int  nButtonMaxWidth; 
 	int  nButtonStyle;
 	BOOL bButtonNumbers;
-	HIMAGELIST gImagelist;
-	BOOL mDrag;
 	int  mDragItem;
 	POINT mDragPoint;
 	CTBOleDropTarget mDropTarget;
 	BOOL mBottomBar;
+	BOOL mFixedBar;
+	BOOL mChevron;
 	
 	int GetButtonIDFromData(DWORD data);
 	void UpdateButtonsSize();
@@ -127,11 +123,12 @@ protected:
 	void HandleMouseClick(int flag, CPoint point);
 	
 	CReBarEx* m_wndParent;
+	CReBar* mTemp;
 public:
 	DECLARE_MESSAGE_MAP()
-	afx_msg void OnMButtonDown(UINT nFlags, CPoint point);
+	afx_msg void OnMButtonUp(UINT nFlags, CPoint point);
 	afx_msg void OnLButtonDblClk(UINT nFlags, CPoint point);
-	afx_msg void OnRButtonDown(UINT nFlags, CPoint point);
+	afx_msg void OnRButtonUp(UINT nFlags, CPoint point);
 //	afx_msg void OnTbnGetDispInfo(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnTbnBeginDrag(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnTbnEndDrag(NMHDR *pNMHDR, LRESULT *pResult);
@@ -139,6 +136,7 @@ public:
 	afx_msg void OnSize(UINT nType, int cx, int cy);
 	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
 	afx_msg void OnDestroy();
+	//afx_msg void OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult);
 };
 
 
