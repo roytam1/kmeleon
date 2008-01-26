@@ -13,7 +13,9 @@ the same CID and Contract ID as the default's.
 #include "CookiePromptService.h"
 //#include "TooltipsProvider.h"
 #include "NSSDialogs.h"
+#if GECKO_VERSION < 19
 #include "FontPackageHandler.h"
+#endif
 #include "GenKeyPairDialogs.h"
 //#include "SideBarComp.h"
 
@@ -34,7 +36,9 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(CUnknownContentTypeHandler)
 //NS_GENERIC_FACTORY_CONSTRUCTOR(CTooltipTextProvider)
 NS_GENERIC_FACTORY_CONSTRUCTOR(CNSSDialogs)
 NS_GENERIC_FACTORY_CONSTRUCTOR(CProgressDialog)
+#if GECKO_VERSION < 19
 NS_GENERIC_FACTORY_CONSTRUCTOR(CFontPackageHandler)
+#endif
 NS_GENERIC_FACTORY_CONSTRUCTOR(CGenKeyPairDialogs)
 //NS_GENERIC_FACTORY_CONSTRUCTOR(CSideBarComp)
 
@@ -84,13 +88,20 @@ static const nsModuleComponentInfo sAppComps[] = {
 		NS_COOKIEPROMPTSERVICE_CID,
 		NS_COOKIEPROMPTSERVICE_CONTRACTID,
 		CCookiePromptServiceConstructor
-	} 
-	,{
+	},
+#if GECKO_VERSION < 19
+	{
 		"PSM Dialog Impl",
 		NS_NSSDIALOGS_CID,
 		NS_BADCERTLISTENER_CONTRACTID,
 		CNSSDialogsConstructor
 	},
+	{ "nsFontPackageHandler", 
+	   NS_FONTPACKAGEHANDLER_CID,
+       "@mozilla.org/locale/default-font-package-handler;1",
+       CFontPackageHandlerConstructor
+	},
+#endif
 	{
 		"PSM Dialog Impl",
 		NS_NSSDIALOGS_CID,
@@ -108,12 +119,8 @@ static const nsModuleComponentInfo sAppComps[] = {
 		NS_DOWNLOAD_CID,
 		NS_TRANSFER_CONTRACTID,
 		CProgressDialogConstructor
-	},
-	{ "nsFontPackageHandler", 
-	   NS_FONTPACKAGEHANDLER_CID,
-       "@mozilla.org/locale/default-font-package-handler;1",
-       CFontPackageHandlerConstructor
-	}/*,
+	}
+	/*,
 	{	
 		"nsSideBar",
 		NS_SIDEBAR_CID,
