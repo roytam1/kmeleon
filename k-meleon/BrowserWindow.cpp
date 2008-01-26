@@ -59,7 +59,11 @@
 #include "nsIDOMHTMLInputElement.h"
 #include "nsIDOMHTMLEmbedElement.h"
 #include "nsIDOMHTMLObjectElement.h"
+#if GECKO_VERSION>18
+#include "nsISuiteTypeAheadFind.h"
+#else
 #include "nsITypeAheadFind.h"
+#endif
 
 #include "nsIPrintSettingsService.h"
 #include "nsCWebBrowserPersist.h"
@@ -161,7 +165,7 @@ BOOL CBrowserWrapper::CreateBrowser(CWnd* parent, BOOL chromeContent)
 	// with the platform specific code to update status bars etc.
 	mpBrowserImpl->Init(mpBrowserGlue, mWebBrowser);
 	mpBrowserImpl->AddRef();
-	mWebBrowser->SetContainerWindow(NS_STATIC_CAST(nsIWebBrowserChrome*, mpBrowserImpl));
+	mWebBrowser->SetContainerWindow(static_cast<nsIWebBrowserChrome*>(mpBrowserImpl));
 
 
 	nsCOMPtr<nsIDocShellTreeItem> dsti = do_QueryInterface(mWebBrowser, &rv);
@@ -193,7 +197,7 @@ BOOL CBrowserWrapper::CreateBrowser(CWnd* parent, BOOL chromeContent)
 
 	// Register the BrowserImpl object to receive progress messages
 	// These callbacks will be used to update the status/progress bars
-    nsCOMPtr<nsIWeakReference> weak = do_GetWeakReference(NS_STATIC_CAST(nsIWebProgressListener*, mpBrowserImpl));
+    nsCOMPtr<nsIWeakReference> weak = do_GetWeakReference(static_cast<nsIWebProgressListener*>(mpBrowserImpl));
     mWebBrowser->AddWebBrowserListener(weak, NS_GET_IID(nsIWebProgressListener));
 
 	// Add listeners for various events like popup-blocking, link added ... 
@@ -691,7 +695,7 @@ BOOL CBrowserWrapper::Print()
 	if (!mPrintSettings) InitPrintSettings();
 	
 	CPrintProgressDialog dlg(mWndOwner);
-	nsresult rv = print->Print(mPrintSettings, NS_STATIC_CAST(nsIWebProgressListener*, dlg.m_PrintListener.get()));
+	nsresult rv = print->Print(mPrintSettings, static_cast<nsIWebProgressListener*>(dlg.m_PrintListener.get()));
 	NS_ENSURE_SUCCESS(rv, FALSE);
 
 	if (dlg.DoModal() != IDOK) {
