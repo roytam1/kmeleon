@@ -94,24 +94,67 @@ HBITMAP ResizeIcon(HDC hDC, HBITMAP hBitmap, LONG w, LONG h)
 CFavIconList::CFavIconList()
 {
 	m_iDefaultIcon = 0;
+	m_iOffset = 0;
 }
 
 CFavIconList::~CFavIconList()
 {
-	if (!m_hImageList) 
-		return;
+	WriteCache();
+}
 
-	if (theApp.preferences.GetBool("kmeleon.favicons.cached", true))
-	{
-		// Save the icons
-		CFile iconCache;
-		if (iconCache.Open(theApp.GetFolder(ProfileFolder) + _T("\\") FAVICON_CACHE_FILE, CFile::modeCreate | CFile::modeWrite))
-		{
-			CArchive ar(&iconCache, CArchive::store);
-			if (Write(&ar))
-				m_urlMap.Serialize(ar);
-		}
+BOOL CFavIconList::LoadCache()
+{
+	CFile iconCache;
+	CImageList imgList;
+	if (!iconCache.Open(theApp.GetFolder(ProfileFolder) + _T("\\") FAVICON_CACHE_FILE, CFile::modeRead))
+		return FALSE;
+
+	if (!theApp.preferences.GetBool("kmeleon.favicons.cached", TRUE)) {
+		iconCache.Close();
+		DeleteFile(theApp.GetFolder(ProfileFolder) + _T("\\") FAVICON_CACHE_FILE);
 	}
+	else {
+		CArchive ar(&iconCache, CArchive::load );
+		TRY
+			if (imgList.Read(&ar))
+				m_urlMap.Serialize(ar);
+		CATCH (CArchiveException, e) {
+			DeleteImageList();
+			return FALSE;
+		}
+		END_CATCH
+	}
+	
+	for (int i=0; i < imgList.GetImageCount(); i++) {
+		int idx = Add(imgList.ExtractIcon(i));
+		ASSERT(idx == i + m_iOffset);
+	}
+	
+	return TRUE;
+}
+
+BOOL CFavIconList::WriteCache()
+{
+	if (!m_hImageList) 
+		return FALSE;
+
+	if (!theApp.preferences.GetBool("kmeleon.favicons.cached", TRUE))
+		return FALSE;
+
+	CImageList imgList;
+	imgList.Create(this);
+
+	for (int i=0; i < m_iOffset; i++)
+		imgList.Remove(0);
+
+	CFile iconCache;
+	if (iconCache.Open(theApp.GetFolder(ProfileFolder) + _T("\\") FAVICON_CACHE_FILE, CFile::modeCreate | CFile::modeWrite))
+	{
+		CArchive ar(&iconCache, CArchive::store);
+		if (imgList.Write(&ar))
+			m_urlMap.Serialize(ar);
+	}
+	return TRUE;
 }
 
 void CFavIconList::LoadDefaultIcon()
@@ -135,40 +178,58 @@ void CFavIconList::LoadDefaultIcon()
 	// Add can return 0 even if it fails...
 	if (GetImageCount()==0)
 		m_iDefaultIcon = Add(theApp.GetDefaultIcon());
+/*
+	if (theApp.FindSkinFile(szFullPath, _T("loader.bmp")))
+	{
+		HBITMAP hBitmap = (HBITMAP)LoadImage(NULL, szFullPath, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+		if (hBitmap)
+		{
+			HDC hdcBitmap = CreateCompatibleDC(NULL);
+			HGDIOBJ oldBmp = SelectObject(hdcBitmap, hBitmap);			
+			HBRUSH hBrush = CreateSolidBrush(RGB(255,0,255));
+
+			int cx, cy;
+			ImageList_GetIconSize(m_hImageList, &cx, &cy);
+			for (int i=0; i<8; i++)
+			{
+				CBitmap button;
+				HDC hdcButton = CreateCompatibleDC(hdcBitmap);
+				HBITMAP hButton = CreateCompatibleBitmap(hdcBitmap, cx, cy);
+				HGDIOBJ oldBmp2 = SelectObject(hdcButton, hButton);
+
+				// fill the button with the transparency
+				HGDIOBJ oldBrush = SelectObject(hdcButton, hBrush);
+				PatBlt(hdcButton, 0, 0, cx, cy, PATCOPY);
+
+				// copy the button from the full bitmap
+				BitBlt(hdcButton, 0, 0, cx, cy, hdcBitmap, cx*i, 0, SRCCOPY);
+				
+				SelectObject(hdcButton, oldBrush);
+				SelectObject(hdcButton, oldBmp2);
+				DeleteDC(hdcButton);
+
+				CBitmap bmp;
+				bmp.Attach(hButton);
+				Add(&bmp, RGB(255,0,255));
+			}
+			
+			SelectObject(hdcBitmap, oldBmp);
+			DeleteObject(hBrush);
+			DeleteDC(hdcBitmap);
+			DeleteObject(hBitmap);
+		}
+	}
+*/
+	m_iOffset = GetImageCount();
 }
 
 BOOL CFavIconList::Create(int cx, int cy, UINT nFlags, int nInitial, int nGrow)
 {
-
-	// Try to load the icon cache
-	CFile   iconCache;
-	if (iconCache.Open(theApp.GetFolder(ProfileFolder) + _T("\\") FAVICON_CACHE_FILE, CFile::modeRead))
-	{
-		if (!theApp.preferences.GetBool("kmeleon.favicons.cached", true)) {
-			iconCache.Close();
-			DeleteFile(theApp.GetFolder(ProfileFolder) + _T("\\") FAVICON_CACHE_FILE);
-		}
-		else
-		{
-			CArchive ar(&iconCache, CArchive::load );
-			TRY
-				if (Read(&ar))
-					m_urlMap.Serialize(ar);
-			CATCH (CArchiveException, e)
-				DeleteImageList();
-			END_CATCH
-		}
-	}
-
-	if (m_hImageList) return TRUE;
-	
-	// If no cache, create the list
 	if (!CImageList::Create(cx,cy,nFlags,nInitial,nGrow))
 		return FALSE;
 
-	// Load the default icon
 	LoadDefaultIcon();
-
+	LoadCache();
 	return TRUE;
 }
 
@@ -181,7 +242,7 @@ void CFavIconList::AddMap(const char *uri, int index)
 	// if the moz image loader is used.
 
    USES_CONVERSION;
-	m_urlMap[A2CT(uri)] = index;
+	m_urlMap[A2CT(uri)] = index - m_iOffset;
 
 	// Add an entry for the hostname only. This is for the mru list.
 	// It's not really good to do it like that, because a site may
@@ -193,7 +254,7 @@ void CFavIconList::AddMap(const char *uri, int index)
 	if (NS_SUCCEEDED(rv)) {
 		URI->GetHost(nsUri);
 		nsUri.Insert("http://", 0, 7);
-		m_urlMap[A2CT(nsUri.get())] = index;
+		m_urlMap[A2CT(nsUri.get())] = index - m_iOffset;
 	}
 
 	// If it's not really efficient, at least I don't have
@@ -304,10 +365,11 @@ int CFavIconList::GetHostIcon(const TCHAR* aUrl)
 
 	URI->GetHost(nsUri);
 	nsUri.Insert("http://", 0, 7);
-   USES_CONVERSION;
-	m_urlMap.Lookup(A2CT(nsUri.get()), index);
+	USES_CONVERSION;
+	if (!m_urlMap.Lookup(A2CT(nsUri.get()), index))
+		return index;
 
-	return index;
+	return index + m_iOffset;
 }
 
 int CFavIconList::GetIcon(nsIURI *aURI, BOOL download)
@@ -318,15 +380,13 @@ int CFavIconList::GetIcon(nsIURI *aURI, BOOL download)
 
 	nsEmbedCString nsUri;
 	aURI->GetSpec(nsUri);
-   USES_CONVERSION;
-	if (!m_urlMap.Lookup(A2CT(nsUri.get()), index))
-	{
-		if (download) 
-			DwnFavIcon(aURI);
-		return GetDefaultIcon();
-	}
-
-	return index;
+	USES_CONVERSION;
+	if (m_urlMap.Lookup(A2CT(nsUri.get()), index))
+		return index + m_iOffset;
+	
+	if (download) 
+		DwnFavIcon(aURI);
+	return GetDefaultIcon();
 }
 
 void CFavIconList::RefreshIcon(nsIURI* aURI)

@@ -50,9 +50,12 @@ class CFavIconList : public CImageList
 private:
 	CMap<CString, LPCTSTR, int, int &> m_urlMap;
 	int m_iDefaultIcon;
+	int m_iOffset;
 	
 	void AddMap(const char *uri, int index);
 	int AddDownloadedIcon(char* uri, TCHAR* file, nsresult aStatus);
+	BOOL LoadCache();
+	BOOL WriteCache();
 
 public:
 	CFavIconList();
