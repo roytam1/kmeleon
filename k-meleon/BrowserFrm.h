@@ -199,8 +199,6 @@ protected:
 
 	HICON           m_hSecurityIcon;
 
-	static CBitmap  m_bmpBack;
-
 	// This specifies what UI elements this frame will support
 	// w.r.t. toolbar, statusbar, urlbar etc.
 	PRUint32 m_chromeMask;
@@ -225,6 +223,7 @@ public:
 	CSideBar        m_wndSideBar;
 #endif
 
+	static CBitmap m_bmpBack;
 	friend CBrowserGlue;
 	DECLARE_DYNAMIC(CBrowserFrame);
 
@@ -321,6 +320,7 @@ protected:
 #endif
 	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
 	afx_msg LRESULT OnEnterSizeMove(WPARAM, LPARAM); 
+	afx_msg LRESULT OnExitSizeMove(WPARAM, LPARAM); 
 	afx_msg void OnRbnLayoutChanged(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnInitMenuPopup(CMenu* pPopupMenu, UINT nIndex, BOOL bSysMenu);
 	afx_msg void OnUpdateViewStatusBar(CCmdUI* pCmdUI);

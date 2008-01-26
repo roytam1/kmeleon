@@ -191,6 +191,22 @@ void CReBarEx::MaximizeBand( UINT uBand ) {
 }
 */
 
+void CReBarEx::UnregisterBand(TCHAR *name)
+{
+   int x;
+   for (x=0; x<m_iCount; x++)
+      if (m_index[x]->name && (_tcsicmp(name, m_index[x]->name) == 0))
+         break;
+
+   if (x >= m_iCount) return;
+   if (m_index[x]->name) delete m_index[x]->name;
+   
+   for (int i=x; i<m_iCount-1; i++)
+      m_index[i] = m_index[i+1];
+
+   m_iCount--;
+}
+
 void CReBarEx::RegisterBand(HWND hWnd, TCHAR *name, int visibleOnMenu) {
 
    if (FindByName(name) != -1)
