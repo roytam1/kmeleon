@@ -33,14 +33,20 @@
 
 #include "nsIDialogParamBlock.h"
 #include "nsIWindowWatcher.h"
-#include ".\nssdialogs.h"
+#if GECKO_VERSION > 18
+#include "nsIMutableArray.h"
+#endif
 
 extern CWnd* CWndForDOMWindow(nsIDOMWindow *aWindow);
 
 NS_DEFINE_CID (kX509CertCID, NS_IX509CERT_IID);
 NS_DEFINE_CID (kASN1ObjectCID, NS_IASN1OBJECT_IID);
 
-NS_IMPL_ISUPPORTS2(CNSSDialogs, nsIBadCertListener, nsICertificateDialogs)
+#if GECKO_VERSION > 18
+NS_IMPL_ISUPPORTS1(CNSSDialogs, nsICertificateDialogs)				   
+#else			   
+NS_IMPL_ISUPPORTS2(CNSSDialogs, nsIBadCertListener,  nsICertificateDialogs)
+#endif
 
 CNSSDialogs::CNSSDialogs()
 {
@@ -279,6 +285,8 @@ NS_IMETHODIMP CNSSDialogs::CrlImportStatusDialog(nsIInterfaceRequestor *ctx, nsI
 
 //////////////////////////////////////////////////////////////
 
+#if GECKO_VERSION < 19
+
 /* boolean confirmUnknownIssuer (in nsIInterfaceRequestor socketInfo, in nsIX509Cert cert, out short certAddType); */
 NS_IMETHODIMP CNSSDialogs::ConfirmUnknownIssuer(nsIInterfaceRequestor *socketInfo, nsIX509Cert *cert, PRInt16 *certAddType, PRBool *_retval)
 {
@@ -432,6 +440,7 @@ NS_IMETHODIMP CNSSDialogs::NotifyCrlNextupdate(nsIInterfaceRequestor *socketInfo
 	return NS_OK;
 }
 
+#endif // GECKO_VERSION
 
 // Boîte de dialogue CConfirmCertExpiredDialog
 

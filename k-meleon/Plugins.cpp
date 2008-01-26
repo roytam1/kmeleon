@@ -407,7 +407,11 @@ int SetMozillaSessionHistory (HWND hWnd, const char **titles, const char **urls,
 	   if (!nsuri) continue;
 
 	   USES_CONVERSION;
+#if GECKO_VERSION > 18
+	   rv = newSHEntry->Create(nsuri, nsEmbedString(A2CW(titles[i])), nsnull, nsnull, nsnull, nsEmbedCString(""), nsnull);
+#else
 	   rv = newSHEntry->Create(nsuri, nsEmbedString(A2CW(titles[i])), nsnull, nsnull, nsnull, nsEmbedCString(""));
+#endif
 	   if (NS_SUCCEEDED(rv)) sHInternal->AddEntry(newSHEntry, PR_TRUE);
    }
 

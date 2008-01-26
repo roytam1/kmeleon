@@ -1024,7 +1024,11 @@ NS_IMETHODIMP CProgressDialog::Init(nsIURI *aSource, nsIURI *aTarget, const nsAS
 
    if (aMIMEInfo)
 	{
+#if GECKO_VERSION > 18
+		nsHandlerInfoAction action;		
+#else
 		nsMIMEInfoHandleAction action;
+#endif		
 		if (NS_SUCCEEDED(aMIMEInfo->GetPreferredAction(&action)))
 		{
 			if (action == nsIMIMEInfo::useHelperApp || action == nsIMIMEInfo::useSystemDefault )
@@ -1052,6 +1056,13 @@ NS_IMETHODIMP CProgressDialog::Init(nsIURI *aSource, nsIURI *aTarget, const nsAS
 */
    return NS_OK;
 }
+
+#if GECKO_VERSION > 18
+NS_IMETHODIMP CProgressDialog::OnRefreshAttempted(nsIWebProgress *aWebProgress, nsIURI *aRefreshURI, PRInt32 aMillis, PRBool aSameURI, PRBool *_retval)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+#endif
 
 void CProgressDialog::OnOK()
 {
