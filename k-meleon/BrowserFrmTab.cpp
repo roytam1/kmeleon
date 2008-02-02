@@ -54,7 +54,10 @@ public:
 	void SetFavIcon(nsIURI *favUri) 
 	{
 		CBrowserGlue::SetFavIcon(favUri);
-		((CBrowserFrmTab*)mpBrowserFrame)->SetTabIcon((CBrowserTab*)mpBrowserView, theApp.favicons.GetIcon(mIconURI));
+		if (!theApp.preferences.GetBool("kmeleon.tabs.useLoadingIcon", TRUE)) {
+			mIcon = theApp.favicons.GetIcon(mIconURI);
+			((CBrowserFrmTab*)mpBrowserFrame)->SetTabIcon((CBrowserTab*)mpBrowserView, mIcon);
+		}
 	}
 
 	void UpdateBusyState(BOOL aBusy)
@@ -64,13 +67,20 @@ public:
 			
 		if (aBusy) {
 			title.LoadString(IDS_LOADING);
-		} else if (mTitle.IsEmpty()) {
-			if (mLocation.IsEmpty() || mLocation.Compare(_T("about:blank")) == 0)
-				title.LoadString(IDS_EMPTY);
-			else
-                title = mLocation;
+			if (theApp.preferences.GetBool("kmeleon.tabs.useLoadingIcon", TRUE))
+				((CBrowserFrmTab*)mpBrowserFrame)->SetTabIcon((CBrowserTab*)mpBrowserView, theApp.favicons.GetLoadingIcon());
+		} else {
+			mIcon = theApp.favicons.GetIcon(mIconURI);
+			((CBrowserFrmTab*)mpBrowserFrame)->SetTabIcon((CBrowserTab*)mpBrowserView, mIcon);
+			if (mTitle.IsEmpty()) {
+				if (mLocation.IsEmpty() || mLocation.Compare(_T("about:blank")) == 0)
+					title.LoadString(IDS_EMPTY);
+				else
+					title = mLocation;
+			}
+			else title = mTitle;
 		}
-		else title = mTitle;
+		
 
 		((CBrowserFrmTab*)mpBrowserFrame)->SetTabTitle((CBrowserTab*)mpBrowserView, title);
 	}
@@ -114,7 +124,7 @@ BEGIN_MESSAGE_MAP(CBrowserFrmTab, CBrowserFrame)
 	ON_NOTIFY_EX_RANGE(TTN_NEEDTEXTW, 0, 0xFFFF, OnToolTipText)
 	ON_NOTIFY_EX_RANGE(TTN_NEEDTEXTA, 0, 0xFFFF, OnToolTipText)
 //	ON_MESSAGE(UWM_GETFAVICON, OnGetFavIcon)
-ON_WM_KEYDOWN()
+	ON_WM_KEYDOWN()
 END_MESSAGE_MAP()
 
 BOOL CBrowserFrmTab::OnToolTipText(UINT id, NMHDR* pNMHDR, LRESULT* pResult)

@@ -161,23 +161,46 @@ void CFavIconList::LoadDefaultIcon()
 {
 	CString szFullPath;
 
+	HICON defaultIcon = NULL;
 	if (theApp.FindSkinFile(szFullPath, _T("default.ico")))
 	{
 		FILE *fp = _tfopen(szFullPath, _T("r"));
 		if (fp) {
 			fclose(fp);
-			HICON defaultIcon = (HICON)LoadImage(NULL, szFullPath, IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
+			defaultIcon = (HICON)LoadImage(NULL, szFullPath, IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 			if (defaultIcon) {
 				m_iDefaultIcon = Add(defaultIcon);
-				DestroyIcon(defaultIcon);
 			}
 		}
-
 	}
 
 	// Add can return 0 even if it fails...
 	if (GetImageCount()==0)
 		m_iDefaultIcon = Add(theApp.GetDefaultIcon());
+
+	if (theApp.FindSkinFile(szFullPath, _T("loading.ico")))
+	{
+		FILE *fp = _tfopen(szFullPath, _T("r"));
+		if (fp) {
+			fclose(fp);
+			HICON loadingIcon = (HICON)LoadImage(NULL, szFullPath, IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
+			if (loadingIcon) {
+				m_iLoadingIcon = Add(loadingIcon);
+				DestroyIcon(loadingIcon);
+			}
+		}
+	}
+	
+	if (GetImageCount()==1) {
+		if (defaultIcon)
+			m_iLoadingIcon = Add(defaultIcon);
+		else
+			m_iLoadingIcon = Add(theApp.GetDefaultIcon());
+	}
+	
+	if (defaultIcon)
+		DestroyIcon(defaultIcon);
+
 /*
 	if (theApp.FindSkinFile(szFullPath, _T("loader.bmp")))
 	{
