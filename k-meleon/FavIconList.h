@@ -50,6 +50,7 @@ class CFavIconList : public CImageList
 private:
 	CMap<CString, LPCTSTR, int, int &> m_urlMap;
 	int m_iDefaultIcon;
+	int m_iLoadingIcon;
 	int m_iOffset;
 	
 	void AddMap(const char *uri, int index);
@@ -76,6 +77,7 @@ public:
 	static void DwnCall(char* , TCHAR* , nsresult, void* );
 
 	inline int GetDefaultIcon() {return m_iDefaultIcon;}
+	inline int GetLoadingIcon() {return m_iLoadingIcon;}
 
 	BOOL Create(int, int, UINT, int, int);
 };
