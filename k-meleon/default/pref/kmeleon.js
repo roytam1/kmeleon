@@ -16,7 +16,7 @@ pref("kmeleon.MRU.behavior", 2);
 pref("kmeleon.general.guest_account", false);
 //pref("kmeleon.general.homePage", "resource:///readme.html");			// I10n.js
 pref("kmeleon.general.offline", false);
-pref("kmeleon.general.opengroup", "ID_OPEN_LINK|ID_OPEN_LINK_IN_BACKGROUND");
+pref("kmeleon.general.opengroup", "ID_OPEN_LINK_IN_NEW_TAB|ID_OPEN_LINK_IN_BACKGROUNDTAB");	// Tabs ON
 pref("kmeleon.general.openurl", "ID_OPEN_LINK");
 //pref("kmeleon.general.searchEngine", "http://www.google.com/search?q=");	// I10n.js
 //pref("kmeleon.general.searchEngineName", "Google");				// I10n.js
@@ -36,7 +36,6 @@ pref("kmeleon.adblocking", false);
 // Plugins
 
 pref("kmeleon.plugins.bmpmenu.load", true);
-pref("kmeleon.plugins.crash.load", false);
 pref("kmeleon.plugins.external.load", true);
 pref("kmeleon.plugins.fullscreen.load", true);
 pref("kmeleon.plugins.history.load", true);
@@ -44,6 +43,7 @@ pref("kmeleon.plugins.jsbridge.load", true);
 pref("kmeleon.plugins.rebarmenu.load", true);
 pref("kmeleon.plugins.sessions.load", true);
 pref("kmeleon.plugins.toolbars.load", true);
+pref("kmeleon.plugins.update.load", true);
 
 pref("kmeleon.plugins.bookmarks.load", false);
 pref("kmeleon.plugins.bookmarks.chevron", true);
@@ -60,7 +60,7 @@ pref("kmeleon.plugins.hotlist.openurl", "ID_OPEN_LINK");
 
 pref("kmeleon.plugins.gestures.load", false);
 pref("kmeleon.plugins.gestures.down", "ID_OPEN_LINK_IN_BACKGROUNDTAB");
-pref("kmeleon.plugins.gestures.downleft", "layers(Last)");
+pref("kmeleon.plugins.gestures.downleft", "ID_TAB_LAST");
 pref("kmeleon.plugins.gestures.downright", "ID_CLOSE_TAB");
 pref("kmeleon.plugins.gestures.left", "ID_NAV_BACK");
 pref("kmeleon.plugins.gestures.right", "ID_NAV_FORWARD");
@@ -68,10 +68,7 @@ pref("kmeleon.plugins.gestures.up", "ID_OPEN_LINK_IN_NEW_TAB");
 pref("kmeleon.plugins.gestures.upleft", "ID_TAB_PREV");
 pref("kmeleon.plugins.gestures.upright", "ID_TAB_NEXT");
 
-pref("kmeleon.plugins.layers.confirmClose", true);
 pref("kmeleon.plugins.layers.load", false);
-pref("kmeleon.plugins.layers.rebar", true);
-pref("kmeleon.plugins.layers.style", 2);
 
 pref("kmeleon.plugins.macros.load", true);
 pref("kmeleon.plugins.macros.search.locked", true);
@@ -94,8 +91,6 @@ pref("kmeleon.display.backgroundImage", "");
 pref("kmeleon.display.backgroundImageEnabled", true);
 pref("kmeleon.display.maximized", false);
 pref("kmeleon.display.disableResize", false);
-pref("kmeleon.display.backgroundImage", "");
-pref("kmeleon.display.backgroundImageEnabled", true);
 pref("kmeleon.display.accelInMenus", true);
 
 pref("kmeleon.favicons.show", true);
@@ -163,10 +158,10 @@ pref("kmeleon.download.flashWhenCompleted", false);
 /********************************************************************************************************/
 // For the tab version only
 
-pref("browser.tabs.autoHide", true);
+pref("browser.tabs.autoHide", false);		// classic behavior
 pref("browser.tabs.warnOnClose", true);
-pref("kmeleon.tabs.OnDoubleClick", 0);
-pref("kmeleon.tabs.OnMiddleClick", 0);
+pref("kmeleon.tabs.OnDoubleClick", 3);		// classic behavior
+pref("kmeleon.tabs.OnMiddleClick", 3);		// classic behavior
 pref("kmeleon.tabs.OnRightClick", 2);
 pref("kmeleon.tabs.onCloseLast", 1);
 pref("kmeleon.tabs.onCloseOption", 1);
@@ -177,6 +172,9 @@ pref("kmeleon.tabs.title", "");
 pref("kmeleon.tabs.minWidth", 10);
 pref("kmeleon.tabs.maxWidth", 35);
 pref("kmeleon.tabs.style", 2);
+pref("kmeleon.tabs.fixedBar", true);
+pref("kmeleon.tabs.bottomBar", false);
+
 
 
 /********************************************************************************************************/

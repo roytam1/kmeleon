@@ -2,8 +2,10 @@
 // Default pref for k-meleon - only necessary for kmPrefs (Preferences)
 /********************************************************************************************************/
 
-//pref("kmeleon.display.title", "K-Meleon");			// I10n.js
+//pref("kmeleon.display.title", "K-Meleon");			// kmeleon.js
 //pref("kmeleon.display.URLbarTitle", "URL:");			// I10n.js
+pref("kmeleon.favicons.titleBar", false);
+pref("kmeleon.general.startHome", true);
 pref("kmeleon.general.startHome", true);
 pref("kmeleon.urlbar.dropdown_lines", 10);
 pref("kmeleon.toolband.Throbber.visibility", true);
@@ -20,7 +22,7 @@ pref("browser.download.hide_plugins_without_extensions", true);
 
 //pref("kmeleon.plugins.bookmarks.load", false);		// kmeleon.js
 pref("kmeleon.plugins.bookmarks.askforFolder", true);
-//pref("kmeleon.plugins.bookmarks.chevron", false);		// kmeleon.js
+//pref("kmeleon.plugins.bookmarks.chevron", true);		// kmeleon.js
 pref("kmeleon.plugins.bookmarks.editdialog.width", 500);
 pref("kmeleon.plugins.bookmarks.editdialog.height", 500);
 pref("kmeleon.plugins.bookmarks.editdialog.left", 50);
