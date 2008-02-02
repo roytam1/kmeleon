@@ -33,11 +33,6 @@ pref("keyword.URL", "http://www.google.com/search?gfns=1&q=");
 // Locale default pref for k-meleon macros
 /********************************************************************************************************/
 
-// Custom Proxies
-pref("kmeleon.plugins.macros.proxy1.name", "Custom Proxy 1");
-pref("kmeleon.plugins.macros.proxy2.name", "Custom Proxy 2");
-pref("kmeleon.plugins.macros.proxy3.name", "Custom Proxy 3");
-
 // Domain completion
 pref("kmeleon.plugins.macros.domComplete0.prefix", "www.");
 pref("kmeleon.plugins.macros.domComplete0.suffix", ".com");
