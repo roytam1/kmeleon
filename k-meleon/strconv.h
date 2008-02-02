@@ -35,14 +35,14 @@ public:
 		Steal(op);
 	}
 
-	base_convert<T>& operator=(base_convert<T>& op)
+	virtual base_convert<T> operator=(base_convert<T>& op)
 	{
 		Reset();
 		Steal(op);
 		return (*this);
 	}
 
-	~base_convert()
+	virtual ~base_convert()
 	{
 		Reset();
 	}
@@ -192,5 +192,6 @@ public:
 #define CT_to_UTF8(x) CANSI_to_UTF8(x)
 #define CUTF8_to_T(x) CUTF8_to_ANSI(x)
 #endif
+
 
 #endif // __STRCONV_H_
