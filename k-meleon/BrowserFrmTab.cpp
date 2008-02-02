@@ -775,7 +775,8 @@ bool CBrowserTab::SetActive(bool state, bool haveFocus)
 CBrowserTab* CBrowserTab::OpenURLInNewTab(LPCTSTR url, LPCTSTR refferer, BOOL bBackground, BOOL allowFixup)
 {
 	CBrowserTab* tab;
-	if (GetCurrentURI().Compare(_T("about:blank")) == 0)
+	if ( !((CBrowserGlue*)m_pBrowserGlue)->mLoading &&
+	     GetCurrentURI().Compare(_T("about:blank")) == 0 )
 		tab = this;
 	else if ( (tab=mpFrameTab->CreateBrowserTab()) == NULL)
 	{

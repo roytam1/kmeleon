@@ -349,7 +349,8 @@ CBrowserFrame* CBrowserView::OpenURLInNewWindow(const char* pUrl, BOOL bBackgrou
 
 CBrowserFrame* CBrowserView::OpenURLInNewWindow(LPCTSTR pUrl, LPCTSTR referrer, BOOL bBackground, BOOL allowFixup)
 {
-	if (GetCurrentURI() == "about:blank") {
+	if ( !((CBrowserGlue*)m_pBrowserGlue)->mLoading &&
+	     GetCurrentURI() == "about:blank" ) {
 		OpenURL(pUrl, referrer, allowFixup);
 		return mpBrowserFrame;
 	}
