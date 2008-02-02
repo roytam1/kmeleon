@@ -75,6 +75,7 @@ public:
 	{
 		Steal(CUTF16_to_ANSI(CResStringW(hResDll, uStringID)));
 	}
+
 };
 
 
@@ -154,13 +155,13 @@ private:
 
 	static Locale* mLocale;
 	
-	Locale(HINSTANCE hModule, const char* localedir, const char* name, BOOL userFont)
+	Locale(HINSTANCE hModule, const TCHAR* localedir, const TCHAR* name, BOOL userFont)
 	{
-		char* resfilename = new char[6 + strlen(localedir) + strlen(name)];
-		strcpy(resfilename, localedir);
-		strcat(resfilename, "\\");
-		strcat(resfilename, name);
-		strcat(resfilename, ".dll");
+		TCHAR* resfilename = new TCHAR[6 + _tcslen(localedir) + _tcslen(name)];
+		_tcscpy(resfilename, localedir);
+		_tcscat(resfilename, _T("\\"));
+		_tcscat(resfilename, name);
+		_tcscat(resfilename, _T(".dll"));
 
 		hModDll = hModule;
 		hLangDll = LoadLibrary(resfilename);
@@ -188,7 +189,7 @@ public:
 		BOOL userFont = FALSE;
 		kp->kFuncs->GetPreference(PREF_BOOL, "kmeleon.display.dialogs.useUserFont", &userFont, &userFont);
 
-		Locale* l = new Locale(kp->hDllInstance, localeFolder, kp->dllname, userFont);
+		Locale* l = new Locale(kp->hDllInstance, CUTF8_to_T(localeFolder), CANSI_to_T(kp->dllname), userFont);
 		
 		delete localeFolder;
 		delete langid;
