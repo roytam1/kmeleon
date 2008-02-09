@@ -514,6 +514,18 @@ void CFavIconList::DwnCall(char* uri, TCHAR* file, nsresult status, void* param)
 
 NS_IMPL_ISUPPORTS2(IconObserver, imgIDecoderObserver, imgIContainerObserver)
 
+#if GECKO_VERSION >= 19
+NS_IMETHODIMP IconObserver::OnStartRequest(imgIRequest *aRequest)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP IconObserver::OnStopRequest(imgIRequest *aRequest, PRBool aIsLastPart)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+#endif
+
 /* void onStartDecode (in imgIRequest aRequest); */
 NS_IMETHODIMP IconObserver::OnStartDecode(imgIRequest *aRequest)
 {
@@ -590,6 +602,76 @@ struct ALPHABITMAPINFO {
   }
 };
 
+#if GECKO_VERSION > 18
+static HBITMAP DataToBitmap(PRUint8* aImageData,
+                            PRUint32 aWidth,
+                            PRUint32 aHeight,
+                            PRUint32 aDepth)
+{
+  HDC dc = ::GetDC(NULL);
+
+  if (aDepth == 32) {
+    // Alpha channel. We need the new header.
+    BITMAPV4HEADER head = { 0 };
+    head.bV4Size = sizeof(head);
+    head.bV4Width = aWidth;
+    head.bV4Height = aHeight;
+    head.bV4Planes = 1;
+    head.bV4BitCount = aDepth;
+    head.bV4V4Compression = BI_BITFIELDS;
+    head.bV4SizeImage = 0; // Uncompressed
+    head.bV4XPelsPerMeter = 0;
+    head.bV4YPelsPerMeter = 0;
+    head.bV4ClrUsed = 0;
+    head.bV4ClrImportant = 0;
+
+    head.bV4RedMask   = 0x00FF0000;
+    head.bV4GreenMask = 0x0000FF00;
+    head.bV4BlueMask  = 0x000000FF;
+    head.bV4AlphaMask = 0xFF000000;
+
+    HBITMAP bmp = ::CreateDIBitmap(dc,
+                                   reinterpret_cast<CONST BITMAPINFOHEADER*>(&head),
+                                   CBM_INIT,
+                                   aImageData,
+                                   reinterpret_cast<CONST BITMAPINFO*>(&head),
+                                   DIB_RGB_COLORS);
+    ::ReleaseDC(NULL, dc);
+    return bmp;
+  }
+
+  char reserved_space[sizeof(BITMAPINFOHEADER) + sizeof(RGBQUAD) * 2];
+  BITMAPINFOHEADER& head = *(BITMAPINFOHEADER*)reserved_space;
+
+  head.biSize = sizeof(BITMAPINFOHEADER);
+  head.biWidth = aWidth;
+  head.biHeight = aHeight;
+  head.biPlanes = 1;
+  head.biBitCount = (WORD)aDepth;
+  head.biCompression = BI_RGB;
+  head.biSizeImage = 0; // Uncompressed
+  head.biXPelsPerMeter = 0;
+  head.biYPelsPerMeter = 0;
+  head.biClrUsed = 0;
+  head.biClrImportant = 0;
+  
+  BITMAPINFO& bi = *(BITMAPINFO*)reserved_space;
+
+  if (aDepth == 1) {
+    RGBQUAD black = { 0, 0, 0, 0 };
+    RGBQUAD white = { 255, 255, 255, 0 };
+
+    bi.bmiColors[0] = white;
+    bi.bmiColors[1] = black;
+  }
+
+  HBITMAP bmp = ::CreateDIBitmap(dc, &head, CBM_INIT, aImageData, &bi, DIB_RGB_COLORS);
+  ::ReleaseDC(NULL, dc);
+  return bmp;
+
+}
+#endif
+
 NS_IMETHODIMP IconObserver::CreateDIB(imgIRequest *aRequest)
 {
 	nsresult rv;
@@ -601,6 +683,7 @@ NS_IMETHODIMP IconObserver::CreateDIB(imgIRequest *aRequest)
 	rv = image->GetFrameAt(0, getter_AddRefs(frame));
 	NS_ENSURE_SUCCESS(rv, rv);
 
+	frame->LockImageData();
 	PRUint32 length;
 	PRUint8 *bits;
 	rv = frame->GetImageData(&bits, &length);
@@ -631,7 +714,18 @@ NS_IMETHODIMP IconObserver::CreateDIB(imgIRequest *aRequest)
 	offset +=3;
 	}*/
 
+	CString uri;
+	nsCOMPtr<nsIURI> URI;
+	nsEmbedCString nsuri;
+	rv = aRequest->GetURI(getter_AddRefs(URI));
+	NS_ENSURE_SUCCESS(rv, rv);
+	URI->GetSpec(nsuri);
+
 	CBitmap bitmap;
+	
+#if GECKO_VERSION > 18
+	HBITMAP hBitmap = DataToBitmap(bits, w, -h, (bpr/w)*8);
+#else
 	BITMAPINFO binfo;
 	binfo.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
 	binfo.bmiHeader.biWidth = w;
@@ -647,6 +741,7 @@ NS_IMETHODIMP IconObserver::CreateDIB(imgIRequest *aRequest)
 
 	HDC hDC = GetDC(NULL);
 	HBITMAP hBitmap = ::CreateDIBitmap(hDC,&binfo.bmiHeader,CBM_INIT,bits,&binfo,DIB_RGB_COLORS);
+#endif
 
 	if (w!=16 && h!=16) {
 		if (HBITMAP hbmSized = ResizeIcon(hDC, hBitmap, w, h)) {
@@ -654,9 +749,12 @@ NS_IMETHODIMP IconObserver::CreateDIB(imgIRequest *aRequest)
 			hBitmap = hbmSized;
 		}
 	}
-
-	ReleaseDC(NULL,hDC);
 	bitmap.Attach(hBitmap);
+
+#if GECKO_VERSION > 18	
+	mFavList->AddIcon(nsuri.get(),&bitmap, (CBitmap*)NULL);
+#else
+	ReleaseDC(NULL,hDC);
 
 	CString uri;
 	nsCOMPtr<nsIURI> URI;
@@ -719,7 +817,8 @@ NS_IMETHODIMP IconObserver::CreateDIB(imgIRequest *aRequest)
 	} else {
 		mFavList->AddIcon(nsuri.get(),&bitmap, bkgColor);
 	}
-
+#endif
+	frame->UnlockImageData();
 	bitmap.DeleteObject();
 	return NS_OK;
 }
