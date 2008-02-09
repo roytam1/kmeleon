@@ -138,6 +138,9 @@ static const nsModuleComponentInfo sAppComps[] = {
 
 #define NB_COMPONENTS sizeof(sAppComps)/sizeof(nsModuleComponentInfo)
 
+extern NS_COM_GLUE nsresult NS_NewGenericFactory(nsIGenericFactory* *result,
+                     const nsModuleComponentInfo *info);
+
 nsresult CMfcEmbedApp::OverrideComponents()
 {
 	nsCOMPtr<nsIComponentRegistrar> compReg;

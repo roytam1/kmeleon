@@ -59,11 +59,8 @@
 #include "nsIDOMHTMLInputElement.h"
 #include "nsIDOMHTMLEmbedElement.h"
 #include "nsIDOMHTMLObjectElement.h"
-#if GECKO_VERSION>18
-#include "nsISuiteTypeAheadFind.h"
-#else
 #include "nsITypeAheadFind.h"
-#endif
+
 
 #include "nsIPrintSettingsService.h"
 #include "nsCWebBrowserPersist.h"
@@ -80,6 +77,7 @@
 #include "nsIDOMDocumentRange.h"
 #include "nsIDOMDocumentFragment.h"
 #include "nsIDOMWindowCollection.h"
+#include "nsPIDOMWindow.h"
 
 static const PRUnichar kSpan[] = NS_LL("span");
 static const PRUnichar kStyle[] = NS_LL("style");
@@ -87,6 +85,10 @@ static const PRUnichar kClass[] = NS_LL("class");
 static const PRUnichar kHighlighClassName[] = NS_LL("km_hightlight_class");
 static const PRUnichar kDefaultHighlightStyle[] = NS_LL("display: inline;font-size: inherit;padding: 0;color: black;background-color: yellow;");
 /* */
+
+#if GECKO_VERSION > 18
+#define nsITypeAheadFind nsISuiteTypeAheadFind
+#endif
 
 CBrowserWrapper::CBrowserWrapper(void)
 {
@@ -1393,11 +1395,15 @@ already_AddRefed<nsISupports> CBrowserWrapper::GetPageDescriptor(BOOL focus)
 			mWebBrowser->GetContentDOMWindow(getter_AddRefs(domWindow));
 		
 		if (!domWindow)	return NULL;
-		
+#if GECKO_VERSION > 18		
+		nsCOMPtr<nsPIDOMWindow> privWin(do_QueryInterface(domWindow));
+		if (!domWindow)	return NULL;
+		docShell = privWin->GetDocShell();
+#else		
 		nsCOMPtr<nsIScriptGlobalObject> global(do_QueryInterface(domWindow));
 		if (!global) return NULL;
-		
 		docShell = global->GetDocShell();
+#endif
 	}
 
 	nsCOMPtr<nsIWebPageDescriptor> wpd = do_QueryInterface(docShell);
