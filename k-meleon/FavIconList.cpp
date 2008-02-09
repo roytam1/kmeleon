@@ -514,7 +514,7 @@ void CFavIconList::DwnCall(char* uri, TCHAR* file, nsresult status, void* param)
 
 NS_IMPL_ISUPPORTS2(IconObserver, imgIDecoderObserver, imgIContainerObserver)
 
-#if GECKO_VERSION >= 19
+#if GECKO_VERSION > 18
 NS_IMETHODIMP IconObserver::OnStartRequest(imgIRequest *aRequest)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
@@ -755,13 +755,6 @@ NS_IMETHODIMP IconObserver::CreateDIB(imgIRequest *aRequest)
 	mFavList->AddIcon(nsuri.get(),&bitmap, (CBitmap*)NULL);
 #else
 	ReleaseDC(NULL,hDC);
-
-	CString uri;
-	nsCOMPtr<nsIURI> URI;
-	nsEmbedCString nsuri;
-	rv = aRequest->GetURI(getter_AddRefs(URI));
-	NS_ENSURE_SUCCESS(rv, rv);
-	URI->GetSpec(nsuri);
 
 	gfx_color bkgColor = 0;
 	rv = frame->GetBackgroundColor(&bkgColor);
