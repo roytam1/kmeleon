@@ -540,14 +540,14 @@ public:
 		(*iter).tabwasclosed(hTab);
 	}
 	
-	Window findWindowWithTab(HWND hTab) {
+	Window* findWindowWithTab(HWND hTab) {
 		WINLIST::iterator iter;
 		for (iter = windowsList.begin(); iter != windowsList.end(); iter++) {
 			Tab tab = (*iter).getTab(hTab);
 			if (tab.hWnd)
-				return (*iter);
+				return (&*iter);
 		}
-		return Window(NULL);
+		return NULL;
 	}
 
 	void updateWindow(HWND hWnd, int index, int shcount, const char** aurls, const char** atitles) {

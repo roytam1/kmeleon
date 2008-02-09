@@ -78,6 +78,7 @@ Session undo;
 #define MAX_SAVED_SESSION 100
 
 int Load();
+int Init();
 void Create(HWND parent);
 void Destroy(HWND parent);
 void CreateTab(HWND parent, HWND tab);
@@ -235,6 +236,9 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
       if (stricmp(subject, "Load") == 0) {
          return Load();
       }
+      if (stricmp(subject, "UserSetup") == 0) {
+         return Init();
+      }
       else if (stricmp(subject, "Create") == 0) {
          Create((HWND)data1);
       }
@@ -326,8 +330,8 @@ void CreateTab(HWND parent, HWND tab)
 
 void MoveTab(HWND newtab, HWND oldtab)
 {
-	Window w = currentSession.findWindowWithTab(newtab);
-	w.moveTab(newtab, oldtab);
+	Window* w = currentSession.findWindowWithTab(newtab);
+	if (w) w->moveTab(newtab, oldtab);
 }
 
 HWND destroying = NULL;
@@ -346,25 +350,29 @@ void DestroyTab(HWND parent, HWND tab)
     currentSession.removeTab(parent, tab);	
 }
 
-void Create(HWND hWndParent) {
+void RestoreSession(BOOL afterCrash = FALSE)
+{
+			char name[256];
+			char homepage[2048];
 
-	if (IsWindowUnicode(hWndParent))
-	{
-		KMeleonWndProc = (WNDPROC) GetWindowLongW(hWndParent, GWL_WNDPROC);
-		SetWindowLongW(hWndParent, GWL_WNDPROC, (LONG)WndProc);
-	}
-	else
-	{
-		KMeleonWndProc = (WNDPROC) GetWindowLongA(hWndParent, GWL_WNDPROC);
-		SetWindowLongA(hWndParent, GWL_WNDPROC, (LONG)WndProc);
-	}
+			name[0] = 0;
+			if (afterCrash) // Loading last session after crash
+				strcpy(name, kLastSessionName);
+			else // Loading defined start session in pref
+				kFuncs->GetPreference(PREF_STRING, PREFERENCE_SESSION_OPENSTART, name, "");
+			
+			Session load;
+			Session::loading = true;
+			
+			if (load.loadSession(name)) {
+				load.open();
+			}
 
-	currentSession.addWindow(hWndParent);
+			Session::loading = false;
+}
 
-	// Post a message for autoload after the creation of 
-	// the frame is done.
-	if (bFirstStart) {
-		bFirstStart = 0;
+int Init()
+{
 
 		// Look for a bad shutdown
 		int ok = IDNO;
@@ -377,7 +385,7 @@ void Create(HWND hWndParent) {
 				gLoc->GetString(IDS_SESSION_RECOVERY),
 				 MB_YESNO|MB_ICONQUESTION);
 
-			if (ok == IDYES) PostMessage(hWndParent, PWM_AUTOLOAD, 1, 0);
+			if (ok == IDYES) RestoreSession(TRUE);
 		}
 		
 		clean = false;
@@ -407,18 +415,19 @@ void Create(HWND hWndParent) {
 						gLoc->GetString(IDS_STARTUP_SESSION),
 						MB_YESNO|MB_ICONQUESTION);
 				}
-				if (ok == IDYES) PostMessage(hWndParent, PWM_AUTOLOAD, 0, 0);
+				if (ok == IDYES) RestoreSession();//PostMessage(hWndParent, PWM_AUTOLOAD, 0, 0);
 			}
 			delete [] name;
 		}
 		}
-	}
+	return 0;
+}
 
-	// Can't use show directly or else the history plugin crash kmeleon
-	/*if (gStateForNextWindow!=-1)
-		PostMessage(hWndParent, PWM_HACKRESTORE, gStateForNextWindow, 0);*/
-
-	//ShowWindow(hWndParent, gStateForNextWindow);
+void Create(HWND hWndParent)
+{
+	KMeleonWndProc = (WNDPROC) GetWindowLong(hWndParent, GWL_WNDPROC);
+	SetWindowLong(hWndParent, GWL_WNDPROC, (LONG)WndProc);
+	currentSession.addWindow(hWndParent);
 }
 
 void Destroy(HWND hWnd) {
@@ -524,14 +533,14 @@ ConfigDlgProc( HWND hwnd,
 		  {
 			  LRESULT index;
 			  index = SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST, CB_ADDSTRING, 
-				0, (LPARAM)CANSI_to_T(sessions_list[i])); 
+				0, (LPARAM)(LPCTSTR)CANSI_to_T(sessions_list[i])); 
 			  SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST, CB_SETITEMDATA, 
 				index, (LPARAM)i);
 			  if (strcmp(name, sessions_list[i]) == 0)
 				  SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST, CB_SETCURSEL, index, 0); 
 
 			  index = SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST2, CB_ADDSTRING, 
-				0, (LPARAM)CANSI_to_T(sessions_list[i])); 
+				0, (LPARAM)(LPCTSTR)CANSI_to_T(sessions_list[i])); 
 			  SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST2, CB_SETITEMDATA, 
 				index, (LPARAM)i); 
 
@@ -662,62 +671,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     switch (message) {
 		
-	   case PWM_HACKRESTORE:
-		/*   if (wParam  == SW_SHOWNOACTIVATE)
-		   {
-			HWND active = GetActiveWindow();
-			
-			ShowWindow(hWnd, wParam);
-			
-			// Restore only if the last active is a kmeleon window
-			if (pFrame = findFrame(active))
-				SetActiveWindow(active);
-			
-		   }
-		   else*/
-			   ShowWindow(hWnd, wParam);
-
-			break;
-
-		case PWM_AUTOLOAD: {
-
-			// This should be called at start when the first window is created
-			// We can't create a window until one is done (I think) so I load 
-			// the start session here.
-			char name[256];
-			char url[2048];
-			char homepage[2048];
-
-			name[0] = 0;
-			if (wParam) // Loading last session after crash
-				strcpy(name, kLastSessionName);
-			else // Loading defined start session in pref
-				kFuncs->GetPreference(PREF_STRING, PREFERENCE_SESSION_OPENSTART, name, "");
-			
-			kFuncs->GetPreference(PREF_STRING, "kmeleon.general.homePage", homepage, "");
-			
-			url[0] = 0;
-			//if (!kFuncs->GetGlobalVar(PREF_STRING, "URL", url))
-				kFuncs->GetGlobalVar(PREF_STRING, "URLBAR", url);
-			
-			char *cmd = GetCommandLineA();
-			bool keep = strstr(cmd, "http://") || strstr(cmd, "-url");
-//			bool keep = strcmp(url, "about:blank") && strcmp(url, homepage);
-			Session load;
-			Session::loading = true;
-			
-			if (load.loadSession(name)) {
-				currentSession.close_except(hWnd);
-				if (load.open() && !keep)
-					currentSession.close(hWnd);
-			}
-
-			Session::loading = false;
-			if (keep)
-				SetForegroundWindow(hWnd);
-			break;
-		}
-
 		case UWM_UPDATEBUSYSTATE:
 			
 			if (wParam != 0 || gLoading) break;
@@ -778,6 +731,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 						kPlugin.kFuncs->SetPreference(PREF_BOOL, "browser.tabs.warnOnClose", &warn, FALSE);
 					}
 					Session::loading = false;
+					return 0;
 				}
 			}
 			else if (command == id_config)

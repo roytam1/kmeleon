@@ -197,6 +197,12 @@ BOOL CHiddenWnd::ShowBrowser(LPTSTR URI, BOOL webapp) {
 
    // otherwise, just create a new browser
    else */{
+
+      // If we already have a browser and no url, do nothing.
+      // This is to accomodate the session plugin
+      if ( (!URI || !*URI) && theApp.m_pMostRecentBrowserFrame)
+          return TRUE;
+
 	  int openmode = theApp.preferences.GetInt("browser.link.open_external", 2);
 	  CBrowserFrame* browser = NULL;
 	  if (webapp) {
