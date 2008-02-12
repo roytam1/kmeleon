@@ -33,7 +33,8 @@
 
 // Mozilla Includes
 #include "nsError.h"
- 
+#include "profdirserviceprovider/nsProfileDirServiceProvider.h"
+
 // Forward Declarations
 class nsIRegistry;
 
@@ -41,23 +42,49 @@ class nsIRegistry;
 //***    CProfileMgr
 //*****************************************************************************
 
+class CProfile
+{
+public:
+	CString mName;
+	UINT number;
+	CString mRootDir;
+	CString mLocalDir;
+	BOOL mDefault;
+	CProfile() {}
+};
+
 class CProfileMgr
 {
   public:
                         CProfileMgr();
     virtual             ~CProfileMgr();
     
-    virtual nsresult    StartUp();
-    virtual nsresult    DoManageProfilesDialog(PRBool bAtStartUp);
-        // If bAtStartUp is TRUE, a profile must be selected.
-    BOOL                SetCurrentProfile(const char *profile);
-    BOOL                SetMostRecentProfile();
+	
+	UINT				GetProfileCount();
+	BOOL				GetCurrentProfile(CProfile& profile);
+    BOOL				StartUp(LPCTSTR aProfileName = NULL);
     BOOL                ShutDownCurrentProfile(BOOL cleanup=FALSE);
-    
+	BOOL				GetProfileList(CProfile*** profileList, UINT* profileCount);
+	BOOL				CreateProfile(LPCTSTR aRootDir, LPCTSTR aLocalDir, LPCTSTR aName, CProfile& aProfile);
+    BOOL	            GetShowDialogOnStart();
+	BOOL	            SetShowDialogOnStart(BOOL showIt);
+	BOOL				GetDefaultProfile(CProfile& aProfile);
+	BOOL				GetProfileByName(LPCTSTR aName, CProfile& aProfile);
+	BOOL				RenameProfile(LPCTSTR oldName, LPCTSTR newName);
+	BOOL				RemoveProfile(LPCTSTR oldName, BOOL removeDir);
+
   protected:
-      
-    nsresult            GetShowDialogOnStart(PRBool* showIt);
-    nsresult            SetShowDialogOnStart(PRBool showIt);
+	CString				mProfileIniFile;
+	BOOL				GetProfileByIndex(UINT index, CProfile& profile);
+	BOOL				SetProfileAtIndex(UINT index, CProfile& profile);
+	BOOL				GetProfileFromKey(LPCTSTR key, CProfile& aProfile);
+	BOOL				AskUserForProfile(BOOL atStartup, CProfile& profile);
+	BOOL				SetDefaultProfile(CProfile& profile);
+	BOOL	            ImportShowDialogOnStart(PRBool* showIt);
+	BOOL				ImportRegistry();
+
+	nsProfileDirServiceProvider* mProfileProvider;
+	CProfile			mCurrentProfile;
 };
 
 

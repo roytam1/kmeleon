@@ -1407,7 +1407,7 @@ END
 // Bitmap
 //
 
-IDR_TOOLBAR_CLOSE            BITMAP                  "res\\toolbar1.bmp"
+IDR_TOOLBAR_CLOSE       BITMAP                  "res\\toolbar1.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -1663,7 +1663,7 @@ BEGIN
     IDS_WEBPAGE_HTMLONLY    "Web Page, HTML Only"
     IDS_WEBPAGE_COMPLETE    "Web Page, Complete"
     IDS_PREFS_DOWNLOAD      "Download"
-    IDS_PROFILE_LOAD_FAILED "The selected profile can't be loaded. It's probably already in use."
+    IDS_PROFILE_LOAD_FAILED "The selected profile can't be loaded. It's already in use or the profile folder is not accessible."
     IDS_SAVE_FAILED         "K-Meleon was unable to save this document."
     IDS_OK                  "&Ok"
 END
@@ -1728,6 +1728,7 @@ BEGIN
     IDS_DEFAULT             "Default"
     IDS_PAUSE               "Pause"
     IDS_RESUME              "Resume"
+    IDS_PROFILE_DELETELOCK  "The profile can't be deleted because it's currently in use."
 END
 
 STRINGTABLE 

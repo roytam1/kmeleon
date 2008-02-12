@@ -582,6 +582,7 @@
 #define IDS_DEFAULT                     61321
 #define IDS_PAUSE                       61322
 #define IDS_RESUME                      61323
+#define IDS_PROFILE_DELETELOCK          61324
 #define IDS_LANG_VERSION                62000
 #define IDS_LOCALE_ID                   62001
 #define IDS_EMPTY                       62255
