@@ -145,6 +145,8 @@ public:
 public:
    HANDLE m_hMutex;
    CMostRecentUrls *m_MRUList;
+   CProfileMgr *m_ProfileMgr;
+
 #ifndef _UNICODE 
    BOOL m_bUnicode;
 #endif
@@ -173,7 +175,7 @@ private:
    void        InitializeDefineMap();
    void        CheckProfileVersion();
 
-   CProfileMgr *m_ProfileMgr;
+   
    BOOL        m_bAlreadyRunning;
    BOOL        m_bFirstWindowCreated;
    BOOL        m_bSwitchingProfiles;

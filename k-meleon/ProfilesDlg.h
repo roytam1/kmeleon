@@ -36,6 +36,8 @@
 // ProfilesDlg.h : header file
 //
 
+#include "mfcembed.h"
+
 /////////////////////////////////////////////////////////////////////////////
 // CNewProfileDlg dialog
 
@@ -107,11 +109,13 @@ protected:
 /////////////////////////////////////////////////////////////////////////////
 // CProfilesDlg dialog
 
+class CProfileMgr;
+
 class CProfilesDlg : public CDialog
 {
 // Construction
 public:
-	CProfilesDlg(CWnd* pParent = NULL);   // standard constructor
+	CProfilesDlg(CProfileMgr* profMgr, CWnd* pParent = NULL);   // standard constructor
 
 // Dialog Data
 	//{{AFX_DATA(CProfilesDlg)
@@ -121,7 +125,7 @@ public:
 	BOOL	    m_bAskAtStartUp;
 	//}}AFX_DATA
 
-    nsEmbedString m_SelectedProfile;
+    CString m_SelectedProfile;
 
 // Overrides
 	// ClassWizard generated virtual function overrides
@@ -132,6 +136,7 @@ public:
 
 // Implementation
 protected:
+	CProfileMgr* mProfMgr;
 
 	// Generated message map functions
 	//{{AFX_MSG(CProfilesDlg)
@@ -142,6 +147,7 @@ protected:
 	afx_msg void OnDblclkProfile();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
+	virtual void OnOK();
 };
 
 //{{AFX_INSERT_LOCATION}}

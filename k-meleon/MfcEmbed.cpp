@@ -57,6 +57,7 @@
 #include "BrowserFrmTab.h"
 #include "winEmbedFileLocProvider.h"
 #include "ProfileMgr.h"
+#include "ProfilesDlg.h"
 #include "BrowserImpl.h"
 #include "kmeleonConst.h"
 #include "UnknownContentTypeHandler.h"
@@ -68,9 +69,10 @@
 #include "nsIPluginManager.h"
 #include "nsIIOService.h"
 #include "nsIWindowWatcher.h"
+#if GECKO_VERSION < 19
 #include "nsIChromeRegistrySea.h"
 #include "nsIProfileInternal.h"
-
+#endif
 static UINT WM_POSTEVENT = RegisterWindowMessage(_T("XPCOM_PostEvent"));
 
 #ifdef MOZ_PROFILESHARING
@@ -425,10 +427,15 @@ BOOL CMfcEmbedApp::InitInstance()
 #endif
 
 #ifdef XPCOM_GLUE
+#if GECKO_VERSION >= 19
+	if (NS_FAILED(XPCOMGlueStartup(nsnull))) {
+#else
     if (NS_FAILED(XPCOMGlueStartup(GRE_GetXPCOMPath()))) {
-        MessageBox(NULL, _T("Could not initialize XPCOM. Perhaps the GRE\nis not installed or could not be found?"), _T("Kmeleon"), MB_OK | MB_ICONERROR);
+#endif
+		MessageBox(NULL, _T("Could not initialize XPCOM. Perhaps the GRE\nis not installed or could not be found?"), _T("Kmeleon"), MB_OK | MB_ICONERROR);
         return FALSE;
     }
+
 #endif
    m_hMutex = CreateMutex(NULL, FALSE, NULL);
 
@@ -586,13 +593,6 @@ BOOL CMfcEmbedApp::InitInstance()
 		favicons.Create(16,16,ILC_COLOR32|ILC_MASK,25,100);
 #endif
 
-   plugins.FindAndLoad();
-   plugins.SendMessage("*", "* Plugin Manager", "Init2");
-   InitializeMenusAccels();
-   
-
-
-   RefreshPlugins(PR_FALSE);
    OleInitialize(NULL);
 
    // Register the hidden window class
@@ -604,8 +604,6 @@ BOOL CMfcEmbedApp::InitInstance()
 #endif
    wc.hInstance = AfxGetInstanceHandle();
    wc.lpszClassName = HIDDEN_WINDOW_CLASS;
-
-
    wc.hIcon=m_hMainIcon;
    AfxRegisterClass( &wc );
    
@@ -613,6 +611,12 @@ BOOL CMfcEmbedApp::InitInstance()
    wc.lpszClassName = BROWSER_WINDOW_CLASS;
    AfxRegisterClass( &wc );
    
+   // Initialize plugins
+   plugins.FindAndLoad();
+   plugins.SendMessage("*", "* Plugin Manager", "Init2");
+   InitializeMenusAccels();
+
+
    // the hidden window will take care of creating the first
    // browser window for us
    if(!CreateHiddenWindow()){
@@ -884,7 +888,7 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
    // so the backup is made, and m_pMostRecentBrowserFrame will be restored
    // at the end of this function
    CBrowserFrame* pOldRecentFrame = m_pMostRecentBrowserFrame;   
-   theApp.m_pMostRecentBrowserFrame = pFrame;   
+   m_pMostRecentBrowserFrame = pFrame;   
    if (!pOldRecentFrame)
       pOldRecentFrame = pFrame;
 
@@ -896,6 +900,8 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
    {
       TRACE0("Warning: failed to create CFrameWnd.\n");
       ReleaseMutex(theApp.m_hMutex);
+	  m_pMostRecentBrowserFrame = pOldRecentFrame;
+	  delete pFrame;
       return FALSE;
    }
 
@@ -903,7 +909,8 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
    pFrame->GetActiveView()->GetBrowserWrapper()->mpBrowserImpl->SetChromeFlags(chromeMask);
    pFrame->SetIcon(m_hMainIcon, true);
    pFrame->SetIcon(m_hSmallIcon, false);
-   
+      
+
    // Set accelerator only if it's not a chrome window.
    // if (!(chromeMask & nsIWebBrowserChrome::CHROME_OPENAS_CHROME))
    //   pFrame->m_hAccelTable = accel.GetTable();
@@ -926,10 +933,10 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
    if (!preferences.bHideTaskBarButtons)
       pFrame->ModifyStyleEx(0, WS_EX_APPWINDOW);
 
- /*  if (preferences.bMaximized && 
+   if (preferences.bMaximized && 
 	   (!pFrame->IsDialog()) && (!pFrame->IsPopup()) &&
 	   !(chromeMask & nsIWebBrowserChrome::CHROME_WINDOW_RESIZE))
-      pFrame->ShowWindow(SW_MAXIMIZE);*/
+      pFrame->ShowWindow(SW_MAXIMIZE);
 
    if (inBackground) {
       pFrame->SetWindowPos((CWnd*)theApp.m_FrameWndLst.GetHead(),
@@ -1221,7 +1228,8 @@ void CMfcEmbedApp::OnPreferences () {
 
 void CMfcEmbedApp::OnManageProfiles()
 {
-   m_ProfileMgr->DoManageProfilesDialog(PR_FALSE);
+	CProfilesDlg dialog(m_ProfileMgr);
+	dialog.DoModal();
 }
 
 BOOL CMfcEmbedApp::InitializeProfiles() {
@@ -1240,27 +1248,32 @@ BOOL CMfcEmbedApp::InitializeProfiles() {
    
    int len = cmdline.GetSwitch("-P", NULL, FALSE);
    
+   char *profile = NULL;
    // there are no parameters, load the most recent profile
    if (len == 0) {
       cmdline.GetSwitch("-P", NULL, TRUE);  // remove the flag from the command line
    }
    // try loading the profile specified
    else if (len > 0) {
-      char *profile = new char[len+1];
+      profile = new char[len+1];
       cmdline.GetSwitch("-P", profile, TRUE);
-      
-      BOOL bResult;
-      if (!stricmp("mostrecent", profile))
-         bResult = m_ProfileMgr->SetMostRecentProfile();
-      else
-         bResult = m_ProfileMgr->SetCurrentProfile(profile);
-      delete profile;
-      if (bResult)
-         return TRUE;
+
+	  if (!stricmp("mostrecent", profile)) {
+         delete profile;
+		 profile = NULL;
+	  }
    }
-   
-   m_ProfileMgr->StartUp();
-   return TRUE;
+
+   BOOL result;
+   if (!profile)
+      result = m_ProfileMgr->StartUp();
+   else {
+      USES_CONVERSION;
+      result = m_ProfileMgr->StartUp(A2CT(profile));
+      delete profile;
+   }
+
+   return result;
 }
 
 // When the profile switch happens, all open browser windows need to be 
@@ -1322,7 +1335,7 @@ new windows under these circumstances.
 */
 nsresult CMfcEmbedApp::InitializeWindowCreator() {
    // give an nsIWindowCreator to the WindowWatcher service
-   nsCOMPtr<nsIWindowCreator> windowCreator(NS_STATIC_CAST(nsIWindowCreator *, this));
+   nsCOMPtr<nsIWindowCreator> windowCreator(static_cast<nsIWindowCreator *>(this));
    if (windowCreator) {
       nsCOMPtr<nsIWindowWatcher> wwatch(do_GetService("@mozilla.org/embedcomp/window-watcher;1"));
       if (wwatch) {
@@ -1464,7 +1477,7 @@ NS_IMETHODIMP CMfcEmbedApp::CreateChromeWindow(nsIWebBrowserChrome *parent,
 
    CBrowserFrame *pBrowserFrame = CreateNewBrowserFrame(chromeFlags, FALSE, pParent);
    if(pBrowserFrame) {//XXXX
-      *_retval = NS_STATIC_CAST(nsIWebBrowserChrome *, pBrowserFrame->GetActiveView()->GetBrowserWrapper()->mpBrowserImpl);
+      *_retval = static_cast<nsIWebBrowserChrome *>(pBrowserFrame->GetActiveView()->GetBrowserWrapper()->mpBrowserImpl);
       NS_ADDREF(*_retval);
    }
    return NS_OK;
@@ -1547,7 +1560,7 @@ void CMfcEmbedApp::CheckProfileVersion()
          needClean = TRUE;
          WritePrivateProfileString(_T("Version"), _T("LastVersion"), version, fileVersion);
       }
-
+#if GECKO_VERSION < 19
       if (locale.GetLength()) {
          TCHAR buf[10];
          GetPrivateProfileString(_T("Version"), _T("LastLocale"), version, buf, 10, fileVersion);
@@ -1566,6 +1579,7 @@ void CMfcEmbedApp::CheckProfileVersion()
             }
          }
       }
+#endif
    }
 
    if (needClean) {

@@ -31,10 +31,8 @@
 //
 
 #include "stdafx.h"
-#include <afxpriv.h>
-#include "mfcembed.h"
 #include "ProfilesDlg.h"
-#include "nsIProfile.h"
+#include "ProfileMgr.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -47,26 +45,19 @@ static void ValidateProfileName(const CString& profileName, CDataExchange* pDX)
 {
    USES_CONVERSION;
 
-   nsresult rv;
    PRBool exists = FALSE;
 
+   CProfile profile;
+   if (theApp.m_ProfileMgr->GetProfileByName(profileName, profile))
    {
-      nsCOMPtr<nsIProfile> profileService = 
-         do_GetService(NS_PROFILE_CONTRACTID, &rv);
-
-      rv = profileService->ProfileExists(T2CW(profileName), &exists);
+       CString errMsg;
+       errMsg.Format(IDS_PROFILE_EXISTS, (const TCHAR *)profileName);
+       AfxMessageBox( errMsg, MB_ICONEXCLAMATION );
+       errMsg.Empty();
+       pDX->Fail();
    }
-
-    if (NS_SUCCEEDED(rv) && exists)
-    {
-        CString errMsg;
-        errMsg.Format(IDS_PROFILE_EXISTS, (const TCHAR *)profileName);
-        AfxMessageBox( errMsg, MB_ICONEXCLAMATION );
-        errMsg.Empty();
-        pDX->Fail();
-    }
-
-    if (profileName.FindOneOf(_T("\\/")) != -1)
+   
+    if (profileName.FindOneOf(_T("\\/[]?#:*<>")) != -1)
     {
         AfxMessageBox( IDS_PROFILE_BAD_CHARS, MB_ICONEXCLAMATION );
         pDX->Fail();
@@ -155,9 +146,10 @@ END_MESSAGE_MAP()
 // CProfilesDlg dialog
 
 
-CProfilesDlg::CProfilesDlg(CWnd* pParent /*=NULL*/)
+CProfilesDlg::CProfilesDlg(CProfileMgr* profMgr, CWnd* pParent /*=NULL*/)
 	: CDialog(CProfilesDlg::IDD, pParent)
 {
+	mProfMgr = profMgr;
 	//{{AFX_DATA_INIT(CProfilesDlg)
     m_bAtStartUp = FALSE;
 	m_bAskAtStartUp = FALSE;
@@ -171,20 +163,8 @@ void CProfilesDlg::DoDataExchange(CDataExchange* pDX)
 	//{{AFX_DATA_MAP(CProfilesDlg)
 	DDX_Control(pDX, IDC_LIST1, m_ProfileList);
 	DDX_Check(pDX, IDC_CHECK_ASK_AT_START, m_bAskAtStartUp);
+	DDX_LBString(pDX, IDC_LIST1, m_SelectedProfile);
 	//}}AFX_DATA_MAP
-
-    if (pDX->m_bSaveAndValidate)
-    {
-        USES_CONVERSION;
-
-        int itemIndex = m_ProfileList.GetCurSel();
-        if (itemIndex != LB_ERR)
-        {
-            CString itemText;
-            m_ProfileList.GetText(itemIndex, itemText);
-            m_SelectedProfile.Assign(T2CW(itemText));
-        }
-    }
 }
 
 
@@ -202,31 +182,27 @@ END_MESSAGE_MAP()
 
 BOOL CProfilesDlg::OnInitDialog() 
 {
-    USES_CONVERSION;
+    m_bAskAtStartUp = mProfMgr->GetShowDialogOnStart();
+    CDialog::OnInitDialog();
 
-	CDialog::OnInitDialog();
-	
-    PRUnichar *curProfileName = nsnull;
+	CProfile defProf;
+	mProfMgr->GetDefaultProfile(defProf);
 
-   // Fill the list of profiles
-   nsresult rv;
-   nsCOMPtr<nsIProfile> profileService = 
-      do_GetService(NS_PROFILE_CONTRACTID, &rv);
-   profileService->GetCurrentProfile(&curProfileName);
+    UINT profileCount;
+    CProfile **profileList;
+	if (!mProfMgr->GetProfileList(&profileList, &profileCount))
+		return TRUE;
 
-    PRInt32     selectedRow = 0;
-    PRUint32    listLen;
-    PRUnichar   **profileList;
-    rv = profileService->GetProfileList(&listLen, &profileList);
-
-    for (PRUint32 index = 0; index < listLen; index++)
+	UINT selectedRow = 0;
+    for (PRUint32 index = 0; index < profileCount; index++)
     {
-        CString tmpStr(W2T(profileList[index]));
-        m_ProfileList.AddString(tmpStr);
-        if (wcscmp(profileList[index], curProfileName) == 0)
+        m_ProfileList.AddString(profileList[index]->mName);
+		if (defProf.mName == profileList[index]->mName)
             selectedRow = index;
+		delete profileList[index];
     }
-	nsMemory::Free(curProfileName);
+	
+	delete profileList;
     m_ProfileList.SetCurSel(selectedRow);
     /*
     if (m_bAtStartUp)
@@ -234,6 +210,7 @@ BOOL CProfilesDlg::OnInitDialog()
         GetDlgItem(IDCANCEL)->EnableWindow(FALSE);
     }
     */
+
 	return TRUE;  // return TRUE unless you set the focus to a control
 	              // EXCEPTION: OCX Property Pages should return FALSE
 }
@@ -244,25 +221,15 @@ void CProfilesDlg::OnNewProfile()
 
     if (dialog.DoModal() == IDOK)
     {
-        nsresult rv;
-
-         nsCOMPtr<nsIProfile> profileService = 
-            do_GetService(NS_PROFILE_CONTRACTID, &rv);
-        ASSERT(NS_SUCCEEDED(rv));
-        if (NS_SUCCEEDED(rv))
-        {
-            USES_CONVERSION;
-
-	    rv = profileService->CreateNewProfile(T2CW(dialog.m_Name), nsnull, nsnull, PR_FALSE);
-            ASSERT(NS_SUCCEEDED(rv));
-            if (NS_SUCCEEDED(rv))
-            {
-                int item = m_ProfileList.AddString(dialog.m_Name);
-                m_ProfileList.SetCurSel(item);
-                GetDlgItem(IDOK)->EnableWindow(TRUE);
-            }
-        }
-    }
+  		CProfile profile;
+		BOOL result = mProfMgr->CreateProfile((LPCTSTR)NULL, NULL, dialog.m_Name, profile);
+        ASSERT(result);
+		if (result) {
+			int item = m_ProfileList.AddString(dialog.m_Name);
+            m_ProfileList.SetCurSel(item);
+            GetDlgItem(IDOK)->EnableWindow(TRUE);
+		}
+	}
 }
 
 void CProfilesDlg::OnRenameProfile() 
@@ -278,19 +245,13 @@ void CProfilesDlg::OnRenameProfile()
 
     if (dialog.DoModal() == IDOK)
     {
-        USES_CONVERSION;
-
-        nsresult rv;
-
-         nsCOMPtr<nsIProfile> profileService = 
-            do_GetService(NS_PROFILE_CONTRACTID, &rv);
-        ASSERT(NS_SUCCEEDED(rv));
-        if (NS_SUCCEEDED(rv))
-        {
-            rv = profileService->RenameProfile(T2CW(dialog.m_CurrentName), T2CW(dialog.m_NewName));
-            ASSERT(NS_SUCCEEDED(rv));
-        }
-    }	
+		BOOL result = mProfMgr->RenameProfile(dialog.m_CurrentName, dialog.m_NewName);
+		ASSERT(result);
+		if (result) {
+		   m_ProfileList.DeleteString(itemIndex);
+		   m_ProfileList.InsertString(itemIndex, dialog.m_NewName);
+		}
+	}
 }
 
 void CProfilesDlg::OnDeleteProfile() 
@@ -303,26 +264,25 @@ void CProfilesDlg::OnDeleteProfile()
     CString selectedProfile;
     m_ProfileList.GetText(itemIndex, selectedProfile);
     
-   nsresult rv;
-   nsCOMPtr<nsIProfile> profileService = 
-      do_GetService(NS_PROFILE_CONTRACTID, &rv);
-   ASSERT(NS_SUCCEEDED(rv));
-   if (NS_SUCCEEDED(rv))
-   {
-        USES_CONVERSION;
-
-        rv = profileService->DeleteProfile(T2CW(selectedProfile), PR_TRUE);
-        ASSERT(NS_SUCCEEDED(rv));
-        if (NS_SUCCEEDED(rv))
-        {
-            int itemCount = m_ProfileList.DeleteString(itemIndex);
-            if (itemCount == 0)
-                GetDlgItem(IDOK)->EnableWindow(FALSE);
-				}
-			}
-		}
+	if (mProfMgr->RemoveProfile(selectedProfile, TRUE))
+	{
+       int itemCount = m_ProfileList.DeleteString(itemIndex);
+       if (itemCount == 0)
+          GetDlgItem(IDOK)->EnableWindow(FALSE);
+	}
+	else
+	{
+		AfxMessageBox(IDS_PROFILE_DELETELOCK, MB_ICONEXCLAMATION );
+	}
+}
 
 void CProfilesDlg::OnDblclkProfile()
 {
   OnOK();
+}
+
+void CProfilesDlg::OnOK()
+{
+	CDialog::OnOK();
+	mProfMgr->SetShowDialogOnStart(m_bAskAtStartUp);
 }
