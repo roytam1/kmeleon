@@ -54,7 +54,7 @@ int CHiddenWnd::OnCreate(LPCREATESTRUCT lpCreateStruct) {
       StayResident();
    else {
       BOOL webapp = theApp.cmdline.GetSwitch("-webapp", NULL, TRUE)>=0;
-      if (!ShowBrowser(A2T(theApp.cmdline.m_sCmdLine), webapp))
+      if (!ShowBrowser(A2T(theApp.cmdline.m_sCmdLine), webapp, TRUE))
 		  return -1;
    }
 
@@ -173,7 +173,7 @@ LRESULT CHiddenWnd::OnShowBrowser(WPARAM URI, LPARAM lParam) {
    return 0;
 }
 
-BOOL CHiddenWnd::ShowBrowser(LPTSTR URI, BOOL webapp) {
+BOOL CHiddenWnd::ShowBrowser(LPTSTR URI, BOOL webapp, BOOL atStart) {
 
    // if we already have a browser, load home page (if necessary), and show the window
   /* if (m_bPersisting && m_bPreloadWindow) {
@@ -200,7 +200,7 @@ BOOL CHiddenWnd::ShowBrowser(LPTSTR URI, BOOL webapp) {
 
       // If we already have a browser and no url, do nothing.
       // This is to accomodate the session plugin
-      if ( (!URI || !*URI) && theApp.m_pMostRecentBrowserFrame)
+      if ( atStart && (!URI || !*URI) && theApp.m_pMostRecentBrowserFrame)
           return TRUE;
 
 	  int openmode = theApp.preferences.GetInt("browser.link.open_external", 2);
@@ -241,8 +241,11 @@ BOOL CHiddenWnd::ShowBrowser(LPTSTR URI, BOOL webapp) {
 		  browser->GetActiveView()->LoadHomePage();
 	  }
 	  
-	  if (browser->IsIconic()) browser->ShowWindow(SW_RESTORE);
-	  browser->BringWindowToTop(); 
+	  // Bullshit: the first window in never maximized
+      if (atStart && theApp.preferences.bMaximized)
+         browser->ShowWindow(SW_SHOWMAXIMIZED);
+	  else 
+         browser->ShowWindow(SW_SHOW);
 	  browser->SetForegroundWindow();
    }
 

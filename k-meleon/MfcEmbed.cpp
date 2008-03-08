@@ -775,7 +775,8 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
 		}
 
    if (preferences.bMaximized && !isPopupOrDialog &&
-      (chromeMask & nsIWebBrowserChrome::CHROME_WINDOW_RESIZE))
+      ((chromeMask & nsIWebBrowserChrome::CHROME_WINDOW_RESIZE) ||
+	  (chromeMask & nsIWebBrowserChrome::CHROME_ALL)))
       style |= WS_MAXIMIZE;
 
    RECT screen, winSize;
@@ -932,11 +933,6 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
 	
    if (!preferences.bHideTaskBarButtons)
       pFrame->ModifyStyleEx(0, WS_EX_APPWINDOW);
-
-   if (preferences.bMaximized && 
-	   (!pFrame->IsDialog()) && (!pFrame->IsPopup()) &&
-	   !(chromeMask & nsIWebBrowserChrome::CHROME_WINDOW_RESIZE))
-      pFrame->ShowWindow(SW_MAXIMIZE);
 
    if (inBackground) {
       pFrame->SetWindowPos((CWnd*)theApp.m_FrameWndLst.GetHead(),
