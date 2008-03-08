@@ -113,7 +113,7 @@ CTabReBar::CTabReBar()
 	mDragItem = -1;
 	m_wndParent = NULL;	
 	mBottomBar = theApp.preferences.GetBool(PREFERENCE_REBAR_BOTTOM, FALSE);
-	mFixedBar = mBottomBar || theApp.preferences.GetBool(PREFERENCE_REBAR_FIXED, FALSE);
+	mFixedBar = theApp.preferences.GetBool(PREFERENCE_REBAR_FIXED, FALSE);
 	mChevron = FALSE;
 	mTemp = NULL;
 
@@ -134,7 +134,7 @@ BOOL CTabReBar::Create(CReBarEx* rebar, UINT idwnd)
 			return FALSE;
 		//ModifyStyle(0, CCS_ADJUSTABLE);
 		
-		if (!mFixedBar) {
+		if (!mFixedBar && !mBottomBar) {
 			rebar->RegisterBand(m_hWnd, _T("Tabs"), false);
 			rebar->AddBar(this, szTitle, 0, RBBS_USECHEVRON | RBBS_FIXEDBMP );
 
@@ -159,40 +159,73 @@ BOOL CTabReBar::Create(CReBarEx* rebar, UINT idwnd)
 			mTemp = new CReBarEx();
 			mTemp->Create(GetParentFrame(), RBS_BANDBORDERS, WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS|WS_CLIPCHILDREN|(mBottomBar ? CBRS_BOTTOM : CBRS_TOP));
 			mTemp->AddBar(this, _T(""), NULL,  RBBS_USECHEVRON | RBBS_NOGRIPPER);
-			
-			REBARBANDINFO rbi;
-			rbi.cbSize = sizeof(REBARBANDINFO);
-			rbi.fMask  = RBBIM_CHILD;
-			int idx = rebar->FindByName(_T("Tab/&Window Buttons"));
-			if (idx>=0) {
-				rebar->GetReBarCtrl().GetBandInfo(idx, &rbi);
-				CWnd* toolbar = CWnd::FromHandle(rbi.hwndChild);
-				if (toolbar) {
-					mTemp->AddBar(toolbar, _T(""), NULL, RBBS_NOGRIPPER);
-					rebar->UnregisterBand(_T("Tab/&Window Buttons"));
-					rebar->GetReBarCtrl().DeleteBand(idx);
-					mTemp->GetReBarCtrl().ShowBand(1);
-					KmMenu* menu = theApp.menus.GetKMenu(_T("@Toolbars"));
-					if (menu) menu->Invalidate();
-				}
-			}
-
-			CRect rectDesktop;
-			::GetWindowRect(::GetDesktopWindow(), rectDesktop);
-			rbi.fMask = RBBIM_SIZE;
-			rbi.cx = rectDesktop.Width();
-			mTemp->GetReBarCtrl().SetBandInfo(0, &rbi);
-		
-			if (!mBottomBar && theApp.preferences.bToolbarBackground) {
-				rbi.hbmBack = CBrowserFrame::m_bmpBack;
-				rbi.fMask = RBBIM_BACKGROUND;
-				mTemp->GetReBarCtrl().SetBandInfo(0, &rbi);
-				mTemp->GetReBarCtrl().SetBandInfo(1, &rbi);
-			}
 		}
 
 		mDropTarget.Register(this);
 		return TRUE;
+}
+
+BOOL CTabReBar::Init(CReBarEx* rebar)
+{
+	REBARBANDINFO rbi;
+	rbi.cbSize = sizeof(REBARBANDINFO);
+
+	// Catch the tab buttons if fixed
+	if (mFixedBar)
+	{
+		rbi.fMask  = RBBIM_CHILD;
+		int idx = rebar->FindByName(_T("Tab/&Window Buttons"));
+		if (idx>=0) {
+			rebar->GetReBarCtrl().GetBandInfo(idx, &rbi);
+			CWnd* toolbar = CWnd::FromHandle(rbi.hwndChild);
+			if (toolbar) {
+				mTemp->AddBar(toolbar, _T(""), NULL, RBBS_NOGRIPPER);
+				rebar->UnregisterBand(_T("Tab/&Window Buttons"));
+				rebar->GetReBarCtrl().DeleteBand(idx);
+				mTemp->GetReBarCtrl().ShowBand(1);
+				KmMenu* menu = theApp.menus.GetKMenu(_T("@Toolbars"));
+				if (menu) menu->Invalidate();
+			}
+		}
+
+		CRect rectDesktop;
+		::GetWindowRect(::GetDesktopWindow(), rectDesktop);
+		rbi.fMask = RBBIM_SIZE;
+		rbi.cx = rectDesktop.Width();
+		mTemp->GetReBarCtrl().SetBandInfo(0, &rbi);
+
+		if (!mBottomBar && theApp.preferences.bToolbarBackground) {
+			rbi.hbmBack = CBrowserFrame::m_bmpBack;
+			rbi.fMask = RBBIM_BACKGROUND;
+			mTemp->GetReBarCtrl().SetBandInfo(0, &rbi);
+			mTemp->GetReBarCtrl().SetBandInfo(1, &rbi);
+		}
+	}
+
+	// Set the height of the bar
+
+	SIZE size;
+	GetToolBarCtrl().GetMaxSize(&size);
+
+	if (mFixedBar) {
+		SIZE sizeButtons;
+		rbi.fMask = RBBIM_CHILD;
+		mTemp->GetReBarCtrl().GetBandInfo(1, &rbi);
+		::SendMessage(rbi.hwndChild, TB_GETMAXSIZE, 0, (LPARAM)&sizeButtons);
+		size.cy = max(size.cy, sizeButtons.cy);
+	}
+
+	rbi.fMask  = RBBIM_CHILDSIZE; 
+	rbi.cxMinChild = 0;
+	rbi.cyMinChild = rbi.cyChild = rbi.cyMaxChild = size.cy;
+	if (!mFixedBar && !mBottomBar) {
+		int iband = m_wndParent->FindByName(_T("Tabs"));
+		m_wndParent->GetReBarCtrl().SetBandInfo(iband, &rbi);
+	} 
+	else
+		mTemp->GetReBarCtrl().SetBandInfo(0, &rbi);
+
+	return TRUE;
 }
 
 void CTabReBar::UpdateButtonsSize()
@@ -232,7 +265,6 @@ void CTabReBar::UpdateButtonsSize()
 			buttonWidth = width / (width/nMinWidth);
 	}
 
-
 	GetToolBarCtrl().SetButtonWidth(buttonWidth, buttonWidth);
 
 	SIZE size;
@@ -241,12 +273,9 @@ void CTabReBar::UpdateButtonsSize()
 	// Set the ideal size for chevron
 	REBARBANDINFO rb;
 	rb.cbSize = sizeof(REBARBANDINFO);
-	rb.fMask  = RBBIM_IDEALSIZE | RBBIM_CHILDSIZE; 
+	rb.fMask  = RBBIM_IDEALSIZE; 
 	rb.cxIdeal = size.cx;
-	rb.cxMinChild = 0;
-	rb.cyMinChild = rb.cyChild = rb.cyMaxChild = size.cy;
-	rb.cyIntegral = 1;
-	if (!mFixedBar) {
+	if (!mFixedBar && !mBottomBar) {
 		int iband = m_wndParent->FindByName(_T("Tabs"));
 		m_wndParent->GetReBarCtrl().SetBandInfo(iband, &rb);
 	} 
@@ -258,18 +287,18 @@ void CTabReBar::UpdateButtonsSize()
 
 void CTabReBar::UpdateVisibility(BOOL canHide)
 {
-	if (mFixedBar)
+	if (mFixedBar || mBottomBar)
 	{
 
 		if (GetToolBarCtrl().GetButtonCount()>1) {
 			mTemp->ShowWindow(SW_SHOW);//GetReBarCtrl().ShowBand(0, TRUE);
-			if (mBottomBar)
-				mTemp->SetWindowPos(&(((CBrowserFrame*)GetParentFrame())->m_wndStatusBar),0,0,0,0,SWP_NOMOVE);
+			mTemp->SetWindowPos(&(((CBrowserFrame*)GetParentFrame())->m_wndStatusBar),0,0,0,0,SWP_NOMOVE);
 		}
+		else if (theApp.preferences.bAutoHideTabControl)
+			mTemp->ShowWindow(SW_HIDE);
+		else if (mBottomBar)
+			mTemp->SetWindowPos(&(((CBrowserFrame*)GetParentFrame())->m_wndStatusBar),0,0,0,0,SWP_NOMOVE);
 
-		else
-			if (theApp.preferences.bAutoHideTabControl)
-				mTemp->ShowWindow(SW_HIDE);
 				//mTemp->GetReBarCtrl().ShowBand(0, FALSE);
 		GetParentFrame()->RecalcLayout();
 /*
