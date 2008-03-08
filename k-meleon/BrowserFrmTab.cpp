@@ -224,9 +224,6 @@ int CBrowserFrmTab::OnCreate(LPCREATESTRUCT lpCreateStruct)
         return -1;      // fail to create
     }
 
-	if (CBrowserFrame::InitLayout() == -1)
-		return -1;
-	
 	// Create the bar which will contain the tab list
 	// It would be better to use a tabcontrol but, currently
 	// i'm not sure how to deal with it, and it would not fit
@@ -237,14 +234,7 @@ int CBrowserFrmTab::OnCreate(LPCREATESTRUCT lpCreateStruct)
 		TRACE0("Failed to create the tab toolbar\n");
 		return -1;
 	}
-/*
-	m_wndReBar.AddBar(m_wndTabs, 
-		theApp.preferences.GetString(PREFERENCE_REBAR_TITLE, _T(""))
-		,0, RBBS_USECHEVRON | RBBS_CHILDEDGE | RBBS_FIXEDBMP );
 
-	m_wndReBar.RegisterBand(m_wndTabs->m_hWnd, _T("Tabs"), false);
-*/
-	
 	// Set the favicon image list for the tab bar
 	m_wndTabs->GetToolBarCtrl().SetImageList(&theApp.favicons);
 
@@ -258,7 +248,10 @@ int CBrowserFrmTab::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	if (CFrameWnd::OnCreate(lpCreateStruct) == -1)
        return -1;
 
-	m_wndReBar.RestoreBandSizes();
+	if (CBrowserFrame::InitLayout() == -1)
+		return -1;
+
+	m_wndTabs->Init(&m_wndReBar);
 
 	// If we try to hide it sooner then CrashBadaboum
 	if (theApp.preferences.bAutoHideTabControl) {

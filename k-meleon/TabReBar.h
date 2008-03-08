@@ -82,6 +82,7 @@ public:
 	CTabReBar();
 	virtual ~CTabReBar();
 	BOOL Create(CReBarEx* rebar, UINT idwnd = AFX_IDW_TOOLBAR);
+	BOOL Init(CReBarEx* rebar);
 	LONG InsertItem(int nItem, int idCommand, LPCTSTR lpszItem, DWORD data, int nImage=0);
 	//BOOL SetItemInfo(int nItem, LPTSTR lpszItem, int nImage=0);
 	BOOL SetItemText(int idCommand, LPCTSTR lpszItem);
