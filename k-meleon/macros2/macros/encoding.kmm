@@ -1,0 +1,198 @@
+# K-Meleon Macros (http://kmeleon.sourceforge.net/wiki/index.php?id=MacroLanguage)
+
+# ---------- Character Encoding / Characterset Detection -----------------------------------------------------------
+#
+# Dependencies	: main.kmm
+# Resources	: -
+# Preferences	: kmeleon.plugins.macros.encoding.cache.size
+#		  kmeleon.plugins.macros.encoding.cache.charset[0-<size-1>].id
+#		  kmeleon.plugins.macros.encoding.cache.charset[0-<size-1>].name
+#
+# ------------------------------------------------------------------------------------------------------------------
+
+Encoding_AutoDetect{
+menuchecked=(getpref(STRING,"intl.charset.detector")==$ARG);
+setpref(STRING,"intl.charset.detector",$ARG); forcecharset();
+}
+Encoding_ForceCharset{
+menuchecked=($CHARSET==substr($ARG,index($ARG,";")+1));
+$_chr=substr($ARG,index($ARG,";")+1);
+$_lbl=substr($ARG,0,index($ARG,";"));
+$_lbl==""?0:&_Encoding_CacheCheck; forcecharset($_chr);
+}
+
+# ----- PRIVATE
+
+$_Encoding_CachePref=$macroPrefBranch."encoding.cache.size";
+$_Encoding_CacheMenu=true;
+
+_Encoding_CacheCheck{
+$_in=false; $_y=getpref(INT,$_Encoding_CachePref); while($_y>0) &_Encoding_CacheCheckLoop;
+$_in?0:&_Encoding_CacheUpdate;
+}
+_Encoding_CacheCheckLoop{
+$_y=$_y-1; $_in=(getpref(STRING,$macroPrefBranch."encoding.cache.charset".$_y.".id")==$_chr); $_in?$_y=0:0;
+}
+
+_Encoding_CacheUpdate{
+# delete current menu items:
+$_Encoding_CacheMenu=false; &_Encoding_BuildMenuCache;
+# update prefs:
+$_x=getpref(INT,$_Encoding_CachePref); while($_x>1) &_Encoding_ShiftUp;
+setpref(STRING,$macroPrefBranch."encoding.cache.charset0.id",$_chr);
+setpref(STRING,$macroPrefBranch."encoding.cache.charset0.name",$_lbl);
+# add new menu items:
+$_Encoding_CacheMenu=true; &_Encoding_BuildMenuCache;
+}
+_Encoding_ShiftUp{
+$_x=$_x-1; $__y=$_x-1;
+setpref(STRING,$macroPrefBranch."encoding.cache.charset".$_x.".id",getpref(STRING,$macroPrefBranch."encoding.cache.charset".$__y.".id"));
+setpref(STRING,$macroPrefBranch."encoding.cache.charset".$_x.".name",getpref(STRING,$macroPrefBranch."encoding.cache.charset".$__y.".name"));
+}
+
+_Encoding_SetDefaults{
+getpref(INT,$_Encoding_CachePref)==0?setpref(INT,$_Encoding_CachePref,5):0;
+}
+$OnStartup=$OnStartup."_Encoding_SetDefaults;";
+
+_Encoding_BuildMenu{
+# view menu
+$__e="En&coding"; $__a="&Auto Detect";
+setmenu(PageDisplay,popup,$__e);
+setmenu($__e,popup,$__a); $__m="Encoding_AutoDetect(";
+setmenu($__a,macro,"(O&ff)",$__m.")");
+setmenu($__a,macro,"Uni&versal",$__m."universal_charset_detector)");
+setmenu($__a,macro,"Ch&inese",$__m."zh_parallel_state_machine)");
+setmenu($__a,macro,"J&apanese",$__m."ja_parallel_state_machine)");
+setmenu($__a,macro,"K&orean",$__m."ko_parallel_state_machine)");
+setmenu($__a,macro,"&East Asian",$__m."cjk_parallel_state_machine)");
+setmenu($__a,macro,"Ru&ssian",$__m."ruprob)");
+setmenu($__a,macro,"U&krainian",$__m."ukprob)");
+$__m="Encoding_ForceCharset(";
+$__a="&More Encodings"; setmenu($__e,popup,$__a);
+$__b="&West European"; setmenu($__a,popup,$__b);  &_Encoding_BuildMenuMore1;
+$__b="E&ast European"; setmenu($__a,popup,$__b);  &_Encoding_BuildMenuMore2;
+$__b="&East Asian"; setmenu($__a,popup,$__b);  &_Encoding_BuildMenuMore3;
+$__b="&SE And SW Asian"; setmenu($__a,popup,$__b);  &_Encoding_BuildMenuMore4;
+$__b="&Middle Eastern"; setmenu($__a,popup,$__b);  &_Encoding_BuildMenuMore5;
+$__b="&Unicode"; setmenu($__a,popup,$__b);  &_Encoding_BuildMenuMore6;
+&_Encoding_BuildMenuCache;
+setmenu($__e,separator,-1);
+# static:
+$__i="&Western (ISO-8859-1)"; setmenu($__e,macro,$__i,$__m.";iso-8859-1)");
+$__i="We&stern (Windows-1252)"; setmenu($__e,macro,$__i,$__m.";windows-1252)");
+setmenu($__e,separator,-1);
+# static:
+$__i="&Unicode (UTF-8)"; setmenu($__e,macro,$__i,$__m.";utf-8)");
+$__i="U&nicode (UTF-16)"; setmenu($__e,macro,$__i,$__m.";utf-16)");
+}
+_Encoding_BuildMenuMore1{
+# static:
+$__i="&Western (ISO-8859-1)"; setmenu($__b,macro,$__i,$__m.";iso-8859-1)");
+$__i="Western (ISO-8859-15)"; setmenu($__b,macro,$__i,$__m.$__i.";iso-8859-15)");
+$__i="Western (IBM-850)"; setmenu($__b,macro,$__i,$__m.$__i.";ibm850)");
+$__i="Western (MacRoman)"; setmenu($__b,macro,$__i,$__m.$__i.";x-mac-roman)");
+# static:
+$__i="We&stern (Windows-1252)"; setmenu($__b,macro,$__i,$__m.";windows-1252)");
+$__i="Celtic (ISO-8859-14)"; setmenu($__b,macro,$__i,$__m.$__i.";iso-8859-14)");
+$__i="Greek (ISO-8859-7)"; setmenu($__b,macro,$__i,$__m.$__i.";iso-8859-7)");
+$__i="Greek (MacGreek)"; setmenu($__b,macro,$__i,$__m.$__i.";x-mac-greek)");
+$__i="Greek (Windows-1253)"; setmenu($__b,macro,$__i,$__m.$__i.";windows-1253)");
+$__i="Icelandic (MacIcelandic)"; setmenu($__b,macro,$__i,$__m.$__i.";x-mac-icelandic)");
+$__i="Nordic (ISO-8859-10)"; setmenu($__b,macro,$__i,$__m.$__i.";iso-8859-10)");
+$__i="South European (ISO-8859-3)"; setmenu($__b,macro,$__i,$__m.$__i.";iso-8859-3)");
+}
+_Encoding_BuildMenuMore2{
+$__i="Baltic (ISO-8859-4)"; setmenu($__b,macro,$__i,$__m.$__i.";iso-8859-4)");
+$__i="Baltic (ISO-8859-13)"; setmenu($__b,macro,$__i,$__m.$__i.";iso-8859-13)");
+$__i="Baltic (Windows-1257)"; setmenu($__b,macro,$__i,$__m.$__i.";windows-1257)");
+$__i="Central European (IBM-852)"; setmenu($__b,macro,$__i,$__m.$__i.";ibm852)");
+$__i="Central European (ISO-8859-2)"; setmenu($__b,macro,$__i,$__m.$__i.";iso-8859-2)");
+$__i="Central European (MacCE)"; setmenu($__b,macro,$__i,$__m.$__i.";x-mac-ce)");
+$__i="Central European (Windows-1250)"; setmenu($__b,macro,$__i,$__m.$__i.";windows-1250)");
+$__i="Croatian (MacCroatian)"; setmenu($__b,macro,$__i,$__m.$__i.";x-mac-croatian)");
+$__i="Cyrillic (IBM-855)"; setmenu($__b,macro,$__i,$__m.$__i.";ibm855)");
+$__i="Cyrillic (ISO-8859-5)"; setmenu($__b,macro,$__i,$__m.$__i.";iso-8859-5)");
+$__i="Cyrillic (ISO-IR-111)"; setmenu($__b,macro,$__i,$__m.$__i.";iso-ir-111)");
+$__i="Cyrillic (KOI8-R)"; setmenu($__b,macro,$__i,$__m.$__i.";koi8-r)");
+$__i="Cyrillic (MacCyrillic)"; setmenu($__b,macro,$__i,$__m.$__i.";x-mac-cyrillic)");
+$__i="Cyrillic (Windows-1251)"; setmenu($__b,macro,$__i,$__m.$__i.";windows-1251)");
+$__i="Cyrillic/Russian (CP-866)"; setmenu($__b,macro,$__i,$__m.$__i.";ibm866)");
+$__i="Cyrillic/Ukrainian (KOI8-U)"; setmenu($__b,macro,$__i,$__m.$__i.";koi8-u)");
+$__i="Cyrillic/Ukrainian (MacUkrainian)"; setmenu($__b,macro,$__i,$__m.$__i.";x-mac-ukrainian)");
+$__i="Romanian (ISO-8859-16)"; setmenu($__b,macro,$__i,$__m.$__i.";iso-8859-16)");
+$__i="Romanian (MacRomanian)"; setmenu($__b,macro,$__i,$__m.$__i.";x-mac-romanian)");
+}
+_Encoding_BuildMenuMore3{
+$__i="Chinese Simplified (GB2312)"; setmenu($__b,macro,$__i,$__m.$__i.";gb2312)");
+$__i="Chinese Simplified (GBK)"; setmenu($__b,macro,$__i,$__m.$__i.";x-gbk)");
+$__i="Chinese Simplified (GB18030)"; setmenu($__b,macro,$__i,$__m.$__i.";gb18030)");
+$__i="Chinese Simplified (HZ)"; setmenu($__b,macro,$__i,$__m.$__i.";hz-gb-2312)");
+$__i="Chinese Simplified (ISO-2022-CN)"; setmenu($__b,macro,$__i,$__m.$__i.";iso-2022-cn)");
+$__i="Chinese Traditional (Big5)"; setmenu($__b,macro,$__i,$__m.$__i.";big5)");
+$__i="Chinese Traditional (Big5-HKSCS)"; setmenu($__b,macro,$__i,$__m.$__i.";big5-hkscs)");
+$__i="Chinese Traditional (EUC-TW)"; setmenu($__b,macro,$__i,$__m.$__i.";x-euc-tw)");
+$__i="Japanese (EUC-JP)"; setmenu($__b,macro,$__i,$__m.$__i.";euc-jp)");
+$__i="Japanese (ISO-2022-JP)"; setmenu($__b,macro,$__i,$__m.$__i.";iso-2022-jp)");
+$__i="Japanese (Shift_JIS)"; setmenu($__b,macro,$__i,$__m.$__i.";shift_jis)");
+$__i="Korean (EUC-KR)"; setmenu($__b,macro,$__i,$__m.$__i.";euc-kr)");
+$__i="Korean (UHC)"; setmenu($__b,macro,$__i,$__m.$__i.";x-windows-949)");
+$__i="Korean (JOHAB)"; setmenu($__b,macro,$__i,$__m.$__i.";x-johab)");
+$__i="Korean (ISO-2022-KR)"; setmenu($__b,macro,$__i,$__m.$__i.";iso-2022-kr)");
+}
+_Encoding_BuildMenuMore4{
+$__i="Armenian (ARMSCII-8)"; setmenu($__b,macro,$__i,$__m.$__i.";armscii-8)");
+$__i="Georgian (GEOSTD8)"; setmenu($__b,macro,$__i,$__m.$__i.";geostd8)");
+$__i="Thai (TIS-620)"; setmenu($__b,macro,$__i,$__m.$__i.";tis-620)");
+$__i="Thai (ISO-8859-11)"; setmenu($__b,macro,$__i,$__m.$__i.";iso-8859-11)");
+$__i="Thai (Windows-874)"; setmenu($__b,macro,$__i,$__m.$__i.";windows-874)");
+$__i="Turkish (IBM-857)"; setmenu($__b,macro,$__i,$__m.$__i.";ibm857)");
+$__i="Turkish (ISO-8859-9)"; setmenu($__b,macro,$__i,$__m.$__i.";iso-8859-9)");
+$__i="Turkish (MacTurkish)"; setmenu($__b,macro,$__i,$__m.$__i.";x-mac-turkish)");
+$__i="Turkish (Windows-1254)"; setmenu($__b,macro,$__i,$__m.$__i.";windows-1254)");
+$__i="Vietnamese (TCVN)"; setmenu($__b,macro,$__i,$__m.$__i.";x-viet-tcvn5712)");
+$__i="Vietnamese (VISCII)"; setmenu($__b,macro,$__i,$__m.$__i.";viscii)");
+$__i="Vietnamese (VPS)"; setmenu($__b,macro,$__i,$__m.$__i.";x-viet-vps)");
+$__i="Vietnamese (Windows-1258)"; setmenu($__b,macro,$__i,$__m.$__i.";windows-1258)");
+$__i="Hindi (MacDevanagari)"; setmenu($__b,macro,$__i,$__m.$__i.";x-mac-devanagari)");
+$__i="Gujarati (MacGujarati)"; setmenu($__b,macro,$__i,$__m.$__i.";x-mac-gujarati)");
+$__i="Gurmukhi (MacGurmukhi)"; setmenu($__b,macro,$__i,$__m.$__i.";x-mac-gurmukhi)");
+}
+_Encoding_BuildMenuMore5{
+$__i="Arabic (ISO-8859-6)"; setmenu($__b,macro,$__i,$__m.$__i.";iso-8859-6)");
+$__i="Arabic (Windows-1256)"; setmenu($__b,macro,$__i,$__m.$__i.";windows-1256)");
+$__i="Arabic (IBM-864)"; setmenu($__b,macro,$__i,$__m.$__i.";ibm864)");
+$__i="Arabic (MacArabic)"; setmenu($__b,macro,$__i,$__m.$__i.";x-mac-arabic)");
+$__i="Farsi (MacFarsi)"; setmenu($__b,macro,$__i,$__m.$__i.";x-mac-farsi)");
+$__i="Hebrew (ISO-8859-8-I)"; setmenu($__b,macro,$__i,$__m.$__i.";iso-8859-8-i)");
+$__i="Hebrew (Windows-1255)"; setmenu($__b,macro,$__i,$__m.$__i.";windows-1255)");
+$__i="Hebrew Visual (ISO-8859-8)"; setmenu($__b,macro,$__i,$__m.$__i.";iso-8859-8)");
+$__i="Hebrew (IBM-862)"; setmenu($__b,macro,$__i,$__m.$__i.";ibm862)");
+$__i="Hebrew (MacHebrew)"; setmenu($__b,macro,$__i,$__m.$__i.";x-mac-hebrew)");
+}
+_Encoding_BuildMenuMore6{
+# static:
+$__i="&Unicode (UTF-8)"; setmenu($__b,macro,$__i,$__m.";utf-8)");
+# static:
+$__i="U&nicode (UTF-16)"; setmenu($__b,macro,$__i,$__m.";utf-16)");
+$__i="Unicode (UTF-16 Little Endian)"; setmenu($__b,macro,$__i,$__m.$__i.";utf-16le)");
+$__i="Unicode (UTF-16 Big Endian)"; setmenu($__b,macro,$__i,$__m.$__i.";utf-16be)");
+$__i="Unicode (UTF-32 Little Endian)"; setmenu($__b,macro,$__i,$__m.$__i.";utf-32le)");
+$__i="Unicode (UTF-32 Big Endian)"; setmenu($__b,macro,$__i,$__m.$__i.";utf-32be)");
+$__i="Unicode (UTF-7)"; setmenu($__b,macro,$__i,$__m.$__i.";utf-7)");
+}
+_Encoding_BuildMenuCache{
+$_c=_Encoding_Cache;
+setmenu("En&coding",inline,$_c);
+$__t=getpref(INT,$_Encoding_CachePref); $_k=0; while($_k<$__t) &_Encoding_BuildMenuCacheLoop;
+rebuildmenu($_c);
+}
+_Encoding_BuildMenuCacheLoop{
+$__l=getpref(STRING,$macroPrefBranch."encoding.cache.charset".$_k.".name");
+setmenu($_c,macro,$_Encoding_CacheMenu?$__l:"","Encoding_ForceCharset(;".getpref(STRING,$macroPrefBranch."encoding.cache.charset".$_k.".id").")",$_k);
+$_k=$_k+1;
+}
+$OnInit=$OnInit."_Encoding_BuildMenu;";
+
+# ------------------------------------------------------------------------------------------------------------------
+$macroModules=$macroModules."Encoding;";

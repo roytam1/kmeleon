@@ -1,0 +1,3 @@
+<!ENTITY % javaDTD SYSTEM "chrome://kmprefs/locale/kmprefs/ovrl-javascript.dtd">%javaDTD;
+<!ENTITY % popuDTD SYSTEM "chrome://kmprefs/locale/kmprefs/ovrl-popups.dtd">%popuDTD;
+<!ENTITY javascript.header	"JavaScript Settings">

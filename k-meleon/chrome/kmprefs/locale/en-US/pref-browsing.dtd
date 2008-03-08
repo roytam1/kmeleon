@@ -1,0 +1,23 @@
+<!ENTITY % prefDTD SYSTEM "chrome://kmprefs/locale/pref.dtd">%prefDTD;
+<!ENTITY % popuDTD SYSTEM "chrome://kmprefs/locale/kmprefs/ovrl-popups.dtd">%popuDTD;
+<!ENTITY browsing.header	"Browsing Options">
+<!ENTITY browsing.tabbed	"Tabbed Browsing">
+<!ENTITY browsing.diverted	"Window Diversion">
+<!ENTITY browsing.open		"Open">
+<!ENTITY browsing.typedURL	"Typed URLs">
+<!ENTITY browsing.selectedText	"Selected Text">
+<!ENTITY browsing.favorites	"Internet Explorer Favorites">
+<!ENTITY browsing.bookmarks	"Netscape Bookmarks">
+<!ENTITY browsing.hotlist	"Opera Bookmarks">
+<!ENTITY browsing.homepage	"Home Page:">
+<!ENTITY browsing.newWinTab	"When opening new windows/tabs">
+<!ENTITY browsing.newwindow	"Links meant to open a new window">
+<!ENTITY browsing.external	"URLs passed from external applications">
+<!ENTITY browsing.inBackground	"Open diverted windows in background">
+<!ENTITY DefaultBrowser		"Default Browser">
+<!ENTITY DefaultBrowser.descr	"Use the K-Meleon Setup Assistant to determine which protocols and file types K-Meleon should handle by default. You can change as well as undo your settings at any time later.">
+<!ENTITY DefaultBrowser.set	"Set As Default Browser...">
+<!ENTITY start.blank		"Display a blank page">
+<!ENTITY start.home		"Load home page">
+<!ENTITY start.current		"Duplicate the current page">
+<!ENTITY start.URL		"Load this page:">

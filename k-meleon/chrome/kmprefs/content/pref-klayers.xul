@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/css" href="chrome://global/skin/"?>
+<?xul-overlay href="chrome://kmprefs/content/kplugins/layers.xul"?>
+<?xul-overlay href="chrome://kmprefs/content/kplugins/layersbar.xul"?>
+<!DOCTYPE page SYSTEM "chrome://kmprefs/locale/pref-klayers.dtd">
+<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" 
+id="prefLayers" onload="kLayers.init()">
+
+<stringbundle id="pref_bundle" src="chrome://kmprefs/locale/pref.properties"/>
+
+<script type="application/x-javascript" src="chrome://kmprefs/content/pref.js"/>
+
+<vbox flex="1" style="overflow:auto">
+  <dialogheader title="&layers.header;"/>
+  <separator class="thin"/>
+  <vbox id="kLayersLoad"/>
+  <separator class="thick"/>
+  <tabcontrol flex="1">
+    <tabbox flex="1">
+      <tabs>
+        <tab id="kLayersOpenTab"/>
+        <tab id="kLayersTBarTab"/>
+      </tabs>
+      <tabpanels flex="1">
+        <tabpanel flex="1" orient="vertical" style="overflow:auto">
+          <separator class="thin"/>
+          <vbox id="kLayersOpen" flex="1"/>
+        </tabpanel>
+        <tabpanel id="kLayersTBar"/>
+      </tabpanels>
+    </tabbox>
+  </tabcontrol>
+</vbox>
+
+</page>

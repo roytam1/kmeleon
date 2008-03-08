@@ -1,0 +1,14 @@
+<!ENTITY % prefDTD SYSTEM "chrome://kmprefs/locale/pref.dtd">%prefDTD;
+<!ENTITY tabs.header			"Tabbed Browsing">
+<!ENTITY tabs.enable			"Enable Tabbed Browsing (&restartRequired;)">
+<!ENTITY tabs.open			"Open new tabs">
+<!ENTITY tabs.open.nextToCurrent	"Next to the current tab">
+<!ENTITY tabs.open.nextToLast		"Next to the last tab">
+<!ENTITY tabs.close			"When closing a tab">
+<!ENTITY tabs.close.focusNext		"Focus the next tab">
+<!ENTITY tabs.close.focusPrevious	"Focus the previous tab">
+<!ENTITY tabs.close.focusSelected	"Focus the previously selected tab">
+<!ENTITY tabs.last			"When closing the last tab">
+<!ENTITY tabs.last.empty		"Empty the tab">
+<!ENTITY tabs.last.close		"Close the window">
+<!ENTITY tabs.confirmClose		"Confirm closing windows with multiple tabs">

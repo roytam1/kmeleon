@@ -1,0 +1,14 @@
+<!ENTITY % prefDTD SYSTEM "chrome://kmprefs/locale/pref.dtd">%prefDTD;
+<!ENTITY layers.enable		"Enable Layered Windows (&restartRequired;)">
+<!ENTITY layers.only		"Use layers only (Open all new windows as layers)">
+<!ENTITY layers.confirm		"Confirm closing multi-layered windows">
+<!ENTITY layers.browsing	"Opening/Closing Layers">
+<!ENTITY layers.open		"Open New Layers">
+<!ENTITY layers.openNote	"&note; You can open new layers by double or middle clicking the layers bar.">
+<!ENTITY layers.nextToCurrent	"Next to the current layer">
+<!ENTITY layers.nextToLast	"Next to the last layer">
+<!ENTITY layers.close		"When Closing Layers">
+<!ENTITY layers.closeNote	"&note; You can close the current layer by double or middle clicking its button in the layers bar.">
+<!ENTITY layers.focusNext	"Focus the next layer">
+<!ENTITY layers.focusPrevious	"Focus the previous layer">
+<!ENTITY layers.focusSelected	"Focus the previously selected layer">
