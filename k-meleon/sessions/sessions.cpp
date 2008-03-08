@@ -316,7 +316,7 @@ int Load() {
    // This session list is really some bad stuff because
    // plugins can't enumerate preferences
    GetSessionList();
-   AddSessionList(kPreviousSessionName);
+   AddSessionList(CUTF8_to_ANSI(kPreviousSessionName));
    return 1;
 }
 
