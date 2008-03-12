@@ -23,7 +23,9 @@
 #include "MozUtils.h"
 
 // Mozilla Includes
+#if GECKO_VERSION < 19 // XXX
 #include "nsIRegistry.h"
+#endif
 #include "nsIProfile.h"
 #include "nsDirectoryServiceUtils.h"
 #include "jsapi.h"
@@ -521,6 +523,7 @@ BOOL CProfileMgr::GetShowDialogOnStart()
 
 BOOL CProfileMgr::ImportShowDialogOnStart(PRBool* showIt)
 {
+#if GECKO_VERSION < 19
     nsresult rv = NS_OK;
         
     *showIt = PR_TRUE;
@@ -547,10 +550,14 @@ BOOL CProfileMgr::ImportShowDialogOnStart(PRBool* showIt)
     }
     
 	return NS_SUCCEEDED(rv);        
+#else
+	return FALSE;
+#endif
 }
 
 BOOL CProfileMgr::ImportRegistry()
 {
+#if GECKO_VERSION < 19
 	nsCOMPtr <nsIFile> regName;
     nsresult rv = NS_OK;
 
@@ -673,4 +680,7 @@ BOOL CProfileMgr::ImportRegistry()
 	}
 	
 	return TRUE;
+#else
+	return FALSE;
+#endif
 }
