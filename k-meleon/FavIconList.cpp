@@ -722,7 +722,8 @@ NS_IMETHODIMP IconObserver::CreateDIB(imgIRequest *aRequest)
 	URI->GetSpec(nsuri);
 
 	CBitmap bitmap;
-	
+	HDC hDC = GetDC(NULL);
+
 #if GECKO_VERSION > 18
 	HBITMAP hBitmap = DataToBitmap(bits, w, -h, (bpr/w)*8);
 #else
@@ -738,8 +739,7 @@ NS_IMETHODIMP IconObserver::CreateDIB(imgIRequest *aRequest)
 	binfo.bmiHeader.biYPelsPerMeter = 0;
 	binfo.bmiHeader.biClrUsed = 0;
 	binfo.bmiHeader.biClrImportant = 0;
-
-	HDC hDC = GetDC(NULL);
+	
 	HBITMAP hBitmap = ::CreateDIBitmap(hDC,&binfo.bmiHeader,CBM_INIT,bits,&binfo,DIB_RGB_COLORS);
 #endif
 
@@ -750,11 +750,12 @@ NS_IMETHODIMP IconObserver::CreateDIB(imgIRequest *aRequest)
 		}
 	}
 	bitmap.Attach(hBitmap);
+	ReleaseDC(NULL,hDC);
 
 #if GECKO_VERSION > 18	
 	mFavList->AddIcon(nsuri.get(),&bitmap, (CBitmap*)NULL);
 #else
-	ReleaseDC(NULL,hDC);
+	
 
 	gfx_color bkgColor = 0;
 	rv = frame->GetBackgroundColor(&bkgColor);
