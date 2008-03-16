@@ -21,13 +21,86 @@
 #include "nsEmbedString.h"
 #include "nsIBrowserHistory.h"
 #include "nsServiceManagerUtils.h"
+#if GECKO_VERSION > 18 
+#include "nsToolkitCompsCID.h"
+#include "nsIAutoCompleteSearch.h"
+#include "nsIAutoCompleteResult.h"
+nsCOMPtr<nsIAutoCompleteResult> m_oldResult;
+#else
 #include "nsIAutoCompleteSession.h"
 #include "nsIAutoCompleteListener.h"
+nsCOMPtr<nsIAutoCompleteResults> m_oldResult;
+#endif
 
 AutoCompleteResult* gACResults = NULL;
-int gACCountResults = 0;
+unsigned int gACCountResults = 0;
 
-nsCOMPtr<nsIAutoCompleteResults> m_oldResult;
+#if GECKO_VERSION > 18
+
+class CACListener :  public nsIAutoCompleteObserver
+{	
+	NS_DECL_ISUPPORTS
+	NS_DECL_NSIAUTOCOMPLETEOBSERVER
+
+	CACListener::CACListener() {
+		m_ACIt = NULL;
+	}
+
+protected:
+	PRBool AddEltToList(nsISupports* aElement);
+	AutoCompleteResult* m_ACIt;
+};
+
+NS_IMPL_ISUPPORTS1(CACListener, nsIAutoCompleteObserver)
+
+NS_IMETHODIMP CACListener::OnSearchResult(nsIAutoCompleteSearch *search, nsIAutoCompleteResult *result)
+{
+	if (gACCountResults > 0) {
+		m_ACIt = gACResults;
+		while (gACCountResults--){
+			free(m_ACIt->value);
+			free(m_ACIt->comment);
+			m_ACIt++;
+		}
+		free(gACResults);
+		gACResults = NULL;
+		gACCountResults = 0;
+	}
+
+	PRUint16 status;
+	result->GetSearchResult(&status);
+	if (status == nsIAutoCompleteResult::RESULT_SUCCESS)
+	{
+		m_oldResult = result; // Keep the old result for optimization
+
+		result->GetMatchCount(&gACCountResults);
+		gACResults = (AutoCompleteResult*)calloc(gACCountResults, sizeof(AutoCompleteResult));
+		m_ACIt = gACResults;
+
+		for (PRUint32 i = 0; i<gACCountResults; i++)
+		{
+			nsEmbedString nsStr;
+			nsEmbedCString nsCStr;
+
+			result->GetValueAt(i, nsStr);
+			NS_UTF16ToCString(nsStr,NS_CSTRING_ENCODING_NATIVE_FILESYSTEM,nsCStr);
+			m_ACIt->value = strdup(nsCStr.get());
+
+			result->GetCommentAt(i, nsStr);
+			NS_UTF16ToCString(nsStr,NS_CSTRING_ENCODING_NATIVE_FILESYSTEM,nsCStr);
+			m_ACIt->comment = strdup(nsCStr.get());
+	
+			m_ACIt->score = 0;
+			m_ACIt++;
+		}
+	}
+	else
+		m_oldResult = nsnull;
+
+	return NS_OK;
+}
+
+#else
 
 class CACListener :  public nsIAutoCompleteListener
 {	
@@ -117,12 +190,19 @@ PRBool CACListener::AddEltToList(nsISupports* aElement)
 	return PR_TRUE;
 }
 
+#endif
+
+
 int AutoComplete(char* aSearchString, AutoCompleteResult** results)
 {
 	static nsEmbedString previousSearch;
 	nsresult rv;
 	
+#if GECKO_VERSION > 18
+	nsCOMPtr<nsIAutoCompleteSearch> autoComplete = do_GetService(NS_GLOBALHISTORY_AUTOCOMPLETE_CONTRACTID, &rv);
+#else	
 	nsCOMPtr<nsIAutoCompleteSession> autoComplete = do_GetService(NS_GLOBALHISTORY_AUTOCOMPLETE_CONTRACTID, &rv);
+#endif
 	if (NS_FAILED(rv)) return 0;
 
 	nsEmbedString searchString;
@@ -132,11 +212,17 @@ int AutoComplete(char* aSearchString, AutoCompleteResult** results)
 		previousSearch = searchString;
 		CACListener listener;
 
+#if GECKO_VERSION > 18		
+		// Now there is a bug preventing the usage of the old result.
+		// The new search string is not passed to the result *-)
+		autoComplete->StartSearch(searchString, EmptyString(), nsnull /*m_oldResult*/, &listener);
+#else
 		// I'm not using oldresult to partially fix a weird behavior
 		// of mozilla who always cut prefix of url before searching  
 		// (so if you type 'w', there will be no result beginning by "www.") 
 		// whatever the search string is. 
 		autoComplete->OnStartLookup(searchString.get(), nsnull /*m_oldResult*/, &listener);
+#endif
 	}
 
 	if (results) *results = gACResults;
