@@ -106,7 +106,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="gdi32.lib comctl32.lib"
-				OutputFile="..\..\debug\kplugins\$(ProjectName).dll"
+				OutputFile="f:\program files\k-meleon\debug\kplugins\$(ProjectName).dll"
 				SuppressStartupBanner="TRUE"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile=".\Debug/Layers.pdb"
