@@ -19,6 +19,10 @@
 #ifndef __HISTORY_H__
 #define __HISTORY_H__
 
+#define XP_WIN
+#define XPCOM_GLUE
+#define MOZILLA_STRICT_API
+
 #ifndef COMPILING_RC
 #  include <windows.h>
 #  include <commctrl.h>
