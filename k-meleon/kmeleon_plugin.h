@@ -42,7 +42,7 @@ class nsIWebBrowser;
 #define __KMELEON_PLUGIN_H__
 
 #define KMEL_PLUGIN_VER_MAJOR 0x0200
-#define KMEL_PLUGIN_VER_MINOR 0x0003
+#define KMEL_PLUGIN_VER_MINOR 0x0004
 #define KMEL_PLUGIN_VER KMEL_PLUGIN_VER_MAJOR | KMEL_PLUGIN_VER_MINOR
 
 #ifdef KMELEON_PLUGIN_EXPORTS
@@ -79,6 +79,8 @@ enum WindowVarType {
 	Window_Title = 2,       // char*
 	Window_TextZoom = 3,    // int
 	Window_URL = 4,         // char*
+	Window_Number = 10,     // int
+	Window_Tab_Number = 11, // int
 
 	// Read Only
 	Window_SelectedText = 100, // wchar_t*
