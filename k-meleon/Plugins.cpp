@@ -825,6 +825,20 @@ UINT GetWindowVar(HWND hWnd, WindowVarType type, void* ret)
 			break;
 		}
 
+		case Window_Number: {
+			if (ret) *(int*)ret = theApp.m_FrameWndLst.GetCount();
+			return 1;
+		}
+
+		case Window_Tab_Number: {
+			if (!ret) return 1;
+			if (frame->IsKindOf(RUNTIME_CLASS(CBrowserFrmTab)))
+				*(int*)ret = ((CBrowserFrmTab*)frame)->GetTabCount();
+			else
+				*(int*)ret = 1;
+			return 1;
+		}
+
 		default: 
 			retLen = 0;
 	}
@@ -1501,8 +1515,11 @@ kmeleonPlugin * CPlugins::Load(CString file)
    kPlugin->dllname = safe_strdup(T2CA(pluginName));
 
    int loaded = kPlugin->loaded = TestLoad(pluginName, kPlugin->description);
-
-   if (kPlugin->version < KMEL_PLUGIN_VER_MAJOR) {
+   if (kPlugin->version < KMEL_PLUGIN_VER_MAJOR
+/*#ifdef _UNICODE	  
+   || kPlugin->version < 0x0204
+#endif*/
+	   ) {
       CString error;
       error.Format(IDS_OLD_PLUGIN, theApp.lang.Translate(A2CT(kPlugin->description)));
       AfxMessageBox(error);
