@@ -597,7 +597,7 @@ void CTabReBar::HandleMouseClick(int flag, CPoint point)
 				tab = (CBrowserTab*)button.dwData;
 			}
 			ClientToScreen(&point);
-			UINT cmd = menu->TrackPopupMenu(TPM_NONOTIFY | TPM_RETURNCMD | TPM_LEFTALIGN | TPM_RIGHTBUTTON, point.x, point.y, GetParentFrame(), rect);
+			UINT cmd = menu->TrackPopupMenu( TPM_RETURNCMD | TPM_LEFTALIGN | TPM_RIGHTBUTTON, point.x, point.y, GetParentFrame(), rect);
 			
 			// XXX Change temporarily the active tab so that the menu 
 			// action affect the focussed tab
