@@ -1257,6 +1257,20 @@
 				_itoa(zoom, buf, 10);
 				return buf;
 			}
+
+			if (name == "WindowNumber")
+			{
+				int nb;
+				kPlugin.kFuncs->GetWindowVar(data->c.hWnd, Window_Number, &nb);
+				return nb;
+			}
+
+			if (name == "TabNumber")
+			{
+				int nb;
+				kPlugin.kFuncs->GetWindowVar(data->c.hWnd, Window_Tab_Number, &nb);
+				return nb;
+			}
 			
 			if (name == "URLBAR")
 				type = Window_UrlBar;
