@@ -1460,7 +1460,8 @@ static void CreateNewObject(HWND hTree, HTREEITEM fromItem, int type, int mode) 
 
 static void ChangeSpecialFolder(HWND hTree, HTREEITEM *htiOld, HTREEITEM htiNew, int flag) {
    TVITEMEX itemData;
-
+   
+   // This function still fail somewhere
    CBookmarkNode *node = GetBookmarkNode(hTree, htiNew);
 
    if (node->type != BOOKMARK_FOLDER){
@@ -1477,18 +1478,17 @@ static void ChangeSpecialFolder(HWND hTree, HTREEITEM *htiOld, HTREEITEM htiNew,
    if (*htiOld) {
       itemData.mask = TVIF_PARAM;
       itemData.hItem = *htiOld;
-      if (!TreeView_GetItem(hTree, &itemData))
-		  return;
-      node = (CBookmarkNode *)itemData.lParam;
-
-      node->flags &= ~flag;
-
-      if (!node->flags) {
-         // if not special anymore, set back to normal folder icons
-         itemData.mask = TVIF_IMAGE | TVIF_SELECTEDIMAGE;
-         itemData.iImage = IMAGE_FOLDER_CLOSED;
-         itemData.iSelectedImage = IMAGE_FOLDER_OPEN;
-         TreeView_SetItem(hTree, &itemData);
+      if (TreeView_GetItem(hTree, &itemData))
+	  {
+         node = (CBookmarkNode *)itemData.lParam;
+         node->flags &= ~flag;
+         if (!node->flags) {
+            // if not special anymore, set back to normal folder icons
+            itemData.mask = TVIF_IMAGE | TVIF_SELECTEDIMAGE;
+            itemData.iImage = IMAGE_FOLDER_CLOSED;
+            itemData.iSelectedImage = IMAGE_FOLDER_OPEN;
+            TreeView_SetItem(hTree, &itemData);
+         }
       }
    }
 
