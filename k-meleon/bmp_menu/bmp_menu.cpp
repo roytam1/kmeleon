@@ -168,11 +168,12 @@ void ParseConfig(char *buffer) {
    BOOL currentBitmap = false;
    int index = 0;
    
-   char *p;
-   while ((p = strtok(NULL, "\n")) != NULL) {
+   char *p = strtok(buffer, "\n");
+   while (p != NULL) {
       
       // ignore the comments
       if (*p == '#') {
+         p = strtok(NULL, "\n");
          continue;
       }
       else if (!currentBitmap) {
@@ -209,6 +210,7 @@ void ParseConfig(char *buffer) {
          if ( strchr( p, '}' )) {
             currentBitmap = false;
             index = ImageList_GetImageCount(hImageList);
+            p = strtok(NULL, "\n");	     
             continue;
          }
          
@@ -244,6 +246,7 @@ void ParseConfig(char *buffer) {
          bmpMap[id] = index;
          index++;
       }
+	  p = strtok(NULL, "\n");
    }
 }
 
@@ -285,11 +288,10 @@ int Init() {
    if (cfgFile){
       long cfgFileSize = FileSize(cfgFile);
 
-      char *cfgFileBuffer = new char[cfgFileSize];
+      char *cfgFileBuffer = new char[cfgFileSize+1];
       if (cfgFileBuffer) {
          fread(cfgFileBuffer, sizeof(char), cfgFileSize, cfgFile);
-
-         strtok(cfgFileBuffer, "\n");
+         cfgFileBuffer[cfgFileSize] = 0;
          ParseConfig(cfgFileBuffer);
 
          delete [] cfgFileBuffer;
