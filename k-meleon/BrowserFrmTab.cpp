@@ -370,7 +370,8 @@ void CBrowserFrmTab::SetActiveBrowser(CBrowserTab* aNewActiveTab)
 	UpdateTitle(m_wndCBrowserTab->GetBrowserGlue()->mTitle);
 	UpdateSecurityStatus(m_wndCBrowserTab->GetBrowserGlue()->mSecurityState);
 	UpdatePopupNotification(m_wndCBrowserTab->GetBrowserGlue()->mPopupBlockedHost);
-	UpdateLocation(m_wndCBrowserTab->GetBrowserGlue()->mLocation);
+	// XXX I think we shouldn't need to force the update here 
+	UpdateLocation(m_wndCBrowserTab->GetBrowserGlue()->mLocation, TRUE);
 	UpdateLoading(m_wndCBrowserTab->GetBrowserGlue()->mLoading);
 	UpdateProgress(m_wndCBrowserTab->GetBrowserGlue()->mProgressCurrent, m_wndCBrowserTab->GetBrowserGlue()->mProgressMax);
 	UpdateSiteIcon(theApp.favicons.GetIcon(m_wndCBrowserTab->GetBrowserGlue()->mIconURI));
