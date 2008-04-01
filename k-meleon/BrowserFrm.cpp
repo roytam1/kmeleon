@@ -215,7 +215,7 @@ BOOL CBrowserFrame::PreTranslateMessage(MSG* pMsg)
             return 0;
       }
 	  else if (MapVirtualKey(pMsg->wParam, 2  /*MAPVK_VK_TO_CHAR*/) != 0) {
-         if (!(GetKeyState(VK_CONTROL) & 0x8000) && (GetActiveView()->IsChild(GetFocus()) && GetActiveView()->GetBrowserWrapper()->InputHasFocus()))
+         if (!(GetKeyState(VK_CONTROL) & 0x8000) && (!GetActiveView()->IsChild(GetFocus()) || GetActiveView()->GetBrowserWrapper()->InputHasFocus()))
             return 0;
 	  }
 
