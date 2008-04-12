@@ -414,7 +414,7 @@
 
 		int cmd;
 		kPlugin.kFuncs->SendMessage(plugin, PLUGIN_NAME, "DoAccel", (long)(const char*)param, (long)&cmd);
-		SendMessage(data->c.hWnd, WM_COMMAND, cmd, NULL);
+		SendMessage(data->c.hWnd, WM_COMMAND, MAKELONG(cmd, 1), NULL);
 		return "";
 	}
 

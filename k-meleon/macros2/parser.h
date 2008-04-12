@@ -956,11 +956,11 @@ public:
 		case TK_MACROINFO:
 			lex.nexttoken();
 			skip(TK_ASSIGN);
-			skip(TK_STRING);
+			//skip(TK_STRING);
 			assert(currentMd);
 			if (!currentMd) skipstmt();
-			else currentMd->macroinfo = lex.data.strval();
-			skip(TK_SEP);
+			else currentMd->macroInfo = evalexpr();//lex.data.strval();
+			//skip(TK_SEP);
 			return NULL;
 
 		case TK_MENUCHECK:

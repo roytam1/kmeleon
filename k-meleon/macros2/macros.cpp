@@ -47,6 +47,7 @@ int          DoAccel(char *param);
 long         DoMessage(const char *to, const char *from, const char *subject, long data1, long data2);
 int          FindCommand(char *macroName);
 int          GetConfigFiles(configFileType **configFiles);
+int          GetCmds(kmeleonCommand* cmdList, long size);
 int          Load();
 bool         LoadMacros(TCHAR *filename);
 void         Close(HWND hWnd);
@@ -159,11 +160,14 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
 		if (stricmp(subject, "Load") == 0) {
 			Load();
 		}
-		if (stricmp(subject, "Setup") == 0) {
+		else if (stricmp(subject, "Init") == 0) {
+			ExecuteMacro(NULL, "OnInit", false);
+		}
+		else if (stricmp(subject, "Setup") == 0) {
 			ExecuteMacro(NULL, "OnSetup", false);
 		}
-		if (stricmp(subject, "Init") == 0) {
-			ExecuteMacro(NULL, "OnInit", false);
+		else if (stricmp(subject, "UserSetup") == 0) {
+			ExecuteMacro(NULL, "OnUserSetup", false);
 		}
 		else if (stricmp(subject, "Create") == 0) {
 			Create((HWND)data1);
@@ -174,17 +178,14 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
 		else if (stricmp(subject, "DestroyTab") == 0) {
 			ExecuteMacro((HWND)data1, "OnCloseTab", false);
 		}
+		else if (stricmp(subject, "Close") == 0) {
+			Close((HWND)data1);
+		}
 		else if (stricmp(subject, "Config") == 0) {
 			Config((HWND)data1);
 		}
 		else if (stricmp(subject, "Quit") == 0) {
 			Quit();
-		}
-		else if (stricmp(subject, "Close") == 0) {
-			Close((HWND)data1);
-		}
-		else if (stricmp(subject, "CloseFrame") == 0) {
-			CloseFrame((HWND)data1, data2);
 		}
 		else if (stricmp(subject, "DoMenu") == 0) {
 			DoMenu((HMENU)data1, (char *)data2);
@@ -193,11 +194,13 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
 			DoRebar((HWND)data1);
 		}
 		else if (stricmp(subject, "DoAccel") == 0) {
-
 			*(int *)data2 = DoAccel((char *)data1);
 		}
 		else if (stricmp(subject, "GetConfigFiles") == 0) {
 			*(int *)data2 = GetConfigFiles((configFileType**)data1);
+		}
+		else if (stricmp(subject, "GetCmds") == 0) {
+			return GetCmds((kmeleonCommand*)data1, data2);
 		}
 		else return 0;
 
@@ -466,6 +469,15 @@ public:
 		return TRUE;
 	}
 
+	int getfromname(const char* macro, const char* arg) {
+		class Node *ptr = root;
+		while (ptr && (strcmp(ptr->macro.c_str(), macro) || strcmp(ptr->arg.c_str(), arg)))
+			ptr = ptr->next;
+		if (ptr)
+			return ptr->id;
+		return 0;
+	}
+
 	bool execute(HWND hWnd, int id) {
 		if (id < min || id > max)
 			return false;
@@ -623,6 +635,40 @@ int GetConfigFiles(configFileType **configFiles)
 	*configFiles = g_configFiles;
 
 	return 1;
+}
+
+int GetCmds(kmeleonCommand* cmdList, long size)
+{
+	int count = 0;
+	TDS::iterator iter;   
+	for( iter = M->tds.begin(); iter != M->tds.end(); iter++ ) {
+		if (iter->second.ismacro() && iter->second.md->macroInfo)
+			count++;
+	}
+	if (!cmdList || !count) return count;
+
+	count = 0;
+	for( iter = M->tds.begin(); iter != M->tds.end(); iter++ ) {
+		if (!iter->second.ismacro() || !iter->second.md->macroInfo)
+			continue;
+
+		Context c = {NULL};
+		Evaluator e(M, c);
+		MString str = e.EvalExpr(iter->second.md->macroInfo).strval();
+		strncpy(cmdList->desc, CUTF8_to_ANSI(str.c_str()), sizeof(cmdList->desc));
+		cmdList->desc[sizeof(cmdList->desc)-1] = 0;
+
+		std::string name = std::string(kPlugin.dllname)+"("+iter->first+")";
+		strncpy(cmdList->cmd, CUTF8_to_ANSI(name.c_str()), sizeof(cmdList->cmd));
+		cmdList->cmd[sizeof(cmdList->cmd)-1] = 0;
+		cmdList->id = arglist->getfromname(iter->first.c_str(), "");
+
+		count++;
+		if (--size == 0) break;
+	}
+
+	return count;
+
 }
 
 void Close(HWND hWnd) {
@@ -811,8 +857,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			break;
 		
 		Value* macro = M->FindSymbol(macroname);
-		if (macro && macro->ismacro()) {
-			kPlugin.kFuncs->SetStatusBarText(ansi_from_utf8(macro->md->macroinfo.c_str()));
+		if (macro && macro->ismacro() && macro->md->macroInfo) {
+			Context c = {hWnd};
+			Evaluator e(M, c);
+			kPlugin.kFuncs->SetStatusBarText(CUTF8_to_ANSI(e.EvalExpr(macro->md->macroInfo).strval()));
 			return 0;
 		}
 
