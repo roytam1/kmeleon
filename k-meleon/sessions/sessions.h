@@ -126,7 +126,7 @@ public:
 
 		if (shcount<=0) return false;
 
-		this->hWnd = kPlugin.kFuncs->NavigateTo(NULL, currenttab ? OPEN_NORMAL : OPEN_NEWTAB, parent);
+		this->hWnd = kPlugin.kFuncs->NavigateTo("", currenttab ? OPEN_NORMAL : OPEN_NEWTAB, parent);
 		if (!hWnd) return false;
 
 		const char** aUrls  = (const char**)new char*[shcount];
@@ -614,6 +614,7 @@ public:
 			Window::deletetabpref(prefname + ".window" + itos(j));
 			kPlugin.kFuncs->DelPreference((char*)(prefname + ".window" + itos(j)).c_str());
 		}
+		kPlugin.kFuncs->DelPreference((prefname + ".count").c_str());
 	}
 
 
