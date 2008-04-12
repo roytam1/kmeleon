@@ -39,6 +39,7 @@
 #include "../Utils.h"
 #include "../DialogUtils.h"
 #include "../rebar_menu/hot_tracking.h"
+#define WM_DEFERHOTTRACK WM_USER+11
 
 #include "BookmarkNode.h"
 
@@ -1339,8 +1340,9 @@ void OpenURL(char *url, int mode = 0)
 
 		case 1: pref = PREFERENCE_BOOKMARKS_OPENURLM; break;
 		case 2: pref = PREFERENCE_BOOKMARKS_OPENURLR; break;
-		case 0: pref = PREFERENCE_BOOKMARKS_OPENURL; break;
-		default: return;
+		case 0:
+		default:
+			pref = PREFERENCE_BOOKMARKS_OPENURL; break;
 	}
 
 	kPlugin.kFuncs->GetPreference(PREF_STRING, pref, szOpenURLcmd, (char*)"");
@@ -1505,7 +1507,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
           return true;
 	  }
 	  else if (CBookmarkNode *node = gBookmarkRoot->FindNode(command)) {
-	     OpenBookmark(node, hWnd);
+	     OpenBookmark(node, hWnd, lParam);
          return true;
       }
 	  

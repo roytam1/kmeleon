@@ -126,6 +126,10 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
       else if (stricmp(subject, "FindNick") == 0) {
          findNick((char *)data1, (char **)data2);
       }
+	  else if (stricmp(subject, "DoLocale") == 0) {
+         if (gLoc) delete gLoc;
+		 gLoc = Locale::kmInit(&kPlugin);
+	  }
       else return 0;
 
       return 1;
@@ -364,14 +368,14 @@ void DoRebar(HWND rebarWnd) {
    }*/
 
    // Create the toolbar control to be added.
-   HWND hWndTmp = CreateWindowEx(0, TOOLBARCLASSNAME, _T(""),
+   /*HWND hWndTmp = CreateWindowEx(0, TOOLBARCLASSNAME, _T(""),
       WS_CHILD | dwStyle,
       0,0,0,0,
       rebarWnd, (HMENU)200,
       kPlugin.hDllInstance, NULL
       );
-	
-   //HWND hWndTmp = kPlugin.kFuncs->CreateToolbar(GetParent(rebarWnd), CCS_NODIVIDER | CCS_NOPARENTALIGN | CCS_NORESIZE | TBSTYLE_FLAT | TBSTYLE_TRANSPARENT | TBSTYLE_TOOLTIPS | TBSTYLE_LIST );
+	*/
+   HWND hWndTmp = kPlugin.kFuncs->CreateToolbar(GetParent(rebarWnd), CCS_NODIVIDER | CCS_NOPARENTALIGN | CCS_NORESIZE | TBSTYLE_FLAT | TBSTYLE_TRANSPARENT | TBSTYLE_TOOLTIPS | TBSTYLE_LIST );
    if (!hWndTmp){
      MessageBox(NULL, TOOLBAND_FAILED_TO_CREATE, NULL, 0);
      return;
