@@ -127,7 +127,14 @@ void BuildSessionMenu()
 	for(int i=0;sessions_list[i];i++)
 	{
 		if (stricmp(sessions_list[i], kLastSessionName)!=0) 
-			AppendMenuA(sessionsMenu, MF_STRING, last_session_id, sessions_list[i]);
+		{
+			const TCHAR* label;
+			if (strcmp(sessions_list[i], kPreviousSessionName) == 0)
+				AppendMenu(sessionsMenu, MF_STRING, last_session_id, gLoc->GetString(IDS_PREVIOUS_SESSION));
+			else
+				AppendMenu(sessionsMenu, MF_STRING, last_session_id, sessions_list[i]);
+			
+		}
 		last_session_id++;
 		if (last_session_id>id_load_session + MAX_SAVED_SESSION) break;
 	}
@@ -269,6 +276,10 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
 	  else if (stricmp(subject, "Quit") == 0) {
          Quit();
       }
+	  else if (stricmp(subject, "DoLocale") == 0) {
+         if (gLoc) delete gLoc;
+		 gLoc = Locale::kmInit(&kPlugin);
+	  }
       else return 0;
 
       return 1;
@@ -304,9 +315,6 @@ int Load() {
 
    gLoc = Locale::kmInit(&kPlugin);
 
-   kPreviousSessionName = strdup(CT_to_UTF8(gLoc->GetString(IDS_PREVIOUS_SESSION)));
-   kLastSessionName = strdup(CT_to_UTF8(gLoc->GetString(IDS_LAST_SESSION)));
-
    id_undo_close = kPlugin.kFuncs->GetCommandIDs(1);
    id_save_session = kPlugin.kFuncs->GetCommandIDs(1);
    id_config = kPlugin.kFuncs->GetCommandIDs(1);
@@ -316,7 +324,7 @@ int Load() {
    // This session list is really some bad stuff because
    // plugins can't enumerate preferences
    GetSessionList();
-   AddSessionList(CUTF8_to_ANSI(kPreviousSessionName));
+   AddSessionList(kPreviousSessionName);
    return 1;
 }
 
@@ -513,9 +521,52 @@ void Quit()
 
 	bool b = true;
     kFuncs->SetPreference(PREF_BOOL, PREFERENCE_CLEANSHUTDOWN, &b, TRUE);
-	delete kPreviousSessionName;
-	delete kLastSessionName;
 	delete gLoc;
+}
+
+void ConfigInitSelect(HWND hwnd)
+{
+	char* name = new char[256];
+	kFuncs->GetPreference(PREF_STRING, PREFERENCE_SESSION_OPENSTART, name, "");
+
+	for (int i=0;sessions_list[i];i++)
+	{
+		LRESULT index, index2;
+
+		if (strcmp(sessions_list[i], kPreviousSessionName) == 0)
+		{
+			index = SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST, CB_ADDSTRING, 
+				0, (LPARAM)(LPCTSTR)gLoc->GetString(IDS_PREVIOUS_SESSION)); 
+			index2 = SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST2, CB_ADDSTRING, 
+				0, (LPARAM)(LPCTSTR)gLoc->GetString(IDS_PREVIOUS_SESSION)); 
+		}
+		else if (strcmp(sessions_list[i], kLastSessionName) == 0)
+		{
+			index = SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST, CB_ADDSTRING, 
+				0, (LPARAM)(LPCTSTR)gLoc->GetString(IDS_LAST_SESSION)); 
+			index2 = SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST2, CB_ADDSTRING, 
+				0, (LPARAM)(LPCTSTR)gLoc->GetString(IDS_LAST_SESSION)); 
+		}
+		else
+		{
+			index = SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST, CB_ADDSTRING, 
+				0, (LPARAM)(LPCTSTR)CANSI_to_T(sessions_list[i])); 
+			index2 = SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST2, CB_ADDSTRING, 
+				0, (LPARAM)(LPCTSTR)CANSI_to_T(sessions_list[i])); 
+		}
+
+		SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST, CB_SETITEMDATA, 
+			index, (LPARAM)i);
+
+		if (strcmp(name, sessions_list[i]) == 0)
+			SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST, CB_SETCURSEL, index, 0); 
+
+		SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST2, CB_SETITEMDATA, 
+			index2, (LPARAM)i); 
+
+	}
+
+	delete name;
 }
 
 BOOL CALLBACK
@@ -525,41 +576,22 @@ ConfigDlgProc( HWND hwnd,
 			  LPARAM lParam )
 {
 	switch (Message) {
-	  case WM_INITDIALOG: {
-			char* name = new char[256];
-   	 		kFuncs->GetPreference(PREF_STRING, PREFERENCE_SESSION_OPENSTART, name, "");
+		case WM_INITDIALOG: {
 			
-		  for (int i=0;sessions_list[i];i++)
-		  {
-			  LRESULT index;
-			  index = SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST, CB_ADDSTRING, 
-				0, (LPARAM)(LPCTSTR)CANSI_to_T(sessions_list[i])); 
-			  SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST, CB_SETITEMDATA, 
-				index, (LPARAM)i);
-			  if (strcmp(name, sessions_list[i]) == 0)
-				  SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST, CB_SETCURSEL, index, 0); 
+			ConfigInitSelect(hwnd);
+		
+			int b=0;
+			kFuncs->GetPreference(PREF_BOOL, PREFERENCE_SESSION_AUTOLOAD, (void*)&b, (void*)&b);
+			CheckDlgButton(hwnd, IDC_CHECK_AUTOLOAD, b);
+			b=0;
+			kFuncs->GetPreference(PREF_BOOL, PREFERENCE_SESSION_ASKAUTOLOAD, (void*)&b, (void*)&b);
+			CheckDlgButton(hwnd, IDC_CHECK_ASK, b);
 
-			  index = SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST2, CB_ADDSTRING, 
-				0, (LPARAM)(LPCTSTR)CANSI_to_T(sessions_list[i])); 
-			  SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST2, CB_SETITEMDATA, 
-				index, (LPARAM)i); 
-
-		  }
-
-			delete name;
-
-		  int b=0;
-		  kFuncs->GetPreference(PREF_BOOL, PREFERENCE_SESSION_AUTOLOAD, (void*)&b, (void*)&b);
-		  CheckDlgButton(hwnd, IDC_CHECK_AUTOLOAD, b);
-		  b=0;
-		  kFuncs->GetPreference(PREF_BOOL, PREFERENCE_SESSION_ASKAUTOLOAD, (void*)&b, (void*)&b);
-		  CheckDlgButton(hwnd, IDC_CHECK_ASK, b);
-
-		  int gMaxUndo = 5;
-		  kFuncs->GetPreference(PREF_INT, PREFERENCE_SESSION_MAXUNDO, (void*)&gMaxUndo, (void*)&gMaxUndo);
-		  SetDlgItemInt(hwnd, IDC_EDIT_MAXUNDO, gMaxUndo, FALSE);
-		  return TRUE;
-		 }
+			int gMaxUndo = 5;
+			kFuncs->GetPreference(PREF_INT, PREFERENCE_SESSION_MAXUNDO, (void*)&gMaxUndo, (void*)&gMaxUndo);
+			SetDlgItemInt(hwnd, IDC_EDIT_MAXUNDO, gMaxUndo, FALSE);
+			return TRUE;
+		}
 
 	  case WM_COMMAND:
 
@@ -597,26 +629,7 @@ ConfigDlgProc( HWND hwnd,
 				SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST, CB_RESETCONTENT, 0, 0);
 				SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST2, CB_RESETCONTENT, 0, 0);
 
-
-
-		  for (int i=0;sessions_list[i];i++)
-		  {
-			  LRESULT index;
-			  index = SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST, CB_ADDSTRING, 
-				0, (LPARAM) sessions_list[i]); 
-			  SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST, CB_SETITEMDATA, 
-				index, (LPARAM)i);
-			  if (name && strcmp(name, sessions_list[i]) == 0)
-				  SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST, CB_SETCURSEL, index, 0); 
-
-			  index = SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST2, CB_ADDSTRING, 
-				0, (LPARAM) sessions_list[i]); 
-			  SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST2, CB_SETITEMDATA, 
-				index, (LPARAM)i); 
-
-		  }
-
-			
+				ConfigInitSelect(hwnd);			
 			}
 				break;
 		  }
