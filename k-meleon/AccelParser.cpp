@@ -113,7 +113,7 @@ int CAccelParser::Parse(char *p)
    return 0;
 }
 
-int CAccelParser::SetAccel(const char* pKey, char* pCommand)
+int CAccelParser::SetAccel(const char* pKey, const char* pCommand)
 {
 	int command = 0;
 	const char *alt, *ctrl, *shift;
@@ -121,21 +121,10 @@ int CAccelParser::SetAccel(const char* pKey, char* pCommand)
 	BYTE virt;
     int key;
 
-	char *plugin, *parameter;
-	if (ParsePluginCommand(pCommand, &plugin, &parameter))
-	{
-		if (theApp.plugins.SendMessage(plugin, "* AccelParser", "DoAccel", (long)parameter, (long)&command)) {
-			LOG_2("Called plugin %s with parameter %s", plugin, parameter);
-		}
-		else {
-			LOG_ERROR_2( "Plugin %s has no accelerator %s", plugin, parameter);
-			return 0;
-		}
-	}
-	else {
-		command = theApp.GetID(pCommand);
-		if (!command)
-			command = atoi(pCommand);
+	command = theApp.commands.GetId(pCommand);
+	if (!command) {
+		LOG_ERROR_1( "Command %s is unknow", pCommand);
+		return 0;
 	}
 
 	virt = 0;
@@ -294,6 +283,7 @@ int CAccelParser::SetAccel(const char* pKey, char* pCommand)
 
       virt |= FVIRTKEY;
       SetAccel(command, virt, key);
+	  LOG_2("Added accelerator %s with command %s", pKey, pCommand);
 
    return true;
 }

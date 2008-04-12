@@ -174,18 +174,14 @@ const char *FileNoPath(const char *filepath)
    }
 }
 
-
-UINT currentCmdID = PLUGIN_COMMAND_START_ID;
 UINT GetCommandIDs(int num)
 {
-   UINT freeID = currentCmdID;
-   currentCmdID += num;
-   return freeID;
+   return theApp.commands.AllocateId(num);
 }
 
 int CPlugins::OnUpdate(UINT command)
 {
-   if (command >= PLUGIN_COMMAND_START_ID && command <= currentCmdID)
+   if (theApp.commands.IsPluginCommand(command))
       return true;
    return false;
 }
@@ -529,35 +525,10 @@ HWND CreateToolbar(HWND hWnd, UINT style) {
 }
 
 int GetID(const char *strID) {
-
-   int ID = theApp.GetID(strID);
-
-   if (!ID) {
-      char *plugin = strdup(strID);
-      char *parameter = strchr(plugin, '(');
-      if (parameter) {
-         *parameter = 0;
-
-		 int c = 1;
-		 char* close = parameter++;
-
-		 while ( *(++close) ) {
-			 if (*close == '(')
-				 c++;
-			 else if (*close == ')') {
-				 c--;
-				 if (!c) break;
-			 }
-		 }
-		 *close = 0;
-      }
-     
-      theApp.plugins.SendMessage(plugin, "* GetID", "DoAccel", (long) parameter, (long)&ID);
-      free(plugin);
-   }
-
-   return ID;
+   USES_CONVERSION;
+   return theApp.commands.GetId(A2CT(strID));
 }
+
 /*
 kmeleonPointInfo *GetInfoAtNode(nsIDOMNode* aNode)
 {
@@ -1286,7 +1257,7 @@ BOOL InjectJS(const char* js, int bTopWindow, HWND hWnd)
 	return browser->InjectJS(js2.get(), bTopWindow==1);
 }
 
-BOOL InjectCSS(const char* css, bool bAll, HWND hWnd)
+BOOL InjectCSS(const char* css, BOOL bAll, HWND hWnd)
 {
 	CBrowserFrame *frame = GetFrame(hWnd);
 	if (!frame) return FALSE;
@@ -1318,47 +1289,44 @@ long GetFolder(FolderType type, char* path, size_t size)
    return csPath.GetLength();
 }
 
-BOOL GetWindowsList(HWND* list, unsigned* count)
+BOOL GetWindowsList(HWND* list, unsigned size)
 {
-	if (!count) return FALSE;
+	INT_PTR count = theApp.m_FrameWndLst.GetCount();
+	if (!list) return count;
 
-	*count = theApp.m_FrameWndLst.GetCount();
-	if (!*count) return FALSE;
-
-	if (list) {
-		POSITION pos = theApp.m_FrameWndLst.GetHeadPosition();
-		unsigned i = 0;
-		while (pos) {
-			CFrameWnd* frame = (CFrameWnd*)theApp.m_FrameWndLst.GetNext(pos);
-			*(list+i) = frame->GetSafeHwnd();
-			i++;
-		}
+	POSITION pos = theApp.m_FrameWndLst.GetHeadPosition();
+	unsigned i = 0;
+	while (pos) {
+		CFrameWnd* frame = (CFrameWnd*)theApp.m_FrameWndLst.GetNext(pos);
+		*(list+i) = frame->GetSafeHwnd();
+		if (--size == 0) break;
+		i++;
 	}
 
-	return TRUE;
+	return i;
 }
 
-BOOL GetTabsList(HWND hWnd, HWND* list, unsigned* count)
+BOOL GetTabsList(HWND hWnd, HWND* list, unsigned size)
 {
-	if (!count) return FALSE;
-
 	CBrowserFrame* frame = GetFrame(hWnd);
 	if (!frame) return FALSE;
 
 	if (!frame->IsKindOf(RUNTIME_CLASS(CBrowserFrmTab))) {
-		*count = 1;
-		if (list) *list = frame->m_hWnd;
+		if (list && size) *list = frame->m_hWnd;
+		return 1;
 	}
 
 	CBrowserFrmTab* tabFrame = (CBrowserFrmTab*)frame;
-	*count = tabFrame->GetTabCount();
-	if (!*count) return FALSE;
-	
-	if (list) 
-		for (unsigned i=0; i<*count; i++) 
-			list[i] = tabFrame->GetTabIndex(i)->GetSafeHwnd();
+	int count = tabFrame->GetTabCount();
+	if (!list) return count;
 
-	return TRUE;
+	int i;
+	for (i=0; i<count; i++) {
+		list[i] = tabFrame->GetTabIndex(i)->GetSafeHwnd();
+		if (--size == 0) break;
+	}
+
+	return i;
 }
 
 UINT GetIconIdx(const char* host)
@@ -1366,6 +1334,55 @@ UINT GetIconIdx(const char* host)
 	USES_CONVERSION;
 	return theApp.favicons.GetHostIcon(A2CT(host));
 }
+
+void ReleaseCmdID(UINT id)
+{
+	theApp.commands.ReleaseId(id);
+}
+
+UINT RegisterCmd(const char* cmd, const char* plugin, unsigned nbArgs)
+{
+	USES_CONVERSION;
+	return theApp.commands.RegisterCommand(A2CT(plugin), A2CT(cmd), nbArgs);
+}
+
+void UnregisterCmd(const char* cmd, const char* plugin)
+{
+	USES_CONVERSION;
+	return theApp.commands.UnregisterCommand(A2CT(plugin), A2CT(cmd));
+}
+
+unsigned GetCmdList(kmeleonCommand* cmdList, unsigned size)
+{
+	int num = theApp.plugins.SendMessage("*", "Urlbar", "GetCmds", 0, 0);
+	num += theApp.commands.GetDefCount();
+
+	if (!cmdList)
+		return num;
+
+	num = theApp.commands.GetList(cmdList, size, TRUE);
+	CPluginList *pluginList = theApp.plugins.GetPlugins();
+	POSITION pos = pluginList->GetStartPosition();
+	kmeleonPlugin * kPlugin;
+	CString s;
+	while (pos) {
+		pluginList->GetNextAssoc( pos, s, kPlugin);
+		if (kPlugin->loaded && kPlugin->DoMessage) {
+			num += kPlugin->DoMessage(kPlugin->dllname, "*", "GetCmds", (long)&cmdList[num], size-num);
+		}
+	}
+
+	return num;
+}
+
+extern BOOL LoadStyleSheet(LPCTSTR path, BOOL load);
+
+BOOL LoadCSS(const char* path, BOOL load)
+{
+	USES_CONVERSION;
+	return LoadStyleSheet(A2CT(path), load);
+}
+
 
 kmeleonFunctions kmelFuncs = {
    SendMessage,
@@ -1420,7 +1437,13 @@ kmeleonFunctions kmelFuncs = {
    SetMozillaSessionHistory,
    GetWindowsList,
    GetTabsList,
-   GetIconIdx
+   GetIconIdx,
+   ReleaseCmdID,
+   RegisterCmd,
+   UnregisterCmd,
+   GetCmdList,
+   LoadCSS,
+   NULL
 };
 
 BOOL CPlugins::TestLoad(LPCTSTR file, const char *description)
@@ -1460,8 +1483,6 @@ kmeleonPlugin * CPlugins::Load(CString file)
 {
    file.TrimLeft();
    file.TrimRight();
-
-   LogMessage("javascript", "Coucou", CT2A(file), 10, 0);
 
    int filePos = file.ReverseFind(_T('\\'));
    int filePos2 = file.ReverseFind(_T('/'));
@@ -1605,7 +1626,8 @@ void CPlugins::UnLoadAll()
       }
    }
    pluginList.RemoveAll();
-   currentCmdID = PLUGIN_COMMAND_START_ID;
+   theApp.commands.InitPluginCmdList();
+   //currentCmdID = PLUGIN_COMMAND_START_ID;
 }
 
 int CPlugins::GetConfigFiles(configFileType *configFiles, int maxFiles)
@@ -1629,9 +1651,3 @@ int CPlugins::GetConfigFiles(configFileType *configFiles, int maxFiles)
    }
    return numFiles;
 }
-
-BOOL CPlugins::IsPluginCommand(UINT id)
-{ 
-   return (id >= PLUGIN_COMMAND_START_ID && id <= currentCmdID) || IsMenu((HMENU)(id-SUBMENU_OFFSET));
-}
-

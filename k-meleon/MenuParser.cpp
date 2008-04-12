@@ -55,8 +55,6 @@ int CMenuParser::Load(LPCTSTR filename)
    return retVal;
 }
 
-extern int GetID(const char *strID);
-
 int CMenuParser::Parse(char *p)
 {
 	if (!currentKMenu) {
@@ -108,7 +106,7 @@ int CMenuParser::Parse(char *p)
 				*(posInfo++) = 0;
 				posInfo = SkipWhiteSpace(posInfo);
 				TrimWhiteSpace(p);
-				before = GetID(posInfo);
+				before = theApp.commands.GetId(posInfo);
 				if (!before)
 					before = (long)posInfo;
 			}
@@ -134,7 +132,7 @@ int CMenuParser::Parse(char *p)
 
 			case '-': 
 				if (p[1]) { // Deletion
-					item.command = GetID(++p);
+					item.command = theApp.commands.GetId(++p);
 					item.SetLabel("");
 					if (!item.command) {
 						item.command = -1;
@@ -159,7 +157,7 @@ int CMenuParser::Parse(char *p)
 					TrimWhiteSpace(p);
 
 					int val;
-					val = GetID(pszCmd);
+					val = theApp.commands.GetId(pszCmd);
 					if (!val)
 						val = atoi(pszCmd);
 

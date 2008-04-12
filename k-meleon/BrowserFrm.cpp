@@ -74,6 +74,7 @@
 #include "PasswordViewerDlg.h"
 #include "CookiesViewerDlg.h"
 #include "Permissions.h"
+#include "rebar_menu/hot_tracking.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -536,7 +537,8 @@ BOOL CBrowserFrame::OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERIN
     }
 
     // Don't let MFC mess with plugin command
-    if (nCode == CN_UPDATE_COMMAND_UI && theApp.plugins.IsPluginCommand(nID)) {
+    if (nCode == CN_UPDATE_COMMAND_UI && theApp.commands.IsPluginCommand(nID)
+	   || IsMenu(COMMAND_TO_MENU(nID))) {
         ((CCmdUI*)pExtra)->m_bEnableChanged = TRUE;
         return TRUE;
     }
