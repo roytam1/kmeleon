@@ -99,6 +99,10 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
          if (data1 && data2)
             findNick((char *)data1, (char **)data2);
       }
+	  else if (stricmp(subject, "DoLocale") == 0) {
+         if (gLoc) delete gLoc;
+		 gLoc = Locale::kmInit(&kPlugin);
+	  }
       else return 0;
       
       return 1;

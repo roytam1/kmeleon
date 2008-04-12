@@ -84,6 +84,10 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
       else if (stricmp(subject, "Destroy") == 0) {
          Destroy((HWND)data1);
       }
+	  else if (stricmp(subject, "DoLocale") == 0) {
+         if (gLoc) delete gLoc;
+		 gLoc = Locale::kmInit(&kPlugin);
+	  }
       else return 0;
 
       return 1;
