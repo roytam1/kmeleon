@@ -1008,7 +1008,7 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,5,0,20
+ FILEVERSION 1,5,0,24
  PRODUCTVERSION 1,5,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
@@ -1026,11 +1026,11 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "http://kmeleon.sf.net/"
             VALUE "FileDescription", "K-Meleon Web Browser"
-            VALUE "FileVersion", "1, 5, 0, 2"
-            VALUE "LegalCopyright", "Copyright (C) 2001-2007"
+            VALUE "FileVersion", "1, 5, 0, 24"
+            VALUE "LegalCopyright", "Copyright (C) 2001-2008"
             VALUE "OriginalFilename", "k-meleon.exe"
             VALUE "ProductName", "K-Meleon"
-            VALUE "ProductVersion", "1.5a1"
+            VALUE "ProductVersion", "1.5Beta"
         END
     END
     BLOCK "VarFileInfo"
@@ -1690,7 +1690,7 @@ END
 
 STRINGTABLE 
 BEGIN
-    IDS_LANG_VERSION        "1.1.0.3"
+    IDS_LANG_VERSION        "1.5.0.0"
     IDS_LOCALE_ID           "en-US"
 END
 
