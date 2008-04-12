@@ -559,6 +559,9 @@
 				RelativePath="HiddenWnd.cpp">
 			</File>
 			<File
+				RelativePath=".\KmCommand.cpp">
+			</File>
+			<File
 				RelativePath=".\KmMenu.cpp">
 			</File>
 			<File
@@ -841,6 +844,9 @@
 			</File>
 			<File
 				RelativePath="IBrowserFrameGlue.h">
+			</File>
+			<File
+				RelativePath=".\KmCommand.h">
 			</File>
 			<File
 				RelativePath="kmeleon_plugin.h">
