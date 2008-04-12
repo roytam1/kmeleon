@@ -179,6 +179,9 @@ void CPreferences::LocaleChanged()
 {
 	if (theApp.LoadLanguage())
 		theApp.menus.RebuildAll();
+	USES_CONVERSION;
+	CString locale = GetString("general.useragent.locale", _T("en-US"));
+	theApp.plugins.SendMessage("*", "*", "DoLocale", (long)T2CA(locale), 0);
 }
 
 void CPreferences::MRUListChanged()
@@ -198,41 +201,48 @@ void CPreferences::SkinChanged()
 	}
 }
 
-void LoadStyleSheet(nsIURI* uri, BOOL load)
+BOOL LoadStyleSheet(nsIURI* uri, BOOL load)
 {
   nsCOMPtr<nsIStyleSheetService> ssService = do_GetService("@mozilla.org/content/style-sheet-service;1");
-  NS_ENSURE_TRUE(ssService, );
+  NS_ENSURE_TRUE(ssService, FALSE);
 
+  nsresult rv = NS_OK;
   PRBool alreadyRegistered = PR_FALSE;
   ssService->SheetRegistered(uri, nsIStyleSheetService::USER_SHEET, &alreadyRegistered);
   if (alreadyRegistered)
-    ssService->UnregisterSheet(uri, nsIStyleSheetService::USER_SHEET);
+    rv = ssService->UnregisterSheet(uri, nsIStyleSheetService::USER_SHEET);
   
   if (load)
-    ssService->LoadAndRegisterSheet(uri, nsIStyleSheetService::USER_SHEET);
+    rv = ssService->LoadAndRegisterSheet(uri, nsIStyleSheetService::USER_SHEET);
+
+  return NS_SUCCEEDED(rv);
+}
+
+BOOL LoadStyleSheet(LPCTSTR path, BOOL load)
+{
+	nsresult rv;
+	nsCOMPtr<nsILocalFile> adfile;
+#ifdef _UNICODE
+	rv = NS_NewLocalFile(nsDependentString(path), TRUE, getter_AddRefs(adfile));
+#else
+	rv = NS_NewNativeLocalFile(nsDependentCString(path), TRUE, getter_AddRefs(adfile));
+#endif
+	NS_ENSURE_SUCCESS(rv, FALSE);
+
+	nsCOMPtr<nsIIOService> ios = do_GetService("@mozilla.org/network/io-service;1");
+	NS_ENSURE_TRUE(ios, FALSE);
+    
+	nsCOMPtr<nsIURI> uri;
+	rv = ios->NewFileURI(adfile, getter_AddRefs(uri));
+	NS_ENSURE_SUCCESS(rv, FALSE);
+ 
+	return LoadStyleSheet(uri, load);
 }
 
 void LoadAdBlock(BOOL load)
 {
 	CString adblockpath = theApp.GetFolder(DefSettingsFolder) + _T("adblock.css");
-
-	nsresult rv;
-	nsCOMPtr<nsILocalFile> adfile;
-#ifdef _UNICODE
-	rv = NS_NewLocalFile(nsDependentString(adblockpath), TRUE, getter_AddRefs(adfile));
-#else
-	rv = NS_NewNativeLocalFile(nsDependentCString(adblockpath), TRUE, getter_AddRefs(adfile));
-#endif
-	NS_ENSURE_SUCCESS(rv, );
-
-	nsCOMPtr<nsIIOService> ios = do_GetService("@mozilla.org/network/io-service;1");
-	NS_ENSURE_TRUE(ios, );
-    
-	nsCOMPtr<nsIURI> aduri;
-	rv = ios->NewFileURI(adfile, getter_AddRefs(aduri));
-	NS_ENSURE_SUCCESS(rv, );
- 
-	LoadStyleSheet(aduri, load);
+	LoadStyleSheet(adblockpath, load);
 }
 
 void LoadFlashBlock(BOOL load)
