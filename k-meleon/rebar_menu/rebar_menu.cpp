@@ -27,7 +27,9 @@
 #include "../kmeleon_plugin.h"
 #include "../Utils.h"
 
+#define WM_DEFERHOTTRACK WM_USER+10 
 #include "hot_tracking.h"
+
 
 #define _Q(x) #x
 
@@ -323,6 +325,31 @@ void DoRebar(HWND rebarWnd) {
    }
 }
 
+HWND FindMenuBar(HWND hWndParent)
+{
+	HWND hReBar = FindWindowEx(GetActiveWindow(), NULL, REBARCLASSNAME, NULL);
+	int uBandCount = SendMessage(hReBar, RB_GETBANDCOUNT, 0, 0);  
+	int x = 0;
+	BOOL bFound = FALSE;
+	REBARBANDINFO rb;
+	rb.cbSize = sizeof(REBARBANDINFO);
+	rb.fMask = RBBIM_CHILD;
+	while (x < uBandCount && !bFound)
+	{
+		if (!SendMessage(hReBar, RB_GETBANDINFO, (WPARAM) x++, (LPARAM) &rb))
+			continue;
+
+		if (!rb.hwndChild) 
+			continue;
+
+		TCHAR toolbarName[11];
+		GetWindowText(rb.hwndChild, toolbarName, 10);
+		if (_tcscmp(toolbarName, MENU_NAME) == 0)
+			return rb.hwndChild;
+	}
+
+	return NULL;
+}
 
 void ShowMenuUnderButton(HWND hWndParent, HMENU hMenu, int iID) {
    // Find the toolbar
@@ -349,7 +376,7 @@ void ShowMenuUnderButton(HWND hWndParent, HMENU hMenu, int iID) {
       GetWindowText(tb, toolbarName, 10);
       if (_tcscmp(toolbarName, MENU_NAME) != 0) {
 	// oops, this isn't our toolbar
-	continue;
+         continue;
       }
 
       TBBUTTON button;
@@ -407,7 +434,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                // oops, this isn't our toolbar
                return CallWindowProc(KMeleonWndProc, hWnd, message, wParam, lParam);
             }
-
+			//BeginHotTrack(&tbhdr, kPlugin.hDllInstance, hWnd);
             // post a message to defer exceution of BeginHotTrack
             PostMessage(hWnd, WM_DEFERHOTTRACK, NULL, NULL);
 
@@ -429,7 +456,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 	 count = GetMenuItemCount(m_menu);
 
        if (m_menu && i<=count && GetMenuState(m_menu, i, MF_BYPOSITION) & MF_POPUP) {
-         ShowMenuUnderButton(hWnd, m_menu, i);
+         tbhdr.hdr.hwndFrom = FindMenuBar(hWnd);
+         TBBUTTON button;
+         SendMessage(tbhdr.hdr.hwndFrom, TB_GETBUTTON, i, (LPARAM)&button);
+         tbhdr.iItem = button.idCommand;
+		 //BeginHotTrack(&tbhdr, kPlugin.hDllInstance, hWnd);
+		 PostMessage(hWnd, WM_DEFERHOTTRACK, NULL, NULL);
+         //ShowMenuUnderButton(hWnd, m_menu, i);
        }
        else {
 	 if (MAX_KEYBOARD_MENUS - i <= accels_used) {
