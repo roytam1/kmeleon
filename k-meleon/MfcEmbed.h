@@ -49,6 +49,7 @@
 #include "Preferences.h"
 #include "LangParser.h"
 #include "KmMenu.h"
+#include "KmCommand.h"
 #include "AccelParser.h"
 #include "KmeleonConst.h"
 #include "CmdLine.h"
@@ -129,6 +130,7 @@ public:
    CPreferences  preferences;
    CLangParser   lang;
    KmMenuService menus;
+   KmCmdService  commands;
    CAccelParser  accel;
    CCmdLine      cmdline;
 #ifdef INTERNAL_SITEICONS

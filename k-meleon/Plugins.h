@@ -32,12 +32,14 @@ struct configFileType;
 
 extern UINT currentCmdID;
 
+typedef CMap<CString, LPCTSTR, kmeleonPlugin *, kmeleonPlugin *> CPluginList;
+
 class CPlugins {
-  friend CPreferencePagePlugins;
+   friend CPreferencePagePlugins;
 
 protected:
-   CMap<CString, LPCTSTR, kmeleonPlugin *, kmeleonPlugin *> pluginList;
-	int _FindAndLoad(const TCHAR *pattern);
+   CPluginList pluginList;
+   int _FindAndLoad(const TCHAR *pattern);
 
 public:
 	CPlugins();
@@ -47,7 +49,6 @@ public:
 
    BOOL IsLoaded(LPCTSTR pluginName);
    BOOL TestLoad(LPCTSTR file, const char *description);
-   BOOL IsPluginCommand(UINT id);
 
    int FindAndLoad(const TCHAR *pattern = _T("*.dll"));
    kmeleonPlugin * Load(CString file);
@@ -56,6 +57,7 @@ public:
    long SendMessage(const char *to, const char *from, const char *subject, long data1=0, long data2=0);
 
    int GetConfigFiles(configFileType *configFiles, int maxFiles);
+   CPluginList* GetPlugins() { return &pluginList; }
 };
 
 #endif // __PLUGINS_H__

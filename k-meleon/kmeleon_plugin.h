@@ -116,6 +116,13 @@ typedef struct {
 	int score;
 } AutoCompleteResult;
 
+typedef struct _kmeleonCommand {
+	UINT id;
+	char cmd[80];
+	char desc[256];
+} kmeleonCommand;
+
+
 enum PREFTYPE {
    PREF_BOOL,
    PREF_INT,
@@ -246,7 +253,7 @@ typedef struct {
    void (*RemoveStatusBarIcon)(HWND hWnd, int id);
    
    BOOL (*InjectJS)(const char*, int, HWND);
-   BOOL (*InjectCSS)(const char*, bool, HWND);
+   BOOL (*InjectCSS)(const char*, BOOL, HWND);
 
    kmeleonPointInfo *(*GetInfoAtClick) (HWND);
 
@@ -308,10 +315,16 @@ typedef struct {
 // ----------------------------------------------------
 // Addition in K-meleon 1.5
 
-	BOOL (*GetWindowsList) (HWND* list, unsigned* count);
-	BOOL (*GetTabsList)(HWND hWnd, HWND* list, unsigned* count);
-
+	BOOL (*GetWindowsList) (HWND* list, unsigned size);
+	BOOL (*GetTabsList) (HWND hWnd, HWND* list, unsigned size);
 	UINT (*GetIconIdx) (const char* host);
+	void (*ReleaseCmdId) (UINT id);
+	UINT (*RegisterCmd) (const char* name, const char* plugin, unsigned nbArgs); // Do not use yet
+	void (*UnregisterCmd) (const char* name, const char* plugin);
+	unsigned (*GetCmdList) (kmeleonCommand*, unsigned size);
+	BOOL (*LoadCSS) (const char* path, BOOL load);
+	void (*reserved1) ();
+
 
 } kmeleonFunctions;
 

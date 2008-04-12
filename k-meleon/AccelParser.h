@@ -49,7 +49,7 @@ public:
   int Load(LPCTSTR filename);
   int Parse(char *p);
 
-  int SetAccel(const char* key, char* command);
+  int SetAccel(const char* key, const char* command);
   void SetAccel(WORD command, BYTE virt, WORD key);
   void SetMAccel(WORD command, BYTE virt, WORD button);
 
