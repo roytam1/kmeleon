@@ -114,8 +114,8 @@ public:
         SetItem(&ci);
       
         CEdit *edit = GetEditCtrl();
-        if (edit)
-            m_hwndEdit = edit->m_hWnd;
+		if (!edit) return -1;
+        m_hwndEdit = edit->m_hWnd;
 
 		// Bug #783
 #ifdef URLBAR_USE_SETWORDBREAKPROC
