@@ -380,8 +380,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 
         kmeleonPointInfo *pInfo = m_pInfo;
         if (pInfo) {
-            if (pInfo->link)  strcat(szPref, "L");
-            if (pInfo->image) strcat(szPref, "I");
+            if (pInfo->link && *pInfo->link)  strcat(szPref, "L");
+            if (pInfo->image && *pInfo->image) strcat(szPref, "I");
         }
 
 		// HACK: Update the context menu variable of the browser
@@ -409,7 +409,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 		}
         else if (m_rocking)
             m_rocking = FALSE;
-		else if (dir == NOMOVE && m_captured == WM_RBUTTONDOWN && m_virt == 0 && id <= 0) {
+		else if (dir == NOMOVE && m_captured == WM_RBUTTONDOWN /*&& m_virt == 0*/ && id <= 0) {
 			ScreenToClient(targetWnd, &m_posDown);
 			//PostMessage(targetWnd, WM_RBUTTONDOWN, wParam, MAKELONG(m_posDown.x, m_posDown.y));
 			PostMessage(targetWnd, WM_RBUTTONUP, wParam, MAKELONG(m_posDown.x, m_posDown.y));

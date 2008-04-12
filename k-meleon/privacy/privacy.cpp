@@ -280,7 +280,7 @@ void ClearMRU()
         sprintf(PrefName, "%s%i", PREFERENCE_MRU_URL, i);
         kFuncs->SetPreference(PREF_STRING, PrefName, (void*)"", FALSE);
     }
-    kFuncs->BroadcastMessage(UWM_REFRESHMRULIST, 0, 0);
+    //kFuncs->BroadcastMessage(UWM_REFRESHMRULIST, 0, 0);
 }
 
 // Process the Shutdown tasks
@@ -444,6 +444,10 @@ LONG DoMessage(LPCSTR to, LPCSTR from, LPCSTR subject, LONG data1, LONG data2)
       else if (stricmp(subject, "DoAccel") == 0) {
           *(PINT)data2 = DoAccel((LPSTR)data1);
       }
+	  else if (stricmp(subject, "DoLocale") == 0) {
+         if (gLoc) delete gLoc;
+		 gLoc = Locale::kmInit(&kPlugin);
+	  }
       else return 0;
 
       return 1;
