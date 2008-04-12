@@ -349,8 +349,11 @@ CBrowserFrame* CBrowserView::OpenURLInNewWindow(const char* pUrl, BOOL bBackgrou
 
 CBrowserFrame* CBrowserView::OpenURLInNewWindow(LPCTSTR pUrl, LPCTSTR referrer, BOOL bBackground, BOOL allowFixup)
 {
-	if ( !((CBrowserGlue*)m_pBrowserGlue)->mLoading &&
-	     GetCurrentURI() == "about:blank" ) {
+	const TCHAR* ext = _tcschr(pUrl, L'.');
+	if (!(ext && (_tcsstr(ext, _T(".xul")) == ext) &&
+	   (_tcsncmp(pUrl, _T("chrome:"), 7) == 0)) &&
+	   !((CBrowserGlue*)m_pBrowserGlue)->mLoading &&
+	    GetCurrentURI() == "about:blank" ) {
 		OpenURL(pUrl, referrer, allowFixup);
 		return mpBrowserFrame;
 	}
