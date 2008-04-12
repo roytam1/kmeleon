@@ -479,14 +479,14 @@ public:
 class MacroDef : public StatList {
 public:
 	std::string name;
-	std::string macroinfo;
+	Expression* macroInfo;
 	Expression* menuString;
 	Expression* menuChecked;
 	Expression* menuGrayed;
 
 	MacroDef() : StatList() {
 		t = NODE_MACRO;
-		menuString = menuChecked = menuGrayed = NULL;
+		macroInfo = menuString = menuChecked = menuGrayed = NULL;
 	}
 
 	virtual ~MacroDef() {
