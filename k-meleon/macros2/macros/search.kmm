@@ -141,6 +141,7 @@ $_j=$__data==""?-1:$_j+1;
 }
 _Search_SetAccels{
 setaccel("CTRL G","macros(Search)");
+setaccel("SHIFT VK_RETURN","macros(Search)");
 setaccel("CTRL SHIFT V","macros(Search_PasteAndSearch)");
 }
 $OnInit=$OnInit."_Search_SetAccels;_Search_BuildMenu;";

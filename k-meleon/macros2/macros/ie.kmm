@@ -34,7 +34,7 @@ $_IE="\"".$__data."\\Internet Explorer\\iexplore.exe\" %1";
 $__data=readreg("HKCR","Applications\\iexplore.exe\\shell\\open\\command\\");
 # catch invalid IE7 registry data:
 index($__data,".")>index($__data,"%1")?$__data="":0;
-$__data==""?0:$_IE=$__data; exec(sub("%1",$_IE_Open,$_IE));
+$__data==""?0:$_IE=$__data; exec(sub("%1",urldecode($_IE_Open),$_IE));
 }
 
 _IE_BuildMenu{

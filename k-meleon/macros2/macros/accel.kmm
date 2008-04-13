@@ -2,7 +2,7 @@
 
 # ---------- Accelerator Configuration -----------------------------------------------------------------------------
 #
-# Dependencies	: main.kmm ($macroPrefBranch)
+# Dependencies	: main.kmm ($macroPrefBranch, ExecMacros)
 # Resources	: -
 # Preferences	: kmeleon.plugins.macros.accel.urlbar.access
 #		  kmeleon.plugins.macros.accel.mouse.configs
@@ -104,21 +104,19 @@ setaccel("SHIFT LButton",ID_SAVE_LINK_AS);
 }
 
 _Accel_SetDefaults{
-getpref(STRING,$_Accel_prefMouse)==""?setpref(STRING,$_Accel_prefMouse,$_Accel_currentConfigs):0;
+setpref(STRING,$_Accel_prefMouse,$_Accel_currentConfigs);
 }
 $OnInit=$OnInit."_Accel_SetDefaults;";
 
 _Accel_BuildMenu{
 # tools menu
-$_p=getpref(STRING,$_Accel_prefMouse);
 $_m="Mouse &Accelerators";
 setmenu(Settings,popup,$_m,"Mouse &Gestures...");
 setmenu($_m,macro,"Default","Accel_Mouse()");
-$_j=length($_p); while($_j>1) &_Accel_BuildMenuLoop;
+$List=getpref(STRING,$_Accel_prefMouse); $ExecMacros="_Accel_BuildMenuItem"; &ExecMacros_List;
 }
-_Accel_BuildMenuLoop{
-$__e=substr($_p,0,index($_p,";")); setmenu($_m,macro,$__e,"Accel_Mouse(".$__e.")");
-$_p=substr($_p,index($_p,";")+1); $_j=length($_p);
+_Accel_BuildMenuItem{
+setmenu($_m,macro,$ListItem,"Accel_Mouse(".$ListItem.")");
 }
 $OnInit=$OnInit."_Accel_BuildMenu;";
 
