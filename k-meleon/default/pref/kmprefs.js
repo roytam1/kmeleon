@@ -6,7 +6,6 @@
 //pref("kmeleon.display.URLbarTitle", "URL:");			// I10n.js
 pref("kmeleon.favicons.titleBar", false);
 pref("kmeleon.general.startHome", true);
-pref("kmeleon.general.startHome", true);
 pref("kmeleon.urlbar.dropdown_lines", 10);
 pref("kmeleon.toolband.Throbber.visibility", true);
 
