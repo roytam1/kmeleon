@@ -14,7 +14,7 @@ pref("kmeleon.toolband.&Main Bar.size", 197);
 pref("kmeleon.toolband.&Main Bar.visibility", true);
 pref("kmeleon.toolband.Menu.break", 0);
 pref("kmeleon.toolband.Menu.index", 0);
-pref("kmeleon.toolband.Menu.size", 933);
+pref("kmeleon.toolband.Menu.size", 1400);
 pref("kmeleon.toolband.Menu.visibility", true);
 pref("kmeleon.toolband.&Privacy Bar.visibility", false);
 pref("kmeleon.toolband.&Search Buttons.break", 0);
