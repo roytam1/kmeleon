@@ -11,7 +11,7 @@
 # ----- PRIVATE
 ___migratePrefs{
 $___msg="";
-index($macroModules,";Groups;")>-1?&___checkGroups:0;
+&___checkGroups;
 $___msg==""?0:alert(sub("%1",$KM_Version,_("Your profile was created by a version prior to K-Meleon %1. The following data has been updated:"))."\n".$___msg."\n\n"._("Please restart K-Meleon."),sub("%1",$KM_Version,_("Welcome to K-Meleon %1 !")));
 setpref(BOOL,$macroPrefBranch."modules.compat.load",false);
 }
@@ -34,4 +34,19 @@ ___migrateGroupsLoop{
 $__group=substr($__groups,0,index($__groups,"\n"));
 setpref(STRING,$_Groups_UserPrefBranch.$__group,getpref(STRING,$___groupbranch.$__group));
 $__groups=sub($__group."\n","",$__groups);
+}
+
+# Layers to Tabs
+___checkLayers{
+$__pref="kmeleon.general"; &___migrateLayers;
+$__pref="kmeleon.plugins.bookmarks"; &___migrateLayers;
+$__pref="kmeleon.plugins.favorites"; &___migrateLayers;
+$__pref="kmeleon.plugins.hotlist"; &___migrateLayers;
+$__pref="kmeleon.plugins.macros.selected"; &___migrateLayers;
+setpref(STRING,"kmeleon.general.opengroup",$kTabs?"ID_OPEN_LINK_IN_NEW_TAB|ID_OPEN_LINK_IN_BACKGROUNDTAB":"ID_OPEN_LINK|ID_OPEN_LINK_IN_BACKGROUND");
+}
+___migrateLayers{
+$__data=getpref(STRING,$__pref.".openurl");
+$__data=="layers(OpenURL)"?setpref(STRING,$__pref.".openurl","ID_OPEN_LINK_IN_NEW_TAB"):0;
+$__data=="layers(OpenURLBg)"?setpref(STRING,$__pref.".openurl","ID_OPEN_LINK_IN_BACKGROUNDTAB"):0;
 }

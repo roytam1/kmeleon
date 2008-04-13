@@ -15,21 +15,21 @@
 #	- K-Meleon Preferences Panel (kmPrefs)	170
 #	- File Handling				205
 # - Opening URLs				235
-# - Mozilla Chrome				295
-# - Mozilla Preferences				335
-#	- Accessibility/Privacy/Security	340
-#	- Type Ahead Find (Page Search)		405
-# - K-Meleon Preferences			475
-#	- Homepage				495
-# - JavaScript Document Handling		545
-#	- Killing Tags				595
-#	- Scrolling				610
-# - Miscellaneous				635
-#	- Go Buttons				640
-#	- Home Button				690
-#	- RSS Button				705
-#	- Special Opening			710
-#	- Special Macro Execution		735
+# - Mozilla Chrome				285
+# - Mozilla Preferences				320
+#	- Accessibility/Privacy/Security	325
+#	- Type Ahead Find (Page Search)		385
+# - K-Meleon Preferences			460
+#	- Homepage				475
+# - JavaScript Document Handling		530
+#	- Killing Tags				585
+#	- Scrolling				595
+# - Miscellaneous				625
+#	- Go Buttons				630
+#	- Home Button				675
+#	- RSS Button				690
+#	- Special Opening			695
+#	- Special Macro Execution		720
 #
 # ------------------------------------------------------------------------------------------------------------------
 
@@ -133,7 +133,7 @@ $kToolbars=getpref(BOOL,"kmeleon.plugins.toolbars.load");
 $kTabs=!getpref(BOOL,"kmeleon.notab");
 
 kTabs_Detach{
-menugrayed=index($URL,"wyciwyg:")==0;
+menugrayed=$TabNumber<2;
 $OnLoadOnce=$OnLoadOnce."_kTabs_OnDetach;";
 $OpenURL=$kSessions?"about:blank":$URL; id(ID_CLOSE_TAB); &OpenURL_InNewWindow;
 }
@@ -195,6 +195,7 @@ setmenu("Tool&bars",macro,$__o,"kmPrefs(toolbars)");
 $kHistory?setmenu("Histor&y",macro,$__o,"kmPrefs(history)","history(Config)"):0;
 $kHistory?setmenu("Histor&y",command,"","history(Config)"):0;
 $kTabs?setmenu("T&abs",macro,$__o,"kmPrefs(tabs)",0):0;
+$kTabs?setmenu("T&abs",separator,1):0;
 # tools menu
 setmenu(Settings,macro,"Mouse &Gestures...","kmPrefs(kgestures)");
 $__m="P&ermissions";
@@ -238,12 +239,6 @@ OpenURL{
 $__pre=$URLBAR; $__pre==$URL?$__pre="":0;
 $OpenURL=prompt(_("Enter URL:"),_("Open"),$__pre); &OpenURL_Typed;
 }
-OpenURL_Nick{
-# Prompt for a folder nick to open
-$_nick=$URLBAR; $_nick==""?$_nick=$URL:0;
-$_nick==$URL?$_nick=prompt(_("Enter folder nick:"),_("Open Folder"),""):0;
-$_nick==""?0:&_OpenURL_Nick;
-}
 OpenURL_InBg{
 # Same as OpenURL_InNew, but in background
 $OpenURL==""?0:$kTabs?openbgtab($OpenURL):openbg($OpenURL);
@@ -279,16 +274,9 @@ $_How=="ID_OPEN_LINK_IN_BACKGROUND"?openbg($OpenURL):0;
 $_How=="ID_OPEN_LINK_IN_NEW_TAB"?opentab($OpenURL):0;
 $_How=="ID_OPEN_LINK_IN_BACKGROUNDTAB"?openbgtab($OpenURL):0;
 }
-_OpenURL_Nick{
-$OpenURL=$_nick; $__data=""; setpref(STRING,$_OpenURL_Group,$kTabs?"ID_OPEN_LINK_IN_NEW_TAB|ID_OPEN_LINK_IN_BACKGROUNDTAB":"ID_OPEN_LINK_IN_NEW_WINDOW|ID_OPEN_LINK_IN_BACKGROUND");
-$kBookmarks?$__data=$__data.sub("0","",pluginmsgex(bookmarks,FindNick,$_nick,STRING)):0;
-$kHotlist?$__data=$__data.sub("0","",pluginmsgex(hotlist,FindNick,$_nick,STRING)):0;
-$__data?&OpenURL_Typed:alert(sub("%s",$_nick,_("No folder named '%s' found.")),_("Open Folder"));
-}
 
 _OpenURL_SetAccels{
 setaccel("CTRL ALT O","macros(OpenURL)");
-$kBookmarks+$kHotlist>0?setaccel("SHIFT VK_RETURN","macros(OpenURL_Nick)"):0;
 }
 $OnInit=$OnInit."_OpenURL_SetAccels;";
 
@@ -313,9 +301,6 @@ $OpenURL="about:config"; &OpenURL_InNew;
 moz_JSConsole{
 $OpenURL="chrome://global/content/console.xul"; &OpenURL_InNewWindow;
 }
-#moz_MasterPassword{
-#$OpenURL="chrome://pippki/content/pref-masterpass.xul"; &OpenURL_InNewWindow;
-#}
 moz_CertificateViewer{
 $OpenURL="chrome://pippki/content/certManager.xul"; &OpenURL_InNewWindow;
 }
@@ -347,10 +332,8 @@ $pref_JavaScript="javascript.enabled";
 $pref_Popups="dom.disable_open_during_load";
 $pref_Referer="network.http.sendRefererHeader";
 
-###
 # Use this global var to determine whether Java can be enabled at runtime.
 $pref_JavaSupport=getpref(BOOL,$pref_Java);
-###
 
 pref_ToggleAnimation{
 menuchecked=(getpref(STRING,$pref_Animation)=="none");
@@ -474,7 +457,6 @@ $OnStartup=$OnStartup."_pref_SyncButtons;";
 # ---------- K-Meleon Preferences ----------------------------------------------------------------------------------
 
 $KM_Version=getpref(STRING,"general.useragent.vendorSub");
-#$KM_Locale=getpref(STRING,"general.useragent.locale");
 $KM_Flashblock="kmeleon.flashblock";
 $KM_Adblock="kmeleon.adblocking";
 
@@ -493,17 +475,22 @@ statusbar(sub("%s",getpref(BOOL,$KM_Adblock)?$on:$off,_("CSS Ad-Blocking %s")));
 
 $KM_Homepage="kmeleon.general.homePage";
 $KM_StartHome="kmeleon.general.startHome";
+$KM_StartSess="kmeleon.plugins.sessions.autoload";
 
 KM_SetAsHomepage{
 setpref(STRING,$KM_Homepage,$URL);
 }
 KM_StartBlank{
-menuchecked=!getpref(BOOL,$KM_StartHome);
-setpref(BOOL,$KM_StartHome,false);
+menuchecked=$kSessions?((!getpref(BOOL,$KM_StartHome))*(!getpref(BOOL,$KM_StartSess)+!getpref(STRING,"kmeleon.plugins.sessions.openStart"))):!getpref(BOOL,$KM_StartHome);
+setpref(BOOL,$KM_StartHome,false); $kSessions?setpref(BOOL,$KM_StartSess,false):0;
 }
 KM_StartWithHomepage{
-menuchecked=getpref(BOOL,$KM_StartHome);
-setpref(BOOL,$KM_StartHome,true);
+menuchecked=$kSessions?(getpref(BOOL,$KM_StartHome)*(!getpref(BOOL,$KM_StartSess)+!getpref(STRING,"kmeleon.plugins.sessions.openStart"))):getpref(BOOL,$KM_StartHome);
+setpref(BOOL,$KM_StartHome,true); $kSessions?setpref(BOOL,$KM_StartSess,false):0;
+}
+KM_StartWithSession{
+menuchecked=$kSessions*getpref(BOOL,$KM_StartSess)*length(getpref(STRING,"kmeleon.plugins.sessions.openStart"));
+setpref(BOOL,$KM_StartSess,true); id("sessions(Config)");
 }
 
 # ----- PRIVATE
@@ -519,8 +506,9 @@ setmenu(_Home_Open,command,"Open &Home Page",ID_NAV_HOME);
 setmenu($__m,inline,_Home_Make);
 setmenu(_Home_Make,macro,"M&ake This Page Your Home Page",KM_SetAsHomepage);
 setmenu($__m,inline,_Home_Start);
-setmenu(_Home_Start,macro,"Start With Home &Page",KM_StartWithHomepage);
 setmenu(_Home_Start,macro,"Start With &Blank Page",KM_StartBlank);
+setmenu(_Home_Start,macro,"Start With Home &Page",KM_StartWithHomepage);
+$kSessions?setmenu(_Home_Start,macro,"Start With &Session...",KM_StartWithSession):0;
 # tools menus
 $__m=_Privacy_Settings;
 setmenu($__m,macro,"Block F&lash",KM_ToggleFlashblock,"Block Page Co&lors");
@@ -542,7 +530,7 @@ $OnStartup=$OnStartup."_KM_SyncButtons;";
 # ---------- JavaScript Document Handling --------------------------------------------------------------------------
 
 # JavaScript function urlencode() to produce same result as macro function urlencode()
-$_JS_urlencode="function urlencode(s){return encodeURIComponent(s).replace(/%25([A-F0-9]{2})/g,'%$1').replace(/%23/,'#')}";
+$_JS_urlencode="function urlencode(s){return encodeURIComponent(s).replace(/%25([A-F0-9]{2})/g,'%$1').replace(/%23/g,'#').replace(/\\//g,'%2F')}";
 
 # Parameters for JS_hndlDoc(s) (set those you need before calling the macro):
 $JS_doit=""; $JS_func=""; $JS_last=""; $JS_fail="";
@@ -783,4 +771,18 @@ setpref(BOOL,$__p4,$__v4);
 setpref(BOOL,$__p5,$__v5);
 setpref(BOOL,$__p6,$__v6);
 setpref(BOOL,$__p7,$__v7);
+}
+ExecMacros_List{
+# Execute one or more macros for each item of a semicolon-separated list.
+# Parameters (set before calling):
+# - $ExecMacros: The macros to be executed (semicolon-separated list)
+# - $List      : The list to be processed ("<string1>;<string2>;...;<stringN>;" or an empty string)
+# Output (for use in your macros):
+# - $ListItem  : The current substring <stringM>
+$ListItem=$List?substr($List,0,index($List,";")):"";
+while($ListItem) {
+	macros($ExecMacros);
+	$List=$List?sub($ListItem.";","",$List):"";
+	$ListItem=$List?substr($List,0,index($List,";")):"";
+	}
 }
