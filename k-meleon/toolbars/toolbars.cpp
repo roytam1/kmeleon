@@ -22,6 +22,7 @@
 #include <shellapi.h>
 #include <commctrl.h>
 #include <stdlib.h>
+#include <shlwapi.h>
 
 #define PLUGIN_NAME "Toolbar Control Plugin"
 
@@ -152,6 +153,7 @@ struct s_toolbar {
 };
 s_toolbar *toolbar_head = NULL;
 int giToolbarCount = 0;
+BOOL gbIsComCtl6 = FALSE;
 
 
 void LoadToolbars(TCHAR *filename);
@@ -168,9 +170,30 @@ BOOL APIENTRY DllMain(HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserv
 #include "../findskin.cpp"
 
 
-int Setup() {
-   TCHAR szConfigFile[MAX_PATH];
+int Setup()
+{
+	HMODULE hComCtlDll = LoadLibrary(_T("comctl32.dll"));
+	if (hComCtlDll)
+	{
+		typedef HRESULT (CALLBACK *PFNDLLGETVERSION)(DLLVERSIONINFO*);
 
+		PFNDLLGETVERSION pfnDllGetVersion = (PFNDLLGETVERSION)GetProcAddress(hComCtlDll, "DllGetVersion");
+
+		if (pfnDllGetVersion)
+		{
+			DLLVERSIONINFO dvi = {0};
+			dvi.cbSize = sizeof(dvi);
+
+			HRESULT hRes = (*pfnDllGetVersion)(&dvi);
+			if (SUCCEEDED(hRes) && dvi.dwMajorVersion >= 6)
+				gbIsComCtl6 = TRUE;
+		}
+
+		FreeLibrary(hComCtlDll);
+	}
+
+
+   TCHAR szConfigFile[MAX_PATH];
    FindSkinFile(szConfigFile, _T("toolbars.cfg"));
    LoadToolbars(szConfigFile);
 
@@ -713,21 +736,22 @@ void LoadToolbars(TCHAR *filename) {
          case HOT:
          case COLD:
          case DEAD:
-            if (iBuildState == HOT) {
-               if (!curToolbar->hot)
-                  curToolbar->hot = ImageList_Create(curToolbar->width, curToolbar->height, ILC_MASK | ILC_COLORDDB, 0, 32);
-               AddImageToList(curToolbar, curButton, curToolbar->hot, p);
-            }
-            else if (iBuildState == COLD) {
-               if (!curToolbar->cold)
-                  curToolbar->cold = ImageList_Create(curToolbar->width, curToolbar->height, ILC_MASK | ILC_COLORDDB, 0, 32);
-               AddImageToList(curToolbar, curButton, curToolbar->cold, p);
-            }
-            else {
-               if (!curToolbar->dead)
-                  curToolbar->dead = ImageList_Create(curToolbar->width, curToolbar->height, ILC_MASK | ILC_COLORDDB, 0, 32);
-               AddImageToList(curToolbar, curButton, curToolbar->dead, p);
-            }
+			 {
+				 
+				 HIMAGELIST* pImgList = NULL; 
+				 switch (iBuildState) 
+				 {
+					case HOT: pImgList = &curToolbar->hot; break;
+					case COLD: pImgList = &curToolbar->cold; break;
+					default: pImgList = &curToolbar->dead; break;
+				 }
+
+				 if (!pImgList) break;
+				 if (!*pImgList) 
+					 *pImgList = ImageList_Create(curToolbar->width, curToolbar->height, ILC_MASK | (gbIsComCtl6 ? ILC_COLOR32 : ILC_COLORDDB), 0, 32);
+				AddImageToList(curToolbar, curButton, *pImgList, p);
+			 }
+
             
             iBuildState++;
             break;
@@ -839,10 +863,12 @@ void EndButton(s_toolbar *toolbar, s_button *button, int state) {
    }
 }
 
-HBITMAP LoadButtonImage(s_toolbar *pToolbar, s_button *pButton, char *sFile) {
+HBITMAP LoadButtonImage(s_toolbar *pToolbar, s_button *pButton, char *sFile, COLORREF* bgColor) {
 
    if (!sFile || !*sFile)
       return 0;
+
+   if (bgColor) *bgColor =-1;
 
    int index;
    if (char *p = strchr(sFile, '[')) {
@@ -874,16 +900,95 @@ HBITMAP LoadButtonImage(s_toolbar *pToolbar, s_button *pButton, char *sFile) {
 #else
    char* _sFile = sFile;
 #endif
+   UINT flag = LR_LOADFROMFILE | LR_CREATEDIBSECTION;
+
    if (strchr(sFile, '\\')) {
-      hBitmap = (HBITMAP)LoadImage(NULL, _sFile, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+      hBitmap = (HBITMAP)LoadImage(NULL, _sFile, IMAGE_BITMAP, 0, 0, flag);
    }
    else {
       TCHAR fullpath[MAX_PATH];
       FindSkinFile(fullpath, _sFile);
-      hBitmap = (HBITMAP)LoadImage(NULL, fullpath, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+      hBitmap = (HBITMAP)LoadImage(NULL, fullpath, IMAGE_BITMAP, 0, 0, flag);
    }
    
    hdcBitmap = CreateCompatibleDC(NULL);
+
+	struct {
+		BITMAPINFOHEADER header;
+		COLORREF col[256];
+	} bmpi = {0};
+
+	bmpi.header.biSize = sizeof(BITMAPINFOHEADER);
+
+	GetDIBits(hdcBitmap, hBitmap, 0, 0, NULL, (BITMAPINFO*)&bmpi, DIB_RGB_COLORS);
+
+	if (bmpi.header.biBitCount == 32) {
+
+		if (width * (index + 1) > bmpi.header.biWidth)
+			return NULL;
+
+		int srcWidth = bmpi.header.biWidth * 4;
+		int srcHeight = bmpi.header.biHeight;
+
+		BYTE* srcBits = new BYTE[srcWidth * srcHeight];
+		GetDIBits(hdcBitmap, hBitmap, 0, srcHeight, srcBits, (BITMAPINFO*)&bmpi, DIB_RGB_COLORS);
+		
+		bmpi.header.biWidth = width;
+		bmpi.header.biHeight = height;
+
+		BYTE* dstBits = NULL;
+		HBITMAP hBmp = CreateDIBSection(hdcBitmap, (BITMAPINFO*)&bmpi, DIB_RGB_COLORS, (void**)&dstBits, NULL, 0);
+
+		if (!hBmp) {
+			DeleteObject(hBitmap);
+			DeleteDC(hdcBitmap);
+			delete[] srcBits;
+			return NULL;
+		}
+
+		int dstWidth = width * 4;
+		int offset = index * dstWidth;
+		for (int i = 0; i< height; i++)
+			memcpy(&dstBits[dstWidth*i], &srcBits[i * srcWidth + offset], dstWidth);
+		
+		DeleteObject(hBitmap);
+
+		/*if (!gbIsComCtl6) {
+			bmpi.header.biBitCount = 24;
+			bmpi.header.biCompression = 0;
+			
+			pDest = NULL;
+			HBITMAP hBmp2 = CreateDIBSection(hdcBitmap, (BITMAPINFO*)&bmpi, DIB_RGB_COLORS, (void**)&pDest, NULL, 0);
+			
+			if (!hBmp2) {
+				DeleteObject(hBmp);
+				DeleteDC(hdcBitmap);
+				delete[] pData;
+				return NULL;
+			}			
+
+			GetDIBits(hdcBitmap, hBmp, 0, nLineCnt, pData, (BITMAPINFO*)&bmpi, DIB_RGB_COLORS);
+		
+			memcpy(pDest, pData, width * height * 4);
+			DeleteObject(hBmp);
+			hBmp = hBmp2;
+		}*/
+
+		if (!gbIsComCtl6 && bgColor) {
+			// Pseudo background color check
+			*bgColor = RGB(255, 0, 255);
+			for (int i=0;i<width*height*4;i+=4)
+				if (dstBits[i] == 0) {
+					*bgColor = RGB(dstBits[i+1], dstBits[i+2], dstBits[i+3]);
+					break;
+				}
+		}
+
+		delete[] srcBits;
+		DeleteDC(hdcBitmap);
+		return hBmp;
+	}
+   
    HGDIOBJ oldBmp = SelectObject(hdcBitmap, hBitmap);
    
    hdcButton = CreateCompatibleDC(hdcBitmap);
@@ -894,7 +999,7 @@ HBITMAP LoadButtonImage(s_toolbar *pToolbar, s_button *pButton, char *sFile) {
    hBrush = CreateSolidBrush(RGB(255,0,255));
    HGDIOBJ oldBrush = SelectObject(hdcButton, hBrush);
    PatBlt(hdcButton, 0, 0, pToolbar->width, pToolbar->height, PATCOPY);
-
+   
    // copy the button from the full bitmap
    BitBlt(hdcButton, xstart, ystart, width, height, hdcBitmap, width*index, 0, SRCCOPY);
    SelectObject(hdcButton, oldBrush);
@@ -906,15 +1011,21 @@ HBITMAP LoadButtonImage(s_toolbar *pToolbar, s_button *pButton, char *sFile) {
    DeleteObject(hBrush);
    DeleteObject(hBitmap);
 
+   if (bgColor) *bgColor = RGB(255,0,255);
    return hButton;
 
 }
 
 void AddImageToList(s_toolbar *pToolbar, s_button *pButton, HIMAGELIST list, char *sFile) {
 
-   HBITMAP hButton = LoadButtonImage(pToolbar, pButton, sFile);
 
-   ImageList_AddMasked(list, hButton, RGB(255,0,255));
+   COLORREF bgColor;
+   HBITMAP hButton = LoadButtonImage(pToolbar, pButton, sFile, &bgColor);
+
+   if (bgColor != -1)
+      ImageList_AddMasked(list, hButton, bgColor);
+   else
+      ImageList_Add(list, hButton, 0);
 
    DeleteObject(hButton);
 
@@ -1181,31 +1292,37 @@ void SetButtonImage(char *sParams) {//WORD iToolbar, WORD iButton, char *sImage)
 
    int index = SendMessage(pToolbar->hWnd, TB_COMMANDTOINDEX, pButton->iID, 0);
    
-   HBITMAP hButton = LoadButtonImage(pToolbar, pButton, sImage);
+   COLORREF bgColor;
+   HBITMAP hButton = LoadButtonImage(pToolbar, pButton, sImage, &bgColor);
 
    HDC hdcButton = CreateCompatibleDC(NULL);
    SelectObject(hdcButton, hButton);
    
-
-   // Create the transparency mask
-   HDC hdcMask = CreateCompatibleDC(hdcButton);
-   HBITMAP hMask = CreateBitmap(pButton->width, pButton->height, 1, 1, NULL);
-   SelectObject(hdcMask, hMask);   
-   SetBkColor(hdcButton, RGB(255,0,255));
-   BitBlt(hdcMask, 0, 0, pButton->width, pButton->height, hdcButton, 0, 0, SRCCOPY);
-
-   DeleteObject(hdcButton);
-   DeleteObject(hdcMask);
-
+   HIMAGELIST hImgList = NULL;
    if (iImagelist == IMAGELIST_HOT)
-      ImageList_Replace(pToolbar->hot, index, hButton, hMask);
+      hImgList = pToolbar->hot;
    else if (iImagelist == IMAGELIST_COLD)
-      ImageList_Replace(pToolbar->cold, index, hButton, hMask);
+      hImgList = pToolbar->cold;
    else if (iImagelist == IMAGELIST_DEAD)
-      ImageList_Replace(pToolbar->dead, index, hButton, hMask);
+      hImgList = pToolbar->dead;
+
+   if (bgColor != -1) {
+      // Create the transparency mask
+      HDC hdcMask = CreateCompatibleDC(hdcButton);
+      HBITMAP hMask = CreateBitmap(pButton->width, pButton->height, 1, 1, NULL);
+      SelectObject(hdcMask, hMask);   
+      SetBkColor(hdcButton, bgColor);
+      BitBlt(hdcMask, 0, 0, pButton->width, pButton->height, hdcButton, 0, 0, SRCCOPY);
+      DeleteObject(hdcButton);
+      DeleteObject(hdcMask);
+	  ImageList_Replace(hImgList, index, hButton, hMask);
+      DeleteObject(hMask);
+   }
+   else
+      ImageList_Replace(hImgList, index, hButton, 0);
 
    DeleteObject(hButton);
-   DeleteObject(hMask);
+
 
    // force the toolbar to reload the image from the imagelist
    SendMessage(pToolbar->hWnd, TB_CHANGEBITMAP, iButton, MAKELPARAM(index, 0));
