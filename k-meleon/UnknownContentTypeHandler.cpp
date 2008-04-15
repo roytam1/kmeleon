@@ -168,7 +168,11 @@ CUnknownContentTypeHandler::Show( nsIHelperAppLauncher *aLauncher, nsISupports *
 #include "nsIDOMWindowInternal.h"
 // prompt the user for a file name to save the unknown content to as instructed
 NS_IMETHODIMP
+#if GECKO_VERSION>18
+CUnknownContentTypeHandler::PromptForSaveToFile(nsIHelperAppLauncher *aLauncher, nsISupports * aWindowContext, const PRUnichar * aDefaultFile, const PRUnichar * aSuggestedFileExtension, PRBool aForcePrompt, nsILocalFile ** aNewFile)
+#else
 CUnknownContentTypeHandler::PromptForSaveToFile(nsIHelperAppLauncher *aLauncher, nsISupports * aWindowContext, const PRUnichar * aDefaultFile, const PRUnichar * aSuggestedFileExtension, nsILocalFile ** aNewFile)
+#endif
 {
 	NS_ENSURE_ARG_POINTER(aNewFile);
 	NS_ENSURE_ARG(aDefaultFile);
@@ -181,7 +185,11 @@ CUnknownContentTypeHandler::PromptForSaveToFile(nsIHelperAppLauncher *aLauncher,
 	CString pathName;
 
 	CString downloadDir = theApp.preferences.downloadDir;
-	if (theApp.preferences.bUseDownloadDir && !downloadDir.IsEmpty())
+	if (theApp.preferences.bUseDownloadDir && !downloadDir.IsEmpty()
+#if GECKO_VERSION>18
+		&& !aForcePrompt
+#endif
+		)
 	{
 		if (downloadDir[downloadDir.GetLength()-1] != '\\')
 			downloadDir += '\\';
