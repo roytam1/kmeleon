@@ -1156,16 +1156,15 @@ int CMfcEmbedApp::ExitInstance()
    if (m_pMainWnd)
       m_pMainWnd->DestroyWindow();
 
-   delete m_MRUList;
-   DestroyIcon(m_hMainIcon);
-   DestroyIcon(m_hSmallIcon);
-
    // unload the plugins before we terminate embedding,
    // this way plugins can still call the preference functions
    plugins.SendMessage("*", "* Plugin Manager", "Quit");
 
+   delete m_MRUList;
+   DestroyIcon(m_hMainIcon);
+   DestroyIcon(m_hSmallIcon);
+
    preferences.Flush();
-   
    m_ProfileMgr->ShutDownCurrentProfile( theApp.preferences.bGuestAccount );
    if (m_ProfileMgr) delete m_ProfileMgr;
    
