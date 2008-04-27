@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <map>
 
+
 enum Type {
 	VALUE_NONE,
 	VALUE_STRING,
@@ -17,7 +18,6 @@ public:
 	MString(std::string s) : std::string(s) {}
 	MString(const char* s) : std::string(s) {}
 	operator const char* () { return c_str(); }
-	operator char* () { return (char*)c_str(); }
 };
 
 class MacroDef;
@@ -141,6 +141,7 @@ public:
 	bool isstring() {return t == VALUE_STRING;}
 	bool ismacro() {return t == VALUE_MACRO;}
 	bool isfunction() {return t == VALUE_FUNCTION;}
+	bool isvalid() {return t!= VALUE_NONE;}
 	
 	operator +(Value& right ){ return intval() + right.intval(); }
 	operator -(Value& right ){ return intval() - right.intval(); }
