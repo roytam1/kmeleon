@@ -1588,6 +1588,11 @@ void CMfcEmbedApp::CheckProfileVersion()
        toDelete = GetMozDirectory(NS_APP_USER_PROFILE_LOCAL_50_DIR) + _T("\\xul.mfl"); 
        DeleteFile(toDelete);
 
+       if (oldVersion < 0x01050025)
+          theApp.preferences.SetString("browser.startup.homepage", 
+		     theApp.preferences.GetString("kmeleon.general.homePage",
+			 _T("http://kmeleon.sourceforge.net/start")));
+
        if (oldVersion < 0x01010001) {
 
            if (!theApp.preferences.skinsCurrent.IsEmpty() && 
