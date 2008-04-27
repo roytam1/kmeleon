@@ -23,6 +23,7 @@
 #include <shellapi.h>
 #include <stdlib.h>
 #include <string>
+#include <malloc.h>
 
 #define PLUGIN_NAME "Macro Extension Plugin"
 
@@ -43,7 +44,7 @@ void         DoError(const char* msg, const char* filename);
 void         DoError(const char* msg, char* filename, int line);
 void         DoMenu(HMENU menu, char *param);
 void         DoRebar(HWND rebarWnd);
-int          DoAccel(char *param);
+int          DoAccel(const char *param);
 long         DoMessage(const char *to, const char *from, const char *subject, long data1, long data2);
 int          FindCommand(char *macroName);
 int          GetConfigFiles(configFileType **configFiles);
@@ -244,13 +245,19 @@ public:
 		return &it->second;
 	}
 
+	std::string FindSymbol(Value* val)
+	{
+		for (TDS::iterator it = tds.begin(); it!= tds.end(); it++)
+			if (val == &it->second)
+				return it->first;
+		return "";
+	}
 };
 
 Mac *M;
 
 #include "parser.h"
 #include "functions.h"
-
 
 class Evaluator {
 public:
@@ -315,6 +322,8 @@ public:
 		else if (expr->v->t == VALUE_MACRO) {
 			if (expr->v->md)
 				Evaluate(expr->v->md);
+			else
+				DoError( ("Call to the undefined macro '" + expr->v->md->name + "'").c_str());
 		}
 		else
 			DoError("Invalid macro or function call.");
@@ -349,7 +358,10 @@ public:
 			case EXPR_ASSIGN: *(((ExprValue*)expr->A)->v) = EvalExpr(expr->B); return *(((ExprValue*)expr->A)->v);
 	
 			case EXPR_CALL: return EvalCall(node); 
-			case EXPR_VALUE: return *(((ExprValue*)node)->v); 
+			case EXPR_VALUE: 
+				if (!((ExprValue*)node)->v->isvalid())
+					DoError(("The variable '" + M->FindSymbol(((ExprValue*)node)->v) + "' is used without being initialized").c_str());
+				return *(((ExprValue*)node)->v); 
 			default: return 0;
 		}
 	}
@@ -715,7 +727,11 @@ void DoMenu(HMENU menu, char *param) {
 	}
 }
 
-int DoAccel(char *param) {
+int DoAccel(char const *aParam)
+{
+	char param[256] = {0};
+	strncpy(param, aParam, 255);
+
 	if (*param) {
 		char *string = strchr(param, ',');
 		if (string) {
