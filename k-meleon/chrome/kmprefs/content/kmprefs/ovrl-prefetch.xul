@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<!DOCTYPE overlay SYSTEM "chrome://kmprefs/locale/kmprefs/ovrl-prefetch.dtd">
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+<script type="application/x-javascript">
+<![CDATA[
+//addEventListener("load",initCheckbox('network.prefetch-next'),true);
+]]>
+</script>
+
+<groupbox id="prefetch">
+  <caption label="&prefetch.label;"/>
+  <description>&prefetch.descr;</description>
+  <checkbox oncommand="toggleCheckbox(this.id)" id="network.prefetch-next" label="&pefetch.enable;"/>
+  <separator class="thin"/>
+  <description>&prefetch.note;</description>
+</groupbox>
+
+</overlay>
