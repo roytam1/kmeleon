@@ -7,6 +7,7 @@
 <!ENTITY tabbar.mouse.dClick	"On Double-Click:">
 <!ENTITY tabbar.mouse.mClick	"On Middle-Click:">
 <!ENTITY tabbar.mouse.rClick	"On Right-Click:">
-<!ENTITY tabbar.mouse.open	"Open a new tab">
-<!ENTITY tabbar.mouse.close	"Close the current tab">
+<!ENTITY tabbar.mouse.open	"Open a new tab (when clicking a free space)">
+<!ENTITY tabbar.mouse.close	"Close the clicked tab">
+<!ENTITY tabbar.mouse.classic	"Close the clicked tab or open a new tab">
 <!ENTITY tabbar.mouse.menu	"Show the tab bar menu">
