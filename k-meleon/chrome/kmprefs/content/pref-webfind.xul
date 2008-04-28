@@ -18,8 +18,6 @@ CFGtoXML.init("search");
 
 var Engines = new XML("file:///"+getFile(getFolder("KUserSettings"),"search.xml").path);
 
-var JSB = new JSBridge();
-
 function init(e) {
 	menu = document.createElement("menupopup");
 	for(var j=0,engines=Engines.data.getElementsByTagName("engine"),item;j<engines.length;j++) {
@@ -31,8 +29,8 @@ function init(e) {
 	URLBar.init();
 	if(kPlugin.load("macros") && kMacrosModule.load("search")) {
 		if(JSB.load) {
-			document.getElementById("JSBridgeOff").style.display = "none";
-			document.getElementById("JSBridgeOn").style.display = "block";
+			document.getElementById("JSBridgeOff").setAttribute("hidden",true);
+			document.getElementById("JSBridgeOn").removeAttribute("hidden");
 		}
 	} else {
 		var elem = document.getElementsByTagName("tab");
@@ -389,7 +387,7 @@ _refresh: function() {
   <hbox flex="1"/>
 </hbox>
 <separator class="thin"/>
-<description id="JSBridgeOn" style="display:none">&macrosNote;</description>
+<description id="JSBridgeOn" hidden="true">&macrosNote;</description>
 <description id="JSBridgeOff">&websearch.note;</description>
 <!-- Web Search -->
 	</tabpanel>
