@@ -1,4 +1,5 @@
 <!ENTITY % prefDTD SYSTEM "chrome://kmprefs/locale/pref.dtd">%prefDTD;
+<!ENTITY % jsbrDTD SYSTEM "chrome://kmprefs/locale/kplugins/jsbridge.dtd">%jsbrDTD;
 <!ENTITY webfind.header		"Finding Websites">
 <!ENTITY webfind.urlbar		"URL Bar">
 <!ENTITY webfind.websearch	"Web Search">
@@ -20,7 +21,7 @@
 <!ENTITY keyword.enable		"When a typed URL failed to load, automatically consult a search engine to find fitting pages">
 <!ENTITY keyword.engine		"Search Engine:">
 <!ENTITY websearch.descr	"Determine which search engines are displayed in the Web Search menu:">
-<!ENTITY websearch.note		"&macrosNote; You have to restart K-Meleon to make changes take visual effect in menus.">
+<!ENTITY websearch.note		"&macrosNote; &jsbridge.menus;">
 <!ENTITY meta.descr		"Determine which search engines are used for macro-based Multisearch:">
 <!ENTITY database.descr		"Determine which search engines can be selected in the previous tabs:">
 <!ENTITY database.caption	"Caption">

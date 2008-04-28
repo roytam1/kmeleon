@@ -8,4 +8,4 @@
 <!ENTITY domDWF		"Disallow scripts to raise or lower windows">
 <!ENTITY domDWMR	"Disallow scripts to move or resize windows">
 <!ENTITY domDWSC	"Disallow scripts to manipulate status bar text">
-<!ENTITY domECE		"Disallow scripts to manipulate context menus">
+<!ENTITY domECE		"Disallow scripts to disable context menus">
