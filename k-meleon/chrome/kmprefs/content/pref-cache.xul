@@ -1,0 +1,110 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/css" href="chrome://global/skin/"?>
+<?xul-overlay href="chrome://kmprefs/content/kmprefs/ovrl-cache.xul"?>
+<!DOCTYPE page SYSTEM "chrome://kmprefs/locale/pref-cache.dtd">
+<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" 
+id="prefCache" onload="init()">
+
+<stringbundle id="pref_bundle" src="chrome://kmprefs/locale/pref.properties"/>
+<stringbundle id="bundlePreferences"/>
+
+<script type="application/x-javascript" src="chrome://kmprefs/content/pref.js"/>
+<script type="application/x-javascript" src="chrome://kmprefs/content/kmprefs/cache.js"/>
+<script type="application/x-javascript">
+<![CDATA[
+function init() {
+	MemoryCache.init();
+	DiskCache.init();
+	initRadiogroup("browser.cache.check_doc_frequency");
+}
+var MemoryCache = {
+
+pref: null,
+size: null,
+auto: null,
+
+init: function() {
+	this.pref = new Array(	"browser.cache.memory.enable",
+				"browser.cache.memory.capacity");
+	this.size = pref.getIntPref(this.pref[1]);
+	this.auto = this.size<0;
+
+	document.getElementById(this.pref[0]).checked = (this.size) && pref.getBoolPref(this.pref[0]);
+	document.getElementById("memCacheSize").selectedIndex = this.auto ? 0 : 1;
+	document.getElementById(this.pref[1]).value = (this.size>0) ? (this.size >> 10).toString(10) : "";
+	this._setControls();
+},
+toggle: function() {
+	toggleCheckbox(this.pref[0]);
+	this._setControls();
+	if(this.size<1 && document.getElementById("memCacheSize").selectedIndex==1)
+		document.getElementById(this.pref[1]).focus();
+},
+setSize: function(auto) {
+	var elem = document.getElementById(this.pref[1]);
+	this.auto = (auto>0);
+	document.getElementById("memCacheSize").selectedIndex = this.auto ? 0 : 1;
+	elem.value = "";
+	elem.disabled = this.auto;
+	if(this.auto) {
+		this.size = -1;
+		pref.setIntPref(this.pref[1],this.size);
+	} else
+		elem.focus();
+},
+_setControls: function() {
+	var dis = !document.getElementById(this.pref[0]).checked;
+	document.getElementById("memCacheSize").disabled = dis;
+	document.getElementById(this.pref[1]).disabled = dis || this.auto;
+	document.getElementById(this.pref[1]).nextSibling.disabled = dis;
+	document.getElementById("clearMemory").disabled = dis;
+	document.getElementById("clearMemory").nextSibling.disabled = dis;
+}
+
+};
+]]>
+</script>
+
+<vbox flex="1" style="overflow:auto">
+  <dialogheader title="&cache.header;"/>
+  <separator class="thin"/>
+  <groupbox>
+    <caption label="&cache.mem.label;"/>
+    <hbox>
+      <description flex="1">&cache.mem.descr;</description>
+      <vbox>
+        <hbox>
+          <button label="&clear;" id="clearMemory" oncommand="Cache.clear(Components.interfaces.nsICache.STORE_IN_MEMORY)"/>
+          <button label="&view;" oncommand="Cache.view('memory')"/>
+        </hbox>
+	<spacer/>
+      </vbox>
+    </hbox>
+    <checkbox oncommand="MemoryCache.toggle()" id="browser.cache.memory.enable" label="&cache.mem.enable;"/>
+    <radiogroup id="memCacheSize" oncommand="MemoryCache.setSize(this.value)" style="margin-left:1.65em">
+      <radio value="1" label="&cache.mem.autoSize;"/>
+      <hbox align="center">
+        <radio value="0" label="&cache.mem.sizeBefore;"/>
+        <textbox id="browser.cache.memory.capacity" size="4" class="uri-element" oninput="MemoryCache.size=Cache.setSize(this.id,this.value)"/>
+        <label value="&cache.mem.sizeAfter;"/>
+      </hbox>
+    </radiogroup>
+  </groupbox>
+  <groupbox id="diskcache"/>
+  <groupbox>
+    <caption label="&cache.com.label;"/>
+    <description flex="1">&cache.com.descr;</description>
+    <radiogroup id="browser.cache.check_doc_frequency" oncommand="toggleRadiogroup(this.id)" orient="horizontal">
+      <vbox>
+        <radio value="1" label="&cache.com.always;"/>
+        <radio value="3" label="&cache.com.auto;"/>
+      </vbox>
+      <vbox>
+        <radio value="2" label="&cache.com.never;"/>
+        <radio value="0" label="&cache.com.once;"/>
+      </vbox>
+    </radiogroup>
+  </groupbox>
+</vbox>
+
+</page>

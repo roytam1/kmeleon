@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/css" href="chrome://global/skin/"?>
+<?xul-overlay href="chrome://kmprefs/content/kmprefs/ovrl-prefetch.xul"?>
+<?xul-overlay href="chrome://kmprefs/content/kmprefs/ovrl-referrer.xul"?>
+<!DOCTYPE page SYSTEM "chrome://kmprefs/locale/pref-network.dtd">
+<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" 
+id="prefNetwork" onload="init()">
+
+<stringbundle id="pref_bundle" src="chrome://kmprefs/locale/pref.properties"/>
+
+<script type="application/x-javascript" src="chrome://kmprefs/content/pref.js"/>
+<script type="application/x-javascript">
+<![CDATA[
+function init() {
+	Referrer.init();
+	initCheckbox("network.prefetch-next");
+}
+]]>
+</script>
+
+<vbox flex="1" style="overflow:auto">
+  <dialogheader title="&network.header;"/>
+  <separator class="thin"/>
+  <groupbox id="referrer"/>
+  <separator class="thin"/>
+  <groupbox id="prefetch"/>
+</vbox>
+
+</page>
