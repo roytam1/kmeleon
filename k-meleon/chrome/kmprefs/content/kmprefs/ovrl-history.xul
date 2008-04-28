@@ -73,7 +73,7 @@ toggle: function(elem) {
       <textbox id="browser.history_expire_days" size="4" class="uri-element" oninput="setIntPref(this.id,this.value)"/>
       <label value="&history.global.keepAfter;"/>
       <spacer flex="1"/>
-      <button oncommand="History.clear();this.disabled=true" id="clearHistory" label="&history.global.clear;"/>
+      <button oncommand="History.clear();this.disabled=true" id="clearHistory" label="&clear;"/>
     </hbox>
     <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.plugins.history.load" label="&history.plugin;"/>
     <separator class="thin"/>
