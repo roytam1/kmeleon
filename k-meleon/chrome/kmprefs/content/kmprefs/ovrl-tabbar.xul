@@ -99,6 +99,7 @@ _setControls: function() {
 	    <menupopup>
               <menuitem value="1" label="&tabbar.mouse.open;"/>
               <menuitem value="0" label="&tabbar.mouse.close;"/>
+              <menuitem value="3" label="&tabbar.mouse.classic;"/>
               <menuitem value="2" label="&tabbar.mouse.menu;"/>
 	    </menupopup>
           </menulist>
@@ -109,6 +110,7 @@ _setControls: function() {
 	    <menupopup>
               <menuitem value="1" label="&tabbar.mouse.open;"/>
               <menuitem value="0" label="&tabbar.mouse.close;"/>
+              <menuitem value="3" label="&tabbar.mouse.classic;"/>
               <menuitem value="2" label="&tabbar.mouse.menu;"/>
 	    </menupopup>
           </menulist>
@@ -119,6 +121,7 @@ _setControls: function() {
 	    <menupopup>
               <menuitem value="1" label="&tabbar.mouse.open;"/>
               <menuitem value="0" label="&tabbar.mouse.close;"/>
+              <menuitem value="3" label="&tabbar.mouse.classic;"/>
               <menuitem value="2" label="&tabbar.mouse.menu;"/>
 	    </menupopup>
           </menulist>
