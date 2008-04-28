@@ -2,7 +2,10 @@
 <!ENTITY % plugDTD SYSTEM "chrome://kmprefs/locale/kplugins/kplugins.dtd">%plugDTD;
 <!ENTITY tabbar.label		"Tab Bar">
 <!ENTITY tabbar.autoHide	"Hide tab bar when there is only one tab">
-<!ENTITY tabbar.loading		"Indicate page loading in the tab button title">
+<!ENTITY tabbar.bottom		"Display tab bar at the bottom">
+<!ENTITY tabbar.fixed		"Attach Tab/Window Buttons to the tab bar">
+<!ENTITY tabbar.loading.title	"Indicate page loading in the tab button title">
+<!ENTITY tabbar.loading.icon	"Indicate page loading in the tab button icon">
 <!ENTITY tabbar.mouse		"Mouse Control">
 <!ENTITY tabbar.mouse.dClick	"On Double-Click:">
 <!ENTITY tabbar.mouse.mClick	"On Middle-Click:">
