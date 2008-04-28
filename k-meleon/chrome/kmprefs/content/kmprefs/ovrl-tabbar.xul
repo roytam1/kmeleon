@@ -9,7 +9,10 @@ var TabBar = {
 hide : "browser.tabs.autoHide",
 init : function() {
 	this._base = "kmeleon.tabs.";
-	this._ctrl = new Array(	"useLoadingTitle",
+	this._ctrl = new Array(	"bottomBar",
+				"fixedBar",
+				"useLoadingTitle",
+				"useLoadingIcon",
 				"title",
 				"minWidth",
 				"maxWidth",
@@ -18,11 +21,13 @@ init : function() {
 				"OnRightClick");
 	this._setControls();
 	initCheckbox(this.hide);
-	initCheckbox(this._base+this._ctrl[0]);
-	initTextbox(this._base+this._ctrl[1],document.getElementById("pref_bundle").getString("toolbar_title_none"));
-	for(var j=2;j<4;j++)
+	for(var j=0;j<4;j++)
+		initCheckbox(this._base+this._ctrl[j]);
+	document.getElementById(this._base+this._ctrl[3]).disabled = !pref.getBoolPref("kmeleon.favicons.show");
+	initTextbox(this._base+this._ctrl[2],document.getElementById("pref_bundle").getString("toolbar_title_none"));
+	for(var j=5;j<7;j++)
 		initTextbox(this._base+this._ctrl[j]);
-	for(var j=4;j<7;j++)
+	for(var j=7;j<10;j++)
 		initMenulist(this._base+this._ctrl[j],"","");
 },
 title: function(elem) {
@@ -54,7 +59,8 @@ _setControls: function() {
 <tabpanel id="TabBar" flex="1" orient="vertical" style="overflow:auto">
   <separator class="thin"/>
   <checkbox oncommand="toggleCheckbox(this.id)" id="browser.tabs.autoHide" label="&tabbar.autoHide;"/>
-  <separator class="thick"/>
+  <!--separator class="thick"/-->
+  <groupbox style="border-top:0;border-left:0;border-right:0;margin-top:0;margin-bottom:0.6em"/>
   <grid>
     <columns>
       <column/>
@@ -80,10 +86,16 @@ _setControls: function() {
     </rows>
   </grid>
   <separator class="thin"/>
-  <description>&restartNote1;</description>
-  <separator class="thick"/>
-  <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.tabs.useLoadingTitle" label="&tabbar.loading;"/>
-  <separator class="thick"/>
+  <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.tabs.bottomBar" label="&tabbar.bottom;"/>
+  <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.tabs.fixedBar" label="&tabbar.fixed;"/>
+  <separator class="thin"/>
+  <groupbox style="border-top:0;border-left:0;border-right:0">
+    <description>&restartNote1;</description>
+  </groupbox>
+  <separator class="thin"/>
+  <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.tabs.useLoadingTitle" label="&tabbar.loading.title;"/>
+  <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.tabs.useLoadingIcon" label="&tabbar.loading.icon;"/>
+  <separator class="thin"/>
   <groupbox>
     <caption label="&tabbar.mouse;"/>
     <separator class="thin"/>
