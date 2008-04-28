@@ -795,13 +795,11 @@ BOOL CMyStatusBar::SetIconInfo(UINT nID, HICON hIcon, LPCTSTR tpText)
 					// Better way to get the width ?
 					BITMAP bm;	
 					ICONINFO iconinfo;
-					if (GetIconInfo(hIcon, &iconinfo)) {
-						GetObject(iconinfo.hbmMask, sizeof(BITMAP), &bm);
-						ii->lWidth = bm.bmWidth;
-						DeleteObject(iconinfo.hbmColor);
-						DeleteObject(iconinfo.hbmMask);
-					}
-					else ii->lWidth = 16;
+					GetIconInfo(hIcon, &iconinfo);
+					GetObject(iconinfo.hbmMask, sizeof(BITMAP), &bm);
+					ii->lWidth = bm.bmWidth;
+					DeleteObject(iconinfo.hbmColor);
+					DeleteObject(iconinfo.hbmMask);
 				
 				/*int index = CommandToIndex(nID);
 				SetPaneInfo(index, nID, SBPS_NORMAL|SBPS_NOBORDERS, ii->lWidth);
@@ -1070,21 +1068,21 @@ void CBrowserFrame::SetBackImage()
 }
 
 /////////////////////////////////////////////////////////////////////////////
-void CBrowserFrame::LoadBackImage (BOOL force)
+void CBrowserFrame::LoadBackImage ()
 {
     //------------------------------------
     // Load control bars background image:
     //------------------------------------
 
-    if (!force && m_bmpBack.GetSafeHandle () != NULL)
+    if (m_bmpBack.GetSafeHandle () != NULL)
         return;
 
 	CString skinFile;
 	if (theApp.FindSkinFile(skinFile, _T("Back.bmp")))
 	{
 		HBITMAP hbmp = (HBITMAP) ::LoadImage (NULL,
-						skinFile, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-		m_bmpBack.DeleteObject();
+						skinFile, IMAGE_BITMAP, 0, 0,
+						LR_LOADMAP3DCOLORS | LR_LOADFROMFILE);
 		m_bmpBack.Attach (hbmp);
 	}
 }
@@ -1504,25 +1502,21 @@ void CBrowserFrame::OnViewStatusBar()
 void CBrowserFrame::UpdateSecurityStatus(PRInt32 aState)
 {
 	UINT tpTextId, iconResID;
-	TCHAR* icoFile;
 
 	if(aState & nsIWebProgressListener::STATE_IS_INSECURE) {
 		iconResID = IDI_SECURITY_UNLOCK;
 		m_wndUrlBar.Highlight(0);
 		tpTextId = IDS_SECURITY_UNLOCK;
-		icoFile = _T("sinsecur.ico");
 	}
 	else if(aState & nsIWebProgressListener::STATE_IS_BROKEN) {
 		iconResID = IDI_SECURITY_BROKEN;
 		m_wndUrlBar.Highlight(2);
 		tpTextId = IDS_SECURITY_BROKEN;
-		icoFile = _T("sbroken.ico");
 	}  
 	else if(aState & nsIWebProgressListener::STATE_IS_SECURE) {
 		iconResID = IDI_SECURITY_LOCK;
 		m_wndUrlBar.Highlight(1);
 		tpTextId = IDS_SECURITY_LOCK;
-		icoFile = _T("ssecur.ico");
 	}
 	else 
 	{
@@ -1533,13 +1527,8 @@ void CBrowserFrame::UpdateSecurityStatus(PRInt32 aState)
    CString tpText;
    tpText.LoadString(tpTextId);
 
-   HICON hTmpSecurityIcon;
-   CString skinFile;
-   if (theApp.FindSkinFile(skinFile, icoFile))
-      hTmpSecurityIcon = (HICON)::LoadImage(AfxGetResourceHandle(),
-         skinFile, IMAGE_ICON, 16,16,LR_LOADFROMFILE);		
-   else  
-      hTmpSecurityIcon = (HICON)::LoadImage(AfxGetResourceHandle(),
+   HICON hTmpSecurityIcon = 
+    (HICON)::LoadImage(AfxGetResourceHandle(),
        MAKEINTRESOURCE(iconResID), IMAGE_ICON, 16,16,LR_LOADMAP3DCOLORS);
 
    m_wndStatusBar.SetIconInfo(ID_SECURITY_STATE_ICON, hTmpSecurityIcon, tpText);
@@ -1612,15 +1601,9 @@ void CBrowserFrame::UpdatePopupNotification(LPCTSTR uri)
 {
 	if (uri && *uri) {
 		if (m_wndStatusBar.AddIcon(ID_POPUP_BLOCKED_ICON)) {
-			HICON hTmpPopupIcon;
-			
-			CString skinFile;
-			if (theApp.FindSkinFile(skinFile, _T("popupblock.ico")))
-				hTmpPopupIcon = (HICON)::LoadImage(AfxGetResourceHandle(),
-					skinFile, IMAGE_ICON, 16, 16, LR_LOADFROMFILE);
-			else
-				hTmpPopupIcon = (HICON)::LoadImage(AfxGetResourceHandle(),
-					MAKEINTRESOURCE(IDI_POPUP_BLOCKED), IMAGE_ICON, 16,16,LR_LOADMAP3DCOLORS);
+			HICON hTmpPopupIcon = 
+				(HICON)::LoadImage(AfxGetResourceHandle(),
+				MAKEINTRESOURCE(IDI_POPUP_BLOCKED), IMAGE_ICON, 16,16,LR_LOADMAP3DCOLORS);
 
 			CString tpText;
 			tpText.Format(IDS_POPUP_BLOCKED, uri);

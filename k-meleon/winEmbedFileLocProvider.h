@@ -46,7 +46,7 @@ class nsILocalFile;
 // class winEmbedFileLocProvider
 //*****************************************************************************   
 
-class winEmbedFileLocProvider : public nsIDirectoryServiceProvider2
+class winEmbedFileLocProvider : public nsIDirectoryServiceProvider
 {
 public:
     // aProductDirName is the name (not path) of the dir
@@ -55,7 +55,6 @@ public:
 
     NS_DECL_ISUPPORTS
     NS_DECL_NSIDIRECTORYSERVICEPROVIDER
-	NS_DECL_NSIDIRECTORYSERVICEPROVIDER2
 
 protected:
     virtual              ~winEmbedFileLocProvider();
