@@ -1,0 +1,161 @@
+<?xml version="1.0"?>
+<engines version="1.1" caption="Search Engines for K-Meleon Search Macros">
+<engine caption="A9.com"
+	url="http://a9.com/"/>
+<engine caption="Acronym Finder"
+	url="http://www.acronymfinder.com/af-query.asp?String=exact&amp;Find=Find&amp;Acronym="/>
+<engine caption="AlltheWeb.com"
+	url="http://www.alltheweb.com/search?q="/>
+<engine caption="AltaVista"
+	url="http://www.altavista.com/web/results?itag=wrx&amp;q="/>
+<engine caption="Amazon.com"
+	url="http://www.amazon.com/exec/obidos/search-handle-url/ref=pd_kk_sr_1/002-8688321-8094407?index=blended&amp;field-keywords="/>
+<engine caption="Answers.com"
+	url="http://www.answers.com/"/>
+<engine caption="AOL Audio Search"
+	url="http://search.aol.com/aolcom/audio?invocationType=topsearchbox.audiohome&amp;query="/>
+<engine caption="AOL Image Search"
+	url="http://search.aol.com/aolcom/image?invocationType=topsearchbox.imagehome&amp;query="/>
+<engine caption="AOL Local Search"
+	url="http://localsearch.aol.com/main.adp?invocationType=topsearchbox.local&amp;query="/>
+<engine caption="AOL News Search"
+	url="http://news.search.aol.com/search?invocationType=topsearchbox.news&amp;category=ns_top_collection&amp;query="/>
+<engine caption="AOL Search"
+	url="http://search.aol.com/aolcom/search?invocationType=topsearchbox.webhome&amp;query="/>
+<engine caption="AOL Video Search"
+	url="http://search.aol.com/aolcom/video?invocationType=topsearchbox.videohome&amp;query="/>
+<engine caption="Ask.com"
+	url="http://web.ask.com/web?q="/>
+<engine caption="Astalavista.box.sk"
+	url="http://astalavista.box.sk/cgi-bin/robot?srch="/>
+<engine caption="Del.icio.us"
+	url="http://del.icio.us/search?all="/>
+<engine caption="Dictionary.com"
+	url="http://www.dictionary.com/search?q="/>
+<engine caption="Ditto.com Images"
+	url="http://ditto.com/searchResults.asp?mainToolbar=imageSelected&amp;pid=7002&amp;p=1&amp;search.x=0&amp;search.y=0&amp;ss="/>
+<engine caption="Dogpile"
+	url="http://www.dogpile.com/info.dogpl/search/web/"/>
+<engine caption="Dumbfind"
+	url="http://dumbfind.com/search.jsp?search="/>
+<engine caption="eBay.com"
+	url="http://search.ebay.com/"/>
+<engine caption="Feedster"
+	url="http://www.feedster.com/search.php?q="/>
+<engine caption="Find Travel To"
+	url="http://www.findtravelto.com/cgi-bin/search/findtravel.to.cgi?x=&amp;db=&amp;Terms="/>
+<engine caption="Froogle"
+	url="http://froogle.google.com/froogle?gfns=1&amp;sa=N&amp;tab=nf&amp;q="/>
+<engine caption="GameFAQs Search"
+	url="http://www.gamefaqs.com/search/index.html?platform=0&amp;game="/>
+<engine caption="Gigablast"
+	url="http://www.gigablast.com/search?q="/>
+<engine caption="Google"
+	url="http://www.google.com/search?q="/>
+<engine caption="Google - 100 Results"
+	url="http://www.google.com/search?num=100&amp;q="/>
+<engine caption="Google - Browse by name"
+	url="http://www.google.com/search?ie=UTF-8&amp;sourceid=navclient&amp;gfns=1&amp;q="/>
+<engine caption="Google - I'm feeling lucky"
+	url="http://www.google.com/search?btnI=1&amp;q="/>
+<engine caption="Google Groups"
+	url="http://groups.google.co.uk/groups?hl=en&amp;btnG=Google+Search&amp;q="/>
+<engine caption="Google Images"
+	url="http://images.google.com/images?btnG=Google+Search&amp;safe=off&amp;filter=0&amp;q="/>
+<engine caption="Google Maps"
+	url="http://maps.google.com/maps?gfns=1&amp;sa=N&amp;tab=fl&amp;q="/>
+<engine caption="Google News"
+	url="http://news.google.com/news?gfns=1&amp;sa=N&amp;tab=gn&amp;q="/>
+<engine caption="Google Scholar"
+	url="http://www.scholar.google.com/scholar?q="/>
+<engine caption="HotBot"
+	url="http://search.hotbot.co.uk/cgi-bin/pursuit?query="/>
+<engine caption="HowStuffWorks"
+	url="http://www.howstuffworks.com/search.php?search="/>
+<engine caption="Internet Archive Wayback Machine"
+	url="http://web.archive.org/web/*/"/>
+<engine caption="Internet Movie Database (English)"
+	url="http://www.imdb.com/find?q="/>
+<engine caption="Internet Movie Database (International)"
+	url="http://akas.imdb.com/find?q="/>
+<engine caption="Internet Movie Database (Français)"
+	url="http://french.imdb.com/find?q="/>
+<engine caption="Internet Movie Database (Deutsch)"
+	url="http://german.imdb.com/find?q="/>
+<engine caption="Internet Movie Database (Italiano)"
+	url="http://italian.imdb.com/find?q="/>
+<engine caption="Ixquick Metasearch"
+	url="http://ixquick.com/do/metasearch.pl?cmd=process_search&amp;x=39&amp;y=11&amp;cat=eng_web&amp;query="/>
+<engine caption="Jux2"
+	url="http://www.jux2.com/search.php?q="/>
+<engine caption="K-Meleon Forums Search"
+	url="http://kmeleon.sourceforge.net/forum/search.php?0,page=1,match_type=ALL,match_dates=30,match_forum=ALL,search="/>
+<engine caption="LEO Deutsch-Englisches Wörterbuch"
+	url="http://dict.leo.org/ende?lp=ende&amp;lang=de&amp;searchLoc=0&amp;cmpType=relaxed&amp;sectHdr=on&amp;spellToler=on&amp;relink=on&amp;search="/>
+<engine caption="LEO English-German Dictionary"
+	url="http://dict.leo.org/ende?lp=ende&amp;lang=en&amp;searchLoc=0&amp;cmpType=relaxed&amp;sectHdr=on&amp;spellToler=on&amp;relink=on&amp;search="/>
+<engine caption="LEO Deutsch-Französisches Wörterbuch"
+	url="http://dict.leo.org/frde?lp=frde&amp;lang=de&amp;searchLoc=0&amp;cmpType=relaxed&amp;sectHdr=on&amp;spellToler=on&amp;relink=on&amp;search="/>
+<engine caption="LEO Dictionnaire Français-Allemand"
+	url="http://dict.leo.org/frde?lp=frde&amp;lang=fr&amp;searchLoc=0&amp;cmpType=relaxed&amp;sectHdr=on&amp;spellToler=on&amp;relink=on&amp;search="/>
+<engine caption="LEO Deutsch-Spanisches Wörterbuch"
+	url="http://dict.leo.org/esde?lp=esde&amp;lang=de&amp;searchLoc=0&amp;cmpType=relaxed&amp;sectHdr=on&amp;spellToler=on&amp;relink=on&amp;search="/>
+<engine caption="LEO Diccionario Español-Alemán"
+	url="http://dict.leo.org/esde?lp=esde&amp;lang=es&amp;searchLoc=0&amp;cmpType=relaxed&amp;sectHdr=on&amp;spellToler=on&amp;relink=on&amp;search="/>
+<engine caption="Lycos"
+	url="http://search.lycos.com/default.asp?lpv=1&amp;loc=searchhp&amp;tab=web&amp;query="/>
+<engine caption="Mamma Metasearch"
+	url="http://www.mamma.com/Mamma?query="/>
+<engine caption="Merriam-Webster Online Dictionary"
+	url="http://www.m-w.com/cgi-bin/dictionary?"/>
+<engine caption="MetaCrawler"
+	url="http://www.metacrawler.com/info.metac/search/web/"/>
+<engine caption="MobyGames"
+	url="http://www.mobygames.com/search/quick?q="/>
+<engine caption="MondoMole Image Search"
+	url="http://www.mondomole.com/?NextEntry=0&amp;Search=Search&amp;FF=1&amp;QueryStr="/>
+<engine caption="MSN Search"
+	url="http://search.msn.com/results.aspx?q="/>
+<engine caption="Multimap.com"
+	url="http://www.multimap.com/map/places.cgi?region=&amp;country=&amp;overviewmap=&amp;db=w3&amp;cname=&amp;client=public&amp;Submit.x=9&amp;Submit.y=4&amp;place="/>
+<engine caption="OneLook Dictionary Search"
+	url="http://www.onelook.com/?w="/>
+<engine caption="OOKO Search"
+	url="http://www.ookosearch.com/search?S&amp;q="/>
+<engine caption="Open Directory (dmoz.org)"
+	url="http://search.dmoz.org/cgi-bin/search?search="/>
+<engine caption="Search.com"
+	url="http://www.search.com/search?q="/>
+<engine caption="SnapFiles"
+	url="http://www.snapfiles.com/downloadfind.php?action=s&amp;search=Find&amp;st="/>
+<engine caption="Vivísimo"
+	url="http://vivisimo.com/search?query="/>
+<engine caption="Weather.com"
+	url="http://www.weather.com/search/enhanced?where="/>
+<engine caption="Webshots"
+	url="http://webshots.com/search?tab=photos&amp;query="/>
+<engine caption="Webshots Community"
+	url="http://webshots.com/search?new=1&amp;querySource=community&amp;tab=photos&amp;queryAll="/>
+<engine caption="Wikipedia, The Free Encyclopedia"
+	url="http://en.wikipedia.org/wiki/Special:Search/"/>
+<engine caption="Wikipedia, Die freie Enzyklopädie"
+	url="http://de.wikipedia.org/wiki/Spezial:Search/"/>
+<engine caption="Wikipédia, L'encyclopédie libre"
+	url="http://fr.wikipedia.org/wiki/Special:Search/"/>
+<engine caption="Wikipedia, La encyclopedia libre"
+	url="http://es.wikipedia.org/wiki/Especial:Search/"/>
+<engine caption="Yahoo! Groups"
+	url="http://groups.yahoo.com/group/"/>
+<engine caption="Yahoo! Images"
+	url="http://images.search.yahoo.com/search/images?p="/>
+<engine caption="Yahoo! Maps"
+	url="http://maps.yahoo.com/maps_result?ed=M7tNO.p_0TqT&amp;csz="/>
+<engine caption="Yahoo! Movies"
+	url="http://movies.yahoo.com/mv/search?p="/>
+<engine caption="Yahoo! Profiles"
+	url="http://profiles.yahoo.com/"/>
+<engine caption="Yahoo! Search"
+	url="http://search.yahoo.com/bin/search?p="/>
+<engine caption="Yahoo! Shopping"
+	url="http://search.shopping.yahoo.com/search/all?p="/>
+</engines>
