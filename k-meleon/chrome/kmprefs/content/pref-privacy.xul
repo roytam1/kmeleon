@@ -1,6 +1,8 @@
 <?xml version="1.0"?>
 <?xml-stylesheet type="text/css" href="chrome://global/skin/"?>
 <?xul-overlay href="chrome://kmprefs/content/kmprefs/ovrl-history.xul"?>
+<?xul-overlay href="chrome://kmprefs/content/kmprefs/ovrl-cache.xul"?>
+<?xul-overlay href="chrome://kmprefs/content/kmprefs/ovrl-prefetch.xul"?>
 <?xul-overlay href="chrome://kmprefs/content/kmprefs/ovrl-referrer.xul"?>
 <!DOCTYPE page SYSTEM "chrome://kmprefs/locale/pref-privacy.dtd">
 <page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" 
@@ -18,8 +20,10 @@ function init() {
 		document.getElementById("signonsView").removeAttribute("hidden");
 	Cookies.init();// setInterval("Cookies.init()",100);
 	History.init();
+	DiskCache.init();
 	UserAgent.init();
 	Referrer.init();
+	initCheckbox("network.prefetch-next");
 }
 
 var Cookies = {
@@ -144,6 +148,7 @@ select: function(val) {
       <tabs>
         <tab label="&general;"/>
         <tab label="&history.label;"/>
+        <tab label="&cache.label;"/>
         <tab label="&privacy.paranoia;"/>
       </tabs>
       <tabpanels flex="1">
@@ -211,11 +216,14 @@ select: function(val) {
           <vbox id="history"/>
 	</tabpanel>
         <tabpanel flex="1" orient="vertical" style="overflow:auto">
+          <separator class="thin"/>
+          <groupbox id="diskcache"/>
+	</tabpanel>
+        <tabpanel flex="1" orient="vertical" style="overflow:auto">
 <!-- Paranoia -->
 <separator class="thin"/>
 <groupbox>
   <caption label="&useragent.label;"/>
-  <separator class="thin"/>
   <description>&useragent.select;</description>
   <separator class="thin"/>
   <vbox>
@@ -227,6 +235,8 @@ select: function(val) {
 </groupbox>
 <separator class="thin"/>
 <groupbox id="referrer"/>
+<separator class="thin"/>
+<groupbox id="prefetch"/>
 <!-- Paranoia -->
 	</tabpanel>
       </tabpanels>

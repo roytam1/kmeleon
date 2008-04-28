@@ -31,7 +31,8 @@
 <!ENTITY ID_WINDOW_PREV			"Previous Window">
 <!--ENTITY layersPrev			"Previous Layer"-->
 <!ENTITY ID_TAB_PREV			"Previous Tab">
-<!ENTITY layersLast			"Previously Selected Layer">
+<!--ENTITY layersLast			"Previously Selected Layer"-->
+<!ENTITY ID_TAB_LAST			"Previously Selected Tab">
 <!ENTITY ID_NAV_HOME			"Open Home Page">
 <!ENTITY macrosHome			"Perform 'Start with ...' Action">
 <!ENTITY macrosGo_Up			"Go Up One Directory Level">
@@ -43,8 +44,8 @@
 <!ENTITY ID_CLOSE_ALLTAB		"Close All Tabs">
 <!--ENTITY layersCloseAllOther		"Close Other Layers"-->
 <!ENTITY ID_CLOSE_ALLOTHERTAB		"Close Other Tabs">
-<!--ENTITY ID_APP_EXIT			"Exit K-Meleon">
-<!ENTITY layersOpenLink			"Open Link In New Layer"-->
+<!ENTITY ID_APP_EXIT			"Exit K-Meleon">
+<!--ENTITY layersOpenLink		"Open Link In New Layer"-->
 <!ENTITY ID_OPEN_LINK_IN_NEW_TAB	"Open Link In New Tab">
 <!--ENTITY layersOpenLinkBg		"Open Link In Background Layer"-->
 <!ENTITY ID_OPEN_LINK_IN_BACKGROUNDTAB	"Open Link In Background Tab">

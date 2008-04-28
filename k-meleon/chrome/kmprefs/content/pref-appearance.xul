@@ -17,6 +17,8 @@ id="prefAppearance" onload="init()">
 function init() {
 	initCheckbox("kmeleon.display.accelInMenus");
 	initCheckbox("kmeleon.favicons.show");
+	initCheckbox("kmeleon.favicons.titleBar");
+	document.getElementById("kmeleon.favicons.titleBar").disabled = !pref.getBoolPref("kmeleon.favicons.show");
 	initTextbox("kmeleon.display.title",false);
 
 	Skin = new kmSkin;
@@ -395,7 +397,8 @@ editSave: function(elem,start,end) {
         <separator class="thick"/>
         <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.display.accelInMenus" label="&appearance.menuAccels;"/>
         <separator class="thin"/>
-        <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.favicons.show" label="&appearance.siteIcons;"/>
+        <checkbox oncommand="toggleCheckbox(this.id);this.nextSibling.disabled=!this.checked" id="kmeleon.favicons.show" label="&appearance.siteIcons;"/>
+        <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.favicons.titleBar" label="&appearance.siteIcons.inTitle;" style="margin-left:2em"/>
         <vbox flex="1"/>
         <separator class="thin"/>
         <hbox align="center">

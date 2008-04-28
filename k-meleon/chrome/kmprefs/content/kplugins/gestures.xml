@@ -23,8 +23,8 @@
 	command="ID_WINDOW_PREV"/>
 <action caption="&ID_TAB_PREV;"
 	command="ID_TAB_PREV"/>
-<action caption="&layersLast;"
-	command="layers(Last)"/>
+<action caption="&ID_TAB_LAST;"
+	command="ID_TAB_LAST"/>
 <action caption="&ID_NAV_HOME;"
 	command="ID_NAV_HOME"/>
 <action caption="&macrosHome;"
@@ -41,7 +41,7 @@
 	command="ID_CLOSE_ALLTAB"/>
 <action caption="&ID_CLOSE_ALLOTHERTAB;"
 	command="ID_CLOSE_ALLOTHERTAB"/>
-<action caption="Exit K-Meleon"
+<action caption="&ID_APP_EXIT;"
 	command="ID_APP_EXIT"/>
 <action caption="&ID_OPEN_LINK_IN_NEW_TAB;"
 	command="ID_OPEN_LINK_IN_NEW_TAB"/>

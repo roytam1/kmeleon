@@ -133,6 +133,7 @@ function initMenulist(prefName,prefRoot,invalidNote) {
 		lst.firstChild.appendChild(document.createElement("menuitem"));
 		lst.firstChild.lastChild.setAttribute("value",val);
 		lst.firstChild.lastChild.setAttribute("label",(val)?((invalidNote)?val+" "+invalidNote:val):document.getElementById("pref_bundle").getString("pref_not_set"));
+		lst.firstChild.lastChild.setAttribute("disabled",!val);
 		lst.selectedItem = lst.firstChild.lastChild;
 	}
 }

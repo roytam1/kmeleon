@@ -1,9 +1,0 @@
-<!ENTITY % prefDTD SYSTEM "chrome://kmprefs/locale/pref.dtd">%prefDTD;
-<!ENTITY % plugDTD SYSTEM "chrome://kmprefs/locale/kplugins/kplugins.dtd">%plugDTD;
-<!ENTITY layersbar.label	"Layers Toolbar">
-<!ENTITY layersbar.enable	"Enable Layers Toolbar">
-<!ENTITY layersbar.autoHide	"Hide toolbar in single-layered windows">
-<!ENTITY layersbar.flat		"Show flat buttons">
-<!ENTITY layersbar.elevated	"Show elevated buttons">
-<!ENTITY layersbar.enumerated	"Enumerate layers">
-<!ENTITY layersbar.highlight	"Highlight the active layer with asterisks">

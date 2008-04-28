@@ -15,7 +15,7 @@ The Original Code is the "kmPrefs" extension for K-Meleon.
 The Initial Developer of the Original Code is
 Klaus Kohler <kko@freakmail.de>.
 
-Portions created by the Initial Developer are Copyright (C) 2006-2007
+Portions created by the Initial Developer are Copyright (C) 2006-2008
 the Initial Developer. All Rights Reserved.
 
 Contributor(s):
