@@ -1,0 +1,5 @@
+<!ENTITY % prefDTD SYSTEM "chrome://kmprefs/locale/pref.dtd">%prefDTD;
+<!ENTITY prefetch.label		"Link Prefetching">
+<!ENTITY prefetch.descr		"Web pages can specify resources for prefetching (also on other servers). When idle, K-Meleon can download such resources to the cache. This will increase traffic but may accelerate browsing.">
+<!ENTITY pefetch.enable		"Enable link prefetching">
+<!ENTITY prefetch.note		"&note; Prefetched pages might be able to set cookies.">
