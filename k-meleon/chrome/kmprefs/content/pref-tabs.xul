@@ -28,6 +28,12 @@ init: function() {
 toggle: function() {
 	toggleCheckbox(this.pref);
 
+	var ogrp = "kmeleon.general.opengroup";
+	if(pref.getBoolPref(this.pref))
+		setCharPref(ogrp,"ID_OPEN_LINK_IN_NEW_WINDOW|ID_OPEN_LINK_IN_BACKGROUND");
+	else
+		setCharPref(ogrp,"ID_OPEN_LINK_IN_NEW_TAB|ID_OPEN_LINK_IN_BACKGROUNDTAB");
+
 	this._setControls();
 },
 _setControls: function() {
