@@ -1,5 +1,5 @@
 <!ENTITY prefDialog.title	"Preferences">
-<!ENTITY prefDialog.style	"width: 65.5em; height: 51.5em;">
+<!ENTITY prefDialog.style	"width: 66em; height: 51.5em;">
 <!ENTITY prefDialog.close.label	"Close">
 <!ENTITY prefDialog.close.ackey	"C">
 <!ENTITY prefDialog.next.label	"Next">
@@ -25,6 +25,9 @@
 <!ENTITY hotlinks.label		"Hotlinks">
 <!ENTITY privacy.label		"Privacy &amp; Security">
 <!ENTITY encryption.label	"Encryption">
+<!ENTITY network.label		"Network/Performance">
+<!ENTITY proxy.label		"Proxy">
+<!ENTITY cache.label		"Cache">
 <!ENTITY javascript.label	"JavaScript">
 <!ENTITY kplugins.label		"K-Meleon Plugins">
 <!ENTITY kbookmarks.label	"Netscape Bookmarks">
@@ -45,6 +48,7 @@
 <!ENTITY clear			"Clear">
 <!ENTITY delete			"Delete">
 <!ENTITY edit			"Edit...">
+<!ENTITY view			"View...">
 <!ENTITY exceptions		"Exceptions...">
 <!ENTITY macrosRequired		"This feature requires the Macro Extension">
 <!ENTITY restoreDefault		"Restore Default">

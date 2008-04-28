@@ -3,7 +3,6 @@
 <!ENTITY history.global.label		"Global History">
 <!ENTITY history.global.keepBefore	"Keep a list of all pages visited in the last">
 <!ENTITY history.global.keepAfter	"days">
-<!ENTITY history.global.clear		"Clear History">
 <!ENTITY history.plugin			"Enable History Plugin (&restartRequired;)">
 <!ENTITY history.urlbar.label		"URL Bar History">
 <!ENTITY history.urlbar.keepBefore	"Keep a list of">

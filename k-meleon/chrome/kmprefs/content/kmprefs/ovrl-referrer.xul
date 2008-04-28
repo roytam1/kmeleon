@@ -31,7 +31,6 @@ toggle: function(elem) {
 
 <groupbox id="referrer">
   <caption label="&referrer.label;"/>
-  <separator class="thin"/>
   <checkbox oncommand="Referrer.toggle(this)" label="&referrer.HTTP;"/>
   <radiogroup id="network.http.sendRefererHeader" oncommand="toggleRadiogroup(this.id)" style="margin-left:1.75em">
     <radio value="1" label="&referrer.forClicks;"/>

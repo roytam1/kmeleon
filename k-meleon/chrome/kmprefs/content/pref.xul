@@ -235,6 +235,24 @@ switchPage: function() {
           </treechildren>
         </treeitem>
 
+        <treeitem id="network" container="true">
+          <treerow>
+            <treecell url="chrome://kmprefs/content/pref-network.xul" label="&network.label;"/>
+          </treerow>
+          <treechildren>
+            <treeitem id="proxy">
+              <treerow>
+                <treecell url="chrome://kmprefs/content/pref-proxy.xul" label="&proxy.label;"/>
+              </treerow>
+            </treeitem>
+            <treeitem id="cache">
+              <treerow>
+                <treecell url="chrome://kmprefs/content/pref-cache.xul" label="&cache.label;"/>
+              </treerow>
+            </treeitem>
+          </treechildren>
+        </treeitem>
+
         <treeitem id="javascript">
           <treerow>
             <treecell url="chrome://kmprefs/content/pref-javascript.xul" label="&javascript.label;"/>
