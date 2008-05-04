@@ -194,7 +194,7 @@ void CBrowserFrmTab::OnClose()
    int ConfirmClose = theApp.preferences.GetBool("browser.tabs.warnOnClose", 1);
    if (ConfirmClose && m_iBrowserCount>1)
    {
-	   ActivateFrame();
+	   SetForegroundWindow();
 	   CString str;
 	   str.Format(IDS_CLOSE_SEVERAL_TABS, m_iBrowserCount);
 	   if (MessageBox(str, 0, MB_OKCANCEL|MB_ICONWARNING) != IDOK)

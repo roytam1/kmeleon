@@ -32,6 +32,7 @@
 
 #include "StdAfx.h"
 #include "winEmbedFileLocProvider.h"
+#include "MozUtils.h"
 
 //#ifdef USE_FILELOCPROVIDER 
 
@@ -44,6 +45,7 @@
 #include "nsILocalFile.h"
 #include "nsIProperties.h"
 #include "nsServiceManagerUtils.h"
+#include "nsISimpleEnumerator.h"
 
 #include <windows.h>
 #include <shlobj.h>
@@ -69,6 +71,59 @@ extern CMfcEmbedApp theApp;
 #define COMPONENTS_DIR_NAME         nsEmbedCString("components")
 
 
+class CSimpleFileEnumerator : nsISimpleEnumerator
+{
+public:
+	NS_DECL_ISUPPORTS
+
+	CSimpleFileEnumerator() : mPos (NULL) {}
+	~CSimpleFileEnumerator() {}
+
+	void AddElement(LPCTSTR str)
+	{
+		mList.AddTail(str);
+		mPos = mList.GetHeadPosition();
+	}
+
+	NS_IMETHODIMP HasMoreElements(PRBool *_retval)
+	{
+		*_retval =  (mPos != NULL);
+		return NS_OK;
+	}
+
+	NS_IMETHODIMP GetNext(nsISupports **_retval)
+	{
+		NS_ENSURE_ARG_POINTER(_retval);
+		*_retval = nsnull;
+
+		if (mPos == NULL) return NS_ERROR_FAILURE;
+		
+		nsCOMPtr<nsILocalFile> localFile;
+		CString str = mList.GetNext(mPos);
+
+		nsresult rv;
+#ifdef _UNICODE
+		rv = NS_NewLocalFile(nsEmbedString(str), TRUE, getter_AddRefs(localFile));
+#else
+		rv = NS_NewNativeLocalFile(nsEmbedCString(str), TRUE, getter_AddRefs(localFile));
+#endif
+		NS_ENSURE_SUCCESS(rv, rv);
+
+		localFile->QueryInterface(NS_GET_IID(nsISupports), (void**)_retval);
+		NS_IF_ADDREF(*_retval);
+		return NS_OK;
+	}
+
+protected:
+	
+	CList<CString, LPCTSTR> mList;
+	POSITION mPos;
+
+};
+
+NS_IMPL_ISUPPORTS1(CSimpleFileEnumerator, nsISimpleEnumerator)
+
+
 //*****************************************************************************
 // winEmbedFileLocProvider::Constructor/Destructor
 //*****************************************************************************   
@@ -82,16 +137,47 @@ winEmbedFileLocProvider::~winEmbedFileLocProvider()
 {
 }
 
-
 //*****************************************************************************
 // winEmbedFileLocProvider::nsISupports
 //*****************************************************************************   
 
-NS_IMPL_ISUPPORTS1(winEmbedFileLocProvider, nsIDirectoryServiceProvider)
+NS_IMPL_ISUPPORTS2(winEmbedFileLocProvider, nsIDirectoryServiceProvider2, nsIDirectoryServiceProvider)
 
 //*****************************************************************************
 // winEmbedFileLocProvider::nsIDirectoryServiceProvider
 //*****************************************************************************   
+
+NS_IMETHODIMP
+winEmbedFileLocProvider::GetFiles(const char *prop, nsISimpleEnumerator **_retval)
+{ 
+	*_retval = nsnull;
+	nsresult rv = NS_ERROR_FAILURE;
+
+	if (strcmp(prop, "ChromeML") == 0)
+	{
+		CSimpleFileEnumerator* fileEnum = new CSimpleFileEnumerator();
+		if (!fileEnum) return NS_ERROR_OUT_OF_MEMORY;
+		fileEnum->AddElement(GetMozDirectory(NS_APP_CHROME_DIR));
+		fileEnum->AddElement(GetMozDirectory(NS_APP_USER_CHROME_DIR));
+		fileEnum->QueryInterface(NS_GET_IID(nsISimpleEnumerator), (void**)_retval);
+		return NS_SUCCESS_AGGREGATE_RESULT;
+	}
+
+	/* Can't work yet
+	if (strcmp(prop, NS_APP_PREFS_DEFAULTS_DIR_LIST) == 0)
+	{
+		CSimpleFileEnumerator* fileEnum = new CSimpleFileEnumerator();
+		if (!fileEnum) return NS_ERROR_OUT_OF_MEMORY;
+		CString profileDir = GetMozDirectory(NS_APP_USER_PROFILE_50_DIR);
+		if (profileDir.GetLength())
+		fileEnum->AddElement( + _T("\\default"));
+		fileEnum->QueryInterface(NS_GET_IID(nsISimpleEnumerator), (void**)_retval);
+		return NS_SUCCESS_AGGREGATE_RESULT;
+	}*/
+
+	return NS_ERROR_FAILURE;
+}
+
 
 NS_IMETHODIMP
 winEmbedFileLocProvider::GetFile(const char *prop, PRBool *persistant, nsIFile **_retval)

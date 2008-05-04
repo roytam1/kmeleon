@@ -153,7 +153,7 @@ CPreferences::CPreferences() :
 	bStartHome("kmeleon.general.startHome", true),
 	iNewWindowOpenAs("kmeleon.display.newWindowOpenAs", 0),
     newWindowURL("kmeleon.display.newWindowURL", _T("")),
-	homePage("kmeleon.general.homePage", _T("http://kmeleon.sourceforge.net/start")),
+	homePage("browser.startup.homepage", _T("http://kmeleon.sourceforge.net/start")),
 
 //    searchEngine("kmeleon.general.searchEngine", _T("http://www.google.com/search?q=")),
 

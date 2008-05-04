@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd" [
+    <!ENTITY km		"K-Meleon">
+    <!ENTITY mail	"kmeleon-dev@lists.sourceforge.net">
+    <!ENTITY home	"http://kmeleon.sourceforge.net/">
+    <!ENTITY faq	"&home;docs/faq.php">
+
+    <!ENTITY kmYear	"2007">
+    <!ENTITY notes	"&home;wiki/index.php?id=ReleaseNotes11">
+
+    <!ENTITY contrib	"Contributors">
+    <!ENTITY copyright	"Copyright &copy;">
+    <!ENTITY allrights	"All Rights Reserved.">
+]>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" class="km_PageBackground"><head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Script-Type" content="text/javascript" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+    <title>About &km;</title>
+    <link rel="stylesheet" href="chrome://global/skin/netError.css" type="text/css" media="all" />
+    <style type="text/css">
+	#head > a	 { text-decoration: none; font-size: 110%; }
+	h2,
+	#main p#useragent,
+	ul.credits	 { text-align: center; }
+	ul.credits	 { margin: 0; list-style-type: none; }
+	ul.credits > li	 { margin: 0 0 3em; }
+	p#useragent,
+	p#government	 { font-size: 83.3%; }
+	p#useragent	 { margin: 1.2em; }
+	#main 		 { font-size: 120%; }
+	#main p		 { text-align: justify; }
+	#main hr	 { margin: 1em 0; }
+
+	@media screen {
+	#dummy1		 { height: 9.5em; }
+	#dummy2		 { height: 11em; }
+	#creditsScrollBox{ height: 11em; min-height: 11em; overflow: hidden; }
+	}
+
+	@media print {
+	ul.credits	 { margin: 1em 0; -moz-margin-start: 1.5em; list-style-type: square; text-align: left; }
+	ul.credits > li	 { margin: 0 0 0.5em; }
+	#dummy1,
+	#dummy2		 { display: none; }
+	#creditsScrollBox{ overflow: visible; }
+	#main	 	 { position: relative; }
+	}
+    </style>
+    <script type="text/javascript"><![CDATA[
+	function init() {
+	    initCredits();
+	    initUserAgent();
+	}
+
+	// user agent
+	function initUserAgent() {
+	    try {
+		document.getElementById("useragent").appendChild(document.createTextNode(navigator.userAgent));
+		document.getElementById("mozYear").firstChild.appendData("-"+navigator.productSub.substr(0,4));
+		document.getElementById("kmName").firstChild.appendData(" "+navigator.vendorSub);
+	    } catch (e) {}
+	}
+
+	// credits
+	var timer = 0, box;
+	function initCredits() {
+	    box = document.getElementById("creditsScrollBox");
+	    box.scrollTop = 0;
+	    setTimeout("startCredits()", 2000);
+	}
+	function startCredits() {
+	    timer = setInterval("scrollCredits()", 25);
+	}
+	function scrollCredits() {
+	    var tmp = ++box.scrollTop;
+	    if (box.scrollTop != tmp) {
+		// we're at the bottom
+		clearInterval(timer);
+		initCredits();
+	    }
+	}
+    ]]></script>
+</head><body dir="ltr" class="km_PageBackground km_Text" onload="init()">
+
+<fieldset dir="rtl" class="km_TextBackground km_TextBorder km_PageContainer">
+    <legend id="head" class="km_TextBackground km_TextBorder">&nbsp;<a href="&home;">Homepage</a>&nbsp;&middot; <a href="&notes;">Release&nbsp;Notes</a>&nbsp;&middot; <a href="&faq;">FAQ</a>&nbsp;</legend>
+    <div dir="ltr" class="km_Logo">
+	<div id="creditsBox" class="km_Border km_SpecialBorder km_LogoWidth km_LogoHeight">
+	    <h1 id="kmName">&km;</h1>
+	    <p class="km_Border">Thanks to all &km; &contrib;, especially:</p>
+	    <div id="creditsScrollBox">
+		<div id="dummy1"></div>
+		<ul class="credits">
+			<!-- 1.0, 1.1 -->
+			<li>Dorian Boissonnade</li>
+			<li>Klaus Kohler</li>
+			<!-- 0.9 -->
+			<li>Ulf Erikson</li>
+			<li>Romain Vallet</li>
+			<li>Jason J.</li>
+			<li>Andrew Mutch</li>
+			<!-- 0.8 -->
+			<li>Vernon Brooks</li>
+			<li>Jordan Callicoat</li>
+			<!-- 0.7 -->
+			<li>Jeff Doozan</li>
+			<li>Mark Liffiton</li>
+			<li>Rob Johnson</li>
+			<!-- ? past 0.7 ? -->
+			<li>Chak Nanga</li>
+			<!-- 0.1 - 0.6 -->
+			<li>Brian Harris</li>
+			<li>Sebastian Spaeth</li>
+			<li>Christophe Thibault</li>
+		</ul>
+		<div id="dummy2"></div>
+	    </div>
+	</div>
+    </div>
+    <div id="main" dir="ltr">
+<!-- Begin Main Content -->
+
+<p id="useragent"></p>
+
+<hr class="km_Color km_Border"/>
+
+<ul><li>&copyright; 2000-&kmYear; by &contrib; to the <a href="&home;">&km;</a> project under the <a href="http://www.gnu.org/licenses/licenses.html#TOCGPL">GNU General Public License</a>. &allrights;</li>
+    <!-- Extensions -->
+    <li><a href="http://console2.mozdev.org/">Console&sup2;</a> extension developed by Simon B&uuml;nzli and <a href="http://console2.mozdev.org/contributors.html">&contrib;</a>. &allrights;</li>
+    <li><a href="http://flashblock.mozdev.org/">Flashblock</a> extension developed by Ted Mielczarek and <a href="http://flashblock.mozdev.org/credits.html">&contrib;</a>. &allrights;</li>
+    <li><a href="http://newsfox.mozdev.org/">NewsFox</a> RSS/Atom news reader developed by Andy Frank and Andrey Gromyko. &allrights;</li>
+    <!-- Mozilla -->
+    <li>Portions of this software are &copyright; <span id="mozYear">1998</span> by <a href="http://www.mozilla.org/credits/">&contrib;</a> to the <a href="http://www.mozilla.org/">Mozilla</a> codebase under the <a href="http://www.mozilla.org/MPL/MPL-1.1.html">Mozilla Public License</a> and <a href="http://www.mozilla.org/MPL/NPL-1.1.html">Netscape Public License</a>. &allrights;</li>
+    <li>Portions of this software are &copyright; 1994 The Regents of the University of California. &allrights;</li>
+    <li>Portions of this software are &copyright; 2000-2002 Japan Network Information Center. &allrights;</li>
+    <li>This software may contain portions that are &copyright; 1998-2002 <a href="http://www.supportsoft.com/">SupportSoft</a>, Inc. &allrights;</li>
+</ul>
+
+<p id="government">U.S. GOVERNMENT END USERS. The Software is a "commercial item," as that term is defined 
+in 48 C.F.R. 2.101 (Oct. 1995), consisting of "commercial computer software" and "commercial computer software 
+documentation," as such terms are used in 48 C.F.R. 12.212 (Sept. 1995). Consistent with 48 C.F.R. 12.212 and 48 
+C.F.R. 227.7202-1 through 227.7202-4 (June 1995), all U.S. Government End Users acquire the Software with only 
+those rights set forth herein.</p>
+
+<hr class="km_Color km_Border"/>
+
+<h2>Our &contrib;</h2>
+
+<p>We would like to thank our &contrib; whose efforts make &km; possible. These people have helped by 
+writing code and documentation, and by testing. They have created and maintained the browser, its associated 
+development kits, our build tools and our web site.</p>
+
+<p>To be added to the list, send mail to <a 
+href="mailto:&mail;?subject=&km; Credits">&mail;</a> with your name and a sentence summarizing what you 
+have contributed to &km;.</p>
+
+<!-- End Main Content -->
+    </div>
+</fieldset>
+
+</body></html>

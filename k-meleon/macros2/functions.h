@@ -298,7 +298,7 @@
 	Value delpref(FunctionData* data)
 	{
 		checkArgs(__FUNCTION__, data, 1);
-		kFuncs->DelPreference((char*)data->getstr(1));
+		kFuncs->DelPreference(data->getstr(1));
 		return "";
 	}
 
@@ -398,7 +398,7 @@
 	{
 		checkArgs(__FUNCTION__, data, 1);
 		int cmd;
-		cmd = kPlugin.kFuncs->GetID((char*)data->getstr(1));
+		cmd = kPlugin.kFuncs->GetID(data->getstr(1));
 		if (!cmd)
 			cmd = data->getint(1);
 
@@ -1093,7 +1093,7 @@
 	{
 		checkArgs(__FUNCTION__, data, 1, 2);
 		int cmd;
-		cmd = kPlugin.kFuncs->GetID((char*)data->getstr(1));
+		cmd = kPlugin.kFuncs->GetID(data->getstr(1));
 		if (!cmd)
 			cmd = data->getint(1);
 
@@ -1161,14 +1161,14 @@
 		if (strcmp(menutype, "command") == 0) {
 			whereparam = 5;
 			item.type = MENU_COMMAND;
-			item.command = kFuncs->GetID((char*)data->getstr(4));
+			item.command = kFuncs->GetID(data->getstr(4));
 			if (!item.command)
 				item.command = data->params[3].intval();
 		}
 		else if (strcmp(menutype, "macro") == 0) {
 			whereparam = 5;
 			item.type = MENU_COMMAND;
-			item.command = DoAccel((char*)data->getstr(4));
+			item.command = DoAccel(data->getstr(4));
 			if (!item.command)
 				item.command = data->params[3].intval();
 		}
@@ -1222,7 +1222,7 @@
 	Value setaccel(FunctionData* data) 
 	{
 		checkArgs(__FUNCTION__, data, 2);
-		kFuncs->SetAccel(data->getstr(1), (char*)data->getstr(2));
+		kFuncs->SetAccel(data->getstr(1), data->getstr(2));
 		return "1";
 	}
 

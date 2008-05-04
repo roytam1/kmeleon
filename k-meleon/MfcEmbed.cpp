@@ -1156,16 +1156,15 @@ int CMfcEmbedApp::ExitInstance()
    if (m_pMainWnd)
       m_pMainWnd->DestroyWindow();
 
-   delete m_MRUList;
-   DestroyIcon(m_hMainIcon);
-   DestroyIcon(m_hSmallIcon);
-
    // unload the plugins before we terminate embedding,
    // this way plugins can still call the preference functions
    plugins.SendMessage("*", "* Plugin Manager", "Quit");
 
+   delete m_MRUList;
+   DestroyIcon(m_hMainIcon);
+   DestroyIcon(m_hSmallIcon);
+
    preferences.Flush();
-   
    m_ProfileMgr->ShutDownCurrentProfile( theApp.preferences.bGuestAccount );
    if (m_ProfileMgr) delete m_ProfileMgr;
    
@@ -1587,6 +1586,11 @@ void CMfcEmbedApp::CheckProfileVersion()
 
        toDelete = GetMozDirectory(NS_APP_USER_PROFILE_LOCAL_50_DIR) + _T("\\xul.mfl"); 
        DeleteFile(toDelete);
+
+       if (oldVersion < 0x01050025)
+          theApp.preferences.SetString("browser.startup.homepage", 
+		     theApp.preferences.GetString("kmeleon.general.homePage",
+			 _T("http://kmeleon.sourceforge.net/start")));
 
        if (oldVersion < 0x01010001) {
 
