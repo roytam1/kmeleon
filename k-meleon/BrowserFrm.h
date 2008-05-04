@@ -257,7 +257,7 @@ protected:
 	int InitLayout();
 	void SetupFrameChrome();
 
-	void LoadBackImage ();
+	void LoadBackImage (BOOL force = FALSE);
 	void SetBackImage ();
 	void SaveWindowPos();
 	void OnFind(BOOL backward = FALSE);

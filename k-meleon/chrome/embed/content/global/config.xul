@@ -1,0 +1,95 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/config.css" type="text/css"?>
+<!DOCTYPE window [
+  <!ENTITY % configDTD
+    SYSTEM "chrome://global/locale/config.dtd">
+  %configDTD;
+  <!ENTITY % globalDTD
+    SYSTEM "chrome://global/locale/global.dtd">
+  %globalDTD;
+]>
+<window id="config"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" 
+        title="&window.title;"
+        width="750"
+        height="500"
+        onunload="onConfigUnload();"
+        onload="onConfigLoad();">
+<script src="chrome://global/content/config.js"/>
+<stringbundle id="configBundle" src="chrome://global/locale/config.properties"/>
+<popup id="configContext" onpopupshowing="if (event.target == this) updateContextMenu();">
+  <menuitem id="copyName" label="&copyName.label;" accesskey="&copyName.accesskey;" oncommand="copyName();"/>
+  <menuitem id="copyValue" label="&copyValue.label;" accesskey="&copyValue.accesskey;" oncommand="copyValue();"/>
+  <menu label="&new.label;" accesskey="&new.accesskey;">
+    <menupopup>
+      <menuitem label="&string.label;" accesskey="&string.accesskey;" oncommand="NewPref(nsIPrefBranch.PREF_STRING);"/>
+      <menuitem label="&integer.label;" accesskey="&integer.accesskey;" oncommand="NewPref(nsIPrefBranch.PREF_INT);"/>
+      <menuitem label="&boolean.label;" accesskey="&boolean.accesskey;" oncommand="NewPref(nsIPrefBranch.PREF_BOOL);"/>
+    </menupopup>
+  </menu>
+  <menuitem id="toggleSelected" label="&toggle.label;" accesskey="&toggle.accesskey;" oncommand="ModifySelected();"/>
+  <menuitem id="modifySelected" label="&modify.label;" accesskey="&modify.accesskey;" oncommand="ModifySelected();"/>
+  <menuitem id="resetSelected" label="&reset.label;" accesskey="&reset.accesskey;" oncommand="ResetSelected();"/>
+</popup>
+<keyset>
+  <key keycode="VK_ENTER" oncommand="ModifySelected();"/>
+  <key keycode="VK_RETURN" oncommand="ModifySelected();"/>
+</keyset>
+<deck id="configDeck" flex="1">
+<!-- km -->
+<html xmlns="http://www.w3.org/1999/xhtml" class="km_PageBackground">
+  <head>
+    <link rel="stylesheet" href="chrome://global/skin/netError.css" type="text/css" media="all" />
+    <title>&window.title;</title>
+  </head>
+  <body id="warningScreen" dir="&locale.dir;" class="km_PageBackground km_Text">
+    <div id="warningBox" class="km_TextBackground km_TextBorder km_PageContainer">
+      <div id="warningInnerBox" class="km_Icon">
+        <div class="km_Border km_SpecialBorder km_IconWidth km_IconHeight">
+          <h1 id="warningTitle">&scaryWarningTitle.label;</h1>
+          <p id="warningText" class="km_Border">&scaryWarningText.label;</p>
+          <div><p>
+	    <xul:checkbox xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+                          id="showWarningNextTime" label="&scaryWarningCheckbox.label;" checked="true"/>
+          </p></div>
+        </div>
+      </div>
+      <div class="km_IconWidth km_Button"><div>
+        <xul:button xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+                    id="warningButton" label="&scaryWarningButton.label;" oncommand="ShowPrefs();"/>
+      </div></div>
+    </div>
+  </body>
+</html>
+<!-- km -->
+  <vbox flex="1">
+    <hbox id="filterRow" align="center">
+      <label value="&filterPrefs.label;" accesskey="&filterPrefs.accesskey;" control="textbox"/>
+      <textbox id="textbox" flex="1" type="timed" timeout="500" oncommand="FilterPrefs();"/>
+      <button id="button" label="&showAll.label;" accesskey="&showAll.accesskey;" oncommand="ClearFilter();" disabled="true"/>
+    </hbox>
+    <tree id="configTree" flex="1" class="plain focusring" seltype="single"
+          enableColumnDrag="true" context="configContext">
+      <treecols>
+        <treecol id="prefCol" label="&prefColumn.label;" flex="7"
+            class="sortDirectionIndicator"
+            ignoreincolumnpicker="true"
+            persist="hidden width ordinal sortDirection"/>
+        <splitter class="tree-splitter" />
+        <treecol id="lockCol" label="&lockColumn.label;" flex="1"
+            class="sortDirectionIndicator"
+            persist="hidden width ordinal sortDirection"/>
+        <splitter class="tree-splitter" />
+        <treecol id="typeCol" label="&typeColumn.label;" flex="1"
+            class="sortDirectionIndicator"
+            persist="hidden width ordinal sortDirection"/>
+        <splitter class="tree-splitter" />
+        <treecol id="valueCol" label="&valueColumn.label;" flex="10"
+            class="sortDirectionIndicator"
+            persist="hidden width ordinal sortDirection"/>
+      </treecols>
+      <treechildren id="configTreeBody" ondblclick="if (event.button == 0) ModifySelected();"/>
+    </tree>
+  </vbox>
+</deck>
+</window>

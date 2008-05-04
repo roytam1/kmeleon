@@ -20,7 +20,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="../../mozilla/mozilla/dist/include/string;../../mozilla/mozilla/dist/include/wallet;../../mozilla/mozilla/dist/include/necko;../../mozilla/mozilla/dist/include/docshell;../../mozilla/mozilla/dist/include/history;../../mozilla/mozilla/dist/include/xpcom;../../mozilla/mozilla/dist/include/nspr"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;PRIVACY_EXPORTS"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;PRIVACY_EXPORTS;XP_WIN"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -74,7 +74,7 @@
 				Optimization="1"
 				GlobalOptimizations="TRUE"
 				AdditionalIncludeDirectories="../../mozilla/mozilla/dist/include/string;../../mozilla/mozilla/dist/include/wallet;../../mozilla/mozilla/dist/include/necko;../../mozilla/mozilla/dist/include/docshell;../../mozilla/mozilla/dist/include/history;../../mozilla/mozilla/dist/include/xpcom;../../mozilla/mozilla/dist/include/nspr"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;PRIVACY_EXPORTS"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;PRIVACY_EXPORTS;XP_WIN"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
@@ -84,7 +84,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="nspr4.lib xpcom.lib xpcomglue_s.lib"
+				AdditionalDependencies="xpcom.lib xpcomglue_s.lib"
 				OutputFile="..\..\release\kplugins\$(ProjectName).dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="../../mozilla/mozilla/dist/lib"

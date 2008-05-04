@@ -414,7 +414,7 @@ void CReBarEx::RestoreBandSizes() {
       int offset = _tcslen(m_index[x]->name) + 17;
 
       strcpy(tempPref + offset, ".break");
-      barbreak = theApp.preferences.GetInt(tempPref, 1);
+      barbreak = theApp.preferences.GetInt(tempPref, 0);
 
       rbbi.fMask |= RBBIM_STYLE;
       GetReBarCtrl().GetBandInfo(barIndex, &rbbi);
