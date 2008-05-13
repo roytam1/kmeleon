@@ -1796,3 +1796,4 @@ wchar_t* CBrowserWrapper::GetSearchString()
 	mFinder->GetSearchString(getter_Copies(stringBuf));
 	return wcsdup(stringBuf.get());
 }
+*/
