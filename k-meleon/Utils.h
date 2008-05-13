@@ -23,6 +23,8 @@
 void TranslateTabs(char *buffer);
 void TrimWhiteSpace(char *string);
 char *SkipWhiteSpace(char *string);
+void TrimWhiteSpace(wchar_t *string);
+wchar_t *SkipWhiteSpace(wchar_t *string);
 int CondenseString(char *buf, size_t size);
 char *fixString(const char *inString, int size);
 long FileSize(FILE *file);

@@ -86,6 +86,28 @@ char *SkipWhiteSpace(char *string)
   return string;
 }
 
+wchar_t *SkipWhiteSpace(wchar_t *string)
+{
+  wchar_t *p;
+  for (p = string; *p; p++){
+    if (*p != L' ' && *p != L'\t'){
+      return p;
+    }
+  }
+  return string;
+}
+
+void TrimWhiteSpace(wchar_t *string)
+{
+  wchar_t *p;
+  for ( p = string + wcslen(string) - 1; p >= string; p-- ){
+    if (*p == L' ' || *p == L'\t' || *p == L'\r' || *p == L'\n'){
+      *p = 0;
+    }else{
+      break;
+    }
+  }
+}
 
 //  Remove duplicate tabs and spaces
 //  compress other characters into 'size' string

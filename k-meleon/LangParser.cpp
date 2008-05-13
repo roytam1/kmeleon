@@ -20,6 +20,7 @@
 #include <afxtempl.h>
 #include "LangParser.h"
 #include "Utils.h"
+#include "strconv.h"
 
 CLangParser::CLangParser()
 {
@@ -42,14 +43,14 @@ int CLangParser::Load(LPCTSTR filename)
    return retVal;
 }
 
-char* ParseString(char** input, bool *equal)
+TCHAR* ParseString(TCHAR** input, bool *equal)
 {
-	char* string = *input, *p, *q;
+	TCHAR* string = *input, *p, *q;
 	bool quotes = false;
 
 	*equal = false;
 	string = SkipWhiteSpace(string);
-	if (*string == '"') {
+	if (*string == _T('"')) {
 		quotes = true;
 		++string;
 	}
@@ -57,10 +58,10 @@ char* ParseString(char** input, bool *equal)
 	p = string;
 	while ( *p )
 	{
-		if (quotes && *p == '"') {
+		if (quotes && *p == _T('"')) {
 			*p = 0;
 			p = SkipWhiteSpace(p+1);
-			if (*p == '=') {
+			if (*p == _T('=')) {
 				p++;
 				*equal = true;
 			}
@@ -68,7 +69,7 @@ char* ParseString(char** input, bool *equal)
 			*input = p;
 			return string;
 		}
-		else if(!quotes && *p=='=') {
+		else if(!quotes && *p==_T('=')) {
 			*p = 0;
 			TrimWhiteSpace(string);
 			*input = p+1;
@@ -77,29 +78,29 @@ char* ParseString(char** input, bool *equal)
 		}
 
 		q = p++;
-		if (*q == '\\') 
+		if (*q == _T('\\')) 
 		{
 			switch (*p) {
-				case 'n': 
-					*q = '\n';
+				case _T('n'): 
+					*q = _T('\n');
 					break;
-				case 'r': 
-					*q = '\r';
+				case _T('r'): 
+					*q = _T('\r');
 					break;
-				case 't':
-					*q = '\t';
+				case _T('t'):
+					*q = _T('\t');
 					break;
-				case '\\': 
-					*q = '\\';
+				case _T('\\'): 
+					*q = _T('\\');
 					break;
-				case '"': 
-					*q = '"';
+				case _T('"'): 
+					*q = _T('"');
 					break;
 				default:
 					continue;
 			}
 			if (*p) {
-				strcpy(p, p+1);
+				_tcscpy(p, p+1);
 			}
 		}
 	}
@@ -110,22 +111,29 @@ char* ParseString(char** input, bool *equal)
 
 int CLangParser::Parse(char *p)
 {
+	return _Parse((TCHAR*)(const TCHAR*)CUTF8_to_T(p));
+}
+
+int CLangParser::_Parse(TCHAR *p)
+{
 	if (!*p) return 0;
 
 	bool equal;
-	char *original = ParseString(&p, &equal);
+	TCHAR *original = ParseString(&p, &equal);
 	
 	if (!equal) {
-		if (strlen(p)>25) p[25] = 0;
-		LOG_ERROR_1("Equal '=' expected, found %s", *p ? p : "nothing");
+		USES_CONVERSION;
+		if (_tcslen(p)>25) p[25] = 0;
+		LOG_ERROR_1("Equal '=' expected, found %s", *p ? T2A(p) : "nothing");
 		return 0;
 	}
 
-	char *translation = ParseString(&p, &equal);
+	TCHAR *translation = ParseString(&p, &equal);
 
 	if (equal) {
-		if (strlen(p)>25) p[25] = 0;
-		LOG_ERROR_1("Equal '=' unexpected, %s", *p ? p : "nothing");
+		USES_CONVERSION;
+		if (_tcslen(p)>25) p[25] = 0;
+		LOG_ERROR_1("Equal '=' unexpected, %s", *p ? T2A(p) : "nothing");
 		return 0;
 	}
 /*
@@ -184,8 +192,8 @@ int CLangParser::Parse(char *p)
 
 	USES_CONVERSION;
 	if (*translation) {
-		langMap[A2T(original)] = translation;
-		LOG_1("Add translation for %s", original);
+		langMap[original] = translation;
+		LOG_1("Add translation for %s", T2A(original));
 	}
 
 	return 0;
