@@ -147,7 +147,7 @@ int Load(){
       nHistoryLength = 0;
    
    wm_deferbringtotop = kPlugin.kFuncs->GetCommandIDs(1);
-   ID_HISTORY = kPlugin.kFuncs->GetCommandIDs(nHistoryLength);
+   ID_HISTORY = kPlugin.kFuncs->GetCommandIDs(nHistoryLength*2);
    ID_VIEW_HISTORY = kPlugin.kFuncs->GetCommandIDs(1);
    ID_CONFIG_HISTORY = kPlugin.kFuncs->GetCommandIDs(1);
    ID_CLEAR_HISTORY = kPlugin.kFuncs->GetCommandIDs(1);
@@ -363,7 +363,7 @@ void CreateBackMenu (HWND hWndParent, UINT button) {
    int x=0;
    for (i = index - 1; i >= limit; i--) {
       CondenseMenuText(buf, titles[i], x++);
-      AppendMenu(menu, MF_STRING, ID_HISTORY+i-limit, buf);
+      AppendMenu(menu, MF_STRING, ID_HISTORY+i, buf);
    }
    
    ShowMenuUnderButton(hWndParent, menu, button, ID_NAV_BACK);
@@ -390,7 +390,7 @@ void CreateForwardMenu (HWND hWndParent, UINT button) {
    int x=0;
    for (i = index + 1; i < limit; i++) {
       CondenseMenuText(buf, titles[i], x++);
-      AppendMenu(menu, MF_STRING, ID_HISTORY+i-index+1, buf);
+      AppendMenu(menu, MF_STRING, ID_HISTORY+i, buf);
    }
    
    ShowMenuUnderButton(hWndParent, menu, button, ID_NAV_FORWARD);
