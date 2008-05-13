@@ -537,9 +537,9 @@ BOOL CBrowserFrame::OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERIN
     }
 
     // Don't let MFC mess with plugin command
-    if (nCode == CN_UPDATE_COMMAND_UI && theApp.commands.IsPluginCommand(nID)
-	   || IsMenu(COMMAND_TO_MENU(nID))) {
-        ((CCmdUI*)pExtra)->m_bEnableChanged = TRUE;
+    if (nCode == CN_UPDATE_COMMAND_UI && (theApp.commands.IsPluginCommand(nID)
+	   || IsMenu(COMMAND_TO_MENU(nID)))) {
+        if (pExtra) ((CCmdUI*)pExtra)->m_bEnableChanged = TRUE;
         return TRUE;
     }
 
