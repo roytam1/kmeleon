@@ -363,7 +363,7 @@ void CreateBackMenu (HWND hWndParent, UINT button) {
    int x=0;
    for (i = index - 1; i >= limit; i--) {
       CondenseMenuText(buf, titles[i], x++);
-      AppendMenu(menu, MF_STRING, ID_HISTORY+i, buf);
+      AppendMenu(menu, MF_STRING, ID_HISTORY+i-limit, buf);
    }
    
    ShowMenuUnderButton(hWndParent, menu, button, ID_NAV_BACK);
@@ -390,7 +390,7 @@ void CreateForwardMenu (HWND hWndParent, UINT button) {
    int x=0;
    for (i = index + 1; i < limit; i++) {
       CondenseMenuText(buf, titles[i], x++);
-      AppendMenu(menu, MF_STRING, ID_HISTORY+i, buf);
+      AppendMenu(menu, MF_STRING, ID_HISTORY+i-index+1, buf);
    }
    
    ShowMenuUnderButton(hWndParent, menu, button, ID_NAV_FORWARD);
