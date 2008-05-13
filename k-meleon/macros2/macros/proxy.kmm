@@ -1,0 +1,67 @@
+# K-Meleon Macros (http://kmeleon.sourceforge.net/wiki/index.php?id=MacroLanguage)
+
+# ---------- Custom Proxies ----------------------------------------------------------------------------------------
+#
+# Dependencies	: main.kmm ($macroPrefBranch, kmPrefs, ExecMacros)
+# Resources	: -
+# Preferences	: kmeleon.plugins.macros.proxy.configs
+#		  kmeleon.plugins.macros.proxy.current
+#		  kmeleon.plugins.macros.proxy0.http.proxy.keep-alive
+#		  kmeleon.plugins.macros.proxy0.http.proxy.pipelining
+#		  kmeleon.plugins.macros.proxy0.http.proxy.version
+#		  kmeleon.plugins.macros.proxy<n>... (set by kmPrefs)
+#
+# ------------------------------------------------------------------------------------------------------------------
+
+Proxy_None{
+menuchecked=(getpref(INT,$_Proxy_Type)==0);
+setpref(INT,$_Proxy_Type,0); statusbar(_("Connecting directly"));
+}
+Proxy_Auto{
+menuchecked=(getpref(INT,$_Proxy_Type)==4);
+setpref(BOOL,"network.http.proxy.keep-alive",getpref(BOOL,$macroPrefBranch."proxy0.http.proxy.keep-alive"));
+setpref(BOOL,"network.http.proxy.pipelining",getpref(BOOL,$macroPrefBranch."proxy0.http.proxy.pipelining"));
+setpref(STRING,"network.http.proxy.version",getpref(STRING,$macroPrefBranch."proxy0.http.proxy.version"));
+setpref(INT,$_Proxy_Type,4); statusbar(_("Connecting over any detected proxy"));
+}
+Proxy_Custom{
+menuchecked=(getpref(STRING,$_Proxy_Current)==$ARG)*(getpref(INT,$_Proxy_Type)!=0)*(getpref(INT,$_Proxy_Type)!=4);
+menugrayed=!getpref(STRING,$macroPrefBranch.$ARG.".name");
+$_proxy=$ARG; setpref(STRING,$_Proxy_Current,$_proxy); $ExecMacros="_Proxy_SetPref";
+$_type=BOOL;   $List=$_Proxy_PrefBool; &ExecMacros_List;
+$_type=INT;    $List=$_Proxy_PrefInt;  &ExecMacros_List;
+$_type=STRING; $List=$_Proxy_PrefStr;  &ExecMacros_List;
+statusbar(sub("%s",getpref(STRING,$macroPrefBranch.$_proxy.".name"),_("Connecting over proxy '%s'")));
+}
+
+# ----- PRIVATE
+
+$_Proxy_Type="network.proxy.type";
+$_Proxy_Current=$macroPrefBranch."proxy.current";
+
+$_Proxy_PrefBool=".http.proxy.keep-alive;.http.proxy.pipelining;.proxy.socks_remote_dns;";
+$_Proxy_PrefInt=".proxy.type;.proxy.socks_version;.proxy.http_port;.proxy.ssl_port;.proxy.ftp_port;.proxy.gopher_port;.proxy.socks_port;";
+$_Proxy_PrefStr=".http.proxy.version;.proxy.autoconfig_url;.proxy.http;.proxy.ssl;.proxy.ftp;.proxy.gopher;.proxy.socks;.proxy.no_proxies_on;";
+
+_Proxy_SetPref{
+setpref($_type,"network".$ListItem,getpref($_type,$macroPrefBranch.$_proxy.$ListItem));
+}
+
+_Proxy_BuildMenu{
+# tools menu
+$_p="Pro&xy";
+setmenu(PrivacySecurity,popup,$_p);
+setmenu($_p,macro,"&Direct Connection",Proxy_None);
+setmenu($_p,macro,"&Auto Detect",Proxy_Auto);
+setmenu($_p,inline,_Custom_Proxies);
+setmenu($_p,macro,"Con&figure...","kmPrefs(proxy)");
+setmenu($_p,separator,"Con&figure...");
+$List=getpref(STRING,$macroPrefBranch."proxy.configs"); $ExecMacros="_Proxy_BuildMenuItem"; &ExecMacros_List;
+}
+_Proxy_BuildMenuItem{
+setmenu(_Custom_Proxies,macro,getpref(STRING,$macroPrefBranch.$ListItem.".name"),"Proxy_Custom(".$ListItem.")");
+}
+$OnInit=$OnInit."_Proxy_BuildMenu;";
+
+# ------------------------------------------------------------------------------------------------------------------
+$macroModules=$macroModules."Proxy;";

@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/css" href="chrome://global/skin/"?>
+<?xul-overlay href="chrome://kmprefs/content/kmprefs/ovrl-history.xul"?>
+<!DOCTYPE page SYSTEM "chrome://kmprefs/locale/pref-history.dtd">
+<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" 
+id="prefHistory" onload="History.init()">
+
+<stringbundle id="pref_bundle" src="chrome://kmprefs/locale/pref.properties"/>
+
+<script type="application/x-javascript" src="chrome://kmprefs/content/pref.js"/>
+
+<vbox flex="1" style="overflow:auto">
+  <dialogheader title="&history.header;"/>
+  <separator class="thin"/>
+  <vbox id="history"/>
+</vbox>
+
+</page>

@@ -1,0 +1,33 @@
+# K-Meleon Macros (http://kmeleon.sourceforge.net/wiki/index.php?id=MacroLanguage)
+
+# ---------- Hotlinks ----------------------------------------------------------------------------------------------
+#
+# Dependencies	: main.kmm ($macroPrefBranch, OpenURL)
+# Resources	: -
+# Preferences	: kmeleon.plugins.macros.hotlink[0-9].url
+#		  kmeleon.plugins.macros.hotlink[0-9].new
+#
+# ------------------------------------------------------------------------------------------------------------------
+
+hotlink{
+$OpenURL=getpref(STRING,$_hotlink.$ARG.".url");
+$OpenURL==""?0:(getpref(BOOL,$_hotlink.$ARG.".new")?&OpenURL_InNew:open($OpenURL));
+}
+
+# ----- PRIVATE
+
+$_hotlink=$macroPrefBranch."hotlink";
+
+_hotlink_SetAccels{
+$_i=0; while($_i!=10) &_hotlink_SetAccelsLoop;
+}
+_hotlink_SetAccelsLoop{
+setaccel("CTRL ".$_i,"macros(hotlink(".$_i."))"); $_i=$_i+1;
+}
+_hotlink_BuildMenu{
+setmenu(Settings,macro,"&Hotlinks...","kmPrefs(hotlinks)");
+}
+$OnInit=$OnInit."_hotlink_BuildMenu;_hotlink_SetAccels;";
+
+# ------------------------------------------------------------------------------------------------------------------
+$macroModules=$macroModules."hotlink;";

@@ -1,0 +1,66 @@
+# K-Meleon Macros (http://kmeleon.sourceforge.net/wiki/index.php?id=MacroLanguage)
+
+# ---------- kmPrefs Extension (Advanced Preferences) --------------------------------------------------------------
+#
+# Dependencies	: main.kmm (getExtensionHandler/$ext/$cmdline, $kBookmarks/$kFavorites/$kHotlist/$kLayers, $settings, ExecMacros_Frames/$ExecMacros, OpenURL_InNewWindow/$OpenURL)
+# Resources	: -
+# Preferences	: -
+#
+# Version	: 1.1
+#
+# ------------------------------------------------------------------------------------------------------------------
+
+kmPrefs{
+menugrayed=$ARG=="kgestures"?$_kmPrefs_GesturesAbsent:false;
+$_s=$ARG; &_kmPrefs_Open;
+}
+
+# ----- PRIVATE
+
+$_kmPrefs_GesturesAbsent=true;
+
+_kmPrefs_Open{
+$OpenURL="chrome://kmprefs/content/pref.xul?".$_s; $ExecMacros="OpenURL_InNewWindow"; &ExecMacros_Frames;
+}
+_kmPrefs_CheckPlugins{
+$__data=readfile(getfolder(RootFolder)."\\kplugins\\gestures.dll"); $_kmPrefs_GesturesAbsent=($__data=="");
+}
+
+_kmPrefs_BuildMenu{
+$__o="&Options...";
+# main menu
+$kBookmarks==true?setmenu("&Bookmarks",macro,$__o,"kmPrefs(kbookmarks)","bookmarks(Config)"):0;
+$kBookmarks==true?setmenu("&Bookmarks",command,"","bookmarks(Config)"):0;
+$kFavorites==true?setmenu("F&avorites",macro,$__o,"kmPrefs(kfavorites)","favorites(Config)"):0;
+$kFavorites==true?setmenu("F&avorites",command,"","favorites(Config)"):0;
+$kHotlist==true?setmenu("H&otlist",macro,$__o,"kmPrefs(khotlist)","hotlist(Config)"):0;
+$kHotlist==true?setmenu("H&otlist",command,"","hotlist(Config)"):0;
+# edit menu
+setmenu(Preferences,macro,"A&dvanced Preferences","kmPrefs","Config&uration");
+index($macroModules,";cfg;")>-1?setmenu(_Config_Appearance,macro,"Ad-&Blocking StyleSheet","cfg_UserStyle(adblock)","macros(cfg_Toolbars)"):0;
+# view menu
+setmenu("Tool&bars",macro,$__o,"kmPrefs(toolbars)");
+$kHistory==true?setmenu("Histor&y",macro,$__o,"kmPrefs(history)","history(Config)"):0;
+$kHistory==true?setmenu("Histor&y",command,"","history(Config)"):0;
+$kLayers==true?setmenu("&Layers",macro,$__o,"kmPrefs(klayers)","layers(Config)"):0;
+$kLayers==true?setmenu("&Layers",command,"","layers(Config)"):0;
+# tools menu
+index($macroModules,";Search;")>-1?setmenu(_Search_Config,macro,"Con&figure...","kmPrefs(webfind)"):0;
+setmenu(Settings,macro,"Mouse &Gestures...","kmPrefs(kgestures)");
+index($macroModules,";hotlink;")>-1?setmenu(Settings,macro,"&Hotlinks...","kmPrefs(hotlinks)"):0;
+$__m="_Permissions_Set";
+setmenu("P&ermissions",inline,$__m,_Permissions_View);
+setmenu($__m,macro,"Content &Filters","kmPrefs(filters)",0);
+setmenu($__m,macro,"&JavaScript","kmPrefs(javascript)",1);
+setmenu("_Permissions_View",macro,"&Master Password","kmPrefs(encryption)","macros(moz_MasterPassword)");
+setmenu("_Permissions_View",macro,"",moz_MasterPassword);
+}
+_kmPrefs_SetAccels{
+setaccel(VK_F2,"macros(kmPrefs)");
+}
+$OnInit=$OnInit."_kmPrefs_SetAccels;_kmPrefs_BuildMenu;";
+
+$OnStartup=$OnStartup."_kmPrefs_CheckPlugins;";
+
+# ------------------------------------------------------------------------------------------------------------------
+$macroModules=$macroModules."kmPrefs;";

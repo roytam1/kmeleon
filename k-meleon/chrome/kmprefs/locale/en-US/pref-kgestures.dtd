@@ -1,0 +1,15 @@
+<!ENTITY % prefDTD SYSTEM "chrome://kmprefs/locale/pref.dtd">%prefDTD;
+<!ENTITY % gestDTD SYSTEM "chrome://kmprefs/locale/kplugins/gestures.dtd">%gestDTD;
+<!ENTITY gestures.header	"Mouse Gestures Plugin">
+<!ENTITY gestures.label		"Configure Mouse Gestures">
+<!ENTITY actions.label		"Manage Actions">
+<!ENTITY actions.descr		"Determine which actions can be selected in the previous tab:">
+<!ENTITY actions.caption	"Caption">
+<!ENTITY actions.command	"Command">
+<!ENTITY actions.user		"User-Defined Actions">
+<!ENTITY actions.default	"Default Actions">
+<!ENTITY gestures.dlg.titleEdit	"Edit Action">
+<!ENTITY gestures.dlg.titleAdd	"Add Action">
+<!ENTITY gestures.dlg.style	"width: 30em;">
+<!ENTITY gestures.dlg.caption	"&actions.caption;:">
+<!ENTITY gestures.dlg.command	"&actions.command;:">

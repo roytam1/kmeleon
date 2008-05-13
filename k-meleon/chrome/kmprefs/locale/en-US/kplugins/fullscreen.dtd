@@ -1,0 +1,6 @@
+<!ENTITY % prefDTD SYSTEM "chrome://kmprefs/locale/pref.dtd">%prefDTD;
+<!ENTITY fullscreen.label	"Full Screen">
+<!ENTITY fullscreen.enable	"Enable support for Full Screen Display (&restartRequired;)">
+<!ENTITY fullscreen.mode	"In Full Screen Mode">
+<!ENTITY fullscreen.status	"Hide status bar">
+<!ENTITY fullscreen.taskbar	"Hide task bar">

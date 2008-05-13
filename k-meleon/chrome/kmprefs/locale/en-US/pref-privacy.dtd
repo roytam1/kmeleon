@@ -1,0 +1,23 @@
+<!ENTITY % prefDTD SYSTEM "chrome://kmprefs/locale/pref.dtd">%prefDTD;
+<!ENTITY privacy.header		"Privacy and Security Settings">
+<!ENTITY privacy.signons	"Remember login data (user names and passwords)">
+<!ENTITY privacy.signons.view	"Manage Passwords And Sites...">
+<!ENTITY privacy.protect	"&note; Use a master password to protect sensitive information.">
+<!ENTITY privacy.paranoia	"Paranoia">
+<!ENTITY cookies.accept			"Accept Cookies">
+<!ENTITY cookies.accept.always		"Always">
+<!ENTITY cookies.accept.noForeign	"From the originating website only">
+<!ENTITY cookies.accept.p3p		"According to privacy settings">
+<!ENTITY cookies.accept.never		"Never (Block cookies)">
+<!ENTITY cookies.keep			"Keep Cookies">
+<!ENTITY cookies.keep.normally		"Until time of expiration">
+<!ENTITY cookies.keep.session		"Until end of session">
+<!ENTITY cookies.keep.daysBefore	"For a maximum of">
+<!ENTITY cookies.keep.daysAfter		"days">
+<!ENTITY cookies.keep.ask		"Ask for each cookie">
+<!ENTITY cookies.keep.ask.notForSession	"Except for session cookies">
+<!ENTITY cookies.view			"Currently Stored Cookies...">
+<!ENTITY cookies.view.p3p		"Privacy Settings">
+<!ENTITY useragent.label	"User Agent String">
+<!ENTITY useragent.select	"Determine how K-Meleon should identify itself:">
+<!ENTITY useragent.note		"&note; Faking the user agent string may prevent important features of some websites from working. Even if faked, sites may use other methods to get information about your computer.">
