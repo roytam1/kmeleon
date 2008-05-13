@@ -1,0 +1,239 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/css" href="chrome://global/skin/"?>
+<?xul-overlay href="chrome://kmprefs/content/kmprefs/ovrl-popups.xul"?>
+<!DOCTYPE page SYSTEM "chrome://kmprefs/locale/pref-browsing.dtd">
+<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" 
+id="prefBrowsing" onload="Browsing.init()">
+
+<stringbundle id="pref_bundle" src="chrome://kmprefs/locale/pref.properties"/>
+<stringbundle id="brws_bundle" src="chrome://kmprefs/locale/pref-browsing.properties"/>
+
+<script type="application/x-javascript" src="chrome://kmprefs/content/pref.js"/>
+<script type="application/x-javascript" src="chrome://kmprefs/content/kmprefs/homepage.js"/>
+<script type="application/x-javascript">
+<![CDATA[
+var Browsing = {
+
+lst : null,
+grp : null,
+
+init: function() {
+	this.lst = document.getElementById("openURL");
+	this.grp = document.getElementById("openHow");
+
+	var brwsBundle = document.getElementById("brws_bundle"), tag, val;
+
+	document.getElementById("openURLInCurrent").label = brwsBundle.getString(kTabs()?"tab_current":"window_current");
+	document.getElementById("openURLInTab").label = brwsBundle.getString("tab_new");
+	document.getElementById("openURLInTab").disabled = !kTabs();
+	document.getElementById("ID_OPEN_LINK_IN_BACKGROUNDTAB").disabled = document.getElementById("openURLInTab").disabled;
+	document.getElementById("openURLInWindow").label = brwsBundle.getString("window_new");
+
+	for(var j=0,p=new Array("macros","favorites","bookmarks","hotlist");j<p.length;j++) {
+		if(!kPlugin.load(p[j]))  document.getElementById(p[j]).setAttribute("disabled",true);
+		if(kPlugin.absent(p[j])) document.getElementById(p[j]).setAttribute("hidden",true);
+	}
+	initRadiogroup("kmeleon.general.startHome");
+	initRadiogroup("kmeleon.display.newWindowOpenAs");
+	initTextbox("kmeleon.display.newWindowURL");
+
+	this.initOpen();
+	Homepage.init();
+},
+initOpen: function() {
+	var val;
+
+	try {
+		val = pref.getCharPref(this.lst.value);
+	} catch(e) {
+		for(var j=0,c=this.grp.childNodes;j<c.length;j++) c[j].setAttribute("disabled",true);
+	}
+
+	document.getElementById("ID_OPEN_LINK_IN_BACKGROUNDTAB").checked = false;
+	document.getElementById("ID_OPEN_LINK_IN_BACKGROUND").checked = false;
+	switch(val) {
+		case "ID_OPEN_LINK"                 : this.grp.selectedIndex = 0; break;
+		case "ID_OPEN_LINK_IN_NEW_TAB"      : this.grp.selectedIndex = 1; break;
+		case "ID_OPEN_LINK_IN_BACKGROUNDTAB": this.grp.selectedIndex = 1; document.getElementById("ID_OPEN_LINK_IN_BACKGROUNDTAB").checked = true; break;
+		case "ID_OPEN_LINK_IN_NEW_WINDOW"   : this.grp.selectedIndex = 2; break;
+		case "ID_OPEN_LINK_IN_BACKGROUND"   : this.grp.selectedIndex = 2; document.getElementById("ID_OPEN_LINK_IN_BACKGROUND").checked = true; break;
+		default                             : this.grp.selectedIndex =-1;
+	}
+},
+setDefault: function() {
+	var proc = Components.classes["@mozilla.org/process/util;1"]
+			     .createInstance(Components.interfaces.nsIProcess);
+	proc.init(getFile(getFolder("CurProcD"),"SetDefault.exe"));
+	proc.run(true,[pref.getCharPref("general.useragent.locale")],1);
+},
+setOpen: function() {
+	pref.setCharPref(this.lst.value,this.grp.value);
+	this.initOpen();
+},
+toggleOpen: function(chkBox) {
+	if(chkBox.checked)
+		pref.setCharPref(this.lst.value,chkBox.id);
+	else
+		pref.setCharPref(this.lst.value,chkBox.previousSibling.value);
+	this.initOpen();
+}
+
+};
+
+var Diversion = {
+
+lst : null,
+grp : null,
+
+init: function() {
+	this.lst = document.getElementById("openDivURL");
+	this.grp = document.getElementById("openDivHow");
+
+	var brwsBundle = document.getElementById("brws_bundle");
+
+	initCheckbox("browser.tabs.loadDivertedInBackground");
+
+	document.getElementById("openDivURLInCurrent").label = brwsBundle.getString(kTabs()?"tab_current":"window_current");
+	document.getElementById("openDivURLInTab").label = brwsBundle.getString("tab_new");
+	document.getElementById("openDivURLInTab").disabled = !kTabs();
+	document.getElementById("openDivURLInWindow").label = brwsBundle.getString("window_new");
+
+	this.initOpen();
+	initRadiogroup("browser.link.open_newwindow.restriction");
+},
+initOpen: function() {
+	var val;
+
+	try {
+		val = pref.getIntPref(this.lst.value);
+		for(this.grp.selectedIndex=0;this.grp.selectedItem.value!=val;this.grp.selectedIndex++);
+	} catch(e) {
+		try {
+			for(this.grp.selectedIndex=0;this.grp.selectedItem.value;this.grp.selectedIndex++);
+				this.grp.selectedItem.disabled = true;
+		} catch(e) {}
+	}
+}
+
+};
+]]>
+</script>
+
+<vbox flex="1" style="overflow:auto">
+  <dialogheader title="&browsing.header;"/>
+  <separator class="thin"/>
+  <tabcontrol flex="1">
+    <tabbox flex="1">
+      <tabs>
+        <tab label="&general;"/>
+        <tab label="&browsing.diverted;" oncommand="Diversion.init()" onfocus="Diversion.init()"/>
+      </tabs>
+      <tabpanels flex="1">
+        <tabpanel flex="1" orient="vertical" style="overflow:auto">
+<!-- General Browsing -->
+<hbox>
+  <groupbox flex="1">
+    <caption>
+      <hbox align="center">
+        <label value="&browsing.open;"/>
+        <menulist id="openURL" oncommand="Browsing.initOpen()">
+          <menupopup>
+            <menuitem value="kmeleon.general.openurl" label="&browsing.typedURL;"/>
+            <menuitem value="kmeleon.plugins.macros.selected.openurl" label="&browsing.selectedText;" id="macros"/>
+            <menuitem value="kmeleon.plugins.favorites.openurl" label="&browsing.favorites;" id="favorites"/>
+            <menuitem value="kmeleon.plugins.bookmarks.openurl" label="&browsing.bookmarks;" id="bookmarks"/>
+            <menuitem value="kmeleon.plugins.hotlist.openurl" label="&browsing.hotlist;" id="hotlist"/>
+          </menupopup>
+        </menulist>
+      </hbox>
+    </caption>
+    <separator class="thin"/>
+    <radiogroup id="openHow">
+      <radio oncommand="Browsing.setOpen()" value="ID_OPEN_LINK" id="openURLInCurrent"/>
+      <radio oncommand="Browsing.setOpen()" value="ID_OPEN_LINK_IN_NEW_TAB" id="openURLInTab"/>
+      <checkbox oncommand="Browsing.toggleOpen(this)" id="ID_OPEN_LINK_IN_BACKGROUNDTAB" label="&inBackground;" style="margin-left:2em"/>
+      <radio oncommand="Browsing.setOpen()" value="ID_OPEN_LINK_IN_NEW_WINDOW" id="openURLInWindow"/>
+      <checkbox oncommand="Browsing.toggleOpen(this)" id="ID_OPEN_LINK_IN_BACKGROUND" label="&inBackground;" style="margin-left:2em"/>
+    </radiogroup>
+    <separator class="thin"/>
+  </groupbox>
+  <hbox style="padding-top:0.6em" flex="1">
+    <groupbox flex="1">
+      <caption label="&DefaultBrowser;"/>
+      <separator class="thin"/>
+      <description flex="1">&DefaultBrowser.descr;</description>
+      <separator class="thin"/>
+      <button label="&DefaultBrowser.set;" oncommand="Browsing.setDefault()"/>
+    </groupbox>
+  </hbox>
+</hbox>
+<separator class="thin"/>
+<groupbox>
+  <caption label="&startup;"/>
+  <separator class="thin"/>
+  <radiogroup id="kmeleon.general.startHome" oncommand="toggleRadiogroup(this.id)">
+    <radio label="&start.blank;" value="false"/>
+    <radio label="&start.home;" value="true"/>
+  </radiogroup>
+  <hbox align="center" style="margin-left:2em">
+    <label value="&browsing.homepage;"/>
+    <textbox id="kmeleon.general.homePage" flex="1" class="uri-element" oninput="setCharPref(this.id,this.value)"/>
+    <button label="&restoreDefault;" oncommand="Homepage.restoreDefault();Homepage.init()"/>
+    <button label="&browse;" oncommand="Homepage.selectFile(this.previousSibling.previousSibling.id)"/>
+  </hbox>
+</groupbox>
+<separator class="thin"/>
+<groupbox>
+  <caption label="&browsing.newWinTab;"/>
+  <separator class="thin"/>
+  <radiogroup id="kmeleon.display.newWindowOpenAs" oncommand="toggleRadiogroup(this.id)" orient="horizontal">
+    <vbox>
+      <radio value="0" label="&start.blank;"/>
+      <radio value="1" label="&start.home;"/>
+    </vbox>
+    <vbox flex="1" style="margin-left:1em">
+      <radio value="2" label="&start.current;"/>
+      <radio value="3" label="&start.URL;"/>
+      <hbox align="center" style="margin-left:2em">
+        <textbox id="kmeleon.display.newWindowURL" flex="1" class="uri-element" oninput="setCharPref(this.id,this.value)"/>
+        <button label="&browse;" oncommand="Homepage.selectFile(this.previousSibling.id)"/>
+      </hbox>
+    </vbox>
+  </radiogroup>
+</groupbox>
+<!-- General Browsing -->
+	</tabpanel>
+        <tabpanel flex="1" orient="vertical" style="overflow:auto">
+<!-- Window Diversion (Mozilla 1.8) -->
+<groupbox>
+  <caption>
+    <hbox align="center">
+      <label value="&browsing.open;"/>
+      <menulist id="openDivURL" oncommand="Diversion.initOpen()">
+        <menupopup>
+          <menuitem value="browser.link.open_newwindow" label="&browsing.newwindow;"/>
+          <menuitem value="browser.link.open_external" label="&browsing.external;"/>
+        </menupopup>
+      </menulist>
+    </hbox>
+  </caption>
+  <separator class="thin"/>
+  <radiogroup id="openDivHow" oncommand="pref.setIntPref(Diversion.lst.value,parseInt(Diversion.grp.value))">
+    <radio value="1" id="openDivURLInCurrent"/>
+    <radio value="3" id="openDivURLInTab"/>
+    <radio value="2" id="openDivURLInWindow"/>
+  </radiogroup>
+  <separator class="thin"/>
+</groupbox>
+<separator class="thick"/>
+<checkbox oncommand="toggleCheckbox(this.id)" id="browser.tabs.loadDivertedInBackground" label="&browsing.inBackground;"/>
+<separator class="thick"/>
+<groupbox id="popups.diversion"/>
+<!-- Window Diversion (Mozilla 1.8) -->
+	</tabpanel>
+      </tabpanels>
+    </tabbox>
+  </tabcontrol>
+</vbox>
+
+</page>

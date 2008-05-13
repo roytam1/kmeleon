@@ -1,0 +1,158 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "winres.h"
+#include "privacy_res.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// Anglais (États-Unis) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+DLG_CONFIG DIALOG  0, 0, 145, 237
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "Privacy Plugin Settings"
+FONT 8, "Tahoma"
+BEGIN
+    PUSHBUTTON      "OK",IDOK,24,217,40,14
+    PUSHBUTTON      "Cancel",IDCANCEL,80,217,40,14
+    GROUPBOX        "Cookies",101,6,6,134,37
+    CONTROL         "Clear on startup",CHK_COOKIES_STARTUP,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,13,17,65,10
+    PUSHBUTTON      "Clear now",BTN_CLEAR_COOKIES,92,20,40,14
+    CONTROL         "Clear on shutdown",CHK_COOKIES_SHUTDOWN,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,13,27,74,10
+    GROUPBOX        "Disk Cache",105,6,48,134,37
+    CONTROL         "Clear on startup",CHK_CACHE_STARTUP,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,13,59,65,10
+    PUSHBUTTON      "Clear now",BTN_CLEAR_CACHE,92,62,40,14
+    CONTROL         "Clear on shutdown",CHK_CACHE_SHUTDOWN,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,13,69,74,10
+    GROUPBOX        "Address Bar History",109,6,132,134,37
+    CONTROL         "Clear on startup",CHK_MRU_STARTUP,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,13,143,65,10
+    PUSHBUTTON      "Clear now",BTN_CLEAR_MRU,92,146,40,14
+    CONTROL         "Clear on shutdown",CHK_MRU_SHUTDOWN,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,13,153,74,10
+    GROUPBOX        "Saved Passwords",113,6,174,134,37
+    CONTROL         "Clear on startup",CHK_SIGNON_STARTUP,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,13,185,65,10
+    PUSHBUTTON      "Clear now",BTN_CLEAR_SIGNON,92,188,40,14
+    CONTROL         "Clear on shutdown",CHK_SIGNON_SHUTDOWN,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,13,195,74,10
+    GROUPBOX        "History",117,6,90,134,37
+    CONTROL         "Clear on startup",CHK_HISTORY_STARTUP,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,13,101,65,10
+    PUSHBUTTON      "Clear now",BTN_CLEAR_HISTORY,92,104,40,14
+    CONTROL         "Clear on shutdown",CHK_HISTORY_SHUTDOWN,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,13,111,74,10
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+1 VERSIONINFO
+ FILEVERSION 0,0,3,0
+ PRODUCTVERSION 0,0,3,0
+ FILEFLAGSMASK 0x0L
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x0L
+ FILETYPE 0x2L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904E4"
+        BEGIN
+            VALUE "FileVersion", "0.0.3.0"
+            VALUE "FileDescription", "Privacy Plugin for K-Meleon"
+            VALUE "LegalCopyright", "2004 - Romain Vallet"
+            VALUE "OriginalFilename", "privacy.dll"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1252
+    END
+END
+
+#endif    // Anglais (États-Unis) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Français (France) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_FRA)
+#ifdef _WIN32
+LANGUAGE LANG_FRENCH, SUBLANG_FRENCH
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""winres.h""\r\n"
+    "#include ""privacy_res.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+#endif    // Français (France) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

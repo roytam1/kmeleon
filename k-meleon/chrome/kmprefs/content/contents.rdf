@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<RDF:RDF xmlns:RDF="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:chrome="http://www.mozilla.org/rdf/chrome#">
+
+  <RDF:Seq about="urn:mozilla:package:root">
+    <RDF:li resource="urn:mozilla:package:kmprefs"/>
+  </RDF:Seq>
+
+  <RDF:Description about="urn:mozilla:package:kmprefs"
+	chrome:displayName="kmPrefs 1.5beta1"
+	chrome:author="Klaus Kohler"
+	chrome:name="kmprefs"
+	chrome:extension="true"
+	chrome:description="Preferences panel for K-Meleon 1.5">
+  </RDF:Description>
+
+</RDF:RDF>
