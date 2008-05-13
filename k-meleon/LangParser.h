@@ -26,6 +26,7 @@ class CLangParser : public CParser
 protected:
 	CMap<CString, LPCTSTR, CString, LPCTSTR> langMap;
     int Parse(char *p);
+	int _Parse(TCHAR *p);
 
 public:
 	CLangParser(void);

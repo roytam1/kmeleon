@@ -286,6 +286,22 @@ inline wchar_t* _ansi_to_utf16(const char* src, wchar_t* dst, unsigned len)
 	return dst;
 }
 
+inline wchar_t* _utf8_to_utf16(const char* src, wchar_t* dst, unsigned len)
+{
+	if (!utf8_to_utf16(src, dst, len))
+		return NULL;
+	return dst;
+}
+
+inline char* _utf8_to_ansi(const char* src, char* dst, unsigned len)
+{
+	if (!utf8_to_ansi(src, dst, len))
+		return NULL;
+	return dst;
+}
+
+
+
 inline char* _utf16_to_ansi(const wchar_t* src, char* dst, unsigned len)
 {
 	if (!utf16_to_ansi(src, dst, len))
@@ -307,6 +323,7 @@ inline char* _utf16_to_ansi(const wchar_t* src, char* dst, unsigned len)
 #define t_from_utf8(str) utf16_from_utf8(str);
 #define ansi_to_t(str, size) _ansi_to_utf16(str, (wchar_t*)alloca(size*sizeof(wchar_t)), size)
 #define t_to_ansi(str, size) _utf16_to_ansi(str, (char*)alloca(size*sizeof(char)), size)
+#define utf8_to_t(str, size) _utf8_to_utf16(str, (wchar_t*)alloca(size*sizeof(wchar_t)), size)
 #define utf16_to_t(str, size) (str)
 #define t_to_utf16(str, size) (str)
 
@@ -323,6 +340,7 @@ inline char* _utf16_to_ansi(const wchar_t* src, char* dst, unsigned len)
 #define t_to_ansi(str, size) (str)
 #define utf16_to_t(str, size) _utf16_to_ansi(str, (char*)alloca(size*sizeof(char)), size)
 #define t_to_utf16(str, size) _ansi_to_utf16(str, (wchar_t*)alloca(size*sizeof(wchar_t)), size)
+#define utf8_to_t(str, size) _utf8_to_ansi(str, (char*)alloca(size*sizeof(char)), size)
 
 #endif
 
