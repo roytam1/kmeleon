@@ -9,7 +9,10 @@
 # ------------------------------------------------------------------------------------------------------------------
 
 Reload_Continuously{
-$ExecMacros="_Reload_1st"; &ExecMacros_JavaScript;
+macroinfo=_("Continuously reload the current page");
+menugrayed=(index($URL,"about:")==0)+(index($URL,"chrome:")==0)+(index($URL,"wyciwyg:")==0);
+$__noAvail=(index($URL,"about:")==0)+(index($URL,"chrome:")==0)+(index($URL,"wyciwyg:")==0);
+$ExecMacros="_Reload_1st"; $__noAvail?0:&ExecMacros_JavaScript;
 }
 
 # ----- PRIVATE
