@@ -18,17 +18,21 @@ _base: null,
 _pref: null,
 _bndl: null,
 
-_url: null,
 _mAD: null,
 _mML: null,
 
+lst : null,
+grp : null,
+
 load : null,
 init : function() {
+	this.lst = document.getElementById("openURL");
+	this.grp = document.getElementById("openHow");
+
 	this.load  = kPlugin.load("bookmarks");
 	this._base = "kmeleon.plugins.bookmarks.";
 	this._pref = new Array(	"load",
 				"askforFolder");
-	this._url  = this._base + "openurl";
 	this._mAD  = this._base + "menuAutoDetect";
 	this._mML  = this._base + "maxMenuLength";
 	this._bndl = document.getElementById("brws_bundle");
@@ -41,6 +45,26 @@ init : function() {
 	for(var j=0;j<this._pref.length;j++) initCheckbox(this._base+this._pref[j]);
 	kBookmarksBar.init();
 	kBooklistManager.init("bookmarks");
+},
+initOpen: function() {
+	var val;
+
+	try {
+		val = pref.getCharPref(this.lst.value);
+	} catch(e) {
+		for(var j=0,c=this.grp.childNodes;j<c.length;j++) c[j].setAttribute("disabled",true);
+	}
+
+	document.getElementById("ID_OPEN_LINK_IN_BACKGROUNDTAB").checked = false;
+	document.getElementById("ID_OPEN_LINK_IN_BACKGROUND").checked = false;
+	switch(val) {
+		case "ID_OPEN_LINK"                 : this.grp.selectedIndex = 0; break;
+		case "ID_OPEN_LINK_IN_NEW_TAB"      : this.grp.selectedIndex = 1; break;
+		case "ID_OPEN_LINK_IN_BACKGROUNDTAB": this.grp.selectedIndex = 1; document.getElementById("ID_OPEN_LINK_IN_BACKGROUNDTAB").checked = true; break;
+		case "ID_OPEN_LINK_IN_NEW_WINDOW"   : this.grp.selectedIndex = 2; break;
+		case "ID_OPEN_LINK_IN_BACKGROUND"   : this.grp.selectedIndex = 2; document.getElementById("ID_OPEN_LINK_IN_BACKGROUND").checked = true; break;
+		default                             : this.grp.selectedIndex =-1;
+	}
 },
 selectFile: function(prefID) {
 	var bnd = document.getElementById("pref_bundle");
@@ -79,8 +103,8 @@ setLength: function(elemID,prefVal) {
 	else restoreDefault(elemID);
 },
 setOpen: function() {
-	pref.setCharPref(this._url,document.getElementById(this._url).value);
-	this._initOpen();
+	pref.setCharPref(this.lst.value,this.grp.value);
+	this.initOpen();
 },
 toggle: function() {
 	toggleCheckbox(this._base+this._pref[0]);
@@ -97,10 +121,10 @@ toggleForce: function(elem) {
 },
 toggleOpen: function(chkBox) {
 	if(chkBox.checked)
-		pref.setCharPref(this._url,chkBox.id);
+		pref.setCharPref(this.lst.value,chkBox.id);
 	else
-		pref.setCharPref(this._url,chkBox.previousSibling.value);
-	this._initOpen();
+		pref.setCharPref(this.lst.value,chkBox.previousSibling.value);
+	this.initOpen();
 },
 toggleSpillover: function() {
 	var val = document.getElementById(this._mAD).value;
@@ -124,26 +148,6 @@ _initFile: function() {
 			file = document.getElementById("pref_bundle").getString("file_not_found");
 	}
 	elem.value = file;
-},
-_initOpen: function() {
-	var grp = document.getElementById(this._url), val;
-
-	try {
-		val = pref.getCharPref(this._url);
-	} catch(e) {
-		if(this.load) for(var j=0,c=document.getElementById(this._url).childNodes;j<c.length;j++) c[j].setAttribute("disabled",true);
-	}
-
-	document.getElementById("ID_OPEN_LINK_IN_BACKGROUNDTAB").checked = false;
-	document.getElementById("ID_OPEN_LINK_IN_BACKGROUND").checked = false;
-	switch(val) {
-		case "ID_OPEN_LINK"                 : grp.selectedIndex = 0; break;
-		case "ID_OPEN_LINK_IN_NEW_TAB"      : grp.selectedIndex = 1; break;
-		case "ID_OPEN_LINK_IN_BACKGROUNDTAB": grp.selectedIndex = 1; document.getElementById("ID_OPEN_LINK_IN_BACKGROUNDTAB").checked = true; break;
-		case "ID_OPEN_LINK_IN_NEW_WINDOW"   : grp.selectedIndex = 2; break;
-		case "ID_OPEN_LINK_IN_BACKGROUND"   : grp.selectedIndex = 2; document.getElementById("ID_OPEN_LINK_IN_BACKGROUND").checked = true; break;
-		default                             : grp.selectedIndex =-1;
-	}
 },
 _initSpillover: function() {
 	var auto, grp = document.getElementById(this._mAD), val;
@@ -184,14 +188,14 @@ _removeFilePref: function(prefID) {
 _setControls: function() {
 	if(this.load) {
 		disableAll(false);
+		this.initOpen();
 		this._initFile();
-		this._initOpen();
 		this._initSpillover();
 		document.getElementById("openURLInTab"                 ).disabled = !kTabs();
 		document.getElementById("ID_OPEN_LINK_IN_BACKGROUNDTAB").disabled = !kTabs();
 	} else {
+		this.initOpen();
 		this._initFile();
-		this._initOpen();
 		this._initSpillover();
 		disableAll(true);
 		document.getElementById("force").disabled = true;
@@ -220,11 +224,21 @@ _setControls: function() {
       <tabpanels flex="1">
         <tabpanel flex="1" orient="vertical" style="overflow:auto">
 <!-- General -->
-<separator class="thin"/>
 <groupbox>
-  <caption label="&bookmarks.open;"/>
-  <separator class="thin"/>
-  <radiogroup id="kmeleon.plugins.bookmarks.openurl">
+  <caption>
+    <hbox align="center">
+      <label value="&bookmarks.open.before;" style="margin-left:1px"/>
+      <menulist id="openURL" oncommand="kBookmarks.initOpen()">
+        <menupopup>
+          <menuitem value="kmeleon.plugins.bookmarks.openurl" label="&bookmarks.open.left;" id="bookmarks"/>
+          <menuitem value="kmeleon.plugins.bookmarks.openurlm" label="&bookmarks.open.middle;" id="bookmarks"/>
+          <menuitem value="kmeleon.plugins.bookmarks.openurlr" label="&bookmarks.open.right;" id="bookmarks"/>
+         </menupopup>
+      </menulist>
+      <label value="&bookmarks.open.after;"/>
+    </hbox>
+  </caption>
+  <radiogroup id="openHow">
     <radio oncommand="kBookmarks.setOpen()" value="ID_OPEN_LINK" id="openURLInCurrent"/>
     <radio oncommand="kBookmarks.setOpen()" value="ID_OPEN_LINK_IN_NEW_TAB" id="openURLInTab"/>
     <checkbox oncommand="kBookmarks.toggleOpen(this)" id="ID_OPEN_LINK_IN_BACKGROUNDTAB" label="&inBackground;" style="margin-left:2em"/>
