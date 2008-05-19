@@ -121,11 +121,12 @@ init: function() {
 var Skin;
 function kmSkin() {
 	this.elem  = document.getElementById(this.pref);
-	this.skins = new Array();
+	this.skins = ["default"];
 
 // bug: this._getSkins("KUSkins",false);
 	this._getSkins("KUserSettings","skins");
 	this._getSkins("KASkins",false);
+	this.skins.shift(); // remove "default" (no valid skin)
 	this.skins = this.skins.sort(alphabetical);
 	this.init();
 }
@@ -153,7 +154,7 @@ _getSkins: function(folder,subfolder) {
 			if(file instanceof Components.interfaces.nsILocalFile)
 				if(file.isDirectory()) {
 					for(var j=0,k=true,l=file.leafName;j<this.skins.length;j++)
-						if(l==this.skins[j])
+						if(l.toLowerCase()==this.skins[j].toLowerCase())
 							k = false;
 					if(k)
 						this.skins[this.skins.length] = l;
