@@ -3,7 +3,8 @@ const PREF_STRING = 0x20;
 const PREF_INT    = 0x40;
 const PREF_BOOL   = 0x80;
 
-const nsISupportsString = Components.interfaces.nsISupportsString;
+const nsISupportsString      = Components.interfaces.nsISupportsString;
+const nsIPrefLocalizedString = Components.interfaces.nsIPrefLocalizedString;
 
 var pref = Components.classes["@mozilla.org/preferences-service;1"]
 		     .getService(Components.interfaces.nsIPrefBranch);
@@ -17,7 +18,13 @@ function getPrefValue(prefID) {
 			case PREF_NONE	: return null;
 			case PREF_BOOL	: return (pref.getBoolPref(prefID))?"true":"false";
 			case PREF_INT	: return pref.getIntPref(prefID).toString(10);
-			case PREF_STRING: return pref.getComplexValue(prefID,nsISupportsString).data;
+//			case PREF_STRING: return pref.getComplexValue(prefID,nsISupportsString).data;
+			case PREF_STRING: try {
+						var v = pref.getComplexValue(prefID,nsIPrefLocalizedString).data;
+					  } catch(e) {
+						    v = pref.getComplexValue(prefID,nsISupportsString).data;
+					  }
+					  return v;
 //			case PREF_STRING: return pref.getCharPref(prefID);
 			default         : return "[unknown PrefType: " + pref.getPrefType(prefID) + "]";
 		}
