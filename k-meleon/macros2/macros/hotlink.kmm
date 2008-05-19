@@ -10,6 +10,7 @@
 # ------------------------------------------------------------------------------------------------------------------
 
 hotlink{
+macroinfo=_("Open the specified hotlink");
 $OpenURL=getpref(STRING,$_hotlink.$ARG.".url");
 $OpenURL==""?0:(getpref(BOOL,$_hotlink.$ARG.".new")?&OpenURL_InNew:open($OpenURL));
 }

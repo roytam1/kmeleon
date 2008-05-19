@@ -9,6 +9,7 @@
 # ------------------------------------------------------------------------------------------------------------------
 
 mtypes{
+macroinfo=_("Change file type settings");
 $OpenURL="chrome://mtypes/content/pref/pref.xul"; &OpenURL_InNewWindow;
 }
 

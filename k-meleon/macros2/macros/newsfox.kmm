@@ -9,6 +9,7 @@
 # ------------------------------------------------------------------------------------------------------------------
 
 NewsFox{
+macroinfo=_("Open NewsFox for reading news feeds");
 $OpenURL="chrome://newsfox/content/newsfox.xul"; $ExecMacros="OpenURL_InNew"; &ExecMacros_Frames;
 }
 

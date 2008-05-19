@@ -13,25 +13,31 @@ alert(sub("%s",$cfg_File,_("The file %s could not be found.")),sub("&","",_($_cf
 }
 
 cfg_ProfileDir{
+macroinfo=_("Open the profile directory");
 exec("explorer.exe \"".getfolder(ProfileFolder)."\"");
 }
 cfg_SettingsDir{
+macroinfo=_("Open the settings directory");
 exec("explorer.exe \"".getfolder(SettingsFolder)."\"");
 }
 
 cfg_Macros{
+macroinfo=_("Open the default macros directory");
 exec("explorer.exe \"".getfolder(MacroFolder)."\"");
 }
 cfg_UserMacros{
+macroinfo=_("Open the user macros directory");
 exec("explorer.exe \"".getfolder(UserMacroFolder)."\"");
 }
 
 cfg_Commands{
+macroinfo=_("View a list of commands available for menus, macros and toolbars");
 $ext="txt"; &getExtensionHandler; $cfg_File="commands.txt";
 $__path=getfolder(RootFolder)."\\skins\\".$cfg_File; $__data=readfile($__path);
 $__data==""?&cfg_FileNotFound:exec(sub("%1",$__path,$cmdline));
 }
 cfg_Skin{
+macroinfo=_("Edit a skin configuration file");
 $ext="cfg"; &getExtensionHandler; $cfg_File=$ARG.".".$ext;
 $__file="\\".$cfg_File; $__skin="\\".basename(getfolder(SkinFolder));
 $__root=getpref(STRING,"kmeleon.general.skinsDir")?getpref(STRING,"kmeleon.general.skinsDir"):getfolder(RootFolder)."\\skins";
@@ -43,17 +49,20 @@ $__data==""?&cfg_FileNotFound:exec(sub("%1",$__path,$cmdline));
 }
 
 cfg_Settings{
+macroinfo=_("Edit a configuration file");
 $ext="cfg"; &getExtensionHandler; $cfg_File=$ARG.".".$ext; $__temp="\\defaults\\settings\\";
 $__path=getfolder(SettingsFolder)."\\".$cfg_File; $__data=readfile($__path);
 $__data==""?$__path=getfolder(RootFolder).$__temp.$cfg_File:0;
 $__data==""?&cfg_FileNotFound:exec(sub("%1",$__path,$cmdline));
 }
 cfg_UserPrefs{
+macroinfo=_("Edit a preferences file");
 $ext="js";  &getSecureExtensionHandler; $cfg_File=$ARG.".".$ext;
 $__path=getfolder(ProfileFolder)."\\".$cfg_File; $__data=readfile($__path);
 $__data==""?&cfg_FileNotFound:exec(sub("%1",$__path,$cmdline));
 }
 cfg_UserStyle{
+macroinfo=_("Edit a user style sheet");
 $ext="css"; &getExtensionHandler; $cfg_File=$ARG.".".$ext;
 $__path=getfolder(ProfileFolder)."\\chrome\\".$cfg_File; $__data=readfile($__path);
 $__data==""?&cfg_FileNotFound:exec(sub("%1",$__path,$cmdline));

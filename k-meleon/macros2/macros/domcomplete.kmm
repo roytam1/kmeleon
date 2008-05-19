@@ -10,6 +10,7 @@
 # ------------------------------------------------------------------------------------------------------------------
 
 domComplete{
+macroinfo=_("Apply the specified domain completion");
 $OpenURL=getpref(STRING,$_domComplete.$ARG.".prefix").$URLBAR.getpref(STRING,$_domComplete.$ARG.".suffix"); &OpenURL_Typed;
 }
 
