@@ -11,7 +11,6 @@ id="prefAppearance" onload="init()">
 <stringbundle id="regn_bundle" src="chrome://global/locale/regionNames.properties"/>
 
 <script type="application/x-javascript" src="chrome://kmprefs/content/pref.js"/>
-<script type="application/x-javascript" src="chrome://kmprefs/content/kmprefs/homepage.js"/>
 <script type="application/x-javascript">
 <![CDATA[
 function init() {
@@ -99,8 +98,6 @@ _getLocales: function() {
 setLocale: function(locale) {
 	pref.setCharPref(this.pref[0],locale);
 	pref.setCharPref(this.pref[1],locale.substr(3,2));
-	if(Homepage.isDefault())
-		Homepage.restoreDefault();
 	pref.setCharPref(kmPrefs.last,"appearance");
 	kmPrefs.save();
 	setTimeout("top.location.reload()",100);
