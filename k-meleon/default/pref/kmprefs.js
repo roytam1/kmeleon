@@ -19,9 +19,9 @@ pref("browser.download.hide_plugins_without_extensions", true);
 /********************************************************************************************************/
 // Plugins
 
-//pref("kmeleon.plugins.bookmarks.load", false);		// kmeleon.js
+//pref("kmeleon.plugins.bookmarks.load", false);				// kmeleon.js
 pref("kmeleon.plugins.bookmarks.askforFolder", true);
-//pref("kmeleon.plugins.bookmarks.chevron", true);		// kmeleon.js
+//pref("kmeleon.plugins.bookmarks.chevron", true);				// kmeleon.js
 pref("kmeleon.plugins.bookmarks.editdialog.width", 500);
 pref("kmeleon.plugins.bookmarks.editdialog.height", 500);
 pref("kmeleon.plugins.bookmarks.editdialog.left", 50);
@@ -32,8 +32,10 @@ pref("kmeleon.plugins.bookmarks.maxMenuLength", 20); // plugin default: 20
 // variable button width (according to the length of the name),
 // button names with more than 99 characters are shortened...
 pref("kmeleon.plugins.bookmarks.maxToolbarSize", 100); // plugin default: 20
-//pref("kmeleon.plugins.bookmarks.menuAutoDetect", true);	// kmeleon.js
-//pref("kmeleon.plugins.bookmarks.openurl", "ID_OPEN_LINK");	// kmeleon.js
+//pref("kmeleon.plugins.bookmarks.menuAutoDetect", true);			// kmeleon.js
+//pref("kmeleon.plugins.bookmarks.openurl", "ID_OPEN_LINK");			// kmeleon.js
+//pref("kmeleon.plugins.bookmarks.openurlm", "ID_OPEN_LINK_IN_NEW_TAB");	// kmeleon.js
+//pref("kmeleon.plugins.bookmarks.openurlr", "ID_OPEN_LINK_IN_BACKGROUNDTAB");	// kmeleon.js
 pref("kmeleon.plugins.bookmarks.toolbarEnabled", true);
 
 //pref("kmeleon.plugins.favorites.load", false);		// kmeleon.js
@@ -72,6 +74,13 @@ pref("kmeleon.plugins.hotlist.maxMenuLength", 20); // plugin default: 20
 //pref("kmeleon.plugins.hotlist.openurl", "ID_OPEN_LINK");	// kmeleon.js
 pref("kmeleon.plugins.hotlist.rebar", false);
 pref("kmeleon.plugins.hotlist.sortOrder", 209);
+
+
+/********************************************************************************************************/
+// For the tab version only
+
+pref("kmeleon.tabs.useLoadingIcon", true);
+//pref("kmeleon.tabs.useLoadingTitle", false);	// kmeleon.js
 
 
 /********************************************************************************************************/
