@@ -10,17 +10,15 @@ init : function() {
 	document.getElementById(this.pref).nextSibling.disabled = this.isDefault();
 },
 selectFile: function(prefID) {
-	var bnd = document.getElementById("pref_bundle");
-	var dir = getFile(getFolder("Pers"),"");
-	var fp  = Components.classes["@mozilla.org/filepicker;1"]
-			    .createInstance(nsIFilePicker);
+	var fp = Components.classes["@mozilla.org/filepicker;1"]
+			   .createInstance(nsIFilePicker);
 
-	fp.init(window,bnd.getString("select_"+prefID),nsIFilePicker.modeOpen);
+	fp.init(window,document.getElementById("pref_bundle").getString("select_"+prefID),nsIFilePicker.modeOpen);
 	fp.appendFilters(	nsIFilePicker.filterHTML |
 				nsIFilePicker.filterXML |
 				nsIFilePicker.filterText |
 				nsIFilePicker.filterImages);
-	fp.displayDirectory = dir;
+	fp.displayDirectory = getFile(getFolder("Pers"),"");
 
 	var ret = fp.show();
 	if (ret == nsIFilePicker.returnOK) {
