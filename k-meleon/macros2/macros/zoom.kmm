@@ -9,15 +9,18 @@
 # ------------------------------------------------------------------------------------------------------------------
 
 Zoom_In{
+macroinfo=_("Perfom the Zoom In button action");
 $__data=getpref(STRING,$_Zoom_Pref);
 $__data=="text"?id(ID_FONT_INCREASE):($__data=="page"?&Zoom_Page_In:($__data=="images"?&Zoom_Images_In:0));
 }
 Zoom_Out{
+macroinfo=_("Perfom the Zoom Out button action");
 $__data=getpref(STRING,$_Zoom_Pref);
 $__data=="text"?id(ID_FONT_DECREASE):($__data=="page"?&Zoom_Page_Out:($__data=="images"?&Zoom_Images_Out:0));
 }
 
 Zoom_Page_In{
+macroinfo=_("Zoom into the current page");
 $_Zoom_By="1"; &_Zoom_Images;
 # EITHER:
 id(ID_FONT_INCREASE);
@@ -25,6 +28,7 @@ id(ID_FONT_INCREASE);
 #&_Zoom_Text;
 }
 Zoom_Page_Out{
+macroinfo=_("Zoom out of the current page");
 $_Zoom_By="-1"; &_Zoom_Images;
 # EITHER:
 id(ID_FONT_DECREASE);
@@ -33,28 +37,35 @@ id(ID_FONT_DECREASE);
 }
 
 Zoom_Images_In{
+macroinfo=_("Increase image size");
 $_Zoom_By="1"; &_Zoom_Images;
 }
 Zoom_Images_Out{
+macroinfo=_("Decrease image size");
 $_Zoom_By="-1"; &_Zoom_Images;
 }
 
 Zoom_Image_In{
+macroinfo=_("Increase the size of the current image");
 $_Zoom_By="2"; &_Zoom_Image;
 }
 Zoom_Image_Out{
+macroinfo=_("Decrease the size of the current image");
 $_Zoom_By="1/2"; &_Zoom_Image;
 }
 
 Zoom_Page{
+macroinfo=_("Let zoom buttons effect text and images");
 menuchecked=(getpref(STRING,$_Zoom_Pref)=="page");
 $_default="page"; $_tip=_("Zoom buttons effect text and images."); &_Zoom_Set;
 }
 Zoom_Text{
+macroinfo=_("Let zoom buttons effect text only");
 menuchecked=(getpref(STRING,$_Zoom_Pref)=="text");
 $_default="text"; $_tip=_("Zoom buttons effect text only."); &_Zoom_Set;
 }
 Zoom_Images{
+macroinfo=_("Let zoom buttons effect images only");
 menuchecked=(getpref(STRING,$_Zoom_Pref)=="images");
 $_default="images"; $_tip=_("Zoom buttons effect images only."); &_Zoom_Set;
 }

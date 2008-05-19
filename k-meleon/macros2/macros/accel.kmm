@@ -42,6 +42,7 @@ $Accel_MouseConfig=$macroPrefBranch."accel.mouse.current";
 $Accel_OnSetAccels="_Accel_SetMouseAccels;";
 
 Accel_Mouse{
+macroinfo=_("Apply the specified mouse accelerator configuration");
 menuchecked=(getpref(STRING,$Accel_MouseConfig)==$ARG);
 $ARG==""?delpref($Accel_MouseConfig):setpref(STRING,$Accel_MouseConfig,$ARG);
 $ARG==""?&_Accel_SetKM:macros($Accel_OnSetAccels);

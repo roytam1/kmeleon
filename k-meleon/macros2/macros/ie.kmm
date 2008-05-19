@@ -9,15 +9,19 @@
 # ------------------------------------------------------------------------------------------------------------------
 
 IE_OpenPage{
+macroinfo=_("Open page in Internet Explorer");
 $_IE_Open=$URL;      &_IE_Open;
 }
 IE_OpenLink{
+macroinfo=_("Open link in Internet Explorer");
 $_IE_Open=$LinkURL;  &_IE_Open;
 }
 IE_OpenImage{
+macroinfo=_("Open image in Internet Explorer");
 $_IE_Open=$ImageURL; &_IE_Open;
 }
 IE_OpenURL{
+macroinfo=_("Open URL Bar contents in Internet Explorer");
 $__text=$URLBAR; $__text==""?$__text=$URL:0;
 $_IE_Open=$__text;   &_IE_Open;
 }

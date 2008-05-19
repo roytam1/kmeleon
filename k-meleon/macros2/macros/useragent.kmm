@@ -10,19 +10,23 @@
 # ------------------------------------------------------------------------------------------------------------------
 
 UserAgent{
+macroinfo=_("Set the specified User Agent string");
 menuchecked=$ARG==""?(getpref(STRING,$_UserAgent_Active)==""):(getpref(STRING,$_UserAgent_Active)==getpref(STRING,$_UserAgent_Custom.$ARG.".string"));
 $ARG==""?delpref($_UserAgent_Active):$_string=getpref(STRING,$_UserAgent_Custom.$ARG.".string");
 $ARG==""?&_UserAgent_SyncMenu:&_UserAgent;
 }
 UserAgent_Custom{
+macroinfo=_("Set a custom User Agent string");
 $_string=prompt(_("Enter the User Agent string to identify K-Meleon as:"),_("Custom User Agent"),getpref(STRING,$_UserAgent_Active));
 $_string==""?0:&_UserAgent;
 }
 
 UserAgent_AlertString{
+macroinfo=_("View the current User Agent string");
 injectJS("alert('"._("Current User Agent String:")."\\n\\n'+navigator.userAgent)");
 }
 UserAgent_ToggleReset{
+macroinfo=_("Toggle resetting the default User Agent string when exiting");
 menuchecked=getpref(BOOL,$_UserAgent_Reset);
 togglepref(BOOL,$_UserAgent_Reset);
 }
@@ -34,7 +38,7 @@ $_UserAgent_Custom="kmeleon.privacy.useragent";
 $_UserAgent_Reset=$macroPrefBranch."useragent.reset_on_exit";
 
 _UserAgent{
-setpref(STRING,$_UserAgent_Active,$_string); &_UserAgent_SyncMenu;
+$_string==""?delpref($_UserAgent_Active):setpref(STRING,$_UserAgent_Active,$_string); &_UserAgent_SyncMenu;
 }
 _UserAgent_SyncMenu{
 $_data=getpref(STRING,$_UserAgent_Active);

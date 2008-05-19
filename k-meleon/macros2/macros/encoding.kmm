@@ -11,10 +11,12 @@
 # ------------------------------------------------------------------------------------------------------------------
 
 Encoding_AutoDetect{
+macroinfo=_("Apply the specified character set autodetection method");
 menuchecked=(getpref(STRING,"intl.charset.detector")==$ARG);
 setpref(STRING,"intl.charset.detector",$ARG); forcecharset();
 }
 Encoding_ForceCharset{
+macroinfo=_("Force the specified character set encoding");
 menuchecked=($CHARSET==substr($ARG,index($ARG,";")+1));
 $_chr=substr($ARG,index($ARG,";")+1);
 $_lbl=substr($ARG,0,index($ARG,";"));

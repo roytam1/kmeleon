@@ -11,31 +11,39 @@
 # ------------------------------------------------------------------------------------------------------------------
 
 DocInfo_Image{
+macroinfo=_("View image properties");
 $JS_doitImage="a=false;var l=getAttribute('longdesc'),s='"._("Image Properties:")."\\n\\n"._("URL:\\t%s")."'.replace(/%s/,unescape(src))+'\\n"._("Size:\\t%W x %H Pixels")."'.replace(/%W/,width).replace(/%H/,height);if(alt)s+='\\n"._("Alt. Text:\\t%s")."'.replace(/%s/,alt);if(l){s+='\\n\\n"._("A description is available for this image. Do you want to view it now?")."';if(confirm(s)){if(top.location==self.location)open(l);top.location.href=l}}else alert(s)";
 $JS_doitInput="a=false;var s='"._("Image Properties:")."\\n\\n"._("URL:\\t%s")."'.replace(/%s/,unescape(src));if(alt)s+='\\n"._("Alt. Text:\\t%s")."'.replace(/%s/,alt);alert(s);a=false"; &JS_hndlImage;
 }
 DocInfo_Link{
+macroinfo=_("View link properties");
 $JS_doitLink="j=a.length;var l=getAttribute('hreflang'),p=getAttribute('ping'),t=getAttribute('type'),s='"._("Link Properties:")."\\n\\n"._("URL:\\t%s")."'.replace(/%s/,unescape(href));if(p)s+='\\n"._("Ping:\\t%s")."'.replace(/%s/,unescape(p));if(l||t){s+='\\n\\n"._("Properties of Linked Resource:")."\\n';if(t)s+='\\n"._("MIME Type:\\t%s")."'.replace(/%s/,t);if(l)s+='\\n"._("Language:\\t%s")."'.replace(/%s/,l)}s+='\\n\\n"._("Do you want to view the linked resource now?")."';if(confirm(s)){if(top.location==self.location)open(href);top.location.href=href}"; &JS_hndlLink;
 }
 
 DocInfo_Page_Links{
+macroinfo=_("View all links in the current page");
 &_DocInfo_lstLinks; $ExecMacros="JS_hndlDocs"; $ForceTab=$_DocInfo_ForceTab; &ExecMacros_Popups;
 }
 DocInfo_Frame_Links{
+macroinfo=_("View all links in the current frame");
 &_DocInfo_lstLinks; $ExecMacros="JS_hndlDoc";  $ForceTab=$_DocInfo_ForceTab; &ExecMacros_Popups;
 }
 
 DocInfo_Page_LinkedImages{
+macroinfo=_("View all images linked by the current page");
 &_DocInfo_lstLinkedImages; $ExecMacros="JS_hndlDocs"; $ForceTab=$_DocInfo_ForceTab; &ExecMacros_Popups;
 }
 DocInfo_Frame_LinkedImages{
+macroinfo=_("View all images linked by the current frame");
 &_DocInfo_lstLinkedImages; $ExecMacros="JS_hndlDoc";  $ForceTab=$_DocInfo_ForceTab; &ExecMacros_Popups;
 }
 
 DocInfo_Page_Images{
+macroinfo=_("View all images in the current page");
 &_DocInfo_lstImages; $ExecMacros="JS_hndlDocs"; $ForceTab=$_DocInfo_ForceTab; &ExecMacros_Popups;
 }
 DocInfo_Frame_Images{
+macroinfo=_("View all images in the current frame");
 &_DocInfo_lstImages; $ExecMacros="JS_hndlDoc";  $ForceTab=$_DocInfo_ForceTab; &ExecMacros_Popups;
 }
 
