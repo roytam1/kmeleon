@@ -13,6 +13,7 @@
 
 # Consult default engine (default engine is also used when macros are disabled)
 Search{
+macroinfo=_("Consult the default search engine");
 $_Search_EngineURL==""?$_Search_EngineURL=getpref(STRING,$_Search_pref_DefaultURL):0;
 $_Search_EngineName==""?$_Search_EngineName=getpref(STRING,$_Search_pref_DefaultName):0;
 $_Search_Query=$SelectedText; $_Search_Query==""?&_Search_Typed:&_Search_Selected;
@@ -20,11 +21,13 @@ $_Search_EngineName="";
 $_Search_EngineURL="";
 }
 Search_PasteAndSearch{
+macroinfo=_("Search the Web for Clipboard contents");
 $URLBAR=getclipboard(); &Search;
 }
 
 # Lock/unlock current engine
 Search_ToggleEngineLock{
+macroinfo=_("Lock or unlock the current search engine as the default engine");
 menuchecked=getpref(BOOL,$_Search_pref_Locked);
 togglepref(BOOL,$_Search_pref_Locked);
 statusbar(sub("%s",getpref(BOOL,$_Search_pref_Locked)?getpref(STRING,$_Search_pref_DefaultName):_("Last used engine"),_("Default search engine: %s")));
@@ -32,16 +35,19 @@ statusbar(sub("%s",getpref(BOOL,$_Search_pref_Locked)?getpref(STRING,$_Search_pr
 
 # Consult multiple engines (Metasearch)
 Search_Metasearch{
+macroinfo=_("Search the Web using multiple engines");
 $_Search_Metasearch_Query=$SelectedText;
 $_Search_Metasearch_Query==""?&_Search_Metasearch_Typed:&_Search_Metasearch_Selected;
 }
 
 # Consult a particular engine
 Search_KMForums{
+macroinfo=_("Search the K-Meleon forums");
 $_Search_EngineURL=getpref(STRING,$macroPrefBranch."search.kmforums");
 $_Search_EngineName=_("K-Meleon Forums Search"); &Search;
 }
 Search_Engine{
+macroinfo=_("Search the Web using the specified engine");
 menuchecked=(getpref(STRING,$_Search_pref_Engine.$ARG.".url")==getpref(STRING,$_Search_pref_DefaultURL));
 $_n=$ARG; &_Search;
 }
@@ -68,8 +74,8 @@ $_Search_EngineName=getpref(STRING,$_Search_pref_Engine.$_n.".name");
 }
 _Search_Init{
 $__locked=getpref(BOOL,$_Search_pref_Locked);
-$__locked?0:setpref(STRING,$_Search_pref_DefaultURL,$_Search_EngineURL);
-$__locked?0:setpref(STRING,$_Search_pref_DefaultName,$_Search_EngineName);
+$__locked?0:($_Search_EngineURL?setpref(STRING,$_Search_pref_DefaultURL,$_Search_EngineURL):0);
+$__locked?0:($_Search_EngineName?setpref(STRING,$_Search_pref_DefaultName,$_Search_EngineName):0);
 # interface for search9.kmm to hook into menu sync
 $__locked?0:macros($_Search_SyncMenu);
 &Search;

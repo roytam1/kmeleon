@@ -14,10 +14,12 @@
 # ------------------------------------------------------------------------------------------------------------------
 
 Proxy_None{
+macroinfo=_("Connect directly to the Internet");
 menuchecked=(getpref(INT,$_Proxy_Type)==0);
 setpref(INT,$_Proxy_Type,0); statusbar(_("Connecting directly"));
 }
 Proxy_Auto{
+macroinfo=_("Connect to the Internet over any detected proxy");
 menuchecked=(getpref(INT,$_Proxy_Type)==4);
 setpref(BOOL,"network.http.proxy.keep-alive",getpref(BOOL,$macroPrefBranch."proxy0.http.proxy.keep-alive"));
 setpref(BOOL,"network.http.proxy.pipelining",getpref(BOOL,$macroPrefBranch."proxy0.http.proxy.pipelining"));
@@ -25,13 +27,10 @@ setpref(STRING,"network.http.proxy.version",getpref(STRING,$macroPrefBranch."pro
 setpref(INT,$_Proxy_Type,4); statusbar(_("Connecting over any detected proxy"));
 }
 Proxy_Custom{
+macroinfo=_("Connect to the Internet over the specified proxy");
 menuchecked=(getpref(STRING,$_Proxy_Current)==$ARG)*(getpref(INT,$_Proxy_Type)!=0)*(getpref(INT,$_Proxy_Type)!=4);
 menugrayed=!getpref(STRING,$macroPrefBranch.$ARG.".name");
-$_proxy=$ARG; setpref(STRING,$_Proxy_Current,$_proxy); $ExecMacros="_Proxy_SetPref";
-$_type=BOOL;   $List=$_Proxy_PrefBool; &ExecMacros_List;
-$_type=INT;    $List=$_Proxy_PrefInt;  &ExecMacros_List;
-$_type=STRING; $List=$_Proxy_PrefStr;  &ExecMacros_List;
-statusbar(sub("%s",getpref(STRING,$macroPrefBranch.$_proxy.".name"),_("Connecting over proxy '%s'")));
+$_proxy=$ARG; getpref(STRING,$macroPrefBranch.$ARG.".name")==""?0:&_Proxy_Custom;
 }
 
 # ----- PRIVATE
@@ -43,6 +42,13 @@ $_Proxy_PrefBool=".http.proxy.keep-alive;.http.proxy.pipelining;.proxy.socks_rem
 $_Proxy_PrefInt=".proxy.type;.proxy.socks_version;.proxy.http_port;.proxy.ssl_port;.proxy.ftp_port;.proxy.gopher_port;.proxy.socks_port;";
 $_Proxy_PrefStr=".http.proxy.version;.proxy.autoconfig_url;.proxy.http;.proxy.ssl;.proxy.ftp;.proxy.gopher;.proxy.socks;.proxy.no_proxies_on;";
 
+_Proxy_Custom{
+setpref(STRING,$_Proxy_Current,$_proxy); $ExecMacros="_Proxy_SetPref";
+$_type=BOOL;   $List=$_Proxy_PrefBool; &ExecMacros_List;
+$_type=INT;    $List=$_Proxy_PrefInt;  &ExecMacros_List;
+$_type=STRING; $List=$_Proxy_PrefStr;  &ExecMacros_List;
+statusbar(sub("%s",getpref(STRING,$macroPrefBranch.$_proxy.".name"),_("Connecting over proxy '%s'")));
+}
 _Proxy_SetPref{
 setpref($_type,"network".$ListItem,getpref($_type,$macroPrefBranch.$_proxy.$ListItem));
 }
