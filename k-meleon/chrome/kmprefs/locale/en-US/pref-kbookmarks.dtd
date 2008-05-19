@@ -2,7 +2,11 @@
 <!ENTITY % plugDTD SYSTEM "chrome://kmprefs/locale/kplugins/kplugins.dtd">%plugDTD;
 <!ENTITY bookmarks.header	"Netscape Bookmarks Plugin">
 <!ENTITY bookmarks.enable	"Enable support for Netscape Bookmarks (&restartRequired;)">
-<!ENTITY bookmarks.open		"Open Netscape Bookmarks">
+<!ENTITY bookmarks.open.before	"Open Netscape Bookmarks Using The">
+<!ENTITY bookmarks.open.after	"Mouse Button">
+<!ENTITY bookmarks.open.left	"Left">
+<!ENTITY bookmarks.open.middle	"Middle">
+<!ENTITY bookmarks.open.right	"Right">
 <!ENTITY bookmarks.askforFolder	"Use dialog to create new Bookmarks">
 <!ENTITY bookmarks.file.label	"Netscape Bookmarks File">
 <!ENTITY bookmarks.file.warning	"&WARNING; When you make K-Meleon use another browser's bookmarks file (Firefox', for instance), then don't use both browsers at the same time - this may result in data loss!">
