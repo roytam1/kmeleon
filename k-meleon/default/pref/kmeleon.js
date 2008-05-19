@@ -14,7 +14,6 @@ pref("general.useragent.vendorSub", "1.5");
 pref("kmeleon.MRU.maxURLs", 16);
 pref("kmeleon.MRU.behavior", 2);
 pref("kmeleon.general.guest_account", false);
-//pref("kmeleon.general.homePage", "resource:///readme.html");			// I10n.js
 pref("kmeleon.general.offline", false);
 pref("kmeleon.general.opengroup", "ID_OPEN_LINK_IN_NEW_TAB|ID_OPEN_LINK_IN_BACKGROUNDTAB");	// Tabs ON
 pref("kmeleon.general.openurl", "ID_OPEN_LINK");
@@ -31,6 +30,7 @@ pref("kmeleon.adblocking", false);
 
 
 //pref("browser.startup.autoload_homepage",   true);
+pref("browser.startup.homepage", "chrome://navigator-region/locale/region.properties");
 
 /********************************************************************************************************/
 // Plugins
@@ -49,6 +49,8 @@ pref("kmeleon.plugins.bookmarks.load", false);
 pref("kmeleon.plugins.bookmarks.chevron", true);
 pref("kmeleon.plugins.bookmarks.menuAutoDetect", true);
 pref("kmeleon.plugins.bookmarks.openurl", "ID_OPEN_LINK");
+pref("kmeleon.plugins.bookmarks.openurlm", "ID_OPEN_LINK_IN_NEW_TAB");
+pref("kmeleon.plugins.bookmarks.openurlr", "ID_OPEN_LINK_IN_BACKGROUNDTAB");
 
 pref("kmeleon.plugins.favorites.load", false);
 pref("kmeleon.plugins.favorites.menuAutoDetect", true);
@@ -185,8 +187,8 @@ pref("browser.cache.disk.capacity", 32768);
 pref("browser.urlbar.autoFill", false);
 pref("browser.urlbar.autocomplete.enabled", true);
 
-//pref("intl.charset.detector", "universal_charset_detector");		// I10n.js
-//pref("keyword.URL", "http://www.google.com/search?gfns=1&q=");	// I10n.js
+//pref("intl.charset.detector", "universal_charset_detector");					// I10n.js
+//pref("keyword.URL", "http://www.google.com/search?ie=UTF-8&sourceid=navclient&gfns=1&q=");	// I10n.js
 
 pref("kmeleon.find.matchCase", false);
 pref("kmeleon.find.searchBackwards", false);
