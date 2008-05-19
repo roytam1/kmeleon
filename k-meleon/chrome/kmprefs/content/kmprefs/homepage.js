@@ -4,7 +4,7 @@
 
 var Homepage = {
 
-pref : "kmeleon.general.homePage",
+pref : "browser.startup.homepage",
 init : function() {
 	initTextbox(this.pref,false);
 	document.getElementById(this.pref).nextSibling.disabled = this.isDefault();
@@ -29,12 +29,10 @@ selectFile: function(prefID) {
 	}
 },
 restoreDefault: function() {
-	var lang = pref.getCharPref("general.useragent.locale");
-
-	setCharPref(this.pref,"resource:///"+(lang=="en-US"?"":("locales/"+lang+"/"))+"readme.html");
+	restoreDefault(this.pref);
 },
 isDefault: function() {
-	return (/^resource:\/\/\/(locales\/[a-z]{2}-[A-Z]{2}\/)?readme.html$/.exec(pref.getCharPref(this.pref)) != null);
+	return !pref.prefHasUserValue(this.pref);
 }
 
 };

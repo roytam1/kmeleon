@@ -177,7 +177,7 @@ initOpen: function() {
   </radiogroup>
   <hbox align="center" style="margin-left:2em">
     <label value="&browsing.homepage;"/>
-    <textbox id="kmeleon.general.homePage" flex="1" class="uri-element" oninput="setCharPref(this.id,this.value)"/>
+    <textbox id="browser.startup.homepage" flex="1" class="uri-element" oninput="setCharPref(this.id,this.value)"/>
     <button label="&restoreDefault;" oncommand="Homepage.restoreDefault();Homepage.init()"/>
     <button label="&browse;" oncommand="Homepage.selectFile(this.previousSibling.previousSibling.id)"/>
   </hbox>
