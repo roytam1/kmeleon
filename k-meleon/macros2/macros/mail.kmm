@@ -10,37 +10,47 @@
 # ------------------------------------------------------------------------------------------------------------------
 
 Mail_ConfigureMail{
+macroinfo=_("Specify your client for reading mail");
 $_pref=$_Mail_pref_mailClient; $_macro="_Mail_DefaultMail"; $_tit=_("Mail Configuration"); $_txt=_("Enter your mail client's path or your web mailer's URL:"); &_Mail_Configure;
 }
 Mail_ConfigureNews{
+macroinfo=_("Specify your client for reading news");
 $_pref=$_Mail_pref_newsClient; $_macro="_Mail_DefaultNews"; $_tit=_("News Configuration"); $_txt=_("Enter your news client's path or your news provider's URL:"); &_Mail_Configure;
 }
 
 Mail_ReadMail{
+macroinfo=_("Open your client for reading mail");
 $_pref=$_Mail_pref_mailClient; $_macro="Mail_ConfigureMail"; &_Mail_Open;
 }
 Mail_ReadNews{
+macroinfo=_("Open your client for reading news");
 $_pref=$_Mail_pref_newsClient; $_macro="Mail_ConfigureNews"; &_Mail_Open;
 }
 
 Mail_ComposeMessage{
+macroinfo=_("Compose a new message");
 open("mailto:");
 }
 
 Mail_SendPageURL{
+macroinfo=_("Send a link to the current page by mail");
 $JS_doit="with(top.document)location='mailto:?subject='+encodeURIComponent(title)+'&body='+encodeURIComponent(URL)"; &JS_hndlDoc;
 }
 Mail_SendLinkURL{
+macroinfo=_("Send the current link by mail");
 $JS_doitLink="j=a.length;location='mailto:?body='+encodeURIComponent(href)"; &JS_hndlLink;
 }
 Mail_SendImageURL{
+macroinfo=_("Send a link to the current image by mail");
 $JS_doitImage="a=false;location='mailto:?subject='+encodeURIComponent((title)?title:((alt)?alt:document.title))+'&body='+encodeURIComponent(src)"; $JS_doitInput=$JS_doitImage; &JS_hndlImage;
 }
 Mail_SendFrameURL{
+macroinfo=_("Send a link to the current frame by mail");
 $JS_doit="location='mailto:?subject='+encodeURIComponent(title)+'&body='+encodeURIComponent(URL)"; &JS_hndlDoc;
 }
 Mail_SendSelection{
-$JS_doit="if(getSelection())location='mailto:?subject='+encodeURIComponent(title)+'&body='+encodeURIComponent(getSelection())"; $SelectedText==""?0:&JS_hndlDoc;
+macroinfo=_("Send the selected text by mail");
+$JS_doit="if(window.getSelection())location='mailto:?subject='+encodeURIComponent(title)+'&body='+encodeURIComponent(window.getSelection())"; $SelectedText==""?0:&JS_hndlDoc;
 }
 
 # ----- PRIVATE
