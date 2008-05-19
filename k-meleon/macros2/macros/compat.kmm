@@ -2,7 +2,7 @@
 
 # ---------- Macro Compatibility -----------------------------------------------------------------------------------
 #
-# Dependencies	: main.kmm ($KM_Version), groups.kmm (Preferences)
+# Dependencies	: main.kmm ($KM_Version)
 # Resources	: -
 # Preferences	: -
 #
@@ -11,42 +11,83 @@
 # ----- PRIVATE
 ___migratePrefs{
 $___msg="";
-&___checkGroups;
+&___checkGroups1;
+&___checkGroups2;
+&___checkLayers;
 $___msg==""?0:alert(sub("%1",$KM_Version,_("Your profile was created by a version prior to K-Meleon %1. The following data has been updated:"))."\n".$___msg."\n\n"._("Please restart K-Meleon."),sub("%1",$KM_Version,_("Welcome to K-Meleon %1 !")));
 setpref(BOOL,$macroPrefBranch."modules.compat.load",false);
 }
 $OnLoadOnce=$OnLoadOnce."___migratePrefs;";
 
-# Groups
+# Groups (1.0 to 1.1)
+$_Groups_User="user.";
+$_Groups_Pref=$macroPrefBranch."groups.user";
+$_Groups_PrefBranch=$macroPrefBranch."groups.";
+$_Groups_UserPrefBranch=$_Groups_PrefBranch.$_Groups_User;
 $___groupnames="kmeleon.groupnames";
 $___groupbranch="kmeleon.group.";
-___checkGroups{
-getpref(STRING,$___groupnames)==""?0:&___migrateGroups;
+___checkGroups1{
+getpref(STRING,$___groupnames)==""?0:&___migrateGroups1;
 }
-___migrateGroups{
+___migrateGroups1{
 $__groups=getpref(STRING,$___groupnames);
 getpref(STRING,$_Groups_Pref)==""?setpref(STRING,$_Groups_Pref,$__groups):$__groups="";
 $__groups==""?0:$___msg=$___msg."\n"._("Groups");
 $__groups=sub("\n","",$__groups);
-while($__groups) &___migrateGroupsLoop;
+while($__groups) &___migrateGroups1Loop;
 }
-___migrateGroupsLoop{
+___migrateGroups1Loop{
 $__group=substr($__groups,0,index($__groups,"\n"));
 setpref(STRING,$_Groups_UserPrefBranch.$__group,getpref(STRING,$___groupbranch.$__group));
 $__groups=sub($__group."\n","",$__groups);
 }
 
+# Groups (1.1) to Sessions (1.5)
+$___sessnbranch="kmeleon.plugins.sessions2.";
+___checkGroups2{
+$_groups=getpref(STRING,$_Groups_Pref);
+$_groups==""?0:$_groups=sub("\n","",$_groups);
+$_groups==""?0:$___msg=$___msg."\n"._("Groups converted to Sessions");
+$_groups==""?0:&___migrateGroups2;
+}
+___migrateGroups2{
+$__i=$_groups==""?0:index($_groups,"\n"); $_j=0; $_pages="";
+$_g=$_groups==""?"":substr($_groups,0,$__i);
+$_g==""?0:$_groups=sub($_g."\n","",$_groups);
+$_t=_("Former group:")." ".$_g;
+$_g==""?0:$_pages=getpref(STRING,$_Groups_UserPrefBranch.$_g);
+$_pages==""?0:&___migrateGroups2Loop;
+$_j==0?0:&___migrateGroups2Finish;
+$_g==""?0:&___migrateGroups2;
+}
+___migrateGroups2Loop{
+$__i=$_pages==""?0:index($_pages,"\t");
+$__p=$_pages==""?"":substr($_pages,0,$__i);
+$__p==""?0:$_pages=sub($__p."\t","",$_pages);
+$__p==""?0:setpref(STRING,$___sessnbranch.$_t.".window0.tab".$_j,"1\t0\t\t\t".$__p."\t\t");
+$__p==""?0:$_j=$_j+1;
+$__p==""?0:&___migrateGroups2Loop;
+}
+___migrateGroups2Finish{
+setpref(STRING,$___sessnbranch."list",getpref(STRING,$___sessnbranch."list").$_t.",");
+setpref(INT,$___sessnbranch.$_t.".count",1);
+setpref(STRING,$___sessnbranch.$_t.".window0","1\t".getpref(INT,"kmeleon.display.XPos")."\t".getpref(INT,"kmeleon.display.YPos")."\t".getpref(INT,"kmeleon.display.width")."\t".getpref(INT,"kmeleon.display.height")."\t\t\t0\t0\t");
+setpref(INT,$___sessnbranch.$_t.".window0.count",$_j);
+}
+
 # Layers to Tabs
 ___checkLayers{
-$__pref="kmeleon.general"; &___migrateLayers;
-$__pref="kmeleon.plugins.bookmarks"; &___migrateLayers;
-$__pref="kmeleon.plugins.favorites"; &___migrateLayers;
-$__pref="kmeleon.plugins.hotlist"; &___migrateLayers;
-$__pref="kmeleon.plugins.macros.selected"; &___migrateLayers;
-setpref(STRING,"kmeleon.general.opengroup",$kTabs?"ID_OPEN_LINK_IN_NEW_TAB|ID_OPEN_LINK_IN_BACKGROUNDTAB":"ID_OPEN_LINK|ID_OPEN_LINK_IN_BACKGROUND");
+$__root="kmeleon.general";
+$_pref=$__root; &___migrateLayers;
+setpref(STRING,$__root.".opengroup",$kTabs?"ID_OPEN_LINK_IN_NEW_TAB|ID_OPEN_LINK_IN_BACKGROUNDTAB":"ID_OPEN_LINK|ID_OPEN_LINK_IN_BACKGROUND");
+$__root="kmeleon.plugins.";
+$_pref=$__root."bookmarks"; &___migrateLayers;
+$_pref=$__root."favorites"; &___migrateLayers;
+$_pref=$__root."hotlist"; &___migrateLayers;
+$_pref=$__root."macros.selected"; &___migrateLayers;
 }
 ___migrateLayers{
-$__data=getpref(STRING,$__pref.".openurl");
-$__data=="layers(OpenURL)"?setpref(STRING,$__pref.".openurl","ID_OPEN_LINK_IN_NEW_TAB"):0;
-$__data=="layers(OpenURLBg)"?setpref(STRING,$__pref.".openurl","ID_OPEN_LINK_IN_BACKGROUNDTAB"):0;
+$__data=getpref(STRING,$_pref.".openurl");
+$__data=="layers(OpenURL)"?setpref(STRING,$_pref.".openurl","ID_OPEN_LINK_IN_NEW_TAB"):0;
+$__data=="layers(OpenURLBg)"?setpref(STRING,$_pref.".openurl","ID_OPEN_LINK_IN_BACKGROUNDTAB"):0;
 }
