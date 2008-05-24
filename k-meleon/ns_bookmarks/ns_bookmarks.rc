@@ -250,6 +250,12 @@ BEGIN
     IDS_ADD_BOOKMARK_HERE   "Add bookmark here"
 END
 
+STRINGTABLE 
+BEGIN
+    IDS_CANT_BOOKMARK_TITLE "Invalid Page"
+    IDS_CANT_BOOKMARK       "This page can't be bookmarked!"
+END
+
 #endif    // Anglais (États-Unis) resources
 /////////////////////////////////////////////////////////////////////////////
 
