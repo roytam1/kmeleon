@@ -54,6 +54,7 @@ public:
 		parent = phWnd;
 		shcount = 0;
 		todelete = false;
+		index = -1;
 	}
 
 	void setParent(HWND ahWnd) { parent = ahWnd; }
@@ -106,7 +107,8 @@ public:
 	}
 
 	bool save(std::string& pref) {
-		setStrPref(pref.c_str(), (char*)topref().c_str());
+		if (index>=0 && urls[index].compare(0, 7, "wyciwyg") != 0)
+			setStrPref(pref.c_str(), (char*)topref().c_str());
 		return true;
 	}
 
@@ -172,6 +174,7 @@ public:
 		todelete = false;
 		posy = posx = width = height = -1;
 		tabcount = 0;
+		index = -1;
 	}
 
 	void addTab(Tab win) {
@@ -448,7 +451,8 @@ public:
 
 
 	bool save(std::string& pref) {
-		setStrPref(pref.c_str(), (char*)topref().c_str());
+		if (tabcount || (index>=0 && urls[index].compare(0, 7, "wyciwyg") != 0))
+			setStrPref(pref.c_str(), (char*)topref().c_str());
 		if (tabcount) {
 			deletetabpref(pref);
 			setIntPref((pref + ".count").c_str(), tabsList.size());

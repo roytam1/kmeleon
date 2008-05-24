@@ -1439,20 +1439,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
          return true;
       }
       else if (command == nAddCommand) {
+
+         kmeleonDocInfo *dInfo = kPlugin.kFuncs->GetDocInfo(hWnd);
+         if (!dInfo || !dInfo->url || strncmp(dInfo->url, "wyciwyg", 7) == 0)
+			 ::MessageBox(NULL, gLoc->GetString(IDS_CANT_BOOKMARK), gLoc->GetString(IDS_CANT_BOOKMARK_TITLE), MB_OK);
+
 		 BOOL ask = TRUE;
 		 kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_BOOKMARK_ASKFOLDER, &ask, &ask);
 		 
 		 if (ask) {
-		   gLoc->DialogBoxParam(MAKEINTRESOURCE(IDD_ADDBOOKMARK), NULL, AddProc, (LPARAM)hWnd);  
+            gLoc->DialogBoxParam(MAKEINTRESOURCE(IDD_ADDBOOKMARK), NULL, AddProc, (LPARAM)hWnd);  
 		 }
-		 else
-		 {
-			 kmeleonDocInfo *dInfo = kPlugin.kFuncs->GetDocInfo(hWnd);
-			if (dInfo) {
-				if (dInfo->url) {
-					addLink(dInfo->url, dInfo->title, BOOKMARK_FLAG_NB);
-				}
-			}
+		 else {
+            addLink(dInfo->url, dInfo->title, BOOKMARK_FLAG_NB);
 		 }
          return true;
       }
