@@ -1590,7 +1590,7 @@ void CMfcEmbedApp::CheckProfileVersion()
        if (oldVersion < 0x01050025)
           theApp.preferences.SetString("browser.startup.homepage", 
 		     theApp.preferences.GetString("kmeleon.general.homePage",
-			 _T("http://kmeleon.sourceforge.net/start")));
+			 _T("chrome://navigator-region/locale/region.properties")));
 
        if (oldVersion < 0x01010001) {
 
