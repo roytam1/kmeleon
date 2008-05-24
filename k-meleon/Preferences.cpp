@@ -241,7 +241,7 @@ BOOL LoadStyleSheet(LPCTSTR path, BOOL load)
 
 void LoadAdBlock(BOOL load)
 {
-	CString adblockpath = theApp.GetFolder(DefSettingsFolder) + _T("adblock.css");
+	CString adblockpath = theApp.GetFolder(ProfileFolder) + _T("\\chrome\\adblock.css");
 	LoadStyleSheet(adblockpath, load);
 }
 
