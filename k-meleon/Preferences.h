@@ -135,7 +135,6 @@ public:
 	CPrefBool   bStartHome;
 	CPrefInt    iNewWindowOpenAs;
     CPrefString newWindowURL;
-	CPrefString homePage;
 
     CPrefBool    bSourceUseExternalCommand;
 	CPrefString  sourceCommand;
