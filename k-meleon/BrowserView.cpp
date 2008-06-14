@@ -156,7 +156,7 @@ BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
 	ON_NOTIFY(CBEN_DRAGBEGIN, ID_URL_BAR, OnDragURL)
     ON_NOTIFY(CBEN_BEGINEDIT, ID_URL_BAR, OnBeginEditURL)
 	ON_COMMAND(IDOK, OnNewUrlEnteredInUrlBar)
-    ON_CBN_SELENDOK(ID_URL_BAR, OnUrlSelectedInUrlBar)
+    ON_CBN_CLOSEUP(ID_URL_BAR, OnUrlSelectedInUrlBar)
 
     //}}AFX_MSG_MAP
 END_MESSAGE_MAP()
@@ -384,7 +384,7 @@ void CBrowserView::OnUpdateNavForward(CCmdUI* pCmdUI)
 
 void CBrowserView::OnNavHome()
 {
-	CString homePage = theApp.preferences.GetString("kmeleon.general.homePage", _T(""));
+	CString homePage = theApp.preferences.GetString("browser.startup.homepage", _T(""));
     if (!homePage.IsEmpty())
         OpenURL(homePage);
     else
