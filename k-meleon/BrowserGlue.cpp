@@ -363,7 +363,7 @@ BOOL CBrowserGlue::FocusPrevElement()
 {
    if (mpBrowserFrame->m_wndUrlBar.IsWindowVisible()) {
       mpBrowserFrame->GetActiveView()->Activate(FALSE);
-      mpBrowserFrame->m_wndFindBar->SetFocus();
+      mpBrowserFrame->m_wndUrlBar.SetFocus();
 	  return TRUE;
    }
 
