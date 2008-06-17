@@ -12,23 +12,23 @@
 #	- Event Handling			 40
 #	- K-Meleon Macros			110
 #	- K-Meleon Plugins/Tabs			120
-#	- K-Meleon Preferences Panel (kmPrefs)	175
-#	- File Handling				215
-# - Opening URLs				240
-# - Mozilla Chrome				290
+#	- K-Meleon Preferences Panel (kmPrefs)	180
+#	- File Handling				220
+# - Opening URLs				245
+# - Mozilla Chrome				295
 # - Mozilla Preferences				335
-#	- Accessibility/Privacy/Security	335
-#	- Type Ahead Find (Page Search)		405
-# - K-Meleon Preferences			480
-#	- Homepage				500
-# - JavaScript Document Handling		560
-#	- Killing Tags				615
-#	- Scrolling				630
+#	- Accessibility/Privacy/Security	340
+#	- Type Ahead Find (Page Search)		410
+# - K-Meleon Preferences			485
+#	- Homepage				505
+# - JavaScript Document Handling		565
+#	- Killing Tags				620
+#	- Scrolling				635
 # - Miscellaneous				665
-#	- Go Buttons				665
-#	- Home Button				720
-#	- RSS Button				735
-#	- Special Opening			745
+#	- Go Buttons				670
+#	- Home Button				725
+#	- RSS Button				740
+#	- Special Opening			750
 #	- Special Macro Execution		775
 #
 # ------------------------------------------------------------------------------------------------------------------
@@ -126,6 +126,8 @@ $kFavorites=getpref(BOOL,"kmeleon.plugins.favorites.load");
 $kFullscreen=getpref(BOOL,"kmeleon.plugins.fullscreen.load");
 $kHistory=getpref(BOOL,"kmeleon.plugins.history.load");
 $kHotlist=getpref(BOOL,"kmeleon.plugins.hotlist.load");
+$kLayers=getpref(BOOL,"kmeleon.plugins.layers.load");
+$kLayersOnly=$kLayers*getpref(BOOL,"kmeleon.plugins.layers.catchOpen");
 $kPrivacy=getpref(BOOL,"kmeleon.plugins.privacy.load");
 $kRebarmenu=getpref(BOOL,"kmeleon.plugins.rebarmenu.load");
 $kSessions=getpref(BOOL,"kmeleon.plugins.sessions.load");
