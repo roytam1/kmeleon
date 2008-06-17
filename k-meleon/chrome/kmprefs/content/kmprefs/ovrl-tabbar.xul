@@ -24,7 +24,7 @@ init : function() {
 	for(var j=0;j<4;j++)
 		initCheckbox(this._base+this._ctrl[j]);
 	document.getElementById(this._base+this._ctrl[3]).disabled = !pref.getBoolPref("kmeleon.favicons.show");
-	initTextbox(this._base+this._ctrl[2],document.getElementById("pref_bundle").getString("toolbar_title_none"));
+	initTextbox(this._base+this._ctrl[4],document.getElementById("pref_bundle").getString("toolbar_title_none"));
 	for(var j=5;j<7;j++)
 		initTextbox(this._base+this._ctrl[j]);
 	for(var j=7;j<10;j++)
@@ -37,7 +37,7 @@ title: function(elem) {
 clear: function(elem) {
 	var id = elem.previousSibling.id;
 	restoreDefault(id);
-	initTextbox(id,false)
+	initTextbox(id,id==this._base+this._ctrl[4]?document.getElementById("pref_bundle").getString("toolbar_title_none"):false)
 },
 _setControls: function() {
 	var dis = !kTabs();
