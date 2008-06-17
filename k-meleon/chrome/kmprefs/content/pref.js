@@ -19,11 +19,10 @@ function getPrefValue(prefID) {
 			case PREF_BOOL	: return (pref.getBoolPref(prefID))?"true":"false";
 			case PREF_INT	: return pref.getIntPref(prefID).toString(10);
 //			case PREF_STRING: return pref.getComplexValue(prefID,nsISupportsString).data;
-			case PREF_STRING: try {
-						var v = pref.getComplexValue(prefID,nsIPrefLocalizedString).data;
-					  } catch(e) {
-						    v = pref.getComplexValue(prefID,nsISupportsString).data;
-					  }
+			case PREF_STRING: var v = pref.getComplexValue(prefID,nsISupportsString).data;
+					  if(v.indexOf("chrome:")==0) try {
+					      v = pref.getComplexValue(prefID,nsIPrefLocalizedString).data;
+					  } catch(e) {}
 					  return v;
 //			case PREF_STRING: return pref.getCharPref(prefID);
 			default         : return "[unknown PrefType: " + pref.getPrefType(prefID) + "]";
