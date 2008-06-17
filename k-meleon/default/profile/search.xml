@@ -89,7 +89,7 @@
 <engine caption="Jux2"
 	url="http://www.jux2.com/search.php?q="/>
 <engine caption="K-Meleon Forums Search"
-	url="http://kmeleon.sourceforge.net/forum/search.php?0,page=1,match_type=ALL,match_dates=30,match_forum=ALL,search="/>
+	url="http://kmeleon.sourceforge.net/forum/search.php?forum_id=0&amp;match_forum=ALL&amp;match_dates=0&amp;match_type=ALL&amp;search="/>
 <engine caption="LEO Deutsch-Englisches Wörterbuch"
 	url="http://dict.leo.org/ende?lp=ende&amp;lang=de&amp;searchLoc=0&amp;cmpType=relaxed&amp;sectHdr=on&amp;spellToler=on&amp;relink=on&amp;search="/>
 <engine caption="LEO English-German Dictionary"
