@@ -9,9 +9,9 @@ pref("general.useragent.contentlocale", "US");
 // Privacy
 
 pref("kmeleon.privacy.useragent1.name", "Firefox 2.0");
-pref("kmeleon.privacy.useragent1.string", "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.6) Gecko/20070725 Firefox/2.0.0.6");
+pref("kmeleon.privacy.useragent1.string", "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.14) Gecko/20080404 Firefox/2.0.0.14");
 pref("kmeleon.privacy.useragent2.name", "SeaMonkey 1.1");
-pref("kmeleon.privacy.useragent2.string", "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.6) Gecko/20070802 SeaMonkey/1.1.4");
+pref("kmeleon.privacy.useragent2.string", "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.13) Gecko/20080313 SeaMonkey/1.1.9");
 
 
 /********************************************************************************************************/
@@ -47,7 +47,7 @@ pref("kmeleon.general.searchEngine", "http://www.google.com/search?q=");
 pref("kmeleon.general.searchEngineName", "Google");
 
 // K-Meleon Forums Search
-pref("kmeleon.plugins.macros.search.kmforums", "http://kmeleon.sourceforge.net/forum/search.php?0,page=1,match_type=ALL,match_dates=30,match_forum=ALL,search=");
+pref("kmeleon.plugins.macros.search.kmforums", "http://kmeleon.sourceforge.net/forum/search.php?forum_id=0&match_forum=ALL&match_dates=0&match_type=ALL&search=");
 
 // Web Search (engine[0..POSITIVE_INFINITY] possible)
 // Make sure these engines are defined in search.xml!
