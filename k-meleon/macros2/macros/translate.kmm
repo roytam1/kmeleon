@@ -34,6 +34,17 @@ menuchecked=getpref(STRING,$_Translate_pref_to)==$ARG;
 $ARG==""?0:setpref(STRING,$_Translate_pref_to,$ARG);
 }
 
+Translate_ToggleRegion{
+macroinfo=_("Show languages from the specified region in the translation menu or not");
+menuchecked=substr(getpref(STRING,$_Translate_pref_menu),$ARG,1)=="1";
+menugrayed=substr(getpref(STRING,$_Translate_pref_regn),$ARG,1)=="0";
+$__p=getpref(STRING,$_Translate_pref_menu);
+$__b=$ARG==0?"":substr($__p,0,$ARG);
+$__v=substr($__p,$ARG,1)=="1"?"0":"1";
+$__e=$ARG==6?"":substr($__p,$ARG+1);
+setpref(STRING,$_Translate_pref_menu,$__b.$__v.$__e); macros($_Translate_ClearMenu_Macro); &_Translate_BuildMenu2;
+}
+
 # ----- PRIVATE
 
 $_Translate_pref=$macroPrefBranch."translate.";
@@ -67,16 +78,6 @@ getpref(STRING,$_Translate_pref_menu)?0:setpref(STRING,$_Translate_pref_menu,111
 }
 $OnInit=$OnInit."_Translate_SetDefaults;";
 
-_Translate_ToggleRegion{
-menuchecked=substr(getpref(STRING,$_Translate_pref_menu),$ARG,1)=="1";
-menugrayed=substr(getpref(STRING,$_Translate_pref_regn),$ARG,1)=="0";
-$__p=getpref(STRING,$_Translate_pref_menu);
-$__b=$ARG==0?"":substr($__p,0,$ARG);
-$__v=substr($__p,$ARG,1)=="1"?"0":"1";
-$__e=$ARG==6?"":substr($__p,$ARG+1);
-setpref(STRING,$_Translate_pref_menu,$__b.$__v.$__e); macros($_Translate_ClearMenu_Macro); &_Translate_BuildMenu2;
-}
-
 $_Translate_macro_from="Translate_From(";
 $_Translate_macro_to="Translate_To(";
 
@@ -97,13 +98,13 @@ setmenu($__s,popup,"&Using");
 setmenu("&Using",inline,_Translation_Services);
 setmenu("&Using",separator,-1);
 setmenu("&Using",popup,$__t);
-setmenu($__t,macro,"&West European","_Translate_ToggleRegion(0)");
-setmenu($__t,macro,"&North European","_Translate_ToggleRegion(1)");
-setmenu($__t,macro,"E&ast European","_Translate_ToggleRegion(2)");
-setmenu($__t,macro,"S&outh European","_Translate_ToggleRegion(3)");
-setmenu($__t,macro,"&East Asian","_Translate_ToggleRegion(4)");
-setmenu($__t,macro,"&SE And SW Asian","_Translate_ToggleRegion(5)");
-setmenu($__t,macro,"&Middle Eastern","_Translate_ToggleRegion(6)");
+setmenu($__t,macro,"&West European","Translate_ToggleRegion(0)");
+setmenu($__t,macro,"&North European","Translate_ToggleRegion(1)");
+setmenu($__t,macro,"E&ast European","Translate_ToggleRegion(2)");
+setmenu($__t,macro,"S&outh European","Translate_ToggleRegion(3)");
+setmenu($__t,macro,"&East Asian","Translate_ToggleRegion(4)");
+setmenu($__t,macro,"&SE And SW Asian","Translate_ToggleRegion(5)");
+setmenu($__t,macro,"&Middle Eastern","Translate_ToggleRegion(6)");
 &_Translate_BuildMenu2; macros($_Translate_Services);
 # context menus
 setmenu(Selection,popup,$__s);
@@ -165,6 +166,7 @@ $macroModules=$macroModules."Translate;";
 # ------------------------------------------------------------------------------------------------------------------
 
 Translate_BabelFish{
+macroinfo=_("Use Babel Fish Translation");
 menuchecked=getpref(STRING,$_Translate_pref_srvc)==$_Translate_BabelFish;
 macros($_Translate_ClearMenu_Macro); &_Translate_BabelFish_SetDefaults; &_Translate_BuildMenu2;
 }
@@ -321,6 +323,7 @@ $_Translate_Services=$_Translate_Services."_Translate_BabelFish_BuildMenu_Servic
 # ------------------------------------------------------------------------------------------------------------------
 
 Translate_Google{
+macroinfo=_("Use Google Translate");
 menuchecked=getpref(STRING,$_Translate_pref_srvc)==$_Translate_Google;
 macros($_Translate_ClearMenu_Macro); &_Translate_Google_SetDefaults; &_Translate_BuildMenu2;
 }
