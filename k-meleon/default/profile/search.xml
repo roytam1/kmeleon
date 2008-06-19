@@ -36,8 +36,6 @@
 	url="http://ditto.com/searchResults.asp?mainToolbar=imageSelected&amp;pid=7002&amp;p=1&amp;search.x=0&amp;search.y=0&amp;ss="/>
 <engine caption="Dogpile"
 	url="http://www.dogpile.com/info.dogpl/search/web/"/>
-<engine caption="Dumbfind"
-	url="http://dumbfind.com/search.jsp?search="/>
 <engine caption="eBay.com"
 	url="http://search.ebay.com/"/>
 <engine caption="Feedster"
@@ -112,8 +110,6 @@
 	url="http://www.metacrawler.com/info.metac/search/web/"/>
 <engine caption="MobyGames"
 	url="http://www.mobygames.com/search/quick?q="/>
-<engine caption="MondoMole Image Search"
-	url="http://www.mondomole.com/?NextEntry=0&amp;Search=Search&amp;FF=1&amp;QueryStr="/>
 <engine caption="MSN Search"
 	url="http://search.msn.com/results.aspx?q="/>
 <engine caption="Multimap.com"
@@ -142,7 +138,7 @@
 	url="http://de.wikipedia.org/wiki/Spezial:Search/"/>
 <engine caption="Wikipédia, L'encyclopédie libre"
 	url="http://fr.wikipedia.org/wiki/Special:Search/"/>
-<engine caption="Wikipedia, La encyclopedia libre"
+<engine caption="Wikipedia, La enciclopedia libre"
 	url="http://es.wikipedia.org/wiki/Especial:Search/"/>
 <engine caption="Yahoo! Groups"
 	url="http://groups.yahoo.com/group/"/>
