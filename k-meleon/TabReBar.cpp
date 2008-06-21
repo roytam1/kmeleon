@@ -158,7 +158,7 @@ BOOL CTabReBar::Create(CReBarEx* rebar, UINT idwnd)
 		} else {
 			mTemp = new CReBarEx();
 			mTemp->Create(GetParentFrame(), RBS_BANDBORDERS, WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS|WS_CLIPCHILDREN|(mBottomBar ? CBRS_BOTTOM : CBRS_TOP));
-			mTemp->AddBar(this, _T(""), NULL,  RBBS_USECHEVRON | RBBS_NOGRIPPER);
+			mTemp->AddBar(this, szTitle, NULL,  RBBS_USECHEVRON | RBBS_NOGRIPPER);
 		}
 
 		mDropTarget.Register(this);
@@ -211,8 +211,8 @@ BOOL CTabReBar::Init(CReBarEx* rebar)
 		SIZE sizeButtons;
 		rbi.fMask = RBBIM_CHILD;
 		mTemp->GetReBarCtrl().GetBandInfo(1, &rbi);
-		::SendMessage(rbi.hwndChild, TB_GETMAXSIZE, 0, (LPARAM)&sizeButtons);
-		size.cy = max(size.cy, sizeButtons.cy);
+		if (::SendMessage(rbi.hwndChild, TB_GETMAXSIZE, 0, (LPARAM)&sizeButtons) != 0)
+			size.cy = max(size.cy, sizeButtons.cy);
 	}
 
 	rbi.fMask  = RBBIM_CHILDSIZE; 
@@ -224,6 +224,9 @@ BOOL CTabReBar::Init(CReBarEx* rebar)
 	} 
 	else
 		mTemp->GetReBarCtrl().SetBandInfo(0, &rbi);
+
+	if (mBottomBar)
+		mTemp->SetWindowPos(&(((CBrowserFrame*)GetParentFrame())->m_wndStatusBar),0,0,0,0,SWP_NOMOVE);
 
 	return TRUE;
 }
@@ -648,6 +651,11 @@ void CTabReBar::OnTbnGetDispInfo(NMHDR *pNMHDR, LRESULT *pResult)
 void CTabReBar::OnTbnBeginDrag(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	LPNMTOOLBAR pNMTB = reinterpret_cast<LPNMTOOLBAR>(pNMHDR);
+	
+	// Only allow left mouse button
+	if (!GetAsyncKeyState(GetSystemMetrics(SM_SWAPBUTTON) ? VK_RBUTTON : VK_LBUTTON))
+		return;
+
 	//HCURSOR cursor = ::LoadCursor(::AfxGetInstanceHandle(), MAKEINTRESOURCE(IDC_MOVE));
 	//SetTimer(100,250,NULL);
 	//mDragItem = pNMHDR->idFrom;
