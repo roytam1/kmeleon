@@ -166,6 +166,7 @@ protected:
 	afx_msg LRESULT OnNewSiteIcon(WPARAM url, LPARAM index);
 	afx_msg void OnTbnBeginDrag(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg BOOL OnToolTipText(UINT, NMHDR* pNMHDR, LRESULT* pResult);
+	afx_msg void OnShowFindBar();
 public: // Temporary
 	afx_msg void OnNewTab();
 };

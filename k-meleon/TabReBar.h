@@ -104,6 +104,7 @@ public:
 	BOOL GetItemText(int idCommand, CString& str);
 	void RefreshFavIcon();
 	int GetButtonIDFromPoint(POINT point); // ....
+	void UpdateVisibility(BOOL canHide = TRUE);
 
 protected:
 	
@@ -120,7 +121,7 @@ protected:
 	
 	int GetButtonIDFromData(DWORD data);
 	void UpdateButtonsSize();
-	void UpdateVisibility(BOOL canHide = TRUE);
+	
 	void HandleMouseClick(int flag, CPoint point);
 	
 	CReBarEx* m_wndParent;
