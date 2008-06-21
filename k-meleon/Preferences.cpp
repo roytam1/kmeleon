@@ -292,9 +292,6 @@ void CPreferences::Load() {
    new CPrefObserver("kmeleon.MRU", &CPreferences::MRUListChanged);
    new CPrefObserver("kmeleon.general.skinsCurrent", &CPreferences::SkinChanged);
 
-   FlashBlockChanged();
-   AdBlockChanged();
-
    // -- Folders XXX have to put this somewhere else
    
    settingsDir = GetString("kmeleon.general.settingsDir", _T(""));
@@ -331,6 +328,9 @@ void CPreferences::Load() {
       FindClose(hFile);
    else
       currentSkinFolder = skinsFolder + _T("\\") + skinsCurrent;
+
+   FlashBlockChanged();
+   AdBlockChanged();
 }
 
 void CPreferences::Flush()
