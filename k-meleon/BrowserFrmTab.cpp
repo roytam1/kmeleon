@@ -123,6 +123,7 @@ BEGIN_MESSAGE_MAP(CBrowserFrmTab, CBrowserFrame)
 	ON_MESSAGE(UWM_NEWSITEICON, OnNewSiteIcon)
 	ON_NOTIFY_EX_RANGE(TTN_NEEDTEXTW, 0, 0xFFFF, OnToolTipText)
 	ON_NOTIFY_EX_RANGE(TTN_NEEDTEXTA, 0, 0xFFFF, OnToolTipText)
+	ON_COMMAND(ID_EDIT_FIND, OnShowFindBar)
 //	ON_MESSAGE(UWM_GETFAVICON, OnGetFavIcon)
 	ON_WM_KEYDOWN()
 END_MESSAGE_MAP()
@@ -713,6 +714,12 @@ void CBrowserFrmTab::UpdateTabListMenu()
 	if (menu) menu->Invalidate();
 }
 
+void CBrowserFrmTab::OnShowFindBar()
+{
+	CBrowserFrame::OnShowFindBar();
+	m_wndTabs->UpdateVisibility(); // Ugly hack
+}
+
 /**********************************************/
 
 CBrowserTab::CBrowserTab() : CBrowserView()
@@ -868,3 +875,5 @@ void CBrowserTab::OnOpenFrameInBackgroundTab()
 	if (url.IsEmpty()) return;
     OpenURLInNewTab(url, GetCurrentURI(), TRUE);
 }
+
+
