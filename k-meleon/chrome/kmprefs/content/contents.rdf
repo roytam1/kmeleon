@@ -7,7 +7,7 @@
   </RDF:Seq>
 
   <RDF:Description about="urn:mozilla:package:kmprefs"
-	chrome:displayName="kmPrefs 1.5beta2c"
+	chrome:displayName="kmPrefs 1.5.0"
 	chrome:author="Klaus Kohler"
 	chrome:name="kmprefs"
 	chrome:extension="true"
