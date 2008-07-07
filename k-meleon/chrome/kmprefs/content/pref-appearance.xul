@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
 <?xml-stylesheet type="text/css" href="chrome://global/skin/"?>
+<?xml-stylesheet type="text/css" href="chrome://kmprefs/skin/"?>
 <?xul-overlay href="chrome://kmprefs/content/kmprefs/ovrl-popups.xul"?>
 <?xul-overlay href="chrome://kmprefs/content/kplugins/fullscreen.xul"?>
 <!DOCTYPE page SYSTEM "chrome://kmprefs/locale/pref-appearance.dtd">
@@ -11,6 +12,7 @@ id="prefAppearance" onload="init()">
 <stringbundle id="regn_bundle" src="chrome://global/locale/regionNames.properties"/>
 
 <script type="application/x-javascript" src="chrome://kmprefs/content/pref.js"/>
+<script type="application/x-javascript" src="chrome://kmprefs/content/kmprefs/homepage.js"/>
 <script type="application/x-javascript">
 <![CDATA[
 function init() {
@@ -98,6 +100,9 @@ _getLocales: function() {
 setLocale: function(locale) {
 	pref.setCharPref(this.pref[0],locale);
 	pref.setCharPref(this.pref[1],locale.substr(3,2));
+// Avoid Bug 1008
+	if(Homepage.isDefault())
+		Homepage.restoreDefault();
 	pref.setCharPref(kmPrefs.last,"appearance");
 	kmPrefs.save();
 	setTimeout("top.location.reload()",100);
@@ -374,7 +379,7 @@ editSave: function(elem,start,end) {
   <rows>
     <row>
       <groupbox flex="1">
-        <caption label="&appearance.language;"/>
+        <caption><label>&appearance.language;</label></caption>
 	<menulist id="general.useragent.locale" oncommand="Language.setLocale(this.value)"/>
         <separator class="thin"/>
       </groupbox>
@@ -383,7 +388,7 @@ editSave: function(elem,start,end) {
     <groupbox style="border-top:0;border-left:0;border-right:0"/>
     <row>
       <groupbox flex="1">
-        <caption label="&appearance.skin;"/>
+        <caption><label>&appearance.skin;</label></caption>
         <menulist id="kmeleon.general.skinsCurrent" oncommand="setCharPref(this.id,this.value)"/>
         <separator class="thin"/>
         <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.plugins.bmpmenu.load" label="&appearance.menuIcons;"/>
@@ -420,7 +425,7 @@ editSave: function(elem,start,end) {
 <!-- Startup Appearance -->
 <separator class="thin"/>
 <groupbox>
-  <caption label="&window.size;"/>
+  <caption><label>&window.size;</label></caption>
   <separator class="thin"/>
   <hbox align="center">
     <grid>
@@ -451,7 +456,7 @@ editSave: function(elem,start,end) {
   <separator class="thin"/>
   <hbox>
     <groupbox>
-      <caption label="&maximized;"/>
+      <caption><label>&maximized;</label></caption>
       <radiogroup id="kmeleon.display.maximized" oncommand="Maximized.toggle()">
         <radio value="true" label="&always;"/>
         <radio value="false" label="&never;"/>
@@ -459,7 +464,7 @@ editSave: function(elem,start,end) {
       </radiogroup>
     </groupbox>
     <groupbox>
-      <caption label="&fullscreen;"/>
+      <caption><label>&fullscreen;</label></caption>
       <radiogroup id="kmeleon.plugins.fullscreen.last" oncommand="Fullscreen.toggle()">
         <radio value="true" label="&always;"/>
         <radio value="false" label="&never;"/>
@@ -470,7 +475,7 @@ editSave: function(elem,start,end) {
 </groupbox>
 <separator class="thin"/>
 <groupbox>
-  <caption label="&window.position;"/>
+  <caption><label>&window.position;</label></caption>
   <separator class="thin"/>
   <hbox align="center">
     <grid>
