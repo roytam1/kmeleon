@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
 <?xml-stylesheet type="text/css" href="chrome://global/skin/"?>
+<?xml-stylesheet type="text/css" href="chrome://kmprefs/skin/"?>
 <?xul-overlay href="chrome://kmprefs/content/kplugins/favoritesbar.xul"?>
 
 <!DOCTYPE page SYSTEM "chrome://kmprefs/locale/pref-kfavorites.dtd">
@@ -207,7 +208,7 @@ _setControls: function() {
 <!-- General -->
 <separator class="thin"/>
 <groupbox>
-  <caption label="&favorites.open;"/>
+  <caption><label>&favorites.open;</label></caption>
   <separator class="thin"/>
   <radiogroup id="kmeleon.plugins.favorites.openurl">
     <radio oncommand="kFavorites.setOpen()" value="ID_OPEN_LINK" id="openURLInCurrent"/>
@@ -233,7 +234,7 @@ _setControls: function() {
 <separator class="thin"/>
 <hbox>
   <groupbox>
-    <caption label="&spillover.label;"/>
+    <caption><label>&spillover.label;</label></caption>
     <separator class="thin"/>
     <description>&spillover.descr;</description>
     <radiogroup id="kmeleon.plugins.favorites.menuAutoDetect">
@@ -248,7 +249,7 @@ _setControls: function() {
     <separator class="thin"/>
   </groupbox>
   <groupbox flex="1">
-    <caption label="&menu.order;"/>
+    <caption><label>&menu.order;</label></caption>
     <separator class="thin"/>
     <radiogroup id="kmeleon.plugins.favorites.sortOrder" oncommand="kFavorites.setOrder()">
       <radio value="2" label="&menu.sortAscending;"/>

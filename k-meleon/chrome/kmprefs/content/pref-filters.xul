@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
 <?xml-stylesheet type="text/css" href="chrome://global/skin/"?>
+<?xml-stylesheet type="text/css" href="chrome://kmprefs/skin/"?>
 <?xul-overlay href="chrome://kmprefs/content/kmprefs/ovrl-popups.xul"?>
 <!DOCTYPE page SYSTEM "chrome://kmprefs/locale/pref-filters.dtd">
 <page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" 
@@ -42,7 +43,7 @@ init : function() {
   <groupbox id="popups.blocker"/>
   <separator class="thin"/>
   <groupbox>
-    <caption label="&flashblock.label;"/>
+    <caption><label>&flashblock.label;</label></caption>
     <description>&flashblock.descr;</description>
     <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.flashblock" label="&flashblock.enable;"/>
     <separator class="thin"/>
@@ -50,7 +51,7 @@ init : function() {
   </groupbox>
   <separator class="thin"/>
   <groupbox>
-    <caption label="&cssAdblock.label;"/>
+    <caption><label>&cssAdblock.label;</label></caption>
     <description>&cssAdblock.descr;</description>
     <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.adblocking" label="&cssAdblock.enable;"/>
     <separator class="thin"/>

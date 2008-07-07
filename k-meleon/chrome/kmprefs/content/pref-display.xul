@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
 <?xml-stylesheet type="text/css" href="chrome://global/skin/"?>
+<?xml-stylesheet type="text/css" href="chrome://kmprefs/skin/"?>
 <?xul-overlay href="chrome://kmprefs/content/kmprefs/ovrl-javascript.xul"?>
 <!DOCTYPE page SYSTEM "chrome://kmprefs/locale/pref-display.dtd">
 <page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" 
@@ -304,21 +305,21 @@ _getDefault: function(langGroup,fontType,listItem) {
 <!-- General -->
 <separator class="thin"/>
 <groupbox>
-  <caption label="&frames.label;"/>
+  <caption><label>&frames.label;</label></caption>
   <checkbox oncommand="toggleCheckbox(this.id)" id="browser.frames.enabled" label="&frames.enable;"/>
   <checkbox oncommand="toggleCheckbox(this.id)" id="layout.frames.force_resizability" label="&frames.resizable;"/>
   <separator class="thin"/>
 </groupbox>
 <separator class="thin"/>
 <groupbox>
-  <caption label="&text.label;"/>
+  <caption><label>&text.label;</label></caption>
   <checkbox oncommand="toggleCheckbox(this.id)" id="browser.blink_allowed" label="&text.blink;"/>
   <checkbox oncommand="Marquee.toggle(this)" id="Marquee" label="&text.marquee;"/>
   <description>&marquee.note;</description>
 </groupbox>
 <separator class="thin"/>
 <groupbox>
-  <caption label="&source.label;"/>
+  <caption><label>&source.label;</label></caption>
   <checkbox oncommand="toggleCheckbox(this.id);Source.init()" id="kmeleon.general.sourceEnabled" label="&source.external;"/>
   <hbox align="center" style="padding-left:2em">
     <label value="&source.viewer;"/>
@@ -464,7 +465,7 @@ _getDefault: function(langGroup,fontType,listItem) {
 <separator class="thin"/>
 <hbox>
   <groupbox flex="1">
-    <caption label="&images.load;"/>
+    <caption><label>&images.load;</label></caption>
     <radiogroup oncommand="toggleRadiogroup(this.id)" id="permissions.default.image">
       <radio value="2" label="&images.load.never;"/>
       <radio value="1" label="&images.load.always;"/>
@@ -477,7 +478,7 @@ _getDefault: function(langGroup,fontType,listItem) {
     </hbox>
   </groupbox>
   <groupbox flex="1">
-    <caption label="&images.loop;"/>
+    <caption><label>&images.loop;</label></caption>
     <radiogroup oncommand="toggleRadiogroup(this.id)" id="image.animation_mode">
       <radio value="none" label="&images.loop.none;"/>
       <radio value="normal" label="&images.loop.normal;"/>
@@ -492,7 +493,7 @@ _getDefault: function(langGroup,fontType,listItem) {
 <vbox id="domDISS"/>
 <separator class="thick"/>
 <groupbox>
-  <caption label="&images.missing;"/>
+  <caption><label>&images.missing;</label></caption>
   <checkbox oncommand="Placeholder.toggle(this);init()" id="browser.display.show_image_placeholders" label="&images.placeholders;"/>
   <checkbox oncommand="Placeholder.toggle(this);init()" id="browser.display.force_inline_alttext" label="&images.inline.force;"/>
   <description>&images.inline.note;</description>

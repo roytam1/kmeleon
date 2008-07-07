@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
 <?xml-stylesheet type="text/css" href="chrome://global/skin/"?>
+<?xml-stylesheet type="text/css" href="chrome://kmprefs/skin/"?>
 <?xul-overlay href="chrome://kmprefs/content/kmprefs/ovrl-javascript.xul"?>
 <?xul-overlay href="chrome://kmprefs/content/kmprefs/ovrl-popups.xul"?>
 <!DOCTYPE page SYSTEM "chrome://kmprefs/locale/pref-javascript.dtd">
@@ -40,7 +41,7 @@ function init() {
 <checkbox id="javascript.enabled"/>
 <separator class="thick"/>
 <groupbox>
-  <caption label="&contentManip;"/>
+  <caption><label>&contentManip;</label></caption>
   <vbox id="domDISS"/>
 </groupbox>
 <separator class="thin"/>

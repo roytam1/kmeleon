@@ -61,7 +61,7 @@ _setLabel: function() {
   <checkbox oncommand="kFullscreen.toggle()" id="kmeleon.plugins.fullscreen.load" label="&fullscreen.enable;"/>
   <separator class="thin"/>
   <groupbox>
-    <caption label="&fullscreen.mode;"/>
+    <caption><label>&fullscreen.mode;</label></caption>
     <separator class="thin"/>
     <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.plugins.fullscreen.hide_rebar"/>
     <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.plugins.fullscreen.hide_statusbar" label="&fullscreen.status;"/>

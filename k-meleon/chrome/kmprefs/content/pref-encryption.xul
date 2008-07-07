@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
 <?xml-stylesheet type="text/css" href="chrome://global/skin/"?>
+<?xml-stylesheet type="text/css" href="chrome://kmprefs/skin/"?>
 <!DOCTYPE page SYSTEM "chrome://kmprefs/locale/pref-encryption.dtd">
 <page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" 
 id="prefEncryption" onload="init()" onunload="Masterpass.toggleTimeout(false)">
@@ -153,7 +154,7 @@ function init() {
 <description>&masterpass.warning;</description>
 <separator class="thick"/>
 <groupbox>
-  <caption label="&masterpass.timeout;"/>
+  <caption><label>&masterpass.timeout;</label></caption>
   <separator class="thin"/>
   <description>&masterpass.ask;</description>
   <radiogroup id="security.ask_for_password">
@@ -173,7 +174,7 @@ function init() {
 <!-- Encrypted Transmission -->
 <separator class="thin"/>
 <groupbox>
-  <caption label="&ssl.protocols;"/>
+  <caption><label>&ssl.protocols;</label></caption>
   <separator class="thin"/>
   <checkbox id="security.enable_ssl3" label="&ssl.enable_ssl3;" oncommand="toggleCheckbox(this.id)"/>
   <checkbox id="security.enable_tls" label="&ssl.enable_tls;" oncommand="toggleCheckbox(this.id)"/>
@@ -181,7 +182,7 @@ function init() {
 </groupbox>
 <separator class="thin"/>
 <groupbox>
-  <caption label="&ssl.warnings;"/>
+  <caption><label>&ssl.warnings;</label></caption>
   <separator class="thin"/>
   <description>&warn.description;</description>
   <checkbox id="security.warn_entering_secure" label="&warn.enteringsecure;" oncommand="toggleCheckbox(this.id)"/>

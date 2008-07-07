@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
 <?xml-stylesheet type="text/css" href="chrome://global/skin/"?>
+<?xml-stylesheet type="text/css" href="chrome://kmprefs/skin/"?>
 <?xul-overlay href="chrome://kmprefs/content/kmprefs/ovrl-popups.xul"?>
 <!DOCTYPE page SYSTEM "chrome://kmprefs/locale/pref-browsing.dtd">
 <page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" 
@@ -159,7 +160,7 @@ initOpen: function() {
   </groupbox>
   <hbox style="padding-top:0.6em" flex="1">
     <groupbox flex="1">
-      <caption label="&DefaultBrowser;"/>
+      <caption><label>&DefaultBrowser;</label></caption>
       <separator class="thin"/>
       <description flex="1">&DefaultBrowser.descr;</description>
       <separator class="thin"/>
@@ -169,7 +170,7 @@ initOpen: function() {
 </hbox>
 <separator class="thin"/>
 <groupbox>
-  <caption label="&startup;"/>
+  <caption><label>&startup;</label></caption>
   <separator class="thin"/>
   <radiogroup id="kmeleon.general.startHome" oncommand="toggleRadiogroup(this.id)">
     <radio label="&start.blank;" value="false"/>
@@ -184,7 +185,7 @@ initOpen: function() {
 </groupbox>
 <separator class="thin"/>
 <groupbox>
-  <caption label="&browsing.newWinTab;"/>
+  <caption><label>&browsing.newWinTab;</label></caption>
   <separator class="thin"/>
   <radiogroup id="kmeleon.display.newWindowOpenAs" oncommand="toggleRadiogroup(this.id)" orient="horizontal">
     <vbox>

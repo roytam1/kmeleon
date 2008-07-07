@@ -83,7 +83,7 @@ _setControls: function() {
   <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.plugins.bookmarks.chevron" label="&bookmarksbar.chevron;"/>
   <separator class="thick"/>
   <groupbox>
-    <caption label="&toolbar.buttonWidth;"/>
+    <caption><label>&toolbar.buttonWidth;</label></caption>
     <separator class="thin"/>
     <hbox align="center">
       <label value="&bookmarksbar.variableBefore;"/>

@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
 <?xml-stylesheet type="text/css" href="chrome://global/skin/"?>
+<?xml-stylesheet type="text/css" href="chrome://kmprefs/skin/"?>
 <?xul-overlay href="chrome://kmprefs/content/kmprefs/ovrl-prefetch.xul"?>
 <?xul-overlay href="chrome://kmprefs/content/kmprefs/ovrl-referrer.xul"?>
 <!DOCTYPE page SYSTEM "chrome://kmprefs/locale/pref-network.dtd">

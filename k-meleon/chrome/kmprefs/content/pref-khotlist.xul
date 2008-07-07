@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
 <?xml-stylesheet type="text/css" href="chrome://global/skin/"?>
+<?xml-stylesheet type="text/css" href="chrome://kmprefs/skin/"?>
 <?xul-overlay href="chrome://kmprefs/content/kplugins/hotlistbar.xul"?>
 <?xul-overlay href="chrome://kmprefs/content/kplugins/booklistmanager.xul"?>
 <!DOCTYPE page SYSTEM "chrome://kmprefs/locale/pref-khotlist.dtd">
@@ -262,7 +263,7 @@ _setControls: function() {
 <!-- General -->
 <separator class="thin"/>
 <groupbox>
-  <caption label="&hotlist.open;"/>
+  <caption><label>&hotlist.open;</label></caption>
   <separator class="thin"/>
   <radiogroup id="kmeleon.plugins.hotlist.openurl">
     <radio oncommand="kHotlist.setOpen()" value="ID_OPEN_LINK" id="openURLInCurrent"/>
@@ -282,7 +283,7 @@ _setControls: function() {
 <description>&restartNote1;</description>
 <separator class="thick"/>
 <groupbox>
-  <caption label="&hotlist.file.label;"/>
+  <caption><label>&hotlist.file.label;</label></caption>
   <separator class="thin"/>
   <hbox align="center">
     <textbox id="kmeleon.plugins.hotlist.hotlistFile" flex="1" class="uri-element" readonly="true"/>
@@ -301,7 +302,7 @@ _setControls: function() {
 <separator class="thin"/>
 <hbox>
   <groupbox>
-    <caption label="&spillover.label;"/>
+    <caption><label>&spillover.label;</label></caption>
     <separator class="thin"/>
     <description>&spillover.descr;</description>
     <radiogroup id="kmeleon.plugins.hotlist.menuAutoDetect">
@@ -316,7 +317,7 @@ _setControls: function() {
     <separator class="thin"/>
   </groupbox>
   <groupbox flex="1">
-    <caption label="&menu.order;"/>
+    <caption><label>&menu.order;</label></caption>
     <separator class="thin"/>
     <radiogroup id="kmeleon.plugins.hotlist.sortOrder" oncommand="kHotlist.setOrder()">
       <radio value="3" label="&menu.sortAscending;"/>
