@@ -95,7 +95,7 @@ _setControls: function() {
 </script>
 
 <groupbox id="diskcache">
-  <caption label="&cache.dsk.label;"/>
+  <caption><label>&cache.dsk.label;</label></caption>
   <hbox>
     <description flex="1">&cache.dsk.descr;</description>
     <vbox>

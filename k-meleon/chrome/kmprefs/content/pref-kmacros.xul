@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
 <?xml-stylesheet type="text/css" href="chrome://global/skin/"?>
+<?xml-stylesheet type="text/css" href="chrome://kmprefs/skin/"?>
 <!DOCTYPE page SYSTEM "chrome://kmprefs/locale/pref-kmacros.dtd">
 <page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" 
 id="prefKMacros" onload="kMacros.init()">
@@ -120,7 +121,7 @@ _setControls: function() {
   <checkbox oncommand="kMacros.toggle(this.id)" id="kmeleon.plugins.macros.load" label="&kmacros.enable;"/>
   <separator class="thin"/>
   <groupbox flex="1">
-    <caption label="&kmacros.modules;"/>
+    <caption><label>&kmacros.modules;</label></caption>
     <separator class="thin"/>
     <description>&kmacros.modules.hint;</description>
     <separator class="thin"/>

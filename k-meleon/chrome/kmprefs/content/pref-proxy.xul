@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
 <?xml-stylesheet type="text/css" href="chrome://global/skin/"?>
+<?xml-stylesheet type="text/css" href="chrome://kmprefs/skin/"?>
 <!DOCTYPE page SYSTEM "chrome://kmprefs/locale/pref-proxy.dtd">
 <page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" 
 id="prefProxy" onload="Proxy.init()" onunload="CustomProxy.exit()">
@@ -299,7 +300,8 @@ _createTab: function(indx) {
 	t[0].setAttribute("hidden",true);
 	t[1].removeAttribute("hidden");
 	t[2].removeAttribute("hidden");
-	elem.getElementsByTagName("button")[2].disabled = (this.crrnt.value==id);
+	t = pref.getIntPref("network.proxy.type");
+	elem.getElementsByTagName("button")[2].disabled = (this.crrnt.value==id) && (t==1 || t==2);
 	elem.getElementsByTagName("grid")[0].setAttribute("hidden",true);
 	document.getElementsByTagName("tabpanels")[0].appendChild(elem);
 

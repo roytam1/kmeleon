@@ -15,16 +15,23 @@ init: function(folderID) {
 	this._root = this._base + "directory";
 	this._path = getFolder(this._root);
 
-	if(!this._path)
-		this._path = getKey(HKCU,"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders","Favorites");
-	if(this._path==null)
-		this._path = getKey(HKLM,"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders","Favorites");
-	if(this._path==null)
-		this._path = false;
+	if(!this._path) {
+		this._path = getKey(HKCU,"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\User Shell Folders","Favorites");
+		if(this._path==null) {
+			this._path = getKey(HKCU,"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders","Favorites");
+			if(this._path==null)
+				this._path = false;
+		} else
+			this._path = expandEnvironmentStrings(this._path);
+	}
+	if(this._path) {
+		var dir = getFile(this._path,"");
+		if(!dir.exists() || !dir.isDirectory())
+			this._path = false;
+	}
 
 	var sub = document.getElementById(this._base+folderID);
 
-	sub.readonly = (this._path) ? true : false;
 	initTextbox(this._base+folderID,false);
 	sub.nextSibling.disabled = (this._path) ? !kPlugin.load("favorites") : true;
 },
@@ -190,7 +197,7 @@ _setControls: function() {
   <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.plugins.favorites.buttonIcons" label="&toolbar.buttonIcons;"/>
   <separator class="thick"/>
   <groupbox>
-    <caption label="&toolbar.buttonWidth;"/>
+    <caption><label>&toolbar.buttonWidth;</label></caption>
     <separator class="thin"/>
     <radiogroup id="kmeleon.plugins.favorites.buttonMaxWidth">
       <radio value="0" oncommand="kFavoritesBar.toggleWidth()" label="&favoritesbar.fixedAuto;"/>

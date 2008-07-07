@@ -97,7 +97,7 @@ _setControls: function() {
   <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.tabs.useLoadingIcon" label="&tabbar.loading.icon;"/>
   <separator class="thin"/>
   <groupbox>
-    <caption label="&tabbar.mouse;"/>
+    <caption><label>&tabbar.mouse;</label></caption>
     <separator class="thin"/>
     <grid>
       <columns>

@@ -1,2 +1,8 @@
+/* Work around incorrect caption background in Luna.
+ * In XUL use <caption><label>&label;</label></caption>
+ * instead of <caption label="&label;"/>.
+ */
+tabpanel groupbox caption { background-color: inherit !important; }
+
 /* Mouse Gestures */
 #prefGestures row > hbox > image { margin: 0 1em; }

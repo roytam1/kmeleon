@@ -9,7 +9,7 @@
 </script>
 
 <groupbox id="prefetch">
-  <caption label="&prefetch.label;"/>
+  <caption><label>&prefetch.label;</label></caption>
   <description>&prefetch.descr;</description>
   <checkbox oncommand="toggleCheckbox(this.id)" id="network.prefetch-next" label="&pefetch.enable;"/>
   <separator class="thin"/>

@@ -67,7 +67,7 @@ toggle: function(elem) {
 
 <vbox id="history">
   <groupbox>
-    <caption label="&history.global.label;"/>
+    <caption><label>&history.global.label;</label></caption>
     <hbox align="center">
       <checkbox oncommand="History.toggle(this)" id="toggleHistory" label="&history.global.keepBefore;"/>
       <textbox id="browser.history_expire_days" size="4" class="uri-element" oninput="setIntPref(this.id,this.value)"/>
@@ -80,7 +80,7 @@ toggle: function(elem) {
   </groupbox>
   <separator class="thin"/>
   <groupbox>
-    <caption label="&history.urlbar.label;"/>
+    <caption><label>&history.urlbar.label;</label></caption>
     <hbox align="center">
       <checkbox oncommand="History.toggle(this)" id="mru" label="&history.urlbar.keepBefore;"/>
       <textbox id="kmeleon.MRU.maxURLs" size="4" class="uri-element" oninput="setIntPref(this.id,this.value)"/>

@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
 <?xml-stylesheet type="text/css" href="chrome://global/skin/"?>
+<?xml-stylesheet type="text/css" href="chrome://kmprefs/skin/"?>
 <?xul-overlay href="chrome://kmprefs/content/kmprefs/ovrl-tabbar.xul"?>
 <!DOCTYPE page SYSTEM "chrome://kmprefs/locale/pref-tabs.dtd">
 <page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" 
@@ -68,7 +69,7 @@ _setControls: function() {
   <rows>
     <row>
       <groupbox flex="1">
-        <caption label="&tabs.open;"/>
+        <caption><label>&tabs.open;</label></caption>
 	<separator class="thin"/>
         <radiogroup oncommand="toggleRadiogroup(this.id)" id="kmeleon.tabs.onOpenOption">
           <radio value="1" label="&tabs.open.nextToCurrent;"/>
@@ -77,7 +78,7 @@ _setControls: function() {
 	<separator class="thin"/>
       </groupbox>
       <groupbox flex="1">
-        <caption label="&tabs.close;"/>
+        <caption><label>&tabs.close;</label></caption>
 	<separator class="thin"/>
         <radiogroup oncommand="toggleRadiogroup(this.id)" id="kmeleon.tabs.onCloseOption">
           <radio value="0" label="&tabs.close.focusNext;"/>
@@ -95,7 +96,7 @@ _setControls: function() {
       <spacer/>
       <vbox>
         <groupbox flex="1">
-          <caption label="&tabs.last;"/>
+          <caption><label>&tabs.last;</label></caption>
 	  <separator class="thin"/>
           <radiogroup oncommand="toggleRadiogroup(this.id)" id="kmeleon.tabs.onCloseLast">
             <radio value="1" label="&tabs.last.empty;"/>

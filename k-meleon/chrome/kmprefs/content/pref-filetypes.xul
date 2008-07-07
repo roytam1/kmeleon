@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
 <?xml-stylesheet type="text/css" href="chrome://global/skin/"?>
+<?xml-stylesheet type="text/css" href="chrome://kmprefs/skin/"?>
 <?xul-overlay href="chrome://kmprefs/content/firefox/downloadactions.xul"?>
 <!DOCTYPE page SYSTEM "chrome://kmprefs/locale/pref-filetypes.dtd">
 <page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" 
@@ -86,7 +87,7 @@ select: function(prefID) {
 <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.download.saveUseTitle" label="&download.suggestTitle;"/>
 <separator class="thick"/>
 <groupbox>
-  <caption label="&download.whenUnknown;"/>
+  <caption><label>&download.whenUnknown;</label></caption>
   <separator class="thin"/>
   <checkbox oncommand="toggleCheckbox(this.id);Download.initSave()" id="kmeleon.download.SaveUnkownContent" label="&download.offerSave;"/>
   <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.download.askOpenSave" label="&download.askOpenSave;" style="margin-left:2em"/>
@@ -105,7 +106,7 @@ select: function(prefID) {
 <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.download.showMinimizedDialog" label="&download.minimizeDialog;"/>
 <separator class="thick"/>
 <groupbox>
-  <caption label="&download.whenComplete;"/>
+  <caption><label>&download.whenComplete;</label></caption>
   <separator class="thin"/>
   <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.download.flashWhenCompleted" label="&download.whenComplete.flash;"/>
   <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.download.closeDownloadDialog" label="&download.whenComplete.close;"/>

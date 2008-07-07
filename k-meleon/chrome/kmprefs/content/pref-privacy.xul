@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
 <?xml-stylesheet type="text/css" href="chrome://global/skin/"?>
+<?xml-stylesheet type="text/css" href="chrome://kmprefs/skin/"?>
 <?xul-overlay href="chrome://kmprefs/content/kmprefs/ovrl-history.xul"?>
 <?xul-overlay href="chrome://kmprefs/content/kmprefs/ovrl-cache.xul"?>
 <?xul-overlay href="chrome://kmprefs/content/kmprefs/ovrl-prefetch.xul"?>
@@ -165,7 +166,7 @@ select: function(val) {
 <separator class="thick"/>
 <hbox>
   <groupbox flex="1">
-    <caption label="&cookies.accept;"/>
+    <caption><label>&cookies.accept;</label></caption>
     <radiogroup oncommand="Cookies.toggleAcceptance()" id="network.cookie.cookieBehavior">
       <radio value="2" label="&cookies.accept.never;"/>
       <radio value="0" label="&cookies.accept.always;"/>
@@ -187,7 +188,7 @@ select: function(val) {
     </vbox>
   </groupbox>
   <groupbox flex="1">
-    <caption label="&cookies.keep;"/>
+    <caption><label>&cookies.keep;</label></caption>
     <radiogroup oncommand="Cookies.toggleLifetime()" id="network.cookie.lifetimePolicy">
       <radio value="0" label="&cookies.keep.normally;"/>
       <radio value="2" label="&cookies.keep.session;"/>
@@ -223,7 +224,7 @@ select: function(val) {
 <!-- Paranoia -->
 <separator class="thin"/>
 <groupbox>
-  <caption label="&useragent.label;"/>
+  <caption><label>&useragent.label;</label></caption>
   <description>&useragent.select;</description>
   <separator class="thin"/>
   <vbox>

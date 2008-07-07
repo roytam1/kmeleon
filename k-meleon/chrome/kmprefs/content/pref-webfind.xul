@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
 <?xml-stylesheet type="text/css" href="chrome://global/skin/"?>
+<?xml-stylesheet type="text/css" href="chrome://kmprefs/skin/"?>
 <!DOCTYPE page SYSTEM "chrome://kmprefs/locale/pref-webfind.dtd">
 <page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" 
 id="prefWebfind" onunload="Search.exit()">
@@ -290,12 +291,12 @@ _refresh: function() {
         <tabpanel flex="1" orient="vertical" style="overflow:auto">
 <!-- URL Bar -->
 <groupbox>
-  <caption label="&autocomplete.label;"/>
+  <caption><label>&autocomplete.label;</label></caption>
   <checkbox oncommand="toggleCheckbox(this.id);this.nextSibling.disabled=!this.checked" id="browser.urlbar.autocomplete.enabled" label="&autocomplete.enable;"/>
   <checkbox oncommand="toggleCheckbox(this.id)" id="browser.urlbar.autoFill" label="&autofill.enable;" style="margin-left:2em"/>
 </groupbox>
 <groupbox id="domComplete">
-  <caption label="&domCompletion.label;"/>
+  <caption><label>&domCompletion.label;</label></caption>
   <separator class="thin"/>
   <grid>
     <columns>
@@ -333,7 +334,7 @@ _refresh: function() {
   <description>&macrosNote;</description>
 </groupbox>
 <groupbox>
-  <caption label="&fixupAlt.label;"/>
+  <caption><label>&fixupAlt.label;</label></caption>
   <checkbox oncommand="toggleCheckbox(this.id)" id="browser.fixup.alternate.enabled" label="&fixupAlt.enable;"/>
   <separator class="thin"/>
   <grid>
@@ -361,7 +362,7 @@ _refresh: function() {
   <separator class="thin"/>
 </groupbox>
 <groupbox>
-  <caption label="&keyword.label;"/>
+  <caption><label>&keyword.label;</label></caption>
   <checkbox oncommand="toggleCheckbox(this.id);URLBar.initKeyword()" id="keyword.enabled" label="&keyword.enable;"/>
   <vbox id="keyword">
     <separator class="thin"/>

@@ -10,7 +10,7 @@
 </vbox>
 
 <groupbox id="windowManip">
-  <caption label="&windowManip;"/>
+  <caption><label>&windowManip;</label></caption>
   <checkbox oncommand="toggleCheckbox(this.id)" id="dom.allow_scripts_to_close_windows" label="&domASTCW;" inverse="true"/>
   <checkbox oncommand="toggleCheckbox(this.id)" id="dom.disable_window_flip" label="&domDWF;"/>
   <checkbox oncommand="toggleCheckbox(this.id)" id="dom.disable_window_move_resize" label="&domDWMR;"/>

@@ -62,7 +62,7 @@ _setControls: function() {
   <separator class="thick"/>
   <hbox>
     <groupbox flex="1">
-      <caption label="&window.size;"/>
+      <caption><label>&window.size;</label></caption>
       <separator class="thin"/>
       <grid>
         <columns>
@@ -88,7 +88,7 @@ _setControls: function() {
       <separator class="thin"/>
     </groupbox>
     <groupbox flex="1">
-      <caption label="&window.position;"/>
+      <caption><label>&window.position;</label></caption>
       <separator class="thin"/>
       <grid>
         <columns>

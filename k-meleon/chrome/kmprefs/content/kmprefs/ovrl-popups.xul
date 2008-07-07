@@ -7,7 +7,7 @@
 <tab id="popups.tab" label="&popups.label;"/>
 
 <groupbox id="popups.blocker">
-  <caption label="&popups.blocker.label;"/>
+  <caption><label>&popups.blocker.label;</label></caption>
   <checkbox oncommand="toggleCheckbox(this.id)" id="dom.disable_open_during_load" label="&popups.blocker.descr;"/>
   <hbox id="popupsPerm" hidden="true">
     <button label="&exceptions;" oncommand="JSB.id('ID_POPUP_PERM')" style="margin-left:2.25em"/>
@@ -19,7 +19,7 @@
 
 <groupbox id="popups.diversion">
   <!-- Mozilla 1.8 -->
-  <caption label="&popups.diversion.label;"/>
+  <caption><label>&popups.diversion.label;</label></caption>
   <separator class="thin"/>
   <description>&popups.diversion.descr;</description>
   <radiogroup id="browser.link.open_newwindow.restriction" oncommand="toggleRadiogroup(this.id)">
@@ -30,7 +30,7 @@
 </groupbox>
 
 <groupbox id="popups.appearance">
-  <caption label="&popups.appearance.label;"/>
+  <caption><label>&popups.appearance.label;</label></caption>
   <checkbox oncommand="toggleCheckbox(this.id)" id="dom.disable_window_open_feature.resizable" label="&domDWOFresizable;"/>
   <checkbox oncommand="toggleCheckbox(this.id)" id="dom.disable_window_open_feature.minimizable" label="&domDWOFminimizable;"/>
   <separator class="thin"/>
