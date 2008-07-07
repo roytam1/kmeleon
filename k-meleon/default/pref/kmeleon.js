@@ -3,7 +3,7 @@
 /********************************************************************************************************/
 
 pref("general.useragent.vendor", "K-Meleon");
-pref("general.useragent.vendorSub", "1.5");
+pref("general.useragent.vendorSub", "1.5.0");
 
 /********************************************************************************************************/
 
@@ -44,6 +44,7 @@ pref("kmeleon.plugins.rebarmenu.load", true);
 pref("kmeleon.plugins.sessions.load", true);
 pref("kmeleon.plugins.toolbars.load", true);
 pref("kmeleon.plugins.update.load", true);
+pref("kmeleon.plugins.crashrpt.load", true);
 
 pref("kmeleon.plugins.bookmarks.load", false);
 pref("kmeleon.plugins.bookmarks.chevron", true);
@@ -174,7 +175,7 @@ pref("kmeleon.tabs.title", "");
 pref("kmeleon.tabs.minWidth", 10);
 pref("kmeleon.tabs.maxWidth", 35);
 pref("kmeleon.tabs.style", 2);
-pref("kmeleon.tabs.fixedBar", true);
+pref("kmeleon.tabs.fixedBar", false);
 pref("kmeleon.tabs.bottomBar", false);
 
 
