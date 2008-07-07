@@ -4,14 +4,16 @@
 pref("general.useragent.locale", "en-US");
 pref("general.useragent.contentlocale", "US");
 
+// Avoid Bug 1008
+pref("kmeleon.general.homePage", "resource:///readme.html");
 
 /********************************************************************************************************/
 // Privacy
 
 pref("kmeleon.privacy.useragent1.name", "Firefox 2.0");
-pref("kmeleon.privacy.useragent1.string", "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.14) Gecko/20080404 Firefox/2.0.0.14");
+pref("kmeleon.privacy.useragent1.string", "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.15) Gecko/20080623 Firefox/2.0.0.15");
 pref("kmeleon.privacy.useragent2.name", "SeaMonkey 1.1");
-pref("kmeleon.privacy.useragent2.string", "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.13) Gecko/20080313 SeaMonkey/1.1.9");
+pref("kmeleon.privacy.useragent2.string", "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.15) Gecko/20080621 SeaMonkey/1.1.10");
 
 
 /********************************************************************************************************/
