@@ -1,5 +1,5 @@
 <!ENTITY prefDialog.title	"Preferences">
-<!ENTITY prefDialog.style	"width: 66em; height: 51.5em;">
+<!ENTITY prefDialog.style	"width: 66em; height: 52.5em;">
 <!ENTITY prefDialog.close.label	"Close">
 <!ENTITY prefDialog.close.ackey	"C">
 <!ENTITY prefDialog.next.label	"Next">
@@ -61,7 +61,7 @@
 <!ENTITY window.size		"Window Size">
 <!ENTITY window.position	"Window Position">
 <!ENTITY general		"General">
-<!ENTITY startup		"At Startup"><!-- From pref-appearance.dtd -->
+<!ENTITY startup		"At Startup">
 <!ENTITY pixels			"Pixels">
 <!ENTITY maximized		"Maximized">
 <!ENTITY width			"Width:">

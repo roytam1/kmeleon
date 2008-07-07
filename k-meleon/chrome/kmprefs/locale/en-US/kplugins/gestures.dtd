@@ -23,31 +23,22 @@
 <!ENTITY ID_NAV_RELOAD			"Reload">
 <!ENTITY ID_NAV_FORCE_RELOAD		"Force Reload">
 <!ENTITY ID_NEW_BROWSER			"New Window">
-<!--ENTITY layersOpen			"New Layer"-->
 <!ENTITY ID_NEW_TAB			"New Tab">
 <!ENTITY ID_WINDOW_NEXT			"Next Window">
-<!--ENTITY layersNext			"Next Layer"-->
 <!ENTITY ID_TAB_NEXT			"Next Tab">
 <!ENTITY ID_WINDOW_PREV			"Previous Window">
-<!--ENTITY layersPrev			"Previous Layer"-->
 <!ENTITY ID_TAB_PREV			"Previous Tab">
-<!--ENTITY layersLast			"Previously Selected Layer"-->
 <!ENTITY ID_TAB_LAST			"Previously Selected Tab">
 <!ENTITY ID_NAV_HOME			"Open Home Page">
 <!ENTITY macrosHome			"Perform 'Start with ...' Action">
 <!ENTITY macrosGo_Up			"Go Up One Directory Level">
 <!ENTITY macrosGo_Top			"Go To Top Directory Level">
 <!ENTITY ID_FILE_CLOSE			"Close Window">
-<!--ENTITY layersClose			"Close Layer"-->
 <!ENTITY ID_CLOSE_TAB			"Close Tab">
-<!--ENTITY layersCloseAll		"Close All Layers"-->
 <!ENTITY ID_CLOSE_ALLTAB		"Close All Tabs">
-<!--ENTITY layersCloseAllOther		"Close Other Layers"-->
 <!ENTITY ID_CLOSE_ALLOTHERTAB		"Close Other Tabs">
 <!ENTITY ID_APP_EXIT			"Exit K-Meleon">
-<!--ENTITY layersOpenLink		"Open Link In New Layer"-->
 <!ENTITY ID_OPEN_LINK_IN_NEW_TAB	"Open Link In New Tab">
-<!--ENTITY layersOpenLinkBg		"Open Link In Background Layer"-->
 <!ENTITY ID_OPEN_LINK_IN_BACKGROUNDTAB	"Open Link In Background Tab">
 <!ENTITY ID_OPEN_LINK_IN_NEW_WINDOW	"Open Link In New Window">
 <!ENTITY ID_OPEN_LINK_IN_BACKGROUND	"Open Link In Background Window">
