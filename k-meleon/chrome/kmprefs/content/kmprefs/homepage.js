@@ -27,10 +27,16 @@ selectFile: function(prefID) {
 	}
 },
 restoreDefault: function() {
-	restoreDefault(this.pref);
+//	restoreDefault(this.pref);
+// Avoid Bug 1008
+	var lang = pref.getCharPref("general.useragent.locale");
+
+	setCharPref(this.pref,"resource:///"+(lang=="en-US"?"":("locales/"+lang+"/"))+"readme.html");
 },
 isDefault: function() {
-	return !pref.prefHasUserValue(this.pref);
+//	return !pref.prefHasUserValue(this.pref);
+// Avoid Bug 1008
+	return (/^resource:\/\/\/(locales\/[a-z]{2}-[A-Z]{2}\/)?readme.html$/.exec(pref.getCharPref(this.pref)) != null);
 }
 
 };
