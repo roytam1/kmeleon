@@ -147,6 +147,20 @@ function initMenulist(prefName,prefRoot,invalidNote) {
 function alphabetical(x,y) {
 	return x.toLowerCase().localeCompare(y.toLowerCase());
 }
+function expandEnvironmentStrings(string) {
+	var str = /%(\w+)%/.exec(string);
+
+	if(str) {
+		var env = Components.classes["@mozilla.org/process/environment;1"]
+				    .getService(Components.interfaces.nsIEnvironment);
+
+		for(var i=1,reg;i<str.length;i++) if(env.exists(str[i])) {
+			reg = new RegExp("%"+str[i]+"%");
+			string = string.replace(reg,env.get(str[i]));
+		}
+	}
+	return string;
+}
 function makeUTF8(string) {
 	setCharPref(kmPrefs.temp,string);
 	var ret = pref.getCharPref(kmPrefs.temp);
