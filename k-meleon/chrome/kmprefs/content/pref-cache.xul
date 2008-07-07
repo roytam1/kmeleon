@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
 <?xml-stylesheet type="text/css" href="chrome://global/skin/"?>
+<?xml-stylesheet type="text/css" href="chrome://kmprefs/skin/"?>
 <?xul-overlay href="chrome://kmprefs/content/kmprefs/ovrl-cache.xul"?>
 <!DOCTYPE page SYSTEM "chrome://kmprefs/locale/pref-cache.dtd">
 <page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" 
@@ -9,7 +10,6 @@ id="prefCache" onload="init()">
 <stringbundle id="bundlePreferences"/>
 
 <script type="application/x-javascript" src="chrome://kmprefs/content/pref.js"/>
-<script type="application/x-javascript" src="chrome://kmprefs/content/kmprefs/cache.js"/>
 <script type="application/x-javascript">
 <![CDATA[
 function init() {
@@ -69,7 +69,7 @@ _setControls: function() {
   <dialogheader title="&cache.header;"/>
   <separator class="thin"/>
   <groupbox>
-    <caption label="&cache.mem.label;"/>
+    <caption><label>&cache.mem.label;</label></caption>
     <hbox>
       <description flex="1">&cache.mem.descr;</description>
       <vbox>
@@ -92,7 +92,7 @@ _setControls: function() {
   </groupbox>
   <groupbox id="diskcache"/>
   <groupbox>
-    <caption label="&cache.com.label;"/>
+    <caption><label>&cache.com.label;</label></caption>
     <description flex="1">&cache.com.descr;</description>
     <radiogroup id="browser.cache.check_doc_frequency" oncommand="toggleRadiogroup(this.id)" orient="horizontal">
       <vbox>
