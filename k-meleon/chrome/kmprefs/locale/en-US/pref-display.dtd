@@ -1,5 +1,4 @@
 <!ENTITY % prefDTD SYSTEM "chrome://kmprefs/locale/pref.dtd">%prefDTD;
-<!--ENTITY % fontDTD SYSTEM "chrome://communicator/locale/pref/pref-fonts.dtd">%fontDTD;-->
 <!ENTITY display.header		"Page Display Settings">
 <!ENTITY frames.label		"Frames">
 <!ENTITY frames.enable		"Enable frames (Changes may not take effect in windows/tabs opened before changing)">
@@ -8,6 +7,7 @@
 <!ENTITY text.blink		"Allow blinking text">
 <!-- LOCALIZATION NOTE: Don't translate "&restartRequired;"! This string is going to be replaced by the value of entity "restartRequired" defined in file "pref.dtd". -->
 <!ENTITY text.marquee		"Disable the 'marquee' element (&restartRequired;)">
+<!-- LOCALIZATION NOTE: Don't translate "&note;"! This string is going to be replaced by the value of entity "restartRequired" defined in file "pref.dtd". -->
 <!ENTITY marquee.note		"&note; Even if disabled, sites may use other methods to show sliding text. JavaScript must be enabled for 'marquee' elements to be displayed.">
 <!ENTITY source.label		"Source Code">
 <!ENTITY source.external	"Use external source code viewer">
