@@ -1,8 +1,6 @@
 <?xml version="1.0"?>
 <?xml-stylesheet type="text/css" href="chrome://global/skin/"?>
 <?xml-stylesheet type="text/css" href="chrome://kmprefs/skin/"?>
-<?xul-overlay href="chrome://kmprefs/content/kplugins/fullscreen.xul"?>
-
 <!DOCTYPE page SYSTEM "chrome://kmprefs/locale/pref-kplugins.dtd">
 <page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" 
 id="prefKPlugins" onload="kPlugins.init()">
@@ -126,7 +124,7 @@ _getPlugins: function(folderPath,aArray) {
   <dialogheader title="&kplugins.header;"/>
   <separator class="thin"/>
   <groupbox flex="1">
-    <caption label="&kplugins.enable;"/>
+    <caption><label>&kplugins.enable;</label></caption>
     <separator class="thin"/>
     <description>&kplugins.hint;</description>
     <separator class="thin"/>
@@ -136,8 +134,8 @@ _getPlugins: function(folderPath,aArray) {
         <listcol flex="1"/>
       </listcols>
       <listhead>
-        <listheader label="Name"/>
-        <listheader label="Description"/>
+        <listheader label="&kplugins.name;"/>
+        <listheader label="&kplugins.descr;"/>
       </listhead>
     </listbox>
     <separator class="thin"/>
