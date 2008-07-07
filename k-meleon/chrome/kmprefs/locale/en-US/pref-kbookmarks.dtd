@@ -9,6 +9,6 @@
 <!ENTITY bookmarks.open.right	"Right">
 <!ENTITY bookmarks.askforFolder	"Use dialog to create new Bookmarks">
 <!ENTITY bookmarks.file.label	"Netscape Bookmarks File">
-<!ENTITY bookmarks.file.warning	"&WARNING; When you make K-Meleon use another browser's bookmarks file (Firefox', for instance), then don't use both browsers at the same time - this may result in data loss!">
+<!ENTITY bookmarks.file.warning	"&WARNING; When you make K-Meleon use another browser's bookmarks file (Firefox', for instance), then do not use both browsers at the same time - this may result in data loss!">
 <!ENTITY bookmarks.menu		"Bookmarks Menu">
 <!ENTITY bookmarks.manager	"Bookmarks Manager">
