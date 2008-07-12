@@ -289,6 +289,7 @@ public:
 	BOOL Highlight(const PRUnichar* backcolor, const PRUnichar* word, BOOL matchCase);
 	BOOL InputHasFocus();
 	CString GetFrameURL(nsIDOMNode* aNode = NULL);
+	CString GetDocURL(nsIDOMNode* aNode = NULL);
 	
 	already_AddRefed<nsISupports> GetPageDescriptor(BOOL focus = FALSE);
 	BOOL CanSave();

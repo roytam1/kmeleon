@@ -60,7 +60,8 @@
 #include "nsIDOMHTMLEmbedElement.h"
 #include "nsIDOMHTMLObjectElement.h"
 #include "nsITypeAheadFind.h"
-
+#include "nsIFocusController.h"
+#include "nsIDOMNSHTMLDocument.h"
 
 #include "nsIPrintSettingsService.h"
 #include "nsCWebBrowserPersist.h"
@@ -1588,7 +1589,6 @@ BOOL CBrowserWrapper::InputHasFocus()
 {
 	nsCOMPtr<nsIDOMElement> element;
 	mWebBrowserFocus->GetFocusedElement(getter_AddRefs(element));
-	if (!element) return FALSE;
 
 	nsCOMPtr<nsIDOMNSHTMLInputElement> domnsinput = do_QueryInterface(element);
 	if (domnsinput) return TRUE;
@@ -1608,8 +1608,39 @@ BOOL CBrowserWrapper::InputHasFocus()
 		taFinder->GetIsActive(&active);
 		if (active) return TRUE;
 	}
-	
+
+	nsCOMPtr<nsIDOMWindow> domWindow;
+	mWebBrowser->GetContentDOMWindow(getter_AddRefs(domWindow));
+	nsCOMPtr<nsPIDOMWindow> piWindow = do_QueryInterface(domWindow);
+	if (!piWindow) return FALSE;
+
+	nsIFocusController* controller = piWindow->GetRootFocusController();
+	if (!controller) return FALSE;
+
+	nsCOMPtr<nsIDOMWindowInternal> winInternal;
+	controller->GetFocusedWindow(getter_AddRefs(winInternal));
+	nsCOMPtr<nsIDOMWindow> focusedWindow(do_QueryInterface(winInternal));
+	if (!focusedWindow) return FALSE;
+
+	nsCOMPtr<nsIDOMDocument> domDoc;
+	focusedWindow->GetDocument(getter_AddRefs(domDoc));
+	nsCOMPtr<nsIDOMNSHTMLDocument> htmlDoc(do_QueryInterface(domDoc));
+	if (!htmlDoc) return FALSE;
+
+	nsEmbedString designMode;
+	htmlDoc->GetDesignMode(designMode);
+	if (designMode.Equals(NS_LITERAL_STRING("on")))
+		return TRUE;
+
 	return FALSE;
+}
+
+CString CBrowserWrapper::GetDocURL(nsIDOMNode* aNode)
+{
+	CString frame = GetFrameURL(aNode);
+	if (frame.IsEmpty())
+		return GetURI();
+	return frame;
 }
 
 CString CBrowserWrapper::GetFrameURL(nsIDOMNode* aNode)
