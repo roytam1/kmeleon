@@ -840,18 +840,18 @@ void CBrowserTab::OpenURLWithCommand(UINT idCommand, LPCTSTR url, LPCTSTR reffer
     }
 }
 
+void CBrowserTab::OnCloseTab()
+{
+	theApp.plugins.SendMessage("*", "* OnCloseTab", "CloseTab", (long)mpBrowserFrame->m_hWnd, (long)this->m_hWnd);
+	Destroy();
+}
+
 void CBrowserTab::OnOpenLinkInBackgroundTab()
 {
 	CString url, title;
 	if (!GetLinkTitleAndHref(m_contextNode, url, title))
 		return;
-    OpenURLInNewTab(url,  GetCurrentURI(), TRUE);
-}
-
-void CBrowserTab::OnCloseTab()
-{
-	theApp.plugins.SendMessage("*", "* OnCloseTab", "CloseTab", (long)mpBrowserFrame->m_hWnd, (long)this->m_hWnd);
-	Destroy();
+    OpenURLInNewTab(url,  m_pWindow->GetDocURL(m_contextNode), TRUE);
 }
 
 void CBrowserTab::OnOpenLinkInNewTab()
@@ -859,7 +859,7 @@ void CBrowserTab::OnOpenLinkInNewTab()
 	CString url, title;
 	if (!GetLinkTitleAndHref(m_contextNode, url, title))
 		return;
-    OpenURLInNewTab(url,  GetCurrentURI(), FALSE);
+    OpenURLInNewTab(url,  m_pWindow->GetDocURL(m_contextNode), FALSE);
 }
 
 void CBrowserTab::OnOpenFrameInNewTab()
