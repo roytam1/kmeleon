@@ -574,17 +574,10 @@ void CBrowserView::OnOpenLink()
 void CBrowserView::OnOpenLinkInNewWindow()
 {
 	CString url, title;
-
 	if (!GetLinkTitleAndHref(m_contextNode, url, title))
 		return;
-
 	
-	OpenURLInNewWindow(url, GetCurrentURI(), FALSE);
-	/*
-	if (m_ctxData.linkUrl.IsEmpty())
-		return;
-
-    OpenURLInNewWindow(m_ctxData.linkUrl, FALSE, TRUE);*/
+	OpenURLInNewWindow(url, m_pWindow->GetDocURL(m_contextNode), FALSE);
 }
 
 void CBrowserView::OnOpenLinkInBackground()
@@ -593,7 +586,7 @@ void CBrowserView::OnOpenLinkInBackground()
 	if (!::GetLinkTitleAndHref(m_contextNode, url, title))
 		return;
     
-    OpenURLInNewWindow(url, GetCurrentURI(), TRUE);
+	OpenURLInNewWindow(url, m_pWindow->GetDocURL(m_contextNode), TRUE);
 }
 
 void CBrowserView::OnViewImageInNewWindow()
@@ -603,7 +596,7 @@ void CBrowserView::OnViewImageInNewWindow()
 		if (!::GetBackgroundImageSrc(m_contextNode, imgSrc))
 			return;
     
-    OpenURLInNewWindow(imgSrc, GetCurrentURI(), FALSE);
+    OpenURLInNewWindow(imgSrc, m_pWindow->GetDocURL(m_contextNode), FALSE);
 }
 
 void CBrowserView::OnUpdateViewImage(CCmdUI *pCmdUI)
