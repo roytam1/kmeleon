@@ -513,6 +513,12 @@ int ifplugin(char *p)
       while ( *p && isalpha(*p) )
 	p++;
       *p = 0;
+	  if (strcmp(plugin, "tabs") == 0)
+	  {
+         int notab = 0;
+		 kPlugin.kFuncs->GetPreference(PREF_BOOL, "kmeleon.notab", &notab, &notab);
+		 return !notab;
+	  }
       kmeleonPlugin * plug = kPlugin.kFuncs->Load(plugin);
       if (!plug || !plug->loaded)
 	return !loaded;
@@ -910,7 +916,8 @@ HBITMAP LoadButtonImage(s_toolbar *pToolbar, s_button *pButton, char *sFile, COL
       FindSkinFile(fullpath, _sFile);
       hBitmap = (HBITMAP)LoadImage(NULL, fullpath, IMAGE_BITMAP, 0, 0, flag);
    }
-   
+
+   if (!hBitmap) return NULL;
    hdcBitmap = CreateCompatibleDC(NULL);
 
 	struct {
@@ -921,14 +928,20 @@ HBITMAP LoadButtonImage(s_toolbar *pToolbar, s_button *pButton, char *sFile, COL
 	bmpi.header.biSize = sizeof(BITMAPINFOHEADER);
 
 	GetDIBits(hdcBitmap, hBitmap, 0, 0, NULL, (BITMAPINFO*)&bmpi, DIB_RGB_COLORS);
+	int nCol = ((width*index) % bmpi.header.biWidth) / width;
+	int nLine = bmpi.header.biHeight / height - (width*index) / bmpi.header.biWidth - 1;
 
 	if (bmpi.header.biBitCount == 32) {
 
-		if (width * (index + 1) > bmpi.header.biWidth)
-			return NULL;
 
 		int srcWidth = bmpi.header.biWidth * 4;
 		int srcHeight = bmpi.header.biHeight;
+
+		int dstWidth = width * 4;
+		int offset = nCol * dstWidth + nLine * srcWidth * height;
+
+		if (offset + (height-1) * srcWidth + dstWidth > srcWidth * srcHeight)
+			return NULL;
 
 		BYTE* srcBits = new BYTE[srcWidth * srcHeight];
 		GetDIBits(hdcBitmap, hBitmap, 0, srcHeight, srcBits, (BITMAPINFO*)&bmpi, DIB_RGB_COLORS);
@@ -946,8 +959,6 @@ HBITMAP LoadButtonImage(s_toolbar *pToolbar, s_button *pButton, char *sFile, COL
 			return NULL;
 		}
 
-		int dstWidth = width * 4;
-		int offset = index * dstWidth;
 		for (int i = 0; i< height; i++)
 			memcpy(&dstBits[dstWidth*i], &srcBits[i * srcWidth + offset], dstWidth);
 		
@@ -1001,7 +1012,7 @@ HBITMAP LoadButtonImage(s_toolbar *pToolbar, s_button *pButton, char *sFile, COL
    PatBlt(hdcButton, 0, 0, pToolbar->width, pToolbar->height, PATCOPY);
    
    // copy the button from the full bitmap
-   BitBlt(hdcButton, xstart, ystart, width, height, hdcBitmap, width*index, 0, SRCCOPY);
+   BitBlt(hdcButton, xstart, ystart, width, height, hdcBitmap, width*nCol + height*nLine, 0, SRCCOPY);
    SelectObject(hdcButton, oldBrush);
    SelectObject(hdcButton, oldBmp2);
    SelectObject(hdcBitmap, oldBmp);
