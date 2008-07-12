@@ -165,6 +165,25 @@ int CFindRebar::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 	// Band with the close button
 	closeBar.CreateEx(this, TBSTYLE_FLAT|TBSTYLE_TRANSPARENT);
+/*
+	HBITMAP hBmp = NULL;
+	CString closeBmp;
+	if (theApp.FindSkinFile(closeBmp, _T("close.bmp")))
+		hBmp = (HBITMAP)LoadImage(::AfxGetInstanceHandle(), closeBmp, IMAGE_BITMAP, 0, 0, LR_LOADTRANSPARENT|LR_LOADFROMFILE);
+	else
+		hBmp = (HBITMAP)LoadImage(::AfxGetInstanceHandle(), MAKEINTRESOURCE(IDR_TOOLBAR_CLOSE), IMAGE_BITMAP, 0, 0, LR_LOADTRANSPARENT);
+	
+	TBBUTTON closeButton = {0};
+	closeButton.fsState = TBSTATE_ENABLED;
+	closeButton.fsStyle = TBSTYLE_BUTTON | TBSTYLE_AUTOSIZE;
+    closeButton.idCommand = ID_CLOSE;
+	closeButton.iString = -1;
+	closeBar.GetToolBarCtrl().AddButtons(1,&closeButton);
+	
+	closeBar.SetSizes(CSize(17,16), CSize(10,9));
+	closeBar.AddReplaceBitmap(hBmp);
+*/
+	
 	closeBar.LoadToolBar(IDR_TOOLBAR_CLOSE);
 	closeBar.GetToolBarCtrl().SetBitmapSize(CSize(10,10));
 
@@ -200,7 +219,7 @@ int CFindRebar::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	CString skinFile;
 	if (theApp.FindSkinFile(skinFile, _T("findhot.bmp")))
 	{
-		m_ilHot.Create(16, 16, ILC_MASK | ILC_COLOR8, 4, 8);
+		m_ilHot.Create(16, 16, ILC_MASK | ILC_COLOR24, 6, 1);
 		HBITMAP bitmap = (HBITMAP)LoadImage(NULL, skinFile, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE);
 		if (bitmap) {
 			ImageList_AddMasked(m_ilHot.GetSafeHandle(), bitmap, RGB(255, 0, 255));
@@ -211,7 +230,7 @@ int CFindRebar::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	
 	if (theApp.FindSkinFile(skinFile, _T("findcold.bmp")))
 	{
-		m_ilCold.Create(16, 16, ILC_MASK | ILC_COLOR8, 4, 8);
+		m_ilCold.Create(16, 16, ILC_MASK | ILC_COLOR24, 6, 1);
 		HBITMAP bitmap = (HBITMAP)LoadImage(NULL, skinFile, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE);
 		if (bitmap) {
 			ImageList_AddMasked(m_ilCold.GetSafeHandle(), bitmap, RGB(255, 0, 255));
@@ -220,6 +239,17 @@ int CFindRebar::OnCreate(LPCREATESTRUCT lpCreateStruct)
 		}
 	}
 
+		
+	if (theApp.FindSkinFile(skinFile, _T("finddead.bmp")))
+	{
+		m_ilDead.Create(16, 16, ILC_MASK | ILC_COLOR24, 6, 1);
+		HBITMAP bitmap = (HBITMAP)LoadImage(NULL, skinFile, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE);
+		if (bitmap) {
+			ImageList_AddMasked(m_ilDead.GetSafeHandle(), bitmap, RGB(255, 0, 255));
+			DeleteObject(bitmap);
+			m_cToolbar.GetToolBarCtrl().SetImageList(&m_ilDead);
+		}
+	}
 	
 	TBBUTTON button = {0};
 	button.fsState = TBSTATE_ENABLED;

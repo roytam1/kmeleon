@@ -105,6 +105,7 @@ private:
 	CToolBar closeBar;
 	CImageList m_ilHot;
 	CImageList m_ilCold;
+	CImageList m_ilDead;
 
 	bool m_NotFound;
 	bool m_bStartsel;
@@ -122,12 +123,10 @@ public:
 	afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
 	afx_msg void OnWrapAround();
 	afx_msg void OnMatchCase();
-	
+	afx_msg void OnTimer(UINT nIDEvent);
+
 protected:
 	virtual void PostNcDestroy();
-public:
-	afx_msg void OnTimer(UINT nIDEvent);
-	
 };
 
 class CFindDialog : public CFindReplaceDialog	
