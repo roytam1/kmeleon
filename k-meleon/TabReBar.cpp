@@ -566,6 +566,7 @@ END_MESSAGE_MAP()
 
 void CTabReBar::HandleMouseClick(int flag, CPoint point)
 {
+	mDragItem = -1;
 	int buttonID = GetButtonIDFromPoint(point);
 
 	switch (flag) {
@@ -669,7 +670,7 @@ void CTabReBar::OnTbnBeginDrag(NMHDR *pNMHDR, LRESULT *pResult)
 void CTabReBar::OnTbnEndDrag(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	LPNMTOOLBAR pNMTB = reinterpret_cast<LPNMTOOLBAR>(pNMHDR);
-	KillTimer(100);
+	//KillTimer(100);
 	*pResult = 0;	
 	mDragItem = -1;
 }
