@@ -116,6 +116,8 @@ int ifplugin(char *p)
 	p++;
       *p = 0;
       USES_CONVERSION;
+	  if (strcmp(plugin, "tabs") == 0)
+         return !theApp.preferences.GetBool("kmeleon.notab", false);
       return theApp.plugins.IsLoaded(A2CT(plugin));
     }
   }
