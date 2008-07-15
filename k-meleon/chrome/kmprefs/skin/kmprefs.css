@@ -1,8 +1,16 @@
+@namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
+
 /* Work around incorrect caption background in Luna.
  * In XUL use <caption><label>&label;</label></caption>
  * instead of <caption label="&label;"/>.
  */
-tabpanel groupbox caption { background-color: inherit !important; }
+tabpanel groupbox caption { background-color: inherit; }
+groupbox caption label { margin: 0 5px 0 6px !important; }
+
+/* Correct alignment of labels in checkboxes and radio buttons */
+checkbox, radio { -moz-box-align: start; }
+.checkbox-check { margin-top: 1px; }
+.radio-check-box1 { margin-top: 2px; }
 
 /* Mouse Gestures */
 #prefGestures row > hbox > image { margin: 0 1em; }
