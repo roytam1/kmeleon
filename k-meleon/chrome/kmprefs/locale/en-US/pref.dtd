@@ -1,5 +1,5 @@
 <!ENTITY prefDialog.title	"Preferences">
-<!ENTITY prefDialog.style	"width: 66em; height: 52.5em;">
+<!ENTITY prefDialog.style	"width: 66em; height: 51.5em;">
 <!ENTITY prefDialog.close.label	"Close">
 <!ENTITY prefDialog.close.ackey	"C">
 <!ENTITY prefDialog.next.label	"Next">
