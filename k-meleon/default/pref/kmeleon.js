@@ -91,7 +91,7 @@ pref("kmeleon.plugins.privacy.clearSignOn", 0);
 pref("kmeleon.display.title", "K-Meleon");	
 pref("kmeleon.display.NewWindowHasUrlFocus", false);
 pref("kmeleon.display.backgroundImage", "");
-pref("kmeleon.display.backgroundImageEnabled", true);
+pref("kmeleon.display.backgroundImageEnabled", false);
 pref("kmeleon.display.maximized", false);
 pref("kmeleon.display.disableResize", false);
 pref("kmeleon.display.accelInMenus", true);
