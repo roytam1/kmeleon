@@ -9,12 +9,12 @@
 # ------------------------------------------------------------------------------------------------------------------
 
 Zoom_In{
-macroinfo=_("Perfom the Zoom In button action");
+macroinfo=_("Perform the Zoom In button action");
 $__data=getpref(STRING,$_Zoom_Pref);
 $__data=="text"?id(ID_FONT_INCREASE):($__data=="page"?&Zoom_Page_In:($__data=="images"?&Zoom_Images_In:0));
 }
 Zoom_Out{
-macroinfo=_("Perfom the Zoom Out button action");
+macroinfo=_("Perform the Zoom Out button action");
 $__data=getpref(STRING,$_Zoom_Pref);
 $__data=="text"?id(ID_FONT_DECREASE):($__data=="page"?&Zoom_Page_Out:($__data=="images"?&Zoom_Images_Out:0));
 }
