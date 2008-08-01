@@ -728,16 +728,27 @@ extern "C" {
          return 18;
       }
 // FIXME - This is probably way too slow to be useful.
-      if (gHotlistRoot.FindNode(LOWORD(dis->itemID))) {
-         if (dis->itemState & ODS_SELECTED){
-            ImageList_Draw(gImagelist, IMAGE_BOOKMARK, dis->hDC, dis->rcItem.left, top, ILD_TRANSPARENT | ILD_FOCUS);
-         }
-         else{
-            ImageList_Draw(gImagelist, IMAGE_BOOKMARK, dis->hDC, dis->rcItem.left, top, ILD_TRANSPARENT);
-         }
+      CBookmarkNode* node = gHotlistRoot.FindNode(LOWORD(dis->itemID));
+	  if (node) {
+
+         UINT flags = ILD_NORMAL;
+		 if (dis->itemState & ODS_SELECTED)
+			flags |= ILD_FOCUS;
+
+         HIMAGELIST hList = gImagelist;
+         UINT idx = IMAGE_BOOKMARK;
+
+		 UINT i = GetSiteIcon((char*)node->url.c_str());
+		 if (i > 0) {
+            idx = i;
+            hList = kPlugin.kFuncs->GetIconList();
+		 }
+
+         ImageList_Draw(hList, idx, dis->hDC, dis->rcItem.left+2, top, flags);
 
          return 18;
       }
+
       return 0;
    }
 }
