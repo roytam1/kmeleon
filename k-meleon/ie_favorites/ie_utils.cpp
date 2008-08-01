@@ -44,6 +44,17 @@ extern void * KMeleonWndProc;
 #define MAX_BUTTONS 32
 
 
+UINT GetSiteIcon(char* url)
+{
+   char* begin = strstr(url, "://");
+   if (!begin) return 0;
+   char* end = strchr(begin+3, '/');
+   if (end) *end = 0;
+   UINT i = kPlugin.kFuncs->GetIconIdx(url);
+   if (end) *end = '/';
+   return i;
+}
+
 TB *create_TB(HWND hWnd) {
    TB *ptr = (TB*)calloc(1, sizeof(struct favoritesTB));
    if (ptr) {
