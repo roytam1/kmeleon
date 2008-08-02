@@ -311,7 +311,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
         INT id = 0;
         if (*szTxt)
            	id = kPlugin.kFuncs->GetID(szTxt);
-        SendMessage(hWnd, WM_COMMAND, id, 0L);
+        PostMessage(hWnd, WM_COMMAND, id, 0L);
         m_rocking = TRUE;
 		m_preventpopup = 2;
 		//m_captured = 0;
@@ -416,7 +416,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
             //PostMessage(GetFocus(), WM_CONTEXTMENU, (WPARAM) hWnd, MAKELONG(m_posUp.x, m_posUp.y));
 		}
         else if (dir != BADMOVE && id > 0)
-            SendMessage(hWnd, WM_COMMAND, id, 0L);
+            PostMessage(hWnd, WM_COMMAND, id, 0L);
 
         ReleaseCapture();
         m_captured = m_defercapture = 0;
