@@ -445,7 +445,8 @@ void CBrowserView::OnCut()
 
 void CBrowserView::OnUpdateCut(CCmdUI* pCmdUI)
 {
-    pCmdUI->Enable(m_pWindow->CanCut());
+	if (::IsChild(m_hWnd, ::GetFocus()))   
+		pCmdUI->Enable(m_pWindow->CanCut());
 }
 
 void CBrowserView::OnCopy()
@@ -456,7 +457,8 @@ void CBrowserView::OnCopy()
 
 void CBrowserView::OnUpdateCopy(CCmdUI* pCmdUI)
 {
-	pCmdUI->Enable(m_pWindow->CanCopy());
+	if (::IsChild(m_hWnd, ::GetFocus()))   
+		pCmdUI->Enable(m_pWindow->CanCopy());
 }
 
 void CBrowserView::OnPaste()
@@ -473,7 +475,8 @@ void CBrowserView::OnPaste()
 
 void CBrowserView::OnUpdatePaste(CCmdUI* pCmdUI)
 {
-	pCmdUI->Enable(m_pWindow->CanPaste());
+	if (::IsChild(m_hWnd, ::GetFocus()))   
+		pCmdUI->Enable(m_pWindow->CanPaste());
 }
 
 void CBrowserView::OnUndo()
