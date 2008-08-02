@@ -144,12 +144,12 @@ void KmCmdService::InitDefaultCmd()
 	mCommandList[_T("filePrintSetup")] = KmCommand(ID_FILE_PRINTSETUP);
 
 	mCommandList[_T("editCut")] = KmCommand(ID_EDIT_CUT);
-	mCommandList[_T("ecitCopy")] = KmCommand(ID_EDIT_COPY);
+	mCommandList[_T("editCopy")] = KmCommand(ID_EDIT_COPY);
 	mCommandList[_T("editPaste")] = KmCommand(ID_EDIT_PASTE);
 	mCommandList[_T("editUndo")] = KmCommand(ID_EDIT_UNDO);
 	mCommandList[_T("editClear")] = KmCommand(ID_EDIT_CLEAR);
 	mCommandList[_T("editSelectAll")] = KmCommand(ID_EDIT_SELECT_ALL);
-	mCommandList[_T("ecitSelectNone")] = KmCommand(ID_EDIT_SELECT_NONE);
+	mCommandList[_T("editSelectNone")] = KmCommand(ID_EDIT_SELECT_NONE);
 	mCommandList[_T("editFind")] = KmCommand(ID_EDIT_FIND);
 	mCommandList[_T("editFindNext")] = KmCommand(ID_EDIT_FINDNEXT);
 	mCommandList[_T("editFindPrev")] = KmCommand(ID_EDIT_FINDPREV);
