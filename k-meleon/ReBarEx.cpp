@@ -455,8 +455,9 @@ void CReBarEx::LockBars(BOOL lock)
 
       GetReBarCtrl().SetBandInfo(barIndex, &rbbi);
 	  
-	  // Force the rebar to recalculate the header size
-	  if (!(rbbi.fStyle & RBBS_HIDDEN))
-		GetReBarCtrl().ShowBand(barIndex, TRUE);
+	  if (!theApp.preferences.GetBool("kmeleon.display.lockedToolbarAlt", false))
+		// Force the rebar to recalculate the header size
+		if (!(rbbi.fStyle & RBBS_HIDDEN))
+			GetReBarCtrl().ShowBand(barIndex, TRUE);
    }
 }
