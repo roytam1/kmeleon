@@ -66,6 +66,17 @@ NS_IMETHODIMP CJSBridge::Id(nsIDOMWindow *window, const char *id)
 	
 	NS_ENSURE_TRUE(hWin, NS_ERROR_FAILURE);
 
-	SendMessage(hWin, WM_COMMAND, kPlugin.kFuncs->GetID(id), (LPARAM)NULL);
+	::SendMessage(hWin, WM_COMMAND, MAKELONG(kPlugin.kFuncs->GetID(id), 1), (LPARAM)NULL);
 	return NS_OK;
+}
+
+NS_IMETHODIMP CJSBridge::SendMessage(const char *plugin, const char *to, const char *from, PRInt32 data1, PRInt32 *data2)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* void GetCmdList (out unsigned long length, [array, size_is (length), retval] out kICmdList list); */
+NS_IMETHODIMP CJSBridge::GetCmdList(PRUint32 *length, kICmdList ***list)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
 }
