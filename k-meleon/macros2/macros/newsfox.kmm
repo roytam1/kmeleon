@@ -9,17 +9,22 @@
 # ------------------------------------------------------------------------------------------------------------------
 
 NewsFox{
-macroinfo=_("Open NewsFox for reading news feeds");
-$OpenURL="chrome://newsfox/content/newsfox.xul"; $ExecMacros="OpenURL_InNew"; &ExecMacros_Frames;
+# For K-Meleon 1.5 and newer
+macroinfo=_("Open NewsFox for reading news feeds"); &NewsFox11;
+}
+NewsFox11{
+# For K-Meleon 1.1 (NewsFox 1.0 and newer)
+$OpenURL="chrome://newsfox/content/newsfox-overlay.xul"; $ExecMacros="OpenURL_InNew"; &ExecMacros_Frames;
 }
 
 # ----- PRIVATE
 
 _NewsFox_BuildMenu{
+$__m=index($KM_Version,"1.1")==0?NewsFox11:NewsFox;
 # tools menu
-index($macroModules,";Mail;")>-1?setmenu(_Mail_News,macro,"Read &RSS Feeds",NewsFox):setmenu(MailNews,macro,"NewsFo&x",NewsFox);
+index($macroModules,";Mail;")>-1?setmenu(_Mail_News,macro,"Read &RSS Feeds",$__m):setmenu(MailNews,macro,"NewsFo&x",$__m);
 # toolbar button
-$RSS=NewsFox;
+$RSS=$__m;
 }
 $OnInit=$OnInit."_NewsFox_BuildMenu;";
 
