@@ -496,7 +496,7 @@ NS_IMETHODIMP CBrowserImpl::SetFocus()
 	nsCOMPtr<nsIBaseWindow> baseWindow = do_QueryInterface(mWebBrowser, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
 	
-	rv = baseWindow->SetFocus();
+//	rv = baseWindow->SetFocus();
 
 	return rv;
 }
