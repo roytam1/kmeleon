@@ -43,7 +43,9 @@ class nsIWebBrowser;
 
 #define KMEL_PLUGIN_VER_MAJOR 0x0200
 #define KMEL_PLUGIN_VER_MINOR 0x0004
+#define KMEL_PLUGIN_VER_MINOR_UTF8 0x0010
 #define KMEL_PLUGIN_VER KMEL_PLUGIN_VER_MAJOR | KMEL_PLUGIN_VER_MINOR
+#define KMEL_PLUGIN_VER_UTF8 KMEL_PLUGIN_VER_MAJOR | KMEL_PLUGIN_VER_MINOR_UTF8
 
 #ifdef KMELEON_PLUGIN_EXPORTS
 #define KMELEON_PLUGIN __declspec(dllexport)
@@ -87,7 +89,8 @@ enum WindowVarType {
 	Window_LinkURL = 101,      // char*
 	Window_ImageURL = 102,     // char*
 	Window_FrameURL = 103,     // char*
-	Window_LinkTitle = 104     // char*
+	Window_LinkTitle = 104,    // char*
+	Window_Icon = 110          // int
 };
 
 typedef struct configFileType {
@@ -279,7 +282,7 @@ typedef struct {
       key: key to use (Ex: "CTRL ALT X")
       command: id or plugin command. If NULL, delete the accel if it exists
    */
-   void (*SetAccel)(const char *key, char* command);
+   void (*SetAccel)(const char *key, const char* command);
 
    /* Edit a menu
 

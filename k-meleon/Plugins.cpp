@@ -58,6 +58,45 @@ CBrowserView* pBrowserView = NULL;
 	if (!browser)\
 		return ret;
 
+static char *safe_strdup(const char *ptr) {
+  if (ptr)
+    return strdup(ptr);
+  return NULL;
+}
+
+char *EncodeUTF8(const wchar_t *str)
+{
+  nsEmbedString aStr;
+  aStr.Append(str);
+  nsEmbedCString _str;
+  NS_UTF16ToCString(aStr, NS_CSTRING_ENCODING_UTF8, _str);
+  char *pszStr = safe_strdup(_str.get());
+  return pszStr;
+}
+
+wchar_t *WDecodeUTF8(const char *str)
+{
+  nsEmbedString _str;
+  NS_CStringToUTF16(nsEmbedCString(str), NS_CSTRING_ENCODING_UTF8, _str);
+  wchar_t *pszStr = _wcsdup(_str.get());
+  return pszStr;
+}
+
+char *EncodeUTF8(const char *str)
+{
+  USES_CONVERSION;
+  return EncodeUTF8(A2CW(str));
+}
+
+char *DecodeUTF8(const char *str)
+{
+  USES_CONVERSION;
+  nsEmbedString _str;
+  NS_CStringToUTF16(nsEmbedCString(str), NS_CSTRING_ENCODING_UTF8, _str);
+  char *pszStr = safe_strdup(W2CA(_str.get()));
+  return pszStr;
+}
+
 BOOL GetWindows(HWND hWnd, CBrowserFrame** frame, CBrowserView** view)
 {
 	CWnd* wnd = CWnd::FromHandle(hWnd);
@@ -114,11 +153,7 @@ CBrowserWrapper* GetWrapper(HWND hWnd = NULL)
 	return ((CBrowserView*)wnd)->GetBrowserWrapper();
 }
 
-static char *safe_strdup(const char *ptr) {
-  if (ptr)
-    return strdup(ptr);
-  return NULL;
-}
+
 
 CPlugins::CPlugins()
 {
@@ -273,6 +308,32 @@ void _NavigateTo(const char *url, int windowState, HWND mainWnd)
    NavigateTo(url, windowState, mainWnd);
 }
 
+kmeleonDocInfo * GetDocInfoUTF8(HWND mainWnd)
+{
+   PLUGIN_HEADER(mainWnd, NULL);
+   USES_CONVERSION;
+
+   CString url = browser->GetURI();
+   char* docurl = EncodeUTF8(url);
+
+   CString title = browser->GetTitle();
+   char* doctitle = EncodeUTF8(title);
+
+   if (kDocInfo.url)
+      delete kDocInfo.url;
+   
+   if (kDocInfo.title)
+      delete kDocInfo.title;
+
+   kDocInfo.title = doctitle;
+   kDocInfo.url = docurl;
+#ifdef INTERNAL_SITEICONS
+   kDocInfo.idxIcon = theApp.favicons.GetIcon(view->GetBrowserGlue()->mIconURI);
+#endif
+
+   return &kDocInfo;
+}
+
 kmeleonDocInfo * GetDocInfo(HWND mainWnd)
 {
    PLUGIN_HEADER(mainWnd, NULL);
@@ -365,10 +426,24 @@ void DelPreference(const char *preference)
    //theApp.preferences.Flush();
 }
 
-void SetStatusBarText(const char *s) {
-   USES_CONVERSION;
+void SetStatusBarTextT(const TCHAR *s)
+{
    if (theApp.m_pMostRecentBrowserFrame) // Yes, it can happen
-     theApp.m_pMostRecentBrowserFrame->m_wndStatusBar.SetPaneText(0, A2CT(s));
+     theApp.m_pMostRecentBrowserFrame->m_wndStatusBar.SetPaneText(0, s);
+}
+
+void SetStatusBarTextUTF8(const char *s)
+{
+   USES_CONVERSION;
+   const wchar_t *ws = WDecodeUTF8(s);
+   SetStatusBarTextT(W2CT(ws));
+   delete ws;
+}
+
+void SetStatusBarText(const char *s)
+{
+   USES_CONVERSION;
+   SetStatusBarTextT(A2CT(s));
 }
 
 #include "nsISHistoryInternal.h"
@@ -810,12 +885,156 @@ UINT GetWindowVar(HWND hWnd, WindowVarType type, void* ret)
 			return 1;
 		}
 
+		case Window_Icon: {
+			if (ret) *(int*)ret = theApp.favicons.GetIcon(view->GetBrowserGlue()->mIconURI);
+			return 1;
+		}
+
 		default: 
 			retLen = 0;
 	}
 
 	return retLen;
 }
+
+UINT GetWindowVarUTF8(HWND hWnd, WindowVarType type, void* ret)
+{
+    PLUGIN_HEADER(hWnd, 0);
+
+	USES_CONVERSION;
+	UINT retLen = 0;
+	switch (type)  {
+
+		case Window_UrlBar: {
+			CString url = frame->m_wndUrlBar.GetEnteredURL();
+			retLen = url.GetLength() + 1;
+			if (ret) {
+				char* utf = EncodeUTF8(url);
+				strcpy((char*)ret, utf);
+				delete utf;
+			}
+			break;
+		}
+
+		case Window_Charset: {
+			char charset[64] = {0};
+			browser->GetCharset(charset);
+			retLen = strlen(charset) + 1;
+			if (ret) {
+				strcpy((char *)ret, charset);
+				for(UINT i=0;i<retLen;i++)
+					((char*)ret)[i] = tolower(((char*)ret)[i]);
+			}
+			break;
+		}
+
+		case Window_Title: {
+			CString title = browser->GetTitle();
+			retLen = title.GetLength() + 1;
+			if (ret) {
+				char* utf = EncodeUTF8(title);
+				strcpy((char*)ret, utf);
+				delete utf;
+			}
+			break;
+		}
+
+		case Window_TextZoom: {
+			int tz = (int)(browser->GetTextSize() * 10.0);
+			if (ret) *(int*)ret = tz;
+			return 1;
+		}
+		
+		case Window_URL: {
+			CString url = browser->GetURI();
+			retLen = url.GetLength() + 1;
+			if (ret) {
+				char* utf = EncodeUTF8(url);
+				strcpy((char*)ret, utf);
+				delete utf;
+			}
+			break;
+		}
+
+		
+		case Window_SelectedText: {
+			nsEmbedString sel;  
+			browser->GetUSelection(sel);
+			retLen = sel.Length() + 1;
+			if (ret) {
+				char* utf = EncodeUTF8(sel.get());
+				strcpy((char*)ret, utf);
+				delete utf;
+			}
+			break;
+		}
+
+		case Window_LinkURL: {
+			CString url = view->GetContextLinkUrl();
+			retLen = url.GetLength() + 1;
+			if (ret) strcpy((char*)ret, T2CA(url));
+			break;
+		}
+
+		case Window_ImageURL: {
+			CString url = view->GetContextImageUrl();
+			retLen = url.GetLength() + 1;
+			if (ret) {
+				char* utf = EncodeUTF8(url);
+				strcpy((char*)ret, utf);
+				delete utf;
+			}
+			break;
+		}
+
+		case Window_LinkTitle: {
+			CString title = view->GetContextLinkTitle();
+			retLen = title.GetLength() + 1;
+			if (ret) {
+				char* utf = EncodeUTF8(title);
+				strcpy((char*)ret, utf);
+				delete utf;
+			}
+			break;
+		}
+
+		case Window_FrameURL: {
+			CString url = view->GetContextFrameUrl();
+			retLen = url.GetLength() + 1;
+			if (ret) {
+				char* utf = EncodeUTF8(url);
+				strcpy((char*)ret, utf);
+				delete utf;
+			}
+			break;
+		}
+
+		case Window_Number: {
+			if (ret) *(int*)ret = theApp.m_FrameWndLst.GetCount();
+			return 1;
+		}
+
+		case Window_Tab_Number: {
+			if (!ret) return 1;
+			if (frame->IsKindOf(RUNTIME_CLASS(CBrowserFrmTab)))
+				*(int*)ret = ((CBrowserFrmTab*)frame)->GetTabCount();
+			else
+				*(int*)ret = 1;
+			return 1;
+		}
+		
+		case Window_Icon: {
+			if (ret) *(int*)ret = theApp.favicons.GetIcon(view->GetBrowserGlue()->mIconURI);
+			return 1;
+		}
+
+		default: 
+			retLen = 0;
+	}
+
+	return retLen;
+}
+
 
 BOOL SetWindowVar(HWND hWnd, WindowVarType type, void* value)
 {
@@ -852,6 +1071,54 @@ BOOL SetWindowVar(HWND hWnd, WindowVarType type, void* value)
 
 		case Window_URL:
 			browser->LoadURL(A2CT((char*)value));
+			break;
+	}
+
+	return result;
+}
+
+BOOL SetWindowVarUTF8(HWND hWnd, WindowVarType type, void* value)
+{
+	PLUGIN_HEADER(hWnd, FALSE);
+
+	USES_CONVERSION;
+	BOOL result = FALSE;
+	wchar_t *ws;
+
+	switch (type)  {
+
+		case Window_UrlBar:
+			ws = WDecodeUTF8((char*)value);
+			frame->UpdateLocation(W2CT(ws), TRUE);
+		    result = TRUE;
+			delete ws;
+			break;
+
+		case Window_Charset:
+			browser->ForceCharset((char*)value);
+			result = TRUE;
+			break;
+
+		case Window_Title:
+			ws = WDecodeUTF8((char*)value);
+			frame->UpdateTitle(W2CT(ws));
+			 //if (pBrowserView->m_pBrowserFrameGlue)
+		      //pBrowserView->m_pBrowserFrameGlue->SetBrowserFrameTitle(A2CW((char*)value));
+			result = TRUE;
+			delete ws;
+			break;
+
+		case Window_TextZoom: {
+			int zoom = (int)(browser->GetTextSize() * 10.0);
+			browser->ChangeTextSize(*(int*)value - zoom);
+			result = TRUE;
+			break;
+		}
+
+		case Window_URL:
+			ws = WDecodeUTF8((char*)value);
+			browser->LoadURL(W2CT(ws));
+			delete ws;
 			break;
 	}
 
@@ -991,24 +1258,6 @@ USES_CONVERSION;
    return retLen;*/   
 }
 
-char *EncodeUTF8(const char *str) {
-  USES_CONVERSION;
-  nsEmbedString aStr;
-  aStr.Append(A2W(str));
-  nsEmbedCString _str;
-  NS_UTF16ToCString(aStr, NS_CSTRING_ENCODING_UTF8, _str);
-  char *pszStr = safe_strdup(_str.get());
-  return pszStr;
-}
-
-char *DecodeUTF8(const char *str) {
-  USES_CONVERSION;
-  nsEmbedString _str;
-  NS_CStringToUTF16(nsEmbedCString(str), NS_CSTRING_ENCODING_UTF8, _str);
-  char *pszStr = safe_strdup(W2CA(_str.get()));
-  return pszStr;
-}
-
 void GetBrowserviewRect(HWND mainWnd, RECT *rc)
 {
    	CBrowserFrame *frame = GetFrame(mainWnd);
@@ -1058,7 +1307,7 @@ void ParseAccel(char *str) {
   theApp.accel.Parse(str);
 }
 
-void SetAccel(const char* key, char* command) {
+void SetAccel(const char* key, const char* command) {
   theApp.accel.SetAccel(key, command);
 }
 
@@ -1383,6 +1632,67 @@ BOOL LoadCSS(const char* path, BOOL load)
 	return LoadStyleSheet(A2CT(path), load);
 }
 
+kmeleonFunctions kmelFuncsUTF8 = {
+   SendMessage,
+   GetCommandIDs,
+   _NavigateTo,
+   GetDocInfoUTF8,
+   _GetPreference,
+   SetPreference,
+   SetStatusBarTextUTF8,
+   _GetMozillaSessionHistory,
+   GotoHistoryIndex,
+   RegisterBand,
+   CreateToolbar,
+   GetID,
+   GetInfoAtPoint,
+   CommandAtPoint,
+   GetGlobalVar,
+   EncodeUTF8,
+   DecodeUTF8,
+   GetBrowserviewRect,
+   GetMenu,
+   SetForceCharset,
+   SetCheck,
+   Load,
+   ClearCache,
+   BroadcastMessage,
+   ParseAccel,
+   DelPreference,
+   GetPreference,
+   RegisterSideBar,
+   ToggleSideBar,
+   TranslateEx,
+   GetIconList,
+   GetMozillaWebBrowser,
+   AddStatusBarIcon,
+   RemoveStatusBarIcon,
+   InjectJS,
+   InjectCSS,
+   GetInfoAtClick,
+   GetKmeleonVersion,
+   NULL,
+   NavigateTo,
+   Translate,
+   SetGlobalVar,
+   GetFolder,
+   SetAccel,
+   SetMenu,
+   RebuildMenu,
+   GetWindowVarUTF8,
+   SetWindowVarUTF8,
+   GetMozillaSessionHistory,
+   SetMozillaSessionHistory,
+   GetWindowsList,
+   GetTabsList,
+   GetIconIdx,
+   ReleaseCmdID,
+   RegisterCmd,
+   UnregisterCmd,
+   GetCmdList,
+   LoadCSS,
+   NULL
+};
 
 kmeleonFunctions kmelFuncs = {
    SendMessage,
@@ -1532,7 +1842,10 @@ kmeleonPlugin * CPlugins::Load(CString file)
    USES_CONVERSION;
    kPlugin->hParentInstance = AfxGetInstanceHandle();
    kPlugin->hDllInstance = plugin;
-   kPlugin->kFuncs = &kmelFuncs;
+   if ((kPlugin->version & ~KMEL_PLUGIN_VER_MAJOR) >= KMEL_PLUGIN_VER_MINOR_UTF8)
+      kPlugin->kFuncs = &kmelFuncsUTF8;
+   else
+      kPlugin->kFuncs = &kmelFuncs;
    kPlugin->dllname = safe_strdup(T2CA(pluginName));
 
    int loaded = kPlugin->loaded = TestLoad(pluginName, kPlugin->description);
