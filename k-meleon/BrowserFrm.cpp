@@ -1165,7 +1165,7 @@ HWND CBrowserFrame::CreateToolbar(UINT style) {
 }
 
 #include "nsITypeAheadFind.h"
-#include ".\browserfrm.h"
+#include ".\browserfrmtab.h"
 
 void CBrowserFrame::OnShowFindBar()
 {
@@ -1204,7 +1204,7 @@ void CBrowserFrame::OnShowFindBar()
 	m_wndFindBar->Create(this, CBRS_BOTTOM);
 	
 	// It must stay above the sidebar 
-	m_wndFindBar->SetWindowPos(&m_wndStatusBar ,0,0,0,0,SWP_NOMOVE);
+	//m_wndFindBar->SetWindowPos(&m_wndStatusBar ,0,0,0,0,SWP_NOMOVE);
 	
 	// And above any bottom toolbar ?
 	EnumChildWindows(m_hWnd, EnumToolbar, (LPARAM)m_wndFindBar->m_hWnd); 
