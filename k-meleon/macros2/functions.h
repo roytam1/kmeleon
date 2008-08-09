@@ -1286,6 +1286,8 @@
 				type = Window_FrameURL;
 			else if (name == "CHARSET")
 				type = Window_Charset;
+			else if (name == "CommandLine")
+				return ::GetCommandLine();
 			else return "";
 
 			int l = kPlugin.kFuncs->GetWindowVar(data->c.hWnd, type, NULL);
@@ -1321,6 +1323,43 @@
 		return Value();
 	}
 
+	DWORD GetPrivateProfileStringUTF8(const char* lpAppName, const char* lpKeyName, const char* lpDefault, std::string & str, const char* filename)
+	{
+		DWORD ret;
+		if (gUnicode) {
+			WCHAR tmp[256];
+			ret = GetPrivateProfileStringW(CUTF8_to_UTF16(lpAppName), CUTF8_to_UTF16(lpKeyName), CUTF8_to_UTF16(lpDefault), tmp, sizeof(tmp), CUTF8_to_UTF16(filename));
+			str.assign(CUTF16_to_UTF8(tmp));
+		}
+		else {
+			char tmp[256];
+			ret = GetPrivateProfileStringA(CUTF8_to_ANSI(lpAppName), CUTF8_to_ANSI(lpKeyName), CUTF8_to_ANSI(lpDefault), tmp, sizeof(tmp), CUTF8_to_ANSI(filename));
+			str.assign(CANSI_to_UTF8(tmp));
+		}	
+		return ret;
+	}
+
+	BOOL WritePrivateProfileStringUTF8(const char* lpAppName, const char* lpKeyName, const char* lpString, const char* filename)
+	{
+		if (gUnicode)
+			return WritePrivateProfileStringW(CUTF8_to_UTF16(lpAppName), CUTF8_to_UTF16(lpKeyName), CUTF8_to_UTF16(lpString), CUTF8_to_UTF16(filename));
+		else
+			return WritePrivateProfileStringA(CUTF8_to_ANSI(lpAppName), CUTF8_to_ANSI(lpKeyName), CUTF8_to_ANSI(lpString), CUTF8_to_ANSI(filename));
+	}
+
+	Value iniread(FunctionData* data)
+	{
+		checkArgs(__FUNCTION__, data, 4);
+		std::string buffer;
+		::GetPrivateProfileStringUTF8(data->getstr(1), data->getstr(2), data->getstr(3), buffer, data->getstr(4));
+		return buffer;
+	}
+
+	Value iniwrite(FunctionData* data)
+	{
+		checkArgs(__FUNCTION__, data, 4);
+		return ::WritePrivateProfileStringUTF8(data->getstr(1), data->getstr(2), data->getstr(3), data->getstr(4));
+	}
 
 
 #ifndef MACROSFUNC_ADD
@@ -1376,4 +1415,6 @@ void InitFunctions(Mac* m)
 	MACROSFUNC_ADD(rebuildmenu);
 	MACROSFUNC_ADD(getwinvar);
 	MACROSFUNC_ADD(setwinvar);
+	MACROSFUNC_ADD(iniread);
+	MACROSFUNC_ADD(iniwrite);
 }
