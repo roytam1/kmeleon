@@ -1,0 +1,97 @@
+# K-Meleon Macros (http://kmeleon.sourceforge.net/wiki/index.php?id=MacroLanguage)
+
+# ---------- Mail And News Functionality ---------------------------------------------------------------------------
+#
+# Dependencies	: main.kmm ($macroPrefBranch, JS)
+# Resources	: -
+# Preferences	: kmeleon.plugins.macros.mailClient
+#		  kmeleon.plugins.macros.newsClient
+#
+# ------------------------------------------------------------------------------------------------------------------
+
+Mail_ConfigureMail{
+$_pref=$_Mail_pref_mailClient; $_macro="_Mail_DefaultMail"; $_tit=_("Mail Configuration"); $_txt=_("Enter your mail client's path or your web mailer's URL:"); &_Mail_Configure;
+}
+Mail_ConfigureNews{
+$_pref=$_Mail_pref_newsClient; $_macro="_Mail_DefaultNews"; $_tit=_("News Configuration"); $_txt=_("Enter your news client's path or your news provider's URL:"); &_Mail_Configure;
+}
+
+Mail_ReadMail{
+$_pref=$_Mail_pref_mailClient; $_macro="Mail_ConfigureMail"; &_Mail_Open;
+}
+Mail_ReadNews{
+$_pref=$_Mail_pref_newsClient; $_macro="Mail_ConfigureNews"; &_Mail_Open;
+}
+
+Mail_ComposeMessage{
+open("mailto:");
+}
+
+Mail_SendPageURL{
+$JS_doit="with(top.document)location='mailto:?subject='+encodeURIComponent(title)+'&body='+encodeURIComponent(URL)"; &JS_hndlDoc;
+}
+Mail_SendLinkURL{
+$JS_doitLink="j=a.length;location='mailto:?body='+encodeURIComponent(href)"; &JS_hndlLink;
+}
+Mail_SendImageURL{
+$JS_doitImage="a=false;location='mailto:?subject='+encodeURIComponent((title)?title:((alt)?alt:document.title))+'&body='+encodeURIComponent(src)"; $JS_doitInput=$JS_doitImage; &JS_hndlImage;
+}
+Mail_SendFrameURL{
+$JS_doit="location='mailto:?subject='+encodeURIComponent(title)+'&body='+encodeURIComponent(URL)"; &JS_hndlDoc;
+}
+Mail_SendSelection{
+$JS_doit="if(getSelection())location='mailto:?subject='+encodeURIComponent(title)+'&body='+encodeURIComponent(getSelection())"; $SelectedText==""?0:&JS_hndlDoc;
+}
+
+# ----- PRIVATE
+
+$_Mail_pref_mailClient=$macroPrefBranch."mail.mailClient";
+$_Mail_pref_newsClient=$macroPrefBranch."mail.newsClient";
+
+_Mail_DefaultMail{
+$__key="Software\\Clients\\Mail\\";
+$__key=$__key.readreg("HKLM",$__key);
+$__def=readreg("HKLM",$__key."\\shell\\open\\command\\");
+$__sys=readreg("HKLM",$__key."\\protocols\\mailto\\shell\\open\\command\\");
+$__usr=readreg("HKCR","mailto\\shell\\open\\command\\");
+$__usr==$__sys?$_client=$__def:$_client=$__usr;
+}
+_Mail_DefaultNews{
+$__key="Software\\Clients\\News\\";
+$__key=$__key.readreg("HKLM",$__key);
+$__def=readreg("HKLM",$__key."\\shell\\open\\command\\");
+$__sys=readreg("HKLM",$__key."\\protocols\\news\\shell\\open\\command\\");
+$__usr=readreg("HKCR","news\\shell\\open\\command\\");
+$__usr==$__sys?$_client=$__def:$_client=$__usr;
+}
+
+_Mail_Open{
+$_client=getpref(STRING,$_pref); $_client==""?macros($_macro):0; $_client==""?0:(index($_client,"://")==-1?exec($_client):opennew($_client));
+}
+_Mail_Configure{
+$_client=getpref(STRING,$_pref); $_client==""?macros($_macro):0; $_client=prompt($_txt,$_tit,$_client); $_client==""?0:setpref(STRING,$_pref,$_client);
+}
+
+_Mail_BuildMenu{
+# tools menu
+setmenu(MailNews,popup,"&Mail And News");
+setmenu("&Mail And News",inline,_Mail_Mail);
+setmenu("&Mail And News",inline,_Mail_News);
+setmenu("&Mail And News",inline,_Mail_Cnfg);
+setmenu(_Mail_Mail,macro,"Read &Mail",Mail_ReadMail);
+setmenu(_Mail_Mail,macro,"New Me&ssage...",Mail_ComposeMessage);
+setmenu(_Mail_Mail,macro,"Sen&d Page As Link...",Mail_SendPageURL);
+setmenu(_Mail_News,macro,"Read &News",Mail_ReadNews,0);
+setmenu(_Mail_Cnfg,macro,"Configure M&ail...",Mail_ConfigureMail);
+setmenu(_Mail_Cnfg,macro,"Configure N&ews...",Mail_ConfigureNews);
+# context menus
+setmenu(DocumentSave,macro,"Sen&d Page As Link...",Mail_SendPageURL);
+setmenu(FrameSave,macro,"Sen&d Frame As Link...",Mail_SendFrameURL);
+setmenu(ImageSave,macro,"Sen&d Image As Link...",Mail_SendImageURL);
+setmenu(LinkSave,macro,"Sen&d Link URL...",Mail_SendLinkURL);
+setmenu(Selection,macro,"Sen&d By Mail...",Mail_SendSelection);
+}
+$OnInit=$OnInit."_Mail_BuildMenu;";
+
+# ------------------------------------------------------------------------------------------------------------------
+$macroModules=$macroModules."Mail;";

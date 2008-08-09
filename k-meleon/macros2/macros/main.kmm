@@ -1,0 +1,842 @@
+# K-Meleon Macros (http://kmeleon.sourceforge.net/wiki/index.php?id=MacroLanguage)
+
+# ---------- Main K-Meleon Macro Module ----------------------------------------------------------------------------
+#
+# Dependencies	: -
+# Resources	: -
+# Preferences	: -
+#
+# Table Of Contents				Aprox. Line #
+#
+# - Global Helpers				 35
+#	- Event Handling			 40
+#	- K-Meleon Macros			110
+#	- K-Meleon Plugins/Tabs			120
+#	- K-Meleon Preferences Panel (kmPrefs)	180
+#	- File Handling				220
+# - Opening URLs				245
+# - Mozilla Chrome				295
+# - Mozilla Preferences				335
+#	- Accessibility/Privacy/Security	340
+#	- Type Ahead Find (Page Search)		410
+# - K-Meleon Preferences			485
+#	- Homepage				505
+# - JavaScript Document Handling		565
+#	- Killing Tags				620
+#	- Scrolling				635
+# - Miscellaneous				665
+#	- Go Buttons				670
+#	- Home Button				725
+#	- RSS Button				740
+#	- Special Opening			750
+#	- Special Macro Execution		775
+#
+# ------------------------------------------------------------------------------------------------------------------
+
+# ---------- Global Helpers ----------------------------------------------------------------------------------------
+
+$on=_("enabled");
+$off=_("disabled");
+
+# ----- Event Handling
+
+# Append any macro to be executed On<event> to the appropriate string (semicolon-separated lists):
+$OnInit="";
+$OnSetup="";
+$OnStartup="";
+$OnOpenWindow="";
+$OnOpenTab="";
+$OnLoad="";
+$OnActivateWindow="";
+$OnCloseWindow="";
+$OnCloseTab="";
+$OnCloseGroup="";
+$OnWMAppExit="";
+$OnQuit="";
+
+# Append any macro to be executed ONCE On<event> to the appropriate string (semicolon-separated lists):
+$OnLoadOnce="";
+
+# The following event macros are executed in the
+# context of the window that triggered the event:
+OnInit{
+# When the default config files have been parsed
+macros($OnInit);
+}
+OnSetup{
+# When the user config files have been parsed
+macros($OnSetup);
+}
+OnStartup{
+# When the first window is opened
+macros($OnStartup);
+}
+OnOpenWindow{
+# When a window/layer is opened
+macros($OnOpenWindow);
+}
+OnOpenTab{
+# When a tab is opened
+macros($OnOpenTab);
+}
+OnLoad{
+# When a document finished loading
+macros($OnLoadOnce.$OnLoad); $OnLoadOnce="";
+}
+OnActivateWindow{
+# When a window gets the focus
+macros($OnActivateWindow);
+}
+OnCloseWindow{
+# When a window/layer is closed
+macros($OnCloseWindow);
+}
+OnCloseTab{
+# When a tab is closed
+macros($OnCloseTab);
+}
+OnCloseGroup{
+# When a multi-layered window is closed
+macros($OnCloseGroup);
+}
+OnWMAppExit{
+# When ID_APP_EXIT is called to terminate the application
+macros($OnWMAppExit);
+}
+OnQuit{
+# When the macro plugin (the browser) is being closed
+macros($OnQuit);
+}
+
+# ----- K-Meleon Macros
+
+# Save any macro preferences to this branch of the pref system:
+$macroPrefBranch="kmeleon.plugins.macros.";
+
+# Append any installed module's name to this string (semicolon-separated list):
+$macroModules=";";
+
+# ----- K-Meleon Plugins/Tabs
+
+# Use these global vars to determine the presence of a plugin.
+# Do not read kmeleon.plugins.?.load at runtime! (The pref may be
+# false although the plugin is currently loaded or vice versa.)
+$kBookmarks=getpref(BOOL,"kmeleon.plugins.bookmarks.load");
+$kFavorites=getpref(BOOL,"kmeleon.plugins.favorites.load");
+$kFullscreen=getpref(BOOL,"kmeleon.plugins.fullscreen.load");
+$kHistory=getpref(BOOL,"kmeleon.plugins.history.load");
+$kHotlist=getpref(BOOL,"kmeleon.plugins.hotlist.load");
+$kLayers=getpref(BOOL,"kmeleon.plugins.layers.load");
+$kLayersOnly=$kLayers*getpref(BOOL,"kmeleon.plugins.layers.catchOpen");
+$kPrivacy=getpref(BOOL,"kmeleon.plugins.privacy.load");
+$kRebarmenu=getpref(BOOL,"kmeleon.plugins.rebarmenu.load");
+$kSessions=getpref(BOOL,"kmeleon.plugins.sessions.load");
+$kToolbars=getpref(BOOL,"kmeleon.plugins.toolbars.load");
+$kTabs=!getpref(BOOL,"kmeleon.notab");
+
+kTabs_Detach{
+macroinfo=_("Detach this tab from the current window");
+menugrayed=(index($URL,"wyciwyg:")==0)+($TabNumber<2);
+$__noAvail=(index($URL,"wyciwyg:")==0)+($TabNumber<2); $__noAvail?0:&_kTabs_Detach;
+}
+kTabs_ReloadAll{
+macroinfo=_("Reload all tabs in the current window");
+injectJS("location.reload()","alltabs");
+}
+
+kPrivacy_ClearAll{
+macroinfo=_("Clear all privacy related data");
+plugin(privacy,ClearCache);
+plugin(privacy,ClearCookies);
+plugin(privacy,ClearHistory);
+plugin(privacy,ClearMRU);
+plugin(privacy,ClearSignon);
+}
+
+# PRIVATE
+_kTabs_Detach{
+$OnLoadOnce=$OnLoadOnce."_kTabs_OnDetach;";
+$OpenURL=$kSessions?"about:blank":$URL; id(ID_CLOSE_TAB); &OpenURL_InNewWindow;
+}
+_kTabs_OnDetach{
+$kSessions?pluginmsg(sessions,Undo,0):0;
+}
+
+_kPlugins_BuildMenu{
+$__r="Reloa&ding";
+$kTabs?setmenu(Nav,popup,$__r,ID_NAV_FORCE_RELOAD):0;
+$kTabs?setmenu(Nav,command,"",ID_NAV_FORCE_RELOAD):0;
+$kTabs?setmenu($__r,command,"&Force Reload",ID_NAV_FORCE_RELOAD):0;
+$kTabs?setmenu($__r,macro,"Reload &All Tabs",kTabs_ReloadAll):0;
+$kTabs?setmenu(TabButtonPopup,inline,_kTabs_Detach,CloseTab):0;
+$kTabs?setmenu(_kTabs_Detach,macro,"&Detach Tab",kTabs_Detach):0;
+$kPrivacy?setmenu("&Clear Data",macro,"Clear A&ll",kPrivacy_ClearAll,"privacy(Config)"):0;
+}
+$OnInit=$OnInit."_kPlugins_BuildMenu;";
+
+# ----- K-Meleon Preferences Panel (kmPrefs)
+
+kmPrefs{
+macroinfo=_("Change preferences and settings");
+menugrayed=$ARG=="kgestures"?$_kmPrefs_GesturesAbsent:false;
+$OpenURL="chrome://kmprefs/content/pref.xul?".$ARG; &OpenURL_InNewWindow;
+}
+
+# PRIVATE
+$_kmPrefs_GesturesAbsent=true;
+
+_kmPrefs_CheckPlugins{
+$__data=readfile(getfolder(RootFolder)."\\kplugins\\gestures.dll"); $_kmPrefs_GesturesAbsent=($__data=="");
+}
+$OnStartup=$OnStartup."_kmPrefs_CheckPlugins;";
+
+_kmPrefs_BuildMenu{
+$__o="&Options...";
+# main menu
+$kBookmarks?setmenu("&Bookmarks",macro,$__o,"kmPrefs(kbookmarks)","bookmarks(Config)"):0;
+$kBookmarks?setmenu("&Bookmarks",command,"","bookmarks(Config)"):0;
+$kFavorites?setmenu("F&avorites",macro,$__o,"kmPrefs(kfavorites)","favorites(Config)"):0;
+$kFavorites?setmenu("F&avorites",command,"","favorites(Config)"):0;
+$kHotlist?setmenu("H&otlist",macro,$__o,"kmPrefs(khotlist)","hotlist(Config)"):0;
+$kHotlist?setmenu("H&otlist",command,"","hotlist(Config)"):0;
+# view menu
+setmenu("Tool&bars",macro,$__o,"kmPrefs(toolbars)");
+$kHistory?setmenu("Histor&y",macro,$__o,"kmPrefs(history)","history(Config)"):0;
+$kHistory?setmenu("Histor&y",command,"","history(Config)"):0;
+$kTabs?setmenu("T&abs",macro,$__o,"kmPrefs(tabs)",0):0;
+$kTabs?setmenu("T&abs",separator,1):0;
+# tools menu
+setmenu(Settings,macro,"Mouse &Gestures...","kmPrefs(kgestures)");
+$__m="P&ermissions";
+setmenu($__m,separator,-1);
+setmenu($__m,macro,"&JavaScript","kmPrefs(javascript)");
+}
+$OnInit=$OnInit."_kmPrefs_BuildMenu;";
+
+# ----- File Handling
+
+# These macros can be used in conjunction with the exec() and
+# promptforfile() statements to get a command line and a file
+# type description for a given file extension.
+getExtensionHandler{
+# use for text files
+$__desiredAction="open"; &_getExtensionHandler;
+}
+getSecureExtensionHandler{
+# use for script files
+$__desiredAction="edit"; &_getExtensionHandler;
+}
+
+# PRIVATE
+_getExtensionHandler{
+$__defaultEditor="notepad.exe %1"; $__shell="\\shell\\"; $__cmnd="\\command\\";
+$doctype=readreg("HKCR",".".$ext."\\"); $cmdline="";
+$doctype==""?$cmdline=$__defaultEditor:$__defaultAction=readreg("HKCR",$doctype.$__shell);
+$cmdline==""?$cmdline=readreg("HKCR",$doctype.$__shell.$__desiredAction.$__cmnd):0;
+$cmdline==""?$cmdline=readreg("HKCR",$doctype.$__shell.$__defaultAction.$__cmnd):0;
+# DDE is not supported here:
+$cmdline==""?$cmdline=$__defaultEditor:(index($cmdline,"%1")?0:$cmdline=$__defaultEditor);
+$doctype=readreg("HKCR",$doctype."\\"); $doctype==""?$doctype=sub("%s",$ext,_("%s File")):0;
+}
+
+# ---------- Opening URLs ------------------------------------------------------------------------------------------
+
+# Except OpenURL these macros can only be called by other macros.
+
+OpenURL{
+macroinfo=_("Prompt for an URL to open");
+$__pre=$URLBAR; $__pre==$URL?$__pre="":0;
+$OpenURL=prompt(_("Enter URL:"),_("Open"),$__pre); &OpenURL_Typed;
+}
+OpenURL_InBg{
+# Same as OpenURL_InNew, but in background
+$OpenURL==""?0:$kTabs?openbgtab($OpenURL):openbg($OpenURL);
+}
+OpenURL_InNew{
+# Open an URL in a new tab if tabs are enabled, in a new window otherwise
+$OpenURL==""?0:$kTabs?opentab($OpenURL):opennew($OpenURL);
+}
+OpenURL_InNewWindow{
+# Open an URL in a new window
+$OpenURL==""?0:opennew($OpenURL);
+}
+OpenURL_Selected{
+# Use this method when an URL was generated from selected text
+$_How=$_OpenURL_Selected; $OpenURL==""?0:&_OpenURL_How;
+}
+OpenURL_Typed{
+# Use this method when an URL was generated from a direct user input (by typing into URL Bar or any prompt)
+$OpenURL==""?0:$URLBAR=$OpenURL; $OpenURL==""?0:id(ID_NAV_GO);
+}
+
+# ----- PRIVATE
+
+$_OpenURL_Group="kmeleon.general.opengroup";
+$_OpenURL_Typed="kmeleon.general.openurl";
+$_OpenURL_Selected=$macroPrefBranch."selected.openurl";
+
+_OpenURL_How{
+$_How=getpref(STRING,$_How);
+$_How=="ID_OPEN_LINK"?open($OpenURL):0;
+$_How=="ID_OPEN_LINK_IN_NEW_WINDOW"?opennew($OpenURL):0;
+$_How=="ID_OPEN_LINK_IN_BACKGROUND"?openbg($OpenURL):0;
+$_How=="ID_OPEN_LINK_IN_NEW_TAB"?opentab($OpenURL):0;
+$_How=="ID_OPEN_LINK_IN_BACKGROUNDTAB"?openbgtab($OpenURL):0;
+}
+
+_OpenURL_SetAccels{
+setaccel("CTRL ALT O","macros(OpenURL)");
+}
+$OnInit=$OnInit."_OpenURL_SetAccels;";
+
+# ---------- Mozilla Chrome ----------------------------------------------------------------------------------------
+
+moz_AboutCache_Image{
+macroinfo=_("View cache information");
+$__key=$ImageURL; $__i=index($__key,"#"); $__key=$__i==-1?$__key:substr($__key,0,$__i);
+index($__key,"http://")==0?$__client="HTTP&sb=1":$__client="";
+index($__key,"https://")==0?$__client="HTTP-memory-only&sb=1":0;
+index($__key,"file://")==0?$__client="image&sb=0":0;
+index($__key,"resource://")==0?$__client="image&sb=0":0;
+index($__key,"chrome://")==0?$__client="image-chrome&sb=0":0;
+$OpenURL="about:cache-entry?client=".$__client."&key=".$__key;
+$__client==""?0:&OpenURL_InNewWindow;
+}
+moz_AboutCache{
+macroinfo=_("View information about the Cache Service");
+$OpenURL="about:cache"; &OpenURL_InNew;
+}
+moz_AboutConfig{
+macroinfo=_("View the browser configuration page");
+$OpenURL="about:config"; &OpenURL_InNew;
+}
+moz_JSConsole{
+macroinfo=_("Open the error console");
+$OpenURL="chrome://global/content/console.xul"; &OpenURL_InNewWindow;
+}
+moz_CertificateViewer{
+macroinfo=_("View stored certificates");
+$OpenURL="chrome://pippki/content/certManager.xul"; &OpenURL_InNewWindow;
+}
+
+# PRIVATE
+_moz_BuildMenu{
+# edit menu
+setmenu(Preferences,macro,"Config&uration",moz_AboutConfig);
+# tools menu
+setmenu("Vie&w Data",macro,"View C&ache",moz_AboutCache,ID_COOKIES_VIEWER);
+setmenu("Vie&w Data",macro,"View &Certificates",moz_CertificateViewer);
+setmenu(Misc,macro,"Error &Console",moz_JSConsole);
+# context menus
+setmenu(ImageProperties,macro,"Cache &Information",moz_AboutCache_Image);
+}
+$OnInit=$OnInit."_moz_BuildMenu;";
+
+# ---------- Mozilla Preferences -----------------------------------------------------------------------------------
+
+# ----- Accessibility/Privacy/Security
+
+$pref_Animation="image.animation_mode";
+$pref_Colors="browser.display.use_document_colors";
+$pref_Cookies="network.cookie.cookieBehavior";
+$pref_Frames="browser.frames.enabled";
+$pref_Images="permissions.default.image";
+$pref_Java="security.enable_java";
+$pref_JavaScript="javascript.enabled";
+$pref_Popups="dom.disable_open_during_load";
+$pref_Referer="network.http.sendRefererHeader";
+
+# Use this global var to determine whether Java can be enabled at runtime.
+$pref_JavaSupport=getpref(BOOL,$pref_Java);
+
+pref_ToggleAnimation{
+macroinfo=_("Toggle image animation");
+menuchecked=(getpref(STRING,$pref_Animation)=="none");
+togglepref(STRING,$pref_Animation,"normal","none"); &_pref_SyncButtons;
+statusbar(sub("%s",getpref(STRING,$pref_Animation)=="none"?$off:$on,_("Image animation %s")));
+}
+pref_ToggleColors{
+macroinfo=_("Toggle page colors");
+menuchecked=!getpref(BOOL,$pref_Colors);
+togglepref(BOOL,$pref_Colors); &_pref_SyncButtons;
+statusbar(sub("%s",!getpref(BOOL,$pref_Colors)?$off:$on,_("Page color usage %s")));
+}
+pref_ToggleCookies{
+macroinfo=_("Toggle cookie acceptance");
+menuchecked=(getpref(INT,$pref_Cookies)==2);
+togglepref(INT,$pref_Cookies,2,0); &_pref_SyncButtons;
+statusbar(sub("%s",getpref(INT,$pref_Cookies)==2?$off:$on,_("Cookie acceptance %s")));
+}
+pref_ToggleFrames{
+macroinfo=_("Toggle frame support");
+menuchecked=!getpref(BOOL,$pref_Frames);
+togglepref(BOOL,$pref_Frames);
+statusbar(sub("%s",!getpref(BOOL,$pref_Frames)?$off:$on,_("Frame support %s")));
+}
+pref_ToggleImages{
+macroinfo=_("Toggle image loading");
+menuchecked=(getpref(INT,$pref_Images)==2);
+togglepref(INT,$pref_Images,1,2); &_pref_SyncButtons;
+statusbar(sub("%s",getpref(INT,$pref_Images)==2?$off:$on,_("Image loading %s")));
+}
+pref_ToggleJava{
+macroinfo=_("Toggle Java support");
+menuchecked=!getpref(BOOL,$pref_Java);
+togglepref(BOOL,$pref_Java); &_pref_SyncButtons;
+statusbar(sub("%s",!getpref(BOOL,$pref_Java)?$off:$on,_("Java support %s")));
+}
+pref_ToggleJavaScript{
+macroinfo=_("Toggle JavaScript execution");
+menuchecked=!getpref(BOOL,$pref_JavaScript);
+togglepref(BOOL,$pref_JavaScript); &_pref_SyncButtons;
+statusbar(sub("%s",!getpref(BOOL,$pref_JavaScript)?$off:$on,_("JavaScript execution %s")));
+}
+pref_TogglePopups{
+macroinfo=_("Toggle popup blocking");
+menuchecked=getpref(BOOL,$pref_Popups);
+togglepref(BOOL,$pref_Popups); &_pref_SyncButtons;
+statusbar(sub("%s",getpref(BOOL,$pref_Popups)?$on:$off,_("Popup blocking %s")));
+}
+pref_ToggleReferer{
+macroinfo=_("Toggle HTTP referer transmission");
+menuchecked=(getpref(INT,$pref_Referer)==0);
+togglepref(INT,$pref_Referer,0,2); &_pref_SyncButtons;
+statusbar(sub("%s",getpref(INT,$pref_Referer)==0?$off:$on,_("HTTP referer transmission %s")));
+}
+
+# ----- Type Ahead Find (Page Search)
+
+$_pref_TAF="accessibility.typeaheadfind";
+
+pref_ToggleTAF{
+macroinfo=_("Toggle Find As You Type");
+menuchecked=getpref(BOOL,$_pref_TAF);
+togglepref(BOOL,$_pref_TAF);
+statusbar(sub("%s",getpref(BOOL,$_pref_TAF)?$on:$off,_("Find As You Type %s.")));
+}
+pref_ToggleTAFAuto{
+macroinfo=_("Toggle Find As You Type Autostart");
+menugrayed=!getpref(BOOL,$_pref_TAF);
+menuchecked=getpref(BOOL,$_pref_TAF.".autostart");
+togglepref(BOOL,$_pref_TAF.".autostart");
+statusbar(sub("%s",getpref(BOOL,$_pref_TAF.".autostart")?$on:$off,_("Find As You Type Autostart %s.")));
+}
+pref_ToggleTAFLinks{
+macroinfo=_("Toggle Find As You Type in links only");
+menugrayed=!getpref(BOOL,$_pref_TAF);
+menuchecked=getpref(BOOL,$_pref_TAF.".linksonly");
+togglepref(BOOL,$_pref_TAF.".linksonly");
+statusbar(getpref(BOOL,$_pref_TAF.".linksonly")?_("Search Links Only."):_("Search All Text."));
+}
+
+# ----- PRIVATE
+
+# Menu Integration
+_pref_BuildMenu{
+# tools menu (Accessibility/Privacy/Security)
+$__m=_Privacy_Settings;
+setmenu("&Privacy",inline,$__m,PrivateData);
+setmenu($__m,macro,"Block Co&okies",pref_ToggleCookies);
+setmenu($__m,macro,"Block &Java",pref_ToggleJava);
+setmenu($__m,macro,"Block Java&Script",pref_ToggleJavaScript);
+setmenu($__m,macro,"Block &Popups",pref_TogglePopups);
+setmenu($__m,macro,"Block &Images",pref_ToggleImages);
+setmenu($__m,macro,"Block Image Ani&mation",pref_ToggleAnimation);
+setmenu($__m,macro,"Block Page Co&lors",pref_ToggleColors);
+setmenu($__m,macro,"Block &Frames",pref_ToggleFrames);
+setmenu($__m,macro,"Block HTTP &Referer",pref_ToggleReferer);
+# edit menu (Type Ahead Find)
+$__m="Page &Search";
+setmenu(Find,popup,$__m);
+setmenu($__m,macro,"Find As You &Type",pref_ToggleTAF);
+setmenu($__m,separator,-1);
+setmenu($__m,macro,"Start &Automatically",pref_ToggleTAFAuto);
+setmenu($__m,macro,"Search &Links Only",pref_ToggleTAFLinks);
+}
+_pref_SetAccels{
+setaccel(VK_F7,"macros(pref_ToggleJavaScript)");
+setaccel(VK_F8,"macros(pref_TogglePopups)");
+setaccel(VK_F9,"macros(pref_ToggleImages)");
+}
+$OnInit=$OnInit."_pref_SetAccels;_pref_BuildMenu;";
+
+# Toolbar Integration
+_pref_SyncButtons{
+$__c="CheckButton"; $__m=",macros(pref_Toggle";
+# Privacy Bar (make sure the toolbar name is correct):
+$__toolbar="&Privacy Bar";
+pluginmsg(toolbars,$__c,$__toolbar.$__m."Animation),".(getpref(STRING,$pref_Animation)=="none"?1:0));
+pluginmsg(toolbars,$__c,$__toolbar.$__m."Colors),".(getpref(BOOL,$pref_Colors)?0:1));
+pluginmsg(toolbars,$__c,$__toolbar.$__m."Cookies),".(getpref(INT,$pref_Cookies)==2?1:0));
+pluginmsg(toolbars,$__c,$__toolbar.$__m."Images),".(getpref(INT,$pref_Images)==1?0:1));
+pluginmsg(toolbars,$__c,$__toolbar.$__m."Java),".(getpref(BOOL,$pref_Java)?0:1));
+pluginmsg(toolbars,$__c,$__toolbar.$__m."JavaScript),".(getpref(BOOL,$pref_JavaScript)?0:1));
+pluginmsg(toolbars,$__c,$__toolbar.$__m."Popups),".(getpref(BOOL,$pref_Popups)?1:0));
+pluginmsg(toolbars,$__c,$__toolbar.$__m."Referer),".(getpref(INT,$pref_Referer)==0?1:0));
+# Main Bar (make sure the toolbar name is correct):
+$__toolbar="&Main Bar";
+pluginmsg(toolbars,$__c,$__toolbar.$__m."Popups),".(getpref(BOOL,$pref_Popups)?1:0));
+}
+$OnLoad=$OnLoad."_pref_SyncButtons;";
+$OnStartup=$OnStartup."_pref_SyncButtons;";
+
+# ---------- K-Meleon Preferences ----------------------------------------------------------------------------------
+
+$KM_Version=getpref(STRING,"general.useragent.vendorSub");
+$KM_Flashblock="kmeleon.flashblock";
+$KM_Adblock="kmeleon.adblocking";
+
+KM_ToggleFlashblock{
+macroinfo=_("Toggle Flashblock");
+menuchecked=getpref(BOOL,$KM_Flashblock);
+togglepref(BOOL,$KM_Flashblock); &_KM_SyncButtons;
+statusbar(sub("%s",getpref(BOOL,$KM_Flashblock)?$on:$off,_("Flashblock %s")));
+}
+KM_ToggleAdblock{
+macroinfo=_("Toggle Ad-Blocking StyleSheet");
+menuchecked=getpref(BOOL,$KM_Adblock);
+togglepref(BOOL,$KM_Adblock); &_KM_SyncButtons;
+statusbar(sub("%s",getpref(BOOL,$KM_Adblock)?$on:$off,_("CSS Ad-Blocking %s")));
+}
+
+# ----- Homepage
+
+$KM_Homepage="browser.startup.homepage";
+$KM_HomeSess="kmeleon.plugins.sessions.openStart";
+$KM_StartHome="kmeleon.general.startHome";
+$KM_StartSess="kmeleon.plugins.sessions.autoload";
+
+KM_SetAsHomepage{
+macroinfo=_("Set the current page as the Home page");
+menugrayed=(index($URL,"wyciwyg:")==0);
+$__noAvail=(index($URL,"wyciwyg:")==0); $__noAvail?0:setpref(STRING,$KM_Homepage,$URL);
+}
+KM_StartBlank{
+macroinfo=_("Let K-Meleon start with a blank page");
+menuchecked=$kSessions?((!getpref(BOOL,$KM_StartHome))*(!getpref(BOOL,$KM_StartSess)+!getpref(STRING,$KM_HomeSess))):!getpref(BOOL,$KM_StartHome);
+setpref(BOOL,$KM_StartHome,false); $kSessions?setpref(BOOL,$KM_StartSess,false):0;
+}
+KM_StartWithHomepage{
+macroinfo=_("Let K-Meleon start with the Home page");
+menuchecked=$kSessions?(getpref(BOOL,$KM_StartHome)*(!getpref(BOOL,$KM_StartSess)+!getpref(STRING,$KM_HomeSess))):getpref(BOOL,$KM_StartHome);
+setpref(BOOL,$KM_StartHome,true); $kSessions?setpref(BOOL,$KM_StartSess,false):0;
+}
+KM_StartWithSession{
+macroinfo=_("Let K-Meleon start with a saved session");
+menuchecked=$kSessions*getpref(BOOL,$KM_StartSess)*length(getpref(STRING,$KM_HomeSess));
+setpref(BOOL,$KM_StartSess,true); id("sessions(Config)");
+}
+
+# ----- PRIVATE
+
+# Menu Integration
+_KM_BuildMenu{
+# view menu
+$__m="Ho&me";
+setmenu(NavEx,popup,$__m,ID_NAV_HOME);
+setmenu(NavEx,command,"",ID_NAV_HOME);
+setmenu($__m,inline,_Home_Open);
+setmenu(_Home_Open,command,"Open &Home Page",ID_NAV_HOME);
+setmenu($__m,inline,_Home_Make);
+setmenu(_Home_Make,macro,"M&ake This Page Your Home Page",KM_SetAsHomepage);
+setmenu($__m,inline,_Home_Start);
+setmenu(_Home_Start,macro,"Start With &Blank Page",KM_StartBlank);
+setmenu(_Home_Start,macro,"Start With Home &Page",KM_StartWithHomepage);
+$kSessions?setmenu(_Home_Start,macro,"Start With &Session...",KM_StartWithSession):0;
+# tools menus
+$__m=_Privacy_Settings;
+setmenu($__m,macro,"Block F&lash",KM_ToggleFlashblock,"Block Page Co&lors");
+setmenu($__m,macro,"Block A&dvertisement",KM_ToggleAdblock,"Block Page Co&lors");
+}
+$OnInit=$OnInit."_KM_BuildMenu;";
+
+# Toolbar Integration
+_KM_SyncButtons{
+$__c="CheckButton"; $__m=",macros(KM_Toggle";
+# Privacy Bar (make sure the toolbar name is correct):
+$__toolbar="&Privacy Bar";
+pluginmsg(toolbars,$__c,$__toolbar.$__m."Flashblock),".(getpref(BOOL,$KM_Flashblock)?1:0));
+pluginmsg(toolbars,$__c,$__toolbar.$__m."Adblock),".(getpref(BOOL,$KM_Adblock)?1:0));
+}
+$OnLoad=$OnLoad."_KM_SyncButtons;";
+$OnStartup=$OnStartup."_KM_SyncButtons;";
+
+# ---------- JavaScript Document Handling --------------------------------------------------------------------------
+
+# JavaScript function urlencode() to produce same result as macro function urlencode()
+$_JS_urlencode="function urlencode(s){return encodeURIComponent(s).replace(/%25([A-F0-9]{2})/g,'%$1').replace(/%23/g,'#').replace(/\\//g,'%2F')}";
+
+# Parameters for JS_hndlDoc(s) (set those you need before calling the macro):
+$JS_doit=""; $JS_func=""; $JS_last=""; $JS_fail="";
+JS_hndlDocs{
+# $JS_doit takes the code to be executed in the context of each frame
+# $JS_func is the right place for functions and global variables (e.g. when you want to count something over all frames)
+# $JS_last is the right place for finishing actions (e.g. when you want to alert what you have counted over all frames)
+# $JS_fail is the right place to handle errors that may occur when accessing a frame (Gecko prevents cross-site scripting)
+injectJS("(function(){".$JS_func.$_JS_urlencode."function hndlFrm(w){try{with(w.document){".$JS_doit."}}catch(e){".$JS_fail."}for(var j=0,f=w.frames;j<f.length;j++)hndlFrm(f[j])}hndlFrm(window);".$JS_last."})()");
+$JS_doit=""; $JS_func=""; $JS_last=""; $JS_fail="";
+}
+JS_hndlDoc{
+# Same as JS_hndlDocs, but only for the current frame.
+injectJS("(function(){".$JS_func.$_JS_urlencode."with(document){".$JS_doit."}".$JS_last."})()",frame);
+$JS_doit=""; $JS_func=""; $JS_last=""; $JS_fail="";
+}
+
+# Parameters for JS_hndlImage (set those you need before calling the macro):
+$JS_doitImage=""; $JS_doitInput="";
+JS_hndlImage{
+# $JS_doitImage takes the code to be executed in the context of all matching images in the current frame
+# $JS_doitInput takes the code to be executed in the context of all matching image-type input elements in the current frame
+$JS_doit="var a=true,b=getElementsByTagName('body')[0];if(b){for(var j=0,i=images;(j<i.length)&&a;j++)with(i[j])if(urlencode(src)=='".urlencode($ImageURL)."'){".$JS_doitImage."}for(var j=0,i=document.getElementsByTagName('input');(j<i.length)&&a;j++)with(i[j])if((getAttribute('type')=='image')&&(urlencode(src)=='".urlencode($ImageURL)."')){".$JS_doitInput."}}"; &JS_hndlDoc;
+$JS_doitImage=""; $JS_doitInput="";
+}
+
+# Parameter for JS_hndlLink:
+$JS_doitLink="";
+JS_hndlLink{
+# $JS_doitLink takes the code to be executed in the context of all matching links in the current frame
+$JS_doit="for(var j=0,a=getElementsByTagName('a');j<a.length;j++)with(a[j])if(urlencode(href)=='".urlencode($LinkURL)."'){".$JS_doitLink."}"; &JS_hndlDoc;
+$JS_doitLink="";
+}
+
+
+JS_reloadFrame{
+macroinfo=_("Reload the current frame");
+$JS_doit="location.reload()"; &JS_hndlDoc;
+}
+JS_reloadImage{
+# based on pref
+macroinfo=_("Reload the current image");
+$__pref="dom.disable_image_src_set";
+$__tgl1=true; getpref(INT,$pref_Images)==2?&pref_ToggleImages:$__tgl1=false;
+$__tgl2=true; getpref(BOOL,$__pref)?togglepref(BOOL,$__pref):$__tgl2=false;
+$JS_doitImage="var t=src;src='';src=t"; $JS_doitInput=$JS_doitImage; &JS_hndlImage;
+$__tgl1?&pref_ToggleImages:0;
+$__tgl2?togglepref(BOOL,$__pref):0;
+}
+
+# ----- Killing Tags
+
+JS_killApplets{
+macroinfo=_("Erase all Java applets in the current page");
+$JS_doit="del(w.document,'applet')"; &_JS_kill;
+}
+JS_killFlash{
+macroinfo=_("Erase all Flash objects in the current page");
+$JS_doit="del(w.document,'object');del(w.document,'embed')"; &_JS_kill;
+}
+
+# PRIVATE
+_JS_kill{
+$JS_func="function del(doc,tag){for(var d,e=doc.getElementsByTagName(tag),j=e.length-1;j+1;j--){d=doc.createElement('div');d.innerHTML='<del>'+tag+'</del>';d.style.height=e[j].height;d.style.width=e[j].width;e[j].parentNode.replaceChild(d,e[j])}}"; &JS_hndlDocs;
+}
+
+# ----- Scrolling (for Mouse Gestures)
+
+JS_scrollTop{
+macroinfo=_("Scroll to the top of the current page");
+$JS_doit="scrollTo(0,0)"; &JS_hndlDoc;
+}
+JS_scrollBottom{
+macroinfo=_("Scroll to the bottom of the current page");
+$JS_doit="scrollTo(0,scrollMaxY)"; &JS_hndlDoc;
+}
+JS_scrollLeft{
+macroinfo=_("Scroll to the left end of the current page");
+$JS_doit="scrollBy(-scrollMaxX,0)"; &JS_hndlDoc;
+}
+JS_scrollRight{
+macroinfo=_("Scroll to the right end of the current page");
+$JS_doit="scrollBy(scrollMaxX,0)"; &JS_hndlDoc;
+}
+
+# ----- Menu Integration
+
+_JS_BuildMenu{
+# tools menu
+setmenu("&Privacy",inline,_Privacy_Kill);
+setmenu(_Privacy_Kill,macro,"Kill Fl&ash Objects",JS_killFlash);
+setmenu(_Privacy_Kill,macro,"Kill Ja&va Applets",JS_killApplets);
+# context menus
+setmenu(FrameView,macro,"&Reload",JS_reloadFrame,ID_OPEN_FRAME);
+setmenu(ImageView,macro,"&Reload Image",JS_reloadImage,ID_VIEW_IMAGE);
+}
+$OnInit=$OnInit."_JS_BuildMenu;";
+
+# ---------- Miscellaneous -----------------------------------------------------------------------------------------
+
+# ----- Go Buttons (based on OpenURL)
+
+Go_Copy{
+macroinfo=_("Copy URL Bar contents to the Clipboard");
+id(ID_SELECT_URL); id(ID_EDIT_COPY);
+}
+Go_New{
+macroinfo=_("Open URL Bar contents in a new page");
+$__pref=getpref(STRING,$_OpenURL_Typed);
+setpref(STRING,$_OpenURL_Typed,$kTabs?"ID_OPEN_LINK_IN_NEW_TAB":"ID_OPEN_LINK_IN_NEW_WINDOW");
+id(ID_NAV_GO); setpref(STRING,$_OpenURL_Typed,$__pref);
+}
+Go_Paste{
+macroinfo=_("Open Clipboard contents as URL");
+$URLBAR=getclipboard(); id(ID_NAV_GO);
+}
+Go_Reset{
+macroinfo=_("Reset the URL Bar");
+$URLBAR=$URL;
+}
+Go_Selected{
+macroinfo=_("Open the selected text as URL or open URL Bar contents");
+$OpenURL=$SelectedText; $OpenURL==""?0:&OpenURL_Selected; $OpenURL=$OpenURL==""?$URLBAR:"";
+$OpenURL==""?0:($OpenURL==$URL?id(ID_NAV_RELOAD):&OpenURL_Typed);
+}
+Go_Top{
+macroinfo=_("Go to the topmost directory level of the current domain");
+injectJS("location.pathname=''");
+}
+Go_Up{
+macroinfo=_("Go up one directory level in the current domain");
+$__data=dirname($URL); $__data=="."?0:open($__data."/");
+}
+
+# PRIVATE
+_Go_BuildMenu{
+# go button
+setmenu("",inline,_Go);
+setmenu(_Go,inline,_Go_Open);
+setmenu(_Go_Open,macro,"Open In &New Page",Go_New);
+setmenu(_Go,inline,_Go_Clipboard);
+setmenu(_Go_Clipboard,macro,"&Copy",Go_Copy);
+setmenu(_Go_Clipboard,macro,"&Paste And Go",Go_Paste);
+setmenu(_Go,inline,_Go_URLBar);
+setmenu(_Go_URLBar,macro,"&Reset URL Bar",Go_Reset);
+$kPrivacy?setmenu(_Go_URLBar,command,"Clear &URL Bar History","privacy(ClearMRU)"):0;
+# up button
+setmenu("",inline,_Up);
+setmenu(_Up,macro,"Go &Up One Directory Level",Go_Up);
+setmenu(_Up,macro,"Go To &Top Directory Level",Go_Top);
+}
+_Go_SetAccels{
+setaccel("CTRL ALT N","macros(Go_New)");
+setaccel("CTRL ALT V","macros(Go_Paste)");
+}
+$OnInit=$OnInit."_Go_SetAccels;_Go_BuildMenu;";
+
+# ----- Home Button (based on OpenURL and KM)
+
+$Home=_Home;
+Home{
+macroinfo=_("Perform the Home button action");
+macros($Home);
+}
+
+# PRIVATE
+_Home{
+#$OpenURL=getpref(STRING,$KM_Homepage); &OpenURL_InNew;
+id(ID_NAV_HOME);
+}
+
+# ----- RSS Button (based on OpenURL)
+
+$RSS="";
+RSS{
+macroinfo=_("Perform the RSS button action");
+macros($RSS);
+}
+
+# ----- Special Opening (based on OpenURL)
+
+Open_TextAsURL{
+macroinfo=_("Open the selected text as URL");
+$OpenURL=$SelectedText; $OpenURL==""?0:&OpenURL_Selected;
+}
+
+Open_KMReadme{
+macroinfo=_("View basic information on the K-Meleon project");
+$__l=getpref(STRING,"general.useragent.locale");
+open("resource://".($__l=="en-US"?"":("/locales/".$__l))."/readme.html");
+}
+Open_KMWiki{
+macroinfo=_("Go to the K-Meleon Wiki");
+open("http://kmeleon.sourceforge.net/wiki/Welcome");
+}
+
+# PRIVATE
+_Open_BuildMenu{
+# help menu
+setmenu(KMDocs,separator,-1);
+setmenu(KMDocs,macro,"Wel&come to K-Meleon !",Open_KMReadme);
+setmenu(KMHome,macro,"K-Meleon &Wiki",Open_KMWiki);
+# context menus
+setmenu(Selection,macro,"&Open As URL",Open_TextAsURL);
+}
+$OnInit=$OnInit."_Open_BuildMenu;";
+
+# ----- Special Macro Execution (based on OpenURL and pref)
+
+ExecMacros_Frames{
+# Execute one or more macros if frame support is granted.
+# Parameters (set before calling):
+# - $ExecMacros: The macros to be executed (semicolon-separated list)
+getpref(BOOL,$pref_Frames)?macros($ExecMacros):(confirm(_("Frame support is currently disabled. It must be enabled to use this feature.")."\n\n"._("Enable frame support and continue?"),_("Frame Support Disabled"),YESNO,EXCLAIM)=="YES"?macros("pref_ToggleFrames;".$ExecMacros):0);
+}
+ExecMacros_JavaScript{
+# Execute one or more macros if JavaScript execution is granted.
+# Parameters (set before calling):
+# - $ExecMacros: The macros to be executed (semicolon-separated list)
+getpref(BOOL,$pref_JavaScript)?macros($ExecMacros):(confirm(_("JavaScript execution is currently disabled. It must be enabled to use this feature.")."\n\n"._("Enable JavaScript execution and continue?"),_("JavaScript Execution Disabled"),YESNO,EXCLAIM)=="YES"?macros("pref_ToggleJavaScript;".$ExecMacros):0);
+}
+ExecMacros_Popups{
+# Execute one or more macros overriding any restriction in regard to popup windows.
+# Parameters (set before calling):
+# - $ExecMacros: The macros to be executed (semicolon-separated list)
+# - $ForceTab  : Force popups into tabs (true or false)
+$__p0="dom.disable_window_open_feature.location";
+$__p1="dom.disable_window_open_feature.menubar";
+$__p2="dom.disable_window_open_feature.minimizable";
+$__p3="dom.disable_window_open_feature.personalbar";
+$__p4="dom.disable_window_open_feature.resizable";
+$__p5="dom.disable_window_open_feature.scrollbars";
+$__p6="dom.disable_window_open_feature.status";
+$__p7="dom.disable_window_open_feature.toolbar";
+$__pA="browser.link.open_newwindow"; 
+$__pB="browser.link.open_newwindow.restriction"; 
+$__v0=getpref(BOOL,$__p0); setpref(BOOL,$__p0,$kTabs?$ForceTab:false);
+$__v1=getpref(BOOL,$__p1); setpref(BOOL,$__p1,$kTabs?$ForceTab:false);
+$__v2=getpref(BOOL,$__p2); setpref(BOOL,$__p2,$kTabs?$ForceTab:false);
+$__v3=getpref(BOOL,$__p3); setpref(BOOL,$__p3,$kTabs?$ForceTab:false);
+$__v4=getpref(BOOL,$__p4); setpref(BOOL,$__p4,$kTabs?$ForceTab:false);
+$__v5=getpref(BOOL,$__p5); setpref(BOOL,$__p5,$kTabs?$ForceTab:false);
+$__v6=getpref(BOOL,$__p6); setpref(BOOL,$__p6,$kTabs?$ForceTab:false);
+$__v7=getpref(BOOL,$__p7); setpref(BOOL,$__p7,$kTabs?$ForceTab:false);
+# Force popups into tabs?
+$__vA=getpref(INT, $__pA); setpref(INT, $__pA,($kTabs*$ForceTab)?3:2);
+$__vB=getpref(INT, $__pB); setpref(INT, $__pB,($kTabs*$ForceTab)?0:1);
+# Finally execute the macros overriding the popup blocker...
+getpref(BOOL,$pref_Popups)?macros("pref_TogglePopups;".$ExecMacros.";pref_TogglePopups"):macros($ExecMacros);
+# ... and restore the previous state:
+setpref(INT, $__pA,$__vA);
+setpref(INT, $__pB,$__vB);
+setpref(BOOL,$__p0,$__v0);
+setpref(BOOL,$__p1,$__v1);
+setpref(BOOL,$__p2,$__v2);
+setpref(BOOL,$__p3,$__v3);
+setpref(BOOL,$__p4,$__v4);
+setpref(BOOL,$__p5,$__v5);
+setpref(BOOL,$__p6,$__v6);
+setpref(BOOL,$__p7,$__v7);
+}
+ExecMacros_List{
+# Execute one or more macros for each item of a semicolon-separated list.
+# Parameters (set before calling):
+# - $ExecMacros: The macros to be executed (semicolon-separated list)
+# - $List      : The list to be processed ("<string1>;<string2>;...;<stringN>;" or an empty string)
+# Output (for use in your macros):
+# - $ListItem  : The current substring <stringM>
+$ListItem=$List?substr($List,0,index($List,";")):"";
+while($ListItem) {
+	macros($ExecMacros);
+	$List=$List?sub($ListItem.";","",$List):"";
+	$ListItem=$List?substr($List,0,index($List,";")):"";
+	}
+}

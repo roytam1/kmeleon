@@ -1,0 +1,531 @@
+# K-Meleon Macros (http://kmeleon.sourceforge.net/wiki/index.php?id=MacroLanguage)
+
+# ---------- Translation -------------------------------------------------------------------------------------------
+#
+# Dependencies	: main.kmm ($macroPrefBranch, OpenURL)
+# Resources	: -
+# Preferences	: kmeleon.plugins.macros.translate.to
+#		  kmeleon.plugins.macros.translate.service.langpairs
+#		  kmeleon.plugins.macros.translate.service.name
+#		  kmeleon.plugins.macros.translate.service.url.page
+#		  kmeleon.plugins.macros.translate.service.url.text
+#		  kmeleon.plugins.macros.translate.service.regions
+#		  kmeleon.plugins.macros.translate.menu.regions
+#
+# ------------------------------------------------------------------------------------------------------------------
+
+Translate_From{
+macroinfo=_("Translate from the specified language");
+# Get the index of the <from>:
+#$__i=index($_Translate_pair,getpref(STRING,$_Translate_pref_to).":");
+# Remove the leading <from>: and everything in front of it:
+#$__s=substr($_Translate_pair,$__i+length(getpref(STRING,$_Translate_pref_to))+1);
+# Remove the trailing ; and everything behind it:
+#$__t=substr($__s,0,index($__s,";"));
+# Does the remaining string contain the <to>?
+#index($__t,$ARG);
+# Set $__i into $__s, $__s into $__t, $__t into index():
+menugrayed=getpref(STRING,$_Translate_pref_to)==$ARG?true:length($_Translate_pair)*index(substr(substr($_Translate_pair,index($_Translate_pair,getpref(STRING,$_Translate_pref_to).":")+length(getpref(STRING,$_Translate_pref_to))+1),0,index(substr($_Translate_pair,index($_Translate_pair,getpref(STRING,$_Translate_pref_to).":")+length(getpref(STRING,$_Translate_pref_to))+1),";")),$ARG)<0;
+$_from=$ARG; $ARG==""?0:&_Translate;
+}
+Translate_To{
+macroinfo=_("Translate to the specified language");
+menuchecked=getpref(STRING,$_Translate_pref_to)==$ARG;
+$ARG==""?0:setpref(STRING,$_Translate_pref_to,$ARG);
+}
+
+Translate_ToggleRegion{
+macroinfo=_("Show languages from the specified region in the translation menu or not");
+menuchecked=substr(getpref(STRING,$_Translate_pref_menu),$ARG,1)=="1";
+menugrayed=substr(getpref(STRING,$_Translate_pref_regn),$ARG,1)=="0";
+$__p=getpref(STRING,$_Translate_pref_menu);
+$__b=$ARG==0?"":substr($__p,0,$ARG);
+$__v=substr($__p,$ARG,1)=="1"?"0":"1";
+$__e=$ARG==6?"":substr($__p,$ARG+1);
+setpref(STRING,$_Translate_pref_menu,$__b.$__v.$__e); macros($_Translate_ClearMenu_Macro); &_Translate_BuildMenu2;
+}
+
+# ----- PRIVATE
+
+$_Translate_pref=$macroPrefBranch."translate.";
+$_Translate_pref_to=$_Translate_pref."to";
+$_Translate_pref_pair=$_Translate_pref."service.langpairs";
+$_Translate_pref_srvc=$_Translate_pref."service.name";
+$_Translate_pref_page=$_Translate_pref."service.url.page";
+$_Translate_pref_text=$_Translate_pref."service.url.text";
+$_Translate_pref_regn=$_Translate_pref."service.regions";
+$_Translate_pref_menu=$_Translate_pref."menu.regions";
+
+$_Translate_pair=getpref(STRING,$_Translate_pref_pair);
+
+_Translate{
+$_to=getpref(STRING,$_Translate_pref_to); $OpenURL=$SelectedText; $OpenURL==""?&_Translate_page:&_Translate_text;
+}
+_Translate_text{
+$OpenURL=sub("<txt>",urlencode($OpenURL),gsub("<from>",$_from,gsub("<to>",$_to,getpref(STRING,$_Translate_pref_text)))); &OpenURL_Selected;
+}
+_Translate_page{
+$OpenURL=sub("<url>",urlencode($URL),gsub("<from>",$_from,gsub("<to>",$_to,getpref(STRING,$_Translate_pref_page))));
+index($URL,"http://")==0?&OpenURL_Typed:alert(_("Sorry, local and secure pages cannot be translated!"),gsub("&","",_(getpref(STRING,$_Translate_pref_srvc))),INFO);
+}
+
+_Translate_SetDefaults{
+# Set English as default target language
+getpref(STRING,$_Translate_pref_to)?0:setpref(STRING,$_Translate_pref_to,en);
+# Set Babel Fish as default service
+getpref(STRING,$_Translate_pref_srvc)?0:&_Translate_BabelFish_SetDefaults;
+getpref(STRING,$_Translate_pref_menu)?0:setpref(STRING,$_Translate_pref_menu,1111111);
+}
+$OnInit=$OnInit."_Translate_SetDefaults;";
+
+$_Translate_macro_from="Translate_From(";
+$_Translate_macro_to="Translate_To(";
+
+$_Translate_BuildMenu_Macro="";
+$_Translate_ClearMenu_Macro="";
+$_Translate_Services="";
+
+_Translate_BuildMenu{
+# tools menu
+$__s="&Translation"; $__t="&Languages";
+setmenu(WebServices,popup,$__s);
+setmenu($__s,inline,_Translation_From);
+setmenu($__s,separator,-1);
+setmenu($__s,popup,"&To");
+setmenu("&To",inline,_Translation_To);
+setmenu($__s,separator,-1);
+setmenu($__s,popup,"&Using");
+setmenu("&Using",inline,_Translation_Services);
+setmenu("&Using",separator,-1);
+setmenu("&Using",popup,$__t);
+setmenu($__t,macro,"&West European","Translate_ToggleRegion(0)");
+setmenu($__t,macro,"&North European","Translate_ToggleRegion(1)");
+setmenu($__t,macro,"E&ast European","Translate_ToggleRegion(2)");
+setmenu($__t,macro,"S&outh European","Translate_ToggleRegion(3)");
+setmenu($__t,macro,"&East Asian","Translate_ToggleRegion(4)");
+setmenu($__t,macro,"&SE And SW Asian","Translate_ToggleRegion(5)");
+setmenu($__t,macro,"&Middle Eastern","Translate_ToggleRegion(6)");
+&_Translate_BuildMenu2; macros($_Translate_Services);
+# context menus
+setmenu(Selection,popup,$__s);
+}
+_Translate_BuildMenu2{
+# tools menu
+$__t=_Translation_From;
+setmenu($__t,inline,_Translation_From_Autodetect);
+setmenu($__t,inline,_Translation_From_English);
+setmenu($__t,inline,_Translation_From_Europe_West);
+setmenu($__t,inline,_Translation_From_Europe_North);
+setmenu($__t,inline,_Translation_From_Europe_East);
+setmenu($__t,inline,_Translation_From_Europe_South);
+setmenu($__t,inline,_Translation_From_Asia_East);
+setmenu($__t,inline,_Translation_From_Asia_South);
+setmenu($__t,inline,_Translation_From_Middle_East);
+$__t=_Translation_To;
+setmenu($__t,inline,_Translation_To_English);
+setmenu($__t,inline,_Translation_To_Europe_West);
+setmenu($__t,inline,_Translation_To_Europe_North);
+setmenu($__t,inline,_Translation_To_Europe_East);
+setmenu($__t,inline,_Translation_To_Europe_South);
+setmenu($__t,inline,_Translation_To_Asia_East);
+setmenu($__t,inline,_Translation_To_Asia_South);
+setmenu($__t,inline,_Translation_To_Middle_East);
+setmenu($__t,inline,_Translation_Using);
+macros($_Translate_BuildMenu_Macro);
+rebuildmenu(_Translation_From_Autodetect);
+rebuildmenu(_Translation_From_English);
+rebuildmenu(_Translation_From_Europe_West);
+rebuildmenu(_Translation_From_Europe_North);
+rebuildmenu(_Translation_From_Europe_East);
+rebuildmenu(_Translation_From_Europe_South);
+rebuildmenu(_Translation_From_Asia_East);
+rebuildmenu(_Translation_From_Asia_South);
+rebuildmenu(_Translation_From_Middle_East);
+rebuildmenu(_Translation_To_English);
+rebuildmenu(_Translation_To_Europe_West);
+rebuildmenu(_Translation_To_Europe_North);
+rebuildmenu(_Translation_To_Europe_East);
+rebuildmenu(_Translation_To_Europe_South);
+rebuildmenu(_Translation_To_Asia_East);
+rebuildmenu(_Translation_To_Asia_South);
+rebuildmenu(_Translation_To_Middle_East);
+rebuildmenu(_Translation_Using);
+}
+$OnInit=$OnInit."_Translate_BuildMenu;";
+
+# ------------------------------------------------------------------------------------------------------------------
+$macroModules=$macroModules."Translate;";
+
+
+# ---------- Babel Fish Translation --------------------------------------------------------------------------------
+#
+# Dependencies	: translate.kmm
+# Resources	: -
+# Preferences	: -
+#
+# ------------------------------------------------------------------------------------------------------------------
+
+Translate_BabelFish{
+macroinfo=_("Use Babel Fish Translation");
+menuchecked=getpref(STRING,$_Translate_pref_srvc)==$_Translate_BabelFish;
+macros($_Translate_ClearMenu_Macro); &_Translate_BabelFish_SetDefaults; &_Translate_BuildMenu2;
+}
+
+# ----- PRIVATE
+
+$_Translate_BabelFish="&Babel Fish Translation";
+
+_Translate_BabelFish_SetDefaults{
+setpref(STRING,$_Translate_pref_pair,"zh:en;zt:en;en:zh,zt,nl,fr,de,el,it,ja,ko,pt,ru,es;nl:en,fr;fr:en,de,el,it,pt,nl,es;de:en,fr;el:en,fr;it:en,fr;ja:en;ko:en;pt:en,fr;ru:en;es:en,fr;");
+setpref(STRING,$_Translate_pref_srvc,$_Translate_BabelFish);
+setpref(STRING,$_Translate_pref_page,"http://babelfish.altavista.com/babelfish/trurl_pagecontent?lp=<from>_<to>&url=<url>");
+setpref(STRING,$_Translate_pref_text,"http://babelfish.altavista.com/babelfish/tr?lp=<from>_<to>&urltext=<txt>");
+setpref(STRING,$_Translate_pref_regn,1011100);
+$_Translate_pair=getpref(STRING,$_Translate_pref_pair);
+$_Translate_BuildMenu_Macro="_Translate_BabelFish_BuildMenu;";
+$_Translate_ClearMenu_Macro="_Translate_BabelFish_ClearMenu;";
+}
+
+_Translate_BabelFish_BuildMenu{
+$_Translate_ClearMenu_Macro="_Translate_BabelFish_ClearMenu;";
+$__m=$_Translate_macro_from;
+setmenu(_Translation_From_English,macro,"From &English",$__m."en)");
+$__i=0; while($__i<7) {
+	$__b=(substr(getpref(STRING,$_Translate_pref_menu),$__i,1)=="1")*(substr(getpref(STRING,$_Translate_pref_regn),$__i,1)=="1");
+	$__b>0?macros("_Translate_BabelFish_BuildMenu1".$__i):0;
+	$__i=$__i+1;
+	}
+$__m=$_Translate_macro_to;
+setmenu(_Translation_To_English,macro,"&English",$__m."en)");
+$__i=0; while($__i<7) {
+	$__b=(substr(getpref(STRING,$_Translate_pref_menu),$__i,1)=="1")*(substr(getpref(STRING,$_Translate_pref_regn),$__i,1)=="1");
+	$__b>0?macros("_Translate_BabelFish_BuildMenu2".$__i):0;
+	$__i=$__i+1;
+	}
+}
+$_Translate_BuildMenu_Macro=getpref(STRING,$_Translate_pref_srvc)==$_Translate_BabelFish?"_Translate_BabelFish_BuildMenu;":$_Translate_BuildMenu_Macro;
+
+_Translate_BabelFish_BuildMenu10{
+$__t=_Translation_From_Europe_West;
+setmenu($__t,macro,"From &Spanish",$__m."es)");
+setmenu($__t,macro,"From &Portuguese",$__m."pt)");
+setmenu($__t,macro,"From &French",$__m."fr)");
+setmenu($__t,macro,"From &German",$__m."de)");
+setmenu($__t,macro,"From &Dutch",$__m."nl)");
+}
+_Translate_BabelFish_BuildMenu11{
+}
+_Translate_BabelFish_BuildMenu12{
+$__t=_Translation_From_Europe_East;
+setmenu($__t,macro,"From &Russian",$__m."ru)");
+}
+_Translate_BabelFish_BuildMenu13{
+$__t=_Translation_From_Europe_South;
+setmenu($__t,macro,"From &Italian",$__m."it)");
+setmenu($__t,macro,"From Gr&eek",$__m."el)");
+}
+_Translate_BabelFish_BuildMenu14{
+$__t=_Translation_From_Asia_East;
+setmenu($__t,macro,"From Chi&nese (Simplified)",$__m."zh)");
+setmenu($__t,macro,"From &Chinese (Traditional)",$__m."zt)");
+setmenu($__t,macro,"From &Korean",$__m."ko)");
+setmenu($__t,macro,"From &Japanese",$__m."ja)");
+}
+_Translate_BabelFish_BuildMenu15{
+}
+_Translate_BabelFish_BuildMenu16{
+}
+
+_Translate_BabelFish_BuildMenu20{
+$__t=_Translation_To_Europe_West;
+setmenu($__t,macro,"&Spanish",$__m."es)");
+setmenu($__t,macro,"&Portuguese",$__m."pt)");
+setmenu($__t,macro,"&French",$__m."fr)");
+setmenu($__t,macro,"&German",$__m."de)");
+setmenu($__t,macro,"&Dutch",$__m."nl)");
+}
+_Translate_BabelFish_BuildMenu21{
+}
+_Translate_BabelFish_BuildMenu22{
+$__t=_Translation_To_Europe_East;
+setmenu($__t,macro,"&Russian",$__m."ru)");
+}
+_Translate_BabelFish_BuildMenu23{
+$__t=_Translation_To_Europe_South;
+setmenu($__t,macro,"&Italian",$__m."it)");
+setmenu($__t,macro,"Gr&eek",$__m."el)");
+}
+_Translate_BabelFish_BuildMenu24{
+$__t=_Translation_To_Asia_East;
+setmenu($__t,macro,"Chi&nese (Simplified)",$__m."zh)");
+setmenu($__t,macro,"&Chinese (Traditional)",$__m."zt)");
+setmenu($__t,macro,"&Korean",$__m."ko)");
+setmenu($__t,macro,"&Japanese",$__m."ja)");
+}
+_Translate_BabelFish_BuildMenu25{
+}
+_Translate_BabelFish_BuildMenu26{
+}
+
+_Translate_BabelFish_ClearMenu{
+$__m=$_Translate_macro_from;
+setmenu(_Translation_From_English,macro,"",$__m."en)");
+$__t=_Translation_From_Europe_West;
+setmenu($__t,macro,"",$__m."es)");
+setmenu($__t,macro,"",$__m."pt)");
+setmenu($__t,macro,"",$__m."fr)");
+setmenu($__t,macro,"",$__m."de)");
+setmenu($__t,macro,"",$__m."nl)");
+$__t=_Translation_From_Europe_East;
+setmenu($__t,macro,"",$__m."ru)");
+$__t=_Translation_From_Europe_South;
+setmenu($__t,macro,"",$__m."it)");
+setmenu($__t,macro,"",$__m."el)");
+$__t=_Translation_From_Asia_East;
+setmenu($__t,macro,"",$__m."zh)");
+setmenu($__t,macro,"",$__m."zt)");
+setmenu($__t,macro,"",$__m."ko)");
+setmenu($__t,macro,"",$__m."ja)");
+$__m=$_Translate_macro_to;
+setmenu(_Translation_To_English,macro,"",$__m."en)");
+$__t=_Translation_To_Europe_West;
+setmenu($__t,macro,"",$__m."es)");
+setmenu($__t,macro,"",$__m."pt)");
+setmenu($__t,macro,"",$__m."fr)");
+setmenu($__t,macro,"",$__m."de)");
+setmenu($__t,macro,"",$__m."nl)");
+$__t=_Translation_To_Europe_East;
+setmenu($__t,macro,"",$__m."ru)");
+$__t=_Translation_To_Europe_South;
+setmenu($__t,macro,"",$__m."it)");
+setmenu($__t,macro,"",$__m."el)");
+$__t=_Translation_To_Asia_East;
+setmenu($__t,macro,"",$__m."zh)");
+setmenu($__t,macro,"",$__m."zt)");
+setmenu($__t,macro,"",$__m."ko)");
+setmenu($__t,macro,"",$__m."ja)");
+}
+$_Translate_ClearMenu_Macro=getpref(STRING,$_Translate_pref_srvc)==$_Translate_BabelFish?"_Translate_BabelFish_ClearMenu;":$_Translate_ClearMenu_Macro;
+
+# Add Babel Fish to the list of translation services
+_Translate_BabelFish_BuildMenu_Service{
+setmenu(_Translation_Services,macro,$_Translate_BabelFish,Translate_BabelFish);
+}
+$_Translate_Services=$_Translate_Services."_Translate_BabelFish_BuildMenu_Service;";
+
+
+# ---------- Google Translate --------------------------------------------------------------------------------------
+#
+# Dependencies	: translate.kmm
+# Resources	: -
+# Preferences	: -
+#
+# ------------------------------------------------------------------------------------------------------------------
+
+Translate_Google{
+macroinfo=_("Use Google Translate");
+menuchecked=getpref(STRING,$_Translate_pref_srvc)==$_Translate_Google;
+macros($_Translate_ClearMenu_Macro); &_Translate_Google_SetDefaults; &_Translate_BuildMenu2;
+}
+
+# ----- PRIVATE
+
+$_Translate_Google="&Google Translate";
+
+_Translate_Google_SetDefaults{
+setpref(STRING,$_Translate_pref_pair,"");
+setpref(STRING,$_Translate_pref_srvc,$_Translate_Google);
+setpref(STRING,$_Translate_pref_page,"http://translate.google.com/translate?u=<url>&hl=<to>&ie=UTF8&sl=<from>&tl=<to>");
+setpref(STRING,$_Translate_pref_text,"http://translate.google.com/translate_t?langpair=<from>|<to>&text=<txt>");
+setpref(STRING,$_Translate_pref_regn,1111111);
+$_Translate_pair=getpref(STRING,$_Translate_pref_pair);
+$_Translate_BuildMenu_Macro="_Translate_Google_BuildMenu;";
+$_Translate_ClearMenu_Macro="_Translate_Google_ClearMenu;";
+}
+
+_Translate_Google_BuildMenu{
+$_Translate_ClearMenu_Macro="_Translate_Google_ClearMenu;";
+$__m=$_Translate_macro_from;
+setmenu(_Translation_From_Autodetect,macro,"From (Detect &Language)",$__m."auto)");
+setmenu(_Translation_From_English,macro,"From &English",$__m."en)");
+$__i=0; while($__i<7) {
+	$__b=(substr(getpref(STRING,$_Translate_pref_menu),$__i,1)=="1")*(substr(getpref(STRING,$_Translate_pref_regn),$__i,1)=="1");
+	$__b>0?macros("_Translate_Google_BuildMenu1".$__i):0;
+	$__i=$__i+1;
+	}
+$__m=$_Translate_macro_to;
+setmenu(_Translation_To_English,macro,"&English",$__m."en)");
+$__i=0; while($__i<7) {
+	$__b=(substr(getpref(STRING,$_Translate_pref_menu),$__i,1)=="1")*(substr(getpref(STRING,$_Translate_pref_regn),$__i,1)=="1");
+	$__b>0?macros("_Translate_Google_BuildMenu2".$__i):0;
+	$__i=$__i+1;
+	}
+}
+$_Translate_BuildMenu_Macro=getpref(STRING,$_Translate_pref_srvc)==$_Translate_Google?"_Translate_Google_BuildMenu;":$_Translate_BuildMenu_Macro;
+
+_Translate_Google_BuildMenu10{
+$__t=_Translation_From_Europe_West;
+setmenu($__t,macro,"From &Spanish",$__m."es)");
+setmenu($__t,macro,"From &Portuguese",$__m."pt)");
+setmenu($__t,macro,"From &French",$__m."fr)");
+setmenu($__t,macro,"From &German",$__m."de)");
+setmenu($__t,macro,"From &Dutch",$__m."nl)");
+}
+_Translate_Google_BuildMenu11{
+$__t=_Translation_From_Europe_North;
+setmenu($__t,macro,"From Da&nish",$__m."da)");
+setmenu($__t,macro,"From S&wedish",$__m."sv)");
+setmenu($__t,macro,"From Fi&nnish",$__m."fi)");
+setmenu($__t,macro,"From &Norwegian",$__m."no)");
+}
+_Translate_Google_BuildMenu12{
+$__t=_Translation_From_Europe_East;
+setmenu($__t,macro,"From &Russian",$__m."ru)");
+setmenu($__t,macro,"From P&olish",$__m."pl)");
+setmenu($__t,macro,"From C&zech",$__m."cs)");
+}
+_Translate_Google_BuildMenu13{
+$__t=_Translation_From_Europe_South;
+setmenu($__t,macro,"From &Italian",$__m."it)");
+setmenu($__t,macro,"From Cro&atian",$__m."hr)");
+setmenu($__t,macro,"From Ro&manian",$__m."ro)");
+setmenu($__t,macro,"From &Bulgarian",$__m."bg)");
+setmenu($__t,macro,"From Gr&eek",$__m."el)");
+}
+_Translate_Google_BuildMenu14{
+$__t=_Translation_From_Asia_East;
+setmenu($__t,macro,"From Chi&nese (Simplified)",$__m."zh-CN)");
+setmenu($__t,macro,"From &Chinese (Traditional)",$__m."zh-TW)");
+setmenu($__t,macro,"From &Korean",$__m."ko)");
+setmenu($__t,macro,"From &Japanese",$__m."ja)");
+}
+_Translate_Google_BuildMenu15{
+$__t=_Translation_From_Asia_South;
+setmenu($__t,macro,"From &Hindi",$__m."hi)");
+}
+_Translate_Google_BuildMenu16{
+$__t=_Translation_From_Middle_East;
+setmenu($__t,macro,"From &Arabic",$__m."ar)");
+}
+
+_Translate_Google_BuildMenu20{
+$__t=_Translation_To_Europe_West;
+setmenu($__t,macro,"&Spanish",$__m."es)");
+setmenu($__t,macro,"&Portuguese",$__m."pt)");
+setmenu($__t,macro,"&French",$__m."fr)");
+setmenu($__t,macro,"&German",$__m."de)");
+setmenu($__t,macro,"&Dutch",$__m."nl)");
+}
+_Translate_Google_BuildMenu21{
+$__t=_Translation_To_Europe_North;
+setmenu($__t,macro,"Da&nish",$__m."da)");
+setmenu($__t,macro,"S&wedish",$__m."sv)");
+setmenu($__t,macro,"Fi&nnish",$__m."fi)");
+setmenu($__t,macro,"&Norwegian",$__m."no)");
+}
+_Translate_Google_BuildMenu22{
+$__t=_Translation_To_Europe_East;
+setmenu($__t,macro,"&Russian",$__m."ru)");
+setmenu($__t,macro,"P&olish",$__m."pl)");
+setmenu($__t,macro,"C&zech",$__m."cs)");
+}
+_Translate_Google_BuildMenu23{
+$__t=_Translation_To_Europe_South;
+setmenu($__t,macro,"&Italian",$__m."it)");
+setmenu($__t,macro,"Cro&atian",$__m."hr)");
+setmenu($__t,macro,"Ro&manian",$__m."ro)");
+setmenu($__t,macro,"&Bulgarian",$__m."bg)");
+setmenu($__t,macro,"Gr&eek",$__m."el)");
+}
+_Translate_Google_BuildMenu24{
+$__t=_Translation_To_Asia_East;
+setmenu($__t,macro,"Chi&nese (Simplified)",$__m."zh-CN)");
+setmenu($__t,macro,"&Chinese (Traditional)",$__m."zh-TW)");
+setmenu($__t,macro,"&Korean",$__m."ko)");
+setmenu($__t,macro,"&Japanese",$__m."ja)");
+}
+_Translate_Google_BuildMenu25{
+$__t=_Translation_To_Asia_South;
+setmenu($__t,macro,"&Hindi",$__m."hi)");
+}
+_Translate_Google_BuildMenu26{
+$__t=_Translation_To_Middle_East;
+setmenu($__t,macro,"&Arabic",$__m."ar)");
+}
+
+_Translate_Google_ClearMenu{
+$__m=$_Translate_macro_from;
+setmenu(_Translation_From_Autodetect,macro,"",$__m."auto)");
+setmenu(_Translation_From_English,macro,"",$__m."en)");
+$__t=_Translation_From_Europe_West;
+setmenu($__t,macro,"",$__m."es)");
+setmenu($__t,macro,"",$__m."pt)");
+setmenu($__t,macro,"",$__m."fr)");
+setmenu($__t,macro,"",$__m."de)");
+setmenu($__t,macro,"",$__m."nl)");
+$__t=_Translation_From_Europe_North;
+setmenu($__t,macro,"",$__m."da)");
+setmenu($__t,macro,"",$__m."sv)");
+setmenu($__t,macro,"",$__m."fi)");
+setmenu($__t,macro,"",$__m."no)");
+$__t=_Translation_From_Europe_East;
+setmenu($__t,macro,"",$__m."ru)");
+setmenu($__t,macro,"",$__m."pl)");
+setmenu($__t,macro,"",$__m."cs)");
+$__t=_Translation_From_Europe_South;
+setmenu($__t,macro,"",$__m."it)");
+setmenu($__t,macro,"",$__m."hr)");
+setmenu($__t,macro,"",$__m."ro)");
+setmenu($__t,macro,"",$__m."bg)");
+setmenu($__t,macro,"",$__m."el)");
+$__t=_Translation_From_Asia_East;
+setmenu($__t,macro,"",$__m."zh-CN)");
+setmenu($__t,macro,"",$__m."zh-TW)");
+setmenu($__t,macro,"",$__m."ko)");
+setmenu($__t,macro,"",$__m."ja)");
+$__t=_Translation_From_Asia_South;
+setmenu($__t,macro,"",$__m."hi)");
+$__t=_Translation_From_Middle_East;
+setmenu($__t,macro,"",$__m."ar)");
+$__m=$_Translate_macro_to;
+setmenu(_Translation_To_English,macro,"",$__m."en)");
+$__t=_Translation_To_Europe_West;
+setmenu($__t,macro,"",$__m."es)");
+setmenu($__t,macro,"",$__m."pt)");
+setmenu($__t,macro,"",$__m."fr)");
+setmenu($__t,macro,"",$__m."de)");
+setmenu($__t,macro,"",$__m."nl)");
+$__t=_Translation_To_Europe_North;
+setmenu($__t,macro,"",$__m."da)");
+setmenu($__t,macro,"",$__m."sv)");
+setmenu($__t,macro,"",$__m."fi)");
+setmenu($__t,macro,"",$__m."no)");
+$__t=_Translation_To_Europe_East;
+setmenu($__t,macro,"",$__m."ru)");
+setmenu($__t,macro,"",$__m."pl)");
+setmenu($__t,macro,"",$__m."cs)");
+$__t=_Translation_To_Europe_South;
+setmenu($__t,macro,"",$__m."it)");
+setmenu($__t,macro,"",$__m."hr)");
+setmenu($__t,macro,"",$__m."ro)");
+setmenu($__t,macro,"",$__m."bg)");
+setmenu($__t,macro,"",$__m."el)");
+$__t=_Translation_To_Asia_East;
+setmenu($__t,macro,"",$__m."zh-CN)");
+setmenu($__t,macro,"",$__m."zh-TW)");
+setmenu($__t,macro,"",$__m."ko)");
+setmenu($__t,macro,"",$__m."ja)");
+$__t=_Translation_To_Asia_South;
+setmenu($__t,macro,"",$__m."hi)");
+$__t=_Translation_To_Middle_East;
+setmenu($__t,macro,"",$__m."ar)");
+}
+$_Translate_ClearMenu_Macro=getpref(STRING,$_Translate_pref_srvc)==$_Translate_Google?"_Translate_Google_ClearMenu;":$_Translate_ClearMenu_Macro;
+
+# Add Google to the list of translation services
+_Translate_Google_BuildMenu_Service{
+setmenu(_Translation_Services,macro,$_Translate_Google,Translate_Google);
+}
+$_Translate_Services=$_Translate_Services."_Translate_Google_BuildMenu_Service;";
+
+# ------------------------------------------------------------------------------------------------------------------

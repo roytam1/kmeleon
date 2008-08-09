@@ -1,0 +1,75 @@
+<?xml version="1.0"?>
+<!DOCTYPE overlay SYSTEM "chrome://kmprefs/locale/kplugins/fullscreen.dtd">
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+<script type="application/x-javascript">
+<![CDATA[
+var kFullscreen = {
+
+_base: null,
+_pref: null,
+_bndl: null,
+
+load : null,
+name : "fullscreen",
+init : function() {
+	if(kPlugin.absent(this.name)) {
+		this.load   = false;
+		var node = document.getElementById("kFullscreenDisplay").parentNode;
+		try {
+			node.parentNode.removeChild(node);
+		} catch(e) {}
+		node = document.getElementById("kFullscreenTab");
+		try {
+			node.parentNode.removeChild(node);
+		} catch(e) {}
+	} else {
+		this.load   = kPlugin.load(this.name);
+		this._bndl  = document.getElementById("kFullscreenBundle");
+		this._base  = "kmeleon.plugins."+this.name+".";
+		this._pref  = new Array("load",
+					"hide_rebar",
+					"hide_statusbar",
+					"hide_taskbar");
+		this._setControls();
+		this._setLabel();
+		for(var j=0;j<this._pref.length;j++) initCheckbox(this._base+this._pref[j]);
+	}
+},
+toggle: function() {
+	toggleCheckbox(this._base+this._pref[0]);
+	this.load = !this.load;
+	this._setControls();
+},
+_setControls: function() {
+	for(var j=1;j<this._pref.length;j++)
+		document.getElementById(this._base+this._pref[j]).disabled = !this.load;
+},
+_setLabel: function() {
+	if(!kPlugin.absent(this.name))
+		document.getElementById(this._base+this._pref[1]).label = this._bndl.getString("hide_toolbars").replace(/%S/,kPlugin.load("rebarmenu")?this._bndl.getString("menu_bar_too"):this._bndl.getString("not_menu_bar"));
+}
+
+};
+//addEventListener("load",kFullscreen.init,true);
+]]>
+</script>
+
+<vbox id="kFullscreenDisplay">
+  <stringbundle id="kFullscreenBundle" src="chrome://kmprefs/locale/kplugins/fullscreen.properties"/>
+  <separator class="thin"/>
+  <checkbox oncommand="kFullscreen.toggle()" id="kmeleon.plugins.fullscreen.load" label="&fullscreen.enable;"/>
+  <separator class="thin"/>
+  <groupbox>
+    <caption><label>&fullscreen.mode;</label></caption>
+    <separator class="thin"/>
+    <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.plugins.fullscreen.hide_rebar"/>
+    <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.plugins.fullscreen.hide_statusbar" label="&fullscreen.status;"/>
+    <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.plugins.fullscreen.hide_taskbar" label="&fullscreen.taskbar;"/>
+    <separator class="thin"/>
+  </groupbox>
+</vbox>
+
+<tab id="kFullscreenTab" label="&fullscreen.label;"/>
+
+</overlay>

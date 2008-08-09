@@ -1,0 +1,292 @@
+# K-Meleon Macros (http://kmeleon.sourceforge.net/wiki/index.php?id=MacroLanguage)
+
+# ---------- Groups ------------------------------------------------------------------------------------------------
+#
+# Dependencies	: main.kmm ($kBookmarks/$kHotlist/$kLayers, OpenURL)
+# Resources	: -
+# Preferences	: kmeleon.plugins.macros.groups.crash
+#		  kmeleon.plugins.macros.groups.last
+#		  kmeleon.plugins.macros.groups.startup
+#		  kmeleon.plugins.macros.groups.temp
+#		  kmeleon.plugins.macros.groups.user
+#		  kmeleon.plugins.macros.groups.user.<groupname>
+#
+# ------------------------------------------------------------------------------------------------------------------
+
+# ----- Opening Groups
+
+Groups_OpenGroup{
+$_Group=$ARG; $_Group==""?$_Group=$URLBAR:0; $_Group==""?$_Group=$URL:0; &_Groups_DlgSet;
+$_Group==$URL?$_Group=prompt($_Groups_DlgTip,$_Groups_DlgTitOpen,""):0;
+$_data=$_Group==""?"":getpref(STRING,$_Groups_UserPrefBranch.$_Group);
+$_Group==""?0:($_data==""?&_Groups_OpenFolder:&_Groups_OpenGroup);
+}
+Groups_OpenGroupStartup{
+$Home=Groups_OpenGroupStartup;
+$__t=getpref(STRING,$_Groups_Startup);
+$__t=="last"?&Groups_OpenLastSession:$URLBAR=sub($_Groups_User,"",$__t);
+$__t=="last"?0:&Groups_OpenGroup;
+}
+Groups_OpenLastSession{
+$_data=getpref(STRING,$_Groups_Last);
+$_data==""?0:&_Groups_OpenGroup;
+}
+
+# PRIVATE
+_Groups_OpenFolder{
+$kLayers==true?(((pluginmsgex(layers,NumberOfLayersInWindow,"",INT)==1)*(($URL=="about:blank")+($URL=="")))==1?&_Groups_OpenGroup_LayersReplace:&_Groups_OpenGroup_LayersAdd):($URL=="about:blank"?&_Groups_OpenGroup_WindowsReplace:&_Groups_OpenGroup_WindowsAdd);
+$__data=""; index($_Group,$_Groups_User)==0?$_Group=sub($_Groups_User,"",$_Group):0; $OpenURL=$_Group;
+$kBookmarks==true?$__data=$__data.pluginmsgex(bookmarks,FindNick,$_Group,STRING):0;
+$kHotlist==true?$__data=$__data.pluginmsgex(hotlist,FindNick,$_Group,STRING):0;
+$__data==""?alert(sub("%s",$_Group,$_Groups_DlgMsg),$_Groups_DlgTitOpen):&OpenURL_Typed;
+}
+
+$_Groups_OpenCmd="";
+_Groups_OpenGroup{
+$kLayers==true?(((pluginmsgex(layers,NumberOfLayersInWindow,"",INT)==1)*(($URL=="about:blank")+($URL=="")))==1?&_Groups_OpenGroup_LayersReplace:&_Groups_OpenGroup_LayersAdd):($URL=="about:blank"?&_Groups_OpenGroup_WindowsReplace:&_Groups_OpenGroup_WindowsAdd);
+$_Groups_OpenGroup_data=$kLayers==true?"":$_data;
+$_Groups_OpenGroup_init=true;
+$kLayers==true?pluginmsg(layers,$_Groups_OpenCmd,$_data):&_Groups_OpenGroup_Windows;
+}
+
+$_Groups_OpenGroup_init=false;
+$_Groups_OpenGroup_data="";
+_Groups_OpenGroup_Windows{
+$__i=$_Groups_OpenGroup_data==""?0:index($_Groups_OpenGroup_data,"\t");
+$__u=$_Groups_OpenGroup_data==""?"":substr($_Groups_OpenGroup_data,0,$__i);
+$__u==""?0:$_Groups_OpenGroup_init==true?($URL=="about:blank"?open($__u):opennew($__u)):openbg($__u);
+$__u==""?0:$_Groups_OpenGroup_init=false;
+$__u==""?0:$_Groups_OpenGroup_data=sub($__u."\t","",$_Groups_OpenGroup_data);
+$__u==""?0:&_Groups_OpenGroup_Windows;
+}
+
+$_Groups_OpenHow="kmeleon.general.opengroup";
+_Groups_OpenGroup_LayersAdd{
+$_Groups_OpenCmd==""?&_Groups_OpenGroup_LayersReplace:$_Groups_OpenCmd="AddLayersToWindow";
+setpref(STRING,$_Groups_OpenHow,"layers(".$_Groups_OpenCmd.")");
+}
+_Groups_OpenGroup_LayersReplace{
+$_Groups_OpenCmd="ReplaceLayersInWindow";
+setpref(STRING,$_Groups_OpenHow,"layers(".$_Groups_OpenCmd.")");
+}
+_Groups_OpenGroup_WindowsAdd{
+$_Groups_OpenCmd==""?&_Groups_OpenGroup_WindowsReplace:$_Groups_OpenCmd="ID_OPEN_LINK_IN_NEW_WINDOW|ID_OPEN_LINK_IN_BACKGROUND";
+setpref(STRING,$_Groups_OpenHow,$_Groups_OpenCmd);
+}
+_Groups_OpenGroup_WindowsReplace{
+$_Groups_OpenCmd="ID_OPEN_LINK|ID_OPEN_LINK_IN_BACKGROUND";
+setpref(STRING,$_Groups_OpenHow,$_Groups_OpenCmd);
+}
+
+# ----- Editing Groups
+
+Groups_AddPage{
+$_tit=_("Add To Group");
+$_group=prompt(_("Enter group name to add this page to:"),$_tit,""); $__data=getpref(STRING,$_Groups_UserPrefBranch.$_group);
+$_group==""?0:setpref(STRING,$_Groups_UserPrefBranch.$_group,$__data.$URL."\t");
+&_Groups_Add;
+}
+Groups_AddLink{
+$_tit=_("Add To Group");
+$_group=prompt(_("Enter group name to add this link to:"),$_tit,""); $__data=getpref(STRING,$_Groups_UserPrefBranch.$_group);
+$_group==""?0:setpref(STRING,$_Groups_UserPrefBranch.$_group,$__data.$LinkURL."\t");
+&_Groups_Add;
+}
+Groups_AddAllToGroup{
+$_tit=_("Add To Group");
+$_group=prompt(_("Enter group name to add these layers to:"),$_tit,""); $__data=getpref(STRING,$_Groups_UserPrefBranch.$_group);
+$_group==""?0:setpref(STRING,$_Groups_UserPrefBranch.$_group,$__data.pluginmsgex(layers,GetLayersInWindow,"",STRING));
+&_Groups_Add;
+}
+Groups_Delete{
+menugrayed=(getpref(STRING,$_Groups_Pref)=="");
+$_tit=_("Delete Group"); $_groups=getpref(STRING,$_Groups_Pref);
+$_group=prompt(_("Enter name of group to delete:"),$_tit,"");
+$_group==""?0:index($_groups,"\n".$_group."\n")>-1?&_Groups_Delete:alert(sub("%s",$_group,_("No group named '%s' found.")),$_tit);
+}
+
+# PRIVATE
+_Groups_Add{
+$__data=getpref(STRING,$_Groups_Pref); $__data==""?$__data="\n":0;
+$_group==""?0:index($__data,"\n".$_group."\n")>-1?0:setpref(STRING,$_Groups_Pref,$__data.$_group."\n");
+&_Groups_BuildGroupsMenu;
+}
+_Groups_SaveClosed{
+$_Groups_Cnt?0:&_Groups_SaveLayersClosed; $_Groups_Cnt?($_Groups_Cnt=$_Groups_Cnt==1?0:$_Groups_Cnt-1):0;
+}
+_Groups_SaveLastSession{
+setpref(STRING,$_Groups_Last,getpref(STRING,$_Groups_Temp));
+}
+_Groups_SaveLayers{
+$kLayers==true?setpref(STRING,$_Groups_Temp,pluginmsgex(layers,GetLayersInWindow,"",STRING)):0;
+}
+_Groups_SaveLayersClosed{
+$__data=$kLayers==true?pluginmsgex(layers,GetLayersInWindow,"",STRING):"";
+$__data==""?0:$__data=sub($URL."\t","",$__data); setpref(STRING,$_Groups_Temp,$__data==""?$URL:$__data);
+}
+_Groups_Delete{
+$_groups=sub("\n".$_group."\n","\n",$_groups); delpref($_Groups_UserPrefBranch.$_group);
+&_Groups_BuildGroupsMenu; length($_groups)==1?delpref($_Groups_Pref):setpref(STRING,$_Groups_Pref,$_groups);
+}
+
+# ----- Startup Actions
+
+Groups_NavHome{
+getpref(STRING,$_Groups_Startup)==""?id(ID_NAV_HOME):&Groups_OpenGroupStartup;
+}
+
+Groups_StartBlank{
+menuchecked=((getpref(STRING,$_Groups_Startup)=="")*(getpref(BOOL,$KM_StartHome)==false));
+setpref(BOOL,$KM_StartHome,false);
+delpref($_Groups_Startup);
+}
+Groups_StartWithHomepage{
+menuchecked=((getpref(STRING,$_Groups_Startup)=="")*(getpref(BOOL,$KM_StartHome)==true));
+$Home=_Home;
+setpref(BOOL,$KM_StartHome,true); delpref($_Groups_Startup);
+}
+Groups_StartWithGroup{
+menuchecked=((getpref(STRING,$_Groups_Startup)!="")*(getpref(STRING,$_Groups_Startup)!="last"));
+$__data=getpref(STRING,$_Groups_Startup); $__data=="last"?$__data="":$__data=sub($_Groups_User,"",$__data); &_Groups_DlgSet;
+$_Group=prompt($_Groups_DlgTip,$_Groups_DlgTitStart,$__data);
+$_Group==""?0:getpref(STRING,$_Groups_UserPrefBranch.$_Group)==""?&_Groups_StartWithFolder:&_Groups_StartWithGroup;
+}
+Groups_StartWithLastSession{
+menuchecked=(getpref(STRING,$_Groups_Startup)=="last");
+setpref(BOOL,$KM_StartHome,false);
+setpref(STRING,$_Groups_Startup,"last");
+}
+
+# PRIVATE
+_Groups_StartWithGroup{
+$Home=Groups_OpenGroupStartup;
+setpref(BOOL,$KM_StartHome,false); setpref(STRING,$_Groups_Startup,$_Groups_User.$_Group);
+}
+_Groups_StartWithFolder{
+$Home=Groups_OpenGroupStartup;
+$__data="";
+$kBookmarks==true?$__data=$__data.pluginmsgex(bookmarks,FindNick,$_Group,STRING):0;
+$kHotlist==true?$__data=$__data.pluginmsgex(hotlist,FindNick,$_Group,STRING):0;
+$__data!=""?setpref(BOOL,$KM_StartHome,false):alert(sub("%s",$_Group,$_Groups_DlgMsg),$_Groups_DlgTitStart);
+$__data!=""?setpref(STRING,$_Groups_Startup,$_Group):0;
+}
+
+# ----- PRIVATE
+
+$_Groups_User="user.";
+$_Groups_Pref=$macroPrefBranch."groups.user";
+$_Groups_PrefBranch=$macroPrefBranch."groups.";
+$_Groups_UserPrefBranch=$_Groups_PrefBranch.$_Groups_User;
+$_Groups_Startup=$_Groups_PrefBranch."startup";
+$_Groups_Crash=$_Groups_PrefBranch."crash";
+$_Groups_Temp=$_Groups_PrefBranch."temp";
+$_Groups_Last=$_Groups_PrefBranch."last";
+$_Groups_Cnt=0;
+
+$_Groups_FoldersAvailable=(($kBookmarks==false)*($kHotlist==false))?false:true;
+
+_Groups_DlgSet{
+$_Groups_DlgMsg=$kLayers==false?_("No folder named '%s' found."):($_Groups_FoldersAvailable==false?_("No group named '%s' found."):_("No group or folder named '%s' found."));
+$_Groups_DlgTip=$kLayers==false?_("Enter folder nick:"):($_Groups_FoldersAvailable==false?_("Enter group name:"):_("Enter group name or folder nick:"));
+$_Groups_DlgTitOpen=$kLayers==false?_("Open Folder"):($_Groups_FoldersAvailable==false?_("Open Group"):_("Open Group Or Folder"));
+$_Groups_DlgTitStart=$kLayers==false?_("Startup Folder"):($_Groups_FoldersAvailable==false?_("Startup Group"):_("Startup Group Or Folder"));
+}
+
+_Groups_Init{
+$kLayers==false?delpref($_Groups_Startup):0;
+$kLayers==false?delpref($_Groups_Temp):0;
+$kLayers==false?delpref($_Groups_Last):0;
+$__crash=getpref(STRING,$_Groups_Last)==getpref(STRING,$_Groups_Temp)?false:true;
+# Avoid interference with the session plugin's session recovery
+$kSessions==true?$__crash=false:0;
+$__crash==true?(confirm(_("K-Meleon wasn't closed properly. Do you want to resume your last browsing session?"),_("Open Group"),YESNO,EXCLAIM)==YES?$__crash=true:$__crash=false):0;
+$__crash==true?&_Groups_Init_IsCrash:&_Groups_Init_NoCrash;
+}
+_Groups_Init_NoCrash{
+$kLayers==true?&_Groups_SaveLastSession:0;
+getpref(STRING,$_Groups_Startup)==""?$_Groups_OpenCmd="_":$OnLoadOnce="Groups_OpenGroupStartup;";
+delpref($_Groups_Crash);
+}
+_Groups_Init_IsCrash{
+getpref(STRING,$_Groups_Crash)==""?setpref(STRING,$_Groups_Crash,getpref(STRING,$_Groups_Temp)):0;
+setpref(STRING,$_Groups_Temp,getpref(STRING,$_Groups_Crash));
+&_Groups_SaveLastSession; $OnLoadOnce="_Groups_Init_Crash;";
+}
+_Groups_Init_Crash{
+&Groups_OpenLastSession; delpref($_Groups_Crash);
+}
+
+# Menu Integration
+_Groups_BuildMenu{
+# file menu
+$kLayers==true?setmenu(OpenSave,macro,"Open &Last Session",Groups_OpenLastSession,ID_FILE_SAVE_AS):0;
+# view menu
+$__m="Ho&me";
+setmenu(_Home_Open,macro,$kLayers==true?"Open &Startup Group":$_Groups_FoldersAvailable==false?"":"Open &Startup Folder",Groups_OpenGroupStartup);
+$kLayers==true?setmenu(_Home_Open,macro,"Open &Last Session",Groups_OpenLastSession):0;
+setmenu(_Home_Start,macro,"Start With Home &Page",Groups_StartWithHomepage,KM_StartWithHomepage);
+setmenu(_Home_Start,macro,"",KM_StartWithHomepage);
+setmenu(_Home_Start,macro,"Start With &Blank Page",Groups_StartBlank,KM_StartBlank);
+setmenu(_Home_Start,macro,"",KM_StartBlank);
+setmenu(_Home_Start,macro,$kLayers==true?"Start With &Group...":$_Groups_FoldersAvailable==false?"":"Start With &Folder...",Groups_StartWithGroup);
+$kLayers==true?setmenu(_Home_Start,macro,"Start With Last S&ession",Groups_StartWithLastSession):0;
+# groups menu
+$_g="&Groups";
+setmenu(Main,popup,$_g,"&Tools");
+$__m="_Groups";
+setmenu($_g,inline,$__m);
+setmenu($__m,macro,"&Add Page To Group...",Groups_AddPage);
+$kLayers==true?setmenu($__m,macro,"Add &Layers To Group...",Groups_AddAllToGroup):0;
+setmenu($__m,macro,"&Delete Group...",Groups_Delete);
+&_Groups_BuildGroupsMenu;
+# context menus
+setmenu(DocumentSave,macro,"Add Page To &Group...",Groups_AddPage,ID_FILE_SAVE_AS);
+setmenu(LinkSave,macro,"Add Link To &Group...",Groups_AddLink,ID_SAVE_LINK_AS);
+}
+_Groups_BuildGroupsMenu{
+$_m="_Groups_List";
+setmenu($_g,inline,$_m);
+$kLayers==true?setmenu($_m,macro,"&Last Session",Groups_OpenLastSession):0;
+$_data=sub("\n","",getpref(STRING,$_Groups_Pref));
+&_Groups_BuildGroupsMenuLoop;
+rebuildmenu($_g);
+}
+_Groups_BuildGroupsMenuLoop{
+$__i=$_data==""?0:index($_data,"\n");
+$__g=$_data==""?"":substr($_data,0,$__i);
+$__g==""?0:$_data=sub($__g."\n","",$_data);
+$__g==""?0:setmenu($_m,macro,getpref(STRING,$_Groups_UserPrefBranch.$__g)==""?"":$__g,"Groups_OpenGroup(".$__g.")");
+$__g==""?0:&_Groups_BuildGroupsMenuLoop;
+}
+_Groups_SetAccels{
+setaccel("CTRL ALT VK_HOME","macros(Groups_NavHome)");
+setaccel("SHIFT VK_RETURN","macros(Groups_OpenGroup)");
+$kLayers==true?setaccel("CTRL ALT L","macros(Groups_OpenLastSession)"):0;
+}
+$OnInit=$OnInit."_Groups_SetAccels;_Groups_BuildMenu;";
+
+# Event Handling
+
+_Groups_OnCloseGroup{
+$_Groups_Cnt=pluginmsgex(layers,NumberOfLayersInWindow,"",INT); &_Groups_SaveLayers;
+}
+_Groups_OnQuit{
+delpref($_Groups_Crash);
+}
+
+# BUG: OnStartup is also fired for each layer/window opened with the first window (startup folder/group)
+$_Groups_IsStartup=true;
+_Groups_OnStartup{
+$kLayers==true?$OnCloseGroup=$OnCloseGroup."_Groups_OnCloseGroup;":0;
+$kLayers==true?$OnCloseWindow=$OnCloseWindow."_Groups_SaveClosed;":0;
+$kLayers==true?$OnLoad=$OnLoad."_Groups_SaveLayers;":0;
+$OnQuit=$OnQuit."_Groups_OnQuit;";
+$kLayers==true?$OnQuit=$OnQuit."_Groups_SaveLastSession;":0;
+$kLayers==true?$OnWMAppExit=$OnWMAppExit."_Groups_SaveLayers;":0;
+$_Groups_IsStartup==true?&_Groups_Init:0;
+$_Groups_IsStartup=false;
+}
+$OnStartup=$OnStartup."_Groups_OnStartup;";
+
+# ------------------------------------------------------------------------------------------------------------------
+$macroModules=$macroModules."Groups;";

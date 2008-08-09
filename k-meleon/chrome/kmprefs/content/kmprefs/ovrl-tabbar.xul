@@ -1,0 +1,149 @@
+<?xml version="1.0"?>
+<!DOCTYPE overlay SYSTEM "chrome://kmprefs/locale/kmprefs/ovrl-tabbar.dtd">
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+<script type="application/x-javascript">
+<![CDATA[
+var TabBar = {
+
+hide : "browser.tabs.autoHide",
+init : function() {
+	this._base = "kmeleon.tabs.";
+	this._ctrl = new Array(	"bottomBar",
+				"fixedBar",
+				"useLoadingTitle",
+				"useLoadingIcon",
+				"title",
+				"minWidth",
+				"maxWidth",
+				"OnDoubleClick",
+				"OnMiddleClick",
+				"OnRightClick");
+	this._setControls();
+	initCheckbox(this.hide);
+	for(var j=0;j<4;j++)
+		initCheckbox(this._base+this._ctrl[j]);
+	document.getElementById(this._base+this._ctrl[3]).disabled = !pref.getBoolPref("kmeleon.favicons.show");
+	initTextbox(this._base+this._ctrl[4],document.getElementById("pref_bundle").getString("toolbar_title_none"));
+	for(var j=5;j<7;j++)
+		initTextbox(this._base+this._ctrl[j]);
+	for(var j=7;j<10;j++)
+		initMenulist(this._base+this._ctrl[j],"","");
+},
+title: function(elem) {
+	setCharPref(elem.id,elem.value);
+	initTextbox(elem.id,document.getElementById("pref_bundle").getString("toolbar_title_none"));
+},
+clear: function(elem) {
+	var id = elem.previousSibling.id;
+	restoreDefault(id);
+	initTextbox(id,id==this._base+this._ctrl[4]?document.getElementById("pref_bundle").getString("toolbar_title_none"):false)
+},
+_setControls: function() {
+	var dis = !kTabs();
+	document.getElementById(this.hide).disabled = dis;
+	for(var j=0;j<this._ctrl.length;j++)
+		document.getElementById(this._base+this._ctrl[j]).disabled = dis;
+	for(var j=0;j<3;j++)
+		document.getElementById("TabBar"+[j]).disabled = dis;
+	try {
+		document.getElementById("TabBarTab").setAttribute("disabled",dis);
+	} catch(e) {}
+}
+
+};
+//addEventListener("load",TabBar.init,true);
+]]>
+</script>
+
+<tabpanel id="TabBar" flex="1" orient="vertical" style="overflow:auto">
+  <separator class="thin"/>
+  <checkbox oncommand="toggleCheckbox(this.id)" id="browser.tabs.autoHide" label="&tabbar.autoHide;"/>
+  <!--separator class="thick"/-->
+  <groupbox style="border-top:0;border-left:0;border-right:0;margin-top:0;margin-bottom:0.6em"/>
+  <grid>
+    <columns>
+      <column/>
+      <column flex="1"/>
+      <column/>
+    </columns>
+    <rows>
+      <row align="center">
+        <label value="&toolbar.title;"/>
+        <textbox id="kmeleon.tabs.title" flex="1" class="uri-element" oninput="TabBar.title(this)"/>
+        <button id="TabBar0" label="&restoreDefault;" oncommand="TabBar.clear(this)"/>
+      </row>
+      <row align="center">
+        <label value="&toolbar.buttonMinWidth;"/>
+        <textbox id="kmeleon.tabs.minWidth" flex="1" class="uri-element" oninput="setIntPref(this.id,this.value)"/>
+        <button id="TabBar1" label="&restoreDefault;" oncommand="TabBar.clear(this)"/>
+      </row>
+      <row align="center">
+        <label value="&toolbar.buttonMaxWidth;"/>
+        <textbox id="kmeleon.tabs.maxWidth" flex="1" class="uri-element" oninput="setIntPref(this.id,this.value)"/>
+        <button id="TabBar2" label="&restoreDefault;" oncommand="TabBar.clear(this)"/>
+      </row>
+    </rows>
+  </grid>
+  <separator class="thin"/>
+  <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.tabs.bottomBar" label="&tabbar.bottom;"/>
+  <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.tabs.fixedBar" label="&tabbar.fixed;"/>
+  <separator class="thin"/>
+  <groupbox style="border-top:0;border-left:0;border-right:0">
+    <description>&restartNote1;</description>
+  </groupbox>
+  <separator class="thin"/>
+  <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.tabs.useLoadingTitle" label="&tabbar.loading.title;"/>
+  <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.tabs.useLoadingIcon" label="&tabbar.loading.icon;"/>
+  <separator class="thin"/>
+  <groupbox>
+    <caption><label>&tabbar.mouse;</label></caption>
+    <separator class="thin"/>
+    <grid>
+      <columns>
+        <column/>
+        <column/>
+      </columns>
+      <rows>
+        <row align="center">
+          <label value="&tabbar.mouse.dClick;"/>
+          <menulist id="kmeleon.tabs.OnDoubleClick" oncommand="pref.setIntPref(this.id,this.value)">
+	    <menupopup>
+              <menuitem value="1" label="&tabbar.mouse.open;"/>
+              <menuitem value="0" label="&tabbar.mouse.close;"/>
+              <menuitem value="3" label="&tabbar.mouse.classic;"/>
+              <menuitem value="2" label="&tabbar.mouse.menu;"/>
+	    </menupopup>
+          </menulist>
+        </row>
+        <row align="center">
+          <label value="&tabbar.mouse.mClick;"/>
+          <menulist id="kmeleon.tabs.OnMiddleClick" oncommand="pref.setIntPref(this.id,this.value)">
+	    <menupopup>
+              <menuitem value="1" label="&tabbar.mouse.open;"/>
+              <menuitem value="0" label="&tabbar.mouse.close;"/>
+              <menuitem value="3" label="&tabbar.mouse.classic;"/>
+              <menuitem value="2" label="&tabbar.mouse.menu;"/>
+	    </menupopup>
+          </menulist>
+        </row>
+        <row align="center">
+          <label value="&tabbar.mouse.rClick;"/>
+          <menulist id="kmeleon.tabs.OnRightClick" oncommand="pref.setIntPref(this.id,this.value)">
+	    <menupopup>
+              <menuitem value="1" label="&tabbar.mouse.open;"/>
+              <menuitem value="0" label="&tabbar.mouse.close;"/>
+              <menuitem value="3" label="&tabbar.mouse.classic;"/>
+              <menuitem value="2" label="&tabbar.mouse.menu;"/>
+	    </menupopup>
+          </menulist>
+        </row>
+      </rows>
+    </grid>
+    <separator class="thin"/>
+  </groupbox>
+</tabpanel>
+
+<tab id="TabBarTab" label="&tabbar.label;"/>
+
+</overlay>
