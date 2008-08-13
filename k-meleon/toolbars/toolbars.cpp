@@ -327,7 +327,10 @@ void DoRebar(HWND rebarWnd) {
 
    while (toolbar) {
       sep = 0;
-      if (toolbar->iButtonCount == 0) continue;
+	  if (toolbar->iButtonCount == 0) {
+         toolbar = toolbar->next;
+		 continue;
+	  }
 
       // Create the toolbar control to be added.
       toolbar->hWnd = kPlugin.kFuncs->CreateToolbar(GetParent(rebarWnd), CCS_NODIVIDER | CCS_NOPARENTALIGN | CCS_NORESIZE | TBSTYLE_FLAT | TBSTYLE_TRANSPARENT | TBSTYLE_TOOLTIPS);
