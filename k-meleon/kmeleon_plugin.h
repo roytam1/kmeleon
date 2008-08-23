@@ -133,6 +133,13 @@ enum PREFTYPE {
    PREF_UNISTRING
 };
 
+enum LogFlags {
+	errorFlag = 0U,
+	warningFlag = 1U ,
+	exceptionFlag = 2U,
+	strictFlag = 4U
+};
+
 typedef struct {
    short type; // One of MENUTYPE
    const char* label; // If either label or command is null then 
@@ -326,7 +333,7 @@ typedef struct {
 	void (*UnregisterCmd) (const char* name, const char* plugin);
 	unsigned (*GetCmdList) (kmeleonCommand*, unsigned size);
 	BOOL (*LoadCSS) (const char* path, BOOL load);
-	void (*reserved1) ();
+	BOOL (*LogMessage) (const char* category, const char* message, const char* file, UINT line, UINT flags);
 
 
 } kmeleonFunctions;

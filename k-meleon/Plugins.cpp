@@ -1691,7 +1691,7 @@ kmeleonFunctions kmelFuncsUTF8 = {
    UnregisterCmd,
    GetCmdList,
    LoadCSS,
-   NULL
+   LogMessage
 };
 
 kmeleonFunctions kmelFuncs = {
@@ -1753,7 +1753,7 @@ kmeleonFunctions kmelFuncs = {
    UnregisterCmd,
    GetCmdList,
    LoadCSS,
-   NULL
+   LogMessage
 };
 
 BOOL CPlugins::TestLoad(LPCTSTR file, const char *description)
