@@ -412,6 +412,9 @@ NS_IMETHODIMP CBrowserImpl::SetDimensions(PRUint32 aFlags, PRInt32 x, PRInt32 y,
 	if (!(aFlags & nsIEmbeddingSiteWindow::DIM_FLAGS_POSITION)) 
 		flags |= SWP_NOMOVE;
 	
+   if (frame->IsZoomed())
+	   frame->ShowWindow(SW_RESTORE);
+
 	if ((aFlags & nsIEmbeddingSiteWindow::DIM_FLAGS_SIZE_INNER))
 	{
 		CWnd* view = (CWnd*)frame->GetActiveView();
