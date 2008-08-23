@@ -119,17 +119,18 @@ BOOL CFavIconList::LoadCache()
 			if (imgList.Read(&ar))
 				m_urlMap.Serialize(ar);
 		CATCH (CArchiveException, e) {
-			DeleteImageList();
+			while(GetImageCount()) Remove(0);
 			return FALSE;
 		}
 		END_CATCH
 	}
 	
 	for (int i=0; i < imgList.GetImageCount(); i++) {
-		int idx = Add(imgList.ExtractIcon(i));
-		ASSERT(idx == i + m_iOffset);
+		HICON tmp = imgList.ExtractIcon(i);
+		int idx = Add(tmp);
+		DestroyIcon(tmp);
 	}
-	
+
 	return TRUE;
 }
 
@@ -264,7 +265,7 @@ void CFavIconList::AddMap(const char *uri, int index)
 	// This function is called from another thread
 	// if the moz image loader is used.
 
-   USES_CONVERSION;
+	USES_CONVERSION;
 	m_urlMap[A2CT(uri)] = index - m_iOffset;
 
 	// Add an entry for the hostname only. This is for the mru list.
