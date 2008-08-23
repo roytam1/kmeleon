@@ -1593,7 +1593,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
          s_button    *button;
 
          while (toolbar) {
-            if (toolbar->iButtonCount == 0) continue;
+            if (toolbar->iButtonCount == 0) {
+				toolbar = toolbar->next;
+				continue;
+			}
             
             button = toolbar->pButtonTail;
             while (button) {
