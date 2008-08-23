@@ -774,9 +774,9 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
 			style |= WS_POPUP; // XXX
 		}
 
-   if (preferences.bMaximized && !isPopupOrDialog &&
-      ((chromeMask & nsIWebBrowserChrome::CHROME_WINDOW_RESIZE) ||
-	  (chromeMask & nsIWebBrowserChrome::CHROME_ALL)))
+   if (!isPopupOrDialog &&
+      ((!m_pMostRecentBrowserFrame && preferences.bMaximized) || (m_pMostRecentBrowserFrame && m_pMostRecentBrowserFrame->IsZoomed())) &&
+      ((chromeMask & nsIWebBrowserChrome::CHROME_WINDOW_RESIZE) || (chromeMask & nsIWebBrowserChrome::CHROME_ALL)))
       style |= WS_MAXIMIZE;
 
    RECT screen, winSize;
