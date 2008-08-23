@@ -156,11 +156,11 @@ void CBrowserGlue::SetBrowserSize(int aCX, int aCY)
 
    CWnd* frame = mpBrowserView->GetParentFrame();
    
-   WINDOWPLACEMENT wp;
+   /*WINDOWPLACEMENT wp;
    wp.length = sizeof(WINDOWPLACEMENT);
    frame->GetWindowPlacement(&wp);
    if (wp.showCmd != SW_SHOWNORMAL)
-       return;
+       return;*/
 
    // first we have to figure out how much bigger the frame is than the view
    RECT frameRect, viewRect;
@@ -170,9 +170,14 @@ void CBrowserGlue::SetBrowserSize(int aCX, int aCY)
    int deltax = frameRect.right - frameRect.left - viewRect.right;
    int deltay = frameRect.bottom - frameRect.top - viewRect.bottom;
 
+   if (frame->IsZoomed())
+	   frame->ShowWindow(SW_RESTORE);
+
    frame->SetWindowPos(NULL, 0, 0, aCX+deltax, aCY+deltay,
       SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOZORDER
       );
+
+
 }
 
 void CBrowserGlue::SetFocus()
