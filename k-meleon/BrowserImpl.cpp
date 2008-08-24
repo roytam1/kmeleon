@@ -560,7 +560,7 @@ NS_IMETHODIMP CBrowserImpl::SetVisibility(PRBool aVisibility)
 
 NS_IMETHODIMP CBrowserImpl::Blur()
 {
-    return NS_ERROR_NOT_IMPLEMENTED;
+    return NS_OK;
 } 
 
 
