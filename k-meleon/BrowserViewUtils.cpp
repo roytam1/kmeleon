@@ -253,7 +253,8 @@ void CBrowserView::OpenMultiURL(LPCTSTR urls, BOOL allowFixup)
         TCHAR *q = _tcschr(p, '\t');
         if (q) *q = 0;
         if (!*p) break;
-		OpenURLWithCommand(idOpen, p, GetCurrentURI(), allowFixup);
+		BOOL sendRef = theApp.preferences.GetBool("kmeleon.urlbar.sendReferrer", FALSE);
+		OpenURLWithCommand(idOpen, p, sendRef ? GetCurrentURI() : NULL, allowFixup);
 	    
         idOpen = idOpenX==0 ? idOpen : idOpenX;
 
