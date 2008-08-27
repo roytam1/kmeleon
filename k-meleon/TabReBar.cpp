@@ -294,13 +294,12 @@ void CTabReBar::UpdateVisibility(BOOL canHide)
 	{
 
 		if (GetToolBarCtrl().GetButtonCount()>1) {
+			
 			mTemp->ShowWindow(SW_SHOW);//GetReBarCtrl().ShowBand(0, TRUE);
-			mTemp->SetWindowPos(&(((CBrowserFrame*)GetParentFrame())->m_wndStatusBar),0,0,0,0,SWP_NOMOVE);
+			if (mBottomBar && !mTemp->IsVisible()) mTemp->SetWindowPos(&(((CBrowserFrame*)GetParentFrame())->m_wndStatusBar),0,0,0,0,SWP_NOMOVE);
 		}
 		else if (theApp.preferences.bAutoHideTabControl)
 			mTemp->ShowWindow(SW_HIDE);
-		else if (mBottomBar)
-			mTemp->SetWindowPos(&(((CBrowserFrame*)GetParentFrame())->m_wndStatusBar),0,0,0,0,SWP_NOMOVE);
 
 				//mTemp->GetReBarCtrl().ShowBand(0, FALSE);
 		GetParentFrame()->RecalcLayout();
