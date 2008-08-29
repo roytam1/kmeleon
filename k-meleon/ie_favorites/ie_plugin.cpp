@@ -565,8 +565,19 @@ extern "C" {
 
          HIMAGELIST hList = gImagelist;
          UINT idx = IMAGE_BOOKMARK;
+		
+		 char *ptr = (char *)node->url.c_str();
+         if (!node->url.length()) {
+            char url[INTERNET_MAX_URL_LENGTH];
+            char path[INTERNET_MAX_URL_LENGTH];
+            strcpy(path, gFavoritesPath);
+            strcat(path, node->path.c_str());
+            GetPrivateProfileString(_T("InternetShortcut"), _T("URL"), _T(""), url, INTERNET_MAX_URL_LENGTH, path);
+			node->url = url;
+		 }
 
 		 UINT i = GetSiteIcon((char*)node->url.c_str());
+
 		 if (i > 0) {
             idx = i;
             hList = kPlugin.kFuncs->GetIconList();

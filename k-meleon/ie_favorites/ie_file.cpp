@@ -198,12 +198,7 @@ int ReadFavorites(char *szRoot, char *szPath, CBookmarkNode &newFavoritesNode)
             // insert node
             newFavoritesNode.AddChild(new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), wfd.cFileName, urlFile, BOOKMARK_BOOKMARK, time(NULL)));
             
-            char url[INTERNET_MAX_URL_LENGTH];
-            char path[INTERNET_MAX_URL_LENGTH];
-            strcpy(path, gFavoritesPath);
-            strcat(path, newFavoritesNode.lastChild->path.c_str());
-            GetPrivateProfileString(_T("InternetShortcut"), _T("URL"), _T(""), url, INTERNET_MAX_URL_LENGTH, path);
-			newFavoritesNode.lastChild->url = url;
+
 
             free(pszTemp);
             szRoot[gFavoritesPathLen] = 0;
