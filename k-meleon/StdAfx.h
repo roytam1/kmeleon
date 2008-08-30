@@ -44,7 +44,14 @@
 #define WINVER 0x0400		// Attribuez la valeur appropriée à cet élément pour cibler Windows 98 et Windows 2000 ou version ultérieure.
 #endif
 #endif
+
+#ifndef _WIN32_WINNT
+#ifdef _UNICODE
+#define _WIN32_WINNT 0x0500
+#else
 #define _WIN32_WINNT 0x0400
+#endif
+#endif
 
 #ifdef XPCOM_GLUE
 	#pragma comment(lib, "xpcomglue.lib")

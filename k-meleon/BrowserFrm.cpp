@@ -4,7 +4,7 @@
  *
  * Copyright (c) 2002 Netscape Communications Corporation and
  * other contributors
- *
+ *OnAppExitwm_
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this Mozilla sample software and associated documentation files
  * (the "Software"), to deal in the Software without restriction, including
@@ -235,6 +235,18 @@ BOOL CBrowserFrame::PreTranslateMessage(MSG* pMsg)
 		   return 1;
 	   }
    }
+#if GECKO_VERSION > 18
+   // XXX: Gecko doesn't notify us when those buttons are clicked
+   // and therefore can't be set like other mouse accelerator
+
+   else if ( pMsg->message == WM_XBUTTONUP ) {
+      if (HIWORD(pMsg->wParam) == XBUTTON1) 
+         GetActiveView()->GetBrowserWrapper()->GoBack();
+      else if (HIWORD(pMsg->wParam) == XBUTTON2) 
+         GetActiveView()->GetBrowserWrapper()->GoForward();
+   }
+#endif
+
    return CFrameWnd::PreTranslateMessage(pMsg);
 }
 
