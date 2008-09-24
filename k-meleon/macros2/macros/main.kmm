@@ -22,14 +22,14 @@
 # - K-Meleon Preferences			485
 #	- Homepage				505
 # - JavaScript Document Handling		565
-#	- Killing Tags				620
-#	- Scrolling				635
-# - Miscellaneous				665
-#	- Go Buttons				670
-#	- Home Button				725
-#	- RSS Button				740
-#	- Special Opening			750
-#	- Special Macro Execution		775
+#	- Killing Tags				625
+#	- Scrolling				640
+# - Miscellaneous				670
+#	- Go Buttons				675
+#	- Home Button				730
+#	- RSS Button				745
+#	- Special Opening			755
+#	- Special Macro Execution		780
 #
 # ------------------------------------------------------------------------------------------------------------------
 
@@ -579,6 +579,11 @@ $JS_doit=""; $JS_func=""; $JS_last=""; $JS_fail="";
 JS_hndlDoc{
 # Same as JS_hndlDocs, but only for the current frame.
 injectJS("(function(){".$JS_func.$_JS_urlencode."with(document){".$JS_doit."}".$JS_last."})()",frame);
+$JS_doit=""; $JS_func=""; $JS_last=""; $JS_fail="";
+}
+JS_hndlTop{
+# Same as JS_hndlDoc, but only for the topmost frame (to avoid cross site scripting).
+injectJS("(function(){".$JS_func.$_JS_urlencode."with(document){".$JS_doit."}".$JS_last."})()");
 $JS_doit=""; $JS_func=""; $JS_last=""; $JS_fail="";
 }
 
