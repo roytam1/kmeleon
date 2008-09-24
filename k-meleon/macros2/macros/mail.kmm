@@ -34,7 +34,7 @@ open("mailto:");
 
 Mail_SendPageURL{
 macroinfo=_("Send a link to the current page by mail");
-$JS_doit="with(top.document)location='mailto:?subject='+encodeURIComponent(title)+'&body='+encodeURIComponent(URL)"; &JS_hndlDoc;
+$JS_doit="location='mailto:?subject='+encodeURIComponent(title)+'&body='+encodeURIComponent(URL)"; &JS_hndlTop;
 }
 Mail_SendLinkURL{
 macroinfo=_("Send the current link by mail");
