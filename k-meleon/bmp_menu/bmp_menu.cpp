@@ -622,7 +622,7 @@ void MeasureMenuItem(MEASUREITEMSTRUCT *mis, HDC hDC) {
    
    SIZE size;
    TCHAR *string = (TCHAR *)mis->itemData;
-   if (!*string)  { // it's a separator
+   if (!string || !*string)  { // it's a separator
       mis->itemWidth = 0;
       mis->itemHeight = GetSystemMetrics(SM_CYMENUSIZE) >> 1;
       return;
