@@ -59,23 +59,7 @@ CUnknownContentTypeHandler::Show(CWnd* parent)
 			
 			nsCOMPtr<nsIMIMEInfo> mimeInfo;
 			mAppLauncher->GetMIMEInfo(getter_AddRefs(mimeInfo));
-			
-			/*
-			if(mimeInfo) 
-			{
-				nsEmbedCString mimeType;
-				rv = mimeInfo->GetMIMEType(mimeType);
-				nsEmbedString mimeDesc;
-				rv = mimeInfo->GetDescription(mimeDesc);
-				if(NS_SUCCEEDED(rv)) {
-					dlg.m_csFiletype = CString(W2CA(mimeDesc.get())) + _T(" ("); 
-					dlg.m_csFiletype = CString(A2CT(mimeType.get())) + _T(")");
-				}
-			}*/
-
-			SHFILEINFO shfi;
-			if (SHGetFileInfo(dlg.m_csFilename, 0, &shfi, sizeof(SHFILEINFO),SHGFI_USEFILEATTRIBUTES|SHGFI_TYPENAME)) 
-				dlg.m_csFiletype = shfi.szTypeName;
+			dlg.m_csFiletype = GetTypeName();
 
 			// Set the source
 			nsCOMPtr<nsIURI> uri;
@@ -204,12 +188,10 @@ CUnknownContentTypeHandler::PromptForSaveToFile(nsIHelperAppLauncher *aLauncher,
 		const TCHAR *ext = _T("");
 		if (*aSuggestedFileExtension) {
 			
-			SHFILEINFO shfi;
-			if (SHGetFileInfo(defaultFile, 0, &shfi, sizeof(SHFILEINFO),SHGFI_USEFILEATTRIBUTES|SHGFI_TYPENAME)) 
-				fileType = shfi.szTypeName;
+			fileType = GetTypeName();
 
-			if (_tcslen(shfi.szTypeName))
-				filter = shfi.szTypeName;
+			if (!fileType.IsEmpty())
+				filter = fileType;
 			else {
 				filter = _T("*");
 				filter += W2CT(aSuggestedFileExtension);
@@ -367,6 +349,36 @@ CUnknownContentTypeHandler::PromptForSaveToFile(nsIHelperAppLauncher *aLauncher,
    */
 
 #endif
+}
+
+CString CUnknownContentTypeHandler::GetTypeName()
+{
+	USES_CONVERSION;
+	nsresult rv;
+
+	nsCOMPtr<nsIMIMEInfo> mimeInfo;
+	mAppLauncher->GetMIMEInfo(getter_AddRefs(mimeInfo));
+			
+	if(mimeInfo) 
+	{
+		nsEmbedCString mimeType;
+		rv = mimeInfo->GetMIMEType(mimeType);
+		nsEmbedString mimeDesc;
+		rv = mimeInfo->GetDescription(mimeDesc);
+		if(NS_SUCCEEDED(rv)) {
+			if (*mimeDesc.get())
+				return CString(W2CA(mimeDesc.get()));
+			if (*mimeType.get())	
+				return CString(A2CT(mimeType.get()));
+		}
+	}
+	
+	nsEmbedString filename;
+	mAppLauncher->GetSuggestedFileName(filename);
+	SHFILEINFO shfi;
+	if (SHGetFileInfo(W2CT(filename.get()), 0, &shfi, sizeof(SHFILEINFO),SHGFI_USEFILEATTRIBUTES|SHGFI_TYPENAME)) 
+		return CString(shfi.szTypeName);
+	return CString();
 }
 
 /* -- Mark L.: Leftover from a forgotten era?
