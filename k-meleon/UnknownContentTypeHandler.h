@@ -37,6 +37,7 @@ public:
 	NS_IMETHOD Show(CWnd* parent = NULL);
 
 protected:
+	CString GetTypeName();
 	nsCOMPtr<nsIHelperAppLauncher> mAppLauncher;
 	nsCOMPtr<nsIDOMWindow> mDomWindow;
 
