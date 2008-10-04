@@ -776,7 +776,7 @@ BOOL CBrowserWrapper::_InjectCSS(nsIDOMWindow* dom, const wchar_t* userStyleShee
 	{
 		nsCOMPtr<nsIDOMNode> headNode;
 		rv = headList->Item(0, getter_AddRefs(headNode));
-		NS_ENSURE_SUCCESS(rv, FALSE);
+		NS_ENSURE_TRUE(headNode, FALSE);
 
 		rv = headNode->AppendChild(styleElement, getter_AddRefs(notused));
 	}
