@@ -22,7 +22,7 @@
 #include "BrowserFrmTab.h" // XXX
 #include "TabReBar.h"
 #include "mfcembed.h"
-//#include "VisualStylesXP.h"
+#include "VisualStylesXP.h"
 
 DROPEFFECT CTBOleDropTarget::OnDragOver(CWnd* pWnd, COleDataObject* pDataObject,
 					  DWORD dwKeyState, CPoint point)
@@ -560,7 +560,8 @@ BEGIN_MESSAGE_MAP(CTabReBar, CToolBar)
 	ON_WM_SIZE()
 	ON_WM_MOUSEMOVE()
 	ON_WM_DESTROY()
-	//ON_NOTIFY_REFLECT(NM_CUSTOMDRAW, OnNMCustomdraw)
+	ON_NOTIFY_REFLECT(NM_CUSTOMDRAW, OnNMCustomdraw)
+	ON_WM_LBUTTONUP()
 END_MESSAGE_MAP()
 
 void CTabReBar::HandleMouseClick(int flag, CPoint point)
@@ -640,6 +641,35 @@ void CTabReBar::OnRButtonUp(UINT nFlags, CPoint point)
 	HandleMouseClick(theApp.preferences.iTabOnRightClick, point);
 	CToolBar::OnRButtonDown(nFlags, point);
 }
+
+void CTabReBar::OnLButtonUp(UINT nFlags, CPoint point)
+{
+	int closePref = theApp.preferences.GetInt("browser.tabs.closeButtons", 2);
+	if (closePref == 1)
+	{
+		int buttonID = GetButtonIDFromPoint(point);
+		
+		CRect rcItem;
+		GetItemRect(buttonID, rcItem);
+		if (buttonID>=0) 
+		{
+			rcItem.right = rcItem.right - 2;
+			rcItem.left = rcItem.right - 16;
+			rcItem.top = 2;
+			rcItem.bottom = rcItem.top + 16;
+
+			if (rcItem.PtInRect(point)) {
+				TBBUTTON button;
+				this->GetToolBarCtrl().GetButton(buttonID, &button);
+				GetParentFrame()->PostMessage(WM_CLOSETAB, button.idCommand, button.dwData);
+				return;
+			}
+		}
+	}
+
+	CToolBar::OnLButtonUp(nFlags, point);
+}
+
 /*
 void CTabReBar::OnTbnGetDispInfo(NMHDR *pNMHDR, LRESULT *pResult)
 {
@@ -717,9 +747,9 @@ void CTabReBar::OnDestroy()
 	CToolBar::OnDestroy();
 	mDropTarget.Revoke();
 }
-/*
-void CTabReBar::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 
+void CTabReBar::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
+{
 	
 	*pResult = CDRF_DODEFAULT;
 
@@ -802,7 +832,8 @@ void CTabReBar::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 		CPoint imagePoint;
 		CRect textRect;
 		
-		int btMargin = 3;
+		int btMargin = 2;
+		int btClose = 17;
 		int iconPadding = 4;
 
 		if (pNMCD->nmcd.uItemState & CDIS_SELECTED || pNMCD->nmcd.uItemState & CDIS_CHECKED)
@@ -813,7 +844,7 @@ void CTabReBar::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 		
 		imageList->Draw(pDC, image, imagePoint, ILD_TRANSPARENT);
 		contentRect.left += btMargin + iconPadding + ii.rcImage.right - ii.rcImage.left;
-		contentRect.right -= btMargin;
+		contentRect.right -= 2 * btMargin + btClose;
 
 		if (hTheme) {
 			USES_CONVERSION;
@@ -826,12 +857,44 @@ void CTabReBar::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 			pDC->DrawText(text, -1, &contentRect, textFlag);
 		}
 		
+		
+		CRect closeButtonRect = contentRect;
+		closeButtonRect.left = contentRect.right + btMargin;
+		closeButtonRect.right = contentRect.right + btMargin + 17;
+		closeButtonRect.top = (contentRect.bottom - 17) / 2;
+		closeButtonRect.bottom = closeButtonRect.top + 17;
+
+		HTHEME hThemeC = g_xpStyle.OpenThemeData(m_hWnd, L"WINDOW");
+
+		if (hThemeC) 
+		{
+			UINT nState = CBS_NORMAL;
+			if (pNMCD->nmcd.uItemState & CDIS_HOT)
+				nState = CBS_HOT;
+			else if (!(pNMCD->nmcd.uItemState & CDIS_CHECKED))
+				nState |= CBS_DISABLED;
+			if (g_xpStyle.IsThemeBackgroundPartiallyTransparent(hTheme, WP_SMALLCLOSEBUTTON, nState))
+				g_xpStyle.DrawThemeParentBackground(m_hWnd, *pDC, &closeButtonRect);
+			g_xpStyle.DrawThemeBackground(hThemeC, *pDC, WP_SMALLCLOSEBUTTON, nState, closeButtonRect, NULL);
+			g_xpStyle.CloseThemeData(hThemeC);
+		}
+		else
+		{
+			UINT nState = DFCS_CAPTIONCLOSE | DFCS_FLAT;
+			if (!(pNMCD->nmcd.uItemState & CDIS_CHECKED || pNMCD->nmcd.uItemState & CDIS_HOT))
+				nState |= DFCS_INACTIVE;
+		
+			DrawFrameControl(*pDC, &closeButtonRect, DFC_CAPTION, DFCS_CAPTIONCLOSE | DFCS_FLAT | nState);
+		}
+        
 		g_xpStyle.CloseThemeData(hTheme);
+
 		*pResult = CDRF_SKIPDEFAULT;
 		break;
 		}
 	}
-
-	*pResult |= CDRF_NOTIFYITEMDRAW | CDRF_NOTIFYPOSTPAINT;
+	
+	int closePref = theApp.preferences.GetInt("browser.tabs.closeButtons", 2);
+	if (closePref == 1) 
+		*pResult |= CDRF_NOTIFYITEMDRAW | CDRF_NOTIFYPOSTPAINT;
 }
-*/
