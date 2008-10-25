@@ -763,6 +763,9 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\VisualStylesXP.cpp">
+			</File>
+			<File
 				RelativePath="winEmbedFileLocProvider.cpp">
 			</File>
 			<Filter
@@ -931,6 +934,9 @@
 			</File>
 			<File
 				RelativePath="version.h">
+			</File>
+			<File
+				RelativePath=".\VisualStylesXP.h">
 			</File>
 			<File
 				RelativePath="winEmbedFileLocProvider.h">
