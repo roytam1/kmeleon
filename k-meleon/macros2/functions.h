@@ -23,16 +23,42 @@
 ///////////////////////////
 // Utilities 
 
+#define WRONGARGS 0
+#define WRONGTYPE 1
+
+	static void DoError(const char* msg, Statement* stat)
+	{
+		DoError(msg, stat?stat->getFile():"", stat?stat->getLine():-1);
+	}
+
+	static void parseError(int err, const  char *cmd, const char *args, int data1=0, int data2=0, Statement* stat = NULL)
+	{
+		char* msg = new char[strlen(cmd) + strlen(args) + 70];
+
+		switch (err) {
+		case WRONGARGS:
+			sprintf(msg, "Wrong number of arguments - expected %d, found %d.\r\n\r\n"
+				"%s(%s)",data1, data2, cmd, args);
+			break;
+		case WRONGTYPE:
+			sprintf(msg, "Invalid data type in %s command.\r\n\r\n"
+				"%s(%s)", cmd, cmd, args);
+			break;
+		}
+		DoError(msg, stat);
+		delete [] msg;
+	}
+
 	void checkArgs(const char* name, FunctionData* data, int min, int max) 
 	{
 		if (data->nparam  < min || (max != -1 && data->nparam  > max))
-			parseError(WRONGARGS, name, "", min, data->nparam);
+			parseError(WRONGARGS, name, "", min, data->nparam, data->stat);
 	}
 
 	void checkArgs(const char* name, FunctionData* data, int n) 
 	{
 		if (data->nparam !=n)
-			parseError(WRONGARGS, name, "", n, data->nparam);
+			parseError(WRONGARGS, name, "", n, data->nparam, data->stat);
 	}
 
 	bool mustEscape(unsigned char c)
@@ -174,6 +200,30 @@
 			return FALSE;
 		}
 		return TRUE;
+	}
+
+	DWORD GetPrivateProfileStringUTF8(const char* lpAppName, const char* lpKeyName, const char* lpDefault, std::string & str, const char* filename)
+	{
+		DWORD ret;
+		if (gUnicode) {
+			WCHAR tmp[256];
+			ret = GetPrivateProfileStringW(CUTF8_to_UTF16(lpAppName), CUTF8_to_UTF16(lpKeyName), CUTF8_to_UTF16(lpDefault), tmp, sizeof(tmp), CUTF8_to_UTF16(filename));
+			str.assign(CUTF16_to_UTF8(tmp));
+		}
+		else {
+			char tmp[256];
+			ret = GetPrivateProfileStringA(CUTF8_to_ANSI(lpAppName), CUTF8_to_ANSI(lpKeyName), CUTF8_to_ANSI(lpDefault), tmp, sizeof(tmp), CUTF8_to_ANSI(filename));
+			str.assign(CANSI_to_UTF8(tmp));
+		}	
+		return ret;
+	}
+
+	BOOL WritePrivateProfileStringUTF8(const char* lpAppName, const char* lpKeyName, const char* lpString, const char* filename)
+	{
+		if (gUnicode)
+			return WritePrivateProfileStringW(CUTF8_to_UTF16(lpAppName), CUTF8_to_UTF16(lpKeyName), CUTF8_to_UTF16(lpString), CUTF8_to_UTF16(filename));
+		else
+			return WritePrivateProfileStringA(CUTF8_to_ANSI(lpAppName), CUTF8_to_ANSI(lpKeyName), CUTF8_to_ANSI(lpString), CUTF8_to_ANSI(filename));
 	}
 
 	//////////////////////////
@@ -382,8 +432,8 @@
 #else
 		CUTF8_to_ANSI strcommand(data->getstr(1));
 #endif
-		TCHAR command[MAX_PATH];
-		ExpandEnvironmentStrings(strcommand, command, MAX_PATH);
+		TCHAR command[1024];
+		ExpandEnvironmentStrings(strcommand, command, sizeof(command));
 		CreateProcess(NULL, command, NULL, NULL, FALSE, NORMAL_PRIORITY_CLASS, NULL, NULL, &si, &pi);
 
 		if (data->nparam > 1) 
@@ -409,8 +459,8 @@
 	Value plugin(FunctionData* data)
 	{
 		checkArgs(__FUNCTION__, data, 2);
-		MString plugin = data->getstr(0);
-		MString param = data->getstr(1);
+		MString plugin = data->getstr(1);
+		MString param = data->getstr(2);
 
 		int cmd;
 		kPlugin.kFuncs->SendMessage(plugin, PLUGIN_NAME, "DoAccel", (long)(const char*)param, (long)&cmd);
@@ -501,7 +551,7 @@
 			return "";
 
 		if(!OpenClipboard(NULL)) {
-			DoError("Error opening the clipboard.");
+			DoError("Error opening the clipboard.", data->stat);
 			return "";
 		}
 
@@ -559,7 +609,7 @@
 		checkArgs(__FUNCTION__, data, 1);
 
 		if(!OpenClipboard(NULL)) {
-			DoError("Error opening the clipboard.");
+			DoError("Error opening the clipboard.", data->stat);
 			return "";
 		}
 
@@ -1321,30 +1371,6 @@
 
 		kPlugin.kFuncs->SetWindowVar(data->c.hWnd, type, (void*)(const char*)CUTF8_to_ANSI(data->getstr(2)));
 		return Value();
-	}
-
-	DWORD GetPrivateProfileStringUTF8(const char* lpAppName, const char* lpKeyName, const char* lpDefault, std::string & str, const char* filename)
-	{
-		DWORD ret;
-		if (gUnicode) {
-			WCHAR tmp[256];
-			ret = GetPrivateProfileStringW(CUTF8_to_UTF16(lpAppName), CUTF8_to_UTF16(lpKeyName), CUTF8_to_UTF16(lpDefault), tmp, sizeof(tmp), CUTF8_to_UTF16(filename));
-			str.assign(CUTF16_to_UTF8(tmp));
-		}
-		else {
-			char tmp[256];
-			ret = GetPrivateProfileStringA(CUTF8_to_ANSI(lpAppName), CUTF8_to_ANSI(lpKeyName), CUTF8_to_ANSI(lpDefault), tmp, sizeof(tmp), CUTF8_to_ANSI(filename));
-			str.assign(CANSI_to_UTF8(tmp));
-		}	
-		return ret;
-	}
-
-	BOOL WritePrivateProfileStringUTF8(const char* lpAppName, const char* lpKeyName, const char* lpString, const char* filename)
-	{
-		if (gUnicode)
-			return WritePrivateProfileStringW(CUTF8_to_UTF16(lpAppName), CUTF8_to_UTF16(lpKeyName), CUTF8_to_UTF16(lpString), CUTF8_to_UTF16(filename));
-		else
-			return WritePrivateProfileStringA(CUTF8_to_ANSI(lpAppName), CUTF8_to_ANSI(lpKeyName), CUTF8_to_ANSI(lpString), CUTF8_to_ANSI(filename));
 	}
 
 	Value iniread(FunctionData* data)

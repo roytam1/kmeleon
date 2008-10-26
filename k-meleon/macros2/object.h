@@ -245,16 +245,21 @@ public:
 
 };
 
+class Statement;
+
 typedef struct FunctionData
 {
 	Context c;
 	unsigned short nparam;
 	Value* params;
+	Statement* stat;
 
 	Value getarg(unsigned short i) {return i>0&&i<=nparam ? *(params+i-1) : Value();} 
 	MString getstr(unsigned short i) {return i>0&&i<=nparam ? (params+i-1)->strval() : "";} 
 	int getint(unsigned short i) {return i>0&&i<=nparam ? (params+i-1)->intval() : 0;} 
 	int getbool(unsigned short i) {return i>0&&i<=nparam ? (params+i-1)->boolval() : 0;} 
+
+
 } FunctionData;
 
 typedef Value ValueFunc;
@@ -491,6 +496,7 @@ public:
 	}
 
 	virtual ~MacroDef() {
+		if (macroInfo) delete macroInfo;
 		if (menuString) delete menuString;
 		if (menuChecked) delete menuChecked;
 		if (menuGrayed) delete menuGrayed;
@@ -504,18 +510,34 @@ public:
 	MacroNode* B;
 	MacroNode* C;
 
+
 	Statement(StatType type) : MacroNode() {
 		st = type;
 		t = NODE_STAT;
 		A = B = C = next = NULL;
 	}
 
+	virtual int getLine() { return -1;}
+	virtual const char* getFile() { return "";}
+	
 	virtual ~Statement() {
 		if (A) delete A;
 		if (B) delete B;
 		if (C) delete C;
 	}
-	
+};
+
+class DebugStatement : public Statement {
+	int mLine;
+	MString mFile; 
+public:
+	DebugStatement(StatType type, const char* file, int line) : Statement(type) {
+		mLine = line;
+		mFile = file;
+	}
+
+	virtual int getLine() { return mLine;}
+	virtual const char* getFile() { return mFile.c_str();}
 };
 
 
