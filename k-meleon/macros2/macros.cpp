@@ -39,9 +39,8 @@
 BOOL         APIENTRY DllMain(HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved );
 void         Create(HWND parent);
 void         Config(HWND parent);
-void         DoError(const char* msg);
-void         DoError(const char* msg, const char* filename);
-void         DoError(const char* msg, char* filename, int line);
+
+void         DoError(const char* msg, const char* filename, int line);
 void         DoMenu(HMENU menu, char *param);
 void         DoRebar(HWND rebarWnd);
 int          DoAccel(const char *param);
@@ -61,7 +60,6 @@ std::string ExecuteMacro (HWND hWnd, std::string name, bool haha);
 
 #define WRONGARGS 0
 #define WRONGTYPE 1
-static void parseError(int err, const char *cmd, const char *args, int data1=0, int data2=0);
 
 #ifdef _UNICODE
 #define gUnicode TRUE
@@ -264,10 +262,18 @@ public:
 
 	Context context;
 	Mac* m;
+	Statement* currentStat;
 
-	Evaluator(Mac* mac, Context c) {
+	Evaluator(Mac* mac, Context c)
+	{
 		m = mac;
 		context = c;
+		currentStat = NULL;
+	}
+
+	void EvalError(const char* msg)
+	{
+		DoError( msg, currentStat?currentStat->getFile():"", currentStat?currentStat->getLine():-1);
 	}
 
 	Value EvalCall(MacroNode *node)
@@ -284,6 +290,7 @@ public:
 			FunctionData fd;
 			fd.nparam = 0;
 			fd.c = context;
+			fd.stat = currentStat;
 			std::string args;
 
 			Expression* param = static_cast<Expression*>(expr->firstParam);
@@ -323,10 +330,10 @@ public:
 			if (expr->v->md)
 				Evaluate(expr->v->md);
 			else
-				DoError( ("Call to the undefined macro '" + expr->v->md->name + "'").c_str());
+				EvalError( "Call to the undefined macro.");
 		}
 		else
-			DoError("Invalid macro or function call.");
+			EvalError("Invalid macro or function call.");
 		return "";
 	}
 
@@ -360,7 +367,7 @@ public:
 			case EXPR_CALL: return EvalCall(node); 
 			case EXPR_VALUE: 
 				if (!((ExprValue*)node)->v->isvalid())
-					DoError(("The variable '" + M->FindSymbol(((ExprValue*)node)->v) + "' is used without being initialized").c_str());
+					EvalError(("The variable '" + M->FindSymbol(((ExprValue*)node)->v) + "' is used without being initialized").c_str());
 				return *(((ExprValue*)node)->v); 
 			default: return 0;
 		}
@@ -370,11 +377,13 @@ public:
 	{
 		assert(ISSTAT(node));
 		Statement* stat = static_cast<Statement*>(node);
+		currentStat = stat;
 		switch (stat->st) {
 			case STAT_EXPR: EvalExpr(stat->A); break;
 			case STAT_WHILE: while (EvalExpr(stat->A).boolval()) if (stat->B) Evaluate(stat->B); break;
 			case STAT_IF: if (EvalExpr(stat->A).boolval()) {if (stat->B) Evaluate(stat->B);} else if (stat->C) Evaluate(stat->C);
 		}
+		currentStat = NULL;
 	}
 
 
@@ -761,30 +770,12 @@ int DoAccel(char const *aParam)
 void DoRebar(HWND rebarWnd) {
 }
 
-static void parseError(int err, const char *cmd, const char *args, int data1, int data2) {
-	char title[256];
-	char* msg = new char[strlen(cmd) + strlen(args) + 70];
-
-	/* BUG! -- This should be snprintf. better check the length someway */
-	sprintf(title, "Invalid %s command", cmd);
-	switch (err) {
-		case WRONGARGS:
-			sprintf(msg, "Wrong number of arguments - expected %d, found %d.\r\n\r\n"
-				"%s(%s)",data1, data2, cmd, args);
-			break;
-		case WRONGTYPE:
-			sprintf(msg, "Invalid data type in %s command.\r\n\r\n"
-				"%s(%s)", cmd, cmd, args);
-			break;
-	}
-	MessageBox(NULL, msg, title, MB_OK);
-	delete [] msg;
-}
-
 bool LoadMacros(TCHAR *filename)
 {
 	Parser parser;
-	if (!parser.init(M, filename))
+	int debug = 0;
+	kPlugin.kFuncs->GetPreference(PREF_BOOL, "kmeleon.plugins.macros.debug", &debug, &debug);
+	if (!parser.init(M, filename, debug))
 		return false;
 
 	parser.parse();
@@ -792,33 +783,11 @@ bool LoadMacros(TCHAR *filename)
 }
 
 /************* misc *******************/
-/**** DoError ******/
-void DoError(const char* msg) {
-	MessageBoxUTF8(NULL,msg,"Macro Parser Error",MB_OK);
-}
-void DoError(const char* msg, const char* filename) {
-	TCHAR* slash = _tcsrchr(filename, '\\');
-	if (slash) filename = slash+1;
-	MessageBoxUTF8(NULL,msg,(std::string("Error in ") + filename).c_str(),MB_OK);
-}
-void DoError(const char* msg, TCHAR* filename, int line) {
-	TCHAR* slash = _tcsrchr(filename, '\\');
-	if (slash) filename = slash+1;
 
-#ifdef _UNICODE
-	CANSI_to_UTF16 tMsg(msg);
-#else
-	const char* tMsg = msg;
-#endif
 
-	TCHAR lineBuf[34];
-	_itot(line, lineBuf, 10);
-
-	TCHAR* buf = new TCHAR[lstrlen(tMsg) + lstrlen(filename) + 55];
-	_stprintf(buf, "%s \r\nIn file %s at line %d", tMsg, filename, line);
-
-	MessageBox(NULL,buf,_T("Error"),MB_OK);
-	delete buf;
+void DoError(const char* msg, const char* filename, int line)
+{
+	kPlugin.kFuncs->LogMessage("macro", msg, filename, line, errorFlag);
 }
 
 std::string strTrim(const std::string& instr)

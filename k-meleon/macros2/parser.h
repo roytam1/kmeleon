@@ -94,7 +94,7 @@ typedef struct Program {
 static char* reservedwords[] = { "while", "if", "else", "and", "or", "not", "menu", "menuchecked", "menugrayed", "macroinfo" };
 #define MAXRESERVED sizeof(reservedwords) / sizeof(char*)
 
-static char* windowvars[] = { "URL", "URLBAR", "SelectedText", "FrameURL", "LinkURL", "ImageURL", "CHARSET", "TextZoom", "TITLE", "WindowNumber", "TabNumber" };
+static char* windowvars[] = { "URL", "URLBAR", "SelectedText", "FrameURL", "LinkURL", "ImageURL", "CHARSET", "TextZoom", "TITLE", "WindowNumber", "TabNumber", "CommandLine" };
 #define MAXWINDOWVARS sizeof(windowvars) / sizeof(char*)
 
 static const int OpPriority[] = {0, 5, 5, 6, 6, 6, 4, 4, 4, 4, 4, 4, 2, 1, 3, 3};
@@ -133,6 +133,7 @@ enum TOKEN {
 
 	TK_MACRO,
 	TK_VAR,
+	TK_WVAR,
 	TK_BEGIN,
 	TK_END,
 	TK_OPEN,
@@ -148,7 +149,7 @@ enum TOKEN {
 
 
 static const char* TokenList[] = {
-   	"while",
+   		"while",
 		"if",
 		"else",
 		"and",
@@ -177,6 +178,7 @@ static const char* TokenList[] = {
 		";",
 		"&",
 		"$",
+		"@",
 		"{",
 		"}",
 		"(",
@@ -197,7 +199,8 @@ public:
 	TOKEN tkahead;
 	TOKEN tkahead2;
 	ValueStr data;
-	std::string errormsg;
+	MString errormsg;
+	MString file;
 	unsigned line;
 
 	
@@ -210,6 +213,10 @@ public:
 
 	void setinput(char* in) {
 		current = in;
+	}
+	
+	void setfile(const char* in) {
+		file = in;
 	}
 
 	void next() {
@@ -306,12 +313,7 @@ public:
 	}
 
 	void error(char* msg) {
-		char buf[34];
-		itoa(line, buf, 10);
-		errormsg += "Line ";
-		errormsg += buf;
-		errormsg += ": ";
-		errormsg = errormsg + msg + "\n";
+		DoError(msg, file.c_str(), line);
 	}
 
 	TOKEN lookahead2() {
@@ -418,6 +420,10 @@ public:
 			case '&':
 				next();
 				return TK_MACRO;
+			
+			case '@':
+				next();
+				return TK_WVAR;
 
 			case '$':
 				next();
@@ -521,12 +527,12 @@ public:
 	Mac*  m;
 	char *input;
 	MacroDef* currentMd; //XXX
-	std::string errormsg;
+	bool debug;
 
 	Parser() { input = NULL; currentMd = NULL;}
 	~Parser() { if (input) delete input;}
 
-	bool init(Mac* mac, const TCHAR* srcFile) {
+	bool init(Mac* mac, const TCHAR* srcFile, bool enableDebug = false) {
 		struct _stat st;
 		if (_stat(srcFile, &st) == -1)
 			return false;
@@ -538,7 +544,9 @@ public:
 		size_t r = fread(input, sizeof(char), st.st_size, f);
 		input[r] = 0;
 		lex.setinput(input);
-				
+		lex.setfile(srcFile);
+		debug = enableDebug;
+
 		fclose(f);
 		file = srcFile;
 		m = mac;
@@ -546,25 +554,25 @@ public:
 	}
 
 	void error(const char* msg, TOKEN tk) {
-		char buf[34];
-		itoa(lex.line, buf, 10);
-		errormsg += file + " at line ";
-		errormsg += buf;
-		errormsg += ": ";
-		errormsg += msg;
+		MString errmsg = msg;
 		if (tk != TK_NONE)  {
-			errormsg += TokenList[tk];
-			errormsg += "\n";
-			errormsg.append(lex.tokenstr, 25);
+			errmsg += TokenList[tk];
+			errmsg += "\n";
+			errmsg.append(lex.tokenstr, 25);
 		}
-		errormsg += "\n";
-		//DoError((char*)errormsg.c_str());
+		DoError(errmsg.c_str(), file.c_str(), lex.line);
 	}
 
 	void error(const char* msg) {
 		error(msg, TK_NONE);
 	}
 
+	Statement* newStatement(StatType type)
+	{
+		if (!debug)
+			return new Statement(type);
+		return new DebugStatement(type, file.c_str(), lex.line);
+	}
 
 	bool isunop(TOKEN tk) {
 		return (tk == TK_NOT || tk == TK_SUB);
@@ -746,6 +754,9 @@ public:
 	}
 
 	Expression* assignment() {
+		
+		TOKEN tk = lex.token;
+		
 		if (lex.nexttoken() != TK_NAME) {
 			error("Invalid variable name.");
 			return NULL;
@@ -770,7 +781,7 @@ public:
 				e->AddParam(evalexpr());
 				return e;
 			}
-		
+
 		varname = std::string("$") + varname;
 
 		Value* v = m->FindSymbol(varname);
@@ -863,7 +874,7 @@ public:
 	}
 
 	Statement* whilestat() {
-		Statement* s = new Statement(STAT_WHILE);
+		Statement* s = newStatement(STAT_WHILE);
 		skip(TK_WHILE);
 		skip(TK_OPEN);
 		s->A = evalexpr();
@@ -880,7 +891,7 @@ public:
 	}
 
 	Statement* ifstat() {
-		Statement* s = new Statement(STAT_IF);
+		Statement* s = newStatement(STAT_IF);
 		skip(TK_IF);
 		skip(TK_OPEN);
 		s->A = evalexpr();
@@ -943,12 +954,13 @@ public:
 			return NULL;
 
 		case TK_VAR:
+		case TK_WVAR:
 		case TK_NAME:
 		case TK_MACRO:
 		case TK_STRING:
 		case TK_NUMBER:
 		case TK_NOT:
-			stat = new Statement(STAT_EXPR);
+			stat = newStatement(STAT_EXPR);
 			stat->A = evalexpr();
 			skip(TK_SEP);
 			return stat;
@@ -1055,11 +1067,6 @@ public:
 				break;
 			}
 		} while (lex.token != TK_NONE && lex.token != TK_ERR);
-
-		if (lex.errormsg.length())
-			DoError(lex.errormsg.c_str(), file.c_str());
-		if (errormsg.length())
-			DoError(errormsg.c_str(), file.c_str());
 
 		return lex.errormsg.length()>0;
 
