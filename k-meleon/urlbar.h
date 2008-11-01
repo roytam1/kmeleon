@@ -234,6 +234,10 @@ public:
         m_changed = state;
     }
 
+	inline BOOL GetIsTyped() {
+		return m_changed;
+	}
+
 	void Highlight(int type){
 		m_HighlightType = type;
 		//Have to invalidate both for correct redrawing
