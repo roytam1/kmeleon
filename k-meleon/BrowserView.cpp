@@ -105,10 +105,14 @@ BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
     ON_COMMAND(ID_EDIT_COPY, OnCopy)
     ON_COMMAND(ID_EDIT_PASTE, OnPaste)
 	ON_COMMAND(ID_EDIT_UNDO, OnUndo)
+	ON_COMMAND(ID_EDIT_REDO, OnRedo)
+	ON_COMMAND(ID_EDIT_CLEAR, OnDelete)
 	ON_UPDATE_COMMAND_UI(ID_EDIT_CUT, OnUpdateCut)
     ON_UPDATE_COMMAND_UI(ID_EDIT_COPY, OnUpdateCopy)
     ON_UPDATE_COMMAND_UI(ID_EDIT_PASTE, OnUpdatePaste)
 	ON_UPDATE_COMMAND_UI(ID_EDIT_UNDO, OnUpdateUndo)
+	ON_UPDATE_COMMAND_UI(ID_EDIT_REDO, OnUpdateRedo)
+	ON_UPDATE_COMMAND_UI(ID_EDIT_CLEAR, OnUpdateDelete)
     ON_COMMAND(ID_EDIT_SELECT_ALL, OnSelectAll)
     ON_COMMAND(ID_EDIT_SELECT_NONE, OnSelectNone)
     ON_COMMAND(ID_OPEN_LINK_IN_NEW_WINDOW, OnOpenLinkInNewWindow)
@@ -488,6 +492,28 @@ void CBrowserView::OnUndo()
 void CBrowserView::OnUpdateUndo(CCmdUI* pCmdUI)
 {
 	pCmdUI->Enable(m_pWindow->CanUndo());
+}
+
+void CBrowserView::OnDelete()
+{
+	if (::IsChild(m_hWnd, ::GetFocus()))
+		m_pWindow->Delete();
+}
+
+void CBrowserView::OnUpdateDelete(CCmdUI* pCmdUI)
+{
+	pCmdUI->Enable(m_pWindow->CanDelete());
+}
+
+void CBrowserView::OnRedo()
+{
+	if (::IsChild(m_hWnd, ::GetFocus()))
+		m_pWindow->Redo();
+}
+
+void CBrowserView::OnUpdateRedo(CCmdUI* pCmdUI)
+{
+	pCmdUI->Enable(m_pWindow->CanRedo());
 }
 
 void CBrowserView::OnSelectAll()

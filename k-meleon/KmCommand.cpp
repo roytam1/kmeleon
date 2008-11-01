@@ -147,6 +147,7 @@ void KmCmdService::InitDefaultCmd()
 	mCommandList[_T("editCopy")] = KmCommand(ID_EDIT_COPY);
 	mCommandList[_T("editPaste")] = KmCommand(ID_EDIT_PASTE);
 	mCommandList[_T("editUndo")] = KmCommand(ID_EDIT_UNDO);
+	mCommandList[_T("editRedo")] = KmCommand(ID_EDIT_REDO);
 	mCommandList[_T("editClear")] = KmCommand(ID_EDIT_CLEAR);
 	mCommandList[_T("editSelectAll")] = KmCommand(ID_EDIT_SELECT_ALL);
 	mCommandList[_T("editSelectNone")] = KmCommand(ID_EDIT_SELECT_NONE);

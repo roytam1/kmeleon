@@ -171,18 +171,48 @@ public:
 		if (clipCmds) clipCmds->SelectNone();
 	}
 	
-	void Undo()
+	void DoCommand(const char* cmd)
 	{
 		nsCOMPtr<nsICommandManager> commandMgr(do_GetInterface(mWebBrowser));
-		if (commandMgr) commandMgr->DoCommand("cmd_undo", nsnull, nsnull);
+		if (commandMgr) commandMgr->DoCommand(cmd, nsnull, nsnull);
+	}
+
+	BOOL CanDoCommand(const char* cmd)
+	{
+		PRBool ret = PR_FALSE;
+		nsCOMPtr<nsICommandManager> commandMgr(do_GetInterface(mWebBrowser));
+		if (commandMgr)commandMgr->IsCommandEnabled(cmd, nsnull, &ret);
+		return ret;
+	}
+
+	void Undo()
+	{
+		DoCommand("cmd_undo");
 	}
 
 	BOOL CanUndo()
 	{
-		PRBool ret = PR_FALSE;
-		nsCOMPtr<nsICommandManager> commandMgr(do_GetInterface(mWebBrowser));
-		if (commandMgr)commandMgr->IsCommandEnabled("cmd_undo", nsnull, &ret);
-		return ret;
+		return CanDoCommand("cmd_undo");
+	}
+
+	void Delete()
+	{
+		DoCommand("cmd_delete");
+	}
+
+	BOOL CanDelete()
+	{
+		return CanDoCommand("cmd_delete");
+	}
+
+	void Redo()
+	{
+		DoCommand("cmd_redo");
+	}
+
+	BOOL CanRedo()
+	{
+		return CanDoCommand("cmd_redo");
 	}
 
 	void GetCurrentURI(nsIURI** aURI)

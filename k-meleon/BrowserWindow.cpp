@@ -1585,6 +1585,7 @@ BOOL CBrowserWrapper::_Save(nsIURI* aURI,
 	return (NS_SUCCEEDED(rv) || rv == NS_ERROR_ABORT);
 }
 
+#include "nsIDOMHTMLCollection.h"
 BOOL CBrowserWrapper::InputHasFocus()
 {
 	nsCOMPtr<nsIDOMElement> element;
@@ -1632,6 +1633,14 @@ BOOL CBrowserWrapper::InputHasFocus()
 	if (designMode.Equals(NS_LITERAL_STRING("on")))
 		return TRUE;
 
+	nsCOMPtr<nsIDOMHTMLCollection> embeds;
+	htmlDoc->GetEmbeds(getter_AddRefs(embeds));
+	if (!embeds) return FALSE;
+
+	PRUint32 length;
+	embeds->GetLength(&length);
+	if (length > 0) return TRUE;
+	
 	return FALSE;
 }
 

@@ -267,6 +267,8 @@ protected:
 	afx_msg void OnCopy();
 	afx_msg void OnPaste();
 	afx_msg void OnUndo();
+	afx_msg void OnRedo();
+	afx_msg void OnDelete();
 	afx_msg void OnSelectAll();
 	afx_msg void OnSelectNone();
 	afx_msg void OnCopyLinkLocation();
@@ -300,6 +302,8 @@ protected:
 	afx_msg void OnUpdateCopy(CCmdUI* pCmdUI);
 	afx_msg void OnUpdatePaste(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateUndo(CCmdUI* pCmdUI);
+	afx_msg void OnUpdateRedo(CCmdUI* pCmdUI);
+	afx_msg void OnUpdateDelete(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateViewImage(CCmdUI* pCmdUI);
     afx_msg void OnViewFrameSource();
     afx_msg void OnOpenFrame();
