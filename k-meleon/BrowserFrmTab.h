@@ -59,6 +59,18 @@ public:
 
 	void SetIndex(int i);
 	
+	CString GetLocation()
+	{
+		if (m_typedLocation.GetLength())
+			return m_typedLocation;
+		return GetBrowserGlue()->mLocation;
+	}
+
+	void SetTypedLocation(CString location)
+	{
+		m_typedLocation = location;
+	}
+	
 	//CBrowserView m_wndView;
 	int m_iIndex;
 
@@ -81,6 +93,7 @@ protected:
 
 	bool m_bActive;
 	CBrowserFrmTab* mpFrameTab;
+	CString m_typedLocation;
 
 	afx_msg void OnOpenFrameInNewTab();
 	afx_msg void OnOpenFrameInBackgroundTab();

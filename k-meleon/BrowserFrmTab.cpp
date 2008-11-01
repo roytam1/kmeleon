@@ -66,7 +66,11 @@ public:
 		CString title;
 			
 		if (aBusy) {
-			title.LoadString(IDS_LOADING);
+			if (!theApp.preferences.GetBool("kmeleon.tabs.useLoadingTitle", FALSE) && mLocation.GetLength())
+				title = mLocation;
+			else
+				title.LoadString(IDS_LOADING);
+
 			if (theApp.preferences.GetBool("kmeleon.tabs.useLoadingIcon", TRUE))
 				((CBrowserFrmTab*)mpBrowserFrame)->SetTabIcon((CBrowserTab*)mpBrowserView, theApp.favicons.GetLoadingIcon());
 		} else {
@@ -348,11 +352,14 @@ BOOL CBrowserFrmTab::SafeSetActiveBrowser(CBrowserTab* aNewActiveTab)
 void CBrowserFrmTab::SetActiveBrowser(CBrowserTab* aNewActiveTab)
 {
 	if (!aNewActiveTab || aNewActiveTab->IsActive()) return;
+	BOOL focus = TRUE;
 
 	if (m_wndCBrowserTab && aNewActiveTab!=m_wndCBrowserTab)
 	{
-		m_wndCBrowserTab->SetActive(false); 
+		m_wndCBrowserTab->SetActive(false);
+		m_wndCBrowserTab->SetTypedLocation(!m_wndUrlBar.GetIsTyped() ? _T("") : m_wndUrlBar.GetEnteredURL());
 		m_pPreviousSelectedTab = m_wndCBrowserTab;
+		focus = m_wndCBrowserTab->IsChild(GetFocus());
 	}
 	//SendMessage(WM_SWITCHTAB, (WPARAM)m_wndCBrowserTab, (LPARAM)aNewActiveTab);
 	theApp.plugins.SendMessage("*", "*", "SwitchTab", (long)aNewActiveTab, (long)m_wndCBrowserTab);
@@ -366,13 +373,12 @@ void CBrowserFrmTab::SetActiveBrowser(CBrowserTab* aNewActiveTab)
 	//m_Tabs[index].xBrowserFrameGlueObj->m_bActive = true;
 	
 	// BUG: We may be here because of a call to this function.
-	aNewActiveTab->SetActive(TRUE);
+	aNewActiveTab->SetActive(true, focus);
 
 	UpdateTitle(m_wndCBrowserTab->GetBrowserGlue()->mTitle);
 	UpdateSecurityStatus(m_wndCBrowserTab->GetBrowserGlue()->mSecurityState);
 	UpdatePopupNotification(m_wndCBrowserTab->GetBrowserGlue()->mPopupBlockedHost);
-	// XXX I think we shouldn't need to force the update here 
-	UpdateLocation(m_wndCBrowserTab->GetBrowserGlue()->mLocation, TRUE);
+	UpdateLocation(m_wndCBrowserTab->GetLocation(), TRUE);
 	UpdateLoading(m_wndCBrowserTab->GetBrowserGlue()->mLoading);
 	UpdateProgress(m_wndCBrowserTab->GetBrowserGlue()->mProgressCurrent, m_wndCBrowserTab->GetBrowserGlue()->mProgressMax);
 	UpdateSiteIcon(theApp.favicons.GetIcon(m_wndCBrowserTab->GetBrowserGlue()->mIconURI));
