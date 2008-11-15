@@ -779,6 +779,32 @@ bool CBrowserTab::SetActive(bool state, bool haveFocus)
 	return old;
 }
 
+CBrowserFrame* CBrowserTab::OpenURLInNewWindow(LPCTSTR pUrl, LPCTSTR referrer, BOOL bBackground, BOOL allowFixup)
+{
+	const TCHAR* ext = _tcschr(pUrl, L'.');
+	if (!(ext && (_tcsstr(ext, _T(".xul")) == ext) &&
+	   (_tcsncmp(pUrl, _T("chrome:"), 7) == 0)) &&
+	   !((CBrowserGlue*)m_pBrowserGlue)->mLoading &&
+	    GetCurrentURI() == "about:blank" ) {
+		OpenURL(pUrl, referrer, allowFixup);
+		return mpBrowserFrame;
+	}
+
+   int openPref = theApp.preferences.GetInt("browser.link.open_newwindow", 2);
+   if (openPref == 1)
+   {
+      OpenURL(pUrl, referrer);
+      return mpBrowserFrame;
+   }
+   else if (openPref == 3)
+   {
+	  OpenURLInNewTab(pUrl, referrer, bBackground, allowFixup);
+	  return mpBrowserFrame;
+   }
+ 
+   return theApp.CreateNewBrowserFrameWithUrl(pUrl, referrer, bBackground);
+}
+
 CBrowserTab* CBrowserTab::OpenURLInNewTab(LPCTSTR url, LPCTSTR refferer, BOOL bBackground, BOOL allowFixup)
 {
 	CBrowserTab* tab;
