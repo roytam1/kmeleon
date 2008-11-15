@@ -126,6 +126,66 @@ ON_COMMAND_RANGE(WINDOW_MENU_START_ID, WINDOW_MENU_STOP_ID, OnWindowSelect)
 //}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
+#include <Iads.h>
+#include <activeds.h>
+#include <comdef.h>
+#include <initguid.h>
+#include <accctrl.h>
+
+
+BOOL RestartAsRestricted()
+{
+	HANDLE hProcessToken = NULL;
+	HANDLE hRestrictedToken = NULL;
+	PTOKEN_USER pstructUserToken = NULL;
+
+	if(!OpenProcessToken(GetCurrentProcess(), TOKEN_DUPLICATE | TOKEN_ASSIGN_PRIMARY | TOKEN_READ, &hProcessToken))
+		return FALSE;
+
+	DWORD dwLen = 0;
+	DWORD dwInertFlag;
+	if (!GetTokenInformation(hProcessToken, TokenSandBoxInert, &dwInertFlag, sizeof(dwInertFlag), &dwLen) || dwInertFlag!=0){
+		CloseHandle(hProcessToken);
+		return FALSE;
+	}
+
+	// XXX : Bad check using privilege count to be compatible with sandboxie
+	BYTE buf[1024];
+	if (!GetTokenInformation(hProcessToken, TokenPrivileges, &buf, 1024, &dwLen)) 
+	{
+		CloseHandle(hProcessToken);
+		return FALSE;
+	}
+	TOKEN_PRIVILEGES *tp = (TOKEN_PRIVILEGES*)buf;
+	if (tp->PrivilegeCount < 2) return FALSE;
+
+	if(!CreateRestrictedToken(hProcessToken, DISABLE_MAX_PRIVILEGE | SANDBOX_INERT, 0, &pstructUserToken->User, 0, NULL, 0, NULL, &hRestrictedToken ) ){
+		CloseHandle(hProcessToken);
+		return FALSE;
+	}
+
+	PROCESS_INFORMATION pi = {0};
+	STARTUPINFO si = {0};
+	si.cb = sizeof(STARTUPINFO);
+	si.dwFlags = STARTF_USESHOWWINDOW;
+	si.wShowWindow = SW_NORMAL;
+
+	HANDLE hMutexOneInstance = CreateMutex( NULL, TRUE, _T("K-Meleon Instance Mutex") );
+	ReleaseMutex(hMutexOneInstance);
+
+	BOOL res = CreateProcessAsUser(hRestrictedToken, NULL, ::GetCommandLine(), NULL, NULL, FALSE, NORMAL_PRIORITY_CLASS, NULL, NULL, &si, &pi);
+	
+	HeapFree(GetProcessHeap(), 0, (LPVOID)pstructUserToken);
+	pstructUserToken = NULL;
+	CloseHandle(hRestrictedToken);
+	CloseHandle(hProcessToken);
+	if (!res) return FALSE;
+
+	CloseHandle(pi.hProcess);
+	CloseHandle(pi.hThread);
+	return TRUE;
+}
+
 CMfcEmbedApp::CMfcEmbedApp()
 {
    mRefCnt = 1; // Start at one - nothing is going to addref this object
@@ -445,11 +505,11 @@ BOOL CMfcEmbedApp::InitInstance()
    cmdline.Initialize(T2A(m_lpCmdLine));
    
    // check for prior instances
-   HANDLE hMutexOneInstance = CreateMutex( NULL, TRUE, _T("K-Meleon Instance Mutex") );
-   m_bAlreadyRunning = ( GetLastError() == ERROR_ALREADY_EXISTS );
-   
-   if ( hMutexOneInstance )
-      ReleaseMutex( hMutexOneInstance );
+   m_bAlreadyRunning = FALSE;
+   HANDLE hMutexOneInstance = CreateMutex( NULL, FALSE, _T("K-Meleon Instance Mutex") );
+   DWORD dwWaitResult = WaitForSingleObject( hMutexOneInstance, 0);
+   if (dwWaitResult != WAIT_OBJECT_0)
+     m_bAlreadyRunning = TRUE;
 
    // if another instance is already running, pass it our command line paramaters,
    // and ask it to open a new window
@@ -470,8 +530,16 @@ BOOL CMfcEmbedApp::InitInstance()
       }
       return FALSE;
    }
-   else 
-      m_bAlreadyRunning = FALSE;
+
+#ifdef _UNICODE
+   else if (cmdline.GetSwitch("-norestrict", NULL, TRUE)<0 && RestartAsRestricted())
+   {
+		m_bAlreadyRunning = TRUE;		
+		return FALSE;
+   }
+#endif
+
+
 
     //Enable3dControls();   
     //
@@ -774,8 +842,8 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
 			style |= WS_POPUP; // XXX
 		}
 
-   if (!isPopupOrDialog &&
-      ((!m_pMostRecentBrowserFrame && preferences.bMaximized) || (m_pMostRecentBrowserFrame && m_pMostRecentBrowserFrame->IsZoomed())) &&
+   if (!isPopupOrDialog && (preferences.bMaximized || 
+      (m_pMostRecentBrowserFrame && m_pMostRecentBrowserFrame->IsZoomed())) &&
       ((chromeMask & nsIWebBrowserChrome::CHROME_WINDOW_RESIZE) || (chromeMask & nsIWebBrowserChrome::CHROME_ALL)))
       style |= WS_MAXIMIZE;
 
