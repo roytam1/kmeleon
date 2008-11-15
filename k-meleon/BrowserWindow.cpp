@@ -1591,17 +1591,22 @@ BOOL CBrowserWrapper::InputHasFocus()
 	nsCOMPtr<nsIDOMElement> element;
 	mWebBrowserFocus->GetFocusedElement(getter_AddRefs(element));
 
-	nsCOMPtr<nsIDOMNSHTMLInputElement> domnsinput = do_QueryInterface(element);
-	if (domnsinput) return TRUE;
+	if (element)
+	{
+		nsCOMPtr<nsIDOMNSHTMLInputElement> domnsinput = do_QueryInterface(element);
+		if (domnsinput) return TRUE;
 	
-	nsCOMPtr<nsIDOMNSHTMLTextAreaElement> tansinput = do_QueryInterface(element);
-	if (tansinput) return TRUE;
+		nsCOMPtr<nsIDOMNSHTMLTextAreaElement> tansinput = do_QueryInterface(element);
+		if (tansinput) return TRUE;
 	
-	nsCOMPtr<nsIDOMHTMLEmbedElement> embed = do_QueryInterface(element);
-	if (embed) return TRUE;
+		nsCOMPtr<nsIDOMHTMLEmbedElement> embed = do_QueryInterface(element);
+		if (embed) return TRUE;
 	
-	nsCOMPtr<nsIDOMHTMLObjectElement> object = do_QueryInterface(element);
-	if (object) return TRUE;
+		nsCOMPtr<nsIDOMHTMLObjectElement> object = do_QueryInterface(element);
+		if (object) return TRUE;
+
+		return FALSE;
+	}	
 
 	nsCOMPtr<nsITypeAheadFind> taFinder = do_GetService(NS_TYPEAHEADFIND_CONTRACTID);
 	if (taFinder) {
