@@ -489,6 +489,7 @@ $KM_Adblock="kmeleon.adblocking";
 KM_ToggleFlashblock{
 macroinfo=_("Toggle Flashblock");
 menuchecked=getpref(BOOL,$KM_Flashblock);
+menugrayed=!getpref(BOOL,$pref_JavaScript);
 togglepref(BOOL,$KM_Flashblock); &_KM_SyncButtons;
 statusbar(sub("%s",getpref(BOOL,$KM_Flashblock)?$on:$off,_("Flashblock %s")));
 }
