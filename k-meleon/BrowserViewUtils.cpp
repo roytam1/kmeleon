@@ -184,7 +184,7 @@ BOOL CBrowserView::OpenViewSourceWindow(BOOL frame)
 		wpd->LoadPage(cacheDescriptor, nsIWebPageDescriptor::DISPLAY_AS_SOURCE);
 	}
 	else {
-		url = _T("view-source://") + url;
+		url = _T("view-source:") + url;
 		pFrm->OpenURL(url);
 	}
     
