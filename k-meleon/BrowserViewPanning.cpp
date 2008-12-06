@@ -113,9 +113,14 @@ void CBrowserView::OnTimer(UINT nIDEvent)
          //s->GetScrollX(&scroll_x);
          //s->GetScrollY(&scroll_y);
 
-         int dx = (p.x-m_panningPoint.x);
-         int dy = (p.y-m_panningPoint.y);
-		 m_pWindow->ScrollBy(dx, dy);
+         //int dx = max(p.x-m_panningPoint.x-5,0);
+         //int dy = max(p.y-m_panningPoint.y-5,0);
+		 //m_pWindow->ScrollBy(dx/5*10, dy/5*10);
+
+         int dx = (p.x-m_panningPoint.x)/10;
+         int dy = (p.y-m_panningPoint.y)/10;
+		 m_pWindow->ScrollBy(dx*sqrt((double)abs(dx)), dy*sqrt((double)abs(dy)));
+
 /*
          if(dy!=0) {
             if(dy>0)	scroll_y += dy*dy; 
