@@ -96,7 +96,7 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
 }
 
 
-BOOL bHideReBar=1, bHideStatusBar=1, bAutoFullscreen=0, bHideTaskbar=1;
+BOOL bHideReBar=1, bHideStatusBar=1, bAutoFullscreen=0, bHideTaskbar=1, bHideTabsBar = 1;
 
 HINSTANCE ghInstance;
 
@@ -105,9 +105,9 @@ INT id_fullscreen;
 
 struct fullscreen {
   HWND hWnd;
-  HWND hReBar, hStatusBar;
+  HWND hReBar, hStatusBar, hTabsBar;
   BOOL bMaximized;
-  BOOL bReBarVisible, bStatusBarVisible;
+  BOOL bReBarVisible, bStatusBarVisible, bTabsBarVisible;
 
   WINDOWPLACEMENT wpOld;
   BOOL bFullScreen;
@@ -224,6 +224,7 @@ void Destroy(HWND hWnd) {
 void HideClutter(HWND hWndParent, FS *fs) {
    fs->hReBar = FindWindowEx(hWndParent, NULL, REBARCLASSNAME, NULL);
    fs->hStatusBar = FindWindowEx(hWndParent, NULL, STATUSCLASSNAME, NULL);
+   fs->hTabsBar = FindWindowEx(hWndParent, NULL, REBARCLASSNAME, "TabsBar");
 
    if (fs->bFullScreen) {
       WINDOWPLACEMENT wp;
@@ -238,10 +239,15 @@ void HideClutter(HWND hWndParent, FS *fs) {
          fs->bStatusBarVisible = IsWindowVisible(fs->hStatusBar);
          ShowWindow(fs->hStatusBar, !bHideStatusBar);
       }
+	  if (fs->hTabsBar) {
+         fs->bTabsBarVisible = IsWindowVisible(fs->hTabsBar);
+         ShowWindow(fs->hTabsBar, !bHideTabsBar);
+	  }
    }
    else {
       if (fs->hReBar) ShowWindow(fs->hReBar, fs->bReBarVisible);
       if (fs->hStatusBar) ShowWindow(fs->hStatusBar, fs->bStatusBarVisible);
+	  if (fs->hTabsBar) ShowWindow(fs->hTabsBar, fs->bTabsBarVisible);
    }
 }
 
@@ -287,6 +293,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 			kPlugin.kFuncs->GetPreference(PREF_BOOL, "kmeleon.plugins.fullscreen.hide_statusbar", &bHideStatusBar, (void *)&bHideStatusBar);
 			kPlugin.kFuncs->GetPreference(PREF_BOOL, "kmeleon.plugins.fullscreen.auto", &bAutoFullscreen, (void *)&bAutoFullscreen);
 		    kPlugin.kFuncs->GetPreference(PREF_BOOL, "kmeleon.plugins.fullscreen.hide_taskbar", &bHideTaskbar, (void *)&bHideTaskbar);
+			kPlugin.kFuncs->GetPreference(PREF_BOOL, "kmeleon.plugins.fullscreen.hide_tabsbar", &bHideTabsBar, (void *)&bHideTabsBar);
 
             RECT rectWindow;
 			RECT rectDesktop;

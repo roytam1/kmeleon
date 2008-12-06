@@ -110,7 +110,7 @@ protected:
 	
 	BOOL bRebarEnabled ;
 	TCHAR szTitle[MAX_PATH > 256 ? MAX_PATH : 256];
-	int  nButtonStyle;
+	int  mButtonStyle;
 	BOOL bButtonNumbers;
 	int  mDragItem;
 	POINT mDragPoint;
@@ -125,7 +125,7 @@ protected:
 	void HandleMouseClick(int flag, CPoint point);
 	
 	CReBarEx* m_wndParent;
-	CReBar* mTemp;
+	CReBarEx* mTemp;
 public:
 	DECLARE_MESSAGE_MAP()
 	afx_msg void OnMButtonUp(UINT nFlags, CPoint point);
