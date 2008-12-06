@@ -118,7 +118,7 @@ CTabReBar::CTabReBar()
 	mTemp = NULL;
 
 	theApp.preferences.GetString(PREFERENCE_REBAR_TITLE, szTitle, _T(""));
-	nButtonStyle = theApp.preferences.GetInt(PREFERENCE_BUTTON_STYLE, 2);
+	mButtonStyle = theApp.preferences.GetInt(PREFERENCE_BUTTON_STYLE, 2);
 }
 
 CTabReBar::~CTabReBar()
@@ -159,6 +159,7 @@ BOOL CTabReBar::Create(CReBarEx* rebar, UINT idwnd)
 			mTemp = new CReBarEx();
 			mTemp->Create(GetParentFrame(), RBS_BANDBORDERS, WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS|WS_CLIPCHILDREN|(mBottomBar ? CBRS_BOTTOM : CBRS_TOP));
 			mTemp->AddBar(this, szTitle, NULL,  RBBS_USECHEVRON | RBBS_NOGRIPPER);
+			mTemp->SetWindowText(_T("TabsBar"));
 		}
 
 		mDropTarget.Register(this);
