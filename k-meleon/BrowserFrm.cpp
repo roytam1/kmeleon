@@ -288,16 +288,17 @@ void CBrowserFrame::OnClose()
    // view, and m_pMostRecentBrowserFrame will point to an deleted 
    // object.
    CBrowserFrame* pTemp = theApp.m_pMostRecentBrowserFrame;
-
+   theApp.RemoveFrameFromList(this);
+   
    if (m_nFlags & (WF_MODALLOOP|WF_CONTINUEMODAL))
       EndModalLoop(IDCANCEL);
    else
-   DestroyWindow();
+      DestroyWindow();
 
    if (theApp.m_pMostRecentBrowserFrame == this) {
 	 theApp.m_pMostRecentBrowserFrame = pTemp;
    }
-
+   
    ReleaseMutex(theApp.m_hMutex);
 }
 
@@ -310,7 +311,6 @@ void CBrowserFrame::OnDestroy()
 	if (!IsDialog())
        theApp.plugins.SendMessage("*", "* OnClose", "Destroy", (long)m_hWnd);
 	
-	theApp.RemoveFrameFromList(this);
 	m_wndStatusBar.RemoveIcon(ID_SECURITY_STATE_ICON);
 	CFrameWnd::OnDestroy();
 }
