@@ -360,6 +360,7 @@ void CBrowserFrmTab::SetActiveBrowser(CBrowserTab* aNewActiveTab)
 		m_wndCBrowserTab->SetTypedLocation(!m_wndUrlBar.GetIsTyped() ? _T("") : m_wndUrlBar.GetEnteredURL());
 		m_pPreviousSelectedTab = m_wndCBrowserTab;
 		focus = m_wndCBrowserTab->IsChild(GetFocus());
+		PostMessage(UWM_UPDATESESSIONHISTORY, 0, 0);
 	}
 	//SendMessage(WM_SWITCHTAB, (WPARAM)m_wndCBrowserTab, (LPARAM)aNewActiveTab);
 	theApp.plugins.SendMessage("*", "*", "SwitchTab", (long)aNewActiveTab, (long)m_wndCBrowserTab);
