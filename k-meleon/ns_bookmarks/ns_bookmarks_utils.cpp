@@ -1145,17 +1145,18 @@ void Rebuild() {
 	      SendMessage(refToolbar, TB_GETITEMRECT, iCount, (LPARAM)&rectButton);
 	      ideal += rectButton.right - rectButton.left;
       }
-  
 
-   ++it;
 
    // Copy the new toolbar to the other windows.
    while (it != gToolbarList.end())
    {
 	   HWND toolbar = it->second;
 
-	   while (SendMessage(toolbar, TB_DELETEBUTTON, 0 /*index*/, 0)) ;
-	   CopyRebar(toolbar, refToolbar);
+	   if (toolbar != refToolbar)
+	   {
+			while (SendMessage(toolbar, TB_DELETEBUTTON, 0 /*index*/, 0)) ;
+			CopyRebar(toolbar, refToolbar);
+	   }
 
 	   HWND hReBar = FindWindowEx(it->first, NULL, REBARCLASSNAME, NULL);
 	   int uBandCount = SendMessage(hReBar, RB_GETBANDCOUNT, 0, 0);  
@@ -1164,18 +1165,18 @@ void Rebuild() {
 	   rb.fMask = RBBIM_CHILD;
 
 	   // Update the ideal size 
-	   for(int x=0;x < uBandCount;x++) {
+	   for(int x=0;x < uBandCount;x++)
+	   {
+		   if (!SendMessage(hReBar, RB_GETBANDINFO, (WPARAM) x, (LPARAM) &rb))
+			   continue;
 
-	      if (!SendMessage(hReBar, RB_GETBANDINFO, (WPARAM) x, (LPARAM) &rb))
-             continue;
-
-	      if (rb.hwndChild == toolbar)
-	      {
-			  rb.fMask  = RBBIM_IDEALSIZE;
-			  rb.cxIdeal = ideal;
-			  SendMessage(hReBar, RB_SETBANDINFO, x, (LPARAM)&rb);
-			  break;
-		  }
+		   if (rb.hwndChild == toolbar)
+		   {
+			   rb.fMask  = RBBIM_IDEALSIZE;
+			   rb.cxIdeal = ideal;
+			   SendMessage(hReBar, RB_SETBANDINFO, x, (LPARAM)&rb);
+			   break;
+		   }
 	   }
 	   ++it;
    }
