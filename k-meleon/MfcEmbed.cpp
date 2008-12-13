@@ -509,12 +509,12 @@ BOOL CMfcEmbedApp::InitInstance()
    HANDLE hMutexOneInstance = CreateMutex( NULL, FALSE, _T("K-Meleon Instance Mutex") );
    DWORD dwWaitResult = WaitForSingleObject( hMutexOneInstance, 0);
    if (dwWaitResult != WAIT_OBJECT_0)
-     m_bAlreadyRunning = TRUE;
+     m_bAlreadyRunning = cmdline.GetSwitch("-new", NULL, TRUE)<0;
 
    // if another instance is already running, pass it our command line paramaters,
    // and ask it to open a new window
    // eventually, we should handle this through DDE
-   if (cmdline.GetSwitch("-new", NULL, TRUE)<0 && m_bAlreadyRunning) {
+   if (m_bAlreadyRunning) {
       // find the hidden window
       if (HWND hwndPrev = ::FindWindowEx(NULL, NULL, HIDDEN_WINDOW_CLASS, NULL) ) {
 
@@ -532,14 +532,12 @@ BOOL CMfcEmbedApp::InitInstance()
    }
 
 #ifdef _UNICODE
-   else if (cmdline.GetSwitch("-norestrict", NULL, TRUE)<0 && RestartAsRestricted())
+   if (cmdline.GetSwitch("-norestrict", NULL, TRUE)<0 && RestartAsRestricted())
    {
 		m_bAlreadyRunning = TRUE;		
 		return FALSE;
    }
 #endif
-
-
 
     //Enable3dControls();   
     //
