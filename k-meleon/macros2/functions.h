@@ -495,7 +495,7 @@
 		// params are message,title,buttons,icon
 		checkArgs(__FUNCTION__, data, 4);
 		MString sButtons = data->getstr(3);
-		MString sIcon = data->getstr(3);
+		MString sIcon = data->getstr(4);
 
 		int buttons = MB_OKCANCEL;
 		if     (strcmpi(sButtons,"RETRYCANCEL")==0) buttons=MB_RETRYCANCEL;
