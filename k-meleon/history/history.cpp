@@ -23,6 +23,7 @@
 #include <commctrl.h>
 #include <stdlib.h>
 #include <tchar.h>
+#include <assert.h>
 
 #define KMELEON_PLUGIN_EXPORTS
 #include "../kmeleon_plugin.h"
@@ -84,6 +85,7 @@ kmeleonPlugin kPlugin = {
 
 int ID_HISTORY_FLAG = -1;
 int ID_HISTORY = -1;
+int ID_HISTORYF = -1;
 int ID_VIEW_HISTORY = -1;
 int ID_CONFIG_HISTORY = -1;
 int ID_CLEAR_HISTORY = -1;
@@ -147,7 +149,8 @@ int Load(){
       nHistoryLength = 0;
    
    wm_deferbringtotop = kPlugin.kFuncs->GetCommandIDs(1);
-   ID_HISTORY = kPlugin.kFuncs->GetCommandIDs(nHistoryLength*2);
+   ID_HISTORY = kPlugin.kFuncs->GetCommandIDs(nHistoryLength);
+   ID_HISTORYF = kPlugin.kFuncs->GetCommandIDs(nHistoryLength);
    ID_VIEW_HISTORY = kPlugin.kFuncs->GetCommandIDs(1);
    ID_CONFIG_HISTORY = kPlugin.kFuncs->GetCommandIDs(1);
    ID_CLEAR_HISTORY = kPlugin.kFuncs->GetCommandIDs(1);
@@ -340,8 +343,18 @@ void ShowMenuUnderButton(HWND hWndParent, HMENU hMenu, UINT uMouseButton, int iI
       PostMessage(hWndParent, UWM_REFRESHTOOLBARITEM, (WPARAM) iID, 0);
       
       if (SelectionMade > 0)
-         kPlugin.kFuncs->GotoHistoryIndex(SelectionMade-ID_HISTORY);
-      
+	  {
+         char **titles, **urls;
+         int count, index;
+         if (kPlugin.kFuncs->_GetMozillaSessionHistory (&titles, &urls, &count, &index)) 
+		 {
+            if ((SelectionMade >= ID_HISTORY) && (SelectionMade < ID_HISTORY+nHistoryLength)) 
+		       kPlugin.kFuncs->GotoHistoryIndex(SelectionMade-ID_HISTORY+(index>nHistoryLength?index-nHistoryLength:0));
+			else
+               kPlugin.kFuncs->GotoHistoryIndex(SelectionMade-ID_HISTORYF+index+1);
+		 }
+	  }
+            
       bFound = TRUE;
    }
 }
@@ -363,7 +376,7 @@ void CreateBackMenu (HWND hWndParent, UINT button) {
    int x=0;
    for (i = index - 1; i >= limit; i--) {
       CondenseMenuText(buf, titles[i], x++);
-      AppendMenu(menu, MF_STRING, ID_HISTORY+i, buf);
+      AppendMenu(menu, MF_STRING, ID_HISTORY+i-limit, buf);
    }
    
    ShowMenuUnderButton(hWndParent, menu, button, ID_NAV_BACK);
@@ -390,7 +403,7 @@ void CreateForwardMenu (HWND hWndParent, UINT button) {
    int x=0;
    for (i = index + 1; i < limit; i++) {
       CondenseMenuText(buf, titles[i], x++);
-      AppendMenu(menu, MF_STRING, ID_HISTORY+i, buf);
+      AppendMenu(menu, MF_STRING, ID_HISTORYF+i-index-1, buf);
    }
    
    ShowMenuUnderButton(hWndParent, menu, button, ID_NAV_FORWARD);
@@ -400,7 +413,7 @@ void CreateForwardMenu (HWND hWndParent, UINT button) {
 
 
 void UpdateHistoryMenu (HWND hWndParent) {
-   int index, count, i;
+   int index, count, i, limit;
    char **titles, **urls;
    char buf[47];  //  3 spaces for "&# " 20 for beginning of title 3 for "..." 20 for end of title
    
@@ -412,21 +425,38 @@ void UpdateHistoryMenu (HWND hWndParent) {
          return;
       
       // Clear the existing history menu 
-      for (i=ID_HISTORY;i<ID_HISTORY+nHistoryLength;i++)
-         DeleteMenu(ghMenu, i, MF_BYCOMMAND);
+      for (i = ID_HISTORY; i<ID_HISTORY+nHistoryLength; i++)
+		  DeleteMenu(ghMenu, i, MF_BYCOMMAND);
+      for (i = ID_HISTORYF; i<ID_HISTORY+nHistoryLength; i++)
+		  DeleteMenu(ghMenu, i, MF_BYCOMMAND);
+	  DeleteMenu(ghMenu, 0, MF_BYCOMMAND);
       
       // Add the local history to the menu
       if (!kPlugin.kFuncs->_GetMozillaSessionHistory (&titles, &urls, &count, &index)) return;
-      if (count > nHistoryLength) count = nHistoryLength;
+	  if (!count || index <0) return;
       
-      for (i=count-1;i>=0;i--) {
-         CondenseMenuText(buf, titles[i], (count-1 - i) );
-         
-         if (i == index)
-            AppendMenu(ghMenu, MF_ENABLED | MF_STRING | MF_CHECKED, ID_HISTORY+i, buf);
-         else
-            AppendMenu(ghMenu, MF_ENABLED | MF_STRING, ID_HISTORY+i, buf);
+      if (count-index > nHistoryLength)
+         limit = index+nHistoryLength;
+      else limit=count;
+   
+      int x=0;
+      for (i = limit - 1; i >= index + 1; i--) {
+         CondenseMenuText(buf, titles[i], x++);
+         AppendMenu(ghMenu, MF_STRING, ID_HISTORYF+i-index-1, buf);
+	  }
+
+	  CondenseMenuText(buf, titles[index], -1);
+      AppendMenu(ghMenu, MF_STRING | MF_CHECKED, 0, buf);
+
+	  if (index>nHistoryLength)
+         limit = index-nHistoryLength;
+      else limit=0;
+      
+      for (i = index - 1; i >= limit; i--) {
+         CondenseMenuText(buf, titles[i], x++);
+         AppendMenu(ghMenu, MF_STRING, ID_HISTORY+i-limit, buf);
       }
+
       tmpMenu = tmpMenu->next;
    }
 }
@@ -495,7 +525,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
       WORD command;
       command = LOWORD(wParam);
       if ((command >= ID_HISTORY) && (command < ID_HISTORY+nHistoryLength)) {
-         kPlugin.kFuncs->GotoHistoryIndex(command-ID_HISTORY);
+         char **titles, **urls;
+         int count, index;
+         if (kPlugin.kFuncs->_GetMozillaSessionHistory (&titles, &urls, &count, &index)) 
+		    kPlugin.kFuncs->GotoHistoryIndex(command-ID_HISTORY+(index>nHistoryLength?index-nHistoryLength:0));
+         return true;
+      }
+	  else if ((command >= ID_HISTORYF) && (command < ID_HISTORYF+nHistoryLength)) {
+         char **titles, **urls;
+         int count, index;
+         if (kPlugin.kFuncs->_GetMozillaSessionHistory (&titles, &urls, &count, &index)) 
+             kPlugin.kFuncs->GotoHistoryIndex(command-ID_HISTORYF+index+1);
          return true;
       }
       else if (command == ID_VIEW_HISTORY) {
@@ -529,7 +569,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
             char **titles, **urls;
             int count, index;
             if (kPlugin.kFuncs->_GetMozillaSessionHistory (&titles, &urls, &count, &index)) {
-               kPlugin.kFuncs->SetStatusBarText(urls[command - ID_HISTORY]);
+			   int hid = command - ID_HISTORY + (index>nHistoryLength?index-nHistoryLength:0);
+			   assert( hid < count);
+			   if (hid >= count) return true;
+			   kPlugin.kFuncs->SetStatusBarText(urls[command - ID_HISTORY + (index>nHistoryLength?index-nHistoryLength:0)]);
+               return true;
+            }
+         }
+		 else if ((command >= ID_HISTORYF) && (command < ID_HISTORYF+nHistoryLength)) {
+            char **titles, **urls;
+            int count, index;
+            if (kPlugin.kFuncs->_GetMozillaSessionHistory (&titles, &urls, &count, &index)) {
+			   int hid = command - ID_HISTORYF + index+1 < count;
+			   assert(hid < count);
+			   if (hid >= count) return true;
+			   kPlugin.kFuncs->SetStatusBarText(urls[command - ID_HISTORYF + index+1]);
                return true;
             }
          }
