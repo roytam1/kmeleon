@@ -11,9 +11,9 @@ pref("kmeleon.general.homePage", "resource:///readme.html");
 // Privacy
 
 pref("kmeleon.privacy.useragent1.name", "Firefox 2.0");
-pref("kmeleon.privacy.useragent1.string", "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.16) Gecko/20080702 Firefox/2.0.0.16");
+pref("kmeleon.privacy.useragent1.string", "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.20) Gecko/20081217 Firefox/2.0.0.20");
 pref("kmeleon.privacy.useragent2.name", "SeaMonkey 1.1");
-pref("kmeleon.privacy.useragent2.string", "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.16) Gecko/20080702 SeaMonkey/1.1.11");
+pref("kmeleon.privacy.useragent2.string", "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.19) Gecko/20081204 SeaMonkey/1.1.14");
 
 
 /********************************************************************************************************/
