@@ -404,15 +404,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 		HWND targetWnd = WindowFromPoint(m_posDown);
 		if (m_captured == WM_LBUTTONDOWN && (id == 0 || m_virt == 0)) {
 			ScreenToClient(targetWnd, &m_posUp);
-			//PostMessage(targetWnd, WM_LBUTTONDOWN, MK_LBUTTON, MAKELONG(m_posDown.x, m_posDown.y));
-        	PostMessage(targetWnd, WM_LBUTTONUP, wParam, MAKELONG(m_posUp.x, m_posUp.y));
+			//SendMessage(targetWnd, WM_LBUTTONDOWN, MK_LBUTTON, MAKELONG(m_posDown.x, m_posDown.y));
+        	SendMessage(targetWnd, WM_LBUTTONUP, wParam, MAKELONG(m_posUp.x, m_posUp.y));
 		}
         else if (m_rocking)
             m_rocking = FALSE;
 		else if (dir == NOMOVE && m_captured == WM_RBUTTONDOWN /*&& m_virt == 0*/ && id <= 0) {
 			ScreenToClient(targetWnd, &m_posDown);
 			//PostMessage(targetWnd, WM_RBUTTONDOWN, wParam, MAKELONG(m_posDown.x, m_posDown.y));
-			PostMessage(targetWnd, WM_RBUTTONUP, wParam, MAKELONG(m_posDown.x, m_posDown.y));
+			SendMessage(targetWnd, WM_RBUTTONUP, wParam, MAKELONG(m_posDown.x, m_posDown.y));
             //PostMessage(GetFocus(), WM_CONTEXTMENU, (WPARAM) hWnd, MAKELONG(m_posUp.x, m_posUp.y));
 		}
         else if (dir != BADMOVE && id > 0)
