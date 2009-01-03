@@ -217,7 +217,7 @@ void TrayRButton(HWND hWnd) {
    PostMessage(hWnd, WM_NULL, 0, 0);
 }
 
-WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
  
    // check for prior instances
    HANDLE hMutexOneInstance = CreateMutex( NULL, TRUE, "K-Meleon Loader Instance Mutex" );
