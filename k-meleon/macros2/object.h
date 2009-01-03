@@ -143,13 +143,13 @@ public:
 	bool isfunction() {return t == VALUE_FUNCTION;}
 	bool isvalid() {return t!= VALUE_NONE;}
 	
-	operator +(Value& right ){ return intval() + right.intval(); }
-	operator -(Value& right ){ return intval() - right.intval(); }
-	operator *(Value& right ){ return intval() * right.intval(); }
-	operator /(Value& right ){ MInt d = right.intval(); return d ? intval() / d : 0; }
-	operator %(Value& right ){ MInt d = right.intval(); return d ? intval() % d : 0; }
-	operator &&(Value& right ){ return boolval() && right.boolval(); }
-	operator ||(Value& right ){ return boolval() || right.boolval(); }
+	MInt operator +(Value& right ){ return intval() + right.intval(); }
+	MInt operator -(Value& right ){ return intval() - right.intval(); }
+	MInt operator *(Value& right ){ return intval() * right.intval(); }
+	MInt operator /(Value& right ){ MInt d = right.intval(); return d ? intval() / d : 0; }
+	MInt operator %(Value& right ){ MInt d = right.intval(); return d ? intval() % d : 0; }
+	MInt operator &&(Value& right ){ return boolval() && right.boolval(); }
+	MInt operator ||(Value& right ){ return boolval() || right.boolval(); }
 	MInt operator -( ){ return -intval(); }
 	MInt operator ==(Value& right ){
 		switch (t) {
