@@ -471,6 +471,10 @@
 #define ID_CLOSE_ALLTAB                 33908
 #define ID_CLOSE_ALLOTHERTAB            33909
 #define ID_TAB_LAST                     33910
+#define ID_MAXIMIZE_WINDOW				33911
+#define ID_MINIMIZE_WINDOW				33912
+#define ID_RESTORE_WINDOW				33913
+#define ID_TOGGLE_WINDOW				33914
 #define IDS_FAILED_TO_CREATE_BROWSER    61204
 #define IDS_NEW_PLUGIN_FOUND            61205
 #define IDS_PLUGIN_NO_OPTIONS           61206

@@ -166,6 +166,11 @@ void KmCmdService::InitDefaultCmd()
 	ADD_DEFCMD(windowNew, ID_NEW_BROWSER);
 	ADD_DEFCMD(windowNext, ID_WINDOW_NEXT);
 	ADD_DEFCMD(windowPrev, ID_WINDOW_PREV);
+	ADD_DEFCMD(windowMaximize, ID_MAXIMIZE_WINDOW);
+	ADD_DEFCMD(windowMinimize, ID_MINIMIZE_WINDOW);
+	ADD_DEFCMD(windowRestore, ID_RESTORE_WINDOW);
+	ADD_DEFCMD(windowToggle, ID_TOGGLE_WINDOW);
+
 	ADD_DEFCMD(tabNew, ID_NEW_TAB);
 	ADD_DEFCMD(tabClose, ID_CLOSE_TAB);
 	ADD_DEFCMD(tabCloseAll, ID_CLOSE_ALLTAB);
