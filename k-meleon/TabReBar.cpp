@@ -268,7 +268,7 @@ void CTabReBar::UpdateButtonsSize()
 		if (width>nMinWidth)
 			buttonWidth = width / (width/nMinWidth);
 	}
-
+	
 	GetToolBarCtrl().SetButtonWidth(buttonWidth, buttonWidth);
 
 	SIZE size;
@@ -284,6 +284,15 @@ void CTabReBar::UpdateButtonsSize()
 		m_wndParent->GetReBarCtrl().SetBandInfo(iband, &rb);
 	} 
 	else {
+		/* Stupid Vista Fix */
+		bool static ignoreSize = 0;
+		if (ignoreSize) {
+			ignoreSize = false;
+			return;
+		}
+		ignoreSize = true;
+		/* End Stupid Fix */
+
 		mTemp->GetReBarCtrl().SetBandInfo(0, &rb);
 		mTemp->GetReBarCtrl().MaximizeBand(0);
 	}
