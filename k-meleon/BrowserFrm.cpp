@@ -133,6 +133,11 @@ BEGIN_MESSAGE_MAP(CBrowserFrame, CFrameWnd)
 	ON_COMMAND(IDC_MATCH_CASE, OnMatchCase)
 	ON_COMMAND(IDC_HIGHLIGHT, OnHighlight)
 
+	ON_COMMAND(ID_MAXIMIZE_WINDOW,OnMaximizeWindow)
+	ON_COMMAND(ID_MINIMIZE_WINDOW,OnMinimizeWindow)
+	ON_COMMAND(ID_RESTORE_WINDOW, OnRestoreWindow)
+	ON_COMMAND(ID_TOGGLE_WINDOW, OnToggleWindow)
+
 //	ON_MESSAGE(WM_ENTERSIZEMOVE, OnEnterSizeMove)
 //	ON_MESSAGE(WM_EXITSIZEMOVE, OnExitSizeMove)
 	//}}AFX_MSG_MAP
@@ -162,6 +167,7 @@ CBrowserFrame::CBrowserFrame(PRUint32 chromeMask, LONG style = 0)
 	m_searchString = NULL;
 	m_wndLastFocused = NULL;
 	m_wndBrowserView = NULL;
+	m_zoom = false;
 }
 
 CBrowserFrame::~CBrowserFrame()
@@ -172,10 +178,12 @@ CBrowserFrame::~CBrowserFrame()
 		delete m_wndFindBar;
 	if (m_searchString)
 		free(m_searchString);
+	::UnregisterHotKey(m_hWnd,1);
 }
 
 BOOL CBrowserFrame::PreTranslateMessage(MSG* pMsg)
 {
+   ::RegisterHotKey(m_hWnd,1,MOD_ALT,192);
    if (pMsg->message==WM_KEYDOWN)
    {
 	  if ( pMsg->wParam == VK_TAB && !(GetKeyState(VK_CONTROL)  & 0x8000)) {
@@ -1641,4 +1649,36 @@ void CBrowserFrame::UpdatePopupNotification(LPCTSTR uri)
 	}
 	else
 		m_wndStatusBar.RemoveIcon(ID_POPUP_BLOCKED_ICON);
+}
+
+void CBrowserFrame::OnMaximizeWindow()
+{
+	ShowWindow(SW_MAXIMIZE);
+}
+
+void CBrowserFrame::OnMinimizeWindow()
+{
+	ShowWindow(SW_MINIMIZE);
+	 
+} 
+
+void CBrowserFrame::OnRestoreWindow()
+{
+	ShowWindow(SW_RESTORE);
+}
+
+void CBrowserFrame::OnToggleWindow()
+{
+	if (IsZoomed())
+		ShowWindow(SW_RESTORE);
+	else
+		ShowWindow(SW_MAXIMIZE);
+}
+
+void CBrowserFrame::OnHideWindow()
+{
+	if(!IsWindowVisible()) 
+		ShowWindow(SW_SHOW);
+	else 
+		ShowWindow(SW_HIDE);
 }

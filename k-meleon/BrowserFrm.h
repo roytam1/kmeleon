@@ -338,6 +338,12 @@ protected:
 	afx_msg void OnPopupPermissions();
 	afx_msg void OnMoving(UINT fwSide, LPRECT pRect);
 	afx_msg void OnDestroy();
+
+	afx_msg void OnMaximizeWindow();
+	afx_msg void OnMinimizeWindow();
+	afx_msg void OnRestoreWindow();
+	afx_msg void OnToggleWindow();
+
 	//}}AFX_MSG
 
 	// ClassWizard generated virtual function overrides
