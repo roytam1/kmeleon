@@ -990,7 +990,7 @@
 	Value injectCSS(FunctionData* data)
 	{
 		checkArgs(__FUNCTION__, data, 1);
-		kPlugin.kFuncs->InjectCSS(data->getstr(2), true, data->c.hWnd);
+		kPlugin.kFuncs->InjectCSS(data->getstr(1), true, data->c.hWnd);
 		return "";
 	}
 
