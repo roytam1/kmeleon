@@ -1172,6 +1172,7 @@ int AddButtonMsg(char *sParams) {
 	while (pButton) {
 		if (pButton->iID == command)
 			return 0;
+		pButton = pButton->next;
 	}
 	
 	pButton = AddButton(pToolbar, buttonname, width, height);
