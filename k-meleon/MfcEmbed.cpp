@@ -505,11 +505,11 @@ BOOL CMfcEmbedApp::InitInstance()
    cmdline.Initialize(T2A(m_lpCmdLine));
    
    // check for prior instances
-   m_bAlreadyRunning = FALSE;
+   m_bAlreadyRunning = cmdline.GetSwitch("-new", NULL, TRUE)<0;
    HANDLE hMutexOneInstance = CreateMutex( NULL, FALSE, _T("K-Meleon Instance Mutex") );
    DWORD dwWaitResult = WaitForSingleObject( hMutexOneInstance, 0);
-   if (dwWaitResult != WAIT_OBJECT_0)
-     m_bAlreadyRunning = cmdline.GetSwitch("-new", NULL, TRUE)<0;
+   if (dwWaitResult == WAIT_OBJECT_0)
+     m_bAlreadyRunning = FALSE;
 
    // if another instance is already running, pass it our command line paramaters,
    // and ask it to open a new window
@@ -1704,3 +1704,4 @@ void CMfcEmbedApp::CheckProfileVersion()
        }
    }
 }
+
