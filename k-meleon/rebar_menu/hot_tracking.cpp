@@ -90,14 +90,31 @@ LRESULT CALLBACK MsgHook(int code, WPARAM wParam, LPARAM lParam){
 		  break;
 
 	  case WM_MBUTTONUP:
-	  case WM_RBUTTONUP:
-		  if (!giCmd || gbSelPopup)
-			  break;
+	  case WM_RBUTTONUP: 
+          {
+			if (!giCmd || gbSelPopup)
+				break;
 
-		  giButton = (msg->message == WM_MBUTTONUP ? 1 : 2);
-		  SendMessage(ghFrame, WM_CANCELMODE, 0, 0);
-		  gbContinueMenu = false;
-		  return TRUE;
+			// Check if the mouse is still inside the menu
+			POINT mouse;
+			mouse.x = LOWORD(msg->lParam);
+			mouse.y = HIWORD(msg->lParam);
+
+			RECT rect = {0};
+			HWND hw = HwndMenuCur();
+			GetWindowRect(hw, &rect);
+
+			if (!(mouse.x >= rect.left && mouse.x <= rect.right &&
+				mouse.y >= rect.top  && mouse.y <= rect.bottom)) 
+				giButton = 0;
+			else
+				giButton = (msg->message == WM_MBUTTONUP ? 1 : 2);
+			SendMessage(ghFrame, WM_CANCELMODE, 0, 0);
+			gbContinueMenu = false;
+			return TRUE;
+					  
+
+		  }
 
 	  case WM_LBUTTONDOWN:
 		  {
