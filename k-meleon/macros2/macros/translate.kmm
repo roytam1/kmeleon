@@ -176,10 +176,11 @@ macros($_Translate_ClearMenu_Macro); &_Translate_BabelFish_SetDefaults; &_Transl
 $_Translate_BabelFish="&Babel Fish Translation";
 
 _Translate_BabelFish_SetDefaults{
-setpref(STRING,$_Translate_pref_pair,"zh:en;zt:en;en:zh,zt,nl,fr,de,el,it,ja,ko,pt,ru,es;nl:en,fr;fr:en,de,el,it,pt,nl,es;de:en,fr;el:en,fr;it:en,fr;ja:en;ko:en;pt:en,fr;ru:en;es:en,fr;");
+setpref(STRING,$_Translate_pref_pair,"zh:en,zt;zt:en,zh;en:zh,zt,nl,fr,de,el,it,ja,ko,pt,ru,es;nl:en,fr;fr:en,de,el,it,pt,nl,es;de:en,fr;el:en,fr;it:en,fr;ja:en;ko:en;pt:en,fr;ru:en;es:en,fr;");
 setpref(STRING,$_Translate_pref_srvc,$_Translate_BabelFish);
 setpref(STRING,$_Translate_pref_page,"http://babelfish.altavista.com/babelfish/trurl_pagecontent?lp=<from>_<to>&url=<url>");
-setpref(STRING,$_Translate_pref_text,"http://babelfish.altavista.com/babelfish/tr?lp=<from>_<to>&urltext=<txt>");
+#setpref(STRING,$_Translate_pref_text,"http://babelfish.altavista.com/babelfish/tr?lp=<from>_<to>&urltext=<txt>");
+setpref(STRING,$_Translate_pref_text,"http://babelfish.yahoo.com/translate_txt?lp=<from>_<to>&trtext=<txt>");
 setpref(STRING,$_Translate_pref_regn,1011100);
 $_Translate_pair=getpref(STRING,$_Translate_pref_pair);
 $_Translate_BuildMenu_Macro="_Translate_BabelFish_BuildMenu;";
