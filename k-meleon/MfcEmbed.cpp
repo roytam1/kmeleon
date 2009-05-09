@@ -1000,6 +1000,9 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
    if (!preferences.bHideTaskBarButtons)
       pFrame->ModifyStyleEx(0, WS_EX_APPWINDOW);
 
+   if (preferences.GetBool("kmeleon.display.hideTitleBar", FALSE))
+      pFrame->ModifyStyle(WS_CAPTION, 0 , SWP_DRAWFRAME);
+
    if (inBackground) {
       pFrame->SetWindowPos((CWnd*)theApp.m_FrameWndLst.GetHead(),
          0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | SWP_SHOWWINDOW);
