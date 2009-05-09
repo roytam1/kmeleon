@@ -144,6 +144,7 @@ BEGIN_MESSAGE_MAP(CBrowserFrame, CFrameWnd)
 
 //	ON_WM_MOVING()
 	ON_WM_DESTROY()
+	ON_WM_GETMINMAXINFO()
 END_MESSAGE_MAP()
 
 #define PREF_TOOLBAND_LOCKED "kmeleon.general.toolbars_locked"
@@ -167,7 +168,6 @@ CBrowserFrame::CBrowserFrame(PRUint32 chromeMask, LONG style = 0)
 	m_searchString = NULL;
 	m_wndLastFocused = NULL;
 	m_wndBrowserView = NULL;
-	m_zoom = false;
 }
 
 CBrowserFrame::~CBrowserFrame()
@@ -1653,7 +1653,25 @@ void CBrowserFrame::UpdatePopupNotification(LPCTSTR uri)
 
 void CBrowserFrame::OnMaximizeWindow()
 {
-	ShowWindow(SW_MAXIMIZE);
+	if (this->GetStyle() & WS_CAPTION)
+		ShowWindow(SW_MAXIMIZE);
+	else
+	{
+		CRect rectDesktop;
+		::GetWindowRect(::GetDesktopWindow(), &rectDesktop);
+
+		APPBARDATA abd;
+		abd.cbSize = sizeof(abd);
+		UINT uState = (UINT) SHAppBarMessage(ABM_GETSTATE, &abd); 
+		if ((uState & ABS_ALWAYSONTOP) && !(uState & ABS_AUTOHIDE))
+		{
+			BOOL fResult = (BOOL) SHAppBarMessage(ABM_GETTASKBARPOS, &abd); 
+			rectDesktop.SubtractRect(rectDesktop, &abd.rc);
+		}
+
+		AdjustWindowRectEx(rectDesktop, GetWindowLong(m_hWnd, GWL_STYLE), GetMenu() ? TRUE : FALSE, GetWindowLong(m_hWnd, GWL_EXSTYLE)); 
+		SetWindowPos(NULL, rectDesktop.left, rectDesktop.top, rectDesktop.Width(), rectDesktop.Height(), SWP_NOZORDER);
+	}
 }
 
 void CBrowserFrame::OnMinimizeWindow()
@@ -1675,10 +1693,32 @@ void CBrowserFrame::OnToggleWindow()
 		ShowWindow(SW_MAXIMIZE);
 }
 
-void CBrowserFrame::OnHideWindow()
+void CBrowserFrame::OnGetMinMaxInfo(MINMAXINFO* lpMMI)
 {
-	if(!IsWindowVisible()) 
-		ShowWindow(SW_SHOW);
-	else 
-		ShowWindow(SW_HIDE);
+	if (this->GetStyle() & WS_CAPTION)
+		CFrameWnd::OnGetMinMaxInfo(lpMMI);
+	else
+	{
+		CRect rectDesktop;
+		::GetWindowRect(::GetDesktopWindow(), &rectDesktop);
+
+		APPBARDATA abd;
+		abd.cbSize = sizeof(abd);
+		UINT uState = (UINT) SHAppBarMessage(ABM_GETSTATE, &abd); 
+		if ((uState & ABS_ALWAYSONTOP) && !(uState & ABS_AUTOHIDE))
+		{
+			BOOL fResult = (BOOL) SHAppBarMessage(ABM_GETTASKBARPOS, &abd); 
+			rectDesktop.SubtractRect(rectDesktop, &abd.rc);
+		}
+
+		AdjustWindowRectEx(rectDesktop, 
+			GetWindowLong(m_hWnd, GWL_STYLE), 
+			GetMenu() ? TRUE : FALSE, 
+			GetWindowLong(m_hWnd, GWL_EXSTYLE)); 
+
+		lpMMI->ptMaxPosition.x = rectDesktop.left;
+		lpMMI->ptMaxPosition.y = rectDesktop.top;
+		lpMMI->ptMaxSize.x = rectDesktop.Width();
+		lpMMI->ptMaxSize.y = rectDesktop.Height();
+	}
 }
