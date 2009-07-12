@@ -124,7 +124,7 @@ int CAccelParser::SetAccel(const char* pKey, const char* pCommand)
 	command = theApp.commands.GetId(pCommand);
 	if (!command) {
 		LOG_ERROR_1( "Command %s is unknow", pCommand);
-		return 0;
+		//return 0;
 	}
 
 	virt = 0;
