@@ -375,7 +375,7 @@ CString CUnknownContentTypeHandler::GetTypeName()
 	
 	nsEmbedString filename;
 	mAppLauncher->GetSuggestedFileName(filename);
-	SHFILEINFO shfi;
+	SHFILEINFO shfi = {0};
 	if (SHGetFileInfo(W2CT(filename.get()), 0, &shfi, sizeof(SHFILEINFO),SHGFI_USEFILEATTRIBUTES|SHGFI_TYPENAME)) 
 		return CString(shfi.szTypeName);
 	return CString();
