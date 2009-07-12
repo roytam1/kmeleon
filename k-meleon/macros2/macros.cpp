@@ -794,8 +794,8 @@ std::string strTrim(const std::string& instr)
 {
 	int lpos = 0;
 	int rpos = instr.length()-1;
-	while(lpos <= rpos && ((instr.at(lpos) & 0x80) == 0) && isspace(instr.at(lpos))) ++lpos;
-	while(rpos >=0 && ((instr.at(lpos) & 0x80) == 0) && isspace(instr.at(rpos))) --rpos;
+	while(lpos < rpos && ((instr.at(lpos) & 0x80) == 0) && isspace(instr.at(lpos))) ++lpos;
+	while(rpos >= lpos && ((instr.at(lpos) & 0x80) == 0) && isspace(instr.at(rpos))) --rpos;
 	return instr.substr(lpos,rpos-lpos+1);
 }
 
