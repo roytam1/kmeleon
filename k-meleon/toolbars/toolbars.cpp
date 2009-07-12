@@ -824,6 +824,8 @@ s_button  *AddButton(s_toolbar *toolbar, char *name, int width, int height) {
 
    if (toolbar->pButtonHead == NULL)
       toolbar->pButtonHead = newButton;
+   if (toolbar->pButtonTail != NULL)
+      toolbar->pButtonTail->next = newButton;
    toolbar->pButtonTail = newButton;
    toolbar->iButtonCount++;
 
