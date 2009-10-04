@@ -51,6 +51,10 @@
 <!ENTITY ID_FONT_INCREASE		"Zoom In Text">
 <!ENTITY ID_FONT_DECREASE		"Zoom Out Text">
 <!ENTITY fullscreen			"Full Screen">
+<!ENTITY ID_MINIMIZE_WINDOW		"Minimize Window">
+<!ENTITY ID_MAXIMIZE_WINDOW		"Maximize Window">
+<!ENTITY ID_TOGGLE_WINDOW		"Maximize/Restore Window">
+<!ENTITY ID_RESTORE_WINDOW		"Restore Window">
 <!ENTITY bookmarksAdd			"Add Page To Bookmarks">
 <!ENTITY favoritesAdd			"Add Page To Favorites">
 <!ENTITY hotlistAdd			"Add Page To Hotlist">

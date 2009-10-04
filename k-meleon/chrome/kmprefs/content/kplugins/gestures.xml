@@ -69,6 +69,14 @@
 	command="ID_FONT_DECREASE"/>
 <action caption="&fullscreen;"
 	command="fullscreen()"/>
+<action caption="&ID_MINIMIZE_WINDOW;"
+	command="ID_MINIMIZE_WINDOW"/>
+<action caption="&ID_MAXIMIZE_WINDOW;"
+	command="ID_MAXIMIZE_WINDOW"/>
+<action caption="&ID_TOGGLE_WINDOW;"
+	command="ID_TOGGLE_WINDOW"/>
+<action caption="&ID_RESTORE_WINDOW;"
+	command="ID_RESTORE_WINDOW"/>
 <action caption="&bookmarksAdd;"
 	command="bookmarks(Add)"/>
 <action caption="&favoritesAdd;"
