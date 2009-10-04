@@ -322,7 +322,7 @@ $OpenURL="chrome://pippki/content/certManager.xul"; &OpenURL_InNewWindow;
 # PRIVATE
 _moz_BuildMenu{
 # edit menu
-setmenu(Preferences,macro,"Config&uration",moz_AboutConfig);
+setmenu(Preferences,macro,"C&onfiguration",moz_AboutConfig);
 # tools menu
 setmenu("Vie&w Data",macro,"View C&ache",moz_AboutCache,ID_COOKIES_VIEWER);
 setmenu("Vie&w Data",macro,"View &Certificates",moz_CertificateViewer);

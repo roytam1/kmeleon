@@ -70,7 +70,7 @@ $__data==""?&cfg_FileNotFound:exec(sub("%1",$__path,$cmdline));
 
 # ----- PRIVATE
 
-$_cfg="Config&uration";
+$_cfg="C&onfiguration";
 
 _cfg_BuildMenu{
 # edit menu
