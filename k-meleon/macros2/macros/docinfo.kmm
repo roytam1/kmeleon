@@ -12,7 +12,7 @@
 
 DocInfo_Image{
 macroinfo=_("View image properties");
-$JS_doitImage="a=false;var l=getAttribute('longdesc'),s='"._("Image Properties:")."\\n\\n"._("URL:\\t%s")."'.replace(/%s/,unescape(src))+'\\n"._("Size:\\t%W x %H Pixels")."'.replace(/%W/,width).replace(/%H/,height);if(alt)s+='\\n"._("Alt. Text:\\t%s")."'.replace(/%s/,alt);if(l){s+='\\n\\n"._("A description is available for this image. Do you want to view it now?")."';if(confirm(s)){if(top.location==self.location)open(l);top.location.href=l}}else alert(s)";
+$JS_doitImage="a=false;var s='"._("Image Properties:")."\\n\\n"._("URL:\\t%s")."\\n'.replace(/%s/,unescape(src));s+=(naturalWidth!=width||naturalHeight!=height?'"._("Size:\\t%w x %h Pixels (scaled to %W x %H)")."'.replace(/%w/,naturalWidth).replace(/%h/,naturalHeight):'"._("Size:\\t%W x %H Pixels")."').replace(/%W/,width).replace(/%H/,height);if(alt)s+='\\n"._("Alt. Text:\\t%s")."'.replace(/%s/,alt);if(longDesc){s+='\\n\\n"._("A description is available for this image. Do you want to view it now?")."';if(confirm(s)){if(top.location==self.location)open(longDesc);top.location.href=longDesc}}else alert(s)";
 $JS_doitInput="a=false;var s='"._("Image Properties:")."\\n\\n"._("URL:\\t%s")."'.replace(/%s/,unescape(src));if(alt)s+='\\n"._("Alt. Text:\\t%s")."'.replace(/%s/,alt);alert(s);a=false"; &JS_hndlImage;
 }
 DocInfo_Link{
