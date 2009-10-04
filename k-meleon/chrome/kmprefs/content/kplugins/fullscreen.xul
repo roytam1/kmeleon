@@ -29,6 +29,7 @@ init : function() {
 		this._base  = "kmeleon.plugins."+this.name+".";
 		this._pref  = new Array("load",
 					"hide_rebar",
+					"hide_tabsbar",
 					"hide_statusbar",
 					"hide_taskbar");
 		this._setControls();
@@ -44,6 +45,7 @@ toggle: function() {
 _setControls: function() {
 	for(var j=1;j<this._pref.length;j++)
 		document.getElementById(this._base+this._pref[j]).disabled = !this.load;
+	document.getElementById(this._base+this._pref[2]).disabled = !this.load || !kTabs() || !(pref.getBoolPref("kmeleon.tabs.bottomBar") || pref.getBoolPref("kmeleon.tabs.fixedBar"));
 },
 _setLabel: function() {
 	if(!kPlugin.absent(this.name))
@@ -64,6 +66,7 @@ _setLabel: function() {
     <caption><label>&fullscreen.mode;</label></caption>
     <separator class="thin"/>
     <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.plugins.fullscreen.hide_rebar"/>
+    <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.plugins.fullscreen.hide_tabsbar" label="&fullscreen.tabsbar;"/>
     <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.plugins.fullscreen.hide_statusbar" label="&fullscreen.status;"/>
     <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.plugins.fullscreen.hide_taskbar" label="&fullscreen.taskbar;"/>
     <separator class="thin"/>
