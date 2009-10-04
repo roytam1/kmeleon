@@ -7,6 +7,7 @@
 var TabBar = {
 
 hide : "browser.tabs.autoHide",
+btns : "browser.tabs.closeButtons",
 init : function() {
 	this._base = "kmeleon.tabs.";
 	this._ctrl = new Array(	"bottomBar",
@@ -39,9 +40,13 @@ clear: function(elem) {
 	restoreDefault(id);
 	initTextbox(id,id==this._base+this._ctrl[4]?document.getElementById("pref_bundle").getString("toolbar_title_none"):false)
 },
+toggle: function(elem) {
+	setIntPref(elem.id, elem.checked?1:0);
+},
 _setControls: function() {
 	var dis = !kTabs();
 	document.getElementById(this.hide).disabled = dis;
+	document.getElementById(this.btns).checked = getPrefValue(this.btns) == 1;
 	for(var j=0;j<this._ctrl.length;j++)
 		document.getElementById(this._base+this._ctrl[j]).disabled = dis;
 	for(var j=0;j<3;j++)
@@ -58,6 +63,7 @@ _setControls: function() {
 
 <tabpanel id="TabBar" flex="1" orient="vertical" style="overflow:auto">
   <separator class="thin"/>
+  <checkbox oncommand="TabBar.toggle(this)" id="browser.tabs.closeButtons" label="&tabbar.closeButtons;"/>
   <checkbox oncommand="toggleCheckbox(this.id)" id="browser.tabs.autoHide" label="&tabbar.autoHide;"/>
   <!--separator class="thick"/-->
   <groupbox style="border-top:0;border-left:0;border-right:0;margin-top:0;margin-bottom:0.6em"/>
