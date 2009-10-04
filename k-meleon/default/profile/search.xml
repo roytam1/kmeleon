@@ -100,6 +100,14 @@
 	url="http://dict.leo.org/esde?lp=esde&amp;lang=de&amp;searchLoc=0&amp;cmpType=relaxed&amp;sectHdr=on&amp;spellToler=on&amp;relink=on&amp;search="/>
 <engine caption="LEO Diccionario Español-Alemán"
 	url="http://dict.leo.org/esde?lp=esde&amp;lang=es&amp;searchLoc=0&amp;cmpType=relaxed&amp;sectHdr=on&amp;spellToler=on&amp;relink=on&amp;search="/>
+<engine caption="LEO Deutsch-Italienisches Wörterbuch"
+	url="http://dict.leo.org/itde?lp=itde&amp;lang=de&amp;searchLoc=0&amp;cmpType=relaxed&amp;sectHdr=on&amp;spellToler=on&amp;relink=on&amp;search="/>
+<engine caption="LEO Dizionario Italiano-Tedesco"
+	url="http://dict.leo.org/itde?lp=itde&amp;lang=it&amp;searchLoc=0&amp;cmpType=relaxed&amp;sectHdr=on&amp;spellToler=on&amp;relink=on&amp;search="/>
+<engine caption="LEO Deutsch-Chinesisches Wörterbuch"
+	url="http://dict.leo.org/chde?lp=chde&amp;lang=de&amp;searchLoc=0&amp;cmpType=relaxed&amp;sectHdr=on&amp;spellToler=on&amp;relink=on&amp;chinese=both&amp;pinyin=diacritic&amp;search="/>
+<engine caption="LEO 词典 汉语-德语"
+	url="http://dict.leo.org/chde?lp=chde&amp;lang=ch&amp;searchLoc=0&amp;cmpType=relaxed&amp;sectHdr=on&amp;spellToler=on&amp;relink=on&amp;chinese=both&amp;pinyin=diacritic&amp;search="/>
 <engine caption="Lycos"
 	url="http://search.lycos.com/default.asp?lpv=1&amp;loc=searchhp&amp;tab=web&amp;query="/>
 <engine caption="Mamma Metasearch"
@@ -133,13 +141,13 @@
 <engine caption="Webshots Community"
 	url="http://webshots.com/search?new=1&amp;querySource=community&amp;tab=photos&amp;queryAll="/>
 <engine caption="Wikipedia, The Free Encyclopedia"
-	url="http://en.wikipedia.org/wiki/Special:Search/"/>
+	url="http://en.wikipedia.org/w/index.php?title=Special%3ASearch&amp;fulltext=Search&amp;search="/>
 <engine caption="Wikipedia, Die freie Enzyklopädie"
-	url="http://de.wikipedia.org/wiki/Spezial:Search/"/>
+	url="http://de.wikipedia.org/w/index.php?title=Spezial%3ASuche&amp;fulltext=Volltext&amp;search="/>
 <engine caption="Wikipédia, L'encyclopédie libre"
-	url="http://fr.wikipedia.org/wiki/Special:Search/"/>
+	url="http://fr.wikipedia.org/w/index.php?title=Sp%C3%A9cial%3ARecherche&amp;fulltext=Rechercher&amp;search="/>
 <engine caption="Wikipedia, La enciclopedia libre"
-	url="http://es.wikipedia.org/wiki/Especial:Search/"/>
+	url="http://es.wikipedia.org/w/index.php?title=Especial%3ABuscar&amp;fulltext=Buscar&amp;search="/>
 <engine caption="Yahoo! Groups"
 	url="http://groups.yahoo.com/group/"/>
 <engine caption="Yahoo! Images"
