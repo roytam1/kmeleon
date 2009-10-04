@@ -33,7 +33,8 @@ init : function() {
 	this.load  = kPlugin.load("bookmarks");
 	this._base = "kmeleon.plugins.bookmarks.";
 	this._pref = new Array(	"load",
-				"askforFolder");
+				"askforFolder",
+				"menuAddBookmark");
 	this._mAD  = this._base + "menuAutoDetect";
 	this._mML  = this._base + "maxMenuLength";
 	this._bndl = document.getElementById("brws_bundle");
@@ -284,6 +285,8 @@ _setControls: function() {
   </radiogroup>
   <separator class="thin"/>
 </groupbox>
+<separator class="thick"/>
+<checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.plugins.bookmarks.menuAddBookmark" label="&bookmarks.menuAddHere;"/>
 <vbox flex="1"/>
 <description>&restartNote1;</description>
 <!-- Bookmarks Menu -->
