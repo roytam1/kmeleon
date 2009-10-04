@@ -32,6 +32,7 @@ pref("kmeleon.plugins.bookmarks.maxMenuLength", 20); // plugin default: 20
 // variable button width (according to the length of the name),
 // button names with more than 99 characters are shortened...
 pref("kmeleon.plugins.bookmarks.maxToolbarSize", 100); // plugin default: 20
+pref("kmeleon.plugins.bookmarks.menuAddBookmark", true);
 //pref("kmeleon.plugins.bookmarks.menuAutoDetect", true);			// kmeleon.js
 //pref("kmeleon.plugins.bookmarks.openurl", "ID_OPEN_LINK");			// kmeleon.js
 //pref("kmeleon.plugins.bookmarks.openurlm", "ID_OPEN_LINK_IN_NEW_TAB");	// kmeleon.js
@@ -55,6 +56,7 @@ pref("kmeleon.plugins.favorites.sortOrder", 17);
 //pref("kmeleon.plugins.fullscreen.load", true);		// kmeleon.js
 pref("kmeleon.plugins.fullscreen.auto", false);
 pref("kmeleon.plugins.fullscreen.hide_rebar", true);
+pref("kmeleon.plugins.fullscreen.hide_tabsbar", true);
 pref("kmeleon.plugins.fullscreen.hide_statusbar", true);
 pref("kmeleon.plugins.fullscreen.hide_taskbar", true);
 
