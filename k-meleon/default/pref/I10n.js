@@ -13,7 +13,7 @@ pref("kmeleon.general.homePage", "resource:///readme.html");
 pref("kmeleon.privacy.useragent1.name", "Firefox 2.0");
 pref("kmeleon.privacy.useragent1.string", "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.20) Gecko/20081217 Firefox/2.0.0.20");
 pref("kmeleon.privacy.useragent2.name", "SeaMonkey 1.1");
-pref("kmeleon.privacy.useragent2.string", "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.19) Gecko/20081204 SeaMonkey/1.1.14");
+pref("kmeleon.privacy.useragent2.string", "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.23) Gecko/20090825 SeaMonkey/1.1.18");
 
 
 /********************************************************************************************************/
@@ -59,8 +59,8 @@ pref("kmeleon.plugins.macros.search.engine1.name", "MSN Search");
 pref("kmeleon.plugins.macros.search.engine1.url", "http://search.msn.com/results.aspx?q=");
 pref("kmeleon.plugins.macros.search.engine2.name", "Yahoo! Search");
 pref("kmeleon.plugins.macros.search.engine2.url", "http://search.yahoo.com/bin/search?p=");
-pref("kmeleon.plugins.macros.search.engine3.name", "Wikipedia, The Free Encyclopedia");
-pref("kmeleon.plugins.macros.search.engine3.url", "http://en.wikipedia.org/wiki/Special:Search/");
+pref("kmeleon.plugins.macros.search.engine2.name", "Wikipedia, The Free Encyclopedia");
+pref("kmeleon.plugins.macros.search.engine2.url", "http://en.wikipedia.org/w/index.php?title=Special%3ASearch&fulltext=Search&search=");
 
 // Metasearch (meta[0..POSITIVE_INFINITY] possible)
 // Make sure these engines are defined in search.xml!
