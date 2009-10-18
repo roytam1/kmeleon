@@ -280,19 +280,18 @@ void CTabReBar::UpdateButtonsSize()
 	rb.fMask  = RBBIM_IDEALSIZE; 
 	rb.cxIdeal = size.cx;
 	if (!mFixedBar && !mBottomBar) {
+		/* Stupid Vista Fix */
+		int static ignoreSize = 1;
+		if (ignoreSize>0) {
+			ignoreSize--;
+			return;
+		}
+		ignoreSize = 1;
+		/* End Stupid Fix */
 		int iband = m_wndParent->FindByName(_T("Tabs"));
 		m_wndParent->GetReBarCtrl().SetBandInfo(iband, &rb);
 	} 
 	else {
-		/* Stupid Vista Fix */
-		bool static ignoreSize = 0;
-		if (ignoreSize) {
-			ignoreSize = false;
-			return;
-		}
-		ignoreSize = true;
-		/* End Stupid Fix */
-
 		mTemp->GetReBarCtrl().SetBandInfo(0, &rb);
 		mTemp->GetReBarCtrl().MaximizeBand(0);
 	}
@@ -835,9 +834,13 @@ void CTabReBar::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 		CImageList* imageList = GetToolBarCtrl().GetImageList();
 		
 		IMAGEINFO ii;
-		imageList->GetImageInfo(image, &ii);
-		if (ii.hbmMask) DeleteObject(ii.hbmMask);
-		if (ii.hbmImage) DeleteObject(ii.hbmImage);
+		ii.rcImage = CRect(0, 0, 16, 16);
+		if (imageList)
+		{
+			imageList->GetImageInfo(image, &ii);
+			if (ii.hbmMask) DeleteObject(ii.hbmMask);
+			if (ii.hbmImage) DeleteObject(ii.hbmImage);
+		}
 
 		CPoint imagePoint;
 		CRect textRect;
