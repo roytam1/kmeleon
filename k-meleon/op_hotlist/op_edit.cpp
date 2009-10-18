@@ -1391,8 +1391,9 @@ static void MoveItem(HWND hTree, HTREEITEM item, int mode) {
       }
       else {
          // find the old previous node (only necessary to find it if it exists)
-         for (oldPreviousNode = oldParentNode->child ; oldPreviousNode->next != moveNode ; oldPreviousNode = oldPreviousNode->next);
-         oldPreviousNode->next = moveNode->next;
+         if (oldParentNode->child)
+		    for (oldPreviousNode = oldParentNode->child ; oldPreviousNode->next != moveNode ; oldPreviousNode = oldPreviousNode->next);
+               oldPreviousNode->next = moveNode->next;
          if (!moveNode->next)
             oldParentNode->lastChild = oldPreviousNode;
       }
