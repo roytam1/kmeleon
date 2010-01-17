@@ -101,7 +101,7 @@ void CBrowserFrame::BrowserFrameGlueObj::UpdateBusyState(PRBool aBusy)
 
     pThis->m_wndBrowserView.UpdateBusyState(aBusy);
     //if (!aBusy)	
-		pThis->PostMessage(UWM_UPDATEBUSYSTATE, aBusy == PR_TRUE ? 1 : 0, 0);
+		pThis->PostMessage(UWM_UPDATEBUSYSTATE, aBusy == PR_TRUE ? 1 : 0, pThis->m_wndBrowserView.m_hWnd);
 
 	if (!aBusy) {
 	  CString szUrl;
