@@ -325,7 +325,10 @@ void CBrowserView::OpenURL(LPCTSTR url, LPCTSTR referrer, BOOL allowFixup)
 
    ((CBrowserGlue*)m_pBrowserGlue)->mPendingLocation = url; // XXXX
    if (!m_pWindow->LoadURL(url, referrer, allowFixup) && m_pBrowserGlue)
+   {
 	   ((CBrowserGlue*)m_pBrowserGlue)->mPendingLocation = _T("");
+	   m_pWindow->LoadURL(_T("about:blank"));
+   }
 
 }
 /*
