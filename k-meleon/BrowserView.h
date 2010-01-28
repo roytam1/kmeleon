@@ -314,6 +314,8 @@ protected:
 	afx_msg void OnPopupBlockedIcon();
 	afx_msg void OnIncreaseFont();
     afx_msg void OnDecreaseFont();
+	afx_msg void OnIncreaseFullZoom();
+	afx_msg void OnDecreaseFullZoom();
     afx_msg void OnBeginEditURL( NMHDR * pNotifyStruct, LRESULT * result );
 	afx_msg void OnEndEditURL( NMHDR * pNotifyStruct, LRESULT * result );
     afx_msg void OnDragURL( NMHDR * pNotifyStruct, LRESULT * result );

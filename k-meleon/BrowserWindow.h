@@ -27,6 +27,7 @@ class nsIX509Cert;
 #include "nsIWebBrowserFind.h"
 #include "nsIWebNavigation.h"
 #include "nsIWebBrowserFocus.h"
+#include "nsIMarkupDocumentViewer.h"
 
 class CBrowserImpl;
 
@@ -298,6 +299,13 @@ public:
 		nsresult rv = print->GetDoingPrintPreview(&isPreview);
 		return isPreview;
 	}
+
+#if GECKO_VERSION > 18
+	already_AddRefed<nsIMarkupDocumentViewer> GetMarkupViewer();
+	BOOL SetFullZoom(float textzoom);
+	float GetFullZoom();
+	BOOL ChangeFullZoom(int change);
+#endif 
 
 	BOOL SetTextSize(float textzoom);
 	float GetTextSize();
