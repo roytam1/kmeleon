@@ -412,8 +412,8 @@ NS_IMETHODIMP CBrowserImpl::SetDimensions(PRUint32 aFlags, PRInt32 x, PRInt32 y,
 	if (!(aFlags & nsIEmbeddingSiteWindow::DIM_FLAGS_POSITION)) 
 		flags |= SWP_NOMOVE;
 	
-   if (frame->IsZoomed())
-	   frame->ShowWindow(SW_RESTORE);
+	WINDOWPLACEMENT wp;
+	frame->GetWindowPlacement(&wp);
 
 	if ((aFlags & nsIEmbeddingSiteWindow::DIM_FLAGS_SIZE_INNER))
 	{
@@ -427,18 +427,22 @@ NS_IMETHODIMP CBrowserImpl::SetDimensions(PRUint32 aFlags, PRInt32 x, PRInt32 y,
 		int deltax = frameRect.right - frameRect.left - viewRect.right;
 		int deltay = frameRect.bottom - frameRect.top - viewRect.bottom;
 
-		frame->SetWindowPos(NULL, x, y, cx+deltax, cy+deltay, flags);
+		RECT rc = {x, y, x+cx+deltax, y+cy+deltay};
+		wp.rcNormalPosition = rc;
 	}
 	else if ((aFlags & nsIEmbeddingSiteWindow::DIM_FLAGS_SIZE_OUTER))
 	{
-		frame->SetWindowPos(NULL, x, y, cx, cy, flags);
+		RECT rc = {x, y, x+cx, y+cy};
+		wp.rcNormalPosition = rc;
 	}
 	else
 	{
 		flags |= SWP_NOSIZE;
-		frame->SetWindowPos(NULL, x, y, 0, 0, flags);
+		wp.rcNormalPosition.left = x;
+		wp.rcNormalPosition.top = y;
 	}
 
+	frame->SetWindowPlacement(&wp);
     return NS_OK;
 }
 
