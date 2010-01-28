@@ -148,6 +148,10 @@ BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
 
     ON_COMMAND(ID_FONT_INCREASE, OnIncreaseFont)
     ON_COMMAND(ID_FONT_DECREASE, OnDecreaseFont)
+#if GECKO_VERSION > 18
+    ON_COMMAND(ID_FULLZOOM_INCREASE, OnIncreaseFullZoom)
+    ON_COMMAND(ID_FULLZOOM_DECREASE, OnDecreaseFullZoom)
+#endif
     ON_COMMAND(ID_LINK_KMELEON_FAQ, OnKmeleonFAQ)
     ON_COMMAND(ID_LINK_KMELEON_MANUAL, OnKmeleonManual)
     ON_COMMAND(ID_LINK_ABOUT_PLUGINS, OnAboutPlugins)
@@ -956,7 +960,17 @@ void CBrowserView::OnMouseAction()
 	maccel_cmd = 0;
 */
 }
+#if GECKO_VERSION > 18
+void CBrowserView::OnIncreaseFullZoom()
+{
+   m_pWindow->ChangeFullZoom(1);
+}
 
+void CBrowserView::OnDecreaseFullZoom()
+{
+   m_pWindow->ChangeFullZoom(-1);
+}
+#endif
 void CBrowserView::OnIncreaseFont()
 {
    m_pWindow->ChangeTextSize(1);
@@ -965,7 +979,6 @@ void CBrowserView::OnIncreaseFont()
 void CBrowserView::OnDecreaseFont()
 {
    m_pWindow->ChangeTextSize(-1);
-   
 }
 
 void CBrowserView::OnSecurityStateIcon()

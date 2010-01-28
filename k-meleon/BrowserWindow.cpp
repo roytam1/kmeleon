@@ -87,10 +87,6 @@ static const PRUnichar kHighlighClassName[] = NS_LL("km_hightlight_class");
 static const PRUnichar kDefaultHighlightStyle[] = NS_LL("display: inline;font-size: inherit;padding: 0;color: black;background-color: yellow;");
 /* */
 
-#if GECKO_VERSION > 18
-#define nsITypeAheadFind nsISuiteTypeAheadFind
-#endif
-
 CBrowserWrapper::CBrowserWrapper(void)
 {
 	//mDomEventListener = nsnull;
@@ -498,6 +494,62 @@ BOOL CBrowserWrapper::ScrollBy(INT dx, INT dy)
 
 	return dom->ScrollBy (dx, dy);
 }
+
+#if GECKO_VERSION > 18
+
+already_AddRefed<nsIMarkupDocumentViewer> CBrowserWrapper::GetMarkupViewer()
+{
+	nsresult rv;
+	nsCOMPtr<nsIDocShell> docShell(do_GetInterface(mWebBrowser, &rv));
+	NS_ENSURE_SUCCESS(rv, NULL);
+
+	nsCOMPtr<nsIContentViewer> contentViewer;
+	rv = docShell->GetContentViewer(getter_AddRefs(contentViewer));
+	NS_ENSURE_SUCCESS(rv, NULL);
+		
+	nsCOMPtr<nsIMarkupDocumentViewer> _markupViewer = do_QueryInterface(contentViewer, &rv);
+	NS_ENSURE_SUCCESS(rv, NULL);
+
+	nsIMarkupDocumentViewer* markupViewer;
+	NS_IF_ADDREF(markupViewer = _markupViewer);
+	return markupViewer;	
+}
+
+BOOL CBrowserWrapper::SetFullZoom(float textzoom)
+{
+	nsCOMPtr<nsIMarkupDocumentViewer> markupViewer = GetMarkupViewer();
+	NS_ENSURE_TRUE(markupViewer, FALSE);
+	nsresult rv = markupViewer->SetFullZoom(textzoom);
+	return NS_SUCCEEDED(rv);
+}
+
+float CBrowserWrapper::GetFullZoom()
+{
+	nsCOMPtr<nsIMarkupDocumentViewer> markupViewer = GetMarkupViewer();
+	NS_ENSURE_TRUE(markupViewer, FALSE);
+	float textzoom;
+	nsresult rv = markupViewer->GetFullZoom(&textzoom);
+	return NS_SUCCEEDED(rv) ? textzoom : -1;
+}
+
+BOOL CBrowserWrapper::ChangeFullZoom(int change)
+{
+	float textzoom = GetFullZoom();
+	if (textzoom == -1)
+		return FALSE;
+
+	textzoom = (textzoom*10 + (float)change) / 10;
+	if (textzoom <=0 || textzoom > 4)
+		return FALSE;
+
+	SetFullZoom(textzoom);
+
+	CString status;
+	status.Format(IDS_FULL_ZOOM, textzoom*10);
+	mpBrowserImpl->SetStatus(0, CStringToPRUnichar(status));
+	return TRUE;
+}
+#endif
 
 BOOL CBrowserWrapper::SetTextSize(float textzoom)
 {
@@ -1608,12 +1660,17 @@ BOOL CBrowserWrapper::InputHasFocus()
 		return FALSE;
 	}	
 
+#if GECKO_VERSION > 18
+	nsCOMPtr<nsISuiteTypeAheadFind> taFinder = do_GetService(NS_TYPEAHEADFIND_CONTRACTID);
+#else
 	nsCOMPtr<nsITypeAheadFind> taFinder = do_GetService(NS_TYPEAHEADFIND_CONTRACTID);
+#endif
 	if (taFinder) {
 		PRBool active = PR_FALSE;
 		taFinder->GetIsActive(&active);
 		if (active) return TRUE;
 	}
+
 
 	nsCOMPtr<nsIDOMWindow> domWindow;
 	mWebBrowser->GetContentDOMWindow(getter_AddRefs(domWindow));
