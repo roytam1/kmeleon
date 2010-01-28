@@ -37,6 +37,8 @@ extern CMfcEmbedApp theApp;
 #include "Utils.h"
 #include "MenuParser.h"
 
+#include "nsICacheService.h"
+
 int SessionSize=0;
 char **pHistory;
 char **pHistUrl;
@@ -159,15 +161,20 @@ CPlugins::CPlugins()
 {
 	kDocInfo.url = NULL;
 	kDocInfo.title = NULL;
+	gPointInfo.image = NULL;
 }
 
 CPlugins::~CPlugins()
 {
 
-   delete gPointInfo.image;
-   delete gPointInfo.link;
-   delete gPointInfo.frame;
-   delete gPointInfo.page;
+   if (gPointInfo.image) 
+   {
+      delete gPointInfo.image;
+      delete gPointInfo.link;
+      delete gPointInfo.frame;
+      delete gPointInfo.page;
+	  delete gPointInfo.linktitle;
+   }
 
    if (SessionSize) {
      for (int i=0; i<SessionSize; i++) {
@@ -690,11 +697,14 @@ kmeleonPointInfo *GetInfoAtNode(nsIDOMNode* aNode)
 */
 kmeleonPointInfo *GetInfoAtClick(HWND hWnd)
 {
-	delete gPointInfo.image;
-	delete gPointInfo.link;
-	delete gPointInfo.frame;
-	delete gPointInfo.page;
-	delete gPointInfo.linktitle;
+   if (gPointInfo.image)
+   {
+      delete gPointInfo.image;
+      delete gPointInfo.link;
+      delete gPointInfo.frame;
+      delete gPointInfo.page;
+      delete gPointInfo.linktitle;
+   }
 	gPointInfo.image = NULL;
 	gPointInfo.link  = NULL;
 	gPointInfo.frame = NULL;
@@ -1481,14 +1491,7 @@ void RemoveStatusBarIcon(HWND hWnd, int id)
 
 BOOL InjectJS(const char* js, int bTopWindow, HWND hWnd)
 {
-	CBrowserFrame *frame = GetFrame(hWnd);
-	if (!frame) return FALSE;
-
-	CBrowserView *view = frame->GetActiveView(); 
-	if (!view) return FALSE;
-
-	CBrowserWrapper* browser = view->GetBrowserWrapper();
-	if (!browser) return FALSE;
+	PLUGIN_HEADER(hWnd, FALSE);
 	
 	nsEmbedString js2;
 	NS_CStringToUTF16(nsDependentCString(js), NS_CSTRING_ENCODING_UTF8, js2);
@@ -1508,15 +1511,8 @@ BOOL InjectJS(const char* js, int bTopWindow, HWND hWnd)
 
 BOOL InjectCSS(const char* css, BOOL bAll, HWND hWnd)
 {
-	CBrowserFrame *frame = GetFrame(hWnd);
-	if (!frame) return FALSE;
-
-	CBrowserView *view = frame->GetActiveView(); 
-	if (!view) return FALSE;
-
-	CBrowserWrapper* browser = view->GetBrowserWrapper();
-	if (!browser) return FALSE;
-
+	PLUGIN_HEADER(hWnd, FALSE);	
+	
 	nsEmbedString css2;
 	NS_CStringToUTF16(nsDependentCString(css), NS_CSTRING_ENCODING_UTF8, css2);
 	return browser->InjectCSS(css2.get());
