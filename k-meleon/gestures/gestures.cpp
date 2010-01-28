@@ -331,7 +331,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 			ScreenToClient(WindowFromPoint(m_posDown), &m_posDownClient);
 			
 			SetCursorPos(m_posDown.x, m_posDown.y);
-			PostMessage(WindowFromPoint(m_posDown), WM_LBUTTONDOWN, wParam, MAKELONG(m_posDownClient.x, m_posDownClient.y));
+			SendMessage(WindowFromPoint(m_posDown), WM_LBUTTONDOWN, wParam, MAKELONG(m_posDownClient.x, m_posDownClient.y));
 			SetCursorPos(m_posMove.x, m_posMove.y);
      	}
     }
