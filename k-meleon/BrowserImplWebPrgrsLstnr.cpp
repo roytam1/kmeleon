@@ -79,13 +79,15 @@ NS_IMETHODIMP CBrowserImpl::OnStateChange(nsIWebProgress *progress,
 {
   NS_ENSURE_TRUE(m_pBrowserFrameGlue, NS_OK);
 
-  if ((progressStateFlags & STATE_START) && (progressStateFlags & STATE_IS_NETWORK))
+  PRUint32 flag = mChromeFlags & nsIWebBrowserChrome::CHROME_OPENAS_CHROME ? STATE_IS_REQUEST : STATE_IS_NETWORK;
+
+  if ((progressStateFlags & STATE_START) && (progressStateFlags & flag))
   {
     // Navigation has begun
     m_pBrowserFrameGlue->UpdateBusyState(PR_TRUE);
   }
 
-  if ((progressStateFlags & STATE_STOP) && (progressStateFlags & STATE_IS_NETWORK))
+  if ((progressStateFlags & STATE_STOP) && (progressStateFlags & flag))
   {
      // We've completed the navigation
 	  /*if (request)
