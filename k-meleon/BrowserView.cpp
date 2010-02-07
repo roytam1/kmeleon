@@ -145,6 +145,10 @@ BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
     // ON_UPDATE_COMMAND_UI(ID_FILE_PRINTSETUP, OnUpdatePrintSetup) 
     ON_UPDATE_COMMAND_UI(ID_FILE_PRINTPREVIEW, OnUpdateFilePrintPreview)
     ON_UPDATE_COMMAND_UI(ID_VIEW_IMAGE, OnUpdateViewImage)
+	
+	ON_COMMAND_RANGE(SHISTORYB_START_ID, SHISTORYB_END_ID, OnSHistoryBack)
+	ON_COMMAND_RANGE(SHISTORYF_START_ID, SHISTORYF_END_ID, OnSHistoryForward)
+	ON_UPDATE_COMMAND_UI_RANGE(SHISTORYB_START_ID, SHISTORYF_END_ID, OnUpdateSHistory)
 
     ON_COMMAND(ID_FONT_INCREASE, OnIncreaseFont)
     ON_COMMAND(ID_FONT_DECREASE, OnDecreaseFont)
@@ -1054,4 +1058,27 @@ void CBrowserView::Highlight(const wchar_t* string, BOOL matchCase)
 	mpBrowserFrame->UpdateStatus(str);
 }
 
-int CBrowserView::GetSiteIcon() { return theApp.favicons.GetIcon(GetBrowserGlue()->mIconURI); }
+int CBrowserView::GetSiteIcon()
+{
+	return theApp.favicons.GetIcon(GetBrowserGlue()->mIconURI);
+}
+
+void CBrowserView::OnSHistoryBack(UINT nID)
+{
+	int index = 0, count;
+	m_pWindow->GetSHistoryState(index, count);
+	m_pWindow->GotoHistoryIndex(nID - SHISTORYB_START_ID + (index>MAX_SHMENU_NUMBER?index-MAX_SHMENU_NUMBER:0));
+}
+
+void CBrowserView::OnSHistoryForward(UINT nID)
+{
+	int index = 0, count;
+	m_pWindow->GetSHistoryState(index, count);
+	m_pWindow->GotoHistoryIndex(nID - SHISTORYF_START_ID + index + 1);
+}
+
+void CBrowserView::OnUpdateSHistory(CCmdUI* pCmdUI)
+{
+	pCmdUI->Enable();	
+}
+

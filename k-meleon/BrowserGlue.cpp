@@ -73,6 +73,16 @@ void CBrowserGlue::UpdateCurrentURI(nsIURI *aLocation)
 {
     if(aLocation) 
     {
+		if (firstLoad)
+		{
+			firstLoad = false;
+			if (!mpBrowserFrame->IsDialog())
+			{
+				float zoom = theApp.preferences.GetInt("zoom.defaultPercent", 100);
+				this->mpBrowserView->GetBrowserWrapper()->SetFullZoom(zoom / 100);
+			}
+		}
+
 		nsEmbedCString uriString;
 		nsCOMPtr<nsIURI> exposable;
 		nsCOMPtr<nsIURIFixup> fixup(do_GetService("@mozilla.org/docshell/urifixup;1"));

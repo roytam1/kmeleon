@@ -316,6 +316,9 @@ protected:
     afx_msg void OnDecreaseFont();
 	afx_msg void OnIncreaseFullZoom();
 	afx_msg void OnDecreaseFullZoom();
+	afx_msg void OnSHistoryBack(UINT nID);
+	afx_msg void OnSHistoryForward(UINT nID);
+	afx_msg void OnUpdateSHistory(CCmdUI* pCmdUI);
     afx_msg void OnBeginEditURL( NMHDR * pNotifyStruct, LRESULT * result );
 	afx_msg void OnEndEditURL( NMHDR * pNotifyStruct, LRESULT * result );
     afx_msg void OnDragURL( NMHDR * pNotifyStruct, LRESULT * result );

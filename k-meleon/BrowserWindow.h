@@ -359,6 +359,8 @@ private:
 	BOOL _Save(nsIURI* aURI, nsIDOMDocument* aDocument, LPCTSTR filename, nsIURI* aReferrer, nsISupports* aDescriptor);
 	BOOL GetCertificate(nsIX509Cert** certificate);
 	PRBool CheckNode(nsIDOMElement* elem);
+	
+	nsIDocShell* GetDocShell();
 
 #ifndef FINDBAR_USE_TYPEAHEAD
 	void CollapseSelToStartInFrame(nsIDOMWindow* dom);
