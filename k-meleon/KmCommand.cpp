@@ -160,6 +160,8 @@ void KmCmdService::InitDefaultCmd()
 	ADD_DEFCMD(editSelectUrl, ID_SELECT_URL);	
 	ADD_DEFCMD(pageFontIncrease, ID_FONT_INCREASE);
 	ADD_DEFCMD(pageFontDecrease, ID_FONT_DECREASE);
+	ADD_DEFCMD(pageZoomIncrease, ID_FULLZOOM_INCREASE);
+	ADD_DEFCMD(pageZoomDecrease, ID_FULLZOOM_DECREASE);
 
 	ADD_DEFCMD(appExit, ID_APP_EXIT);
 	ADD_DEFCMD(appAbout, ID_APP_ABOUT);

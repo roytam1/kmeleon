@@ -1338,9 +1338,9 @@ void RebuildMenu(const char* menu) {
 }
 
 
-kmeleonPlugin * Load(char *kplugin) {
+kmeleonPlugin * Load(const char *kplugin) {
   USES_CONVERSION;
-  return theApp.plugins.Load(CString(A2T(kplugin)));
+  return theApp.plugins.Load(CString(A2CT(kplugin)));
 }
 
 long CPlugins::SendMessage(const char *to, const char *from, const char *subject, long data1, long data2)

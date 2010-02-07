@@ -65,6 +65,7 @@ public:
 	BOOL    mDOMLoaded;
 	int     mProgressCurrent;
 	int     mProgressMax;
+	bool    firstLoad;
 
 	nsCOMPtr<nsIURI> mIconURI;
 	nsCOMPtr<nsIDOMNode> mContextNode;
@@ -76,7 +77,8 @@ public:
 		mLoading(FALSE),
 		mDOMLoaded(FALSE),
 		mpBrowserFrame(frame),
-		mpBrowserView(view)
+		mpBrowserView(view),
+		firstLoad(true)
 	{
 	}
 
@@ -231,6 +233,10 @@ public:
 	virtual ~CBrowserFrame();
 
 	void OpenURL(LPCTSTR url, LPCTSTR refferer = NULL, BOOL focusUrl = FALSE, BOOL allowFixup = TRUE);
+	void UpdateSHistoryMenu();
+	void DrawSHBackMenu(HMENU menu);
+	void DrawSHForwardMenu(HMENU menu);
+	void DrawSHMenu(HMENU menu);
 
 	virtual CBrowserView* GetActiveView() { return m_wndBrowserView; }
 	BOOL IsDialog() { return (m_chromeMask & nsIWebBrowserChrome::CHROME_OPENAS_CHROME); }

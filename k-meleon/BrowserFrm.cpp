@@ -635,6 +635,96 @@ void CBrowserFrame::SaveWindowPos()
 
 }
 
+void CBrowserFrame::UpdateSHistoryMenu()
+{
+	theApp.UpdateWindowListMenu();
+	KmMenu* menu = theApp.menus.GetKMenu(_T("@SHistoryBack"));
+	if (menu) menu->Invalidate();
+	menu = theApp.menus.GetKMenu(_T("@SHistoryForward"));
+	if (menu) menu->Invalidate();
+	menu = theApp.menus.GetKMenu(_T("@SHistory"));
+	if (menu) menu->Invalidate();
+}
+
+CString PrepareSHMenuText(LPCTSTR title, UINT keyNumber)
+{
+	CString menuText;
+	if (keyNumber < 10)
+	{
+		TCHAR key[34];
+		_itot(keyNumber++, key, 10);
+		menuText = CString(_T("&")) + key + _T(" ") + title;
+	}
+	else
+		menuText = CString(_T("   ")) + title;
+	if (menuText.GetLength() > 50)
+	{
+		menuText.Truncate(47);
+		menuText.Append(_T("..."));
+	}
+	return menuText;
+}
+
+void CBrowserFrame::DrawSHForwardMenu(HMENU menu)
+{
+	CBrowserWrapper* pWindows = GetActiveView()->GetBrowserWrapper();
+	if (!pWindows) return;
+
+	int index, count;
+	pWindows->GetSHistoryState(index, count);
+
+	int limit = min(MAX_SHMENU_NUMBER, theApp.preferences.GetInt("kmeleon.plugins.history.length", 25));
+	limit =  count - index > limit ? index + limit : count;
+	
+	CString title, url;
+	UINT keyNumber = 0;
+	for (int i=index+1;i<limit;i++)
+	{
+		pWindows->GetSHistoryInfoAt(i, title, url);
+		if (!title.GetLength()) title = url;
+		AppendMenu(menu, MF_STRING, SHISTORYF_START_ID+i-index-1, PrepareSHMenuText(title, keyNumber++));
+	}
+}
+
+void CBrowserFrame::DrawSHBackMenu(HMENU menu)
+{
+	CBrowserWrapper* pWindows = GetActiveView()->GetBrowserWrapper();
+	if (!pWindows) return;
+
+	int index, count;
+	pWindows->GetSHistoryState(index, count);
+
+	int limit = min(MAX_SHMENU_NUMBER, theApp.preferences.GetInt("kmeleon.plugins.history.length", 25));
+	limit =  index > limit ? index - limit : 0;
+
+	CString title, url;
+	UINT keyNumber = 0;
+	for (int i=index-1;i>=limit;i--)
+	{
+		pWindows->GetSHistoryInfoAt(i, title, url);
+		if (!title.GetLength()) title = url;
+		AppendMenu(menu, MF_STRING, SHISTORYB_START_ID+i-limit, PrepareSHMenuText(title, keyNumber++));
+	}
+}
+
+void CBrowserFrame::DrawSHMenu(HMENU menu)
+{
+	CBrowserWrapper* pWindows = GetActiveView()->GetBrowserWrapper();
+	if (!pWindows) return;
+
+	int index, count;
+	pWindows->GetSHistoryState(index, count);
+	
+	CString title, url;
+	pWindows->GetSHistoryInfoAt(index, title, url);
+	if (!title.GetLength()) title = url;
+	if (!title.GetLength()) title = _T("Blank page");
+
+	DrawSHForwardMenu(menu);
+	AppendMenu(menu, MF_CHECKED | MF_STRING, 0, PrepareSHMenuText(title, -1));
+	DrawSHBackMenu(menu);
+}
+
 #if 0
 void CBrowserFrame::OnMove(int x, int y)
 { 
@@ -676,8 +766,9 @@ void CBrowserFrame::OnActivate(UINT nState, CWnd* pWndOther, BOOL bMinimized)
 {
 	if (nState != WA_INACTIVE && theApp.m_pMostRecentBrowserFrame != this) {
         theApp.m_pMostRecentBrowserFrame = this;
-
+		
         // update session history for the current window
+		UpdateSHistoryMenu();
         PostMessage(UWM_UPDATESESSIONHISTORY, 0, 0);
     }
 
@@ -1611,6 +1702,7 @@ void CBrowserFrame::UpdateLoading(BOOL aLoading)
 	}
 }
 
+
 void CBrowserFrame::UpdateTitle(LPCTSTR aTitle)
 {
 	CString appTitle;
@@ -1625,7 +1717,7 @@ void CBrowserFrame::UpdateTitle(LPCTSTR aTitle)
 		title += _T(" (") + appTitle + _T(")");
 
 	SetWindowText(title);
-	theApp.UpdateWindowListMenu();
+	UpdateSHistoryMenu();
 }
 
 void CBrowserFrame::UpdatePopupNotification(LPCTSTR uri)

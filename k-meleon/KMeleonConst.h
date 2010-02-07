@@ -17,8 +17,7 @@
 */
 
 
-#define KMELEON_VERSION	               0x01050025
-
+#define KMELEON_VERSION	               0x01060000
 
 #define WM_DEFERSHOW                   WM_USER + 200
 #define WM_DEFERSAVEAS                 WM_USER + 201
@@ -72,6 +71,12 @@
 #define SIDEBAR_MENU_START_ID          2050
 #define SIDEBAR_MENU_END_ID            SIDEBAR_MENU_START_ID+49 
 #define BAND_BASE_ID                   200
+
+#define MAX_SHMENU_NUMBER              50
+#define SHISTORYB_START_ID             2400
+#define SHISTORYB_END_ID			   SHISTORYB_START_ID + MAX_SHMENU_NUMBER - 1
+#define SHISTORYF_START_ID             2450
+#define SHISTORYF_END_ID               SHISTORYF_START_ID + MAX_SHMENU_NUMBER - 1
 
 #define PREF_NEW_WINDOW_BLANK          0
 #define PREF_NEW_WINDOW_HOME           1

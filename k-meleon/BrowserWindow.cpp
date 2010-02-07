@@ -232,7 +232,7 @@ BOOL CBrowserWrapper::CreateBrowser(CWnd* parent, BOOL chromeContent)
 	rv = mEventReceiver->AddEventListenerByIID(mpBrowserImpl,
 	NS_GET_IID(nsIDOMMouseListener));
 	*/
-
+	
     // Finally, show the web browser window
     mBaseWindow->SetVisibility(PR_TRUE);
 	return TRUE;
@@ -413,7 +413,7 @@ BOOL CBrowserWrapper::GetCharset(char* aCharset)
 
 	// Look for the forced charset
 	nsresult result;
-	nsCOMPtr<nsIDocShell> DocShell = do_GetInterface (mWebBrowser);
+	nsCOMPtr<nsIDocShell> DocShell = GetDocShell();
 	NS_ENSURE_TRUE(DocShell, FALSE);
 
 	nsCOMPtr<nsIContentViewer> contentViewer;
@@ -456,7 +456,7 @@ BOOL CBrowserWrapper::GetCharset(char* aCharset)
 BOOL CBrowserWrapper::ForceCharset(const char *aCharSet)
 {
 	nsresult result;
-	nsCOMPtr<nsIDocShell> DocShell = do_GetInterface (mWebBrowser);
+	nsCOMPtr<nsIDocShell> DocShell = GetDocShell();
 	NS_ENSURE_TRUE(DocShell, FALSE);
 
 	nsCOMPtr<nsIContentViewer> contentViewer;
@@ -500,8 +500,8 @@ BOOL CBrowserWrapper::ScrollBy(INT dx, INT dy)
 already_AddRefed<nsIMarkupDocumentViewer> CBrowserWrapper::GetMarkupViewer()
 {
 	nsresult rv;
-	nsCOMPtr<nsIDocShell> docShell(do_GetInterface(mWebBrowser, &rv));
-	NS_ENSURE_SUCCESS(rv, NULL);
+	nsCOMPtr<nsIDocShell> docShell = GetDocShell();
+	NS_ENSURE_TRUE(docShell, NULL);
 
 	nsCOMPtr<nsIContentViewer> contentViewer;
 	rv = docShell->GetContentViewer(getter_AddRefs(contentViewer));
@@ -539,7 +539,7 @@ BOOL CBrowserWrapper::ChangeFullZoom(int change)
 		return FALSE;
 
 	textzoom = (textzoom*10 + (float)change) / 10;
-	if (textzoom <=0 || textzoom > 4)
+	if (textzoom <0.1 || textzoom > 4)
 		return FALSE;
 
 	SetFullZoom(textzoom);
@@ -1077,8 +1077,8 @@ BOOL CBrowserWrapper::GetCertificate(nsIX509Cert** certificate)
 {
 	nsresult rv;
 	
-	nsCOMPtr<nsIDocShell> docShell(do_GetInterface(mWebBrowser, &rv));
-	NS_ENSURE_SUCCESS(rv, FALSE);
+	nsCOMPtr<nsIDocShell> docShell = GetDocShell();
+	NS_ENSURE_TRUE(docShell, FALSE);
 		
 	nsCOMPtr<nsISecureBrowserUI> securityInfo;
 	rv = docShell->GetSecurityUI(getter_AddRefs(securityInfo));
@@ -1105,8 +1105,8 @@ BOOL CBrowserWrapper::GetSecurityInfo(CString &sign)
 {
 	nsresult rv;
 
-	nsCOMPtr<nsIDocShell> docShell (do_GetInterface (mWebBrowser, &rv));
-	NS_ENSURE_SUCCESS(rv, FALSE);
+	nsCOMPtr<nsIDocShell> docShell = GetDocShell();
+	NS_ENSURE_TRUE(docShell, FALSE);
 		
 	nsCOMPtr<nsISecureBrowserUI> securityInfo;
 	rv = docShell->GetSecurityUI (getter_AddRefs (securityInfo));
@@ -1123,7 +1123,7 @@ BOOL CBrowserWrapper::GetSecurityInfo(CString &sign)
 
 int CBrowserWrapper::GetSecurityState()
 {
-	nsCOMPtr<nsIDocShell> docShell(do_GetInterface(mWebBrowser));
+	nsCOMPtr<nsIDocShell> docShell = GetDocShell();
 	NS_ENSURE_TRUE(docShell, nsIWebProgressListener::STATE_IS_INSECURE);
 
 	nsCOMPtr<nsISecureBrowserUI> securityInfo;
@@ -1138,8 +1138,8 @@ int CBrowserWrapper::GetSecurityState()
 BOOL CBrowserWrapper::ShowCertificate()
 {
 	nsresult rv;
-	nsCOMPtr<nsIDocShell> docShell (do_GetInterface (mWebBrowser, &rv));
-	NS_ENSURE_SUCCESS(rv, FALSE);
+	nsCOMPtr<nsIDocShell> docShell = GetDocShell();
+	NS_ENSURE_TRUE(docShell, FALSE);
 
 	nsCOMPtr<nsIX509Cert> cert;
 	nsCOMPtr<nsISecureBrowserUI> securityInfo;
@@ -1440,7 +1440,7 @@ already_AddRefed<nsISupports> CBrowserWrapper::GetPageDescriptor(BOOL focus)
 {
 	nsCOMPtr<nsIDocShell> docShell;
 	if (!focus) {
-		docShell = do_GetInterface(mWebBrowser);
+		docShell = GetDocShell();
 		if (!docShell) return NULL;
 	} else {
 		nsCOMPtr<nsIDOMWindow> domWindow;
@@ -1514,8 +1514,8 @@ BOOL CBrowserWrapper::SaveDocument(BOOL frame, LPCTSTR filename)
 		rv = mWebNav->GetCurrentURI(getter_AddRefs(nsURI));
 		NS_ENSURE_SUCCESS(rv, FALSE);
 		
-		nsCOMPtr<nsIDocShell> docShell = do_GetInterface(mWebBrowser, &rv);
-		NS_ENSURE_SUCCESS(rv, FALSE);
+		nsCOMPtr<nsIDocShell> docShell = GetDocShell();
+		NS_ENSURE_TRUE(docShell, FALSE);
 
 		nsCOMPtr<nsIWebPageDescriptor> descriptor;
 		descriptor = do_QueryInterface(docShell);
@@ -1827,6 +1827,17 @@ BOOL CBrowserWrapper::Find(const wchar_t* searchString,
 	finder->FindNext(&didFind);
 	return didFind;
 }
+
+nsIDocShell* CBrowserWrapper::GetDocShell()
+{
+	if (!mWebBrowser) return NULL;
+	nsCOMPtr<nsIDOMWindow> domWindow;
+	mWebBrowser->GetContentDOMWindow(getter_AddRefs(domWindow));
+	nsCOMPtr<nsPIDOMWindow> piWin(do_QueryInterface(domWindow));
+	if (!piWin) return NULL;
+	return piWin->GetDocShell();
+}
+
 
 /*
 BOOL CBrowserWrapper::Find(const wchar_t* searchString, BOOL ahead)
