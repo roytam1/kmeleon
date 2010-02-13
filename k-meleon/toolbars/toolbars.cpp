@@ -696,10 +696,9 @@ void LoadToolbars(TCHAR *filename) {
 
                TrimWhiteSpace(pipe+1);
                curButton->menu = new char[strlen(pipe+1) + 1];
-					strcpy(curButton->menu, pipe+1);
-					//kPlugin.kFuncs->GetMenu(SkipWhiteSpace(pipe+1));
+               strcpy(curButton->menu, pipe+1);
             }
-            
+
             // check for call to other plugin
             char *op;
             op = strchr(p, '(');
@@ -716,6 +715,10 @@ void LoadToolbars(TCHAR *filename) {
                curButton->iID = kPlugin.kFuncs->GetID(p);
                if (!curButton->iID)
                   curButton->iID = atoi(p);
+			   if (!curButton->menu && curButton->iID == ID_NAV_BACK)
+                  curButton->menu = strdup("SHistoryBack");
+               else if (!curButton->menu && curButton->iID == ID_NAV_FORWARD)
+                  curButton->menu = strdup("SHistoryForward");
             }
 
 /*
@@ -1565,8 +1568,7 @@ int ShowMenuUnderButton(HWND hWndParent, UINT uMouseButton, int iID) {
 
 	  if (SelectionMade > 0) {
          SendMessage(pToolbar->hWnd, TB_SETSTATE, (WPARAM) iID, (LPARAM) MAKELONG (TBSTATE_ENABLED , 0));
-         PostMessage(hWndParent, UWM_REFRESHTOOLBARITEM, (WPARAM) iID, 0);
-         PostMessage(hWndParent, WM_COMMAND, (WPARAM) SelectionMade, iID);
+         PostMessage(hWndParent, WM_COMMAND, (WPARAM) SelectionMade, 0);
 	  }
 
 	  return 1;
