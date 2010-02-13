@@ -119,11 +119,14 @@ BOOL CFavIconList::LoadCache()
 			if (imgList.Read(&ar))
 				m_urlMap.Serialize(ar);
 		CATCH (CArchiveException, e) {
-			while(GetImageCount()) Remove(0);
+			if (imgList.m_hImageList) imgList.DeleteImageList();
 			return FALSE;
 		}
 		END_CATCH
 	}
+
+	if (!imgList.m_hImageList) 
+		return FALSE;
 	
 	for (int i=0; i < imgList.GetImageCount(); i++) {
 		HICON tmp = imgList.ExtractIcon(i);
@@ -682,7 +685,7 @@ NS_IMETHODIMP IconObserver::CreateDIB(imgIRequest *aRequest)
 
 	nsCOMPtr<gfxIImageFrame> frame;
 	rv = image->GetFrameAt(0, getter_AddRefs(frame));
-	NS_ENSURE_SUCCESS(rv, rv);
+	NS_ENSURE_TRUE(frame, rv);
 
 	frame->LockImageData();
 	PRUint32 length;
