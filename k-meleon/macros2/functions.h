@@ -1386,7 +1386,13 @@
 		checkArgs(__FUNCTION__, data, 4);
 		return ::WritePrivateProfileStringUTF8(data->getstr(1), data->getstr(2), data->getstr(3), data->getstr(4));
 	}
-
+	
+	Value pluginexist(FunctionData* data)
+	{
+		checkArgs(__FUNCTION__, data, 1);
+		kmeleonPlugin* kp = kPlugin.kFuncs->Load(data->getstr(1));
+		return kp && kp->loaded;
+	}
 
 #ifndef MACROSFUNC_ADD
 #define MACROSFUNC_ADD(entry) m->AddSymbol(#entry, ValueFunc((MacroFunction)&entry));
@@ -1443,4 +1449,6 @@ void InitFunctions(Mac* m)
 	MACROSFUNC_ADD(setwinvar);
 	MACROSFUNC_ADD(iniread);
 	MACROSFUNC_ADD(iniwrite);
+	MACROSFUNC_ADD(pluginexist);
+
 }
