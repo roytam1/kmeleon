@@ -144,7 +144,7 @@ int CParser::Load(LPCTSTR filename)
 
    int pauseParsing = 0;
 
-   char *p = strtok(buffer, "\r\n");
+   char *p = strtok(buffer, "\n");
    while (p){
       while (p && *p && isspace(*p))
          p++;
@@ -185,7 +185,7 @@ int CParser::Load(LPCTSTR filename)
       else {
          Parse(p);
       }
-      p = strtok(NULL, "\r\n");
+      p = strtok(NULL, "\n");
    } // while
 
    delete [] buffer;
