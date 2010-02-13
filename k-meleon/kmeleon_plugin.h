@@ -234,7 +234,7 @@ typedef struct {
 
    void (*SetCheck)(int id, BOOL mark/*=TRUE*/);
 
-   struct kmeleonPlugin * (*Load)(char *kplugin);
+   struct kmeleonPlugin * (*Load)(const char *kplugin);
 
    void (*ClearCache)(int cache/*=0*/); /* STORE_ANYWHERE (nsICache.h) */
 
