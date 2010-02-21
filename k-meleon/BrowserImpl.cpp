@@ -74,6 +74,7 @@
 #include "MozUtils.h"
 
 #include "nsIDOMEvent.h"
+#include "nsIDOMNSEvent.h"
 #include "nsIDOMPopupBlockedEvent.h"
 #include "nsIDOMMouseEvent.h"
 #include "nsIDOMContextMenuListener.h"
@@ -848,6 +849,48 @@ NS_IMETHODIMP CBrowserImpl::HandleEvent(nsIDOMEvent *event)
 	
 		m_pBrowserFrameGlue->PopupBlocked(host.get());
 		return NS_OK;
+	}
+
+	if (type.Equals(NS_LITERAL_STRING("flashblockCheckLoad")))
+	{
+		if (m_pBrowserFrameGlue->AllowFlash())
+			event->PreventDefault();
+		event->StopPropagation();
+		return NS_OK;
+	}
+
+	if (type.Equals(NS_LITERAL_STRING("command")))
+	{
+		nsresult rv;
+		nsCOMPtr<nsIDOMNSEvent> nsEvent (do_QueryInterface(event, &rv));
+		NS_ENSURE_SUCCESS(rv, rv);
+		
+		PRBool trusted = PR_FALSE;
+		nsEvent->GetIsTrusted(&trusted);
+		if (!trusted) return NS_OK;
+
+		nsCOMPtr<nsIDOMEventTarget> eventTarget;
+		rv = nsEvent->GetOriginalTarget(getter_AddRefs(eventTarget));
+		NS_ENSURE_SUCCESS(rv, rv);
+
+		nsCOMPtr<nsIDOMElement> element = do_QueryInterface(eventTarget, &rv);
+		NS_ENSURE_SUCCESS(rv, rv);
+
+		nsEmbedString str;
+		rv = element->GetAttribute(NS_LITERAL_STRING("id"), str);
+		NS_ENSURE_SUCCESS(rv, rv);
+		
+		CString urlStr;
+		nsCOMPtr<nsIDOMNode> targetNode = do_QueryInterface(eventTarget);
+		if (targetNode)
+		{
+			nsCOMPtr<nsIDOMDocument> domDocument;
+			targetNode->GetOwnerDocument(getter_AddRefs(domDocument));
+			if (domDocument)
+				urlStr = GetUriForDocument(domDocument);
+		}
+
+		m_pBrowserFrameGlue->performXULCommand(str.get(), urlStr);
 	}
 
 	return NS_ERROR_NOT_IMPLEMENTED;

@@ -129,15 +129,8 @@ CWnd* CWndForDOMWindow(nsIDOMWindow *aWindow)
 	return CWnd::FromHandle(w);
 }
 
-CString GetUriForDOMWindow(nsIDOMWindow *aWindow)
+CString GetUriForDocument(nsIDOMDocument *document)
 {
-	NS_ENSURE_TRUE(aWindow, _T(""));
-
-	nsresult rv;
-	nsCOMPtr<nsIDOMDocument> document;
-	rv = aWindow->GetDocument(getter_AddRefs(document));
-	NS_ENSURE_SUCCESS(rv, _T(""));
-
 	nsCOMPtr<nsIDOMNSDocument> nsDoc = do_QueryInterface(document);
 	NS_ENSURE_TRUE(nsDoc, _T(""));
 
@@ -146,10 +139,21 @@ CString GetUriForDOMWindow(nsIDOMWindow *aWindow)
 	NS_ENSURE_TRUE(location, _T(""));
 	
 	nsEmbedString url;
-	rv = location->GetHref(url);
+	nsresult rv = location->GetHref(url);
 	NS_ENSURE_SUCCESS(rv, _T(""));
 
 	return NSStringToCString(url);
+}
+
+CString GetUriForDOMWindow(nsIDOMWindow *aWindow)
+{
+	NS_ENSURE_TRUE(aWindow, _T(""));
+
+	nsCOMPtr<nsIDOMDocument> document;
+	nsresult rv = aWindow->GetDocument(getter_AddRefs(document));
+	NS_ENSURE_SUCCESS(rv, _T(""));
+	
+	return GetUriForDocument(document);
 }
 
 CString GetMozDirectory(const char* dirName)
