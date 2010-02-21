@@ -78,7 +78,7 @@ void CBrowserGlue::UpdateCurrentURI(nsIURI *aLocation)
 			firstLoad = false;
 			if (!mpBrowserFrame->IsDialog())
 			{
-				float zoom = theApp.preferences.GetInt("zoom.defaultPercent", 100);
+				float zoom = (float)theApp.preferences.GetInt("zoom.defaultPercent", 100);
 				this->mpBrowserView->GetBrowserWrapper()->SetFullZoom(zoom / 100);
 			}
 		}
@@ -446,4 +446,108 @@ CBrowserWrapper* CBrowserGlue::ReuseWindow(BOOL useCurrent)
 		return mpBrowserView->GetBrowserWrapper();
 
 	return NULL;
+}
+
+#include "nsIWindowWatcher.h"
+#include "nsIMutableArray.h"
+#include "nsISSLStatus.h"
+#include "nsIDialogParamBlock.h"
+#include "nsICertOverrideService.h"
+#include "nsIRecentBadCertsService.h"
+
+void CBrowserGlue::performXULCommand(LPCWSTR id, LPCTSTR siteUri)
+{
+	if (wcscmp(id, L"addCertificateExceptionButton") == 0)
+	{
+		nsCOMPtr<nsIRecentBadCertsService> badCertService = do_GetService(NS_RECENTBADCERTS_CONTRACTID);
+		if (!badCertService) return;
+		
+		nsCOMPtr<nsIURI> uri;
+		//::NewURI(getter_AddRefs(uri), CStringToNSString(siteUri));
+		mpBrowserView->GetBrowserWrapper()->GetCurrentURI(getter_AddRefs(uri));
+		
+		PRInt32 port;
+		nsEmbedCString host;
+		uri->GetHost(host);
+		uri->GetPort(&port);
+		if (port == -1) port = 443; 
+
+		CString hostAndPort;
+		hostAndPort.Format(_T("%s:%d"), NSCStringToCString(host), port);
+
+	    nsCOMPtr<nsISSLStatus> certStatus;
+		badCertService->GetRecentBadCert(CStringToNSString(hostAndPort), getter_AddRefs(certStatus));
+		if (!certStatus) return;
+
+		PRInt32 certFailureFlags = 0;
+		PRBool isDomainMismatch, isInvalidTime, isUntrusted;
+		certStatus->GetIsDomainMismatch(&isDomainMismatch);
+		certStatus->GetIsNotValidAtThisTime(&isInvalidTime);
+		certStatus->GetIsUntrusted(&isUntrusted);
+		if (isUntrusted)
+			certFailureFlags |= nsICertOverrideService::ERROR_UNTRUSTED;
+		if (isDomainMismatch)
+			certFailureFlags |= nsICertOverrideService::ERROR_MISMATCH;
+		if (isInvalidTime)
+			certFailureFlags |= nsICertOverrideService::ERROR_TIME;
+		
+		nsCOMPtr<nsIX509Cert> cert;
+		certStatus->GetServerCert(getter_AddRefs(cert));
+		if (!cert) return;
+
+		nsCOMPtr<nsICertOverrideService> overrideService = do_GetService(NS_CERTOVERRIDE_CONTRACTID);
+		if (!overrideService) return;
+
+		nsresult rv = overrideService->RememberValidityOverride(host, port, cert, certFailureFlags, PR_TRUE);
+		NS_ENSURE_SUCCESS(rv, );
+
+		mpBrowserView->GetBrowserWrapper()->Reload(true);
+		return;
+	}
+
+	if (wcscmp(id, L"exceptionDialogButton") == 0)
+	{
+		// TODO
+		return;
+	}
+}
+
+BOOL CBrowserGlue::AllowFlash()
+{
+	nsCOMPtr<nsIURI> uri;
+	mpBrowserView->GetBrowserWrapper()->GetCurrentURI(getter_AddRefs(uri));
+	NS_ENSURE_TRUE(uri, FALSE);
+
+	nsEmbedCString nshost;
+	uri->GetHost(nshost);
+	CString host = NSCStringToCString(nshost);
+	
+	int pppos, ppos, pos = -1;
+	
+	ppos = host.Find(_T("."), 0);
+	while ( (pppos = host.Find(_T("."), ppos+1)) != -1 ) 
+	{
+		pos = ppos;
+		ppos = pppos;
+	}
+
+	CString prefix = host.Left(pos+1);
+	CString domain = host.Mid(pos+1);
+
+	CString whiteList = theApp.preferences.GetString("flashblock.whitelist", _T(""));
+
+	if (!prefix.GetLength())
+	{
+		if (whiteList.Find(CString(_T(",")) + host) != -1)
+			return TRUE;
+		prefix = _T("www.");
+	}
+
+	if (whiteList.Find(host) != -1)
+		return TRUE;
+
+	if (whiteList.Find(CString(_T("*.")) + domain) != -1)
+		return TRUE;
+
+	return FALSE;
 }

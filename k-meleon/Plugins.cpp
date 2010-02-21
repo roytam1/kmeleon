@@ -169,11 +169,11 @@ CPlugins::~CPlugins()
 
    if (gPointInfo.image) 
    {
-      delete gPointInfo.image;
-      delete gPointInfo.link;
-      delete gPointInfo.frame;
-      delete gPointInfo.page;
-	  delete gPointInfo.linktitle;
+      free(gPointInfo.image);
+      free(gPointInfo.link);
+      free(gPointInfo.frame);
+      free(gPointInfo.page);
+	  free(gPointInfo.linktitle);
    }
 
    if (SessionSize) {
@@ -1496,17 +1496,18 @@ BOOL InjectJS(const char* js, int bTopWindow, HWND hWnd)
 	nsEmbedString js2;
 	NS_CStringToUTF16(nsDependentCString(js), NS_CSTRING_ENCODING_UTF8, js2);
 
+	CString result;
 	if (bTopWindow == 2 && frame->IsKindOf(RUNTIME_CLASS(CBrowserFrmTab)))
 	{
 		BOOL ret = TRUE;
 		CBrowserFrmTab* frameTab = (CBrowserFrmTab*)frame;
 		int tabCount = frameTab->GetTabCount();
 		for (int i=0;i<tabCount;i++) 
-			ret &= frameTab->GetTabIndex(i)->GetBrowserWrapper()->InjectJS(js2.get());
+			ret &= frameTab->GetTabIndex(i)->GetBrowserWrapper()->InjectJS(js2.get(), result);
 		return ret;
 	}
 
-	return browser->InjectJS(js2.get(), bTopWindow==1);
+	return browser->InjectJS(js2.get(), result, bTopWindow==1);
 }
 
 BOOL InjectCSS(const char* css, BOOL bAll, HWND hWnd)
@@ -1924,7 +1925,7 @@ void CPlugins::UnLoadAll()
    while (pos) {
       pluginList.GetNextAssoc(pos, s, kPlugin);
       if (kPlugin) {
-         delete kPlugin->dllname;
+         free(kPlugin->dllname);
          if (kPlugin->loaded) {
             FreeLibrary(kPlugin->hDllInstance);
          }

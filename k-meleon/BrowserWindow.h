@@ -320,7 +320,7 @@ public:
 	BOOL GetSelection(CString&);
 	BOOL GetUSelection(nsEmbedString&);
 	BOOL InjectCSS(const wchar_t* userStyleSheet);
-	BOOL InjectJS(const wchar_t* userJS, bool bTopWindow = true);
+	BOOL InjectJS(const wchar_t* userJS, CString& result, bool bTopWindow = true);
 	BOOL GetSecurityInfo(CString &sign);
 	BOOL ShowCertificate();
 	BOOL ViewContentContainsFrames();

@@ -46,6 +46,7 @@
 
 #include "nsIDOMNSDocument.h"
 #include "nsIDOMEventTarget.h"
+#include "nsIDOMNSEventTarget.h"
 #include "nsIScriptGlobalObject.h"
 
 #include "nsISecureBrowserUI.h"
@@ -309,6 +310,13 @@ BOOL CBrowserWrapper::AddListeners(void)
 		mpBrowserImpl, PR_FALSE);
 	rv = mEventTarget->AddEventListener(NS_LITERAL_STRING("DOMContentLoaded"),
 		mpBrowserImpl, PR_FALSE);
+	rv = mEventTarget->AddEventListener(NS_LITERAL_STRING("command"),
+		mpBrowserImpl, PR_FALSE);
+
+	nsCOMPtr<nsIDOMNSEventTarget> nsEventTarget = do_QueryInterface(mEventTarget);
+	if (nsEventTarget) 
+		rv = nsEventTarget->AddEventListener(NS_LITERAL_STRING("flashblockCheckLoad"),
+			mpBrowserImpl, PR_TRUE, PR_TRUE);
 
 	return TRUE;
 }
@@ -873,11 +881,47 @@ BOOL CBrowserWrapper::InjectCSS(const wchar_t* userStyleSheet)
 	return _InjectCSS(dom, userStyleSheet);
 }
 
-BOOL CBrowserWrapper::InjectJS(const wchar_t* userScript, bool bTopWindow)
+#include "nsIDocument.h"
+#include "nsIScriptContext.h"
+#include "nsIScriptObjectPrincipal.h"
+BOOL CBrowserWrapper::InjectJS(const wchar_t* userScript, CString& result, bool bTopWindow)
 {
 	nsresult rv;
-	nsCOMPtr<nsIDOMDocument> document;
-	
+	nsCOMPtr<nsIDOMDocument> domDocument;
+
+	if (!bTopWindow)
+	{
+		if (mLastMouseActionNode)
+			rv = mLastMouseActionNode->GetOwnerDocument(getter_AddRefs(domDocument));
+		else
+		{
+			nsCOMPtr<nsIDOMWindow> dom;
+			mWebBrowserFocus->GetFocusedWindow(getter_AddRefs(dom));
+			if (dom)
+				rv = dom->GetDocument(getter_AddRefs(domDocument));
+		}	
+	}
+
+	if (!domDocument)
+	{
+		nsCOMPtr<nsIDOMWindow> dom;
+		rv = mWebBrowser->GetContentDOMWindow(getter_AddRefs(dom));
+		NS_ENSURE_SUCCESS(rv, FALSE);
+		rv = dom->GetDocument(getter_AddRefs(domDocument));
+	}
+
+	NS_ENSURE_SUCCESS(rv, FALSE);
+
+	nsCOMPtr<nsIDocument> document(do_QueryInterface(domDocument)); 
+	NS_ENSURE_TRUE(document, FALSE);
+
+	nsCOMPtr<nsIScriptGlobalObject> sgo;
+	sgo = document->GetScriptGlobalObject(); 
+	NS_ENSURE_TRUE(sgo, FALSE);
+
+	nsCOMPtr<nsIScriptContext> ctx = sgo->GetContext();
+	NS_ENSURE_TRUE(ctx, FALSE);
+
 	PRBool jsEnabled = PR_TRUE;
 	nsCOMPtr<nsIPref> prefs = do_GetService(NS_PREF_CONTRACTID, &rv);
 	if (prefs) {
@@ -885,72 +929,15 @@ BOOL CBrowserWrapper::InjectJS(const wchar_t* userScript, bool bTopWindow)
 		prefs->SetBoolPref("javascript.enabled", PR_TRUE);
 	}
 
-	if (!bTopWindow)
-	{
-		if (mLastMouseActionNode)
-			rv = mLastMouseActionNode->GetOwnerDocument(getter_AddRefs(document));
-		else
-		{
-			nsCOMPtr<nsIDOMWindow> dom;
-			mWebBrowserFocus->GetFocusedWindow(getter_AddRefs(dom));
-			if (dom)
-				rv = dom->GetDocument(getter_AddRefs(document));
-		}
-		
-	}
-
-	if (!document)
-	{
-		nsCOMPtr<nsIDOMWindow> dom;
-		rv = mWebBrowser->GetContentDOMWindow(getter_AddRefs(dom));
-		NS_ENSURE_SUCCESS(rv, FALSE);
-
-		rv = dom->GetDocument(getter_AddRefs(document));
-	}
-
-	NS_ENSURE_SUCCESS(rv, FALSE);
-
-	nsCOMPtr<nsIDOMElement> body;
-	nsCOMPtr<nsIDOMHTMLDocument> htmlDoc(do_QueryInterface(document));
-	/*if (htmlDoc)
-	{
-		nsCOMPtr<nsIDOMHTMLElement> htmlBody;
-		htmlDoc->GetBody (getter_AddRefs(htmlBody));
-		body = do_QueryInterface(htmlBody);
-		NS_ENSURE_TRUE(body, FALSE);
-	}	
-	else*/
-	{
-		rv = document->GetDocumentElement (getter_AddRefs(body));
-		NS_ENSURE_SUCCESS(rv, FALSE);
-	}
-
-	nsCOMPtr<nsIDOMElement> scriptElement;
-	rv = document->CreateElement(nsDependentString(L"script"), getter_AddRefs(scriptElement));
-	NS_ENSURE_SUCCESS(rv, FALSE);
-/*
-	nsCOMPtr<nsIDOMText> textScript;
-	rv = document->CreateTextNode(nsDependentString(userScript), getter_AddRefs(textScript));
-	NS_ENSURE_SUCCESS(rv, FALSE);
-
-	nsCOMPtr<nsIDOMNode> notused;
-	rv = scriptElement->AppendChild(textScript, getter_AddRefs(notused));
-	NS_ENSURE_SUCCESS(rv, FALSE);*/
-
-	nsCOMPtr<nsIDOMHTMLScriptElement> scriptTag = do_QueryInterface(scriptElement);
-	NS_ENSURE_TRUE(scriptTag, FALSE);
-
-	scriptTag->SetText(nsDependentString(userScript));
-	scriptTag->SetType(nsDependentString(L"text/javascript"));
-
-	nsCOMPtr<nsIDOMNode> notused;
-	rv = body->AppendChild(scriptTag, getter_AddRefs(notused));
-	NS_ENSURE_SUCCESS(rv, FALSE);
-
-	rv = body->RemoveChild(scriptTag, getter_AddRefs(notused));
+	nsEmbedString retval;
+	nsCOMPtr<nsIScriptObjectPrincipal> sgoPrincipal = do_QueryInterface(sgo);
+	ctx->EvaluateString(nsEmbedString(userScript), sgo->GetGlobalJSObject(),
+		sgoPrincipal->GetPrincipal(),
+		"InjectJS", 0, nsnull, &retval, nsnull);
+	result = NSStringToCString(retval);
 
 	if (prefs) prefs->SetBoolPref("javascript.enabled", jsEnabled);
-
+	
 	return TRUE;
 }
 
