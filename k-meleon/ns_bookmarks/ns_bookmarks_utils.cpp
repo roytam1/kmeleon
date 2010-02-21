@@ -340,7 +340,8 @@ static void SaveBookmarks(FILE *bmFile, CBookmarkNode *node)
          psz = EncodeString(child->text.c_str());
          psz2 = utf8_from_ansi(psz ? psz : "");
 		 if (psz2) {
-	        fprintf(bmFile, "%s<DT><H3 %sADD_DATE=\"%d\">%s</H3>\n", szSpacer, szFolderFlags, child->addDate, psz2 ? psz2 : "");
+	        fprintf(bmFile, "%s<DT><H3 %sADD_DATE=\"%d\">", szSpacer, szFolderFlags, child->addDate);
+			fprintf(bmFile, "%s</H3>\n", psz2);
 			free(psz2);
 		 }
          if (psz) free(psz);
