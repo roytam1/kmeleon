@@ -215,14 +215,25 @@ int CFindRebar::OnCreate(LPCREATESTRUCT lpCreateStruct)
 		);//,WS_CHILD|WS_VISIBLE|CBRS_FLYBY);
 
 	m_cToolbar.GetToolBarCtrl().SetImageList(NULL);
+	
+	HDC hdcBitmap = CreateCompatibleDC(NULL);
+	struct {
+		BITMAPINFOHEADER header;
+		COLORREF col[256];
+	} bmpi = {0};
+	bmpi.header.biSize = sizeof(BITMAPINFOHEADER);
 
 	CString skinFile;
 	if (theApp.FindSkinFile(skinFile, _T("findhot.bmp")))
 	{
-		m_ilHot.Create(16, 16, ILC_MASK | ILC_COLOR24, 6, 1);
-		HBITMAP bitmap = (HBITMAP)LoadImage(NULL, skinFile, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE);
+		m_ilHot.Create(16, 16, ILC_MASK | ILC_COLOR32, 6, 1);
+		HBITMAP bitmap = (HBITMAP)LoadImage(NULL, skinFile, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_CREATEDIBSECTION | LR_DEFAULTSIZE);
 		if (bitmap) {
-			ImageList_AddMasked(m_ilHot.GetSafeHandle(), bitmap, RGB(255, 0, 255));
+			GetDIBits(hdcBitmap, bitmap, 0, 0, NULL, (BITMAPINFO*)&bmpi, DIB_RGB_COLORS);
+			if (bmpi.header.biBitCount == 32)
+				ImageList_Add(m_ilHot.GetSafeHandle(), bitmap, NULL);
+			else
+				ImageList_AddMasked(m_ilHot.GetSafeHandle(), bitmap, RGB(255,0,255));
 			DeleteObject(bitmap);
 			m_cToolbar.GetToolBarCtrl().SetHotImageList(&m_ilHot);
 		}
@@ -230,10 +241,14 @@ int CFindRebar::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	
 	if (theApp.FindSkinFile(skinFile, _T("findcold.bmp")))
 	{
-		m_ilCold.Create(16, 16, ILC_MASK | ILC_COLOR24, 6, 1);
-		HBITMAP bitmap = (HBITMAP)LoadImage(NULL, skinFile, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE);
+		m_ilCold.Create(16, 16, ILC_MASK | ILC_COLOR32, 6, 1);
+		HBITMAP bitmap = (HBITMAP)LoadImage(NULL, skinFile, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_CREATEDIBSECTION | LR_DEFAULTSIZE);
 		if (bitmap) {
-			ImageList_AddMasked(m_ilCold.GetSafeHandle(), bitmap, RGB(255, 0, 255));
+			GetDIBits(hdcBitmap, bitmap, 0, 0, NULL, (BITMAPINFO*)&bmpi, DIB_RGB_COLORS);
+			if (bmpi.header.biBitCount == 32)
+				ImageList_Add(m_ilCold.GetSafeHandle(), bitmap, NULL);
+			else
+				ImageList_AddMasked(m_ilCold.GetSafeHandle(), bitmap, RGB(255,0,255));
 			DeleteObject(bitmap);
 			m_cToolbar.GetToolBarCtrl().SetImageList(&m_ilCold);
 		}
@@ -242,14 +257,20 @@ int CFindRebar::OnCreate(LPCREATESTRUCT lpCreateStruct)
 		
 	if (theApp.FindSkinFile(skinFile, _T("finddead.bmp")))
 	{
-		m_ilDead.Create(16, 16, ILC_MASK | ILC_COLOR24, 6, 1);
-		HBITMAP bitmap = (HBITMAP)LoadImage(NULL, skinFile, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE);
+		m_ilDead.Create(16, 16, ILC_MASK | ILC_COLOR32, 6, 1);
+		HBITMAP bitmap = (HBITMAP)LoadImage(NULL, skinFile, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_CREATEDIBSECTION | LR_DEFAULTSIZE);
 		if (bitmap) {
-			ImageList_AddMasked(m_ilDead.GetSafeHandle(), bitmap, RGB(255, 0, 255));
+			GetDIBits(hdcBitmap, bitmap, 0, 0, NULL, (BITMAPINFO*)&bmpi, DIB_RGB_COLORS);
+			if (bmpi.header.biBitCount == 32)
+				ImageList_Add(m_ilDead.GetSafeHandle(), bitmap, NULL);
+			else
+				ImageList_AddMasked(m_ilDead.GetSafeHandle(), bitmap, RGB(255,0,255));
 			DeleteObject(bitmap);
 			m_cToolbar.GetToolBarCtrl().SetImageList(&m_ilDead);
 		}
 	}
+
+	DeleteDC(hdcBitmap);
 	
 	TBBUTTON button = {0};
 	button.fsState = TBSTATE_ENABLED;
