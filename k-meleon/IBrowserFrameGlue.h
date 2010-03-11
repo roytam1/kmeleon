@@ -78,6 +78,9 @@ struct IBrowserGlue {
 	virtual BOOL MouseAction(nsIDOMNode *node, UINT flags) = 0;
 	virtual void PopupBlocked(const char* uri) = 0;
 	virtual void SetFavIcon(nsIURI* favUri) = 0;
+	virtual void performXULCommand(LPCWSTR id, LPCTSTR uri) = 0; 
+	virtual BOOL AllowFlash() = 0;
+
 	virtual ~IBrowserGlue() {};
 };
 
@@ -105,6 +108,8 @@ struct IBrowserGlue {
 		virtual BOOL MouseAction(nsIDOMNode *node, UINT flags);\
 		virtual void PopupBlocked(const char* uri);\
 		virtual void SetFavIcon(nsIURI* favUri);\
+		virtual void performXULCommand(LPCWSTR id, LPCTSTR uri); \
+		virtual BOOL AllowFlash(); \
 
 typedef IBrowserGlue *PBROWSERGLUE;
 
