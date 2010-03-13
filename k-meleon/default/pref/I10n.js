@@ -55,8 +55,8 @@ pref("kmeleon.plugins.macros.search.kmforums", "http://kmeleon.sourceforge.net/f
 // Make sure these engines are defined in search.xml!
 pref("kmeleon.plugins.macros.search.engine0.name", "Google");
 pref("kmeleon.plugins.macros.search.engine0.url", "http://www.google.com/search?q=");
-pref("kmeleon.plugins.macros.search.engine1.name", "MSN Search");
-pref("kmeleon.plugins.macros.search.engine1.url", "http://search.msn.com/results.aspx?q=");
+pref("kmeleon.plugins.macros.search.engine1.name", "Bing - Web");
+pref("kmeleon.plugins.macros.search.engine1.url", "http://www.bing.com/search?mkt=en-US&setlang=match&FORM=W0FD&q=");
 pref("kmeleon.plugins.macros.search.engine2.name", "Yahoo! Search");
 pref("kmeleon.plugins.macros.search.engine2.url", "http://search.yahoo.com/bin/search?p=");
 pref("kmeleon.plugins.macros.search.engine2.name", "Wikipedia, The Free Encyclopedia");
@@ -65,5 +65,5 @@ pref("kmeleon.plugins.macros.search.engine2.url", "http://en.wikipedia.org/w/ind
 // Metasearch (meta[0..POSITIVE_INFINITY] possible)
 // Make sure these engines are defined in search.xml!
 pref("kmeleon.plugins.macros.search.meta0.url", "http://www.google.com/search?num=100&q=");
-pref("kmeleon.plugins.macros.search.meta1.url", "http://search.msn.com/results.aspx?q=");
+pref("kmeleon.plugins.macros.search.meta1.url", "http://www.bing.com/search?mkt=en-US&setlang=match&FORM=W0FD&q=");
 pref("kmeleon.plugins.macros.search.meta2.url", "http://search.yahoo.com/bin/search?p=");
