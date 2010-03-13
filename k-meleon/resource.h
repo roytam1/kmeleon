@@ -598,6 +598,11 @@
 #define IDS_PREFS_TABS                  62259
 #define IDS_TOOLBAR_URL                 62260
 #define IDS_FULL_ZOOM                   62261
+#define IDS_EXTERNAL_HANDLER_CAPTION    62262
+#define IDS_EXTERNAL_HANDLER_REQUIRED   62263
+#define IDS_REMEMBER                    62264
+#define IDS_EXTERNAL_HANDLER_REMEMBER   62264
+#define IDS_EXTERNAL_HANDLER_QUESTION   62265
 
 // Next default values for new objects
 // 
