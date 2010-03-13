@@ -1554,6 +1554,12 @@ BEGIN
     IDS_PREFS_TABS          "Tabs"
     IDS_TOOLBAR_URL         "URL:"
     IDS_FULL_ZOOM           "Full Zoom: %.0f"
+    IDS_EXTERNAL_HANDLER_CAPTION "External application required"
+    IDS_EXTERNAL_HANDLER_REQUIRED 
+                            "The link you're trying to open require an external application, but there is no application installed that can open ""%s"" links."
+    IDS_EXTERNAL_HANDLER_REMEMBER "Always open ""%s"" links with ""%s"""
+    IDS_EXTERNAL_HANDLER_QUESTION 
+                            "An external application must be launched to handle ""%s"" links. Do you want to open this link with ""%s""?\n\nIf you were not expecting this request it may be an attempt to exploit a weakness in that other program. Cancel this request unless you are sure it is not malicious."
 END
 
 #endif    // English (U.S.) resources

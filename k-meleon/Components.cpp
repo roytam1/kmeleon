@@ -15,6 +15,15 @@ the same CID and Contract ID as the default's.
 #include "NSSDialogs.h"
 #if GECKO_VERSION < 19
 #include "FontPackageHandler.h"
+#else
+#include "ContentDispatchChooser.h"
+
+//52be7412-eff1-46b6-aec6-38bb1c997dfc
+#define NS_CONTENTDISPATCHCHOOSER_CID \
+	{ 0x52be7412, 0xeff1, 0x46b6, { 0xae, 0xc6, 0x38, 0xbb, 0x1c, 0x99, 0x7d, 0xfc } }
+
+
+
 #endif
 #include "GenKeyPairDialogs.h"
 //#include "SideBarComp.h"
@@ -22,6 +31,7 @@ the same CID and Contract ID as the default's.
 #include "nsIComponentRegistrar.h"
 #include "nsICategoryManager.h"
 #include "nsIComponentManager.h"
+
 
 //#include "nsEmbedCID.h" //NS_PROMPTSERVICE_CONTRACTID
 //#include "nsICookiePromptService.h" ////NS_COOKIEPROMPTSERVICE_CONTRACTID
@@ -36,8 +46,11 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(CUnknownContentTypeHandler)
 //NS_GENERIC_FACTORY_CONSTRUCTOR(CTooltipTextProvider)
 NS_GENERIC_FACTORY_CONSTRUCTOR(CNSSDialogs)
 NS_GENERIC_FACTORY_CONSTRUCTOR(CProgressDialog)
+
 #if GECKO_VERSION < 19
 NS_GENERIC_FACTORY_CONSTRUCTOR(CFontPackageHandler)
+#else
+NS_GENERIC_FACTORY_CONSTRUCTOR(ContentDispatchChooser)
 #endif
 NS_GENERIC_FACTORY_CONSTRUCTOR(CGenKeyPairDialogs)
 //NS_GENERIC_FACTORY_CONSTRUCTOR(CSideBarComp)
@@ -101,6 +114,15 @@ static const nsModuleComponentInfo sAppComps[] = {
        "@mozilla.org/locale/default-font-package-handler;1",
        CFontPackageHandlerConstructor
 	},
+#else
+	{
+		"Content Dispatcher Service",
+		NS_CONTENTDISPATCHCHOOSER_CID,
+		"@mozilla.org/content-dispatch-chooser;1",
+		ContentDispatchChooserConstructor
+	},
+
+
 #endif
 	{
 		"PSM Dialog Impl",
