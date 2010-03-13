@@ -25,6 +25,7 @@
 #define PREFERENCE_BUTTON_MAXWIDTH  "kmeleon.tabs.maxWidth"
 #define PREFERENCE_BUTTON_STYLE		"kmeleon.tabs.style"
 #define PREFERENCE_REBAR_BOTTOM		"kmeleon.tabs.bottomBar"
+#define PREFERENCE_REBAR_POSITION	"kmeleon.tabs.position"
 #define PREFERENCE_REBAR_FIXED		"kmeleon.tabs.fixedBar"
 
 // CTabReBar
@@ -76,6 +77,15 @@ public:
 
 class CTabReBar : public CToolBar
 {
+	enum { 
+		POSITION_BAND = 0,
+		POSITION_TOP,
+		POSITION_VTOP,
+		POSITION_BOTTOM,
+		POSITION_LEFT,
+		POSITION_RIGHT
+	};
+
 	DECLARE_DYNAMIC(CTabReBar)
 	friend CTBOleDropTarget;
 public:
@@ -116,6 +126,7 @@ protected:
 	POINT mDragPoint;
 	CTBOleDropTarget mDropTarget;
 	BOOL mBottomBar;
+	UINT mPosBar;
 	BOOL mFixedBar;
 	BOOL mChevron;
 	
@@ -140,6 +151,7 @@ public:
 	afx_msg void OnDestroy();
 	afx_msg void OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnLButtonUp(UINT nFlags, CPoint point);
+	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
 };
 
 

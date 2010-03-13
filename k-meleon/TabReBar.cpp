@@ -112,7 +112,18 @@ CTabReBar::CTabReBar()
 	bButtonNumbers =   0;
 	mDragItem = -1;
 	m_wndParent = NULL;	
-	mBottomBar = theApp.preferences.GetBool(PREFERENCE_REBAR_BOTTOM, FALSE);
+	mBottomBar = FALSE;
+
+	CString prefPos = theApp.preferences.GetString(PREFERENCE_REBAR_POSITION, _T("band"));
+	if (prefPos.CompareNoCase(_T("vtop")) == 0) mPosBar = POSITION_VTOP;
+	else if (prefPos.CompareNoCase(_T("top")) == 0) mPosBar = POSITION_TOP;
+	else if (prefPos.CompareNoCase(_T("left")) == 0) mPosBar = POSITION_LEFT;
+	else if (prefPos.CompareNoCase(_T("right")) == 0) mPosBar = POSITION_RIGHT;
+	else if (prefPos.CompareNoCase(_T("bottom")) == 0) mPosBar = POSITION_BOTTOM;
+	else mPosBar = POSITION_BAND;
+	
+	if (mPosBar == POSITION_BOTTOM) mBottomBar = TRUE;
+
 	mFixedBar = theApp.preferences.GetBool(PREFERENCE_REBAR_FIXED, FALSE);
 	mChevron = FALSE;
 	mTemp = NULL;
@@ -134,7 +145,7 @@ BOOL CTabReBar::Create(CReBarEx* rebar, UINT idwnd)
 			return FALSE;
 		//ModifyStyle(0, CCS_ADJUSTABLE);
 		
-		if (!mFixedBar && !mBottomBar) {
+		if (!mFixedBar && !mPosBar) {
 			rebar->RegisterBand(m_hWnd, _T("Tabs"), false);
 			rebar->AddBar(this, szTitle, 0, RBBS_USECHEVRON | RBBS_FIXEDBMP );
 
@@ -160,6 +171,8 @@ BOOL CTabReBar::Create(CReBarEx* rebar, UINT idwnd)
 			mTemp->Create(GetParentFrame(), RBS_BANDBORDERS, WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS|WS_CLIPCHILDREN|(mBottomBar ? CBRS_BOTTOM : CBRS_TOP));
 			mTemp->AddBar(this, szTitle, NULL,  RBBS_USECHEVRON | RBBS_NOGRIPPER);
 			mTemp->SetWindowText(_T("TabsBar"));
+			if (mPosBar == POSITION_VTOP)
+				rebar->SetWindowPos(mTemp ,0,0,0,0,SWP_NOMOVE);
 		}
 
 		mDropTarget.Register(this);
@@ -178,7 +191,7 @@ BOOL CTabReBar::Init(CReBarEx* rebar)
 		int idx = rebar->FindByName(_T("Tab/&Window Buttons"));
 		if (idx>=0) {
 			rebar->GetReBarCtrl().GetBandInfo(idx, &rbi);
-			CWnd* toolbar = CWnd::FromHandle(rbi.hwndChild);
+			CToolBar* toolbar = (CToolBar*)CWnd::FromHandle(rbi.hwndChild);
 			if (toolbar) {
 				mTemp->AddBar(toolbar, _T(""), NULL, RBBS_NOGRIPPER);
 				rebar->UnregisterBand(_T("Tab/&Window Buttons"));
@@ -219,7 +232,7 @@ BOOL CTabReBar::Init(CReBarEx* rebar)
 	rbi.fMask  = RBBIM_CHILDSIZE; 
 	rbi.cxMinChild = 0;
 	rbi.cyMinChild = rbi.cyChild = rbi.cyMaxChild = size.cy;
-	if (!mFixedBar && !mBottomBar) {
+	if (!mFixedBar && !mPosBar) {
 		int iband = m_wndParent->FindByName(_T("Tabs"));
 		m_wndParent->GetReBarCtrl().SetBandInfo(iband, &rbi);
 	} 
@@ -279,7 +292,7 @@ void CTabReBar::UpdateButtonsSize()
 	rb.cbSize = sizeof(REBARBANDINFO);
 	rb.fMask  = RBBIM_IDEALSIZE; 
 	rb.cxIdeal = size.cx;
-	if (!mFixedBar && !mBottomBar) {
+	if (!mFixedBar && !mPosBar) {
 		/* Stupid Vista Fix */
 		int static ignoreSize = 1;
 		if (ignoreSize>0) {
@@ -299,7 +312,7 @@ void CTabReBar::UpdateButtonsSize()
 
 void CTabReBar::UpdateVisibility(BOOL canHide)
 {
-	if (mFixedBar || mBottomBar)
+	if (mFixedBar || mPosBar)
 	{
 
 		if (GetToolBarCtrl().GetButtonCount()>1) {
@@ -559,6 +572,7 @@ BEGIN_MESSAGE_MAP(CTabReBar, CToolBar)
 	ON_WM_MBUTTONUP()
 	ON_WM_LBUTTONDBLCLK()
 	ON_WM_RBUTTONUP()
+	ON_WM_LBUTTONDOWN()
 	// Doesn't work otherwise ....
 //	ON_NOTIFY_REFLECT(64819, OnTbnGetDispInfo)
 	//ON_NOTIFY_REFLECT(TBN_GETDISPINFO, OnTbnGetDispInfo)
@@ -579,6 +593,9 @@ void CTabReBar::HandleMouseClick(int flag, CPoint point)
 	int buttonID = GetButtonIDFromPoint(point);
 
 	switch (flag) {
+		case 4:
+			((CBrowserFrame*)GetParentFrame())->ToggleWindow();
+			break;
 		case 3:
 			if (buttonID<0) 
 			{
@@ -686,6 +703,15 @@ void CTabReBar::OnTbnGetDispInfo(NMHDR *pNMHDR, LRESULT *pResult)
 	pNMTBDispInfo->iImage = GetParentFrame()->SendMessage(UWM_GETFAVICON, pNMTBDispInfo->idCommand, pNMTBDispInfo->lParam);
 	*pResult = 0;
 }*/
+
+void CTabReBar::OnLButtonDown(UINT nFlags, CPoint point)
+{
+	int buttonID = GetButtonIDFromPoint(point);
+	if (buttonID<0)
+		GetParentFrame()->SendMessage(WM_SYSCOMMAND, SC_MOVE+1, MAKELPARAM(point.x,point.y));
+	else
+		CToolBar::OnLButtonDown(nFlags,point);
+}
 
 void CTabReBar::OnTbnBeginDrag(NMHDR *pNMHDR, LRESULT *pResult)
 {

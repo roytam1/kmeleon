@@ -17,7 +17,7 @@
 */
 
 
-#define KMELEON_VERSION	               0x01060000
+#define KMELEON_VERSION	               0x01060004
 
 #define WM_DEFERSHOW                   WM_USER + 200
 #define WM_DEFERSAVEAS                 WM_USER + 201
