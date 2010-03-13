@@ -335,6 +335,10 @@ typedef struct {
 	BOOL (*LoadCSS) (const char* path, BOOL load);
 	BOOL (*LogMessage) (const char* category, const char* message, const char* file, UINT line, UINT flags);
 
+// ----------------------------------------------------
+// Addition in K-meleon 1.6
+
+	BOOL (*InjectJS2)(const char*, int, char* result, unsigned size, HWND);
 
 } kmeleonFunctions;
 
