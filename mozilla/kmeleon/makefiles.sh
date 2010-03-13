@@ -12,7 +12,7 @@
 # for the specific language governing rights and limitations under the
 # License.
 #
-# The Original Code is Mozilla Build System
+# The Original Code is the the Mozilla build system
 #
 # The Initial Developer of the Original Code is
 # Ben Turner <mozilla@songbirdnest.com>
@@ -36,19 +36,11 @@
 #
 # ***** END LICENSE BLOCK *****
 
-MOZ_APP_NAME=kmeleon
-ENABLE_TESTS=
-ACCESSIBILITY=
-MOZ_JSDEBUGGER=
-MOZ_PROFILESHARING=
-MOZ_APP_DISPLAYNAME=K-Meleon
-MOZ_APP_VERSION=$MOZILLA_VERSION
-MOZ_EXTENSIONS_DEFAULT=
-MOZ_PREF_EXTENSIONS=1
-MOZ_WEBSERVICES=
-MOZ_NO_XPCOM_OBSOLETE=1
-MOZ_XPINSTALL=
-MOZ_VIEW_SOURCE=1
-MOZ_URL_CLASSIFIER=1
-MOZ_SPELLCHECK=
-
+add_makefiles "
+kmeleon/Makefile
+kmeleon/wallet/Makefile
+kmeleon/winstripe/Makefile
+kmeleon/flashblock/Makefile
+kmeleon/history/Makefile
+kmeleon/typeaheadfind/Makefile
+"

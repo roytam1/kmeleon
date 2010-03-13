@@ -1,4 +1,4 @@
-#! /bin/sh
+#
 # ***** BEGIN LICENSE BLOCK *****
 # Version: MPL 1.1/GPL 2.0/LGPL 2.1
 #
@@ -12,12 +12,11 @@
 # for the specific language governing rights and limitations under the
 # License.
 #
-# The Original Code is Mozilla Build System
+# The Original Code is mozilla.org code.
 #
 # The Initial Developer of the Original Code is
-# Ben Turner <mozilla@songbirdnest.com>
-#
-# Portions created by the Initial Developer are Copyright (C) 2007
+# Netscape Communications Corporation.
+# Portions created by the Initial Developer are Copyright (C) 1998
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
@@ -36,19 +35,48 @@
 #
 # ***** END LICENSE BLOCK *****
 
-MOZ_APP_NAME=kmeleon
-ENABLE_TESTS=
-ACCESSIBILITY=
-MOZ_JSDEBUGGER=
-MOZ_PROFILESHARING=
-MOZ_APP_DISPLAYNAME=K-Meleon
-MOZ_APP_VERSION=$MOZILLA_VERSION
-MOZ_EXTENSIONS_DEFAULT=
-MOZ_PREF_EXTENSIONS=1
-MOZ_WEBSERVICES=
-MOZ_NO_XPCOM_OBSOLETE=1
-MOZ_XPINSTALL=
-MOZ_VIEW_SOURCE=1
-MOZ_URL_CLASSIFIER=1
-MOZ_SPELLCHECK=
+DEPTH		= ../../..
+topsrcdir	= @top_srcdir@
+srcdir		= @srcdir@
+VPATH		= @srcdir@
+
+include $(DEPTH)/config/autoconf.mk
+
+MODULE		= walletviewers
+LIBRARY_NAME	= walletviewers
+EXPORT_LIBRARY = 1
+SHORT_LIBNAME	= wlltvwrs
+IS_COMPONENT	= 1
+MODULE_NAME	= nsWalletViewerModule
+MOZILLA_INTERNAL_API = 1
+
+PACKAGE_FILE = walletviewer.pkg
+
+REQUIRES	= xpcom \
+		  $(NULL)
+
+CPPSRCS		= nsWalletViewerFactory.cpp
+
+LOCAL_INCLUDES	= \
+		-I$(srcdir)/../editor \
+		-I$(srcdir)/../signonviewer \
+		-I$(srcdir)/../walletpreview \
+		$(NULL)
+
+SHARED_LIBRARY_LIBS = \
+		../signonviewer/$(LIB_PREFIX)signonviewer_s.$(LIB_SUFFIX) \
+		../walletpreview/$(LIB_PREFIX)walletpreview_s.$(LIB_SUFFIX) \
+		../editor/$(LIB_PREFIX)walleteditor_s.$(LIB_SUFFIX) \
+		$(NULL)
+
+EXTRA_DSO_LDOPTS = \
+		$(MOZ_COMPONENT_LIBS) \
+		$(NULL)
+
+ifeq ($(OS_ARCH),WINNT)
+OS_LIBS		+= $(call EXPAND_LIBNAME,shell32)
+endif
+
+include $(topsrcdir)/config/rules.mk
+
 
