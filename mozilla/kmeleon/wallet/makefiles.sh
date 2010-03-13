@@ -36,19 +36,12 @@
 #
 # ***** END LICENSE BLOCK *****
 
-MOZ_APP_NAME=kmeleon
-ENABLE_TESTS=
-ACCESSIBILITY=
-MOZ_JSDEBUGGER=
-MOZ_PROFILESHARING=
-MOZ_APP_DISPLAYNAME=K-Meleon
-MOZ_APP_VERSION=$MOZILLA_VERSION
-MOZ_EXTENSIONS_DEFAULT=
-MOZ_PREF_EXTENSIONS=1
-MOZ_WEBSERVICES=
-MOZ_NO_XPCOM_OBSOLETE=1
-MOZ_XPINSTALL=
-MOZ_VIEW_SOURCE=1
-MOZ_URL_CLASSIFIER=1
-MOZ_SPELLCHECK=
-
+add_makefiles "
+  extensions/wallet/Makefile
+  extensions/wallet/public/Makefile
+  extensions/wallet/src/Makefile
+  extensions/wallet/editor/Makefile
+  extensions/wallet/signonviewer/Makefile
+  extensions/wallet/walletpreview/Makefile
+  extensions/wallet/build/Makefile
+"

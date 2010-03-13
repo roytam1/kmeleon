@@ -50,6 +50,8 @@ tier_app_dirs += $(MOZ_BRANDING_DIRECTORY)
 endif
 
 tier_app_dirs += \
-	profile \
-	embedding/config \
+	kmeleon \
 	$(NULL)
+
+package:
+	@$(MAKE) -C kmeleon/installer
