@@ -982,9 +982,10 @@
 			bTopWindow = 2;
 		else
 			bTopWindow = 1;
-
-		kPlugin.kFuncs->InjectJS(data->getstr(1), bTopWindow, data->c.hWnd);
-		return "";
+		
+		char result[256];
+		kPlugin.kFuncs->InjectJS2(data->getstr(1), bTopWindow, result, 256, data->c.hWnd);
+		return result;
 	}
 
 	Value injectCSS(FunctionData* data)

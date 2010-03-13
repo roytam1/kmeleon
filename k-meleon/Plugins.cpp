@@ -1489,25 +1489,35 @@ void RemoveStatusBarIcon(HWND hWnd, int id)
 	frame->m_wndStatusBar.RemoveIcon(id);
 }	
 
-BOOL InjectJS(const char* js, int bTopWindow, HWND hWnd)
+BOOL InjectJS2(const char* js, int bTopWindow, char *result, unsigned size, HWND hWnd)
 {
 	PLUGIN_HEADER(hWnd, FALSE);
 	
 	nsEmbedString js2;
 	NS_CStringToUTF16(nsDependentCString(js), NS_CSTRING_ENCODING_UTF8, js2);
 
-	CString result;
+	CString csresult;
 	if (bTopWindow == 2 && frame->IsKindOf(RUNTIME_CLASS(CBrowserFrmTab)))
 	{
 		BOOL ret = TRUE;
 		CBrowserFrmTab* frameTab = (CBrowserFrmTab*)frame;
 		int tabCount = frameTab->GetTabCount();
 		for (int i=0;i<tabCount;i++) 
-			ret &= frameTab->GetTabIndex(i)->GetBrowserWrapper()->InjectJS(js2.get(), result);
+			ret &= frameTab->GetTabIndex(i)->GetBrowserWrapper()->InjectJS(js2.get(), csresult);
 		return ret;
 	}
 
-	return browser->InjectJS(js2.get(), result, bTopWindow==1);
+	BOOL success = browser->InjectJS(js2.get(), csresult, bTopWindow==1);
+	if (success && result) {
+		strncpy(result, EncodeUTF8(T2W(csresult.GetBuffer(0))), size);
+		result[size-1] = 0;
+	}
+	return success;
+}
+
+BOOL InjectJS(const char* js, int bTopWindow, HWND hWnd)
+{
+	return InjectJS2(js, bTopWindow, NULL, 0, hWnd);
 }
 
 BOOL InjectCSS(const char* css, BOOL bAll, HWND hWnd)
@@ -1750,7 +1760,8 @@ kmeleonFunctions kmelFuncs = {
    UnregisterCmd,
    GetCmdList,
    LoadCSS,
-   LogMessage
+   LogMessage,
+   InjectJS2
 };
 
 BOOL CPlugins::TestLoad(LPCTSTR file, const char *description)
