@@ -1777,12 +1777,17 @@ void CBrowserFrame::OnRestoreWindow()
 	ShowWindow(SW_RESTORE);
 }
 
-void CBrowserFrame::OnToggleWindow()
+void CBrowserFrame::ToggleWindow()
 {
 	if (IsZoomed())
 		ShowWindow(SW_RESTORE);
 	else
 		ShowWindow(SW_MAXIMIZE);
+}
+
+void CBrowserFrame::OnToggleWindow()
+{
+	ToggleWindow();
 }
 
 void CBrowserFrame::OnGetMinMaxInfo(MINMAXINFO* lpMMI)

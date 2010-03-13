@@ -250,7 +250,8 @@ public:
 	void UpdateLoading(BOOL aLoading);
 	void UpdateTitle(LPCTSTR aTitle);
 	void UpdatePopupNotification(LPCTSTR uri);
-
+	
+	void ToggleWindow();
 	void ClearFindBar();
 	void CloseNothing(){}
 	INT_PTR DoModal();
