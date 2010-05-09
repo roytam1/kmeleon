@@ -34,9 +34,13 @@ Bug:	Changing skin need to delete the iconcache.
 #include "nscWebBrowserPersist.h"
 
 #include "imgILoader.h"
+#if GECKO_VERSION>191
+#else
 #include "gfxIImageFrame.h"
-#include "imgIContainer.h"
 #include "nsIImage.h"
+#endif
+#include "imgIContainer.h"
+
 
 #include "mfcembed.h"
 #include "kmeleon_plugin.h"
@@ -541,7 +545,30 @@ NS_IMETHODIMP IconObserver::OnStartContainer(imgIRequest *aRequest, imgIContaine
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }
+#if GECKO_VERSION > 191
+/* void onStartFrame (in imgIRequest aRequest, in gfxIImageFrame aFrame); */
+NS_IMETHODIMP IconObserver::OnStartFrame(imgIRequest *aRequest, PRUint32 aFrame)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
 
+/* [noscript] void onDataAvailable (in imgIRequest aRequest, in gfxIImageFrame aFrame, [const] in nsIntRect aRect); */
+NS_IMETHODIMP IconObserver::OnDataAvailable(imgIRequest *aRequest, PRBool aCurrentFrame, const nsIntRect * aRect)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* void onStopFrame (in imgIRequest aRequest, in gfxIImageFrame aFrame); */
+NS_IMETHODIMP IconObserver::OnStopFrame(imgIRequest *aRequest, PRUint32 aFrame)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+NS_IMETHODIMP IconObserver::FrameChanged(imgIContainer *aContainer, struct nsIntRect *aDirtyRect)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+#else
 /* void onStartFrame (in imgIRequest aRequest, in gfxIImageFrame aFrame); */
 NS_IMETHODIMP IconObserver::OnStartFrame(imgIRequest *aRequest, gfxIImageFrame *aFrame)
 {
@@ -559,6 +586,11 @@ NS_IMETHODIMP IconObserver::OnStopFrame(imgIRequest *aRequest, gfxIImageFrame *a
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }
+NS_IMETHODIMP IconObserver::FrameChanged(imgIContainer *aContainer, gfxIImageFrame *aFrame, nsIntRect * aDirtyRect)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+#endif
 
 /* void onStopContainer (in imgIRequest aRequest, in imgIContainer aContainer); */
 NS_IMETHODIMP IconObserver::OnStopContainer(imgIRequest *aRequest, imgIContainer *aContainer)
@@ -683,22 +715,33 @@ NS_IMETHODIMP IconObserver::CreateDIB(imgIRequest *aRequest)
 	rv = aRequest->GetImage(getter_AddRefs(image));
 	NS_ENSURE_SUCCESS(rv, rv);
 
+	PRUint8 *bits;
+	PRInt32 w,h;
+	PRUint32 bpr;
+
+#if GECKO_VERSION > 191
+	gfxImageSurface* frame;
+	rv = image->CopyCurrentFrame(&frame);
+	NS_ENSURE_TRUE(frame, rv);
+
+	bits = frame->Data();
+	w = frame->Width();
+	h = frame->Height();
+	bpr = frame->Stride();
+#else
 	nsCOMPtr<gfxIImageFrame> frame;
 	rv = image->GetFrameAt(0, getter_AddRefs(frame));
 	NS_ENSURE_TRUE(frame, rv);
 
-	frame->LockImageData();
 	PRUint32 length;
-	PRUint8 *bits;
+	frame->LockImageData();
 	rv = frame->GetImageData(&bits, &length);
 	NS_ENSURE_SUCCESS(rv, rv);
 
-	PRInt32 w,h;
 	frame->GetWidth(&w);
 	frame->GetHeight(&h);
-
-	PRUint32 bpr;
 	frame->GetImageBytesPerRow(&bpr);
+#endif
 
 	/*	PRUint32 alphaLength;
 	PRUint8 *alphaBits;
@@ -816,7 +859,11 @@ NS_IMETHODIMP IconObserver::CreateDIB(imgIRequest *aRequest)
 		mFavList->AddIcon(nsuri.get(),&bitmap, bkgColor);
 	}
 #endif
+#if GECKO_VERSION > 191
+	delete frame;
+#else
 	frame->UnlockImageData();
+#endif
 	bitmap.DeleteObject();
 	return NS_OK;
 }
@@ -832,9 +879,5 @@ NS_IMETHODIMP IconObserver::LoadIcon(nsIURI *iconUri, nsIURI* pageUri)
 		nsnull, nsnull, getter_AddRefs(mRequest));
 }
 
-NS_IMETHODIMP IconObserver::FrameChanged(imgIContainer *aContainer, gfxIImageFrame *aFrame, nsIntRect * aDirtyRect)
-{
-    return NS_ERROR_NOT_IMPLEMENTED;
-}
 
 #endif // INTERNAL_SITEICONS

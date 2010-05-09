@@ -65,8 +65,9 @@
 #include "kmeleon_plugin.h"
 #include <io.h>
 #include <fcntl.h>
-
+#if GECKO_VERSION < 192
 #include "nsIPluginManager.h"
+#endif
 #include "nsIIOService.h"
 #include "nsIWindowWatcher.h"
 #if GECKO_VERSION < 19
@@ -74,6 +75,8 @@
 #include "nsIProfileInternal.h"
 #endif
 static UINT WM_POSTEVENT = RegisterWindowMessage(_T("XPCOM_PostEvent"));
+static UINT WM_FLASHRELAY = RegisterWindowMessage(_T("MozFlashUserRelay"));
+static UINT WM_NSEVENTID = RegisterWindowMessage(_T("nsAppShell:EventID"));
 
 #ifdef MOZ_PROFILESHARING
 #include "nsIProfileSharingSetup.h"
@@ -91,14 +94,14 @@ app_getModuleInfo(nsStaticModuleInfo **info, PRUint32 *count);
 #endif
 
 #ifdef _DEBUG
-#include "StackWalker.h"
+/*#include "StackWalker.h"
 
 static struct _test
 {
   _test() { InitAllocCheck(); }
   ~_test(){ DeInitAllocCheck(); }
 
-} _myLeakFinder;
+} _myLeakFinder;*/
 #define new DEBUG_NEW
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
@@ -203,6 +206,9 @@ CMfcEmbedApp theApp;
 static NS_IMETHODIMP
 RefreshPlugins(PRBool aReloadPages)
 {
+#if GECKO_VERSION > 191
+	return NS_OK;
+#else
     NS_DEFINE_CID(pluginManagerCID,NS_PLUGINMANAGER_CID);
 
     nsCOMPtr<nsIPluginManager> plugins(do_GetService(pluginManagerCID));
@@ -211,6 +217,7 @@ RefreshPlugins(PRBool aReloadPages)
         return NS_ERROR_FAILURE;
 
     return plugins->ReloadPlugins(aReloadPages);
+#endif
 }
 
 nsresult CMfcEmbedApp::SetOffline(BOOL offline)
@@ -538,6 +545,13 @@ BOOL CMfcEmbedApp::InitInstance()
 		return FALSE;
    }
 #endif
+   
+   // Enable DEP
+   HMODULE hMod = GetModuleHandleW(L"Kernel32.dll");
+   if (!hMod) return FALSE;
+   typedef BOOL (WINAPI *PSETDEP)(DWORD);
+   PSETDEP procSet = (PSETDEP)GetProcAddress(hMod,"SetProcessDEPPolicy");
+   if (procSet) procSet(0x00000001);
 
     //Enable3dControls();   
     //
@@ -1234,8 +1248,10 @@ int CMfcEmbedApp::ExitInstance()
    DestroyIcon(m_hSmallIcon);
 
    preferences.Flush();
-   m_ProfileMgr->ShutDownCurrentProfile( theApp.preferences.bGuestAccount );
-   if (m_ProfileMgr) delete m_ProfileMgr;
+   if (m_ProfileMgr) {
+      m_ProfileMgr->ShutDownCurrentProfile( theApp.preferences.bGuestAccount );
+      delete m_ProfileMgr;
+   }
    
    NS_TermEmbedding();
 
@@ -1277,6 +1293,8 @@ BOOL CMfcEmbedApp::IsIdleMessage( MSG* pMsg )
    if (!CWinApp::IsIdleMessage( pMsg ) || 
       pMsg->message == WM_USER+1 || // WM_CALLMETHOD
       pMsg->message == WM_POSTEVENT ||
+      pMsg->message == WM_FLASHRELAY ||
+      pMsg->message == WM_NSEVENTID ||
       pMsg->message == WM_TIMER) 
 
       return FALSE;
@@ -1655,6 +1673,10 @@ void CMfcEmbedApp::CheckProfileVersion()
 
        toDelete = GetMozDirectory(NS_APP_USER_PROFILE_LOCAL_50_DIR) + _T("\\xul.mfl"); 
        DeleteFile(toDelete);
+		
+	   if (oldVersion < 0x01060002)
+		   if (theApp.preferences.GetBool(PREFERENCE_REBAR_BOTTOM, FALSE))
+			   theApp.preferences.SetString(PREFERENCE_REBAR_POSITION, _T("bottom"));
 
        if (oldVersion < 0x01050025)
           theApp.preferences.SetString("browser.startup.homepage", 

@@ -80,6 +80,10 @@
 #include "nsIDOMDocumentFragment.h"
 #include "nsIDOMWindowCollection.h"
 #include "nsPIDOMWindow.h"
+#if GECKO_VERSION > 191
+#include "nsIFocusManager.h"
+#define FOCUSMANAGER_CONTRACTID "@mozilla.org/focus-manager;1"
+#endif
 
 static const PRUnichar kSpan[] = NS_LL("span");
 static const PRUnichar kStyle[] = NS_LL("style");
@@ -1664,12 +1668,18 @@ BOOL CBrowserWrapper::InputHasFocus()
 	nsCOMPtr<nsPIDOMWindow> piWindow = do_QueryInterface(domWindow);
 	if (!piWindow) return FALSE;
 
+#if GECKO_VERSION > 191
+	nsCOMPtr<nsIFocusManager> fm = do_GetService(FOCUSMANAGER_CONTRACTID);
+	if (!fm) return FALSE;
+	nsCOMPtr<nsIDOMWindow> focusedWindow;
+	fm->GetFocusedWindow(getter_AddRefs(focusedWindow));
+#else
 	nsIFocusController* controller = piWindow->GetRootFocusController();
 	if (!controller) return FALSE;
-
 	nsCOMPtr<nsIDOMWindowInternal> winInternal;
 	controller->GetFocusedWindow(getter_AddRefs(winInternal));
 	nsCOMPtr<nsIDOMWindow> focusedWindow(do_QueryInterface(winInternal));
+#endif
 	if (!focusedWindow) return FALSE;
 
 	nsCOMPtr<nsIDOMDocument> domDoc;
