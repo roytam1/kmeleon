@@ -34,6 +34,7 @@
 #include "nsIHttpChannel.h"
 #include "nsIMIMEInfo.h"
 #include "nsIWindowWatcher.h"
+#include "nsNetError.h"
 
 NS_IMETHODIMP
 CUnknownContentTypeHandler::Show(CWnd* parent)
