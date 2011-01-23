@@ -226,11 +226,20 @@ BOOL KmMenu::Build(CMenu &menu, int before)
 				else if (strcmpi(item.label+1, "WindowList") == 0) 
 					theApp.DrawWindowListMenu(menu.GetSafeHmenu());
 				else if (strcmpi(item.label+1, "SHistoryBack") == 0) 
+				{
+					if (!theApp.m_pMostRecentBrowserFrame) break;
 					theApp.m_pMostRecentBrowserFrame->DrawSHBackMenu(menu.GetSafeHmenu());
+				}
 				else if (strcmpi(item.label+1, "SHistoryForward") == 0) 
+				{
+					if (!theApp.m_pMostRecentBrowserFrame) break;
 					theApp.m_pMostRecentBrowserFrame->DrawSHForwardMenu(menu.GetSafeHmenu());
+				}
 				else if (strcmpi(item.label+1, "SHistory") == 0) 
+				{
+					if (!theApp.m_pMostRecentBrowserFrame) break;
 					theApp.m_pMostRecentBrowserFrame->DrawSHMenu(menu.GetSafeHmenu());
+				}
 				else if (strcmpi(item.label+1, "ToolBars") == 0) 
 				{
 					if (!theApp.m_pMostRecentBrowserFrame) break;
