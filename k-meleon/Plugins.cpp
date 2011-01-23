@@ -516,16 +516,18 @@ int GetMozillaSessionHistory (HWND hWnd, char ***titles, char ***urls, int *coun
    if (SessionSize) {
       for (i=0; i<SessionSize; i++) {
          if (pHistory && pHistory[i])
-            delete pHistory[i];
+            delete [] pHistory[i];
          if (pHistUrl && pHistUrl[i])
-            delete pHistUrl[i];
+			delete [] pHistUrl[i];
       }
    }
    
    SessionSize = *count;
    
    if (pHistory)
-      delete pHistory;
+      delete [] pHistory;
+
+   if (!SessionSize) return FALSE;
    pHistory = new char *[SessionSize];
    
    nsCOMPtr<nsIHistoryEntry> he;
@@ -565,7 +567,7 @@ int GetMozillaSessionHistory (HWND hWnd, char ***titles, char ***urls, int *coun
       len = WideCharToMultiByte(CP_ACP, 0, title, -1, s, len, NULL, NULL);
       s[len] = 0;
       pHistory[i] = s;
-     nsMemory::Free(title);
+      nsMemory::Free(title);
    }
    
    if (titles)
