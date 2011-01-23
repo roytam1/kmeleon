@@ -339,15 +339,19 @@ bool CMfcEmbedApp::FindSkinFile( CString& szSkinFile, TCHAR *filename )
 BOOL CMfcEmbedApp::LoadLanguage()
 {
    nsresult rv;
-   nsCOMPtr<nsIPref> prefs = do_GetService(NS_PREF_CONTRACTID, &rv);
+   nsCOMPtr<nsIPrefService> sprefs = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
    NS_ENSURE_SUCCESS(rv, FALSE);
 
-   nsEmbedString nslocale;
-   rv = prefs->CopyUnicharPref("general.useragent.locale", getter_Copies(nslocale));
+   nsCOMPtr<nsIPrefBranch> prefs;
+   rv = sprefs->GetBranch("", getter_AddRefs(prefs));
+   NS_ENSURE_SUCCESS(rv, FALSE);
+
+   nsEmbedCString nslocale;
+   rv = prefs->GetCharPref("general.useragent.locale", getter_Copies(nslocale));
    NS_ENSURE_SUCCESS(rv, FALSE);
 
    USES_CONVERSION;
-   CString locale = W2CT(nslocale.get());
+   CString locale = NSCStringToCString(nslocale);
 
    if (_tcsncmp(locale, _T("en"), 2) == 0) {
       if (m_hResDll) {

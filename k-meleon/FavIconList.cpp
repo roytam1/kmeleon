@@ -710,6 +710,10 @@ static HBITMAP DataToBitmap(PRUint8* aImageData,
 
 NS_IMETHODIMP IconObserver::CreateDIB(imgIRequest *aRequest)
 {
+#if GECKO_VERSION > 192
+	// FIXME : currently crash so do nothing
+	return NS_ERROR_NOT_IMPLEMENTED;
+#else
 	nsresult rv;
 	nsCOMPtr<imgIContainer> image;
 	rv = aRequest->GetImage(getter_AddRefs(image));
@@ -721,13 +725,21 @@ NS_IMETHODIMP IconObserver::CreateDIB(imgIRequest *aRequest)
 
 #if GECKO_VERSION > 191
 	gfxImageSurface* frame;
+#if GECKO_VERSION > 192
+	rv = image->CopyFrame(imgIContainer::FRAME_FIRST, imgIContainer::FLAG_SYNC_DECODE, &frame);
+	NS_ENSURE_TRUE(frame, rv);
+	image->GetWidth(&w);
+	image->GetHeight(&h);
+#else
 	rv = image->CopyCurrentFrame(&frame);
 	NS_ENSURE_TRUE(frame, rv);
-
-	bits = frame->Data();
 	w = frame->Width();
 	h = frame->Height();
 	bpr = frame->Stride();
+#endif
+	
+	bits = frame->Data();
+
 #else
 	nsCOMPtr<gfxIImageFrame> frame;
 	rv = image->GetFrameAt(0, getter_AddRefs(frame));
@@ -866,6 +878,7 @@ NS_IMETHODIMP IconObserver::CreateDIB(imgIRequest *aRequest)
 #endif
 	bitmap.DeleteObject();
 	return NS_OK;
+#endif
 }
 
 NS_IMETHODIMP IconObserver::LoadIcon(nsIURI *iconUri, nsIURI* pageUri)
@@ -873,11 +886,23 @@ NS_IMETHODIMP IconObserver::LoadIcon(nsIURI *iconUri, nsIURI* pageUri)
 	nsresult rv;
 	nsCOMPtr<imgILoader> loader = do_GetService("@mozilla.org/image/loader;1", &rv);
 	NS_ENSURE_SUCCESS(rv, rv);
-	
+#if GECKO_VERSION > 193	
+	return loader->LoadImage(iconUri, pageUri, nsnull, 
+		nsnull, this, this, nsIRequest::LOAD_BYPASS_CACHE, 
+		nsnull, nsnull, nsnull, getter_AddRefs(mRequest));
+#else
 	return loader->LoadImage(iconUri, pageUri, nsnull, 
 		nsnull, this, this, nsIRequest::LOAD_BYPASS_CACHE, 
 		nsnull, nsnull, getter_AddRefs(mRequest));
+#endif
 }
+
+#if GECKO_VERSION > 193
+NS_IMETHODIMP IconObserver::OnDiscard(imgIRequest* request)
+{
+	return NS_OK;
+}
+#endif
 
 
 #endif // INTERNAL_SITEICONS

@@ -317,7 +317,7 @@ public:
    void SkinChanged();
 
 protected:
-   nsCOMPtr<nsIPref> m_prefs;
+   nsCOMPtr<nsIPrefBranch> m_prefs;
 
 	/*inline void _GetBool(const char *preference, int& var, int defaultVal);
 	inline void _GetInt(const char *preference, int& var, int defaultVal);
