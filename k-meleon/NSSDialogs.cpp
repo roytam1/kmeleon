@@ -764,8 +764,8 @@ void CViewCertGeneralPage::DoDataExchange(CDataExchange* pDX)
 	//{{AFX_DATA_MAP(CNewServerDialog)
 	DDX_Text(pDX, IDC_VERIFIED, m_csVerified);
 	DDX_Text(pDX, IDC_USAGE, m_csUsage);
-    DDX_Text(pDX, IDC_EDIT_OU, m_csOU);
-	DDX_Text(pDX, IDC_EDIT_OU, m_csOU2);
+  DDX_Text(pDX, IDC_EDIT_OU, m_csOU);
+	DDX_Text(pDX, IDC_EDIT_OU2, m_csOU2);
 	DDX_Text(pDX, IDC_EDIT_O, m_csO);
 	DDX_Text(pDX, IDC_EDIT_O2, m_csO2);
 	DDX_Text(pDX, IDC_EDIT_CN, m_csCN);
