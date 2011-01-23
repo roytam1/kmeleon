@@ -61,7 +61,10 @@
 #include "nsIDOMHTMLEmbedElement.h"
 #include "nsIDOMHTMLObjectElement.h"
 #include "nsITypeAheadFind.h"
+#if GECKO_VERSION > 191
+#else
 #include "nsIFocusController.h"
+#endif
 #include "nsIDOMNSHTMLDocument.h"
 
 #include "nsIPrintSettingsService.h"
@@ -320,7 +323,13 @@ BOOL CBrowserWrapper::AddListeners(void)
 	nsCOMPtr<nsIDOMNSEventTarget> nsEventTarget = do_QueryInterface(mEventTarget);
 	if (nsEventTarget) 
 		rv = nsEventTarget->AddEventListener(NS_LITERAL_STRING("flashblockCheckLoad"),
-			mpBrowserImpl, PR_TRUE, PR_TRUE);
+			mpBrowserImpl, PR_TRUE, PR_TRUE
+#if GECKO_VERSION > 192
+			, 0
+#endif	
+
+);
+
 
 	return TRUE;
 }
@@ -927,11 +936,8 @@ BOOL CBrowserWrapper::InjectJS(const wchar_t* userScript, CString& result, bool 
 	NS_ENSURE_TRUE(ctx, FALSE);
 
 	PRBool jsEnabled = PR_TRUE;
-	nsCOMPtr<nsIPref> prefs = do_GetService(NS_PREF_CONTRACTID, &rv);
-	if (prefs) {
-		prefs->GetBoolPref("javascript.enabled", &jsEnabled);
-		prefs->SetBoolPref("javascript.enabled", PR_TRUE);
-	}
+	jsEnabled = theApp.preferences.GetBool("javascript.enabled", jsEnabled);
+	theApp.preferences.SetBool("javascript.enabled", false);
 
 	nsEmbedString retval;
 	nsCOMPtr<nsIScriptObjectPrincipal> sgoPrincipal = do_QueryInterface(sgo);
@@ -940,7 +946,7 @@ BOOL CBrowserWrapper::InjectJS(const wchar_t* userScript, CString& result, bool 
 		"InjectJS", 0, nsnull, &retval, nsnull);
 	result = NSStringToCString(retval);
 
-	if (prefs) prefs->SetBoolPref("javascript.enabled", jsEnabled);
+	theApp.preferences.SetBool("javascript.enabled", jsEnabled);
 	
 	return TRUE;
 }

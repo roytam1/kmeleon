@@ -135,10 +135,14 @@
 #include "nsIURI.h"
 
 // nkcache:
-#include "nsICacheService.h"
+//#include "nsICacheService.h"
 
 // pref:
+#if GECKO_VERSION < 193
 #include "nsIPref.h"
+#else
+#include "nsIPrefService.h"
+#endif
 
 // profile:
 #include "nsIProfile.h"
@@ -152,7 +156,7 @@
 #include "nsIWebProgressListener2.h"
 
 // wallet: 
-#include "nsIWalletService.h"
+//#include "nsIWalletService.h"
 
 // webBrowser_core: 
 #include "nsIWebBrowser.h"

@@ -87,8 +87,11 @@ public:
 		nsCOMPtr<nsIURI> uri;
 		rv = NewURI(getter_AddRefs(uri), nsurl);
 		NS_ENSURE_SUCCESS(rv, FALSE);
-		
+#if GECKO_VERSION > 192		
+		rv = m_permissionManager->Add(uri, m_type, state, 0, 0);
+#else
 		rv = m_permissionManager->Add(uri, m_type, state);
+#endif
 		NS_ENSURE_SUCCESS(rv, FALSE);
 		return TRUE;
 	}

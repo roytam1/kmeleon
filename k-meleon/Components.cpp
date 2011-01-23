@@ -78,12 +78,14 @@ static const nsModuleComponentInfo sAppComps[] = {
 		NS_PROMPTSERVICE_CONTRACTID,
 		CPromptServiceConstructor
 	},
+#if GECKO_VERSION < 193
 	{ 
 		"Nonblocking Alert Service", 
 		NS_PROMPTSERVICE_CID, 
 		NS_NONBLOCKINGALERTSERVICE_CONTRACTID, 
 		CPromptServiceConstructor
 	},
+#endif
 	{
 		"Helper App Launcher Dialog",
 		NS_UNKNOWNCONTENTTYPEHANDLER_CID,

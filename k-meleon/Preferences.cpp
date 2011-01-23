@@ -265,9 +265,11 @@ void CPreferences::AdBlockChanged()
 }
 
 void CPreferences::Load() {
-
    nsresult rv;
-   m_prefs = do_GetService(NS_PREF_CONTRACTID, &rv);
+   nsCOMPtr<nsIPrefService> prefs = do_GetService(NS_PREFSERVICE_CONTRACTID);
+   NS_ENSURE_TRUE(prefs, );
+
+   rv = prefs->GetBranch("", getter_AddRefs(m_prefs));
    if (NS_FAILED(rv)) {
       _ASSERTE(m_prefs && "Could not get preferences service");
       return;
@@ -281,7 +283,11 @@ void CPreferences::Load() {
    if (NS_FAILED(rv) || !inited) {
       // Set up prefs for first run
       rv = m_prefs->SetBoolPref("kmeleon.prefs_inited", PR_TRUE);
-      rv = m_prefs->SavePrefFile(nsnull);
+
+      nsCOMPtr<nsIPrefService> prefs = do_GetService(NS_PREFSERVICE_CONTRACTID);
+      NS_ENSURE_TRUE(prefs, );
+
+      rv = prefs->SavePrefFile(nsnull);
    }
 
    // Well, since the observer own them, and release them at shutdown, we don't
@@ -335,8 +341,9 @@ void CPreferences::Load() {
 
 void CPreferences::Flush()
 {
-   if (!m_prefs) return;
-   m_prefs->SavePrefFile(nsnull);      
+   nsCOMPtr<nsIPrefService> prefs = do_GetService(NS_PREFSERVICE_CONTRACTID);
+   NS_ENSURE_TRUE(prefs, );
+   prefs->SavePrefFile(nsnull);   
 }
 
 int CPreferences::GetBool(const char *preference, int defaultVal)

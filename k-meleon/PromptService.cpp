@@ -45,8 +45,11 @@ extern CWnd* CWndForDOMWindow(nsIDOMWindow *aWindow);
 
 //*****************************************************************************
 
+#if GECKO_VERSION > 192
+NS_IMPL_ISUPPORTS1(CPromptService, nsIPromptService)
+#else
 NS_IMPL_ISUPPORTS2(CPromptService, nsIPromptService, nsINonBlockingAlertService)
-
+#endif
 CPromptService::CPromptService()
 {
 }
@@ -385,7 +388,8 @@ NS_IMETHODIMP CPromptService::ConfirmEx(nsIDOMWindow *parent,
 
     return NS_OK;    
 }
- 
+
+#if GECKO_VERSION < 193 
 NS_IMETHODIMP
 CPromptService::ShowNonBlockingAlert(nsIDOMWindow *aParent,
                                       const PRUnichar *aDialogTitle,
@@ -408,6 +412,7 @@ CPromptService::ShowNonBlockingAlert(nsIDOMWindow *aParent,
   
   return result ? NS_OK : NS_ERROR_FAILURE;
 }
+#endif
 
 //*****************************************************************************
 // CPromptServiceFactory
