@@ -184,8 +184,8 @@
 		case WM_COMMAND:
 			switch (LOWORD(wParam)) {
 		case IDOK: {
-			char tmp[256];
-			GetDlgItemTextUTF8(hwnd, IDC_ANSWER, tmp, 256);
+			char tmp[1024];
+			GetDlgItemTextUTF8(hwnd, IDC_ANSWER, tmp, 1024);
 			answer = tmp;
 			EndDialog( hwnd, IDOK );
 			break;
@@ -206,12 +206,12 @@
 	{
 		DWORD ret;
 		if (gUnicode) {
-			WCHAR tmp[256];
-			ret = GetPrivateProfileStringW(CUTF8_to_UTF16(lpAppName), CUTF8_to_UTF16(lpKeyName), CUTF8_to_UTF16(lpDefault), tmp, sizeof(tmp), CUTF8_to_UTF16(filename));
+			WCHAR tmp[1024];
+			ret = GetPrivateProfileStringW(CUTF8_to_UTF16(lpAppName), CUTF8_to_UTF16(lpKeyName), CUTF8_to_UTF16(lpDefault), tmp, sizeof(tmp)/sizeof(WCHAR), CUTF8_to_UTF16(filename));
 			str.assign(CUTF16_to_UTF8(tmp));
 		}
 		else {
-			char tmp[256];
+			char tmp[1024];
 			ret = GetPrivateProfileStringA(CUTF8_to_ANSI(lpAppName), CUTF8_to_ANSI(lpKeyName), CUTF8_to_ANSI(lpDefault), tmp, sizeof(tmp), CUTF8_to_ANSI(filename));
 			str.assign(CANSI_to_UTF8(tmp));
 		}	
@@ -983,8 +983,8 @@
 		else
 			bTopWindow = 1;
 		
-		char result[256];
-		kPlugin.kFuncs->InjectJS2(data->getstr(1), bTopWindow, result, 256, data->c.hWnd);
+		char result[1024];
+		kPlugin.kFuncs->InjectJS2(data->getstr(1), bTopWindow, result, 1024, data->c.hWnd);
 		return result;
 	}
 
