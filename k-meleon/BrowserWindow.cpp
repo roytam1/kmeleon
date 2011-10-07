@@ -937,7 +937,7 @@ BOOL CBrowserWrapper::InjectJS(const wchar_t* userScript, CString& result, bool 
 
 	PRBool jsEnabled = PR_TRUE;
 	jsEnabled = theApp.preferences.GetBool("javascript.enabled", jsEnabled);
-	theApp.preferences.SetBool("javascript.enabled", false);
+	theApp.preferences.SetBool("javascript.enabled", true);
 
 	nsEmbedString retval;
 	nsCOMPtr<nsIScriptObjectPrincipal> sgoPrincipal = do_QueryInterface(sgo);
