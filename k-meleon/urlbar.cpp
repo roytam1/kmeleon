@@ -187,6 +187,8 @@ void CACListBox::AutoComplete(CString& text)
 		for (int i=0; i<count; i++)
 		{
 			AddString(A2CT(results->value));
+            if(i>1000) break; // deadlock: prevent quiet crash at > 3800 lines
+			// TODO Limit size of autocomplete result
 			results++;
 		}
 		
