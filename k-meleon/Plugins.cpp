@@ -515,17 +515,23 @@ int GetMozillaSessionHistory (HWND hWnd, char ***titles, char ***urls, int *coun
    // Clear the previous table
    if (SessionSize) {
       for (i=0; i<SessionSize; i++) {
-         if (pHistory && pHistory[i])
+         if (pHistory && pHistory[i]) {
             delete [] pHistory[i];
-         if (pHistUrl && pHistUrl[i])
+			pHistory[i] = NULL;
+		 }
+		 if (pHistUrl && pHistUrl[i]) {
 			delete [] pHistUrl[i];
+		    pHistUrl[i] = NULL;
+		 }
       }
    }
-   
+
    SessionSize = *count;
    
-   if (pHistory)
+   if (pHistory) {
       delete [] pHistory;
+	  pHistory = NULL;
+   }
 
    if (!SessionSize) return FALSE;
    pHistory = new char *[SessionSize];
