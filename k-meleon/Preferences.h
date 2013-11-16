@@ -24,6 +24,8 @@
 #include "resource.h"
 #include "DialogEx.h"
 
+#include "nsIPrefService.h"
+#include "nsIPrefBranch.h"
 
 class CPreferences;
 
@@ -318,6 +320,7 @@ public:
 
 protected:
    nsCOMPtr<nsIPrefBranch> m_prefs;
+   nsCOMPtr<nsIPrefService> m_prefservice;
 
 	/*inline void _GetBool(const char *preference, int& var, int defaultVal);
 	inline void _GetInt(const char *preference, int& var, int defaultVal);

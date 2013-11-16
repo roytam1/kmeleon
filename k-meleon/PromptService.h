@@ -30,10 +30,10 @@
 
 class nsIFactory;
 
+#include "nsIPromptFactory.h"
+#include "nsIPrompt.h"
 #include "nsIPromptService.h"
-#if GECKO_VERSION < 193
-#include "nsINonBlockingAlertService.h"
-#endif
+
 #include "nsIWindowWatcher.h"
 #include "nsEmbedCID.h"
 
@@ -41,10 +41,8 @@ class nsIFactory;
 {0xa2112d6a, 0x0e28, 0x421f, {0xb4, 0x6a, 0x25, 0xc0, 0xb3, 0x8, 0xcb, 0xd0}}
 static NS_DEFINE_CID(kPromptServiceCID, NS_PROMPTSERVICE_CID);
 
-class CPromptService: public nsIPromptService
-#if GECKO_VERSION < 193
-					  ,public nsINonBlockingAlertService
-#endif
+class CPromptService: public nsIPromptFactory, public nsIPromptService, public nsIPrompt
+	                  //,public nsINonBlockingAlertService
 
 {
 public:
@@ -52,11 +50,13 @@ public:
   virtual       ~CPromptService();
 
   NS_DECL_ISUPPORTS
+  NS_DECL_NSIPROMPTFACTORY
+  NS_DECL_NSIPROMPT
   NS_DECL_NSIPROMPTSERVICE
-#if GECKO_VERSION < 193
-  NS_DECL_NSINONBLOCKINGALERTSERVICE
-#endif
-  
+ // NS_DECL_NSINONBLOCKINGALERTSERVICE
+protected:
+	nsCOMPtr<nsIDOMWindow> mDomWindow;
+
 };
 
 // factory creator, in hard and soft link formats

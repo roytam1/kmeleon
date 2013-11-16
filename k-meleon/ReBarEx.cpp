@@ -437,27 +437,44 @@ void CReBarEx::RestoreBandSizes() {
 
 void CReBarEx::LockBars(BOOL lock)
 {
-   int x;
    REBARBANDINFO rbbi;
    rbbi.cbSize = sizeof(rbbi);
 
-   for (x=0; x<m_iCount; x++) {
+   UINT maxLength = 0, count = 0;
+   int x, mainBar = -1;
+   UINT* sizes = new UINT[m_iCount];
+   for (x=0; x<m_iCount; x++)
+   {
       int barIndex = FindByIndex(x); // index of the bar on the Rebar
 
-      rbbi.fMask = RBBIM_STYLE | RBBIM_STYLE;
-
+      rbbi.fMask = RBBIM_STYLE;
       GetReBarCtrl().GetBandInfo(barIndex, &rbbi);
-
+	  	  
       if (lock)
+      {
+         if (rbbi.fStyle & RBBS_NOGRIPPER) continue;
          rbbi.fStyle |= RBBS_NOGRIPPER;
+      }
       else
+      {
+         if (!(rbbi.fStyle & RBBS_NOGRIPPER)) continue; 
          rbbi.fStyle &= ~RBBS_NOGRIPPER;
-
+      }
       GetReBarCtrl().SetBandInfo(barIndex, &rbbi);
 	  
-	  if (!theApp.preferences.GetBool("kmeleon.display.lockedToolbarAlt", false))
-		// Force the rebar to recalculate the header size
-		if (!(rbbi.fStyle & RBBS_HIDDEN))
-			GetReBarCtrl().ShowBand(barIndex, TRUE);
+      if (!theApp.preferences.GetBool("kmeleon.display.lockedToolbarAlt", true))
+	  {
+         // Force the rebar to recalculate the header size
+         if (!(rbbi.fStyle & RBBS_HIDDEN))
+            GetReBarCtrl().ShowBand(barIndex, TRUE);
+/*
+         rbbi.fMask = RBBIM_HEADERSIZE;
+         GetReBarCtrl().GetBandInfo(barIndex, &rbbi);
+         if (lock)
+            rbbi.cxHeader += 8;
+         else
+            rbbi.cxHeader -= 8;
+         GetReBarCtrl().SetBandInfo(barIndex, &rbbi);*/
+      }
    }
 }

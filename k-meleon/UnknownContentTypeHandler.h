@@ -69,7 +69,7 @@ public:
    CProgressDialog(BOOL bAuto=TRUE);
    virtual ~CProgressDialog();
 
-   void InitPersist(nsIURI *aSource, nsILocalFile *aTarget, nsIWebBrowserPersist *aPersist, BOOL bShowDialog);
+   void InitPersist(nsIURI *aSource, nsIFile *aTarget, nsIWebBrowserPersist *aPersist, BOOL bShowDialog);
 
    void SetCallBack(ProgressDialogCallback, void*);
 

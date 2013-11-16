@@ -21,38 +21,22 @@
 #include "afxtempl.h"
 #include "resource.h"
 #include "DialogEx.h"
-
-#include "nsIPasswordManager.h"
-#include "nsCPasswordManager.h"
-#include "nsIPassword.h"
-
+#include "nsILoginManager.h"
 
 class CPassword {
+
 
 public:
 	CString m_csHost;
 	CString m_csUsername;
 	CString m_csPassword;
-	nsEmbedCString m_host;
-	nsEmbedString m_username;
+	nsCString m_host;
+	nsString m_username;
 
-	CPassword(nsIPassword* password) 
+	CPassword(nsILoginInfo* login) 
 	{
-		USES_CONVERSION;
-
-		password->GetHost(m_host);
-
-		nsEmbedString _str;
-		NS_CStringToUTF16(m_host, NS_CSTRING_ENCODING_UTF8, _str);
-		m_csHost = W2CT(_str.get());
-
-		password->GetUser(m_username);
-		m_csUsername = W2CT(m_username.get());
-
-		nsEmbedString nsPassword;
-		password->GetPassword(nsPassword);
-		m_csPassword = W2CT(nsPassword.get());
 	}
+
 
 	~CPassword()
 	{
@@ -60,7 +44,7 @@ public:
 
 };
 
-typedef CList<CPassword*, CPassword*> CPasswordList;
+typedef CList<nsILoginInfo*, nsILoginInfo*> CPasswordList;
 
 // Boîte de dialogue CPasswordViewerDlg
 
@@ -79,12 +63,12 @@ public:
 protected:
 
 	CPasswordList m_PasswordsList;
-	nsCOMPtr<nsIPasswordManager> m_passwordManager;
+	nsCOMPtr<nsILoginManager> m_passwordManager;
 	BOOL m_bShowPasswords;
 
     BOOL m_reject;
 
-	void FillList(nsISimpleEnumerator* enumPassword);
+	void FillList(nsILoginInfo** logins, uint32_t count);
 	void EmptyList();
 	void ResizeColumns();
 	virtual void DoDataExchange(CDataExchange* pDX);    // Prise en charge DDX/DDV

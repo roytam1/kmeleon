@@ -1,5 +1,5 @@
 /*
-*  Copyright (C) 2000 Brian Harris
+*  Copyright (C) 2013 Dorian Boissonnade
 *
 *  This program is free software; you can redistribute it and/or modify
 *  it under the terms of the GNU General Public License as published by
@@ -14,21 +14,19 @@
 *  You should have received a copy of the GNU General Public License
 *  along with this program; if not, write to the Free Software
 *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+*
+*
 */
 
-#include <windows.h>
-#include <shlwapi.h>
-#include <stdio.h>
-#include <string.h>
-#include <tchar.h>
+#include "nsIXULAppInfo.h"
 
-void TranslateTabs(char *buffer);
-void TrimWhiteSpace(char *string);
-char *SkipWhiteSpace(char *string);
-void TrimWhiteSpace(wchar_t *string);
-wchar_t *SkipWhiteSpace(wchar_t *string);
-int CondenseString(char *buf, size_t size);
-char *fixString(const char *inString, int size);
-long FileSize(FILE *file);
-char* nsUnescape(char * str);
-void MakeFilename(TCHAR* name);
+#define NS_KMAPPINFO_CID \
+  {0x76849bf1, 0x199d, 0x41a6, {0xaa, 0xe6, 0x87, 0x3f, 0xca, 0xf1, 0x23, 0xea}}
+
+class KmAppInfo: public nsIXULAppInfo
+{
+public:
+	NS_DECL_ISUPPORTS
+	NS_DECL_NSIXULAPPINFO
+};
+

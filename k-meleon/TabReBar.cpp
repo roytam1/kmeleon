@@ -226,7 +226,7 @@ BOOL CTabReBar::Init(CReBarEx* rebar)
 		rbi.fMask = RBBIM_CHILD;
 		mTemp->GetReBarCtrl().GetBandInfo(1, &rbi);
 		if (::SendMessage(rbi.hwndChild, TB_GETMAXSIZE, 0, (LPARAM)&sizeButtons) != 0)
-			size.cy = max(size.cy, sizeButtons.cy);
+			size.cy = std::max(size.cy, sizeButtons.cy);
 	}
 
 	rbi.fMask  = RBBIM_CHILDSIZE; 

@@ -154,7 +154,7 @@ void CPrintSetupDialog::SetPrintSettings(nsIPrintSettings* aPrintSettings)
 	m_PaperWidth = width;
 	m_PaperHeight = height;
 
-    PRBool boolVal;
+    bool boolVal;
 	aPrintSettings->GetShrinkToFit(&boolVal);
 	m_ShrinkToFit = boolVal == PR_TRUE;
     aPrintSettings->GetPrintBGColors(&boolVal);
@@ -165,27 +165,27 @@ void CPrintSetupDialog::SetPrintSettings(nsIPrintSettings* aPrintSettings)
     PRUnichar* uStr;
     aPrintSettings->GetHeaderStrLeft(&uStr);
 		m_HeaderLeft = uStr;
-    if (uStr != nsnull) nsMemory::Free(uStr);
+    if (uStr != nullptr) nsMemory::Free(uStr);
 
     aPrintSettings->GetHeaderStrCenter(&uStr);
 		m_HeaderMiddle = uStr;
-    if (uStr != nsnull) nsMemory::Free(uStr);
+    if (uStr != nullptr) nsMemory::Free(uStr);
 
     aPrintSettings->GetHeaderStrRight(&uStr);
 		m_HeaderRight = uStr;
-    if (uStr != nsnull) nsMemory::Free(uStr);
+    if (uStr != nullptr) nsMemory::Free(uStr);
 
     aPrintSettings->GetFooterStrLeft(&uStr);
 		m_FooterLeft = uStr;
-    if (uStr != nsnull) nsMemory::Free(uStr);
+    if (uStr != nullptr) nsMemory::Free(uStr);
 
     aPrintSettings->GetFooterStrCenter(&uStr);
 		m_FooterMiddle = uStr;
-    if (uStr != nsnull) nsMemory::Free(uStr);
+    if (uStr != nullptr) nsMemory::Free(uStr);
 
     aPrintSettings->GetFooterStrRight(&uStr);
 		m_FooterRight = uStr;
-    if (uStr != nsnull) nsMemory::Free(uStr);
+    if (uStr != nullptr) nsMemory::Free(uStr);
 
   }
 }
@@ -217,27 +217,27 @@ void CPrintSetupDialog::GetPrintSettings(nsIPrintSettings* aPrintSettings)
     PRUnichar* uStr;
     uStr = GetUnicodeFromCString(m_HeaderLeft);
     aPrintSettings->SetHeaderStrLeft(uStr);
-    if (uStr != nsnull) nsMemory::Free(uStr);
+    if (uStr != nullptr) nsMemory::Free(uStr);
 
     uStr = GetUnicodeFromCString(m_HeaderMiddle);
     aPrintSettings->SetHeaderStrCenter(uStr);
-    if (uStr != nsnull) nsMemory::Free(uStr);
+    if (uStr != nullptr) nsMemory::Free(uStr);
 
     uStr = GetUnicodeFromCString(m_HeaderRight);
     aPrintSettings->SetHeaderStrRight(uStr);
-    if (uStr != nsnull) nsMemory::Free(uStr);
+    if (uStr != nullptr) nsMemory::Free(uStr);
 
     uStr = GetUnicodeFromCString(m_FooterLeft);
     aPrintSettings->SetFooterStrLeft(uStr);
-    if (uStr != nsnull) nsMemory::Free(uStr);
+    if (uStr != nullptr) nsMemory::Free(uStr);
 
     uStr = GetUnicodeFromCString(m_FooterMiddle);
     aPrintSettings->SetFooterStrCenter(uStr);
-    if (uStr != nsnull) nsMemory::Free(uStr);
+    if (uStr != nullptr) nsMemory::Free(uStr);
 
     uStr = GetUnicodeFromCString(m_FooterRight);
     aPrintSettings->SetFooterStrRight(uStr);
-    if (uStr != nsnull) nsMemory::Free(uStr);
+    if (uStr != nullptr) nsMemory::Free(uStr);
 }
 
 void CPrintSetupDialog::OnOK() 

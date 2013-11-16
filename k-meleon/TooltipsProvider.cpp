@@ -28,8 +28,7 @@
 
 #include "stdafx.h"
 #include "TooltipsProvider.h"
-
-NS_IMETHODIMP CTooltipTextProvider::GetNodeText(nsIDOMNode *aNode, PRUnichar **aText, PRBool *_retval)
+NS_IMETHODIMP CTooltipTextProvider::GetNodeText(nsIDOMNode *aNode, PRUnichar * *aText, bool *_retval)
 {
 
 /*
@@ -215,7 +214,7 @@ NS_IMETHODIMP CTooltipTextProviderFactory::LockFactory(PRBool lock)
 
 nsresult NewTooltipTextProviderFactory(nsIFactory** aFactory) {
    NS_ENSURE_ARG_POINTER(aFactory);
-   *aFactory = nsnull;
+   *aFactory = nullptr;
    CTooltipTextProviderFactory *result = new CTooltipTextProviderFactory;
    if (!result)
       return NS_ERROR_OUT_OF_MEMORY;

@@ -11,10 +11,11 @@ extern CMfcEmbedApp theApp;
 #include "nsIHttpChannel.h"
 #include "nsIStandardURL.h"
 #include "nsIURL.h"
-#include "nsIDOMNSDocument.h"
+
 
 #include "UnknownContentTypeHandler.h"
 #include "nsCWebBrowserPersist.h"
+#include "nsIMIMEInfo.h"
 
 NS_IMPL_ISUPPORTS1(CSaveAsHandler, nsIWebProgressListener);
 
@@ -26,7 +27,7 @@ CSaveAsHandler::CSaveAsHandler(
 	mPersist = aPersist;
 	mDescriptor = aDescriptor;
 	mURL = aURL;
-	mFile = nsnull;
+	mFile = nullptr;
 	mDocument = aDocument;
 	mReferrer = aReferrer;
 }
@@ -54,7 +55,7 @@ NS_IMETHODIMP CSaveAsHandler::OnStateChange(nsIWebProgress *aWebProgress,
 		
 		nsCOMPtr<nsIHttpChannel> httpchannel(do_QueryInterface(channel));
 		if (httpchannel) {
-			PRBool b;
+			bool b;
 			rv = httpchannel->GetRequestSucceeded(&b);
 			// If we get an error, remove the content type since it's html and
 			// the download will fail
@@ -104,12 +105,12 @@ NS_IMETHODIMP CSaveAsHandler::Save(const char* contentType, const char* disposit
 
 			rv = mimehdrpar->GetParameter (mContentDisposition, 
 				"filename",
-				fallbackCharset, PR_TRUE, nsnull,
+				fallbackCharset, PR_TRUE, nullptr,
 				fileName);
 			if (NS_FAILED(rv) || !fileName.Length() || wcsicmp(fileName.get(), L"untitled") == 0)
 			{
 				rv = mimehdrpar->GetParameter (mContentDisposition, "name",
-					fallbackCharset, PR_TRUE, nsnull,
+					fallbackCharset, PR_TRUE, nullptr,
 					fileName);
 			}
 		}
@@ -142,7 +143,7 @@ NS_IMETHODIMP CSaveAsHandler::Save(const char* contentType, const char* disposit
 			nsEmbedCString charset;
 			mRealURI->GetOriginCharset(charset);
 
-			test->Init(nsIStandardURL::URLTYPE_STANDARD, 80, spec, charset.get(), nsnull);
+			test->Init(nsIStandardURL::URLTYPE_STANDARD, 80, spec, charset.get(), nullptr);
 			url  = do_QueryInterface(test);
 		}
 		
@@ -334,7 +335,7 @@ NS_IMETHODIMP CSaveAsHandler::DownloadTo(nsString& aFilename, BOOL isHTML, BOOL 
 {	
 		NS_ENSURE_TRUE(aFilename.Length(), NS_ERROR_FAILURE);
 
-		nsCOMPtr<nsILocalFile> file;
+		nsCOMPtr<nsIFile> file;
 		nsresult rv = NS_NewLocalFile(aFilename, TRUE, getter_AddRefs(file));
 		NS_ENSURE_SUCCESS(rv,rv);
 
@@ -353,9 +354,9 @@ NS_IMETHODIMP CSaveAsHandler::DownloadTo(nsString& aFilename, BOOL isHTML, BOOL 
 			CProgressDialog *progress = new CProgressDialog(FALSE);
 			progress->InitPersist(mRealURI, file, persist, TRUE);
 			//persist->SetProgressListener(progress);
-			rv = persist->SaveURI(mRealURI, nsnull, mReferrer, nsnull, nsnull, file);
+			rv = persist->SaveURI(mRealURI, nullptr, mReferrer, nullptr, nullptr, file, nullptr);
 			if (NS_FAILED(rv)) { //Remove cycling reference, avoid leaking
-				persist->SetProgressListener(nsnull);
+				persist->SetProgressListener(nullptr);
 				progress->Close();
 			}
 		}
@@ -364,7 +365,7 @@ NS_IMETHODIMP CSaveAsHandler::DownloadTo(nsString& aFilename, BOOL isHTML, BOOL 
 			persist->SetPersistFlags(nsIWebBrowserPersist::PERSIST_FLAGS_REPLACE_EXISTING_FILES);
 			if (isHTML) 
 			{
-				nsCOMPtr<nsILocalFile> dataFolder;
+				nsCOMPtr<nsIFile> dataFolder;
 
 				if (saveComplete) 
 				{  
@@ -395,7 +396,7 @@ NS_IMETHODIMP CSaveAsHandler::DownloadTo(nsString& aFilename, BOOL isHTML, BOOL 
 				rv = persist->SaveDocument(mDocument, file, dataFolder, mContentType.get(), 0, 0);
 			}
 			else
-				rv = persist->SaveURI(mURL, mDescriptor, mReferrer, nsnull, nsnull, file);
+				rv = persist->SaveURI(mURL, mDescriptor, mReferrer, nullptr, nullptr, file, nullptr);
 		}
 	return rv;
 }
@@ -406,7 +407,7 @@ NS_IMETHODIMP CSaveAsHandler::OnProgressChange(nsIWebProgress *aWebProgress, nsI
 }
 
 /* void onLocationChange (in nsIWebProgress aWebProgress, in nsIRequest aRequest, in nsIURI location); */
-NS_IMETHODIMP CSaveAsHandler::OnLocationChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest, nsIURI *location)
+NS_IMETHODIMP CSaveAsHandler::OnLocationChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest, nsIURI *location, uint32_t aFlags)
 {
    return NS_OK;
 }

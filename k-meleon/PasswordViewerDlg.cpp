@@ -20,6 +20,10 @@
 #include "stdafx.h"
 #include "PasswordViewerDlg.h"
 #include ".\passwordviewerdlg.h"
+#include "nsILoginManager.h"
+#include "nsILoginInfo.h"
+
+
 
 // Boîte de dialogue CPasswordViewerDlg
 
@@ -27,7 +31,7 @@
 CPasswordViewerDlg::CPasswordViewerDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(CPasswordViewerDlg::IDD, pParent)
 {
-	m_passwordManager = do_GetService(NS_PASSWORDMANAGER_CONTRACTID);
+	m_passwordManager = do_GetService(NS_LOGINMANAGER_CONTRACTID);
 	m_bShowPasswords = FALSE;
 }
 
@@ -86,7 +90,7 @@ void CPasswordViewerDlg::EmptyList()
 	}
 }
 
-void CPasswordViewerDlg::FillList(nsISimpleEnumerator* enumPassword)
+void CPasswordViewerDlg::FillList(nsILoginInfo** logins, uint32_t count)
 {
 	PRBool ret;
 	nsresult rv;
@@ -99,25 +103,27 @@ void CPasswordViewerDlg::FillList(nsISimpleEnumerator* enumPassword)
 	lvItem.pszText = 0;
 	lvItem.iItem	= 0xffff;
 	
-	enumPassword->HasMoreElements(&ret);
-	while (ret)
-    {
-		nsCOMPtr<nsIPassword> nsPassword;
-        rv = enumPassword->GetNext(getter_AddRefs(nsPassword));
-		if (NS_FAILED(rv)) break;
 
-		CPassword* password = new CPassword(nsPassword);
+	while (count-->=0)
+    {
+		//CPassword* password = new CPassword(nsPassword);
+		nsILoginInfo *password = logins[count];
 		POSITION p = m_PasswordsList.AddHead(password);
 
 		lvItem.lParam = (LPARAM)p;
 		int index = m_cPasswordsList.InsertItem(&lvItem);
 
 		if (index==-1) continue;
-		m_cPasswordsList.SetItemText(index, 0, password->m_csHost);
-		m_cPasswordsList.SetItemText(index, 1, password->m_csUsername);
-		m_cPasswordsList.SetItemText(index, 2, password->m_csPassword);
 		
-		enumPassword->HasMoreElements(&ret);
+		nsString str;
+		password->GetHostname(str);
+		m_cPasswordsList.SetItemText(index, 0, str.get());
+
+		password->GetUsername(str);
+		m_cPasswordsList.SetItemText(index, 1, str.get());
+
+		password->GetPassword(str);
+		m_cPasswordsList.SetItemText(index, 2, str.get());
 	}
 	m_cPasswordsList.SortItems(SortPasswordsList, (LPARAM) &m_PasswordsList);
 }
@@ -126,10 +132,13 @@ int CALLBACK CPasswordViewerDlg::SortPasswordsList(LPARAM lParam1, LPARAM lParam
 {
    CPasswordList* pPasswordList = (CPasswordList*) lParamSort;
 
-   CPassword* password1 = pPasswordList->GetAt((POSITION)lParam1);
-   CPassword* password2 = pPasswordList->GetAt((POSITION)lParam2);
+   nsILoginInfo* password1 = pPasswordList->GetAt((POSITION)lParam1);
+   nsILoginInfo* password2 = pPasswordList->GetAt((POSITION)lParam2);
 
-   return strcmp(password1->m_host.get(), password2->m_host.get());
+   nsString host1, host2;
+   password1->GetHostname(host1);
+   password1->GetHostname(host2);
+   return wcscmp(host1.get(), host2.get());
 }
 
 void CPasswordViewerDlg::OnBnClickedRadio1()
@@ -149,10 +158,12 @@ void CPasswordViewerDlg::OnBnClickedRadio1()
 	header.LoadString(IDS_HEADER_PASSWORD);
 	m_cPasswordsList.InsertColumn(2, header, LVCFMT_LEFT, 0, 1);
 
-	rv = m_passwordManager->GetEnumerator(getter_AddRefs(enumPassword));
+	nsILoginInfo** logins;
+	uint32_t count;
+	rv = m_passwordManager->GetAllLogins(&count, &logins);
 	if (NS_FAILED(rv)) return;
 
-	FillList(enumPassword);
+	FillList(logins, count);
 	ResizeColumns();
 
 	CWnd* button = GetDlgItem(IDC_DISPLAY_PASSWORDS);
@@ -173,10 +184,10 @@ void CPasswordViewerDlg::OnBnClickedRadio2()
 	m_cPasswordsList.DeleteColumn(1);
 	EmptyList();
 
-	rv = m_passwordManager->GetRejectEnumerator(getter_AddRefs(enumPassword));
+	//rv = m_passwordManager->GetRejectEnumerator(getter_AddRefs(enumPassword));
 	if (NS_FAILED(rv)) return;
 
-	FillList(enumPassword);
+	//FillList(enumPassword);
 
 	RECT rect;
 	m_cPasswordsList.GetClientRect(&rect);
@@ -207,12 +218,12 @@ void CPasswordViewerDlg::OnBnClickedDeletePasswords()
 			nItem = m_cPasswordsList.GetNextItem(nItem, LVNI_SELECTED);
 			ASSERT(nItem != -1);
 			POSITION p = (POSITION)m_cPasswordsList.GetItemData(nItem);
-			CPassword* password = m_PasswordsList.GetAt(p);
-				
+			nsILoginInfo* password = m_PasswordsList.GetAt(p);
+			
 			if (!m_reject)
-				rv = m_passwordManager->RemoveUser(password->m_host, password->m_username);
+				rv = m_passwordManager->RemoveLogin(password);
 			else
-				rv = m_passwordManager->RemoveReject(password->m_host);
+				;//rv = m_passwordManager->SetLoginSavingEnabled(password->m_host, false);
 
 			if (NS_FAILED(rv))
 			{
@@ -238,11 +249,11 @@ void CPasswordViewerDlg::OnBnClickedDeleteAllPasswords()
 	{
 		while (!m_PasswordsList.IsEmpty())
 		{
-			CPassword* password = m_PasswordsList.GetHead();
+			nsILoginInfo* password = m_PasswordsList.GetHead();
 			if (!m_reject)
-				m_passwordManager->RemoveUser(password->m_host, password->m_username);
+				m_passwordManager->RemoveLogin(password);
 			else
-				m_passwordManager->RemoveReject(password->m_host);
+				;//m_passwordManager->RemoveReject(password);
 			delete(password);
 			m_PasswordsList.RemoveHead();
 		}

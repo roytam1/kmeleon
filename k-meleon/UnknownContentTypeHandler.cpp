@@ -29,12 +29,78 @@
 #include "Utils.h"
 #include "MozUtils.h"
 #include "MfcEmbed.h"
+#include "prtime.h"
 
 #include "nsIFileURL.h"
 #include "nsIHttpChannel.h"
 #include "nsIMIMEInfo.h"
 #include "nsIWindowWatcher.h"
-#include "nsNetError.h"
+
+const PRTime _pr_filetime_offset = 116444736000000000i64;
+const PRTime _pr_filetime_divisor = 10i64;
+
+void
+_PR_FileTimeToPRTime(const FILETIME *filetime, PRTime *prtm)
+{
+    PR_ASSERT(sizeof(FILETIME) == sizeof(PRTime));
+    CopyMemory(prtm, filetime, sizeof(PRTime));
+#ifdef __GNUC__
+    *prtm = (*prtm - _pr_filetime_offset) / 10LL;
+#else
+    *prtm = (*prtm - _pr_filetime_offset) / 10i64;
+#endif
+
+#ifdef DEBUG
+    /* Doublecheck our calculation. */
+    {
+        SYSTEMTIME systime;
+        PRExplodedTime etm;
+        PRTime cmp; /* for comparison */
+        BOOL rv;
+
+        rv = FileTimeToSystemTime(filetime, &systime);
+        PR_ASSERT(0 != rv);
+
+        /*
+         * PR_ImplodeTime ignores wday and yday.
+         */
+        etm.tm_usec = systime.wMilliseconds * PR_USEC_PER_MSEC;
+        etm.tm_sec = systime.wSecond;
+        etm.tm_min = systime.wMinute;
+        etm.tm_hour = systime.wHour;
+        etm.tm_mday = systime.wDay;
+        etm.tm_month = systime.wMonth - 1;
+        etm.tm_year = systime.wYear;
+        /*
+         * It is not well-documented what time zone the FILETIME's
+         * are in.  WIN32_FIND_DATA is documented to be in UTC (GMT).
+         * But BY_HANDLE_FILE_INFORMATION is unclear about this.
+         * By our best judgement, we assume that FILETIME is in UTC.
+         */
+        etm.tm_params.tp_gmt_offset = 0;
+        etm.tm_params.tp_dst_offset = 0;
+        cmp = PR_ImplodeTime(&etm);
+
+        /*
+         * SYSTEMTIME is in milliseconds precision, so we convert PRTime's
+         * microseconds to milliseconds before doing the comparison.
+         */
+        PR_ASSERT((cmp / PR_USEC_PER_MSEC) == (*prtm / PR_USEC_PER_MSEC));
+    }
+#endif /* DEBUG */
+}
+
+PRTime PR_Now(void)
+{
+    PRTime prt;
+    FILETIME ft;
+    SYSTEMTIME st;
+
+    GetSystemTime(&st);
+    SystemTimeToFileTime(&st, &ft);
+    _PR_FileTimeToPRTime(&ft, &prt);
+    return prt;       
+}
 
 NS_IMETHODIMP
 CUnknownContentTypeHandler::Show(CWnd* parent)
@@ -83,18 +149,18 @@ CUnknownContentTypeHandler::Show(CWnd* parent)
 			switch (dlg.DoModal()) {
 
 				case IDOK:
-					rv = mAppLauncher->SaveToDisk(nsnull, false);
+					rv = mAppLauncher->SaveToDisk(nullptr, false);
 					break;
 				case IDOPEN:
 					if (mimeInfo) {
 						// This code prevent gecko to throw an error when 
 						// trying to open a file with no association
-						PRBool hasHandler;
+						bool hasHandler;
 						mimeInfo->GetHasDefaultHandler(&hasHandler);
 						if (!hasHandler)
 							mimeInfo->SetPreferredAction(nsIMIMEInfo::useSystemDefault);
 					}
-					rv = mAppLauncher->LaunchWithApplication(nsnull, PR_FALSE);
+					rv = mAppLauncher->LaunchWithApplication(nullptr, PR_FALSE);
 					break;
 				default:
 					rv = mAppLauncher->Cancel(NS_ERROR_ABORT);
@@ -103,7 +169,7 @@ CUnknownContentTypeHandler::Show(CWnd* parent)
 			CoUninitialize();
 		}
 		else
-			rv = mAppLauncher->SaveToDisk(nsnull, false);
+			rv = mAppLauncher->SaveToDisk(nullptr, false);
 	}
 	else
 		rv = mAppLauncher->Cancel(NS_ERROR_ABORT);
@@ -150,14 +216,14 @@ CUnknownContentTypeHandler::Show( nsIHelperAppLauncher *aLauncher, nsISupports *
 	return NS_OK;
 }
 
-#include "nsIDOMWindowInternal.h"
+NS_IMETHODIMP CUnknownContentTypeHandler::PromptForSaveToFileAsync(nsIHelperAppLauncher *aLauncher, nsISupports *aWindowContext, const PRUnichar * aDefaultFileName, const PRUnichar * aSuggestedFileExtension, bool aForcePrompt)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
 // prompt the user for a file name to save the unknown content to as instructed
 NS_IMETHODIMP
-#if GECKO_VERSION>18
-CUnknownContentTypeHandler::PromptForSaveToFile(nsIHelperAppLauncher *aLauncher, nsISupports * aWindowContext, const PRUnichar * aDefaultFile, const PRUnichar * aSuggestedFileExtension, PRBool aForcePrompt, nsILocalFile ** aNewFile)
-#else
-CUnknownContentTypeHandler::PromptForSaveToFile(nsIHelperAppLauncher *aLauncher, nsISupports * aWindowContext, const PRUnichar * aDefaultFile, const PRUnichar * aSuggestedFileExtension, nsILocalFile ** aNewFile)
-#endif
+CUnknownContentTypeHandler::PromptForSaveToFile(nsIHelperAppLauncher *aLauncher, nsISupports *aWindowContext, const PRUnichar * aDefaultFile, const PRUnichar * aSuggestedFileExtension, bool aForcePrompt, nsIFile * *aNewFile)
 {
 	NS_ENSURE_ARG_POINTER(aNewFile);
 	NS_ENSURE_ARG(aDefaultFile);
@@ -171,9 +237,7 @@ CUnknownContentTypeHandler::PromptForSaveToFile(nsIHelperAppLauncher *aLauncher,
 
 	CString downloadDir = theApp.preferences.downloadDir;
 	if (theApp.preferences.bUseDownloadDir && !downloadDir.IsEmpty()
-#if GECKO_VERSION>18
 		&& !aForcePrompt
-#endif
 		)
 	{
 		if (downloadDir[downloadDir.GetLength()-1] != '\\')
@@ -249,7 +313,7 @@ CUnknownContentTypeHandler::PromptForSaveToFile(nsIHelperAppLauncher *aLauncher,
 	
 	if (!pathName.IsEmpty())
 	{
-		nsCOMPtr<nsILocalFile> file(do_CreateInstance("@mozilla.org/file/local;1"));
+		nsCOMPtr<nsIFile> file(do_CreateInstance("@mozilla.org/file/local;1"));
 
 		NS_ENSURE_TRUE(file, NS_ERROR_FAILURE);
 
@@ -452,7 +516,7 @@ NS_IMETHODIMP CUnknownContentHandlerFactory::LockFactory(PRBool lock)
 
 nsresult NewUnknownContentHandlerFactory(nsIFactory** aFactory) {
    NS_ENSURE_ARG_POINTER(aFactory);
-   *aFactory = nsnull;
+   *aFactory = nullptr;
    CUnknownContentHandlerFactory *result = new CUnknownContentHandlerFactory;
    if (!result)
       return NS_ERROR_OUT_OF_MEMORY;
@@ -493,8 +557,8 @@ CProgressDialog::CProgressDialog(BOOL bAuto) {
    NS_INIT_ISUPPORTS();
 
    //mObserver = NULL;
-   mCancelable = nsnull;
-   m_HelperAppLauncher = nsnull;
+   mCancelable = nullptr;
+   m_HelperAppLauncher = nullptr;
    mStartTime = 0;
    mPaused = FALSE;
 
@@ -658,7 +722,7 @@ NS_IMETHODIMP CProgressDialog::OnStateChange(nsIWebProgress *aWebProgress,
 		nsCOMPtr<nsIHttpChannel> httpchannel = do_QueryInterface(aRequest);
 		if (httpchannel)
 		{
-			PRBool b;
+			bool b;
 			nsresult rv = httpchannel->GetRequestSucceeded(&b);
 			if (NS_SUCCEEDED(rv) && b == PR_FALSE)	{
 				Cancel();
@@ -675,7 +739,7 @@ NS_IMETHODIMP CProgressDialog::OnStateChange(nsIWebProgress *aWebProgress,
 			mCallback(mUri, (LPTSTR)(LPCTSTR)mFilePath, aStatus, mParam);
 
 		//nsCOMPtr<nsITransfer> kungFuDeathGrip(this);
-		mCancelable = nsnull;
+		mCancelable = nullptr;
    
 
    if (!m_bWindow)    // if there's no window, there's no need to update it :)
@@ -723,7 +787,7 @@ NS_IMETHODIMP CProgressDialog::OnStateChange(nsIWebProgress *aWebProgress,
 			   if (button) button->ShowWindow(SW_HIDE);
 
 			   mDone = true;
-			   mRequest = nsnull;
+			   mRequest = nullptr;
 			   theApp.preferences.bCloseDownloadDialog = false;
 				
 			   if (theApp.preferences.bFlashWhenCompleted)
@@ -737,7 +801,7 @@ NS_IMETHODIMP CProgressDialog::OnStateChange(nsIWebProgress *aWebProgress,
 		   nsCOMPtr<nsIHttpChannel> httpchannel = do_QueryInterface(aRequest);
 		   if (httpchannel)
 		   {
-			   PRBool b;
+			   bool b;
 				nsresult rv = httpchannel->GetRequestSucceeded(&b);
 				if (NS_SUCCEEDED(rv) && b == PR_FALSE)	{
 					nsEmbedCString str;
@@ -799,7 +863,7 @@ NS_IMETHODIMP CProgressDialog::OnProgressChange(nsIWebProgress *aWebProgress, ns
 }
 
 /* void onLocationChange (in nsIWebProgress aWebProgress, in nsIRequest aRequest, in nsIURI location); */
-NS_IMETHODIMP CProgressDialog::OnLocationChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest, nsIURI *location){
+NS_IMETHODIMP CProgressDialog::OnLocationChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest, nsIURI *aLocation, uint32_t aFlags) {
    return NS_OK;
 }
 
@@ -862,8 +926,8 @@ void CProgressDialog::Cancel() {
    //Close();
 
 /*   if (mObserver) {
-     mObserver->Observe(nsnull, "OnCancel", nsnull);
-     mObserver->Observe(nsnull, "oncancel", nsnull);
+     mObserver->Observe(nullptr, "OnCancel", nullptr);
+     mObserver->Observe(nullptr, "oncancel", nullptr);
    }*/
 }
 
@@ -875,7 +939,7 @@ void CProgressDialog::Close() {
 	m_bWindow = false;
 	
 /*	if (mCancelable)
-		mCancelable = nsnull;*/
+		mCancelable = nullptr;*/
 	
 	NS_RELEASE_THIS();
 	/*
@@ -955,6 +1019,11 @@ void CProgressDialog::OnBnClickedCloseWhenDone()
 		theApp.preferences.bCloseDownloadDialog = false;
 }
 
+NS_IMETHODIMP CProgressDialog::SetSha256Hash(const nsACString & aHash)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
 void CProgressDialog::InitControl(const char *uri, const TCHAR *filepath)
 { 
   
@@ -992,7 +1061,7 @@ void CProgressDialog::SetCallBack(ProgressDialogCallback aCallback, void* aParam
 	mParam = aParam;
 }
 
-void CProgressDialog::InitPersist(nsIURI *aSource, nsILocalFile *aTarget, nsIWebBrowserPersist *aPersist, BOOL bShowDialog)
+void CProgressDialog::InitPersist(nsIURI *aSource, nsIFile *aTarget, nsIWebBrowserPersist *aPersist, BOOL bShowDialog)
 {
    mCancelable = aPersist;
    aPersist->SetProgressListener(this);
@@ -1000,9 +1069,10 @@ void CProgressDialog::InitPersist(nsIURI *aSource, nsILocalFile *aTarget, nsIWeb
 
    nsEmbedCString uri;
    aSource->GetSpec(uri);
+
 #ifdef _UNICODE
    nsEmbedString filepath;
-   aTarget->GetPath(filepath);
+   ((nsIFile*)aTarget)->GetPath(filepath);
 #else
    nsEmbedCString filepath;
    aTarget->GetNativePath(filepath);
@@ -1012,8 +1082,8 @@ void CProgressDialog::InitPersist(nsIURI *aSource, nsILocalFile *aTarget, nsIWeb
 
    InitControl(uri.get(), filepath.get());
 }
-
-NS_IMETHODIMP CProgressDialog::Init(nsIURI *aSource, nsIURI *aTarget, const nsAString & aDisplayName, nsIMIMEInfo *aMIMEInfo, PRTime startTime, nsILocalFile *aTempFile, nsICancelable *aCancelable) 
+NS_IMETHODIMP CProgressDialog::Init(nsIURI *aSource, nsIURI *aTarget, const nsAString & aDisplayName, nsIMIMEInfo *aMIMEInfo, PRTime startTime, nsIFile *aTempFile, nsICancelable *aCancelable, bool aIsPrivate)
+//NS_IMETHODIMP CProgressDialog::Init(nsIURI *aSource, nsIURI *aTarget, const nsAString & aDisplayName, nsIMIMEInfo *aMIMEInfo, PRTime startTime, nsILocalFile *aTempFile, nsICancelable *aCancelable) 
 //NS_IMETHODIMP CProgressDialog::Init(nsIURI *aSource, nsIURI *aTarget, const nsAString & aDisplayName, nsIMIMEInfo *aMIMEInfo, PRTime startTime, nsICancelable *aCancelable) 
 {
    nsEmbedCString uri;
@@ -1045,11 +1115,7 @@ NS_IMETHODIMP CProgressDialog::Init(nsIURI *aSource, nsIURI *aTarget, const nsAS
 
    if (aMIMEInfo)
 	{
-#if GECKO_VERSION > 18
 		nsHandlerInfoAction action;		
-#else
-		nsMIMEInfoHandleAction action;
-#endif		
 		if (NS_SUCCEEDED(aMIMEInfo->GetPreferredAction(&action)))
 		{
 			if (action == nsIMIMEInfo::useHelperApp || action == nsIMIMEInfo::useSystemDefault )
@@ -1078,12 +1144,10 @@ NS_IMETHODIMP CProgressDialog::Init(nsIURI *aSource, nsIURI *aTarget, const nsAS
    return NS_OK;
 }
 
-#if GECKO_VERSION > 18
-NS_IMETHODIMP CProgressDialog::OnRefreshAttempted(nsIWebProgress *aWebProgress, nsIURI *aRefreshURI, PRInt32 aMillis, PRBool aSameURI, PRBool *_retval)
+NS_IMETHODIMP CProgressDialog::OnRefreshAttempted(nsIWebProgress *aWebProgress, nsIURI *aRefreshURI, int32_t aMillis, bool aSameURI, bool *_retval)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }
-#endif
 
 void CProgressDialog::OnOK()
 {
@@ -1145,7 +1209,7 @@ NS_IMETHODIMP CDownloadFactory::LockFactory(PRBool lock)
 
 nsresult NewDownloadFactory(nsIFactory** aFactory) {
    NS_ENSURE_ARG_POINTER(aFactory);
-   *aFactory = nsnull;
+   *aFactory = nullptr;
    CDownloadFactory *result = new CDownloadFactory;
    if (!result)
       return NS_ERROR_OUT_OF_MEMORY;
