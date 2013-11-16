@@ -1,0 +1,262 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// Anglais (États-Unis) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_CONFIG DIALOGEX 0, 0, 166, 141
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "Netscape Bookmarks Settings"
+FONT 8, "MS Shell Dlg", 0, 0, 0x0
+BEGIN
+    GROUPBOX        "Options",IDC_STATIC,7,7,152,111
+    EDITTEXT        IDC_BOOKMARKS_FILE,20,30,114,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",IDC_BROWSE,133,30,15,12,BS_FLAT,WS_EX_STATICEDGE
+    CONTROL         "Enable Bookmarks Toolbar",IDC_REBARENABLED,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,20,86,128,11
+    DEFPUSHBUTTON   "OK",IDOK,58,119,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,109,119,50,14
+    LTEXT           "Bookmarks File:",IDC_STATIC,20,20,51,8
+    EDITTEXT        IDC_MAX_MENU_LENGTH,20,60,25,12,ES_AUTOHSCROLL
+    LTEXT           "Menu Spillover Length:",IDC_STATIC,20,50,75,10,
+                    SS_CENTERIMAGE
+    EDITTEXT        IDC_MAX_TB_SIZE,105,99,25,12,ES_AUTOHSCROLL
+    LTEXT           "Max Toolbar Button Size:",IDC_STATIC,20,97,80,15,
+                    SS_CENTERIMAGE
+    CONTROL         "Height of Screen",IDC_MENU_AUTODETECT,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,54,62,69,10
+END
+
+IDD_EDIT_BOOKMARKS DIALOGEX 0, 0, 306, 262
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | 
+    WS_VISIBLE | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "Bookmarks"
+FONT 8, "MS Shell Dlg", 0, 0, 0x0
+BEGIN
+    CONTROL         "Tree1",IDC_TREE_BOOKMARK,"SysTreeView32",TVS_HASBUTTONS | 
+                    TVS_SHOWSELALWAYS | TVS_FULLROWSELECT | WS_BORDER | 
+                    WS_GROUP | WS_TABSTOP,5,5,295,155,WS_EX_ACCEPTFILES
+    EDITTEXT        IDC_TITLE,33,175,260,12,ES_AUTOHSCROLL
+    EDITTEXT        IDC_URL,33,190,260,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "Help",ID_KEYBINDINGS,7,240,27,15
+    PUSHBUTTON      "Import Favorites",ID_IMPORT_FAVORITES,40,240,63,15
+    PUSHBUTTON      "OK",IDOK,205,240,45,15
+    PUSHBUTTON      "Cancel",IDCANCEL,255,240,45,15
+    LTEXT           "Title:",IDC_STATIC_TITLE,9,176,20,10,SS_CENTERIMAGE
+    LTEXT           "URL:",IDC_STATIC_URL,9,191,20,10,SS_CENTERIMAGE
+    LTEXT           "Added:",IDC_STATIC_ADDED,9,205,25,10
+    LTEXT           "",IDC_ADDED,35,205,78,10
+    LTEXT           "Visited:",IDC_STATIC_VISITED,9,220,25,10
+    LTEXT           "",IDC_LAST_VISIT,35,220,78,10
+    LTEXT           "Nick:",IDC_STATIC_NICK,119,205,20,10
+    EDITTEXT        IDC_NICK,145,205,150,25,ES_AUTOHSCROLL
+    LTEXT           "Desc:",IDC_STATIC_DESC,119,220,20,10
+    EDITTEXT        IDC_DESC,145,220,150,12,ES_AUTOHSCROLL
+    GROUPBOX        "Properties",IDC_STATIC_PROPERTIES,5,162,295,75
+END
+
+IDD_SMARTBOOKMARK DIALOGEX 0, 0, 250, 58
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "Prompt"
+FONT 8, "MS Sans Serif", 0, 0, 0x0
+BEGIN
+    EDITTEXT        IDC_INPUT,7,22,236,13,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,139,39,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,193,39,50,14
+    LTEXT           "Search",IDC_SEARCHTEXT,8,6,235,12
+END
+
+IDD_ADDBOOKMARK DIALOGEX 0, 0, 280, 89
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "Add Bookmark"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    EDITTEXT        IDC_TITLE,53,14,213,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_NICK,53,30,213,14,ES_AUTOHSCROLL
+    COMBOBOX        IDC_FOLDER,53,47,213,30,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP
+    EDITTEXT        IDC_URL,53,62,81,14,ES_AUTOHSCROLL | NOT WS_VISIBLE
+    DEFPUSHBUTTON   "OK",IDOK,172,68,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,223,68,50,14
+    LTEXT           "Title:",IDC_STATIC,32,16,17,8
+    LTEXT           "Nickname:",IDC_STATIC,15,33,34,8
+    LTEXT           "Folder:",IDC_STATIC,25,49,24,8
+    GROUPBOX        "",IDC_STATIC,7,7,266,56
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_CONFIG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 159
+        VERTGUIDE, 25
+        VERTGUIDE, 153
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 134
+        HORZGUIDE, 38
+    END
+
+    IDD_EDIT_BOOKMARKS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 299
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 255
+    END
+
+    IDD_ADDBOOKMARK, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 273
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 82
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_CONTEXTMENU MENU 
+BEGIN
+    POPUP "."
+    BEGIN
+        MENUITEM "&Open in Current Browser Window", ID__OPEN
+        MENUITEM "Open in Back&ground",         ID__OPEN_BACKGROUND
+        MENUITEM SEPARATOR
+        MENUITEM "New &Folder",                 ID__NEW_FOLDER
+        MENUITEM "New &Bookmark",               ID__NEW_BOOKMARK
+        MENUITEM "New &Separator",              ID__NEW_SEPARATOR
+        MENUITEM SEPARATOR
+        POPUP "Sort"
+        BEGIN
+            MENUITEM "Sort Folder",                 ID__SORT
+            MENUITEM "Sort Folders Recursively",    ID__SORT_ALL
+        END
+        MENUITEM SEPARATOR
+        MENUITEM "Set as &Toolbar Folder",      ID__SETAS_TOOLBARFOLDER
+        MENUITEM "Set as &New Bookmark Folder", ID__SETAS_NEWBOOKMARKFOLDER
+        MENUITEM "Set as Bookmark &Menu",       ID__SETAS_BOOKMARKMENU
+        MENUITEM SEPARATOR
+        MENUITEM "&Delete",                     ID__BOOKMARK_DELETE
+        MENUITEM SEPARATOR
+        MENUITEM "Properties",                  ID__ZOOM
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Cursor
+//
+
+IDC_DRAG_CURSOR         CURSOR                  "cursor1.cur"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE 
+BEGIN
+    IDS_FILTER              "Bookmark Files|bookmark.htm;bookmarks.html;bookmarks.htm|HTML Files|*.htm;*.html|"
+    IDS_DEFAULT_TITLE       "Bookmarks"
+    IDS_NOT_FOUND           "Your existing bookmarks file could not be found.\n\nWould you like to locate this file now?\n\n(Press No to create a new bookmarks file)"
+    IDS_CREATING_NEW        "K-Meleon will create a new, empty bookmark file for you."
+    IDS_NOT_BY_US           "The Bookmarks file was not created by this plugin.  Would you like to save your changes?"
+    IDS_SAVE_CHANGES        "Would you like to save your changes?"
+    IDS_CANCEL_CHANGES      "Warning: all changes will be lost. Are you sure you want to close the bookmark editor?"
+    IDS_CANCEL_CAPTION      "Close Bookmarks Editor"
+END
+
+STRINGTABLE 
+BEGIN
+    IDS_FIND                "Bookmarks -- Find: ""%s"""
+    IDS_BOOKMARKS           "Bookmarks"
+    IDS_ALL_BOOKMARKS       "All Bookmarks"
+    IDS_NEVER               "Never"
+    IDS_KEYS_HELP           "Next/prev sibling\t\tAlt+Arrows\n\nMove item up/down\t\tShift+Arrows\n\nOpen item in browser\tEnter\n\nOpen item in background\tCtl+Enter\n\nEdit title\t\t\tF2\n\nDelete item\t\tCtl+D or Del\n\nNew bookmark\t\tCtl+N or Ins"
+    IDS_KEYBINDINGS         "Key-bindings"
+    IDS_NEW_BOOKMARK        "New Bookmark"
+    IDS_NEW_FOLDER          "New Folder"
+    IDS_IMPORTED_FAVORITES  "Imported Favorites"
+    IDS_FAILED_SAVE         "Failed to save bookmarks."
+    IDS_ERROR               "Error"
+    IDS_CONFIGURE           "Configure the bookmarks plugin"
+    IDS_ADD                 "Add to bookmarks"
+    IDS_ADDLINK             "Add link to bookmarks"
+    IDS_EDIT                "Edit the bookmarks"
+    IDS_ADD_BOOKMARK_HERE   "Add bookmark here"
+END
+
+STRINGTABLE 
+BEGIN
+    IDS_CANT_BOOKMARK_TITLE "Invalid Page"
+    IDS_CANT_BOOKMARK       "This page can't be bookmarked!"
+END
+
+#endif    // Anglais (États-Unis) resources
+/////////////////////////////////////////////////////////////////////////////
+
+

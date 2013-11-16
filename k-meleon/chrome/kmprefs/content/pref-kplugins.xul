@@ -1,0 +1,146 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/css" href="chrome://global/skin/"?>
+<?xml-stylesheet type="text/css" href="chrome://kmprefs/skin/"?>
+<!DOCTYPE page SYSTEM "chrome://kmprefs/locale/pref-kplugins.dtd">
+<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" 
+id="prefKPlugins" onload="kPlugins.init()">
+
+<stringbundle id="pref_bundle" src="chrome://kmprefs/locale/pref.properties"/>
+<stringbundle id="dscr_bundle" src="chrome://kmprefs/locale/pref-kplugins.properties"/>
+<stringbundle id="name_bundle" src="chrome://kmprefs/locale/kplugins/kplugins.properties"/>
+
+<script type="application/x-javascript" src="chrome://kmprefs/content/pref.js"/>
+<script type="application/x-javascript">
+<![CDATA[
+var kPlugins = {
+
+_base: null,
+_pref: null,
+_dscr: null,
+_name: null,
+_list: null,
+
+plugs: null,
+init: function() {
+	this.plugs = [];
+	this._base = "kmeleon.plugins.";
+	this._pref = "load";
+	this._dscr = document.getElementById("dscr_bundle");
+	this._name = document.getElementById("name_bundle");
+	this._list = document.getElementById("plugins");
+
+	this._getPlugins(getFolder("KAPlugins"),this.plugs);
+	this._getPlugins(getFolder("KUPlugins"),this.plugs);
+	this.plugs = this.plugs.sort(alphabetical);
+	for(var j=0,litem=document.getElementsByTagName("listitem");j<litem.length;j++)
+		if(this._invalid(litem[j].id,1))
+			// remove any invalid overlays
+			litem[j].parentNode.removeChild(litem[j]);
+	for(var j=0,litem,lcell;j<this.plugs.length;j++) {
+		try {
+			// is there a valid overlay?
+			lcell = document.getElementById(this.plugs[j]).firstChild;
+		} catch(e) {
+			if(this._invalid(this.plugs[j],0))
+				continue;
+			litem = document.createElement("listitem");
+			litem.setAttribute("id",this.plugs[j]);
+			litem.setAttribute("onclick","kPlugins.toggle(this)");
+
+			lcell = document.createElement("listcell");
+			lcell.setAttribute("checked",kPlugin.load(this.plugs[j]));
+			try {
+				lcell.setAttribute("label",this._name.getString(this.plugs[j]));
+			} catch(e) {
+				lcell.setAttribute("label",this.plugs[j]);
+			}
+			lcell.setAttribute("type","checkbox");
+			litem.appendChild(lcell);
+
+			lcell = document.createElement("listcell");
+			try {
+				lcell.setAttribute("label",this._dscr.getString(this.plugs[j]));
+			} catch(e) {
+				lcell.setAttribute("label",this._dscr.getString("unknown_kplugin"));
+			}
+			litem.appendChild(lcell);
+
+			this._list.appendChild(litem);
+			continue;
+		}
+		litem = document.getElementById(this.plugs[j]);
+		litem.setAttribute("onclick","kPlugins.toggle(this)");
+		litem.firstChild.setAttribute("type","checkbox");
+		litem.firstChild.setAttribute("checked",kPlugin.load(this.plugs[j]));
+	}
+	this._list.selectedIndex = 0;
+},
+toggle: function(elem) {
+	var prefID = this._base + elem.getAttribute("id") + "." + this._pref;
+
+	elem = elem.firstChild;
+	if(elem.disabled) return;
+	var v = !(elem.getAttribute("checked")=="true");
+	pref.setBoolPref(prefID,v);
+	elem.setAttribute("checked",v);
+},
+_invalid: function(plugin,n) {
+	switch(n) {
+		case 0: return getPrefValue(this._base+plugin+"."+this._pref)==null;
+		case 1: return !getFile(getFolder("KAPlugins"),plugin+".dll").exists() && !getFile(getFolder("KUPlugins"),plugin+".dll").exists();
+	}
+	return true;
+},
+_getPlugins: function(folderPath,aArray) {
+	var folder = Components.classes["@mozilla.org/file/local;1"]
+			       .createInstance(nsILocalFile);
+
+	folder.initWithPath(folderPath);
+
+	try {
+		var OK = folder.isDirectory();
+	} catch(e) {
+		return;
+	}
+	if(OK) {
+		var name, file, files = folder.directoryEntries;
+		while(files.hasMoreElements()) {
+			file = files.getNext();
+			if(file instanceof Components.interfaces.nsILocalFile)
+				if(file.isFile()) {
+					name = file.leafName.toLowerCase();
+					if(name.substr(name.lastIndexOf("."))==".dll")
+						aArray[aArray.length] = name.substr(0,name.lastIndexOf("."));
+				}
+		}
+	}
+}
+
+};
+]]>
+</script>
+
+<vbox flex="1" style="overflow:auto">
+  <dialogheader title="&kplugins.header;"/>
+  <separator class="thin"/>
+  <groupbox flex="1">
+    <caption><label>&kplugins.enable;</label></caption>
+    <separator class="thin"/>
+    <description>&kplugins.hint;</description>
+    <separator class="thin"/>
+    <listbox id="plugins" flex="1" seltype="single">
+      <listcols>
+        <listcol/>
+        <listcol flex="1"/>
+      </listcols>
+      <listhead>
+        <listheader label="&kplugins.name;"/>
+        <listheader label="&kplugins.descr;"/>
+      </listhead>
+    </listbox>
+    <separator class="thin"/>
+    <description>&restartNote1;</description>
+  </groupbox>
+</vbox>
+
+</page>
