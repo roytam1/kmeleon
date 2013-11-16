@@ -56,7 +56,7 @@ public:
 		cookie->GetPath(m_path);
 		m_csPath = A2CT(m_path.get());
 
-		PRBool bIsSecure;
+		bool bIsSecure;
 		cookie->GetIsSecure(&bIsSecure);
 		m_secure = (bIsSecure == PR_TRUE);
 

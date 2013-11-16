@@ -20,6 +20,8 @@
 #include "stdafx.h"
 #include "CookiesViewerDlg.h"
 #include "Cookies.h"
+#include "nsISimpleEnumerator.h"
+
 
 // Boîte de dialogue CCookiesViewerDlg
 
@@ -83,7 +85,7 @@ BOOL CCookiesViewerDlg::OnInitDialog()
 
 	m_cCookiesList.SetExtendedStyle(LVS_EX_FULLROWSELECT);
 
-	PRBool ret;
+	bool ret;
 	LVITEM lvItem;
 	lvItem.mask		= LVIF_PARAM;
 	lvItem.iSubItem	= 0;

@@ -39,7 +39,8 @@
 #include "nsIDOMEventListener.h"
 #include "nsISHistoryListener.h"
 #include "nsIObserver.h"
-#include "nsIDOMMouseListener.h"
+#include "nsIEmbeddingSiteWindow.h"
+
 #include "nsITooltipListener.h"
 #ifdef USE_WINDOW_PROVIDER
 #include "nsIWindowProvider.h"
@@ -48,7 +49,7 @@
 class CBrowserImpl : public nsIInterfaceRequestor,
 					 public nsIWebBrowserChrome,
 					 public nsIWebBrowserChromeFocus,
-					 public nsIEmbeddingSiteWindow2,
+					 public nsIEmbeddingSiteWindow,
 					 public nsIWebProgressListener,
 					 public nsIContextMenuListener2,
 					 public nsITooltipListener,
@@ -73,7 +74,7 @@ public:
    NS_DECL_NSIWEBBROWSERCHROME
    NS_DECL_NSIWEBBROWSERCHROMEFOCUS
    NS_DECL_NSIEMBEDDINGSITEWINDOW
-   NS_DECL_NSIEMBEDDINGSITEWINDOW2
+   //NS_DECL_NSIEMBEDDINGSITEWINDOW2
    NS_DECL_NSIWEBPROGRESSLISTENER
    NS_DECL_NSICONTEXTMENULISTENER2
    NS_DECL_NSITOOLTIPLISTENER

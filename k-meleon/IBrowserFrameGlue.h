@@ -60,8 +60,8 @@ struct IBrowserGlue {
     virtual void GetBrowserTitle(CString& aTitle) = 0;
     virtual void SetBrowserTitle(LPCTSTR aTitle) = 0;
     virtual void SetBrowserSize(int aCX, int aCY) = 0;
-    virtual void SetVisibility(BOOL aVisible) = 0;
-	virtual void GetVisibility(BOOL *aVisible) = 0;
+    virtual void SetVisibility(bool aVisible) = 0;
+	virtual void GetVisibility(bool *aVisible) = 0;
 	virtual void SetFocus() = 0;
 
     // ContextMenu Related Methods
@@ -97,8 +97,8 @@ struct IBrowserGlue {
 		virtual void SetBrowserSize(int aCX, int aCY);  \
 		virtual void GetBrowserTitle(CString& aTitle);  \
         virtual void SetBrowserTitle(LPCTSTR aTitle); \
-        virtual void SetVisibility(BOOL aVisible);                    \
-		virtual void GetVisibility(BOOL *aVisible);       \
+        virtual void SetVisibility(bool aVisible);                    \
+		virtual void GetVisibility(bool *aVisible);       \
         virtual void SetFocus();                                        \
         virtual void ShowContextMenu(UINT aContextFlags, nsIDOMNode* node); \
         virtual HWND GetBrowserFrameNativeWnd();                          \

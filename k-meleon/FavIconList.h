@@ -21,18 +21,18 @@
 #pragma once
 
 #include "afxtempl.h"
-#include "imgIDecoderObserver.h"
+
 #include "imgIRequest.h"
+#include "imgINotificationObserver.h"
 
 class CFavIconList;
 
-class IconObserver : public imgIDecoderObserver
+class IconObserver : public imgINotificationObserver
 					 
 
 {
 	NS_DECL_ISUPPORTS
-	NS_DECL_IMGIDECODEROBSERVER
-	NS_DECL_IMGICONTAINEROBSERVER
+	NS_DECL_IMGINOTIFICATIONOBSERVER
 
 	IconObserver(CFavIconList* favlist) : mFavList(favlist) {}
 	virtual ~IconObserver() { }
@@ -52,6 +52,7 @@ private:
 	int m_iDefaultIcon;
 	int m_iLoadingIcon;
 	int m_iOffset;
+	nsCOMPtr<IconObserver> mIconObserver;
 	
 	void AddMap(const char *uri, int index);
 	int AddDownloadedIcon(char* uri, TCHAR* file, nsresult aStatus);

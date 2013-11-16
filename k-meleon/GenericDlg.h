@@ -27,7 +27,7 @@ class CGenericDlg : public CDialog
 {
 	// Construction
 public:
-	CGenericDlg(CWnd* pParent = NULL);	// constructeur standard
+	CGenericDlg(CWnd* pParent /*= NULL*/);	// constructeur standard
 
 	void AddButton(UINT nID, LPCTSTR pszText);
 	void AddButton(UINT nID, UINT nIDText);

@@ -34,11 +34,6 @@ Bug:	Changing skin need to delete the iconcache.
 #include "nscWebBrowserPersist.h"
 
 #include "imgILoader.h"
-#if GECKO_VERSION>191
-#else
-#include "gfxIImageFrame.h"
-#include "nsIImage.h"
-#endif
 #include "imgIContainer.h"
 
 
@@ -99,6 +94,7 @@ CFavIconList::CFavIconList()
 {
 	m_iDefaultIcon = 0;
 	m_iOffset = 0;
+	mIconObserver = new IconObserver(this);
 }
 
 CFavIconList::~CFavIconList()
@@ -471,12 +467,12 @@ BOOL CFavIconList::DwnFavIcon(nsIURI* iconURI)
 {
 #ifndef PNG_SUPPORT
 	// Borked way to get the favicon.
-	imgIRequest* request = nsnull;
-	IconObserver* observer = new IconObserver(this);
-	NS_ADDREF(observer);
+	imgIRequest* request = nullptr;
+	//IconObserver* observer = new IconObserver(this);
+	//NS_ADDREF(observer);
 
-	if (NS_FAILED(observer->LoadIcon(iconURI, nsnull))) {
-		NS_RELEASE(observer);
+	if (NS_FAILED(mIconObserver->LoadIcon(iconURI, nullptr))) {
+		//NS_RELEASE(observer);
 		return FALSE;
 	}
 #else
@@ -505,9 +501,9 @@ BOOL CFavIconList::DwnFavIcon(nsIURI* iconURI)
 	persist->SetPersistFlags(
 		nsIWebBrowserPersist::PERSIST_FLAGS_AUTODETECT_APPLY_CONVERSION|
 		nsIWebBrowserPersist::PERSIST_FLAGS_REPLACE_EXISTING_FILES);
-	nsresult rv = persist->SaveURI(iconURI, nsnull, nsnull, nsnull, nsnull, file);
+	nsresult rv = persist->SaveURI(iconURI, nullptr, nullptr, nullptr, nullptr, file);
 	if (NS_FAILED(rv)) {
-		persist->SetProgressListener(nsnull);
+		persist->SetProgressListener(nullptr);
 		return FALSE;
 	}
 #endif
@@ -520,93 +516,22 @@ void CFavIconList::DwnCall(char* uri, TCHAR* file, nsresult status, void* param)
 	((CFavIconList*)param)->AddDownloadedIcon(uri,file,status);
 }
 
-NS_IMPL_ISUPPORTS2(IconObserver, imgIDecoderObserver, imgIContainerObserver)
 
-#if GECKO_VERSION > 18
-NS_IMETHODIMP IconObserver::OnStartRequest(imgIRequest *aRequest)
+NS_IMPL_ISUPPORTS1(IconObserver, imgINotificationObserver)
+NS_IMETHODIMP IconObserver::Notify(imgIRequest *aProxy, int32_t aType, const nsIntRect *aRect)
 {
-    return NS_ERROR_NOT_IMPLEMENTED;
-}
+	if (aType == imgINotificationObserver::LOAD_COMPLETE)
+	{		
+		aProxy->StartDecoding();
+	}
+	else if (aType == imgINotificationObserver::DECODE_COMPLETE)
+	{
+		CreateDIB(aProxy);
+		aProxy->Cancel(NS_OK);
+		//mRequest = nullptr;
+		//NS_RELEASE_THIS();
+	}
 
-NS_IMETHODIMP IconObserver::OnStopRequest(imgIRequest *aRequest, PRBool aIsLastPart)
-{
-    return NS_ERROR_NOT_IMPLEMENTED;
-}
-#endif
-
-/* void onStartDecode (in imgIRequest aRequest); */
-NS_IMETHODIMP IconObserver::OnStartDecode(imgIRequest *aRequest)
-{
-    return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-/* void onStartContainer (in imgIRequest aRequest, in imgIContainer aContainer); */
-NS_IMETHODIMP IconObserver::OnStartContainer(imgIRequest *aRequest, imgIContainer *aContainer)
-{
-    return NS_ERROR_NOT_IMPLEMENTED;
-}
-#if GECKO_VERSION > 191
-/* void onStartFrame (in imgIRequest aRequest, in gfxIImageFrame aFrame); */
-NS_IMETHODIMP IconObserver::OnStartFrame(imgIRequest *aRequest, PRUint32 aFrame)
-{
-    return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-/* [noscript] void onDataAvailable (in imgIRequest aRequest, in gfxIImageFrame aFrame, [const] in nsIntRect aRect); */
-NS_IMETHODIMP IconObserver::OnDataAvailable(imgIRequest *aRequest, PRBool aCurrentFrame, const nsIntRect * aRect)
-{
-    return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-/* void onStopFrame (in imgIRequest aRequest, in gfxIImageFrame aFrame); */
-NS_IMETHODIMP IconObserver::OnStopFrame(imgIRequest *aRequest, PRUint32 aFrame)
-{
-    return NS_ERROR_NOT_IMPLEMENTED;
-}
-NS_IMETHODIMP IconObserver::FrameChanged(imgIContainer *aContainer, struct nsIntRect *aDirtyRect)
-{
-    return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-#else
-/* void onStartFrame (in imgIRequest aRequest, in gfxIImageFrame aFrame); */
-NS_IMETHODIMP IconObserver::OnStartFrame(imgIRequest *aRequest, gfxIImageFrame *aFrame)
-{
-    return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-/* [noscript] void onDataAvailable (in imgIRequest aRequest, in gfxIImageFrame aFrame, [const] in nsIntRect aRect); */
-NS_IMETHODIMP IconObserver::OnDataAvailable(imgIRequest *aRequest, gfxIImageFrame *aFrame, const nsIntRect * aRect)
-{
-    return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-/* void onStopFrame (in imgIRequest aRequest, in gfxIImageFrame aFrame); */
-NS_IMETHODIMP IconObserver::OnStopFrame(imgIRequest *aRequest, gfxIImageFrame *aFrame)
-{
-    return NS_ERROR_NOT_IMPLEMENTED;
-}
-NS_IMETHODIMP IconObserver::FrameChanged(imgIContainer *aContainer, gfxIImageFrame *aFrame, nsIntRect * aDirtyRect)
-{
-    return NS_ERROR_NOT_IMPLEMENTED;
-}
-#endif
-
-/* void onStopContainer (in imgIRequest aRequest, in imgIContainer aContainer); */
-NS_IMETHODIMP IconObserver::OnStopContainer(imgIRequest *aRequest, imgIContainer *aContainer)
-{
-    return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-/* void onStopDecode (in imgIRequest aRequest, in nsresult status, in wstring statusArg); */
-NS_IMETHODIMP IconObserver::OnStopDecode(imgIRequest *aRequest, nsresult status, const PRUnichar *statusArg)
-{
-	if (NS_SUCCEEDED(status))
-		CreateDIB(aRequest);
-			
-	aRequest->Cancel(status);
-	mRequest = nsnull;
-	NS_RELEASE_THIS();
     return NS_OK;
 }
 
@@ -638,7 +563,6 @@ struct ALPHABITMAPINFO {
   }
 };
 
-#if GECKO_VERSION > 18
 static HBITMAP DataToBitmap(PRUint8* aImageData,
                             PRUint32 aWidth,
                             PRUint32 aHeight,
@@ -706,72 +630,146 @@ static HBITMAP DataToBitmap(PRUint8* aImageData,
   return bmp;
 
 }
-#endif
+
+uint8_t* Data32BitTo1Bit(uint8_t* aImageData,
+                                      uint32_t aWidth, uint32_t aHeight)
+{
+  // We need (aWidth + 7) / 8 bytes plus zero-padding up to a multiple of
+  // 4 bytes for each row (HBITMAP requirement). Bug 353553.
+  uint32_t outBpr = ((aWidth + 31) / 8) & ~3;
+
+  // Allocate and clear mask buffer
+  
+  uint8_t* outData = (uint8_t*)calloc(outBpr, aHeight);
+  if (!outData)
+    return nullptr;
+
+  int32_t *imageRow = (int32_t*)aImageData;
+  for (uint32_t curRow = 0; curRow < aHeight; curRow++) {
+    uint8_t *outRow = outData + curRow * outBpr;
+    uint8_t mask = 0x80;
+    for (uint32_t curCol = 0; curCol < aWidth; curCol++) {
+      // Use sign bit to test for transparency, as alpha byte is highest byte
+      if (*imageRow++ < 0)
+        *outRow |= mask;
+
+      mask >>= 1;
+      if (!mask) {
+        outRow ++;
+        mask = 0x80;
+      }
+    }
+  }
+
+  return outData;
+}
+
+HBITMAP CreateIcon(imgIContainer *aContainer, gfxIntSize aScaledSize) {
+
+  // Get the image data
+  nsRefPtr<gfxASurface> surface;
+  aContainer->GetFrame(imgIContainer::FRAME_CURRENT,
+                       imgIContainer::FLAG_SYNC_DECODE,
+                       getter_AddRefs(surface));
+  NS_ENSURE_TRUE(surface, NULL);
+
+  nsRefPtr<gfxImageSurface> frame(surface->GetAsReadableARGB32ImageSurface());
+  NS_ENSURE_TRUE(frame, NULL);
+
+  int32_t width = frame->Width();
+  int32_t height = frame->Height();
+  if (!width || !height)
+    return NULL;
+
+  uint8_t *data;
+  nsRefPtr<gfxImageSurface> dest;
+  data = frame->Data();
+  /*
+  if ((aScaledSize.width == 0 && aScaledSize.height == 0) ||
+      (aScaledSize.width == width && aScaledSize.height == height)) {
+    // We're not scaling the image. The data is simply what's in the frame.
+    
+  }
+  else {
+    NS_ENSURE_TRUE(aScaledSize.width > 0, NULL);
+    NS_ENSURE_TRUE(aScaledSize.height > 0, NULL);
+    // Draw a scaled version of the image to a temporary surface
+    dest = new gfxImageSurface(aScaledSize, gfxImageFormatARGB32);
+    if (!dest)
+      return NULL;
+
+    gfxContext ctx(dest);
+
+    // Set scaling
+    gfxFloat sw = (double) aScaledSize.width / width;
+    gfxFloat sh = (double) aScaledSize.height / height;
+    ctx.Scale(sw, sh);
+
+    // Paint a scaled image
+    ctx.SetOperator(gfxContext::OPERATOR_SOURCE);
+    ctx.SetSource(frame);
+    ctx.Paint();
+
+    data = dest->Data();
+    width = aScaledSize.width;
+    height = aScaledSize.height;
+  }*/
+
+  HBITMAP bmp = DataToBitmap(data, width, -height, 32);
+  return bmp;/*
+  uint8_t* a1data = Data32BitTo1Bit(data, width, height);
+  if (!a1data) {
+    return NS_ERROR_FAILURE;
+  }
+
+  HBITMAP mbmp = DataToBitmap(a1data, width, -height, 1);
+  free(a1data);
+
+  ICONINFO info = {0};
+  info.fIcon = !aIsCursor;
+  info.xHotspot = aHotspotX;
+  info.yHotspot = aHotspotY;
+  info.hbmMask = mbmp;
+  info.hbmColor = bmp;
+
+  HCURSOR icon = ::CreateIconIndirect(&info);
+  ::DeleteObject(mbmp);
+  ::DeleteObject(bmp);
+  if (!icon)
+    return NS_ERROR_FAILURE;
+  *aIcon = icon;
+  return NS_OK;*/
+}
+
+
 
 NS_IMETHODIMP IconObserver::CreateDIB(imgIRequest *aRequest)
 {
-#if GECKO_VERSION > 192
-	// FIXME : currently crash so do nothing
-	return NS_ERROR_NOT_IMPLEMENTED;
-#else
 	nsresult rv;
 	nsCOMPtr<imgIContainer> image;
 	rv = aRequest->GetImage(getter_AddRefs(image));
 	NS_ENSURE_SUCCESS(rv, rv);
 
-	PRUint8 *bits;
-	PRInt32 w,h;
-	PRUint32 bpr;
-
-#if GECKO_VERSION > 191
-	gfxImageSurface* frame;
-#if GECKO_VERSION > 192
-	rv = image->CopyFrame(imgIContainer::FRAME_FIRST, imgIContainer::FLAG_SYNC_DECODE, &frame);
-	NS_ENSURE_TRUE(frame, rv);
+	gfxIntSize s(16,16);
+	HBITMAP hBitmap = CreateIcon(image, s);
+	
+	int32_t w; 
+    int32_t h; 
 	image->GetWidth(&w);
 	image->GetHeight(&h);
-#else
-	rv = image->CopyCurrentFrame(&frame);
-	NS_ENSURE_TRUE(frame, rv);
-	w = frame->Width();
-	h = frame->Height();
-	bpr = frame->Stride();
-#endif
+
 	
-	bits = frame->Data();
-
-#else
-	nsCOMPtr<gfxIImageFrame> frame;
-	rv = image->GetFrameAt(0, getter_AddRefs(frame));
-	NS_ENSURE_TRUE(frame, rv);
-
-	PRUint32 length;
-	frame->LockImageData();
-	rv = frame->GetImageData(&bits, &length);
-	NS_ENSURE_SUCCESS(rv, rv);
-
-	frame->GetWidth(&w);
-	frame->GetHeight(&h);
-	frame->GetImageBytesPerRow(&bpr);
-#endif
-
-	/*	PRUint32 alphaLength;
-	PRUint8 *alphaBits;
-
-	frame->GetAlphaData(&alphaBits, &alphaLength);
-
-	PRUint32 alphaBpr;
-	frame->GetAlphaBytesPerRow(&alphaBpr);
-
-	PRUint32* fBits = new PRUint32[w*h];
-	PRUint32 offset = 0; 
-	for (int y = 0; y < w*h; y++) {
-	fBits[y] = alphaBits[y];
-	fBits[y] = (fBits[y]<<8) + bits[offset+2];
-	fBits[y] = (fBits[y]<<8) + bits[offset+1];
-	fBits[y] = (fBits[y]<<8) + bits[offset];
-	offset +=3;
-	}*/
+	if (w!=16 && h!=16) { 
+		HDC hDC = GetDC(NULL);
+		if (HBITMAP hbmSized = ResizeIcon(hDC, hBitmap, w, h)) {
+			DeleteObject(hBitmap);
+			hBitmap = hbmSized;
+		}
+		ReleaseDC(NULL, hDC);
+	}	
+	
+	CBitmap bitmap;
+	bitmap.Attach(hBitmap);
 
 	CString uri;
 	nsCOMPtr<nsIURI> URI;
@@ -780,105 +778,8 @@ NS_IMETHODIMP IconObserver::CreateDIB(imgIRequest *aRequest)
 	NS_ENSURE_SUCCESS(rv, rv);
 	URI->GetSpec(nsuri);
 
-	CBitmap bitmap;
-	HDC hDC = GetDC(NULL);
-
-#if GECKO_VERSION > 18
-	HBITMAP hBitmap = DataToBitmap(bits, w, -h, (bpr/w)*8);
-#else
-	BITMAPINFO binfo;
-	binfo.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-	binfo.bmiHeader.biWidth = w;
-	binfo.bmiHeader.biHeight = h;
-	binfo.bmiHeader.biPlanes = 1;
-	binfo.bmiHeader.biBitCount = (bpr/w)*8;
-	binfo.bmiHeader.biCompression = BI_RGB;
-	binfo.bmiHeader.biSizeImage = length;     
-	binfo.bmiHeader.biXPelsPerMeter = 0;
-	binfo.bmiHeader.biYPelsPerMeter = 0;
-	binfo.bmiHeader.biClrUsed = 0;
-	binfo.bmiHeader.biClrImportant = 0;
-	
-	HBITMAP hBitmap = ::CreateDIBitmap(hDC,&binfo.bmiHeader,CBM_INIT,bits,&binfo,DIB_RGB_COLORS);
-#endif
-
-	if (w!=16 && h!=16) {
-		if (HBITMAP hbmSized = ResizeIcon(hDC, hBitmap, w, h)) {
-			DeleteObject(hBitmap);
-			hBitmap = hbmSized;
-		}
-	}
-	bitmap.Attach(hBitmap);
-	ReleaseDC(NULL,hDC);
-
-#if GECKO_VERSION > 18	
 	mFavList->AddIcon(nsuri.get(),&bitmap, (CBitmap*)NULL);
-#else
-	
-
-	gfx_color bkgColor = 0;
-	rv = frame->GetBackgroundColor(&bkgColor);
-	if (NS_FAILED(frame->GetBackgroundColor(&bkgColor)))
-	{
-		CBitmap maskbitmap;
-		PRUint32 alphaLength;
-		PRUint8 *alphaBits;
-		PRUint8 *alphaBits2 = 0;
-		
-		if (NS_SUCCEEDED(frame->GetAlphaData(&alphaBits, &alphaLength)))
-		{
-			PRUint32 alphaBpr;
-			frame->GetAlphaBytesPerRow(&alphaBpr); // Return a false value??
-			alphaBpr = (8 * alphaLength) / (w*h);
-
-			if (alphaBpr<=8) {
-
-				// XXX: if alphaBpr == 2, must convert to 4
-				/*if (alphaBpr == 2)
-				{
-					alphaBits2 = alphaBits;
-					alphaBits = new PRUint8[alphaLength*4];
-					for (int i=0;i<alphaLength;i++) {
-						int ii = i*4;
-						alphaBits[ii] = (alphaBits2[i] & 0xC0) ? 0x0f :  0xf0;
-						alphaBits[ii+1] = (alphaBits2[i] & 0x03) ? 0x0f : 0xf0;
-						alphaBits[ii+2] = (alphaBits2[i] & 0x0C) ? 0x0f :  0xf0;
-						alphaBits[ii+3] = (alphaBits2[i] & 0x03) ? 0x0f :  0xf0;
-					    //alphaBits[i*2+1] = ((alphaBits2[i] & 0x0C)<<4) + ((alphaBits2[i] & 0x0C)<<2) + ((alphaBits2[i] & 0x03)<<2) + (alphaBits2[i] & 0x03);
-					}
-					alphaBpr = 8;
-				}*/
-
-				ALPHABITMAPINFO binfo(w, h, alphaBpr);
-
-				HDC hDC = GetDC(NULL);
-				HBITMAP hBitmap = ::CreateDIBitmap(hDC,&binfo.bmiHeader,CBM_INIT,alphaBits,(BITMAPINFO*)&binfo,DIB_RGB_COLORS);
-				if (w!=16 && h!=16) {
-					if (HBITMAP hbmSized = ResizeIcon(hDC, hBitmap, w, h)) {
-						DeleteObject(hBitmap);
-						hBitmap = hbmSized;
-					}
-				}
-				ReleaseDC(NULL,hDC);
-				maskbitmap.Attach(hBitmap);
-				if (alphaBits2) delete alphaBits;
-			}
-		}
-
-		mFavList->AddIcon(nsuri.get(),&bitmap, &maskbitmap);
-		maskbitmap.DeleteObject();
-	} else {
-		mFavList->AddIcon(nsuri.get(),&bitmap, bkgColor);
-	}
-#endif
-#if GECKO_VERSION > 191
-	delete frame;
-#else
-	frame->UnlockImageData();
-#endif
-	bitmap.DeleteObject();
 	return NS_OK;
-#endif
 }
 
 NS_IMETHODIMP IconObserver::LoadIcon(nsIURI *iconUri, nsIURI* pageUri)
@@ -886,23 +787,11 @@ NS_IMETHODIMP IconObserver::LoadIcon(nsIURI *iconUri, nsIURI* pageUri)
 	nsresult rv;
 	nsCOMPtr<imgILoader> loader = do_GetService("@mozilla.org/image/loader;1", &rv);
 	NS_ENSURE_SUCCESS(rv, rv);
-#if GECKO_VERSION > 193	
-	return loader->LoadImage(iconUri, pageUri, nsnull, 
-		nsnull, this, this, nsIRequest::LOAD_BYPASS_CACHE, 
-		nsnull, nsnull, nsnull, getter_AddRefs(mRequest));
-#else
-	return loader->LoadImage(iconUri, pageUri, nsnull, 
-		nsnull, this, this, nsIRequest::LOAD_BYPASS_CACHE, 
-		nsnull, nsnull, getter_AddRefs(mRequest));
-#endif
+	
+	return loader->LoadImageXPCOM(iconUri, pageUri, nullptr, 
+		nullptr, nullptr, this, this, nsIRequest::LOAD_BYPASS_CACHE, 
+		nullptr, nullptr, getter_AddRefs(mRequest));
 }
-
-#if GECKO_VERSION > 193
-NS_IMETHODIMP IconObserver::OnDiscard(imgIRequest* request)
-{
-	return NS_OK;
-}
-#endif
 
 
 #endif // INTERNAL_SITEICONS
