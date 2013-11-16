@@ -36,7 +36,7 @@ CCookiePromptService::CCookiePromptService(){
 CCookiePromptService::~CCookiePromptService() {
 }
 
-NS_IMETHODIMP CCookiePromptService::CookieDialog(nsIDOMWindow *parent, nsICookie *aCookie, const nsACString & hostname, PRInt32 cookiesFromHost, PRBool changingCookie, PRBool *rememberDecision, PRInt32 *_retval)
+NS_IMETHODIMP CCookiePromptService::CookieDialog(nsIDOMWindow *parent, nsICookie *aCookie, const nsACString & hostname, PRInt32 cookiesFromHost, bool changingCookie, bool *rememberDecision, PRInt32 *_retval)
 {
 	NS_ENSURE_ARG_POINTER(aCookie);
 

@@ -35,7 +35,7 @@ extern CMfcEmbedApp theApp;
 #include "nsIWebPageDescriptor.h"
 #include "nsCWebBrowserPersist.h"
 #include "UnknownContentTypeHandler.h"
-
+#include "nsILocalFile.h"
 // Remove when it stops sucking.
 //#define MOZILLA_MIMETYPE_SUCKS
 #ifdef MOZILLA_MIMETYPE_SUCKS
@@ -118,13 +118,14 @@ BOOL CBrowserView::OpenViewSourceWindow(BOOL frame)
 
 			nsCOMPtr<nsISupports> cacheDescriptor = m_pWindow->GetPageDescriptor(frame);
 
-			nsCOMPtr<nsILocalFile> file;
+			nsCOMPtr<nsIFile> nfile;
 #ifdef _UNICODE
-			rv = NS_NewLocalFile(nsDependentString(tempfile.GetBuffer(0)), TRUE, getter_AddRefs(file));
+			rv = NS_NewLocalFile(nsDependentString(tempfile.GetBuffer(0)), TRUE, getter_AddRefs(nfile));
 #else
-			rv = NS_NewNativeLocalFile(nsDependentCString(tempfile.GetBuffer(0)), TRUE, getter_AddRefs(file));
+			rv = NS_NewNativeLocalFile(nsDependentCString(tempfile.GetBuffer(0)), TRUE, getter_AddRefs(nfile));
 #endif
 
+			nsCOMPtr<nsILocalFile> file = do_QueryInterface(nfile);
 			CProgressDialog *progress = new CProgressDialog(FALSE);      
 			progress->SetCallBack((ProgressDialogCallback)OpenFileExternal, 
 				_tcsdup(theApp.preferences.sourceCommand));
@@ -133,9 +134,9 @@ BOOL CBrowserView::OpenViewSourceWindow(BOOL frame)
 			persist->SetPersistFlags(
 				nsIWebBrowserPersist::PERSIST_FLAGS_AUTODETECT_APPLY_CONVERSION|
 				nsIWebBrowserPersist::PERSIST_FLAGS_REPLACE_EXISTING_FILES);
-			rv = persist->SaveURI(srcURI, cacheDescriptor, referrer, nsnull, nsnull, file);
+			rv = persist->SaveURI(srcURI, cacheDescriptor, referrer, nullptr, nullptr, nfile, nullptr);
 			if (NS_FAILED(rv)) {
-				persist->SetProgressListener(nsnull);
+				persist->SetProgressListener(nullptr);
 				return FALSE;
 			}
 
@@ -325,11 +326,7 @@ void CBrowserView::OpenURL(LPCTSTR url, LPCTSTR referrer, BOOL allowFixup)
 
    ((CBrowserGlue*)m_pBrowserGlue)->mPendingLocation = url; // XXXX
    if (!m_pWindow->LoadURL(url, referrer, allowFixup) && m_pBrowserGlue)
-   {
-	   ((CBrowserGlue*)m_pBrowserGlue)->mPendingLocation = _T("");
 	   m_pWindow->LoadURL(_T("about:blank"));
-   }
-
 }
 /*
 void CBrowserView::OpenURL(LPCTSTR url, BOOL sendRef, BOOL allowFixup)

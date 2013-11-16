@@ -538,7 +538,7 @@ BOOL CBrowserFrmTab::CloseTab(CBrowserTab* tab)
 				SendMessage(WM_CLOSE,0,0);
 				return TRUE;
 			case 1:
-				m_wndCBrowserTab->OpenURL(_T("about:blank"), nsnull);
+				m_wndCBrowserTab->OpenURL(_T("about:blank"), nullptr);
 				return FALSE;
 			case 2:
 				return FALSE;
@@ -663,7 +663,7 @@ LRESULT CBrowserFrmTab::OnNewSiteIcon(WPARAM url, LPARAM index)
 	{	
 		int icon = theApp.favicons.GetIcon(m_Tabs[i]->GetBrowserGlue()->mIconURI);
 		if (icon==-1) {// The icon doesn't exist anymore, was deleted
-			m_Tabs[i]->GetBrowserGlue()->mIconURI = nsnull;
+			m_Tabs[i]->GetBrowserGlue()->mIconURI = nullptr;
 			SetFavIcon(theApp.favicons.GetDefaultIcon());
 			SetTabIcon(m_Tabs[i], theApp.favicons.GetDefaultIcon());
 		}

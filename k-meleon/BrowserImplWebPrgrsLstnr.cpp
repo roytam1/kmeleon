@@ -128,7 +128,7 @@ NS_IMETHODIMP CBrowserImpl::OnStateChange(nsIWebProgress *progress,
 	  }
     m_pBrowserFrameGlue->UpdateBusyState(PR_FALSE);
     m_pBrowserFrameGlue->UpdateProgress(0, 100);       // Clear the prog bar
-    m_pBrowserFrameGlue->UpdateStatusBarText(nsnull);  // Clear the status bar
+    m_pBrowserFrameGlue->UpdateStatusBarText(NULL);  // Clear the status bar
   }
 
   return NS_OK;
@@ -136,7 +136,7 @@ NS_IMETHODIMP CBrowserImpl::OnStateChange(nsIWebProgress *progress,
 
 NS_IMETHODIMP CBrowserImpl::OnLocationChange(nsIWebProgress* aWebProgress,
                                                  nsIRequest* aRequest,
-                                                 nsIURI *location)
+                                                 nsIURI *location, uint32_t aFlags)
 {
   NS_ENSURE_TRUE(m_pBrowserFrameGlue, NS_OK);
 
@@ -167,7 +167,7 @@ CBrowserImpl::OnStatusChange(nsIWebProgress* aWebProgress,
                                  nsresult aStatus,
                                  const PRUnichar* aMessage)
 {
-  PRBool b;
+  bool b;
   // Prevent showing status update for download.
   // Hope it's not a bad way to do that
   aWebProgress->GetIsLoadingDocument(&b);

@@ -15,17 +15,17 @@ public:
 	}
 };
 
-class CDialogEx: public CDialog
+class CDialogEx2: public CDialog
 {
 public:
 
-	CDialogEx() : CDialog() {};
-	CDialogEx(LPCTSTR lpszTemplateName, CWnd* pParentWnd = NULL) 
+	CDialogEx2() : CDialog() {};
+	CDialogEx2(LPCTSTR lpszTemplateName, CWnd* pParentWnd = NULL) 
 		: CDialog(lpszTemplateName, pParentWnd) {};
-	CDialogEx(UINT nIDTemplate, CWnd* pParentWnd = NULL)
+	CDialogEx2(UINT nIDTemplate, CWnd* pParentWnd = NULL)
 		: CDialog(nIDTemplate, pParentWnd) {};
-	~CDialogEx() {};
-
+	~CDialogEx2() {};
+	
 	INT DoModal()
 	{  
 		//CMfcEmbedApp *pApp = (CMfcEmbedApp *)AfxGetApp();
@@ -121,6 +121,6 @@ protected:
 	}
 };
 
-#define CDialog CDialogEx
+#define CDialog CDialogEx2
 
 #endif

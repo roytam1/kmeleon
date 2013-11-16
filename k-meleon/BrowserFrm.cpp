@@ -243,17 +243,12 @@ BOOL CBrowserFrame::PreTranslateMessage(MSG* pMsg)
 		   return 1;
 	   }
    }
-#if GECKO_VERSION > 18
-   // XXX: Gecko doesn't notify us when those buttons are clicked
-   // and therefore can't be set like other mouse accelerator
-
    else if ( pMsg->message == WM_XBUTTONUP ) {
       if (HIWORD(pMsg->wParam) == XBUTTON1) 
          GetActiveView()->GetBrowserWrapper()->GoBack();
       else if (HIWORD(pMsg->wParam) == XBUTTON2) 
          GetActiveView()->GetBrowserWrapper()->GoForward();
    }
-#endif
 
    return CFrameWnd::PreTranslateMessage(pMsg);
 }
@@ -673,7 +668,7 @@ void CBrowserFrame::DrawSHForwardMenu(HMENU menu)
 	int index, count;
 	pWindows->GetSHistoryState(index, count);
 
-	int limit = min(MAX_SHMENU_NUMBER, theApp.preferences.GetInt("kmeleon.plugins.history.length", 25));
+	int limit = std::min(MAX_SHMENU_NUMBER, theApp.preferences.GetInt("kmeleon.plugins.history.length", 25));
 	limit =  count - index > limit ? index + limit : count;
 	
 	CString title, url;
@@ -694,7 +689,7 @@ void CBrowserFrame::DrawSHBackMenu(HMENU menu)
 	int index, count;
 	pWindows->GetSHistoryState(index, count);
 
-	int limit = min(MAX_SHMENU_NUMBER, theApp.preferences.GetInt("kmeleon.plugins.history.length", 25));
+	int limit = std::min(MAX_SHMENU_NUMBER, theApp.preferences.GetInt("kmeleon.plugins.history.length", 25));
 	limit =  index > limit ? index - limit : 0;
 
 	CString title, url;
@@ -1373,7 +1368,7 @@ LRESULT CBrowserFrame::OnNewSiteIcon(WPARAM url, LPARAM index)
 	int i = theApp.favicons.GetIcon(GetActiveView()->GetBrowserGlue()->mIconURI);
 	
 	if (i==-1) {// The icon doesn't exist anymore, was deleted
-		GetActiveView()->GetBrowserGlue()->mIconURI = nsnull;
+		GetActiveView()->GetBrowserGlue()->mIconURI = nullptr;
 		SetFavIcon(theApp.favicons.GetDefaultIcon());
 	}
 	else

@@ -74,31 +74,28 @@
 #include "MozUtils.h"
 
 #include "nsIDOMEvent.h"
-#include "nsIDOMNSEvent.h"
 #include "nsIDOMPopupBlockedEvent.h"
 #include "nsIDOMMouseEvent.h"
-#include "nsIDOMContextMenuListener.h"
+
 #include "nsIDOMEventTarget.h"
-#include "nsIDOMAbstractView.h"
-#include "nsIDOMDocumentView.h"
+
 #include "nsIDOMEventTarget.h"
-#include "nsIDOM3Document.h"
-#include "nsIDOMNSDocument.h"
-#include "nsIDOMWindow2.h"
+
 #include "nsIScriptSecurityManager.h" 
+
 
 #ifdef USE_WINDOW_PROVIDER
 #include "nsIBrowserDOMWindow.h"
 #endif
 #include "jsapi.h"
-#include "nsIJSContextStack.h"
+
 #include "BrowserFrm.h" // XXXXX
 #include "BrowserView.h" 
 
 CBrowserImpl::CBrowserImpl()
 {
     m_pBrowserFrameGlue = NULL;
-    mWebBrowser = nsnull;
+    mWebBrowser = nullptr;
 	mChromeFlags = 0;
 	mChromeLoaded = PR_FALSE;
 }
@@ -137,7 +134,7 @@ NS_INTERFACE_MAP_BEGIN(CBrowserImpl)
    NS_INTERFACE_MAP_ENTRY(nsIWebBrowserChrome)
    NS_INTERFACE_MAP_ENTRY(nsIWebBrowserChromeFocus)
    NS_INTERFACE_MAP_ENTRY(nsIEmbeddingSiteWindow)
-   NS_INTERFACE_MAP_ENTRY(nsIEmbeddingSiteWindow2)
+  // NS_INTERFACE_MAP_ENTRY(nsIEmbeddingSiteWindow)
    NS_INTERFACE_MAP_ENTRY(nsIWebProgressListener)
    NS_INTERFACE_MAP_ENTRY(nsIContextMenuListener2)
    NS_INTERFACE_MAP_ENTRY(nsITooltipListener)
@@ -310,29 +307,40 @@ NS_IMETHODIMP CBrowserImpl::SizeBrowserTo(PRInt32 aCX, PRInt32 aCY)
    return NS_OK;
 }
 
+#include "nsIXPConnect.h"
+#include "nsIScriptGlobalObject.h"
+
 NS_IMETHODIMP CBrowserImpl::ShowAsModal(void)
 {
 	NS_ENSURE_TRUE(m_pBrowserFrameGlue, NS_ERROR_FAILURE);
 
 	HWND h = m_pBrowserFrameGlue->GetBrowserFrameNativeWnd();
 	CBrowserFrame* frame = (CBrowserFrame*)CWnd::FromHandle(h);
+	
+	/*//https://bugzilla.mozilla.org/show_bug.cgi?id=865729
+	nsresult rv;
+	nsCOMPtr<nsIXPConnect> xpc = do_GetService(nsIXPConnect::GetCID(), &rv);
+	JSContext *cx = xpc->GetCurrentJSContext();
+	nsCOMPtr<nsIScriptContext> scx =
+    do_QueryInterface(static_cast<nsISupports *> (::JS_GetContextPrivate(cx)));
+
 
 	nsCOMPtr<nsIJSContextStack> stack(do_GetService("@mozilla.org/js/xpc/ContextStack;1"));
-	if (stack && NS_SUCCEEDED(stack->Push(nsnull))) {
+	if (stack && NS_SUCCEEDED(stack->Push(nullptr))) {*/
 		
 		frame->DoModal();
 
-		JSContext* cx;
+	/*	JSContext* cx;
 		stack->Pop(&cx);
-		NS_ASSERTION(cx == nsnull, "JSContextStack mismatch");
+		NS_ASSERTION(cx == nullptr, "JSContextStack mismatch");
 	}
 	else
-		return NS_ERROR_FAILURE;
+		return NS_ERROR_FAILURE;*/
 
 	return NS_OK;
 }
 
-NS_IMETHODIMP CBrowserImpl::IsWindowModal(PRBool *retval)
+NS_IMETHODIMP CBrowserImpl::IsWindowModal(bool *retval)
 {
    NS_ENSURE_TRUE(m_pBrowserFrameGlue, NS_ERROR_FAILURE);
 
@@ -538,7 +546,7 @@ NS_IMETHODIMP CBrowserImpl::SetTitle(const PRUnichar* aTitle)
 	return NS_OK;
 }
 
-NS_IMETHODIMP CBrowserImpl::GetVisibility(PRBool *aVisibility)
+NS_IMETHODIMP CBrowserImpl::GetVisibility(bool *aVisibility)
 {
 	NS_ENSURE_TRUE(m_pBrowserFrameGlue, NS_ERROR_FAILURE);
 
@@ -547,7 +555,7 @@ NS_IMETHODIMP CBrowserImpl::GetVisibility(PRBool *aVisibility)
 	return NS_OK;
 }
 
-NS_IMETHODIMP CBrowserImpl::SetVisibility(PRBool aVisibility)
+NS_IMETHODIMP CBrowserImpl::SetVisibility(bool aVisibility)
 {
     NS_ENSURE_TRUE(m_pBrowserFrameGlue, NS_ERROR_FAILURE);
 
@@ -593,16 +601,16 @@ NS_IMETHODIMP CBrowserImpl::OnHideTooltip()
 	nsCOMPtr<nsIBaseWindow> baseWindow = do_QueryInterface(mWebBrowser);
 	if (baseWindow) baseWindow->Repaint(PR_FALSE);
 
-    m_pBrowserFrameGlue->ShowTooltip(0, 0, nsnull);
+    m_pBrowserFrameGlue->ShowTooltip(0, 0, nullptr);
 
     return NS_OK;
 }
 
 #ifdef USE_WINDOW_PROVIDER
-NS_IMETHODIMP CBrowserImpl::ProvideWindow(nsIDOMWindow *aParent, PRUint32 aChromeFlags, PRBool aPositionSpecified, PRBool aSizeSpecified, nsIURI *aURI, const nsAString & aName, const nsACString & aFeatures, PRBool *aWindowIsNew, nsIDOMWindow **_retval)
+NS_IMETHODIMP CBrowserImpl::ProvideWindow(nsIDOMWindow *aParent, uint32_t aChromeFlags, bool aCalledFromJS, bool aPositionSpecified, bool aSizeSpecified, nsIURI *aURI, const nsAString & aName, const nsACString & aFeatures, bool *aWindowIsNew, nsIDOMWindow * *_retval)
 {
 	NS_ENSURE_ARG_POINTER(aParent);
-	*_retval = nsnull;
+	*_retval = nullptr;
 	NS_ENSURE_TRUE(m_pBrowserFrameGlue, NS_OK);
 
 	nsCOMPtr<nsIPrefService> prefs = do_GetService(NS_PREFSERVICE_CONTRACTID);
@@ -668,19 +676,19 @@ NS_IMETHODIMP CBrowserImpl::ProvideWindow(nsIDOMWindow *aParent, PRUint32 aChrom
 // CBrowserImpl::nsIDOMEventListener
 //***************************************************************************** 
 
-NS_IMETHODIMP CBrowserImpl::HandleEvent(nsIDOMEvent *event)
+NS_IMETHODIMP CBrowserImpl::HandleEvent(nsIDOMEvent *aEvent)
 {
 	NS_ENSURE_TRUE(m_pBrowserFrameGlue, NS_OK);
 
 	nsresult rv;
 	nsEmbedString type;
-	event->GetType(type);
+	aEvent->GetType(type);
 
 	if (type.Equals(NS_LITERAL_STRING("mousedown")))
 	{
 		// XXXXXXXXXX: Quick fix for the gesture plugin 
 		nsCOMPtr<nsIDOMEventTarget> target;
-		event->GetTarget(getter_AddRefs(target));
+		aEvent->GetTarget(getter_AddRefs(target));
 		nsCOMPtr<nsIDOMNode> node = do_QueryInterface(target);
 
 		HWND h = m_pBrowserFrameGlue->GetBrowserFrameNativeWnd();
@@ -694,13 +702,13 @@ NS_IMETHODIMP CBrowserImpl::HandleEvent(nsIDOMEvent *event)
 	{
 		//event->PreventDefault();
 
-		nsCOMPtr<nsIDOMMouseEvent> mouseEvent(do_QueryInterface(event));
+		nsCOMPtr<nsIDOMMouseEvent> mouseEvent(do_QueryInterface(aEvent));
 		NS_ENSURE_TRUE(mouseEvent, NS_ERROR_FAILURE);
 
 		PRUint16 button;
 		mouseEvent->GetButton(&button);
 
-		PRBool altKey, shiftKey, ctrlKey;
+		bool altKey, shiftKey, ctrlKey;
 		mouseEvent->GetCtrlKey(&ctrlKey);
 		mouseEvent->GetShiftKey(&shiftKey);
 		mouseEvent->GetAltKey(&altKey);
@@ -719,11 +727,11 @@ NS_IMETHODIMP CBrowserImpl::HandleEvent(nsIDOMEvent *event)
 		if (ctrlKey) flags |= FCONTROL << 8;
 
 		nsCOMPtr<nsIDOMEventTarget> target;
-		event->GetTarget(getter_AddRefs(target));
+		aEvent->GetTarget(getter_AddRefs(target));
 		nsCOMPtr<nsIDOMNode> node = do_QueryInterface(target);
 		
 		if (m_pBrowserFrameGlue->MouseAction(node, flags))
-			event->PreventDefault();
+			aEvent->PreventDefault();
 
 		return NS_OK;
 	}
@@ -733,14 +741,14 @@ NS_IMETHODIMP CBrowserImpl::HandleEvent(nsIDOMEvent *event)
 		// DOMContentLoaded is not send if the page is reloaded from cache
 		// Nevertheless I'm using it to get the IE favicon without waiting
 		// for all images of the page to be loaded
-		m_pBrowserFrameGlue->SetFavIcon(nsnull);
+		m_pBrowserFrameGlue->SetFavIcon(nullptr);
 		return NS_OK;
 	}
 
 	if (type.Equals(NS_LITERAL_STRING("DOMLinkAdded")))
 	{
 		nsCOMPtr<nsIDOMEventTarget> target;
-		event->GetTarget(getter_AddRefs(target));
+		aEvent->GetTarget(getter_AddRefs(target));
 		NS_ENSURE_TRUE (target, NS_ERROR_FAILURE);
 
 		nsCOMPtr<nsIDOMElement> elem = do_QueryInterface(target);
@@ -770,7 +778,7 @@ NS_IMETHODIMP CBrowserImpl::HandleEvent(nsIDOMEvent *event)
 			NS_ENSURE_TRUE (domDoc, NS_ERROR_FAILURE);
 
 			/* See if this is from the toplevel frame */
-			nsCOMPtr<nsIDOMDocumentView> docView (do_QueryInterface (domDoc));
+			/*nsCOMPtr<nsIDOMDocumentView> docView (do_QueryInterface (domDoc));
 			NS_ENSURE_TRUE (docView, NS_ERROR_FAILURE);
 
 			nsCOMPtr<nsIDOMAbstractView> abstractView;
@@ -785,13 +793,10 @@ NS_IMETHODIMP CBrowserImpl::HandleEvent(nsIDOMEvent *event)
 			nsCOMPtr<nsISupports> domWinAsISupports (do_QueryInterface (domWin));
 			nsCOMPtr<nsISupports> topDomWinAsISupports (do_QueryInterface (topDomWin));
 			/* disallow subframes to set favicon */
-			if (domWinAsISupports != topDomWinAsISupports) return NS_OK;
-
-			nsCOMPtr<nsIDOM3Document> doc = do_QueryInterface (domDoc);
-			NS_ENSURE_TRUE (doc, NS_ERROR_FAILURE);
+			/*if (domWinAsISupports != topDomWinAsISupports) return NS_OK;*/
 
 			nsEmbedString spec;
-			rv = doc->GetDocumentURI (spec);
+			rv = domDoc->GetDocumentURI (spec);
 			NS_ENSURE_SUCCESS (rv, NS_ERROR_FAILURE);
 
 			nsCOMPtr<nsIURI> docUri;
@@ -813,10 +818,11 @@ NS_IMETHODIMP CBrowserImpl::HandleEvent(nsIDOMEvent *event)
 			/* refuse if we can't check */
 			NS_ENSURE_TRUE (secMan, NS_ERROR_FAILURE);
 
-			rv = secMan->CheckLoadURI(docUri, favUri,
-				nsIScriptSecurityManager::STANDARD);
+			// XXX
+			//rv = secMan->CheckLoadURI(docUri, favUri,
+			//	nsIScriptSecurityManager::STANDARD);
 			/* failure means it didn't pass the security check */
-			if (NS_FAILED (rv)) return NS_OK;
+			//if (NS_FAILED (rv)) return NS_OK;
 
 			/* Hide password part */
 			nsEmbedCString password;
@@ -830,16 +836,13 @@ NS_IMETHODIMP CBrowserImpl::HandleEvent(nsIDOMEvent *event)
 
 	if (type.Equals(NS_LITERAL_STRING("DOMPopupBlocked")))
 	{
-		nsCOMPtr<nsIDOMPopupBlockedEvent> popupEvent = do_QueryInterface(event);
+		nsCOMPtr<nsIDOMPopupBlockedEvent> popupEvent = do_QueryInterface(aEvent);
 		NS_ENSURE_TRUE (popupEvent, NS_ERROR_FAILURE);
 
 		nsCOMPtr<nsIURI> uri;
-#if GECKO_VERSION > 18
-		// FIXME
+
+		// FIXME, should get the uri requesting the popup
 		popupEvent->GetPopupWindowURI(getter_AddRefs(uri));
-#else
-		popupEvent->GetRequestingWindowURI(getter_AddRefs(uri));
-#endif
 		NS_ENSURE_TRUE (uri, NS_ERROR_FAILURE);
 
 		nsEmbedCString host;
@@ -854,23 +857,19 @@ NS_IMETHODIMP CBrowserImpl::HandleEvent(nsIDOMEvent *event)
 	if (type.Equals(NS_LITERAL_STRING("flashblockCheckLoad")))
 	{
 		if (m_pBrowserFrameGlue->AllowFlash())
-			event->PreventDefault();
-		event->StopPropagation();
+			aEvent->PreventDefault();
+		aEvent->StopPropagation();
 		return NS_OK;
 	}
 
 	if (type.Equals(NS_LITERAL_STRING("command")))
 	{
-		nsresult rv;
-		nsCOMPtr<nsIDOMNSEvent> nsEvent (do_QueryInterface(event, &rv));
-		NS_ENSURE_SUCCESS(rv, rv);
-		
-		PRBool trusted = PR_FALSE;
-		nsEvent->GetIsTrusted(&trusted);
+		bool trusted = PR_FALSE;
+		aEvent->GetIsTrusted(&trusted);
 		if (!trusted) return NS_OK;
 
 		nsCOMPtr<nsIDOMEventTarget> eventTarget;
-		rv = nsEvent->GetOriginalTarget(getter_AddRefs(eventTarget));
+		rv = aEvent->GetOriginalTarget(getter_AddRefs(eventTarget));
 		NS_ENSURE_SUCCESS(rv, rv);
 
 		nsCOMPtr<nsIDOMElement> element = do_QueryInterface(eventTarget, &rv);

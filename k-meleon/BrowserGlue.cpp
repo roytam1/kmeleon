@@ -27,6 +27,18 @@
 #include "MozUtils.h"
 #include "nsIURIFixup.h" // XXX
 
+// deadlock: for chrome security tests
+#include "nsIScriptSecurityManager.h"
+#include "nsICertificateDialogs.h"
+
+// deadlock: for badcert
+#include "nsIWindowWatcher.h"
+#include "nsIMutableArray.h"
+#include "nsISSLStatus.h"
+#include "nsIDialogParamBlock.h"
+#include "nsICertOverrideService.h"
+#include "nsIRecentBadCertsService.h"
+
 CBrowserGlue::~CBrowserGlue()
 {
 	if ( !mPopupBlockedHost.IsEmpty())
@@ -56,11 +68,11 @@ void CBrowserGlue::UpdateBusyState(BOOL aBusy)
 {       
     mDOMLoaded = mLoading = aBusy;
 	if (aBusy) {
-		mContextNode = nsnull;
-		mpBrowserView->m_contextNode = nsnull;
+		mContextNode = nullptr;
+		mpBrowserView->m_contextNode = nullptr;
 	}
 	else {
-		SetFavIcon(nsnull);
+		SetFavIcon(nullptr);
 		mPendingLocation = _T("");
 	}
 
@@ -78,7 +90,7 @@ void CBrowserGlue::UpdateCurrentURI(nsIURI *aLocation)
 			firstLoad = false;
 			if (!mpBrowserFrame->IsDialog())
 			{
-				float zoom = (float)theApp.preferences.GetInt("zoom.defaultPercent", 100);
+				float zoom = theApp.preferences.GetInt("zoom.defaultPercent", 100);
 				this->mpBrowserView->GetBrowserWrapper()->SetFullZoom(zoom / 100);
 			}
 		}
@@ -95,7 +107,7 @@ void CBrowserGlue::UpdateCurrentURI(nsIURI *aLocation)
 		// Must be done here, before testing if we have the same address
 		// because xul error page have its own icon, and since the address
 		// doesn't change when retrying, the icon may stay in the urlbar.
-		mIconURI = nsnull;
+		mIconURI = nullptr;
 #endif
 		mLocation = NSUTF8StringToCString(uriString);
 
@@ -117,7 +129,7 @@ void CBrowserGlue::UpdateCurrentURI(nsIURI *aLocation)
 		// Add a MRU entry. Note that I'm only only allowing
 		// http or https uri
 		
-		PRBool allowMRU,b;
+		bool allowMRU,b;
 		aLocation->SchemeIs("http", &b);
 		allowMRU = b;
 		aLocation->SchemeIs("https", &b);
@@ -196,7 +208,7 @@ void CBrowserGlue::SetFocus()
 	// pThis->BringWindowToTop();
 }
 
-void CBrowserGlue::SetVisibility(BOOL aVisibility)
+void CBrowserGlue::SetVisibility(bool aVisibility)
 {
 	TRACE2("Set Visibility %u for window %s\n", aVisibility, mTitle);
     if(aVisibility)
@@ -220,7 +232,7 @@ void CBrowserGlue::SetVisibility(BOOL aVisibility)
     }
 }
 
-void CBrowserGlue::GetVisibility(BOOL *aVisible)
+void CBrowserGlue::GetVisibility(bool *aVisible)
 {
 	*aVisible = mpBrowserFrame->IsIconic() || !mpBrowserFrame->IsWindowVisible() ? PR_FALSE : PR_TRUE;
 }
@@ -306,7 +318,7 @@ void CBrowserGlue::PopupBlocked(const char* uri)
 void CBrowserGlue::SetFavIcon(nsIURI* favUri)
 {	
 #ifdef INTERNAL_SITEICONS	
-	if (favUri == nsnull) 
+	if (favUri == nullptr) 
 	{
 		// XXX Temporary set m_bDOMLoaded here
 		mDOMLoaded = TRUE;
@@ -318,7 +330,7 @@ void CBrowserGlue::SetFavIcon(nsIURI* favUri)
 		// so I'm calling it also when the page is loaded to be sure we
 		// checked for an IE icon. 
 
-		if (mIconURI != nsnull) return;
+		if (mIconURI != nullptr) return;
 		mIcon = theApp.favicons.GetDefaultIcon();
 		
 		if (theApp.preferences.GetBool("browser.chrome.favicons", PR_TRUE))
@@ -329,7 +341,7 @@ void CBrowserGlue::SetFavIcon(nsIURI* favUri)
 			mpBrowserView->GetBrowserWrapper()->GetCurrentURI(getter_AddRefs(currentURI));
 			if (!currentURI) return;
 
-			PRBool ishttp, b;
+			bool ishttp, b;
 			currentURI->SchemeIs("http", &b);
 			ishttp = b;
 			currentURI->SchemeIs("https", &b);
@@ -459,7 +471,7 @@ void CBrowserGlue::performXULCommand(LPCWSTR id, LPCTSTR siteUri)
 {
 	if (wcscmp(id, L"addCertificateExceptionButton") == 0)
 	{
-		nsCOMPtr<nsIRecentBadCertsService> badCertService = do_GetService(NS_RECENTBADCERTS_CONTRACTID);
+		nsCOMPtr<nsIRecentBadCerts> badCertService = do_GetService(NS_RECENTBADCERTS_CONTRACTID);
 		if (!badCertService) return;
 		
 		nsCOMPtr<nsIURI> uri;
@@ -479,8 +491,8 @@ void CBrowserGlue::performXULCommand(LPCWSTR id, LPCTSTR siteUri)
 		badCertService->GetRecentBadCert(CStringToNSString(hostAndPort), getter_AddRefs(certStatus));
 		if (!certStatus) return;
 
-		PRInt32 certFailureFlags = 0;
-		PRBool isDomainMismatch, isInvalidTime, isUntrusted;
+		int32_t certFailureFlags = 0;
+		bool isDomainMismatch, isInvalidTime, isUntrusted;
 		certStatus->GetIsDomainMismatch(&isDomainMismatch);
 		certStatus->GetIsNotValidAtThisTime(&isInvalidTime);
 		certStatus->GetIsUntrusted(&isUntrusted);
@@ -501,15 +513,69 @@ void CBrowserGlue::performXULCommand(LPCWSTR id, LPCTSTR siteUri)
 		nsresult rv = overrideService->RememberValidityOverride(host, port, cert, certFailureFlags, PR_TRUE);
 		NS_ENSURE_SUCCESS(rv, );
 
+#ifdef INTERNAL_SITEICONS
+		if (this->mIconURI)
+		{
+			this->mIconURI = nullptr;
+			this->SetFavIcon(NULL);  // is there a favicon.ico?
+		}
+#endif
 		mpBrowserView->GetBrowserWrapper()->Reload(true);
 		return;
 	}
 
-	if (wcscmp(id, L"exceptionDialogButton") == 0)
-	{
-		// TODO
-		return;
-	}
+  if (wcscmp(id, L"vieshit") == 0)
+   {
+      nsCOMPtr<nsIRecentBadCerts> badCertService = do_GetService(NS_RECENTBADCERTS_CONTRACTID);
+      if (!badCertService) return;
+
+      nsCOMPtr<nsIURI> uri;
+      mpBrowserView->GetBrowserWrapper()->GetCurrentURI(getter_AddRefs(uri));
+
+      nsresult rv;
+      PRInt32 port;
+      nsEmbedCString host;
+      uri->GetHost(host);
+      uri->GetPort(&port);
+      if (port == -1) port = 443; 
+
+      CString hostAndPort;
+      hostAndPort.Format(_T("%s:%d"), NSCStringToCString(host), port);
+
+       nsCOMPtr<nsISSLStatus> certStatus;
+      badCertService->GetRecentBadCert(CStringToNSString(hostAndPort), getter_AddRefs(certStatus));
+      if (!certStatus) return;
+
+      nsCOMPtr<nsIX509Cert> cert;
+      certStatus->GetServerCert(getter_AddRefs(cert));
+      if (!cert) return;
+
+      nsCOMPtr<nsICertificateDialogs> certDialogs = do_GetService (NS_CERTIFICATEDIALOGS_CONTRACTID, &rv);
+      if (NS_FAILED (rv)) return;
+
+      certDialogs->ViewCert(NULL, cert);
+      return;
+   }
+   else if (wcscmp(id, L"DeviceMananger") == 0)
+   {
+      CBrowserFrame* pFrame = theApp.CreateNewChromeDialog(_T("chrome://pippki/content/device_manager.xul"));
+      return;
+   }
+   else if (wcscmp(id, L"CertificateManager") == 0)
+   {
+      CBrowserFrame* pFrame = theApp.CreateNewChromeDialog(_T("chrome://pippki/content/certManager.xul"),theApp.m_pActiveWnd);
+      return;
+   }
+   else if (wcscmp(id, L"certerror") == 0)
+   {
+      CBrowserFrame* pFrame = theApp.CreateNewChromeDialog(_T("chrome://pippki/content/certerror.xul"),NULL);
+      return;
+   }
+   else if (wcscmp(id, L"exceptionDialogButton") == 0)
+   {
+      // TODO
+      return;
+   }
 }
 
 BOOL CBrowserGlue::AllowFlash()

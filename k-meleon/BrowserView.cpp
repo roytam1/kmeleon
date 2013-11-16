@@ -152,10 +152,10 @@ BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
 
     ON_COMMAND(ID_FONT_INCREASE, OnIncreaseFont)
     ON_COMMAND(ID_FONT_DECREASE, OnDecreaseFont)
-#if GECKO_VERSION > 18
+
     ON_COMMAND(ID_FULLZOOM_INCREASE, OnIncreaseFullZoom)
     ON_COMMAND(ID_FULLZOOM_DECREASE, OnDecreaseFullZoom)
-#endif
+
     ON_COMMAND(ID_LINK_KMELEON_FAQ, OnKmeleonFAQ)
     ON_COMMAND(ID_LINK_KMELEON_MANUAL, OnKmeleonManual)
     ON_COMMAND(ID_LINK_ABOUT_PLUGINS, OnAboutPlugins)
@@ -298,7 +298,7 @@ void CBrowserView::OnNewUrlEnteredInUrlBar()
 	m_pWindow->SetActive(TRUE);
 
 #ifdef INTERNAL_SITEICONS
-   GetBrowserGlue()->mIconURI = nsnull;
+   GetBrowserGlue()->mIconURI = NULL;
 #endif
 
 	// Ugly hack: needed because I can get an OnCbnEditchange 
@@ -428,7 +428,7 @@ void CBrowserView::OnNavForceReload()
 #ifdef INTERNAL_SITEICONS
 	if (GetBrowserGlue()->mIconURI) {
 		theApp.favicons.RefreshIcon(GetBrowserGlue()->mIconURI);
-		GetBrowserGlue()->mIconURI = nsnull;
+		GetBrowserGlue()->mIconURI = NULL;
 	}
 #endif
 	_OnNavReload(TRUE);
@@ -685,7 +685,7 @@ void CBrowserView::OnSaveImageAs()
 	nsCOMPtr<nsIURI> referrer;
 	mWebNav->GetCurrentURI(getter_AddRefs(referrer));
 
-	CSaveAsHandler* handler = new CSaveAsHandler(nsnull, nsnull, imageURI, nsnull, nsnull, referrer, mpBrowserFrame);
+	CSaveAsHandler* handler = new CSaveAsHandler(nullptr, nullptr, imageURI, nullptr, nullptr, referrer, mpBrowserFrame);
 	rv = handler->Save(mCtxImgType.get(), mCtxImgDisposition.get());
     if (NS_FAILED(rv) && rv != NS_ERROR_ABORT)
 		AfxMessageBox(IDS_SAVE_FAILED, MB_OK|MB_ICONERROR);*/
@@ -964,7 +964,7 @@ void CBrowserView::OnMouseAction()
 	maccel_cmd = 0;
 */
 }
-#if GECKO_VERSION > 18
+
 void CBrowserView::OnIncreaseFullZoom()
 {
    m_pWindow->ChangeFullZoom(1);
@@ -974,7 +974,7 @@ void CBrowserView::OnDecreaseFullZoom()
 {
    m_pWindow->ChangeFullZoom(-1);
 }
-#endif
+
 void CBrowserView::OnIncreaseFont()
 {
    m_pWindow->ChangeTextSize(1);

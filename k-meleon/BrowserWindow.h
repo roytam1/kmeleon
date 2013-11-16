@@ -27,6 +27,7 @@ class nsIX509Cert;
 #include "nsIWebBrowserFind.h"
 #include "nsIWebNavigation.h"
 #include "nsIWebBrowserFocus.h"
+#include "nsIWebBrowser.h"
 #include "nsIMarkupDocumentViewer.h"
 
 class CBrowserImpl;
@@ -92,21 +93,21 @@ public:
 
 	BOOL CanGoBack()
 	{
-		PRBool ret = PR_FALSE;
+		bool ret = false;
 		if (mWebNav) mWebNav->GetCanGoBack(&ret);
 		return ret;
 	}
 
 	BOOL CanGoForward()
 	{
-		PRBool ret = PR_FALSE;
+		bool ret = false;
 		if (mWebNav) mWebNav->GetCanGoForward(&ret);
 		return ret;
 	}
 
 	BOOL CanCut()
 	{
-	    PRBool ret = PR_FALSE;
+	    bool ret = false;
 		nsCOMPtr<nsIClipboardCommands> clipCmds = do_GetInterface(mWebBrowser);
 		if (clipCmds) clipCmds->CanCutSelection(&ret);
 		return ret;
@@ -114,7 +115,7 @@ public:
 
 	BOOL CanCopy()
 	{
-	    PRBool ret = PR_FALSE;
+	    bool ret = false;
 		nsCOMPtr<nsIClipboardCommands> clipCmds = do_GetInterface(mWebBrowser);
 		if (clipCmds) clipCmds->CanCopySelection(&ret);
 		return ret;
@@ -122,7 +123,7 @@ public:
 
 	BOOL CanPaste()
 	{
-	    PRBool ret = PR_FALSE;
+	    bool ret = false;
 		nsCOMPtr<nsIClipboardCommands> clipCmds = do_GetInterface(mWebBrowser);
 		if (clipCmds) clipCmds->CanPaste(&ret);
 		return ret;
@@ -130,7 +131,7 @@ public:
 
 	BOOL CanCopyImage()
 	{
-		PRBool ret = PR_FALSE;
+		bool ret = false;
 		nsCOMPtr<nsIClipboardCommands> clipCmds = do_GetInterface(mWebBrowser);
 		if (clipCmds) clipCmds->CanCopyImageContents(&ret);
 		return ret;
@@ -175,14 +176,14 @@ public:
 	void DoCommand(const char* cmd)
 	{
 		nsCOMPtr<nsICommandManager> commandMgr(do_GetInterface(mWebBrowser));
-		if (commandMgr) commandMgr->DoCommand(cmd, nsnull, nsnull);
+		if (commandMgr) commandMgr->DoCommand(cmd, nullptr, nullptr);
 	}
 
 	BOOL CanDoCommand(const char* cmd)
 	{
-		PRBool ret = PR_FALSE;
+		bool ret = false;
 		nsCOMPtr<nsICommandManager> commandMgr(do_GetInterface(mWebBrowser));
-		if (commandMgr)commandMgr->IsCommandEnabled(cmd, nsnull, &ret);
+		if (commandMgr)commandMgr->IsCommandEnabled(cmd, nullptr, &ret);
 		return ret;
 	}
 
@@ -260,21 +261,22 @@ public:
 		mWebBrowserFocus->SetFocusAtLastElement();
 	}
 
-	already_AddRefed<nsIWebBrowser> GetWebBrowser()
+	already_AddRefed<nsIWebBrowser> GetWebBrowser() const
 	{
-		nsIWebBrowser* browser;
-		NS_IF_ADDREF(browser = mWebBrowser);
-		return browser;
+		//nsIWebBrowser* browser;
+		//NS_IF_ADDREF(browser = mWebBrowser);
+		nsCOMPtr<nsIWebBrowser> browser = mWebBrowser;
+		return browser.forget();
 	}
 
-	already_AddRefed<nsIDOMWindow> GetContentWindow()
+	already_AddRefed<nsIDOMWindow> GetContentWindow() const
 	{
-		nsIDOMWindow* dom = nsnull;
+		nsIDOMWindow* dom = nullptr;
 		if (mWebBrowser) mWebBrowser->GetContentDOMWindow(&dom);
-		return dom;
+		return (decltype(nullptr))dom;
 	}
-
-	NS_IMETHODIMP GetWebBrowser(nsIWebBrowser **aWebBrowser)
+	 
+	NS_IMETHODIMP GetWebBrowser(nsIWebBrowser **aWebBrowser) const
 	{
 		*aWebBrowser = mWebBrowser;
 		NS_IF_ADDREF(*aWebBrowser);
@@ -295,17 +297,15 @@ public:
 		nsCOMPtr<nsIWebBrowserPrint> print(do_GetInterface(mWebBrowser));
 		NS_ENSURE_TRUE(print, FALSE);
 		
-		PRBool isPreview = PR_FALSE;
+		bool isPreview = false;
 		nsresult rv = print->GetDoingPrintPreview(&isPreview);
 		return isPreview;
 	}
 
-#if GECKO_VERSION > 18
 	already_AddRefed<nsIMarkupDocumentViewer> GetMarkupViewer();
 	BOOL SetFullZoom(float textzoom);
 	float GetFullZoom();
 	BOOL ChangeFullZoom(int change);
-#endif 
 
 	BOOL SetTextSize(float textzoom);
 	float GetTextSize();
@@ -358,7 +358,7 @@ private:
 	BOOL _Highlight(nsIDOMWindow* dom, const PRUnichar* backcolor, const PRUnichar* word, BOOL matchCase);
 	BOOL _Save(nsIURI* aURI, nsIDOMDocument* aDocument, LPCTSTR filename, nsIURI* aReferrer, nsISupports* aDescriptor);
 	BOOL GetCertificate(nsIX509Cert** certificate);
-	PRBool CheckNode(nsIDOMElement* elem);
+	bool CheckNode(nsIDOMElement* elem);
 	
 	nsIDocShell* GetDocShell();
 

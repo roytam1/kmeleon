@@ -123,7 +123,7 @@ BOOL CGenericDlg::OnInitDialog()
 	dc.SelectObject(pFont);
 
 	// Get the size of the icon.
-	int msgPadding = 0;
+	LONG msgPadding = 0;
 	CSize iconSize(0,0);
 	if (m_hIcon)
 	{
@@ -150,7 +150,7 @@ BOOL CGenericDlg::OnInitDialog()
 
 		// Get the max width needed for labels
 		CSize size = dc.GetTextExtent(ei.label);
-		editSize.cx = max(editSize.cx, size.cx);
+		editSize.cx = std::max(editSize.cx, size.cx);
 		//editSize.cy = max(editSize.cy, size.cy);
 	}
 
@@ -168,10 +168,10 @@ BOOL CGenericDlg::OnInitDialog()
 	{
 		CheckBoxInfos cbi = m_aCheckBoxes[i];
 		CSize size = dc.GetTextExtent(cbi.text);
-		cbxSize.cx = max(cbxSize.cx, size.cx);
+		cbxSize.cx = std::max(cbxSize.cx, size.cx);
 		// XXX: Each check box should have their own height
 		// Must support multiline.
-		cbxSize.cy = max(cbxSize.cy, size.cy);
+		cbxSize.cy = std::max(cbxSize.cy, size.cy);
 	}
 
 	cbxSize.cx += GetSystemMetrics(SM_CXMENUCHECK) + 2; // + 2 for crappy OS
@@ -184,21 +184,21 @@ BOOL CGenericDlg::OnInitDialog()
 	{
 		ButtonInfos bi = m_aButtons[i];
 		CSize size = dc.GetTextExtent(bi.text);
-		buttonSize.cx = max(buttonSize.cx, size.cx);
-		buttonSize.cy = max(buttonSize.cy, size.cy);
+		buttonSize.cx = std::max(buttonSize.cx, size.cx);
+		buttonSize.cy = std::max(buttonSize.cy, size.cy);
 	}
 
 	buttonSize.cx += 2*ConvX(BUTTON_MARGIN_X);
 	buttonSize.cy += 2*ConvY(BUTTON_MARGIN_Y);
 
 	// Total width needed for the buttons
-	int totalButtonsWidth = nb*buttonSize.cx + (nb-1)*ConvX(BUTTON_SPACE);
+	LONG totalButtonsWidth = nb*buttonSize.cx + (nb-1)*ConvX(BUTTON_SPACE);
 
 	// Message size
 	CSize textSize(0,0);
-	int baseWidth = max(ConvX(MSG_BASE_WIDTH), totalButtonsWidth - msgPadding);
-	baseWidth = max(baseWidth, cbxSize.cx);
-	baseWidth = max(baseWidth, editSize.cx);
+	LONG baseWidth = std::max((LONG)ConvX(MSG_BASE_WIDTH), totalButtonsWidth - msgPadding);
+	baseWidth = std::max(baseWidth, cbxSize.cx);
+	baseWidth = std::max(baseWidth, editSize.cx);
 
 	CRect rect(0, 0, baseWidth, 10);
 	dc.DrawText(m_csMsgText, rect ,DT_CALCRECT|DT_WORDBREAK);
@@ -236,14 +236,14 @@ BOOL CGenericDlg::OnInitDialog()
 	// Compute the dialog size
 	CSize dlgSize;
 
-	dlgSize.cx = max(textSize.cx + msgPadding, totalButtonsWidth);
-	dlgSize.cx = max(dlgSize.cx, cbxSize.cx + msgPadding);
-	dlgSize.cx = max(dlgSize.cx, editSize.cx + msgPadding);
+	dlgSize.cx = std::max(textSize.cx + msgPadding, (LONG)totalButtonsWidth);
+	dlgSize.cx = std::max(dlgSize.cx, cbxSize.cx + msgPadding);
+	dlgSize.cx = std::max(dlgSize.cx, editSize.cx + msgPadding);
 	dlgSize.cx += ConvX(BORDER_LEFT) + ConvX(BORDER_RIGHT);
 
 	dlgSize.cy = 
 		ConvY(BORDER_TOP) + ConvY(BORDER_BOTTOM) 
-		+ max(textSize.cy, iconSize.cy)
+		+ std::max(textSize.cy, iconSize.cy)
 		+ (ned ? yMsgSpace + totalEditHeight : 0)
 		+ (ncb ? yMsgSpace + totalCheckBoxHeight : 0)
 		+ (nb ? yMsgSpace + buttonSize.cy : 0);
@@ -258,7 +258,7 @@ BOOL CGenericDlg::OnInitDialog()
 	CenterWindow();
 
 	// Create and place the controls.
-	msgPadding = max( (dlgSize.cx - max(baseWidth, textSize.cx) - msgPadding)/2 + msgPadding,
+	msgPadding = std::max( (dlgSize.cx - std::max(baseWidth, (LONG)textSize.cx) - msgPadding)/2 + msgPadding,
 		ConvX(BORDER_LEFT) + msgPadding);
 
 	// Message 
@@ -287,7 +287,7 @@ BOOL CGenericDlg::OnInitDialog()
 
 	// Edit controls
 	int bx = msgPadding;
-	int by = ConvY(BORDER_TOP) + max(textSize.cy, iconSize.cy) + yMsgSpace;
+	int by = ConvY(BORDER_TOP) + std::max(textSize.cy, iconSize.cy) + yMsgSpace;
 
 	for(int i=0;i<ned;++i)
 	{

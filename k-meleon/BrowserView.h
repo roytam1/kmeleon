@@ -80,7 +80,7 @@ typedef enum
 		CString imageUrl;
 		CString frameUrl;
 
-		SContextData() : node(nsnull), /*event(nsnull),*/ contextMenu(FALSE), flags(0) {}
+		SContextData() : node(nullptr), /*event(nullptr),*/ contextMenu(FALSE), flags(0) {}
 	};
 
 
