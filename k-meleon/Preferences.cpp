@@ -207,7 +207,7 @@ BOOL LoadStyleSheet(nsIURI* uri, BOOL load)
   NS_ENSURE_TRUE(ssService, FALSE);
 
   nsresult rv = NS_OK;
-  PRBool alreadyRegistered = PR_FALSE;
+  bool alreadyRegistered = PR_FALSE;
   ssService->SheetRegistered(uri, nsIStyleSheetService::USER_SHEET, &alreadyRegistered);
   if (alreadyRegistered)
     rv = ssService->UnregisterSheet(uri, nsIStyleSheetService::USER_SHEET);
@@ -221,7 +221,7 @@ BOOL LoadStyleSheet(nsIURI* uri, BOOL load)
 BOOL LoadStyleSheet(LPCTSTR path, BOOL load)
 {
 	nsresult rv;
-	nsCOMPtr<nsILocalFile> adfile;
+	nsCOMPtr<nsIFile> adfile;
 #ifdef _UNICODE
 	rv = NS_NewLocalFile(nsDependentString(path), TRUE, getter_AddRefs(adfile));
 #else
@@ -231,7 +231,7 @@ BOOL LoadStyleSheet(LPCTSTR path, BOOL load)
 
 	nsCOMPtr<nsIIOService> ios = do_GetService("@mozilla.org/network/io-service;1");
 	NS_ENSURE_TRUE(ios, FALSE);
-    
+
 	nsCOMPtr<nsIURI> uri;
 	rv = ios->NewFileURI(adfile, getter_AddRefs(uri));
 	NS_ENSURE_SUCCESS(rv, FALSE);
@@ -265,29 +265,27 @@ void CPreferences::AdBlockChanged()
 }
 
 void CPreferences::Load() {
-   nsresult rv;
-   nsCOMPtr<nsIPrefService> prefs = do_GetService(NS_PREFSERVICE_CONTRACTID);
-   NS_ENSURE_TRUE(prefs, );
 
-   rv = prefs->GetBranch("", getter_AddRefs(m_prefs));
+   nsresult rv;
+   m_prefservice = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
+   if (!m_prefservice) return;
+
+   m_prefservice->ReadUserPrefs(nullptr);
+   m_prefservice->GetBranch("", getter_AddRefs(m_prefs));
    if (NS_FAILED(rv)) {
       _ASSERTE(m_prefs && "Could not get preferences service");
       return;
    }
 	
 #ifndef USE_PROFILES
-   prefs->ReadUserPrefs(nsnull);
+   m_prefservice->ReadUserPrefs(nullptr);
 #endif
-   PRBool inited;
+   bool inited;
    rv = m_prefs->GetBoolPref("kmeleon.prefs_inited", &inited);
    if (NS_FAILED(rv) || !inited) {
       // Set up prefs for first run
       rv = m_prefs->SetBoolPref("kmeleon.prefs_inited", PR_TRUE);
-
-      nsCOMPtr<nsIPrefService> prefs = do_GetService(NS_PREFSERVICE_CONTRACTID);
-      NS_ENSURE_TRUE(prefs, );
-
-      rv = prefs->SavePrefFile(nsnull);
+      rv = m_prefservice->SavePrefFile(nullptr);
    }
 
    // Well, since the observer own them, and release them at shutdown, we don't
@@ -341,15 +339,14 @@ void CPreferences::Load() {
 
 void CPreferences::Flush()
 {
-   nsCOMPtr<nsIPrefService> prefs = do_GetService(NS_PREFSERVICE_CONTRACTID);
-   NS_ENSURE_TRUE(prefs, );
-   prefs->SavePrefFile(nsnull);   
+   if (!m_prefservice) return;
+   m_prefservice->SavePrefFile(nullptr);      
 }
 
 int CPreferences::GetBool(const char *preference, int defaultVal)
 {
    if (!m_prefs) return defaultVal;
-	PRBool tempBool;
+   bool tempBool;
    nsresult rv = m_prefs->GetBoolPref(preference, &tempBool);
    if (NS_SUCCEEDED(rv))
       return tempBool;

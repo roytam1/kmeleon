@@ -24,6 +24,7 @@
 
 #include "nsIPermission.h"
 #include "nsIPermissionManager.h"
+#include "nsISimpleEnumerator.h"
 
 extern nsresult NewURI(nsIURI **result, const nsACString &spec);
 
@@ -87,11 +88,8 @@ public:
 		nsCOMPtr<nsIURI> uri;
 		rv = NewURI(getter_AddRefs(uri), nsurl);
 		NS_ENSURE_SUCCESS(rv, FALSE);
-#if GECKO_VERSION > 192		
+		
 		rv = m_permissionManager->Add(uri, m_type, state, 0, 0);
-#else
-		rv = m_permissionManager->Add(uri, m_type, state);
-#endif
 		NS_ENSURE_SUCCESS(rv, FALSE);
 		return TRUE;
 	}
@@ -113,7 +111,7 @@ public:
         rv = m_permissionManager->GetEnumerator(getter_AddRefs(enumPermission));
         if (NS_FAILED(rv)) return FALSE;
 
-		PRBool ret;
+		bool ret;
 		enumPermission->HasMoreElements(&ret);
 		while (ret)
 		{

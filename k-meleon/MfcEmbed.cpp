@@ -65,15 +65,10 @@
 #include "kmeleon_plugin.h"
 #include <io.h>
 #include <fcntl.h>
-#if GECKO_VERSION < 192
-#include "nsIPluginManager.h"
-#endif
+
 #include "nsIIOService.h"
 #include "nsIWindowWatcher.h"
-#if GECKO_VERSION < 19
-#include "nsIChromeRegistrySea.h"
-#include "nsIProfileInternal.h"
-#endif
+
 static UINT WM_POSTEVENT = RegisterWindowMessage(_T("XPCOM_PostEvent"));
 static UINT WM_FLASHRELAY = RegisterWindowMessage(_T("MozFlashUserRelay"));
 static UINT WM_NSEVENTID = RegisterWindowMessage(_T("nsAppShell:EventID"));
@@ -206,18 +201,7 @@ CMfcEmbedApp theApp;
 static NS_IMETHODIMP
 RefreshPlugins(PRBool aReloadPages)
 {
-#if GECKO_VERSION > 191
 	return NS_OK;
-#else
-    NS_DEFINE_CID(pluginManagerCID,NS_PLUGINMANAGER_CID);
-
-    nsCOMPtr<nsIPluginManager> plugins(do_GetService(pluginManagerCID));
-
-    if (!plugins)
-        return NS_ERROR_FAILURE;
-
-    return plugins->ReloadPlugins(aReloadPages);
-#endif
 }
 
 nsresult CMfcEmbedApp::SetOffline(BOOL offline)
@@ -338,13 +322,12 @@ bool CMfcEmbedApp::FindSkinFile( CString& szSkinFile, TCHAR *filename )
 #ifdef FIREFOX_CHROME
 BOOL CMfcEmbedApp::LoadLanguage()
 {
-   nsresult rv;
-   nsCOMPtr<nsIPrefService> sprefs = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
-   NS_ENSURE_SUCCESS(rv, FALSE);
-
-   nsCOMPtr<nsIPrefBranch> prefs;
-   rv = sprefs->GetBranch("", getter_AddRefs(prefs));
-   NS_ENSURE_SUCCESS(rv, FALSE);
+	nsresult rv;
+	nsCOMPtr<nsIPrefBranch> prefs;
+	nsCOMPtr<nsIPrefService> ps =do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
+	if (!ps) return FALSE;
+	ps->GetBranch("", getter_AddRefs(prefs));
+	if (!prefs) return FALSE;
 
    nsEmbedCString nslocale;
    rv = prefs->GetCharPref("general.useragent.locale", getter_Copies(nslocale));
@@ -487,45 +470,22 @@ BOOL CMfcEmbedApp::LoadLanguage()
 // default homepage
 //
 
-BOOL CMfcEmbedApp::InitInstance()
+XRE_InitEmbedding2Type XRE_InitEmbedding2 = 0;
+XRE_TermEmbeddingType XRE_TermEmbedding = 0;
+XRE_NotifyProfileType XRE_NotifyProfile = 0;
+XRE_LockProfileDirectoryType XRE_LockProfileDirectory = 0;
+
+BOOL CMfcEmbedApp::CheckInstance()
 {
-#ifndef FIREFOX_CHROME
-	LoadLanguage();
-#endif
-
-#ifdef _DEBUG
-	ShowDebugConsole();
-#endif
-
-#ifdef XPCOM_GLUE
-#if GECKO_VERSION >= 19
-	if (NS_FAILED(XPCOMGlueStartup(nsnull))) {
-#else
-    if (NS_FAILED(XPCOMGlueStartup(GRE_GetXPCOMPath()))) {
-#endif
-		MessageBox(NULL, _T("Could not initialize XPCOM. Perhaps the GRE\nis not installed or could not be found?"), _T("Kmeleon"), MB_OK | MB_ICONERROR);
-        return FALSE;
-    }
-
-#endif
-   m_hMutex = CreateMutex(NULL, FALSE, NULL);
-
-   // parse the command line
-   // XXX 
-   USES_CONVERSION;
-   cmdline.Initialize(T2A(m_lpCmdLine));
-   
-   // check for prior instances
-   m_bAlreadyRunning = cmdline.GetSwitch("-new", NULL, TRUE)<0;
    HANDLE hMutexOneInstance = CreateMutex( NULL, FALSE, _T("K-Meleon Instance Mutex") );
    DWORD dwWaitResult = WaitForSingleObject( hMutexOneInstance, 0);
    if (dwWaitResult == WAIT_OBJECT_0)
-     m_bAlreadyRunning = FALSE;
+     return TRUE;
 
    // if another instance is already running, pass it our command line paramaters,
    // and ask it to open a new window
    // eventually, we should handle this through DDE
-   if (m_bAlreadyRunning) {
+  
       // find the hidden window
       if (HWND hwndPrev = ::FindWindowEx(NULL, NULL, HIDDEN_WINDOW_CLASS, NULL) ) {
 
@@ -539,8 +499,61 @@ BOOL CMfcEmbedApp::InitInstance()
          else
             SendMessage(hwndPrev, UWM_NEWWINDOW, NULL, NULL);
       }
-      return FALSE;
-   }
+      return FALSE;   
+}
+
+BOOL CMfcEmbedApp::InitInstance()
+{
+   USES_CONVERSION;
+   cmdline.Initialize(T2A(m_lpCmdLine));
+
+   // check for prior instances
+   m_bAlreadyRunning = FALSE;
+   if (cmdline.GetSwitch("-new", NULL, TRUE)<0 && !CheckInstance())
+	   return FALSE;
+
+#ifndef FIREFOX_CHROME
+	LoadLanguage();
+#endif
+
+#ifdef _DEBUG
+	ShowDebugConsole();
+#endif
+
+    TCHAR path[_MAX_PATH+1];
+    ::GetModuleFileName(0, path, _MAX_PATH);
+    TCHAR* lastSlash = _tcsrchr(path, _T('\\'));
+    if (!lastSlash) return FALSE;
+    *lastSlash = _T('\0');
+    m_sRootFolder = path;
+
+	if (NS_FAILED(XPCOMGlueStartup(m_sRootFolder+"\\xul.dll"))) {
+		MessageBox(NULL, _T("Could not initialize XPCOM. Perhaps the GRE\nis not installed or could not be found?"), _T("Kmeleon"), MB_OK | MB_ICONERROR);
+        return FALSE;
+    }
+
+   m_hMutex = CreateMutex(NULL, FALSE, NULL);
+
+	// load XUL functions
+    nsDynamicFunctionLoad nsFuncs[] = {
+            {"XRE_InitEmbedding2", (NSFuncPtr*)&XRE_InitEmbedding2},
+            {"XRE_TermEmbedding", (NSFuncPtr*)&XRE_TermEmbedding},
+            {"XRE_NotifyProfile", (NSFuncPtr*)&XRE_NotifyProfile},
+            {"XRE_LockProfileDirectory", (NSFuncPtr*)&XRE_LockProfileDirectory},
+            {0, 0}
+    };
+
+	nsresult rv = XPCOMGlueLoadXULFunctions(nsFuncs);
+	NS_ENSURE_SUCCESS(rv, FALSE);
+
+
+   // parse the command line
+   // XXX 
+   
+   
+
+	   
+   
 
 #ifdef _UNICODE
    if (cmdline.GetSwitch("-norestrict", NULL, TRUE)<0 && RestartAsRestricted())
@@ -549,14 +562,19 @@ BOOL CMfcEmbedApp::InitInstance()
 		return FALSE;
    }
 #endif
-   
-   // Enable DEP
-   HMODULE hMod = GetModuleHandleW(L"Kernel32.dll");
-   if (!hMod) return FALSE;
-   typedef BOOL (WINAPI *PSETDEP)(DWORD);
-   PSETDEP procSet = (PSETDEP)GetProcAddress(hMod,"SetProcessDEPPolicy");
-   if (procSet) procSet(0x00000001);
 
+#define PROCESS_DEP_ENABLE                          0x00000001
+#define PROCESS_DEP_DISABLE_ATL_THUNK_EMULATION     0x00000002
+#ifndef _DEBUG
+   HMODULE hMod = GetModuleHandleW(L"Kernel32.dll");
+   if (hMod)
+   {
+      typedef BOOL (WINAPI *PSETDEP)(DWORD);
+      PSETDEP procSet = (PSETDEP)GetProcAddress(hMod,"SetProcessDEPPolicy");
+      if (procSet) procSet(PROCESS_DEP_ENABLE);
+   }
+#endif
+   
     //Enable3dControls();   
     //
     // 1. Determine the name of the dir from which the GRE based app is being run
@@ -567,18 +585,9 @@ BOOL CMfcEmbedApp::InitInstance()
     // Please see http://www.mozilla.org/projects/embedding/GRE.html
     // for more info. on GRE
 
-    TCHAR path[_MAX_PATH+1];
-    ::GetModuleFileName(0, path, _MAX_PATH);
-    TCHAR* lastSlash = _tcsrchr(path, _T('\\'));
-    if (!lastSlash) {
-        NS_ERROR("No slash in module file name... something is wrong.");
-        return FALSE;
-    }
-    *lastSlash = _T('\0');
-    m_sRootFolder = path;
+   
 
-    nsresult rv;
-    nsCOMPtr<nsILocalFile> mreAppDir;
+    nsCOMPtr<nsIFile> mreAppDir;
 #ifdef _UNICODE
     rv = NS_NewLocalFile(nsEmbedString(path), TRUE, getter_AddRefs(mreAppDir));
 #else
@@ -598,7 +607,14 @@ BOOL CMfcEmbedApp::InitInstance()
       ASSERT(FALSE);
       return FALSE;
    }
+
+   nsCOMPtr<nsIFile> appSubdir;
+    mreAppDir->Clone(getter_AddRefs(appSubdir));
+    appSubdir->Append(NS_LITERAL_STRING("browser"));
    
+    rv = XRE_InitEmbedding2(mreAppDir, appSubdir, provider);
+    NS_ENSURE_SUCCESS(rv, FALSE);
+   /*
 #ifdef _BUILD_STATIC_BIN
 	rv = NS_InitEmbedding(mreAppDir, provider, kPStaticModules, kStaticModuleCount);
 #else
@@ -609,19 +625,13 @@ BOOL CMfcEmbedApp::InitInstance()
    { 
       ASSERT(FALSE);
       return FALSE;
-   }
+   }*/
    
 #ifdef FIREFOX_CHROME
    LoadLanguage();
 #endif
 
-   rv = OverrideComponents();
-   if(NS_FAILED(rv)) 
-   {
-      ASSERT(FALSE);
-      return FALSE;
-   }
-   
+ 
    rv = InitializeWindowCreator();
    if (NS_FAILED(rv)) 
    {
@@ -632,7 +642,7 @@ BOOL CMfcEmbedApp::InitInstance()
    if(!InitializeProfiles())
    {
       ASSERT(FALSE);
-      NS_TermEmbedding();
+	  XRE_TermEmbedding();
       return FALSE;
    }
 
@@ -705,7 +715,8 @@ BOOL CMfcEmbedApp::InitInstance()
    // browser window for us
    if(!CreateHiddenWindow()){
       ASSERT(FALSE);
-      NS_TermEmbedding();
+	  XRE_TermEmbedding();
+      //NS_TermEmbedding();
       return FALSE;
    }
 
@@ -1257,10 +1268,11 @@ int CMfcEmbedApp::ExitInstance()
       delete m_ProfileMgr;
    }
    
-   NS_TermEmbedding();
+   XRE_TermEmbedding();
+   //NS_TermEmbedding();
 
 #ifdef XPCOM_GLUE
-    XPCOMGlueShutdown();
+   // XPCOMGlueShutdown();
 #endif
 
    plugins.UnLoadAll();
@@ -1297,8 +1309,6 @@ BOOL CMfcEmbedApp::IsIdleMessage( MSG* pMsg )
    if (!CWinApp::IsIdleMessage( pMsg ) || 
       pMsg->message == WM_USER+1 || // WM_CALLMETHOD
       pMsg->message == WM_POSTEVENT ||
-      pMsg->message == WM_FLASHRELAY ||
-      pMsg->message == WM_NSEVENTID ||
       pMsg->message == WM_TIMER) 
 
       return FALSE;
@@ -1451,81 +1461,81 @@ NS_IMETHODIMP CMfcEmbedApp::Observe(nsISupports *aSubject, const char *aTopic, c
 {
    nsresult rv = NS_OK;
    
-   USES_CONVERSION;
+   //USES_CONVERSION;
 
-   if (strcmp(aTopic, "profile-approve-change") == 0 &&
-       (!someData ||
-        strcmp(W2A(someData), "shutdown-cleanse") != 0 &&
-        strcmp(W2A(someData), "shutdown-persist") != 0))
-   {
-      // Ask the user if they want to
-      int result = AfxMessageBox(IDS_PROFILE_SWITCH, MB_YESNO | MB_ICONQUESTION, 0);
-      if (result != IDYES)
-      {
-         nsCOMPtr<nsIProfileChangeStatus> status = do_QueryInterface(aSubject);
-         NS_ENSURE_TRUE(status, NS_ERROR_FAILURE);
-         status->VetoChange();
-      }
-   }
-   else if (strcmp(aTopic, "profile-change-teardown") == 0)
-   {
-      // Close all open windows. Alternatively, we could just call CBrowserWrapper::Stop()
-      // on each. Either way, we have to stop all network activity on this phase.
-      
-      POSITION pos = m_MiscWndLst.GetHeadPosition();
-      while( pos != NULL )
-      {
-         CProgressDialog *pDlg = (CProgressDialog *) m_MiscWndLst.GetNext(pos);
-         if (pDlg)
-            pDlg->Cancel();
-      }
-      
-      m_bSwitchingProfiles = TRUE;
-      pos = m_FrameWndLst.GetHeadPosition();
-      while( pos != NULL ) {
-         CBrowserFrame *pBrowserFrame = (CBrowserFrame *) m_FrameWndLst.GetNext(pos);
-         if(pBrowserFrame)
-            pBrowserFrame->SendMessage(WM_CLOSE);
-      }
-      m_bSwitchingProfiles = FALSE;
+   //if (strcmp(aTopic, "profile-approve-change") == 0 &&
+   //    (!someData ||
+   //     strcmp(W2A(someData), "shutdown-cleanse") != 0 &&
+   //     strcmp(W2A(someData), "shutdown-persist") != 0))
+   //{
+   //   // Ask the user if they want to
+   //   int result = AfxMessageBox(IDS_PROFILE_SWITCH, MB_YESNO | MB_ICONQUESTION, 0);
+   //   if (result != IDYES)
+   //   {
+   //      nsCOMPtr<nsIProfileChangeStatus> status = do_QueryInterface(aSubject);
+   //      NS_ENSURE_TRUE(status, NS_ERROR_FAILURE);
+   //      status->VetoChange();
+   //   }
+   //}
+   //else if (strcmp(aTopic, "profile-change-teardown") == 0)
+   //{
+   //   // Close all open windows. Alternatively, we could just call CBrowserWrapper::Stop()
+   //   // on each. Either way, we have to stop all network activity on this phase.
+   //   
+   //   POSITION pos = m_MiscWndLst.GetHeadPosition();
+   //   while( pos != NULL )
+   //   {
+   //      CProgressDialog *pDlg = (CProgressDialog *) m_MiscWndLst.GetNext(pos);
+   //      if (pDlg)
+   //         pDlg->Cancel();
+   //   }
+   //   
+   //   m_bSwitchingProfiles = TRUE;
+   //   pos = m_FrameWndLst.GetHeadPosition();
+   //   while( pos != NULL ) {
+   //      CBrowserFrame *pBrowserFrame = (CBrowserFrame *) m_FrameWndLst.GetNext(pos);
+   //      if(pBrowserFrame)
+   //         pBrowserFrame->SendMessage(WM_CLOSE);
+   //   }
+   //   m_bSwitchingProfiles = FALSE;
 
-      preferences.Flush();
-   }
-   else if (strcmp(aTopic, "profile-after-change") == 0)
-   {        
-      // Only reinitialize everything if this is a profile switch, since this
-      // called at start up and we already do evenything once already
-      if (!wcscmp(someData, NS_LITERAL_STRING("switch").get())) {
-         
-         /* XXX Plugin that use global vars can't be unloaded/reloaded
-            correctly.
-         */
-         
-         plugins.SendMessage("*", "* Plugin Manager", "Quit");
-         plugins.UnLoadAll();
-         menus.Destroy();
-         InitializePrefs();
-         CheckProfileVersion();
+   //   preferences.Flush();
+   //}
+   //else if (strcmp(aTopic, "profile-after-change") == 0)
+   //{        
+   //   // Only reinitialize everything if this is a profile switch, since this
+   //   // called at start up and we already do evenything once already
+   //   if (!wcscmp(someData, NS_LITERAL_STRING("switch").get())) {
+   //      
+   //      /* XXX Plugin that use global vars can't be unloaded/reloaded
+   //         correctly.
+   //      */
+   //      
+   //      plugins.SendMessage("*", "* Plugin Manager", "Quit");
+   //      plugins.UnLoadAll();
+   //      menus.Destroy();
+   //      InitializePrefs();
+   //      CheckProfileVersion();
 
-         plugins.FindAndLoad();
-         plugins.SendMessage("*", "* Plugin Manager", "Init");
-         InitializeMenusAccels();
-         plugins.SendMessage("*", "* Plugin Manager", "Setup");
-         
-         CBrowserFrame* browser;
-         browser = CreateNewBrowserFrame();
-         
-         if (!browser) {
-            MessageBox(NULL, _T("Could not create browser frame"), NULL, MB_OK);
-            m_pMainWnd->PostMessage(WM_QUIT);
-            return NS_ERROR_FAILURE;
-         }
-         
-         browser->SetFocus();
-         // browser->m_wndUrlBar.MaintainFocus();
-         browser->GetActiveView()->LoadHomePage();
-      }
-   }
+   //      plugins.FindAndLoad();
+   //      plugins.SendMessage("*", "* Plugin Manager", "Init");
+   //      InitializeMenusAccels();
+   //      plugins.SendMessage("*", "* Plugin Manager", "Setup");
+   //      
+   //      CBrowserFrame* browser;
+   //      browser = CreateNewBrowserFrame();
+   //      
+   //      if (!browser) {
+   //         MessageBox(NULL, _T("Could not create browser frame"), NULL, MB_OK);
+   //         m_pMainWnd->PostMessage(WM_QUIT);
+   //         return NS_ERROR_FAILURE;
+   //      }
+   //      
+   //      browser->SetFocus();
+   //      // browser->m_wndUrlBar.MaintainFocus();
+   //      browser->GetActiveView()->LoadHomePage();
+   //   }
+   //}
    
    return rv;
 }
@@ -1646,26 +1656,6 @@ void CMfcEmbedApp::CheckProfileVersion()
          needClean = TRUE;
          WritePrivateProfileString(_T("Version"), _T("LastVersion"), version, fileVersion);
       }
-#if GECKO_VERSION < 19
-      if (locale.GetLength()) {
-         TCHAR buf[10];
-         GetPrivateProfileString(_T("Version"), _T("LastLocale"), version, buf, 10, fileVersion);
-         if (_tcscmp(buf, locale) != 0) {
-            nsresult rv = NS_OK;
-            nsCOMPtr<nsIChromeRegistrySea> chromeRegistry =
-               do_GetService(NS_CHROMEREGISTRY_CONTRACTID, &rv);
-            if (NS_SUCCEEDED(rv)) {
-               USES_CONVERSION;
-               // XXX The first call to SelectLocale shouldn't be here. The current 
-               // global locale should be stored elsewhere
-               // rv = chromeRegistry->SelectLocale(nsEmbedCString(T2CA(locale)), PR_FALSE);
-               rv |= chromeRegistry->SelectLocale(nsEmbedCString(T2CA(locale)), PR_TRUE);
-               if (NS_SUCCEEDED(rv))
-                  WritePrivateProfileString(_T("Version"), _T("LastLocale"), locale, fileVersion);
-            }
-         }
-      }
-#endif
    }
 
    if (needClean) {

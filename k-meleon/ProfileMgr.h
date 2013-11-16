@@ -33,7 +33,6 @@
 
 // Mozilla Includes
 #include "nsError.h"
-#include "nsProfileDirServiceProvider.h"
 
 // Forward Declarations
 class nsIRegistry;

@@ -1,31 +1,31 @@
 #include "stdafx.h"
 #include "nsIWindowWatcher.h"
 #include "nsIIOService.h"
-#include "nsIDOMWindow2.h"
+
 #include "nsDirectoryServiceUtils.h"
 
 #include "nsIDOMHTMLImageElement.h"
 #include "nsIDOMHTMLInputElement.h"
 #include "nsIDOMHTMLObjectElement.h"
-#include "nsIDOMViewCSS.h"
-#include "nsIDOMAbstractView.h"
+
 #include "nsIDOMCSSPrimitiveValue.h"
 #include "nsIDOMCSSStyleDeclaration.h"
-#include "nsIDOMDocumentView.h"
+
 #include "nsIDOMCharacterData.h"
 
 #include "nsIDOMHTMLAreaElement.h"
 #include "nsIDOMHTMLLinkElement.h"
 #include "nsIDOMHTMLAnchorElement.h"
-#include "nsIDOMNSDocument.h"
+
 #include "nsIDOMDocument.h"
 #include "nsIDOMLocation.h"
-#include "nsIDOM3Document.h"
+
 #include "nsIImageLoadingContent.h"
 
 #include "nsIConsoleService.h"
 #include "nsIScriptError.h"
-
+#include "nsIEmbeddingSiteWindow.h"
+#include "nsPIDOMWindow.h"
 
 nsEmbedString CStringToNSString(LPCTSTR aStr)
 {
@@ -78,7 +78,7 @@ nsresult NewURI(nsIURI **result, const nsACString &spec)
   nsCOMPtr<nsIIOService> ios = do_GetService("@mozilla.org/network/io-service;1");
   NS_ENSURE_TRUE(ios, NS_ERROR_UNEXPECTED);
 
-  return ios->NewURI(spec, nsnull, nsnull, result);
+  return ios->NewURI(spec, nullptr, nullptr, result);
 }
 
 nsresult NewURI(nsIURI **result, const nsAString &spec)
@@ -96,10 +96,10 @@ nsresult GetDOMEventTarget (nsIWebBrowser* aWebBrowser, nsIDOMEventTarget** aTar
 	aWebBrowser->GetContentDOMWindow (getter_AddRefs(domWin));
 	NS_ENSURE_TRUE (domWin, NS_ERROR_FAILURE);
 
-  	nsCOMPtr<nsIDOMWindow2> domWin2 (do_QueryInterface (domWin));
-	NS_ENSURE_TRUE (domWin2, NS_ERROR_FAILURE);
+  	//nsCOMPtr<nsIDOMWindow2> domWin2 (do_QueryInterface (domWin));
+	//NS_ENSURE_TRUE (domWin2, NS_ERROR_FAILURE);
 	
-	return domWin2->GetWindowRoot (aTarget);
+	return domWin->GetWindowRoot (aTarget);
 }
 
 CWnd* CWndForDOMWindow(nsIDOMWindow *aWindow)
@@ -131,11 +131,8 @@ CWnd* CWndForDOMWindow(nsIDOMWindow *aWindow)
 
 CString GetUriForDocument(nsIDOMDocument *document)
 {
-	nsCOMPtr<nsIDOMNSDocument> nsDoc = do_QueryInterface(document);
-	NS_ENSURE_TRUE(nsDoc, _T(""));
-
 	nsCOMPtr<nsIDOMLocation> location;
-	nsDoc->GetLocation(getter_AddRefs(location));
+	document->GetLocation(getter_AddRefs(location));
 	NS_ENSURE_TRUE(location, _T(""));
 	
 	nsEmbedString url;
@@ -207,7 +204,7 @@ void GatherTextUnder(nsIDOMNode* aNode, CString& aResult)
 		}
 
 		// Find the next node to test.
-		PRBool hasChildNodes;
+		bool hasChildNodes;
 		node->HasChildNodes(&hasChildNodes);
 		if (hasChildNodes) {
 			nsCOMPtr<nsIDOMNode> temp = node;
@@ -223,7 +220,7 @@ void GatherTextUnder(nsIDOMNode* aNode, CString& aResult)
 				nsCOMPtr<nsIDOMNode> parentNode;
 				node->GetParentNode(getter_AddRefs(parentNode));
 				if (!parentNode)
-					node = nsnull;
+					node = nullptr;
 				else {
 					nsCOMPtr<nsIDOMNode> nextSibling2;
 					parentNode->GetNextSibling(getter_AddRefs(nextSibling2));
@@ -253,7 +250,7 @@ BOOL GetLinkTitleAndHref(nsIDOMNode* node, CString& aHref, CString& aTitle)
 			// Test if the element has an associated link
 			nsCOMPtr<nsIDOMElement> element(do_QueryInterface(node));
 
-			PRBool hasAttr = PR_FALSE;
+			bool hasAttr = PR_FALSE;
 			rv = element->HasAttribute(NS_LITERAL_STRING("href"), &hasAttr);
 			if (NS_SUCCEEDED(rv) && hasAttr)
 			{
@@ -288,6 +285,7 @@ BOOL GetLinkTitleAndHref(nsIDOMNode* node, CString& aHref, CString& aTitle)
 }
 
 
+
 nsresult GetCSSBackground(nsIDOMNode *node, nsEmbedString& aUrl)
 {
 	NS_ENSURE_ARG(node);
@@ -295,21 +293,17 @@ nsresult GetCSSBackground(nsIDOMNode *node, nsEmbedString& aUrl)
 
 	nsCOMPtr<nsIDOMDocument> document;
 	node->GetOwnerDocument(getter_AddRefs(document));
-	nsCOMPtr<nsIDOMDocumentView> docView(do_QueryInterface(document));
-	NS_ENSURE_TRUE(docView, NS_ERROR_FAILURE);
-
-	nsCOMPtr<nsIDOMAbstractView> defaultView;
-	docView->GetDefaultView(getter_AddRefs(defaultView));
-	nsCOMPtr<nsIDOMViewCSS> defaultCSSView(do_QueryInterface(defaultView));
-	NS_ENSURE_TRUE(defaultCSSView, NS_ERROR_FAILURE);
+	
+	nsCOMPtr<nsPIDOMWindow> piWindow = do_QueryInterface(document/*domWindow*/, &rv); // How to get piWindow (from domWindow)
+	NS_ENSURE_SUCCESS(rv, rv);
 
 	nsCOMPtr<nsIDOMElement> domElement = do_QueryInterface(node);
 	NS_ENSURE_TRUE(domElement, NS_ERROR_FAILURE);
 
 	nsCOMPtr<nsIDOMCSSStyleDeclaration> computedStyle;
-	defaultCSSView->GetComputedStyle(domElement, nsEmbedString(), getter_AddRefs(computedStyle));
-	NS_ENSURE_TRUE(computedStyle, NS_ERROR_FAILURE);
-
+	rv = piWindow->GetComputedStyle(domElement, nsEmbedString(), getter_AddRefs(computedStyle));
+	NS_ENSURE_SUCCESS(rv, rv);
+	
 	nsCOMPtr<nsIDOMCSSValue> cssValue;
 	computedStyle->GetPropertyCSSValue(NS_LITERAL_STRING("background-image"), getter_AddRefs(cssValue));
 
@@ -328,11 +322,8 @@ nsresult GetCSSBackground(nsIDOMNode *node, nsEmbedString& aUrl)
 	NS_ENSURE_SUCCESS(rv, NS_ERROR_FAILURE);
 
 	// Resolve the url with the base
-	nsCOMPtr<nsIDOM3Document> doc = do_QueryInterface(document);
-	NS_ENSURE_TRUE(doc, NS_ERROR_FAILURE);
-
 	nsEmbedString nsURL;
-	rv = doc->GetDocumentURI(nsURL);
+	rv = document->GetDocumentURI(nsURL);
 	NS_ENSURE_SUCCESS(rv, NS_ERROR_FAILURE);
 /*
 	nsCOMPtr<nsIDOMNSDocument> nsDocument(do_QueryInterface(document));
@@ -347,7 +338,7 @@ nsresult GetCSSBackground(nsIDOMNode *node, nsEmbedString& aUrl)
 
 	nsCOMPtr<nsIURI> docUri;
 	rv = NewURI(getter_AddRefs(docUri), nsURL);
-	NS_ENSURE_SUCCESS(rv, FALSE);
+	NS_ENSURE_SUCCESS(rv, rv);
 
 	nsEmbedCString bgCUrl, bgCUrl2;
 	NS_UTF16ToCString (bgUrl, NS_CSTRING_ENCODING_UTF8, bgCUrl);	
@@ -436,9 +427,9 @@ BOOL LogMessage(const char* category, const char* message, const char* file, uin
 	
 	USES_CONVERSION;
 	nsresult rv = scriptError->Init(
-		A2CW(message),
-		A2CW(file),
-		L"",	line, 0,
+		nsString(A2CW(message)),
+		nsString(A2CW(file)),
+		nsString(L""),	line, 0,
 		flags,
 		category);
 	

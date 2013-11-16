@@ -149,9 +149,11 @@ public:
 
 class Locale {
 private:
+	HINSTANCE hModDll;
 	HINSTANCE hResDll;
 	HINSTANCE hLangDll;
 	BOOL bUserFont;
+	const TCHAR* sName;
 
 	static Locale* mLocale;
 	
@@ -167,6 +169,7 @@ private:
 		hLangDll = LoadLibrary(resfilename);
 		hResDll = hLangDll ? hLangDll : hModule;
 		bUserFont = userFont;
+		sName = name;
 		delete resfilename;
 	}
 

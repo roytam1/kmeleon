@@ -39,6 +39,7 @@ extern CMfcEmbedApp theApp;
 
 #include "nsICacheService.h"
 
+
 int SessionSize=0;
 char **pHistory;
 char **pHistUrl;
@@ -485,11 +486,7 @@ int SetMozillaSessionHistory (HWND hWnd, const char **titles, const char **urls,
 	   if (!nsuri) continue;
 
 	   USES_CONVERSION;
-#if GECKO_VERSION > 18
-	   rv = newSHEntry->Create(nsuri, nsEmbedString(A2CW(titles[i])), nsnull, nsnull, nsnull, nsEmbedCString(""), nsnull);
-#else
-	   rv = newSHEntry->Create(nsuri, nsEmbedString(A2CW(titles[i])), nsnull, nsnull, nsnull, nsEmbedCString(""));
-#endif
+	   rv = newSHEntry->Create(nsuri, nsEmbedString(A2CW(titles[i])), nullptr, nullptr, nullptr, nsEmbedCString(""), nullptr, 0, true);
 	   if (NS_SUCCEEDED(rv)) sHInternal->AddEntry(newSHEntry, PR_TRUE);
    }
 
@@ -525,7 +522,7 @@ int GetMozillaSessionHistory (HWND hWnd, char ***titles, char ***urls, int *coun
 		 }
       }
    }
-
+   
    SessionSize = *count;
    
    if (pHistory) {
@@ -573,7 +570,7 @@ int GetMozillaSessionHistory (HWND hWnd, char ***titles, char ***urls, int *coun
       len = WideCharToMultiByte(CP_ACP, 0, title, -1, s, len, NULL, NULL);
       s[len] = 0;
       pHistory[i] = s;
-      nsMemory::Free(title);
+     nsMemory::Free(title);
    }
    
    if (titles)
@@ -740,7 +737,7 @@ kmeleonPointInfo *GetInfoAtPoint(int x, int y)
 	return NULL;
 	/*
    if (!theApp.m_pMostRecentBrowserFrame || !theApp.m_pMostRecentBrowserFrame->m_wndBrowserView)
-      return GetInfoAtNode(nsnull);
+      return GetInfoAtNode(nullptr);
 
    CBrowserView *pBrowserView;  
    pBrowserView = &theApp.m_pMostRecentBrowserFrame->m_wndBrowserView;

@@ -33,20 +33,16 @@
 
 #include "nsIDialogParamBlock.h"
 #include "nsIWindowWatcher.h"
-#if GECKO_VERSION > 18
 #include "nsIMutableArray.h"
-#endif
+
 
 extern CWnd* CWndForDOMWindow(nsIDOMWindow *aWindow);
 
 NS_DEFINE_CID (kX509CertCID, NS_IX509CERT_IID);
 NS_DEFINE_CID (kASN1ObjectCID, NS_IASN1OBJECT_IID);
 
-#if GECKO_VERSION > 18
 NS_IMPL_ISUPPORTS1(CNSSDialogs, nsICertificateDialogs)				   
-#else			   
-NS_IMPL_ISUPPORTS2(CNSSDialogs, nsIBadCertListener,  nsICertificateDialogs)
-#endif
+
 
 CNSSDialogs::CNSSDialogs()
 {
@@ -61,7 +57,7 @@ CNSSDialogs::~CNSSDialogs()
 //////////////////////////////////////////////////////////////
 
 /* boolean confirmDownloadCACert (in nsIInterfaceRequestor ctx, in nsIX509Cert cert, out unsigned long trust); */
-NS_IMETHODIMP CNSSDialogs::ConfirmDownloadCACert(nsIInterfaceRequestor *ctx, nsIX509Cert *cert, PRUint32 *trust, PRBool *_retval)
+NS_IMETHODIMP CNSSDialogs::ConfirmDownloadCACert(nsIInterfaceRequestor *ctx, nsIX509Cert *cert, uint32_t *trust, bool *_retval)
 {
 	// chrome://pippki/content/downloadcert.xul
 
@@ -111,7 +107,7 @@ NS_IMETHODIMP CNSSDialogs::NotifyCACertExists(nsIInterfaceRequestor *ctx)
 }
 
 /* boolean setPKCS12FilePassword (in nsIInterfaceRequestor ctx, out AString password); */
-NS_IMETHODIMP CNSSDialogs::SetPKCS12FilePassword(nsIInterfaceRequestor *ctx, nsAString & password, PRBool *_retval)
+NS_IMETHODIMP CNSSDialogs::SetPKCS12FilePassword(nsIInterfaceRequestor *ctx, nsAString & password, bool *_retval)
 {
 	//chrome://pippki/content/setp12password.xul
 	nsCOMPtr<nsIDOMWindow> parent = do_GetInterface (ctx);
@@ -129,7 +125,7 @@ NS_IMETHODIMP CNSSDialogs::SetPKCS12FilePassword(nsIInterfaceRequestor *ctx, nsA
 }
 
 /* boolean getPKCS12FilePassword (in nsIInterfaceRequestor ctx, out AString password); */
-NS_IMETHODIMP CNSSDialogs::GetPKCS12FilePassword(nsIInterfaceRequestor *ctx, nsAString & password, PRBool *_retval)
+NS_IMETHODIMP CNSSDialogs::GetPKCS12FilePassword(nsIInterfaceRequestor *ctx, nsAString & password, bool *_retval)
 {
 	//chrome://pippki/content/getp12password.xul
 
@@ -275,17 +271,9 @@ NS_IMETHODIMP CNSSDialogs::ViewCert(nsIInterfaceRequestor *ctx, nsIX509Cert *cer
     return NS_OK;
 }
 
-/* void crlImportStatusDialog (in nsIInterfaceRequestor ctx, in nsICRLInfo crl); */
-NS_IMETHODIMP CNSSDialogs::CrlImportStatusDialog(nsIInterfaceRequestor *ctx, nsICRLInfo *crl)
-{
-	//chrome://pippki/content/crlImportDialog.xul
-
-    return NS_ERROR_NOT_IMPLEMENTED;
-}
-
 //////////////////////////////////////////////////////////////
 
-#if GECKO_VERSION < 19
+#if GECKO_VERSION = 18
 
 /* boolean confirmUnknownIssuer (in nsIInterfaceRequestor socketInfo, in nsIX509Cert cert, out short certAddType); */
 NS_IMETHODIMP CNSSDialogs::ConfirmUnknownIssuer(nsIInterfaceRequestor *socketInfo, nsIX509Cert *cert, PRInt16 *certAddType, PRBool *_retval)
@@ -502,7 +490,7 @@ void CConfirmCertExpiredDialog::OnBnClickedHelpCert()
     nsCOMPtr<nsIWindowWatcher> mWWatch(do_GetService(NS_WINDOWWATCHER_CONTRACTID));
     if (mWWatch)
 	{
-		mWWatch->OpenWindow(nsnull, "chrome://help/content/help.xul", "_blank", "chrome,all,alwaysRaised,dialog=no", params, &dm);
+		mWWatch->OpenWindow(nullptr, "chrome://help/content/help.xul", "_blank", "chrome,all,alwaysRaised,dialog=no", params, &dm);
 		CWndForDOMWindow(dm)->SetFocus();
 	}*/
 }
@@ -764,7 +752,7 @@ void CViewCertGeneralPage::DoDataExchange(CDataExchange* pDX)
 	//{{AFX_DATA_MAP(CNewServerDialog)
 	DDX_Text(pDX, IDC_VERIFIED, m_csVerified);
 	DDX_Text(pDX, IDC_USAGE, m_csUsage);
-  DDX_Text(pDX, IDC_EDIT_OU, m_csOU);
+	DDX_Text(pDX, IDC_EDIT_OU, m_csOU);
 	DDX_Text(pDX, IDC_EDIT_OU2, m_csOU2);
 	DDX_Text(pDX, IDC_EDIT_O, m_csO);
 	DDX_Text(pDX, IDC_EDIT_O2, m_csO2);

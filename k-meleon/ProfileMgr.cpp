@@ -23,13 +23,7 @@
 #include "MozUtils.h"
 
 // Mozilla Includes
-#if GECKO_VERSION < 19 // XXX
-#include "nsIRegistry.h"
-#endif
-#include "nsIProfile.h"
-#include "nsDirectoryServiceUtils.h"
-#include "jsapi.h"
-#include "nsIJSContextStack.h"
+#include "nsIToolkitProfileService.h"
 
 // Constants
 #define kRegistryGlobalPrefsSubtreeString (nsEmbedString(L"global-prefs"))
@@ -72,12 +66,16 @@ CProfileMgr::~CProfileMgr()
 //***    CProfileMgr: Public Methods
 //*****************************************************************************
 
-#pragma comment(lib, "profdirserviceprovidersa_s.lib")
+//#pragma comment(lib, "profdirserviceprovidersa_s.lib")
 
 BOOL CProfileMgr::StartUp(LPCTSTR aProfileName)
 {
     nsresult rv;
 
+	/*nsCOMPtr<nsIToolkitProfileService> profService =  
+        do_GetService(NS_PROFILESERVICE_CONTRACTID, &rv);
+
+	return TRUE;*/
 	rv = NS_NewProfileDirServiceProvider(PR_TRUE, &mProfileProvider);
 	NS_ENSURE_SUCCESS(rv, FALSE);
 
@@ -116,11 +114,11 @@ BOOL CProfileMgr::StartUp(LPCTSTR aProfileName)
 
 	while (true)
 	{
-		nsCOMPtr<nsILocalFile> rootDir;
+		nsCOMPtr<nsIFile> rootDir;
 		rv = NS_NewLocalFile(CStringToNSString(mCurrentProfile.mRootDir), PR_TRUE, getter_AddRefs(rootDir));
 		NS_ENSURE_SUCCESS(rv, FALSE);
 		
-		nsCOMPtr<nsILocalFile> localDir;
+		nsCOMPtr<nsIFile> localDir;
 		rv = NS_NewLocalFile(CStringToNSString(mCurrentProfile.mLocalDir), PR_TRUE, getter_AddRefs(localDir));
 		NS_ENSURE_SUCCESS(rv, FALSE);
 
@@ -128,7 +126,7 @@ BOOL CProfileMgr::StartUp(LPCTSTR aProfileName)
 		if (NS_SUCCEEDED(rv)) break;	
 		AfxMessageBox(IDS_PROFILE_LOAD_FAILED, MB_OK|MB_ICONERROR);
 		//profiledirprovider bug workaround 
-		mProfileProvider->SetProfileDir(nsnull, nsnull);
+		mProfileProvider->SetProfileDir(nullptr, nullptr);
 		if (!AskUserForProfile(TRUE, mCurrentProfile))
 			return FALSE;
 	}
@@ -150,8 +148,8 @@ BOOL CProfileMgr::ShutDownCurrentProfile(BOOL cleanup)
 		static const PRUnichar kShutdownPersist[] =
 			{'s','h','u','t','d','o','w','n','-','p','e','r','s','i','s','t','\0'};
 		
-		obssvc->NotifyObservers(nsnull, "profile-change-net-teardown", cleanup ? kShutdownCleanse : kShutdownPersist);
-		obssvc->NotifyObservers(nsnull, "profile-change-teardown", cleanup ? kShutdownCleanse : kShutdownPersist);
+		obssvc->NotifyObservers(nullptr, "profile-change-net-teardown", cleanup ? kShutdownCleanse : kShutdownPersist);
+		obssvc->NotifyObservers(nullptr, "profile-change-teardown", cleanup ? kShutdownCleanse : kShutdownPersist);
 
 	    /*// Phase 2c: Now that things are torn down, force JS GC so that things which depend on
 		// resources which are about to go away in "profile-before-change" are destroyed first.
@@ -159,13 +157,13 @@ BOOL CProfileMgr::ShutDownCurrentProfile(BOOL cleanup)
 			(do_GetService("@mozilla.org/js/xpc/ContextStack;1"));
 		if (stack)
 		{
-	        JSContext *cx = nsnull;
+	        JSContext *cx = nullptr;
 		    stack->GetSafeJSContext(&cx);
 	        if (cx)
 			::JS_GC(cx);
 		}*/
 
-		//obssvc->NotifyObservers(nsnull, "profile-before-change", kShutdownPersist);
+		//obssvc->NotifyObservers(nullptr, "profile-before-change", kShutdownPersist);
     
 		mProfileProvider->Shutdown();
 		NS_RELEASE(mProfileProvider);
@@ -175,14 +173,14 @@ BOOL CProfileMgr::ShutDownCurrentProfile(BOOL cleanup)
 	return FALSE;
 
    nsresult rv;
-
+   /*
    nsCOMPtr<nsIProfile> profileService = 
       do_GetService(NS_PROFILE_CONTRACTID, &rv);
    if (NS_FAILED(rv)) return FALSE;
 
    rv = profileService->ShutDownCurrentProfile(
            cleanup ? nsIProfile::SHUTDOWN_CLEANSE : nsIProfile::SHUTDOWN_PERSIST);
-   if (NS_FAILED(rv)) return FALSE;
+   if (NS_FAILED(rv)) return FALSE;*/
 
    return TRUE;
 }
@@ -273,7 +271,7 @@ BOOL CProfileMgr::RemoveProfile(LPCTSTR oldName, BOOL removeDir)
 
     if (removeDir)
 	{
-		nsCOMPtr<nsILocalFile> rootDir;
+		nsCOMPtr<nsIFile> rootDir;
 		nsresult rv = NS_NewLocalFile(CStringToNSString(profile.mRootDir), PR_TRUE, getter_AddRefs(rootDir));
 		NS_ENSURE_SUCCESS(rv, FALSE);
 
@@ -283,14 +281,14 @@ BOOL CProfileMgr::RemoveProfile(LPCTSTR oldName, BOOL removeDir)
 		NS_ENSURE_SUCCESS(rv, FALSE);
         lock->AppendNative(nsEmbedCString("parent.lock"));
 		
-		PRBool exist = PR_FALSE;
+		bool exist = PR_FALSE;
 		rv = lock->Exists(&exist);
 		if (exist == PR_TRUE)
 			return FALSE;
 
 		if (profile.mLocalDir != profile.mRootDir)
 		{
-			nsCOMPtr<nsILocalFile> localDir;
+			nsCOMPtr<nsIFile> localDir;
 			rv = NS_NewLocalFile(CStringToNSString(profile.mLocalDir), PR_TRUE, getter_AddRefs(localDir));
 			NS_ENSURE_SUCCESS(rv, FALSE);
 
@@ -342,8 +340,8 @@ static const char kTable[] =
 static void SaltProfileName(CString& aName)
 {
     double fpTime;
-    LL_L2D(fpTime, PR_Now());
-
+    //LL_L2D(fpTime, PR_Now());
+	fpTime = time(0);
     // use 1e-6, granularity of PR_Now() on the mac is seconds
     srand((uint)(fpTime * 1e-6 + 0.5));
 
@@ -523,164 +521,10 @@ BOOL CProfileMgr::GetShowDialogOnStart()
 
 BOOL CProfileMgr::ImportShowDialogOnStart(PRBool* showIt)
 {
-#if GECKO_VERSION < 19
-    nsresult rv = NS_OK;
-        
-    *showIt = PR_TRUE;
-                
-    nsCOMPtr<nsIRegistry> registry(do_CreateInstance(NS_REGISTRY_CONTRACTID, &rv));
-    rv = registry->OpenWellKnownRegistry(nsIRegistry::ApplicationRegistry);
-    NS_ENSURE_SUCCESS(rv, FALSE);
-
-    nsRegistryKey profilesTreeKey;
-    
-    rv = registry->GetKey(nsIRegistry::Common, 
-                          kRegistryGlobalPrefsSubtreeString.get(), 
-                          &profilesTreeKey);
-
-    if (NS_SUCCEEDED(rv)) 
-    {
-        PRInt32 flagValue;
-        rv = registry->GetInt(profilesTreeKey, 
-                              kRegistryShowProfilesAtStartup, 
-                              &flagValue);
-         
-        if (NS_SUCCEEDED(rv))
-            *showIt = (flagValue != 0);
-    }
-    
-	return NS_SUCCEEDED(rv);        
-#else
 	return FALSE;
-#endif
 }
 
 BOOL CProfileMgr::ImportRegistry()
 {
-#if GECKO_VERSION < 19
-	nsCOMPtr <nsIFile> regName;
-    nsresult rv = NS_OK;
-
-	NS_GetSpecialDirectory(NS_APP_APPLICATION_REGISTRY_FILE, getter_AddRefs(regName));
-
-    nsCOMPtr<nsIRegistry> registry(do_CreateInstance(NS_REGISTRY_CONTRACTID, &rv));
-    if (NS_FAILED(rv)) return FALSE;
-    rv = registry->Open(regName);
-    if (NS_FAILED(rv)) return FALSE;
-
- // Enumerate all subkeys (immediately) under the given node.
-    nsCOMPtr<nsIEnumerator> enumKeys;
-    nsRegistryKey profilesTreeKey;
-
-    rv = registry->GetKey(nsIRegistry::Common,
-                            kRegistryProfileSubtreeString.get(),
-                            &profilesTreeKey);
-
-	if (NS_FAILED(rv)) return FALSE;
-    
-	// Get the current profile
-	nsEmbedString tmpCurrentProfile;
-    rv = registry->GetString(profilesTreeKey,
-                               kRegistryCurrentProfileString.get(),
-                               getter_Copies(tmpCurrentProfile));
-	
-	// Get the StartWithLastProfile flag
-	BOOL startWithLast = FALSE;
-    /*PRInt32 tempLong;
-    rv = registry->GetInt(profilesTreeKey,
-                           kRegistryShowProfilesAtStartup.get(),
-                           &tempLong);
-	if (NS_SUCCEEDED(rv))
-        startWithLast = (BOOL)tempLong;*/
-
-	ImportShowDialogOnStart(&startWithLast);
-
-	CString registryDir = GetMozDirectory(NS_APP_APPLICATION_REGISTRY_DIR);
-	if (registryDir.IsEmpty()) return FALSE;
-
-	CString profileIni = registryDir + _T("\\profiles.ini");
-	WritePrivateProfileInt(_T("General"), _T("StartWithLastProfile"), startWithLast, profileIni);
-
-	rv = registry->EnumerateSubtrees( profilesTreeKey, getter_AddRefs(enumKeys));
-    if (NS_FAILED(rv)) return FALSE;
-
-    rv = enumKeys->First();
-    if (NS_FAILED(rv)) return FALSE;
-
-	UINT profileNumber = 0;
-	while (NS_OK != enumKeys->IsDone())
-    {
-        nsCOMPtr<nsISupports> base;
-
-        rv = enumKeys->CurrentItem( getter_AddRefs(base) );
-        if (NS_FAILED(rv)) return FALSE;
-
-        // Get specific interface.
-        nsCOMPtr <nsIRegistryNode> node;
-        nsIID nodeIID = NS_IREGISTRYNODE_IID;
-
-        rv = base->QueryInterface( nodeIID, getter_AddRefs(node));
-        if (NS_FAILED(rv)) return FALSE;
-
-		nsEmbedString profile;
-        rv = node->GetName(getter_Copies(profile));
-        if (NS_FAILED(rv)) continue;
-
-        nsRegistryKey profKey;
-        rv = node->GetKey(&profKey);
-        if (NS_FAILED(rv)) return rv;
-
-     /*   PRInt64 tmpCreationTime;
-        rv = registry->GetLongLong(profKey,
-                                   kRegistryCreationTimeString.get(),
-                                   &tmpCreationTime);
-			
-		PRInt64 tmpLastModTime;
-        rv = registry->GetLongLong(profKey,
-                                   kRegistryLastModTimeString.get(),
-                                   &tmpLastModTime);
-*/
-
-        nsEmbedString nslocation;
-        rv = registry->GetString(profKey,
-                                  kRegistryDirectoryString.get(),
-                                  getter_Copies(nslocation));
-		if (NS_FAILED(rv)) continue;
-
-
-		TCHAR number[35];
-		_itot(profileNumber, number, 10);
-		CString iniKey = _T("Profile");
-		iniKey += number;
-		
-		USES_CONVERSION;
-		CString location = W2CT(nslocation.get());
-		BOOL isRelative = 0;
-		if (_tcsnicmp(location, registryDir, registryDir.GetLength()) == 0) {
-			location = location.Mid(registryDir.GetLength()+1);
-			isRelative = 1;
-		}
-
-		if (isRelative)
-			location.Replace(_T('\\'), _T('/'));
-		if (profile.IsEmpty())
-			profile.Assign(L"Unnamed");
-		
-		WritePrivateProfileString(iniKey, _T("Name"), W2CT(profile.get()), profileIni);
-		WritePrivateProfileString(iniKey, _T("Path"), location, profileIni);
-		WritePrivateProfileInt(iniKey, _T("IsRelative"), isRelative, profileIni);
-		//WritePrivateProfileInt(iniKey, _T("CreationTime"), tmpCreationTime, profileIni);
-		//WritePrivateProfileInt(iniKey, _T("LastModTime"), tmpLastModTime, profileIni);
-		if (profile.Equals(tmpCurrentProfile))
-			WritePrivateProfileInt(iniKey, _T("Default"), 1, profileIni);
-
-		profileNumber++;
-        rv = enumKeys->Next();
-        if (NS_FAILED(rv)) return rv;
-	}
-	
-	return TRUE;
-#else
 	return FALSE;
-#endif
 }

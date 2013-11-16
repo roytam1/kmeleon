@@ -75,7 +75,7 @@ CDlgPrintListener::OnProgressChange(nsIWebProgress *aWebProgress, nsIRequest *aR
 
 /* void onLocationChange (in nsIWebProgress aWebProgress, in nsIRequest aRequest, in nsIURI location); */
 NS_IMETHODIMP 
-CDlgPrintListener::OnLocationChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest, nsIURI *location)
+CDlgPrintListener::OnLocationChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest, nsIURI *location, uint32_t aFlags)
 {
     return NS_OK;
 }
@@ -104,7 +104,7 @@ CPrintProgressDialog::CPrintProgressDialog(/*nsIWebBrowser* aWebBrowser,
                                            CWnd* pParent /*=NULL*/)
 	: CDialog(CPrintProgressDialog::IDD, pParent),
 //  m_WebBrowser(aWebBrowser),
-  m_PrintListener(nsnull),
+  m_PrintListener(nullptr),
 //  m_PrintSettings(aPrintSettings),
   m_InModalMode(PR_FALSE)
 {

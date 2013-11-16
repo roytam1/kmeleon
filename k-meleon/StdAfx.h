@@ -33,15 +33,19 @@
 #define VC_EXTRALEAN		// Exclude rarely-used stuff from Windows headers
 #endif
 
+#ifndef _SECURE_ATL
+#define _SECURE_ATL 1
+#endif
+
 #ifndef NEW_H
 #define NEW_H <new>
 #endif
 
-#ifndef WINVER				// Autorise l'utilisation des fonctionnalitÈs spÈcifiques ‡ Windows†95 et Windows NT†4 ou version ultÈrieure.
+#ifndef WINVER				// Autorise l'utilisation des fonctionnalitÈs spÈcifiques ÅEWindows†95 et Windows NT†4 ou version ultÈrieure.
 #ifdef _UNICODE
 #define WINVER 0x0500
 #else
-#define WINVER 0x0400		// Attribuez la valeur appropriÈe ‡ cet ÈlÈment pour cibler Windows†98 et Windows†2000 ou version ultÈrieure.
+#define WINVER 0x0400		// Attribuez la valeur appropriÈe ÅEcet ÈlÈment pour cibler Windows†98 et Windows†2000 ou version ultÈrieure.
 #endif
 #endif
 
@@ -53,8 +57,14 @@
 #endif
 #endif
 
+#pragma comment(lib, "mozjs.lib")
+
 #ifdef XPCOM_GLUE
+#ifdef _AFXDLL
 	#pragma comment(lib, "xpcomglue.lib")
+#else
+	#pragma comment(lib, "xpcomglue_staticruntime.lib")
+#endif
 #else
 #ifdef _BUILD_STATIC_BIN
 	// Lot of shit to put here.
@@ -63,8 +73,8 @@
 	#pragma comment(lib, "xpcom.lib")
 #endif
 #endif
-#pragma comment(lib, "nspr4.lib")
-#pragma comment(lib, "embed_base_s.lib")
+//#pragma comment(lib, "nspr4.lib")
+//#pragma comment(lib, "embed_base_s.lib")
 #define _ATL_CSTRING_EXPLICIT_CONSTRUCTORS	// some CString constructors will be explicit 
 
 // turns off MFC's hiding of some common and often safely ignored warning messages 
@@ -83,15 +93,33 @@
 #define THERECANBENODEBUG
 #endif
 
+
 #include <afxwin.h>         // MFC core and standard components
 #include <afxext.h>         // MFC extensions
+#include <afxdisp.h>        // Classes MFC Automation
 #include <afxdtctl.h>		// MFC support for Internet Explorer 4 Common Controls
 #include <afxpriv.h>		// Needed for MFC MBCS/Unicode Conversion Macros
 #ifndef _AFX_NO_AFXCMN_SUPPORT
 #include <afxcmn.h>			// MFC support for Windows Common Controls
 #endif // _AFX_NO_AFXCMN_SUPPORT
+//#include <afxcontrolbars.h>     // prise en charge des MFC pour les rubans et les barres de contrÙles
 #include <afxtempl.h>
 #include <afxole.h>
+
+#undef min
+#undef max
+
+#ifdef _UNICODE
+#if defined _M_IX86
+#pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='x86' publicKeyToken='6595b64144ccf1df' language='*'\"")
+#elif defined _M_X64
+#pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='amd64' publicKeyToken='6595b64144ccf1df' language='*'\"")
+#else
+#pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
+#endif
+#endif
+
+
 
 #if defined(THERECANBENODEBUG) && defined(DEBUG)
 #undef DEBUG
@@ -127,7 +155,6 @@
 */
 
 // embed_base: 
-#include "nsEmbedAPI.h"
 #include "nsIWindowCreator.h"
 
 // necko: 
@@ -135,18 +162,14 @@
 #include "nsIURI.h"
 
 // nkcache:
-//#include "nsICacheService.h"
+#include "nsICacheService.h"
 
-// pref:
-#if GECKO_VERSION < 193
-#include "nsIPref.h"
-#else
-#include "nsIPrefService.h"
-#endif
-
-// profile:
-#include "nsIProfile.h"
-#include "nsIProfileChangeStatus.h"
+#include "nsXULAppAPI.h"
+#include "nsXPCOMGlue.h"
+#include "nsCOMPtr.h"
+#include "nsStringAPI.h"
+#include "nsAppDirectoryServiceDefs.h"
+#include "nsProfileDirServiceProvider.h"
 
 // string:
 #include "nsEmbedString.h"
@@ -163,7 +186,7 @@
 #include "nsIWebBrowserChrome.h"
 #include "nsIContextMenuListener2.h"
 #include "nsIWebBrowserPrint.h"
-#include "nsIEmbeddingSiteWindow2.h"
+
 #include "nsCWebBrowser.h"
 
 // webbrowserpersist: 
@@ -182,7 +205,7 @@
 // xpcom:
 #include "nsCOMPtr.h"
 #include "nsWeakReference.h"
-#include "nsIGenericFactory.h" 
+
 #include "nsIInterfaceRequestor.h"
 #include "nsIServiceManager.h"
 #include "nsError.h"

@@ -44,18 +44,76 @@ extern CWnd* CWndForDOMWindow(nsIDOMWindow *aWindow);
 
 
 //*****************************************************************************
+NS_IMPL_ISUPPORTS3(CPromptService, nsIPromptFactory, nsIPrompt, nsIPromptService, )
+//NS_IMPL_ISUPPORTS1(CPromptService, nsIPromptService/*, nsINonBlockingAlertService*/)
 
-#if GECKO_VERSION > 192
-NS_IMPL_ISUPPORTS1(CPromptService, nsIPromptService)
-#else
-NS_IMPL_ISUPPORTS2(CPromptService, nsIPromptService, nsINonBlockingAlertService)
-#endif
 CPromptService::CPromptService()
 {
 }
 
 CPromptService::~CPromptService() {
 }
+
+NS_IMETHODIMP CPromptService::GetPrompt(nsIDOMWindow *aParent, const nsIID & iid, void **result)
+{
+	mDomWindow = aParent;
+	return QueryInterface(iid, result);
+}
+
+/* void alert (in wstring dialogTitle, in wstring text); */
+NS_IMETHODIMP CPromptService::Alert(const PRUnichar * dialogTitle, const PRUnichar * text)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* void alertCheck (in wstring dialogTitle, in wstring text, in wstring checkMsg, inout boolean checkValue); */
+NS_IMETHODIMP CPromptService::AlertCheck(const PRUnichar * dialogTitle, const PRUnichar * text, const PRUnichar * checkMsg, bool *checkValue)
+{
+	return AlertCheck(mDomWindow, dialogTitle, text, checkMsg, checkValue);
+}
+
+/* boolean confirm (in wstring dialogTitle, in wstring text); */
+NS_IMETHODIMP CPromptService::Confirm(const PRUnichar * dialogTitle, const PRUnichar * text, bool *_retval)
+{
+    return Confirm(mDomWindow, dialogTitle, text, _retval);
+}
+
+/* boolean confirmCheck (in wstring dialogTitle, in wstring text, in wstring checkMsg, inout boolean checkValue); */
+NS_IMETHODIMP CPromptService::ConfirmCheck(const PRUnichar * dialogTitle, const PRUnichar * text, const PRUnichar * checkMsg, bool *checkValue, bool *_retval)
+{
+	return ConfirmCheck(mDomWindow, dialogTitle, text, checkMsg, checkValue, _retval);
+}
+
+/* int32_t confirmEx (in wstring dialogTitle, in wstring text, in unsigned long buttonFlags, in wstring button0Title, in wstring button1Title, in wstring button2Title, in wstring checkMsg, inout boolean checkValue); */
+NS_IMETHODIMP CPromptService::ConfirmEx(const PRUnichar * dialogTitle, const PRUnichar * text, uint32_t buttonFlags, const PRUnichar * button0Title, const PRUnichar * button1Title, const PRUnichar * button2Title, const PRUnichar * checkMsg, bool *checkValue, int32_t *_retval)
+{
+    return ConfirmEx(mDomWindow, dialogTitle, text, buttonFlags, button0Title, button1Title, button2Title, checkMsg, checkValue, _retval);
+}
+
+/* boolean prompt (in wstring dialogTitle, in wstring text, inout wstring value, in wstring checkMsg, inout boolean checkValue); */
+NS_IMETHODIMP CPromptService::Prompt(const PRUnichar * dialogTitle, const PRUnichar * text, PRUnichar * *value, const PRUnichar * checkMsg, bool *checkValue, bool *_retval)
+{
+	return Prompt(mDomWindow, dialogTitle, text, value, checkMsg, checkValue, _retval);
+}
+
+/* boolean promptPassword (in wstring dialogTitle, in wstring text, inout wstring password, in wstring checkMsg, inout boolean checkValue); */
+NS_IMETHODIMP CPromptService::PromptPassword(const PRUnichar * dialogTitle, const PRUnichar * text, PRUnichar * *password, const PRUnichar * checkMsg, bool *checkValue, bool *_retval)
+{
+    return PromptPassword(mDomWindow, dialogTitle, text, password, checkMsg, checkValue, _retval);
+}
+
+/* boolean promptUsernameAndPassword (in wstring dialogTitle, in wstring text, inout wstring username, inout wstring password, in wstring checkMsg, inout boolean checkValue); */
+NS_IMETHODIMP CPromptService::PromptUsernameAndPassword(const PRUnichar * dialogTitle, const PRUnichar * text, PRUnichar * *username, PRUnichar * *password, const PRUnichar * checkMsg, bool *checkValue, bool *_retval)
+{
+	return PromptUsernameAndPassword(mDomWindow, dialogTitle, text, username, password, checkMsg, checkValue, _retval);
+}
+
+/* boolean select (in wstring dialogTitle, in wstring text, in uint32_t count, [array, size_is (count)] in wstring selectList, out long outSelection); */
+NS_IMETHODIMP CPromptService::Select(const PRUnichar * dialogTitle, const PRUnichar * text, uint32_t count, const PRUnichar * *selectList, int32_t *outSelection, bool *_retval)
+{
+	return Select(mDomWindow, dialogTitle, text, count, selectList, outSelection, _retval);
+}
+
 
 NS_IMETHODIMP CPromptService::Alert(nsIDOMWindow *parent, const PRUnichar *dialogTitle,
                                     const PRUnichar *text)
@@ -74,7 +132,7 @@ NS_IMETHODIMP CPromptService::AlertCheck(nsIDOMWindow *parent,
                                          const PRUnichar *dialogTitle,
                                          const PRUnichar *text,
                                          const PRUnichar *checkboxMsg,
-                                         PRBool *checkValue)
+                                         bool *checkValue)
 {
   USES_CONVERSION;
 
@@ -104,7 +162,7 @@ NS_IMETHODIMP CPromptService::AlertCheck(nsIDOMWindow *parent,
 NS_IMETHODIMP CPromptService::Confirm(nsIDOMWindow *parent,
                                       const PRUnichar *dialogTitle,
                                       const PRUnichar *text,
-                                      PRBool *_retval)
+                                      bool *_retval)
 {
   USES_CONVERSION;
   CWnd *wnd = CWndForDOMWindow(parent);
@@ -126,8 +184,8 @@ NS_IMETHODIMP CPromptService::ConfirmCheck(nsIDOMWindow *parent,
                                            const PRUnichar *dialogTitle,
                                            const PRUnichar *text,
                                            const PRUnichar *checkboxMsg,
-                                           PRBool *checkValue,
-                                           PRBool *_retval)
+                                           bool *checkValue,
+                                           bool *_retval)
 {
 	const int COMMAND_OFFSET = 100;
 
@@ -161,8 +219,8 @@ NS_IMETHODIMP CPromptService::Prompt(nsIDOMWindow *parent,
                                      const PRUnichar *text,
                                      PRUnichar **value,
                                      const PRUnichar *checkboxMsg,
-                                     PRBool *checkValue,
-                                     PRBool *_retval)
+                                     bool *checkValue,
+                                     bool *_retval)
 {
   USES_CONVERSION;
 
@@ -207,8 +265,8 @@ NS_IMETHODIMP CPromptService::PromptUsernameAndPassword(nsIDOMWindow *parent,
                                                         PRUnichar **username,
                                                         PRUnichar **password,
                                                         const PRUnichar *checkboxMsg,
-                                                        PRBool *checkValue,
-                                                        PRBool *_retval)
+                                                        bool *checkValue,
+                                                        bool *_retval)
 {
   NS_ENSURE_ARG_POINTER(username);
   NS_ENSURE_ARG_POINTER(password);
@@ -259,8 +317,8 @@ NS_IMETHODIMP CPromptService::PromptPassword(nsIDOMWindow *parent,
                                              const PRUnichar *text,
                                              PRUnichar **password,
                                              const PRUnichar *checkboxMsg,
-                                             PRBool *checkValue,
-                                             PRBool *_retval)
+                                             bool *checkValue,
+                                             bool *_retval)
 {
   NS_ENSURE_ARG_POINTER(password);
   USES_CONVERSION;
@@ -301,7 +359,7 @@ NS_IMETHODIMP CPromptService::Select(nsIDOMWindow *parent,
                                      const PRUnichar *text, PRUint32 count,
                                      const PRUnichar **selectList,
                                      PRInt32 *outSelection,
-                                     PRBool *_retval)
+                                     bool *_retval)
 {
 	USES_CONVERSION;
 	CWnd *wnd = CWndForDOMWindow(parent);
@@ -324,7 +382,7 @@ NS_IMETHODIMP CPromptService::ConfirmEx(nsIDOMWindow *parent,
                                         const PRUnichar *button1Title,
                                         const PRUnichar *button2Title,
                                         const PRUnichar *checkMsg,
-                                        PRBool *checkValue,
+                                        bool *checkValue,
                                         PRInt32 *buttonPressed)
 {
 	const int COMMAND_OFFSET = 100;
@@ -347,28 +405,28 @@ NS_IMETHODIMP CPromptService::ConfirmEx(nsIDOMWindow *parent,
     for(int i=0; i<3; i++)
     {
         switch(buttonFlags & 0xff) {
-            case BUTTON_TITLE_OK:
+			case nsIPromptService::BUTTON_TITLE_OK:
 				dlg.AddButton(COMMAND_OFFSET+i, IDS_OK);
                 break;
-            case BUTTON_TITLE_CANCEL:
+            case nsIPromptService::BUTTON_TITLE_CANCEL:
                 dlg.AddButton(COMMAND_OFFSET+i, IDS_CANCEL);
                 break;
-            case BUTTON_TITLE_YES:
+            case nsIPromptService::BUTTON_TITLE_YES:
                 dlg.AddButton(COMMAND_OFFSET+i, IDS_YES);
                 break;
-            case BUTTON_TITLE_NO:
+            case nsIPromptService::BUTTON_TITLE_NO:
                 dlg.AddButton(COMMAND_OFFSET+i, IDS_NO);
                 break;
-            case BUTTON_TITLE_SAVE:
+            case nsIPromptService::BUTTON_TITLE_SAVE:
                 dlg.AddButton(COMMAND_OFFSET+i, IDS_SAVE);
                 break;
-            case BUTTON_TITLE_DONT_SAVE:
+            case nsIPromptService::BUTTON_TITLE_DONT_SAVE:
                 dlg.AddButton(COMMAND_OFFSET+i, IDS_DONTSAVE);
                 break;
-            case BUTTON_TITLE_REVERT:
+            case nsIPromptService::BUTTON_TITLE_REVERT:
                 dlg.AddButton(COMMAND_OFFSET+i, IDS_REVERT);
                 break;
-            case BUTTON_TITLE_IS_STRING:
+            case nsIPromptService::BUTTON_TITLE_IS_STRING:
                 dlg.AddButton(COMMAND_OFFSET+i, W2CT(buttonStrings[i]));
                 break;
         }
@@ -388,9 +446,8 @@ NS_IMETHODIMP CPromptService::ConfirmEx(nsIDOMWindow *parent,
 
     return NS_OK;    
 }
-
-#if GECKO_VERSION < 193 
-NS_IMETHODIMP
+ 
+/*NS_IMETHODIMP
 CPromptService::ShowNonBlockingAlert(nsIDOMWindow *aParent,
                                       const PRUnichar *aDialogTitle,
                                       const PRUnichar *aText)
@@ -412,8 +469,7 @@ CPromptService::ShowNonBlockingAlert(nsIDOMWindow *aParent,
   
   return result ? NS_OK : NS_ERROR_FAILURE;
 }
-#endif
-
+*/
 //*****************************************************************************
 // CPromptServiceFactory
 //*****************************************************************************   
@@ -466,7 +522,7 @@ NS_IMETHODIMP CPromptServiceFactory::LockFactory(PRBool lock)
 nsresult NS_NewPromptServiceFactory(nsIFactory** aFactory)
 {
   NS_ENSURE_ARG_POINTER(aFactory);
-  *aFactory = nsnull;
+  *aFactory = nullptr;
   
   CPromptServiceFactory *result = new CPromptServiceFactory;
   if (!result)

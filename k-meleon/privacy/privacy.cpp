@@ -168,8 +168,7 @@ void ClearHistory()
 	BrowserHistory->RemoveAllPages();
 }
 
-#include "nsIPasswordManager.h"
-#include "nsIPassword.h"
+#include "nsILoginManager.h"
 #include "nsEmbedString.h" 
 
 // Clear the Sign on data
@@ -178,31 +177,10 @@ void ClearSignon()
 	nsresult rv;
 
 	//NS_PASSWORDMANAGER_CONTRACTID
-	nsCOMPtr<nsIPasswordManager> PasswordManager(do_GetService("@mozilla.org/passwordmanager;1", &rv));
+	nsCOMPtr<nsILoginManager> PasswordManager(do_GetService(NS_LOGINMANAGER_CONTRACTID, &rv));
 	if (NS_FAILED(rv)) return;
 
-	nsCOMPtr<nsISimpleEnumerator> enumPassword;
-	rv = PasswordManager->GetEnumerator(getter_AddRefs(enumPassword));
-	if (NS_FAILED(rv)) return;
-
-	PRBool ret;
-	enumPassword->HasMoreElements(&ret);
-	while (ret)
-    {
-		nsCOMPtr<nsIPassword> password;
-        rv = enumPassword->GetNext(getter_AddRefs(password));
-		if (NS_FAILED(rv)) break;
-
-		nsEmbedCString nshost;
-		password->GetHost(nshost);
-
-		nsEmbedString nsuser;
-		password->GetUser(nsuser);
-
-		PasswordManager->RemoveUser(nshost, nsuser);
-
-		enumPassword->HasMoreElements(&ret);
-	}
+	PasswordManager->RemoveAllLogins();
 }
 
 // Delete all the files in a directory

@@ -13,13 +13,11 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// English (U.S.) resources
+// English (United States) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
-#ifdef _WIN32
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 #pragma code_page(1252)
-#endif //_WIN32
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -64,7 +62,7 @@ END
 // Dialog
 //
 
-IDD_ABOUTBOX DIALOG  0, 0, 228, 260
+IDD_ABOUTBOX DIALOG 0, 0, 228, 260
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "About K-Meleon"
 FONT 8, "MS Sans Serif"
@@ -76,7 +74,7 @@ BEGIN
     EDITTEXT        IDC_VERSION,4,246,220,12,ES_CENTER | ES_AUTOHSCROLL | ES_READONLY
 END
 
-IDD_PROFILES DIALOG  0, 0, 193, 110
+IDD_PROFILES DIALOG 0, 0, 193, 110
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Manage Profiles"
 FONT 8, "MS Sans Serif"
@@ -90,7 +88,7 @@ BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,133,89,50,14
 END
 
-IDD_PROFILE_NEW DIALOG  0, 0, 177, 79
+IDD_PROFILE_NEW DIALOG 0, 0, 177, 79
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "New Profile"
 FONT 8, "MS Sans Serif"
@@ -103,7 +101,7 @@ BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,120,58,50,14
 END
 
-IDD_PROFILE_RENAME DIALOG  0, 0, 177, 71
+IDD_PROFILE_RENAME DIALOG 0, 0, 177, 71
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Rename Profile"
 FONT 8, "MS Sans Serif"
@@ -245,7 +243,7 @@ BEGIN
     CONTROL         "Tab1",IDC_TAB1,"SysTabControl32",TCS_BOTTOM | WS_TABSTOP,4,4,263,196
 END
 
-IDD_FINDDLG DIALOG  30, 73, 212, 77
+IDD_FINDDLG DIALOG 30, 73, 212, 77
 STYLE DS_SETFONT | DS_MODALFRAME | DS_3DLOOK | DS_CONTEXTHELP | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Find"
 FONT 8, "MS Shell Dlg"
@@ -284,7 +282,7 @@ BEGIN
     GROUPBOX        "Cache Comparison",IDC_STATIC,7,104,256,89
 END
 
-IDD_PRINT_PROGRESS_DIALOG DIALOG  0, 0, 294, 55
+IDD_PRINT_PROGRESS_DIALOG DIALOG 0, 0, 294, 55
 STYLE DS_SYSMODAL | DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_VISIBLE | WS_CAPTION
 CAPTION "Printing..."
 FONT 8, "MS Sans Serif"
@@ -294,7 +292,7 @@ BEGIN
     LTEXT           "",IDC_PPD_DOC_TXT,43,7,244,8
 END
 
-IDD_SEARCH_DIALOG DIALOG  0, 0, 249, 58
+IDD_SEARCH_DIALOG DIALOG 0, 0, 249, 58
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
 CAPTION "Search"
 FONT 8, "MS Sans Serif"
@@ -305,7 +303,7 @@ BEGIN
     LTEXT           "Enter search query:",IDC_PROMPT_TEXT,10,7,229,13
 END
 
-IDD_DIALOG_OPEN DIALOG  0, 0, 213, 62
+IDD_DIALOG_OPEN DIALOG 0, 0, 213, 62
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Open"
 FONT 8, "MS Sans Serif"
@@ -803,7 +801,7 @@ BEGIN
     LTEXT           "Static",IDC_MSG_TEXT,7,7,172,22
 END
 
-IDD_ERRORBOX DIALOG  200, 200, 228, 149
+IDD_ERRORBOX DIALOG 200, 200, 228, 149
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 FONT 8, "MS Sans Serif"
 BEGIN
@@ -818,8 +816,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,6,0,0
- PRODUCTVERSION 1,6,0,0
+ FILEVERSION 74,0,0,0
+ PRODUCTVERSION 74,0,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -836,11 +834,11 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "http://kmeleon.sf.net/"
             VALUE "FileDescription", "K-Meleon Web Browser"
-            VALUE "FileVersion", "1, 6, 0, 0"
-            VALUE "LegalCopyright", "Copyright (C) 2001-2010"
+            VALUE "FileVersion", "74.0.0.0"
+            VALUE "LegalCopyright", "Copyright (C) 2001-2013"
             VALUE "OriginalFilename", "k-meleon.exe"
             VALUE "ProductName", "K-Meleon"
-            VALUE "ProductVersion", "1.6.0"
+            VALUE "ProductVersion", "74.0.0.0"
         END
     END
     BLOCK "VarFileInfo"
@@ -856,7 +854,7 @@ END
 //
 
 #ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO 
+GUIDELINES DESIGNINFO
 BEGIN
     IDD_ABOUTBOX, DIALOG
     BEGIN
@@ -1206,7 +1204,7 @@ IDC_PAN_DOWNRIGHT       CURSOR                  "res\\Cursor_16.cur"
 // Toolbar
 //
 
-IDR_TOOLBAR_CLOSE TOOLBAR  10, 9
+IDR_TOOLBAR_CLOSE TOOLBAR 10, 9
 BEGIN
     BUTTON      ID_CLOSE
 END
@@ -1224,7 +1222,7 @@ IDR_TOOLBAR_CLOSE       BITMAP                  "res\\toolbar1.bmp"
 // String Table
 //
 
-STRINGTABLE 
+STRINGTABLE
 BEGIN
     IDS_COOKIE_MODIFY       "The site %s wants to modify an existing cookie."
     IDS_COOKIE_SET          "The site %s wants to set a cookie."
@@ -1235,7 +1233,7 @@ BEGIN
     IDS_ESPIRES_EOS         "at end of session"
 END
 
-STRINGTABLE 
+STRINGTABLE
 BEGIN
     IDS_CERTEXPIREDTITLE    "Accept expired security information?"
     IDS_CERTNOTVALIDTITLE   "Accept not yet valid security information?"
@@ -1243,7 +1241,7 @@ BEGIN
     IDS_CERTNOTVALIDMSG     "«%s» is a site that uses a security certificate to encrypt data during transmission, but its certificate will not be valid until %s."
 END
 
-STRINGTABLE 
+STRINGTABLE
 BEGIN
     IDS_CORRECT_COMPUTER_TIME 
                             "You should check to make sure your computer's time (currently set to %s) is correct."
@@ -1265,7 +1263,7 @@ BEGIN
                             "Could not verify this certificate because the issuer is not trusted."
 END
 
-STRINGTABLE 
+STRINGTABLE
 BEGIN
     IDS_CERT_ISSUER_UNKNOWN "Could not verify this certificate because the issuer is unknown."
     IDS_CERT_INVALID_CA     "Could not verify this certificate because the CA certificate is invalid."
@@ -1276,7 +1274,7 @@ BEGIN
     IDS_PASSWORD_MISMATCH   "The passwords are not identical!"
 END
 
-STRINGTABLE 
+STRINGTABLE
 BEGIN
     IDS_HANDLED_LANGUAGES   "ja, ko, zh-cn, zh-tw"
     IDS_NAME_ja             "Japanese Text Display"
@@ -1285,7 +1283,7 @@ BEGIN
     IDS_NAME_zh_tw          "Traditional Chinese Text Display"
 END
 
-STRINGTABLE 
+STRINGTABLE
 BEGIN
     IDS_SIZE_ja             "5.3 MB"
     IDS_SIZE_ko             "2.1 MB"
@@ -1293,12 +1291,12 @@ BEGIN
     IDS_SIZE_zh_tw          "3.9 MB"
 END
 
-STRINGTABLE 
+STRINGTABLE
 BEGIN
     IDS_NAME_UNKNOW         """Unknow font package name"""
 END
 
-STRINGTABLE 
+STRINGTABLE
 BEGIN
     IDR_MAINFRAME           "K-Meleon"
     IDS_PROFILES_FOLDER_NAME "K-Meleon"
@@ -1306,19 +1304,19 @@ BEGIN
     IDS_SRCH_STR_NOT_FOUND  "Not found."
 END
 
-STRINGTABLE 
+STRINGTABLE
 BEGIN
     AFX_IDS_APP_TITLE       "K-Meleon"
     AFX_IDS_IDLEMESSAGE     "Ready"
 END
 
-STRINGTABLE 
+STRINGTABLE
 BEGIN
     ID_APP_ABOUT            "Display program information, version number and copyright\nAbout"
     ID_APP_EXIT             "Quit the application; prompts to save documents\nExit"
 END
 
-STRINGTABLE 
+STRINGTABLE
 BEGIN
     ID_EDIT_CLEAR           "Erase the selection\nErase"
     ID_EDIT_CLEAR_ALL       "Erase everything\nErase All"
@@ -1331,7 +1329,7 @@ BEGIN
     ID_EDIT_REDO            "Redo the previously undone action\nRedo"
 END
 
-STRINGTABLE 
+STRINGTABLE
 BEGIN
     ID_PREFERENCES          "Change preferences and settings"
     ID_MANAGE_PROFILES      "Manage the user profiles on this computer"
@@ -1342,7 +1340,7 @@ BEGIN
     ID_WINDOW_NEXT          "Switch to next K-Meleon window"
 END
 
-STRINGTABLE 
+STRINGTABLE
 BEGIN
     ID_WINDOW_PREV          "Switch to previous K-Meleon window"
     ID_FONT_INCREASE        "Increase font size"
@@ -1352,7 +1350,7 @@ BEGIN
     ID_LINK_ABOUT_PLUGINS   "View information on installed third party plugins"
 END
 
-STRINGTABLE 
+STRINGTABLE
 BEGIN
     ID_NAV_BACK             "Return to the previous document in history list"
     ID_NAV_FORWARD          "Move forward to next document in history list"
@@ -1365,13 +1363,13 @@ BEGIN
     ID_VIEW_SOURCE          "View the source of the current page"
 END
 
-STRINGTABLE 
+STRINGTABLE
 BEGIN
     ID_VIEW_TOOLBAR         "Show or hide the toolbar\nToggle ToolBar"
     ID_VIEW_STATUS_BAR      "Show or hide the status bar\nToggle StatusBar"
 END
 
-STRINGTABLE 
+STRINGTABLE
 BEGIN
     AFX_IDS_SCSIZE          "Change the window size"
     AFX_IDS_SCMOVE          "Change the window position"
@@ -1382,7 +1380,7 @@ BEGIN
     AFX_IDS_SCCLOSE         "Close the active window and prompts to save the documents"
 END
 
-STRINGTABLE 
+STRINGTABLE
 BEGIN
     AFX_IDS_SCRESTORE       "Restore the window to normal size"
     AFX_IDS_SCTASKLIST      "Activate Task List"
@@ -1400,7 +1398,7 @@ BEGIN
     IDS_TIMELEFT_MINUTE     "Time Left: 1 Minute, %0d Seconds"
 END
 
-STRINGTABLE 
+STRINGTABLE
 BEGIN
     IDS_PERCENT_OF_FILE     "%d%% of %s"
     IDS_PROFILE_SWITCH      "Do you want to close all windows in order to switch the profile?\nThis will cancel any files being downloaded."
@@ -1420,12 +1418,12 @@ BEGIN
     IDS_FINDNEXT            "Find Next"
 END
 
-STRINGTABLE 
+STRINGTABLE
 BEGIN
     ID_PROG_BAR             "                                        "
 END
 
-STRINGTABLE 
+STRINGTABLE
 BEGIN
     IDS_FINDPREV            "Find Previous"
     IDS_FIND_MATCHCASE      "Match case"
@@ -1435,7 +1433,7 @@ BEGIN
     IDS_PREFS_CACHE         "Cache"
 END
 
-STRINGTABLE 
+STRINGTABLE
 BEGIN
     IDS_PREFS_PROXY         "Proxy"
     IDS_PREFS_CONFIGS       "Configs"
@@ -1458,7 +1456,7 @@ BEGIN
     IDS_PERMISSION_IMAGE    "You can specify what website are always, or never authorized to display images. Write the url below and click on block or allow."
 END
 
-STRINGTABLE 
+STRINGTABLE
 BEGIN
     IDS_PERMISSION_POPUP    "You can specify what website are authorized to open popup. Write the url below and click on allow."
     IDS_SECURITY_LOCK       "This web page is secure. Click to show details."
@@ -1478,7 +1476,7 @@ BEGIN
     IDS_OK                  "&Ok"
 END
 
-STRINGTABLE 
+STRINGTABLE
 BEGIN
     IDS_CANCEL              "&Cancel"
     IDS_NO                  "&No"
@@ -1498,13 +1496,13 @@ BEGIN
     IDS_PRINT_LETTER        "Letter (8.5 x 11.0)"
 END
 
-STRINGTABLE 
+STRINGTABLE
 BEGIN
     IDS_LANG_VERSION        "1.5.0.0"
     IDS_LOCALE_ID           "en-US"
 END
 
-STRINGTABLE 
+STRINGTABLE
 BEGIN
     IDS_PRINT_LEGAL         "Legal (8.5 x 14.0)"
     IDS_PRINT_A4            "A4 (210 x 297mm)"
@@ -1524,7 +1522,7 @@ BEGIN
     IDS_USERNAME            "User Name:"
 END
 
-STRINGTABLE 
+STRINGTABLE
 BEGIN
     IDS_UPDATE11_SUCCESS    "Your configuration files where successfully moved in the Backup folder of your profile."
     IDS_UPDATE11_FAIL       "Your configuration files could not be moved and may prevent k-meleon to function correctly."
@@ -1541,12 +1539,12 @@ BEGIN
     IDS_PROFILE_DELETELOCK  "The profile can't be deleted because it's currently in use."
 END
 
-STRINGTABLE 
+STRINGTABLE
 BEGIN
     IDS_EMPTY               "Empty"
 END
 
-STRINGTABLE 
+STRINGTABLE
 BEGIN
     IDS_LOADING             "Loading..."
     IDS_CLOSE_SEVERAL_TABS  "There are %d tabs open in this window.\r\nDo you want to close all of them?"
