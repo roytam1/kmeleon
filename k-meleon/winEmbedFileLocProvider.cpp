@@ -85,7 +85,7 @@ public:
 		mPos = mList.GetHeadPosition();
 	}
 
-	NS_IMETHODIMP HasMoreElements(PRBool *_retval)
+	NS_IMETHODIMP HasMoreElements(bool *_retval)
 	{
 		*_retval =  (mPos != NULL);
 		return NS_OK;
@@ -94,11 +94,11 @@ public:
 	NS_IMETHODIMP GetNext(nsISupports **_retval)
 	{
 		NS_ENSURE_ARG_POINTER(_retval);
-		*_retval = nsnull;
+		*_retval = nullptr;
 
 		if (mPos == NULL) return NS_ERROR_FAILURE;
 		
-		nsCOMPtr<nsILocalFile> localFile;
+		nsCOMPtr<nsIFile> localFile;
 		CString str = mList.GetNext(mPos);
 
 		nsresult rv;
@@ -150,7 +150,7 @@ NS_IMPL_ISUPPORTS2(winEmbedFileLocProvider, nsIDirectoryServiceProvider2, nsIDir
 NS_IMETHODIMP
 winEmbedFileLocProvider::GetFiles(const char *prop, nsISimpleEnumerator **_retval)
 { 
-	*_retval = nsnull;
+	*_retval = nullptr;
 	nsresult rv = NS_ERROR_FAILURE;
 
 	if (strcmp(prop, "ChromeML") == 0)
@@ -180,15 +180,18 @@ winEmbedFileLocProvider::GetFiles(const char *prop, nsISimpleEnumerator **_retva
 
 
 NS_IMETHODIMP
-winEmbedFileLocProvider::GetFile(const char *prop, PRBool *persistant, nsIFile **_retval)
+winEmbedFileLocProvider::GetFile(const char *prop, bool *persistant, nsIFile **_retval)
 {    
-    nsCOMPtr<nsILocalFile>  localFile;
+    nsCOMPtr<nsIFile>  localFile;
     nsresult rv = NS_ERROR_FAILURE;
 
-    *_retval = nsnull;
+    *_retval = nullptr;
     *persistant = PR_TRUE;
-    
-    if (strcmp(prop, NS_APP_APPLICATION_REGISTRY_DIR) == 0)
+    if (strcmp(prop, NS_APP_USER_PROFILE_50_DIR) == 0)
+	{
+		 rv = GetDefaultUserProfileRoot(getter_AddRefs(localFile)); 
+	}
+    else if (strcmp(prop, NS_APP_APPLICATION_REGISTRY_DIR) == 0)
     {
 		 rv = GetProductDirectory(getter_AddRefs(localFile));
     }
@@ -257,71 +260,65 @@ winEmbedFileLocProvider::GetFile(const char *prop, PRBool *persistant, nsIFile *
             rv = localFile->AppendRelativeNativePath(SEARCH_DIR_NAME);
     }*/
     else if (strcmp(prop, K_APP_SKINS_DIR) == 0) {
+       nsCOMPtr<nsIFile> file;
        CString folder = theApp.GetFolder(SkinsFolder);
 #ifdef _UNICODE
-       rv = NS_NewLocalFile(nsEmbedString(LPCTSTR(folder)), TRUE, getter_AddRefs(localFile));
+       rv = NS_NewLocalFile(nsEmbedString(LPCTSTR(folder)), TRUE, getter_AddRefs(file));
 #else
        rv = NS_NewNativeLocalFile(nsEmbedCString(LPCTSTR(folder)), TRUE, getter_AddRefs(localFile));
 #endif
+	   localFile = do_QueryInterface(file);
     }
     else if (strcmp(prop, K_APP_KPLUGINS_DIR) == 0) {
+	   nsCOMPtr<nsIFile> file;
        CString folder = theApp.GetFolder(PluginsFolder);
 #ifdef _UNICODE
-       rv = NS_NewLocalFile(nsEmbedString(folder), TRUE, getter_AddRefs(localFile));
+       rv = NS_NewLocalFile(nsEmbedString(folder), TRUE, getter_AddRefs(file));
 #else
        rv = NS_NewNativeLocalFile(nsEmbedCString(folder), TRUE, getter_AddRefs(localFile));
 #endif
+	   localFile = do_QueryInterface(file);
     }
     else if (strcmp(prop, K_USER_SKINS_DIR) == 0) {
+	    nsCOMPtr<nsIFile> file;
        CString folder = theApp.GetFolder(UserSkinsFolder);
 #ifdef _UNICODE
-       rv = NS_NewLocalFile(nsEmbedString(folder), TRUE, getter_AddRefs(localFile));
+       rv = NS_NewLocalFile(nsEmbedString(folder), TRUE, getter_AddRefs(file));
 #else
        rv = NS_NewNativeLocalFile(nsEmbedCString(folder), TRUE, getter_AddRefs(localFile));
 #endif
+	    localFile = do_QueryInterface(file);
     }
     else if (strcmp(prop, K_USER_KPLUGINS_DIR) == 0) {
+		 nsCOMPtr<nsIFile> file;
        CString folder = theApp.GetFolder(UserPluginsFolder);
 #ifdef _UNICODE
-       rv = NS_NewLocalFile(nsEmbedString(folder), TRUE, getter_AddRefs(localFile));
+       rv = NS_NewLocalFile(nsEmbedString(folder), TRUE, getter_AddRefs(file));
 #else
        rv = NS_NewNativeLocalFile(nsEmbedCString(folder), TRUE, getter_AddRefs(localFile));
 #endif
+	   localFile = do_QueryInterface(file);
     }
     else if (strcmp(prop, K_APP_SETTING_DEFAULTS) == 0) {
+		 nsCOMPtr<nsIFile> file;
        CString folder = theApp.GetFolder(DefSettingsFolder);
 #ifdef _UNICODE
-       rv = NS_NewLocalFile(nsEmbedString(folder), TRUE, getter_AddRefs(localFile));
+       rv = NS_NewLocalFile(nsEmbedString(folder), TRUE, getter_AddRefs(file));
 #else
        rv = NS_NewNativeLocalFile(nsEmbedCString(folder), TRUE, getter_AddRefs(localFile));
 #endif
+	   localFile = do_QueryInterface(file);
     }
     else if (strcmp(prop, K_USER_SETTING) == 0) {
+		 nsCOMPtr<nsIFile> file;
        CString folder = theApp.GetFolder(UserSettingsFolder);
 #ifdef _UNICODE
-       rv = NS_NewLocalFile(nsEmbedString(folder), TRUE, getter_AddRefs(localFile));
+       rv = NS_NewLocalFile(nsEmbedString(folder), TRUE, getter_AddRefs(file));
 #else
        rv = NS_NewNativeLocalFile(nsEmbedCString(folder), TRUE, getter_AddRefs(localFile));
 #endif
+	   localFile = do_QueryInterface(file);
     }
-    
-#ifdef XPCOM_GLUE
-    //---------------------------------------------------------------
-    // Note that by returning a valid localFile's for NS_GRE_DIR and
-    // NS_GRE_COMPONENT_DIR your app is indicating to XPCOM that 
-    // it found an GRE version with which it's compatible with and 
-    // it intends to be "run against" that GRE
-    //
-    // Please see http://www.mozilla.org/projects/embedding/GRE.html
-    // for more info. on GRE
-    //---------------------------------------------------------------
-    else if (strcmp(prop, NS_GRE_DIR) == 0)
-    {
-#if GECKO_VERSION < 19 
-        rv = GRE_GetGREDirectory(getter_AddRefs(localFile));
-#endif
-    }
-#endif
 
     if (localFile && NS_SUCCEEDED(rv))
         return localFile->QueryInterface(NS_GET_IID(nsIFile), (void**)_retval);
@@ -329,13 +326,20 @@ winEmbedFileLocProvider::GetFile(const char *prop, PRBool *persistant, nsIFile *
     return rv;
 }
 
-NS_METHOD winEmbedFileLocProvider::CloneMozBinDirectory(nsILocalFile **aLocalFile)
+NS_METHOD winEmbedFileLocProvider::CloneMozBinDirectory(nsIFile **aLocalFile)
 {
     NS_ENSURE_ARG_POINTER(aLocalFile);
     nsresult rv;
     
     if (!mMozBinDirectory)
     {        
+
+		 CString path;
+		 ::GetModuleFileName(0, path.GetBuffer(_MAX_PATH), _MAX_PATH);
+		 path.ReleaseBuffer(path.ReverseFind(_T('\\')));
+
+		 NS_NewLocalFile(nsString(path),true,getter_AddRefs(mMozBinDirectory));
+		 /*
         // Get the mozilla bin directory
         // 1. Check the directory service first for NS_XPCOM_CURRENT_PROCESS_DIR
         //    This will be set if a directory was passed to NS_InitXPCOM
@@ -351,7 +355,7 @@ NS_METHOD winEmbedFileLocProvider::CloneMozBinDirectory(nsILocalFile **aLocalFil
             rv = directoryService->Get(NS_OS_CURRENT_PROCESS_DIR, NS_GET_IID(nsIFile), getter_AddRefs(mMozBinDirectory));
             if (NS_FAILED(rv))
                 return rv;
-        }
+        }*/
     }
     
     nsCOMPtr<nsIFile> aFile;
@@ -373,7 +377,7 @@ NS_METHOD winEmbedFileLocProvider::CloneMozBinDirectory(nsILocalFile **aLocalFil
 //
 // WIN    : <Application Data folder on user's machine>\Mozilla 
 //----------------------------------------------------------------------------------------
-NS_METHOD winEmbedFileLocProvider::GetProductDirectory(nsILocalFile **aLocalFile, PRBool aLocal)
+NS_METHOD winEmbedFileLocProvider::GetProductDirectory(nsIFile **aLocalFile, PRBool aLocal)
 {
     NS_ENSURE_ARG_POINTER(aLocalFile);
     
@@ -391,10 +395,10 @@ NS_METHOD winEmbedFileLocProvider::GetProductDirectory(nsILocalFile **aLocalFile
 	//rv = CloneMozBinDirectory(aLocalFile);
 	//return rv;
     
-    PRBool exists;
-    nsCOMPtr<nsILocalFile> localDir;
+    bool exists;
+    nsCOMPtr<nsIFile> localDir;
 	 
-	nsCOMPtr<nsILocalFile> appDir;
+	nsCOMPtr<nsIFile> appDir;
 	rv = CloneMozBinDirectory(getter_AddRefs(appDir));
 	NS_ENSURE_SUCCESS(rv, rv);
 
@@ -427,7 +431,7 @@ NS_METHOD winEmbedFileLocProvider::GetProductDirectory(nsILocalFile **aLocalFile
 #else
 		nsEmbedCString buffer(pszBuffer);
 #endif
-		nsCOMPtr<nsILocalFile> profileDir;
+		nsCOMPtr<nsIFile> profileDir;
 		if (!buffer.IsEmpty())
 		{
 			if (!IsRelative)
@@ -475,18 +479,18 @@ NS_METHOD winEmbedFileLocProvider::GetProductDirectory(nsILocalFile **aLocalFile
 	}
 	else
 	{
-		nsCOMPtr<nsIProperties> directoryService = 
-			do_GetService(NS_DIRECTORY_SERVICE_CONTRACTID, &rv);
-		if (NS_FAILED(rv)) return rv;
-		const char* prop = aLocal ? NS_WIN_LOCAL_APPDATA_DIR : NS_WIN_APPDATA_DIR;
-		rv = directoryService->Get(prop, NS_GET_IID(nsILocalFile), getter_AddRefs(localDir));
+		int clsid = aLocal ? CSIDL_LOCAL_APPDATA : CSIDL_APPDATA;
+		CString path;
+		SHGetFolderPath(NULL, clsid, NULL, 0, path.GetBuffer(MAX_PATH));
+		path.ReleaseBuffer();
+		rv = NS_NewLocalFile(nsString(path), true, getter_AddRefs(localDir));
 		if (NS_SUCCEEDED(rv))
 			rv = localDir->Exists(&exists);
 		
 		if (NS_FAILED(rv) || !exists)
 		{
 			// On some Win95 machines, NS_WIN_APPDATA_DIR does not exist - revert to NS_WIN_WINDOWS_DIR
-			localDir = nsnull;
+			localDir = nullptr;
 			//rv = directoryService->Get(NS_WIN_WINDOWS_DIR, NS_GET_IID(nsILocalFile), getter_AddRefs(localDir));
 			rv = CloneMozBinDirectory(getter_AddRefs(localDir));
 			NS_ENSURE_SUCCESS(rv, rv);
@@ -515,13 +519,13 @@ NS_METHOD winEmbedFileLocProvider::GetProductDirectory(nsILocalFile **aLocalFile
 //
 // WIN    : <Application Data folder on user's machine>\Mozilla\Users50 
 //----------------------------------------------------------------------------------------
-NS_METHOD winEmbedFileLocProvider::GetDefaultUserProfileRoot(nsILocalFile **aLocalFile, PRBool aLocal)
+NS_METHOD winEmbedFileLocProvider::GetDefaultUserProfileRoot(nsIFile **aLocalFile, PRBool aLocal)
 {
 	NS_ENSURE_ARG_POINTER(aLocalFile);
 
 	nsresult rv;
-	PRBool exists;
-	nsCOMPtr<nsILocalFile> localDir;
+	bool exists;
+	nsCOMPtr<nsIFile> localDir;
 
 	//if (!mProfileDirectory)
 	{

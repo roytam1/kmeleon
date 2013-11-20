@@ -124,7 +124,9 @@ CTabReBar::CTabReBar()
 	
 	if (mPosBar == POSITION_BOTTOM) mBottomBar = TRUE;
 
-	mFixedBar = theApp.preferences.GetBool(PREFERENCE_REBAR_FIXED, FALSE);
+	//mFixedBar = theApp.preferences.GetBool(PREFERENCE_REBAR_FIXED, FALSE);
+	mFixedBar = mPosBar != POSITION_BAND; 
+	
 	mChevron = FALSE;
 	mTemp = NULL;
 

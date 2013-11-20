@@ -137,6 +137,9 @@ BEGIN_MESSAGE_MAP(CBrowserFrame, CFrameWnd)
 	ON_COMMAND(ID_MINIMIZE_WINDOW,OnMinimizeWindow)
 	ON_COMMAND(ID_RESTORE_WINDOW, OnRestoreWindow)
 	ON_COMMAND(ID_TOGGLE_WINDOW, OnToggleWindow)
+	
+	ON_MESSAGE(TB_LBUTTONHOLD, OnToobarContextMenu)
+	ON_MESSAGE(TB_RBUTTONDOWN, OnToobarContextMenu)
 
 //	ON_MESSAGE(WM_ENTERSIZEMOVE, OnEnterSizeMove)
 //	ON_MESSAGE(WM_EXITSIZEMOVE, OnExitSizeMove)
@@ -1813,4 +1816,9 @@ void CBrowserFrame::OnGetMinMaxInfo(MINMAXINFO* lpMMI)
 		lpMMI->ptMaxSize.x = rectDesktop.Width();
 		lpMMI->ptMaxSize.y = rectDesktop.Height();
 	}
+}
+
+LRESULT CBrowserFrame::OnToobarContextMenu(WPARAM wParam, LPARAM lParam)
+{
+	return CWnd::Default();
 }

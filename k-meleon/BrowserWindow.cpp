@@ -484,7 +484,7 @@ BOOL CBrowserWrapper::ForceCharset(const char *aCharSet)
 	return NS_SUCCEEDED(result);
 } 
 
-BOOL CBrowserWrapper::ScrollBy(INT dx, INT dy)
+BOOL CBrowserWrapper::ScrollBy(int32_t dx, int32_t dy)
 {
 	nsCOMPtr<nsIDOMWindow> dom;
 	mWebBrowserFocus->GetFocusedWindow(getter_AddRefs(dom));

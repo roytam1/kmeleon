@@ -58,23 +58,12 @@
 #endif
 
 #pragma comment(lib, "mozjs.lib")
-
-#ifdef XPCOM_GLUE
 #ifdef _AFXDLL
 	#pragma comment(lib, "xpcomglue.lib")
 #else
 	#pragma comment(lib, "xpcomglue_staticruntime.lib")
 #endif
-#else
-#ifdef _BUILD_STATIC_BIN
-	// Lot of shit to put here.
-#else
-	#pragma comment(lib, "xpcomglue_s.lib")
-	#pragma comment(lib, "xpcom.lib")
-#endif
-#endif
-//#pragma comment(lib, "nspr4.lib")
-//#pragma comment(lib, "embed_base_s.lib")
+
 #define _ATL_CSTRING_EXPLICIT_CONSTRUCTORS	// some CString constructors will be explicit 
 
 // turns off MFC's hiding of some common and often safely ignored warning messages 
@@ -105,6 +94,7 @@
 //#include <afxcontrolbars.h>     // prise en charge des MFC pour les rubans et les barres de contrôles
 #include <afxtempl.h>
 #include <afxole.h>
+#include "afxtoolbar.h"
 
 #undef min
 #undef max
@@ -119,20 +109,16 @@
 #endif
 #endif
 
-
-
 #if defined(THERECANBENODEBUG) && defined(DEBUG)
 #undef DEBUG
 #endif
 
+#define XP_WIN
+#define XPCOM_GLUE
 #define MOZILLA_STRICT_API
 #define INTERNAL_SIDEBAR
 #define INTERNAL_SITEICONS
 
-// Please don't change the line below, I have a perl script that depends on it being here :)
-// - BEGIN MOZILLA INCLUDES -
-// Additional include directories: 
-// ../mozilla/mozilla/dist/include/docshell, ../mozilla/mozilla/dist/include/dom, ../mozilla/mozilla/dist/include/embed_base, ../mozilla/mozilla/dist/include/exthandler, ../mozilla/mozilla/dist/include/find, ../mozilla/mozilla/dist/include/gfx, ../mozilla/mozilla/dist/include/helperAppDlg, ../mozilla/mozilla/dist/include/intl, ../mozilla/mozilla/dist/include/necko, ../mozilla/mozilla/dist/include/nkcache, ../mozilla/mozilla/dist/include/pref, ../mozilla/mozilla/dist/include/profile, ../mozilla/mozilla/dist/include/shistory, ../mozilla/mozilla/dist/include/string, ../mozilla/mozilla/dist/include/uriloader, ../mozilla/mozilla/dist/include/wallet, ../mozilla/mozilla/dist/include/webBrowser_core, ../mozilla/mozilla/dist/include/webbrowserpersist, ../mozilla/mozilla/dist/include/webshell, ../mozilla/mozilla/dist/include/widget, ../mozilla/mozilla/dist/include/windowwatcher, ../mozilla/mozilla/dist/include/xpcom, ../mozilla/mozilla/dist/include/nspr, 
 
 // docshell: 
 #include "nsIDocShell.h"

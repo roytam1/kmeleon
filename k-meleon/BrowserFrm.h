@@ -350,6 +350,7 @@ protected:
 	afx_msg void OnMinimizeWindow();
 	afx_msg void OnRestoreWindow();
 	afx_msg void OnToggleWindow();
+	afx_msg LRESULT OnToobarContextMenu(WPARAM wParam, LPARAM lParam);
 
 	//}}AFX_MSG
 
