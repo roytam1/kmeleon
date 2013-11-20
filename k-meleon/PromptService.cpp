@@ -44,7 +44,7 @@ extern CWnd* CWndForDOMWindow(nsIDOMWindow *aWindow);
 
 
 //*****************************************************************************
-NS_IMPL_ISUPPORTS3(CPromptService, nsIPromptFactory, nsIPrompt, nsIPromptService, )
+NS_IMPL_ISUPPORTS3(CPromptService, nsIPromptFactory, nsIPrompt, nsIPromptService)
 //NS_IMPL_ISUPPORTS1(CPromptService, nsIPromptService/*, nsINonBlockingAlertService*/)
 
 CPromptService::CPromptService()

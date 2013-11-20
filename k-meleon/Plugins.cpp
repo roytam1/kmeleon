@@ -348,12 +348,10 @@ kmeleonDocInfo * GetDocInfo(HWND mainWnd)
    USES_CONVERSION;
 
    CString url = browser->GetURI();
-   char* docurl = new char[url.GetLength()+1];
-   strcpy(docurl, T2CA(url));
-
+   char* docurl = strdup(CStringToNSUTF8String(url).get());
+   
    CString title = browser->GetTitle();
-   char* doctitle = new char[title.GetLength()*3+1]; //Beware of multibyte strings
-   strncpy(doctitle, T2CA(title), title.GetLength()*3+1);
+   char* doctitle = strdup(CStringToNSUTF8String(title).get());
 
    if (kDocInfo.url)
       delete kDocInfo.url;

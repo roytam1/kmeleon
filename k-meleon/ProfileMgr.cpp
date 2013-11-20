@@ -339,7 +339,7 @@ static const char kTable[] =
 
 static void SaltProfileName(CString& aName)
 {
-    double fpTime;
+    long fpTime;
     //LL_L2D(fpTime, PR_Now());
 	fpTime = time(0);
     // use 1e-6, granularity of PR_Now() on the mac is seconds

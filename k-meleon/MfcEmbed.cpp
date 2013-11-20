@@ -1040,7 +1040,10 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
    
    // Add to the list of BrowserFrame windows
    m_FrameWndLst.AddHead(pFrame);
-   
+   // The only way I've found to force the creation of an inner windows
+   // This prevent gecko to crash when trying to open a dialog
+   if  (chromeMask & (nsIWebBrowserChrome::CHROME_MODAL))
+		pFrame->OpenURL(_T(""));
    ReleaseMutex(m_hMutex);
    return pFrame;
 }
@@ -1268,7 +1271,7 @@ int CMfcEmbedApp::ExitInstance()
       delete m_ProfileMgr;
    }
    
-   XRE_TermEmbedding();
+   if (XRE_TermEmbedding) XRE_TermEmbedding();
    //NS_TermEmbedding();
 
 #ifdef XPCOM_GLUE

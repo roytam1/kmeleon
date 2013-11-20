@@ -52,7 +52,7 @@ BOOL GetMessageFont(WORD *nPointSize, TCHAR* lpFaceName)
 	if (!SystemParametersInfo(SPI_GETNONCLIENTMETRICS,sizeof(NONCLIENTMETRICS),&ncm,0))
 		return FALSE;
 
-	LOGFONTA &lf = ncm.lfMessageFont;
+	LOGFONT &lf = ncm.lfMessageFont;
 
 	if (lf.lfHeight < 0)
 		lf.lfHeight = -lf.lfHeight;

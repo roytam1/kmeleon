@@ -76,7 +76,7 @@ public:
 		if (mBaseWindow) mBaseWindow->SetPositionAndSize(0, 0, cx, cy, PR_TRUE);
 	}
 	void ShowScrollbars(BOOL visible);
-	BOOL ScrollBy(INT dx, INT dy);
+	BOOL ScrollBy(int32_t dx, int32_t dy);
 
 	void GoBack() { if (mWebNav) mWebNav->GoBack(); }
 	void GoForward() { if (mWebNav) mWebNav->GoForward(); }

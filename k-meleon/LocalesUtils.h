@@ -233,6 +233,20 @@ public:
 		return CResString(hModDll, uStringID);
 	}
 
+	CResStringA GetStringA(UINT uStringID)
+	{
+		CResStringA ret(hResDll, uStringID);
+		if (ret) return ret;
+		return CResStringA(hModDll, uStringID);
+	}
+
+	CResStringW GetStringW(UINT uStringID)
+	{
+		CResStringW ret(hResDll, uStringID);
+		if (ret) return ret;
+		return CResStringW(hModDll, uStringID);
+	}
+
 	CResStringFormatA GetStringFormatA(UINT uStringID, ...)
 	{
 		va_list argList;
