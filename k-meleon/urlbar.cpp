@@ -22,6 +22,8 @@
 #include "stdafx.h"
 #include "urlbar.h"
 #include "kmeleon_plugin.h"
+#include "AutoComplete.h"
+
 #include <wininet.h>
 
 BEGIN_MESSAGE_MAP(CUrlBarEdit, CEdit)
@@ -157,14 +159,9 @@ void CACListBox::OnMouseMove(UINT nFlags, CPoint point)
 	SetCurSel(ItemFromPoint(point, b));
 }
 
-void CACListBox::AutoComplete(CString& text)
+void CACListBox::OnResult(AutoCompleteResult* results, int count) 
 {
-	AutoCompleteResult *results = NULL;
-
-	USES_CONVERSION;
-	int count = theApp.plugins.SendMessage("*", "Urlbar", "AutoComplete", (long)T2CA(text), (long)&results);
 	ResetContent();
-	
 	if (count && results)
 	{
 		USES_CONVERSION;
@@ -225,6 +222,18 @@ void CACListBox::AutoComplete(CString& text)
 			ShowWindow(SW_HIDE);
 	}
 	m_bBack = FALSE;
+}
+
+void CACListBox::AutoComplete(CString& text)
+{	
+	::AutoComplete(text, (AutoCompleteCallback)&CACListBox::ACCallback, this);
+	return;
+
+	USES_CONVERSION;
+	AutoCompleteResult *results = NULL;
+	int count = theApp.plugins.SendMessage("*", "Urlbar", "AutoComplete", (long)T2CA(text), (long)&results);
+	ResetContent();
+	OnResult(results, count);	
 }
 
 /////////////////////////////////////////////////////////////////////////////

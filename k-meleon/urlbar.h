@@ -21,6 +21,7 @@
 #pragma once
 
 #include "mfcembed.h"
+struct _AutoCompleteResult;
 extern CMfcEmbedApp theApp;
 
 // Have to use my own list box because the combobox is buggy
@@ -28,7 +29,8 @@ class CACListBox : public CListBox
 {
 public:
 	void Scroll(short dir, short q = 0);
-   void AutoComplete(CString&);
+	void AutoComplete(CString&);
+	void OnResult(_AutoCompleteResult* result, int count);
 
 	BOOL m_bBack;
 	DECLARE_MESSAGE_MAP()
@@ -43,6 +45,9 @@ public:
 protected:
 	CEdit *m_edit;
 	int m_ignoreMousemove;
+	static void CALLBACK ACCallback(_AutoCompleteResult* result, int count, void* self) {
+		((CACListBox*)self)->OnResult(result, count);
+	}
 };
 
 class CUrlBarEdit : public CEdit

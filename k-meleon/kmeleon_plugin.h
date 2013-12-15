@@ -113,7 +113,7 @@ typedef struct {
    char *linktitle;
 } kmeleonPointInfo;
 
-typedef struct {
+typedef struct _AutoCompleteResult {
 	char* value;
 	char* comment;
 	int score;

@@ -34,6 +34,7 @@
 #include "PromptService.h"
 #include "nsIPromptService.h"
 #include "nsIWindowWatcher.h"
+#include "nsIAuthInformation.h"
 
 extern CWnd* CWndForDOMWindow(nsIDOMWindow *aWindow);
 
@@ -44,7 +45,7 @@ extern CWnd* CWndForDOMWindow(nsIDOMWindow *aWindow);
 
 
 //*****************************************************************************
-NS_IMPL_ISUPPORTS3(CPromptService, nsIPromptFactory, nsIPrompt, nsIPromptService)
+NS_IMPL_ISUPPORTS4(CPromptService, nsIPromptFactory, nsIPrompt, nsIPromptService, nsIAuthPrompt)
 //NS_IMPL_ISUPPORTS1(CPromptService, nsIPromptService/*, nsINonBlockingAlertService*/)
 
 CPromptService::CPromptService()
@@ -445,6 +446,71 @@ NS_IMETHODIMP CPromptService::ConfirmEx(nsIDOMWindow *parent,
 		*checkValue = (checkResult == TRUE ? PR_TRUE : PR_FALSE);
 
     return NS_OK;    
+}
+
+#include "nsIChannel.h"
+NS_IMETHODIMP CPromptService::PromptAuth(nsIChannel *aChannel, uint32_t level, nsIAuthInformation *authInfo, bool *_retval)
+{
+	/*nsString username, password;
+	authInfo->GetUsername(username);
+	authInfo->GetPassword(password);
+
+	nsCOMPtr<nsIURI> uri;
+	aChannel->GetURI(getter_AddRefs(uri));
+	
+	nsCString scheme, host;
+	nsString realm;
+	uri->GetScheme(scheme);
+	uri->GetHostPort(host);
+	authInfo->GetRealm(realm);
+	scheme.Append("://");
+	scheme.Append(host);
+	host = scheme;		
+	
+	nsString target;
+	NS_CStringToUTF16(host, NS_CSTRING_ENCODING_UTF8,target);
+	target.Append(L"(");
+	target.Append(realm);
+	target.Append(L")");
+
+	uint32_t flags;
+	authInfo->GetFlags(&flags);
+
+	nsString text;
+
+	nsresult rv;
+	bool _retval;
+	if (flags & nsIAuthInformation::ONLY_PASSWORD)
+		rv = PromptPassword(mDomWindow, nullptr, text.get(), password, nullptr, nullptr, &_retval);
+	else 
+		rv = PromptUsernameAndPassword(mDomWindow, nullptr, text.get(), username, password, nullptr, nullptr, _retval);
+    authInfo->SetUsername(username);
+	authInfo->SetPassword(password);
+	return rv;*/
+	return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP CPromptService::Prompt(const PRUnichar * dialogTitle, const PRUnichar * text, const PRUnichar * passwordRealm, uint32_t savePassword, const PRUnichar * defaultText, PRUnichar * *result, bool *_retval)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* boolean promptUsernameAndPassword (in wstring dialogTitle, in wstring text, in wstring passwordRealm, in uint32_t savePassword, inout wstring user, inout wstring pwd); */
+NS_IMETHODIMP CPromptService::PromptUsernameAndPassword(const PRUnichar * dialogTitle, const PRUnichar * text, const PRUnichar * passwordRealm, uint32_t savePassword, PRUnichar * *user, PRUnichar * *pwd, bool *_retval)
+{
+    return PromptUsernameAndPassword(mDomWindow, dialogTitle, text, user, pwd, nullptr, nullptr, _retval);
+}
+
+/* boolean promptPassword (in wstring dialogTitle, in wstring text, in wstring passwordRealm, in uint32_t savePassword, inout wstring pwd); */
+NS_IMETHODIMP CPromptService::PromptPassword(const PRUnichar * dialogTitle, const PRUnichar * text, const PRUnichar * passwordRealm, uint32_t savePassword, PRUnichar * *pwd, bool *_retval)
+{
+    return PromptPassword(mDomWindow, dialogTitle, text, pwd, nullptr, nullptr, _retval);
+}
+
+/* nsICancelable asyncPromptAuth (in nsIChannel aChannel, in nsIAuthPromptCallback aCallback, in nsISupports aContext, in uint32_t level, in nsIAuthInformation authInfo); */
+NS_IMETHODIMP CPromptService::AsyncPromptAuth(nsIChannel *aChannel, nsIAuthPromptCallback *aCallback, nsISupports *aContext, uint32_t level, nsIAuthInformation *authInfo, nsICancelable * *_retval)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
 }
  
 /*NS_IMETHODIMP
