@@ -209,6 +209,7 @@
   <ItemGroup>
     <ClInclude Include="About.h" />
     <ClInclude Include="AccelParser.h" />
+    <ClInclude Include="AutoComplete.h" />
     <ClInclude Include="BrowserFrm.h" />
     <ClInclude Include="BrowserFrmTab.h" />
     <ClInclude Include="BrowserImpl.h" />

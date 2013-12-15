@@ -232,7 +232,7 @@ winEmbedFileLocProvider::GetFile(const char *prop, bool *persistant, nsIFile **_
     }
 	else if (strcmp(prop, NS_APP_USER_PROFILES_LOCAL_ROOT_DIR) == 0)
 	{
-		rv = GetDefaultUserProfileRoot(getter_AddRefs(localFile), PR_TRUE);   
+		rv = GetDefaultUserProfileRoot(getter_AddRefs(localFile), true);   
 	}
 	/*
     else if (strcmp(prop, NS_APP_RES_DIR) == 0)
@@ -519,7 +519,8 @@ NS_METHOD winEmbedFileLocProvider::GetProductDirectory(nsIFile **aLocalFile, PRB
 //
 // WIN    : <Application Data folder on user's machine>\Mozilla\Users50 
 //----------------------------------------------------------------------------------------
-NS_METHOD winEmbedFileLocProvider::GetDefaultUserProfileRoot(nsIFile **aLocalFile, PRBool aLocal)
+NS_METHOD winEmbedFileLocProvider::GetDefaultUserProfileRoot(nsIFile **aLocalFile, bool
+ aLocal)
 {
 	NS_ENSURE_ARG_POINTER(aLocalFile);
 

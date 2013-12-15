@@ -33,6 +33,8 @@ class nsIFactory;
 #include "nsIPromptFactory.h"
 #include "nsIPrompt.h"
 #include "nsIPromptService.h"
+#include "nsIAuthPrompt.h"
+#include "nsIAuthPrompt2.h"
 
 #include "nsIWindowWatcher.h"
 #include "nsEmbedCID.h"
@@ -41,9 +43,8 @@ class nsIFactory;
 {0xa2112d6a, 0x0e28, 0x421f, {0xb4, 0x6a, 0x25, 0xc0, 0xb3, 0x8, 0xcb, 0xd0}}
 static NS_DEFINE_CID(kPromptServiceCID, NS_PROMPTSERVICE_CID);
 
-class CPromptService: public nsIPromptFactory, public nsIPromptService, public nsIPrompt
-	                  //,public nsINonBlockingAlertService
-
+class CPromptService:	public nsIPromptFactory, public nsIPromptService, public nsIPrompt,
+						public nsIAuthPrompt2, public nsIAuthPrompt
 {
 public:
                  CPromptService();
@@ -53,6 +54,9 @@ public:
   NS_DECL_NSIPROMPTFACTORY
   NS_DECL_NSIPROMPT
   NS_DECL_NSIPROMPTSERVICE
+  NS_DECL_NSIAUTHPROMPT
+  NS_DECL_NSIAUTHPROMPT2
+
  // NS_DECL_NSINONBLOCKINGALERTSERVICE
 protected:
 	nsCOMPtr<nsIDOMWindow> mDomWindow;

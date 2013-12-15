@@ -623,8 +623,8 @@ NS_IMETHODIMP CBrowserImpl::ProvideWindow(nsIDOMWindow *aParent, uint32_t aChrom
 	PRInt32 containerPref;
 	NS_ENSURE_SUCCESS(branch->GetIntPref("open_newwindow", &containerPref), NS_OK);
 
-	if ( containerPref != nsIBrowserDOMWindow::OPEN_NEWTAB &&
-	    containerPref != nsIBrowserDOMWindow::OPEN_CURRENTWINDOW)
+	if ( containerPref != (nsIBrowserDOMWindow::OPEN_NEWTAB) &&
+	    containerPref != (nsIBrowserDOMWindow::OPEN_CURRENTWINDOW))
 		return NS_OK;
 
 	/* Now check our restriction pref.  The restriction pref is a power-user's
@@ -701,6 +701,31 @@ NS_IMETHODIMP CBrowserImpl::HandleEvent(nsIDOMEvent *aEvent)
 	if (type.Equals(NS_LITERAL_STRING("click")))
 	{
 		//event->PreventDefault();
+		nsCOMPtr<nsIDOMEventTarget> eventTarget;
+		rv = aEvent->GetOriginalTarget(getter_AddRefs(eventTarget));
+		NS_ENSURE_SUCCESS(rv, rv);
+		
+		nsCOMPtr<nsIDOMNode> targetNode = do_QueryInterface(eventTarget);
+		if (targetNode)
+		{
+			CString urlStr;
+			nsCOMPtr<nsIDOMDocument> domDocument;
+			targetNode->GetOwnerDocument(getter_AddRefs(domDocument));
+			if (domDocument) {
+				nsString uri;
+				domDocument->GetDocumentURI(uri);
+				urlStr = NSStringToCString(uri);
+				if (urlStr.Left(6).Compare(_T("about:")) == 0) {
+					nsCOMPtr<nsIDOMElement> element = do_QueryInterface(eventTarget, &rv);
+					if (element) {
+						nsEmbedString str;
+						rv = element->GetAttribute(NS_LITERAL_STRING("id"), str);
+						urlStr = GetUriForDocument(domDocument);
+						m_pBrowserFrameGlue->performXULCommand(str.get(), urlStr);
+					}
+				}				
+			}
+		}
 
 		nsCOMPtr<nsIDOMMouseEvent> mouseEvent(do_QueryInterface(aEvent));
 		NS_ENSURE_TRUE(mouseEvent, NS_ERROR_FAILURE);
@@ -726,11 +751,7 @@ NS_IMETHODIMP CBrowserImpl::HandleEvent(nsIDOMEvent *aEvent)
 		if (shiftKey) flags |= FSHIFT << 8;
 		if (ctrlKey) flags |= FCONTROL << 8;
 
-		nsCOMPtr<nsIDOMEventTarget> target;
-		aEvent->GetTarget(getter_AddRefs(target));
-		nsCOMPtr<nsIDOMNode> node = do_QueryInterface(target);
-		
-		if (m_pBrowserFrameGlue->MouseAction(node, flags))
+		if (m_pBrowserFrameGlue->MouseAction(targetNode, flags))
 			aEvent->PreventDefault();
 
 		return NS_OK;

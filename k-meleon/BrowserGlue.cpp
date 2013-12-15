@@ -37,7 +37,7 @@
 #include "nsISSLStatus.h"
 #include "nsIDialogParamBlock.h"
 #include "nsICertOverrideService.h"
-#include "nsIRecentBadCertsService.h"
+#include "nsIX509CertDB.h"
 
 CBrowserGlue::~CBrowserGlue()
 {
@@ -471,8 +471,8 @@ void CBrowserGlue::performXULCommand(LPCWSTR id, LPCTSTR siteUri)
 {
 	if (wcscmp(id, L"addCertificateExceptionButton") == 0)
 	{
-		nsCOMPtr<nsIRecentBadCerts> badCertService = do_GetService(NS_RECENTBADCERTS_CONTRACTID);
-		if (!badCertService) return;
+		nsCOMPtr<nsIX509CertDB> certDB = do_GetService("@mozilla.org/security/x509certdb;1");
+		if (!certDB) return;
 		
 		nsCOMPtr<nsIURI> uri;
 		//::NewURI(getter_AddRefs(uri), CStringToNSString(siteUri));
@@ -487,8 +487,12 @@ void CBrowserGlue::performXULCommand(LPCWSTR id, LPCTSTR siteUri)
 		CString hostAndPort;
 		hostAndPort.Format(_T("%s:%d"), NSCStringToCString(host), port);
 
+		nsCOMPtr<nsIRecentBadCerts> recentCertsSvc;
+		certDB->GetRecentBadCerts(false, getter_AddRefs(recentCertsSvc));
+		if (!recentCertsSvc) return;
+
 	    nsCOMPtr<nsISSLStatus> certStatus;
-		badCertService->GetRecentBadCert(CStringToNSString(hostAndPort), getter_AddRefs(certStatus));
+		recentCertsSvc->GetRecentBadCert(CStringToNSString(hostAndPort), getter_AddRefs(certStatus));
 		if (!certStatus) return;
 
 		int32_t certFailureFlags = 0;
@@ -524,10 +528,10 @@ void CBrowserGlue::performXULCommand(LPCWSTR id, LPCTSTR siteUri)
 		return;
 	}
 
-  if (wcscmp(id, L"vieshit") == 0)
+   if (wcscmp(id, L"vieshit") == 0)
    {
-      nsCOMPtr<nsIRecentBadCerts> badCertService = do_GetService(NS_RECENTBADCERTS_CONTRACTID);
-      if (!badCertService) return;
+      nsCOMPtr<nsIX509CertDB> certDB = do_GetService("@mozilla.org/security/x509certdb;1");
+      if (!certDB) return;
 
       nsCOMPtr<nsIURI> uri;
       mpBrowserView->GetBrowserWrapper()->GetCurrentURI(getter_AddRefs(uri));
@@ -542,8 +546,12 @@ void CBrowserGlue::performXULCommand(LPCWSTR id, LPCTSTR siteUri)
       CString hostAndPort;
       hostAndPort.Format(_T("%s:%d"), NSCStringToCString(host), port);
 
-       nsCOMPtr<nsISSLStatus> certStatus;
-      badCertService->GetRecentBadCert(CStringToNSString(hostAndPort), getter_AddRefs(certStatus));
+      nsCOMPtr<nsIRecentBadCerts> recentCertsSvc;
+      certDB->GetRecentBadCerts(false, getter_AddRefs(recentCertsSvc));
+      if (!recentCertsSvc) return;
+
+      nsCOMPtr<nsISSLStatus> certStatus;
+      recentCertsSvc->GetRecentBadCert(CStringToNSString(hostAndPort), getter_AddRefs(certStatus));
       if (!certStatus) return;
 
       nsCOMPtr<nsIX509Cert> cert;
