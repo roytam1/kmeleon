@@ -44,7 +44,7 @@ NS_IMETHODIMP CJSBridge::RebuildMenu(const char *menu)
 NS_IMETHODIMP CJSBridge::Id(nsIDOMWindow *window, const char *id)
 {
 	nsCOMPtr<nsIWindowWatcher> mWWatch(do_GetService(NS_WINDOWWATCHER_CONTRACTID));
-	NS_ENSURE_TRUE (mWWatch, nsnull);
+	NS_ENSURE_TRUE (mWWatch, NS_ERROR_FAILURE);
 
 	nsCOMPtr<nsIWebBrowserChrome> chrome;
 	HWND hWin = NULL;

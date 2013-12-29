@@ -1,4 +1,6 @@
 #define MOZILLA_STRICT_API
+#define XPCOM_GLUE
+#include "xpcom-config.h"
 #include <nsXPCOM.h>
 #include <nsCOMPtr.h>
 #include <nsISupports.h>

@@ -19,12 +19,12 @@ kmeleonPlugin kPlugin = {
 #include <nsCOMPtr.h>
 #include <nsISupports.h>
 #include <nsIComponentRegistrar.h>
-#include <nsIGenericFactory.h>
+#include <mozilla/ModuleUtils.h>
 #include <nsIServiceManager.h>
 #include <nsServiceManagerUtils.h>
 #include "nsIJSBridge.h"
 #include "jscomp.h"
-#include "nsEmbedString.h"
+#include "nsGenericFactory.h"
 
 NS_IMPL_ISUPPORTS1(CJSBridge, nsIJSBridge); 
 NS_GENERIC_FACTORY_CONSTRUCTOR(CJSBridge) 
@@ -38,7 +38,8 @@ static const nsModuleComponentInfo components =
 };
 
 static nsCOMPtr<nsIGenericFactory> componentFactory;
-
+extern NS_COM_GLUE nsresult NS_NewGenericFactory(nsIGenericFactory* *result,
+                     const nsModuleComponentInfo *info);
 BOOL Init() 
 {
 	nsCOMPtr<nsIComponentRegistrar> compReg;
@@ -69,6 +70,18 @@ BOOL Quit()
 	return NS_SUCCEEDED(rv) ? TRUE : FALSE;
 }
 
+#include "nsIWebBrowser.h"
+
+void Create(HWND hWnd)
+{
+	nsCOMPtr<nsIServiceManager> servMan; 
+	nsresult rv = NS_GetServiceManager(getter_AddRefs(servMan)); 
+	NS_ENSURE_SUCCESS(rv, );
+
+	nsCOMPtr<nsIJSBridge> jsb;
+	rv = servMan->GetServiceByContractID("@kmeleon/jsbridge;1",  NS_GET_IID(nsIJSBridge), getter_AddRefs(jsb));
+	NS_ENSURE_SUCCESS(rv, );
+}
 
 long DoMessage(const char *to, const char *from, const char *subject,
 			   long data1, long data2)
@@ -77,6 +90,11 @@ long DoMessage(const char *to, const char *from, const char *subject,
 		if (stricmp(subject, "Init") == 0) {
 			Init();
 		}
+#ifdef _DEBUG
+		else if (stricmp(subject, "Create") == 0) {
+			Create((HWND)data1);
+		}
+#endif
 		else if (stricmp(subject, "Quit") == 0) {
 			Quit();
 		}
