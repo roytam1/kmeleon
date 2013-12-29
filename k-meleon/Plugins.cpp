@@ -1462,15 +1462,7 @@ int TranslateEx(const char* originalText,  TCHAR* translatedText, int bufferlen,
 
 BOOL GetMozillaWebBrowser(HWND hWnd, nsIWebBrowser** webBrowser)
 {
-	CBrowserFrame *frame = GetFrame(hWnd);
-	if (!frame) return FALSE;
-
-	CBrowserView *view = frame->GetActiveView(); 
-	if (!view) return FALSE;
-
-	CBrowserWrapper* browser = GetWrapper(hWnd);
-	if (!browser) return FALSE;
-
+	PLUGIN_HEADER(hWnd, false);
 	return NS_SUCCEEDED(browser->GetWebBrowser(webBrowser));
 }
 

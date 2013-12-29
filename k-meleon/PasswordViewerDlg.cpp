@@ -25,7 +25,7 @@
 
 
 
-// Boîte de dialogue CPasswordViewerDlg
+// Boû‘e de dialogue CPasswordViewerDlg
 
 //IMPLEMENT_DYNAMIC(CPasswordViewerDlg, CDialog)
 CPasswordViewerDlg::CPasswordViewerDlg(CWnd* pParent /*=NULL*/)
@@ -85,12 +85,41 @@ void CPasswordViewerDlg::EmptyList()
 {
 	while (!m_PasswordsList.IsEmpty())
 	{
-		delete(m_PasswordsList.GetHead());
+		//delete(m_PasswordsList.GetHead());
 		m_PasswordsList.RemoveHead();
 	}
 }
 
-void CPasswordViewerDlg::FillList(nsILoginInfo** logins, uint32_t count)
+void CPasswordViewerDlg::FillHosts(PRUnichar** logins, uint32_t count)
+{	
+	PRBool ret;
+	nsresult rv;
+
+	LVITEM lvItem;
+	lvItem.mask		= LVIF_PARAM;
+	lvItem.iSubItem	= 0;
+	lvItem.state = 0;
+	lvItem.stateMask = 0;
+	lvItem.pszText = 0;
+	lvItem.iItem	= 0xffff;
+	
+
+	while (count-->0)
+    {
+		//CPassword* password = new CPassword(nsPassword);
+		PRUnichar *host = logins[count];
+		POSITION p = m_HostsList.AddHead(host);
+
+		lvItem.lParam = (LPARAM)p;
+		int index = m_cPasswordsList.InsertItem(&lvItem);
+
+		if (index==-1) continue;
+		m_cPasswordsList.SetItemText(index, 0, host);
+	}
+	m_cPasswordsList.SortItems(SortPasswordsList, (LPARAM) &m_PasswordsList);
+}
+
+void CPasswordViewerDlg::FillPasswords(nsILoginInfo** logins, uint32_t count)
 {
 	PRBool ret;
 	nsresult rv;
@@ -104,7 +133,7 @@ void CPasswordViewerDlg::FillList(nsILoginInfo** logins, uint32_t count)
 	lvItem.iItem	= 0xffff;
 	
 
-	while (count-->=0)
+	while (count-->0)
     {
 		//CPassword* password = new CPassword(nsPassword);
 		nsILoginInfo *password = logins[count];
@@ -163,7 +192,7 @@ void CPasswordViewerDlg::OnBnClickedRadio1()
 	rv = m_passwordManager->GetAllLogins(&count, &logins);
 	if (NS_FAILED(rv)) return;
 
-	FillList(logins, count);
+	FillPasswords(logins, count);
 	ResizeColumns();
 
 	CWnd* button = GetDlgItem(IDC_DISPLAY_PASSWORDS);
@@ -184,10 +213,12 @@ void CPasswordViewerDlg::OnBnClickedRadio2()
 	m_cPasswordsList.DeleteColumn(1);
 	EmptyList();
 
-	//rv = m_passwordManager->GetRejectEnumerator(getter_AddRefs(enumPassword));
+	PRUnichar** hosts;
+	uint32_t count;
+	rv = m_passwordManager->GetAllDisabledHosts(&count, &hosts);
 	if (NS_FAILED(rv)) return;
 
-	//FillList(enumPassword);
+	FillHosts(hosts, count);
 
 	RECT rect;
 	m_cPasswordsList.GetClientRect(&rect);
@@ -218,12 +249,19 @@ void CPasswordViewerDlg::OnBnClickedDeletePasswords()
 			nItem = m_cPasswordsList.GetNextItem(nItem, LVNI_SELECTED);
 			ASSERT(nItem != -1);
 			POSITION p = (POSITION)m_cPasswordsList.GetItemData(nItem);
-			nsILoginInfo* password = m_PasswordsList.GetAt(p);
-			
+
 			if (!m_reject)
+			{
+				nsILoginInfo* password = m_PasswordsList.GetAt(p);
 				rv = m_passwordManager->RemoveLogin(password);
-			else
-				;//rv = m_passwordManager->SetLoginSavingEnabled(password->m_host, false);
+				m_PasswordsList.RemoveAt(p);
+			}
+			else 
+			{
+				PRUnichar* host = m_HostsList.GetAt(p);
+				rv = m_passwordManager->SetLoginSavingEnabled(nsString(host), true);
+				m_HostsList.RemoveAt(p);
+			}
 
 			if (NS_FAILED(rv))
 			{
@@ -231,8 +269,7 @@ void CPasswordViewerDlg::OnBnClickedDeletePasswords()
 				return;
 			}
 
-			m_PasswordsList.RemoveAt(p);
-			delete password;
+			
 		}
 
 		for (i=0;i < uSelectedCount;i++)
