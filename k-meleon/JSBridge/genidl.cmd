@@ -1,2 +1,2 @@
-@..\..\mozilla\mozilla\dist\bin\xpidl -m header -I ..\..\mozilla\mozilla\dist\idl nsIJSBridge.idl 
-@..\..\mozilla\mozilla\dist\bin\xpidl -e js_bridge.xpt -m typelib -I ..\..\mozilla\mozilla\dist\idl nsIJSBridge.idl 
+@..\..\xulrunner-sdk-dbg\bin\header.py -I ../../xulrunner-sdk-dbg/idl -o nsIJSBridge.h nsIJSBridge.idl 
+@..\..\xulrunner-sdk-dbg\bin\typelib.py -I ../../xulrunner-sdk-dbg/idl  -o js_bridge.xpt nsIJSBridge.idl 

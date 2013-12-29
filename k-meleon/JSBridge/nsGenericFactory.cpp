@@ -36,36 +36,37 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+
+
+// I need this file only when build with XPCOM_GLUE
+// When builded with it the components should be in a
+// external dll file like the original mfcembed do.
+// But we don't really need it to have them in a dll.
+//#ifdef XPCOM_GLUE
+
 // DO NOT COPY THIS CODE INTO YOUR SOURCE!  USE NS_IMPL_NSGETMODULE()
 
-#include "nsGenericFactory.h"
 #include "nsMemory.h"
 #include "nsCOMPtr.h"
 #include "nsIComponentManager.h"
 #include "nsIComponentRegistrar.h"
+#include "nsGenericFactory.h"
+#include "nsIProgrammingLanguage.h"
 
-#include "nsXPCOMGlue.h"
-//#include "nsXPCOMPrivate.h"
 
 nsGenericFactory::nsGenericFactory(const nsModuleComponentInfo *info)
     : mInfo(info)
 {
-    if (mInfo && mInfo->mClassInfoGlobal)
-        *mInfo->mClassInfoGlobal = NS_STATIC_CAST(nsIClassInfo *, this);
+
 }
 
 nsGenericFactory::~nsGenericFactory()
 {
-    if (mInfo) {
-        if (mInfo->mFactoryDestructor)
-            mInfo->mFactoryDestructor();
-        if (mInfo->mClassInfoGlobal)
-            *mInfo->mClassInfoGlobal = 0;
-    }
+
 }
 
 NS_IMPL_ISUPPORTS3(nsGenericFactory,
-                              nsIGenericFactory, 
+	nsIGenericFactory,
                               nsIFactory,
                               nsIClassInfo)
 
@@ -79,7 +80,7 @@ NS_IMETHODIMP nsGenericFactory::CreateInstance(nsISupports *aOuter,
     return NS_ERROR_FACTORY_NOT_REGISTERED;
 }
 
-NS_IMETHODIMP nsGenericFactory::LockFactory(PRBool aLock)
+NS_IMETHODIMP nsGenericFactory::LockFactory(bool aLock)
 {
     // XXX do we care if (mInfo->mFlags & THREADSAFE)?
     return NS_OK;
@@ -88,20 +89,15 @@ NS_IMETHODIMP nsGenericFactory::LockFactory(PRBool aLock)
 NS_IMETHODIMP nsGenericFactory::GetInterfaces(PRUint32 *countp,
                                               nsIID* **array)
 {
-    if (!mInfo->mGetInterfacesProc) {
-        *countp = 0;
-        *array = nsnull;
-        return NS_OK;
-    }
-    return mInfo->mGetInterfacesProc(countp, array);
+    *countp = 0;
+    *array = nullptr;
+    return NS_OK;
 }
 
 NS_IMETHODIMP nsGenericFactory::GetHelperForLanguage(PRUint32 language,
                                                      nsISupports **helper)
 {
-    if (mInfo->mGetLanguageHelperProc)
-        return mInfo->mGetLanguageHelperProc(language, helper);
-    *helper = nsnull;
+    *helper = nullptr;
     return NS_OK;
 }
 
@@ -113,7 +109,7 @@ NS_IMETHODIMP nsGenericFactory::GetContractID(char **aContractID)
             return NS_ERROR_OUT_OF_MEMORY;
         strcpy(*aContractID, mInfo->mContractID);
     } else {
-        *aContractID = nsnull;
+        *aContractID = nullptr;
     }
     return NS_OK;
 }
@@ -127,7 +123,7 @@ NS_IMETHODIMP nsGenericFactory::GetClassDescription(char * *aClassDescription)
             return NS_ERROR_OUT_OF_MEMORY;
         strcpy(*aClassDescription, mInfo->mDescription);
     } else {
-        *aClassDescription = nsnull;
+        *aClassDescription = nullptr;
     }
     return NS_OK;
 }
@@ -135,9 +131,9 @@ NS_IMETHODIMP nsGenericFactory::GetClassDescription(char * *aClassDescription)
 NS_IMETHODIMP nsGenericFactory::GetClassID(nsCID * *aClassID)
 {
     *aClassID =
-        NS_REINTERPRET_CAST(nsCID*,
-                            nsMemory::Clone(&mInfo->mCID, sizeof mInfo->mCID));
-    if (! *aClassID)
+        reinterpret_cast<nsCID*>
+                        (nsMemory::Clone(&mInfo->mCID, sizeof mInfo->mCID));
+   if (! *aClassID)
         return NS_ERROR_OUT_OF_MEMORY;
     return NS_OK;
 }
@@ -156,18 +152,13 @@ NS_IMETHODIMP nsGenericFactory::GetImplementationLanguage(PRUint32 *langp)
 
 NS_IMETHODIMP nsGenericFactory::GetFlags(PRUint32 *flagsp)
 {
-    *flagsp = mInfo->mFlags;
     return NS_OK;
 }
 
 // nsIGenericFactory: component-info accessors
 NS_IMETHODIMP nsGenericFactory::SetComponentInfo(const nsModuleComponentInfo *info)
 {
-    if (mInfo && mInfo->mClassInfoGlobal)
-        *mInfo->mClassInfoGlobal = 0;
     mInfo = info;
-    if (mInfo && mInfo->mClassInfoGlobal)
-        *mInfo->mClassInfoGlobal = NS_STATIC_CAST(nsIClassInfo *, this);
     return NS_OK;
 }
 
@@ -194,13 +185,14 @@ NS_METHOD nsGenericFactory::Create(nsISupports* outer, const nsIID& aIID, void* 
     return res;
 }
 
+
 NS_COM_GLUE nsresult
 NS_NewGenericFactory(nsIGenericFactory* *result,
                      const nsModuleComponentInfo *info)
 {
     nsresult rv;
     nsIGenericFactory* fact;
-    rv = nsGenericFactory::Create(NULL, NS_GET_IID(nsIGenericFactory), (void**)&fact);
+    rv = nsGenericFactory::Create(NULL, NS_GET_IID(nsIFactory), (void**)&fact);
     if (NS_FAILED(rv)) return rv;
     rv = fact->SetComponentInfo(info);
     if (NS_FAILED(rv)) goto error;
@@ -212,3 +204,5 @@ NS_NewGenericFactory(nsIGenericFactory* *result,
     return rv;
 }
 
+
+//#endif //XPCOM_GLUE
