@@ -45,8 +45,9 @@ public:
 };
 
 typedef CList<nsILoginInfo*, nsILoginInfo*> CPasswordList;
+typedef CList<PRUnichar*, PRUnichar*> CHostList;
 
-// Boîte de dialogue CPasswordViewerDlg
+// Boû‘e de dialogue CPasswordViewerDlg
 
 class CPasswordViewerDlg : public CDialog
 {
@@ -57,18 +58,20 @@ public:
 	virtual ~CPasswordViewerDlg();
 	static int CALLBACK SortPasswordsList(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort);
 
-// Données de boîte de dialogue
+// Données de boû‘e de dialogue
 	enum { IDD = IDD_PASSWORDS_VIEWER };
 
 protected:
 
 	CPasswordList m_PasswordsList;
+	CHostList m_HostsList;
 	nsCOMPtr<nsILoginManager> m_passwordManager;
 	BOOL m_bShowPasswords;
 
     BOOL m_reject;
 
-	void FillList(nsILoginInfo** logins, uint32_t count);
+	void FillPasswords(nsILoginInfo** logins, uint32_t count);
+	void FillHosts(PRUnichar** logins, uint32_t count);
 	void EmptyList();
 	void ResizeColumns();
 	virtual void DoDataExchange(CDataExchange* pDX);    // Prise en charge DDX/DDV
