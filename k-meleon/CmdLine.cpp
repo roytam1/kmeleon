@@ -104,7 +104,7 @@ int CCmdLine::GetSwitch(const char *pSwitch, char *pArgs, BOOL bRemove) {
       // if the "argument" starts with a dash, it's another switch, and this
       // switch has no argument
       else if (*p == '-') {
-         *pArgs = 0;
+         if (pArgs) *pArgs = 0;
          return 0;
       }
 

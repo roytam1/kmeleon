@@ -43,7 +43,7 @@
 #include "nsIDOMHTMLScriptElement.h"
 #include "nsIDOMWindowCollection.h"
 #include "nsIWebPageDescriptor.h"
-
+#include "nsIDocShell.h"
 
 #include "nsIDOMEventTarget.h"
 #include "nsIScriptGlobalObject.h"
@@ -52,7 +52,7 @@
 #include "nsISSLStatus.h"
 #include "nsISSLStatusProvider.h"
 #include "nsICertificateDialogs.h"
-
+#include "nsIScriptSecurityManager.h"
 
 #include "nsIDOMHTMLTextAreaElement.h"
 
@@ -122,9 +122,9 @@ void CBrowserWrapper::SetBrowserFrameGlue(PBROWSERFRAMEGLUE pBrowserFrameGlue)
 //		mpBrowserImpl->Init(pBrowserFrameGlue, mWebBrowser);
 }
 
-BOOL CBrowserWrapper::CreateBrowser(CWnd* parent, BOOL chromeContent)
+BOOL CBrowserWrapper::CreateBrowser(CWnd* parent, uint32_t chromeFlags)
 {
-	mChromeContent = chromeContent;
+	mChromeContent = chromeFlags & nsIWebBrowserChrome::CHROME_OPENAS_CHROME;
 	mWndOwner = parent;
 
 	// Create web shell
@@ -165,6 +165,7 @@ BOOL CBrowserWrapper::CreateBrowser(CWnd* parent, BOOL chromeContent)
 	// This is the interface thru' which the XP BrowserImpl code communicates
 	// with the platform specific code to update status bars etc.
 	mpBrowserImpl->Init(mpBrowserGlue, mWebBrowser);
+	mpBrowserImpl->SetChromeFlags(chromeFlags);
 	mpBrowserImpl->AddRef();
 	mWebBrowser->SetContainerWindow(static_cast<nsIWebBrowserChrome*>(mpBrowserImpl));
 
@@ -174,8 +175,7 @@ BOOL CBrowserWrapper::CreateBrowser(CWnd* parent, BOOL chromeContent)
 
 	// XXX Content and chrome dialog are currently the same type of window.
 	// Set the correct type depending if this window will host chrome or content.
-	dsti->SetItemType( chromeContent ? 
-		//m_chromeMask & nsIWebBrowserChrome::CHROME_OPENAS_CHROME ?
+	dsti->SetItemType( chromeFlags & nsIWebBrowserChrome::CHROME_OPENAS_CHROME ?
 			nsIDocShellTreeItem::typeChromeWrapper :
 			nsIDocShellTreeItem::typeContentWrapper);
 
@@ -196,13 +196,35 @@ BOOL CBrowserWrapper::CreateBrowser(CWnd* parent, BOOL chromeContent)
 	rv = mBaseWindow->InitWindow(nsNativeWidget(parent->GetSafeHwnd()), nullptr, 0, 0, rect.Width(), rect.Height());
 	rv = mBaseWindow->Create();
 
+	if (mChromeContent) {
+	// Eagerly create an about:blank content viewer with the right principal here,
+  // rather than letting it happening in the upcoming call to
+  // SetInitialPrincipalToSubject. This avoids creating the about:blank document
+  // and then blowing it away with a second one, which can cause problems for the
+  // top-level chrome window case. See bug 789773.
+	  nsCOMPtr<nsIScriptSecurityManager> ssm =
+		do_GetService(NS_SCRIPTSECURITYMANAGER_CONTRACTID, &rv);
+	  if (ssm) { // Sometimes this happens really early  See bug 793370.
+		nsCOMPtr<nsIPrincipal> principal;
+		ssm->GetSubjectPrincipal(getter_AddRefs(principal));
+		if (!principal) {
+		  ssm->GetSystemPrincipal(getter_AddRefs(principal));
+		}
+		rv = GetDocShell()->CreateAboutBlankContentViewer(principal);
+		NS_ENSURE_SUCCESS(rv, rv);
+		//nsCOMPtr<nsIDocument> doc = do_GetInterface(GetDocShell());
+		//NS_ENSURE_TRUE(!!doc, NS_ERROR_FAILURE);
+		//doc->SetIsInitialDocument(true);
+	  }
+	}
+
 	// Register the BrowserImpl object to receive progress messages
 	// These callbacks will be used to update the status/progress bars
     nsCOMPtr<nsIWeakReference> weak = do_GetWeakReference(static_cast<nsIWebProgressListener*>(mpBrowserImpl));
     mWebBrowser->AddWebBrowserListener(weak, NS_GET_IID(nsIWebProgressListener));
 
 	// Add listeners for various events like popup-blocking, link added ... 
-	if (!chromeContent) AddListeners();
+	AddListeners();
 
 	// Find again observer to know when a new search was triggered
 	/*	nsCOMPtr<nsIObserverService> observerService = 
@@ -260,7 +282,7 @@ BOOL CBrowserWrapper::DestroyBrowser()
     if (NS_SUCCEEDED(rv))
       observerService->RemoveObserver(mpBrowserImpl, "nsWebBrowserFind_FindAgain");*/
 
-	if (!mChromeContent) RemoveListeners();
+	RemoveListeners();
 
 	if (mWebNav)
 	{
@@ -302,37 +324,47 @@ BOOL CBrowserWrapper::AddListeners(void)
 	if(mDomEventListener == nullptr) return FALSE;
 	mDomEventListener->Init(mpBrowserFrameGlue);
 */
-	rv = mEventTarget->AddEventListener(NS_LITERAL_STRING("click"),
-		mpBrowserImpl, true);
-	rv = mEventTarget->AddEventListener(NS_LITERAL_STRING("mousedown"),
-		mpBrowserImpl, true);
-	rv = mEventTarget->AddEventListener(NS_LITERAL_STRING("DOMPopupBlocked"),
-		mpBrowserImpl, false);
-	rv = mEventTarget->AddEventListener(NS_LITERAL_STRING("DOMLinkAdded"),
-		mpBrowserImpl, false);
-	rv = mEventTarget->AddEventListener(NS_LITERAL_STRING("DOMContentLoaded"),
-		mpBrowserImpl, false);
-	rv = mEventTarget->AddEventListener(NS_LITERAL_STRING("command"),
-		mpBrowserImpl, false);
-	rv = mEventTarget->AddEventListener(NS_LITERAL_STRING("flashblockCheckLoad"),
-		mpBrowserImpl, true, true, 2);
+	if (!mChromeContent) {
+		rv = mEventTarget->AddEventListener(NS_LITERAL_STRING("click"),
+			mpBrowserImpl, true);
+		rv = mEventTarget->AddEventListener(NS_LITERAL_STRING("mousedown"),
+			mpBrowserImpl, true);
+		rv = mEventTarget->AddEventListener(NS_LITERAL_STRING("DOMPopupBlocked"),
+			mpBrowserImpl, false);
+		rv = mEventTarget->AddEventListener(NS_LITERAL_STRING("DOMLinkAdded"),
+			mpBrowserImpl, false);
+		rv = mEventTarget->AddEventListener(NS_LITERAL_STRING("DOMContentLoaded"),
+			mpBrowserImpl, false);
+		rv = mEventTarget->AddEventListener(NS_LITERAL_STRING("flashblockCheckLoad"),
+			mpBrowserImpl, true, true, 2);
+		rv = mEventTarget->AddEventListener(NS_LITERAL_STRING("contextmenu"), 
+			mpBrowserImpl, false, false);
+	}
 
+	rv = mEventTarget->AddEventListener(NS_LITERAL_STRING("command"),
+	mpBrowserImpl, false);
 
 	return TRUE;
 }
 
 void CBrowserWrapper::RemoveListeners(void)
 {
-	mEventTarget->RemoveEventListener(NS_LITERAL_STRING("click"),
-		mpBrowserImpl, PR_FALSE);
-	mEventTarget->RemoveEventListener(NS_LITERAL_STRING("mousedown"),
-		mpBrowserImpl, PR_TRUE);
-	mEventTarget->RemoveEventListener(NS_LITERAL_STRING("DOMPopupBlocked"),
-		mpBrowserImpl, PR_FALSE);
-	mEventTarget->RemoveEventListener(NS_LITERAL_STRING("DOMLinkAdded"),
-		mpBrowserImpl, PR_FALSE);
-	mEventTarget->RemoveEventListener(NS_LITERAL_STRING("DOMContentLoaded"),
-		mpBrowserImpl, PR_FALSE);
+	if (!mChromeContent) {
+		mEventTarget->RemoveEventListener(NS_LITERAL_STRING("click"),
+			mpBrowserImpl, false);
+		mEventTarget->RemoveEventListener(NS_LITERAL_STRING("mousedown"),
+			mpBrowserImpl, true);
+		mEventTarget->RemoveEventListener(NS_LITERAL_STRING("DOMPopupBlocked"),
+			mpBrowserImpl, false);
+		mEventTarget->RemoveEventListener(NS_LITERAL_STRING("DOMLinkAdded"),
+			mpBrowserImpl, false);
+		mEventTarget->RemoveEventListener(NS_LITERAL_STRING("DOMContentLoaded"),
+			mpBrowserImpl, false);
+		mEventTarget->RemoveEventListener(NS_LITERAL_STRING("contextmenu"), 
+			mpBrowserImpl, false);
+	}
+	mEventTarget->RemoveEventListener(NS_LITERAL_STRING("command"),
+		mpBrowserImpl, false);
 }
 
 BOOL CBrowserWrapper::LoadURL(LPCTSTR url, LPCTSTR referrer, BOOL allowFixup)
@@ -750,9 +782,11 @@ BOOL CBrowserWrapper::Print()
 
 	if (!mPrintSettings) InitPrintSettings();
 	
+	mpBrowserImpl->mIsPrinting = true;
 	CPrintProgressDialog dlg(mWndOwner);
 	nsresult rv = print->Print(mPrintSettings, static_cast<nsIWebProgressListener*>(dlg.m_PrintListener.get()));
 	NS_ENSURE_SUCCESS(rv, FALSE);
+	mpBrowserImpl->mIsPrinting = false;
 
 	if (dlg.DoModal() != IDOK) {
 		print->Cancel();
@@ -776,24 +810,30 @@ BOOL CBrowserWrapper::InitPrintSettings()
 
 BOOL CBrowserWrapper::PrintPreview()
 {
-	nsCOMPtr<nsIWebBrowserPrint> print(do_GetInterface(mWebBrowser));
-	NS_ENSURE_TRUE(print, FALSE);
+	nsCOMPtr<nsIWebBrowserPrint> print;
+	nsIDocShell* shell = GetDocShell();	
+	shell->GetPrintPreview(getter_AddRefs(print));
+	if (!print) return FALSE;
 
 	if (!mPrintSettings) InitPrintSettings();
 
-	bool isPreview = PR_FALSE;
+	bool isPreview = false;
 	nsresult rv = print->GetDoingPrintPreview(&isPreview);
 	NS_ENSURE_SUCCESS(rv, FALSE);
 
 	if (isPreview) 
 		rv = print->ExitPrintPreview();
 	else {
-		rv = print->PrintPreview(mPrintSettings, nullptr, nullptr);
+		nsCOMPtr<nsIDOMWindow> dom;	
+		rv = mWebBrowser->GetContentDOMWindow(getter_AddRefs(dom));
+		NS_ENSURE_SUCCESS(rv, FALSE);
+
+		rv = print->PrintPreview(mPrintSettings, dom, nullptr);
 		// WORKAROUND - FIX ME: Why the print preview doesn't use all the width?
 		// So I'm forcing the window to reposition itself.
-		CRect rect;
-		mWndOwner->GetClientRect(rect);
-		mBaseWindow->SetPositionAndSize(0, 0, rect.right, rect.bottom, PR_TRUE);
+		//CRect rect;
+		//mWndOwner->GetClientRect(rect);
+		//mBaseWindow->SetPositionAndSize(0, 0, rect.right, rect.bottom, PR_TRUE);
 	}
 
 	return NS_SUCCEEDED(rv);
@@ -1664,43 +1704,10 @@ CString CBrowserWrapper::GetDocURL(nsIDOMNode* aNode)
 
 CString CBrowserWrapper::GetFrameURL(nsIDOMNode* aNode)
 {
-	nsresult rv;
-	nsCOMPtr<nsIDOMDocument> contextDocument;
-
-	if (aNode) {
-		rv = aNode->GetOwnerDocument(getter_AddRefs(contextDocument));
-		if (NS_FAILED(rv) || !contextDocument) return _T("");
-	}
-	else {
-		nsCOMPtr<nsIDOMWindow> dom;
-		mWebBrowserFocus->GetFocusedWindow(getter_AddRefs(dom));
-		NS_ENSURE_TRUE(dom, _T(""));
-
-		rv = dom->GetDocument(getter_AddRefs(contextDocument));
-		NS_ENSURE_TRUE(contextDocument, _T(""));
-	}
-
-	nsCOMPtr<nsIDOMWindow> domWindow;
-	mWebBrowser->GetContentDOMWindow(getter_AddRefs(domWindow));
-	if (NS_FAILED(rv) || !domWindow) 
+	nsString url;
+	if (!::GetFrameURL(mWebBrowser, aNode, url))
 		return _T("");
-
-	nsCOMPtr<nsIDOMDocument> document;
-	rv = domWindow->GetDocument(getter_AddRefs(document));
-	if (NS_FAILED(rv)) return _T("");
-
-	if(document == contextDocument) 
-		return _T("");
-
-	nsCOMPtr<nsIDOMLocation> location;
-	contextDocument->GetLocation(getter_AddRefs(location));
-	NS_ENSURE_TRUE(location, _T(""));
-
-	nsEmbedString strFrameURL;
-	rv = location->GetHref(strFrameURL);
-	NS_ENSURE_SUCCESS(rv, _T(""));
-
-	return NSStringToCString(strFrameURL);
+	return NSStringToCString(url);
 }
 
 #ifndef FINDBAR_USE_TYPEAHEAD

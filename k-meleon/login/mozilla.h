@@ -145,7 +145,7 @@ public:
 		NS_ENSURE_SUCCESS(rv, false);		
 
 		nsCOMPtr<nsIKLoginManager> klm;
-		rv = servMan->GetServiceByContractID("@kmeleonbrowser.org/login;1",  NS_GET_IID(nsIKLoginManager), getter_AddRefs(klm));
+		rv = servMan->GetServiceByContractID("@kmeleon/login;1",  NS_GET_IID(nsIKLoginManager), getter_AddRefs(klm));
 		NS_ENSURE_SUCCESS(rv, false);
 
 		nsCOMPtr<nsIDOMWindow> domWin;
@@ -159,7 +159,7 @@ public:
 		nsCOMPtr<nsPIDOMWindow> piWin(do_QueryInterface(domWin));
 		if (!piWin) return NULL;
 		fc->AttachToBrowser(piWin->GetDocShell(), popup);
-	
+
 		return klm->Init(target);
 	
 		rv = GetDOMEventTarget(mWebBrowser, (getter_AddRefs(mEventTarget)));

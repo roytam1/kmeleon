@@ -189,6 +189,9 @@
     <ClCompile Include="KmAppInfo.cpp">
       <Filter>Source Files\Components</Filter>
     </ClCompile>
+    <ClCompile Include="KmAbout.cpp">
+      <Filter>Source Files\Components</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="About.h">
@@ -308,9 +311,6 @@
     <ClInclude Include="ToolBarEx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ToolBarWrapper.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Tooltips.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -355,6 +355,9 @@
     </ClInclude>
     <ClInclude Include="AutoComplete.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="KmAbout.h">
+      <Filter>Header Files\Components</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

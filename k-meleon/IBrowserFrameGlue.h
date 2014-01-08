@@ -65,7 +65,7 @@ struct IBrowserGlue {
 	virtual void SetFocus() = 0;
 
     // ContextMenu Related Methods
-    virtual void ShowContextMenu(UINT aContextFlags, nsIDOMNode* node) = 0;
+    virtual void ShowContextMenu(UINT aContextFlags) = 0;
 
     //Prompt Related Methods
     virtual HWND GetBrowserFrameNativeWnd() = 0;
@@ -78,7 +78,7 @@ struct IBrowserGlue {
 	virtual BOOL MouseAction(nsIDOMNode *node, UINT flags) = 0;
 	virtual void PopupBlocked(const char* uri) = 0;
 	virtual void SetFavIcon(nsIURI* favUri) = 0;
-	virtual void performXULCommand(LPCWSTR id, LPCTSTR uri) = 0; 
+	virtual bool performXULCommand(LPCWSTR id, LPCTSTR uri) = 0; 
 	virtual BOOL AllowFlash() = 0;
 
 	virtual ~IBrowserGlue() {};
@@ -100,7 +100,7 @@ struct IBrowserGlue {
         virtual void SetVisibility(bool aVisible);                    \
 		virtual void GetVisibility(bool *aVisible);       \
         virtual void SetFocus();                                        \
-        virtual void ShowContextMenu(UINT aContextFlags, nsIDOMNode* node); \
+        virtual void ShowContextMenu(UINT aContextFlags); \
         virtual HWND GetBrowserFrameNativeWnd();                          \
         virtual void ShowTooltip(int x, int y, LPCTSTR text); \
         virtual BOOL FocusNextElement(); \
@@ -108,7 +108,7 @@ struct IBrowserGlue {
 		virtual BOOL MouseAction(nsIDOMNode *node, UINT flags);\
 		virtual void PopupBlocked(const char* uri);\
 		virtual void SetFavIcon(nsIURI* favUri);\
-		virtual void performXULCommand(LPCWSTR id, LPCTSTR uri); \
+		virtual bool performXULCommand(LPCWSTR id, LPCTSTR uri); \
 		virtual BOOL AllowFlash(); \
 
 typedef IBrowserGlue *PBROWSERGLUE;

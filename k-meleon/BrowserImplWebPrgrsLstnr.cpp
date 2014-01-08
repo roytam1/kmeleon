@@ -79,7 +79,7 @@ NS_IMETHODIMP CBrowserImpl::OnStateChange(nsIWebProgress *progress,
 {
   NS_ENSURE_TRUE(m_pBrowserFrameGlue, NS_OK);
 
-  PRUint32 flag = mChromeFlags & nsIWebBrowserChrome::CHROME_OPENAS_CHROME ? STATE_IS_REQUEST : STATE_IS_NETWORK;
+  PRUint32 flag = mChromeFlags & nsIWebBrowserChrome::CHROME_OPENAS_CHROME ? STATE_IS_NETWORK : STATE_IS_NETWORK;
 
   if ((progressStateFlags & STATE_START) && (progressStateFlags & flag))
   {
@@ -111,19 +111,21 @@ NS_IMETHODIMP CBrowserImpl::OnStateChange(nsIWebProgress *progress,
 	  if (!mChromeLoaded && mChromeFlags & nsIWebBrowserChrome::CHROME_OPENAS_CHROME)
 	  {
 		  mChromeLoaded = PR_TRUE;
+		
+		  if (mChromeFlags & nsIWebBrowserChrome::CHROME_OPENAS_DIALOG) {
+			  nsCOMPtr<nsIDOMWindow> domWindow;
+			  mWebBrowser->GetContentDOMWindow(getter_AddRefs(domWindow));
+			  NS_ENSURE_TRUE(domWindow, NS_OK);
 
-		  nsCOMPtr<nsIDOMWindow> domWindow;
-		  mWebBrowser->GetContentDOMWindow(getter_AddRefs(domWindow));
-		  NS_ENSURE_TRUE(domWindow, NS_OK);
-
-		  domWindow->SizeToContent();
-
-		  // It must be repositionned somewhat after the resize. Centering it
-		  // all the time is not that bad.
-		  //if (pThis->m_chromeMask & nsIWebBrowserChrome::CHROME_CENTER_SCREEN)
-		  HWND h = m_pBrowserFrameGlue->GetBrowserFrameNativeWnd();
-		  CWnd* frame = CWnd::FromHandle(h);
-		  frame->CenterWindow();
+			  domWindow->SizeToContent();
+		   
+			  // It must be repositionned somewhat after the resize. Centering it
+			  // all the time is not that bad.
+			  //if (pThis->m_chromeMask & nsIWebBrowserChrome::CHROME_CENTER_SCREEN)
+			  HWND h = m_pBrowserFrameGlue->GetBrowserFrameNativeWnd();
+			  CWnd* frame = CWnd::FromHandle(h);
+			  frame->CenterWindow();
+		  }
 		  SetVisibility(PR_TRUE);
 	  }
     m_pBrowserFrameGlue->UpdateBusyState(PR_FALSE);

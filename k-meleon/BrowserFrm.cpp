@@ -1820,5 +1820,18 @@ void CBrowserFrame::OnGetMinMaxInfo(MINMAXINFO* lpMMI)
 
 LRESULT CBrowserFrame::OnToobarContextMenu(WPARAM wParam, LPARAM lParam)
 {
+	if (wParam == ID_NAV_BACK || wParam == ID_NAV_FORWARD) {
+
+		CRect rc;
+		CToolBar* toolbar = (CToolBar*)CWnd::FromHandle((HWND)lParam);
+		toolbar->GetItemRect(toolbar->CommandToIndex(wParam), &rc);
+		CPoint pt(rc.left, rc.bottom);
+		toolbar->ClientToScreen(&pt);
+
+		CMenu menu;
+		menu.CreatePopupMenu();
+		wParam == ID_NAV_BACK ? DrawSHBackMenu(menu.GetSafeHmenu()) : DrawSHForwardMenu(menu.GetSafeHmenu());
+		menu.TrackPopupMenu(TPM_LEFTALIGN, pt.x, pt.y, this);
+	}
 	return CWnd::Default();
 }

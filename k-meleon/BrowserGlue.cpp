@@ -38,6 +38,7 @@
 #include "nsIDialogParamBlock.h"
 #include "nsICertOverrideService.h"
 #include "nsIX509CertDB.h"
+#include "nsIDOMEventTarget.h"
 
 CBrowserGlue::~CBrowserGlue()
 {
@@ -73,7 +74,18 @@ void CBrowserGlue::UpdateBusyState(BOOL aBusy)
 	}
 	else {
 		SetFavIcon(nullptr);
-		mPendingLocation = _T("");
+		mPendingLocation = _T("");		
+		
+		/*
+		nsCOMPtr<nsIDOMEventTarget> eventTarget;
+		nsCOMPtr<nsIWebBrowser> br = mpBrowserView->GetBrowserWrapper()->GetWebBrowser();
+		GetDOMEventTarget(br, (getter_AddRefs(eventTarget)));
+		if (eventTarget) {
+			eventTarget->RemoveEventListener(NS_LITERAL_STRING("contextmenu"), 
+				mpBrowserView->GetBrowserWrapper()->GetBrowserImpl(), false);
+			eventTarget->AddEventListener(NS_LITERAL_STRING("contextmenu"), 
+				mpBrowserView->GetBrowserWrapper()->GetBrowserImpl(), false, false);		
+		}*/
 	}
 
 	mpBrowserFrame->PostMessage(UWM_UPDATEBUSYSTATE, aBusy == PR_TRUE ? 1 : 0, (LPARAM)mpBrowserView->GetSafeHwnd());
@@ -397,46 +409,45 @@ BOOL CBrowserGlue::FocusPrevElement()
    return FALSE;
 }
 
-void  CBrowserGlue::ShowContextMenu(UINT aContextFlags, nsIDOMNode* node)
+void  CBrowserGlue::ShowContextMenu(UINT aContextFlags)
 {
 	CString menu;
-	if ( !(aContextFlags & nsIContextMenuListener2::CONTEXT_LINK) &&
-		!(aContextFlags & nsIContextMenuListener2::CONTEXT_IMAGE) &&
+	if ( !(aContextFlags & CONTEXT_LINK) &&
+		!(aContextFlags & CONTEXT_IMAGE) &&
 		mpBrowserView->GetBrowserWrapper()->CanCopy())
 	{
 		menu = _T("SelectedText");
 	}
 	else {
-		if (mpBrowserView->GetBrowserWrapper()->GetFrameURL(node).GetLength())
+		if (aContextFlags & CONTEXT_FRAME)
 			menu = _T("Frame");
 
-		if(aContextFlags & nsIContextMenuListener2::CONTEXT_DOCUMENT)
+		if(aContextFlags & CONTEXT_DOCUMENT)
 		{
-			if ((aContextFlags & nsIContextMenuListener2::CONTEXT_IMAGE) ||
-			    (aContextFlags & nsIContextMenuListener2::CONTEXT_BACKGROUND_IMAGE))
+			if ((aContextFlags & CONTEXT_IMAGE) ||
+			    (aContextFlags & CONTEXT_BACKGROUND_IMAGE))
 				menu += _T("DocumentImagePopup");
 			else
 				menu += _T("DocumentPopup");
 		}
-		else if(aContextFlags & nsIContextMenuListener2::CONTEXT_TEXT)
+		else if(aContextFlags & CONTEXT_TEXT)
 		{
 			menu += _T("TextPopup");
 		}
-		else if(aContextFlags & nsIContextMenuListener2::CONTEXT_LINK)
+		else if(aContextFlags & CONTEXT_LINK)
 		{
-			if (aContextFlags & nsIContextMenuListener2::CONTEXT_IMAGE)
+			if (aContextFlags & CONTEXT_IMAGE)
 				menu += _T("ImageLinkPopup");
 			else
 				menu += _T("LinkPopup");
 		}
-		else if(aContextFlags & nsIContextMenuListener2::CONTEXT_IMAGE)
+		else if(aContextFlags & CONTEXT_IMAGE)
 		{
 			menu += _T("ImagePopup");
 		}
 		else menu += _T("DocumentPopup");
 	}
 
-	mpBrowserView->m_contextNode = node;
 	CMenu *ctxMenu = theApp.menus.GetMenu(menu);
 	if(ctxMenu)
 	{
@@ -467,12 +478,12 @@ CBrowserWrapper* CBrowserGlue::ReuseWindow(BOOL useCurrent)
 #include "nsICertOverrideService.h"
 #include "nsIRecentBadCertsService.h"
 
-void CBrowserGlue::performXULCommand(LPCWSTR id, LPCTSTR siteUri)
+bool CBrowserGlue::performXULCommand(LPCWSTR id, LPCTSTR siteUri)
 {
 	if (wcscmp(id, L"addCertificateExceptionButton") == 0)
 	{
 		nsCOMPtr<nsIX509CertDB> certDB = do_GetService("@mozilla.org/security/x509certdb;1");
-		if (!certDB) return;
+		if (!certDB) return false;
 		
 		nsCOMPtr<nsIURI> uri;
 		//::NewURI(getter_AddRefs(uri), CStringToNSString(siteUri));
@@ -489,11 +500,11 @@ void CBrowserGlue::performXULCommand(LPCWSTR id, LPCTSTR siteUri)
 
 		nsCOMPtr<nsIRecentBadCerts> recentCertsSvc;
 		certDB->GetRecentBadCerts(false, getter_AddRefs(recentCertsSvc));
-		if (!recentCertsSvc) return;
+		if (!recentCertsSvc) return false;
 
 	    nsCOMPtr<nsISSLStatus> certStatus;
 		recentCertsSvc->GetRecentBadCert(CStringToNSString(hostAndPort), getter_AddRefs(certStatus));
-		if (!certStatus) return;
+		if (!certStatus) return false;
 
 		int32_t certFailureFlags = 0;
 		bool isDomainMismatch, isInvalidTime, isUntrusted;
@@ -509,13 +520,13 @@ void CBrowserGlue::performXULCommand(LPCWSTR id, LPCTSTR siteUri)
 		
 		nsCOMPtr<nsIX509Cert> cert;
 		certStatus->GetServerCert(getter_AddRefs(cert));
-		if (!cert) return;
+		if (!cert) return false;
 
 		nsCOMPtr<nsICertOverrideService> overrideService = do_GetService(NS_CERTOVERRIDE_CONTRACTID);
-		if (!overrideService) return;
+		if (!overrideService) return false;
 
 		nsresult rv = overrideService->RememberValidityOverride(host, port, cert, certFailureFlags, PR_TRUE);
-		NS_ENSURE_SUCCESS(rv, );
+		NS_ENSURE_SUCCESS(rv,  false);
 
 #ifdef INTERNAL_SITEICONS
 		if (this->mIconURI)
@@ -525,13 +536,13 @@ void CBrowserGlue::performXULCommand(LPCWSTR id, LPCTSTR siteUri)
 		}
 #endif
 		mpBrowserView->GetBrowserWrapper()->Reload(true);
-		return;
+		return true;
 	}
 
    if (wcscmp(id, L"vieshit") == 0)
    {
       nsCOMPtr<nsIX509CertDB> certDB = do_GetService("@mozilla.org/security/x509certdb;1");
-      if (!certDB) return;
+      if (!certDB) return false;
 
       nsCOMPtr<nsIURI> uri;
       mpBrowserView->GetBrowserWrapper()->GetCurrentURI(getter_AddRefs(uri));
@@ -548,42 +559,52 @@ void CBrowserGlue::performXULCommand(LPCWSTR id, LPCTSTR siteUri)
 
       nsCOMPtr<nsIRecentBadCerts> recentCertsSvc;
       certDB->GetRecentBadCerts(false, getter_AddRefs(recentCertsSvc));
-      if (!recentCertsSvc) return;
+      if (!recentCertsSvc) return false;
 
       nsCOMPtr<nsISSLStatus> certStatus;
       recentCertsSvc->GetRecentBadCert(CStringToNSString(hostAndPort), getter_AddRefs(certStatus));
-      if (!certStatus) return;
+      if (!certStatus) return false;
 
       nsCOMPtr<nsIX509Cert> cert;
       certStatus->GetServerCert(getter_AddRefs(cert));
-      if (!cert) return;
+      if (!cert) return false;
 
       nsCOMPtr<nsICertificateDialogs> certDialogs = do_GetService (NS_CERTIFICATEDIALOGS_CONTRACTID, &rv);
-      if (NS_FAILED (rv)) return;
+      if (NS_FAILED (rv)) return false;
 
       certDialogs->ViewCert(NULL, cert);
-      return;
+      return true;
    }
    else if (wcscmp(id, L"DeviceMananger") == 0)
    {
       CBrowserFrame* pFrame = theApp.CreateNewChromeDialog(_T("chrome://pippki/content/device_manager.xul"));
-      return;
+      return true;
    }
    else if (wcscmp(id, L"CertificateManager") == 0)
    {
       CBrowserFrame* pFrame = theApp.CreateNewChromeDialog(_T("chrome://pippki/content/certManager.xul"),theApp.m_pActiveWnd);
-      return;
+      return true;
    }
    else if (wcscmp(id, L"certerror") == 0)
    {
       CBrowserFrame* pFrame = theApp.CreateNewChromeDialog(_T("chrome://pippki/content/certerror.xul"),NULL);
-      return;
+      return true;
    }
    else if (wcscmp(id, L"exceptionDialogButton") == 0)
    {
       // TODO
-      return;
+      return false;
    }
+   else 
+   {
+      UINT nid = theApp.commands.GetId(id);
+	  if (nid) {
+         mpBrowserFrame->SendMessage(WM_COMMAND, (WPARAM)nid, 0L);
+         return true;
+	  }
+   }
+
+   return false;
 }
 
 BOOL CBrowserGlue::AllowFlash()

@@ -28,8 +28,13 @@ CString GetUriForDOMWindow(nsIDOMWindow *aWindow);
 
 CString GetMozDirectory(const char* dirName);
 BOOL GetLinkTitleAndHref(nsIDOMNode* node, CString& aHref, CString& aTitle);
+BOOL GetLinkTitleAndHref(nsIDOMNode* node, nsString& aHref, nsString& aTitle);
 BOOL GetBackgroundImageSrc(nsIDOMNode *aNode, CString& aUrl);
+BOOL GetBackgroundImageSrc(nsIDOMNode *aNode, nsString& aUrl);
 BOOL GetImageSrc(nsIDOMNode *aNode, CString& aUrl);
+BOOL GetImageSrc(nsIDOMNode *aNode, nsCString& aUrl);
+
+bool GetFrameURL(nsIWebBrowser* aWebBrowser, nsIDOMNode* aNode, nsString& url);
 
 BOOL LogMessage(const char* category, const char* message, const char* file, uint line, uint flags);
 

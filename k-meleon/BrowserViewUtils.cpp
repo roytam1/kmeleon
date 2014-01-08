@@ -318,6 +318,25 @@ void CBrowserView::OpenURL(LPCTSTR url, LPCTSTR referrer, BOOL allowFixup)
    if (!url) return;
 	//mpBrowserFrame->UpdateLocation(url, TRUE);
 
+  /* // Basically, trying to open an url in a dialog, so we open it elsewhere
+   if (mpBrowserFrame->IsDialog() 
+	  && ((CBrowserGlue*)m_pBrowserGlue)->mLocation[0] 
+      && ((CBrowserGlue*)m_pBrowserGlue)->mLocation.Compare(_T("about:blank"))!=0) {
+	   POSITION pos = theApp.m_FrameWndLst.GetHeadPosition();
+	   CBrowserFrame* pBrowserFrame = NULL;
+	   while( pos != NULL ) {
+		   pBrowserFrame = (CBrowserFrame *) theApp.m_FrameWndLst.GetNext(pos);
+		  if(!pBrowserFrame->IsDialog()) break;
+	   }
+	   if (pBrowserFrame) {
+			pBrowserFrame->OpenURL(url, referrer, 0, allowFixup);
+			pBrowserFrame->ActivateFrame();
+	   }
+	   else
+		   theApp.CreateNewBrowserFrameWithUrl(url, referrer, 0);
+	   return;
+   }*/
+
    if ( GetActiveWindow() == mpBrowserFrame &&
 	   !::IsChild(m_hWnd, ::GetFocus()))
 	  m_pWindow->SetActive(TRUE);

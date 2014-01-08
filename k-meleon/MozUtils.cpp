@@ -26,6 +26,7 @@
 #include "nsIScriptError.h"
 #include "nsIEmbeddingSiteWindow.h"
 #include "nsPIDOMWindow.h"
+#include "nsIWebBrowserFocus.h"
 
 nsEmbedString CStringToNSString(LPCTSTR aStr)
 {
@@ -171,7 +172,7 @@ CString GetMozDirectory(const char* dirName)
    return pathBuf.get();
 }
 
-void GatherTextUnder(nsIDOMNode* aNode, CString& aResult) 
+void GatherTextUnder(nsIDOMNode* aNode, nsString& aResult) 
 {
 	ASSERT(aNode);
 	if (!aNode) return;
@@ -231,10 +232,17 @@ void GatherTextUnder(nsIDOMNode* aNode, CString& aResult)
 		}
 	}
 
-	aResult = NSStringToCString(text);
+	aResult = text;
 }
 
-BOOL GetLinkTitleAndHref(nsIDOMNode* node, CString& aHref, CString& aTitle)
+void GatherTextUnder(nsIDOMNode* aNode, CString& aResult) 
+{
+	nsString result;
+	::GatherTextUnder(aNode, result);
+	aResult = NSStringToCString(result);
+}
+
+BOOL GetLinkTitleAndHref(nsIDOMNode* node, nsString& aHref, nsString& aTitle)
 {
 	NS_ENSURE_TRUE(node, FALSE);
 
@@ -251,26 +259,23 @@ BOOL GetLinkTitleAndHref(nsIDOMNode* node, CString& aHref, CString& aTitle)
 			nsCOMPtr<nsIDOMElement> element(do_QueryInterface(node));
 
 			bool hasAttr = PR_FALSE;
-			rv = element->HasAttribute(NS_LITERAL_STRING("href"), &hasAttr);
-			if (NS_SUCCEEDED(rv) && hasAttr)
+			if (element) element->HasAttribute(NS_LITERAL_STRING("href"), &hasAttr);
+			if (hasAttr)
 			{
-				nsEmbedString nsHref;
-
 				nsCOMPtr<nsIDOMHTMLAnchorElement> anchor(do_QueryInterface(element));
                 if (anchor)
-					anchor->GetHref(nsHref);
+					anchor->GetHref(aHref);
 				else {
 					nsCOMPtr<nsIDOMHTMLAreaElement> area(do_QueryInterface(element));
 					if (area)
-						area->GetHref(nsHref);
+						area->GetHref(aHref);
 					else {
 						nsCOMPtr<nsIDOMHTMLLinkElement> link(do_QueryInterface(element));
 						if (link)
-							link->GetHref(nsHref);
+							link->GetHref(aHref);
 					}
 				}
 			    
-				aHref = NSStringToCString(nsHref);
 				GatherTextUnder(element, aTitle);
 				return TRUE;
 			}
@@ -284,7 +289,16 @@ BOOL GetLinkTitleAndHref(nsIDOMNode* node, CString& aHref, CString& aTitle)
 	return FALSE;
 }
 
-
+BOOL GetLinkTitleAndHref(nsIDOMNode* node, CString& aHref, CString& aTitle)
+{
+	nsString url, title;
+	if (::GetLinkTitleAndHref(node, url, title)) {
+		aHref = NSStringToCString(url);
+		aTitle = NSStringToCString(title);
+		return TRUE;
+	}
+	return FALSE;
+}
 
 nsresult GetCSSBackground(nsIDOMNode *node, nsEmbedString& aUrl)
 {
@@ -349,7 +363,7 @@ nsresult GetCSSBackground(nsIDOMNode *node, nsEmbedString& aUrl)
 	return rv;
 }
 
-BOOL GetImageSrc(nsIDOMNode *aNode, CString& aUrl)
+BOOL GetImageSrc(nsIDOMNode *aNode, nsCString& aUrl)
 {
 	NS_ENSURE_TRUE(aNode, FALSE);
 
@@ -360,13 +374,20 @@ BOOL GetImageSrc(nsIDOMNode *aNode, CString& aUrl)
 	content->GetCurrentURI(getter_AddRefs(imgUri));
 	NS_ENSURE_TRUE(imgUri, FALSE);
 
-	nsEmbedCString url;
-	imgUri->GetSpec(url);
+	imgUri->GetSpec(aUrl);
+	return TRUE;
+}
+
+BOOL GetImageSrc(nsIDOMNode *aNode, CString& aUrl)
+{
+	nsCString url;
+	if (!::GetImageSrc(aNode, url))
+		return FALSE;
 	aUrl = NSUTF8StringToCString(url);
 	return TRUE;
 }
 
-BOOL GetBackgroundImageSrc(nsIDOMNode *aNode, CString& aUrl)
+BOOL GetBackgroundImageSrc(nsIDOMNode *aNode, nsString& aUrl)
 {
 	NS_ENSURE_TRUE(aNode, FALSE);
 	nsresult rv;
@@ -413,8 +434,58 @@ BOOL GetBackgroundImageSrc(nsIDOMNode *aNode, CString& aUrl)
 	if (bgImg.IsEmpty())
 		return FALSE;
 
-	aUrl = NSStringToCString(bgImg);
+	aUrl = bgImg;
 	return TRUE;
+}
+
+BOOL GetBackgroundImageSrc(nsIDOMNode *aNode, CString& aUrl)
+{
+	nsString url;
+	if (!::GetBackgroundImageSrc(aNode, url))
+		return false;
+	aUrl = NSStringToCString(url);
+	return true;
+}
+
+ bool GetFrameURL(nsIWebBrowser* aWebBrowser, nsIDOMNode* aNode, nsString& aUrl)
+{
+	nsresult rv;
+	nsCOMPtr<nsIDOMDocument> contextDocument;
+
+	if (aNode) {
+		rv = aNode->GetOwnerDocument(getter_AddRefs(contextDocument));
+		if (NS_FAILED(rv) || !contextDocument) return false;
+	}
+	else {
+		nsCOMPtr<nsIDOMWindow> dom;
+		nsCOMPtr<nsIWebBrowserFocus> browserFocus = do_QueryInterface(aWebBrowser, &rv);
+		NS_ENSURE_TRUE(browserFocus, false);
+		browserFocus->GetFocusedWindow(getter_AddRefs(dom));
+		NS_ENSURE_TRUE(dom, false);
+		rv = dom->GetDocument(getter_AddRefs(contextDocument));
+		NS_ENSURE_TRUE(contextDocument, false);
+	}
+
+	nsCOMPtr<nsIDOMWindow> domWindow;
+	aWebBrowser->GetContentDOMWindow(getter_AddRefs(domWindow));
+	if (NS_FAILED(rv) || !domWindow) 
+		return false;
+
+	nsCOMPtr<nsIDOMDocument> document;
+	rv = domWindow->GetDocument(getter_AddRefs(document));
+	if (NS_FAILED(rv)) return false;
+
+	if(document == contextDocument) 
+		return false;
+
+	nsCOMPtr<nsIDOMLocation> location;
+	contextDocument->GetLocation(getter_AddRefs(location));
+	NS_ENSURE_TRUE(location, false);
+
+	rv = location->GetHref(aUrl);
+	NS_ENSURE_SUCCESS(rv, false);
+
+	return true;
 }
 
 BOOL LogMessage(const char* category, const char* message, const char* file, uint line, uint flags)

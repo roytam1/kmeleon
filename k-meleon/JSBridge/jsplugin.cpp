@@ -2,6 +2,18 @@
 #include <windows.h>
 #include <stdio.h> 
 
+#define MOZILLA_STRICT_API
+#include <nsXPCOM.h>
+#include <nsCOMPtr.h>
+#include <nsISupports.h>
+#include <nsIComponentRegistrar.h>
+#include <mozilla/ModuleUtils.h>
+#include <nsIServiceManager.h>
+#include <nsServiceManagerUtils.h>
+#include "nsGenericFactory.h"
+#include "nsIJSBridge.h"
+#include "jscomp.h"
+
 #define KMELEON_PLUGIN_EXPORTS
 #include "..\kmeleon_plugin.h"
 #include "..\KMeleonConst.h"
@@ -14,17 +26,6 @@ kmeleonPlugin kPlugin = {
 	DoMessage
 };
 
-#define MOZILLA_STRICT_API
-#include <nsXPCOM.h>
-#include <nsCOMPtr.h>
-#include <nsISupports.h>
-#include <nsIComponentRegistrar.h>
-#include <mozilla/ModuleUtils.h>
-#include <nsIServiceManager.h>
-#include <nsServiceManagerUtils.h>
-#include "nsIJSBridge.h"
-#include "jscomp.h"
-#include "nsGenericFactory.h"
 
 NS_IMPL_ISUPPORTS1(CJSBridge, nsIJSBridge); 
 NS_GENERIC_FACTORY_CONSTRUCTOR(CJSBridge) 

@@ -73,7 +73,7 @@ NS_IMETHODIMP CACListener::OnSearchResult(nsIAutoCompleteSearch *search, nsIAuto
 
 	PRUint16 status;
 	result->GetSearchResult(&status);
-	if (status == nsIAutoCompleteResult::RESULT_SUCCESS)
+	if (status == nsIAutoCompleteResult::RESULT_SUCCESS || status == nsIAutoCompleteResult::RESULT_NOMATCH)
 	{
 		m_oldResult = result; // Keep the old result for optimization
 
