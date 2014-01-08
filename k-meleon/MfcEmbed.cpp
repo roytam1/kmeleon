@@ -217,7 +217,6 @@ nsresult CMfcEmbedApp::SetOffline(BOOL offline)
     return result;
 }
 
-#ifdef _DEBUG
 void CMfcEmbedApp::ShowDebugConsole()
 {
 
@@ -258,7 +257,7 @@ void CMfcEmbedApp::ShowDebugConsole()
         setvbuf(stderr, NULL, _IONBF, 0); 
     }
 }
-#endif
+
 
 bool CMfcEmbedApp::FindSkinFile( CString& szSkinFile, TCHAR *filename ) 
 {
@@ -513,7 +512,7 @@ BOOL CMfcEmbedApp::InitInstance()
 	   return FALSE;
 
 #ifndef FIREFOX_CHROME
-	LoadLanguage();
+   LoadLanguage();
 #endif
 
 #ifdef _DEBUG
@@ -783,6 +782,17 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrameWithUrl(LPCTSTR pUrl, LPCTSTR 
 
 CBrowserFrame* CMfcEmbedApp::CreateNewChromeDialog(LPCTSTR url, CWnd* pParent)
 {
+	// Check if it's not already open
+	POSITION pos = theApp.m_FrameWndLst.GetHeadPosition();
+	CBrowserFrame* pBrowserFrame = NULL;
+	while( pos != NULL ) {
+		pBrowserFrame = (CBrowserFrame *) theApp.m_FrameWndLst.GetNext(pos);
+		if(pBrowserFrame->IsDialog() && pBrowserFrame->GetActiveView()->GetCurrentURI().Compare(url) == 0) {
+			pBrowserFrame->ActivateFrame();
+			return pBrowserFrame;
+		}
+	}
+
 	//XXXX We have to make a real Dialog!
 	PRUint32 chromeMask = nsIWebBrowserChrome::CHROME_WINDOW_RESIZE |
                      nsIWebBrowserChrome::CHROME_WINDOW_CLOSE |
@@ -1001,28 +1011,17 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
       return FALSE;
    }
 
-   //XXXX
-   pFrame->GetActiveView()->GetBrowserWrapper()->mpBrowserImpl->SetChromeFlags(chromeMask);
    pFrame->SetIcon(m_hMainIcon, true);
    pFrame->SetIcon(m_hSmallIcon, false);
-      
-
-   // Set accelerator only if it's not a chrome window.
-   // if (!(chromeMask & nsIWebBrowserChrome::CHROME_OPENAS_CHROME))
-   //   pFrame->m_hAccelTable = accel.GetTable();
    
    // this only needs to be called once
    if (!m_bFirstWindowCreated) {
       KmMenu* menu = menus.GetKMenu(_T("@Toolbars"));
       if (menu) menu->Invalidate();
-	  
+#ifdef INTERNAL_SIDEBAR
       menu = menus.GetKMenu(_T("@Sidebars"));
       if (menu) menu->Invalidate();
-/*
-      pFrame->m_wndReBar.DrawToolBarMenu();
-#ifdef INTERNAL_SIDEBAR
-      pFrame->m_wndSideBar.DrawSideBarMenu();
-#endif*/
+#endif
       m_bFirstWindowCreated = TRUE;
    }
 	
@@ -1040,10 +1039,6 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
    
    // Add to the list of BrowserFrame windows
    m_FrameWndLst.AddHead(pFrame);
-   // The only way I've found to force the creation of an inner windows
-   // This prevent gecko to crash when trying to open a dialog
-   if  (chromeMask & (nsIWebBrowserChrome::CHROME_MODAL))
-		pFrame->OpenURL(_T(""));
    ReleaseMutex(m_hMutex);
    return pFrame;
 }

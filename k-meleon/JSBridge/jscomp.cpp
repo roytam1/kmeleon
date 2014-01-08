@@ -8,8 +8,9 @@
 #include <nsIWebBrowserChrome.h>
 #include <nsIEmbeddingSiteWindow.h>
 
-#include "..\kmeleon_plugin.h"
 #include "jscomp.h"
+#include "..\kmeleon_plugin.h"
+
 
 extern kmeleonPlugin kPlugin;
 
@@ -80,3 +81,11 @@ NS_IMETHODIMP CJSBridge::GetCmdList(PRUint32 *length, kICmdList ***list)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }
+
+NS_IMETHODIMP CJSBridge::Open(const char * url, uint16_t state, nsIWebBrowser * *_retval)
+{
+	HWND h = kPlugin.kFuncs->NavigateTo(url, state, nullptr);
+	kPlugin.kFuncs->GetMozillaWebBrowser(h, _retval);
+    return NS_OK;
+}
+

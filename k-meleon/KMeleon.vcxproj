@@ -56,6 +56,13 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Unicode|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release Unicode|Win32'">
+    <LinkIncremental>
+    </LinkIncremental>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug Unicode|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
@@ -125,7 +132,10 @@
     <ClCompile Include="BrowserFrmTab.cpp" />
     <ClCompile Include="BrowserGlue.cpp" />
     <ClCompile Include="BrowserImpl.cpp" />
-    <ClCompile Include="BrowserImplCtxMenuLstnr.cpp" />
+    <ClCompile Include="BrowserImplCtxMenuLstnr.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Unicode|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Unicode|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="BrowserImplWebPrgrsLstnr.cpp" />
     <ClCompile Include="BrowserView.cpp" />
     <ClCompile Include="BrowserViewPanning.cpp" />
@@ -143,6 +153,7 @@
     <ClCompile Include="FavIconList.cpp" />
     <ClCompile Include="GenericDlg.cpp" />
     <ClCompile Include="HiddenWnd.cpp" />
+    <ClCompile Include="KmAbout.cpp" />
     <ClCompile Include="KmAppInfo.cpp" />
     <ClCompile Include="KmCommand.cpp" />
     <ClCompile Include="KmMenu.cpp" />
@@ -223,6 +234,7 @@
     <ClInclude Include="GenericDlg.h" />
     <ClInclude Include="HiddenWnd.h" />
     <ClInclude Include="IBrowserFrameGlue.h" />
+    <ClInclude Include="KmAbout.h" />
     <ClInclude Include="KmAppInfo.h" />
     <ClInclude Include="KmCommand.h" />
     <ClInclude Include="kmeleon_plugin.h" />
@@ -248,7 +260,6 @@
     <ClInclude Include="StdAfx.h" />
     <ClInclude Include="TabReBar.h" />
     <ClInclude Include="ToolBarEx.h" />
-    <ClInclude Include="ToolBarWrapper.h" />
     <ClInclude Include="Tooltips.h" />
     <ClInclude Include="urlbar.h" />
     <ClInclude Include="Utils.h" />

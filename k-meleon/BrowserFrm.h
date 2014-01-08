@@ -203,7 +203,7 @@ protected:
 
 	// This specifies what UI elements this frame will support
 	// w.r.t. toolbar, statusbar, urlbar etc.
-	PRUint32 m_chromeMask;
+	
 	LONG m_style;
 
 	BOOL m_created; // set after we are created
@@ -213,6 +213,7 @@ protected:
 	int m_cy;
 
 public:
+	uint32_t        m_chromeMask;
 	CUrlBar         m_wndUrlBar;
 	// note: right now it's just a CStatic, but eventually it will become something better
 	CKmToolTip      m_wndToolTip;

@@ -236,7 +236,7 @@ void DoRebar(HWND rebarWnd) {
       SetWindowText(hwndTB, MENU_NAME);
 
       // Register the band name and child hwnd
-      kPlugin.kFuncs->RegisterBand(hwndTB, MENU_NAME, false);
+      kPlugin.kFuncs->RegisterBand(hwndTB, MENU_NAME, true);
 
       SendMessage(hwndTB, TB_SETIMAGELIST, 0, (LPARAM)NULL);
 

@@ -618,16 +618,17 @@ void CTabReBar::HandleMouseClick(int flag, CPoint point)
 		case 2: {
 			CMenu* menu = theApp.menus.GetMenu(_T("TabButtonPopup"));
 			if (!menu) return;
-			RECT* rect = 0;
+			CRect rect;
 			CBrowserTab* tab = NULL;
 			if (buttonID>=0)
-			{
-				rect = new RECT;
-				GetToolBarCtrl().GetItemRect(buttonID, rect);	
+			{				
+				GetToolBarCtrl().GetItemRect(buttonID, &rect);	
 				TBBUTTON button;
 				GetToolBarCtrl().GetButton(buttonID, &button);
 				tab = (CBrowserTab*)button.dwData;
+				point.SetPoint(rect.left, rect.bottom);
 			}
+			
 			ClientToScreen(&point);
 			UINT cmd = menu->TrackPopupMenu( TPM_RETURNCMD | TPM_LEFTALIGN | TPM_RIGHTBUTTON, point.x, point.y, GetParentFrame(), rect);
 			
@@ -646,7 +647,6 @@ void CTabReBar::HandleMouseClick(int flag, CPoint point)
 			if (tab && pTab!= tab)
 				frame->SafeSetActiveBrowser(pTab);
 
-			if (rect) delete rect;
 			break;
 		}
 	}

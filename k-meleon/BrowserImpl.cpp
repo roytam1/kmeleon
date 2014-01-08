@@ -97,7 +97,8 @@ CBrowserImpl::CBrowserImpl()
     m_pBrowserFrameGlue = NULL;
     mWebBrowser = nullptr;
 	mChromeFlags = 0;
-	mChromeLoaded = PR_FALSE;
+	mChromeLoaded = false;
+	mIsPrinting = false;
 }
 
 
@@ -136,7 +137,7 @@ NS_INTERFACE_MAP_BEGIN(CBrowserImpl)
    NS_INTERFACE_MAP_ENTRY(nsIEmbeddingSiteWindow)
   // NS_INTERFACE_MAP_ENTRY(nsIEmbeddingSiteWindow)
    NS_INTERFACE_MAP_ENTRY(nsIWebProgressListener)
-   NS_INTERFACE_MAP_ENTRY(nsIContextMenuListener2)
+   //NS_INTERFACE_MAP_ENTRY(nsIContextMenuListener2)
    NS_INTERFACE_MAP_ENTRY(nsITooltipListener)
    NS_INTERFACE_MAP_ENTRY(nsISupportsWeakReference)
   // NS_INTERFACE_MAP_ENTRY(nsISHistoryListener)
@@ -301,9 +302,7 @@ NS_IMETHODIMP CBrowserImpl::DestroyBrowserWindow()
 NS_IMETHODIMP CBrowserImpl::SizeBrowserTo(PRInt32 aCX, PRInt32 aCY)
 {
    NS_ENSURE_TRUE(m_pBrowserFrameGlue, NS_ERROR_FAILURE);
-
    m_pBrowserFrameGlue->SetBrowserSize(aCX, aCY);
-
    return NS_OK;
 }
 
@@ -495,7 +494,9 @@ NS_IMETHODIMP CBrowserImpl::GetSiteWindow(void** aSiteWindow)
       return NS_ERROR_NULL_POINTER;
 
    *aSiteWindow = 0;
-   if (m_pBrowserFrameGlue) {
+   // Thanks to https://bugzilla.mozilla.org/show_bug.cgi?id=588735
+   // If we don't want the windows destroyed during print we must return null
+   if (m_pBrowserFrameGlue && !mIsPrinting) {
        HWND w = m_pBrowserFrameGlue->GetBrowserFrameNativeWnd();
        *aSiteWindow = reinterpret_cast<void *>(w);
    }
@@ -675,6 +676,12 @@ NS_IMETHODIMP CBrowserImpl::ProvideWindow(nsIDOMWindow *aParent, uint32_t aChrom
 //*****************************************************************************
 // CBrowserImpl::nsIDOMEventListener
 //***************************************************************************** 
+#include "nsIDOMHTMLObjectElement.h"
+#include "nsIDOMHTMLEmbedElement.h"
+#include "nsIDOMHTMLAppletElement.h"
+#include "nsIFormControl.h"
+#include "nsIDOMHTMLInputElement.h"
+#include "nsIDOMXULElement.h"
 
 NS_IMETHODIMP CBrowserImpl::HandleEvent(nsIDOMEvent *aEvent)
 {
@@ -705,8 +712,14 @@ NS_IMETHODIMP CBrowserImpl::HandleEvent(nsIDOMEvent *aEvent)
 		rv = aEvent->GetOriginalTarget(getter_AddRefs(eventTarget));
 		NS_ENSURE_SUCCESS(rv, rv);
 		
+		nsCOMPtr<nsIDOMMouseEvent> mouseEvent(do_QueryInterface(aEvent));
+		NS_ENSURE_TRUE(mouseEvent, NS_ERROR_FAILURE);
+
+		uint16_t button;
+		mouseEvent->GetButton(&button);
+
 		nsCOMPtr<nsIDOMNode> targetNode = do_QueryInterface(eventTarget);
-		if (targetNode)
+		if (button == 0 && targetNode)
 		{
 			CString urlStr;
 			nsCOMPtr<nsIDOMDocument> domDocument;
@@ -720,18 +733,14 @@ NS_IMETHODIMP CBrowserImpl::HandleEvent(nsIDOMEvent *aEvent)
 					if (element) {
 						nsEmbedString str;
 						rv = element->GetAttribute(NS_LITERAL_STRING("id"), str);
-						urlStr = GetUriForDocument(domDocument);
-						m_pBrowserFrameGlue->performXULCommand(str.get(), urlStr);
+						if (str.Length() > 0) {
+							urlStr = GetUriForDocument(domDocument);
+							m_pBrowserFrameGlue->performXULCommand(str.get(), urlStr);
+						}
 					}
 				}				
 			}
-		}
-
-		nsCOMPtr<nsIDOMMouseEvent> mouseEvent(do_QueryInterface(aEvent));
-		NS_ENSURE_TRUE(mouseEvent, NS_ERROR_FAILURE);
-
-		PRUint16 button;
-		mouseEvent->GetButton(&button);
+		}		
 
 		bool altKey, shiftKey, ctrlKey;
 		mouseEvent->GetCtrlKey(&ctrlKey);
@@ -910,7 +919,102 @@ NS_IMETHODIMP CBrowserImpl::HandleEvent(nsIDOMEvent *aEvent)
 				urlStr = GetUriForDocument(domDocument);
 		}
 
-		m_pBrowserFrameGlue->performXULCommand(str.get(), urlStr);
+		HWND h = m_pBrowserFrameGlue->GetBrowserFrameNativeWnd();
+		CBrowserFrame* frame = (CBrowserFrame*)CWnd::FromHandle(h);
+		CBrowserView* view = (CBrowserView*)frame->GetActiveView();
+		view->m_contextNode = targetNode;
+
+		if (m_pBrowserFrameGlue->performXULCommand(str.get(), urlStr))
+			aEvent->StopPropagation();
+		return NS_OK;
+	}
+
+	if (type.Equals(NS_LITERAL_STRING("contextmenu")))
+	{
+		// No context menu for chrome
+		if (mChromeFlags & nsIWebBrowserChrome::CHROME_OPENAS_CHROME)
+			return NS_OK;
+		
+		
+		/*nsCOMPtr<nsIDOMEventTarget> eventTarget;
+		rv = aEvent->GetOriginalTarget(getter_AddRefs(eventTarget));
+		NS_ENSURE_SUCCESS(rv, rv);		
+		nsCOMPtr<nsIDOMNode> node = do_QueryInterface(eventTarget);*/
+		
+		nsCOMPtr<nsIDOMMouseEvent> mouseEvent = do_QueryInterface(aEvent);
+		NS_ENSURE_TRUE(mouseEvent, NS_ERROR_UNEXPECTED);
+		nsCOMPtr<nsIDOMEventTarget> targetNode;
+		aEvent->GetTarget(getter_AddRefs(targetNode));
+		NS_ENSURE_TRUE(targetNode, NS_ERROR_NULL_POINTER);
+		nsCOMPtr<nsIDOMNode> node = do_QueryInterface(targetNode);
+		if (!node) return NS_OK;		
+
+		// Whatever I do we get here before xul can handle the context menu
+		nsCOMPtr<nsIDOMXULElement> xulElement(do_QueryInterface(node));
+		if (xulElement) return NS_OK;
+
+		UINT flags = 0;
+		
+		// Look for links and images
+		nsString url, title, bgImgSrc;
+		nsCString imgSrc;
+		if (::GetLinkTitleAndHref(node, url, title))
+			flags |= CONTEXT_LINK;
+		if (::GetImageSrc(node, imgSrc))
+			flags |= CONTEXT_IMAGE;
+		if (::GetBackgroundImageSrc(node, bgImgSrc))
+			flags |= CONTEXT_BACKGROUND_IMAGE;
+
+		// always consume events for plugins and Java who may throw their
+		// own context menus but not for image objects.  Document objects
+		// will never be targets or ancestors of targets, so that's OK.
+		nsCOMPtr<nsIDOMHTMLObjectElement> objectElement;
+		if (!(flags &= CONTEXT_IMAGE)) 
+			objectElement = do_QueryInterface(node);
+		nsCOMPtr<nsIDOMHTMLEmbedElement> embedElement(do_QueryInterface(node));
+		nsCOMPtr<nsIDOMHTMLAppletElement> appletElement(do_QueryInterface(node));
+
+		if (objectElement || embedElement || appletElement)
+			return NS_OK;
+
+		// Look for form elements
+		nsCOMPtr<nsIFormControl> formControl(do_QueryInterface(node));
+		if (formControl) {
+			if (formControl->GetType() == NS_FORM_TEXTAREA) {
+				flags |= CONTEXT_TEXT;
+			} else {
+				nsCOMPtr<nsIDOMHTMLInputElement> inputElement(do_QueryInterface(formControl));
+				if (inputElement) {
+					if (formControl->IsSingleLineTextControl(false)) {
+						flags |= CONTEXT_TEXT;
+					}
+				}
+			}
+		}
+
+		// Check frame
+		if (::GetFrameURL(mWebBrowser, node, url))
+			flags |= CONTEXT_FRAME;
+
+		// Nothing found, check if it's html
+		if (!flags) {
+			nsCOMPtr<nsIDOMDocument> document;
+			node = do_QueryInterface(node);
+			node->GetOwnerDocument(getter_AddRefs(document));
+			nsCOMPtr<nsIDOMHTMLDocument> htmlDocument(do_QueryInterface(document));
+			if (htmlDocument) {
+				flags |= CONTEXT_DOCUMENT;				
+			}
+		}
+
+		// XXX set the context node
+		HWND h = m_pBrowserFrameGlue->GetBrowserFrameNativeWnd();
+		CBrowserFrame* frame = (CBrowserFrame*)CWnd::FromHandle(h);
+		CBrowserView* view = (CBrowserView*)frame->GetActiveView();
+		view->m_contextNode = node;
+
+		m_pBrowserFrameGlue->ShowContextMenu(flags);
+		return NS_OK;		
 	}
 
 	return NS_ERROR_NOT_IMPLEMENTED;

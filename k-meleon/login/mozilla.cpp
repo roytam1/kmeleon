@@ -36,6 +36,7 @@
 #include "nsIWebNavigation.h"
 #include "../utf.h"
 #include "nsIMarkupDocumentViewer.h"
+#include "nsIWebBrowserFocus.h"
 
 nsresult NewURI(nsIURI **result, const nsACString &spec)
 {
@@ -245,7 +246,15 @@ NS_IMETHODIMP AutocompletePopup::OpenAutocompletePopup(nsIAutoCompleteInput *inp
 NS_IMETHODIMP AutocompletePopup::ClosePopup()
 {
 	::ShowWindow(hList, SW_HIDE);
-	::SetActiveWindow(GetParent(hList));
+
+	// Focus not working if mouse is used and nothing work here.
+	/*nsCOMPtr<nsIWebBrowser> browser;
+	if (kPlugin.kFuncs->GetMozillaWebBrowser(GetParent(hList), getter_AddRefs(browser))) {
+		nsCOMPtr<nsIWebBrowserFocus> browserFocus = do_QueryInterface(browser);
+		if (browserFocus) browserFocus->Activate();
+	}
+		
+	::SetActiveWindow(GetParent(GetParent(hList)));*/
 	
 	mElement = nullptr;
 	mInput = nullptr;

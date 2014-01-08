@@ -128,7 +128,19 @@ BOOL GetWindows(HWND hWnd, CBrowserFrame** frame, CBrowserView** view)
 
 CBrowserFrame* GetFrame(HWND hWnd = NULL) 
 {
-	if (!hWnd) return theApp.m_pMostRecentBrowserFrame;
+	if (!hWnd) {
+		//We don't want to return a dialog
+		if (theApp.m_pMostRecentBrowserFrame && !theApp.m_pMostRecentBrowserFrame->IsDialog())
+			return theApp.m_pMostRecentBrowserFrame;
+
+		POSITION pos = theApp.m_FrameWndLst.GetHeadPosition();
+		CBrowserFrame* pBrowserFrame = NULL;
+		while( pos != NULL ) {
+			pBrowserFrame = (CBrowserFrame *) theApp.m_FrameWndLst.GetNext(pos);
+			if(!pBrowserFrame->IsDialog()) break;
+		}
+		return pBrowserFrame;
+	}
 	CWnd* wnd = CWnd::FromHandle(hWnd);
 
 	return (CBrowserFrame*)(wnd->IsFrameWnd() ? wnd : wnd->GetParentFrame());

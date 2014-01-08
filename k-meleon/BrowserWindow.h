@@ -61,7 +61,7 @@ public:
 	CBrowserWrapper(void);
 	~CBrowserWrapper(void);
 
-	BOOL CreateBrowser(CWnd* parent, BOOL chromeContent = FALSE);
+	BOOL CreateBrowser(CWnd* parent, uint32_t chromeFlags = 0);
 	BOOL DestroyBrowser();
     CString GetTitle();
 	CString GetURI(BOOL unescape = FALSE);

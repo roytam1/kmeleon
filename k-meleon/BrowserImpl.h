@@ -51,7 +51,7 @@ class CBrowserImpl : public nsIInterfaceRequestor,
 					 public nsIWebBrowserChromeFocus,
 					 public nsIEmbeddingSiteWindow,
 					 public nsIWebProgressListener,
-					 public nsIContextMenuListener2,
+					// public nsIContextMenuListener2,
 					 public nsITooltipListener,
 					 public nsSupportsWeakReference,
 					 // public nsISHistoryListener,
@@ -76,7 +76,7 @@ public:
    NS_DECL_NSIEMBEDDINGSITEWINDOW
    //NS_DECL_NSIEMBEDDINGSITEWINDOW2
    NS_DECL_NSIWEBPROGRESSLISTENER
-   NS_DECL_NSICONTEXTMENULISTENER2
+   //NS_DECL_NSICONTEXTMENULISTENER2
    NS_DECL_NSITOOLTIPLISTENER
    //NS_DECL_NSISHISTORYLISTENER
    //NS_DECL_NSIOBSERVER
@@ -91,6 +91,7 @@ public:
    NS_IMETHOD MouseOver(nsIDOMEvent* aDOMEvent);
    NS_IMETHOD MouseOut(nsIDOMEvent* aDOMEvent);*/
 
+   bool mIsPrinting;
 protected:
    
    PBROWSERGLUE m_pBrowserFrameGlue;

@@ -210,7 +210,7 @@ CBrowserView::~CBrowserView()
 int CBrowserView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
 	m_pWindow = new CBrowserWrapper();
-	if (!m_pWindow->CreateBrowser(this, mpBrowserFrame->IsDialog())) //XXX
+	if (!m_pWindow->CreateBrowser(this, mpBrowserFrame->m_chromeMask)) //XXX
 		return -1;
     
 	//m_pWindow->SetBrowserFrameGlue(m_pBrowserFrameGlue);
