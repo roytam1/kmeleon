@@ -36,6 +36,7 @@
 
 // Forward Declarations
 class nsIRegistry;
+class KmFileLocProvider;
 
 //*****************************************************************************
 //***    CProfileMgr
@@ -61,7 +62,7 @@ class CProfileMgr
 	
 	UINT				GetProfileCount();
 	BOOL				GetCurrentProfile(CProfile& profile);
-    BOOL				StartUp(LPCTSTR aProfileName = NULL);
+    BOOL				StartUp(KmFileLocProvider* provider, LPCTSTR aProfileName = NULL);
     BOOL                ShutDownCurrentProfile(BOOL cleanup=FALSE);
 	BOOL				GetProfileList(CProfile*** profileList, UINT* profileCount);
 	BOOL				CreateProfile(LPCTSTR aRootDir, LPCTSTR aLocalDir, LPCTSTR aName, CProfile& aProfile);
@@ -71,6 +72,8 @@ class CProfileMgr
 	BOOL				GetProfileByName(LPCTSTR aName, CProfile& aProfile);
 	BOOL				RenameProfile(LPCTSTR oldName, LPCTSTR newName);
 	BOOL				RemoveProfile(LPCTSTR oldName, BOOL removeDir);
+	
+	nsISupports* mProfileLock;
 
   protected:
 	CString				mProfileIniFile;
@@ -81,9 +84,11 @@ class CProfileMgr
 	BOOL				SetDefaultProfile(CProfile& profile);
 	BOOL	            ImportShowDialogOnStart(PRBool* showIt);
 	BOOL				ImportRegistry();
+	BOOL                InitProfile(CProfile* aProfile);
 
-	nsProfileDirServiceProvider* mProfileProvider;
+	KmFileLocProvider* mDirProvider;
 	CProfile			mCurrentProfile;
+	BOOL                mNewProfile;
 };
 
 

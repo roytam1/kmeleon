@@ -21,7 +21,7 @@
 #include "stdafx.h"
 #include "KmAppInfo.h"
 
-NS_IMPL_ISUPPORTS1(KmAppInfo, nsIXULAppInfo)
+NS_IMPL_ISUPPORTS2(KmAppInfo, nsIXULAppInfo, nsIXULRuntime)
 
 /* readonly attribute ACString vendor; */
 NS_IMETHODIMP KmAppInfo::GetVendor(nsACString & aVendor)
@@ -53,19 +53,22 @@ NS_IMETHODIMP KmAppInfo::GetVersion(nsACString & aVersion)
 /* readonly attribute ACString appBuildID; */
 NS_IMETHODIMP KmAppInfo::GetAppBuildID(nsACString & aAppBuildID)
 {
-    return NS_ERROR_NOT_IMPLEMENTED;
+	aAppBuildID = '7400';
+    return NS_OK;
 }
 
 /* readonly attribute ACString platformVersion; */
 NS_IMETHODIMP KmAppInfo::GetPlatformVersion(nsACString & aPlatformVersion)
 {
-    return NS_ERROR_NOT_IMPLEMENTED;
+	aPlatformVersion = NS_STRINGIFY(MOZILLA_VERSION);
+    return NS_OK;
 }
 
 /* readonly attribute ACString platformBuildID; */
 NS_IMETHODIMP KmAppInfo::GetPlatformBuildID(nsACString & aPlatformBuildID)
 {
-    return NS_ERROR_NOT_IMPLEMENTED;
+	aPlatformBuildID = NS_STRINGIFY(WHATEVER);
+    return NS_OK;
 }
 
 /* readonly attribute ACString UAName; */
@@ -73,4 +76,71 @@ NS_IMETHODIMP KmAppInfo::GetUAName(nsACString & aUAName)
 {
 	aUAName = "K-Meleon";
     return NS_OK;
+}
+
+
+// CRAP 
+
+/* readonly attribute boolean inSafeMode; */
+NS_IMETHODIMP KmAppInfo::GetInSafeMode(bool *aInSafeMode)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* attribute boolean logConsoleErrors; */
+NS_IMETHODIMP KmAppInfo::GetLogConsoleErrors(bool *aLogConsoleErrors)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+NS_IMETHODIMP KmAppInfo::SetLogConsoleErrors(bool aLogConsoleErrors)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* readonly attribute AUTF8String OS; */
+NS_IMETHODIMP KmAppInfo::GetOS(nsACString & aOS)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* readonly attribute AUTF8String XPCOMABI; */
+NS_IMETHODIMP KmAppInfo::GetXPCOMABI(nsACString & aXPCOMABI)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* readonly attribute AUTF8String widgetToolkit; */
+NS_IMETHODIMP KmAppInfo::GetWidgetToolkit(nsACString & aWidgetToolkit)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* readonly attribute unsigned long processType; */
+NS_IMETHODIMP KmAppInfo::GetProcessType(uint32_t *aProcessType)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* void invalidateCachesOnRestart (); */
+NS_IMETHODIMP KmAppInfo::InvalidateCachesOnRestart()
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* void ensureContentProcess (); */
+NS_IMETHODIMP KmAppInfo::EnsureContentProcess()
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* readonly attribute PRTime replacedLockTime; */
+NS_IMETHODIMP KmAppInfo::GetReplacedLockTime(PRTime *aReplacedLockTime)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* readonly attribute DOMString lastRunCrashID; */
+NS_IMETHODIMP KmAppInfo::GetLastRunCrashID(nsAString & aLastRunCrashID)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
 }

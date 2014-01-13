@@ -603,6 +603,7 @@
 #define IDS_REMEMBER                    62264
 #define IDS_EXTERNAL_HANDLER_REMEMBER   62264
 #define IDS_EXTERNAL_HANDLER_QUESTION   62265
+#define IDS_START_FAILED                62266
 
 // Next default values for new objects
 // 

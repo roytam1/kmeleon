@@ -72,7 +72,8 @@ enum FolderType {
    SkinsFolder,
    UserSkinsFolder,
    ResFolder,
-   CurrentSkinFolder
+   CurrentSkinFolder,
+   AppFolder
 };
 
 enum WindowVarType {

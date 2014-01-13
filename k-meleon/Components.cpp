@@ -14,6 +14,7 @@ the same CID and Contract ID as the default's.
 #include "NSSDialogs.h"
 #include "GenKeyPairDialogs.h"
 #include "KmAppInfo.h"
+#include "KmAbout.h"
 //#include "SideBarComp.h"
 
 #include "nsIComponentRegistrar.h"
@@ -28,6 +29,7 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(CNSSDialogs)
 NS_GENERIC_FACTORY_CONSTRUCTOR(CProgressDialog)
 NS_GENERIC_FACTORY_CONSTRUCTOR(CGenKeyPairDialogs)
 NS_GENERIC_FACTORY_CONSTRUCTOR(KmAppInfo)
+NS_GENERIC_FACTORY_CONSTRUCTOR(KmAbout)
 
 NS_DEFINE_NAMED_CID(NS_PROMPTSERVICE_CID);
 NS_DEFINE_NAMED_CID(NS_UNKNOWNCONTENTTYPEHANDLER_CID);
@@ -36,6 +38,7 @@ NS_DEFINE_NAMED_CID(NS_NSSDIALOGS_CID);
 NS_DEFINE_NAMED_CID(NS_NSSKEYPAIRDIALOGS_CID);
 NS_DEFINE_NAMED_CID(NS_DOWNLOAD_CID);
 NS_DEFINE_NAMED_CID(NS_KMAPPINFO_CID);
+NS_DEFINE_NAMED_CID(NS_KMABOUT_CID);
 
 static const mozilla::Module::CIDEntry kBrowserCIDs[] = {
 	{ &kNS_PROMPTSERVICE_CID,false, NULL, CPromptServiceConstructor },
@@ -45,6 +48,7 @@ static const mozilla::Module::CIDEntry kBrowserCIDs[] = {
 	{ &kNS_NSSKEYPAIRDIALOGS_CID,false, NULL, CGenKeyPairDialogsConstructor },
 	{ &kNS_DOWNLOAD_CID,false, NULL, CProgressDialogConstructor },
 	{ &kNS_KMAPPINFO_CID,false, NULL, KmAppInfoConstructor },
+	{ &kNS_KMABOUT_CID,false, NULL, KmAboutConstructor },
 	{ NULL }
 };
 
@@ -57,6 +61,7 @@ static const mozilla::Module::ContractIDEntry kBrowserContracts[] = {
 	{NS_GENERATINGKEYPAIRINFODIALOGS_CONTRACTID, &kNS_NSSKEYPAIRDIALOGS_CID},
 	{NS_TRANSFER_CONTRACTID, &kNS_DOWNLOAD_CID},
 	{"@mozilla.org/xre/app-info;1", &kNS_KMAPPINFO_CID},
+	{ NS_ABOUT_MODULE_CONTRACTID_PREFIX "home", &kNS_KMABOUT_CID },
 	{ NULL }
 };
 

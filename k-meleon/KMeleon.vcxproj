@@ -156,13 +156,13 @@
     <ClCompile Include="KmAbout.cpp" />
     <ClCompile Include="KmAppInfo.cpp" />
     <ClCompile Include="KmCommand.cpp" />
+    <ClCompile Include="KmFileLocProvider.cpp" />
     <ClCompile Include="KmMenu.cpp" />
     <ClCompile Include="LangParser.cpp" />
     <ClCompile Include="MenuParser.cpp" />
     <ClCompile Include="MfcEmbed.cpp" />
     <ClCompile Include="MostRecentUrls.cpp" />
     <ClCompile Include="MozUtils.cpp" />
-    <ClCompile Include="nsProfileDirServiceProvider.cpp" />
     <ClCompile Include="Parser.cpp" />
     <ClCompile Include="PasswordViewerDlg.cpp" />
     <ClCompile Include="Permissions.cpp" />
@@ -208,7 +208,6 @@
       </PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="VisualStylesXP.cpp" />
-    <ClCompile Include="winEmbedFileLocProvider.cpp" />
     <ClCompile Include="Components.cpp" />
     <ClCompile Include="CookiePromptService.cpp" />
     <ClCompile Include="GenKeyPairDialogs.cpp" />
@@ -239,6 +238,7 @@
     <ClInclude Include="KmCommand.h" />
     <ClInclude Include="kmeleon_plugin.h" />
     <ClInclude Include="KmeleonConst.h" />
+    <ClInclude Include="KmFileLocProvider.h" />
     <ClInclude Include="KmMenu.h" />
     <ClInclude Include="LangParser.h" />
     <ClInclude Include="Log.h" />
@@ -265,7 +265,6 @@
     <ClInclude Include="Utils.h" />
     <ClInclude Include="version.h" />
     <ClInclude Include="VisualStylesXP.h" />
-    <ClInclude Include="winEmbedFileLocProvider.h" />
     <ClInclude Include="CookiePromptService.h" />
     <ClInclude Include="FontPackageHandler.h" />
     <ClInclude Include="GenKeyPairDialogs.h" />

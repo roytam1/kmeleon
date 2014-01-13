@@ -33,8 +33,5 @@ public:
  
   KmAbout() {}
   virtual ~KmAbout() {}
-
-  static nsresult
-    Create(nsISupports *aOuter, REFNSIID aIID, void **aResult);
 };
 

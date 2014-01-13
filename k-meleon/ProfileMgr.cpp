@@ -21,7 +21,8 @@
 #include "ProfileMgr.h"
 #include "ProfilesDlg.h"
 #include "MozUtils.h"
-
+#include "KmFileLocProvider.h"
+#include "kmeleon_plugin.h"
 // Mozilla Includes
 #include "nsIToolkitProfileService.h"
 
@@ -49,6 +50,7 @@ static BOOL WritePrivateProfileInt(
 	return WritePrivateProfileString(lpAppName, lpKeyName, number, lpFileName);
 }
 
+extern XRE_LockProfileDirectoryType XRE_LockProfileDirectory;
 
 //*****************************************************************************
 //***    CProfileMgr: Object Management
@@ -56,6 +58,7 @@ static BOOL WritePrivateProfileInt(
 
 CProfileMgr::CProfileMgr()
 {
+	mProfileLock = nullptr;
 }
 
 CProfileMgr::~CProfileMgr()
@@ -68,18 +71,16 @@ CProfileMgr::~CProfileMgr()
 
 //#pragma comment(lib, "profdirserviceprovidersa_s.lib")
 
-BOOL CProfileMgr::StartUp(LPCTSTR aProfileName)
+BOOL CProfileMgr::StartUp(KmFileLocProvider* aProvider, LPCTSTR aProfileName)
 {
     nsresult rv;
-
-	/*nsCOMPtr<nsIToolkitProfileService> profService =  
+	/*
+	nsCOMPtr<nsIToolkitProfileService> profService =  
         do_GetService(NS_PROFILESERVICE_CONTRACTID, &rv);
 
 	return TRUE;*/
-	rv = NS_NewProfileDirServiceProvider(PR_TRUE, &mProfileProvider);
-	NS_ENSURE_SUCCESS(rv, FALSE);
-
-	CString registryDir = GetMozDirectory(NS_APP_APPLICATION_REGISTRY_DIR);
+	mDirProvider = aProvider;
+	CString registryDir = mDirProvider->GetProductDirectory();//GetMozDirectory(NS_APP_APPLICATION_REGISTRY_DIR);
 	if (registryDir.IsEmpty()) return FALSE;
 
 	mProfileIniFile = registryDir + _T("\\profiles.ini");
@@ -109,8 +110,8 @@ BOOL CProfileMgr::StartUp(LPCTSTR aProfileName)
 			if (!AskUserForProfile(TRUE, mCurrentProfile))
 				return FALSE;
 
-	rv = mProfileProvider->Register();
-	NS_ENSURE_SUCCESS(rv, FALSE);
+	//rv = mProfileProvider->Register();
+	//NS_ENSURE_SUCCESS(rv, FALSE);
 
 	while (true)
 	{
@@ -118,15 +119,20 @@ BOOL CProfileMgr::StartUp(LPCTSTR aProfileName)
 		rv = NS_NewLocalFile(CStringToNSString(mCurrentProfile.mRootDir), PR_TRUE, getter_AddRefs(rootDir));
 		NS_ENSURE_SUCCESS(rv, FALSE);
 		
-		nsCOMPtr<nsIFile> localDir;
+		/*nsCOMPtr<nsIFile> localDir;
 		rv = NS_NewLocalFile(CStringToNSString(mCurrentProfile.mLocalDir), PR_TRUE, getter_AddRefs(localDir));
-		NS_ENSURE_SUCCESS(rv, FALSE);
+		NS_ENSURE_SUCCESS(rv, FALSE);*/
 
-		rv = mProfileProvider->SetProfileDir(rootDir, localDir);
-		if (NS_SUCCEEDED(rv)) break;	
+		if (mDirProvider->SetProfile(CStringToNSString(mCurrentProfile.mRootDir), CStringToNSString(mCurrentProfile.mLocalDir)))
+		{
+			rv = XRE_LockProfileDirectory(rootDir, &mProfileLock);
+			if (NS_SUCCEEDED(rv)) break;	
+		}
+
+		//rv = mProfileProvider->SetProfileDir(rootDir, localDir);		
 		AfxMessageBox(IDS_PROFILE_LOAD_FAILED, MB_OK|MB_ICONERROR);
 		//profiledirprovider bug workaround 
-		mProfileProvider->SetProfileDir(nullptr, nullptr);
+		//mProfileProvider->SetProfileDir(nullptr, nullptr);
 		if (!AskUserForProfile(TRUE, mCurrentProfile))
 			return FALSE;
 	}
@@ -137,52 +143,8 @@ BOOL CProfileMgr::StartUp(LPCTSTR aProfileName)
 
 BOOL CProfileMgr::ShutDownCurrentProfile(BOOL cleanup)
 {
-	if (mProfileProvider)
-	{
-		nsCOMPtr<nsIObserverService> obssvc(do_GetService("@mozilla.org/observer-service;1"));
-		NS_ASSERTION(obssvc, "No observer service?");
-    	if (!obssvc) return FALSE;
-		
-		static const PRUnichar kShutdownCleanse[] =
-			{'s','h','u','t','d','o','w','n','-','c','l','e','a','n','s','e','\0'};
-		static const PRUnichar kShutdownPersist[] =
-			{'s','h','u','t','d','o','w','n','-','p','e','r','s','i','s','t','\0'};
-		
-		obssvc->NotifyObservers(nullptr, "profile-change-net-teardown", cleanup ? kShutdownCleanse : kShutdownPersist);
-		obssvc->NotifyObservers(nullptr, "profile-change-teardown", cleanup ? kShutdownCleanse : kShutdownPersist);
-
-	    /*// Phase 2c: Now that things are torn down, force JS GC so that things which depend on
-		// resources which are about to go away in "profile-before-change" are destroyed first.
-		nsCOMPtr<nsIThreadJSContextStack> stack
-			(do_GetService("@mozilla.org/js/xpc/ContextStack;1"));
-		if (stack)
-		{
-	        JSContext *cx = nullptr;
-		    stack->GetSafeJSContext(&cx);
-	        if (cx)
-			::JS_GC(cx);
-		}*/
-
-		//obssvc->NotifyObservers(nullptr, "profile-before-change", kShutdownPersist);
-    
-		mProfileProvider->Shutdown();
-		NS_RELEASE(mProfileProvider);
-		return TRUE;
-	}
-
+	NS_IF_RELEASE(mProfileLock);
 	return FALSE;
-
-   nsresult rv;
-   /*
-   nsCOMPtr<nsIProfile> profileService = 
-      do_GetService(NS_PROFILE_CONTRACTID, &rv);
-   if (NS_FAILED(rv)) return FALSE;
-
-   rv = profileService->ShutDownCurrentProfile(
-           cleanup ? nsIProfile::SHUTDOWN_CLEANSE : nsIProfile::SHUTDOWN_PERSIST);
-   if (NS_FAILED(rv)) return FALSE;*/
-
-   return TRUE;
 }
 
 BOOL CProfileMgr::AskUserForProfile(BOOL atStartup, CProfile& aProfile)
@@ -358,6 +320,65 @@ static void SaltProfileName(CString& aName)
     aName.Insert(0, A2T(salt));
 }
 
+BOOL CProfileMgr::InitProfile(CProfile* aProfile)
+{
+	nsresult rv;
+	nsCOMPtr<nsIFile> rootDir;
+	NS_NewLocalFile(CStringToNSString(aProfile->mRootDir), true, getter_AddRefs(rootDir));
+	NS_ENSURE_TRUE(rootDir, FALSE);
+
+	nsCOMPtr<nsIFile> localDir;
+	NS_NewLocalFile(CStringToNSString(aProfile->mLocalDir), true, getter_AddRefs(localDir));
+	NS_ENSURE_TRUE(localDir, FALSE);
+
+    bool exists;
+    rv = rootDir->Exists(&exists);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    if (exists) {
+        rv = rootDir->IsDirectory(&exists);
+        NS_ENSURE_SUCCESS(rv, FALSE);
+
+        if (!exists)
+            return NS_ERROR_FILE_NOT_DIRECTORY;
+    }
+	else {
+		nsCOMPtr<nsIFile> profileDefaultsDir;
+		nsCOMPtr<nsIFile> profileDirParent;
+		nsAutoString profileDirName;
+
+		rv = rootDir->GetParent(getter_AddRefs(profileDirParent));
+		NS_ENSURE_SUCCESS(rv, FALSE);
+
+		rv = rootDir->GetLeafName(profileDirName);
+		NS_ENSURE_SUCCESS(rv, FALSE);
+
+		CString appFolder = theApp.GetFolder(AppFolder) + _T("\\defaults\\profile");
+		rv = NS_NewLocalFile(CStringToNSString(appFolder), true, getter_AddRefs(profileDefaultsDir));
+		//rv = NS_GetSpecialDirectory(NS_APP_PROFILE_DEFAULTS_50_DIR, getter_AddRefs(profileDefaultsDir));
+		
+		if (NS_SUCCEEDED(rv) && profileDefaultsDir)
+			rv = profileDefaultsDir->CopyTo(profileDirParent, profileDirName);
+		if (NS_FAILED(rv) || !profileDefaultsDir) {
+			// if copying failed, lets just ensure that the profile directory exists.
+			rv = rootDir->Create(nsIFile::DIRECTORY_TYPE, 0700);
+			NS_ENSURE_SUCCESS(rv, FALSE);
+		}
+		rootDir->SetPermissions(0700);
+	}
+
+	rv = localDir->Exists(&exists);
+	NS_ENSURE_SUCCESS(rv, FALSE);
+
+	if (!exists) {
+		rv = localDir->Create(nsIFile::DIRECTORY_TYPE, 0700);
+		NS_ENSURE_SUCCESS(rv, FALSE);
+	}
+
+	return TRUE;
+}
+
+
 BOOL CProfileMgr::CreateProfile(LPCTSTR aRootDir,
                            LPCTSTR aLocalDir,
                            LPCTSTR aName,
@@ -371,7 +392,7 @@ BOOL CProfileMgr::CreateProfile(LPCTSTR aRootDir,
     if (!aRootDir)
 	{
 		SaltProfileName(dirName);
-		aProfile.mRootDir = GetMozDirectory(NS_APP_USER_PROFILES_ROOT_DIR) + _T("\\") + dirName;
+		aProfile.mRootDir = mDirProvider->GetProductDirectory() + _T("\\") + dirName;
 	}
 
 	CString localDir = aLocalDir;
@@ -379,12 +400,14 @@ BOOL CProfileMgr::CreateProfile(LPCTSTR aRootDir,
         if (aRootDir)
             aProfile.mLocalDir = aRootDir;
         else
-			aProfile.mLocalDir = GetMozDirectory(NS_APP_USER_PROFILES_LOCAL_ROOT_DIR) + __T("\\") + dirName;
+			aProfile.mLocalDir = mDirProvider->GetProductDirectory(false) + __T("\\") + dirName;
     }
 
 	aProfile.mName = aName;
 	aProfile.number = GetProfileCount();
 	aProfile.mDefault = FALSE;
+
+	InitProfile(&aProfile);
 	return SetProfileAtIndex(aProfile.number, aProfile);
 }
 
@@ -401,7 +424,7 @@ BOOL CProfileMgr::SetProfileAtIndex(UINT index, CProfile& profile)
 	
 	BOOL isRelative = FALSE;
 	CString location = profile.mRootDir;
-	CString rootDir = GetMozDirectory(NS_APP_USER_PROFILES_ROOT_DIR);
+	CString rootDir = mDirProvider->GetProductDirectory();
 	if (_tcsnicmp(profile.mRootDir, rootDir, rootDir.GetLength()) == 0) {
 		location = location.Mid(rootDir.GetLength()+1);
 		location.Replace(_T('\\'), _T('/'));
@@ -445,11 +468,11 @@ BOOL CProfileMgr::GetProfileFromKey(LPCTSTR iniKey, CProfile& aProfile)
 		path.Replace(_T('/'), _T('\\'));
 
 	aProfile.mRootDir = isRelative ?
-		GetMozDirectory(NS_APP_USER_PROFILES_ROOT_DIR) + _T("\\") +  path : 
+		mDirProvider->GetProductDirectory() + _T("\\") +  path : 
 		path;
 
 	aProfile.mLocalDir = isRelative ?
-		GetMozDirectory(NS_APP_USER_PROFILES_LOCAL_ROOT_DIR) + _T("\\") + path : 
+		mDirProvider->GetProductDirectory(true) + _T("\\") + path : 
 		aProfile.mRootDir;
 
 	return TRUE;
@@ -528,3 +551,25 @@ BOOL CProfileMgr::ImportRegistry()
 {
 	return FALSE;
 }
+/*
+nsresult
+	CProfileMgr::GetProfileDefaultsDir(nsIFile* *aResult)
+{
+	NS_ASSERTION(mGREDir, "nsXREDirProvider not initialized.");
+	NS_PRECONDITION(aResult, "Null out-param");
+
+	nsresult rv;
+	nsCOMPtr<nsIFile> defaultsDir;
+
+	rv = GetAppDir()->Clone(getter_AddRefs(defaultsDir));
+	NS_ENSURE_SUCCESS(rv, rv);
+
+	rv = defaultsDir->AppendNative(NS_LITERAL_CSTRING("defaults"));
+	NS_ENSURE_SUCCESS(rv, rv);
+
+	rv = defaultsDir->AppendNative(NS_LITERAL_CSTRING("profile"));
+	NS_ENSURE_SUCCESS(rv, rv);
+
+	NS_ADDREF(*aResult = defaultsDir);
+	return NS_OK;
+}*/

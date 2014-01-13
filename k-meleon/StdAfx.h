@@ -120,6 +120,8 @@
 #define INTERNAL_SITEICONS
 
 
+#include "mozilla-config.h"
+
 // docshell: 
 #include "nsIDocShell.h"
 

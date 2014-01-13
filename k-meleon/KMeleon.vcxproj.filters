@@ -159,9 +159,6 @@
     <ClCompile Include="VisualStylesXP.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="winEmbedFileLocProvider.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Components.cpp">
       <Filter>Source Files\Components</Filter>
     </ClCompile>
@@ -183,14 +180,14 @@
     <ClCompile Include="UnknownContentTypeHandler.cpp">
       <Filter>Source Files\Components</Filter>
     </ClCompile>
-    <ClCompile Include="nsProfileDirServiceProvider.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="KmAppInfo.cpp">
       <Filter>Source Files\Components</Filter>
     </ClCompile>
     <ClCompile Include="KmAbout.cpp">
       <Filter>Source Files\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="KmFileLocProvider.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -326,9 +323,6 @@
     <ClInclude Include="VisualStylesXP.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="winEmbedFileLocProvider.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="CookiePromptService.h">
       <Filter>Header Files\Components</Filter>
     </ClInclude>
@@ -358,6 +352,9 @@
     </ClInclude>
     <ClInclude Include="KmAbout.h">
       <Filter>Header Files\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="KmFileLocProvider.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
