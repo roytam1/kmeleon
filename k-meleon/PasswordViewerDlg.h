@@ -57,6 +57,7 @@ public:
 	CPasswordViewerDlg(CWnd* pParent = NULL);   // constructeur standard
 	virtual ~CPasswordViewerDlg();
 	static int CALLBACK SortPasswordsList(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort);
+	static int CALLBACK SortHostsList(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort);
 
 // Données de boû‘e de dialogue
 	enum { IDD = IDD_PASSWORDS_VIEWER };

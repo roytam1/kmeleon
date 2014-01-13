@@ -116,7 +116,7 @@ void CPasswordViewerDlg::FillHosts(PRUnichar** logins, uint32_t count)
 		if (index==-1) continue;
 		m_cPasswordsList.SetItemText(index, 0, host);
 	}
-	m_cPasswordsList.SortItems(SortPasswordsList, (LPARAM) &m_PasswordsList);
+	m_cPasswordsList.SortItems(SortHostsList, (LPARAM) &m_PasswordsList);
 }
 
 void CPasswordViewerDlg::FillPasswords(nsILoginInfo** logins, uint32_t count)
@@ -155,6 +155,15 @@ void CPasswordViewerDlg::FillPasswords(nsILoginInfo** logins, uint32_t count)
 		m_cPasswordsList.SetItemText(index, 2, str.get());
 	}
 	m_cPasswordsList.SortItems(SortPasswordsList, (LPARAM) &m_PasswordsList);
+}
+
+int CALLBACK CPasswordViewerDlg::SortHostsList(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
+{
+   CHostList* pHostList = (CHostList*) lParamSort;
+
+   PRUnichar* host1 = pHostList->GetAt((POSITION)lParam1);
+   PRUnichar* host2 = pHostList->GetAt((POSITION)lParam2);
+   return wcscmp(host1, host2);
 }
 
 int CALLBACK CPasswordViewerDlg::SortPasswordsList(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
@@ -284,17 +293,20 @@ void CPasswordViewerDlg::OnBnClickedDeleteAllPasswords()
 {
 	if (AfxMessageBox(IDS_CONFIRM_DELETEALLPASSWORDS, MB_OKCANCEL | MB_ICONWARNING) == IDOK) 
 	{
-		while (!m_PasswordsList.IsEmpty())
-		{
-			nsILoginInfo* password = m_PasswordsList.GetHead();
-			if (!m_reject)
-				m_passwordManager->RemoveLogin(password);
-			else
-				;//m_passwordManager->RemoveReject(password);
-			delete(password);
-			m_PasswordsList.RemoveHead();
+		nsresult rv;
+		if (!m_reject) {
+			rv = m_passwordManager->RemoveAllLogins();
+			if (NS_SUCCEEDED(rv)) m_cPasswordsList.DeleteAllItems();
 		}
-		m_cPasswordsList.DeleteAllItems();
+		else while (m_cPasswordsList.GetItemCount())
+		{
+			UINT nItem = m_cPasswordsList.GetTopIndex();
+			POSITION p = (POSITION)m_cPasswordsList.GetItemData(nItem);
+			PRUnichar* host = m_HostsList.GetAt(p);
+			rv = m_passwordManager->SetLoginSavingEnabled(nsString(host), true);
+			m_cPasswordsList.DeleteItem(nItem);			
+		}
+		
 	}
 }
 
