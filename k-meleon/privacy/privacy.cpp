@@ -157,12 +157,9 @@ void ClearCookies()
 // Clear the history
 void ClearHistory()
 {
-//	theApp.plugins.SendMessage("history", "privacy", "clear", 0, 0);
-
 	nsresult rv;
 
-	//NS_GLOBALHISTORY2_CONTRACTID
-	nsCOMPtr<nsIBrowserHistory> BrowserHistory(do_GetService("@mozilla.org/browser/global-history;2", &rv));
+	nsCOMPtr<nsIBrowserHistory> BrowserHistory(do_GetService("@mozilla.org/browser/nav-history-service;1", &rv));
 	if (NS_FAILED(rv)) return;
 	
 	BrowserHistory->RemoveAllPages();
