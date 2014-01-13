@@ -306,20 +306,21 @@ void CPreferences::Load() {
 
    profileFolder = GetMozDirectory(NS_APP_USER_PROFILE_50_DIR);
    settingsFolder = GetMozDirectory(NS_APP_DEFAULTS_50_DIR) + _T("\\Settings");
+   CString rootFolder = theApp.GetFolder(RootFolder);
 
    userSettingsFolder = settingsDir.IsEmpty() ?
       profileFolder :
-      MakeAbsolutePath(theApp.m_sRootFolder, settingsDir);
+      MakeAbsolutePath(rootFolder, settingsDir);
    
    pluginsFolder = pluginsDir.IsEmpty() ?
-      theApp.m_sRootFolder + _T("\\kplugins") :
-      MakeAbsolutePath(theApp.m_sRootFolder, pluginsDir);
+      rootFolder + _T("\\kplugins") :
+      MakeAbsolutePath(rootFolder, pluginsDir);
 
    userPluginsFolder = profileFolder + _T("\\kplugins"); 
   
    skinsFolder = skinsDir.IsEmpty() ?
-      theApp.m_sRootFolder + _T("\\skins") :
-      MakeAbsolutePath(theApp.m_sRootFolder, skinsDir);
+      rootFolder + _T("\\skins") :
+      MakeAbsolutePath(rootFolder, skinsDir);
 
    userSkinsFolder = profileFolder + _T("\\skins");
    resFolder = GetMozDirectory(NS_APP_RES_DIR);

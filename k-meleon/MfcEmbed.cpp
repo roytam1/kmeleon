@@ -55,7 +55,7 @@
 #include "HiddenWnd.h"
 #include "BrowserFrm.h"
 #include "BrowserFrmTab.h"
-#include "winEmbedFileLocProvider.h"
+#include "KmFileLocProvider.h"
 #include "ProfileMgr.h"
 #include "ProfilesDlg.h"
 #include "BrowserImpl.h"
@@ -349,7 +349,7 @@ BOOL CMfcEmbedApp::LoadLanguage()
 	  return TRUE;
    }
 
-   CString localeFolder = m_sRootFolder + CString("\\locales\\") + locale + CString("\\");
+   CString localeFolder = GetFolder(RootFolder) + CString("\\locales\\") + locale + CString("\\");
    CString resDll = localeFolder + CString("kmeleon.dll");
 
    HINSTANCE hInstResDll = ::LoadLibrary(resDll);
@@ -501,6 +501,9 @@ BOOL CMfcEmbedApp::CheckInstance()
       return FALSE;   
 }
 
+#define PROCESS_DEP_ENABLE                          0x00000001
+#define PROCESS_DEP_DISABLE_ATL_THUNK_EMULATION     0x00000002
+
 BOOL CMfcEmbedApp::InitInstance()
 {
    USES_CONVERSION;
@@ -511,6 +514,36 @@ BOOL CMfcEmbedApp::InitInstance()
    if (cmdline.GetSwitch("-new", NULL, TRUE)<0 && !CheckInstance())
 	   return FALSE;
 
+   // Security 
+#ifdef _UNICODE
+   if (cmdline.GetSwitch("-norestrict", NULL, TRUE)<0 && RestartAsRestricted())
+   {
+		m_bAlreadyRunning = TRUE;		
+		return FALSE;
+   }
+#endif
+
+#ifndef _DEBUG
+   HMODULE hMod = GetModuleHandleW(L"Kernel32.dll");
+   if (hMod)
+   {
+      typedef BOOL (WINAPI *PSETDEP)(DWORD);
+      PSETDEP procSet = (PSETDEP)GetProcAddress(hMod,"SetProcessDEPPolicy");
+      if (procSet) procSet(PROCESS_DEP_ENABLE);
+   }
+#endif
+
+   // Profile selection
+   int len = cmdline.GetSwitch("-P", NULL, FALSE);
+   char *profile = NULL;
+   if (len == 0) {
+      cmdline.GetSwitch("-P", NULL, TRUE);  // remove the flag from the command line
+   }
+   else if (len > 0) {
+      profile = new char[len+1];
+      cmdline.GetSwitch("-P", profile, TRUE);
+   }
+
 #ifndef FIREFOX_CHROME
    LoadLanguage();
 #endif
@@ -518,16 +551,10 @@ BOOL CMfcEmbedApp::InitInstance()
 #ifdef _DEBUG
 	ShowDebugConsole();
 #endif
-
-    TCHAR path[_MAX_PATH+1];
-    ::GetModuleFileName(0, path, _MAX_PATH);
-    TCHAR* lastSlash = _tcsrchr(path, _T('\\'));
-    if (!lastSlash) return FALSE;
-    *lastSlash = _T('\0');
-    m_sRootFolder = path;
-
-	if (NS_FAILED(XPCOMGlueStartup(m_sRootFolder+"\\xul.dll"))) {
-		MessageBox(NULL, _T("Could not initialize XPCOM. Perhaps the GRE\nis not installed or could not be found?"), _T("Kmeleon"), MB_OK | MB_ICONERROR);
+	
+	if (NS_FAILED(XPCOMGlueStartup(GetFolder(RootFolder)+"\\xul.dll"))) {
+		AfxMessageBox(IDS_START_FAILED, MB_OK | MB_ICONERROR);
+		//MessageBox(NULL, _T("Could not initialize XPCOM. Perhaps the GRE\nis not installed or could not be found?"), _T("K-Meleon"), MB_OK | MB_ICONERROR);
         return FALSE;
     }
 
@@ -544,106 +571,50 @@ BOOL CMfcEmbedApp::InitInstance()
 
 	nsresult rv = XPCOMGlueLoadXULFunctions(nsFuncs);
 	NS_ENSURE_SUCCESS(rv, FALSE);
-
-
-   // parse the command line
-   // XXX 
    
-   
-
-	   
-   
-
-#ifdef _UNICODE
-   if (cmdline.GetSwitch("-norestrict", NULL, TRUE)<0 && RestartAsRestricted())
-   {
-		m_bAlreadyRunning = TRUE;		
-		return FALSE;
-   }
-#endif
-
-#define PROCESS_DEP_ENABLE                          0x00000001
-#define PROCESS_DEP_DISABLE_ATL_THUNK_EMULATION     0x00000002
-#ifndef _DEBUG
-   HMODULE hMod = GetModuleHandleW(L"Kernel32.dll");
-   if (hMod)
-   {
-      typedef BOOL (WINAPI *PSETDEP)(DWORD);
-      PSETDEP procSet = (PSETDEP)GetProcAddress(hMod,"SetProcessDEPPolicy");
-      if (procSet) procSet(PROCESS_DEP_ENABLE);
-   }
-#endif
-   
-    //Enable3dControls();   
-    //
-    // 1. Determine the name of the dir from which the GRE based app is being run
-    // from [It's OK to do this even if you're not running in an GRE env]
-    //
-    // 2. Create an nsILocalFile out of it which will passed in to NS_InitEmbedding()
-    //
-    // Please see http://www.mozilla.org/projects/embedding/GRE.html
-    // for more info. on GRE
-
-   
-
-    nsCOMPtr<nsIFile> mreAppDir;
-#ifdef _UNICODE
-    rv = NS_NewLocalFile(nsEmbedString(path), TRUE, getter_AddRefs(mreAppDir));
-#else
-    rv = NS_NewNativeLocalFile(nsEmbedCString(path), TRUE, getter_AddRefs(mreAppDir));
-#endif
-    NS_ASSERTION(NS_SUCCEEDED(rv), "failed to create mreAppDir localfile");
-
-   // Take a look at 
-   // http://www.mozilla.org/projects/xpcom/file_locations.html
-   // for more info on File Locations
-   
+	// Set provider
    CString strRes;
    strRes.LoadString(IDS_PROFILES_FOLDER_NAME);
-
-   winEmbedFileLocProvider *provider = new winEmbedFileLocProvider(nsEmbedCString(T2A(strRes.GetBuffer(0))));
-   if(!provider){
-      ASSERT(FALSE);
-      return FALSE;
-   }
+   KmFileLocProvider *provider = new KmFileLocProvider(nsDependentString(T2W(strRes.GetBuffer(0))));
+   if(!provider) return FALSE;
+      
+   // Set app directory
+   nsCOMPtr<nsIFile> mreAppDir;
+   rv = NS_NewLocalFile(nsString(theApp.GetFolder(RootFolder)), TRUE, getter_AddRefs(mreAppDir));
+   NS_ASSERTION(NS_SUCCEEDED(rv), "failed to create mreAppDir file");
 
    nsCOMPtr<nsIFile> appSubdir;
-    mreAppDir->Clone(getter_AddRefs(appSubdir));
-    appSubdir->Append(NS_LITERAL_STRING("browser"));
+   rv = NS_NewLocalFile(nsString(theApp.GetFolder(AppFolder)), TRUE, getter_AddRefs(appSubdir));
+   NS_ASSERTION(NS_SUCCEEDED(rv), "failed to create appSubdir file");
+
+   // Set Profile
+   m_ProfileMgr = new CProfileMgr;
+   if (!m_ProfileMgr) return FALSE;
+
+   BOOL result;
+   result = m_ProfileMgr->StartUp(provider, profile ? A2CT(profile) : nullptr);
+   if (profile) delete profile;
+
+   ASSERT(result);
+   if (!result) return FALSE;   
    
-    rv = XRE_InitEmbedding2(mreAppDir, appSubdir, provider);
-    NS_ENSURE_SUCCESS(rv, FALSE);
-   /*
-#ifdef _BUILD_STATIC_BIN
-	rv = NS_InitEmbedding(mreAppDir, provider, kPStaticModules, kStaticModuleCount);
-#else
-	rv = NS_InitEmbedding(mreAppDir, provider);
-#endif
-   
-   if(NS_FAILED(rv))
-   { 
-      ASSERT(FALSE);
-      return FALSE;
-   }*/
-   
+   // Init XRE
+   rv = XRE_InitEmbedding2(mreAppDir, appSubdir, provider);
+   NS_ENSURE_SUCCESS(rv, FALSE);
+      
 #ifdef FIREFOX_CHROME
    LoadLanguage();
 #endif
-
  
    rv = InitializeWindowCreator();
    if (NS_FAILED(rv)) 
    {
       ASSERT(FALSE);
-      return FALSE;
-   }
-   
-   if(!InitializeProfiles())
-   {
-      ASSERT(FALSE);
 	  XRE_TermEmbedding();
       return FALSE;
    }
+
+   XRE_NotifyProfile();
 
 #ifdef FIREFOX_CHROME
    LoadLanguage();
@@ -1326,50 +1297,6 @@ void CMfcEmbedApp::OnManageProfiles()
 	dialog.DoModal();
 }
 
-BOOL CMfcEmbedApp::InitializeProfiles() {
-   m_ProfileMgr = new CProfileMgr;
-   if (!m_ProfileMgr)
-      return FALSE;
-   
-   nsresult rv;
-   nsCOMPtr<nsIObserverService> observerService = 
-      do_GetService("@mozilla.org/observer-service;1", &rv);
-   if (!observerService) return FALSE;
-   observerService->AddObserver(this, "profile-approve-change", PR_TRUE);
-   observerService->AddObserver(this, "profile-change-teardown", PR_TRUE);
-   observerService->AddObserver(this, "profile-after-change", PR_TRUE);
-   
-   
-   int len = cmdline.GetSwitch("-P", NULL, FALSE);
-   
-   char *profile = NULL;
-   // there are no parameters, load the most recent profile
-   if (len == 0) {
-      cmdline.GetSwitch("-P", NULL, TRUE);  // remove the flag from the command line
-   }
-   // try loading the profile specified
-   else if (len > 0) {
-      profile = new char[len+1];
-      cmdline.GetSwitch("-P", profile, TRUE);
-
-	  if (!stricmp("mostrecent", profile)) {
-         delete profile;
-		 profile = NULL;
-	  }
-   }
-
-   BOOL result;
-   if (!profile)
-      result = m_ProfileMgr->StartUp();
-   else {
-      USES_CONVERSION;
-      result = m_ProfileMgr->StartUp(A2CT(profile));
-      delete profile;
-   }
-
-   return result;
-}
-
 // When the profile switch happens, all open browser windows need to be 
 // closed. 
 // In order for that not to kill off the app, we just make the MFC app's 
@@ -1598,7 +1525,18 @@ CString CMfcEmbedApp::GetFolder(FolderType folder)
 {
    // You can call me lazy.
    switch (folder) {
+      case AppFolder:
+		  return GetFolder(RootFolder) + _T("\\") + _T("browser");
+
       case RootFolder:
+         if (m_sRootFolder.IsEmpty()) {
+            TCHAR path[_MAX_PATH+1];
+            ::GetModuleFileName(0, path, _MAX_PATH);
+            TCHAR* lastSlash = _tcsrchr(path, _T('\\'));
+            if (!lastSlash) return FALSE;
+            *lastSlash = _T('\0');
+            m_sRootFolder = path;
+         }
          return m_sRootFolder;
 
       case DefSettingsFolder:
@@ -1662,6 +1600,13 @@ void CMfcEmbedApp::CheckProfileVersion()
        DeleteFile(toDelete);
        toDelete = GetFolder(ProfileFolder) + _T("xpti.dat");
        DeleteFile(toDelete);
+	   toDelete = GetFolder(ProfileFolder) + _T("\\") + _T("startupCache") + _T("\0\0");
+	   TCHAR path[MAX_PATH] = {0};
+	   _tcsncpy(path, toDelete, MAX_PATH-2);
+	   SHFILEOPSTRUCT fop = {0};
+	   fop.wFunc = FO_DELETE | FOF_SILENT | FOF_NOCONFIRMATION | FOF_NOERRORUI;
+	   fop.pFrom = path;
+	   SHFileOperation(&fop);
 
        toDelete = GetMozDirectory(NS_APP_USER_PROFILE_LOCAL_50_DIR) + _T("\\xul.mfl"); 
        DeleteFile(toDelete);

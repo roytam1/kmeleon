@@ -32,8 +32,8 @@ struct RedirEntry {
 
 static RedirEntry kRedirMap[] = {
 	{ 
-		"home", "chrome://kmeleon/content/home.xhtml",
-		nsIAboutModule::URI_SAFE_FOR_UNTRUSTED_CONTENT |
+		"home", "chrome://kmeleon/content/aboutHome/aboutHome.xhtml",
+		
 		nsIAboutModule::ALLOW_SCRIPT 
 	}
 };

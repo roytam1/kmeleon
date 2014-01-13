@@ -19,14 +19,16 @@
 */
 
 #include "nsIXULAppInfo.h"
+#include "nsIXULRuntime.h"
 
 #define NS_KMAPPINFO_CID \
   {0x76849bf1, 0x199d, 0x41a6, {0xaa, 0xe6, 0x87, 0x3f, 0xca, 0xf1, 0x23, 0xea}}
 
-class KmAppInfo: public nsIXULAppInfo
+class KmAppInfo: public nsIXULAppInfo, public nsIXULRuntime
 {
 public:
 	NS_DECL_ISUPPORTS
 	NS_DECL_NSIXULAPPINFO
+	NS_DECL_NSIXULRUNTIME
 };
 

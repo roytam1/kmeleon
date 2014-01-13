@@ -329,7 +329,7 @@ BEGIN
     EDITTEXT        IDC_SOURCE,40,7,245,14,ES_AUTOHSCROLL | ES_READONLY
     EDITTEXT        IDC_DESTINATION,40,22,245,14,ES_AUTOHSCROLL | ES_READONLY
     EDITTEXT        IDC_STATUS,40,39,245,12,ES_AUTOHSCROLL | ES_READONLY | NOT WS_BORDER
-    CONTROL         "Progress1",IDC_DOWNLOAD_PROGRESS,"msctls_progress32",WS_BORDER | 0x1,7,61,278,8
+    CONTROL         "Progress1",IDC_DOWNLOAD_PROGRESS,"msctls_progress32",PBS_SMOOTH | WS_BORDER,7,61,278,8
     LTEXT           "From:",IDC_STATIC,7,10,18,8
     LTEXT           "To:",IDC_STATIC,7,25,12,8
     LTEXT           "Status:",IDC_STATIC,7,39,23,8
@@ -1558,9 +1558,10 @@ BEGIN
     IDS_EXTERNAL_HANDLER_REMEMBER "Always open ""%s"" links with ""%s"""
     IDS_EXTERNAL_HANDLER_QUESTION 
                             "An external application must be launched to handle ""%s"" links. Do you want to open this link with ""%s""?\n\nIf you were not expecting this request it may be an attempt to exploit a weakness in that other program. Cancel this request unless you are sure it is not malicious."
+    IDS_START_FAILED        "K-Meleon failed to initialize. Please reinstall."
 END
 
-#endif    // English (U.S.) resources
+#endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
