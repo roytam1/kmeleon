@@ -27,8 +27,8 @@ void Quit();
 void DoMenu(HMENU menu, char *param);
 void DoRebar(HWND rebarWnd);
 int  DoAccel(char *param);
-void SaveBM(const char *file);
-void LoadBM(const char *file);
+void SaveBM(const TCHAR *file);
+void LoadBM(const TCHAR *file);
 
 // Window Procs
 BOOL CALLBACK DlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -45,7 +45,7 @@ void BuildMenu(HMENU menu, CBookmarkNode *node, BOOL isContinuation);
 void BuildRebar(HWND hWndTB);
 void CopyRebar(HWND hWndNewTB, HWND hWndOldTB);
 void Rebuild();
-int addLink(char *url, char *title, int flag);
+int addLink(const char *url, const char *title, int flag);
 void findNick(char *nick, char **url);
 char *stristr(const char *String, const char *Pattern);
 void FindSkinFile( TCHAR *szSkinFile, const TCHAR *filename );
@@ -77,7 +77,7 @@ extern UINT wm_deferbringtotop;
 extern TCHAR gBookmarkFile[];
 extern bool gBookmarkDefFile;
 extern CHAR gToolbarFolder[];
-extern CHAR gBookmarksTitle[];
+extern char gBookmarksTitle[];
 
 extern BOOL gBookmarksModified;
 extern BOOL gGeneratedByUs;
