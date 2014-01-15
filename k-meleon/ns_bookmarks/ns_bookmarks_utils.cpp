@@ -366,10 +366,9 @@ static void SaveBookmarks(FILE *bmFile, CBookmarkNode *node)
 	 char *psz2;
          fprintf(bmFile, "%s<DT><A", szSpacer);
          psz = EncodeQuotes(child->url.c_str());
-         psz2 = utf8_from_ansi(psz ? psz : "");
-         fprintf(bmFile, " HREF=\"%s\"", psz2 ? psz2 : "");
+         fprintf(bmFile, " HREF=\"%s\"", psz ? psz : "");
          if (psz)  free(psz);
-         if (psz2) free(psz2);
+        
          fprintf(bmFile, " ADD_DATE=\"%d\"", child->addDate);
          fprintf(bmFile, " LAST_VISIT=\"%d\"", child->lastVisit);
          fprintf(bmFile, " LAST_MODIFIED=\"%d\"", child->lastModified);
@@ -381,27 +380,20 @@ static void SaveBookmarks(FILE *bmFile, CBookmarkNode *node)
 			fprintf(bmFile, " FEEDURL=\"%s\"", child->feedurl.c_str());
          psz = (char *) child->nick.c_str();
          if (psz && *psz) {
-            psz2 = utf8_from_ansi(psz ? psz : "");
-            fprintf(bmFile, " SHORTCUTURL=\"%s\"", psz2 ? psz2 : "");
-	    if (psz2) free(psz2);
-	 }
+            fprintf(bmFile, " SHORTCUTURL=\"%s\"", psz ? psz : "");
+
+         }
          psz = (char *) child->charset.c_str();
          if (psz && *psz)
             fprintf(bmFile, " LAST_CHARSET=\"%s\"", psz);
-	 psz = EncodeString(child->text.c_str());
-	 psz2 = utf8_from_ansi(psz ? psz : "");
-	 if (psz2) {
-         fprintf(bmFile, ">%s</A>\n", psz2 ? psz2 : "");
-		 free(psz2);
-	 }
-	 if (psz) free(psz);
+         psz = EncodeString(child->text.c_str());
+         fprintf(bmFile, ">%s</A>\n", psz ? psz : "");
+         if (psz) free(psz);
 
          if (child->desc.c_str() != NULL && *(child->desc.c_str()) != 0) {
             psz = EncodeString(child->desc.c_str());
-            psz2 = utf8_from_ansi(psz ? psz : "");
-            fprintf(bmFile, "%s<DD>%s\n", szSpacer, psz2 ? psz2 : "");
+            fprintf(bmFile, "%s<DD>%s\n", szSpacer, psz ? psz : "");
             if (psz) free(psz);
-            if (psz2) free(psz2);
          }
       }
       // if it falls through, there's a problem, but we'll just ignore it for now.
@@ -420,11 +412,11 @@ static void create_backup(const TCHAR *file, int num=2)
 
 	TCHAR buf[MAX_PATH];
 	_tcscpy(buf, file);
-	char* dot = _tcsrchr(buf, '.');
+	TCHAR* dot = _tcsrchr(buf, '.');
 	if (dot)
-		_tcscpy(dot, "_backup.html");
+		_tcscpy(dot, _T("_backup.html"));
 	else
-		_tcscat(buf, "_backup");
+		_tcscat(buf, _T("_backup"));
    
 	struct _stat s = {0};
 	if (_tstat(buf, &s)!=-1 && s.st_mtime > time(NULL) - 172800)
@@ -821,7 +813,7 @@ void LoadBM(const TCHAR *file)
    DWORD dwWaitResult; 
    dwWaitResult = WaitForSingleObject( ghMutex, 1000L);
    if (dwWaitResult == WAIT_TIMEOUT) {
-     MessageBox(NULL, "Unable to get MutEx for bookmarks file.\\nFile not loaded.", PLUGIN_NAME ": WARNING" , MB_OK|MB_ICONSTOP);
+     MessageBox(NULL, _T("Unable to get MutEx for bookmarks file.\\nFile not loaded."), _T(PLUGIN_NAME) _T(": WARNING") , MB_OK|MB_ICONSTOP);
      return;
    }
 
@@ -846,28 +838,31 @@ void LoadBM(const TCHAR *file)
 
 void findNick(char *nick, char **url)
 {
+   static char* sUrl = 0;
    CBookmarkNode *retNode = (*nick ? gBookmarkRoot->FindNick(nick) : NULL);
-   
+   if (sUrl) { 
+	   free(sUrl);
+	   sUrl = 0;
+   }
    if (retNode) {
       if (retNode->type == BOOKMARK_BOOKMARK) {
-	if (*url)
-	  free(*url);
+         
          *url = (char *) malloc(INTERNET_MAX_URL_LENGTH+1);
-	 strcpy(*url, (char*)retNode->url.c_str());
+         strcpy(*url, (char*)retNode->url.c_str());
       }
       else if (retNode->type == BOOKMARK_FOLDER) {
          CBookmarkNode *c = retNode->child;
-	 int len = 0;
+	     int len = 0;
          while (c) {
             if (c->type == BOOKMARK_BOOKMARK && c->url.c_str())
                len += strlen(c->url.c_str()) + 1;
             c = c->next;
          }
 
-	 if (!len) return;
+	     if (!len) return;
          char *pUrl = (char *)malloc(len+1);
-	 *url = pUrl;
-
+         *url = pUrl;
+ 
          c = retNode->child;
          while (c) {
             if (c->type == BOOKMARK_BOOKMARK && c->url.c_str()) {
@@ -880,6 +875,7 @@ void findNick(char *nick, char **url)
          *pUrl = 0;
       }
    }
+   sUrl = *url;
 }
 
 // Build Menu
@@ -918,7 +914,7 @@ int cmenu = max(18,GetSystemMetrics(SM_CYMENU));
 
 #if 1
          // condense the title and escape ampersands
-         TCHAR *pszTemp = fixString(child->text.c_str(), 40);
+         TCHAR *pszTemp = fixString(CUTF8_to_T(child->text.c_str()), 40);
          AppendMenu(menu, MF_STRING|MF_POPUP, (UINT)childMenu, pszTemp);
          delete pszTemp;
 #else         
@@ -945,28 +941,14 @@ int cmenu = max(18,GetSystemMetrics(SM_CYMENU));
 		 }
       }
       else if (child->type == BOOKMARK_BOOKMARK) {
-#if 1
          // condense the title and escape ampersands
 		 if (!child->text.empty()) // BUG #785
 		 {
-			TCHAR *pszTemp = fixString(child->text.c_str(), 40);
+			TCHAR *pszTemp = fixString(CUTF8_to_T(child->text.c_str()), 40);
 			AppendMenu(menu, MF_STRING, child->id, pszTemp);
 			free(pszTemp);
 		 }
-#else
-         char *szTitle = (char*) child->text.c_str();
-         int len = strlen(szTitle)+1;
 
-         int wlen = MultiByteToWideChar(CP_UTF8, 0,
-                                        szTitle, len,
-                                        NULL, 0);
-         WCHAR *wszTitle = new WCHAR[wlen+1];
-         wlen = MultiByteToWideChar(CP_UTF8, 0,
-                                    szTitle, len,
-                                    wszTitle, wlen);
-         AppendMenuW(menu, MF_STRING, child->id, wszTitle);
-         delete wszTitle;
-#endif
       }
    }
    kPlugin.kFuncs->SendMessage("bmpmenu", PLUGIN_NAME, "SetOwnerDrawn", (long)menu, (long)DrawBitmap);
@@ -1053,7 +1035,8 @@ void BuildRebar(HWND hWndTB)
       }
 
       // condense the title and escape ampersands
-      TCHAR *buttonString = fixString(child->text.c_str(), gMaxTBSize);
+      TCHAR *buttonString = fixString(CUTF8_to_T(child->text.c_str()), gMaxTBSize);
+
       //stringID = SendMessage(hWndTB, TB_ADDSTRING, (WPARAM)NULL, (LPARAM)buttonString);
       
 
@@ -1200,7 +1183,7 @@ void Fill_Combo(HWND hWnd, CBookmarkNode* node, unsigned short depth=0)
 {
 	for (CBookmarkNode* child=node->child; child; child=child->next) {
 		if (child->type == BOOKMARK_FOLDER) {
-			std::basic_string<TCHAR> title = child->text.c_str();
+			std::basic_string<TCHAR> title = CUTF8_to_T(child->text.c_str());
 			title.insert(0, depth*2, ' ');
 			int index = SendMessage(hWnd, CB_ADDSTRING, 0, (LPARAM)title.c_str());
 			SendMessage(hWnd, CB_SETITEMDATA, index, (LPARAM)child);
@@ -1209,7 +1192,7 @@ void Fill_Combo(HWND hWnd, CBookmarkNode* node, unsigned short depth=0)
 	}
 }
 
-void addLink(TCHAR *url, TCHAR *title, TCHAR* nick, CBookmarkNode* node)
+void addLink(const char *url, const char *title, const char* nick, CBookmarkNode* node)
 {
 	if (!node || node->type!=BOOKMARK_FOLDER) return;
 
@@ -1225,15 +1208,15 @@ int CALLBACK AddProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			kmeleonDocInfo *dInfo = kPlugin.kFuncs->GetDocInfo((HWND)lParam);
 			if (dInfo && dInfo->url) {
 				if (dInfo->title) {
-					SetDlgItemText(hDlg, IDC_TITLE, dInfo->title);
+					SetDlgItemText(hDlg, IDC_TITLE, CUTF8_to_T(dInfo->title));
 				}else{
-					SetDlgItemText(hDlg, IDC_TITLE, dInfo->url);
+					SetDlgItemText(hDlg, IDC_TITLE, CUTF8_to_T(dInfo->url));
 				}
-				SetDlgItemText(hDlg, IDC_URL, dInfo->url);
+				SetDlgItemText(hDlg, IDC_URL, CUTF8_to_T(dInfo->url));
 			}
 			
 			HWND combo = GetDlgItem(hDlg, IDC_FOLDER);
-			int index = SendMessage(combo, CB_ADDSTRING, 0, (LPARAM)"Bookmarks");
+			int index = SendMessage(combo, CB_ADDSTRING, 0, (LPARAM)_T("Bookmarks"));
 			SendMessage(combo, CB_SETITEMDATA, index, (LPARAM)gBookmarkRoot);
 			Fill_Combo(combo, gBookmarkRoot, 1);
 
@@ -1268,7 +1251,7 @@ int CALLBACK AddProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 					int index = SendMessage(combo, CB_GETCURSEL, 0, 0);
 					CBookmarkNode* node = (CBookmarkNode*)SendMessage(combo, CB_GETITEMDATA, index, 0);
 
-					addLink(url, title, nick, node);
+					addLink(CT_to_UTF8(url), CT_to_UTF8(title), CT_to_UTF8(nick), node);
 					EndDialog( hDlg, IDOK );
 					break;
 					}
@@ -1280,14 +1263,14 @@ int CALLBACK AddProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	return FALSE;
 }
 
-int addLink(TCHAR *url, TCHAR *title, int flag)
+int addLink(const char *url, const char *title, int flag)
 {
    if (!url || !(*url))
       return false;
 
    CBookmarkNode *addNode = gBookmarkRoot->FindSpecialNode(flag);
-   TCHAR *pszUrl = DecodeString(url);
-   TCHAR *pszTxt = DecodeString(title ? (*title ? title : url) : url);
+   char *pszUrl = DecodeString(url);
+   char *pszTxt = DecodeString(title ? (*title ? title : url) : url);
    addNode->AddChild(new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), pszTxt, pszUrl, "", "", "", BOOKMARK_BOOKMARK, time(NULL)));
    if (pszUrl)
       free(pszUrl);
@@ -1302,8 +1285,8 @@ int addLink(TCHAR *url, TCHAR *title, int flag)
 
 
 static TCHAR szInput[256];
-static TCHAR *pszTitle;
-static TCHAR *pszPrompt;
+static const TCHAR *pszTitle;
+static const TCHAR *pszPrompt;
 
 BOOL CALLBACK
 PromptDlgProc( HWND hwnd,
@@ -1400,23 +1383,17 @@ void OpenBookmark(CBookmarkNode* node, HWND hWnd = NULL, int mode = 0)
 		strcpy(buff, str);
 		ptr += 2;
 
-		pszTitle = strdup( node->text.c_str() );
-		pszPrompt = strdup( node->desc.c_str() );
+		pszTitle = CUTF8_to_T( node->text.c_str() );
+		pszPrompt = CUTF8_to_T( node->desc.c_str() );
 
 		int ok = gLoc->DialogBoxParam(MAKEINTRESOURCE(IDD_SMARTBOOKMARK), 
 			hWnd, (DLGPROC)PromptDlgProc, NULL);
 		PostMessage(hWnd, WM_NULL, 0, 0);
 		if (ok == IDOK && *szInput) {
-			strcat(buff, szInput);
+			strcat(buff, CT_to_UTF8(szInput));
 			strcat(buff, ptr);
 			OpenURL(buff, mode);
 		}
-
-		if (pszTitle) 
-			free(pszTitle);
-		if (pszPrompt) 
-			free(pszPrompt);
-
 	}
 	else {
 		OpenURL(str, mode);
@@ -1554,13 +1531,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 	  
       if (id >= nConfigCommand && id < nDropdownCommand) {
          if (id == nConfigCommand)
-            kPlugin.kFuncs->SetStatusBarText(gLoc->GetString(IDS_CONFIGURE));
+            kPlugin.kFuncs->SetStatusBarText(CT_to_UTF8(gLoc->GetString(IDS_CONFIGURE)));
          else if (id == nAddCommand)
-            kPlugin.kFuncs->SetStatusBarText(gLoc->GetString(IDS_ADD));
+            kPlugin.kFuncs->SetStatusBarText(CT_to_UTF8(gLoc->GetString(IDS_ADD)));
          else if (id == nAddLinkCommand)
-            kPlugin.kFuncs->SetStatusBarText(gLoc->GetString(IDS_ADDLINK));
+            kPlugin.kFuncs->SetStatusBarText(CT_to_UTF8(gLoc->GetString(IDS_ADDLINK)));
          else if (id == nEditCommand)
-            kPlugin.kFuncs->SetStatusBarText(gLoc->GetString(IDS_EDIT));
+            kPlugin.kFuncs->SetStatusBarText(CT_to_UTF8(gLoc->GetString(IDS_EDIT)));
          return true;
       } 
 	  else if (id > 0) {

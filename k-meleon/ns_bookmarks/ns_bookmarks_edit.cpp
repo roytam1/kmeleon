@@ -61,7 +61,7 @@ static void FillTree(HWND hTree, HTREEITEM parent, CBookmarkNode &node, BOOL use
 static void OnSize(int height, int width);
 static void OnRClick(HWND hTree);
 static void ImportFavorites(HWND hTree);
-static void BuildFavoritesTree(TCHAR *FavoritesPath, char* strPath, CBookmarkNode *newFavoritesNode);
+static void BuildFavoritesTree(TCHAR *FavoritesPath, TCHAR* strPath, CBookmarkNode *newFavoritesNode);
 static void MoveItem(HWND hTree, HTREEITEM item, int mode);
 static void CreateNewObject(HWND hTree, HTREEITEM fromItem, int type, int mode=0);
 static void ChangeSpecialFolder(HWND hTree, HTREEITEM *htiOld, HTREEITEM htiNew, int flag);
@@ -687,7 +687,7 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
             // everything else has at least title, added date, and properties in general
             EnableWindow(GetDlgItem(hDlg, IDC_STATIC_TITLE), true);
             EnableWindow(GetDlgItem(hDlg, IDC_TITLE), true);
-            SetDlgItemText(hDlg, IDC_TITLE, newNode->text.c_str());
+            SetDlgItemText(hDlg, IDC_TITLE, CUTF8_to_T(newNode->text.c_str()));
             EnableWindow(GetDlgItem(hDlg, IDC_STATIC_ADDED), true);
             EnableWindow(GetDlgItem(hDlg, IDC_STATIC_PROPERTIES), true);
 
@@ -703,9 +703,9 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                EnableWindow(GetDlgItem(hDlg, IDC_STATIC_VISITED), true);
                EnableWindow(GetDlgItem(hDlg, IDC_STATIC_DESC), true);
                EnableWindow(GetDlgItem(hDlg, IDC_DESC), true);
-               SetDlgItemText(hDlg, IDC_URL, newNode->url.c_str());
-               SetDlgItemText(hDlg, IDC_NICK, newNode->nick.c_str());
-               SetDlgItemText(hDlg, IDC_DESC, newNode->desc.c_str());
+               SetDlgItemText(hDlg, IDC_URL, CUTF8_to_T(newNode->url.c_str()));
+               SetDlgItemText(hDlg, IDC_NICK, CUTF8_to_T(newNode->nick.c_str()));
+               SetDlgItemText(hDlg, IDC_DESC, CUTF8_to_T(newNode->desc.c_str()));
 
                if (newNode->lastVisit) {
                   UnixTimeToSystemTime(newNode->lastVisit, &st);
@@ -728,11 +728,11 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                EnableWindow(GetDlgItem(hDlg, IDC_URL), false);
                EnableWindow(GetDlgItem(hDlg, IDC_STATIC_NICK), true);
                EnableWindow(GetDlgItem(hDlg, IDC_NICK), true);
-               SetDlgItemText(hDlg, IDC_NICK, newNode->nick.c_str());
+               SetDlgItemText(hDlg, IDC_NICK, CUTF8_to_T(newNode->nick.c_str()));
                EnableWindow(GetDlgItem(hDlg, IDC_STATIC_VISITED), false);
                EnableWindow(GetDlgItem(hDlg, IDC_STATIC_DESC), true);
                EnableWindow(GetDlgItem(hDlg, IDC_DESC), true);
-               SetDlgItemText(hDlg, IDC_DESC, newNode->desc.c_str());
+               SetDlgItemText(hDlg, IDC_DESC, CUTF8_to_T(newNode->desc.c_str()));
             }
 
             UnixTimeToSystemTime(newNode->addDate, &st);
@@ -1095,7 +1095,7 @@ static void FillTree(HWND hTree, HTREEITEM parent, CBookmarkNode &node, BOOL use
       if (type == BOOKMARK_FOLDER) {
          tvis.itemex.iImage = IMAGE_FOLDER_CLOSED;
          tvis.itemex.iSelectedImage = IMAGE_FOLDER_OPEN;
-         tvis.itemex.pszText = (char *)child->text.c_str();
+         tvis.itemex.pszText = (LPTSTR)(LPCTSTR)CUTF8_to_T(child->text.c_str()); // XXX
 
          HTREEITEM thisItem = TreeView_InsertItem(hTree, &tvis);
 
@@ -1114,7 +1114,7 @@ static void FillTree(HWND hTree, HTREEITEM parent, CBookmarkNode &node, BOOL use
       else if (type == BOOKMARK_SEPARATOR) {
          tvis.itemex.iImage = IMAGE_BLANK;
          tvis.itemex.iSelectedImage = IMAGE_BLANK;
-         tvis.itemex.pszText = "---";
+         tvis.itemex.pszText = _T("---");
          TreeView_InsertItem(hTree, &tvis);
       }
       else {
@@ -1132,7 +1132,7 @@ static void FillTree(HWND hTree, HTREEITEM parent, CBookmarkNode &node, BOOL use
             }
 		 }
          tvis.itemex.iSelectedImage = tvis.itemex.iImage;
-         tvis.itemex.pszText = (char *)child->text.c_str();
+         tvis.itemex.pszText = (LPTSTR)(LPCTSTR)CUTF8_to_T(child->text.c_str()); // XXX
          TreeView_InsertItem(hTree, &tvis);
       }
    }
@@ -1168,7 +1168,7 @@ static void MoveItem(HWND hTree, HTREEITEM item, int mode) {
    if (item == TreeView_GetRoot(hTree)) return;
 
    CBookmarkNode *moveNode, *oldPreviousNode, *oldParentNode, *newPreviousNode, *newParentNode;
-   char buffer[MAX_PATH];
+   TCHAR buffer[MAX_PATH];
 
    // setup the insert item
    TVINSERTSTRUCT tvis;
@@ -1407,13 +1407,13 @@ static void CreateNewObject(HWND hTree, HTREEITEM fromItem, int type, int mode) 
          newNode = freeNode;
          freeNode = NULL;
       } else
-         newNode = new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), gLoc->GetString(IDS_NEW_BOOKMARK), "http://kmeleon.sourceforge.net/", "", "", "", BOOKMARK_BOOKMARK, time(NULL));
-	  tvis.itemex.pszText = (char*)newNode->text.c_str();
+         newNode = new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), CT_to_UTF8(gLoc->GetString(IDS_NEW_BOOKMARK)), "http://kmeleon.sourceforge.net/", "", "", "", BOOKMARK_BOOKMARK, time(NULL));
+	  tvis.itemex.pszText = (LPTSTR)(LPCTSTR)CUTF8_to_T(newNode->text.c_str()); // XXX
       tvis.itemex.iImage = IMAGE_BOOKMARK;
       tvis.itemex.iSelectedImage = IMAGE_BOOKMARK;
       break;
    case BOOKMARK_FOLDER:
-      newNode = new CBookmarkNode(0, gLoc->GetString(IDS_NEW_FOLDER), "", "", "", "", BOOKMARK_FOLDER, time(NULL));
+      newNode = new CBookmarkNode(0, CT_to_UTF8(gLoc->GetString(IDS_NEW_FOLDER)), "", "", "", "", BOOKMARK_FOLDER, time(NULL));
 	  tvis.itemex.pszText = (TCHAR*)(const TCHAR*)strItem;
       tvis.itemex.iImage = IMAGE_FOLDER_CLOSED;
       tvis.itemex.iSelectedImage = IMAGE_FOLDER_OPEN;
@@ -1566,10 +1566,11 @@ static void UpdateTitle(HWND hDlg, HTREEITEM item) {
    if (node->type == BOOKMARK_BOOKMARK || node->type == BOOKMARK_FOLDER) {
       // FIXME - surely there's a better way to do this than allocating 1K for each string?
       // Isn't this a memory leak?  (Overwriting old buffer location, but old buffer remains allocated?)
-      char TitleBuffer[1024];
+      TCHAR TitleBuffer[1024];
       GetDlgItemText(hDlg, IDC_TITLE, TitleBuffer, 1023);
-      if (node->text.compare(TitleBuffer) != 0) {
-         node->text = TitleBuffer;
+	  const char* buffer = CT_to_UTF8(TitleBuffer);
+      if (node->text.compare(buffer) != 0) {
+         node->text = buffer;
          bookmarksEdited = true;
 
          // and update the title in the treeview
@@ -1588,10 +1589,11 @@ static void UpdateURL(HWND hDlg, HTREEITEM item) {
    CBookmarkNode *node = GetBookmarkNode(hTree, item);
 
    if (node->type == BOOKMARK_BOOKMARK) {
-      char URLBuffer[1024];
+      TCHAR URLBuffer[1024];
       GetDlgItemText(hDlg, IDC_URL, URLBuffer, 1023);
-      if (node->url.compare(URLBuffer) != 0) {
-         node->url = URLBuffer;
+	  const char* buffer = CT_to_UTF8(URLBuffer);
+      if (node->url.compare(buffer) != 0) {
+         node->url = buffer;
          bookmarksEdited = true;
       }
    }
@@ -1602,10 +1604,11 @@ static void UpdateNick(HWND hDlg, HTREEITEM item) {
    CBookmarkNode *node = GetBookmarkNode(hTree, item);
 
    if (node->type == BOOKMARK_BOOKMARK || node->type == BOOKMARK_FOLDER) {
-      char szBuffer[1024];
+      TCHAR szBuffer[1024];
       GetDlgItemText(hDlg, IDC_NICK, szBuffer, 1023);
-      if (node->nick.compare(szBuffer) != 0) {
-         node->nick = szBuffer;
+	  const char* buffer = CT_to_UTF8(szBuffer);
+      if (node->nick.compare(buffer) != 0) {
+         node->nick = buffer;
          bookmarksEdited = true;
       }
    }
@@ -1617,10 +1620,11 @@ static void UpdateDesc(HWND hDlg, HTREEITEM item) {
    CBookmarkNode *node = GetBookmarkNode(hTree, item);
 
    if (node->type == BOOKMARK_BOOKMARK || node->type == BOOKMARK_FOLDER) {
-      char szBuffer[1024];
+      TCHAR szBuffer[1024];
       GetDlgItemText(hDlg, IDC_DESC, szBuffer, 1023);
-      if (node->desc.compare(szBuffer) != 0) {
-         node->desc = szBuffer;
+	  const char* buffer = CT_to_UTF8(szBuffer);
+      if (node->desc.compare(buffer) != 0) {
+         node->desc = buffer;
          bookmarksEdited = true;
       }
    }
@@ -1931,7 +1935,7 @@ static void ImportFavorites(HWND hTree) {
    if (rslt == ERROR_SUCCESS) {
       ExpandEnvironmentStrings(sz, FavoritesPath, MAX_PATH);
 
-      strcat(FavoritesPath, "\\");
+      _tcscat(FavoritesPath, _T("\\"));
    }
    else {
       FavoritesPath[0] = 0;
@@ -1949,10 +1953,10 @@ static void ImportFavorites(HWND hTree) {
 /* new */
 
    // make new node for favorites (child off of WorkingBookmarks)
-   CBookmarkNode *newFavoritesNode = new CBookmarkNode(0, gLoc->GetString(IDS_IMPORTED_FAVORITES), "", "", "", "", BOOKMARK_FOLDER, time(NULL));
+   CBookmarkNode *newFavoritesNode = new CBookmarkNode(0, CT_to_UTF8(gLoc->GetString(IDS_IMPORTED_FAVORITES)), "", "", "", "", BOOKMARK_FOLDER, time(NULL));
    workingBookmarks->AddChild(newFavoritesNode);
 
-   BuildFavoritesTree(FavoritesPath, "", newFavoritesNode);
+   BuildFavoritesTree(FavoritesPath, _T(""), newFavoritesNode);
 
    bookmarksEdited = true;
    CResString strImpFav = gLoc->GetString(IDS_IMPORTED_FAVORITES);
@@ -1976,18 +1980,18 @@ static void ImportFavorites(HWND hTree) {
    TreeView_SelectItem(hTree, newItem);
 }
 
-static void BuildFavoritesTree(TCHAR *FavoritesPath, char* strPath, CBookmarkNode *newFavoritesNode) {
+static void BuildFavoritesTree(TCHAR *FavoritesPath, TCHAR* strPath, CBookmarkNode *newFavoritesNode) {
 
-   int pathLen = strlen(strPath);
-   int FavoritesPathLen = strlen(FavoritesPath);
+   int pathLen = _tcslen(strPath);
+   int FavoritesPathLen = _tcslen(FavoritesPath);
 
-   char * searchString = new char[FavoritesPathLen + pathLen + 2];
-   strcpy(searchString, FavoritesPath);
-   strcat(searchString, strPath);
-   strcat(searchString, "*");
+   TCHAR * searchString = new TCHAR[FavoritesPathLen + pathLen + 2];
+   _tcscpy(searchString, FavoritesPath);
+   _tcscat(searchString, strPath);
+   _tcscat(searchString, _T("*"));
 
-   char * urlFile;
-   char * subPath;
+   TCHAR * urlFile;
+   TCHAR * subPath;
 
    WIN32_FIND_DATA wfd;
    HANDLE h = FindFirstFile(searchString, &wfd);
@@ -2004,13 +2008,13 @@ static void BuildFavoritesTree(TCHAR *FavoritesPath, char* strPath, CBookmarkNod
          if(lstrcmp(wfd.cFileName, _T(".")) == 0 || lstrcmp(wfd.cFileName, _T("..")) == 0)
             continue;
 
-         subPath = new char[pathLen + strlen(wfd.cFileName) + 2];
-         strcpy(subPath, strPath);
-         strcat(subPath, wfd.cFileName);         
-         strcat(subPath, "/");
+         subPath = new TCHAR[pathLen + _tcslen(wfd.cFileName) + 2];
+         _tcscpy(subPath, strPath);
+         _tcscat(subPath, wfd.cFileName);         
+         _tcscat(subPath, _T("/"));
 
          // make new node for favorites (child off of our current node)
-         CBookmarkNode *newFavoritesChildNode = new CBookmarkNode(0, wfd.cFileName, "", "", "", "", BOOKMARK_FOLDER, time(NULL));
+         CBookmarkNode *newFavoritesChildNode = new CBookmarkNode(0, CT_to_UTF8(wfd.cFileName), "", "", "", "", BOOKMARK_FOLDER, time(NULL));
          newFavoritesNode->AddChild(newFavoritesChildNode);
 
          // build the tree for this directory
@@ -2021,33 +2025,33 @@ static void BuildFavoritesTree(TCHAR *FavoritesPath, char* strPath, CBookmarkNod
       }else if ((wfd.dwFileAttributes & (FILE_ATTRIBUTE_HIDDEN|FILE_ATTRIBUTE_SYSTEM))==0) {
          // if it's not a hidden or system file
 
-         char *dot = strrchr(wfd.cFileName, '.');
-         if(dot && stricmp(dot, ".url") == 0) {
+         TCHAR *dot = _tcsrchr(wfd.cFileName, '.');
+         if(dot && _tcsicmp(dot, _T(".url")) == 0) {
 
             int filenameLen = (dot - wfd.cFileName) + 4;
-            urlFile = new char[pathLen + filenameLen + 1];
-            strcpy(urlFile, strPath);
-            strcat(urlFile, wfd.cFileName);
+            urlFile = new TCHAR[pathLen + filenameLen + 1];
+            _tcscpy(urlFile, strPath);
+            _tcscat(urlFile, wfd.cFileName);
 
             // format for display in the menu
             // chop off the .url
             *dot = 0;
             // condense the string and escape ampersands
-            char *pszTemp = fixString(wfd.cFileName, 40);
+            const TCHAR *pszTemp = fixString(wfd.cFileName, 40);
 
             FavoritesPath[FavoritesPathLen] = 0;
 
-            char path[MAX_PATH];
-            strcpy(path, FavoritesPath);
-            strcpy(path+FavoritesPathLen, urlFile);
+            TCHAR path[MAX_PATH];
+            _tcscpy(path, FavoritesPath);
+            _tcscpy(path+FavoritesPathLen, urlFile);
 
             // a .URL file is formatted just like an .INI file, so we can
             // use GetPrivateProfileString() to get the information we want
-            char url[INTERNET_MAX_URL_LENGTH];
+            TCHAR url[INTERNET_MAX_URL_LENGTH];
             GetPrivateProfileString(_T("InternetShortcut"), _T("URL"), _T(""), url, INTERNET_MAX_URL_LENGTH, path);
 
             // insert node
-            newFavoritesNode->AddChild(new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), wfd.cFileName, url, "", "", "", BOOKMARK_BOOKMARK, time(NULL)));
+            newFavoritesNode->AddChild(new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), CT_to_UTF8(wfd.cFileName), CT_to_UTF8(url), "", "", "", BOOKMARK_BOOKMARK, time(NULL)));
 
             delete pszTemp;
             delete [] urlFile;

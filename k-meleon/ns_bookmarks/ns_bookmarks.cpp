@@ -153,18 +153,23 @@ int Load(){
    nAddBookmarkHereCommand = kPlugin.kFuncs->GetCommandIDs(1);
    wm_deferbringtotop = kPlugin.kFuncs->GetCommandIDs(1);
 
-   gBookmarkRoot = new CBookmarkNode(0, _T(""), _T(""), _T(""), _T(""), "", BOOKMARK_FOLDER, 0);
+   gBookmarkRoot = new CBookmarkNode(0, "", "", "", "", "", BOOKMARK_FOLDER, 0);
    ghMutex = CreateMutex(NULL, FALSE, _T("BookmarksFileMutex"));
 
-   TCHAR tmp[MAX_PATH];
-   kPlugin.kFuncs->GetPreference(PREF_TSTRING, PREFERENCE_BOOKMARK_FILE, tmp, (TCHAR*)_T(""));
+   char tmp[MAX_PATH];
+   kPlugin.kFuncs->GetPreference(PREF_TSTRING, PREFERENCE_BOOKMARK_FILE, tmp, "");
 
    if (!tmp[0]) {
       kPlugin.kFuncs->GetFolder(UserSettingsFolder, tmp, MAX_PATH);
-      _tcscat(tmp, "\\" BOOKMARKS_DEFAULT_FILENAME);
+      strcat(tmp, "\\" BOOKMARKS_DEFAULT_FILENAME);
       gBookmarkDefFile = true;
    }
-   _tcscpy(gBookmarkFile, tmp);
+
+#if _UNICODE
+   utf8_to_utf16(tmp, gBookmarkFile, MAX_PATH);
+#else
+   utf8_to_ansi(tmp, gBookmarkFile, MAX_PATH);
+#endif
    
    FILE *bmFile = _tfopen(gBookmarkFile, _T("a"));
    if (bmFile)
@@ -215,7 +220,7 @@ int Load(){
 
    InitImageList(gImagelist);
 
-   strcpy(gBookmarksTitle, gLoc->GetString(IDS_DEFAULT_TITLE));
+   strcpy(gBookmarksTitle, CT_to_UTF8(gLoc->GetString(IDS_DEFAULT_TITLE)));
 	LoadBM(gBookmarkFile);
 
    return true;
@@ -264,11 +269,11 @@ void Quit(){
    kPlugin.kFuncs->SendMessage("bmpmenu", PLUGIN_NAME, "UnSetOwnerDrawn", (long)gMenuBookmarks, 0);
    while (RealDeleteMenu(gMenuBookmarks, nFirstBookmarkPosition));
 
-   TCHAR tmp[MAX_PATH];
+   char tmp[MAX_PATH];
    kPlugin.kFuncs->GetFolder(UserSettingsFolder, tmp, MAX_PATH);
-   _tcscat(tmp, "\\" BOOKMARKS_DEFAULT_FILENAME);
+   strcat(tmp, "\\" BOOKMARKS_DEFAULT_FILENAME);
  
-   if (gBookmarkDefFile || _tcscmp(tmp, gBookmarkFile) == 0)
+   if (gBookmarkDefFile || _tcscmp(CUTF8_to_T(tmp), gBookmarkFile) == 0)
 	   kPlugin.kFuncs->DelPreference(PREFERENCE_BOOKMARK_FILE);
 
    CloseHandle(ghMutex);
@@ -311,7 +316,7 @@ void DoMenu(HMENU menu, char *param){
          command = nEditCommand;
       }
       if (command) {
-         AppendMenu(menu, MF_STRING, command, string);
+         AppendMenuA(menu, MF_STRING, command, string);
          kPlugin.kFuncs->SendMessage("bmpmenu", PLUGIN_NAME, "SetOwnerDrawn", (long)menu, (long)DrawBitmap);
       }
    }
@@ -390,7 +395,7 @@ void DoRebar(HWND rebarWnd) {
    gToolbarList[GetParent(rebarWnd)] = hWndTmp;
 
    // Register the band name and child hwnd
-   kPlugin.kFuncs->RegisterBand(hWndTmp, _T(TOOLBAND_NAME), true);
+   kPlugin.kFuncs->RegisterBand(hWndTmp, TOOLBAND_NAME, true);
 
    // Get the height of the toolbar.
    DWORD dwBtnSize = SendMessage(hWndTmp, TB_GETBUTTONSIZE, 0,0);

@@ -21,6 +21,7 @@
 
 #include <time.h>
 #include <string>
+#include <windows.h>
 
 const int BOOKMARK_BOOKMARK = 0;  // this node is a real bookmark, all fields valid
 const int BOOKMARK_FOLDER   = 1;  // "children" is not empty.  url is not used
@@ -429,10 +430,10 @@ static int compareBookmarks(const char *e1, const char *e2, unsigned int sortord
           cmp = c1->type - c2->type;
           break;
        case 2:
-          cmp = lstrcmpi((char*)c1->text.c_str(), (char*)c2->text.c_str());
+          cmp = lstrcmpiA((char*)c1->text.c_str(), (char*)c2->text.c_str());
           break;
        case 3:
-          cmp = lstrcmpi((char*)c1->url.c_str(), (char*)c2->url.c_str());
+          cmp = lstrcmpiA((char*)c1->url.c_str(), (char*)c2->url.c_str());
           break;
        case 4:
          cmp = c2->id - c1->id;
@@ -441,10 +442,10 @@ static int compareBookmarks(const char *e1, const char *e2, unsigned int sortord
           cmp = c2->type - c1->type;
           break;
        case 6:
-          cmp = lstrcmpi((char*)c2->text.c_str(), (char*)c1->text.c_str());
+          cmp = lstrcmpiA((char*)c2->text.c_str(), (char*)c1->text.c_str());
           break;
        case 7:
-          cmp = lstrcmpi((char*)c2->url.c_str(), (char*)c1->url.c_str());
+          cmp = lstrcmpiA((char*)c2->url.c_str(), (char*)c1->url.c_str());
           break;
        default:
          cmp = c1->id - c2->id;

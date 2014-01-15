@@ -50,7 +50,7 @@ extern Locale* gLoc;
 // #define CONTENT_TYPE_TAG "<META HTTP-EQUIV=\"Content-Type\" CONTENT=\"text/html; charset=UTF-8\">"
 #define CONTENT_TYPE_TAG "<META HTTP-EQUIV=\"Content-Type\""
 
-#define BOOKMARKS_DEFAULT_FILENAME _T("bookmarks.html")
+#define BOOKMARKS_DEFAULT_FILENAME "bookmarks.html"
 
 #define TOOLBAND_NAME "Bookmarks"
 #define TOOLBAND_FAILED_TO_CREATE _T("Failed to create bookmark toolbar")
