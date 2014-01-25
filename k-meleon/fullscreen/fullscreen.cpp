@@ -37,10 +37,14 @@
 #define KMELEON_PLUGIN_EXPORTS
 #include "..\kmeleon_plugin.h"
 #include "../LocalesUtils.h"
+#include "mozilla.h"
 Locale* gLoc;
 
 int Load();
 void Create(HWND parent);
+void CreateTab(HWND parent, HWND tab);
+void DestroyTab(HWND parent, HWND tab);
+void SwitchTab(HWND parent, HWND tab);
 void Config(HWND parent);
 void Quit();
 void DoMenu(HMENU menu, char *param);
@@ -65,6 +69,15 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
       }
       else if (stricmp(subject, "Create") == 0) {
          Create((HWND)data1);
+      }
+	  else if (stricmp(subject, "CreateTab") == 0) {
+         CreateTab((HWND)data1, (HWND)data2);
+      }
+	  else if (stricmp(subject, "DestroyTab") == 0) {
+         DestroyTab((HWND)data1, (HWND)data2);
+      }
+	  else if (stricmp(subject, "SwitchTab") == 0) {
+         SwitchTab((HWND)data1, (HWND)data2);
       }
       else if (stricmp(subject, "Config") == 0) {
          Config((HWND)data1);
@@ -111,6 +124,8 @@ struct fullscreen {
 
   WINDOWPLACEMENT wpOld;
   BOOL bFullScreen;
+  BOOL bDomFullScreen;
+  CDomEventListener* listener;
 
   struct fullscreen *next;
 };
@@ -125,6 +140,7 @@ static FS *create_FS(HWND hWnd) {
     ptr->next = root;
     root = ptr;
   }
+  ptr->listener = new CDomEventListener(hWnd);
   return ptr;
 }
 
@@ -165,6 +181,131 @@ BOOL APIENTRY DllMain(HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserv
    return TRUE;
 }
 
+
+void HideClutter(HWND hWndParent, FS *fs) {
+   fs->hReBar = FindWindowEx(hWndParent, NULL, REBARCLASSNAME, NULL);
+   fs->hStatusBar = FindWindowEx(hWndParent, NULL, STATUSCLASSNAME, NULL);
+   fs->hTabsBar = FindWindowEx(hWndParent, NULL, REBARCLASSNAME, "TabsBar");
+
+   if (fs->bFullScreen) {
+      WINDOWPLACEMENT wp;
+      wp.length = sizeof(wp);
+      GetWindowPlacement(hWndParent, &wp);
+      fs->bMaximized = (wp.showCmd == SW_SHOWMAXIMIZED);
+      if (fs->hReBar) {
+         fs->bReBarVisible = IsWindowVisible(fs->hReBar);     // save intitial visibility state
+		 ShowWindow(fs->hReBar, !fs->bDomFullScreen && !bHideReBar);             // hide/unhide rebar
+      }
+      if (fs->hStatusBar) {
+         fs->bStatusBarVisible = IsWindowVisible(fs->hStatusBar);
+         ShowWindow(fs->hStatusBar, !fs->bDomFullScreen && !bHideStatusBar);
+      }
+	  if (fs->hTabsBar) {
+         fs->bTabsBarVisible = IsWindowVisible(fs->hTabsBar);
+         ShowWindow(fs->hTabsBar, !fs->bDomFullScreen && !bHideTabsBar);
+	  }
+   }
+   else {
+      if (fs->hReBar) ShowWindow(fs->hReBar, fs->bReBarVisible);
+      if (fs->hStatusBar) ShowWindow(fs->hStatusBar, fs->bStatusBarVisible);
+	  if (fs->hTabsBar) ShowWindow(fs->hTabsBar, fs->bTabsBarVisible);
+   }
+}
+
+void SetFullScreen(HWND hWnd, int fullscreen = -1, bool domFullscreen = false)
+{
+    WINDOWPLACEMENT wpNew;
+
+    FS *fs = find_FS(hWnd);
+    if (!fs) fs = create_FS(hWnd);
+	
+	if (fullscreen != -1 && (fs->bFullScreen == fullscreen))
+		return;
+
+	if (!fs->bFullScreen) {
+		fs->bDomFullScreen = domFullscreen;
+		kPlugin.kFuncs->GetPreference(PREF_BOOL, "kmeleon.plugins.fullscreen.hide_rebar", &bHideReBar, (void *)&bHideReBar);
+		kPlugin.kFuncs->GetPreference(PREF_BOOL, "kmeleon.plugins.fullscreen.hide_statusbar", &bHideStatusBar, (void *)&bHideStatusBar);
+		kPlugin.kFuncs->GetPreference(PREF_BOOL, "kmeleon.plugins.fullscreen.auto", &bAutoFullscreen, (void *)&bAutoFullscreen);
+		kPlugin.kFuncs->GetPreference(PREF_BOOL, "kmeleon.plugins.fullscreen.hide_taskbar", &bHideTaskbar, (void *)&bHideTaskbar);
+		kPlugin.kFuncs->GetPreference(PREF_BOOL, "kmeleon.plugins.fullscreen.hide_tabsbar", &bHideTabsBar, (void *)&bHideTabsBar);
+
+		RECT rectWindow;
+		RECT rectDesktop;
+
+		fs->bFullScreen=TRUE;
+
+		fs->wpOld.length = sizeof (fs->wpOld);
+		GetWindowPlacement(hWnd, &fs->wpOld);
+  
+		GetWindowRect(GetDesktopWindow(), &rectDesktop );
+		rectWindow = rectDesktop;
+
+		APPBARDATA abd;
+		abd.cbSize = sizeof(abd);
+		UINT uState = (UINT) SHAppBarMessage(ABM_GETSTATE, &abd); 
+
+		if ((uState & ABS_ALWAYSONTOP) && !(uState & ABS_AUTOHIDE))
+		{
+			BOOL fResult = (BOOL) SHAppBarMessage(ABM_GETTASKBARPOS, &abd); 
+			if (!bHideTaskbar)
+			{
+				// Idiotic try to get the taskbar position
+				if (abd.rc.top - rectDesktop.top > 10)
+					rectWindow.bottom = abd.rc.top;
+				else if (rectDesktop.right - abd.rc.right > 10)
+					rectWindow.right -= abd.rc.right - abd.rc.left;
+					//rectWindow.left = abd.rc.right;
+				else if (rectDesktop.bottom - abd.rc.bottom > 10)
+					//rectWindow.top = abd.rc.bottom;
+					rectWindow.bottom -= abd.rc.bottom - abd.rc.top;
+				else
+					rectWindow.right = abd.rc.left;
+			}
+
+			else if (abd.rc.left <= 1 && abd.rc.top <= 1)
+			{
+				if (abd.rc.right >= rectDesktop.right) {
+					rectWindow.top -= (abd.rc.bottom-abd.rc.top);
+					rectWindow.bottom -= abd.rc.bottom - abd.rc.top ;
+				}
+				else if (abd.rc.bottom >= rectDesktop.bottom) {
+					rectWindow.left -= (abd.rc.right-abd.rc.left);
+					rectWindow.right -= abd.rc.right - abd.rc.left ;
+				}
+			}
+		}
+
+		AdjustWindowRectEx(&rectWindow, GetWindowLong(hWnd, GWL_STYLE), (GetMenu(hWnd)?true:false), GetWindowLong(hWnd, GWL_EXSTYLE)); 
+    	    
+		/* rectWindow.top    -= 1;
+		rectWindow.left   -= 1;
+		rectWindow.bottom += 1;
+		rectWindow.right  += 1;*/
+
+		rectFullScreenWindowRect = rectWindow;
+		wpNew = fs->wpOld;
+
+		if (fs->wpOld.showCmd!=SW_SHOWMINIMIZED)
+			wpNew.showCmd = SW_SHOWNORMAL;
+		wpNew.rcNormalPosition = rectWindow;
+
+		HideClutter(hWnd, fs);
+    }
+    else  {
+		fs->bDomFullScreen = false;
+		fs->bFullScreen=FALSE;
+		wpNew = fs->wpOld;
+		HideClutter(hWnd, fs);
+		if (fs->bMaximized) ShowWindow(hWnd, SW_MAXIMIZE);
+    }
+	if (!domFullscreen)
+		kPlugin.kFuncs->SetPreference(PREF_BOOL, "kmeleon.plugins.fullscreen.last", &fs->bFullScreen, false);
+    SetWindowPlacement (hWnd, &wpNew);
+    return;
+}
+
+
 int Load(){
 	gLoc = Locale::kmInit(&kPlugin);
 	id_fullscreen = kPlugin.kFuncs->GetCommandIDs(1);
@@ -183,6 +324,29 @@ void Create(HWND hWndParent) {
 	if (bAutoFullscreen || bLast)
 	  PostMessage(hWndParent, WM_COMMAND, id_fullscreen, 0);
 }
+
+void CreateTab(HWND hWndParent, HWND hTab) {
+	FS *fs = find_FS(hWndParent);
+    if (!fs) fs = create_FS(hWndParent);
+	fs->listener->Init(hTab);
+	fs->listener->CancelFullScreen();
+}
+
+void DestroyTab(HWND hWndParent, HWND hTab) {
+	FS *fs = find_FS(hWndParent);
+	if (!fs) return;	
+	//fs->listener->CancelFullScreen();
+	fs->listener->Done(hTab);
+	if (fs->bDomFullScreen)
+		SetFullScreen(hWndParent, 0);
+}
+
+void SwitchTab(HWND hWndParent, HWND hTab) {
+	FS *fs = find_FS(hWndParent);
+	if (!fs) return;
+	fs->listener->CancelFullScreen();
+}
+
 
 void Config(HWND hWndParent) {
 	gLoc->DialogBoxParam(MAKEINTRESOURCE(IDD_PREFS), hWndParent, (DLGPROC)DlgProc, (LPARAM)NULL);
@@ -221,37 +385,6 @@ void Destroy(HWND hWnd) {
     remove_FS(hWnd);
 }
 
-void HideClutter(HWND hWndParent, FS *fs) {
-   fs->hReBar = FindWindowEx(hWndParent, NULL, REBARCLASSNAME, NULL);
-   fs->hStatusBar = FindWindowEx(hWndParent, NULL, STATUSCLASSNAME, NULL);
-   fs->hTabsBar = FindWindowEx(hWndParent, NULL, REBARCLASSNAME, "TabsBar");
-
-   if (fs->bFullScreen) {
-      WINDOWPLACEMENT wp;
-      wp.length = sizeof(wp);
-      GetWindowPlacement(hWndParent, &wp);
-      fs->bMaximized = (wp.showCmd == SW_SHOWMAXIMIZED);
-      if (fs->hReBar) {
-         fs->bReBarVisible = IsWindowVisible(fs->hReBar);     // save intitial visibility state
-         ShowWindow(fs->hReBar, !bHideReBar);             // hide/unhide rebar
-      }
-      if (fs->hStatusBar) {
-         fs->bStatusBarVisible = IsWindowVisible(fs->hStatusBar);
-         ShowWindow(fs->hStatusBar, !bHideStatusBar);
-      }
-	  if (fs->hTabsBar) {
-         fs->bTabsBarVisible = IsWindowVisible(fs->hTabsBar);
-         ShowWindow(fs->hTabsBar, !bHideTabsBar);
-	  }
-   }
-   else {
-      if (fs->hReBar) ShowWindow(fs->hReBar, fs->bReBarVisible);
-      if (fs->hStatusBar) ShowWindow(fs->hStatusBar, fs->bStatusBarVisible);
-	  if (fs->hTabsBar) ShowWindow(fs->hTabsBar, fs->bTabsBarVisible);
-   }
-}
-
-
 // Subclassed window function
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
@@ -261,8 +394,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 
       FS *fs;
       fs = find_FS(hWnd);
-      if (!fs)
-         fs = create_FS(hWnd);
+      if (!fs) break;
 
       if (fs->bFullScreen) {       
          MINMAXINFO *lpMMI;
@@ -280,92 +412,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
    case WM_COMMAND:
       WORD command = LOWORD(wParam);
       if (command == id_fullscreen) {
-
-         WINDOWPLACEMENT wpNew;
-
-         FS *fs = find_FS(hWnd);
-         if (!fs)
-            fs = create_FS(hWnd);
-
-         if (!fs->bFullScreen) {
-
-			kPlugin.kFuncs->GetPreference(PREF_BOOL, "kmeleon.plugins.fullscreen.hide_rebar", &bHideReBar, (void *)&bHideReBar);
-			kPlugin.kFuncs->GetPreference(PREF_BOOL, "kmeleon.plugins.fullscreen.hide_statusbar", &bHideStatusBar, (void *)&bHideStatusBar);
-			kPlugin.kFuncs->GetPreference(PREF_BOOL, "kmeleon.plugins.fullscreen.auto", &bAutoFullscreen, (void *)&bAutoFullscreen);
-		    kPlugin.kFuncs->GetPreference(PREF_BOOL, "kmeleon.plugins.fullscreen.hide_taskbar", &bHideTaskbar, (void *)&bHideTaskbar);
-			kPlugin.kFuncs->GetPreference(PREF_BOOL, "kmeleon.plugins.fullscreen.hide_tabsbar", &bHideTabsBar, (void *)&bHideTabsBar);
-
-            RECT rectWindow;
-			RECT rectDesktop;
-
-            fs->bFullScreen=TRUE;
-
-            fs->wpOld.length = sizeof (fs->wpOld);
-            GetWindowPlacement(hWnd, &fs->wpOld);
-  
-            GetWindowRect(GetDesktopWindow(), &rectDesktop );
-			rectWindow = rectDesktop;
-
-			APPBARDATA abd;
-			abd.cbSize = sizeof(abd);
-			UINT uState = (UINT) SHAppBarMessage(ABM_GETSTATE, &abd); 
-
-			if ((uState & ABS_ALWAYSONTOP) && !(uState & ABS_AUTOHIDE))
-			{
-				BOOL fResult = (BOOL) SHAppBarMessage(ABM_GETTASKBARPOS, &abd); 
-				if (!bHideTaskbar)
-				{
-					// Idiotic try to get the taskbar position
-					if (abd.rc.top - rectDesktop.top > 10)
-						rectWindow.bottom = abd.rc.top;
-					else if (rectDesktop.right - abd.rc.right > 10)
-						rectWindow.right -= abd.rc.right - abd.rc.left;
-						//rectWindow.left = abd.rc.right;
-					else if (rectDesktop.bottom - abd.rc.bottom > 10)
-						//rectWindow.top = abd.rc.bottom;
-						rectWindow.bottom -= abd.rc.bottom - abd.rc.top;
-					else
-						rectWindow.right = abd.rc.left;
-				}
-
-				else if (abd.rc.left <= 1 && abd.rc.top <= 1)
-				{
-					if (abd.rc.right >= rectDesktop.right) {
-						rectWindow.top -= (abd.rc.bottom-abd.rc.top);
-						rectWindow.bottom -= abd.rc.bottom - abd.rc.top - 2;
-					}
-					else if (abd.rc.bottom >= rectDesktop.bottom) {
-                        rectWindow.left -= (abd.rc.right-abd.rc.left);
-						rectWindow.right -= abd.rc.right - abd.rc.left - 2;
-					}
-				}
-			}
-
-			AdjustWindowRectEx(&rectWindow, GetWindowLong(hWnd, GWL_STYLE), (GetMenu(hWnd)?true:false), GetWindowLong(hWnd, GWL_EXSTYLE)); 
-    	    
-            rectWindow.top    -= 1;
-            rectWindow.left   -= 1;
-            rectWindow.bottom += 1;
-            rectWindow.right  += 1;
-
-            rectFullScreenWindowRect = rectWindow;
-            wpNew = fs->wpOld;
-
-            if (fs->wpOld.showCmd!=SW_SHOWMINIMIZED)
-               wpNew.showCmd = SW_SHOWNORMAL;
-            wpNew.rcNormalPosition = rectWindow;
-
-            HideClutter(hWnd, fs);
-         }
-         else  {
-            fs->bFullScreen=FALSE;
-            wpNew = fs->wpOld;
-            HideClutter(hWnd, fs);
-            if (fs->bMaximized) ShowWindow(hWnd, SW_MAXIMIZE);
-         }
-		 kPlugin.kFuncs->SetPreference(PREF_BOOL, "kmeleon.plugins.fullscreen.last", &fs->bFullScreen, false);
-         SetWindowPlacement (hWnd, &wpNew);
-         return true;
+		  SetFullScreen(hWnd);
+		  return 0;
       }
       break;
    }
