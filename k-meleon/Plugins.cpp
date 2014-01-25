@@ -1516,7 +1516,9 @@ BOOL InjectJS2(const char* js, int bTopWindow, char *result, unsigned size, HWND
 
 	BOOL success = browser->InjectJS(js2.get(), csresult, bTopWindow==1);
 	if (success && result) {
-		strncpy(result, EncodeUTF8(T2W(csresult.GetBuffer(0))), size);
+		char* c = EncodeUTF8(T2W(csresult.GetBuffer(0)));
+		strncpy(result, c, size);
+		free(c);
 		result[size-1] = 0;
 	}
 	return success;

@@ -408,7 +408,7 @@ int CBrowserFrame::InitLayout()
 
 	if (bThrobber) {
         m_wndReBar.AddBar(&m_wndAnimate, NULL, NULL, RBBS_FIXEDSIZE | RBBS_FIXEDBMP);
-		m_wndReBar.RegisterBand(m_wndAnimate.m_hWnd, _T("Throbber"), false);
+		m_wndReBar.RegisterBand(m_wndAnimate.m_hWnd, _T("Throbber"), true);
 	}
     
     if (!m_wndStatusBar.CreateEx(this))
@@ -590,12 +590,13 @@ void CBrowserFrame::OnSize(UINT nType, int cx, int cy)
     // That's where the progress bar will be located
     RECT rc;
     if (m_wndStatusBar.m_hWnd)
+	{
         m_wndStatusBar.GetItemRect(m_wndStatusBar.CommandToIndex(ID_PROG_BAR), &rc);
 
-    // Move the progress bar into it's correct location
-    //
-    if (m_wndProgressBar.m_hWnd)
-        m_wndProgressBar.MoveWindow(&rc);
+		// Move the progress bar into it's correct location
+		if (m_wndProgressBar.m_hWnd)
+			m_wndProgressBar.MoveWindow(&rc);
+	}
 
 	if (m_created) SaveWindowPos();
 	

@@ -602,10 +602,6 @@ BOOL CMfcEmbedApp::InitInstance()
    rv = XRE_InitEmbedding2(mreAppDir, appSubdir, provider);
    NS_ENSURE_SUCCESS(rv, FALSE);
       
-#ifdef FIREFOX_CHROME
-   LoadLanguage();
-#endif
- 
    rv = InitializeWindowCreator();
    if (NS_FAILED(rv)) 
    {
@@ -1615,10 +1611,10 @@ void CMfcEmbedApp::CheckProfileVersion()
 		   if (theApp.preferences.GetBool(PREFERENCE_REBAR_BOTTOM, FALSE))
 			   theApp.preferences.SetString(PREFERENCE_REBAR_POSITION, _T("bottom"));
 
-       if (oldVersion < 0x01050025)
-          theApp.preferences.SetString("browser.startup.homepage", 
-		     theApp.preferences.GetString("kmeleon.general.homePage",
-			 _T("chrome://navigator-region/locale/region.properties")));
+       if (oldVersion < 0x01050025) {
+		   CString oldPref = theApp.preferences.GetString("kmeleon.general.homePage", _T(""));
+		   if (!oldPref.IsEmpty()) theApp.preferences.SetString("browser.startup.homepage", oldPref);
+	   }
 
        if (oldVersion < 0x01010001) {
 

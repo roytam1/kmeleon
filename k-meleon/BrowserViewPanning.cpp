@@ -32,10 +32,10 @@ extern CMfcEmbedApp theApp;
 int CBrowserView::OnMouseActivate(CWnd* pDesktopWnd, UINT nHitTest, UINT message)
 {
 	// Give the focus to the browser if it don't have it.
-	if (!::IsChild(m_hWnd, ::GetFocus())) {
+//	if (!::IsChild(m_hWnd, ::GetFocus())) {
 		m_pWindow->SetActive(TRUE);
 		mpBrowserFrame->m_wndLastFocused = NULL;
-	}
+	//}
 
 /*
    int id;

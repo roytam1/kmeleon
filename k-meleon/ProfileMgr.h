@@ -50,7 +50,7 @@ public:
 	CString mRootDir;
 	CString mLocalDir;
 	BOOL mDefault;
-	CProfile() {}
+	CProfile() : mDefault(FALSE) {}
 };
 
 class CProfileMgr

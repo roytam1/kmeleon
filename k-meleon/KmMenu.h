@@ -141,7 +141,7 @@ public:
 		delete kmenu;
 	}
 
-	void SetMenu(LPCTSTR menu, KmMenuItem item, long before = -1)
+	void SetMenu(LPCTSTR menu, KmMenuItem &item, long before = -1)
 	{
 		KmMenu* kmenu;
 		if (!mMenus.Lookup(menu, kmenu))

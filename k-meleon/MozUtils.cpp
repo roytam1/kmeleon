@@ -97,10 +97,18 @@ nsresult GetDOMEventTarget (nsIWebBrowser* aWebBrowser, nsIDOMEventTarget** aTar
 	aWebBrowser->GetContentDOMWindow (getter_AddRefs(domWin));
 	NS_ENSURE_TRUE (domWin, NS_ERROR_FAILURE);
 
-  	//nsCOMPtr<nsIDOMWindow2> domWin2 (do_QueryInterface (domWin));
-	//NS_ENSURE_TRUE (domWin2, NS_ERROR_FAILURE);
-	
 	return domWin->GetWindowRoot (aTarget);
+
+	nsCOMPtr<nsPIDOMWindow> piWin(do_QueryInterface(domWin));
+	if (!piWin) return NS_ERROR_FAILURE;
+
+	mozilla::dom::EventTarget* eventTarget = piWin->GetChromeEventHandler();
+	NS_ENSURE_TRUE(eventTarget, NS_ERROR_FAILURE);
+	nsCOMPtr<nsIDOMEventTarget> target = do_QueryInterface(eventTarget);
+	NS_ENSURE_TRUE(target, NS_ERROR_FAILURE);
+	*aTarget = target;
+    NS_ADDREF(*aTarget);
+	return NS_OK;
 }
 
 CWnd* CWndForDOMWindow(nsIDOMWindow *aWindow)
@@ -258,7 +266,7 @@ BOOL GetLinkTitleAndHref(nsIDOMNode* node, nsString& aHref, nsString& aTitle)
 			// Test if the element has an associated link
 			nsCOMPtr<nsIDOMElement> element(do_QueryInterface(node));
 
-			bool hasAttr = PR_FALSE;
+			bool hasAttr = false;
 			if (element) element->HasAttribute(NS_LITERAL_STRING("href"), &hasAttr);
 			if (hasAttr)
 			{

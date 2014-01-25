@@ -874,8 +874,8 @@ void findNick(char *nick, char **url)
          }
          *pUrl = 0;
       }
-   }
-   sUrl = *url;
+	  sUrl = *url;
+   }   
 }
 
 // Build Menu

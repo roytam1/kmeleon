@@ -363,7 +363,7 @@ void CBrowserFrmTab::SetActiveBrowser(CBrowserTab* aNewActiveTab)
 		PostMessage(UWM_UPDATESESSIONHISTORY, 0, 0);
 	}
 	//SendMessage(WM_SWITCHTAB, (WPARAM)m_wndCBrowserTab, (LPARAM)aNewActiveTab);
-	theApp.plugins.SendMessage("*", "*", "SwitchTab", (long)aNewActiveTab, (long)m_wndCBrowserTab);
+	theApp.plugins.SendMessage("*", "*", "SwitchTab", (long)GetSafeHwnd(), (long)aNewActiveTab->GetSafeHwnd());
 	
 	m_iCBrowserView = aNewActiveTab->m_iIndex;
 	m_wndCBrowserTab = aNewActiveTab;

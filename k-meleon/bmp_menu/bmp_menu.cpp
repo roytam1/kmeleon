@@ -504,6 +504,7 @@ void DoMenu(HMENU menu, char *param){
            if (plugin) {
              DrawProc = (DRAWBITMAPPROC)GetProcAddress(plugin, "DrawBitmap");
            }
+		   FreeLibrary(plugin);
         }
 	  }
       if (!DrawProc) {

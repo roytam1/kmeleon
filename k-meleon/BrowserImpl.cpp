@@ -935,7 +935,11 @@ NS_IMETHODIMP CBrowserImpl::HandleEvent(nsIDOMEvent *aEvent)
 		if (mChromeFlags & nsIWebBrowserChrome::CHROME_OPENAS_CHROME)
 			return NS_OK;
 		
-		
+		// Check if there was a custom context menu.
+		bool p;
+		aEvent->GetDefaultPrevented(&p);
+		if (p) return NS_OK;
+
 		/*nsCOMPtr<nsIDOMEventTarget> eventTarget;
 		rv = aEvent->GetOriginalTarget(getter_AddRefs(eventTarget));
 		NS_ENSURE_SUCCESS(rv, rv);		
@@ -969,7 +973,7 @@ NS_IMETHODIMP CBrowserImpl::HandleEvent(nsIDOMEvent *aEvent)
 		// own context menus but not for image objects.  Document objects
 		// will never be targets or ancestors of targets, so that's OK.
 		nsCOMPtr<nsIDOMHTMLObjectElement> objectElement;
-		if (!(flags &= CONTEXT_IMAGE)) 
+		if (!(flags & CONTEXT_IMAGE)) 
 			objectElement = do_QueryInterface(node);
 		nsCOMPtr<nsIDOMHTMLEmbedElement> embedElement(do_QueryInterface(node));
 		nsCOMPtr<nsIDOMHTMLAppletElement> appletElement(do_QueryInterface(node));
@@ -1015,6 +1019,22 @@ NS_IMETHODIMP CBrowserImpl::HandleEvent(nsIDOMEvent *aEvent)
 
 		m_pBrowserFrameGlue->ShowContextMenu(flags);
 		return NS_OK;		
+	}
+
+	if (type.Equals(NS_LITERAL_STRING("mozfullscreenchange")))
+	{
+		nsCOMPtr<nsIDOMWindow> dom;
+		nsresult rv = mWebBrowser->GetContentDOMWindow(getter_AddRefs(dom));
+		NS_ENSURE_SUCCESS(rv, rv);
+
+		nsCOMPtr<nsIDOMDocument> document;
+		rv = dom->GetDocument(getter_AddRefs(document));
+		NS_ENSURE_SUCCESS(rv, rv);		
+		if (!document) return NS_OK;		
+
+		bool fullscreen;
+		document->GetMozFullScreen(&fullscreen);
+		m_pBrowserFrameGlue->SetFullScreen(fullscreen);
 	}
 
 	return NS_ERROR_NOT_IMPLEMENTED;

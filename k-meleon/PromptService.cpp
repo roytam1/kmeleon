@@ -289,9 +289,9 @@ NS_IMETHODIMP CPromptService::PromptUsernameAndPassword(nsIDOMWindow *parent,
   dlg.AddEdit(&csUsername, IDS_USERNAME, FALSE);
   dlg.AddEdit(&csPassword, IDS_PASSWORD, TRUE);
   
-  BOOL checkResult;
+  BOOL checkResult = FALSE;
   if (checkboxMsg && checkValue) {
-    checkResult = (*checkValue == PR_TRUE ? TRUE : FALSE);
+    checkResult = (*checkValue == true ? TRUE : FALSE);
     dlg.AddCheckBox(&checkResult, W2CT(checkboxMsg));
   }
 
@@ -303,12 +303,12 @@ NS_IMETHODIMP CPromptService::PromptUsernameAndPassword(nsIDOMWindow *parent,
 	  *password = NS_StringCloneData(nsEmbedString(T2CW(csPassword)));
 
      if (checkValue)
-        *checkValue = (checkResult == TRUE ? PR_TRUE : PR_FALSE);
+        *checkValue = (checkResult == TRUE ? true : false);
 
-	  *_retval = PR_TRUE;
+	  *_retval = true;
   }
   else
-    *_retval = PR_FALSE;
+    *_retval = false;
  
   return NS_OK;
 }
@@ -435,15 +435,15 @@ NS_IMETHODIMP CPromptService::ConfirmEx(nsIDOMWindow *parent,
         buttonFlags >>= 8;    
     }
 
-	BOOL checkResult;
+	BOOL checkResult = false;
 	if (checkMsg && checkValue) {
-		checkResult = (*checkValue == PR_TRUE ? TRUE : FALSE);
+		checkResult = (*checkValue == true ? TRUE : FALSE);
 		dlg.AddCheckBox(&checkResult, W2CT(checkMsg));
 	}
 	
 	*buttonPressed = dlg.DoModal() - COMMAND_OFFSET;
 	if (checkValue)
-		*checkValue = (checkResult == TRUE ? PR_TRUE : PR_FALSE);
+		*checkValue = (checkResult == TRUE ? true : false);
 
     return NS_OK;    
 }

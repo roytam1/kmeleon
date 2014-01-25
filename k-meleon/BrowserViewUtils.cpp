@@ -278,7 +278,7 @@ CString CBrowserView::NicknameLookup(const CString& typedUrl)
 		retUrl.ReleaseBuffer(word); // Truncate
 	}
 
-   static char *nickUrl = NULL;
+   char *nickUrl = NULL;
    USES_CONVERSION;
    theApp.plugins.SendMessage("*",	"* FindNick", "FindNick", (long)T2CA(retUrl), (long)&nickUrl);
 

@@ -68,6 +68,7 @@ protected:
     nsEmbedString         mProductDirName;
     nsCOMPtr<nsIFile> mMozBinDirectory;
 	nsCOMPtr<nsIFile> mProductDirectory;
+	nsCOMPtr<nsIFile> mLocalProductDirectory;
 	nsCOMPtr<nsIFile> mProfileDirectory;
 	nsCOMPtr<nsIFile> mProfileLocalDirectory;
 };
