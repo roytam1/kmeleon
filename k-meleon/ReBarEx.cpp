@@ -302,17 +302,16 @@ void CReBarEx::ShowBand(int index, BOOL visibility) {
 }
 
 void CReBarEx::SetVisibility(int index, BOOL visibility) {
-   GetReBarCtrl().ShowBand(FindByIndex(index), visibility);
-
-
-   DrawMenuBar();
-
+   //int barIndex = FindByIndex(index);
+   //GetReBarCtrl().ShowBand(barIndex, visibility);
+	
    m_index[index]->visibility = visibility;
-
    char prefName[256];
-   USES_CONVERSION;
+   USES_CONVERSION;  
    sprintf(prefName, "kmeleon.toolband.%s.visibility", T2CA(m_index[index]->name));
-   theApp.preferences.SetBool(prefName, m_index[index]->visibility);
+   theApp.preferences.SetBool(prefName, m_index[index]->visibility);   
+   RestoreBandSizes(); // Restore everything else they're not showing correctly
+   DrawMenuBar();
 }
 
 void CReBarEx::ToggleVisibility(int index) {
@@ -370,7 +369,7 @@ void CReBarEx::RestoreBandSizes() {
    REBARBANDINFO rbbi;
    rbbi.cbSize = sizeof(rbbi);
 
-   char tempPref[256] = "kmeleon.toolband."; // 17 chars
+   char tempPref[256]; 
    int  *newIndex = new int[m_iCount];
 
    // Note: Yes, I know it looks odd to go through the same array twice, but
@@ -381,11 +380,7 @@ void CReBarEx::RestoreBandSizes() {
 
 	  // Bad conversion
       USES_CONVERSION;
-      strcpy(tempPref + 17, T2A(m_index[x]->name));
-      int offset = _tcslen(m_index[x]->name) + 17;
-
-      strcpy(tempPref + offset, ".index");
-      
+      sprintf(tempPref, "kmeleon.toolband.%s.index", T2CA(m_index[x]->name));
       newIndex[x] = theApp.preferences.GetInt(tempPref, -1);
    }
    
@@ -410,10 +405,7 @@ void CReBarEx::RestoreBandSizes() {
 
 	  // Bad conversion
       USES_CONVERSION;
-      strcpy(tempPref + 17, T2A(m_index[x]->name));
-      int offset = _tcslen(m_index[x]->name) + 17;
-
-      strcpy(tempPref + offset, ".break");
+	  sprintf(tempPref, "kmeleon.toolband.%s.break", T2CA(m_index[x]->name));
       barbreak = theApp.preferences.GetInt(tempPref, 0);
 
       rbbi.fMask |= RBBIM_STYLE;
@@ -422,16 +414,15 @@ void CReBarEx::RestoreBandSizes() {
       rbbi.fStyle = barbreak ? 
          rbbi.fStyle | RBBS_BREAK : rbbi.fStyle & ~RBBS_BREAK;
 
-      strcpy(tempPref + offset, ".size");
+	  sprintf(tempPref, "kmeleon.toolband.%s.size", T2CA(m_index[x]->name));
       rbbi.cx = theApp.preferences.GetInt(tempPref, 0);
       if (rbbi.cx > 0)
          rbbi.fMask |= RBBIM_SIZE;
 
       GetReBarCtrl().SetBandInfo(barIndex, &rbbi);
 
-      strcpy(tempPref + offset, ".visibility");
-      if (!theApp.preferences.GetBool(tempPref, TRUE))
-         SetVisibility(x, FALSE);
+	  sprintf(tempPref, "kmeleon.toolband.%s.visibility", T2CA(m_index[x]->name));
+      GetReBarCtrl().ShowBand(barIndex, theApp.preferences.GetBool(tempPref, TRUE));
    }
 }
 
@@ -442,7 +433,7 @@ void CReBarEx::LockBars(BOOL lock)
 
    UINT maxLength = 0, count = 0;
    int x, mainBar = -1;
-   UINT* sizes = new UINT[m_iCount];
+   
    for (x=0; x<m_iCount; x++)
    {
       int barIndex = FindByIndex(x); // index of the bar on the Rebar

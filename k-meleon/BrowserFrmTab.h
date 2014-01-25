@@ -20,9 +20,9 @@
 
 #pragma once
 
-#define MAX_TABS_NUMBER				   80
+#define MAX_TABS_NUMBER				   100
 #define	TABS_START_ID				   2300
-#define TABS_STOP_ID				   TABS_START_ID + MAX_TABS_NUMBER
+#define TABS_STOP_ID				   TABS_START_ID + MAX_TABS_NUMBER - 1
 
 #define WM_CLOSETAB						WM_APP + 150
 #define WM_OPENTAB					    WM_APP + 151

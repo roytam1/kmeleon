@@ -1346,7 +1346,7 @@
 
 			char* buf = new char[l];
 			kPlugin.kFuncs->GetWindowVar(data->c.hWnd, type, buf);
-			MString ret = CANSI_to_UTF8(buf);
+			MString ret = buf;
 			delete [] buf;
 			return ret;
 		}

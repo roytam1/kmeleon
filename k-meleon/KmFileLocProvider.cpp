@@ -325,18 +325,19 @@ NS_METHOD KmFileLocProvider::GetProductDirectory(nsIFile **aLocalFile, bool aLoc
     
 	nsresult rv;
 
-		if (theApp.cmdline.m_sProfilesDir)
-		{
-			 nsCOMPtr<nsILocalFile> tempPath(do_CreateInstance(NS_LOCAL_FILE_CONTRACTID));
-			 rv = tempPath->InitWithNativePath(nsDependentCString(theApp.cmdline.m_sProfilesDir));
-			 if (NS_FAILED(rv)) return rv;
-			 *aLocalFile = tempPath;
-			 NS_ADDREF(*aLocalFile);
-			 return NS_OK;
-		}  		
-		//rv = CloneMozBinDirectory(aLocalFile);
-		//return rv;
-    
+	if (theApp.cmdline.m_sProfilesDir)
+	{
+		nsCOMPtr<nsILocalFile> tempPath(do_CreateInstance(NS_LOCAL_FILE_CONTRACTID));
+		rv = tempPath->InitWithNativePath(nsDependentCString(theApp.cmdline.m_sProfilesDir));
+		if (NS_FAILED(rv)) return rv;
+		*aLocalFile = tempPath;
+		NS_ADDREF(*aLocalFile);
+		return NS_OK;
+	}  		
+
+	if (!aLocal && !mProductDirectory || aLocal && !mLocalProductDirectory)
+	{
+	   
 		bool exists;
 		nsCOMPtr<nsIFile> localDir;
 	 
@@ -369,14 +370,13 @@ NS_METHOD KmFileLocProvider::GetProductDirectory(nsIFile **aLocalFile, bool aLoc
 	#else
 			nsDependentCString buffer(pszBuffer);
 	#endif
-			nsCOMPtr<nsIFile> profileDir;
 			if (!buffer.IsEmpty())
 			{
 				if (!IsRelative)
 					#ifdef UNICODE
-						rv = NS_NewLocalFile(buffer, TRUE, getter_AddRefs(profileDir));
+						rv = NS_NewLocalFile(buffer, TRUE, getter_AddRefs(localDir));
 					#else
-						rv = NS_NewNativeLocalFile(buffer, TRUE, getter_AddRefs(profileDir));
+						rv = NS_NewNativeLocalFile(buffer, TRUE, getter_AddRefs(localDir));
 					#endif
 				else
 				{
@@ -385,32 +385,32 @@ NS_METHOD KmFileLocProvider::GetProductDirectory(nsIFile **aLocalFile, bool aLoc
 						appDir->GetPath(profPath);
 						profPath.Append(L"\\");
 						profPath.Append(buffer);
-						rv = NS_NewLocalFile(profPath, TRUE, getter_AddRefs(profileDir));
+						rv = NS_NewLocalFile(profPath, TRUE, getter_AddRefs(localDir));
 					#else
 						nsCString profPath;
 						appDir->GetNativePath(profPath);
 						profPath.Append("\\");
 						profPath.Append(buffer);
-						rv = NS_NewNativeLocalFile(profPath, TRUE, getter_AddRefs(profileDir));
+						rv = NS_NewNativeLocalFile(profPath, TRUE, getter_AddRefs(localDir));
 					#endif
 					NS_ENSURE_SUCCESS(rv, rv);
-					rv = profileDir->Normalize();
+					rv = localDir->Normalize();
 				}
 			}
 			else
 			{
-				rv = CloneMozBinDirectory(getter_AddRefs(profileDir));
+				rv = CloneMozBinDirectory(getter_AddRefs(localDir));
 				NS_ENSURE_SUCCESS(rv, rv);
 	        
-				rv = profileDir->AppendRelativePath(PROFILE_ROOT_DIR_NAME);
+				rv = localDir->AppendRelativePath(PROFILE_ROOT_DIR_NAME);
 			}
 
 			NS_ENSURE_SUCCESS(rv, rv);
-			rv = profileDir->Exists(&exists);
+			rv = localDir->Exists(&exists);
 			if (NS_SUCCEEDED(rv) && !exists)
-				rv = profileDir->Create(nsIFile::DIRECTORY_TYPE, 0775);
+				rv = localDir->Create(nsIFile::DIRECTORY_TYPE, 0775);
 
-			*aLocalFile = profileDir;
+			*aLocalFile = localDir;
 			NS_ADDREF(*aLocalFile);
 		}
 		else
@@ -436,13 +436,21 @@ NS_METHOD KmFileLocProvider::GetProductDirectory(nsIFile **aLocalFile, bool aLoc
 
 			rv = localDir->Exists(&exists);
 			if (!exists) rv = localDir->Create(nsIFile::DIRECTORY_TYPE, 0775);
-			NS_ENSURE_SUCCESS(rv, rv);
-
-			*aLocalFile = localDir;
-			NS_ADDREF(*aLocalFile);
+			NS_ENSURE_SUCCESS(rv, rv);			
 		}
-	
-	return rv; 
+
+		if (aLocal)
+			mLocalProductDirectory = localDir ;
+		else
+			mProductDirectory = localDir;
+	}
+
+	if (aLocal)
+		rv = mLocalProductDirectory->Clone(aLocalFile);
+	else
+		rv = mProductDirectory->Clone(aLocalFile);
+	NS_IF_ADDREF(*aLocalFile);
+    return rv;
 }
 
 //----------------------------------------------------------------------------------------

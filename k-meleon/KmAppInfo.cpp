@@ -40,20 +40,21 @@ NS_IMETHODIMP KmAppInfo::GetName(nsACString & aName)
 /* readonly attribute ACString ID; */
 NS_IMETHODIMP KmAppInfo::GetID(nsACString & aID)
 {
-    return NS_ERROR_NOT_IMPLEMENTED;
+	aID = "kmeleon@";
+    return NS_OK;
 }
 
 /* readonly attribute ACString version; */
 NS_IMETHODIMP KmAppInfo::GetVersion(nsACString & aVersion)
 {
-	aVersion = "74.0";
+	aVersion = "KMELEON_UVERSION";
     return NS_OK;
 }
 
 /* readonly attribute ACString appBuildID; */
 NS_IMETHODIMP KmAppInfo::GetAppBuildID(nsACString & aAppBuildID)
 {
-	aAppBuildID = '7400';
+	aAppBuildID = "KMELEON_BUILDID";
     return NS_OK;
 }
 
@@ -67,7 +68,7 @@ NS_IMETHODIMP KmAppInfo::GetPlatformVersion(nsACString & aPlatformVersion)
 /* readonly attribute ACString platformBuildID; */
 NS_IMETHODIMP KmAppInfo::GetPlatformBuildID(nsACString & aPlatformBuildID)
 {
-	aPlatformBuildID = NS_STRINGIFY(WHATEVER);
+	aPlatformBuildID = NS_STRINGIFY(MOZILLA_BUILDID);
     return NS_OK;
 }
 

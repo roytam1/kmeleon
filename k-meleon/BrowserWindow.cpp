@@ -312,7 +312,7 @@ BOOL CBrowserWrapper::AddListeners(void)
 {
 	nsresult rv;
 	rv = GetDOMEventTarget(mWebBrowser, (getter_AddRefs(mEventTarget)));
-	NS_ENSURE_SUCCESS(rv, FALSE);
+	NS_ENSURE_TRUE(mEventTarget, FALSE);
 
 	mWebNav = do_QueryInterface(mWebBrowser);
 	NS_ENSURE_TRUE(mWebNav, FALSE);
@@ -339,6 +339,10 @@ BOOL CBrowserWrapper::AddListeners(void)
 			mpBrowserImpl, true, true, 2);
 		rv = mEventTarget->AddEventListener(NS_LITERAL_STRING("contextmenu"), 
 			mpBrowserImpl, false, false);
+		/*rv = mEventTarget->AddEventListener(NS_LITERAL_STRING("mozfullscreenchange"), 
+			mpBrowserImpl, false);		
+		rv = mEventTarget->AddEventListener(NS_LITERAL_STRING("MozEnteredDomFullscreen"), 
+			mpBrowserImpl, false);		*/
 	}
 
 	rv = mEventTarget->AddEventListener(NS_LITERAL_STRING("command"),
@@ -349,6 +353,7 @@ BOOL CBrowserWrapper::AddListeners(void)
 
 void CBrowserWrapper::RemoveListeners(void)
 {
+	NS_ENSURE_TRUE(mEventTarget, );
 	if (!mChromeContent) {
 		mEventTarget->RemoveEventListener(NS_LITERAL_STRING("click"),
 			mpBrowserImpl, false);
@@ -924,9 +929,8 @@ BOOL CBrowserWrapper::InjectJS(const wchar_t* userScript, CString& result, bool 
 		else
 		{
 			nsCOMPtr<nsIDOMWindow> dom;
-			mWebBrowserFocus->GetFocusedWindow(getter_AddRefs(dom));
-			if (dom)
-				rv = dom->GetDocument(getter_AddRefs(document));
+			rv = mWebBrowserFocus->GetFocusedWindow(getter_AddRefs(dom));
+			if (dom) rv = dom->GetDocument(getter_AddRefs(document));
 		}
 		
 	}
@@ -1650,6 +1654,11 @@ BOOL CBrowserWrapper::InputHasFocus()
 	
 		nsCOMPtr<nsIDOMHTMLObjectElement> object = do_QueryInterface(element);
 		if (object) return TRUE;
+
+		nsString attr;
+		element->GetAttribute(NS_LITERAL_STRING("contenteditable"), attr);
+		if (attr.Compare(NS_LITERAL_STRING("true")) == 0)
+			return TRUE;
 
 		return FALSE;
 	}	

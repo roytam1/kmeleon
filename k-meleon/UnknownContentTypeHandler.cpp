@@ -588,6 +588,7 @@ CProgressDialog::CProgressDialog(BOOL bAuto) {
 	  mUri = NULL;
 
 	  mCallback = NULL;
+	  mParam = NULL;
 }
 
 CProgressDialog::~CProgressDialog(){

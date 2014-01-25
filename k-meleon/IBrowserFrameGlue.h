@@ -80,6 +80,7 @@ struct IBrowserGlue {
 	virtual void SetFavIcon(nsIURI* favUri) = 0;
 	virtual bool performXULCommand(LPCWSTR id, LPCTSTR uri) = 0; 
 	virtual BOOL AllowFlash() = 0;
+	virtual void SetFullScreen(bool aFullscreen) = 0;
 
 	virtual ~IBrowserGlue() {};
 };
@@ -110,6 +111,7 @@ struct IBrowserGlue {
 		virtual void SetFavIcon(nsIURI* favUri);\
 		virtual bool performXULCommand(LPCWSTR id, LPCTSTR uri); \
 		virtual BOOL AllowFlash(); \
+		virtual void SetFullScreen(bool aFullscreen); \
 
 typedef IBrowserGlue *PBROWSERGLUE;
 

@@ -400,21 +400,21 @@ CString CAccelParser::GetStrAccel(UINT id)
 		CString str;
 		TCHAR buf[25];
 		if(accel->fVirt & FCONTROL) {
-			GetKeyNameText(MapVirtualKey(VK_CONTROL, 0)<<16, buf, sizeof(buf));
+			GetKeyNameText(MapVirtualKey(VK_CONTROL, 0)<<16, buf, sizeof(buf) / sizeof(TCHAR));
 			if (*buf) {
 				CharLowerBuff(buf+1, _tcslen(buf)-1);
 				str = str + buf + _T("+");
 			}
 		}
 		if(accel->fVirt & FSHIFT) {
-			GetKeyNameText(MapVirtualKey(VK_SHIFT, 0)<<16, buf, sizeof(buf));
+			GetKeyNameText(MapVirtualKey(VK_SHIFT, 0)<<16, buf, sizeof(buf) / sizeof(TCHAR));
 			if (*buf) {
 				CharLowerBuff(buf+1, _tcslen(buf)-1);
 				str = str + buf + _T("+");
 			}
 		}
 		if(accel->fVirt & FALT) {
-			GetKeyNameText(MapVirtualKey(VK_MENU, 0)<<16, buf, sizeof(buf));
+			GetKeyNameText(MapVirtualKey(VK_MENU, 0)<<16, buf, sizeof(buf) / sizeof(TCHAR));
 			if (*buf) {
 				CharLowerBuff(buf+1, _tcslen(buf)-1);
 				str = str + buf + _T("+");
@@ -426,7 +426,7 @@ CString CAccelParser::GetStrAccel(UINT id)
 			if ((key >= VK_PRIOR) && (key<=VK_DELETE))
 				scan |= 0x100; // should remove the numpad text
 
-			if (GetKeyNameText(scan<<16 , buf, sizeof(buf)) == 0)
+			if (GetKeyNameText(scan<<16 , buf, sizeof(buf) / sizeof(TCHAR)) == 0)
 				return _T("");
 
 			// Since I can't find a way to remove the numpad indication

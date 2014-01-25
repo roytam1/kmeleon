@@ -247,6 +247,7 @@ void CBrowserGlue::SetVisibility(bool aVisibility)
 void CBrowserGlue::GetVisibility(bool *aVisible)
 {
 	*aVisible = mpBrowserFrame->IsIconic() || !mpBrowserFrame->IsWindowVisible() ? PR_FALSE : PR_TRUE;
+	TRACE2("Get Visibility %u for window %s\n", *aVisible, mTitle);
 }
 
 void CBrowserGlue::DestroyBrowserFrame()
@@ -645,4 +646,8 @@ BOOL CBrowserGlue::AllowFlash()
 		return TRUE;
 
 	return FALSE;
+}
+
+void CBrowserGlue::SetFullScreen(bool aFullscreen)
+{
 }

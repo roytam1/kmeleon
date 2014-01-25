@@ -255,9 +255,12 @@ NS_IMETHODIMP CSaveAsHandler::Save(const char* contentType, const char* disposit
 	if (theApp.preferences.GetBool("kmeleon.download.useSaveDir", FALSE))
 	{
 		CString saveDir = theApp.preferences.GetString("kmeleon.download.saveDir", _T(""));
-		if (!saveDir.IsEmpty())
-			return DownloadTo(CStringToNSString(saveDir + _T('\\') + szFileName + _T('.') + extension),
+		if (!saveDir.IsEmpty()) {
+			nsresult rv =  DownloadTo(CStringToNSString(saveDir + _T('\\') + szFileName + _T('.') + extension),
 					isHTML, theApp.preferences.iSaveType == 2);
+			delete szFileName;
+			return rv;
+		}
 	}
 
 	CString filter;

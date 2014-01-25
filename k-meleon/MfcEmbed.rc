@@ -835,7 +835,7 @@ BEGIN
             VALUE "CompanyName", "http://kmeleon.sf.net/"
             VALUE "FileDescription", "K-Meleon Web Browser"
             VALUE "FileVersion", "74.0.0.0"
-            VALUE "LegalCopyright", "Copyright (C) 2001-2013"
+            VALUE "LegalCopyright", "Copyright (C) 2001-2014"
             VALUE "OriginalFilename", "k-meleon.exe"
             VALUE "ProductName", "K-Meleon"
             VALUE "ProductVersion", "74.0.0.0"
