@@ -1,4 +1,4 @@
-.-/*
+﻿.-/*
 *  Copyright (C) 2005 Dorian Boissonnade
 *
 *  This program is free software; you can redistribute it and/or modify
@@ -100,6 +100,7 @@ int id_undo_close;
 int id_save_session;
 int id_load_session;
 int id_delete_session;
+int id_open_previous;
 int last_session_id;
 int id_config;
 
@@ -132,7 +133,7 @@ void BuildSessionMenu()
 			if (strcmp(sessions_list[i], kPreviousSessionName) == 0)
 				AppendMenu(sessionsMenu, MF_STRING, last_session_id, gLoc->GetString(IDS_PREVIOUS_SESSION));
 			else
-				AppendMenu(sessionsMenu, MF_STRING, last_session_id, sessions_list[i]);
+				AppendMenuA(sessionsMenu, MF_STRING, last_session_id, sessions_list[i]);
 			
 		}
 		last_session_id++;
@@ -318,6 +319,7 @@ int Load() {
    id_undo_close = kPlugin.kFuncs->GetCommandIDs(1);
    id_save_session = kPlugin.kFuncs->GetCommandIDs(1);
    id_config = kPlugin.kFuncs->GetCommandIDs(1);
+   id_open_previous = kPlugin.kFuncs->GetCommandIDs(1);
    last_session_id = id_load_session = kPlugin.kFuncs->GetCommandIDs(MAX_SAVED_SESSION); 
    //id_delete_session = kPlugin.kFuncs->GetCommandIDs(MAX_SAVED_SESSION); 
    
@@ -371,11 +373,9 @@ void RestoreSession(BOOL afterCrash = FALSE)
 			
 			Session load;
 			Session::loading = true;
-			
 			if (load.loadSession(name)) {
 				load.open();
 			}
-
 			Session::loading = false;
 }
 
@@ -495,6 +495,9 @@ int DoAccel(char *param)
       return id_undo_close;
    if (stricmp(param, "Config") == 0)
       return id_config;
+   if (stricmp(param, "OpenPrevious") == 0)
+      return id_open_previous;
+
    return 0;
 }
 
@@ -679,6 +682,21 @@ PromptDlgProc( HWND hwnd,
 	return TRUE;
 }
 
+void LoadSession(const char* name, HWND currentWnd) 
+{
+	Session load;
+	Session::loading = true;
+	if (load.loadSession(name)) {
+		BOOL warn = FALSE, nowarn=FALSE;
+		kPlugin.kFuncs->GetPreference(PREF_BOOL, "browser.tabs.warnOnClose", &warn, &warn);
+		kPlugin.kFuncs->SetPreference(PREF_BOOL, "browser.tabs.warnOnClose", &nowarn, TRUE);
+		currentSession.close_except(currentWnd);
+		if (load.open())
+			currentSession.close(currentWnd);
+		kPlugin.kFuncs->SetPreference(PREF_BOOL, "browser.tabs.warnOnClose", &warn, FALSE);
+	}
+	Session::loading = false;
+}
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -732,20 +750,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				char* name = sessions_list[command - id_load_session];
 
 				if (name) {
-					Session load;
-					Session::loading = true;
-					if (load.loadSession(name)) {
-						BOOL warn = FALSE, nowarn=FALSE;
-						kPlugin.kFuncs->GetPreference(PREF_BOOL, "browser.tabs.warnOnClose", &warn, &warn);
-						kPlugin.kFuncs->SetPreference(PREF_BOOL, "browser.tabs.warnOnClose", &nowarn, TRUE);
-						currentSession.close_except(hWnd);
-						if (load.open())
-							currentSession.close(hWnd);
-						kPlugin.kFuncs->SetPreference(PREF_BOOL, "browser.tabs.warnOnClose", &warn, FALSE);
-					}
-					Session::loading = false;
+					LoadSession(name, hWnd);					
 					return 0;
 				}
+			}
+			else if (command == id_open_previous) {
+				Session load;
+				LoadSession(kPreviousSessionName, hWnd);
+				return 0;
 			}
 			else if (command == id_config)
 				Config(hWnd);

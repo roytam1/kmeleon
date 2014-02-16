@@ -230,7 +230,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
         if (command == id_defercapture) {
             m_captured = m_defercapture;
 			m_pInfo = kPlugin.kFuncs->GetInfoAtClick(hWnd);
-            SetCapture(hWnd);
+			SetCapture(hWnd);
         }
     }
 	else if (m_rocking && ((message == WM_RBUTTONUP) || (message == WM_LBUTTONUP)))
@@ -273,7 +273,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 
                 if ((mouseMsg == WM_RBUTTONDOWN || m_virt != 0 || mouseMsg == WM_LBUTTONDOWN)) {
 
-                    SetCapture(hWnd);
+                    //SetCapture(hWnd);
                     m_defercapture = m_captured = mouseMsg;
                     GetSystemTime(&m_stDown);
                     PostMessage(hWnd, WM_COMMAND, id_defercapture, 0);
@@ -329,10 +329,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 			
 			POINT m_posDownClient = m_posDown;
 			ScreenToClient(WindowFromPoint(m_posDown), &m_posDownClient);
-			
-			SetCursorPos(m_posDown.x, m_posDown.y);
-			SendMessage(WindowFromPoint(m_posDown), WM_LBUTTONDOWN, wParam, MAKELONG(m_posDownClient.x, m_posDownClient.y));
-			SetCursorPos(m_posMove.x, m_posMove.y);
+			//SetCursorPos(m_posDown.x, m_posDown.y);
+			if (!m_pInfo->isInput && !(m_pInfo->link && *m_pInfo->link) && !(m_pInfo->image && *m_pInfo->image))
+				PostMessage(WindowFromPoint(m_posDown), WM_LBUTTONUP, wParam, MAKELONG(m_posDownClient.x, m_posDownClient.y));
+			PostMessage(WindowFromPoint(m_posDown), WM_LBUTTONDOWN, wParam, MAKELONG(m_posDownClient.x, m_posDownClient.y));
+			//SetCursorPos(m_posMove.x, m_posMove.y);
      	}
     }
     else if ((message == WM_LBUTTONUP && m_captured == WM_LBUTTONDOWN ||

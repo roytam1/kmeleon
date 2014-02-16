@@ -112,6 +112,7 @@ typedef struct {
    char *frame;
    char *page;
    char *linktitle;
+   bool isInput;
 } kmeleonPointInfo;
 
 typedef struct _AutoCompleteResult {
