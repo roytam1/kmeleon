@@ -637,17 +637,9 @@ END_MESSAGE_MAP()
 
 HBRUSH CUrlBar::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 {
-	HBRUSH hbr = CComboBoxEx::OnCtlColor(pDC, pWnd, nCtlColor);
-
-	// Use the background color depending on the security 
-	// state except for the list box
-	if (nCtlColor != CTLCOLOR_LISTBOX)
-	{
-		pDC->SetBkColor(m_crBkclr[m_HighlightType]);
-		hbr = m_brBkgnd[m_HighlightType];    
-	}
-	
-	return hbr;
+	//pDC->SetBkMode(TRANSPARENT);
+	pDC->SetBkColor(m_crBkclr[m_HighlightType]);
+	return m_brBkgnd[m_HighlightType];
 }
 
 #ifdef INTERNAL_SITEICONS

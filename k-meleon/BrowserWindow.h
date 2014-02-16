@@ -326,6 +326,8 @@ public:
 	BOOL ViewContentContainsFrames();
 	BOOL Highlight(const PRUnichar* backcolor, const PRUnichar* word, BOOL matchCase);
 	BOOL InputHasFocus();
+	BOOL IsClickable(nsIDOMElement* element);
+	BOOL IsInputOrObject(nsIDOMElement* element);
 	CString GetFrameURL(nsIDOMNode* aNode = NULL);
 	CString GetDocURL(nsIDOMNode* aNode = NULL);
 	

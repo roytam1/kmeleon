@@ -59,6 +59,7 @@
 #include "nsIDOMHTMLInputElement.h"
 #include "nsIDOMHTMLEmbedElement.h"
 #include "nsIDOMHTMLObjectElement.h"
+#include "nsIDOMHTMLButtonElement.h"
 #include "nsITypeAheadFind.h"
 //#include "nsIFocusController.h"
 //#include "nsIDOMNSHTMLDocument.h"
@@ -264,14 +265,13 @@ BOOL CBrowserWrapper::CreateBrowser(CWnd* parent, uint32_t chromeFlags)
 
 void CBrowserWrapper::ShowScrollbars(BOOL visible)
 {
-	nsCOMPtr<nsIDOMWindow> dom;
-	mWebBrowser->GetContentDOMWindow(getter_AddRefs(dom)); 
-	NS_ENSURE_TRUE(dom, );
-	/*
-	nsCOMPtr<nsIDOMBarProp> scrollbars;
-	dom->GetScrollbars(getter_AddRefs(scrollbars));
-	if (scrollbars)
-		scrollbars->SetVisible(visible);*/
+	nsCOMPtr<nsIScrollable> scrollable(do_QueryInterface(GetDocShell()));
+	NS_ENSURE_TRUE(scrollable, );
+
+	if (!visible) {
+		scrollable->SetDefaultScrollbarPreferences(nsIScrollable::ScrollOrientation_X, nsIScrollable::Scrollbar_Never);
+		scrollable->SetDefaultScrollbarPreferences(nsIScrollable::ScrollOrientation_Y, nsIScrollable::Scrollbar_Never);
+	}
 }
 
 BOOL CBrowserWrapper::DestroyBrowser()
@@ -281,6 +281,16 @@ BOOL CBrowserWrapper::DestroyBrowser()
         do_GetService("@mozilla.org/observer-service;1", &rv);
     if (NS_SUCCEEDED(rv))
       observerService->RemoveObserver(mpBrowserImpl, "nsWebBrowserFind_FindAgain");*/
+
+	/*nsCOMPtr<nsIWebBrowserPrint> print;
+	nsIDocShell* shell = GetDocShell();	
+	shell->GetPrintPreview(getter_AddRefs(print));
+	if (print) {
+		bool isPreview = false;
+		print->GetDoingPrintPreview(&isPreview);
+		if (isPreview) 
+			print->ExitPrintPreview();
+	}*/
 
 	RemoveListeners();
 
@@ -812,7 +822,8 @@ BOOL CBrowserWrapper::InitPrintSettings()
 	nsresult rv = psService->InitPrintSettingsFromPrefs(mPrintSettings, PR_FALSE, nsIPrintSettings::kInitSaveAll);
 	return NS_SUCCEEDED(rv);
 }
-
+//#include "BrowserFrm.h"
+//#include "BrowserView.h"
 BOOL CBrowserWrapper::PrintPreview()
 {
 	nsCOMPtr<nsIWebBrowserPrint> print;
@@ -833,7 +844,18 @@ BOOL CBrowserWrapper::PrintPreview()
 		rv = mWebBrowser->GetContentDOMWindow(getter_AddRefs(dom));
 		NS_ENSURE_SUCCESS(rv, FALSE);
 
+	/*	CBrowserFrame* frm = theApp.CreateNewBrowserFrameWithUrl(L"about:blank");//nsIWebBrowserChrome::CHROME_OPENAS_CHROME | nsIWebBrowserChrome::CHROME_DEFAULT);
+		shell = frm->GetActiveView()->GetBrowserWrapper()->GetDocShell();
+		shell->GetPrintPreview(getter_AddRefs(print));
+		if (!print) return FALSE;
+		frm->ShowWindow(SW_SHOW);
+				
+		uint32_t flags;
+		mpBrowserImpl->GetChromeFlags(&flags);
+		this->CreateBrowser(mWndOwner, flags);*/
+		
 		rv = print->PrintPreview(mPrintSettings, dom, nullptr);
+
 		// WORKAROUND - FIX ME: Why the print preview doesn't use all the width?
 		// So I'm forcing the window to reposition itself.
 		//CRect rect;
@@ -954,15 +976,16 @@ BOOL CBrowserWrapper::InjectJS(const wchar_t* userScript, CString& result, bool 
     nsCOMPtr<nsIScriptContext> ctx = sgo->GetContext();
 
 	JSContext* cx = ctx->GetNativeContext();
+	//mozilla::AutoPushJSContext cx(ctx->GetNativeContext());
 	JS::Rooted<JSObject*> global(cx, sgo->GetGlobalJSObject());
 
 	JS::Rooted<JS::Value> retval(cx, JS::UndefinedValue());
 	JS::CompileOptions options(cx);	
-	options.setFileAndLine("kmeleon",0).setVersion(JSVERSION_DEFAULT);
+	//options.setFileAndLine("kmeleon",0).setVersion(JSVERSION_DEFAULT);
 
     nsCOMPtr<nsIScriptObjectPrincipal> sgoPrincipal = do_QueryInterface(sgo);
 	ctx->EvaluateString(nsEmbedString(userScript), global,
-						options, false, nullptr);
+						options, false, nullptr/*retval.address()*/);
 	
 	//result = NSStringToCString(nsString(JS_GetStringCharsZ(ctx->GetNativeContext(), retval.toString())));
 	theApp.preferences.SetBool("javascript.enabled", jsEnabled);
@@ -1481,9 +1504,9 @@ BOOL CBrowserWrapper::CanSave()
 	nsEmbedCString contentType;
 	nsCOMPtr<nsIDOMDocument> document;
 	nsCOMPtr<nsIDOMWindow> dom;
-
+	
 	nsresult rv = mWebBrowser->GetContentDOMWindow(getter_AddRefs(dom));
-	NS_ENSURE_SUCCESS(rv, FALSE);
+	NS_ENSURE_TRUE(dom, FALSE);
 
 	rv = dom->GetDocument(getter_AddRefs(document));
 
@@ -1636,32 +1659,13 @@ BOOL CBrowserWrapper::_Save(nsIURI* aURI,
 }
 
 #include "nsIDOMHTMLCollection.h"
+
 BOOL CBrowserWrapper::InputHasFocus()
 {
 	nsCOMPtr<nsIDOMElement> element;
 	mWebBrowserFocus->GetFocusedElement(getter_AddRefs(element));
-
-	if (element)
-	{
-		nsCOMPtr<nsIDOMHTMLInputElement> domnsinput = do_QueryInterface(element);
-		if (domnsinput) return TRUE;
-	
-		nsCOMPtr<nsIDOMHTMLTextAreaElement> tansinput = do_QueryInterface(element);
-		if (tansinput) return TRUE;
-	
-		nsCOMPtr<nsIDOMHTMLEmbedElement> embed = do_QueryInterface(element);
-		if (embed) return TRUE;
-	
-		nsCOMPtr<nsIDOMHTMLObjectElement> object = do_QueryInterface(element);
-		if (object) return TRUE;
-
-		nsString attr;
-		element->GetAttribute(NS_LITERAL_STRING("contenteditable"), attr);
-		if (attr.Compare(NS_LITERAL_STRING("true")) == 0)
-			return TRUE;
-
-		return FALSE;
-	}	
+	if (IsInputOrObject(element))
+		return TRUE;
 
 	nsCOMPtr<nsITypeAheadFind> taFinder = do_GetService("@mozilla.org/typeaheadfind;1");
 
@@ -1701,6 +1705,44 @@ BOOL CBrowserWrapper::InputHasFocus()
 	if (length > 0) return TRUE;
 	
 	return FALSE;
+}
+
+BOOL CBrowserWrapper::IsClickable(nsIDOMElement* element)
+{
+	nsCOMPtr<nsIDOMHTMLEmbedElement> embed = do_QueryInterface(element);
+	if (embed) return TRUE;
+	
+	nsCOMPtr<nsIDOMHTMLObjectElement> object = do_QueryInterface(element);
+	if (object) return TRUE;
+
+	nsCOMPtr<nsIDOMHTMLButtonElement> button = do_QueryInterface(element);
+	if (button) return TRUE;
+
+	return FALSE;
+}
+
+BOOL CBrowserWrapper::IsInputOrObject(nsIDOMElement* element)
+{
+	NS_ENSURE_TRUE(element, FALSE);
+
+	nsCOMPtr<nsIDOMHTMLInputElement> domnsinput = do_QueryInterface(element);
+	if (domnsinput) return TRUE;
+	
+	nsCOMPtr<nsIDOMHTMLTextAreaElement> tansinput = do_QueryInterface(element);
+	if (tansinput) return TRUE;
+
+	nsCOMPtr<nsIDOMHTMLEmbedElement> embed = do_QueryInterface(element);
+	if (embed) return TRUE;
+	
+	nsCOMPtr<nsIDOMHTMLObjectElement> object = do_QueryInterface(element);
+	if (object) return TRUE;
+
+	nsString attr;
+	element->GetAttribute(NS_LITERAL_STRING("contenteditable"), attr);
+	if (attr.Compare(NS_LITERAL_STRING("true")) == 0)
+		return TRUE;
+
+	return FALSE;			
 }
 
 CString CBrowserWrapper::GetDocURL(nsIDOMNode* aNode)

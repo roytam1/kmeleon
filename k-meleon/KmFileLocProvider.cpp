@@ -60,14 +60,14 @@ extern CMfcEmbedApp theApp;
 #define PROFILE_INI_NAME  NS_LITERAL_STRING("profile.ini")
 #define PROFILE_ROOT_DIR_NAME NS_LITERAL_STRING("Profiles")
 
-#define DEFAULTS_DIR_NAME           nsEmbedCString("defaults")
+/*#define DEFAULTS_DIR_NAME           nsEmbedCString("defaults")
 #define DEFAULTS_PREF_DIR_NAME      nsEmbedCString("pref")
 #define DEFAULTS_PROFILE_DIR_NAME   nsEmbedCString("profile")
 #define RES_DIR_NAME                nsEmbedCString("res")
 #define CHROME_DIR_NAME             nsEmbedCString("chrome")
 #define PLUGINS_DIR_NAME            nsEmbedCString("plugins")
 #define SEARCH_DIR_NAME             nsEmbedCString("searchplugins")
-#define COMPONENTS_DIR_NAME         nsEmbedCString("components")
+#define COMPONENTS_DIR_NAME         nsEmbedCString("components")*/
 
 struct KmDirEntry {
 	const char* nsProp;
@@ -288,7 +288,7 @@ NS_METHOD KmFileLocProvider::CloneMozBinDirectory(nsIFile **aLocalFile)
 		 ::GetModuleFileName(0, path.GetBuffer(_MAX_PATH), _MAX_PATH);
 		 path.ReleaseBuffer(path.ReverseFind(_T('\\')));
 
-		 NS_NewLocalFile(nsString(path),true,getter_AddRefs(mMozBinDirectory));
+		 NS_NewLocalFile(nsDependentString(path),true,getter_AddRefs(mMozBinDirectory));
 		 /*
         // Get the mozilla bin directory
         // 1. Check the directory service first for NS_XPCOM_CURRENT_PROCESS_DIR

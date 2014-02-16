@@ -738,7 +738,7 @@ kmeleonPointInfo *GetInfoAtClick(HWND hWnd)
 	gPointInfo.frame = strdup(T2CA(pBrowserView->GetContextFrameUrl()));
 	gPointInfo.image = strdup(T2CA(pBrowserView->GetContextImageUrl()));
 	gPointInfo.linktitle = strdup(T2CA(pBrowserView->GetContextLinkTitle()));
-
+	gPointInfo.isInput = pBrowserView->IsContextInputOrObject();
 	return &gPointInfo;
 }
 

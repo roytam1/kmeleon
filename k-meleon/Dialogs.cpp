@@ -144,6 +144,9 @@ void CFindRebar::OnEnChangeSearchStr()
 	m_bStartsel = true;
 	m_pOwner->SendMessage(WM_COMMAND, ID_EDIT_FINDNEXT, 0);
 	m_bStartsel = false;
+
+	// set back the focus to the find bar that gecko steal when scrolling
+	m_cEdit.SetFocus();
 }
 #endif
 

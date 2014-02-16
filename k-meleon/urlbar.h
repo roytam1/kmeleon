@@ -23,6 +23,7 @@
 #include "mfcembed.h"
 struct _AutoCompleteResult;
 extern CMfcEmbedApp theApp;
+class CACListener;
 
 // Have to use my own list box because the combobox is buggy
 class CACListBox : public CListBox
@@ -258,7 +259,7 @@ protected:
     BOOL m_changed;
     CString m_currentURL;
 	
-	CUrlBarEdit m_UrlBarEdit;
+	CUrlBarEdit m_UrlBarEdit;		
 public:
 	DECLARE_MESSAGE_MAP()
 	afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
@@ -268,5 +269,6 @@ public:
 	afx_msg void OnCbenEndedit(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnCbnEditchange();
 	afx_msg void OnCbnSelchange();
+
 };
 

@@ -58,7 +58,10 @@ private:
    int m_iCount;
 protected:
 #if _MSC_VER >= 1300 
-	void OnChevronPushed( NMHDR * pNotifyStruct, LRESULT* result );
+	afx_msg void OnChevronPushed( NMHDR * pNotifyStruct, LRESULT* result );
 #endif
+	afx_msg void OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg void OnNcCalcSize(BOOL bCalcValidRects, NCCALCSIZE_PARAMS* lpncsp);
+
 	DECLARE_MESSAGE_MAP()
 };

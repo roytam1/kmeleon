@@ -26,9 +26,6 @@
 #include "kmeleon_plugin.h"
 #include "MozUtils.h"
 
-nsCOMPtr<nsIAutoCompleteResult> m_oldResult;
-AutoCompleteResult* gACResults = NULL;
-unsigned int gACCountResults = 0;
 
 typedef void (CALLBACK* AutoCompleteCallback)(_AutoCompleteResult*, int, void*) ;
 
@@ -41,10 +38,34 @@ class CACListener :  public nsIAutoCompleteObserver
 		m_ACIt = NULL;
 		m_Callback = callback;
 		m_data = data;
+		gACResults = nullptr;
+		gACCountResults = 0;
+	}
+
+	CACListener::~CACListener() {
+		FreeResult();
 	}
 
 protected:
+
+	void FreeResult() {
+		if (gACCountResults > 0) {
+			m_ACIt = gACResults;
+			while (gACCountResults--){
+				free(m_ACIt->value);
+				free(m_ACIt->comment);
+				m_ACIt++;
+			}
+			free(gACResults);
+			gACResults = NULL;
+			gACCountResults = 0;
+		}
+	}
+	
 	PRBool AddEltToList(nsISupports* aElement);
+	nsCOMPtr<nsIAutoCompleteResult> m_oldResult;
+	AutoCompleteResult* gACResults ;
+	unsigned int gACCountResults;
 	AutoCompleteResult* m_ACIt;
 	AutoCompleteCallback m_Callback;
 	void* m_data;
@@ -59,17 +80,7 @@ NS_IMETHODIMP CACListener::OnUpdateSearchResult(nsIAutoCompleteSearch *search, n
 
 NS_IMETHODIMP CACListener::OnSearchResult(nsIAutoCompleteSearch *search, nsIAutoCompleteResult *result)
 {
-	if (gACCountResults > 0) {
-		m_ACIt = gACResults;
-		while (gACCountResults--){
-			free(m_ACIt->value);
-			free(m_ACIt->comment);
-			m_ACIt++;
-		}
-		free(gACResults);
-		gACResults = NULL;
-		gACCountResults = 0;
-	}
+	FreeResult();
 
 	PRUint16 status;
 	result->GetSearchResult(&status);
@@ -106,22 +117,20 @@ NS_IMETHODIMP CACListener::OnSearchResult(nsIAutoCompleteSearch *search, nsIAuto
 	return NS_OK;
 }
 
-int AutoComplete(const CString& aSearchString, AutoCompleteCallback callback, void* data)
+void AutoComplete(const CString& aSearchString, AutoCompleteCallback callback, void* data)
 {
 	static nsEmbedString previousSearch;
 	nsresult rv;
 
 	nsCOMPtr<nsIAutoCompleteSearch> autoComplete = do_GetService("@mozilla.org/autocomplete/search;1?name=history", &rv);
-	if (NS_FAILED(rv)) return 0;
+	NS_ENSURE_TRUE(autoComplete, );
 
 	nsEmbedString searchString = CStringToNSString(aSearchString);
 	if (!searchString.Equals(previousSearch)) {
 		previousSearch = searchString;
 		nsCOMPtr<nsIAutoCompleteObserver> listener = new CACListener(callback, data);
-		autoComplete->StartSearch(searchString, EmptyString(), m_oldResult, listener);
+		autoComplete->StartSearch(searchString, EmptyString(), nullptr/*m_oldResult*/, listener);
 	}
-
-	return gACCountResults;
 }
 
 
