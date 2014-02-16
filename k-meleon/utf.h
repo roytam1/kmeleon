@@ -80,7 +80,7 @@ inline size_t utf16_to_utf8(const wchar_t* src, char* dst, unsigned len)
 			unsigned long c_utf32 = 0;
 			unsigned short c2 = src[index++];
 
-			if (c2 >= 0xDC00 && c2 <= 0xDFF)
+			if (c2 >= 0xDC00 && c2 <= 0xDFFF)
 			{
 				c_utf32 = ((c - 0xD800) << 10) + (c2 - 0xDC00) + 0x0010000UL;
 
@@ -206,10 +206,10 @@ inline size_t ansi_to_utf8(const char* src, char* dst, size_t len)
 
     if (!unicode) return 0;
 
-	if (!ansi_to_utf16(src, unicode, lengthDst))
-		return 0;
+	size_t result = 0;
+	if (ansi_to_utf16(src, unicode, lengthDst))
+		result = utf16_to_utf8(unicode, dst, len);	
 	
-	size_t result = utf16_to_utf8(unicode, dst, len);
 	if (unicode != s_unicode) free(unicode);
 	return result;
 }
@@ -223,10 +223,10 @@ inline size_t utf8_to_ansi(const char* src, char* dst, size_t len)
 
 	if (!unicode) return 0;
 
-	if (!utf8_to_utf16(src, unicode, lengthDst))
-		return 0;
-        
-	size_t result = utf16_to_ansi(unicode, dst, len);
+	size_t result = 0;
+	if (utf8_to_utf16(src, unicode, lengthDst))
+		result = utf16_to_ansi(unicode, dst, len);
+    
 	if (unicode != s_unicode) free(unicode);
 	return result;
 }

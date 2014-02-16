@@ -108,32 +108,33 @@ NS_IMETHODIMP CBrowserImpl::OnStateChange(nsIWebProgress *progress,
 		  }
 	  }*/
 
-	  if (!mChromeLoaded && mChromeFlags & nsIWebBrowserChrome::CHROME_OPENAS_CHROME)
-	  {
-		  mChromeLoaded = PR_TRUE;
-		
-		  if (mChromeFlags & nsIWebBrowserChrome::CHROME_OPENAS_DIALOG) {
-			  nsCOMPtr<nsIDOMWindow> domWindow;
-			  mWebBrowser->GetContentDOMWindow(getter_AddRefs(domWindow));
-			  NS_ENSURE_TRUE(domWindow, NS_OK);
+		if (!mChromeLoaded && (mChromeFlags & nsIWebBrowserChrome::CHROME_OPENAS_CHROME))
+		{
+			mChromeLoaded = PR_TRUE;
 
-			  domWindow->SizeToContent();
-		   
-			  // It must be repositionned somewhat after the resize. Centering it
-			  // all the time is not that bad.
-			  //if (pThis->m_chromeMask & nsIWebBrowserChrome::CHROME_CENTER_SCREEN)
-			  HWND h = m_pBrowserFrameGlue->GetBrowserFrameNativeWnd();
-			  CWnd* frame = CWnd::FromHandle(h);
-			  frame->CenterWindow();
-		  }
-		  SetVisibility(PR_TRUE);
-	  }
-    m_pBrowserFrameGlue->UpdateBusyState(PR_FALSE);
-    m_pBrowserFrameGlue->UpdateProgress(0, 100);       // Clear the prog bar
-    m_pBrowserFrameGlue->UpdateStatusBarText(NULL);  // Clear the status bar
-  }
+			if (mChromeFlags & nsIWebBrowserChrome::CHROME_OPENAS_DIALOG) {
+				nsCOMPtr<nsIDOMWindow> domWindow;
+				mWebBrowser->GetContentDOMWindow(getter_AddRefs(domWindow));
+				NS_ENSURE_TRUE(domWindow, NS_OK);
 
-  return NS_OK;
+				domWindow->SizeToContent();			  
+			}
+
+			// It must be repositionned somewhat after the resize. Centering it
+			// all the time is not that bad.
+			//if (pThis->m_chromeMask & nsIWebBrowserChrome::CHROME_CENTER_SCREEN)
+			HWND h = m_pBrowserFrameGlue->GetBrowserFrameNativeWnd();
+			CWnd* frame = CWnd::FromHandle(h);
+			frame->CenterWindow();
+
+			SetVisibility(PR_TRUE);
+		}
+		m_pBrowserFrameGlue->UpdateBusyState(PR_FALSE);
+		m_pBrowserFrameGlue->UpdateProgress(0, 100);       // Clear the prog bar
+		m_pBrowserFrameGlue->UpdateStatusBarText(NULL);  // Clear the status bar
+	}
+
+	return NS_OK;
 }
 
 NS_IMETHODIMP CBrowserImpl::OnLocationChange(nsIWebProgress* aWebProgress,

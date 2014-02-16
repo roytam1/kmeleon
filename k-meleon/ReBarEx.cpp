@@ -20,11 +20,14 @@
 #include "ReBarEx.h"
 #include "mfcembed.h"
 #include "rebar_menu/hot_tracking.h"
+#include "VisualStylesXP.h"
 
 
 BEGIN_MESSAGE_MAP(CReBarEx, CReBar)
+	ON_NOTIFY_REFLECT(NM_CUSTOMDRAW, OnNMCustomdraw)
+	ON_WM_NCCALCSIZE()
 #if _MSC_VER >= 1300 
-	ON_NOTIFY_REFLECT( RBN_CHEVRONPUSHED, OnChevronPushed )
+	ON_NOTIFY_REFLECT( RBN_CHEVRONPUSHED, OnChevronPushed )	
 #endif
 END_MESSAGE_MAP()
 
@@ -45,6 +48,33 @@ CReBarEx::~CReBarEx() {
       delete m_index;
    }
    CReBar::~CReBar();
+}
+
+void CReBarEx::OnNcCalcSize(BOOL bCalcValidRects, NCCALCSIZE_PARAMS* lpncsp)
+{
+	CReBar::OnNcCalcSize(bCalcValidRects, lpncsp);
+	if (!g_xpStyle.IsThemeActive() || !g_xpStyle.IsAppThemed())
+		lpncsp->rgrc->bottom += 2;	
+}
+
+void CReBarEx::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	*pResult = g_xpStyle.IsThemeActive() && g_xpStyle.IsAppThemed() ? CDRF_DODEFAULT : CDRF_NOTIFYPOSTPAINT;
+	LPNMCUSTOMDRAW pNMCD = reinterpret_cast<LPNMCUSTOMDRAW>(pNMHDR);
+	switch(pNMCD->dwDrawStage)
+	{
+	case CDDS_PREPAINT:
+		break;
+	
+	case CDDS_POSTPAINT: {
+		CDC *pDC = CDC::FromHandle(pNMCD->hdc);
+		pDC->DrawEdge(&pNMCD->rc, BDR_RAISEDINNER|BDR_SUNKENOUTER, BF_BOTTOM);
+		break;
+		}
+
+	case CDDS_ITEMPOSTPAINT:
+		break;
+	}
 }
 
 #if _MSC_VER >= 1300 
@@ -309,7 +339,10 @@ void CReBarEx::SetVisibility(int index, BOOL visibility) {
    char prefName[256];
    USES_CONVERSION;  
    sprintf(prefName, "kmeleon.toolband.%s.visibility", T2CA(m_index[index]->name));
-   theApp.preferences.SetBool(prefName, m_index[index]->visibility);   
+   theApp.preferences.SetBool(prefName, visibility);   
+   
+   //int barIndex = FindByIndex(index);
+   //GetReBarCtrl().ShowBand(barIndex, visibility);
    RestoreBandSizes(); // Restore everything else they're not showing correctly
    DrawMenuBar();
 }
@@ -372,14 +405,14 @@ void CReBarEx::RestoreBandSizes() {
    char tempPref[256]; 
    int  *newIndex = new int[m_iCount];
 
+    // Bad conversion
+    USES_CONVERSION;
+
    // Note: Yes, I know it looks odd to go through the same array twice, but
    //       we *HAVE* to move the bands around before setting their styles or else
    //       they don't show up in the right order (took hours to figure this out :| )
    for (x=0; x<m_iCount; x++) {
       int barIndex = FindByIndex(x); // index of the bar on the Rebar
-
-	  // Bad conversion
-      USES_CONVERSION;
       sprintf(tempPref, "kmeleon.toolband.%s.index", T2CA(m_index[x]->name));
       newIndex[x] = theApp.preferences.GetInt(tempPref, -1);
    }
@@ -396,19 +429,16 @@ void CReBarEx::RestoreBandSizes() {
    }
 
    delete [] newIndex;
-
+   
    BOOL barbreak;
+   BOOL locked = theApp.preferences.GetBool(PREF_TOOLBAND_LOCKED, false);
    for (x=0; x<m_iCount; x++) {
       int barIndex = FindByIndex(x); // index of the bar on the Rebar
 
-      rbbi.fMask = 0;
-
-	  // Bad conversion
-      USES_CONVERSION;
 	  sprintf(tempPref, "kmeleon.toolband.%s.break", T2CA(m_index[x]->name));
       barbreak = theApp.preferences.GetInt(tempPref, 0);
 
-      rbbi.fMask |= RBBIM_STYLE;
+      rbbi.fMask = RBBIM_STYLE;
       GetReBarCtrl().GetBandInfo(barIndex, &rbbi);
       
       rbbi.fStyle = barbreak ? 
@@ -419,10 +449,18 @@ void CReBarEx::RestoreBandSizes() {
       if (rbbi.cx > 0)
          rbbi.fMask |= RBBIM_SIZE;
 
+	  rbbi.fStyle = locked ? 
+         rbbi.fStyle | RBBS_NOGRIPPER : rbbi.fStyle & ~RBBS_NOGRIPPER;
+	  
+	  sprintf(tempPref, "kmeleon.toolband.%s.visibility", T2CA(m_index[x]->name));
+	  m_index[x]->visibility = theApp.preferences.GetBool(tempPref, TRUE);
+	  rbbi.fStyle = !m_index[x]->visibility ? 
+         rbbi.fStyle | RBBS_HIDDEN : rbbi.fStyle & ~RBBS_HIDDEN;
+	  
+	  rbbi.fStyle |= RBBS_CHILDEDGE;
       GetReBarCtrl().SetBandInfo(barIndex, &rbbi);
 
-	  sprintf(tempPref, "kmeleon.toolband.%s.visibility", T2CA(m_index[x]->name));
-      GetReBarCtrl().ShowBand(barIndex, theApp.preferences.GetBool(tempPref, TRUE));
+	  //GetReBarCtrl().ShowBand(barIndex, m_index[x]->visibility);	  
    }
 }
 

@@ -41,11 +41,11 @@
 #define NEW_H <new>
 #endif
 
-#ifndef WINVER				// Autorise l'utilisation des fonctionnalitÈs spÈcifiques ÅEWindows†95 et Windows NT†4 ou version ultÈrieure.
+#ifndef WINVER				
 #ifdef _UNICODE
 #define WINVER 0x0500
 #else
-#define WINVER 0x0400		// Attribuez la valeur appropriÈe ÅEcet ÈlÈment pour cibler Windows†98 et Windows†2000 ou version ultÈrieure.
+#define WINVER 0x0400		
 #endif
 #endif
 
@@ -94,7 +94,8 @@
 //#include <afxcontrolbars.h>     // prise en charge des MFC pour les rubans et les barres de contrÙles
 #include <afxtempl.h>
 #include <afxole.h>
-#include "afxtoolbar.h"
+#include <afxtoolbar.h>
+#include <afxframewndex.h>
 
 #undef min
 #undef max

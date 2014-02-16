@@ -70,8 +70,14 @@
 #include "nsIWindowWatcher.h"
 
 static UINT WM_POSTEVENT = RegisterWindowMessage(_T("XPCOM_PostEvent"));
-static UINT WM_FLASHRELAY = RegisterWindowMessage(_T("MozFlashUserRelay"));
+//static UINT WM_FLASHRELAY = RegisterWindowMessage(_T("MozFlashUserRelay"));
 static UINT WM_NSEVENTID = RegisterWindowMessage(_T("nsAppShell:EventID"));
+
+XRE_InitEmbedding2Type XRE_InitEmbedding2 = 0;
+XRE_TermEmbeddingType XRE_TermEmbedding = 0;
+XRE_NotifyProfileType XRE_NotifyProfile = 0;
+XRE_LockProfileDirectoryType XRE_LockProfileDirectory = 0;
+XRE_AddManifestLocationType XRE_AddManifestLocation = 0;
 
 #ifdef MOZ_PROFILESHARING
 #include "nsIProfileSharingSetup.h"
@@ -394,6 +400,10 @@ BOOL CMfcEmbedApp::LoadLanguage()
       FreeLibrary(m_hResDll);
    m_hResDll = hInstResDll;
    
+   nsCOMPtr<nsIFile> mFile;
+   NS_NewLocalFile(CStringToNSString(localeFolder + locale + _T(".manifest")), false, getter_AddRefs(mFile));
+   XRE_AddManifestLocation(NS_COMPONENT_LOCATION, mFile);
+
    return TRUE;
 }
 
@@ -469,10 +479,7 @@ BOOL CMfcEmbedApp::LoadLanguage()
 // default homepage
 //
 
-XRE_InitEmbedding2Type XRE_InitEmbedding2 = 0;
-XRE_TermEmbeddingType XRE_TermEmbedding = 0;
-XRE_NotifyProfileType XRE_NotifyProfile = 0;
-XRE_LockProfileDirectoryType XRE_LockProfileDirectory = 0;
+
 
 BOOL CMfcEmbedApp::CheckInstance()
 {
@@ -566,6 +573,7 @@ BOOL CMfcEmbedApp::InitInstance()
             {"XRE_TermEmbedding", (NSFuncPtr*)&XRE_TermEmbedding},
             {"XRE_NotifyProfile", (NSFuncPtr*)&XRE_NotifyProfile},
             {"XRE_LockProfileDirectory", (NSFuncPtr*)&XRE_LockProfileDirectory},
+			{"XRE_AddManifestLocation", (NSFuncPtr*)&XRE_AddManifestLocation},
             {0, 0}
     };
 
@@ -580,11 +588,11 @@ BOOL CMfcEmbedApp::InitInstance()
       
    // Set app directory
    nsCOMPtr<nsIFile> mreAppDir;
-   rv = NS_NewLocalFile(nsString(theApp.GetFolder(RootFolder)), TRUE, getter_AddRefs(mreAppDir));
+   rv = NS_NewLocalFile(nsDependentString(theApp.GetFolder(RootFolder)), TRUE, getter_AddRefs(mreAppDir));
    NS_ASSERTION(NS_SUCCEEDED(rv), "failed to create mreAppDir file");
 
    nsCOMPtr<nsIFile> appSubdir;
-   rv = NS_NewLocalFile(nsString(theApp.GetFolder(AppFolder)), TRUE, getter_AddRefs(appSubdir));
+   rv = NS_NewLocalFile(nsDependentString(theApp.GetFolder(AppFolder)), TRUE, getter_AddRefs(appSubdir));
    NS_ASSERTION(NS_SUCCEEDED(rv), "failed to create appSubdir file");
 
    // Set Profile
@@ -1271,8 +1279,9 @@ BOOL CMfcEmbedApp::OnIdle(LONG lCount)
 
 BOOL CMfcEmbedApp::IsIdleMessage( MSG* pMsg )
 {
-   if (!CWinApp::IsIdleMessage( pMsg ) || 
-      pMsg->message == WM_USER+1 || // WM_CALLMETHOD
+   if (!CWinApp::IsIdleMessage( pMsg ) ||      
+      pMsg->message == WM_NSEVENTID || 
+	  pMsg->message == WM_USER + 1 || // WM_CALLMETHOD
       pMsg->message == WM_POSTEVENT ||
       pMsg->message == WM_TIMER) 
 

@@ -441,7 +441,7 @@ int CBrowserFrame::InitLayout()
     theApp.plugins.SendMessage("*", "* OnCreate", "DoRebar", (long)m_wndReBar.GetReBarCtrl().m_hWnd);
 
     m_wndReBar.RestoreBandSizes();
-    m_wndReBar.LockBars(theApp.preferences.GetBool(PREF_TOOLBAND_LOCKED, false));
+    //m_wndReBar.LockBars(theApp.preferences.GetBool(PREF_TOOLBAND_LOCKED, false));
 
     // Create the tooltip window
     m_wndToolTip.Create(this);
@@ -1279,6 +1279,7 @@ HWND CBrowserFrame::CreateToolbar(UINT style) {
 
 void CBrowserFrame::OnShowFindBar()
 {
+	GetActiveView()->Activate(FALSE);
    // When the the user chooses the Find menu item
     // and if a Find dlg. is already being shown
     // just set focus to the existing dlg instead of
@@ -1821,18 +1822,21 @@ void CBrowserFrame::OnGetMinMaxInfo(MINMAXINFO* lpMMI)
 
 LRESULT CBrowserFrame::OnToobarContextMenu(WPARAM wParam, LPARAM lParam)
 {
-	if (wParam == ID_NAV_BACK || wParam == ID_NAV_FORWARD) {
-
+	if (wParam == ID_NAV_BACK || wParam == ID_NAV_FORWARD)
+	{
 		CRect rc;
 		CToolBar* toolbar = (CToolBar*)CWnd::FromHandle((HWND)lParam);
-		toolbar->GetItemRect(toolbar->CommandToIndex(wParam), &rc);
-		CPoint pt(rc.left, rc.bottom);
-		toolbar->ClientToScreen(&pt);
+		if (toolbar)
+		{
+			toolbar->GetItemRect(toolbar->CommandToIndex(wParam), &rc);
+			CPoint pt(rc.left, rc.bottom);
+			toolbar->ClientToScreen(&pt);
 
-		CMenu menu;
-		menu.CreatePopupMenu();
-		wParam == ID_NAV_BACK ? DrawSHBackMenu(menu.GetSafeHmenu()) : DrawSHForwardMenu(menu.GetSafeHmenu());
-		menu.TrackPopupMenu(TPM_LEFTALIGN, pt.x, pt.y, this);
+			CMenu menu;
+			menu.CreatePopupMenu();
+			wParam == ID_NAV_BACK ? DrawSHBackMenu(menu.GetSafeHmenu()) : DrawSHForwardMenu(menu.GetSafeHmenu());
+			menu.TrackPopupMenu(TPM_LEFTALIGN, pt.x, pt.y, this);
+		}
 	}
 	return CWnd::Default();
 }

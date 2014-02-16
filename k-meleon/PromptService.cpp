@@ -64,7 +64,7 @@ NS_IMETHODIMP CPromptService::GetPrompt(nsIDOMWindow *aParent, const nsIID & iid
 /* void alert (in wstring dialogTitle, in wstring text); */
 NS_IMETHODIMP CPromptService::Alert(const PRUnichar * dialogTitle, const PRUnichar * text)
 {
-    return NS_ERROR_NOT_IMPLEMENTED;
+	return Alert(mDomWindow, dialogTitle, text);
 }
 
 /* void alertCheck (in wstring dialogTitle, in wstring text, in wstring checkMsg, inout boolean checkValue); */

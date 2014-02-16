@@ -120,6 +120,11 @@ public:
 		return m_pWindow->GetFrameURL(m_contextNode);
 	}
 
+	bool IsContextInputOrObject() {
+		nsCOMPtr<nsIDOMElement> element(do_QueryInterface(m_contextNode));
+		return m_pWindow->IsClickable(element);
+	}
+
 	//nsCOMPtr<nsIURI> m_IconUri;
 	int GetSiteIcon(); 
 

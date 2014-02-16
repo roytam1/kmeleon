@@ -20,6 +20,7 @@
 
 #include "stdafx.h"
 #include "KmAppInfo.h"
+#include "KMeleonConst.h"
 
 NS_IMPL_ISUPPORTS2(KmAppInfo, nsIXULAppInfo, nsIXULRuntime)
 
@@ -47,14 +48,14 @@ NS_IMETHODIMP KmAppInfo::GetID(nsACString & aID)
 /* readonly attribute ACString version; */
 NS_IMETHODIMP KmAppInfo::GetVersion(nsACString & aVersion)
 {
-	aVersion = "KMELEON_UVERSION";
+	aVersion = NS_STRINGIFY(KMELEON_UVERSION);
     return NS_OK;
 }
 
 /* readonly attribute ACString appBuildID; */
 NS_IMETHODIMP KmAppInfo::GetAppBuildID(nsACString & aAppBuildID)
 {
-	aAppBuildID = "KMELEON_BUILDID";
+	aAppBuildID = NS_STRINGIFY(KMELEON_BUILDID);
     return NS_OK;
 }
 
