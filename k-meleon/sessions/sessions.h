@@ -654,7 +654,7 @@ public:
 	}
 
 	void close(HWND hWnd) {
-		SendMessage((*(findWindow(hWnd))).hWnd, WM_CLOSE, 0, 0);
+		PostMessage((*(findWindow(hWnd))).hWnd, WM_CLOSE, 0, 0);
 	}
 
 	void empty() {
