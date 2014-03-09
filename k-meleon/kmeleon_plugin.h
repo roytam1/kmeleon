@@ -84,14 +84,16 @@ enum WindowVarType {
 	Window_URL = 4,         // char*
 	Window_Number = 10,     // int
 	Window_Tab_Number = 11, // int
-
+	
 	// Read Only
 	Window_SelectedText = 100, // wchar_t*
 	Window_LinkURL = 101,      // char*
 	Window_ImageURL = 102,     // char*
 	Window_FrameURL = 103,     // char*
 	Window_LinkTitle = 104,    // char*
-	Window_Icon = 110          // int
+	Window_Icon = 110,         // int
+
+	Search_URL = 120 // char*
 };
 
 typedef struct configFileType {
@@ -327,8 +329,8 @@ typedef struct {
 // ----------------------------------------------------
 // Addition in K-meleon 1.5
 
-	BOOL (*GetWindowsList) (HWND* list, unsigned size);
-	BOOL (*GetTabsList) (HWND hWnd, HWND* list, unsigned size);
+	int (*GetWindowsList) (HWND* list, unsigned size);
+	int (*GetTabsList) (HWND hWnd, HWND* list, unsigned size);
 	UINT (*GetIconIdx) (const char* host);
 	void (*ReleaseCmdId) (UINT id);
 	UINT (*RegisterCmd) (const char* name, const char* plugin, unsigned nbArgs); // Do not use yet

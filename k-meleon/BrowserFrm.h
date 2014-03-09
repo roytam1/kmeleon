@@ -352,7 +352,7 @@ protected:
 	afx_msg void OnRestoreWindow();
 	afx_msg void OnToggleWindow();
 	afx_msg LRESULT OnToobarContextMenu(WPARAM wParam, LPARAM lParam);
-
+	afx_msg void OnMenuSelect(UINT nItemID, UINT nFlags, HMENU hSysMenu);
 	//}}AFX_MSG
 
 	// ClassWizard generated virtual function overrides

@@ -24,6 +24,7 @@
 #include <commctrl.h>
 #include <stdlib.h>
 #include <shlwapi.h>
+#include "../utf.h"
 
 #define PLUGIN_NAME "Toolbar Control Plugin"
 
@@ -125,6 +126,7 @@ struct s_button {
    TCHAR *sToolTip;
    char *sImagePath;
    char *menu;
+   char *lmenu;
 	//HMENU menu;
    int iID;
    int width, height;
@@ -303,6 +305,8 @@ void Quit() {
             delete button->sName;
 			if (button->menu)
 				delete button->menu;
+			if (button->lmenu)
+				delete button->lmenu;
          if (button->sToolTip)
             delete button->sToolTip;
 		 if (button->sImagePath)
@@ -688,7 +692,8 @@ void LoadToolbars(TCHAR *filename) {
             // ID_NAME|MENU
             
             // get the menu associated with the button
-            curButton->menu = NULL;            
+            curButton->menu = NULL;   
+			curButton->lmenu = NULL;
             char *pipe;
             pipe = strchr(p, '|');
             if (pipe) {
@@ -699,30 +704,20 @@ void LoadToolbars(TCHAR *filename) {
                curButton->menu = new char[strlen(pipe+1) + 1];
                strcpy(curButton->menu, pipe+1);
             }
+    
+            curButton->iID = kPlugin.kFuncs->GetID(p);
+            if (!curButton->iID)
+				if (kPlugin.kFuncs->GetMenu(p)) {
+					curButton->iID = kPlugin.kFuncs->GetCommandIDs(1);
+					curButton->lmenu = strdup(p);
+				}
 
-            // check for call to other plugin
-            char *op;
-            op = strchr(p, '(');
-            if (op) {
-               *op = 0;
-               char *param = op+1;
-               char *plugin = p;
-               p = strchr(param, ')');
-               if (p) *p =0;
-               kPlugin.kFuncs->SendMessage(plugin, PLUGIN_NAME, "DoAccel", (long)param, (long)&curButton->iID);
-            }
-            
-            else {
-               curButton->iID = kPlugin.kFuncs->GetID(p);
-               if (!curButton->iID)
-                  curButton->iID = atoi(p);
-			   if (!curButton->menu && curButton->iID == ID_NAV_BACK)
-                  curButton->menu = strdup("SHistoryBack");
-               else if (!curButton->menu && curButton->iID == ID_NAV_FORWARD)
-                  curButton->menu = strdup("SHistoryForward");
-            }
-
-/*
+			if (!curButton->menu && curButton->iID == ID_NAV_BACK)
+                curButton->menu = strdup("SHistoryBack");
+            else if (!curButton->menu && curButton->iID == ID_NAV_FORWARD)
+                curButton->menu = strdup("SHistoryForward");
+			
+			/*
             // if a menu wasn't explicitly set, see if the command id has a registered menu
             if (!pipe)
                curButton->menu = kPlugin.kFuncs->GetMenu(curButton->iID);
@@ -739,11 +734,9 @@ void LoadToolbars(TCHAR *filename) {
                     tooltip[strlen(tooltip)-1] = 0;
                   }
 
-						TrimWhiteSpace(tooltip);
-				  const TCHAR* lpText = kPlugin.kFuncs->Translate(tooltip);
-				  curButton->sToolTip = new TCHAR[_tcslen(lpText)+1];
-				  _tcscpy(curButton->sToolTip, lpText);
-		  }
+				  TrimWhiteSpace(tooltip);
+				  curButton->sToolTip = strdup(tooltip);
+               }
                iBuildState++;
                break;
          case HOT:
@@ -821,6 +814,7 @@ s_button  *AddButton(s_toolbar *toolbar, char *name, int width, int height) {
    newButton->sToolTip = NULL;
    newButton->iID = 0;
    newButton->menu = NULL;
+   newButton->lmenu = NULL;
    newButton->next = NULL;
    newButton->prev = toolbar->pButtonTail;
    newButton->sImagePath = NULL;
@@ -1525,7 +1519,7 @@ int  IsButtonChecked(char *sParams) {
 
 
 
-int ShowMenuUnderButton(HWND hWndParent, UINT uMouseButton, int iID) {
+int ShowMenuUnderButton(HWND hWndParent, UINT uMouseButton, int iID, HWND hToolbar) {
    
    s_toolbar   *pToolbar = toolbar_head;
    s_button    *pButton;
@@ -1535,36 +1529,49 @@ int ShowMenuUnderButton(HWND hWndParent, UINT uMouseButton, int iID) {
    while (pToolbar) {
       if (pToolbar->hwndWindow == hWndParent) break;
 	  pToolbar = pToolbar->nextWindow;
-   }
-
+   }   
+   if (!pToolbar) return 0;
+   
    // Find the toolbar
    bool stop = false;
    while (pToolbar) {
+	   if (pToolbar->hWnd == hToolbar) break;
+	    pToolbar = pToolbar->next;
+   }
+   if (!pToolbar) return 0;
+
+
       pButton = pToolbar->pButtonTail;
       while (pButton) {
-          if (pButton->iID == iID && pButton->menu) {
-			  hMenu = kPlugin.kFuncs->GetMenu(pButton->menu);
-			  stop = true;
-			  break;
-		  }
-		  pButton = pButton->prev;
+         char* menu = (uMouseButton == TPM_LEFTBUTTON ? pButton->lmenu : pButton->menu);
+         if (pButton->iID == iID) {
+            if (menu) hMenu = kPlugin.kFuncs->GetMenu(menu);
+            stop = true;
+            break;
+         }
+         pButton = pButton->prev;
 	  }
-	  if (stop) break;
-	  pToolbar = pToolbar->next;
-   }
+	  
+	if (!pButton)
+	   hMenu = kPlugin.kFuncs->GetMenu("Toolbars");
 			
    // Show the menu if any
    if (hMenu) {
 
 	  RECT rc;
 	  int ButtonID = SendMessage(pToolbar->hWnd, TB_COMMANDTOINDEX, iID, 0);
-      if (ButtonID < 0) return 0;
-
-	  SendMessage(pToolbar->hWnd, TB_GETITEMRECT, ButtonID, (LPARAM) &rc);
-      POINT pt = { rc.left, rc.bottom };
-      ClientToScreen(pToolbar->hWnd, &pt);
-	  if (pt.x<0) pt.x = 0;
-	  if (pt.y<0) pt.y = 0;
+	  POINT pt;
+      if (ButtonID >= 0) {
+		 SendMessage(pToolbar->hWnd, TB_GETITEMRECT, ButtonID, (LPARAM) &rc);
+         pt.x = rc.left;
+		 pt.y = rc.bottom;
+         ClientToScreen(pToolbar->hWnd, &pt);
+	  }
+	  else {
+		  GetCursorPos(&pt);
+	  }
+	  //if (pt.x<0) pt.x = 0;
+	  //if (pt.y<0) pt.y = 0;
       DWORD SelectionMade = TrackPopupMenu(hMenu, TPM_LEFTALIGN | uMouseButton | TPM_RETURNCMD, pt.x, pt.y, 0, hWndParent, &rc);
 
 	  if (SelectionMade > 0) {
@@ -1583,11 +1590,25 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 #else
 	static WCHAR* tip = NULL;
 #endif
-	if (message == TB_RBUTTONDOWN || message == TB_LBUTTONHOLD) {
-    	int command = LOWORD(wParam);
+	if (message == TB_LBUTTONDOWN) {
+		int command = LOWORD(wParam);			
+			if (ShowMenuUnderButton(hWnd, TPM_LEFTBUTTON, command, (HWND)lParam))
+				return 0;
+	}
+	else if (message == TB_RBUTTONDOWN || message == TB_LBUTTONHOLD) {
+
 		UINT button = (message == TB_RBUTTONDOWN) ? TPM_RIGHTBUTTON : TPM_LEFTBUTTON;
-		if (ShowMenuUnderButton(hWnd, button, command))
-		   return 0;
+		if (ID_NAV_BACK == wParam)
+          ;//CreateHistoryBackMenu(hWnd, button);
+	    else if (ID_NAV_FORWARD == wParam)
+          ;//CreateHistoryForwardMenu(hWnd, button);
+		else {
+    		int command = LOWORD(wParam);
+			
+			if (ShowMenuUnderButton(hWnd, button, command, (HWND)lParam))
+				return 0;
+		}
+
 	}
 
   else if (message == WM_NOTIFY){
@@ -1629,9 +1650,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 #else				  
 					  if (button->sToolTip) {
 					     if (tip) free(tip);
-					     unsigned lengthDst = strlen(button->sToolTip) + 1;
+						 const TCHAR* lpText = kPlugin.kFuncs->Translate(button->sToolTip);
+					     unsigned lengthDst = strlen(lpText) + 1;
 					     tip = (WCHAR*)malloc(sizeof(WCHAR) * lengthDst);
-					     MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, button->sToolTip, -1, tip, lengthDst);
+					     MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, lpText, -1, tip, lengthDst);
 					     lpTiptext->lpszText = tip;
 					  }
 #endif

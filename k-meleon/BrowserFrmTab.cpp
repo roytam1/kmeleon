@@ -140,10 +140,10 @@ BOOL CBrowserFrmTab::OnToolTipText(UINT id, NMHDR* pNMHDR, LRESULT* pResult)
 	int tooltipWidth = theApp.preferences.GetInt("kmeleon.tabs.tooltipWidth", 100);
 
 	if (pNMHDR->idFrom < TABS_START_ID || pNMHDR->idFrom > TABS_STOP_ID) 
-		return CFrameWnd::OnToolTipText(id, pNMHDR, pResult);
+		return CBrowserFrame::OnToolTipText(id, pNMHDR, pResult);
 
 	CBrowserTab* tab = (CBrowserTab*)m_Tabs[IDTOTABINDEX(pNMHDR->idFrom)];
-	if (!tab) return CFrameWnd::OnToolTipText(id, pNMHDR, pResult);
+	if (!tab) return CBrowserFrame::OnToolTipText(id, pNMHDR, pResult);
 
 	TOOLTIPTEXTA* pTTTA = (TOOLTIPTEXTA*)pNMHDR;
 	TOOLTIPTEXTW* pTTTW = (TOOLTIPTEXTW*)pNMHDR;
@@ -215,6 +215,8 @@ void CBrowserFrmTab::OnClose()
 
 int CBrowserFrmTab::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
+	if (CFrameWnd::OnCreate(lpCreateStruct) == -1)
+       return -1;
 
 	// tell all our plugins that we were created
 	if (!IsDialog())
@@ -249,9 +251,6 @@ int CBrowserFrmTab::OnCreate(LPCREATESTRUCT lpCreateStruct)
         TRACE0("Failed to create view window\n");
         return -1;
     }
-
-	if (CFrameWnd::OnCreate(lpCreateStruct) == -1)
-       return -1;
 
 	if (CBrowserFrame::InitLayout() == -1)
 		return -1;

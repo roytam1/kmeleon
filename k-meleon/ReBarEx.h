@@ -47,7 +47,7 @@ private:
    int FindByChild (HWND hWnd);
    int FindByIndex (int index);
    int ChildToListIndex(HWND hWnd);
-
+   bool topTabBar;
    struct tbBand {
       UINT uID;
       TCHAR *name;
@@ -62,6 +62,6 @@ protected:
 #endif
 	afx_msg void OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnNcCalcSize(BOOL bCalcValidRects, NCCALCSIZE_PARAMS* lpncsp);
-
+	afx_msg LRESULT OnSizeParent(WPARAM, LPARAM);
 	DECLARE_MESSAGE_MAP()
 };

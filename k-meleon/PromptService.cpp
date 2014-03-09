@@ -148,14 +148,14 @@ NS_IMETHODIMP CPromptService::AlertCheck(nsIDOMWindow *parent,
   dlg.SetMsgIcon(AfxGetApp()->LoadStandardIcon(IDI_EXCLAMATION));
   BOOL checkResult;
   if (checkboxMsg && checkValue) {
-    checkResult = (*checkValue == PR_TRUE ? TRUE : FALSE);
+    checkResult = (*checkValue == true ? TRUE : FALSE);
     dlg.AddCheckBox(&checkResult, W2CT(checkboxMsg));
   }
 
   dlg.DoModal();
 
   if (checkValue)
-	*checkValue = (checkResult == TRUE ? PR_TRUE : PR_FALSE);
+	*checkValue = (checkResult == TRUE ? true : false);
 
   return NS_OK;
 }
