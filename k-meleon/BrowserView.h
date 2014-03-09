@@ -327,10 +327,13 @@ protected:
     afx_msg void OnBeginEditURL( NMHDR * pNotifyStruct, LRESULT * result );
 	afx_msg void OnEndEditURL( NMHDR * pNotifyStruct, LRESULT * result );
     afx_msg void OnDragURL( NMHDR * pNotifyStruct, LRESULT * result );
-    //afx_msg void OnDropFiles( HDROP );
+	//afx_msg void OnDropFiles( HDROP );
 	//}}AFX_MSG
 	
 	DECLARE_MESSAGE_MAP()
+	
+public :
+	void OnMenuSelect(UINT nItemID, UINT nFlags, HMENU hSysMenu);
 };
 
 #endif //_BROWSERVIEW_H

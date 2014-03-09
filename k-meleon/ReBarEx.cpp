@@ -26,6 +26,7 @@
 BEGIN_MESSAGE_MAP(CReBarEx, CReBar)
 	ON_NOTIFY_REFLECT(NM_CUSTOMDRAW, OnNMCustomdraw)
 	ON_WM_NCCALCSIZE()
+	ON_MESSAGE(WM_SIZEPARENT, OnSizeParent)
 #if _MSC_VER >= 1300 
 	ON_NOTIFY_REFLECT( RBN_CHEVRONPUSHED, OnChevronPushed )	
 #endif
@@ -34,7 +35,7 @@ END_MESSAGE_MAP()
 
 CReBarEx::CReBarEx() {
    m_iCount=0;
-
+   topTabBar = theApp.preferences.GetString("kmeleon.tabs.position", _T("")) == _T("top");
    CReBar::CReBar();
 }
 
@@ -50,16 +51,33 @@ CReBarEx::~CReBarEx() {
    CReBar::~CReBar();
 }
 
+LRESULT CReBarEx::OnSizeParent(WPARAM wParam, LPARAM lParam)
+{
+	LRESULT res = CControlBar::OnSizeParent(wParam, lParam);
+	if (!topTabBar && (!g_xpStyle.IsThemeActive() || !g_xpStyle.IsAppThemed())) {
+		// MFC bug with winXP ?
+		OSVERSIONINFO osinfo;
+		osinfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+		GetVersionEx(&osinfo);
+		if (osinfo.dwMajorVersion < 6) {
+			AFX_SIZEPARENTPARAMS* layout = (AFX_SIZEPARENTPARAMS*)lParam;
+			layout->sizeTotal.cy += 1;
+			layout->rect.top += 1;
+		}
+	}
+	return res;
+}
+
 void CReBarEx::OnNcCalcSize(BOOL bCalcValidRects, NCCALCSIZE_PARAMS* lpncsp)
 {
 	CReBar::OnNcCalcSize(bCalcValidRects, lpncsp);
-	if (!g_xpStyle.IsThemeActive() || !g_xpStyle.IsAppThemed())
+	if (!topTabBar && (!g_xpStyle.IsThemeActive() || !g_xpStyle.IsAppThemed()))
 		lpncsp->rgrc->bottom += 2;	
 }
 
 void CReBarEx::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 {
-	*pResult = g_xpStyle.IsThemeActive() && g_xpStyle.IsAppThemed() ? CDRF_DODEFAULT : CDRF_NOTIFYPOSTPAINT;
+	*pResult = topTabBar || (g_xpStyle.IsThemeActive() && g_xpStyle.IsAppThemed()) ? CDRF_DODEFAULT : CDRF_NOTIFYPOSTPAINT;
 	LPNMCUSTOMDRAW pNMCD = reinterpret_cast<LPNMCUSTOMDRAW>(pNMHDR);
 	switch(pNMCD->dwDrawStage)
 	{
@@ -341,9 +359,9 @@ void CReBarEx::SetVisibility(int index, BOOL visibility) {
    sprintf(prefName, "kmeleon.toolband.%s.visibility", T2CA(m_index[index]->name));
    theApp.preferences.SetBool(prefName, visibility);   
    
-   //int barIndex = FindByIndex(index);
-   //GetReBarCtrl().ShowBand(barIndex, visibility);
-   RestoreBandSizes(); // Restore everything else they're not showing correctly
+   int barIndex = FindByIndex(index);
+   GetReBarCtrl().ShowBand(barIndex, visibility);
+   //RestoreBandSizes(); // Restore everything else they're not showing correctly
    DrawMenuBar();
 }
 

@@ -19,6 +19,8 @@
 #ifndef __IE_FAVORITES_H__
 #define __IE_FAVORITES_H__
 
+#define _WIN32_WINNT 0x0500
+
 #ifndef COMPILING_RC
 typedef int cmp_t(const char *, const char *, unsigned int);
 void quicksort(char *a, size_t n, size_t es, cmp_t *cmp, unsigned int flag);

@@ -831,7 +831,9 @@ void CBrowserView::OnNavSearch()
    CString search;
    if (DialogBoxParam(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDD_SEARCH_DIALOG), m_hWnd, SearchProc, (LPARAM)&search)) {
       search.Replace(_T("+"), _T("%2b"));
-	  search = theApp.preferences.GetString("kmeleon.general.searchEngine", _T("http://www.google.com/search?q=")) + search;
+	  search = GetSearchURL(search);
+	  if (search.IsEmpty())
+         search = theApp.preferences.GetString("kmeleon.general.searchEngine", _T("http://www.google.com/search?q=")) + search;
       OpenURL(search);
    }
 }
@@ -1082,3 +1084,16 @@ void CBrowserView::OnUpdateSHistory(CCmdUI* pCmdUI)
 	pCmdUI->Enable();	
 }
 
+void CBrowserView::OnMenuSelect(UINT nItemID, UINT nFlags, HMENU hSysMenu)
+{
+	CString title, url;
+	if (nItemID >= SHISTORYF_START_ID && nItemID <= SHISTORYF_END_ID) {
+		int index,count;
+		m_pWindow->GetSHistoryState(index, count);
+		m_pWindow->GetSHistoryInfoAt(nItemID - SHISTORYF_START_ID + index + 1, title, url);
+		mpBrowserFrame->UpdateStatus(url);
+	} else if (nItemID >= SHISTORYB_START_ID && nItemID <= SHISTORYB_END_ID) {
+		m_pWindow->GetSHistoryInfoAt(nItemID - SHISTORYB_START_ID, title, url);
+		mpBrowserFrame->UpdateStatus(url);
+	}
+}

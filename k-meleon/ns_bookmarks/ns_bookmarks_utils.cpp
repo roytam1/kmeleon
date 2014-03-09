@@ -320,9 +320,7 @@ static void SaveBookmarks(FILE *bmFile, CBookmarkNode *node)
             strcat(szFolderFlags, "FOLDER_GROUP=\"true\" ");
          if (child->nick.c_str() && *(child->nick.c_str())) {
 	    strcat(szFolderFlags, "SHORTCUTURL=\"");
-	    psz = utf8_from_ansi(child->nick.c_str());
-	    strcat(szFolderFlags, psz ? psz : "");
-	    if (psz) free(psz);
+	    strcat(szFolderFlags, child->nick.c_str());
 	    strcat(szFolderFlags, "\" ");
 	 }
 		 if (child->m_id.length()) {
@@ -338,20 +336,14 @@ static void SaveBookmarks(FILE *bmFile, CBookmarkNode *node)
          if (child->flags & BOOKMARK_FLAG_BM)
             strcat(szFolderFlags, "MENUHEADER ");
          psz = EncodeString(child->text.c_str());
-         psz2 = utf8_from_ansi(psz ? psz : "");
-		 if (psz2) {
-	        fprintf(bmFile, "%s<DT><H3 %sADD_DATE=\"%d\">", szSpacer, szFolderFlags, child->addDate);
-			fprintf(bmFile, "%s</H3>\n", psz2);
-			free(psz2);
-		 }
+	     fprintf(bmFile, "%s<DT><H3 %sADD_DATE=\"%d\">", szSpacer, szFolderFlags, child->addDate);
+	     fprintf(bmFile, "%s</H3>\n", psz);		 
          if (psz) free(psz);
          
          if (child->desc.c_str() != NULL && *(child->desc.c_str()) != 0) {
             psz = EncodeString(child->desc.c_str());
-            psz2 = utf8_from_ansi(psz ? psz : "");
-            fprintf(bmFile, "%s<DD>%s\n", szSpacer, psz2 ? psz2 : "");
+            fprintf(bmFile, "%s<DD>%s\n", szSpacer, psz ? psz : "");
             if (psz) free(psz);
-            if (psz2) free(psz2);
          }
 
          if (strlen(szSpacer) < MAXSPACER) szSpacer[strlen(szSpacer)] = ' ';   // add a space
@@ -363,7 +355,7 @@ static void SaveBookmarks(FILE *bmFile, CBookmarkNode *node)
       }
       else if (type == BOOKMARK_BOOKMARK) {
          char *psz;
-	 char *psz2;
+	 
          fprintf(bmFile, "%s<DT><A", szSpacer);
          psz = EncodeQuotes(child->url.c_str());
          fprintf(bmFile, " HREF=\"%s\"", psz ? psz : "");
@@ -521,15 +513,15 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
    while ((p = strtok(NULL, "\n")) != NULL){
       if ((t = strstr(p, "<DT><H3")) != NULL){
          t+=7;
-         char *name = strchr(t, '>');
-         if (name) {
-            *name = 0; name++;
+         char *_name = strchr(t, '>');
+         if (_name) {
+            *_name = 0; _name++;
          }
          else {
-            name = "";
+            _name = "";
          }
 
-         char *end = strrchr(name, '<');
+         char *end = strrchr(_name, '<');
          if (end) *end = 0;
 
          time_t addDate=0;
@@ -550,7 +542,7 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
             char *q = strchr(d, '\"');
             if (q) {
                *q = 0;
-               nick = ansi_from_utf8(d);
+               nick = strdup(d);
                *q = '\"';
             }
          }
@@ -562,27 +554,16 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
             char *q = strchr(d, '\"');
             if (q) {
                *q = 0;
-               id = ansi_from_utf8(d);
+               id = strdup(d);
                *q = '\"';
             }
          }
 
+	     char* name = DecodeString(_name ? _name : "");	 
 
-
-	 char *pszTxt;
-	 char *psz, *psz2;
-	 psz = ansi_from_utf8(name);
-	 psz2 = DecodeString(psz ? psz : "");
-	 if (psz2 && *psz2)
-	   pszTxt = psz2;
-	 else
-	   pszTxt = DecodeString(name);
-	 if (psz) free(psz);
-	 if (psz2 && psz2 != pszTxt) free(psz2);
-
-         CBookmarkNode * newNode = new CBookmarkNode(0, pszTxt, "", nick, "", "", BOOKMARK_FOLDER, addDate, 0, 0, id);
+         CBookmarkNode * newNode = new CBookmarkNode(0, name, "", nick, "", "", BOOKMARK_FOLDER, addDate, 0, 0, id);
          node.AddChild(newNode);
-         if (pszTxt) free(pszTxt);
+         if (name) free(name);
          if (nick)   free(nick);
 		 if (id)     free(id);
          lastNode = newNode;
@@ -649,7 +630,7 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
             char *q = strchr(d, '\"');
             if (q) {
                *q = 0;
-               id = ansi_from_utf8(d);
+               id = strdup(d);
                *q = '\"';
             }
          }
@@ -675,7 +656,7 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
             char *q = strchr(d, '\"');
             if (q) {
                *q = 0;
-               nick = ansi_from_utf8(d);
+               nick = strdup(d);
                *q = '\"';
             }
          }
@@ -686,7 +667,7 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
             char *q = strchr(d, '\"');
             if (q) {
                *q = 0;
-               icon = ansi_from_utf8(d);
+               icon = strdup(d);
                *q = '\"';
             }
          }
@@ -698,7 +679,7 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
             char *q = strchr(d, '\"');
             if (q) {
                *q = 0;
-               feedurl = ansi_from_utf8(d);
+               feedurl = strdup(d);
                *q = '\"';
             }
          }
@@ -731,21 +712,10 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
             name = url;
 
 	 char *pszTxt, *pszUrl;
-	 char *psz, *psz2;
-	 psz = ansi_from_utf8(url);
-	 pszUrl = DecodeQuotes(psz ? psz : "");
-	 if (psz) free(psz);
+	 pszUrl = DecodeQuotes(url ? url : "");
+	 pszTxt = DecodeString(name ? name : "");
 
-	 psz = ansi_from_utf8(name);
-	 psz2 = DecodeString(psz ? psz : "");
-	 if (psz2 && *psz2)
-	   pszTxt = psz2;
-	 else
-	   pszTxt = DecodeString(name);
-	 if (psz) free(psz);
-	 if (psz2 && psz2 != pszTxt) free(psz2);
-
-         lastNode = new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), pszTxt, pszUrl, nick, NULL, charset, BOOKMARK_BOOKMARK, addDate, lastVisit, lastModified, id, feedurl, icon);
+	     lastNode = new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), pszTxt, pszUrl, nick, NULL, charset, BOOKMARK_BOOKMARK, addDate, lastVisit, lastModified, id, feedurl, icon);
          node.AddChild(lastNode);
          if (pszUrl) free(pszUrl);
          if (pszTxt) free(pszTxt);
@@ -778,7 +748,7 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
          while (*e && *e!='\n')
             e++;
          *e = 0;
-         e = ansi_from_utf8(t+4);
+         e = strdup(t+4);
 	 if (e && *e) {
 	   char *tmp = DecodeString(e);
 	   free(e);
@@ -823,8 +793,8 @@ void LoadBM(const TCHAR *file)
       
       char *bmFileBuffer = new char[bmFileSize];
       if (bmFileBuffer){
-         fread(bmFileBuffer, sizeof(char), bmFileSize, bmFile);
-         
+         size_t s = fread(bmFileBuffer, sizeof(char), bmFileSize, bmFile);
+         bmFileBuffer[s] = 0;
          strtok(bmFileBuffer, "\n");
          ParseBookmarks(bmFileBuffer, *gBookmarkRoot);
          gLoaded = TRUE;

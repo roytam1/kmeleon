@@ -52,6 +52,7 @@ void Setup();
 void Create(HWND parent);
 void Config(HWND parent);
 void Quit();
+void DoLocale();
 void DoRebar(HWND rebarWnd);
 int DoAccel(char *param, BOOL bSubmenu=FALSE);
 
@@ -92,6 +93,10 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
       else if (stricmp(subject, "DoAccel") == 0) {
           *(int *)data2 = DoAccel((char *)data1);
       }
+	  else if (stricmp(subject, "DoLocale") == 0) {
+         DoLocale();
+      }
+
       else return 0;
 
       return 1;
@@ -208,39 +213,9 @@ int DoAccel(char *param, BOOL bSubmenu) {
 }
 
 
-void DoRebar(HWND rebarWnd) {
-   m_menu = GetMenu(GetParent(rebarWnd));
-   if (!m_menu) {
-     // MessageBox(NULL, ERROR_NO_MENU, PLUGIN_NAME, 0);
-     return;
-   }
-
-   if (nMenuType==2) {
-      DWORD dwStyle = 0x40 | /*the 40 gets rid of an ugly border on top.  I have no idea what flag it corresponds to...*/
-	 CCS_NOPARENTALIGN | CCS_NORESIZE | //CCS_ADJUSTABLE |
-	 TBSTYLE_FLAT | TBSTYLE_TRANSPARENT | TBSTYLE_LIST | TBSTYLE_TOOLTIPS;
-
-      // Create the toolbar control to be added.
-      HWND hwndTB = CreateWindowEx(0, TOOLBARCLASSNAME, MENU_NAME,
-	 WS_CHILD | dwStyle,
-	 0,0,0,0,
-	 rebarWnd, (HMENU)/*id*/200,  // note, the id doesn't matter at all, because it will be overridden by kmeleon
-	 kPlugin.hDllInstance, NULL
-	 );
-
-      if (!hwndTB){
-	 MessageBox(NULL, ERROR_FAILED_TO_CREATE, _T(PLUGIN_NAME), 0);
-	 return;
-      }
-
-      SetWindowText(hwndTB, MENU_NAME);
-
-      // Register the band name and child hwnd
-      kPlugin.kFuncs->RegisterBand(hwndTB, MENU_NAME, true);
-
-      SendMessage(hwndTB, TB_SETIMAGELIST, 0, (LPARAM)NULL);
-
-      int stringID;
+void AddButtons(HWND hwndTB)
+{
+	int stringID;
 
       MENUITEMINFO mInfo;
       mInfo.cbSize = sizeof(mInfo);
@@ -285,7 +260,42 @@ void DoRebar(HWND rebarWnd) {
 
 	    SendMessage(hwndTB, TB_INSERTBUTTON, (WPARAM)-1, (LPARAM)&button);
 	 }
+	  }
+}
+
+void DoRebar(HWND rebarWnd) {
+   m_menu = GetMenu(GetParent(rebarWnd));
+   if (!m_menu) {
+     // MessageBox(NULL, ERROR_NO_MENU, PLUGIN_NAME, 0);
+     return;
+   }
+
+   if (nMenuType==2) {
+      DWORD dwStyle = 0x40 | /*the 40 gets rid of an ugly border on top.  I have no idea what flag it corresponds to...*/
+	 CCS_NOPARENTALIGN | CCS_NORESIZE | //CCS_ADJUSTABLE |
+	 TBSTYLE_FLAT | TBSTYLE_TRANSPARENT | TBSTYLE_LIST | TBSTYLE_TOOLTIPS;
+
+      // Create the toolbar control to be added.
+      HWND hwndTB = CreateWindowEx(0, TOOLBARCLASSNAME, MENU_NAME,
+	 WS_CHILD | dwStyle,
+	 0,0,0,0,
+	 rebarWnd, (HMENU)/*id*/200,  // note, the id doesn't matter at all, because it will be overridden by kmeleon
+	 kPlugin.hDllInstance, NULL
+	 );
+
+      if (!hwndTB){
+	 MessageBox(NULL, ERROR_FAILED_TO_CREATE, _T(PLUGIN_NAME), 0);
+	 return;
       }
+
+      SetWindowText(hwndTB, MENU_NAME);
+
+      // Register the band name and child hwnd
+      kPlugin.kFuncs->RegisterBand(hwndTB, MENU_NAME, true);
+
+      SendMessage(hwndTB, TB_SETIMAGELIST, 0, (LPARAM)NULL);
+
+	  AddButtons(hwndTB);     
 
       // Get the height of the toolbar.
       DWORD dwBtnSize = SendMessage(hwndTB, TB_GETBUTTONSIZE, 0,0);
@@ -327,7 +337,8 @@ void DoRebar(HWND rebarWnd) {
 
 HWND FindMenuBar(HWND hWndParent)
 {
-	HWND hReBar = FindWindowEx(GetActiveWindow(), NULL, REBARCLASSNAME, NULL);
+	HWND hReBar = FindWindowEx(hWndParent, NULL, REBARCLASSNAME, NULL);
+
 	int uBandCount = SendMessage(hReBar, RB_GETBANDCOUNT, 0, 0);  
 	int x = 0;
 	BOOL bFound = FALSE;
@@ -349,6 +360,27 @@ HWND FindMenuBar(HWND hWndParent)
 	}
 
 	return NULL;
+}
+
+
+void DoLocale() {	
+	if (!m_menu) return;
+	int count = kPlugin.kFuncs->GetWindowsList(nullptr, 0);
+	if (!(count>0)) return;
+
+	HWND* hwnd = new HWND[count];
+	kPlugin.kFuncs->GetWindowsList(hwnd, count);
+
+	MENUITEMINFO mInfo;
+    mInfo.cbSize = sizeof(mInfo);
+	for (int j=0; j<count; j++) {
+		HWND menuBar = FindMenuBar(hwnd[j]);
+		if (!menuBar) continue;
+		while (SendMessage(menuBar, TB_DELETEBUTTON, 0, 0) == TRUE) ;
+		AddButtons(menuBar);
+	}
+
+	delete [] hwnd;
 }
 
 void ShowMenuUnderButton(HWND hWndParent, HMENU hMenu, int iID) {

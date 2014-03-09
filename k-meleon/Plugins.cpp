@@ -915,6 +915,14 @@ UINT GetWindowVar(HWND hWnd, WindowVarType type, void* ret)
 			return 1;
 		}
 
+		case Search_URL: {
+			CString _url = GetSearchURL(_T("__query__"));
+			char* url = EncodeUTF8(_url);
+			retLen = strlen(url) + 1;
+			if (ret) strcpy((char*)ret, url);
+			break;
+		}
+
 		default: 
 			retLen = 0;
 	}
@@ -1554,7 +1562,7 @@ long GetFolder(FolderType type, char* path, size_t size)
    return csPath.GetLength();
 }
 
-BOOL GetWindowsList(HWND* list, unsigned size)
+int GetWindowsList(HWND* list, unsigned size)
 {
 	INT_PTR count = theApp.m_FrameWndLst.GetCount();
 	if (!list) return count;
@@ -1571,10 +1579,10 @@ BOOL GetWindowsList(HWND* list, unsigned size)
 	return i;
 }
 
-BOOL GetTabsList(HWND hWnd, HWND* list, unsigned size)
+int GetTabsList(HWND hWnd, HWND* list, unsigned size)
 {
 	CBrowserFrame* frame = GetFrame(hWnd);
-	if (!frame) return FALSE;
+	if (!frame) return -1;
 
 	if (!frame->IsKindOf(RUNTIME_CLASS(CBrowserFrmTab))) {
 		if (list && size) *list = frame->m_hWnd;

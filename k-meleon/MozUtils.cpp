@@ -27,6 +27,7 @@
 #include "nsIEmbeddingSiteWindow.h"
 #include "nsPIDOMWindow.h"
 #include "nsIWebBrowserFocus.h"
+#include "nsIURIFixup.h"
 
 nsEmbedString CStringToNSString(LPCTSTR aStr)
 {
@@ -157,7 +158,7 @@ CString GetUriForDOMWindow(nsIDOMWindow *aWindow)
 
 	nsCOMPtr<nsIDOMDocument> document;
 	nsresult rv = aWindow->GetDocument(getter_AddRefs(document));
-	NS_ENSURE_SUCCESS(rv, _T(""));
+	NS_ENSURE_TRUE(document, _T(""));
 	
 	return GetUriForDocument(document);
 }
@@ -516,4 +517,16 @@ BOOL LogMessage(const char* category, const char* message, const char* file, uin
 
 	rv = consoleService->LogMessage(scriptError);
 	return NS_SUCCEEDED(rv);
+}
+
+CString GetSearchURL(LPCTSTR query) 
+{
+	nsCOMPtr<nsIURIFixup> fixup(do_GetService("@mozilla.org/docshell/urifixup;1"));
+	nsCOMPtr<nsIURI> uri;
+	fixup->KeywordToURI(CStringToNSCString(query), nullptr, getter_AddRefs(uri));
+	if (!uri)  return _T("");
+
+	nsCString spec;
+	uri->GetSpec(spec);
+	return NSCStringToCString(spec);
 }

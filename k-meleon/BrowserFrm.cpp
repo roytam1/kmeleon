@@ -98,6 +98,7 @@ BEGIN_MESSAGE_MAP(CBrowserFrame, CFrameWnd)
     ON_WM_SYSCOLORCHANGE()
 	ON_WM_SYSCOMMAND()
 	ON_WM_INITMENUPOPUP()
+	ON_WM_MENUSELECT()
 
 	ON_COMMAND(ID_SELECT_URL, OnSelectUrl)
 	ON_COMMAND(ID_WINDOW_NEXT, OnWindowNext)
@@ -403,7 +404,7 @@ int CBrowserFrame::InitLayout()
     //Add the UrlBar and Throbber windows to the rebar
 	CString urlTitle;
 	urlTitle.LoadString(IDS_TOOLBAR_URL);
-    m_wndReBar.AddBar(&m_wndUrlBar, theApp.preferences.GetString("kmeleon.display.URLbarTitle", urlTitle));
+    m_wndReBar.AddBar(&m_wndUrlBar, theApp.preferences.GetString("kmeleon.display.URLbarTitle", _T("")));
 	m_wndReBar.RegisterBand(m_wndUrlBar.m_hWnd, _T("URL Bar"), true);
 
 	if (bThrobber) {
@@ -1839,4 +1840,9 @@ LRESULT CBrowserFrame::OnToobarContextMenu(WPARAM wParam, LPARAM lParam)
 		}
 	}
 	return CWnd::Default();
+}
+
+void CBrowserFrame::OnMenuSelect(UINT nItemID, UINT nFlags, HMENU hSysMenu)
+{
+	GetActiveView()->OnMenuSelect(nItemID, nFlags, hSysMenu);
 }

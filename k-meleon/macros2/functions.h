@@ -1337,6 +1337,8 @@
 				type = Window_FrameURL;
 			else if (name == "CHARSET")
 				type = Window_Charset;
+			else if (name == "SEARCHURL")
+				type = Search_URL;
 			else if (name == "CommandLine")
 				return ::GetCommandLine();
 			else return "";

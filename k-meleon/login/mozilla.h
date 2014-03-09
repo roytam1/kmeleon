@@ -151,6 +151,11 @@ public:
 		nsCOMPtr<nsIDOMWindow> domWin;
 		mWebBrowser->GetContentDOMWindow (getter_AddRefs(domWin));
 		NS_ENSURE_TRUE (domWin, NS_ERROR_FAILURE);
+		
+		// Prevent crash in embed component if the browser was closed
+		nsCOMPtr<nsIDOMDocument> doc;
+		domWin->GetDocument(getter_AddRefs(doc));
+		NS_ENSURE_TRUE (doc, NS_ERROR_FAILURE);
 
 		nsCOMPtr<nsIDOMEventTarget> target;	
 		domWin->GetWindowRoot (getter_AddRefs(target));

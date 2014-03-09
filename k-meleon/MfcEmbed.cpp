@@ -70,7 +70,7 @@
 #include "nsIWindowWatcher.h"
 
 static UINT WM_POSTEVENT = RegisterWindowMessage(_T("XPCOM_PostEvent"));
-//static UINT WM_FLASHRELAY = RegisterWindowMessage(_T("MozFlashUserRelay"));
+static UINT WM_FLASHRELAY = RegisterWindowMessage(_T("MozFlashUserRelay"));
 static UINT WM_NSEVENTID = RegisterWindowMessage(_T("nsAppShell:EventID"));
 
 XRE_InitEmbedding2Type XRE_InitEmbedding2 = 0;
@@ -78,6 +78,7 @@ XRE_TermEmbeddingType XRE_TermEmbedding = 0;
 XRE_NotifyProfileType XRE_NotifyProfile = 0;
 XRE_LockProfileDirectoryType XRE_LockProfileDirectory = 0;
 XRE_AddManifestLocationType XRE_AddManifestLocation = 0;
+XRE_GetProcessTypeType XRE_GetProcessType = 0;
 
 #ifdef MOZ_PROFILESHARING
 #include "nsIProfileSharingSetup.h"
@@ -574,6 +575,7 @@ BOOL CMfcEmbedApp::InitInstance()
             {"XRE_NotifyProfile", (NSFuncPtr*)&XRE_NotifyProfile},
             {"XRE_LockProfileDirectory", (NSFuncPtr*)&XRE_LockProfileDirectory},
 			{"XRE_AddManifestLocation", (NSFuncPtr*)&XRE_AddManifestLocation},
+			{"XRE_GetProcessType",  (NSFuncPtr*)&XRE_GetProcessType},
             {0, 0}
     };
 
@@ -1281,7 +1283,9 @@ BOOL CMfcEmbedApp::IsIdleMessage( MSG* pMsg )
 {
    if (!CWinApp::IsIdleMessage( pMsg ) ||      
       pMsg->message == WM_NSEVENTID || 
-	  pMsg->message == WM_USER + 1 || // WM_CALLMETHOD
+	  pMsg->message == WM_FLASHRELAY || 
+	  pMsg->message == WM_USER + 1 || // Flash
+	  pMsg->message == WM_USER + 12 || // Flash
       pMsg->message == WM_POSTEVENT ||
       pMsg->message == WM_TIMER) 
 
@@ -1605,7 +1609,7 @@ void CMfcEmbedApp::CheckProfileVersion()
        DeleteFile(toDelete);
        toDelete = GetFolder(ProfileFolder) + _T("xpti.dat");
        DeleteFile(toDelete);
-	   toDelete = GetFolder(ProfileFolder) + _T("\\") + _T("startupCache") + _T("\0\0");
+	   toDelete = GetMozDirectory(NS_APP_USER_PROFILE_LOCAL_50_DIR) + _T("\\") + _T("startupCache") + _T("\0\0");
 	   TCHAR path[MAX_PATH] = {0};
 	   _tcsncpy(path, toDelete, MAX_PATH-2);
 	   SHFILEOPSTRUCT fop = {0};

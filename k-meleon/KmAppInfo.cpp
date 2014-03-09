@@ -102,7 +102,8 @@ NS_IMETHODIMP KmAppInfo::SetLogConsoleErrors(bool aLogConsoleErrors)
 /* readonly attribute AUTF8String OS; */
 NS_IMETHODIMP KmAppInfo::GetOS(nsACString & aOS)
 {
-    return NS_ERROR_NOT_IMPLEMENTED;
+	aOS = NS_STRINGIFY("WINNT");
+    return NS_OK;
 }
 
 /* readonly attribute AUTF8String XPCOMABI; */
@@ -114,19 +115,58 @@ NS_IMETHODIMP KmAppInfo::GetXPCOMABI(nsACString & aXPCOMABI)
 /* readonly attribute AUTF8String widgetToolkit; */
 NS_IMETHODIMP KmAppInfo::GetWidgetToolkit(nsACString & aWidgetToolkit)
 {
-    return NS_ERROR_NOT_IMPLEMENTED;
+	aWidgetToolkit = NS_STRINGIFY("windows");
+    return NS_OK;
 }
 
 /* readonly attribute unsigned long processType; */
 NS_IMETHODIMP KmAppInfo::GetProcessType(uint32_t *aProcessType)
 {
-    return NS_ERROR_NOT_IMPLEMENTED;
+	NS_ENSURE_ARG_POINTER(aProcessType);
+	*aProcessType = XRE_GetProcessType();
+	return NS_OK;
 }
 
+#include "nsINIParser.h"
+#define NS_LINEBREAK "\015\012"
+#define FILE_COMPATIBILITY_INFO NS_LITERAL_CSTRING("compatibility.ini")
 /* void invalidateCachesOnRestart (); */
 NS_IMETHODIMP KmAppInfo::InvalidateCachesOnRestart()
 {
-    return NS_ERROR_NOT_IMPLEMENTED;
+/*
+  nsCOMPtr<nsIFile> file;
+  nsresult rv = NS_GetSpecialDirectory(NS_APP_PROFILE_DIR_STARTUP, 
+                                       getter_AddRefs(file));
+  if (NS_FAILED(rv))
+    return rv;
+  if (!file)
+    return NS_ERROR_NOT_AVAILABLE;
+  
+  file->AppendNative(FILE_COMPATIBILITY_INFO);
+
+  nsINIParser parser;
+  rv = parser.Init(file);
+  if (NS_FAILED(rv)) {
+    // This fails if compatibility.ini is not there, so we'll
+    // flush the caches on the next restart anyways.
+    return NS_OK;
+  }
+  
+  nsAutoCString buf;
+  rv = parser.GetString("Compatibility", "InvalidateCaches", buf);
+  
+  if (NS_FAILED(rv)) {
+    PRFileDesc *fd = nullptr;
+    file->OpenNSPRFileDesc(PR_RDWR | PR_APPEND, 0600, &fd);
+    if (!fd) {
+      NS_ERROR("could not create output stream");
+      return NS_ERROR_NOT_AVAILABLE;
+    }
+    static const char kInvalidationHeader[] = NS_LINEBREAK "InvalidateCaches=1" NS_LINEBREAK;
+    PR_Write(fd, kInvalidationHeader, sizeof(kInvalidationHeader) - 1);
+    PR_Close(fd);
+  }*/
+  return NS_OK;
 }
 
 /* void ensureContentProcess (); */
