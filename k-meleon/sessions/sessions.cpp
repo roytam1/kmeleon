@@ -394,6 +394,11 @@ int Init()
 				 MB_YESNO|MB_ICONQUESTION);
 
 			if (ok == IDYES) RestoreSession(TRUE);
+
+			// Copy last to previous
+			Session prv;
+			prv.loadSession(kLastSessionName);
+			prv.saveSession(kPreviousSessionName);
 		}
 		
 		clean = false;
