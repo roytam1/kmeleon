@@ -1255,8 +1255,8 @@ int addLink(const char *url, const char *title, int flag)
 
 
 static TCHAR szInput[256];
-static const TCHAR *pszTitle;
-static const TCHAR *pszPrompt;
+static TCHAR *pszTitle = 0;
+static TCHAR *pszPrompt = 0;
 
 BOOL CALLBACK
 PromptDlgProc( HWND hwnd,
@@ -1353,8 +1353,10 @@ void OpenBookmark(CBookmarkNode* node, HWND hWnd = NULL, int mode = 0)
 		strcpy(buff, str);
 		ptr += 2;
 
-		pszTitle = CUTF8_to_T( node->text.c_str() );
-		pszPrompt = CUTF8_to_T( node->desc.c_str() );
+		if (pszTitle) free(pszTitle);
+		if (pszPrompt) free(pszPrompt);
+		pszTitle = t_from_utf8( node->text.c_str() );
+		pszPrompt = t_from_utf8( node->desc.c_str() );
 
 		int ok = gLoc->DialogBoxParam(MAKEINTRESOURCE(IDD_SMARTBOOKMARK), 
 			hWnd, (DLGPROC)PromptDlgProc, NULL);

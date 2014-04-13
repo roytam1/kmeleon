@@ -1568,7 +1568,7 @@ static void UpdateTitle(HWND hDlg, HTREEITEM item) {
       // Isn't this a memory leak?  (Overwriting old buffer location, but old buffer remains allocated?)
       TCHAR TitleBuffer[1024];
       GetDlgItemText(hDlg, IDC_TITLE, TitleBuffer, 1023);
-	  const char* buffer = CT_to_UTF8(TitleBuffer);
+	  auto buffer = CT_to_UTF8(TitleBuffer);
       if (node->text.compare(buffer) != 0) {
          node->text = buffer;
          bookmarksEdited = true;
@@ -1591,7 +1591,7 @@ static void UpdateURL(HWND hDlg, HTREEITEM item) {
    if (node->type == BOOKMARK_BOOKMARK) {
       TCHAR URLBuffer[1024];
       GetDlgItemText(hDlg, IDC_URL, URLBuffer, 1023);
-	  const char* buffer = CT_to_UTF8(URLBuffer);
+	  auto buffer = CT_to_UTF8(URLBuffer);
       if (node->url.compare(buffer) != 0) {
          node->url = buffer;
          bookmarksEdited = true;
@@ -1606,7 +1606,7 @@ static void UpdateNick(HWND hDlg, HTREEITEM item) {
    if (node->type == BOOKMARK_BOOKMARK || node->type == BOOKMARK_FOLDER) {
       TCHAR szBuffer[1024];
       GetDlgItemText(hDlg, IDC_NICK, szBuffer, 1023);
-	  const char* buffer = CT_to_UTF8(szBuffer);
+	  auto buffer = CT_to_UTF8(szBuffer);
       if (node->nick.compare(buffer) != 0) {
          node->nick = buffer;
          bookmarksEdited = true;
@@ -1622,7 +1622,7 @@ static void UpdateDesc(HWND hDlg, HTREEITEM item) {
    if (node->type == BOOKMARK_BOOKMARK || node->type == BOOKMARK_FOLDER) {
       TCHAR szBuffer[1024];
       GetDlgItemText(hDlg, IDC_DESC, szBuffer, 1023);
-	  const char* buffer = CT_to_UTF8(szBuffer);
+	  auto buffer = CT_to_UTF8(szBuffer);
       if (node->desc.compare(buffer) != 0) {
          node->desc = buffer;
          bookmarksEdited = true;
