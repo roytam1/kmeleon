@@ -180,9 +180,9 @@ public:
 		char root[MAX_PATH];
 		kp->kFuncs->GetFolder(RootFolder, root, MAX_PATH);
 		
-		int len = kp->kFuncs->GetPreference(PREF_STRING, "general.useragent.locale", NULL, "en");
+		int len = kp->kFuncs->GetPreference(PREF_LOCALIZED, "general.useragent.locale", NULL, "en");
 		char* langid = new char[len+1];
-		kp->kFuncs->GetPreference(PREF_STRING, "general.useragent.locale", langid, "en");
+		kp->kFuncs->GetPreference(PREF_LOCALIZED, "general.useragent.locale", langid, "en");
 
 		char* localeFolder = new char[strlen(root) + strlen(langid) + 15];
 		strcpy(localeFolder, root);

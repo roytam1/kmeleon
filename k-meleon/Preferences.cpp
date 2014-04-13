@@ -371,26 +371,10 @@ int CPreferences::GetString(const char *preference, char *retVal, const char *de
 	nsEmbedCString string;
     if (!m_prefs || !NS_SUCCEEDED(m_prefs->GetCharPref(preference, getter_Copies(string))))
 		string = defaultVal;
-	else {
-		nsEmbedString unicode;
-		NS_CStringToUTF16(string, NS_CSTRING_ENCODING_UTF8, unicode);
-		NS_UTF16ToCString(unicode, NS_CSTRING_ENCODING_NATIVE_FILESYSTEM, string);
-	}
-	
+		
 	if (retVal)
       strcpy(retVal, string.get());
    return string.Length();
-
-	/*
-	nsEmbedString string;
-	nsEmbedCString stringNat;
-   if (!m_prefs || !NS_SUCCEEDED(m_prefs->CopyUnicharPref(preference, getter_Copies(string))))
-      stringNat = defaultVal;	
-	else
-		NS_UTF16ToCString(string, NS_CSTRING_ENCODING_NATIVE_FILESYSTEM, stringNat);
-   if (retVal)
-      strcpy(retVal, stringNat.get());
-   return stringNat.Length();*/
 }
 
 int CPreferences::GetString(const char *preference, wchar_t *retVal, const wchar_t *defaultVal)
@@ -427,6 +411,55 @@ CString CPreferences::GetString(const char *preference, LPCTSTR defaultVal)
 	return W2CT(string.get());*/
 }
 
+#include "nsIPrefLocalizedString.h"
+
+int CPreferences::GetLocaleString(const char *preference, char *retVal, const char *defaultVal)
+{
+	nsresult rv;
+	nsEmbedCString string;
+	nsCOMPtr<nsIPrefLocalizedString> prefString;
+
+    if (!m_prefs)
+		string = defaultVal;
+	else if (NS_SUCCEEDED(m_prefs->GetComplexValue(preference,
+								NS_GET_IID(nsIPrefLocalizedString),
+								getter_AddRefs(prefString))))
+	{
+		nsString unicode;
+		prefString->GetData(getter_Copies(unicode));
+		CopyUTF16toUTF8(unicode, string);
+	}
+	else if (!NS_SUCCEEDED(m_prefs->GetCharPref(preference, getter_Copies(string))))
+		string = defaultVal;
+	
+	if (retVal)
+      strcpy(retVal, string.get());
+   return string.Length();
+}
+
+CString CPreferences::GetLocaleString(const char *preference, LPCTSTR defaultVal)
+{
+	nsEmbedCString string;
+	nsEmbedString unicode;
+	if (!m_prefs) return defaultVal;
+
+	nsCOMPtr<nsIPrefLocalizedString> prefString;
+	nsresult rv = m_prefs->GetComplexValue(preference,
+								NS_GET_IID(nsIPrefLocalizedString),
+								getter_AddRefs(prefString));
+
+	if (NS_SUCCEEDED(rv)) {
+		prefString->GetData(getter_Copies(unicode));
+	}
+	else {
+		if (!NS_SUCCEEDED(m_prefs->GetCharPref(preference, getter_Copies(string))))
+			return  defaultVal;
+		CopyUTF8toUTF16(string, unicode);
+	}
+
+	return NSStringToCString(unicode);
+}
+
 inline void CPreferences::SetString(const char *preference, const wchar_t *value)
 {
    if (!m_prefs) return;
@@ -440,8 +473,9 @@ inline void CPreferences::SetString(const char *preference, const wchar_t *value
 void CPreferences::SetString(const char *preference, const char *value)
 {
    if (!m_prefs) return;
-   USES_CONVERSION;
-   SetString(preference, A2CW(value));
+   m_prefs->SetCharPref(preference, value);
+   //USES_CONVERSION;
+   //SetString(preference, A2CW(value));
 }
 
 void CPreferences::Clear(const char *preference)
