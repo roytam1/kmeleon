@@ -24,9 +24,10 @@
 
 
 BEGIN_MESSAGE_MAP(CReBarEx, CReBar)
-	ON_NOTIFY_REFLECT(NM_CUSTOMDRAW, OnNMCustomdraw)
+	//ON_NOTIFY_REFLECT(NM_CUSTOMDRAW, OnNMCustomdraw)
 	ON_WM_NCCALCSIZE()
-	ON_MESSAGE(WM_SIZEPARENT, OnSizeParent)
+	ON_WM_NCPAINT()
+	//ON_MESSAGE(WM_SIZEPARENT, OnSizeParent)
 #if _MSC_VER >= 1300 
 	ON_NOTIFY_REFLECT( RBN_CHEVRONPUSHED, OnChevronPushed )	
 #endif
@@ -35,6 +36,7 @@ END_MESSAGE_MAP()
 
 CReBarEx::CReBarEx() {
    m_iCount=0;
+   mNeedSeparator = false;
    topTabBar = theApp.preferences.GetString("kmeleon.tabs.position", _T("")) == _T("top");
    CReBar::CReBar();
 }
@@ -54,30 +56,87 @@ CReBarEx::~CReBarEx() {
 LRESULT CReBarEx::OnSizeParent(WPARAM wParam, LPARAM lParam)
 {
 	LRESULT res = CControlBar::OnSizeParent(wParam, lParam);
-	if (!topTabBar && (!g_xpStyle.IsThemeActive() || !g_xpStyle.IsAppThemed())) {
-		// MFC bug with winXP ?
-		OSVERSIONINFO osinfo;
-		osinfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-		GetVersionEx(&osinfo);
-		if (osinfo.dwMajorVersion < 6) {
-			AFX_SIZEPARENTPARAMS* layout = (AFX_SIZEPARENTPARAMS*)lParam;
-			layout->sizeTotal.cy += 1;
-			layout->rect.top += 1;
-		}
+	AFX_SIZEPARENTPARAMS* layout = (AFX_SIZEPARENTPARAMS*)lParam;
+	if (mNeedSeparator && m_dwStyle & CBRS_ALIGN_TOP) {
+		layout->sizeTotal.cy += 2;
+		layout->rect.top += 2;
+	}
+	if (mNeedSeparator && m_dwStyle & CBRS_ALIGN_BOTTOM) {
+		layout->sizeTotal.cy += 2;
+		layout->rect.bottom += 2;
 	}
 	return res;
+}
+
+void CReBarEx::OnNcPaint()
+{
+	// get window DC that is clipped to the non-client area
+	CWindowDC dc(this);
+	CRect rectClient;
+	GetClientRect(rectClient);
+	CRect rectWindow;
+	GetWindowRect(rectWindow);
+	ScreenToClient(rectWindow);
+	rectClient.OffsetRect(-rectWindow.left, -rectWindow.top);
+	dc.ExcludeClipRect(rectClient);
+
+	// draw borders in non-client area
+	rectWindow.OffsetRect(-rectWindow.left, -rectWindow.top);
+
+	if (mNeedSeparator) {
+		if (m_dwStyle & CBRS_ALIGN_TOP) {
+			dc.DrawEdge(&rectWindow, BDR_RAISEDINNER|BDR_RAISEDOUTER, BF_BOTTOM | BF_ADJUST);
+		}
+		else if (m_dwStyle & CBRS_ALIGN_BOTTOM) {
+			dc.DrawEdge(&rectWindow, BDR_RAISEDINNER|BDR_RAISEDOUTER, BF_TOP | BF_ADJUST);
+		}
+	}	
+	
+	DrawBorders(&dc, rectWindow);
+
+	/*
+	dc.FillSolidRect(0, rectWindow.bottom, rectWindow.right, 10, 105467844);
+	rectWindow.bottom -= 5;*/
+
+	// erase parts not drawn
+	dc.IntersectClipRect(rectWindow);
+	SendMessage(WM_ERASEBKGND, (WPARAM)dc.m_hDC);
+
+	// draw gripper in non-client area
+	DrawNCGripper(&dc, rectWindow);
+}
+
+void CReBarEx::SetNeedSeparator(bool aNeed)
+{
+	if (aNeed && m_dwStyle & CBRS_ALIGN_TOP)
+		SetBorders(0,0,0,2);
+	else if (aNeed && m_dwStyle & CBRS_ALIGN_BOTTOM)
+		SetBorders(0,2,0,0);
+	else
+		SetBorders();	
+	mNeedSeparator = aNeed;
+}
+
+bool CReBarEx::GetNeedSeparator()
+{
+	return false;
+	return mNeedSeparator;
+	return !topTabBar && (!g_xpStyle.IsThemeActive() || !g_xpStyle.IsAppThemed());
 }
 
 void CReBarEx::OnNcCalcSize(BOOL bCalcValidRects, NCCALCSIZE_PARAMS* lpncsp)
 {
 	CReBar::OnNcCalcSize(bCalcValidRects, lpncsp);
-	if (!topTabBar && (!g_xpStyle.IsThemeActive() || !g_xpStyle.IsAppThemed()))
-		lpncsp->rgrc->bottom += 2;	
+}
+
+void CReBarEx::EraseNonClient() 
+{
+	CReBar::EraseNonClient();
 }
 
 void CReBarEx::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 {
-	*pResult = topTabBar || (g_xpStyle.IsThemeActive() && g_xpStyle.IsAppThemed()) ? CDRF_DODEFAULT : CDRF_NOTIFYPOSTPAINT;
+	*pResult = !GetNeedSeparator() ? CDRF_DODEFAULT : CDRF_NOTIFYPOSTPAINT | CDRF_NOTIFYPOSTPAINT;
 	LPNMCUSTOMDRAW pNMCD = reinterpret_cast<LPNMCUSTOMDRAW>(pNMHDR);
 	switch(pNMCD->dwDrawStage)
 	{
@@ -475,7 +534,7 @@ void CReBarEx::RestoreBandSizes() {
 	  rbbi.fStyle = !m_index[x]->visibility ? 
          rbbi.fStyle | RBBS_HIDDEN : rbbi.fStyle & ~RBBS_HIDDEN;
 	  
-	  rbbi.fStyle |= RBBS_CHILDEDGE;
+	  //rbbi.fStyle |= RBBS_CHILDEDGE;
       GetReBarCtrl().SetBandInfo(barIndex, &rbbi);
 
 	  //GetReBarCtrl().ShowBand(barIndex, m_index[x]->visibility);	  
