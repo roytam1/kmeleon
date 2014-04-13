@@ -224,12 +224,13 @@ int CBrowserFrmTab::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 	// Create a ReBar window to which the toolbar and UrlBar 
     // will be added
-	BOOL hasLine = theApp.preferences.GetBool("kmeleon.display.toolbars_line", TRUE);
+    BOOL hasLine = theApp.preferences.GetBool("kmeleon.display.toolbars_line", TRUE);
     if (!m_wndReBar.Create(this, RBS_DBLCLKTOGGLE | RBS_VARHEIGHT | (hasLine ? RBS_BANDBORDERS:0)))
     {
         TRACE0("Failed to create ReBar\n");
         return -1;      // fail to create
     }
+	m_wndReBar.SetNeedSeparator(true);
 
 	// Create the bar which will contain the tab list
 	// It would be better to use a tabcontrol but, currently

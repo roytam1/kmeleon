@@ -146,7 +146,8 @@ BOOL CTabReBar::Create(CReBarEx* rebar, UINT idwnd)
 			WS_CHILD|WS_VISIBLE|(mBottomBar ? CBRS_ALIGN_BOTTOM : CBRS_ALIGN_TOP) ,CRect(0,0,0,0),idwnd))
 			return FALSE;
 		//ModifyStyle(0, CCS_ADJUSTABLE);
-		
+		m_wndParent = rebar;
+
 		if (!mFixedBar && !mPosBar) {
 			rebar->RegisterBand(m_hWnd, _T("Tabs"), false);
 			rebar->AddBar(this, szTitle, 0, RBBS_USECHEVRON | RBBS_FIXEDBMP );
@@ -166,15 +167,24 @@ BOOL CTabReBar::Create(CReBarEx* rebar, UINT idwnd)
 			//rbBand.cyMaxChild = rbBand.cyMinChild * 2;
 
 			int iband = rebar->FindByName(_T("Tabs"));
-			rebar->GetReBarCtrl().SetBandInfo(iband, &rbBand);
-			m_wndParent = rebar;
+			rebar->GetReBarCtrl().SetBandInfo(iband, &rbBand);			
 		} else {
 			mTemp = new CReBarEx();
-			mTemp->Create(GetParentFrame(), RBS_BANDBORDERS, WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS|WS_CLIPCHILDREN|(mBottomBar ? CBRS_BOTTOM : CBRS_TOP));
+			mTemp->Create(GetParentFrame(), RBS_BANDBORDERS, WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS|WS_CLIPCHILDREN|(mBottomBar ? CBRS_ALIGN_BOTTOM  : CBRS_TOP));
 			mTemp->AddBar(this, szTitle, NULL,  RBBS_USECHEVRON | RBBS_NOGRIPPER);
 			mTemp->SetWindowText(_T("TabsBar"));
-			if (mPosBar == POSITION_VTOP)
+			
+			if (mPosBar == POSITION_VTOP) {
 				rebar->SetWindowPos(mTemp ,0,0,0,0,SWP_NOMOVE);
+				//rebar->SetBarStyle(rebar->m_dwStyle | CBRS_BORDER_BOTTOM);
+			}
+			else  if (mPosBar == POSITION_TOP) {
+				mTemp->SetNeedSeparator(true);
+				if (!theApp.preferences.bAutoHideTabControl)
+					rebar->SetNeedSeparator(false);
+			} else  if (mPosBar == POSITION_BOTTOM) {
+				mTemp->SetNeedSeparator(true);
+			}
 		}
 
 		mDropTarget.Register(this);
@@ -273,7 +283,8 @@ void CTabReBar::UpdateButtonsSize()
 	GetWindowRect(&rect);
 	mChevron = FALSE;
 
-	int width = rect.right - rect.left;
+	// -4 prevent freeze on vista+
+	int width = rect.right - rect.left - 4;
 	int buttonWidth = width / count;
 	if (buttonWidth > nMaxWidth)
 		buttonWidth = nMaxWidth;
@@ -294,15 +305,8 @@ void CTabReBar::UpdateButtonsSize()
 	rb.cbSize = sizeof(REBARBANDINFO);
 	rb.fMask  = RBBIM_IDEALSIZE; 
 	rb.cxIdeal = size.cx;
-	if (!mFixedBar && !mPosBar) {
-		/* Stupid Vista Fix */
-		int static ignoreSize = 1;
-		if (ignoreSize>0) {
-			ignoreSize--;
-			return;
-		}
-		ignoreSize = 1;
-		/* End Stupid Fix */
+
+	if (!mFixedBar && !mPosBar) {		
 		int iband = m_wndParent->FindByName(_T("Tabs"));
 		m_wndParent->GetReBarCtrl().SetBandInfo(iband, &rb);
 	} 
@@ -320,10 +324,13 @@ void CTabReBar::UpdateVisibility(BOOL canHide)
 		if (GetToolBarCtrl().GetButtonCount()>1) {
 			
 			mTemp->ShowWindow(SW_SHOW);//GetReBarCtrl().ShowBand(0, TRUE);
+			m_wndParent->SetNeedSeparator(false);
 			if (mBottomBar && !mTemp->IsVisible()) mTemp->SetWindowPos(&(((CBrowserFrame*)GetParentFrame())->m_wndStatusBar),0,0,0,0,SWP_NOMOVE);
 		}
-		else if (theApp.preferences.bAutoHideTabControl)
+		else if (theApp.preferences.bAutoHideTabControl) {
+			m_wndParent->SetNeedSeparator(true);
 			mTemp->ShowWindow(SW_HIDE);
+		}
 
 				//mTemp->GetReBarCtrl().ShowBand(0, FALSE);
 		GetParentFrame()->RecalcLayout();
@@ -797,7 +804,8 @@ void CTabReBar::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 		break;
 	
 	case CDDS_POSTPAINT:
-		break;
+		break; 
+		
 
 	case CDDS_ITEMPOSTPAINT:
 		break;
@@ -850,17 +858,24 @@ void CTabReBar::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 			if (nState != DFCS_FLAT) {
 				nState |= 0x0800 | DFCS_BUTTONPUSH | DFCS_ADJUSTRECT;
 				pDC->DrawFrameControl(&pNMCD->nmcd.rc, DFC_BUTTON, nState);
-			}
-			
+			}			
 		}
-
-
-		UINT textFlag = DT_LEFT | DT_SINGLELINE | DT_VCENTER | DT_NOPREFIX | DT_WORD_ELLIPSIS;
+		
+		UINT textFlag = DT_LEFT | DT_SINGLELINE | DT_VCENTER | DT_HIDEPREFIX | DT_WORD_ELLIPSIS;
 		
 		CString text = GetButtonText(index);
 		int image = GetItemImage(pNMCD->nmcd.dwItemSpec);
 		CImageList* imageList = GetToolBarCtrl().GetImageList();
-		
+		CPoint imagePoint;
+		CRect textRect;
+
+		int btMargin = 2;
+		int btClose = 16;
+		int iconPadding = 4;
+
+		if (pNMCD->nmcd.uItemState & CDIS_SELECTED || pNMCD->nmcd.uItemState & CDIS_CHECKED)
+			contentRect.OffsetRect(1,1);
+
 		IMAGEINFO ii;
 		ii.rcImage = CRect(0, 0, 16, 16);
 		if (imageList)
@@ -868,24 +883,15 @@ void CTabReBar::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 			imageList->GetImageInfo(image, &ii);
 			if (ii.hbmMask) DeleteObject(ii.hbmMask);
 			if (ii.hbmImage) DeleteObject(ii.hbmImage);
-		}
 
-		CPoint imagePoint;
-		CRect textRect;
-		
-		int btMargin = 2;
-		int btClose = 17;
-		int iconPadding = 4;
+			imagePoint.y = contentRect.top + (contentRect.Height() - ii.rcImage.bottom + ii.rcImage.top)/2;
+			imagePoint.x = btMargin + contentRect.left;
+			imageList->Draw(pDC, image, imagePoint, ILD_TRANSPARENT);
+			contentRect.left += iconPadding + ii.rcImage.right - ii.rcImage.left;
+		}		
 
-		if (pNMCD->nmcd.uItemState & CDIS_SELECTED || pNMCD->nmcd.uItemState & CDIS_CHECKED)
-			contentRect.OffsetRect(1,1);
-
-		imagePoint.y = contentRect.top + (contentRect.Height() - ii.rcImage.bottom + ii.rcImage.top)/2;
-		imagePoint.x = btMargin + contentRect.left;
-		
-		imageList->Draw(pDC, image, imagePoint, ILD_TRANSPARENT);
-		contentRect.left += btMargin + iconPadding + ii.rcImage.right - ii.rcImage.left;
-		contentRect.right -= 2 * btMargin + btClose;
+		contentRect.left += btMargin;
+		contentRect.right -= 2 * btMargin + btClose + 2;
 
 		if (hTheme) {
 			USES_CONVERSION;
@@ -901,9 +907,9 @@ void CTabReBar::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 		
 		CRect closeButtonRect = contentRect;
 		closeButtonRect.left = contentRect.right + btMargin;
-		closeButtonRect.right = contentRect.right + btMargin + 17;
-		closeButtonRect.top = (contentRect.bottom - 17) / 2;
-		closeButtonRect.bottom = closeButtonRect.top + 17;
+		closeButtonRect.right = contentRect.right + btMargin + btClose;
+		closeButtonRect.top = (contentRect.bottom - btClose) / 2;
+		closeButtonRect.bottom = closeButtonRect.top + btClose;
 
 		HTHEME hThemeC = g_xpStyle.OpenThemeData(m_hWnd, L"WINDOW");
 
@@ -937,5 +943,5 @@ void CTabReBar::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 	
 	int closePref = theApp.preferences.GetInt("browser.tabs.closeButtons", 2);
 	if (closePref == 1) 
-		*pResult |= CDRF_NOTIFYITEMDRAW | CDRF_NOTIFYPOSTPAINT;
+		*pResult |= CDRF_NOTIFYITEMDRAW;
 }

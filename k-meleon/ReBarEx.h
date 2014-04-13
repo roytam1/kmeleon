@@ -42,7 +42,8 @@ public:
    void ShowBand(int index, BOOL visibility);
    int count() { return m_iCount; }
    void lineup();
-
+   void SetNeedSeparator(bool);
+   bool GetNeedSeparator();
 private:
    int FindByChild (HWND hWnd);
    int FindByIndex (int index);
@@ -56,6 +57,7 @@ private:
       BOOL visibleOnMenu;
    } **m_index;
    int m_iCount;
+   bool mNeedSeparator;
 protected:
 #if _MSC_VER >= 1300 
 	afx_msg void OnChevronPushed( NMHDR * pNotifyStruct, LRESULT* result );
@@ -63,5 +65,7 @@ protected:
 	afx_msg void OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnNcCalcSize(BOOL bCalcValidRects, NCCALCSIZE_PARAMS* lpncsp);
 	afx_msg LRESULT OnSizeParent(WPARAM, LPARAM);
+	afx_msg void OnNcPaint();
+	void EraseNonClient();
 	DECLARE_MESSAGE_MAP()
 };

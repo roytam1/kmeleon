@@ -338,15 +338,6 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	if (!IsDialog())
     theApp.plugins.SendMessage("*", "* OnCreate", "Create", (long)this->m_hWnd, 0);
 
-	// Create a ReBar window to which the toolbar and UrlBar 
-    // will be added
-    BOOL hasLine = theApp.preferences.GetBool("kmeleon.display.toolbars_line", TRUE);
-    if (!m_wndReBar.Create(this, RBS_DBLCLKTOGGLE | RBS_VARHEIGHT | (hasLine ? RBS_BANDBORDERS:0)))
-    {
-        TRACE0("Failed to create ReBar\n");
-        return -1;      // fail to create
-    }
-
     // Pass "this" to the View for later callbacks
     // and/or access to any public data members, if needed
     //
@@ -370,7 +361,21 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
         return -1;
     }
 
-	return InitLayout();
+	// Create a ReBar window to which the toolbar and UrlBar 
+    // will be added
+    BOOL hasLine = theApp.preferences.GetBool("kmeleon.display.toolbars_line", TRUE);
+    if (!m_wndReBar.Create(this, RBS_DBLCLKTOGGLE | RBS_VARHEIGHT | (hasLine ? RBS_BANDBORDERS:0)))
+    {
+        TRACE0("Failed to create ReBar\n");
+        return -1;      // fail to create
+    }
+	m_wndReBar.SetNeedSeparator(true);
+
+	if (InitLayout() == -1)
+		return -1;
+
+	m_wndReBar.RestoreBandSizes();
+	return 0;
 }
 
 int CBrowserFrame::InitLayout()
@@ -1313,7 +1318,7 @@ void CBrowserFrame::OnShowFindBar()
 		theApp.preferences.bFindWrapAround, 
 		theApp.preferences.bFindHighlight, this);
 
-	m_wndFindBar->Create(this, CBRS_BOTTOM);
+	m_wndFindBar->Create(this, CBRS_ALIGN_BOTTOM);
 	
 	// It must stay above the sidebar 
 	//m_wndFindBar->SetWindowPos(&m_wndStatusBar ,0,0,0,0,SWP_NOMOVE);
