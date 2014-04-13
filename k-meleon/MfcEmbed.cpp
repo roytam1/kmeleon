@@ -329,18 +329,9 @@ bool CMfcEmbedApp::FindSkinFile( CString& szSkinFile, TCHAR *filename )
 BOOL CMfcEmbedApp::LoadLanguage()
 {
 	nsresult rv;
-	nsCOMPtr<nsIPrefBranch> prefs;
-	nsCOMPtr<nsIPrefService> ps =do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
-	if (!ps) return FALSE;
-	ps->GetBranch("", getter_AddRefs(prefs));
-	if (!prefs) return FALSE;
-
-   nsEmbedCString nslocale;
-   rv = prefs->GetCharPref("general.useragent.locale", getter_Copies(nslocale));
-   NS_ENSURE_SUCCESS(rv, FALSE);
-
-   USES_CONVERSION;
-   CString locale = NSCStringToCString(nslocale);
+	CString locale = preferences.GetLocaleString("general.useragent.locale", _T(""));
+	if (locale.IsEmpty())
+		return FALSE;
 
    if (_tcsncmp(locale, _T("en"), 2) == 0) {
       if (m_hResDll) {
@@ -622,15 +613,15 @@ BOOL CMfcEmbedApp::InitInstance()
 
    XRE_NotifyProfile();
 
-#ifdef FIREFOX_CHROME
-   LoadLanguage();
-#endif
-
    // These have to be done in this order!
    InitializeDefineMap();
 
    InitializePrefs();
    SetOffline(theApp.preferences.bOffline);
+
+#ifdef FIREFOX_CHROME
+   LoadLanguage();
+#endif
 
    CheckProfileVersion();
 
@@ -1286,6 +1277,7 @@ BOOL CMfcEmbedApp::IsIdleMessage( MSG* pMsg )
 	  pMsg->message == WM_FLASHRELAY || 
 	  pMsg->message == WM_USER + 1 || // Flash
 	  pMsg->message == WM_USER + 12 || // Flash
+	  pMsg->message == WM_USER + 112 || // Flash
       pMsg->message == WM_POSTEVENT ||
       pMsg->message == WM_TIMER) 
 
@@ -1674,5 +1666,91 @@ void CMfcEmbedApp::CheckProfileVersion()
            }
        }
    }
+}
+
+int CMfcEmbedApp::Run()
+{
+	if (m_pMainWnd == NULL && AfxOleGetUserCtrl())
+	{
+		// Not launched /Embedding or /Automation, but has no main window!
+		TRACE(traceAppMsg, 0, "Warning: m_pMainWnd is NULL in CWinApp::Run - quitting application.\n");
+		AfxPostQuitMessage(0);
+	}
+		
+	ASSERT_VALID(this);
+	_AFX_THREAD_STATE* pState = AfxGetThreadState();
+
+	// for tracking the idle time state
+	BOOL bIdle = TRUE;
+	LONG lIdleCount = 0;
+
+	// acquire and dispatch messages until a WM_QUIT message is received.
+	for (;;)
+	{
+		// phase1: check to see if we can do idle work
+		while (bIdle &&
+			!::PeekMessage(&(pState->m_msgCur), NULL, NULL, NULL, PM_NOREMOVE))
+		{
+			// call OnIdle while in bIdle state
+			if (!OnIdle(lIdleCount++))
+				bIdle = FALSE; // assume "no idle" state
+		}
+
+		// phase2: pump messages while available
+		do
+		{
+			while (::PeekMessage(&(pState->m_msgCur), NULL, NULL, WM_USER, PM_NOREMOVE))
+			{
+				if (!PumpMessage2(WM_USER))
+					return ExitInstance();
+
+				// reset "no idle" state after pumping "normal" message
+				//if (IsIdleMessage(&m_msgCur))
+				if (IsIdleMessage(&(pState->m_msgCur)))
+				{
+					bIdle = TRUE;
+					lIdleCount = 0;
+				}
+
+			}
+			// pump message, but quit on WM_QUIT
+			if (!PumpMessage2())
+				return ExitInstance();
+		} while (::PeekMessage(&(pState->m_msgCur), NULL, NULL, NULL, PM_NOREMOVE));
+
+	}
+}
+
+BOOL CMfcEmbedApp::PumpMessage2(UINT filter)
+{
+		_AFX_THREAD_STATE *pState = AfxGetThreadState();
+
+	if (!::GetMessage(&(pState->m_msgCur), NULL, NULL, filter))
+	{
+#ifdef _DEBUG
+		TRACE(traceAppMsg, 1, "CWinThread::PumpMessage - Received WM_QUIT.\n");
+			pState->m_nDisablePumpCount++; // application must die
+#endif
+		// Note: prevents calling message loop things in 'ExitInstance'
+		// will never be decremented
+		return FALSE;
+	}
+
+#ifdef _DEBUG
+  if (pState->m_nDisablePumpCount != 0)
+	{
+	  TRACE(traceAppMsg, 0, "Error: CWinThread::PumpMessage called when not permitted.\n");
+	  ASSERT(FALSE);
+	}
+#endif
+
+  // process this message
+
+	if (pState->m_msgCur.message != WM_KICKIDLE && !AfxPreTranslateMessage(&(pState->m_msgCur)))
+	{
+		::TranslateMessage(&(pState->m_msgCur));
+		::DispatchMessage(&(pState->m_msgCur));
+	}
+  return TRUE;
 }
 
