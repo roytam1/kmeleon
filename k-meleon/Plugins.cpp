@@ -402,6 +402,9 @@ long GetPreference(enum PREFTYPE type, const char *preference, void *ret, void *
    case PREF_STRING:
       result = theApp.preferences.GetString(preference, (char *)ret, (char *)defVal);
       break;
+   case PREF_LOCALIZED:
+      result = theApp.preferences.GetLocaleString(preference, (char *)ret, (char *)defVal);
+      break;
    case PREF_UNISTRING:
       result = theApp.preferences.GetString(preference, (wchar_t *)ret, (wchar_t *)defVal);
       break;
@@ -486,6 +489,7 @@ int SetMozillaSessionHistory (HWND hWnd, const char **titles, const char **urls,
    sHistory->GetCount(&shcount);
    sHistory->PurgeHistory(shcount);
 
+   USES_CONVERSION;
    for (int i=0;i<count;i++)
    {
 	   nsCOMPtr<nsISHEntry> newSHEntry = do_CreateInstance(NS_SHENTRY_CONTRACTID);
@@ -495,12 +499,22 @@ int SetMozillaSessionHistory (HWND hWnd, const char **titles, const char **urls,
 	   NewURI(getter_AddRefs(nsuri), nsEmbedCString(urls[i]));
 	   if (!nsuri) continue;
 
-	   USES_CONVERSION;
-	   rv = newSHEntry->Create(nsuri, nsEmbedString(A2CW(titles[i])), nullptr, nullptr, nullptr, nsEmbedCString(""), nullptr, 0, true);
+	   nsString wTitle;
+	   nsDependentCString title(titles[i]);
+	   CopyUTF8toUTF16(title, wTitle);
+	   rv = newSHEntry->Create(nsuri, wTitle, nullptr, nullptr, nullptr, nsEmbedCString(""), nullptr, 0, true);
 	   if (NS_SUCCEEDED(rv)) sHInternal->AddEntry(newSHEntry, PR_TRUE);
    }
 
-   browser->GotoHistoryIndex(index);
+	if (GetFrame(hWnd)->IsKindOf(RUNTIME_CLASS(CBrowserFrmTab)) && theApp.preferences.GetBool("browser.sessionstore.restore_on_demand", false)) {
+		CBrowserView* view = GetFrame(hWnd)->GetActiveView();
+		view->GetBrowserGlue()->mTitle = NSUTF8StringToCString(nsDependentCString(titles[index]));
+		view->GetBrowserGlue()->mLocation = urls[index];
+		view->GetBrowserGlue()->mHIndex = index;
+		view->GetBrowserGlue()->mIcon = theApp.favicons.GetHostIcon(A2CW(urls[index]));
+		((CBrowserFrmTab*) GetFrame(hWnd))->SetTabIcon((CBrowserTab*)view, view->GetBrowserGlue()->mIcon);
+	} else 
+		browser->GotoHistoryIndex(index);
    return TRUE;
 }
 
@@ -575,9 +589,9 @@ int GetMozillaSessionHistory (HWND hWnd, char ***titles, char ***urls, int *coun
       
       // The title is in 16-bit unicode, this converts it to 8bit (UTF)
       int len;
-      len = WideCharToMultiByte(CP_ACP, 0, title, -1, 0, 0, NULL, NULL);
+      len = WideCharToMultiByte(CP_UTF8, 0, title, -1, 0, 0, NULL, NULL);
       char *s = new char[len+1];
-      len = WideCharToMultiByte(CP_ACP, 0, title, -1, s, len, NULL, NULL);
+      len = WideCharToMultiByte(CP_UTF8, 0, title, -1, s, len, NULL, NULL);
       s[len] = 0;
       pHistory[i] = s;
      nsMemory::Free(title);

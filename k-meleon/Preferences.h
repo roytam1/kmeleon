@@ -307,7 +307,9 @@ public:
    inline void SetString(const char *preference, const wchar_t * value);
    int GetString(const char *preference, char * retValue, const char * defaultVal);
    int GetString(const char *preference, wchar_t * retValue, const wchar_t * defaultVal);
+   int GetLocaleString(const char *preference, char * retValue, const char * defaultVal);
    CString GetString(const char *preference, LPCTSTR defaultVal);
+   CString GetLocaleString(const char *preference, LPCTSTR defaultVal);
 
    void Clear(const char *preference);
    void DeleteBranch(const char *startingAt);
