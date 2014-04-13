@@ -169,22 +169,27 @@ void CACListBox::OnResult(AutoCompleteResult* results, int count)
 		{
 			CString text,toSelect;
 			m_edit->GetWindowText(text);
-			toSelect = A2CT(results->value);
-			int start = toSelect.Find(text,0);
-			toSelect.Delete(0, start+text.GetLength());
-			int i;
-			if ( (i = toSelect.FindOneOf(_T("/?&=#"))) != -1) {
-				toSelect.GetBuffer(0);
-				toSelect.ReleaseBuffer(i+1); // Truncate
-			}
-			m_edit->SetWindowText(text+toSelect);
-			m_edit->SetSel(text.GetLength(), text.GetLength() + toSelect.GetLength(), TRUE);
+			AutoCompleteResult* r = results;
+			for (int i=0; i<count; i++) {
+				toSelect = A2CT(results[i].value);
+				if (toSelect.Left(7+text.GetLength()).Compare(CString(_T("http://")) + text) != 0)
+					continue;
+
+				toSelect.Delete(0, 7+text.GetLength());
+				if ( (i = toSelect.FindOneOf(_T("/?&=#"))) != -1) {
+					toSelect.GetBuffer(0);
+					toSelect.ReleaseBuffer(i+1); // Truncate
+				}
+				m_edit->SetWindowText(text+toSelect);
+				m_edit->SetSel(text.GetLength(), text.GetLength() + toSelect.GetLength(), TRUE);
+				break;
+			}			
 		}
 
 		for (int i=0; i<count; i++)
 		{
 			AddString(A2CT(results->value));
-            if(i>1000) break; // deadlock: prevent quiet crash at > 3800 lines
+            if(i>100) break; // deadlock: prevent quiet crash at > 3800 lines
 			// TODO Limit size of autocomplete result
 			results++;
 		}
@@ -253,7 +258,7 @@ CUrlBarEdit::~CUrlBarEdit()
 void CUrlBarEdit::StopACSession()
 {
 	KillTimer(1);
-	
+	AutoCompleteStop();
 	theApp.plugins.SendMessage("*", "Urlbar", "AutoComplete", (long)"", (long)0);
 	
 	if (m_list&&IsWindow(m_list->m_hWnd))
