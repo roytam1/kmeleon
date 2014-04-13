@@ -82,8 +82,10 @@ NS_IMETHODIMP CACListener::OnSearchResult(nsIAutoCompleteSearch *search, nsIAuto
 {
 	FreeResult();
 
-	PRUint16 status;
+	uint16_t status;
 	result->GetSearchResult(&status);
+	int32_t defaultIndex;
+	result->GetDefaultIndex(&defaultIndex);
 	if (status == nsIAutoCompleteResult::RESULT_SUCCESS || status == nsIAutoCompleteResult::RESULT_NOMATCH)
 	{
 		m_oldResult = result; // Keep the old result for optimization
@@ -115,6 +117,14 @@ NS_IMETHODIMP CACListener::OnSearchResult(nsIAutoCompleteSearch *search, nsIAuto
 
 	
 	return NS_OK;
+}
+
+void AutoCompleteStop()
+{
+	nsresult rv;
+	nsCOMPtr<nsIAutoCompleteSearch> autoComplete = do_GetService("@mozilla.org/autocomplete/search;1?name=history", &rv);
+	NS_ENSURE_TRUE(autoComplete, );
+	autoComplete->StopSearch();
 }
 
 void AutoComplete(const CString& aSearchString, AutoCompleteCallback callback, void* data)
