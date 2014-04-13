@@ -153,6 +153,8 @@ public:
    BOOL m_bUnicode;
 #endif
    BOOL        LoadLanguage();
+   virtual int Run();
+   virtual BOOL PumpMessage2(UINT filter = 0);
    //{{AFX_MSG(CMfcEmbedApp)
    afx_msg void OnAppAbout();
    afx_msg void OnNewBrowser();
