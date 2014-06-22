@@ -76,7 +76,7 @@
 #include "nsIDOMEvent.h"
 #include "nsIDOMPopupBlockedEvent.h"
 #include "nsIDOMMouseEvent.h"
-
+#include "nsIDOMKeyEvent.h"
 #include "nsIDOMEventTarget.h"
 
 #include "nsIDOMEventTarget.h"
@@ -91,6 +91,7 @@
 
 #include "BrowserFrm.h" // XXXXX
 #include "BrowserView.h" 
+#include "BrowserWindow.h"
 
 CBrowserImpl::CBrowserImpl()
 {
@@ -702,6 +703,8 @@ NS_IMETHODIMP CBrowserImpl::HandleEvent(nsIDOMEvent *aEvent)
 		CBrowserFrame* frame = (CBrowserFrame*)CWnd::FromHandle(h);
 		CBrowserView* view = (CBrowserView*)frame->GetActiveView();
 		view->m_contextNode = node;
+
+		view->GetBrowserWrapper()->EndTypeAheadFind();
 		return NS_OK;
 	}
 
@@ -766,6 +769,65 @@ NS_IMETHODIMP CBrowserImpl::HandleEvent(nsIDOMEvent *aEvent)
 		return NS_OK;
 	}
 
+	if (type.Equals(NS_LITERAL_STRING("keypress")))
+	{
+		nsCOMPtr<nsIDOMKeyEvent> keyEvent(do_QueryInterface(aEvent));
+		NS_ENSURE_TRUE(keyEvent, NS_ERROR_FAILURE);
+
+		if (!theApp.preferences.GetBool("accessibility.typeaheadfind", false))
+			return NS_OK;
+
+		bool defPrevented;
+		keyEvent->GetDefaultPrevented(&defPrevented);
+		if (defPrevented) return NS_OK;
+
+		bool altKey, shiftKey, ctrlKey;
+		keyEvent->GetCtrlKey(&ctrlKey);
+		keyEvent->GetShiftKey(&shiftKey);
+		keyEvent->GetAltKey(&altKey);
+
+		if (altKey || ctrlKey)
+			return NS_OK;
+
+		HWND h = m_pBrowserFrameGlue->GetBrowserFrameNativeWnd();
+		CBrowserFrame* frame = (CBrowserFrame*)CWnd::FromHandle(h);
+		CBrowserView* view = (CBrowserView*)frame->GetActiveView();
+		CBrowserWrapper* browser = view->GetBrowserWrapper();
+		if (browser->InputHasFocus(false))
+			return NS_OK;
+
+		nsCOMPtr<nsIDOMEventTarget> targetNode;
+		keyEvent->GetTarget(getter_AddRefs(targetNode));
+		NS_ENSURE_TRUE(targetNode, NS_ERROR_NULL_POINTER);
+		nsCOMPtr<nsIDOMNode> node = do_QueryInterface(targetNode);
+		if (!node) return NS_OK;		
+
+		nsCOMPtr<nsIDOMDocument> domDoc;
+		node->GetOwnerDocument (getter_AddRefs(domDoc));
+		NS_ENSURE_TRUE (domDoc, NS_ERROR_FAILURE);
+
+		nsCOMPtr<nsIDOMElement> docElem;
+		domDoc->GetDocumentElement(getter_AddRefs(docElem));		 
+		if (docElem) {
+			nsString value;
+			docElem->GetAttribute(NS_LITERAL_STRING("disablefastfind"), value);
+			if (value.Compare(NS_LITERAL_STRING("true")) == 0)
+				return NS_OK;
+		}
+
+		uint32_t code;
+		keyEvent->GetKeyCode(&code);
+		if (code != nsIDOMKeyEvent::DOM_VK_BACK_SPACE && code != nsIDOMKeyEvent::DOM_VK_ESCAPE && code != nsIDOMKeyEvent::DOM_VK_RETURN)
+			keyEvent->GetCharCode(&code);
+		nsString str;
+		keyEvent->GetKey(str);
+				
+		if (browser->TypeAheadFind(keyEvent))
+			aEvent->PreventDefault();
+		return NS_OK;
+	}
+
+
 	if (type.Equals(NS_LITERAL_STRING("DOMContentLoaded")))
 	{
 		// DOMContentLoaded is not send if the page is reloaded from cache
@@ -808,13 +870,8 @@ NS_IMETHODIMP CBrowserImpl::HandleEvent(nsIDOMEvent *aEvent)
 			NS_ENSURE_TRUE (domDoc, NS_ERROR_FAILURE);
 
 			/* See if this is from the toplevel frame */
-			/*nsCOMPtr<nsIDOMDocumentView> docView (do_QueryInterface (domDoc));
-			NS_ENSURE_TRUE (docView, NS_ERROR_FAILURE);
-
-			nsCOMPtr<nsIDOMAbstractView> abstractView;
-			docView->GetDefaultView (getter_AddRefs (abstractView));
-
-			nsCOMPtr<nsIDOMWindow> domWin (do_QueryInterface (abstractView));
+			nsCOMPtr<nsIDOMWindow> domWin;
+			domDoc->GetDefaultView(getter_AddRefs(domWin));
 			NS_ENSURE_TRUE (domWin, NS_ERROR_FAILURE);
 
 			nsCOMPtr<nsIDOMWindow> topDomWin;
@@ -823,7 +880,7 @@ NS_IMETHODIMP CBrowserImpl::HandleEvent(nsIDOMEvent *aEvent)
 			nsCOMPtr<nsISupports> domWinAsISupports (do_QueryInterface (domWin));
 			nsCOMPtr<nsISupports> topDomWinAsISupports (do_QueryInterface (topDomWin));
 			/* disallow subframes to set favicon */
-			/*if (domWinAsISupports != topDomWinAsISupports) return NS_OK;*/
+			if (domWinAsISupports != topDomWinAsISupports) return NS_OK;
 
 			nsEmbedString spec;
 			rv = domDoc->GetDocumentURI (spec);
