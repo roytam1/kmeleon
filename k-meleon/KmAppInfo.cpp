@@ -86,17 +86,19 @@ NS_IMETHODIMP KmAppInfo::GetUAName(nsACString & aUAName)
 /* readonly attribute boolean inSafeMode; */
 NS_IMETHODIMP KmAppInfo::GetInSafeMode(bool *aInSafeMode)
 {
-    return NS_ERROR_NOT_IMPLEMENTED;
+	*aInSafeMode = false;
+    return NS_OK;
 }
 
 /* attribute boolean logConsoleErrors; */
 NS_IMETHODIMP KmAppInfo::GetLogConsoleErrors(bool *aLogConsoleErrors)
 {
-    return NS_ERROR_NOT_IMPLEMENTED;
+	*aLogConsoleErrors = true;
+    return NS_OK;
 }
 NS_IMETHODIMP KmAppInfo::SetLogConsoleErrors(bool aLogConsoleErrors)
 {
-    return NS_ERROR_NOT_IMPLEMENTED;
+    return NS_OK;
 }
 
 /* readonly attribute AUTF8String OS; */
