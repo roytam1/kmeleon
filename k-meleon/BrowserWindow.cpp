@@ -60,6 +60,7 @@
 #include "nsIDOMHTMLEmbedElement.h"
 #include "nsIDOMHTMLObjectElement.h"
 #include "nsIDOMHTMLButtonElement.h"
+#include "nsIDOMHTMLSelectElement.h"
 #include "nsITypeAheadFind.h"
 //#include "nsIFocusController.h"
 //#include "nsIDOMNSHTMLDocument.h"
@@ -339,6 +340,8 @@ BOOL CBrowserWrapper::AddListeners(void)
 			mpBrowserImpl, true);
 		rv = mEventTarget->AddEventListener(NS_LITERAL_STRING("mousedown"),
 			mpBrowserImpl, true);
+		rv = mEventTarget->AddEventListener(NS_LITERAL_STRING("keypress"),
+			mpBrowserImpl, true);
 		rv = mEventTarget->AddEventListener(NS_LITERAL_STRING("DOMPopupBlocked"),
 			mpBrowserImpl, false);
 		rv = mEventTarget->AddEventListener(NS_LITERAL_STRING("DOMLinkAdded"),
@@ -368,6 +371,8 @@ void CBrowserWrapper::RemoveListeners(void)
 		mEventTarget->RemoveEventListener(NS_LITERAL_STRING("click"),
 			mpBrowserImpl, false);
 		mEventTarget->RemoveEventListener(NS_LITERAL_STRING("mousedown"),
+			mpBrowserImpl, true);
+		mEventTarget->RemoveEventListener(NS_LITERAL_STRING("keypress"),
 			mpBrowserImpl, true);
 		mEventTarget->RemoveEventListener(NS_LITERAL_STRING("DOMPopupBlocked"),
 			mpBrowserImpl, false);
@@ -941,7 +946,7 @@ BOOL CBrowserWrapper::InjectCSS(const wchar_t* userStyleSheet)
 
 BOOL CBrowserWrapper::InjectJS(const wchar_t* userScript, CString& result, bool bTopWindow)
 {
-	nsresult rv;
+	/*nsresult rv;
 	nsCOMPtr<nsIDOMDocument> document;
 
 	if (!bTopWindow)
@@ -966,7 +971,7 @@ BOOL CBrowserWrapper::InjectJS(const wchar_t* userScript, CString& result, bool 
 		rv = dom->GetDocument(getter_AddRefs(document));
 	}
 
-	NS_ENSURE_SUCCESS(rv, FALSE);
+	NS_ENSURE_SUCCESS(rv, FALSE);*/
 	
 	PRBool jsEnabled = PR_TRUE;
 	jsEnabled = theApp.preferences.GetBool("javascript.enabled", jsEnabled);
@@ -1660,20 +1665,19 @@ BOOL CBrowserWrapper::_Save(nsIURI* aURI,
 
 #include "nsIDOMHTMLCollection.h"
 
-BOOL CBrowserWrapper::InputHasFocus()
+BOOL CBrowserWrapper::InputHasFocus(bool typeAhead)
 {
 	nsCOMPtr<nsIDOMElement> element;
 	mWebBrowserFocus->GetFocusedElement(getter_AddRefs(element));
 	if (IsInputOrObject(element))
 		return TRUE;
 
-	nsCOMPtr<nsITypeAheadFind> taFinder = do_GetService("@mozilla.org/typeaheadfind;1");
-
-	if (taFinder) {
+	if (typeAhead && mTypeAhead) {
 		nsString str;
-		taFinder->GetSearchString(str);
+		mTypeAhead->GetSearchString(str);
 		if (str.Length()>0) return TRUE;
 	}
+
 
 	nsCOMPtr<nsIDOMWindow> domWindow;
 	mWebBrowser->GetContentDOMWindow(getter_AddRefs(domWindow));
@@ -1709,6 +1713,9 @@ BOOL CBrowserWrapper::InputHasFocus()
 
 BOOL CBrowserWrapper::IsClickable(nsIDOMElement* element)
 {
+	nsCOMPtr<nsIDOMHTMLInputElement> domnsinput = do_QueryInterface(element);
+	if (domnsinput) return TRUE;
+
 	nsCOMPtr<nsIDOMHTMLEmbedElement> embed = do_QueryInterface(element);
 	if (embed) return TRUE;
 	
@@ -1736,6 +1743,9 @@ BOOL CBrowserWrapper::IsInputOrObject(nsIDOMElement* element)
 	
 	nsCOMPtr<nsIDOMHTMLObjectElement> object = do_QueryInterface(element);
 	if (object) return TRUE;
+
+	nsCOMPtr<nsIDOMHTMLSelectElement> select = do_QueryInterface(element);
+	if (select) return TRUE;
 
 	nsString attr;
 	element->GetAttribute(NS_LITERAL_STRING("contenteditable"), attr);
@@ -1830,6 +1840,87 @@ BOOL CBrowserWrapper::Find(const wchar_t* searchString,
 	finder->FindNext(&didFind);
 	return didFind;
 }
+
+#include "nsITypeAheadFind.h"
+#include "nsIDOMKeyEvent.h"
+#include "nsISelectionController.h"
+void CBrowserWrapper::EndTypeAheadFind()
+{
+	if (!mTypeAhead) return;
+	uint16_t result;
+	mTypeAhead->SetSelectionModeAndRepaint(nsISelectionController::SELECTION_ON);
+	mSearchString.Truncate();
+	mTypeAhead = nullptr;
+}
+
+bool CBrowserWrapper::TypeAheadFind(nsIDOMKeyEvent* keyEvent)
+{
+	static bool linkOnly = theApp.preferences.GetBool("accessibility.typeaheadfind.linksonly", true);
+	if (!mTypeAhead) {
+		mTypeAhead = do_GetService("@mozilla.org/typeaheadfind;1");
+		NS_ENSURE_TRUE(mTypeAhead, FALSE);
+		mTypeAhead->Init(GetDocShell());
+	}
+
+	uint32_t c;
+	keyEvent->GetKeyCode(&c);
+	nsString str;
+	keyEvent->GetKey(str);	
+	str.get();
+	uint16_t result;
+	bool res = true;
+	if (c == nsIDOMKeyEvent::DOM_VK_ESCAPE) {
+		mSearchString.Truncate();
+	}
+	else if (c == nsIDOMKeyEvent::DOM_VK_RETURN) {
+		mSearchString.Truncate();
+		res = false;
+	}
+	else if (c == nsIDOMKeyEvent::DOM_VK_TAB) {
+		if (mSearchString.IsEmpty()) {
+			return false;
+		}
+		
+		bool shiftKey;
+		keyEvent->GetShiftKey(&shiftKey);
+		mTypeAhead->FindAgain(shiftKey, linkOnly, &result);
+		return true;
+	}
+	else if (c == nsIDOMKeyEvent::DOM_VK_BACK_SPACE) {
+		mSearchString.Cut(mSearchString.Length()-1,1);
+	} else {
+		keyEvent->GetCharCode(&c);
+		if (c==0) {
+			if (mSearchString.IsEmpty()) 
+				return false;
+			mSearchString.Truncate();
+			res = false;
+		}
+		else {
+			if (mSearchString.IsEmpty()) {
+				if (c == '/') {
+					linkOnly = false;
+					return TRUE;
+				}
+				if (c == '\'') {
+					linkOnly = true;
+					return TRUE;
+				}
+			}
+		
+			wchar_t key[2] = {c, 0};		
+			mSearchString.Append(nsDependentString(key));
+		}
+	}
+
+	
+	mpBrowserImpl->SetStatus(0, mSearchString.get());
+	mTypeAhead->Find(mSearchString, linkOnly, &result);
+	return res;
+	//USES_CONVERSION;
+	//frame->m_wndFindBar->StartSearch(A2CT(key));
+}
+
 
 nsIDocShell* CBrowserWrapper::GetDocShell()
 {

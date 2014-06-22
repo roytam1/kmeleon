@@ -29,6 +29,8 @@ class nsIX509Cert;
 #include "nsIWebBrowserFocus.h"
 #include "nsIWebBrowser.h"
 #include "nsIMarkupDocumentViewer.h"
+class nsITypeAheadFind;
+class nsIDOMKeyEvent;
 
 class CBrowserImpl;
 
@@ -39,6 +41,7 @@ private:
 	nsCOMPtr<nsIBaseWindow> mBaseWindow;
 	nsCOMPtr<nsIWebNavigation> mWebNav;
 	nsCOMPtr<nsIWebBrowserFocus> mWebBrowserFocus;
+	nsCOMPtr<nsITypeAheadFind> mTypeAhead;
 
 	nsCOMPtr<nsIDOMEventTarget> mEventTarget;
 	//nsCOMPtr<CDomEventListener> mDomEventListener;
@@ -325,7 +328,7 @@ public:
 	BOOL ShowCertificate();
 	BOOL ViewContentContainsFrames();
 	BOOL Highlight(const PRUnichar* backcolor, const PRUnichar* word, BOOL matchCase);
-	BOOL InputHasFocus();
+	BOOL InputHasFocus(bool typeahead = true);
 	BOOL IsClickable(nsIDOMElement* element);
 	BOOL IsInputOrObject(nsIDOMElement* element);
 	CString GetFrameURL(nsIDOMNode* aNode = NULL);
@@ -340,7 +343,9 @@ public:
 		   BOOL wrapAround,
 		   BOOL backwards,
 		   BOOL ahead);
-
+	bool TypeAheadFind(nsIDOMKeyEvent* keyEvent);
+	void EndTypeAheadFind();
+	nsString mSearchString;
 /*	void SetMatchCase(BOOL);
 	void SetWrapAround(BOOL);
 	wchar_t* GetSearchString();
