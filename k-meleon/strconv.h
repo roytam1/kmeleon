@@ -183,8 +183,8 @@ public:
 #define CANSI_to_T(x) CANSI_to_UTF16(x)
 #define CT_to_ANSI(x) CUTF16_to_ANSI(x)
 #define CUTF16_to_T(x) (x)
-#define CT_to_UTF8(x) CUTF16_to_UTF8(x)
-#define CUTF8_to_T(x) CUTF8_to_UTF16(x)
+#define CT_to_UTF8 CUTF16_to_UTF8
+#define CUTF8_to_T CUTF8_to_UTF16
 #else // Blarg
 #define CANSI_to_T(x) (x)
 #define CT_to_ANSI(x) (x)
