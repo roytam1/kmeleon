@@ -101,7 +101,7 @@ public:
    void DrawWindowListMenu(HMENU menu);
    void BroadcastMessage(UINT Msg, WPARAM wParam, LPARAM lParam);
 	inline HICON GetDefaultIcon(BOOL large = FALSE) {HICON ret; large ? ret = m_hMainIcon : ret = m_hSmallIcon; return ret;}
-	bool FindSkinFile( CString& szSkinFile, TCHAR *filename );
+	bool FindSkinFile( CString& szSkinFile, LPCTSTR filename , LPCTSTR skin = nullptr, bool searchUser = true );
    CString GetFolder(FolderType folder);
 
    nsresult SetOffline(BOOL offline);

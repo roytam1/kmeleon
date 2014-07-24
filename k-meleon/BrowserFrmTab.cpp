@@ -112,6 +112,7 @@ IMPLEMENT_DYNAMIC(CBrowserFrmTab, CBrowserFrame)
 BEGIN_MESSAGE_MAP(CBrowserFrmTab, CBrowserFrame)
 	ON_WM_CREATE()
 	ON_WM_CLOSE()
+	ON_WM_DESTROY()
 	ON_MESSAGE(WM_OPENTAB, OnOpenTab)
 	ON_MESSAGE(WM_CLOSETAB, OnCloseTab)
 	ON_COMMAND(ID_TAB_NEXT, OnNextTab)
@@ -193,6 +194,14 @@ CBrowserFrmTab::~CBrowserFrmTab()
 	if (m_wndTabs)
 		delete m_wndTabs;
 }
+void CBrowserFrmTab::OnDestroy()
+{
+	m_wndCBrowserTab = NULL;
+	for (int i=0;i<m_iBrowserCount;i++)
+		m_Tabs[i]->DestroyWindow();
+	
+	CBrowserFrame::OnDestroy();
+}
 
 void CBrowserFrmTab::OnClose()
 {
@@ -220,7 +229,7 @@ int CBrowserFrmTab::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 	// tell all our plugins that we were created
 	if (!IsDialog())
-		theApp.plugins.SendMessage("*", "* OnCreate", "Create", (long)this->m_hWnd, 1);
+		theApp.plugins.SendMessage("*", "* OnCreate", "Create", (long)this->m_hWnd, 1 & (IsPopup()?2:0) );
 
 	// Create a ReBar window to which the toolbar and UrlBar 
     // will be added
@@ -373,17 +382,21 @@ void CBrowserFrmTab::SetActiveBrowser(CBrowserTab* aNewActiveTab)
 	//m_wndCBrowserView->Activate(WA_ACTIVE, NULL, false);
 	//m_Tabs[index].xBrowserFrameGlueObj->m_bActive = true;
 	
-	// BUG: We may be here because of a call to this function.
-	aNewActiveTab->SetActive(true, focus);
-
 	UpdateTitle(m_wndCBrowserTab->GetBrowserGlue()->mTitle);
 	UpdateSecurityStatus(m_wndCBrowserTab->GetBrowserGlue()->mSecurityState);
 	UpdatePopupNotification(m_wndCBrowserTab->GetBrowserGlue()->mPopupBlockedHost);
-	UpdateLocation(m_wndCBrowserTab->GetLocation(), TRUE);
+	UpdateLocation(m_wndCBrowserTab->GetBrowserGlue()->mPendingLocation.GetLength() == 0 ? m_wndCBrowserTab->GetLocation() : m_wndCBrowserTab->GetBrowserGlue()->mPendingLocation, TRUE);
 	UpdateLoading(m_wndCBrowserTab->GetBrowserGlue()->mLoading);
 	UpdateProgress(m_wndCBrowserTab->GetBrowserGlue()->mProgressCurrent, m_wndCBrowserTab->GetBrowserGlue()->mProgressMax);
 	UpdateSiteIcon(theApp.favicons.GetIcon(m_wndCBrowserTab->GetBrowserGlue()->mIconURI));
 	UpdateStatus(m_wndCBrowserTab->GetBrowserGlue()->mStatusText);
+	if (m_wndCBrowserTab->GetBrowserGlue()->mHIndex>=0) {
+		m_wndCBrowserTab->GetBrowserWrapper()->GotoHistoryIndex(m_wndCBrowserTab->GetBrowserGlue()->mHIndex);
+		m_wndCBrowserTab->GetBrowserGlue()->mHIndex = -1;		
+	}
+
+	// BUG: We may be here because of a call to this function.
+	aNewActiveTab->SetActive(true, focus);
 
 	// Remove a possible tooltip
 	m_wndToolTip.Hide();
@@ -708,9 +721,11 @@ void CBrowserFrmTab::DrawTabListMenu(HMENU menu)
 		if (!wrapper) continue;
 
 		CString title = wrapper->GetTitle();
+		if (title.IsEmpty()) 
+			title = m_Tabs[i]->GetBrowserGlue()->mTitle; // For restore_on_demand
 		if (title.IsEmpty())
 			title = wrapper->GetURI();
-		
+		if (title.GetLength()>50) title = title.Left(50) + _T("...");
 		AppendMenu(menu, MF_ENABLED | MF_STRING, TABINDEXTOID(i), title);
 	}
 }

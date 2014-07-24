@@ -928,8 +928,19 @@ NS_IMETHODIMP CBrowserImpl::HandleEvent(nsIDOMEvent *aEvent)
 
 		nsCOMPtr<nsIURI> uri;
 
-		// FIXME, should get the uri requesting the popup
-		popupEvent->GetPopupWindowURI(getter_AddRefs(uri));
+		nsCOMPtr<nsIDOMWindow> dom;
+		popupEvent->GetRequestingWindow(getter_AddRefs(dom));
+		if (dom) {			
+			nsCOMPtr<nsIDOMLocation> location;
+			dom->GetLocation(getter_AddRefs(location));
+			if (location) {
+				nsString href;
+				location->GetHref(href);
+				NewURI(getter_AddRefs(uri), href);
+			}
+		}
+		if (!uri)
+			popupEvent->GetPopupWindowURI(getter_AddRefs(uri));
 		NS_ENSURE_TRUE (uri, NS_ERROR_FAILURE);
 
 		nsEmbedCString host;

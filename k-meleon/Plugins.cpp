@@ -164,6 +164,8 @@ CBrowserWrapper* GetWrapper(HWND hWnd = NULL)
 	}
 
 	ASSERT(wnd->IsKindOf(RUNTIME_CLASS(CBrowserView)));
+	if (!wnd->IsKindOf(RUNTIME_CLASS(CBrowserView)))
+		return NULL;
 
 	return ((CBrowserView*)wnd)->GetBrowserWrapper();
 }
@@ -450,7 +452,7 @@ void DelPreference(const char *preference)
 void SetStatusBarTextT(const TCHAR *s)
 {
    if (theApp.m_pMostRecentBrowserFrame) // Yes, it can happen
-     theApp.m_pMostRecentBrowserFrame->m_wndStatusBar.SetPaneText(0, s);
+       theApp.m_pMostRecentBrowserFrame->UpdateStatus(s);
 }
 
 void SetStatusBarTextUTF8(const char *s)
@@ -507,12 +509,24 @@ int SetMozillaSessionHistory (HWND hWnd, const char **titles, const char **urls,
    }
 
 	if (GetFrame(hWnd)->IsKindOf(RUNTIME_CLASS(CBrowserFrmTab)) && theApp.preferences.GetBool("browser.sessionstore.restore_on_demand", false)) {
+		if (index>=count) index = count - 1;
 		CBrowserView* view = GetFrame(hWnd)->GetActiveView();
-		view->GetBrowserGlue()->mTitle = NSUTF8StringToCString(nsDependentCString(titles[index]));
-		view->GetBrowserGlue()->mLocation = urls[index];
+		view->GetBrowserGlue()->SetBrowserTitle(NSUTF8StringToCString(nsDependentCString(titles[index])));
+		nsCOMPtr<nsIURI> uri;
+		NewURI(getter_AddRefs(uri), nsDependentCString(urls[index]));
+		view->GetBrowserGlue()->UpdateCurrentURI(uri);
+		view->GetBrowserGlue()->mPendingLocation = urls[index];
 		view->GetBrowserGlue()->mHIndex = index;
 		view->GetBrowserGlue()->mIcon = theApp.favicons.GetHostIcon(A2CW(urls[index]));
+		uri->SetPath(NS_LITERAL_CSTRING(""));
+		nsCString host;
+		uri->GetHost(host);
+		host.Insert("http://", 0, 7);
+		uri->SetSpec(host);
+		view->GetBrowserGlue()->mIconURI = uri;
 		((CBrowserFrmTab*) GetFrame(hWnd))->SetTabIcon((CBrowserTab*)view, view->GetBrowserGlue()->mIcon);
+		// Let the session plugin know about it
+		GetFrame(hWnd)->PostMessageW(UWM_UPDATEBUSYSTATE,0,(LPARAM)hWnd);
 	} else 
 		browser->GotoHistoryIndex(index);
    return TRUE;
@@ -977,7 +991,7 @@ UINT GetWindowVarUTF8(HWND hWnd, WindowVarType type, void* ret)
 
 		case Window_Title: {
 			CString title = browser->GetTitle();
-			retLen = title.GetLength() + 1;
+			retLen = title.GetLength() * 3 + 1;
 			if (ret) {
 				char* utf = EncodeUTF8(title);
 				strcpy((char*)ret, utf);
@@ -1007,7 +1021,7 @@ UINT GetWindowVarUTF8(HWND hWnd, WindowVarType type, void* ret)
 		case Window_SelectedText: {
 			nsEmbedString sel;  
 			browser->GetUSelection(sel);
-			retLen = sel.Length() + 1;
+			retLen = sel.Length() * 3 + 1;
 			if (ret) {
 				char* utf = EncodeUTF8(sel.get());
 				strcpy((char*)ret, utf);
@@ -1036,7 +1050,7 @@ UINT GetWindowVarUTF8(HWND hWnd, WindowVarType type, void* ret)
 
 		case Window_LinkTitle: {
 			CString title = view->GetContextLinkTitle();
-			retLen = title.GetLength() + 1;
+			retLen = title.GetLength() * 3 + 1;
 			if (ret) {
 				char* utf = EncodeUTF8(title);
 				strcpy((char*)ret, utf);
@@ -1565,6 +1579,19 @@ int GetKmeleonVersion()
 	return KMELEON_VERSION;
 }
 
+long GetFolderUTF8(FolderType type, char* path, size_t size)
+{
+   USES_CONVERSION;
+   CString csPath = theApp.GetFolder(type);
+   if (path) {
+	  char* utf = EncodeUTF8(csPath);
+      strncpy(path, utf, size);
+	  delete utf;
+      path[size-1] = 0;
+   }
+   return csPath.GetLength();
+}
+
 long GetFolder(FolderType type, char* path, size_t size)
 {
    USES_CONVERSION;
@@ -1713,7 +1740,7 @@ kmeleonFunctions kmelFuncsUTF8 = {
    NavigateTo,
    Translate,
    SetGlobalVar,
-   GetFolder,
+   GetFolderUTF8,
    SetAccel,
    SetMenu,
    RebuildMenu,
@@ -1729,7 +1756,8 @@ kmeleonFunctions kmelFuncsUTF8 = {
    UnregisterCmd,
    GetCmdList,
    LoadCSS,
-   LogMessage
+   LogMessage,
+   InjectJS2
 };
 
 kmeleonFunctions kmelFuncs = {

@@ -242,13 +242,7 @@ public:
 		PRUint32 flags;
 		docShell->GetBusyFlags(&flags);
 		return flags != nsIDocShell::BUSY_FLAGS_NONE;
-	}
-
-	void SetActive(BOOL aActive)
-	{
-		NS_ENSURE_TRUE(mWebBrowserFocus, );
-		if (aActive) mWebBrowserFocus->Activate(); else mWebBrowserFocus->Deactivate();
-	}
+	}	
 
 	void FocusFirstElement() 
 	{
@@ -286,6 +280,7 @@ public:
 		return NS_OK;
 	}
 
+	void SetActive(BOOL aActive);
 	int GetSecurityState();
 
 	BOOL GetCharset(char* aCharset);

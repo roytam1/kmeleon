@@ -180,7 +180,7 @@ BOOL CTabReBar::Create(CReBarEx* rebar, UINT idwnd)
 			}
 			else  if (mPosBar == POSITION_TOP) {
 				mTemp->SetNeedSeparator(true);
-				if (!theApp.preferences.bAutoHideTabControl)
+				if (mPosBar != POSITION_TOP || !theApp.preferences.bAutoHideTabControl)
 					rebar->SetNeedSeparator(false);
 			} else  if (mPosBar == POSITION_BOTTOM) {
 				mTemp->SetNeedSeparator(true);
@@ -306,6 +306,14 @@ void CTabReBar::UpdateButtonsSize()
 	rb.fMask  = RBBIM_IDEALSIZE; 
 	rb.cxIdeal = size.cx;
 
+	/* Stupid Vista+ Fix*/
+	int static ignoreSize = 1;
+	if (ignoreSize>0) {
+		ignoreSize--;
+		return;
+	}
+	ignoreSize = 1;
+
 	if (!mFixedBar && !mPosBar) {		
 		int iband = m_wndParent->FindByName(_T("Tabs"));
 		m_wndParent->GetReBarCtrl().SetBandInfo(iband, &rb);
@@ -324,11 +332,11 @@ void CTabReBar::UpdateVisibility(BOOL canHide)
 		if (GetToolBarCtrl().GetButtonCount()>1) {
 			
 			mTemp->ShowWindow(SW_SHOW);//GetReBarCtrl().ShowBand(0, TRUE);
-			m_wndParent->SetNeedSeparator(false);
+			if (mPosBar == POSITION_TOP) m_wndParent->SetNeedSeparator(false);
 			if (mBottomBar && !mTemp->IsVisible()) mTemp->SetWindowPos(&(((CBrowserFrame*)GetParentFrame())->m_wndStatusBar),0,0,0,0,SWP_NOMOVE);
 		}
 		else if (theApp.preferences.bAutoHideTabControl) {
-			m_wndParent->SetNeedSeparator(true);
+			if (mPosBar == POSITION_TOP) m_wndParent->SetNeedSeparator(true);
 			mTemp->ShowWindow(SW_HIDE);
 		}
 

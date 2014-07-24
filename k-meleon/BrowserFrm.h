@@ -59,6 +59,7 @@ public:
 	CString mStatusText;
 	CString mPopupBlockedHost;
 	CString mPendingLocation;
+	int		mHIndex;
 	int     mIcon;
 	int     mSecurityState;
 	BOOL    mLoading;
@@ -78,7 +79,8 @@ public:
 		mDOMLoaded(FALSE),
 		mpBrowserFrame(frame),
 		mpBrowserView(view),
-		firstLoad(true)
+		firstLoad(true),
+		mHIndex(-1)
 	{
 	}
 

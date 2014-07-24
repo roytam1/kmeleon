@@ -25,7 +25,6 @@
 #include "nsIConsoleService.h"
 #include "nsIScriptError.h"
 #include "nsIEmbeddingSiteWindow.h"
-#include "nsPIDOMWindow.h"
 #include "nsIWebBrowserFocus.h"
 #include "nsIURIFixup.h"
 

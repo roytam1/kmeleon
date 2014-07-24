@@ -336,7 +336,7 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
     // tell all our plugins that we were created
 	if (!IsDialog())
-    theApp.plugins.SendMessage("*", "* OnCreate", "Create", (long)this->m_hWnd, 0);
+    theApp.plugins.SendMessage("*", "* OnCreate", "Create", (long)this->m_hWnd, IsPopup()?2:0);
 
     // Pass "this" to the View for later callbacks
     // and/or access to any public data members, if needed
@@ -1337,7 +1337,8 @@ void CBrowserFrame::ClearFindBar()
 	RecalcLayout();
 	// WORKAROUND: Setting back the focus to gecko
 	//m_wndBrowserView.mBaseWindow->SetFocus(); // WHY IT DOES NOTHING ?
-	GetActiveView()->Activate(TRUE);
+	if (GetActiveView())
+		GetActiveView()->Activate(TRUE);
 }
 
 #ifdef INTERNAL_SITEICONS
@@ -1545,6 +1546,8 @@ void CBrowserFrame::OnFind(BOOL backward)
 		m_searchString = wcsdup(searchString);
 	}
 
+	if (!searchString) return;
+
 	BOOL didFind = wrapper->Find(searchString, 
 				theApp.preferences.bFindMatchCase, 
 				theApp.preferences.bFindWrapAround, 
@@ -1664,6 +1667,7 @@ void CBrowserFrame::UpdateSecurityStatus(PRInt32 aState)
 
 void CBrowserFrame::UpdateStatus(LPCTSTR aStatus)
 {
+	if (!m_wndStatusBar.m_hWnd) return;
 	m_wndStatusBar.SetPaneText(0, aStatus);
 }
 

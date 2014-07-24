@@ -273,7 +273,7 @@ NS_IMETHODIMP CNSSDialogs::ViewCert(nsIInterfaceRequestor *ctx, nsIX509Cert *cer
 
 //////////////////////////////////////////////////////////////
 
-#if GECKO_VERSION = 18
+#if GECKO_VERSION == 18
 
 /* boolean confirmUnknownIssuer (in nsIInterfaceRequestor socketInfo, in nsIX509Cert cert, out short certAddType); */
 NS_IMETHODIMP CNSSDialogs::ConfirmUnknownIssuer(nsIInterfaceRequestor *socketInfo, nsIX509Cert *cert, PRInt16 *certAddType, PRBool *_retval)
@@ -430,7 +430,7 @@ NS_IMETHODIMP CNSSDialogs::NotifyCrlNextupdate(nsIInterfaceRequestor *socketInfo
 
 #endif // GECKO_VERSION
 
-// Boîte de dialogue CConfirmCertExpiredDialog
+// BoÃ®te de dialogue CConfirmCertExpiredDialog
 
 //IMPLEMENT_DYNAMIC(CConfirmCertExpiredDialog, CDialog)
 CConfirmCertExpiredDialog::CConfirmCertExpiredDialog(CWnd* pParent, const TCHAR* title, 
@@ -503,7 +503,7 @@ void CConfirmCertExpiredDialog::OnBnClickedViewCert()
 		certDialogs->ViewCert (m_ctx, m_cert);
 }
 
-// Boîte de dialogue CNewServerDialog
+// BoÃ®te de dialogue CNewServerDialog
 
 //IMPLEMENT_DYNAMIC(CNewServerDialog, CDialog)
 CNewServerDialog::CNewServerDialog(CWnd* pParent, const TCHAR* intro, 
@@ -559,7 +559,7 @@ BOOL CNewServerDialog::OnInitDialog()
 }
 
 
-// Boîte de dialogue CDomainMismatchDialog
+// BoÃ®te de dialogue CDomainMismatchDialog
 
 //IMPLEMENT_DYNAMIC(CDomainMismatchDialog, CDialog)
 CDomainMismatchDialog::CDomainMismatchDialog(CWnd* pParent, 
@@ -603,7 +603,7 @@ void CDomainMismatchDialog::OnBnClickedViewCert()
 }
 
 
-// Boîte de dialogue CServerCrlNextupdateDialog
+// BoÃ®te de dialogue CServerCrlNextupdateDialog
 
 //IMPLEMENT_DYNAMIC(CServerCrlNextupdateDialog, CDialog)
 CServerCrlNextupdateDialog::CServerCrlNextupdateDialog(CWnd* pParent, const TCHAR* msg1, const TCHAR* msg2)
@@ -629,7 +629,7 @@ void CServerCrlNextupdateDialog::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(CServerCrlNextupdateDialog, CDialog)
 END_MESSAGE_MAP()
 
-// Boîte de dialogue CDownloadCertDialog
+// BoÃ®te de dialogue CDownloadCertDialog
 
 //IMPLEMENT_DYNAMIC(CDownloadCertDialog, CDialog)
 CDownloadCertDialog::CDownloadCertDialog(CWnd* pParent, const TCHAR* msg2, 
@@ -676,7 +676,7 @@ void CDownloadCertDialog::OnBnClickedViewCert()
 		certDialogs->ViewCert (m_ctx, m_cert);
 }
 
-// Boîte de dialogue CGetPKCS12FilePasswordDialog
+// BoÃ®te de dialogue CGetPKCS12FilePasswordDialog
 
 //IMPLEMENT_DYNAMIC(CGetPKCS12FilePasswordDialog, CDialog)
 CGetPKCS12FilePasswordDialog::CGetPKCS12FilePasswordDialog(CWnd* pParent /*=NULL*/)
@@ -699,7 +699,7 @@ void CGetPKCS12FilePasswordDialog::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(CGetPKCS12FilePasswordDialog, CDialog)
 END_MESSAGE_MAP()
 
-// Boîte de dialogue CSetPKCS12FilePasswordDialog
+// BoÃ®te de dialogue CSetPKCS12FilePasswordDialog
 
 //IMPLEMENT_DYNAMIC(CSetPKCS12FilePasswordDialog, CDialog)
 CSetPKCS12FilePasswordDialog::CSetPKCS12FilePasswordDialog(CWnd* pParent /*=NULL*/)
@@ -734,7 +734,7 @@ void CSetPKCS12FilePasswordDialog::OnOK()
 BEGIN_MESSAGE_MAP(CSetPKCS12FilePasswordDialog, CDialog)
 END_MESSAGE_MAP()
 
-// Boîte de dialogue CViewCertGeneralPage
+// BoÃ®te de dialogue CViewCertGeneralPage
 
 //IMPLEMENT_DYNAMIC(CViewCertGeneralPage, CPropertyPage)
 CViewCertGeneralPage::CViewCertGeneralPage()
@@ -770,7 +770,7 @@ void CViewCertGeneralPage::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(CViewCertGeneralPage, CPropertyPage)
 END_MESSAGE_MAP()
 
-// Boîte de dialogue CViewCertDetailsPage
+// BoÃ®te de dialogue CViewCertDetailsPage
 
 //IMPLEMENT_DYNAMIC(CViewCertDetailsPage, CPropertyPage)
 CViewCertDetailsPage::CViewCertDetailsPage(nsIArray* certChain, CWnd* pParent /*=NULL*/)
