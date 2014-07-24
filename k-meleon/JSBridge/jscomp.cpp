@@ -11,14 +11,42 @@
 #include "jscomp.h"
 #include "..\kmeleon_plugin.h"
 
-
 extern kmeleonPlugin kPlugin;
+extern CCmdList* cmdList;
+
+NS_IMETHODIMP CJSBridge::SetMenuCallback(const char *menu, const char *label, nsICommandFunction *command, const char *before)
+{
+	kmeleonMenuItem item;
+	item.label = label;
+	item.type = MENUTYPE::MENU_COMMAND;
+
+	//JSFunction* function;
+    //if (JS_ConvertArguments(cx, argc, JS_ARGV(cx, command), "f", &function)) {}
+	//JS_CallFunctionValue(cx, JS_GetGlobalObject(cx), *(JS_ARGV(cx, command)), 0, NULL, &retVal);
+	//JS_GetStringCharsZ(ctx->GetNativeContext(), command.toString()
+	item.command = kPlugin.kFuncs->GetCommandIDs(1);
+	cmdList->Add(item.command, command);
+
+	if (before && *before) {
+		item.before = atoi(before);
+		if (!item.before && strcmp(before, "0") != 0) {
+			item.before = kPlugin.kFuncs->GetID(before);
+			if (!item.before) 
+				item.before = (long)before;
+		}
+	}
+	else item.before = -1;
+	kPlugin.kFuncs->SetMenu(menu, &item);
+	
+	return NS_OK;
+}
 
 NS_IMETHODIMP CJSBridge::SetMenu(const char *menu, PRUint16 type, const char *label, const char *command, const char *before)
 {
 	kmeleonMenuItem item;
 	item.label = label;
 	item.type = type - 1;
+
 	item.command = *command ? kPlugin.kFuncs->GetID(command) : 1;
 	if (before && *before) {
 		item.before = atoi(before);
@@ -87,5 +115,11 @@ NS_IMETHODIMP CJSBridge::Open(const char * url, uint16_t state, nsIWebBrowser * 
 	HWND h = kPlugin.kFuncs->NavigateTo(url, state, nullptr);
 	kPlugin.kFuncs->GetMozillaWebBrowser(h, _retval);
     return NS_OK;
+}
+
+NS_IMETHODIMP CJSBridge::GetActiveBrowser(nsIWebBrowser * *_retval) 
+{
+	kPlugin.kFuncs->GetMozillaWebBrowser(NULL, _retval);
+	return NS_OK;
 }
 

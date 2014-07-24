@@ -26,9 +26,28 @@ kmeleonPlugin kPlugin = {
 	DoMessage
 };
 
+CCmdList* cmdList;
 
 NS_IMPL_ISUPPORTS1(CJSBridge, nsIJSBridge); 
 NS_GENERIC_FACTORY_CONSTRUCTOR(CJSBridge) 
+/*
+static const mozilla::Module::CIDEntry kBrowserCIDs[] = {
+	{ &kJSBridgeCID,true, NULL, CJSBridgeConstructor },
+	{ NULL }
+};
+
+static const mozilla::Module::ContractIDEntry kBrowserContracts[] = {
+	{"@kmeleon/jsbridge;1", &kJSBridgeCID},
+	{ NULL }
+};
+
+static const mozilla::Module kBrowserModule = {
+    mozilla::Module::kVersion,
+    kBrowserCIDs,
+    kBrowserContracts
+};
+
+NSMODULE_DEFN(nsBrowserCompsModule) = &kBrowserModule;*/
 
 static const nsModuleComponentInfo components = 
 {
@@ -43,7 +62,7 @@ extern NS_COM_GLUE nsresult NS_NewGenericFactory(nsIGenericFactory* *result,
                      const nsModuleComponentInfo *info);
 BOOL Init() 
 {
-	nsCOMPtr<nsIComponentRegistrar> compReg;
+   nsCOMPtr<nsIComponentRegistrar> compReg;
    nsresult rv = NS_GetComponentRegistrar(getter_AddRefs(compReg));
    NS_ENSURE_SUCCESS(rv, FALSE);
    
@@ -56,25 +75,30 @@ BOOL Init()
 				 components.mContractID,
 				 componentFactory);
   	   
+	cmdList = new CCmdList();
 	return NS_SUCCEEDED(rv) ? TRUE : FALSE;
 }
 
 BOOL Quit()
 {
+	delete cmdList;
 	nsresult rv;
 	nsCOMPtr<nsIComponentRegistrar> compReg;
 	rv = NS_GetComponentRegistrar(getter_AddRefs (compReg));
 	NS_ENSURE_SUCCESS(rv, FALSE);
-
-
+	
 	rv = compReg->UnregisterFactory(components.mCID, componentFactory);
 	return NS_SUCCEEDED(rv) ? TRUE : FALSE;
 }
 
 #include "nsIWebBrowser.h"
 
+WNDPROC KMeleonWndProc;
+LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+
 void Create(HWND hWnd)
 {
+#ifdef _DEBUG
 	nsCOMPtr<nsIServiceManager> servMan; 
 	nsresult rv = NS_GetServiceManager(getter_AddRefs(servMan)); 
 	NS_ENSURE_SUCCESS(rv, );
@@ -82,6 +106,9 @@ void Create(HWND hWnd)
 	nsCOMPtr<nsIJSBridge> jsb;
 	rv = servMan->GetServiceByContractID("@kmeleon/jsbridge;1",  NS_GET_IID(nsIJSBridge), getter_AddRefs(jsb));
 	NS_ENSURE_SUCCESS(rv, );
+#endif
+	KMeleonWndProc = (WNDPROC) GetWindowLong(hWnd, GWL_WNDPROC);
+	SetWindowLong(hWnd, GWL_WNDPROC, (LONG)WndProc);
 }
 
 long DoMessage(const char *to, const char *from, const char *subject,
@@ -91,14 +118,15 @@ long DoMessage(const char *to, const char *from, const char *subject,
 		if (stricmp(subject, "Init") == 0) {
 			Init();
 		}
-#ifdef _DEBUG
+
 		else if (stricmp(subject, "Create") == 0) {
 			Create((HWND)data1);
 		}
-#endif
+
 		else if (stricmp(subject, "Quit") == 0) {
 			Quit();
 		}
+
 		else return 0;
 		return 1;
 	}
@@ -114,6 +142,18 @@ BOOL APIENTRY DllMain( HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
       break;
    }
    return TRUE;
+}
+
+extern std::map<UINT, nsCOMPtr<nsICommandFunction>> cmdMap;
+
+LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+	switch (message) {
+
+	case WM_COMMAND:
+		if (cmdList->Run(LOWORD(wParam), lParam)) return 0;
+	}
+	return CallWindowProc(KMeleonWndProc, hWnd, message, wParam, lParam);
 }
 
 extern "C" {
