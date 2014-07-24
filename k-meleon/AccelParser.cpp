@@ -217,6 +217,14 @@ int CAccelParser::SetAccel(const char* pKey, const char* pCommand)
             VK_TEST(CAPITAL)
             VK_TEST(MENU)
 
+			VK_TEST(BROWSER_BACK)
+			VK_TEST(BROWSER_FORWARD)
+			VK_TEST(BROWSER_REFRESH)
+			VK_TEST(BROWSER_STOP)
+			VK_TEST(BROWSER_SEARCH)
+			VK_TEST(BROWSER_FAVORITES)
+			VK_TEST(BROWSER_HOME)
+
 	   /*
             VK_TEST(KANA)
             VK_TEST(JUNJA)
