@@ -45,7 +45,7 @@ int Init();
 void Create(HWND parent);
 void CreateTab(HWND parent, HWND tab);
 void DestroyTab(HWND parent, HWND tab);
-void Close(HWND parent);
+void Destroy(HWND parent);
 void Config(HWND parent);
 void Quit();
 void DoMenu(HMENU menu, char *param);
@@ -89,8 +89,8 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
       else if (stricmp(subject, "Quit") == 0) {
          Quit();
       }
-	  else if (stricmp(subject, "Close") == 0) {
-         Close((HWND)data1);
+	  else if (stricmp(subject, "Destroy") == 0) {
+         Destroy((HWND)data1);
       }
       else if (stricmp(subject, "DoMenu") == 0) {
          DoMenu((HMENU)data1, (char *)data2);
@@ -116,6 +116,10 @@ void DestroyTab(HWND hWnd, HWND hTab) {
 		if ((*iter) == hTab) break;
 	}
 	if (iter != wList.end()) wList.erase(iter);
+
+	CDomEventListener* listener = reinterpret_cast<CDomEventListener*>(GetProp(hWnd, SIDEBARPROPNAME));
+	if (listener == NULL) return;
+	listener->Done(hTab);
 }
 
 void Create(HWND hWndParent) {
@@ -134,10 +138,11 @@ void Create(HWND hWndParent) {
 	SetProp(hWndParent, SIDEBARPROPNAME, reinterpret_cast<HANDLE>(listener));
 }
 
-void Close(HWND hWnd) {
+void Destroy(HWND hWnd) {
 	CDomEventListener* listener = reinterpret_cast<CDomEventListener*>(GetProp(hWnd, SIDEBARPROPNAME));
 	if (listener == NULL) return;
-	listener->Done(); // Will destroy it
+	// listener->Done(); // Will destroy it
+	delete listener;
 }
 
 void DoMenu(HMENU menu, char *param) {
@@ -154,15 +159,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	switch (message) {		
 		case UWM_UPDATEBUSYSTATE:
-			std::vector<HWND>::iterator iter;
-			for (iter = wList.begin(); iter != wList.end(); iter++) {
-				if ((*iter) == (HWND)lParam) break;
-			}
-			if (iter == wList.end()) {
-				CDomEventListener* listener = reinterpret_cast<CDomEventListener*>(GetProp(hWnd, SIDEBARPROPNAME));
-				if (listener) {
-					listener->Init((HWND)lParam);
-					wList.push_back((HWND)lParam);
+			if (wParam) {
+				std::vector<HWND>::iterator iter;
+				for (iter = wList.begin(); iter != wList.end(); iter++) {
+					if ((*iter) == (HWND)lParam) break;
+				}
+				if (iter == wList.end()) {
+					CDomEventListener* listener = reinterpret_cast<CDomEventListener*>(GetProp(hWnd, SIDEBARPROPNAME));
+					if (listener && listener->Init((HWND)lParam)) {					
+						wList.push_back((HWND)lParam);
+					}
 				}
 			}
 		break;

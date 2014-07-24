@@ -97,6 +97,7 @@ class AutocompletePopup : public nsIAutoCompletePopup
 
 	~AutocompletePopup()
 	{
+		::DestroyWindow(hList);
 	}
 
 	static LRESULT CALLBACK PopupWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
@@ -164,8 +165,9 @@ public:
 		nsCOMPtr<nsPIDOMWindow> piWin(do_QueryInterface(domWin));
 		if (!piWin) return NULL;
 		fc->AttachToBrowser(piWin->GetDocShell(), popup);
-
-		return klm->Init(target);
+		
+		klm->Init(target);
+		return TRUE;
 	
 		rv = GetDOMEventTarget(mWebBrowser, (getter_AddRefs(mEventTarget)));
 		NS_ENSURE_SUCCESS(rv, FALSE);
@@ -179,8 +181,25 @@ public:
 		return TRUE;
 	}
 
-	void Done()
+	void Done(HWND hwnd)
 	{
+		if (!kPlugin.kFuncs->GetMozillaWebBrowser(hwnd, getter_AddRefs(mWebBrowser)))
+			return;
+
+		nsCOMPtr<nsIDOMWindow> domWin;
+		mWebBrowser->GetContentDOMWindow (getter_AddRefs(domWin));
+		NS_ENSURE_TRUE (domWin, );
+		nsCOMPtr<nsPIDOMWindow> piWin(do_QueryInterface(domWin));
+
+		nsCOMPtr<nsIServiceManager> servMan; 
+		nsresult rv = NS_GetServiceManager(getter_AddRefs(servMan)); 
+		NS_ENSURE_SUCCESS(rv, );
+
+		nsCOMPtr<nsIFormFillController> fc;
+		rv = servMan->GetServiceByContractID("@mozilla.org/satchel/form-fill-controller;1",  NS_GET_IID(nsIFormFillController), getter_AddRefs(fc));
+
+		if (fc && piWin) fc->DetachFromBrowser(piWin->GetDocShell());
+		
 		if (mEventTarget)
 			mEventTarget->RemoveEventListener(NS_LITERAL_STRING("DOMContentLoaded"),
 				  this, PR_FALSE);
