@@ -534,7 +534,7 @@ public:
 
 	bool init(Mac* mac, const TCHAR* srcFile, bool enableDebug = false) {
 		struct _stat st;
-		if (_stat(srcFile, &st) == -1)
+		if (_tstat(srcFile, &st) == -1)
 			return false;
 
 		FILE* f = _tfopen(srcFile, _T("r"));
@@ -544,11 +544,10 @@ public:
 		size_t r = fread(input, sizeof(char), st.st_size, f);
 		input[r] = 0;
 		lex.setinput(input);
-		lex.setfile(srcFile);
+		file = (const char*)CT_to_UTF8(srcFile);
+		lex.setfile(file);
 		debug = enableDebug;
-
-		fclose(f);
-		file = srcFile;
+		fclose(f);		
 		m = mac;
 		return true;
 	}

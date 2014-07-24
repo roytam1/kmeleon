@@ -50,7 +50,7 @@ int          FindCommand(char *macroName);
 int          GetConfigFiles(configFileType **configFiles);
 int          GetCmds(kmeleonCommand* cmdList, long size);
 int          Load();
-bool         LoadMacros(TCHAR *filename);
+bool         LoadMacros(const TCHAR *filename);
 void         Close(HWND hWnd);
 void         CloseFrame(HWND hWnd, LONG windows);
 void         Quit();
@@ -69,12 +69,12 @@ BOOL gUnicode = FALSE;
 #endif
 
 kmeleonPlugin kPlugin = {
-	KMEL_PLUGIN_VER,
+	KMEL_PLUGIN_VER_UTF8,
 		PLUGIN_NAME,
 		DoMessage
 };
 
-BOOL SetWindowTextUTF8(HWND hWnd, LPCTSTR lpString)
+BOOL SetWindowTextUTF8(HWND hWnd, LPCSTR lpString)
 {
 	if (gUnicode)
 		return SetWindowTextW(hWnd, CUTF8_to_UTF16(lpString));
@@ -82,7 +82,7 @@ BOOL SetWindowTextUTF8(HWND hWnd, LPCTSTR lpString)
 		return SetWindowTextA(hWnd, CUTF8_to_ANSI(lpString));
 }
 
-BOOL SetDlgItemTextUTF8(HWND hDlg, int nIDDlgItem, LPCTSTR lpString)
+BOOL SetDlgItemTextUTF8(HWND hDlg, int nIDDlgItem, LPCSTR lpString)
 {
 	if (gUnicode)
 		return SetDlgItemTextW(hDlg, nIDDlgItem, CUTF8_to_UTF16(lpString));
@@ -518,7 +518,7 @@ public:
 	}
 }* arglist;
 
-bool LoadDir(TCHAR* macrosDir)
+bool LoadDir(const TCHAR* macrosDir)
 {
 	TCHAR szMacroFile[MAX_PATH];
 	_tcscpy(szMacroFile, macrosDir);
@@ -531,13 +531,13 @@ bool LoadDir(TCHAR* macrosDir)
 		return false;
 
 	do {
-		if (_tcsicmp("main.kmm", FindFileData.cFileName) == 0)
+		if (_tcsicmp(_T("main.kmm"), FindFileData.cFileName) == 0)
 			continue;
 
 		char prefload[MAX_PATH+40];
 		CharLowerBuff(FindFileData.cFileName, MAX_PATH);
 		strcpy(prefload, "kmeleon.plugins.macros.modules.");
-		strncat(prefload, FindFileData.cFileName, strrchr(FindFileData.cFileName, '.')-FindFileData.cFileName); //uni
+		strncat(prefload, CT_to_UTF8(FindFileData.cFileName), _tcsrchr(FindFileData.cFileName, '.')-FindFileData.cFileName); //uni
 		strcat(prefload, ".load");
 
 		BOOL load = TRUE;
@@ -555,22 +555,22 @@ bool LoadDir(TCHAR* macrosDir)
 
 bool LoadNewMacros()
 {
-	TCHAR macrosDir[MAX_PATH];
-	kFuncs->GetFolder(RootFolder, macrosDir, MAX_PATH);
-	_tcscat(macrosDir, "\\macros\\");
+	char _macrosDir[MAX_PATH];
+	kFuncs->GetFolder(RootFolder, _macrosDir, MAX_PATH);
+	strcat(_macrosDir, "\\macros\\");
 
-	TCHAR profileMacrosDir[MAX_PATH];
-	kFuncs->GetFolder(UserSettingsFolder, profileMacrosDir, MAX_PATH);
-	_tcscat(profileMacrosDir, "\\macros\\");
+	char _profileMacrosDir[MAX_PATH];
+	kFuncs->GetFolder(UserSettingsFolder, _profileMacrosDir, MAX_PATH);
+	strcat(_profileMacrosDir, "\\macros\\");
 
-	TCHAR szMacroFile[MAX_PATH];
-	_tcscpy(szMacroFile, macrosDir);
-	_tcscat(szMacroFile, _T("main.kmm"));
-	if (!LoadMacros(szMacroFile))
+	char szMacroFile[MAX_PATH];
+	strcpy(szMacroFile, _macrosDir);
+	strcat(szMacroFile, "main.kmm");
+	if (!LoadMacros(CUTF8_to_T(szMacroFile)))
 		return false;
 
-	LoadDir(macrosDir);
-	LoadDir(profileMacrosDir);
+	LoadDir(CUTF8_to_T(_macrosDir));
+	LoadDir(CUTF8_to_T(_profileMacrosDir));
 
 	return true;
 }
@@ -602,14 +602,14 @@ int Load() {
 	gUnicode = (osinfo.dwPlatformId == VER_PLATFORM_WIN32_NT);
 #endif
 
-	TCHAR szMacroFile[MAX_PATH];
-	kFuncs->GetFolder(UserSettingsFolder, szMacroFile, MAX_PATH);
+	char _szMacroFile[MAX_PATH];
+	kFuncs->GetFolder(UserSettingsFolder, _szMacroFile, MAX_PATH);
 
-	if (! *szMacroFile)
+	if (! *_szMacroFile)
 		return 0;
 
-	_tcscat(szMacroFile, _T("\\macros.cfg"));
-	if (!LoadMacros(szMacroFile)) {
+	strcat(_szMacroFile, "\\macros.cfg");
+	if (!LoadMacros(CUTF8_to_T(_szMacroFile))) {
 		LoadNewMacros();
 	}
 
@@ -634,10 +634,10 @@ void Create(HWND hWndParent) {
 }
 
 void Config(HWND hWndParent) {
-	TCHAR cfgPath[MAX_PATH];
-	kFuncs->GetFolder(UserSettingsFolder, cfgPath, MAX_PATH);
-	_tcscat(cfgPath, _T("macros.cfg"));
-	ShellExecute(NULL, NULL, _T("notepad.exe"), cfgPath, NULL, SW_SHOW);
+	char _cfgPath[MAX_PATH];
+	kFuncs->GetFolder(UserSettingsFolder, _cfgPath, MAX_PATH);
+	strcat(_cfgPath, "macros.cfg");
+	ShellExecute(NULL, NULL, _T("notepad.exe"), CUTF8_to_T(_cfgPath), NULL, SW_SHOW);
 }
 
 configFileType g_configFiles[1];
@@ -730,9 +730,9 @@ void DoMenu(HMENU menu, char *param) {
 
 		if (id != -1) {
 			if (string)
-				AppendMenu(menu, MF_STRING, id, string);
+				AppendMenu(menu, MF_STRING, id, CUTF8_to_T(string));
 			else 
-				AppendMenu(menu, MF_STRING, id, param);
+				AppendMenu(menu, MF_STRING, id, CUTF8_to_T(param));
 		}
 	}
 }
@@ -771,7 +771,7 @@ int DoAccel(char const *aParam)
 void DoRebar(HWND rebarWnd) {
 }
 
-bool LoadMacros(TCHAR *filename)
+bool LoadMacros(const TCHAR *filename)
 {
 	Parser parser;
 	int debug = 0;

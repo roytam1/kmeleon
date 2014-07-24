@@ -177,8 +177,8 @@
 			SetWindowTextUTF8(hwnd, title.c_str());
 			SetDlgItemTextUTF8(hwnd, IDC_PROMPT, question.c_str());
 			SetDlgItemTextUTF8(hwnd, IDC_ANSWER, instring.c_str());
-			SetDlgItemText(hwnd, IDCANCEL, kFuncs->Translate("Cancel"));
-			SetDlgItemText(hwnd, IDOK, kFuncs->Translate("OK"));
+			SetDlgItemTextUTF8(hwnd, IDCANCEL, kFuncs->Translate("Cancel"));
+			SetDlgItemTextUTF8(hwnd, IDOK, kFuncs->Translate("OK"));
 			return TRUE;
 								  }
 		case WM_COMMAND:
@@ -471,7 +471,7 @@
 	Value statusbar(FunctionData* data)
 	{
 		checkArgs(__FUNCTION__, data, 1);
-		kPlugin.kFuncs->SetStatusBarText(CUTF8_to_T(data->getstr(1)));
+		kPlugin.kFuncs->SetStatusBarText(data->getstr(1));
 		return "";
 	}
 
@@ -1073,10 +1073,10 @@
 	Value promptforfolder(FunctionData* data)
 	{
 		checkArgs(__FUNCTION__, data, 1, 2);
-		CUTF8_to_ANSI caption(data->getstr(1));
+		CUTF8_to_T caption(data->getstr(1));
 		if (!(LPCTSTR)caption) return "";
 
-		CUTF8_to_ANSI initFolder(data->getstr(2));
+		CUTF8_to_T initFolder(data->getstr(2));
 
 		LPITEMIDLIST pidlRetBrowse = NULL, pidlRoot = NULL;
 
@@ -1187,7 +1187,7 @@
 		else return "";
 
 		kFuncs->GetFolder(foldertype, path, MAX_PATH);
-		return (const char*)CANSI_to_UTF8(path);
+		return path;
 	}
 
 	Value setmenu(FunctionData* data) 
@@ -1290,7 +1290,7 @@
 
          MString name = data->getstr(1);
 			WindowVarType type;
-			if (name == "SelectedText") {
+			/*if (name == "SelectedText") {
 				int l = kPlugin.kFuncs->GetWindowVar(data->c.hWnd, Window_SelectedText, NULL);
 				if (l<1) return "";
 
@@ -1299,7 +1299,7 @@
 				std::string ret = CUTF16_to_UTF8(buf);
 				delete [] buf;
 				return ret;
-			}
+			}*/
 
 			if (name == "TextZoom") {
 				int zoom;
@@ -1323,7 +1323,9 @@
 				return nb;
 			}
 			
-			if (name == "URLBAR")
+			if (name == "SelectedText")
+				type = Window_SelectedText;
+			else if (name == "URLBAR")
 				type = Window_UrlBar;
 			else if (name == "URL")
 				type = Window_URL;
@@ -1340,7 +1342,7 @@
 			else if (name == "SEARCHURL")
 				type = Search_URL;
 			else if (name == "CommandLine")
-				return ::GetCommandLine();
+				return CT_to_UTF8(::GetCommandLine());
 			else return "";
 
 			int l = kPlugin.kFuncs->GetWindowVar(data->c.hWnd, type, NULL);
@@ -1372,7 +1374,7 @@
 		else
 			return "";
 
-		kPlugin.kFuncs->SetWindowVar(data->c.hWnd, type, (void*)(const char*)CUTF8_to_ANSI(data->getstr(2)));
+		kPlugin.kFuncs->SetWindowVar(data->c.hWnd, type, (void*)data->getstr(2).c_str());
 		return Value();
 	}
 
