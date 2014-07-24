@@ -61,7 +61,7 @@ int  GetConfigFiles(configFileType **configFiles);
 long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2);
 
 kmeleonPlugin kPlugin = {
-   KMEL_PLUGIN_VER,
+   KMEL_PLUGIN_VER_UTF8,
    PLUGIN_NAME,
    DoMessage
 };
@@ -195,7 +195,6 @@ int Setup()
 		FreeLibrary(hComCtlDll);
 	}
 
-
    TCHAR szConfigFile[MAX_PATH];
    FindSkinFile(szConfigFile, _T("toolbars.cfg"));
    LoadToolbars(szConfigFile);
@@ -240,7 +239,13 @@ void Config(HWND hWndParent) {
 configFileType g_configFiles[1];
 int GetConfigFiles(configFileType **configFiles)
 {
+#ifdef _UNICODE
+   TCHAR file[MAX_PATH];
+   FindSkinFile(file, _T("toolbars.cfg"));
+   utf16_to_utf8(file, g_configFiles[0].file, MAX_PATH);
+#else
    FindSkinFile(g_configFiles[0].file, _T("toolbars.cfg"));
+#endif
 
    strcpy(g_configFiles[0].label, "Toolbars");
 
@@ -340,7 +345,7 @@ void DoRebar(HWND rebarWnd) {
       // Create the toolbar control to be added.
       toolbar->hWnd = kPlugin.kFuncs->CreateToolbar(GetParent(rebarWnd), CCS_NODIVIDER | CCS_NOPARENTALIGN | CCS_NORESIZE | TBSTYLE_FLAT | TBSTYLE_TRANSPARENT | TBSTYLE_TOOLTIPS);
       if (!toolbar->hWnd){
-         MessageBox(NULL, _Tr("Failed to create toolbar"), _T(PLUGIN_NAME), MB_OK);
+         MessageBox(NULL, utf8_to_t(_Tr("Failed to create toolbar")), _T(PLUGIN_NAME), MB_OK);
          return;
       }
 
@@ -539,9 +544,9 @@ int ifplugin(char *p)
 
 void LoadToolbars(TCHAR *filename) {
 
-   FILE* configFile = _tfopen(filename, "r");
+   FILE* configFile = _tfopen(filename, _T("r"));
    if (!configFile) {
-      MessageBox(NULL, _Tr("K-Meleon was not able to find your toolbar settings. Your selected skin may be missing or corrupt. Please, check your skin settings in the GUI appearance section of k-meleon preferences."), _Tr(PLUGIN_NAME), MB_OK);
+      MessageBox(NULL, utf8_to_t(_Tr("K-Meleon was not able to find your toolbar settings. Your selected skin may be missing or corrupt. Please, check your skin settings in the GUI appearance section of k-meleon preferences.")), utf8_to_t(_Tr(PLUGIN_NAME)), MB_OK);
       return;
    }
 
@@ -663,7 +668,7 @@ void LoadToolbars(TCHAR *filename) {
                iBuildState++;
             }
             else {
-               MessageBox(NULL, _Tr("Extra { found"), NULL, MB_OK);
+               MessageBox(NULL, utf8_to_t(_Tr("Extra { found")), NULL, MB_OK);
             }
          }
          cb = strchr(p, '-');
@@ -735,7 +740,7 @@ void LoadToolbars(TCHAR *filename) {
                   }
 
 				  TrimWhiteSpace(tooltip);
-				  curButton->sToolTip = strdup(tooltip);
+				  curButton->sToolTip = t_from_utf8(tooltip);
                }
                iBuildState++;
                break;
@@ -1176,9 +1181,8 @@ int AddButtonMsg(char *sParams) {
 	}
 	
 	pButton = AddButton(pToolbar, buttonname, width, height);
-	pButton->sToolTip = new char[strlen(tooltip) + 1];
-	strcpy(pButton->sToolTip,  tooltip);
-   pButton->menu = new char[strlen(menu) + 1];
+	pButton->sToolTip = t_from_utf8(tooltip);	
+	pButton->menu = new char[strlen(menu) + 1];
 	strcpy(pButton->menu, menu);
 	pButton->iID = command;
 
@@ -1338,10 +1342,12 @@ void SetButtonImage(char *sParams) {//WORD iToolbar, WORD iButton, char *sImage)
 
    DeleteObject(hButton);
 
-
    // force the toolbar to reload the image from the imagelist
-   SendMessage(pToolbar->hWnd, TB_CHANGEBITMAP, iButton, MAKELPARAM(index, 0));
-
+   while (pToolbar) {
+      SendMessage(pToolbar->hWnd, TB_CHANGEBITMAP, iButton, MAKELPARAM(index, 0));
+      pToolbar = pToolbar->nextWindow;
+   }   
+   
    delete pButton->sImagePath;
    pButton->sImagePath = strdup(sImage);
 }
