@@ -19,7 +19,7 @@
 #ifndef __IE_FAVORITES_H__
 #define __IE_FAVORITES_H__
 
-#define _WIN32_WINNT 0x0500
+
 
 #ifndef COMPILING_RC
 typedef int cmp_t(const char *, const char *, unsigned int);
