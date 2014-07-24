@@ -1,3 +1,4 @@
+
 /*
  * Copyright (C) 2004 Dorian Boissonnade
  *
@@ -20,6 +21,7 @@
 #define __UTF_H_
 
 #include <stdlib.h>
+#include <malloc.h>
 
 #ifndef STACK_BUFFER_SIZE
 #define STACK_BUFFER_SIZE 128
@@ -318,12 +320,16 @@ inline char* _utf16_to_ansi(const wchar_t* src, char* dst, unsigned len)
 #define s_t_to_utf16(str) 0
 #define s_t_to_ansi(str) (strlen(str)*2+1)
 #define s_ansi_to_t(str) (strlen(str)+1)
+#define s_utf8_to_t(str) (strlen(str)+1)
 
 #define utf8_from_t(str) utf8_from_utf16(str);
 #define t_from_utf8(str) utf16_from_utf8(str);
-#define ansi_to_t(str, size) _ansi_to_utf16(str, (wchar_t*)alloca(size*sizeof(wchar_t)), size)
+//#define ansi_to_t(str, size) _ansi_to_utf16(str, (wchar_t*)alloca(size*sizeof(wchar_t)), size)
+//#define utf8_to_t(str, size) _utf8_to_utf16(str, (wchar_t*)alloca(size*sizeof(wchar_t)), size)
 #define t_to_ansi(str, size) _utf16_to_ansi(str, (char*)alloca(size*sizeof(char)), size)
-#define utf8_to_t(str, size) _utf8_to_utf16(str, (wchar_t*)alloca(size*sizeof(wchar_t)), size)
+#define ansi_to_t(str) _ansi_to_utf16(str, (wchar_t*)alloca(s_ansi_to_t(str)*sizeof(wchar_t)), s_ansi_to_t(str))
+#define utf8_to_t(str) _utf8_to_utf16(str, (wchar_t*)alloca(s_utf8_to_t(str)*sizeof(wchar_t)), s_utf8_to_t(str))
+
 #define utf16_to_t(str, size) (str)
 #define t_to_utf16(str, size) (str)
 
@@ -336,11 +342,13 @@ inline char* _utf16_to_ansi(const wchar_t* src, char* dst, unsigned len)
 
 #define utf8_from_t(str) utf8_from_ansi(str);
 #define t_from_utf8(str) ansi_from_utf8(str);
+
 #define ansi_to_t(str, size) (str)
 #define t_to_ansi(str, size) (str)
 #define utf16_to_t(str, size) _utf16_to_ansi(str, (char*)alloca(size*sizeof(char)), size)
 #define t_to_utf16(str, size) _ansi_to_utf16(str, (wchar_t*)alloca(size*sizeof(wchar_t)), size)
-#define utf8_to_t(str, size) _utf8_to_ansi(str, (char*)alloca(size*sizeof(char)), size)
+//#define utf8_to_t(str, size) _utf8_to_ansi(str, (char*)alloca(size*sizeof(char)), size)
+#define utf8_to_t(str) _utf8_to_ansi(str, (char*)alloca((strlen(str)+1)*sizeof(char)), strlen(str)+1)
 
 #endif
 
