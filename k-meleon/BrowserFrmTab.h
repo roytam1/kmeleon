@@ -164,6 +164,7 @@ protected:
 
 	DECLARE_MESSAGE_MAP()
 	afx_msg void OnClose();
+	afx_msg void OnDestroy();
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	afx_msg void OnCloseTab();
 	afx_msg void OnCloseAllTab();

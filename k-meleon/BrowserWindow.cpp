@@ -80,7 +80,6 @@
 //#include "nsIDOMDocumentRange.h"
 #include "nsIDOMDocumentFragment.h"
 #include "nsIDOMWindowCollection.h"
-#include "nsPIDOMWindow.h"
 #include "nsIFocusManager.h"
 #include "nsIScriptContext.h"
 
@@ -197,7 +196,7 @@ BOOL CBrowserWrapper::CreateBrowser(CWnd* parent, uint32_t chromeFlags)
 	parent->GetClientRect(rect);
 	rv = mBaseWindow->InitWindow(nsNativeWidget(parent->GetSafeHwnd()), nullptr, 0, 0, rect.Width(), rect.Height());
 	rv = mBaseWindow->Create();
-
+	
 	if (mChromeContent) {
 	// Eagerly create an about:blank content viewer with the right principal here,
   // rather than letting it happening in the upcoming call to
@@ -1119,6 +1118,24 @@ BOOL CBrowserWrapper::GetSelection(CString& aSelText)
 	return TRUE;
 }
 
+//#include "nsIWidgetListener.h"
+void CBrowserWrapper::SetActive(BOOL aActive)
+{	
+	/*nsCOMPtr<nsIDOMWindow> dom;
+	nsresult rv = mWebBrowser->GetContentDOMWindow(getter_AddRefs(dom));
+	NS_ENSURE_SUCCESS(rv, );
+	mWebBrowserFocus->Activate();
+	//mWebBrowser->SetIsActive(aActive);
+	nsCOMPtr<nsIFocusManager> fm = do_GetService("@mozilla.org/focus-manager;1");
+	if (!fm) return;
+	//if (aActive) fm->WindowShown(dom, true); else fm->WindowHidden(dom);
+	return;*/
+
+	NS_ENSURE_TRUE(mWebBrowserFocus, );
+	TRACE1("Set Active Browser %u\n", aActive);
+	if (aActive) mWebBrowserFocus->Activate(); else mWebBrowserFocus->Deactivate();
+}
+
 BOOL CBrowserWrapper::GetCertificate(nsIX509Cert** certificate)
 {
 	nsresult rv;
@@ -1811,6 +1828,23 @@ BOOL CBrowserWrapper::Find(const wchar_t* searchString,
 						   BOOL backwards,
 						   BOOL ahead)
 {
+	ASSERT(!searchString);
+	if (!mTypeAhead) {
+		mTypeAhead = do_GetService("@mozilla.org/typeaheadfind;1");
+		NS_ENSURE_TRUE(mTypeAhead, FALSE);
+		mTypeAhead->Init(GetDocShell());
+	}
+
+	uint16 result;
+	mTypeAhead->SetCaseSensitive(matchCase);
+	nsString oldSearch;
+	mTypeAhead->GetSearchString(oldSearch);
+	if (wcscmp(oldSearch.get(), searchString)==0)
+		mTypeAhead->FindAgain(backwards,false, &result);
+	else
+		mTypeAhead->Find(nsDependentString(searchString), false, &result);
+	return result == 0;
+
 	nsCOMPtr<nsIWebBrowserFind> finder = do_GetInterface(mWebBrowser);
 	NS_ENSURE_TRUE(finder, FALSE);
 
@@ -1836,7 +1870,6 @@ BOOL CBrowserWrapper::Find(const wchar_t* searchString,
 	}
 
 	bool didFind = false;
-	
 	finder->FindNext(&didFind);
 	return didFind;
 }

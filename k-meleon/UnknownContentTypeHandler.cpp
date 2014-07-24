@@ -44,53 +44,10 @@ _PR_FileTimeToPRTime(const FILETIME *filetime, PRTime *prtm)
 {
     PR_ASSERT(sizeof(FILETIME) == sizeof(PRTime));
     CopyMemory(prtm, filetime, sizeof(PRTime));
-#ifdef __GNUC__
-    *prtm = (*prtm - _pr_filetime_offset) / 10LL;
-#else
     *prtm = (*prtm - _pr_filetime_offset) / 10i64;
-#endif
-
-#ifdef DEBUG
-    /* Doublecheck our calculation. */
-    {
-        SYSTEMTIME systime;
-        PRExplodedTime etm;
-        PRTime cmp; /* for comparison */
-        BOOL rv;
-
-        rv = FileTimeToSystemTime(filetime, &systime);
-        PR_ASSERT(0 != rv);
-
-        /*
-         * PR_ImplodeTime ignores wday and yday.
-         */
-        etm.tm_usec = systime.wMilliseconds * PR_USEC_PER_MSEC;
-        etm.tm_sec = systime.wSecond;
-        etm.tm_min = systime.wMinute;
-        etm.tm_hour = systime.wHour;
-        etm.tm_mday = systime.wDay;
-        etm.tm_month = systime.wMonth - 1;
-        etm.tm_year = systime.wYear;
-        /*
-         * It is not well-documented what time zone the FILETIME's
-         * are in.  WIN32_FIND_DATA is documented to be in UTC (GMT).
-         * But BY_HANDLE_FILE_INFORMATION is unclear about this.
-         * By our best judgement, we assume that FILETIME is in UTC.
-         */
-        etm.tm_params.tp_gmt_offset = 0;
-        etm.tm_params.tp_dst_offset = 0;
-        cmp = PR_ImplodeTime(&etm);
-
-        /*
-         * SYSTEMTIME is in milliseconds precision, so we convert PRTime's
-         * microseconds to milliseconds before doing the comparison.
-         */
-        PR_ASSERT((cmp / PR_USEC_PER_MSEC) == (*prtm / PR_USEC_PER_MSEC));
-    }
-#endif /* DEBUG */
 }
 
-PRTime PR_Now(void)
+PRTime PRNow(void)
 {
     PRTime prt;
     FILETIME ft;
@@ -627,11 +584,11 @@ NS_IMETHODIMP CProgressDialog::OnProgressChange64(nsIWebProgress *aWebProgress, 
 
 
    if (aMaxTotalProgress && (
-         PR_Now() > mLastUpdateTime + 100000.0l    // enforce a minimum delay between updates - gives a large speed increase for super-fast downloads which wasted CPU cycles updating the dialog constantly
+         PRNow() > mLastUpdateTime + 100000.0l    // enforce a minimum delay between updates - gives a large speed increase for super-fast downloads which wasted CPU cycles updating the dialog constantly
          || aCurTotalProgress >= aMaxTotalProgress // and be sure to catch the very last one, in case it would otherwise be skipped by the time check
          ) )
    {
-      mLastUpdateTime = PR_Now();
+      mLastUpdateTime = PRNow();
       mDone = false;
 
       int percent = (int)(((float)aCurTotalProgress / (float)aMaxTotalProgress) * 100.0f);
@@ -643,7 +600,7 @@ NS_IMETHODIMP CProgressDialog::OnProgressChange64(nsIWebProgress *aWebProgress, 
         progressString.Format(IDS_DOWNLOAD_PROGRESS2, ((double)aCurTotalProgress)/1024);
       SetDlgItemText(IDC_STATUS, progressString);
 
-      PRInt64 now = PR_Now();
+      PRInt64 now = PRNow();
       PRInt64 timeSpent = now - mStartTime;
       PRInt64 delta = aCurTotalProgress;
 
@@ -759,7 +716,7 @@ NS_IMETHODIMP CProgressDialog::OnStateChange(nsIWebProgress *aWebProgress,
 		   else
 		   {
 
-			   PRInt64 now = PR_Now();
+			   PRInt64 now = PRNow();
 			   PRInt64 timeSpent = now - mStartTime;
 			   statusText.Format(IDS_DOWNLOAD_DONE, ((double)mTotalBytes)/1024, (int)(timeSpent/1000000.0l));
 
@@ -871,8 +828,8 @@ NS_IMETHODIMP CProgressDialog::OnLocationChange(nsIWebProgress *aWebProgress, ns
 /* void onStatusChange (in nsIWebProgress aWebProgress, in nsIRequest aRequest, in nsresult aStatus, in wstring aMessage); */
 NS_IMETHODIMP CProgressDialog::OnStatusChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest, nsresult aStatus, const PRUnichar *aMessage){
 	USES_CONVERSION;
-	::AfxMessageBox(W2CT(aMessage),MB_OK|MB_ICONEXCLAMATION);
 	Cancel();
+	::AfxMessageBox(W2CT(aMessage),MB_OK|MB_ICONEXCLAMATION);	
 	if (m_bWindow) 
 		Close();
 	/*MessageBox(W2CA(aMessage), "", MB_OK|MB_ICONERROR);
@@ -1079,7 +1036,7 @@ void CProgressDialog::InitPersist(nsIURI *aSource, nsIFile *aTarget, nsIWebBrows
    aTarget->GetNativePath(filepath);
 #endif
 
-   mStartTime = PR_Now();
+   mStartTime = PRNow();
 
    InitControl(uri.get(), filepath.get());
 }

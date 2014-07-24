@@ -42,6 +42,7 @@ class IconObserver : public imgINotificationObserver
 protected:
 	CFavIconList* mFavList;
 	nsCOMPtr<imgIRequest> mRequest;
+	nsCOMPtr<nsIURI> mPageUri;
 	NS_IMETHOD CreateDIB(imgIRequest *aRequest);
 };
 
@@ -52,9 +53,9 @@ private:
 	int m_iDefaultIcon;
 	int m_iLoadingIcon;
 	int m_iOffset;
-	nsCOMPtr<IconObserver> mIconObserver;
+	//nsCOMPtr<IconObserver> mIconObserver;
 	
-	void AddMap(const char *uri, int index);
+	void AddMap(const char *uri, int index, const char* pageUri = nullptr);
 	int AddDownloadedIcon(char* uri, TCHAR* file, nsresult aStatus);
 	BOOL LoadCache();
 	BOOL WriteCache();
@@ -63,18 +64,18 @@ public:
 	CFavIconList();
 	virtual ~CFavIconList();
 
-	int AddIcon(const char* uri, CBitmap*, CBitmap*);
-	int AddIcon(const char* uri, CBitmap*, COLORREF);
-	int AddIcon(const char* uri, HICON icon);
+	int AddIcon(const char* uri, CBitmap*, CBitmap*, const char* pageUri = nullptr);
+	int AddIcon(const char* uri, CBitmap*, COLORREF, const char* pageUri = nullptr);
+	int AddIcon(const char* uri, HICON icon, const char* pageUri = nullptr);
 
 	int GetHostIcon(const TCHAR* aUri);
-	int GetIcon(nsIURI* aUri, BOOL download = FALSE);
+	int GetIcon(nsIURI* aUri, nsIURI* aPageURI = NULL, BOOL download = FALSE);
 	
 	void RefreshIcon(nsIURI* aURI);
 	void ResetCache();
 	void LoadDefaultIcon();
 	
-	BOOL DwnFavIcon(nsIURI* iconURI);
+	BOOL DwnFavIcon(nsIURI* iconURI, nsIURI* pageURI = NULL);
 	static void DwnCall(char* , TCHAR* , nsresult, void* );
 
 	inline int GetDefaultIcon() {return m_iDefaultIcon;}

@@ -71,6 +71,7 @@ void CBrowserGlue::UpdateBusyState(BOOL aBusy)
 	if (aBusy) {
 		mContextNode = nullptr;
 		mpBrowserView->m_contextNode = nullptr;
+		mHIndex = -1;
 	}
 	else {
 		SetFavIcon(nullptr);
@@ -174,6 +175,8 @@ void CBrowserGlue::GetBrowserTitle(CString& aTitle)
 
 void CBrowserGlue::SetBrowserTitle(LPCTSTR aTitle)
 {
+	if (mHIndex != -1) return;
+
 	mTitle = aTitle;
 	if (mpBrowserFrame->GetActiveView() != mpBrowserView)
 		return;
@@ -331,6 +334,9 @@ void CBrowserGlue::PopupBlocked(const char* uri)
 void CBrowserGlue::SetFavIcon(nsIURI* favUri)
 {	
 #ifdef INTERNAL_SITEICONS	
+	nsCOMPtr<nsIURI> pageUri;
+	NewURI(getter_AddRefs(pageUri), CStringToNSUTF8String(mLocation));
+	
 	if (favUri == nullptr) 
 	{
 		// XXX Temporary set m_bDOMLoaded here
@@ -369,14 +375,14 @@ void CBrowserGlue::SetFavIcon(nsIURI* favUri)
 				if(NS_FAILED(rv) || !iconURI) return;
 				
 				mIconURI = iconURI;
-				mIcon = theApp.favicons.GetIcon(iconURI, TRUE);
+				mIcon = theApp.favicons.GetIcon(iconURI, pageUri, TRUE);
 			}
 		}
 	}
 	else
 	{
 		mIconURI = favUri;
-		mIcon = theApp.favicons.GetIcon(favUri, TRUE);
+		mIcon = theApp.favicons.GetIcon(favUri, pageUri, TRUE);
 	}
 	
 	if (mpBrowserFrame->GetActiveView() == mpBrowserView)

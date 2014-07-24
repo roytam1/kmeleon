@@ -301,14 +301,14 @@ int CFindRebar::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	button.fsStyle = TBBS_CHECKBOX | TBSTYLE_AUTOSIZE;
 
 	// Wrap around button
-	if (m_bWrapAround)
+/*	if (m_bWrapAround)
 		button.fsState = TBSTATE_CHECKED;
 	
 	button.idCommand = IDC_WRAP_AROUND;
 	button.iBitmap = 2;
 	m_cToolbar.GetToolBarCtrl().InsertButton(2,&button);
 	str.LoadString(IDS_FIND_WRAPAROUND);
-	m_cToolbar.SetButtonText(2, (LPCTSTR)str);
+	m_cToolbar.SetButtonText(2, (LPCTSTR)str);*/
 
 	// Match case button
 	
@@ -318,9 +318,9 @@ int CFindRebar::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	
 	button.idCommand = IDC_MATCH_CASE;
 	button.iBitmap = 3;
-	m_cToolbar.GetToolBarCtrl().InsertButton(3,&button);
+	m_cToolbar.GetToolBarCtrl().InsertButton(2,&button);
 	str.LoadString(IDS_FIND_MATCHCASE);
-	m_cToolbar.SetButtonText(3, (LPCTSTR)str);
+	m_cToolbar.SetButtonText(2, (LPCTSTR)str);
 	//toolbar->SetButtonStyle(2, TBBS_CHECKBOX);
 	
 	// Highlight button
@@ -328,9 +328,9 @@ int CFindRebar::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	if (m_bHighlight)
 		button.fsState = TBSTATE_CHECKED;
 	button.idCommand = IDC_HIGHLIGHT;
-	m_cToolbar.GetToolBarCtrl().InsertButton(4,&button);
+	m_cToolbar.GetToolBarCtrl().InsertButton(3,&button);
 	str.LoadString(IDS_FIND_HIGHLIGHT);
-	m_cToolbar.SetButtonText(4, (LPCTSTR)str);
+	m_cToolbar.SetButtonText(3, (LPCTSTR)str);
 
 
 	AddBar(&m_cToolbar, _T(""), NULL, RBBS_NOGRIPPER);

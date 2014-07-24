@@ -82,6 +82,9 @@
 #define THERECANBENODEBUG
 #endif
 
+#ifdef _DEBUG
+#include <vld.h> 
+#endif
 
 #include <afxwin.h>         // MFC core and standard components
 #include <afxext.h>         // MFC extensions
@@ -132,7 +135,7 @@
 #include "nsIDOMDocument.h"
 #include "nsIDOMElement.h"
 #include "nsIDOMHTMLDocument.h"
-
+#include "nsPIDOMWindow.h"
 /*
 #include "nsIDOMWindowCollection.h"
 #include "nsIDOMHTMLAnchorElement.h"

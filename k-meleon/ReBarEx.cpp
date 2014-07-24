@@ -120,8 +120,8 @@ void CReBarEx::SetNeedSeparator(bool aNeed)
 bool CReBarEx::GetNeedSeparator()
 {
 	return false;
-	return mNeedSeparator;
-	return !topTabBar && (!g_xpStyle.IsThemeActive() || !g_xpStyle.IsAppThemed());
+/*	return mNeedSeparator;
+	return !topTabBar && (!g_xpStyle.IsThemeActive() || !g_xpStyle.IsAppThemed());*/
 }
 
 void CReBarEx::OnNcCalcSize(BOOL bCalcValidRects, NCCALCSIZE_PARAMS* lpncsp)
@@ -136,7 +136,7 @@ void CReBarEx::EraseNonClient()
 
 void CReBarEx::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 {
-	*pResult = !GetNeedSeparator() ? CDRF_DODEFAULT : CDRF_NOTIFYPOSTPAINT | CDRF_NOTIFYPOSTPAINT;
+	/**pResult = !GetNeedSeparator() ? CDRF_DODEFAULT : CDRF_NOTIFYPOSTPAINT | CDRF_NOTIFYPOSTPAINT;
 	LPNMCUSTOMDRAW pNMCD = reinterpret_cast<LPNMCUSTOMDRAW>(pNMHDR);
 	switch(pNMCD->dwDrawStage)
 	{
@@ -151,7 +151,7 @@ void CReBarEx::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 
 	case CDDS_ITEMPOSTPAINT:
 		break;
-	}
+	}*/
 }
 
 #if _MSC_VER >= 1300 

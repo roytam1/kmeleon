@@ -94,7 +94,7 @@ CFavIconList::CFavIconList()
 {
 	m_iDefaultIcon = 0;
 	m_iOffset = 0;
-	mIconObserver = new IconObserver(this);
+	//mIconObserver = new IconObserver(this);
 }
 
 CFavIconList::~CFavIconList()
@@ -263,7 +263,7 @@ BOOL CFavIconList::Create(int cx, int cy, UINT nFlags, int nInitial, int nGrow)
 extern nsresult NewURI(nsIURI **result, const nsAString &spec);
 extern nsresult NewURI(nsIURI **result, const nsACString &spec);
 
-void CFavIconList::AddMap(const char *uri, int index)
+void CFavIconList::AddMap(const char *uri, int index, const char* pageUri)
 {
 	// This function is called from another thread
 	// if the moz image loader is used.
@@ -276,37 +276,42 @@ void CFavIconList::AddMap(const char *uri, int index)
 	// have several different icons.
 	nsCOMPtr<nsIURI> URI;
 	nsEmbedCString nsUri;
-	nsUri.Assign(uri);
+	nsUri.Assign(pageUri && pageUri[0] ? pageUri : uri);
 	nsresult rv = NewURI(getter_AddRefs(URI), nsUri);
 	if (NS_SUCCEEDED(rv)) {
-		URI->GetHost(nsUri);
-		nsUri.Insert("http://", 0, 7);
-		m_urlMap[A2CT(nsUri.get())] = index - m_iOffset;
+		bool ishttps, ishttp;
+		URI->SchemeIs("http", &ishttp);
+	    URI->SchemeIs("https", &ishttps);
+		if (ishttp || ishttps) {
+			URI->GetHost(nsUri);
+			nsUri.Insert("http://", 0, 7);
+			m_urlMap[A2CT(nsUri.get())] = index - m_iOffset;
+		}
 	}
 
 	// If it's not really efficient, at least I don't have
 	// to mess with synchronisation.
-	theApp.BroadcastMessage(UWM_NEWSITEICON, (WPARAM)uri, index);
+	theApp.BroadcastMessage(UWM_NEWSITEICON, (WPARAM)0, index);
 }
 
-int CFavIconList::AddIcon(const char* uri, CBitmap* icon, COLORREF cr)
+int CFavIconList::AddIcon(const char* uri, CBitmap* icon, COLORREF cr, const char* pageUri)
 {
 	int index = Add(icon, cr);
-	AddMap(uri, index);
+	AddMap(uri, index, pageUri);
 	return index;
 }
 
-int CFavIconList::AddIcon(const char* uri, CBitmap* icon, CBitmap* mask)
+int CFavIconList::AddIcon(const char* uri, CBitmap* icon, CBitmap* mask, const char* pageUri)
 {
 	int index = Add(icon, mask);
-	AddMap(uri, index);
+	AddMap(uri, index, pageUri);
 	return index;
 }
 
-int CFavIconList::AddIcon(const char* uri, HICON icon)
+int CFavIconList::AddIcon(const char* uri, HICON icon, const char* pageUri)
 {
 	int index = Add(icon);
-	AddMap(uri, index);
+	AddMap(uri, index, pageUri);
 	return index;
 }
 
@@ -399,7 +404,7 @@ int CFavIconList::GetHostIcon(const TCHAR* aUrl)
 	return index + m_iOffset;
 }
 
-int CFavIconList::GetIcon(nsIURI *aURI, BOOL download)
+int CFavIconList::GetIcon(nsIURI *aURI, nsIURI* aPageURI, BOOL download)
 {
 	int index = GetDefaultIcon();
 
@@ -412,7 +417,7 @@ int CFavIconList::GetIcon(nsIURI *aURI, BOOL download)
 		return index + m_iOffset;
 	
 	if (download) 
-		DwnFavIcon(aURI);
+		DwnFavIcon(aURI, aPageURI);
 	return GetDefaultIcon();
 }
 
@@ -463,18 +468,22 @@ void CFavIconList::ResetCache()
 	theApp.BroadcastMessage(UWM_NEWSITEICON, 0, -1);
 }
 
-BOOL CFavIconList::DwnFavIcon(nsIURI* iconURI)
+BOOL CFavIconList::DwnFavIcon(nsIURI* iconURI, nsIURI* pageURI)
 {
 #ifndef PNG_SUPPORT
 	// Borked way to get the favicon.
 	imgIRequest* request = nullptr;
-	//IconObserver* observer = new IconObserver(this);
-	//NS_ADDREF(observer);
 
-	if (NS_FAILED(mIconObserver->LoadIcon(iconURI, nullptr))) {
-		//NS_RELEASE(observer);
+	IconObserver* observer = new IconObserver(this);
+	if (NS_FAILED(observer->LoadIcon(iconURI, pageURI))) {
+		delete observer;
 		return FALSE;
 	}
+	return TRUE;
+
+	//if (NS_FAILED(mIconObserver->LoadIcon(iconURI, pageURI))) {
+//		return FALSE;
+//	}
 #else
 
 	// Currently the favicon is downloaded like any other file 
@@ -522,7 +531,8 @@ NS_IMETHODIMP IconObserver::Notify(imgIRequest *aProxy, int32_t aType, const nsI
 {
 	if (aType == imgINotificationObserver::LOAD_COMPLETE)
 	{		
-		aProxy->StartDecoding();
+		if (!NS_SUCCEEDED(aProxy->StartDecoding()))
+			aProxy->Cancel(NS_OK);
 	}
 	else if (aType == imgINotificationObserver::DECODE_COMPLETE)
 	{
@@ -778,7 +788,9 @@ NS_IMETHODIMP IconObserver::CreateDIB(imgIRequest *aRequest)
 	NS_ENSURE_SUCCESS(rv, rv);
 	URI->GetSpec(nsuri);
 
-	mFavList->AddIcon(nsuri.get(),&bitmap, (CBitmap*)NULL);
+	nsEmbedCString nsPageuri;
+	if (mPageUri) mPageUri->GetSpec(nsPageuri);
+	mFavList->AddIcon(nsuri.get(),&bitmap, (CBitmap*)NULL, nsPageuri.get());
 	return NS_OK;
 }
 
@@ -787,7 +799,8 @@ NS_IMETHODIMP IconObserver::LoadIcon(nsIURI *iconUri, nsIURI* pageUri)
 	nsresult rv;
 	nsCOMPtr<imgILoader> loader = do_GetService("@mozilla.org/image/loader;1", &rv);
 	NS_ENSURE_SUCCESS(rv, rv);
-	
+	mPageUri = pageUri;
+
 	return loader->LoadImageXPCOM(iconUri, pageUri, nullptr, 
 		nullptr, nullptr, this, this, nsIRequest::LOAD_BYPASS_CACHE, 
 		nullptr, nullptr, getter_AddRefs(mRequest));

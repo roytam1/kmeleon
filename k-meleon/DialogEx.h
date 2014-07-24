@@ -59,6 +59,100 @@ public:
 		return result;
 	}
 
+	/*int RunModalLoop(DWORD dwFlags)
+	{
+		ASSERT(::IsWindow(m_hWnd)); // window must be created
+		ASSERT(!(m_nFlags & WF_MODALLOOP)); // window must not already be in modal state
+
+		// for tracking the idle time state
+		BOOL bIdle = TRUE;
+		LONG lIdleCount = 0;
+		BOOL bShowIdle = (dwFlags & MLF_SHOWONIDLE) && !(GetStyle() & WS_VISIBLE);
+		HWND hWndParent = ::GetParent(m_hWnd);
+		m_nFlags |= (WF_MODALLOOP|WF_CONTINUEMODAL);
+		MSG *pMsg = AfxGetCurrentMessage();
+
+		// acquire and dispatch messages until the modal state is done
+		for (;;)
+		{
+			ASSERT(ContinueModal());
+
+			// phase1: check to see if we can do idle work
+			while (bIdle &&
+				!::PeekMessage(pMsg, NULL, NULL, NULL, PM_NOREMOVE))
+			{
+				ASSERT(ContinueModal());
+
+				// show the dialog when the message queue goes idle
+				if (bShowIdle)
+				{
+					ShowWindow(SW_SHOWNORMAL);
+					UpdateWindow();
+					bShowIdle = FALSE;
+				}
+
+				// call OnIdle while in bIdle state
+				if (!(dwFlags & MLF_NOIDLEMSG) && hWndParent != NULL && lIdleCount == 0)
+				{
+					// send WM_ENTERIDLE to the parent
+					::SendMessage(hWndParent, WM_ENTERIDLE, MSGF_DIALOGBOX, (LPARAM)m_hWnd);
+				}
+				if ((dwFlags & MLF_NOKICKIDLE) ||
+					!SendMessage(WM_KICKIDLE, MSGF_DIALOGBOX, lIdleCount++))
+				{
+					// stop idle processing next time
+					bIdle = FALSE;
+				}
+			}
+
+			// phase2: pump messages while available
+			do
+			{
+				ASSERT(ContinueModal());
+
+				while (::PeekMessage(&(pState->m_msgCur), NULL, NULL, WM_USER, PM_NOREMOVE))
+				{
+					if (!theApp.PumpMessage2(WM_USER))
+					{
+						AfxPostQuitMessage(0);
+						return -1;
+					}
+
+					// show the window when certain special messages rec'd
+					if (bShowIdle &&
+						(pMsg->message == 0x118 || pMsg->message == WM_SYSKEYDOWN))
+					{
+						ShowWindow(SW_SHOWNORMAL);
+						UpdateWindow();
+						bShowIdle = FALSE;
+					}
+
+					if (!ContinueModal())
+						goto ExitModal;
+
+					// reset "no idle" state after pumping "normal" message
+					if (AfxIsIdleMessage(pMsg))
+					{
+						bIdle = TRUE;
+						lIdleCount = 0;
+					}
+				}
+
+				// pump message, but quit on WM_QUIT
+				if (!AfxPumpMessage())
+				{
+					AfxPostQuitMessage(0);
+					return -1;
+				}				
+
+			} while (::PeekMessage(pMsg, NULL, NULL, NULL, PM_NOREMOVE));
+		}
+
+	ExitModal:
+		m_nFlags &= ~(WF_MODALLOOP|WF_CONTINUEMODAL);
+		return m_nModalResult;
+	}*/
+
 	BOOL Create(LPCTSTR lpszTemplateName, CWnd* pParentWnd)
 	{
 		ASSERT(m_lpszTemplateName == NULL);

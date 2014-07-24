@@ -266,23 +266,26 @@ void CMfcEmbedApp::ShowDebugConsole()
 }
 
 
-bool CMfcEmbedApp::FindSkinFile( CString& szSkinFile, TCHAR *filename ) 
+bool CMfcEmbedApp::FindSkinFile( CString& szSkinFile, LPCTSTR filename, LPCTSTR skin, bool searchUser ) 
 {
    WIN32_FIND_DATA FindData;
    HANDLE hFile;
-   
+   CString file;
+
    if (!szSkinFile || !filename || !*filename)
       return false;
-
-   CString file = GetFolder(UserSettingsFolder) + _T('\\') + filename;
-   hFile = FindFirstFile(file, &FindData);
-   if(hFile != INVALID_HANDLE_VALUE) {   
-         FindClose(hFile);
-         szSkinFile = file;
-         return true;
+   
+   if (searchUser) {
+      file = GetFolder(UserSettingsFolder) + _T('\\') + filename;
+      hFile = FindFirstFile(file, &FindData);
+      if(hFile != INVALID_HANDLE_VALUE) {   
+            FindClose(hFile);
+            szSkinFile = file;
+            return true;
       }   
+   }
 
-    CString tmp = theApp.preferences.skinsCurrent;
+    CString tmp = skin ? skin : theApp.preferences.skinsCurrent;
     CString skinsDir = GetFolder(UserSkinsFolder) + _T("\\");
 	while (tmp.GetLength()>0) {
 		if (tmp.GetAt( tmp.GetLength()-1 ) != '\\')
@@ -297,7 +300,7 @@ bool CMfcEmbedApp::FindSkinFile( CString& szSkinFile, TCHAR *filename )
 		tmp = tmp.Left( tmp.GetLength()-2 );
 	}
 
-    tmp = theApp.preferences.skinsCurrent;
+    tmp = skin ? skin : theApp.preferences.skinsCurrent;
     skinsDir = GetFolder(SkinsFolder) + _T("\\");
 	while (tmp.GetLength()>0) {
 		if (tmp.GetAt( tmp.GetLength()-1 ) != '\\')
@@ -523,6 +526,7 @@ BOOL CMfcEmbedApp::InitInstance()
 #endif
 
 #ifndef _DEBUG
+
    HMODULE hMod = GetModuleHandleW(L"Kernel32.dll");
    if (hMod)
    {
@@ -549,13 +553,18 @@ BOOL CMfcEmbedApp::InitInstance()
 
 #ifdef _DEBUG
 	ShowDebugConsole();
+	_CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
 #endif
-	
-	if (NS_FAILED(XPCOMGlueStartup(GetFolder(RootFolder)+"\\xul.dll"))) {
+	CString xul = GetFolder(RootFolder)+_T("\\xul.dll");
+	len = WideCharToMultiByte(CP_UTF8, 0, xul, -1, NULL, 0, NULL, NULL);
+	char* gnah = new char[len+1];
+	WideCharToMultiByte(CP_UTF8, 0, xul, -1, gnah, len, NULL, NULL);
+	if (NS_FAILED(XPCOMGlueStartup(gnah))) {
 		AfxMessageBox(IDS_START_FAILED, MB_OK | MB_ICONERROR);
 		//MessageBox(NULL, _T("Could not initialize XPCOM. Perhaps the GRE\nis not installed or could not be found?"), _T("K-Meleon"), MB_OK | MB_ICONERROR);
         return FALSE;
     }
+	delete gnah;
 
    m_hMutex = CreateMutex(NULL, FALSE, NULL);
 
@@ -1235,17 +1244,12 @@ int CMfcEmbedApp::ExitInstance()
    }
    
    if (XRE_TermEmbedding) XRE_TermEmbedding();
-   //NS_TermEmbedding();
 
-#ifdef XPCOM_GLUE
-   // XPCOMGlueShutdown();
-#endif
-
+   // In case a plugin is a component, must be unloaded last.
    plugins.UnLoadAll();
    if (m_hResDll) FreeLibrary(m_hResDll);
 
    OleUninitialize();
-   
    return 1;
 }
 
@@ -1723,7 +1727,7 @@ int CMfcEmbedApp::Run()
 
 BOOL CMfcEmbedApp::PumpMessage2(UINT filter)
 {
-		_AFX_THREAD_STATE *pState = AfxGetThreadState();
+	_AFX_THREAD_STATE *pState = AfxGetThreadState();
 
 	if (!::GetMessage(&(pState->m_msgCur), NULL, NULL, filter))
 	{

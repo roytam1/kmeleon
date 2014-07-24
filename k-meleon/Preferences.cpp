@@ -191,14 +191,16 @@ void CPreferences::MRUListChanged()
 
 void CPreferences::SkinChanged()
 {
-	CString skinFile;
-	theApp.FindSkinFile(skinFile, _T("skin.js"));
+	/*CString skinFile;
+	CString skin = GetString("kmeleon.general.skinsCurrent", skinsCurrent);
+	theApp.FindSkinFile(skinFile, _T("skin.js"), skin, false);
 	if (!skinFile.IsEmpty()) 
 	{
-		CString defaultDir = ::GetMozDirectory(NS_APP_PREF_DEFAULTS_50_DIR);
-		if (defaultDir.GetLength())  
-			CopyFile(skinFile, defaultDir + _T("skin.js"), FALSE);
-	}
+		//CString defaultDir = ::GetMozDirectory(NS_APP_DEFAULTS_50_DIR);
+		//if (defaultDir.GetLength())  
+		//	CopyFile(skinFile, defaultDir + _T("skin.js"), FALSE);
+		CopyFile(skinFile, profileFolder + _T("\\skin.js"), FALSE);
+	}*/
 }
 
 BOOL LoadStyleSheet(nsIURI* uri, BOOL load)
@@ -276,7 +278,7 @@ void CPreferences::Load() {
       _ASSERTE(m_prefs && "Could not get preferences service");
       return;
    }
-	
+   
 #ifndef USE_PROFILES
    m_prefservice->ReadUserPrefs(nullptr);
 #endif
@@ -333,6 +335,14 @@ void CPreferences::Load() {
       FindClose(hFile);
    else
       currentSkinFolder = skinsFolder + _T("\\") + skinsCurrent;
+   
+   CString skin;
+   if (theApp.FindSkinFile(skin, _T("skin.js"))) {
+	  nsCOMPtr<nsIFile> file;
+      NS_NewLocalFile(CStringToNSString(skin), false, getter_AddRefs(file));   
+      m_prefservice->ReadUserPrefs(file);
+      m_prefservice->ReadUserPrefs(nullptr);
+   }
 
    FlashBlockChanged();
    AdBlockChanged();
