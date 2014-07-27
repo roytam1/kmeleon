@@ -189,7 +189,7 @@ TCHAR *fixString(const TCHAR *inString, int size) {
 
       delete string;
       string = _tcsdup(newString);
-      delete newString;
+      delete [] newString;
    }
 
    return string;

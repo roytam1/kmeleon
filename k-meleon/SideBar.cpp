@@ -397,7 +397,7 @@ void CSideBar::OnPaint()
 
 BOOL CSideBar::PreCreateWindow(CREATESTRUCT& cs)
 {
-	// TODO : ajoutez ici votre code spécialisé et/ou l'appel de la classe de base
+	// TODO : ajoutez ici votre code spécialisEet/ou l'appel de la classe de base
 	
 	if (!CWnd::PreCreateWindow(cs))
         return FALSE;

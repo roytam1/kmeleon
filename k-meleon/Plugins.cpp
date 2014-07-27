@@ -47,8 +47,8 @@ kmeleonDocInfo kDocInfo;
 kmeleonPointInfo gPointInfo;
 
 
-CBrowserFrame* pBrowserFrame = NULL;
-CBrowserView* pBrowserView = NULL;
+//CBrowserFrame* pBrowserFrame = NULL;
+//CBrowserView* pBrowserView = NULL;
 
 #define PLUGIN_HEADER(hWnd, ret) \
 	CBrowserFrame* frame;\
@@ -294,8 +294,15 @@ HWND NavigateTo(const char *url, int windowState, HWND mainWnd)
       bBackground = TRUE;
    case OPEN_NEWTAB:
       if (!frame) return NULL;
-	  if (!frame->IsKindOf(RUNTIME_CLASS(CBrowserFrmTab)))
-		   return NULL;
+	  if (!frame->IsKindOf(RUNTIME_CLASS(CBrowserFrmTab))) {
+		  if (!lpctUrl)
+			 newFrame = theApp.CreateNewBrowserFrame(nsIWebBrowserChrome::CHROME_ALL, bBackground);
+		  else if (view)
+			 newFrame = view->OpenURLInNewWindow(lpctUrl, NULL, bBackground);
+		  else 
+			 newFrame = theApp.CreateNewBrowserFrameWithUrl(lpctUrl, NULL, bBackground);
+		  break;
+	  }		
       
       if (!lpctUrl)
          newTab = ((CBrowserFrmTab*)frame)->CreateBrowserTab();
@@ -393,7 +400,7 @@ HIMAGELIST GetIconList()
 
 long GetPreference(enum PREFTYPE type, const char *preference, void *ret, void *defVal)
 {
-   long result;
+   long result = 0;
    switch (type) {
    case PREF_BOOL:
       *(int *)ret = result = theApp.preferences.GetBool(preference, *(int *)defVal);
@@ -575,7 +582,7 @@ int GetMozillaSessionHistory (HWND hWnd, char ***titles, char ***urls, int *coun
    PRUnichar *title;
    
    if (pHistUrl)
-      delete pHistUrl;
+      delete [] pHistUrl;
    pHistUrl = new char *[SessionSize];
    
    nsCOMPtr<nsIURI> theUri;
@@ -1220,7 +1227,7 @@ int GetGlobalVar(enum PREFTYPE type, char *preference, void *ret) {
 			    wchar_t* uret = new wchar_t[GetWindowVar(NULL, Window_SelectedText, 0) + 1];
 				int retlen = GetWindowVar(NULL, Window_SelectedText, ret);
 				strcpy((char*)ret, W2A(uret));
-				delete uret;
+				delete [] uret;
 				return retlen;
 			  }
 		 }

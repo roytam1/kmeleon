@@ -790,17 +790,18 @@ void LoadBM(const TCHAR *file)
    FILE *bmFile = _tfopen(file, _T("r"));
    if (bmFile){
       long bmFileSize = FileSize(bmFile);
-      
-      char *bmFileBuffer = new char[bmFileSize];
-      if (bmFileBuffer){
-         size_t s = fread(bmFileBuffer, sizeof(char), bmFileSize, bmFile);
-         bmFileBuffer[s] = 0;
-         strtok(bmFileBuffer, "\n");
-         ParseBookmarks(bmFileBuffer, *gBookmarkRoot);
-         gLoaded = TRUE;
-         delete [] bmFileBuffer;
-      }
+      if (bmFileSize) {
+         char *bmFileBuffer = new char[bmFileSize];
+         if (bmFileBuffer){
+            size_t s = fread(bmFileBuffer, sizeof(char), bmFileSize, bmFile);
+            bmFileBuffer[s] = 0;
+            strtok(bmFileBuffer, "\n");
+            ParseBookmarks(bmFileBuffer, *gBookmarkRoot);
+            gLoaded = TRUE;
+            delete [] bmFileBuffer;
+         }
       fclose(bmFile);
+	  }
    }
 
    ReleaseMutex(ghMutex);

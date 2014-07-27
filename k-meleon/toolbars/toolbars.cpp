@@ -1558,9 +1558,18 @@ int ShowMenuUnderButton(HWND hWndParent, UINT uMouseButton, int iID, HWND hToolb
          pButton = pButton->prev;
 	  }
 	  
-	if (!pButton)
-	   hMenu = kPlugin.kFuncs->GetMenu("Toolbars");
-			
+      if (!pButton) {
+         if (uMouseButton == TPM_RIGHTBUTTON)
+            hMenu = kPlugin.kFuncs->GetMenu("Toolbars");
+         else if (uMouseButton == TPM_LEFTBUTTON) {
+            POINT p;
+            ::GetCursorPos(&p);
+            ::SendMessage(hWndParent, WM_SYSCOMMAND, SC_MOVE+1, MAKELPARAM(p.x,p.y));
+            return 1;
+         }
+         else return 0;
+      }
+   
    // Show the menu if any
    if (hMenu) {
 

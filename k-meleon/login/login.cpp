@@ -119,6 +119,7 @@ void DestroyTab(HWND hWnd, HWND hTab) {
 
 	CDomEventListener* listener = reinterpret_cast<CDomEventListener*>(GetProp(hWnd, SIDEBARPROPNAME));
 	if (listener == NULL) return;
+	NS_ADDREF(listener);
 	listener->Done(hTab);
 }
 
@@ -142,7 +143,7 @@ void Destroy(HWND hWnd) {
 	CDomEventListener* listener = reinterpret_cast<CDomEventListener*>(GetProp(hWnd, SIDEBARPROPNAME));
 	if (listener == NULL) return;
 	// listener->Done(); // Will destroy it
-	delete listener;
+	NS_RELEASE(listener);
 }
 
 void DoMenu(HMENU menu, char *param) {

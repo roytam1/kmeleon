@@ -131,7 +131,7 @@ protected:
 	BOOL mChevron;
 	
 	int GetButtonIDFromData(DWORD data);
-	void UpdateButtonsSize();
+	void UpdateButtonsSize(bool forceUpdate = false);
 	
 	void HandleMouseClick(int flag, CPoint point);
 	

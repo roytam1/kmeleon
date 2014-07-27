@@ -846,7 +846,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		if (macro && macro->ismacro() && macro->md->macroInfo) {
 			Context c = {hWnd};
 			Evaluator e(M, c);
-			kPlugin.kFuncs->SetStatusBarText(CUTF8_to_ANSI(e.EvalExpr(macro->md->macroInfo).strval()));
+			kPlugin.kFuncs->SetStatusBarText(e.EvalExpr(macro->md->macroInfo).strval());
 			return 0;
 		}
 

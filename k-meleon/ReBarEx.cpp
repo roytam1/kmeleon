@@ -276,7 +276,7 @@ void CReBarEx::OnChevronPushed( NMHDR * pNotifyStruct, LRESULT* result )
 				
 				bAtleastOne=TRUE;
 			}
-			delete buttonText;
+			delete [] buttonText;
 		}
 	}
 
@@ -418,9 +418,9 @@ void CReBarEx::SetVisibility(int index, BOOL visibility) {
    sprintf(prefName, "kmeleon.toolband.%s.visibility", T2CA(m_index[index]->name));
    theApp.preferences.SetBool(prefName, visibility);   
    
-   int barIndex = FindByIndex(index);
-   GetReBarCtrl().ShowBand(barIndex, visibility);
-   //RestoreBandSizes(); // Restore everything else they're not showing correctly
+   //int barIndex = FindByIndex(index);
+   //GetReBarCtrl().ShowBand(barIndex, visibility);
+   RestoreBandSizes(); // Restore everything else they're not showing correctly
    DrawMenuBar();
 }
 

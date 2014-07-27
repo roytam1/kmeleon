@@ -69,7 +69,8 @@ void OpenFileExternal(const char* uri, LPCTSTR file, nsresult status, void* para
 		si.wShowWindow = SW_SHOW;
       
 		CreateProcess(0,command,0,0,0,0,0,0,&si,&pi);      // launch external viewer
-			
+		CloseHandle(pi.hProcess);
+		CloseHandle(pi.hThread);
 		delete command;
 	}
 	free(viewer);

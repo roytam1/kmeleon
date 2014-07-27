@@ -564,7 +564,7 @@ BOOL CMfcEmbedApp::InitInstance()
 		//MessageBox(NULL, _T("Could not initialize XPCOM. Perhaps the GRE\nis not installed or could not be found?"), _T("K-Meleon"), MB_OK | MB_ICONERROR);
         return FALSE;
     }
-	delete gnah;
+	delete [] gnah;
 
    m_hMutex = CreateMutex(NULL, FALSE, NULL);
 
@@ -603,7 +603,7 @@ BOOL CMfcEmbedApp::InitInstance()
 
    BOOL result;
    result = m_ProfileMgr->StartUp(provider, profile ? A2CT(profile) : nullptr);
-   if (profile) delete profile;
+   if (profile) delete [] profile;
 
    ASSERT(result);
    if (!result) return FALSE;   
@@ -1005,7 +1005,7 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
    if (!preferences.bHideTaskBarButtons)
       pFrame->ModifyStyleEx(0, WS_EX_APPWINDOW);
 
-   if (preferences.GetBool("kmeleon.display.hideTitleBar", FALSE))
+   if (preferences.GetBool("kmeleon.display.hideTitleBar", FALSE) && !isPopupOrDialog)
       pFrame->ModifyStyle(WS_CAPTION, 0 , SWP_DRAWFRAME);
 
    if (inBackground) {

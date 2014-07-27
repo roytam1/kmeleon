@@ -341,7 +341,8 @@ void DestroyTab(HWND hWndParent, HWND hTab) {
 		SetFullScreen(hWndParent, 0);
 }
 
-void SwitchTab(HWND hWndParent, HWND hTab) {
+void SwitchTab(HWND hWndOldTab, HWND hTab) {
+	HWND hWndParent = ::GetParent(hTab);
 	FS *fs = find_FS(hWndParent);
 	if (!fs) return;
 	fs->listener->CancelFullScreen();

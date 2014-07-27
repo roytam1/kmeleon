@@ -75,7 +75,7 @@ BOOL CTBOleDropTarget::OnDrop(CWnd* pWnd, COleDataObject* pDataObject,
 		tabbar->GetToolBarCtrl().GetButton(destIndex, &buttonDest);
 		tabbar->GetToolBarCtrl().DeleteButton(index);
 		tabbar->GetToolBarCtrl().InsertButton(destIndex,&button);
-		theApp.plugins.SendMessage("*", "*", "MoveTab", (long)tab->m_hWnd, (long)((CBrowserTab*)(buttonDest.dwData))->GetSafeHwnd());
+		theApp.plugins.SendMessage("*", "*", "MoveTab", (long)tab->GetSafeHwnd(), (long)((CBrowserTab*)(buttonDest.dwData))->GetSafeHwnd());
 		return TRUE;
 
 	} else {
@@ -257,7 +257,7 @@ BOOL CTabReBar::Init(CReBarEx* rebar)
 	return TRUE;
 }
 
-void CTabReBar::UpdateButtonsSize()
+void CTabReBar::UpdateButtonsSize(bool forceUpdate)
 {
 	int count = this->GetToolBarCtrl().GetButtonCount();
 	if (!count) return;
@@ -283,8 +283,7 @@ void CTabReBar::UpdateButtonsSize()
 	GetWindowRect(&rect);
 	mChevron = FALSE;
 
-	// -4 prevent freeze on vista+
-	int width = rect.right - rect.left - 4;
+	int width = rect.right - rect.left - 2;
 	int buttonWidth = width / count;
 	if (buttonWidth > nMaxWidth)
 		buttonWidth = nMaxWidth;
@@ -295,7 +294,12 @@ void CTabReBar::UpdateButtonsSize()
 			buttonWidth = width / (width/nMinWidth);
 	}
 	
+	int w = LOWORD(GetToolBarCtrl().GetButtonSize());
+	if (!forceUpdate && w == buttonWidth) return;
 	GetToolBarCtrl().SetButtonWidth(buttonWidth, buttonWidth);
+	w = LOWORD(GetToolBarCtrl().GetButtonSize());
+	if (w != buttonWidth)
+		GetToolBarCtrl().SetButtonWidth(--buttonWidth, buttonWidth);
 
 	SIZE size;
 	GetToolBarCtrl().GetMaxSize(&size);
@@ -304,15 +308,15 @@ void CTabReBar::UpdateButtonsSize()
 	REBARBANDINFO rb;
 	rb.cbSize = sizeof(REBARBANDINFO);
 	rb.fMask  = RBBIM_IDEALSIZE; 
-	rb.cxIdeal = size.cx;
+	rb.cxIdeal = buttonWidth*count;//size.cx;
 
 	/* Stupid Vista+ Fix*/
-	int static ignoreSize = 1;
+	/*int static ignoreSize = 1;
 	if (ignoreSize>0) {
 		ignoreSize--;
 		return;
 	}
-	ignoreSize = 1;
+	ignoreSize = 1;*/
 
 	if (!mFixedBar && !mPosBar) {		
 		int iband = m_wndParent->FindByName(_T("Tabs"));
@@ -386,7 +390,7 @@ LONG CTabReBar::InsertItem(int nItem, int idCommand, LPCTSTR lpszItem, DWORD dat
 	SetButtonText(nItem, lpszItem);
 
 	// Set buttons size & ideal size
-	UpdateButtonsSize();
+	UpdateButtonsSize(true);
 	UpdateVisibility(nItem!=0);
 
 	return 1;
@@ -399,6 +403,12 @@ void CTabReBar::RefreshFavIcon()
 
 BOOL CTabReBar::SetItemText(int idCommand, LPCTSTR lpszItem)
 {
+	//XXX
+	CString str;
+	GetItemText(idCommand, str);
+	if (str.Compare(lpszItem) == 0) 
+		return TRUE;
+
 	int i = FindById(idCommand);
 	if (i==-1) return FALSE;
 	
@@ -416,12 +426,15 @@ BOOL CTabReBar::GetItemText(int idCommand, CString& str)
 
 BOOL CTabReBar::SetItemImage(int idCommand, int nImage)
 {
-	//GetToolBarCtrl().SetImageList(&theApp.favicons);
+	//XXX
+	if (GetItemImage(idCommand) == nImage)
+		return TRUE;
+
 	TBBUTTONINFO bi;
 	bi.cbSize = sizeof(TBBUTTONINFO);
 	bi.dwMask = TBIF_IMAGE;
 	bi.iImage = nImage;
-	return GetToolBarCtrl().SetButtonInfo(idCommand, &bi);
+	return GetToolBarCtrl().SetButtonInfo(idCommand, &bi);	
 }
 
 int CTabReBar::GetItemImage(int idCommand)
@@ -515,7 +528,7 @@ BOOL CTabReBar::DeleteItem(int idCommand)
 	if (i==-1) return FALSE;
 
 	BOOL r = GetToolBarCtrl().DeleteButton(i);
-	UpdateButtonsSize();
+	UpdateButtonsSize(true);
 	UpdateVisibility();
 
 	mDragItem = -1;
