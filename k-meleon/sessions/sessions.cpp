@@ -349,12 +349,13 @@ HWND destroying = NULL;
 void DestroyTab(HWND parent, HWND tab)
 {
 	if (destroying != parent) {
-		Window w = currentSession.getWindow(parent);
-		Tab t = w.getTab(tab);
-	
-		w = Window(NULL);
-		w.addTab(t);
-		undo.addWindow(w);
+		Window* w = currentSession.getWindow(parent);
+		if (w) { 
+			Tab t = w->getTab(tab);	
+			Window ww = Window(NULL);
+			ww.addTab(t);
+			undo.addWindow(ww);
+		}
 	}
 	
     currentSession.removeTab(parent, tab);	
@@ -446,7 +447,7 @@ void Create(HWND hWndParent)
 void Destroy(HWND hWnd) {
 	destroying = hWnd;
 	currentSession.removeWindow(hWnd);
-	undo.addWindow(currentSession.getWindow(hWnd));
+	undo.addWindow(*(currentSession.getWindow(hWnd)));
 
 	int gMaxUndo = 5;
 	kFuncs->GetPreference(PREF_INT, PREFERENCE_SESSION_MAXUNDO, (void*)&gMaxUndo, (void*)&gMaxUndo);
@@ -724,7 +725,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 			currentSession.saveSession(kLastSessionName);
            	break;
-			
+		case WM_DESTROY:
+			destroying = hWnd;
+			break;
 		case WM_COMMAND:
 			WORD command = LOWORD(wParam);
 			if (command == id_undo_close)

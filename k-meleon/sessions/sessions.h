@@ -67,7 +67,9 @@ public:
 		std::vector<std::string>::iterator iter;
 		std::vector<std::string>::iterator iter2;
 		for (iter = urls.begin(),iter2 = titles.begin(); iter != urls.end() && iter2 != titles.end(); iter++,iter2++) {
-			purls += *iter + SEP + *iter2 + SEP;
+			if ((*iter).compare("about:blank") != 0)
+				purls += *iter + SEP + *iter2 + SEP;
+			else shcount--;
 		}
 
 		return itos(shcount) + SEP + itos(index) + SEP + SEP + SEP + purls;
@@ -98,6 +100,7 @@ public:
 		}
 
 		shcount = i;
+		if (shcount>0 && index>shcount) index = shcount - 1;
 		return shcount>0;
 	}
 
@@ -124,7 +127,7 @@ public:
 		}
 	}
 
-	bool open(bool currenttab) {
+	bool open(bool currenttab, bool last = true) {
 
 		if (shcount<=0) return false;
 
@@ -139,7 +142,7 @@ public:
 		}
 
 		kPlugin.kFuncs->SetMozillaSessionHistory(hWnd, aTitles, aUrls, shcount, index);
-	
+		if (last) kPlugin.kFuncs->GotoHistoryIndex(index);
 		return false;
 	}
 	
@@ -177,7 +180,7 @@ public:
 		index = -1;
 	}
 
-	void addTab(Tab win) {
+	void addTab(const Tab& win) {
 		tabsList.push_back(win);
 		tabcount++;
 	}
@@ -187,7 +190,7 @@ public:
 		tabcount++;
 	}
 
-	TABLIST::iterator findTab(HWND hWnd) {
+	TABLIST::iterator const findTab(HWND hWnd) {
 		TABLIST::iterator iter;
 		for (iter = tabsList.begin(); iter != tabsList.end(); iter++) {
 			if ((*iter).hWnd == hWnd) break;
@@ -340,6 +343,7 @@ public:
 		}
 
 		shcount = i;
+		if (shcount>0 && index>shcount) index = shcount - 1;
 		return shcount > 0;
 	}
 
@@ -377,7 +381,7 @@ public:
 			TABLIST::iterator iter;
 			for (iter = tabsList.begin(); iter != tabsList.end(); iter++) {
 				(*iter).setParent(hWnd);
-				(*iter).open(iter == tabsList.begin());
+				(*iter).open(iter == tabsList.begin(), iter == (--tabsList.end()));
 			}
 			ShowWindow(hWnd, state);
 			return active;
@@ -417,17 +421,17 @@ public:
 			return true;
 		}
 		
-		TABLIST isuck;
+		TABLIST newList;
 		TABLIST::iterator iter;
 		for (iter = tabsList.begin(); iter < tabsList.end(); iter++)
 		{
 			if (iter == iter2) 
-				isuck.push_back(*iter1);
-			if (iter == iter1) 
-				continue;
-			isuck.push_back(*iter);
+				newList.push_back(*iter1);
+			else if (iter == iter1) 
+				newList.push_back(*iter2);				
+			else newList.push_back(*iter);
 		}
-		tabsList.swap(isuck);
+		tabsList.swap(newList);
 		return true;
 	}
 
@@ -499,7 +503,7 @@ public:
 		//name = aName;
 	}
 
-	void addWindow(Window win) {
+	void addWindow(const Window& win) {
 		windowsList.push_back(win);
 	}
 
@@ -514,7 +518,7 @@ public:
 		(*iter).addTab(hTab);
 	}
 
-	WINLIST::iterator findWindow(HWND hWnd) {
+	WINLIST::iterator const findWindow(HWND hWnd) {
 		WINLIST::iterator iter;
 		for (iter = windowsList.begin(); iter != windowsList.end(); iter++) {
 			if ((*iter).hWnd == hWnd) break;
@@ -522,14 +526,14 @@ public:
 		return iter;
 	}
 
-	Window getWindow(HWND hWnd) {
+	Window* getWindow(HWND hWnd) {
 		WINLIST::iterator iter;
 		for (iter = windowsList.begin(); iter != windowsList.end(); iter++) {
 			if ((*iter).hWnd == hWnd) break;
 		}
 		assert(iter != windowsList.end());
-		if (iter == windowsList.end()) return Window(NULL);
-		return *iter;
+		if (iter == windowsList.end()) return NULL;
+		return &*iter;
 	}
 
 	void removeWindow(HWND hWnd) {
@@ -654,7 +658,9 @@ public:
 	}
 
 	void close(HWND hWnd) {
-		PostMessage((*(findWindow(hWnd))).hWnd, WM_CLOSE, 0, 0);
+		WINLIST::iterator iter = findWindow(hWnd);
+		SendMessage((*iter).hWnd, WM_CLOSE, 0, 0);
+		//(*iter).wasclosed();
 	}
 
 	void empty() {
