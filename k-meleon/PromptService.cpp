@@ -36,6 +36,13 @@
 #include "nsIWindowWatcher.h"
 #include "nsIAuthInformation.h"
 
+#include "nsILoginManager.h"
+#include "MozUtils.h"
+#include "nsIIOService.h"
+#include "nsIProtocolHandler.h"
+#include "nsILoginInfo.h"
+#include "nsIStringBundle.h"
+
 extern CWnd* CWndForDOMWindow(nsIDOMWindow *aWindow);
 
 //*****************************************************************************
@@ -45,7 +52,7 @@ extern CWnd* CWndForDOMWindow(nsIDOMWindow *aWindow);
 
 
 //*****************************************************************************
-NS_IMPL_ISUPPORTS4(CPromptService, nsIPromptFactory, nsIPrompt, nsIPromptService, nsIAuthPrompt)
+NS_IMPL_ISUPPORTS4(CPromptService, nsIPromptFactory, nsIPrompt, nsIAuthPrompt, nsIPromptService)
 //NS_IMPL_ISUPPORTS1(CPromptService, nsIPromptService/*, nsINonBlockingAlertService*/)
 
 CPromptService::CPromptService()
@@ -59,6 +66,119 @@ NS_IMETHODIMP CPromptService::GetPrompt(nsIDOMWindow *aParent, const nsIID & iid
 {
 	mDomWindow = aParent;
 	return QueryInterface(iid, result);
+}
+
+/* boolean prompt (in wstring dialogTitle, in wstring text, in wstring passwordRealm, in uint32_t savePassword, in wstring defaultText, out wstring result); */
+NS_IMETHODIMP CPromptService::Prompt(const PRUnichar * dialogTitle, const PRUnichar * text, const PRUnichar * passwordRealm, uint32_t savePassword, const PRUnichar * defaultText, PRUnichar * *result, bool *_retval)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* boolean promptUsernameAndPassword (in wstring dialogTitle, in wstring text, in wstring passwordRealm, in uint32_t savePassword, inout wstring user, inout wstring pwd); */
+NS_IMETHODIMP CPromptService::PromptUsernameAndPassword(const PRUnichar * dialogTitle, const PRUnichar * text, const PRUnichar * passwordRealm, uint32_t savePassword, PRUnichar * *user, PRUnichar * *pwd, bool *_retval)
+{
+	nsString realm, url;
+	url.Assign(passwordRealm);
+	const wchar_t *start = wcsrchr(passwordRealm, '('), *stop;
+	if (start && (stop = wcsrchr(start, ')')) && stop>start) {
+			realm.Append(start+1, stop-start-1);
+			url.Assign(passwordRealm, start-passwordRealm);
+	}
+	realm.get();
+	url.get();
+
+	nsCOMPtr<nsIURI> uri;
+	NewURI(getter_AddRefs(uri), url);
+	nsCString scheme, host, hostname;
+	int32_t port, dport;
+	uri->GetHost(host);
+	uri->GetScheme(hostname);
+	uri->GetPort(&port);
+	hostname.Append(scheme);
+	hostname.Append("://");
+	hostname.Append(host);
+	if (port != -1) {
+		 nsCOMPtr<nsIIOService> ios = do_GetService("@mozilla.org/network/io-service;1");
+		 if (ios) {
+			 nsCOMPtr<nsIProtocolHandler> handler;
+			 ios->GetProtocolHandler(scheme.get(), getter_AddRefs(handler));
+			 handler->GetDefaultPort(&dport);
+			 if (dport != port) {
+				 hostname.Append(":");
+				 char p[20];
+				_itoa_s(port, p, 10);
+				 hostname.Append(p);
+			 }
+		 }
+	}
+
+	nsString checkMsg;
+	nsString hostname2 = NS_ConvertUTF8toUTF16(hostname);	
+	bool canSave = false;
+	nsILoginInfo* selectedLogin = nullptr;
+	nsCOMPtr<nsILoginManager> loginManager = do_GetService("@mozilla.org/login-manager;1");
+	if (loginManager) {
+		loginManager->GetLoginSavingEnabled(hostname2, &canSave);
+		canSave &= (savePassword == nsIAuthPrompt::SAVE_PASSWORD_PERMANENTLY);
+		if (canSave) {
+			uint32_t count;
+			nsILoginInfo** logins;
+			loginManager->FindLogins(&count, hostname2, nsString(), realm, &logins);
+			if (count>0) {
+				selectedLogin = logins[0];
+				nsString nuser,npass;
+				selectedLogin->GetPassword(npass);
+				selectedLogin->GetUsername(nuser);
+				*pwd = NS_StringCloneData(npass);
+				*user = NS_StringCloneData(nuser);
+			}
+			nsCOMPtr<nsIStringBundleService> bundleService = do_GetService("@mozilla.org/intl/stringbundle;1");
+			if (bundleService) {
+				nsCOMPtr<nsIStringBundle> bundle;
+				bundleService->CreateBundle("chrome://passwordmgr/locale/passwordmgr.properties", getter_AddRefs(bundle));
+				if (bundle) {
+					bundle->GetStringFromName(L"rememberPassword", getter_Copies(checkMsg));
+				}
+			}			
+		}
+	}
+
+	bool checkRet = true;
+	PromptUsernameAndPassword(mDomWindow, dialogTitle, text, user, pwd, checkMsg.get(), &checkRet, _retval);
+
+	if (*_retval && checkRet && canSave && *pwd) {
+		nsString username, password;
+		nsCOMPtr<nsILoginInfo> newLogin;
+		if (selectedLogin) {
+			selectedLogin->GetUsername(username);
+			selectedLogin->GetPassword(password);			
+			if (wcscmp(username.get(), *user) == 0 && wcscmp(password.get(), *pwd) == 0) {
+			} else {
+				selectedLogin->Clone(getter_AddRefs(newLogin));
+				loginManager->RemoveLogin(selectedLogin);
+			}
+		} else {
+			newLogin = do_CreateInstance("@mozilla.org/login-manager/loginInfo;1");	
+			newLogin->SetHostname(hostname2);
+			newLogin->SetHttpRealm(realm);
+			newLogin->SetPasswordField(NS_LITERAL_STRING(""));
+			newLogin->SetUsernameField(NS_LITERAL_STRING(""));
+		}
+
+		if (newLogin) {
+			newLogin->SetPassword(nsDependentString(*pwd));
+			newLogin->SetUsername(nsDependentString(*user));		
+			loginManager->AddLogin(newLogin);
+		}
+	}
+
+    return NS_OK;
+}
+
+/* boolean promptPassword (in wstring dialogTitle, in wstring text, in wstring passwordRealm, in uint32_t savePassword, inout wstring pwd); */
+NS_IMETHODIMP CPromptService::PromptPassword(const PRUnichar * dialogTitle, const PRUnichar * text, const PRUnichar * passwordRealm, uint32_t savePassword, PRUnichar * *pwd, bool *_retval)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 /* void alert (in wstring dialogTitle, in wstring text); */
@@ -282,6 +402,8 @@ NS_IMETHODIMP CPromptService::PromptUsernameAndPassword(nsIDOMWindow *parent,
   dlg.AddButton(IDCANCEL, IDS_CANCEL);
   dlg.SetDefaultButton(IDOK);
   dlg.SetCancelButton(IDCANCEL);
+
+  
     
   CString csUsername, csPassword;
   if (username && *username) csUsername = W2CT(*username);
@@ -489,27 +611,29 @@ NS_IMETHODIMP CPromptService::PromptAuth(nsIChannel *aChannel, uint32_t level, n
 	return rv;*/
 	return NS_ERROR_NOT_IMPLEMENTED;
 }
-
+/*
 NS_IMETHODIMP CPromptService::Prompt(const PRUnichar * dialogTitle, const PRUnichar * text, const PRUnichar * passwordRealm, uint32_t savePassword, const PRUnichar * defaultText, PRUnichar * *result, bool *_retval)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-/* boolean promptUsernameAndPassword (in wstring dialogTitle, in wstring text, in wstring passwordRealm, in uint32_t savePassword, inout wstring user, inout wstring pwd); */
+// boolean promptUsernameAndPassword (in wstring dialogTitle, in wstring text, in wstring passwordRealm, in uint32_t savePassword, inout wstring user, inout wstring pwd); 
 NS_IMETHODIMP CPromptService::PromptUsernameAndPassword(const PRUnichar * dialogTitle, const PRUnichar * text, const PRUnichar * passwordRealm, uint32_t savePassword, PRUnichar * *user, PRUnichar * *pwd, bool *_retval)
 {
     return PromptUsernameAndPassword(mDomWindow, dialogTitle, text, user, pwd, nullptr, nullptr, _retval);
 }
 
-/* boolean promptPassword (in wstring dialogTitle, in wstring text, in wstring passwordRealm, in uint32_t savePassword, inout wstring pwd); */
+// boolean promptPassword (in wstring dialogTitle, in wstring text, in wstring passwordRealm, in uint32_t savePassword, inout wstring pwd); 
 NS_IMETHODIMP CPromptService::PromptPassword(const PRUnichar * dialogTitle, const PRUnichar * text, const PRUnichar * passwordRealm, uint32_t savePassword, PRUnichar * *pwd, bool *_retval)
 {
     return PromptPassword(mDomWindow, dialogTitle, text, pwd, nullptr, nullptr, _retval);
-}
+}*/
 
 /* nsICancelable asyncPromptAuth (in nsIChannel aChannel, in nsIAuthPromptCallback aCallback, in nsISupports aContext, in uint32_t level, in nsIAuthInformation authInfo); */
 NS_IMETHODIMP CPromptService::AsyncPromptAuth(nsIChannel *aChannel, nsIAuthPromptCallback *aCallback, nsISupports *aContext, uint32_t level, nsIAuthInformation *authInfo, nsICancelable * *_retval)
 {
+	nsString s;
+	authInfo->GetRealm(s);
     return NS_ERROR_NOT_IMPLEMENTED;
 }
  
