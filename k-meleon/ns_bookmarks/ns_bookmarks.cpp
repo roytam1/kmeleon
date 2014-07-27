@@ -88,7 +88,7 @@ CBookmarkNode *gBookmarkRoot;
 long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2);
 
 kmeleonPlugin kPlugin = {
-   KMEL_PLUGIN_VER,
+   KMEL_PLUGIN_VER_UTF8,
    PLUGIN_NAME,
    DoMessage
 };
@@ -157,7 +157,7 @@ int Load(){
    ghMutex = CreateMutex(NULL, FALSE, _T("BookmarksFileMutex"));
 
    char tmp[MAX_PATH];
-   kPlugin.kFuncs->GetPreference(PREF_TSTRING, PREFERENCE_BOOKMARK_FILE, tmp, "");
+   kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_BOOKMARK_FILE, tmp, "");
 
    if (!tmp[0]) {
       kPlugin.kFuncs->GetFolder(UserSettingsFolder, tmp, MAX_PATH);
@@ -208,8 +208,8 @@ int Load(){
       }
    }
    if (!gBookmarkDefFile)
-	 kPlugin.kFuncs->SetPreference(PREF_TSTRING, PREFERENCE_BOOKMARK_FILE, gBookmarkFile, false);
-   kPlugin.kFuncs->GetPreference(PREF_TSTRING, PREFERENCE_TOOLBAR_FOLDER, gToolbarFolder, (TCHAR*)_T(""));
+   kPlugin.kFuncs->SetPreference(PREF_TSTRING, PREFERENCE_BOOKMARK_FILE, gBookmarkFile, false);
+   kPlugin.kFuncs->GetPreference(PREF_UNISTRING, PREFERENCE_TOOLBAR_FOLDER, gToolbarFolder, (TCHAR*)_T(""));
    kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_TOOLBAR_ENABLED, &gToolbarEnabled, &gToolbarEnabled);
    kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_CHEVRON_ENABLED, &bChevronEnabled, &bChevronEnabled);
    kPlugin.kFuncs->GetPreference(PREF_INT, PREFERENCE_MAX_MENU_LENGTH, &gMaxMenuLength, &gMaxMenuLength);

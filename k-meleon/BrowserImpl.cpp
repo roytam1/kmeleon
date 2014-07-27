@@ -745,6 +745,9 @@ NS_IMETHODIMP CBrowserImpl::HandleEvent(nsIDOMEvent *aEvent)
 			}
 		}		
 
+		// Well, the session plugin can destroy it !
+		if (!m_pBrowserFrameGlue) return NS_OK;
+
 		bool altKey, shiftKey, ctrlKey;
 		mouseEvent->GetCtrlKey(&ctrlKey);
 		mouseEvent->GetShiftKey(&shiftKey);

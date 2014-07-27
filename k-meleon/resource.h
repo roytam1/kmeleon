@@ -357,8 +357,8 @@
 #define IDC_COOKIE_ICON                 2115
 #define IDC_COOKIE_TEXT                 2116
 #define IDC_COOKIE_NAME2                2117
-#define ID_POPUP_BLOCKED_ICON           2200
-#define ID_SECURITY_STATE_ICON          2201
+#define ID_POPUP_BLOCKED_ICON           1400
+#define ID_SECURITY_STATE_ICON          1401
 #define IDS_COOKIE_MODIFY               5000
 #define IDS_COOKIE_SET                  5001
 #define IDS_COOKIE_SET2                 5002

@@ -283,7 +283,6 @@ BOOL CProfileMgr::RemoveProfile(LPCTSTR oldName, BOOL removeDir)
 	UINT profileCount = GetProfileCount();
 	for (UINT index = profile.number+1; index < profileCount; index++)
 	{
-		CProfile profile;
 		if (GetProfileByIndex(index, profile))
 			SetProfileAtIndex(index-1, profile);
 	}

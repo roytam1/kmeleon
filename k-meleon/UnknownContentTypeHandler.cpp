@@ -264,7 +264,7 @@ CUnknownContentTypeHandler::PromptForSaveToFile(nsIHelperAppLauncher *aLauncher,
 		if (bGetFile)
 			pathName = szFileName;
 
-		delete szFileName;
+		delete [] szFileName;
 		szFileName = NULL;
 	}
 	

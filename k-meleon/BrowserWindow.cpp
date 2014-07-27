@@ -1843,7 +1843,7 @@ BOOL CBrowserWrapper::Find(const wchar_t* searchString,
 		mTypeAhead->FindAgain(backwards,false, &result);
 	else
 		mTypeAhead->Find(nsDependentString(searchString), false, &result);
-	return result == 0;
+	return !(result == nsITypeAheadFind::FIND_NOTFOUND);
 
 	nsCOMPtr<nsIWebBrowserFind> finder = do_GetInterface(mWebBrowser);
 	NS_ENSURE_TRUE(finder, FALSE);

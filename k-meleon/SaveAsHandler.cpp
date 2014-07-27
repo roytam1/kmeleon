@@ -256,7 +256,7 @@ NS_IMETHODIMP CSaveAsHandler::Save(const char* contentType, const char* disposit
 	{
 		CString saveDir = theApp.preferences.GetString("kmeleon.download.saveDir", _T(""));
 		if (!saveDir.IsEmpty()) {
-			nsresult rv =  DownloadTo(CStringToNSString(saveDir + _T('\\') + szFileName + _T('.') + extension),
+			rv =  DownloadTo(CStringToNSString(saveDir + _T('\\') + szFileName + _T('.') + extension),
 					isHTML, theApp.preferences.iSaveType == 2);
 			delete szFileName;
 			return rv;
@@ -329,7 +329,7 @@ NS_IMETHODIMP CSaveAsHandler::Save(const char* contentType, const char* disposit
 	}
 	
 	filter.ReleaseBuffer();
-	delete szFileName;
+	delete [] szFileName;
 	
 	return rv;
 }

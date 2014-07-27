@@ -18,10 +18,8 @@
 *
 */
 
-#define XP_WIN
-#define XP_WIN32
-#define MOZILLA_STRICT_API
 #define XPCOM_GLUE_AVOID_NSPR
+#include "mozilla-config.h"
 #include <tchar.h>
 
 #include "nsCOMPtr.h"

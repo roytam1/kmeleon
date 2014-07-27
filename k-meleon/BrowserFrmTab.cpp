@@ -54,7 +54,7 @@ public:
 	void SetFavIcon(nsIURI *favUri) 
 	{
 		CBrowserGlue::SetFavIcon(favUri);
-		if (!theApp.preferences.GetBool("kmeleon.tabs.useLoadingIcon", TRUE)) {
+		if (!mLoading || !theApp.preferences.GetBool("kmeleon.tabs.useLoadingIcon", TRUE)) {
 			mIcon = theApp.favicons.GetIcon(mIconURI);
 			((CBrowserFrmTab*)mpBrowserFrame)->SetTabIcon((CBrowserTab*)mpBrowserView, mIcon);
 		}
@@ -67,7 +67,7 @@ public:
 			
 		if (aBusy) {
 			if (!theApp.preferences.GetBool("kmeleon.tabs.useLoadingTitle", FALSE) && mLocation.GetLength())
-				title = mLocation;
+				return; //title = mLocation;
 			else
 				title.LoadString(IDS_LOADING);
 
@@ -89,11 +89,12 @@ public:
 		((CBrowserFrmTab*)mpBrowserFrame)->SetTabTitle((CBrowserTab*)mpBrowserView, title);
 	}
 
-	void GetVisibility(BOOL *aVisible)
+	void GetVisibility(bool *aVisible)
 	{
-		*aVisible = mpBrowserFrame->IsIconic() || 
-			!mpBrowserFrame->IsWindowVisible() ||
-			mpBrowserFrame->GetActiveView() != mpBrowserView ? PR_FALSE : PR_TRUE;
+		if (mpBrowserFrame->GetActiveView() != mpBrowserView)
+			*aVisible = false;
+		else
+			CBrowserGlue::GetVisibility(aVisible);
 	}
 
 	void DestroyBrowserFrame()
@@ -372,7 +373,7 @@ void CBrowserFrmTab::SetActiveBrowser(CBrowserTab* aNewActiveTab)
 		PostMessage(UWM_UPDATESESSIONHISTORY, 0, 0);
 	}
 	//SendMessage(WM_SWITCHTAB, (WPARAM)m_wndCBrowserTab, (LPARAM)aNewActiveTab);
-	theApp.plugins.SendMessage("*", "*", "SwitchTab", (long)GetSafeHwnd(), (long)aNewActiveTab->GetSafeHwnd());
+	theApp.plugins.SendMessage("*", "*", "SwitchTab", (long)m_wndCBrowserTab->GetSafeHwnd(), (long)aNewActiveTab->GetSafeHwnd());
 	
 	m_iCBrowserView = aNewActiveTab->m_iIndex;
 	m_wndCBrowserTab = aNewActiveTab;
@@ -526,9 +527,8 @@ LRESULT CBrowserFrmTab::OnOpenTab(WPARAM wParam, LPARAM lParam)
 
 LRESULT CBrowserFrmTab::OnCloseTab(WPARAM wParam, LPARAM lParam)
 {
-	if (lParam && ((CObject*)lParam)->IsKindOf(RUNTIME_CLASS(CBrowserTab)))
-		return CloseTab(((CBrowserTab*)lParam));
-
+	CBrowserTab* tab = m_Tabs[IDTOTABINDEX(wParam)];
+	if (tab)  CloseTab(tab);
 	return -1;
 }
 
