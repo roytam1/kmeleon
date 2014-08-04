@@ -201,6 +201,7 @@ CMfcEmbedApp::CMfcEmbedApp()
    m_bFirstWindowCreated = FALSE;
    m_pMostRecentBrowserFrame  = NULL;
    m_hResDll = NULL;
+   m_MRUList = NULL;
 }
 
 CMfcEmbedApp theApp;
@@ -536,6 +537,8 @@ BOOL CMfcEmbedApp::InitInstance()
    }
 #endif
 
+   OleInitialize(NULL);
+
    // Profile selection
    int len = cmdline.GetSwitch("-P", NULL, FALSE);
    char *profile = NULL;
@@ -620,35 +623,6 @@ BOOL CMfcEmbedApp::InitInstance()
       return FALSE;
    }
 
-   XRE_NotifyProfile();
-
-   // These have to be done in this order!
-   InitializeDefineMap();
-
-   InitializePrefs();
-   SetOffline(theApp.preferences.bOffline);
-
-#ifdef FIREFOX_CHROME
-   LoadLanguage();
-#endif
-
-   CheckProfileVersion();
-
-   m_MRUList = new CMostRecentUrls();
-
-   // Retrieve the default icon
-   CString sSkinIcon;
-   if (FindSkinFile(sSkinIcon, _T("main.ico")))
-   {
-	   m_hMainIcon = (HICON)LoadImage( NULL, sSkinIcon, IMAGE_ICON, 0,0, LR_DEFAULTSIZE | LR_LOADFROMFILE );
-	   m_hSmallIcon = (HICON)LoadImage( NULL, sSkinIcon, IMAGE_ICON, 16,16, LR_LOADFROMFILE );
-   }
-   else
-   {
-	   m_hMainIcon = LoadIcon( IDR_MAINFRAME );
-	   m_hSmallIcon = LoadIcon( IDR_MAINFRAME );
-   }
-
    // Minimal unicode support
    #ifndef _UNICODE
    OSVERSIONINFO osinfo;
@@ -656,14 +630,6 @@ BOOL CMfcEmbedApp::InitInstance()
    GetVersionEx(&osinfo);
    m_bUnicode = (osinfo.dwPlatformId == VER_PLATFORM_WIN32_NT);
    #endif
-
-#ifdef INTERNAL_SITEICONS
-   // Create the favicon list
-   if (preferences.bSiteIcons)
-		favicons.Create(16,16,ILC_COLOR32|ILC_MASK,25,100);
-#endif
-
-   OleInitialize(NULL);
 
    // Register the hidden window class
    WNDCLASS wc = { 0 };
@@ -679,13 +645,46 @@ BOOL CMfcEmbedApp::InitInstance()
    
    // Register the browser window class
    wc.lpszClassName = BROWSER_WINDOW_CLASS;
-   AfxRegisterClass( &wc );
+   AfxRegisterClass( &wc );   
+
+   XRE_NotifyProfile();
+
+   // These have to be done in this order!
+   InitializeDefineMap();
+   InitializePrefs();
+   SetOffline(theApp.preferences.bOffline);
+
+#ifdef FIREFOX_CHROME
+   LoadLanguage();
+#endif
+   
+   CheckProfileVersion();
+   
+   m_MRUList = new CMostRecentUrls();
+
+   // Retrieve the default icon
+   CString sSkinIcon;
+   if (FindSkinFile(sSkinIcon, _T("main.ico")))
+   {
+	   m_hMainIcon = (HICON)LoadImage( NULL, sSkinIcon, IMAGE_ICON, 0,0, LR_DEFAULTSIZE | LR_LOADFROMFILE );
+	   m_hSmallIcon = (HICON)LoadImage( NULL, sSkinIcon, IMAGE_ICON, 16,16, LR_LOADFROMFILE );
+   }
+   else
+   {
+	   m_hMainIcon = LoadIcon( IDR_MAINFRAME );
+	   m_hSmallIcon = LoadIcon( IDR_MAINFRAME );
+   }
+
+#ifdef INTERNAL_SITEICONS
+   // Create the favicon list
+   if (preferences.bSiteIcons)
+		favicons.Create(16,16,ILC_COLOR32|ILC_MASK,25,100);
+#endif
    
    // Initialize plugins
    plugins.FindAndLoad();
    plugins.SendMessage("*", "* Plugin Manager", "Init2");
    InitializeMenusAccels();
-
 
    // the hidden window will take care of creating the first
    // browser window for us
@@ -1050,9 +1049,10 @@ void CMfcEmbedApp::OnNewBrowser()
       //Load the new window start page into the browser view
       switch (preferences.iNewWindowOpenAs) {
       case PREF_NEW_WINDOW_CURRENT:
-		  pBrowserFrame->OpenURL(m_pOpenNewBrowserFrame->GetActiveView()->GetCurrentURI(), NULL, urlFocus);
-	     if (m_pOpenNewBrowserFrame)
-			m_pOpenNewBrowserFrame->GetActiveView()->CloneBrowser(pBrowserFrame->GetActiveView());
+         if (m_pOpenNewBrowserFrame) {
+            pBrowserFrame->OpenURL(m_pOpenNewBrowserFrame->GetActiveView()->GetCurrentURI(), NULL, urlFocus);
+            m_pOpenNewBrowserFrame->GetActiveView()->CloneBrowser(pBrowserFrame->GetActiveView());
+		 }
          break;
       case PREF_NEW_WINDOW_HOME:
          pBrowserFrame->GetActiveView()->LoadHomePage();

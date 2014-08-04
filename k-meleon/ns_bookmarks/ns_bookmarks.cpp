@@ -220,8 +220,8 @@ int Load(){
 
    InitImageList(gImagelist);
 
-   strcpy(gBookmarksTitle, CT_to_UTF8(gLoc->GetString(IDS_DEFAULT_TITLE)));
-	LoadBM(gBookmarkFile);
+   strncpy(gBookmarksTitle, CT_to_UTF8(gLoc->GetString(IDS_DEFAULT_TITLE)), sizeof(gBookmarksTitle));
+   LoadBM(gBookmarkFile);
 
    return true;
 }

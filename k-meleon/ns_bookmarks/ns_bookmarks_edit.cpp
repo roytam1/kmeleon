@@ -454,7 +454,7 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
                   }
                   else {
                      TCHAR tmp[SEARCH_LEN+32];
-					 _stprintf(tmp, gLoc->GetString(IDS_FIND), str);
+					 _stprintf(tmp, gLoc->GetString(IDS_FIND), (const TCHAR*)CANSI_to_T(str));
                      SetWindowText( hEditWnd, tmp );
 
                      HTREEITEM hItem = TreeView_GetRoot(hTree);
@@ -984,7 +984,7 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                if (!zoom) {
                   if (bookmarksEdited) {
 
-					 if (MessageBox(hDlg, gLoc->GetString(IDS_CANCEL_CHANGES), gLoc->GetString(IDS_CANCEL_CAPTION), MB_OKCANCEL) == IDCANCEL)
+					 if (MessageBox(hDlg, (const TCHAR*)gLoc->GetString(IDS_CANCEL_CHANGES), gLoc->GetString(IDS_CANCEL_CAPTION), MB_OKCANCEL) == IDCANCEL)
 						 return 0;
 						 /*
                      FILE *bmFile = _tfopen(gBookmarkFile, _T("r"));

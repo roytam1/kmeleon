@@ -21,6 +21,7 @@
 #include "stdafx.h"
 #include "KmAppInfo.h"
 #include "KMeleonConst.h"
+#include "MfcEmbed.h"
 
 NS_IMPL_ISUPPORTS2(KmAppInfo, nsIXULAppInfo, nsIXULRuntime)
 
@@ -41,14 +42,32 @@ NS_IMETHODIMP KmAppInfo::GetName(nsACString & aName)
 /* readonly attribute ACString ID; */
 NS_IMETHODIMP KmAppInfo::GetID(nsACString & aID)
 {
-	aID = "kmeleon@";
+	bool ff = false;
+	nsCOMPtr<nsIPrefService> m_prefservice = do_GetService(NS_PREFSERVICE_CONTRACTID);
+	if (m_prefservice) {
+		nsCOMPtr<nsIPrefBranch> m_prefs;
+		m_prefservice->GetBranch("", getter_AddRefs(m_prefs));
+		if (m_prefs) {
+			nsresult rv = m_prefs->GetBoolPref("kmeleon.install_firefox_extension", &ff);
+		}
+	}
+	aID = !ff ? "kmeleon@" : "{ec8030f7-c20a-464f-9b0e-13a3a9e97384}";
     return NS_OK;
 }
 
 /* readonly attribute ACString version; */
 NS_IMETHODIMP KmAppInfo::GetVersion(nsACString & aVersion)
 {
-	aVersion = NS_STRINGIFY(KMELEON_UVERSION);
+	bool ff = false;
+	nsCOMPtr<nsIPrefService> m_prefservice = do_GetService(NS_PREFSERVICE_CONTRACTID);
+	if (m_prefservice) {
+		nsCOMPtr<nsIPrefBranch> m_prefs;
+		m_prefservice->GetBranch("", getter_AddRefs(m_prefs));
+		if (m_prefs) {
+			nsresult rv = m_prefs->GetBoolPref("kmeleon.install_firefox_extension", &ff);
+		}
+	}
+	aVersion = !ff ? NS_STRINGIFY(KMELEON_UVERSION) : "24.0";
     return NS_OK;
 }
 
@@ -111,7 +130,8 @@ NS_IMETHODIMP KmAppInfo::GetOS(nsACString & aOS)
 /* readonly attribute AUTF8String XPCOMABI; */
 NS_IMETHODIMP KmAppInfo::GetXPCOMABI(nsACString & aXPCOMABI)
 {
-    return NS_ERROR_NOT_IMPLEMENTED;
+	aXPCOMABI = "x86-msvc";
+    return NS_OK;
 }
 
 /* readonly attribute AUTF8String widgetToolkit; */

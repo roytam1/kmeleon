@@ -108,7 +108,7 @@ BEGIN_MESSAGE_MAP(CBrowserFrame, CFrameWnd)
 #ifdef INTERNAL_SITEICONS
 	ON_MESSAGE(UWM_NEWSITEICON, OnNewSiteIcon)
 #endif
-	ON_COMMAND(ID_CLOSE, CloseNothing)
+	ON_COMMAND(ID_CLOSE_FINDBAR, CloseNothing)
     ON_COMMAND_RANGE(TOOLBAR_MENU_START_ID, TOOLBAR_MENU_END_ID, ToggleToolBar)
     ON_COMMAND(ID_TOOLBARS_LOCK, ToggleToolbarLock)
     ON_COMMAND(ID_COOKIES_VIEWER, OnCookiesViewer)
@@ -1545,8 +1545,6 @@ void CBrowserFrame::OnFind(BOOL backward)
 		if (m_searchString) free(m_searchString);
 		m_searchString = wcsdup(searchString);
 	}
-
-	if (!searchString) return;
 
 	BOOL didFind = wrapper->Find(searchString, 
 				theApp.preferences.bFindMatchCase, 

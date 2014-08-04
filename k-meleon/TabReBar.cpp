@@ -283,7 +283,8 @@ void CTabReBar::UpdateButtonsSize(bool forceUpdate)
 	GetWindowRect(&rect);
 	mChevron = FALSE;
 
-	int width = rect.right - rect.left - 2;
+	// -4 seems to avoid freeze on vista+
+	int width = rect.right - rect.left - 4;
 	int buttonWidth = width / count;
 	if (buttonWidth > nMaxWidth)
 		buttonWidth = nMaxWidth;
@@ -305,7 +306,7 @@ void CTabReBar::UpdateButtonsSize(bool forceUpdate)
 	GetToolBarCtrl().GetMaxSize(&size);
 
 	// Set the ideal size for chevron
-	REBARBANDINFO rb;
+	REBARBANDINFO rb = {0};
 	rb.cbSize = sizeof(REBARBANDINFO);
 	rb.fMask  = RBBIM_IDEALSIZE; 
 	rb.cxIdeal = buttonWidth*count;//size.cx;

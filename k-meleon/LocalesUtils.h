@@ -194,8 +194,8 @@ public:
 
 		Locale* l = new Locale(kp->hDllInstance, CUTF8_to_T(localeFolder), CANSI_to_T(kp->dllname), userFont);
 		
-		delete localeFolder;
-		delete langid;
+		delete [] localeFolder;
+		delete [] langid;
 		return l;
 	}
 

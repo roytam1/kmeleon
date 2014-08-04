@@ -1206,7 +1206,7 @@ IDC_PAN_DOWNRIGHT       CURSOR                  "res\\Cursor_16.cur"
 
 IDR_TOOLBAR_CLOSE TOOLBAR 10, 9
 BEGIN
-    BUTTON      ID_CLOSE
+    BUTTON      ID_CLOSE_FINDBAR
 END
 
 

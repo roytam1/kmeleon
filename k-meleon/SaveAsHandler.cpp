@@ -258,7 +258,7 @@ NS_IMETHODIMP CSaveAsHandler::Save(const char* contentType, const char* disposit
 		if (!saveDir.IsEmpty()) {
 			rv =  DownloadTo(CStringToNSString(saveDir + _T('\\') + szFileName + _T('.') + extension),
 					isHTML, theApp.preferences.iSaveType == 2);
-			delete szFileName;
+			delete [] szFileName;
 			return rv;
 		}
 	}

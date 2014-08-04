@@ -465,9 +465,9 @@ void SetStatusBarTextT(const TCHAR *s)
 void SetStatusBarTextUTF8(const char *s)
 {
    USES_CONVERSION;
-   const wchar_t *ws = WDecodeUTF8(s);
+   wchar_t *ws = WDecodeUTF8(s);
    SetStatusBarTextT(W2CT(ws));
-   delete ws;
+   free(ws);
 }
 
 void SetStatusBarText(const char *s)
@@ -1032,7 +1032,7 @@ UINT GetWindowVarUTF8(HWND hWnd, WindowVarType type, void* ret)
 			if (ret) {
 				char* utf = EncodeUTF8(sel.get());
 				strcpy((char*)ret, utf);
-				delete utf;
+				free(utf);
 			}
 			break;
 		}
@@ -1050,7 +1050,7 @@ UINT GetWindowVarUTF8(HWND hWnd, WindowVarType type, void* ret)
 			if (ret) {
 				char* utf = EncodeUTF8(url);
 				strcpy((char*)ret, utf);
-				delete utf;
+				free(utf);
 			}
 			break;
 		}
@@ -1072,7 +1072,7 @@ UINT GetWindowVarUTF8(HWND hWnd, WindowVarType type, void* ret)
 			if (ret) {
 				char* utf = EncodeUTF8(url);
 				strcpy((char*)ret, utf);
-				delete utf;
+				free(utf);
 			}
 			break;
 		}
@@ -1159,7 +1159,7 @@ BOOL SetWindowVarUTF8(HWND hWnd, WindowVarType type, void* value)
 			ws = WDecodeUTF8((char*)value);
 			frame->UpdateLocation(W2CT(ws), TRUE);
 		    result = TRUE;
-			delete ws;
+			free(ws);
 			break;
 
 		case Window_Charset:
@@ -1835,8 +1835,8 @@ BOOL CPlugins::TestLoad(LPCTSTR file, const char *description)
    char preference[128] = "kmeleon.plugins.";
 
    USES_CONVERSION;
-   strcat(preference, T2CA(file));
-   strcat(preference, ".load");
+   strncat(preference, T2CA(file), sizeof(preference));
+   strncat(preference, ".load", sizeof(preference));
    
    int load = theApp.preferences.GetBool(preference, -1);
    if (load == -1) {

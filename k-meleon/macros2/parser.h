@@ -205,7 +205,7 @@ public:
 
 	
 
-	Lexer() : data(""), current(0), tkahead(TK_NONE), tkahead2(TK_NONE), line(1) {
+	Lexer() : data(""), tokenstr(0), current(0), tkahead(TK_NONE), tkahead2(TK_NONE), line(1) {
 	}
 
 	~Lexer() {
@@ -529,8 +529,8 @@ public:
 	MacroDef* currentMd; //XXX
 	bool debug;
 
-	Parser() { input = NULL; currentMd = NULL;}
-	~Parser() { if (input) delete input;}
+	Parser() { input = NULL; currentMd = NULL; m = NULL; }
+	~Parser() { if (input) delete [] input; }
 
 	bool init(Mac* mac, const TCHAR* srcFile, bool enableDebug = false) {
 		struct _stat st;

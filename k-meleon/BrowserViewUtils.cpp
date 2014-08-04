@@ -338,9 +338,9 @@ void CBrowserView::OpenURL(LPCTSTR url, LPCTSTR referrer, BOOL allowFixup)
 	   return;
    }*/
 
-   if ( GetActiveWindow() == mpBrowserFrame &&
+   /*if ( GetActiveWindow() == mpBrowserFrame &&
 	   !::IsChild(m_hWnd, ::GetFocus()))
-	  m_pWindow->SetActive(TRUE);
+	  m_pWindow->SetActive(TRUE);*/
 
    ((CBrowserGlue*)m_pBrowserGlue)->mPendingLocation = url; // XXXX
    if (!m_pWindow->LoadURL(url, referrer, allowFixup) && m_pBrowserGlue);

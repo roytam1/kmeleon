@@ -458,7 +458,7 @@ void DoRebar(HWND rebarWnd) {
 
       toolbar = toolbar->next;
       if (buttons) {
-         delete buttons;
+         delete [] buttons;
          buttons = NULL;
       }
    }
@@ -639,10 +639,12 @@ void LoadToolbars(TCHAR *filename) {
                   }
                }               
                // get height from parameters
-               while(*pp && (*pp==' ' || *pp=='\t')) pp++;
-               if (*pp) {
-                  val = pp;
-                  height = atoi(val);
+			   if (pp) {
+                  while(*pp && (*pp==' ' || *pp=='\t')) pp++;
+                  if (*pp) {
+                     val = pp;
+                     height = atoi(val);
+                  }
                }
             };
 
@@ -1288,6 +1290,8 @@ void SetButtonImage(char *sParams) {//WORD iToolbar, WORD iButton, char *sImage)
       iImagelist = IMAGELIST_COLD;
    else if (!strcmpi(p, "dead"))
       iImagelist = IMAGELIST_DEAD;
+   else
+	  iImagelist = IMAGELIST_HOT;
    *c = ','; // replace comma
    
    
