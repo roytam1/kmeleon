@@ -666,7 +666,26 @@ int CDialogEx2::RunModalLoop(DWORD dwFlags)
 			{
 				AfxPostQuitMessage(0);
 				return -1;
-			}				
+			}	
+
+			// show the window when certain special messages rec'd
+			if (bShowIdle &&
+				(pMsg->message == 0x118 || pMsg->message == WM_SYSKEYDOWN))
+			{
+				ShowWindow(SW_SHOWNORMAL);
+				UpdateWindow();
+				bShowIdle = FALSE;
+			}
+
+			if (!ContinueModal())
+				goto ExitModal;
+
+			// reset "no idle" state after pumping "normal" message
+			if (AfxIsIdleMessage(pMsg))
+			{
+				bIdle = TRUE;
+				lIdleCount = 0;
+			}
 
 		} while (::PeekMessage(pMsg, NULL, NULL, NULL, PM_NOREMOVE));
 	}

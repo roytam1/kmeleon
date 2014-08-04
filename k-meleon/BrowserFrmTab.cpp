@@ -66,13 +66,13 @@ public:
 		CString title;
 			
 		if (aBusy) {
+			if (theApp.preferences.GetBool("kmeleon.tabs.useLoadingIcon", TRUE))
+				((CBrowserFrmTab*)mpBrowserFrame)->SetTabIcon((CBrowserTab*)mpBrowserView, theApp.favicons.GetLoadingIcon());
+
 			if (!theApp.preferences.GetBool("kmeleon.tabs.useLoadingTitle", FALSE) && mLocation.GetLength())
 				return; //title = mLocation;
 			else
 				title.LoadString(IDS_LOADING);
-
-			if (theApp.preferences.GetBool("kmeleon.tabs.useLoadingIcon", TRUE))
-				((CBrowserFrmTab*)mpBrowserFrame)->SetTabIcon((CBrowserTab*)mpBrowserView, theApp.favicons.GetLoadingIcon());
 		} else {
 			mIcon = theApp.favicons.GetIcon(mIconURI);
 			((CBrowserFrmTab*)mpBrowserFrame)->SetTabIcon((CBrowserTab*)mpBrowserView, mIcon);

@@ -455,8 +455,8 @@
 #define ID_FULLZOOM_INCREASE            32822
 #define ID_FULLZOOM_DECREASE            32823
 #define ID_CLOSE_SIDEBAR                33822
-#define ID_CLOSE                        33822
-#define ID_CLOSE_FINDBAR                33822
+#define ID_CLOSE                        33828
+#define ID_CLOSE_FINDBAR                33829
 #define ID_COOKIES_VIEWER               33823
 #define ID_PASSWORDS_VIEWER             33824
 #define ID_COOKIE_PERM                  33825

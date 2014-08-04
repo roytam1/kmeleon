@@ -33,7 +33,7 @@ static char* pref_prefix = "kmeleon.plugins.sessions2.";
 		char* str = new char[len+1];
 		kPlugin.kFuncs->GetPreference(PREF_STRING, prefname, (void*)str, (void*)defvalue);
 		std::string ret = str;
-		free(str);
+		delete [] str;
 		return ret;
 	}
 
@@ -178,6 +178,7 @@ public:
 		posy = posx = width = height = -1;
 		tabcount = 0;
 		index = -1;
+		state = SW_SHOWNORMAL;
 	}
 
 	void addTab(const Tab& win) {
@@ -425,11 +426,11 @@ public:
 		TABLIST::iterator iter;
 		for (iter = tabsList.begin(); iter < tabsList.end(); iter++)
 		{
+			if (iter == iter1) 
+				continue;
 			if (iter == iter2) 
-				newList.push_back(*iter1);
-			else if (iter == iter1) 
-				newList.push_back(*iter2);				
-			else newList.push_back(*iter);
+				newList.push_back(*iter1);				
+			newList.push_back(*iter);
 		}
 		tabsList.swap(newList);
 		return true;

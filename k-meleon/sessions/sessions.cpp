@@ -341,7 +341,10 @@ void CreateTab(HWND parent, HWND tab)
 void MoveTab(HWND newtab, HWND oldtab)
 {
 	Window* w = currentSession.findWindowWithTab(newtab);
-	if (w) w->moveTab(newtab, oldtab);
+	if (w) {
+		w->moveTab(newtab, oldtab);
+		currentSession.saveSession(kLastSessionName);
+	}
 }
 
 HWND destroying = NULL;
@@ -575,7 +578,7 @@ void ConfigInitSelect(HWND hwnd)
 
 	}
 
-	delete name;
+	delete [] name;
 }
 
 BOOL CALLBACK

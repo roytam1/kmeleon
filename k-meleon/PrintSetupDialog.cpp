@@ -415,7 +415,8 @@ void CPrintSetupDialog::OnSelchangePaperSizeCbx()
     CString text;
     cbx->GetWindowText(text);
     m_PaperSizeInx = GetPaperSizeIndex(text);
-    EnableUserDefineControls(gPaperSize[m_PaperSizeInx].mIsUserDefined);
+    if (m_PaperSizeInx>=0) 
+		EnableUserDefineControls(gPaperSize[m_PaperSizeInx].mIsUserDefined);
   }
 	
 }

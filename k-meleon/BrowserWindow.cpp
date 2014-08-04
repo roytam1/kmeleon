@@ -1124,15 +1124,14 @@ void CBrowserWrapper::SetActive(BOOL aActive)
 	/*nsCOMPtr<nsIDOMWindow> dom;
 	nsresult rv = mWebBrowser->GetContentDOMWindow(getter_AddRefs(dom));
 	NS_ENSURE_SUCCESS(rv, );
-	mWebBrowserFocus->Activate();
-	//mWebBrowser->SetIsActive(aActive);
+	mWebBrowser->SetIsActive(aActive);
 	nsCOMPtr<nsIFocusManager> fm = do_GetService("@mozilla.org/focus-manager;1");
 	if (!fm) return;
-	//if (aActive) fm->WindowShown(dom, true); else fm->WindowHidden(dom);
-	return;*/
+	if (aActive) fm->WindowShown(dom, true); else fm->WindowHidden(dom);*/
+
 
 	NS_ENSURE_TRUE(mWebBrowserFocus, );
-	TRACE1("Set Active Browser %u\n", aActive);
+	TRACE2("Set Active Browser %u for window %s\n", aActive, (LPCTSTR)GetTitle());
 	if (aActive) mWebBrowserFocus->Activate(); else mWebBrowserFocus->Deactivate();
 }
 
@@ -1827,8 +1826,7 @@ BOOL CBrowserWrapper::Find(const wchar_t* searchString,
 						   BOOL wrapAround,
 						   BOOL backwards,
 						   BOOL ahead)
-{
-	ASSERT(!searchString);
+{/*
 	if (!mTypeAhead) {
 		mTypeAhead = do_GetService("@mozilla.org/typeaheadfind;1");
 		NS_ENSURE_TRUE(mTypeAhead, FALSE);
@@ -1839,11 +1837,11 @@ BOOL CBrowserWrapper::Find(const wchar_t* searchString,
 	mTypeAhead->SetCaseSensitive(matchCase);
 	nsString oldSearch;
 	mTypeAhead->GetSearchString(oldSearch);
-	if (wcscmp(oldSearch.get(), searchString)==0)
+	if (!searchString || wcscmp(oldSearch.get(), searchString)==0)
 		mTypeAhead->FindAgain(backwards,false, &result);
 	else
 		mTypeAhead->Find(nsDependentString(searchString), false, &result);
-	return !(result == nsITypeAheadFind::FIND_NOTFOUND);
+	return !(result == nsITypeAheadFind::FIND_NOTFOUND);*/
 
 	nsCOMPtr<nsIWebBrowserFind> finder = do_GetInterface(mWebBrowser);
 	NS_ENSURE_TRUE(finder, FALSE);

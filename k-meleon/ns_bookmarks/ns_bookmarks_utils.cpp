@@ -336,7 +336,7 @@ static void SaveBookmarks(FILE *bmFile, CBookmarkNode *node)
          if (child->flags & BOOKMARK_FLAG_BM)
             strcat(szFolderFlags, "MENUHEADER ");
          psz = EncodeString(child->text.c_str());
-	     fprintf(bmFile, "%s<DT><H3 %sADD_DATE=\"%d\">", szSpacer, szFolderFlags, child->addDate);
+	     fprintf(bmFile, "%s<DT><H3 %sADD_DATE=\"%ld\">", szSpacer, szFolderFlags, child->addDate);
 	     fprintf(bmFile, "%s</H3>\n", psz);		 
          if (psz) free(psz);
          
@@ -361,9 +361,9 @@ static void SaveBookmarks(FILE *bmFile, CBookmarkNode *node)
          fprintf(bmFile, " HREF=\"%s\"", psz ? psz : "");
          if (psz)  free(psz);
         
-         fprintf(bmFile, " ADD_DATE=\"%d\"", child->addDate);
-         fprintf(bmFile, " LAST_VISIT=\"%d\"", child->lastVisit);
-         fprintf(bmFile, " LAST_MODIFIED=\"%d\"", child->lastModified);
+         fprintf(bmFile, " ADD_DATE=\"%ld\"", child->addDate);
+         fprintf(bmFile, " LAST_VISIT=\"%ld\"", child->lastVisit);
+         fprintf(bmFile, " LAST_MODIFIED=\"%ld\"", child->lastModified);
 		 if (child->m_id.length())
 			fprintf(bmFile, " ID=\"%s\"", child->m_id.c_str());
 		 if (child->icon.length())
@@ -372,7 +372,7 @@ static void SaveBookmarks(FILE *bmFile, CBookmarkNode *node)
 			fprintf(bmFile, " FEEDURL=\"%s\"", child->feedurl.c_str());
          psz = (char *) child->nick.c_str();
          if (psz && *psz) {
-            fprintf(bmFile, " SHORTCUTURL=\"%s\"", psz ? psz : "");
+            fprintf(bmFile, " SHORTCUTURL=\"%s\"", psz);
 
          }
          psz = (char *) child->charset.c_str();
@@ -711,15 +711,15 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
          if (name[0] == 0)
             name = url;
 
-	 char *pszTxt, *pszUrl;
-	 pszUrl = DecodeQuotes(url ? url : "");
-	 pszTxt = DecodeString(name ? name : "");
+         char *pszTxt, *pszUrl;
+         pszUrl = DecodeQuotes(url ? url : "");
+         pszTxt = DecodeString(name ? name : "");
 
 	     lastNode = new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), pszTxt, pszUrl, nick, NULL, charset, BOOKMARK_BOOKMARK, addDate, lastVisit, lastModified, id, feedurl, icon);
          node.AddChild(lastNode);
          if (pszUrl) free(pszUrl);
          if (pszTxt) free(pszTxt);
-         
+         if (id)      free(id);
          if (nick)    free(nick);
          if (charset) free(charset);
 		 if (feedurl) free(feedurl);

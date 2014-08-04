@@ -402,6 +402,7 @@ public:
 	
 	Expression() : MacroNode() {
 		t = NODE_EXPR;
+		et = EXPR_NONE;
 	}
 
 	virtual ~Expression() {}

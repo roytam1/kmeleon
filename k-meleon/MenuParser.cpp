@@ -94,7 +94,7 @@ int CMenuParser::Parse(char *p)
 
 		if (p[0] == '}') {
 			currentKMenu = NULL;
-			LOG_1("Ended Menu", 0);
+			LOG_0("Ended Menu");
 		}
 		else {
 			KmMenuItem item;

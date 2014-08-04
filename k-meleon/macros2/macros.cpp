@@ -340,8 +340,8 @@ public:
 
 	Value EvalExpr(MacroNode *node)
 	{
-		assert(ISEXPR(node));
-		if (!node) return Value();	
+		if (!node) return Value();
+		assert(ISEXPR(node));			
 		Expr* expr = static_cast<Expr*>(node);
 
 		switch (expr->et)
@@ -717,8 +717,6 @@ void DoMenu(HMENU menu, char *param) {
 			} while (*string==' ' || *string=='\t');
 		}
 
-		int id = -1;
-
 		char *arg = strchr(param, '(');
 		if (arg) {
 			*(arg++) = 0;
@@ -727,8 +725,8 @@ void DoMenu(HMENU menu, char *param) {
 				*p = 0;
 		}
 
-
-		if (id != -1) {
+		int id = arglist->getfromname(string, arg);
+		if (id>0) {
 			if (string)
 				AppendMenu(menu, MF_STRING, id, CUTF8_to_T(string));
 			else 
@@ -751,8 +749,6 @@ int DoAccel(char const *aParam)
 			} while (*string==' ' || *string=='\t');
 		}
 
-		int id = -1;
-
 		char *arg = strchr(param, '(');
 		if (arg) {
 			*(arg++) = 0;
@@ -762,7 +758,7 @@ int DoAccel(char const *aParam)
 			}
 		}
 
-		id = arglist->add(param, arg ? arg : "");
+		int id = arglist->add(param, arg ? arg : "");
 		return id;
 	}
 	return 0;

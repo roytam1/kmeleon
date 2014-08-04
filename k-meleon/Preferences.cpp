@@ -138,7 +138,7 @@ CPreferences::CPreferences() :
     bFindMatchCase("kmeleon.find.matchCase", false),
     bFindHighlight("kmeleon.find.highlight", false),
     bFindSearchBackwards("kmeleon.find.searchBackwards", false),
-    bFindWrapAround("kmeleon.find.wrapAround", false),
+    bFindWrapAround("kmeleon.find.wrapAround", true),
 
 	MRUbehavior("kmeleon.MRU.behavior", 1),
 	
@@ -272,16 +272,13 @@ void CPreferences::Load() {
    m_prefservice = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
    if (!m_prefservice) return;
 
-   m_prefservice->ReadUserPrefs(nullptr);
+   //m_prefservice->ReadUserPrefs(nullptr); // Done in XRE_NotifyProfile
    m_prefservice->GetBranch("", getter_AddRefs(m_prefs));
    if (NS_FAILED(rv)) {
       _ASSERTE(m_prefs && "Could not get preferences service");
       return;
    }
-   
-#ifndef USE_PROFILES
-   m_prefservice->ReadUserPrefs(nullptr);
-#endif
+
    bool inited;
    rv = m_prefs->GetBoolPref("kmeleon.prefs_inited", &inited);
    if (NS_FAILED(rv) || !inited) {

@@ -202,7 +202,7 @@ BOOL CProfilesDlg::OnInitDialog()
 		delete profileList[index];
     }
 	
-	delete profileList;
+	delete [] profileList;
     m_ProfileList.SetCurSel(selectedRow);
     /*
     if (m_bAtStartUp)
