@@ -636,7 +636,7 @@ int GetMaxAccelWidth(HDC hDC, HMENU hMenu){
 
          if (string) {
       
-            tab = _tcschr(string, '\t');
+            tab = _tcschr(string, L'\t');
       
             if (tab) {
                GetTextExtentPoint32(hDC, tab+1, _tcslen(tab+1), &size);

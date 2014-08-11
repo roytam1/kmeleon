@@ -316,7 +316,7 @@ void DoMenu(HMENU menu, char *param){
          command = nEditCommand;
       }
       if (command) {
-         AppendMenuA(menu, MF_STRING, command, string);
+         AppendMenu(menu, MF_STRING, command, CANSI_to_T(string));
          kPlugin.kFuncs->SendMessage("bmpmenu", PLUGIN_NAME, "SetOwnerDrawn", (long)menu, (long)DrawBitmap);
       }
    }
