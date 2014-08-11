@@ -1471,6 +1471,26 @@ const char* Translate(const char* text)
 #endif
 }
 
+const char* TranslateUTF8(const char* text)
+{
+	static char* translated = NULL;
+	if (translated) {
+      free(translated);
+      translated = NULL;
+	}
+#ifdef _UNICODE	
+	wchar_t* wtext = WDecodeUTF8(text);
+	translated = EncodeUTF8(theApp.lang.Translate(wtext));
+	free(wtext);
+	return translated;
+#else
+	char* atext = DecodeUTF8(text);
+	char* t  theApp.lang.Translate(A2CT(text));
+	free(atext);
+	return t;
+#endif
+}
+
 int TranslateEx(const char* originalText,  TCHAR* translatedText, int bufferlen, BOOL forMenu)
 {
 	CString csTrans;
@@ -1745,7 +1765,7 @@ kmeleonFunctions kmelFuncsUTF8 = {
    GetKmeleonVersion,
    NULL,
    NavigateTo,
-   Translate,
+   TranslateUTF8,
    SetGlobalVar,
    GetFolderUTF8,
    SetAccel,

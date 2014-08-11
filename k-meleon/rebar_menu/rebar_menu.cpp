@@ -29,14 +29,14 @@
 
 #define WM_DEFERHOTTRACK WM_USER+10 
 #include "hot_tracking.h"
-
+#include "../strconv.h"
 
 #define _Q(x) #x
 
 #define _Tr(x) kPlugin.kFuncs->Translate(x)
 
 #define PLUGIN_NAME "Rebar Menu Plugin"
-#define MENU_NAME _T("Menu")
+#define MENU_NAME "Menu"
 #define NO_OPTIONS _Tr("This plugin has no user configurable options.")
 #define ERROR_NO_MENU _Tr("Error! Could not get the menu")
 #define ERROR_FAILED_TO_CREATE _Tr("Error! Failed to create menu toolbar")
@@ -160,7 +160,7 @@ void Create(HWND parent){
 }
 
 void Config(HWND parent){
-   MessageBox(parent, NO_OPTIONS, _T(PLUGIN_NAME), 0);
+//   MessageBox(parent, NO_OPTIONS, _T(PLUGIN_NAME), 0);
 }
 
 void Quit(){
@@ -276,7 +276,7 @@ void DoRebar(HWND rebarWnd) {
 	 TBSTYLE_FLAT | TBSTYLE_TRANSPARENT | TBSTYLE_LIST | TBSTYLE_TOOLTIPS;
 
       // Create the toolbar control to be added.
-      HWND hwndTB = CreateWindowEx(0, TOOLBARCLASSNAME, MENU_NAME,
+      HWND hwndTB = CreateWindowEx(0, TOOLBARCLASSNAME, _T(MENU_NAME),
 	 WS_CHILD | dwStyle,
 	 0,0,0,0,
 	 rebarWnd, (HMENU)/*id*/200,  // note, the id doesn't matter at all, because it will be overridden by kmeleon
@@ -284,11 +284,11 @@ void DoRebar(HWND rebarWnd) {
 	 );
 
       if (!hwndTB){
-	 MessageBox(NULL, ERROR_FAILED_TO_CREATE, _T(PLUGIN_NAME), 0);
+	 MessageBox(NULL, CUTF8_to_T(ERROR_FAILED_TO_CREATE), _T(PLUGIN_NAME), 0);
 	 return;
       }
 
-      SetWindowText(hwndTB, MENU_NAME);
+      SetWindowText(hwndTB, _T(MENU_NAME));
 
       // Register the band name and child hwnd
       kPlugin.kFuncs->RegisterBand(hwndTB, MENU_NAME, true);
@@ -355,7 +355,7 @@ HWND FindMenuBar(HWND hWndParent)
 
 		TCHAR toolbarName[11];
 		GetWindowText(rb.hwndChild, toolbarName, 10);
-		if (_tcscmp(toolbarName, MENU_NAME) == 0)
+		if (_tcscmp(toolbarName, _T(MENU_NAME)) == 0)
 			return rb.hwndChild;
 	}
 
@@ -406,7 +406,7 @@ void ShowMenuUnderButton(HWND hWndParent, HMENU hMenu, int iID) {
 
       TCHAR toolbarName[11];
       GetWindowText(tb, toolbarName, 10);
-      if (_tcscmp(toolbarName, MENU_NAME) != 0) {
+      if (_tcscmp(toolbarName, _T(MENU_NAME)) != 0) {
 	// oops, this isn't our toolbar
          continue;
       }
@@ -462,7 +462,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
          if (IsMenu((HMENU)(tbhdr.iItem-SUBMENU_OFFSET))){
             TCHAR toolbarName[11];
             GetWindowText(tbhdr.hdr.hwndFrom, toolbarName, 10);
-            if (_tcscmp(toolbarName, MENU_NAME) != 0) {
+            if (_tcscmp(toolbarName, _T(MENU_NAME)) != 0) {
                // oops, this isn't our toolbar
                return CallWindowProc(KMeleonWndProc, hWnd, message, wParam, lParam);
             }

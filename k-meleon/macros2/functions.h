@@ -233,10 +233,7 @@
 	{
 		checkArgs(__FUNCTION__, data, 1);
 		
-		return  
-			(LPCSTR)CANSI_to_UTF8(
-			kFuncs->Translate( 
-			(LPCSTR)CUTF8_to_ANSI(data->getstr(1)) ) ) ;
+		return  kFuncs->Translate(data->getstr(1)) ;
 	}
 
 	Value open(FunctionData* data)
