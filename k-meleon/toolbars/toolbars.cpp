@@ -123,7 +123,7 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
 
 struct s_button {
    TCHAR *sName;
-   TCHAR *sToolTip;
+   char *sToolTip;
    char *sImagePath;
    char *menu;
    char *lmenu;
@@ -742,7 +742,7 @@ void LoadToolbars(TCHAR *filename) {
                   }
 
 				  TrimWhiteSpace(tooltip);
-				  curButton->sToolTip = t_from_utf8(tooltip);
+				  curButton->sToolTip = strdup(tooltip);
                }
                iBuildState++;
                break;
@@ -804,14 +804,7 @@ s_toolbar *AddToolbar(char *name, int width, int height) {
 s_button  *AddButton(s_toolbar *toolbar, char *name, int width, int height) {
    s_button *newButton = new s_button; 
    if (name) {
-#ifdef _UNICODE
-	  wchar_t q[256];
-	  MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, name, -1, q, 256);
-#else
-	  char* q = name;
-#endif
-	  newButton->sName = new TCHAR[_tcslen(q) + 1];
-	  _tcscpy (newButton->sName, q);
+      newButton->sName = t_from_utf8(name);
    }
    else
       newButton->sName = NULL;
@@ -910,12 +903,7 @@ HBITMAP LoadButtonImage(s_toolbar *pToolbar, s_button *pButton, char *sFile, COL
    HBITMAP hButton, hBitmap;
    HBRUSH hBrush;
    
-#ifdef _UNICODE            
-   wchar_t _sFile[MAX_PATH];
-   MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, sFile, -1, _sFile, MAX_PATH);
-#else
-   char* _sFile = sFile;
-#endif
+   TCHAR* _sFile = t_from_utf8(sFile);
    UINT flag = LR_LOADFROMFILE | LR_CREATEDIBSECTION;
 
    if (strchr(sFile, '\\')) {
@@ -926,6 +914,7 @@ HBITMAP LoadButtonImage(s_toolbar *pToolbar, s_button *pButton, char *sFile, COL
       FindSkinFile(fullpath, _sFile);
       hBitmap = (HBITMAP)LoadImage(NULL, fullpath, IMAGE_BITMAP, 0, 0, flag);
    }
+   free(_sFile);
 
    if (!hBitmap) return NULL;
    hdcBitmap = CreateCompatibleDC(NULL);
@@ -939,7 +928,7 @@ HBITMAP LoadButtonImage(s_toolbar *pToolbar, s_button *pButton, char *sFile, COL
 
 	GetDIBits(hdcBitmap, hBitmap, 0, 0, NULL, (BITMAPINFO*)&bmpi, DIB_RGB_COLORS);
 	int nCol = ((width*index) % bmpi.header.biWidth) / width;
-	int nLine = bmpi.header.biHeight / height - (width*index) / bmpi.header.biWidth - 1;
+	int nLine = bmpi.header.biHeight / height + (width*index) / bmpi.header.biWidth - 1;
 
 	if (bmpi.header.biBitCount == 32) {
 
@@ -969,7 +958,7 @@ HBITMAP LoadButtonImage(s_toolbar *pToolbar, s_button *pButton, char *sFile, COL
 			return NULL;
 		}
 
-		for (int i = 0; i< height; i++)
+		for (int i = 0; i< height-1; i++)
 			memcpy(&dstBits[dstWidth*i], &srcBits[i * srcWidth + offset], dstWidth);
 		
 		DeleteObject(hBitmap);
@@ -1183,7 +1172,7 @@ int AddButtonMsg(char *sParams) {
 	}
 	
 	pButton = AddButton(pToolbar, buttonname, width, height);
-	pButton->sToolTip = t_from_utf8(tooltip);	
+	pButton->sToolTip = strdup(tooltip);	
 	pButton->menu = new char[strlen(menu) + 1];
 	strcpy(pButton->menu, menu);
 	pButton->iID = command;
@@ -1604,11 +1593,10 @@ int ShowMenuUnderButton(HWND hWndParent, UINT uMouseButton, int iID, HWND hToolb
 }
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
-#ifdef _UNICODE
+
 	static char* tip = NULL;
-#else
-	static WCHAR* tip = NULL;
-#endif
+	static wchar_t* wtip = NULL;
+
 	if (message == TB_LBUTTONDOWN) {
 		int command = LOWORD(wParam);			
 			if (ShowMenuUnderButton(hWnd, TPM_LEFTBUTTON, command, (HWND)lParam))
@@ -1652,9 +1640,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 					  LPTOOLTIPTEXTA lpTiptext = (LPTOOLTIPTEXTA) lParam;                  
 #ifdef _UNICODE
 					  if (button->sToolTip) {
-					     if (tip) free(tip);
-					     unsigned lengthDst = lstrlen(button->sToolTip)*2 + 1;
-                         WideCharToMultiByte(CP_ACP, WC_COMPOSITECHECK, button->sToolTip, -1, tip, lengthDst, "_", NULL);
+						 if (tip) free(tip);
+						 tip = ansi_from_utf8(_Tr(button->sToolTip));
 					     lpTiptext->lpszText = tip;
 					  }
 #else
@@ -1665,7 +1652,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 				  {
 					  LPTOOLTIPTEXTW lpTiptext = (LPTOOLTIPTEXTW) lParam;                  
 #ifdef _UNICODE
-					  lpTiptext->lpszText = button->sToolTip;
+					  if (wtip) free(wtip);
+					  lpTiptext->lpszText = wtip = utf16_from_utf8(_Tr(button->sToolTip));
 #else				  
 					  if (button->sToolTip) {
 					     if (tip) free(tip);
