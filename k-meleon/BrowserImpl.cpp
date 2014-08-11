@@ -78,7 +78,7 @@
 #include "nsIDOMMouseEvent.h"
 #include "nsIDOMKeyEvent.h"
 #include "nsIDOMEventTarget.h"
-
+#include "nsPIWindowRoot.h"
 #include "nsIDOMEventTarget.h"
 
 #include "nsIScriptSecurityManager.h" 
@@ -1036,9 +1036,7 @@ NS_IMETHODIMP CBrowserImpl::HandleEvent(nsIDOMEvent *aEvent)
 		if (::GetLinkTitleAndHref(node, url, title))
 			flags |= CONTEXT_LINK;
 		if (::GetImageSrc(node, imgSrc))
-			flags |= CONTEXT_IMAGE;
-		if (::GetBackgroundImageSrc(node, bgImgSrc))
-			flags |= CONTEXT_BACKGROUND_IMAGE;
+			flags |= CONTEXT_IMAGE;		
 
 		// always consume events for plugins and Java who may throw their
 		// own context menus but not for image objects.  Document objects
@@ -1078,8 +1076,25 @@ NS_IMETHODIMP CBrowserImpl::HandleEvent(nsIDOMEvent *aEvent)
 			node->GetOwnerDocument(getter_AddRefs(document));
 			nsCOMPtr<nsIDOMHTMLDocument> htmlDocument(do_QueryInterface(document));
 			if (htmlDocument) {
-				flags |= CONTEXT_DOCUMENT;				
+				flags |= CONTEXT_DOCUMENT;	
+				if (::GetBackgroundImageSrc(node, bgImgSrc)) {
+					flags |= CONTEXT_BACKGROUND_IMAGE;
+				}		
 			}
+		}
+
+		nsCOMPtr<nsIDOMWindow> win;
+		rv = mWebBrowser->GetContentDOMWindow(getter_AddRefs(win));
+		NS_ENSURE_SUCCESS(rv, rv);
+		NS_ENSURE_TRUE(win, NS_ERROR_FAILURE);
+
+		nsCOMPtr<nsPIDOMWindow> window(do_QueryInterface(win));
+		NS_ENSURE_TRUE(window, NS_ERROR_FAILURE);
+		nsCOMPtr<nsPIWindowRoot> root = window->GetTopWindowRoot();
+		NS_ENSURE_TRUE(root, NS_ERROR_FAILURE);
+		if (root) {
+			// set the window root's popup node to the event target
+			root->SetPopupNode(node);
 		}
 
 		// XXX set the context node
