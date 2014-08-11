@@ -415,12 +415,6 @@ public:
 
 		TABLIST::iterator iter2 = findTab(tab2);
 		if (iter2 == tabsList.end()) return false;
-		if (iter2 == tabsList.end() -1) {
-			Tab tab = *iter1;
-			tabsList.erase(iter1);
-			tabsList.push_back(tab);
-			return true;
-		}
 		
 		TABLIST newList;
 		TABLIST::iterator iter;
@@ -428,8 +422,14 @@ public:
 		{
 			if (iter == iter1) 
 				continue;
-			if (iter == iter2) 
-				newList.push_back(*iter1);				
+			if (iter == iter2) {
+				if (iter1<iter2) {
+					newList.push_back(*iter);
+					newList.push_back(*iter1);			
+					continue;
+				}
+				newList.push_back(*iter1);			
+			}
 			newList.push_back(*iter);
 		}
 		tabsList.swap(newList);
