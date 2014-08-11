@@ -10,6 +10,7 @@
 
 #include "nsIDOMCSSPrimitiveValue.h"
 #include "nsIDOMCSSStyleDeclaration.h"
+#include "nsIDOMCSSValueList.h"
 
 #include "nsIDOMCharacterData.h"
 
@@ -315,33 +316,53 @@ nsresult GetCSSBackground(nsIDOMNode *node, nsEmbedString& aUrl)
 
 	nsCOMPtr<nsIDOMDocument> document;
 	node->GetOwnerDocument(getter_AddRefs(document));
-	
-	nsCOMPtr<nsPIDOMWindow> piWindow = do_QueryInterface(document/*domWindow*/, &rv); // How to get piWindow (from domWindow)
-	NS_ENSURE_SUCCESS(rv, rv);
+	NS_ENSURE_TRUE(document, NS_ERROR_FAILURE);
+
+	nsCOMPtr<nsIDOMWindow> domWin;
+	document->GetDefaultView(getter_AddRefs(domWin));
+	NS_ENSURE_TRUE(domWin, NS_ERROR_FAILURE);
 
 	nsCOMPtr<nsIDOMElement> domElement = do_QueryInterface(node);
 	NS_ENSURE_TRUE(domElement, NS_ERROR_FAILURE);
 
 	nsCOMPtr<nsIDOMCSSStyleDeclaration> computedStyle;
-	rv = piWindow->GetComputedStyle(domElement, nsEmbedString(), getter_AddRefs(computedStyle));
+	rv = domWin->GetComputedStyle(domElement, nsEmbedString(), getter_AddRefs(computedStyle));
 	NS_ENSURE_SUCCESS(rv, rv);
 	
 	nsCOMPtr<nsIDOMCSSValue> cssValue;
 	computedStyle->GetPropertyCSSValue(NS_LITERAL_STRING("background-image"), getter_AddRefs(cssValue));
-
-	nsCOMPtr<nsIDOMCSSPrimitiveValue> primitiveValue = do_QueryInterface(cssValue);
-	if (!primitiveValue) return NS_ERROR_FAILURE;
 	
-	PRUint16 type;
-	rv = primitiveValue->GetPrimitiveType(&type);
-	NS_ENSURE_SUCCESS(rv, NS_ERROR_FAILURE);
-
-	if (type != nsIDOMCSSPrimitiveValue::CSS_URI) 
-		return NS_ERROR_FAILURE;
-
 	nsEmbedString bgUrl;
-	rv = primitiveValue->GetStringValue(bgUrl);
-	NS_ENSURE_SUCCESS(rv, NS_ERROR_FAILURE);
+	PRUint16 type;
+	rv = cssValue->GetCssValueType(&type);
+	if (type == nsIDOMCSSValue::CSS_VALUE_LIST) {
+		// gg
+		cssValue->GetCssText(bgUrl); 		
+		if (bgUrl.IsEmpty() || bgUrl.Compare(L"none") == 0)
+			return NS_ERROR_FAILURE;
+		int32_t pos = bgUrl.Find("url(");
+		if ( pos != -1) {
+			bgUrl.Cut(0,4);
+			pos = bgUrl.FindChar(')');
+			bgUrl.Cut(pos,-1);
+			if (bgUrl.First() == '"') {
+				bgUrl.Cut(0,1);				
+				bgUrl.Cut(bgUrl.Length()-1,1);
+			}
+		}
+	} else {
+		nsCOMPtr<nsIDOMCSSPrimitiveValue> primitiveValue = do_QueryInterface(cssValue);
+		if (!primitiveValue) return NS_ERROR_FAILURE;
+
+		rv = primitiveValue->GetPrimitiveType(&type);
+		NS_ENSURE_SUCCESS(rv, NS_ERROR_FAILURE);
+
+		if (type != nsIDOMCSSPrimitiveValue::CSS_URI) 
+			return NS_ERROR_FAILURE;
+		
+		rv = primitiveValue->GetStringValue(bgUrl);
+		NS_ENSURE_SUCCESS(rv, NS_ERROR_FAILURE);
+	}
 
 	// Resolve the url with the base
 	nsEmbedString nsURL;
@@ -407,11 +428,11 @@ BOOL GetBackgroundImageSrc(nsIDOMNode *aNode, nsString& aUrl)
 	{
 		nsEmbedString nameSpace;
 		htmlElement->GetNamespaceURI(nameSpace);
-		if (nameSpace.IsEmpty())
+	//	if (nameSpace.IsEmpty())
 		{
 			nsEmbedString bgImg;
 			nsresult rv = GetCSSBackground(aNode, bgImg);
-			if (NS_FAILED(rv)) 
+			if (NS_FAILED(rv))	
 			{
 				// no background-image found
 				nsCOMPtr<nsIDOMDocument> document;
