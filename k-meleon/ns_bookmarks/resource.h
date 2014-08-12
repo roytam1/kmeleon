@@ -74,6 +74,8 @@
 #define ID__SETAS_BOOKMARKMENU          32803
 #define ID__OPEN_BACKGROUND             32814
 #define ID__OPEN                        32815
+#define ID__OPEN_BACKGROUNDTAB          32819
+#define ID__OPEN_NEWTAB                 32820
 #define ID__SORT                        32816
 #define ID__SORT_ALL                    32817
 #define ID__ZOOM                        32818
