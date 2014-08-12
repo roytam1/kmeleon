@@ -109,10 +109,10 @@ public:
 		return title;
 	}
 
-	CString GetContextImageUrl() {
+	CString GetContextImageUrl(BOOL background = false) {
 		CString imgSrc;
 		if (!::GetImageSrc(m_contextNode, imgSrc))
-			::GetBackgroundImageSrc(m_contextNode, imgSrc);
+			if (background) GetBackgroundImageSrc(m_contextNode, imgSrc);
 		return imgSrc;
 	}
 

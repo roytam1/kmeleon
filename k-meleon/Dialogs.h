@@ -124,6 +124,7 @@ public:
 	afx_msg void OnWrapAround();
 	afx_msg void OnMatchCase();
 	afx_msg void OnTimer(UINT nIDEvent);
+	afx_msg void OnUpdateNothing(CCmdUI* pCmdUI) { pCmdUI->Enable(); };
 
 protected:
 	virtual void PostNcDestroy();

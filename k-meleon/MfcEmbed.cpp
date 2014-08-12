@@ -1011,6 +1011,8 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
       pFrame->SetWindowPos((CWnd*)theApp.m_FrameWndLst.GetHead(),
          0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | SWP_SHOWWINDOW);
       theApp.m_pMostRecentBrowserFrame = pOldRecentFrame;
+   } else if (!isPopupOrDialog) {
+	   theApp.m_pMostRecentBrowserFrame = pOldRecentFrame;
    }
    
    // Add to the list of BrowserFrame windows

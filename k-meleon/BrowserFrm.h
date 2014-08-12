@@ -334,6 +334,7 @@ protected:
 	afx_msg void OnRbnLayoutChanged(NMHDR *pNMHDR, LRESULT *pResult);
 	afx_msg void OnInitMenuPopup(CMenu* pPopupMenu, UINT nIndex, BOOL bSysMenu);
 	afx_msg void OnUpdateViewStatusBar(CCmdUI* pCmdUI);
+	afx_msg void OnUpdateNothing(CCmdUI* pCmdUI) { pCmdUI->Enable(); };
 	afx_msg void OnViewStatusBar();
 	afx_msg void OnFindNext();
 	afx_msg void OnFindPrev();
