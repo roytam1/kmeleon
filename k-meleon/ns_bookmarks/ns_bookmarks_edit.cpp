@@ -1652,6 +1652,8 @@ static void OnRClick(HWND hTree)
       if (node && node->type != BOOKMARK_FOLDER) {
          EnableMenuItem(contextMenu, ID__OPEN, MF_BYCOMMAND | MF_ENABLED);
          EnableMenuItem(contextMenu, ID__OPEN_BACKGROUND, MF_BYCOMMAND | MF_ENABLED);
+		 EnableMenuItem(contextMenu, ID__OPEN_NEWTAB, MF_BYCOMMAND | MF_ENABLED);
+		 EnableMenuItem(contextMenu, ID__OPEN_BACKGROUNDTAB, MF_BYCOMMAND | MF_ENABLED);
          EnableMenuItem(contextMenu, ID__SETAS_TOOLBARFOLDER, MF_BYCOMMAND | MF_GRAYED);
          EnableMenuItem(contextMenu, ID__SETAS_BOOKMARKMENU, MF_BYCOMMAND | MF_GRAYED);
          EnableMenuItem(contextMenu, ID__SETAS_NEWBOOKMARKFOLDER, MF_BYCOMMAND | MF_GRAYED);
@@ -1659,6 +1661,8 @@ static void OnRClick(HWND hTree)
       else {
          EnableMenuItem(contextMenu, ID__OPEN, MF_BYCOMMAND | MF_GRAYED);
          EnableMenuItem(contextMenu, ID__OPEN_BACKGROUND, MF_BYCOMMAND | MF_GRAYED);
+		 EnableMenuItem(contextMenu, ID__OPEN_NEWTAB, MF_BYCOMMAND | MF_GRAYED);
+		 EnableMenuItem(contextMenu, ID__OPEN_BACKGROUNDTAB, MF_BYCOMMAND | MF_GRAYED);
          EnableMenuItem(contextMenu, ID__SETAS_TOOLBARFOLDER, MF_BYCOMMAND | MF_ENABLED);
          EnableMenuItem(contextMenu, ID__SETAS_BOOKMARKMENU, MF_BYCOMMAND | MF_ENABLED);
          EnableMenuItem(contextMenu, ID__SETAS_NEWBOOKMARKFOLDER, MF_BYCOMMAND | MF_ENABLED);
@@ -1707,6 +1711,29 @@ static void OnRClick(HWND hTree)
                bookmarksEdited = true;
                kPlugin.kFuncs->NavigateTo(node->url.c_str(), OPEN_BACKGROUND, NULL);
                TreeView_SelectItem(hTree, hItem);  // just to fire off a SELCHANGED notifier to update the status (last visited!)
+            }
+         }
+         break;
+      case ID__OPEN_BACKGROUNDTAB:
+         {
+            CBookmarkNode *node = GetBookmarkNode(hTree, hItem);
+            if (node->type == BOOKMARK_BOOKMARK) {
+               node->lastVisit = time(NULL);
+               bookmarksEdited = true;
+			   kPlugin.kFuncs->NavigateTo(node->url.c_str(), OPEN_BACKGROUNDTAB, NULL);
+               TreeView_SelectItem(hTree, hItem);  // just to fire off a SELCHANGED notifier to update the status (last visited!)
+            }
+         }
+         break;
+      case ID__OPEN_NEWTAB:
+         {
+            CBookmarkNode *node = GetBookmarkNode(hTree, hItem);
+            if (node->type == BOOKMARK_BOOKMARK) {
+               node->lastVisit = time(NULL);
+               bookmarksEdited = true;
+			   kPlugin.kFuncs->NavigateTo(node->url.c_str(), OPEN_NEWTAB, NULL);
+               TreeView_SelectItem(hTree, hItem);  // just to fire off a SELCHANGED notifier to update the status (last visited!)
+			   PostMessage(hWndFront, WM_COMMAND, wm_deferbringtotop, (LPARAM)NULL);
             }
          }
          break;
