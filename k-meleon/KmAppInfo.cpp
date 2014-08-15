@@ -51,7 +51,7 @@ NS_IMETHODIMP KmAppInfo::GetID(nsACString & aID)
 			nsresult rv = m_prefs->GetBoolPref("kmeleon.install_firefox_extension", &ff);
 		}
 	}
-	aID = !ff ? "kmeleon@" : "{ec8030f7-c20a-464f-9b0e-13a3a9e97384}";
+	aID = !ff ? NS_STRINGIFY(KMELEON_UUID) : "{ec8030f7-c20a-464f-9b0e-13a3a9e97384}";
     return NS_OK;
 }
 
@@ -67,7 +67,7 @@ NS_IMETHODIMP KmAppInfo::GetVersion(nsACString & aVersion)
 			nsresult rv = m_prefs->GetBoolPref("kmeleon.install_firefox_extension", &ff);
 		}
 	}
-	aVersion = !ff ? NS_STRINGIFY(KMELEON_UVERSION) : "24.0";
+	aVersion = !ff ? NS_STRINGIFY(KMELEON_UVERSION) : MOZILLA_VERSION;
     return NS_OK;
 }
 

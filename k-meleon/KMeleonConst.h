@@ -17,10 +17,11 @@
 */
 
 
-#define KMELEON_VERSION	               0x02000009
+#define KMELEON_VERSION	               0x02000010
 #define MOZILLA_BUILDID 20140105
 #define KMELEON_BUILDID 7400
 #define KMELEON_UVERSION 74.0
+#define KMELEON_UUID {944df56f-c0ec-4d7b-94b6-f625c8cc96ea}
 
 #define WM_DEFERSHOW                   WM_USER + 200
 #define WM_DEFERSAVEAS                 WM_USER + 201

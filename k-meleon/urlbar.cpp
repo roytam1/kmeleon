@@ -231,7 +231,7 @@ void CACListBox::OnResult(AutoCompleteResult* results, int count)
 
 void CACListBox::AutoComplete(CString& text)
 {	
-	::AutoComplete(text, (AutoCompleteCallback)&CACListBox::ACCallback, this);
+	CACListener::AutoComplete(text, (AutoCompleteCallback)&CACListBox::ACCallback, this);
 	return;
 
 	USES_CONVERSION;
@@ -258,7 +258,7 @@ CUrlBarEdit::~CUrlBarEdit()
 void CUrlBarEdit::StopACSession()
 {
 	KillTimer(1);
-	AutoCompleteStop();
+	CACListener::AutoCompleteStop();
 	theApp.plugins.SendMessage("*", "Urlbar", "AutoComplete", (long)"", (long)0);
 	
 	if (m_list&&IsWindow(m_list->m_hWnd))
