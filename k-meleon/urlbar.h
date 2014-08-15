@@ -197,6 +197,7 @@ public:
     }
     inline void LoadMRUList() {
          ResetContent();
+		 if (!theApp.m_MRUList) return;
          POSITION pos = theApp.m_MRUList->GetTailPosition();
          while (pos)
             AddURLToList(theApp.m_MRUList->GetPrev(pos));

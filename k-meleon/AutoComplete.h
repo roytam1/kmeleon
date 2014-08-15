@@ -46,6 +46,8 @@ class CACListener :  public nsIAutoCompleteObserver
 		FreeResult();
 	}
 
+	static void AutoCompleteStop();
+	static void AutoComplete(const CString& aSearchString, AutoCompleteCallback callback, void* data);
 protected:
 
 	void FreeResult() {
@@ -69,6 +71,7 @@ protected:
 	AutoCompleteResult* m_ACIt;
 	AutoCompleteCallback m_Callback;
 	void* m_data;
+	static nsEmbedString previousSearch;
 };
 
 NS_IMPL_ISUPPORTS1(CACListener, nsIAutoCompleteObserver)
@@ -119,17 +122,19 @@ NS_IMETHODIMP CACListener::OnSearchResult(nsIAutoCompleteSearch *search, nsIAuto
 	return NS_OK;
 }
 
-void AutoCompleteStop()
+nsEmbedString CACListener::previousSearch;
+
+void CACListener::AutoCompleteStop()
 {
 	nsresult rv;
 	nsCOMPtr<nsIAutoCompleteSearch> autoComplete = do_GetService("@mozilla.org/autocomplete/search;1?name=history", &rv);
 	NS_ENSURE_TRUE(autoComplete, );
 	autoComplete->StopSearch();
+	previousSearch = L"";
 }
 
-void AutoComplete(const CString& aSearchString, AutoCompleteCallback callback, void* data)
-{
-	static nsEmbedString previousSearch;
+void CACListener::AutoComplete(const CString& aSearchString, AutoCompleteCallback callback, void* data)
+{	
 	nsresult rv;
 
 	nsCOMPtr<nsIAutoCompleteSearch> autoComplete = do_GetService("@mozilla.org/autocomplete/search;1?name=history", &rv);
