@@ -134,7 +134,7 @@ void Create(HWND parent){
 }
 
 void Config(HWND parent){
-    MessageBox(parent, NO_OPTIONS, _T(PLUGIN_NAME), 0);
+    //MessageBox(parent, NO_OPTIONS, _T(PLUGIN_NAME), 0);
 }
 
 void Quit(){

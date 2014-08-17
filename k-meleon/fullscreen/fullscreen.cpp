@@ -185,7 +185,7 @@ BOOL APIENTRY DllMain(HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserv
 void HideClutter(HWND hWndParent, FS *fs) {
    fs->hReBar = FindWindowEx(hWndParent, NULL, REBARCLASSNAME, NULL);
    fs->hStatusBar = FindWindowEx(hWndParent, NULL, STATUSCLASSNAME, NULL);
-   fs->hTabsBar = FindWindowEx(hWndParent, NULL, REBARCLASSNAME, "TabsBar");
+   fs->hTabsBar = FindWindowEx(hWndParent, NULL, REBARCLASSNAME, _T("TabsBar"));
 
    if (fs->bFullScreen) {
       WINDOWPLACEMENT wp;
@@ -369,9 +369,9 @@ void DoMenu(HMENU menu, char *param) {
       }
       else
          string = action;
-	  AppendMenu(menu, MF_STRING, id_fullscreen, string);
+	  AppendMenuA(menu, MF_STRING, id_fullscreen, string);
 	}
-   else AppendMenu(menu, MF_STRING, id_fullscreen, kPlugin.kFuncs->Translate("&Full Screen"));
+   else AppendMenuA(menu, MF_STRING, id_fullscreen, kPlugin.kFuncs->Translate("&Full Screen"));
 }
 
 int DoAccel(char *param) {
