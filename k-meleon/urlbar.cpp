@@ -36,6 +36,8 @@ BEGIN_MESSAGE_MAP(CUrlBarEdit, CEdit)
 	ON_WM_DESTROY()
 	ON_WM_LBUTTONDBLCLK()
 	ON_WM_SETFOCUS()
+	ON_MESSAGE(WM_SETTEXT, OnSetText)
+	//ON_MESSAGE(WM_GETTEXT, OnGetText)
 END_MESSAGE_MAP()
 
 BEGIN_MESSAGE_MAP(CACListBox, CListBox)
@@ -248,11 +250,22 @@ void CACListBox::AutoComplete(CString& text)
 CUrlBarEdit::CUrlBarEdit()
 {
 	m_list = NULL;
+	m_AntiLazyIdiot = true;
 	//urlbar = GetParent()->GetParent();
 }
 
 CUrlBarEdit::~CUrlBarEdit()
 {
+}
+
+LRESULT CUrlBarEdit::OnSetText(WPARAM w, LPARAM l)
+{
+	// Because the combo box use a buffer with a fixed length of 
+	// 260 characters and sometimes decide to reset the text and 
+	// therefore truncate it .............
+	if (l && m_AntiLazyIdiot && _tcslen((TCHAR*)l) == 259)
+		return 0; 
+	return DefWindowProc(WM_SETTEXT, w, l);
 }
 
 void CUrlBarEdit::StopACSession()
