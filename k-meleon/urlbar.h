@@ -63,6 +63,7 @@ public:
 	int static CALLBACK UrlBreakProc(LPWSTR lpszEditText, int ichCurrent,
                                 int cchEditText, int wActionCode);
 	void StopACSession();
+	bool m_AntiLazyIdiot;
 
 	DECLARE_MESSAGE_MAP()
 	afx_msg void OnChar(UINT nChar, UINT nRepCnt, UINT nFlags);
@@ -73,9 +74,12 @@ public:
 	afx_msg BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);
 	afx_msg void OnSetFocus(CWnd* pOldWnd);
 	afx_msg void OnDestroy();
+	afx_msg LRESULT OnSetText(WPARAM w, LPARAM l);
+	afx_msg LRESULT OnGetText(WPARAM w, LPARAM l);
 #ifndef URLBAR_USE_SETWORDBREAKPROC	
 	afx_msg void OnLButtonDblClk(UINT nFlags, CPoint point);
 #endif
+	
 
 protected:
 	virtual void PreSubclassWindow();
@@ -110,7 +114,6 @@ public:
 	int Create(DWORD style, RECT &rect, CWnd *parentWnd, UINT id) {
         int ret = CComboBoxEx::Create(style | CBS_AUTOHSCROLL, rect, parentWnd, id);
         SetExtendedStyle(/*CBES_EX_PATHWORDBREAKPROC|*/CBES_EX_CASESENSITIVE, CBES_EX_PATHWORDBREAKPROC|CBES_EX_CASESENSITIVE);
-      
         COMBOBOXEXITEM ci;
         ci.mask = CBEIF_IMAGE;
         ci.iItem = -1;
@@ -174,8 +177,11 @@ public:
 			if (HIWORD(oldSelection) != LOWORD(oldSelection) || GetWindowTextLength() == 0)
 				oldSelection = MAKELONG(LOWORD(oldSelection), -1);
 
+			m_UrlBarEdit.m_AntiLazyIdiot = false;
             if (_tcsncicmp(pUrl, _T("javascript:"), 11))
                 SetWindowText(m_currentURL);
+			m_UrlBarEdit.m_AntiLazyIdiot = true;
+
 			TRACE0("EditChanged FALSE in SetCurrentURL\n");
             EditChanged(FALSE);
 			//if (!CheckFocus())
