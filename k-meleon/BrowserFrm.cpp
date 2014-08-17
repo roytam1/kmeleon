@@ -387,6 +387,7 @@ int CBrowserFrame::InitLayout()
         TRACE0("Failed to create URL Bar\n");
         return -1;      // fail to create
     }
+	
 #ifdef INTERNAL_SITEICONS
 	m_wndUrlBar.SetImageList(&theApp.favicons);
 #endif
@@ -1805,6 +1806,15 @@ void CBrowserFrame::OnGetMinMaxInfo(MINMAXINFO* lpMMI)
 		CFrameWnd::OnGetMinMaxInfo(lpMMI);
 	else
 	{
+		CRect workArea;
+		if (::SystemParametersInfo(SPI_GETWORKAREA, 0, &workArea,0)) {
+			lpMMI->ptMaxPosition.x = workArea.left;
+			lpMMI->ptMaxPosition.y = workArea.top;
+			lpMMI->ptMaxSize.x = workArea.Width();
+			lpMMI->ptMaxSize.y = workArea.Height();
+			return;
+		}
+
 		CRect rectDesktop;
 		::GetWindowRect(::GetDesktopWindow(), &rectDesktop);
 
