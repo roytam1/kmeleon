@@ -1755,44 +1755,29 @@ void CBrowserFrame::UpdatePopupNotification(LPCTSTR uri)
 
 void CBrowserFrame::OnMaximizeWindow()
 {
-	if (this->GetStyle() & WS_CAPTION)
-		ShowWindow(SW_MAXIMIZE);
-	else
-	{
-		CRect rectDesktop;
-		::GetWindowRect(::GetDesktopWindow(), &rectDesktop);
-
-		APPBARDATA abd;
-		abd.cbSize = sizeof(abd);
-		UINT uState = (UINT) SHAppBarMessage(ABM_GETSTATE, &abd); 
-		if ((uState & ABS_ALWAYSONTOP) && !(uState & ABS_AUTOHIDE))
-		{
-			BOOL fResult = (BOOL) SHAppBarMessage(ABM_GETTASKBARPOS, &abd); 
-			rectDesktop.SubtractRect(rectDesktop, &abd.rc);
-		}
-
-		AdjustWindowRectEx(rectDesktop, GetWindowLong(m_hWnd, GWL_STYLE), GetMenu() ? TRUE : FALSE, GetWindowLong(m_hWnd, GWL_EXSTYLE)); 
-		SetWindowPos(NULL, rectDesktop.left, rectDesktop.top, rectDesktop.Width(), rectDesktop.Height(), SWP_NOZORDER);
-	}
+	if (!(GetStyle() & WS_DLGFRAME))
+		ModifyStyle(WS_THICKFRAME, 0);		
+	ShowWindow(SW_MAXIMIZE);
 }
 
 void CBrowserFrame::OnMinimizeWindow()
 {
-	ShowWindow(SW_MINIMIZE);
-	 
+	ShowWindow(SW_MINIMIZE);		 
 } 
 
 void CBrowserFrame::OnRestoreWindow()
 {
-	ShowWindow(SW_RESTORE);
+	if (!(GetStyle() & WS_DLGFRAME))
+		ModifyStyle(0, WS_THICKFRAME);
+	ShowWindow(SW_RESTORE);	
 }
 
 void CBrowserFrame::ToggleWindow()
 {
 	if (IsZoomed())
-		ShowWindow(SW_RESTORE);
+		OnRestoreWindow();
 	else
-		ShowWindow(SW_MAXIMIZE);
+		OnMaximizeWindow();
 }
 
 void CBrowserFrame::OnToggleWindow()
