@@ -27,6 +27,7 @@
 #define PREFERENCE_REBAR_BOTTOM		"kmeleon.tabs.bottomBar"
 #define PREFERENCE_REBAR_POSITION	"kmeleon.tabs.position"
 #define PREFERENCE_REBAR_FIXED		"kmeleon.tabs.fixedBar"
+#define PREFERENCE_REBAR_MULTILINE  "kmeleon.tabs.multiline"
 
 // CTabReBar
 
@@ -115,7 +116,7 @@ public:
 	void RefreshFavIcon();
 	int GetButtonIDFromPoint(POINT point); // ....
 	void UpdateVisibility(BOOL canHide = TRUE);
-
+	void FixMaximizeRestoreRebarBug();
 protected:
 	
 	BOOL bRebarEnabled ;
@@ -129,10 +130,11 @@ protected:
 	UINT mPosBar;
 	BOOL mFixedBar;
 	BOOL mChevron;
+	BOOL mMultiline;
 	
 	int GetButtonIDFromData(DWORD data);
-	void UpdateButtonsSize(bool forceUpdate = false);
 	
+	void UpdateButtonsSize(bool forceUpdate = false);
 	void HandleMouseClick(int flag, CPoint point);
 	
 	CReBarEx* m_wndParent;
