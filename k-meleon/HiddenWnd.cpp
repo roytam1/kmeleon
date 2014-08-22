@@ -205,6 +205,7 @@ BOOL CHiddenWnd::ShowBrowser(LPTSTR URI, BOOL webapp, BOOL atStart) {
 
 	  int openmode = theApp.preferences.GetInt("browser.link.open_external", 2);
 	  CBrowserFrame* browser = NULL;
+	  CBrowserWrapper* wrapper = NULL;
 	  if (webapp) {
 		  PRUint32 chromeMask = nsIWebBrowserChrome::CHROME_WINDOW_RESIZE |
                      nsIWebBrowserChrome::CHROME_WINDOW_CLOSE |
@@ -213,16 +214,20 @@ BOOL CHiddenWnd::ShowBrowser(LPTSTR URI, BOOL webapp, BOOL atStart) {
 		  browser = theApp.CreateNewBrowserFrame(chromeMask, FALSE, NULL);
 	  } else if (openmode == 2 || !theApp.m_pMostRecentBrowserFrame ) {
 		browser = theApp.CreateNewBrowserFrame();
+		wrapper = browser->GetActiveView()->GetBrowserWrapper();
 		//browser->ShowWindow(SW_SHOW);
 	  } else  {
 		  if (theApp.m_pMostRecentBrowserFrame) {
 			  browser = theApp.m_pMostRecentBrowserFrame;
-			  CBrowserGlue* glue = browser->GetActiveView()->GetBrowserGlue();
-			  if (glue) if (!glue->ReuseWindow(openmode == 1)) browser = theApp.CreateNewBrowserFrame(); //XXXXXX
+			  CBrowserGlue* glue = browser->GetActiveView()->GetBrowserGlue();			  
+			  if (glue) {
+				 wrapper = glue->ReuseWindow(openmode == 1);
+                 if (!wrapper) browser = theApp.CreateNewBrowserFrame(); //XXXXXX
+			  }
 		  }
 	  }
 
-      if (!browser) {
+      if (!wrapper) {
          AfxMessageBox(IDS_FAILED_TO_CREATE_BROWSER);
          return FALSE;
       }
@@ -234,11 +239,14 @@ BOOL CHiddenWnd::ShowBrowser(LPTSTR URI, BOOL webapp, BOOL atStart) {
 			 if (URI[len-1] == _T('"')) URI[len-1] = 0;
 			 URI++;
          }
-         browser->OpenURL(URI);
+         //browser->OpenURL(URI);
+		 wrapper->LoadURL(URI);
       }
 	  else {
 		  // browser->m_wndUrlBar.MaintainFocus();
-		  browser->GetActiveView()->LoadHomePage();
+		  //browser->GetActiveView()->LoadHomePage();
+		  CString homePage = theApp.preferences.GetString("browser.startup.homepage", _T("about:home"));
+		  wrapper->LoadURL(homePage);
 	  }
 	  
 	  // Bullshit: the first window in never maximized
