@@ -55,7 +55,7 @@ protected:
 	{
 		if (op.mBuffer && (op.mBuffer == op.mFBuffer)) {
 			mBuffer = mFBuffer;
-			memcpy(mFBuffer, op.mFBuffer, STACK_BUFFER_SIZE);
+			memcpy(mFBuffer, op.mFBuffer, STACK_BUFFER_SIZE*sizeof(T));
 		}
 		else {
 			mBuffer = op.mBuffer;

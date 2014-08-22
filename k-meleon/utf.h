@@ -24,7 +24,7 @@
 #include <malloc.h>
 
 #ifndef STACK_BUFFER_SIZE
-#define STACK_BUFFER_SIZE 128
+#define STACK_BUFFER_SIZE 64
 #endif
 
 inline size_t utf16_to_utf8(const wchar_t* src, char* dst, unsigned len)
