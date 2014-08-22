@@ -563,7 +563,7 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
 
          CBookmarkNode * newNode = new CBookmarkNode(0, name, "", nick, "", "", BOOKMARK_FOLDER, addDate, 0, 0, id);
          node.AddChild(newNode);
-         if (name) free(name);
+         
          if (nick)   free(nick);
 		 if (id)     free(id);
          lastNode = newNode;
@@ -585,6 +585,8 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
             newNode->flags |= BOOKMARK_FLAG_TB;
             found_tb = true;
          }
+
+		 if (name) free(name);
 
          if ( strstr(t, _Q(FOLDER_GROUP="true")) )
          {

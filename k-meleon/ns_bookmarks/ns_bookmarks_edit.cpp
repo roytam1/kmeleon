@@ -1026,6 +1026,7 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                // fall through!
 
             case IDOK:
+               TreeView_DeleteAllItems(hTree);
                if (bookmarksEdited) {
 				  delete gBookmarkRoot;
                   gBookmarkRoot = workingBookmarks;
@@ -1056,9 +1057,9 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                   PostMessage(hWndFront, WM_COMMAND, wm_deferbringtotop, (LPARAM) NULL);
                ghWndEdit = NULL;
 
+			   
  			   DestroyIcon((HICON)SendMessage(hDlg, WM_GETICON, ICON_SMALL, 0));
-			   DestroyIcon((HICON)SendMessage(hDlg, WM_GETICON, ICON_BIG, 0));
-			   TreeView_DeleteAllItems(hTree);
+			   DestroyIcon((HICON)SendMessage(hDlg, WM_GETICON, ICON_BIG, 0));			   
                DestroyWindow(hDlg);
                break;
 
