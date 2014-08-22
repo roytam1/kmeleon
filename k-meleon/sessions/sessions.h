@@ -110,7 +110,8 @@ public:
 	}
 
 	bool save(std::string& pref) {
-		if (index>=0 && urls[index].compare(0, 7, "wyciwyg") != 0)
+		//assert(index<urls.size());
+		if (index>=0 && index<urls.size() && urls[index].compare(0, 7, "wyciwyg") != 0)
 			setStrPref(pref.c_str(), (char*)topref().c_str());
 		return true;
 	}
