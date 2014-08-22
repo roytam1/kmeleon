@@ -183,6 +183,7 @@ protected:
 	afx_msg void OnShowFindBar();
 public: // Temporary
 	afx_msg void OnNewTab();
+	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
 };
 
 

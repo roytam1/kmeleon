@@ -133,6 +133,7 @@ BEGIN_MESSAGE_MAP(CBrowserFrmTab, CBrowserFrame)
 	ON_COMMAND(ID_EDIT_FIND, OnShowFindBar)
 //	ON_MESSAGE(UWM_GETFAVICON, OnGetFavIcon)
 	ON_WM_KEYDOWN()
+	ON_WM_SYSCOMMAND()
 END_MESSAGE_MAP()
 
 BOOL CBrowserFrmTab::OnToolTipText(UINT id, NMHDR* pNMHDR, LRESULT* pResult)
@@ -678,12 +679,14 @@ LRESULT CBrowserFrmTab::OnNewSiteIcon(WPARAM url, LPARAM index)
 		int icon = theApp.favicons.GetIcon(m_Tabs[i]->GetBrowserGlue()->mIconURI);
 		if (icon==-1) {// The icon doesn't exist anymore, was deleted
 			m_Tabs[i]->GetBrowserGlue()->mIconURI = nullptr;
-			SetFavIcon(theApp.favicons.GetDefaultIcon());
+			if (i == m_iCBrowserView)
+				SetFavIcon(theApp.favicons.GetDefaultIcon());
 			SetTabIcon(m_Tabs[i], theApp.favicons.GetDefaultIcon());
 		}
 		else
 			if (index==-1 || index == icon) {
-				SetFavIcon(icon);
+				if (i == m_iCBrowserView)
+					SetFavIcon(icon);
 				SetTabIcon(m_Tabs[i], icon);
 			}
 	}
@@ -820,7 +823,7 @@ CBrowserFrame* CBrowserTab::OpenURLInNewWindow(LPCTSTR pUrl, LPCTSTR referrer, B
 CBrowserTab* CBrowserTab::OpenURLInNewTab(LPCTSTR url, LPCTSTR refferer, BOOL bBackground, BOOL allowFixup)
 {
 	CBrowserTab* tab;
-	if ( !((CBrowserGlue*)m_pBrowserGlue)->mLoading &&
+	if ( (!GetBrowserGlue()->mLoading && GetBrowserGlue()->mHIndex == -1) &&
 	     GetCurrentURI().Compare(_T("about:blank")) == 0 )
 		tab = this;
 	else if ( (tab=mpFrameTab->CreateBrowserTab()) == NULL)
@@ -921,3 +924,11 @@ void CBrowserTab::OnOpenFrameInBackgroundTab()
 }
 
 
+
+
+void CBrowserFrmTab::OnSysCommand(UINT nID, LPARAM lParam)
+{
+	CBrowserFrame::OnSysCommand(nID, lParam);	
+	if (nID == SC_MAXIMIZE || nID == SC_RESTORE)
+		m_wndTabs->FixMaximizeRestoreRebarBug();
+}

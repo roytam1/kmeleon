@@ -132,6 +132,7 @@ CTabReBar::CTabReBar()
 
 	theApp.preferences.GetString(PREFERENCE_REBAR_TITLE, szTitle, _T(""));
 	mButtonStyle = theApp.preferences.GetInt(PREFERENCE_BUTTON_STYLE, 2);
+	mMultiline = theApp.preferences.GetBool(PREFERENCE_REBAR_MULTILINE, 0);	
 }
 
 CTabReBar::~CTabReBar()
@@ -142,7 +143,7 @@ CTabReBar::~CTabReBar()
 
 BOOL CTabReBar::Create(CReBarEx* rebar, UINT idwnd)
 {
-		if (!CreateEx(rebar->GetParentFrame(), CCS_BOTTOM | TBSTYLE_FLAT | TBSTYLE_LIST | TBSTYLE_TRANSPARENT | TBSTYLE_TOOLTIPS,
+		if (!CreateEx(rebar->GetParentFrame(), CCS_BOTTOM | TBSTYLE_FLAT | TBSTYLE_LIST | TBSTYLE_TRANSPARENT | TBSTYLE_TOOLTIPS | TBSTYLE_WRAPABLE,
 			WS_CHILD|WS_VISIBLE|(mBottomBar ? CBRS_ALIGN_BOTTOM : CBRS_ALIGN_TOP) ,CRect(0,0,0,0),idwnd))
 			return FALSE;
 		//ModifyStyle(0, CCS_ADJUSTABLE);
@@ -171,7 +172,7 @@ BOOL CTabReBar::Create(CReBarEx* rebar, UINT idwnd)
 		} else {
 			mTemp = new CReBarEx();
 			mTemp->Create(GetParentFrame(), RBS_BANDBORDERS, WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS|WS_CLIPCHILDREN|(mBottomBar ? CBRS_ALIGN_BOTTOM  : CBRS_TOP));
-			mTemp->AddBar(this, szTitle, NULL,  RBBS_USECHEVRON | RBBS_NOGRIPPER);
+			mTemp->AddBar(this, szTitle, NULL,  RBBS_USECHEVRON | RBBS_NOGRIPPER | RBBS_VARIABLEHEIGHT);
 			mTemp->SetWindowText(_T("TabsBar"));
 			
 			if (mPosBar == POSITION_VTOP) {
@@ -244,6 +245,7 @@ BOOL CTabReBar::Init(CReBarEx* rebar)
 	rbi.fMask  = RBBIM_CHILDSIZE; 
 	rbi.cxMinChild = 0;
 	rbi.cyMinChild = rbi.cyChild = rbi.cyMaxChild = size.cy;
+
 	if (!mFixedBar && !mPosBar) {
 		int iband = m_wndParent->FindByName(_T("Tabs"));
 		m_wndParent->GetReBarCtrl().SetBandInfo(iband, &rbi);
@@ -255,6 +257,29 @@ BOOL CTabReBar::Init(CReBarEx* rebar)
 		mTemp->SetWindowPos(&(((CBrowserFrame*)GetParentFrame())->m_wndStatusBar),0,0,0,0,SWP_NOMOVE);
 
 	return TRUE;
+}
+
+void CTabReBar::FixMaximizeRestoreRebarBug()
+{
+	if (!mMultiline) return;
+
+	// Setting the height to 0 then reset the correct size. 
+	// Else the rebar doesn't update its height.
+	REBARBANDINFO rb = {0};
+	rb.cbSize = sizeof(REBARBANDINFO);
+	rb.fMask  = RBBIM_CHILDSIZE;  
+	rb.cxMinChild = 0;
+	rb.cyChild = rb.cyMinChild = rb.cyMaxChild = 0;
+	rb.cyIntegral = 1;
+
+	if (!mFixedBar && !mPosBar) {		
+		int iband = m_wndParent->FindByName(_T("Tabs"));
+		m_wndParent->GetReBarCtrl().SetBandInfo(iband, &rb);
+	} 
+	else {
+		mTemp->GetReBarCtrl().SendMessage(RB_SETBANDINFO, 0, (LPARAM)&rb);
+	}
+	UpdateButtonsSize(true);
 }
 
 void CTabReBar::UpdateButtonsSize(bool forceUpdate)
@@ -279,13 +304,18 @@ void CTabReBar::UpdateButtonsSize(bool forceUpdate)
 	int nMinWidth = nButtonMinWidth * nHRes / nHSize;
 	int nMaxWidth = nButtonMaxWidth * nHRes / nHSize;
 
-	RECT rect;
+	CRect rect;
 	GetWindowRect(&rect);
 	mChevron = FALSE;
 
 	// -4 seems to avoid freeze on vista+
 	int width = rect.right - rect.left - 4;
-	int buttonWidth = width / count;
+	int buttonWidth = width / count, nline = 1;
+	
+	if (mMultiline)
+		while (buttonWidth < nMinWidth && nline < 3 && nline < count)
+			buttonWidth = ++nline*width / count;		
+	
 	if (buttonWidth > nMaxWidth)
 		buttonWidth = nMaxWidth;
 	else if (buttonWidth < nMinWidth) {
@@ -293,11 +323,14 @@ void CTabReBar::UpdateButtonsSize(bool forceUpdate)
 		buttonWidth = nMinWidth;
 		if (width>nMinWidth)
 			buttonWidth = width / (width/nMinWidth);
-	}
+	}	
 	
-	int w = LOWORD(GetToolBarCtrl().GetButtonSize());
+	DWORD bsize = GetToolBarCtrl().GetButtonSize();
+	int w = LOWORD(bsize), h = HIWORD(bsize);
 	if (!forceUpdate && w == buttonWidth) return;
 	GetToolBarCtrl().SetButtonWidth(buttonWidth, buttonWidth);
+
+	// Sometimes it doesn't like the width, so use another one
 	w = LOWORD(GetToolBarCtrl().GetButtonSize());
 	if (w != buttonWidth)
 		GetToolBarCtrl().SetButtonWidth(--buttonWidth, buttonWidth);
@@ -308,8 +341,11 @@ void CTabReBar::UpdateButtonsSize(bool forceUpdate)
 	// Set the ideal size for chevron
 	REBARBANDINFO rb = {0};
 	rb.cbSize = sizeof(REBARBANDINFO);
-	rb.fMask  = RBBIM_IDEALSIZE; 
-	rb.cxIdeal = buttonWidth*count;//size.cx;
+	rb.fMask  = RBBIM_IDEALSIZE | (mMultiline ? RBBIM_CHILDSIZE : 0);  
+	rb.cxIdeal = buttonWidth*(count/nline);//size.cx;
+	rb.cxMinChild = 0;
+	rb.cyChild = rb.cyMinChild = rb.cyMaxChild = h *nline;
+	rb.cyIntegral = 1;
 
 	/* Stupid Vista+ Fix*/
 	/*int static ignoreSize = 1;
