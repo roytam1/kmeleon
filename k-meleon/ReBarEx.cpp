@@ -509,8 +509,12 @@ void CReBarEx::RestoreBandSizes() {
    
    BOOL barbreak;
    BOOL locked = theApp.preferences.GetBool(PREF_TOOLBAND_LOCKED, false);
-   for (x=0; x<m_iCount; x++) {
-      int barIndex = FindByIndex(x); // index of the bar on the Rebar
+   for (int barIndex=0; barIndex<m_iCount; barIndex++) {
+      rbbi.fMask = RBBIM_ID | RBBIM_CHILD;
+      GetReBarCtrl().GetBandInfo(barIndex, &rbbi);
+      x = ChildToListIndex(rbbi.hwndChild);
+      if (x == -1) continue;
+      //int barIndex = FindByIndex(x); // index of the bar on the Rebar
 
 	  sprintf(tempPref, "kmeleon.toolband.%s.break", T2CA(m_index[x]->name));
       barbreak = theApp.preferences.GetInt(tempPref, 0);
