@@ -766,8 +766,10 @@ NS_IMETHODIMP CBrowserImpl::HandleEvent(nsIDOMEvent *aEvent)
 		if (shiftKey) flags |= FSHIFT << 8;
 		if (ctrlKey) flags |= FCONTROL << 8;
 
-		if (m_pBrowserFrameGlue->MouseAction(targetNode, flags))
+		if (m_pBrowserFrameGlue->MouseAction(targetNode, flags)) {
 			aEvent->PreventDefault();
+			aEvent->StopPropagation();
+		}
 
 		return NS_OK;
 	}
