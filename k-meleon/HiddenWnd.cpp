@@ -244,8 +244,8 @@ BOOL CHiddenWnd::ShowBrowser(LPTSTR URI, BOOL webapp, BOOL atStart) {
       }
 	  else {
 		  // browser->m_wndUrlBar.MaintainFocus();
-		  //browser->GetActiveView()->LoadHomePage();
-		  CString homePage = theApp.preferences.GetString("browser.startup.homepage", _T("about:home"));
+		  //browser->GetActiveView()->LoadHomePage();		  
+		  CString homePage = theApp.preferences.bStartHome ? theApp.preferences.GetString("browser.startup.homepage", _T("about:home")) : _T("about:blank");
 		  wrapper->LoadURL(homePage);
 	  }
 	  

@@ -400,7 +400,8 @@ void CBrowserFrmTab::SetActiveBrowser(CBrowserTab* aNewActiveTab)
 
 	// BUG: We may be here because of a call to this function.
 	aNewActiveTab->SetActive(true, focus);
-
+	// Don't wait for MFC to update the tab bar
+	m_wndTabs->GetToolBarCtrl().CheckButton(TABINDEXTOID(aNewActiveTab->m_iIndex), 1);
 	// Remove a possible tooltip
 	m_wndToolTip.Hide();
 
