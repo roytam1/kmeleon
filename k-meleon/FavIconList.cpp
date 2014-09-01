@@ -67,6 +67,41 @@ Bug:	Changing skin need to delete the iconcache.
 
 #define FAVICON_CACHE_FILE _T("IconCache.dat")
 
+HBITMAP ResizeIcon32(HDC hDC, HBITMAP hBitmap, LONG w, LONG h)
+{
+	IWICImagingFactory *pImgFac;
+	HRESULT hr = CoCreateInstance(CLSID_WICImagingFactory, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pImgFac));
+	if (!SUCCEEDED(hr)) return NULL;
+
+	IWICBitmap* NewBmp;
+	hr = pImgFac->CreateBitmapFromHBITMAP(hBitmap,0,WICBitmapUseAlpha,&NewBmp);
+	if (!SUCCEEDED(hr)) return NULL;
+
+	BITMAPINFO bmi = {};
+	bmi.bmiHeader.biSize = sizeof(bmi.bmiHeader);
+	bmi.bmiHeader.biWidth = 16;
+	bmi.bmiHeader.biHeight = -16;
+	bmi.bmiHeader.biPlanes = 1;
+	bmi.bmiHeader.biBitCount = 32;
+	bmi.bmiHeader.biCompression = BI_RGB;
+
+	BYTE *pBits;
+	HBITMAP hbmp = CreateDIBSection(NULL, &bmi, DIB_RGB_COLORS, (void**)&pBits, NULL, 0);
+
+	IWICBitmapScaler* pIScaler;
+    hr = pImgFac->CreateBitmapScaler(&pIScaler);
+    hr = pIScaler->Initialize(NewBmp,16,16,WICBitmapInterpolationModeFant);
+
+    WICRect rect = {0, 0, 16, 16};
+    hr = pIScaler->CopyPixels(&rect, 16 * 4, 16 * 16 * 4, pBits);
+	if (!SUCCEEDED(hr)) return NULL;
+
+	pIScaler->Release();
+	NewBmp->Release();
+	pImgFac->Release();
+	return hbmp;
+}
+
 // Used to resize the icon if it's not 16x16
 HBITMAP ResizeIcon(HDC hDC, HBITMAP hBitmap, LONG w, LONG h)
 {
@@ -81,7 +116,8 @@ HBITMAP ResizeIcon(HDC hDC, HBITMAP hBitmap, LONG w, LONG h)
 	HDC hdcScaled = CreateCompatibleDC(hDCs); 
 	HBITMAP hbmSized = CreateCompatibleBitmap(hDCs, 16, 16); 
 	HGDIOBJ old2 = SelectObject(hdcScaled, hbmSized);
-	
+	SetStretchBltMode(hdcScaled, HALFTONE);
+	SetStretchBltMode(hDCs, HALFTONE);
 	StretchBlt(hdcScaled,0,0,16,16,hDCs,0,0,w,h,SRCCOPY);
 	SelectObject(hdcScaled, old2);
 	DeleteDC(hdcScaled);
@@ -767,11 +803,12 @@ NS_IMETHODIMP IconObserver::CreateDIB(imgIRequest *aRequest)
     int32_t h; 
 	image->GetWidth(&w);
 	image->GetHeight(&h);
-
-	
+		
 	if (w!=16 && h!=16) { 
 		HDC hDC = GetDC(NULL);
-		if (HBITMAP hbmSized = ResizeIcon(hDC, hBitmap, w, h)) {
+		HBITMAP hbmSized = ResizeIcon32(hDC, hBitmap, w, h);
+		if (!hbmSized) hbmSized = ResizeIcon(hDC, hBitmap, w, h);
+		if (hbmSized) {
 			DeleteObject(hBitmap);
 			hBitmap = hbmSized;
 		}
