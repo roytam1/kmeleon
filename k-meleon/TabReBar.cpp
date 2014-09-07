@@ -198,7 +198,7 @@ BOOL CTabReBar::Init(CReBarEx* rebar)
 	rbi.cbSize = sizeof(REBARBANDINFO);
 
 	// Catch the tab buttons if fixed
-	if (mFixedBar)
+	if (mFixedBar && theApp.preferences.GetBool(PREFERENCE_REBAR_FIXED, FALSE))
 	{
 		rbi.fMask  = RBBIM_CHILD;
 		int idx = rebar->FindByName(_T("Tab/&Window Buttons"));
@@ -292,7 +292,7 @@ void CTabReBar::UpdateButtonsSize(bool forceUpdate)
 	
 	// If the sizes are 0 the toolbar get crazy so avoid it!
 	if (nButtonMinWidth>nButtonMaxWidth) nButtonMaxWidth = nButtonMinWidth;
-	if (nButtonMaxWidth < 10) nButtonMaxWidth = nButtonMinWidth = 10;
+	if (nButtonMaxWidth < 24) nButtonMaxWidth = nButtonMinWidth = 16;
 
 	CDC dc;
 	dc.CreateDC(_T("DISPLAY"), NULL, NULL, NULL);

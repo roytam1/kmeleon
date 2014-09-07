@@ -1400,8 +1400,14 @@ void CBrowserFrame::OnSysCommand(UINT nID, LPARAM lParam)
         m_wndLastFocused = ::GetFocus();
 		if (::IsChild(GetActiveView()->m_hWnd, m_wndLastFocused))
 		   GetActiveView()->Activate(FALSE);
+	} else if (nID == SC_RESTORE) {
+		if (!(GetStyle() & WS_DLGFRAME) && IsZoomed())
+			ModifyStyle(0, WS_THICKFRAME);
 	}
-
+	else if (nID == SC_MAXIMIZE) {
+		if (!(GetStyle() & WS_DLGFRAME))
+			ModifyStyle(WS_THICKFRAME, 0);
+	}
 	CFrameWnd::OnSysCommand(nID, lParam);
 }
 

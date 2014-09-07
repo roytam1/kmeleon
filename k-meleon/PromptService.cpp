@@ -90,10 +90,12 @@ NS_IMETHODIMP CPromptService::PromptUsernameAndPassword(const PRUnichar * dialog
 	nsCOMPtr<nsIURI> uri;
 	NewURI(getter_AddRefs(uri), url);
 	nsCString scheme, host, hostname;
-	int32_t port, dport;
-	uri->GetHost(host);
-	uri->GetScheme(hostname);
-	uri->GetPort(&port);
+	int32_t port = -1, dport;
+	if (uri) {
+		uri->GetHost(host);
+		uri->GetScheme(hostname);
+		uri->GetPort(&port);
+	}
 	hostname.Append(scheme);
 	hostname.Append("://");
 	hostname.Append(host);
