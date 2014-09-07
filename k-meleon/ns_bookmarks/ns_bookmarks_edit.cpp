@@ -1096,7 +1096,8 @@ static void FillTree(HWND hTree, HTREEITEM parent, CBookmarkNode &node, BOOL use
       if (type == BOOKMARK_FOLDER) {
          tvis.itemex.iImage = IMAGE_FOLDER_CLOSED;
          tvis.itemex.iSelectedImage = IMAGE_FOLDER_OPEN;
-         tvis.itemex.pszText = (LPTSTR)(LPCTSTR)CUTF8_to_T(child->text.c_str()); // XXX
+		 CUTF8_to_T title(child->text.c_str());
+         tvis.itemex.pszText = (LPTSTR)(LPCTSTR)title; // XXX
 
          HTREEITEM thisItem = TreeView_InsertItem(hTree, &tvis);
 
@@ -1132,8 +1133,9 @@ static void FillTree(HWND hTree, HTREEITEM parent, CBookmarkNode &node, BOOL use
 			   }
             }
 		 }
+		 CUTF8_to_T title(child->text.c_str());
          tvis.itemex.iSelectedImage = tvis.itemex.iImage;
-         tvis.itemex.pszText = (LPTSTR)(LPCTSTR)CUTF8_to_T(child->text.c_str()); // XXX
+         tvis.itemex.pszText = (LPTSTR)(LPCTSTR)title; // XXX
          TreeView_InsertItem(hTree, &tvis);
       }
    }
@@ -1369,10 +1371,14 @@ static void MoveItem(HWND hTree, HTREEITEM item, int mode) {
       if (newPreviousNode) {
          moveNode->next = newPreviousNode->next;
          newPreviousNode->next = moveNode;
+		 if (!moveNode->next)
+			 newParentNode->lastChild = moveNode;
       }
       else {
          moveNode->next = newParentNode->child;
          newParentNode->child = moveNode;
+		 if (!moveNode->next)
+			 newParentNode->lastChild = moveNode;
       }
 
       // collapse its parent if it's going to be empty (doesn't work if we collapse after deletion, for some reason)
@@ -1403,16 +1409,18 @@ static void CreateNewObject(HWND hTree, HTREEITEM fromItem, int type, int mode) 
    tvis.itemex.mask = TVIF_TEXT | TVIF_PARAM | TVIF_IMAGE | TVIF_SELECTEDIMAGE;
    CResString strItem = gLoc->GetString(IDS_NEW_FOLDER);
    switch (type) {
-   case BOOKMARK_BOOKMARK:
+   case BOOKMARK_BOOKMARK: {
       if (mode == PASTE && freeNode) {
          newNode = freeNode;
          freeNode = NULL;
       } else
          newNode = new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), CT_to_UTF8(gLoc->GetString(IDS_NEW_BOOKMARK)), "http://kmeleon.sourceforge.net/", "", "", "", BOOKMARK_BOOKMARK, time(NULL));
-	  tvis.itemex.pszText = (LPTSTR)(LPCTSTR)CUTF8_to_T(newNode->text.c_str()); // XXX
+	  CUTF8_to_T title(newNode->text.c_str());
+	  tvis.itemex.pszText = (LPTSTR)(LPCTSTR)title; // XXX
       tvis.itemex.iImage = IMAGE_BOOKMARK;
       tvis.itemex.iSelectedImage = IMAGE_BOOKMARK;
       break;
+   }
    case BOOKMARK_FOLDER:
       newNode = new CBookmarkNode(0, CT_to_UTF8(gLoc->GetString(IDS_NEW_FOLDER)), "", "", "", "", BOOKMARK_FOLDER, time(NULL));
 	  tvis.itemex.pszText = (TCHAR*)(const TCHAR*)strItem;
