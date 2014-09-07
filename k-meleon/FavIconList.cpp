@@ -303,6 +303,8 @@ void CFavIconList::AddMap(const char *uri, int index, const char* pageUri)
 {
 	// This function is called from another thread
 	// if the moz image loader is used.
+	
+	if (index == -1) return;
 
 	USES_CONVERSION;
 	m_urlMap[A2CT(uri)] = index - m_iOffset;
@@ -477,7 +479,7 @@ void CFavIconList::RefreshIcon(nsIURI* aURI)
 	if (index==GetDefaultIcon()) 
 		return;
 
-	Remove(index);
+	Remove(index + m_iOffset);
 	
    // We have to remove all url with this icon.
    POSITION pos = m_urlMap.GetStartPosition();

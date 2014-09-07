@@ -1004,8 +1004,11 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
    if (!preferences.bHideTaskBarButtons)
       pFrame->ModifyStyleEx(0, WS_EX_APPWINDOW);
 
-   if (preferences.GetBool("kmeleon.display.hideTitleBar", FALSE) && !isPopupOrDialog)
+   if (preferences.GetBool("kmeleon.display.hideTitleBar", FALSE) && !isPopupOrDialog) {
       pFrame->ModifyStyle(WS_CAPTION, 0 , SWP_DRAWFRAME);
+	  if (pFrame->IsZoomed())
+		  pFrame->ModifyStyle(WS_THICKFRAME, 0);
+   }
 
    if (inBackground) {
       pFrame->SetWindowPos((CWnd*)theApp.m_FrameWndLst.GetHead(),
@@ -1238,6 +1241,8 @@ int CMfcEmbedApp::ExitInstance()
    delete m_MRUList;
    DestroyIcon(m_hMainIcon);
    DestroyIcon(m_hSmallIcon);
+
+   favicons.WriteCache();
 
    preferences.Flush();
    if (m_ProfileMgr) {

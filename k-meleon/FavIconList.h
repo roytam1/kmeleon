@@ -58,12 +58,13 @@ private:
 	void AddMap(const char *uri, int index, const char* pageUri = nullptr);
 	int AddDownloadedIcon(char* uri, TCHAR* file, nsresult aStatus);
 	BOOL LoadCache();
-	BOOL WriteCache();
+	
 
 public:
 	CFavIconList();
 	virtual ~CFavIconList();
 
+	BOOL WriteCache();
 	int AddIcon(const char* uri, CBitmap*, CBitmap*, const char* pageUri = nullptr);
 	int AddIcon(const char* uri, CBitmap*, COLORREF, const char* pageUri = nullptr);
 	int AddIcon(const char* uri, HICON icon, const char* pageUri = nullptr);
