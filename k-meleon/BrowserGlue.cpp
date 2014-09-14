@@ -185,36 +185,35 @@ void CBrowserGlue::SetBrowserTitle(LPCTSTR aTitle)
 	mpBrowserFrame->PostMessage(UWM_UPDATESESSIONHISTORY, 0, 0);   
 }
 
+#include <locale.h>
 void CBrowserGlue::SetBrowserSize(int aCX, int aCY)
-{/*
-   if (theApp.preferences.GetBool("kmeleon.display.dontResizeNewWindow", FALSE) && 
-      !(mpBrowserFrame->IsDialog()))
-	  return;*/
-
-   CWnd* frame = mpBrowserView->GetParentFrame();
-   
-   /*WINDOWPLACEMENT wp;
-   wp.length = sizeof(WINDOWPLACEMENT);
-   frame->GetWindowPlacement(&wp);
-   if (wp.showCmd != SW_SHOWNORMAL)
-       return;*/
+{ 
+   // We don't get the correct size, scale with dpi.
+   if (!mpBrowserFrame->IsDialog()) {
+      CString _scale = theApp.preferences.GetString("layout.css.devPixelsPerPx", _T("-1.0")); 
+      float scale = _tstof_l((LPCTSTR)_scale, _create_locale(LC_ALL, "ENU"));
+      if (scale<=0) {
+         HDC dc = ::GetDC(NULL);
+         scale = GetDeviceCaps(dc, LOGPIXELSY) / 96.0;
+         ::ReleaseDC(NULL, dc);
+      }
+      aCX = scale * aCX;
+      aCY = scale * aCY;
+   }
 
    // first we have to figure out how much bigger the frame is than the view
    RECT frameRect, viewRect;
-   frame->GetWindowRect(&frameRect);
+   mpBrowserFrame->GetWindowRect(&frameRect);
    mpBrowserView->GetClientRect(&viewRect);
-
    int deltax = frameRect.right - frameRect.left - viewRect.right;
    int deltay = frameRect.bottom - frameRect.top - viewRect.bottom;
 
-   if (frame->IsZoomed())
-	   frame->ShowWindow(SW_RESTORE);
+   if (mpBrowserFrame->IsZoomed())
+      mpBrowserFrame->ShowWindow(SW_RESTORE);
 
-   frame->SetWindowPos(NULL, 0, 0, aCX+deltax, aCY+deltay,
+   mpBrowserFrame->SetWindowPos(NULL, 0, 0, aCX+deltax, aCY+deltay,
       SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOZORDER
-      );
-
-
+   );
 }
 
 void CBrowserGlue::SetFocus()
