@@ -105,6 +105,7 @@ typedef struct configFileType {
 typedef struct {
    char *title;
    char *url;
+   char *iconurl;
    int idxIcon;
 } kmeleonDocInfo;
 
