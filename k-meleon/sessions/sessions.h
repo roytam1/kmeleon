@@ -67,7 +67,7 @@ public:
 		std::vector<std::string>::iterator iter;
 		std::vector<std::string>::iterator iter2;
 		for (iter = urls.begin(),iter2 = titles.begin(); iter != urls.end() && iter2 != titles.end(); iter++,iter2++) {
-			if ((*iter).compare("about:blank") != 0)
+			if ((*iter).compare("about:blank") != 0 && (*iter).compare(0, 7, "wyciwyg") != 0)
 				purls += *iter + SEP + *iter2 + SEP;
 			else shcount--;
 		}
@@ -111,7 +111,7 @@ public:
 
 	bool save(std::string& pref) {
 		//assert(index<urls.size());
-		if (index>=0 && index<urls.size() && urls[index].compare(0, 7, "wyciwyg") != 0)
+		//if (index>=0 && index<urls.size() && urls[index].compare(0, 7, "wyciwyg") != 0)
 			setStrPref(pref.c_str(), (char*)topref().c_str());
 		return true;
 	}
