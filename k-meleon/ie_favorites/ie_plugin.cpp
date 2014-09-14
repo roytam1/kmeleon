@@ -61,7 +61,7 @@ void DoRebar(HWND rebarWnd);
 int DoAccel(char *param);
 
 kmeleonPlugin kPlugin = {
-   KMEL_PLUGIN_VER,
+   KMEL_PLUGIN_VER_UTF8,
    PLUGIN_NAME,
    DoMessage
 };
@@ -116,7 +116,7 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
 
 int Load(){
    gLoc = Locale::kmInit(&kPlugin);
-   HDC hdcScreen = CreateDC("DISPLAY", NULL, NULL, NULL); 
+   HDC hdcScreen = CreateDC(_T("DISPLAY"), NULL, NULL, NULL); 
    nHSize = GetDeviceCaps(hdcScreen, HORZSIZE);
    nHRes = GetDeviceCaps(hdcScreen, HORZRES);
    DeleteDC(hdcScreen);
@@ -140,14 +140,14 @@ int Load(){
    char toolbandFolder[MAX_PATH] = {0};
    DWORD type, size = MAX_PATH;
    HKEY key;
-   if (RegOpenKeyEx(HKEY_CURRENT_USER, "Software\\Microsoft\\Internet Explorer\\Toolbar", 0, KEY_READ, &key) == ERROR_SUCCESS) {
-	  RegQueryValueEx(key, "LinksFolderName", NULL, &type, (LPBYTE)toolbandFolder, &size);
+   if (RegOpenKeyEx(HKEY_CURRENT_USER, _T("Software\\Microsoft\\Internet Explorer\\Toolbar"), 0, KEY_READ, &key) == ERROR_SUCCESS) {
+	  RegQueryValueEx(key, _T("LinksFolderName"), NULL, &type, (LPBYTE)toolbandFolder, &size);
       RegCloseKey(key);			
    }
 
-   kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_TOOLBAR_FOLDER, gToolbarFolder, toolbandFolder);
-   kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_MENU_FOLDER, gMenuFolder, (char*)MENU_FOLDER);
-   kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_NEWITEM_FOLDER, gNewitemFolder, (char*)NEWITEM_FOLDER);
+   kPlugin.kFuncs->GetPreference(PREF_TSTRING, PREFERENCE_TOOLBAR_FOLDER, gToolbarFolder, toolbandFolder);
+   kPlugin.kFuncs->GetPreference(PREF_TSTRING, PREFERENCE_MENU_FOLDER, gMenuFolder, MENU_FOLDER);
+   kPlugin.kFuncs->GetPreference(PREF_TSTRING, PREFERENCE_NEWITEM_FOLDER, gNewitemFolder, NEWITEM_FOLDER);
    kPlugin.kFuncs->GetPreference(PREF_INT, PREFERENCE_MENU_MAXLEN, &gMaxMenuLength, &gMaxMenuLength);
    kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_MENU_AUTOLEN, &gMenuAutoDetect, &gMenuAutoDetect);
    if (gMaxMenuLength < 1) gMaxMenuLength = MAX_MENU_LENGTH;
@@ -159,22 +159,22 @@ int Load(){
    kPlugin.kFuncs->GetPreference(PREF_INT,  PREFERENCE_BUTTON_MAXWIDTH, &nButtonMaxWidth, &nButtonMaxWidth);
    bButtonIcons = true;
    kPlugin.kFuncs->GetPreference(PREF_BOOL,  PREFERENCE_BUTTON_ICONS, &bButtonIcons, &bButtonIcons);
-   strcpy(szTitle, "");
+   _tcscpy(szTitle, _T(""));
    bTitleSet = true;
-   kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_REBAR_TITLE, &szTitle, &szTitle);
+   kPlugin.kFuncs->GetPreference(PREF_TSTRING, PREFERENCE_REBAR_TITLE, &szTitle, &szTitle);
    if (szTitle[0] == 0) {
-      strcpy(szTitle, TOOLBAND_TITLE);
-      kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_REBAR_TITLE, &szTitle, &szTitle);
-      if (strcmp(szTitle, TOOLBAND_TITLE) == 0)
+      _tcscpy(szTitle, CUTF8_to_T(TOOLBAND_TITLE));
+      kPlugin.kFuncs->GetPreference(PREF_TSTRING, PREFERENCE_REBAR_TITLE, &szTitle, &szTitle);
+      if (_tcscmp(szTitle, CUTF8_to_T(TOOLBAND_TITLE)) == 0)
          bTitleSet = false;
    }
 
    HBITMAP bitmap;
    int ilc_bits = ILC_COLOR;
 
-   char szFullPath[MAX_PATH];
-   FindSkinFile(szFullPath, "favorites.bmp");
-   FILE *fp = fopen(szFullPath, "r");
+   TCHAR szFullPath[MAX_PATH];
+   FindSkinFile(szFullPath, _T("favorites.bmp"));
+   FILE *fp = _tfopen(szFullPath, _T("r"));
    if (fp) {
       fclose(fp);
       bitmap = (HBITMAP)LoadImage(NULL, szFullPath, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
@@ -193,7 +193,7 @@ int Load(){
    if (bitmap)
       DeleteObject(bitmap);
 
-	ReadFavorites(gFavoritesPath, "", gFavoritesRoot);
+	ReadFavorites(gFavoritesPath, _T(""), gFavoritesRoot);
 
    return true;
 }
@@ -208,7 +208,7 @@ void Create(HWND parent){
 // Preferences Dialog function
 BOOL CALLBACK PrefDlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
    int nTmp;
-   char szTmp[INTERNET_MAX_URL_LENGTH+1];
+   TCHAR szTmp[INTERNET_MAX_URL_LENGTH+1];
    static int sorting;
    static int rebuild;
    
@@ -216,7 +216,7 @@ BOOL CALLBACK PrefDlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
       case WM_INITDIALOG:
          sorting = rebuild = 0;
 
-         kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_FAVORITES_PATH, szTmp, gFavoritesPath);
+         kPlugin.kFuncs->GetPreference(PREF_TSTRING, PREFERENCE_FAVORITES_PATH, szTmp, gFavoritesPath);
          SetDlgItemText(hWnd, IDC_FAVORITES_PATH, szTmp);
 
          kPlugin.kFuncs->GetPreference(PREF_INT, PREFERENCE_MENU_MAXLEN, &nTmp, &gMaxMenuLength);
@@ -285,29 +285,29 @@ BOOL CALLBACK PrefDlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
                   {
                      HWND hBookmarksFileWnd = GetDlgItem(hWnd, IDC_FAVORITES_PATH);
                      GetWindowText(hBookmarksFileWnd, szTmp, MAX_PATH);
-                     nTmp = strlen(szTmp);
+                     nTmp = _tcslen(szTmp);
                      while (--nTmp >= 0) {
-                        if (szTmp[nTmp] == '/')
-                           szTmp[nTmp] = '\\';
+                        if (szTmp[nTmp] == _T('/'))
+                           szTmp[nTmp] = _T('\\');
                      }
-                     int len = strlen(szTmp);
-                     if (szTmp[len-1] != '\\')
-                        strcat(szTmp, "\\");
+                     int len = _tcslen(szTmp);
+                     if (szTmp[len-1] != _T('\\'))
+                        _tcscat(szTmp, _T("\\"));
 
                      delete gFavoritesRoot.child;
                      delete gFavoritesRoot.next;
                      gFavoritesRoot.child = NULL;
                      gFavoritesRoot.next = NULL;
 
-                     if (ReadFavorites(szTmp, "", gFavoritesRoot) > 0) {
+                     if (ReadFavorites(szTmp, _T(""), gFavoritesRoot) > 0) {
                         if (gMenuSortOrder) {
-                           strcpy(gFavoritesPath, szTmp);
+                           _tcscpy(gFavoritesPath, szTmp);
                            gFavoritesRoot.sort(gMenuSortOrder);
                         }
                      } 
                      else {
-                        strcpy(szTmp, gFavoritesPath);
-                        ReadFavorites(gFavoritesPath, "", gFavoritesRoot);
+                        _tcscpy(szTmp, gFavoritesPath);
+                        ReadFavorites(gFavoritesPath, _T(""), gFavoritesRoot);
                      }
                      RebuildMenu();
                      
@@ -318,7 +318,7 @@ BOOL CALLBACK PrefDlgProc (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
                   case IDOK:
                   {
                      GetDlgItemText(hWnd, IDC_FAVORITES_PATH, szTmp, INTERNET_MAX_URL_LENGTH);
-                     kPlugin.kFuncs->SetPreference(PREF_STRING, PREFERENCE_FAVORITES_PATH, szTmp, FALSE);
+                     kPlugin.kFuncs->SetPreference(PREF_TSTRING, PREFERENCE_FAVORITES_PATH, szTmp, FALSE);
 
                      nTmp = GetDlgItemInt(hWnd, IDC_MAX_MENU_LENGTH, NULL, TRUE);
                      if (nTmp < 1) nTmp = 20;
@@ -422,7 +422,7 @@ void DoMenu(HMENU menu, char *param){
       if (stricmp(param, "Edit") == 0)
          command = nEditCommand;
       if (command && string && *string && (!bIgnore || command == nConfigCommand)) {
-         AppendMenu(menu, MF_STRING, command, string);
+         AppendMenu(menu, MF_STRING, command, CUTF8_to_T(string));
          kPlugin.kFuncs->SendMessage("bmpmenu", PLUGIN_NAME, "SetOwnerDrawn", (long)menu, (long)DrawBitmap);
          return;
       }
@@ -460,7 +460,7 @@ void DoRebar(HWND rebarWnd){
          TBSTYLE_FLAT | TBSTYLE_TRANSPARENT | TBSTYLE_LIST | TBSTYLE_TOOLTIPS;
       
       // Create the toolbar control to be added.
-      HWND hWndTB = CreateWindowEx(0, TOOLBARCLASSNAME, "",
+      HWND hWndTB = CreateWindowEx(0, TOOLBARCLASSNAME, _T(""),
                                WS_CHILD | dwStyle,
                                0,0,0,0,
                                rebarWnd, (HMENU)/*id*/200,
@@ -472,7 +472,7 @@ void DoRebar(HWND rebarWnd){
          return;
       }
 
-      SetWindowText(hWndTB, TOOLBAND_NAME);
+      SetWindowText(hWndTB, _T(TOOLBAND_NAME));
    
       //SendMessage(hWndTB, TB_SETEXTENDEDSTYLE, 0, TBSTYLE_EX_DRAWDDARROWS);
    
@@ -522,13 +522,13 @@ void DoRebar(HWND rebarWnd){
 
       // Register the band name and child hwnd
       if (bTitleSet && szTitle[0] != 0) {
-         int len = strlen(szTitle);
+         int len = _tcslen(szTitle);
          char c = szTitle[len-1];
          if (c == ':')
             szTitle[len-1] = 0;
-         kPlugin.kFuncs->RegisterBand(hWndTB, szTitle, TRUE);
+         kPlugin.kFuncs->RegisterBand(hWndTB, (char*)(const char*)CT_to_UTF8(szTitle), TRUE);
          if (c == ':')
-            strcat(szTitle, ":");
+            _tcscat(szTitle, _T(":"));
       }
       else {
          kPlugin.kFuncs->RegisterBand(hWndTB, TOOLBAND_NAME, TRUE);
@@ -569,17 +569,19 @@ extern "C" {
          HIMAGELIST hList = gImagelist;
          UINT idx = IMAGE_BOOKMARK;
 		
-		 char *ptr = (char *)node->url.c_str();
+		 TCHAR *ptr = (TCHAR *)node->url.c_str();
          if (!node->url.length()) {
-            char url[INTERNET_MAX_URL_LENGTH];
-            char path[INTERNET_MAX_URL_LENGTH];
-            strcpy(path, gFavoritesPath);
-            strcat(path, node->path.c_str());
+            TCHAR url[INTERNET_MAX_URL_LENGTH];
+            TCHAR path[INTERNET_MAX_URL_LENGTH];
+            _tcscpy(path, gFavoritesPath);
+            _tcscat(path, node->path.c_str());
             GetPrivateProfileString(_T("InternetShortcut"), _T("URL"), _T(""), url, INTERNET_MAX_URL_LENGTH, path);
 			node->url = url;
+			GetPrivateProfileString(_T("InternetShortcut"), _T("IconFile"), _T(""), url, INTERNET_MAX_URL_LENGTH, path);
+			node->iconurl = url;
 		 }
 
-		 UINT i = GetSiteIcon((char*)node->url.c_str());
+		 UINT i = GetSiteIcon(node);
 
 		 if (i > 0) {
             idx = i;

@@ -415,9 +415,18 @@ int CFavIconList::AddDownloadedIcon(char* uri, TCHAR* file, nsresult aStatus)
 	return index;
 }
 
+int CFavIconList::GetIcon(const TCHAR* aUrl)
+{
+	int index = GetDefaultIcon();
+	if (m_urlMap.Lookup(aUrl, index))
+		return index + m_iOffset;
+	return index;
+}
+
 int CFavIconList::GetHostIcon(const TCHAR* aUrl)
 {
 	int index = GetDefaultIcon();
+
 	const char* url;
 #ifdef _UNICODE
 	nsEmbedCString _str;

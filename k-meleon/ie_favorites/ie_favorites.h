@@ -19,7 +19,7 @@
 #ifndef __IE_FAVORITES_H__
 #define __IE_FAVORITES_H__
 
-
+#include <tchar.h>
 
 #ifndef COMPILING_RC
 typedef int cmp_t(const char *, const char *, unsigned int);
@@ -37,8 +37,8 @@ void quicksort(char *a, size_t n, size_t es, cmp_t *cmp, unsigned int flag);
 
 #define TOOLBAND_NAME "Favorites"
 #define TOOLBAND_TITLE _Tr("Links")
-#define MENU_FOLDER ""
-#define NEWITEM_FOLDER ""
+#define MENU_FOLDER _T("")
+#define NEWITEM_FOLDER _T("")
 #define TOOLBAND_FAILED_TO_CREATE "Failed to create favorites toolbar"
 #define PLUGIN_NAME "IE Favorites Plugin"
 #define MENU_TO_COMMAND(x) (x+SUBMENU_OFFSET)
@@ -55,7 +55,7 @@ void quicksort(char *a, size_t n, size_t es, cmp_t *cmp, unsigned int flag);
 
 
 #ifdef WHERE
-CBookmarkNode gFavoritesRoot(0, "", "", BOOKMARK_FOLDER, 0);
+CBookmarkNode gFavoritesRoot(0, _T(""), _T(""), BOOKMARK_FOLDER, 0);
 #else
 #define WHERE extern
 WHERE CBookmarkNode gFavoritesRoot;
@@ -66,7 +66,7 @@ WHERE CBookmarkNode gFavoritesRoot;
 #ifndef COMPILING_RC
 int CreateFavorite(CBookmarkNode *newNode);
 int GetFavoritesPath(void);
-int ReadFavorites(char *szRoot, char *szPath, CBookmarkNode &newFavoritesNode);
+int ReadFavorites(TCHAR *szRoot, TCHAR *szPath, CBookmarkNode &newFavoritesNode);
 void BuildMenu(HMENU menu, CBookmarkNode *node, BOOL isContinuation);
 void RebuildMenu();
 void BuildRebar(HWND hWndTB);
@@ -74,11 +74,11 @@ void CopyRebar(HWND hWndNewTB, HWND hWndOldTB);
 void RebuildRebarMenu(HWND hWndTB);
 int ParseFavorites(char **bmFileBuffer, CBookmarkNode &node);
 int SaveFavoritesEntry(FILE *bmFile, CBookmarkNode *node);
-int addLink(char *url, char *title);
+int addLink(char *url, char *title, char *iconurl = 0);
 void findNick(char *nick, char **url);
 LRESULT APIENTRY WndTBSubclassProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
-UINT GetSiteIcon(char* url);
+UINT GetSiteIcon(CBookmarkNode* url);
 
 extern "C" {
    KMELEON_PLUGIN int DrawBitmap(DRAWITEMSTRUCT *dis);
@@ -130,11 +130,11 @@ WHERE BOOL bChevronEnabled;
 WHERE BOOL bResynchFavorites;
 WHERE BOOL bCreate;
 WHERE BOOL bIgnore;
-WHERE CHAR gFavoritesPath[MAX_PATH];
-WHERE CHAR gToolbarFolder[MAX_PATH];
-WHERE CHAR gMenuFolder[MAX_PATH];
-WHERE CHAR gNewitemFolder[MAX_PATH];
-WHERE CHAR szTitle[MAX_PATH];
+WHERE TCHAR gFavoritesPath[INTERNET_MAX_URL_LENGTH+1];
+WHERE TCHAR gToolbarFolder[MAX_PATH];
+WHERE TCHAR gMenuFolder[MAX_PATH];
+WHERE TCHAR gNewitemFolder[MAX_PATH];
+WHERE TCHAR szTitle[MAX_PATH];
 WHERE BOOL bTitleSet;
 
 extern kmeleonPlugin kPlugin;

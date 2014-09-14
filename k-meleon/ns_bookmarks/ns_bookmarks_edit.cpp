@@ -1122,7 +1122,7 @@ static void FillTree(HWND hTree, HTREEITEM parent, CBookmarkNode &node, BOOL use
       else {
          tvis.itemex.iImage = IMAGE_BOOKMARK;
          if (useSiteicon) {
-            UINT idx = GetSiteIcon((char*)child->url.c_str());
+			UINT idx = GetSiteIcon(child);
             if (idx>0) {
 			   HICON icon = ImageList_GetIcon(kPlugin.kFuncs->GetIconList(), idx, ILD_NORMAL);
 			   if (icon) {

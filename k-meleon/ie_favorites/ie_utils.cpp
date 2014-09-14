@@ -47,14 +47,22 @@ extern void * KMeleonWndProc;
 #define MAX_BUTTONS 32
 
 
-UINT GetSiteIcon(char* url)
-{
+UINT GetSiteIcon(CBookmarkNode* node)
+{   
+   if (node->iconurl.length()) {
+      CT_to_UTF8 url(node->iconurl.c_str());
+      UINT idx = kPlugin.kFuncs->GetIconIdx(url);
+	  if (idx>0) return idx;
+   }
+
+   CT_to_UTF8 _url(node->url.c_str());   
+   char* url = strdup(_url);
    char* begin = strstr(url, "://");
-   if (!begin) return 0;
+   if (!begin) {free(url);return 0;}
    char* end = strchr(begin+3, '/');
    if (end) *end = 0;
    UINT i = kPlugin.kFuncs->GetIconIdx(url);
-   if (end) *end = '/';
+   free(url);
    return i;
 }
 
@@ -135,16 +143,17 @@ void findNick(char *nick, char **url)
 {
    HKEY hKey;
    DWORD dwSize;
-   char regkey[128] = "Software\\Microsoft\\Internet Explorer\\SearchUrl\\";
-   strncat(regkey, nick, 80);
+   TCHAR regkey[128] = _T("Software\\Microsoft\\Internet Explorer\\SearchUrl\\");
+   _tcsncat(regkey, CUTF8_to_T(nick), 80);
    if (RegOpenKey(HKEY_CURRENT_USER, (LPCTSTR)regkey, &hKey) == ERROR_SUCCESS) {
       if (*url)
 	free(*url);
       *url = (char *) calloc(INTERNET_MAX_URL_LENGTH+1, 1);
-
+	  TCHAR wurl[INTERNET_MAX_URL_LENGTH+1];
       dwSize = INTERNET_MAX_URL_LENGTH;
-      RegQueryValueEx(hKey, NULL, NULL, NULL, (LPBYTE)*url, &dwSize);
+      RegQueryValueEx(hKey, NULL, NULL, NULL, (LPBYTE)wurl, &dwSize);
       RegCloseKey(hKey);
+	  strncpy(*url, CT_to_UTF8(wurl), INTERNET_MAX_URL_LENGTH);
    }
 }
 
@@ -177,13 +186,13 @@ void BuildMenu(HMENU menu, CBookmarkNode *node, BOOL isContinuation)
          break;
       }
       else if (child->type == BOOKMARK_SEPARATOR) {
-         AppendMenu(menu, MF_SEPARATOR, 0, "");
+         AppendMenu(menu, MF_SEPARATOR, 0, _T(""));
       }
       else if (child->type == BOOKMARK_FOLDER) {
          HMENU childMenu = CreatePopupMenu();
          child->id = (UINT)childMenu; // we have to save off the HMENU for the rebar
          // condense the title and escape ampersands
-         char *pszTemp = fixString(child->text.c_str(), 40);
+         TCHAR *pszTemp = fixString(child->text.c_str(), 40);
          AppendMenu(menu, MF_STRING|MF_POPUP, (UINT)childMenu, pszTemp);
          free(pszTemp);
          BuildMenu(childMenu, child, false);
@@ -192,7 +201,7 @@ void BuildMenu(HMENU menu, CBookmarkNode *node, BOOL isContinuation)
 		 if (!child->text.empty()) 
          {
             // condense the title and escape ampersands
-            char *pszTemp = fixString(child->text.c_str(), 40);
+            TCHAR *pszTemp = fixString(child->text.c_str(), 40);
             if (pszTemp) {
 			   AppendMenu(menu, MF_STRING, child->id, pszTemp);
                delete pszTemp;
@@ -287,10 +296,10 @@ void BuildRebar(HWND hWndTB)
       }
       
       // condense the title and escape ampersands
-      char *buttonString = fixString(child->text.c_str(), nMaxWidth > 0 ? 0 : -nMaxWidth);
-	  char *buttonString2 = new char[strlen(buttonString)+2];
-	  strcpy(buttonString2, buttonString);
-	  buttonString2[strlen(buttonString)+1] = 0;
+      TCHAR *buttonString = fixString(child->text.c_str(), nMaxWidth > 0 ? 0 : -nMaxWidth);
+	  TCHAR *buttonString2 = new TCHAR[_tcslen(buttonString)+2];
+	  _tcscpy(buttonString2, buttonString);
+	  buttonString2[_tcslen(buttonString)+1] = 0;
       stringID = SendMessage(hWndTB, TB_ADDSTRING, (WPARAM)NULL, (LPARAM)buttonString2);
       delete buttonString2;
 	  delete buttonString;
@@ -360,7 +369,7 @@ void RebuildRebarMenu(HWND hWndTB)
    BuildRebar(hWndTB);
 }
 
-int addLink(char *url, char *title)
+int addLink(char *url, char *title, char *iconurl)
 {
    if (!url || !title)
       return false;
@@ -369,19 +378,20 @@ int addLink(char *url, char *title)
 
    CBookmarkNode *newNode = new 
       CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), 
-                    title, "",
+	                CUTF8_to_T(title), _T(""), 
                     BOOKMARK_BOOKMARK, time(NULL));
    if (!newNode)
       return false;
 
-   newNode->url = url;
+   newNode->url = CUTF8_to_T(url);
+   newNode->iconurl = CUTF8_to_T(iconurl);
    
    if (CreateFavorite(newNode) == 0) {
       delete gFavoritesRoot.child;
       delete gFavoritesRoot.next;
       gFavoritesRoot.child = NULL;
       gFavoritesRoot.next = NULL;
-      ReadFavorites(gFavoritesPath, "", gFavoritesRoot);
+      ReadFavorites(gFavoritesPath, _T(""), gFavoritesRoot);
    }
    
 	RebuildMenu();
@@ -397,11 +407,13 @@ int addLink(char *url, char *title)
    return true;
 }
 
-void OpenURL(char *url)
+void OpenURL(TCHAR *aUrl)
 {
     char szOpenURLcmd[80];
+
+	CT_to_UTF8 url(aUrl);
     
-    kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_FAVORITES_OPENURL, szOpenURLcmd, (char*)"");
+    kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_FAVORITES_OPENURL, szOpenURLcmd, _T(""));
     
     if (*szOpenURLcmd) {
         char *plugin = szOpenURLcmd;
@@ -412,7 +424,7 @@ void OpenURL(char *url)
             if (close) {
                 *close = 0;
                 
-                if (kPlugin.kFuncs->SendMessage(plugin, PLUGIN_NAME, parameter, (long)url, 0))
+                if (kPlugin.kFuncs->SendMessage(plugin, PLUGIN_NAME, parameter, (WPARAM)(const char*)url, 0))
                     return;
             }
         }
@@ -475,14 +487,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
                command == nAddLinkCommand) {
          char *title = 0;
          char *url = 0;
+		 char *iconurl =0;
          
          if (command == nAddCommand) {
             kmeleonDocInfo *dInfo = kPlugin.kFuncs->GetDocInfo(hWnd);
             if (dInfo) {
                url = dInfo->url;
                title = dInfo->title;
+			   iconurl = dInfo->iconurl;
             }
-            addLink(url, title);
+            addLink(url, title, iconurl);
          }
          else {
             int retLen = kPlugin.kFuncs->GetGlobalVar(PREF_STRING, "LinkURL", NULL);
@@ -498,7 +512,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
          return true;
       }
       else if (command == nEditCommand) {
-         ShellExecute(hWnd, "explore", gFavoritesPath, NULL, gFavoritesPath, SW_SHOWNORMAL);
+         ShellExecute(hWnd, _T("explore"), gFavoritesPath, NULL, gFavoritesPath, SW_SHOWNORMAL);
          return true;
       }
       else if (command == wm_deferhottrack) {
@@ -510,16 +524,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
          
          // a .URL file is formatted just like an .INI file, so we can
          // use GetPrivateProfileString() to get the information we want
-         char *ptr = (char *)node->url.c_str();
+         TCHAR *ptr = (TCHAR *)node->url.c_str();
          if (ptr && *ptr == 0) {
-            char url[INTERNET_MAX_URL_LENGTH];
-            char path[INTERNET_MAX_URL_LENGTH];
-            strcpy(path, gFavoritesPath);
-            strcat(path, node->path.c_str());
+            TCHAR url[INTERNET_MAX_URL_LENGTH];
+            TCHAR path[INTERNET_MAX_URL_LENGTH];
+            _tcscpy(path, gFavoritesPath);
+            _tcscat(path, node->path.c_str());
             GetPrivateProfileString(_T("InternetShortcut"), _T("URL"), _T(""), url, INTERNET_MAX_URL_LENGTH, path);
             node->url = url;
          }
-         OpenURL((char *)node->url.c_str());
+         OpenURL((TCHAR *)node->url.c_str());
          
          return true;
       }
@@ -539,9 +553,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
             TrackPopupMenu((HMENU)gMenuFavorites, TPM_LEFTALIGN, pt.x, pt.y, 0, hWnd, NULL);
          }
          else if (IsMenu((HMENU)(tbhdr.iItem-SUBMENU_OFFSET))){
-            char toolbarName[11];
+            TCHAR toolbarName[11];
             GetWindowText(tbhdr.hdr.hwndFrom, toolbarName, 10);
-            if (strcmp(toolbarName, TOOLBAND_NAME) != 0) {
+            if (_tcscmp(toolbarName, _T(TOOLBAND_NAME)) != 0) {
                // oops, this isn't our toolbar
                return CallWindowProc((WNDPROC)KMeleonWndProc, hWnd, message, wParam, lParam);
             }
@@ -557,26 +571,26 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
       UINT id = LOWORD(wParam);
       if (id >= nConfigCommand && id < nFirstFavoriteCommand) {
          if (id == nConfigCommand) 
-            kPlugin.kFuncs->SetStatusBarText(gLoc->GetString(IDS_CONFIGURE));
+            kPlugin.kFuncs->SetStatusBarText(CT_to_UTF8(gLoc->GetString(IDS_CONFIGURE)));
          else if (id == nAddCommand) 
-            kPlugin.kFuncs->SetStatusBarText(gLoc->GetString(IDS_ADD));
+            kPlugin.kFuncs->SetStatusBarText(CT_to_UTF8(gLoc->GetString(IDS_ADD)));
          else if (id == nAddLinkCommand) 
-            kPlugin.kFuncs->SetStatusBarText(gLoc->GetString(IDS_ADDLINK));
+            kPlugin.kFuncs->SetStatusBarText(CT_to_UTF8(gLoc->GetString(IDS_ADDLINK)));
          else if (id == nEditCommand) 
-            kPlugin.kFuncs->SetStatusBarText(gLoc->GetString(IDS_EDIT));
+            kPlugin.kFuncs->SetStatusBarText(CT_to_UTF8(gLoc->GetString(IDS_EDIT)));
          return true;
       }
       else if (CBookmarkNode *node = gFavoritesRoot.FindNode(LOWORD(id))) {
-         char *ptr = (char *)node->url.c_str();
+         TCHAR *ptr = (TCHAR *)node->url.c_str();
          if (ptr && *ptr == 0) {
-            char url[INTERNET_MAX_URL_LENGTH];
-            char path[INTERNET_MAX_URL_LENGTH];
-            strcpy(path, gFavoritesPath);
-            strcat(path, node->path.c_str());
+            TCHAR url[INTERNET_MAX_URL_LENGTH];
+            TCHAR path[INTERNET_MAX_URL_LENGTH];
+            _tcscpy(path, gFavoritesPath);
+            _tcscat(path, node->path.c_str());
             GetPrivateProfileString(_T("InternetShortcut"), _T("URL"), _T(""), url, INTERNET_MAX_URL_LENGTH, path);
             node->url = url;
          }
-         kPlugin.kFuncs->SetStatusBarText((char *)node->url.c_str());
+         kPlugin.kFuncs->SetStatusBarText(CT_to_UTF8(node->url.c_str()));
          
          return true;
       }
