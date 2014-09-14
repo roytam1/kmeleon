@@ -121,11 +121,11 @@ public:
 		ci.iImage = theApp.favicons.GetDefaultIcon();
 #endif
         SetItem(&ci);
-      
+		LimitText(0);
         CEdit *edit = GetEditCtrl();
 		if (!edit) return -1;
         m_hwndEdit = edit->m_hWnd;
-
+		
 		// Bug #783
 #ifdef URLBAR_USE_SETWORDBREAKPROC
 		edit->SendMessage(EM_SETWORDBREAKPROC, 0,
