@@ -23,6 +23,7 @@
 #include <string>
 #include <windows.h>
 #include <limits.h>
+#include <tchar.h>
 
 #include "ie_favorites.h"
 
@@ -40,9 +41,10 @@ class CBookmarkNode {
 public:
    int id;
    long order;
-   std::string text;
-   std::string path;
-   std::string url;
+   std::wstring text;
+   std::wstring path;
+   std::wstring url;
+   std::wstring iconurl;
    int type;
    int flags;
    time_t addDate;
@@ -56,9 +58,9 @@ public:
    {
       id = 0;
       order = 0;
-      text = "";
-      path = "";
-      url = "";
+      text = _T("");
+      path = _T("");
+      url = _T("");
       type = 0;
       flags = 0;
       next = NULL;
@@ -69,13 +71,12 @@ public:
       lastVisit = 0;
       lastModified = 0;
    }
-   inline CBookmarkNode(int id, const char *text, const char *path, int type, time_t addDate=0, time_t lastVisit=0, time_t lastModified=0, long order=LONG_MAX)
+   inline CBookmarkNode(int id, const TCHAR *text, const TCHAR *path, int type, time_t addDate=0, time_t lastVisit=0, time_t lastModified=0, long order=LONG_MAX)
    {
       this->id = id;
       this->order = order;
       this->text = text;
       this->path = path;
-      this->url = "";
       this->type = type;
       this->flags = 0;
       this->next = NULL;
@@ -85,13 +86,13 @@ public:
       this->lastVisit = lastVisit;
       this->lastModified = lastModified;
    }
-   inline CBookmarkNode(int id, std::string &text, std::string &path, int type, time_t addDate=0, time_t lastVisit=0, time_t lastModified=0, long order=LONG_MAX)
+   inline CBookmarkNode(int id, std::wstring &text, std::wstring &path, int type, time_t addDate=0, time_t lastVisit=0, time_t lastModified=0, long order=LONG_MAX)
    {
       this->id = id;
       this->order = order;
       this->text = text;
       this->path = path;
-      this->url = "";
+      this->url = _T("");
       this->type = type;
       this->flags = 0;
       this->next = NULL;
@@ -118,6 +119,7 @@ public:
       text = n2.text;
       path = n2.path;
       url = n2.url;
+	  iconurl = n2.iconurl;
       type = n2.type;
       flags = n2.flags;
       addDate = n2.addDate;
@@ -313,10 +315,10 @@ static int compareBookmarks(const char *e1, const char *e2, unsigned int sortord
           cmp = c1->type - c2->type;
           break;
        case 2:
-          cmp = lstrcmpi((char*)c1->text.c_str(), (char*)c2->text.c_str());
+          cmp = lstrcmpi((TCHAR*)c1->text.c_str(), (TCHAR*)c2->text.c_str());
           break;
        case 3:
-          cmp = lstrcmpi((char*)c1->url.c_str(), (char*)c2->url.c_str());
+          cmp = lstrcmpi((TCHAR*)c1->url.c_str(), (TCHAR*)c2->url.c_str());
           break;
        case 4:
          cmp = c2->id - c1->id;
@@ -325,10 +327,10 @@ static int compareBookmarks(const char *e1, const char *e2, unsigned int sortord
           cmp = c2->type - c1->type;
           break;
        case 6:
-          cmp = lstrcmpi((char*)c2->text.c_str(), (char*)c1->text.c_str());
+          cmp = lstrcmpi((TCHAR*)c2->text.c_str(), (TCHAR*)c1->text.c_str());
           break;
        case 7:
-          cmp = lstrcmpi((char*)c2->url.c_str(), (char*)c1->url.c_str());
+          cmp = lstrcmpi((TCHAR*)c2->url.c_str(), (TCHAR*)c1->url.c_str());
           break;
        default:
          cmp = c1->id - c2->id;

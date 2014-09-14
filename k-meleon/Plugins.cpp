@@ -175,6 +175,7 @@ CBrowserWrapper* GetWrapper(HWND hWnd = NULL)
 CPlugins::CPlugins()
 {
 	kDocInfo.url = NULL;
+	kDocInfo.iconurl = NULL;
 	kDocInfo.title = NULL;
 	gPointInfo.image = NULL;
 }
@@ -208,7 +209,10 @@ CPlugins::~CPlugins()
 
    if (kDocInfo.url)
       delete kDocInfo.url;
-   
+
+   if (kDocInfo.iconurl)
+      delete kDocInfo.iconurl;
+
    if (kDocInfo.title)
       delete kDocInfo.title;
    
@@ -351,12 +355,19 @@ kmeleonDocInfo * GetDocInfoUTF8(HWND mainWnd)
    if (kDocInfo.url)
       delete kDocInfo.url;
    
+   if (kDocInfo.iconurl)
+      delete kDocInfo.iconurl;
+
    if (kDocInfo.title)
       delete kDocInfo.title;
 
    kDocInfo.title = doctitle;
    kDocInfo.url = docurl;
+      
 #ifdef INTERNAL_SITEICONS
+   nsCString uri;
+   view->GetBrowserGlue()->mIconURI->GetSpec(uri);
+   kDocInfo.iconurl = strdup(uri.get());
    kDocInfo.idxIcon = theApp.favicons.GetIcon(view->GetBrowserGlue()->mIconURI);
 #endif
 
@@ -369,10 +380,10 @@ kmeleonDocInfo * GetDocInfo(HWND mainWnd)
    USES_CONVERSION;
 
    CString url = browser->GetURI();
-   char* docurl = strdup(CStringToNSUTF8String(url).get());
+   char* docurl = strdup(T2A(url));
    
    CString title = browser->GetTitle();
-   char* doctitle = strdup(CStringToNSUTF8String(title).get());
+   char* doctitle = strdup(T2A(title));
 
    if (kDocInfo.url)
       delete kDocInfo.url;
@@ -1673,7 +1684,7 @@ int GetTabsList(HWND hWnd, HWND* list, unsigned size)
 UINT GetIconIdx(const char* host)
 {
 	USES_CONVERSION;
-	return theApp.favicons.GetHostIcon(A2CT(host));
+	return theApp.favicons.GetIcon(A2CT(host));
 }
 
 void ReleaseCmdID(UINT id)

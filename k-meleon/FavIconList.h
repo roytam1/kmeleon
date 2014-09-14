@@ -70,6 +70,7 @@ public:
 	int AddIcon(const char* uri, HICON icon, const char* pageUri = nullptr);
 
 	int GetHostIcon(const TCHAR* aUri);
+	int GetIcon(const TCHAR* uri);
 	int GetIcon(nsIURI* aUri, nsIURI* aPageURI = NULL, BOOL download = FALSE);
 	
 	void RefreshIcon(nsIURI* aURI);

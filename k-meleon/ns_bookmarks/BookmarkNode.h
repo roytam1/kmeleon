@@ -48,6 +48,7 @@ public:
    std::string m_id;
    std::string feedurl;
    std::string icon;
+   std::string iconurl;
    int type;
    int flags;
    time_t addDate;
@@ -75,7 +76,7 @@ public:
       lastVisit = 0;
       lastModified = 0;
    }
-   inline CBookmarkNode(int id, const char *text, const char *url, const char *nick, const char *desc, const char *charset, int type, time_t addDate=0, time_t lastVisit=0, time_t lastModified=0, const char* m_id="", const char* feedurl="", const char* icon = "")
+   inline CBookmarkNode(int id, const char *text, const char *url, const char *nick, const char *desc, const char *charset, int type, time_t addDate=0, time_t lastVisit=0, time_t lastModified=0, const char* m_id="", const char* feedurl="", const char* icon = "",  const char* iconurl = "")
    {
       this->id = id;
       this->text = text;
@@ -86,6 +87,7 @@ public:
 	  this->m_id = m_id ? m_id : "";
 	  this->feedurl = feedurl ? feedurl : "";
 	  this->icon = icon ? icon: "";
+	  this->iconurl = iconurl ? iconurl : "";
       this->type = type;
 	  this->flags = 0;
       this->next = NULL;
@@ -95,7 +97,7 @@ public:
       this->lastVisit = lastVisit;
       this->lastModified = lastModified;
    }
-   inline CBookmarkNode(int id, std::string &text, std::string &url, std::string &nick, std::string &desc, std::string &charset, int type, time_t addDate=0, time_t lastVisit=0, time_t lastModified=0, std::string m_id ="", std::string feedurl="", std::string icon="")
+   inline CBookmarkNode(int id, std::string &text, std::string &url, std::string &nick, std::string &desc, std::string &charset, int type, time_t addDate=0, time_t lastVisit=0, time_t lastModified=0, std::string m_id ="", std::string feedurl="", std::string icon="", std::string iconurl="")
    {
       this->id = id;
       this->text = text;
@@ -106,6 +108,7 @@ public:
 	  this->m_id = m_id;
 	  this->feedurl = feedurl;
 	  this->icon = icon;
+	  this->iconurl = iconurl;
       this->type = type;
 	  this->flags = 0;
       this->next = NULL;
@@ -136,6 +139,7 @@ public:
 	  m_id = n2.m_id;
 	  feedurl = n2.feedurl;
 	  icon = n2.icon;
+	  iconurl = n2.iconurl;
       type = n2.type;
       flags = n2.flags;
       addDate = n2.addDate;
@@ -274,7 +278,28 @@ public:
       // Scratch that.  We return NULL and just fix anything that crashes.
       return NULL;
    }
-   CBookmarkNode *FindNick(char *nick)
+   CBookmarkNode *FindUrl(const char *url)
+   {
+      CBookmarkNode *c;
+      for (c=child; c; c=c->next) {
+         if (c->type == BOOKMARK_SEPARATOR) {
+            continue;
+         }
+         if (c->type == BOOKMARK_FOLDER) {
+            CBookmarkNode *retNode = c->FindUrl(url);
+            if (retNode) {
+               // found it in a sub-node
+               return retNode;
+            }
+         }
+         else if (strcmp((char*)c->url.c_str(), url) == 0) {
+            // this is it!
+            return c;
+         }
+      }
+      return NULL;
+   }
+   CBookmarkNode *FindNick(const char *nick)
    {
       CBookmarkNode *c;
       for (c=child; c; c=c->next) {

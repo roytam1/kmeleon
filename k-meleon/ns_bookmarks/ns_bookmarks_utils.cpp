@@ -50,8 +50,14 @@ extern BOOL bChevronEnabled;
 char szContentType[BOOKMARKS_TITLE_LEN];
 BOOL gLoaded = FALSE;
 
-UINT GetSiteIcon(char* url)
+UINT GetSiteIcon(CBookmarkNode *node)
 {
+   if (node->iconurl.length()) {
+      UINT idx = kPlugin.kFuncs->GetIconIdx(node->iconurl.c_str());
+	  if (idx>0) return idx;
+   }
+
+   char* url = (char*)node->url.c_str();
    char* begin = strstr(url, "://");
    if (!begin) return 0;
    char* end = strchr(begin+3, '/');
@@ -368,6 +374,8 @@ static void SaveBookmarks(FILE *bmFile, CBookmarkNode *node)
 			fprintf(bmFile, " ID=\"%s\"", child->m_id.c_str());
 		 if (child->icon.length())
 			fprintf(bmFile, " ICON=\"%s\"", child->icon.c_str());
+		 if (child->iconurl.length())
+			fprintf(bmFile, " ICONURL=\"%s\"", child->iconurl.c_str());
 		 if (child->feedurl.length())
 			fprintf(bmFile, " FEEDURL=\"%s\"", child->feedurl.c_str());
          psz = (char *) child->nick.c_str();
@@ -623,6 +631,7 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
          char *charset = NULL;
 		 char *id = NULL;
 		 char *icon = NULL;
+		 char *iconurl = NULL;
 		 char *feedurl = NULL;
          
          char *d;
@@ -673,6 +682,17 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
                *q = '\"';
             }
          }
+		 d = strstr(t, "ICONURL=\"");
+         if (d) {
+            d+=9;
+
+            char *q = strchr(d, '\"');
+            if (q) {
+               *q = 0;
+               iconurl = strdup(d);
+               *q = '\"';
+            }
+         }
 
 		 d = strstr(t, "FEEDURL=\"");
          if (d) {
@@ -717,7 +737,7 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
          pszUrl = DecodeQuotes(url ? url : "");
          pszTxt = DecodeString(name ? name : "");
 
-	     lastNode = new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), pszTxt, pszUrl, nick, NULL, charset, BOOKMARK_BOOKMARK, addDate, lastVisit, lastModified, id, feedurl, icon);
+	     lastNode = new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), pszTxt, pszUrl, nick, NULL, charset, BOOKMARK_BOOKMARK, addDate, lastVisit, lastModified, id, feedurl, icon, iconurl);
          node.AddChild(lastNode);
          if (pszUrl) free(pszUrl);
          if (pszTxt) free(pszTxt);
@@ -726,6 +746,7 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
          if (charset) free(charset);
 		 if (feedurl) free(feedurl);
 		 if (icon)    free(icon);
+		 if (iconurl)    free(iconurl);
       }
       else if ((t = strstr(p, "</DL>")) != NULL) {
          return;
@@ -1032,7 +1053,7 @@ void BuildRebar(HWND hWndTB)
          button.idCommand = child->id;
 		 button.iBitmap = IMAGE_BOOKMARK;
          if (useSiteicon) {
-            UINT idx = GetSiteIcon((char*)child->url.c_str());
+            UINT idx = GetSiteIcon(child);
             if (idx>0) {
                HICON icon = ImageList_GetIcon(siteIcons, idx, ILD_NORMAL);
 			   if (icon) {
@@ -1165,17 +1186,18 @@ void Fill_Combo(HWND hWnd, CBookmarkNode* node, unsigned short depth=0)
 	}
 }
 
-void addLink(const char *url, const char *title, const char* nick, CBookmarkNode* node)
+void addLink(const char *url, const char *title, const char* nick, const char* iconurl, CBookmarkNode* node)
 {
 	if (!node || node->type!=BOOKMARK_FOLDER) return;
 
-	node->AddChild(new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), title, url, nick, "", "", BOOKMARK_BOOKMARK, time(NULL)));
+	node->AddChild(new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), title, url, nick, "", "", BOOKMARK_BOOKMARK, time(NULL), 0, 0, "", "", "", iconurl));
 	SaveBM(gBookmarkFile);
 	Rebuild();
 }
 
 int CALLBACK AddProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+	static char *iconurl = 0;
 	switch (uMsg) {
 		case WM_INITDIALOG: {
 			kmeleonDocInfo *dInfo = kPlugin.kFuncs->GetDocInfo((HWND)lParam);
@@ -1186,6 +1208,11 @@ int CALLBACK AddProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 					SetDlgItemText(hDlg, IDC_TITLE, CUTF8_to_T(dInfo->url));
 				}
 				SetDlgItemText(hDlg, IDC_URL, CUTF8_to_T(dInfo->url));
+				if (iconurl) {
+					delete iconurl;
+					iconurl = NULL;
+				}
+				if (dInfo->iconurl) iconurl = strdup(dInfo->iconurl);
 			}
 			
 			HWND combo = GetDlgItem(hDlg, IDC_FOLDER);
@@ -1224,7 +1251,7 @@ int CALLBACK AddProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 					int index = SendMessage(combo, CB_GETCURSEL, 0, 0);
 					CBookmarkNode* node = (CBookmarkNode*)SendMessage(combo, CB_GETITEMDATA, index, 0);
 
-					addLink(CT_to_UTF8(url), CT_to_UTF8(title), CT_to_UTF8(nick), node);
+					addLink(CT_to_UTF8(url), CT_to_UTF8(title), CT_to_UTF8(nick), iconurl, node);
 					EndDialog( hDlg, IDOK );
 					break;
 					}
@@ -1236,7 +1263,7 @@ int CALLBACK AddProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	return FALSE;
 }
 
-int addLink(const char *url, const char *title, int flag)
+int addLink(const char *url, const char *title, int flag, const char* iconurl)
 {
    if (!url || !(*url))
       return false;
@@ -1244,7 +1271,7 @@ int addLink(const char *url, const char *title, int flag)
    CBookmarkNode *addNode = gBookmarkRoot->FindSpecialNode(flag);
    char *pszUrl = DecodeString(url);
    char *pszTxt = DecodeString(title ? (*title ? title : url) : url);
-   addNode->AddChild(new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), pszTxt, pszUrl, "", "", "", BOOKMARK_BOOKMARK, time(NULL)));
+   addNode->AddChild(new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), pszTxt, pszUrl, "", "", "", BOOKMARK_BOOKMARK, time(NULL),0,0,"","","",iconurl));
    if (pszUrl)
       free(pszUrl);
    if (pszTxt)
@@ -1405,7 +1432,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
             gLoc->DialogBoxParam(MAKEINTRESOURCE(IDD_ADDBOOKMARK), NULL, AddProc, (LPARAM)hWnd);  
 		 }
 		 else {
-            addLink(dInfo->url, dInfo->title, BOOKMARK_FLAG_NB);
+			addLink(dInfo->url, dInfo->title, BOOKMARK_FLAG_NB, dInfo->iconurl);
 		 }
          return true;
       }
@@ -1433,7 +1460,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
       else if (command == nAddToolbarCommand) {
          kmeleonDocInfo *dInfo = kPlugin.kFuncs->GetDocInfo(hWnd);
          if (dInfo) {
-            addLink(dInfo->url, dInfo->title, BOOKMARK_FLAG_TB);
+			addLink(dInfo->url, dInfo->title, BOOKMARK_FLAG_TB, dInfo->iconurl);
          }
          return true;
       }
@@ -1455,7 +1482,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
           CBookmarkNode* node = gBookmarkRoot->FindFolder(lastMenu);
           if (node) {
              kmeleonDocInfo *dInfo = kPlugin.kFuncs->GetDocInfo(hWnd); 
-             if (dInfo) addLink(dInfo->url, dInfo->title, "", node);
+             if (dInfo) addLink(dInfo->url, dInfo->title, "", dInfo->iconurl, node);
           }
           return true;
 	  }

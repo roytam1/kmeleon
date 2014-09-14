@@ -95,14 +95,14 @@ int GetFavoritesPath(void)
    if (rslt == ERROR_SUCCESS) {
       ExpandEnvironmentStrings(sz, gFavoritesPath, MAX_PATH);
 
-      strcat(gFavoritesPath, "\\");
+      _tcscat(gFavoritesPath, _T("\\"));
    }
    else {
       gFavoritesPath[0] = 0;
    }
 
 
-   kPlugin.kFuncs->GetPreference(PREF_STRING, PREFERENCE_FAVORITES_PATH, gFavoritesPath, gFavoritesPath);
+   kPlugin.kFuncs->GetPreference(PREF_TSTRING, PREFERENCE_FAVORITES_PATH, gFavoritesPath, gFavoritesPath);
 
    return 1;
 }
@@ -111,7 +111,7 @@ static bool found_tb = false;
 static bool found_bm = false;
 static bool found_nb = false;
 
-int ReadFavorites(char *szRoot, char *szPath, CBookmarkNode &newFavoritesNode)
+int ReadFavorites(TCHAR *szRoot, TCHAR *szPath, CBookmarkNode &newFavoritesNode)
 {
    int numFavoritesInFolder = 0;
    
@@ -121,16 +121,16 @@ int ReadFavorites(char *szRoot, char *szPath, CBookmarkNode &newFavoritesNode)
       found_nb = false;
    }
 
-   int pathLen = strlen(szPath);
-   int gFavoritesPathLen = strlen(szRoot);
+   int pathLen = _tcslen(szPath);
+   int gFavoritesPathLen = _tcslen(szRoot);
    
-   char * searchString = new char[gFavoritesPathLen + pathLen + 2];
-   strcpy(searchString, szRoot);
-   strcat(searchString, szPath);
-   strcat(searchString, "*");
+   TCHAR * searchString = new TCHAR[gFavoritesPathLen + pathLen + 2];
+   _tcscpy(searchString, szRoot);
+   _tcscat(searchString, szPath);
+   _tcscat(searchString, _T("*"));
    
-   char * urlFile;
-   char * subPath;
+   TCHAR * urlFile;
+   TCHAR * subPath;
    
    // now scan the directory, first for .URL files and then for subdirectories
    // that may also contain .URL files
@@ -149,13 +149,13 @@ int ReadFavorites(char *szRoot, char *szPath, CBookmarkNode &newFavoritesNode)
          if(lstrcmp(wfd.cFileName, _T(".")) == 0 || lstrcmp(wfd.cFileName, _T("..")) == 0)
             continue;
          
-         subPath = new char[pathLen + strlen(wfd.cFileName) + 2];
-         strcpy(subPath, szPath);
-         strcat(subPath, wfd.cFileName);
-         strcat(subPath, "/");
+         subPath = new TCHAR[pathLen + _tcslen(wfd.cFileName) + 2];
+         _tcscpy(subPath, szPath);
+         _tcscat(subPath, wfd.cFileName);
+         _tcscat(subPath, _T("/"));
          
          // make new node for favorites (child off of our current node)
-         CBookmarkNode *newFavoritesChildNode = new CBookmarkNode(0, wfd.cFileName, "", BOOKMARK_FOLDER, time(NULL));
+         CBookmarkNode *newFavoritesChildNode = new CBookmarkNode(0, wfd.cFileName, _T(""), BOOKMARK_FOLDER, time(NULL));
          newFavoritesNode.AddChild(newFavoritesChildNode);
          
          // build the tree for this directory
@@ -163,17 +163,17 @@ int ReadFavorites(char *szRoot, char *szPath, CBookmarkNode &newFavoritesNode)
             ReadFavorites(szRoot, subPath, *newFavoritesChildNode);
 
          if ( !found_tb && gToolbarFolder[0] != 0 &&
-              (strncmp(subPath, gToolbarFolder, strlen(subPath)-1) == 0)) {
+              (_tcsncmp(subPath, gToolbarFolder, _tcslen(subPath)-1) == 0)) {
             newFavoritesChildNode->flags |= BOOKMARK_FLAG_TB;
             found_tb = true;
          }
          if ( !found_bm && gMenuFolder[0] != 0 && 
-              (strncmp(subPath, gMenuFolder, strlen(subPath)-1) == 0)) {
+              (_tcsncmp(subPath, gMenuFolder, _tcslen(subPath)-1) == 0)) {
                newFavoritesChildNode->flags |= BOOKMARK_FLAG_BM;
                found_bm = true;
             }
          if ( !found_nb && gNewitemFolder[0] != 0 && 
-              (strncmp(subPath, gNewitemFolder, strlen(subPath)-1) == 0)) {
+              (_tcsncmp(subPath, gNewitemFolder, _tcslen(subPath)-1) == 0)) {
                newFavoritesChildNode->flags |= BOOKMARK_FLAG_NB;
                found_nb = true;
             }
@@ -183,26 +183,24 @@ int ReadFavorites(char *szRoot, char *szPath, CBookmarkNode &newFavoritesNode)
       } else if ((wfd.dwFileAttributes & (FILE_ATTRIBUTE_HIDDEN|FILE_ATTRIBUTE_SYSTEM))==0) {
          // if it's not a hidden or system file
          
-         char *dot = strrchr(wfd.cFileName, '.');
-         if(dot && (dot != wfd.cFileName) && stricmp(dot, ".url") == 0) {
+         TCHAR *dot = _tcsrchr(wfd.cFileName, _T('.'));
+         if(dot && (dot != wfd.cFileName) && _tcsicmp(dot, _T(".url")) == 0) {
             
             int filenameLen = (dot - wfd.cFileName) + 4;
-            urlFile = new char[pathLen + filenameLen + 1];
-            strcpy(urlFile, szPath);
-            strcat(urlFile, wfd.cFileName);
+            urlFile = new TCHAR[pathLen + filenameLen + 1];
+            _tcscpy(urlFile, szPath);
+            _tcscat(urlFile, wfd.cFileName);
             
             // format for display in the menu
             // chop off the .url
             *dot = 0;
 
             // condense the string and escape ampersands
-            char *pszTemp = fixString(wfd.cFileName, 40);
+            TCHAR *pszTemp = fixString(wfd.cFileName, 40);
             
             // insert node
             newFavoritesNode.AddChild(new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), wfd.cFileName, urlFile, BOOKMARK_BOOKMARK, time(NULL)));
             
-
-
             free(pszTemp);
             szRoot[gFavoritesPathLen] = 0;
             delete [] urlFile;
@@ -219,16 +217,16 @@ int ReadFavorites(char *szRoot, char *szPath, CBookmarkNode &newFavoritesNode)
 
 int CreateFavorite(CBookmarkNode *newNode) 
 {
-   char name[INTERNET_MAX_URL_LENGTH];
-   char filename[INTERNET_MAX_URL_LENGTH];
+   TCHAR name[INTERNET_MAX_URL_LENGTH];
+   TCHAR filename[INTERNET_MAX_URL_LENGTH];
 
-   strcpy(name, newNode->text.c_str());
+   _tcscpy(name, newNode->text.c_str());
 
    // remove any characters the filesystem won't like
-   char *c, *d;
+   TCHAR *c, *d;
    c = d = name;
    while (*d) {
-      if (strchr("\\:*?\"<>|", *d)) {
+      if (_tcschr(_T("\\:*?\"<>|"), *d)) {
          d++;
       }
       else if(*d == '/') {
@@ -243,22 +241,22 @@ int CreateFavorite(CBookmarkNode *newNode)
 
    for (int i=0;; i++) {
       if (i) {
-         char str[10];
-         itoa(i, str, 10);
-         strcpy(c, "[");
-         strcat(c, str);
-         strcat(c, "]");
+         TCHAR str[10];
+         _itot(i, str, 10);
+         _tcscpy(c, _T("["));
+         _tcscat(c, str);
+         _tcscat(c, _T("]"));
       }
-      strcpy(filename, gFavoritesPath);
+      _tcscpy(filename, gFavoritesPath);
       if (gNewitemFolder[0] && 
           gFavoritesRoot.FindSpecialNode(BOOKMARK_FLAG_NB)) {
-         strcat(filename, gNewitemFolder);
-         if (filename[strlen(filename)-1] != '\\')
-            strcat(filename, "\\");
+         _tcscat(filename, gNewitemFolder);
+         if (filename[_tcslen(filename)-1] != _T('\\'))
+            _tcscat(filename, _T("\\"));
       }
-      strcat(filename, name);
-      strcat(filename, _T(".url"));
-      FILE *bmFile = fopen(filename, "r");
+      _tcscat(filename, name);
+      _tcscat(filename, _T(".url"));
+      FILE *bmFile = _tfopen(filename, _T("r"));
       if (bmFile){
          fclose(bmFile);
       }
@@ -270,7 +268,7 @@ int CreateFavorite(CBookmarkNode *newNode)
    WritePrivateProfileString(_T("InternetShortcut"), _T("URL"), newNode->url.c_str(), filename);
 
    newNode->text = name;
-   strcat(name, _T(".url"));
+   _tcscat(name, _T(".url"));
    newNode->path = name;
 
    return 0;

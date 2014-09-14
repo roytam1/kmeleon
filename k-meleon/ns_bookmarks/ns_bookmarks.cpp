@@ -461,7 +461,7 @@ extern "C" {
          HIMAGELIST hList = gImagelist;
          UINT idx = IMAGE_BOOKMARK;
 
-		 UINT i = GetSiteIcon((char*)node->url.c_str());
+		 UINT i = GetSiteIcon(node);
 		 if (i > 0) {
             idx = i;
             hList = kPlugin.kFuncs->GetIconList();
