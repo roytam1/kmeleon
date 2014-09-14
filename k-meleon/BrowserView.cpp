@@ -1069,7 +1069,7 @@ void CBrowserView::OnSHistoryBack(UINT nID)
 {
 	int index = 0, count;
 	m_pWindow->GetSHistoryState(index, count);
-	m_pWindow->GotoHistoryIndex(nID - SHISTORYB_START_ID + (index>MAX_SHMENU_NUMBER?index-MAX_SHMENU_NUMBER:0));
+	m_pWindow->GotoHistoryIndex(nID - SHISTORYB_START_ID + (index>MAX_SHMENU_NUMBER?index-MAX_SHMENU_NUMBER/2:0));
 }
 
 void CBrowserView::OnSHistoryForward(UINT nID)
