@@ -66,13 +66,15 @@ public:
 
 		std::vector<std::string>::iterator iter;
 		std::vector<std::string>::iterator iter2;
+		int count = 0;
 		for (iter = urls.begin(),iter2 = titles.begin(); iter != urls.end() && iter2 != titles.end(); iter++,iter2++) {
-			if ((*iter).compare("about:blank") != 0 && (*iter).compare(0, 7, "wyciwyg") != 0)
+			if ((*iter).compare("about:blank") != 0 && (*iter).compare(0, 7, "wyciwyg") != 0) {
 				purls += *iter + SEP + *iter2 + SEP;
-			else shcount--;
+				count++;
+			}
 		}
 
-		return itos(shcount) + SEP + itos(index) + SEP + SEP + SEP + purls;
+		return itos(count) + SEP + itos(index) + SEP + SEP + SEP + purls;
 	}
 
 	bool frompref(char* pref) {
