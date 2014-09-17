@@ -13,13 +13,11 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// Anglais (États-Unis) resources
+// English (United States) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
-#ifdef _WIN32
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 #pragma code_page(1252)
-#endif //_WIN32
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -27,7 +25,7 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 //
 
 #ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO 
+GUIDELINES DESIGNINFO
 BEGIN
     IDD_CONFIG, DIALOG
     BEGIN
@@ -46,39 +44,32 @@ END
 //
 
 IDD_PROMPT DIALOGEX 0, 0, 250, 58
-STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_VISIBLE | 
-    WS_CAPTION
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_VISIBLE | WS_CAPTION
 CAPTION "Session Name"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
     EDITTEXT        IDC_ANSWER,7,20,236,13,ES_AUTOHSCROLL
     DEFPUSHBUTTON   "OK",IDOK,130,39,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,189,39,50,14
-    LTEXT           "Enter a name for the current session",IDC_PROMPT,10,7,
-                    230,13
+    LTEXT           "Enter a name for the current session",IDC_PROMPT,10,7,230,13
 END
 
 IDD_CONFIG DIALOGEX 0, 0, 185, 140
-STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | 
-    WS_SYSMENU
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Sessions options"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,77,119,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,128,119,50,14
-    CONTROL         "Open the following session at startup",
-                    IDC_CHECK_AUTOLOAD,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
-                    7,17,135,10
-    COMBOBOX        IDC_COMBO_SESSIONSLIST,7,31,118,150,CBS_DROPDOWNLIST | 
-                    CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Open the following session at startup",IDC_CHECK_AUTOLOAD,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,17,135,10
+    COMBOBOX        IDC_COMBO_SESSIONSLIST,7,31,118,150,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
     LTEXT           "Delete a session",IDC_STATIC,7,65,67,8
-    COMBOBOX        IDC_COMBO_SESSIONSLIST2,7,75,118,150,CBS_DROPDOWNLIST | 
-                    CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_COMBO_SESSIONSLIST2,7,75,118,150,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
     PUSHBUTTON      "Delete",IDC_BUTTON_DELETE,128,74,50,14
     LTEXT           "Max Number of Undo",IDC_STATIC,7,97,68,8
     EDITTEXT        IDC_EDIT_MAXUNDO,83,94,40,14,ES_AUTOHSCROLL | ES_NUMBER
-    CONTROL         "Ask before opening it",IDC_CHECK_ASK,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,15,47,84,10
+    CONTROL         "Ask before opening it",IDC_CHECK_ASK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,47,84,10
 END
 
 
@@ -88,8 +79,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,1
- PRODUCTVERSION 1,0,0,1
+ FILEVERSION 1,0,0,2
+ PRODUCTVERSION 1,0,0,2
  FILEFLAGSMASK 0x17L
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -106,12 +97,12 @@ BEGIN
         BEGIN
             VALUE "Comments", "beta1"
             VALUE "FileDescription", "Sessions"
-            VALUE "FileVersion", "1, 0, 0, 1"
+            VALUE "FileVersion", "1.0.0.2"
             VALUE "InternalName", "sessions"
-            VALUE "LegalCopyright", "Copyright (C) 2005 Dorian Boissonnade"
+            VALUE "LegalCopyright", "Copyright (C) 2014 Dorian Boissonnade"
             VALUE "OriginalFilename", "sessions.dll"
             VALUE "ProductName", "Sessions Saver for K-Meleon"
-            VALUE "ProductVersion", "1, 0, 0, 1"
+            VALUE "ProductVersion", "1.0.0.2"
         END
     END
     BLOCK "VarFileInfo"
@@ -120,18 +111,16 @@ BEGIN
     END
 END
 
-#endif    // Anglais (États-Unis) resources
+#endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
 /////////////////////////////////////////////////////////////////////////////
-// Français (France) resources
+// French (France) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_FRA)
-#ifdef _WIN32
 LANGUAGE LANG_FRENCH, SUBLANG_FRENCH
 #pragma code_page(1252)
-#endif //_WIN32
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -164,7 +153,7 @@ END
 // String Table
 //
 
-STRINGTABLE 
+STRINGTABLE
 BEGIN
     IDS_SESSION_RECOVERY_MSG 
                             "K-Meleon wasn't closed properly. Do you want to resume your last browsing session?"
@@ -176,7 +165,7 @@ BEGIN
     IDS_PREVIOUS_SESSION    "Previous Session"
 END
 
-#endif    // Français (France) resources
+#endif    // French (France) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
