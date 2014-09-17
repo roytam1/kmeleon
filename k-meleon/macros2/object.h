@@ -394,6 +394,9 @@ public:
 		last = node;
 	}
 
+	MacroNode* GetLast() {
+		return last;
+	}
 };
 
 class Expression : public MacroNode {

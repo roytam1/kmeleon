@@ -543,11 +543,16 @@ public:
 		input = new char[st.st_size+1];
 		size_t r = fread(input, sizeof(char), st.st_size, f);
 		input[r] = 0;
-		lex.setinput(input);
 		file = (const char*)CT_to_UTF8(srcFile);
 		lex.setfile(file);
-		debug = enableDebug;
 		fclose(f);		
+		return _init(mac, input, enableDebug);
+	}
+
+	bool _init(Mac* mac, char* src, bool enableDebug = false) {
+		input = src;
+		lex.setinput(input);		
+		debug = enableDebug;		
 		m = mac;
 		return true;
 	}

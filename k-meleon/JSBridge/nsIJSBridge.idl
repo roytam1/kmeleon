@@ -40,7 +40,7 @@ interface nsIJSBridge : nsISupports
 	void RebuildMenu(in string menu);
 
 	void id(in nsIDOMWindow window, in string id);
-	void SendMessage(in string plugin, in string to, in string from, in long data1, inout long data2);
+	long SendMessage(in string plugin, in string to, in string from, in string data1);
 	void GetCmdList(out unsigned long length, [array, size_is(length), retval] out kICmdList list);
 	
 	nsIWebBrowser Open(in string url, in unsigned short state);

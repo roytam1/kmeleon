@@ -154,61 +154,6 @@ int MessageBoxUTF8(HWND hWnd, const char* lpText, const char* lpCaption, UINT uT
 		return MessageBoxA(hWnd, CUTF8_to_ANSI(lpText), CUTF8_to_ANSI(lpCaption), uType);
 }
 
-long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2)
-{  
-	if (to[0] == '*' || stricmp(to, kPlugin.dllname) == 0) {
-		if (stricmp(subject, "Load") == 0) {
-			Load();
-		}
-		else if (stricmp(subject, "Init") == 0) {
-			ExecuteMacro(NULL, "OnInit", false);
-		}
-		else if (stricmp(subject, "Setup") == 0) {
-			ExecuteMacro(NULL, "OnSetup", false);
-		}
-		else if (stricmp(subject, "UserSetup") == 0) {
-			ExecuteMacro(NULL, "OnUserSetup", false);
-		}
-		else if (stricmp(subject, "Create") == 0) {
-			Create((HWND)data1);
-		}
-		else if (stricmp(subject, "CreateTab") == 0) {
-			ExecuteMacro((HWND)data1, "OnOpenTab", false);
-		}
-		else if (stricmp(subject, "DestroyTab") == 0) {
-			ExecuteMacro((HWND)data1, "OnCloseTab", false);
-		}
-		else if (stricmp(subject, "Close") == 0) {
-			Close((HWND)data1);
-		}
-		else if (stricmp(subject, "Config") == 0) {
-			Config((HWND)data1);
-		}
-		else if (stricmp(subject, "Quit") == 0) {
-			Quit();
-		}
-		else if (stricmp(subject, "DoMenu") == 0) {
-			DoMenu((HMENU)data1, (char *)data2);
-		}
-		else if (stricmp(subject, "DoRebar") == 0) {
-			DoRebar((HWND)data1);
-		}
-		else if (stricmp(subject, "DoAccel") == 0) {
-			*(int *)data2 = DoAccel((char *)data1);
-		}
-		else if (stricmp(subject, "GetConfigFiles") == 0) {
-			*(int *)data2 = GetConfigFiles((configFileType**)data1);
-		}
-		else if (stricmp(subject, "GetCmds") == 0) {
-			return GetCmds((kmeleonCommand*)data1, data2);
-		}
-		else return 0;
-
-		return 1;
-	}
-	return 0;
-}
-
 kmeleonFunctions *kFuncs;
 
 HINSTANCE ghInstance;
@@ -408,6 +353,80 @@ public:
 		}
 	}
 };
+
+long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2)
+{  
+	if (to[0] == '*' || stricmp(to, kPlugin.dllname) == 0) {
+		if (stricmp(subject, "Load") == 0) {
+			Load();
+		}
+		else if (stricmp(subject, "Init") == 0) {
+			ExecuteMacro(NULL, "OnInit", false);
+		}
+		else if (stricmp(subject, "Setup") == 0) {
+			ExecuteMacro(NULL, "OnSetup", false);
+		}
+		else if (stricmp(subject, "UserSetup") == 0) {
+			ExecuteMacro(NULL, "OnUserSetup", false);
+		}
+		else if (stricmp(subject, "Create") == 0) {
+			Create((HWND)data1);
+		}
+		else if (stricmp(subject, "CreateTab") == 0) {
+			ExecuteMacro((HWND)data1, "OnOpenTab", false);
+		}
+		else if (stricmp(subject, "DestroyTab") == 0) {
+			ExecuteMacro((HWND)data1, "OnCloseTab", false);
+		}
+		else if (stricmp(subject, "Close") == 0) {
+			Close((HWND)data1);
+		}
+		else if (stricmp(subject, "Config") == 0) {
+			Config((HWND)data1);
+		}
+		else if (stricmp(subject, "Quit") == 0) {
+			Quit();
+		}
+		else if (stricmp(subject, "DoMenu") == 0) {
+			DoMenu((HMENU)data1, (char *)data2);
+		}
+		else if (stricmp(subject, "DoRebar") == 0) {
+			DoRebar((HWND)data1);
+		}
+		else if (stricmp(subject, "DoAccel") == 0) {
+			*(int *)data2 = DoAccel((char *)data1);
+		}
+		else if (stricmp(subject, "GetConfigFiles") == 0) {
+			*(int *)data2 = GetConfigFiles((configFileType**)data1);
+		}
+		else if (stricmp(subject, "GetCmds") == 0) {
+			return GetCmds((kmeleonCommand*)data1, data2);
+		}
+		else if (stricmp(subject, "RunMacro") == 0) {
+			Parser parser;
+			int debug = 0;
+			kPlugin.kFuncs->GetPreference(PREF_BOOL, "kmeleon.plugins.macros.debug", &debug, &debug);
+
+			MacroNode* node = M->root.GetLast();
+			if (!parser._init(M, strdup((char*)data1), debug))
+				return 0;
+
+			parser.parse();	
+			
+			Context c = {NULL};
+			// Ugly hack to run new code
+			MacroNode* child = M->root.child;
+			M->root.child = node->next;
+			Evaluator e(M, c);
+			e.Evaluate(&M->root);
+			M->root.child = child;
+		}
+		else return 0;
+
+		return 1;
+	}
+	return 0;
+}
 
 std::string ExecuteMacro (HWND hWnd, std::string name, bool haha)
 {
@@ -775,7 +794,7 @@ bool LoadMacros(const TCHAR *filename)
 	if (!parser.init(M, filename, debug))
 		return false;
 
-	parser.parse();
+	parser.parse();	
 	return true;
 }
 

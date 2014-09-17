@@ -99,9 +99,13 @@ NS_IMETHODIMP CJSBridge::Id(nsIDOMWindow *window, const char *id)
 	return NS_OK;
 }
 
-NS_IMETHODIMP CJSBridge::SendMessage(const char *plugin, const char *to, const char *from, PRInt32 data1, PRInt32 *data2)
+NS_IMETHODIMP CJSBridge::SendMessage(const char *to, const char *from, const char *subject, const char *data1, int32_t *data2)
 {
-    return NS_ERROR_NOT_IMPLEMENTED;
+	if (!kPlugin.kFuncs) 
+		return NS_ERROR_NOT_INITIALIZED;
+	*data2 = 0;
+	kPlugin.kFuncs->SendMessage(to, from, subject, (long)(void*)data1, (long)data2);
+    return NS_OK;
 }
 
 /* void GetCmdList (out unsigned long length, [array, size_is (length), retval] out kICmdList list); */

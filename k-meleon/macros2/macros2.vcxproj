@@ -109,9 +109,7 @@
       <OutputFile>..\..\debug\kplugins\$(ProjectName).dll</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <ProgramDatabaseFile>.\Debug/macros.pdb</ProgramDatabaseFile>
       <GenerateMapFile>true</GenerateMapFile>
-      <MapFileName>.\Debug/macros.map</MapFileName>
       <ImportLibrary>.\Debug/macros.lib</ImportLibrary>
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
