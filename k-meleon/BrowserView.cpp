@@ -998,7 +998,7 @@ void CBrowserView::OnPopupBlockedIcon()
 	int x;
 	// XXXX	
 	msg.Format(IDS_ALLOW_POPUP, ((CBrowserGlue*)m_pBrowserGlue)->mPopupBlockedHost);
-	if ( (x =::AfxMessageBox(msg, MB_YESNO|MB_ICONQUESTION)) == IDYES)
+	if ( (x = MessageBox(msg, 0, MB_YESNO|MB_ICONQUESTION)) == IDYES)
 	{
 		USES_CONVERSION;
 		CPermissions permissions("popup");
@@ -1069,7 +1069,7 @@ void CBrowserView::OnSHistoryBack(UINT nID)
 {
 	int index = 0, count;
 	m_pWindow->GetSHistoryState(index, count);
-	m_pWindow->GotoHistoryIndex(nID - SHISTORYB_START_ID + (index>MAX_SHMENU_NUMBER?index-MAX_SHMENU_NUMBER/2:0));
+	m_pWindow->GotoHistoryIndex(nID - SHISTORYB_START_ID + (index>MAX_SHMENU_NUMBER/2?index-MAX_SHMENU_NUMBER/2:0));
 }
 
 void CBrowserView::OnSHistoryForward(UINT nID)
