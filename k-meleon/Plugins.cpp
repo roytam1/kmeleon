@@ -366,9 +366,11 @@ kmeleonDocInfo * GetDocInfoUTF8(HWND mainWnd)
       
 #ifdef INTERNAL_SITEICONS
    nsCString uri;
-   view->GetBrowserGlue()->mIconURI->GetSpec(uri);
-   kDocInfo.iconurl = strdup(uri.get());
-   kDocInfo.idxIcon = theApp.favicons.GetIcon(view->GetBrowserGlue()->mIconURI);
+   if (view->GetBrowserGlue()->mIconURI) {
+      view->GetBrowserGlue()->mIconURI->GetSpec(uri);
+      kDocInfo.iconurl = strdup(uri.get());
+      kDocInfo.idxIcon = theApp.favicons.GetIcon(view->GetBrowserGlue()->mIconURI);
+   }
 #endif
 
    return &kDocInfo;

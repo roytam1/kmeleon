@@ -197,21 +197,25 @@ BOOL CTabReBar::Init(CReBarEx* rebar)
 	REBARBANDINFO rbi;
 	rbi.cbSize = sizeof(REBARBANDINFO);
 
-	// Catch the tab buttons if fixed
-	if (mFixedBar && theApp.preferences.GetBool(PREFERENCE_REBAR_FIXED, FALSE))
+	
+	if (mFixedBar)
 	{
-		rbi.fMask  = RBBIM_CHILD;
-		int idx = rebar->FindByName(_T("Tab/&Window Buttons"));
-		if (idx>=0) {
-			rebar->GetReBarCtrl().GetBandInfo(idx, &rbi);
-			CToolBar* toolbar = (CToolBar*)CWnd::FromHandle(rbi.hwndChild);
-			if (toolbar) {
-				mTemp->AddBar(toolbar, _T(""), NULL, RBBS_NOGRIPPER);
-				rebar->UnregisterBand(_T("Tab/&Window Buttons"));
-				rebar->GetReBarCtrl().DeleteBand(idx);
-				mTemp->GetReBarCtrl().ShowBand(1);
-				KmMenu* menu = theApp.menus.GetKMenu(_T("@Toolbars"));
-				if (menu) menu->Invalidate();
+		// Catch the tab buttons if fixed
+		if (theApp.preferences.GetBool(PREFERENCE_REBAR_FIXED, FALSE))
+		{
+			rbi.fMask  = RBBIM_CHILD;
+			int idx = rebar->FindByName(_T("Tab/&Window Buttons"));
+			if (idx>=0) {
+				rebar->GetReBarCtrl().GetBandInfo(idx, &rbi);
+				CToolBar* toolbar = (CToolBar*)CWnd::FromHandle(rbi.hwndChild);
+				if (toolbar) {
+					mTemp->AddBar(toolbar, _T(""), NULL, RBBS_NOGRIPPER);
+					rebar->UnregisterBand(_T("Tab/&Window Buttons"));
+					rebar->GetReBarCtrl().DeleteBand(idx);
+					mTemp->GetReBarCtrl().ShowBand(1);
+					KmMenu* menu = theApp.menus.GetKMenu(_T("@Toolbars"));
+					if (menu) menu->Invalidate();
+				}
 			}
 		}
 
@@ -310,11 +314,15 @@ void CTabReBar::UpdateButtonsSize(bool forceUpdate)
 
 	// -4 seems to avoid freeze on vista+
 	int width = rect.right - rect.left - 4;
+	if (width<=0) return; // when minimized
 	int buttonWidth = width / count, nline = 1;
 	
-	if (mMultiline)
+	if (mMultiline) {
 		while (buttonWidth < nMinWidth && nline < 3 && nline < count)
-			buttonWidth = ++nline*width / count;		
+			buttonWidth = ++nline*width / count;
+		if (width/buttonWidth*nline < count)
+			buttonWidth--;
+	}
 	
 	if (buttonWidth > nMaxWidth)
 		buttonWidth = nMaxWidth;
@@ -966,7 +974,7 @@ void CTabReBar::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 		CRect closeButtonRect = contentRect;
 		closeButtonRect.left = contentRect.right + btMargin;
 		closeButtonRect.right = contentRect.right + btMargin + btClose;
-		closeButtonRect.top = (contentRect.bottom - btClose) / 2;
+		closeButtonRect.top = (contentRect.bottom + contentRect.top - btClose) / 2;
 		closeButtonRect.bottom = closeButtonRect.top + btClose;
 
 		HTHEME hThemeC = g_xpStyle.OpenThemeData(m_hWnd, L"WINDOW");

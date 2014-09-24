@@ -1422,9 +1422,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
       else if (command == nAddCommand) {
 
          kmeleonDocInfo *dInfo = kPlugin.kFuncs->GetDocInfo(hWnd);
-         if (!dInfo || !dInfo->url || strncmp(dInfo->url, "wyciwyg", 7) == 0)
-			 ::MessageBox(NULL, gLoc->GetString(IDS_CANT_BOOKMARK), gLoc->GetString(IDS_CANT_BOOKMARK_TITLE), MB_OK);
-
+         if (!dInfo || !dInfo->url || strncmp(dInfo->url, "wyciwyg", 7) == 0) {
+            ::MessageBox(NULL, gLoc->GetString(IDS_CANT_BOOKMARK), gLoc->GetString(IDS_CANT_BOOKMARK_TITLE), MB_OK);
+            return true;
+         }
 		 BOOL ask = TRUE;
 		 kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_BOOKMARK_ASKFOLDER, &ask, &ask);
 		 

@@ -761,7 +761,7 @@ void LoadToolbars(TCHAR *filename) {
 
 				 if (!pImgList) break;
 				 if (!*pImgList) 
-					 *pImgList = ImageList_Create(curToolbar->width, curToolbar->height, ILC_MASK | (gbIsComCtl6 ? ILC_COLOR32 : ILC_COLORDDB), 0, 32);
+					 *pImgList = ImageList_Create(curToolbar->width, curToolbar->height, ILC_MASK | (gbIsComCtl6 ? ILC_COLOR32 : ILC_COLORDDB), 10, 10);
 				AddImageToList(curToolbar, curButton, *pImgList, p);
 			 }
 
@@ -1179,19 +1179,19 @@ int AddButtonMsg(char *sParams) {
 
 	if (hot) {
 		if (!pToolbar->hot)
-			pToolbar->hot = ImageList_Create(pToolbar->width, pToolbar->height, ILC_MASK | ILC_COLORDDB, 0, 32);
+			pToolbar->hot = ImageList_Create(pToolbar->width, pToolbar->height, ILC_MASK | ILC_COLORDDB, 10, 10);
 		AddImageToList(pToolbar, pButton, pToolbar->hot, hot);
 	}
 	
 	if (cold) {
 		if (!pToolbar->cold)
-			pToolbar->cold = ImageList_Create(pToolbar->width, pToolbar->height, ILC_MASK | ILC_COLORDDB, 0, 32);
+			pToolbar->cold = ImageList_Create(pToolbar->width, pToolbar->height, ILC_MASK | ILC_COLORDDB, 10, 10);
 		AddImageToList(pToolbar, pButton, pToolbar->cold, cold);
 	}
 
 	if (dead) {
 		if (!pToolbar->dead)
-			pToolbar->dead = ImageList_Create(pToolbar->width, pToolbar->height, ILC_MASK | ILC_COLORDDB, 0, 32);
+			pToolbar->dead = ImageList_Create(pToolbar->width, pToolbar->height, ILC_MASK | ILC_COLORDDB, 10, 10);
 		AddImageToList(pToolbar, pButton, pToolbar->dead, dead);
 	}
 
@@ -1533,14 +1533,14 @@ int ShowMenuUnderButton(HWND hWndParent, UINT uMouseButton, int iID, HWND hToolb
    
    // Find the toolbar
    bool stop = false;
-   while (pToolbar) {
-	   if (pToolbar->hWnd == hToolbar) break;
-	    pToolbar = pToolbar->next;
-   }
-   if (!pToolbar) return 0;
+   if (hToolbar) {
+      while (pToolbar) {
+	      if (pToolbar->hWnd == hToolbar) break;
+	       pToolbar = pToolbar->next;
+      }
+      if (!pToolbar) return 0;
 
-
-      pButton = pToolbar->pButtonTail;
+	  pButton = pToolbar->pButtonTail;
       while (pButton) {
          char* menu = (uMouseButton == TPM_LEFTBUTTON ? pButton->lmenu : pButton->menu);
          if (pButton->iID == iID) {
@@ -1550,6 +1550,27 @@ int ShowMenuUnderButton(HWND hWndParent, UINT uMouseButton, int iID, HWND hToolb
          }
          pButton = pButton->prev;
 	  }
+
+   } else {
+      while (pToolbar) {
+         pButton = pToolbar->pButtonTail;
+         while (pButton) {
+             if (pButton->iID == iID && pButton->menu) {
+			     hMenu = kPlugin.kFuncs->GetMenu(pButton->menu);
+			     stop = true;
+			     break;
+		     }
+		     pButton = pButton->prev;
+	     }
+	     if (stop) break;
+	     pToolbar = pToolbar->next;
+      }
+   }
+
+
+
+
+      
 	  
       if (!pButton) {
          if (uMouseButton == TPM_RIGHTBUTTON)
