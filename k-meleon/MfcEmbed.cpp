@@ -202,6 +202,7 @@ CMfcEmbedApp::CMfcEmbedApp()
    m_pMostRecentBrowserFrame  = NULL;
    m_hResDll = NULL;
    m_MRUList = NULL;
+   m_bRestart = FALSE;
 }
 
 CMfcEmbedApp theApp;
@@ -395,10 +396,6 @@ BOOL CMfcEmbedApp::LoadLanguage()
    if (m_hResDll && m_hResDll!=hInstResDll)
       FreeLibrary(m_hResDll);
    m_hResDll = hInstResDll;
-   
-   nsCOMPtr<nsIFile> mFile;
-   NS_NewLocalFile(CStringToNSString(localeFolder + locale + _T(".manifest")), false, getter_AddRefs(mFile));
-   XRE_AddManifestLocation(NS_COMPONENT_LOCATION, mFile);
 
    return TRUE;
 }
@@ -646,6 +643,23 @@ BOOL CMfcEmbedApp::InitInstance()
    // Register the browser window class
    wc.lpszClassName = BROWSER_WINDOW_CLASS;
    AfxRegisterClass( &wc );   
+
+   // Register chrome language
+   CString localesFolder = GetFolder(RootFolder) + CString(_T("\\locales\\*"));
+   WIN32_FIND_DATA ffd;
+	HANDLE hFind = FindFirstFile(localesFolder.GetBuffer(0), &ffd);
+	localesFolder.Truncate(localesFolder.GetLength()-1);
+	if (hFind != INVALID_HANDLE_VALUE) {            
+		do {
+			if (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY && 
+				ffd.cFileName[0]!='.') {
+					nsCOMPtr<nsIFile> mFile;
+					NS_NewLocalFile(CStringToNSString(localesFolder + ffd.cFileName + _T("\\") + ffd.cFileName + _T(".manifest")), false, getter_AddRefs(mFile));
+					XRE_AddManifestLocation(NS_COMPONENT_LOCATION, mFile);
+			}
+		} while ( FindNextFile(hFind, &ffd) );
+		FindClose(hFind);
+	}   
 
    XRE_NotifyProfile();
 
@@ -1257,6 +1271,18 @@ int CMfcEmbedApp::ExitInstance()
    if (m_hResDll) FreeLibrary(m_hResDll);
 
    OleUninitialize();
+
+   if (m_bRestart) {
+		PROCESS_INFORMATION pi = {0};
+		STARTUPINFO si = {0};
+		si.cb = sizeof(STARTUPINFO);
+		si.dwFlags = STARTF_USESHOWWINDOW;
+		si.wShowWindow = SW_NORMAL;
+		::CreateProcess(NULL, ::GetCommandLine(), NULL, NULL, FALSE, NORMAL_PRIORITY_CLASS, NULL, NULL, &si, &pi);
+		CloseHandle(pi.hProcess);
+		CloseHandle(pi.hThread);
+   }
+
    return 1;
 }
 

@@ -61,6 +61,7 @@ static const mozilla::Module::ContractIDEntry kBrowserContracts[] = {
 	{NS_GENERATINGKEYPAIRINFODIALOGS_CONTRACTID, &kNS_NSSKEYPAIRDIALOGS_CID},
 	{NS_TRANSFER_CONTRACTID, &kNS_DOWNLOAD_CID},
 	{"@mozilla.org/xre/app-info;1", &kNS_KMAPPINFO_CID},
+	{"@mozilla.org/toolkit/app-startup;1", &kNS_KMAPPINFO_CID},
 	{ NS_ABOUT_MODULE_CONTRACTID_PREFIX "home", &kNS_KMABOUT_CID },
 	{ NULL }
 };
