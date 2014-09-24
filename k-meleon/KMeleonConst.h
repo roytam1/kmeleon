@@ -17,7 +17,7 @@
 */
 
 
-#define KMELEON_VERSION	               0x02000011
+#define KMELEON_VERSION	               0x02000012
 #define MOZILLA_BUILDID 20140105
 #define KMELEON_BUILDID 7400
 #define KMELEON_UVERSION 74.0

@@ -140,7 +140,9 @@ public:
 
    CBrowserFrame* m_pMostRecentBrowserFrame; // the most recently used frame
    CBrowserFrame* m_pOpenNewBrowserFrame; // used by OnNewBrowser to preserve an initilaized frame
-
+   void SetRestart(BOOL r) {
+	   m_bRestart = r;
+   }
    int GetID(const char *strID);
 
    // Implementation
@@ -183,6 +185,7 @@ private:
    BOOL        m_bAlreadyRunning;
    BOOL        m_bFirstWindowCreated;
    BOOL        m_bSwitchingProfiles;
+   BOOL        m_bRestart;
    HICON       m_hMainIcon;
    HICON       m_hSmallIcon;
    HINSTANCE   m_hResDll;

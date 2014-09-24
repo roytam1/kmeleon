@@ -23,7 +23,7 @@
 #include "KMeleonConst.h"
 #include "MfcEmbed.h"
 
-NS_IMPL_ISUPPORTS2(KmAppInfo, nsIXULAppInfo, nsIXULRuntime)
+NS_IMPL_ISUPPORTS3(KmAppInfo, nsIXULAppInfo, nsIXULRuntime, nsIAppStartup)
 
 /* readonly attribute ACString vendor; */
 NS_IMETHODIMP KmAppInfo::GetVendor(nsACString & aVendor)
@@ -205,6 +205,95 @@ NS_IMETHODIMP KmAppInfo::GetReplacedLockTime(PRTime *aReplacedLockTime)
 
 /* readonly attribute DOMString lastRunCrashID; */
 NS_IMETHODIMP KmAppInfo::GetLastRunCrashID(nsAString & aLastRunCrashID)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* void createHiddenWindow (); */
+NS_IMETHODIMP KmAppInfo::CreateHiddenWindow()
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* void destroyHiddenWindow (); */
+NS_IMETHODIMP KmAppInfo::DestroyHiddenWindow()
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* void run (); */
+NS_IMETHODIMP KmAppInfo::Run()
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* void enterLastWindowClosingSurvivalArea (); */
+NS_IMETHODIMP KmAppInfo::EnterLastWindowClosingSurvivalArea()
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* void exitLastWindowClosingSurvivalArea (); */
+NS_IMETHODIMP KmAppInfo::ExitLastWindowClosingSurvivalArea()
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* readonly attribute boolean automaticSafeModeNecessary; */
+NS_IMETHODIMP KmAppInfo::GetAutomaticSafeModeNecessary(bool *aAutomaticSafeModeNecessary)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* void restartInSafeMode (in uint32_t aQuitMode); */
+NS_IMETHODIMP KmAppInfo::RestartInSafeMode(uint32_t aQuitMode)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* bool trackStartupCrashBegin (); */
+NS_IMETHODIMP KmAppInfo::TrackStartupCrashBegin(bool *_retval)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* void trackStartupCrashEnd (); */
+NS_IMETHODIMP KmAppInfo::TrackStartupCrashEnd()
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* void quit (in uint32_t aMode); */
+NS_IMETHODIMP KmAppInfo::Quit(uint32_t aMode)
+{
+	uint32_t ferocity = (aMode & 0xF);
+	if (ferocity == eAttemptQuit || ferocity == eForceQuit) {
+		PostQuitMessage(0);
+		if (aMode & eRestart) 
+			((CMfcEmbedApp*)::AfxGetApp())->SetRestart(TRUE);
+		return NS_OK;
+	}
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* readonly attribute boolean shuttingDown; */
+NS_IMETHODIMP KmAppInfo::GetShuttingDown(bool *aShuttingDown)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* [implicit_jscontext] jsval getStartupInfo (); */
+NS_IMETHODIMP KmAppInfo::GetStartupInfo(JSContext* cx, JS::Value *_retval)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* attribute boolean interrupted; */
+NS_IMETHODIMP KmAppInfo::GetInterrupted(bool *aInterrupted)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+NS_IMETHODIMP KmAppInfo::SetInterrupted(bool aInterrupted)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }
