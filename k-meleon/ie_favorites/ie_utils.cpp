@@ -384,7 +384,7 @@ int addLink(char *url, char *title, char *iconurl)
       return false;
 
    newNode->url = CUTF8_to_T(url);
-   newNode->iconurl = CUTF8_to_T(iconurl);
+   if (iconurl) newNode->iconurl = CUTF8_to_T(iconurl);
    
    if (CreateFavorite(newNode) == 0) {
       delete gFavoritesRoot.child;
