@@ -27,7 +27,9 @@
 
 class KmAppInfo: public nsIXULAppInfo, public nsIXULRuntime, public nsIAppStartup
 {
+	bool mInterrupted;
 public:
+	KmAppInfo() : mInterrupted(false) {}
 	NS_DECL_ISUPPORTS
 	NS_DECL_NSIXULAPPINFO
 	NS_DECL_NSIXULRUNTIME

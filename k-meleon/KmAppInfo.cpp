@@ -291,9 +291,11 @@ NS_IMETHODIMP KmAppInfo::GetStartupInfo(JSContext* cx, JS::Value *_retval)
 /* attribute boolean interrupted; */
 NS_IMETHODIMP KmAppInfo::GetInterrupted(bool *aInterrupted)
 {
-    return NS_ERROR_NOT_IMPLEMENTED;
+    *aInterrupted = mInterrupted;
+	return NS_OK;
 }
 NS_IMETHODIMP KmAppInfo::SetInterrupted(bool aInterrupted)
 {
-    return NS_ERROR_NOT_IMPLEMENTED;
+	mInterrupted = aInterrupted;
+	return NS_OK;    
 }
