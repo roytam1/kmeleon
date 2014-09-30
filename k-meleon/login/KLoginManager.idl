@@ -1,0 +1,8 @@
+#include "nsISupports.idl"
+#include "nsIDOMEventTarget.idl"
+
+[scriptable, uuid(8F784BF6-619C-11E3-8E53-6B646188709B)]
+interface nsIKLoginManager : nsISupports
+{
+  void init(in nsIDOMEventTarget browser);
+}; 

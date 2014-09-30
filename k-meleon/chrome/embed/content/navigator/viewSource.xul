@@ -1,0 +1,51 @@
+<?xml version="1.0"?>  
+<?xml-stylesheet href="chrome://navigator/skin/" type="text/css"?>
+
+<!DOCTYPE window [
+<!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd" >
+%brandDTD;
+<!ENTITY % sourceDTD SYSTEM "chrome://navigator/locale/viewSource.dtd" >
+%sourceDTD;
+<!ENTITY % navigatorDTD SYSTEM "chrome://navigator/locale/navigator.dtd" >
+%navigatorDTD;
+]>
+<window id="main-window"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+        onload="onLoadViewSource();"
+        contenttitlesetting="true"
+        title="&mainWindow.title;" 
+        titlemodifier="&mainWindow.titlemodifier;" 
+        titlepreface="&mainWindow.preface;"
+        titlemenuseparator ="&mainWindow.titlemodifierseparator;"  
+        windowtype="navigator:view-source"
+        width="640" height="480"
+        screenX="10" screenY="10"
+        persist="screenX screenY width height sizemode">
+       
+  <script type="application/x-javascript" src="chrome://global/content/globalOverlay.js"/>
+  <script type="application/x-javascript" src="chrome://navigator/content/viewsource.js"/>
+  
+  <commandset id="commands">
+    <commandset id="globalEditMenuItems"/>
+    <commandset id="selectEditMenuItems"/>
+    <commandset id="clipboardEditMenuItems"/>
+    <commandset id="viewSourceMenuItems">
+      <command id="cmd_close" oncommand="ViewSourceClose()"/>
+      <command id="cmd_savePage" oncommand="ViewSourceSavePage();"/>
+      <command id="cmd_goToLine" oncommand="ViewSourceGoToLine();" disabled="true"/>
+    </commandset>
+  </commandset>
+  <stringbundleset id="viewSource-stringbundleset">
+    <stringbundle id="findBundle" src="chrome://global/locale/finddialog.properties"/>
+    <stringbundle id="viewSourceBundle" src="chrome://navigator/locale/viewSource.properties"/>
+  </stringbundleset>
+  
+  <vbox id="appcontent" flex="1">
+    <browser id="content" type="content-primary" name="content" src="about:blank" flex="1"
+             disablehistory="true" disablesecurity="true"
+             context="viewSourceContextMenu"/>
+  </vbox> 
+  <statusbar id="status-bar" class="chromeclass-status">
+    <statusbarpanel id="statusbar-line-col" label="" flex="1"/>
+  </statusbar>
+</window>

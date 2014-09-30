@@ -1,0 +1,301 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/css" href="chrome://global/skin/"?>
+<?xml-stylesheet type="text/css" href="chrome://kmprefs/skin/"?>
+<?xul-overlay href="chrome://kmprefs/content/kplugins/bookmarksbar.xul"?>
+<?xul-overlay href="chrome://kmprefs/content/kplugins/booklistmanager.xul"?>
+<!DOCTYPE page SYSTEM "chrome://kmprefs/locale/pref-kbookmarks.dtd">
+<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" 
+id="prefBookmarks" onload="kBookmarks.init()">
+
+<stringbundle id="pref_bundle" src="chrome://kmprefs/locale/pref.properties"/>
+<stringbundle id="brws_bundle" src="chrome://kmprefs/locale/pref-browsing.properties"/>
+
+<script type="application/x-javascript" src="chrome://kmprefs/content/pref.js"/>
+<script type="application/x-javascript">
+<![CDATA[
+var kBookmarks = {
+
+_base: null,
+_pref: null,
+_bndl: null,
+
+_mAD: null,
+_mML: null,
+
+lst : null,
+grp : null,
+
+load : null,
+init : function() {
+	this.lst = document.getElementById("openURL");
+	this.grp = document.getElementById("openHow");
+
+	this.load  = kPlugin.load("bookmarks");
+	this._base = "kmeleon.plugins.bookmarks.";
+	this._pref = new Array(	"load",
+				"askforFolder",
+				"menuAddBookmark");
+	this._mAD  = this._base + "menuAutoDetect";
+	this._mML  = this._base + "maxMenuLength";
+	this._bndl = document.getElementById("brws_bundle");
+	this._setControls();
+
+	document.getElementById("openURLInCurrent").label = this._bndl.getString(kTabs()?"tab_current":"window_current");
+	document.getElementById("openURLInTab"    ).label = this._bndl.getString("tab_new");
+	document.getElementById("openURLInWindow" ).label = this._bndl.getString("window_new");
+
+	for(var j=0;j<this._pref.length;j++) initCheckbox(this._base+this._pref[j]);
+	kBookmarksBar.init();
+	kBooklistManager.init("bookmarks");
+},
+initOpen: function() {
+	var val;
+
+	try {
+		val = pref.getCharPref(this.lst.value);
+	} catch(e) {
+		for(var j=0,c=this.grp.childNodes;j<c.length;j++) c[j].setAttribute("disabled",true);
+	}
+
+	document.getElementById("ID_OPEN_LINK_IN_BACKGROUNDTAB").checked = false;
+	document.getElementById("ID_OPEN_LINK_IN_BACKGROUND").checked = false;
+	switch(val) {
+		case "ID_OPEN_LINK"                 : this.grp.selectedIndex = 0; break;
+		case "ID_OPEN_LINK_IN_NEW_TAB"      : this.grp.selectedIndex = 1; break;
+		case "ID_OPEN_LINK_IN_BACKGROUNDTAB": this.grp.selectedIndex = 1; document.getElementById("ID_OPEN_LINK_IN_BACKGROUNDTAB").checked = true; break;
+		case "ID_OPEN_LINK_IN_NEW_WINDOW"   : this.grp.selectedIndex = 2; break;
+		case "ID_OPEN_LINK_IN_BACKGROUND"   : this.grp.selectedIndex = 2; document.getElementById("ID_OPEN_LINK_IN_BACKGROUND").checked = true; break;
+		default                             : this.grp.selectedIndex =-1;
+	}
+},
+selectFile: function(prefID) {
+	var bnd = document.getElementById("pref_bundle");
+	var dir = getFile(getFolder("AppData"),"");
+	var fp  = Components.classes["@mozilla.org/filepicker;1"]
+			    .createInstance(nsIFilePicker);
+
+	fp.init(window,bnd.getString("select_"+prefID),nsIFilePicker.modeOpen);
+	fp.appendFilter(bnd.getString("bookmarksFiles"),"bookmark*.htm*");
+	fp.displayDirectory = dir;
+
+	var ret = fp.show();
+	if (ret == nsIFilePicker.returnOK) {
+		this._removeFilePref(prefID);
+		addToUserPrefs("user_pref(\""+prefID+"\", \""+makeUTF8(fp.file.path.replace(/\\/g,"\\\\"))+"\");");
+		setCharPref(prefID,fp.file.path);
+		this._initFile();
+	}
+},
+restoreDefault: function(prefID) {
+	this._removeFilePref(prefID);
+	restoreDefault(prefID);
+	this._initFile();
+},
+setLength: function(elemID,prefVal) {
+	var val = parseInt(prefVal);
+
+	if(prefVal)
+		if(isNaN(val) || val<0)
+			alert(document.getElementById("pref_bundle").getString("positive_integer_expected"));
+		else {
+			pref.setBoolPref(this._mAD,false);
+			// bug: Bookmarks menu disappears when kmeleon.plugins.bookmarks.maxMenuLength is in [1,7]
+			pref.setIntPref(this._mML,(val<8)?8:val);
+		}
+	else restoreDefault(elemID);
+},
+setOpen: function() {
+	pref.setCharPref(this.lst.value,this.grp.value);
+	this.initOpen();
+},
+toggle: function() {
+	toggleCheckbox(this._base+this._pref[0]);
+	this.load = !this.load;
+	this._setControls();
+	kBookmarksBar._setControls();
+	kBooklistManager._setControls();
+},
+toggleForce: function(elem) {
+	pref.setBoolPref(this._mAD,!elem.checked);
+	elem.nextSibling.disabled = !elem.checked;
+	if(elem.nextSibling.value == 9999) elem.nextSibling.value = "";
+	elem.nextSibling.focus();
+},
+toggleOpen: function(chkBox) {
+	if(chkBox.checked)
+		pref.setCharPref(this.lst.value,chkBox.id);
+	else
+		pref.setCharPref(this.lst.value,chkBox.previousSibling.value);
+	this.initOpen();
+},
+toggleSpillover: function() {
+	var val = document.getElementById(this._mAD).value;
+
+	val = (val == "true") ? true : false;
+	pref.setBoolPref(this._mAD,val);
+	if(!val) pref.setIntPref(this._mML,9999);
+	this._initSpillover();
+},
+_initFile: function() {
+	var elem = document.getElementById(this._base+"bookmarkFile"),
+	    file = getFolder(elem.id);
+
+	elem.nextSibling.nextSibling.disabled = false;
+	if(!file || !getFile(file,false).exists()) {
+		file = getFile(getFolder("KUserSettings"),"bookmarks.html");
+		if(file.exists()) {
+			file = file.path;
+			elem.nextSibling.nextSibling.disabled = true;
+		} else
+			file = document.getElementById("pref_bundle").getString("file_not_found");
+	}
+	elem.value = file;
+},
+_initSpillover: function() {
+	var auto, grp = document.getElementById(this._mAD), val;
+
+	try {
+		auto = pref.getBoolPref(this._mAD);
+	} catch(e) {
+		grp.selectedIndex = -1;
+		for(var j=0,c=grp.childNodes;j<2;j++) c[j].setAttribute("disabled",true);
+		document.getElementById("force").disabled = true;
+		document.getElementById(this._mML).disabled = true;
+		return;
+	}
+
+	try {
+		val = pref.getIntPref(this._mML);
+	} catch(e) {
+		val = "";
+	}
+	document.getElementById(this._mML).value = val;
+	if(isNaN(val)) val = 0;
+
+	if(auto) {
+		grp.selectedIndex = 1;
+		document.getElementById("force").checked = false;
+		document.getElementById("force").disabled = false;
+		document.getElementById(this._mML).disabled = true;
+	} else {
+		grp.selectedIndex = (val == 9999) ? 0 : 1;
+		document.getElementById("force").checked = (val>7 && val<9999) ? true : false;
+		document.getElementById("force").disabled = (grp.selectedIndex == 0) ? true : false;
+		document.getElementById(this._mML).disabled = !document.getElementById("force").checked;
+	}
+},
+_removeFilePref: function(prefID) {
+	removeFromFile(UserPrefs,"user_pref[\\s]*\\([\\s]*."+prefID+".[\\s]*,.*\\)[\\s]*;");
+},
+_setControls: function() {
+	if(this.load) {
+		disableAll(false);
+		this.initOpen();
+		this._initFile();
+		this._initSpillover();
+		document.getElementById("openURLInTab"                 ).disabled = !kTabs();
+		document.getElementById("ID_OPEN_LINK_IN_BACKGROUNDTAB").disabled = !kTabs();
+	} else {
+		this.initOpen();
+		this._initFile();
+		this._initSpillover();
+		disableAll(true);
+		document.getElementById("force").disabled = true;
+		document.getElementById(this._mML).disabled = true;
+	}
+	document.getElementById(this._base+this._pref[0]).disabled = kPlugin.absent("bookmarks");
+}
+
+};
+]]>
+</script>
+
+<vbox flex="1" style="overflow:auto">
+  <dialogheader title="&bookmarks.header;"/>
+  <separator class="thin"/>
+  <checkbox oncommand="kBookmarks.toggle()" id="kmeleon.plugins.bookmarks.load" label="&bookmarks.enable;"/>
+  <separator class="thick"/>
+  <tabcontrol flex="1">
+    <tabbox flex="1">
+      <tabs>
+        <tab id="kBookmarksGnrlTab" label="&general;"/>
+        <tab id="kBookmarksMenuTab" label="&bookmarks.menu;"/>
+        <tab id="kBookmarksTBarTab"/>
+        <tab id="kBooklistManagTab" label="&bookmarks.manager;"/>
+      </tabs>
+      <tabpanels flex="1">
+        <tabpanel flex="1" orient="vertical" style="overflow:auto">
+<!-- General -->
+<groupbox>
+  <caption>
+    <hbox align="center">
+      <label value="&bookmarks.open.before;" style="margin-left:1px"/>
+      <menulist id="openURL" oncommand="kBookmarks.initOpen()">
+        <menupopup>
+          <menuitem value="kmeleon.plugins.bookmarks.openurl" label="&bookmarks.open.left;" id="bookmarks"/>
+          <menuitem value="kmeleon.plugins.bookmarks.openurlm" label="&bookmarks.open.middle;" id="bookmarks"/>
+          <menuitem value="kmeleon.plugins.bookmarks.openurlr" label="&bookmarks.open.right;" id="bookmarks"/>
+         </menupopup>
+      </menulist>
+      <label value="&bookmarks.open.after;"/>
+    </hbox>
+  </caption>
+  <radiogroup id="openHow">
+    <radio oncommand="kBookmarks.setOpen()" value="ID_OPEN_LINK" id="openURLInCurrent"/>
+    <radio oncommand="kBookmarks.setOpen()" value="ID_OPEN_LINK_IN_NEW_TAB" id="openURLInTab"/>
+    <checkbox oncommand="kBookmarks.toggleOpen(this)" id="ID_OPEN_LINK_IN_BACKGROUNDTAB" label="&inBackground;" style="margin-left:2em"/>
+    <radio oncommand="kBookmarks.setOpen()" value="ID_OPEN_LINK_IN_NEW_WINDOW" id="openURLInWindow"/>
+    <checkbox oncommand="kBookmarks.toggleOpen(this)" id="ID_OPEN_LINK_IN_BACKGROUND" label="&inBackground;" style="margin-left:2em"/>
+  </radiogroup>
+  <separator class="thin"/>
+</groupbox>
+<separator class="thick"/>
+<checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.plugins.bookmarks.askforFolder" label="&bookmarks.askforFolder;"/>
+<separator class="thick"/>
+<groupbox>
+  <caption><label>&bookmarks.file.label;</label></caption>
+  <separator class="thin"/>
+  <hbox align="center">
+    <textbox id="kmeleon.plugins.bookmarks.bookmarkFile" flex="1" class="uri-element" readonly="true"/>
+    <button label="&browse;" oncommand="kBookmarks.selectFile(this.previousSibling.id)"/>
+    <button label="&restoreDefault;" oncommand="kBookmarks.restoreDefault(this.previousSibling.previousSibling.id)"/>
+  </hbox>
+  <separator class="thin"/>
+  <description>&restartNote1;</description>
+  <separator class="thin"/>
+  <description>&bookmarks.file.warning;</description>
+</groupbox>
+<!-- General -->
+        </tabpanel>
+        <tabpanel flex="1" orient="vertical" style="overflow:auto">
+<!-- Bookmarks Menu -->
+<separator class="thin"/>
+<groupbox>
+  <caption><label>&spillover.label;</label></caption>
+  <separator class="thin"/>
+  <description>&spillover.descr;</description>
+  <radiogroup id="kmeleon.plugins.bookmarks.menuAutoDetect">
+    <radio oncommand="kBookmarks.toggleSpillover()" value="false" label="&spillover.arrows;"/>
+    <radio oncommand="kBookmarks.toggleSpillover()" value="true" label="&spillover.submenu;"/>
+    <hbox align="center">
+      <checkbox oncommand="kBookmarks.toggleForce(this)" id="force" label="&spillover.forceBefore;" style="margin-left:2em"/>
+      <textbox id="kmeleon.plugins.bookmarks.maxMenuLength" size="4" class="uri-element" oninput="kBookmarks.setLength(this.id,this.value)"/>
+      <label value="&spillover.forceAfter;"/>
+    </hbox>
+  </radiogroup>
+  <separator class="thin"/>
+</groupbox>
+<separator class="thick"/>
+<checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.plugins.bookmarks.menuAddBookmark" label="&bookmarks.menuAddHere;"/>
+<vbox flex="1"/>
+<description>&restartNote1;</description>
+<!-- Bookmarks Menu -->
+        </tabpanel>
+	<tabpanel id="kBookmarksTBar"/>
+        <tabpanel id="kBooklistManag"/>
+      </tabpanels>
+    </tabbox>
+  </tabcontrol>
+</vbox>
+
+</page>
