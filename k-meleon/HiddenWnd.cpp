@@ -346,10 +346,5 @@ LRESULT CHiddenWnd::OnDeferSaveAs(WPARAM wParam, LPARAM lParam)
 
 void CHiddenWnd::OnEndSession(BOOL bEnding)
 {
-   if (!bEnding) return;
-   // If we try to close anything then windows will trash us,
-   // so remove all windows from the lists.
-   theApp.m_FrameWndLst.RemoveAll();
-   theApp.m_MiscWndLst.RemoveAll();
    CFrameWnd::OnEndSession(bEnding);
 }
