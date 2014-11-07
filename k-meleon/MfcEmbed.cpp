@@ -506,6 +506,9 @@ BOOL CMfcEmbedApp::CheckInstance()
 
 BOOL CMfcEmbedApp::InitInstance()
 {
+   CWinApp::InitInstance();
+   AfxOleInit();
+
    USES_CONVERSION;
    cmdline.Initialize(T2A(m_lpCmdLine));
 
@@ -1245,9 +1248,6 @@ int CMfcEmbedApp::ExitInstance()
    
    m_pMostRecentBrowserFrame = NULL; // In case plugins are weird
    
-   if (m_pMainWnd)
-      m_pMainWnd->DestroyWindow();
-
    // unload the plugins before we terminate embedding,
    // this way plugins can still call the preference functions
    plugins.SendMessage("*", "* Plugin Manager", "Quit");
@@ -1270,7 +1270,8 @@ int CMfcEmbedApp::ExitInstance()
    plugins.UnLoadAll();
    if (m_hResDll) FreeLibrary(m_hResDll);
 
-   OleUninitialize();
+   AfxOleTerm(FALSE);
+   CWinApp::ExitInstance();
 
    if (m_bRestart) {
 		PROCESS_INFORMATION pi = {0};
@@ -1409,9 +1410,9 @@ nsresult CMfcEmbedApp::InitializeWindowCreator() {
 // ---------------------------------------------------------------------------
 
 #ifdef XPCOM_GLUE
-NS_IMPL_ISUPPORTS3(CMfcEmbedApp, nsIObserver, nsIWindowCreator, nsISupportsWeakReference);
+NS_IMPL_ISUPPORTS(CMfcEmbedApp, nsIObserver, nsIWindowCreator, nsISupportsWeakReference);
 #else
-NS_IMPL_THREADSAFE_ISUPPORTS3(CMfcEmbedApp, nsIObserver, nsIWindowCreator, nsISupportsWeakReference);
+NS_IMPL_THREADSAFE_ISUPPORTS(CMfcEmbedApp, nsIObserver, nsIWindowCreator, nsISupportsWeakReference);
 #endif
 
 // ---------------------------------------------------------------------------
@@ -1607,6 +1608,12 @@ CString CMfcEmbedApp::GetFolder(FolderType folder)
    return _T("");
 }
 
+#include "nsIMIMEService.h"
+#include "nsIRDFService.h"
+#include "nsIFileProtocolHandler.h"
+#include "nsIRDFContainer.h"
+#include "nsIRDFRemoteDataSource.h"
+
 void CMfcEmbedApp::CheckProfileVersion()
 {
    CString fileVersion = GetFolder(ProfileFolder) + _T("\\version.ini");
@@ -1648,6 +1655,68 @@ void CMfcEmbedApp::CheckProfileVersion()
 
        toDelete = GetMozDirectory(NS_APP_USER_PROFILE_LOCAL_50_DIR) + _T("\\xul.mfl"); 
        DeleteFile(toDelete);
+
+		if (oldVersion < 0x02010000) {
+
+			nsCOMPtr<nsIFile> mimeFile;
+			NS_GetSpecialDirectory("UMimTyp", getter_AddRefs(mimeFile));
+			if (mimeFile) {
+				nsCOMPtr<nsIRDFService> rdfSvc = do_GetService("@mozilla.org/rdf/rdf-service;1");
+				if (rdfSvc) {
+						
+					nsCOMPtr<nsIIOService> ios = do_GetService("@mozilla.org/network/io-service;1");
+					if (ios) {
+						nsCOMPtr<nsIProtocolHandler> _fh;							
+						ios->GetProtocolHandler("file", getter_AddRefs(_fh));
+						nsCOMPtr<nsIFileProtocolHandler> fh = do_QueryInterface(_fh);
+						if (fh) {
+							nsCString uri;
+							fh->GetURLSpecFromFile(mimeFile, uri);
+							nsCOMPtr<nsIRDFDataSource> dataSource;
+							rdfSvc->GetDataSourceBlocking(uri.get(), getter_AddRefs(dataSource));
+							if (dataSource) {
+
+								nsCOMPtr<nsIRDFContainer> typeList = do_CreateInstance("@mozilla.org/rdf/container;1");
+								if (typeList) {
+									nsCOMPtr<nsIRDFResource> resource;
+									rdfSvc->GetResource(NS_LITERAL_CSTRING("urn:mimetypes:root"), getter_AddRefs(resource));
+									typeList->Init(dataSource, resource);	
+									
+									rdfSvc->GetResource(NS_LITERAL_CSTRING("urn:mimetype:application/k-skin"), getter_AddRefs(resource));
+									int32_t index;
+									typeList->IndexOf(resource, &index);
+									if (index == -1) {
+										
+										typeList->AppendElement(resource);
+
+										rdfSvc->GetResource(NS_LITERAL_CSTRING("urn:mimetype:application/k-skin"), getter_AddRefs(resource));
+										nsCOMPtr<nsIRDFResource> resource2;
+										rdfSvc->GetResource(NS_LITERAL_CSTRING("NC:value"), getter_AddRefs(resource2));
+										nsCOMPtr<nsIRDFLiteral> _literal;
+										rdfSvc->GetLiteral(L"application/k-skin", getter_AddRefs(_literal));
+										dataSource->Assert(resource, resource2, _literal, true);
+
+										//rdfSvc->GetResource(NS_LITERAL_CSTRING("urn:mimetype:application/k-skin"), getter_AddRefs(resource));
+										rdfSvc->GetResource(NS_LITERAL_CSTRING("NC:fileExtensions"), getter_AddRefs(resource2));
+										rdfSvc->GetLiteral(L"kms", getter_AddRefs(_literal));
+										dataSource->Assert(resource, resource2, _literal, true);
+
+										//rdfSvc->GetResource(NS_LITERAL_CSTRING("urn:mimetype:application/k-skin"), getter_AddRefs(resource));
+										rdfSvc->GetResource(NS_LITERAL_CSTRING("NC:description"), getter_AddRefs(resource2));
+										rdfSvc->GetLiteral(L"K-Meleon Skin", getter_AddRefs(_literal));
+										dataSource->Assert(resource, resource2, _literal, true);				
+
+										nsCOMPtr<nsIRDFRemoteDataSource> rds = do_QueryInterface(dataSource);
+										if (rds) rds->Flush();		
+									}
+								}
+							}
+						}
+					}
+				}
+			}			
+		}
+
 		
 	   if (oldVersion < 0x01060002)
 		   if (theApp.preferences.GetBool(PREFERENCE_REBAR_BOTTOM, FALSE))
@@ -1790,4 +1859,3 @@ BOOL CMfcEmbedApp::PumpMessage2(UINT filter)
 	}
   return TRUE;
 }
-
