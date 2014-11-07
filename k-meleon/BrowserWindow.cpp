@@ -212,7 +212,7 @@ BOOL CBrowserWrapper::CreateBrowser(CWnd* parent, uint32_t chromeFlags)
 		  ssm->GetSystemPrincipal(getter_AddRefs(principal));
 		}
 		rv = GetDocShell()->CreateAboutBlankContentViewer(principal);
-		NS_ENSURE_SUCCESS(rv, rv);
+		NS_ENSURE_SUCCESS(rv, FALSE);
 		//nsCOMPtr<nsIDocument> doc = do_GetInterface(GetDocShell());
 		//NS_ENSURE_TRUE(!!doc, NS_ERROR_FAILURE);
 		//doc->SetIsInitialDocument(true);
@@ -549,7 +549,7 @@ BOOL CBrowserWrapper::ScrollBy(int32_t dx, int32_t dy)
 	}
 	NS_ENSURE_TRUE(dom, FALSE);
 
-	return dom->ScrollBy (dx, dy);
+	return NS_SUCCEEDED(dom->ScrollBy (dx, dy));
 }
 
 already_AddRefed<nsIMarkupDocumentViewer> CBrowserWrapper::GetMarkupViewer()
@@ -704,7 +704,7 @@ BOOL CBrowserWrapper::CloneSHistory(CBrowserWrapper* newWebBrowser)
 BOOL CBrowserWrapper::GotoHistoryIndex(UINT index)
 {
 	NS_ENSURE_TRUE(mWebNav, FALSE);
-	return mWebNav->GotoIndex (index);
+	return NS_SUCCEEDED(mWebNav->GotoIndex (index));
 }
 
 BOOL CBrowserWrapper::GetSHistoryState(int& index, int& count)

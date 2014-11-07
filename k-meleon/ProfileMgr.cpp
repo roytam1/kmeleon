@@ -332,14 +332,14 @@ BOOL CProfileMgr::InitProfile(CProfile* aProfile)
 
     bool exists;
     rv = rootDir->Exists(&exists);
-    NS_ENSURE_SUCCESS(rv, rv);
+    NS_ENSURE_SUCCESS(rv, FALSE);
 
     if (exists) {
         rv = rootDir->IsDirectory(&exists);
         NS_ENSURE_SUCCESS(rv, FALSE);
 
         if (!exists)
-            return NS_ERROR_FILE_NOT_DIRECTORY;
+            return FALSE;
     }
 	else {
 		nsCOMPtr<nsIFile> profileDefaultsDir;

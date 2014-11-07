@@ -330,7 +330,7 @@ BOOL CHiddenWnd::OnCopyData(CWnd* pWnd, COPYDATASTRUCT* pCopyDataStruct) {
 LRESULT CHiddenWnd::OnDeferShow(WPARAM wParam, LPARAM lParam)
 {
 	if (!lParam) return 0;
-	return ((CUnknownContentTypeHandler*)lParam)->Show((CWnd*)wParam);
+	return NS_SUCCEEDED(((CUnknownContentTypeHandler*)lParam)->Show((CWnd*)wParam));
 }
 
 LRESULT CHiddenWnd::OnDeferSaveAs(WPARAM wParam, LPARAM lParam)
@@ -341,7 +341,7 @@ LRESULT CHiddenWnd::OnDeferSaveAs(WPARAM wParam, LPARAM lParam)
 	nsresult rv = handler->Save((char*)lParam);
 	NS_RELEASE(handler);
 	free((char*)lParam);
-	return rv;
+	return NS_SUCCEEDED(rv);
 }
 
 void CHiddenWnd::OnEndSession(BOOL bEnding)

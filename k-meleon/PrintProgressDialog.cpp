@@ -224,7 +224,7 @@ CPrintProgressDialog::OnProgressPrinting(PRUint32 aProgress, PRUint32 aProgressM
 
 /* void OnEndPrinting (in PRUint32 aStatus); */
 NS_IMETHODIMP 
-CPrintProgressDialog::OnEndPrinting(PRUint32 aStatus)
+CPrintProgressDialog::OnEndPrinting(nsresult aStatus)
 {
   // Here we need to know whether we have gone "modal" 
   // because we could get notified here if the user cancels
