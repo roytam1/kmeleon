@@ -115,7 +115,7 @@ public:
 	}
 
 
-NS_IMPL_ISUPPORTS1(CPrefObserver, nsIObserver);
+NS_IMPL_ISUPPORTS(CPrefObserver, nsIObserver);
 
 CPreferences::CPreferences() :
     iSaveType("kmeleon.general.saveType", 0),
@@ -250,7 +250,7 @@ void LoadAdBlock(BOOL load)
 void LoadFlashBlock(BOOL load)
 {
 	nsCOMPtr<nsIURI> fburi;
-	nsresult rv = NewURI(getter_AddRefs(fburi), nsEmbedCString("chrome://flashblock/content/flashblock.css"));
+	nsresult rv = NewURI(getter_AddRefs(fburi), nsCString("chrome://flashblock/content/flashblock.css"));
 	NS_ENSURE_SUCCESS(rv, ); 
 
 	LoadStyleSheet(fburi, load);
@@ -337,6 +337,7 @@ void CPreferences::Load() {
    if (theApp.FindSkinFile(skin, _T("skin.js"))) {
 	  nsCOMPtr<nsIFile> file;
       NS_NewLocalFile(CStringToNSString(skin), false, getter_AddRefs(file));   
+	  m_prefservice->SavePrefFile(nullptr);
       m_prefservice->ReadUserPrefs(file);
       m_prefservice->ReadUserPrefs(nullptr);
    }
@@ -375,7 +376,7 @@ int CPreferences::GetInt(const char *preference, int defaultVal)
 
 int CPreferences::GetString(const char *preference, char *retVal, const char *defaultVal)
 {
-	nsEmbedCString string;
+	nsCString string;
     if (!m_prefs || !NS_SUCCEEDED(m_prefs->GetCharPref(preference, getter_Copies(string))))
 		string = defaultVal;
 		
@@ -386,8 +387,8 @@ int CPreferences::GetString(const char *preference, char *retVal, const char *de
 
 int CPreferences::GetString(const char *preference, wchar_t *retVal, const wchar_t *defaultVal)
 {
-	nsEmbedCString string;
-	nsEmbedString unicode;
+	nsCString string;
+	nsString unicode;
     if (!m_prefs || !NS_SUCCEEDED(m_prefs->GetCharPref(preference, getter_Copies(string))))
 		unicode = defaultVal;
 	else
@@ -397,7 +398,7 @@ int CPreferences::GetString(const char *preference, wchar_t *retVal, const wchar
       wcscpy(retVal, unicode.get());
    return unicode.Length();
 /*
-   nsEmbedString string;
+   nsString string;
    if (!m_prefs || !NS_SUCCEEDED(m_prefs->CopyUnicharPref(preference, getter_Copies(string))))
       string = defaultVal;	
    if (retVal)
@@ -407,7 +408,7 @@ int CPreferences::GetString(const char *preference, wchar_t *retVal, const wchar
 
 CString CPreferences::GetString(const char *preference, LPCTSTR defaultVal)
 {
-	nsEmbedCString string;
+	nsCString string;
     if (!m_prefs || !NS_SUCCEEDED(m_prefs->GetCharPref(preference, getter_Copies(string))))
 		return defaultVal;
 	return NSUTF8StringToCString(string);
@@ -423,7 +424,7 @@ CString CPreferences::GetString(const char *preference, LPCTSTR defaultVal)
 int CPreferences::GetLocaleString(const char *preference, char *retVal, const char *defaultVal)
 {
 	nsresult rv;
-	nsEmbedCString string;
+	nsCString string;
 	nsCOMPtr<nsIPrefLocalizedString> prefString;
 
     if (!m_prefs)
@@ -446,8 +447,8 @@ int CPreferences::GetLocaleString(const char *preference, char *retVal, const ch
 
 CString CPreferences::GetLocaleString(const char *preference, LPCTSTR defaultVal)
 {
-	nsEmbedCString string;
-	nsEmbedString unicode;
+	nsCString string;
+	nsString unicode;
 	if (!m_prefs) return defaultVal;
 
 	nsCOMPtr<nsIPrefLocalizedString> prefString;
@@ -470,8 +471,8 @@ CString CPreferences::GetLocaleString(const char *preference, LPCTSTR defaultVal
 inline void CPreferences::SetString(const char *preference, const wchar_t *value)
 {
    if (!m_prefs) return;
-   nsEmbedCString string;
-   NS_UTF16ToCString(nsEmbedString(value), NS_CSTRING_ENCODING_UTF8, string);
+   nsCString string;
+   NS_UTF16ToCString(nsString(value), NS_CSTRING_ENCODING_UTF8, string);
    m_prefs->SetCharPref(preference, string.get());
    
 //   m_prefs->SetUnicharPref(preference, value);
@@ -522,7 +523,7 @@ void CPreferences::_GetInt(const char *preference, int& var, int defaultVal)
 void CPreferences::_GetString(const char *preference, CString& var, LPCTSTR defaultVal)
 {
    ASSERT(m_prefs);
-   nsEmbedString string;
+   nsString string;
    nsresult rv = m_prefs->CopyUnicharPref(preference, getter_Copies(string));
    if (NS_SUCCEEDED(rv) && defaultVal) {
 		USES_CONVERSION;

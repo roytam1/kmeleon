@@ -26,8 +26,8 @@ protected:
 	nsCOMPtr<nsIURI> mRealURI;
 	nsCOMPtr<nsIDOMDocument> mDocument;
 	nsCOMPtr<nsIURI> mReferrer;
-	nsEmbedCString mContentDisposition;
-	nsEmbedCString mContentType;
+	nsCString mContentDisposition;
+	nsCString mContentType;
 };
 
 class CMozSaveAs

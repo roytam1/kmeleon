@@ -52,7 +52,7 @@ extern CWnd* CWndForDOMWindow(nsIDOMWindow *aWindow);
 
 
 //*****************************************************************************
-NS_IMPL_ISUPPORTS4(CPromptService, nsIPromptFactory, nsIPrompt, nsIAuthPrompt, nsIPromptService)
+NS_IMPL_ISUPPORTS(CPromptService, nsIPromptFactory, nsIPrompt, nsIAuthPrompt, nsIPromptService)
 //NS_IMPL_ISUPPORTS1(CPromptService, nsIPromptService/*, nsINonBlockingAlertService*/)
 
 CPromptService::CPromptService()
@@ -421,10 +421,10 @@ NS_IMETHODIMP CPromptService::PromptUsernameAndPassword(nsIDOMWindow *parent,
 
   if (dlg.DoModal() == IDOK) {
 	  if(*username) nsMemory::Free(*username);
-	  *username = NS_StringCloneData(nsEmbedString(T2CW(csUsername)));
+	  *username = NS_StringCloneData(nsString(T2CW(csUsername)));
 
 	  if (*password) nsMemory::Free(*password);
-	  *password = NS_StringCloneData(nsEmbedString(T2CW(csPassword)));
+	  *password = NS_StringCloneData(nsString(T2CW(csPassword)));
 
      if (checkValue)
         *checkValue = (checkResult == TRUE ? true : false);
@@ -470,7 +470,7 @@ NS_IMETHODIMP CPromptService::PromptPassword(nsIDOMWindow *parent,
 
   if (dlg.DoModal() == IDOK) {
      if (*password) nsMemory::Free(*password);
-	  *password = NS_StringCloneData(nsEmbedString(T2CW(csValue)));
+	  *password = NS_StringCloneData(nsString(T2CW(csValue)));
      *_retval = PR_TRUE;
   }
   else

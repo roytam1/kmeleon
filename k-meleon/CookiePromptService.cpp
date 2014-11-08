@@ -28,7 +28,7 @@
 
 extern CWnd* CWndForDOMWindow(nsIDOMWindow *aWindow);
 
-NS_IMPL_ISUPPORTS1(CCookiePromptService, nsICookiePromptService)
+NS_IMPL_ISUPPORTS(CCookiePromptService, nsICookiePromptService)
 
 CCookiePromptService::CCookiePromptService(){
 }
@@ -42,7 +42,7 @@ NS_IMETHODIMP CCookiePromptService::CookieDialog(nsIDOMWindow *parent, nsICookie
 
 	CString q;
 	static BOOL accept = TRUE;
-	CString host = NSUTF8StringToCString(nsEmbedCString(hostname));
+	CString host = NSUTF8StringToCString(nsCString(hostname));
 
 	if (changingCookie)
 		q.Format(IDS_COOKIE_MODIFY, host);

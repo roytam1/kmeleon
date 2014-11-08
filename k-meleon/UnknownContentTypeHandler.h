@@ -15,8 +15,12 @@ static NS_DEFINE_CID(kDownloadCID, NS_DOWNLOAD_CID);
 #include "DialogEx.h"
 #include "nsIExternalHelperAppService.h"
 #include "nsIHelperAppLauncherDialog.h"
+#include "nsIContentHandler.h"
 
-class CUnknownContentTypeHandler : public nsIHelperAppLauncherDialog
+// Idiot callback function
+typedef void (*ProgressDialogCallback)(char* uri, LPCTSTR file, nsresult, void*);
+
+class CUnknownContentTypeHandler : public nsIHelperAppLauncherDialog, public nsIContentHandler
 {
 public:
     NS_DEFINE_STATIC_CID_ACCESSOR( NS_UNKNOWNCONTENTTYPEHANDLER_CID );
@@ -29,9 +33,11 @@ public:
 
     // This class implements the nsISupports interface functions.
     NS_DECL_ISUPPORTS
-
+			
     // This class implements the nsIHelperAppLauncherDialog interface functions.
     NS_DECL_NSIHELPERAPPLAUNCHERDIALOG
+
+	NS_DECL_NSICONTENTHANDLER
 
 	// Defered show
 	NS_IMETHOD Show(CWnd* parent = NULL);
@@ -49,9 +55,6 @@ protected:
 
 #include "resource.h"
 #include "nsITransfer.h"
-
-// Idiot callback function
-typedef void (*ProgressDialogCallback)(char* uri, LPCTSTR file, nsresult, void*);
 
 class CProgressDialog : public CDialog,
 						public nsITransfer,
@@ -89,6 +92,9 @@ protected:
    nsCOMPtr<nsIHelperAppLauncher> m_HelperAppLauncher;
    nsCOMPtr<nsICancelable> mCancelable;
    nsCOMPtr<nsIRequest> mRequest;
+   nsCOMPtr<nsIMIMEInfo> mMIMEInfo;
+   nsCOMPtr<nsIURI> mTarget;
+   nsCOMPtr<nsIFile> mTempFile;
 
    ProgressDialogCallback mCallback;
    void*  mParam;
@@ -109,11 +115,11 @@ protected:
    BOOL m_bClose;    // close the window when the download is finished
    BOOL m_bWindow;   // display a progress window
    
-   nsEmbedCString m_uri;
+   nsCString m_uri;
 
    CString mFileName;
    CString mFilePath;
-   CString mTempFile;
+   //CString mTempFile;
    char *mUri;
 
    void InitControl(const char *uri, const TCHAR *filepath);
@@ -125,6 +131,11 @@ protected:
 
 	DECLARE_MESSAGE_MAP()
 	virtual void OnOK();
+	nsresult ExecuteDesiredAction();
+	nsresult OpenWithApplication();
+	nsresult MoveTempToTarget();
+	nsresult GetTargetFile(nsIFile **aTargetFile);
+
 public:
 	afx_msg void OnBnClickedCloseWhenDone();
 };

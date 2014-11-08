@@ -170,14 +170,14 @@ public:
 
 //    nsIDOMWindow *FindDOMWindow(nsIDOMWindow *window, nsIDOMDocument *document);
 
-/*    void SetCtxMenuLinkUrl(nsEmbedString& strLinkUrl);
-	nsEmbedString mCtxMenuLinkUrl;
+/*    void SetCtxMenuLinkUrl(nsString& strLinkUrl);
+	nsString mCtxMenuLinkUrl;
 
-	void SetCtxMenuImageSrc(nsEmbedString& strImgSrc);
-	nsEmbedString mCtxMenuImgSrc;
+	void SetCtxMenuImageSrc(nsString& strImgSrc);
+	nsString mCtxMenuImgSrc;
 
-    void SetCurrentFrameURL(nsEmbedString& strcCurrentFrameURL);
-    nsEmbedString mCtxMenuCurrentFrameURL;*/
+    void SetCurrentFrameURL(nsString& strcCurrentFrameURL);
+    nsString mCtxMenuCurrentFrameURL;*/
 
 	void Activate(BOOL bActive);
 
@@ -213,7 +213,7 @@ protected:
    
 
 	CBrowserWrapper* m_pWindow;
-	nsEmbedString m_lastHighlightWord;
+	nsString m_lastHighlightWord;
 //	BOOL m_refreshBackButton;
 //	BOOL m_refreshForwardButton; 
     BOOL m_InPrintPreview;

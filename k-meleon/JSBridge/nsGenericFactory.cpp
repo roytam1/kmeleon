@@ -65,7 +65,7 @@ nsGenericFactory::~nsGenericFactory()
 
 }
 
-NS_IMPL_ISUPPORTS3(nsGenericFactory,
+NS_IMPL_ISUPPORTS(nsGenericFactory,
 	nsIGenericFactory,
                               nsIFactory,
                               nsIClassInfo)

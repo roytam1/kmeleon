@@ -53,7 +53,7 @@ nsresult NewURI(nsIURI **result, const nsAString &spec)
   return NewURI(result, specUtf8);
 }
 
-NS_IMPL_ISUPPORTS1(CDomEventListener, nsIDOMEventListener)
+NS_IMPL_ISUPPORTS(CDomEventListener, nsIDOMEventListener)
 
 NS_IMETHODIMP CDomEventListener::HandleEvent (nsIDOMEvent* aEvent)
 {
@@ -89,7 +89,7 @@ NS_IMETHODIMP CDomEventListener::HandleEvent (nsIDOMEvent* aEvent)
 }
 
  
-NS_IMPL_ISUPPORTS1(AutocompletePopup, nsIAutoCompletePopup)
+NS_IMPL_ISUPPORTS(AutocompletePopup, nsIAutoCompletePopup)
 
 
 /* readonly attribute nsIAutoCompleteInput input; */

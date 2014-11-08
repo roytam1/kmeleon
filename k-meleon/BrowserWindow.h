@@ -314,9 +314,9 @@ public:
 	BOOL GetSHistoryState(int& index, int& count);
 	BOOL GetSHistoryInfoAt(PRInt32 index, CString& title, CString& url);
 	
-	BOOL GetSelectionInsideForm(nsIDOMElement *element, nsEmbedString &aSelText);
+	BOOL GetSelectionInsideForm(nsIDOMElement *element, nsString &aSelText);
 	BOOL GetSelection(CString&);
-	BOOL GetUSelection(nsEmbedString&);
+	BOOL GetUSelection(nsString&);
 	BOOL InjectCSS(const wchar_t* userStyleSheet);
 	BOOL InjectJS(const wchar_t* userJS, CString& result, bool bTopWindow = true);
 	BOOL GetSecurityInfo(CString &sign);

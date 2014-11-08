@@ -61,7 +61,7 @@
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
-      <AdditionalIncludeDirectories>../../xulrunner-sdk-dbg/include;../../xulrunner-sdk-dbg/include/nspr</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../xulrunner-sdk/include;../../xulrunner-sdk/include/nspr;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>xul.lib;mozalloc.lib;xpcomglue_s.lib;user32.lib;shell32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -73,7 +73,7 @@
       <MapFileName>.\Debug/fullscreen.map</MapFileName>
       <ImportLibrary>.\Debug/fullscreen.lib</ImportLibrary>
       <TargetMachine>MachineX86</TargetMachine>
-      <AdditionalLibraryDirectories>../../xulrunner-sdk-dbg/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>../../xulrunner-sdk/lib_dbg;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Midl>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>

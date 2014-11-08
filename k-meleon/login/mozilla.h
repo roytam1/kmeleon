@@ -27,7 +27,7 @@
 #include "nsIDOMEventListener.h"
 #include "nsIDOMWindow.h"
 #include "nsEmbedString.h"
-#include "KLoginManager.h"
+#include "kmIHelper.h"
 #include <nsIServiceManager.h>
 #include <nsServiceManagerUtils.h>
 #include "nsIAutoCompletePopup.h"
@@ -144,11 +144,7 @@ public:
 		nsCOMPtr<nsIFormFillController> fc;
 		rv = servMan->GetServiceByContractID("@mozilla.org/satchel/form-fill-controller;1",  NS_GET_IID(nsIFormFillController), getter_AddRefs(fc));
 		NS_ENSURE_SUCCESS(rv, false);		
-
-		nsCOMPtr<nsIKLoginManager> klm;
-		rv = servMan->GetServiceByContractID("@kmeleon/login;1",  NS_GET_IID(nsIKLoginManager), getter_AddRefs(klm));
-		NS_ENSURE_SUCCESS(rv, false);
-
+		
 		nsCOMPtr<nsIDOMWindow> domWin;
 		mWebBrowser->GetContentDOMWindow (getter_AddRefs(domWin));
 		NS_ENSURE_TRUE (domWin, NS_ERROR_FAILURE);
@@ -166,7 +162,10 @@ public:
 		if (!piWin) return NULL;
 		fc->AttachToBrowser(piWin->GetDocShell(), popup);
 		
-		klm->Init(target);
+		nsCOMPtr<kmIHelper> klm;
+		rv = servMan->GetServiceByContractID("@kmeleon/helper;1",  NS_GET_IID(kmIHelper), getter_AddRefs(klm));
+		if (klm) klm->InitLogon(target);
+		
 		return TRUE;
 	
 		rv = GetDOMEventTarget(mWebBrowser, (getter_AddRefs(mEventTarget)));

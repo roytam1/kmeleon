@@ -24,7 +24,7 @@
 
 extern CWnd* CWndForDOMWindow(nsIDOMWindow *aWindow);
 
-NS_IMPL_ISUPPORTS1 (CGenKeyPairDialogs, nsIGeneratingKeypairInfoDialogs)
+NS_IMPL_ISUPPORTS (CGenKeyPairDialogs, nsIGeneratingKeypairInfoDialogs)
 
 CGenKeyPairDialogs::CGenKeyPairDialogs()
 {
@@ -70,7 +70,7 @@ BEGIN_MESSAGE_MAP(CGenKeyPairDialog, CDialog)
 	ON_MESSAGE(WM_USER+100, OnGenDone)
 END_MESSAGE_MAP()
 
-NS_IMPL_ISUPPORTS1(GenKeyPairObserver, nsIObserver);
+NS_IMPL_ISUPPORTS(GenKeyPairObserver, nsIObserver);
 
 NS_IMETHODIMP GenKeyPairObserver::Observe(nsISupports *aSubject, const char *aTopic, const PRUnichar *aData)
 {

@@ -20,7 +20,7 @@
 
 #include "nsIDOMDocument.h"
 #include "nsIDOMLocation.h"
-
+#include "nsPIDOMWindow.h" 
 #include "nsIImageLoadingContent.h"
 
 #include "nsIConsoleService.h"
@@ -29,41 +29,41 @@
 #include "nsIWebBrowserFocus.h"
 #include "nsIURIFixup.h"
 
-nsEmbedString CStringToNSString(LPCTSTR aStr)
+nsString CStringToNSString(LPCTSTR aStr)
 {
 	USES_CONVERSION;
-	return nsEmbedString(T2CW(aStr));
+	return nsString(T2CW(aStr));
 }
 
-nsEmbedCString CStringToNSCString(LPCTSTR aStr)
+nsCString CStringToNSCString(LPCTSTR aStr)
 {
 	USES_CONVERSION;
-	return nsEmbedCString(T2CA(aStr));
+	return nsCString(T2CA(aStr));
 }
 
-nsEmbedCString CStringToNSUTF8String(LPCTSTR aStr)
+nsCString CStringToNSUTF8String(LPCTSTR aStr)
 {
 	USES_CONVERSION;
-	nsEmbedCString aCStr;
-	NS_UTF16ToCString(nsEmbedString(T2CW(aStr)), NS_CSTRING_ENCODING_UTF8, aCStr);
+	nsCString aCStr;
+	NS_UTF16ToCString(nsString(T2CW(aStr)), NS_CSTRING_ENCODING_UTF8, aCStr);
 	return aCStr;
 }
 
-CString NSStringToCString(const nsEmbedString& aStr)
+CString NSStringToCString(const nsString& aStr)
 {
 	USES_CONVERSION;
 	return CString(W2CT(aStr.get()));
 }
 
-CString NSUTF8StringToCString(const nsEmbedCString& aStr)
+CString NSUTF8StringToCString(const nsCString& aStr)
 {
 	USES_CONVERSION;
-	nsEmbedString aUStr;
+	nsString aUStr;
 	NS_CStringToUTF16(aStr, NS_CSTRING_ENCODING_UTF8, aUStr);
 	return CString(W2CT(aUStr.get()));
 }
 
-CString NSCStringToCString(const nsEmbedCString& aStr)
+CString NSCStringToCString(const nsCString& aStr)
 {
 	USES_CONVERSION;
 	return CString(A2CT(aStr.get()));
@@ -85,7 +85,7 @@ nsresult NewURI(nsIURI **result, const nsACString &spec)
 
 nsresult NewURI(nsIURI **result, const nsAString &spec)
 {
-  nsEmbedCString specUtf8;
+  nsCString specUtf8;
   NS_UTF16ToCString(spec, NS_CSTRING_ENCODING_UTF8, specUtf8);
   return NewURI(result, specUtf8);
 }
@@ -145,7 +145,7 @@ CString GetUriForDocument(nsIDOMDocument *document)
 	document->GetLocation(getter_AddRefs(location));
 	NS_ENSURE_TRUE(location, _T(""));
 	
-	nsEmbedString url;
+	nsString url;
 	nsresult rv = location->GetHref(url);
 	NS_ENSURE_SUCCESS(rv, _T(""));
 
@@ -171,10 +171,10 @@ CString GetMozDirectory(const char* dirName)
       return _T("");
 
 #ifdef _UNICODE
-   nsEmbedString pathBuf;
+   nsString pathBuf;
    rv = nsDir->GetPath(pathBuf);
 #else
-   nsEmbedCString pathBuf;
+   nsCString pathBuf;
    rv = nsDir->GetNativePath(pathBuf);
 #endif
 
@@ -186,7 +186,7 @@ void GatherTextUnder(nsIDOMNode* aNode, nsString& aResult)
 	ASSERT(aNode);
 	if (!aNode) return;
 
-	nsEmbedString text;
+	nsString text;
 	nsCOMPtr<nsIDOMNode> node;
 	aNode->GetFirstChild(getter_AddRefs(node));
 	PRUint32 depth = 1;
@@ -197,14 +197,14 @@ void GatherTextUnder(nsIDOMNode* aNode, nsString& aResult)
 		if (charData && nodeType == nsIDOMNode::TEXT_NODE) {
 			// Add this text to our collection.
 			text += NS_LITERAL_STRING(" ");
-			nsEmbedString data;
+			nsString data;
 			charData->GetData(data);
 			text += data;
 		}
 		else {
 			nsCOMPtr<nsIDOMHTMLImageElement> img(do_QueryInterface(node));
 			if (img) {
-				nsEmbedString altText;
+				nsString altText;
 				img->GetAlt(altText);
 				if (!altText.IsEmpty()) {
 					text = altText;
@@ -309,7 +309,7 @@ BOOL GetLinkTitleAndHref(nsIDOMNode* node, CString& aHref, CString& aTitle)
 	return FALSE;
 }
 
-nsresult GetCSSBackground(nsIDOMNode *node, nsEmbedString& aUrl)
+nsresult GetCSSBackground(nsIDOMNode *node, nsString& aUrl)
 {
 	NS_ENSURE_ARG(node);
 	nsresult rv;
@@ -326,13 +326,13 @@ nsresult GetCSSBackground(nsIDOMNode *node, nsEmbedString& aUrl)
 	NS_ENSURE_TRUE(domElement, NS_ERROR_FAILURE);
 
 	nsCOMPtr<nsIDOMCSSStyleDeclaration> computedStyle;
-	rv = domWin->GetComputedStyle(domElement, nsEmbedString(), getter_AddRefs(computedStyle));
+	rv = domWin->GetComputedStyle(domElement, nsString(), getter_AddRefs(computedStyle));
 	NS_ENSURE_SUCCESS(rv, rv);
 	
 	nsCOMPtr<nsIDOMCSSValue> cssValue;
 	computedStyle->GetPropertyCSSValue(NS_LITERAL_STRING("background-image"), getter_AddRefs(cssValue));
 	
-	nsEmbedString bgUrl;
+	nsString bgUrl;
 	PRUint16 type;
 	rv = cssValue->GetCssValueType(&type);
 	if (type == nsIDOMCSSValue::CSS_VALUE_LIST) {
@@ -365,7 +365,7 @@ nsresult GetCSSBackground(nsIDOMNode *node, nsEmbedString& aUrl)
 	}
 
 	// Resolve the url with the base
-	nsEmbedString nsURL;
+	nsString nsURL;
 	rv = document->GetDocumentURI(nsURL);
 	NS_ENSURE_SUCCESS(rv, NS_ERROR_FAILURE);
 /*
@@ -376,14 +376,14 @@ nsresult GetCSSBackground(nsIDOMNode *node, nsEmbedString& aUrl)
 	nsDocument->GetLocation(getter_AddRefs(location));
 	NS_ENSURE_TRUE(location, FALSE);
 
-	nsEmbedString nsURL;
+	nsString nsURL;
 	location->GetHref(nsURL);*/
 
 	nsCOMPtr<nsIURI> docUri;
 	rv = NewURI(getter_AddRefs(docUri), nsURL);
 	NS_ENSURE_SUCCESS(rv, rv);
 
-	nsEmbedCString bgCUrl, bgCUrl2;
+	nsCString bgCUrl, bgCUrl2;
 	NS_UTF16ToCString (bgUrl, NS_CSTRING_ENCODING_UTF8, bgCUrl);	
 	rv = docUri->Resolve(bgCUrl, bgCUrl2);
 
@@ -420,23 +420,29 @@ BOOL GetBackgroundImageSrc(nsIDOMNode *aNode, nsString& aUrl)
 {
 	NS_ENSURE_TRUE(aNode, FALSE);
 	nsresult rv;
-	nsEmbedString bgImg;
+	nsString bgImg;
 	nsCOMPtr<nsIDOMNode> node = aNode;
 
 	nsCOMPtr<nsIDOMHTMLElement> htmlElement = do_QueryInterface(aNode);
 	if (htmlElement)
 	{
-		nsEmbedString nameSpace;
+		nsString nameSpace;
 		htmlElement->GetNamespaceURI(nameSpace);
 	//	if (nameSpace.IsEmpty())
 		{
-			nsEmbedString bgImg;
-			nsresult rv = GetCSSBackground(aNode, bgImg);
+			nsCOMPtr<nsIDOMNode> next;
+			do{
+				rv = GetCSSBackground(node, bgImg);
+				if (NS_SUCCEEDED(rv)) break;
+				node->GetParentNode(getter_AddRefs(next));
+				node = next;
+			} while (node);
+			
 			if (NS_FAILED(rv))	
 			{
 				// no background-image found
 				nsCOMPtr<nsIDOMDocument> document;
-				node->GetOwnerDocument(getter_AddRefs(document));
+				aNode->GetOwnerDocument(getter_AddRefs(document));
 				nsCOMPtr<nsIDOMHTMLDocument> htmlDocument(do_QueryInterface(document));
 				NS_ENSURE_TRUE(htmlDocument, FALSE);
 

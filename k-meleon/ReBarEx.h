@@ -25,7 +25,7 @@ public:
    CReBarEx();
    ~CReBarEx();
    void UnregisterBand(TCHAR *name);
-   void RegisterBand(HWND hWnd, TCHAR *name, int visibleOnMenu);
+   void RegisterBand(HWND hWnd, const TCHAR *name, int visibleOnMenu);
    void DrawToolBarMenu(HMENU menu);
    void ToggleVisibility(int index);
    void SaveBandSizes();
@@ -38,7 +38,7 @@ public:
 public:
    HMENU m_menu;
 
-   int FindByName(TCHAR *name);
+   int FindByName(const TCHAR *name);
    void ShowBand(int index, BOOL visibility);
    int count() { return m_iCount; }
    void lineup();

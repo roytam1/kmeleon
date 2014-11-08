@@ -32,14 +32,25 @@ struct RedirEntry {
 
 static RedirEntry kRedirMap[] = {
 	{ 
-		"home", "chrome://kmeleon/content/aboutHome/aboutHome.xhtml",
-		
+		"home", "chrome://kmeleon/content/aboutHome/aboutHome.xhtml",	
+		nsIAboutModule::ALLOW_SCRIPT 
+	},
+	{ 
+		"permissions", "chrome://browser/content/preferences/aboutPermissions.xul",	
+		nsIAboutModule::ALLOW_SCRIPT 
+	},
+	{ 
+		"preferences", "chrome://browser/content/preferences/in-content/preferences.xul",	
+		nsIAboutModule::ALLOW_SCRIPT 
+	},
+	{ 
+		"downloads", "chrome://browser/content/downloads/contentAreaDownloadsView.xul",	
 		nsIAboutModule::ALLOW_SCRIPT 
 	}
 };
 
 static const int kRedirTotal = NS_ARRAY_LENGTH(kRedirMap);
-NS_IMPL_ISUPPORTS1(KmAbout, nsIAboutModule)
+NS_IMPL_ISUPPORTS(KmAbout, nsIAboutModule)
 	
 static nsAutoCString
 	GetAboutModuleName(nsIURI *aURI)
@@ -89,7 +100,7 @@ NS_IMETHODIMP
 }
 
 NS_IMETHODIMP
-	KmAbout::GetURIFlags(nsIURI *aURI, uint32_t *result)
+KmAbout::GetURIFlags(nsIURI *aURI, uint32_t *result)
 {
 	NS_ENSURE_ARG_POINTER(aURI);
 

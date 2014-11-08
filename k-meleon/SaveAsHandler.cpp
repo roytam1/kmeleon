@@ -17,7 +17,7 @@ extern CMfcEmbedApp theApp;
 #include "nsCWebBrowserPersist.h"
 #include "nsIMIMEInfo.h"
 
-NS_IMPL_ISUPPORTS1(CSaveAsHandler, nsIWebProgressListener);
+NS_IMPL_ISUPPORTS(CSaveAsHandler, nsIWebProgressListener);
 
 CSaveAsHandler::CSaveAsHandler(
 		nsIWebBrowserPersist* aPersist, 
@@ -44,7 +44,7 @@ NS_IMETHODIMP CSaveAsHandler::OnStateChange(nsIWebProgress *aWebProgress,
 	{
 		nsCOMPtr<nsIWebProgressListener> KeepAlive(this);
 
-		nsEmbedCString sContentType;
+		nsCString sContentType;
 
 		nsCOMPtr<nsIChannel> channel = do_QueryInterface(aRequest, &rv);
 		if (!channel) return rv;
@@ -62,7 +62,7 @@ NS_IMETHODIMP CSaveAsHandler::OnStateChange(nsIWebProgress *aWebProgress,
 			if (NS_SUCCEEDED(rv) && b == PR_FALSE)	{
 				sContentType.SetLength(0);
 			}
-			httpchannel->GetResponseHeader(nsEmbedCString("content-disposition"), mContentDisposition);
+			httpchannel->GetResponseHeader(nsCString("content-disposition"), mContentDisposition);
 		}
 		mPersist->CancelSave();
 		if (mFile) mFile->Remove(PR_FALSE);
@@ -87,7 +87,7 @@ NS_IMETHODIMP CSaveAsHandler::Save(const char* contentType, const char* disposit
 		mContentDisposition.Assign(disposition);
 
 	nsresult rv;
-	nsEmbedString fileName;
+	nsString fileName;
 	
 	PRBool isHTML = 
 		(strcmp(contentType, "text/html") == 0) ||
@@ -100,7 +100,7 @@ NS_IMETHODIMP CSaveAsHandler::Save(const char* contentType, const char* disposit
 		nsCOMPtr<nsIMIMEHeaderParam> mimehdrpar = do_GetService("@mozilla.org/network/mime-hdrparam;1");  
 		if (mimehdrpar)
 		{
-			nsEmbedCString fallbackCharset;
+			nsCString fallbackCharset;
 			if (mRealURI) mRealURI->GetOriginCharset(fallbackCharset);
 
 			rv = mimehdrpar->GetParameter (mContentDisposition, 
@@ -137,10 +137,10 @@ NS_IMETHODIMP CSaveAsHandler::Save(const char* contentType, const char* disposit
 			// In some case (wyciwyg) there is no nsIURL, so I'm creating one
 			nsCOMPtr<nsIStandardURL> test = do_CreateInstance("@mozilla.org/network/standard-url;1");
 			
-			nsEmbedCString spec;
+			nsCString spec;
 			mRealURI->GetSpec(spec);
 
-			nsEmbedCString charset;
+			nsCString charset;
 			mRealURI->GetOriginCharset(charset);
 
 			test->Init(nsIStandardURL::URLTYPE_STANDARD, 80, spec, charset.get(), nullptr);
@@ -149,7 +149,7 @@ NS_IMETHODIMP CSaveAsHandler::Save(const char* contentType, const char* disposit
 		
 		if (url)
 		{
-			nsEmbedCString CfileName;
+			nsCString CfileName;
 			url->GetFileName(CfileName);
 			char * ufn = nsUnescape(strdup(CfileName.get()));
 			CfileName = ufn;
@@ -165,7 +165,7 @@ NS_IMETHODIMP CSaveAsHandler::Save(const char* contentType, const char* disposit
 	if (!fileName.Length() && mRealURI)
 	{
 		/* Use the host. */
-		nsEmbedCString hostName;
+		nsCString hostName;
 		mURL->GetHost(hostName);
 		NS_CStringToUTF16 (hostName, NS_CSTRING_ENCODING_UTF8, fileName);
 
@@ -193,7 +193,7 @@ NS_IMETHODIMP CSaveAsHandler::Save(const char* contentType, const char* disposit
 	{
 		nsCOMPtr<nsIMIMEInfo> mimeInfo;
 
-		nsEmbedCString typeFromExt;
+		nsCString typeFromExt;
 		
 		MimeService->GetTypeFromExtension(
 			pExtension ? nsDependentCString(W2CA(pExtension+1)) : NS_LITERAL_CSTRING(""),
@@ -226,14 +226,14 @@ NS_IMETHODIMP CSaveAsHandler::Save(const char* contentType, const char* disposit
 
 				//if (extMatch)
 				//{
-					nsEmbedCString nsCExt;
+					nsCString nsCExt;
 					mimeInfo->GetPrimaryExtension(nsCExt);
 
-					nsEmbedString nsExt;
+					nsString nsExt;
 					NS_CStringToUTF16(nsCExt, NS_CSTRING_ENCODING_UTF8, nsExt);
 					extension = W2CT(nsExt.get());
 
-					nsEmbedString nsDesc;
+					nsString nsDesc;
 					mimeInfo->GetDescription(nsDesc);
 					description = W2CT(nsDesc.get());
 				//}

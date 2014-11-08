@@ -44,10 +44,10 @@ static float GetFloatFromStr(const TCHAR * aStr, float aMaxVal = 5.0)
 static PRUnichar* GetUnicodeFromCString(const CString& aStr)
 {
 #ifdef _UNICODE
-    nsEmbedString str(aStr);
+    nsString str(aStr);
 #else
-    nsEmbedString str;
-    NS_CStringToUTF16(nsEmbedCString(aStr), NS_CSTRING_ENCODING_ASCII, str);
+    nsString str;
+    NS_CStringToUTF16(nsCString(aStr), NS_CSTRING_ENCODING_ASCII, str);
 #endif
     return NS_StringCloneData(str);
 }

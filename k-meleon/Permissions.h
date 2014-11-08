@@ -31,7 +31,7 @@ extern nsresult NewURI(nsIURI **result, const nsACString &spec);
 class CPermission
 {
 public:
-	nsEmbedCString m_host;
+	nsCString m_host;
 	UINT m_state;
 	
 	CPermission(char* host, UINT state)
@@ -78,7 +78,7 @@ public:
 	{
 		nsresult rv;
 		
-		nsEmbedCString nsurl;
+		nsCString nsurl;
 		nsurl = url;
 		
 		// http is needed to make an nsIURI
@@ -115,11 +115,14 @@ public:
 		enumPermission->HasMoreElements(&ret);
 		while (ret)
 		{
-			nsCOMPtr<nsIPermission> nsPermission;
-			rv = enumPermission->GetNext(getter_AddRefs(nsPermission));
+			nsCOMPtr<nsISupports> nsSupport;
+			rv = enumPermission->GetNext(getter_AddRefs(nsSupport));
 			if (NS_FAILED(rv)) break;
+
+			nsCOMPtr<nsIPermission> nsPermission = do_QueryInterface(nsSupport);
+			NS_ENSURE_TRUE(nsPermission, FALSE);
 			
-			nsEmbedCString nsType;
+			nsCString nsType;
 			nsPermission->GetType(nsType);
 			if (nsType.Equals(nsDependentCString(m_type)))
 				pList.AddHead(new CPermission(nsPermission));

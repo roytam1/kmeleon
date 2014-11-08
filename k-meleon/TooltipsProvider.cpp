@@ -88,10 +88,10 @@ NS_IMETHODIMP CTooltipTextProvider::GetNodeText(nsIDOMNode *aNode, PRUnichar * *
    NS_ENSURE_ARG_POINTER(aNode);
    NS_ENSURE_ARG_POINTER(aText);
    
-   nsEmbedString titleText;
-   nsEmbedString altText;
+   nsString titleText;
+   nsString altText;
 
-   nsEmbedString tagName;
+   nsString tagName;
    
    nsCOMPtr<nsIDOMNode> current ( aNode );
    while (!titleText.Length() && current ) {
@@ -139,7 +139,7 @@ NS_IMETHODIMP CTooltipTextProvider::GetNodeText(nsIDOMNode *aNode, PRUnichar * *
 
 
 // nsISupports Implementation for the class 
-NS_IMPL_ISUPPORTS1(CTooltipTextProvider,   nsITooltipTextProvider)
+NS_IMPL_ISUPPORTS(CTooltipTextProvider,   nsITooltipTextProvider)
 
 
 // The Factory:

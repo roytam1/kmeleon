@@ -60,14 +60,14 @@ extern CMfcEmbedApp theApp;
 #define PROFILE_INI_NAME  NS_LITERAL_STRING("profile.ini")
 #define PROFILE_ROOT_DIR_NAME NS_LITERAL_STRING("Profiles")
 
-/*#define DEFAULTS_DIR_NAME           nsEmbedCString("defaults")
-#define DEFAULTS_PREF_DIR_NAME      nsEmbedCString("pref")
-#define DEFAULTS_PROFILE_DIR_NAME   nsEmbedCString("profile")
-#define RES_DIR_NAME                nsEmbedCString("res")
-#define CHROME_DIR_NAME             nsEmbedCString("chrome")
-#define PLUGINS_DIR_NAME            nsEmbedCString("plugins")
-#define SEARCH_DIR_NAME             nsEmbedCString("searchplugins")
-#define COMPONENTS_DIR_NAME         nsEmbedCString("components")*/
+/*#define DEFAULTS_DIR_NAME           nsCString("defaults")
+#define DEFAULTS_PREF_DIR_NAME      nsCString("pref")
+#define DEFAULTS_PROFILE_DIR_NAME   nsCString("profile")
+#define RES_DIR_NAME                nsCString("res")
+#define CHROME_DIR_NAME             nsCString("chrome")
+#define PLUGINS_DIR_NAME            nsCString("plugins")
+#define SEARCH_DIR_NAME             nsCString("searchplugins")
+#define COMPONENTS_DIR_NAME         nsCString("components")*/
 
 struct KmDirEntry {
 	const char* nsProp;
@@ -124,9 +124,9 @@ public:
 
 		nsresult rv;
 #ifdef _UNICODE
-		rv = NS_NewLocalFile(nsEmbedString(str), TRUE, getter_AddRefs(localFile));
+		rv = NS_NewLocalFile(nsString(str), TRUE, getter_AddRefs(localFile));
 #else
-		rv = NS_NewNativeLocalFile(nsEmbedCString(str), TRUE, getter_AddRefs(localFile));
+		rv = NS_NewNativeLocalFile(nsCString(str), TRUE, getter_AddRefs(localFile));
 #endif
 		NS_ENSURE_SUCCESS(rv, rv);
 
@@ -142,7 +142,7 @@ protected:
 
 };
 
-NS_IMPL_ISUPPORTS1(CSimpleFileEnumerator, nsISimpleEnumerator)
+NS_IMPL_ISUPPORTS(CSimpleFileEnumerator, nsISimpleEnumerator)
 
 
 //*****************************************************************************
@@ -162,7 +162,7 @@ KmFileLocProvider::~KmFileLocProvider()
 // KmFileLocProvider::nsISupports
 //*****************************************************************************   
 
-NS_IMPL_ISUPPORTS2(KmFileLocProvider, nsIDirectoryServiceProvider2, nsIDirectoryServiceProvider)
+NS_IMPL_ISUPPORTS(KmFileLocProvider, nsIDirectoryServiceProvider2, nsIDirectoryServiceProvider)
 
 //*****************************************************************************
 // KmFileLocProvider::nsIDirectoryServiceProvider
@@ -353,10 +353,10 @@ NS_METHOD KmFileLocProvider::GetProductDirectory(nsIFile **aLocalFile, bool aLoc
 		if (exists)
 		{
 	#ifdef _UNICODE
-			nsEmbedString path;
+			nsString path;
 			profileIni->GetPath(path);
 	#else
-			nsEmbedCString path;
+			nsCString path;
 			profileIni->GetNativePath(path);
 	#endif
 			TCHAR pszBuffer[4096] = {0};
@@ -500,10 +500,10 @@ CString KmFileLocProvider::GetProductDirectory(bool local)
    NS_ENSURE_SUCCESS(rv, _T(""));
 
 #ifdef _UNICODE
-   nsEmbedString pathBuf;
+   nsString pathBuf;
    rv = nsDir->GetPath(pathBuf);
 #else
-   nsEmbedCString pathBuf;
+   nsCString pathBuf;
    rv = nsDir->GetNativePath(pathBuf);
 #endif
 

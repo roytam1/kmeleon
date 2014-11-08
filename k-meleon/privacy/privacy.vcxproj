@@ -47,7 +47,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>../../xulrunner-sdk-dbg/include;../../xulrunner-sdk-dbg/include/nspr;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../xulrunner-sdk/include;../../xulrunner-sdk/include/nspr;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;PRIVACY_EXPORTS;XP_WIN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -60,7 +60,7 @@
     <Link>
       <AdditionalDependencies>xpcomglue_s.lib;mozalloc.lib;xul.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>..\..\debug\kplugins\$(ProjectName).dll</OutputFile>
-      <AdditionalLibraryDirectories>../../xulrunner-sdk-dbg/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>../../xulrunner-sdk/lib_dbg;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(OutDir)privacy.pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>

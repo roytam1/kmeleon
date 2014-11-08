@@ -76,7 +76,6 @@ void CBrowserGlue::UpdateBusyState(BOOL aBusy)
 	else {
 		SetFavIcon(nullptr);
 		mPendingLocation = _T("");		
-		
 		/*
 		nsCOMPtr<nsIDOMEventTarget> eventTarget;
 		nsCOMPtr<nsIWebBrowser> br = mpBrowserView->GetBrowserWrapper()->GetWebBrowser();
@@ -108,7 +107,7 @@ void CBrowserGlue::UpdateCurrentURI(nsIURI *aLocation)
 			}
 		}
 
-		nsEmbedCString uriString;
+		nsCString uriString;
 		nsCOMPtr<nsIURI> exposable;
 		nsCOMPtr<nsIURIFixup> fixup(do_GetService("@mozilla.org/docshell/urifixup;1"));
 		if (fixup && NS_SUCCEEDED(fixup->CreateExposableURI(aLocation, getter_AddRefs(exposable))) && exposable)
@@ -150,14 +149,14 @@ void CBrowserGlue::UpdateCurrentURI(nsIURI *aLocation)
 
 		if ( allowMRU ) {
 			if (theApp.preferences.MRUbehavior == 0){
-				nsEmbedCString password;
+				nsCString password;
 				aLocation->GetUsername(password);
 				aLocation->SetUserPass(password);
 				aLocation->GetSpec(uriString);
 				theApp.m_MRUList->AddURL(NSUTF8StringToCString(uriString));
 			}
 			else if (theApp.preferences.MRUbehavior == 1){
-				nsEmbedCString nsScheme, nsHost;
+				nsCString nsScheme, nsHost;
 				aLocation->GetScheme(nsScheme);
 				aLocation->GetHost(nsHost);
 				nsHost.Insert("://",0);
@@ -354,7 +353,7 @@ void CBrowserGlue::SetFavIcon(nsIURI* favUri)
 		if (theApp.preferences.GetBool("browser.chrome.favicons", PR_TRUE))
 		{
 			nsCOMPtr<nsIURI> currentURI;
-			nsEmbedCString nsUri;
+			nsCString nsUri;
 
 			mpBrowserView->GetBrowserWrapper()->GetCurrentURI(getter_AddRefs(currentURI));
 			if (!currentURI) return;
@@ -496,7 +495,7 @@ bool CBrowserGlue::performXULCommand(LPCWSTR id, LPCTSTR siteUri)
 		mpBrowserView->GetBrowserWrapper()->GetCurrentURI(getter_AddRefs(uri));
 		
 		PRInt32 port;
-		nsEmbedCString host;
+		nsCString host;
 		uri->GetHost(host);
 		uri->GetPort(&port);
 		if (port == -1) port = 443; 
@@ -555,7 +554,7 @@ bool CBrowserGlue::performXULCommand(LPCWSTR id, LPCTSTR siteUri)
 
       nsresult rv;
       PRInt32 port;
-      nsEmbedCString host;
+      nsCString host;
       uri->GetHost(host);
       uri->GetPort(&port);
       if (port == -1) port = 443; 
@@ -619,7 +618,7 @@ BOOL CBrowserGlue::AllowFlash()
 	mpBrowserView->GetBrowserWrapper()->GetCurrentURI(getter_AddRefs(uri));
 	NS_ENSURE_TRUE(uri, FALSE);
 
-	nsEmbedCString nshost;
+	nsCString nshost;
 	uri->GetHost(nshost);
 	CString host = NSCStringToCString(nshost);
 	

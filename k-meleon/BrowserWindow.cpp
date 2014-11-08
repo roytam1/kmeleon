@@ -80,6 +80,7 @@
 //#include "nsIDOMDocumentRange.h"
 #include "nsIDOMDocumentFragment.h"
 #include "nsIDOMWindowCollection.h"
+#include "nsPIDOMWindow.h"
 #include "nsIFocusManager.h"
 #include "nsIScriptContext.h"
 
@@ -453,7 +454,7 @@ CString CBrowserWrapper::GetURI(BOOL unescape)
 		return _T("");
 
 	// Get the uri string associated with the nsIURI object
-	nsEmbedCString uriString;
+	nsCString uriString;
 	rv = currentURI->GetSpec(uriString);
 	NS_ENSURE_SUCCESS(rv, _T(""));
 
@@ -491,17 +492,16 @@ BOOL CBrowserWrapper::GetCharset(char* aCharset)
 	{
 		
 		// If no forced charset look for the document charset
-		char *charset;
-		DocShell->GetCharset(&charset);
-		if (!charset)
+		nsCString charset;
+		DocShell->GetCharset(charset);
+		if (charset.IsEmpty())
 		{
 			// If no document charset use default
-			result = mdv->GetDefaultCharacterSet(mCharset);
+			result = mdv->GetHintCharacterSet(mCharset);
 		}
 		else
 		{
 			mCharset = charset;
-			nsMemory::Free (charset);
 		}
 	}
 
@@ -549,7 +549,7 @@ BOOL CBrowserWrapper::ScrollBy(int32_t dx, int32_t dy)
 	}
 	NS_ENSURE_TRUE(dom, FALSE);
 
-	return NS_SUCCEEDED(dom->ScrollBy (dx, dy));
+	return dom->ScrollBy (dx, dy);
 }
 
 already_AddRefed<nsIMarkupDocumentViewer> CBrowserWrapper::GetMarkupViewer()
@@ -680,7 +680,7 @@ BOOL CBrowserWrapper::CloneSHistory(CBrowserWrapper* newWebBrowser)
 	nsCOMPtr<nsISHistoryInternal> newSHInternal(do_QueryInterface(newSH));
 	NS_ENSURE_TRUE(newSHInternal, FALSE);
 
-	nsCOMPtr<nsIHistoryEntry> she;
+	nsCOMPtr<nsISHEntry> she;
 
 	for (int i=0;i<count;i++)
 	{
@@ -729,12 +729,12 @@ BOOL CBrowserWrapper::GetSHistoryInfoAt(PRInt32 index, CString& title, CString& 
 	mWebNav->GetSessionHistory(getter_AddRefs(sHistory));
 	NS_ENSURE_TRUE(sHistory, FALSE);
 
-	nsCOMPtr<nsIHistoryEntry> he;
+	nsCOMPtr<nsISHEntry> he;
 	sHistory->GetEntryAtIndex(index, PR_FALSE, getter_AddRefs(he));
 	if (!he) return false;
 
 	nsresult rv;
-	nsEmbedCString nsUrl;
+	nsCString nsUrl;
 	PRUnichar* nsTitle;
 	
 	rv = he->GetTitle(&nsTitle);
@@ -945,56 +945,10 @@ BOOL CBrowserWrapper::InjectCSS(const wchar_t* userStyleSheet)
 
 BOOL CBrowserWrapper::InjectJS(const wchar_t* userScript, CString& result, bool bTopWindow)
 {
-	/*nsresult rv;
+	// No more running JS from C++ 
+	nsresult rv;
 	nsCOMPtr<nsIDOMDocument> document;
-
-	if (!bTopWindow)
-	{
-		if (mLastMouseActionNode)
-			rv = mLastMouseActionNode->GetOwnerDocument(getter_AddRefs(document));
-		else
-		{
-			nsCOMPtr<nsIDOMWindow> dom;
-			rv = mWebBrowserFocus->GetFocusedWindow(getter_AddRefs(dom));
-			if (dom) rv = dom->GetDocument(getter_AddRefs(document));
-		}
-		
-	}
-
-	if (!document)
-	{
-		nsCOMPtr<nsIDOMWindow> dom;
-		rv = mWebBrowser->GetContentDOMWindow(getter_AddRefs(dom));
-		NS_ENSURE_SUCCESS(rv, FALSE);
-
-		rv = dom->GetDocument(getter_AddRefs(document));
-	}
-
-	NS_ENSURE_SUCCESS(rv, FALSE);*/
-	
-	PRBool jsEnabled = PR_TRUE;
-	jsEnabled = theApp.preferences.GetBool("javascript.enabled", jsEnabled);
-	theApp.preferences.SetBool("javascript.enabled", true);
-	
-	nsCOMPtr<nsIScriptGlobalObject> sgo = do_GetInterface(mWebBrowser);
-    nsCOMPtr<nsIScriptContext> ctx = sgo->GetContext();
-
-	JSContext* cx = ctx->GetNativeContext();
-	//mozilla::AutoPushJSContext cx(ctx->GetNativeContext());
-	JS::Rooted<JSObject*> global(cx, sgo->GetGlobalJSObject());
-
-	JS::Rooted<JS::Value> retval(cx, JS::UndefinedValue());
-	JS::CompileOptions options(cx);	
-	//options.setFileAndLine("kmeleon",0).setVersion(JSVERSION_DEFAULT);
-
-    nsCOMPtr<nsIScriptObjectPrincipal> sgoPrincipal = do_QueryInterface(sgo);
-	ctx->EvaluateString(nsEmbedString(userScript), global,
-						options, false, nullptr/*retval.address()*/);
-	
-	//result = NSStringToCString(nsString(JS_GetStringCharsZ(ctx->GetNativeContext(), retval.toString())));
-	theApp.preferences.SetBool("javascript.enabled", jsEnabled);
-
-	return TRUE;
+	return LoadURL(CString(_T("javascript:")) + userScript);	
 }
 
 BOOL CBrowserWrapper::_GetSelection(nsIDOMWindow* dom, nsAString &aSelText)
@@ -1032,7 +986,7 @@ BOOL CBrowserWrapper::_GetSelection(nsIDOMWindow* dom, nsAString &aSelText)
 	return ret;
 }
 
-BOOL CBrowserWrapper::GetSelectionInsideForm(nsIDOMElement *element, nsEmbedString &aSelText)
+BOOL CBrowserWrapper::GetSelectionInsideForm(nsIDOMElement *element, nsString &aSelText)
 {
 	nsCOMPtr<nsIDOMHTMLInputElement> domnsinput = do_QueryInterface(element);
 	if (domnsinput)
@@ -1049,7 +1003,7 @@ BOOL CBrowserWrapper::GetSelectionInsideForm(nsIDOMElement *element, nsEmbedStri
 		nsCOMPtr<nsIDOMHTMLInputElement> dominput = do_QueryInterface(element);
 		if (!dominput) return FALSE;
 
-		nsEmbedString value;
+		nsString value;
 		dominput->GetValue(value);
 		value.Cut(end,-1);
 		if (start>value.Length())
@@ -1073,7 +1027,7 @@ BOOL CBrowserWrapper::GetSelectionInsideForm(nsIDOMElement *element, nsEmbedStri
 		nsCOMPtr<nsIDOMHTMLTextAreaElement> tainput = do_QueryInterface(element);
 		if (!tansinput) return FALSE;
 
-		nsEmbedString value;
+		nsString value;
 		tainput->GetValue(value);
 		value.Cut(end,-1);
 		if (start>value.Length())
@@ -1086,7 +1040,7 @@ BOOL CBrowserWrapper::GetSelectionInsideForm(nsIDOMElement *element, nsEmbedStri
 	return FALSE;
 }
 
-BOOL CBrowserWrapper::GetUSelection(nsEmbedString& aSelText)
+BOOL CBrowserWrapper::GetUSelection(nsString& aSelText)
 {
 	nsCOMPtr<nsIDOMWindow> dom(do_GetInterface(mWebBrowser));
 	NS_ENSURE_TRUE(dom, FALSE);
@@ -1110,7 +1064,7 @@ BOOL CBrowserWrapper::GetUSelection(nsEmbedString& aSelText)
 
 BOOL CBrowserWrapper::GetSelection(CString& aSelText)
 {
-	nsEmbedString selText;
+	nsString selText;
 	if (!GetUSelection(selText))
 		return FALSE;
 
@@ -1174,7 +1128,7 @@ BOOL CBrowserWrapper::GetSecurityInfo(CString &sign)
 	rv = docShell->GetSecurityUI (getter_AddRefs (securityInfo));
 	NS_ENSURE_SUCCESS(rv, FALSE);
 
-	/*nsEmbedString tooltip;
+	/*nsString tooltip;
 	rv = securityInfo->GetTooltipText (tooltip);
 	NS_ENSURE_SUCCESS(rv, FALSE);
 
@@ -1248,9 +1202,9 @@ bool CBrowserWrapper::CheckNode(nsIDOMElement* elem)
 {
 	if (elem) 
 	{
-		nsEmbedString className;
-		elem->GetAttribute(nsEmbedString(kClass), className);
-		if (className.Equals(nsEmbedString(kHighlighClassName)))
+		nsString className;
+		elem->GetAttribute(nsString(kClass), className);
+		if (className.Equals(nsString(kHighlighClassName)))
 			return PR_TRUE;
 	}
 	return PR_FALSE;
@@ -1396,11 +1350,11 @@ BOOL CBrowserWrapper::_Highlight(nsIDOMWindow* dom, const PRUnichar* backcolor, 
 	}
 
 	nsCOMPtr<nsIDOMElement> baseElement;
-	rv = document->CreateElement(nsEmbedString(kSpan), getter_AddRefs(baseElement));
+	rv = document->CreateElement(nsString(kSpan), getter_AddRefs(baseElement));
 	NS_ENSURE_SUCCESS(rv, FALSE);
 
-	baseElement->SetAttribute(nsEmbedString(kStyle), nsEmbedString(kDefaultHighlightStyle));
-	baseElement->SetAttribute(nsEmbedString(kClass), nsEmbedString(kHighlighClassName));
+	baseElement->SetAttribute(nsString(kStyle), nsString(kDefaultHighlightStyle));
+	baseElement->SetAttribute(nsString(kClass), nsString(kHighlighClassName));
 
 	while (1)
 	{
@@ -1522,7 +1476,7 @@ already_AddRefed<nsISupports> CBrowserWrapper::GetPageDescriptor(BOOL focus)
 
 BOOL CBrowserWrapper::CanSave()
 {
-	nsEmbedCString contentType;
+	nsCString contentType;
 	nsCOMPtr<nsIDOMDocument> document;
 	nsCOMPtr<nsIDOMWindow> dom;
 	
@@ -1531,7 +1485,7 @@ BOOL CBrowserWrapper::CanSave()
 
 	rv = dom->GetDocument(getter_AddRefs(document));
 
-	nsEmbedString type;
+	nsString type;
 	rv = document->GetContentType(type);
 	NS_UTF16ToCString(type, NS_CSTRING_ENCODING_ASCII, contentType);
 
@@ -1576,7 +1530,7 @@ BOOL CBrowserWrapper::SaveDocument(BOOL frame, LPCTSTR filename)
 		document->GetLocation(getter_AddRefs(location));
 		NS_ENSURE_TRUE(location, FALSE);
 
-		nsEmbedString nsURL;
+		nsString nsURL;
 		location->GetHref(nsURL);
   		nsresult rv = NewURI(getter_AddRefs(nsURI), nsURL);
 		NS_ENSURE_SUCCESS(rv, FALSE);
@@ -1595,9 +1549,9 @@ BOOL CBrowserWrapper::SaveURL(LPCTSTR url, LPCTSTR filename)
 
 	nsCOMPtr<nsIURI> nsURI;
 #ifdef _UNICODE
-	nsresult rv = NewURI(getter_AddRefs(nsURI), nsEmbedString((WCHAR*)url));
+	nsresult rv = NewURI(getter_AddRefs(nsURI), nsString((WCHAR*)url));
 #else
-	nsresult rv = NewURI(getter_AddRefs(nsURI), nsEmbedCString((char*)url));
+	nsresult rv = NewURI(getter_AddRefs(nsURI), nsCString((char*)url));
 #endif
 	NS_ENSURE_SUCCESS(rv, FALSE);
 
@@ -1616,12 +1570,12 @@ BOOL CBrowserWrapper::_Save(nsIURI* aURI,
 	// NEED better error handling 
 	nsresult rv;
 
-	nsEmbedCString contentType;
+	nsCString contentType;
 	BOOL isHTML = FALSE;
 
 	if (aDocument) 
 	{
-		nsEmbedString type;
+		nsString type;
 		rv = aDocument->GetContentType(type);
 		NS_UTF16ToCString(type, NS_CSTRING_ENCODING_ASCII, contentType);
 
@@ -1711,7 +1665,7 @@ BOOL CBrowserWrapper::InputHasFocus(bool typeAhead)
 	nsCOMPtr<nsIDOMHTMLDocument> htmlDoc(do_QueryInterface(domDoc));
 	if (!htmlDoc) return FALSE;
 
-	nsEmbedString designMode;
+	nsString designMode;
 	htmlDoc->GetDesignMode(designMode);
 	if (designMode.Equals(NS_LITERAL_STRING("on")))
 		return TRUE;
@@ -1765,7 +1719,7 @@ BOOL CBrowserWrapper::IsInputOrObject(nsIDOMElement* element)
 
 	nsString attr;
 	element->GetAttribute(NS_LITERAL_STRING("contenteditable"), attr);
-	if (attr.Compare(NS_LITERAL_STRING("true")) == 0)
+	if (wcscmp(attr.get(), L"true") == 0)
 		return TRUE;
 
 	return FALSE;			
@@ -2030,7 +1984,7 @@ void CBrowserWrapper::SetWrapAround(BOOL wrap)
 wchar_t* CBrowserWrapper::GetSearchString()
 {
 	NS_ENSURE_TRUE(mFinder, NULL);
-	nsEmbedString stringBuf;
+	nsString stringBuf;
 	mFinder->GetSearchString(getter_Copies(stringBuf));
 	return wcsdup(stringBuf.get());
 }

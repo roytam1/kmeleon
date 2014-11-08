@@ -168,7 +168,7 @@ void ClearHistory()
 }
 
 #include "nsILoginManager.h"
-#include "nsEmbedString.h" 
+
 
 // Clear the Sign on data
 void ClearSignon()

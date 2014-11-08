@@ -71,7 +71,7 @@ void OpenFileExternal(const char* uri, LPCTSTR file, nsresult status, void* para
 		CreateProcess(0,command,0,0,0,0,0,0,&si,&pi);      // launch external viewer
 		CloseHandle(pi.hProcess);
 		CloseHandle(pi.hThread);
-		delete command;
+		delete [] command;
 	}
 	free(viewer);
 	// Have to show an error message
@@ -309,8 +309,8 @@ LRESULT CBrowserView::RefreshToolBarItem(WPARAM ItemID, LPARAM unused)
 
 void CBrowserView::OpenURL(const char* pUrl, nsIURI *refURI, BOOL allowFixup)
 {
-    nsEmbedString str;
-    NS_CStringToUTF16(nsEmbedCString(pUrl), NS_CSTRING_ENCODING_ASCII, str);
+    nsString str;
+    NS_CStringToUTF16(nsCString(pUrl), NS_CSTRING_ENCODING_ASCII, str);
     OpenURL(str.get(), refURI, allowFixup);
 }*/
 
@@ -361,8 +361,8 @@ void CBrowserView::OpenURL(LPCTSTR url, BOOL sendRef, BOOL allowFixup)
 /*
 CBrowserFrame* CBrowserView::OpenURLInNewWindow(const char* pUrl, BOOL bBackground, nsIURI *refURI, BOOL allowFixup)
 {
-	nsEmbedString str;
-    NS_CStringToUTF16(nsEmbedCString(pUrl), NS_CSTRING_ENCODING_UTF8, str);
+	nsString str;
+    NS_CStringToUTF16(nsCString(pUrl), NS_CSTRING_ENCODING_UTF8, str);
     return OpenURLInNewWindow(str.get(), bBackground, refURI, allowFixup);
 }*/
 
