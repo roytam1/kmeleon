@@ -494,10 +494,14 @@ void SaveBM(const TCHAR *file)
          return;
 	  }
 
-   create_backup(file);
+      create_backup(file);
 
       _tunlink(file);
-      _trename(buf, file);
+      if (_trename(buf, file) != 0) {
+         MessageBox(NULL, gLoc->GetString(IDS_FAILED_SAVE), gLoc->GetString(IDS_ERROR), MB_OK|MB_ICONERROR);
+         ReleaseMutex(ghMutex);
+         return;
+	  }
    }
 
    gGeneratedByUs = true;
@@ -822,9 +826,10 @@ void LoadBM(const TCHAR *file)
             ParseBookmarks(bmFileBuffer, *gBookmarkRoot);
             gLoaded = TRUE;
             delete [] bmFileBuffer;
-         }
-      fclose(bmFile);
+         }         
 	  }
+	  fclose(bmFile);
+	  gLoaded = TRUE;
    }
 
    ReleaseMutex(ghMutex);
