@@ -146,6 +146,11 @@ int CACListBox::OnCreate(LPCREATESTRUCT lpCreateStruct)
 		return -1;
 
 	m_edit = (CEdit*)lpCreateStruct->lpCreateParams;	
+
+	LOGFONT lf;
+	m_edit->GetFont()->GetLogFont(&lf);
+	m_font.CreateFontIndirect(&lf);
+	SetFont(&m_font);
 	return 0;
 }
 
@@ -346,7 +351,6 @@ void CUrlBarEdit::PreSubclassWindow()
 		return;
 	}
 
-	m_list->SetFont(GetFont());
 	m_list->ShowWindow(SW_HIDE);
 }
 
