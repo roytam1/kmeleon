@@ -27,5 +27,9 @@
 
 #include "stdafx.h"
 
-
-
+#pragma comment(lib, "mozjs.lib")
+#ifdef _AFXDLL
+	#pragma comment(lib, "xpcomglue.lib")
+#else
+	#pragma comment(lib, "xpcomglue_staticruntime.lib")
+#endif

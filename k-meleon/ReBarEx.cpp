@@ -314,7 +314,7 @@ void CReBarEx::UnregisterBand(TCHAR *name)
    m_iCount--;
 }
 
-void CReBarEx::RegisterBand(HWND hWnd, TCHAR *name, int visibleOnMenu) {
+void CReBarEx::RegisterBand(HWND hWnd, const TCHAR *name, int visibleOnMenu) {
 
    if (FindByName(name) != -1)
       return;
@@ -355,7 +355,7 @@ int CReBarEx::FindByChild(HWND hWnd) {
    return -1;
 }
 
-int CReBarEx::FindByName(TCHAR *name) {
+int CReBarEx::FindByName(const TCHAR *name) {
    for (int x=0; x<m_iCount; x++)
       if (m_index[x]->name && _tcsicmp(name, m_index[x]->name) == 0)
          return FindByChild(m_index[x]->hWnd);

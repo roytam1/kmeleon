@@ -80,6 +80,8 @@
 #include "nsIDOMEventTarget.h"
 #include "nsPIWindowRoot.h"
 #include "nsIDOMEventTarget.h"
+#include "nsIDOMLocation.h"
+#include "nsPIDOMWindow.h"
 
 #include "nsIScriptSecurityManager.h" 
 
@@ -166,7 +168,7 @@ NS_IMETHODIMP CBrowserImpl::Observe(nsISupports *aSubject, const char *aTopic, c
 
 NS_IMETHODIMP CBrowserImpl::OnHistoryNewEntry(nsIURI *aNewURI)
 {
-	nsEmbedCString str;
+	nsCString str;
 	aNewURI->GetSpec(str);
 	CString cStr = str.get();
 	m_pBrowserFrameGlue->UpdateMRU(str.get());
@@ -451,6 +453,8 @@ NS_IMETHODIMP CBrowserImpl::SetDimensions(PRUint32 aFlags, PRInt32 x, PRInt32 y,
 		wp.rcNormalPosition.top = y;
 	}
 
+	if (!mChromeLoaded && (mChromeFlags & nsIWebBrowserChrome::CHROME_OPENAS_CHROME))
+		wp.showCmd = SW_HIDE;
 	frame->SetWindowPlacement(&wp);
     return NS_OK;
 }
@@ -527,7 +531,7 @@ NS_IMETHODIMP CBrowserImpl::GetTitle(PRUnichar** aTitle)
 	CString title;
 	m_pBrowserFrameGlue->GetBrowserTitle(title);
 
-    nsEmbedString nsTitle;
+    nsString nsTitle;
     *aTitle = NS_StringCloneData(CStringToNSString(title));
 	
 	return NS_OK;
@@ -689,7 +693,7 @@ NS_IMETHODIMP CBrowserImpl::HandleEvent(nsIDOMEvent *aEvent)
 	NS_ENSURE_TRUE(m_pBrowserFrameGlue, NS_OK);
 
 	nsresult rv;
-	nsEmbedString type;
+	nsString type;
 	aEvent->GetType(type);
 
 	if (type.Equals(NS_LITERAL_STRING("mousedown")))
@@ -718,7 +722,7 @@ NS_IMETHODIMP CBrowserImpl::HandleEvent(nsIDOMEvent *aEvent)
 		nsCOMPtr<nsIDOMMouseEvent> mouseEvent(do_QueryInterface(aEvent));
 		NS_ENSURE_TRUE(mouseEvent, NS_ERROR_FAILURE);
 
-		uint16_t button;
+		int16_t button;
 		mouseEvent->GetButton(&button);
 
 		nsCOMPtr<nsIDOMNode> targetNode = do_QueryInterface(eventTarget);
@@ -734,7 +738,7 @@ NS_IMETHODIMP CBrowserImpl::HandleEvent(nsIDOMEvent *aEvent)
 				if (urlStr.Left(6).Compare(_T("about:")) == 0) {
 					nsCOMPtr<nsIDOMElement> element = do_QueryInterface(eventTarget, &rv);
 					if (element) {
-						nsEmbedString str;
+						nsString str;
 						rv = element->GetAttribute(NS_LITERAL_STRING("id"), str);
 						if (str.Length() > 0) {
 							urlStr = GetUriForDocument(domDocument);
@@ -851,7 +855,7 @@ NS_IMETHODIMP CBrowserImpl::HandleEvent(nsIDOMEvent *aEvent)
 		nsCOMPtr<nsIDOMElement> elem = do_QueryInterface(target);
 		NS_ENSURE_TRUE (elem, NS_ERROR_FAILURE);
 
-		nsEmbedString value;
+		nsString value;
 		rv = elem->GetTagName(value);
 
 		rv = elem->GetAttribute(NS_LITERAL_STRING("rel"), value);
@@ -887,15 +891,15 @@ NS_IMETHODIMP CBrowserImpl::HandleEvent(nsIDOMEvent *aEvent)
 			/* disallow subframes to set favicon */
 			if (domWinAsISupports != topDomWinAsISupports) return NS_OK;
 
-			nsEmbedString spec;
+			nsString spec;
 			rv = domDoc->GetDocumentURI (spec);
 			NS_ENSURE_SUCCESS (rv, NS_ERROR_FAILURE);
 
 			nsCOMPtr<nsIURI> docUri;
 			NewURI (getter_AddRefs (docUri), spec);
 
-			nsEmbedCString favicon;
-			nsEmbedCString cvalue;
+			nsCString favicon;
+			nsCString cvalue;
 			NS_UTF16ToCString(value, NS_CSTRING_ENCODING_UTF8, cvalue);
 			rv = docUri->Resolve (cvalue, favicon);
 			NS_ENSURE_SUCCESS (rv, NS_ERROR_FAILURE);
@@ -917,7 +921,7 @@ NS_IMETHODIMP CBrowserImpl::HandleEvent(nsIDOMEvent *aEvent)
 			//if (NS_FAILED (rv)) return NS_OK;
 
 			/* Hide password part */
-			nsEmbedCString password;
+			nsCString password;
 			favUri->GetUsername(password);
 			favUri->SetUserPass(password);
 
@@ -948,7 +952,7 @@ NS_IMETHODIMP CBrowserImpl::HandleEvent(nsIDOMEvent *aEvent)
 			popupEvent->GetPopupWindowURI(getter_AddRefs(uri));
 		NS_ENSURE_TRUE (uri, NS_ERROR_FAILURE);
 
-		nsEmbedCString host;
+		nsCString host;
 		rv = uri->GetHost(host);
 		NS_ENSURE_SUCCESS (rv, rv);
 		NS_ENSURE_TRUE (host.Length(), NS_OK);
@@ -978,7 +982,7 @@ NS_IMETHODIMP CBrowserImpl::HandleEvent(nsIDOMEvent *aEvent)
 		nsCOMPtr<nsIDOMElement> element = do_QueryInterface(eventTarget, &rv);
 		NS_ENSURE_SUCCESS(rv, rv);
 
-		nsEmbedString str;
+		nsString str;
 		rv = element->GetAttribute(NS_LITERAL_STRING("id"), str);
 		NS_ENSURE_SUCCESS(rv, rv);
 		

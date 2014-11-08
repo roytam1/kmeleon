@@ -94,14 +94,14 @@ public:
 
 	CBrowserFrame* CreateNewChromeDialog(LPCTSTR url, CWnd* pParent = NULL);
 
-	void RemoveFrameFromList(CBrowserFrame* pFrm);
+   void RemoveFrameFromList(CBrowserFrame* pFrm);
    void RegisterWindow(CDialog *window);
    void UnregisterWindow(CDialog *window);
    void UpdateWindowListMenu();
    void DrawWindowListMenu(HMENU menu);
    void BroadcastMessage(UINT Msg, WPARAM wParam, LPARAM lParam);
-	inline HICON GetDefaultIcon(BOOL large = FALSE) {HICON ret; large ? ret = m_hMainIcon : ret = m_hSmallIcon; return ret;}
-	bool FindSkinFile( CString& szSkinFile, LPCTSTR filename , LPCTSTR skin = nullptr, bool searchUser = true );
+   inline HICON GetDefaultIcon(BOOL large = FALSE) {HICON ret; large ? ret = m_hMainIcon : ret = m_hSmallIcon; return ret;}
+   bool FindSkinFile( CString& szSkinFile, LPCTSTR filename , LPCTSTR skin = nullptr, bool searchUser = true );
    CString GetFolder(FolderType folder);
 
    nsresult SetOffline(BOOL offline);
@@ -166,7 +166,7 @@ public:
    afx_msg void OnUpdateToggleOffline(CCmdUI* pCmdUI);
    afx_msg void OnUpdateWindows(CCmdUI* pCmdUI);
    afx_msg void OnWindowSelect(UINT id);
-
+   
    // NOTE - the ClassWizard will add and remove member functions here.
    // DO NOT EDIT what you see in these blocks of generated code !
    //}}AFX_MSG

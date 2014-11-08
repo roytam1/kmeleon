@@ -23,7 +23,7 @@
 #include "KMeleonConst.h"
 #include "MfcEmbed.h"
 
-NS_IMPL_ISUPPORTS3(KmAppInfo, nsIXULAppInfo, nsIXULRuntime, nsIAppStartup)
+NS_IMPL_ISUPPORTS(KmAppInfo, nsIXULAppInfo, nsIXULRuntime, nsIAppStartup)
 
 /* readonly attribute ACString vendor; */
 NS_IMETHODIMP KmAppInfo::GetVendor(nsACString & aVendor)
@@ -58,7 +58,7 @@ NS_IMETHODIMP KmAppInfo::GetID(nsACString & aID)
 /* readonly attribute ACString version; */
 NS_IMETHODIMP KmAppInfo::GetVersion(nsACString & aVersion)
 {
-	bool ff = false;
+	/*bool ff = false;
 	nsCOMPtr<nsIPrefService> m_prefservice = do_GetService(NS_PREFSERVICE_CONTRACTID);
 	if (m_prefservice) {
 		nsCOMPtr<nsIPrefBranch> m_prefs;
@@ -67,7 +67,8 @@ NS_IMETHODIMP KmAppInfo::GetVersion(nsACString & aVersion)
 			nsresult rv = m_prefs->GetBoolPref("kmeleon.install_firefox_extension", &ff);
 		}
 	}
-	aVersion = !ff ? NS_STRINGIFY(KMELEON_UVERSION) : MOZILLA_VERSION;
+	aVersion = !ff ? NS_STRINGIFY(KMELEON_UVERSION) : MOZILLA_VERSION;*/
+	aVersion = MOZILLA_VERSION;
     return NS_OK;
 }
 
@@ -78,10 +79,16 @@ NS_IMETHODIMP KmAppInfo::GetAppBuildID(nsACString & aAppBuildID)
     return NS_OK;
 }
 
+NS_IMETHODIMP KmAppInfo::GetProcessID(uint32_t *aProcessID)
+{
+	aProcessID = 0;
+	return NS_OK;
+}
+
 /* readonly attribute ACString platformVersion; */
 NS_IMETHODIMP KmAppInfo::GetPlatformVersion(nsACString & aPlatformVersion)
 {
-	aPlatformVersion = NS_STRINGIFY(MOZILLA_VERSION);
+	aPlatformVersion = NS_STRINGIFY(MOZILLA_VERSION_U);
     return NS_OK;
 }
 
@@ -209,6 +216,40 @@ NS_IMETHODIMP KmAppInfo::GetLastRunCrashID(nsAString & aLastRunCrashID)
     return NS_ERROR_NOT_IMPLEMENTED;
 }
 
+NS_IMETHODIMP KmAppInfo::GetBrowserTabsRemote(bool *aBrowserTabsRemote)
+{
+	*aBrowserTabsRemote = false;
+	return NS_OK;
+}
+
+NS_IMETHODIMP KmAppInfo::GetDefaultUpdateChannel(nsACString & aDefaultUpdateChannel)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP KmAppInfo::GetDistributionID(nsACString & aDistributionID)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* readonly attribute boolean isReleaseBuild; */
+NS_IMETHODIMP KmAppInfo::GetIsReleaseBuild(bool *aIsReleaseBuild)
+{
+#ifdef _DEBUG
+	*aIsReleaseBuild = false;
+#else
+	*aIsReleaseBuild = true;
+#endif
+	return NS_OK;
+}
+
+/* readonly attribute boolean isOfficialBranding; */
+NS_IMETHODIMP KmAppInfo::GetIsOfficialBranding(bool *aIsOfficialBranding)
+{
+	*aIsOfficialBranding = true;
+    return NS_OK;
+}
+
 /* void createHiddenWindow (); */
 NS_IMETHODIMP KmAppInfo::CreateHiddenWindow()
 {
@@ -282,10 +323,40 @@ NS_IMETHODIMP KmAppInfo::GetShuttingDown(bool *aShuttingDown)
     return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-/* [implicit_jscontext] jsval getStartupInfo (); */
-NS_IMETHODIMP KmAppInfo::GetStartupInfo(JSContext* cx, JS::Value *_retval)
+/* readonly attribute boolean startingUp; */
+NS_IMETHODIMP KmAppInfo::GetStartingUp(bool *aStartingUp)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* [noscript] void doneStartingUp (); */
+NS_IMETHODIMP KmAppInfo::DoneStartingUp()
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* readonly attribute boolean restarting; */
+NS_IMETHODIMP KmAppInfo::GetRestarting(bool *aRestarting)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* readonly attribute boolean wasRestarted; */
+NS_IMETHODIMP KmAppInfo::GetWasRestarted(bool *aWasRestarted)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* readonly attribute boolean restartingTouchEnvironment; */
+NS_IMETHODIMP KmAppInfo::GetRestartingTouchEnvironment(bool *aRestartingTouchEnvironment)
+{
+	return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* [implicit_jscontext] jsval getStartupInfo (); */
+NS_IMETHODIMP KmAppInfo::GetStartupInfo(JSContext* cx, JS::MutableHandleValue _retval)
+{
+	return NS_ERROR_NOT_IMPLEMENTED;	
 }
 
 /* attribute boolean interrupted; */
@@ -294,6 +365,7 @@ NS_IMETHODIMP KmAppInfo::GetInterrupted(bool *aInterrupted)
     *aInterrupted = mInterrupted;
 	return NS_OK;
 }
+
 NS_IMETHODIMP KmAppInfo::SetInterrupted(bool aInterrupted)
 {
 	mInterrupted = aInterrupted;

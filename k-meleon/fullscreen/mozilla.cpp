@@ -23,7 +23,7 @@
 
 extern void SetFullScreen(HWND, int, bool);
 
-NS_IMPL_ISUPPORTS1(CDomEventListener, nsIDOMEventListener)
+NS_IMPL_ISUPPORTS(CDomEventListener, nsIDOMEventListener)
 
 NS_IMETHODIMP CDomEventListener::HandleEvent (nsIDOMEvent* aEvent)
 {

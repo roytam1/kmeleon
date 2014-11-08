@@ -41,7 +41,7 @@ extern CWnd* CWndForDOMWindow(nsIDOMWindow *aWindow);
 NS_DEFINE_CID (kX509CertCID, NS_IX509CERT_IID);
 NS_DEFINE_CID (kASN1ObjectCID, NS_IASN1OBJECT_IID);
 
-NS_IMPL_ISUPPORTS1(CNSSDialogs, nsICertificateDialogs)				   
+NS_IMPL_ISUPPORTS(CNSSDialogs, nsICertificateDialogs)				   
 
 
 CNSSDialogs::CNSSDialogs()
@@ -65,7 +65,7 @@ NS_IMETHODIMP CNSSDialogs::ConfirmDownloadCACert(nsIInterfaceRequestor *ctx, nsI
 	LPCTSTR sCName;
 	USES_CONVERSION;
 
-	nsEmbedString commonName;
+	nsString commonName;
 	cert->GetCommonName (commonName);
 	sCName = W2CT(commonName.get());
 
@@ -135,7 +135,7 @@ NS_IMETHODIMP CNSSDialogs::GetPKCS12FilePassword(nsIInterfaceRequestor *ctx, nsA
 	if (*_retval)
 	{
 		USES_CONVERSION;
-		NS_StringCopy(password, nsEmbedString(T2W(dlg.m_csPwd.GetBuffer(0))));
+		NS_StringCopy(password, nsString(T2W(dlg.m_csPwd.GetBuffer(0))));
 	}
 
     return NS_OK;
@@ -176,7 +176,7 @@ NS_IMETHODIMP CNSSDialogs::ViewCert(nsIInterfaceRequestor *ctx, nsIX509Cert *cer
 	PRUint32 verifyState, count;
 	PRUnichar ** usageList;
 	CString state;
-	nsEmbedString value;
+	nsString value;
 
 	nsCOMPtr<nsIDOMWindow> parent = do_GetInterface (ctx);
 	CWnd* wnd = CWndForDOMWindow(parent);
@@ -283,7 +283,7 @@ NS_IMETHODIMP CNSSDialogs::ConfirmUnknownIssuer(nsIInterfaceRequestor *socketInf
 	LPCTSTR sCName;
 	USES_CONVERSION;
 
-	nsEmbedString commonName;
+	nsString commonName;
 	cert->GetCommonName (commonName);
 	sCName = W2CT(commonName.get());
 
@@ -323,9 +323,9 @@ NS_IMETHODIMP CNSSDialogs::ConfirmMismatchDomain(nsIInterfaceRequestor *socketIn
 	// chrome://pippki/content/domainMismatch.xul
 
 	CString msg1,msg2;
-	CString sTUrl =  NSUTF8StringToCString(nsEmbedCString(targetURL));
+	CString sTUrl =  NSUTF8StringToCString(nsCString(targetURL));
 
-	nsEmbedString commonName;
+	nsString commonName;
 	cert->GetCommonName (commonName);
 	
 	msg1.Format(IDS_mismatchDomainMsg1, sTUrl, NSStringToCString(commonName));
@@ -364,7 +364,7 @@ NS_IMETHODIMP CNSSDialogs::ConfirmCertExpired(nsIInterfaceRequestor *socketInfo,
   if (NS_FAILED(rv))
     return rv;
   
-  nsEmbedString commonName;
+  nsString commonName;
   cert->GetCommonName (commonName);
 
   USES_CONVERSION;
@@ -400,8 +400,8 @@ NS_IMETHODIMP CNSSDialogs::NotifyCrlNextupdate(nsIInterfaceRequestor *socketInfo
 	// chrome://pippki/content/serverCrlNextupdate.xul
 	CString msg1,msg2;
 	LPCTSTR sCName;
-	CString sTUrl =  NSUTF8StringToCString(nsEmbedCString(targetURL));
-	nsEmbedString commonName;
+	CString sTUrl =  NSUTF8StringToCString(nsCString(targetURL));
+	nsString commonName;
 
 	USES_CONVERSION;
 	
@@ -814,7 +814,7 @@ BOOL CViewCertDetailsPage::OnInitDialog()
 		nsCOMPtr<nsIX509Cert> cert;
 		m_certChain->QueryElementAt(i, kX509CertCID, getter_AddRefs(cert));
 
-		nsEmbedString displayVal;
+		nsString displayVal;
 		cert->GetCommonName(displayVal);
 
 		if (displayVal.IsEmpty())
@@ -840,7 +840,7 @@ BOOL CViewCertDetailsPage::OnInitDialog()
 	{
 		if (!asn1Object) return;
 
-		nsEmbedString displayVal;
+		nsString displayVal;
 		asn1Object->GetDisplayName(displayVal);
 		
 		USES_CONVERSION;
@@ -896,7 +896,7 @@ BOOL CViewCertDetailsPage::OnInitDialog()
 			USES_CONVERSION;
 			nsIASN1Object* asn1Object;
 			asn1Object = (nsIASN1Object*)treeC->GetItemData(selected);
-			nsEmbedString displayVal;
+			nsString displayVal;
 			asn1Object->GetDisplayValue(displayVal);
 
 			// Have replace \n by \r\n for proper line break in the edit box

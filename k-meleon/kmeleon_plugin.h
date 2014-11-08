@@ -84,6 +84,7 @@ enum WindowVarType {
 	Window_URL = 4,         // char*
 	Window_Number = 10,     // int
 	Window_Tab_Number = 11, // int
+	Window_Tab_Index = 12, // int
 	
 	// Read Only
 	Window_SelectedText = 100, // wchar_t*

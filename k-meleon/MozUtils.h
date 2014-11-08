@@ -4,9 +4,9 @@
 
 #include "stdafx.h"
 
-inline nsEmbedString CStringToNSString(LPCTSTR aStr);
-inline nsEmbedCString CStringToNSCString(LPCTSTR aStr);
-nsEmbedCString CStringToNSUTF8String(LPCTSTR aStr);
+inline nsString CStringToNSString(LPCTSTR aStr);
+inline nsCString CStringToNSCString(LPCTSTR aStr);
+nsCString CStringToNSUTF8String(LPCTSTR aStr);
 
 //__forceinline PRUnichar* CStringToPRUnichar(LPCTSTR aStr) 
 //{USES_CONVERSION; return T2W(aStr);}
@@ -14,9 +14,9 @@ nsEmbedCString CStringToNSUTF8String(LPCTSTR aStr);
 #define CStringToPRUnichar(str) CT2W(str)
 
 inline CString PRUnicharToCString(const PRUnichar* str);
-inline CString NSStringToCString(const nsEmbedString& aStr);
-CString NSUTF8StringToCString(const nsEmbedCString& aStr);
-inline CString NSCStringToCString(const nsEmbedCString& aStr);
+inline CString NSStringToCString(const nsString& aStr);
+CString NSUTF8StringToCString(const nsCString& aStr);
+inline CString NSCStringToCString(const nsCString& aStr);
 
 
 nsresult NewURI(nsIURI **result, const nsACString &spec);

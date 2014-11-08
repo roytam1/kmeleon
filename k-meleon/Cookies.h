@@ -18,15 +18,14 @@
 */
 
 #include "nsICookie.h"
-#include "nsEmbedString.h"
 #include "resource.h"
 
 class CCookie {
 
 public:
-	nsEmbedCString m_host;
-	nsEmbedCString m_name;
-	nsEmbedCString m_path;
+	nsCString m_host;
+	nsCString m_name;
+	nsCString m_path;
 	CString m_csHost;
 	CString m_csName;
 	CString m_csValue;
@@ -44,12 +43,12 @@ public:
 		cookie->GetName(m_name);
 		m_csName = A2CT(m_name.get());
 
-		nsEmbedCString str;
+		nsCString str;
 		cookie->GetValue(str);
 		m_csValue = A2CT(str.get());
 
 		cookie->GetHost(m_host);
-		nsEmbedString _str;
+		nsString _str;
 		NS_CStringToUTF16(m_host, NS_CSTRING_ENCODING_UTF8, _str);
 		m_csHost = W2CT(_str.get());
 

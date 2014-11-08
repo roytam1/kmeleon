@@ -1,2 +1,2 @@
-@..\..\xulrunner-sdk-dbg\bin\header.py -I ../../xulrunner-sdk-dbg/idl -o KLoginManager.h KLoginManager.idl 
-@..\..\xulrunner-sdk-dbg\bin\typelib.py -I ../../xulrunner-sdk-dbg/idl  -o kmLoginManager.xpt KLoginManager.idl 
+@..\..\xulrunner-sdk\bin\header.py -I ../../xulrunner-sdk/idl -o kmIHelper.h kmHelper.idl 
+@..\..\xulrunner-sdk\bin\typelib.py -I ../../xulrunner-sdk/idl  -o kmHelper.xpt kmHelper.idl 

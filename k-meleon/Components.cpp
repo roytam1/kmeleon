@@ -56,6 +56,7 @@ static const mozilla::Module::ContractIDEntry kBrowserContracts[] = {
 	{NS_PROMPTSERVICE_CONTRACTID, &kNS_PROMPTSERVICE_CID},
 	{"@mozilla.org/prompter;1", &kNS_PROMPTSERVICE_CID},
 	{NS_HELPERAPPLAUNCHERDLG_CONTRACTID, &kNS_UNKNOWNCONTENTTYPEHANDLER_CID},
+	{"@mozilla.org/uriloader/content-handler;1?type=application/k-skin", &kNS_UNKNOWNCONTENTTYPEHANDLER_CID},
 	{NS_COOKIEPROMPTSERVICE_CONTRACTID, &kNS_COOKIEPROMPTSERVICE_CID},
 	{NS_CERTIFICATEDIALOGS_CONTRACTID, &kNS_NSSDIALOGS_CID},
 	{NS_GENERATINGKEYPAIRINFODIALOGS_CONTRACTID, &kNS_NSSKEYPAIRDIALOGS_CID},
@@ -63,6 +64,9 @@ static const mozilla::Module::ContractIDEntry kBrowserContracts[] = {
 	{"@mozilla.org/xre/app-info;1", &kNS_KMAPPINFO_CID},
 	{"@mozilla.org/toolkit/app-startup;1", &kNS_KMAPPINFO_CID},
 	{ NS_ABOUT_MODULE_CONTRACTID_PREFIX "home", &kNS_KMABOUT_CID },
+	{ NS_ABOUT_MODULE_CONTRACTID_PREFIX "permissions", &kNS_KMABOUT_CID },
+	{ NS_ABOUT_MODULE_CONTRACTID_PREFIX "preferences", &kNS_KMABOUT_CID },
+	{ NS_ABOUT_MODULE_CONTRACTID_PREFIX "downloads", &kNS_KMABOUT_CID },
 	{ NULL }
 };
 

@@ -69,9 +69,9 @@ static char *safe_strdup(const char *ptr) {
 
 char *EncodeUTF8(const wchar_t *str)
 {
-  nsEmbedString aStr;
+  nsString aStr;
   aStr.Append(str);
-  nsEmbedCString _str;
+  nsCString _str;
   NS_UTF16ToCString(aStr, NS_CSTRING_ENCODING_UTF8, _str);
   char *pszStr = safe_strdup(_str.get());
   return pszStr;
@@ -79,8 +79,8 @@ char *EncodeUTF8(const wchar_t *str)
 
 wchar_t *WDecodeUTF8(const char *str)
 {
-  nsEmbedString _str;
-  NS_CStringToUTF16(nsEmbedCString(str), NS_CSTRING_ENCODING_UTF8, _str);
+  nsString _str;
+  NS_CStringToUTF16(nsCString(str), NS_CSTRING_ENCODING_UTF8, _str);
   wchar_t *pszStr = _wcsdup(_str.get());
   return pszStr;
 }
@@ -94,8 +94,8 @@ char *EncodeUTF8(const char *str)
 char *DecodeUTF8(const char *str)
 {
   USES_CONVERSION;
-  nsEmbedString _str;
-  NS_CStringToUTF16(nsEmbedCString(str), NS_CSTRING_ENCODING_UTF8, _str);
+  nsString _str;
+  NS_CStringToUTF16(nsCString(str), NS_CSTRING_ENCODING_UTF8, _str);
   char *pszStr = safe_strdup(W2CA(_str.get()));
   return pszStr;
 }
@@ -494,12 +494,10 @@ void SetStatusBarText(const char *s)
 
 int SetMozillaSessionHistory (HWND hWnd, const char **titles, const char **urls, int count, int index)
 {
+   PLUGIN_HEADER(hWnd, 0);
    nsresult rv;
    if (count<1) return TRUE;
-
-   CBrowserWrapper *browser = GetWrapper(hWnd);
-   if (!browser) return 0;
-
+   
    nsCOMPtr<nsISHistory> sHistory;
    if (!browser->GetSHistory(getter_AddRefs(sHistory)))
 		return 0;
@@ -518,19 +516,18 @@ int SetMozillaSessionHistory (HWND hWnd, const char **titles, const char **urls,
 	   if (!newSHEntry) continue;
 
 	   nsCOMPtr<nsIURI> nsuri;
-	   NewURI(getter_AddRefs(nsuri), nsEmbedCString(urls[i]));
+	   NewURI(getter_AddRefs(nsuri), nsCString(urls[i]));
 	   if (!nsuri) continue;
 
 	   nsString wTitle;
 	   nsDependentCString title(titles[i]);
 	   CopyUTF8toUTF16(title, wTitle);
-	   rv = newSHEntry->Create(nsuri, wTitle, nullptr, nullptr, nullptr, nsEmbedCString(""), nullptr, 0, true);
+	   rv = newSHEntry->Create(nsuri, wTitle, nullptr, nullptr, nullptr, nsCString(""), nullptr, 0, true);
 	   if (NS_SUCCEEDED(rv)) sHInternal->AddEntry(newSHEntry, PR_TRUE);
    }
 
-	if (GetFrame(hWnd)->IsKindOf(RUNTIME_CLASS(CBrowserFrmTab)) && theApp.preferences.GetBool("browser.sessionstore.restore_on_demand", false)) {
+	if (frame->IsKindOf(RUNTIME_CLASS(CBrowserFrmTab)) && theApp.preferences.GetBool("browser.sessionstore.restore_on_demand", false)) {
 		if (index>=count) index = count - 1;
-		CBrowserView* view = GetFrame(hWnd)->GetActiveView();
 		view->GetBrowserGlue()->SetBrowserTitle(NSUTF8StringToCString(nsDependentCString(titles[index])));
 		nsCOMPtr<nsIURI> uri;
 		NewURI(getter_AddRefs(uri), nsDependentCString(urls[index]));
@@ -591,7 +588,7 @@ int GetMozillaSessionHistory (HWND hWnd, char ***titles, char ***urls, int *coun
    if (!SessionSize) return FALSE;
    pHistory = new char *[SessionSize];
    
-   nsCOMPtr<nsIHistoryEntry> he;
+   nsCOMPtr<nsISHEntry> he;
    PRUnichar *title;
    
    if (pHistUrl)
@@ -700,7 +697,7 @@ kmeleonPointInfo *GetInfoAtNode(nsIDOMNode* aNode)
    CString url = pBrowserView->GetCurrentURI();
    gPointInfo.page = strdup(T2CA(url));
 
-   nsEmbedString strBuf;
+   nsString strBuf;
    nsresult rv = NS_OK;
 
 
@@ -909,7 +906,7 @@ UINT GetWindowVar(HWND hWnd, WindowVarType type, void* ret)
 
 		
 		case Window_SelectedText: {
-			nsEmbedString sel;  
+			nsString sel;  
 			browser->GetUSelection(sel);
 			retLen = sel.Length() + 1;
 			if (ret) wcscpy((wchar_t*)ret, sel.get());
@@ -955,6 +952,15 @@ UINT GetWindowVar(HWND hWnd, WindowVarType type, void* ret)
 				*(int*)ret = ((CBrowserFrmTab*)frame)->GetTabCount();
 			else
 				*(int*)ret = 1;
+			return 1;
+		}
+
+		case Window_Tab_Index: {
+			if (!ret) return 1;
+			if (frame->IsKindOf(RUNTIME_CLASS(CBrowserFrmTab)))
+				*(int*)ret = ((CBrowserFrmTab*)frame)->GetActiveTab()->m_iIndex;
+			else
+				*(int*)ret = 0;
 			return 1;
 		}
 
@@ -1039,7 +1045,7 @@ UINT GetWindowVarUTF8(HWND hWnd, WindowVarType type, void* ret)
 
 		
 		case Window_SelectedText: {
-			nsEmbedString sel;  
+			nsString sel;  
 			browser->GetUSelection(sel);
 			retLen = sel.Length() * 3 + 1;
 			if (ret) {
@@ -1271,7 +1277,7 @@ USES_CONVERSION;
    switch (type) {
    case PREF_UNISTRING:
 	  if (!stricmp(preference, "SelectedText")) {
-		nsEmbedString sel;  
+		nsString sel;  
 		browser->GetUSelection(sel);
 		retLen = sel.Length();
 		 if (ret) wcscpy((wchar_t*)ret, sel.get());
@@ -1576,7 +1582,7 @@ BOOL InjectJS2(const char* js, int bTopWindow, char *result, unsigned size, HWND
 {
 	PLUGIN_HEADER(hWnd, FALSE);
 	
-	nsEmbedString js2;
+	nsString js2;
 	NS_CStringToUTF16(nsDependentCString(js), NS_CSTRING_ENCODING_UTF8, js2);
 
 	CString csresult;
@@ -1609,7 +1615,7 @@ BOOL InjectCSS(const char* css, BOOL bAll, HWND hWnd)
 {
 	PLUGIN_HEADER(hWnd, FALSE);	
 	
-	nsEmbedString css2;
+	nsString css2;
 	NS_CStringToUTF16(nsDependentCString(css), NS_CSTRING_ENCODING_UTF8, css2);
 	return browser->InjectCSS(css2.get());
 }
@@ -1868,8 +1874,8 @@ BOOL CPlugins::TestLoad(LPCTSTR file, const char *description)
    char preference[128] = "kmeleon.plugins.";
 
    USES_CONVERSION;
-   strncat(preference, T2CA(file), sizeof(preference));
-   strncat(preference, ".load", sizeof(preference));
+   strncat(preference, T2CA(file), sizeof(preference)-strlen(preference));
+   strncat(preference, ".load", sizeof(preference)-strlen(preference));
    
    int load = theApp.preferences.GetBool(preference, -1);
    if (load == -1) {

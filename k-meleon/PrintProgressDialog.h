@@ -28,7 +28,7 @@ public:
 
   NS_IMETHOD OnStartPrinting(void);
   NS_IMETHOD OnProgressPrinting(PRUint32 aProgress, PRUint32 aProgressMax);
-  NS_IMETHOD OnEndPrinting(PRUint32 aStatus);
+  NS_IMETHOD OnEndPrinting(nsresult aStatus);
 nsCOMPtr<nsIWebProgressListener> m_PrintListener;
 // Dialog Data
 	//{{AFX_DATA(CPrintProgressDialog)

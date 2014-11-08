@@ -28,7 +28,7 @@ kmeleonPlugin kPlugin = {
 
 CCmdList* cmdList;
 
-NS_IMPL_ISUPPORTS1(CJSBridge, nsIJSBridge); 
+NS_IMPL_ISUPPORTS(CJSBridge, nsIJSBridge); 
 NS_GENERIC_FACTORY_CONSTRUCTOR(CJSBridge) 
 /*
 static const mozilla::Module::CIDEntry kBrowserCIDs[] = {

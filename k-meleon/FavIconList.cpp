@@ -26,48 +26,18 @@ Bug:	Changing skin need to delete the iconcache.
 
 #include "stdafx.h"
 
-#ifdef INTERNAL_SITEICONS
-
 #include "FavIconList.h"
-
-#include "UnknownContentTypeHandler.h"
-#include "nscWebBrowserPersist.h"
-
-#include "imgILoader.h"
-#include "imgIContainer.h"
-
 
 #include "mfcembed.h"
 #include "kmeleon_plugin.h"
+#include "MozUtils.h"
+#include "KmImage.h"
 
-
-//#define PNG_SUPPORT
-
-#ifdef PNG_SUPPORT
-#define PNGDIB_NO_D2P
-#define PNGDIB_S
-#include "../pngdib-3.0.1/pngdib.h"
-
-#ifdef _DEBUG
-#pragma comment(lib,"../pngdib-3.0.1/lib/pngdib.lib")
-#pragma comment(lib,"../lpng128/projects/visualc71/lib/libpng.lib")
-#pragma comment(lib,"../lpng128/projects/visualc71/lib/zlib/zlib.lib")
-#else
-#ifdef _UNICODE
-#pragma comment(lib,"../pngdib-3.0.1/lib/pngdib_u_s_md.lib")
-#pragma comment(lib,"../lpng128/projects/visualc71/lib/libpng_u_md.lib")
-#pragma comment(lib,"../lpng128/projects/visualc71/lib/zlib/zlib_u_md.lib")
-#else
-#pragma comment(lib,"../pngdib-3.0.1/lib/pngdib_s_md.lib")
-#pragma comment(lib,"../lpng128/projects/visualc71/lib/libpng_md.lib")
-#pragma comment(lib,"../lpng128/projects/visualc71/lib/zlib/zlib_md.lib")
-#endif
-#endif // _DEBUG
-#endif 
+using namespace mozilla::gfx;
 
 #define FAVICON_CACHE_FILE _T("IconCache.dat")
 
-HBITMAP ResizeIcon32(HDC hDC, HBITMAP hBitmap, LONG w, LONG h)
+HBITMAP ResizeIcon32(HDC hDC, HBITMAP hBitmap, int w, int h)
 {
 	IWICImagingFactory *pImgFac;
 	HRESULT hr = CoCreateInstance(CLSID_WICImagingFactory, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pImgFac));
@@ -79,21 +49,21 @@ HBITMAP ResizeIcon32(HDC hDC, HBITMAP hBitmap, LONG w, LONG h)
 
 	BITMAPINFO bmi = {};
 	bmi.bmiHeader.biSize = sizeof(bmi.bmiHeader);
-	bmi.bmiHeader.biWidth = 16;
-	bmi.bmiHeader.biHeight = -16;
+	bmi.bmiHeader.biWidth = w;
+	bmi.bmiHeader.biHeight = -h;
 	bmi.bmiHeader.biPlanes = 1;
 	bmi.bmiHeader.biBitCount = 32;
 	bmi.bmiHeader.biCompression = BI_RGB;
 
 	BYTE *pBits;
 	HBITMAP hbmp = CreateDIBSection(NULL, &bmi, DIB_RGB_COLORS, (void**)&pBits, NULL, 0);
-
+	
 	IWICBitmapScaler* pIScaler;
     hr = pImgFac->CreateBitmapScaler(&pIScaler);
-    hr = pIScaler->Initialize(NewBmp,16,16,WICBitmapInterpolationModeFant);
+    hr = pIScaler->Initialize(NewBmp,w,h,WICBitmapInterpolationModeFant);
 
-    WICRect rect = {0, 0, 16, 16};
-    hr = pIScaler->CopyPixels(&rect, 16 * 4, 16 * 16 * 4, pBits);
+    WICRect rect = {0, 0, w, h};
+    hr = pIScaler->CopyPixels(&rect, w * 4, w * h * 4, pBits);
 	if (!SUCCEEDED(hr)) return NULL;
 
 	pIScaler->Release();
@@ -106,7 +76,8 @@ HBITMAP ResizeIcon32(HDC hDC, HBITMAP hBitmap, LONG w, LONG h)
 HBITMAP ResizeIcon(HDC hDC, HBITMAP hBitmap, LONG w, LONG h)
 {
 	HDC hDCs = CreateCompatibleDC(hDC);
-
+	BITMAP info;
+	::GetObject(hBitmap, sizeof(BITMAP), &info);
 	HGDIOBJ old = SelectObject(hDCs, hBitmap);
 	if (!old) {
 		DeleteDC(hDCs);
@@ -114,11 +85,11 @@ HBITMAP ResizeIcon(HDC hDC, HBITMAP hBitmap, LONG w, LONG h)
 	}
 	
 	HDC hdcScaled = CreateCompatibleDC(hDCs); 
-	HBITMAP hbmSized = CreateCompatibleBitmap(hDCs, 16, 16); 
+	HBITMAP hbmSized = CreateCompatibleBitmap(hDCs, w, h); 
 	HGDIOBJ old2 = SelectObject(hdcScaled, hbmSized);
 	SetStretchBltMode(hdcScaled, HALFTONE);
 	SetStretchBltMode(hDCs, HALFTONE);
-	StretchBlt(hdcScaled,0,0,16,16,hDCs,0,0,w,h,SRCCOPY);
+	StretchBlt(hdcScaled,0,0,w,h,hDCs,0,0,info.bmWidth,info.bmHeight,SRCCOPY);
 	SelectObject(hdcScaled, old2);
 	DeleteDC(hdcScaled);
 	SelectObject(hDCs, old);
@@ -135,7 +106,7 @@ CFavIconList::CFavIconList()
 
 CFavIconList::~CFavIconList()
 {
-	WriteCache();
+	//WriteCache();
 }
 
 BOOL CFavIconList::LoadCache()
@@ -241,48 +212,6 @@ void CFavIconList::LoadDefaultIcon()
 	if (defaultIcon)
 		DestroyIcon(defaultIcon);
 
-/*
-	if (theApp.FindSkinFile(szFullPath, _T("loader.bmp")))
-	{
-		HBITMAP hBitmap = (HBITMAP)LoadImage(NULL, szFullPath, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-		if (hBitmap)
-		{
-			HDC hdcBitmap = CreateCompatibleDC(NULL);
-			HGDIOBJ oldBmp = SelectObject(hdcBitmap, hBitmap);			
-			HBRUSH hBrush = CreateSolidBrush(RGB(255,0,255));
-
-			int cx, cy;
-			ImageList_GetIconSize(m_hImageList, &cx, &cy);
-			for (int i=0; i<8; i++)
-			{
-				CBitmap button;
-				HDC hdcButton = CreateCompatibleDC(hdcBitmap);
-				HBITMAP hButton = CreateCompatibleBitmap(hdcBitmap, cx, cy);
-				HGDIOBJ oldBmp2 = SelectObject(hdcButton, hButton);
-
-				// fill the button with the transparency
-				HGDIOBJ oldBrush = SelectObject(hdcButton, hBrush);
-				PatBlt(hdcButton, 0, 0, cx, cy, PATCOPY);
-
-				// copy the button from the full bitmap
-				BitBlt(hdcButton, 0, 0, cx, cy, hdcBitmap, cx*i, 0, SRCCOPY);
-				
-				SelectObject(hdcButton, oldBrush);
-				SelectObject(hdcButton, oldBmp2);
-				DeleteDC(hdcButton);
-
-				CBitmap bmp;
-				bmp.Attach(hButton);
-				Add(&bmp, RGB(255,0,255));
-			}
-			
-			SelectObject(hdcBitmap, oldBmp);
-			DeleteObject(hBrush);
-			DeleteDC(hdcBitmap);
-			DeleteObject(hBitmap);
-		}
-	}
-*/
 	m_iOffset = GetImageCount();
 }
 
@@ -313,7 +242,7 @@ void CFavIconList::AddMap(const char *uri, int index, const char* pageUri)
 	// It's not really good to do it like that, because a site may
 	// have several different icons.
 	nsCOMPtr<nsIURI> URI;
-	nsEmbedCString nsUri;
+	nsCString nsUri;
 	nsUri.Assign(pageUri && pageUri[0] ? pageUri : uri);
 	nsresult rv = NewURI(getter_AddRefs(URI), nsUri);
 	if (NS_SUCCEEDED(rv)) {
@@ -363,53 +292,7 @@ int CFavIconList::AddDownloadedIcon(char* uri, TCHAR* file, nsresult aStatus)
 		if (favicon){
 			index = AddIcon(uri, favicon);
 			DestroyIcon(favicon);
-		}
-		#ifdef PNG_SUPPORT
-		else
-		{
-			PNGDIB *pngdib = pngdib_p2d_init();
-			if (pngdib)
-			{
-				int errcode;
-				LPBITMAPINFOHEADER pdib;
-				int dib_size;
-				void *pdib_bits;
-				int bits_offs;
-
-				pngdib_p2d_set_png_filename(pngdib, file);
-				pngdib_p2d_set_custom_bg(pngdib, 192, 192, 192);
-				
-				//pngdib_set_dibalpha32(pngdib, 1); // Can be used with Comctl32 Ver. 6 only
-
-				pngdib_p2d_set_use_file_bg(pngdib, 1);
-				errcode=pngdib_p2d_run(pngdib);
-				if(!errcode) {
-					pngdib_p2d_get_dib(pngdib,&pdib,&dib_size);
-					pngdib_p2d_get_dibbits(pngdib,&pdib_bits,&bits_offs,NULL);
-
-					HDC hDC = GetDC(NULL);
-					HBITMAP hBitmap = ::CreateDIBitmap(hDC,pdib,CBM_INIT,pdib_bits,(BITMAPINFO*)pdib,DIB_RGB_COLORS);
-					ReleaseDC(NULL,hDC);
-					
-					CBitmap bitmap;
-					bitmap.Attach(hBitmap);
-
-					unsigned char pr,pg,pb;
-					int r = pngdib_p2d_get_bgcolor(pngdib, &pr, &pg, &pb);
-					if (r)
-						index = AddIcon(uri, &bitmap,RGB(pr,pg,pb));
-					else
-						index = AddIcon(uri, &bitmap, (CBitmap*)NULL);
-					
-					bitmap.DeleteObject();
-
-					pngdib_p2d_free_dib(pngdib,NULL);
-				}
-				pngdib_done(pngdib);
-			}
-
-		}
-		#endif
+		}		
 	}
 	DeleteFile(file);
 	return index;
@@ -429,7 +312,7 @@ int CFavIconList::GetHostIcon(const TCHAR* aUrl)
 
 	const char* url;
 #ifdef _UNICODE
-	nsEmbedCString _str;
+	nsCString _str;
 	NS_UTF16ToCString(nsDependentString(aUrl), NS_CSTRING_ENCODING_UTF8, _str);
 	url = _str.get();
 #else
@@ -437,7 +320,7 @@ int CFavIconList::GetHostIcon(const TCHAR* aUrl)
 #endif
 
 	nsCOMPtr<nsIURI> URI;
-	nsEmbedCString nsUri;
+	nsCString nsUri;
 	nsUri.Assign(url);
 	nsresult rv = NewURI(getter_AddRefs(URI), nsUri);
 	if (NS_FAILED(rv)||!URI) return index;
@@ -457,7 +340,7 @@ int CFavIconList::GetIcon(nsIURI *aURI, nsIURI* aPageURI, BOOL download)
 
 	if  (!m_hImageList || !aURI) return 0;
 
-	nsEmbedCString nsUri;
+	nsCString nsUri;
 	aURI->GetSpec(nsUri);
 	USES_CONVERSION;
 	if (m_urlMap.Lookup(A2CT(nsUri.get()), index))
@@ -474,7 +357,7 @@ void CFavIconList::RefreshIcon(nsIURI* aURI)
 		return;
 	
 	int index = 0;
-	nsEmbedCString nsUri;
+	nsCString nsUri;
 	aURI->GetSpec(nsUri);
 	
    USES_CONVERSION;
@@ -573,7 +456,7 @@ void CFavIconList::DwnCall(char* uri, TCHAR* file, nsresult status, void* param)
 }
 
 
-NS_IMPL_ISUPPORTS1(IconObserver, imgINotificationObserver)
+NS_IMPL_ISUPPORTS(IconObserver, imgINotificationObserver)
 NS_IMETHODIMP IconObserver::Notify(imgIRequest *aProxy, int32_t aType, const nsIntRect *aRect)
 {
 	if (aType == imgINotificationObserver::LOAD_COMPLETE)
@@ -619,7 +502,6 @@ struct ALPHABITMAPINFO {
      }
   }
 };
-
 static HBITMAP DataToBitmap(PRUint8* aImageData,
                             PRUint32 aWidth,
                             PRUint32 aHeight,
@@ -688,6 +570,78 @@ static HBITMAP DataToBitmap(PRUint8* aImageData,
 
 }
 
+static void
+ConvertBGRXToBGRA(uint8_t* aData, const IntSize &aSize, int32_t aStride)
+{
+  uint32_t* pixel = reinterpret_cast<uint32_t*>(aData);
+
+  for (int row = 0; row < aSize.height; ++row) {
+    for (int column = 0; column < aSize.width; ++column) {
+#ifdef IS_BIG_ENDIAN
+      pixel[column] |= 0x000000FF;
+#else
+      pixel[column] |= 0xFF000000;
+#endif
+    }
+    pixel += (aStride/4);
+  }
+}
+
+static void
+CopySurfaceDataToPackedArray(uint8_t* aSrc, uint8_t* aDst, IntSize aSrcSize,
+                             int32_t aSrcStride, int32_t aBytesPerPixel)
+{
+  MOZ_ASSERT(aBytesPerPixel > 0,
+             "Negative stride for aDst not currently supported");
+
+  int packedStride = aSrcSize.width * aBytesPerPixel;
+
+  if (aSrcStride == packedStride) {
+    // aSrc is already packed, so we can copy with a single memcpy.
+    memcpy(aDst, aSrc, packedStride * aSrcSize.height);
+  } else {
+    // memcpy one row at a time.
+    for (int row = 0; row < aSrcSize.height; ++row) {
+      memcpy(aDst, aSrc, packedStride);
+      aSrc += aSrcStride;
+      aDst += packedStride;
+    }
+  }
+}
+
+static uint8_t* SurfaceToPackedBGRA(DataSourceSurface *aSurface)
+{
+  SurfaceFormat format = aSurface->GetFormat();
+  if (format != SurfaceFormat::B8G8R8A8 && format != SurfaceFormat::B8G8R8X8) {
+    return nullptr;
+  }
+
+  IntSize size = aSurface->GetSize();
+
+  uint8_t* imageBuffer = new (std::nothrow) uint8_t[size.width * size.height * sizeof(uint32_t)];
+  if (!imageBuffer) {
+    return nullptr;
+  }
+
+  DataSourceSurface::MappedSurface map;
+  if (!aSurface->Map(DataSourceSurface::READ, &map)) {
+    delete [] imageBuffer;
+    return nullptr;
+  }
+
+  CopySurfaceDataToPackedArray(map.mData, imageBuffer, size,
+                               map.mStride, 4 * sizeof(uint8_t));
+
+  aSurface->Unmap();
+
+  if (format == SurfaceFormat::B8G8R8X8) {
+    // Convert BGRX to BGRA by setting a to 255.
+    ConvertBGRXToBGRA(reinterpret_cast<uint8_t *>(imageBuffer), size, size.width * sizeof(uint32_t));
+  }
+
+  return imageBuffer;
+}
+
 uint8_t* Data32BitTo1Bit(uint8_t* aImageData,
                                       uint32_t aWidth, uint32_t aHeight)
 {
@@ -720,100 +674,71 @@ uint8_t* Data32BitTo1Bit(uint8_t* aImageData,
 
   return outData;
 }
-
-HBITMAP CreateIcon(imgIContainer *aContainer, gfxIntSize aScaledSize) {
-
-  // Get the image data
-  nsRefPtr<gfxASurface> surface;
-  aContainer->GetFrame(imgIContainer::FRAME_CURRENT,
-                       imgIContainer::FLAG_SYNC_DECODE,
-                       getter_AddRefs(surface));
-  NS_ENSURE_TRUE(surface, NULL);
-
-  nsRefPtr<gfxImageSurface> frame(surface->GetAsReadableARGB32ImageSurface());
-  NS_ENSURE_TRUE(frame, NULL);
-
-  int32_t width = frame->Width();
-  int32_t height = frame->Height();
-  if (!width || !height)
-    return NULL;
-
-  uint8_t *data;
-  nsRefPtr<gfxImageSurface> dest;
-  data = frame->Data();
-  /*
-  if ((aScaledSize.width == 0 && aScaledSize.height == 0) ||
-      (aScaledSize.width == width && aScaledSize.height == height)) {
-    // We're not scaling the image. The data is simply what's in the frame.
-    
-  }
-  else {
-    NS_ENSURE_TRUE(aScaledSize.width > 0, NULL);
-    NS_ENSURE_TRUE(aScaledSize.height > 0, NULL);
-    // Draw a scaled version of the image to a temporary surface
-    dest = new gfxImageSurface(aScaledSize, gfxImageFormatARGB32);
-    if (!dest)
-      return NULL;
-
-    gfxContext ctx(dest);
-
-    // Set scaling
-    gfxFloat sw = (double) aScaledSize.width / width;
-    gfxFloat sh = (double) aScaledSize.height / height;
-    ctx.Scale(sw, sh);
-
-    // Paint a scaled image
-    ctx.SetOperator(gfxContext::OPERATOR_SOURCE);
-    ctx.SetSource(frame);
-    ctx.Paint();
-
-    data = dest->Data();
-    width = aScaledSize.width;
-    height = aScaledSize.height;
-  }*/
-
-  HBITMAP bmp = DataToBitmap(data, width, -height, 32);
-  return bmp;/*
-  uint8_t* a1data = Data32BitTo1Bit(data, width, height);
-  if (!a1data) {
-    return NS_ERROR_FAILURE;
-  }
-
-  HBITMAP mbmp = DataToBitmap(a1data, width, -height, 1);
-  free(a1data);
-
-  ICONINFO info = {0};
-  info.fIcon = !aIsCursor;
-  info.xHotspot = aHotspotX;
-  info.yHotspot = aHotspotY;
-  info.hbmMask = mbmp;
-  info.hbmColor = bmp;
-
-  HCURSOR icon = ::CreateIconIndirect(&info);
-  ::DeleteObject(mbmp);
-  ::DeleteObject(bmp);
-  if (!icon)
-    return NS_ERROR_FAILURE;
-  *aIcon = icon;
-  return NS_OK;*/
-}
-
-
-
 NS_IMETHODIMP IconObserver::CreateDIB(imgIRequest *aRequest)
 {
 	nsresult rv;
-	nsCOMPtr<imgIContainer> image;
-	rv = aRequest->GetImage(getter_AddRefs(image));
+	nsCOMPtr<imgIContainer> container;
+	rv = aRequest->GetImage(getter_AddRefs(container));
 	NS_ENSURE_SUCCESS(rv, rv);
 
-	gfxIntSize s(16,16);
-	HBITMAP hBitmap = CreateIcon(image, s);
+#ifdef _DEBUG
+	// There is a problem with the linking in debug 
+	return NS_ERROR_FAILURE;
+#endif
+
+	// Get the image data
+	mozilla::RefPtr<SourceSurface> surface;
 	
-	int32_t w; 
-    int32_t h; 
-	image->GetWidth(&w);
-	image->GetHeight(&h);
+	surface = container->GetFrame(imgIContainer::FRAME_CURRENT,
+		imgIContainer::FLAG_SYNC_DECODE | imgIContainer::FLAG_WANT_DATA_SURFACE );
+	NS_ENSURE_TRUE(surface, NS_ERROR_FAILURE);
+	surface->GetFormat();
+	//surface->GetDataSurface();  
+
+	mozilla::RefPtr<DataSourceSurface> dataSurface;
+	DataSourceSurface::MappedSurface map;
+	bool mappedOK;
+	if (surface->GetFormat() != mozilla::gfx::SurfaceFormat::B8G8R8A8) {
+		// Convert format to SurfaceFormat::B8G8R8A8
+		//dataSurface = gfxUtils::CopySurfaceToDataSourceSurfaceWithFormat(surface, SurfaceFormat::B8G8R8A8);
+		//NS_ENSURE_TRUE(dataSurface, NULL);
+		//mappedOK = dataSurface->Map(mozilla::gfx::DataSourceSurface::MapType::READ, &map);
+	} else {
+		dataSurface = surface->GetDataSurface();
+		NS_ENSURE_TRUE(dataSurface, NS_ERROR_FAILURE);
+		mappedOK = dataSurface->Map(mozilla::gfx::DataSourceSurface::READ, &map);
+	}
+	NS_ENSURE_TRUE(dataSurface && mappedOK, NS_ERROR_FAILURE);
+	//MOZ_ASSERT(dataSurface->GetFormat() == mozilla::gfx::SurfaceFormat::B8G8R8A8);
+  
+	IntSize frameSize = surface->GetSize();
+	if (frameSize.IsEmpty()) {
+		return	NS_ERROR_FAILURE;
+	}
+
+	uint8_t* data = nullptr;
+	nsAutoArrayPtr<uint8_t> autoDeleteArray;
+	if (map.mStride == BytesPerPixel(dataSurface->GetFormat()) * frameSize.width) {
+		// Mapped data is already packed
+		data = map.mData;
+	} else {
+		// We can't use map.mData since the pixels are not packed (as required by
+		// CreateDIBitmap, which is called under the DataToBitmap call below).
+		//
+		// We must unmap before calling SurfaceToPackedBGRA because it needs access
+		// to the pixel data.
+		dataSurface->Unmap();
+		map.mData = nullptr;
+ 
+		data = autoDeleteArray = SurfaceToPackedBGRA(dataSurface);
+		NS_ENSURE_TRUE(data, NS_ERROR_FAILURE);
+	}
+
+	HBITMAP hBitmap = DataToBitmap(data, frameSize.width, -frameSize.height, 32);
+
+	
+	int32_t w = frameSize.width; 
+    int32_t h = frameSize.height; 
 		
 	if (w!=16 && h!=16) { 
 		HDC hDC = GetDC(NULL);
@@ -828,7 +753,7 @@ NS_IMETHODIMP IconObserver::CreateDIB(imgIRequest *aRequest)
 	
 	CBitmap bitmap;
 	bitmap.Attach(hBitmap);
-
+		
 	CString uri;
 	nsCOMPtr<nsIURI> URI;
 	nsEmbedCString nsuri;
@@ -854,5 +779,3 @@ NS_IMETHODIMP IconObserver::LoadIcon(nsIURI *iconUri, nsIURI* pageUri)
 		nullptr, nullptr, getter_AddRefs(mRequest));
 }
 
-
-#endif // INTERNAL_SITEICONS

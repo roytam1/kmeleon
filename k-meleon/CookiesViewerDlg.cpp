@@ -97,9 +97,12 @@ BOOL CCookiesViewerDlg::OnInitDialog()
 	enumCookie->HasMoreElements(&ret);
 	while (ret)
     {
-		nsCOMPtr<nsICookie> nsCookie;
-		rv = enumCookie->GetNext(getter_AddRefs(nsCookie));
+		nsCOMPtr<nsISupports> nsSupport;
+			rv = enumCookie->GetNext(getter_AddRefs(nsSupport));
 		if (NS_FAILED(rv)) break;
+
+		nsCOMPtr<nsICookie> nsCookie = do_QueryInterface(nsSupport);
+		NS_ENSURE_TRUE(nsCookie, FALSE);
 
 		CCookie* cookie = new CCookie(nsCookie);
 		POSITION p = m_CookiesList.AddHead(cookie);

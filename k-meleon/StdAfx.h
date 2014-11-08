@@ -57,13 +57,6 @@
 #endif
 #endif
 
-#pragma comment(lib, "mozjs.lib")
-#ifdef _AFXDLL
-	#pragma comment(lib, "xpcomglue.lib")
-#else
-	#pragma comment(lib, "xpcomglue_staticruntime.lib")
-#endif
-
 #define _ATL_CSTRING_EXPLICIT_CONSTRUCTORS	// some CString constructors will be explicit 
 
 // turns off MFC's hiding of some common and often safely ignored warning messages 
@@ -82,8 +75,11 @@
 #define THERECANBENODEBUG
 #endif
 
+#define NS_ARRAY_LENGTH(array_) \
+  (sizeof(array_)/sizeof(array_[0]))
+  
 #ifdef _DEBUG
-#include <vld.h> 
+//#include <vld.h> 
 #endif
 
 #include <afxwin.h>         // MFC core and standard components
@@ -135,7 +131,7 @@
 #include "nsIDOMDocument.h"
 #include "nsIDOMElement.h"
 #include "nsIDOMHTMLDocument.h"
-#include "nsPIDOMWindow.h"
+
 /*
 #include "nsIDOMWindowCollection.h"
 #include "nsIDOMHTMLAnchorElement.h"
@@ -159,7 +155,6 @@
 #include "nsXULAppAPI.h"
 #include "nsXPCOMGlue.h"
 #include "nsCOMPtr.h"
-#include "nsStringAPI.h"
 #include "nsAppDirectoryServiceDefs.h"
 #include "nsProfileDirServiceProvider.h"
 

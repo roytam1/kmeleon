@@ -71,10 +71,10 @@ protected:
 	AutoCompleteResult* m_ACIt;
 	AutoCompleteCallback m_Callback;
 	void* m_data;
-	static nsEmbedString previousSearch;
+	static nsString previousSearch;
 };
 
-NS_IMPL_ISUPPORTS1(CACListener, nsIAutoCompleteObserver)
+NS_IMPL_ISUPPORTS(CACListener, nsIAutoCompleteObserver)
 
 NS_IMETHODIMP CACListener::OnUpdateSearchResult(nsIAutoCompleteSearch *search, nsIAutoCompleteResult *result)
 {
@@ -99,8 +99,8 @@ NS_IMETHODIMP CACListener::OnSearchResult(nsIAutoCompleteSearch *search, nsIAuto
 
 		for (PRUint32 i = 0; i<gACCountResults; i++)
 		{
-			nsEmbedString nsStr;
-			nsEmbedCString nsCStr;
+			nsString nsStr;
+			nsCString nsCStr;
 
 			result->GetValueAt(i, nsStr);
 			NS_UTF16ToCString(nsStr,NS_CSTRING_ENCODING_NATIVE_FILESYSTEM,nsCStr);
@@ -122,7 +122,7 @@ NS_IMETHODIMP CACListener::OnSearchResult(nsIAutoCompleteSearch *search, nsIAuto
 	return NS_OK;
 }
 
-nsEmbedString CACListener::previousSearch;
+nsString CACListener::previousSearch;
 
 void CACListener::AutoCompleteStop()
 {
@@ -140,7 +140,7 @@ void CACListener::AutoComplete(const CString& aSearchString, AutoCompleteCallbac
 	nsCOMPtr<nsIAutoCompleteSearch> autoComplete = do_GetService("@mozilla.org/autocomplete/search;1?name=history", &rv);
 	NS_ENSURE_TRUE(autoComplete, );
 
-	nsEmbedString searchString = CStringToNSString(aSearchString);
+	nsString searchString = CStringToNSString(aSearchString);
 	if (!searchString.Equals(previousSearch)) {
 		previousSearch = searchString;
 		nsCOMPtr<nsIAutoCompleteObserver> listener = new CACListener(callback, data);
