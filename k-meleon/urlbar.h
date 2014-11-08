@@ -45,6 +45,7 @@ public:
 
 protected:
 	CEdit *m_edit;
+	CFont m_font;		
 	int m_ignoreMousemove;
 	static void CALLBACK ACCallback(_AutoCompleteResult* result, int count, void* self) {
 		((CACListBox*)self)->OnResult(result, count);
@@ -56,7 +57,7 @@ class CUrlBarEdit : public CEdit
 protected:
 	CString m_ACStr;
 	CACListBox* m_list;
-	
+
 public:
 	CUrlBarEdit();
 	~CUrlBarEdit();
@@ -114,6 +115,7 @@ public:
 	int Create(DWORD style, RECT &rect, CWnd *parentWnd, UINT id) {
         int ret = CComboBoxEx::Create(style | CBS_AUTOHSCROLL, rect, parentWnd, id);
         SetExtendedStyle(/*CBES_EX_PATHWORDBREAKPROC|*/CBES_EX_CASESENSITIVE, CBES_EX_PATHWORDBREAKPROC|CBES_EX_CASESENSITIVE);
+		
         COMBOBOXEXITEM ci;
         ci.mask = CBEIF_IMAGE;
         ci.iItem = -1;
