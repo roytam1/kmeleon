@@ -230,7 +230,7 @@ BEGIN
     IDS_NEW_BOOKMARK        "New Bookmark"
     IDS_NEW_FOLDER          "New Folder"
     IDS_IMPORTED_FAVORITES  "Imported Favorites"
-    IDS_FAILED_SAVE         "Failed to save bookmarks."
+    IDS_FAILED_SAVE         "Failed to save bookmarks. Verify that you have the permissions to write the bookmarks file."
     IDS_ERROR               "Error"
     IDS_CONFIGURE           "Configure the bookmarks plugin"
     IDS_ADD                 "Add to bookmarks"
