@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "../lib/rapidjson/document.h"
 #include <string>
 #include <vector>
 #include <assert.h>
@@ -6,38 +7,38 @@
 static const char* SEP = "\t";
 extern char* _strtok (char * string, const char * control);
 
+class Session;
+
+class SessionStore {
+	static rapidjson::Document data;	
+	static bool lock;
+	static bool Load();
+	static void Unload();
+	static void InitData();
+	static void UpdateSessionList();
+public:
+	static bool Read(Session& s);
+	static void Deletetab(const char* name, int i);
+	static void Write(Session& s);
+	static void Delete(const char* name);
+	static bool Import();
+	static bool WriteFile(TCHAR* filepath = nullptr);
+
+	static std::vector<const char*> sessions_list;
+	static const std::vector<const char*>& GetSessionsList() {
+		Load();
+		return sessions_list;
+	}
+};
+
+
 static char* pref_prefix = "kmeleon.plugins.sessions2.";
 
-	std::string itos(int i) {
-		char s[35];
-		::itoa(i, s, 10);
-		return s;
-	}
-
-	void setIntPref(const char* prefname, int value, bool flush = FALSE) {
-		kPlugin.kFuncs->SetPreference(PREF_INT, prefname, &value, flush);
-	}
-
-	void setStrPref(const char* prefname, char* value, bool flush = FALSE) {
-		kPlugin.kFuncs->SetPreference(PREF_STRING, prefname, value, flush);
-	}
-
-	int getIntPref(const char* prefname, int defvalue) {
-		int value = defvalue;
-		kPlugin.kFuncs->GetPreference(PREF_INT, prefname, &value, &value);
-		return value;
-	}
-
-	std::string getStrPref(const char* prefname, const char* defvalue) {
-		int len = kPlugin.kFuncs->GetPreference(PREF_STRING, prefname, 0, (void*)defvalue);
-		char* str = new char[len+1];
-		kPlugin.kFuncs->GetPreference(PREF_STRING, prefname, (void*)str, (void*)defvalue);
-		std::string ret = str;
-		delete [] str;
-		return ret;
-	}
 
 class Tab {
+
+	friend SessionStore;
+
 	int shcount;
 	int index;
 	std::vector<std::string> titles;
@@ -59,63 +60,9 @@ public:
 
 	void setParent(HWND ahWnd) { parent = ahWnd; }
 
-	std::string topref() {
-		std::string purls;
-		std::string ptitles;
-		if (shcount<=0) return "";
-
-		std::vector<std::string>::iterator iter;
-		std::vector<std::string>::iterator iter2;
-		int count = 0;
-		for (iter = urls.begin(),iter2 = titles.begin(); iter != urls.end() && iter2 != titles.end(); iter++,iter2++) {
-			if ((*iter).compare("about:blank") != 0 && (*iter).compare(0, 7, "wyciwyg") != 0) {
-				purls += *iter + SEP + *iter2 + SEP;
-				count++;
-			}
-		}
-
-		return itos(count) + SEP + itos(index) + SEP + SEP + SEP + purls;
-	}
-
-	bool frompref(char* pref) {
-		char* tok = _strtok(pref, SEP);
-		if (tok == NULL) return false;
-		shcount = atoi(tok);
-		if (shcount<=0) return false;
-
-		tok = _strtok(NULL, SEP);
-		if (tok == NULL) return false;
-		index = atoi(tok);
-
-		tok = _strtok(NULL, SEP);
-		tok = _strtok(NULL, SEP);
-
-		int i;
-		for (i=0; i<shcount; i++) {
-			tok = _strtok( NULL, SEP );
-			if (tok == NULL) break;
-			urls.push_back(tok);
-
-			tok = _strtok( NULL, SEP );
-			if (tok == NULL) {urls.pop_back();break;}
-			titles.push_back(tok);
-		}
-
-		shcount = i;
-		if (shcount>0 && index>shcount) index = shcount - 1;
-		return shcount>0;
-	}
-
 	void wasclosed() {
 		todelete = true;
 		hWnd = NULL;
-	}
-
-	bool save(std::string& pref) {
-		//assert(index<urls.size());
-		//if (index>=0 && index<urls.size() && urls[index].compare(0, 7, "wyciwyg") != 0)
-			setStrPref(pref.c_str(), (char*)topref().c_str());
-		return true;
 	}
 
 	void update(int aindex, int acount, const char **aUrls, const char ** aTitles)
@@ -134,7 +81,7 @@ public:
 
 		if (shcount<=0) return false;
 
-		this->hWnd = kPlugin.kFuncs->NavigateTo("", currenttab ? OPEN_NORMAL : OPEN_NEWTAB, parent);
+		this->hWnd = kPlugin.kFuncs->NavigateTo("", currenttab ? OPEN_NORMAL : last ? OPEN_NEWTAB : OPEN_BACKGROUNDTAB, parent);
 		if (!hWnd) return false;
 
 		const char** aUrls  = (const char**)new char*[shcount];
@@ -155,10 +102,13 @@ public:
 typedef std::vector<Tab> TABLIST;
 
 class Window {
-	int tabcount;
+
+	friend SessionStore;
+
+	unsigned tabcount;
 	TABLIST tabsList;
 
-	int shcount;
+	unsigned shcount;
 	std::vector<std::string> titles;
 	std::vector<std::string> urls;
 
@@ -168,9 +118,10 @@ class Window {
 	int width;
 	int height;
 	int state;
+	bool active;
 
 public:
-
+	int selectedTab;
 	HWND hWnd;
 	bool todelete;
 
@@ -182,6 +133,8 @@ public:
 		tabcount = 0;
 		index = -1;
 		state = SW_SHOWNORMAL;
+		selectedTab = 0;
+		active = false;
 	}
 
 	void addTab(const Tab& win) {
@@ -260,116 +213,25 @@ public:
 		height = wp.rcNormalPosition.bottom - posy;
 	}
 
-    std::string topref() {
-		std::string purls;
-		std::string ptitles;
-
-		saveWindowState();
-		
-		std::vector<std::string>::iterator iter;
-		std::vector<std::string>::iterator iter2;
-		for (iter = urls.begin(),iter2 = titles.begin(); iter != urls.end() && iter2 != titles.end(); iter++,iter2++) {
-			purls += *iter + SEP + *iter2 + SEP;
-		}
-
-		return 
-		itos(state) + SEP + itos(posx) + SEP + itos(posy) + SEP + 
-		itos(width) + SEP + itos(height) + SEP + SEP + SEP + itos(shcount) + SEP + 
-		itos(index) + SEP  + purls;
-	}
-
-	bool frompref(std::string& prefname) {
-
-		std::string p = getStrPref(prefname.c_str(), "");
-		char* pref = (char*)p.c_str();
-
-		char* tok = _strtok(pref, SEP);
-		if (tok == NULL) return false;
-		state = atoi(tok);
-
-		tok = _strtok(NULL, SEP);
-		if (tok == NULL) return false;
-		posx = atoi(tok);
-
-		tok = _strtok(NULL, SEP);
-		if (tok == NULL) return false;
-		posy = atoi(tok);
-
-		tok = _strtok(NULL, SEP);
-		if (tok == NULL) return false;
-		width = atoi(tok);
-		
-		tok = _strtok(NULL, SEP);
-		if (tok == NULL) return false;
-		height = atoi(tok);
-
-		RECT screen;
-		SystemParametersInfo(SPI_GETWORKAREA, NULL, &screen, 0);
-
-		if (posx>screen.right) posx = 0;
-		if (posy>screen.bottom) posy = 0;
-		if (width < 10) width = 10;
-		if (height < 10) height = 10;
-
-		tabcount = getIntPref((prefname + ".count").c_str(), 0);
-		if (tabcount>0) {
-			for (int i=0;i<tabcount;i++) {
-				Tab tab(NULL, hWnd);
-				if (tab.frompref((char*)getStrPref((prefname + ".tab"  + itos(i)).c_str(), "").c_str()))
-					tabsList.push_back(tab);
-			}
-
-			tabcount = tabsList.size();
-			return tabcount>0;
-		}
-
-		tok = _strtok(NULL, SEP); //Reserved
-		tok = _strtok(NULL, SEP);
-
-		tok = _strtok(NULL, SEP);
-		if (tok == NULL) return false;
-		shcount = atoi(tok);
-		if (shcount<=0) return false;
-
-		tok = _strtok(NULL, SEP);
-		if (tok == NULL) return false;
-		index = atoi(tok);
-
-		int i;
-		for (i=0; i<shcount; i++) {
-			tok = _strtok( NULL, SEP );
-			if (tok == NULL) break;
-			urls.push_back(tok);
-
-			tok = _strtok( NULL, SEP );
-			if (tok == NULL) {urls.pop_back();break;}
-			titles.push_back(tok);
-		}
-
-		shcount = i;
-		if (shcount>0 && index>shcount) index = shcount - 1;
-		return shcount > 0;
-	}
-
 	bool open() {
 		//assert(hWnd == NULL);
 		hWnd = kPlugin.kFuncs->NavigateTo(NULL, OPEN_NEW, NULL);
 		if (!hWnd) return false;
 
-        bool active = state & 16;
 		state = state & 0xf;
+		if (active) state |= 16;
 
-		RECT screen;
-		::SystemParametersInfo(SPI_GETWORKAREA, NULL, &screen, 0);
-		int screenWidth   = screen.right - screen.left;
-		int screenHeight  = screen.bottom - screen.top;
+		int screenWidth   = GetSystemMetrics(SM_CXVIRTUALSCREEN);
+		int screenHeight  = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+		int left = GetSystemMetrics(SM_XVIRTUALSCREEN);
+		int top = GetSystemMetrics(SM_YVIRTUALSCREEN);
 
 		if (width>screenWidth) width = screenWidth;
 		if (height>screenHeight) height = screenHeight;
-		if (posx<0) posx = 0;
-		if (posy<0) posy = 0;
-		if (posx>screenWidth) posx = screenWidth - width; 
-		if (posy>screenHeight) posy = screenHeight - height; 
+		if (posx<left) posx = left;
+		if (posy<top) posy = top;
+		if (posx>left+screenWidth) posx = left + screenWidth - width; 
+		if (posy>top+screenHeight) posy = top + screenHeight - height; 
 
 		WINDOWPLACEMENT wp;
 		wp.length = sizeof(WINDOWPLACEMENT);
@@ -383,9 +245,10 @@ public:
 
 		if (tabcount > 0)  {
 			TABLIST::iterator iter;
+			int i = 0;
 			for (iter = tabsList.begin(); iter != tabsList.end(); iter++) {
 				(*iter).setParent(hWnd);
-				(*iter).open(iter == tabsList.begin(), iter == (--tabsList.end()));
+				(*iter).open(iter == tabsList.begin(), i++ == selectedTab);
 			}
 			ShowWindow(hWnd, state);
 			return active;
@@ -393,7 +256,7 @@ public:
 
 		const char** aUrls  = (const char**)new char*[shcount];
 		const char** aTitles  = (const char**)new char*[shcount];
-		for (int i=0; i<shcount; i++) {
+		for (unsigned i=0; i<shcount; i++) {
 			aUrls[i] = urls[i].c_str();
 			aTitles[i] = titles[i].c_str();
 		}
@@ -457,24 +320,6 @@ public:
 			kPlugin.kFuncs->DelPreference((char*)(pref + ".tab" + itos(j)).c_str());
 	}
 
-
-	bool save(std::string& pref) {
-		if (tabcount || (index>=0 && urls[index].compare(0, 7, "wyciwyg") != 0))
-			setStrPref(pref.c_str(), (char*)topref().c_str());
-		if (tabcount) {
-			deletetabpref(pref);
-			setIntPref((pref + ".count").c_str(), tabsList.size());
-
-			int i = 0;
-			TABLIST::iterator iter;
-			for (iter = tabsList.begin(); iter != tabsList.end(); iter++) {
-				(*iter).save(pref + ".tab" + itos(i));
-				i++;
-			}
-		}
-		return true;
-	}
-
 	Tab lastTab() {
 		if (tabsList.size()<=0) return Tab(NULL, NULL);
 		Tab w = tabsList.back();
@@ -492,6 +337,7 @@ public:
 		return *iter;
 	}
 
+	friend class SessionStore;
 };
 
 typedef std::vector<Window> WINLIST;
@@ -591,42 +437,17 @@ public:
 
 	void saveSession(const char* name) {
 		if (loading) return;
-		deleteSession(name);
-
-		std::string prefname = std::string(pref_prefix) + name;
-
-		int i = 0;
-		WINLIST::iterator iter = windowsList.begin();
-		for (iter = windowsList.begin(); iter != windowsList.end(); iter++) {
-			(*iter).save(prefname + ".window" + itos(i));
-			i++;
-		}
-		setIntPref((prefname + ".count").c_str(), windowsList.size(), TRUE);
+		this->name = name;
+		return SessionStore::Write(*this);
 	}
 
 	bool loadSession(const char* aname) {
 		name = aname;
-		std::string prefname = std::string(pref_prefix) + name;
-		int count = getIntPref((prefname + ".count").c_str(), 0);
-		if (count<=0) return false;
-
-		for (int i=0; i<count; i++) {
-			Window win(NULL);
-			if (win.frompref(prefname + ".window" + itos(i)))
-				windowsList.push_back(win);
-		}
-
-		return windowsList.size()>0;
+		return SessionStore::Read(*this);
 	}
 
 	void deleteSession(const char* name) {
-		std::string prefname = std::string(pref_prefix) + name;
-		int oldcount = getIntPref((prefname + ".count").c_str(), windowsList.size());
-		for (int j=0;j<oldcount;j++) {
-			Window::deletetabpref(prefname + ".window" + itos(j));
-			kPlugin.kFuncs->DelPreference((char*)(prefname + ".window" + itos(j)).c_str());
-		}
-		kPlugin.kFuncs->DelPreference((prefname + ".count").c_str());
+		SessionStore::Delete(name);
 	}
 
 
@@ -642,7 +463,7 @@ public:
 		return true;
 	}
 
-	void limit(int l) {
+	void limit(unsigned l) {
 		while (windowsList.size()>l) windowsList.erase(windowsList.begin());
 	}
 
@@ -671,4 +492,7 @@ public:
 		windowsList.empty();
 	}
 
+	friend class SessionStore;
 };
+
+
