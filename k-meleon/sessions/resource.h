@@ -12,6 +12,7 @@
 #define IDS_LAST_SESSION                109
 #define IDS_STRING110                   110
 #define IDS_PREVIOUS_SESSION            110
+#define IDS_IMPORT_FAILED               111
 #define IDC_ANSWER                      1001
 #define IDC_CHECK_AUTOLOAD              1001
 #define IDC_PROMPT                      1002

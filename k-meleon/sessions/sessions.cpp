@@ -37,15 +37,6 @@ sessions(undo)
 */
 
 #include "stdafx.h"
-#include <stdlib.h>
-
-#define KMELEON_PLUGIN_EXPORTS
-#include "..\kmeleon_plugin.h"
-#include "..\kmeleonconst.h"
-#include "..\utils.h"
-#include "..\LocalesUtils.h"
-#include "..\strconv.h"
-
 #include "resource.h"
 
 #define _Tr(x) kPlugin.kFuncs->Translate(_T(x))
@@ -69,13 +60,13 @@ kmeleonPlugin kPlugin = {
 };
 
 #include "sessions.h"
+
 bool Session::loading = false;
 
 Session currentSession;
 Session undo;
+UINT_PTR timerID = NULL;
 
-// This limit to 100 the number of saved session
-#define MAX_SAVED_SESSION 100
 
 int Load();
 int Init();
@@ -109,10 +100,9 @@ int bFirstStart = 1;
 bool gLoading = false;
 Locale* gLoc = NULL;
 
-char* sessions_list[MAX_SAVED_SESSION] = {0};
-
 HMENU sessionsMenu = NULL;
 
+TCHAR sessionFile[1024];
 
 
 void BuildSessionMenu()
@@ -124,16 +114,16 @@ void BuildSessionMenu()
 		DeleteMenu(sessionsMenu, 0, MF_BYPOSITION);
 
 	last_session_id = id_load_session;
-
-	for(int i=0;sessions_list[i];i++)
+	
+	
+	for(unsigned i=0;i<SessionStore::GetSessionsList().size();i++)
 	{
-		if (stricmp(sessions_list[i], kLastSessionName)!=0) 
+		if (stricmp(SessionStore::sessions_list[i], kLastSessionName)!=0) 
 		{
-			const TCHAR* label;
-			if (strcmp(sessions_list[i], kPreviousSessionName) == 0)
+			if (strcmp(SessionStore::sessions_list[i], kPreviousSessionName) == 0)
 				AppendMenu(sessionsMenu, MF_STRING, last_session_id, gLoc->GetString(IDS_PREVIOUS_SESSION));
 			else
-				AppendMenuA(sessionsMenu, MF_STRING, last_session_id, sessions_list[i]);
+				AppendMenuA(sessionsMenu, MF_STRING, last_session_id, SessionStore::sessions_list[i]);
 			
 		}
 		last_session_id++;
@@ -142,6 +132,7 @@ void BuildSessionMenu()
 }
 
 // Have to use my own, because oji initialisation use the crt one
+// The default now skip empty token, breaking everything
 char* _strtok (char * string, const char * control)
 {
    static char* nextoken;
@@ -150,92 +141,26 @@ char* _strtok (char * string, const char * control)
       nextoken = string;
 
    char *tok;
-   if ( (tok = strstr(nextoken, control)) ) {
-      *tok = 0;
-      char *ret = nextoken;
-      nextoken = tok + strlen(control);
-      return ret;
+   if (nextoken) {
+	   if ( (tok = strstr(nextoken, control)) ) {
+		  *tok = 0;
+		  char *ret = nextoken;
+		  nextoken = tok + strlen(control);
+		  return ret;
+	   }
+	   else {
+		   char *ret = nextoken;
+		   nextoken = nullptr;
+		   return ret;
+	   }
    }
-   else return 0;
-}
-
-void GetSessionList()
-{
-   int len = kFuncs->GetPreference(PREF_STRING, "kmeleon.plugins.sessions2.list", NULL, NULL);
-   char *sessionsList = new char[len+1];
-   kFuncs->GetPreference(PREF_STRING, "kmeleon.plugins.sessions2.list", sessionsList, _T(""));
-
-   int i = 0;
-   char* token = strtok(sessionsList, ",");
-   while (token) {
-	   if (i>=MAX_SAVED_SESSION) break;
-		sessions_list[i++] = strdup(token);
-		token = strtok(NULL, ",");
-   }
-   delete [] sessionsList;
-}
-
-void WriteSessionList()
-{
-	char *sessionsList = new char[4096];
-	sessionsList[0]=0;
-	for(int i=0;sessions_list[i];i++)
-	{
-		strcat(sessionsList,sessions_list[i]);
-		strcat(sessionsList,",");
-	}
-	
-	kFuncs->SetPreference(PREF_STRING, "kmeleon.plugins.sessions2.list", sessionsList, TRUE);
-	delete [] sessionsList;
-}
-
-void AddSessionList(const char* name)
-{
-	bool bFound = false;
-
-	int i;
-	for(i=0;sessions_list[i];i++)
-	{
-		if (strcmp(name, sessions_list[i]) == 0) {
-            bFound = true;
-		}
-	}
-
-	if (!bFound)
-	{
-		sessions_list[i] = strdup(name);
-		WriteSessionList();
-	}
+   return nullptr;
 }
 
 
 void DeleteSession(const char* name)
 {
-
-	currentSession.deleteSession(name);/*
-	char * prefname = new char[strlen(name)+ 26];
-	prefname[0]=0;
-	strcat(prefname, "kmeleon.plugins.sessions.");
-	strcat(prefname, name);
-
-	kFuncs->DelPreference(prefname);
-	delete [] prefname;*/
-	
-	int i;
-	for(i=0;sessions_list[i];i++)
-	{
-		if (strcmp(name, sessions_list[i]) == 0) {
-			delete sessions_list[i];
-            break;
-		}
-	}
-	
-	for(;sessions_list[i+1];i++)
-		sessions_list[i] = sessions_list[i+1];
-
-	sessions_list[i] = NULL;
-
-	WriteSessionList();
+	currentSession.deleteSession(name);
 }
 
 long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2)
@@ -247,6 +172,14 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
       if (stricmp(subject, "UserSetup") == 0) {
          return Init();
       }
+	  else if (stricmp(subject, "SwitchTab") == 0) {
+		 int selected = 0;
+		 Window* w = currentSession.getWindow(GetParent((HWND)data1));
+		 if (w) {
+			 kPlugin.kFuncs->GetWindowVar((HWND)data1, Window_Tab_Index, &selected);
+			 w->selectedTab = selected;
+		 }
+      }	  
       else if (stricmp(subject, "Create") == 0) {
          Create((HWND)data1);
       }
@@ -314,6 +247,23 @@ int Load() {
       return -1;
    }
 
+   char s[1024];
+	kPlugin.kFuncs->GetFolder(ProfileFolder,s, sizeof(s));
+	strcat_s(s, "\\sessions.json");
+	_utf8_to_utf16(s, sessionFile, 1024);
+   DWORD dwAttrib = GetFileAttributes(sessionFile);
+   if (dwAttrib == INVALID_FILE_ATTRIBUTES || 
+         (dwAttrib & FILE_ATTRIBUTE_DIRECTORY))
+   {	   
+	   if (!SessionStore::Import()) {
+		   DeleteFile(sessionFile);
+		   MessageBox(NULL, 
+			gLoc->GetStringFormat(IDS_IMPORT_FAILED),
+			NULL,
+			MB_OK|MB_ICONERROR);
+	   }
+   }
+
    gLoc = Locale::kmInit(&kPlugin);
 
    id_undo_close = kPlugin.kFuncs->GetCommandIDs(1);
@@ -323,10 +273,6 @@ int Load() {
    last_session_id = id_load_session = kPlugin.kFuncs->GetCommandIDs(MAX_SAVED_SESSION); 
    //id_delete_session = kPlugin.kFuncs->GetCommandIDs(MAX_SAVED_SESSION); 
    
-   // This session list is really some bad stuff because
-   // plugins can't enumerate preferences
-   GetSessionList();
-   AddSessionList(kPreviousSessionName);
    return 1;
 }
 
@@ -366,21 +312,20 @@ void DestroyTab(HWND parent, HWND tab)
 
 void RestoreSession(BOOL afterCrash = FALSE)
 {
-			char name[256];
-			char homepage[2048];
+	char name[256];
 
-			name[0] = 0;
-			if (afterCrash) // Loading last session after crash
-				strcpy(name, kLastSessionName);
-			else // Loading defined start session in pref
-				kFuncs->GetPreference(PREF_STRING, PREFERENCE_SESSION_OPENSTART, name, "");
+	name[0] = 0;
+	if (afterCrash) // Loading last session after crash
+		strcpy(name, kLastSessionName);
+	else // Loading defined start session in pref
+		kFuncs->GetPreference(PREF_STRING, PREFERENCE_SESSION_OPENSTART, name, "");
 			
-			Session load;
-			Session::loading = true;
-			if (load.loadSession(name)) {
-				load.open();
-			}
-			Session::loading = false;
+	Session load;
+	Session::loading = true;
+	if (load.loadSession(name)) {
+		load.open();
+	}
+	Session::loading = false;
 }
 
 int Init()
@@ -525,11 +470,14 @@ void Quit()
 {
 	//SaveSession(kLastSessionName);
 	currentSession.saveSession(kPreviousSessionName);
+
+	TCHAR backup[1024];
+	_tcscpy_s(backup, sessionFile);
+	_tcscat_s(backup, _T(".bak"));	
+	SessionStore::WriteFile(backup);
+
 	currentSession.empty();
 	undo.empty();
-
-	for(int i=0;sessions_list[i];i++)
-		delete sessions_list[i];
 
 	bool b = true;
     kFuncs->SetPreference(PREF_BOOL, PREFERENCE_CLEANSHUTDOWN, &b, TRUE);
@@ -541,18 +489,18 @@ void ConfigInitSelect(HWND hwnd)
 	char* name = new char[256];
 	kFuncs->GetPreference(PREF_STRING, PREFERENCE_SESSION_OPENSTART, name, "");
 
-	for (int i=0;sessions_list[i];i++)
+	for (unsigned i=0;i<SessionStore::sessions_list.size();i++)
 	{
 		LRESULT index, index2;
 
-		if (strcmp(sessions_list[i], kPreviousSessionName) == 0)
+		if (strcmp(SessionStore::sessions_list[i], kPreviousSessionName) == 0)
 		{
 			index = SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST, CB_ADDSTRING, 
 				0, (LPARAM)(LPCTSTR)gLoc->GetString(IDS_PREVIOUS_SESSION)); 
 			index2 = SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST2, CB_ADDSTRING, 
 				0, (LPARAM)(LPCTSTR)gLoc->GetString(IDS_PREVIOUS_SESSION)); 
 		}
-		else if (strcmp(sessions_list[i], kLastSessionName) == 0)
+		else if (strcmp(SessionStore::sessions_list[i], kLastSessionName) == 0)
 		{
 			index = SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST, CB_ADDSTRING, 
 				0, (LPARAM)(LPCTSTR)gLoc->GetString(IDS_LAST_SESSION)); 
@@ -562,15 +510,15 @@ void ConfigInitSelect(HWND hwnd)
 		else
 		{
 			index = SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST, CB_ADDSTRING, 
-				0, (LPARAM)(LPCTSTR)CANSI_to_T(sessions_list[i])); 
+				0, (LPARAM)(LPCTSTR)CANSI_to_T(SessionStore::sessions_list[i])); 
 			index2 = SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST2, CB_ADDSTRING, 
-				0, (LPARAM)(LPCTSTR)CANSI_to_T(sessions_list[i])); 
+				0, (LPARAM)(LPCTSTR)CANSI_to_T(SessionStore::sessions_list[i])); 
 		}
 
 		SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST, CB_SETITEMDATA, 
 			index, (LPARAM)i);
 
-		if (strcmp(name, sessions_list[i]) == 0)
+		if (strcmp(name, SessionStore::sessions_list[i]) == 0)
 			SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST, CB_SETCURSEL, index, 0); 
 
 		SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST2, CB_SETITEMDATA, 
@@ -611,7 +559,7 @@ ConfigDlgProc( HWND hwnd,
 			case IDOK: {
 				LRESULT i = SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST, CB_GETITEMDATA, SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST, CB_GETCURSEL, 0, 0), 0); 
 				if (i!=-1) 
-					kFuncs->SetPreference(PREF_STRING, PREFERENCE_SESSION_OPENSTART, sessions_list[i], FALSE);
+					kFuncs->SetPreference(PREF_STRING, PREFERENCE_SESSION_OPENSTART, (void*)SessionStore::sessions_list[i], FALSE);
 				else
 					kFuncs->SetPreference(PREF_STRING, PREFERENCE_SESSION_OPENSTART, "", FALSE);
 				int b = IsDlgButtonChecked(hwnd, IDC_CHECK_AUTOLOAD);
@@ -632,12 +580,10 @@ ConfigDlgProc( HWND hwnd,
 				LRESULT index = SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST2, CB_GETCURSEL, 0, 0);
 				LRESULT i = SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST2, CB_GETITEMDATA, index , 0); 
 				
-				DeleteSession(sessions_list[i]);
+				DeleteSession(SessionStore::sessions_list[i]);
 				BuildSessionMenu();
 				
 				i = SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST, CB_GETITEMDATA, SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST, CB_GETCURSEL, 0, 0), 0); 
-				char* name = sessions_list[i];
-
 				SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST, CB_RESETCONTENT, 0, 0);
 				SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST2, CB_RESETCONTENT, 0, 0);
 
@@ -707,6 +653,13 @@ void LoadSession(const char* name, HWND currentWnd)
 	Session::loading = false;
 }
 
+void CALLBACK TimerFunction(HWND hWnd, UINT, UINT_PTR id, DWORD)
+{
+	currentSession.saveSession(kLastSessionName);
+	::KillTimer(hWnd, id);
+	timerID = NULL;
+}
+
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     switch (message) {
@@ -725,12 +678,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				if (kFuncs->GetMozillaSessionHistory((HWND)lParam, &titles, &urls, &count, &index))
 					currentSession.updateWindow(hWnd, (HWND)lParam, index, count, (const char**)urls, (const char**)titles);
 			}
-
-			currentSession.saveSession(kLastSessionName);
+			if (!timerID)
+				timerID = ::SetTimer(hWnd, NULL, 5000, TimerFunction);
+			
            	break;
-		case WM_DESTROY:
-			destroying = hWnd;
+		case WM_CLOSE:
 			break;
+		case WM_DESTROY: {
+			destroying = hWnd;
+			// Flush the window before tabs are destroyed
+			Window* w = currentSession.getWindow(hWnd);
+			if (w) w->flush();
+			break;
+		}
 		case WM_COMMAND:
 			WORD command = LOWORD(wParam);
 			if (command == id_undo_close)
@@ -749,7 +709,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				if (ok == IDOK && _tcslen(answer)>0) {
 					currentSession.flush();
 					currentSession.saveSession(CT_to_ANSI(answer));
-					AddSessionList(CT_to_ANSI(answer));
 					BuildSessionMenu();
 				}
 				delete [] answer;
@@ -758,7 +717,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			else if (command >= id_load_session && command<id_load_session+MAX_SAVED_SESSION)
 			{
 				int n = command - id_load_session;
-				char* name = sessions_list[command - id_load_session];
+				const char* name = SessionStore::sessions_list[command - id_load_session];
 
 				if (name) {
 					LoadSession(name, hWnd);					
@@ -789,3 +748,4 @@ extern "C" {
       return &kPlugin;
    }
 }
+	

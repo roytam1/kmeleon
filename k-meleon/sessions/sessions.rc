@@ -27,6 +27,10 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 #ifdef APSTUDIO_INVOKED
 GUIDELINES DESIGNINFO
 BEGIN
+    IDD_PROMPT, DIALOG
+    BEGIN
+    END
+
     IDD_CONFIG, DIALOG
     BEGIN
         LEFTMARGIN, 7
@@ -67,8 +71,8 @@ BEGIN
     LTEXT           "Delete a session",IDC_STATIC,7,65,67,8
     COMBOBOX        IDC_COMBO_SESSIONSLIST2,7,75,118,150,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
     PUSHBUTTON      "Delete",IDC_BUTTON_DELETE,128,74,50,14
-    LTEXT           "Max Number of Undo",IDC_STATIC,7,97,68,8
-    EDITTEXT        IDC_EDIT_MAXUNDO,83,94,40,14,ES_AUTOHSCROLL | ES_NUMBER
+    LTEXT           "Max Number of Undo",IDC_STATIC,7,97,73,8
+    EDITTEXT        IDC_EDIT_MAXUNDO,128,94,33,14,ES_AUTOHSCROLL | ES_NUMBER
     CONTROL         "Ask before opening it",IDC_CHECK_ASK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,47,84,10
 END
 
@@ -163,6 +167,7 @@ BEGIN
     IDS_INVALID_NAME        "This session name is invalid."
     IDS_LAST_SESSION        "Last Session"
     IDS_PREVIOUS_SESSION    "Previous Session"
+    IDS_IMPORT_FAILED       "Importing sessions from your previous installation has failed!"
 END
 
 #endif    // French (France) resources
