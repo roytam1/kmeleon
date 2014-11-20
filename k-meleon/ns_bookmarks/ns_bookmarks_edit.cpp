@@ -589,7 +589,7 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
          HICON hIcon;
          TCHAR szFullPath[MAX_PATH];
-         FindSkinFile(szFullPath, _T("bookmarks-edit.ico"));
+         kPlugin.kFuncs->FindSkinFile(L"bookmarks-edit.ico", szFullPath, MAX_PATH);
 
          if (*szFullPath==0 || (hIcon = (HICON)LoadImage( NULL, szFullPath, IMAGE_ICON, 0,0, LR_DEFAULTSIZE | LR_LOADFROMFILE ))==NULL)
             hIcon = (HICON)LoadImage( kPlugin.hDllInstance, MAKEINTRESOURCE(IDB_ICON), IMAGE_ICON, 0,0, LR_DEFAULTSIZE );

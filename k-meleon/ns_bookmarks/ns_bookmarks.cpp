@@ -93,6 +93,11 @@ kmeleonPlugin kPlugin = {
    DoMessage
 };
 
+void Setup()
+{
+   InitImageList(gImagelist);
+}
+
 long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2)
 {
    if (to[0] == '*' || stricmp(to, kPlugin.dllname) == 0) {
@@ -130,16 +135,15 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
          if (gLoc) delete gLoc;
 		 gLoc = Locale::kmInit(&kPlugin);
 	  }
+	  else if (stricmp(subject, "Setup") == 0) {
+         Setup();
+	  }
       else return 0;
 
       return 1;
    }
    return 0;
 }
-
-
-#include "../findskin.cpp"
-
 
 int Load(){
    gLoc = Locale::kmInit(&kPlugin);
@@ -217,8 +221,6 @@ int Load(){
    if (gMaxMenuLength < 1) gMaxMenuLength = 20;
    kPlugin.kFuncs->GetPreference(PREF_INT, PREFERENCE_MAX_TB_SIZE, &gMaxTBSize, &gMaxTBSize);
    if (gMaxTBSize < 1) gMaxTBSize = 20;
-
-   InitImageList(gImagelist);
 
    strncpy(gBookmarksTitle, CT_to_UTF8(gLoc->GetString(IDS_DEFAULT_TITLE)), sizeof(gBookmarksTitle));
    LoadBM(gBookmarkFile);
