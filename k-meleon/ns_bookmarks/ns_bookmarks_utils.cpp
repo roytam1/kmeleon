@@ -76,8 +76,8 @@ void InitImageList(HIMAGELIST& imageList)
    int ilc_bits = ILC_COLOR;
    COLORREF bgCol = RGB(255, 0, 255);
 
-   TCHAR szFullPath[MAX_PATH];
-   FindSkinFile(szFullPath, _T("bookmarks.bmp"));
+   wchar_t szFullPath[MAX_PATH];
+   kPlugin.kFuncs->FindSkinFile(L"bookmarks.bmp", szFullPath, MAX_PATH);
    FILE *fp = _tfopen(szFullPath, _T("r"));
    if (fp) {
       fclose(fp);

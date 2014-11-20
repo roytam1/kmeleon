@@ -505,15 +505,15 @@ int CALLBACK EditProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
          circling = 0;
 
          HICON hIcon;
-         char szFullPath[MAX_PATH];
-         FindSkinFile(szFullPath, "hotlist-edit.ico");
+         wchar_t szFullPath[MAX_PATH];
+         kPlugin.kFuncs->FindSkinFile(L"hotlist-edit.ico", szFullPath, MAX_PATH);
 
-         if (*szFullPath==0 || (hIcon = (HICON)LoadImage( NULL, szFullPath, IMAGE_ICON, 0,0, LR_DEFAULTSIZE | LR_LOADFROMFILE ))==NULL)
+         if (*szFullPath==0 || (hIcon = (HICON)LoadImageW( NULL, szFullPath, IMAGE_ICON, 0,0, LR_DEFAULTSIZE | LR_LOADFROMFILE ))==NULL)
             hIcon = (HICON)LoadImage( kPlugin.hDllInstance, MAKEINTRESOURCE(IDB_ICON), IMAGE_ICON, 0,0, LR_DEFAULTSIZE );
          if (hIcon)
             SendMessage(hDlg, WM_SETICON, ICON_BIG, (LPARAM) hIcon);
 
-         if (*szFullPath==0 || (hIcon = (HICON)LoadImage( NULL, szFullPath, IMAGE_ICON, 16,16, LR_LOADFROMFILE ))==NULL)
+         if (*szFullPath==0 || (hIcon = (HICON)LoadImageW( NULL, szFullPath, IMAGE_ICON, 16,16, LR_LOADFROMFILE ))==NULL)
             hIcon = (HICON)LoadImage( kPlugin.hDllInstance, MAKEINTRESOURCE(IDB_ICON), IMAGE_ICON, 16,16, 0 );
          if (hIcon)
             SendMessage(hDlg, WM_SETICON, ICON_SMALL, (LPARAM) hIcon);

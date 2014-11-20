@@ -48,7 +48,6 @@ void Rebuild();
 int addLink(const char *url, const char *title, int flag, const char *iconurl = NULL);
 void findNick(char *nick, char **url);
 char *stristr(const char *String, const char *Pattern);
-void FindSkinFile( TCHAR *szSkinFile, const TCHAR *filename );
 
 #define MENU_TO_COMMAND(x) (x+SUBMENU_OFFSET)
 #define COMMAND_TO_MENU(x) (HMENU)(x-SUBMENU_OFFSET)
