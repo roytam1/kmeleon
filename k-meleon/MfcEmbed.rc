@@ -1559,6 +1559,25 @@ BEGIN
     IDS_EXTERNAL_HANDLER_QUESTION 
                             "An external application must be launched to handle ""%s"" links. Do you want to open this link with ""%s""?\n\nIf you were not expecting this request it may be an attempt to exploit a weakness in that other program. Cancel this request unless you are sure it is not malicious."
     IDS_START_FAILED        "K-Meleon failed to initialize. Please reinstall."
+    IDS_SKIN_ALREADY_EXISTS "A skin with this name already exists. Do you want to replace it?"
+    IDS_INSTALL_FAILED      "The package installation failed. "
+    IDS_INSTALL_CONFIRM     "Do you want to install the skin %s ?"
+    IDS_MORE_OPTIONS        "Right click for more options"
+END
+
+STRINGTABLE
+BEGIN
+    ID_NAV_GO               "Go to URL"
+    ID_FULLZOOM_INCREASE    "Zoom In"
+    ID_FULLZOOM_DECREASE    "Zoom Out"
+END
+
+STRINGTABLE
+BEGIN
+    ID_NEW_TAB              "New tab"
+    ID_TAB_NEXT             "Next tab"
+    ID_TAB_PREV             "Previous tab"
+    ID_CLOSE_TAB            "Close tab"
 END
 
 #endif    // English (United States) resources

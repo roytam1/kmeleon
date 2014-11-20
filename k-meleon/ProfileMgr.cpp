@@ -27,7 +27,7 @@
 #include "nsIToolkitProfileService.h"
 
 // Constants
-#define kRegistryGlobalPrefsSubtreeString (nsEmbedString(L"global-prefs"))
+#define kRegistryGlobalPrefsSubtreeString (nsString(L"global-prefs"))
 #define kRegistryShowProfilesAtStartup "start-show-dialog"
 
 #define kRegistryProfileSubtreeString (NS_LITERAL_STRING("Profiles"))
@@ -241,7 +241,7 @@ BOOL CProfileMgr::RemoveProfile(LPCTSTR oldName, BOOL removeDir)
 		nsCOMPtr<nsIFile> lock;
 		rv = rootDir->Clone(getter_AddRefs(lock));
 		NS_ENSURE_SUCCESS(rv, FALSE);
-        lock->AppendNative(nsEmbedCString("parent.lock"));
+        lock->AppendNative(nsCString("parent.lock"));
 		
 		bool exist = PR_FALSE;
 		rv = lock->Exists(&exist);
@@ -460,7 +460,7 @@ BOOL CProfileMgr::GetProfileFromKey(LPCTSTR iniKey, CProfile& aProfile)
 	GetPrivateProfileString(iniKey, _T("Path"), _T(""), path.GetBuffer(MAX_PATH), MAX_PATH, mProfileIniFile);
 	path.ReleaseBuffer();
 
-	nsEmbedCString filePath = CStringToNSCString(path);
+	nsCString filePath = CStringToNSCString(path);
 	BOOL isRelative = GetPrivateProfileInt(iniKey, _T("IsRelative"), 0, mProfileIniFile);
 
 	if (isRelative)

@@ -105,7 +105,7 @@ public:
 		mCommandList.RemoveKey(command);
 	}
 
-	UINT RegisterCommand(LPCTSTR plugin, LPCTSTR command, unsigned nbArgs)
+	UINT RegisterCommand(LPCTSTR plugin, LPCTSTR command, unsigned nbArgs = 0)
 	{
 		UINT id = AllocateId();
 		mCommandList[command] = KmCommand(id);
@@ -153,6 +153,9 @@ public:
 	}
 
 	UINT    GetId(LPCTSTR command);
+	bool GetCommand(UINT id, KmCommand&);
+	bool GetCommand(LPCTSTR command, KmCommand&);
+
 	CString GetDescription(LPCTSTR command);
 	CString GetDescription(UINT id);
 	UINT    GetList(_kmeleonCommand* cmdList, UINT size, BOOL def = FALSE);

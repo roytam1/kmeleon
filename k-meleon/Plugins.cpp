@@ -528,6 +528,7 @@ int SetMozillaSessionHistory (HWND hWnd, const char **titles, const char **urls,
 
 	if (frame->IsKindOf(RUNTIME_CLASS(CBrowserFrmTab)) && theApp.preferences.GetBool("browser.sessionstore.restore_on_demand", false)) {
 		if (index>=count) index = count - 1;
+		if (index<0) index = 0;
 		view->GetBrowserGlue()->SetBrowserTitle(NSUTF8StringToCString(nsDependentCString(titles[index])));
 		nsCOMPtr<nsIURI> uri;
 		NewURI(getter_AddRefs(uri), nsDependentCString(urls[index]));
@@ -1420,6 +1421,23 @@ kmeleonPlugin * Load(const char *kplugin) {
   return theApp.plugins.Load(CString(A2CT(kplugin)));
 }
 
+long CPlugins::SendMessageUntilSuccess(const char *to, const char *from, const char *subject, long data1, long data2)
+{
+   long retVal = 0;
+
+   POSITION pos = pluginList.GetStartPosition();
+   kmeleonPlugin * kPlugin;
+   CString s;
+   while (pos) {
+      pluginList.GetNextAssoc( pos, s, kPlugin);
+      if (kPlugin->loaded && kPlugin->DoMessage) {
+         retVal = kPlugin->DoMessage(to, from, subject, data1, data2);
+		 if (retVal) break;
+      }
+   }
+   return retVal;
+}
+
 long CPlugins::SendMessage(const char *to, const char *from, const char *subject, long data1, long data2)
 {
    long retVal = 0;
@@ -1743,6 +1761,105 @@ BOOL LoadCSS(const char* path, BOOL load)
 	return LoadStyleSheet(A2CT(path), load);
 }
 
+KmToolbar* GetToolbar(const char* name)
+{
+	USES_CONVERSION;
+	return theApp.toolbars.GetKToolbar(A2CT(name));
+}
+
+bool AddToolbar(const char* name, UINT w, UINT h) 
+{
+	USES_CONVERSION;
+	return theApp.toolbars.CreateToolbar(A2CT(name), w, h) ? true : false;
+}
+
+bool AddButton(const char* name, kmeleonButton* b)
+{
+	USES_CONVERSION;
+	KmToolbar* t = theApp.toolbars.GetKToolbar(A2CT(name));
+	if (!t) return false;
+
+	KmButton button;
+	if (b->name) button.mName = A2CT(b->name);
+	if (b->label) button.mLabel = A2CT(b->label);
+	if (b->action) button.mAction = A2CT(b->action);
+	if (b->menu) button.mMenuName = A2CT(b->menu);
+	if (b->hotimage) button.mHotImage = A2CT(b->hotimage);
+	if (b->coldimage) button.mColdImage = A2CT(b->coldimage);
+	if (b->deadimage) button.mDeadImage = A2CT(b->deadimage);
+	if (b->tooltip) button.mTooltip = A2CT(b->tooltip);
+	button.mID = b->id;
+	button.mEnabled = b->enabled;
+	button.mChecked = b->checked;
+	t->AddItem(button, b->before, b->iconWidth, b->iconHeight);
+	return true;
+}
+
+bool GetButton(const char* name, UINT id, kmeleonButton* button) 
+{
+	USES_CONVERSION;
+	KmToolbar* t = theApp.toolbars.GetKToolbar(A2CT(name));
+	if (!t) return false;
+
+	KmButton* b = t->GetButton(id);
+	if (!b) return false;
+
+	button->enabled = b->mEnabled;
+	button->checked = b->mChecked;
+	return true;
+}
+
+#include "KmImage.h"
+bool SetButton(const char* name, UINT id, kmeleonButton* button) 
+{
+	USES_CONVERSION;
+	KmToolbar* t = theApp.toolbars.GetKToolbar(A2CT(name));
+	if (!t) return false;
+
+	KmButton* b = t->GetButton(id);
+	if (!b) return false;
+	
+	if (button->enabled != -1)
+		b->mEnabled = button->enabled;
+	if (button->checked != -1)
+		b->mChecked = button->checked;
+	if (button->coldimage) {
+		if (!t->mCold.m_hImageList) {
+			if (theApp.skin.mImages) {
+				KmImage img;
+				if (t->LoadImage(A2CT(button->coldimage), img)) {
+					img.AddToImageList(theApp.skin.mImages->mCold, theApp.skin.GetIconIndex(id));
+				}
+			}
+		}
+	}
+
+	return true;
+}
+
+HIMAGELIST GetCmdIconList() 
+{
+	return theApp.skin.GetIconList();
+}
+
+int GetCmdIcon(UINT id)
+{
+	return theApp.skin.GetIconIndex(id);
+}
+
+bool FindSkinFile(const wchar_t* name, wchar_t* filename, unsigned size)
+{
+	if (!filename) return false;
+	
+	CString skinFile;
+	if (!theApp.skin.FindSkinFile(skinFile, name))
+		return false;
+
+	wcscpy_s(filename, size, skinFile.GetBuffer());
+	//WideCharToMultiByte(CP_ACP, 0, skinFile, -1, filename, size, NULL, NULL);
+	return true;
+}
+
 kmeleonFunctions kmelFuncsUTF8 = {
    SendMessage,
    GetCommandIDs,
@@ -1803,7 +1920,14 @@ kmeleonFunctions kmelFuncsUTF8 = {
    GetCmdList,
    LoadCSS,
    LogMessage,
-   InjectJS2
+   InjectJS2,
+   AddToolbar,
+   AddButton,
+   GetButton,
+   SetButton,
+   GetCmdIconList,
+   GetCmdIcon,
+   FindSkinFile
 };
 
 kmeleonFunctions kmelFuncs = {
@@ -1866,7 +1990,14 @@ kmeleonFunctions kmelFuncs = {
    GetCmdList,
    LoadCSS,
    LogMessage,
-   InjectJS2
+   InjectJS2,
+   AddToolbar,
+   AddButton,
+   GetButton,
+   SetButton,
+   GetCmdIconList,
+   GetCmdIcon,
+   FindSkinFile
 };
 
 BOOL CPlugins::TestLoad(LPCTSTR file, const char *description)

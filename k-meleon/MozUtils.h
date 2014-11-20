@@ -18,7 +18,7 @@ inline CString NSStringToCString(const nsString& aStr);
 CString NSUTF8StringToCString(const nsCString& aStr);
 inline CString NSCStringToCString(const nsCString& aStr);
 
-
+bool ZipExtractFiles(nsIFile* zipFile, nsIFile* dir); 
 nsresult NewURI(nsIURI **result, const nsACString &spec);
 nsresult NewURI(nsIURI **result, const nsAString &spec);
 nsresult GetDOMEventTarget (nsIWebBrowser* aWebBrowser, nsIDOMEventTarget** aTarget);

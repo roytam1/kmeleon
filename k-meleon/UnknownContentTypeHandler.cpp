@@ -60,10 +60,41 @@ PRTime PRNow(void)
 	return prt;       
 }
 
+#include "nsIPropertyBag2.h"
+#include "KmInstaller.h"
+
 /* void handleContent (in string aContentType, in nsIInterfaceRequestor aWindowContext, in nsIRequest aRequest); */
 NS_IMETHODIMP CUnknownContentTypeHandler::HandleContent(const char * aContentType, nsIInterfaceRequestor *aWindowContext, nsIRequest *aRequest)
 {
-	return NS_ERROR_WONT_HANDLE_CONTENT;
+	nsCOMPtr<nsIChannel> channel = do_QueryInterface(aRequest);
+	if (!channel) return NS_ERROR_WONT_HANDLE_CONTENT;
+
+	nsCOMPtr<nsIURI> uri;
+	channel->GetURI(getter_AddRefs(uri));
+	nsCOMPtr<nsIURL> url = do_QueryInterface(uri);
+	if (!url) return NS_ERROR_WONT_HANDLE_CONTENT;
+
+	nsCOMPtr<nsIURI> referer;
+	nsCOMPtr<nsIPropertyBag2> prop = do_QueryInterface(aRequest);
+	if (prop) {
+		prop->GetPropertyAsInterface(NS_LITERAL_STRING("docshell.internalReferrer"), 
+				NS_GET_IID(nsIURI), getter_AddRefs(referer));
+	}
+	
+	nsString filename;
+	channel->GetContentDispositionFilename(filename);
+
+	if (!filename.Length()) {
+		nsCString fuck;
+		url->GetFileName(fuck);
+		filename = NS_ConvertUTF8toUTF16(fuck);
+	}
+
+	if (!KmInstaller::InstallFromUrl(KmInstaller::TYPE_SKIN, uri, filename))
+		return NS_ERROR_WONT_HANDLE_CONTENT;
+	
+	aRequest->Cancel(NS_BINDING_ABORTED);
+	return NS_OK;
 }
 
 NS_IMETHODIMP

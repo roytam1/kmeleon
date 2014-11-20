@@ -173,7 +173,8 @@
       <Culture>0x0409</Culture>
     </ResourceCompile>
     <Manifest>
-      <AdditionalManifestFiles>comctl6.manifest;DPIaware.manifest</AdditionalManifestFiles>
+      <AdditionalManifestFiles>
+      </AdditionalManifestFiles>
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -214,7 +215,10 @@
     <ClCompile Include="KmAppInfo.cpp" />
     <ClCompile Include="KmCommand.cpp" />
     <ClCompile Include="KmFileLocProvider.cpp" />
+    <ClCompile Include="KmImage.cpp" />
     <ClCompile Include="KmMenu.cpp" />
+    <ClCompile Include="KmSkin.cpp" />
+    <ClCompile Include="KmToolbar.cpp" />
     <ClCompile Include="LangParser.cpp" />
     <ClCompile Include="MenuParser.cpp" />
     <ClCompile Include="MfcEmbed.cpp" />
@@ -301,7 +305,11 @@
     <ClInclude Include="kmeleon_plugin.h" />
     <ClInclude Include="KmeleonConst.h" />
     <ClInclude Include="KmFileLocProvider.h" />
+    <ClInclude Include="KmImage.h" />
+    <ClInclude Include="KmInstaller.h" />
     <ClInclude Include="KmMenu.h" />
+    <ClInclude Include="KmSkin.h" />
+    <ClInclude Include="KmToolbar.h" />
     <ClInclude Include="LangParser.h" />
     <ClInclude Include="Log.h" />
     <ClInclude Include="MenuParser.h" />

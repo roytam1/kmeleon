@@ -125,8 +125,12 @@ struct s_button {
    TCHAR *sName;
    char *sToolTip;
    char *sImagePath;
+   char *hotImage;
+   char *coldImage;
+   char *deadImage;
    char *menu;
    char *lmenu;
+   TCHAR *label;
 	//HMENU menu;
    int iID;
    int width, height;
@@ -157,10 +161,10 @@ struct s_toolbar {
 s_toolbar *toolbar_head = NULL;
 int giToolbarCount = 0;
 BOOL gbIsComCtl6 = FALSE;
+BOOL gbLegacy = FALSE;
 
-
-void LoadToolbars(TCHAR *filename);
-void AddImageToList(s_toolbar *pToolbar, s_button *pButton, HIMAGELIST list, char *file);
+bool LoadToolbars(TCHAR *filename);
+void AddImageToList(s_toolbar *pToolbar, s_button *pButton, int list, char *file);
 s_toolbar *AddToolbar(char *name, int width, int height);
 s_button  *AddButton(s_toolbar *toolbar, char *name, int width, int height);
 void EndButton(s_toolbar *toolbar, s_button *button, int state);
@@ -168,10 +172,6 @@ void EndButton(s_toolbar *toolbar, s_button *button, int state);
 BOOL APIENTRY DllMain(HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved ) {
    return TRUE;
 }
-
-
-#include "../findskin.cpp"
-
 
 int Setup()
 {
@@ -195,9 +195,29 @@ int Setup()
 		FreeLibrary(hComCtlDll);
 	}
 
-   TCHAR szConfigFile[MAX_PATH];
-   FindSkinFile(szConfigFile, _T("toolbars.cfg"));
-   LoadToolbars(szConfigFile);
+   gbLegacy = kPlugin.kFuncs->GetPreference(PREF_BOOL, "kmeleon.plugins.toolbars.legacy", &gbLegacy, &gbLegacy);
+   
+   char file[MAX_PATH];
+   kPlugin.kFuncs->GetFolder(FolderType::UserSettingsFolder, file, sizeof(file));
+   strcat_s(file, "\\toolbars.cfg");
+   bool loaded = LoadToolbars(utf8_to_t(file));
+   
+   if (!loaded) {
+	  TCHAR szConfigFile[MAX_PATH];
+	  kPlugin.kFuncs->FindSkinFile(L"toolbars.cfg", szConfigFile, MAX_PATH);
+	  loaded = LoadToolbars(szConfigFile);
+   }
+
+   if (!loaded) {
+	  kPlugin.kFuncs->GetFolder(FolderType::DefSettingsFolder, file, sizeof(file));
+	  strcat_s(file, "\\toolbars.cfg");
+	  loaded = LoadToolbars(utf8_to_t(file));
+   }
+
+   if (!loaded) {
+      MessageBox(NULL, utf8_to_t(_Tr("K-Meleon was not able to find your toolbar settings. Your selected skin may be missing or corrupt. Please, check your skin settings in the GUI appearance section of k-meleon preferences.")), utf8_to_t(_Tr(PLUGIN_NAME)), MB_OK);
+      return 0;
+   }
 
    return 1;
 }
@@ -232,7 +252,7 @@ void Create(HWND parent){
 
 void Config(HWND hWndParent) {
    TCHAR cfgPath[MAX_PATH];
-   FindSkinFile(cfgPath, _T("toolbars.cfg"));
+   kPlugin.kFuncs->FindSkinFile(_T("toolbars.cfg"), cfgPath, MAX_PATH);
    ShellExecute(NULL, NULL, _T("notepad.exe"), cfgPath, NULL, SW_SHOW);
 }
 
@@ -241,7 +261,7 @@ int GetConfigFiles(configFileType **configFiles)
 {
 #ifdef _UNICODE
    TCHAR file[MAX_PATH];
-   FindSkinFile(file, _T("toolbars.cfg"));
+   kPlugin.kFuncs->FindSkinFile(_T("toolbars.cfg"), file, MAX_PATH );
    utf16_to_utf8(file, g_configFiles[0].file, MAX_PATH);
 #else
    FindSkinFile(g_configFiles[0].file, _T("toolbars.cfg"));
@@ -308,6 +328,8 @@ void Quit() {
       while (button) {
          if (button->sName)
             delete button->sName;
+		 if (button->label)
+			 delete button->label;
 			if (button->menu)
 				delete button->menu;
 			if (button->lmenu)
@@ -316,6 +338,12 @@ void Quit() {
             delete button->sToolTip;
 		 if (button->sImagePath)
 			 delete button->sImagePath;
+		 if (button->hotImage)
+			 delete button->hotImage;
+		 if (button->coldImage)
+			 delete button->coldImage;
+		 if (button->deadImage)
+			 delete button->deadImage;
 
          tempbtn = button;
          button = button->next;
@@ -329,7 +357,7 @@ void Quit() {
 }
 
 void DoRebar(HWND rebarWnd) {
-
+   if (!gbLegacy) return;
    s_toolbar   *toolbar = toolbar_head;
    s_button    *button;
    TBBUTTON     *buttons = NULL;
@@ -542,13 +570,10 @@ int ifplugin(char *p)
   return 0;
 }
 
-void LoadToolbars(TCHAR *filename) {
+bool LoadToolbars(TCHAR *filename) {
 
    FILE* configFile = _tfopen(filename, _T("r"));
-   if (!configFile) {
-      MessageBox(NULL, utf8_to_t(_Tr("K-Meleon was not able to find your toolbar settings. Your selected skin may be missing or corrupt. Please, check your skin settings in the GUI appearance section of k-meleon preferences.")), utf8_to_t(_Tr(PLUGIN_NAME)), MB_OK);
-      return;
-   }
+   if (!configFile) return false;
 
    s_toolbar *curToolbar = NULL;
    s_button  *curButton = NULL;
@@ -616,7 +641,7 @@ void LoadToolbars(TCHAR *filename) {
 
 
             int width, height;
-            if (iBuildState == TOOLBAR) {
+            if (iBuildState == TOOLBAR || !curToolbar) {
                width=16;
                height=16;
             }
@@ -685,6 +710,7 @@ void LoadToolbars(TCHAR *filename) {
                }
                else
                   curButton = AddButton(curToolbar, NULL, 0, 0);
+			   EndButton(curToolbar, curButton, iBuildState);
             }
          }
       }
@@ -749,20 +775,15 @@ void LoadToolbars(TCHAR *filename) {
          case HOT:
          case COLD:
          case DEAD:
-			 {
-				 
-				 HIMAGELIST* pImgList = NULL; 
+			 {				 
 				 switch (iBuildState) 
 				 {
-					case HOT: pImgList = &curToolbar->hot; break;
-					case COLD: pImgList = &curToolbar->cold; break;
-					default: pImgList = &curToolbar->dead; break;
+				    case HOT:  curButton->hotImage = strdup(p); break;
+					case COLD: curButton->coldImage = strdup(p); break;
+					default: curButton->deadImage = strdup(p); break;
 				 }
 
-				 if (!pImgList) break;
-				 if (!*pImgList) 
-					 *pImgList = ImageList_Create(curToolbar->width, curToolbar->height, ILC_MASK | (gbIsComCtl6 ? ILC_COLOR32 : ILC_COLORDDB), 10, 10);
-				AddImageToList(curToolbar, curButton, *pImgList, p);
+				AddImageToList(curToolbar, curButton, iBuildState, p);
 			 }
 
             
@@ -772,9 +793,16 @@ void LoadToolbars(TCHAR *filename) {
       }
    } // while
    fclose(configFile);
+   return true;
 }
 
 s_toolbar *AddToolbar(char *name, int width, int height) {
+
+	if (!gbLegacy) {
+		kPlugin.kFuncs->AddToolbar(name, width, height);
+		//return nullptr;
+	}
+
    s_toolbar *newToolbar = new s_toolbar;
    if (name) {
       newToolbar->sTitle = new char[strlen(name) + 1];
@@ -783,6 +811,7 @@ s_toolbar *AddToolbar(char *name, int width, int height) {
    else
       newToolbar->sTitle = NULL;
 
+   
    newToolbar->width = width;
    newToolbar->height = height;
    newToolbar->iButtonCount = 0;
@@ -802,13 +831,24 @@ s_toolbar *AddToolbar(char *name, int width, int height) {
 }
 
 s_button  *AddButton(s_toolbar *toolbar, char *name, int width, int height) {
+   
    s_button *newButton = new s_button; 
-   if (name) {
-      newButton->sName = t_from_utf8(name);
+   
+   if (name) {      
+	  if (name[0] == '!') {
+	   name++;
+	   newButton->label = t_from_utf8(name);
+	   } else {
+		   newButton->label = NULL;
+	   }
+	  newButton->sName = t_from_utf8(name);
    }
-   else
+   else {
       newButton->sName = NULL;
+	  newButton->label = NULL;
+   }
 
+   
    newButton->width = width;
    newButton->height = height;
    newButton->sToolTip = NULL;
@@ -816,9 +856,13 @@ s_button  *AddButton(s_toolbar *toolbar, char *name, int width, int height) {
    newButton->menu = NULL;
    newButton->lmenu = NULL;
    newButton->next = NULL;
-   newButton->prev = toolbar->pButtonTail;
    newButton->sImagePath = NULL;
+   newButton->hotImage = NULL;
+   newButton->coldImage = NULL;
+   newButton->deadImage = NULL;   
 
+   if (!toolbar) return newButton; // !gbLegacy
+   newButton->prev = toolbar->pButtonTail;
 
    if (toolbar->pButtonHead == NULL)
       toolbar->pButtonHead = newButton;
@@ -834,6 +878,42 @@ s_button  *AddButton(s_toolbar *toolbar, char *name, int width, int height) {
 // if no cold or disabled button images have been defined,
 // we'll just have to create some
 void EndButton(s_toolbar *toolbar, s_button *button, int state) {
+   if (!gbLegacy) {
+		char* name = button->sName ? utf8_from_utf16(button->sName) : 0;
+		char* label = button->label ? utf8_from_utf16(button->label) : 0;
+	   char* cmd = nullptr;
+	   if (button->lmenu) {
+		   cmd = (char*)malloc(sizeof(char) * strlen(button->lmenu)+2);
+		   cmd[0] = '@';
+		   cmd[1] = 0;
+		   strcat(cmd, button->lmenu);		   
+	   } 
+
+	   kmeleonButton kbutton = {
+		   name,
+		   label,
+		   button->sToolTip,
+		   cmd ?  cmd : "",
+		   button->menu,
+		   button->hotImage,
+		   button->coldImage ? button->coldImage : button->hotImage,
+		   button->deadImage,
+		   true,
+		   false,
+		   button->iID,
+		   0,
+		   button->width,
+		   button->height
+	   };
+
+	   kPlugin.kFuncs->AddButton(toolbar->sTitle, &kbutton);
+	   if (label) free(label);
+	   if (name) free(name);
+	   if (cmd) free(cmd);
+	   //delete button;
+	   return;
+   }
+
    if (state == COLD) {
       // the following is a very messed up way of creating a new
       // bitmap that is compatible with the image we want it the imagelist
@@ -880,10 +960,12 @@ HBITMAP LoadButtonImage(s_toolbar *pToolbar, s_button *pButton, char *sFile, COL
    if (bgColor) *bgColor =-1;
 
    int index;
-   if (char *p = strchr(sFile, '[')) {
+   TCHAR* _sFile = t_from_utf8(sFile);
+   TCHAR *p = _tcschr(_sFile, _T('['));
+   if (p) {
       *p = 0;
       p = SkipWhiteSpace(p+1);
-      index = atoi(p);
+      index = _ttoi(p);
    }
    else
       index = 0; // set default image index
@@ -903,7 +985,6 @@ HBITMAP LoadButtonImage(s_toolbar *pToolbar, s_button *pButton, char *sFile, COL
    HBITMAP hButton, hBitmap;
    HBRUSH hBrush;
    
-   TCHAR* _sFile = t_from_utf8(sFile);
    UINT flag = LR_LOADFROMFILE | LR_CREATEDIBSECTION;
 
    if (strchr(sFile, '\\')) {
@@ -911,7 +992,7 @@ HBITMAP LoadButtonImage(s_toolbar *pToolbar, s_button *pButton, char *sFile, COL
    }
    else {
       TCHAR fullpath[MAX_PATH];
-      FindSkinFile(fullpath, _sFile);
+      kPlugin.kFuncs->FindSkinFile(_sFile, fullpath, MAX_PATH);
       hBitmap = (HBITMAP)LoadImage(NULL, fullpath, IMAGE_BITMAP, 0, 0, flag);
    }
    free(_sFile);
@@ -929,7 +1010,7 @@ HBITMAP LoadButtonImage(s_toolbar *pToolbar, s_button *pButton, char *sFile, COL
 	GetDIBits(hdcBitmap, hBitmap, 0, 0, NULL, (BITMAPINFO*)&bmpi, DIB_RGB_COLORS);
 	int nCol = ((width*index) % bmpi.header.biWidth) / width;
 	int nLine = bmpi.header.biHeight / height + (width*index) / bmpi.header.biWidth - 1;
-
+	if (nLine<0) return NULL;
 	if (bmpi.header.biBitCount == 32) {
 
 
@@ -1026,16 +1107,28 @@ HBITMAP LoadButtonImage(s_toolbar *pToolbar, s_button *pButton, char *sFile, COL
 
 }
 
-void AddImageToList(s_toolbar *pToolbar, s_button *pButton, HIMAGELIST list, char *sFile) {
+void AddImageToList(s_toolbar *pToolbar, s_button *pButton, int list, char *sFile) {
+	   
+	if (!pToolbar) return; //!gbLegacy
 
+	HIMAGELIST* pImgList = NULL; 
+	switch (list) 
+	{
+		case HOT: pImgList = &pToolbar->hot;  break;
+		case COLD: pImgList = &pToolbar->cold;  break;
+		default: pImgList = &pToolbar->dead;  break;
+	}
+
+	if (!*pImgList) 
+		*pImgList = ImageList_Create(pToolbar->width, pToolbar->height, ILC_MASK | (gbIsComCtl6 ? ILC_COLOR32 : ILC_COLORDDB), 10, 10);
 
    COLORREF bgColor;
    HBITMAP hButton = LoadButtonImage(pToolbar, pButton, sFile, &bgColor);
 
    if (bgColor != -1)
-      ImageList_AddMasked(list, hButton, bgColor);
+      ImageList_AddMasked(*pImgList, hButton, bgColor);
    else
-      ImageList_Add(list, hButton, 0);
+      ImageList_Add(*pImgList, hButton, 0);
 
    DeleteObject(hButton);
 
@@ -1178,23 +1271,21 @@ int AddButtonMsg(char *sParams) {
 	pButton->iID = command;
 
 	if (hot) {
-		if (!pToolbar->hot)
-			pToolbar->hot = ImageList_Create(pToolbar->width, pToolbar->height, ILC_MASK | ILC_COLORDDB, 10, 10);
-		AddImageToList(pToolbar, pButton, pToolbar->hot, hot);
+		AddImageToList(pToolbar, pButton, HOT, hot);
+		pButton->hotImage = strdup(hot);
 	}
 	
 	if (cold) {
-		if (!pToolbar->cold)
-			pToolbar->cold = ImageList_Create(pToolbar->width, pToolbar->height, ILC_MASK | ILC_COLORDDB, 10, 10);
-		AddImageToList(pToolbar, pButton, pToolbar->cold, cold);
+		AddImageToList(pToolbar, pButton, COLD, cold);
+		pButton->hotImage = strdup(cold);
 	}
 
 	if (dead) {
-		if (!pToolbar->dead)
-			pToolbar->dead = ImageList_Create(pToolbar->width, pToolbar->height, ILC_MASK | ILC_COLORDDB, 10, 10);
-		AddImageToList(pToolbar, pButton, pToolbar->dead, dead);
+		AddImageToList(pToolbar, pButton, DEAD, dead);
+		pButton->hotImage = strdup(dead);
 	}
 
+	EndButton(pToolbar, pButton, !cold? COLD : DEAD);
 	return 1;
 }
 
@@ -1248,17 +1339,18 @@ void SetButtonImage(char *sParams) {//WORD iToolbar, WORD iButton, char *sImage)
 
    // Get ToolbarID param
    char *p = SkipWhiteSpace(sParams);
-   char *c = strchr(sParams, ',');
-   if (!c) return;
-   *c = 0;  // terminate string
+   char *name = p;
+   char *d = strchr(sParams, ',');
+   if (!d) return;
+   *d = 0;  // terminate string
    int iToolbar = atoi(p);
    if (!iToolbar)
       iToolbar = GetToolbarID(p);
-   *c = ','; // replace comma
+   
 
    // Get BUTTON_ID param   
-   p = SkipWhiteSpace(c+1);
-   c = strchr(p, ',');
+   p = SkipWhiteSpace(d+1);
+   char *c = strchr(p, ',');
    if (!c) return;
    *c = 0;  // terminate string
    int iButton = atoi(p);
@@ -1287,9 +1379,21 @@ void SetButtonImage(char *sParams) {//WORD iToolbar, WORD iButton, char *sImage)
    // get image param
    char *sImage = SkipWhiteSpace(c+1);
 
+   if (!gbLegacy) {
+	   kmeleonButton b = {0};
+	   b.checked = -1;
+	   b.enabled = -1;
+	   b.hotimage = b.deadimage = b.coldimage = nullptr;
+	   switch(iImagelist) {
+		case IMAGELIST_HOT:b.hotimage = sImage; break;
+		case IMAGELIST_COLD:b.coldimage = sImage; break;
+		case IMAGELIST_DEAD:b.deadimage = sImage; break;
+	   }
+
+	   kPlugin.kFuncs->SetButton(name, iButton, &b);
+   }
    
-   
-   
+   *d = ','; // replace comma
    
    s_toolbar *pToolbar = FindToolbar(iToolbar);
    if (!pToolbar)
@@ -1324,8 +1428,7 @@ void SetButtonImage(char *sParams) {//WORD iToolbar, WORD iButton, char *sImage)
       HBITMAP hMask = CreateBitmap(pButton->width, pButton->height, 1, 1, NULL);
       SelectObject(hdcMask, hMask);   
       SetBkColor(hdcButton, bgColor);
-      BitBlt(hdcMask, 0, 0, pButton->width, pButton->height, hdcButton, 0, 0, SRCCOPY);
-      DeleteObject(hdcButton);
+      BitBlt(hdcMask, 0, 0, pButton->width, pButton->height, hdcButton, 0, 0, SRCCOPY);      
       DeleteObject(hdcMask);
 	  ImageList_Replace(hImgList, index, hButton, hMask);
       DeleteObject(hMask);
@@ -1333,6 +1436,7 @@ void SetButtonImage(char *sParams) {//WORD iToolbar, WORD iButton, char *sImage)
    else
       ImageList_Replace(hImgList, index, hButton, 0);
 
+   DeleteObject(hdcButton);
    DeleteObject(hButton);
 
    // force the toolbar to reload the image from the imagelist
@@ -1358,23 +1462,29 @@ void EnableButton(char *sParams) {
    int iToolbar = atoi(p);
    if (!iToolbar)
       iToolbar = GetToolbarID(p);
-   *c = ','; // replace comma
+   
 
    // Get BUTTON_ID param   
-   p = SkipWhiteSpace(c+1);
-   c = strchr(p, ',');
-   if (!c) return;
-   *c = 0;  // terminate string
-   int iButton = atoi(p);
+   char* q = SkipWhiteSpace(c+1);
+   char* d = strchr(p, ',');
+   if (!d) return;
+   *d = 0;  // terminate string
+   int iButton = atoi(q);
    if (!iButton)
-      iButton = kPlugin.kFuncs->GetID(p);
-   *c = ','; // replace comma
+      iButton = kPlugin.kFuncs->GetID(q);
+   *d = ','; // replace comma
 
    // Get STATE param   
-   p = SkipWhiteSpace(c+1);
+   p = SkipWhiteSpace(d+1);
    int iState = atoi(p);
 
-
+   if (!gbLegacy) {
+	   kmeleonButton b;
+	   b.enabled = iState;
+	   b.checked = -1;
+	   kPlugin.kFuncs->SetButton(p, iButton, &b);
+   }
+   *c = ','; // replace comma
 
    s_toolbar *pToolbar = FindToolbar(iToolbar);
    if (!pToolbar)
@@ -1404,15 +1514,21 @@ int IsButtonEnabled(char *sParams) {
    int iToolbar = atoi(p);
    if (!iToolbar)
       iToolbar = GetToolbarID(p);
+   
+   // Get BUTTON_ID param   
+   char* q = SkipWhiteSpace(c+1);
+   int iButton = atoi(q);
+   if (!iButton)
+      iButton = kPlugin.kFuncs->GetID(q);
+   
+	if (!gbLegacy) {
+	   kmeleonButton b;
+	   kPlugin.kFuncs->GetButton(p, iButton, &b);
+	   *c = ','; // replace comma
+	   return b.enabled;
+   }
    *c = ','; // replace comma
 
-   // Get BUTTON_ID param   
-   p = SkipWhiteSpace(c+1);
-   int iButton = atoi(p);
-   if (!iButton)
-      iButton = kPlugin.kFuncs->GetID(p);
-   
-   
    
    s_toolbar *pToolbar = FindToolbar(iToolbar);
    if (!pToolbar)
@@ -1434,7 +1550,7 @@ int IsButtonEnabled(char *sParams) {
 void CheckButton(char *sParams) {
 
    // sParams = "ToolbarID, BUTTON_ID, STATE"
-
+   
    // Get ToolbarID param
    char *p = SkipWhiteSpace(sParams);
    char *c = strchr(sParams, ',');
@@ -1443,24 +1559,29 @@ void CheckButton(char *sParams) {
    int iToolbar = atoi(p);
    if (!iToolbar)
       iToolbar = GetToolbarID(p);
-   *c = ','; // replace comma
+   
 
    // Get BUTTON_ID param   
-   p = SkipWhiteSpace(c+1);
-   c = strchr(p, ',');
+  char* q = SkipWhiteSpace(c+1);
+   char *d = strchr(q, ',');
    if (!c) return;
-   *c = 0;  // terminate string
-   int iButton = atoi(p);
+   *d = 0;  // terminate string
+   int iButton = atoi(q);
    if (!iButton)
-      iButton = kPlugin.kFuncs->GetID(p);
-   *c = ','; // replace comma
-
+      iButton = kPlugin.kFuncs->GetID(q);
+   *d = ','; // replace comma
+   
    // Get STATE param   
-   p = SkipWhiteSpace(c+1);
-   int iState = atoi(p);
+   q = SkipWhiteSpace(d+1);
+   int iState = atoi(q);
 
-
-
+   if (!gbLegacy) {
+	   kmeleonButton b = {0};
+	   b.checked = iState;
+	   b.enabled = -1;
+	   kPlugin.kFuncs->SetButton(p, iButton, &b);
+   }
+   *c = ','; // replace comma
    s_toolbar *pToolbar = FindToolbar(iToolbar);
    if (!pToolbar)
       return;
@@ -1490,16 +1611,22 @@ int  IsButtonChecked(char *sParams) {
    int iToolbar = atoi(p);
    if (!iToolbar)
       iToolbar = GetToolbarID(p);
-   *c = ','; // replace comma
+  
 
    // Get BUTTON_ID param   
-   p = SkipWhiteSpace(c+1);
-   int iButton = atoi(p);
+   char* q = SkipWhiteSpace(c+1);
+   int iButton = atoi(q);
    if (!iButton)
-      iButton = kPlugin.kFuncs->GetID(p);
+      iButton = kPlugin.kFuncs->GetID(q);
    
-   
-   
+   if (!gbLegacy) {
+	   kmeleonButton b;
+	   kPlugin.kFuncs->GetButton(p, iButton, &b);
+	   *c = ','; // replace comma
+	   return b.checked;
+   }
+    *c = ','; // replace comma
+
    s_toolbar *pToolbar = FindToolbar(iToolbar);
    if (!pToolbar)
       return NULL;
