@@ -132,7 +132,7 @@ CTabReBar::CTabReBar()
 
 	theApp.preferences.GetString(PREFERENCE_REBAR_TITLE, szTitle, _T(""));
 	mButtonStyle = theApp.preferences.GetInt(PREFERENCE_BUTTON_STYLE, 2);
-	mMultiline = theApp.preferences.GetBool(PREFERENCE_REBAR_MULTILINE, 0);	
+	mMultiline = theApp.preferences.GetInt(PREFERENCE_REBAR_MULTILINE, 0);	
 }
 
 CTabReBar::~CTabReBar()
@@ -151,30 +151,21 @@ BOOL CTabReBar::Create(CReBarEx* rebar, UINT idwnd)
 
 		if (!mFixedBar && !mPosBar) {
 			rebar->RegisterBand(m_hWnd, _T("Tabs"), false);
-			rebar->AddBar(this, szTitle, 0, RBBS_USECHEVRON | RBBS_FIXEDBMP );
+			rebar->AddBar(this, szTitle, 0, RBBS_USECHEVRON | RBBS_FIXEDBMP | RBBS_VARIABLEHEIGHT);
 
-			REBARBANDINFO rbBand = {0};
+			/*REBARBANDINFO rbBand = {0};
 			rbBand.cbSize = sizeof(REBARBANDINFO);  
 			rbBand.fMask  =  RBBIM_BACKGROUND;// RBBIM_SIZE |RBBIM_CHILDSIZE;
-			rbBand.hbmBack = theApp.preferences.bToolbarBackground ? (HBITMAP)CBrowserFrame::m_bmpBack : NULL;
-
-			// Get the width & height of the toolbar.
-			// SIZE size;
-			// GetToolBarCtrl().GetMaxSize(&size);
-
-			//rbBand.cxMinChild = 0;
-			//rbBand.cyMinChild = size.cy + 5;
-			//rbBand.cyIntegral = 1;
-			//rbBand.cyMaxChild = rbBand.cyMinChild * 2;
+			rbBand.hbmBack = theApp.preferences.bToolbarBackground ? theApp.skin.GetBackImage() : NULL;
 
 			int iband = rebar->FindByName(_T("Tabs"));
-			rebar->GetReBarCtrl().SetBandInfo(iband, &rbBand);			
+			rebar->GetReBarCtrl().SetBandInfo(iband, &rbBand);		*/	
 		} else {
 			mTemp = new CReBarEx();
 			mTemp->Create(GetParentFrame(), RBS_BANDBORDERS, WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS|WS_CLIPCHILDREN|(mBottomBar ? CBRS_ALIGN_BOTTOM  : CBRS_TOP));
 			mTemp->AddBar(this, szTitle, NULL,  RBBS_USECHEVRON | RBBS_NOGRIPPER | RBBS_VARIABLEHEIGHT);
 			mTemp->SetWindowText(_T("TabsBar"));
-			
+
 			if (mPosBar == POSITION_VTOP) {
 				rebar->SetWindowPos(mTemp ,0,0,0,0,SWP_NOMOVE);
 				//rebar->SetBarStyle(rebar->m_dwStyle | CBRS_BORDER_BOTTOM);
@@ -226,7 +217,7 @@ BOOL CTabReBar::Init(CReBarEx* rebar)
 		mTemp->GetReBarCtrl().SetBandInfo(0, &rbi);
 
 		if (!mBottomBar && theApp.preferences.bToolbarBackground) {
-			rbi.hbmBack = CBrowserFrame::m_bmpBack;
+			rbi.hbmBack = theApp.skin.GetBackImage();
 			rbi.fMask = RBBIM_BACKGROUND;
 			mTemp->GetReBarCtrl().SetBandInfo(0, &rbi);
 			mTemp->GetReBarCtrl().SetBandInfo(1, &rbi);
@@ -265,7 +256,7 @@ BOOL CTabReBar::Init(CReBarEx* rebar)
 
 void CTabReBar::FixMaximizeRestoreRebarBug()
 {
-	if (!mMultiline) return;
+	if (mMultiline<2) return;
 
 	// Setting the height to 0 then reset the correct size. 
 	// Else the rebar doesn't update its height.
@@ -292,11 +283,8 @@ void CTabReBar::UpdateButtonsSize(bool forceUpdate)
 	if (!count) return;
 
 	int nButtonMinWidth = theApp.preferences.GetInt(PREFERENCE_BUTTON_MINWIDTH, 10);
-	int nButtonMaxWidth = theApp.preferences.GetInt(PREFERENCE_BUTTON_MAXWIDTH, 35);
-	
-	// If the sizes are 0 the toolbar get crazy so avoid it!
+	int nButtonMaxWidth = theApp.preferences.GetInt(PREFERENCE_BUTTON_MAXWIDTH, 35);	
 	if (nButtonMinWidth>nButtonMaxWidth) nButtonMaxWidth = nButtonMinWidth;
-	if (nButtonMaxWidth < 24) nButtonMaxWidth = nButtonMinWidth = 16;
 
 	CDC dc;
 	dc.CreateDC(_T("DISPLAY"), NULL, NULL, NULL);
@@ -308,6 +296,11 @@ void CTabReBar::UpdateButtonsSize(bool forceUpdate)
 	int nMinWidth = nButtonMinWidth * nHRes / nHSize;
 	int nMaxWidth = nButtonMaxWidth * nHRes / nHSize;
 
+	int hp, vp;
+	GetToolBarCtrl().GetPadding(hp, vp);
+	if (nMinWidth < theApp.skin.GetUserWidth())
+		nMinWidth = theApp.skin.GetUserWidth() + hp;
+
 	CRect rect;
 	GetWindowRect(&rect);
 	mChevron = FALSE;
@@ -317,11 +310,12 @@ void CTabReBar::UpdateButtonsSize(bool forceUpdate)
 	if (width<=0) return; // when minimized
 	int buttonWidth = width / count, nline = 1;
 	
-	if (mMultiline) {
-		while (buttonWidth < nMinWidth && nline < 3 && nline < count)
+	if (mMultiline>1) {
+		while (buttonWidth < nMinWidth && nline < mMultiline) {
 			buttonWidth = ++nline*width / count;
-		if (width/buttonWidth*nline < count)
-			buttonWidth--;
+			while (buttonWidth>0 && width/buttonWidth*nline < count)
+				buttonWidth--;
+		}
 	}
 	
 	if (buttonWidth > nMaxWidth)
@@ -331,7 +325,8 @@ void CTabReBar::UpdateButtonsSize(bool forceUpdate)
 		buttonWidth = nMinWidth;
 		if (width>nMinWidth)
 			buttonWidth = width / (width/nMinWidth);
-	}	
+	} else if (buttonWidth < nMinWidth + nMinWidth/2)
+		buttonWidth = nMinWidth;
 	
 	DWORD bsize = GetToolBarCtrl().GetButtonSize();
 	int w = LOWORD(bsize), h = HIWORD(bsize);
@@ -343,13 +338,15 @@ void CTabReBar::UpdateButtonsSize(bool forceUpdate)
 	if (w != buttonWidth)
 		GetToolBarCtrl().SetButtonWidth(--buttonWidth, buttonWidth);
 
+	
+
 	SIZE size;
 	GetToolBarCtrl().GetMaxSize(&size);
 
 	// Set the ideal size for chevron
 	REBARBANDINFO rb = {0};
 	rb.cbSize = sizeof(REBARBANDINFO);
-	rb.fMask  = RBBIM_IDEALSIZE | (mMultiline ? RBBIM_CHILDSIZE : 0);  
+	rb.fMask  = RBBIM_IDEALSIZE | (mMultiline>1 ? RBBIM_CHILDSIZE : 0);  
 	rb.cxIdeal = buttonWidth*(count/nline);//size.cx;
 	rb.cxMinChild = 0;
 	rb.cyChild = rb.cyMinChild = rb.cyMaxChild = h *nline;
@@ -782,8 +779,10 @@ void CTabReBar::OnTbnGetDispInfo(NMHDR *pNMHDR, LRESULT *pResult)
 void CTabReBar::OnLButtonDown(UINT nFlags, CPoint point)
 {
 	int buttonID = GetButtonIDFromPoint(point);
-	if (buttonID<0)
-		GetParentFrame()->SendMessage(WM_SYSCOMMAND, SC_MOVE+1, MAKELPARAM(point.x,point.y));
+	if (buttonID<0) {
+		if (!GetParentFrame()->IsZoomed())
+			GetParentFrame()->SendMessage(WM_SYSCOMMAND, SC_MOVE+1, MAKELPARAM(point.x,point.y));
+	}
 	else
 		CToolBar::OnLButtonDown(nFlags,point);
 }

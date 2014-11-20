@@ -130,7 +130,7 @@ protected:
 	UINT mPosBar;
 	BOOL mFixedBar;
 	BOOL mChevron;
-	BOOL mMultiline;
+	unsigned mMultiline;
 	
 	int GetButtonIDFromData(DWORD data);
 	

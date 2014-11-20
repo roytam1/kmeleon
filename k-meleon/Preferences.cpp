@@ -22,7 +22,7 @@
 #include "kmeleon_plugin.h"
 
 #include "MfcEmbed.h"
-#include "BrowserFrm.h"
+#include "BrowserFrmTab.h"
 extern CMfcEmbedApp theApp;
 
 #include "Preferences.h"
@@ -191,6 +191,43 @@ void CPreferences::MRUListChanged()
 
 void CPreferences::SkinChanged()
 {
+	skinsCurrent = GetString("kmeleon.general.skinsCurrent", skinsCurrent);
+	if (!theApp.skin.Init(skinsCurrent))
+		return;
+
+	CBrowserFrame* pBrowserFrame = NULL;
+	POSITION pos = theApp.m_FrameWndLst.GetHeadPosition();
+	while( pos != NULL ) {
+		pBrowserFrame = (CBrowserFrame *) theApp.m_FrameWndLst.GetNext(pos);
+		pBrowserFrame->SetBackImage();
+		pBrowserFrame->m_wndReBar.RedrawWindow(0, 0, RDW_INVALIDATE | RDW_UPDATENOW | RDW_ERASE | RDW_ALLCHILDREN);
+		if (pBrowserFrame->IsKindOf(RUNTIME_CLASS(CBrowserFrmTab))) {
+
+		}
+		/*pBrowserFrame->m_wndReBar.Invalidate();
+		pBrowserFrame->m_wndReBar.UpdateWindow();
+		CReBarCtrl& rc = pBrowserFrame->m_wndReBar.GetReBarCtrl ();
+
+		REBARBANDINFO info;
+		memset (&info, 0, sizeof (REBARBANDINFO));
+		info.cbSize = sizeof (info);
+		info.fMask = RBBIM_CHILD;
+
+		int count = rc.GetBandCount();
+		for (int i = 0; i < count; i++)  {
+			CRect rectBand;
+			rc.GetRect (i, rectBand);
+			rc.InvalidateRect (rectBand);
+			rc.UpdateWindow ();		
+			rc.GetBandInfo (i, &info);
+			if (info.hwndChild != NULL)
+			{
+				::InvalidateRect (info.hwndChild, NULL, TRUE);
+				::UpdateWindow (info.hwndChild);
+			}
+		}*/
+	}
+
 	/*CString skinFile;
 	CString skin = GetString("kmeleon.general.skinsCurrent", skinsCurrent);
 	theApp.FindSkinFile(skinFile, _T("skin.js"), skin, false);
@@ -334,7 +371,7 @@ void CPreferences::Load() {
       currentSkinFolder = skinsFolder + _T("\\") + skinsCurrent;
    
    CString skin;
-   if (theApp.FindSkinFile(skin, _T("skin.js"))) {
+   if (theApp.skin.FindSkinFile(skin, _T("skin.js"), skinsCurrent)) {
 	  nsCOMPtr<nsIFile> file;
       NS_NewLocalFile(CStringToNSString(skin), false, getter_AddRefs(file));   
 	  m_prefservice->SavePrefFile(nullptr);

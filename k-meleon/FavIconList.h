@@ -22,29 +22,7 @@
 
 #include "afxtempl.h"
 
-#include "imgIRequest.h"
-#include "imgINotificationObserver.h"
-
 class CFavIconList;
-
-class IconObserver : public imgINotificationObserver
-					 
-
-{
-	NS_DECL_ISUPPORTS
-	NS_DECL_IMGINOTIFICATIONOBSERVER
-
-	IconObserver(CFavIconList* favlist) : mFavList(favlist) {}
-	virtual ~IconObserver() { }
-
-	NS_IMETHOD LoadIcon(nsIURI* iconUri, nsIURI* pageUri);
-
-protected:
-	CFavIconList* mFavList;
-	nsCOMPtr<imgIRequest> mRequest;
-	nsCOMPtr<nsIURI> mPageUri;
-	NS_IMETHOD CreateDIB(imgIRequest *aRequest);
-};
 
 class CFavIconList : public CImageList
 {
@@ -53,6 +31,7 @@ private:
 	int m_iDefaultIcon;
 	int m_iLoadingIcon;
 	int m_iOffset;
+	unsigned mWidth, mHeight;
 	//nsCOMPtr<IconObserver> mIconObserver;
 	
 	void AddMap(const char *uri, int index, const char* pageUri = nullptr);

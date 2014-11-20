@@ -25,6 +25,9 @@
 
 #include "stdafx.h"
 #include "ToolBarEx.h"
+#include "KmToolbar.h"
+#include "MfcEmbed.h" 
+#include "VisualStylesXP.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -48,21 +51,201 @@ BEGIN_MESSAGE_MAP(CToolBarEx, CToolBar)
 	//{{AFX_MSG_MAP(CToolBarEx)
 	ON_WM_LBUTTONDOWN()
 	ON_WM_LBUTTONUP()
-        ON_WM_LBUTTONDBLCLK()
+	ON_WM_LBUTTONDBLCLK()
 	ON_WM_MBUTTONUP()
 	ON_WM_MBUTTONDOWN()
-        ON_WM_MBUTTONDBLCLK()
+	ON_WM_MBUTTONDBLCLK()
 	ON_WM_RBUTTONUP()
 	ON_WM_RBUTTONDOWN()
-        ON_WM_RBUTTONDBLCLK()
+	ON_WM_RBUTTONDBLCLK()
 	ON_WM_TIMER()
+	ON_NOTIFY_EX_RANGE(TTN_NEEDTEXT, 0, 0xffff, OnTbnGetDispInfo) 
+	ON_NOTIFY_REFLECT(NM_CUSTOMDRAW, OnNMCustomdraw)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
 // CToolBarEx message handlers
 
+void CToolBarEx::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
+{	
+	*pResult = CDRF_DODEFAULT;
+	KmToolbar* kmtoolbar = (KmToolbar*)GetProp(GetSafeHwnd(), L"KmToolbar");
+	if (!kmtoolbar) return;
 
+	LPNMTBCUSTOMDRAW pNMCD = reinterpret_cast<LPNMTBCUSTOMDRAW>(pNMHDR);
+	switch(pNMCD->nmcd.dwDrawStage)
+	{
+	case CDDS_PREPAINT:
+		break;
+	
+	case CDDS_POSTPAINT:
+		break; 
+		
+
+	case CDDS_ITEMPOSTPAINT:
+		break;
+
+	case CDDS_ITEMPREPAINT: {
+		HTHEME hTheme = NULL;
+		if (g_xpStyle.IsThemeActive() && g_xpStyle.IsAppThemed())// && (SendMessage(0x0129, 0, 0) & 0x4))
+			hTheme = g_xpStyle.OpenThemeData (m_hWnd, L"TOOLBAR");
+		
+		CDC *pDC = CDC::FromHandle(pNMCD->nmcd.hdc);
+		pDC->SetBkMode(TRANSPARENT);
+		pDC->SelectObject(GetFont());
+		int index = CommandToIndex(pNMCD->nmcd.dwItemSpec);
+		UINT style = GetButtonStyle(index);
+
+		CRect contentRect(pNMCD->nmcd.rc); 
+		int stateId = TS_NORMAL;
+
+		if (hTheme) {
+
+			if (pNMCD->nmcd.uItemState & CDIS_DISABLED)
+				stateId = TS_DISABLED;
+			else if (pNMCD->nmcd.uItemState & CDIS_SELECTED)
+				stateId = TS_PRESSED;		
+			else if (pNMCD->nmcd.uItemState & CDIS_HOT && pNMCD->nmcd.uItemState & CDIS_CHECKED)
+				stateId = TS_HOTCHECKED; 
+			else if (pNMCD->nmcd.uItemState & CDIS_CHECKED)
+				stateId = TS_CHECKED;
+			else if (pNMCD->nmcd.uItemState & CDIS_HOT)
+				stateId = TS_HOT;
+
+			g_xpStyle.DrawThemeBackground(hTheme, pDC->m_hDC, TP_BUTTON, stateId, &pNMCD->nmcd.rc, NULL);
+			g_xpStyle.GetThemeBackgroundContentRect(hTheme, pDC->m_hDC, TP_BUTTON, stateId, &pNMCD->nmcd.rc, &contentRect);
+		}
+		else
+		{	
+			UINT nState = DFCS_FLAT;
+			//CBrush brBackground(GetSysColor(COLOR_BTNFACE));
+			//pDC->FillRect(&pNMCD->nmcd.rc, &brBackground);
+			if (pNMCD->nmcd.uItemState & CDIS_DISABLED)
+				nState = DFCS_INACTIVE;
+			else if (pNMCD->nmcd.uItemState & CDIS_SELECTED)
+				nState = DFCS_PUSHED;		
+			else if(pNMCD->nmcd.uItemState & CDIS_HOT && pNMCD->nmcd.uItemState & CDIS_CHECKED)
+				nState = DFCS_CHECKED | DFCS_HOT; 
+			else if (pNMCD->nmcd.uItemState & CDIS_CHECKED)
+				nState = DFCS_CHECKED;
+			else if (pNMCD->nmcd.uItemState & CDIS_HOT)
+				nState = DFCS_HOT;
+
+			if (nState != DFCS_FLAT) {
+				nState |= 0x0800 | DFCS_BUTTONPUSH | DFCS_ADJUSTRECT;
+				pDC->DrawFrameControl(&pNMCD->nmcd.rc, DFC_BUTTON, nState);
+			}			
+		}
+		
+		UINT textFlag = DT_LEFT | DT_SINGLELINE | DT_VCENTER | DT_HIDEPREFIX | DT_WORD_ELLIPSIS;
+		
+		CString text;
+		KmButton* kmbutton = kmtoolbar->GetButton(pNMCD->nmcd.dwItemSpec);
+		if (kmbutton) text = kmbutton->mLabel;		
+
+		int image = I_IMAGENONE;
+		if (!kmtoolbar->mCold.m_hImageList) {
+			image = theApp.skin.GetIconIndex(pNMCD->nmcd.dwItemSpec);
+		} else {
+			TBBUTTONINFO bi;
+			bi.cbSize = sizeof(TBBUTTONINFO);
+			bi.dwMask = TBIF_IMAGE;
+			GetToolBarCtrl().GetButtonInfo(pNMCD->nmcd.dwItemSpec, &bi);
+			image = bi.iImage;
+		}
+
+		CImageList* imageList;
+		if (pNMCD->nmcd.uItemState & CDIS_DISABLED)
+			imageList = GetToolBarCtrl().GetDisabledImageList();
+		else if (pNMCD->nmcd.uItemState & CDIS_SELECTED)
+			imageList = GetToolBarCtrl().GetHotImageList();
+		else if(pNMCD->nmcd.uItemState & CDIS_HOT && pNMCD->nmcd.uItemState & CDIS_CHECKED)
+			imageList = GetToolBarCtrl().GetHotImageList();
+		else if (pNMCD->nmcd.uItemState & CDIS_CHECKED)
+			imageList = GetToolBarCtrl().GetHotImageList();
+		else if (pNMCD->nmcd.uItemState & CDIS_HOT)
+			imageList = GetToolBarCtrl().GetHotImageList();
+		else
+			imageList = GetToolBarCtrl().GetImageList();
+	
+		CPoint imagePoint;
+		CRect textRect;
+
+		int hp, vp;
+		GetToolBarCtrl().GetPadding(hp, vp);
+		hp /= 2;
+
+		int btMargin = 0;
+		int iconPadding = 4;
+
+		if (pNMCD->nmcd.uItemState & CDIS_SELECTED || pNMCD->nmcd.uItemState & CDIS_CHECKED)
+			contentRect.OffsetRect(1,1);
+
+		IMAGEINFO ii;
+		ii.rcImage = CRect(0, 0, 16, 16);
+		if (imageList)
+		{
+			imageList->GetImageInfo(image, &ii);
+			if (ii.hbmMask) DeleteObject(ii.hbmMask);
+			if (ii.hbmImage) DeleteObject(ii.hbmImage);
+
+			imagePoint.y = contentRect.top + (contentRect.Height() - ii.rcImage.bottom + ii.rcImage.top)/2;
+			imagePoint.x = hp + contentRect.left;
+			imageList->Draw(pDC, image, imagePoint, ILD_TRANSPARENT);
+			contentRect.left += 2*hp + ii.rcImage.right - ii.rcImage.left;
+		}		
+		
+		if (text.GetLength()) {
+			if (hTheme) {
+				USES_CONVERSION;
+				g_xpStyle.DrawThemeText(hTheme, pDC->m_hDC, TP_BUTTON, stateId,
+					T2CW(text), text.GetLength(), textFlag, 0, &contentRect);
+			}
+			else {
+				pDC->SetTextColor(::GetSysColor(COLOR_BTNTEXT));
+				pDC->SetBkColor(::GetSysColor(COLOR_BTNFACE));
+				pDC->DrawText(text, -1, &contentRect, textFlag);
+			}
+		}
+
+		g_xpStyle.CloseThemeData(hTheme);
+		*pResult = CDRF_SKIPDEFAULT;
+		break;
+	}
+	}
+	if (theApp.preferences.GetBool("kmeleon.display.toolbars_alt", 0));
+		*pResult |= CDRF_NOTIFYITEMDRAW;
+}
+
+BOOL CToolBarEx::OnTbnGetDispInfo(UINT, NMHDR * pNotifyStruct, LRESULT* pResult)
+{
+	static CString text;
+	*pResult = 0;
+	KmToolbar* toolbar = (KmToolbar*)GetProp(GetSafeHwnd(), _T("kmToolbar"));
+	if (!toolbar) return FALSE;
+	
+	KmButton* button;
+	if (!(button = toolbar->GetButton(pNotifyStruct->idFrom)))
+		return FALSE;
+
+	TOOLTIPTEXT* pTTT = (TOOLTIPTEXT*)pNotifyStruct;
+	if (button->mTooltip.GetLength()) {
+		pTTT->lpszText = (LPTSTR)theApp.lang.Translate(button->mTooltip);
+	}
+	else {
+		if (button->mMenuName) {
+			if (!text.LoadString(pNotifyStruct->idFrom))
+				return FALSE;
+			text += L"\n";
+			text.AppendFormat(IDS_MORE_OPTIONS);
+			pTTT->lpszText = text.GetBuffer();
+		} else
+			pTTT->lpszText = MAKEINTRESOURCE(pNotifyStruct->idFrom);
+	}
+
+	return TRUE;
+}
 
 int CToolBarEx::GetButtonIDFromPoint(CPoint *point) {
 	int count = GetToolBarCtrl().GetButtonCount();

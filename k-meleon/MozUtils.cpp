@@ -29,6 +29,9 @@
 #include "nsIWebBrowserFocus.h"
 #include "nsIURIFixup.h"
 
+#include "nsIZipReader.h"
+#include "nsIStringEnumerator.h"
+
 nsString CStringToNSString(LPCTSTR aStr)
 {
 	USES_CONVERSION;
@@ -555,4 +558,72 @@ CString GetSearchURL(LPCTSTR query)
 	nsCString spec;
 	uri->GetSpec(spec);
 	return NSCStringToCString(spec);
+}
+
+bool ZipExtractFiles(nsIFile* zipFile, nsIFile* folder) 
+{
+	nsresult rv;
+	nsCOMPtr<nsIZipReader> zipReader = do_GetService("@mozilla.org/libjar/zip-reader;1");
+	if (!zipReader) return false;
+
+	rv = zipReader->Open(zipFile);
+	NS_ENSURE_SUCCESS(rv, false);
+
+	nsCOMPtr<nsIUTF8StringEnumerator> entries;
+	zipReader->FindEntries(NS_LITERAL_CSTRING("*/"), getter_AddRefs(entries));
+
+	while (1) {
+		bool hasMore;
+		entries->HasMore(&hasMore);
+		if (!hasMore) break;
+		nsCString e;
+		entries->GetNext(e);
+
+		nsCOMPtr<nsIFile> target;
+		folder->Clone(getter_AddRefs(target));
+		while (e.FindChar('/')) {				
+			target->Append(CStringToNSString(NSCStringToCString(e).Left(e.FindChar('/'))));
+			e.Cut(0, e.FindChar('/'));
+		}
+			
+		bool exists;
+		target->Exists(&exists);
+		if (!exists) {
+			rv = target->Create(nsIFile::DIRECTORY_TYPE, 0);
+			NS_ENSURE_SUCCESS(rv, false);
+		}
+	}
+
+	zipReader->FindEntries(NS_LITERAL_CSTRING("*"), getter_AddRefs(entries));
+	while (1) {
+		bool hasMore;
+		entries->HasMore(&hasMore);
+		if (!hasMore) break;
+		nsCString e;
+		entries->GetNext(e);
+
+		nsCOMPtr<nsIFile> target;
+		folder->Clone(getter_AddRefs(target));
+		nsCString ee = e;
+		while (ee.FindChar('/')!=-1) {				
+			target->Append(CStringToNSString(NSCStringToCString(e).Left(ee.FindChar('/'))));
+			ee.Cut(0, e.FindChar('/')+1);
+		}
+		target->Append(NS_ConvertUTF8toUTF16(ee));
+		bool exists;
+		target->Exists(&exists);
+		ee.get();
+		if (exists) {
+			bool dir;
+			target->IsDirectory(&dir);
+			if (dir) continue;
+			target->Remove(false);
+		}
+
+		rv = zipReader->Extract(e, target);
+		NS_ENSURE_SUCCESS(rv, false);
+	}
+
+	zipReader->Close();
+	return true;
 }

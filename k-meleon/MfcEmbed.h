@@ -49,7 +49,9 @@
 #include "Preferences.h"
 #include "LangParser.h"
 #include "KmMenu.h"
+#include "KmToolbar.h"
 #include "KmCommand.h"
+#include "KmSkin.h"
 #include "AccelParser.h"
 #include "KmeleonConst.h"
 #include "CmdLine.h"
@@ -101,7 +103,8 @@ public:
    void DrawWindowListMenu(HMENU menu);
    void BroadcastMessage(UINT Msg, WPARAM wParam, LPARAM lParam);
    inline HICON GetDefaultIcon(BOOL large = FALSE) {HICON ret; large ? ret = m_hMainIcon : ret = m_hSmallIcon; return ret;}
-   bool FindSkinFile( CString& szSkinFile, LPCTSTR filename , LPCTSTR skin = nullptr, bool searchUser = true );
+   //bool FindSkinFile( CString& szSkinFile, LPCTSTR filename , LPCTSTR skin = nullptr, bool searchUser = true );
+   //HICON LoadSkinIcon(LPCTSTR aSkinFile, UINT resID = 0);
    CString GetFolder(FolderType folder);
 
    nsresult SetOffline(BOOL offline);
@@ -131,6 +134,8 @@ public:
    CLangParser   lang;
    KmMenuService menus;
    KmCmdService  commands;
+   KmToolbarService toolbars;
+   KmSkin skin;
    CAccelParser  accel;
    CCmdLine      cmdline;
 #ifdef INTERNAL_SITEICONS

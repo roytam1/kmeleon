@@ -228,7 +228,6 @@ public:
 	CSideBar        m_wndSideBar;
 #endif
 
-	static CBitmap m_bmpBack;
 	friend CBrowserGlue;
 	DECLARE_DYNAMIC(CBrowserFrame);
 
@@ -260,15 +259,14 @@ public:
 	INT_PTR DoModal();
 
 	HWND CreateToolbar(UINT style);
-
+	void SetBackImage ();
 
 
 protected:
 	int InitLayout();
 	void SetupFrameChrome();
 
-	void LoadBackImage (BOOL force = FALSE);
-	void SetBackImage ();
+	
 	void SaveWindowPos();
 	void OnFind(BOOL backward = FALSE);
 #ifdef INTERNAL_SITEICONS
@@ -332,6 +330,7 @@ protected:
 	afx_msg LRESULT OnEnterSizeMove(WPARAM, LPARAM); 
 	afx_msg LRESULT OnExitSizeMove(WPARAM, LPARAM); 
 	afx_msg void OnRbnLayoutChanged(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg BOOL OnToolTipText(UINT, NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnInitMenuPopup(CMenu* pPopupMenu, UINT nIndex, BOOL bSysMenu);
 	afx_msg void OnUpdateViewStatusBar(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateNothing(CCmdUI* pCmdUI) { pCmdUI->Enable(); };
@@ -354,7 +353,8 @@ protected:
 	afx_msg void OnMinimizeWindow();
 	afx_msg void OnRestoreWindow();
 	afx_msg void OnToggleWindow();
-	afx_msg LRESULT OnToobarContextMenu(WPARAM wParam, LPARAM lParam);
+	afx_msg LRESULT OnToolbarContextMenu(WPARAM wParam, LPARAM lParam);
+	afx_msg LRESULT OnToolbarCommand(WPARAM wParam, LPARAM lParam);
 	afx_msg void OnMenuSelect(UINT nItemID, UINT nFlags, HMENU hSysMenu);
 	//}}AFX_MSG
 

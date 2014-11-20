@@ -68,6 +68,8 @@
 
 #include "nsIIOService.h"
 #include "nsIWindowWatcher.h"
+#include "nsIChromeRegistry.h"
+#include <locale.h>
 
 static UINT WM_POSTEVENT = RegisterWindowMessage(_T("XPCOM_PostEvent"));
 static UINT WM_FLASHRELAY = RegisterWindowMessage(_T("MozFlashUserRelay"));
@@ -125,7 +127,6 @@ ON_COMMAND(ID_OFFLINE, OnToggleOffline)
 ON_UPDATE_COMMAND_UI(ID_OFFLINE, OnUpdateToggleOffline)
 ON_UPDATE_COMMAND_UI_RANGE(WINDOW_MENU_START_ID, WINDOW_MENU_STOP_ID, OnUpdateWindows)
 ON_COMMAND_RANGE(WINDOW_MENU_START_ID, WINDOW_MENU_STOP_ID, OnWindowSelect)
-
 // NOTE - the ClassWizard will add and remove mapping macros here.
 //    DO NOT EDIT what you see in these blocks of generated code!
 //}}AFX_MSG_MAP
@@ -265,67 +266,6 @@ void CMfcEmbedApp::ShowDebugConsole()
         *stderr = *hfErr;
         setvbuf(stderr, NULL, _IONBF, 0); 
     }
-}
-
-
-bool CMfcEmbedApp::FindSkinFile( CString& szSkinFile, LPCTSTR filename, LPCTSTR skin, bool searchUser ) 
-{
-   WIN32_FIND_DATA FindData;
-   HANDLE hFile;
-   CString file;
-
-   if (!szSkinFile || !filename || !*filename)
-      return false;
-   
-   if (searchUser) {
-      file = GetFolder(UserSettingsFolder) + _T('\\') + filename;
-      hFile = FindFirstFile(file, &FindData);
-      if(hFile != INVALID_HANDLE_VALUE) {   
-            FindClose(hFile);
-            szSkinFile = file;
-            return true;
-      }   
-   }
-
-    CString tmp = skin ? skin : theApp.preferences.skinsCurrent;
-    CString skinsDir = GetFolder(UserSkinsFolder) + _T("\\");
-	while (tmp.GetLength()>0) {
-		if (tmp.GetAt( tmp.GetLength()-1 ) != '\\')
-			tmp = tmp + _T("\\");
-		file = skinsDir + tmp + filename;
-		hFile = FindFirstFile(file, &FindData);
-		if(hFile != INVALID_HANDLE_VALUE) {   
-			FindClose(hFile);
-			szSkinFile = file;
-			return true;
-		}   
-		tmp = tmp.Left( tmp.GetLength()-2 );
-	}
-
-    tmp = skin ? skin : theApp.preferences.skinsCurrent;
-    skinsDir = GetFolder(SkinsFolder) + _T("\\");
-	while (tmp.GetLength()>0) {
-		if (tmp.GetAt( tmp.GetLength()-1 ) != '\\')
-			tmp = tmp + _T("\\");
-		file = skinsDir + tmp + filename;
-		hFile = FindFirstFile(file, &FindData);
-		if(hFile != INVALID_HANDLE_VALUE) {   
-			FindClose(hFile);
-			szSkinFile = file;
-			return true;
-		}   
-		tmp = tmp.Left( tmp.GetLength()-2 );
-	}
-
-	file = GetFolder(SkinsFolder) + _T("\\default\\") + filename;
-	hFile = FindFirstFile(file, &FindData);
-	if(hFile != INVALID_HANDLE_VALUE) {   
-		FindClose(hFile);
-		szSkinFile = file;
-		return true;
-	}  
-
-	return false;
 }
 
 #define FIREFOX_CHROME
@@ -670,18 +610,23 @@ BOOL CMfcEmbedApp::InitInstance()
    InitializeDefineMap();
    InitializePrefs();
    SetOffline(theApp.preferences.bOffline);
-
+   
 #ifdef FIREFOX_CHROME
    LoadLanguage();
 #endif
    
    CheckProfileVersion();
    
-   m_MRUList = new CMostRecentUrls();
+   m_MRUList = new CMostRecentUrls();   
+
+   // Initialize plugins
+   plugins.FindAndLoad();
+   plugins.SendMessage("*", "* Plugin Manager", "Init2");
+   skin.Init(theApp.preferences.skinsCurrent);
 
    // Retrieve the default icon
    CString sSkinIcon;
-   if (FindSkinFile(sSkinIcon, _T("main.ico")))
+   if (skin.FindSkinFile(sSkinIcon, _T("main.ico")))
    {
 	   m_hMainIcon = (HICON)LoadImage( NULL, sSkinIcon, IMAGE_ICON, 0,0, LR_DEFAULTSIZE | LR_LOADFROMFILE );
 	   m_hSmallIcon = (HICON)LoadImage( NULL, sSkinIcon, IMAGE_ICON, 16,16, LR_LOADFROMFILE );
@@ -694,15 +639,21 @@ BOOL CMfcEmbedApp::InitInstance()
 
 #ifdef INTERNAL_SITEICONS
    // Create the favicon list
-   if (preferences.bSiteIcons)
-		favicons.Create(16,16,ILC_COLOR32|ILC_MASK,25,100);
-#endif
-   
-   // Initialize plugins
-   plugins.FindAndLoad();
-   plugins.SendMessage("*", "* Plugin Manager", "Init2");
-   InitializeMenusAccels();
 
+   float scale = 1;
+  /* CString _scale = theApp.preferences.GetString("layout.css.devPixelsPerPx", _T("-1.0")); 
+	float scale = _tstof_l((LPCTSTR)_scale, _create_locale(LC_ALL, "ENU"));
+	if (scale<=0) {
+		HDC dc = ::GetDC(NULL);
+		scale = GetDeviceCaps(dc, LOGPIXELSY) / 96.0;
+		::ReleaseDC(NULL, dc);
+	}
+	*/
+   if (preferences.bSiteIcons)
+	   favicons.Create(skin.GetUserWidth(),skin.GetUserWidth(),ILC_COLOR32|ILC_MASK,25,100);
+#endif   
+   InitializeMenusAccels();
+      
    // the hidden window will take care of creating the first
    // browser window for us
    if(!CreateHiddenWindow()){

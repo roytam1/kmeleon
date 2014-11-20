@@ -164,7 +164,7 @@ public:
 		
 		nsCOMPtr<kmIHelper> klm;
 		rv = servMan->GetServiceByContractID("@kmeleon/helper;1",  NS_GET_IID(kmIHelper), getter_AddRefs(klm));
-		if (klm) klm->InitLogon(target);
+		if (klm) klm->InitLogon(target, domWin);
 		
 		return TRUE;
 	

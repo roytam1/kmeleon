@@ -58,7 +58,7 @@ NS_IMETHODIMP KmAppInfo::GetID(nsACString & aID)
 /* readonly attribute ACString version; */
 NS_IMETHODIMP KmAppInfo::GetVersion(nsACString & aVersion)
 {
-	/*bool ff = false;
+	bool ff = false;
 	nsCOMPtr<nsIPrefService> m_prefservice = do_GetService(NS_PREFSERVICE_CONTRACTID);
 	if (m_prefservice) {
 		nsCOMPtr<nsIPrefBranch> m_prefs;
@@ -67,7 +67,7 @@ NS_IMETHODIMP KmAppInfo::GetVersion(nsACString & aVersion)
 			nsresult rv = m_prefs->GetBoolPref("kmeleon.install_firefox_extension", &ff);
 		}
 	}
-	aVersion = !ff ? NS_STRINGIFY(KMELEON_UVERSION) : MOZILLA_VERSION;*/
+	aVersion = !ff ? NS_STRINGIFY(KMELEON_UVERSION) : MOZILLA_VERSION;
 	aVersion = MOZILLA_VERSION;
     return NS_OK;
 }

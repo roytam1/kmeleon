@@ -74,7 +74,7 @@ NS_IMETHODIMP CBrowserImpl::OnShowContextMenu(PRUint32 aContextFlags, nsIContext
 			// Mozilla don't tell if the input is of type text or password...
 			nsCOMPtr<nsIDOMHTMLInputElement> inputElement(do_QueryInterface(node));
 			if (inputElement) {
-				nsEmbedString inputElemType;
+				nsString inputElemType;
 				inputElement->GetType(inputElemType);
 				if ((wcsicmp(inputElemType.get(), L"text") == 0) ||
 					(wcsicmp(inputElemType.get(), L"password") == 0))

@@ -54,6 +54,7 @@ public:
    kmeleonPlugin * Load(CString file);
    int  OnUpdate(UINT command);
 
+   long SendMessageUntilSuccess(const char *to, const char *from, const char *subject, long data1, long data2);
    long SendMessage(const char *to, const char *from, const char *subject, long data1=0, long data2=0);
 
    int GetConfigFiles(configFileType *configFiles, int maxFiles);

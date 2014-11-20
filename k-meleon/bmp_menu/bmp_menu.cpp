@@ -40,11 +40,14 @@
 //#define BMP_PADDING_RIGHT 4
 #define BMP_PADDING_LEFT 2
 #define BMP_PADDING_RIGHT 2
-#define BMP_HEIGHT 16
-#define BMP_WIDTH  16
+
 int     SPACE_BETWEEN = 0; // the space between the text and the accelerator, set to the width of 'X'
-LONG MARGIN_LEFT = max(GetSystemMetrics(SM_CXMENUCHECK)+ BMP_PADDING_LEFT + BMP_PADDING_RIGHT, BMP_WIDTH + BMP_PADDING_LEFT + BMP_PADDING_RIGHT);
+//LONG MARGIN_LEFT = max(GetSystemMetrics(SM_CXMENUCHECK)+ BMP_PADDING_LEFT + BMP_PADDING_RIGHT, BMP_WIDTH + BMP_PADDING_LEFT + BMP_PADDING_RIGHT);
 #define MARGIN_RIGHT 16
+
+int gBmpHeight = 16;
+int gBmpWidth = 16;
+int gMarginLeft = 16 + BMP_PADDING_LEFT + BMP_PADDING_RIGHT;
 
 typedef int (*DRAWBITMAPPROC)(DRAWITEMSTRUCT *dis);
 
@@ -153,9 +156,6 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
    return 0;
 }
 
-
-#include "../findskin.cpp"
-
 HBITMAP LoadImage24(const char* sFile, COLORREF* bgColor, int width = -1, int height = -1, int index = -1, int xstart = 0, int ystart = 0) 
 {
    if (!sFile || !*sFile)
@@ -179,8 +179,8 @@ HBITMAP LoadImage24(const char* sFile, COLORREF* bgColor, int width = -1, int he
       hBitmap = (HBITMAP)LoadImage(NULL, _sFile, IMAGE_BITMAP, 0, 0, flag);
    }
    else {
-      TCHAR fullpath[MAX_PATH];
-      FindSkinFile(fullpath, _sFile);
+      wchar_t fullpath[MAX_PATH];
+      kPlugin.kFuncs->FindSkinFile(_sFile, fullpath, MAX_PATH);
       hBitmap = (HBITMAP)LoadImage(NULL, fullpath, IMAGE_BITMAP, 0, 0, flag);
    }
 
@@ -282,7 +282,7 @@ HBITMAP LoadImage24(const char* sFile, COLORREF* bgColor, int width = -1, int he
 
 
 void ParseConfig(char *buffer) {
-   hImageList = ImageList_Create(BMP_WIDTH, BMP_HEIGHT, ILC_MASK | (gbIsComCtl6 ? ILC_COLOR32 : ILC_COLORDDB), 32, 256);
+   hImageList = ImageList_Create(gBmpWidth, gBmpHeight, ILC_MASK | (gbIsComCtl6 ? ILC_COLOR32 : ILC_COLORDDB), 32, 256);
 
 	DefineMapT defineMap;
    DefineMapT::iterator defineMapIt;
@@ -366,6 +366,14 @@ void ParseConfig(char *buffer) {
 
 int Init() {
    bFirstRun = TRUE;
+   
+   HIMAGELIST hList = kPlugin.kFuncs->GetCmdIconList();
+   if (hList) {
+	   ImageList_GetIconSize(hList, &gBmpWidth, &gBmpHeight);
+	   gMarginLeft = gBmpWidth + BMP_PADDING_LEFT + BMP_PADDING_RIGHT;
+   }
+
+   gMarginLeft = max(gMarginLeft, GetSystemMetrics(SM_CXMENUCHECK)+ BMP_PADDING_LEFT + BMP_PADDING_RIGHT);
 
 	HMODULE hComCtlDll = LoadLibrary(_T("comctl32.dll"));
 	if (hComCtlDll)
@@ -416,7 +424,7 @@ int Init() {
 
 
    TCHAR cfgPath[MAX_PATH];
-   FindSkinFile(cfgPath, CONFIG_FILE);
+   kPlugin.kFuncs->FindSkinFile(CONFIG_FILE, cfgPath, MAX_PATH);
 
    FILE *cfgFile = _tfopen(cfgPath, _T("r"));
    if (cfgFile){
@@ -445,7 +453,7 @@ void Create(HWND parent){
 void Config(HWND parent)
 {
    TCHAR cfgPath[MAX_PATH];
-   FindSkinFile(cfgPath, CONFIG_FILE);
+   kPlugin.kFuncs->FindSkinFile(CONFIG_FILE, cfgPath, MAX_PATH);
 
    ShellExecute(parent, NULL, _T("notepad.exe"), cfgPath, NULL, SW_SHOW);
 }
@@ -517,22 +525,28 @@ void DoMenu(HMENU menu, char *param){
 int DrawBitmap(DRAWITEMSTRUCT *dis) {
    BmpMapT::iterator bmpMapIt;
    bmpMapIt = bmpMap.find(dis->itemID);
-   
+   int bmpIdx = bmpMapIt != bmpMap.end() ? bmpMapIt->second : -1;
+   HIMAGELIST hImgList = kPlugin.kFuncs->GetCmdIconList();
+   if (!hImgList) 
+      hImgList = hImageList;
+   else 
+      bmpIdx = kPlugin.kFuncs->GetCmdIcon(dis->itemID);
+
    // Load the corresponding bitmap
-   if (bmpMapIt != bmpMap.end()){
-      int top = (dis->rcItem.bottom - dis->rcItem.top - BMP_HEIGHT) / 2;
+   if (bmpIdx >= 0){
+      int top = (dis->rcItem.bottom - dis->rcItem.top - gBmpHeight) / 2;
       top += dis->rcItem.top;
 
       if (dis->itemState & ODS_GRAYED)
-         ImageList_DrawEx(hImageList, bmpMapIt->second, dis->hDC, dis->rcItem.left+BMP_PADDING_LEFT, top, 0, 0, CLR_NONE, GetSysColor(COLOR_MENU), ILD_BLEND  | ILD_TRANSPARENT);
+         ImageList_DrawEx(hImgList, bmpIdx, dis->hDC, dis->rcItem.left+BMP_PADDING_LEFT, top, 0, 0, CLR_NONE, GetSysColor(COLOR_MENU), ILD_BLEND  | ILD_TRANSPARENT);
 
       else if (dis->itemState & ODS_SELECTED)
-         ImageList_Draw(hImageList, bmpMapIt->second, dis->hDC, dis->rcItem.left+BMP_PADDING_LEFT, top, ILD_TRANSPARENT);
+         ImageList_Draw(hImgList, bmpIdx, dis->hDC, dis->rcItem.left+BMP_PADDING_LEFT, top, ILD_TRANSPARENT);
 
       else
-         ImageList_Draw(hImageList, bmpMapIt->second, dis->hDC, dis->rcItem.left+BMP_PADDING_LEFT, top, ILD_TRANSPARENT);
+         ImageList_Draw(hImgList, bmpIdx, dis->hDC, dis->rcItem.left+BMP_PADDING_LEFT, top, ILD_TRANSPARENT);
 
-      return BMP_WIDTH;	
+      return gBmpWidth;	
    }
    else if (dis->itemState & ODS_CHECKED) {
 
@@ -652,7 +666,7 @@ void DrawMenuItem(DRAWITEMSTRUCT *dis) {
    gbDrawn = TRUE;
    HMENU menu = (HMENU)dis->hwndItem;
 
-   if ((HMENU) dis->hwndItem != ghMenuLast &&  GetMenuItemCount((HMENU) dis->hwndItem)) {
+    if ((HMENU) dis->hwndItem != ghMenuLast &&  GetMenuItemCount((HMENU) dis->hwndItem)) {
       int accelWidth = GetMaxAccelWidth(dis->hDC, (HMENU)dis->hwndItem);
       if (accelWidth) {
          giMaxAccelWidth = accelWidth;
@@ -699,7 +713,7 @@ void DrawMenuItem(DRAWITEMSTRUCT *dis) {
       int space = DrawProc(dis);
    }
 
-   dis->rcItem.left = MARGIN_LEFT + 1; // start drawing text at the pixel after our margin
+   dis->rcItem.left = gMarginLeft + 1; // start drawing text at the pixel after our margin
 
    RECT rcTab;
    
@@ -803,12 +817,12 @@ void MeasureMenuItem(MEASUREITEMSTRUCT *mis, HDC hDC) {
    mis->itemWidth = rcText.right - rcText.left;
 #endif
 
-   mis->itemWidth += MARGIN_LEFT + MARGIN_RIGHT;
+   mis->itemWidth += gMarginLeft + MARGIN_RIGHT;
    // compensate for the width of a chekmark (minus one pixel!) that windows so graciously adds for us
    mis->itemWidth -= (GetSystemMetrics(SM_CXMENUCHECK)-1);
    mis->itemHeight = GetSystemMetrics(SM_CYMENUSIZE);
-   if (mis->itemHeight < BMP_HEIGHT+2)
-      mis->itemHeight = BMP_HEIGHT+2;
+   if (mis->itemHeight < gBmpHeight+2)
+      mis->itemHeight = gBmpHeight+2;
 
    SelectObject(hDC, oldFont);
 }

@@ -28,7 +28,7 @@ CString KmCmdService::GetDescription(LPCTSTR command)
 		return _T("");
 	
 	UINT id = kcommand.id;
-	if (!theApp.commands.IsPluginCommand(id)) {
+	if (!IsPluginCommand(id)) {
 		CString str;
 		str.LoadString(id);
 		return str;
@@ -38,7 +38,7 @@ CString KmCmdService::GetDescription(LPCTSTR command)
 	char *desc = NULL;
 	char *plugin, *parameter;
 	char *aCmd = strdup(T2CA(command));
-	if (theApp.commands.ParseCommand(aCmd, &plugin, &parameter))
+	if (ParseCommand(aCmd, &plugin, &parameter))
 		theApp.plugins.SendMessage(plugin, "* GetID", "GetCmd", (long)id, (long)desc);
 	free(aCmd);
 	return desc?A2T(desc):_T("");
@@ -80,6 +80,11 @@ UINT KmCmdService::GetList(kmeleonCommand* cmdList, UINT size, BOOL def)
 	return i;
 }
 
+bool KmCmdService::GetCommand(LPCTSTR command, KmCommand& kcommand)
+{
+	return mCommandList.Lookup(command, kcommand);
+}
+
 UINT KmCmdService::GetId(LPCTSTR command)
 {
 	UINT id = 0;
@@ -89,6 +94,10 @@ UINT KmCmdService::GetId(LPCTSTR command)
 	KmCommand kcommand;
 	if (mCommandList.Lookup(command, kcommand))
 		return kcommand.id;
+
+	if (command[0] == _T('@')) { //Menu
+		return RegisterCommand(NULL, command);
+	}
 
 	char *plugin, *parameter;
 	USES_CONVERSION;
@@ -138,7 +147,6 @@ void KmCmdService::InitDefaultCmd()
 	ADD_DEFCMD(saveLinkAs, ID_SAVE_LINK_AS);
 
 	mCommandList[_T("fileOpen")] = KmCommand(ID_FILE_OPEN);
-	mCommandList[_T("fileClose")] = KmCommand(ID_FILE_CLOSE);
 	mCommandList[_T("filePrint")] = KmCommand(ID_FILE_PRINT);
 	mCommandList[_T("filePrintPreview")] = KmCommand(ID_FILE_PRINTPREVIEW);
 	mCommandList[_T("filePrintSetup")] = KmCommand(ID_FILE_PRINTSETUP);
@@ -154,6 +162,8 @@ void KmCmdService::InitDefaultCmd()
 	mCommandList[_T("editFind")] = KmCommand(ID_EDIT_FIND);
 	mCommandList[_T("editFindNext")] = KmCommand(ID_EDIT_FINDNEXT);
 	mCommandList[_T("editFindPrev")] = KmCommand(ID_EDIT_FINDPREV);
+	ADD_DEFCMD(editFindMatchCase, ID_MATCH_CASE)
+	ADD_DEFCMD(editFindHighlight, ID_HIGHLIGHT)
 	ADD_DEFCMD(editCopyLinkLocation, ID_COPY_LINK_LOCATION);
 	ADD_DEFCMD(editCopyImageLocation, ID_COPY_IMAGE_LOCATION);
 	ADD_DEFCMD(editCopyImage, ID_COPY_IMAGE_CONTENT);
@@ -165,6 +175,7 @@ void KmCmdService::InitDefaultCmd()
 
 	ADD_DEFCMD(appExit, ID_APP_EXIT);
 	ADD_DEFCMD(appAbout, ID_APP_ABOUT);
+	ADD_DEFCMD(windowClose, ID_FILE_CLOSE);
 	ADD_DEFCMD(windowNew, ID_NEW_BROWSER);
 	ADD_DEFCMD(windowNext, ID_WINDOW_NEXT);
 	ADD_DEFCMD(windowPrev, ID_WINDOW_PREV);

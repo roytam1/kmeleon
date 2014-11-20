@@ -43,6 +43,7 @@
 #include "BrowserView.h"
 #include "MfcEmbed.h"
 #include "resource.h"
+#include "KmImage.h"
 extern CMfcEmbedApp theApp;
 
 //--------------------------------------------------------------------------//
@@ -203,7 +204,7 @@ int CFindRebar::OnCreate(LPCREATESTRUCT lpCreateStruct)
 		::SetWindowTextW(hWnd, m_szUStr);
 	}else{
 #endif
-	m_cEdit.Create(WS_CHILD|ES_AUTOHSCROLL, CRect(0,0,150,18), this, IDC_FIND_EDIT);
+	m_cEdit.Create(WS_CHILD|ES_AUTOHSCROLL, CRect(0,0,250,100), this, IDC_FIND_EDIT);
 	m_cEdit.ModifyStyleEx(0, WS_EX_CLIENTEDGE);
 	m_cEdit.SetWindowText(m_csSearchStr);
 #ifndef _UNICODE 
@@ -212,68 +213,34 @@ int CFindRebar::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	
 	str.LoadString(IDS_FIND);
 	AddBar(&m_cEdit, str, NULL, RBBS_NOGRIPPER);
-
+	m_cEdit.SetWindowPos(NULL, 0, 0, 250, 100, SW_NORMAL);
 	// Toolbar with next/Previous and options
 	m_cToolbar.CreateEx(this, TBSTYLE_FLAT | TBSTYLE_TRANSPARENT | TBSTYLE_LIST | TBSTYLE_TOOLTIPS
 		);//,WS_CHILD|WS_VISIBLE|CBRS_FLYBY);
 
 	m_cToolbar.GetToolBarCtrl().SetImageList(NULL);
 	
-	HDC hdcBitmap = CreateCompatibleDC(NULL);
-	struct {
-		BITMAPINFOHEADER header;
-		COLORREF col[256];
-	} bmpi = {0};
-	bmpi.header.biSize = sizeof(BITMAPINFOHEADER);
-
-	CString skinFile;
-	if (theApp.FindSkinFile(skinFile, _T("findhot.bmp")))
-	{
-		m_ilHot.Create(16, 16, ILC_MASK | ILC_COLOR32, 6, 1);
-		HBITMAP bitmap = (HBITMAP)LoadImage(NULL, skinFile, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_CREATEDIBSECTION | LR_DEFAULTSIZE);
-		if (bitmap) {
-			GetDIBits(hdcBitmap, bitmap, 0, 0, NULL, (BITMAPINFO*)&bmpi, DIB_RGB_COLORS);
-			if (bmpi.header.biBitCount == 32)
-				ImageList_Add(m_ilHot.GetSafeHandle(), bitmap, NULL);
-			else
-				ImageList_AddMasked(m_ilHot.GetSafeHandle(), bitmap, RGB(255,0,255));
-			DeleteObject(bitmap);
+	bool useSkinList = true;
+	if (!theApp.skin.SetImageList(m_cToolbar.GetToolBarCtrl())) {
+		useSkinList = false;
+		KmImage img;
+		int cxIcon = 16;//GetSystemMetrics(SM_CXSMICON);		
+		if (img.LoadFromSkin(_T("findhot.bmp"))) {
+			m_ilHot.Create(cxIcon, cxIcon, ILC_MASK | ILC_COLOR32, 6, 1);
+			img.AddToImageList(m_ilHot);
 			m_cToolbar.GetToolBarCtrl().SetHotImageList(&m_ilHot);
 		}
-	}
-	
-	if (theApp.FindSkinFile(skinFile, _T("findcold.bmp")))
-	{
-		m_ilCold.Create(16, 16, ILC_MASK | ILC_COLOR32, 6, 1);
-		HBITMAP bitmap = (HBITMAP)LoadImage(NULL, skinFile, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_CREATEDIBSECTION | LR_DEFAULTSIZE);
-		if (bitmap) {
-			GetDIBits(hdcBitmap, bitmap, 0, 0, NULL, (BITMAPINFO*)&bmpi, DIB_RGB_COLORS);
-			if (bmpi.header.biBitCount == 32)
-				ImageList_Add(m_ilCold.GetSafeHandle(), bitmap, NULL);
-			else
-				ImageList_AddMasked(m_ilCold.GetSafeHandle(), bitmap, RGB(255,0,255));
-			DeleteObject(bitmap);
+		if (img.LoadFromSkin(_T("findcold.bmp"))) {
+			m_ilCold.Create(cxIcon, cxIcon, ILC_MASK | ILC_COLOR32, 6, 1);
+			img.AddToImageList(m_ilCold);
 			m_cToolbar.GetToolBarCtrl().SetImageList(&m_ilCold);
 		}
-	}
-
-		
-	if (theApp.FindSkinFile(skinFile, _T("finddead.bmp")))
-	{
-		m_ilDead.Create(16, 16, ILC_MASK | ILC_COLOR32, 6, 1);
-		HBITMAP bitmap = (HBITMAP)LoadImage(NULL, skinFile, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_CREATEDIBSECTION | LR_DEFAULTSIZE);
-		if (bitmap) {
-			GetDIBits(hdcBitmap, bitmap, 0, 0, NULL, (BITMAPINFO*)&bmpi, DIB_RGB_COLORS);
-			if (bmpi.header.biBitCount == 32)
-				ImageList_Add(m_ilDead.GetSafeHandle(), bitmap, NULL);
-			else
-				ImageList_AddMasked(m_ilDead.GetSafeHandle(), bitmap, RGB(255,0,255));
-			DeleteObject(bitmap);
-			m_cToolbar.GetToolBarCtrl().SetImageList(&m_ilDead);
+		if (img.LoadFromSkin(_T("finddead.bmp"))) {
+			m_ilCold.Create(cxIcon, cxIcon, ILC_MASK | ILC_COLOR32, 6, 1);
+			img.AddToImageList(m_ilDead);
+			m_cToolbar.GetToolBarCtrl().SetDisabledImageList(&m_ilDead);
 		}
 	}
-
-	DeleteDC(hdcBitmap);
 	
 	TBBUTTON button = {0};
 	button.fsState = TBSTATE_ENABLED;
@@ -282,6 +249,7 @@ int CFindRebar::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	//int stringID = toolbar->GetToolBarCtrl().AddString(IDS_FINDNEXT);
 	int stringID=-1;
     button.idCommand = ID_EDIT_FINDNEXT;
+	button.iBitmap = useSkinList ? theApp.skin.GetIconIndex(ID_EDIT_FINDNEXT) : 0;
 	button.iString =stringID;
 	m_cToolbar.GetToolBarCtrl().InsertButton(0,&button);
 	
@@ -290,7 +258,7 @@ int CFindRebar::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 	//stringID = toolbar->GetToolBarCtrl().AddString(IDS_FINDPREV);
 	button.idCommand = ID_EDIT_FINDPREV;
-	button.iBitmap = 1;
+	button.iBitmap = useSkinList ? theApp.skin.GetIconIndex(ID_EDIT_FINDPREV) : 1;
 	button.iString = stringID;
 	m_cToolbar.GetToolBarCtrl().InsertButton(1,&button);
 	str.LoadString(IDS_FINDPREV);
@@ -304,7 +272,7 @@ int CFindRebar::OnCreate(LPCREATESTRUCT lpCreateStruct)
 /*	if (m_bWrapAround)
 		button.fsState = TBSTATE_CHECKED;
 	
-	button.idCommand = IDC_WRAP_AROUND;
+	button.idCommand = ID_WRAP_AROUND;
 	button.iBitmap = 2;
 	m_cToolbar.GetToolBarCtrl().InsertButton(2,&button);
 	str.LoadString(IDS_FIND_WRAPAROUND);
@@ -316,8 +284,8 @@ int CFindRebar::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	if (m_bMatchCase)
 		button.fsState = TBSTATE_CHECKED;
 	
-	button.idCommand = IDC_MATCH_CASE;
-	button.iBitmap = 3;
+	button.idCommand = ID_MATCH_CASE;
+	button.iBitmap = useSkinList ? theApp.skin.GetIconIndex(ID_MATCH_CASE) : 3;
 	m_cToolbar.GetToolBarCtrl().InsertButton(2,&button);
 	str.LoadString(IDS_FIND_MATCHCASE);
 	m_cToolbar.SetButtonText(2, (LPCTSTR)str);
@@ -327,7 +295,8 @@ int CFindRebar::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	button.fsState = TBSTATE_ENABLED;
 	if (m_bHighlight)
 		button.fsState = TBSTATE_CHECKED;
-	button.idCommand = IDC_HIGHLIGHT;
+	button.idCommand = ID_HIGHLIGHT;
+	button.iBitmap = useSkinList ? theApp.skin.GetIconIndex(ID_HIGHLIGHT) : 3;
 	m_cToolbar.GetToolBarCtrl().InsertButton(3,&button);
 	str.LoadString(IDS_FIND_HIGHLIGHT);
 	m_cToolbar.SetButtonText(3, (LPCTSTR)str);

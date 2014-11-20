@@ -155,6 +155,21 @@ typedef struct {
    long before; // Can be either a int position, a command id or a pointer to a string
 } kmeleonMenuItem;
 
+typedef struct {
+	const char* name;
+	const char* label;
+	const char* tooltip;
+	const char* action;
+	const char* menu;
+	const char* hotimage;
+	const char* coldimage;
+	const char* deadimage;
+	int enabled;
+	int checked;
+	int id;
+	int before;	
+	unsigned iconWidth, iconHeight; 
+} kmeleonButton;
 
 enum MENUTYPE {
    MENU_COMMAND = 0,
@@ -266,6 +281,7 @@ typedef struct {
    /* Is it possible to get it otherwise ? */
    BOOL (*GetMozillaWebBrowser)(HWND hWnd, nsIWebBrowser** webBrowser);
 
+   /* Prior to kmeleon 2.1 (75) the icon was destroyed after remove */
    void (*AddStatusBarIcon)(HWND hWnd, int id, HICON hIcon, const char* tpText);
    void (*RemoveStatusBarIcon)(HWND hWnd, int id);
    
@@ -347,6 +363,16 @@ typedef struct {
 
 	BOOL (*InjectJS2)(const char*, int, char* result, unsigned size, HWND);
 
+// ----------------------------------------------------
+// Addition in K-meleon 75 (2.1)
+	
+	bool (*AddToolbar)(const char*, UINT, UINT);
+	bool (*AddButton)(const char*, kmeleonButton*);
+	bool (*GetButton)(const char*, UINT, kmeleonButton*);
+	bool (*SetButton)(const char*, UINT, kmeleonButton*);
+	HIMAGELIST (*GetCmdIconList)();
+	int (*GetCmdIcon)(UINT id);
+	bool (*FindSkinFile)(const wchar_t* name, wchar_t* result, unsigned size);
 } kmeleonFunctions;
 
 /*

@@ -128,20 +128,22 @@ BEGIN_MESSAGE_MAP(CBrowserFrame, CFrameWnd)
 	ON_COMMAND(ID_EDIT_FIND, OnShowFindBar)
 	ON_COMMAND(ID_VIEW_STATUS_BAR, OnViewStatusBar)
     ON_NOTIFY(RBN_LAYOUTCHANGED, AFX_IDW_REBAR, OnRbnLayoutChanged)
-    
+    ON_NOTIFY_EX_RANGE(TTN_NEEDTEXT, 0, 0xffff, OnToolTipText)
+
     ON_COMMAND(ID_EDIT_FINDNEXT, OnFindNext)
 	ON_COMMAND(ID_EDIT_FINDPREV, OnFindPrev)
-	ON_COMMAND(IDC_WRAP_AROUND, OnWrapAround)
-	ON_COMMAND(IDC_MATCH_CASE, OnMatchCase)
-	ON_COMMAND(IDC_HIGHLIGHT, OnHighlight)
+	ON_COMMAND(ID_WRAP_AROUND, OnWrapAround)
+	ON_COMMAND(ID_MATCH_CASE, OnMatchCase)
+	ON_COMMAND(ID_HIGHLIGHT, OnHighlight)
 
 	ON_COMMAND(ID_MAXIMIZE_WINDOW,OnMaximizeWindow)
 	ON_COMMAND(ID_MINIMIZE_WINDOW,OnMinimizeWindow)
 	ON_COMMAND(ID_RESTORE_WINDOW, OnRestoreWindow)
 	ON_COMMAND(ID_TOGGLE_WINDOW, OnToggleWindow)
 	
-	ON_MESSAGE(TB_LBUTTONHOLD, OnToobarContextMenu)
-	ON_MESSAGE(TB_RBUTTONDOWN, OnToobarContextMenu)
+	ON_MESSAGE(TB_LBUTTONHOLD, OnToolbarContextMenu)
+	ON_MESSAGE(TB_RBUTTONDOWN, OnToolbarContextMenu)
+	ON_MESSAGE(TB_LBUTTONDOWN, OnToolbarCommand)
 
 //	ON_MESSAGE(WM_ENTERSIZEMOVE, OnEnterSizeMove)
 //	ON_MESSAGE(WM_EXITSIZEMOVE, OnExitSizeMove)
@@ -153,8 +155,6 @@ BEGIN_MESSAGE_MAP(CBrowserFrame, CFrameWnd)
 END_MESSAGE_MAP()
 
 #define PREF_TOOLBAND_LOCKED "kmeleon.general.toolbars_locked"
-
-CBitmap CBrowserFrame::m_bmpBack;
 
 /////////////////////////////////////////////////////////////////////////////
 // CBrowserFrame construction/destruction
@@ -397,14 +397,15 @@ int CBrowserFrame::InitLayout()
 
     // Create the animation control..
 	BOOL bThrobber = TRUE;
-    if (!m_wndAnimate.Create(WS_CHILD | WS_VISIBLE, CRect(0, 0, 10, 10), this, ID_THROBBER))
+    if (!m_wndAnimate.Create(WS_CHILD | WS_VISIBLE | ACS_TRANSPARENT, CRect(0, 0, 10, 10), this, ID_THROBBER))
     {
         TRACE0("Failed to create animation\n");
         bThrobber = FALSE;
     }
 
 	CString throbberPath;
-	theApp.FindSkinFile(throbberPath, _T("Throbber.avi"));
+	theApp.skin.FindSkinFile(throbberPath, _T("Throbber.avi"));
+	
 	if (!m_wndAnimate.Open(throbberPath))
 		bThrobber = FALSE;
 
@@ -445,8 +446,10 @@ int CBrowserFrame::InitLayout()
 	if (!theApp.preferences.GetBool("kmeleon.display.statusbar", TRUE))
 		m_wndStatusBar.ShowWindow(SW_HIDE);
 
-	if (!IsDialog())
-    theApp.plugins.SendMessage("*", "* OnCreate", "DoRebar", (long)m_wndReBar.GetReBarCtrl().m_hWnd);
+	if (!IsDialog()) {
+		theApp.plugins.SendMessage("*", "* OnCreate", "DoRebar", (long)m_wndReBar.GetReBarCtrl().m_hWnd);
+		theApp.toolbars.InitWindows(&m_wndReBar);
+	}
 
     m_wndReBar.RestoreBandSizes();
     //m_wndReBar.LockBars(theApp.preferences.GetBool(PREF_TOOLBAND_LOCKED, false));
@@ -468,7 +471,6 @@ int CBrowserFrame::InitLayout()
 	theApp.plugins.SendMessage("*", "* OnCreate", "DoSidebar", (long)m_wndSideBar.m_hWnd);
 #endif
 
-	LoadBackImage();
     SetBackImage();
 
     // Based on the "chromeMask" we were supplied during construction
@@ -561,6 +563,9 @@ BOOL CBrowserFrame::OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERIN
             return true;
         }
     }
+
+	if (theApp.commands.IsPluginCommand(nID) && theApp.toolbars.OnCmdMsg(nID, nCode, pExtra, pHandlerInfo))
+        return TRUE;
 
     // Don't let MFC mess with plugin command
     if (nCode == CN_UPDATE_COMMAND_UI && (theApp.commands.IsPluginCommand(nID)
@@ -871,7 +876,7 @@ void CMyStatusBar::RefreshPanes()
 	if( pFrame!=NULL )
         pFrame->m_wndProgressBar.MoveWindow(&rc);
 
-	delete indicators;
+	delete [] indicators;
 }
 
 BOOL CMyStatusBar::RemoveIcon(UINT nID)
@@ -907,7 +912,7 @@ BOOL CMyStatusBar::SetIconInfo(UINT nID, HICON hIcon, LPCTSTR tpText)
 					if (tpText) GetStatusBarCtrl().SetTipText(index, tpText);
 				}
 				else {
-					if (ii->hIcon) DestroyIcon(ii->hIcon);
+					//if (ii->hIcon) DestroyIcon(ii->hIcon); // Let the owner handle it
 					ii->hIcon = hIcon;
 		
 					// Better way to get the width ?
@@ -1141,30 +1146,28 @@ void CBrowserFrame::OnSysColorChange()
     //-------------------------
     // Reload background image:
     //-------------------------
-	m_bmpBack.DeleteObject();
-    LoadBackImage ();
-    SetBackImage ();
+	//m_bmpBack.DeleteObject();
+    //SetBackImage ();
 }
 
 /////////////////////////////////////////////////////////////////////////////
 void CBrowserFrame::SetBackImage()
 {
-	if (m_bmpBack.GetSafeHandle() == NULL)
-		return;
-
+	HBITMAP bmpBack = theApp.skin.GetBackImage();
+	if (!bmpBack) return;
     CReBarCtrl& rc = m_wndReBar.GetReBarCtrl ();
 
     REBARBANDINFO info;
     memset (&info, 0, sizeof (REBARBANDINFO));
     info.cbSize = sizeof (info);
-    info.hbmBack = theApp.preferences.bToolbarBackground ? (HBITMAP)m_bmpBack : NULL;
+    info.hbmBack = theApp.preferences.bToolbarBackground ? (HBITMAP)bmpBack : NULL;
 
     int count = rc.GetBandCount();
     for (int i = 0; i < count; i++)  {
         info.fMask = RBBIM_BACKGROUND;
         BOOL blah = rc.SetBandInfo (i, &info);
 
-        CRect rectBand;
+      /*  CRect rectBand;
         rc.GetRect (i, rectBand);
 
         rc.InvalidateRect (rectBand);
@@ -1177,8 +1180,10 @@ void CBrowserFrame::SetBackImage()
         {
             ::InvalidateRect (info.hwndChild, NULL, TRUE);
             ::UpdateWindow (info.hwndChild);
-        }
+        }*/
     }
+
+	m_wndReBar.RedrawWindow(0, 0, RDW_INVALIDATE | RDW_UPDATENOW | RDW_ERASE | RDW_ALLCHILDREN);
 #ifdef INTERNAL_SIDEBAR	
 	// Set the backimage to the sidebar title too
 	CReBarCtrl& rc2 = m_wndSideBar.m_wndRebar.GetReBarCtrl();
@@ -1188,24 +1193,6 @@ void CBrowserFrame::SetBackImage()
 }
 
 /////////////////////////////////////////////////////////////////////////////
-void CBrowserFrame::LoadBackImage (BOOL force)
-{
-    //------------------------------------
-    // Load control bars background image:
-    //------------------------------------
-
-    if (!force && m_bmpBack.GetSafeHandle () != NULL)
-        return;
-
-	CString skinFile;
-	if (theApp.FindSkinFile(skinFile, _T("Back.bmp")))
-	{
-		HBITMAP hbmp = (HBITMAP) ::LoadImage (NULL,
-						skinFile, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-		m_bmpBack.DeleteObject();
-		m_bmpBack.Attach (hbmp);
-	}
-}
 
 LRESULT CBrowserFrame::RefreshMRUList(WPARAM ItemID, LPARAM unused)
 {
@@ -1632,23 +1619,21 @@ void CBrowserFrame::UpdateSecurityStatus(PRInt32 aState)
 	UINT tpTextId, iconResID;
 	TCHAR* icoFile;
 
+	HICON securityIcon = NULL;
 	if(aState & nsIWebProgressListener::STATE_IS_INSECURE) {
-		iconResID = IDI_SECURITY_UNLOCK;
+		securityIcon = theApp.skin.GetIconInsecure();
 		m_wndUrlBar.Highlight(0);
 		tpTextId = IDS_SECURITY_UNLOCK;
-		icoFile = _T("sinsecur.ico");
 	}
 	else if(aState & nsIWebProgressListener::STATE_IS_BROKEN) {
-		iconResID = IDI_SECURITY_BROKEN;
+		securityIcon = theApp.skin.GetIconBroken();
 		m_wndUrlBar.Highlight(2);
 		tpTextId = IDS_SECURITY_BROKEN;
-		icoFile = _T("sbroken.ico");
 	}  
 	else if(aState & nsIWebProgressListener::STATE_IS_SECURE) {
-		iconResID = IDI_SECURITY_LOCK;
+		securityIcon = theApp.skin.GetIconSecure();
 		m_wndUrlBar.Highlight(1);
 		tpTextId = IDS_SECURITY_LOCK;
-		icoFile = _T("ssecur.ico");
 	}
 	else 
 	{
@@ -1658,17 +1643,7 @@ void CBrowserFrame::UpdateSecurityStatus(PRInt32 aState)
 
    CString tpText;
    tpText.LoadString(tpTextId);
-
-   HICON hTmpSecurityIcon;
-   CString skinFile;
-   if (theApp.FindSkinFile(skinFile, icoFile))
-      hTmpSecurityIcon = (HICON)::LoadImage(AfxGetResourceHandle(),
-         skinFile, IMAGE_ICON, 16,16,LR_LOADFROMFILE);		
-   else  
-      hTmpSecurityIcon = (HICON)::LoadImage(AfxGetResourceHandle(),
-       MAKEINTRESOURCE(iconResID), IMAGE_ICON, 16,16,LR_LOADMAP3DCOLORS);
-
-   m_wndStatusBar.SetIconInfo(ID_SECURITY_STATE_ICON, hTmpSecurityIcon, tpText);
+   m_wndStatusBar.SetIconInfo(ID_SECURITY_STATE_ICON, securityIcon, tpText);
 }
 
 void CBrowserFrame::UpdateStatus(LPCTSTR aStatus)
@@ -1740,19 +1715,10 @@ void CBrowserFrame::UpdatePopupNotification(LPCTSTR uri)
 {
 	if (uri && *uri) {
 		if (m_wndStatusBar.AddIcon(ID_POPUP_BLOCKED_ICON)) {
-			HICON hTmpPopupIcon;
-			
-			CString skinFile;
-			if (theApp.FindSkinFile(skinFile, _T("popupblock.ico")))
-				hTmpPopupIcon = (HICON)::LoadImage(AfxGetResourceHandle(),
-					skinFile, IMAGE_ICON, 16, 16, LR_LOADFROMFILE);
-			else
-				hTmpPopupIcon = (HICON)::LoadImage(AfxGetResourceHandle(),
-					MAKEINTRESOURCE(IDI_POPUP_BLOCKED), IMAGE_ICON, 16,16,LR_LOADMAP3DCOLORS);
-
+			HICON popupIcon = theApp.skin.GetIconPopupBlock();
 			CString tpText;
 			tpText.Format(IDS_POPUP_BLOCKED, uri);
-			m_wndStatusBar.SetIconInfo(ID_POPUP_BLOCKED_ICON, hTmpPopupIcon, tpText);
+			m_wndStatusBar.SetIconInfo(ID_POPUP_BLOCKED_ICON, popupIcon, tpText);
 		}
 	}
 	else
@@ -1830,22 +1796,62 @@ void CBrowserFrame::OnGetMinMaxInfo(MINMAXINFO* lpMMI)
 	}
 }
 
-LRESULT CBrowserFrame::OnToobarContextMenu(WPARAM wParam, LPARAM lParam)
+LRESULT CBrowserFrame::OnToolbarCommand(WPARAM wParam, LPARAM lParam)
 {
-	if (wParam == ID_NAV_BACK || wParam == ID_NAV_FORWARD)
-	{
-		CRect rc;
-		CToolBar* toolbar = (CToolBar*)CWnd::FromHandle((HWND)lParam);
-		if (toolbar)
-		{
+	CToolBar* toolbar = (CToolBar*)CWnd::FromHandle((HWND)lParam);
+	if (!toolbar) return CWnd::Default();
+	KmToolbar* ktoolbar = (KmToolbar*)::GetProp(toolbar->GetSafeHwnd(), _T("kmToolbar"));
+	if (!ktoolbar) return CWnd::Default();
+	KmButton* button = ktoolbar->GetButton(wParam);
+	if (!button) {
+		CPoint p;
+		::GetCursorPos(&p);
+		if (!IsZoomed()) {
+			SendMessage(WM_SYSCOMMAND, SC_MOVE+1, MAKELPARAM(p.x,p.y));
+			return 1;
+		}
+		return CWnd::Default();
+	}
+	if (button->mAction[0] == _T('@')) {
+		CMenu* menu = theApp.menus.GetMenu(button->mAction.Mid(1));
+		if (menu) {				
+			CRect rc;
 			toolbar->GetItemRect(toolbar->CommandToIndex(wParam), &rc);
 			CPoint pt(rc.left, rc.bottom);
 			toolbar->ClientToScreen(&pt);
+			menu->TrackPopupMenu(TPM_LEFTALIGN, pt.x, pt.y, this);
+		}
+	}
 
+	return CWnd::Default();
+}
+
+LRESULT CBrowserFrame::OnToolbarContextMenu(WPARAM wParam, LPARAM lParam)
+{
+	CToolBar* toolbar = (CToolBar*)CWnd::FromHandle((HWND)lParam);
+	if (toolbar) {
+		
+		CPoint pt;
+		if (wParam) {
+			CRect rc;
+			toolbar->GetItemRect(toolbar->CommandToIndex(wParam), &rc);
+			pt.SetPoint(rc.left, rc.bottom);
+			toolbar->ClientToScreen(&pt);
+		} else 
+			GetCursorPos(&pt);
+
+		if (wParam == ID_NAV_BACK || wParam == ID_NAV_FORWARD) {
 			CMenu menu;
 			menu.CreatePopupMenu();
 			wParam == ID_NAV_BACK ? DrawSHBackMenu(menu.GetSafeHmenu()) : DrawSHForwardMenu(menu.GetSafeHmenu());
 			menu.TrackPopupMenu(TPM_LEFTALIGN, pt.x, pt.y, this);
+		} else {
+			KmToolbar* ktoolbar = (KmToolbar*)::GetProp(toolbar->GetSafeHwnd(), _T("kmToolbar"));
+			if (ktoolbar) {
+				KmButton* button = ktoolbar->GetButton(wParam);
+				CMenu* menu = button ? theApp.menus.GetMenu(button->mMenuName) : theApp.menus.GetMenu(_T("Toolbars"));
+				if (menu) menu->TrackPopupMenu(TPM_LEFTALIGN, pt.x, pt.y, this);				
+			}
 		}
 	}
 	return CWnd::Default();
@@ -1853,5 +1859,14 @@ LRESULT CBrowserFrame::OnToobarContextMenu(WPARAM wParam, LPARAM lParam)
 
 void CBrowserFrame::OnMenuSelect(UINT nItemID, UINT nFlags, HMENU hSysMenu)
 {
-	GetActiveView()->OnMenuSelect(nItemID, nFlags, hSysMenu);
+	if (GetActiveView()->OnMenuSelect(nItemID, nFlags, hSysMenu))
+		return;
+
+	CFrameWnd::OnMenuSelect(nItemID, nFlags, hSysMenu);
+}
+
+
+BOOL CBrowserFrame::OnToolTipText(UINT id, NMHDR* pNMHDR, LRESULT* pResult)
+{
+	return CFrameWnd::OnToolTipText(id, pNMHDR, pResult);
 }

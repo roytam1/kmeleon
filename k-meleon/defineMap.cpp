@@ -1,6 +1,7 @@
 // used by both the Accel Parser and the Menu Parser
 
 #include "KmeleonConst.h"
+#include "resource.h"
 
 #ifndef DEFINEMAP_ADD
 #define DEFINEMAP_ADD(entry) defineMap[_T(#entry)] = entry;
@@ -90,3 +91,6 @@ DEFINEMAP_ADD(ID_TOGGLE_WINDOW)
 DEFINEMAP_ADD(ID_CLOSE)
 DEFINEMAP_ADD(ID_FULLZOOM_INCREASE)
 DEFINEMAP_ADD(ID_FULLZOOM_DECREASE)
+DEFINEMAP_ADD(ID_MATCH_CASE)
+DEFINEMAP_ADD(ID_HIGHLIGHT)
+
