@@ -642,9 +642,17 @@ int _GetMozillaSessionHistory (char ***titles, char ***urls, int *count, int *in
    return GetMozillaSessionHistory(NULL, titles, urls, count, index);
 }
 
-void GotoHistoryIndex(UINT index)
+void _GotoHistoryIndex(UINT index)
 {
    CBrowserWrapper *browser = GetWrapper();
+   if (!browser) return;
+
+   browser->GotoHistoryIndex(index);
+}
+
+void GotoHistoryIndex(HWND hWnd, UINT index)
+{
+   CBrowserWrapper *browser = GetWrapper(hWnd);
    if (!browser) return;
 
    browser->GotoHistoryIndex(index);
@@ -1869,7 +1877,7 @@ kmeleonFunctions kmelFuncsUTF8 = {
    SetPreference,
    SetStatusBarTextUTF8,
    _GetMozillaSessionHistory,
-   GotoHistoryIndex,
+   _GotoHistoryIndex,
    RegisterBand,
    CreateToolbar,
    GetID,
@@ -1927,7 +1935,8 @@ kmeleonFunctions kmelFuncsUTF8 = {
    SetButton,
    GetCmdIconList,
    GetCmdIcon,
-   FindSkinFile
+   FindSkinFile,
+   GotoHistoryIndex
 };
 
 kmeleonFunctions kmelFuncs = {
@@ -1939,7 +1948,7 @@ kmeleonFunctions kmelFuncs = {
    SetPreference,
    SetStatusBarText,
    _GetMozillaSessionHistory,
-   GotoHistoryIndex,
+   _GotoHistoryIndex,
    RegisterBand,
    CreateToolbar,
    GetID,
@@ -1997,7 +2006,8 @@ kmeleonFunctions kmelFuncs = {
    SetButton,
    GetCmdIconList,
    GetCmdIcon,
-   FindSkinFile
+   FindSkinFile,
+   GotoHistoryIndex
 };
 
 BOOL CPlugins::TestLoad(LPCTSTR file, const char *description)
