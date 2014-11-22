@@ -663,7 +663,11 @@ void CALLBACK TimerFunction(HWND hWnd, UINT, UINT_PTR id, DWORD)
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     switch (message) {
-		
+		case WM_ACTIVATE:
+			if (wParam >0) {
+				currentSession.setActiveWindow(hWnd);
+			}
+			break;
 		case UWM_UPDATEBUSYSTATE:
 			
 			if (wParam != 0 || gLoading) break;

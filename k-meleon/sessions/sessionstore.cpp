@@ -399,20 +399,17 @@ void SessionStore::Write(Session& s)
 	for (iter = s.windowsList.begin(); iter != s.windowsList.end(); iter++) {
 
 		Window& w = (*iter);			
-		w.saveWindowState();
+		
 		Value win;
 		win.SetObject();
 
-		if (w.tabcount || (w.index>=0 && w.urls[w.index].compare(0, 7, "wyciwyg") != 0))
-		{
-			win.AddMember("width", w.width, allocator);
-			win.AddMember("height", w.height, allocator);
-			win.AddMember("screenX", w.posx, allocator);
-			win.AddMember("screenY", w.posy, allocator);
-			win.AddMember("state", w.state, allocator);
-			if (w.active) selectedWindow = i;		
-		}
-
+		win.AddMember("width", w.width, allocator);
+		win.AddMember("height", w.height, allocator);
+		win.AddMember("screenX", w.posx, allocator);
+		win.AddMember("screenY", w.posy, allocator);
+		win.AddMember("state", w.state, allocator);
+		if (w.active) selectedWindow = i;		
+	
 		if (w.tabcount) {
 			Value tabs;
 			tabs.SetArray();
@@ -474,6 +471,7 @@ void SessionStore::Write(Session& s)
 		
 		win.AddMember("selected", w.selectedTab, allocator);
 		wins.PushBack(win, allocator);
+		i++;
 	}
 
 	session.AddMember("windows", wins, allocator);		

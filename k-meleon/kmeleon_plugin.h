@@ -211,7 +211,7 @@ typedef struct {
    void (*SetStatusBarText)(const char *s);
 
    int (*_GetMozillaSessionHistory)(char **titles[], char **urls[], int *count, int *index);
-	void (*GotoHistoryIndex)(UINT index);
+   void (*_GotoHistoryIndex)(UINT index);
 
    // Register a rebar band
    void (*RegisterBand) (HWND hWnd, char *name, int visibleOnMenu /*= true*/);
@@ -357,7 +357,7 @@ typedef struct {
 	unsigned (*GetCmdList) (kmeleonCommand*, unsigned size);
 	BOOL (*LoadCSS) (const char* path, BOOL load);
 	BOOL (*LogMessage) (const char* category, const char* message, const char* file, UINT line, UINT flags);
-
+	
 // ----------------------------------------------------
 // Addition in K-meleon 1.6
 
@@ -373,6 +373,8 @@ typedef struct {
 	HIMAGELIST (*GetCmdIconList)();
 	int (*GetCmdIcon)(UINT id);
 	bool (*FindSkinFile)(const wchar_t* name, wchar_t* result, unsigned size);
+	void (*GotoHistoryIndex)(HWND hWnd, UINT index);
+
 } kmeleonFunctions;
 
 /*

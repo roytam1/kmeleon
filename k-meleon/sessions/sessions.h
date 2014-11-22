@@ -92,7 +92,7 @@ public:
 		}
 
 		kPlugin.kFuncs->SetMozillaSessionHistory(hWnd, aTitles, aUrls, shcount, index);
-		if (last) kPlugin.kFuncs->GotoHistoryIndex(index);
+		if (last) kPlugin.kFuncs->GotoHistoryIndex(hWnd, index);
 		return false;
 	}
 	
@@ -188,6 +188,11 @@ public:
 		(*iter).update(aindex, acount, aurls, atitles);
 	}
 	
+	void setActive(bool a)
+	{
+		active = a;
+	}
+
 	void saveWindowState()
 	{
 		if (!::IsWindow(hWnd))
@@ -199,9 +204,6 @@ public:
 			state = SW_SHOWMAXIMIZED;
 		else 
 			state = SW_SHOWNORMAL;
-
-		if (GetActiveWindow() == hWnd)
-			state |= 16;
 
 		WINDOWPLACEMENT wp;
 		wp.length = sizeof(WINDOWPLACEMENT);
@@ -414,6 +416,7 @@ public:
 		if (iter == windowsList.end()) return;
 
 		(*iter).update(index, shcount, aurls, atitles);
+		(*iter).saveWindowState();
 	}
 
 	void updateWindow(HWND hWnd, HWND hTab, int index, int shcount, const char** aurls, const char** atitles) {
@@ -422,6 +425,15 @@ public:
 		if (iter == windowsList.end()) return;
 
 		(*iter).update(hTab, index, shcount, aurls, atitles);
+		(*iter).saveWindowState();
+	}
+
+	void setActiveWindow(HWND hWnd) {
+		WINLIST::iterator iter = windowsList.begin();
+		while (iter != windowsList.end()) {
+			(*iter).setActive((*iter).hWnd == hWnd);
+			iter++;
+		}
 	}
 
 	void flush() {
