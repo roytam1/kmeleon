@@ -197,13 +197,15 @@ bool KmSkin::FindSkinFile( CString& szSkinFile, LPCTSTR filename, LPCTSTR skin, 
 	}*/
 
 	// Fallback to default
-	file = theApp.GetFolder(SkinsFolder) + _T("\\default\\") + filename;
-	hFile = FindFirstFile(file, &FindData);
-	if(hFile != INVALID_HANDLE_VALUE) {   
-		FindClose(hFile);
-		szSkinFile = file;
-		return true;
-	}  
+	if (searchUser) {
+		file = theApp.GetFolder(SkinsFolder) + _T("\\default\\") + filename;
+		hFile = FindFirstFile(file, &FindData);
+		if(hFile != INVALID_HANDLE_VALUE) {   
+			FindClose(hFile);
+			szSkinFile = file;
+			return true;
+		}  
+	}
 
 	return false;
 }
@@ -228,7 +230,7 @@ bool KmSkin::Init(LPCTSTR skinName)
 	mBackImg.DeleteObject();
 
 	CString filename;
-	if (!FindSkinFile(filename, _T("skin.cfg"), skinName))
+	if (!FindSkinFile(filename, _T("skin.cfg"), skinName, false))
 		return false;
 
 	CFile file;
