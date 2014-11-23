@@ -1,0 +1,73 @@
+<!ENTITY % prefDTD SYSTEM "chrome://kmprefs/locale/pref.dtd">%prefDTD;
+<!ENTITY display.header		"Page Display Settings">
+<!ENTITY frames.label		"Frames">
+<!ENTITY frames.enable		"Enable frames (Changes may not take effect in windows/tabs opened before changing)">
+<!ENTITY frames.resizable	"Allow all frames to be resized">
+<!ENTITY text.label		"Text">
+<!ENTITY text.blink		"Allow blinking text">
+<!-- LOCALIZATION NOTE: Don't translate "&restartRequired;"! This string is going to be replaced by the value of entity "restartRequired" defined in file "pref.dtd". -->
+<!ENTITY text.marquee		"Disable the 'marquee' element (&restartRequired;)">
+<!-- LOCALIZATION NOTE: Don't translate "&note;"! This string is going to be replaced by the value of entity "restartRequired" defined in file "pref.dtd". -->
+<!ENTITY marquee.note		"&note; Even if disabled, sites may use other methods to show sliding text. JavaScript must be enabled for 'marquee' elements to be displayed.">
+<!ENTITY source.label		"Source Code">
+<!ENTITY source.external	"Use external source code viewer">
+<!ENTITY source.viewer		"Source Code Viewer:">
+<!ENTITY fonts.label		"Fonts">
+<!ENTITY fonts.forLanguage	"Font Settings For Language Group">
+<!ENTITY fonts.genericType	"Generic Font Type:">
+<!ENTITY fonts.typeface		"Typeface:">
+<!ENTITY fonts.size		"Size (in pixels):">
+<!ENTITY fonts.proportional	"Variable width (proportional)">
+<!ENTITY fonts.serif		"Serif">
+<!ENTITY fonts.sans-serif	"Sans-serif">
+<!ENTITY fonts.cursive		"Cursive">
+<!ENTITY fonts.fantasy		"Ornate (fantasy)">
+<!ENTITY fonts.monospace	"Fixed width (monospace)">
+<!ENTITY fonts.minSize		"Minimum font size:">
+<!ENTITY fonts.useDocFonts	"Allow documents to use other fonts">
+<!ENTITY fonts.default.serif		"Serif">
+<!ENTITY fonts.default.sans-serif	"Sans-serif">
+<!-- LOCALIZATION NOTE: See SeaMonkey/chrome/xx-YY.jar!/locale/xx-YY/communicator/pref/pref-fonts.dtd -->
+<!ENTITY font.langGroup.latin1		"Western">
+<!ENTITY font.langGroup.latin2		"Central European">
+<!ENTITY font.langGroup.japanese	"Japanese">
+<!ENTITY font.langGroup.trad-chinese	"Traditional Chinese (Taiwan)">
+<!ENTITY font.langGroup.simpl-chinese	"Simplified Chinese">
+<!ENTITY font.langGroup.trad-chinese-hk	"Traditional Chinese (Hong Kong)">
+<!ENTITY font.langGroup.korean		"Korean">
+<!ENTITY font.langGroup.cyrillic	"Cyrillic">
+<!ENTITY font.langGroup.baltic		"Baltic">
+<!ENTITY font.langGroup.el		"Greek">
+<!ENTITY font.langGroup.turkish		"Turkish">
+<!ENTITY font.langGroup.unicode		"Others (Unicode)">
+<!ENTITY font.langGroup.user-def	"User Defined">
+<!ENTITY font.langGroup.thai		"Thai">
+<!ENTITY font.langGroup.hebrew		"Hebrew">
+<!ENTITY font.langGroup.arabic		"Arabic">
+<!ENTITY font.langGroup.devanagari	"Devanagari">
+<!ENTITY font.langGroup.tamil		"Tamil">
+<!ENTITY font.langGroup.armenian	"Armenian">
+<!ENTITY font.langGroup.bengali		"Bengali">
+<!ENTITY font.langGroup.canadian	"Unified Canadian Syllabary">
+<!ENTITY font.langGroup.ethiopic	"Ethiopic">
+<!ENTITY font.langGroup.georgian	"Georgian">
+<!ENTITY font.langGroup.gujarati	"Gujarati">
+<!ENTITY font.langGroup.gurmukhi	"Gurmukhi">
+<!ENTITY font.langGroup.khmer		"Khmer">
+<!ENTITY font.langGroup.malayalam	"Malayalam">
+<!ENTITY images.label		"Images">
+<!ENTITY images.load		"Load Images">
+<!ENTITY images.load.always	"Always">
+<!ENTITY images.load.never	"Never (Block images)">
+<!ENTITY images.load.noForeign	"From the originating website only">
+<!ENTITY images.loop		"Loop Animated Images">
+<!ENTITY images.loop.none	"Never (Disable animations)">
+<!ENTITY images.loop.normal	"As many times as the image specifies">
+<!ENTITY images.loop.once	"Once">
+<!ENTITY images.resizing	"Resize large images to fit in the browser window">
+<!ENTITY images.missing		"Missing Images">
+<!ENTITY images.placeholders	"Display icons for missing images">
+<!ENTITY images.inline.force	"Display alternative text inline in quirks mode">
+<!-- LOCALIZATION NOTE: Don't translate "&note;"! This string is going to be replaced by the value of entity "note" defined in file "pref.dtd". -->
+<!ENTITY images.inline.note	"&note; You have to reload a page to make changes take effect.">
+<!ENTITY images.block.force	"Display block-like placeholders in standards compliance mode">

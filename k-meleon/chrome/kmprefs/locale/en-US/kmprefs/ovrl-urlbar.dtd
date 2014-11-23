@@ -1,0 +1,3 @@
+<!ENTITY % prefDTD SYSTEM "chrome://kmprefs/locale/pref.dtd">%prefDTD;
+<!ENTITY urlbar.height	"Maximum height of the URL Bar's drop-down list:">
+<!ENTITY urlbar.lines	"lines">
