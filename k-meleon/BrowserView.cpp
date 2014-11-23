@@ -1084,7 +1084,7 @@ void CBrowserView::OnUpdateSHistory(CCmdUI* pCmdUI)
 	pCmdUI->Enable();	
 }
 
-void CBrowserView::OnMenuSelect(UINT nItemID, UINT nFlags, HMENU hSysMenu)
+bool CBrowserView::OnMenuSelect(UINT nItemID, UINT nFlags, HMENU hSysMenu)
 {
 	CString title, url;
 	if (nItemID >= SHISTORYF_START_ID && nItemID <= SHISTORYF_END_ID) {
@@ -1092,8 +1092,18 @@ void CBrowserView::OnMenuSelect(UINT nItemID, UINT nFlags, HMENU hSysMenu)
 		m_pWindow->GetSHistoryState(index, count);
 		m_pWindow->GetSHistoryInfoAt(nItemID - SHISTORYF_START_ID + index + 1, title, url);
 		mpBrowserFrame->UpdateStatus(url);
+		return true;
 	} else if (nItemID >= SHISTORYB_START_ID && nItemID <= SHISTORYB_END_ID) {
 		m_pWindow->GetSHistoryInfoAt(nItemID - SHISTORYB_START_ID, title, url);
 		mpBrowserFrame->UpdateStatus(url);
+		return true;
 	}
+
+	CString desc;// = theApp.commands.GetDescription(nItemID); // TODO
+	if (desc.GetLength()>0) {
+		mpBrowserFrame->UpdateStatus(desc);
+		return true;
+	}
+
+	return false;
 }

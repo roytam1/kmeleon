@@ -333,7 +333,7 @@ protected:
 	DECLARE_MESSAGE_MAP()
 	
 public :
-	void OnMenuSelect(UINT nItemID, UINT nFlags, HMENU hSysMenu);
+	bool OnMenuSelect(UINT nItemID, UINT nFlags, HMENU hSysMenu);
 };
 
 #endif //_BROWSERVIEW_H
