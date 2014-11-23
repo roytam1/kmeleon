@@ -51,7 +51,7 @@ void KmToolbar::AddItem(KmButton& button, int before, UINT w, UINT h)
 {
 	KmButton* pbutton = new KmButton();
 	*pbutton = button;
-	if (!pbutton->mID && pbutton->mAction.GetLength())
+	if (pbutton->mAction.GetLength())
 		pbutton->mID = theApp.commands.GetId(pbutton->mAction);
 	if (!pbutton->mID && pbutton->mName.GetLength())
 		return;
