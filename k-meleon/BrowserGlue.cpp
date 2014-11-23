@@ -102,7 +102,7 @@ void CBrowserGlue::UpdateCurrentURI(nsIURI *aLocation)
 			firstLoad = false;
 			if (!mpBrowserFrame->IsDialog())
 			{
-				float zoom = theApp.preferences.GetInt("zoom.defaultPercent", 100);
+				float zoom = (float)theApp.preferences.GetInt("zoom.defaultPercent", 100);
 				this->mpBrowserView->GetBrowserWrapper()->SetFullZoom(zoom / 100);
 			}
 		}
@@ -196,8 +196,8 @@ void CBrowserGlue::SetBrowserSize(int aCX, int aCY)
          scale = GetDeviceCaps(dc, LOGPIXELSY) / 96.0;
          ::ReleaseDC(NULL, dc);
       }
-      aCX = scale * aCX;
-      aCY = scale * aCY;
+      aCX = (int)(scale * aCX + .5);
+      aCY = (int)(scale * aCY + .5);
    }
 
    // first we have to figure out how much bigger the frame is than the view
