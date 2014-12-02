@@ -244,9 +244,8 @@ BOOL CProfileMgr::RemoveProfile(LPCTSTR oldName, BOOL removeDir)
         lock->AppendNative(nsCString("parent.lock"));
 		
 		bool exist = PR_FALSE;
-		rv = lock->Exists(&exist);
-		if (exist == PR_TRUE)
-			return FALSE;
+		rv = lock->Remove(false);
+		NS_ENSURE_SUCCESS(rv, FALSE);
 
 		if (profile.mLocalDir != profile.mRootDir)
 		{
