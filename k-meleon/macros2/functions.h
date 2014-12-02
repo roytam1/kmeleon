@@ -1396,6 +1396,86 @@
 		return kp && kp->loaded;
 	}
 
+	Value addtoolbar(FunctionData* data)
+	{
+		checkArgs(__FUNCTION__, data, 1,3);
+		return kPlugin.kFuncs->AddToolbar(data->getstr(1), data->getint(2), data->getint(3));
+	}
+
+	// toolbar, name, command, menu, label, tooltip, cold, hot, dead, w, h
+	Value addbutton(FunctionData* data)
+	{
+		checkArgs(__FUNCTION__, data, 1,3);
+
+		MString name = data->getstr(2);
+		MString label = data->getstr(5);
+		MString tooltip = data->getstr(6);
+		MString command = data->getstr(3);
+		MString menu = data->getstr(4);
+		MString hot = data->getstr(8);
+		MString cold = data->getstr(7);
+		MString dead = data->getstr(9);
+
+
+		kmeleonButton kbutton = {
+			name,
+			label,
+			tooltip,
+			command,
+			menu,
+			hot,
+			cold,
+			dead,
+			true,
+			false,
+			0,
+			0,
+			data->getint(10),
+			data->getint(11)
+	   };
+
+	   return kPlugin.kFuncs->AddButton(data->getstr(1), &kbutton);
+	}
+
+	Value enablebutton(FunctionData* data)
+	{
+		checkArgs(__FUNCTION__, data, 2);
+		kmeleonButton b = {0};
+		b.enabled = data->getbool(3);
+		b.checked = -1;
+		return kPlugin.kFuncs->SetButton(data->getstr(1), kPlugin.kFuncs->GetID(data->getstr(2)), &b);
+	}
+
+	Value checkbutton(FunctionData* data)
+	{
+		checkArgs(__FUNCTION__, data, 2);
+		kmeleonButton b = {0};
+		b.enabled = -1;
+		b.checked = data->getbool(2);
+		return kPlugin.kFuncs->SetButton(data->getstr(1), kPlugin.kFuncs->GetID(data->getstr(2)), &b);
+	}
+
+	Value setbuttonimg(FunctionData* data)
+	{
+		checkArgs(__FUNCTION__, data, 2,7);
+
+		MString hot = data->getstr(4);
+		MString cold = data->getstr(3);
+		MString dead = data->getstr(5);
+
+		kmeleonButton b = {0};
+		b.checked = -1;
+		b.enabled = -1;
+		b.hotimage = hot;
+		b.deadimage = dead;
+		b.coldimage = cold;
+		b.iconWidth = data->getint(6);
+		b.iconHeight = data->getint(7);
+
+		return kPlugin.kFuncs->SetButton(data->getstr(1), kPlugin.kFuncs->GetID(data->getstr(2)), &b);
+	}
+
+
 #ifndef MACROSFUNC_ADD
 #define MACROSFUNC_ADD(entry) m->AddSymbol(#entry, ValueFunc((MacroFunction)&entry));
 #endif
@@ -1452,5 +1532,9 @@ void InitFunctions(Mac* m)
 	MACROSFUNC_ADD(iniread);
 	MACROSFUNC_ADD(iniwrite);
 	MACROSFUNC_ADD(pluginexist);
-
+	MACROSFUNC_ADD(addtoolbar);
+	MACROSFUNC_ADD(addbutton);
+	MACROSFUNC_ADD(enablebutton);
+	MACROSFUNC_ADD(checkbutton);
+	MACROSFUNC_ADD(setbuttonimg);
 }
