@@ -1832,14 +1832,19 @@ bool SetButton(const char* name, UINT id, kmeleonButton* button)
 	if (button->checked != -1)
 		b->mChecked = button->checked;
 	if (button->coldimage) {
+		KmImage img;
+		if (!t->LoadImage(A2CT(button->coldimage), img, button->iconWidth, button->iconHeight))
+			return false;
+
 		if (!t->mCold.m_hImageList) {
 			if (theApp.skin.mImages) {
-				KmImage img;
-				if (t->LoadImage(A2CT(button->coldimage), img)) {
-					img.AddToImageList(theApp.skin.mImages->mCold, theApp.skin.GetIconIndex(id));
-				}
+				img.AddToImageList(theApp.skin.mImages->mCold, theApp.skin.GetIconIndex(id));
 			}
 		}
+		else {
+			img.AddToImageList(t->mCold, b->mImageIndex);
+		}
+		b->mColdImage = A2CT(button->coldimage);
 	}
 
 	return true;
