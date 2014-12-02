@@ -120,9 +120,9 @@ NS_IMPL_ISUPPORTS(CPrefObserver, nsIObserver);
 CPreferences::CPreferences() :
     iSaveType("kmeleon.general.saveType", 0),
     saveDir("kmeleon.download.saveDir", _T("")),   
-    downloadDir("kmeleon.download.dir", _T("")),
-    lastDownloadDir("kmeleon.download.lastDir", _T("")),
-    bUseDownloadDir("kmeleon.download.useDownloadDir", false),
+    downloadDir("browser.download.dir", _T("")),
+    lastDownloadDir("browser.download.lastDir", _T("")),
+    bUseDownloadDir("browser.download.useDownloadDir", false),
     bAskOpenSave("kmeleon.download.askOpenSave", true),
     bShowMinimized("kmeleon.download.showMinimizedDialog", false),
     bFlashWhenCompleted("kmeleon.download.flashWhenCompleted", false),

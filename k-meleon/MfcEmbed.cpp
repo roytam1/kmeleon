@@ -1607,6 +1607,17 @@ void CMfcEmbedApp::CheckProfileVersion()
        toDelete = GetMozDirectory(NS_APP_USER_PROFILE_LOCAL_50_DIR) + _T("\\xul.mfl"); 
        DeleteFile(toDelete);
 
+	    if (oldVersion < 0x02010001) {
+			bool b = theApp.preferences.GetBool("kmeleon.download.useDownloadDir", FALSE);
+			theApp.preferences.SetBool("browser.download.useDownloadDir", b);
+			theApp.preferences.Clear("kmeleon.download.useDownloadDir");
+			CString s = theApp.preferences.GetString("kmeleon.download.dir", _T(""));
+			theApp.preferences.SetString("browser.download.dir", s);
+			theApp.preferences.Clear("kmeleon.download.dir");
+			s = theApp.preferences.GetString("kmeleon.download.lastDir", _T(""));
+			theApp.preferences.SetString("browser.download.lastDir", s);
+			theApp.preferences.Clear("kmeleon.download.lastDir");
+		}
 		if (oldVersion < 0x02010000) {
 
 			nsCOMPtr<nsIFile> mimeFile;
