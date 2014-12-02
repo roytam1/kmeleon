@@ -72,9 +72,9 @@ public:
 	void OnFound() {m_NotFound=false;Invalidate();m_cEdit.Invalidate();}
 	inline CString GetFindString( ) const {return m_csSearchStr;}
 
-	inline BOOL WrapAround() {return m_cToolbar.GetToolBarCtrl().IsButtonChecked(IDC_WRAP_AROUND);}
-	inline BOOL MatchCase() {return m_cToolbar.GetToolBarCtrl().IsButtonChecked(IDC_MATCH_CASE);}
-	inline BOOL Highlight() {return m_cToolbar.GetToolBarCtrl().IsButtonChecked(IDC_HIGHLIGHT);}
+	inline BOOL WrapAround() {return m_cToolbar.GetToolBarCtrl().IsButtonChecked(ID_WRAP_AROUND);}
+	inline BOOL MatchCase() {return m_cToolbar.GetToolBarCtrl().IsButtonChecked(ID_MATCH_CASE);}
+	inline BOOL Highlight() {return m_cToolbar.GetToolBarCtrl().IsButtonChecked(ID_HIGHLIGHT);}
 	inline bool StartSel() {return m_bStartsel;}
 
 	CEdit m_cEdit;
