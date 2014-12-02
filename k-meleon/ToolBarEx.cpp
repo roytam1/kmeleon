@@ -132,8 +132,16 @@ void CToolBarEx::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 			else if (pNMCD->nmcd.uItemState & CDIS_HOT)
 				nState = DFCS_HOT;
 
-			if (nState != DFCS_FLAT) {
-				nState |= 0x0800 | DFCS_BUTTONPUSH | DFCS_ADJUSTRECT;
+			if (nState == DFCS_HOT) {
+				COLORREF clr = ::GetSysColor(COLOR_BTNHIGHLIGHT);
+				COLORREF clr2 = ::GetSysColor(COLOR_BTNSHADOW);
+				pDC->Draw3dRect(&pNMCD->nmcd.rc, clr, clr2);
+			} else if (nState == DFCS_PUSHED) {
+				COLORREF clr = ::GetSysColor(COLOR_BTNHIGHLIGHT);
+				COLORREF clr2 = ::GetSysColor(COLOR_BTNSHADOW);
+				pDC->Draw3dRect(&pNMCD->nmcd.rc, clr2, clr);
+			} else if (nState & DFCS_CHECKED) {
+					nState |= DFCS_TRANSPARENT | DFCS_BUTTONPUSH | DFCS_ADJUSTRECT;
 				pDC->DrawFrameControl(&pNMCD->nmcd.rc, DFC_BUTTON, nState);
 			}			
 		}
