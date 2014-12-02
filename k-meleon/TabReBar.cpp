@@ -298,7 +298,7 @@ void CTabReBar::UpdateButtonsSize(bool forceUpdate)
 
 	int hp, vp;
 	GetToolBarCtrl().GetPadding(hp, vp);
-	if (nMinWidth < theApp.skin.GetUserWidth())
+	if (nMinWidth < theApp.skin.GetUserWidth() + hp)
 		nMinWidth = theApp.skin.GetUserWidth() + hp;
 
 	CRect rect;
@@ -325,12 +325,12 @@ void CTabReBar::UpdateButtonsSize(bool forceUpdate)
 		buttonWidth = nMinWidth;
 		if (width>nMinWidth)
 			buttonWidth = width / (width/nMinWidth);
-	} else if (buttonWidth < nMinWidth + nMinWidth/2)
-		buttonWidth = nMinWidth;
+	} /*else if (buttonWidth < nMinWidth + nMinWidth/2)
+		buttonWidth = nMinWidth;*/
 	
 	DWORD bsize = GetToolBarCtrl().GetButtonSize();
 	int w = LOWORD(bsize), h = HIWORD(bsize);
-	if (!forceUpdate && w == buttonWidth) return;
+	if (!forceUpdate && w == buttonWidth && buttonWidth != nMinWidth) return;
 	GetToolBarCtrl().SetButtonWidth(buttonWidth, buttonWidth);
 
 	// Sometimes it doesn't like the width, so use another one
@@ -890,7 +890,7 @@ void CTabReBar::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 
 		if (hTheme) {
 
-			if (style & WS_DISABLED)
+			if (pNMCD->nmcd.uItemState & CDIS_DISABLED)
 				stateId = TS_DISABLED;
 			else if (pNMCD->nmcd.uItemState & CDIS_SELECTED)
 				stateId = TS_PRESSED;		
@@ -914,16 +914,24 @@ void CTabReBar::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 			else if (pNMCD->nmcd.uItemState & CDIS_SELECTED)
 				nState = DFCS_PUSHED;		
 			else if(pNMCD->nmcd.uItemState & CDIS_HOT && pNMCD->nmcd.uItemState & CDIS_CHECKED)
-				nState = DFCS_PUSHED | 0x1000; //DFCS_HOT; 
+				nState = DFCS_PUSHED | DFCS_HOT; 
 			else if (pNMCD->nmcd.uItemState & CDIS_CHECKED)
 				nState = DFCS_CHECKED;
 			else if (pNMCD->nmcd.uItemState & CDIS_HOT)
-				nState = 0x1000; // DFCS_HOT;
+				nState = DFCS_HOT; 
 
-			if (nState != DFCS_FLAT) {
-				nState |= 0x0800 | DFCS_BUTTONPUSH | DFCS_ADJUSTRECT;
+			if (nState == DFCS_HOT) {
+				COLORREF clr = ::GetSysColor(COLOR_BTNHIGHLIGHT);
+				COLORREF clr2 = ::GetSysColor(COLOR_BTNSHADOW);
+				pDC->Draw3dRect(&pNMCD->nmcd.rc, clr, clr2);
+			} else if (nState = DFCS_PUSHED) {
+				COLORREF clr = ::GetSysColor(COLOR_BTNHIGHLIGHT);
+				COLORREF clr2 = ::GetSysColor(COLOR_BTNSHADOW);
+				pDC->Draw3dRect(&pNMCD->nmcd.rc, clr2, clr);
+			} else if (nState & DFCS_CHECKED) {
+					nState |= DFCS_TRANSPARENT | DFCS_BUTTONPUSH | DFCS_ADJUSTRECT;
 				pDC->DrawFrameControl(&pNMCD->nmcd.rc, DFC_BUTTON, nState);
-			}			
+			}				
 		}
 		
 		UINT textFlag = DT_LEFT | DT_SINGLELINE | DT_VCENTER | DT_HIDEPREFIX | DT_WORD_ELLIPSIS;
