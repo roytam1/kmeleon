@@ -24,6 +24,29 @@
 #include "imgIContainer.h"
 #include "gfxUtils.h"
 
+bool IsComCtl6() {
+	static int isv6 = -1;
+	if (isv6 != -1) return isv6;
+
+	HMODULE hComCtlDll = LoadLibrary(_T("comctl32.dll"));
+	if (!hComCtlDll) return isv6 = 0;
+
+	typedef HRESULT (CALLBACK *PFNDLLGETVERSION)(DLLVERSIONINFO*);
+	PFNDLLGETVERSION pfnDllGetVersion = (PFNDLLGETVERSION)GetProcAddress(hComCtlDll, "DllGetVersion");
+	if (!pfnDllGetVersion) 
+		isv6 = 0;
+	else {
+		DLLVERSIONINFO dvi = {0};
+		dvi.cbSize = sizeof(dvi);
+
+		HRESULT hRes = (*pfnDllGetVersion)(&dvi);
+		isv6 = SUCCEEDED(hRes) && dvi.dwMajorVersion >= 6;
+	}
+
+	FreeLibrary(hComCtlDll);
+	return isv6;
+}
+
 using namespace mozilla::gfx;
 
 NS_IMPL_ISUPPORTS(nsImageObserver, imgINotificationObserver, nsISupportsWeakReference)
@@ -215,8 +238,7 @@ HBITMAP nsImageObserver::CreateDIB(imgIRequest *aRequest)
 	surface = container->GetFrame(imgIContainer::FRAME_CURRENT,
 		imgIContainer::FLAG_SYNC_DECODE | imgIContainer::FLAG_WANT_DATA_SURFACE );
 	NS_ENSURE_TRUE(surface, NULL);
-	surface->GetFormat();
-	//surface->GetDataSurface();  
+	surface->GetFormat(); // call GetType in debug ...
 
 	mozilla::RefPtr<DataSourceSurface> dataSurface;
 	DataSourceSurface::MappedSurface map;
@@ -278,8 +300,14 @@ bool KmImage::LoadFromBitmap(HBITMAP hbmp)
 	mBitmap.Attach(hbmp);
 
 	BITMAP bm = {0};
-    mBitmap.GetObject(sizeof(BITMAP), (void*)&bm);
+    mBitmap.GetObject(sizeof(BITMAP), (void*)&bm);	
+	
 	if (bm.bmBitsPixel == 32) {
+		void* bits = bm.bmBits;
+		if (!bits) {
+			bits = new BYTE[bm.bmWidth * bm.bmHeight * bm.bmBitsPixel];
+			mBitmap.GetBitmapBits(bm.bmWidth * bm.bmHeight * bm.bmBitsPixel, bits);
+		}
 		mGdiBitmap = new Gdiplus::Bitmap(bm.bmWidth, bm.bmHeight, PixelFormat32bppPARGB);
 		Gdiplus::BitmapData bmd;
 		Gdiplus::Rect rect(0, 0, bm.bmWidth, bm.bmHeight);
@@ -288,9 +316,10 @@ bool KmImage::LoadFromBitmap(HBITMAP hbmp)
 		byte* destBytes = (byte*)(bmd.Scan0);
 		for (int y = 0; y < bm.bmHeight; y++)
 		{
-			memcpy(destBytes + (y * lineSize), (byte*)bm.bmBits + ((bm.bmHeight - y - 1) * lineSize), lineSize);
+			memcpy(destBytes + (y * lineSize), (byte*)bits + ((bm.bmHeight - y - 1) * lineSize), lineSize);
 		}
 		mGdiBitmap->UnlockBits(&bmd);
+		if (!bm.bmBits) delete bits;
 	} else {
 		mGdiBitmap = Gdiplus::Bitmap::FromHBITMAP(hbmp, NULL);
 		MakeTransparent(mTrColor);
@@ -573,5 +602,11 @@ int KmImage::AddToImageList(CImageList& list, int index)
 	ImageList_GetIconSize(list.m_hImageList, &cx, &cy);
 	ASSERT(GetWidth()%cx == 0 && cy == GetHeight());
 #endif
+
+	Gdiplus::Color color;
+	mGdiBitmap->GetPixel(0,0,&color);
+
+	if (!IsComCtl6()) 
+		return list.Add(&mBitmap, color.ToCOLORREF());
 	return index == -1 ? list.Add(&mBitmap, nullptr) : list.Replace(index, &mBitmap, nullptr);
 }

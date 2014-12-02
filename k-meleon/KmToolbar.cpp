@@ -44,8 +44,31 @@ bool KmToolbar::LoadImage(LPCTSTR skinImg, KmImage& img, UINT w, UINT h)
 	}
 
 	img.Crop(w, h, index);
+	img.Resize(mWidth?mWidth:theApp.skin.GetDefWidth(), mHeight?mHeight:theApp.skin.GetDefHeight());
 	return true;
 }
+
+#include "MozUtils.h"
+class iconTbObserver: public IImageObserver {
+public:
+	iconTbObserver(KmButton* button) : 
+		mButton(button) {}
+
+	void ImageLoaded(HBITMAP hBitmap) 
+	{
+		UINT w = theApp.skin.GetUserWidth();
+		UINT h = theApp.skin.GetUserHeight();
+
+		KmImage img;
+		img.LoadFromBitmap(hBitmap);
+		img.Resize(w, h);
+		mButton->mImageIndex = theApp.skin.mImages->AddIcon(img, mButton->mID);
+		DeleteObject(hBitmap);
+	}
+
+protected:
+	KmButton* mButton;
+};
 
 void KmToolbar::AddItem(KmButton& button, int before, UINT w, UINT h)
 {
@@ -57,6 +80,20 @@ void KmToolbar::AddItem(KmButton& button, int before, UINT w, UINT h)
 		return;
 	pbutton->mImageIndex = theApp.skin.GetIconIndex(pbutton->mID);
 	if (pbutton->mImageIndex == I_IMAGENONE && button.mColdImage) {
+
+		if (button.mColdImage.Left(6).Compare(L"chrome") == 0) {
+
+			iconTbObserver* io = new iconTbObserver(pbutton);
+			nsCOMPtr<nsIURI> uri;
+			NewURI(getter_AddRefs(uri), CStringToNSString(button.mColdImage));
+
+			if (!nsImageObserver::LoadImage(io, uri)) {
+				delete io;
+				return;
+			}
+
+		} else {
+
 		if (!w) w = theApp.skin.GetUserWidth();
 		if (!h) h = theApp.skin.GetUserHeight();
 		KmImage img;
@@ -107,6 +144,7 @@ void KmToolbar::AddItem(KmButton& button, int before, UINT w, UINT h)
 					}
 				}
 			}
+		}
 		}
 	}
 	mButtons.AddTail(pbutton);
