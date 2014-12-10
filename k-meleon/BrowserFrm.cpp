@@ -448,7 +448,7 @@ int CBrowserFrame::InitLayout()
 
 	if (!IsDialog()) {
 		theApp.plugins.SendMessage("*", "* OnCreate", "DoRebar", (long)m_wndReBar.GetReBarCtrl().m_hWnd);
-		theApp.toolbars.InitWindows(&m_wndReBar);
+		theApp.toolbars.InitWindows(this);
 	}
 
     m_wndReBar.RestoreBandSizes();
@@ -1265,7 +1265,7 @@ BOOL CALLBACK EnumToolbar(HWND hwnd, LPARAM lParam)
 }
 
 // create a linked list of CToolBarEx controls, return the hwnd
-HWND CBrowserFrame::CreateToolbar(UINT style) {
+CToolBarEx* CBrowserFrame::CreateToolbar(UINT style) {
     return m_tbList.Add(this, style);
 }
 
@@ -1696,16 +1696,17 @@ void CBrowserFrame::UpdateLoading(BOOL aLoading)
 
 void CBrowserFrame::UpdateTitle(LPCTSTR aTitle)
 {
-	CString appTitle;
-	appTitle.LoadString(AFX_IDS_APP_TITLE);
-	appTitle = theApp.preferences.GetString("kmeleon.display.title", appTitle);
-
 	CString title = aTitle;
 	if (title.IsEmpty())
 		title = GetActiveView()->GetBrowserGlue()->mLocation;
 
-	if (!appTitle.IsEmpty())
-		title += _T(" (") + appTitle + _T(")");
+	if (!IsDialog()) {
+		CString appTitle;
+		appTitle.LoadString(AFX_IDS_APP_TITLE);
+		appTitle = theApp.preferences.GetString("kmeleon.display.title", appTitle);
+		if (!appTitle.IsEmpty())
+			title += _T(" - ") + appTitle;
+	}
 
 	SetWindowText(title);
 	UpdateSHistoryMenu();

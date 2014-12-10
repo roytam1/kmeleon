@@ -1405,7 +1405,7 @@
 	// toolbar, name, command, menu, label, tooltip, cold, hot, dead, w, h
 	Value addbutton(FunctionData* data)
 	{
-		checkArgs(__FUNCTION__, data, 1,3);
+		checkArgs(__FUNCTION__, data, 3,11);
 
 		MString name = data->getstr(2);
 		MString label = data->getstr(5);
@@ -1439,7 +1439,7 @@
 
 	Value enablebutton(FunctionData* data)
 	{
-		checkArgs(__FUNCTION__, data, 2);
+		checkArgs(__FUNCTION__, data, 3);
 		kmeleonButton b = {0};
 		b.enabled = data->getbool(3);
 		b.checked = -1;
@@ -1448,7 +1448,7 @@
 
 	Value checkbutton(FunctionData* data)
 	{
-		checkArgs(__FUNCTION__, data, 2);
+		checkArgs(__FUNCTION__, data, 3);
 		kmeleonButton b = {0};
 		b.enabled = -1;
 		b.checked = data->getbool(2);

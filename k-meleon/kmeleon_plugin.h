@@ -352,7 +352,7 @@ typedef struct {
 	int (*GetTabsList) (HWND hWnd, HWND* list, unsigned size);
 	UINT (*GetIconIdx) (const char* host);
 	void (*ReleaseCmdId) (UINT id);
-	UINT (*RegisterCmd) (const char* name, const char* plugin, unsigned nbArgs); // Do not use yet
+	UINT (*RegisterCmd) (const char* name, const char* desc, const char* arg); // Do not use yet
 	void (*UnregisterCmd) (const char* name, const char* plugin);
 	unsigned (*GetCmdList) (kmeleonCommand*, unsigned size);
 	BOOL (*LoadCSS) (const char* path, BOOL load);
@@ -374,6 +374,7 @@ typedef struct {
 	int (*GetCmdIcon)(UINT id);
 	bool (*FindSkinFile)(const wchar_t* name, wchar_t* result, unsigned size);
 	void (*GotoHistoryIndex)(HWND hWnd, UINT index);
+	bool (*RemoveButton)(const char* name, const char* command);
 
 } kmeleonFunctions;
 

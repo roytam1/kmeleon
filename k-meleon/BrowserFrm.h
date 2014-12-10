@@ -171,7 +171,7 @@ public:
             delete temp;
         }
     }
-    HWND Add(CWnd *wnd, UINT style)
+    CToolBarEx* Add(CWnd *wnd, UINT style)
     {
         CToolBarItem *newTB = new CToolBarItem(wnd, style);
 
@@ -181,7 +181,7 @@ public:
             m_tail->m_next = newTB;
             m_tail = newTB;
         }
-        return newTB->m_tb->m_hWnd;
+        return newTB->m_tb;
     }
 private:
     CToolBarItem  *m_head;
@@ -258,7 +258,7 @@ public:
 	void CloseNothing(){}
 	INT_PTR DoModal();
 
-	HWND CreateToolbar(UINT style);
+	CToolBarEx* CreateToolbar(UINT style);
 	void SetBackImage ();
 
 

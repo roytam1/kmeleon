@@ -21,6 +21,15 @@
 #include "KmCommand.h"
 #include "kmeleon_plugin.h"
 
+UINT KmCmdService::RegisterCommand(LPCTSTR name, LPCTSTR desc, LPCTSTR icon)
+{
+	UINT id = AllocateId();
+	mCommandList[name] = KmCommand(id, desc);
+	if (icon && theApp.skin.mImages)
+		theApp.skin.mImages->AddIcon(icon, 0, 0, id);
+	return id;
+}
+
 CString KmCmdService::GetDescription(LPCTSTR command)
 {
 	KmCommand kcommand;
@@ -33,6 +42,9 @@ CString KmCmdService::GetDescription(LPCTSTR command)
 		str.LoadString(id);
 		return str;
 	}
+
+	if (kcommand.GetDesc().GetLength())
+		return kcommand.GetDesc();
 	
 	USES_CONVERSION;
 	char *desc = NULL;
@@ -59,17 +71,18 @@ UINT KmCmdService::GetList(kmeleonCommand* cmdList, UINT size, BOOL def)
 		char* aCmd = strdup(T2CA(pCurVal->key));
 		strncpy(cmdList[i].cmd, aCmd, sizeof(cmdList[i].cmd));
 		cmdList[i].cmd[sizeof(cmdList[i].cmd)-1] = 0;
-		if (!IsPluginCommand(pCurVal->value.id)) {
-			CString str;
-			str.LoadString(pCurVal->value.id);
+		//if (!IsPluginCommand(pCurVal->value.id)) {
+			CString str = pCurVal->value.GetDesc();
+			if (!str.GetLength())
+				str.LoadString(pCurVal->value.id);
 			strncpy(cmdList[i].desc, T2CA(str), sizeof(cmdList[i].desc));
 			cmdList[i].desc[sizeof(cmdList[i].desc)-1] = 0;
-		}
+		/*}
 		else {
 			char *plugin, *parameter;
 			if (ParseCommand(aCmd, &plugin, &parameter))
 				theApp.plugins.SendMessage(plugin, "*", "GetCmds", (long)parameter, (long)&cmdList[i]);
-		}
+		}*/
 		free(aCmd);
 		ASSERT(i<=num);
 		if (++i > num) break;
@@ -96,7 +109,7 @@ UINT KmCmdService::GetId(LPCTSTR command)
 		return kcommand.id;
 
 	if (command[0] == _T('@')) { //Menu
-		return RegisterCommand(NULL, command);
+		return RegisterCommand(command);
 	}
 
 	char *plugin, *parameter;

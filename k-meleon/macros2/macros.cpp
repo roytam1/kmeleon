@@ -24,6 +24,7 @@
 #include <shellapi.h>
 #include <stdlib.h>
 #include <string>
+#include <vector>
 #include <malloc.h>
 
 #define PLUGIN_NAME "Macro Extension Plugin"
@@ -354,100 +355,6 @@ public:
 	}
 };
 
-long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2)
-{  
-	if (to[0] == '*' || stricmp(to, kPlugin.dllname) == 0) {
-		if (stricmp(subject, "Load") == 0) {
-			Load();
-		}
-		else if (stricmp(subject, "Init") == 0) {
-			ExecuteMacro(NULL, "OnInit", false);
-		}
-		else if (stricmp(subject, "Setup") == 0) {
-			ExecuteMacro(NULL, "OnSetup", false);
-		}
-		else if (stricmp(subject, "UserSetup") == 0) {
-			ExecuteMacro(NULL, "OnUserSetup", false);
-		}
-		else if (stricmp(subject, "Create") == 0) {
-			Create((HWND)data1);
-		}
-		else if (stricmp(subject, "CreateTab") == 0) {
-			ExecuteMacro((HWND)data1, "OnOpenTab", false);
-		}
-		else if (stricmp(subject, "DestroyTab") == 0) {
-			ExecuteMacro((HWND)data1, "OnCloseTab", false);
-		}
-		else if (stricmp(subject, "Close") == 0) {
-			Close((HWND)data1);
-		}
-		else if (stricmp(subject, "Config") == 0) {
-			Config((HWND)data1);
-		}
-		else if (stricmp(subject, "Quit") == 0) {
-			Quit();
-		}
-		else if (stricmp(subject, "DoMenu") == 0) {
-			DoMenu((HMENU)data1, (char *)data2);
-		}
-		else if (stricmp(subject, "DoRebar") == 0) {
-			DoRebar((HWND)data1);
-		}
-		else if (stricmp(subject, "DoAccel") == 0) {
-			*(int *)data2 = DoAccel((char *)data1);
-		}
-		else if (stricmp(subject, "GetConfigFiles") == 0) {
-			*(int *)data2 = GetConfigFiles((configFileType**)data1);
-		}
-		else if (stricmp(subject, "GetCmds") == 0) {
-			return GetCmds((kmeleonCommand*)data1, data2);
-		}
-		else if (stricmp(subject, "RunMacro") == 0) {
-			Parser parser;
-			int debug = 0;
-			kPlugin.kFuncs->GetPreference(PREF_BOOL, "kmeleon.plugins.macros.debug", &debug, &debug);
-
-			MacroNode* node = M->root.GetLast();
-			if (!parser._init(M, strdup((char*)data1), debug))
-				return 0;
-
-			parser.parse();	
-			
-			Context c = {NULL};
-			// Ugly hack to run new code
-			MacroNode* child = M->root.child;
-			M->root.child = node->next;
-			Evaluator e(M, c);
-			e.Evaluate(&M->root);
-			M->root.child = child;
-		}
-		else return 0;
-
-		return 1;
-	}
-	return 0;
-}
-
-std::string ExecuteMacro (HWND hWnd, std::string name, bool haha)
-{
-
-	Value* val = M->FindSymbol(name);
-	if (!val || !val->ismacro())
-		return "";
-
-	ValueMacro* macro = (ValueMacro*)val;
-	if (!macro->md) {
-		return "";
-	}
-
-	Context context;
-	context.hWnd = hWnd;
-	Evaluator eval(M, context);
-	eval.Evaluate(macro->md);
-	return "";
-}
-
-
 
 class ArgList {
 
@@ -537,6 +444,168 @@ public:
 	}
 }* arglist;
 
+int GetMacroState(int id)
+{
+	char *macroname, *param;
+	if (!arglist->getfromid(id, &macroname, &param))
+		return -1;	
+
+	Value* macro = M->FindSymbol(macroname);
+	if (!macro || !macro->ismacro() ||
+		(!macro->md->menuChecked && ! macro->md->menuGrayed))
+		 return -1;
+
+	Value *v = M->FindSymbol("$ARG");
+	assert(v);
+	*v = Value(param);
+
+	int res = 0;
+	Context c = {NULL};
+	if (macro->md->menuChecked) {
+		Evaluator e(M, c);
+		if (e.EvalExpr(macro->md->menuChecked).boolval())
+			res |= 0x2;
+	}
+
+	if (macro->md->menuGrayed) {
+		Evaluator e(M, c);
+		if (e.EvalExpr(macro->md->menuGrayed).boolval())
+			res |= 0x1;
+	}
+
+	return res;
+}
+
+const char* GetCmd(long id) {
+	static MString str;
+	char *macroname, *param;
+	if (!arglist->getfromid(id, &macroname, &param))
+		return nullptr;
+		
+	Value* macro = M->FindSymbol(macroname);
+	if (!macro || !macro->ismacro() || !macro->md->macroInfo) 
+		return nullptr;
+
+	Context c = {0};
+	Evaluator e(M, c);
+	Value *v = M->FindSymbol("$ARG");
+	*v = Value(param);
+	str = e.EvalExpr(macro->md->macroInfo).strval();
+	return str.c_str();
+}
+
+long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2)
+{  
+	if (to[0] == '*' || stricmp(to, kPlugin.dllname) == 0) {
+		if (strcmp(subject, "GetState") == 0) {
+			unsigned res = GetMacroState(data1);
+			if (res == -1) return 0;
+			*((unsigned*)data2) = res;
+			return 1;
+		}
+		else if (strcmp(subject, "Load") == 0) {
+			Load();
+		}
+		else if (strcmp(subject, "Init") == 0) {
+			ExecuteMacro(NULL, "OnInit", false);
+		}
+		else if (strcmp(subject, "Setup") == 0) {
+			ExecuteMacro(NULL, "OnSetup", false);
+		}
+		else if (strcmp(subject, "UserSetup") == 0) {
+			ExecuteMacro(NULL, "OnUserSetup", false);
+		}
+		else if (strcmp(subject, "Create") == 0) {
+			Create((HWND)data1);
+		}
+		else if (strcmp(subject, "CreateTab") == 0) {
+			ExecuteMacro((HWND)data1, "OnOpenTab", false);
+		}
+		else if (strcmp(subject, "DestroyTab") == 0) {
+			ExecuteMacro((HWND)data1, "OnCloseTab", false);
+		}
+		else if (strcmp(subject, "Close") == 0) {
+			Close((HWND)data1);
+		}
+		else if (strcmp(subject, "Config") == 0) {
+			Config((HWND)data1);
+		}
+		else if (strcmp(subject, "Quit") == 0) {
+			Quit();
+		}
+		else if (strcmp(subject, "DoMenu") == 0) {
+			DoMenu((HMENU)data1, (char *)data2);
+		}
+		else if (strcmp(subject, "DoRebar") == 0) {
+			DoRebar((HWND)data1);
+		}
+		else if (strcmp(subject, "DoAccel") == 0) {
+			*(int *)data2 = DoAccel((char *)data1);
+		}
+		else if (strcmp(subject, "GetConfigFiles") == 0) {
+			*(int *)data2 = GetConfigFiles((configFileType**)data1);
+		}
+		else if (strcmp(subject, "GetCmds") == 0) {
+			return GetCmds((kmeleonCommand*)data1, data2);
+		}
+		else if (strcmp(subject, "GetCmd") == 0) {
+			data2 = (long)(void*)GetCmd((long)data1);
+			return 1;
+		}
+		else if (strcmp(subject, "RunMacro") == 0) {
+			Parser parser;
+			int debug = 0;
+			kPlugin.kFuncs->GetPreference(PREF_BOOL, "kmeleon.plugins.macros.debug", &debug, &debug);
+
+			MacroNode* node = M->root.GetLast();
+			if (!parser._init(M, strdup((char*)data1), debug))
+				return 0;
+
+			parser.parse();	
+			
+			Context c = {NULL};
+			// Ugly hack to run new code
+			MacroNode* child = M->root.child;
+			M->root.child = node->next;
+			Evaluator e(M, c);
+			e.Evaluate(&M->root);
+			M->root.child = child;
+		}
+		else return 0;
+
+		return 1;
+	}
+	return 0;
+}
+
+std::string ExecuteMacro (HWND hWnd, std::string name, bool haha)
+{
+	if (!M) return "";
+
+	Value* val = M->FindSymbol(name);
+	if (!val || !val->ismacro())
+		return "";
+
+	ValueMacro* macro = (ValueMacro*)val;
+	if (!macro->md) {
+		return "";
+	}
+
+	Context context;
+	context.hWnd = hWnd;
+	Evaluator eval(M, context);
+	eval.Evaluate(macro->md);
+	return "";
+}
+
+typedef struct MacroFileDesc {
+	MString name;
+	MString desc;
+	bool user;	
+} MacroFileDesc;
+
+std::vector<MacroFileDesc> *macroFileList;
+
 bool LoadDir(const TCHAR* macrosDir)
 {
 	TCHAR szMacroFile[MAX_PATH];
@@ -610,6 +679,7 @@ BOOL APIENTRY DllMain(HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserv
 int Load() {
 	kFuncs = kPlugin.kFuncs;
 	arglist = new ArgList;
+	macroFileList = new std::vector<MacroFileDesc>;
 	M = new Mac();
 	M->AddSymbol("$ARG", Value());
 	InitFunctions(M);
@@ -705,11 +775,11 @@ int GetCmds(kmeleonCommand* cmdList, long size)
 		cmdList->id = arglist->getfromname(iter->first.c_str(), "");
 
 		count++;
+		cmdList++;
 		if (--size == 0) break;
 	}
 
 	return count;
-
 }
 
 void Close(HWND hWnd) {
@@ -722,8 +792,10 @@ void CloseFrame(HWND hWnd, LONG windows) {
 
 void Quit() {
 	ExecuteMacro(NULL, "OnQuit", false);
-	delete arglist;
+	delete macroFileList;
+	delete arglist;	
 	delete M;
+	M = nullptr;
 }
 
 void DoMenu(HMENU menu, char *param) {

@@ -241,15 +241,18 @@ BOOL CToolBarEx::OnTbnGetDispInfo(UINT, NMHDR * pNotifyStruct, LRESULT* pResult)
 	if (button->mTooltip.GetLength()) {
 		pTTT->lpszText = (LPTSTR)theApp.lang.Translate(button->mTooltip);
 	}
-	else {
+	else if (text.LoadString(pNotifyStruct->idFrom)) {
 		if (button->mMenuName) {
-			if (!text.LoadString(pNotifyStruct->idFrom))
-				return FALSE;
 			text += L"\n";
-			text.AppendFormat(IDS_MORE_OPTIONS);
-			pTTT->lpszText = text.GetBuffer();
-		} else
-			pTTT->lpszText = MAKEINTRESOURCE(pNotifyStruct->idFrom);
+			text.AppendFormat(IDS_MORE_OPTIONS);			
+		} 
+		pTTT->lpszText = text.GetBuffer();
+	}
+	else {
+		KmCommand cmd;
+		text = theApp.commands.GetDescription(button->mAction);
+		if (!text.GetLength()) return FALSE;
+		pTTT->lpszText = text.GetBuffer();
 	}
 
 	return TRUE;
