@@ -54,18 +54,18 @@ public:
 		int height = ::GetSystemMetrics(SM_CYSMICON);
 		if (width != w || height != h) {
 			mHasDifferentSize = true;
-			mSized.Create(width, height, ILC_MASK|ILC_COLOR32, 0, 10);
+			mSized.Create(width, height, ILC_COLOR32, 0, 10);
 		} else 
 			mHasDifferentSize = false;
-		mHot.Create(w, h, ILC_MASK|ILC_COLOR32, 0, 10);
-		mCold.Create(w, h, ILC_MASK|ILC_COLOR32, 0, 10);
-		mDead.Create(w, h, ILC_MASK|ILC_COLOR32, 0, 10);
+		mHot.Create(w, h, ILC_COLOR32, 0, 10);
+		mCold.Create(w, h, ILC_COLOR32, 0, 10);
+		mDead.Create(w, h, ILC_COLOR32, 0, 10);
 	}	
 
 	int AddIcons(KmImage& img, UINT w, UINT h);
 	int AddIcon(KmImage& img, UINT id = 0);
 	int AddIcon(KmImage&  img, KmImage&  hotImg, KmImage&  deadImg, UINT id = 0);
-	int AddIcon(LPCTSTR hotImgPath, LPCTSTR coldImgPath, LPCTSTR deadImgPath, UINT id = 0);
+	int AddIcon(LPCTSTR coldImgPath, LPCTSTR hotImgPath, LPCTSTR deadImgPath, UINT id = 0);
 	
 	HIMAGELIST GetIconList() {
 		return mHasDifferentSize ? mSized.GetSafeHandle() : mCold.GetSafeHandle();

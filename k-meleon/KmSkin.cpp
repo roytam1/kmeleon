@@ -325,3 +325,44 @@ bool KmSkin::Init(LPCTSTR skinName)
 	mSkinName = skinName;
 	return true;
 }
+
+class iconSkinObserver: public IImageObserver {
+	UINT mID;
+public:
+	iconSkinObserver(UINT id): mID (id) {}
+	~iconSkinObserver() {}
+	void ImageLoaded(HBITMAP hBitmap) 
+	{
+		if (!hBitmap) return;
+		UINT w = theApp.skin.GetUserWidth();
+		UINT h = theApp.skin.GetUserHeight();
+
+		KmImage img;
+		img.LoadFromBitmap(hBitmap);
+		img.Resize(w, h);
+		theApp.skin.mImages->AddIcon(img, mID);
+		DeleteObject(hBitmap);
+	}
+
+protected:
+	KmButton* mButton;
+};
+
+#include "MozUtils.h"
+int KmIconList::AddIcon(LPCTSTR coldImgPath, LPCTSTR hotImgPath, LPCTSTR deadImgPath, UINT id) 
+{
+	if (CString(coldImgPath).Left(6).Compare(L"chrome") == 0) {
+
+		iconSkinObserver* io = new iconSkinObserver(id);
+		nsCOMPtr<nsIURI> uri;
+		NewURI(getter_AddRefs(uri), CStringToNSString(coldImgPath));
+
+		if (!nsImageObserver::LoadImage(io, uri)) {
+			delete io;
+			return -1;
+		}
+
+	} else {
+
+	}
+}

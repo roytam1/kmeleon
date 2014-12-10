@@ -672,7 +672,7 @@ HWND CreateToolbar(HWND hWnd, UINT style) {
    CBrowserFrame *frame = GetFrame(hWnd);
    if (!frame) return NULL;
 
-   return frame->CreateToolbar(style);
+   return frame->CreateToolbar(style)->m_hWnd;
 }
 
 int GetID(const char *strID) {
@@ -1726,10 +1726,10 @@ void ReleaseCmdID(UINT id)
 	theApp.commands.ReleaseId(id);
 }
 
-UINT RegisterCmd(const char* cmd, const char* plugin, unsigned nbArgs)
+UINT RegisterCmd(const char* name, const char* desc, const char* icon)
 {
 	USES_CONVERSION;
-	return theApp.commands.RegisterCommand(A2CT(plugin), A2CT(cmd), nbArgs);
+	return theApp.commands.RegisterCommand(A2CT(name), A2CT(desc), A2CT(icon));
 }
 
 void UnregisterCmd(const char* cmd, const char* plugin)
@@ -1741,12 +1741,12 @@ void UnregisterCmd(const char* cmd, const char* plugin)
 unsigned GetCmdList(kmeleonCommand* cmdList, unsigned size)
 {
 	int num = theApp.plugins.SendMessage("*", "Urlbar", "GetCmds", 0, 0);
-	num += theApp.commands.GetDefCount();
+	num += theApp.commands.GetCount();
 
 	if (!cmdList)
 		return num;
 
-	num = theApp.commands.GetList(cmdList, size, TRUE);
+	num = theApp.commands.GetList(cmdList, size);
 	CPluginList *pluginList = theApp.plugins.GetPlugins();
 	POSITION pos = pluginList->GetStartPosition();
 	kmeleonPlugin * kPlugin;
@@ -1779,6 +1779,14 @@ bool AddToolbar(const char* name, UINT w, UINT h)
 {
 	USES_CONVERSION;
 	return theApp.toolbars.CreateToolbar(A2CT(name), w, h) ? true : false;
+}
+
+bool RemoveButton(const char* name, const char* command)
+{
+	USES_CONVERSION;
+	KmToolbar* t = theApp.toolbars.GetKToolbar(A2CT(name));
+	if (!t) return false;
+	return t->RemoveItem(theApp.commands.GetId(command));
 }
 
 bool AddButton(const char* name, kmeleonButton* b)
@@ -1941,7 +1949,8 @@ kmeleonFunctions kmelFuncsUTF8 = {
    GetCmdIconList,
    GetCmdIcon,
    FindSkinFile,
-   GotoHistoryIndex
+   GotoHistoryIndex,
+   RemoveButton
 };
 
 kmeleonFunctions kmelFuncs = {
@@ -2012,7 +2021,8 @@ kmeleonFunctions kmelFuncs = {
    GetCmdIconList,
    GetCmdIcon,
    FindSkinFile,
-   GotoHistoryIndex
+   GotoHistoryIndex,
+   RemoveButton
 };
 
 BOOL CPlugins::TestLoad(LPCTSTR file, const char *description)

@@ -1,4 +1,5 @@
 #define WIN32_LEAN_AND_MEAN
+#include <mozilla/Char16.h>
 #include <windows.h>
 #include <stdio.h> 
 
@@ -28,7 +29,6 @@ kmeleonPlugin kPlugin = {
 
 CCmdList* cmdList;
 
-NS_IMPL_ISUPPORTS(CJSBridge, nsIJSBridge); 
 NS_GENERIC_FACTORY_CONSTRUCTOR(CJSBridge) 
 /*
 static const mozilla::Module::CIDEntry kBrowserCIDs[] = {
@@ -144,7 +144,7 @@ BOOL APIENTRY DllMain( HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
    return TRUE;
 }
 
-extern std::map<UINT, nsCOMPtr<nsICommandFunction>> cmdMap;
+extern std::map<UINT, nsCOMPtr<kmICommandFunction>> cmdMap;
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {

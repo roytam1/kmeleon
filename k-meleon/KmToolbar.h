@@ -18,7 +18,8 @@
 
 #pragma once
 
-class CReBarEx;
+class CBrowserFrame;
+class CToolBarEx;
 class KmImage;
 
 class KmButton
@@ -53,6 +54,7 @@ public:
 	};
 
 	void AddItem(KmButton& button, int before = -1, UINT w = 0, UINT h = 0);	
+	bool RemoveItem(UINT id);
 
 	UINT GetButtonCount()
 	{
@@ -69,8 +71,8 @@ public:
 		return nullptr;
 	}
 
-	bool Init(CToolBar* wToolbar);
-
+	bool Init(CToolBarEx* wToolbar);
+	
 #define DIB_WIDTHBYTES(bits) ((((bits) + 31)>>5)<<2)
 
 	bool LoadImage(LPCTSTR skinImg, KmImage& img, UINT w = 0, UINT h = 0);
@@ -81,7 +83,9 @@ public:
 	int mWidth, mHeight;
 
 protected:
+	TBBUTTON InitButton(KmButton* kbutton, CToolBarEx* hToolbar);
 	CList<KmButton*, KmButton*> mButtons;
+	CList<CToolBarEx*, CToolBarEx*> mToolbars;
 };
 
 class KmToolbarService {
@@ -123,7 +127,7 @@ public:
 	}
 
 	bool Init();
-	bool InitWindows(CReBarEx* rebar);
+	bool InitWindows(CBrowserFrame* frame);
 	BOOL OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERINFO* pHandlerInfo);
 	UINT GetDefaultWidth() { return mDefWidth; }
 	UINT GetDefaultHeight() { return mDefHeight; }

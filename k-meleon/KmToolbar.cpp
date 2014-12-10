@@ -70,16 +70,42 @@ protected:
 	KmButton* mButton;
 };
 
+bool KmToolbar::RemoveItem(UINT id)
+{
+	bool res = false;
+	POSITION pos = mButtons.GetHeadPosition();
+	while (pos) {
+		KmButton* kbutton = mButtons.GetNext(pos);		
+		if (kbutton->mID == id) {
+			mButtons.RemoveAt(pos);
+			res = true;
+			break;
+		}
+	}
+
+	pos = mToolbars.GetHeadPosition();
+	while (pos) {
+		CToolBarEx* toolbar = mToolbars.GetNext(pos);	
+		for (int i=0;i<toolbar->GetCount();i++) {
+			UINT bid, style;
+			int iimage;
+			toolbar->GetButtonInfo(i, bid, style, iimage);
+			if (id == bid) toolbar->GetToolBarCtrl().DeleteButton(i);
+		}
+	}
+	return res;
+}
+
 void KmToolbar::AddItem(KmButton& button, int before, UINT w, UINT h)
 {
 	KmButton* pbutton = new KmButton();
 	*pbutton = button;
-	if (pbutton->mAction.GetLength())
+	if (pbutton->mAction.GetLength()) {
 		pbutton->mID = theApp.commands.GetId(pbutton->mAction);
-	if (!pbutton->mID && pbutton->mName.GetLength())
-		return;
+		if (!pbutton->mID) return;
+	}
 	pbutton->mImageIndex = theApp.skin.GetIconIndex(pbutton->mID);
-	if (pbutton->mImageIndex == I_IMAGENONE && button.mColdImage) {
+	if (pbutton->mImageIndex == I_IMAGENONE && button.mColdImage.GetLength()) {
 
 		if (button.mColdImage.Left(6).Compare(L"chrome") == 0) {
 
@@ -148,9 +174,45 @@ void KmToolbar::AddItem(KmButton& button, int before, UINT w, UINT h)
 		}
 	}
 	mButtons.AddTail(pbutton);
+	POSITION pos = mToolbars.GetHeadPosition();
+	while (pos) {
+		CToolBarEx* toolbar = mToolbars.GetNext(pos);	
+		TBBUTTON b = InitButton(pbutton, toolbar);
+		toolbar->GetToolBarCtrl().InsertButton(-1, &b);
+	}
 }
 
-bool KmToolbar::Init(CToolBar* hToolbar)
+TBBUTTON KmToolbar::InitButton(KmButton* kbutton, CToolBarEx* hToolbar)
+{
+	TBBUTTON res;
+	if (kbutton->mID || kbutton->mName.GetLength()>0) {
+		res.iString = -1;
+		if (kbutton->mLabel.GetLength() > 0) {
+			CString strTemp(theApp.lang.Translate(kbutton->mLabel), lstrlen(kbutton->mLabel)+1);
+			
+			res.iString = (INT_PTR)hToolbar->GetToolBarCtrl().SendMessage(TB_ADDSTRING, 0, (LPARAM)strTemp.GetBuffer());
+		}
+		res.iBitmap = kbutton->mImageIndex;
+		res.idCommand = kbutton->mID;
+		//res.iString = kbutton->mLabel.GetLength() ? (INT_PTR)(LPCTSTR)kbutton->mLabel : 0;
+		res.dwData = (DWORD_PTR)&kbutton;
+		res.fsState = TBSTATE_ENABLED;
+		res.fsStyle = BTNS_BUTTON; 
+		res.bReserved[0] = 0;
+	} else {
+		// Separator
+		res.iBitmap = 0;
+		res.idCommand = 0;
+		res.iString = 0;
+		res.dwData = 0;
+		res.fsState = TBSTATE_ENABLED;
+		res.fsStyle = BTNS_SEP;
+		res.bReserved[0] = 0;
+	}
+	return res;
+}
+
+bool KmToolbar::Init(CToolBarEx* hToolbar)
 {
 	if (!GetButtonCount()) return NULL;
 	TBBUTTON* hButtons = new TBBUTTON[GetButtonCount()];
@@ -159,37 +221,15 @@ bool KmToolbar::Init(CToolBar* hToolbar)
 	int i = 0, j = 0;
 	while (pos) {
 		KmButton* kbutton = mButtons.GetNext(pos);		
-		if (kbutton->mName.GetLength()>0) {
-			hButtons[i].iString = -1;
-			if (kbutton->mLabel.GetLength() > 0) {
-				CString strTemp(theApp.lang.Translate(kbutton->mLabel), lstrlen(kbutton->mLabel)+1);
-				
-				hButtons[i].iString = (INT_PTR)hToolbar->GetToolBarCtrl().SendMessage(TB_ADDSTRING, 0, (LPARAM)strTemp.GetBuffer());
-				hasString = true;
-			}
-			hButtons[i].iBitmap = kbutton->mImageIndex;
-			hButtons[i].idCommand = kbutton->mID;
-			//hButtons[i].iString = kbutton->mLabel.GetLength() ? (INT_PTR)(LPCTSTR)kbutton->mLabel : 0;
-			hButtons[i].dwData = (DWORD_PTR)&kbutton;
-			hButtons[i].fsState = TBSTATE_ENABLED;
-			hButtons[i].fsStyle = BTNS_BUTTON; 
-			hButtons[i].bReserved[0] = 0;
-		} else {
-			// Separator
-			hButtons[i].iBitmap = 0;
-			hButtons[i].idCommand = 0;
-			hButtons[i].iString = 0;
-			hButtons[i].dwData = 0;
-			hButtons[i].fsState = TBSTATE_ENABLED;
-			hButtons[i].fsStyle = BTNS_SEP;
-			hButtons[i].bReserved[0] = 0;
-		}
+		hButtons[i] = InitButton(kbutton, hToolbar);
+		if (hButtons[i].iString != -1) hasString = true;
 		i++;
 	}
 	if (hasString)
 		hToolbar->ModifyStyle(0, TBSTYLE_LIST);
 
 	hToolbar->GetToolBarCtrl().AddButtons(GetButtonCount(), hButtons);
+	delete hButtons;
 
 	CSize btnSize, btnImgSize(0,0);
 	if (mCold.m_hImageList) {
@@ -211,21 +251,24 @@ bool KmToolbar::Init(CToolBar* hToolbar)
 		btnSize.SetSize(LOWORD(dwBtnSize), HIWORD(dwBtnSize));
 	}
 	hToolbar->SetSizes(btnSize, btnImgSize);
+	mToolbars.AddTail(hToolbar);
 	return true;
 }
 
-bool KmToolbarService::InitWindows(CReBarEx* rebar) 
+bool KmToolbarService::InitWindows(CBrowserFrame* frame) 
 {	
 	CString s;
+	CReBarEx* rebar = &frame->m_wndReBar;
 	KmToolbar *ktoolbar;		
 	POSITION pos = mToolbars.GetStartPosition();
 	while (pos) {
 		mToolbars.GetNextAssoc( pos, s, ktoolbar);
 
-		CToolBarEx* hToolbar = new CToolBarEx();
+		//CToolBarEx* hToolbar = new CToolBarEx();
 		int style = CCS_NODIVIDER | CCS_NOPARENTALIGN | CCS_NORESIZE | TBSTYLE_FLAT | TBSTYLE_TRANSPARENT | TBSTYLE_TOOLTIPS;
-		int sstyle = WS_CHILD|WS_VISIBLE| (style&CCS_BOTTOM ? CBRS_ALIGN_BOTTOM : CBRS_ALIGN_TOP);
-        hToolbar->CreateEx(rebar->GetParentFrame(), style, sstyle);
+		//int sstyle = WS_CHILD|WS_VISIBLE| (style&CCS_BOTTOM ? CBRS_ALIGN_BOTTOM : CBRS_ALIGN_TOP);
+        //hToolbar->CreateEx(rebar->GetParentFrame(), style, sstyle);
+		CToolBarEx* hToolbar = frame->CreateToolbar(style);
 		SetProp(hToolbar->GetSafeHwnd(), _T("kmToolbar"), (HANDLE)ktoolbar);
 		ktoolbar->Init(hToolbar);
 		

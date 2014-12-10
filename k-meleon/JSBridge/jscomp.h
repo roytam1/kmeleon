@@ -5,6 +5,7 @@
 #include <nsCOMPtr.h>
 #include <nsISupports.h>
 #include "nsIJSBridge.h"
+#include "nsEmbedString.h"
 #include <map>
 
 #define JSBRIDGE_CID { 0x842170a0, 0x5210, 0x11db, { 0xb0, 0xde, 0x08, 0x00, 0x20, 0x0c, 0x9a, 0x66}}
@@ -12,19 +13,50 @@ static NS_DEFINE_CID(kJSBridgeCID, JSBRIDGE_CID);
 
 class CCmdList {
 private:
-	std::map<UINT, nsCOMPtr<nsICommandFunction>> cmdMap;
+	std::map<UINT, nsCOMPtr<kmICommandFunction>> cmdMap;
 public:
-	void Add(UINT id, nsICommandFunction* command) {
-		cmdMap.insert(std::pair<UINT,nsICommandFunction*>(id, command));
+	void Add(UINT id, kmICommandFunction* command) {
+		cmdMap.insert(std::pair<UINT,kmICommandFunction*>(id, command));
 	}
 	bool Run(UINT command, UINT mode) {
 		auto iter = cmdMap.find(command);
 		if (iter != cmdMap.end() && iter->second) {
-			iter->second->OnCommand(mode);
+			iter->second->OnCommand(mode, nullptr);
 			return true;
 		}
 		return false;
 	}
+};
+
+typedef std::string string;
+
+class CJSCommand: public kmICommand
+{
+	public: 
+	NS_DECL_ISUPPORTS 
+	NS_DECL_KMICOMMAND
+
+	CJSCommand() {};
+	virtual ~CJSCommand() {};
+
+	nsCString name;
+	nsCString desc;	
+};
+
+class CJSButton : public kmIButton
+{
+	public: 
+	NS_DECL_ISUPPORTS 
+	NS_DECL_KMIBUTTON
+ 
+	CJSButton() {};
+	virtual ~CJSButton() {};
+
+	string cmd;
+	string label;
+	string menu;
+	string tooltip;
+	int id;
 };
 
 class CJSBridge : public nsIJSBridge 

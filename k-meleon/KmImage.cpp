@@ -66,8 +66,8 @@ NS_IMETHODIMP nsImageObserver::Notify(imgIRequest *aProxy, int32_t aType, const 
 		mObserver->ImageLoaded(CreateDIB(aProxy));
 		aProxy->CancelAndForgetObserver(NS_OK);
 		//mRequest = nullptr;
-		if (mNeedRelease) NS_RELEASE_THIS();
 		delete mObserver;
+		if (mNeedRelease) NS_RELEASE_THIS();		
 		// Can't release here anymore else gecko crash 
 		/*nsCOMPtr<nsIThreadManager> tm = do_GetService("@mozilla.org/thread-manager;1");
 		if (!tm) return NS_OK;
@@ -229,7 +229,9 @@ HBITMAP nsImageObserver::CreateDIB(imgIRequest *aRequest)
 
 #ifdef _DEBUG
 	// There is a problem with the linking in debug 
-	return NULL;
+	// Use a dummy image instead
+	return  (HBITMAP)::LoadImage(::AfxGetInstanceHandle(), MAKEINTRESOURCE(IDR_TOOLBAR_CLOSE), IMAGE_BITMAP, 0, 0, LR_LOADTRANSPARENT);
+	//return NULL;
 #endif
 
 	// Get the image data

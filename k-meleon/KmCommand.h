@@ -32,11 +32,15 @@ class CMfcEmbedApp;
 struct KmCommand
 {
 	UINT id;
+	CString desc;
 
 	KmCommand() : id(0) {}
 	KmCommand(UINT aId) : id(aId) {}
+	KmCommand(UINT aId, LPCTSTR aDesc) : id(aId), desc(aDesc) {}
 	BOOL IsPlugin();
-	CString GetDesc();
+	CString GetDesc() {
+		return desc;
+	}
 };
 
 class KmCmdService
@@ -105,12 +109,7 @@ public:
 		mCommandList.RemoveKey(command);
 	}
 
-	UINT RegisterCommand(LPCTSTR plugin, LPCTSTR command, unsigned nbArgs = 0)
-	{
-		UINT id = AllocateId();
-		mCommandList[command] = KmCommand(id);
-		return id;
-	}
+	UINT RegisterCommand(LPCTSTR name, LPCTSTR desc = 0, LPCTSTR icon = 0);
 
 	BOOL ParseCommand(char *pszCommand, char** plugin, char **parameter)
 	{
