@@ -75,43 +75,43 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
       if (stricmp(subject, "Init") == 0) {
          Setup();
       }
-      else if (stricmp(subject, "Create") == 0) {
+      else if (strcmp(subject, "Create") == 0) {
          Create((HWND)data1);
       }
-      else if (stricmp(subject, "Config") == 0) {
+      else if (strcmp(subject, "Config") == 0) {
          Config((HWND)data1);
       }
-      else if (stricmp(subject, "Destroy") == 0) {
+      else if (strcmp(subject, "Destroy") == 0) {
          Destroy((HWND)data1);
       }
-      else if (stricmp(subject, "Quit") == 0) {
+      else if (strcmp(subject, "Quit") == 0) {
          Quit();
       }
-      else if (stricmp(subject, "DoRebar") == 0) {
+      else if (strcmp(subject, "DoRebar") == 0) {
          DoRebar((HWND)data1);
       }
-      else if (stricmp(subject, "GetConfigFiles") == 0) {
+      else if (strcmp(subject, "GetConfigFiles") == 0) {
          *(int *)data2 = GetConfigFiles((configFileType**)data1);
       }
-      else if (stricmp(subject, "SetButtonImage") == 0) {
+      else if (strcmp(subject, "SetButtonImage") == 0) {
          SetButtonImage((char *)data1);
       }
-      else if (stricmp(subject, "EnableButton") == 0) {
+      else if (strcmp(subject, "EnableButton") == 0) {
          EnableButton((char *)data1);
       }
-      else if (stricmp(subject, "IsButtonEnabled") == 0) {
+      else if (strcmp(subject, "IsButtonEnabled") == 0) {
          *(int *)data2 = IsButtonEnabled((char *)data1);
       }
-      else if (stricmp(subject, "CheckButton") == 0) {
+      else if (strcmp(subject, "CheckButton") == 0) {
          CheckButton((char *)data1);
       }
-      else if (stricmp(subject, "IsButtonChecked") == 0) {
+      else if (strcmp(subject, "IsButtonChecked") == 0) {
          *(int *)data2 = IsButtonChecked((char *)data1);
       }
-      else if (stricmp(subject, "AddToolbar") == 0) {
+      else if (strcmp(subject, "AddToolbar") == 0) {
          *(int *)data2 = AddToolbarMsg((char *)data1);
       }
-      else if (stricmp(subject, "AddButton") == 0) {
+      else if (strcmp(subject, "AddButton") == 0) {
          *(int *)data2 = AddButtonMsg((char *)data1);
       }
       else return 0;

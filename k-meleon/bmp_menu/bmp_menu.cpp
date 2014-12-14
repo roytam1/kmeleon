@@ -118,26 +118,26 @@ HFONT gMenuFont = NULL;
 
 long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2)
 {
-   if (to[0] == '*' || stricmp(to, kPlugin.dllname) == 0) {
+   if (to[0] == '*' || strcmp(to, kPlugin.dllname) == 0) {
       if (stricmp(subject, "Init") == 0) {
          Init();
       }
-      else if (stricmp(subject, "Create") == 0) {
+      else if (strcmp(subject, "Create") == 0) {
          Create((HWND)data1);
       }
-      else if (stricmp(subject, "Config") == 0) {
+      else if (strcmp(subject, "Config") == 0) {
          Config((HWND)data1);
       }
-      else if (stricmp(subject, "Quit") == 0) {
+      else if (strcmp(subject, "Quit") == 0) {
          Quit();
       }
-      else if (stricmp(subject, "DoMenu") == 0) {
+      else if (strcmp(subject, "DoMenu") == 0) {
          DoMenu((HMENU)data1, (char *)data2);
       }
-      else if (stricmp(subject, "UnSetOwnerDrawn") == 0) {
+      else if (strcmp(subject, "UnSetOwnerDrawn") == 0) {
          UnSetOwnerDrawn((HMENU)data1);
       }
-      else if (stricmp(subject, "SetOwnerDrawn") == 0) {
+      else if (strcmp(subject, "SetOwnerDrawn") == 0) {
 
          // if this menu has already been "ownerdrawn", then it's
          // probably being called again as a result of an update,
