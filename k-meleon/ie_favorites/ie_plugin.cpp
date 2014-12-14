@@ -99,34 +99,34 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
       if (stricmp(subject, "Load") == 0) {
          Load();
       }
-      else if (stricmp(subject, "Create") == 0) {
+      else if (strcmp(subject, "Create") == 0) {
          Create((HWND)data1);
       }
-      else if (stricmp(subject, "Config") == 0) {
+      else if (strcmp(subject, "Config") == 0) {
          Config((HWND)data1);
       }
-      else if (stricmp(subject, "Destroy") == 0) {
+      else if (strcmp(subject, "Destroy") == 0) {
          Destroy((HWND)data1);
       }
-      else if (stricmp(subject, "Quit") == 0) {
+      else if (strcmp(subject, "Quit") == 0) {
          Quit();
       }
-      else if (stricmp(subject, "DoMenu") == 0) {
+      else if (strcmp(subject, "DoMenu") == 0) {
          DoMenu((HMENU)data1, (char *)data2);
       }
-      else if (stricmp(subject, "DoRebar") == 0) {
+      else if (strcmp(subject, "DoRebar") == 0) {
          DoRebar((HWND)data1);
       }
-      else if (stricmp(subject, "DoAccel") == 0) {
+      else if (strcmp(subject, "DoAccel") == 0) {
           *(int *)data2 = DoAccel((char *)data1);
       }
-      else if (stricmp(subject, "AddLink") == 0) {
+      else if (strcmp(subject, "AddLink") == 0) {
          addLink((char *)data1, (char *)data2);
       }
-      else if (stricmp(subject, "FindNick") == 0) {
+      else if (strcmp(subject, "FindNick") == 0) {
          findNick((char *)data1, (char **)data2);
       }
-	  else if (stricmp(subject, "DoLocale") == 0) {
+	  else if (strcmp(subject, "DoLocale") == 0) {
          if (gLoc) delete gLoc;
 		 gLoc = Locale::kmInit(&kPlugin);
 	  }

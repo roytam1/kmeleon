@@ -72,28 +72,28 @@ kmeleonPlugin kPlugin = {
 long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2)
 {
    if (to[0] == '*' || stricmp(to, kPlugin.dllname) == 0) {
-      if (stricmp(subject, "Load") == 0) {
+      if (strcmp(subject, "Load") == 0) {
          Load();
       }
-      if (stricmp(subject, "Setup") == 0) {
+      if (strcmp(subject, "Setup") == 0) {
          Setup();
       }
-      else if (stricmp(subject, "Create") == 0) {
+      else if (strcmp(subject, "Create") == 0) {
          Create((HWND)data1);
       }
       else if (stricmp(subject, "Config") == 0) {
          Config((HWND)data1);
       }
-      else if (stricmp(subject, "Quit") == 0) {
+      else if (strcmp(subject, "Quit") == 0) {
          Quit();
       }
-      else if (stricmp(subject, "DoRebar") == 0) {
+      else if (strcmp(subject, "DoRebar") == 0) {
          DoRebar((HWND)data1);
       }
-      else if (stricmp(subject, "DoAccel") == 0) {
+      else if (strcmp(subject, "DoAccel") == 0) {
           *(int *)data2 = DoAccel((char *)data1);
       }
-	  else if (stricmp(subject, "DoLocale") == 0) {
+	  else if (strcmp(subject, "DoLocale") == 0) {
          DoLocale();
       }
 

@@ -166,13 +166,13 @@ void DeleteSession(const char* name)
 long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2)
 {
    if (to[0] == '*' || stricmp(to, kPlugin.dllname) == 0) {
-      if (stricmp(subject, "Load") == 0) {
+      if (strcmp(subject, "Load") == 0) {
          return Load();
       }
-      if (stricmp(subject, "UserSetup") == 0) {
+      if (strcmp(subject, "UserSetup") == 0) {
          return Init();
       }
-	  else if (stricmp(subject, "SwitchTab") == 0) {
+	  else if (strcmp(subject, "SwitchTab") == 0) {
 		 int selected = 0;
 		 Window* w = currentSession.getWindow(GetParent((HWND)data1));
 		 if (w) {
@@ -180,37 +180,37 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
 			 w->selectedTab = selected;
 		 }
       }	  
-      else if (stricmp(subject, "Create") == 0) {
+      else if (strcmp(subject, "Create") == 0) {
          Create((HWND)data1);
       }
-	  else if (stricmp(subject, "Destroy") == 0) {
+	  else if (strcmp(subject, "Destroy") == 0) {
          Destroy((HWND)data1);
       }
-	  else if (stricmp(subject, "CreateTab") == 0) {
+	  else if (strcmp(subject, "CreateTab") == 0) {
          CreateTab((HWND)data1, (HWND)data2);
       }
-	  else if (stricmp(subject, "DestroyTab") == 0) {
+	  else if (strcmp(subject, "DestroyTab") == 0) {
          DestroyTab((HWND)data1, (HWND)data2);
       }
-	  else if (stricmp(subject, "MoveTab") == 0) {
+	  else if (strcmp(subject, "MoveTab") == 0) {
          MoveTab((HWND)data1, (HWND)data2);
       }
-      else if (stricmp(subject, "DoMenu") == 0) {
+      else if (strcmp(subject, "DoMenu") == 0) {
          DoMenu((HMENU)data1, (char *)data2);
       }
-	  else if (stricmp(subject, "DoAccel") == 0) {
+	  else if (strcmp(subject, "DoAccel") == 0) {
          *(int *)data2 = DoAccel((char *)data1);
       }
-	  else if (stricmp(subject, "Config") == 0) {
+	  else if (strcmp(subject, "Config") == 0) {
          Config((HWND)data1);
       }
-	  else if (stricmp(subject, "Undo") == 0) {
+	  else if (strcmp(subject, "Undo") == 0) {
 		 Undo(0);
 	  }
-	  else if (stricmp(subject, "Quit") == 0) {
+	  else if (strcmp(subject, "Quit") == 0) {
          Quit();
       }
-	  else if (stricmp(subject, "DoLocale") == 0) {
+	  else if (strcmp(subject, "DoLocale") == 0) {
          if (gLoc) delete gLoc;
 		 gLoc = Locale::kmInit(&kPlugin);
 	  }

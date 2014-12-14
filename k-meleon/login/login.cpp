@@ -74,25 +74,25 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
       if (stricmp(subject, "Init") == 0) {
          Init();
       }
-      else if (stricmp(subject, "Create") == 0) {
+      else if (strcmp(subject, "Create") == 0) {
          Create((HWND)data1);
       }
-	  else if (stricmp(subject, "CreateTab") == 0) {
+	  else if (strcmp(subject, "CreateTab") == 0) {
          CreateTab((HWND)data1, (HWND)data2);
       }
-	  else if (stricmp(subject, "DestroyTab") == 0) {
+	  else if (strcmp(subject, "DestroyTab") == 0) {
          DestroyTab((HWND)data1, (HWND)data2);
       }
-      else if (stricmp(subject, "Config") == 0) {
+      else if (strcmp(subject, "Config") == 0) {
          Config((HWND)data1);
       }
-      else if (stricmp(subject, "Quit") == 0) {
+      else if (strcmp(subject, "Quit") == 0) {
          Quit();
       }
-	  else if (stricmp(subject, "Destroy") == 0) {
+	  else if (strcmp(subject, "Destroy") == 0) {
          Destroy((HWND)data1);
       }
-      else if (stricmp(subject, "DoMenu") == 0) {
+      else if (strcmp(subject, "DoMenu") == 0) {
          DoMenu((HMENU)data1, (char *)data2);
       }
       else return 0;

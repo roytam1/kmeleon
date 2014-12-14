@@ -345,22 +345,22 @@ void DoMenu(HMENU menu, LPSTR param)
          string = action;
       
       UINT command = 0;
-      if (stricmp(action, "Config") == 0) {
+      if (strcmp(action, "Config") == 0) {
          command = cmdConfig;
       }
-      else if (stricmp(action, "ClearCookies") == 0) {
+      else if (strcmp(action, "ClearCookies") == 0) {
          command = cmdClearCookies;
       }
-      else if (stricmp(action, "ClearHistory") == 0) {
+      else if (strcmp(action, "ClearHistory") == 0) {
          command = cmdClearHistory;
       }
-      else if (stricmp(action, "ClearCache") == 0) {
+      else if (strcmp(action, "ClearCache") == 0) {
          command = cmdClearCache;
       }
-      else if (stricmp(action, "ClearMRU") == 0) {
+      else if (strcmp(action, "ClearMRU") == 0) {
          command = cmdClearMRU;
       }
-      else if (stricmp(action, "ClearSignon") == 0) {
+      else if (strcmp(action, "ClearSignon") == 0) {
          command = cmdClearSignon;
       }
       if (command) {

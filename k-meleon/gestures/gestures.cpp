@@ -77,22 +77,22 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
         if (stricmp(subject, "Init") == 0) {
             Init();
         }
-        else if (stricmp(subject, "Create") == 0) {
+        else if (strcmp(subject, "Create") == 0) {
             Create((HWND)data1);
         }
-        else if (stricmp(subject, "Config") == 0) {
+        else if (strcmp(subject, "Config") == 0) {
             Config((HWND)data1);
         }
-        else if (stricmp(subject, "Quit") == 0) {
+        else if (strcmp(subject, "Quit") == 0) {
             Quit();
         }
-        else if (stricmp(subject, "DoMenu") == 0) {
+        else if (strcmp(subject, "DoMenu") == 0) {
             DoMenu((HMENU)data1, (char *)data2);
         }
-        else if (stricmp(subject, "DoRebar") == 0) {
+        else if (strcmp(subject, "DoRebar") == 0) {
             DoRebar((HWND)data1);
         }
-        else if (stricmp(subject, "DoAccel") == 0) {
+        else if (strcmp(subject, "DoAccel") == 0) {
             *(int *)data2 = DoAccel((char *)data1);
         }
         else return 0;

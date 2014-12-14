@@ -60,6 +60,13 @@ static const nsModuleComponentInfo components =
 static nsCOMPtr<nsIGenericFactory> componentFactory;
 extern NS_COM_GLUE nsresult NS_NewGenericFactory(nsIGenericFactory* *result,
                      const nsModuleComponentInfo *info);
+
+int Load()
+{
+	cmdList = new CCmdList();
+	return 1;
+}
+
 BOOL Init() 
 {
    nsCOMPtr<nsIComponentRegistrar> compReg;
@@ -75,7 +82,7 @@ BOOL Init()
 				 components.mContractID,
 				 componentFactory);
   	   
-	cmdList = new CCmdList();
+	
 	return NS_SUCCEEDED(rv) ? TRUE : FALSE;
 }
 
@@ -115,15 +122,17 @@ long DoMessage(const char *to, const char *from, const char *subject,
 			   long data1, long data2)
 {
 	if (to[0] == '*' || stricmp(to, kPlugin.dllname) == 0) {
-		if (stricmp(subject, "Init") == 0) {
+		if (strcmp(subject, "Init") == 0) {
 			Init();
 		}
-
-		else if (stricmp(subject, "Create") == 0) {
+		else if (strcmp(subject, "Load") == 0) {
+			Load();
+		}
+		else if (strcmp(subject, "Create") == 0) {
 			Create((HWND)data1);
 		}
 
-		else if (stricmp(subject, "Quit") == 0) {
+		else if (strcmp(subject, "Quit") == 0) {
 			Quit();
 		}
 
