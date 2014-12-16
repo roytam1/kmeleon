@@ -189,6 +189,16 @@ void CPreferences::MRUListChanged()
 	theApp.m_MRUList->RefreshURLs();
 }
 
+void CPreferences::BackgroundChanged()
+{
+	POSITION pos = theApp.m_FrameWndLst.GetHeadPosition();
+	while( pos != NULL ) {
+		CBrowserFrame* pBrowserFrame = (CBrowserFrame *) theApp.m_FrameWndLst.GetNext(pos);
+		pBrowserFrame->SetBackImage();
+		pBrowserFrame->m_wndReBar.RedrawWindow(0, 0, RDW_INVALIDATE | RDW_UPDATENOW | RDW_ERASE | RDW_ALLCHILDREN);
+	}
+}
+
 void CPreferences::SkinChanged()
 {
 	skinsCurrent = GetString("kmeleon.general.skinsCurrent", skinsCurrent);
@@ -303,6 +313,11 @@ void CPreferences::AdBlockChanged()
 	LoadAdBlock(GetBool("kmeleon.adblocking", false));
 }
 
+void CPreferences::Release() {
+	m_prefservice = nullptr;
+	m_prefs = nullptr;
+}
+
 void CPreferences::Load() {
 
    nsresult rv;
@@ -331,6 +346,8 @@ void CPreferences::Load() {
    new CPrefObserver("kmeleon.adblocking", &CPreferences::AdBlockChanged);
    new CPrefObserver("kmeleon.MRU", &CPreferences::MRUListChanged);
    new CPrefObserver("kmeleon.general.skinsCurrent", &CPreferences::SkinChanged);
+   new CPrefObserver("kmeleon.display.backgroundImageEnabled", &CPreferences::BackgroundChanged);
+   new CPrefObserver("kmeleon.display.backgroundImage", &CPreferences::BackgroundChanged);
 
    // -- Folders XXX have to put this somewhere else
    
