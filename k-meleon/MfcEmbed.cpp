@@ -81,6 +81,7 @@ XRE_NotifyProfileType XRE_NotifyProfile = 0;
 XRE_LockProfileDirectoryType XRE_LockProfileDirectory = 0;
 XRE_AddManifestLocationType XRE_AddManifestLocation = 0;
 XRE_GetProcessTypeType XRE_GetProcessType = 0;
+XRE_AddStaticComponentType XRE_AddStaticComponent = 0;
 
 #ifdef MOZ_PROFILESHARING
 #include "nsIProfileSharingSetup.h"
@@ -444,6 +445,105 @@ BOOL CMfcEmbedApp::CheckInstance()
 #define PROCESS_DEP_ENABLE                          0x00000001
 #define PROCESS_DEP_DISABLE_ATL_THUNK_EMULATION     0x00000002
 
+extern mozilla::Module kBrowserModule;
+extern mozilla::Module kBrowserModuleApp;
+
+BOOL CMfcEmbedApp::InitEmbedding(const char* profile)
+{
+	CString xul = GetFolder(RootFolder)+_T("\\xul.dll");
+	int len = WideCharToMultiByte(CP_UTF8, 0, xul, -1, NULL, 0, NULL, NULL);
+	char* gnah = new char[len+1];
+	WideCharToMultiByte(CP_UTF8, 0, xul, -1, gnah, len, NULL, NULL);
+	if (NS_FAILED(XPCOMGlueStartup(gnah))) {
+		AfxMessageBox(IDS_START_FAILED, MB_OK | MB_ICONERROR);
+		return FALSE;
+	}
+	delete [] gnah;
+
+	NS_LogInit();
+
+	// load XUL functions
+	nsDynamicFunctionLoad nsFuncs[] = {
+		{"XRE_InitEmbedding2", (NSFuncPtr*)&XRE_InitEmbedding2},
+		{"XRE_TermEmbedding", (NSFuncPtr*)&XRE_TermEmbedding},
+		{"XRE_NotifyProfile", (NSFuncPtr*)&XRE_NotifyProfile},
+		{"XRE_LockProfileDirectory", (NSFuncPtr*)&XRE_LockProfileDirectory},
+		{"XRE_AddManifestLocation", (NSFuncPtr*)&XRE_AddManifestLocation},
+		{"XRE_GetProcessType",  (NSFuncPtr*)&XRE_GetProcessType},
+		{"XRE_AddStaticComponent", (NSFuncPtr*)&XRE_AddStaticComponent},
+		{0, 0}
+	};
+
+	nsresult rv = XPCOMGlueLoadXULFunctions(nsFuncs);
+	NS_ENSURE_SUCCESS(rv, FALSE);
+
+	// Set provider
+	CString strRes;
+	strRes.LoadString(IDS_PROFILES_FOLDER_NAME);
+	KmFileLocProvider *provider = new KmFileLocProvider(nsDependentString(T2W(strRes.GetBuffer(0))));
+	if(!provider) return FALSE;
+
+	// Set app directory
+	nsCOMPtr<nsIFile> mreAppDir;
+	rv = NS_NewLocalFile(nsDependentString(theApp.GetFolder(RootFolder)), TRUE, getter_AddRefs(mreAppDir));
+	NS_ASSERTION(NS_SUCCEEDED(rv), "failed to create mreAppDir file");
+
+	nsCOMPtr<nsIFile> appSubdir;
+	rv = NS_NewLocalFile(nsDependentString(theApp.GetFolder(AppFolder)), TRUE, getter_AddRefs(appSubdir));
+	NS_ASSERTION(NS_SUCCEEDED(rv), "failed to create appSubdir file");
+
+	// Set Profile
+	m_ProfileMgr = new CProfileMgr;
+	if (!m_ProfileMgr) return FALSE;
+
+	BOOL result;
+	USES_CONVERSION;
+	result = m_ProfileMgr->StartUp(provider, profile ? A2CT(profile) : nullptr);
+	if (profile) delete [] profile;
+
+	ASSERT(result);
+	if (!result) return FALSE;   
+	
+	// Init XRE
+	rv = XRE_AddStaticComponent(&kBrowserModuleApp);
+	NS_ENSURE_SUCCESS(rv, FALSE);
+
+	rv = XRE_InitEmbedding2(mreAppDir, appSubdir, provider);
+	NS_ENSURE_SUCCESS(rv, FALSE);
+
+	rv = XRE_AddStaticComponent(&kBrowserModule);
+	NS_ENSURE_SUCCESS(rv, FALSE);
+
+	rv = InitializeWindowCreator();
+	if (NS_FAILED(rv)) 
+	{
+		ASSERT(FALSE);
+		XRE_TermEmbedding();
+		return FALSE;
+	}
+
+	// Register chrome language
+	CString localesFolder = GetFolder(RootFolder) + CString(_T("\\locales\\*"));
+	WIN32_FIND_DATA ffd;
+	HANDLE hFind = FindFirstFile(localesFolder.GetBuffer(0), &ffd);
+	localesFolder.Truncate(localesFolder.GetLength()-1);
+	if (hFind != INVALID_HANDLE_VALUE) {            
+		do {
+			if (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY && 
+				ffd.cFileName[0]!='.') {
+					nsCOMPtr<nsIFile> mFile;
+					NS_NewLocalFile(CStringToNSString(localesFolder + ffd.cFileName + _T("\\") + ffd.cFileName + _T(".manifest")), false, getter_AddRefs(mFile));
+					XRE_AddManifestLocation(NS_COMPONENT_LOCATION, mFile);
+			}
+		} while ( FindNextFile(hFind, &ffd) );
+		FindClose(hFind);
+	}   
+
+	XRE_NotifyProfile();
+	NS_LogTerm();
+	return TRUE;
+}
+
 BOOL CMfcEmbedApp::InitInstance()
 {
    CWinApp::InitInstance();
@@ -466,18 +566,10 @@ BOOL CMfcEmbedApp::InitInstance()
    }
 #endif
 
-#ifndef _DEBUG
-
-   HMODULE hMod = GetModuleHandleW(L"Kernel32.dll");
-   if (hMod)
-   {
-      typedef BOOL (WINAPI *PSETDEP)(DWORD);
-      PSETDEP procSet = (PSETDEP)GetProcAddress(hMod,"SetProcessDEPPolicy");
-      if (procSet) procSet(PROCESS_DEP_ENABLE);
-   }
+#ifdef _DEBUG
+	ShowDebugConsole();
+	_CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
 #endif
-
-   OleInitialize(NULL);
 
    // Profile selection
    int len = cmdline.GetSwitch("-P", NULL, FALSE);
@@ -490,78 +582,7 @@ BOOL CMfcEmbedApp::InitInstance()
       cmdline.GetSwitch("-P", profile, TRUE);
    }
 
-#ifndef FIREFOX_CHROME
-   LoadLanguage();
-#endif
-
-#ifdef _DEBUG
-	ShowDebugConsole();
-	_CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
-#endif
-	CString xul = GetFolder(RootFolder)+_T("\\xul.dll");
-	len = WideCharToMultiByte(CP_UTF8, 0, xul, -1, NULL, 0, NULL, NULL);
-	char* gnah = new char[len+1];
-	WideCharToMultiByte(CP_UTF8, 0, xul, -1, gnah, len, NULL, NULL);
-	if (NS_FAILED(XPCOMGlueStartup(gnah))) {
-		AfxMessageBox(IDS_START_FAILED, MB_OK | MB_ICONERROR);
-		//MessageBox(NULL, _T("Could not initialize XPCOM. Perhaps the GRE\nis not installed or could not be found?"), _T("K-Meleon"), MB_OK | MB_ICONERROR);
-        return FALSE;
-    }
-	delete [] gnah;
-
-   m_hMutex = CreateMutex(NULL, FALSE, NULL);
-
-	// load XUL functions
-    nsDynamicFunctionLoad nsFuncs[] = {
-            {"XRE_InitEmbedding2", (NSFuncPtr*)&XRE_InitEmbedding2},
-            {"XRE_TermEmbedding", (NSFuncPtr*)&XRE_TermEmbedding},
-            {"XRE_NotifyProfile", (NSFuncPtr*)&XRE_NotifyProfile},
-            {"XRE_LockProfileDirectory", (NSFuncPtr*)&XRE_LockProfileDirectory},
-			{"XRE_AddManifestLocation", (NSFuncPtr*)&XRE_AddManifestLocation},
-			{"XRE_GetProcessType",  (NSFuncPtr*)&XRE_GetProcessType},
-            {0, 0}
-    };
-
-	nsresult rv = XPCOMGlueLoadXULFunctions(nsFuncs);
-	NS_ENSURE_SUCCESS(rv, FALSE);
-   
-	// Set provider
-   CString strRes;
-   strRes.LoadString(IDS_PROFILES_FOLDER_NAME);
-   KmFileLocProvider *provider = new KmFileLocProvider(nsDependentString(T2W(strRes.GetBuffer(0))));
-   if(!provider) return FALSE;
-      
-   // Set app directory
-   nsCOMPtr<nsIFile> mreAppDir;
-   rv = NS_NewLocalFile(nsDependentString(theApp.GetFolder(RootFolder)), TRUE, getter_AddRefs(mreAppDir));
-   NS_ASSERTION(NS_SUCCEEDED(rv), "failed to create mreAppDir file");
-
-   nsCOMPtr<nsIFile> appSubdir;
-   rv = NS_NewLocalFile(nsDependentString(theApp.GetFolder(AppFolder)), TRUE, getter_AddRefs(appSubdir));
-   NS_ASSERTION(NS_SUCCEEDED(rv), "failed to create appSubdir file");
-
-   // Set Profile
-   m_ProfileMgr = new CProfileMgr;
-   if (!m_ProfileMgr) return FALSE;
-
-   BOOL result;
-   result = m_ProfileMgr->StartUp(provider, profile ? A2CT(profile) : nullptr);
-   if (profile) delete [] profile;
-
-   ASSERT(result);
-   if (!result) return FALSE;   
-   
-   // Init XRE
-   rv = XRE_InitEmbedding2(mreAppDir, appSubdir, provider);
-   NS_ENSURE_SUCCESS(rv, FALSE);
-      
-   rv = InitializeWindowCreator();
-   if (NS_FAILED(rv)) 
-   {
-      ASSERT(FALSE);
-	  XRE_TermEmbedding();
-      return FALSE;
-   }
+   m_hMutex = CreateMutex(NULL, FALSE, NULL);	
 
    // Minimal unicode support
    #ifndef _UNICODE
@@ -585,38 +606,18 @@ BOOL CMfcEmbedApp::InitInstance()
    
    // Register the browser window class
    wc.lpszClassName = BROWSER_WINDOW_CLASS;
-   AfxRegisterClass( &wc );   
+   AfxRegisterClass( &wc );
 
-   // Register chrome language
-   CString localesFolder = GetFolder(RootFolder) + CString(_T("\\locales\\*"));
-   WIN32_FIND_DATA ffd;
-	HANDLE hFind = FindFirstFile(localesFolder.GetBuffer(0), &ffd);
-	localesFolder.Truncate(localesFolder.GetLength()-1);
-	if (hFind != INVALID_HANDLE_VALUE) {            
-		do {
-			if (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY && 
-				ffd.cFileName[0]!='.') {
-					nsCOMPtr<nsIFile> mFile;
-					NS_NewLocalFile(CStringToNSString(localesFolder + ffd.cFileName + _T("\\") + ffd.cFileName + _T(".manifest")), false, getter_AddRefs(mFile));
-					XRE_AddManifestLocation(NS_COMPONENT_LOCATION, mFile);
-			}
-		} while ( FindNextFile(hFind, &ffd) );
-		FindClose(hFind);
-	}   
-
-   XRE_NotifyProfile();
+   if (!InitEmbedding(profile))
+	   return FALSE;
 
    // These have to be done in this order!
    InitializeDefineMap();
    InitializePrefs();
    SetOffline(theApp.preferences.bOffline);
    
-#ifdef FIREFOX_CHROME
    LoadLanguage();
-#endif
-   
    CheckProfileVersion();
-   
    m_MRUList = new CMostRecentUrls();   
 
    // Initialize plugins
@@ -1210,12 +1211,17 @@ int CMfcEmbedApp::ExitInstance()
    favicons.WriteCache();
 
    preferences.Flush();
+   
+   NS_LogInit();
+
+   preferences.Release();
    if (m_ProfileMgr) {
       m_ProfileMgr->ShutDownCurrentProfile( theApp.preferences.bGuestAccount );
       delete m_ProfileMgr;
    }
    
-   if (XRE_TermEmbedding) XRE_TermEmbedding();
+   XRE_TermEmbedding();
+   NS_LogTerm(); 
 
    // In case a plugin is a component, must be unloaded last.
    plugins.UnLoadAll();
@@ -1744,7 +1750,7 @@ int CMfcEmbedApp::Run()
 		TRACE(traceAppMsg, 0, "Warning: m_pMainWnd is NULL in CWinApp::Run - quitting application.\n");
 		AfxPostQuitMessage(0);
 	}
-		
+
 	ASSERT_VALID(this);
 	_AFX_THREAD_STATE* pState = AfxGetThreadState();
 
