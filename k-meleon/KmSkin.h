@@ -26,7 +26,7 @@ class KmIconList
 {
 	friend KmSkin;
 
-	typedef CMap<UINT, UINT, UINT, UINT> TypeImageCmdList;
+	typedef CMap<UINT, UINT, int, int> TypeImageCmdList;
 	TypeImageCmdList mCmdList;
 
 	CImageList mSized;
@@ -62,10 +62,10 @@ public:
 		mDead.Create(w, h, ILC_COLOR32, 0, 10);
 	}	
 
-	int AddIcons(KmImage& img, UINT w, UINT h);
+	int AddIcons(KmImage& img, UINT w, UINT h, UINT id = 0);
 	int AddIcon(KmImage& img, UINT id = 0);
 	int AddIcon(KmImage&  img, KmImage&  hotImg, KmImage&  deadImg, UINT id = 0);
-	int AddIcon(LPCTSTR coldImgPath, LPCTSTR hotImgPath, LPCTSTR deadImgPath, UINT id = 0);
+	int AddIcon(LPCTSTR coldImgPath, LPCTSTR hotImgPath, LPCTSTR deadImgPath, UINT id = 0, UINT w = 0, UINT h = 0);
 	
 	HIMAGELIST GetIconList() {
 		return mHasDifferentSize ? mSized.GetSafeHandle() : mCold.GetSafeHandle();
@@ -73,7 +73,7 @@ public:
 
 	int GetImg(UINT id)
 	{
-		UINT index;
+		int index;
 		if (mCmdList.Lookup(id, index))
 			return index;
 		return I_IMAGENONE;
@@ -207,5 +207,6 @@ public:
 	}
 
 	bool FindSkinFile( CString& szSkinFile, LPCTSTR filename, LPCTSTR skin = NULL, bool searchUser = true);
+	int AddIcon(LPCTSTR coldImgPath, LPCTSTR hotImgPath, LPCTSTR deadImgPath, UINT id = 0, UINT w = 0, UINT h = 0);
 };
 

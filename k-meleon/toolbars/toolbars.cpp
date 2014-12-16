@@ -906,7 +906,7 @@ void EndButton(s_toolbar *toolbar, s_button *button, int state) {
 		   button->height
 	   };
 
-	   kPlugin.kFuncs->AddButton(toolbar->sTitle, &kbutton);
+	   kPlugin.kFuncs->AddButtonEx(toolbar->sTitle, &kbutton);
 	   if (label) free(label);
 	   if (name) free(name);
 	   if (cmd) free(cmd);

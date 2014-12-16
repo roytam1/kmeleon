@@ -1041,7 +1041,7 @@ BOOL CBrowserWrapper::InjectJS(const wchar_t* userScript, CString& result, bool 
 	JS::Rooted<JSObject*> globalJSObject(cx, innerGlobal->GetGlobalJSObject());
 	JS::Rooted<JS::Value> v (cx, JS::UndefinedValue());
 	JS_EvaluateScript(cx, globalJSObject, CW2A(userScript), wcslen(userScript), "", 0, &v);
-	if (v.toString())
+	if (v.isString() && !v.isObject())
 		result = NSStringToCString(nsString(JS_GetStringCharsZ(cx, v.toString())));
 	cs->Pop(nullptr);	
 	return TRUE;
