@@ -367,7 +367,7 @@ typedef struct {
 // Addition in K-meleon 75 (2.1)
 	
 	bool (*AddToolbar)(const char*, UINT, UINT);
-	bool (*AddButton)(const char*, kmeleonButton*);
+	bool (*AddButtonEx)(const char*, kmeleonButton*);
 	bool (*GetButton)(const char*, UINT, kmeleonButton*);
 	bool (*SetButton)(const char*, UINT, kmeleonButton*);
 	HIMAGELIST (*GetCmdIconList)();
@@ -375,6 +375,8 @@ typedef struct {
 	bool (*FindSkinFile)(const wchar_t* name, wchar_t* result, unsigned size);
 	void (*GotoHistoryIndex)(HWND hWnd, UINT index);
 	bool (*RemoveButton)(const char* name, const char* command);
+	bool (*AddButton)(const char* name, const char* command, const char* menu);
+	int (*SetCmdIcon)(const char* name, const char* icon, UINT w, UINT h, const char* hot, const char* cold);
 
 } kmeleonFunctions;
 

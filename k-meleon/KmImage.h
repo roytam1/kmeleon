@@ -97,6 +97,7 @@ public:
 	HBITMAP GetHBitmap();
 	bool DrawItem(HDC dc, POINT pt, UINT index, UINT line, UINT, UINT);
 
+	bool LoadIndexedFromSkin(LPCTSTR name, UINT w, UINT h);
 	bool LoadFromSkin(LPCTSTR name);
 	bool LoadFromBitmap(HBITMAP hbmp);
 	int AddToImageList(CImageList& list, int index = -1);

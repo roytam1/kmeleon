@@ -36,11 +36,14 @@ int KmIconList::AddIcon(KmImage& img, KmImage& hotImg, KmImage& deadImg, UINT id
 		deadImg.Scale((1.0*mWidth)/imgWidth);
 	}
 
-	int pos = img.AddToImageList(mCold);
+	int index = -1;
+	if (id) mCmdList.Lookup(id, index);
+
+	int pos = img.AddToImageList(mCold, index);
 	if (pos == -1) return -1;
-	int idx = hotImg.AddToImageList(mHot);
+	int idx = hotImg.AddToImageList(mHot, index);
 	ASSERT(pos == idx);
-	idx = deadImg.AddToImageList(mDead);
+	idx = deadImg.AddToImageList(mDead, index);
 	ASSERT(pos == idx);
 	if (id) mCmdList[id] = pos;
 	return pos;
@@ -50,12 +53,11 @@ int KmIconList::AddIcon(KmImage& img, UINT id)
 {
 	UINT imgWidth = img.GetWidth();
 	UINT imgHeight= img.GetHeight();
-	int pos = AddIcons(img, imgWidth, imgHeight);
-	if (id) mCmdList[id] = pos;
+	int pos = AddIcons(img, imgWidth, imgHeight, id);
 	return pos;
 }
 
-int KmIconList::AddIcons(KmImage& img, UINT imgWidth, UINT imgHeight)
+int KmIconList::AddIcons(KmImage& img, UINT imgWidth, UINT imgHeight, UINT id)
 {
 	KmImage tmpImg;
 	if (mHasDifferentSize) {
@@ -80,15 +82,18 @@ int KmIconList::AddIcons(KmImage& img, UINT imgWidth, UINT imgHeight)
 	if (!img.CropLine(mHeight, 0, tmpImg))
 		return -1;
 
-	int pos = tmpImg.AddToImageList(mCold);
+	int index = -1;
+	if (id) mCmdList.Lookup(id, index);
+
+	int pos = tmpImg.AddToImageList(mCold, index);
 	if (pos == -1) return -1;
 
 	img.CropLine(mHeight, 1, tmpImg);
-	int idx = tmpImg.AddToImageList(mHot);
+	int idx = tmpImg.AddToImageList(mHot, index);
 	ASSERT(pos == idx);
 	
 	img.CropLine(mHeight, 2, tmpImg);
-	idx = tmpImg.AddToImageList(mDead);
+	idx = tmpImg.AddToImageList(mDead, index);
 	ASSERT(pos == idx);
 	
 	/*
@@ -102,6 +107,7 @@ int KmIconList::AddIcons(KmImage& img, UINT imgWidth, UINT imgHeight)
 			break;*/
 		
 	ASSERT(mDead.GetImageCount() == mCold.GetImageCount());
+	if (id) mCmdList[id] = pos;
 	return pos;
 }
 
@@ -226,7 +232,11 @@ bool KmSkin::Init(LPCTSTR skinName)
 		}
 
 		mSkinName = skinName;
+		mImages = new KmIconList(mDefWidth, mDefHeight);
 	}
+	else
+		mImages->Reset();
+
 	mBackImg.DeleteObject();
 
 	CString filename;
@@ -249,13 +259,6 @@ bool KmSkin::Init(LPCTSTR skinName)
 	int defWidth = d.HasMember("width") ? d["width"].GetInt() : 16;
 	int defHeight = d.HasMember("height") ? d["height"].GetInt() : 16;	
 
-	if (!mImages)
-		mImages = new KmIconList(mDefWidth, mDefHeight);
-	else {
-		mImages->Reset();
-	}
-
-	
 	/*CBitmap emptyBitmap;
 	size_t imgsize = mImages->mWidth*mImages->mHeight/8 == 0 ? 1 : mImages->mWidth*mImages->mHeight/8;
 	BYTE* bits = new BYTE[imgsize];
@@ -349,7 +352,7 @@ protected:
 };
 
 #include "MozUtils.h"
-int KmIconList::AddIcon(LPCTSTR coldImgPath, LPCTSTR hotImgPath, LPCTSTR deadImgPath, UINT id) 
+int KmIconList::AddIcon(LPCTSTR coldImgPath, LPCTSTR hotImgPath, LPCTSTR deadImgPath, UINT id, UINT w, UINT h) 
 {
 	if (CString(coldImgPath).Left(6).Compare(L"chrome") == 0) {
 
@@ -362,7 +365,32 @@ int KmIconList::AddIcon(LPCTSTR coldImgPath, LPCTSTR hotImgPath, LPCTSTR deadImg
 			return -1;
 		}
 
+		return 0;
 	} else {
+		if (!w) w = theApp.skin.GetUserWidth();
+		if (!h) h = theApp.skin.GetUserHeight();
+		
+		KmImage img, hotImg, deadImg;
+		if (!img.LoadIndexedFromSkin(coldImgPath, w, h))
+			return -1;
 
+		// If hot image specified, then 1 image for each state
+		if (hotImgPath && *hotImgPath) {
+			if (!hotImg.LoadIndexedFromSkin(hotImgPath, w, h))
+				hotImg.LoadIndexedFromSkin(coldImgPath, w, h);
+			if (!deadImgPath || !deadImg.LoadIndexedFromSkin(deadImgPath, w, h))
+				deadImg.LoadIndexedFromSkin(coldImgPath, w, h);
+			return AddIcon(img, hotImg, deadImg, id);
+		}
+
+		// Single image with all states
+		int pos = AddIcons(img, w, h, id);					
+		return pos;
 	}
 }
+
+int KmSkin::AddIcon(LPCTSTR coldImgPath, LPCTSTR hotImgPath, LPCTSTR deadImgPath, UINT id, UINT w, UINT h) 
+{
+	return mImages->AddIcon(coldImgPath, hotImgPath, deadImgPath, id, w, h);
+}
+

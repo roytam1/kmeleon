@@ -24,63 +24,19 @@
 #include "ToolBarEx.h"
 #include "BrowserFrm.h"
 
-bool KmToolbar::LoadImage(LPCTSTR skinImg, KmImage& img, UINT w, UINT h) 
-{
-	if (!w) w = mWidth;
-	if (!h) h = mHeight;
-	ASSERT(w && h);
-	CString imgPath(skinImg);
-	UINT index = 0;
-	int pos = imgPath.Find(_T('['));
-	if (pos != -1) {
-		int pos2 = imgPath.Find(_T(']'));
-		index = _ttoi(imgPath.Mid(pos+1, pos2-pos).GetBuffer());
-		imgPath.Truncate(pos);
-	}
-
-	if (!img.LoadFromSkin(imgPath)) {
-		ASSERT(0);
-		return false;
-	}
-
-	img.Crop(w, h, index);
-	img.Resize(mWidth?mWidth:theApp.skin.GetDefWidth(), mHeight?mHeight:theApp.skin.GetDefHeight());
-	return true;
-}
-
-#include "MozUtils.h"
-class iconTbObserver: public IImageObserver {
-public:
-	iconTbObserver(KmButton* button) : 
-		mButton(button) {}
-
-	void ImageLoaded(HBITMAP hBitmap) 
-	{
-		UINT w = theApp.skin.GetUserWidth();
-		UINT h = theApp.skin.GetUserHeight();
-
-		KmImage img;
-		img.LoadFromBitmap(hBitmap);
-		img.Resize(w, h);
-		mButton->mImageIndex = theApp.skin.mImages->AddIcon(img, mButton->mID);
-		DeleteObject(hBitmap);
-	}
-
-protected:
-	KmButton* mButton;
-};
-
 bool KmToolbar::RemoveItem(UINT id)
 {
+	return FALSE;
 	bool res = false;
 	POSITION pos = mButtons.GetHeadPosition();
 	while (pos) {
-		KmButton* kbutton = mButtons.GetNext(pos);		
+		KmButton* kbutton = mButtons.GetAt(pos);		
 		if (kbutton->mID == id) {
 			mButtons.RemoveAt(pos);
 			res = true;
 			break;
 		}
+		mButtons.GetNext(pos);
 	}
 
 	pos = mToolbars.GetHeadPosition();
@@ -107,7 +63,7 @@ void KmToolbar::AddItem(KmButton& button, int before, UINT w, UINT h)
 	pbutton->mImageIndex = theApp.skin.GetIconIndex(pbutton->mID);
 	if (pbutton->mImageIndex == I_IMAGENONE && button.mColdImage.GetLength()) {
 
-		if (button.mColdImage.Left(6).Compare(L"chrome") == 0) {
+		/*if (button.mColdImage.Left(6).Compare(L"chrome") == 0) {
 
 			iconTbObserver* io = new iconTbObserver(pbutton);
 			nsCOMPtr<nsIURI> uri;
@@ -118,37 +74,28 @@ void KmToolbar::AddItem(KmButton& button, int before, UINT w, UINT h)
 				return;
 			}
 
-		} else {
+		} else {*/
 
 		if (!w) w = theApp.skin.GetUserWidth();
 		if (!h) h = theApp.skin.GetUserHeight();
-		KmImage img;
-		if (LoadImage(button.mColdImage, img, w, h)) {			
-
-			// If possible add the icon to the shared list
-			if (theApp.skin.mImages && (!mWidth || (
-				mWidth == theApp.skin.GetUserWidth() &&
-				mHeight == theApp.skin.GetUserHeight()))) {
+		
+		// If possible add the icon to the shared list
+		if (theApp.skin.mImages && (!mWidth || (
+			mWidth == theApp.skin.GetUserWidth() &&
+			mHeight == theApp.skin.GetUserHeight()))) {
 			
-				KmImage hotImg, deadImg;
-
-				// If hot image specified, then 1 image for each state
-				if (button.mHotImage.GetLength()) {
-					if (!LoadImage(button.mHotImage, hotImg, w, h))
-						LoadImage(button.mColdImage, hotImg, w, h);
-					if (!button.mDeadImage.GetLength() || !LoadImage(button.mDeadImage, deadImg, w, h))
-						LoadImage(button.mColdImage, deadImg, w, h);
-					pbutton->mImageIndex = theApp.skin.mImages->AddIcon(img, hotImg, deadImg, pbutton->mID);
-				}
-				else {
-					// Single image with all states
-					pbutton->mImageIndex = theApp.skin.mImages->AddIcon(img, pbutton->mID);					
-				}
+			theApp.skin.mImages->AddIcon(button.mColdImage, button.mHotImage, button.mDeadImage, pbutton->mID);
 				
-			} else {
+		} else {
 
-				int w = img.GetWidth();
-				int h = img.GetHeight();
+			KmImage img;
+			if (img.LoadIndexedFromSkin(button.mColdImage, w, h)) {	
+
+				if (!mWidth) {
+					mWidth = w;
+					mHeight = h;
+				}
+
 				if (!mHot.m_hImageList) {
 					mHot.Create(mWidth, mHeight, ILC_MASK|ILC_COLOR32, 0, 10);
 					mCold.Create(mWidth, mHeight, ILC_MASK|ILC_COLOR32, 0, 10);
@@ -158,20 +105,20 @@ void KmToolbar::AddItem(KmButton& button, int before, UINT w, UINT h)
 				pbutton->mImageIndex = img.AddToImageList(mCold);
 
 				if (button.mHotImage.GetLength()) {
-					LoadImage(button.mHotImage, img, w, h);
+					img.LoadIndexedFromSkin(button.mHotImage, w, h);
 					int i = img.AddToImageList(mHot);
 					ASSERT(i == pbutton->mImageIndex);
 				}
 
 				if (button.mDeadImage.GetLength()) {
-					if (LoadImage(button.mDeadImage, img, w, h)) {
+					if (img.LoadIndexedFromSkin(button.mDeadImage, w, h)) {
 						int i = img.AddToImageList(mDead);
 						ASSERT(i == pbutton->mImageIndex);
 					}
 				}
 			}
 		}
-		}
+		//}
 	}
 	mButtons.AddTail(pbutton);
 	POSITION pos = mToolbars.GetHeadPosition();
@@ -179,6 +126,15 @@ void KmToolbar::AddItem(KmButton& button, int before, UINT w, UINT h)
 		CToolBarEx* toolbar = mToolbars.GetNext(pos);	
 		TBBUTTON b = InitButton(pbutton, toolbar);
 		toolbar->GetToolBarCtrl().InsertButton(-1, &b);
+	}
+}
+
+void KmToolbar::Refresh()
+{
+	POSITION pos = mToolbars.GetHeadPosition();
+	while (pos) {
+		CToolBarEx* toolbar = mToolbars.GetNext(pos);
+		toolbar->Invalidate();
 	}
 }
 
@@ -203,13 +159,26 @@ TBBUTTON KmToolbar::InitButton(KmButton* kbutton, CToolBarEx* hToolbar)
 		// Separator
 		res.iBitmap = 0;
 		res.idCommand = 0;
-		res.iString = 0;
+		res.iString = -1;
 		res.dwData = 0;
 		res.fsState = TBSTATE_ENABLED;
 		res.fsStyle = BTNS_SEP;
 		res.bReserved[0] = 0;
 	}
 	return res;
+}
+
+void KmToolbar::Remove(CToolBarEx* hToolbar)
+{
+	POSITION pos = mToolbars.GetHeadPosition();
+	while (pos) {
+		CToolBarEx* toolbar = mToolbars.GetAt(pos);	
+		if (hToolbar == toolbar) {
+			mToolbars.RemoveAt(pos);
+			break;
+		}
+		mToolbars.GetNext(pos);	
+	}
 }
 
 bool KmToolbar::Init(CToolBarEx* hToolbar)
@@ -255,7 +224,17 @@ bool KmToolbar::Init(CToolBarEx* hToolbar)
 	return true;
 }
 
-bool KmToolbarService::InitWindows(CBrowserFrame* frame) 
+void KmToolbarService::CloseWindow(CBrowserFrame* frame) 
+{
+	CString s;
+	KmToolbar *ktoolbar;		
+	POSITION pos = mToolbars.GetStartPosition();
+	while (pos) {
+		mToolbars.GetNextAssoc( pos, s, ktoolbar);
+	}
+}
+
+bool KmToolbarService::InitWindow(CBrowserFrame* frame) 
 {	
 	CString s;
 	CReBarEx* rebar = &frame->m_wndReBar;

@@ -288,6 +288,27 @@ HBITMAP nsImageObserver::CreateDIB(imgIRequest *aRequest)
 ULONG_PTR KmImage::mGdiToken = 0;
 UINT KmImage::mGdiCount = 0;
 
+bool KmImage::LoadIndexedFromSkin(LPCTSTR name, UINT w, UINT h) 
+{
+	ASSERT(w && h);
+	CString imgPath(name);
+	UINT index = 0;
+	int pos = imgPath.Find(_T('['));
+	if (pos != -1) {
+		int pos2 = imgPath.Find(_T(']'));
+		index = _ttoi(imgPath.Mid(pos+1, pos2-pos).GetBuffer());
+		imgPath.Truncate(pos);
+	}
+
+	if (!LoadFromSkin(imgPath)) {
+		ASSERT(0);
+		return false;
+	}
+
+	Crop(w, h, index);
+	return true;
+}
+
 bool KmImage::LoadFromSkin(LPCTSTR name)
 {
 	CString path;

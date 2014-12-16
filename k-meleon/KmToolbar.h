@@ -18,6 +18,8 @@
 
 #pragma once
 
+#define DIB_WIDTHBYTES(bits) ((((bits) + 31)>>5)<<2)
+
 class CBrowserFrame;
 class CToolBarEx;
 class KmImage;
@@ -72,8 +74,8 @@ public:
 	}
 
 	bool Init(CToolBarEx* wToolbar);
-	
-#define DIB_WIDTHBYTES(bits) ((((bits) + 31)>>5)<<2)
+	void Remove(CToolBarEx* hToolbar);
+	void Refresh();
 
 	bool LoadImage(LPCTSTR skinImg, KmImage& img, UINT w = 0, UINT h = 0);
 	CImageList mHot;
@@ -127,7 +129,8 @@ public:
 	}
 
 	bool Init();
-	bool InitWindows(CBrowserFrame* frame);
+	bool InitWindow(CBrowserFrame* frame);
+	void CloseWindow(CBrowserFrame* frame);
 	BOOL OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERINFO* pHandlerInfo);
 	UINT GetDefaultWidth() { return mDefWidth; }
 	UINT GetDefaultHeight() { return mDefHeight; }
