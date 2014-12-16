@@ -178,8 +178,9 @@ public:
 	DECLARE_MESSAGE_MAP()
 
 private:
-   BOOL			InitializeProfiles();
-   BOOL			CreateHiddenWindow();  
+   BOOL        InitEmbedding(const char* profile);
+   BOOL        InitializeProfiles();
+   BOOL        CreateHiddenWindow();  
    BOOL        InitializePrefs();
    BOOL        InitializeMenusAccels();
    nsresult    InitializeWindowCreator();
