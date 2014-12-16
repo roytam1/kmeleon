@@ -266,9 +266,10 @@ protected:
 class CViewCertDetailsPage : public CPropertyPage
 {
 	//DECLARE_DYNAMIC(CViewCertDetailsPage)
-	nsIArray* m_certChain;
+	nsCOMPtr<nsIArray> m_certChain;	
 
 public:
+	CList<nsIASN1Object*> m_objects;
 	CViewCertDetailsPage(nsIArray* cert, CWnd* pParent = NULL);   // constructeur standard
 	virtual ~CViewCertDetailsPage();
 

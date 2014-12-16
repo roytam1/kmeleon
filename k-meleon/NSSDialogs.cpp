@@ -166,6 +166,7 @@ public:
 		return bResult;
 	}
 	//virtual BOOL OnInitDialog();
+	virtual BOOL DestroyWindow();
 };
 /* void viewCert (in nsIInterfaceRequestor ctx, in nsIX509Cert cert); */
 NS_IMETHODIMP CNSSDialogs::ViewCert(nsIInterfaceRequestor *ctx, nsIX509Cert *cert)
@@ -791,7 +792,7 @@ void CViewCertDetailsPage::DoDataExchange(CDataExchange* pDX)
 
 BEGIN_MESSAGE_MAP(CViewCertDetailsPage, CPropertyPage)
 	ON_NOTIFY(TVN_SELCHANGED, IDC_CERT_HIERARCHY, OnTvnSelchangedCertHierarchy)
-	ON_NOTIFY(TVN_SELCHANGED, IDC_CERT_FIELDS, OnTvnSelchangedCertFields)
+	ON_NOTIFY(TVN_SELCHANGED, IDC_CERT_FIELDS, OnTvnSelchangedCertFields)	
 END_MESSAGE_MAP()
 
 
@@ -826,6 +827,7 @@ BOOL CViewCertDetailsPage::OnInitDialog()
 		}
 		
 		nsIX509Cert *pCert = cert;
+		
 		current = treeH->InsertItem(TVIF_TEXT|TVIF_PARAM, W2CT(displayVal.get()), 
 			0, 0, 0, 0, (LPARAM)(void*)pCert, current, TVI_LAST );
 	}
@@ -836,76 +838,89 @@ BOOL CViewCertDetailsPage::OnInitDialog()
 	return TRUE;  // return TRUE unless you set the focus to a control
 }
 
-	void CViewCertDetailsPage::loadASN1Structure(CTreeCtrl* tree, nsIASN1Object* asn1Object, HTREEITEM parent)
-	{
-		if (!asn1Object) return;
-
-		nsString displayVal;
-		asn1Object->GetDisplayName(displayVal);
+void CViewCertDetailsPage::loadASN1Structure(CTreeCtrl* tree, nsIASN1Object* asn1Object, HTREEITEM parent)
+{
+	if (!asn1Object) return;
 		
-		USES_CONVERSION;
-		HTREEITEM current = tree->InsertItem(TVIF_TEXT|TVIF_PARAM, W2CT(displayVal.get()), 
-			0, 0, 0, 0, (LPARAM)(void*)asn1Object, parent, TVI_LAST );
+	nsString displayVal;
+	asn1Object->GetDisplayName(displayVal);
+		
+	USES_CONVERSION;
+	HTREEITEM current = tree->InsertItem(TVIF_TEXT|TVIF_PARAM, W2CT(displayVal.get()), 
+		0, 0, 0, 0, (LPARAM)(void*)asn1Object, parent, TVI_LAST );
+	NS_ADDREF(asn1Object);
+	m_objects.AddHead(asn1Object);
 
-		nsCOMPtr<nsIASN1Sequence> sequence(do_QueryInterface(asn1Object));
-		if (!sequence) return;
+	nsCOMPtr<nsIASN1Sequence> sequence(do_QueryInterface(asn1Object));
+	if (!sequence) return;
 
-		nsCOMPtr<nsIMutableArray> asn1Objects;
-		sequence->GetASN1Objects(getter_AddRefs(asn1Objects));
+	nsCOMPtr<nsIMutableArray> asn1Objects;
+	sequence->GetASN1Objects(getter_AddRefs(asn1Objects));
 
-		PRUint32 count;
-		asn1Objects->GetLength(&count);
+	PRUint32 count;
+	asn1Objects->GetLength(&count);
 
-		for (PRUint32 i=0;i<count;i++)
-		{
-			nsCOMPtr<nsIASN1Object> currObject;
-			asn1Objects->QueryElementAt(i, kASN1ObjectCID, getter_AddRefs (currObject));
-			loadASN1Structure(tree, currObject, current);
-		}
-		tree->Expand(current, TVE_EXPAND);
+	for (PRUint32 i=0;i<count;i++)
+	{
+		nsCOMPtr<nsIASN1Object> currObject;
+		asn1Objects->QueryElementAt(i, kASN1ObjectCID, getter_AddRefs (currObject));
+		loadASN1Structure(tree, currObject, current);
 	}
+	tree->Expand(current, TVE_EXPAND);
+}
 
-	void CViewCertDetailsPage::OnTvnSelchangedCertHierarchy(NMHDR *pNMHDR, LRESULT *pResult)
-	{
-		LPNMTREEVIEW pNMTreeView = reinterpret_cast<LPNMTREEVIEW>(pNMHDR);
+void CViewCertDetailsPage::OnTvnSelchangedCertHierarchy(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	LPNMTREEVIEW pNMTreeView = reinterpret_cast<LPNMTREEVIEW>(pNMHDR);
 		
-		CTreeCtrl* treeH = (CTreeCtrl*)GetDlgItem(IDC_CERT_HIERARCHY);
-		if (HTREEITEM selected = treeH->GetSelectedItem())
-		{
-			nsIX509Cert *cert;
-			cert = (nsIX509Cert*)treeH->GetItemData(selected);
+	CTreeCtrl* treeH = (CTreeCtrl*)GetDlgItem(IDC_CERT_HIERARCHY);
+	if (HTREEITEM selected = treeH->GetSelectedItem())
+	{
+		nsIX509Cert *cert;
+		cert = (nsIX509Cert*)treeH->GetItemData(selected);
 	
-			nsCOMPtr<nsIASN1Object> asn1Object;
-			cert->GetASN1Structure(getter_AddRefs(asn1Object));
+		nsCOMPtr<nsIASN1Object> asn1Object;
+		cert->GetASN1Structure(getter_AddRefs(asn1Object));
 				
-			CTreeCtrl* treeC = (CTreeCtrl*)GetDlgItem(IDC_CERT_FIELDS);
-			treeC->DeleteAllItems();
-			loadASN1Structure(treeC, asn1Object, TVI_ROOT);
-		}
-		
-		*pResult = 0;
-	}
-
-	void CViewCertDetailsPage::OnTvnSelchangedCertFields(NMHDR *pNMHDR, LRESULT *pResult)
-	{
-		LPNMTREEVIEW pNMTreeView = reinterpret_cast<LPNMTREEVIEW>(pNMHDR);
-
 		CTreeCtrl* treeC = (CTreeCtrl*)GetDlgItem(IDC_CERT_FIELDS);
-		if (HTREEITEM selected = treeC->GetSelectedItem())
-		{
-			USES_CONVERSION;
-			nsIASN1Object* asn1Object;
-			asn1Object = (nsIASN1Object*)treeC->GetItemData(selected);
-			nsString displayVal;
-			asn1Object->GetDisplayValue(displayVal);
-
-			// Have replace \n by \r\n for proper line break in the edit box
-			CString csVal(W2CT(displayVal.get()));
-			csVal.Replace(_T("\n"),_T("\r\n"));
-			
-			SetDlgItemText(IDC_FIELD_VALUE, csVal);
-
-		}
-		
-		*pResult = 0;
+		treeC->DeleteAllItems();
+		loadASN1Structure(treeC, asn1Object, TVI_ROOT);
 	}
+		
+	*pResult = 0;
+}
+
+void CViewCertDetailsPage::OnTvnSelchangedCertFields(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	LPNMTREEVIEW pNMTreeView = reinterpret_cast<LPNMTREEVIEW>(pNMHDR);
+
+	CTreeCtrl* treeC = (CTreeCtrl*)GetDlgItem(IDC_CERT_FIELDS);
+	if (HTREEITEM selected = treeC->GetSelectedItem())
+	{
+		USES_CONVERSION;
+		nsIASN1Object* asn1Object;
+		asn1Object = (nsIASN1Object*)treeC->GetItemData(selected);
+		nsString displayVal;
+		asn1Object->GetDisplayValue(displayVal);
+			
+		// Have replace \n by \r\n for proper line break in the edit box
+		CString csVal(W2CT(displayVal.get()));
+		csVal.Replace(_T("\n"),_T("\r\n"));
+			
+		SetDlgItemText(IDC_FIELD_VALUE, csVal);
+	}
+		
+	*pResult = 0;
+}
+
+BOOL CViewCertDialog::DestroyWindow()
+{
+	CViewCertDetailsPage* p = (CViewCertDetailsPage*)GetPage(1);
+	POSITION pos = p->m_objects.GetHeadPosition();
+	while (pos) {
+		nsIASN1Object* o = p->m_objects.GetNext(pos);
+		NS_RELEASE(o);
+	}
+
+	return CPropertySheet::DestroyWindow();
+}
