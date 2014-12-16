@@ -290,6 +290,7 @@ public:
 
    void Load();
    void Flush();
+   void Release();
    
    inline void SetBool(const char *preference, int value) {
       if (m_prefs) m_prefs->SetBoolPref(preference, value);
@@ -319,6 +320,7 @@ public:
    void MRUListChanged();
    void AdBlockChanged();
    void SkinChanged();
+   void BackgroundChanged();
 
 protected:
    nsCOMPtr<nsIPrefBranch> m_prefs;
