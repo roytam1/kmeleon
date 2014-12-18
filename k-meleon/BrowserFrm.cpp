@@ -448,7 +448,7 @@ int CBrowserFrame::InitLayout()
 
 	if (!IsDialog()) {
 		theApp.plugins.SendMessage("*", "* OnCreate", "DoRebar", (long)m_wndReBar.GetReBarCtrl().m_hWnd);
-		theApp.toolbars.InitWindows(this);
+		theApp.toolbars.InitWindow(this);
 	}
 
     m_wndReBar.RestoreBandSizes();
