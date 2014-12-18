@@ -372,13 +372,16 @@ void CBrowserFrmTab::SetActiveBrowser(CBrowserTab* aNewActiveTab)
 		m_wndCBrowserTab->SetTypedLocation(!m_wndUrlBar.GetIsTyped() ? _T("") : m_wndUrlBar.GetEnteredURL());
 		m_pPreviousSelectedTab = m_wndCBrowserTab;
 		focus = m_wndCBrowserTab->IsChild(GetFocus());
+		m_wndCBrowserTab->GetBrowserWrapper()->SetVisible(false);
 		PostMessage(UWM_UPDATESESSIONHISTORY, 0, 0);
 	}
-	//SendMessage(WM_SWITCHTAB, (WPARAM)m_wndCBrowserTab, (LPARAM)aNewActiveTab);
-	theApp.plugins.SendMessage("*", "*", "SwitchTab", (long)m_wndCBrowserTab->GetSafeHwnd(), (long)aNewActiveTab->GetSafeHwnd());
 	
+	CBrowserTab* oldTab = m_wndCBrowserTab;
 	m_iCBrowserView = aNewActiveTab->m_iIndex;
 	m_wndCBrowserTab = aNewActiveTab;
+	
+	//SendMessage(WM_SWITCHTAB, (WPARAM)m_wndCBrowserTab, (LPARAM)aNewActiveTab);
+	theApp.plugins.SendMessage("*", "*", "SwitchTab", (long)oldTab->GetSafeHwnd(), (long)aNewActiveTab->GetSafeHwnd());
 
 	//m_wndTabs->SelectItem(TABINDEXTOID(aNewActiveTab->m_iIndex));
 
@@ -400,6 +403,7 @@ void CBrowserFrmTab::SetActiveBrowser(CBrowserTab* aNewActiveTab)
 
 	// BUG: We may be here because of a call to this function.
 	aNewActiveTab->SetActive(true, focus);
+	aNewActiveTab->GetBrowserWrapper()->SetVisible(true);
 	// Don't wait for MFC to update the tab bar
 	m_wndTabs->GetToolBarCtrl().CheckButton(TABINDEXTOID(aNewActiveTab->m_iIndex), 1);
 	// Remove a possible tooltip
