@@ -1168,6 +1168,11 @@ BOOL CBrowserWrapper::GetSelection(CString& aSelText)
 	return TRUE;
 }
 
+void CBrowserWrapper::SetVisible(BOOL aVisible)
+{
+	GetDocShell()->SetIsActive(aVisible);
+}
+
 //#include "nsIWidgetListener.h"
 void CBrowserWrapper::SetActive(BOOL aActive)
 {	
@@ -1182,7 +1187,10 @@ void CBrowserWrapper::SetActive(BOOL aActive)
 
 	NS_ENSURE_TRUE(mWebBrowserFocus, );
 	TRACE2("Set Active Browser %u for window %s\n", aActive, (LPCTSTR)GetTitle());
-	if (aActive) mWebBrowserFocus->Activate(); else mWebBrowserFocus->Deactivate();
+	if (aActive) 
+		mWebBrowserFocus->Activate(); 
+	else 
+		mWebBrowserFocus->Deactivate();
 }
 
 BOOL CBrowserWrapper::GetCertificate(nsIX509Cert** certificate)
