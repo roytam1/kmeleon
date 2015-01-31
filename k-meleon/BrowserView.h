@@ -327,6 +327,10 @@ protected:
     afx_msg void OnBeginEditURL( NMHDR * pNotifyStruct, LRESULT * result );
 	afx_msg void OnEndEditURL( NMHDR * pNotifyStruct, LRESULT * result );
     afx_msg void OnDragURL( NMHDR * pNotifyStruct, LRESULT * result );
+	afx_msg void OnDisableJS();
+	afx_msg void OnEnableJS();
+	afx_msg void OnToggleJS();
+	afx_msg void OnUpdateToggleJS(CCmdUI* pCmdUI);
 	//afx_msg void OnDropFiles( HDROP );
 	//}}AFX_MSG
 	

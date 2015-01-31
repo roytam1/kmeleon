@@ -125,6 +125,8 @@ ON_COMMAND(ID_NEW_BROWSER, OnNewBrowser)
 ON_COMMAND(ID_MANAGE_PROFILES, OnManageProfiles)
 ON_COMMAND(ID_PREFERENCES, OnPreferences)
 ON_COMMAND(ID_OFFLINE, OnToggleOffline)
+ON_COMMAND(ID_TOGGLE_JS, OnToggleJS)
+ON_UPDATE_COMMAND_UI(ID_TOGGLE_JS, OnUpdateToggleJS)
 ON_UPDATE_COMMAND_UI(ID_OFFLINE, OnUpdateToggleOffline)
 ON_UPDATE_COMMAND_UI_RANGE(WINDOW_MENU_START_ID, WINDOW_MENU_STOP_ID, OnUpdateWindows)
 ON_COMMAND_RANGE(WINDOW_MENU_START_ID, WINDOW_MENU_STOP_ID, OnWindowSelect)
@@ -546,16 +548,15 @@ BOOL CMfcEmbedApp::InitEmbedding(const char* profile)
 
 BOOL CMfcEmbedApp::InitInstance()
 {
-   CWinApp::InitInstance();
-   AfxOleInit();
-
    USES_CONVERSION;
    cmdline.Initialize(T2A(m_lpCmdLine));
 
    // check for prior instances
    m_bAlreadyRunning = FALSE;
-   if (cmdline.GetSwitch("-new", NULL, TRUE)<0 && !CheckInstance())
+   if (cmdline.GetSwitch("-new", NULL, TRUE)<0 && !CheckInstance()) {
+	   m_bAlreadyRunning = TRUE;
 	   return FALSE;
+   }
 
    // Security 
 #ifdef _UNICODE
@@ -570,6 +571,9 @@ BOOL CMfcEmbedApp::InitInstance()
 	ShowDebugConsole();
 	_CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
 #endif
+
+   CWinApp::InitInstance();
+   AfxOleInit();
 
    // Profile selection
    int len = cmdline.GetSwitch("-P", NULL, FALSE);
@@ -1064,6 +1068,25 @@ void CMfcEmbedApp::OnToggleOffline()
 	m_pMostRecentBrowserFrame->UpdateStatus(status); 
 }
 
+void CMfcEmbedApp::OnToggleJS()
+{
+	int enable = !preferences.GetBool("javascript.enabled", 1);
+	preferences.SetBool("javascript.enabled", enable);
+
+	CBrowserFrame* pBrowserFrame = NULL;
+	POSITION pos = m_FrameWndLst.GetHeadPosition();
+	int i = 0;
+	while( pos != NULL ) {
+		pBrowserFrame = (CBrowserFrame *) m_FrameWndLst.GetNext(pos);
+		pBrowserFrame->AllowJS(enable);
+	}
+}
+
+void CMfcEmbedApp::OnUpdateToggleJS(CCmdUI* pCmdUI)
+{
+	pCmdUI->SetCheck(!preferences.GetBool("javascript.enabled", 1));
+}
+
 void CMfcEmbedApp::OnUpdateToggleOffline(CCmdUI* pCmdUI)
 {
 	pCmdUI->SetCheck(preferences.bOffline);
@@ -1200,6 +1223,9 @@ int CMfcEmbedApp::ExitInstance()
    
    m_pMostRecentBrowserFrame = NULL; // In case plugins are weird
    
+   if (m_pMainWnd)
+      m_pMainWnd->DestroyWindow();
+
    // unload the plugins before we terminate embedding,
    // this way plugins can still call the preference functions
    plugins.SendMessage("*", "* Plugin Manager", "Quit");

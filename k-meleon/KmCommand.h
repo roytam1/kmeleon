@@ -99,7 +99,7 @@ public:
 			mIdList[--mCurrentId] = id;
 	}
 
-	void UnregisterCommand(LPCTSTR plugin, LPCTSTR command)
+	void UnregisterCommand(LPCTSTR command)
 	{
 		KmCommand kcommand;
 		if (!mCommandList.Lookup(command, kcommand))

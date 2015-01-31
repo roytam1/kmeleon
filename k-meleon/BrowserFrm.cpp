@@ -1850,7 +1850,7 @@ LRESULT CBrowserFrame::OnToolbarContextMenu(WPARAM wParam, LPARAM lParam)
 			KmToolbar* ktoolbar = (KmToolbar*)::GetProp(toolbar->GetSafeHwnd(), _T("kmToolbar"));
 			if (ktoolbar) {
 				KmButton* button = ktoolbar->GetButton(wParam);
-				CMenu* menu = button ? theApp.menus.GetMenu(button->mMenuName) : theApp.menus.GetMenu(_T("Toolbars"));
+				CMenu* menu = button && button->mMenuName.GetLength() ? theApp.menus.GetMenu(button->mMenuName) : theApp.menus.GetMenu(_T("Toolbars"));
 				if (menu) menu->TrackPopupMenu(TPM_LEFTALIGN, pt.x, pt.y, this);				
 			}
 		}
@@ -1866,8 +1866,12 @@ void CBrowserFrame::OnMenuSelect(UINT nItemID, UINT nFlags, HMENU hSysMenu)
 	CFrameWnd::OnMenuSelect(nItemID, nFlags, hSysMenu);
 }
 
-
 BOOL CBrowserFrame::OnToolTipText(UINT id, NMHDR* pNMHDR, LRESULT* pResult)
 {
 	return CFrameWnd::OnToolTipText(id, pNMHDR, pResult);
+}
+
+void CBrowserFrame::AllowJS(BOOL allow)
+{
+	GetActiveView()->GetBrowserWrapper()->AllowJS(allow);
 }

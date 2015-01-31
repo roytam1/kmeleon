@@ -85,6 +85,20 @@ public:
 	void GoForward() { if (mWebNav) mWebNav->GoForward(); }
 	void Stop() { if(mWebNav) mWebNav->Stop(nsIWebNavigation::STOP_ALL); }
 	
+	BOOL AllowJS(BOOL allow) 
+	{
+		nsCOMPtr<nsIDocShell> ds = GetDocShell();
+		return NS_SUCCEEDED(ds->SetAllowJavascript(allow));
+	}
+
+	BOOL IsJSAllowed() 
+	{
+		nsCOMPtr<nsIDocShell> ds = GetDocShell();
+		bool res = false;
+		ds->GetAllowJavascript(&res);
+		return res;
+	}
+
 	BOOL Reload(BOOL force)
 	{
 		PRUint32 loadFlags = nsIWebNavigation::LOAD_FLAGS_NONE;

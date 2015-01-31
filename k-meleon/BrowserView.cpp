@@ -107,6 +107,11 @@ BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
 	ON_COMMAND(ID_EDIT_UNDO, OnUndo)
 	ON_COMMAND(ID_EDIT_REDO, OnRedo)
 	ON_COMMAND(ID_EDIT_CLEAR, OnDelete)
+	ON_COMMAND(ID_PAGE_ENABLE_JS, OnEnableJS)
+	ON_COMMAND(ID_PAGE_DISABLE_JS, OnDisableJS)
+	ON_COMMAND(ID_PAGE_TOGGLE_JS, OnToggleJS)
+
+	ON_UPDATE_COMMAND_UI(ID_PAGE_TOGGLE_JS, OnUpdateToggleJS)
 	ON_UPDATE_COMMAND_UI(ID_EDIT_CUT, OnUpdateCut)
     ON_UPDATE_COMMAND_UI(ID_EDIT_COPY, OnUpdateCopy)
     ON_UPDATE_COMMAND_UI(ID_EDIT_PASTE, OnUpdatePaste)
@@ -570,6 +575,27 @@ void CBrowserView::OnFileSaveAs()
 		AfxMessageBox(IDS_SAVE_FAILED, MB_OK|MB_ICONERROR);
 }
 
+void SetClipboardTextData(HWND hwnd, CString& str)
+{
+    if (!OpenClipboard(hwnd))
+        return;
+
+	size_t l = (str.GetLength() + 1) * sizeof(TCHAR);
+    HGLOBAL hClipData = ::GlobalAlloc(GMEM_MOVEABLE | GMEM_DDESHARE, l);
+
+	if (hClipData) {
+		TCHAR *pszClipData = (TCHAR*)::GlobalLock(hClipData);
+		if (pszClipData) {
+			USES_CONVERSION;
+			memcpy(pszClipData, str.GetBuffer(0), l);
+			::GlobalUnlock(hClipData);
+			::EmptyClipboard();
+			::SetClipboardData(CF_UNICODETEXT, hClipData);
+		}
+	}
+    CloseClipboard();
+}
+
 void CBrowserView::OnCopyLinkLocation()
 {
 	CString href, title;
@@ -579,19 +605,7 @@ void CBrowserView::OnCopyLinkLocation()
     if (!OpenClipboard())
         return;
 
-    HGLOBAL hClipData = ::GlobalAlloc(GMEM_MOVEABLE | GMEM_DDESHARE, href.GetLength() + 1);
-
-	if (hClipData) {
-		char *pszClipData = (char*)::GlobalLock(hClipData);
-		if (pszClipData) {
-			USES_CONVERSION;
-			strcpy(pszClipData, T2CA(href));
-			::GlobalUnlock(hClipData);
-			::EmptyClipboard();
-			::SetClipboardData(CF_TEXT, hClipData);
-		}
-	}
-    CloseClipboard();
+	SetClipboardTextData(m_hWnd, href);
 }
 
 void CBrowserView::OnOpenLink()
@@ -887,22 +901,7 @@ void CBrowserView::OnCopyImageLocation()
 	if (! OpenClipboard())
 		return;
 
-	HGLOBAL hClipData = ::GlobalAlloc(GMEM_MOVEABLE | GMEM_DDESHARE, imgSrc.GetLength() + 1);
-	if(hClipData) {
-		char *pszClipData = (char*)::GlobalLock(hClipData);
-		if(pszClipData) {
-
-			USES_CONVERSION;
-			strcpy(pszClipData, T2CA(imgSrc));
-
-			::GlobalUnlock(hClipData);
-
-			::EmptyClipboard();
-			::SetClipboardData(CF_TEXT, hClipData);
-		}
-	}
-
-	CloseClipboard();
+	SetClipboardTextData(m_hWnd, imgSrc);
 }
 
 void CBrowserView::OnCopyImageContent()
@@ -1019,7 +1018,7 @@ void CBrowserView::OnFilePrint()
 void CBrowserView::OnFilePrintPreview()                                         
 {
 	if (m_pWindow->PrintPreview())
-		m_InPrintPreview = ! m_InPrintPreview;
+		;//m_InPrintPreview = ! m_InPrintPreview;
 }
 
 void CBrowserView::OnFilePrintSetup()
@@ -1106,4 +1105,25 @@ bool CBrowserView::OnMenuSelect(UINT nItemID, UINT nFlags, HMENU hSysMenu)
 	}
 
 	return false;
+}
+
+void CBrowserView::OnToggleJS()
+{
+	m_pWindow->AllowJS(!m_pWindow->IsJSAllowed());
+}
+
+void CBrowserView::OnUpdateToggleJS(CCmdUI* pCmdUI)
+{
+	pCmdUI->Enable();
+	pCmdUI->SetCheck(!m_pWindow->IsJSAllowed());
+}
+
+void CBrowserView::OnEnableJS()
+{
+	m_pWindow->AllowJS(TRUE);
+}
+
+void CBrowserView::OnDisableJS()
+{
+	m_pWindow->AllowJS(FALSE);
 }

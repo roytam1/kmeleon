@@ -260,7 +260,7 @@ public:
 
 	CToolBarEx* CreateToolbar(UINT style);
 	void SetBackImage ();
-
+	virtual void AllowJS(BOOL allow);
 
 protected:
 	int InitLayout();
@@ -271,6 +271,7 @@ protected:
 	void OnFind(BOOL backward = FALSE);
 #ifdef INTERNAL_SITEICONS
 	void SetFavIcon(int iIcon);
+	
 #endif
 
 	//

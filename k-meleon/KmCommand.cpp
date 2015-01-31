@@ -25,8 +25,7 @@ UINT KmCmdService::RegisterCommand(LPCTSTR name, LPCTSTR desc, LPCTSTR icon)
 {
 	UINT id = AllocateId();
 	mCommandList[name] = KmCommand(id, desc);
-	if (icon && theApp.skin.mImages)
-		theApp.skin.mImages->AddIcon(icon, 0, 0, id);
+	if (icon) theApp.skin.mImages->AddIcon(icon, 0, 0, id);
 	return id;
 }
 
@@ -44,7 +43,7 @@ CString KmCmdService::GetDescription(LPCTSTR command)
 	}
 
 	if (kcommand.GetDesc().GetLength())
-		return kcommand.GetDesc();
+		return theApp.lang.Translate(kcommand.GetDesc());
 	
 	USES_CONVERSION;
 	char *desc = NULL;
@@ -145,6 +144,9 @@ void KmCmdService::InitDefaultCmd()
 	mCommandList[_T("navSearch")] = KmCommand(ID_NAV_SEARCH);
 	mCommandList[_T("navGo")] = KmCommand(ID_NAV_GO);
 	mCommandList[_T("navOffline")] = KmCommand(ID_OFFLINE);
+	ADD_DEFCMD(navDisableJS, ID_DISABLE_JS);
+	ADD_DEFCMD(navEnableJS, ID_ENABLE_JS);
+	ADD_DEFCMD(navToggleJS, ID_TOGGLE_JS);
 	
 	mCommandList[_T("viewSource")] = KmCommand(ID_VIEW_SOURCE);
 	mCommandList[_T("viewToolbar")] = KmCommand(ID_VIEW_TOOLBAR);
@@ -185,6 +187,9 @@ void KmCmdService::InitDefaultCmd()
 	ADD_DEFCMD(pageFontDecrease, ID_FONT_DECREASE);
 	ADD_DEFCMD(pageZoomIncrease, ID_FULLZOOM_INCREASE);
 	ADD_DEFCMD(pageZoomDecrease, ID_FULLZOOM_DECREASE);
+	ADD_DEFCMD(pageEnableJS, ID_PAGE_ENABLE_JS);
+	ADD_DEFCMD(pageDisableJS, ID_PAGE_DISABLE_JS);
+	ADD_DEFCMD(pageToggleJS, ID_PAGE_TOGGLE_JS);
 
 	ADD_DEFCMD(appExit, ID_APP_EXIT);
 	ADD_DEFCMD(appAbout, ID_APP_ABOUT);

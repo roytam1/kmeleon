@@ -168,6 +168,8 @@ public:
    afx_msg void OnManageProfiles();
    afx_msg void OnPreferences();
    afx_msg void OnToggleOffline();
+   afx_msg void OnToggleJS();
+   afx_msg void OnUpdateToggleJS(CCmdUI* pCmdUI);
    afx_msg void OnUpdateToggleOffline(CCmdUI* pCmdUI);
    afx_msg void OnUpdateWindows(CCmdUI* pCmdUI);
    afx_msg void OnWindowSelect(UINT id);

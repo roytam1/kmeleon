@@ -451,12 +451,10 @@
 #define ID_MOUSE_ACTION                 32818
 #define ID_NAV_GO                       32819
 #define ID_OFFLINE                      32820
-#define IDS_STRING32820                 32820
 #define ID_COPY_IMAGE_CONTENT           32821
 #define ID_FULLZOOM_INCREASE            32822
-#define ID_CLOSE_FINDBAR                32822
 #define ID_FULLZOOM_DECREASE            32823
-#define ID_COOKIES_VIEWER               32823
+#define ID_COOKIES_VIEWER               32919
 #define ID_PASSWORDS_VIEWER             32824
 #define ID_COOKIE_PERM                  32825
 #define ID_IMAGE_PERM                   32826
@@ -481,6 +479,14 @@
 #define ID_MATCH_CASE                   32915
 #define ID_HIGHLIGHT                    32916
 #define ID_WRAP_AROUND                  32917
+#define ID_CLOSE_FINDBAR                32918
+#define ID_PAGE_ENABLE_JS               32919
+#define ID_PAGE_DISABLE_JS              32920
+#define ID_ENABLE_JS                    32921
+#define ID_DISABLE_JS                   32922
+#define ID_TOGGLE_JS                    32923
+#define ID_PAGE_TOGGLE_JS               32924
+
 #define IDS_FAILED_TO_CREATE_BROWSER    61204
 #define IDS_NEW_PLUGIN_FOUND            61205
 #define IDS_PLUGIN_NO_OPTIONS           61206
