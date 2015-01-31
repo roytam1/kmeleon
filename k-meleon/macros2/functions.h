@@ -1408,13 +1408,26 @@
 		return kPlugin.kFuncs->AddButton(data->getstr(1), data->getstr(2), data->getstr(3));		
 	}
 
+	Value removebutton(FunctionData* data)
+	{
+		checkArgs(__FUNCTION__, data, 2,3);
+		return kPlugin.kFuncs->RemoveButton(data->getstr(1), data->getstr(2));
+	}
+
 	Value setcmdicon(FunctionData* data)
 	{
-		checkArgs(__FUNCTION__, data, 3,6);
+		checkArgs(__FUNCTION__, data, 2,6);
+		MString name = data->getstr(1);
+		MString icon = data->getstr(2);
+		MString hot = data->getstr(5);
+		MString dead = data->getstr(6);
+		
+		RECT r = {0,0,data->getint(3),data->getint(4)};
+		LPRECT pr = r.right && r.bottom ? &r : nullptr;
 		return kPlugin.kFuncs->SetCmdIcon(
-			data->getstr(1), data->getstr(2), data->getint(3),
-			data->getint(4), data->getstr(5), data->getstr(6)
+			name, icon, pr, hot, pr, dead, pr
 		);
+		return Value();
 	}
 
 	// toolbar, name, command, menu, label, tooltip, cold, hot, dead, w, h
@@ -1549,6 +1562,7 @@ void InitFunctions(Mac* m)
 	MACROSFUNC_ADD(pluginexist);
 	MACROSFUNC_ADD(addtoolbar);
 	MACROSFUNC_ADD(addbutton);
+	MACROSFUNC_ADD(removebutton);
 	MACROSFUNC_ADD(addbuttonex);
 	MACROSFUNC_ADD(enablebutton);
 	MACROSFUNC_ADD(checkbutton);
