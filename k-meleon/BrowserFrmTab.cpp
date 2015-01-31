@@ -937,3 +937,11 @@ void CBrowserFrmTab::OnSysCommand(UINT nID, LPARAM lParam)
 	if (nID == SC_MAXIMIZE || nID == SC_RESTORE)
 		m_wndTabs->FixMaximizeRestoreRebarBug();
 }
+
+void CBrowserFrmTab::AllowJS(BOOL allow)
+{
+	for (int i=0;i<m_iBrowserCount;i++) {
+		if (m_Tabs[i])
+			m_Tabs[i]->GetBrowserWrapper()->AllowJS(allow);
+	}
+}
