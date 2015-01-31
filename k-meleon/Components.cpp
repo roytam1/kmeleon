@@ -47,8 +47,12 @@ static const mozilla::Module::CIDEntry kBrowserCIDs[] = {
 	{ &kNS_NSSDIALOGS_CID,false, NULL, CNSSDialogsConstructor },
 	{ &kNS_NSSKEYPAIRDIALOGS_CID,false, NULL, CGenKeyPairDialogsConstructor },
 	{ &kNS_DOWNLOAD_CID,false, NULL, CProgressDialogConstructor },
-	{ &kNS_KMAPPINFO_CID,false, NULL, KmAppInfoConstructor },
 	{ &kNS_KMABOUT_CID,false, NULL, KmAboutConstructor },
+	{ NULL }
+};
+
+static const mozilla::Module::CIDEntry kBrowserAppCIDs[] = {
+	{ &kNS_KMAPPINFO_CID,false, NULL, KmAppInfoConstructor },
 	{ NULL }
 };
 
@@ -61,8 +65,6 @@ static const mozilla::Module::ContractIDEntry kBrowserContracts[] = {
 	{NS_CERTIFICATEDIALOGS_CONTRACTID, &kNS_NSSDIALOGS_CID},
 	{NS_GENERATINGKEYPAIRINFODIALOGS_CONTRACTID, &kNS_NSSKEYPAIRDIALOGS_CID},
 	{NS_TRANSFER_CONTRACTID, &kNS_DOWNLOAD_CID},
-	{"@mozilla.org/xre/app-info;1", &kNS_KMAPPINFO_CID},
-	{"@mozilla.org/toolkit/app-startup;1", &kNS_KMAPPINFO_CID},
 	{ NS_ABOUT_MODULE_CONTRACTID_PREFIX "home", &kNS_KMABOUT_CID },
 	{ NS_ABOUT_MODULE_CONTRACTID_PREFIX "permissions", &kNS_KMABOUT_CID },
 	{ NS_ABOUT_MODULE_CONTRACTID_PREFIX "preferences", &kNS_KMABOUT_CID },
@@ -70,10 +72,22 @@ static const mozilla::Module::ContractIDEntry kBrowserContracts[] = {
 	{ NULL }
 };
 
-static const mozilla::Module kBrowserModule = {
+static const mozilla::Module::ContractIDEntry kBrowserAppContracts[] = {
+	{"@mozilla.org/xre/app-info;1", &kNS_KMAPPINFO_CID},
+	{"@mozilla.org/toolkit/app-startup;1", &kNS_KMAPPINFO_CID},
+	{ NULL }	
+};
+
+mozilla::Module kBrowserModule = {
     mozilla::Module::kVersion,
     kBrowserCIDs,
     kBrowserContracts
+};
+
+mozilla::Module kBrowserModuleApp = {
+    mozilla::Module::kVersion,
+    kBrowserAppCIDs,
+    kBrowserAppContracts
 };
 
 NSMODULE_DEFN(nsBrowserCompsModule) = &kBrowserModule;
