@@ -708,6 +708,12 @@ void CTabReBar::HandleMouseClick(int flag, CPoint point)
 			CBrowserFrmTab* frame =(CBrowserFrmTab*)GetParentFrame();
 			ASSERT(frame->IsKindOf(RUNTIME_CLASS(CBrowserFrmTab)));
 			
+			if ((cmd>=TABS_START_ID && cmd<=TABS_STOP_ID)
+				|| cmd == ID_TAB_NEXT || cmd == ID_TAB_PREV || cmd == ID_TAB_LAST) {
+				frame->SendMessage(WM_COMMAND,  MAKELONG(cmd,0), 0);
+				break;
+			}
+
 			CBrowserTab* pTab = frame->GetActiveTab();
 			if (tab && pTab!= tab)
 				frame->SetActiveBrowser(tab);
