@@ -8,14 +8,19 @@
 #include <nsServiceManagerUtils.h>
 #include <nsIWebBrowserChrome.h>
 #include <nsIEmbeddingSiteWindow.h>
+#include <nsComponentManagerUtils.h>
+#include <nsMemory.h>
+#include <jsapi.h>
 
 #include "jscomp.h"
 #include "..\kmeleon_plugin.h"
-#include "nsComponentManagerUtils.h"
-#include "nsMemory.h"
 
 extern kmeleonPlugin kPlugin;
 extern CCmdList* cmdList;
+CCmdList* GetCmdList() {
+	if (!cmdList) cmdList = new CCmdList();
+	return cmdList;
+}
 
 NS_IMPL_ISUPPORTS (CJSCommand, kmICommand)
 NS_IMETHODIMP CJSCommand::GetName(char * *aName)
@@ -43,6 +48,40 @@ NS_IMETHODIMP CJSCommand::SetImage(const char * aImage)
     return NS_ERROR_NOT_IMPLEMENTED;
 }
 
+
+NS_IMPL_ISUPPORTS (CJSButton, kmIButton)
+
+/* attribute string image; */
+NS_IMETHODIMP CJSButton::GetImage(char * *aImage)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+NS_IMETHODIMP CJSButton::SetImage(const char * aImage)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* attribute bool checked; */
+NS_IMETHODIMP CJSButton::GetChecked(bool *aChecked)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+NS_IMETHODIMP CJSButton::SetChecked(bool aChecked)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* attribute bool disabled; */
+NS_IMETHODIMP CJSButton::GetDisabled(bool *aDisabled)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+NS_IMETHODIMP CJSButton::SetDisabled(bool aDisabled)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+
 NS_IMPL_ISUPPORTS (CJSBridge, nsIJSBridge)
 
 NS_IMETHODIMP CJSBridge::SetMenuCallback(const char *menu, const char *label, kmICommandFunction *command, const char *before)
@@ -56,7 +95,7 @@ NS_IMETHODIMP CJSBridge::SetMenuCallback(const char *menu, const char *label, km
 	//JS_CallFunctionValue(cx, JS_GetGlobalObject(cx), *(JS_ARGV(cx, command)), 0, NULL, &retVal);
 	//JS_GetStringCharsZ(ctx->GetNativeContext(), command.toString()
 	item.command = kPlugin.kFuncs->GetCommandIDs(1);
-	cmdList->Add(item.command, command);
+	::GetCmdList()->Add(item.command, command);
 
 	if (before && *before) {
 		item.before = atoi(before);
@@ -145,7 +184,6 @@ NS_IMETHODIMP CJSBridge::GetCmdList(PRUint32 *length, kmICommand ***list)
 	unsigned size = kPlugin.kFuncs->GetCmdList(nullptr, 0);
 	kmeleonCommand* kcs = new kmeleonCommand[size];
 	size = kPlugin.kFuncs->GetCmdList(kcs, size);
-	size = 1;
 	kmICommand** cmds = static_cast<kmICommand**>(NS_Alloc(size*sizeof(kmICommand*)));
 	for (unsigned i = 0;i<size;i++) {
 		CJSCommand* cmd = new CJSCommand();
@@ -162,21 +200,50 @@ NS_IMETHODIMP CJSBridge::GetCmdList(PRUint32 *length, kmICommand ***list)
 }
 
 NS_IMETHODIMP CJSBridge::RegisterCmd(const char * name, const char * desc, 
-	kmICommandFunction *command, const char* icon,
-	kmICallback *enabled, kmICallback *checked, int32_t *_retval)
+	kmICommandFunction *command, JS::HandleValue icon,
+	kmICallback *enabled, kmICallback *checked, JSContext* cx, int32_t *_retval)
 {
-	UINT id = kPlugin.kFuncs->RegisterCmd(name, desc, icon);
-	cmdList->Add(id, command);
+	if (!kPlugin.kFuncs) return NS_ERROR_NOT_INITIALIZED;
+	char* iconPath;
+	UINT id = 0;
+	if (icon.isObject()) {
+		JS::RootedObject obj(cx);
+		obj = icon.toObjectOrNull();
+		JS::Rooted<JS::Value> vpath(cx);
+		JS::Rooted<JS::Value> vt(cx);
+		JS::Rooted<JS::Value> vb(cx);
+		JS::Rooted<JS::Value> vr(cx);
+		JS::Rooted<JS::Value> vl(cx);
+		
+		if (!JS_GetProperty(cx, obj, "path", &vpath))
+			return NS_ERROR_INVALID_ARG;
+		if (!JS_GetProperty(cx, obj, "top", &vt))
+			return NS_ERROR_INVALID_ARG;
+		if (!JS_GetProperty(cx, obj, "bottom", &vb))
+			return NS_ERROR_INVALID_ARG;
+		if (!JS_GetProperty(cx, obj, "left", &vl))
+			return NS_ERROR_INVALID_ARG;
+		if (!JS_GetProperty(cx, obj, "right", &vr))
+			return NS_ERROR_INVALID_ARG;
+
+		RECT rect = {vl.toInt32(), vt.toInt32(), vr.toInt32(), vb.toInt32()};
+
+		id = kPlugin.kFuncs->RegisterCmd(name, desc, nullptr);		
+		iconPath = JS_EncodeString(cx, vpath.toString());
+		kPlugin.kFuncs->SetCmdIcon(name, iconPath, &rect, nullptr, nullptr, nullptr, nullptr);		
+	} else {
+		iconPath = JS_EncodeString(cx, icon.toString());
+		id = kPlugin.kFuncs->RegisterCmd(name, desc, iconPath);
+	}
+	
+	::GetCmdList()->Add(id, command);
+	if (iconPath) JS_free(cx, iconPath);
 	return NS_OK;
 }
 
 NS_IMETHODIMP CJSBridge::AddButton(const char * name, const char *command, const char* menu)
 {
-	kmeleonButton b = {0};
-	b.action = command;
-	b.menu = menu;
-	b.enabled = true;
-	kPlugin.kFuncs->AddButton(name, &b);
+	kPlugin.kFuncs->AddButton(name, command, menu);
 	return NS_OK;
 }
 
@@ -199,3 +266,31 @@ NS_IMETHODIMP CJSBridge::GetActiveBrowser(nsIWebBrowser * *_retval)
 	return NS_OK;
 }
 
+NS_IMETHODIMP CJSBridge::SetAccel(const char * key, const char * command) 
+{
+	kPlugin.kFuncs->SetAccel(key, command);
+	return NS_OK;
+}
+
+NS_IMETHODIMP CJSBridge::CreateButton(const char * cmd, const char * menu, const char * tooltip, const char * label, kmIButton * *_retval)
+{
+	CJSButton* button = new CJSButton();
+	nsresult rv;
+	void *result;
+	rv = button->QueryInterface(NS_GET_TEMPLATE_IID(kmIButton), &result);
+	*_retval = (kmIButton*)result;
+    return rv;
+}
+
+NS_IMETHODIMP CJSBridge::CreateCallbackButton(kmICommandFunction *command, const char * menu, const char * tooltip, const char * label, kmIButton * *_retval) 
+{
+	CJSButton* button = new CJSButton();
+	nsresult rv;
+	void *result;
+	rv = button->QueryInterface(NS_GET_TEMPLATE_IID(kmIButton), &result);
+	*_retval = (kmIButton*)result;
+
+	button->id = kPlugin.kFuncs->GetCommandIDs(1);
+	::GetCmdList()->Add(button->id, command);
+    return rv;
+}
