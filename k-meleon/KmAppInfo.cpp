@@ -22,8 +22,10 @@
 #include "KmAppInfo.h"
 #include "KMeleonConst.h"
 #include "MfcEmbed.h"
+#include "nsAppShellCID.h"
+#include "nsIAppShellService.h"
 
-NS_IMPL_ISUPPORTS(KmAppInfo, nsIXULAppInfo, nsIXULRuntime, nsIAppStartup)
+NS_IMPL_ISUPPORTS(KmAppInfo, nsIXULAppInfo, nsIXULRuntime, nsIAppStartup, nsIAppStartup2)
 
 /* readonly attribute ACString vendor; */
 NS_IMETHODIMP KmAppInfo::GetVendor(nsACString & aVendor)
@@ -68,7 +70,7 @@ NS_IMETHODIMP KmAppInfo::GetVersion(nsACString & aVersion)
 		}
 	}
 	aVersion = !ff ? NS_STRINGIFY(KMELEON_UVERSION) : MOZILLA_VERSION;
-	aVersion = MOZILLA_VERSION;
+	//aVersion = MOZILLA_VERSION;
     return NS_OK;
 }
 
@@ -253,13 +255,17 @@ NS_IMETHODIMP KmAppInfo::GetIsOfficialBranding(bool *aIsOfficialBranding)
 /* void createHiddenWindow (); */
 NS_IMETHODIMP KmAppInfo::CreateHiddenWindow()
 {
-    return NS_ERROR_NOT_IMPLEMENTED;
+	nsCOMPtr<nsIAppShellService> appShellService(do_GetService(NS_APPSHELLSERVICE_CONTRACTID));
+	NS_ENSURE_TRUE(appShellService, NS_ERROR_FAILURE);
+	return appShellService->CreateHiddenWindow();
 }
 
 /* void destroyHiddenWindow (); */
 NS_IMETHODIMP KmAppInfo::DestroyHiddenWindow()
 {
-    return NS_ERROR_NOT_IMPLEMENTED;
+	nsCOMPtr<nsIAppShellService> appShellService(do_GetService(NS_APPSHELLSERVICE_CONTRACTID));
+	NS_ENSURE_TRUE(appShellService, NS_ERROR_FAILURE);
+	return appShellService->DestroyHiddenWindow();
 }
 
 /* void run (); */
@@ -369,5 +375,16 @@ NS_IMETHODIMP KmAppInfo::GetInterrupted(bool *aInterrupted)
 NS_IMETHODIMP KmAppInfo::SetInterrupted(bool aInterrupted)
 {
 	mInterrupted = aInterrupted;
+	return NS_OK;    
+}
+
+NS_IMETHODIMP KmAppInfo::ProcessNativeEvent(void* aMsg)
+{
+	MSG* msg = (MSG*)aMsg;
+	if (!AfxPreTranslateMessage(msg))
+	{
+		::TranslateMessage(msg);
+		::DispatchMessage(msg);
+	}
 	return NS_OK;    
 }
