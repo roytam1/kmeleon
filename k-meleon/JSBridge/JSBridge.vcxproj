@@ -58,7 +58,7 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>xul.lib;mozalloc.lib;nss3.lib;xpcomglue_s.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>nss3.lib;xul.lib;mozalloc.lib;mozjs.lib;xpcomglue_s.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>..\..\debug\kplugins\$(ProjectName).dll</OutputFile>
       <AdditionalLibraryDirectories>../../xulrunner-sdk/lib_dbg;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -85,7 +85,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>xul.lib;mozalloc.lib;nss3.lib;xpcomglue_s.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>mozjs.lib;xul.lib;mozalloc.lib;nss3.lib;xpcomglue_s.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>..\..\release\kplugins\$(ProjectName).dll</OutputFile>
       <AdditionalLibraryDirectories>../../xulrunner-sdk/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <SubSystem>Windows</SubSystem>

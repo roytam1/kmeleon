@@ -63,7 +63,6 @@ extern NS_COM_GLUE nsresult NS_NewGenericFactory(nsIGenericFactory* *result,
 
 int Load()
 {
-	cmdList = new CCmdList();
 	return 1;
 }
 
@@ -88,7 +87,7 @@ BOOL Init()
 
 BOOL Quit()
 {
-	delete cmdList;
+	if (cmdList) delete cmdList;
 	nsresult rv;
 	nsCOMPtr<nsIComponentRegistrar> compReg;
 	rv = NS_GetComponentRegistrar(getter_AddRefs (compReg));
@@ -160,10 +159,35 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	switch (message) {
 
 	case WM_COMMAND:
-		if (cmdList->Run(LOWORD(wParam), lParam)) return 0;
+		if (cmdList && cmdList->Run(LOWORD(wParam), lParam)) return 0;
 	}
 	return CallWindowProc(KMeleonWndProc, hWnd, message, wParam, lParam);
 }
+
+/*
+static const mozilla::Module::CIDEntry kCIDs[] = {
+	{ &kJSBridgeCID,true, NULL, CJSBridgeConstructor },
+	{ NULL }
+};
+
+static const mozilla::Module::ContractIDEntry kContracts[] = {
+	{"@kmeleon/jsbridge;1", &kJSBridgeCID},
+	{ NULL }
+};
+
+static const mozilla::Module::CategoryEntry kCategory[] = {
+	{ NULL }
+};
+
+
+static const mozilla::Module kModule = {
+    mozilla::Module::kVersion,
+    kCIDs,
+    kContracts,
+	kCategory
+};
+
+NSMODULE_DEFN(nsBrowserCompsModule) = &kModule;*/
 
 extern "C" {
 
@@ -172,4 +196,7 @@ KMELEON_PLUGIN kmeleonPlugin *GetKmeleonPlugin() {
 }
 
 }
+
+
+
 

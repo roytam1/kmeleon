@@ -51,6 +51,8 @@ interface nsIJSBridge : nsISupports
 	void SetMenu(in string menu,in unsigned short type, in string label, in string command, [optional] in string before);
 	void RebuildMenu(in string menu);
 
+	kmIButton CreateButton(in string cmd, [optional] in string menu, [optional] in string tooltip, [optional] in string label);
+	kmIButton CreateCallbackButton(in kmICommandFunction command, [optional] in string menu, [optional] in string tooltip, [optional] in string label);
 	//void AddButton(in string toolbar, in kmIButton button);
 	void AddButton(in string toolbar, in string command, [optional] in string menu);
 	void RemoveButton(in string toolbar, in string command);
@@ -58,12 +60,13 @@ interface nsIJSBridge : nsISupports
 	void id(in nsIDOMWindow window, in string id);
 	long SendMessage(in string plugin, in string to, in string from, in string data1);
 	void GetCmdList([optional] out unsigned long length, [array, size_is(length), retval] out kmICommand list);
+	[implicit_jscontext]
 	long RegisterCmd(in string name, in string desc, 
-		in kmICommandFunction command, [optional] in string icon,
+		in kmICommandFunction command, [optional] in jsval icon,
 		[optional] in kmICallback enabled, [optional] in kmICallback checked);
+	void SetAccel(in string key, in string command);
 
 	nsIWebBrowser Open(in string url, in unsigned short state);
 	nsIWebBrowser GetActiveBrowser();
-
 }; 
 
