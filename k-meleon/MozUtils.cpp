@@ -287,10 +287,40 @@ BOOL GetLinkTitleAndHref(nsIDOMNode* node, nsString& aHref, nsString& aTitle)
 							link->GetHref(aHref);
 					}
 				}
-			    
-				GatherTextUnder(element, aTitle);
-				return TRUE;
+				if (aHref.Length()) {
+					GatherTextUnder(element, aTitle);
+					return TRUE;
+				}
 			}
+		}
+
+		// walk-up-the-tree
+		node->GetParentNode(getter_AddRefs(next));
+		node = next;
+	} while (node);
+	
+	return FALSE;
+}
+
+BOOL IsContentEditable(nsIDOMNode* node)
+{
+	NS_ENSURE_TRUE(node, FALSE);
+
+	nsresult rv;
+	nsCOMPtr<nsIDOMNode> next;
+	do {
+		PRUint16 nodeType;
+		rv = node->GetNodeType(&nodeType);
+		NS_ENSURE_SUCCESS(rv, FALSE);
+
+		if (nodeType == nsIDOMNode::ELEMENT_NODE) {
+			// Test if the element has an associated link
+			nsString attr;
+			nsCOMPtr<nsIDOMElement> element(do_QueryInterface(node));		
+			if (!element) break;
+			element->GetAttribute(NS_LITERAL_STRING("contenteditable"), attr);
+			if (wcscmp(attr.get(), L"true") == 0)
+				return TRUE;
 		}
 
 		// walk-up-the-tree

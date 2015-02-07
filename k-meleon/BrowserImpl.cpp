@@ -315,30 +315,9 @@ NS_IMETHODIMP CBrowserImpl::SizeBrowserTo(PRInt32 aCX, PRInt32 aCY)
 NS_IMETHODIMP CBrowserImpl::ShowAsModal(void)
 {
 	NS_ENSURE_TRUE(m_pBrowserFrameGlue, NS_ERROR_FAILURE);
-
 	HWND h = m_pBrowserFrameGlue->GetBrowserFrameNativeWnd();
 	CBrowserFrame* frame = (CBrowserFrame*)CWnd::FromHandle(h);
-	
-	/*//https://bugzilla.mozilla.org/show_bug.cgi?id=865729
-	nsresult rv;
-	nsCOMPtr<nsIXPConnect> xpc = do_GetService(nsIXPConnect::GetCID(), &rv);
-	JSContext *cx = xpc->GetCurrentJSContext();
-	nsCOMPtr<nsIScriptContext> scx =
-    do_QueryInterface(static_cast<nsISupports *> (::JS_GetContextPrivate(cx)));
-
-
-	nsCOMPtr<nsIJSContextStack> stack(do_GetService("@mozilla.org/js/xpc/ContextStack;1"));
-	if (stack && NS_SUCCEEDED(stack->Push(nullptr))) {*/
-		
-		frame->DoModal();
-
-	/*	JSContext* cx;
-		stack->Pop(&cx);
-		NS_ASSERTION(cx == nullptr, "JSContextStack mismatch");
-	}
-	else
-		return NS_ERROR_FAILURE;*/
-
+	frame->DoModal();
 	return NS_OK;
 }
 
@@ -1070,6 +1049,10 @@ NS_IMETHODIMP CBrowserImpl::HandleEvent(nsIDOMEvent *aEvent)
 				}
 			}
 		}
+
+		// contenteditable
+		if (::IsContentEditable(node))
+			flags |= CONTEXT_TEXT;
 
 		// Check frame
 		if (::GetFrameURL(mWebBrowser, node, url))
