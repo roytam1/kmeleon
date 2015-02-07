@@ -300,6 +300,7 @@ void CAccelParser::SetAccel(WORD command, BYTE virt, WORD key)
 {
    int oldAccel = FindAccel(virt, key);
 	if (command != 0 && oldAccel == -1) {
+      if (numAccelerators == MAX_ACCEL) return;
       accelerators[numAccelerators].cmd = command;
       accelerators[numAccelerators].fVirt = virt;
       accelerators[numAccelerators].key = key;
@@ -331,6 +332,7 @@ void CAccelParser::SetMAccel(WORD command, BYTE virt, WORD button)
 		return;
 	}
 
+   if (numMKeys == MAX_MOUSE) return;
    mouse[numMKeys].cmd = command;
    mouse[numMKeys].fVirt = virt;
    mouse[numMKeys].key = button;
