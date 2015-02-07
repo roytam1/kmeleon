@@ -33,6 +33,7 @@ BOOL GetBackgroundImageSrc(nsIDOMNode *aNode, CString& aUrl);
 BOOL GetBackgroundImageSrc(nsIDOMNode *aNode, nsString& aUrl);
 BOOL GetImageSrc(nsIDOMNode *aNode, CString& aUrl);
 BOOL GetImageSrc(nsIDOMNode *aNode, nsCString& aUrl);
+BOOL IsContentEditable(nsIDOMNode* node);
 CString GetSearchURL(LPCTSTR query);
 
 bool GetFrameURL(nsIWebBrowser* aWebBrowser, nsIDOMNode* aNode, nsString& url);
