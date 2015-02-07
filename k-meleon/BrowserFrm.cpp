@@ -1403,7 +1403,7 @@ INT_PTR CBrowserFrame::DoModal()
 	CWinApp* pApp = AfxGetApp();
 	if (pApp != NULL)
 		pApp->EnableModeless(FALSE);
-
+	/*
 	HWND hWndTop = NULL;
 	HWND hWndParent = CWnd::GetSafeOwner_(GetParent()->GetSafeHwnd(), &hWndTop);
 
@@ -1413,11 +1413,11 @@ INT_PTR CBrowserFrame::DoModal()
 		::EnableWindow(hWndParent, FALSE);
 		::EnableWindow(m_hWnd, TRUE);
 		bEnableParent = TRUE;
-	}
+	}*/
 
 	m_nFlags |= WF_CONTINUEMODAL;
 	RunModalLoop(0);
-	
+	/*
 	if (bEnableParent)
 		::EnableWindow(hWndParent, TRUE);
 	if (hWndParent != NULL && ::GetActiveWindow() == m_hWnd)
@@ -1425,7 +1425,7 @@ INT_PTR CBrowserFrame::DoModal()
 
 	if (::IsWindow(hWndTop))
 		::EnableWindow(hWndTop, TRUE);
-
+		*/
 	if (pApp != NULL)
 		pApp->EnableModeless(TRUE);
 
