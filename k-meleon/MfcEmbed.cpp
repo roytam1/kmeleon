@@ -69,6 +69,8 @@
 #include "nsIIOService.h"
 #include "nsIWindowWatcher.h"
 #include "nsIChromeRegistry.h"
+#include "nsIAppStartup.h"
+#include "nsToolkitCompsCID.h"
 #include <locale.h>
 
 static UINT WM_POSTEVENT = RegisterWindowMessage(_T("XPCOM_PostEvent"));
@@ -542,6 +544,12 @@ BOOL CMfcEmbedApp::InitEmbedding(const char* profile)
 	}   
 
 	XRE_NotifyProfile();
+
+	nsCOMPtr<nsIAppStartup> appStartup(do_GetService(NS_APPSTARTUP_CONTRACTID));
+	if (appStartup) {
+		appStartup->CreateHiddenWindow();
+	}
+	
 	NS_LogTerm();
 	return TRUE;
 }
@@ -612,6 +620,8 @@ BOOL CMfcEmbedApp::InitInstance()
    wc.lpszClassName = BROWSER_WINDOW_CLASS;
    AfxRegisterClass( &wc );
 
+   //plugins.Load(GetFolder(RootFolder)+_T("\\kplugins\\jsbridge.dll"));
+
    if (!InitEmbedding(profile))
 	   return FALSE;
 
@@ -658,6 +668,9 @@ BOOL CMfcEmbedApp::InitInstance()
 	   favicons.Create(skin.GetUserWidth(),skin.GetUserWidth(),ILC_COLOR32|ILC_MASK,25,100);
 #endif   
    InitializeMenusAccels();
+
+   nsCOMPtr<nsIObserverService> observerService(do_GetService("@mozilla.org/observer-service;1")); 
+   observerService->NotifyObservers (nullptr, "kmeleon-init", nullptr);
       
    // the hidden window will take care of creating the first
    // browser window for us
@@ -1767,7 +1780,7 @@ void CMfcEmbedApp::CheckProfileVersion()
        }
    }
 }
-
+/*
 int CMfcEmbedApp::Run()
 {
 	if (m_pMainWnd == NULL && AfxOleGetUserCtrl())
@@ -1853,3 +1866,4 @@ BOOL CMfcEmbedApp::PumpMessage2(UINT filter)
 	}
   return TRUE;
 }
+*/
