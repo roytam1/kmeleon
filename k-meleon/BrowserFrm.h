@@ -66,7 +66,9 @@ public:
 	BOOL    mDOMLoaded;
 	int     mProgressCurrent;
 	int     mProgressMax;
+	CPoint  mScroll;
 	bool    firstLoad;
+	
 
 	nsCOMPtr<nsIURI> mIconURI;
 	nsCOMPtr<nsIDOMNode> mContextNode;
@@ -80,7 +82,8 @@ public:
 		mpBrowserFrame(frame),
 		mpBrowserView(view),
 		firstLoad(true),
-		mHIndex(-1)
+		mHIndex(-1),
+		mScroll(0,0)
 	{
 	}
 

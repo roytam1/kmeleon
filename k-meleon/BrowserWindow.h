@@ -85,6 +85,29 @@ public:
 	void GoForward() { if (mWebNav) mWebNav->GoForward(); }
 	void Stop() { if(mWebNav) mWebNav->Stop(nsIWebNavigation::STOP_ALL); }
 	
+	bool SetScrollPosition(POINT scroll)
+	{
+		nsCOMPtr<nsIDOMWindow> dom;
+		if (mWebBrowser) mWebBrowser->GetContentDOMWindow(getter_AddRefs(dom));
+		if (!dom) return false;
+		return NS_SUCCEEDED(dom->ScrollTo(scroll.x, scroll.y));
+	}
+
+	POINT GetScrollPosition() 
+	{
+		POINT p = {0,0};
+		nsCOMPtr<nsIDOMWindow> dom;
+		if (mWebBrowser) mWebBrowser->GetContentDOMWindow(getter_AddRefs(dom));
+		if (dom) {
+			int32_t s = 0;
+			dom->GetScrollX(&s);
+			p.x = s;
+			dom->GetScrollY(&s);
+			p.y = s;
+		}
+		return p;
+	}
+
 	BOOL AllowJS(BOOL allow) 
 	{
 		nsCOMPtr<nsIDocShell> ds = GetDocShell();
@@ -365,7 +388,6 @@ public:
 //	BOOL Find(const wchar_t* searchString, BOOL ahead);
 #endif
 	//BOOL FindNext(BOOL backward);*/
-
 
 private:
 	BOOL AddListeners(void);

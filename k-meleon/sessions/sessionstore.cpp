@@ -333,7 +333,9 @@ bool SessionStore::Read(Session& s)
 				if (!entries.Size()) continue;
 
 				tab.shcount = entries.Size();
-				tab.index = t["index"].GetInt();
+				tab.index = t["index"].GetInt();				
+				tab.scrollX = t.HasMember("scrollX") ? t["scrollX"].GetInt() : 0;
+				tab.scrollY = t.HasMember("scrollY") ? t["scrollY"].GetInt() : 0;
 				for (int k=0;k<tab.shcount;k++) {
 					tab.urls.push_back(entries[k]["url"].GetString());
 					tab.titles.push_back(entries[k]["title"].GetString());
@@ -423,6 +425,8 @@ void SessionStore::Write(Session& s)
 				Value tab;
 				tab.SetObject();
 				tab.AddMember("index", t.index, allocator);
+				tab.AddMember("scrollX", t.scrollX, allocator);
+				tab.AddMember("scrollY", t.scrollY, allocator);
 
 				Value entries;
 				entries.SetArray();

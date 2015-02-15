@@ -174,6 +174,7 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
       }
 	  else if (strcmp(subject, "SwitchTab") == 0) {
 		 int selected = 0;
+		 if (!data1) return 0;
 		 Window* w = currentSession.getWindow(GetParent((HWND)data1));
 		 if (w) {
 			 kPlugin.kFuncs->GetWindowVar((HWND)data1, Window_Tab_Index, &selected);

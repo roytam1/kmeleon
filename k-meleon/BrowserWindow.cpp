@@ -826,46 +826,36 @@ BOOL CBrowserWrapper::InitPrintSettings()
 	nsresult rv = psService->InitPrintSettingsFromPrefs(mPrintSettings, PR_FALSE, nsIPrintSettings::kInitSaveAll);
 	return NS_SUCCEEDED(rv);
 }
-//#include "BrowserFrm.h"
-//#include "BrowserView.h"
+#include "BrowserFrm.h"
+#include "BrowserView.h"
 BOOL CBrowserWrapper::PrintPreview()
 {
 	nsCOMPtr<nsIWebBrowserPrint> print;
-	nsIDocShell* shell = GetDocShell();	
-	shell->GetPrintPreview(getter_AddRefs(print));
-	if (!print) return FALSE;
+	nsIDocShell* shell;	
 
 	if (!mPrintSettings) InitPrintSettings();
 
-	bool isPreview = false;
-	nsresult rv = print->GetDoingPrintPreview(&isPreview);
+	
+	nsCOMPtr<nsIDOMWindow> dom;	
+	nsresult rv = mWebBrowser->GetContentDOMWindow(getter_AddRefs(dom));
 	NS_ENSURE_SUCCESS(rv, FALSE);
 
-	if (isPreview) 
-		rv = print->ExitPrintPreview();
-	else {
-		nsCOMPtr<nsIDOMWindow> dom;	
-		rv = mWebBrowser->GetContentDOMWindow(getter_AddRefs(dom));
-		NS_ENSURE_SUCCESS(rv, FALSE);
-
-	/*	CBrowserFrame* frm = theApp.CreateNewBrowserFrameWithUrl(L"about:blank");//nsIWebBrowserChrome::CHROME_OPENAS_CHROME | nsIWebBrowserChrome::CHROME_DEFAULT);
-		shell = frm->GetActiveView()->GetBrowserWrapper()->GetDocShell();
-		shell->GetPrintPreview(getter_AddRefs(print));
-		if (!print) return FALSE;
-		frm->ShowWindow(SW_SHOW);
-				
-		uint32_t flags;
-		mpBrowserImpl->GetChromeFlags(&flags);
-		this->CreateBrowser(mWndOwner, flags);*/
-		
-		rv = print->PrintPreview(mPrintSettings, dom, nullptr);
-
-		// WORKAROUND - FIX ME: Why the print preview doesn't use all the width?
-		// So I'm forcing the window to reposition itself.
-		//CRect rect;
-		//mWndOwner->GetClientRect(rect);
-		//mBaseWindow->SetPositionAndSize(0, 0, rect.right, rect.bottom, PR_TRUE);
+	CBrowserFrame* frm = theApp.CreateNewBrowserFrame(nsIWebBrowserChrome::CHROME_DEFAULT, false, CWnd::FromHandle(mpBrowserGlue->GetBrowserFrameNativeWnd()));
+	shell = frm->GetActiveView()->GetBrowserWrapper()->GetDocShell();
+	shell->GetPrintPreview(getter_AddRefs(print));
+	if (!print) {
+		frm->DestroyWindow();
+		return FALSE;
 	}
+	frm->ShowWindow(SW_SHOW);
+	rv = print->PrintPreview(mPrintSettings, dom, nullptr);
+
+	// WORKAROUND - FIX ME: Why the print preview doesn't use all the width?
+	// So I'm forcing the window to reposition itself.
+	//CRect rect;
+	//mWndOwner->GetClientRect(rect);
+	//mBaseWindow->SetPositionAndSize(0, 0, rect.right, rect.bottom, PR_TRUE);
+
 
 	return NS_SUCCEEDED(rv);
 }

@@ -41,6 +41,8 @@ class Tab {
 
 	int shcount;
 	int index;
+	int scrollX;
+	int scrollY;
 	std::vector<std::string> titles;
 	std::vector<std::string> urls;
 	HWND parent;
@@ -56,6 +58,7 @@ public:
 		shcount = 0;
 		todelete = false;
 		index = -1;
+		scrollX = scrollY = 0;
 	}
 
 	void setParent(HWND ahWnd) { parent = ahWnd; }
@@ -77,6 +80,13 @@ public:
 		}
 	}
 
+	void saveScrollState() {
+		kmeleonDocInfo* di = kPlugin.kFuncs->GetDocInfo(hWnd);
+		if (!di) return;
+		scrollX = di->scrollX;
+		scrollY = di->scrollY;
+	}
+
 	bool open(bool currenttab, bool last = true) {
 
 		if (shcount<=0) return false;
@@ -91,7 +101,7 @@ public:
 			aTitles[i] = titles[i].c_str();
 		}
 
-		kPlugin.kFuncs->SetMozillaSessionHistory(hWnd, aTitles, aUrls, shcount, index);
+		kPlugin.kFuncs->SetMozillaSessionHistory(hWnd, aTitles, aUrls, shcount, index, scrollX, scrollY);
 		if (last) kPlugin.kFuncs->GotoHistoryIndex(hWnd, index);
 		return false;
 	}
@@ -186,6 +196,7 @@ public:
 		if (iter == tabsList.end()) return;
 
 		(*iter).update(aindex, acount, aurls, atitles);
+		(*iter).saveScrollState();
 	}
 	
 	void setActive(bool a)
@@ -263,7 +274,7 @@ public:
 			aTitles[i] = titles[i].c_str();
 		}
 
-		kPlugin.kFuncs->SetMozillaSessionHistory(hWnd, aTitles, aUrls, shcount, index);
+		kPlugin.kFuncs->SetMozillaSessionHistory(hWnd, aTitles, aUrls, shcount, index, 0, 0);
 		ShowWindow(hWnd, state);
 		return active;
 	}
