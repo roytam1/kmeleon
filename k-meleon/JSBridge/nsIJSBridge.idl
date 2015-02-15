@@ -3,10 +3,13 @@
 #include "nsIWebBrowser.idl"
 interface nsISimpleEnumerator; 
 interface nsIArray;
+interface nsIDOMWindow;
+
+
 
 [scriptable,function, uuid(83910267-7670-4493-99c1-dd540a036ef3)]
 interface kmICommandFunction:nsISupports {
-  void onCommand(in unsigned long mode, [optional] in string arg);
+  void onCommand(in nsIDOMWindow win, in unsigned long mode, [optional] in string arg);
 };
 
 [scriptable,function, uuid(83910267-7670-4493-99c1-dd540a036ef4)]
