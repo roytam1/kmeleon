@@ -18,14 +18,7 @@ public:
 	void Add(UINT id, kmICommandFunction* command) {
 		cmdMap.insert(std::pair<UINT,kmICommandFunction*>(id, command));
 	}
-	bool Run(UINT command, UINT mode) {
-		auto iter = cmdMap.find(command);
-		if (iter != cmdMap.end() && iter->second) {
-			iter->second->OnCommand(mode, nullptr);
-			return true;
-		}
-		return false;
-	}
+	bool Run(HWND hwnd, UINT command, UINT mode);
 };
 
 typedef std::string string;

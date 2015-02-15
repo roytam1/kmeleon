@@ -22,6 +22,19 @@ CCmdList* GetCmdList() {
 	return cmdList;
 }
 
+bool CCmdList::Run(HWND hwnd, UINT command, UINT mode) {
+	nsCOMPtr<nsIWebBrowser> browser;
+	kPlugin.kFuncs->GetMozillaWebBrowser(hwnd, getter_AddRefs(browser));
+	nsCOMPtr<nsIDOMWindow> dom;
+	browser->GetContentDOMWindow(getter_AddRefs(dom));
+	auto iter = cmdMap.find(command);
+	if (iter != cmdMap.end() && iter->second) {
+		iter->second->OnCommand(dom, mode, nullptr);
+		return true;
+	}
+	return false;
+}
+
 NS_IMPL_ISUPPORTS (CJSCommand, kmICommand)
 NS_IMETHODIMP CJSCommand::GetName(char * *aName)
 {
@@ -204,7 +217,7 @@ NS_IMETHODIMP CJSBridge::RegisterCmd(const char * name, const char * desc,
 	kmICallback *enabled, kmICallback *checked, JSContext* cx, int32_t *_retval)
 {
 	if (!kPlugin.kFuncs) return NS_ERROR_NOT_INITIALIZED;
-	char* iconPath;
+	char* iconPath = nullptr;
 	UINT id = 0;
 	if (icon.isObject()) {
 		JS::RootedObject obj(cx);
@@ -232,7 +245,8 @@ NS_IMETHODIMP CJSBridge::RegisterCmd(const char * name, const char * desc,
 		iconPath = JS_EncodeString(cx, vpath.toString());
 		kPlugin.kFuncs->SetCmdIcon(name, iconPath, &rect, nullptr, nullptr, nullptr, nullptr);		
 	} else {
-		iconPath = JS_EncodeString(cx, icon.toString());
+		if (icon.isString())
+			iconPath = JS_EncodeString(cx, icon.toString());
 		id = kPlugin.kFuncs->RegisterCmd(name, desc, iconPath);
 	}
 	
