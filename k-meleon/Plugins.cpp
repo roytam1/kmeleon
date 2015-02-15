@@ -373,6 +373,9 @@ kmeleonDocInfo * GetDocInfoUTF8(HWND mainWnd)
    }
 #endif
 
+   POINT scroll = browser->GetScrollPosition();
+   kDocInfo.scrollX = scroll.x;
+   kDocInfo.scrollY = scroll.y;
    return &kDocInfo;
 }
 
@@ -399,6 +402,9 @@ kmeleonDocInfo * GetDocInfo(HWND mainWnd)
    kDocInfo.idxIcon = theApp.favicons.GetIcon(view->GetBrowserGlue()->mIconURI);
 #endif
 
+   POINT scroll = browser->GetScrollPosition();
+   kDocInfo.scrollX = scroll.x;
+   kDocInfo.scrollY = scroll.y;
    return &kDocInfo;
 }
 
@@ -492,7 +498,7 @@ void SetStatusBarText(const char *s)
 #include "nsISHistoryInternal.h"
 #include "MozUtils.h"
 
-int SetMozillaSessionHistory (HWND hWnd, const char **titles, const char **urls, int count, int index)
+int SetMozillaSessionHistory (HWND hWnd, const char **titles, const char **urls, int count, int index, int scrollX, int scrollY)
 {
    PLUGIN_HEADER(hWnd, 0);
    nsresult rv;
@@ -526,6 +532,8 @@ int SetMozillaSessionHistory (HWND hWnd, const char **titles, const char **urls,
 	   if (NS_SUCCEEDED(rv)) sHInternal->AddEntry(newSHEntry, PR_TRUE);
    }
 
+	view->GetBrowserGlue()->mScroll.x = scrollX;
+	view->GetBrowserGlue()->mScroll.y = scrollY;
 	if (frame->IsKindOf(RUNTIME_CLASS(CBrowserFrmTab)) && theApp.preferences.GetBool("browser.sessionstore.restore_on_demand", false)) {
 		if (index>=count) index = count - 1;
 		if (index<0) index = 0;
@@ -1728,14 +1736,16 @@ void ReleaseCmdID(UINT id)
 
 UINT RegisterCmd(const char* name, const char* desc, const char* icon)
 {
-	USES_CONVERSION;
-	return theApp.commands.RegisterCommand(A2CT(name), A2CT(desc), A2CT(icon));
+	if (!name || !desc) return 0;
+	USES_CONVERSION;	
+	return theApp.commands.RegisterCommand(A2CT(name), A2CT(desc), icon?A2CT(icon):nullptr);
 }
 
-void UnregisterCmd(const char* cmd, const char* plugin)
+void UnregisterCmd(const char* cmd)
 {
+	if (!cmd) return;
 	USES_CONVERSION;
-	return theApp.commands.UnregisterCommand(A2CT(plugin), A2CT(cmd));
+	return theApp.commands.UnregisterCommand(A2CT(cmd));
 }
 
 unsigned GetCmdList(kmeleonCommand* cmdList, unsigned size)

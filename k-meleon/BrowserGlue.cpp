@@ -75,7 +75,11 @@ void CBrowserGlue::UpdateBusyState(BOOL aBusy)
 	}
 	else {
 		SetFavIcon(nullptr);
-		mPendingLocation = _T("");		
+		mPendingLocation = _T("");	
+		if (mScroll.x || mScroll.y) {
+			mpBrowserView->GetBrowserWrapper()->SetScrollPosition(mScroll);
+			mScroll.x = mScroll.y = 0;
+		}
 		/*
 		nsCOMPtr<nsIDOMEventTarget> eventTarget;
 		nsCOMPtr<nsIWebBrowser> br = mpBrowserView->GetBrowserWrapper()->GetWebBrowser();
