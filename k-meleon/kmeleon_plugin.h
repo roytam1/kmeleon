@@ -108,6 +108,8 @@ typedef struct {
    char *url;
    char *iconurl;
    int idxIcon;
+   int scrollX;
+   int scrollY;
 } kmeleonDocInfo;
 
 typedef struct {
@@ -343,7 +345,7 @@ typedef struct {
 	UINT (*GetWindowVar) (HWND, WindowVarType, void*);
 	BOOL (*SetWindowVar) (HWND, WindowVarType, void*);
 	int (*GetMozillaSessionHistory) (HWND hWnd, char ***titles, char ***urls, int *count, int *index);
-	int (*SetMozillaSessionHistory) (HWND hWnd, const char **titles, const char **urls, int count, int index);
+	int (*SetMozillaSessionHistory) (HWND hWnd, const char **titles, const char **urls, int count, int index, int scrollX, int scrollY);
 
 // ----------------------------------------------------
 // Addition in K-meleon 1.5
@@ -352,8 +354,8 @@ typedef struct {
 	int (*GetTabsList) (HWND hWnd, HWND* list, unsigned size);
 	UINT (*GetIconIdx) (const char* host);
 	void (*ReleaseCmdId) (UINT id);
-	UINT (*RegisterCmd) (const char* name, const char* desc, const char* arg); // Do not use yet
-	void (*UnregisterCmd) (const char* name, const char* plugin);
+	UINT (*RegisterCmd) (const char* name, const char* desc, const char* arg); 
+	void (*UnregisterCmd) (const char* name);
 	unsigned (*GetCmdList) (kmeleonCommand*, unsigned size);
 	BOOL (*LoadCSS) (const char* path, BOOL load);
 	BOOL (*LogMessage) (const char* category, const char* message, const char* file, UINT line, UINT flags);
