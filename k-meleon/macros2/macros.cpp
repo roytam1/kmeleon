@@ -24,7 +24,7 @@
 #include <shellapi.h>
 #include <stdlib.h>
 #include <string>
-#include <vector>
+#include <list>
 #include <malloc.h>
 
 #define PLUGIN_NAME "Macro Extension Plugin"
@@ -36,7 +36,7 @@
 #include "..\\strconv.h"
 #include "resrc1.h"
 #include <afxres.h>     // for ID_APP_EXIT
-
+#include "object.h"
 
 BOOL         APIENTRY DllMain(HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved );
 void         Create(HWND parent);
@@ -57,8 +57,10 @@ void         CloseFrame(HWND hWnd, LONG windows);
 void         Quit();
 void         SetOption(std::string option);
 void         SetVarExp(int varid, std::string value);
-std::string strTrim(const std::string& instr);
-std::string ExecuteMacro (HWND hWnd, std::string name, bool haha);
+std::string  strTrim(const std::string& instr);
+std::string  ExecuteMacro(HWND hWnd, const char* name, const Context *parent = nullptr);
+void         DisableMacros(MacroFile* mf);
+
 
 #define WRONGARGS 0
 #define WRONGTYPE 1
@@ -166,9 +168,6 @@ int iVarCount   = 0;
 int bStartup    = 1;
 
 std::string sGlobalArg;
-std::string ExecuteMacro (HWND hWnd, std::string name, bool haha = false);
-
-#include "object.h"
 
 class Mac {
 public:
@@ -438,7 +437,7 @@ public:
 		Value *v = M->FindSymbol("$ARG");
 		assert(v);
 		*v = Value(ptr->arg);
-		ExecuteMacro(hWnd, ptr->macro, false);
+		ExecuteMacro(hWnd, ptr->macro.c_str(), false);
 		*v = Value();
 		return true;
 	}
@@ -462,6 +461,7 @@ int GetMacroState(int id)
 	int res = 0;
 	Context c = {NULL};
 	if (macro->md->menuChecked) {
+		return -1; // have to set those manually for now
 		Evaluator e(M, c);
 		if (e.EvalExpr(macro->md->menuChecked).boolval())
 			res |= 0x2;
@@ -522,7 +522,7 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
 			ExecuteMacro((HWND)data1, "OnOpenTab", false);
 		}
 		else if (strcmp(subject, "DestroyTab") == 0) {
-			ExecuteMacro((HWND)data1, "OnCloseTab", false);
+			ExecuteMacro(data2?(HWND)data2:(HWND)data1, "OnCloseTab", false);
 		}
 		else if (strcmp(subject, "Close") == 0) {
 			Close((HWND)data1);
@@ -578,7 +578,19 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
 	return 0;
 }
 
-std::string ExecuteMacro (HWND hWnd, std::string name, bool haha)
+void DisableMacros(MacroFile* mf)
+{
+	char prefload[MAX_PATH+40];
+	strcpy(prefload, "kmeleon.plugins.macros.modules.");
+	strcat(prefload, mf->name.c_str()); 
+	strcat(prefload, ".load");
+
+	int b = 0;			
+	kFuncs->SetPreference(PREF_BOOL, prefload, (void*)&b, TRUE);
+	mf->loaded = false;
+}
+
+std::string ExecuteMacro (HWND hWnd, const char* name, const Context* parent)
 {
 	if (!M) return "";
 
@@ -587,24 +599,20 @@ std::string ExecuteMacro (HWND hWnd, std::string name, bool haha)
 		return "";
 
 	ValueMacro* macro = (ValueMacro*)val;
-	if (!macro->md) {
+	if (!macro->md || !macro->md->mf->loaded) {
 		return "";
 	}
 
 	Context context;
 	context.hWnd = hWnd;
+	context.mf = macro->md->mf;
+	context.origmf = parent ? (parent->origmf ? parent->origmf : parent->mf) : nullptr;
 	Evaluator eval(M, context);
 	eval.Evaluate(macro->md);
 	return "";
 }
 
-typedef struct MacroFileDesc {
-	MString name;
-	MString desc;
-	bool user;	
-} MacroFileDesc;
-
-std::vector<MacroFileDesc> *macroFileList;
+std::list<MacroFile> *macroFileList;
 
 bool LoadDir(const TCHAR* macrosDir)
 {
@@ -679,7 +687,7 @@ BOOL APIENTRY DllMain(HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserv
 int Load() {
 	kFuncs = kPlugin.kFuncs;
 	arglist = new ArgList;
-	macroFileList = new std::vector<MacroFileDesc>;
+	macroFileList = new std::list<MacroFile>;
 	M = new Mac();
 	M->AddSymbol("$ARG", Value());
 	InitFunctions(M);
@@ -861,12 +869,20 @@ void DoRebar(HWND rebarWnd) {
 bool LoadMacros(const TCHAR *filename)
 {
 	Parser parser;
-	int debug = 0;
-	kPlugin.kFuncs->GetPreference(PREF_BOOL, "kmeleon.plugins.macros.debug", &debug, &debug);
-	if (!parser.init(M, filename, debug))
+	static int debug = -1;
+	if (debug == -1) {
+		int def = 0;
+		kPlugin.kFuncs->GetPreference(PREF_BOOL, "kmeleon.plugins.macros.debug", &debug, &def);
+	}
+
+	MacroFile mf((TCHAR*)filename); // Meh
+	auto iter = macroFileList->insert(macroFileList->begin(), mf);
+	
+	if (!parser.init(M, *iter, debug))
 		return false;
 
 	parser.parse();	
+	(*iter).loaded = true;
 	return true;
 }
 
