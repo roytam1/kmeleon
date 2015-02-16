@@ -479,13 +479,13 @@
 #define ID_MATCH_CASE                   32915
 #define ID_HIGHLIGHT                    32916
 #define ID_WRAP_AROUND                  32917
-#define ID_CLOSE_FINDBAR                32918
 #define ID_PAGE_ENABLE_JS               32919
 #define ID_PAGE_DISABLE_JS              32920
 #define ID_ENABLE_JS                    32921
 #define ID_DISABLE_JS                   32922
 #define ID_TOGGLE_JS                    32923
 #define ID_PAGE_TOGGLE_JS               32924
+#define ID_CLOSE_FINDBAR                33822
 
 #define IDS_FAILED_TO_CREATE_BROWSER    61204
 #define IDS_NEW_PLUGIN_FOUND            61205
