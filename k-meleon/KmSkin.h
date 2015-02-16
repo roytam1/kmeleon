@@ -65,7 +65,7 @@ public:
 	int AddIcons(KmImage& img, UINT w, UINT h, UINT id = 0);
 	int AddIcon(KmImage& img, UINT id = 0);
 	int AddIcon(KmImage&  img, KmImage&  hotImg, KmImage&  deadImg, UINT id = 0);
-	int AddIcon(LPCTSTR coldImgPath, LPCTSTR hotImgPath, LPCTSTR deadImgPath, UINT id = 0, UINT w = 0, UINT h = 0);
+	int AddIcon(LPCTSTR coldImgPath, LPCTSTR hotImgPath, LPCTSTR deadImgPath, UINT id = 0, const LPRECT r = nullptr);
 	
 	HIMAGELIST GetIconList() {
 		return mHasDifferentSize ? mSized.GetSafeHandle() : mCold.GetSafeHandle();
@@ -104,6 +104,7 @@ protected:
 	CGdiObject miLoading;
 	CGdiObject miDefault;
 	CGdiObject miMain;
+	bool mOldSkin;
 
 	HICON LoadSkinIcon(LPCTSTR aSkinFile, UINT resID, CGdiObject& obj, UINT w = 16, UINT h = 16)
 	{
@@ -207,6 +208,6 @@ public:
 	}
 
 	bool FindSkinFile( CString& szSkinFile, LPCTSTR filename, LPCTSTR skin = NULL, bool searchUser = true);
-	int AddIcon(LPCTSTR coldImgPath, LPCTSTR hotImgPath, LPCTSTR deadImgPath, UINT id = 0, UINT w = 0, UINT h = 0);
+	int AddIcon(LPCTSTR coldImgPath, LPCTSTR hotImgPath, LPCTSTR deadImgPath, UINT id = 0, const LPRECT r = nullptr);
 };
 

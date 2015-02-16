@@ -59,6 +59,10 @@ int KmIconList::AddIcon(KmImage& img, UINT id)
 
 int KmIconList::AddIcons(KmImage& img, UINT imgWidth, UINT imgHeight, UINT id)
 {
+	int idx = -1;
+	int index = -1;
+	if (id) mCmdList.Lookup(id, index);
+
 	KmImage tmpImg;
 	if (mHasDifferentSize) {
 		int cx, cy;
@@ -67,11 +71,11 @@ int KmIconList::AddIcons(KmImage& img, UINT imgWidth, UINT imgHeight, UINT id)
 			KmImage sizedImg;
 			img.Scale((1.0*cx)/imgWidth, sizedImg);
 			if (sizedImg.CropLine(cy, 0, tmpImg)) {
-				tmpImg.AddToImageList(mSized);
+				idx = tmpImg.AddToImageList(mSized, index);
 			}
 		} else {
 			if (img.CropLine(cy, 0, tmpImg)) {
-				tmpImg.AddToImageList(mSized);
+				idx = tmpImg.AddToImageList(mSized, index);
 			}
 		}
 	}
@@ -82,14 +86,12 @@ int KmIconList::AddIcons(KmImage& img, UINT imgWidth, UINT imgHeight, UINT id)
 	if (!img.CropLine(mHeight, 0, tmpImg))
 		return -1;
 
-	int index = -1;
-	if (id) mCmdList.Lookup(id, index);
-
 	int pos = tmpImg.AddToImageList(mCold, index);
 	if (pos == -1) return -1;
+	ASSERT(idx == -1 || idx == pos);
 
 	img.CropLine(mHeight, 1, tmpImg);
-	int idx = tmpImg.AddToImageList(mHot, index);
+	idx = tmpImg.AddToImageList(mHot, index);
 	ASSERT(pos == idx);
 	
 	img.CropLine(mHeight, 2, tmpImg);
@@ -202,15 +204,23 @@ bool KmSkin::FindSkinFile( CString& szSkinFile, LPCTSTR filename, LPCTSTR skin, 
 		tmp = tmp.Left( tmp.GetLength()-2 );
 	}*/
 
-	// Fallback to default
+	// Fallback to shared
 	if (searchUser) {
-		file = theApp.GetFolder(SkinsFolder) + _T("\\default\\") + filename;
+		file = theApp.GetFolder(SkinsFolder) + _T("\\shared\\") + filename;
 		hFile = FindFirstFile(file, &FindData);
 		if(hFile != INVALID_HANDLE_VALUE) {   
 			FindClose(hFile);
 			szSkinFile = file;
 			return true;
 		}  
+
+		file = theApp.GetFolder(SkinsFolder) + _T("\\default\\") + filename;
+		hFile = FindFirstFile(file, &FindData);
+		if(hFile != INVALID_HANDLE_VALUE) {   
+			FindClose(hFile);
+			szSkinFile = file;
+			return true;
+		} 
 	}
 
 	return false;
@@ -221,6 +231,7 @@ bool KmSkin::Init(LPCTSTR skinName)
 {
 	using namespace rapidjson;
 
+	bool first = false;
 	if (!mImages) {
 		mDefWidth = GetDefWidth();
 		mDefHeight = GetDefHeight();
@@ -231,18 +242,22 @@ bool KmSkin::Init(LPCTSTR skinName)
 			mDefHeight = userSize;
 		}
 
-		mSkinName = skinName;
 		mImages = new KmIconList(mDefWidth, mDefHeight);
+		first = true;
 	}
-	else
-		mImages->Reset();
-
-	mBackImg.DeleteObject();
 
 	CString filename;
-	if (!FindSkinFile(filename, _T("skin.cfg"), skinName, false))
-		return false;
+	bool oldSkin = !FindSkinFile(filename, _T("skin.cfg"), skinName, false);
 
+	if (!first) {
+		if (mOldSkin || oldSkin) return false;
+		mImages->Reset();
+		mBackImg.DeleteObject();
+	}
+
+	mOldSkin = oldSkin;
+	mSkinName = skinName;
+	
 	CFile file;
     if (!file.Open(filename, CFile::modeRead, NULL))
 	   return false;
@@ -331,8 +346,11 @@ bool KmSkin::Init(LPCTSTR skinName)
 
 class iconSkinObserver: public IImageObserver {
 	UINT mID;
+	RECT mRegion;
+
 public:
-	iconSkinObserver(UINT id): mID (id) {}
+	iconSkinObserver(UINT id): mID (id), mRegion(CRect(0,0,0,0)) {}
+	iconSkinObserver(UINT id, RECT r): mID (id), mRegion(r) {}
 	~iconSkinObserver() {}
 	void ImageLoaded(HBITMAP hBitmap) 
 	{
@@ -342,9 +360,12 @@ public:
 
 		KmImage img;
 		img.LoadFromBitmap(hBitmap);
+		if (mRegion.bottom != 0 || mRegion.right != 0)
+			img.Clip(mRegion);
 		img.Resize(w, h);
 		theApp.skin.mImages->AddIcon(img, mID);
 		DeleteObject(hBitmap);
+		theApp.toolbars.Refresh();
 	}
 
 protected:
@@ -352,11 +373,11 @@ protected:
 };
 
 #include "MozUtils.h"
-int KmIconList::AddIcon(LPCTSTR coldImgPath, LPCTSTR hotImgPath, LPCTSTR deadImgPath, UINT id, UINT w, UINT h) 
+int KmIconList::AddIcon(LPCTSTR coldImgPath, LPCTSTR hotImgPath, LPCTSTR deadImgPath, UINT id, const LPRECT region) 
 {
 	if (CString(coldImgPath).Left(6).Compare(L"chrome") == 0) {
 
-		iconSkinObserver* io = new iconSkinObserver(id);
+		iconSkinObserver* io = new iconSkinObserver(id, region?*region:CRect(0,0,0,0));
 		nsCOMPtr<nsIURI> uri;
 		NewURI(getter_AddRefs(uri), CStringToNSString(coldImgPath));
 
@@ -367,19 +388,20 @@ int KmIconList::AddIcon(LPCTSTR coldImgPath, LPCTSTR hotImgPath, LPCTSTR deadImg
 
 		return 0;
 	} else {
-		if (!w) w = theApp.skin.GetUserWidth();
-		if (!h) h = theApp.skin.GetUserHeight();
-		
+
 		KmImage img, hotImg, deadImg;
-		if (!img.LoadIndexedFromSkin(coldImgPath, w, h))
+		if (!img.LoadFromSkin(coldImgPath, region))
 			return -1;
+
+		LONG w = img.GetWidth();
+		LONG h = img.GetHeight();
 
 		// If hot image specified, then 1 image for each state
 		if (hotImgPath && *hotImgPath) {
-			if (!hotImg.LoadIndexedFromSkin(hotImgPath, w, h))
-				hotImg.LoadIndexedFromSkin(coldImgPath, w, h);
-			if (!deadImgPath || !deadImg.LoadIndexedFromSkin(deadImgPath, w, h))
-				deadImg.LoadIndexedFromSkin(coldImgPath, w, h);
+			if (!hotImg.LoadFromSkin(hotImgPath, region))
+				hotImg.LoadFromSkin(coldImgPath, region);
+			if (!deadImgPath || !deadImg.LoadFromSkin(deadImgPath, region))
+				deadImg.LoadFromSkin(coldImgPath, region);
 			return AddIcon(img, hotImg, deadImg, id);
 		}
 
@@ -389,8 +411,8 @@ int KmIconList::AddIcon(LPCTSTR coldImgPath, LPCTSTR hotImgPath, LPCTSTR deadImg
 	}
 }
 
-int KmSkin::AddIcon(LPCTSTR coldImgPath, LPCTSTR hotImgPath, LPCTSTR deadImgPath, UINT id, UINT w, UINT h) 
+int KmSkin::AddIcon(LPCTSTR coldImgPath, LPCTSTR hotImgPath, LPCTSTR deadImgPath, UINT id, const LPRECT region) 
 {
-	return mImages->AddIcon(coldImgPath, hotImgPath, deadImgPath, id, w, h);
+	return mImages->AddIcon(coldImgPath, hotImgPath, deadImgPath, id, region);
 }
 

@@ -26,7 +26,6 @@
 
 bool KmToolbar::RemoveItem(UINT id)
 {
-	return FALSE;
 	bool res = false;
 	POSITION pos = mButtons.GetHeadPosition();
 	while (pos) {
@@ -42,11 +41,15 @@ bool KmToolbar::RemoveItem(UINT id)
 	pos = mToolbars.GetHeadPosition();
 	while (pos) {
 		CToolBarEx* toolbar = mToolbars.GetNext(pos);	
-		for (int i=0;i<toolbar->GetCount();i++) {
+		for (int i=0;i<toolbar->GetToolBarCtrl().GetButtonCount();i++) {
 			UINT bid, style;
 			int iimage;
 			toolbar->GetButtonInfo(i, bid, style, iimage);
-			if (id == bid) toolbar->GetToolBarCtrl().DeleteButton(i);
+			if (id == bid) {
+				toolbar->GetToolBarCtrl().DeleteButton(i);
+				CBrowserFrame* frm = DYNAMIC_DOWNCAST(CBrowserFrame,toolbar->GetParentFrame());
+				frm->m_wndReBar.RecalcMinSize(toolbar);
+			}
 		}
 	}
 	return res;
@@ -80,13 +83,13 @@ void KmToolbar::AddItem(KmButton& button, int before, UINT w, UINT h)
 		if (!h) h = theApp.skin.GetUserHeight();
 		
 		// If possible add the icon to the shared list
-		if (theApp.skin.mImages && (!mWidth || (
+		/*if (theApp.skin.mImages && (!mWidth || (
 			mWidth == theApp.skin.GetUserWidth() &&
 			mHeight == theApp.skin.GetUserHeight()))) {
 			
 			theApp.skin.mImages->AddIcon(button.mColdImage, button.mHotImage, button.mDeadImage, pbutton->mID);
 				
-		} else {
+		} else */{
 
 			KmImage img;
 			if (img.LoadIndexedFromSkin(button.mColdImage, w, h)) {	
@@ -126,6 +129,8 @@ void KmToolbar::AddItem(KmButton& button, int before, UINT w, UINT h)
 		CToolBarEx* toolbar = mToolbars.GetNext(pos);	
 		TBBUTTON b = InitButton(pbutton, toolbar);
 		toolbar->GetToolBarCtrl().InsertButton(-1, &b);
+		CBrowserFrame* frm = DYNAMIC_DOWNCAST(CBrowserFrame,toolbar->GetParentFrame());
+		frm->m_wndReBar.RecalcMinSize(toolbar);
 	}
 }
 
@@ -284,4 +289,14 @@ BOOL KmToolbarService::OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLE
 
 	((CCmdUI*)pExtra)->m_bEnableChanged = TRUE;
 	return TRUE;
+}
+
+void KmToolbarService::Refresh()
+{
+	CBrowserFrame* pBrowserFrame = NULL;
+	POSITION pos = theApp.m_FrameWndLst.GetHeadPosition();
+	while( pos != NULL ) {
+		pBrowserFrame = (CBrowserFrame *) theApp.m_FrameWndLst.GetNext(pos);
+		pBrowserFrame->m_wndReBar.RedrawWindow(0, 0, RDW_INVALIDATE | RDW_UPDATENOW | RDW_ERASE | RDW_ALLCHILDREN);
+	}
 }

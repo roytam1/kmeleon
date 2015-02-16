@@ -37,13 +37,14 @@ public:
 
 public:
    HMENU m_menu;
-
+   
    int FindByName(const TCHAR *name);
    void ShowBand(int index, BOOL visibility);
    int count() { return m_iCount; }
    void lineup();
    void SetNeedSeparator(bool);
    bool GetNeedSeparator();
+   void RecalcMinSize(CControlBar* bar);
 private:
    int FindByChild (HWND hWnd);
    int FindByIndex (int index);

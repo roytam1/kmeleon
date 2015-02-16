@@ -474,6 +474,19 @@ void CReBarEx::SaveBandSizes() {
    }
 }
 
+void CReBarEx::RecalcMinSize(CControlBar* bar)
+{
+	REBARBANDINFO rbbi;
+	int index = FindByChild(bar->m_hWnd);
+	ASSERT(index != -1);
+	rbbi.cbSize = sizeof(rbbi);
+	rbbi.fMask = RBBIM_CHILDSIZE | RBBIM_STYLE;
+	GetReBarCtrl().GetBandInfo(index, &rbbi);
+	CSize size = bar->CalcFixedLayout(FALSE, m_dwStyle & CBRS_ORIENT_HORZ);
+	rbbi.cxMinChild = size.cx;
+	GetReBarCtrl().SetBandInfo(index, &rbbi);
+}
+
 void CReBarEx::RestoreBandSizes() {
    int x;
    REBARBANDINFO rbbi;

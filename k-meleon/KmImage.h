@@ -87,6 +87,7 @@ public:
 
 	bool Load(LPCTSTR path);
 	bool Crop(UINT w, UINT h, UINT index);
+	bool Clip(const RECT& r);
 	bool CropLine(UINT h, UINT line, KmImage& img) const;
 	bool Resize(UINT w, UINT h);
 	bool Resize(UINT w, UINT h, KmImage& img) const;
@@ -98,8 +99,8 @@ public:
 	bool DrawItem(HDC dc, POINT pt, UINT index, UINT line, UINT, UINT);
 
 	bool LoadIndexedFromSkin(LPCTSTR name, UINT w, UINT h);
-	bool LoadFromSkin(LPCTSTR name);
-	bool LoadFromBitmap(HBITMAP hbmp);
+	bool LoadFromSkin(LPCTSTR name, LPRECT rect = nullptr);
+	bool LoadFromBitmap(HBITMAP hbmp, bool reverse = false);
 	int AddToImageList(CImageList& list, int index = -1);
 	~KmImage() {
 		Clean();
