@@ -1948,9 +1948,10 @@ bool CBrowserWrapper::TypeAheadFind(nsIDOMKeyEvent* keyEvent)
 	str.get();
 	uint16_t result;
 	bool res = true;
+	
 	if (c == nsIDOMKeyEvent::DOM_VK_ESCAPE) {
 		mSearchString.Truncate();
-	}
+	}	
 	else if (c == nsIDOMKeyEvent::DOM_VK_RETURN) {
 		mSearchString.Truncate();
 		res = false;
@@ -1967,8 +1968,10 @@ bool CBrowserWrapper::TypeAheadFind(nsIDOMKeyEvent* keyEvent)
 	}
 	else if (c == nsIDOMKeyEvent::DOM_VK_BACK_SPACE) {
 		mSearchString.Cut(mSearchString.Length()-1,1);
-	} else {
+	} else {		
 		keyEvent->GetCharCode(&c);
+		if (c == nsIDOMKeyEvent::DOM_VK_SPACE && mSearchString.IsEmpty())
+			return false;
 		if (c==0) {
 			if (mSearchString.IsEmpty()) 
 				return false;
@@ -1987,7 +1990,7 @@ bool CBrowserWrapper::TypeAheadFind(nsIDOMKeyEvent* keyEvent)
 				}
 			}
 		
-			wchar_t key[2] = {c, 0};		
+			wchar_t key[	2] = {c, 0};		
 			mSearchString.Append(nsDependentString(key));
 		}
 	}
