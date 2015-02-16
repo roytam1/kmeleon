@@ -201,6 +201,7 @@ public:
 	ValueStr data;
 	MString errormsg;
 	MString file;
+	MString desc;
 	unsigned line;
 
 	
@@ -360,6 +361,17 @@ public:
 			switch (*current)
 			{
 			case '#':
+				if (desc.empty()) {
+					next();
+					while (isspace(*current) && *current != '\n') next();
+					if (*current == '-' && *(current+1) == '-') {
+						while (*current == '-') next();						
+						while ((*current != '-'  || *(current+1) != '-') && *current != '\n' && *current != '\r' && *current) {
+							desc+=*current;
+							next();
+						}
+					}
+				}
 				skipline();
 				continue;
 
@@ -522,7 +534,7 @@ enum UNOP {
 
 class Parser  {
 public:
-	MString file;
+	MacroFile* mf;
 	Lexer lex;
 	Mac*  m;
 	char *input;
@@ -532,19 +544,20 @@ public:
 	Parser() { input = NULL; currentMd = NULL; m = NULL; }
 	~Parser() { if (input) delete [] input; }
 
-	bool init(Mac* mac, const TCHAR* srcFile, bool enableDebug = false) {
+	bool init(Mac* mac, MacroFile &srcFile, bool enableDebug = false) {
 		struct _stat st;
-		if (_tstat(srcFile, &st) == -1)
+		if (_tstat(srcFile.wfile.c_str(), &st) == -1)
 			return false;
 
-		FILE* f = _tfopen(srcFile, _T("r"));
+		mf = &srcFile;
+		FILE* f = _tfopen(srcFile.wfile.c_str(), _T("r"));
 		if (!f) return false;
 
 		input = new char[st.st_size+1];
 		size_t r = fread(input, sizeof(char), st.st_size, f);
 		input[r] = 0;
-		file = (const char*)CT_to_UTF8(srcFile);
-		lex.setfile(file);
+		
+		lex.setfile(srcFile.file.c_str());
 		fclose(f);		
 		return _init(mac, input, enableDebug);
 	}
@@ -564,7 +577,7 @@ public:
 			errmsg += "\n";
 			errmsg.append(lex.tokenstr, 25);
 		}
-		DoError(errmsg.c_str(), file.c_str(), lex.line);
+		DoError(errmsg.c_str(), mf->file.c_str(), lex.line);
 	}
 
 	void error(const char* msg) {
@@ -575,7 +588,7 @@ public:
 	{
 		if (!debug)
 			return new Statement(type);
-		return new DebugStatement(type, file.c_str(), lex.line);
+		return new DebugStatement(type, mf, lex.line);
 	}
 
 	bool isunop(TOKEN tk) {
@@ -860,7 +873,7 @@ public:
 		skip(TK_NAME);
 		skip(TK_BEGIN);
 
-		MacroDef* md = new MacroDef();
+		MacroDef* md = new MacroDef(mf);
 		currentMd = md;
 		md->name = macroname;
 		
@@ -1073,7 +1086,7 @@ public:
 			}
 		} while (lex.token != TK_NONE && lex.token != TK_ERR);
 
+		mf->desc = lex.desc;
 		return lex.errormsg.length()>0;
-
 	}
 };

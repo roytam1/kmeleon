@@ -1,6 +1,6 @@
 #include <assert.h>
 #include <map>
-
+#include "../strconv.h"
 
 enum Type {
 	VALUE_NONE,
@@ -18,14 +18,18 @@ public:
 	MString(std::string s) : std::string(s) {}
 	MString(const char* s) : std::string(s) {}
 	operator const char* () { return c_str(); }
+	CUTF8_to_UTF16 utf16() { return CUTF8_to_UTF16(c_str()); }
 };
 
 class MacroDef;
 class Value;
+class MacroFile;
 struct FunctionData;
 
 typedef struct {
 	HWND hWnd;
+	MacroFile* origmf;
+	MacroFile* mf;
 } Context;
 
 typedef Value (*MacroFunction)(FunctionData*);
@@ -374,7 +378,7 @@ public:
 class StatList : public MacroNode {
 	MacroNode* last;
 public:
-	MacroNode* child;
+	MacroNode* child;	
 
 	StatList() {
 		child = last = NULL;
@@ -486,6 +490,32 @@ public:
 	}
 };
 
+class MacroFile {
+public:
+	std::string name;
+	std::string desc;
+	std::string file;
+	std::wstring wfile;
+	bool user;
+	bool loaded;
+	bool trusted;
+
+	MacroFile(wchar_t* afile) {
+		wfile = afile;
+		file = CUTF16_to_UTF8(afile);
+		
+		CharLowerBuff(afile, wcslen(afile));
+		wchar_t* pos = wcsrchr(afile, L'.');
+		if (pos) *pos = 0;
+		pos = wcsrchr(afile, L'\\');
+		name = (const char*)CT_to_UTF8(pos?pos+1:afile);
+
+		user = false;
+		loaded = false;
+		trusted = false;
+	}
+};
+
 class MacroDef : public StatList {
 public:
 	std::string name;
@@ -493,10 +523,12 @@ public:
 	Expression* menuString;
 	Expression* menuChecked;
 	Expression* menuGrayed;
+	MacroFile* mf;
 
-	MacroDef() : StatList() {
+	MacroDef(MacroFile* amf) : StatList() {
 		t = NODE_MACRO;
 		macroInfo = menuString = menuChecked = menuGrayed = NULL;
+		mf = amf;
 	}
 
 	virtual ~MacroDef() {
@@ -522,6 +554,7 @@ public:
 	}
 
 	virtual int getLine() { return -1;}
+	virtual MacroFile* getMFile() { return nullptr;}
 	virtual const char* getFile() { return "";}
 	
 	virtual ~Statement() {
@@ -533,15 +566,16 @@ public:
 
 class DebugStatement : public Statement {
 	int mLine;
-	MString mFile; 
+	MacroFile* mMf; 
 public:
-	DebugStatement(StatType type, const char* file, int line) : Statement(type) {
+	DebugStatement(StatType type, MacroFile* mf, int line) : Statement(type) {
 		mLine = line;
-		mFile = file;
+		mMf = mf;
 	}
 
 	virtual int getLine() { return mLine;}
-	virtual const char* getFile() { return mFile.c_str();}
+	virtual MacroFile* getMFile() { return mMf;}
+	virtual const char* getFile() { return mMf->file.c_str();}
 };
 
 

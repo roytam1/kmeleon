@@ -1920,6 +1920,26 @@ int SetCmdIcon(const char* name, const char* icon, UINT w, UINT h, const char* h
 	return theApp.skin.mImages->AddIcon(A2CT(icon), A2CT(hot), A2CT(cold), id, w, h);
 }
 
+#include "nsIPermissionManager.h"
+bool AddPermission(const char* url, const char* type, const char* perm, bool sessionOnly)
+{
+	nsCOMPtr<nsIPermissionManager> man = do_GetService(NS_PERMISSIONMANAGER_CONTRACTID);
+	if (!man) return false;
+
+	uint32_t permission = 0;
+	if (strcmp(perm, "allow") == 0) 
+		permission = nsIPermissionManager::ALLOW_ACTION;
+	else if (strcmp(perm, "deny") == 0) 
+		permission = nsIPermissionManager::DENY_ACTION;
+	else if (strcmp(perm, "prompt") == 0) 
+		permission = nsIPermissionManager::PROMPT_ACTION;
+	else
+		return false;
+	nsCOMPtr<nsIURI> uri;
+	NewURI(getter_AddRefs(uri), nsDependentCString(url));
+	return NS_SUCCEEDED(man->Add(uri, type, permission, sessionOnly?nsIPermissionManager::EXPIRE_SESSION:nsIPermissionManager::EXPIRE_NEVER, 0));
+}
+
 kmeleonFunctions kmelFuncsUTF8 = {
    SendMessage,
    GetCommandIDs,
@@ -1991,7 +2011,8 @@ kmeleonFunctions kmelFuncsUTF8 = {
    GotoHistoryIndex,
    RemoveButton,
    AddButton,
-   SetCmdIcon
+   SetCmdIcon,
+   AddPermission
 };
 
 kmeleonFunctions kmelFuncs = {
@@ -2065,7 +2086,8 @@ kmeleonFunctions kmelFuncs = {
    GotoHistoryIndex,
    RemoveButton,
    AddButton,
-   SetCmdIcon
+   SetCmdIcon,
+   AddPermission
 };
 
 BOOL CPlugins::TestLoad(LPCTSTR file, const char *description)

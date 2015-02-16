@@ -18,6 +18,7 @@
 */
 
 #include <map>
+#include <stdio.h>
 #include "../Utils.h"
 
 ///////////////////////////
@@ -25,6 +26,7 @@
 
 #define WRONGARGS 0
 #define WRONGTYPE 1
+#define NEEDTRUST(data) if (!checkTrust(data)) return Value();
 
 	static void DoError(const char* msg, Statement* stat)
 	{
@@ -59,6 +61,25 @@
 	{
 		if (data->nparam !=n)
 			parseError(WRONGARGS, name, "", n, data->nparam, data->stat);
+	}
+
+	bool checkTrust(FunctionData* data)
+	{
+		return false;
+	}
+	
+	void invalidOp(FunctionData* data) {
+		MacroFile* mf = data->stat->getMFile();
+		if (!mf) return;
+			
+		const char* msg = kPlugin.kFuncs->Translate("The macro %s has done an invalid operation and will be deactivated.");
+		int len = strlen(msg) + mf->name.length();
+		char* buf = new char[len];
+		sprintf_s(buf, len, msg, mf->name.c_str());
+		MessageBoxUTF8(data->c.hWnd, buf, "Security",  MB_OK|MB_ICONSTOP|MB_TASKMODAL);
+		delete [] buf;
+
+		DisableMacros(mf);
 	}
 
 	bool mustEscape(unsigned char c)
@@ -226,6 +247,7 @@
 			return WritePrivateProfileStringA(CUTF8_to_ANSI(lpAppName), CUTF8_to_ANSI(lpKeyName), CUTF8_to_ANSI(lpString), CUTF8_to_ANSI(filename));
 	}
 
+
 	//////////////////////////
 	// API
 
@@ -282,10 +304,14 @@
 		else if (!strcmpi(type, "string")) preftype = PREF_UNISTRING;
 		else {
 			parseError(WRONGTYPE, "setpref", type);
-			return "";
+			return false;
 		}
 
 		MString pref = data->getstr(2);
+		if (pref.find("kmeleon.plugins.macros") != MString::npos && pref.find("trusted") != MString::npos) {
+			invalidOp(data);
+			return Value();
+		}
 
 		if (preftype == PREF_UNISTRING) {
 			MString value = data->getstr(3);
@@ -302,7 +328,7 @@
 			kFuncs->SetPreference(preftype, pref, &value, TRUE);
 		}
 
-		return "";
+		return true;
 	}
 
 	Value getpref(FunctionData* data)
@@ -363,6 +389,10 @@
 		}
 
 		MString pref = data->getstr(2);
+		if (pref.find("kmeleon.plugins.macros") != MString::npos && pref.find("trusted") != MString::npos) {
+			invalidOp(data);
+			return Value();
+		}
 
 		if (preftype == PREF_BOOL)
 		{
@@ -660,7 +690,7 @@
 		std::string macro = macrolist.substr(0,pos);
 
 		while (macro.length()) {
-			ret = ExecuteMacro(data->c.hWnd, macro, true);
+			ret = ExecuteMacro(data->c.hWnd, macro.c_str(), &data->c);
 			
 			pos != macrolist.npos ?
 				macrolist.erase(0,pos+1) :
@@ -998,7 +1028,7 @@
 		MString file = data->getstr(1);
 		if (file.empty())
 			return "";
-		FILE* f = fopen(data->getstr(1), "r");
+		FILE* f = _wfopen(data->getstr(1).utf16(), L"r");
 		if (f) {
 			char* buffer = new char[32768];
 			int size = fread(buffer, sizeof(char), 32768-1, f);
@@ -1009,6 +1039,50 @@
 			return ret;
 		}
 		return "";
+	}
+
+	Value writefile(FunctionData* data)
+	{
+		NEEDTRUST(data);
+		checkArgs(__FUNCTION__, data, 2);
+		
+		FILE* f = _wfopen(data->getstr(1).utf16(), L"w");
+		if (!f) return false;
+
+		MString buf = data->getstr(2);
+		size_t result = fwrite(buf.c_str(), sizeof(char), buf.length(), f);
+		fclose(f);
+		return result == buf.length();
+	}
+
+	Value appendfile(FunctionData* data)
+	{
+		NEEDTRUST(data);
+		checkArgs(__FUNCTION__, data, 2);
+		
+		FILE* f = _wfopen(data->getstr(1).utf16(), L"a");
+		if (!f) return false;
+
+		MString buf = data->getstr(2);
+		size_t result = fwrite(buf.c_str(), sizeof(char), buf.length(), f);
+		fclose(f);
+		return result == buf.length();
+	}
+
+	Value renamefile(FunctionData* data)
+	{
+		NEEDTRUST(data);
+		checkArgs(__FUNCTION__, data, 2);		
+		int res = _wrename(data->getstr(1).utf16(), data->getstr(2).utf16());
+		return res == 0;		
+	}
+
+	Value deletefile(FunctionData* data)
+	{
+		NEEDTRUST(data);
+		checkArgs(__FUNCTION__, data, 1);		
+		int res = _wunlink(data->getstr(1).utf16());
+		return res == 0;	
 	}
 
 	Value readreg(FunctionData* data)
@@ -1503,6 +1577,78 @@
 		return kPlugin.kFuncs->SetButton(data->getstr(1), kPlugin.kFuncs->GetID(data->getstr(2)), &b);
 	}
 
+#define MAX_TIMERS 10
+#define OFFSET_TIMERS 1000
+
+	typedef struct TimerStruct {
+		std::string macro;
+		UINT_PTR idEvent;
+		HWND hWnd;
+		TimerStruct() : idEvent(0) {}
+	} TimerStruct;
+	
+	TimerStruct timers[MAX_TIMERS];
+
+	VOID CALLBACK TimerProc(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime) 
+	{
+		int i;
+		for (i=0;i<MAX_TIMERS;i++)
+			if (timers[i].idEvent == idEvent)
+				break;
+		if (i >= MAX_TIMERS) return;
+		ExecuteMacro(timers[i].hWnd, timers[i].macro.c_str());
+		KillTimer(NULL, idEvent);
+	}
+	
+	Value settimer(FunctionData* data)
+	{
+		checkArgs(__FUNCTION__, data, 2, 2);
+
+		int i = 0;
+		for (i=0;i<MAX_TIMERS;i++)
+			if (!timers[i].macro.length())
+				break;
+
+		if (i >= MAX_TIMERS)
+			return 0;
+		
+		timers[i].macro = data->getstr(1);
+		timers[i].hWnd = data->c.hWnd;
+		timers[i].idEvent = SetTimer(NULL, (UINT_PTR)&timers[i], data->getint(2), TimerProc);
+		return timers[i].idEvent;
+	}
+
+	Value killtimer(FunctionData* data)
+	{
+		checkArgs(__FUNCTION__, data, 1, 1);
+		int idEvent  = data->getint(1);
+		int i;
+		for (i=0;i<MAX_TIMERS;i++)
+			if (timers[i].idEvent == idEvent)
+				break;
+		if (i >= MAX_TIMERS) return false;
+		//if (i<0 || i>=MAX_TIMERS) return false;
+		KillTimer(NULL, idEvent);
+		timers[i].macro.empty();
+		timers[i].idEvent = 0;
+		return true;
+	}
+
+	/* url, type, perm, sessionOnly */
+	Value addperm(FunctionData* data)
+	{
+		checkArgs(__FUNCTION__, data, 3, 4);
+		return kPlugin.kFuncs->AddPermission(data->getstr(1), data->getstr(2), data->getstr(3), data->getbool(4));
+	}
+
+	Value fileexists(FunctionData* data)
+	{
+		checkArgs(__FUNCTION__, data, 1, 1);
+		DWORD dwAttrib = GetFileAttributes(data->getstr(1).utf16());
+
+		return (dwAttrib != INVALID_FILE_ATTRIBUTES && 
+				!(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
+	}
 
 #ifndef MACROSFUNC_ADD
 #define MACROSFUNC_ADD(entry) m->AddSymbol(#entry, ValueFunc((MacroFunction)&entry));
@@ -1568,4 +1714,12 @@ void InitFunctions(Mac* m)
 	MACROSFUNC_ADD(checkbutton);
 	MACROSFUNC_ADD(setbuttonimg);
 	MACROSFUNC_ADD(setcmdicon);	
+	MACROSFUNC_ADD(settimer);	
+	MACROSFUNC_ADD(killtimer);	
+	MACROSFUNC_ADD(addperm);	
+	MACROSFUNC_ADD(fileexists);
+	MACROSFUNC_ADD(writefile);
+	MACROSFUNC_ADD(renamefile);
+	MACROSFUNC_ADD(deletefile);
+	MACROSFUNC_ADD(appendfile);
 }

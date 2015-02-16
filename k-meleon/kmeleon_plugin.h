@@ -379,7 +379,7 @@ typedef struct {
 	bool (*RemoveButton)(const char* name, const char* command);
 	bool (*AddButton)(const char* name, const char* command, const char* menu);
 	int (*SetCmdIcon)(const char* name, const char* icon, UINT w, UINT h, const char* hot, const char* cold);
-
+	bool (*AddPermission)(const char* url, const char* type, const char* perm, bool sessionOnly);
 } kmeleonFunctions;
 
 /*
