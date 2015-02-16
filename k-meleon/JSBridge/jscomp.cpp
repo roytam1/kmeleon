@@ -9,11 +9,44 @@
 #include <nsIWebBrowserChrome.h>
 #include <nsIEmbeddingSiteWindow.h>
 #include <nsComponentManagerUtils.h>
+#include <nsISimpleEnumerator.h>
 #include <nsMemory.h>
 #include <jsapi.h>
 
 #include "jscomp.h"
 #include "..\kmeleon_plugin.h"
+
+class CWindowEnumerator : public nsISimpleEnumerator {
+
+	HWND* list;
+	int count;
+	int pos;
+
+public:
+	CWindowEnumerator(HWND* hWnd, int count)
+	{
+		list = hWnd;
+		count = count;
+
+	}
+
+	virtual ~CWindowEnumerator()
+	{
+		if (list) delete [] list;
+	}
+
+	NS_IMETHOD GetNext(nsISupports **retval) {
+		
+	}
+
+	NS_IMETHOD HasMoreElements(bool *retval) {
+		*retval = !(pos >= count);
+		return NS_OK;
+	}
+
+	NS_DECL_ISUPPORTS
+
+};
 
 extern kmeleonPlugin kPlugin;
 extern CCmdList* cmdList;
@@ -212,13 +245,10 @@ NS_IMETHODIMP CJSBridge::GetCmdList(PRUint32 *length, kmICommand ***list)
     return NS_OK;
 }
 
-NS_IMETHODIMP CJSBridge::RegisterCmd(const char * name, const char * desc, 
-	kmICommandFunction *command, JS::HandleValue icon,
-	kmICallback *enabled, kmICallback *checked, JSContext* cx, int32_t *_retval)
+nsresult GetPathAndRect(JSContext* cx, JS::HandleValue& icon, char** path, RECT* rect)
 {
-	if (!kPlugin.kFuncs) return NS_ERROR_NOT_INITIALIZED;
-	char* iconPath = nullptr;
-	UINT id = 0;
+	*path = nullptr;
+	rect->bottom = rect->top = rect->left = rect->right = 0;
 	if (icon.isObject()) {
 		JS::RootedObject obj(cx);
 		obj = icon.toObjectOrNull();
@@ -239,29 +269,57 @@ NS_IMETHODIMP CJSBridge::RegisterCmd(const char * name, const char * desc,
 		if (!JS_GetProperty(cx, obj, "right", &vr))
 			return NS_ERROR_INVALID_ARG;
 
-		RECT rect = {vl.toInt32(), vt.toInt32(), vr.toInt32(), vb.toInt32()};
-
-		id = kPlugin.kFuncs->RegisterCmd(name, desc, nullptr);		
-		iconPath = JS_EncodeString(cx, vpath.toString());
-		kPlugin.kFuncs->SetCmdIcon(name, iconPath, &rect, nullptr, nullptr, nullptr, nullptr);		
+		RECT r = {vl.toInt32(), vt.toInt32(), vr.toInt32(), vb.toInt32()};	
+		*rect = r;
+		*path = JS_EncodeString(cx, vpath.toString());	
 	} else {
 		if (icon.isString())
-			iconPath = JS_EncodeString(cx, icon.toString());
-		id = kPlugin.kFuncs->RegisterCmd(name, desc, iconPath);
+			*path = JS_EncodeString(cx, icon.toString());
 	}
+	return NS_OK;
+}
+
+NS_IMETHODIMP CJSBridge::RegisterCmd(const char * name, const char * desc, 
+	kmICommandFunction *command, JS::HandleValue icon,
+	kmICallback *enabled, kmICallback *checked, JSContext* cx, int32_t *_retval)
+{
+	if (!kPlugin.kFuncs) return NS_ERROR_NOT_INITIALIZED;
+	
+	UINT id;
+	RECT rect;
+	char* iconPath = nullptr;
+
+	nsresult rv = GetPathAndRect(cx, icon, &iconPath, &rect);
+	NS_ENSURE_SUCCESS(rv, rv);
+	
+	if (rect.bottom != 0 || rect.right != 0) {
+		id = kPlugin.kFuncs->RegisterCmd(name, desc, nullptr);	
+		kPlugin.kFuncs->SetCmdIcon(name, iconPath, &rect, nullptr, nullptr, nullptr, nullptr);	
+	} else
+		id = kPlugin.kFuncs->RegisterCmd(name, desc, iconPath);
 	
 	::GetCmdList()->Add(id, command);
 	if (iconPath) JS_free(cx, iconPath);
 	return NS_OK;
 }
 
-NS_IMETHODIMP CJSBridge::AddButton(const char * name, const char *command, const char* menu)
+NS_IMETHODIMP CJSBridge::SetCmdIcon(const char * name, JS::HandleValue icon, JSContext* cx)
+{
+	RECT rect;
+	char* iconPath = nullptr;
+	nsresult rv = GetPathAndRect(cx, icon, &iconPath, &rect);
+	kPlugin.kFuncs->SetCmdIcon(name, iconPath, &rect, nullptr, nullptr, nullptr, nullptr);	
+	if (iconPath) JS_free(cx, iconPath);
+	return NS_OK;
+}
+
+NS_IMETHODIMP CJSBridge::AddButton(const char * name, const char * command, const char * menu)
 {
 	kPlugin.kFuncs->AddButton(name, command, menu);
 	return NS_OK;
 }
 
-NS_IMETHODIMP CJSBridge::RemoveButton(const char * name, const char *command)
+NS_IMETHODIMP CJSBridge::RemoveButton(const char * name, const char * command)
 {
 	kPlugin.kFuncs->RemoveButton(name, command);
 	return NS_OK;
@@ -307,4 +365,94 @@ NS_IMETHODIMP CJSBridge::CreateCallbackButton(kmICommandFunction *command, const
 	button->id = kPlugin.kFuncs->GetCommandIDs(1);
 	::GetCmdList()->Add(button->id, command);
     return rv;
+}
+
+class CWin : public kmIWindow {
+public: 
+	NS_DECL_ISUPPORTS 
+	NS_DECL_KMIWINDOW
+
+	CWin() {};
+	virtual ~CWin() {};
+	HWND hWnd;
+};
+
+NS_IMPL_ISUPPORTS (CWin, kmIWindow)
+
+NS_IMETHODIMP CWin::GetHandle(void **aHandle) {
+	*aHandle = hWnd;
+	return NS_OK;
+}
+
+NS_IMETHODIMP CJSBridge::GetWindows(uint32_t *length, kmIWindow * **list)
+{
+	*list = nullptr;
+	*length = 0;
+	int size = kPlugin.kFuncs->GetWindowsList(NULL, 0);
+	if (size == 0) return NS_OK;
+
+	HWND* hList = new HWND[size];
+	kPlugin.kFuncs->GetWindowsList(hList, size);
+	kmIWindow** wins = static_cast<kmIWindow**>(NS_Alloc(size*sizeof(kmIWindow*)));
+	for (unsigned i = 0;i<size;i++) {
+		CWin* win = new CWin();
+		win->hWnd = hList[i];
+		void *result;
+		win->QueryInterface(NS_GET_TEMPLATE_IID(kmIWindow), &result);
+		wins[i] = static_cast<kmIWindow*>(result);
+	}
+	delete [] hList;
+	if (length) *length = size;
+	*list = wins;
+    return NS_OK;
+}
+
+NS_IMETHODIMP CJSBridge::AddListener(nsIObserver* listener)
+{
+	NS_ENSURE_ARG_POINTER(listener);
+	mListeners.AppendObject(listener);
+	return NS_OK;
+}
+
+NS_IMETHODIMP CJSBridge::RemoveListener(nsIObserver* listener)
+{
+	NS_ENSURE_ARG_POINTER(listener);
+	mListeners.RemoveObject(listener);
+	return NS_OK;
+}
+
+bool notifyOpenWindow(nsIObserver *aListener, void* aData)
+{
+	kmIWindow* winData = static_cast<kmIWindow*>(aData);
+	aListener->Observe(winData, "kmeleon-createwindow", nullptr);
+	return true;
+}
+
+void CJSBridge::OnCreateWindow(HWND hWnd, int flag)
+{
+	CWin* win = new CWin();
+	win->hWnd = hWnd;
+	void *result;
+	win->QueryInterface(NS_GET_TEMPLATE_IID(kmIWindow), &result);
+	mListeners.EnumerateForwards(notifyOpenWindow, result);
+}
+
+bool notifySwitchTab(nsIObserver *aListener, void* aData)
+{
+	nsIDOMWindow* dom = static_cast<nsIDOMWindow*>(aData);
+	aListener->Observe(dom, "kmeleon-switchtab", nullptr);
+	return true;
+}
+
+void CJSBridge::OnSwitchTab(HWND oldhWnd, HWND newhWnd)
+{
+	nsCOMPtr<nsIWebBrowser> browser;
+	kPlugin.kFuncs->GetMozillaWebBrowser(newhWnd, getter_AddRefs(browser));
+	if (!browser) return;
+
+	nsCOMPtr<nsIDOMWindow> dom;
+	browser->GetContentDOMWindow(getter_AddRefs(dom));
+	if (!dom) return;
+
+	mListeners.EnumerateForwards(notifySwitchTab, dom);
 }

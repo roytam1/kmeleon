@@ -85,6 +85,8 @@ BOOL Init()
 	return NS_SUCCEEDED(rv) ? TRUE : FALSE;
 }
 
+static nsCOMPtr<CJSBridge> gJSB = nullptr;
+
 BOOL Quit()
 {
 	if (cmdList) delete cmdList;
@@ -92,7 +94,8 @@ BOOL Quit()
 	nsCOMPtr<nsIComponentRegistrar> compReg;
 	rv = NS_GetComponentRegistrar(getter_AddRefs (compReg));
 	NS_ENSURE_SUCCESS(rv, FALSE);
-	
+	gJSB = nullptr;
+
 	rv = compReg->UnregisterFactory(components.mCID, componentFactory);
 	return NS_SUCCEEDED(rv) ? TRUE : FALSE;
 }
@@ -102,19 +105,28 @@ BOOL Quit()
 WNDPROC KMeleonWndProc;
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
+
+
+CJSBridge* getJSB() {
+	if (!gJSB) {
+		nsCOMPtr<nsIServiceManager> servMan; 
+		nsresult rv = NS_GetServiceManager(getter_AddRefs(servMan)); 
+		NS_ENSURE_SUCCESS(rv, nullptr);
+
+		nsCOMPtr<nsIJSBridge> jsb;
+		rv = servMan->GetServiceByContractID("@kmeleon/jsbridge;1",  NS_GET_IID(nsIJSBridge), getter_AddRefs(jsb));
+		NS_ENSURE_SUCCESS(rv, nullptr);
+
+		gJSB = reinterpret_cast<CJSBridge*>(jsb.get());
+	}
+	return gJSB;
+}
+
 void Create(HWND hWnd)
 {
-#ifdef _DEBUG
-	nsCOMPtr<nsIServiceManager> servMan; 
-	nsresult rv = NS_GetServiceManager(getter_AddRefs(servMan)); 
-	NS_ENSURE_SUCCESS(rv, );
-
-	nsCOMPtr<nsIJSBridge> jsb;
-	rv = servMan->GetServiceByContractID("@kmeleon/jsbridge;1",  NS_GET_IID(nsIJSBridge), getter_AddRefs(jsb));
-	NS_ENSURE_SUCCESS(rv, );
-#endif
 	KMeleonWndProc = (WNDPROC) GetWindowLong(hWnd, GWL_WNDPROC);
 	SetWindowLong(hWnd, GWL_WNDPROC, (LONG)WndProc);
+	if (getJSB()) getJSB()->OnCreateWindow(hWnd, 0);
 }
 
 long DoMessage(const char *to, const char *from, const char *subject,
@@ -124,6 +136,7 @@ long DoMessage(const char *to, const char *from, const char *subject,
 		if (strcmp(subject, "Init") == 0) {
 			Init();
 		}
+
 		else if (strcmp(subject, "Load") == 0) {
 			Load();
 		}
@@ -134,6 +147,10 @@ long DoMessage(const char *to, const char *from, const char *subject,
 		else if (strcmp(subject, "Quit") == 0) {
 			Quit();
 		}
+
+		else if (strcmp(subject, "SwitchTab") == 0) {
+			if (getJSB()) getJSB()->OnSwitchTab((HWND)data1, (HWND)data2);
+		}	  
 
 		else return 0;
 		return 1;
