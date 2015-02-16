@@ -309,14 +309,36 @@ bool KmImage::LoadIndexedFromSkin(LPCTSTR name, UINT w, UINT h)
 	return true;
 }
 
-bool KmImage::LoadFromSkin(LPCTSTR name)
+bool KmImage::LoadFromSkin(LPCTSTR name, const LPRECT rect)
 {
+	CString imgPath(name);
+	int index = -1;
+	int pos = imgPath.Find(_T('['));
+	if (pos != -1) {
+		int pos2 = imgPath.Find(_T(']'));
+		index = _ttoi(imgPath.Mid(pos+1, pos2-pos).GetBuffer());
+		imgPath.Truncate(pos);
+	}
+
 	CString path;
-	theApp.skin.FindSkinFile(path, name);
-	return Load(path);
+	theApp.skin.FindSkinFile(path, imgPath);
+	if (!Load(path)) {
+		ASSERT(0);
+		return false;
+	}
+	
+	ASSERT(index==-1 || rect);
+
+	if (index>=0 && rect) {
+		Crop(rect->right-rect->left, GetHeight(), index);
+	} else if (rect) {
+		Clip(*rect);
+	}
+
+	return true;
 }
 
-bool KmImage::LoadFromBitmap(HBITMAP hbmp)
+bool KmImage::LoadFromBitmap(HBITMAP hbmp, bool reverse)
 {
 	ASSERT(hbmp);
 	Clean();
@@ -339,7 +361,7 @@ bool KmImage::LoadFromBitmap(HBITMAP hbmp)
 		byte* destBytes = (byte*)(bmd.Scan0);
 		for (int y = 0; y < bm.bmHeight; y++)
 		{
-			memcpy(destBytes + (y * lineSize), (byte*)bits + ((bm.bmHeight - y - 1) * lineSize), lineSize);
+			memcpy(destBytes + (y * lineSize), (byte*)bits + ((reverse?(bm.bmHeight - y - 1):y) * lineSize), lineSize);
 		}
 		mGdiBitmap->UnlockBits(&bmd);
 		if (!bm.bmBits) delete bits;
@@ -389,7 +411,7 @@ bool KmImage::Load(LPCTSTR path)
 	if (CString(path).Find(_T(".bmp"))) {
 		// 32 bbp bitmap does not work well with gdi+
 		HBITMAP bmp = (HBITMAP)LoadImage(NULL, path, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_CREATEDIBSECTION);
-		if (bmp) return LoadFromBitmap(bmp);
+		if (bmp) return LoadFromBitmap(bmp, true);
 	}
 
 	mGdiBitmap = Gdiplus::Bitmap::FromFile(path);
@@ -415,7 +437,7 @@ bool KmImage::Load(LPCTSTR path)
 	int resx = GetDeviceCaps(dc, LOGPIXELSX); 
 	mGdiBitmap->SetResolution(Gdiplus::REAL(resx),Gdiplus::REAL(resy)); // Prevent gdi+ to scale the image
 	*/
-	if (!Gdiplus::IsAlphaPixelFormat(mGdiBitmap->GetPixelFormat()))
+	if (!Gdiplus::IsAlphaPixelFormat(mGdiBitmap->GetPixelFormat() && IsComCtl6()))
 		MakeTransparent(mTrColor);
 
 	return mGdiBitmap != nullptr;
@@ -537,6 +559,24 @@ bool KmImage::CropLine(UINT h, UINT line, KmImage& kImg) const
 	return true;
 }
 
+bool KmImage::Clip(const RECT& r)
+{
+	ASSERT(mGdiBitmap);
+	ASSERT(GetWidth() >= r.right);
+	ASSERT(GetHeight() >= r.bottom);
+	LONG w = r.right-r.left;
+	LONG h = r.bottom-r.top;
+	Gdiplus::Bitmap* newBitmap = new Gdiplus::Bitmap(w, h, mGdiBitmap->GetPixelFormat());
+	Gdiplus::Graphics graphics(newBitmap);
+	if (graphics.DrawImage(mGdiBitmap, Gdiplus::Rect(0, 0, w, h), r.left, r.top, w, h, Gdiplus::UnitPixel) != Gdiplus::Ok) {
+		delete newBitmap;
+		return false;
+	}
+	Clean();
+	mGdiBitmap = newBitmap;
+	return true;
+}
+
 bool KmImage::Crop(UINT w, UINT h, UINT index) 
 {
 	ASSERT(mGdiBitmap);
@@ -596,7 +636,7 @@ HBITMAP KmImage::GetHBitmap()
 		bmi.bmiHeader.biBitCount = USHORT( 32 );
 		bmi.bmiHeader.biCompression = BI_RGB;
 		hbmp = ::CreateDIBSection( NULL, &bmi, DIB_RGB_COLORS, &bits, NULL, 0 );
-		Gdiplus::Bitmap bmDest( GetWidth(), GetHeight(), GetWidth()*4, PixelFormat32bppARGB, static_cast< BYTE* >( bits ) );
+		Gdiplus::Bitmap bmDest( GetWidth(), GetHeight(), GetWidth()*4, IsComCtl6()?PixelFormat32bppARGB:PixelFormat32bppRGB, static_cast< BYTE* >( bits ) );
 		Gdiplus::Graphics gDest( &bmDest );
 		if (gDest.DrawImage( mGdiBitmap, 0, 0 ) != Gdiplus::Ok) {
 			DeleteObject(hbmp);
@@ -631,5 +671,7 @@ int KmImage::AddToImageList(CImageList& list, int index)
 
 	if (!IsComCtl6()) 
 		return list.Add(&mBitmap, color.ToCOLORREF());
-	return index == -1 ? list.Add(&mBitmap, nullptr) : list.Replace(index, &mBitmap, nullptr);
+	if (index == -1)
+		return list.Add(&mBitmap, nullptr);
+	return list.Replace(index, &mBitmap, nullptr) ? index : -1;
 }

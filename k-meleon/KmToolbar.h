@@ -134,6 +134,7 @@ public:
 	BOOL OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERINFO* pHandlerInfo);
 	UINT GetDefaultWidth() { return mDefWidth; }
 	UINT GetDefaultHeight() { return mDefHeight; }
+	void Refresh();
 
 protected:
 	CMap<CString, LPCTSTR, KmToolbar*, KmToolbar*> mToolbars;

@@ -1911,13 +1911,15 @@ bool FindSkinFile(const wchar_t* name, wchar_t* filename, unsigned size)
 	return true;
 }
 
-int SetCmdIcon(const char* name, const char* icon, UINT w, UINT h, const char* hot, const char* cold)
+int SetCmdIcon(const char* name, const char* icon, const LPRECT region, const char* hot, const LPRECT hotregion, const char* dead, const LPRECT deadregion)
 {
 	if (!theApp.skin.mImages) return -1;
 	UINT id = theApp.commands.GetId(name);
 	if (!id) return -1;
 	USES_CONVERSION;
-	return theApp.skin.mImages->AddIcon(A2CT(icon), A2CT(hot), A2CT(cold), id, w, h);
+	int res = theApp.skin.mImages->AddIcon(A2CT(icon), A2CT(hot), A2CT(dead), id, region);
+	theApp.toolbars.Refresh();
+	return res;
 }
 
 #include "nsIPermissionManager.h"
