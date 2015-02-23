@@ -25,7 +25,7 @@ public:
 	CDialogEx2(UINT nIDTemplate, CWnd* pParentWnd = NULL)
 		: CDialog(nIDTemplate, pParentWnd) {};
 	~CDialogEx2() {};
-	int RunModalLoop(DWORD dwFlags = 0);
+	//int RunModalLoop(DWORD dwFlags = 0);
 	INT DoModal()
 	{  
 		//CMfcEmbedApp *pApp = (CMfcEmbedApp *)AfxGetApp();

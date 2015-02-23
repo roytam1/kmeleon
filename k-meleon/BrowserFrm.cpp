@@ -375,7 +375,7 @@ int CBrowserFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	if (InitLayout() == -1)
 		return -1;
 
-	m_wndReBar.RestoreBandSizes();
+	//m_wndReBar.RestoreBandSizes();
 	return 0;
 }
 

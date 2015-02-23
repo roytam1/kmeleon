@@ -819,30 +819,42 @@ BOOL CBrowserWrapper::InitPrintSettings()
 	nsCOMPtr<nsIPrintSettingsService> psService =
 		do_GetService("@mozilla.org/gfx/printsettings-service;1");
 	NS_ENSURE_TRUE(psService, FALSE);
+	
+	nsresult rv;
+	if (theApp.preferences.GetBool("print.use_global_printsettings", false)) {
+		psService->GetGlobalPrintSettings(getter_AddRefs(mPrintSettings));
+		NS_ENSURE_TRUE(mPrintSettings, FALSE);
+		nsString name;
+		mPrintSettings->GetPrinterName(getter_Copies(name));
+		if (name.IsEmpty()) {
+			psService->GetDefaultPrinterName(getter_Copies(name));
+			mPrintSettings->SetPrinterName(name.get());
+		}
+		psService->InitPrintSettingsFromPrinter(name.get(), mPrintSettings);		
+		rv = psService->InitPrintSettingsFromPrefs(mPrintSettings, true, nsIPrintSettings::kInitSaveAll);
+	} else
+		rv = psService->GetNewPrintSettings(getter_AddRefs(mPrintSettings));
 
-	psService->GetGlobalPrintSettings(getter_AddRefs(mPrintSettings));
-	NS_ENSURE_TRUE(mPrintSettings, FALSE);
-
-	nsresult rv = psService->InitPrintSettingsFromPrefs(mPrintSettings, PR_FALSE, nsIPrintSettings::kInitSaveAll);
 	return NS_SUCCEEDED(rv);
 }
 #include "BrowserFrm.h"
 #include "BrowserView.h"
 BOOL CBrowserWrapper::PrintPreview()
 {
-	nsCOMPtr<nsIWebBrowserPrint> print;
-	nsIDocShell* shell;	
+	nsCOMPtr<nsIWebBrowserPrint> print;		
 
 	if (!mPrintSettings) InitPrintSettings();
-
-	
+		
 	nsCOMPtr<nsIDOMWindow> dom;	
 	nsresult rv = mWebBrowser->GetContentDOMWindow(getter_AddRefs(dom));
 	NS_ENSURE_SUCCESS(rv, FALSE);
-
-	CBrowserFrame* frm = theApp.CreateNewBrowserFrame(nsIWebBrowserChrome::CHROME_DEFAULT, false, CWnd::FromHandle(mpBrowserGlue->GetBrowserFrameNativeWnd()));
-	shell = frm->GetActiveView()->GetBrowserWrapper()->GetDocShell();
-	shell->GetPrintPreview(getter_AddRefs(print));
+	
+	CBrowserFrame* frm = theApp.CreateNewBrowserFrame(
+		nsIWebBrowserChrome::CHROME_DEFAULT, false, 
+		CWnd::FromHandle(mpBrowserGlue->GetBrowserFrameNativeWnd()));
+	frm->GetActiveView()->OpenURL(L"about:blank");
+	nsIDocShell* shell = frm->GetActiveView()->GetBrowserWrapper()->GetDocShell();
+	if (shell) shell->GetPrintPreview(getter_AddRefs(print));
 	if (!print) {
 		frm->DestroyWindow();
 		return FALSE;
@@ -852,9 +864,9 @@ BOOL CBrowserWrapper::PrintPreview()
 
 	// WORKAROUND - FIX ME: Why the print preview doesn't use all the width?
 	// So I'm forcing the window to reposition itself.
-	//CRect rect;
-	//mWndOwner->GetClientRect(rect);
-	//mBaseWindow->SetPositionAndSize(0, 0, rect.right, rect.bottom, PR_TRUE);
+	CRect rect;
+	mWndOwner->GetClientRect(rect);
+	mBaseWindow->SetPositionAndSize(0, 0, rect.right, rect.bottom, PR_TRUE);
 
 
 	return NS_SUCCEEDED(rv);
