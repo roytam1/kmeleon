@@ -53,6 +53,7 @@ void quicksort(char *a, size_t n, size_t es, cmp_t *cmp, unsigned int flag);
 #define IMAGE_FOLDER_SPECIAL_CLOSED 4
 #define IMAGE_FOLDER_SPECIAL_OPEN   5
 
+#define WM_FAVORITE_NOTIFICATION WM_USER+450
 
 #ifdef WHERE
 CBookmarkNode gFavoritesRoot(0, _T(""), _T(""), BOOKMARK_FOLDER, 0);
@@ -68,6 +69,7 @@ int CreateFavorite(CBookmarkNode *newNode);
 int GetFavoritesPath(void);
 int ReadFavorites(TCHAR *szRoot, TCHAR *szPath, CBookmarkNode &newFavoritesNode);
 void BuildMenu(HMENU menu, CBookmarkNode *node, BOOL isContinuation);
+void RefreshFavorites();
 void RebuildMenu();
 void BuildRebar(HWND hWndTB);
 void CopyRebar(HWND hWndNewTB, HWND hWndOldTB);

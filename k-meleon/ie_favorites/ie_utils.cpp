@@ -451,10 +451,14 @@ void OpenURL(TCHAR *aUrl)
     kPlugin.kFuncs->NavigateTo(url, OPEN_NORMAL, NULL);
 }
 
-
-void Destroy(HWND hWnd){
-  if (find_TB(hWnd))
-    remove_TB(hWnd);
+void RefreshFavorites()
+{
+	delete gFavoritesRoot.child;
+    delete gFavoritesRoot.next;
+    gFavoritesRoot.child = NULL;
+    gFavoritesRoot.next = NULL;
+    ReadFavorites(gFavoritesPath, _T(""), gFavoritesRoot);
+	RebuildMenu();
 }
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
@@ -462,7 +466,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
    static NMTOOLBAR tbhdr;
    static NMHDR hdr;
    
-   if (message == WM_COMMAND) {
+   if (message == WM_FAVORITE_NOTIFICATION) {
+	  RefreshFavorites();
+   }
+   else if (message == WM_COMMAND) {
       WORD command = LOWORD(wParam);
       
       if (command == nConfigCommand){
