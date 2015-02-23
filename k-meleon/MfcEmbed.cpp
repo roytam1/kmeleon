@@ -669,9 +669,6 @@ BOOL CMfcEmbedApp::InitInstance()
 #endif   
    InitializeMenusAccels();
 
-   nsCOMPtr<nsIObserverService> observerService(do_GetService("@mozilla.org/observer-service;1")); 
-   observerService->NotifyObservers (nullptr, "kmeleon-init", nullptr);
-      
    // the hidden window will take care of creating the first
    // browser window for us
    if(!CreateHiddenWindow()){
@@ -1359,7 +1356,7 @@ BOOL CMfcEmbedApp::InitializePrefs(){
 
 BOOL CMfcEmbedApp::InitializeMenusAccels(){
    CString filename;
-	CMenuParser menusParser;
+   CMenuParser menusParser;
 
    filename = GetFolder(DefSettingsFolder) + _T("\\") ACCEL_CONFIG_FILE;
    accel.Load(filename);
@@ -1367,8 +1364,11 @@ BOOL CMfcEmbedApp::InitializeMenusAccels(){
    filename = GetFolder(DefSettingsFolder) + _T("\\") MENU_CONFIG_FILE;
    menusParser.Load(filename);
    
-	plugins.SendMessage("*", "* Plugin Manager", "Init");
-	plugins.SendMessage("*", "* Plugin Manager", "Setup2");
+   plugins.SendMessage("*", "* Plugin Manager", "Init");
+   plugins.SendMessage("*", "* Plugin Manager", "Setup2");
+
+   nsCOMPtr<nsIObserverService> observerService(do_GetService("@mozilla.org/observer-service;1")); 
+   observerService->NotifyObservers (nullptr, "kmeleon-init", nullptr);      
    
    filename = GetFolder(UserSettingsFolder) + _T("\\") ACCEL_CONFIG_FILE;
    accel.Load(filename);
@@ -1376,8 +1376,8 @@ BOOL CMfcEmbedApp::InitializeMenusAccels(){
    filename = GetFolder(UserSettingsFolder) + _T("\\") MENU_CONFIG_FILE;
    menusParser.Load(filename);
 
-	plugins.SendMessage("*", "* Plugin Manager", "Setup");
-	plugins.SendMessage("*", "* Plugin Manager", "UserSetup");
+   plugins.SendMessage("*", "* Plugin Manager", "Setup");
+   plugins.SendMessage("*", "* Plugin Manager", "UserSetup");
 
    return TRUE;
 }

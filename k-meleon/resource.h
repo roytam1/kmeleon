@@ -454,7 +454,6 @@
 #define ID_COPY_IMAGE_CONTENT           32821
 #define ID_FULLZOOM_INCREASE            32822
 #define ID_FULLZOOM_DECREASE            32823
-#define ID_COOKIES_VIEWER               32919
 #define ID_PASSWORDS_VIEWER             32824
 #define ID_COOKIE_PERM                  32825
 #define ID_IMAGE_PERM                   32826
@@ -479,6 +478,7 @@
 #define ID_MATCH_CASE                   32915
 #define ID_HIGHLIGHT                    32916
 #define ID_WRAP_AROUND                  32917
+#define ID_COOKIES_VIEWER               32918
 #define ID_PAGE_ENABLE_JS               32919
 #define ID_PAGE_DISABLE_JS              32920
 #define ID_ENABLE_JS                    32921
