@@ -26,6 +26,7 @@
 #  include "../missing.h"
 #endif
 
+#include <ShlObj.h>
 #define KMELEON_PLUGIN_EXPORTS
 #include "../kmeleon_plugin.h"
 #include "../Utils.h"
@@ -133,6 +134,9 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
 	  else if (stricmp(subject, "Setup") == 0) {
          Setup();
 	  }
+	   else if (stricmp(subject, "Refresh") == 0) {
+         RefreshFavorites();
+	  }
       else return 0;
 
       return 1;
@@ -195,16 +199,46 @@ int Load(){
          bTitleSet = false;
    }
 
-	ReadFavorites(gFavoritesPath, _T(""), gFavoritesRoot);
-
+   ReadFavorites(gFavoritesPath, _T(""), gFavoritesRoot);
    return true;
+}
+
+HWND gNotifWindow = nullptr;
+ULONG gNotifID = 0;
+
+void RegisterNotification(HWND hwnd) {
+	if (!gNotifWindow) {
+	   LPITEMIDLIST ppidl = 0;
+	   SHGetFolderLocation(NULL, CSIDL_FAVORITES, NULL, 0, &ppidl);
+	   if (!ppidl) return;
+	   SHChangeNotifyEntry entry = {ppidl,TRUE};
+	   gNotifID = SHChangeNotifyRegister(hwnd, 
+		   SHCNRF_InterruptLevel | SHCNRF_RecursiveInterrupt,
+		   SHCNE_UPDATEDIR | SHCNE_CREATE | SHCNE_DELETE | SHCNE_UPDATEITEM | SHCNE_RENAMEITEM | SHCNE_RENAMEFOLDER | SHCNE_RMDIR,
+		   WM_FAVORITE_NOTIFICATION,1,
+		   &entry);
+	   CoTaskMemFree(ppidl);
+	   gNotifWindow = hwnd;
+   }
 }
 
 void Create(HWND parent){
    KMeleonWndProc = (void *) GetWindowLong(parent, GWL_WNDPROC);
    SetWindowLong(parent, GWL_WNDPROC, (LONG)WndProc);
-
+   RegisterNotification(parent);
    pNewTB = create_TB(parent);
+}
+
+void Destroy(HWND hWnd){
+  if (find_TB(hWnd))
+    remove_TB(hWnd);
+  if (gNotifWindow == hWnd) {
+	  SHChangeNotifyDeregister(gNotifID);
+	  gNotifWindow = nullptr;
+	  HWND hwnd = 0;
+	  if (kPlugin.kFuncs->GetWindowsList(&hwnd, 1))
+		  RegisterNotification(hwnd);
+  }
 }
 
 // Preferences Dialog function
