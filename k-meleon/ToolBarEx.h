@@ -42,9 +42,11 @@ protected:
     afx_msg void OnRButtonDblClk(UINT nFlags, CPoint point);
 	afx_msg void OnTimer(UINT nIDEvent);
 	afx_msg int GetButtonIDFromPoint(CPoint *point);
-	afx_msg BOOL OnTbnGetDispInfo(UINT, NMHDR * pNotifyStruct , LRESULT* pResult); 
+	afx_msg BOOL OnTtnGetDispInfo(UINT, NMHDR * pNotifyStruct , LRESULT* pResult); 
 	afx_msg void OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult);
 	//}}AFX_MSG
 
 	DECLARE_MESSAGE_MAP()
+public:
+	afx_msg void OnTbnGetDispInfo(NMHDR *pNMHDR, LRESULT *pResult);
 };

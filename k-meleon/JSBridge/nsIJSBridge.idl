@@ -61,7 +61,7 @@ interface nsIJSBridge : nsISupports
 	kmIButton CreateButton(in string cmd, [optional] in string menu, [optional] in string tooltip, [optional] in string label);
 	kmIButton CreateCallbackButton(in kmICommandFunction command, [optional] in string menu, [optional] in string tooltip, [optional] in string label);
 	//void AddButton(in string toolbar, in kmIButton button);
-	void AddButton(in string toolbar, in string command, [optional] in string menu);
+	void AddButton(in string toolbar, in string command, [optional] in string menu, [optional] in string tooltip);
 	void RemoveButton(in string toolbar, in string command);
 
 	void id(in nsIDOMWindow window, in string id);

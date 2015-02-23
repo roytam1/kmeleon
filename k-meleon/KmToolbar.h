@@ -27,7 +27,7 @@ class KmImage;
 class KmButton
 {
 public:
-	KmButton() : mEnabled(true), mChecked(false), mID(0) {}
+	KmButton() : mEnabled(true), mChecked(false), mID(0),mImageIndex(I_IMAGENONE) {}
 	CString mName;
 	CString mLabel;
 	CString mTooltip;
@@ -55,6 +55,9 @@ public:
 		}
 	};
 
+	int AddImage(LPCTSTR cold, UINT w = 0, UINT h = 0, LPCTSTR hot = NULL, LPCTSTR dead = NULL, int oldIndex = -1); 
+	int SetImage(UINT id, LPCTSTR cold, LPCTSTR hot = NULL, LPCTSTR dead = NULL);
+	KmButton* AddItem(LPCTSTR name, UINT id, int before = -1);
 	void AddItem(KmButton& button, int before = -1, UINT w = 0, UINT h = 0);	
 	bool RemoveItem(UINT id);
 

@@ -1693,8 +1693,8 @@ int GetWindowsList(HWND* list, unsigned size)
 	while (pos) {
 		CFrameWnd* frame = (CFrameWnd*)theApp.m_FrameWndLst.GetNext(pos);
 		*(list+i) = frame->GetSafeHwnd();
-		if (--size == 0) break;
 		i++;
+		if (--size == 0) break;		
 	}
 
 	return i;
@@ -1799,7 +1799,7 @@ bool RemoveButton(const char* name, const char* command)
 	return t->RemoveItem(theApp.commands.GetId(command));
 }
 
-bool AddButton(const char* name, const char* cmd, const char* menu)
+bool AddButton(const char* name, const char* cmd, const char* menu, const char* tooltip)
 {
 	USES_CONVERSION;
 	KmToolbar* t = theApp.toolbars.GetKToolbar(A2CT(name));
@@ -1808,6 +1808,11 @@ bool AddButton(const char* name, const char* cmd, const char* menu)
 	KmButton button;
 	if (cmd) button.mAction = A2CT(cmd);
 	if (menu) button.mMenuName = A2CT(menu);
+	if (tooltip) {
+		wchar_t *t = WDecodeUTF8(tooltip);
+		button.mTooltip = t;
+		free(t);
+	}
 	button.mEnabled = true;
 	button.mChecked = false;
 	t->AddItem(button);
@@ -1917,9 +1922,16 @@ int SetCmdIcon(const char* name, const char* icon, const LPRECT region, const ch
 	UINT id = theApp.commands.GetId(name);
 	if (!id) return -1;
 	USES_CONVERSION;
-	int res = theApp.skin.mImages->AddIcon(A2CT(icon), A2CT(hot), A2CT(dead), id, region);
-	theApp.toolbars.Refresh();
+	int res = theApp.skin.AddIcon(A2CT(icon), A2CT(hot), A2CT(dead), id, region);
 	return res;
+}
+
+int SetButtonIcon(const char* toolbar, UINT id, const char* icon, const LPRECT region, const char* hot, const LPRECT hotregion, const char* dead, const LPRECT deadregion)
+{
+	USES_CONVERSION;
+	KmToolbar* t = theApp.toolbars.GetKToolbar(A2CT(toolbar));
+	if (!t) return -1;
+	return t->SetImage(id, A2CT(icon), A2CT(hot), A2CT(dead));
 }
 
 #include "nsIPermissionManager.h"
@@ -2014,6 +2026,7 @@ kmeleonFunctions kmelFuncsUTF8 = {
    RemoveButton,
    AddButton,
    SetCmdIcon,
+   SetButtonIcon,
    AddPermission
 };
 
@@ -2089,6 +2102,7 @@ kmeleonFunctions kmelFuncs = {
    RemoveButton,
    AddButton,
    SetCmdIcon,
+   SetButtonIcon,
    AddPermission
 };
 

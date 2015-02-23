@@ -55,6 +55,88 @@ bool KmToolbar::RemoveItem(UINT id)
 	return res;
 }
 
+KmButton* KmToolbar::AddItem(LPCTSTR name, UINT id, int before)
+{
+	KmButton* pbutton = new KmButton();
+	pbutton->mName = name;
+	return pbutton;
+}
+
+int KmToolbar::AddImage(LPCTSTR cold, UINT w, UINT h, LPCTSTR hot, LPCTSTR dead, int oldIndex)
+{
+	KmImage img;
+	int index = -1;
+	RECT r = {0,0,w,h};
+	if (cold && img.LoadFromSkin(cold, &r)) {	
+
+		if (!mHot.m_hImageList) {
+			mHot.Create(mWidth, mHeight, ILC_MASK|ILC_COLOR32, 0, 10);
+			mCold.Create(mWidth, mHeight, ILC_MASK|ILC_COLOR32, 0, 10);
+			mDead.Create(mWidth, mHeight, ILC_MASK|ILC_COLOR32, 0, 10);
+		}
+
+		img.Scale((1.0*mWidth)/img.GetWidth());
+
+		if (hot && _tcslen(hot)) {
+			index = img.AddToImageList(mCold, oldIndex);
+					
+			img.LoadFromSkin(hot, &r);
+			img.Scale((1.0*mWidth)/img.GetWidth());
+			int i = img.AddToImageList(mHot, oldIndex);
+			ASSERT(i == index);
+
+			if (dead && _tcslen(dead)) {
+				img.LoadFromSkin(dead, &r);
+				img.Scale((1.0*mWidth)/img.GetWidth());
+			}
+			i = img.AddToImageList(mDead, oldIndex);
+			ASSERT(i == index);
+					
+		} else {
+			KmImage tmpImg;
+			if (!img.CropLine(mHeight, 0, tmpImg))
+				return index;	
+			index = tmpImg.AddToImageList(mCold, oldIndex);
+
+			img.CropLine(mHeight, 1, tmpImg);
+			int i = tmpImg.AddToImageList(mHot, oldIndex);
+			ASSERT(index == i);
+
+			img.CropLine(mHeight, 2, tmpImg);
+			i = tmpImg.AddToImageList(mDead, oldIndex);
+			ASSERT(index == i);
+		}
+	} else {
+		ASSERT(oldIndex>=0);
+		if (oldIndex < 0) return -1;
+		if (hot && _tcslen(hot)) {
+			img.LoadFromSkin(hot, &r);
+			img.Scale((1.0*mWidth)/img.GetWidth());
+			index = img.AddToImageList(mHot, oldIndex);
+			ASSERT(index == oldIndex);
+		}
+
+		if (dead && _tcslen(dead)) {
+			img.LoadFromSkin(dead, &r);
+			img.Scale((1.0*mWidth)/img.GetWidth());
+			index = img.AddToImageList(mHot, oldIndex);
+			ASSERT(index == oldIndex);
+		}
+	}
+	return index;
+}
+
+int KmToolbar::SetImage(UINT id, LPCTSTR cold, LPCTSTR hot, LPCTSTR dead)
+{
+	KmButton* b = GetButton(id);
+	if (!b) return -1;
+	int w = mWidth ? mWidth : theApp.skin.GetUserWidth();
+	int h = mHeight ? mHeight : theApp.skin.GetUserHeight();
+	b->mImageIndex = AddImage(cold, w, h, hot, dead, b->mImageIndex);
+	Refresh();
+	return b->mImageIndex;
+}
+
 void KmToolbar::AddItem(KmButton& button, int before, UINT w, UINT h)
 {
 	KmButton* pbutton = new KmButton();
@@ -63,8 +145,8 @@ void KmToolbar::AddItem(KmButton& button, int before, UINT w, UINT h)
 		pbutton->mID = theApp.commands.GetId(pbutton->mAction);
 		if (!pbutton->mID) return;
 	}
-	pbutton->mImageIndex = theApp.skin.GetIconIndex(pbutton->mID);
-	if (pbutton->mImageIndex == I_IMAGENONE && button.mColdImage.GetLength()) {
+	int imageIndex = theApp.skin.GetIconIndex(pbutton->mID);
+	if (imageIndex == I_IMAGENONE && button.mColdImage.GetLength()) {
 
 		/*if (button.mColdImage.Left(6).Compare(L"chrome") == 0) {
 
@@ -79,8 +161,19 @@ void KmToolbar::AddItem(KmButton& button, int before, UINT w, UINT h)
 
 		} else {*/
 
-		if (!w) w = theApp.skin.GetUserWidth();
-		if (!h) h = theApp.skin.GetUserHeight();
+		if (!w) w = mWidth ? mWidth : theApp.skin.GetUserWidth();
+		if (!h) h = mHeight ? mHeight : theApp.skin.GetUserHeight();
+
+		if (!mWidth) {
+			mWidth = w;
+			mHeight = h;
+		}
+
+		pbutton->mImageIndex = AddImage(
+			button.mColdImage, w, h,
+			button.mHotImage,
+			button.mDeadImage
+		);
 		
 		// If possible add the icon to the shared list
 		/*if (theApp.skin.mImages && (!mWidth || (
@@ -91,38 +184,11 @@ void KmToolbar::AddItem(KmButton& button, int before, UINT w, UINT h)
 				
 		} else */{
 
-			KmImage img;
-			if (img.LoadIndexedFromSkin(button.mColdImage, w, h)) {	
-
-				if (!mWidth) {
-					mWidth = w;
-					mHeight = h;
-				}
-
-				if (!mHot.m_hImageList) {
-					mHot.Create(mWidth, mHeight, ILC_MASK|ILC_COLOR32, 0, 10);
-					mCold.Create(mWidth, mHeight, ILC_MASK|ILC_COLOR32, 0, 10);
-					mDead.Create(mWidth, mHeight, ILC_MASK|ILC_COLOR32, 0, 10);
-				}
-		
-				pbutton->mImageIndex = img.AddToImageList(mCold);
-
-				if (button.mHotImage.GetLength()) {
-					img.LoadIndexedFromSkin(button.mHotImage, w, h);
-					int i = img.AddToImageList(mHot);
-					ASSERT(i == pbutton->mImageIndex);
-				}
-
-				if (button.mDeadImage.GetLength()) {
-					if (img.LoadIndexedFromSkin(button.mDeadImage, w, h)) {
-						int i = img.AddToImageList(mDead);
-						ASSERT(i == pbutton->mImageIndex);
-					}
-				}
-			}
 		}
 		//}
-	}
+	} else
+		pbutton->mImageIndex = I_IMAGECALLBACK;
+
 	mButtons.AddTail(pbutton);
 	POSITION pos = mToolbars.GetHeadPosition();
 	while (pos) {

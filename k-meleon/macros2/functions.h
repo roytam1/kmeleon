@@ -1478,8 +1478,8 @@
 
 	Value addbutton(FunctionData* data)
 	{
-		checkArgs(__FUNCTION__, data, 2,3);
-		return kPlugin.kFuncs->AddButton(data->getstr(1), data->getstr(2), data->getstr(3));		
+		checkArgs(__FUNCTION__, data, 2,4);
+		return kPlugin.kFuncs->AddButton(data->getstr(1), data->getstr(2), data->getstr(3), data->getstr(4));		
 	}
 
 	Value removebutton(FunctionData* data)
@@ -1493,13 +1493,30 @@
 		checkArgs(__FUNCTION__, data, 2,6);
 		MString name = data->getstr(1);
 		MString icon = data->getstr(2);
-		MString hot = data->getstr(5);
-		MString dead = data->getstr(6);
+		MString hot = data->getstr(3);
+		MString dead = data->getstr(4);
 		
-		RECT r = {0,0,data->getint(3),data->getint(4)};
-		LPRECT pr = r.right && r.bottom ? &r : nullptr;
+		//RECT r = {0,0,data->getint(3),data->getint(4)};
+		LPRECT pr = nullptr;
 		return kPlugin.kFuncs->SetCmdIcon(
 			name, icon, pr, hot, pr, dead, pr
+		);
+		return Value();
+	}
+
+	Value setbuttonicon(FunctionData* data)
+	{
+		checkArgs(__FUNCTION__, data, 2,6);
+		MString name = data->getstr(1);
+		int id = kPlugin.kFuncs->GetID(data->getstr(2));
+		MString icon = data->getstr(3);
+		MString hot = data->getstr(4);
+		MString dead = data->getstr(5);
+		
+		//RECT r = {0,0,data->getint(3),data->getint(4)};
+		LPRECT pr = nullptr;
+		return kPlugin.kFuncs->SetButtonIcon(
+			name, id, icon, pr, hot, pr, dead, pr
 		);
 		return Value();
 	}

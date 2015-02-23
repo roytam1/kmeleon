@@ -230,7 +230,7 @@ HBITMAP nsImageObserver::CreateDIB(imgIRequest *aRequest)
 #ifdef _DEBUG
 	// There is a problem with the linking in debug 
 	// Use a dummy image instead
-	return  (HBITMAP)::LoadImage(::AfxGetInstanceHandle(), MAKEINTRESOURCE(IDR_TOOLBAR_CLOSE), IMAGE_BITMAP, 0, 0, LR_LOADTRANSPARENT);
+	return  (HBITMAP)::LoadImage(::AfxGetInstanceHandle(), MAKEINTRESOURCE(IDR_MAINFRAME), IMAGE_BITMAP, 0, 0, LR_LOADTRANSPARENT);
 	//return NULL;
 #endif
 
@@ -309,15 +309,40 @@ bool KmImage::LoadIndexedFromSkin(LPCTSTR name, UINT w, UINT h)
 	return true;
 }
 
-bool KmImage::LoadFromSkin(LPCTSTR name, const LPRECT rect)
+bool KmImage::LoadFromSkin(LPCTSTR name, const LPRECT prect, bool single)
 {
+	CRect rect;
+	if (prect) rect = *prect;
 	CString imgPath(name);
 	int index = -1;
-	int pos = imgPath.Find(_T('['));
-	if (pos != -1) {
-		int pos2 = imgPath.Find(_T(']'));
-		index = _ttoi(imgPath.Mid(pos+1, pos2-pos).GetBuffer());
-		imgPath.Truncate(pos);
+	int startPos = imgPath.Find(_T('['));
+	if (startPos != -1) {
+		int endPos = imgPath.Find(_T(']'), startPos);
+		if (endPos == -1) return false;
+		CString param = imgPath.Mid(startPos+1, endPos-startPos-1);
+		int pos = param.Find(_T(','));
+		if (pos == -1) {
+			index = _ttoi(param.GetBuffer());			
+		} else {
+			int pos2 = param.Find(_T(','), pos+1);
+			if (pos2 == -1) {
+				rect.right = _ttoi(param.Mid(0, pos-1).GetBuffer());
+				rect.bottom = _ttoi(param.Mid(pos+1).GetBuffer());
+			} else {
+				int pos3 = param.Find(_T(','), pos2+1);
+				if (pos3 == -1) { 
+					index = _ttoi(param.Mid(0, pos).GetBuffer());
+					rect.right = _ttoi(param.Mid(pos+1, pos2-pos-1).GetBuffer());
+					rect.bottom = _ttoi(param.Mid(pos2+1).GetBuffer());
+				} else {
+					rect.top = _ttoi(param.Mid(0, pos).GetBuffer());
+					rect.right = _ttoi(param.Mid(pos+1, pos2-pos-1).GetBuffer());
+					rect.bottom = _ttoi(param.Mid(pos2+1, pos3-pos2-1).GetBuffer());
+					rect.left = _ttoi(param.Mid(pos3+1).GetBuffer());
+				}
+			}
+		}
+		imgPath.Truncate(startPos);
 	}
 
 	CString path;
@@ -327,12 +352,12 @@ bool KmImage::LoadFromSkin(LPCTSTR name, const LPRECT rect)
 		return false;
 	}
 	
-	ASSERT(index==-1 || rect);
+	ASSERT(index==-1 || !rect.IsRectNull());
 
-	if (index>=0 && rect) {
-		Crop(rect->right-rect->left, GetHeight(), index);
-	} else if (rect) {
-		Clip(*rect);
+	if (index>=0 && !rect.IsRectNull()) {
+		Crop(rect.right-rect.left, single ? rect.bottom-rect.top : GetHeight(), index);
+	} else if (!rect.IsRectNull()) {
+		Clip(rect);
 	}
 
 	return true;
@@ -470,6 +495,7 @@ UINT KmImage::GetHeight() const
 #define round(x) (UINT)((x)+0.5)
 bool KmImage::Scale(float f)
 {
+	if (f == 1.0) return true;
 	ASSERT(mGdiBitmap || mBitmap.GetSafeHandle());
 	return Resize(round(GetWidth()*f), round(GetHeight()*f));
 	//return Resize(round(mImage.GetWidth()*f), round(mImage.GetHeight()*f));
@@ -562,8 +588,7 @@ bool KmImage::CropLine(UINT h, UINT line, KmImage& kImg) const
 bool KmImage::Clip(const RECT& r)
 {
 	ASSERT(mGdiBitmap);
-	ASSERT(GetWidth() >= r.right);
-	ASSERT(GetHeight() >= r.bottom);
+	ASSERT(GetWidth() >= r.right && GetHeight() >= r.bottom);
 	LONG w = r.right-r.left;
 	LONG h = r.bottom-r.top;
 	Gdiplus::Bitmap* newBitmap = new Gdiplus::Bitmap(w, h, mGdiBitmap->GetPixelFormat());
@@ -587,7 +612,7 @@ bool KmImage::Crop(UINT w, UINT h, UINT index)
 
 	UINT nCol = ((w*index) % sw) / w;
 	UINT nLine = (w*index)/sw;
-	
+	return Clip(CRect(nCol*w, nLine*h, nCol*w+w, nLine*h+h));
 	if (!mGdiBitmap) {
 
 	} else {		
@@ -669,9 +694,25 @@ int KmImage::AddToImageList(CImageList& list, int index)
 	Gdiplus::Color color;
 	mGdiBitmap->GetPixel(0,0,&color);
 
-	if (!IsComCtl6()) 
+	if (index < 0) {
+		if (IsComCtl6()) 
+			return list.Add(&mBitmap, nullptr);
 		return list.Add(&mBitmap, color.ToCOLORREF());
-	if (index == -1)
-		return list.Add(&mBitmap, nullptr);
-	return list.Replace(index, &mBitmap, nullptr) ? index : -1;
+	}
+
+	if (IsComCtl6()) 		
+		return list.Replace(index, &mBitmap, nullptr) ? index : -1;
+		
+	CDC hdcButton;
+	hdcButton.CreateCompatibleDC(NULL);
+	hdcButton.SelectObject(mBitmap);
+	CDC hdcMask;
+	hdcMask.CreateCompatibleDC(&hdcButton);
+	CBitmap hMask;
+	hMask.CreateBitmap(GetWidth(), GetHeight(), 1, 1, NULL);
+	HGDIOBJ oldObject = hdcMask.SelectObject(hMask);
+	hdcButton.SetBkColor(color.ToCOLORREF());
+	hdcMask.BitBlt(0, 0, GetWidth(), GetHeight(), &hdcButton, 0, 0, SRCCOPY);
+	hdcMask.SelectObject(oldObject);
+	return list.Replace(index, &mBitmap, &hMask) ? index : -1;	
 }
