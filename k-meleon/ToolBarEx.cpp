@@ -59,9 +59,10 @@ BEGIN_MESSAGE_MAP(CToolBarEx, CToolBar)
 	ON_WM_RBUTTONDOWN()
 	ON_WM_RBUTTONDBLCLK()
 	ON_WM_TIMER()
-	ON_NOTIFY_EX_RANGE(TTN_NEEDTEXT, 0, 0xffff, OnTbnGetDispInfo) 
+	ON_NOTIFY_EX_RANGE(TTN_NEEDTEXT, 0, 0xffff, OnTtnGetDispInfo) 
 	ON_NOTIFY_REFLECT(NM_CUSTOMDRAW, OnNMCustomdraw)
 	//}}AFX_MSG_MAP
+	ON_NOTIFY_REFLECT(TBN_GETDISPINFO, &CToolBarEx::OnTbnGetDispInfo)
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -149,12 +150,28 @@ void CToolBarEx::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 		UINT textFlag = DT_LEFT | DT_SINGLELINE | DT_VCENTER | DT_HIDEPREFIX | DT_WORD_ELLIPSIS;
 		
 		CString text;
-		KmButton* kmbutton = kmtoolbar->GetButton(pNMCD->nmcd.dwItemSpec);
-		if (kmbutton) text = kmbutton->mLabel;		
-
 		int image = I_IMAGENONE;
-		if (!kmtoolbar->mCold.m_hImageList) {
-			image = theApp.skin.GetIconIndex(pNMCD->nmcd.dwItemSpec);
+		CImageList* imageList = nullptr;
+		KmButton* kmbutton = kmtoolbar->GetButton(pNMCD->nmcd.dwItemSpec);
+		if (kmbutton) {
+			text = kmbutton->mLabel;
+			if (kmbutton->mImageIndex>=0) {
+				image = kmbutton->mImageIndex;
+			} else {
+				image = theApp.skin.GetIconIndex(pNMCD->nmcd.dwItemSpec);
+				if (pNMCD->nmcd.uItemState & CDIS_DISABLED)
+					imageList = &theApp.skin.mImages->mDead;
+				else if (pNMCD->nmcd.uItemState & CDIS_SELECTED)
+					imageList = &theApp.skin.mImages->mHot;
+				else if(pNMCD->nmcd.uItemState & CDIS_HOT && pNMCD->nmcd.uItemState & CDIS_CHECKED)
+					imageList = &theApp.skin.mImages->mHot;
+				else if (pNMCD->nmcd.uItemState & CDIS_CHECKED)
+					imageList = &theApp.skin.mImages->mHot;
+				else if (pNMCD->nmcd.uItemState & CDIS_HOT)
+					imageList = &theApp.skin.mImages->mHot;
+				else
+					imageList = &theApp.skin.mImages->mCold;
+			}
 		} else {
 			TBBUTTONINFO bi;
 			bi.cbSize = sizeof(TBBUTTONINFO);
@@ -163,19 +180,20 @@ void CToolBarEx::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 			image = bi.iImage;
 		}
 
-		CImageList* imageList;
-		if (pNMCD->nmcd.uItemState & CDIS_DISABLED)
-			imageList = GetToolBarCtrl().GetDisabledImageList();
-		else if (pNMCD->nmcd.uItemState & CDIS_SELECTED)
-			imageList = GetToolBarCtrl().GetHotImageList();
-		else if(pNMCD->nmcd.uItemState & CDIS_HOT && pNMCD->nmcd.uItemState & CDIS_CHECKED)
-			imageList = GetToolBarCtrl().GetHotImageList();
-		else if (pNMCD->nmcd.uItemState & CDIS_CHECKED)
-			imageList = GetToolBarCtrl().GetHotImageList();
-		else if (pNMCD->nmcd.uItemState & CDIS_HOT)
-			imageList = GetToolBarCtrl().GetHotImageList();
-		else
-			imageList = GetToolBarCtrl().GetImageList();
+		if (!imageList) {
+			if (pNMCD->nmcd.uItemState & CDIS_DISABLED)
+				imageList = GetToolBarCtrl().GetDisabledImageList();
+			else if (pNMCD->nmcd.uItemState & CDIS_SELECTED)
+				imageList = GetToolBarCtrl().GetHotImageList();
+			else if(pNMCD->nmcd.uItemState & CDIS_HOT && pNMCD->nmcd.uItemState & CDIS_CHECKED)
+				imageList = GetToolBarCtrl().GetHotImageList();
+			else if (pNMCD->nmcd.uItemState & CDIS_CHECKED)
+				imageList = GetToolBarCtrl().GetHotImageList();
+			else if (pNMCD->nmcd.uItemState & CDIS_HOT)
+				imageList = GetToolBarCtrl().GetHotImageList();
+			else
+				imageList = GetToolBarCtrl().GetImageList();
+		}
 	
 		CPoint imagePoint;
 		CRect textRect;
@@ -194,14 +212,12 @@ void CToolBarEx::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 		ii.rcImage = CRect(0, 0, 16, 16);
 		if (imageList)
 		{
-			imageList->GetImageInfo(image, &ii);
-			if (ii.hbmMask) DeleteObject(ii.hbmMask);
-			if (ii.hbmImage) DeleteObject(ii.hbmImage);
-
-			imagePoint.y = contentRect.top + (contentRect.Height() - ii.rcImage.bottom + ii.rcImage.top)/2;
+			int w = 16, h = 16;
+			ImageList_GetIconSize(imageList->GetSafeHandle(), &w, &h);				
+			imagePoint.y = contentRect.top + (contentRect.Height() - h)/2;
 			imagePoint.x = hp + contentRect.left;
 			imageList->Draw(pDC, image, imagePoint, ILD_TRANSPARENT);
-			contentRect.left += 2*hp + ii.rcImage.right - ii.rcImage.left;
+			contentRect.left += 2*hp + w;
 		}		
 		
 		if (text.GetLength()) {
@@ -222,11 +238,11 @@ void CToolBarEx::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 		break;
 	}
 	}
-	if (theApp.preferences.GetBool("kmeleon.display.toolbars_alt", 0));
+	if (!theApp.preferences.GetBool("kmeleon.display.toolbars_alt", 0))
 		*pResult |= CDRF_NOTIFYITEMDRAW;
 }
 
-BOOL CToolBarEx::OnTbnGetDispInfo(UINT, NMHDR * pNotifyStruct, LRESULT* pResult)
+BOOL CToolBarEx::OnTtnGetDispInfo(UINT, NMHDR * pNotifyStruct, LRESULT* pResult)
 {
 	static CString text;
 	*pResult = 0;
@@ -428,4 +444,15 @@ void CToolBarEx::OnTimer(UINT nIDEvent) {
 	}
 		
 	CToolBar::OnTimer(nIDEvent);
+}
+
+
+void CToolBarEx::OnTbnGetDispInfo(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	LPNMTBDISPINFO pNMTBDispInfo = reinterpret_cast<LPNMTBDISPINFO>(pNMHDR);
+	// TODO: Add your control notification handler code here
+	*pResult = 0;
+	KmToolbar* toolbar = (KmToolbar*)GetProp(GetSafeHwnd(), _T("kmToolbar"));
+	if (!toolbar) return;
+	pNMTBDispInfo->iImage = theApp.skin.GetIconIndex(pNMTBDispInfo->idCommand);
 }

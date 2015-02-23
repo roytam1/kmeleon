@@ -369,8 +369,9 @@ int Init() {
    
    HIMAGELIST hList = kPlugin.kFuncs->GetCmdIconList();
    if (hList) {
-	   ImageList_GetIconSize(hList, &gBmpWidth, &gBmpHeight);
-	   gMarginLeft = gBmpWidth + BMP_PADDING_LEFT + BMP_PADDING_RIGHT;
+	   int w,h;
+	   ImageList_GetIconSize(hList, &w, &h);
+	   gMarginLeft = max(gMarginLeft, w + BMP_PADDING_LEFT + BMP_PADDING_RIGHT);
    }
 
    gMarginLeft = max(gMarginLeft, GetSystemMetrics(SM_CXMENUCHECK)+ BMP_PADDING_LEFT + BMP_PADDING_RIGHT);
@@ -525,30 +526,20 @@ void DoMenu(HMENU menu, char *param){
 int DrawBitmap(DRAWITEMSTRUCT *dis) {
    BmpMapT::iterator bmpMapIt;
    bmpMapIt = bmpMap.find(dis->itemID);
+   
+   HIMAGELIST hImgList = hImageList;
    int bmpIdx = bmpMapIt != bmpMap.end() ? bmpMapIt->second : -1;
-   HIMAGELIST hImgList = kPlugin.kFuncs->GetCmdIconList();
-   if (!hImgList) 
-      hImgList = hImageList;
-   else 
-      bmpIdx = kPlugin.kFuncs->GetCmdIcon(dis->itemID);
-
-   // Load the corresponding bitmap
-   if (bmpIdx >= 0){
-      int top = (dis->rcItem.bottom - dis->rcItem.top - gBmpHeight) / 2;
-      top += dis->rcItem.top;
-
-      if (dis->itemState & ODS_GRAYED)
-         ImageList_DrawEx(hImgList, bmpIdx, dis->hDC, dis->rcItem.left+BMP_PADDING_LEFT, top, 0, 0, CLR_NONE, GetSysColor(COLOR_MENU), ILD_BLEND  | ILD_TRANSPARENT);
-
-      else if (dis->itemState & ODS_SELECTED)
-         ImageList_Draw(hImgList, bmpIdx, dis->hDC, dis->rcItem.left+BMP_PADDING_LEFT, top, ILD_TRANSPARENT);
-
-      else
-         ImageList_Draw(hImgList, bmpIdx, dis->hDC, dis->rcItem.left+BMP_PADDING_LEFT, top, ILD_TRANSPARENT);
-
-      return gBmpWidth;	
+   
+   HIMAGELIST sImgList = kPlugin.kFuncs->GetCmdIconList();
+   if (sImgList) {
+      int idx = kPlugin.kFuncs->GetCmdIcon(dis->itemID);
+      if (idx>=0) {   
+		  hImgList = sImgList;
+		  bmpIdx = idx;
+      }
    }
-   else if (dis->itemState & ODS_CHECKED) {
+
+   if (dis->itemState & ODS_CHECKED) {
 
 	   // The checkmark doesn't have a fixed size !!!
 	   HDC hdcMem = CreateCompatibleDC(dis->hDC);
@@ -596,6 +587,23 @@ int DrawBitmap(DRAWITEMSTRUCT *dis) {
          DrawCheckMark(dis->hDC, dis->rcItem.left+BMP_PADDING_LEFT+4, dis->rcItem.top+5, GetSysColor(COLOR_MENUTEXT));
       return BMP_WIDTH;*/
    }
+   // Load the corresponding bitmap
+   else if (bmpIdx >= 0){
+      int top = (dis->rcItem.bottom - dis->rcItem.top - gBmpHeight) / 2;
+      top += dis->rcItem.top;
+
+      if (dis->itemState & ODS_GRAYED)
+         ImageList_DrawEx(hImgList, bmpIdx, dis->hDC, dis->rcItem.left+BMP_PADDING_LEFT, top, 0, 0, CLR_NONE, GetSysColor(COLOR_MENU), ILD_BLEND  | ILD_TRANSPARENT);
+
+      else if (dis->itemState & ODS_SELECTED)
+         ImageList_Draw(hImgList, bmpIdx, dis->hDC, dis->rcItem.left+BMP_PADDING_LEFT, top, ILD_TRANSPARENT);
+
+      else
+         ImageList_Draw(hImgList, bmpIdx, dis->hDC, dis->rcItem.left+BMP_PADDING_LEFT, top, ILD_TRANSPARENT);
+
+      return gBmpWidth;	
+   }
+   
 	
    return 0;
 }

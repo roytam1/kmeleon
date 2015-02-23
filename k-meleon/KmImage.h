@@ -99,7 +99,7 @@ public:
 	bool DrawItem(HDC dc, POINT pt, UINT index, UINT line, UINT, UINT);
 
 	bool LoadIndexedFromSkin(LPCTSTR name, UINT w, UINT h);
-	bool LoadFromSkin(LPCTSTR name, LPRECT rect = nullptr);
+	bool LoadFromSkin(LPCTSTR name, LPRECT rect = nullptr, bool single = false);
 	bool LoadFromBitmap(HBITMAP hbmp, bool reverse = false);
 	int AddToImageList(CImageList& list, int index = -1);
 	~KmImage() {

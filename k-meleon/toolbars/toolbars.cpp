@@ -896,7 +896,7 @@ void EndButton(s_toolbar *toolbar, s_button *button, int state) {
 		   cmd ?  cmd : "",
 		   button->menu,
 		   button->hotImage,
-		   button->coldImage ? button->coldImage : button->hotImage,
+		   button->coldImage,
 		   button->deadImage,
 		   true,
 		   false,
@@ -1277,12 +1277,12 @@ int AddButtonMsg(char *sParams) {
 	
 	if (cold) {
 		AddImageToList(pToolbar, pButton, COLD, cold);
-		pButton->hotImage = strdup(cold);
+		pButton->coldImage = strdup(cold);
 	}
 
 	if (dead) {
 		AddImageToList(pToolbar, pButton, DEAD, dead);
-		pButton->hotImage = strdup(dead);
+		pButton->deadImage = strdup(dead);
 	}
 
 	EndButton(pToolbar, pButton, !cold? COLD : DEAD);
@@ -1380,17 +1380,14 @@ void SetButtonImage(char *sParams) {//WORD iToolbar, WORD iButton, char *sImage)
    char *sImage = SkipWhiteSpace(c+1);
 
    if (!gbLegacy) {
-	   kmeleonButton b = {0};
-	   b.checked = -1;
-	   b.enabled = -1;
-	   b.hotimage = b.deadimage = b.coldimage = nullptr;
+	   char* hotimage = nullptr, *deadimage = nullptr, *coldimage = nullptr;
 	   switch(iImagelist) {
-		case IMAGELIST_HOT:b.hotimage = sImage; break;
-		case IMAGELIST_COLD:b.coldimage = sImage; break;
-		case IMAGELIST_DEAD:b.deadimage = sImage; break;
+		case IMAGELIST_HOT:hotimage = sImage; break;
+		case IMAGELIST_COLD:coldimage = sImage; break;
+		case IMAGELIST_DEAD:deadimage = sImage; break;
 	   }
 
-	   kPlugin.kFuncs->SetButton(name, iButton, &b);
+	   kPlugin.kFuncs->SetButtonIcon(name, iButton, coldimage, nullptr, hotimage, nullptr, deadimage, nullptr);
    }
    
    *d = ','; // replace comma

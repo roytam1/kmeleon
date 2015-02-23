@@ -377,8 +377,9 @@ typedef struct {
 	bool (*FindSkinFile)(const wchar_t* name, wchar_t* result, unsigned size);
 	void (*GotoHistoryIndex)(HWND hWnd, UINT index);
 	bool (*RemoveButton)(const char* name, const char* command);
-	bool (*AddButton)(const char* name, const char* command, const char* menu);
+	bool (*AddButton)(const char* name, const char* command, const char* menu, const char* tooltip);
 	int (*SetCmdIcon)(const char* name, const char* icon, const LPRECT region, const char* hot, const LPRECT hotregion, const char* dead, const LPRECT deadregion);
+	int (*SetButtonIcon)(const char* toolbar, UINT id, const char* icon, const LPRECT region, const char* hot, const LPRECT hotregion, const char* dead, const LPRECT deadregion);
 	bool (*AddPermission)(const char* url, const char* type, const char* perm, bool sessionOnly);
 } kmeleonFunctions;
 

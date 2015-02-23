@@ -390,21 +390,21 @@ int KmIconList::AddIcon(LPCTSTR coldImgPath, LPCTSTR hotImgPath, LPCTSTR deadImg
 	} else {
 
 		KmImage img, hotImg, deadImg;
-		if (!img.LoadFromSkin(coldImgPath, region))
-			return -1;
-
-		LONG w = img.GetWidth();
-		LONG h = img.GetHeight();
-
 		// If hot image specified, then 1 image for each state
 		if (hotImgPath && *hotImgPath) {
-			if (!hotImg.LoadFromSkin(hotImgPath, region))
-				hotImg.LoadFromSkin(coldImgPath, region);
-			if (!deadImgPath || !deadImg.LoadFromSkin(deadImgPath, region))
-				deadImg.LoadFromSkin(coldImgPath, region);
+			if (!img.LoadFromSkin(coldImgPath, region, true))
+				return -1;
+			if (!hotImg.LoadFromSkin(hotImgPath, region, true))
+				hotImg.LoadFromSkin(coldImgPath, region, true);
+			if (!deadImgPath || !*deadImgPath || !deadImg.LoadFromSkin(deadImgPath, region, true))
+				deadImg.LoadFromSkin(coldImgPath, region, true);
 			return AddIcon(img, hotImg, deadImg, id);
 		}
 
+		if (!img.LoadFromSkin(coldImgPath, region))
+			return -1;
+		LONG w = img.GetWidth();
+		LONG h = img.GetHeight();
 		// Single image with all states
 		int pos = AddIcons(img, w, h, id);					
 		return pos;
@@ -413,6 +413,8 @@ int KmIconList::AddIcon(LPCTSTR coldImgPath, LPCTSTR hotImgPath, LPCTSTR deadImg
 
 int KmSkin::AddIcon(LPCTSTR coldImgPath, LPCTSTR hotImgPath, LPCTSTR deadImgPath, UINT id, const LPRECT region) 
 {
-	return mImages->AddIcon(coldImgPath, hotImgPath, deadImgPath, id, region);
+	int res = mImages->AddIcon(coldImgPath, hotImgPath, deadImgPath, id, region);
+	if (res>0) theApp.toolbars.Refresh();
+	return res;
 }
 

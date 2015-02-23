@@ -313,9 +313,9 @@ NS_IMETHODIMP CJSBridge::SetCmdIcon(const char * name, JS::HandleValue icon, JSC
 	return NS_OK;
 }
 
-NS_IMETHODIMP CJSBridge::AddButton(const char * name, const char * command, const char * menu)
+NS_IMETHODIMP CJSBridge::AddButton(const char * name, const char * command, const char * menu, const char* tooltip)
 {
-	kPlugin.kFuncs->AddButton(name, command, menu);
+	kPlugin.kFuncs->AddButton(name, command, menu, tooltip);
 	return NS_OK;
 }
 
