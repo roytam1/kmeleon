@@ -67,22 +67,19 @@ UINT KmCmdService::GetList(kmeleonCommand* cmdList, UINT size, BOOL def)
 	while (pCurVal != NULL)
 	{
 		cmdList[i].id = pCurVal->value.id;
-		char* aCmd = strdup(T2CA(pCurVal->key));
-		strncpy(cmdList[i].cmd, aCmd, sizeof(cmdList[i].cmd));
-		cmdList[i].cmd[sizeof(cmdList[i].cmd)-1] = 0;
+		WideCharToMultiByte(CP_UTF8, 0, pCurVal->key, -1, cmdList[i].cmd, sizeof(cmdList[i].cmd), NULL, NULL);
 		//if (!IsPluginCommand(pCurVal->value.id)) {
 			CString str = pCurVal->value.GetDesc();
 			if (!str.GetLength())
 				str.LoadString(pCurVal->value.id);
-			strncpy(cmdList[i].desc, T2CA(str), sizeof(cmdList[i].desc));
-			cmdList[i].desc[sizeof(cmdList[i].desc)-1] = 0;
+			WideCharToMultiByte(CP_UTF8, 0, str, -1, cmdList[i].desc, sizeof(cmdList[i].desc), NULL, NULL);
 		/*}
 		else {
 			char *plugin, *parameter;
 			if (ParseCommand(aCmd, &plugin, &parameter))
 				theApp.plugins.SendMessage(plugin, "*", "GetCmds", (long)parameter, (long)&cmdList[i]);
 		}*/
-		free(aCmd);
+
 		ASSERT(i<=num);
 		if (++i > num) break;
 		if (--size == 0) break;

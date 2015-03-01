@@ -29,8 +29,9 @@ const UINT kPluginIdRange[kPluginIdRangeNumber][2] = { { 0x1800, 0x6FFF }, {0x90
 
 class CMfcEmbedApp;
 
-struct KmCommand
+class KmCommand
 {
+public:
 	UINT id;
 	CString desc;
 
