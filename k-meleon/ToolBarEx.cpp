@@ -208,18 +208,17 @@ void CToolBarEx::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 		if (pNMCD->nmcd.uItemState & CDIS_SELECTED || pNMCD->nmcd.uItemState & CDIS_CHECKED)
 			contentRect.OffsetRect(1,1);
 
-		IMAGEINFO ii;
-		ii.rcImage = CRect(0, 0, 16, 16);
-		if (imageList)
+		contentRect.left += hp;
+		if (imageList && image>=0)
 		{
 			int w = 16, h = 16;
 			ImageList_GetIconSize(imageList->GetSafeHandle(), &w, &h);				
 			imagePoint.y = contentRect.top + (contentRect.Height() - h)/2;
-			imagePoint.x = hp + contentRect.left;
+			imagePoint.x = contentRect.left;			
 			imageList->Draw(pDC, image, imagePoint, ILD_TRANSPARENT);
-			contentRect.left += 2*hp + w;
-		}		
-		
+			contentRect.left += hp + w;
+		}			
+
 		if (text.GetLength()) {
 			if (hTheme) {
 				USES_CONVERSION;
@@ -427,19 +426,19 @@ void CToolBarEx::OnTimer(UINT nIDEvent) {
 		// Left button timer
 		if ((nIDEvent >= LBUTTON_TIMER) && (nIDEvent < LBUTTON_TIMER + count)) {
 			KillTimer(nIDEvent);
-			GetParentFrame()->PostMessage(TB_LBUTTONHOLD, GetItemID(nIDEvent-LBUTTON_TIMER), 0);
+			GetParentFrame()->PostMessage(TB_LBUTTONHOLD, GetItemID(nIDEvent-LBUTTON_TIMER), (LPARAM) m_hWnd);
 		}
 
 		// Middle button timer
 		else if ((nIDEvent >= MBUTTON_TIMER) && (nIDEvent < MBUTTON_TIMER + count)) {
 			KillTimer(nIDEvent);
-			GetParentFrame()->PostMessage(TB_MBUTTONHOLD, GetItemID(nIDEvent-MBUTTON_TIMER), 0);
+			GetParentFrame()->PostMessage(TB_MBUTTONHOLD, GetItemID(nIDEvent-MBUTTON_TIMER), (LPARAM) m_hWnd);
 		}
 
 		// Right button timer
 		else if ((nIDEvent >= RBUTTON_TIMER) && (nIDEvent < RBUTTON_TIMER + count)) {
 			KillTimer(nIDEvent);
-			GetParentFrame()->PostMessage(TB_RBUTTONHOLD, GetItemID(nIDEvent-RBUTTON_TIMER), 0);
+			GetParentFrame()->PostMessage(TB_RBUTTONHOLD, GetItemID(nIDEvent-RBUTTON_TIMER), (LPARAM) m_hWnd);
 		}
 	}
 		
