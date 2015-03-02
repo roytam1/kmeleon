@@ -505,10 +505,11 @@ public:
 		file = CUTF16_to_UTF8(afile);
 		
 		CharLowerBuff(afile, wcslen(afile));
-		wchar_t* pos = wcsrchr(afile, L'.');
-		if (pos) *pos = 0;
-		pos = wcsrchr(afile, L'\\');
+		wchar_t* ext = wcsrchr(afile, L'.');
+		if (ext) *ext = 0;
+		wchar_t* pos = wcsrchr(afile, L'\\');
 		name = (const char*)CT_to_UTF8(pos?pos+1:afile);
+		*ext = L'.';
 
 		user = false;
 		loaded = false;

@@ -41,7 +41,7 @@
 		case WRONGARGS:
 			sprintf(msg, "Wrong number of arguments - expected %d, found %d.\r\n\r\n"
 				"%s(%s)",data1, data2, cmd, args);
-			break;
+			break;file:///H:/projects/km3/debug/browser/readme.html
 		case WRONGTYPE:
 			sprintf(msg, "Invalid data type in %s command.\r\n\r\n"
 				"%s(%s)", cmd, cmd, args);
@@ -65,7 +65,7 @@
 
 	bool checkTrust(FunctionData* data)
 	{
-		return false;
+		return data->c.mf->trusted && data->c.origmf->trusted;
 	}
 	
 	void invalidOp(FunctionData* data) {
@@ -308,7 +308,7 @@
 		}
 
 		MString pref = data->getstr(2);
-		if (pref.find("kmeleon.plugins.macros") != MString::npos && pref.find("trusted") != MString::npos) {
+		if (pref.find("kmeleon.plugins.macros.modules.") != MString::npos) {
 			invalidOp(data);
 			return Value();
 		}
@@ -348,11 +348,11 @@
 		MString pref = data->getstr(2);
 
 		if (preftype == PREF_UNISTRING) {
-			long len = kFuncs->GetPreference(preftype, pref, 0, L"");			
-			wchar_t* cRetval = (wchar_t*)calloc(sizeof(wchar_t), len+1);
-			kFuncs->GetPreference(preftype, pref, cRetval, L"");
-			Value v((const char*)CUTF16_to_UTF8(cRetval));
-			free(cRetval);
+			long len = kFuncs->GetPreference(PREF_LOCALIZED, pref, 0, L"");			
+			if (!len) return Value("");
+			char* cRetval = (char*)calloc(sizeof(char), len+1);
+			kFuncs->GetPreference(PREF_LOCALIZED, pref, cRetval, L"");
+			Value v(cRetval);
 			return v;
 		}
 		else if (preftype == PREF_INT) {
@@ -389,7 +389,7 @@
 		}
 
 		MString pref = data->getstr(2);
-		if (pref.find("kmeleon.plugins.macros") != MString::npos && pref.find("trusted") != MString::npos) {
+		if (pref.find("kmeleon.plugins.macros.modules.") != MString::npos) {
 			invalidOp(data);
 			return Value();
 		}
