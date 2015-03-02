@@ -297,7 +297,7 @@ BOOL CMfcEmbedApp::LoadLanguage()
 	  return TRUE;
    }
 
-   CString localeFolder = GetFolder(RootFolder) + CString("\\locales\\") + locale + CString("\\");
+   CString localeFolder = GetFolder(LocaleFolder) + _T("\\") + locale + _T("\\");
    CString resDll = localeFolder + CString("kmeleon.dll");
 
    HINSTANCE hInstResDll = ::LoadLibrary(resDll);
@@ -527,7 +527,7 @@ BOOL CMfcEmbedApp::InitEmbedding(const char* profile)
 	}
 
 	// Register chrome language
-	CString localesFolder = GetFolder(RootFolder) + CString(_T("\\locales\\*"));
+	CString localesFolder = GetFolder(LocaleFolder) + _T("\\*");
 	WIN32_FIND_DATA ffd;
 	HANDLE hFind = FindFirstFile(localesFolder.GetBuffer(0), &ffd);
 	localesFolder.Truncate(localesFolder.GetLength()-1);
@@ -1565,8 +1565,11 @@ CString CMfcEmbedApp::GetFolder(FolderType folder)
 
       case RootFolder:
          if (m_sRootFolder.IsEmpty()) {
-            TCHAR path[_MAX_PATH+1];
-            ::GetModuleFileName(0, path, _MAX_PATH);
+            TCHAR _path[_MAX_PATH+1];
+			TCHAR path[_MAX_PATH+1];
+			::GetModuleFileName(0, _path, _MAX_PATH);
+			_wfullpath(path, _path, _MAX_PATH);
+
             TCHAR* lastSlash = _tcsrchr(path, _T('\\'));
             if (!lastSlash) return FALSE;
             *lastSlash = _T('\0');
@@ -1600,6 +1603,9 @@ CString CMfcEmbedApp::GetFolder(FolderType folder)
 
       case CurrentSkinFolder:
          return preferences.currentSkinFolder;
+
+	  case LocaleFolder:
+		  return GetFolder(RootFolder) + _T("\\locales");
    }
    return _T("");
 }
@@ -1663,7 +1669,7 @@ void CMfcEmbedApp::CheckProfileVersion()
 			theApp.preferences.SetString("browser.download.lastDir", s);
 			theApp.preferences.Clear("kmeleon.download.lastDir");
 		}
-		if (oldVersion < 0x02010000) {
+		if (oldVersion < 0x02010005) {
 
 			nsCOMPtr<nsIFile> mimeFile;
 			NS_GetSpecialDirectory("UMimTyp", getter_AddRefs(mimeFile));
