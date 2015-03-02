@@ -38,6 +38,8 @@
                             SetWindowLongA(hWnd, nIndex, dwNewLong))
 
 class nsIWebBrowser;
+class nsIDOMNode;
+
 #ifndef __KMELEON_PLUGIN_H__
 #define __KMELEON_PLUGIN_H__
 
@@ -73,7 +75,8 @@ enum FolderType {
    UserSkinsFolder,
    ResFolder,
    CurrentSkinFolder,
-   AppFolder
+   AppFolder,
+   LocaleFolder
 };
 
 enum WindowVarType {
@@ -131,6 +134,7 @@ typedef struct _kmeleonCommand {
 	UINT id;
 	char cmd[80];
 	char desc[256];
+    char accel[25];
 } kmeleonCommand;
 
 

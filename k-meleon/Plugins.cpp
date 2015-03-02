@@ -1768,6 +1768,11 @@ unsigned GetCmdList(kmeleonCommand* cmdList, unsigned size)
 		}
 	}
 
+	USES_CONVERSION;
+	for (int i =0; i<num; i++) {
+		WideCharToMultiByte(CP_ACP, 0, theApp.accel.GetStrAccel(cmdList[i].id), -1, cmdList[i].accel, sizeof(cmdList[i].accel), NULL, NULL);
+	}
+
 	return num;
 }
 

@@ -69,14 +69,19 @@ bool CCmdList::Run(HWND hwnd, UINT command, UINT mode) {
 }
 
 NS_IMPL_ISUPPORTS (CJSCommand, kmICommand)
-NS_IMETHODIMP CJSCommand::GetName(char * *aName)
+NS_IMETHODIMP CJSCommand::GetName(nsACString & aName)
 {
-	*aName = (char*)nsMemory::Clone(name.BeginReading(), name.Length()+1);
+	aName = name;//*aName = (char*)nsMemory::Clone(name.BeginReading(), name.Length()+1);
     return NS_OK;
 }
-NS_IMETHODIMP CJSCommand::GetDesc(char * *aDesc)
+NS_IMETHODIMP CJSCommand::GetDesc(nsACString & aDesc)
 {
-	*aDesc = (char*)nsMemory::Clone(desc.BeginReading(), desc.Length()+1);
+	aDesc = desc;
+    return NS_OK;
+}
+NS_IMETHODIMP CJSCommand::GetAccel(nsACString & aAccel)
+{
+	aAccel = accel;
     return NS_OK;
 }
 NS_IMETHODIMP CJSCommand::GetCommand(kmICommandFunction * *aCommand)
@@ -85,11 +90,11 @@ NS_IMETHODIMP CJSCommand::GetCommand(kmICommandFunction * *aCommand)
 }
 
 /* attribute string image; */
-NS_IMETHODIMP CJSCommand::GetImage(char * *aImage)
+NS_IMETHODIMP CJSCommand::GetImage(nsACString & Image)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }
-NS_IMETHODIMP CJSCommand::SetImage(const char * aImage)
+NS_IMETHODIMP CJSCommand::SetImage(const nsACString & aImage)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -235,6 +240,7 @@ NS_IMETHODIMP CJSBridge::GetCmdList(PRUint32 *length, kmICommand ***list)
 		CJSCommand* cmd = new CJSCommand();
 		cmd->name = kcs[i].cmd;
 		cmd->desc = kcs[i].desc;
+		cmd->accel = kcs[i].accel;
 		void *result;
 		cmd->QueryInterface(NS_GET_TEMPLATE_IID(kmICommand), &result);
 		cmds[i] = static_cast<kmICommand*>(result);
@@ -421,6 +427,13 @@ NS_IMETHODIMP CJSBridge::RemoveListener(nsIObserver* listener)
 	return NS_OK;
 }
 
+NS_IMETHODIMP CJSBridge::LoadPlugin(const char* path)
+{
+	if (!kPlugin.kFuncs->Load(path))
+		return NS_ERROR_FAILURE;
+	return NS_OK;
+}
+
 bool notifyOpenWindow(nsIObserver *aListener, void* aData)
 {
 	kmIWindow* winData = static_cast<kmIWindow*>(aData);
@@ -456,3 +469,4 @@ void CJSBridge::OnSwitchTab(HWND oldhWnd, HWND newhWnd)
 
 	mListeners.EnumerateForwards(notifySwitchTab, dom);
 }
+
