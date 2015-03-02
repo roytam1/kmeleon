@@ -34,6 +34,8 @@
 #include "..\\KMeleonConst.h"
 #include "..\\utils.h"
 #include "..\\strconv.h"
+#include "md5.h"
+
 #include "resrc1.h"
 #include <afxres.h>     // for ID_APP_EXIT
 #include "object.h"
@@ -51,7 +53,7 @@ int          FindCommand(char *macroName);
 int          GetConfigFiles(configFileType **configFiles);
 int          GetCmds(kmeleonCommand* cmdList, long size);
 int          Load();
-bool         LoadMacros(const TCHAR *filename);
+MacroFile*   LoadMacros(const TCHAR *filename);
 void         Close(HWND hWnd);
 void         CloseFrame(HWND hWnd, LONG windows);
 void         Quit();
@@ -866,7 +868,7 @@ int DoAccel(char const *aParam)
 void DoRebar(HWND rebarWnd) {
 }
 
-bool LoadMacros(const TCHAR *filename)
+MacroFile* LoadMacros(const TCHAR *filename)
 {
 	Parser parser;
 	static int debug = -1;
@@ -877,13 +879,32 @@ bool LoadMacros(const TCHAR *filename)
 
 	MacroFile mf((TCHAR*)filename); // Meh
 	auto iter = macroFileList->insert(macroFileList->begin(), mf);
-	
+	MacroFile* m = &*iter;
+
 	if (!parser.init(M, *iter, debug))
-		return false;
+		return nullptr;
 
 	parser.parse();	
-	(*iter).loaded = true;
-	return true;
+	m->loaded = true;
+
+	char pref[MAX_PATH+40] = {0};
+	sprintf_s(pref, "kmeleon.plugins.macros.modules.%s.trusted", m->name.c_str());
+	int trust = 0;
+	kPlugin.kFuncs->GetPreference(PREF_BOOL, pref, &trust, &trust);
+	if (trust) {
+		char checksum[33];
+		sprintf_s(pref, "kmeleon.plugins.macros.modules.%s.checksum", m->name.c_str());
+		long len = kPlugin.kFuncs->GetPreference(PREF_STRING, pref, 0, 0);
+		if (len == 32) {
+			kPlugin.kFuncs->GetPreference(PREF_STRING, pref, checksum, checksum);
+
+			MD5 md5;
+			md5.digestFile(filename);
+			if (strcmp(checksum, md5.digestChars) == 0)
+				m->trusted = true;
+		}
+	}
+	return m;
 }
 
 /************* misc *******************/
