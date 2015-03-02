@@ -36,7 +36,8 @@ class CJSCommand: public kmICommand
 	virtual ~CJSCommand() {};
 
 	nsCString name;
-	nsCString desc;	
+	nsCString desc;
+	nsCString accel;
 };
 
 class CJSButton : public kmIButton

@@ -24,10 +24,11 @@ interface kmIWindow:nsISupports {
 [scriptable, uuid(3d8ce8f0-5214-11db-b0de-0800200c9a65)] 
 interface kmICommand : nsISupports
 {
-	readonly attribute string name;
-	readonly attribute string desc;
+	readonly attribute AUTF8String name;
+	readonly attribute AUTF8String desc;
+	readonly attribute AUTF8String accel;
 	readonly attribute kmICommandFunction command;
-	attribute string image;
+	attribute AUTF8String image;
 };
 
 [scriptable, uuid(3d8ce8f0-5214-11db-b0de-0800200c9a67)]
@@ -74,12 +75,14 @@ interface nsIJSBridge : nsISupports
 	[implicit_jscontext]
 	void SetCmdIcon(in string name, in jsval icon);
 	void SetAccel(in string key, in string command);
-
+	
 	nsIWebBrowser Open(in string url, in unsigned short state);
 	nsIWebBrowser GetActiveBrowser();
 	void GetWindows([optional] out unsigned long length, [array, size_is(length), retval] out kmIWindow list);
 
 	void AddListener(in nsIObserver listener);
 	void RemoveListener(in nsIObserver listener);
+
+	void LoadPlugin(in string path);
 }; 
 
