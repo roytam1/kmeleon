@@ -887,7 +887,7 @@ BOOL CMyStatusBar::RemoveIcon(UINT nID)
 	{
 		if (arrIcons[i].nID == nID)	{
 			struct icon_info* ii = &arrIcons[i];
-			DestroyIcon(ii->hIcon);
+			//DestroyIcon(ii->hIcon); // Let the owner handle it
 			arrIcons.RemoveAt(i);
 			done = TRUE;
 			break;
