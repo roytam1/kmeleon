@@ -288,8 +288,7 @@ public:
 		while (*current != '"') {
 
 			switch (*current) {
-				case 0: error("Unfinished string."); return false;
-				case '\n': error("Unfinished string."); return false;
+				case 0: error("Unfinished string."); return false;				
 				case '\\':
 					next();
 					switch (*current) {
@@ -300,8 +299,8 @@ public:
 						default : v += *current; 
 					}
 					next(); if (*current == '\r') next();
-					break;
-
+					break;				
+				case '\n': incline();  //error("Unfinished string."); return false;
 				default:
 					v += *current;
 					next();
