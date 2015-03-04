@@ -467,6 +467,30 @@ CString CBrowserWrapper::GetURI(BOOL unescape)
 	return NSUTF8StringToCString(uriString);
 }
 
+CString CBrowserWrapper::GetLang()
+{
+	nsresult rv;
+
+	nsCOMPtr<nsIDOMWindow> domWindow;
+	rv = mWebBrowser->GetContentDOMWindow(getter_AddRefs(domWindow));
+	NS_ENSURE_SUCCESS(rv, L"");
+
+	nsCOMPtr<nsIDOMDocument> document;
+	rv = domWindow->GetDocument(getter_AddRefs(document));
+	NS_ENSURE_SUCCESS(rv, L"");
+
+	nsCOMPtr<nsIDOMElement> element;
+	document->GetDocumentElement(getter_AddRefs(element));
+	NS_ENSURE_TRUE(element, L"");
+
+	nsString nsLang;
+	element->GetAttribute(NS_LITERAL_STRING("lang"), nsLang);
+	if (!nsLang.Length()) {
+		element->GetAttribute(NS_LITERAL_STRING("xml:lang"), nsLang);
+	}
+	return NSStringToCString(nsLang);
+}
+
 BOOL CBrowserWrapper::GetCharset(char* aCharset)
 {
 	NS_ENSURE_TRUE(mWebBrowser, FALSE);
@@ -487,7 +511,7 @@ BOOL CBrowserWrapper::GetCharset(char* aCharset)
 
 	nsCString mCharset;
 	result = mdv->GetForceCharacterSet(mCharset);
-
+	
 	if (NS_FAILED(result) || mCharset.IsEmpty() )
 	{
 		
@@ -955,98 +979,25 @@ BOOL CBrowserWrapper::InjectCSS(const wchar_t* userStyleSheet)
 BOOL CBrowserWrapper::InjectJS(const wchar_t* userScript, CString& result, bool bTopWindow)
 {	
 	nsresult rv;
-	nsCOMPtr<nsIDOMDocument> document;
-	nsCOMPtr<nsIJSContextStack> cs = do_GetService("@mozilla.org/js/xpc/XPConnect;1");
-	if (!cs) {
-		// No more running JS from C++ 
-		bool jsEnabled = PR_TRUE;
-		nsCOMPtr<nsIPrefBranch> prefs = do_GetService(NS_PREFSERVICE_CONTRACTID);
-		if (prefs) {
-			prefs->GetBoolPref("javascript.enabled", &jsEnabled);
-			prefs->SetBoolPref("javascript.enabled", PR_TRUE);
-		}
-
-		if (!bTopWindow)
-		{
-			if (mLastMouseActionNode)
-				rv = mLastMouseActionNode->GetOwnerDocument(getter_AddRefs(document));
-			else
-			{
-				nsCOMPtr<nsIDOMWindow> dom;
-				mWebBrowserFocus->GetFocusedWindow(getter_AddRefs(dom));
-				if (dom)
-					rv = dom->GetDocument(getter_AddRefs(document));
-			}	
-		}
-
-		if (!document)
-		{
-			nsCOMPtr<nsIDOMWindow> dom;
-			rv = mWebBrowser->GetContentDOMWindow(getter_AddRefs(dom));
-			NS_ENSURE_SUCCESS(rv, FALSE);
-
-			rv = dom->GetDocument(getter_AddRefs(document));
-		}
-
-		NS_ENSURE_SUCCESS(rv, FALSE);
-
-		nsCOMPtr<nsIDOMElement> body;
-		rv = document->GetDocumentElement (getter_AddRefs(body));
-		NS_ENSURE_SUCCESS(rv, FALSE);
-
-		nsCOMPtr<nsIDOMElement> scriptElement;
-		rv = document->CreateElement(nsDependentString(L"script"), getter_AddRefs(scriptElement));
-		NS_ENSURE_SUCCESS(rv, FALSE);
-
-		nsCOMPtr<nsIDOMHTMLScriptElement> scriptTag = do_QueryInterface(scriptElement);
-		NS_ENSURE_TRUE(scriptTag, FALSE);
-
-		scriptTag->SetText(nsDependentString(userScript));
-		scriptTag->SetType(nsDependentString(L"text/javascript"));
-
-		nsCOMPtr<nsIDOMNode> notused, node = do_QueryInterface(scriptTag);
-		rv = body->AppendChild(node, getter_AddRefs(notused));
-		BOOL ret = NS_SUCCEEDED(rv);
-		body->RemoveChild(node, getter_AddRefs(notused));
-		if (prefs) prefs->SetBoolPref("javascript.enabled", jsEnabled);
-
-		return ret;
-	}
 	
 	nsCOMPtr<nsIDOMWindow> dom;
-	rv = mWebBrowser->GetContentDOMWindow(getter_AddRefs(dom));
-	NS_ENSURE_SUCCESS(rv, FALSE);
+	if (!bTopWindow)
+	{
+		if (mLastMouseActionNode) {
+			nsCOMPtr<nsIDOMDocument> document;
+			rv = mLastMouseActionNode->GetOwnerDocument(getter_AddRefs(document));
+			document->GetDefaultView(getter_AddRefs(dom));	
+		}
+		if (!dom) mWebBrowserFocus->GetFocusedWindow(getter_AddRefs(dom));
+	}
 
-	nsCOMPtr<nsIScriptGlobalObject> global = GetDocShell()->GetScriptGlobalObject();
-	NS_ENSURE_TRUE(global, FALSE);
+	if (!dom) {
+		rv = mWebBrowser->GetContentDOMWindow(getter_AddRefs(dom));
+		NS_ENSURE_SUCCESS(rv, FALSE);
+	}
 
-	nsCOMPtr<nsIScriptGlobalObject> sgo = do_GetInterface(mWebBrowser);
-
-	nsCOMPtr<nsPIDOMWindow> win = do_QueryInterface(global);
-    nsPIDOMWindow *innerWin = win->GetCurrentInnerWindow();
-	nsCOMPtr<nsIScriptGlobalObject> innerGlobal = do_QueryInterface(innerWin);
-	nsCOMPtr<nsIDOMWindow> domWindow(do_QueryInterface(global, &rv));
-	NS_ENSURE_SUCCESS(rv, FALSE);
-
-	nsCOMPtr<nsIScriptContext> scriptContext = global->GetContext();
-	NS_ENSURE_TRUE(scriptContext, FALSE);
-	
-	JSContext* cx = scriptContext->GetNativeContext();
-	if (!cx) return FALSE;
-	
-	//XPCJSContextStack *stack = XPCJSRuntime::Get()->GetJSContextStack();
-	//stack->Push(cx);
-	
-	NS_ENSURE_SUCCESS(cs->Push(cx), FALSE);
-	JSAutoRequest ar(cx);
-	JSAutoCompartment ac(cx, scriptContext->GetWindowProxy());
-	JS::Rooted<JSObject*> globalJSObject(cx, innerGlobal->GetGlobalJSObject());
-	JS::Rooted<JS::Value> v (cx, JS::UndefinedValue());
-	JS_EvaluateScript(cx, globalJSObject, CW2A(userScript), wcslen(userScript), "", 0, &v);
-	if (v.isString() && !v.isObject())
-		result = NSStringToCString(nsString(JS_GetStringCharsZ(cx, v.toString())));
-	cs->Pop(nullptr);	
-	return TRUE;
+	if (!dom) return FALSE;
+	return ::InjectJS(dom, userScript, result);
 }
 
 BOOL CBrowserWrapper::_GetSelection(nsIDOMWindow* dom, nsAString &aSelText)

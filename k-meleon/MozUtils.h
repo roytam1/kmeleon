@@ -37,7 +37,8 @@ BOOL IsContentEditable(nsIDOMNode* node);
 CString GetSearchURL(LPCTSTR query);
 
 bool GetFrameURL(nsIWebBrowser* aWebBrowser, nsIDOMNode* aNode, nsString& url);
-
+bool RunJS(const wchar_t* userScript, CString& result);
+bool InjectJS(nsIDOMWindow* dom, const wchar_t* userScript, CString& result);
 BOOL LogMessage(const char* category, const char* message, const char* file, uint line, uint flags);
 
 #endif

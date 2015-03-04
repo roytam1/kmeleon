@@ -1007,6 +1007,8 @@
 			bTopWindow = 0;
 		else if (strcmp(data->getstr(2), "alltabs")==0)
 			bTopWindow = 2;
+		else if (strcmp(data->getstr(2), "hidden")==0)
+			bTopWindow = -1;
 		else
 			bTopWindow = 1;
 		
@@ -1414,6 +1416,8 @@
 				type = Search_URL;
 			else if (name == "CommandLine")
 				return CT_to_UTF8(::GetCommandLine());
+			else if (name == "LANG")
+				type = Window_Lang;
 			else return "";
 
 			int l = kPlugin.kFuncs->GetWindowVar(data->c.hWnd, type, NULL);
@@ -1504,7 +1508,7 @@
 		return Value();
 	}
 
-	Value setbuttonicon(FunctionData* data)
+	Value setbuttonimg(FunctionData* data)
 	{
 		checkArgs(__FUNCTION__, data, 2,6);
 		MString name = data->getstr(1);
@@ -1573,7 +1577,7 @@
 		b.checked = data->getbool(2);
 		return kPlugin.kFuncs->SetButton(data->getstr(1), kPlugin.kFuncs->GetID(data->getstr(2)), &b);
 	}
-
+	/*
 	Value setbuttonimg(FunctionData* data)
 	{
 		checkArgs(__FUNCTION__, data, 2,7);
@@ -1592,7 +1596,7 @@
 		b.iconHeight = data->getint(7);
 
 		return kPlugin.kFuncs->SetButton(data->getstr(1), kPlugin.kFuncs->GetID(data->getstr(2)), &b);
-	}
+	}*/
 
 #define MAX_TIMERS 10
 #define OFFSET_TIMERS 1000

@@ -994,6 +994,14 @@ UINT GetWindowVar(HWND hWnd, WindowVarType type, void* ret)
 			break;
 		}
 
+		case Window_Lang: {
+			USES_CONVERSION;
+			const char* lang = T2CA(browser->GetLang());
+			retLen = strlen(lang) + 1;
+			if (ret) strcpy((char*)ret, lang);
+			break;
+		}
+
 		default: 
 			retLen = 0;
 	}
@@ -1130,6 +1138,22 @@ UINT GetWindowVarUTF8(HWND hWnd, WindowVarType type, void* ret)
 		case Window_Icon: {
 			if (ret) *(int*)ret = theApp.favicons.GetIcon(view->GetBrowserGlue()->mIconURI);
 			return 1;
+		}
+
+		case Search_URL: {
+			CString _url = GetSearchURL(_T("__query__"));
+			char* url = EncodeUTF8(_url);
+			retLen = strlen(url) + 1;
+			if (ret) strcpy((char*)ret, url);
+			break;
+		}
+
+		case Window_Lang: {
+			USES_CONVERSION;
+			const char* lang = T2CA(browser->GetLang());
+			retLen = strlen(lang) + 1;
+			if (ret) strcpy((char*)ret, lang);
+			break;
 		}
 
 		default: 
@@ -1614,23 +1638,28 @@ void RemoveStatusBarIcon(HWND hWnd, int id)
 
 BOOL InjectJS2(const char* js, int bTopWindow, char *result, unsigned size, HWND hWnd)
 {
-	PLUGIN_HEADER(hWnd, FALSE);
-	
 	nsString js2;
+	CString csresult;
 	NS_CStringToUTF16(nsDependentCString(js), NS_CSTRING_ENCODING_UTF8, js2);
 
-	CString csresult;
-	if (bTopWindow == 2 && frame->IsKindOf(RUNTIME_CLASS(CBrowserFrmTab)))
-	{
-		BOOL ret = TRUE;
-		CBrowserFrmTab* frameTab = (CBrowserFrmTab*)frame;
-		int tabCount = frameTab->GetTabCount();
-		for (int i=0;i<tabCount;i++) 
-			ret &= frameTab->GetTabIndex(i)->GetBrowserWrapper()->InjectJS(js2.get(), csresult);
-		return ret;
+	BOOL success = FALSE;
+	if (bTopWindow == -1) {
+		success = ::RunJS(js2.get(), csresult);
+	}
+	else {
+		PLUGIN_HEADER(hWnd, FALSE);
+		if (bTopWindow == 2 && frame->IsKindOf(RUNTIME_CLASS(CBrowserFrmTab)))
+		{
+			BOOL ret = TRUE;
+			CBrowserFrmTab* frameTab = (CBrowserFrmTab*)frame;
+			int tabCount = frameTab->GetTabCount();
+			for (int i=0;i<tabCount;i++) 
+				ret &= frameTab->GetTabIndex(i)->GetBrowserWrapper()->InjectJS(js2.get(), csresult);
+			return ret;
+		}
+		success = browser->InjectJS(js2.get(), csresult, bTopWindow==1);
 	}
 
-	BOOL success = browser->InjectJS(js2.get(), csresult, bTopWindow==1);
 	if (success && result) {
 		char* c = EncodeUTF8(T2W(csresult.GetBuffer(0)));
 		strncpy(result, c, size);

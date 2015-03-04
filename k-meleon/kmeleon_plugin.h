@@ -95,6 +95,7 @@ enum WindowVarType {
 	Window_ImageURL = 102,     // char*
 	Window_FrameURL = 103,     // char*
 	Window_LinkTitle = 104,    // char*
+	Window_Lang = 105,         // char*
 	Window_Icon = 110,         // int
 
 	Search_URL = 120 // char*
@@ -385,6 +386,7 @@ typedef struct {
 	int (*SetCmdIcon)(const char* name, const char* icon, const LPRECT region, const char* hot, const LPRECT hotregion, const char* dead, const LPRECT deadregion);
 	int (*SetButtonIcon)(const char* toolbar, UINT id, const char* icon, const LPRECT region, const char* hot, const LPRECT hotregion, const char* dead, const LPRECT deadregion);
 	bool (*AddPermission)(const char* url, const char* type, const char* perm, bool sessionOnly);
+
 } kmeleonFunctions;
 
 /*
