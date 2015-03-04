@@ -323,6 +323,7 @@ public:
 
 	BOOL GetCharset(char* aCharset);
     BOOL ForceCharset(const char *aCharSet);
+	CString GetLang();
 
 	BOOL Print();
 	BOOL PrintPreview();

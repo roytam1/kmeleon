@@ -657,3 +657,82 @@ bool ZipExtractFiles(nsIFile* zipFile, nsIFile* folder)
 	zipReader->Close();
 	return true;
 }
+
+#include "nsIDOMHTMLScriptElement.h"
+#include "nsAppShellCID.h"
+#include "nsIAppShellService.h"
+#include "nsIScriptObjectPrincipal.h"
+#include "nsIScriptContext.h"
+#include "nsIScriptGlobalObject.h"
+#include "mozilla/dom/ScriptSettings.h"
+#include "nsIJSContextStack.h"
+#include "jsapi.h"
+
+bool InjectJS(nsIDOMWindow* dom, const wchar_t* userScript, CString& result)
+{
+	nsresult rv;
+	nsCOMPtr<nsIJSContextStack> cs = do_GetService("@mozilla.org/js/xpc/XPConnect;1");
+	if (!cs) {		
+		nsCOMPtr<nsIDOMDocument> document;
+		dom->GetDocument(getter_AddRefs(document));
+		NS_ENSURE_TRUE(document, false);
+
+		nsCOMPtr<nsIDOMElement> body;
+		rv = document->GetDocumentElement (getter_AddRefs(body));
+		NS_ENSURE_SUCCESS(rv, FALSE);
+
+		nsCOMPtr<nsIDOMElement> scriptElement;
+		rv = document->CreateElement(nsDependentString(L"script"), getter_AddRefs(scriptElement));
+		NS_ENSURE_SUCCESS(rv, FALSE);
+
+		nsCOMPtr<nsIDOMHTMLScriptElement> scriptTag = do_QueryInterface(scriptElement);
+		NS_ENSURE_TRUE(scriptTag, FALSE);
+
+		scriptTag->SetText(nsDependentString(userScript));
+		scriptTag->SetType(nsDependentString(L"text/javascript"));
+
+		nsCOMPtr<nsIDOMNode> notused, node = do_QueryInterface(scriptTag);
+		rv = body->AppendChild(node, getter_AddRefs(notused));
+		BOOL ret = NS_SUCCEEDED(rv);
+		body->RemoveChild(node, getter_AddRefs(notused));
+		return ret;
+	}
+
+	nsCOMPtr<nsPIDOMWindow> piWin(do_QueryInterface(dom));
+	if (!piWin) return false;
+	nsIDocShell* docShell = piWin->GetDocShell();
+	if (!docShell) return false;
+
+	nsCOMPtr<nsIScriptGlobalObject> global = docShell->GetScriptGlobalObject();
+	NS_ENSURE_TRUE(global, FALSE);
+
+    nsPIDOMWindow *innerWin = piWin->GetCurrentInnerWindow();
+	nsCOMPtr<nsIScriptGlobalObject> innerGlobal = do_QueryInterface(innerWin);
+	nsCOMPtr<nsIScriptContext> scriptContext = global->GetContext();
+	NS_ENSURE_TRUE(scriptContext, FALSE);
+	
+	JSContext* cx = scriptContext->GetNativeContext();
+	if (!cx) return FALSE;
+
+	NS_ENSURE_SUCCESS(cs->Push(cx), FALSE);
+	JSAutoRequest ar(cx);
+	JSAutoCompartment ac(cx, scriptContext->GetWindowProxy());
+	JS::Rooted<JSObject*> globalJSObject(cx, innerGlobal->GetGlobalJSObject());
+	JS::Rooted<JS::Value> v (cx, JS::UndefinedValue());
+	JS_EvaluateUCScript(cx, globalJSObject, userScript, wcslen(userScript), "", 0, &v);
+	
+	if (v.isString() && !v.isObject())
+		result = NSStringToCString(nsString(JS_GetStringCharsZ(cx, v.toString())));
+	cs->Pop(nullptr);	
+	return TRUE;
+}
+
+bool RunJS(const wchar_t* userScript, CString& result)
+{
+	nsCOMPtr<nsIAppShellService> appShellService(do_GetService(NS_APPSHELLSERVICE_CONTRACTID));
+	NS_ENSURE_TRUE(appShellService, false);
+	nsCOMPtr<nsIDOMWindow> win;
+	appShellService->GetHiddenDOMWindow(getter_AddRefs(win));
+	NS_ENSURE_TRUE(win, false);
+	return InjectJS(win, userScript, result);
+}
