@@ -65,7 +65,7 @@
 
 	bool checkTrust(FunctionData* data)
 	{
-		return data->c.mf->trusted && data->c.origmf->trusted;
+		return data->c.mf->trusted && (!data->c.origmf || data->c.origmf->trusted);
 	}
 	
 	void invalidOp(FunctionData* data) {
@@ -260,8 +260,36 @@
 
 	Value open(FunctionData* data)
 	{
-		checkArgs(__FUNCTION__, data, 1);
-		kFuncs->NavigateTo((char*)(EscapeURL(data->getstr(1)).c_str()), OPEN_NORMAL, NULL);
+		checkArgs(__FUNCTION__, data, 1, 2);
+		int w = OPEN_NORMAL;
+		if (data->getstr(2).length()) {
+			if (data->getstr(2).compare("window") == 0)
+				w = OPEN_NEW;
+			else if (data->getstr(2).compare("bgwindow") == 0)
+				w = OPEN_BACKGROUND;
+			else if (data->getstr(2).compare("tab") == 0)
+				w = OPEN_NEWTAB;
+			else if (data->getstr(2).compare("bgtab") == 0)
+				w = OPEN_BACKGROUNDTAB;
+			// Compatibility
+			else if (data->getstr(2).compare("ID_OPEN_LINK_IN_NEW_WINDOW") == 0)
+				w = OPEN_NEW;
+			else if (data->getstr(2).compare("ID_OPEN_LINK_IN_BACKGROUND") == 0)
+				w = OPEN_BACKGROUND;
+			else if (data->getstr(2).compare("ID_OPEN_LINK_IN_NEW_TAB") == 0)
+				w = OPEN_NEWTAB;
+			else if (data->getstr(2).compare("ID_OPEN_LINK_IN_BACKGROUNDTAB") == 0)
+				w = OPEN_BACKGROUNDTAB;
+			else if (data->getstr(2).compare("opennew") == 0)
+				w = OPEN_NEW;
+			else if (data->getstr(2).compare("openbg") == 0)
+				w = OPEN_BACKGROUND;
+			else if (data->getstr(2).compare("opentab") == 0)
+				w = OPEN_NEWTAB;
+			else if (data->getstr(2).compare("openbgtab") == 0)
+				w = OPEN_BACKGROUNDTAB;
+		}
+		kFuncs->NavigateTo((char*)(EscapeURL(data->getstr(1)).c_str()), w, NULL);
 		return "";
 	}
 
