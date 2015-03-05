@@ -375,7 +375,7 @@ protected:
 #include "MozUtils.h"
 int KmIconList::AddIcon(LPCTSTR coldImgPath, LPCTSTR hotImgPath, LPCTSTR deadImgPath, UINT id, const LPRECT region) 
 {
-	if (CString(coldImgPath).Left(6).Compare(L"chrome") == 0) {
+	if (_tcsncmp(coldImgPath, _T("chrome"), 6) == 0 || _tcsncmp(coldImgPath, _T("data"), 4) == 0) {
 
 		iconSkinObserver* io = new iconSkinObserver(id, region?*region:CRect(0,0,0,0));
 		nsCOMPtr<nsIURI> uri;
