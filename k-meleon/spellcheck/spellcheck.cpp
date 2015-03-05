@@ -45,6 +45,7 @@
 #include <ISimpleDOMText.h>
 #include <oleacc.h>
 #include <servprov.h>
+#include <mozISpellCheckingEngine.h>
 
 #include <algorithm>
 
@@ -88,6 +89,10 @@ kmeleonPlugin kPlugin = {
 	PLUGIN_NAME,
 	DoMessage
 };
+
+#define MAX_DICT_COMMAND 10
+char gDictCommand[MAX_DICT_COMMAND][20] = {0};
+
 
 #include <nsIDOMEventListener.h>
 #include <nsIDOMMouseEvent.h>
@@ -190,12 +195,11 @@ void DestroyTab(HWND hWndParent, HWND hTab) {
 
 
 void Init()
-{
-	g_id = kPlugin.kFuncs->GetCommandIDs(2);
+{	
 	kmeleonMenuItem menuitem;
 	menuitem.before = 0;
 	menuitem.command = g_id;
-	menuitem.label = _Tr("Spell Checker");
+	menuitem.label = "Spell Checker";
 	menuitem.type = MENU_COMMAND;
 	kPlugin.kFuncs->SetMenu("TextPopup", &menuitem);
 	gListener = new CDomEventListener();
@@ -253,6 +257,7 @@ long DoMessage(const char *to, const char *from, const char *subject,
 void Load()
 {
 	SetDictionariesDir();
+	g_id = kPlugin.kFuncs->GetCommandIDs(2+MAX_DICT_COMMAND);
 }
 
 
@@ -265,6 +270,8 @@ void Create(HWND hWndParent)
 }
 
 
+
+
 int DoAccel(char *param)
 {
 	if (stricmp(param, "caret") == 0 || stricmp(param, "here") == 0 || stricmp(param, "word") == 0) {
@@ -272,6 +279,17 @@ int DoAccel(char *param)
 	}
 	else if (stricmp(param, "mouse") == 0) {
 		return g_id;
+	}
+	else if (*param) {
+		int free = -1;
+		for (int i=0;i<MAX_DICT_COMMAND;i++) {			
+			if (strcmp(gDictCommand[i], param) == 0)
+				return g_id+i+2;
+			if (!*gDictCommand[i] && free == -1) free = i;
+		}
+		if (free == -1) return 0;
+		strcpy_s(gDictCommand[free], param);
+		return free+2+g_id;
 	}
 	int pos = 0;
 	kPlugin.kFuncs->GetPreference(PREF_INT, PREFKEY_MENU_POSITION, &pos, &pos);
@@ -281,6 +299,59 @@ int DoAccel(char *param)
 	return g_id;
 }
 
+
+/*
+  Get nsIEditor on the focus from nsIWebBrowser.
+ */
+
+BOOL get_editor2(HWND hwnd, nsCOMPtr<nsIEditor>& editor) 
+{
+	nsCOMPtr<nsIDOMNode> target;
+	gListener->GetRange(getter_AddRefs(target));
+	NS_ENSURE_TRUE(target, FALSE);
+
+	nsCOMPtr<nsIDOMDocument> doc;
+	target->GetOwnerDocument(getter_AddRefs(doc));
+	NS_ENSURE_TRUE(doc, FALSE);
+
+	nsCOMPtr<nsIDOMWindow> win;
+	doc->GetDefaultView(getter_AddRefs(win));
+	NS_ENSURE_TRUE(win, FALSE);
+
+	nsCOMPtr<nsPIDOMWindow> piWin(do_QueryInterface(win));
+	if (!piWin) return FALSE;
+	nsIDocShell* docShell = piWin->GetDocShell();
+	if (!docShell) return FALSE;
+
+	docShell->GetEditor(getter_AddRefs(editor));
+	NS_ENSURE_TRUE(editor, FALSE);
+	return TRUE;
+}
+
+BOOL get_editor(HWND hwnd, nsCOMPtr<nsIEditor>& editor)
+{
+	nsresult rv;
+	
+	nsCOMPtr<nsIWebBrowser> browser;
+	if (! kPlugin.kFuncs->GetMozillaWebBrowser(hwnd, getter_AddRefs(browser))) {
+		return FALSE;
+	}
+
+	nsCOMPtr<nsIWebBrowserFocus> focus(do_QueryInterface(browser));
+	NS_ENSURE_TRUE(focus, FALSE);
+	
+	nsCOMPtr<nsIDOMElement> elem;
+	rv = focus->GetFocusedElement(getter_AddRefs(elem));
+	NS_ENSURE_TRUE(elem, FALSE);
+	
+	nsCOMPtr<nsIDOMNSEditableElement> ee(do_QueryInterface(elem));
+	NS_ENSURE_TRUE(ee, FALSE);
+	
+	rv = ee->GetEditor(getter_AddRefs(editor));
+	NS_ENSURE_TRUE(editor, FALSE);
+	
+	return TRUE;
+}
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message,
 	WPARAM wParam, LPARAM lParam)
@@ -292,6 +363,31 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message,
 		}
 		else if (LOWORD(wParam) == g_id + 1) {
 			DoCommand(hWnd, TRUE);
+		} else if (LOWORD(wParam) >= g_id + 2 &&  (LOWORD(wParam) <= g_id + 2 + MAX_DICT_COMMAND)) {
+			char* lang = gDictCommand[LOWORD(wParam) - g_id - 2];			
+			if (*lang) {
+				nsString nsLang;
+				NS_CStringToUTF16(nsDependentCString(lang), NS_CSTRING_ENCODING_UTF8, nsLang);
+				nsCOMPtr<nsIEditor> editor;
+				if (get_editor(hWnd, editor) || get_editor2(hWnd, editor)) {
+					nsCOMPtr<nsIInlineSpellChecker> ispell;
+					editor->GetInlineSpellChecker(true, getter_AddRefs(ispell));
+					if (ispell) {
+						nsCOMPtr<nsIEditorSpellCheck> spell;
+						ispell->GetSpellChecker(getter_AddRefs(spell));
+						if (spell) {							
+							spell->SetCurrentDictionary(nsLang);
+							ispell->SpellCheckRange(0);
+							return 0;
+						}
+					}
+				}
+				nsCOMPtr<mozISpellCheckingEngine> hunspell(do_GetService("@mozilla.org/spellchecker/engine;1"));
+				if (hunspell) {
+					hunspell->SetDictionary(nsLang.get());
+					return 0;
+				}
+			}
 		}
 		break;
 	}
@@ -336,7 +432,7 @@ nsresult GetServiceByContractID(const char* cid, const nsIID& iid, void** result
   seamonkey/extensions/spellcheck/idl/mozISpellCheckingEngine.idl
   seamonkey/extensions/spellcheck/hunspell/src/mozHunspell.cpp
  */
-#include <mozISpellCheckingEngine.h>
+
 BOOL SetDictionariesDir()
 {
 	nsresult rv;
@@ -345,7 +441,7 @@ BOOL SetDictionariesDir()
 
 	nsCOMPtr<mozISpellCheckingEngine> hunspell(do_GetService("@mozilla.org/spellchecker/engine;1"));
 	if (!hunspell) return FALSE;
-	
+
 	char _localeDir[MAX_PATH];
 	kPlugin.kFuncs->GetFolder(LocaleFolder, _localeDir, MAX_PATH);
 	if (!_localeDir[0]) return TRUE;
@@ -373,59 +469,6 @@ BOOL SetDictionariesDir()
 		FindClose(hFind);
 	}   
 
-	return TRUE;
-}
-
-
-/*
-  Get nsIEditor on the focus from nsIWebBrowser.
- */
-
-BOOL get_editor2(HWND hwnd, nsCOMPtr<nsIEditor>& editor) 
-{
-	nsCOMPtr<nsIDOMNode> target;
-	gListener->GetRange(getter_AddRefs(target));
-
-	nsCOMPtr<nsIDOMDocument> doc;
-	target->GetOwnerDocument(getter_AddRefs(doc));
-	NS_ENSURE_TRUE(doc, FALSE);
-
-	nsCOMPtr<nsIDOMWindow> win;
-	doc->GetDefaultView(getter_AddRefs(win));
-	NS_ENSURE_TRUE(win, FALSE);
-
-	nsCOMPtr<nsPIDOMWindow> piWin(do_QueryInterface(win));
-	if (!piWin) return FALSE;
-	nsIDocShell* docShell = piWin->GetDocShell();
-	if (!docShell) return FALSE;
-
-	docShell->GetEditor(getter_AddRefs(editor));
-	NS_ENSURE_TRUE(editor, FALSE);
-	return TRUE;
-}
-
-BOOL get_editor(HWND hwnd, nsCOMPtr<nsIEditor>& editor)
-{
-	nsresult rv;
-	
-	nsCOMPtr<nsIWebBrowser> browser;
-	if (! kPlugin.kFuncs->GetMozillaWebBrowser(hwnd, getter_AddRefs(browser))) {
-		return FALSE;
-	}
-
-	nsCOMPtr<nsIWebBrowserFocus> focus(do_QueryInterface(browser));
-	NS_ENSURE_TRUE(focus, FALSE);
-	
-	nsCOMPtr<nsIDOMElement> elem;
-	rv = focus->GetFocusedElement(getter_AddRefs(elem));
-	NS_ENSURE_TRUE(elem, FALSE);
-	
-	nsCOMPtr<nsIDOMNSEditableElement> ee(do_QueryInterface(elem));
-	NS_ENSURE_TRUE(ee, FALSE);
-	
-	rv = ee->GetEditor(getter_AddRefs(editor));
-	NS_ENSURE_TRUE(editor, FALSE);
-	
 	return TRUE;
 }
 
