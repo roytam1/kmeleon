@@ -906,6 +906,12 @@ void EndButton(s_toolbar *toolbar, s_button *button, int state) {
 		   button->height
 	   };
 
+	   if (kbutton.hotimage && !kbutton.coldimage) {
+		   kbutton.coldimage = kbutton.hotimage;
+		   kbutton.hotimage = nullptr;
+	   }
+
+
 	   kPlugin.kFuncs->AddButtonEx(toolbar->sTitle, &kbutton);
 	   if (label) free(label);
 	   if (name) free(name);
