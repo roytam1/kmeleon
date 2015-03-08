@@ -1786,7 +1786,7 @@ void CMfcEmbedApp::CheckProfileVersion()
        }
    }
 }
-/*
+
 int CMfcEmbedApp::Run()
 {
 	if (m_pMainWnd == NULL && AfxOleGetUserCtrl())
@@ -1872,4 +1872,3 @@ BOOL CMfcEmbedApp::PumpMessage2(UINT filter)
 	}
   return TRUE;
 }
-*/
