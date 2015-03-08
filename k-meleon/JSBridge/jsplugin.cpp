@@ -176,8 +176,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	switch (message) {
 
 	case WM_COMMAND:
-		if (cmdList && cmdList->Run(hWnd, LOWORD(wParam), lParam)) return 0;
-	}
+		if (cmdList && cmdList->Run(hWnd, LOWORD(wParam), 0)) return 0;
+		break;
+	case TB_MBUTTONDOWN:
+		if (cmdList && cmdList->Run(hWnd, LOWORD(wParam), 2)) return 0;
+		break;
+	/*case TB_RBUTTONDOWN:
+		if (cmdList && cmdList->Run(hWnd, LOWORD(wParam), 2)) return 0;
+		break;*/
+   }
 	return CallWindowProc(KMeleonWndProc, hWnd, message, wParam, lParam);
 }
 

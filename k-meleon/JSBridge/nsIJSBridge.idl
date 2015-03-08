@@ -84,5 +84,6 @@ interface nsIJSBridge : nsISupports
 	void RemoveListener(in nsIObserver listener);
 
 	void LoadPlugin(in string path);
+	long ShowMenu(in string name, [optional] in bool sendCommand);
 }; 
 

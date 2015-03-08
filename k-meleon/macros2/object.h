@@ -259,9 +259,9 @@ typedef struct FunctionData
 	Statement* stat;
 
 	Value getarg(unsigned short i) {return i>0&&i<=nparam ? *(params+i-1) : Value();} 
-	MString getstr(unsigned short i) {return i>0&&i<=nparam ? (params+i-1)->strval() : "";} 
-	int getint(unsigned short i) {return i>0&&i<=nparam ? (params+i-1)->intval() : 0;} 
-	int getbool(unsigned short i) {return i>0&&i<=nparam ? (params+i-1)->boolval() : 0;} 
+	MString getstr(unsigned short i, const char* def = "") {return i>0&&i<=nparam ? (params+i-1)->strval() : def;} 
+	int getint(unsigned short i, int def = 0) {return i>0&&i<=nparam ? (params+i-1)->intval() : def;} 
+	int getbool(unsigned short i, int def = 0) {return i>0&&i<=nparam ? (params+i-1)->boolval() : def;} 
 
 
 } FunctionData;

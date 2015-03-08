@@ -62,6 +62,12 @@ bool CCmdList::Run(HWND hwnd, UINT command, UINT mode) {
 	browser->GetContentDOMWindow(getter_AddRefs(dom));
 	auto iter = cmdMap.find(command);
 	if (iter != cmdMap.end() && iter->second) {
+		if ((GetKeyState(VK_CONTROL) & 0x8000))
+			mode |= 256;
+		if ((GetKeyState(VK_SHIFT) & 0x8000))
+			mode |= 512;
+		if ((GetKeyState(VK_MENU) & 0x8000))
+			mode |= 1024;
 		iter->second->OnCommand(dom, mode, nullptr);
 		return true;
 	}
@@ -431,6 +437,12 @@ NS_IMETHODIMP CJSBridge::LoadPlugin(const char* path)
 {
 	if (!kPlugin.kFuncs->Load(path))
 		return NS_ERROR_FAILURE;
+	return NS_OK;
+}
+
+NS_IMETHODIMP CJSBridge::ShowMenu(const char* name, bool sendCommand, int32_t *_retval)
+{
+	*_retval = kPlugin.kFuncs->ShowMenu(NULL, name, sendCommand);
 	return NS_OK;
 }
 

@@ -376,10 +376,16 @@
 		MString pref = data->getstr(2);
 
 		if (preftype == PREF_UNISTRING) {
-			long len = kFuncs->GetPreference(PREF_LOCALIZED, pref, 0, L"");			
+			long len = kFuncs->GetPreference(PREF_STRING, pref, 0, L"");			
 			if (!len) return Value("");
 			char* cRetval = (char*)calloc(sizeof(char), len+1);
-			kFuncs->GetPreference(PREF_LOCALIZED, pref, cRetval, L"");
+			kFuncs->GetPreference(PREF_STRING, pref, cRetval, L"");
+			if (strncmp(cRetval, "chrome:",7) == 0) {
+				len = kFuncs->GetPreference(PREF_LOCALIZED, pref, 0, L"");			
+				if (!len) return Value("");
+				cRetval = (char*)calloc(sizeof(char), len+1);
+				kFuncs->GetPreference(PREF_LOCALIZED, pref, cRetval, L"");
+			}
 			Value v(cRetval);
 			return v;
 		}
@@ -1402,6 +1408,10 @@
 				return ret;
 			}*/
 
+			if (name == "VERSION") {
+				return kPlugin.kFuncs->GetKmeleonVersion();
+			}
+
 			if (name == "TextZoom") {
 				int zoom;
 				kPlugin.kFuncs->GetWindowVar(data->c.hWnd, Window_TextZoom, &zoom);
@@ -1699,6 +1709,22 @@
 				!(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
 	}
 
+	Value logmsg(FunctionData* data)
+	{
+		checkArgs(__FUNCTION__, data, 1, 2);
+		UINT flags = 5;
+		MString type = data->getstr(2);
+		if (type == "error") flags = 0;
+		else if (type == "warning") flags = 1;
+		return kPlugin.kFuncs->LogMessage("macro", data->getstr(1), data->stat->getFile(), data->stat->getLine(), flags);
+	}
+
+	Value popupmenu(FunctionData* data)
+	{
+		checkArgs(__FUNCTION__, data, 1, 2);
+		return kPlugin.kFuncs->ShowMenu(data->c.hWnd, data->getstr(1).c_str(), data->getint(2,1));
+	}
+
 #ifndef MACROSFUNC_ADD
 #define MACROSFUNC_ADD(entry) m->AddSymbol(#entry, ValueFunc((MacroFunction)&entry));
 #endif
@@ -1771,4 +1797,6 @@ void InitFunctions(Mac* m)
 	MACROSFUNC_ADD(renamefile);
 	MACROSFUNC_ADD(deletefile);
 	MACROSFUNC_ADD(appendfile);
+	MACROSFUNC_ADD(logmsg);
+	MACROSFUNC_ADD(popupmenu);
 }
