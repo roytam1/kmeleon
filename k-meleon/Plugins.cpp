@@ -1397,13 +1397,29 @@ void GetBrowserviewRect(HWND mainWnd, RECT *rc)
 	view->GetWindowRect(rc);
 }
 
-HMENU GetMenu(char *menuName){
+HMENU GetMenu(const char *menuName)
+{
    CMenu *menu;
    USES_CONVERSION;
    menu = theApp.menus.GetMenu(A2T(menuName));
 
    return menu ? menu->m_hMenu : NULL;
 }
+
+UINT ShowMenu(HWND hWnd, const char *name, bool sendCommand)
+{
+	HMENU menu = GetMenu(name);
+	if (!menu) return 0;
+
+	CBrowserFrame* frame = GetFrame(hWnd);
+	POINT pt;
+	GetCursorPos(&pt);
+	UINT flags = TPM_TOPALIGN | TPM_LEFTALIGN | TPM_NONOTIFY | TPM_LEFTBUTTON;
+	if (!sendCommand) flags |= TPM_RETURNCMD;
+	UINT id = TrackPopupMenuEx(menu, flags, pt.x, pt.y, frame->GetSafeHwnd(), NULL);
+	return id;
+}
+
 
 void SetForceCharset(const char *aCharset)
 {
@@ -2061,7 +2077,8 @@ kmeleonFunctions kmelFuncsUTF8 = {
    AddButton,
    SetCmdIcon,
    SetButtonIcon,
-   AddPermission
+   AddPermission,
+   ShowMenu
 };
 
 kmeleonFunctions kmelFuncs = {
@@ -2137,7 +2154,8 @@ kmeleonFunctions kmelFuncs = {
    AddButton,
    SetCmdIcon,
    SetButtonIcon,
-   AddPermission
+   AddPermission,
+   ShowMenu
 };
 
 BOOL CPlugins::TestLoad(LPCTSTR file, const char *description)

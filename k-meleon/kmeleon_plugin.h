@@ -257,7 +257,7 @@ typedef struct {
 
    void (*GetBrowserviewRect) (HWND mainWnd, RECT *rc);
 
-   HMENU (*GetMenu) (char *menu);
+   HMENU (*GetMenu) (const char *menu);
 
    void (*SetForceCharset)(const char *aCharset);
 
@@ -386,7 +386,7 @@ typedef struct {
 	int (*SetCmdIcon)(const char* name, const char* icon, const LPRECT region, const char* hot, const LPRECT hotregion, const char* dead, const LPRECT deadregion);
 	int (*SetButtonIcon)(const char* toolbar, UINT id, const char* icon, const LPRECT region, const char* hot, const LPRECT hotregion, const char* dead, const LPRECT deadregion);
 	bool (*AddPermission)(const char* url, const char* type, const char* perm, bool sessionOnly);
-
+	UINT (*ShowMenu)(HWND hWnd, const char* name, bool sendCommand);
 } kmeleonFunctions;
 
 /*

@@ -94,7 +94,7 @@ typedef struct Program {
 static char* reservedwords[] = { "while", "if", "else", "and", "or", "not", "menu", "menuchecked", "menugrayed", "macroinfo" };
 #define MAXRESERVED sizeof(reservedwords) / sizeof(char*)
 
-static char* windowvars[] = { "URL", "URLBAR", "SelectedText", "FrameURL", "LinkURL", "ImageURL", "CHARSET", "TextZoom", "TITLE", "WindowNumber", "TabNumber", "CommandLine", "SEARCHURL", "LANG" };
+static char* windowvars[] = { "URL", "URLBAR", "SelectedText", "FrameURL", "LinkURL", "ImageURL", "CHARSET", "TextZoom", "TITLE", "WindowNumber", "TabNumber", "CommandLine", "SEARCHURL", "LANG", "VERSION" };
 #define MAXWINDOWVARS sizeof(windowvars) / sizeof(char*)
 
 static const int OpPriority[] = {0, 5, 5, 6, 6, 6, 4, 4, 4, 4, 4, 4, 2, 1, 3, 3};
