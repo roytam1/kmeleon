@@ -380,8 +380,10 @@ NS_IMETHODIMP KmAppInfo::SetInterrupted(bool aInterrupted)
 
 NS_IMETHODIMP KmAppInfo::ProcessNativeEvent(void* aMsg)
 {
+	_AFX_THREAD_STATE *pState = AfxGetThreadState();
 	MSG* msg = (MSG*)aMsg;
-	if (!AfxPreTranslateMessage(msg))
+	pState->m_msgCur = *msg;
+	if (msg->message != WM_KICKIDLE && !AfxPreTranslateMessage(msg))
 	{
 		::TranslateMessage(msg);
 		::DispatchMessage(msg);
