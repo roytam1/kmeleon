@@ -138,9 +138,8 @@ protected:
 
 public:
 	afx_msg void OnBnClickedCloseWhenDone();
+	afx_msg BOOL OnQueryEndSession();
 };
-
-// Boîte de dialogue COpenSaveDlg
 
 class COpenSaveDlg : public CDialog
 {
@@ -149,8 +148,6 @@ class COpenSaveDlg : public CDialog
 public:
 	COpenSaveDlg(CWnd* pParent = NULL);   // constructeur standard
 	virtual ~COpenSaveDlg();
-
-// Données de boîte de dialogue
 	enum { IDD = IDD_OPENSAVE };
 
 protected:
