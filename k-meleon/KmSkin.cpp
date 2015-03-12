@@ -206,6 +206,14 @@ bool KmSkin::FindSkinFile( CString& szSkinFile, LPCTSTR filename, LPCTSTR skin, 
 
 	// Fallback to shared
 	if (searchUser) {
+		file = theApp.GetFolder(UserSkinsFolder) + _T("\\shared\\") + filename;
+		hFile = FindFirstFile(file, &FindData);
+		if(hFile != INVALID_HANDLE_VALUE) {   
+			FindClose(hFile);
+			szSkinFile = file;
+			return true;
+		}
+
 		file = theApp.GetFolder(SkinsFolder) + _T("\\shared\\") + filename;
 		hFile = FindFirstFile(file, &FindData);
 		if(hFile != INVALID_HANDLE_VALUE) {   
