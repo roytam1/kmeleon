@@ -1066,8 +1066,8 @@
 			return "";
 		FILE* f = _wfopen(data->getstr(1).utf16(), L"r");
 		if (f) {
-			char* buffer = new char[32768];
-			int size = fread(buffer, sizeof(char), 32768-1, f);
+			char* buffer = new char[65536];
+			int size = fread(buffer, sizeof(char), 65536-1, f);
 			buffer[size] = 0;
 			Value ret = buffer;
 			fclose(f);
@@ -1612,7 +1612,7 @@
 		checkArgs(__FUNCTION__, data, 3);
 		kmeleonButton b = {0};
 		b.enabled = -1;
-		b.checked = data->getbool(2);
+		b.checked = data->getbool(3);
 		return kPlugin.kFuncs->SetButton(data->getstr(1), kPlugin.kFuncs->GetID(data->getstr(2)), &b);
 	}
 	/*
