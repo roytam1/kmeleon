@@ -346,5 +346,11 @@ LRESULT CHiddenWnd::OnDeferSaveAs(WPARAM wParam, LPARAM lParam)
 
 void CHiddenWnd::OnEndSession(BOOL bEnding)
 {
-   CFrameWnd::OnEndSession(bEnding);
+   if (!bEnding) return;
+   theApp.plugins.SendMessage("*", "* Plugin Manager", "Quit");
+   theApp.favicons.WriteCache();
+   theApp.preferences.Flush();
+   XRE_TermEmbedding();
+   theApp.plugins.UnLoadAll();
 }
+
