@@ -176,14 +176,14 @@ public:
 	TDS tds;
 	StatList root;
 
-	Value* AddSymbol(std::string name, Value v)
+	Value* AddSymbol(const std::string& name, const Value& v)
 	{
 		TDS::iterator it;
 		it = tds.insert(tds.end(), TDS::value_type(name, v));
 		return &it->second;
 	}
 
-	Value* FindSymbol(std::string name)
+	Value* FindSymbol(const std::string& name)
 	{
 		TDS::iterator it = tds.find(name);
 		if (it == tds.end())
@@ -191,7 +191,7 @@ public:
 		return &it->second;
 	}
 
-	std::string FindSymbol(Value* val)
+	std::string FindSymbol(const Value* val)
 	{
 		for (TDS::iterator it = tds.begin(); it!= tds.end(); it++)
 			if (val == &it->second)
