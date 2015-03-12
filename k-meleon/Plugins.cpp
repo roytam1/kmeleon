@@ -1939,7 +1939,7 @@ bool SetButton(const char* name, UINT id, kmeleonButton* button)
 		b->mColdImage = A2CT(button->coldimage);
 		t->Refresh();
 	}
-
+	theApp.PostThreadMessage(WM_KICKIDLE, 0, 0);
 	return true;
 }
 

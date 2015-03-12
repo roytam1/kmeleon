@@ -517,19 +517,27 @@ int SaveHotlist(FILE *bmFile, CBookmarkNode *node)
       if (type == BOOKMARK_FOLDER) {
          char *pszTmp;
          fprintf(bmFile, "#FOLDER%s", EOL);
-		 if (child->id_opera>0)
-            fprintf(bmFile, "\tID=%ld%s", child->id_opera, EOL);
+		 if (child->id_opera>0) {
+            fprintf(bmFile, "\tID=%ld", child->id_opera);
+			fprintf(bmFile, EOL);
+		 }
 		 pszTmp = kPlugin.kFuncs->EncodeUTF8((char*)child->text.c_str());
          fprintf(bmFile, "\tNAME=%s%s", (pszTmp && *pszTmp) ? pszTmp : (char*)child->text.c_str(), EOL);
          if (pszTmp)
             free(pszTmp);
 
-         if (child->addDate>0)
-            fprintf(bmFile, "\tCREATED=%ld%s", child->addDate, EOL);
-		 if (child->lastVisit>0)
-            fprintf(bmFile, "\tVISITED=%ld%s", child->lastVisit, EOL);
-         if (child->order!=-1) 
-		    fprintf(bmFile, "\tORDER=%ld%s", child->order, EOL);
+         if (child->addDate>0) {
+            fprintf(bmFile, "\tCREATED=%ld", child->addDate);
+			fprintf(bmFile, EOL);
+		 }
+		 if (child->lastVisit>0) {
+            fprintf(bmFile, "\tVISITED=%ld", child->lastVisit);
+			fprintf(bmFile, EOL);
+		 }
+         if (child->order!=-1) {
+		    fprintf(bmFile, "\tORDER=%ld", child->order);
+            fprintf(bmFile, EOL);
+		 }
          
 		 if (child->desc.length()>0 && (pszTmp = kPlugin.kFuncs->EncodeUTF8((char*)child->desc.c_str()))) {
             fprintf(bmFile, "\tDESCRIPTION=%s%s", pszTmp, EOL);
