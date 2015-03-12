@@ -307,7 +307,7 @@ int DoAccel(char *param)
 BOOL get_editor2(HWND hwnd, nsCOMPtr<nsIEditor>& editor) 
 {
 	nsCOMPtr<nsIDOMNode> target;
-	gListener->GetRange(getter_AddRefs(target));
+	if (gListener) gListener->GetRange(getter_AddRefs(target));
 	NS_ENSURE_TRUE(target, FALSE);
 
 	nsCOMPtr<nsIDOMDocument> doc;
@@ -794,7 +794,7 @@ BOOL DoCommand(HWND hwnd, BOOL bHere)
 
 	int32_t offset = 0;
 	nsCOMPtr<nsIDOMNode> node;
-	if (!bHere) {
+	if (!bHere && gListener) {
 		gListener->GetRange(getter_AddRefs(node));
 		gListener->GetOffset(&offset);
 	}
