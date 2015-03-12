@@ -1037,6 +1037,7 @@ BEGIN_MESSAGE_MAP(CProgressDialog, CDialog)
 	ON_COMMAND(IDC_OPENFOLDER, OnOpenFolder)
 	ON_COMMAND(WM_CLOSE, OnClose)
 	ON_BN_CLICKED(IDC_CLOSE_WHEN_DONE, OnBnClickedCloseWhenDone)
+	ON_WM_QUERYENDSESSION()
 END_MESSAGE_MAP()
 
 void CProgressDialog::Cancel() {
@@ -1501,4 +1502,13 @@ void COpenSaveDlg::OnDestroy()
 	DestroyIcon(m_cFileIcon.GetIcon());
 }
 
+BOOL CProgressDialog::OnQueryEndSession()
+{
+	if (!__super::OnQueryEndSession())
+		return FALSE;
 
+	if (m_bWindow)
+		return FALSE;
+
+	return TRUE;
+}
