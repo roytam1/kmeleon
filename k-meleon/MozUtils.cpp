@@ -560,14 +560,17 @@ BOOL LogMessage(const char* category, const char* message, const char* file, uin
 {
 	nsCOMPtr<nsIConsoleService> consoleService = do_GetService(NS_CONSOLESERVICE_CONTRACTID);
 	if (!consoleService) FALSE;
+
+	if (flags == 5) {
+		return NS_SUCCEEDED(consoleService->LogStringMessage(NS_ConvertUTF8toUTF16(message).get()));
+	}
 	
 	nsCOMPtr<nsIScriptError> scriptError = do_CreateInstance(NS_SCRIPTERROR_CONTRACTID);
 	if (!scriptError) FALSE;
 	
-	USES_CONVERSION;
 	nsresult rv = scriptError->Init(
-		nsString(A2CW(message)),
-		nsString(A2CW(file)),
+		NS_ConvertUTF8toUTF16(message),
+		NS_ConvertUTF8toUTF16(file),
 		nsString(L""),	line, 0,
 		flags,
 		category);
@@ -658,6 +661,7 @@ bool ZipExtractFiles(nsIFile* zipFile, nsIFile* folder)
 	return true;
 }
 
+#include "js-config.h"
 #include "nsIDOMHTMLScriptElement.h"
 #include "nsAppShellCID.h"
 #include "nsIAppShellService.h"
@@ -719,7 +723,7 @@ bool InjectJS(nsIDOMWindow* dom, const wchar_t* userScript, CString& result)
 	JSAutoCompartment ac(cx, scriptContext->GetWindowProxy());
 	JS::Rooted<JSObject*> globalJSObject(cx, innerGlobal->GetGlobalJSObject());
 	JS::Rooted<JS::Value> v (cx, JS::UndefinedValue());
-	JS_EvaluateUCScript(cx, globalJSObject, userScript, wcslen(userScript), "", 0, &v);
+	JS_EvaluateUCScript(cx, globalJSObject, userScript, wcslen(userScript), "kmeleon", 0, &v);
 	
 	if (v.isString() && !v.isObject())
 		result = NSStringToCString(nsString(JS_GetStringCharsZ(cx, v.toString())));
