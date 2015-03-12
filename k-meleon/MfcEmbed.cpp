@@ -128,6 +128,8 @@ ON_COMMAND(ID_MANAGE_PROFILES, OnManageProfiles)
 ON_COMMAND(ID_PREFERENCES, OnPreferences)
 ON_COMMAND(ID_OFFLINE, OnToggleOffline)
 ON_COMMAND(ID_TOGGLE_JS, OnToggleJS)
+ON_COMMAND(ID_APP_RESTART, OnAppRestart)
+ON_UPDATE_COMMAND_UI(ID_APP_RESTART, OnUpdateAppRestart)
 ON_UPDATE_COMMAND_UI(ID_TOGGLE_JS, OnUpdateToggleJS)
 ON_UPDATE_COMMAND_UI(ID_OFFLINE, OnUpdateToggleOffline)
 ON_UPDATE_COMMAND_UI_RANGE(WINDOW_MENU_START_ID, WINDOW_MENU_STOP_ID, OnUpdateWindows)
@@ -1871,4 +1873,10 @@ BOOL CMfcEmbedApp::PumpMessage2(UINT filter)
 		::DispatchMessage(&(pState->m_msgCur));
 	}
   return TRUE;
+}
+
+void CMfcEmbedApp::OnAppRestart()
+{
+	((CMfcEmbedApp*)::AfxGetApp())->SetRestart(TRUE);
+	PostQuitMessage(0);	
 }

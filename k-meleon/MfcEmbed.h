@@ -173,6 +173,8 @@ public:
    afx_msg void OnUpdateToggleOffline(CCmdUI* pCmdUI);
    afx_msg void OnUpdateWindows(CCmdUI* pCmdUI);
    afx_msg void OnWindowSelect(UINT id);
+   afx_msg void OnAppRestart();
+   afx_msg void OnUpdateAppRestart(CCmdUI* pCmdUI) { pCmdUI->Enable(); }
    
    // NOTE - the ClassWizard will add and remove member functions here.
    // DO NOT EDIT what you see in these blocks of generated code !

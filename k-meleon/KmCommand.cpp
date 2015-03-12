@@ -190,6 +190,7 @@ void KmCmdService::InitDefaultCmd()
 
 	ADD_DEFCMD(appExit, ID_APP_EXIT);
 	ADD_DEFCMD(appAbout, ID_APP_ABOUT);
+	ADD_DEFCMD(appRestart, ID_APP_RESTART);
 	ADD_DEFCMD(windowClose, ID_FILE_CLOSE);
 	ADD_DEFCMD(windowNew, ID_NEW_BROWSER);
 	ADD_DEFCMD(windowNext, ID_WINDOW_NEXT);
