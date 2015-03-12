@@ -351,6 +351,5 @@ void CHiddenWnd::OnEndSession(BOOL bEnding)
    theApp.favicons.WriteCache();
    theApp.preferences.Flush();
    XRE_TermEmbedding();
-   theApp.plugins.UnLoadAll();
+   //theApp.plugins.UnLoadAll();
 }
-
