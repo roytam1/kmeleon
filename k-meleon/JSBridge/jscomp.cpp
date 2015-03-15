@@ -55,13 +55,14 @@ CCmdList* GetCmdList() {
 	return cmdList;
 }
 
-bool CCmdList::Run(HWND hwnd, UINT command, UINT mode) {
-	nsCOMPtr<nsIWebBrowser> browser;
-	kPlugin.kFuncs->GetMozillaWebBrowser(hwnd, getter_AddRefs(browser));
-	nsCOMPtr<nsIDOMWindow> dom;
-	browser->GetContentDOMWindow(getter_AddRefs(dom));
+bool CCmdList::Run(HWND hwnd, UINT command, UINT mode) {	
 	auto iter = cmdMap.find(command);
 	if (iter != cmdMap.end() && iter->second) {
+		nsCOMPtr<nsIWebBrowser> browser;
+		kPlugin.kFuncs->GetMozillaWebBrowser(hwnd, getter_AddRefs(browser));
+		if (!browser) return false;
+		nsCOMPtr<nsIDOMWindow> dom;
+		browser->GetContentDOMWindow(getter_AddRefs(dom));
 		if ((GetKeyState(VK_CONTROL) & 0x8000))
 			mode |= 256;
 		if ((GetKeyState(VK_SHIFT) & 0x8000))
