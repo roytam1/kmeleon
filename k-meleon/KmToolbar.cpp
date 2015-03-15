@@ -250,6 +250,7 @@ void KmToolbar::Remove(CToolBarEx* hToolbar)
 		}
 		mToolbars.GetNext(pos);	
 	}
+	ASSERT(pos != mToolbars.GetTailPosition());
 }
 
 bool KmToolbar::Init(CToolBarEx* hToolbar)
@@ -302,6 +303,9 @@ void KmToolbarService::CloseWindow(CBrowserFrame* frame)
 	POSITION pos = mToolbars.GetStartPosition();
 	while (pos) {
 		mToolbars.GetNextAssoc( pos, s, ktoolbar);
+		CToolBarEx* hToolbar = (CToolBarEx*)CWnd::FromHandle(frame->m_wndReBar.GetChildByName(s));
+		ASSERT(hToolbar);
+		ktoolbar->Remove(hToolbar);
 	}
 }
 
