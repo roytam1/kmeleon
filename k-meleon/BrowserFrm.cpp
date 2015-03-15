@@ -319,6 +319,7 @@ void CBrowserFrame::OnDestroy()
 	if (!IsDialog())
        theApp.plugins.SendMessage("*", "* OnClose", "Destroy", (long)m_hWnd);
 	
+	theApp.toolbars.CloseWindow(this);
 	m_wndStatusBar.RemoveIcon(ID_SECURITY_STATE_ICON);
 	CFrameWnd::OnDestroy();
 }

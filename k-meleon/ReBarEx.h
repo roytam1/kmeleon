@@ -39,6 +39,7 @@ public:
    HMENU m_menu;
    
    int FindByName(const TCHAR *name);
+   HWND GetChildByName(const TCHAR *name);
    void ShowBand(int index, BOOL visibility);
    int count() { return m_iCount; }
    void lineup();

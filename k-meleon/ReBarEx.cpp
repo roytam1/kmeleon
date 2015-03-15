@@ -355,6 +355,13 @@ int CReBarEx::FindByChild(HWND hWnd) {
    return -1;
 }
 
+HWND CReBarEx::GetChildByName(const TCHAR *name) {
+   for (int x=0; x<m_iCount; x++)
+      if (m_index[x]->name && _tcsicmp(name, m_index[x]->name) == 0)
+		  return m_index[x]->hWnd;
+   return NULL;
+}
+
 int CReBarEx::FindByName(const TCHAR *name) {
    for (int x=0; x<m_iCount; x++)
       if (m_index[x]->name && _tcsicmp(name, m_index[x]->name) == 0)
