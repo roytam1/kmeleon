@@ -387,6 +387,8 @@ typedef struct {
 	int (*SetButtonIcon)(const char* toolbar, UINT id, const char* icon, const LPRECT region, const char* hot, const LPRECT hotregion, const char* dead, const LPRECT deadregion);
 	bool (*AddPermission)(const char* url, const char* type, const char* perm, bool sessionOnly);
 	UINT (*ShowMenu)(HWND hWnd, const char* name, bool sendCommand);
+	HWND (*GetCurrent)(HWND hWnd);
+	bool (*RunCommand)(HWND hWnd, const char* command);
 } kmeleonFunctions;
 
 /*

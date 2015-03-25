@@ -578,7 +578,7 @@ BOOL CTabReBar::DeleteItem(int idCommand)
 	return r;
 }
 
-int CTabReBar::FindByData(DWORD_PTR data)
+int CTabReBar::FindByData(DWORD_PTR data) const
 {
 	bool found = false;
 	
@@ -594,7 +594,7 @@ int CTabReBar::FindByData(DWORD_PTR data)
 	return iCount;
 }
 
-int CTabReBar::FindById(int idCommand)
+int CTabReBar::FindById(int idCommand) const
 {
 	bool found = false;
 	int iCount, iButtonCount = GetToolBarCtrl().GetButtonCount();

@@ -152,10 +152,7 @@ public:
 		tabcount++;
 	}
 
-	void addTab(HWND hWnd) {
-		tabsList.push_back(Tab(hWnd, this->hWnd));
-		tabcount++;
-	}
+	void addTab(HWND hWnd);
 
 	TABLIST::iterator const findTab(HWND hWnd) {
 		TABLIST::iterator iter;
@@ -358,9 +355,11 @@ typedef std::vector<Window> WINLIST;
 class Session {
 	std::string name;
 	WINLIST windowsList;
+	
 public:
 
 	static bool loading;
+	static int openOption;
 
 	Session() {
 		//name = aName;
@@ -479,9 +478,18 @@ public:
 
 		HWND activewnd = NULL;
 		WINLIST::iterator iter = windowsList.begin();
+		
+		// XXX Change the open tab option
+		int tmp = 0;
+		kPlugin.kFuncs->GetPreference(PREF_INT, "kmeleon.tabs.onOpenOption", &openOption, &openOption);
+		kPlugin.kFuncs->SetPreference(PREF_INT, "kmeleon.tabs.onOpenOption", &tmp, FALSE);
+
 		for (iter = windowsList.begin(); iter != windowsList.end(); iter++) {
 			if ((*iter).open()) activewnd = (*iter).hWnd;
 		}
+
+		kPlugin.kFuncs->SetPreference(PREF_INT, "kmeleon.tabs.onOpenOption", &openOption, FALSE);
+
 		if (activewnd) SetForegroundWindow(activewnd);
 		return true;
 	}

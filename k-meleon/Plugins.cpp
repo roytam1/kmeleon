@@ -975,7 +975,8 @@ UINT GetWindowVar(HWND hWnd, WindowVarType type, void* ret)
 		case Window_Tab_Index: {
 			if (!ret) return 1;
 			if (frame->IsKindOf(RUNTIME_CLASS(CBrowserFrmTab)))
-				*(int*)ret = ((CBrowserFrmTab*)frame)->GetActiveTab()->m_iIndex;
+				//*(int*)ret = ((CBrowserFrmTab*)frame)->GetActiveTab()->m_iIndex;
+				*(int*)ret = ((CBrowserFrmTab*)frame)->GetTabBar()->FindByData((DWORD_PTR)(CBrowserTab*)view);
 			else
 				*(int*)ret = 0;
 			return 1;
@@ -2004,6 +2005,25 @@ bool AddPermission(const char* url, const char* type, const char* perm, bool ses
 	return NS_SUCCEEDED(man->Add(uri, type, permission, sessionOnly?nsIPermissionManager::EXPIRE_SESSION:nsIPermissionManager::EXPIRE_NEVER, 0));
 }
 
+HWND GetCurrent(HWND hWnd)
+{
+	CBrowserFrame* frame = GetFrame(hWnd);
+	if (!frame) return NULL;
+	return frame->GetActiveView()->GetSafeHwnd();
+}
+
+bool RunCommand(HWND hWnd, const char* command)
+{
+	UINT id = theApp.commands.GetId(command);
+	if (!id) return false;	
+
+	PLUGIN_HEADER(hWnd, false);
+	if (view->OnCmdMsg(id, CN_COMMAND, nullptr, nullptr))
+		return true;
+
+	return frame->SendMessage(WM_COMMAND, MAKELONG(id, 1), 0)>0;
+}
+
 kmeleonFunctions kmelFuncsUTF8 = {
    SendMessage,
    GetCommandIDs,
@@ -2078,7 +2098,9 @@ kmeleonFunctions kmelFuncsUTF8 = {
    SetCmdIcon,
    SetButtonIcon,
    AddPermission,
-   ShowMenu
+   ShowMenu,
+   GetCurrent,
+   RunCommand
 };
 
 kmeleonFunctions kmelFuncs = {
@@ -2155,7 +2177,9 @@ kmeleonFunctions kmelFuncs = {
    SetCmdIcon,
    SetButtonIcon,
    AddPermission,
-   ShowMenu
+   ShowMenu,
+   GetCurrent,
+   RunCommand
 };
 
 BOOL CPlugins::TestLoad(LPCTSTR file, const char *description)
