@@ -260,7 +260,7 @@ BOOL CBrowserWrapper::CreateBrowser(CWnd* parent, uint32_t chromeFlags)
 	*/
 	
     // Finally, show the web browser window
-    mBaseWindow->SetVisibility(PR_TRUE);
+    mBaseWindow->SetVisibility(true);
 	return TRUE;
 }
 
@@ -1121,9 +1121,11 @@ BOOL CBrowserWrapper::GetSelection(CString& aSelText)
 	return TRUE;
 }
 
+#include "nsRect.h"
+
 void CBrowserWrapper::SetVisible(BOOL aVisible)
 {
-	GetDocShell()->SetIsActive(aVisible);
+	mWebBrowser->SetIsActive(aVisible);
 }
 
 //#include "nsIWidgetListener.h"
@@ -1236,7 +1238,7 @@ BOOL CBrowserWrapper::ViewContentContainsFrames()
     rv = mWebNav->GetDocument(getter_AddRefs(domDoc));
     if(NS_FAILED(rv))
        return FALSE;
-
+	
     // QI nsIDOMDocument for nsIDOMHTMLDocument
     nsCOMPtr<nsIDOMHTMLDocument> htmlDoc = do_QueryInterface(domDoc);
     if (!htmlDoc)

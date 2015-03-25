@@ -606,6 +606,7 @@ bool CBrowserGlue::performXULCommand(LPCWSTR id, LPCTSTR siteUri)
    }
    else 
    {
+      if (!*id) return false;
       UINT nid = theApp.commands.GetId(id);
 	  if (nid) {
          mpBrowserFrame->SendMessage(WM_COMMAND, (WPARAM)nid, 0L);
