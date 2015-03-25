@@ -20,6 +20,7 @@
 #include <map>
 #include <stdio.h>
 #include "../Utils.h"
+#include <ctime>
 
 ///////////////////////////
 // Utilities 
@@ -508,13 +509,7 @@
 	Value id(FunctionData* data)
 	{
 		checkArgs(__FUNCTION__, data, 1);
-		int cmd;
-		cmd = kPlugin.kFuncs->GetID(data->getstr(1));
-		if (!cmd)
-			cmd = data->getint(1);
-
-		SendMessage(data->c.hWnd, WM_COMMAND, MAKELONG(cmd, 1), (LPARAM)NULL);
-		return "";
+		return kPlugin.kFuncs->RunCommand(data->c.hWnd, data->getstr(1));
 	}
 
 	Value plugin(FunctionData* data)
@@ -1115,7 +1110,7 @@
 
 	Value deletefile(FunctionData* data)
 	{
-		NEEDTRUST(data);
+		//NEEDTRUST(data);
 		checkArgs(__FUNCTION__, data, 1);		
 		int res = _wunlink(data->getstr(1).utf16());
 		return res == 0;	
@@ -1643,7 +1638,8 @@
 		std::string macro;
 		UINT_PTR idEvent;
 		HWND hWnd;
-		TimerStruct() : idEvent(0) {}
+		bool onlyonce;
+		TimerStruct() : idEvent(0), hWnd(NULL), onlyonce(true) {}
 	} TimerStruct;
 	
 	TimerStruct timers[MAX_TIMERS];
@@ -1654,41 +1650,74 @@
 		for (i=0;i<MAX_TIMERS;i++)
 			if (timers[i].idEvent == idEvent)
 				break;
-		if (i >= MAX_TIMERS) return;
-		ExecuteMacro(timers[i].hWnd, timers[i].macro.c_str());
-		KillTimer(NULL, idEvent);
+
+		if (i >= MAX_TIMERS) return;	
+
+		if (timers[i].hWnd && !IsWindow(timers[i].hWnd)) {
+			// Tab was closed, just kill the timer
+			KillTimer(NULL, idEvent);		
+			timers[i].idEvent = 0;
+			return;
+		}
+
+		if (timers[i].onlyonce) {
+			KillTimer(NULL, idEvent);		
+			timers[i].idEvent = 0;
+		}
+
+		ExecuteMacro(timers[i].hWnd, timers[i].macro.c_str());		
 	}
 	
 	Value settimer(FunctionData* data)
 	{
-		checkArgs(__FUNCTION__, data, 2, 2);
+		checkArgs(__FUNCTION__, data, 2, 3);
 
 		int i = 0;
 		for (i=0;i<MAX_TIMERS;i++)
-			if (!timers[i].macro.length())
+			if (!timers[i].idEvent)
 				break;
 
 		if (i >= MAX_TIMERS)
 			return 0;
+
+		if (data->c.hWnd && !IsWindow(data->c.hWnd))
+			return 0;
+
+		if (data->getint(2) < 1)
+			return 0;
+		
+		timers[i].hWnd = data->c.hWnd;
+		timers[i].onlyonce = true;
+		if (data->getstr(3).compare("free") == 0)
+			timers[i].hWnd = NULL;
+		else if (data->getstr(3).compare("continuous") == 0)
+			timers[i].onlyonce = false;
 		
 		timers[i].macro = data->getstr(1);
-		timers[i].hWnd = data->c.hWnd;
-		timers[i].idEvent = SetTimer(NULL, (UINT_PTR)&timers[i], data->getint(2), TimerProc);
+		timers[i].idEvent = SetTimer(NULL, (UINT_PTR)&timers[i], data->getint(2)*1000, TimerProc);
 		return timers[i].idEvent;
 	}
 
 	Value killtimer(FunctionData* data)
 	{
-		checkArgs(__FUNCTION__, data, 1, 1);
-		int idEvent  = data->getint(1);
-		int i;
+		checkArgs(__FUNCTION__, data, 0, 1);
+		int i, idEvent  = data->getint(1);
+		
+		if (idEvent == 0) {
+			for (i=0;i<MAX_TIMERS;i++)
+				if (timers[i].idEvent && timers[i].hWnd == data->c.hWnd) {
+					KillTimer(NULL, timers[i].idEvent);
+					timers[i].idEvent = 0;
+				}
+			return true;
+		}
+
 		for (i=0;i<MAX_TIMERS;i++)
 			if (timers[i].idEvent == idEvent)
 				break;
 		if (i >= MAX_TIMERS) return false;
 		//if (i<0 || i>=MAX_TIMERS) return false;
 		KillTimer(NULL, idEvent);
-		timers[i].macro.empty();
 		timers[i].idEvent = 0;
 		return true;
 	}
@@ -1723,6 +1752,11 @@
 	{
 		checkArgs(__FUNCTION__, data, 1, 2);
 		return kPlugin.kFuncs->ShowMenu(data->c.hWnd, data->getstr(1).c_str(), data->getint(2,1));
+	}
+
+	Value time(FunctionData* data)
+	{
+		return std::time(nullptr);
 	}
 
 #ifndef MACROSFUNC_ADD
@@ -1799,4 +1833,5 @@ void InitFunctions(Mac* m)
 	MACROSFUNC_ADD(appendfile);
 	MACROSFUNC_ADD(logmsg);
 	MACROSFUNC_ADD(popupmenu);
+	MACROSFUNC_ADD(time);
 }
