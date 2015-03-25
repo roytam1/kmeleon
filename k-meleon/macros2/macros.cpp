@@ -940,7 +940,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			ExecuteMacro(hWnd, "OnOpenWindow", false);
 		}
 		else
-			if (arglist->execute(hWnd, LOWORD(wParam)))
+			if (arglist->execute(kPlugin.kFuncs->GetCurrent(hWnd), LOWORD(wParam)))
 				return 0;
 		break;
 
@@ -955,7 +955,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 			// Let k-meleon update the last browser frame value.
 			LRESULT result = CallWindowProc(KMeleonWndProc, hWnd, message, wParam, lParam);
-			ExecuteMacro(hWnd, "OnActivateWindow", false);
+			ExecuteMacro(kPlugin.kFuncs->GetCurrent(hWnd), "OnActivateWindow", false);
 			return result;
 		}
 		break;
