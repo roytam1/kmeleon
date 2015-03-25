@@ -338,11 +338,14 @@ bool KmSkin::Init(LPCTSTR skinName)
 			Value& confCmd = confCmds[j];
 			if (confCmd.IsArray()) {
 				for (SizeType k=0;k<confCmd.Size();k++) {
-					mImages->mCmdList[theApp.commands.GetId(confCmd[k].GetString())] = pos+j;
+					int id = theApp.commands.GetId(confCmd[k].GetString());
+					if (id)	mImages->mCmdList[id] = pos+j;
 				}
 			} else {
-				if (confCmd.IsString())
-					mImages->mCmdList[theApp.commands.GetId(confCmd.GetString())] = pos+j;
+				if (confCmd.IsString()) {
+					int id = theApp.commands.GetId(confCmd.GetString());
+					if (id) mImages->mCmdList[id] = pos+j;
+				}
 			}
 		}		
 	}

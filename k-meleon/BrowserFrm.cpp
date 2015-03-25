@@ -229,7 +229,7 @@ BOOL CBrowserFrame::PreTranslateMessage(MSG* pMsg)
             return 0;
       }
 	  else if (MapVirtualKey(pMsg->wParam, 2  /*MAPVK_VK_TO_CHAR*/) != 0) {
-         if (!(GetKeyState(VK_CONTROL) & 0x8000) && (!GetActiveView()->IsChild(GetFocus()) || GetActiveView()->GetBrowserWrapper()->InputHasFocus()))
+         if (!(GetKeyState(VK_MENU) & 0x8000) && (!GetActiveView()->IsChild(GetFocus()) || GetActiveView()->GetBrowserWrapper()->InputHasFocus()))
             return 0;
 	  }
 
@@ -316,10 +316,10 @@ void CBrowserFrame::OnDestroy()
     // that's bad because our menu is shared between all windows
     SetMenu(NULL);
 
-	if (!IsDialog())
-       theApp.plugins.SendMessage("*", "* OnClose", "Destroy", (long)m_hWnd);
-	
-	theApp.toolbars.CloseWindow(this);
+	if (!IsDialog()) {
+		theApp.plugins.SendMessage("*", "* OnClose", "Destroy", (long)m_hWnd);
+		theApp.toolbars.CloseWindow(this);
+	}
 	m_wndStatusBar.RemoveIcon(ID_SECURITY_STATE_ICON);
 	CFrameWnd::OnDestroy();
 }
