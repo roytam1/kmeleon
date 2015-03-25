@@ -62,6 +62,22 @@ kmeleonPlugin kPlugin = {
 #include "sessions.h"
 
 bool Session::loading = false;
+int Session::openOption = 0;
+
+void Window::addTab(HWND hWnd) {	
+	int option = 0;
+	kPlugin.kFuncs->GetPreference(PREF_INT, "kmeleon.tabs.onOpenOption", &option, &option);
+	// Until we have a better option
+	if (option != 1 || !tabsList.size())
+		tabsList.push_back(Tab(hWnd, this->hWnd));
+	else {
+		HWND hWndCurrent = kPlugin.kFuncs->GetCurrent(hWnd);	
+		TABLIST::iterator iter = findTab(hWndCurrent);
+		if (iter != tabsList.end()) iter++;
+		tabsList.insert(iter , Tab(hWnd, this->hWnd));
+	}
+	tabcount++;
+}
 
 Session currentSession;
 Session undo;
@@ -174,10 +190,10 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
       }
 	  else if (strcmp(subject, "SwitchTab") == 0) {
 		 int selected = 0;
-		 if (!data1) return 0;
-		 Window* w = currentSession.getWindow(GetParent((HWND)data1));
+		 if (!data2) return 0;
+		 Window* w = currentSession.getWindow(GetParent((HWND)data2));
 		 if (w) {
-			 kPlugin.kFuncs->GetWindowVar((HWND)data1, Window_Tab_Index, &selected);
+			 kPlugin.kFuncs->GetWindowVar((HWND)data2, Window_Tab_Index, &selected);
 			 w->selectedTab = selected;
 		 }
       }	  

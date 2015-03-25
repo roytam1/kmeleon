@@ -152,6 +152,7 @@ public:
 
 	virtual void RecalcLayout(BOOL bNotify = TRUE);
 
+	const CTabReBar* GetTabBar() { return m_wndTabs; }
 protected:
 
 	CBrowserTab* m_wndCBrowserTab;

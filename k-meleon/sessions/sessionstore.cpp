@@ -324,7 +324,8 @@ bool SessionStore::Read(Session& s)
 		if (win.HasMember("tabs") && win["tabs"].IsArray() && win["tabs"].Size()) {
 			Value& tabs = win["tabs"];
 			w.tabcount = tabs.Size();
-			w.selectedTab = win["selected"].GetInt();			
+			w.selectedTab = win["selected"].GetInt();
+			w.tabsList.reserve(w.tabcount);
 			for (SizeType j=0;j<w.tabcount;j++) {
 				Tab tab(NULL, w.hWnd);
 				Value& t = tabs[j];

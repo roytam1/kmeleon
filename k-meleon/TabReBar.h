@@ -108,8 +108,8 @@ public:
 
 	//UINT GetItemCommandID(int index);
 	BOOL DeleteItem(int idCommand);
-	int FindById(int idCommand);
-	int FindByData(DWORD_PTR data);
+	int FindById(int idCommand) const;
+	int FindByData(DWORD_PTR data) const;
 	CMenu* m_Menu;
 
 	BOOL GetItemText(int idCommand, CString& str);
