@@ -453,7 +453,7 @@ int GetMacroState(int id)
 
 	Value* macro = M->FindSymbol(macroname);
 	if (!macro || !macro->ismacro() ||
-		(!macro->md->menuChecked && ! macro->md->menuGrayed))
+		(!macro->md->btnChecked && ! macro->md->menuGrayed))
 		 return -1;
 
 	Value *v = M->FindSymbol("$ARG");
@@ -462,10 +462,9 @@ int GetMacroState(int id)
 
 	int res = 0;
 	Context c = {NULL};
-	if (macro->md->menuChecked) {
-		return -1; // have to set those manually for now
+	if (macro->md->btnChecked) {
 		Evaluator e(M, c);
-		if (e.EvalExpr(macro->md->menuChecked).boolval())
+		if (e.EvalExpr(macro->md->btnChecked).boolval())
 			res |= 0x2;
 	}
 
