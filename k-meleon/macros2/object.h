@@ -524,11 +524,12 @@ public:
 	Expression* menuString;
 	Expression* menuChecked;
 	Expression* menuGrayed;
+	Expression* btnChecked;
 	MacroFile* mf;
 
 	MacroDef(MacroFile* amf) : StatList() {
 		t = NODE_MACRO;
-		macroInfo = menuString = menuChecked = menuGrayed = NULL;
+		macroInfo = menuString = menuChecked = menuGrayed = btnChecked = NULL;
 		mf = amf;
 	}
 
@@ -537,6 +538,7 @@ public:
 		if (menuString) delete menuString;
 		if (menuChecked) delete menuChecked;
 		if (menuGrayed) delete menuGrayed;
+		if (btnChecked) delete btnChecked;
 	}
 };
 

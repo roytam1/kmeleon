@@ -91,7 +91,7 @@ typedef struct Program {
 	}
 } Program;
 
-static char* reservedwords[] = { "while", "if", "else", "and", "or", "not", "menu", "menuchecked", "menugrayed", "macroinfo" };
+static char* reservedwords[] = { "while", "if", "else", "and", "or", "not", "menu", "menuchecked", "menugrayed", "macroinfo", "buttonchecked" };
 #define MAXRESERVED sizeof(reservedwords) / sizeof(char*)
 
 static char* windowvars[] = { "URL", "URLBAR", "SelectedText", "FrameURL", "LinkURL", "ImageURL", "CHARSET", "TextZoom", "TITLE", "WindowNumber", "TabNumber", "CommandLine", "SEARCHURL", "LANG", "VERSION" };
@@ -110,6 +110,7 @@ enum TOKEN {
 	TK_MENUCHECK,
 	TK_MENUGRAY,
 	TK_MACROINFO,
+	TK_BUTTONCHECK,
 
 
 	TK_EQ,
@@ -1014,6 +1015,14 @@ public:
 			assert(currentMd);
 			if (!currentMd) skipstmt();
 			else currentMd->menuString = evalexpr();
+			return NULL;
+
+		case TK_BUTTONCHECK:
+			lex.nexttoken();
+			skip(TK_ASSIGN);
+			assert(currentMd);
+			if (!currentMd) skipstmt();
+			else currentMd->btnChecked = evalexpr();
 			return NULL;
 
 		default:
