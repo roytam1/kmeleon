@@ -244,7 +244,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 			//m_pInfo = kPlugin.kFuncs->GetInfoAtPoint(pos.x,pos.y);
 			//if (!m_pInfo->link)
 			//if (m_captured == WM_LBUTTONDOWN) // I wonder how mozilla can get a lbuttondown, if it's not the first button clicked ...
-				PostMessage(GetFocus(), WM_LBUTTONUP, wParam, lParam);
+			//	PostMessage(GetFocus(), WM_LBUTTONUP, wParam, lParam);
 			m_defercapture = m_captured = 0;
 			ReleaseCapture();
 	    }
@@ -272,12 +272,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                 if (GetKeyState(VK_MENU) < 0)
                     m_virt |= FALT;
 
-                if ((mouseMsg == WM_RBUTTONDOWN || m_virt != 0 || mouseMsg == WM_LBUTTONDOWN)) {
-
+                if (mouseMsg == WM_RBUTTONDOWN || m_virt != 0 || mouseMsg == WM_LBUTTONDOWN) {
                     //SetCapture(hWnd);
                     m_defercapture = m_captured = mouseMsg;
                     GetSystemTime(&m_stDown);
                     PostMessage(hWnd, WM_COMMAND, id_defercapture, 0);
+					//m_pInfo = kPlugin.kFuncs->GetInfoAtClick(hWnd);
+					//SetCapture(hWnd);
                     
                     return MA_ACTIVATE;
                 }
@@ -331,9 +332,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 			POINT m_posDownClient = m_posDown;
 			ScreenToClient(WindowFromPoint(m_posDown), &m_posDownClient);
 			//SetCursorPos(m_posDown.x, m_posDown.y);
-			if (!m_pInfo->isInput && !(m_pInfo->link && *m_pInfo->link) && !(m_pInfo->image && *m_pInfo->image))
-				PostMessage(WindowFromPoint(m_posDown), WM_LBUTTONUP, wParam, MAKELONG(m_posDownClient.x, m_posDownClient.y));
-			PostMessage(WindowFromPoint(m_posDown), WM_LBUTTONDOWN, wParam, MAKELONG(m_posDownClient.x, m_posDownClient.y));
+			//if (!m_pInfo->isInput && !(m_pInfo->link && *m_pInfo->link) && !(m_pInfo->image && *m_pInfo->image))
+			//	PostMessage(WindowFromPoint(m_posDown), WM_LBUTTONUP, wParam, MAKELONG(m_posDownClient.x, m_posDownClient.y));
+			//PostMessage(WindowFromPoint(m_posDown), WM_LBUTTONDOWN, wParam, MAKELONG(m_posDownClient.x, m_posDownClient.y));
 			//SetCursorPos(m_posMove.x, m_posMove.y);
      	}
     }
@@ -386,11 +387,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
             if (pInfo->image && *pInfo->image) strcat(szPref, "I");
         }
 
-		// HACK: Update the context menu variable of the browser
-		// Not doing all the time prevent popup menu to always show up in XUL window.
-		if (pInfo->link || pInfo->image)
-			kPlugin.kFuncs->GetInfoAtPoint(m_posDown.x, m_posDown.y);
-
         kPlugin.kFuncs->GetPreference(PREF_STRING, szPref, szTxt, szTxt);
 
         if (!*szTxt && m_captured == WM_RBUTTONDOWN && m_virt == 0) {
@@ -404,18 +400,22 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
             id = kPlugin.kFuncs->GetID(szTxt);
         
 		HWND targetWnd = WindowFromPoint(m_posDown);
+		ScreenToClient(targetWnd, &m_posDown);
+		ScreenToClient(targetWnd, &m_posUp);
 		if (m_captured == WM_LBUTTONDOWN && (id == 0 || m_virt == 0)) {
-			ScreenToClient(targetWnd, &m_posUp);
 			//SendMessage(targetWnd, WM_LBUTTONDOWN, MK_LBUTTON, MAKELONG(m_posDown.x, m_posDown.y));
-        	SendMessage(targetWnd, WM_LBUTTONUP, wParam, MAKELONG(m_posUp.x, m_posUp.y));
+        	PostMessage(targetWnd, WM_LBUTTONUP, wParam, MAKELONG(m_posUp.x, m_posUp.y));
 		}
         else if (m_rocking)
             m_rocking = FALSE;
 		else if (dir == NOMOVE && m_captured == WM_RBUTTONDOWN /*&& m_virt == 0*/ && id <= 0) {
-			ScreenToClient(targetWnd, &m_posDown);
-			//PostMessage(targetWnd, WM_RBUTTONDOWN, wParam, MAKELONG(m_posDown.x, m_posDown.y));
-			SendMessage(targetWnd, WM_RBUTTONUP, wParam, MAKELONG(m_posDown.x, m_posDown.y));
+			//SendMessage(targetWnd, WM_RBUTTONDOWN, wParam, MAKELONG(m_posDown.x, m_posDown.y));
+			PostMessage(targetWnd, WM_RBUTTONUP, wParam, MAKELONG(m_posDown.x, m_posDown.y));
             //PostMessage(GetFocus(), WM_CONTEXTMENU, (WPARAM) hWnd, MAKELONG(m_posUp.x, m_posUp.y));
+		}
+		else if (m_captured == WM_MBUTTONDOWN && (id == 0 || m_virt == 0)) {
+			//SendMessage(targetWnd, WM_MBUTTONDOWN, MK_LBUTTON, MAKELONG(m_posDown.x, m_posDown.y));
+        	PostMessage(targetWnd, WM_MBUTTONUP, wParam, MAKELONG(m_posUp.x, m_posUp.y));
 		}
         else if (dir != BADMOVE && id > 0)
             PostMessage(hWnd, WM_COMMAND, id, 0L);
