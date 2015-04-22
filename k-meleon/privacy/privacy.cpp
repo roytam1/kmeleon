@@ -46,7 +46,6 @@ Locale* gLoc = NULL;
 #define PRV_ONSTARTUP 1
 #define PRV_ONSHUTDOWN 2
 
-char settingsDir[MAX_PATH];        // settings directory
 TCHAR cacheParentDir[MAX_PATH];     // cache parent directory
 TCHAR signonFileName[MAX_PATH];     // sign on file
 
@@ -110,7 +109,6 @@ void InitGlobals()
     cmdClearSignon = kFuncs->GetCommandIDs(1);
     cmdClearHistory = kFuncs->GetCommandIDs(1);
     cmdConfig = kFuncs->GetCommandIDs(1);
-    kFuncs->GetFolder(UserSettingsFolder, settingsDir, MAX_PATH);
     kFuncs->GetPreference(PREF_UNISTRING, PREFERENCE_CACHE_PARENTDIR, cacheParentDir, NULL);
     kFuncs->GetPreference(PREF_UNISTRING, PREFERENCE_SIGNON_FILE, signonFileName, NULL);
 }
