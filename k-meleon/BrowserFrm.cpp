@@ -229,7 +229,7 @@ BOOL CBrowserFrame::PreTranslateMessage(MSG* pMsg)
             return 0;
       }
 	  else if (MapVirtualKey(pMsg->wParam, 2  /*MAPVK_VK_TO_CHAR*/) != 0) {
-         if (!(GetKeyState(VK_MENU) & 0x8000) && (!GetActiveView()->IsChild(GetFocus()) || GetActiveView()->GetBrowserWrapper()->InputHasFocus()))
+         if (!(GetKeyState(VK_CONTROL) & 0x8000) && (!GetActiveView()->IsChild(GetFocus()) || GetActiveView()->GetBrowserWrapper()->InputHasFocus()))
             return 0;
 	  }
 
@@ -816,11 +816,22 @@ void CBrowserFrame::OnActivate(UINT nState, CWnd* pWndOther, BOOL bMinimized)
 			break;
 		case WA_INACTIVE:
 			m_wndLastFocused = ::GetFocus();
+			// When flash go fullscreen, the browser window become
+			// inactive, but gecko doesn't like being deactivated
+			// at this point, so I have to detect that flash is taking
+			// the focus in a way or another ...
+			if (pWndOther) {
+				CString title;
+				pWndOther->GetWindowText(title);
+				if (title.Compare(L"Adobe Flash Player") == 0)
+					break;
+			}
+
 			if ( ::IsChild(view->m_hWnd, m_wndLastFocused) 
 				|| m_wndLastFocused == view->GetSafeHwnd())
 				view->Activate(FALSE);
 
-			break;
+			break;		
 		default:
             break;
 	}
