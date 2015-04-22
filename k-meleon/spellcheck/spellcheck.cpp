@@ -58,7 +58,7 @@
 #define LABEL_IGNOREWORD "Ignore this word"
 #define LABEL_SELECTDIC "Dictionaries"
 #define LABEL_SETDIC "Set Default"
-#define LABEL_ENABLE "Spellchecker is disabled.\r\n Do you want to enable it?"
+#define LABEL_ENABLE "Spellchecker is disabled.\r\nDo you want to enable it?"
 #define LABEL_DISABLE "Disable spellchecker"
 
 #define L_ID_DISABLE 1
