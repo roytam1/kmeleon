@@ -237,7 +237,7 @@ public:
 
 			FunctionData fd;
 			fd.nparam = 0;
-			fd.c = context;
+			fd.setContext(&context);
 			fd.stat = currentStat;
 			std::string args;
 
@@ -520,7 +520,7 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
 			Create((HWND)data1);
 		}
 		else if (strcmp(subject, "CreateTab") == 0) {
-			ExecuteMacro((HWND)data1, "OnOpenTab", false);
+			ExecuteMacro(data2?(HWND)data2:(HWND)data1, "OnOpenTab", false);
 		}
 		else if (strcmp(subject, "DestroyTab") == 0) {
 			ExecuteMacro(data2?(HWND)data2:(HWND)data1, "OnCloseTab", false);

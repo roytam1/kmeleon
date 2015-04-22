@@ -262,15 +262,16 @@
 	Value open(FunctionData* data)
 	{
 		checkArgs(__FUNCTION__, data, 1, 2);
+		if (!data->getstr(1).length()) return Value();
 		int w = OPEN_NORMAL;
 		if (data->getstr(2).length()) {
 			if (data->getstr(2).compare("window") == 0)
 				w = OPEN_NEW;
 			else if (data->getstr(2).compare("bgwindow") == 0)
 				w = OPEN_BACKGROUND;
-			else if (data->getstr(2).compare("tab") == 0)
+			else if (data->getstr(2).compare("new") == 0 || data->getstr(2).compare("tab") == 0)
 				w = OPEN_NEWTAB;
-			else if (data->getstr(2).compare("bgtab") == 0)
+			else if (data->getstr(2).compare("bgnew") == 0 || data->getstr(2).compare("bgtab") == 0)
 				w = OPEN_BACKGROUNDTAB;
 			// Compatibility
 			else if (data->getstr(2).compare("ID_OPEN_LINK_IN_NEW_WINDOW") == 0)
@@ -332,7 +333,7 @@
 		else if (!strcmpi(type, "int")) preftype = PREF_INT;
 		else if (!strcmpi(type, "string")) preftype = PREF_UNISTRING;
 		else {
-			parseError(WRONGTYPE, "setpref", type);
+			parseError(WRONGTYPE, "setpref", type, 0, 0, data->stat);
 			return false;
 		}
 
@@ -370,7 +371,7 @@
 		else if (!strcmpi(type, "int")) preftype = PREF_INT;
 		else if (!strcmpi(type, "string")) preftype = PREF_UNISTRING;
 		else {
-			parseError(WRONGTYPE, "getpref", type);
+			parseError(WRONGTYPE, "getpref", type, 0, 0, data->stat);
 			return "";
 		}
 
@@ -419,7 +420,7 @@
 		else if (!strcmpi(type, "int")) preftype = PREF_INT;
 		else if (!strcmpi(type, "string")) preftype = PREF_UNISTRING;
 		else {
-			parseError(WRONGTYPE, "getpref", type);
+			parseError(WRONGTYPE, "getpref", type, 0, 0, data->stat);
 			return "";
 		}
 
@@ -509,7 +510,11 @@
 	Value id(FunctionData* data)
 	{
 		checkArgs(__FUNCTION__, data, 1);
-		return kPlugin.kFuncs->RunCommand(data->c.hWnd, data->getstr(1));
+		HWND current = kPlugin.kFuncs->GetCurrent(data->c.hWnd);
+		bool r = kPlugin.kFuncs->RunCommand(data->c.hWnd, data->getstr(1));
+		if (current == data->c.hWnd) // Allow cmd like ID_TAB_NEXT to change context
+			data->setWin(kPlugin.kFuncs->GetCurrent(data->c.hWnd)); 
+		return r;
 	}
 
 	Value plugin(FunctionData* data)
@@ -787,7 +792,7 @@
 		if (!strcmpi(data->getstr(4), "int")) preftype = PREF_INT;
 		else if (!strcmpi(data->getstr(4), "string")) preftype = PREF_STRING;
 		else {
-			parseError(WRONGTYPE, "PluginMsgEx", data->getstr(4));
+			parseError(WRONGTYPE, "PluginMsgEx", data->getstr(4), 0, 0, data->stat);
 			return "";
 		}
 		std::string strRet;
@@ -1342,7 +1347,7 @@
 			item.type = MENU_PLUGIN;
 		}
 		else {
-			parseError(WRONGARGS, "setmenu", menutype, 2, data->nparam);
+			parseError(WRONGARGS, "setmenu", menutype, 2, data->nparam, data->stat);
 			return "0";
 		}
 
@@ -1631,7 +1636,7 @@
 		return kPlugin.kFuncs->SetButton(data->getstr(1), kPlugin.kFuncs->GetID(data->getstr(2)), &b);
 	}*/
 
-#define MAX_TIMERS 10
+#define MAX_TIMERS 25
 #define OFFSET_TIMERS 1000
 
 	typedef struct TimerStruct {
@@ -1677,8 +1682,10 @@
 			if (!timers[i].idEvent)
 				break;
 
-		if (i >= MAX_TIMERS)
+		if (i >= MAX_TIMERS) {
+			DoError("No timer available.", data->stat);
 			return 0;
+		}
 
 		if (data->c.hWnd && !IsWindow(data->c.hWnd))
 			return 0;
