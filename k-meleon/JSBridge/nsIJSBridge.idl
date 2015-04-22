@@ -62,6 +62,7 @@ interface nsIJSBridge : nsISupports
 	kmIButton CreateButton(in string cmd, [optional] in string menu, [optional] in string tooltip, [optional] in string label);
 	kmIButton CreateCallbackButton(in kmICommandFunction command, [optional] in string menu, [optional] in string tooltip, [optional] in string label);
 	//void AddButton(in string toolbar, in kmIButton button);
+	void AddToolbar(in string toolbar, [optional] in unsigned long width, [optional] in unsigned long height);
 	void AddButton(in string toolbar, in string command, [optional] in string menu, [optional] in string tooltip);
 	void RemoveButton(in string toolbar, in string command);
 
@@ -74,6 +75,8 @@ interface nsIJSBridge : nsISupports
 		[optional] in kmICallback enabled, [optional] in kmICallback checked);
 	[implicit_jscontext]
 	void SetCmdIcon(in string name, in jsval icon);
+	[implicit_jscontext]
+	void SetButtonIcon(in string toolbar, in string command, in jsval icon);
 	void SetAccel(in string key, in string command);
 	
 	nsIWebBrowser Open(in string url, in unsigned short state);

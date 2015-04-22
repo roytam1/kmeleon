@@ -326,10 +326,26 @@ NS_IMETHODIMP CJSBridge::SetCmdIcon(const char * name, JS::HandleValue icon, JSC
 	return NS_OK;
 }
 
+NS_IMETHODIMP CJSBridge::SetButtonIcon(const char * toolbar, const char * command, JS::HandleValue icon, JSContext* cx)
+{
+	RECT rect;
+	char* iconPath = nullptr;
+	nsresult rv = GetPathAndRect(cx, icon, &iconPath, &rect);
+	kPlugin.kFuncs->SetButtonIcon(toolbar, kPlugin.kFuncs->GetID(command), iconPath, &rect, nullptr, nullptr, nullptr, nullptr);	
+	if (iconPath) JS_free(cx, iconPath);
+	return NS_OK;
+}
+
+NS_IMETHODIMP CJSBridge::AddToolbar(const char * name, uint32_t w, uint32_t h)
+{
+	bool r = kPlugin.kFuncs->AddToolbar(name, w, h);
+	return r ? NS_OK : NS_ERROR_FAILURE;
+}
+
 NS_IMETHODIMP CJSBridge::AddButton(const char * name, const char * command, const char * menu, const char* tooltip)
 {
-	kPlugin.kFuncs->AddButton(name, command, menu, tooltip);
-	return NS_OK;
+	bool r = kPlugin.kFuncs->AddButton(name, command, menu, tooltip);
+	return r ? NS_OK : NS_ERROR_FAILURE;
 }
 
 NS_IMETHODIMP CJSBridge::RemoveButton(const char * name, const char * command)
