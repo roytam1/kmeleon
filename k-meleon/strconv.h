@@ -28,6 +28,7 @@ public:
 
 	base_convert() : mBuffer(NULL)
 	{
+		mFBuffer[0] = 0;
 	}
 
 	base_convert(base_convert<T>& op)

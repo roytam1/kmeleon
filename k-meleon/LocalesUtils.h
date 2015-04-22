@@ -119,6 +119,7 @@ public:
 	int FormatV(HINSTANCE hResDll, UINT nStringID, va_list argList) 
 	{
 		CResStringW strW = CResStringW(hResDll, nStringID);
+		if (!strW) return 0;
 		int fLength = _vscwprintf(strW, argList);
 		if (fLength<0) return -1;
 		
