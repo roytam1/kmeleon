@@ -28,6 +28,7 @@ struct FunctionData;
 
 typedef struct {
 	HWND hWnd;
+	HWND hTab;
 	MacroFile* origmf;
 	MacroFile* mf;
 } Context;
@@ -253,6 +254,7 @@ class Statement;
 
 typedef struct FunctionData
 {
+	Context* pc;
 	Context c;
 	unsigned short nparam;
 	Value* params;
@@ -261,8 +263,9 @@ typedef struct FunctionData
 	Value getarg(unsigned short i) {return i>0&&i<=nparam ? *(params+i-1) : Value();} 
 	MString getstr(unsigned short i, const char* def = "") {return i>0&&i<=nparam ? (params+i-1)->strval() : def;} 
 	int getint(unsigned short i, int def = 0) {return i>0&&i<=nparam ? (params+i-1)->intval() : def;} 
-	int getbool(unsigned short i, int def = 0) {return i>0&&i<=nparam ? (params+i-1)->boolval() : def;} 
-
+	int getbool(unsigned short i, int def = 0) {return i>0&&i<=nparam ? (params+i-1)->boolval() : def;}
+	void setContext(Context* ac) {pc = ac; c = *ac;}
+	void setWin(HWND h) {pc->hWnd = h;}
 
 } FunctionData;
 
