@@ -347,6 +347,7 @@ bool SessionStore::Read(Session& s)
 
 		if (win.HasMember("entries") && win["entries"].IsArray() && win["entries"].Size() > 0) {
 			w.shcount = win["entries"].Size();
+			w.index = win["index"].GetInt();
 			Value& entries = win["entries"];
 			for (unsigned k=0;k<w.shcount;k++) {
 				w.urls.push_back(entries[k]["url"].GetString());
