@@ -355,8 +355,11 @@ kmeleonDocInfo * GetDocInfoUTF8(HWND mainWnd)
    if (kDocInfo.url)
       delete kDocInfo.url;
    
-   if (kDocInfo.iconurl)
+   if (kDocInfo.iconurl) {
       delete kDocInfo.iconurl;
+	  kDocInfo.iconurl = nullptr;
+	  kDocInfo.idxIcon = 0;
+   }
 
    if (kDocInfo.title)
       delete kDocInfo.title;
@@ -1982,7 +1985,7 @@ int SetButtonIcon(const char* toolbar, UINT id, const char* icon, const LPRECT r
 	USES_CONVERSION;
 	KmToolbar* t = theApp.toolbars.GetKToolbar(A2CT(toolbar));
 	if (!t) return -1;
-	return t->SetImage(id, A2CT(icon), A2CT(hot), A2CT(dead));
+	return t->SetImage(id, icon?A2CT(icon):nullptr, hot?A2CT(hot):nullptr, dead?A2CT(dead):nullptr);
 }
 
 #include "nsIPermissionManager.h"
