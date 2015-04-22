@@ -222,7 +222,10 @@ BOOL CHiddenWnd::ShowBrowser(LPTSTR URI, BOOL webapp, BOOL atStart) {
 			  CBrowserGlue* glue = browser->GetActiveView()->GetBrowserGlue();			  
 			  if (glue) {
 				 wrapper = glue->ReuseWindow(openmode == 1);
-                 if (!wrapper) browser = theApp.CreateNewBrowserFrame(); //XXXXXX
+                 if (!wrapper) {
+					 browser = theApp.CreateNewBrowserFrame(); //XXXXXX
+					 wrapper = browser->GetActiveView()->GetBrowserWrapper();
+				 }
 			  }
 		  }
 	  }
