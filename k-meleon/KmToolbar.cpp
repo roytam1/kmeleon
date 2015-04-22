@@ -98,11 +98,13 @@ int KmToolbar::AddImage(LPCTSTR cold, UINT w, UINT h, LPCTSTR hot, LPCTSTR dead,
 				return index;	
 			index = tmpImg.AddToImageList(mCold, oldIndex);
 
-			img.CropLine(mHeight, 1, tmpImg);
+			if (!img.CropLine(mHeight, 1, tmpImg) && oldIndex>=0)
+				return index;
 			int i = tmpImg.AddToImageList(mHot, oldIndex);
 			ASSERT(index == i);
 
-			img.CropLine(mHeight, 2, tmpImg);
+			if (!img.CropLine(mHeight, 2, tmpImg) && oldIndex>=0)
+				return index;			
 			i = tmpImg.AddToImageList(mDead, oldIndex);
 			ASSERT(index == i);
 		}
