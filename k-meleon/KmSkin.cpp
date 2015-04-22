@@ -30,20 +30,34 @@ int KmIconList::AddIcon(KmImage& img, KmImage& hotImg, KmImage& deadImg, UINT id
 {
 	UINT imgWidth = img.GetWidth();
 	UINT imgHeight= img.GetHeight();
+	int index = -1;
+	if (id) mCmdList.Lookup(id, index);
+
+	int idx = -1;
+	if (mHasDifferentSize) {
+		int cx, cy;
+		ImageList_GetIconSize(mSized.GetSafeHandle(), &cx, &cy);
+		if (imgWidth != cx) { 
+			KmImage sizedImg;
+			img.Scale((1.0*cx)/imgWidth, sizedImg);
+			idx = sizedImg.AddToImageList(mSized, index);
+		} else {
+			idx = img.AddToImageList(mSized, index);
+		}
+	}
+
 	if (imgWidth != mWidth) {
 		img.Scale((1.0*mWidth)/imgWidth);
 		hotImg.Scale((1.0*mWidth)/imgWidth);
 		deadImg.Scale((1.0*mWidth)/imgWidth);
-	}
-
-	int index = -1;
-	if (id) mCmdList.Lookup(id, index);
+	}	
 
 	int pos = img.AddToImageList(mCold, index);
 	if (pos == -1) return -1;
-	int idx = hotImg.AddToImageList(mHot, index);
 	ASSERT(pos == idx);
-	idx = deadImg.AddToImageList(mDead, index);
+	pos = hotImg.AddToImageList(mHot, index);
+	ASSERT(pos == idx);
+	pos = deadImg.AddToImageList(mDead, index);
 	ASSERT(pos == idx);
 	if (id) mCmdList[id] = pos;
 	return pos;
