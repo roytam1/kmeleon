@@ -612,11 +612,6 @@ bool CBrowserGlue::performXULCommand(LPCWSTR id, LPCTSTR siteUri)
          mpBrowserFrame->SendMessage(WM_COMMAND, (WPARAM)nid, 0L);
          return true;
 	  }
-
-	  nsCOMPtr<nsICommandManager> manager(do_GetService(NS_COMMAND_MANAGER_CONTRACTID));	 
-	  nsCOMPtr<nsIDOMWindow> dom = mpBrowserView->GetBrowserWrapper()->GetContentWindow();
-	  if (NS_SUCCEEDED(manager->DoCommand(CStringToNSUTF8String(id).get(), nullptr, dom)))
-		  return true;
    }
 
    return false;
