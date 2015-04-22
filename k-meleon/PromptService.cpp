@@ -363,18 +363,19 @@ NS_IMETHODIMP CPromptService::Prompt(nsIDOMWindow *parent,
   
   BOOL checkResult;
   if (checkboxMsg && checkValue) {
-    checkResult = (*checkValue == PR_TRUE ? TRUE : FALSE);
+    checkResult = (*checkValue == true ? TRUE : FALSE);
     dlg.AddCheckBox(&checkResult, W2CT(checkboxMsg));
   }
 
   if (dlg.DoModal() == IDOK) {
-	 if (value) {
-		if (*value) nsMemory::Free(*value);
+ 	if (value) {
+      if (*value) nsMemory::Free(*value);
       nsString nsPromptEditValue;
-		nsPromptEditValue.Assign(T2CW(csValue));
-		*value = NS_StringCloneData(nsPromptEditValue);
-	 }
-	 *_retval = PR_TRUE;
+      nsPromptEditValue.Assign(T2CW(csValue));
+      *value = NS_StringCloneData(nsPromptEditValue);
+	  if (checkboxMsg && checkValue) *checkValue = checkResult;
+    }
+    *_retval = PR_TRUE;
   }
   else
     *_retval = PR_FALSE;
