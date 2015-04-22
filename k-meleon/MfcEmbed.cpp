@@ -845,7 +845,7 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
       ((chromeMask & nsIWebBrowserChrome::CHROME_WINDOW_RESIZE) || (chromeMask & nsIWebBrowserChrome::CHROME_ALL)))
       style |= WS_MAXIMIZE;
 
-   RECT screen, winSize;
+   RECT screen, winSize = {0};
    SystemParametersInfo(SPI_GETWORKAREA, NULL, &screen, 0);
    int screenWidth   = screen.right - screen.left;
    int screenHeight  = screen.bottom - screen.top;
@@ -861,7 +861,7 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
 
   
    // If the last active window is not a popup use cascading placement
-   //if (m_pMostRecentBrowserFrame) { 
+   if (!(chromeMask & nsIWebBrowserChrome::CHROME_OPENAS_CHROME)) { 
 
       CBrowserFrame* pCascadeWnd = NULL;
 	  if (inBackground && !m_FrameWndLst.IsEmpty()) {
@@ -922,7 +922,28 @@ CBrowserFrame* CMfcEmbedApp::CreateNewBrowserFrame(PRUint32 chromeMask,
             winSize.bottom = winSize.top + preferences.windowHeight;
          
       }
-   
+   } else {
+      // XXX 
+      // this is a chrome window, let set some generic size in the hope
+      // the xul dialog will be sized correctly (with persist properties 
+      // which are currently not working).
+      int w = preferences.GetInt("kmeleon.display.xulwidth", 0);
+	  int h = preferences.GetInt("kmeleon.display.xulheight", 0);
+      if (w>1) {
+         winSize.left = (screenWidth - w) / 2 + screen.left;
+         winSize.right = winSize.left + w;
+      } else {
+		winSize.left = screen.left + screenWidth / 20;
+		winSize.right = winSize.left + 12*screenWidth / 20;
+	  }
+      if (h>1) {
+         winSize.top = (screenHeight - h) / 2 + screen.top;
+         winSize.bottom = winSize.top + h;
+      } else {
+         winSize.top = screen.top + screenHeight / 20;      
+         winSize.bottom = winSize.top + 15*screenHeight / 20;
+	  }      
+   }
 
    // don't create windows larger than the screen
    if ((winSize.right - winSize.left) > screenWidth)
