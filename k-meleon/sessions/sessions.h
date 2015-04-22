@@ -272,6 +272,7 @@ public:
 		}
 
 		kPlugin.kFuncs->SetMozillaSessionHistory(hWnd, aTitles, aUrls, shcount, index, 0, 0);
+		kPlugin.kFuncs->GotoHistoryIndex(hWnd, index);
 		ShowWindow(hWnd, state);
 		return active;
 	}
