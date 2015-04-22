@@ -1,40 +1,40 @@
 ﻿.-/*
-*  Copyright (C) 2005 Dorian Boissonnade
-*
-*  This program is free software; you can redistribute it and/or modify
-*  it under the terms of the GNU General Public License as published by
-*  the Free Software Foundation; either version 2, or (at your option)
-*  any later version.
-*
-*  This program is distributed in the hope that it will be useful,
-*  but WITHOUT ANY WARRANTY; without even the implied warranty of
-*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*  GNU General Public License for more details.
-*
-*  You should have received a copy of the GNU General Public License
-*  along with this program; if not, write to the Free Software
-*  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-*/
+  *  Copyright (C) 2005 Dorian Boissonnade
+  *
+  *  This program is free software; you can redistribute it and/or modify
+  *  it under the terms of the GNU General Public License as published by
+  *  the Free Software Foundation; either version 2, or (at your option)
+  *  any later version.
+  *
+  *  This program is distributed in the hope that it will be useful,
+  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  *  GNU General Public License for more details.
+  *
+  *  You should have received a copy of the GNU General Public License
+  *  along with this program; if not, write to the Free Software
+  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+  */
 
 
 
-/* 
-Menu to use
-Load Session{
-session()
-}
+  /* 
+  Menu to use
+  Load Session{
+  session()
+  }
 
-&Sessions{
-:Load Session
-sessions(save, Save Session)
-sessions(undo, Undo Last Closed)
-}
+  &Sessions{
+  :Load Session
+  sessions(save, Save Session)
+  sessions(undo, Undo Last Closed)
+  }
 
-Supported accel
+  Supported accel
 
-sessions(save)
-sessions(undo)
-*/
+  sessions(save)
+  sessions(undo)
+  */
 
 #include "stdafx.h"
 #include "resource.h"
@@ -48,15 +48,15 @@ sessions(undo)
 #define PREFERENCE_SESSION_ASKAUTOLOAD   "kmeleon.plugins.sessions.ask_autoload"
 #define PREFERENCE_SESSION_MAXUNDO   "kmeleon.plugins.sessions.maxUndo"
 #define PREFERENCE_CLEANSHUTDOWN "kmeleon.plugins.sessions.cleanShutdown"
-char* kPreviousSessionName = "Previous Session";
+  char* kPreviousSessionName = "Previous Session";
 char* kLastSessionName = "Last Session";
 
 long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2);
 
 kmeleonPlugin kPlugin = {
-   KMEL_PLUGIN_VER,
-   PLUGIN_NAME,
-   DoMessage
+	KMEL_PLUGIN_VER_UTF8,
+	PLUGIN_NAME,
+	DoMessage
 };
 
 #include "sessions.h"
@@ -125,13 +125,13 @@ void BuildSessionMenu()
 {
 	if (!IsMenu(sessionsMenu)) return;
 
-   int count;
+	int count;
 	while (count = GetMenuItemCount(sessionsMenu))
 		DeleteMenu(sessionsMenu, 0, MF_BYPOSITION);
 
 	last_session_id = id_load_session;
-	
-	
+
+
 	for(unsigned i=0;i<SessionStore::GetSessionsList().size();i++)
 	{
 		if (stricmp(SessionStore::sessions_list[i], kLastSessionName)!=0) 
@@ -140,7 +140,7 @@ void BuildSessionMenu()
 				AppendMenu(sessionsMenu, MF_STRING, last_session_id, gLoc->GetString(IDS_PREVIOUS_SESSION));
 			else
 				AppendMenuA(sessionsMenu, MF_STRING, last_session_id, SessionStore::sessions_list[i]);
-			
+
 		}
 		last_session_id++;
 		if (last_session_id>id_load_session + MAX_SAVED_SESSION) break;
@@ -151,26 +151,26 @@ void BuildSessionMenu()
 // The default now skip empty token, breaking everything
 char* _strtok (char * string, const char * control)
 {
-   static char* nextoken;
+	static char* nextoken;
 
-   if (string)
-      nextoken = string;
+	if (string)
+		nextoken = string;
 
-   char *tok;
-   if (nextoken) {
-	   if ( (tok = strstr(nextoken, control)) ) {
-		  *tok = 0;
-		  char *ret = nextoken;
-		  nextoken = tok + strlen(control);
-		  return ret;
-	   }
-	   else {
-		   char *ret = nextoken;
-		   nextoken = nullptr;
-		   return ret;
-	   }
-   }
-   return nullptr;
+	char *tok;
+	if (nextoken) {
+		if ( (tok = strstr(nextoken, control)) ) {
+			*tok = 0;
+			char *ret = nextoken;
+			nextoken = tok + strlen(control);
+			return ret;
+		}
+		else {
+			char *ret = nextoken;
+			nextoken = nullptr;
+			return ret;
+		}
+	}
+	return nullptr;
 }
 
 
@@ -181,61 +181,61 @@ void DeleteSession(const char* name)
 
 long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2)
 {
-   if (to[0] == '*' || stricmp(to, kPlugin.dllname) == 0) {
-      if (strcmp(subject, "Load") == 0) {
-         return Load();
-      }
-      if (strcmp(subject, "UserSetup") == 0) {
-         return Init();
-      }
-	  else if (strcmp(subject, "SwitchTab") == 0) {
-		 int selected = 0;
-		 if (!data2) return 0;
-		 Window* w = currentSession.getWindow(GetParent((HWND)data2));
-		 if (w) {
-			 kPlugin.kFuncs->GetWindowVar((HWND)data2, Window_Tab_Index, &selected);
-			 w->selectedTab = selected;
-		 }
-      }	  
-      else if (strcmp(subject, "Create") == 0) {
-         Create((HWND)data1);
-      }
-	  else if (strcmp(subject, "Destroy") == 0) {
-         Destroy((HWND)data1);
-      }
-	  else if (strcmp(subject, "CreateTab") == 0) {
-         CreateTab((HWND)data1, (HWND)data2);
-      }
-	  else if (strcmp(subject, "DestroyTab") == 0) {
-         DestroyTab((HWND)data1, (HWND)data2);
-      }
-	  else if (strcmp(subject, "MoveTab") == 0) {
-         MoveTab((HWND)data1, (HWND)data2);
-      }
-      else if (strcmp(subject, "DoMenu") == 0) {
-         DoMenu((HMENU)data1, (char *)data2);
-      }
-	  else if (strcmp(subject, "DoAccel") == 0) {
-         *(int *)data2 = DoAccel((char *)data1);
-      }
-	  else if (strcmp(subject, "Config") == 0) {
-         Config((HWND)data1);
-      }
-	  else if (strcmp(subject, "Undo") == 0) {
-		 Undo(0);
-	  }
-	  else if (strcmp(subject, "Quit") == 0) {
-         Quit();
-      }
-	  else if (strcmp(subject, "DoLocale") == 0) {
-         if (gLoc) delete gLoc;
-		 gLoc = Locale::kmInit(&kPlugin);
-	  }
-      else return 0;
+	if (to[0] == '*' || stricmp(to, kPlugin.dllname) == 0) {
+		if (strcmp(subject, "Load") == 0) {
+			return Load();
+		}
+		if (strcmp(subject, "UserSetup") == 0) {
+			return Init();
+		}
+		else if (strcmp(subject, "SwitchTab") == 0) {
+			int selected = 0;
+			if (!data2) return 0;
+			Window* w = currentSession.getWindow(GetParent((HWND)data2));
+			if (w) {
+				kPlugin.kFuncs->GetWindowVar((HWND)data2, Window_Tab_Index, &selected);
+				w->selectedTab = selected;
+			}
+		}	  
+		else if (strcmp(subject, "Create") == 0) {
+			Create((HWND)data1);
+		}
+		else if (strcmp(subject, "Destroy") == 0) {
+			Destroy((HWND)data1);
+		}
+		else if (strcmp(subject, "CreateTab") == 0) {
+			CreateTab((HWND)data1, (HWND)data2);
+		}
+		else if (strcmp(subject, "DestroyTab") == 0) {
+			DestroyTab((HWND)data1, (HWND)data2);
+		}
+		else if (strcmp(subject, "MoveTab") == 0) {
+			MoveTab((HWND)data1, (HWND)data2);
+		}
+		else if (strcmp(subject, "DoMenu") == 0) {
+			DoMenu((HMENU)data1, (char *)data2);
+		}
+		else if (strcmp(subject, "DoAccel") == 0) {
+			*(int *)data2 = DoAccel((char *)data1);
+		}
+		else if (strcmp(subject, "Config") == 0) {
+			Config((HWND)data1);
+		}
+		else if (strcmp(subject, "Undo") == 0) {
+			Undo(0);
+		}
+		else if (strcmp(subject, "Quit") == 0) {
+			Quit();
+		}
+		else if (strcmp(subject, "DoLocale") == 0) {
+			if (gLoc) delete gLoc;
+			gLoc = Locale::kmInit(&kPlugin);
+		}
+		else return 0;
 
-      return 1;
-   }
-   return 0;
+		return 1;
+	}
+	return 0;
 }
 
 
@@ -243,54 +243,58 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
 
 HINSTANCE ghInstance;
 BOOL APIENTRY DllMain(HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved ) {
-   switch (ul_reason_for_call) {
-      case DLL_PROCESS_ATTACH:
-         ghInstance = (HINSTANCE) hModule;
-      case DLL_THREAD_ATTACH:
-      case DLL_THREAD_DETACH:
-      case DLL_PROCESS_DETACH:
-      break;
-   }
-   return TRUE;
+	switch (ul_reason_for_call) {
+	case DLL_PROCESS_ATTACH:
+		ghInstance = (HINSTANCE) hModule;
+	case DLL_THREAD_ATTACH:
+	case DLL_THREAD_DETACH:
+	case DLL_PROCESS_DETACH:
+		break;
+	}
+	return TRUE;
 }
 
 int Load() {
-   kFuncs = kPlugin.kFuncs;
+	kFuncs = kPlugin.kFuncs;
 
-   // Not compatible with the layers plugin.
-   kmeleonPlugin* layers = kFuncs->Load("layers.dll");
-   if (layers && layers->loaded) {
-      kPlugin.description = PLUGIN_NAME " [Not Compatible With Layers]";
-      return -1;
-   }
+	// Not compatible with the layers plugin.
+	kmeleonPlugin* layers = kFuncs->Load("layers.dll");
+	if (layers && layers->loaded) {
+		kPlugin.description = PLUGIN_NAME " [Not Compatible With Layers]";
+		return -1;
+	}
 
-   char s[1024];
+	gLoc = Locale::kmInit(&kPlugin);
+	if (!gLoc) {
+		kPlugin.description = PLUGIN_NAME " [Locale failed to initialize]";
+		return -1;
+	}
+
+	char s[1024];
 	kPlugin.kFuncs->GetFolder(ProfileFolder,s, sizeof(s));
 	strcat_s(s, "\\sessions.json");
 	_utf8_to_utf16(s, sessionFile, 1024);
-   DWORD dwAttrib = GetFileAttributes(sessionFile);
-   if (dwAttrib == INVALID_FILE_ATTRIBUTES || 
-         (dwAttrib & FILE_ATTRIBUTE_DIRECTORY))
-   {	   
-	   if (!SessionStore::Import()) {
-		   DeleteFile(sessionFile);
-		   MessageBox(NULL, 
-			gLoc->GetStringFormat(IDS_IMPORT_FAILED),
-			NULL,
-			MB_OK|MB_ICONERROR);
-	   }
-   }
+	DWORD dwAttrib = GetFileAttributes(sessionFile);
+	if (dwAttrib == INVALID_FILE_ATTRIBUTES || 
+		(dwAttrib & FILE_ATTRIBUTE_DIRECTORY))
+	{	   
+		if (!SessionStore::Import()) {
+			DeleteFile(sessionFile);
+			MessageBox(NULL, 
+				gLoc->GetStringFormat(IDS_IMPORT_FAILED),
+				NULL,
+				MB_OK|MB_ICONERROR);
+		}
+	}   
 
-   gLoc = Locale::kmInit(&kPlugin);
+	id_undo_close = kPlugin.kFuncs->GetCommandIDs(1);
+	id_save_session = kPlugin.kFuncs->GetCommandIDs(1);
+	id_config = kPlugin.kFuncs->GetCommandIDs(1);
+	id_open_previous = kPlugin.kFuncs->GetCommandIDs(1);
+	last_session_id = id_load_session = kPlugin.kFuncs->GetCommandIDs(MAX_SAVED_SESSION); 
+	//id_delete_session = kPlugin.kFuncs->GetCommandIDs(MAX_SAVED_SESSION); 
 
-   id_undo_close = kPlugin.kFuncs->GetCommandIDs(1);
-   id_save_session = kPlugin.kFuncs->GetCommandIDs(1);
-   id_config = kPlugin.kFuncs->GetCommandIDs(1);
-   id_open_previous = kPlugin.kFuncs->GetCommandIDs(1);
-   last_session_id = id_load_session = kPlugin.kFuncs->GetCommandIDs(MAX_SAVED_SESSION); 
-   //id_delete_session = kPlugin.kFuncs->GetCommandIDs(MAX_SAVED_SESSION); 
-   
-   return 1;
+	return 1;
 }
 
 #define PWM_AUTOLOAD WM_APP + 1000
@@ -323,8 +327,8 @@ void DestroyTab(HWND parent, HWND tab)
 			undo.addWindow(ww);
 		}
 	}
-	
-    currentSession.removeTab(parent, tab);	
+
+	currentSession.removeTab(parent, tab);	
 }
 
 void RestoreSession(BOOL afterCrash = FALSE)
@@ -336,7 +340,7 @@ void RestoreSession(BOOL afterCrash = FALSE)
 		strcpy(name, kLastSessionName);
 	else // Loading defined start session in pref
 		kFuncs->GetPreference(PREF_STRING, PREFERENCE_SESSION_OPENSTART, name, "");
-			
+
 	Session load;
 	Session::loading = true;
 	if (load.loadSession(name)) {
@@ -348,35 +352,35 @@ void RestoreSession(BOOL afterCrash = FALSE)
 int Init()
 {
 
-		// Look for a bad shutdown
-		int ok = IDNO;
-		int clean = true;
-		kFuncs->GetPreference(PREF_BOOL, PREFERENCE_CLEANSHUTDOWN, &clean, &clean);
-		if (!clean) {
-			
-			ok = MessageBox(NULL, 
-				gLoc->GetString(IDS_SESSION_RECOVERY_MSG),
-				gLoc->GetString(IDS_SESSION_RECOVERY),
-				 MB_YESNO|MB_ICONQUESTION);
+	// Look for a bad shutdown
+	int ok = IDNO;
+	int clean = true;
+	kFuncs->GetPreference(PREF_BOOL, PREFERENCE_CLEANSHUTDOWN, &clean, &clean);
+	if (!clean) {
 
-			if (ok == IDYES) RestoreSession(TRUE);
+		ok = MessageBox(NULL, 
+			gLoc->GetString(IDS_SESSION_RECOVERY_MSG),
+			gLoc->GetString(IDS_SESSION_RECOVERY),
+			MB_YESNO|MB_ICONQUESTION);
 
-			// Copy last to previous
-			Session prv;
-			prv.loadSession(kLastSessionName);
-			prv.saveSession(kPreviousSessionName);
-		}
-		
-		clean = false;
-		kFuncs->SetPreference(PREF_BOOL, PREFERENCE_CLEANSHUTDOWN, &clean, TRUE);
+		if (ok == IDYES) RestoreSession(TRUE);
 
-		if (ok != IDYES) {
+		// Copy last to previous
+		Session prv;
+		prv.loadSession(kLastSessionName);
+		prv.saveSession(kPreviousSessionName);
+	}
+
+	clean = false;
+	kFuncs->SetPreference(PREF_BOOL, PREFERENCE_CLEANSHUTDOWN, &clean, TRUE);
+
+	if (ok != IDYES) {
 		// Ask to load the startup the session, but the session is actually
 		// loaded later because we can't open a window until one is fully created
 		BOOL b = FALSE;
 		kFuncs->GetPreference(PREF_BOOL, PREFERENCE_SESSION_AUTOLOAD, (void*)&b, (void*)&b);
 		if (b) {
-				// Get the start session name
+			// Get the start session name
 			char *name = new char[256];
 			name[0] = 0;
 			kFuncs->GetPreference(PREF_STRING, PREFERENCE_SESSION_OPENSTART, name, "");
@@ -398,7 +402,7 @@ int Init()
 			}
 			delete [] name;
 		}
-		}
+	}
 	return 0;
 }
 
@@ -420,35 +424,35 @@ void Destroy(HWND hWnd) {
 }
 
 void DoMenu(HMENU menu, char *param){
-   if (*param != 0){
-      char *action = param;
-      char *string = strchr(param, ',');
-      if (string) {
-         *string = 0;
-         string = SkipWhiteSpace(string+1);
-      }
-      else
-         string = action;
+	if (*param != 0){
+		char *action = param;
+		char *string = strchr(param, ',');
+		if (string) {
+			*string = 0;
+			string = SkipWhiteSpace(string+1);
+		}
+		else
+			string = action;
 
-	  int command = 0;
-      if (stricmp(action, "Save") == 0){
-         command = id_save_session;
-		 AppendMenuA(menu, MF_STRING, command, string);
-      }
-	  else if (stricmp(action, "Load") == 0){
-		  if (sessionsMenu) return;
-	     sessionsMenu = CreateMenu();
-		  BuildSessionMenu();
-		  AppendMenuA(menu, MF_POPUP, (UINT_PTR)sessionsMenu, string);
-	  }
-	  /*else if (stricmp(action, "Delete") == 0){
-		  AppendMenu(menu, MF_POPUP, (UINT)sessionsMenu, string);
-	  }*/
-      else if (stricmp(action, "Undo") == 0){
-         command = id_undo_close;
-		 AppendMenuA(menu, MF_STRING, command, string);
-      }
-   }
+		int command = 0;
+		if (stricmp(action, "Save") == 0){
+			command = id_save_session;
+			AppendMenuA(menu, MF_STRING, command, string);
+		}
+		else if (stricmp(action, "Load") == 0){
+			if (sessionsMenu) return;
+			sessionsMenu = CreateMenu();
+			BuildSessionMenu();
+			AppendMenuA(menu, MF_POPUP, (UINT_PTR)sessionsMenu, string);
+		}
+		/*else if (stricmp(action, "Delete") == 0){
+		AppendMenu(menu, MF_POPUP, (UINT)sessionsMenu, string);
+		}*/
+		else if (stricmp(action, "Undo") == 0){
+			command = id_undo_close;
+			AppendMenuA(menu, MF_STRING, command, string);
+		}
+	}
 	else {
 		//if (sessionsMenu) return;
 		sessionsMenu = menu;
@@ -460,16 +464,16 @@ void DoMenu(HMENU menu, char *param){
 
 int DoAccel(char *param)
 {
-   if (stricmp(param, "Save") == 0)
-      return id_save_session;
-   if (stricmp(param, "Undo") == 0)
-      return id_undo_close;
-   if (stricmp(param, "Config") == 0)
-      return id_config;
-   if (stricmp(param, "OpenPrevious") == 0)
-      return id_open_previous;
+	if (stricmp(param, "Save") == 0)
+		return id_save_session;
+	if (stricmp(param, "Undo") == 0)
+		return id_undo_close;
+	if (stricmp(param, "Config") == 0)
+		return id_config;
+	if (stricmp(param, "OpenPrevious") == 0)
+		return id_open_previous;
 
-   return 0;
+	return 0;
 }
 
 void Undo(HWND hWnd = NULL)
@@ -485,7 +489,7 @@ void Undo(HWND hWnd = NULL)
 
 void Quit()
 {
-	//SaveSession(kLastSessionName);
+	currentSession.saveSession(kLastSessionName);
 	currentSession.saveSession(kPreviousSessionName);
 
 	TCHAR backup[1024];
@@ -497,7 +501,7 @@ void Quit()
 	undo.empty();
 
 	bool b = true;
-    kFuncs->SetPreference(PREF_BOOL, PREFERENCE_CLEANSHUTDOWN, &b, TRUE);
+	kFuncs->SetPreference(PREF_BOOL, PREFERENCE_CLEANSHUTDOWN, &b, TRUE);
 	delete gLoc;
 }
 
@@ -547,109 +551,109 @@ void ConfigInitSelect(HWND hwnd)
 }
 
 BOOL CALLBACK
-ConfigDlgProc( HWND hwnd,
-			  UINT Message,
-			  WPARAM wParam,
-			  LPARAM lParam )
+	ConfigDlgProc( HWND hwnd,
+	UINT Message,
+	WPARAM wParam,
+	LPARAM lParam )
 {
 	switch (Message) {
-		case WM_INITDIALOG: {
-			
-			ConfigInitSelect(hwnd);
-		
-			int b=0;
-			kFuncs->GetPreference(PREF_BOOL, PREFERENCE_SESSION_AUTOLOAD, (void*)&b, (void*)&b);
-			CheckDlgButton(hwnd, IDC_CHECK_AUTOLOAD, b);
-			b=0;
-			kFuncs->GetPreference(PREF_BOOL, PREFERENCE_SESSION_ASKAUTOLOAD, (void*)&b, (void*)&b);
-			CheckDlgButton(hwnd, IDC_CHECK_ASK, b);
+	case WM_INITDIALOG: {
 
-			int gMaxUndo = 5;
-			kFuncs->GetPreference(PREF_INT, PREFERENCE_SESSION_MAXUNDO, (void*)&gMaxUndo, (void*)&gMaxUndo);
-			SetDlgItemInt(hwnd, IDC_EDIT_MAXUNDO, gMaxUndo, FALSE);
-			return TRUE;
+		ConfigInitSelect(hwnd);
+
+		int b=0;
+		kFuncs->GetPreference(PREF_BOOL, PREFERENCE_SESSION_AUTOLOAD, (void*)&b, (void*)&b);
+		CheckDlgButton(hwnd, IDC_CHECK_AUTOLOAD, b);
+		b=0;
+		kFuncs->GetPreference(PREF_BOOL, PREFERENCE_SESSION_ASKAUTOLOAD, (void*)&b, (void*)&b);
+		CheckDlgButton(hwnd, IDC_CHECK_ASK, b);
+
+		int gMaxUndo = 5;
+		kFuncs->GetPreference(PREF_INT, PREFERENCE_SESSION_MAXUNDO, (void*)&gMaxUndo, (void*)&gMaxUndo);
+		SetDlgItemInt(hwnd, IDC_EDIT_MAXUNDO, gMaxUndo, FALSE);
+		return TRUE;
+						}
+
+	case WM_COMMAND:
+
+		switch (LOWORD(wParam)) {
+		case IDOK: {
+			LRESULT i = SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST, CB_GETITEMDATA, SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST, CB_GETCURSEL, 0, 0), 0); 
+			if (i!=-1) 
+				kFuncs->SetPreference(PREF_STRING, PREFERENCE_SESSION_OPENSTART, (void*)SessionStore::sessions_list[i], FALSE);
+			else
+				kFuncs->SetPreference(PREF_STRING, PREFERENCE_SESSION_OPENSTART, "", FALSE);
+			int b = IsDlgButtonChecked(hwnd, IDC_CHECK_AUTOLOAD);
+			kFuncs->SetPreference(PREF_BOOL, PREFERENCE_SESSION_AUTOLOAD, (void*)&b, FALSE);
+			b = IsDlgButtonChecked(hwnd, IDC_CHECK_ASK);
+			kFuncs->SetPreference(PREF_BOOL, PREFERENCE_SESSION_ASKAUTOLOAD, (void*)&b, FALSE);
+			int gMaxUndo = GetDlgItemInt(hwnd, IDC_EDIT_MAXUNDO, NULL, FALSE);
+			kFuncs->SetPreference(PREF_INT, PREFERENCE_SESSION_MAXUNDO, (void*)&gMaxUndo, FALSE);
+			EndDialog( hwnd, IDOK );
+				   }
+				   break;
+
+		case IDCANCEL:
+			EndDialog( hwnd, IDCANCEL );
+			break;
+
+		case IDC_BUTTON_DELETE: {
+			LRESULT index = SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST2, CB_GETCURSEL, 0, 0);
+			LRESULT i = SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST2, CB_GETITEMDATA, index , 0); 
+
+			DeleteSession(SessionStore::sessions_list[i]);
+			BuildSessionMenu();
+
+			i = SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST, CB_GETITEMDATA, SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST, CB_GETCURSEL, 0, 0), 0); 
+			SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST, CB_RESETCONTENT, 0, 0);
+			SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST2, CB_RESETCONTENT, 0, 0);
+
+			ConfigInitSelect(hwnd);			
+								}
+								break;
 		}
+		break;
 
-	  case WM_COMMAND:
-
-		  switch (LOWORD(wParam)) {
-			case IDOK: {
-				LRESULT i = SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST, CB_GETITEMDATA, SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST, CB_GETCURSEL, 0, 0), 0); 
-				if (i!=-1) 
-					kFuncs->SetPreference(PREF_STRING, PREFERENCE_SESSION_OPENSTART, (void*)SessionStore::sessions_list[i], FALSE);
-				else
-					kFuncs->SetPreference(PREF_STRING, PREFERENCE_SESSION_OPENSTART, "", FALSE);
-				int b = IsDlgButtonChecked(hwnd, IDC_CHECK_AUTOLOAD);
-				kFuncs->SetPreference(PREF_BOOL, PREFERENCE_SESSION_AUTOLOAD, (void*)&b, FALSE);
-				b = IsDlgButtonChecked(hwnd, IDC_CHECK_ASK);
-				kFuncs->SetPreference(PREF_BOOL, PREFERENCE_SESSION_ASKAUTOLOAD, (void*)&b, FALSE);
-				int gMaxUndo = GetDlgItemInt(hwnd, IDC_EDIT_MAXUNDO, NULL, FALSE);
-				kFuncs->SetPreference(PREF_INT, PREFERENCE_SESSION_MAXUNDO, (void*)&gMaxUndo, FALSE);
-				EndDialog( hwnd, IDOK );
-				}
-				break;
-
-			case IDCANCEL:
-				EndDialog( hwnd, IDCANCEL );
-				break;
-
-			case IDC_BUTTON_DELETE: {
-				LRESULT index = SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST2, CB_GETCURSEL, 0, 0);
-				LRESULT i = SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST2, CB_GETITEMDATA, index , 0); 
-				
-				DeleteSession(SessionStore::sessions_list[i]);
-				BuildSessionMenu();
-				
-				i = SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST, CB_GETITEMDATA, SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST, CB_GETCURSEL, 0, 0), 0); 
-				SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST, CB_RESETCONTENT, 0, 0);
-				SendDlgItemMessage(hwnd, IDC_COMBO_SESSIONSLIST2, CB_RESETCONTENT, 0, 0);
-
-				ConfigInitSelect(hwnd);			
-			}
-				break;
-		  }
-		  break;
-
-	  default:
-		  return FALSE;
+	default:
+		return FALSE;
 	}
 	return TRUE;
 }
 
 void Config(HWND parent){
-   gLoc->DialogBoxParam(MAKEINTRESOURCE(IDD_CONFIG), parent, (DLGPROC)ConfigDlgProc);
+	gLoc->DialogBoxParam(MAKEINTRESOURCE(IDD_CONFIG), parent, (DLGPROC)ConfigDlgProc);
 }
 
 // Callback for the dialog answering a session name
 BOOL CALLBACK
-PromptDlgProc( HWND hwnd,
-			  UINT Message,
-			  WPARAM wParam,
-			  LPARAM lParam )
+	PromptDlgProc( HWND hwnd,
+	UINT Message,
+	WPARAM wParam,
+	LPARAM lParam )
 {
 	static TCHAR* answer;
 
 	switch (Message) {
-	  case WM_INITDIALOG: 
-		  answer = (TCHAR*)lParam;
-		  return TRUE;
-	  case WM_COMMAND:
-		  switch (LOWORD(wParam)) {
-	  case IDOK:
-		  GetDlgItemText(hwnd, IDC_ANSWER, answer, 256);
-		  if ( !_tcscmp(answer, _T("list")) || !_tcscmp(answer, CUTF8_to_T(kLastSessionName)) || _tcschr(answer, _T(',')) )
-			  MessageBox(hwnd, gLoc->GetString(IDS_INVALID_NAME), _T(""), MB_OK|MB_ICONERROR);
-		  else
-			  EndDialog( hwnd, IDOK );
-		  break;
-	  case IDCANCEL:
-		  EndDialog( hwnd, IDCANCEL );
-		  break;
-		  }
-		  break;
+	case WM_INITDIALOG: 
+		answer = (TCHAR*)lParam;
+		return TRUE;
+	case WM_COMMAND:
+		switch (LOWORD(wParam)) {
+		case IDOK:
+			GetDlgItemText(hwnd, IDC_ANSWER, answer, 256);
+			if ( !_tcscmp(answer, _T("list")) || !_tcscmp(answer, CUTF8_to_T(kLastSessionName)) || _tcschr(answer, _T(',')) )
+				MessageBox(hwnd, gLoc->GetString(IDS_INVALID_NAME), _T(""), MB_OK|MB_ICONERROR);
+			else
+				EndDialog( hwnd, IDOK );
+			break;
+		case IDCANCEL:
+			EndDialog( hwnd, IDCANCEL );
+			break;
+		}
+		break;
 
-	  default:
-		  return FALSE;
+	default:
+		return FALSE;
 	}
 	return TRUE;
 }
@@ -679,94 +683,94 @@ void CALLBACK TimerFunction(HWND hWnd, UINT, UINT_PTR id, DWORD)
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    switch (message) {
-		case WM_ACTIVATE:
-			if (wParam >0) {
-				currentSession.setActiveWindow(hWnd);
-			}
-			break;
-		case UWM_UPDATEBUSYSTATE:
-			
-			if (wParam != 0 || gLoading) break;
-
-			char **urls, **titles;
-			int index, count;
-			if (!lParam) {
-				if (kFuncs->GetMozillaSessionHistory(hWnd, &titles, &urls, &count, &index))
-					currentSession.updateWindow(hWnd, index, count, (const char**)urls, (const char**)titles);
-			}
-			else {
-				if (kFuncs->GetMozillaSessionHistory((HWND)lParam, &titles, &urls, &count, &index))
-					currentSession.updateWindow(hWnd, (HWND)lParam, index, count, (const char**)urls, (const char**)titles);
-			}
-			if (!timerID)
-				timerID = ::SetTimer(hWnd, NULL, 5000, TimerFunction);
-			
-           	break;
-		case WM_CLOSE:
-			break;
-		case WM_DESTROY: {
-			destroying = hWnd;
-			// Flush the window before tabs are destroyed
-			Window* w = currentSession.getWindow(hWnd);
-			if (w) w->flush();
-			break;
+	switch (message) {
+	case WM_ACTIVATE:
+		if (wParam >0) {
+			currentSession.setActiveWindow(hWnd);
 		}
-		case WM_COMMAND:
-			WORD command = LOWORD(wParam);
-			if (command == id_undo_close)
-				Undo(hWnd);
-			
-			else if (command == id_save_session) {
+		break;
+	case UWM_UPDATEBUSYSTATE:
 
-				// Ask for a session name
-				TCHAR* answer = new TCHAR[256];
-				answer[0]=0;
-				INT_PTR ok = gLoc->DialogBoxParam(
-				  MAKEINTRESOURCE(IDD_PROMPT), hWnd, (DLGPROC)PromptDlgProc,(LPARAM)answer);
-				
-				// Save the session, first remove closed frame
-				// Then rebuild the menu
-				if (ok == IDOK && _tcslen(answer)>0) {
-					currentSession.flush();
-					currentSession.saveSession(CT_to_ANSI(answer));
-					BuildSessionMenu();
-				}
-				delete [] answer;
+		if (wParam != 0 || gLoading) break;
+
+		char **urls, **titles;
+		int index, count;
+		if (!lParam) {
+			if (kFuncs->GetMozillaSessionHistory(hWnd, &titles, &urls, &count, &index))
+				currentSession.updateWindow(hWnd, index, count, (const char**)urls, (const char**)titles);
+		}
+		else {
+			if (kFuncs->GetMozillaSessionHistory((HWND)lParam, &titles, &urls, &count, &index))
+				currentSession.updateWindow(hWnd, (HWND)lParam, index, count, (const char**)urls, (const char**)titles);
+		}
+		if (!timerID)
+			timerID = ::SetTimer(hWnd, NULL, 5000, TimerFunction);
+
+		break;
+	case WM_CLOSE:
+		break;
+	case WM_DESTROY: {
+		destroying = hWnd;
+		// Flush the window before tabs are destroyed
+		Window* w = currentSession.getWindow(hWnd);
+		if (w) w->flush();
+		break;
+					 }
+	case WM_COMMAND:
+		WORD command = LOWORD(wParam);
+		if (command == id_undo_close)
+			Undo(hWnd);
+
+		else if (command == id_save_session) {
+
+			// Ask for a session name
+			TCHAR* answer = new TCHAR[256];
+			answer[0]=0;
+			INT_PTR ok = gLoc->DialogBoxParam(
+				MAKEINTRESOURCE(IDD_PROMPT), hWnd, (DLGPROC)PromptDlgProc,(LPARAM)answer);
+
+			// Save the session, first remove closed frame
+			// Then rebuild the menu
+			if (ok == IDOK && _tcslen(answer)>0) {
+				currentSession.flush();
+				currentSession.saveSession(CT_to_ANSI(answer));
+				BuildSessionMenu();
 			}
+			delete [] answer;
+		}
 
-			else if (command >= id_load_session && command<id_load_session+MAX_SAVED_SESSION)
-			{
-				int n = command - id_load_session;
-				const char* name = SessionStore::sessions_list[command - id_load_session];
+		else if (command >= id_load_session && command<id_load_session+MAX_SAVED_SESSION)
+		{
+			int n = command - id_load_session;
+			const char* name = SessionStore::sessions_list[command - id_load_session];
 
-				if (name) {
-					LoadSession(name, hWnd);					
-					return 0;
-				}
-			}
-			else if (command == id_open_previous) {
-				Session load;
-				LoadSession(kPreviousSessionName, hWnd);
+			if (name) {
+				LoadSession(name, hWnd);					
 				return 0;
 			}
-			else if (command == id_config)
-				Config(hWnd);
+		}
+		else if (command == id_open_previous) {
+			Session load;
+			LoadSession(kPreviousSessionName, hWnd);
+			return 0;
+		}
+		else if (command == id_config)
+			Config(hWnd);
 
-			break;
-	    }
-	
-	
-   if (IsWindowUnicode(hWnd))
-	return CallWindowProcW(KMeleonWndProc, hWnd, message, wParam, lParam);
-   else
-	return CallWindowProcA(KMeleonWndProc, hWnd, message, wParam, lParam);
+		break;
+	}
+
+
+	if (IsWindowUnicode(hWnd))
+		return CallWindowProcW(KMeleonWndProc, hWnd, message, wParam, lParam);
+	else
+		return CallWindowProcA(KMeleonWndProc, hWnd, message, wParam, lParam);
 }
 
 extern "C" {
 
-   KMELEON_PLUGIN kmeleonPlugin *GetKmeleonPlugin() {
-      return &kPlugin;
-   }
+	KMELEON_PLUGIN kmeleonPlugin *GetKmeleonPlugin() {
+		return &kPlugin;
+	}
 }
-	
+
