@@ -293,6 +293,7 @@ char *DecodeQuotes(const char *str) {
 }
 
 char *DecodeString(const char *str) {
+  if (!str) return nullptr;
   char *pszStr = (char *)malloc(strlen(str) + INTERNET_MAX_URL_LENGTH);
   if (pszStr) {
     strcpy(pszStr, str);
@@ -1194,7 +1195,6 @@ void Fill_Combo(HWND hWnd, CBookmarkNode* node, unsigned short depth=0)
 void addLink(const char *url, const char *title, const char* nick, const char* iconurl, CBookmarkNode* node)
 {
 	if (!node || node->type!=BOOKMARK_FOLDER) return;
-
 	node->AddChild(new CBookmarkNode(kPlugin.kFuncs->GetCommandIDs(1), title, url, nick, "", "", BOOKMARK_BOOKMARK, time(NULL), 0, 0, "", "", "", iconurl));
 	SaveBM(gBookmarkFile);
 	Rebuild();
@@ -1202,22 +1202,18 @@ void addLink(const char *url, const char *title, const char* nick, const char* i
 
 int CALLBACK AddProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	static char *iconurl = 0;
+	static HWND hWnd = 0;
+	
 	switch (uMsg) {
 		case WM_INITDIALOG: {
-			kmeleonDocInfo *dInfo = kPlugin.kFuncs->GetDocInfo((HWND)lParam);
+			hWnd = (HWND)lParam;
+			kmeleonDocInfo *dInfo = kPlugin.kFuncs->GetDocInfo(hWnd);
 			if (dInfo && dInfo->url) {
 				if (dInfo->title) {
 					SetDlgItemText(hDlg, IDC_TITLE, CUTF8_to_T(dInfo->title));
 				}else{
 					SetDlgItemText(hDlg, IDC_TITLE, CUTF8_to_T(dInfo->url));
-				}
-				SetDlgItemText(hDlg, IDC_URL, CUTF8_to_T(dInfo->url));
-				if (iconurl) {
-					delete iconurl;
-					iconurl = NULL;
-				}
-				if (dInfo->iconurl) iconurl = strdup(dInfo->iconurl);
+				}	
 			}
 			
 			HWND combo = GetDlgItem(hDlg, IDC_FOLDER);
@@ -1247,16 +1243,18 @@ int CALLBACK AddProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		case WM_COMMAND:
 			switch (LOWORD(wParam)) {
 				case IDOK: {
-					TCHAR title[1024], url[4096], nick[128];
-					GetDlgItemText(hDlg, IDC_TITLE, title, sizeof(title));
-					GetDlgItemText(hDlg, IDC_URL, url, sizeof(url));
-					GetDlgItemText(hDlg, IDC_NICK, nick, sizeof(nick));
+					kmeleonDocInfo *dInfo = kPlugin.kFuncs->GetDocInfo(hWnd);
+					if (dInfo) {
+						TCHAR title[1024], nick[128];
+						GetDlgItemText(hDlg, IDC_TITLE, title, sizeof(title));
+						GetDlgItemText(hDlg, IDC_NICK, nick, sizeof(nick));
 
-					HWND combo = GetDlgItem(hDlg, IDC_FOLDER);
-					int index = SendMessage(combo, CB_GETCURSEL, 0, 0);
-					CBookmarkNode* node = (CBookmarkNode*)SendMessage(combo, CB_GETITEMDATA, index, 0);
+						HWND combo = GetDlgItem(hDlg, IDC_FOLDER);
+						int index = SendMessage(combo, CB_GETCURSEL, 0, 0);
+						CBookmarkNode* node = (CBookmarkNode*)SendMessage(combo, CB_GETITEMDATA, index, 0);
 
-					addLink(CT_to_UTF8(url), CT_to_UTF8(title), CT_to_UTF8(nick), iconurl, node);
+						addLink(dInfo->url, CT_to_UTF8(title), CT_to_UTF8(nick), dInfo->iconurl, node);
+					}
 					EndDialog( hDlg, IDOK );
 					break;
 					}
@@ -1435,7 +1433,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		 kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_BOOKMARK_ASKFOLDER, &ask, &ask);
 		 
 		 if (ask) {
-            gLoc->DialogBoxParam(MAKEINTRESOURCE(IDD_ADDBOOKMARK), NULL, AddProc, (LPARAM)hWnd);  
+            gLoc->DialogBoxParam(MAKEINTRESOURCE(IDD_ADDBOOKMARK), NULL, AddProc, (LPARAM)kPlugin.kFuncs->GetCurrent(hWnd));  
 		 }
 		 else {
 			addLink(dInfo->url, dInfo->title, BOOKMARK_FLAG_NB, dInfo->iconurl);
