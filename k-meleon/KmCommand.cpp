@@ -89,6 +89,18 @@ UINT KmCmdService::GetList(kmeleonCommand* cmdList, UINT size, BOOL def)
 	return i;
 }
 
+KmCommand* KmCmdService::GetCommand(UINT id)
+{
+	CCmdMap::CPair* pCurVal = mCommandList.PGetFirstAssoc();
+	while (pCurVal != NULL) {
+		if (pCurVal->value.id == id) {
+			return &pCurVal->value;
+		}
+		pCurVal = mCommandList.PGetNextAssoc(pCurVal);
+	}
+	return nullptr;
+}
+
 bool KmCmdService::GetCommand(LPCTSTR command, KmCommand& kcommand)
 {
 	return mCommandList.Lookup(command, kcommand);

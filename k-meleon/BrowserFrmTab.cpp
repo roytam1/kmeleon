@@ -47,7 +47,7 @@ public:
 	void SetBrowserTitle(LPCTSTR aTitle) 
 	{
 		CBrowserGlue::SetBrowserTitle(aTitle);
-		if (!theApp.preferences.GetBool("kmeleon.tabs.useLoadingTitle", FALSE))
+		if (!theApp.preferences.GetBool("kmeleon.tabs.useLoadingTitle", FALSE) || !mLoading)
 			((CBrowserFrmTab*)mpBrowserFrame)->SetTabTitle((CBrowserTab*)mpBrowserView, aTitle);
 	}
 
@@ -134,6 +134,7 @@ BEGIN_MESSAGE_MAP(CBrowserFrmTab, CBrowserFrame)
 //	ON_MESSAGE(UWM_GETFAVICON, OnGetFavIcon)
 	ON_WM_KEYDOWN()
 	ON_WM_SYSCOMMAND()
+	ON_WM_MENUSELECT()
 END_MESSAGE_MAP()
 
 BOOL CBrowserFrmTab::OnToolTipText(UINT id, NMHDR* pNMHDR, LRESULT* pResult)
@@ -749,6 +750,19 @@ void CBrowserFrmTab::OnShowFindBar()
 {
 	CBrowserFrame::OnShowFindBar();
 	m_wndTabs->UpdateVisibility(); // Ugly hack
+}
+
+void CBrowserFrmTab::OnMenuSelect(UINT nItemID, UINT nFlags, HMENU hSysMenu)
+{
+	if (nItemID >= TABS_START_ID && nItemID <= TABS_STOP_ID) {
+		CBrowserTab* tab = (CBrowserTab*)m_Tabs[IDTOTABINDEX(nItemID)];
+		if (tab) {
+			UpdateStatus(tab->GetCurrentURI());
+			return;
+		}
+	}
+		
+	CBrowserFrame::OnMenuSelect(nItemID, nFlags, hSysMenu);
 }
 
 /**********************************************/

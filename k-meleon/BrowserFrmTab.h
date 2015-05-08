@@ -186,6 +186,7 @@ protected:
 public: // Temporary
 	afx_msg void OnNewTab();
 	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
+	afx_msg void OnMenuSelect(UINT nItemID, UINT nFlags, HMENU hSysMenu);
 };
 
 
