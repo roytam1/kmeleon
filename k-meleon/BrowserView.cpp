@@ -410,6 +410,12 @@ void CBrowserView::OnNavHome()
 
 void CBrowserView::_OnNavReload(BOOL force) 
 {
+	if (GetBrowserGlue()->mHIndex>=0) {
+		GetBrowserWrapper()->GotoHistoryIndex(GetBrowserGlue()->mHIndex);
+		GetBrowserGlue()->mHIndex = -1;	
+		return;
+	}
+
 	// If there is no URI to reload, load the address in the url bar
 	CString url = m_pWindow->GetURI();
 	if (url.IsEmpty() || url.Compare(_T("about:blank")) == 0)
@@ -418,7 +424,7 @@ void CBrowserView::_OnNavReload(BOOL force)
 		if (!url.IsEmpty())
 			OpenURL(url);
 	}
-	else
+	else	
 		m_pWindow->Reload(force);
 }
 
@@ -1098,9 +1104,9 @@ bool CBrowserView::OnMenuSelect(UINT nItemID, UINT nFlags, HMENU hSysMenu)
 		return true;
 	}
 
-	CString desc;// = theApp.commands.GetDescription(nItemID); // TODO
-	if (desc.GetLength()>0) {
-		mpBrowserFrame->UpdateStatus(desc);
+	KmCommand* cmd = theApp.commands.GetCommand(nItemID);
+	if (cmd && cmd->GetDesc().GetLength()>0) {
+		mpBrowserFrame->UpdateStatus(theApp.lang.Translate(cmd->GetDesc()));
 		return true;
 	}
 

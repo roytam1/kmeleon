@@ -153,7 +153,7 @@ public:
 	}
 
 	UINT    GetId(LPCTSTR command);
-	bool GetCommand(UINT id, KmCommand&);
+	KmCommand* GetCommand(UINT id);
 	bool GetCommand(LPCTSTR command, KmCommand&);
 
 	CString GetDescription(LPCTSTR command);

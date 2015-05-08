@@ -1875,6 +1875,17 @@ void CBrowserFrame::OnMenuSelect(UINT nItemID, UINT nFlags, HMENU hSysMenu)
 	if (GetActiveView()->OnMenuSelect(nItemID, nFlags, hSysMenu))
 		return;
 
+	if (nItemID >= WINDOW_MENU_START_ID && nItemID <= WINDOW_MENU_STOP_ID) {
+		POSITION pos = theApp.m_FrameWndLst.FindIndex(nItemID-WINDOW_MENU_START_ID);
+		if (pos) {
+			CBrowserFrame* pBrowserFrame = (CBrowserFrame *) theApp.m_FrameWndLst.GetAt(pos);
+			if (pBrowserFrame) {
+				UpdateStatus(pBrowserFrame->GetActiveView()->GetCurrentURI());
+				return;
+			}
+		}
+	}	
+
 	CFrameWnd::OnMenuSelect(nItemID, nFlags, hSysMenu);
 }
 
