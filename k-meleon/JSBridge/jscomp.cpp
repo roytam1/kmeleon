@@ -292,6 +292,13 @@ nsresult GetPathAndRect(JSContext* cx, JS::HandleValue& icon, char** path, RECT*
 	return NS_OK;
 }
 
+NS_IMETHODIMP CJSBridge::UnregisterCmd(const char * name) 
+{
+	if (!kPlugin.kFuncs) return NS_ERROR_NOT_INITIALIZED;
+	kPlugin.kFuncs->UnregisterCmd(name);
+	return NS_OK;
+}
+
 NS_IMETHODIMP CJSBridge::RegisterCmd(const char * name, const char * desc, 
 	kmICommandFunction *command, JS::HandleValue icon,
 	kmICallback *enabled, kmICallback *checked, JSContext* cx, int32_t *_retval)

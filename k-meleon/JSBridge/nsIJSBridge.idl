@@ -73,6 +73,7 @@ interface nsIJSBridge : nsISupports
 	long RegisterCmd(in string name, in string desc, 
 		in kmICommandFunction command, [optional] in jsval icon,
 		[optional] in kmICallback enabled, [optional] in kmICallback checked);
+	void UnregisterCmd(in string name);
 	[implicit_jscontext]
 	void SetCmdIcon(in string name, in jsval icon);
 	[implicit_jscontext]
