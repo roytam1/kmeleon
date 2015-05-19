@@ -66,6 +66,7 @@
 
 	bool checkTrust(FunctionData* data)
 	{
+		return true; // TODO: to enable later
 		return data->c.mf->trusted && (!data->c.origmf || data->c.origmf->trusted);
 	}
 	
@@ -486,6 +487,7 @@
 
 	Value exec(FunctionData* data)
 	{
+		NEEDTRUST(data);
 		checkArgs(__FUNCTION__, data,  1, 2);
 		STARTUPINFO si = {0};
 		PROCESS_INFORMATION pi = {0};
@@ -522,11 +524,8 @@
 		checkArgs(__FUNCTION__, data, 2);
 		MString plugin = data->getstr(1);
 		MString param = data->getstr(2);
-
-		int cmd;
-		kPlugin.kFuncs->SendMessage(plugin, PLUGIN_NAME, "DoAccel", (long)(const char*)param, (long)&cmd);
-		SendMessage(data->c.hWnd, WM_COMMAND, MAKELONG(cmd, 1), NULL);
-		return "";
+		plugin = plugin + "(" + param + ")";
+		return kPlugin.kFuncs->RunCommand(data->c.hWnd, plugin);
 	}
 
 	Value statusbar(FunctionData* data)
@@ -1111,6 +1110,14 @@
 		checkArgs(__FUNCTION__, data, 2);		
 		int res = _wrename(data->getstr(1).utf16(), data->getstr(2).utf16());
 		return res == 0;		
+	}
+
+	Value copyfile(FunctionData* data)
+	{
+		NEEDTRUST(data);
+		checkArgs(__FUNCTION__, data, 2);		
+		BOOL res = CopyFile(data->getstr(1).utf16(), data->getstr(2).utf16(), TRUE);
+		return res == TRUE;				
 	}
 
 	Value deletefile(FunctionData* data)
@@ -1838,6 +1845,7 @@ void InitFunctions(Mac* m)
 	MACROSFUNC_ADD(renamefile);
 	MACROSFUNC_ADD(deletefile);
 	MACROSFUNC_ADD(appendfile);
+	MACROSFUNC_ADD(copyfile);	
 	MACROSFUNC_ADD(logmsg);
 	MACROSFUNC_ADD(popupmenu);
 	MACROSFUNC_ADD(time);
