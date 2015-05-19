@@ -915,12 +915,12 @@ void CTabReBar::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 			UINT nState = DFCS_FLAT;
 			//CBrush brBackground(GetSysColor(COLOR_BTNFACE));
 			//pDC->FillRect(&pNMCD->nmcd.rc, &brBackground);
-			if (style & WS_DISABLED)
+			if (pNMCD->nmcd.uItemState & CDIS_DISABLED)
 				nState = DFCS_INACTIVE;
 			else if (pNMCD->nmcd.uItemState & CDIS_SELECTED)
 				nState = DFCS_PUSHED;		
 			else if(pNMCD->nmcd.uItemState & CDIS_HOT && pNMCD->nmcd.uItemState & CDIS_CHECKED)
-				nState = DFCS_PUSHED | DFCS_HOT; 
+				nState = DFCS_CHECKED | DFCS_HOT; 
 			else if (pNMCD->nmcd.uItemState & CDIS_CHECKED)
 				nState = DFCS_CHECKED;
 			else if (pNMCD->nmcd.uItemState & CDIS_HOT)
@@ -930,7 +930,7 @@ void CTabReBar::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 				COLORREF clr = ::GetSysColor(COLOR_BTNHIGHLIGHT);
 				COLORREF clr2 = ::GetSysColor(COLOR_BTNSHADOW);
 				pDC->Draw3dRect(&pNMCD->nmcd.rc, clr, clr2);
-			} else if (nState = DFCS_PUSHED) {
+			} else if (nState == DFCS_PUSHED) {
 				COLORREF clr = ::GetSysColor(COLOR_BTNHIGHLIGHT);
 				COLORREF clr2 = ::GetSysColor(COLOR_BTNSHADOW);
 				pDC->Draw3dRect(&pNMCD->nmcd.rc, clr2, clr);
