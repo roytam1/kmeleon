@@ -13,7 +13,7 @@ interface kmICommandFunction:nsISupports {
 
 [scriptable,function, uuid(83910267-7670-4493-99c1-dd540a036ef4)]
 interface kmICallback:nsISupports {
-  void run();
+  bool run([optional] in string arg);
 };
 
 [scriptable,function, uuid(83910267-7670-4493-99c1-dd540a036ef5)]

@@ -133,7 +133,14 @@ long DoMessage(const char *to, const char *from, const char *subject,
 			   long data1, long data2)
 {
 	if (to[0] == '*' || stricmp(to, kPlugin.dllname) == 0) {
-		if (strcmp(subject, "Init") == 0) {
+		if (strcmp(subject, "GetState") == 0) {
+			if (!cmdList) return 0;
+			unsigned res = cmdList->GetState(data1);
+			if (res == -1) return 0;
+			*((unsigned*)data2) = res;
+			return 1;
+		}
+		else if (strcmp(subject, "Init") == 0) {
 			Init();
 		}
 
@@ -150,7 +157,13 @@ long DoMessage(const char *to, const char *from, const char *subject,
 
 		else if (strcmp(subject, "SwitchTab") == 0) {
 			if (getJSB()) getJSB()->OnSwitchTab((HWND)data1, (HWND)data2);
-		}	  
+		}	
+		else if (strcmp(subject, "CreateTab") == 0) {
+			if (getJSB()) getJSB()->OnCreateTab((HWND)data1);
+		}
+		else if (strcmp(subject, "DestroyTab") == 0) {
+			if (getJSB()) getJSB()->OnDestroyTab((HWND)data1);
+		}
 
 		else return 0;
 		return 1;

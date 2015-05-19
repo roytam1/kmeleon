@@ -94,6 +94,7 @@
       <ImportLibrary>$(OutDir)JSBridge.lib</ImportLibrary>
       <TargetMachine>MachineX86</TargetMachine>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <LargeAddressAware>true</LargeAddressAware>
     </Link>
     <PostBuildEvent>
       <Command>copy jsbridge.xpt ..\..\release\browser\components</Command>
