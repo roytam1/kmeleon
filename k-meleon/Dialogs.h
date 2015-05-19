@@ -163,7 +163,7 @@ public:
 	inline int GetChoice() {return m_iChoice;}
 	void AddChoice(LPCTSTR);
 
-// Données de boîte de dialogue
+// Données de boû‘e de dialogue
 	enum { IDD = IDD_PROMPT_SELECT };
 
 protected:

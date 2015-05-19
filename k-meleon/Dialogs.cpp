@@ -549,7 +549,7 @@ void CSelectDialog::OnLbnDblclkListSelect()
 }
 
 #include "MfcEmbed.h"
-
+/*
 extern CMfcEmbedApp theApp;
 int CDialogEx2::RunModalLoop(DWORD dwFlags)
 {
@@ -662,4 +662,4 @@ int CDialogEx2::RunModalLoop(DWORD dwFlags)
 ExitModal:
 	m_nFlags &= ~(WF_MODALLOOP|WF_CONTINUEMODAL);
 	return m_nModalResult;
-}
+}*/
