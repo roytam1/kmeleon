@@ -178,9 +178,8 @@ void CBrowserGlue::GetBrowserTitle(CString& aTitle)
 
 void CBrowserGlue::SetBrowserTitle(LPCTSTR aTitle)
 {
-	if (mHIndex != -1) return;
-
 	mTitle = aTitle;
+	if (mHIndex != -1) return;
 	if (mpBrowserFrame->GetActiveView() != mpBrowserView)
 		return;
 
