@@ -55,6 +55,23 @@ CCmdList* GetCmdList() {
 	return cmdList;
 }
 
+int CCmdList::GetState(int command) {	
+	auto eIter = eMap.find(command);
+	auto cIter = cMap.find(command);
+	if (eIter == eMap.end() && cIter == cMap.end()) return -1;
+	int res = 0;
+	bool b;
+	if (eIter != eMap.end()) {
+		eIter->second->Run(nullptr, &b);
+		if (b) res |= 0x1;
+	}
+	if (cIter != cMap.end()) {
+		cIter->second->Run(nullptr, &b);
+		if (b) res |= 0x2;
+	}
+	return res;
+}
+
 bool CCmdList::Run(HWND hwnd, UINT command, UINT mode) {	
 	auto iter = cmdMap.find(command);
 	if (iter != cmdMap.end() && iter->second) {
@@ -318,7 +335,7 @@ NS_IMETHODIMP CJSBridge::RegisterCmd(const char * name, const char * desc,
 	} else
 		id = kPlugin.kFuncs->RegisterCmd(name, desc, iconPath);
 	
-	::GetCmdList()->Add(id, command);
+	::GetCmdList()->Add(id, command, enabled, checked);
 	if (iconPath) JS_free(cx, iconPath);
 	return NS_OK;
 }
@@ -430,7 +447,7 @@ NS_IMETHODIMP CJSBridge::GetWindows(uint32_t *length, kmIWindow * **list)
 	HWND* hList = new HWND[size];
 	kPlugin.kFuncs->GetWindowsList(hList, size);
 	kmIWindow** wins = static_cast<kmIWindow**>(NS_Alloc(size*sizeof(kmIWindow*)));
-	for (unsigned i = 0;i<size;i++) {
+	for (int i = 0;i<size;i++) {
 		CWin* win = new CWin();
 		win->hWnd = hList[i];
 		void *result;
@@ -506,3 +523,42 @@ void CJSBridge::OnSwitchTab(HWND oldhWnd, HWND newhWnd)
 	mListeners.EnumerateForwards(notifySwitchTab, dom);
 }
 
+bool notifyCreateTab(nsIObserver *aListener, void* aData)
+{
+	kmIWindow* winData = static_cast<kmIWindow*>(aData);
+	aListener->Observe(winData, "kmeleon-opentab", nullptr);
+	return true;
+}
+
+void CJSBridge::OnCreateTab(HWND hWnd)
+{
+	nsCOMPtr<nsIWebBrowser> browser;
+	kPlugin.kFuncs->GetMozillaWebBrowser(hWnd, getter_AddRefs(browser));
+	if (!browser) return;
+
+	nsCOMPtr<nsIDOMWindow> dom;
+	browser->GetContentDOMWindow(getter_AddRefs(dom));
+	if (!dom) return;
+
+	mListeners.EnumerateForwards(notifyCreateTab, dom);
+}
+
+bool notifyDestroyTab(nsIObserver *aListener, void* aData)
+{
+	kmIWindow* winData = static_cast<kmIWindow*>(aData);
+	aListener->Observe(winData, "kmeleon-closetab", nullptr);
+	return true;
+}
+
+void CJSBridge::OnDestroyTab(HWND hWnd)
+{
+	nsCOMPtr<nsIWebBrowser> browser;
+	kPlugin.kFuncs->GetMozillaWebBrowser(hWnd, getter_AddRefs(browser));
+	if (!browser) return;
+
+	nsCOMPtr<nsIDOMWindow> dom;
+	browser->GetContentDOMWindow(getter_AddRefs(dom));
+	if (!dom) return;
+
+	mListeners.EnumerateForwards(notifyDestroyTab, dom);
+}

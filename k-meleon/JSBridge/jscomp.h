@@ -17,11 +17,16 @@ static NS_DEFINE_CID(kJSBridgeCID, JSBRIDGE_CID);
 class CCmdList {
 private:
 	std::map<UINT, nsCOMPtr<kmICommandFunction>> cmdMap;
+	std::map<UINT, nsCOMPtr<kmICallback>> eMap;
+	std::map<UINT, nsCOMPtr<kmICallback>> cMap;
 public:
-	void Add(UINT id, kmICommandFunction* command) {
+	void Add(UINT id, kmICommandFunction* command, kmICallback* enabled = nullptr, kmICallback* checked = nullptr) {
 		cmdMap.insert(std::pair<UINT,kmICommandFunction*>(id, command));
+		if (enabled) eMap.insert(std::pair<UINT,kmICallback*>(id, enabled));
+		if (checked) cMap.insert(std::pair<UINT,kmICallback*>(id, checked));
 	}
 	bool Run(HWND hwnd, UINT command, UINT mode);
+	int GetState(int id);
 };
 
 typedef std::string string;
@@ -67,6 +72,8 @@ public:
 
 	void OnCreateWindow(HWND hWnd, int flag);
 	void OnSwitchTab(HWND oldhWnd, HWND newhWnd);
+	void OnCreateTab(HWND hWnd);
+	void OnDestroyTab(HWND hWnd);
 protected:
 	nsCOMArray<nsIObserver> mListeners;
 };
