@@ -712,6 +712,7 @@ bool InjectJS(nsIDOMWindow* dom, const wchar_t* userScript, CString& result)
 
     nsPIDOMWindow *innerWin = piWin->GetCurrentInnerWindow();
 	nsCOMPtr<nsIScriptGlobalObject> innerGlobal = do_QueryInterface(innerWin);
+	NS_ENSURE_TRUE(innerGlobal, FALSE);
 	nsCOMPtr<nsIScriptContext> scriptContext = global->GetContext();
 	NS_ENSURE_TRUE(scriptContext, FALSE);
 	
@@ -725,7 +726,7 @@ bool InjectJS(nsIDOMWindow* dom, const wchar_t* userScript, CString& result)
 	JS::Rooted<JS::Value> v (cx, JS::UndefinedValue());
 	JS_EvaluateUCScript(cx, globalJSObject, userScript, wcslen(userScript), "kmeleon", 0, &v);
 	
-	if (v.isString() && !v.isObject())
+	if (!v.isObject() && v.toString())
 		result = NSStringToCString(nsString(JS_GetStringCharsZ(cx, v.toString())));
 	cs->Pop(nullptr);	
 	return TRUE;
