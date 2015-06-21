@@ -363,7 +363,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message,
 		}
 		else if (LOWORD(wParam) == g_id + 1) {
 			DoCommand(hWnd, TRUE);
-		} else if (LOWORD(wParam) >= g_id + 2 &&  (LOWORD(wParam) <= g_id + 2 + MAX_DICT_COMMAND)) {
+		} else if (LOWORD(wParam) >= g_id + 2 &&  (LOWORD(wParam) < g_id + 2 + MAX_DICT_COMMAND)) {
 			char* lang = gDictCommand[LOWORD(wParam) - g_id - 2];			
 			if (*lang) {
 				nsString nsLang;
