@@ -1116,8 +1116,14 @@
 	{
 		NEEDTRUST(data);
 		checkArgs(__FUNCTION__, data, 2);		
-		BOOL res = CopyFile(data->getstr(1).utf16(), data->getstr(2).utf16(), TRUE);
-		return res == TRUE;				
+		return CopyFile(data->getstr(1).utf16(), data->getstr(2).utf16(), TRUE) == TRUE;
+	}
+
+	Value mkdir(FunctionData* data)
+	{
+		NEEDTRUST(data);
+		checkArgs(__FUNCTION__, data, 1);		
+		return CreateDirectory(data->getstr(1).utf16(), NULL) == 0;
 	}
 
 	Value deletefile(FunctionData* data)
@@ -1770,6 +1776,7 @@
 
 	Value time(FunctionData* data)
 	{
+		checkArgs(__FUNCTION__, data, 0);
 		return std::time(nullptr);
 	}
 
@@ -1846,6 +1853,7 @@ void InitFunctions(Mac* m)
 	MACROSFUNC_ADD(deletefile);
 	MACROSFUNC_ADD(appendfile);
 	MACROSFUNC_ADD(copyfile);	
+	MACROSFUNC_ADD(mkdir);	
 	MACROSFUNC_ADD(logmsg);
 	MACROSFUNC_ADD(popupmenu);
 	MACROSFUNC_ADD(time);
