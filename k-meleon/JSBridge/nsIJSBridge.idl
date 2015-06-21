@@ -19,6 +19,7 @@ interface kmICallback:nsISupports {
 [scriptable,function, uuid(83910267-7670-4493-99c1-dd540a036ef5)]
 interface kmIWindow:nsISupports {
   readonly attribute voidPtr handle;
+  void getTabs([optional] out unsigned long length, [array, size_is(length), retval] out nsIWebBrowser list);
 };
 
 [scriptable, uuid(3d8ce8f0-5214-11db-b0de-0800200c9a65)] 
@@ -79,11 +80,13 @@ interface nsIJSBridge : nsISupports
 	[implicit_jscontext]
 	void SetButtonIcon(in string toolbar, in string command, in jsval icon);
 	void SetAccel(in string key, in string command);
+	//void SetStatusBarText(in kmIWindow win, in string text);
 	
 	nsIWebBrowser Open(in string url, in unsigned short state);
 	nsIWebBrowser GetActiveBrowser();
+	kmIWindow GetCurrentWindow();
 	void GetWindows([optional] out unsigned long length, [array, size_is(length), retval] out kmIWindow list);
-
+	//void GetTabs([optional] in kmIWindow win, [optional] out unsigned long length, [array, size_is(length), retval] out nsIWebBrowser list);
 	void AddListener(in nsIObserver listener);
 	void RemoveListener(in nsIObserver listener);
 

@@ -27,6 +27,26 @@ public:
 	}
 	bool Run(HWND hwnd, UINT command, UINT mode);
 	int GetState(int id);
+	kmICommandFunction* Get(int id) {
+		auto iter = cmdMap.find(id);
+		if (iter != cmdMap.end()) return iter->second;
+		return nullptr;
+	}
+	int GetChecked(int id) {
+		bool b;
+		auto cIter = cMap.find(id);
+		if (cIter == cMap.end()) return -1;
+		cIter->second->Run(nullptr, &b);
+		return b?1:0;
+	}
+	int GetEnabled(int id) {
+		bool b;
+		auto eIter = eMap.find(id);
+		if (eIter == eMap.end()) return -1;
+		eIter->second->Run(nullptr, &b);
+		return b?1:0;
+	}
+
 };
 
 typedef std::string string;

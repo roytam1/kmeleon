@@ -194,6 +194,40 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case TB_MBUTTONDOWN:
 		if (cmdList && cmdList->Run(hWnd, LOWORD(wParam), 2)) return 0;
 		break;
+
+	case WM_INITMENUPOPUP: {
+
+		// Let MFC do its little update
+		LRESULT res = CallWindowProc(KMeleonWndProc, hWnd, message, wParam, lParam);
+		
+		HMENU menu = (HMENU)wParam;
+		int count = GetMenuItemCount(menu);
+		for (int i=0;i<count;i++)
+		{
+			int id = GetMenuItemID(menu, i);
+			if (!id>0 || !cmdList->Get(id)) continue;
+
+			MENUITEMINFO mif;
+			mif.cbSize = sizeof(mif);
+			mif.fMask = MIIM_STATE;
+			GetMenuItemInfo(menu, i, TRUE, &mif);
+
+			int state = cmdList->GetChecked(id);
+			if (state != -1) {
+				mif.fState &= ~MF_CHECKED & ~MF_UNCHECKED;
+				mif.fState |= state ? MF_CHECKED : MF_UNCHECKED;
+			}
+
+			state = cmdList->GetEnabled(id);
+			if (state != -1) {
+				mif.fState &= ~MF_GRAYED & ~MF_ENABLED;
+				mif.fState |= state ? MF_ENABLED : MF_GRAYED;
+			}
+
+			::SetMenuItemInfo(menu, i, TRUE, &mif);
+		}
+		return res;
+	}
 	/*case TB_RBUTTONDOWN:
 		if (cmdList && cmdList->Run(hWnd, LOWORD(wParam), 2)) return 0;
 		break;*/
