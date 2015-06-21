@@ -63,7 +63,7 @@ int CCmdList::GetState(int command) {
 	bool b;
 	if (eIter != eMap.end()) {
 		eIter->second->Run(nullptr, &b);
-		if (b) res |= 0x1;
+		if (!b) res |= 0x1;
 	}
 	if (cIter != cMap.end()) {
 		cIter->second->Run(nullptr, &b);
@@ -397,6 +397,15 @@ NS_IMETHODIMP CJSBridge::SetAccel(const char * key, const char * command)
 	return NS_OK;
 }
 
+/*NS_IMETHODIMP CJSBridge::SetStatusBarText(kmIWindow *win, const char *text)
+{
+	HWND hwnd = NULL;
+	if (win) win->GetHandle((void**)&hwnd);
+	kPlugin.kFuncs->SetStatusBarText(text);
+	return NS_OK;
+}*/
+
+
 NS_IMETHODIMP CJSBridge::CreateButton(const char * cmd, const char * menu, const char * tooltip, const char * label, kmIButton * *_retval)
 {
 	CJSButton* button = new CJSButton();
@@ -432,9 +441,32 @@ public:
 
 NS_IMPL_ISUPPORTS (CWin, kmIWindow)
 
-NS_IMETHODIMP CWin::GetHandle(void **aHandle) {
+NS_IMETHODIMP CWin::GetHandle(void **aHandle)
+{
 	*aHandle = hWnd;
 	return NS_OK;
+}
+
+NS_IMETHODIMP CWin::GetTabs(uint32_t *length, nsIWebBrowser * **list)
+{
+	*list = nullptr;
+	*length = 0;
+	HWND hwnd = NULL;
+	GetHandle((void**)&hwnd);
+	int size = kPlugin.kFuncs->GetTabsList(hwnd, NULL, 0);
+	if (size == 0) return NS_OK;
+
+	HWND* hList = new HWND[size];
+	kPlugin.kFuncs->GetTabsList(hwnd, hList, size);
+	nsIWebBrowser** wins = static_cast<nsIWebBrowser**>(NS_Alloc(size*sizeof(nsIWebBrowser*)));
+	for (int i = 0;i<size;i++) {
+		wins[i] = nullptr;
+		kPlugin.kFuncs->GetMozillaWebBrowser(hList[i], &wins[i]);
+	}
+	delete [] hList;
+	if (length) *length = size;
+	*list = wins;
+    return NS_OK;
 }
 
 NS_IMETHODIMP CJSBridge::GetWindows(uint32_t *length, kmIWindow * **list)
@@ -458,6 +490,16 @@ NS_IMETHODIMP CJSBridge::GetWindows(uint32_t *length, kmIWindow * **list)
 	if (length) *length = size;
 	*list = wins;
     return NS_OK;
+}
+
+NS_IMETHODIMP CJSBridge::GetCurrentWindow(kmIWindow * *_retval) 
+{
+	CWin* win = new CWin();
+	win->hWnd = kPlugin.kFuncs->GetCurrent(NULL);
+	void *result;
+	win->QueryInterface(NS_GET_TEMPLATE_IID(kmIWindow), &result);
+	*_retval = static_cast<kmIWindow*>(result);
+	return NS_OK;
 }
 
 NS_IMETHODIMP CJSBridge::AddListener(nsIObserver* listener)
