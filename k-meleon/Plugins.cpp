@@ -420,6 +420,15 @@ HIMAGELIST GetIconList()
 #endif
 }
 
+HIMAGELIST GetDefSizeIconList()
+{
+#ifdef INTERNAL_SITEICONS
+	return theApp.favicons.GetSizedList()->GetSafeHandle();
+#else
+	return NULL;
+#endif
+}
+
 long GetPreference(enum PREFTYPE type, const char *preference, void *ret, void *defVal)
 {
    long result = 0;
@@ -540,13 +549,14 @@ int SetMozillaSessionHistory (HWND hWnd, const char **titles, const char **urls,
 	if (frame->IsKindOf(RUNTIME_CLASS(CBrowserFrmTab)) && theApp.preferences.GetBool("browser.sessionstore.restore_on_demand", false)) {
 		if (index>=count) index = count - 1;
 		if (index<0) index = 0;
-		view->GetBrowserGlue()->SetBrowserTitle(NSUTF8StringToCString(nsDependentCString(titles[index])));
+		
 		nsCOMPtr<nsIURI> uri;
 		NewURI(getter_AddRefs(uri), nsDependentCString(urls[index]));
 		view->GetBrowserGlue()->UpdateCurrentURI(uri);
 		view->GetBrowserGlue()->mPendingLocation = urls[index];
 		view->GetBrowserGlue()->mHIndex = index;
 		view->GetBrowserGlue()->mIcon = theApp.favicons.GetHostIcon(A2CW(urls[index]));
+		view->GetBrowserGlue()->SetBrowserTitle(NSUTF8StringToCString(nsDependentCString(titles[index])));
 		uri->SetPath(NS_LITERAL_CSTRING(""));
 		nsCString host;
 		uri->GetHost(host);
@@ -1139,6 +1149,16 @@ UINT GetWindowVarUTF8(HWND hWnd, WindowVarType type, void* ret)
 			return 1;
 		}
 		
+		case Window_Tab_Index: {
+			if (!ret) return 1;
+			if (frame->IsKindOf(RUNTIME_CLASS(CBrowserFrmTab)))
+				//*(int*)ret = ((CBrowserFrmTab*)frame)->GetActiveTab()->m_iIndex;
+				*(int*)ret = ((CBrowserFrmTab*)frame)->GetTabBar()->FindByData((DWORD_PTR)(CBrowserTab*)view);
+			else
+				*(int*)ret = 0;
+			return 1;
+		}
+
 		case Window_Icon: {
 			if (ret) *(int*)ret = theApp.favicons.GetIcon(view->GetBrowserGlue()->mIconURI);
 			return 1;
@@ -2103,7 +2123,8 @@ kmeleonFunctions kmelFuncsUTF8 = {
    AddPermission,
    ShowMenu,
    GetCurrent,
-   RunCommand
+   RunCommand,
+   GetDefSizeIconList
 };
 
 kmeleonFunctions kmelFuncs = {
@@ -2182,7 +2203,8 @@ kmeleonFunctions kmelFuncs = {
    AddPermission,
    ShowMenu,
    GetCurrent,
-   RunCommand
+   RunCommand,
+   GetDefSizeIconList
 };
 
 BOOL CPlugins::TestLoad(LPCTSTR file, const char *description)
