@@ -535,8 +535,10 @@ void SessionStore::Delete(const char* name)
 		if (
 			! (*it).IsObject() 			
 			|| (!(*it)["name"].IsString())
-		    || (strcmp(name, (*it)["name"].GetString()) == 0))
+		    || (strcmp(name, (*it)["name"].GetString()) == 0)) {
 			it = sessions.Erase(it);		
+			break;
+		}
 		else it++;
 	}
 
