@@ -37,21 +37,22 @@ private:
 	void AddMap(const char *uri, int index, const char* pageUri = nullptr);
 	int AddDownloadedIcon(char* uri, TCHAR* file, nsresult aStatus);
 	BOOL LoadCache();
-	
+	CImageList mSized;
 
 public:
 	CFavIconList();
 	virtual ~CFavIconList();
 
 	BOOL WriteCache();
-	int AddIcon(const char* uri, CBitmap*, CBitmap*, const char* pageUri = nullptr);
-	int AddIcon(const char* uri, CBitmap*, COLORREF, const char* pageUri = nullptr);
-	int AddIcon(const char* uri, HICON icon, const char* pageUri = nullptr);
+	//int AddIcon(const char* uri, CBitmap*, CBitmap*, const char* pageUri = nullptr);
+	//int AddIcon(const char* uri, CBitmap*, COLORREF, const char* pageUri = nullptr);
+	//int AddIcon(const char* uri, HICON icon, const char* pageUri = nullptr);
+	int AddIcon(const char* uri, HBITMAP, const char* pageUri = nullptr);
 
 	int GetHostIcon(const TCHAR* aUri);
 	int GetIcon(const TCHAR* uri);
 	int GetIcon(nsIURI* aUri, nsIURI* aPageURI = NULL, BOOL download = FALSE);
-	
+	CImageList* GetSizedList() {return &mSized;}
 	void RefreshIcon(nsIURI* aURI);
 	void ResetCache();
 	void LoadDefaultIcon();

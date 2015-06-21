@@ -389,6 +389,7 @@ typedef struct {
 	UINT (*ShowMenu)(HWND hWnd, const char* name, bool sendCommand);
 	HWND (*GetCurrent)(HWND hWnd);
 	bool (*RunCommand)(HWND hWnd, const char* command);
+	HIMAGELIST (*GetDefSizeIconList)();
 } kmeleonFunctions;
 
 /*

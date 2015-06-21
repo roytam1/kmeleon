@@ -101,6 +101,9 @@ CFavIconList::CFavIconList()
 {
 	m_iDefaultIcon = 0;
 	m_iOffset = 0;
+	int width = ::GetSystemMetrics(SM_CXSMICON);
+	int height = ::GetSystemMetrics(SM_CYSMICON);
+	mSized.Create(width, height, ILC_COLOR32, 25, 10);
 	//mIconObserver = new IconObserver(this);
 }
 
@@ -113,6 +116,7 @@ BOOL CFavIconList::LoadCache()
 {
 	CFile iconCache;
 	CImageList imgList;
+	CImageList imgListSized;
 	if (!iconCache.Open(theApp.GetFolder(ProfileFolder) + _T("\\") FAVICON_CACHE_FILE, CFile::modeRead))
 		return FALSE;
 
@@ -130,6 +134,13 @@ BOOL CFavIconList::LoadCache()
 			return FALSE;
 		}
 		END_CATCH
+
+		TRY
+			imgListSized.Read(&ar);
+		CATCH (CArchiveException, e) {
+	
+		}
+		END_CATCH
 	}
 
 	if (!imgList.m_hImageList) 
@@ -137,7 +148,13 @@ BOOL CFavIconList::LoadCache()
 	
 	for (int i=0; i < imgList.GetImageCount(); i++) {
 		HICON tmp = imgList.ExtractIcon(i);
-		int idx = Add(tmp);
+		Add(tmp);		
+		if (imgListSized.GetSafeHandle()) {
+			HICON stmp = imgListSized.ExtractIcon(i);
+			mSized.Add(stmp);
+			DestroyIcon(stmp);
+		} else
+			mSized.Add(tmp);
 		DestroyIcon(tmp);
 	}
 
@@ -152,18 +169,23 @@ BOOL CFavIconList::WriteCache()
 	if (!theApp.preferences.GetBool("kmeleon.favicons.cached", TRUE))
 		return FALSE;
 
-	CImageList imgList;
+	CImageList imgList, imgListSized;
 	imgList.Create(this);
+	imgListSized.Create(&mSized);
 
-	for (int i=0; i < m_iOffset; i++)
+	for (int i=0; i < m_iOffset; i++) {
 		imgList.Remove(0);
+		imgListSized.Remove(0);
+	}
 
 	CFile iconCache;
 	if (iconCache.Open(theApp.GetFolder(ProfileFolder) + _T("\\") FAVICON_CACHE_FILE, CFile::modeCreate | CFile::modeWrite))
 	{
 		CArchive ar(&iconCache, CArchive::store);
-		if (imgList.Write(&ar))
+		if (imgList.Write(&ar)) {
 			m_urlMap.Serialize(ar);
+			imgListSized.Write(&ar);
+		}
 	}
 	return TRUE;
 }
@@ -178,7 +200,7 @@ void CFavIconList::LoadDefaultIcon()
 	// Add can return 0 even if it fails...
 	if (GetImageCount()==0)
 		m_iDefaultIcon = Add(theApp.GetDefaultIcon());
-
+	
 	HICON loadingIcon = theApp.skin.GetIconLoading();
 	if (loadingIcon) {
 		m_iLoadingIcon = Add(loadingIcon);
@@ -195,6 +217,8 @@ void CFavIconList::LoadDefaultIcon()
 	if (defaultIcon)
 		DestroyIcon(defaultIcon);
 
+	mSized.Add(theApp.GetDefaultIcon());
+	mSized.Add(theApp.GetDefaultIcon());
 	m_iOffset = GetImageCount();
 }
 
@@ -242,7 +266,7 @@ void CFavIconList::AddMap(const char *uri, int index, const char* pageUri)
 	// to mess with synchronisation.
 	theApp.BroadcastMessage(UWM_NEWSITEICON, (WPARAM)0, index);
 }
-
+/*
 int CFavIconList::AddIcon(const char* uri, CBitmap* icon, COLORREF cr, const char* pageUri)
 {
 	int index = Add(icon, cr);
@@ -254,6 +278,47 @@ int CFavIconList::AddIcon(const char* uri, CBitmap* icon, CBitmap* mask, const c
 {
 	int index = Add(icon, mask);
 	AddMap(uri, index, pageUri);
+	return index;
+}*/
+
+int CFavIconList::AddIcon(const char* uri, HBITMAP hBitmap, const char* pageUri)
+{
+	BITMAP info;
+	::GetObject(hBitmap, sizeof(BITMAP), &info);
+	int w,h;
+	ImageList_GetIconSize(GetSafeHandle(), &w, &h);
+	HBITMAP hbmSized = NULL;
+	if (info.bmWidth!=w && info.bmHeight!=h) { 
+		HDC hDC = GetDC(NULL);
+		HBITMAP hbmSized = ResizeIcon32(hDC, hBitmap, w, h);
+		if (!hbmSized) hbmSized = ResizeIcon(hDC, hBitmap, w, h);		
+		ReleaseDC(NULL, hDC);
+	}
+	if (!hbmSized) hbmSized = hBitmap;
+
+	CBitmap bitmap;
+	bitmap.Attach(hbmSized);
+	int index = Add(&bitmap, (CBitmap*)NULL);
+	AddMap(uri, index, pageUri);
+	
+	HBITMAP hbmSized2 = NULL;
+	ImageList_GetIconSize(mSized.GetSafeHandle(), &w, &h);
+	if (info.bmWidth!=w && info.bmHeight!=h) { 
+		HDC hDC = GetDC(NULL);
+		HBITMAP hbmSized2 = ResizeIcon32(hDC, hBitmap, w, h);
+		if (!hbmSized) hbmSized2 = ResizeIcon(hDC, hBitmap, w, h);
+		ReleaseDC(NULL, hDC);
+	}
+	if (!hbmSized) hbmSized = hBitmap;
+
+	bitmap.Attach(hbmSized);
+	int index2 = mSized.Add(&bitmap, (CBitmap*)NULL);
+	ASSERT(index == index2);
+
+	if (hbmSized != hBitmap) DeleteObject(hbmSized);
+	if (hbmSized2 != hBitmap) DeleteObject(hbmSized2);
+	DeleteObject(hBitmap);
+	
 	return index;
 }
 
@@ -331,6 +396,7 @@ void CFavIconList::RefreshIcon(nsIURI* aURI)
 		return;
 
 	Remove(index + m_iOffset);
+	mSized.Remove(index + m_iOffset);
 	
    // We have to remove all url with this icon.
    POSITION pos = m_urlMap.GetStartPosition();
@@ -352,6 +418,7 @@ void CFavIconList::RefreshIcon(nsIURI* aURI)
 void CFavIconList::ResetCache()
 {
 	while (GetImageCount())	Remove(0);
+	while (mSized.GetImageCount())	mSized.Remove(0);
 	m_urlMap.RemoveAll();
 	LoadDefaultIcon();
 	theApp.BroadcastMessage(UWM_NEWSITEICON, 0, -1);
@@ -365,30 +432,11 @@ public:
 
 	void ImageLoaded(HBITMAP hBitmap) 
 	{
-		BITMAP info;
-		::GetObject(hBitmap, sizeof(BITMAP), &info);
-		int w,h;
-		ImageList_GetIconSize(mFavList->GetSafeHandle(), &w, &h);
-		if (info.bmWidth!=w && info.bmHeight!=h) { 
-			HDC hDC = GetDC(NULL);
-			HBITMAP hbmSized = ResizeIcon32(hDC, hBitmap, w, h);
-			if (!hbmSized) hbmSized = ResizeIcon(hDC, hBitmap, w, h);
-			if (hbmSized) {
-				DeleteObject(hBitmap);
-				hBitmap = hbmSized;
-			}
-			ReleaseDC(NULL, hDC);
-		}
-
-		CBitmap bitmap;
-		bitmap.Attach(hBitmap);
-		
 		nsCString nsuri;
 		mIconURI->GetSpec(nsuri);
 		nsCString nsPageuri;
 		if (mPageURI) mPageURI->GetSpec(nsPageuri);
-
-		mFavList->AddIcon(nsuri.get(),&bitmap, (CBitmap*)NULL, nsPageuri.get());
+		mFavList->AddIcon(nsuri.get(), hBitmap, nsPageuri.get());
 	}
 
 protected:

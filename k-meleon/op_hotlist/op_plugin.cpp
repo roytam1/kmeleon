@@ -745,7 +745,7 @@ extern "C" {
 		 UINT i = GetSiteIcon((char*)node->url.c_str());
 		 if (i > 0) {
             idx = i;
-            hList = kPlugin.kFuncs->GetIconList();
+            hList = kPlugin.kFuncs->GetDefSizeIconList();
 		 }
 
          ImageList_Draw(hList, idx, dis->hDC, dis->rcItem.left+2, top, flags);
