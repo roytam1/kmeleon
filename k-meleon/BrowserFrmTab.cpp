@@ -476,7 +476,7 @@ void CBrowserFrmTab::OnNewTab()
 void CBrowserFrmTab::OnUpdateTabs(CCmdUI* pCmd)
 {
 	pCmd->Enable();
-	if (pCmd->m_nID == TABINDEXTOID(m_wndCBrowserTab->m_iIndex))
+	if (pCmd->m_nID == TABINDEXTOID(m_iCBrowserView))
 		pCmd->SetCheck(1);
 	else
 		pCmd->SetCheck(0);
