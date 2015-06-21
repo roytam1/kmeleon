@@ -99,6 +99,8 @@ void KmMenu::AddItem(KmMenuItem& item, long before)
 		while (pos) {
 			KmMenuItem* item2 = &mMenuDef.GetAt(pos);
 			if (item2->command == item.command) {
+				RemoveItem(item);
+				break;
 				*item2 = item; // Replace old with new
 				return;
 			}
