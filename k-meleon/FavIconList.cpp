@@ -290,7 +290,7 @@ int CFavIconList::AddIcon(const char* uri, HBITMAP hBitmap, const char* pageUri)
 	HBITMAP hbmSized = NULL;
 	if (info.bmWidth!=w && info.bmHeight!=h) { 
 		HDC hDC = GetDC(NULL);
-		HBITMAP hbmSized = ResizeIcon32(hDC, hBitmap, w, h);
+		hbmSized = ResizeIcon32(hDC, hBitmap, w, h);
 		if (!hbmSized) hbmSized = ResizeIcon(hDC, hBitmap, w, h);		
 		ReleaseDC(NULL, hDC);
 	}
@@ -305,7 +305,7 @@ int CFavIconList::AddIcon(const char* uri, HBITMAP hBitmap, const char* pageUri)
 	ImageList_GetIconSize(mSized.GetSafeHandle(), &w, &h);
 	if (info.bmWidth!=w && info.bmHeight!=h) { 
 		HDC hDC = GetDC(NULL);
-		HBITMAP hbmSized2 = ResizeIcon32(hDC, hBitmap, w, h);
+		hbmSized2 = ResizeIcon32(hDC, hBitmap, w, h);
 		if (!hbmSized) hbmSized2 = ResizeIcon(hDC, hBitmap, w, h);
 		ReleaseDC(NULL, hDC);
 	}
