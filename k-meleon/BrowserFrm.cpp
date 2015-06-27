@@ -785,9 +785,20 @@ void CBrowserFrame::OnActivate(UINT nState, CWnd* pWndOther, BOOL bMinimized)
         PostMessage(UWM_UPDATESESSIONHISTORY, 0, 0);
     }
 
-   CFrameWnd::OnActivate(nState, pWndOther, bMinimized);
-   if (pWndOther == this)
-	   return;
+	// When flash go fullscreen, the browser window become
+	// inactive, but gecko doesn't like being deactivated
+	// at this point, so I have to detect that flash is taking
+	// the focus in a way or another ...
+	if (pWndOther) {
+		CString title;
+		pWndOther->GetWindowText(title);
+		if (title.Compare(L"Adobe Flash Player") == 0)
+			return;
+	}
+
+	CFrameWnd::OnActivate(nState, pWndOther, bMinimized);
+	if (pWndOther == this)
+		return;
 
    	if(bMinimized) // This isn't an activate event that Gecko cares about
 	{
@@ -798,7 +809,7 @@ void CBrowserFrame::OnActivate(UINT nState, CWnd* pWndOther, BOOL bMinimized)
 
 	CBrowserView* view = GetActiveView();
 	if (!view) 
-		return;
+		return;	
 
     switch(nState) {
         case WA_ACTIVE:
@@ -816,17 +827,7 @@ void CBrowserFrame::OnActivate(UINT nState, CWnd* pWndOther, BOOL bMinimized)
 			break;
 		case WA_INACTIVE:
 			m_wndLastFocused = ::GetFocus();
-			// When flash go fullscreen, the browser window become
-			// inactive, but gecko doesn't like being deactivated
-			// at this point, so I have to detect that flash is taking
-			// the focus in a way or another ...
-			if (pWndOther) {
-				CString title;
-				pWndOther->GetWindowText(title);
-				if (title.Compare(L"Adobe Flash Player") == 0)
-					break;
-			}
-
+						
 			if ( ::IsChild(view->m_hWnd, m_wndLastFocused) 
 				|| m_wndLastFocused == view->GetSafeHwnd())
 				view->Activate(FALSE);
