@@ -1,0 +1,96 @@
+#include "nsISupports.idl"
+#include "nsIDOMWindow.idl"
+#include "nsIWebBrowser.idl"
+interface nsISimpleEnumerator; 
+interface nsIArray;
+interface nsIDOMWindow;
+interface nsIObserver;
+
+[scriptable,function, uuid(83910267-7670-4493-99c1-dd540a036ef3)]
+interface kmICommandFunction:nsISupports {
+  void onCommand(in nsIDOMWindow win, in unsigned long mode, [optional] in string arg);
+};
+
+[scriptable,function, uuid(83910267-7670-4493-99c1-dd540a036ef4)]
+interface kmICallback:nsISupports {
+  bool run([optional] in string arg);
+};
+
+[scriptable,function, uuid(83910267-7670-4493-99c1-dd540a036ef5)]
+interface kmIWindow:nsISupports {
+  readonly attribute voidPtr handle;
+  void getTabs([optional] out unsigned long length, [array, size_is(length), retval] out nsIWebBrowser list);
+};
+
+[scriptable, uuid(3d8ce8f0-5214-11db-b0de-0800200c9a65)] 
+interface kmICommand : nsISupports
+{
+	readonly attribute AUTF8String name;
+	readonly attribute AUTF8String desc;
+	readonly attribute AUTF8String accel;
+	readonly attribute kmICommandFunction command;
+	attribute AUTF8String image;
+};
+
+[scriptable, uuid(3d8ce8f0-5214-11db-b0de-0800200c9a67)]
+interface kmIButton : nsISupports
+{
+	attribute string image;
+	attribute bool checked;
+	attribute bool disabled;
+};
+
+[scriptable, uuid(83910267-7670-4493-99c1-dd540a036ef2)] 
+interface nsIJSBridge : nsISupports 
+{ 
+	const unsigned short      MENU_COMMAND       = 1;
+	const unsigned short      MENU_POPUP     = 2;
+	const unsigned short      MENU_INLINE          = 3;
+	const unsigned short      MENU_PLUGIN = 4;
+	const unsigned short      MENU_SEPARATOR = 5;
+
+	const unsigned short      OPEN_NORMAL = 0;
+	const unsigned short      OPEN_NEW = 1;
+	const unsigned short      OPEN_BACKGROUND = 2;
+	const unsigned short      OPEN_NEWTAB = 3;
+	const unsigned short      OPEN_BACKGROUNDTAB = 4;
+	const unsigned short      OPEN_CLONE = 16;
+
+	void SetMenuCallback(in string menu, in string label, in kmICommandFunction command, [optional] in string before);
+	void SetMenu(in string menu,in unsigned short type, in string label, in string command, [optional] in string before);
+	void RebuildMenu(in string menu);
+
+	kmIButton CreateButton(in string cmd, [optional] in string menu, [optional] in string tooltip, [optional] in string label);
+	kmIButton CreateCallbackButton(in kmICommandFunction command, [optional] in string menu, [optional] in string tooltip, [optional] in string label);
+	//void AddButton(in string toolbar, in kmIButton button);
+	void AddToolbar(in string toolbar, [optional] in unsigned long width, [optional] in unsigned long height);
+	void AddButton(in string toolbar, in string command, [optional] in string menu, [optional] in string tooltip);
+	void RemoveButton(in string toolbar, in string command);
+
+	void id(in nsIDOMWindow window, in string id);
+	long SendMessage(in string plugin, in string to, in string from, in string data1);
+	void GetCmdList([optional] out unsigned long length, [array, size_is(length), retval] out kmICommand list);
+	[implicit_jscontext]
+	long RegisterCmd(in string name, in string desc, 
+		in kmICommandFunction command, [optional] in jsval icon,
+		[optional] in kmICallback enabled, [optional] in kmICallback checked);
+	void UnregisterCmd(in string name);
+	[implicit_jscontext]
+	void SetCmdIcon(in string name, in jsval icon);
+	[implicit_jscontext]
+	void SetButtonIcon(in string toolbar, in string command, in jsval icon);
+	void SetAccel(in string key, in string command);
+	//void SetStatusBarText(in kmIWindow win, in string text);
+	
+	nsIWebBrowser Open(in string url, in unsigned short state);
+	nsIWebBrowser GetActiveBrowser();
+	kmIWindow GetCurrentWindow();
+	void GetWindows([optional] out unsigned long length, [array, size_is(length), retval] out kmIWindow list);
+	//void GetTabs([optional] in kmIWindow win, [optional] out unsigned long length, [array, size_is(length), retval] out nsIWebBrowser list);
+	void AddListener(in nsIObserver listener);
+	void RemoveListener(in nsIObserver listener);
+
+	void LoadPlugin(in string path);
+	long ShowMenu(in string name, [optional] in bool sendCommand);
+}; 
+

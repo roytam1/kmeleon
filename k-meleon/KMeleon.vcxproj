@@ -1,0 +1,382 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug Unicode|Win32">
+      <Configuration>Debug Unicode</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release Static MFC|Win32">
+      <Configuration>Release Static MFC</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release Unicode|Win32">
+      <Configuration>Release Unicode</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectName>k-meleon</ProjectName>
+    <RootNamespace>k-meleon</RootNamespace>
+    <SccProjectName />
+    <SccLocalPath />
+    <Keyword>MFCProj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release Unicode|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release Static MFC|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseOfMfc>Static</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Unicode|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseOfMfc>Static</UseOfMfc>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release Unicode|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release Static MFC|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug Unicode|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug Unicode|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisIgnoreGeneratedCode>false</CodeAnalysisIgnoreGeneratedCode>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release Unicode|Win32'">
+    <LinkIncremental>
+    </LinkIncremental>
+    <OutDir>..\release\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release Static MFC|Win32'">
+    <LinkIncremental />
+    <OutDir>..\release\</OutDir>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug Unicode|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>_DEBUG;WIN32;_WINDOWS;HW_THREADS;XP_PC;XP_WIN;XP_WIN32;WINVER=0x500;XPCOM_GLUE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <SmallerTypeCheck>true</SmallerTypeCheck>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <BufferSecurityCheck>true</BufferSecurityCheck>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
+      <BrowseInformation>true</BrowseInformation>
+      <WarningLevel>Level2</WarningLevel>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <CompileAs>Default</CompileAs>
+      <AdditionalIncludeDirectories>../xulrunner-sdk/include;../xulrunner-sdk/include/nspr;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <EnablePREfast>false</EnablePREfast>
+    </ClCompile>
+    <Link>
+      <OutputFile>..\debug\$(ProjectName).exe</OutputFile>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <AdditionalLibraryDirectories>../xulrunner-sdk/lib_dbg;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <GenerateMapFile>true</GenerateMapFile>
+      <AdditionalOptions>/HEAP:0x40000 %(AdditionalOptions)</AdditionalOptions>
+    </Link>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release Unicode|Win32'">
+    <ClCompile>
+      <Optimization>MinSpace</Optimization>
+      <AdditionalIncludeDirectories>../xulrunner-sdk/include;../xulrunner-sdk/include/nspr;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>StdAfx.h</PrecompiledHeaderFile>
+      <BrowseInformation>true</BrowseInformation>
+      <WarningLevel>Level2</WarningLevel>
+      <CompileAs>Default</CompileAs>
+    </ClCompile>
+    <Link>
+      <AdditionalOptions>-HEAP:0x40000 %(AdditionalOptions)</AdditionalOptions>
+      <OutputFile>..\release\$(ProjectName).exe</OutputFile>
+      <AdditionalLibraryDirectories>../xulrunner-sdk/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <SubSystem>Windows</SubSystem>
+      <TargetMachine>MachineX86</TargetMachine>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <ResourceCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release Static MFC|Win32'">
+    <ClCompile>
+      <Optimization>MinSpace</Optimization>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);NDEBUG</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>StdAfx.h</PrecompiledHeaderFile>
+      <BrowseInformation>true</BrowseInformation>
+      <WarningLevel>Level2</WarningLevel>
+      <CompileAs>Default</CompileAs>
+      <AdditionalIncludeDirectories>../xulrunner-sdk/include;../xulrunner-sdk/include/nspr;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <OutputFile>..\release\$(ProjectName).exe</OutputFile>
+      <AdditionalLibraryDirectories>../xulrunner-sdk/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <TargetMachine>MachineX86</TargetMachine>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <LargeAddressAware>true</LargeAddressAware>
+      <HeapReserveSize>0x40000</HeapReserveSize>
+    </Link>
+    <ResourceCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+    <Manifest>
+      <AdditionalManifestFiles>
+      </AdditionalManifestFiles>
+    </Manifest>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="About.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Unicode|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Unicode|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Static MFC|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="AccelParser.cpp" />
+    <ClCompile Include="BrowserFrm.cpp" />
+    <ClCompile Include="BrowserFrmTab.cpp" />
+    <ClCompile Include="BrowserGlue.cpp" />
+    <ClCompile Include="BrowserImpl.cpp" />
+    <ClCompile Include="BrowserImplCtxMenuLstnr.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Unicode|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Unicode|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Static MFC|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="BrowserImplWebPrgrsLstnr.cpp" />
+    <ClCompile Include="BrowserView.cpp" />
+    <ClCompile Include="BrowserViewPanning.cpp" />
+    <ClCompile Include="BrowserViewUtils.cpp" />
+    <ClCompile Include="BrowserWindow.cpp" />
+    <ClCompile Include="CmdLine.cpp" />
+    <ClCompile Include="CookiesViewerDlg.cpp" />
+    <ClCompile Include="defineMap.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Unicode|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Unicode|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Static MFC|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Dialogs.cpp" />
+    <ClCompile Include="FavIconList.cpp" />
+    <ClCompile Include="GenericDlg.cpp" />
+    <ClCompile Include="HiddenWnd.cpp" />
+    <ClCompile Include="KmAbout.cpp" />
+    <ClCompile Include="KmAppInfo.cpp" />
+    <ClCompile Include="KmCommand.cpp" />
+    <ClCompile Include="KmFileLocProvider.cpp" />
+    <ClCompile Include="KmImage.cpp" />
+    <ClCompile Include="KmMenu.cpp" />
+    <ClCompile Include="KmSkin.cpp" />
+    <ClCompile Include="KmToolbar.cpp" />
+    <ClCompile Include="LangParser.cpp" />
+    <ClCompile Include="MenuParser.cpp" />
+    <ClCompile Include="MfcEmbed.cpp" />
+    <ClCompile Include="MostRecentUrls.cpp" />
+    <ClCompile Include="MozUtils.cpp" />
+    <ClCompile Include="Parser.cpp" />
+    <ClCompile Include="PasswordViewerDlg.cpp" />
+    <ClCompile Include="Permissions.cpp" />
+    <ClCompile Include="Plugins.cpp" />
+    <ClCompile Include="Preferences.cpp" />
+    <ClCompile Include="PreferencesDlg.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug Unicode|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Unicode|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Static MFC|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="PrintProgressDialog.cpp" />
+    <ClCompile Include="PrintSetupDialog.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="ProfileMgr.cpp" />
+    <ClCompile Include="ProfilesDlg.cpp" />
+    <ClCompile Include="ReBarEx.cpp" />
+    <ClCompile Include="SaveAsHandler.cpp" />
+    <ClCompile Include="SideBar.cpp" />
+    <ClCompile Include="StdAfx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug Unicode|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug Unicode|Win32'">stdafx.h</PrecompiledHeaderFile>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stdafx.h</PrecompiledHeaderFile>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release Unicode|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release Static MFC|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release Unicode|Win32'">stdafx.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release Static MFC|Win32'">stdafx.h</PrecompiledHeaderFile>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">stdafx.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <ClCompile Include="TabReBar.cpp" />
+    <ClCompile Include="ToolBarEx.cpp" />
+    <ClCompile Include="Tooltips.cpp" />
+    <ClCompile Include="urlbar.cpp" />
+    <ClCompile Include="Utils.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug Unicode|Win32'">
+      </PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release Unicode|Win32'">
+      </PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release Static MFC|Win32'">
+      </PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="VisualStylesXP.cpp" />
+    <ClCompile Include="Components.cpp" />
+    <ClCompile Include="CookiePromptService.cpp" />
+    <ClCompile Include="GenKeyPairDialogs.cpp" />
+    <ClCompile Include="NSSDialogs.cpp" />
+    <ClCompile Include="PromptService.cpp" />
+    <ClCompile Include="TooltipsProvider.cpp" />
+    <ClCompile Include="UnknownContentTypeHandler.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="About.h" />
+    <ClInclude Include="AccelParser.h" />
+    <ClInclude Include="AutoComplete.h" />
+    <ClInclude Include="BrowserFrm.h" />
+    <ClInclude Include="BrowserFrmTab.h" />
+    <ClInclude Include="BrowserImpl.h" />
+    <ClInclude Include="BrowserView.h" />
+    <ClInclude Include="BrowserWindow.h" />
+    <ClInclude Include="CmdLine.h" />
+    <ClInclude Include="Cookies.h" />
+    <ClInclude Include="CookiesViewerDlg.h" />
+    <ClInclude Include="Dialogs.h" />
+    <ClInclude Include="FavIconList.h" />
+    <ClInclude Include="GenericDlg.h" />
+    <ClInclude Include="HiddenWnd.h" />
+    <ClInclude Include="IBrowserFrameGlue.h" />
+    <ClInclude Include="KmAbout.h" />
+    <ClInclude Include="KmAppInfo.h" />
+    <ClInclude Include="KmCommand.h" />
+    <ClInclude Include="kmeleon_plugin.h" />
+    <ClInclude Include="KmeleonConst.h" />
+    <ClInclude Include="KmFileLocProvider.h" />
+    <ClInclude Include="KmImage.h" />
+    <ClInclude Include="KmInstaller.h" />
+    <ClInclude Include="KmMenu.h" />
+    <ClInclude Include="KmSkin.h" />
+    <ClInclude Include="KmToolbar.h" />
+    <ClInclude Include="LangParser.h" />
+    <ClInclude Include="Log.h" />
+    <ClInclude Include="MenuParser.h" />
+    <ClInclude Include="MfcEmbed.h" />
+    <ClInclude Include="MozUtils.h" />
+    <ClInclude Include="PasswordViewerDlg.h" />
+    <ClInclude Include="Permissions.h" />
+    <ClInclude Include="Plugins.h" />
+    <ClInclude Include="Preferences.h" />
+    <ClInclude Include="PrintProgressDialog.h" />
+    <ClInclude Include="PrintSetupDialog.h" />
+    <ClInclude Include="ProfileMgr.h" />
+    <ClInclude Include="ProfilesDlg.h" />
+    <ClInclude Include="ReBarEx.h" />
+    <ClInclude Include="Resource.h" />
+    <ClInclude Include="SaveAsHandler.h" />
+    <ClInclude Include="SideBar.h" />
+    <ClInclude Include="StdAfx.h" />
+    <ClInclude Include="TabReBar.h" />
+    <ClInclude Include="ToolBarEx.h" />
+    <ClInclude Include="Tooltips.h" />
+    <ClInclude Include="urlbar.h" />
+    <ClInclude Include="Utils.h" />
+    <ClInclude Include="version.h" />
+    <ClInclude Include="VisualStylesXP.h" />
+    <ClInclude Include="CookiePromptService.h" />
+    <ClInclude Include="FontPackageHandler.h" />
+    <ClInclude Include="GenKeyPairDialogs.h" />
+    <ClInclude Include="NSSDialogs.h" />
+    <ClInclude Include="PromptService.h" />
+    <ClInclude Include="TooltipsProvider.h" />
+    <ClInclude Include="UnknownContentTypeHandler.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\back.bmp" />
+    <None Include="res\broken.ico" />
+    <None Include="res\Cursor_10.cur" />
+    <None Include="res\Cursor_11.cur" />
+    <None Include="res\Cursor_12.cur" />
+    <None Include="res\Cursor_13.cur" />
+    <None Include="res\Cursor_14.cur" />
+    <None Include="res\Cursor_15.cur" />
+    <None Include="res\Cursor_16.cur" />
+    <None Include="res\Cursor_17.cur" />
+    <None Include="res\Cursor_27.cur" />
+    <None Include="res\KmeleonDocument.ico" />
+    <None Include="res\MozillaBrowser.ico" />
+    <None Include="res\off.ico" />
+    <None Include="res\offcheck.ico" />
+    <None Include="res\on.ico" />
+    <None Include="res\oncheck.ico" />
+    <None Include="res\popupblock.ico" />
+    <None Include="res\sinsecur.ico" />
+    <None Include="res\ssecur.ico" />
+    <None Include="res\toolbar1.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="MfcEmbed.rc" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties RESOURCE_FILE="MfcEmbed.rc" />
+    </VisualStudio>
+  </ProjectExtensions>
+</Project>

@@ -1,0 +1,126 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{5F7A1684-E791-4F70-A24F-FC6726273512}</ProjectGuid>
+    <RootNamespace>JSBridge</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Debug\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Debug\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Release\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Release\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>../../xulrunner-sdk/include;../../xulrunner-sdk/include/nspr;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>MOZ_FOLD_LIBS ;XP_WIN;XP_WIN32;WIN32;_DEBUG;_WINDOWS;_USRDLL;JSBRIDGE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>nss3.lib;xul.lib;mozalloc.lib;mozjs.lib;xpcomglue_s.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>..\..\debug\kplugins\$(ProjectName).dll</OutputFile>
+      <AdditionalLibraryDirectories>../../xulrunner-sdk/lib_dbg;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>$(OutDir)JSBridge.pdb</ProgramDatabaseFile>
+      <SubSystem>Windows</SubSystem>
+      <ImportLibrary>$(OutDir)JSBridge.lib</ImportLibrary>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy jsbridge.xpt ..\..\debug\browser\components\</Command>
+    </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>$(ProjectDir)genidl.cmd</Command>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>../../xulrunner-sdk/include;../../xulrunner-sdk/include/nspr;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>MOZ_FOLD_LIBS ;XP_WIN;XP_WIN32;WIN32;NDEBUG;_WINDOWS;_USRDLL;JSBRIDGE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>mozjs.lib;xul.lib;mozalloc.lib;nss3.lib;xpcomglue_s.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>..\..\release\kplugins\$(ProjectName).dll</OutputFile>
+      <AdditionalLibraryDirectories>../../xulrunner-sdk/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <ImportLibrary>$(OutDir)JSBridge.lib</ImportLibrary>
+      <TargetMachine>MachineX86</TargetMachine>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <LargeAddressAware>true</LargeAddressAware>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy jsbridge.xpt ..\..\release\browser\components</Command>
+    </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>$(ProjectDir)genidl.cmd</Command>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="jscomp.cpp" />
+    <ClCompile Include="jsplugin.cpp">
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">../../mozilla/mozilla/dist/include/js;../../mozilla/mozilla/dist/include/xpconnect;../../mozilla/mozilla/dist/include/caps;../../mozilla/mozilla/dist/include/mimetype;../../mozilla/mozilla/dist/include/imglib2;../../mozilla/mozilla/dist/include/content;../../mozilla/mozilla/dist/include/locale;../../mozilla/mozilla/dist/include/pippki;../../mozilla/mozilla/dist/include/pipnss;../../mozilla/mozilla/dist/include/cookie;../../mozilla/mozilla/dist/include/xpcom_obsolete;../../mozilla/mozilla/dist/include/typeaheadfind;../../mozilla/mozilla/dist/include/appcomps;../../mozilla/mozilla/dist/include/history;../../mozilla/mozilla/dist/include/rdf;../../mozilla/mozilla/dist/include/docshell;../../mozilla/mozilla/dist/include/dom;../../mozilla/mozilla/dist/include/embed_base;../../mozilla/mozilla/dist/include/exthandler;../../mozilla/mozilla/dist/include/find;../../mozilla/mozilla/dist/include/gfx;../../mozilla/mozilla/dist/include/helperAppDlg;../../mozilla/mozilla/dist/include/intl;../../mozilla/mozilla/dist/include/layout;../../mozilla/mozilla/dist/include/necko;../../mozilla/mozilla/dist/include/nkcache;../../mozilla/mozilla/dist/include/pref;../../mozilla/mozilla/dist/include/profile;../../mozilla/mozilla/dist/include/shistory;../../mozilla/mozilla/dist/include/string;../../mozilla/mozilla/dist/include/uriloader;../../mozilla/mozilla/dist/include/wallet;../../mozilla/mozilla/dist/include/webBrowser_core;../../mozilla/mozilla/dist/include/webbrowserpersist;../../mozilla/mozilla/dist/include/webshell;../../mozilla/mozilla/dist/include/widget;../../mozilla/mozilla/dist/include/windowwatcher;../../mozilla/mozilla/dist/include/xpcom;../../mozilla/mozilla/dist/include/nspr;../../mozilla/mozilla/dist/include/webbrwsr;../../mozilla/mozilla/dist/include/commandhandler;../../mozilla/mozilla/dist/include/plugin;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">../../mozilla/mozilla/dist/include/js;../../mozilla/mozilla/dist/include/xpconnect;../../mozilla/mozilla/dist/include/caps;../../mozilla/mozilla/dist/include/mimetype;../../mozilla/mozilla/dist/include/imglib2;../../mozilla/mozilla/dist/include/content;../../mozilla/mozilla/dist/include/locale;../../mozilla/mozilla/dist/include/pippki;../../mozilla/mozilla/dist/include/pipnss;../../mozilla/mozilla/dist/include/cookie;../../mozilla/mozilla/dist/include/xpcom_obsolete;../../mozilla/mozilla/dist/include/typeaheadfind;../../mozilla/mozilla/dist/include/appcomps;../../mozilla/mozilla/dist/include/history;../../mozilla/mozilla/dist/include/rdf;../../mozilla/mozilla/dist/include/docshell;../../mozilla/mozilla/dist/include/dom;../../mozilla/mozilla/dist/include/embed_base;../../mozilla/mozilla/dist/include/exthandler;../../mozilla/mozilla/dist/include/find;../../mozilla/mozilla/dist/include/gfx;../../mozilla/mozilla/dist/include/helperAppDlg;../../mozilla/mozilla/dist/include/intl;../../mozilla/mozilla/dist/include/layout;../../mozilla/mozilla/dist/include/necko;../../mozilla/mozilla/dist/include/nkcache;../../mozilla/mozilla/dist/include/pref;../../mozilla/mozilla/dist/include/profile;../../mozilla/mozilla/dist/include/shistory;../../mozilla/mozilla/dist/include/string;../../mozilla/mozilla/dist/include/uriloader;../../mozilla/mozilla/dist/include/wallet;../../mozilla/mozilla/dist/include/webBrowser_core;../../mozilla/mozilla/dist/include/webbrowserpersist;../../mozilla/mozilla/dist/include/webshell;../../mozilla/mozilla/dist/include/widget;../../mozilla/mozilla/dist/include/windowwatcher;../../mozilla/mozilla/dist/include/xpcom;../../mozilla/mozilla/dist/include/nspr;../../mozilla/mozilla/dist/include/webbrwsr;../../mozilla/mozilla/dist/include/commandhandler;../../mozilla/mozilla/dist/include/plugin;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <ClCompile Include="nsGenericFactory.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Midl Include="nsIJSBridge.idl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </Midl>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="jscomp.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

@@ -1,0 +1,76 @@
+# K-Meleon Macros (http://kmeleon.sourceforge.net/wiki/index.php?id=MacroLanguage)
+
+# ---------- Browser Configuration ---------------------------------------------------------------------------------
+#
+# Dependencies	: main.kmm (getExtensionHandler)
+# Resources	: -
+# Preferences	: -
+#
+# ------------------------------------------------------------------------------------------------------------------
+
+cfg_ProfileDir{
+exec("explorer.exe \"".getfolder(ProfileFolder)."\"");
+}
+cfg_SettingsDir{
+exec("explorer.exe \"".getfolder(SettingsFolder)."\"");
+}
+
+cfg_Macros{
+exec("explorer.exe \"".getfolder(MacroFolder)."\"");
+}
+cfg_UserMacros{
+exec("explorer.exe \"".getfolder(UserMacroFolder)."\"");
+}
+
+cfg_Commands{
+$ext="txt"; &getExtensionHandler; exec(sub("%1",getfolder(RootFolder)."\\skins\\commands.txt",$cmdline));
+}
+cfg_Toolbars{
+$ext="cfg"; &getExtensionHandler; exec(sub("%1",getfolder(SkinFolder)."\\toolbars.cfg",$cmdline));
+}
+
+cfg_Settings{
+$ext="cfg"; &getExtensionHandler; $__temp="\\defaults\\settings\\";
+$__path=getfolder(SettingsFolder)."\\".$ARG.".".$ext; $__data=readfile($__path);
+length($__data)==0?$__path=getfolder(RootFolder).$__temp.$ARG.".".$ext:0;
+exec(sub("%1",$__path,$cmdline));
+}
+cfg_UserPrefs{
+$ext="js";  &getSecureExtensionHandler; exec(sub("%1",getfolder(ProfileFolder)."\\".$ARG.".".$ext,$cmdline));
+}
+cfg_UserStyle{
+$ext="css"; &getExtensionHandler; exec(sub("%1",getfolder(ProfileFolder)."\\chrome\\".$ARG.".".$ext,$cmdline));
+}
+
+# ----- PRIVATE
+
+_cfg_BuildMenu{
+# edit menu
+$__c="Config&uration";
+setmenu(Preferences,popup,$__c,moz_AboutConfig);
+setmenu(Preferences,macro,"",moz_AboutConfig);
+$__m=_Config_General;
+setmenu($__c,inline,$__m);
+setmenu($__m,macro,"Browser Con&figuration",moz_AboutConfig);
+#setmenu($__m,macro,"&Profile Settings","cfg_UserPrefs(prefs)");
+setmenu($__m,macro,"&User Settings","cfg_UserPrefs(user)");
+$__m=_Config_Appearance;
+setmenu($__c,inline,$__m);
+setmenu($__m,macro,"User-Defined &StyleSheet","cfg_UserStyle(userContent)");
+setmenu($__m,macro,"&Toolbars",cfg_Toolbars);
+$__m=_Config_Settings;
+setmenu($__c,inline,$__m);
+setmenu($__m,macro,"A&ccelerators","cfg_Settings(accel)");
+setmenu($__m,macro,"M&acros","cfg_Macros");
+setmenu($__m,macro,"User-Defined Macr&os","cfg_UserMacros");
+setmenu($__m,macro,"M&enus","cfg_Settings(menus)");
+setmenu($__m,macro,"Co&mmands List",cfg_Commands);
+$__m=_Config_Folders;
+setmenu($__c,inline,$__m);
+setmenu($__m,macro,"Profile &Directory",cfg_ProfileDir);
+getfolder(ProfileFolder)==getfolder(SettingsFolder)?0:setmenu($__m,macro,"Settings D&irectory",cfg_SettingsDir);
+}
+$OnInit=$OnInit."_cfg_BuildMenu;";
+
+# ------------------------------------------------------------------------------------------------------------------
+$macroModules=$macroModules."cfg;";

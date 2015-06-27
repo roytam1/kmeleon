@@ -1,0 +1,15 @@
+<!ENTITY % prefDTD SYSTEM "chrome://kmprefs/locale/pref.dtd">%prefDTD;
+<!ENTITY % downDTD SYSTEM "chrome://kmprefs/locale/firefox/downloadactions.dtd">%downDTD;
+<!ENTITY download.suggestTitle	 "Suggest the title as file name when saving a web page">
+<!ENTITY download.whenUnknown	 "When a file cannot be displayed">
+<!ENTITY download.offerSave	 "Offer to save the file">
+<!ENTITY download.askOpenSave	 "Ask whether to open or save the file">
+<!ENTITY download.askLocation	 "Ask where to save the file">
+<!ENTITY download.useDownloadDir "Save the file to the download folder">
+<!ENTITY download.folder	 "Download Folder:">
+<!ENTITY download.minimizeDialog "Display the download progress dialog minimized">
+<!ENTITY download.whenComplete	 	"When a download completes">
+<!ENTITY download.whenComplete.flash	 "Flash the progress dialog">
+<!ENTITY download.whenComplete.close	 "Close the progress dialog">
+<!ENTITY filetypes.byType	 "By Type">
+<!ENTITY filetypes.extColWidth	 "width:12ex">

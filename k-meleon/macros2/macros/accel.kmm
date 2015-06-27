@@ -1,0 +1,142 @@
+# K-Meleon Macros (http://kmeleon.sourceforge.net/wiki/index.php?id=MacroLanguage)
+
+# ---------- Accelerator Configuration -----------------------------------------------------------------------------
+#
+# Dependencies	: main.kmm ($macroPrefBranch, ExecMacros)
+# Resources	: -
+# Preferences	: kmeleon.plugins.macros.accel.urlbar.access
+#		  kmeleon.plugins.macros.accel.mouse.configs
+#		  kmeleon.plugins.macros.accel.mouse.current
+#
+# ------------------------------------------------------------------------------------------------------------------
+
+# This module provides an infrastructure to integrate your own mouse accel macros.
+# Create a new user-defined module and paste the following sample code:
+
+#$_MyMouseAccels="My Mouse Accels";
+#_MyMouseAccels_Hello{
+## Just a simple demo
+#alert("Hello!",$_MyMouseAccels);
+#}
+#_MyMouseAccels_BuildMenu{
+#setmenu("Mouse &Accelerators",macro,$_MyMouseAccels,"Accel_Mouse(".$_MyMouseAccels.")");
+#}
+#_MyMouseAccels_SetAccels{
+## Set your accels here, see macro _Accel_SetKM for more senseful examples
+#setaccel("SHIFT LButton","macros(_MyMouseAccels_Hello)");
+#}
+#_MyMouseAccels_Check{
+#$__p=getpref(STRING,$Accel_MouseConfig);
+#$__p==$_MyMouseAccels?&_MyMouseAccels_SetAccels:0;
+#}
+#_MyMouseAccels_Init{
+#index($macroModules,";Accel;")>-1?&_MyMouseAccels_BuildMenu:0;
+#$Accel_OnSetAccels=index($macroModules,";Accel;")>-1?$Accel_OnSetAccels."_MyMouseAccels_Check;":"";
+#$OnSetup=index($macroModules,";Accel;")>-1?$OnSetup."_MyMouseAccels_Check;":$OnSetup;
+#}
+#$OnInit=$OnInit."_MyMouseAccels_Init;";
+
+# ------------------------------------------------------------------------------------------------------------------
+
+$Accel_MouseConfig=$macroPrefBranch."accel.mouse.current";
+$Accel_OnSetAccels="_Accel_SetMouseAccels;";
+
+Accel_Mouse{
+macroinfo=_("Apply the specified mouse accelerator configuration");
+menuchecked=(getpref(STRING,$Accel_MouseConfig)==$ARG);
+$ARG==""?delpref($Accel_MouseConfig):setpref(STRING,$Accel_MouseConfig,$ARG);
+$ARG==""?&_Accel_SetKM:macros($Accel_OnSetAccels);
+}
+
+# ----- PRIVATE
+
+$_Accel_prefMouse =$macroPrefBranch."accel.mouse.configs";
+$_Accel_prefURLBar=$macroPrefBranch."accel.urlbar.access";
+
+$_Accel_1="Firefox 2.0";
+$_Accel_2="SeaMonkey 1.1";
+$_Accel_3="Opera 9.2";
+$_Accel_currentConfigs=$_Accel_1.";".$_Accel_2.";".$_Accel_3.";";
+
+$_Accel_Bg=$kTabs?ID_OPEN_LINK_IN_BACKGROUNDTAB:ID_OPEN_LINK_IN_BACKGROUND;
+$_Accel_Fg=$kTabs?ID_OPEN_LINK_IN_NEW_TAB:ID_OPEN_LINK_IN_NEW_WINDOW;
+
+_Accel_SetKM{
+# K-Meleon (as set in defaults\settings\accel.cfg)
+setaccel("CTRL LButton",$_Accel_Fg);
+setaccel("SHIFT LButton",$_Accel_Fg);
+setaccel("CTRL SHIFT LButton",0);
+setaccel("ALT SHIFT LButton",0);
+setaccel("CTRL ALT SHIFT LButton",0);
+setaccel("MButton",$_Accel_Fg);
+setaccel("SHIFT MButton",0);
+setaccel("CTRL RButton",$_Accel_Bg);
+}
+_Accel_SetOp92{
+# Opera 9.2
+setaccel("CTRL LButton",0);
+setaccel("SHIFT LButton",$_Accel_Fg);
+setaccel("CTRL SHIFT LButton",$_Accel_Bg);
+setaccel("ALT SHIFT LButton",$_Accel_Fg);
+setaccel("CTRL ALT SHIFT LButton",$_Accel_Bg);
+setaccel("MButton",$_Accel_Bg);
+setaccel("SHIFT MButton",0);
+setaccel("CTRL RButton",0);
+}
+_Accel_SetMoz{
+setaccel("CTRL LButton",$_Accel_Bg);
+#
+setaccel("CTRL SHIFT LButton",$_Accel_Fg);
+setaccel("ALT SHIFT LButton",0);
+setaccel("CTRL ALT SHIFT LButton",0);
+setaccel("MButton",$_Accel_Bg);
+setaccel("SHIFT MButton",$_Accel_Fg);
+setaccel("CTRL RButton",$_Accel_Fg);
+}
+_Accel_SetFf20{
+# Firefox 2.0
+&_Accel_SetMoz;
+setaccel("SHIFT LButton",ID_OPEN_LINK_IN_NEW_WINDOW);
+}
+_Accel_SetSM11{
+# SeaMonkey 1.1
+&_Accel_SetMoz;
+setaccel("SHIFT LButton",ID_SAVE_LINK_AS);
+}
+
+_Accel_SetDefaults{
+setpref(STRING,$_Accel_prefMouse,$_Accel_currentConfigs);
+}
+$OnInit=$OnInit."_Accel_SetDefaults;";
+
+_Accel_BuildMenu{
+# tools menu
+$_m="Mouse &Accelerators";
+setmenu(Settings,popup,$_m,"Mouse &Gestures...");
+setmenu($_m,macro,"Default","Accel_Mouse()");
+$List=getpref(STRING,$_Accel_prefMouse); $ExecMacros="_Accel_BuildMenuItem"; &ExecMacros_List;
+}
+_Accel_BuildMenuItem{
+setmenu($_m,macro,$ListItem,"Accel_Mouse(".$ListItem.")");
+}
+$OnInit=$OnInit."_Accel_BuildMenu;";
+
+_Accel_SetAccels{
+$__p=getpref(STRING,$_Accel_prefURLBar);
+$__p==""?0:setaccel("ALT ".$__p,ID_SELECT_URL);
+}
+$OnInit=$OnInit."_Accel_SetAccels;";
+
+_Accel_SetMouseAccels{
+$__p=getpref(STRING,$Accel_MouseConfig);
+$__p==$_Accel_1?&_Accel_SetFf20:0;
+$__p==$_Accel_2?&_Accel_SetSM11:0;
+$__p==$_Accel_3?&_Accel_SetOp92:0;
+}
+# Exceptionally, we have to set these accels OnSetup to make sure that the result is
+# the same as when a user is changing the accels at any time later since we cannot
+# restore custom accels defined in the user's accel.cfg after Setup.
+$OnSetup=$OnSetup."_Accel_SetMouseAccels;";
+
+# ------------------------------------------------------------------------------------------------------------------
+$macroModules=$macroModules."Accel;";

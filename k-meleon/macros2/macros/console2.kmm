@@ -1,0 +1,26 @@
+# K-Meleon Macros (http://kmeleon.sourceforge.net/wiki/index.php?id=MacroLanguage)
+
+# ---------- Console² Extension (Error Console) --------------------------------------------------------------------
+#
+# Dependencies	: main.kmm (OpenURL)
+# Resources	: -
+# Preferences	: -
+#
+# ------------------------------------------------------------------------------------------------------------------
+
+Console2{
+macroinfo=_("Open the enhanced error console");
+$OpenURL="chrome://console2/content/console2.xul"; &OpenURL_InNewWindow;
+}
+
+# ----- PRIVATE
+
+_Console2_BuildMenu{
+# tools menu
+setmenu(Misc,macro,"Error &Console",Console2,"Error &Console");
+setmenu(Misc,macro,"",moz_JSConsole);
+}
+$OnInit=$OnInit."_Console2_BuildMenu;";
+
+# ------------------------------------------------------------------------------------------------------------------
+$macroModules=$macroModules."Console2;";
