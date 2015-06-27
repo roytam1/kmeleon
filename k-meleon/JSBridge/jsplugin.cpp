@@ -196,7 +196,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		break;
 
 	case WM_INITMENUPOPUP: {
-
+		if (!cmdList) break;
 		// Let MFC do its little update
 		LRESULT res = CallWindowProc(KMeleonWndProc, hWnd, message, wParam, lParam);
 		
