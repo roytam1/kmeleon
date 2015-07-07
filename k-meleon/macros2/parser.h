@@ -1,6 +1,4 @@
-
 /*
-
 macros   --> stmtlist | macrodef
 macrodef --> name { stmtlist }
 stmtlist --> stmt; {| stmlist}
@@ -20,7 +18,7 @@ stmt     --> var = expr | macrodef |
 macros   --> tata {tata}
 tata     --> stmtlist | macrodef
 stmtlist --> stmt; {stmtlist}
-				 */
+*/
 
 #include <ctype.h>
 #include <string.h>
@@ -29,69 +27,7 @@ stmtlist --> stmt; {stmtlist}
 #include <assert.h>
 #include <sys/stat.h>
 
-typedef enum {
-	OP_MOVE,
-	OP_ADD,
-	OP_SUB,
-	OP_MULT,
-	OP_DIV,
-	OP_REM,
-	OP_CONCAT,
-	OP_EQ,
-	OP_NEQ,
-	OP_GT,
-	OP_LT,
-	OP_GE,
-	OP_LE,
-	OP_NOT,
-	OP_JMP,
-	OP_TEST,
-	OP_CALL,
-	OP_PUSH,
-	OP_POP
-} OpCode;
-
-
-typedef struct Instruction {
-	OpCode opcode;
-	long A;
-	long B;
-	long C;
-} Instruction;
-
-typedef struct Program {
-	Instruction* inst;
-	int size;
-	int nbinstr;
-
-	Program() {
-		inst = new Instruction[5];
-		size = 5;
-		nbinstr = 0;
-	}
-
-	~Program() {
-		if (inst) delete inst;
-	}
-
-	Instruction* AddInstr() {
-		if (!inst) return NULL;
-		if (nbinstr == size) {
-			Instruction* newset = new Instruction[size+5];
-			if (newset) {
-				memcpy(newset, inst, sizeof(Instruction)*size);
-				size += 5;
-				Instruction* oldinst = inst;
-				inst = newset;
-				delete oldinst;
-			}
-		}
-
-		return &inst[nbinstr++];
-	}
-} Program;
-
-static char* reservedwords[] = { "while", "if", "else", "and", "or", "not", "menu", "menuchecked", "menugrayed", "macroinfo", "buttonchecked" };
+static char* reservedwords[] = { "while", "if", "else", "and", "or", "not", "menu", "menuchecked", "menugrayed", "macroinfo", "buttonchecked", "null", "function", "return", "const", "break" };
 #define MAXRESERVED sizeof(reservedwords) / sizeof(char*)
 
 static char* windowvars[] = { "URL", "URLBAR", "SelectedText", "FrameURL", "LinkURL", "ImageURL", "CHARSET", "TextZoom", "TITLE", "WindowNumber", "TabNumber", "CommandLine", "SEARCHURL", "LANG", "VERSION" };
@@ -111,6 +47,11 @@ enum TOKEN {
 	TK_MENUGRAY,
 	TK_MACROINFO,
 	TK_BUTTONCHECK,
+	TK_NULL,
+	TK_FUNCTION,
+	TK_RETURN,
+	TK_CONST,
+	TK_BREAK,
 
 
 	TK_EQ,
@@ -540,8 +481,9 @@ public:
 	char *input;
 	MacroDef* currentMd; //XXX
 	bool debug;
+	TDS* ltds;
 
-	Parser() { input = NULL; currentMd = NULL; m = NULL; }
+	Parser() { input = nullptr; currentMd = nullptr; m = nullptr; ltds = nullptr; }
 	~Parser() { if (input) delete [] input; }
 
 	bool init(Mac* mac, MacroFile &srcFile, bool enableDebug = false) {
@@ -667,7 +609,7 @@ public:
 			case TK_NAME:
 				if (lex.lookahead() != TK_OPEN) {
 					e = (Expression*)new ExprValue();
-					((ExprValue*)e)->v = m->AddSymbol(std::string("##") + lex.data.strval(), Value(lex.data));
+					((ExprValue*)e)->Set(m->AddSymbol(std::string("##") + lex.data.strval(), Value(lex.data)));
 				}
 				else {
 					 return callfunc();
@@ -683,11 +625,11 @@ public:
 				for (int i=0; i<MAXWINDOWVARS; i++)
 					if (strcmp(lex.data.strval(), windowvars[i]) == 0) {
 						ExprCall* ec = new ExprCall();
-						ec->v = m->FindSymbol("getwinvar");
+						ec->v = m->FindSymbol("!getwinvar");
 						assert(ec->v);
 				
 						ExprValue* ename = new ExprValue();
-						ename->v = m->AddSymbol(std::string("##") + lex.data.strval(), lex.data.strval());
+						ename->Set(m->AddSymbol(std::string("##") + lex.data.strval(), lex.data.strval()));
 						ec->AddParam(ename);
 						
 						lex.nexttoken();
@@ -695,25 +637,34 @@ public:
 						return ec;
 					}
 
-					e = (Expression*)new ExprValue();
-					Value* v = m->FindSymbol(std::string("$") + lex.data.strval());
-					if (!v) v = m->AddSymbol(std::string("$") + lex.data.strval(), Value());
-					((ExprValue*)e)->v = v; lex.nexttoken();
-					break;
+				e = (Expression*)new ExprValue();
+
+				std::string name = std::string("$") + lex.data.strval();
+				Value* v = ltds ? ltds->find(name) : nullptr;
+				if (!v) v = m->FindSymbol(name);
+				if (!v) ltds ? v = ltds->add(name, Value())  : v = m->AddSymbol(name, Value());
+				((ExprValue*)e)->Set(v); 
+				lex.nexttoken();
+				break;
 			}
 
 			case TK_NUMBER:
 				e = (Expression*)new ExprValue();
-				((ExprValue*)e)->v = m->AddSymbol(std::string("%%") + lex.data.strval(), lex.data.intval());
+				((ExprValue*)e)->Set(m->AddSymbol(std::string("%%") + lex.data.strval(), lex.data.intval()));
 				break;
 
 			case TK_STRING:
 				e = (Expression*)new ExprValue();
-				((ExprValue*)e)->v = m->AddSymbol(std::string("##") + lex.data.strval(), lex.data.strval());
+				((ExprValue*)e)->Set(m->AddSymbol(std::string("##") + lex.data.strval(), lex.data.strval()));
 				break;
 
 			case TK_MACRO:
 				return macrocall();
+
+			case TK_NULL:
+				e = (Expression*)new ExprValue();
+				((ExprValue*)e)->Set(m->AddSymbol(std::string("#NULL"), Value()));
+				break;
 
 			default :
 				error("Invalid expression.", lex.token);
@@ -789,11 +740,11 @@ public:
 		for (int i=0; i<MAXWINDOWVARS; i++)
 			if (stricmp(varname.c_str(), windowvars[i]) == 0) {
 				ExprCall* e = new ExprCall();
-				e->v = m->FindSymbol("setwinvar");
+				e->v = m->FindSymbol("!setwinvar");
 				assert(e->v);
 				
 				ExprValue* ename = new ExprValue();
-				ename->v = m->AddSymbol(std::string("##") + varname, varname);
+				ename->Set(m->AddSymbol(std::string("##") + varname, varname));
 				e->AddParam(ename);
 				e->AddParam(evalexpr());
 				return e;
@@ -801,19 +752,19 @@ public:
 
 		varname = std::string("$") + varname;
 
-		Value* v = m->FindSymbol(varname);
+		Value* v = ltds ? ltds->find(varname) : nullptr;
+		if (!v) v = m->FindSymbol(varname);
 		if (v && (v->ismacro() || v->isfunction())) {
-			error(("Symbol '"+ varname +"' already defined as a macro or function.").c_str());
+			error(("Symbol '" + varname + "' already defined as a macro or function.").c_str());
 			return NULL;
 		}
 
-		Expr* e = new Expr(EXPR_ASSIGN);
-		e->B = evalexpr();
-		
-		e->A = new ExprValue();
+		if (!v) v = ltds ? ltds->add(varname, Value()) : m->AddSymbol(varname, Value());
 
-		if (!v) v = m->AddSymbol(varname, Value());
-		((ExprValue*)e->A)->v = v;
+		Expr* e = new Expr(EXPR_ASSIGN);
+		e->B = evalexpr();		
+		e->A = new ExprValue();
+		((ExprValue*)e->A)->Set(v);
 		
 		return e;
 	}
@@ -839,15 +790,15 @@ public:
 			return NULL;
 
 		ExprCall* e = new ExprCall();
-		e->v = m->FindSymbol(funcname);
+		e->v = m->FindSymbol("!"+funcname);
 		if (!e->v) error(("Function " + funcname + " is not defined.").c_str());
 		
 		while (lex.token != TK_NONE && lex.token != TK_CLOSE) {
 			e->AddParam(evalexpr());
-         if (lex.token != TK_COMMA )
+			if (lex.token != TK_COMMA)
 				break;
 			lex.nexttoken();
-		} 
+		}
 
 		skip(TK_CLOSE);
 		return (Expression*)e;
@@ -873,21 +824,65 @@ public:
 		skip(TK_NAME);
 		skip(TK_BEGIN);
 
-		MacroDef* md = new MacroDef(mf);
-		currentMd = md;
-		md->name = macroname;
-		
 		Value* v = m->FindSymbol(macroname);
 		if (v && !v->ismacro()) {
 			error(("Symbol '" + macroname + "' already defined.").c_str());
 			return NULL;
 		}
 
+		MacroDef* md = new MacroDef(mf);
+		md->name = macroname;
 		m->AddSymbol(macroname, ValueMacro(md));
+
+		currentMd = md;		
+		TDS* old = ltds;
+		ltds = nullptr;		
 		stmtlist(static_cast<StatList*>(md));
 		currentMd = NULL;
+		ltds = old;
+
 		skip(TK_END);
 		return md;
+	}
+
+	FunctionDef* functiondef() {
+		skip(TK_FUNCTION);
+		std::string funcname = lex.data.strval();
+		std::string symbolname = "!" + funcname;
+		skip(TK_NAME);
+
+		Value* v = m->FindSymbol(symbolname);
+		if (v) {
+			error(("Function '" + symbolname + "' already defined.").c_str());
+			return NULL;
+		}
+
+		skip(TK_OPEN);
+		FunctionDef* fd = new FunctionDef(mf);
+		fd->name = funcname;
+		m->AddSymbol(symbolname, ValueFunc(fd));
+
+		while (lex.token != TK_NONE && lex.token != TK_CLOSE) {
+			skip(TK_VAR);
+			skip(TK_NAME);
+			fd->params.push_back(fd->tds.add("$" + lex.data.strval(), Value()));
+			if (lex.token != TK_COMMA)
+				break;
+			lex.nexttoken();
+		}
+
+		fd->params.shrink_to_fit();
+
+		skip(TK_CLOSE);
+		skip(TK_BEGIN);
+
+		TDS* old = ltds;
+		ltds = &fd->tds;		
+		stmtlist(static_cast<StatList*>(fd));
+		ltds = old;
+
+		skip(TK_END);
+		return fd;
 	}
 
 	Statement* whilestat() {
@@ -934,6 +929,14 @@ public:
 		return s;
 	}
 
+	Statement* returnstat() {
+		skip(TK_RETURN);
+		Statement* s = newStatement(STAT_RETURN);
+		s->A = evalexpr();
+		skip(TK_SEP);
+		return s;
+	}
+
 	void skipstmt() {
 		while (lex.token != TK_NONE && lex.token != TK_SEP)
 			lex.nexttoken();
@@ -944,6 +947,8 @@ public:
 		Statement* stat;
 
 		switch (lex.token) {
+		case TK_RETURN:
+			return returnstat();
 		case TK_WHILE:
 			return whilestat();
 		case TK_IF:
@@ -1043,7 +1048,7 @@ public:
 			node->AddNode(evalstmt());
 		//	skip(TK_SEP);
 		
-			if (lex.token == TK_NAME && lex.lookahead() == TK_BEGIN)
+			if (lex.token == TK_FUNCTION || (lex.token == TK_NAME && lex.lookahead() == TK_BEGIN))
 				return; // macrodef
 		}
 	}
@@ -1082,6 +1087,10 @@ public:
 				lex.nexttoken();
 				break;
 			}
+
+			case TK_FUNCTION:
+				m->root.AddNode(functiondef());
+				break;
 
 			case TK_END:
 				error("} unexpected.");

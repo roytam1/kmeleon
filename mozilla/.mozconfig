@@ -1,0 +1,43 @@
+mk_add_options MOZ_CO_PROJECT=suite
+mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/RELEASE
+
+ac_add_options --enable-application=kmeleon
+ac_add_options --with-user-appdir="K-Meleon"
+
+# code generation options 
+ac_add_options --enable-optimize='-O1 -Zc:wchar_t'
+ac_add_options --enable-debugger-info-modules=yes
+ac_add_options --enable-strip
+ac_add_options --disable-debug
+ac_add_options --disable-tests
+ac_add_options --disable-logging
+ac_add_options --disable-dtd-debug
+ac_add_options --disable-native-uconv
+#LDFLAGS='-LTCG -OPT:REF -OPT:ICF'
+
+#ac_add_options --disable-optimize
+#ac_add_options --enable-debug
+#ac_add_options --enable-tests
+
+#ac_add_options --enable-static
+#ac_add_options --disable-shared
+
+ac_add_options --enable-crypto
+ac_add_options --enable-svg
+
+ac_add_options --disable-ldap	
+ac_add_options --disable-postscript
+ac_add_options --disable-jsd
+ac_add_options --enable-composer
+ac_add_options --enable-activex
+ac_add_options --enable-activex-scripting
+ac_add_options --disable-installer
+ac_add_options --disable-xprint
+ac_add_options --disable-mailnews
+ac_add_options --disable-xpinstall
+
+ac_add_options --enable-extensions=xml-rpc,wallet,typeaheadfind
+
+ac_add_options --disable-profilesharing
+ac_add_options --disable-updater
+ac_add_options --disable-xpfe-components

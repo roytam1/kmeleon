@@ -171,35 +171,6 @@ int bStartup    = 1;
 
 std::string sGlobalArg;
 
-class Mac {
-public:
-	TDS tds;
-	StatList root;
-
-	Value* AddSymbol(const std::string& name, const Value& v)
-	{
-		TDS::iterator it;
-		it = tds.insert(tds.end(), TDS::value_type(name, v));
-		return &it->second;
-	}
-
-	Value* FindSymbol(const std::string& name)
-	{
-		TDS::iterator it = tds.find(name);
-		if (it == tds.end())
-			return NULL;
-		return &it->second;
-	}
-
-	std::string FindSymbol(const Value* val)
-	{
-		for (TDS::iterator it = tds.begin(); it!= tds.end(); it++)
-			if (val == &it->second)
-				return it->first;
-		return "";
-	}
-};
-
 Mac *M;
 
 #include "parser.h"
@@ -278,8 +249,28 @@ public:
 			if (expr->v->md)
 				Evaluate(expr->v->md);
 			else
-				EvalError( "Call to the undefined macro.");
+				EvalError( "Call to an undefined macro.");
 		}
+		else if (expr->v->t == VALUE_UFUNCTION) {
+			if (expr->v->uf) {
+
+				// You don't want users to use the fact that currently
+				// everything is static
+				expr->v->uf->tds.emptyvar();
+				Expression* param = static_cast<Expression*>(expr->firstParam);
+				for (auto it = expr->v->uf->params.begin(); it != expr->v->uf->params.end(); it++) {
+					if (!param) break;
+					**it = EvalExpr(param);
+					param = static_cast<Expression*>(param->next);
+				}
+				Value v;
+				Evaluate(expr->v->uf, &v);
+				return v;
+			}
+			else
+				EvalError("Call to an undefined function.");
+		}
+
 		else
 			EvalError("Invalid macro or function call.");
 		return "";
@@ -310,40 +301,52 @@ public:
 			case EXPR_MINUS: return -EvalExpr(expr->A);
 			case EXPR_CONCAT: return EvalExpr(expr->A).concat(EvalExpr(expr->B));
 			case EXPR_COND: if (EvalExpr(expr->A).boolval()) return EvalExpr(expr->B); else return EvalExpr(expr->C); 
-			case EXPR_ASSIGN: *(((ExprValue*)expr->A)->v) = EvalExpr(expr->B); return *(((ExprValue*)expr->A)->v);
+			case EXPR_ASSIGN: ((ExprValue*)expr->A)->Set(EvalExpr(expr->B)); return *(((ExprValue*)expr->A)->Get());
 	
 			case EXPR_CALL: return EvalCall(node); 
 			case EXPR_VALUE: 
-				if (!((ExprValue*)node)->v->isvalid())
-					EvalError(("The variable '" + M->FindSymbol(((ExprValue*)node)->v) + "' is used without being initialized").c_str());
-				return *(((ExprValue*)node)->v); 
+				if (!((ExprValue*)node)->Get()->isvalid())
+					EvalError(("The variable '" + M->FindSymbol(((ExprValue*)node)->Get()) + "' is used without being initialized").c_str());
+				return *(((ExprValue*)node)->Get()); 
 			default: return 0;
 		}
 	}
 
-	void EvalStat(MacroNode* node) 
+	bool EvalStat(MacroNode* node, Value* v = nullptr) 
 	{
+		bool stop = false;
 		assert(ISSTAT(node));
 		Statement* stat = static_cast<Statement*>(node);
 		currentStat = stat;
 		switch (stat->st) {
 			case STAT_EXPR: EvalExpr(stat->A); break;
-			case STAT_WHILE: while (EvalExpr(stat->A).boolval()) if (stat->B) Evaluate(stat->B); break;
-			case STAT_IF: if (EvalExpr(stat->A).boolval()) {if (stat->B) Evaluate(stat->B);} else if (stat->C) Evaluate(stat->C);
+			case STAT_RETURN: 
+				if (!v) {
+					EvalError("return outside a function");
+					break;
+				}
+				*v = EvalExpr(stat->A); 
+				stop = true;
+				break;
+			case STAT_WHILE: while (EvalExpr(stat->A).boolval() && !stop) if (stat->B) stop = Evaluate(stat->B, v); break;
+			case STAT_IF: if (EvalExpr(stat->A).boolval()) {if (stat->B) stop = Evaluate(stat->B, v);} else if (stat->C) stop = Evaluate(stat->C, v);
 		}
 		currentStat = NULL;
+		return stop;
 	}
 
 
-	void Evaluate(MacroNode* node) 
+	bool Evaluate(MacroNode* node, Value* v = nullptr)
 	{
 		assert(ISLIST(node));
 		StatList* snode = static_cast<StatList*>(node);
 		node = snode->child;
-
-		while (node) {
+		bool stop = false;
+		while (node && !stop) {
 			switch (node->t) {
-				case NODE_STAT: EvalStat(node); break;
+				case NODE_STAT: 
+					stop = EvalStat(node, v);
+					break;
 				case NODE_MACRO: 
 					Value* v = m->FindSymbol(static_cast<MacroDef*>(node)->name);
 					if (!v) 
@@ -353,6 +356,7 @@ public:
 			}
 			node = node->next;
 		}
+		return stop;
 	}
 };
 

@@ -255,8 +255,7 @@
 
 	Value _(FunctionData* data)
 	{
-		checkArgs(__FUNCTION__, data, 1);
-		
+		checkArgs(__FUNCTION__, data, 1);		
 		return  kFuncs->Translate(data->getstr(1)) ;
 	}
 
@@ -537,7 +536,7 @@
 
 	Value alert(FunctionData* data)
 	{
-		checkArgs(__FUNCTION__, data, 2, 3);
+		checkArgs(__FUNCTION__, data, 1, 3);
 		int icon = 0;
 		MString type = data->getstr(3);
 		if(strcmpi(type,"EXCLAIM")==0) icon=MB_ICONEXCLAMATION;
@@ -1408,78 +1407,84 @@
 	{
 		checkArgs(__FUNCTION__, data, 1);
 
-         MString name = data->getstr(1);
-			WindowVarType type;
-			/*if (name == "SelectedText") {
-				int l = kPlugin.kFuncs->GetWindowVar(data->c.hWnd, Window_SelectedText, NULL);
-				if (l<1) return "";
-
-				wchar_t* buf = new wchar_t[l];
-				kPlugin.kFuncs->GetWindowVar(data->c.hWnd, Window_SelectedText, buf);
-				std::string ret = CUTF16_to_UTF8(buf);
-				delete [] buf;
-				return ret;
-			}*/
-
-			if (name == "VERSION") {
-				return kPlugin.kFuncs->GetKmeleonVersion();
-			}
-
-			if (name == "TextZoom") {
-				int zoom;
-				kPlugin.kFuncs->GetWindowVar(data->c.hWnd, Window_TextZoom, &zoom);
-				char buf[34];
-				_itoa(zoom, buf, 10);
-				return buf;
-			}
-
-			if (name == "WindowNumber")
-			{
-				int nb;
-				kPlugin.kFuncs->GetWindowVar(data->c.hWnd, Window_Number, &nb);
-				return nb;
-			}
-
-			if (name == "TabNumber")
-			{
-				int nb;
-				kPlugin.kFuncs->GetWindowVar(data->c.hWnd, Window_Tab_Number, &nb);
-				return nb;
-			}
-			
-			if (name == "SelectedText")
-				type = Window_SelectedText;
-			else if (name == "URLBAR")
-				type = Window_UrlBar;
-			else if (name == "URL")
-				type = Window_URL;
-			else if (name == "TITLE")
-				type = Window_Title;
-			else if (name == "LinkURL")
-				type = Window_LinkURL;
-			else if (name == "ImageURL")
-				type = Window_ImageURL;
-			else if (name == "FrameURL")
-				type = Window_FrameURL;
-			else if (name == "CHARSET")
-				type = Window_Charset;
-			else if (name == "SEARCHURL")
-				type = Search_URL;
-			else if (name == "CommandLine")
-				return CT_to_UTF8(::GetCommandLine());
-			else if (name == "LANG")
-				type = Window_Lang;
-			else return "";
-
-			int l = kPlugin.kFuncs->GetWindowVar(data->c.hWnd, type, NULL);
+		MString name = data->getstr(1);
+		WindowVarType type;
+		/*if (name == "SelectedText") {
+			int l = kPlugin.kFuncs->GetWindowVar(data->c.hWnd, Window_SelectedText, NULL);
 			if (l<1) return "";
 
-			char* buf = new char[l];
-			kPlugin.kFuncs->GetWindowVar(data->c.hWnd, type, buf);
-			MString ret = buf;
+			wchar_t* buf = new wchar_t[l];
+			kPlugin.kFuncs->GetWindowVar(data->c.hWnd, Window_SelectedText, buf);
+			std::string ret = CUTF16_to_UTF8(buf);
 			delete [] buf;
 			return ret;
+		}*/
+
+		if (name == "VERSION") {
+			return kPlugin.kFuncs->GetKmeleonVersion();
 		}
+
+		if (name == "TextZoom") {
+			int zoom;
+			kPlugin.kFuncs->GetWindowVar(data->c.hWnd, Window_TextZoom, &zoom);
+			char buf[34];
+			_itoa(zoom, buf, 10);
+			return buf;
+		}
+
+		if (name == "WindowNumber")
+		{
+			int nb;
+			kPlugin.kFuncs->GetWindowVar(data->c.hWnd, Window_Number, &nb);
+			return nb;
+		}
+
+		if (name == "TabNumber")
+		{
+			int nb;
+			kPlugin.kFuncs->GetWindowVar(data->c.hWnd, Window_Tab_Number, &nb);
+			return nb;
+		}
+			
+		if (name == "SelectedText")
+			type = Window_SelectedText;
+		else if (name == "URLBAR")
+			type = Window_UrlBar;
+		else if (name == "URL")
+			type = Window_URL;
+		else if (name == "TITLE")
+			type = Window_Title;
+		else if (name == "LinkURL")
+			type = Window_LinkURL;
+		else if (name == "ImageURL")
+			type = Window_ImageURL;
+		else if (name == "FrameURL")
+			type = Window_FrameURL;
+		else if (name == "CHARSET")
+			type = Window_Charset;
+		else if (name == "SEARCHURL")
+			type = Search_URL;
+		else if (name == "CommandLine")
+			return CT_to_UTF8(::GetCommandLine());
+		else if (name == "LANG")
+			type = Window_Lang;
+		else return "";
+
+		int l = kPlugin.kFuncs->GetWindowVar(data->c.hWnd, type, NULL);
+		if (l<1) return "";
+
+		char* buf = new char[l];
+		kPlugin.kFuncs->GetWindowVar(data->c.hWnd, type, buf);
+		MString ret = buf;
+		delete [] buf;
+		return ret;
+	}
+
+	Value w(FunctionData* data)
+	{
+		return  getwinvar(data);
+	}
+
 
 	Value setwinvar(FunctionData* data) 
 	{
@@ -1780,8 +1785,10 @@
 		return std::time(nullptr);
 	}
 
+#define FUNCSYMBOL(X) "!"#X
+
 #ifndef MACROSFUNC_ADD
-#define MACROSFUNC_ADD(entry) m->AddSymbol(#entry, ValueFunc((MacroFunction)&entry));
+#define MACROSFUNC_ADD(entry) m->AddSymbol(FUNCSYMBOL(entry), ValueFunc((MacroFunction)&entry));
 #endif
 
 void InitFunctions(Mac* m)
