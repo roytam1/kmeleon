@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <map>
+#include <vector>
 #include "../strconv.h"
 
 enum Type {
@@ -7,7 +8,8 @@ enum Type {
 	VALUE_STRING,
 	VALUE_INT,
 	VALUE_MACRO,
-	VALUE_FUNCTION
+	VALUE_FUNCTION,
+	VALUE_UFUNCTION
 };
 
 typedef int MInt;
@@ -22,6 +24,7 @@ public:
 };
 
 class MacroDef;
+class FunctionDef;
 class Value;
 class MacroFile;
 struct FunctionData;
@@ -51,6 +54,7 @@ public:
 	union {
 		MInt i;
 		MacroDef* md;
+		FunctionDef* uf;
 		MacroFunction mf;
 		MString* str; // XXX	
 	};
@@ -72,6 +76,11 @@ public:
 		else {
 			memcpy(this, &v, sizeof(Value));
 		}
+	}
+
+	Value(FunctionDef* def) {
+		t = VALUE_UFUNCTION;
+		uf = def;
 	}
 
 	Value(MacroDef* def) {
@@ -109,7 +118,7 @@ public:
 		str.assign(buf);*/
 	}
 
-	MInt intval() {
+	MInt intval() const {
 		switch (t) {
 			case VALUE_INT: return i;
 			case VALUE_STRING: return str->compare("true")==0?1:atoi(str->c_str()); 
@@ -125,7 +134,7 @@ public:
 		}
 	}
 */
-	MString strval() {
+	MString strval() const {
 		switch (t) {
 			case VALUE_INT:{ char buf[34];_itoa(i, buf, 10);  return buf;}
 			case VALUE_STRING: return *str;
@@ -133,7 +142,7 @@ public:
 		}
 	}
 
-	MInt boolval() {
+	MInt boolval() const {
 		switch (t) {
 			case VALUE_INT: return i;
 			case VALUE_STRING:
@@ -142,11 +151,11 @@ public:
 		}
 	}
 
-	bool isint() {return t == VALUE_INT;}
-	bool isstring() {return t == VALUE_STRING;}
-	bool ismacro() {return t == VALUE_MACRO;}
-	bool isfunction() {return t == VALUE_FUNCTION;}
-	bool isvalid() {return t!= VALUE_NONE;}
+	bool isint() const { return t == VALUE_INT; }
+	bool isstring() const{ return t == VALUE_STRING; }
+	bool ismacro() const { return t == VALUE_MACRO; }
+	bool isfunction() const { return t == VALUE_FUNCTION; }
+	bool isvalid() const { return t != VALUE_NONE; }
 	
 	MInt operator +(Value& right ){ return intval() + right.intval(); }
 	MInt operator -(Value& right ){ return intval() - right.intval(); }
@@ -199,7 +208,7 @@ public:
 		}
 	}
 
-	Value operator =(Value& right ){
+	Value operator =(const Value& right ){
 		if (right.t == VALUE_STRING) {
 			if (t == VALUE_STRING)
 				*str = *right.str;
@@ -222,7 +231,7 @@ public:
 		}
 	}*/
 	
-	Value operator =(MString& right ) {
+	Value operator =(const MString& right ) {
 		if (t!=VALUE_STRING) {
 			t = VALUE_STRING;
 			str = new MString(right);
@@ -232,14 +241,14 @@ public:
 		return *this;
 	}
 
-	Value operator =(MInt right ) {
+	Value operator =(const MInt right) {
 		if (t == VALUE_STRING) delete str;
 		t = VALUE_INT;
 		i = right;
 		return i;
 	}
 
-	MString concat(Value& right ) { 
+	MString concat(const Value& right) { 
 		return strval() + right.strval();
 	}
 	
@@ -274,13 +283,46 @@ typedef Value ValueMacro;
 typedef Value ValueStr;
 typedef Value ValueInt;
 	
-typedef std::map<std::string, Value> TDS;
+class TDS : public std::map < std::string, Value >
+{
+public:
+
+	void emptyvar()
+	{
+		for (TDS::iterator it = begin(); it != end(); it++)
+			it->second = Value();
+	}
+
+	Value* add(const std::string& name, const Value& v)
+	{
+		TDS::iterator it;
+		it = insert(end(), TDS::value_type(name, v));
+		return &it->second;
+	}
+
+	Value* find(const std::string& name)
+	{
+		TDS::iterator it = __super::find(name);
+		if (it == end())
+			return nullptr;
+		return &it->second;
+	}
+
+	std::string find(const Value* val)
+	{
+		for (TDS::iterator it = begin(); it != end(); it++)
+			if (val == &it->second)
+				return it->first;
+		return "";
+	}
+};
 
 typedef enum {
 	NODE_STATLIST,
 	NODE_STAT,
 	NODE_EXPR,
 	NODE_MACRO,
+	NODE_FUNCTION,
 	NODE_VALUE
 } NodeType;
 
@@ -289,7 +331,8 @@ typedef enum {
 	STAT_WHILE,
 	STAT_EXPR,
 	STAT_IF,
-
+	STAT_RETURN,
+	STAT_BREAK
 } StatType;
 
 typedef enum {
@@ -318,7 +361,7 @@ typedef enum {
 
 #define ISEXPR(node) (node->t == NODE_EXPR)
 #define ISSTAT(node) (node->t == NODE_STAT)
-#define ISLIST(node) (node->t == NODE_STATLIST ||node->t == NODE_MACRO)
+#define ISLIST(node) (node->t == NODE_STATLIST || node->t == NODE_MACRO || node->t == NODE_FUNCTION)
 
 /*
 typedef struct Statement {
@@ -360,7 +403,7 @@ public:
 
 	MacroNode() {
 		t = NODE_STATLIST;
-		next = NULL;
+		next = nullptr;
 	}
 
 	virtual ~MacroNode() {
@@ -384,7 +427,7 @@ public:
 	MacroNode* child;	
 
 	StatList() {
-		child = last = NULL;
+		child = last = nullptr;
 		t = NODE_STATLIST;
 	}
 
@@ -419,15 +462,28 @@ public:
 };
 
 class ExprValue : public Expression {
-public:
+protected:
 	Value* v;
-
+public:
 	ExprValue() : Expression() {
-		v = NULL;
+		v = nullptr;
 		et = EXPR_VALUE;
 	}
 
 	virtual ~ExprValue() {
+	}
+
+	const Value* Get() {
+		return v;
+	}
+
+	void Set(Value* av) {
+		v = av;
+	}
+
+	void Set(const Value& av) {
+		assert(v);
+		*v = av;
 	}
 };
 
@@ -440,9 +496,9 @@ public:
 	Expression* firstParam;
 
 	ExprCall() : Expression() {
-		v = NULL;
+		v = nullptr;
 		et = EXPR_CALL;
-		firstParam = lastParam = NULL;
+		firstParam = lastParam = nullptr;
 	}
 
 	void AddParam(Expression* p) {
@@ -475,49 +531,37 @@ public:
 
 	Expr(ExprType type) : Expression() {
 		et = type;
-		A = B = C = NULL;
+		A = B = C = nullptr;
 	}
 	
 	Expr(ExprType type, Expression* l) : Expression() {
 		et = type;
 		A = l;
-		B = NULL;
-		C = NULL;
+		B = nullptr;
+		C = nullptr;
 	}
 
 	Expr(ExprType type, Expression* l, Expression* r) : Expression() {
 		et = type;
 		A = l;
 		B = r;
-		C = NULL;
+		C = nullptr;
 	}
 };
 
-class MacroFile {
+class FunctionDef : public StatList {
 public:
 	std::string name;
-	std::string desc;
-	std::string file;
-	std::wstring wfile;
-	bool user;
-	bool loaded;
-	bool trusted;
+	std::vector<Value*> params;
+	MacroFile* mf;
+	TDS tds;
 
-	MacroFile(wchar_t* afile) {
-		wfile = afile;
-		file = CUTF16_to_UTF8(afile);
-		
-		CharLowerBuff(afile, wcslen(afile));
-		wchar_t* ext = wcsrchr(afile, L'.');
-		if (ext) *ext = 0;
-		wchar_t* pos = wcsrchr(afile, L'\\');
-		name = (const char*)CT_to_UTF8(pos?pos+1:afile);
-		*ext = L'.';
-
-		user = false;
-		loaded = false;
-		trusted = false;
+	FunctionDef(MacroFile* amf) : StatList() {
+		t = NODE_FUNCTION;
+		mf = amf;
 	}
+
+	virtual ~FunctionDef() {}
 };
 
 class MacroDef : public StatList {
@@ -556,7 +600,7 @@ public:
 	Statement(StatType type) : MacroNode() {
 		st = type;
 		t = NODE_STAT;
-		A = B = C = next = NULL;
+		A = B = C = next = nullptr;
 	}
 
 	virtual int getLine() { return -1;}
@@ -567,6 +611,60 @@ public:
 		if (A) delete A;
 		if (B) delete B;
 		if (C) delete C;
+	}
+};
+
+class Mac {
+public:
+	TDS tds;
+	StatList root;
+
+	Value* AddSymbol(const std::string& name, const Value& v)
+	{
+		TDS::iterator it;
+		it = tds.insert(tds.end(), TDS::value_type(name, v));
+		return &it->second;
+	}
+
+	Value* FindSymbol(const std::string& name)
+	{
+		return tds.find(name);
+	}
+
+	std::string FindSymbol(const Value* val)
+	{
+		for (TDS::iterator it = tds.begin(); it != tds.end(); it++)
+			if (val == &it->second)
+				return it->first;
+		return "";
+	}
+};
+
+class MacroFile {
+public:
+	std::string name;
+	std::string desc;
+	std::string file;
+	std::wstring wfile;
+	bool user;
+	bool loaded;
+	bool trusted;
+	Mac m;
+
+	MacroFile(wchar_t* afile) {
+		wfile = afile;
+		file = CUTF16_to_UTF8(afile);
+
+		CharLowerBuff(afile, wcslen(afile));
+		wchar_t* ext = wcsrchr(afile, L'.');
+		if (ext) *ext = 0;
+		wchar_t* pos = wcsrchr(afile, L'\\');
+		name = (const char*)CT_to_UTF8(pos ? pos + 1 : afile);
+		*ext = L'.';
+
+		user = false;
+		loaded = false;
+		trusted = false;
 	}
 };
 
