@@ -504,10 +504,13 @@ bool SessionStore::WriteFile(TCHAR* filepath)
 	_tcscpy_s(tmp, filepath);
 	_tcscat_s(tmp, _T(".tmp"));	
 	
-	FILE* f = _tfopen(tmp, _T("w"));	
+	FILE* f = _tfopen(tmp, _T("w"));
+	if (!f) return false;
 	FileStream stream(f);
 	PrettyWriter<FileStream> filewriter(stream);
+	clearerr(f);
 	result  = data.Accept(filewriter);
+	if (ferror(f)) return false;
 	fclose(f);
 	
 	if (result) {
@@ -517,7 +520,8 @@ bool SessionStore::WriteFile(TCHAR* filepath)
 		if (MoveFile(filepath, tmp2)) {
 			result = MoveFile(tmp, filepath);
 			DeleteFile(tmp2);
-		}
+		} else
+			result = MoveFile(tmp, filepath);
 	}
 
 	DeleteFile(tmp);
