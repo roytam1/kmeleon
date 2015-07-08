@@ -380,15 +380,15 @@
 		if (preftype == PREF_UNISTRING) {
 			long len = kFuncs->GetPreference(PREF_STRING, pref, 0, L"");			
 			if (!len) return Value("");
-			char* cRetval = (char*)calloc(sizeof(char), len+1);
-			kFuncs->GetPreference(PREF_STRING, pref, cRetval, L"");
-			if (strncmp(cRetval, "chrome:",7) == 0) {
+			std::auto_ptr<char> cRetval((char*)calloc(sizeof(char), len+1));
+			kFuncs->GetPreference(PREF_STRING, pref, cRetval.get(), L"");
+			if (strncmp(cRetval.get(), "chrome:",7) == 0) {
 				len = kFuncs->GetPreference(PREF_LOCALIZED, pref, 0, L"");			
 				if (!len) return Value("");
-				cRetval = (char*)calloc(sizeof(char), len+1);
-				kFuncs->GetPreference(PREF_LOCALIZED, pref, cRetval, L"");
+				cRetval.reset((char*)calloc(sizeof(char), len+1));
+				kFuncs->GetPreference(PREF_LOCALIZED, pref, cRetval.get(), L"");
 			}
-			Value v(cRetval);
+			Value v(cRetval.get());
 			return v;
 		}
 		else if (preftype == PREF_INT) {

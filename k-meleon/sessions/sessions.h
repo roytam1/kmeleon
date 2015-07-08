@@ -100,9 +100,10 @@ public:
 			aUrls[i] = urls[i].c_str();
 			aTitles[i] = titles[i].c_str();
 		}
-
 		kPlugin.kFuncs->SetMozillaSessionHistory(hWnd, aTitles, aUrls, shcount, index, scrollX, scrollY);
 		if (last) kPlugin.kFuncs->GotoHistoryIndex(hWnd, index);
+		delete aTitles;
+		delete aUrls;
 		return false;
 	}
 	
