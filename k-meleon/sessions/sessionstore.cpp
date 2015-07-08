@@ -276,11 +276,11 @@ bool SessionStore::Load()
 		if (_tstat(sessionFile, &st) == -1)
 			return false;
 		
-		char* input = new char[st.st_size+1];
-		f.read(input, st.st_size);
-		input[f.gcount()] = 0;
+		std::auto_ptr<char> input(new char[st.st_size+1]);
+		f.read(input.get(), st.st_size);
+		input.get()[f.gcount()] = 0;
 
-		data.Parse(input);
+		data.Parse(input.get());
 		if (data.HasParseError() || !data["sessions"].IsArray())
 			InitData();
 		UpdateSessionList();
