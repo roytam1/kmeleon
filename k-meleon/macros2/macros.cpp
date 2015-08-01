@@ -595,6 +595,30 @@ void DisableMacros(MacroFile* mf)
 	mf->loaded = false;
 }
 
+Value ExecuteFunction(const char* name)
+{
+	if (!M) return "";
+	std::string funcname = "!";
+	funcname += name;
+	Value* val = M->FindSymbol(funcname);
+	if (!val || !val->isufunction())
+		return "";
+
+	ValueFunc* f = (ValueFunc*)val;
+	f->uf->tds.emptyvar();
+	/*Expression* param = static_cast<Expression*>(expr->firstParam);
+	for (auto it = expr->v->uf->params.begin(); it != expr->v->uf->params.end(); it++) {
+		if (!param) break;
+		**it = EvalExpr(param);
+		param = static_cast<Expression*>(param->next);
+	}*/
+	Value v, ret;
+	Context context = {0};
+	Evaluator eval(M, context);
+	eval.Evaluate(f->uf, &ret);
+	return ret;
+}
+
 std::string ExecuteMacro (HWND hWnd, const char* name, const Context* parent)
 {
 	if (!M) return "";
@@ -891,10 +915,17 @@ MacroFile* LoadMacros(const TCHAR *filename)
 	m->loaded = true;
 
 	char pref[MAX_PATH+40] = {0};
+
+	sprintf_s(pref, "kmeleon.plugins.macros.modules.%s.denied", m->name.c_str());	
+	kPlugin.kFuncs->GetPreference(PREF_BOOL, pref, &m->denied, &m->denied);
+	if (m->denied) return m;
+
 	sprintf_s(pref, "kmeleon.plugins.macros.modules.%s.trusted", m->name.c_str());
 	int trust = 0;
-	kPlugin.kFuncs->GetPreference(PREF_BOOL, pref, &trust, &trust);
-	if (trust) {
+	kPlugin.kFuncs->GetPreference(PREF_INT, pref, &trust, &trust);
+	if (trust == 2) {
+		m->denied = true;
+	} else if (trust == 1) {
 		char checksum[33];
 		sprintf_s(pref, "kmeleon.plugins.macros.modules.%s.checksum", m->name.c_str());
 		long len = kPlugin.kFuncs->GetPreference(PREF_STRING, pref, 0, 0);
@@ -907,6 +938,7 @@ MacroFile* LoadMacros(const TCHAR *filename)
 				m->trusted = true;
 		}
 	}
+	
 	return m;
 }
 

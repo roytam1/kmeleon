@@ -29,6 +29,8 @@
 #define WRONGTYPE 1
 #define NEEDTRUST(data) if (!checkTrust(data)) return Value();
 
+Value ExecuteFunction(const char* name);
+
 	static void DoError(const char* msg, Statement* stat)
 	{
 		DoError(msg, stat?stat->getFile():"", stat?stat->getLine():-1);
@@ -66,8 +68,43 @@
 
 	bool checkTrust(FunctionData* data)
 	{
-		return true; // TODO: to enable later
-		return data->c.mf->trusted && (!data->c.origmf || data->c.origmf->trusted);
+		if (data->c.mf->denied)
+			return false;
+
+		if (data->c.mf->trusted && (!data->c.origmf || data->c.origmf->trusted))
+			return true;
+			
+		const char* msg = kPlugin.kFuncs->Translate("The macro \"%s\" want to make change to your computer. Do you want to allow it?\nOnly allow changes if you trust the author of the macro.");
+		int len = strlen(msg) + data->c.mf->name.length();
+		char* buf = new char[len];
+		sprintf_s(buf, len, msg, data->c.mf->name.c_str());
+		int res = MessageBoxUTF8(data->c.hWnd, buf, "Security",  MB_YESNO|MB_ICONQUESTION|MB_TASKMODAL);
+		delete [] buf;
+		if (res == IDYES) {
+			char pref[MAX_PATH+40];
+			sprintf_s(pref, "kmeleon.plugins.macros.modules.%s.trusted", data->c.mf->name.c_str());
+	
+			int b = 1;			
+			kFuncs->SetPreference(PREF_INT, pref, (void*)&b, TRUE);
+			data->c.mf->trusted = true;
+
+			sprintf_s(pref, "kmeleon.plugins.macros.modules.%s.checksum", data->c.mf->name.c_str());
+			MD5 md5;
+			md5.digestFile(CUTF8_to_UTF16(data->c.mf->file.c_str()));
+			kPlugin.kFuncs->SetPreference(PREF_STRING, pref, md5.digestChars, TRUE);
+
+			return true;
+		} else {
+			char pref[MAX_PATH+40];
+			sprintf_s(pref, "kmeleon.plugins.macros.modules.%s.trusted", data->c.mf->name.c_str());
+
+			int b = 2;			
+			kFuncs->SetPreference(PREF_INT, pref, (void*)&b, TRUE);
+			data->c.mf->denied = true;
+			return false;
+		}
+
+		
 	}
 	
 	void invalidOp(FunctionData* data) {
@@ -1785,6 +1822,35 @@
 		return std::time(nullptr);
 	}
 
+	Value date(FunctionData* data)
+	{
+		std::time_t time;
+		int t = data->getint(2,-1);
+		time = t>=0 ? t : std::time(nullptr);
+		char buf[100];
+		std::strftime(buf, sizeof(buf),  data->getstr(1), std::localtime(&time));
+		return buf;
+	}
+
+	void OnDownload(const char* url, const char* path, int result, void* data) {
+		ExecuteFunction((char*)data);
+		delete data;
+	}
+
+	Value download(FunctionData* data)
+	{
+		NEEDTRUST(data);
+		checkArgs(__FUNCTION__, data, 2, 3);
+		void* cdata = (void*)strdup(data->getstr(3));
+		if (!kPlugin.kFuncs->Download(data->getstr(1), data->getstr(2), &OnDownload, cdata)) {
+			delete cdata;
+			return false;
+		}
+		return true;
+	}
+
+
+
 #define FUNCSYMBOL(X) "!"#X
 
 #ifndef MACROSFUNC_ADD
@@ -1864,4 +1930,6 @@ void InitFunctions(Mac* m)
 	MACROSFUNC_ADD(logmsg);
 	MACROSFUNC_ADD(popupmenu);
 	MACROSFUNC_ADD(time);
+	MACROSFUNC_ADD(date);
+	MACROSFUNC_ADD(download);
 }
