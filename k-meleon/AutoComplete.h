@@ -27,7 +27,8 @@
 #include "MozUtils.h"
 
 
-typedef void (CALLBACK* AutoCompleteCallback)(_AutoCompleteResult*, int, void*) ;
+
+typedef void (CALLBACK* AutoCompleteCallback)(ACResult*, void*) ;
 
 class CACListener :  public nsIAutoCompleteObserver
 {	
@@ -35,40 +36,19 @@ class CACListener :  public nsIAutoCompleteObserver
 	NS_DECL_NSIAUTOCOMPLETEOBSERVER	
 
 	CACListener::CACListener(AutoCompleteCallback callback, void* data) {
-		m_ACIt = NULL;
 		m_Callback = callback;
 		m_data = data;
-		gACResults = nullptr;
-		gACCountResults = 0;
 	}
 
 	CACListener::~CACListener() {
-		FreeResult();
 	}
 
 	static void AutoCompleteStop();
 	static void AutoComplete(const CString& aSearchString, AutoCompleteCallback callback, void* data);
 protected:
 
-	void FreeResult() {
-		if (gACCountResults > 0) {
-			m_ACIt = gACResults;
-			while (gACCountResults--){
-				free(m_ACIt->value);
-				free(m_ACIt->comment);
-				m_ACIt++;
-			}
-			free(gACResults);
-			gACResults = NULL;
-			gACCountResults = 0;
-		}
-	}
-	
 	PRBool AddEltToList(nsISupports* aElement);
 	nsCOMPtr<nsIAutoCompleteResult> m_oldResult;
-	AutoCompleteResult* gACResults ;
-	unsigned int gACCountResults;
-	AutoCompleteResult* m_ACIt;
 	AutoCompleteCallback m_Callback;
 	void* m_data;
 	static nsString previousSearch;
@@ -83,8 +63,6 @@ NS_IMETHODIMP CACListener::OnUpdateSearchResult(nsIAutoCompleteSearch *search, n
 
 NS_IMETHODIMP CACListener::OnSearchResult(nsIAutoCompleteSearch *search, nsIAutoCompleteResult *result)
 {
-	FreeResult();
-
 	uint16_t status;
 	result->GetSearchResult(&status);
 	int32_t defaultIndex;
@@ -92,28 +70,17 @@ NS_IMETHODIMP CACListener::OnSearchResult(nsIAutoCompleteSearch *search, nsIAuto
 	if (status == nsIAutoCompleteResult::RESULT_SUCCESS || status == nsIAutoCompleteResult::RESULT_NOMATCH)
 	{
 		m_oldResult = result; // Keep the old result for optimization
-
-		result->GetMatchCount(&gACCountResults);
-		gACResults = (AutoCompleteResult*)calloc(gACCountResults, sizeof(AutoCompleteResult));
-		m_ACIt = gACResults;
-
-		for (PRUint32 i = 0; i<gACCountResults; i++)
+		uint32_t count;
+		result->GetMatchCount(&count);				
+		ACResult* acresult = count ? new ACResult(count) : nullptr;
+		for (PRUint32 i = 0; i<count; i++)
 		{
-			nsString nsStr;
-			nsCString nsCStr;
-
+			nsString nsStr, nsCStr;
 			result->GetValueAt(i, nsStr);
-			NS_UTF16ToCString(nsStr,NS_CSTRING_ENCODING_NATIVE_FILESYSTEM,nsCStr);
-			m_ACIt->value = strdup(nsCStr.get());
-
-			result->GetCommentAt(i, nsStr);
-			NS_UTF16ToCString(nsStr,NS_CSTRING_ENCODING_NATIVE_FILESYSTEM,nsCStr);
-			m_ACIt->comment = strdup(nsCStr.get());
-	
-			m_ACIt->score = 0;
-			m_ACIt++;
+			result->GetCommentAt(i, nsCStr);
+			acresult->AddTail(ACResultItem(NSStringToCString(nsStr), NSStringToCString(nsCStr)));			
 		}
-		(*m_Callback)(gACResults, gACCountResults, m_data);
+		(*m_Callback)(acresult, m_data);
 	}
 	else
 		m_oldResult = nullptr;
