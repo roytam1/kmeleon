@@ -101,6 +101,13 @@ static const char* TokenList[] = {
 		"<menu checked>",
 		"<menu grayed>",
 		"<macro info>",
+		"<button check>", 
+		"null",
+		"function",
+		"return",
+		"const",
+		"break",
+
 		"=",
 		">",
 		"<",
@@ -665,6 +672,14 @@ public:
 				e = (Expression*)new ExprValue();
 				((ExprValue*)e)->Set(m->AddSymbol(std::string("#NULL"), Value()));
 				break;
+
+			/*case TK_MENUGRAY:
+				e = currentMd->menuGrayed;
+				break;
+
+			case TK_MENUCHECK:
+				e = currentMd->menuChecked;
+				break;*/
 
 			default :
 				error("Invalid expression.", lex.token);

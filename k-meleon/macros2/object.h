@@ -155,6 +155,7 @@ public:
 	bool isstring() const{ return t == VALUE_STRING; }
 	bool ismacro() const { return t == VALUE_MACRO; }
 	bool isfunction() const { return t == VALUE_FUNCTION; }
+	bool isufunction() const { return t == VALUE_UFUNCTION; }
 	bool isvalid() const { return t != VALUE_NONE; }
 	
 	MInt operator +(Value& right ){ return intval() + right.intval(); }
@@ -649,6 +650,7 @@ public:
 	bool user;
 	bool loaded;
 	bool trusted;
+	bool denied;
 	Mac m;
 
 	MacroFile(wchar_t* afile) {
@@ -665,6 +667,7 @@ public:
 		user = false;
 		loaded = false;
 		trusted = false;
+		denied = false;
 	}
 };
 
