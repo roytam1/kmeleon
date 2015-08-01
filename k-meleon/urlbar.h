@@ -21,7 +21,15 @@
 #pragma once
 
 #include "mfcembed.h"
-struct _AutoCompleteResult;
+typedef struct _ACResultItem {
+	CString value;
+	CString comment;
+	int score;
+	_ACResultItem() {}
+	_ACResultItem(CString val, CString com, int s = 0) : value(val), comment(com), score(s) {}
+} ACResultItem;
+
+typedef CList<ACResultItem, ACResultItem&> ACResult;
 extern CMfcEmbedApp theApp;
 class CACListener;
 
@@ -29,9 +37,12 @@ class CACListener;
 class CACListBox : public CListBox
 {
 public:
+	CACListBox() {}
+	~CACListBox() {}
 	void Scroll(short dir, short q = 0);
 	void AutoComplete(CString&);
-	void OnResult(_AutoCompleteResult* result, int count);
+	void OnResult(ACResult* result);
+	void ResetContent();
 
 	BOOL m_bBack;
 	DECLARE_MESSAGE_MAP()
@@ -39,16 +50,20 @@ public:
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
+	virtual void DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct);
+	virtual void MeasureItem(LPMEASUREITEMSTRUCT lpMeasureItemStruct);
+
 public:
    afx_msg BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);
 	
 
 protected:
+	CAutoPtr<ACResult> mResult;
 	CEdit *m_edit;
 	CFont m_font;		
 	int m_ignoreMousemove;
-	static void CALLBACK ACCallback(_AutoCompleteResult* result, int count, void* self) {
-		((CACListBox*)self)->OnResult(result, count);
+	static void CALLBACK ACCallback(ACResult* result, void* self) {
+		((CACListBox*)self)->OnResult(result);
 	}
 };
 
@@ -110,44 +125,19 @@ public:
 	~CUrlBar(){
 	}
 
+	void ScaleFontSize(float f) {
+		NONCLIENTMETRICS ncm;
+		ncm.cbSize = sizeof(ncm);
+		SystemParametersInfo(SPI_GETNONCLIENTMETRICS, sizeof(ncm), &ncm, 0);
+		ncm.lfMenuFont.lfHeight = (LONG)floor(ncm.lfMenuFont.lfHeight*f);
+		m_font.DeleteObject();
+		m_font.CreateFontIndirect(&ncm.lfMenuFont);
+		SendMessage(WM_SETFONT, (WPARAM)(HFONT)m_font,1);
+	}
+
     HWND m_hwndEdit;
 
-	int Create(DWORD style, RECT &rect, CWnd *parentWnd, UINT id) {
-        int ret = CComboBoxEx::Create(style | CBS_AUTOHSCROLL, rect, parentWnd, id);
-        SetExtendedStyle(/*CBES_EX_PATHWORDBREAKPROC|*/CBES_EX_CASESENSITIVE, CBES_EX_PATHWORDBREAKPROC|CBES_EX_CASESENSITIVE);
-		
-        COMBOBOXEXITEM ci;
-        ci.mask = CBEIF_IMAGE;
-        ci.iItem = -1;
-#ifdef INTERNAL_SITEICONS
-		ci.iImage = theApp.favicons.GetDefaultIcon();
-#endif
-        SetItem(&ci);
-		LimitText(0);
-        CEdit *edit = GetEditCtrl();
-		if (!edit) return -1;
-        m_hwndEdit = edit->m_hWnd;
-		
-		// Bug #783
-#ifdef URLBAR_USE_SETWORDBREAKPROC
-		edit->SendMessage(EM_SETWORDBREAKPROC, 0,
-			(LPARAM)&(CUrlBarEdit::UrlBreakProc));
-		// Subclassing edit box for autocomplete
-		if (theApp.preferences.GetBool("browser.urlbar.autocomplete.enabled", true))
-			m_UrlBarEdit.SubclassWindow(m_hwndEdit);
-#else
-		//Subclassing edit box for autocomplete and ctrl navigation
-		//Making our own combo box would be better
-		m_UrlBarEdit.SubclassWindow(m_hwndEdit);
-#endif
-
-		// Set the height of the dropdown
-		edit->GetClientRect(&rect);
-		int height = rect.bottom + 4 + GetItemHeight(0) * (theApp.preferences.GetInt("kmeleon.urlbar.dropdown_lines", 10));
-		GetComboBoxCtrl()->SetWindowPos(0,0,0,50,height,SWP_NOMOVE|SWP_NOZORDER);
-		return ret;
-
-    }
+	int Create(DWORD style, RECT &rect, CWnd *parentWnd, UINT id);
     
 	inline CString GetEnteredURL(BOOL ignoreTyped = FALSE) {
 		if (!ignoreTyped) {
@@ -267,7 +257,7 @@ protected:
 
     BOOL m_changed;
     CString m_currentURL;
-	
+	CFont m_font;
 	CUrlBarEdit m_UrlBarEdit;		
 public:
 	DECLARE_MESSAGE_MAP()

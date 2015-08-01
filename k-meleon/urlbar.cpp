@@ -98,6 +98,12 @@ void CACListBox::OnKillFocus(CWnd* pNewWnd)
 	ShowWindow(SW_HIDE);
 	((CUrlBarEdit*)m_edit)->StopACSession();
 }
+
+void CACListBox::ResetContent()
+{
+	CListBox::ResetContent();
+	mResult.Free();
+}
 /*
 void CACListBox::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 {
@@ -166,22 +172,26 @@ void CACListBox::OnMouseMove(UINT nFlags, CPoint point)
 	SetCurSel(ItemFromPoint(point, b));
 }
 
-void CACListBox::OnResult(AutoCompleteResult* results, int count) 
+void CACListBox::OnResult(ACResult* results) 
 {
 	ResetContent();
-	if (count && results)
+	mResult.Free();
+	mResult.Attach(results);
+	if (results && results->GetCount())
 	{
 		USES_CONVERSION;
 		if (theApp.preferences.GetBool("browser.urlbar.autoFill", false) && !m_bBack)
 		{
 			CString text,toSelect;
 			m_edit->GetWindowText(text);
-			AutoCompleteResult* r = results;
-			for (int i=0; i<count; i++) {
-				toSelect = A2CT(results[i].value);
+			POSITION pos = mResult.m_p->GetHeadPosition();
+			while (pos) {
+				ACResultItem& result = mResult.m_p->GetNext(pos);
+				toSelect = result.value;
 				if (toSelect.Left(7+text.GetLength()).Compare(CString(_T("http://")) + text) != 0)
 					continue;
 
+				int i;
 				toSelect.Delete(0, 7+text.GetLength());
 				if ( (i = toSelect.FindOneOf(_T("/?&=#"))) != -1) {
 					toSelect.GetBuffer(0);
@@ -193,16 +203,26 @@ void CACListBox::OnResult(AutoCompleteResult* results, int count)
 			}			
 		}
 
-		for (int i=0; i<count; i++)
-		{
-			AddString(A2CT(results->value));
-            if(i>100) break; // deadlock: prevent quiet crash at > 3800 lines
-			// TODO Limit size of autocomplete result
-			results++;
+		int i = 0;
+		POSITION pos = mResult->GetHeadPosition();
+		while (pos) {
+			POSITION tmp = pos;
+			ACResultItem& result = mResult->GetNext(pos);
+			int idx = AddString(W2CT(result.value));
+			SetItemDataPtr(idx, tmp);
+            if(i++>100) break; 
 		}
-		
+
 		int nLine = GetCount();
 		int height = GetItemHeight(0);
+
+		/*SIZE size;
+		CDC* pDC = GetDC(); 
+		HGDIOBJ old = pDC->SelectObject(m_font);
+		GetTextExtentPoint32(pDC->m_hDC, L"X", 1, &size);
+		height = size.cy;//pDC->DrawText(strText, -1, rect, DT_WORDBREAK | DT_CALCRECT); 
+		pDC->SelectObject(old);
+		ReleaseDC(pDC);*/
 		
 		CRect rec;
 		m_edit->GetParent()->GetWindowRect(rec);
@@ -219,14 +239,14 @@ void CACListBox::OnResult(AutoCompleteResult* results, int count)
 		}
 		
 		// I'm not sure what I'm missing but it works with that
-		nLine++;
+		//nLine++;
 		
 		// Prevent the mouse to select an element when the 
 		// autocomplete list popup.
 		if (!IsWindowVisible())
 			m_ignoreMousemove = 2;
 
-		SetWindowPos(&(CWnd::wndTop),rec.left,rec.bottom,rec.Width(),height*nLine,SWP_SHOWWINDOW);
+		SetWindowPos(&(CWnd::wndTop),rec.left,rec.bottom,rec.Width(),height*nLine+2,SWP_SHOWWINDOW);
 	}
 	else
 	{
@@ -239,13 +259,102 @@ void CACListBox::OnResult(AutoCompleteResult* results, int count)
 void CACListBox::AutoComplete(CString& text)
 {	
 	CACListener::AutoComplete(text, (AutoCompleteCallback)&CACListBox::ACCallback, this);
-	return;
+}
 
-	USES_CONVERSION;
-	AutoCompleteResult *results = NULL;
-	int count = theApp.plugins.SendMessage("*", "Urlbar", "AutoComplete", (long)T2CA(text), (long)&results);
-	ResetContent();
-	OnResult(results, count);	
+void CACListBox::MeasureItem(LPMEASUREITEMSTRUCT lpMeasureItemStruct) 
+{
+	// TODO: Add your code to determine the size of specified item
+	ASSERT(lpMeasureItemStruct->CtlType == ODT_LISTBOX);
+
+	CString strText;
+	GetText(lpMeasureItemStruct->itemID, strText);
+	ASSERT(TRUE != strText.IsEmpty());
+	CRect rect;
+	GetItemRect(lpMeasureItemStruct->itemID, &rect);
+
+	SIZE size;
+	CDC* pDC = GetDC(); 
+	HGDIOBJ old = pDC->SelectObject(m_font);
+	GetTextExtentPoint32(pDC->m_hDC, strText, wcslen(strText), &size);
+	int iconHeight = theApp.skin.GetDefHeight() + 4;
+	lpMeasureItemStruct->itemHeight = size.cy >= iconHeight ? size.cy : iconHeight;	
+	pDC->SelectObject(old);
+	ReleaseDC(pDC);
+} 
+
+void CACListBox::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct) 
+{
+	// TODO: Add your code to draw the specified item
+	ASSERT(lpDrawItemStruct->CtlType == ODT_LISTBOX);
+	if (lpDrawItemStruct->itemAction == ODA_FOCUS)
+		return;
+
+	CString strText;
+	GetText(lpDrawItemStruct->itemID, strText);
+	//AutoCompleteResult* acResult = (AutoCompleteResult*)GetItemDataPtr(lpDrawItemStruct->itemID);
+	//ASSERT(NULL != acResult);
+	CDC dc;
+
+	dc.Attach(lpDrawItemStruct->hDC);
+	//HGDIOBJ old = dc.SelectObject(m_font);
+
+	// Save these value to restore them when done drawing.
+	COLORREF crOldTextColor = dc.GetTextColor();
+	COLORREF crOldBkColor = dc.GetBkColor();
+	
+	// If this item is selected, set the background color 
+	// and the text color to appropriate values. Also, erase
+	// rect by filling it with the background color.
+	if ((lpDrawItemStruct->itemAction | ODA_SELECT) &&
+	(lpDrawItemStruct->itemState & ODS_SELECTED))
+	{
+		dc.SetTextColor(GetSysColor(COLOR_HIGHLIGHTTEXT));
+		dc.SetBkColor(GetSysColor(COLOR_HIGHLIGHT));
+		dc.FillSolidRect(&lpDrawItemStruct->rcItem, GetSysColor(COLOR_HIGHLIGHT));
+	}
+	else
+	{
+		dc.SetTextColor(GetSysColor(COLOR_MENUTEXT));
+		dc.SetBkColor(GetSysColor(COLOR_MENU));
+		dc.FillSolidRect(&lpDrawItemStruct->rcItem, GetSysColor(COLOR_MENU));
+	}
+	
+	// Draw Icon
+	lpDrawItemStruct->rcItem.left += 2;
+	CImageList* iconList = theApp.favicons.GetSizedList();
+	int topMargin = (lpDrawItemStruct->rcItem.bottom - lpDrawItemStruct->rcItem.top - theApp.skin.GetDefHeight()) / 2;
+	iconList->Draw(&dc, theApp.favicons.GetIcon(strText), 
+		CPoint(lpDrawItemStruct->rcItem.left, lpDrawItemStruct->rcItem.top + topMargin), 
+		ILD_TRANSPARENT);
+	lpDrawItemStruct->rcItem.left += theApp.skin.GetDefWidth() + 2;
+
+	// Draw Url
+	RECT rc = lpDrawItemStruct->rcItem;
+	rc.right = (rc.right-rc.left)*7/10+rc.left;
+	dc.DrawText(strText, -1, &rc, DT_NOCLIP|DT_NOPREFIX|DT_SINGLELINE|DT_WORD_ELLIPSIS);
+
+	// Draw Title
+	int urlSize = (lpDrawItemStruct->rcItem.right - lpDrawItemStruct->rcItem.left) * 66 / 100;
+	if (lpDrawItemStruct->itemData) {
+		ACResultItem& item = mResult->GetAt((POSITION)lpDrawItemStruct->itemData);
+		if (item.comment.GetLength()) {
+			rc.left = rc.right + 2;
+			rc.right = (lpDrawItemStruct->rcItem.right-lpDrawItemStruct->rcItem.left)*34/100+rc.left;
+			//SIZE size;
+			//GetTextExtentPoint32(dc.m_hDC, strText, strText.GetLength(), &size);
+			//rc.left += ((size.cx + 4) / 100 + 1) * 100;
+			//if (rc.left < rc.right) {			
+				dc.SetTextColor(GetSysColor(COLOR_GRAYTEXT));
+				dc.DrawText(item.comment, -1, &rc, DT_NOCLIP|DT_NOPREFIX|DT_SINGLELINE);
+			//}
+		}
+	}
+	// Reset the background color and the text color back to their
+	// original values.
+	dc.SetTextColor(crOldTextColor);
+	dc.SetBkColor(crOldBkColor);
+	//dc.SelectObject(old);
+	dc.Detach(); 
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -339,7 +448,7 @@ void CUrlBarEdit::PreSubclassWindow()
 	if (!m_list->CreateEx(
 		WS_EX_TOPMOST|WS_EX_CONTROLPARENT|WS_EX_WINDOWEDGE,
 		_T("ListBox"),_T("AutoComplete List"),
-		LBS_NOTIFY|WS_VISIBLE|WS_CHILD|WS_BORDER|WS_VSCROLL,
+		LBS_OWNERDRAWVARIABLE|LBS_HASSTRINGS|LBS_NOTIFY|WS_VISIBLE|WS_CHILD|WS_BORDER|WS_VSCROLL,
 		CRect(0,0,0,0),
 		//GetDesktopWindow(),
 		GetParentFrame(),
@@ -656,6 +765,54 @@ BEGIN_MESSAGE_MAP(CUrlBar, CComboBoxEx)
 	ON_CONTROL_REFLECT(CBN_EDITCHANGE, OnCbnEditchange)
 	ON_CONTROL_REFLECT(CBN_SELCHANGE, OnCbnSelchange)
 END_MESSAGE_MAP()
+
+#include <locale.h>
+int CUrlBar::Create(DWORD style, RECT &rect, CWnd *parentWnd, UINT id)
+{
+    int ret = CComboBoxEx::Create(style | CBS_AUTOHSCROLL, rect, parentWnd, id);
+    SetExtendedStyle(/*CBES_EX_PATHWORDBREAKPROC|*/CBES_EX_CASESENSITIVE, CBES_EX_PATHWORDBREAKPROC|CBES_EX_CASESENSITIVE);
+		
+    COMBOBOXEXITEM ci;
+    ci.mask = CBEIF_IMAGE;
+    ci.iItem = -1;
+#ifdef INTERNAL_SITEICONS
+	ci.iImage = theApp.favicons.GetDefaultIcon();
+#endif
+    SetItem(&ci);
+	LimitText(0);
+    CEdit *edit = GetEditCtrl();
+	if (!edit) return -1;
+    m_hwndEdit = edit->m_hWnd;
+		
+	CString s = theApp.preferences.GetString("kmeleon.display.urlbar_fontsize", _T("1"));
+	char* old = setlocale(LC_NUMERIC, NULL);
+	setlocale(LC_NUMERIC, "C");
+	double f = _wtof(s);
+	setlocale(LC_NUMERIC, old);
+	if (f != 1 && f>.5) {
+		ScaleFontSize(f);
+	}
+
+	// Bug #783
+#ifdef URLBAR_USE_SETWORDBREAKPROC
+	edit->SendMessage(EM_SETWORDBREAKPROC, 0,
+		(LPARAM)&(CUrlBarEdit::UrlBreakProc));
+	// Subclassing edit box for autocomplete
+	if (theApp.preferences.GetBool("browser.urlbar.autocomplete.enabled", true))
+		m_UrlBarEdit.SubclassWindow(m_hwndEdit);
+#else
+	//Subclassing edit box for autocomplete and ctrl navigation
+	//Making our own combo box would be better
+	m_UrlBarEdit.SubclassWindow(m_hwndEdit);
+#endif
+
+	// Set the height of the dropdown
+	edit->GetClientRect(&rect);
+	int height = rect.bottom + 4 + GetItemHeight(0) * (theApp.preferences.GetInt("kmeleon.urlbar.dropdown_lines", 10));
+	GetComboBoxCtrl()->SetWindowPos(0,0,0,50,height,SWP_NOMOVE|SWP_NOZORDER);
+	return ret;
+
+}
 
 HBRUSH CUrlBar::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 {
