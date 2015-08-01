@@ -20,7 +20,9 @@
 
 #include <windows.h>
 #include <commctrl.h>
-
+#ifdef _DEBUG
+#include "vld.h"
+#endif
 #ifdef CallWindowProc
 #undef CallWindowProc
 #endif
@@ -28,6 +30,9 @@
 #ifdef SetWindowLong
 #undef SetWindowLong
 #endif
+
+typedef int (__cdecl* DRAWBITMAPPROC)(DRAWITEMSTRUCT *dis);
+typedef void (__cdecl* DOWNLOADPROC)(const char* url, const char* path, int result, void* data) ;
 
 #define CallWindowProc(proc, hWnd, message, wParam, lParam) \
 	(IsWindowUnicode(hWnd) ? CallWindowProcW(proc, hWnd, message, wParam, lParam) : \
@@ -126,8 +131,8 @@ typedef struct {
 } kmeleonPointInfo;
 
 typedef struct _AutoCompleteResult {
-	char* value;
-	char* comment;
+	wchar_t* value;
+	wchar_t* comment;
 	int score;
 } AutoCompleteResult;
 
@@ -357,7 +362,7 @@ typedef struct {
 
 	int (*GetWindowsList) (HWND* list, unsigned size);
 	int (*GetTabsList) (HWND hWnd, HWND* list, unsigned size);
-	UINT (*GetIconIdx) (const char* host);
+	int (*GetIconIdx) (const char* host);
 	void (*ReleaseCmdId) (UINT id);
 	UINT (*RegisterCmd) (const char* name, const char* desc, const char* arg); 
 	void (*UnregisterCmd) (const char* name);
@@ -390,6 +395,12 @@ typedef struct {
 	HWND (*GetCurrent)(HWND hWnd);
 	bool (*RunCommand)(HWND hWnd, const char* command);
 	HIMAGELIST (*GetDefSizeIconList)();
+
+	
+// ----------------------------------------------------
+// Addition in K-meleon 75.1 (2.2)
+   bool (*SetMenuDrawProc)(HMENU menu, DRAWBITMAPPROC);
+   bool (*Download)(const char* url, const char* path, DOWNLOADPROC, void* data);
 } kmeleonFunctions;
 
 /*

@@ -280,8 +280,6 @@ void CReBarEx::OnChevronPushed( NMHDR * pNotifyStruct, LRESULT* result )
 		}
 	}
 
-//	SendMessage("bmpmenu", "", "SetOwnerDrawn", (long)pop.m_hMenu, (long)DrawBitmap);
-	
 	if ( bAtleastOne )
 		pop.TrackPopupMenu ( TPM_LEFTALIGN|TPM_TOPALIGN, ptMenu.x, ptMenu.y, GetParentFrame() );
 

@@ -248,7 +248,6 @@ void Close(HWND hWnd) {
 	     do {
 	        if (SendMessage(toolbar, TB_GETBUTTON, (WPARAM)0, (LPARAM)&button))
 			    if (button.dwData) {
-				    kPlugin.kFuncs->SendMessage("bmpmenu", PLUGIN_NAME, "UnSetOwnerDrawn", (long)button.dwData, 0);
 			        DestroyMenu((HMENU)button.dwData);
 			    }
 	     } while (SendMessage(toolbar, TB_DELETEBUTTON, 0 /*index*/, 0));
@@ -268,7 +267,6 @@ void Quit(){
       SaveBM(gBookmarkFile);
    }
    
-   kPlugin.kFuncs->SendMessage("bmpmenu", PLUGIN_NAME, "UnSetOwnerDrawn", (long)gMenuBookmarks, 0);
    while (RealDeleteMenu(gMenuBookmarks, nFirstBookmarkPosition));
 
    char tmp[MAX_PATH];
@@ -319,7 +317,6 @@ void DoMenu(HMENU menu, char *param){
       }
       if (command) {
          AppendMenu(menu, MF_STRING, command, CANSI_to_T(string));
-         kPlugin.kFuncs->SendMessage("bmpmenu", PLUGIN_NAME, "SetOwnerDrawn", (long)menu, (long)DrawBitmap);
       }
    }
    else {
@@ -441,10 +438,9 @@ extern "C" {
    }
 
    KMELEON_PLUGIN int DrawBitmap(DRAWITEMSTRUCT *dis) {
-      int top = (dis->rcItem.bottom - dis->rcItem.top - 16) / 2;
-      top += dis->rcItem.top;
-
       if (GetMenuState((HMENU)dis->hwndItem, dis->itemID, 0) & MF_POPUP){
+         int top = (dis->rcItem.bottom - dis->rcItem.top - 16) / 2;
+         top += dis->rcItem.top;
          if (dis->itemState & ODS_SELECTED){
             ImageList_Draw(gImagelist, IMAGE_FOLDER_OPEN, dis->hDC, dis->rcItem.left+2, top, ILD_TRANSPARENT | ILD_FOCUS );
          }
@@ -462,16 +458,21 @@ extern "C" {
 
          HIMAGELIST hList = gImagelist;
          UINT idx = IMAGE_BOOKMARK;
-
+		 
 		 UINT i = GetSiteIcon(node);
 		 if (i > 0) {
             idx = i;
             hList = kPlugin.kFuncs->GetDefSizeIconList();
 		 }
 
-         ImageList_Draw(hList, idx, dis->hDC, dis->rcItem.left+2, top, flags);
+		 int cx,cy = 16;
+		 ImageList_GetIconSize(gImagelist, &cx, &cy);
+		 int top = (dis->rcItem.bottom - dis->rcItem.top - cy) / 2;
+		 top += dis->rcItem.top;
 
-         return 18;
+         ImageList_Draw(hList, idx, dis->hDC, dis->rcItem.left, top, flags);
+
+         return cx;
       }
       return 0;
    }

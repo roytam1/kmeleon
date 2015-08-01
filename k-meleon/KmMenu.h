@@ -19,6 +19,9 @@
 #ifndef __KMMENU_H__
 #define __KMMENU_H__
 
+#include "ODMenu.h"
+typedef int (__cdecl* DRAWBITMAPPROC)(DRAWITEMSTRUCT *dis);
+
 enum KmMenuType 
 {
 	MenuString = 0,
@@ -31,9 +34,9 @@ enum KmMenuType
 
 struct KmMenuItem
 {
-	KmMenuType type;
-	char id[80];
 	char label[80];
+	KmMenuType type;
+	char id[80];	
 	int command;
 	int groupid;
 
@@ -50,7 +53,7 @@ struct KmMenuItem
 
 class KmMenu {
 public:
-	KmMenu(BOOL popup) : mPopup(popup), mInvalid(TRUE) {};
+	KmMenu(BOOL popup) : mPopup(popup), mInvalid(TRUE), mDrawProc(nullptr) {};
 	~KmMenu(void) {};
 
 	void RemoveItem(KmMenuItem& item);
@@ -71,18 +74,24 @@ public:
 		if (mInvalid || !mMenu.m_hMenu) Build();
 		return &mMenu;
 	}
-
+	
+	void DrawItem(LPDRAWITEMSTRUCT);
+	void MeasureItem(LPMEASUREITEMSTRUCT);
+	
+	DRAWBITMAPPROC mDrawProc;
 protected:
-
+	void DrawBitmap(LPDRAWITEMSTRUCT);
+	int GetMaxAccelWidth(HDC hDC);
 	void Reset();
 	BOOL Build(CMenu &menu, int before);
 	BOOL IsEmpty() { return (mMenuDef.GetCount() == 0); }
 
-	CMenu mMenu;
+	CODMenu mMenu;
 	CList<KmMenuItem, KmMenuItem&> mMenuDef;
 	CList<KmMenu*, KmMenu*> mDependencies;
 	BOOL mInvalid;
 	BOOL mPopup;
+	
 };
 
 class KmMenuService
@@ -90,7 +99,14 @@ class KmMenuService
 public:
 
 	KmMenuService() : mLastActivated(NULL) {
+		DWORD dwVersion = ::GetVersion();
+		dwVersion = (DWORD)(LOBYTE(LOWORD(dwVersion)));
+		mOwnerDraw = true;//dwVersion<=5;
 
+		NONCLIENTMETRICS ncm = {0};
+		ncm.cbSize = sizeof(ncm);
+		SystemParametersInfo(SPI_GETNONCLIENTMETRICS,0,(PVOID)&ncm,FALSE);
+		mMenuFont.CreateFontIndirect(&ncm.lfMenuFont);
 	}
 
 	KmMenu* CreateMenu(LPCTSTR name) {
@@ -202,7 +218,8 @@ public:
 	KmMenu* Activate(CMenu* menu) {
 		KmMenu* kmenu = GetKMenu(menu);
 		if (kmenu) kmenu->GetMenu();
-		mLastActivated = kmenu;
+		mLastActivated = menu;
+		mMaxTextLength = 0;
 		return kmenu;
 	}
 
@@ -214,13 +231,25 @@ public:
 		return FALSE;
 	}
 
+	BOOL IsOwnerDraw() {
+		return mOwnerDraw;
+	}
+
 	~KmMenuService() {
 		Destroy();
 	}
 
+	void DrawItem(LPDRAWITEMSTRUCT);
+	void MeasureItem(LPMEASUREITEMSTRUCT);
+	
+	CMap<HMENU, HMENU, DRAWBITMAPPROC, DRAWBITMAPPROC> mProcList;
 protected:
+	void DrawBitmap(LPDRAWITEMSTRUCT);
 	CMap<CString, LPCTSTR, KmMenu*, KmMenu*> mMenus;
-	KmMenu* mLastActivated;
+	CMenu* mLastActivated;
+	BOOL mOwnerDraw;
+	CFont mMenuFont;
+	int mMaxTextLength;
 };
 
 

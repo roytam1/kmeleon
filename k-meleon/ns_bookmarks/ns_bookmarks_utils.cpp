@@ -928,16 +928,27 @@ int cmenu = max(18,GetSystemMetrics(SM_CYMENU));
          wlen = MultiByteToWideChar(CP_UTF8, 0,
                                     szTitle, len,
                                     wszTitle, wlen);
-         AppendMenuW(menu, MF_STRING|MF_POPUP, (UINT)childMenu, wszTitle);
+         AppendMenuW(menu, MF_STRING|MF_POPUP, (UINT)childMenu, wszTitle);	 
+
          delete wszTitle;
 #endif
+		 int pos;
+         for (pos=0;pos<GetMenuItemCount(menu);pos++)
+            if (GetSubMenu(menu,pos) == childMenu)
+                break;
+		 MENUITEMINFO mi = {0};
+         mi.cbSize = sizeof(mi);
+         mi.fMask = MIIM_DATA | MIIM_FTYPE;
+         mi.fType = MF_OWNERDRAW;
+         mi.dwItemData = (ULONG_PTR)child->text.c_str();
+         int xx = SetMenuItemInfo(menu, pos, TRUE, &mi);
 
          BuildMenu(childMenu, child, false);
 		 BOOL addBookmark = TRUE;
 		 kPlugin.kFuncs->GetPreference(PREF_BOOL, PREFERENCE_BOOKMARK_MENUADD, &addBookmark, &addBookmark);
 		 if (addBookmark) {
 			AppendMenu(childMenu, MF_SEPARATOR, 0, _T(""));
-			AppendMenu(childMenu, MF_STRING, nAddBookmarkHereCommand, gLoc->GetString(IDS_ADD_BOOKMARK_HERE));
+			AppendMenu(childMenu, MF_STRING, nAddBookmarkHereCommand, gLoc->GetString(IDS_ADD_BOOKMARK_HERE));			
 		 }
       }
       else if (child->type == BOOKMARK_BOOKMARK) {
@@ -946,12 +957,18 @@ int cmenu = max(18,GetSystemMetrics(SM_CYMENU));
 		 {
 			TCHAR *pszTemp = fixString(CUTF8_to_T(child->text.c_str()), 40);
 			AppendMenu(menu, MF_STRING, child->id, pszTemp);
+			MENUITEMINFO mi = {0};
+			mi.cbSize = sizeof(mi);
+			mi.fMask = MIIM_DATA | MIIM_FTYPE;
+			mi.fType = MF_STRING | MF_OWNERDRAW;
+			mi.dwItemData = (ULONG_PTR)child->text.c_str();
+			SetMenuItemInfo(menu, child->id, FALSE, &mi);
 			free(pszTemp);
 		 }
 
       }
    }
-   kPlugin.kFuncs->SendMessage("bmpmenu", PLUGIN_NAME, "SetOwnerDrawn", (long)menu, (long)DrawBitmap);
+   kPlugin.kFuncs->SetMenuDrawProc(menu, DrawBitmap);
 }
 
 void CopyRebar(HWND hWndNewTB, HWND hWndOldTB)
@@ -1093,7 +1110,6 @@ void BuildRebar(HWND hWndTB)
 
 void Rebuild() {
    // delete the old bookmarks from the menu (FIXME - needs to be more robust than "delete everything after the first bookmark position" - there may be normal menu items there (if the user is weird))
-   kPlugin.kFuncs->SendMessage("bmpmenu", PLUGIN_NAME, "UnSetOwnerDrawn", (long)gMenuBookmarks, 0);
    while (RealDeleteMenu(gMenuBookmarks, nFirstBookmarkPosition));
    // and rebuild
    BuildMenu(gMenuBookmarks, gBookmarkRoot->FindSpecialNode(BOOKMARK_FLAG_BM), false);
@@ -1113,7 +1129,6 @@ void Rebuild() {
 	  {
 		  if (SendMessage(refToolbar, TB_GETBUTTON, (WPARAM)0, (LPARAM)&button))
 			  if (button.dwData) {
-				  kPlugin.kFuncs->SendMessage("bmpmenu", PLUGIN_NAME, "UnSetOwnerDrawn", (long)button.dwData, 0);
 				  DestroyMenu((HMENU)button.dwData);
 			  }
 	  } while (SendMessage(refToolbar, TB_DELETEBUTTON, 0, 0));

@@ -152,6 +152,8 @@ BEGIN_MESSAGE_MAP(CBrowserFrame, CFrameWnd)
 //	ON_WM_MOVING()
 	ON_WM_DESTROY()
 	ON_WM_GETMINMAXINFO()
+	ON_WM_MEASUREITEM()
+	ON_WM_DRAWITEM()
 END_MESSAGE_MAP()
 
 #define PREF_TOOLBAND_LOCKED "kmeleon.general.toolbars_locked"
@@ -1351,6 +1353,8 @@ void CBrowserFrame::SetFavIcon(int iIcon)
 	cb.iSelectedImage = cb.iImage = iIcon;
 	cb.iItem = -1;
 	m_wndUrlBar.SetItem(&cb);
+	m_wndUrlBar.Invalidate();
+	m_wndUrlBar.RedrawWindow();
 
 	if (theApp.preferences.GetBool("kmeleon.favicons.titleBar", FALSE))
 	{
@@ -1898,4 +1902,22 @@ BOOL CBrowserFrame::OnToolTipText(UINT id, NMHDR* pNMHDR, LRESULT* pResult)
 void CBrowserFrame::AllowJS(BOOL allow)
 {
 	GetActiveView()->GetBrowserWrapper()->AllowJS(allow);
+}
+
+void CBrowserFrame::OnMeasureItem(int nIDCtl, LPMEASUREITEMSTRUCT lpMeasureItemStruct)
+{
+	// TODO: Add your message handler code here and/or call default
+	if (lpMeasureItemStruct->CtlType == ODT_MENU) {
+		theApp.menus.MeasureItem(lpMeasureItemStruct);
+		return;
+	}
+		
+	CFrameWnd::OnMeasureItem(nIDCtl, lpMeasureItemStruct);
+}
+
+void CBrowserFrame::OnDrawItem(int nIDCtl, LPDRAWITEMSTRUCT lpDrawItemStruct)
+{
+	if (lpDrawItemStruct->CtlType == ODT_MENU)
+		return theApp.menus.DrawItem(lpDrawItemStruct);
+	CFrameWnd::OnDrawItem(nIDCtl, lpDrawItemStruct);
 }

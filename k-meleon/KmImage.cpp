@@ -57,7 +57,9 @@ NS_IMETHODIMP nsImageObserver::Notify(imgIRequest *aProxy, int32_t aType, const 
 	}
 	else if (aType == imgINotificationObserver::DECODE_COMPLETE)
 	{
-		mObserver->ImageLoaded(CreateDIB(aProxy));
+		KmImage img;
+		img.LoadFromBitmap(CreateDIB(aProxy));
+		mObserver->ImageLoaded(img);
 		aProxy->CancelAndForgetObserver(NS_OK);
 		//mRequest = nullptr;
 		delete mObserver;
@@ -72,6 +74,17 @@ NS_IMETHODIMP nsImageObserver::Notify(imgIRequest *aProxy, int32_t aType, const 
 	}
 
     return NS_OK;
+}
+
+void nsImageObserver::OnDownload(nsIURI* aUri, nsresult ns, LPSTREAM stream, LPCTSTR aName)
+{
+	if (NS_SUCCEEDED(ns) && stream) {
+		KmImage img;
+		img.Load(stream);
+		mObserver->ImageLoaded(img);		
+	}
+	delete mObserver;
+	NS_RELEASE_THIS();
 }
 
 static void
@@ -224,7 +237,9 @@ HBITMAP nsImageObserver::CreateDIB(imgIRequest *aRequest)
 #ifdef _DEBUG
 	// There is a problem with the linking in debug 
 	// Use a dummy image instead
-	return  (HBITMAP)::LoadImage(::AfxGetInstanceHandle(), MAKEINTRESOURCE(IDR_MAINFRAME), IMAGE_BITMAP, 0, 0, LR_LOADTRANSPARENT);
+	CString closeBmp;
+	theApp.skin.FindSkinFile(closeBmp, _T("dummy.bmp"));
+	return  (HBITMAP)::LoadImage(::AfxGetInstanceHandle(), closeBmp, IMAGE_BITMAP, 0, 0, LR_LOADTRANSPARENT|LR_LOADFROMFILE);
 	//return NULL;
 #endif
 
@@ -357,6 +372,55 @@ bool KmImage::LoadFromSkin(LPCTSTR name, const LPRECT prect, bool single)
 	return true;
 }
 
+bool KmImage::LoadFromIcon(HICON hicon)
+ {
+	Clean();
+	BITMAP bmp; 
+	ICONINFO ii; 
+	GetIconInfo(hicon, &ii);
+	GetObject(ii.hbmColor, sizeof(bmp), &bmp);
+
+	
+	bool hasAlpha = false;
+
+	Gdiplus::Bitmap temp(ii.hbmColor, NULL);
+	Gdiplus::BitmapData lockedBitmapData;
+	Gdiplus::Rect rc(0, 0, temp.GetWidth(), temp.GetHeight());
+
+	temp.LockBits(&rc, Gdiplus::ImageLockModeRead, temp.GetPixelFormat(), &lockedBitmapData);
+	mGdiBitmap = new Gdiplus::Bitmap(bmp.bmWidth, bmp.bmHeight, lockedBitmapData.Stride, PixelFormat32bppARGB, (BYTE*)lockedBitmapData.Scan0);
+	temp.UnlockBits(&lockedBitmapData);
+	DeleteObject(ii.hbmColor);
+	DeleteObject(ii.hbmMask);
+	return mGdiBitmap != nullptr;
+	/*
+	for (int y = 0; y < temp.GetHeight(); y++)
+	{
+		byte *pixelBytes = (byte*)lockedBitmapData.Scan0 + y*lockedBitmapData.Stride;
+		for (int x = 0; x SetPixel(x, y, Gdiplus::Color(*pixel));
+			hasAlpha = hasAlpha || (pixelBytes[3] > 0 && pixelBytes[3] < 255);
+		}
+	}
+	temp.UnlockBits(&bmpData);
+	if (!hasAlpha)
+	{
+		// If there's no alpha transparency information, we need to use the mask
+		// to turn back on visible pixels
+		Gdiplus::Bitmap maskBitmap(iconInfo.hbmMask,NULL);
+		Gdiplus::Color cMask, cBitmap;
+		for (int y = 0; y < maskBitmap.GetHeight(); y++)
+		{
+			for (int x = 0; x GetPixel(x, y, &cBitmap); 
+					cBitmap.SetValue(cBitmap.GetValue() | 0xFF000000); // turn alpha to opaque (i.e. 0xFF)
+					mGdiBitmap->SetPixel(x, y, cBitmap);
+				}
+			}
+		}
+	}
+
+	return mGdiBitmap;*/
+}
+
 bool KmImage::LoadFromBitmap(HBITMAP hbmp, bool reverse)
 {
 	ASSERT(hbmp);
@@ -388,7 +452,7 @@ bool KmImage::LoadFromBitmap(HBITMAP hbmp, bool reverse)
 		mGdiBitmap = Gdiplus::Bitmap::FromHBITMAP(hbmp, NULL);
 		MakeTransparent(mTrColor);
 	}
-
+	
 	return mGdiBitmap != nullptr;
 }
 
@@ -421,6 +485,71 @@ bool KmImage::MakeTransparent(COLORREF clr)
 	Clean();
 	mGdiBitmap = newBitmap;
 	return true;
+}
+
+typedef struct
+{
+    BYTE        bWidth;          // Width, in pixels, of the image
+    BYTE        bHeight;         // Height, in pixels, of the image
+    BYTE        bColorCount;     // Number of colors in image (0 if >=8bpp)
+    BYTE        bReserved;       // Reserved ( must be 0)
+    WORD        wPlanes;         // Color Planes
+    WORD        wBitCount;       // Bits per pixel
+    DWORD       dwBytesInRes;    // How many bytes in this resource?
+    DWORD       dwImageOffset;   // Where in the file is this image?
+} ICONDIRENTRY, *LPICONDIRENTRY;
+
+typedef struct
+{
+    WORD           idReserved;   // Reserved (must be 0)
+    WORD           idType;       // Resource Type (1 for icons)
+    WORD           idCount;      // How many images?
+    //ICONDIRENTRY   idEntries[1]; // An entry for each image (idCount of 'em)
+} ICONDIR, *LPICONDIR;
+
+bool KmImage::Load(LPSTREAM stream)
+{
+	ULONG read;
+	ICONDIR header;
+	LARGE_INTEGER zero = {0,0};
+	ULARGE_INTEGER lread, lwrit;
+	stream->Seek(zero, STREAM_SEEK_SET, &lread);
+	
+	stream->Read(&header , sizeof(ICONDIR), &read);
+	if (header.idReserved == 0 && header.idType == 1) {
+		// Support for .ico, get the best quality icon
+		ICONDIRENTRY* pIconDir = (ICONDIRENTRY*)malloc(sizeof(ICONDIRENTRY)*header.idCount);
+		stream->Read(pIconDir, sizeof(ICONDIRENTRY)*header.idCount, &read);
+		if (read == sizeof(ICONDIRENTRY)*header.idCount) {
+			int idx = 0, bw = 0, depth = 0;
+			for (int i=0;i<header.idCount;i++) {
+				if (pIconDir[i].bWidth>bw || 
+					(pIconDir[i].bWidth == bw && pIconDir[i].wBitCount > depth))
+				{
+					bw = pIconDir[i].bWidth;
+					depth = pIconDir[i].wBitCount;
+					idx = i;
+				}
+			}		
+
+			LPSTREAM ss;
+			CreateStreamOnHGlobal(NULL, TRUE, &ss);
+
+			zero.LowPart = pIconDir[idx].dwImageOffset;
+			stream->Seek(zero, STREAM_SEEK_SET, &lread);
+			ULARGE_INTEGER gnagna = {0,0};			
+			gnagna.LowPart = pIconDir[idx].dwBytesInRes;
+			stream->CopyTo(ss, gnagna, &lread, &lwrit);
+
+			mGdiBitmap = Gdiplus::Bitmap::FromStream(stream);
+			stream->Release();
+			return mGdiBitmap != nullptr;
+		}
+		free(pIconDir);
+	}
+	
+	mGdiBitmap = Gdiplus::Bitmap::FromStream(stream);
+	return mGdiBitmap != nullptr;
 }
 
 bool KmImage::Load(LPCTSTR path)
@@ -655,7 +784,7 @@ HBITMAP KmImage::GetHBitmap()
 		bmi.bmiHeader.biBitCount = USHORT( 32 );
 		bmi.bmiHeader.biCompression = BI_RGB;
 		hbmp = ::CreateDIBSection( NULL, &bmi, DIB_RGB_COLORS, &bits, NULL, 0 );
-		Gdiplus::Bitmap bmDest( GetWidth(), GetHeight(), GetWidth()*4, IsComCtl6()?PixelFormat32bppARGB:PixelFormat32bppRGB, static_cast< BYTE* >( bits ) );
+		Gdiplus::Bitmap bmDest( GetWidth(), GetHeight(), GetWidth()*4, IsComCtl6()?PixelFormat32bppPARGB:PixelFormat32bppRGB, static_cast< BYTE* >( bits ) );
 		Gdiplus::Graphics gDest( &bmDest );
 		if (gDest.DrawImage( mGdiBitmap, 0, 0 ) != Gdiplus::Ok) {
 			DeleteObject(hbmp);
@@ -666,7 +795,7 @@ HBITMAP KmImage::GetHBitmap()
 		if (mGdiBitmap->GetHBITMAP(0, &hbmp) != Gdiplus::Ok)
 			return NULL;
 	}
-
+	
 	mBitmap.Attach(hbmp);
 	return hbmp;
 }

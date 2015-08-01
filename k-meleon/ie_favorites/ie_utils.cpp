@@ -194,6 +194,18 @@ void BuildMenu(HMENU menu, CBookmarkNode *node, BOOL isContinuation)
          // condense the title and escape ampersands
          TCHAR *pszTemp = fixString(child->text.c_str(), 40);
          AppendMenu(menu, MF_STRING|MF_POPUP, (UINT)childMenu, pszTemp);
+
+		 int pos;
+         for (pos=0;pos<GetMenuItemCount(menu);pos++)
+            if (GetSubMenu(menu,pos) == childMenu)
+                break;
+		 MENUITEMINFO mi = {0};
+         mi.cbSize = sizeof(mi);
+         mi.fMask = MIIM_DATA | MIIM_FTYPE;
+         mi.fType = MF_OWNERDRAW;
+         mi.dwItemData = (ULONG_PTR)child->text.c_str();
+         int xx = SetMenuItemInfo(menu, pos, TRUE, &mi);
+
          free(pszTemp);
          BuildMenu(childMenu, child, false);
       }
@@ -204,17 +216,24 @@ void BuildMenu(HMENU menu, CBookmarkNode *node, BOOL isContinuation)
             TCHAR *pszTemp = fixString(child->text.c_str(), 40);
             if (pszTemp) {
 			   AppendMenu(menu, MF_STRING, child->id, pszTemp);
+
+			   MENUITEMINFO mi = {0};
+			   mi.cbSize = sizeof(mi);
+			   mi.fMask = MIIM_DATA | MIIM_FTYPE;
+			   mi.fType = MF_STRING | MF_OWNERDRAW;
+			   mi.dwItemData = (ULONG_PTR)child->text.c_str();
+			   SetMenuItemInfo(menu, child->id, FALSE, &mi);
+
                delete pszTemp;
 			}
          }
       }
    }
-   kPlugin.kFuncs->SendMessage("bmpmenu", PLUGIN_NAME, "SetOwnerDrawn", (long)menu, (long)DrawBitmap);
+   kPlugin.kFuncs->SetMenuDrawProc(menu, DrawBitmap);
 }
 
 void RebuildMenu() {
    // delete the old bookmarks from the menu (FIXME - needs to be more robust than "delete everything after the first bookmark position" - there may be normal menu items there (if the user is weird))
-   kPlugin.kFuncs->SendMessage("bmpmenu", PLUGIN_NAME, "UnSetOwnerDrawn", (long)gMenuFavorites, 0);
    while (DeleteMenu(gMenuFavorites, nFirstFavoritesPosition, MF_BYPOSITION));
    // and rebuild
 

@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "MozUtils.h"
 #include "nsIWindowWatcher.h"
 #include "nsIIOService.h"
 
@@ -740,4 +741,86 @@ bool RunJS(const wchar_t* userScript, CString& result)
 	appShellService->GetHiddenDOMWindow(getter_AddRefs(win));
 	NS_ENSURE_TRUE(win, false);
 	return InjectJS(win, userScript, result);
+}
+
+#include "nsIIOService.h"
+#include "nsIChannel.h"
+#include "nsIInputStream.h"
+#include "KmImage.h"
+
+NS_IMPL_ISUPPORTS(streamListener, nsIStreamListener, nsIRequestObserver, nsISupportsWeakReference);
+
+NS_IMETHODIMP streamListener::OnDataAvailable(nsIRequest *aRequest, nsISupports *aContext, nsIInputStream *aInputStream, uint64_t aOffset, uint32_t aCount)
+{
+	if (!mStream) return NS_ERROR_FAILURE;
+	char buffer[8192];
+	uint32_t bytesRead;
+	uint32_t bytesRemaining = aCount;
+
+	while (bytesRemaining) {
+		nsresult rv = aInputStream->Read(buffer, sizeof(buffer), &bytesRead);
+		NS_ENSURE_SUCCESS(rv, rv);
+		if (!bytesRead) break;
+
+		ULONG rr;
+		HRESULT hr = mStream->Write(buffer, bytesRead, &rr);
+		if (hr != S_OK) return NS_ERROR_FAILURE;
+		bytesRemaining -= bytesRead;
+	}
+    return NS_OK;
+}
+
+NS_IMETHODIMP streamListener::OnStartRequest(nsIRequest *aRequest, nsISupports *aContext)
+{	
+	if (!mStream)
+		CreateStreamOnHGlobal(NULL, TRUE, &mStream);
+    return NS_OK;
+}
+
+NS_IMETHODIMP streamListener::OnStopRequest(nsIRequest *aRequest, nsISupports *aContext, nsresult aStatusCode)
+{
+	if (NS_SUCCEEDED(aStatusCode))
+		mStream->Commit(STGC_DEFAULT);
+	if (mObserver)
+		mObserver->OnDownload(nullptr, aStatusCode, mStream.p, mPath);		
+    return NS_OK;
+}
+
+bool DownloadToStream(nsIURI* uri, IDownloadObserver* observer)
+{
+	nsresult rv;
+	nsCOMPtr<nsIIOService> io = do_GetService("@mozilla.org/network/io-service;1", &rv);
+	NS_ENSURE_SUCCESS(rv, false);
+
+	nsCOMPtr<nsIChannel> channel;
+	io->NewChannelFromURI(uri, getter_AddRefs(channel));
+	NS_ENSURE_TRUE(channel, false);
+	
+	nsCOMPtr<nsIStreamListener> l = new streamListener(observer);
+	rv = channel->AsyncOpen(l, nullptr);
+	return NS_SUCCEEDED(rv);
+}
+
+bool DownloadToFile(nsIURI* uri, LPCTSTR path, IDownloadObserver* observer)
+{
+	nsresult rv;
+	nsCOMPtr<nsIIOService> io = do_GetService("@mozilla.org/network/io-service;1", &rv);
+	NS_ENSURE_SUCCESS(rv, false);
+
+	nsCOMPtr<nsIChannel> channel;
+	io->NewChannelFromURI(uri, getter_AddRefs(channel));
+	NS_ENSURE_TRUE(channel, false);
+	
+	CComPtr<IStream> stream;
+	HRESULT hr = SHCreateStreamOnFile(path, 
+		STGM_READWRITE|STGM_SHARE_EXCLUSIVE|STGM_CREATE, 
+		&stream);
+	/*HRESULT hr = SHCreateStreamOnFileEx(path, 
+		STGM_READWRITE|STGM_SHARE_EXCLUSIVE|STGM_FAILIFTHERE, 
+		FILE_ATTRIBUTE_NORMAL, TRUE, NULL, &stream);*/
+	if (hr != S_OK) return false;
+
+	nsCOMPtr<nsIStreamListener> l = new streamListener(observer, path, stream.p);
+	rv = channel->AsyncOpen(l, nullptr);
+	return NS_SUCCEEDED(rv);
 }
