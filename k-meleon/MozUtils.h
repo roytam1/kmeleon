@@ -2,8 +2,6 @@
 #ifndef __MOZUTILS_H__
 #define __MOZUTILS_H__
 
-#include "stdafx.h"
-
 inline nsString CStringToNSString(LPCTSTR aStr);
 inline nsCString CStringToNSCString(LPCTSTR aStr);
 nsCString CStringToNSUTF8String(LPCTSTR aStr);
@@ -13,7 +11,7 @@ nsCString CStringToNSUTF8String(LPCTSTR aStr);
 
 #define CStringToPRUnichar(str) CT2W(str)
 
-inline CString PRUnicharToCString(const PRUnichar* str);
+CString PRUnicharToCString(const PRUnichar* str);
 inline CString NSStringToCString(const nsString& aStr);
 CString NSUTF8StringToCString(const nsCString& aStr);
 inline CString NSCStringToCString(const nsCString& aStr);
@@ -40,5 +38,35 @@ bool GetFrameURL(nsIWebBrowser* aWebBrowser, nsIDOMNode* aNode, nsString& url);
 bool RunJS(const wchar_t* userScript, CString& result);
 bool InjectJS(nsIDOMWindow* dom, const wchar_t* userScript, CString& result);
 BOOL LogMessage(const char* category, const char* message, const char* file, uint line, uint flags);
+
+interface IDownloadObserver {
+	virtual void OnDownload(nsIURI*, nsresult, LPSTREAM, LPCTSTR) = 0;
+};
+
+bool DownloadToStream(nsIURI* uri, IDownloadObserver*);
+bool DownloadToFile(nsIURI* uri, LPCTSTR path, IDownloadObserver*);
+
+#include "nsIStreamListener.h"
+class streamListener : public nsIStreamListener, public nsSupportsWeakReference
+{
+public:
+	NS_DECL_ISUPPORTS
+	NS_DECL_NSISTREAMLISTENER
+	NS_DECL_NSIREQUESTOBSERVER
+
+	streamListener(IDownloadObserver* observer, LPCTSTR path = NULL, LPSTREAM stream = NULL) : 
+		mStream(stream), 
+		mPath(path),
+		mObserver(observer) {		
+	}
+
+	virtual ~streamListener() { 
+	}
+protected:
+	IDownloadObserver* mObserver;
+	CComPtr<IStream> mStream;
+	CString mPath;
+};
+
 
 #endif

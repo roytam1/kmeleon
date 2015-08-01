@@ -54,10 +54,10 @@ int KmIconList::AddIcon(KmImage& img, KmImage& hotImg, KmImage& deadImg, UINT id
 
 	int pos = img.AddToImageList(mCold, index);
 	if (pos == -1) return -1;
+	ASSERT(idx == -1 || pos == idx);
+	idx = hotImg.AddToImageList(mHot, index);
 	ASSERT(pos == idx);
-	pos = hotImg.AddToImageList(mHot, index);
-	ASSERT(pos == idx);
-	pos = deadImg.AddToImageList(mDead, index);
+	idx = deadImg.AddToImageList(mDead, index);
 	ASSERT(pos == idx);
 	if (id) mCmdList[id] = pos;
 	return pos;
@@ -284,7 +284,7 @@ bool KmSkin::Init(LPCTSTR skinName)
     if (!file.Open(filename, CFile::modeRead, NULL))
 	   return false;
 
-	char* buf = new char[file.GetLength()+1];
+	CAutoPtr<char> buf(new char[file.GetLength()+1]);
 	UINT size = file.Read(buf, file.GetLength());
 	buf[size] = 0;
 	
@@ -377,19 +377,16 @@ public:
 	iconSkinObserver(UINT id): mID (id), mRegion(CRect(0,0,0,0)) {}
 	iconSkinObserver(UINT id, RECT r): mID (id), mRegion(r) {}
 	~iconSkinObserver() {}
-	void ImageLoaded(HBITMAP hBitmap) 
+	void ImageLoaded(KmImage &img) 
 	{
-		if (!hBitmap) return;
+		//if (!img) return;
 		UINT w = theApp.skin.GetUserWidth();
 		UINT h = theApp.skin.GetUserHeight();
 
-		KmImage img;
-		img.LoadFromBitmap(hBitmap);
 		if (mRegion.bottom != 0 || mRegion.right != 0)
 			img.Clip(mRegion);
 		img.Resize(w, h);
 		theApp.skin.mImages->AddIcon(img, mID);
-		DeleteObject(hBitmap);
 		theApp.toolbars.Refresh();
 	}
 

@@ -21,12 +21,17 @@
 #include "imgIRequest.h"
 #include "imgINotificationObserver.h"
 #include "imgILoader.h"
+#include "MozUtils.h"
+class KmImage;
 
 interface IImageObserver {
-	virtual void ImageLoaded(HBITMAP) = 0;
+ 	virtual void ImageLoaded(KmImage& img) = 0;
 };
 
-class nsImageObserver : public imgINotificationObserver, public nsSupportsWeakReference
+class nsImageObserver : 
+	public imgINotificationObserver, 
+	public nsSupportsWeakReference,
+	public IDownloadObserver
 {
 	NS_DECL_ISUPPORTS
 	NS_DECL_IMGINOTIFICATIONOBSERVER
@@ -35,6 +40,13 @@ class nsImageObserver : public imgINotificationObserver, public nsSupportsWeakRe
 	virtual ~nsImageObserver() { }
 
 	static bool LoadImage(IImageObserver* observer, nsIURI* imgUri) 
+	{
+		nsImageObserver* obs = new nsImageObserver(observer);
+		NS_ADDREF(obs);
+		return DownloadToStream(imgUri, obs);
+	}
+
+	static bool LoadImageGecko(IImageObserver* observer, nsIURI* imgUri) 
 	{
 		nsresult rv;
 		nsCOMPtr<imgILoader> loader = do_GetService("@mozilla.org/image/loader;1", &rv);
@@ -45,6 +57,8 @@ class nsImageObserver : public imgINotificationObserver, public nsSupportsWeakRe
 			nullptr, nullptr, obs, nullptr, nsIRequest::LOAD_BYPASS_CACHE, 
 			nullptr, nullptr, getter_AddRefs(obs->mRequest)));
 	}
+
+	void OnDownload(nsIURI*, nsresult, LPSTREAM stream, LPCTSTR);
 
 protected:
 	IImageObserver* mObserver;
@@ -86,6 +100,7 @@ public:
 	};
 
 	bool Load(LPCTSTR path);
+	bool Load(LPSTREAM stream);
 	bool Crop(UINT w, UINT h, UINT index);
 	bool Clip(const RECT& r);
 	bool CropLine(UINT h, UINT line, KmImage& img) const;
@@ -101,6 +116,8 @@ public:
 	bool LoadIndexedFromSkin(LPCTSTR name, UINT w, UINT h);
 	bool LoadFromSkin(LPCTSTR name, LPRECT rect = nullptr, bool single = false);
 	bool LoadFromBitmap(HBITMAP hbmp, bool reverse = false);
+	bool LoadFromIcon(HICON hicon);
+
 	int AddToImageList(CImageList& list, int index = -1);
 	~KmImage() {
 		Clean();

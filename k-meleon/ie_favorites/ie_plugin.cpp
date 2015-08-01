@@ -423,7 +423,6 @@ void Config(HWND hWndParent){
 }
 
 void Quit(){
-   kPlugin.kFuncs->SendMessage("bmpmenu", PLUGIN_NAME, "UnSetOwnerDrawn", (long)gMenuFavorites, 0);
    if (gImagelist)
       ImageList_Destroy(gImagelist);
    while (root)
@@ -459,7 +458,6 @@ void DoMenu(HMENU menu, char *param){
          command = nEditCommand;
       if (command && string && *string && (!bIgnore || command == nConfigCommand)) {
          AppendMenu(menu, MF_STRING, command, CUTF8_to_T(string));
-         kPlugin.kFuncs->SendMessage("bmpmenu", PLUGIN_NAME, "SetOwnerDrawn", (long)menu, (long)DrawBitmap);
          return;
       }
       return;
@@ -582,10 +580,10 @@ extern "C" {
    }
 
    KMELEON_PLUGIN int DrawBitmap(DRAWITEMSTRUCT *dis) {
-      int top = (dis->rcItem.bottom - dis->rcItem.top - 16) / 2;
-      top += dis->rcItem.top;
-
       if (GetMenuState((HMENU)dis->hwndItem, dis->itemID, 0) & MF_POPUP){
+         int top = (dis->rcItem.bottom - dis->rcItem.top - 16) / 2;
+         top += dis->rcItem.top;
+
          if (dis->itemState & ODS_SELECTED){
             ImageList_Draw(gImagelist, IMAGE_FOLDER_OPEN, dis->hDC, dis->rcItem.left, top, ILD_TRANSPARENT | ILD_FOCUS );
          }
@@ -624,9 +622,14 @@ extern "C" {
             hList = kPlugin.kFuncs->GetDefSizeIconList();
 		 }
 
+		 int cx,cy = 16;
+		 ImageList_GetIconSize(gImagelist, &cx, &cy);
+		 int top = (dis->rcItem.bottom - dis->rcItem.top - cy) / 2;
+		 top += dis->rcItem.top;
+
          ImageList_Draw(hList, idx, dis->hDC, dis->rcItem.left+2, top, flags);
 
-         return 18;
+         return cx;
       }
       return 0;
    }

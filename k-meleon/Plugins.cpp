@@ -555,14 +555,14 @@ int SetMozillaSessionHistory (HWND hWnd, const char **titles, const char **urls,
 		view->GetBrowserGlue()->UpdateCurrentURI(uri);
 		view->GetBrowserGlue()->mPendingLocation = urls[index];
 		view->GetBrowserGlue()->mHIndex = index;
-		view->GetBrowserGlue()->mIcon = theApp.favicons.GetHostIcon(A2CW(urls[index]));
+		view->GetBrowserGlue()->mIcon = theApp.favicons.GetIcon(A2CW(urls[index]));
 		view->GetBrowserGlue()->SetBrowserTitle(NSUTF8StringToCString(nsDependentCString(titles[index])));
 		uri->SetPath(NS_LITERAL_CSTRING(""));
 		nsCString host;
 		uri->GetHost(host);
 		host.Insert("http://", 0, 7);
 		uri->SetSpec(host);
-		view->GetBrowserGlue()->mIconURI = uri;
+		//view->GetBrowserGlue()->mIconURI = uri;
 		((CBrowserFrmTab*) GetFrame(hWnd))->SetTabIcon((CBrowserTab*)view, view->GetBrowserGlue()->mIcon);
 		// Let the session plugin know about it
 		GetFrame(hWnd)->PostMessageW(UWM_UPDATEBUSYSTATE,0,(LPARAM)hWnd);
@@ -1792,7 +1792,7 @@ int GetTabsList(HWND hWnd, HWND* list, unsigned size)
 	return i;
 }
 
-UINT GetIconIdx(const char* host)
+int GetIconIdx(const char* host)
 {
 	USES_CONVERSION;
 	return theApp.favicons.GetIcon(A2CT(host));
@@ -2047,6 +2047,42 @@ bool RunCommand(HWND hWnd, const char* command)
 	return frame->SendMessage(WM_COMMAND, MAKELONG(id, 1), 0)>0;
 }
 
+bool SetMenuDrawProc(HMENU menu, DRAWBITMAPPROC proc)
+{
+	theApp.menus.mProcList[menu] = proc;
+	CMenu* m = CMenu::FromHandle(menu);
+	KmMenu* km = theApp.menus.GetKMenu(m);
+	if (!km) return false;
+	km->mDrawProc = proc;
+	return true;
+}
+
+class pluginDwnObserver: public IDownloadObserver
+{
+protected:
+	DOWNLOADPROC mProc;
+	void* mData;
+public:
+	pluginDwnObserver(DOWNLOADPROC proc, void* data) : mProc(proc),mData(data) {}
+	virtual ~pluginDwnObserver() {}
+	void OnDownload(nsIURI* uri, nsresult result, LPSTREAM, LPCTSTR wpath)
+	{
+		nsCString spec;
+		if (uri) uri->GetSpec(spec);
+		CAutoPtr<char> path(EncodeUTF8(wpath));
+		mProc(spec.get(), path, result, mData);
+		delete this;
+	}
+};
+
+bool Download(const char* url, const char* path, DOWNLOADPROC proc, void* data)
+{
+	nsCOMPtr<nsIURI> uri;
+	NewURI(getter_AddRefs(uri), nsDependentCString(url));
+	CAutoPtr<wchar_t> wpath(WDecodeUTF8(path));
+	return DownloadToFile(uri, wpath, proc ? new pluginDwnObserver(proc, data) : NULL);
+}
+
 kmeleonFunctions kmelFuncsUTF8 = {
    SendMessage,
    GetCommandIDs,
@@ -2124,7 +2160,9 @@ kmeleonFunctions kmelFuncsUTF8 = {
    ShowMenu,
    GetCurrent,
    RunCommand,
-   GetDefSizeIconList
+   GetDefSizeIconList,
+   SetMenuDrawProc,
+   Download
 };
 
 kmeleonFunctions kmelFuncs = {
@@ -2204,7 +2242,9 @@ kmeleonFunctions kmelFuncs = {
    ShowMenu,
    GetCurrent,
    RunCommand,
-   GetDefSizeIconList
+   GetDefSizeIconList,
+   SetMenuDrawProc,
+   Download
 };
 
 BOOL CPlugins::TestLoad(LPCTSTR file, const char *description)
