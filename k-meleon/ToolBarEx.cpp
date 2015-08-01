@@ -291,7 +291,7 @@ void CToolBarEx::OnLButtonDown(UINT nFlags, CPoint point) {
 
 	int buttonID = GetButtonIDFromPoint(&point);
 	if (buttonID > -1) {
-		SetTimer(LBUTTON_TIMER + buttonID,300,NULL);
+		SetTimer(LBUTTON_TIMER + buttonID,500,NULL);
 
 		GetParentFrame()->PostMessage(TB_LBUTTONDOWN, GetItemID(buttonID), (LPARAM) m_hWnd);
 	}
@@ -334,7 +334,7 @@ void CToolBarEx::OnMButtonDown(UINT nFlags, CPoint point) {
 
 	int buttonID = GetButtonIDFromPoint(&point);
 	if (buttonID > -1) {
-		SetTimer(MBUTTON_TIMER + buttonID,300,NULL);
+		SetTimer(MBUTTON_TIMER + buttonID,500,NULL);
 
 		GetParentFrame()->PostMessage(TB_MBUTTONDOWN, GetItemID(buttonID), (LPARAM) m_hWnd);
 	}
@@ -377,7 +377,7 @@ void CToolBarEx::OnRButtonDown(UINT nFlags, CPoint point) {
 
 	int buttonID = GetButtonIDFromPoint(&point);
 	if (buttonID > -1) {
-		SetTimer(RBUTTON_TIMER + buttonID,300,NULL);
+		SetTimer(RBUTTON_TIMER + buttonID,500,NULL);
 
 		GetParentFrame()->PostMessage(TB_RBUTTONDOWN, GetItemID(buttonID), (LPARAM) m_hWnd);
 	}
