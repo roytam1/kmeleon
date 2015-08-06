@@ -19,7 +19,6 @@
 #ifndef __KMMENU_H__
 #define __KMMENU_H__
 
-#include "ODMenu.h"
 typedef int (__cdecl* DRAWBITMAPPROC)(DRAWITEMSTRUCT *dis);
 
 enum KmMenuType 
@@ -86,7 +85,7 @@ protected:
 	BOOL Build(CMenu &menu, int before);
 	BOOL IsEmpty() { return (mMenuDef.GetCount() == 0); }
 
-	CODMenu mMenu;
+	CMenu mMenu;
 	CList<KmMenuItem, KmMenuItem&> mMenuDef;
 	CList<KmMenu*, KmMenu*> mDependencies;
 	BOOL mInvalid;
@@ -220,6 +219,7 @@ public:
 		if (kmenu) kmenu->GetMenu();
 		mLastActivated = menu;
 		mMaxTextLength = 0;
+		mMaxAccelLength = 0;
 		return kmenu;
 	}
 
@@ -250,6 +250,7 @@ protected:
 	BOOL mOwnerDraw;
 	CFont mMenuFont;
 	int mMaxTextLength;
+	int mMaxAccelLength;
 };
 
 
