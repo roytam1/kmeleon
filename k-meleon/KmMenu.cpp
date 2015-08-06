@@ -667,15 +667,18 @@ void KmMenuService::DrawItem(LPDRAWITEMSTRUCT dis)
 	DRAWBITMAPPROC drawProc;
 	if (!mProcList.Lookup((HMENU)dis->hwndItem, drawProc) || !drawProc(dis))
 		DrawBitmap(dis);
-	dis->rcItem.left += theApp.skin.GetDefWidth() + ::GetSystemMetrics(SM_CXEDGE) + 1;
+	dis->rcItem.left += theApp.skin.GetDefWidth() + ::GetSystemMetrics(SM_CXEDGE);
 
 	DrawText(dis->hDC, text, _tcslen(text), &dis->rcItem, DT_SINGLELINE | DT_VCENTER | DT_NOCLIP);
 
 	if (theApp.preferences.GetBool("kmeleon.display.accelInMenus", TRUE)) {
 		CString accel = theApp.accel.GetStrAccel(dis->itemID);
 		if (accel.GetLength()) {	
-			dis->rcItem.right -= GetSystemMetrics(SM_CXMENUCHECK) + 2;
-			DrawText(dis->hDC, accel, accel.GetLength(), &dis->rcItem, DT_RIGHT | DT_SINGLELINE | DT_VCENTER | DT_NOCLIP);					
+			//dis->rcItem.left = dis->rcItem.right - maxAccelWidth - 16;
+			SIZE size;
+			GetTextExtentPoint32(dis->hDC, accel, accel.GetLength(), &size);
+			dis->rcItem.left = dis->rcItem.right - size.cx - theApp.skin.GetDefWidth() - 2;
+			DrawText(dis->hDC, accel, accel.GetLength(), &dis->rcItem, DT_SINGLELINE | DT_VCENTER | DT_NOCLIP);					
 		}
 	}
 }
@@ -722,38 +725,39 @@ void KmMenuService::MeasureItem(LPMEASUREITEMSTRUCT lpMeasureItemStruct)
 	mi.dwTypeData = text;
 	mLastActivated->GetMenuItemInfo(lpMeasureItemStruct->itemID, &mi);	
 
-	HWND hWnd = theApp.m_pMostRecentBrowserFrame ? NULL : theApp.m_pMostRecentBrowserFrame->m_hWnd;
-	HDC hDC = ::GetWindowDC(hWnd);
+	HDC hDC = CreateCompatibleDC(NULL);
+	//HDC hDC = ::GetWindowDC(theApp.m_pMostRecentBrowserFrame->m_hWnd);
 	HFONT oldFont = (HFONT)SelectObject(hDC, mMenuFont); 
 	GetTextExtentPoint32(hDC, _T("X"), 1, &size);
 	int spaceBetween = size.cx;
 
 	TCHAR* pAccel = wcschr(text, _T('\t'));
 	if (pAccel) *pAccel = 0;
+		/*GetTextExtentPoint32(hDC, text, _tcslen(text), &size);
+		if (size.cx > mMaxTextLength) mMaxTextLength = size.cx;
+		*accel = _T('\\');
+		accel++;
+	}*/
 
-	//GetTextExtentPoint32(hDC, text, _tcslen(text), &size);
-	//if (size.cx > mMaxTextLength) mMaxTextLength = size.cx;
-	RECT rcText = {0};
-	DrawText(hDC, text, -1, &rcText, DT_SINGLELINE|DT_LEFT|DT_VCENTER|DT_CALCRECT);
-	if (rcText.right > mMaxTextLength) mMaxTextLength = rcText.right;
-	lpMeasureItemStruct->itemWidth = mMaxTextLength; 
+	GetTextExtentPoint32(hDC, text, _tcslen(text), &size);
+	if (size.cx > mMaxTextLength) mMaxTextLength = size.cx;
+	lpMeasureItemStruct->itemWidth = mMaxTextLength; 	
 
 	CString accel = theApp.accel.GetStrAccel(lpMeasureItemStruct->itemID);
 	if (accel.GetLength()) {
 		GetTextExtentPoint32(hDC, accel, accel.GetLength(), &size);
-		if (size.cx > mMaxAccelLength) mMaxAccelLength = size.cx;
+		lpMeasureItemStruct->itemWidth += spaceBetween + size.cx; 
 	}
-	if (mMaxAccelLength > 0) 
-		lpMeasureItemStruct->itemWidth += spaceBetween + mMaxAccelLength; 
-	
+
+	lpMeasureItemStruct->itemWidth -= (GetSystemMetrics(SM_CXMENUCHECK)-1);
 	lpMeasureItemStruct->itemHeight = GetSystemMetrics(SM_CYMENUSIZE);
 	int height = theApp.skin.GetDefHeight();
 	int width = theApp.skin.GetDefWidth();
-	lpMeasureItemStruct->itemWidth += width + ::GetSystemMetrics(SM_CXEDGE) * 2 + 1;
+	lpMeasureItemStruct->itemWidth += width + ::GetSystemMetrics(SM_CXEDGE) * 2;
 	if (lpMeasureItemStruct->itemHeight < height+2)
 		lpMeasureItemStruct->itemHeight = height+2;
 	SelectObject(hDC, oldFont);
-	ReleaseDC(hWnd, hDC);	
+	DeleteDC(hDC);	
 }
 
 /*
