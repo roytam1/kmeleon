@@ -369,10 +369,10 @@ void CBrowserFrmTab::SetActiveBrowser(CBrowserTab* aNewActiveTab)
 
 	if (m_wndCBrowserTab && aNewActiveTab!=m_wndCBrowserTab)
 	{
+		focus = m_wndCBrowserTab->IsChild(GetFocus());
 		m_wndCBrowserTab->SetActive(false);
 		m_wndCBrowserTab->SetTypedLocation(!m_wndUrlBar.GetIsTyped() ? _T("") : m_wndUrlBar.GetEnteredURL());
-		m_pPreviousSelectedTab = m_wndCBrowserTab;
-		focus = m_wndCBrowserTab->IsChild(GetFocus());
+		m_pPreviousSelectedTab = m_wndCBrowserTab;		
 		m_wndCBrowserTab->GetBrowserWrapper()->SetVisible(false);
 		PostMessage(UWM_UPDATESESSIONHISTORY, 0, 0);
 	}

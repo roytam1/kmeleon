@@ -1126,24 +1126,49 @@ BOOL CBrowserWrapper::GetSelection(CString& aSelText)
 void CBrowserWrapper::SetVisible(BOOL aVisible)
 {
 	mWebBrowser->SetIsActive(aVisible);
+	TRACE2("Set Active Browser %u for window %s\n", aVisible, (LPCTSTR)GetTitle());
+}
+
+struct PRThread;
+#include "nsIThread.h"
+#include "nsIRunnable.h"
+#include "nsIThreadManager.h"
+class focusActive : public nsIRunnable
+{
+public:
+  NS_DECL_ISUPPORTS
+  NS_DECL_NSIRUNNABLE
+
+  focusActive(nsIWebBrowserFocus* aFocus) : mFocus(aFocus) {};
+
+private:
+  ~focusActive() {};
+
+protected:
+  nsCOMPtr<nsIWebBrowserFocus> mFocus;
+};
+
+NS_IMPL_ISUPPORTS(focusActive, nsIRunnable)
+
+NS_IMETHODIMP focusActive::Run()
+{
+	return mFocus->Activate();	
 }
 
 //#include "nsIWidgetListener.h"
 void CBrowserWrapper::SetActive(BOOL aActive)
 {	
-	/*nsCOMPtr<nsIDOMWindow> dom;
-	nsresult rv = mWebBrowser->GetContentDOMWindow(getter_AddRefs(dom));
-	NS_ENSURE_SUCCESS(rv, );
-	mWebBrowser->SetIsActive(aActive);
-	nsCOMPtr<nsIFocusManager> fm = do_GetService("@mozilla.org/focus-manager;1");
-	if (!fm) return;
-	if (aActive) fm->WindowShown(dom, true); else fm->WindowHidden(dom);*/
-
-
 	NS_ENSURE_TRUE(mWebBrowserFocus, );
-	TRACE2("Set Active Browser %u for window %s\n", aActive, (LPCTSTR)GetTitle());
-	if (aActive) 
-		mWebBrowserFocus->Activate(); 
+	if (aActive) {
+		// Setting the focus later because this does not work on new tab
+		// mWebBrowserFocus->Activate(); 
+		nsCOMPtr<nsIThreadManager> tm = do_GetService("@mozilla.org/thread-manager;1");
+		if (!tm) return;
+		nsCOMPtr<nsIThread> thread;
+		tm->GetCurrentThread(getter_AddRefs(thread));
+		if (!thread) return;
+		thread->Dispatch(new focusActive(mWebBrowserFocus), nsIThread::DISPATCH_NORMAL);		
+	}
 	else 
 		mWebBrowserFocus->Deactivate();
 }
