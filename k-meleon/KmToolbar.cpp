@@ -148,7 +148,7 @@ void KmToolbar::AddItem(KmButton& button, int before, UINT w, UINT h)
 		if (!pbutton->mID) return;
 	}
 	int imageIndex = theApp.skin.GetIconIndex(pbutton->mID);
-	if (imageIndex == I_IMAGENONE && button.mColdImage.GetLength()) {
+	if (button.mColdImage.GetLength()) {
 
 		/*if (button.mColdImage.Left(6).Compare(L"chrome") == 0) {
 
@@ -217,9 +217,9 @@ TBBUTTON KmToolbar::InitButton(KmButton* kbutton, CToolBarEx* hToolbar)
 	if (kbutton->mID || kbutton->mName.GetLength()>0) {
 		res.iString = -1;
 		if (kbutton->mLabel.GetLength() > 0) {
-			CString strTemp(theApp.lang.Translate(kbutton->mLabel), lstrlen(kbutton->mLabel)+1);
-			
-			res.iString = (INT_PTR)hToolbar->GetToolBarCtrl().SendMessage(TB_ADDSTRING, 0, (LPARAM)strTemp.GetBuffer());
+			CString translated =  theApp.lang.Translate(kbutton->mLabel);			
+			translated += _T('\0');
+			res.iString = hToolbar->GetToolBarCtrl().SendMessage(TB_ADDSTRING, 0, (LPARAM)(LPCTSTR)translated);
 		}
 		res.iBitmap = kbutton->mImageIndex;
 		res.idCommand = kbutton->mID;
