@@ -1155,19 +1155,26 @@ NS_IMETHODIMP focusActive::Run()
 	return mFocus->Activate();	
 }
 
-//#include "nsIWidgetListener.h"
+#include "nsIPresShell.h"
 void CBrowserWrapper::SetActive(BOOL aActive)
 {	
 	NS_ENSURE_TRUE(mWebBrowserFocus, );
+	TRACE2("Set Focus Active Browser %u for window %s\n", aActive, (LPCTSTR)GetTitle());
 	if (aActive) {
-		// Setting the focus later because this does not work on new tab
-		// mWebBrowserFocus->Activate(); 
-		nsCOMPtr<nsIThreadManager> tm = do_GetService("@mozilla.org/thread-manager;1");
-		if (!tm) return;
-		nsCOMPtr<nsIThread> thread;
-		tm->GetCurrentThread(getter_AddRefs(thread));
-		if (!thread) return;
-		thread->Dispatch(new focusActive(mWebBrowserFocus), nsIThread::DISPATCH_NORMAL);		
+		nsCOMPtr<nsIPresShell> presShell;
+		nsCOMPtr<nsIDocShell> docShell = GetDocShell();
+		if (docShell) presShell = docShell->GetPresShell();
+		if (!presShell) {
+			// Setting the focus later because this does not work on new tab
+			// mWebBrowserFocus->Activate(); 
+			nsCOMPtr<nsIThreadManager> tm = do_GetService("@mozilla.org/thread-manager;1");
+			if (!tm) return;
+			nsCOMPtr<nsIThread> thread;
+			tm->GetCurrentThread(getter_AddRefs(thread));
+			if (!thread) return;
+			thread->Dispatch(new focusActive(mWebBrowserFocus), nsIThread::DISPATCH_NORMAL);
+		} else
+			mWebBrowserFocus->Activate();
 	}
 	else 
 		mWebBrowserFocus->Deactivate();
