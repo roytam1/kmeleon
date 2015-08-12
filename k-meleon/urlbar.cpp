@@ -162,6 +162,10 @@ int CACListBox::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 void CACListBox::OnMouseMove(UINT nFlags, CPoint point)
 {
+	static CPoint lastMove;
+	if (lastMove == point) return;
+	lastMove = point;
+	
 	if (m_ignoreMousemove>0){
 		m_ignoreMousemove--;
 		return;
@@ -314,7 +318,7 @@ void CACListBox::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 	}
 	else
 	{
-		dc.SetTextColor(GetSysColor(COLOR_MENUTEXT));
+		dc.SetTextColor(GetSysColor(COLOR_WINDOWTEXT));
 		dc.SetBkColor(GetSysColor(COLOR_MENU));
 		dc.FillSolidRect(&lpDrawItemStruct->rcItem, GetSysColor(COLOR_MENU));
 	}
@@ -785,8 +789,7 @@ int CUrlBar::Create(DWORD style, RECT &rect, CWnd *parentWnd, UINT id)
     m_hwndEdit = edit->m_hWnd;
 		
 	CString s = theApp.preferences.GetString("kmeleon.display.urlbar_fontsize", _T("1"));
-	char* old = setlocale(LC_NUMERIC, NULL);
-	setlocale(LC_NUMERIC, "C");
+	char* old = setlocale(LC_NUMERIC, "C");
 	double f = _wtof(s);
 	setlocale(LC_NUMERIC, old);
 	if (f != 1 && f>.5) {
