@@ -23,6 +23,8 @@
 #include "afxtempl.h"
 
 class CFavIconList;
+class mozIAsyncFavicons;
+class KmImage;
 
 class CFavIconList : public CImageList
 {
@@ -38,16 +40,18 @@ private:
 	int AddDownloadedIcon(char* uri, TCHAR* file, nsresult aStatus);
 	BOOL LoadCache();
 	CImageList mSized;
+	nsCOMPtr<mozIAsyncFavicons> mIconService;	
 
 public:
 	CFavIconList();
 	virtual ~CFavIconList();
 
+	mozIAsyncFavicons* GetIconService();
 	BOOL WriteCache();
 	//int AddIcon(const char* uri, CBitmap*, CBitmap*, const char* pageUri = nullptr);
 	//int AddIcon(const char* uri, CBitmap*, COLORREF, const char* pageUri = nullptr);
 	//int AddIcon(const char* uri, HICON icon, const char* pageUri = nullptr);
-	int AddIcon(const char* uri, HBITMAP, const char* pageUri = nullptr);
+	int AddIcon(const char* uri, KmImage*, const char* pageUri = nullptr);
 
 	int GetHostIcon(const TCHAR* aUri);
 	int GetIcon(const TCHAR* uri);
@@ -57,13 +61,12 @@ public:
 	void ResetCache();
 	void LoadDefaultIcon();
 	
-	BOOL DwnFavIcon(nsIURI* iconURI, nsIURI* pageURI = NULL);
+	int GetFavIcon(nsIURI* iconURI);
+	bool DwnFavIcon(nsIURI* iconURI, nsIURI* pageURI = NULL, bool reload = false);
 	static void DwnCall(char* , TCHAR* , nsresult, void* );
 
 	inline int GetDefaultIcon() {return m_iDefaultIcon;}
 	inline int GetLoadingIcon() {return m_iLoadingIcon;}
 
-	BOOL Create(int, int, UINT, int, int);
+	BOOL Create(int, int, UINT, int, int);	
 };
-
-

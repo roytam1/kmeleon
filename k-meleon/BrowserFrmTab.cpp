@@ -682,7 +682,9 @@ LRESULT CBrowserFrmTab::OnNewSiteIcon(WPARAM url, LPARAM index)
 {
 	for  (int i =0; i<this->m_iBrowserCount; i++)
 	{	
-		int icon = theApp.favicons.GetIcon(m_Tabs[i]->GetBrowserGlue()->mIconURI);
+		nsCOMPtr<nsIURI> uri = m_Tabs[i]->GetBrowserGlue()->mIconURI;
+		if (!uri) continue;
+		int icon = theApp.favicons.GetIcon(uri);
 		if (icon==-1) {// The icon doesn't exist anymore, was deleted
 			m_Tabs[i]->GetBrowserGlue()->mIconURI = nullptr;
 			if (i == m_iCBrowserView)
