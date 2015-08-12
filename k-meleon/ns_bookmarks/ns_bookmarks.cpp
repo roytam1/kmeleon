@@ -442,10 +442,10 @@ extern "C" {
          int top = (dis->rcItem.bottom - dis->rcItem.top - 16) / 2;
          top += dis->rcItem.top;
          if (dis->itemState & ODS_SELECTED){
-            ImageList_Draw(gImagelist, IMAGE_FOLDER_OPEN, dis->hDC, dis->rcItem.left+2, top, ILD_TRANSPARENT | ILD_FOCUS );
+            ImageList_Draw(gImagelist, IMAGE_FOLDER_OPEN, dis->hDC, dis->rcItem.left, top, ILD_TRANSPARENT | ILD_FOCUS );
          }
          else{
-            ImageList_Draw(gImagelist, IMAGE_FOLDER_CLOSED, dis->hDC, dis->rcItem.left+2, top, ILD_TRANSPARENT);
+            ImageList_Draw(gImagelist, IMAGE_FOLDER_CLOSED, dis->hDC, dis->rcItem.left, top, ILD_TRANSPARENT);
          }
          return 18;
       }
