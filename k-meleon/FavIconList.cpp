@@ -33,68 +33,62 @@ Bug:	Changing skin need to delete the iconcache.
 #include "MozUtils.h"
 #include "KmImage.h"
 
+#include "nsIFaviconService.h"
+#include "mozIAsyncFavicons.h"
+
 using namespace mozilla::gfx;
 
 #define FAVICON_CACHE_FILE _T("IconCache.dat")
 
-HBITMAP ResizeIcon32(HDC hDC, HBITMAP hBitmap, int w, int h)
+class iconCallback: public nsIFaviconDataCallback {
+
+public:
+	NS_DECL_ISUPPORTS
+		NS_DECL_NSIFAVICONDATACALLBACK
+
+		iconCallback(CFavIconList* favList, nsIURI* icon, nsIURI* page) : 
+	mFavList(favList), mIconURI(icon), mPageURI(page) {}
+
+private:
+	~iconCallback() {};
+
+protected:
+	nsCOMPtr<nsIURI> mIconURI;
+	nsCOMPtr<nsIURI> mPageURI;
+	CFavIconList* mFavList;
+};
+
+NS_IMPL_ISUPPORTS(iconCallback, nsIFaviconDataCallback)
+
+NS_IMETHODIMP iconCallback::OnComplete(nsIURI *aFaviconURI, uint32_t aDataLen, const uint8_t *aData, const nsACString & aMimeType)
 {
-	IWICImagingFactory *pImgFac;
-	HRESULT hr = CoCreateInstance(CLSID_WICImagingFactory, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pImgFac));
-	if (!SUCCEEDED(hr)) return NULL;
-
-	IWICBitmap* NewBmp;
-	hr = pImgFac->CreateBitmapFromHBITMAP(hBitmap,0,WICBitmapUseAlpha,&NewBmp);
-	if (!SUCCEEDED(hr)) return NULL;
-
-	BITMAPINFO bmi = {};
-	bmi.bmiHeader.biSize = sizeof(bmi.bmiHeader);
-	bmi.bmiHeader.biWidth = w;
-	bmi.bmiHeader.biHeight = -h;
-	bmi.bmiHeader.biPlanes = 1;
-	bmi.bmiHeader.biBitCount = 32;
-	bmi.bmiHeader.biCompression = BI_RGB;
-
-	BYTE *pBits;
-	HBITMAP hbmp = CreateDIBSection(NULL, &bmi, DIB_RGB_COLORS, (void**)&pBits, NULL, 0);
-	
-	IWICBitmapScaler* pIScaler;
-    hr = pImgFac->CreateBitmapScaler(&pIScaler);
-    hr = pIScaler->Initialize(NewBmp,w,h,WICBitmapInterpolationModeFant);
-
-    WICRect rect = {0, 0, w, h};
-    hr = pIScaler->CopyPixels(&rect, w * 4, w * h * 4, pBits);
-	if (!SUCCEEDED(hr)) return NULL;
-
-	pIScaler->Release();
-	NewBmp->Release();
-	pImgFac->Release();
-	return hbmp;
-}
-
-// Used to resize the icon if it's not 16x16
-HBITMAP ResizeIcon(HDC hDC, HBITMAP hBitmap, LONG w, LONG h)
-{
-	HDC hDCs = CreateCompatibleDC(hDC);
-	BITMAP info;
-	::GetObject(hBitmap, sizeof(BITMAP), &info);
-	HGDIOBJ old = SelectObject(hDCs, hBitmap);
-	if (!old) {
-		DeleteDC(hDCs);
-		return NULL;
+	if (mPageURI) {
+		nsCOMPtr<nsIURI> hostUri;
+		mPageURI->Clone(getter_AddRefs(hostUri));
+		hostUri->SetPath(NS_LITERAL_CSTRING(""));
+		nsCOMPtr<mozIAsyncFavicons> fis = do_GetService("@mozilla.org/browser/favicon-service;1");
+		fis->SetAndFetchFaviconForPage(hostUri, aFaviconURI, false, nsIFaviconService::FAVICON_LOAD_NON_PRIVATE, nullptr);
 	}
-	
-	HDC hdcScaled = CreateCompatibleDC(hDCs); 
-	HBITMAP hbmSized = CreateCompatibleBitmap(hDCs, w, h); 
-	HGDIOBJ old2 = SelectObject(hdcScaled, hbmSized);
-	SetStretchBltMode(hdcScaled, HALFTONE);
-	SetStretchBltMode(hDCs, HALFTONE);
-	StretchBlt(hdcScaled,0,0,w,h,hDCs,0,0,info.bmWidth,info.bmHeight,SRCCOPY);
-	SelectObject(hdcScaled, old2);
-	DeleteDC(hdcScaled);
-	SelectObject(hDCs, old);
-	DeleteDC(hDCs);
-	return hbmSized;
+
+	/*
+	nsCString nsuri;
+	mIconURI->GetSpec(nsuri);
+	nsCString nsPageuri;
+	if (mPageURI) mPageURI->GetSpec(nsPageuri);
+
+	if (!aDataLen) {
+		if (mPageURI) {
+			mFavList->AddIcon(nsuri.get(), NULL, nsPageuri.get());
+		}
+		return NS_OK;
+	}
+
+	CComPtr<IStream> stream;
+	stream.Attach(SHCreateMemStream(aData, aDataLen));
+	KmImage img;
+	img.Load(stream);
+	mFavList->AddIcon(nsuri.get(), &img, nsPageuri.get());*/
+	return NS_OK;
 }
 
 CFavIconList::CFavIconList()
@@ -103,7 +97,7 @@ CFavIconList::CFavIconList()
 	m_iOffset = 0;
 	int width = ::GetSystemMetrics(SM_CXSMICON);
 	int height = ::GetSystemMetrics(SM_CYSMICON);
-	mSized.Create(width, height, ILC_COLOR32, 25, 10);
+	mSized.Create(width, height, ILC_COLOR32|ILC_MASK, 25, 10);
 	//mIconObserver = new IconObserver(this);
 }
 
@@ -138,14 +132,14 @@ BOOL CFavIconList::LoadCache()
 		TRY
 			imgListSized.Read(&ar);
 		CATCH (CArchiveException, e) {
-	
+
 		}
 		END_CATCH
 	}
 
 	if (!imgList.m_hImageList) 
 		return FALSE;
-	
+
 	for (int i=0; i < imgList.GetImageCount(); i++) {
 		HICON tmp = imgList.ExtractIcon(i);
 		Add(tmp);		
@@ -163,6 +157,9 @@ BOOL CFavIconList::LoadCache()
 
 BOOL CFavIconList::WriteCache()
 {
+	mIconService = nullptr;
+	return TRUE;
+
 	if (!m_hImageList) 
 		return FALSE;
 
@@ -196,29 +193,37 @@ void CFavIconList::LoadDefaultIcon()
 
 	HICON defaultIcon = theApp.skin.GetIconDefault();
 	if (defaultIcon) m_iDefaultIcon = Add(defaultIcon);
-	
+
 	// Add can return 0 even if it fails...
 	if (GetImageCount()==0)
 		m_iDefaultIcon = Add(theApp.GetDefaultIcon());
-	
+
 	HICON loadingIcon = theApp.skin.GetIconLoading();
 	if (loadingIcon) {
 		m_iLoadingIcon = Add(loadingIcon);
 		DestroyIcon(loadingIcon);
 	}
-	
+
 	if (GetImageCount()==1) {
 		if (defaultIcon)
 			m_iLoadingIcon = Add(defaultIcon);
 		else
 			m_iLoadingIcon = Add(theApp.GetDefaultIcon());
 	}
-	
+
 	if (defaultIcon)
 		DestroyIcon(defaultIcon);
 
-	mSized.Add(theApp.GetDefaultIcon());
-	mSized.Add(theApp.GetDefaultIcon());
+	HICON icon = theApp.skin.LoadSkinIcon(_T("default.ico"), 0, theApp.skin.GetDefWidth(), theApp.skin.GetDefHeight());
+	if (icon) {
+		mSized.Add(icon);
+		mSized.Add(icon);
+		DestroyIcon(icon);
+	}
+	else {
+		mSized.Add(theApp.GetDefaultIcon());
+		mSized.Add(theApp.GetDefaultIcon());
+	}
 	m_iOffset = GetImageCount();
 }
 
@@ -230,7 +235,7 @@ BOOL CFavIconList::Create(int cx, int cy, UINT nFlags, int nInitial, int nGrow)
 	mWidth = cx,
 	mHeight = cy;
 	LoadDefaultIcon();
-	LoadCache();
+	//LoadCache();
 	return TRUE;
 }
 
@@ -238,87 +243,51 @@ void CFavIconList::AddMap(const char *uri, int index, const char* pageUri)
 {
 	// This function is called from another thread
 	// if the moz image loader is used.
-	
+
 	if (index == -1) return;
 
 	USES_CONVERSION;
 	m_urlMap[A2CT(uri)] = index - m_iOffset;
 
-	// Add an entry for the hostname only. This is for the mru list.
-	// It's not really good to do it like that, because a site may
-	// have several different icons.
-	nsCOMPtr<nsIURI> URI;
-	nsCString nsUri;
-	nsUri.Assign(pageUri && pageUri[0] ? pageUri : uri);
-	nsresult rv = NewURI(getter_AddRefs(URI), nsUri);
-	if (NS_SUCCEEDED(rv)) {
-		bool ishttps, ishttp;
-		URI->SchemeIs("http", &ishttp);
-	    URI->SchemeIs("https", &ishttps);
-		if (ishttp || ishttps) {
-			URI->GetHost(nsUri);
-			nsUri.Insert("http://", 0, 7);
-			m_urlMap[A2CT(nsUri.get())] = index - m_iOffset;
-		}
-	}
-
 	// If it's not really efficient, at least I don't have
 	// to mess with synchronisation.
 	theApp.BroadcastMessage(UWM_NEWSITEICON, (WPARAM)0, index);
 }
-/*
-int CFavIconList::AddIcon(const char* uri, CBitmap* icon, COLORREF cr, const char* pageUri)
-{
-	int index = Add(icon, cr);
-	AddMap(uri, index, pageUri);
-	return index;
-}
 
-int CFavIconList::AddIcon(const char* uri, CBitmap* icon, CBitmap* mask, const char* pageUri)
+int CFavIconList::AddIcon(const char* uri, KmImage* img, const char* pageUri)
 {
-	int index = Add(icon, mask);
-	AddMap(uri, index, pageUri);
-	return index;
-}*/
+	if (!img || !img->IsValid()) {
+		AddMap(uri, GetDefaultIcon(), pageUri);
+		return GetDefaultIcon();
+	}
 
-int CFavIconList::AddIcon(const char* uri, HBITMAP hBitmap, const char* pageUri)
-{
-	BITMAP info;
-	::GetObject(hBitmap, sizeof(BITMAP), &info);
+	HBITMAP hBitmap = NULL;
 	int w,h;
 	ImageList_GetIconSize(GetSafeHandle(), &w, &h);
-	HBITMAP hbmSized = NULL;
-	if (info.bmWidth!=w && info.bmHeight!=h) { 
-		HDC hDC = GetDC(NULL);
-		hbmSized = ResizeIcon32(hDC, hBitmap, w, h);
-		if (!hbmSized) hbmSized = ResizeIcon(hDC, hBitmap, w, h);		
-		ReleaseDC(NULL, hDC);
-	}
-	if (!hbmSized) hbmSized = hBitmap;
+	KmImage imgSized;	
+	if (img->GetWidth()!=w || img->GetHeight()!=h) { 
+		img->Resize(w, h, imgSized);
+		hBitmap = imgSized.GetHBitmap();
+	} else 
+		hBitmap = img->GetHBitmap();
 
 	CBitmap bitmap;
-	bitmap.Attach(hbmSized);
+	bitmap.Attach(hBitmap);
 	int index = Add(&bitmap, (CBitmap*)NULL);
+	if (index == -1) return -m_iOffset;
 	AddMap(uri, index, pageUri);
-	
-	HBITMAP hbmSized2 = NULL;
-	ImageList_GetIconSize(mSized.GetSafeHandle(), &w, &h);
-	if (info.bmWidth!=w && info.bmHeight!=h) { 
-		HDC hDC = GetDC(NULL);
-		hbmSized2 = ResizeIcon32(hDC, hBitmap, w, h);
-		if (!hbmSized) hbmSized2 = ResizeIcon(hDC, hBitmap, w, h);
-		ReleaseDC(NULL, hDC);
-	}
-	if (!hbmSized) hbmSized = hBitmap;
 
-	bitmap.Attach(hbmSized);
+	ImageList_GetIconSize(mSized.GetSafeHandle(), &w, &h);
+	if (img->GetWidth()!=w || img->GetHeight()!=h) { 
+		img->Resize(w, h, imgSized);
+		hBitmap = imgSized.GetHBitmap();
+	} else 
+		hBitmap = img->GetHBitmap();
+
+	bitmap.Detach();
+	bitmap.Attach(hBitmap);
 	int index2 = mSized.Add(&bitmap, (CBitmap*)NULL);
 	ASSERT(index == index2);
-
-	if (hbmSized != hBitmap) DeleteObject(hbmSized);
-	if (hbmSized2 != hBitmap) DeleteObject(hbmSized2);
-	DeleteObject(hBitmap);
-	
 	return index;
 }
 
@@ -327,7 +296,17 @@ int CFavIconList::GetIcon(const TCHAR* aUrl)
 	int index = GetDefaultIcon();
 	if (m_urlMap.Lookup(aUrl, index))
 		return index + m_iOffset;
-	return index;
+
+	nsCOMPtr<nsIURI> URI;
+	nsCString nsUri = CStringToNSCString(aUrl);
+	nsresult rv = NewURI(getter_AddRefs(URI), nsUri);
+	if (NS_FAILED(rv)||!URI) return index;
+
+	index = GetFavIcon(URI);
+	if (index != GetDefaultIcon()) 
+		return index;
+
+	return GetHostIcon(aUrl);
 }
 
 int CFavIconList::GetHostIcon(const TCHAR* aUrl)
@@ -348,15 +327,17 @@ int CFavIconList::GetHostIcon(const TCHAR* aUrl)
 	nsUri.Assign(url);
 	nsresult rv = NewURI(getter_AddRefs(URI), nsUri);
 	if (NS_FAILED(rv)||!URI) return index;
-
-	URI->GetHost(nsUri);
-	nsUri.Insert("http://", 0, 7);
-	USES_CONVERSION;
-	if (!m_urlMap.Lookup(A2CT(nsUri.get()), index))
-		return index;
+	URI->SetPath(NS_LITERAL_CSTRING(""));
+	URI->SetScheme(NS_LITERAL_CSTRING("http"));
+	URI->GetSpec(nsUri);
+	if (!m_urlMap.Lookup(NSCStringToCString(nsUri), index)) {		
+		return GetFavIcon(URI);
+	}
 
 	return index + m_iOffset;
 }
+
+
 
 int CFavIconList::GetIcon(nsIURI *aURI, nsIURI* aPageURI, BOOL download)
 {
@@ -367,11 +348,29 @@ int CFavIconList::GetIcon(nsIURI *aURI, nsIURI* aPageURI, BOOL download)
 	nsCString nsUri;
 	aURI->GetSpec(nsUri);
 	USES_CONVERSION;
-	if (m_urlMap.Lookup(A2CT(nsUri.get()), index))
-		return index + m_iOffset;
+
+	nsRefPtr<iconCallback> ic = new iconCallback(this, aURI, aPageURI);
+	nsCOMPtr<mozIAsyncFavicons> afis = GetIconService();
+	if (!afis) return FALSE;
+	nsresult rv = afis->SetAndFetchFaviconForPage(aPageURI, aURI, false, nsIFaviconService::FAVICON_LOAD_NON_PRIVATE, ic);
+
+	if (m_urlMap.Lookup(A2CT(nsUri.get()), index)) {
+		if (index != GetDefaultIcon())
+			return index + m_iOffset;
+
+		nsCOMPtr<nsIFaviconService> fis = do_GetService("@mozilla.org/browser/favicon-service;1");
+		if (fis) {
+			bool failed = false;
+			fis->IsFailedFavicon(aURI, &failed);
+			if (failed) GetDefaultIcon();
+		}
+	}
 	
-	if (download) 
+	// Fetch the icon on our own. SetAndFetchFaviconForPage often
+	// dont call the callback ...
+	if (download)
 		DwnFavIcon(aURI, aPageURI);
+
 	return GetDefaultIcon();
 }
 
@@ -379,28 +378,28 @@ void CFavIconList::RefreshIcon(nsIURI* aURI)
 {
 	if (!m_hImageList || !aURI) 
 		return;
-	
+
 	int index = 0;
 	nsCString nsUri;
 	aURI->GetSpec(nsUri);
-	
-   USES_CONVERSION;
-   const TCHAR* url = A2CT(nsUri.get());
+
+	USES_CONVERSION;
+	const TCHAR* url = A2CT(nsUri.get());
 	if (!m_urlMap.Lookup(url, index))
 		return;
-	
+
 	m_urlMap.RemoveKey(url);
-	
+
 	// Don't remove the default icon
 	if (index==GetDefaultIcon()) 
 		return;
 
 	Remove(index + m_iOffset);
 	mSized.Remove(index + m_iOffset);
-	
-   // We have to remove all url with this icon.
-   POSITION pos = m_urlMap.GetStartPosition();
-   while (pos!=NULL)
+
+	// We have to remove all url with this icon.
+	POSITION pos = m_urlMap.GetStartPosition();
+	while (pos!=NULL)
 	{
 		CString key;
 		int value;
@@ -428,16 +427,16 @@ void CFavIconList::ResetCache()
 class iconObserver: public IImageObserver {
 public:
 	iconObserver(CFavIconList* favList, nsIURI* icon, nsIURI* page) : 
-		mFavList(favList), mIconURI(icon), mPageURI(page) {}
+	  mFavList(favList), mIconURI(icon), mPageURI(page) {}
 
-	void ImageLoaded(HBITMAP hBitmap) 
-	{
-		nsCString nsuri;
-		mIconURI->GetSpec(nsuri);
-		nsCString nsPageuri;
-		if (mPageURI) mPageURI->GetSpec(nsPageuri);
-		mFavList->AddIcon(nsuri.get(), hBitmap, nsPageuri.get());
-	}
+	  void ImageLoaded(KmImage &bmp) 
+	  {
+		  nsCString nsuri;
+		  mIconURI->GetSpec(nsuri);
+		  nsCString nsPageuri;
+		  if (mPageURI) mPageURI->GetSpec(nsPageuri);
+		  mFavList->AddIcon(nsuri.get(), &bmp, nsPageuri.get());
+	  }
 
 protected:
 	nsCOMPtr<nsIURI> mIconURI;
@@ -445,27 +444,53 @@ protected:
 	CFavIconList* mFavList;
 };
 
-BOOL CFavIconList::DwnFavIcon(nsIURI* iconURI, nsIURI* pageURI)
-{
-	iconObserver* io = new iconObserver(this, iconURI, pageURI);
 
-	// Add fragment for wanted size
+
+int CFavIconList::GetFavIcon(nsIURI* iconURI)
+{
+	nsCOMPtr<nsIFaviconService> fis = do_GetService("@mozilla.org/browser/favicon-service;1");
+	if (!fis) return 0;
+
+	uint32_t dataLen = 0;
+	uint8_t* data = 0;
+	nsCString mime;
 	nsCString spec;
 	iconURI->GetSpec(spec);
-	spec.Append("#-moz-resolution=");
-	char tmp[34];
-	itoa(mWidth, tmp, 10);
-	spec.Append(tmp);
-	spec.Append(",");
-	itoa(mHeight, tmp, 10);
-	spec.Append(tmp);
+	nsresult rv = fis->GetFaviconData(iconURI, mime, &dataLen, &data);
+	if (!NS_SUCCEEDED(rv) || !dataLen)
+		return GetDefaultIcon();//AddIcon(spec.get(), NULL, nullptr);	
 	
-	nsCOMPtr<nsIURI> uri;
-	NewURI(getter_AddRefs(uri), spec);
+	CComPtr<IStream> stream;
+	stream.Attach(SHCreateMemStream(data, dataLen));
+	KmImage img;
+	img.Load(stream);
+	return AddIcon(spec.get(), &img, nullptr);
 
-	if (!nsImageObserver::LoadImage(io, uri)) {
-		delete io;
-		return FALSE;
+	//iconCallback* ic = new iconCallback(this, iconURI, nullptr);
+	nsCOMPtr<mozIAsyncFavicons> afis = GetIconService();
+	if (!afis) return FALSE;
+	rv = afis->GetFaviconDataForPage(iconURI, nullptr);
+	return NS_SUCCEEDED(rv);
+}
+
+bool CFavIconList::DwnFavIcon(nsIURI* iconURI, nsIURI* pageURI, bool reload)
+{
+	nsCString scheme;
+	iconURI->GetScheme(scheme);
+
+	iconObserver* io = new iconObserver(this, iconURI, pageURI);
+	if (!nsImageObserver::LoadImage(io, iconURI)) {
+		return false;
 	}
-	return TRUE;
+	
+	return true;
+}
+
+mozIAsyncFavicons* CFavIconList::GetIconService() 
+{
+	if (!mIconService) {
+		nsCOMPtr<nsIFaviconService> fis = do_GetService("@mozilla.org/browser/favicon-service;1");
+		mIconService = do_QueryInterface(fis);
+	}
+	return mIconService;
 }
