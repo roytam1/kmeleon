@@ -277,6 +277,7 @@ protected:
 	afx_msg void OnSelectAll();
 	afx_msg void OnSelectNone();
 	afx_msg void OnCopyLinkLocation();
+	afx_msg void OnCopyLinkText();
 	afx_msg void OnCopyImageLocation();
     afx_msg void OnCopyImageContent();
     afx_msg void OnOpenLink();
