@@ -76,15 +76,13 @@ NS_IMETHODIMP nsImageObserver::Notify(imgIRequest *aProxy, int32_t aType, const 
     return NS_OK;
 }
 
-void nsImageObserver::OnDownload(nsIURI* aUri, nsresult ns, LPSTREAM stream, LPCTSTR aName)
+void kImageObserver::OnDownload(nsIURI* aUri, nsresult ns, LPSTREAM stream, LPCTSTR aName)
 {
 	if (NS_SUCCEEDED(ns) && stream) {
 		KmImage img;
 		img.Load(stream);
 		mObserver->ImageLoaded(img);		
 	}
-	delete mObserver;
-	NS_RELEASE_THIS();
 }
 
 static void
@@ -542,7 +540,7 @@ bool KmImage::Load(LPSTREAM stream)
 			stream->CopyTo(ss, gnagna, &lread, &lwrit);
 
 			mGdiBitmap = Gdiplus::Bitmap::FromStream(stream);
-			stream->Release();
+			ss->Release();
 			return mGdiBitmap != nullptr;
 		}
 		free(pIconDir);
@@ -563,6 +561,8 @@ bool KmImage::Load(LPCTSTR path)
 	}
 
 	mGdiBitmap = Gdiplus::Bitmap::FromFile(path);
+	if (!mGdiBitmap) return false;
+
 	if (mGdiBitmap->GetLastStatus() != Gdiplus::Ok) {
 		delete mGdiBitmap;
 		mGdiBitmap = nullptr;

@@ -26,27 +26,18 @@ class KmImage;
 
 interface IImageObserver {
  	virtual void ImageLoaded(KmImage& img) = 0;
+	virtual ~IImageObserver() {};
 };
 
 class nsImageObserver : 
 	public imgINotificationObserver, 
-	public nsSupportsWeakReference,
-	public IDownloadObserver
+	public nsSupportsWeakReference	
 {
 	NS_DECL_ISUPPORTS
 	NS_DECL_IMGINOTIFICATIONOBSERVER
 
-	nsImageObserver(IImageObserver* observer) : mObserver(observer), mNeedRelease(false) {}
-	virtual ~nsImageObserver() { }
-
+public:
 	static bool LoadImage(IImageObserver* observer, nsIURI* imgUri) 
-	{
-		nsImageObserver* obs = new nsImageObserver(observer);
-		NS_ADDREF(obs);
-		return DownloadToStream(imgUri, obs);
-	}
-
-	static bool LoadImageGecko(IImageObserver* observer, nsIURI* imgUri) 
 	{
 		nsresult rv;
 		nsCOMPtr<imgILoader> loader = do_GetService("@mozilla.org/image/loader;1", &rv);
@@ -58,13 +49,29 @@ class nsImageObserver :
 			nullptr, nullptr, getter_AddRefs(obs->mRequest)));
 	}
 
-	void OnDownload(nsIURI*, nsresult, LPSTREAM stream, LPCTSTR);
-
 protected:
-	IImageObserver* mObserver;
+	nsImageObserver(IImageObserver* observer) : mObserver(observer), mNeedRelease(false) {}
+	virtual ~nsImageObserver() { if (mObserver) delete mObserver; }
 	nsCOMPtr<imgIRequest> mRequest;
 	HBITMAP CreateDIB(imgIRequest *aRequest);
 	bool mNeedRelease;
+	IImageObserver* mObserver;	
+};
+
+class kImageObserver : public IDownloadObserver
+{
+public:
+	static bool LoadImage(IImageObserver* observer, nsIURI* imgUri) 
+	{
+		kImageObserver* obs = new kImageObserver(observer);
+		return DownloadToStream(imgUri, obs);
+	}	
+
+protected:
+	kImageObserver(IImageObserver* observer) : mObserver(observer) {}
+	virtual ~kImageObserver() {if (mObserver) delete mObserver; }
+	void OnDownload(nsIURI*, nsresult, LPSTREAM stream, LPCTSTR);
+	IImageObserver* mObserver;	
 };
 
 class KmImage
@@ -117,7 +124,7 @@ public:
 	bool LoadFromSkin(LPCTSTR name, LPRECT rect = nullptr, bool single = false);
 	bool LoadFromBitmap(HBITMAP hbmp, bool reverse = false);
 	bool LoadFromIcon(HICON hicon);
-
+	bool IsValid() { return mGdiBitmap!= nullptr; }
 	int AddToImageList(CImageList& list, int index = -1);
 	~KmImage() {
 		Clean();

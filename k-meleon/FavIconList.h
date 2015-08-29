@@ -42,6 +42,9 @@ private:
 	CImageList mSized;
 	nsCOMPtr<mozIAsyncFavicons> mIconService;	
 
+	int GetFavIcon(nsIURI* iconURI);
+	bool DwnFavIcon(nsIURI* iconURI, nsIURI* pageURI = NULL, bool reload = false);
+
 public:
 	CFavIconList();
 	virtual ~CFavIconList();
@@ -53,16 +56,14 @@ public:
 	//int AddIcon(const char* uri, HICON icon, const char* pageUri = nullptr);
 	int AddIcon(const char* uri, KmImage*, const char* pageUri = nullptr);
 
-	int GetHostIcon(const TCHAR* aUri);
-	int GetIcon(const TCHAR* uri);
+	bool CFavIconList::GetFaviconForPage(nsIURI* aPageURI, nsIURI** _retval);
+	int GetIconForPage(const TCHAR* uri);
 	int GetIcon(nsIURI* aUri, nsIURI* aPageURI = NULL, BOOL download = FALSE);
 	CImageList* GetSizedList() {return &mSized;}
 	void RefreshIcon(nsIURI* aURI);
 	void ResetCache();
 	void LoadDefaultIcon();
-	
-	int GetFavIcon(nsIURI* iconURI);
-	bool DwnFavIcon(nsIURI* iconURI, nsIURI* pageURI = NULL, bool reload = false);
+		
 	static void DwnCall(char* , TCHAR* , nsresult, void* );
 
 	inline int GetDefaultIcon() {return m_iDefaultIcon;}

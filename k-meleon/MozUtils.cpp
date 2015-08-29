@@ -557,7 +557,7 @@ BOOL GetBackgroundImageSrc(nsIDOMNode *aNode, CString& aUrl)
 	return true;
 }
 
-BOOL LogMessage(const char* category, const char* message, const char* file, uint line, uint flags)
+BOOL LogMessage(const char* category, const char* message, const char* file, uint32_t line, uint32_t flags)
 {
 	nsCOMPtr<nsIConsoleService> consoleService = do_GetService(NS_CONSOLESERVICE_CONTRACTID);
 	if (!consoleService) FALSE;

@@ -555,7 +555,8 @@ int SetMozillaSessionHistory (HWND hWnd, const char **titles, const char **urls,
 		view->GetBrowserGlue()->UpdateCurrentURI(uri);
 		view->GetBrowserGlue()->mPendingLocation = urls[index];
 		view->GetBrowserGlue()->mHIndex = index;
-		view->GetBrowserGlue()->mIcon = theApp.favicons.GetIcon(A2CW(urls[index]));
+		theApp.favicons.GetFaviconForPage(uri, getter_AddRefs(view->GetBrowserGlue()->mIconURI));
+		view->GetBrowserGlue()->mIcon = theApp.favicons.GetIconForPage(A2CW(urls[index]));
 		view->GetBrowserGlue()->SetBrowserTitle(NSUTF8StringToCString(nsDependentCString(titles[index])));
 		uri->SetPath(NS_LITERAL_CSTRING(""));
 		nsCString host;
@@ -1795,7 +1796,7 @@ int GetTabsList(HWND hWnd, HWND* list, unsigned size)
 int GetIconIdx(const char* host)
 {
 	USES_CONVERSION;
-	return theApp.favicons.GetIcon(A2CT(host));
+	return theApp.favicons.GetIconForPage(A2CT(host));
 }
 
 void ReleaseCmdID(UINT id)

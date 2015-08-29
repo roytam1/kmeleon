@@ -41,6 +41,7 @@ BOOL LogMessage(const char* category, const char* message, const char* file, uin
 
 interface IDownloadObserver {
 	virtual void OnDownload(nsIURI*, nsresult, LPSTREAM, LPCTSTR) = 0;
+	virtual ~IDownloadObserver() {};
 };
 
 bool DownloadToStream(nsIURI* uri, IDownloadObserver*);
@@ -61,6 +62,7 @@ public:
 	}
 
 	virtual ~streamListener() { 
+		if (mObserver) delete mObserver;
 	}
 protected:
 	IDownloadObserver* mObserver;
