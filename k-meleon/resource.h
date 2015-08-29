@@ -486,6 +486,7 @@
 #define ID_TOGGLE_JS                    32923
 #define ID_PAGE_TOGGLE_JS               32924
 #define ID_APP_RESTART                  32925
+#define ID_COPY_LINK_TEXT               32926
 #define ID_CLOSE_FINDBAR                33822
 
 #define IDS_FAILED_TO_CREATE_BROWSER    61204

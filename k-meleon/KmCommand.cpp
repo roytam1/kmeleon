@@ -23,6 +23,8 @@
 
 UINT KmCmdService::RegisterCommand(LPCTSTR name, LPCTSTR desc, LPCTSTR icon)
 {
+	ASSERT(*name);
+	if (!name || !*name) return 0;
 	UINT id = AllocateId();
 	mCommandList[name] = KmCommand(id, desc);
 	if (icon) theApp.skin.mImages->AddIcon(icon, 0, 0, id);
@@ -189,6 +191,7 @@ void KmCmdService::InitDefaultCmd()
 	ADD_DEFCMD(editFindMatchCase, ID_MATCH_CASE)
 	ADD_DEFCMD(editFindHighlight, ID_HIGHLIGHT)
 	ADD_DEFCMD(editCopyLinkLocation, ID_COPY_LINK_LOCATION);
+	ADD_DEFCMD(editCopyLinkText, ID_COPY_LINK_TEXT);
 	ADD_DEFCMD(editCopyImageLocation, ID_COPY_IMAGE_LOCATION);
 	ADD_DEFCMD(editCopyImage, ID_COPY_IMAGE_CONTENT);
 	ADD_DEFCMD(editSelectUrl, ID_SELECT_URL);	

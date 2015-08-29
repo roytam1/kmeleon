@@ -124,6 +124,7 @@ BEGIN_MESSAGE_MAP(CBrowserView, CWnd)
     ON_COMMAND(ID_OPEN_LINK_IN_BACKGROUND, OnOpenLinkInBackground)
     ON_COMMAND(ID_VIEW_IMAGE, OnViewImageInNewWindow)
     ON_COMMAND(ID_COPY_LINK_LOCATION, OnCopyLinkLocation)
+    ON_COMMAND(ID_COPY_LINK_TEXT, OnCopyLinkText)
     ON_COMMAND(ID_COPY_IMAGE_LOCATION, OnCopyImageLocation)
     ON_COMMAND(ID_COPY_IMAGE_CONTENT, OnCopyImageContent)
     ON_COMMAND(ID_OPEN_LINK, OnOpenLink)
@@ -612,6 +613,18 @@ void CBrowserView::OnCopyLinkLocation()
         return;
 
 	SetClipboardTextData(m_hWnd, href);
+}
+
+void CBrowserView::OnCopyLinkText()
+{
+	CString href, title;
+	if (!::GetLinkTitleAndHref(m_contextNode, href, title))
+		return;
+
+	if (!OpenClipboard())
+		return;
+
+	SetClipboardTextData(m_hWnd, title);
 }
 
 void CBrowserView::OnOpenLink()
