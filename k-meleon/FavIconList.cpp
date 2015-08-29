@@ -291,53 +291,53 @@ int CFavIconList::AddIcon(const char* uri, KmImage* img, const char* pageUri)
 	return index;
 }
 
-int CFavIconList::GetIcon(const TCHAR* aUrl)
+bool CFavIconList::GetFaviconForPage(nsIURI* aPageURI, nsIURI** _retval)
+{
+	nsCOMPtr<nsIFaviconService> fis = do_GetService("@mozilla.org/browser/favicon-service;1");
+	if (!fis) return false;
+
+	nsCOMPtr<nsIURI> faviconURI;
+	nsresult rv = fis->GetFaviconForPage(aPageURI, getter_AddRefs(faviconURI));
+	if (NS_FAILED(rv)) faviconURI = aPageURI;
+
+	NS_IF_ADDREF(*_retval = faviconURI);
+	return true;
+}
+
+int CFavIconList::GetIconForPage(const TCHAR* aUrl)
 {
 	int index = GetDefaultIcon();
-	if (m_urlMap.Lookup(aUrl, index))
+
+	nsCOMPtr<nsIFaviconService> fis = do_GetService("@mozilla.org/browser/favicon-service;1");
+	if (!fis) return index;
+
+	nsCOMPtr<nsIURI> URI;
+	nsCString spec = CStringToNSCString(aUrl);
+	nsresult rv = NewURI(getter_AddRefs(URI), spec);
+	if (NS_FAILED(rv)||!URI) return index;
+	
+	nsCOMPtr<nsIURI> faviconURI;
+	rv = fis->GetFaviconForPage(URI, getter_AddRefs(faviconURI));
+	if (NS_FAILED(rv)) faviconURI = URI;
+	//NS_ENSURE_SUCCESS(rv, index);
+	
+	faviconURI->GetSpec(spec);
+	if (m_urlMap.Lookup(NSCStringToCString(spec), index))
 		return index + m_iOffset;
 
-	nsCOMPtr<nsIURI> URI;
-	nsCString nsUri = CStringToNSCString(aUrl);
-	nsresult rv = NewURI(getter_AddRefs(URI), nsUri);
-	if (NS_FAILED(rv)||!URI) return index;
-
-	index = GetFavIcon(URI);
-	if (index != GetDefaultIcon()) 
-		return index;
-
-	return GetHostIcon(aUrl);
+	uint32_t dataLen = 0;
+	uint8_t* data = 0;
+	nsCString mime;
+	rv = fis->GetFaviconData(faviconURI, mime, &dataLen, &data);
+	if (!NS_SUCCEEDED(rv) || !dataLen)
+		return index;//AddIcon(spec.get(), NULL, nullptr);	
+	
+	CComPtr<IStream> stream;
+	stream.Attach(SHCreateMemStream(data, dataLen));
+	KmImage img;
+	img.Load(stream);
+	return AddIcon(spec.get(), &img, nullptr);	
 }
-
-int CFavIconList::GetHostIcon(const TCHAR* aUrl)
-{
-	int index = GetDefaultIcon();
-
-	const char* url;
-#ifdef _UNICODE
-	nsCString _str;
-	NS_UTF16ToCString(nsDependentString(aUrl), NS_CSTRING_ENCODING_UTF8, _str);
-	url = _str.get();
-#else
-	url = aUrl;
-#endif
-
-	nsCOMPtr<nsIURI> URI;
-	nsCString nsUri;
-	nsUri.Assign(url);
-	nsresult rv = NewURI(getter_AddRefs(URI), nsUri);
-	if (NS_FAILED(rv)||!URI) return index;
-	URI->SetPath(NS_LITERAL_CSTRING(""));
-	URI->SetScheme(NS_LITERAL_CSTRING("http"));
-	URI->GetSpec(nsUri);
-	if (!m_urlMap.Lookup(NSCStringToCString(nsUri), index)) {		
-		return GetFavIcon(URI);
-	}
-
-	return index + m_iOffset;
-}
-
-
 
 int CFavIconList::GetIcon(nsIURI *aURI, nsIURI* aPageURI, BOOL download)
 {
@@ -349,10 +349,12 @@ int CFavIconList::GetIcon(nsIURI *aURI, nsIURI* aPageURI, BOOL download)
 	aURI->GetSpec(nsUri);
 	USES_CONVERSION;
 
-	nsRefPtr<iconCallback> ic = new iconCallback(this, aURI, aPageURI);
-	nsCOMPtr<mozIAsyncFavicons> afis = GetIconService();
-	if (!afis) return FALSE;
-	nsresult rv = afis->SetAndFetchFaviconForPage(aPageURI, aURI, false, nsIFaviconService::FAVICON_LOAD_NON_PRIVATE, ic);
+	if (download) {
+		nsRefPtr<iconCallback> ic = new iconCallback(this, aURI, aPageURI);
+		nsCOMPtr<mozIAsyncFavicons> afis = GetIconService();
+		if (!afis) return FALSE;
+		nsresult rv = afis->SetAndFetchFaviconForPage(aPageURI, aURI, false, nsIFaviconService::FAVICON_LOAD_NON_PRIVATE, ic);
+	}
 
 	if (m_urlMap.Lookup(A2CT(nsUri.get()), index)) {
 		if (index != GetDefaultIcon())
@@ -451,6 +453,10 @@ int CFavIconList::GetFavIcon(nsIURI* iconURI)
 	nsCOMPtr<nsIFaviconService> fis = do_GetService("@mozilla.org/browser/favicon-service;1");
 	if (!fis) return 0;
 
+	nsCOMPtr<nsIURI> faviconURI;
+	if (NS_SUCCEEDED(fis->GetFaviconForPage(iconURI, getter_AddRefs(faviconURI))))
+		iconURI = faviconURI;
+
 	uint32_t dataLen = 0;
 	uint8_t* data = 0;
 	nsCString mime;
@@ -479,7 +485,8 @@ bool CFavIconList::DwnFavIcon(nsIURI* iconURI, nsIURI* pageURI, bool reload)
 	iconURI->GetScheme(scheme);
 
 	iconObserver* io = new iconObserver(this, iconURI, pageURI);
-	if (!nsImageObserver::LoadImage(io, iconURI)) {
+	if (!kImageObserver::LoadImage(io, iconURI)) {
+		delete io;
 		return false;
 	}
 	

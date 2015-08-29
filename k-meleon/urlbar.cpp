@@ -327,7 +327,7 @@ void CACListBox::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 	lpDrawItemStruct->rcItem.left += 2;
 	CImageList* iconList = theApp.favicons.GetSizedList();
 	int topMargin = (lpDrawItemStruct->rcItem.bottom - lpDrawItemStruct->rcItem.top - theApp.skin.GetDefHeight()) / 2;
-	iconList->Draw(&dc, theApp.favicons.GetIcon(strText), 
+	iconList->Draw(&dc, theApp.favicons.GetIconForPage(strText), 
 		CPoint(lpDrawItemStruct->rcItem.left, lpDrawItemStruct->rcItem.top + topMargin), 
 		ILD_TRANSPARENT);
 	lpDrawItemStruct->rcItem.left += theApp.skin.GetDefWidth() + 2;
@@ -850,7 +850,7 @@ void CUrlBar::OnCbenGetdispinfo(NMHDR *pNMHDR, LRESULT *pResult)
 	{
 		//url = W2T(pCBEx->ceItem.pszText); 
 		GetLBText(pCBEx->ceItem.iItem, url);
-		pCBEx->ceItem.iImage = pCBEx->ceItem.iSelectedImage = theApp.favicons.GetHostIcon(url);
+		pCBEx->ceItem.iImage = pCBEx->ceItem.iSelectedImage = theApp.favicons.GetIconForPage(url);
 	}
 	
 	*pResult = 0;

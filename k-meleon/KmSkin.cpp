@@ -403,7 +403,7 @@ int KmIconList::AddIcon(LPCTSTR coldImgPath, LPCTSTR hotImgPath, LPCTSTR deadImg
 		nsCOMPtr<nsIURI> uri;
 		NewURI(getter_AddRefs(uri), CStringToNSString(coldImgPath));
 
-		if (!nsImageObserver::LoadImage(io, uri)) {
+		if (!kImageObserver::LoadImage(io, uri)) {
 			delete io;
 			return -1;
 		}
