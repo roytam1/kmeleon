@@ -463,24 +463,50 @@ void CBrowserView::OnUpdateFileSave(CCmdUI* pCmdUI)
 
 void CBrowserView::OnCut()
 {
+	CWnd* focus = GetFocus();
+	if (focus && focus->IsKindOf(RUNTIME_CLASS(CEdit))) {
+		((CEdit*)focus)->Cut();
+		return;
+	}
+
 	if (::IsChild(m_hWnd, ::GetFocus()))   
 		m_pWindow->Cut();
 }
 
 void CBrowserView::OnUpdateCut(CCmdUI* pCmdUI)
 {
+	CWnd* focus = GetFocus();
+	if (focus && focus->IsKindOf(RUNTIME_CLASS(CEdit))) {
+		DWORD sel = ((CEdit*)focus)->GetSel();
+		pCmdUI->Enable(HIWORD(sel)!=LOWORD(sel));
+		return;
+	}
+
 	if (::IsChild(m_hWnd, ::GetFocus()))   
 		pCmdUI->Enable(m_pWindow->CanCut());
 }
 
 void CBrowserView::OnCopy()
 {
+	CWnd* focus = GetFocus();
+	if (focus && focus->IsKindOf(RUNTIME_CLASS(CEdit))) {
+		((CEdit*)focus)->Copy();
+		return;
+	}
+
 	if (::IsChild(m_hWnd, ::GetFocus()))   
 		m_pWindow->Copy();
 }
 
 void CBrowserView::OnUpdateCopy(CCmdUI* pCmdUI)
 {
+	CWnd* focus = GetFocus();
+	if (focus && focus->IsKindOf(RUNTIME_CLASS(CEdit))) {
+		DWORD sel = ((CEdit*)focus)->GetSel();
+		pCmdUI->Enable(HIWORD(sel)!=LOWORD(sel));
+		return;
+	}
+
 	if (::IsChild(m_hWnd, ::GetFocus()))   
 		pCmdUI->Enable(m_pWindow->CanCopy());
 }
@@ -499,29 +525,60 @@ void CBrowserView::OnPaste()
 
 void CBrowserView::OnUpdatePaste(CCmdUI* pCmdUI)
 {
+	CWnd* focus = GetFocus();
+	if (focus && focus->IsKindOf(RUNTIME_CLASS(CEdit))) {
+		pCmdUI->Enable(!(((CEdit*)focus)->GetStyle() & ES_READONLY));
+		return;
+	}
+
 	if (::IsChild(m_hWnd, ::GetFocus()))   
 		pCmdUI->Enable(m_pWindow->CanPaste());
 }
 
 void CBrowserView::OnUndo()
 {
+	CWnd* focus = GetFocus();
+	if (focus && focus->IsKindOf(RUNTIME_CLASS(CEdit))) {
+		((CEdit*)focus)->Undo();
+		return;
+	}
+
 	if (::IsChild(m_hWnd, ::GetFocus()))
 		m_pWindow->Undo();
 }
 
 void CBrowserView::OnUpdateUndo(CCmdUI* pCmdUI)
 {
+	CWnd* focus = GetFocus();
+	if (focus && focus->IsKindOf(RUNTIME_CLASS(CEdit))) {
+		pCmdUI->Enable(((CEdit*)focus)->CanUndo());
+		return;
+	}
+
 	pCmdUI->Enable(m_pWindow->CanUndo());
 }
 
 void CBrowserView::OnDelete()
 {
+	CWnd* focus = GetFocus();
+	if (focus && focus->IsKindOf(RUNTIME_CLASS(CEdit))) {
+		((CEdit*)focus)->ReplaceSel(_T(""), TRUE);
+		return;
+	}
+
 	if (::IsChild(m_hWnd, ::GetFocus()))
 		m_pWindow->Delete();
 }
 
 void CBrowserView::OnUpdateDelete(CCmdUI* pCmdUI)
 {
+	CWnd* focus = GetFocus();
+	if (focus && focus->IsKindOf(RUNTIME_CLASS(CEdit))) {
+		DWORD sel = ((CEdit*)focus)->GetSel();
+		pCmdUI->Enable(HIWORD(sel)!=LOWORD(sel) && !(((CEdit*)focus)->GetStyle() & ES_READONLY));
+		return;
+	}
+
 	pCmdUI->Enable(m_pWindow->CanDelete());
 }
 

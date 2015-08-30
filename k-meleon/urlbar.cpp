@@ -38,6 +38,7 @@ BEGIN_MESSAGE_MAP(CUrlBarEdit, CEdit)
 	ON_WM_SETFOCUS()
 	ON_MESSAGE(WM_SETTEXT, OnSetText)
 	//ON_MESSAGE(WM_GETTEXT, OnGetText)
+	ON_WM_CONTEXTMENU()
 END_MESSAGE_MAP()
 
 BEGIN_MESSAGE_MAP(CACListBox, CListBox)
@@ -882,4 +883,23 @@ void CUrlBar::OnCbnSelchange()
 {
 	TRACE0("EditChanged TRUE in OnCbnSelchange\n");
 	EditChanged(FALSE);
+}
+
+void CUrlBarEdit::OnContextMenu(CWnd* pWnd, CPoint point)
+{
+	CMenu* m = theApp.menus.GetMenu(L"URLBar");
+	if (!m) return CEdit::OnContextMenu(pWnd, point);
+
+	if (point.x == -1 || point.y == -1)
+	{
+	  CRect rc;
+	  GetClientRect(&rc);
+	  point = rc.CenterPoint();
+	  ClientToScreen(&point);
+	}
+
+	theApp.menus.Activate(m);
+
+    m->TrackPopupMenu(TPM_LEFTALIGN | TPM_LEFTBUTTON |
+		TPM_RIGHTBUTTON, point.x, point.y, this->GetParentFrame());
 }
