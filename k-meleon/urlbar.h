@@ -95,7 +95,7 @@ public:
 #ifndef URLBAR_USE_SETWORDBREAKPROC	
 	afx_msg void OnLButtonDblClk(UINT nFlags, CPoint point);
 #endif
-	
+	afx_msg void OnContextMenu(CWnd* pWnd, CPoint point);	
 
 protected:
 	virtual void PreSubclassWindow();
