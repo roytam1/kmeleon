@@ -718,7 +718,7 @@ void KmMenuService::MeasureItem(LPMEASUREITEMSTRUCT lpMeasureItemStruct)
 		return;
 	}
 
-	CAutoPtr<TCHAR> text(new TCHAR[mi.cch+1]);
+	CAutoPtr<TCHAR> text(new TCHAR[++mi.cch+1]);
 	mi.dwTypeData = text;
 	mLastActivated->GetMenuItemInfo(lpMeasureItemStruct->itemID, &mi);	
 
