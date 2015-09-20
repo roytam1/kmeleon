@@ -1,6 +1,5 @@
 #pragma once
 #include "stdafx.h"
-#include "../lib/JSON.h"
 #include "../lib/rapidjson/document.h"
 #include "../lib/rapidjson/prettywriter.h" 
 #include "../lib/rapidjson/filestream.h" 

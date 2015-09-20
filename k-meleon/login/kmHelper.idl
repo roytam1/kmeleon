@@ -1,0 +1,8 @@
+#include "nsISupports.idl"
+#include "nsIDOMEventTarget.idl"
+
+[scriptable, uuid(6e4995c3-deef-46a2-be73-154647710190)]
+interface kmIHelper : nsISupports
+{
+  void initLogon(in nsIDOMEventTarget browser, in nsIDOMWindow win);
+}; 
