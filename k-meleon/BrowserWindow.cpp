@@ -393,6 +393,7 @@ BOOL CBrowserWrapper::LoadURL(LPCTSTR url, LPCTSTR referrer, BOOL allowFixup)
 	ASSERT(mWebNav);
 	NS_ENSURE_TRUE(url, FALSE);
 	NS_ENSURE_TRUE(mWebNav, FALSE);
+	if (!*url) return FALSE;
 
 	nsCOMPtr<nsIURI> referrerURI;
 	if (referrer)
