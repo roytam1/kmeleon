@@ -316,7 +316,7 @@ void CBrowserView::OpenURL(const char* pUrl, nsIURI *refURI, BOOL allowFixup)
 
 void CBrowserView::OpenURL(LPCTSTR url, LPCTSTR referrer, BOOL allowFixup)
 {
-   if (!url) return;
+   if (!url || !url[0]) return;
 	//mpBrowserFrame->UpdateLocation(url, TRUE);
 
   /* // Basically, trying to open an url in a dialog, so we open it elsewhere
@@ -343,8 +343,8 @@ void CBrowserView::OpenURL(LPCTSTR url, LPCTSTR referrer, BOOL allowFixup)
 	  m_pWindow->SetActive(TRUE);*/
 
    ((CBrowserGlue*)m_pBrowserGlue)->mPendingLocation = url; // XXXX
-   if (!m_pWindow->LoadURL(url, referrer, allowFixup) && m_pBrowserGlue);
-	  // m_pWindow->LoadURL(_T("about:blank"));
+   if (!m_pWindow->LoadURL(url, referrer, allowFixup) && m_pBrowserGlue)
+      m_pWindow->LoadURL(_T("about:blank"));
 }
 /*
 void CBrowserView::OpenURL(LPCTSTR url, BOOL sendRef, BOOL allowFixup)
