@@ -304,7 +304,7 @@ BOOL KmMenu::Build(CMenu &menu, int before)
 							ASSERT(pos<menu.GetMenuItemCount());
 							MENUITEMINFO mi = {0};
 							mi.cbSize = sizeof(mi);
-							mi.fMask = MIIM_DATA | MIIM_FTYPE;
+							mi.fMask = MIIM_FTYPE;
 							mi.fType = MF_OWNERDRAW;
 							mi.dwItemData = (ULONG_PTR)&item;//(ULONG_PTR)_wcsdup((LPCTSTR)pTranslated);
 							menu.SetMenuItemInfo(pos, &mi, TRUE);
@@ -719,6 +719,7 @@ void KmMenuService::MeasureItem(LPMEASUREITEMSTRUCT lpMeasureItemStruct)
 	}
 
 	CAutoPtr<TCHAR> text(new TCHAR[++mi.cch+1]);
+	text[0] = 0;
 	mi.dwTypeData = text;
 	mLastActivated->GetMenuItemInfo(lpMeasureItemStruct->itemID, &mi);	
 
