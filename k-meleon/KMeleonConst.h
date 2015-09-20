@@ -17,7 +17,7 @@
 */
 
 
-#define KMELEON_VERSION	               0x02020000
+#define KMELEON_VERSION	               0x02020005
 #define MOZILLA_BUILDID 20140105
 #define KMELEON_BUILDID 7501
 #define KMELEON_UVERSION 75.1
@@ -25,6 +25,7 @@
 
 #define WM_DEFERSHOW                   WM_USER + 200
 #define WM_DEFERSAVEAS                 WM_USER + 201
+#define WM_DEFERMENU                   WM_USER + 202
 
 #define UWM_UPDATESESSIONHISTORY       WM_APP + 110
 #define UWM_REFRESHTOOLBARITEM         WM_APP + 111
