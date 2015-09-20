@@ -424,6 +424,7 @@ public:
 
 	int getfromname(const char* macro, const char* arg) {
 		class Node *ptr = root;
+		if (!arg) arg = "";
 		while (ptr && (strcmp(ptr->macro.c_str(), macro) || strcmp(ptr->arg.c_str(), arg)))
 			ptr = ptr->next;
 		if (ptr)
@@ -853,7 +854,7 @@ void DoMenu(HMENU menu, char *param) {
 				*p = 0;
 		}
 
-		int id = arglist->getfromname(string, arg);
+		int id = arglist->getfromname(param, arg);
 		if (id>0) {
 			if (string)
 				AppendMenu(menu, MF_STRING, id, CUTF8_to_T(string));
