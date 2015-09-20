@@ -704,7 +704,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				currentSession.updateWindow(hWnd, (HWND)lParam, index, count, (const char**)urls, (const char**)titles);
 		}
 		if (!timerID)
-			timerID = ::SetTimer(hWnd, NULL, 5000, TimerFunction);
+			timerID = ::SetTimer(NULL, NULL, 5000, TimerFunction);
 
 		break;
 	case WM_CLOSE:
