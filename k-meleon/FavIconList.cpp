@@ -359,13 +359,13 @@ int CFavIconList::GetIcon(nsIURI *aURI, nsIURI* aPageURI, BOOL download)
 	if (m_urlMap.Lookup(A2CT(nsUri.get()), index)) {
 		if (index != GetDefaultIcon())
 			return index + m_iOffset;
+	}
 
-		nsCOMPtr<nsIFaviconService> fis = do_GetService("@mozilla.org/browser/favicon-service;1");
-		if (fis) {
-			bool failed = false;
-			fis->IsFailedFavicon(aURI, &failed);
-			if (failed) GetDefaultIcon();
-		}
+	nsCOMPtr<nsIFaviconService> fis = do_GetService("@mozilla.org/browser/favicon-service;1");
+	if (fis) {
+		bool failed = false;
+		fis->IsFailedFavicon(aURI, &failed);
+		if (failed) return GetDefaultIcon();
 	}
 	
 	// Fetch the icon on our own. SetAndFetchFaviconForPage often
