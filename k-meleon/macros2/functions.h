@@ -74,37 +74,7 @@ Value ExecuteFunction(const char* name);
 		if (data->c.mf->trusted && (!data->c.origmf || data->c.origmf->trusted))
 			return true;
 			
-		const char* msg = kPlugin.kFuncs->Translate("The macro \"%s\" want to make change to your computer. Do you want to allow it?\nOnly allow changes if you trust the author of the macro.");
-		int len = strlen(msg) + data->c.mf->name.length();
-		char* buf = new char[len];
-		sprintf_s(buf, len, msg, data->c.mf->name.c_str());
-		int res = MessageBoxUTF8(data->c.hWnd, buf, "Security",  MB_YESNO|MB_ICONQUESTION|MB_TASKMODAL);
-		delete [] buf;
-		if (res == IDYES) {
-			char pref[MAX_PATH+40];
-			sprintf_s(pref, "kmeleon.plugins.macros.modules.%s.trusted", data->c.mf->name.c_str());
-	
-			int b = 1;			
-			kFuncs->SetPreference(PREF_INT, pref, (void*)&b, TRUE);
-			data->c.mf->trusted = true;
-
-			sprintf_s(pref, "kmeleon.plugins.macros.modules.%s.checksum", data->c.mf->name.c_str());
-			MD5 md5;
-			md5.digestFile(CUTF8_to_UTF16(data->c.mf->file.c_str()));
-			kPlugin.kFuncs->SetPreference(PREF_STRING, pref, md5.digestChars, TRUE);
-
-			return true;
-		} else {
-			char pref[MAX_PATH+40];
-			sprintf_s(pref, "kmeleon.plugins.macros.modules.%s.trusted", data->c.mf->name.c_str());
-
-			int b = 2;			
-			kFuncs->SetPreference(PREF_INT, pref, (void*)&b, TRUE);
-			data->c.mf->denied = true;
-			return false;
-		}
-
-		
+		return true; // Always trust, to do later.
 	}
 	
 	void invalidOp(FunctionData* data) {
