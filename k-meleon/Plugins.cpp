@@ -1433,15 +1433,16 @@ HMENU GetMenu(const char *menuName)
 
 UINT ShowMenu(HWND hWnd, const char *name, bool sendCommand)
 {
-	HMENU menu = GetMenu(name);
+	USES_CONVERSION;
+	CMenu* menu = theApp.menus.GetMenu(A2T(name));
 	if (!menu) return 0;
 
 	CBrowserFrame* frame = GetFrame(hWnd);
 	POINT pt;
 	GetCursorPos(&pt);
-	UINT flags = TPM_TOPALIGN | TPM_LEFTALIGN | TPM_NONOTIFY | TPM_LEFTBUTTON;
+	UINT flags = TPM_TOPALIGN | TPM_LEFTALIGN | TPM_LEFTBUTTON;
 	if (!sendCommand) flags |= TPM_RETURNCMD;
-	UINT id = TrackPopupMenuEx(menu, flags, pt.x, pt.y, frame->GetSafeHwnd(), NULL);
+	UINT id = menu->TrackPopupMenuEx(flags, pt.x, pt.y, frame, NULL);
 	return id;
 }
 

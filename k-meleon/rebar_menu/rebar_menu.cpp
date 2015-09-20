@@ -58,7 +58,7 @@ int DoAccel(char *param, BOOL bSubmenu=FALSE);
 
 #define MAX_KEYBOARD_MENUS 32
 int id_accel=0;
-HMENU accels[MAX_KEYBOARD_MENUS];
+std::string accels[MAX_KEYBOARD_MENUS];
 int accels_used=0;
 long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2);
 int  nMenuType = 2;
@@ -201,7 +201,7 @@ int DoAccel(char *param, BOOL bSubmenu) {
      if (hMenu) {
        accels_used++;
        id = MAX_KEYBOARD_MENUS-accels_used;
-       accels[id] = hMenu;
+       accels[id] = param;
      }
    }
 
@@ -500,10 +500,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 	 if (MAX_KEYBOARD_MENUS - i <= accels_used) {
 	   POINT pt;
 	   GetCursorPos(&pt);
-	   DWORD SelectionMade = TrackPopupMenu( accels[i],
-                               TPM_TOPALIGN | TPM_LEFTALIGN | TPM_NONOTIFY |
-                               TPM_LEFTBUTTON | TPM_RETURNCMD,
-                               pt.x, pt.y, 0, hWnd, NULL);
+	   DWORD SelectionMade = kPlugin.kFuncs->ShowMenu(hWnd, accels[i].c_str(), true);
 	   if (SelectionMade > 0)
 	     PostMessage(hWnd, WM_COMMAND, SelectionMade, 0);
 	 }
