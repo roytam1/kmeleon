@@ -58,6 +58,7 @@ static const mozilla::Module::CIDEntry kBrowserAppCIDs[] = {
 
 static const mozilla::Module::ContractIDEntry kBrowserContracts[] = {
 	{NS_PROMPTSERVICE_CONTRACTID, &kNS_PROMPTSERVICE_CID},
+	{NS_CONTENT_PERMISSION_PROMPT_CONTRACTID, &kNS_PROMPTSERVICE_CID },
 	{"@mozilla.org/prompter;1", &kNS_PROMPTSERVICE_CID},
 	//{NS_HELPERAPPLAUNCHERDLG_CONTRACTID, &kNS_UNKNOWNCONTENTTYPEHANDLER_CID},
 	{"@mozilla.org/uriloader/content-handler;1?type=application/k-skin", &kNS_UNKNOWNCONTENTTYPEHANDLER_CID},

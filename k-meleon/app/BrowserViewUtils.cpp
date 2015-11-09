@@ -135,7 +135,7 @@ BOOL CBrowserView::OpenViewSourceWindow(BOOL frame)
 			persist->SetPersistFlags(
 				nsIWebBrowserPersist::PERSIST_FLAGS_AUTODETECT_APPLY_CONVERSION|
 				nsIWebBrowserPersist::PERSIST_FLAGS_REPLACE_EXISTING_FILES);
-			rv = persist->SaveURI(srcURI, cacheDescriptor, referrer, nullptr, nullptr, nfile, nullptr);
+			rv = persist->SaveURI(srcURI, cacheDescriptor, referrer, 0, nullptr, nullptr, nfile, nullptr);
 			if (NS_FAILED(rv)) {
 				persist->SetProgressListener(nullptr);
 				return FALSE;

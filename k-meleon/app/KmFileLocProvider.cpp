@@ -40,7 +40,7 @@
 #define XP_WIN
 #endif
 
-#include "nsAppDirectoryServiceDefs.h"
+#include "nsXULAppAPI.h"
 #include "nsDirectoryServiceDefs.h"
 #include "nsILocalFile.h"
 #include "nsIProperties.h"

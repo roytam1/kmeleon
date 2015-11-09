@@ -44,9 +44,9 @@ public:
 		NS_ENSURE_SUCCESS(rv, false);
 
 		nsImageObserver* obs = new nsImageObserver(observer);
-		return NS_SUCCEEDED(loader->LoadImageXPCOM(imgUri, nullptr, nullptr, 
+		return NS_SUCCEEDED(loader->LoadImageXPCOM(imgUri, nullptr, nullptr,  NS_LITERAL_STRING(""),
 			nullptr, nullptr, obs, nullptr, nsIRequest::LOAD_BYPASS_CACHE, 
-			nullptr, nullptr, getter_AddRefs(obs->mRequest)));
+			nullptr, 0, getter_AddRefs(obs->mRequest)));
 	}
 
 protected:

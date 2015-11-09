@@ -44,10 +44,10 @@ class iconCallback: public nsIFaviconDataCallback {
 
 public:
 	NS_DECL_ISUPPORTS
-		NS_DECL_NSIFAVICONDATACALLBACK
+	NS_DECL_NSIFAVICONDATACALLBACK
 
-		iconCallback(CFavIconList* favList, nsIURI* icon, nsIURI* page) : 
-	mFavList(favList), mIconURI(icon), mPageURI(page) {}
+	iconCallback(CFavIconList* favList, nsIURI* icon, nsIURI* page) : 
+		mFavList(favList), mIconURI(icon), mPageURI(page) {}
 
 private:
 	~iconCallback() {};
@@ -60,7 +60,7 @@ protected:
 
 NS_IMPL_ISUPPORTS(iconCallback, nsIFaviconDataCallback)
 
-	NS_IMETHODIMP iconCallback::OnComplete(nsIURI *aFaviconURI, uint32_t aDataLen, const uint8_t *aData, const nsACString & aMimeType)
+NS_IMETHODIMP iconCallback::OnComplete(nsIURI *aFaviconURI, uint32_t aDataLen, const uint8_t *aData, const nsACString & aMimeType)
 {
 	if (mPageURI) {
 		nsCOMPtr<nsIURI> hostUri;
@@ -350,7 +350,7 @@ int CFavIconList::GetIcon(nsIURI *aURI, nsIURI* aPageURI, BOOL download)
 	USES_CONVERSION;
 
 	if (download) {
-		nsRefPtr<iconCallback> ic = new iconCallback(this, aURI, aPageURI);
+		iconCallback* ic = new iconCallback(this, aURI, aPageURI);
 		nsCOMPtr<mozIAsyncFavicons> afis = GetIconService();
 		if (!afis) return FALSE;
 		nsresult rv = afis->SetAndFetchFaviconForPage(aPageURI, aURI, false, nsIFaviconService::FAVICON_LOAD_NON_PRIVATE, ic);

@@ -59,7 +59,7 @@ static const nsModuleComponentInfo components =
 };
 
 static nsCOMPtr<nsIGenericFactory> componentFactory;
-extern NS_COM_GLUE nsresult NS_NewGenericFactory(nsIGenericFactory* *result,
+extern nsresult NS_NewGenericFactory(nsIGenericFactory* *result,
                      const nsModuleComponentInfo *info);
 
 int Load()

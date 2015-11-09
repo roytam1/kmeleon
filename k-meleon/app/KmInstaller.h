@@ -58,7 +58,7 @@ public:
 		persist->SetPersistFlags(
 			nsIWebBrowserPersist::PERSIST_FLAGS_AUTODETECT_APPLY_CONVERSION|
 			nsIWebBrowserPersist::PERSIST_FLAGS_REPLACE_EXISTING_FILES);
-		nsresult rv = persist->SaveURI(uri, nullptr, nullptr, nullptr, nullptr, mFile, nullptr);
+		nsresult rv = persist->SaveURI(uri, nullptr, nullptr, 0, nullptr, nullptr, mFile, nullptr);
 		if (NS_FAILED(rv)) {
 			persist->SetProgressListener(nullptr);
 			return rv;

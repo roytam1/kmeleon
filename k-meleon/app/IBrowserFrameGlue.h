@@ -146,7 +146,7 @@ struct IBrowserFrameGlue {
     virtual void GetBrowserFrameVisibility(PRBool *aVisible) = 0;
 
     // ContextMenu Related Methods
-    virtual void ShowContextMenu(PRUint32 aContextFlags, nsIContextMenuInfo *aInfo) = 0;
+	virtual void ShowContextMenu(UINT aContextFlags) = 0;
 
     //Prompt Related Methods
     virtual HWND GetBrowserFrameNativeWnd() = 0;
@@ -185,7 +185,7 @@ struct IBrowserFrameGlue {
         virtual void SetFocus();                                        \
         virtual void FocusAvailable(PRBool *aFocusAvail);               \
         virtual void GetBrowserFrameVisibility(PRBool *aVisible);       \
-        virtual void ShowContextMenu(PRUint32 aContextFlags, nsIContextMenuInfo *aInfo); \
+        virtual void ShowContextMenu(UINT aContextFlags); \
         virtual HWND GetBrowserFrameNativeWnd();                          \
         virtual void ShowTooltip(PRInt32 x, PRInt32 y, const TCHAR *text); \
         virtual BOOL FocusNextElement(); \

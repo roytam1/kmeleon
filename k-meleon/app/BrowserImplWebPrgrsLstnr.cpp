@@ -36,6 +36,7 @@
 #include "IBrowserFrameGlue.h"
 #include "nsIRequest.h"
 #include "nsIChannel.h"
+#include "nsIWebProgress.h"
 
 //*****************************************************************************
 // CBrowserImpl::nsIWebProgressListener Implementation

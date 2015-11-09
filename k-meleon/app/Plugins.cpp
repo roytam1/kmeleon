@@ -2072,7 +2072,7 @@ public:
 		nsCString spec;
 		if (uri) uri->GetSpec(spec);
 		CAutoPtr<char> path(EncodeUTF8(wpath));
-		mProc(spec.get(), path, result, mData);
+		mProc(spec.get(), path, (int)result, mData);
 		delete this;
 	}
 };

@@ -22,16 +22,28 @@
 
 #include "imgILoader.h"
 #include "imgIContainer.h"
-#include "gfxUtils.h"
-#include "MozUtils.h"
-#include "kmeleon_plugin.h"
+//#include "gfxUtils.h"
 
 bool IsComCtl6() {
 	static int isv6 = -1;
 	if (isv6 != -1) return isv6;	
-	DWORD maj,min;
-	AtlGetCommCtrlVersion(&maj, &min);	
-	isv6 = maj >= 6;
+	HMODULE hComCtlDll = LoadLibrary(_T("comctl32.dll"));
+	if (!hComCtlDll) return isv6 = 0;
+
+	typedef HRESULT (CALLBACK *PFNDLLGETVERSION)(DLLVERSIONINFO*);
+	PFNDLLGETVERSION pfnDllGetVersion = (PFNDLLGETVERSION)GetProcAddress(hComCtlDll, "DllGetVersion");
+	if (!pfnDllGetVersion) 
+		isv6 = 0;
+	else {
+		DLLVERSIONINFO dvi = {0};
+		dvi.cbSize = sizeof(dvi);
+
+		HRESULT hRes = (*pfnDllGetVersion)(&dvi);
+		isv6 = SUCCEEDED(hRes) && dvi.dwMajorVersion >= 6;
+	}
+	
+	FreeLibrary(hComCtlDll);
+
 	if (!isv6) {
 		HMODULE hntdll = GetModuleHandle(L"ntdll.dll");
 		if (hntdll && GetProcAddress(hntdll, "wine_get_version"))

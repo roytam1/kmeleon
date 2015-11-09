@@ -1269,7 +1269,7 @@ void CBrowserFrame::OnUpdateToggleToolbarLock(CCmdUI* pCmdUI)
 BOOL CALLBACK EnumToolbar(HWND hwnd, LPARAM lParam)
 {
 	TCHAR pszName[20];
-	GetClassName(hwnd, pszName, 20);
+	GetClassNameW(hwnd, pszName, 20);
 	if ( GetParent(hwnd) == GetParent((HWND)lParam) && _tcscmp(TOOLBARCLASSNAME, pszName) == 0
 		&& ( (GetWindowLong(hwnd, GWL_STYLE) & CCS_BOTTOM) == CCS_BOTTOM))
 	{

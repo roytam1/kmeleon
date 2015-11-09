@@ -11,7 +11,7 @@ extern CMfcEmbedApp theApp;
 #include "nsIHttpChannel.h"
 #include "nsIStandardURL.h"
 #include "nsIURL.h"
-
+#include "nsIDOMHTMLDocument.h"
 
 #include "UnknownContentTypeHandler.h"
 #include "nsCWebBrowserPersist.h"
@@ -357,7 +357,7 @@ NS_IMETHODIMP CSaveAsHandler::DownloadTo(nsString& aFilename, BOOL isHTML, BOOL 
 		CProgressDialog *progress = new CProgressDialog(FALSE);
 		progress->InitPersist(mRealURI, file, persist, TRUE);
 		//persist->SetProgressListener(progress);
-		rv = persist->SaveURI(mRealURI, nullptr, mReferrer, nullptr, nullptr, file, nullptr);
+		rv = persist->SaveURI(mRealURI, nullptr, mReferrer, 0, nullptr, nullptr, file, nullptr);
 		if (NS_FAILED(rv)) { //Remove cycling reference, avoid leaking
 			persist->SetProgressListener(nullptr);
 			progress->Close();
@@ -399,7 +399,7 @@ NS_IMETHODIMP CSaveAsHandler::DownloadTo(nsString& aFilename, BOOL isHTML, BOOL 
 			rv = persist->SaveDocument(mDocument, file, dataFolder, mContentType.get(), 0, 0);
 		}
 		else
-			rv = persist->SaveURI(mURL, mDescriptor, mReferrer, nullptr, nullptr, file, nullptr);
+			rv = persist->SaveURI(mURL, mDescriptor, mReferrer, 0, nullptr, nullptr, file, nullptr);
 	}
 	return rv;
 }

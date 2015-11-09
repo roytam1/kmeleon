@@ -189,90 +189,6 @@ BOOL KmMenu::Build()
 	return TRUE;
 }
 
-HRESULT Create32BitHBITMAP(HDC hdc, const SIZE *psize, __deref_opt_out void **ppvBits, __out HBITMAP* phBmp)
-{
-    *phBmp = NULL;
-
-    BITMAPINFO bmi;
-    SecureZeroMemory(&bmi, sizeof(bmi));
-    bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-    bmi.bmiHeader.biPlanes = 1;
-    bmi.bmiHeader.biCompression = BI_RGB;
-
-    bmi.bmiHeader.biWidth = psize->cx;
-    bmi.bmiHeader.biHeight = psize->cy;
-    bmi.bmiHeader.biBitCount = 32;
-
-    HDC hdcUsed = hdc ? hdc : GetDC(NULL);
-    if (hdcUsed)
-    {
-        *phBmp = CreateDIBSection(hdcUsed, &bmi, DIB_RGB_COLORS, ppvBits, NULL, 0);
-        if (hdc != hdcUsed)
-        {
-            ReleaseDC(NULL, hdcUsed);
-        }
-    }
-    return (NULL == *phBmp) ? E_OUTOFMEMORY : S_OK;
-}
-
-HBITMAP IconToBitmap(HIMAGELIST il, int idx) { 
-
-	IWICImagingFactory *pFactory;
-
-    HRESULT hr = CoCreateInstance(CLSID_WICImagingFactory, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pFactory));
-
-	HICON hicon =  ImageList_ExtractIcon(0,il,idx);
-	HBITMAP hbmp = NULL;
-    if (SUCCEEDED(hr))
-
-    {
-
-        IWICBitmap *pBitmap;
-
-        hr = pFactory->CreateBitmapFromHICON(hicon, &pBitmap);
-
-        if (SUCCEEDED(hr))
-
-        {
-
-            UINT cx, cy;
-
-            hr = pBitmap->GetSize(&cx, &cy);
-			
-            if (SUCCEEDED(hr))
-
-            {
-
-                const SIZE sizIcon = { (int)cx, -(int)cy };
-
-                BYTE *pbBuffer;
-
-                hr = Create32BitHBITMAP(NULL, &sizIcon, reinterpret_cast<void **>(&pbBuffer), &hbmp);
-
-                if (SUCCEEDED(hr))
-
-                {
-
-                    const UINT cbStride = cx * sizeof(DWORD);
-
-                    const UINT cbBuffer = cy * cbStride;
-
-                    hr = pBitmap->CopyPixels(NULL, cbStride, cbBuffer, pbBuffer);
-
-                }
-
-            }
-
-            pBitmap->Release();
-
-        }
-
-        pFactory->Release();
-
-    }
-	return hbmp;
-}
-
 BOOL KmMenu::Build(CMenu &menu, int before)
 {
 	BOOL wasSeparator = TRUE;
@@ -290,8 +206,6 @@ BOOL KmMenu::Build(CMenu &menu, int before)
 			case MenuPopup: // Popup Menu
 				label = A2CT(item.label);
 				popup = theApp.menus.GetMenu(label);
-				
-					
 				if (popup) {
 					
 					menu.InsertMenu(before, MF_POPUP, (UINT)popup->m_hMenu, theApp.lang.Translate(label));
@@ -374,19 +288,12 @@ BOOL KmMenu::Build(CMenu &menu, int before)
 				break;
 			}
 
-			case MenuSeparator: {// Separator
+			case MenuSeparator: // Separator
 				if (wasSeparator || (i == mMenuDef.GetCount()-1)) break;
 				menu.InsertMenu(before, MF_SEPARATOR);
-				/*MENUITEMINFO mi = {0};
-				mi.cbSize = sizeof(mi);
-				mi.fMask = MIIM_DATA | MIIM_TYPE;
-				mi.dwItemData = (ULONG_PTR)&item;
-				mi.fType = MF_SEPARATOR | MF_OWNERDRAW;
-				menu.InsertMenuItem(before, &mi, TRUE);	*/			
 				wasSeparator = TRUE;
 				//LOG_1("Added Separator", 0);
 				break;
-			}
 
 			case MenuPlugin: {
 				char *plugin, *parameter;
@@ -443,28 +350,7 @@ BOOL KmMenu::Build(CMenu &menu, int before)
 					mi.dwItemData = 0;//(ULONG_PTR)&item;//(ULONG_PTR)_wcsdup((LPCTSTR)pTranslated);
 					menu.SetMenuItemInfo(item.command, &mi);
 				}				
-				
-				
-				
-				/*
-				int idx = theApp.skin.GetIconIndex(item.command);
-				HIMAGELIST il = theApp.skin.GetIconList();
-				
-				
-				MENUITEMINFO mi = {0};
-				mi.cbSize = sizeof(mi);
-				mi.fMask = MIIM_CHECKMARKS;
-				//mi.dwItemData = (ULONG_PTR)&item;
-				//mi.hbmpChecked = mi.hbmpUnchecked = IconToBitmap(il, idx);
-				//mi.hbmpItem = IconToBitmap(il, idx);
-				KmImage img;
-				img.LoadFromIcon(ImageList_ExtractIcon(0,il,idx));
-				//img.LoadIndexedFromSkin(L"menu3.png[0]",16,16);
-				mi.hbmpChecked = mi.hbmpUnchecked =  img.GetHBitmap();
-				//mi.fType = MF_STRING | MF_OWNERDRAW;
-				//mi.wID = item.command;
-				UINT toto = menu.SetMenuItemInfo(item.command, &mi);
-				UINT tata = GetLastError();*/
+
 				//LOG_2("Added menu item %s with command %d", _label, item.command);
 				wasSeparator = FALSE;
 				break;

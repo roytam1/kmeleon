@@ -1,144 +1,256 @@
-diff --git a/build/autoconf/ffi.m4 b/build/autoconf/ffi.m4
---- a/build/autoconf/ffi.m4
-+++ b/build/autoconf/ffi.m4
-@@ -48,17 +48,20 @@ if test -z "$BUILDING_JS" -o -n "$JS_STA
-       CFLAGS=
-       ac_configure_args="$ac_configure_args LD=link CPP=\"cl -nologo -EP\" SHELL=sh.exe"
-       case "${target_cpu}" in
-       x86_64)
-         # Need target since MSYS tools into mozilla-build may be 32bit
-         ac_configure_args="$ac_configure_args CC=\"$_topsrcdir/js/src/ctypes/libffi/msvcc.sh -m64\""
-         ;;
-       *)
--        ac_configure_args="$ac_configure_args CC=$_topsrcdir/js/src/ctypes/libffi/msvcc.sh"
-+        ac_configure_args="$ac_configure_args \
-+          CC=\"$_topsrcdir/js/src/ctypes/libffi/msvcc.sh\" \
-+          CFLAGS=\"-O1 -GL-\" \
-+          CXXFLAGS=\"-O1 -GL-\""
-         ;;
-       esac
+diff --git a/Makefile.in b/Makefile.in
+--- a/Makefile.in
++++ b/Makefile.in
+@@ -322,8 +322,11 @@ source-package install:
+ # Every export rule depends on config/export, but the rule for config/export
+ # doesn't exist when building js non-standalone.
+ .PHONY: config/export
+ config/export:
+ 
+ endif
+ 
+ # There used to be build interdependencies here. They are now in config/recurse.mk
++
++pgo-profile-run:
++	$(PYTHON) $(topsrcdir)/build/pgo/profileserver.py $(EXTRA_TEST_ARGS)
+diff --git a/browser/components/build/moz.build b/browser/components/build/moz.build
+--- a/browser/components/build/moz.build
++++ b/browser/components/build/moz.build
+@@ -17,16 +17,21 @@ XPCOMBinaryComponent('browsercomps')
+ LOCAL_INCLUDES += [
+     '../about',
+     '../dirprovider',
+     '../feeds',
+     '../migration',
+     '../shell',
+ ]
+ 
++if CONFIG['JS_SHARED_LIBRARY']:
++    USE_LIBS += [
++        'js',
++    ]
++
+ if CONFIG['OS_ARCH'] == 'WINNT':
+     OS_LIBS += [
+         'ole32',
+         'shell32',
+         'shlwapi',
+         'version',
+     ]
+ 
+diff --git a/browser/confvars.sh b/browser/confvars.sh
+--- a/browser/confvars.sh
++++ b/browser/confvars.sh
+@@ -19,24 +19,24 @@ if test "$OS_ARCH" = "WINNT"; then
+       if ! test "$MOZ_DEBUG"; then
+         MOZ_STUB_INSTALLER=1
+       fi
      fi
-     if test "$SOLARIS_SUNPRO_CC"; then
-       # Always use gcc for libffi on Solaris
-       if test ! "$HAVE_64BIT_OS"; then
-         ac_configure_args="$ac_configure_args CC=gcc CFLAGS=-m32 LD= LDFLAGS="
-       else
-diff --git a/caps/src/nsScriptSecurityManager.cpp b/caps/src/nsScriptSecurityManager.cpp
---- a/caps/src/nsScriptSecurityManager.cpp
-+++ b/caps/src/nsScriptSecurityManager.cpp
-@@ -1162,17 +1162,17 @@ nsScriptSecurityManager::GetSubjectPrinc
-                                              nsresult* rv)
- {
-     *rv = NS_OK;
-     JSCompartment *compartment = js::GetContextCompartment(cx);
+   fi
+ fi
  
-     // The context should always be in a compartment, either one it has entered
-     // or the one associated with its global.
-     MOZ_ASSERT(!!compartment);
+ MOZ_CHROME_FILE_FORMAT=omni
+-MOZ_DISABLE_EXPORT_JS=1
+-MOZ_SAFE_BROWSING=1
++MOZ_DISABLE_EXPORT_JS=
++MOZ_SAFE_BROWSING=
+ MOZ_SERVICES_COMMON=1
+ MOZ_SERVICES_CRYPTO=1
+-MOZ_SERVICES_HEALTHREPORT=1
+-MOZ_SERVICES_METRICS=1
+-MOZ_SERVICES_SYNC=1
+-MOZ_SERVICES_CLOUDSYNC=1
++MOZ_SERVICES_HEALTHREPORT=
++MOZ_SERVICES_METRICS=
++MOZ_SERVICES_SYNC=
++MOZ_SERVICES_CLOUDSYNC=
+ MOZ_APP_VERSION=$FIREFOX_VERSION
+ MOZ_EXTENSIONS_DEFAULT=" gio"
+ # MOZ_APP_DISPLAYNAME will be set by branding/configure.sh
+ # Changing MOZ_*BRANDING_DIRECTORY requires a clobber to ensure correct results,
+ # because branding dependencies are broken.
+ # MOZ_BRANDING_DIRECTORY is the default branding directory used when none is
+ # specified. It should never point to the "official" branding directory.
+ # For mozilla-beta, mozilla-release, or mozilla-central repositories, use
+@@ -52,13 +52,13 @@ ACCEPTED_MAR_CHANNEL_IDS=firefox-mozilla
+ # The MAR_CHANNEL_ID must not contain the following 3 characters: ",\t "
+ MAR_CHANNEL_ID=firefox-mozilla-esr
+ MOZ_PROFILE_MIGRATOR=1
+ MOZ_APP_STATIC_INI=1
+ MOZ_WEBAPP_RUNTIME=1
+ MOZ_MEDIA_NAVIGATOR=1
+ MOZ_WEBGL_CONFORMANT=1
+ # Enable navigator.mozPay
+-MOZ_PAY=1
++MOZ_PAY=
+ # Enable activities. These are used for FxOS developers currently.
+ MOZ_ACTIVITIES=1
+ MOZ_JSDOWNLOADS=1
+ MOZ_WEBM_ENCODER=1
+diff --git a/browser/installer/package-manifest.in b/browser/installer/package-manifest.in
+--- a/browser/installer/package-manifest.in
++++ b/browser/installer/package-manifest.in
+@@ -238,17 +238,19 @@
+ #endif
+ @RESPATH@/components/dom_workers.xpt
+ @RESPATH@/components/dom_xbl.xpt
+ @RESPATH@/components/dom_xpath.xpt
+ @RESPATH@/components/dom_xul.xpt
+ #ifdef MOZ_GAMEPAD
+ @RESPATH@/components/dom_gamepad.xpt
+ #endif
++#ifdef MOZ_PAY
+ @RESPATH@/components/dom_payment.xpt
++#endif
+ @RESPATH@/components/dom_presentation.xpt
+ @RESPATH@/components/downloads.xpt
+ @RESPATH@/components/editor.xpt
+ @RESPATH@/components/embed_base.xpt
+ @RESPATH@/components/extensions.xpt
+ @RESPATH@/components/exthandler.xpt
+ @RESPATH@/components/exthelper.xpt
+ @RESPATH@/components/fastfind.xpt
+@@ -584,21 +586,21 @@
+ @RESPATH@/components/SystemMessageManager.manifest
+ 
+ @RESPATH@/components/Activities.manifest
+ @RESPATH@/components/ActivityProxy.js
+ @RESPATH@/components/ActivityRequestHandler.js
+ @RESPATH@/components/ActivityWrapper.js
+ @RESPATH@/components/ActivityMessageConfigurator.js
+ #endif
 -
-+	if (!compartment) return nullptr;
-     JSPrincipals *principals = JS_GetCompartmentPrincipals(compartment);
-     return nsJSPrincipals::get(principals);
- }
++#ifdef MOZ_PAY
+ @RESPATH@/components/Payment.js
+ @RESPATH@/components/PaymentFlowInfo.js
+ @RESPATH@/components/Payment.manifest
+-
++#endif
+ #ifdef MOZ_WEBRTC
+ @RESPATH@/components/PeerConnection.js
+ @RESPATH@/components/PeerConnection.manifest
+ #endif
  
- // static
- nsIPrincipal*
- nsScriptSecurityManager::doGetObjectPrincipal(JSObject *aObj)
+ @RESPATH@/chrome/marionette@JAREXT@
+ @RESPATH@/chrome/marionette.manifest
+ @RESPATH@/components/MarionetteComponents.manifest
+@@ -614,18 +616,18 @@
+ @RESPATH@/components/PresentationDeviceInfoManager.manifest
+ @RESPATH@/components/PresentationDeviceInfoManager.js
+ 
+ ; InputMethod API
+ @RESPATH@/components/MozKeyboard.js
+ @RESPATH@/components/InputMethod.manifest
+ 
+ #ifdef MOZ_DEBUG
+-@RESPATH@/components/TestInterfaceJS.js
+-@RESPATH@/components/TestInterfaceJS.manifest
++#@RESPATH@/components/TestInterfaceJS.js
++#@RESPATH@/components/TestInterfaceJS.manifest
+ #endif
+ 
+ ; Modules
+ @RESPATH@/browser/modules/*
+ @RESPATH@/modules/*
+ 
+ ; Safe Browsing
+ #ifdef MOZ_URL_CLASSIFIER
+diff --git a/browser/locales/Makefile.in b/browser/locales/Makefile.in
+--- a/browser/locales/Makefile.in
++++ b/browser/locales/Makefile.in
+@@ -126,17 +126,19 @@ libs:: $(addprefix generic/profile/,$(PR
+ 	$(SYSINSTALL) $(IFLAGS1) $^ $(FINAL_TARGET)/defaults/profile
+ 
+ libs:: $(call MERGE_FILES,$(addprefix profile/chrome/,$(PROFILE_CHROME)))
+ 	$(SYSINSTALL) $(IFLAGS1) $^ $(FINAL_TARGET)/defaults/profile/chrome
+ 
+ libs-%:
+ 	$(NSINSTALL) -D $(DIST)/install
+ 	@$(MAKE) -C ../../toolkit/locales libs-$*
++ifdef MOZ_SERVICE_SYNC	
+ 	@$(MAKE) -C ../../services/sync/locales AB_CD=$* XPI_NAME=locale-$*
++endif
+ ifdef MOZ_WEBAPP_RUNTIME
+ 	@$(MAKE) -C ../../webapprt/locales AB_CD=$* XPI_NAME=locale-$*
+ endif
+ 	@$(MAKE) -C ../../extensions/spellcheck/locales AB_CD=$* XPI_NAME=locale-$*
+ 	@$(MAKE) -C ../../intl/locales AB_CD=$* XPI_NAME=locale-$*
+ 	@$(MAKE) libs AB_CD=$* XPI_NAME=locale-$* PREF_DIR=$(PREF_DIR)
+ ifdef MOZ_METRO
+ 	@$(MAKE) -C ../metro/locales AB_CD=$* XPI_NAME=locale-$*
+diff --git a/build/pgo/index.html b/build/pgo/index.html
+--- a/build/pgo/index.html
++++ b/build/pgo/index.html
+@@ -31,17 +31,18 @@
+   "js-input/sunspider/math-cordic.html",
+   "js-input/sunspider/math-partial-sums.html",
+   "js-input/sunspider/math-spectral-norm.html",
+   "js-input/sunspider/regexp-dna.html",
+   "js-input/sunspider/string-base64.html",
+   "js-input/sunspider/string-fasta.html",
+   "js-input/sunspider/string-tagcloud.html",
+   "js-input/sunspider/string-unpack-code.html",
+-  "js-input/sunspider/string-validate-input.html"
++  "js-input/sunspider/string-validate-input.html",
++  "http://www.livejournal.com"
+      ];
+  var interval = 1000;
+  var idx = 0;
+  var w;
+  
+  window.onload = function () {
+      w = window.open("about:blank");
+      window.setTimeout(loadURL, interval); 
+diff --git a/caps/nsScriptSecurityManager.cpp b/caps/nsScriptSecurityManager.cpp
+--- a/caps/nsScriptSecurityManager.cpp
++++ b/caps/nsScriptSecurityManager.cpp
+@@ -388,16 +388,18 @@ NS_IMPL_ISUPPORTS(nsScriptSecurityManage
+ 
+ ///////////////// Security Checks /////////////////
+ 
+ bool
+ nsScriptSecurityManager::ContentSecurityPolicyPermitsJSAction(JSContext *cx)
  {
-diff --git a/client.mk b/client.mk
---- a/client.mk
-+++ b/client.mk
-@@ -293,17 +293,17 @@ EXTRA_CONFIG_DEPS := \
- 	cd $(@D); $(AUTOCONF)
+     MOZ_ASSERT(cx == nsContentUtils::GetCurrentJSContext());
+     nsCOMPtr<nsIPrincipal> subjectPrincipal = nsContentUtils::SubjectPrincipal();
++    if (!subjectPrincipal)
++        return true;
+     nsCOMPtr<nsIContentSecurityPolicy> csp;
+     nsresult rv = subjectPrincipal->GetCsp(getter_AddRefs(csp));
+     NS_ASSERTION(NS_SUCCEEDED(rv), "CSP: Failed to get CSP from principal.");
  
- CONFIG_STATUS_DEPS := \
-   $(wildcard $(TOPSRCDIR)/*/confvars.sh) \
-   $(CONFIGURES) \
-   $(TOPSRCDIR)/CLOBBER \
-   $(TOPSRCDIR)/nsprpub/configure \
-   $(TOPSRCDIR)/config/milestone.txt \
--  $(TOPSRCDIR)/browser/config/version.txt \
-+  $(TOPSRCDIR)/kmeleon/config/version.txt \
-   $(TOPSRCDIR)/build/virtualenv_packages.txt \
-   $(TOPSRCDIR)/python/mozbuild/mozbuild/virtualenv.py \
-   $(TOPSRCDIR)/testing/mozbase/packages.txt \
-   $(OBJDIR)/.mozconfig.json \
-   $(NULL)
+     // don't do anything unless there's a CSP
+     if (!csp)
+         return true;
  
- CONFIGURE_ENV_ARGS += \
-   MAKE='$(MAKE)' \
 diff --git a/config/config.mk b/config/config.mk
 --- a/config/config.mk
 +++ b/config/config.mk
-@@ -372,22 +372,18 @@ endif
+@@ -338,16 +338,20 @@ OS_INCLUDES := \
  endif
  
- ifndef STATIC_LIBRARY_NAME
- ifdef LIBRARY_NAME
- STATIC_LIBRARY_NAME=$(LIBRARY_NAME)
- endif
- endif
+ include $(MOZILLA_DIR)/config/static-checking-config.mk
  
--# PGO on MSVC is opt-in
--ifdef _MSC_VER
--ifndef MSVC_ENABLE_PGO
--NO_PROFILE_GUIDED_OPTIMIZE = 1
--endif
--endif
+ CFLAGS		= $(OS_CPPFLAGS) $(OS_CFLAGS)
+ CXXFLAGS	= $(OS_CPPFLAGS) $(OS_CXXFLAGS)
+ LDFLAGS		= $(OS_LDFLAGS) $(MOZBUILD_LDFLAGS) $(MOZ_FIX_LINK_PATHS)
+ 
++ifeq (1,$(NO_PROFILE_GUIDED_OPTIMIZE))
++MOZ_OPTIMIZE_FLAGS := $(filter-out -GL,$(MOZ_OPTIMIZE_FLAGS))
++endif
 +
-+NO_PROFILE_GUIDED_OPTIMIZE = 0
- 
- # No sense in profiling tools
- ifdef INTERNAL_TOOLS
- NO_PROFILE_GUIDED_OPTIMIZE = 1
- endif
- 
- # Don't build SIMPLE_PROGRAMS with PGO, since they don't need it anyway,
- # and we don't have the same build logic to re-link them in the second pass.
-@@ -397,33 +393,26 @@ endif
- 
- # No sense in profiling unit tests
- ifdef CPP_UNIT_TESTS
- NO_PROFILE_GUIDED_OPTIMIZE = 1
- endif
- 
- # Enable profile-based feedback
- ifneq (1,$(NO_PROFILE_GUIDED_OPTIMIZE))
--ifdef MOZ_PROFILE_GENERATE
--OS_CFLAGS += $(if $(filter $(notdir $<),$(notdir $(NO_PROFILE_GUIDED_OPTIMIZE))),,$(PROFILE_GEN_CFLAGS))
--OS_CXXFLAGS += $(if $(filter $(notdir $<),$(notdir $(NO_PROFILE_GUIDED_OPTIMIZE))),,$(PROFILE_GEN_CFLAGS))
--OS_LDFLAGS += $(PROFILE_GEN_LDFLAGS)
-+
-+ifdef MOZ_OPTIMIZE
-+MOZ_OPTIMIZE_FLAGS=-O1 -GFL
-+OS_CFLAGS += -GFL
-+OS_CXXFLAGS += -GFL
-+OS_LDFLAGS += -LTCG
- ifeq (WINNT,$(OS_ARCH))
- AR_FLAGS += -LTCG
- endif
--endif # MOZ_PROFILE_GENERATE
--
--ifdef MOZ_PROFILE_USE
--OS_CFLAGS += $(if $(filter $(notdir $<),$(notdir $(NO_PROFILE_GUIDED_OPTIMIZE))),,$(PROFILE_USE_CFLAGS))
--OS_CXXFLAGS += $(if $(filter $(notdir $<),$(notdir $(NO_PROFILE_GUIDED_OPTIMIZE))),,$(PROFILE_USE_CFLAGS))
--OS_LDFLAGS += $(PROFILE_USE_LDFLAGS)
--ifeq (WINNT,$(OS_ARCH))
--AR_FLAGS += -LTCG
- endif
--endif # MOZ_PROFILE_USE
- endif # NO_PROFILE_GUIDED_OPTIMIZE
- 
- ifdef _MSC_VER
- OS_LDFLAGS += $(DELAYLOAD_LDFLAGS)
- endif # _MSC_VER
- 
- ifneq (,$(LIBXUL_LIBRARY))
- DEFINES += -DMOZILLA_INTERNAL_API
+ # Allow each module to override the *default* optimization settings
+ # by setting MODULE_OPTIMIZE_FLAGS if the developer has not given
+ # arguments to --enable-optimize
+ ifdef MOZ_OPTIMIZE
+ ifeq (1,$(MOZ_OPTIMIZE))
+ ifdef MODULE_OPTIMIZE_FLAGS
+ CFLAGS		+= $(MODULE_OPTIMIZE_FLAGS)
+ CXXFLAGS	+= $(MODULE_OPTIMIZE_FLAGS)
 diff --git a/config/rules.mk b/config/rules.mk
 --- a/config/rules.mk
 +++ b/config/rules.mk
-@@ -278,25 +278,32 @@ EXCLUDED_OBJS := $(SIMPLE_PROGRAMS:$(BIN
+@@ -236,25 +236,32 @@ ifdef MOZ_PROFILE_GENERATE
  SIMPLE_PROGRAMS :=
  endif
  
@@ -172,102 +284,90 @@ diff --git a/config/rules.mk b/config/rules.mk
  HOST_CPPOBJS = $(addprefix host_,$(notdir $(addsuffix .$(OBJ_SUFFIX),$(basename $(HOST_CPPSRCS)))))
  HOST_CMOBJS = $(addprefix host_,$(notdir $(HOST_CMSRCS:.m=.$(OBJ_SUFFIX))))
  HOST_CMMOBJS = $(addprefix host_,$(notdir $(HOST_CMMSRCS:.mm=.$(OBJ_SUFFIX))))
-@@ -567,18 +574,18 @@ endif
- ################################################################################
+@@ -975,27 +982,31 @@ ifneq (,$(filter %.i,$(MAKECMDGOALS)))
+ # Hack up VPATH so we can reach the sources. Eg: 'make Parser.i' may need to
+ # reach $(srcdir)/frontend/Parser.i
+ VPATH += $(addprefix $(srcdir)/,$(sort $(dir $(CPPSRCS) $(CSRCS) $(CMMSRCS))))
  
- # Ensure the build config is up to date. This is done automatically when builds
- # are performed through |mach build|. The check here is to catch people not
- # using mach. If we ever enforce builds through mach, this code can be removed.
- ifndef MOZBUILD_BACKEND_CHECKED
- ifndef MACH
- ifndef TOPLEVEL_BUILD
--$(DEPTH)/backend.RecursiveMakeBackend:
--	$(error Build configuration changed. Build with |mach build| or run |mach build-backend| to regenerate build config)
-+#$(DEPTH)/backend.RecursiveMakeBackend:
-+#	$(error Build configuration changed. Build with |mach build| or run |mach build-backend| to regenerate build config)
+ # Make preprocessed files PHONY so they are always executed, since they are
+ # manual targets and we don't necessarily write to $@.
+ .PHONY: $(_PREPROCESSED_CPP_FILES) $(_PREPROCESSED_CC_FILES) $(_PREPROCESSED_CXX_FILES) $(_PREPROCESSED_C_FILES) $(_PREPROCESSED_CMM_FILES)
  
- include $(DEPTH)/backend.RecursiveMakeBackend.pp
- 
- default:: $(DEPTH)/backend.RecursiveMakeBackend
- 
- export MOZBUILD_BACKEND_CHECKED=1
- endif
- endif
-@@ -936,17 +943,17 @@ endef
- endif # Sun Studio on Solaris
- 
- # The object file is in the current directory, and the source file can be any
- # relative path. This macro adds the dependency obj: src for each source file.
- # This dependency must be first for the $< flag to work correctly, and the
- # rules that have commands for these targets must not list any other
- # prerequisites, or they will override the $< variable.
- define src_objdep
--$(basename $2$(notdir $1)).$(OBJ_SUFFIX): $1 $$(call mkdir_deps,$$(MDDEPDIR))
-+$(basename $2$(notdir $1)).$(OBJ_SUFFIX): $1 $$(call mkdir_deps,$$(MDDEPDIR)) $$(PCHPCH)
- endef
- $(foreach f,$(CSRCS) $(SSRCS) $(CPPSRCS) $(CMSRCS) $(CMMSRCS) $(ASFILES),$(eval $(call src_objdep,$(f))))
- $(foreach f,$(HOST_CSRCS) $(HOST_CPPSRCS) $(HOST_CMSRCS) $(HOST_CMMSRCS),$(eval $(call src_objdep,$(f),host_)))
- 
- $(OBJS) $(HOST_OBJS) $(PROGOBJS) $(HOST_PROGOBJS): $(GLOBAL_DEPS)
- 
- # Rules for building native targets must come first because of the host_ prefix
- $(HOST_COBJS):
-@@ -992,20 +999,24 @@ ifdef ASFILES
- 	$(REPORT_BUILD)
- 	$(AS) $(ASOUTOPTION)$@ $(ASFLAGS) $($(notdir $<)_FLAGS) $(AS_DASH_C_FLAG) $(_VPATH_SRCS)
- endif
- 
- $(SOBJS):
- 	$(REPORT_BUILD)
- 	$(AS) -o $@ $(ASFLAGS) $($(notdir $<)_FLAGS) $(LOCAL_INCLUDES) $(TARGET_LOCAL_INCLUDES) -c $<
- 
+-$(_PREPROCESSED_CPP_FILES): %.i: %.cpp $(call mkdir_deps,$(MDDEPDIR))
 +$(PCHOBJ): $(srcdir)/$(PCHSRC) $(srcdir)/$(PCHHDR) $(call mkdir_deps,$(MDDEPDIR))
 +	$(REPORT_BUILD)
-+	$(ELOG) $(CCC) $(OUTOPTION)$@ -c -TP -Yc$(notdir $(PCHHDR)) -Fp$(PCHPCH) $(COMPILE_CXXFLAGS) $(TARGET_LOCAL_INCLUDES) $(srcdir)/$(PCHSRC)
++	$(CCC) $(PREPROCESS_OPTION)$@ -c -TP -Yc$(notdir $(PCHHDR)) -Fp$(PCHPCH) $(COMPILE_CXXFLAGS) $(TARGET_LOCAL_INCLUDES) $(srcdir)/$(PCHSRC)
 +
- $(CPPOBJS):
++$(_PREPROCESSED_CPP_FILES): %.i: %.cpp $(call mkdir_deps,$(MDDEPDIR)) $(PCHPCH)
  	$(REPORT_BUILD)
- 	@$(MAKE_DEPS_AUTO_CXX)
--	$(ELOG) $(CCC) $(OUTOPTION)$@ -c $(COMPILE_CXXFLAGS) $($(notdir $<)_FLAGS) $(TARGET_LOCAL_INCLUDES) $(_VPATH_SRCS)
-+	$(ELOG) $(CCC) $(OUTOPTION)$@ -c $(PCHFLAGS) $(COMPILE_CXXFLAGS) $($(notdir $<)_FLAGS) $(TARGET_LOCAL_INCLUDES) $(_VPATH_SRCS)
+ 	$(addprefix $(MKDIR) -p ,$(filter-out .,$(@D)))
+ 	$(CCC) -C $(PREPROCESS_OPTION)$@ $(COMPILE_CXXFLAGS) $($(notdir $<)_FLAGS) $(TARGET_LOCAL_INCLUDES) $(_VPATH_SRCS)
  
- $(CMMOBJS):
+-$(_PREPROCESSED_CC_FILES): %.i: %.cc $(call mkdir_deps,$(MDDEPDIR))
++$(_PREPROCESSED_CC_FILES): %.i: %.cc $(call mkdir_deps,$(MDDEPDIR)) $(PCHPCH)
  	$(REPORT_BUILD)
- 	@$(MAKE_DEPS_AUTO_CXX)
- 	$(ELOG) $(CCC) -o $@ -c $(COMPILE_CXXFLAGS) $(COMPILE_CMMFLAGS) $($(notdir $<)_FLAGS) $(TARGET_LOCAL_INCLUDES) $(_VPATH_SRCS)
+ 	$(addprefix $(MKDIR) -p ,$(filter-out .,$(@D)))
+ 	$(CCC) -C $(PREPROCESS_OPTION)$@ $(COMPILE_CXXFLAGS) $($(notdir $<)_FLAGS) $(TARGET_LOCAL_INCLUDES) $(_VPATH_SRCS)
  
- $(CMOBJS):
+-$(_PREPROCESSED_CXX_FILES): %.i: %.cxx $(call mkdir_deps,$(MDDEPDIR))
++$(_PREPROCESSED_CXX_FILES): %.i: %.cxx $(call mkdir_deps,$(MDDEPDIR)) $(PCHPCH)
  	$(REPORT_BUILD)
+ 	$(addprefix $(MKDIR) -p ,$(filter-out .,$(@D)))
+ 	$(CCC) -C $(PREPROCESS_OPTION)$@ $(COMPILE_CXXFLAGS) $($(notdir $<)_FLAGS) $(TARGET_LOCAL_INCLUDES) $(_VPATH_SRCS)
+ 
+ $(_PREPROCESSED_C_FILES): %.i: %.c $(call mkdir_deps,$(MDDEPDIR))
+ 	$(REPORT_BUILD)
+ 	$(addprefix $(MKDIR) -p ,$(filter-out .,$(@D)))
+ 	$(CC) -C $(PREPROCESS_OPTION)$@ $(COMPILE_CFLAGS) $($(notdir $<)_FLAGS) $(TARGET_LOCAL_INCLUDES) $(_VPATH_SRCS)
 diff --git a/configure.in b/configure.in
 --- a/configure.in
 +++ b/configure.in
-@@ -1808,17 +1808,17 @@ else
- fi
+@@ -1861,17 +1861,17 @@ fi
  
- dnl Get mozilla version from central milestone file
- MOZILLA_VERSION=`$PERL $srcdir/config/milestone.pl -topsrcdir $srcdir`
- MOZILLA_UAVERSION=`$PERL $srcdir/config/milestone.pl -topsrcdir $srcdir -uaversion`
- MOZILLA_SYMBOLVERSION=`$PERL $srcdir/config/milestone.pl -topsrcdir $srcdir -symbolversion`
+ dnl ========================================================
+ dnl System overrides of the defaults for host
+ dnl ========================================================
+ case "$host" in
+ *mingw*)
+     if test -n "$_WIN32_MSVC"; then
+         HOST_AR=lib
+-        HOST_AR_FLAGS='-NOLOGO -OUT:$@'
++        HOST_AR_FLAGS='-LTCG -NOLOGO -OUT:$@'
+         HOST_CFLAGS="$HOST_CFLAGS -TC -nologo"
+         HOST_RANLIB='echo ranlib'
+     else
+         HOST_CFLAGS="$HOST_CFLAGS -mwindows"
+     fi
+     HOST_CFLAGS="$HOST_CFLAGS -DXP_WIN32 -DXP_WIN -DWIN32 -D_WIN32 -DNO_X11 -D_CRT_SECURE_NO_WARNINGS"
+     HOST_NSPR_MDCPUCFG='\"md/_winnt.cfg\"'
+     HOST_OPTIMIZE_FLAGS="${HOST_OPTIMIZE_FLAGS=-O2}"
+@@ -2273,17 +2273,17 @@ ia64*-hpux*)
+             CXXFLAGS="$CXXFLAGS -Wno-inline-new-delete"
+         fi
+         # make 'foo == bar;' error out
+         CFLAGS="$CFLAGS -we4553"
+         CXXFLAGS="$CXXFLAGS -we4553"
+         LIBS="$LIBS kernel32.lib user32.lib gdi32.lib winmm.lib wsock32.lib advapi32.lib secur32.lib netapi32.lib"
+         MOZ_DEBUG_LDFLAGS='-DEBUG -DEBUGTYPE:CV'
+         WARNINGS_AS_ERRORS='-WX'
+-        MOZ_OPTIMIZE_FLAGS='-O1 -Oi'
++        MOZ_OPTIMIZE_FLAGS='-O1 -Oi -Gw'
+         MOZ_FIX_LINK_PATHS=
+         MOZ_COMPONENT_NSPR_LIBS='$(NSPR_LIBS)'
+         # Disable these flags on clang-cl since it doesn't ignore unknown arguments by default, and
+         # autoconf insists on passing $LDFLAGS to the compiler.
+         if test -z "$CLANG_CL"; then
+             LDFLAGS="$LDFLAGS -LARGEADDRESSAWARE -NXCOMPAT"
+             if test -z "$DEVELOPER_OPTIONS"; then
+                 LDFLAGS="$LDFLAGS -RELEASE"
+@@ -4275,17 +4275,17 @@ dnl ====================================
  
- dnl Get version of various core apps from the version files.
--FIREFOX_VERSION=`cat $_topsrcdir/browser/config/version.txt`
-+FIREFOX_VERSION=`cat $_topsrcdir/kmeleon/config/version.txt`
- 
- if test -z "$FIREFOX_VERSION"; then
-     AC_MSG_ERROR([FIREFOX_VERSION is unexpectedly blank.])
- fi
- 
- AC_DEFINE_UNQUOTED(MOZILLA_VERSION,"$MOZILLA_VERSION")
- AC_DEFINE_UNQUOTED(MOZILLA_VERSION_U,$MOZILLA_VERSION)
- AC_DEFINE_UNQUOTED(MOZILLA_UAVERSION,"$MOZILLA_UAVERSION")
-@@ -4261,17 +4261,17 @@ dnl ====================================
  MOZ_WIDGET_GTK=
  
  case "$MOZ_WIDGET_TOOLKIT" in
  
  cairo-windows)
      MOZ_WIDGET_TOOLKIT=windows
-     MOZ_WEBGL=1
      MOZ_PDF_PRINTING=1
 -    MOZ_INSTRUMENT_EVENT_LOOP=1
 +    MOZ_INSTRUMENT_EVENT_LOOP=
@@ -279,64 +379,64 @@ diff --git a/configure.in b/configure.in
  cairo-gtk3)
      MOZ_WIDGET_TOOLKIT=gtk3
      MOZ_ENABLE_GTK=1
-@@ -5820,17 +5820,17 @@ if test "$OS_TARGET" = "WINNT" -a -z "$C
-   # Get the SDK path from the registry.
-   # First try to get the June 2010 SDK
-   MOZ_DIRECTX_SDK_REG_KEY=`reg query 'HKLM\Software\Microsoft\DirectX' //s | grep 'Microsoft DirectX SDK (June 2010)' | head -n 1`
-   if test -z "$MOZ_DIRECTX_SDK_REG_KEY" ; then
-     # Otherwise just take whatever comes first
-     MOZ_DIRECTX_SDK_REG_KEY=`reg query 'HKLM\Software\Microsoft\DirectX' //s | grep 'Microsoft DirectX SDK' | head -n 1`
-   fi
-   MOZ_DIRECTX_SDK_PATH=`reg query "$MOZ_DIRECTX_SDK_REG_KEY" //v InstallPath | grep REG_SZ | sed 's/.*\([[a-zA-Z]]\)\\:\\\\/\\1\\:\\\\/' | sed 's,\\\\,/,g'`
+@@ -5940,17 +5940,17 @@ if test -n "$MOZ_ANGLE_RENDERER"; then
+     # Get the SDK path from the registry.
+     # First try to get the June 2010 SDK
+     MOZ_DIRECTX_SDK_REG_KEY=`reg query 'HKLM\Software\Microsoft\DirectX' //s | grep 'Microsoft DirectX SDK (June 2010)' | head -n 1`
+     if test -z "$MOZ_DIRECTX_SDK_REG_KEY" ; then
+       # Otherwise just take whatever comes first
+       MOZ_DIRECTX_SDK_REG_KEY=`reg query 'HKLM\Software\Microsoft\DirectX' //s | grep 'Microsoft DirectX SDK' | head -n 1`
+     fi
+     MOZ_DIRECTX_SDK_PATH=`reg query "$MOZ_DIRECTX_SDK_REG_KEY" //v InstallPath | grep REG_SZ | sed 's/.*\([[a-zA-Z]]\)\\:\\\\/\\1\\:\\\\/' | sed 's,\\\\,/,g'`
 -
-+  MOZ_DIRECTX_SDK_PATH="h:/DirectXSDK"
-   if test -n "$MOZ_DIRECTX_SDK_PATH" &&
-      test -f "$MOZ_DIRECTX_SDK_PATH"/lib/$MOZ_DIRECTX_SDK_CPU_SUFFIX/dxguid.lib ; then
-     AC_MSG_RESULT([Found DirectX SDK via registry, using $MOZ_DIRECTX_SDK_PATH])
-   else
-     AC_MSG_RESULT([Couldn't find the DirectX SDK.])
-   fi
- fi
++    MOZ_DIRECTX_SDK_PATH="h:/DirectXSDK"
+     if test -n "$MOZ_DIRECTX_SDK_PATH" &&
+        test -f "$MOZ_DIRECTX_SDK_PATH"/lib/$MOZ_D3D_CPU_SUFFIX/dxguid.lib ; then
+       AC_MSG_RESULT([Found DirectX SDK via registry, using $MOZ_DIRECTX_SDK_PATH])
+     else
+       AC_MSG_RESULT([DirectX SDK not found.])
+       MOZ_DIRECTX_SDK_PATH=
+     fi
  
 diff --git a/docshell/base/nsDocShell.cpp b/docshell/base/nsDocShell.cpp
 --- a/docshell/base/nsDocShell.cpp
 +++ b/docshell/base/nsDocShell.cpp
-@@ -9770,29 +9770,29 @@ nsDocShell::DoURILoad(nsIURI * aURI,
-             }
-         }
+@@ -10495,29 +10495,29 @@ nsDocShell::DoURILoad(nsIURI* aURI,
+   }
  
-         // Only allow view-source scheme in top-level docshells. view-source is
-         // the only scheme to which this applies at the moment due to potential
-         // timing attacks to read data from cross-origin iframes. If this widens
-         // we should add a protocol flag for whether the scheme is allowed in
-         // frames and use something like nsNetUtil::NS_URIChainHasFlags.
--        nsCOMPtr<nsIURI> tempURI = aURI;
-+        /*nsCOMPtr<nsIURI> tempURI = aURI;
-         nsCOMPtr<nsINestedURI> nestedURI = do_QueryInterface(tempURI);
-         while (nestedURI) {
-             // view-source should always be an nsINestedURI, loop and check the
-             // scheme on this and all inner URIs that are also nested URIs.
-             bool isViewSource = false;
-             rv = tempURI->SchemeIs("view-source", &isViewSource);
-             if (NS_FAILED(rv) || isViewSource) {
-                 return NS_ERROR_UNKNOWN_PROTOCOL;
-             }
-             nestedURI->GetInnerURI(getter_AddRefs(tempURI));
-             nestedURI = do_QueryInterface(tempURI);
--        }
-+        }*/
-     }
+   if (IsFrame()) {
+     // Only allow view-source scheme in top-level docshells. view-source is
+     // the only scheme to which this applies at the moment due to potential
+     // timing attacks to read data from cross-origin iframes. If this widens
+     // we should add a protocol flag for whether the scheme is allowed in
+     // frames and use something like nsNetUtil::NS_URIChainHasFlags.
+-    nsCOMPtr<nsIURI> tempURI = aURI;
++    /*nsCOMPtr<nsIURI> tempURI = aURI;
+     nsCOMPtr<nsINestedURI> nestedURI = do_QueryInterface(tempURI);
+     while (nestedURI) {
+       // view-source should always be an nsINestedURI, loop and check the
+       // scheme on this and all inner URIs that are also nested URIs.
+       bool isViewSource = false;
+       rv = tempURI->SchemeIs("view-source", &isViewSource);
+       if (NS_FAILED(rv) || isViewSource) {
+         return NS_ERROR_UNKNOWN_PROTOCOL;
+       }
+       nestedURI->GetInnerURI(getter_AddRefs(tempURI));
+       nestedURI = do_QueryInterface(tempURI);
+-    }
++    }*/
+   }
  
-     // open a channel for the url
-     nsCOMPtr<nsIChannel> channel;
+   // open a channel for the url
+   nsCOMPtr<nsIChannel> channel;
  
-     bool isSrcdoc = !aSrcdoc.IsVoid();
-     if (!isSrcdoc) {
-         rv = NS_NewChannel(getter_AddRefs(channel),
+   bool isSrcdoc = !aSrcdoc.IsVoid();
+ 
+   nsCOMPtr<nsINode> requestingNode;
 diff --git a/dom/base/nsGlobalWindow.cpp b/dom/base/nsGlobalWindow.cpp
 --- a/dom/base/nsGlobalWindow.cpp
 +++ b/dom/base/nsGlobalWindow.cpp
-@@ -7051,16 +7051,17 @@ nsGlobalWindow::SizeToContent()
+@@ -7153,16 +7153,17 @@ nsGlobalWindow::SizeToContent()
  
    return rv.ErrorCode();
  }
@@ -357,7 +457,7 @@ diff --git a/dom/base/nsGlobalWindow.cpp b/dom/base/nsGlobalWindow.cpp
 diff --git a/dom/plugins/base/nsNPAPIPlugin.cpp b/dom/plugins/base/nsNPAPIPlugin.cpp
 --- a/dom/plugins/base/nsNPAPIPlugin.cpp
 +++ b/dom/plugins/base/nsNPAPIPlugin.cpp
-@@ -261,29 +261,29 @@ nsNPAPIPlugin::RunPluginOOP(const nsPlug
+@@ -269,30 +269,30 @@ nsNPAPIPlugin::RunPluginOOP(const nsPlug
  #ifdef ACCESSIBILITY
    // Certain assistive technologies don't want oop Flash, thus we have a special
    // pref for them to disable oop Flash (refer to bug 785047 for details).
@@ -367,7 +467,7 @@ diff --git a/dom/plugins/base/nsNPAPIPlugin.cpp b/dom/plugins/base/nsNPAPIPlugin
  #endif
  #endif
 -
-+  /*
++/*
  #ifdef XP_WIN
    // On Windows Vista+, we force Flash to run in OOPP mode because Adobe
    // doesn't test Flash in-process and there are known stability bugs.
@@ -379,9 +479,9 @@ diff --git a/dom/plugins/base/nsNPAPIPlugin.cpp b/dom/plugins/base/nsNPAPIPlugin
      return true;
  #endif
    }
--#endif
-+#endif*/
- 
+ #endif
+-
++*/
    nsIPrefBranch* prefs = Preferences::GetRootBranch();
    if (!prefs) {
      return false;
@@ -389,43 +489,40 @@ diff --git a/dom/plugins/base/nsNPAPIPlugin.cpp b/dom/plugins/base/nsNPAPIPlugin
  
    // Get per-library whitelist/blacklist pref string
    // "dom.ipc.plugins.enabled.filename.dll" and fall back to the default value
+   // of "dom.ipc.plugins.enabled"
 diff --git a/dom/plugins/base/nsPluginInstanceOwner.cpp b/dom/plugins/base/nsPluginInstanceOwner.cpp
 --- a/dom/plugins/base/nsPluginInstanceOwner.cpp
 +++ b/dom/plugins/base/nsPluginInstanceOwner.cpp
-@@ -681,18 +681,19 @@ NS_IMETHODIMP nsPluginInstanceOwner::Get
-     // would otherwise cause coordinates to be offset incorrectly. (i.e.
-     // if the enclosing window if offset from the document window)
+@@ -699,16 +699,17 @@ NS_IMETHODIMP nsPluginInstanceOwner::Get
      //
      // fixing both the caret and ability to interact issues for a windowless control in a non document aligned windw
      // does not seem to be possible without a change to the flash plugin
-     
-     nsIWidget* win = mObjectFrame->GetNearestWidget();
+ 
+     nsIWidget* win = mPluginFrame->GetNearestWidget();
      if (win) {
--      nsView *view = nsView::GetViewFor(win);
-+      nsView *view = nsView::GetViewFor(win);	  
+       nsView *view = nsView::GetViewFor(win);
        NS_ASSERTION(view, "No view for widget");
-+	  if (!view) return NS_ERROR_FAILURE;
++      if (!view) return NS_ERROR_FAILURE;
        nsPoint offset = view->GetOffsetTo(nullptr);
-       
+ 
        if (offset.x || offset.y) {
          // in the case the two windows are offset from eachother, we do go ahead and return the correct enclosing window
          // so that mouse co-ordinates are not messed up.
          *pvalue = (void*)win->GetNativeData(NS_NATIVE_WINDOW);
          if (*pvalue)
            return NS_OK;
-diff --git a/embedding/browser/webBrowser/nsDocShellTreeOwner.cpp b/embedding/browser/webBrowser/nsDocShellTreeOwner.cpp
---- a/embedding/browser/webBrowser/nsDocShellTreeOwner.cpp
-+++ b/embedding/browser/webBrowser/nsDocShellTreeOwner.cpp
-@@ -860,23 +860,24 @@ nsDocShellTreeOwner::AddChromeListeners(
-       else
-         rv = NS_ERROR_OUT_OF_MEMORY;
+diff --git a/embedding/browser/nsDocShellTreeOwner.cpp b/embedding/browser/nsDocShellTreeOwner.cpp
+--- a/embedding/browser/nsDocShellTreeOwner.cpp
++++ b/embedding/browser/nsDocShellTreeOwner.cpp
+@@ -837,22 +837,24 @@ nsDocShellTreeOwner::AddChromeListeners(
+       rv = mChromeContextMenuListener->AddChromeListeners();
      }
    }
  
    // register dragover and drop event listeners with the listener manager
    nsCOMPtr<EventTarget> target;
    GetDOMEventTarget(mWebBrowser, getter_AddRefs(target));
--
+ 
 -  EventListenerManager* elmP = target->GetOrCreateListenerManager();
 -  if (elmP) {
 -    elmP->AddEventListenerByType(this, NS_LITERAL_STRING("dragover"),
@@ -448,7 +545,7 @@ diff --git a/embedding/browser/webBrowser/nsDocShellTreeOwner.cpp b/embedding/br
  
  
  NS_IMETHODIMP
-@@ -929,17 +930,17 @@ nsDocShellTreeOwner::HandleEvent(nsIDOME
+@@ -905,17 +907,17 @@ nsDocShellTreeOwner::HandleEvent(nsIDOME
        handler->CanDropLink(dragEvent, false, &canDropLink);
        if (canDropLink)
          aEvent->PreventDefault();
@@ -462,53 +559,14 @@ diff --git a/embedding/browser/webBrowser/nsDocShellTreeOwner.cpp b/embedding/br
          if (!link.IsEmpty()) {
            webnav->LoadURI(link.get(), 0, nullptr, nullptr, nullptr);
          }
-       }
-       else {
+       } else {
          aEvent->StopPropagation();
          aEvent->PreventDefault();
        }
-diff --git a/embedding/browser/webBrowser/nsWebBrowser.cpp b/embedding/browser/webBrowser/nsWebBrowser.cpp
---- a/embedding/browser/webBrowser/nsWebBrowser.cpp
-+++ b/embedding/browser/webBrowser/nsWebBrowser.cpp
-@@ -31,16 +31,17 @@
- #include "nsIWebBrowserPersist.h"
- #include "nsCWebBrowserPersist.h"
- #include "nsIServiceManager.h"
- #include "nsAutoPtr.h"
- #include "nsFocusManager.h"
- #include "Layers.h"
- #include "gfxContext.h"
- #include "nsILoadContext.h"
-+#include "gfxPrefs.h"
- 
- // for painting the background window
- #include "mozilla/LookAndFeel.h"
- 
- // Printing Includes
- #ifdef NS_PRINTING
- #include "nsIWebBrowserPrint.h"
- #include "nsIContentViewer.h"
-@@ -1157,16 +1158,17 @@ NS_IMETHODIMP nsWebBrowser::Create()
-       }
- 
-     nsCOMPtr<nsIDocShell> docShell(do_CreateInstance("@mozilla.org/docshell;1", &rv));
-     NS_ENSURE_SUCCESS(rv, rv);
-     rv = SetDocShell(docShell);
-     NS_ENSURE_SUCCESS(rv, rv);
- 
-     // get the system default window background colour
-+    gfxPrefs::GetSingleton();
-     LookAndFeel::GetColor(LookAndFeel::eColorID_WindowBackground,
-                           &mBackgroundColor);
- 
-    // the docshell has been set so we now have our listener registrars.
-    if (mListenerArray) {
-       // we had queued up some listeners, let's register them now.
-       uint32_t count = mListenerArray->Length();
-       uint32_t i = 0;
-diff --git a/embedding/components/printingui/src/win/nsPrintDialogUtil.cpp b/embedding/components/printingui/src/win/nsPrintDialogUtil.cpp
---- a/embedding/components/printingui/src/win/nsPrintDialogUtil.cpp
-+++ b/embedding/components/printingui/src/win/nsPrintDialogUtil.cpp
+     }
+diff --git a/embedding/components/printingui/win/nsPrintDialogUtil.cpp b/embedding/components/printingui/win/nsPrintDialogUtil.cpp
+--- a/embedding/components/printingui/win/nsPrintDialogUtil.cpp
++++ b/embedding/components/printingui/win/nsPrintDialogUtil.cpp
 @@ -1068,14 +1068,14 @@ PrepareForPrintDialog(nsIWebBrowserPrint
  nsresult NativeShowPrintDialog(HWND                aHWnd,
                                 nsIWebBrowserPrint* aWebBrowserPrint,
@@ -525,10 +583,33 @@ diff --git a/embedding/components/printingui/src/win/nsPrintDialogUtil.cpp b/emb
    return rv;
  }
  
+diff --git a/gfx/layers/d3d11/CompositorD3D11.cpp b/gfx/layers/d3d11/CompositorD3D11.cpp
+--- a/gfx/layers/d3d11/CompositorD3D11.cpp
++++ b/gfx/layers/d3d11/CompositorD3D11.cpp
+@@ -1157,17 +1157,18 @@ CompositorD3D11::EndFrame()
+         rect.left = r->x;
+         rect.top = r->y;
+         rect.bottom = r->YMost();
+         rect.right = r->XMost();
+ 
+         rects.push_back(rect);
+       }
+ 
+-      params.pDirtyRects = &rects.front();
++	  if (rects.size())
++		params.pDirtyRects = &rects.front();
+       chain->Present1(presentInterval, mDisableSequenceForNextFrame ? DXGI_PRESENT_DO_NOT_SEQUENCE : 0, &params);
+     } else {
+       mSwapChain->Present(presentInterval, mDisableSequenceForNextFrame ? DXGI_PRESENT_DO_NOT_SEQUENCE : 0);
+     }
+     mDisableSequenceForNextFrame = false;
+     if (mTarget) {
+       PaintToTarget();
+     }
 diff --git a/image/decoders/nsICODecoder.cpp b/image/decoders/nsICODecoder.cpp
 --- a/image/decoders/nsICODecoder.cpp
 +++ b/image/decoders/nsICODecoder.cpp
-@@ -14,17 +14,17 @@
+@@ -15,17 +15,17 @@
  #include "RasterImage.h"
  
  namespace mozilla {
@@ -545,7 +626,7 @@ diff --git a/image/decoders/nsICODecoder.cpp b/image/decoders/nsICODecoder.cpp
  // ----------------------------------------
  
  uint32_t
- nsICODecoder::CalcAlphaRowSize() 
+ nsICODecoder::CalcAlphaRowSize()
  {
 diff --git a/intl/icu/source/common/Makefile.in b/intl/icu/source/common/Makefile.in
 --- a/intl/icu/source/common/Makefile.in
@@ -559,9 +640,9 @@ diff --git a/intl/icu/source/common/Makefile.in b/intl/icu/source/common/Makefil
  endif
  endif
  
-+CFLAGS += -O1 -GL
-+CXXFLAGS += -O1 -GL
-+LDFLAGS += -opt:ref,icf -LARGEADDRESSAWARE
++CFLAGS += -O1 -GL -Gw
++CXXFLAGS += -O1 -GL -Gw
++LDFLAGS += -opt:ref,icf -LARGEADDRESSAWARE -LTCG
 diff --git a/intl/icu/source/i18n/Makefile.in b/intl/icu/source/i18n/Makefile.in
 --- a/intl/icu/source/i18n/Makefile.in
 +++ b/intl/icu/source/i18n/Makefile.in
@@ -575,15 +656,63 @@ diff --git a/intl/icu/source/i18n/Makefile.in b/intl/icu/source/i18n/Makefile.in
  endif
  endif
 +
-+CFLAGS += -O1 -GL
-+CXXFLAGS += -O1 -GL
-+LDFLAGS += -opt:ref,icf -LARGEADDRESSAWARE
-\ No newline at end of file
++CFLAGS += -O1 -GL -Gw
++CXXFLAGS += -O1 -GL -Gw
++LDFLAGS += -LTCG -opt:ref,icf -LARGEADDRESSAWARE
+diff --git a/js/src/jsapi.cpp b/js/src/jsapi.cpp
+--- a/js/src/jsapi.cpp
++++ b/js/src/jsapi.cpp
+@@ -110,16 +110,22 @@ using JS::ToUint32;
+ using js::frontend::Parser;
+ 
+ #ifdef HAVE_VA_LIST_AS_ARRAY
+ #define JS_ADDRESSOF_VA_LIST(ap) ((va_list*)(ap))
+ #else
+ #define JS_ADDRESSOF_VA_LIST(ap) (&(ap))
+ #endif
+ 
++JS_PUBLIC_API(bool)
++JS::JS_RequireArgsAtLeast(JSContext* cx, JS::CallArgs& args,
++const char* fnname, unsigned required) {
++    return args.requireAtLeast(cx, fnname, required);
++}
++
+ bool
+ JS::CallArgs::requireAtLeast(JSContext* cx, const char* fnname, unsigned required) {
+     if (length() < required) {
+         char numArgsStr[40];
+         JS_snprintf(numArgsStr, sizeof numArgsStr, "%u", required - 1);
+         JS_ReportErrorNumber(cx, js_GetErrorMessage, nullptr, JSMSG_MORE_ARGS_NEEDED,
+                              fnname, numArgsStr, required == 2 ? "" : "s");
+         return false;
+diff --git a/js/src/jsapi.h b/js/src/jsapi.h
+--- a/js/src/jsapi.h
++++ b/js/src/jsapi.h
+@@ -32,16 +32,20 @@
+ #include "js/Utility.h"
+ #include "js/Value.h"
+ #include "js/Vector.h"
+ 
+ /************************************************************************/
+ 
+ namespace JS {
+ 
++extern JS_PUBLIC_API(bool)
++  JS_RequireArgsAtLeast(JSContext* cx, JS::CallArgs& args, const char* fnname, unsigned required);
++
++
+ class Latin1CharsZ;
+ class TwoByteChars;
+ 
+ #ifdef JS_DEBUG
+ 
+ class JS_PUBLIC_API(AutoCheckRequestDepth)
+ {
+     JSContext* cx;
 diff --git a/js/xpconnect/idl/moz.build b/js/xpconnect/idl/moz.build
 --- a/js/xpconnect/idl/moz.build
 +++ b/js/xpconnect/idl/moz.build
-@@ -1,23 +1,24 @@
- # -*- Mode: python; c-basic-offset: 4; indent-tabs-mode: nil; tab-width: 40 -*-
+@@ -2,16 +2,17 @@
  # vim: set filetype=python:
  # This Source Code Form is subject to the terms of the Mozilla Public
  # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -591,28 +720,20 @@ diff --git a/js/xpconnect/idl/moz.build b/js/xpconnect/idl/moz.build
  
  XPIDL_SOURCES += [
      'mozIJSSubScriptLoader.idl',
-+    'nsIJSContextStack.idl',    
+     'nsIAddonInterposition.idl',
++    'nsIJSContextStack.idl',
      'nsIJSRuntimeService.idl',
+     'nsIRemoteTagService.idl',
      'nsIScriptError.idl',
      'nsIXPConnect.idl',
      'nsIXPCScriptable.idl',
--    'nsIXPCSecurityManager.idl',
-+    'nsIXPCSecurityManager.idl',   
      'xpccomponents.idl',
      'xpcexception.idl',
      'xpcIJSGetFactory.idl',
-     'xpcIJSModuleLoader.idl',
-     'xpcIJSWeakReference.idl',
--    'xpcjsid.idl',
-+    'xpcjsid.idl'
- ]
- 
- XPIDL_MODULE = 'xpconnect'
- 
 diff --git a/js/xpconnect/src/nsXPConnect.cpp b/js/xpconnect/src/nsXPConnect.cpp
 --- a/js/xpconnect/src/nsXPConnect.cpp
 +++ b/js/xpconnect/src/nsXPConnect.cpp
-@@ -45,28 +45,29 @@ using namespace mozilla;
+@@ -36,17 +36,18 @@ using namespace mozilla;
  using namespace mozilla::dom;
  using namespace xpc;
  using namespace JS;
@@ -629,725 +750,18 @@ diff --git a/js/xpconnect/src/nsXPConnect.cpp b/js/xpconnect/src/nsXPConnect.cpp
  bool         nsXPConnect::gOnceAliveNowDead = false;
  uint32_t     nsXPConnect::gReportAllJSExceptions = 0;
  
- bool         xpc::gDebugMode = false;
- bool         xpc::gDesiredDebugMode = false;
- 
  // Global cache of the default script security manager (QI'd to
- // nsIScriptSecurityManager)
--nsIScriptSecurityManager* nsXPConnect::gScriptSecurityManager = nullptr;
-+nsIScriptSecurityManager *nsXPConnect::gScriptSecurityManager = nullptr;
+ // nsIScriptSecurityManager) and the system principal.
+ nsIScriptSecurityManager* nsXPConnect::gScriptSecurityManager = nullptr;
+@@ -1008,16 +1009,29 @@ nsXPConnect::AfterProcessNextEvent(nsITh
+     Promise::PerformMicroTaskCheckpoint();
  
- const char XPC_CONTEXT_STACK_CONTRACTID[] = "@mozilla.org/js/xpc/ContextStack;1";
- const char XPC_RUNTIME_CONTRACTID[]       = "@mozilla.org/js/xpc/RuntimeService;1";
- const char XPC_EXCEPTION_CONTRACTID[]     = "@mozilla.org/js/xpc/Exception;1";
- const char XPC_CONSOLE_CONTRACTID[]       = "@mozilla.org/consoleservice;1";
- const char XPC_SCRIPT_ERROR_CONTRACTID[]  = "@mozilla.org/scripterror;1";
- const char XPC_ID_CONTRACTID[]            = "@mozilla.org/js/xpc/ID;1";
- const char XPC_XPCONNECT_CONTRACTID[]     = "@mozilla.org/js/xpc/XPConnect;1";
-@@ -175,17 +176,17 @@ nsXPConnect::IsISupportsDescendant(nsIIn
- {
-     bool found = false;
-     if (info)
-         info->HasAncestor(&NS_GET_IID(nsISupports), &found);
-     return found;
- }
- 
- void
--xpc::SystemErrorReporter(JSContext* cx, const char* message, JSErrorReport* rep)
-+xpc::SystemErrorReporter(JSContext *cx, const char *message, JSErrorReport *rep)
- {
-     // It would be nice to assert !DescribeScriptedCaller here, to be sure
-     // that there isn't any script running that could catch the exception. But
-     // the JS engine invokes the error reporter directly if someone reports an
-     // ErrorReport that it doesn't know how to turn into an exception. Arguably
-     // it should just learn how to throw everything. But either way, if the
-     // exception is ending here, it's not going to get propagated to a caller,
-     // so it's up to us to make it known.
-@@ -250,17 +251,17 @@ nsXPConnect::GetInfoForName(const char *
- NS_IMETHODIMP
- nsXPConnect::GarbageCollect(uint32_t reason)
- {
-     GetRuntime()->Collect(reason);
-     return NS_OK;
- }
- 
- bool
--xpc_GCThingIsGrayCCThing(void* thing)
-+xpc_GCThingIsGrayCCThing(void *thing)
- {
-     return AddToCCKind(js::GCThingTraceKind(thing)) &&
-            xpc_IsGrayGCThing(thing);
- }
- 
- void
- xpc_MarkInCCGeneration(nsISupports* aVariant, uint32_t aGeneration)
- {
-@@ -318,34 +319,34 @@ nsXPConnect::InitClasses(JSContext * aJS
-     if (!XPCNativeWrapper::AttachNewConstructorObject(aJSContext, globalJSObj))
-         return UnexpectedFailure(NS_ERROR_FAILURE);
+     PopJSContextNoScriptContext();
  
      return NS_OK;
  }
  
- #ifdef DEBUG
- static void
--VerifyTraceXPCGlobalCalled(JSTracer* trc, void** thingp, JSGCTraceKind kind)
-+VerifyTraceXPCGlobalCalled(JSTracer *trc, void **thingp, JSGCTraceKind kind)
- {
-     // We don't do anything here, we only want to verify that TraceXPCGlobal
-     // was called.
- }
- 
- struct VerifyTraceXPCGlobalCalledTracer : public JSTracer
- {
-     bool ok;
- 
--    VerifyTraceXPCGlobalCalledTracer(JSRuntime* rt)
-+    VerifyTraceXPCGlobalCalledTracer(JSRuntime *rt)
-       : JSTracer(rt, VerifyTraceXPCGlobalCalled), ok(false)
-     {}
- };
- #endif
- 
- void
--xpc::TraceXPCGlobal(JSTracer* trc, JSObject* obj)
-+xpc::TraceXPCGlobal(JSTracer *trc, JSObject *obj)
- {
- #ifdef DEBUG
-     if (trc->callback == VerifyTraceXPCGlobalCalled) {
-         // We don't do anything here, we only want to verify that TraceXPCGlobal
-         // was called.
-         reinterpret_cast<VerifyTraceXPCGlobalCalledTracer*>(trc)->ok = true;
-         return;
-     }
-@@ -360,17 +361,17 @@ xpc::TraceXPCGlobal(JSTracer* trc, JSObj
-     xpc::CompartmentPrivate* compartmentPrivate = GetCompartmentPrivate(obj);
-     if (compartmentPrivate && compartmentPrivate->scope)
-         compartmentPrivate->scope->TraceInside(trc);
- }
- 
- namespace xpc {
- 
- JSObject*
--CreateGlobalObject(JSContext* cx, const JSClass* clasp, nsIPrincipal* principal,
-+CreateGlobalObject(JSContext *cx, const JSClass *clasp, nsIPrincipal *principal,
-                    JS::CompartmentOptions& aOptions)
- {
-     MOZ_ASSERT(NS_IsMainThread(), "using a principal off the main thread?");
-     MOZ_ASSERT(principal);
- 
-     RootedObject global(cx,
-                         JS_NewGlobalObject(cx, clasp, nsJSPrincipals::get(principal),
-                                            JS::DontFireOnNewGlobalHook, aOptions));
-@@ -416,17 +417,17 @@ InitGlobalObject(JSContext* aJSContext, 
-         // XPCCallContext gives us an active request needed to save/restore.
-         if (!GetCompartmentPrivate(aGlobal)->scope->AttachComponentsObject(aJSContext) ||
-             !XPCNativeWrapper::AttachNewConstructorObject(aJSContext, aGlobal)) {
-             return UnexpectedFailure(false);
-         }
-     }
- 
-     if (ShouldDiscardSystemSource()) {
--        nsIPrincipal* prin = GetObjectPrincipal(aGlobal);
-+        nsIPrincipal *prin = GetObjectPrincipal(aGlobal);
-         bool isSystem = nsContentUtils::IsSystemPrincipal(prin);
-         if (!isSystem) {
-             short status = prin->GetAppStatus();
-             isSystem = status == nsIPrincipal::APP_STATUS_PRIVILEGED ||
-                        status == nsIPrincipal::APP_STATUS_CERTIFIED;
-         }
-         JS::CompartmentOptionsRef(aGlobal).setDiscardSource(isSystem);
-     }
-@@ -450,21 +451,21 @@ InitGlobalObject(JSContext* aJSContext, 
- 
-     return true;
- }
- 
- } // namespace xpc
- 
  NS_IMETHODIMP
- nsXPConnect::InitClassesWithNewWrappedGlobal(JSContext * aJSContext,
--                                             nsISupports* aCOMObj,
-+                                             nsISupports *aCOMObj,
-                                              nsIPrincipal * aPrincipal,
-                                              uint32_t aFlags,
-                                              JS::CompartmentOptions& aOptions,
--                                             nsIXPConnectJSObjectHolder** _retval)
-+                                             nsIXPConnectJSObjectHolder **_retval)
- {
-     MOZ_ASSERT(aJSContext, "bad param");
-     MOZ_ASSERT(aCOMObj, "bad param");
-     MOZ_ASSERT(_retval, "bad param");
- 
-     // We pass null for the 'extra' pointer during global object creation, so
-     // we need to have a principal.
-     MOZ_ASSERT(aPrincipal);
-@@ -488,22 +489,22 @@ nsXPConnect::InitClassesWithNewWrappedGl
-         return UnexpectedFailure(NS_ERROR_FAILURE);
- 
-     wrappedGlobal.forget(_retval);
-     return NS_OK;
- }
- 
- static nsresult
- NativeInterface2JSObject(HandleObject aScope,
--                         nsISupports* aCOMObj,
--                         nsWrapperCache* aCache,
-+                         nsISupports *aCOMObj,
-+                         nsWrapperCache *aCache,
-                          const nsIID * aIID,
-                          bool aAllowWrapping,
-                          MutableHandleValue aVal,
--                         nsIXPConnectJSObjectHolder** aHolder)
-+                         nsIXPConnectJSObjectHolder **aHolder)
- {
-     AutoJSContext cx;
-     JSAutoCompartment ac(cx, aScope);
- 
-     nsresult rv;
-     xpcObjectHelper helper(aCOMObj, aCache);
-     if (!XPCConvert::NativeInterface2JSObject(aVal, aHolder, helper, aIID,
-                                               nullptr, aAllowWrapping, &rv))
-@@ -514,38 +515,38 @@ NativeInterface2JSObject(HandleObject aS
- 
-     return NS_OK;
- }
- 
- /* nsIXPConnectJSObjectHolder wrapNative (in JSContextPtr aJSContext, in JSObjectPtr aScope, in nsISupports aCOMObj, in nsIIDRef aIID); */
- NS_IMETHODIMP
- nsXPConnect::WrapNative(JSContext * aJSContext,
-                         JSObject * aScopeArg,
--                        nsISupports* aCOMObj,
-+                        nsISupports *aCOMObj,
-                         const nsIID & aIID,
--                        nsIXPConnectJSObjectHolder** aHolder)
-+                        nsIXPConnectJSObjectHolder **aHolder)
- {
-     MOZ_ASSERT(aHolder, "bad param");
-     MOZ_ASSERT(aJSContext, "bad param");
-     MOZ_ASSERT(aScopeArg, "bad param");
-     MOZ_ASSERT(aCOMObj, "bad param");
- 
-     RootedObject aScope(aJSContext, aScopeArg);
-     RootedValue v(aJSContext);
-     return NativeInterface2JSObject(aScope, aCOMObj, nullptr, &aIID,
-                                     true, &v, aHolder);
- }
- 
- /* void wrapNativeToJSVal (in JSContextPtr aJSContext, in JSObjectPtr aScope, in nsISupports aCOMObj, in nsIIDPtr aIID, out jsval aVal, out nsIXPConnectJSObjectHolder aHolder); */
- NS_IMETHODIMP
--nsXPConnect::WrapNativeToJSVal(JSContext* aJSContext,
--                               JSObject* aScopeArg,
--                               nsISupports* aCOMObj,
--                               nsWrapperCache* aCache,
--                               const nsIID* aIID,
-+nsXPConnect::WrapNativeToJSVal(JSContext *aJSContext,
-+                               JSObject *aScopeArg,
-+                               nsISupports *aCOMObj,
-+                               nsWrapperCache *aCache,
-+                               const nsIID *aIID,
-                                bool aAllowWrapping,
-                                MutableHandleValue aVal)
- {
-     MOZ_ASSERT(aJSContext, "bad param");
-     MOZ_ASSERT(aScopeArg, "bad param");
-     MOZ_ASSERT(aCOMObj, "bad param");
- 
-     RootedObject aScope(aJSContext, aScopeArg);
-@@ -572,36 +573,36 @@ nsXPConnect::WrapJS(JSContext * aJSConte
-     nsresult rv = NS_ERROR_UNEXPECTED;
-     if (!XPCConvert::JSObject2NativeInterface(result, aJSObj,
-                                               &aIID, nullptr, &rv))
-         return rv;
-     return NS_OK;
- }
- 
- NS_IMETHODIMP
--nsXPConnect::JSValToVariant(JSContext* cx,
-+nsXPConnect::JSValToVariant(JSContext *cx,
-                             HandleValue aJSVal,
--                            nsIVariant** aResult)
-+                            nsIVariant **aResult)
- {
-     NS_PRECONDITION(aResult, "bad param");
- 
-     nsRefPtr<XPCVariant> variant = XPCVariant::newVariant(cx, aJSVal);
-     variant.forget(aResult);
-     NS_ENSURE_TRUE(*aResult, NS_ERROR_OUT_OF_MEMORY);
- 
-     return NS_OK;
- }
- 
- /* void wrapJSAggregatedToNative (in nsISupports aOuter, in JSContextPtr aJSContext, in JSObjectPtr aJSObj, in nsIIDRef aIID, [iid_is (aIID), retval] out nsQIResult result); */
- NS_IMETHODIMP
--nsXPConnect::WrapJSAggregatedToNative(nsISupports* aOuter,
--                                      JSContext* aJSContext,
--                                      JSObject* aJSObjArg,
--                                      const nsIID& aIID,
--                                      void** result)
-+nsXPConnect::WrapJSAggregatedToNative(nsISupports *aOuter,
-+                                      JSContext *aJSContext,
-+                                      JSObject *aJSObjArg,
-+                                      const nsIID &aIID,
-+                                      void **result)
- {
-     MOZ_ASSERT(aOuter, "bad param");
-     MOZ_ASSERT(aJSContext, "bad param");
-     MOZ_ASSERT(aJSObjArg, "bad param");
-     MOZ_ASSERT(result, "bad param");
- 
-     *result = nullptr;
- 
-@@ -612,17 +613,17 @@ nsXPConnect::WrapJSAggregatedToNative(ns
-         return rv;
-     return NS_OK;
- }
- 
- /* nsIXPConnectWrappedNative getWrappedNativeOfJSObject (in JSContextPtr aJSContext, in JSObjectPtr aJSObj); */
- NS_IMETHODIMP
- nsXPConnect::GetWrappedNativeOfJSObject(JSContext * aJSContext,
-                                         JSObject * aJSObjArg,
--                                        nsIXPConnectWrappedNative** _retval)
-+                                        nsIXPConnectWrappedNative **_retval)
- {
-     MOZ_ASSERT(aJSContext, "bad param");
-     MOZ_ASSERT(aJSObjArg, "bad param");
-     MOZ_ASSERT(_retval, "bad param");
- 
-     RootedObject aJSObj(aJSContext, aJSObjArg);
-     aJSObj = js::CheckedUnwrap(aJSObj, /* stopAtOuter = */ false);
-     if (!aJSObj || !IS_WN_REFLECTOR(aJSObj)) {
-@@ -632,45 +633,45 @@ nsXPConnect::GetWrappedNativeOfJSObject(
- 
-     nsRefPtr<XPCWrappedNative> temp = XPCWrappedNative::Get(aJSObj);
-     temp.forget(_retval);
-     return NS_OK;
- }
- 
- /* nsISupports getNativeOfWrapper(in JSContextPtr aJSContext, in JSObjectPtr  aJSObj); */
- NS_IMETHODIMP_(nsISupports*)
--nsXPConnect::GetNativeOfWrapper(JSContext* aJSContext,
--                                JSObject* aJSObj)
-+nsXPConnect::GetNativeOfWrapper(JSContext *aJSContext,
-+                                JSObject *aJSObj)
- {
-     MOZ_ASSERT(aJSContext, "bad param");
-     MOZ_ASSERT(aJSObj, "bad param");
- 
-     aJSObj = js::CheckedUnwrap(aJSObj, /* stopAtOuter = */ false);
-     if (!aJSObj) {
-         JS_ReportError(aJSContext, "Permission denied to get native of security wrapper");
-         return nullptr;
-     }
-     if (IS_WN_REFLECTOR(aJSObj)) {
--        if (XPCWrappedNative* wn = XPCWrappedNative::Get(aJSObj))
-+        if (XPCWrappedNative *wn = XPCWrappedNative::Get(aJSObj))
-             return wn->Native();
-         return nullptr;
-     }
- 
-     nsCOMPtr<nsISupports> canonical =
-         do_QueryInterface(mozilla::dom::UnwrapDOMObjectToISupports(aJSObj));
-     return canonical;
- }
- 
- /* nsIXPConnectWrappedNative getWrappedNativeOfNativeObject (in JSContextPtr aJSContext, in JSObjectPtr aScope, in nsISupports aCOMObj, in nsIIDRef aIID); */
- NS_IMETHODIMP
- nsXPConnect::GetWrappedNativeOfNativeObject(JSContext * aJSContext,
-                                             JSObject * aScopeArg,
--                                            nsISupports* aCOMObj,
-+                                            nsISupports *aCOMObj,
-                                             const nsIID & aIID,
--                                            nsIXPConnectWrappedNative** _retval)
-+                                            nsIXPConnectWrappedNative **_retval)
- {
-     MOZ_ASSERT(aJSContext, "bad param");
-     MOZ_ASSERT(aScopeArg, "bad param");
-     MOZ_ASSERT(aCOMObj, "bad param");
-     MOZ_ASSERT(_retval, "bad param");
- 
-     *_retval = nullptr;
- 
-@@ -697,97 +698,97 @@ nsXPConnect::GetWrappedNativeOfNativeObj
- /* void reparentWrappedNativeIfFound (in JSContextPtr aJSContext,
-  *                                    in JSObjectPtr aScope,
-  *                                    in JSObjectPtr aNewParent,
-  *                                    in nsISupports aCOMObj); */
- NS_IMETHODIMP
- nsXPConnect::ReparentWrappedNativeIfFound(JSContext * aJSContext,
-                                           JSObject * aScopeArg,
-                                           JSObject * aNewParentArg,
--                                          nsISupports* aCOMObj)
-+                                          nsISupports *aCOMObj)
- {
-     RootedObject aScope(aJSContext, aScopeArg);
-     RootedObject aNewParent(aJSContext, aNewParentArg);
- 
-     XPCWrappedNativeScope* scope = GetObjectScope(aScope);
-     XPCWrappedNativeScope* scope2 = GetObjectScope(aNewParent);
-     if (!scope || !scope2)
-         return UnexpectedFailure(NS_ERROR_FAILURE);
- 
-     RootedObject newParent(aJSContext, aNewParent);
-     return XPCWrappedNative::
-         ReparentWrapperIfFound(scope, scope2, newParent, aCOMObj);
- }
- 
- static PLDHashOperator
--MoveableWrapperFinder(PLDHashTable* table, PLDHashEntryHdr* hdr,
--                      uint32_t number, void* arg)
-+MoveableWrapperFinder(PLDHashTable *table, PLDHashEntryHdr *hdr,
-+                      uint32_t number, void *arg)
- {
--    nsTArray<nsRefPtr<XPCWrappedNative> >* array =
--        static_cast<nsTArray<nsRefPtr<XPCWrappedNative> >*>(arg);
--    XPCWrappedNative* wn = ((Native2WrappedNativeMap::Entry*)hdr)->value;
-+    nsTArray<nsRefPtr<XPCWrappedNative> > *array =
-+        static_cast<nsTArray<nsRefPtr<XPCWrappedNative> > *>(arg);
-+    XPCWrappedNative *wn = ((Native2WrappedNativeMap::Entry*)hdr)->value;
- 
-     // If a wrapper is expired, then there are no references to it from JS, so
-     // we don't have to move it.
-     if (!wn->IsWrapperExpired())
-         array->AppendElement(wn);
-     return PL_DHASH_NEXT;
- }
- 
- /* void rescueOrphansInScope(in JSContextPtr aJSContext, in JSObjectPtr  aScope); */
- NS_IMETHODIMP
--nsXPConnect::RescueOrphansInScope(JSContext* aJSContext, JSObject* aScopeArg)
-+nsXPConnect::RescueOrphansInScope(JSContext *aJSContext, JSObject *aScopeArg)
- {
-     RootedObject aScope(aJSContext, aScopeArg);
- 
--    XPCWrappedNativeScope* scope = GetObjectScope(aScope);
-+    XPCWrappedNativeScope *scope = GetObjectScope(aScope);
-     if (!scope)
-         return UnexpectedFailure(NS_ERROR_FAILURE);
- 
-     // First, look through the old scope and find all of the wrappers that we
-     // might need to rescue.
-     nsTArray<nsRefPtr<XPCWrappedNative> > wrappersToMove;
- 
--    Native2WrappedNativeMap* map = scope->GetWrappedNativeMap();
-+    Native2WrappedNativeMap *map = scope->GetWrappedNativeMap();
-     wrappersToMove.SetCapacity(map->Count());
-     map->Enumerate(MoveableWrapperFinder, &wrappersToMove);
- 
-     // Now that we have the wrappers, reparent them to the new scope.
-     for (uint32_t i = 0, stop = wrappersToMove.Length(); i < stop; ++i) {
-         nsresult rv = wrappersToMove[i]->RescueOrphans();
-         NS_ENSURE_SUCCESS(rv, rv);
-     }
- 
-     return NS_OK;
- }
- 
- /* void setDefaultSecurityManager (in nsIXPCSecurityManager aManager); */
- NS_IMETHODIMP
--nsXPConnect::SetDefaultSecurityManager(nsIXPCSecurityManager* aManager)
-+nsXPConnect::SetDefaultSecurityManager(nsIXPCSecurityManager *aManager)
- {
-     mDefaultSecurityManager = aManager;
- 
-     nsCOMPtr<nsIScriptSecurityManager> ssm =
-         do_QueryInterface(mDefaultSecurityManager);
- 
-     // Remember the result of the above QI for fast access to the
-     // script securityt manager.
-     gScriptSecurityManager = ssm;
- 
-     return NS_OK;
- }
- 
- /* nsIStackFrame createStackFrameLocation (in uint32_t aLanguage, in string aFilename, in string aFunctionName, in int32_t aLineNumber, in nsIStackFrame aCaller); */
- NS_IMETHODIMP
- nsXPConnect::CreateStackFrameLocation(uint32_t aLanguage,
--                                      const char* aFilename,
--                                      const char* aFunctionName,
-+                                      const char *aFilename,
-+                                      const char *aFunctionName,
-                                       int32_t aLineNumber,
--                                      nsIStackFrame* aCaller,
--                                      nsIStackFrame** _retval)
-+                                      nsIStackFrame *aCaller,
-+                                      nsIStackFrame **_retval)
- {
-     MOZ_ASSERT(_retval, "bad param");
- 
-     nsCOMPtr<nsIStackFrame> stackFrame =
-         exceptions::CreateStackFrameLocation(aLanguage,
-                                              aFilename,
-                                              aFunctionName,
-                                              aLineNumber,
-@@ -816,27 +817,27 @@ nsXPConnect::GetCurrentNativeCallContext
- 
-     *aCurrentNativeCallContext = XPCJSRuntime::Get()->GetCallContext();
-     return NS_OK;
- }
- 
- /* void setFunctionThisTranslator (in nsIIDRef aIID, in nsIXPCFunctionThisTranslator aTranslator); */
- NS_IMETHODIMP
- nsXPConnect::SetFunctionThisTranslator(const nsIID & aIID,
--                                       nsIXPCFunctionThisTranslator* aTranslator)
-+                                       nsIXPCFunctionThisTranslator *aTranslator)
- {
-     XPCJSRuntime* rt = GetRuntime();
-     IID2ThisTranslatorMap* map = rt->GetThisTranslatorMap();
-     map->Add(aIID, aTranslator);
-     return NS_OK;
- }
- 
- NS_IMETHODIMP
--nsXPConnect::CreateSandbox(JSContext* cx, nsIPrincipal* principal,
--                           nsIXPConnectJSObjectHolder** _retval)
-+nsXPConnect::CreateSandbox(JSContext *cx, nsIPrincipal *principal,
-+                           nsIXPConnectJSObjectHolder **_retval)
- {
-     *_retval = nullptr;
- 
-     RootedValue rval(cx);
-     SandboxOptions options;
-     nsresult rv = CreateSandboxObject(cx, &rval, principal, options);
-     MOZ_ASSERT(NS_FAILED(rv) || !JSVAL_IS_PRIMITIVE(rval),
-                "Bad return value from xpc_CreateSandboxObject()!");
-@@ -847,18 +848,18 @@ nsXPConnect::CreateSandbox(JSContext* cx
- 
-         NS_ADDREF(*_retval);
-     }
- 
-     return rv;
- }
- 
- NS_IMETHODIMP
--nsXPConnect::EvalInSandboxObject(const nsAString& source, const char* filename,
--                                 JSContext* cx, JSObject* sandboxArg,
-+nsXPConnect::EvalInSandboxObject(const nsAString& source, const char *filename,
-+                                 JSContext *cx, JSObject *sandboxArg,
-                                  bool returnStringOnly, MutableHandleValue rval)
- {
-     if (!sandboxArg)
-         return NS_ERROR_INVALID_ARG;
- 
-     RootedObject sandbox(cx, sandboxArg);
-     nsCString filenameStr;
-     if (filename) {
-@@ -869,18 +870,18 @@ nsXPConnect::EvalInSandboxObject(const n
-     return EvalInSandbox(cx, sandbox, source, filenameStr, 1,
-                          JSVERSION_DEFAULT, returnStringOnly, rval);
- }
- 
- /* nsIXPConnectJSObjectHolder getWrappedNativePrototype (in JSContextPtr aJSContext, in JSObjectPtr aScope, in nsIClassInfo aClassInfo); */
- NS_IMETHODIMP
- nsXPConnect::GetWrappedNativePrototype(JSContext * aJSContext,
-                                        JSObject * aScopeArg,
--                                       nsIClassInfo* aClassInfo,
--                                       nsIXPConnectJSObjectHolder** _retval)
-+                                       nsIClassInfo *aClassInfo,
-+                                       nsIXPConnectJSObjectHolder **_retval)
- {
-     RootedObject aScope(aJSContext, aScopeArg);
-     JSAutoCompartment ac(aJSContext, aScope);
- 
-     XPCWrappedNativeScope* scope = GetObjectScope(aScope);
-     if (!scope)
-         return UnexpectedFailure(NS_ERROR_FAILURE);
- 
-@@ -922,17 +923,17 @@ nsXPConnect::DebugDump(int16_t depth)
-         XPCWrappedNativeScope::DebugDumpAllScopes(depth);
-     XPC_LOG_OUTDENT();
- #endif
-     return NS_OK;
- }
- 
- /* void debugDumpObject (in nsISupports aCOMObj, in short depth); */
- NS_IMETHODIMP
--nsXPConnect::DebugDumpObject(nsISupports* p, int16_t depth)
-+nsXPConnect::DebugDumpObject(nsISupports *p, int16_t depth)
- {
- #ifdef DEBUG
-     if (!depth)
-         return NS_OK;
-     if (!p) {
-         XPC_LOG_ALWAYS(("*** Cound not dump object with NULL address"));
-         return NS_OK;
-     }
-@@ -994,17 +995,17 @@ nsXPConnect::DebugPrintJSStack(bool show
-     else
-         return xpc_PrintJSStack(cx, showArgs, showLocals, showThisProps);
- 
-     return nullptr;
- }
- 
- /* void debugDumpEvalInJSStackFrame (in uint32_t aFrameNumber, in string aSourceText); */
- NS_IMETHODIMP
--nsXPConnect::DebugDumpEvalInJSStackFrame(uint32_t aFrameNumber, const char* aSourceText)
-+nsXPConnect::DebugDumpEvalInJSStackFrame(uint32_t aFrameNumber, const char *aSourceText)
- {
-     JSContext* cx = GetCurrentJSContext();
-     if (!cx)
-         printf("there is no JSContext on the nsIThreadJSContextStack!\n");
-     else
-         xpc_DumpEvalInJSStackFrame(cx, aFrameNumber, aSourceText);
- 
-     return NS_OK;
-@@ -1043,32 +1044,32 @@ nsXPConnect::JSToVariant(JSContext* ctx,
-     variant.forget(_retval);
-     if (!(*_retval))
-         return NS_ERROR_FAILURE;
- 
-     return NS_OK;
- }
- 
- NS_IMETHODIMP
--nsXPConnect::OnProcessNextEvent(nsIThreadInternal* aThread, bool aMayWait,
-+nsXPConnect::OnProcessNextEvent(nsIThreadInternal *aThread, bool aMayWait,
-                                 uint32_t aRecursionDepth)
- {
-     // Record this event.
-     mEventDepth++;
- 
-     // Push a null JSContext so that we don't see any script during
-     // event processing.
-     MOZ_ASSERT(NS_IsMainThread());
-     bool ok = PushJSContextNoScriptContext(nullptr);
-     NS_ENSURE_TRUE(ok, NS_ERROR_FAILURE);
-     return NS_OK;
- }
- 
- NS_IMETHODIMP
--nsXPConnect::AfterProcessNextEvent(nsIThreadInternal* aThread,
-+nsXPConnect::AfterProcessNextEvent(nsIThreadInternal *aThread,
-                                    uint32_t aRecursionDepth,
-                                    bool aEventWasProcessed)
- {
-     // Watch out for unpaired events during observer registration.
-     if (MOZ_UNLIKELY(mEventDepth == 0))
-         return NS_OK;
-     mEventDepth--;
- 
-@@ -1105,22 +1106,22 @@ nsXPConnect::SetReportAllJSExceptions(bo
-     if (gReportAllJSExceptions != 1)
-         gReportAllJSExceptions = newval ? 2 : 0;
- 
-     return NS_OK;
- }
- 
- /* attribute JSRuntime runtime; */
- NS_IMETHODIMP
--nsXPConnect::GetRuntime(JSRuntime** runtime)
-+nsXPConnect::GetRuntime(JSRuntime **runtime)
- {
-     if (!runtime)
-         return NS_ERROR_NULL_POINTER;
- 
--    JSRuntime* rt = GetRuntime()->Runtime();
-+    JSRuntime *rt = GetRuntime()->Runtime();
-     JS_AbortIfWrongThread(rt);
-     *runtime = rt;
-     return NS_OK;
- }
- 
- /* [noscript, notxpcom] void registerGCCallback(in xpcGCCallback func); */
- NS_IMETHODIMP_(void)
- nsXPConnect::RegisterGCCallback(xpcGCCallback func)
-@@ -1146,17 +1147,17 @@ nsXPConnect::RegisterContextCallback(xpc
- NS_IMETHODIMP_(void)
- nsXPConnect::UnregisterContextCallback(xpcContextCallback func)
- {
-     mRuntime->RemoveContextCallback(func);
- }
- 
- #ifdef MOZ_JSDEBUGGER
- void
--nsXPConnect::CheckForDebugMode(JSRuntime* rt)
-+nsXPConnect::CheckForDebugMode(JSRuntime *rt)
- {
-     if (gDebugMode == gDesiredDebugMode) {
-         return;
-     }
- 
-     // This can happen if a Worker is running, but we don't have the ability to
-     // debug workers right now, so just return.
-     if (!NS_IsMainThread())
-@@ -1192,17 +1193,17 @@ fail:
-      * debugger callbacks from having any effect.
-      */
-     if (gDesiredDebugMode)
-         JS_SetRuntimeDebugMode(rt, false);
-     gDesiredDebugMode = gDebugMode = false;
- }
- #else //MOZ_JSDEBUGGER not defined
- void
--nsXPConnect::CheckForDebugMode(JSRuntime* rt)
-+nsXPConnect::CheckForDebugMode(JSRuntime *rt)
- {
-     gDesiredDebugMode = gDebugMode = false;
- }
- #endif //#ifdef MOZ_JSDEBUGGER
- 
- 
- void
- xpc_ActivateDebugMode()
-@@ -1231,134 +1232,148 @@ JSContext*
- nsXPConnect::GetSafeJSContext()
- {
-     return GetRuntime()->GetJSContextStack()->GetSafeJSContext();
- }
- 
- namespace xpc {
- 
- bool
--PushJSContextNoScriptContext(JSContext* aCx)
-+PushJSContextNoScriptContext(JSContext *aCx)
- {
--    MOZ_ASSERT_IF(aCx, !GetScriptContextFromJSContext(aCx));
-+    //MOZ_ASSERT_IF(aCx, !GetScriptContextFromJSContext(aCx));
-     return XPCJSRuntime::Get()->GetJSContextStack()->Push(aCx);
- }
- 
- void
- PopJSContextNoScriptContext()
- {
-     XPCJSRuntime::Get()->GetJSContextStack()->Pop();
- }
- 
- } // namespace xpc
- 
- nsIPrincipal*
- nsXPConnect::GetPrincipal(JSObject* obj, bool allowShortCircuit) const
- {
-     MOZ_ASSERT(IS_WN_REFLECTOR(obj), "What kind of wrapper is this?");
- 
--    XPCWrappedNative* xpcWrapper = XPCWrappedNative::Get(obj);
-+    XPCWrappedNative *xpcWrapper = XPCWrappedNative::Get(obj);
-     if (xpcWrapper) {
-         if (allowShortCircuit) {
--            nsIPrincipal* result = xpcWrapper->GetObjectPrincipal();
-+            nsIPrincipal *result = xpcWrapper->GetObjectPrincipal();
-             if (result) {
-                 return result;
-             }
-         }
- 
-         // If not, check if it points to an nsIScriptObjectPrincipal
-         nsCOMPtr<nsIScriptObjectPrincipal> objPrin =
-             do_QueryInterface(xpcWrapper->Native());
-         if (objPrin) {
--            nsIPrincipal* result = objPrin->GetPrincipal();
-+            nsIPrincipal *result = objPrin->GetPrincipal();
-             if (result) {
-                 return result;
-             }
-         }
-     }
- 
-     return nullptr;
- }
- 
- NS_IMETHODIMP
--nsXPConnect::HoldObject(JSContext* aJSContext, JSObject* aObjectArg,
--                        nsIXPConnectJSObjectHolder** aHolder)
 +nsXPConnect::Push(JSContext *aJSContext)
 +{
 +  return PushJSContextNoScriptContext(aJSContext) ? NS_OK : NS_ERROR_FAILURE;
@@ -1360,309 +774,67 @@ diff --git a/js/xpconnect/src/nsXPConnect.cpp b/js/xpconnect/src/nsXPConnect.cpp
 +  return NS_OK;
 +}
 +
-+
 +NS_IMETHODIMP
-+nsXPConnect::HoldObject(JSContext *aJSContext, JSObject *aObjectArg,
-+                        nsIXPConnectJSObjectHolder **aHolder)
+ nsXPConnect::OnDispatchedEvent(nsIThreadInternal* aThread)
  {
-     RootedObject aObject(aJSContext, aObjectArg);
-     XPCJSObjectHolder* objHolder = XPCJSObjectHolder::newHolder(aObject);
-     if (!objHolder)
-         return NS_ERROR_OUT_OF_MEMORY;
+     NS_NOTREACHED("Why tell us?");
+     return NS_ERROR_UNEXPECTED;
+ }
  
-     NS_ADDREF(*aHolder = objHolder);
-     return NS_OK;
+ NS_IMETHODIMP
+ nsXPConnect::SetReportAllJSExceptions(bool newval)
+@@ -1084,17 +1098,17 @@ nsXPConnect::GetSafeJSContext()
+     return GetRuntime()->GetJSContextStack()->GetSafeJSContext();
  }
  
  namespace xpc {
  
  bool
--Base64Encode(JSContext* cx, HandleValue val, MutableHandleValue out)
-+Base64Encode(JSContext *cx, HandleValue val, MutableHandleValue out)
+ PushJSContextNoScriptContext(JSContext* aCx)
  {
-     MOZ_ASSERT(cx);
- 
-     JS::RootedValue root(cx, val);
-     xpc_qsACString encodedString(cx, root, &root, false,
-                                  xpc_qsACString::eStringify,
-                                  xpc_qsACString::eStringify);
-     if (!encodedString.IsValid())
-         return false;
- 
-     nsAutoCString result;
-     if (NS_FAILED(mozilla::Base64Encode(encodedString, result))) {
-         JS_ReportError(cx, "Failed to encode base64 data!");
-         return false;
-     }
- 
--    JSString* str = JS_NewStringCopyN(cx, result.get(), result.Length());
-+    JSString *str = JS_NewStringCopyN(cx, result.get(), result.Length());
-     if (!str)
-         return false;
- 
-     out.setString(str);
-     return true;
- }
- 
- bool
--Base64Decode(JSContext* cx, HandleValue val, MutableHandleValue out)
-+Base64Decode(JSContext *cx, HandleValue val, MutableHandleValue out)
- {
-     MOZ_ASSERT(cx);
- 
-     JS::RootedValue root(cx, val);
-     xpc_qsACString encodedString(cx, root, &root, false,
-                                  xpc_qsACString::eStringify,
-                                  xpc_qsACString::eStringify);
-     if (!encodedString.IsValid())
-         return false;
- 
-     nsAutoCString result;
-     if (NS_FAILED(mozilla::Base64Decode(encodedString, result))) {
-         JS_ReportError(cx, "Failed to decode base64 string!");
-         return false;
-     }
- 
--    JSString* str = JS_NewStringCopyN(cx, result.get(), result.Length());
-+    JSString *str = JS_NewStringCopyN(cx, result.get(), result.Length());
-     if (!str)
-         return false;
- 
-     out.setString(str);
-     return true;
+-    MOZ_ASSERT_IF(aCx, !GetScriptContextFromJSContext(aCx));
++    //MOZ_ASSERT_IF(aCx, !GetScriptContextFromJSContext(aCx));
+     return XPCJSRuntime::Get()->GetJSContextStack()->Push(aCx);
  }
  
  void
--SetLocationForGlobal(JSObject* global, const nsACString& location)
-+SetLocationForGlobal(JSObject *global, const nsACString& location)
+ PopJSContextNoScriptContext()
  {
-     MOZ_ASSERT(global);
-     EnsureCompartmentPrivate(global)->SetLocation(location);
+     XPCJSRuntime::Get()->GetJSContextStack()->Pop();
  }
- 
- void
--SetLocationForGlobal(JSObject* global, nsIURI* locationURI)
-+SetLocationForGlobal(JSObject *global, nsIURI *locationURI)
- {
-     MOZ_ASSERT(global);
-     EnsureCompartmentPrivate(global)->SetLocationURI(locationURI);
- }
- 
- } // namespace xpc
- 
- NS_IMETHODIMP
-@@ -1377,31 +1392,31 @@ nsXPConnect::NotifyDidPaint()
-     return NS_OK;
- }
- 
- // Note - We used to have HAS_PRINCIPALS_FLAG = 1 here, so reusing that flag
- // will require bumping the XDR version number.
- static const uint8_t HAS_ORIGIN_PRINCIPALS_FLAG        = 2;
- 
- static nsresult
--WriteScriptOrFunction(nsIObjectOutputStream* stream, JSContext* cx,
--                      JSScript* scriptArg, HandleObject functionObj)
-+WriteScriptOrFunction(nsIObjectOutputStream *stream, JSContext *cx,
-+                      JSScript *scriptArg, HandleObject functionObj)
- {
-     // Exactly one of script or functionObj must be given
-     MOZ_ASSERT(!scriptArg != !functionObj);
- 
-     RootedScript script(cx, scriptArg);
-     if (!script) {
-         RootedFunction fun(cx, JS_GetObjectFunction(functionObj));
-         script.set(JS_GetFunctionScript(cx, fun));
-     }
- 
--    nsIPrincipal* principal =
-+    nsIPrincipal *principal =
-         nsJSPrincipals::get(JS_GetScriptPrincipals(script));
--    nsIPrincipal* originPrincipal =
-+    nsIPrincipal *originPrincipal =
-         nsJSPrincipals::get(JS_GetScriptOriginPrincipals(script));
- 
-     uint8_t flags = 0;
- 
-     // Optimize for the common case when originPrincipals == principals. As
-     // originPrincipals is set to principals when the former is null we can
-     // simply skip the originPrincipals when they are the same as principals.
-     if (originPrincipal && originPrincipal != principal)
-@@ -1426,25 +1441,25 @@ WriteScriptOrFunction(nsIObjectOutputStr
-             data = JS_EncodeScript(cx, script, &size);
-     }
- 
-     if (!data)
-         return NS_ERROR_OUT_OF_MEMORY;
-     MOZ_ASSERT(size);
-     rv = stream->Write32(size);
-     if (NS_SUCCEEDED(rv))
--        rv = stream->WriteBytes(static_cast<char*>(data), size);
-+        rv = stream->WriteBytes(static_cast<char *>(data), size);
-     js_free(data);
- 
-     return rv;
- }
- 
- static nsresult
--ReadScriptOrFunction(nsIObjectInputStream* stream, JSContext* cx,
--                     JSScript** scriptp, JSObject** functionObjp)
-+ReadScriptOrFunction(nsIObjectInputStream *stream, JSContext *cx,
-+                     JSScript **scriptp, JSObject **functionObjp)
- {
-     // Exactly one of script or functionObj must be given
-     MOZ_ASSERT(!scriptp != !functionObjp);
- 
-     uint8_t flags;
-     nsresult rv = stream->Read8(&flags);
-     if (NS_FAILED(rv))
-         return rv;
-@@ -1467,64 +1482,64 @@ ReadScriptOrFunction(nsIObjectInputStrea
- 
-     char* data;
-     rv = stream->ReadBytes(size, &data);
-     if (NS_FAILED(rv))
-         return rv;
- 
-     {
-         if (scriptp) {
--            JSScript* script = JS_DecodeScript(cx, data, size, originPrincipal);
-+            JSScript *script = JS_DecodeScript(cx, data, size, originPrincipal);
-             if (!script)
-                 rv = NS_ERROR_OUT_OF_MEMORY;
-             else
-                 *scriptp = script;
-         } else {
--            JSObject* funobj = JS_DecodeInterpretedFunction(cx, data, size,
-+            JSObject *funobj = JS_DecodeInterpretedFunction(cx, data, size,
-                                                             originPrincipal);
-             if (!funobj)
-                 rv = NS_ERROR_OUT_OF_MEMORY;
-             else
-                 *functionObjp = funobj;
-         }
-     }
- 
-     nsMemory::Free(data);
-     return rv;
- }
- 
- NS_IMETHODIMP
--nsXPConnect::WriteScript(nsIObjectOutputStream* stream, JSContext* cx, JSScript* script)
-+nsXPConnect::WriteScript(nsIObjectOutputStream *stream, JSContext *cx, JSScript *script)
- {
-     return WriteScriptOrFunction(stream, cx, script, NullPtr());
- }
- 
- NS_IMETHODIMP
--nsXPConnect::ReadScript(nsIObjectInputStream* stream, JSContext* cx, JSScript** scriptp)
-+nsXPConnect::ReadScript(nsIObjectInputStream *stream, JSContext *cx, JSScript **scriptp)
- {
-     return ReadScriptOrFunction(stream, cx, scriptp, nullptr);
- }
- 
- NS_IMETHODIMP
--nsXPConnect::WriteFunction(nsIObjectOutputStream* stream, JSContext* cx, JSObject* functionObjArg)
-+nsXPConnect::WriteFunction(nsIObjectOutputStream *stream, JSContext *cx, JSObject *functionObjArg)
- {
-     RootedObject functionObj(cx, functionObjArg);
-     return WriteScriptOrFunction(stream, cx, nullptr, functionObj);
- }
- 
- NS_IMETHODIMP
--nsXPConnect::ReadFunction(nsIObjectInputStream* stream, JSContext* cx, JSObject** functionObjp)
-+nsXPConnect::ReadFunction(nsIObjectInputStream *stream, JSContext *cx, JSObject **functionObjp)
- {
-     return ReadScriptOrFunction(stream, cx, nullptr, functionObjp);
- }
- 
- NS_IMETHODIMP
--nsXPConnect::MarkErrorUnreported(JSContext* cx)
-+nsXPConnect::MarkErrorUnreported(JSContext *cx)
- {
--    XPCContext* xpcc = XPCContext::GetXPCContext(cx);
-+    XPCContext *xpcc = XPCContext::GetXPCContext(cx);
-     xpcc->MarkErrorUnreported();
-     return NS_OK;
- }
- 
- /* These are here to be callable from a debugger */
- extern "C" {
- JS_EXPORT_API(void) DumpJSStack()
- {
-@@ -1574,37 +1589,37 @@ JS_EXPORT_API(void) DumpCompleteHeap()
-     nsJSContext::CycleCollectNow(alltracesListener);
- }
- 
- } // extern "C"
- 
- namespace xpc {
- 
- bool
--Atob(JSContext* cx, unsigned argc, Value* vp)
-+Atob(JSContext *cx, unsigned argc, Value *vp)
- {
-     CallArgs args = CallArgsFromVp(argc, vp);
-     if (!args.length())
-         return true;
- 
-     return xpc::Base64Decode(cx, args[0], args.rval());
- }
- 
- bool
--Btoa(JSContext* cx, unsigned argc, Value* vp)
-+Btoa(JSContext *cx, unsigned argc, Value *vp)
- {
-     CallArgs args = CallArgsFromVp(argc, vp);
-     if (!args.length())
-         return true;
- 
-     return xpc::Base64Encode(cx, args[0], args.rval());
- }
- 
- bool
--IsXrayWrapper(JSObject* obj)
-+IsXrayWrapper(JSObject *obj)
- {
-     return WrapperFactory::IsXrayWrapper(obj);
- }
- 
- } // namespace xpc
- 
- namespace mozilla {
- namespace dom {
 diff --git a/js/xpconnect/src/xpcprivate.h b/js/xpconnect/src/xpcprivate.h
 --- a/js/xpconnect/src/xpcprivate.h
 +++ b/js/xpconnect/src/xpcprivate.h
-@@ -104,16 +104,17 @@
+@@ -107,16 +107,17 @@
+ #include "nsIClassInfoImpl.h"
+ #include "nsIComponentManager.h"
  #include "nsIComponentRegistrar.h"
  #include "nsISupportsPrimitives.h"
  #include "nsMemory.h"
  #include "nsIXPConnect.h"
  #include "nsIInterfaceInfo.h"
  #include "nsIXPCScriptable.h"
- #include "nsIXPCSecurityManager.h"
- #include "nsIJSRuntimeService.h"
 +#include "nsIJSContextStack.h"
+ #include "nsIJSRuntimeService.h"
+ #include "nsIObserver.h"
  #include "nsWeakReference.h"
  #include "nsCOMPtr.h"
  #include "nsXPTCUtils.h"
  #include "xptinfo.h"
  #include "XPCForwards.h"
  #include "XPCLog.h"
- #include "xpccomponents.h"
- #include "xpcexception.h"
-@@ -246,25 +247,27 @@ inline bool
- AddToCCKind(JSGCTraceKind kind)
- {
-     return kind == JSTRACE_OBJECT || kind == JSTRACE_SCRIPT;
- }
+@@ -241,24 +242,26 @@ static inline bool IS_WN_REFLECTOR(JSObj
+ // We have a general rule internally that getters that return addref'd interface
+ // pointer generally do so using an 'out' parm. When interface pointers are
+ // returned as function call result values they are not addref'd. Exceptions
+ // to this rule are noted explicitly.
  
- class nsXPConnect : public nsIXPConnect,
-                     public nsIThreadObserver,
-                     public nsSupportsWeakReference,
--                    public nsIJSRuntimeService
-+                    public nsIJSRuntimeService,
-+                    public nsIJSContextStack
+ class nsXPConnect final : public nsIXPConnect,
+                           public nsIThreadObserver,
+                           public nsSupportsWeakReference,
+-                          public nsIJSRuntimeService
++                          public nsIJSRuntimeService,
++                          public nsIJSContextStack
  {
  public:
      // all the interface method declarations...
@@ -1670,9 +842,8 @@ diff --git a/js/xpconnect/src/xpcprivate.h b/js/xpconnect/src/xpcprivate.h
      NS_DECL_NSIXPCONNECT
      NS_DECL_NSITHREADOBSERVER
      NS_DECL_NSIJSRUNTIMESERVICE
--
 +    NS_DECL_NSIJSCONTEXTSTACK
-+    
+ 
      // non-interface implementation
  public:
      // These get non-addref'd pointers
@@ -1680,186 +851,59 @@ diff --git a/js/xpconnect/src/xpcprivate.h b/js/xpconnect/src/xpcprivate.h
      {
          // Do a release-mode assert that we're not doing anything significant in
          // XPConnect off the main thread. If you're an extension developer hitting
-         // this, you need to change your code. See bug 716167.
-diff --git a/layout/base/nsPresShell.cpp b/layout/base/nsPresShell.cpp
---- a/layout/base/nsPresShell.cpp
-+++ b/layout/base/nsPresShell.cpp
-@@ -10106,29 +10106,30 @@ PresShell::SetIsActive(bool aIsActive)
-   //
-   // PresShell::SetIsActive() is the first C++ entry point at which we
-   // (i) know that our parent process wants our content to be hidden;
-   // and (ii) has easy access to the TabChild.  So we use this
-   // notification to signal the TabChild to drop its layer tree and
-   // stop trying to repaint.
-   if (TabChild* tab = TabChild::GetFrom(this)) {
-     if (aIsActive) {
--      tab->MakeVisible();
--      if (!mIsZombie) {
--        if (nsIFrame* root = mFrameConstructor->GetRootFrame()) {
--          FrameLayerBuilder::InvalidateAllLayersForFrame(
--            nsLayoutUtils::GetDisplayRootFrame(root));
--          root->SchedulePaint();
--        }
--      }
-+      tab->MakeVisible();      
-     } else {
-       tab->MakeHidden();
-     }
+diff --git a/netwerk/base/ProxyAutoConfig.cpp b/netwerk/base/ProxyAutoConfig.cpp
+--- a/netwerk/base/ProxyAutoConfig.cpp
++++ b/netwerk/base/ProxyAutoConfig.cpp
+@@ -411,17 +411,17 @@ bool PACDnsResolve(JSContext *cx, unsign
+ {
+   JS::CallArgs args = CallArgsFromVp(argc, vp);
+ 
+   if (NS_IsMainThread()) {
+     NS_WARNING("DNS Resolution From PAC on Main Thread. How did that happen?");
+     return false;
    }
  
-+  if (aIsActive && !mIsZombie) {
-+    if (nsIFrame* root = mFrameConstructor->GetRootFrame()) {
-+      FrameLayerBuilder::InvalidateAllLayersForFrame(
-+        nsLayoutUtils::GetDisplayRootFrame(root));
-+      root->SchedulePaint();
-+    }
-+  }
-+
-   return rv;
+-  if (!args.requireAtLeast(cx, "dnsResolve", 1))
++  if (!JS::JS_RequireArgsAtLeast(cx, args, "dnsResolve", 1))
+     return false;
+ 
+   JS::Rooted<JSString*> arg1(cx, JS::ToString(cx, args[0]));
+   if (!arg1)
+     return false;
+ 
+   nsAutoJSString hostName;
+   nsAutoCString dottedDecimal;
+@@ -463,17 +463,17 @@ bool PACMyIpAddress(JSContext *cx, unsig
  }
  
- /*
-  * Determines the current image locking state. Called when one of the
-  * dependent factors changes.
-  */
- nsresult
-diff --git a/media/libvpx/Makefile.in b/media/libvpx/Makefile.in
---- a/media/libvpx/Makefile.in
-+++ b/media/libvpx/Makefile.in
-@@ -89,24 +89,32 @@ EXTRA_MDDEPEND_FILES = vp8_asm_enc_offse
+ // proxyAlert(msg) javascript implementation
+ static
+ bool PACProxyAlert(JSContext *cx, unsigned int argc, JS::Value *vp)
+ {
+   JS::CallArgs args = CallArgsFromVp(argc, vp);
  
- include $(topsrcdir)/config/rules.mk
+-  if (!args.requireAtLeast(cx, "alert", 1))
++  if (!JS::JS_RequireArgsAtLeast(cx, args, "alert", 1))
+     return false;
  
- quantize_sse4.$(OBJ_SUFFIX): vp8_asm_enc_offsets.asm
- quantize_ssse3.$(OBJ_SUFFIX): vp8_asm_enc_offsets.asm
+   JS::Rooted<JSString*> arg1(cx, JS::ToString(cx, args[0]));
+   if (!arg1)
+     return false;
  
- ifdef VPX_NEED_OBJ_INT_EXTRACT
- 
-+ifeq (WINNT_,$(OS_TARGET)_$(GNU_CC))
-+vpx_scale_asm_offsets.$(OBJ_SUFFIX): CFLAGS += -GL- 
-+endif
-+
- vpx_scale_asm_offsets.asm: vpx_scale_asm_offsets.$(OBJ_SUFFIX) $(HOST_PROGRAM)
- 	./$(HOST_PROGRAM) $(VPX_OIE_FORMAT) $< \
- 	    $(if $(VPX_AS_CONVERSION),| $(VPX_AS_CONVERSION)) > $@
- 
- # Filter out this object, because we don't want to link against it.
- # It was generated solely so it could be parsed by obj_int_extract.
- OBJS := $(filter-out vpx_scale_asm_offsets.$(OBJ_SUFFIX),$(OBJS))
- 
-+ifeq (WINNT_,$(OS_TARGET)_$(GNU_CC))
-+vp8_asm_enc_offsets.$(OBJ_SUFFIX): CFLAGS += -GL-
-+endif
-+
- vp8_asm_enc_offsets.asm: vp8_asm_enc_offsets.$(OBJ_SUFFIX) $(HOST_PROGRAM)
- 	./$(HOST_PROGRAM) $(VPX_OIE_FORMAT) $< \
- 	    $(if $(VPX_AS_CONVERSION),| $(VPX_AS_CONVERSION)) > $@
- 
- # Filter out this object, because we don't want to link against it.
- # It was generated solely so it could be parsed by obj_int_extract.
- OBJS := $(filter-out vp8_asm_enc_offsets.$(OBJ_SUFFIX),$(OBJS))
- 
-diff --git a/media/libvpx/moz.build b/media/libvpx/moz.build
---- a/media/libvpx/moz.build
-+++ b/media/libvpx/moz.build
-@@ -1,16 +1,16 @@
- # -*- Mode: python; c-basic-offset: 4; indent-tabs-mode: nil; tab-width: 40 -*-
- # vim: set filetype=python:
- # This Source Code Form is subject to the terms of the Mozilla Public
- # License, v. 2.0. If a copy of the MPL was not distributed with this
- # file, You can obtain one at http://mozilla.org/MPL/2.0/.
- 
- include('sources.mozbuild')
--
-+NO_PGO = True
- EXPORTS.vpx += files['EXPORTS']
- 
- if CONFIG['VPX_NEED_OBJ_INT_EXTRACT']:
-     HOST_SOURCES += [
-         'build/make/obj_int_extract.c',
-     ]
- 
-     HOST_PROGRAM = 'host_obj_int_extract'
-@@ -25,19 +25,19 @@ if CONFIG['MOZ_VPX_ERROR_CONCEALMENT']:
-     SOURCES += files['ERROR_CONCEALMENT']
- 
- if CONFIG['VPX_X86_ASM'] and CONFIG['OS_TARGET'] == 'WINNT':
-     offset_sources = [
-         'vp8/encoder/vp8_asm_enc_offsets.c',
-         'vpx_scale/vpx_scale_asm_offsets.c',
-     ]
-     SOURCES += offset_sources
--    if CONFIG['_MSC_VER']:
--        for s in offset_sources:
--            SOURCES[s].no_pgo = True
-+     #if CONFIG['_MSC_VER']:
-+      #  for s in offset_sources:
-+       #     SOURCES[s].no_pgo = True
- 
- if CONFIG['VPX_X86_ASM']:
-     SOURCES += files['X86_ASM']
- 
-     if '64' in CONFIG['OS_TEST']:
-         SOURCES += files['X86-64_ASM']
- 
-     # AVX2 only supported on
-diff --git a/media/webrtc/moz.build b/media/webrtc/moz.build
---- a/media/webrtc/moz.build
-+++ b/media/webrtc/moz.build
-@@ -1,16 +1,18 @@
- # -*- Mode: python; c-basic-offset: 4; indent-tabs-mode: nil; tab-width: 40 -*-
- # vim: set filetype=python:
- # This Source Code Form is subject to the terms of the Mozilla Public
- # License, v. 2.0. If a copy of the MPL was not distributed with this
- # file, You can obtain one at http://mozilla.org/MPL/2.0/.
- 
- include('/build/gyp.mozbuild')
- 
-+NO_PGO = True
-+
- webrtc_non_unified_sources = [
-     'trunk/webrtc/common_audio/vad/vad_core.c',                                  # Because of name clash in the kInitCheck variable
-     'trunk/webrtc/common_audio/vad/webrtc_vad.c',                                # Because of name clash in the kInitCheck variable
-     'trunk/webrtc/modules/audio_coding/codecs/g722/g722_decode.c',               # Because of name clash in the saturate function
-     'trunk/webrtc/modules/audio_coding/codecs/g722/g722_encode.c',               # Because of name clash in the saturate function
-     'trunk/webrtc/modules/audio_coding/codecs/isac/fix/source/pitch_filter.c',   # Because of name clash in the kDampFilter variable
-     'trunk/webrtc/modules/audio_coding/codecs/isac/fix/source/pitch_filter_c.c', # Because of name clash in the kDampFilter variable
-     'trunk/webrtc/modules/audio_coding/neteq4/audio_vector.cc',                  # Because of explicit template specializations
-diff --git a/python/mozbuild/mozbuild/frontend/emitter.py b/python/mozbuild/mozbuild/frontend/emitter.py
---- a/python/mozbuild/mozbuild/frontend/emitter.py
-+++ b/python/mozbuild/mozbuild/frontend/emitter.py
-@@ -238,16 +238,19 @@ class TreeMetadataEmitter(LoggingMixin):
-             'NO_DIST_INSTALL',
-             'OS_LIBS',
-             'RCFILE',
-             'RESFILE',
-             'RCINCLUDE',
-             'DEFFILE',
-             'SDK_LIBRARY',
-             'WIN32_EXE_LDFLAGS',
-+            'SOURCES_NOPCH',
-+            'PCHHDR',
-+            'PCHSRC',
-         ]
-         for v in varlist:
-             if v in sandbox and sandbox[v]:
-                 passthru.variables[v] = sandbox[v]
- 
-         for v in ['CFLAGS', 'CXXFLAGS', 'CMFLAGS', 'CMMFLAGS', 'LDFLAGS']:
-             if v in sandbox and sandbox[v]:
-                 passthru.variables['MOZBUILD_' + v] = sandbox[v]
-diff --git a/python/mozbuild/mozbuild/frontend/sandbox_symbols.py b/python/mozbuild/mozbuild/frontend/sandbox_symbols.py
---- a/python/mozbuild/mozbuild/frontend/sandbox_symbols.py
-+++ b/python/mozbuild/mozbuild/frontend/sandbox_symbols.py
-@@ -85,16 +85,28 @@ VARIABLES = {
+   nsAutoJSString message;
+   if (!message.init(cx, arg1))
+diff --git a/python/mozbuild/mozbuild/frontend/context.py b/python/mozbuild/mozbuild/frontend/context.py
+--- a/python/mozbuild/mozbuild/frontend/context.py
++++ b/python/mozbuild/mozbuild/frontend/context.py
+@@ -408,16 +408,29 @@ VARIABLES = {
          """, 'export'),
  
-     'SOURCES': (StrictOrderingOnAppendListWithFlagsFactory({'no_pgo': bool, 'flags': list}), list,
+     'SOURCES': (StrictOrderingOnAppendListWithFlagsFactory({'no_pgo': bool, 'flags': List}), list,
          """Source code files.
  
          This variable contains a list of source code files to compile.
          Accepts assembler, C, C++, Objective C/C++.
-         """, 'compile'),
+         """, None),
 +        
 +     'SOURCES_NOPCH': (StrictOrderingOnAppendList, list,
 +        """Source code files.
@@ -1868,18 +912,42 @@ diff --git a/python/mozbuild/mozbuild/frontend/sandbox_symbols.py b/python/mozbu
 +        the precompiled header.
 +        """, 'compile'),        
 +        
-+      'PCHHDR': (unicode, unicode,
++     'PCHHDR': (unicode, unicode,
 +        "", None),   
-+      'PCHSRC': (unicode, unicode,
++     'PCHSRC': (unicode, unicode,
 +        "", None),      
++         
  
      'GENERATED_SOURCES': (StrictOrderingOnAppendList, list,
          """Generated source code files.
  
          This variable contains a list of generated source code files to
          compile. Accepts assembler, C, C++, Objective C/C++.
-         """, 'compile'),
+         """, None),
  
+diff --git a/python/mozbuild/mozbuild/frontend/emitter.py b/python/mozbuild/mozbuild/frontend/emitter.py
+--- a/python/mozbuild/mozbuild/frontend/emitter.py
++++ b/python/mozbuild/mozbuild/frontend/emitter.py
+@@ -416,16 +416,19 @@ class TreeMetadataEmitter(LoggingMixin):
+             'NO_DIST_INSTALL',
+             'PYTHON_UNIT_TESTS',
+             'RCFILE',
+             'RESFILE',
+             'RCINCLUDE',
+             'DEFFILE',
+             'WIN32_EXE_LDFLAGS',
+             'LD_VERSION_SCRIPT',
++            'SOURCES_NOPCH',
++            'PCHHDR',
++            'PCHSRC',
+         ]
+         for v in varlist:
+             if v in context and context[v]:
+                 passthru.variables[v] = context[v]
+ 
+         if context.config.substs.get('OS_TARGET') == 'WINNT' and \
+                 context['DELAYLOAD_DLLS']:
+             context['LDFLAGS'].extend([('-DELAYLOAD:%s' % dll)
 diff --git a/security/nss/coreconf/WIN32.mk b/security/nss/coreconf/WIN32.mk
 --- a/security/nss/coreconf/WIN32.mk
 +++ b/security/nss/coreconf/WIN32.mk
@@ -1893,10 +961,10 @@ diff --git a/security/nss/coreconf/WIN32.mk b/security/nss/coreconf/WIN32.mk
      ifdef BUILD_OPT
  	ifeq (11,$(ALLOW_OPT_CODE_SIZE)$(OPT_CODE_SIZE))
 -		OPTIMIZER += -Os
-+		OPTIMIZER += -Os -GFL
++		OPTIMIZER += -Os -GFL -Gw
  	else
 -		OPTIMIZER += -O2
-+		OPTIMIZER += -O2 -GFL
++		OPTIMIZER += -O2 -GFL -Gw
  	endif
  	DEFINES    += -UDEBUG -U_DEBUG -DNDEBUG
      else
@@ -1940,7 +1008,7 @@ diff --git a/security/nss/lib/freebl/Makefile b/security/nss/lib/freebl/Makefile
      DEFINES += -DMP_ASSEMBLY_DIV_2DX1D -DMP_USE_UINT_DIGIT -DMP_NO_MP_WORD
      ifdef BUILD_OPT
 -	OPTIMIZER += -Ox  # maximum optimization for freebl
-+	OPTIMIZER += -Ox -GFL # maximum optimization for freebl
++	OPTIMIZER += -Ox -GFL  # maximum optimization for freebl
      endif
      # The Intel AES assembly code requires Visual C++ 2010.
      # if $(_MSC_VER) >= 1600 (Visual C++ 2010)
@@ -1959,7 +1027,7 @@ diff --git a/security/nss/lib/freebl/Makefile b/security/nss/lib/freebl/Makefile
  # MSVC
      ifdef BUILD_OPT
 -	OPTIMIZER += -Ox  # maximum optimization for freebl
-+	OPTIMIZER += -Ox -GFL # maximum optimization for freebl
++	OPTIMIZER += -Ox -GFL  # maximum optimization for freebl
      endif
      ASFILES  = arcfour-amd64-masm.asm mpi_amd64_masm.asm mp_comba_amd64_masm.asm
      DEFINES += -DNSS_BEVAND_ARCFOUR -DMPI_AMD64 -DMP_ASSEMBLY_MULTIPLY
@@ -1971,1255 +1039,56 @@ diff --git a/security/nss/lib/freebl/Makefile b/security/nss/lib/freebl/Makefile
 diff --git a/security/nss/lib/freebl/mpi/Makefile.win b/security/nss/lib/freebl/mpi/Makefile.win
 --- a/security/nss/lib/freebl/mpi/Makefile.win
 +++ b/security/nss/lib/freebl/mpi/Makefile.win
-@@ -43,17 +43,17 @@ else
+@@ -30,17 +30,17 @@ endif
+ ##
+ ## Conditional compilation options are no longer here; see
+ ## the file 'mpi-config.h' instead.
+ ##
+ MPICMN = -I. -DMP_API_COMPATIBLE -DMP_IOFUNC
+ 
+ ifeq ($(CPU_ARCH),x86_64)
+ AS_SRCS = mpi_x86_64.asm
+-CFLAGS = -O2 -Z7 -MD -W3 -nologo -DXP_PC -UDEBUG -U_DEBUG -DNDEBUG \
++CFLAGS = -O2 -GFL -Z7 -MD -W3 -nologo -DXP_PC -UDEBUG -U_DEBUG -DNDEBUG \
+  -DWIN32 -D_WIN64 -D_AMD64_ -D_M_AMD64 -D_WINDOWS -DWIN95 $(MPICMN)
+ ASFLAGS = -Cp -Sn -Zi -I.
+ else
+ #NT
  AS_SRCS = mpi_x86.asm
  MPICMN += -DMP_ASSEMBLY_MULTIPLY -DMP_ASSEMBLY_SQUARE -DMP_ASSEMBLY_DIV_2DX1D
  #CFLAGS= -Od -Z7 -MD -W3 -nologo -D_X86_ -DXP_PC \
   -DDEBUG -D_DEBUG -UNDEBUG -DWIN32 -D_WINDOWS -DWIN95 $(MPICMN)
- #CFLAGS = -O2 -MD -W3 -nologo -D_X86_ -DXP_PC -UDEBUG -U_DEBUG -DNDEBUG \
-  -DWIN32 -D_WINDOWS -DWIN95 $(MPICMN)
- #CFLAGS = -Od -Z7 -MD -W3 -nologo -D_X86_ -DXP_PC -UDEBUG -U_DEBUG -DNDEBUG \
-  -DWIN32 -D_WINDOWS -DWIN95 $(MPICMN)
--CFLAGS = -O2 -Z7 -MD -W3 -nologo -D_X86_ -DXP_PC -UDEBUG -U_DEBUG -DNDEBUG \
-+CFLAGS = -O2 -GFL -Z7 -MD -W3 -nologo -D_X86_ -DXP_PC -UDEBUG -U_DEBUG -DNDEBUG \
-  -DWIN32 -D_WINDOWS -DWIN95 $(MPICMN)
- ASFLAGS = -Cp -Sn -Zi -coff -I. 
- endif
- 
- ##
- ## Define LIBS to include any libraries you need to link against.
- ## If NO_TABLE is define, LIBS should include '-lm' or whatever is
- ## necessary to bring in the math library.  Otherwise, it can be
 diff --git a/toolkit/components/places/nsFaviconService.cpp b/toolkit/components/places/nsFaviconService.cpp
 --- a/toolkit/components/places/nsFaviconService.cpp
 +++ b/toolkit/components/places/nsFaviconService.cpp
-@@ -1,613 +1,698 @@
--/* -*- Mode: C++; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
--/* This Source Code Form is subject to the terms of the Mozilla Public
-- * License, v. 2.0. If a copy of the MPL was not distributed with this
-- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
--
--/**
-- * This is the favicon service, which stores favicons for web pages with your
-- * history as you browse. It is also used to save the favicons for bookmarks.
-- *
-- * DANGER: The history query system makes assumptions about the favicon storage
-- * so that icons can be quickly generated for history/bookmark result sets. If
-- * you change the database layout at all, you will have to update both services.
-- */
--
--#include "nsFaviconService.h"
--
--#include "nsNavHistory.h"
--#include "nsPlacesMacros.h"
--#include "Helpers.h"
--#include "AsyncFaviconHelpers.h"
--
--#include "nsNetUtil.h"
--#include "nsReadableUtils.h"
--#include "nsStreamUtils.h"
--#include "nsStringStream.h"
--#include "plbase64.h"
--#include "nsIClassInfoImpl.h"
--#include "mozilla/ArrayUtils.h"
--#include "mozilla/Preferences.h"
--
--// For large favicons optimization.
--#include "imgITools.h"
--#include "imgIContainer.h"
--
--// Default value for mOptimizedIconDimension
+@@ -31,17 +31,17 @@
+ #include "nsIContentPolicy.h"
+ #include "nsContentUtils.h"
+ 
+ // For large favicons optimization.
+ #include "imgITools.h"
+ #include "imgIContainer.h"
+ 
+ // Default value for mOptimizedIconDimension
 -#define OPTIMIZED_FAVICON_DIMENSION 16
--
--#define MAX_FAVICON_CACHE_SIZE 256
--#define FAVICON_CACHE_REDUCE_COUNT 64
--
--#define MAX_UNASSOCIATED_FAVICONS 64
--
--// When replaceFaviconData is called, we store the icons in an in-memory cache
--// instead of in storage. Icons in the cache are expired according to this
--// interval.
--#define UNASSOCIATED_ICON_EXPIRY_INTERVAL 60000
--
--// The MIME type of the default favicon and favicons created by
--// OptimizeFaviconImage.
--#define DEFAULT_MIME_TYPE "image/png"
--
--using namespace mozilla;
--using namespace mozilla::places;
--
--/**
-- * Used to notify a topic to system observers on async execute completion.
-- * Will throw on error.
-- */
--class ExpireFaviconsStatementCallbackNotifier : public AsyncStatementCallback
--{
--public:
--  ExpireFaviconsStatementCallbackNotifier();
--  NS_IMETHOD HandleCompletion(uint16_t aReason);
--};
--
--
--PLACES_FACTORY_SINGLETON_IMPLEMENTATION(nsFaviconService, gFaviconService)
--
--NS_IMPL_CLASSINFO(nsFaviconService, nullptr, 0, NS_FAVICONSERVICE_CID)
--NS_IMPL_ISUPPORTS_CI(
--  nsFaviconService
--, nsIFaviconService
--, mozIAsyncFavicons
--, nsITimerCallback
--)
--
--nsFaviconService::nsFaviconService()
--  : mOptimizedIconDimension(OPTIMIZED_FAVICON_DIMENSION)
--  , mFailedFaviconSerial(0)
--  , mFailedFavicons(MAX_FAVICON_CACHE_SIZE)
--  , mUnassociatedIcons(MAX_UNASSOCIATED_FAVICONS)
--{
--  NS_ASSERTION(!gFaviconService,
--               "Attempting to create two instances of the service!");
--  gFaviconService = this;
--}
--
--
--nsFaviconService::~nsFaviconService()
--{
--  NS_ASSERTION(gFaviconService == this,
--               "Deleting a non-singleton instance of the service");
--  if (gFaviconService == this)
--    gFaviconService = nullptr;
--}
--
--
--nsresult
--nsFaviconService::Init()
--{
--  mDB = Database::GetDatabase();
--  NS_ENSURE_STATE(mDB);
--
--  mOptimizedIconDimension = Preferences::GetInt(
--    "places.favicons.optimizeToDimension", OPTIMIZED_FAVICON_DIMENSION
--  );
--
--  mExpireUnassociatedIconsTimer = do_CreateInstance("@mozilla.org/timer;1");
--  NS_ENSURE_STATE(mExpireUnassociatedIconsTimer);
--
--  return NS_OK;
--}
--
--NS_IMETHODIMP
--nsFaviconService::ExpireAllFavicons()
--{
--  nsCOMPtr<mozIStorageAsyncStatement> unlinkIconsStmt = mDB->GetAsyncStatement(
--    "UPDATE moz_places "
--    "SET favicon_id = NULL "
--    "WHERE favicon_id NOT NULL"
--  );
--  NS_ENSURE_STATE(unlinkIconsStmt);
--  nsCOMPtr<mozIStorageAsyncStatement> removeIconsStmt = mDB->GetAsyncStatement(
--    "DELETE FROM moz_favicons WHERE id NOT IN ("
--      "SELECT favicon_id FROM moz_places WHERE favicon_id NOT NULL "
--    ")"
--  );
--  NS_ENSURE_STATE(removeIconsStmt);
--
--  mozIStorageBaseStatement* stmts[] = {
--    unlinkIconsStmt.get()
--  , removeIconsStmt.get()
--  };
--  nsCOMPtr<mozIStoragePendingStatement> ps;
--  nsRefPtr<ExpireFaviconsStatementCallbackNotifier> callback =
--    new ExpireFaviconsStatementCallbackNotifier();
--  nsresult rv = mDB->MainConn()->ExecuteAsync(
--    stmts, ArrayLength(stmts), callback, getter_AddRefs(ps)
--  );
--  NS_ENSURE_SUCCESS(rv, rv);
--
--  return NS_OK;
--}
--
--////////////////////////////////////////////////////////////////////////////////
--//// nsITimerCallback
--
--static PLDHashOperator
--ExpireNonrecentUnassociatedIconsEnumerator(
--  UnassociatedIconHashKey* aIconKey,
--  void* aNow)
--{
--  PRTime now = *(reinterpret_cast<PRTime*>(aNow));
--  if (now - aIconKey->created >= UNASSOCIATED_ICON_EXPIRY_INTERVAL) {
--    return PL_DHASH_REMOVE;
--  }
--  return PL_DHASH_NEXT;
--}
--
--NS_IMETHODIMP
--nsFaviconService::Notify(nsITimer* timer)
--{
--  if (timer != mExpireUnassociatedIconsTimer.get()) {
--    return NS_ERROR_INVALID_ARG;
--  }
--
--  PRTime now = PR_Now();
--  mUnassociatedIcons.EnumerateEntries(
--    ExpireNonrecentUnassociatedIconsEnumerator, &now);
--  // Re-init the expiry timer if the cache isn't empty.
--  if (mUnassociatedIcons.Count() > 0) {
--    mExpireUnassociatedIconsTimer->InitWithCallback(
--      this, UNASSOCIATED_ICON_EXPIRY_INTERVAL, nsITimer::TYPE_ONE_SHOT);
--  }
--
--  return NS_OK;
--}
--
--////////////////////////////////////////////////////////////////////////////////
--//// nsIFaviconService
--
--NS_IMETHODIMP
--nsFaviconService::GetDefaultFavicon(nsIURI** _retval)
--{
--  NS_ENSURE_ARG_POINTER(_retval);
--
--  // not found, use default
--  if (!mDefaultIcon) {
--    nsresult rv = NS_NewURI(getter_AddRefs(mDefaultIcon),
--                            NS_LITERAL_CSTRING(FAVICON_DEFAULT_URL));
--    NS_ENSURE_SUCCESS(rv, rv);
--  }
--  return mDefaultIcon->Clone(_retval);
--}
--
--void
--nsFaviconService::SendFaviconNotifications(nsIURI* aPageURI,
--                                           nsIURI* aFaviconURI,
--                                           const nsACString& aGUID)
--{
--  nsAutoCString faviconSpec;
--  nsNavHistory* history = nsNavHistory::GetHistoryService();
--  if (history && NS_SUCCEEDED(aFaviconURI->GetSpec(faviconSpec))) {
--    history->SendPageChangedNotification(aPageURI,
--                                         nsINavHistoryObserver::ATTRIBUTE_FAVICON,
--                                         NS_ConvertUTF8toUTF16(faviconSpec),
--                                         aGUID);
--  }
--}
--
--NS_IMETHODIMP
--nsFaviconService::SetAndFetchFaviconForPage(nsIURI* aPageURI,
--                                            nsIURI* aFaviconURI,
--                                            bool aForceReload,
--                                            uint32_t aFaviconLoadType,
--                                            nsIFaviconDataCallback* aCallback)
--{
--  NS_ENSURE_ARG(aPageURI);
--  NS_ENSURE_ARG(aFaviconURI);
--
--  // If a favicon is in the failed cache, only load it during a forced reload.
--  bool previouslyFailed;
--  nsresult rv = IsFailedFavicon(aFaviconURI, &previouslyFailed);
--  NS_ENSURE_SUCCESS(rv, rv);
--  if (previouslyFailed) {
--    if (aForceReload)
--      RemoveFailedFavicon(aFaviconURI);
--    else
--      return NS_OK;
--  }
--
--  // Check if the icon already exists and fetch it from the network, if needed.
--  // Finally associate the icon to the requested page if not yet associated.
--  rv = AsyncFetchAndSetIconForPage::start(
--    aFaviconURI, aPageURI, aForceReload ? FETCH_ALWAYS : FETCH_IF_MISSING,
--    aFaviconLoadType, aCallback
--  );
--  NS_ENSURE_SUCCESS(rv, rv);
--
--  // DB will be updated and observers notified when data has finished loading.
--  return NS_OK;
--}
--
--NS_IMETHODIMP
--nsFaviconService::ReplaceFaviconData(nsIURI* aFaviconURI,
--                                    const uint8_t* aData,
--                                    uint32_t aDataLen,
--                                    const nsACString& aMimeType,
--                                    PRTime aExpiration)
--{
--  NS_ENSURE_ARG(aFaviconURI);
--  NS_ENSURE_ARG(aData);
--  NS_ENSURE_TRUE(aDataLen > 0, NS_ERROR_INVALID_ARG);
--  NS_ENSURE_TRUE(aMimeType.Length() > 0, NS_ERROR_INVALID_ARG);
--  if (aExpiration == 0) {
--    aExpiration = PR_Now() + MAX_FAVICON_EXPIRATION;
--  }
--
--  UnassociatedIconHashKey* iconKey = mUnassociatedIcons.PutEntry(aFaviconURI);
--  if (!iconKey) {
--    return NS_ERROR_OUT_OF_MEMORY;
--  }
--
--  iconKey->created = PR_Now();
--
--  // If the cache contains unassociated icons, an expiry timer should already exist, otherwise
--  // there may be a timer left hanging around, so make sure we fire a new one.
--  int32_t unassociatedCount = mUnassociatedIcons.Count();
--  if (unassociatedCount == 1) {
--    mExpireUnassociatedIconsTimer->Cancel();
--    mExpireUnassociatedIconsTimer->InitWithCallback(
--      this, UNASSOCIATED_ICON_EXPIRY_INTERVAL, nsITimer::TYPE_ONE_SHOT);
--  }
--
--  IconData* iconData = &(iconKey->iconData);
--  iconData->expiration = aExpiration;
--  iconData->status = ICON_STATUS_CACHED;
--  iconData->fetchMode = FETCH_NEVER;
--  nsresult rv = aFaviconURI->GetSpec(iconData->spec);
--  NS_ENSURE_SUCCESS(rv, rv);
--
--  // If the page provided a large image for the favicon (eg, a highres image
--  // or a multiresolution .ico file), we don't want to store more data than
--  // needed.
--  if (aDataLen > MAX_ICON_FILESIZE(mOptimizedIconDimension)) {
--    rv = OptimizeFaviconImage(aData, aDataLen, aMimeType, iconData->data, iconData->mimeType);
--    NS_ENSURE_SUCCESS(rv, rv);
--
--    if (iconData->data.Length() > MAX_FAVICON_SIZE) {
--      // We cannot optimize this favicon size and we are over the maximum size
--      // allowed, so we will not save data to the db to avoid bloating it.
--      mUnassociatedIcons.RemoveEntry(aFaviconURI);
--      return NS_ERROR_FAILURE;
--    }
--  } else {
--    iconData->mimeType.Assign(aMimeType);
--    iconData->data.Assign(TO_CHARBUFFER(aData), aDataLen);
--  }
--
--  // If the database contains an icon at the given url, we will update the
--  // database immediately so that the associated pages are kept in sync.
--  // Otherwise, do nothing and let the icon be picked up from the memory hash.
--  rv = AsyncReplaceFaviconData::start(iconData);
--  NS_ENSURE_SUCCESS(rv, rv);
--
--  return NS_OK;
--}
--
--NS_IMETHODIMP
--nsFaviconService::ReplaceFaviconDataFromDataURL(nsIURI* aFaviconURI,
--                                               const nsAString& aDataURL,
--                                               PRTime aExpiration)
--{
--  NS_ENSURE_ARG(aFaviconURI);
--  NS_ENSURE_TRUE(aDataURL.Length() > 0, NS_ERROR_INVALID_ARG);
--  if (aExpiration == 0) {
--    aExpiration = PR_Now() + MAX_FAVICON_EXPIRATION;
--  }
--
--  nsCOMPtr<nsIURI> dataURI;
--  nsresult rv = NS_NewURI(getter_AddRefs(dataURI), aDataURL);
--  NS_ENSURE_SUCCESS(rv, rv);
--
--  // Use the data: protocol handler to convert the data.
--  nsCOMPtr<nsIIOService> ioService = do_GetIOService(&rv);
--  NS_ENSURE_SUCCESS(rv, rv);
--  nsCOMPtr<nsIProtocolHandler> protocolHandler;
--  rv = ioService->GetProtocolHandler("data", getter_AddRefs(protocolHandler));
--  NS_ENSURE_SUCCESS(rv, rv);
--
--  nsCOMPtr<nsIChannel> channel;
--  rv = protocolHandler->NewChannel(dataURI, getter_AddRefs(channel));
--  NS_ENSURE_SUCCESS(rv, rv);
--
--  // Blocking stream is OK for data URIs.
--  nsCOMPtr<nsIInputStream> stream;
--  rv = channel->Open(getter_AddRefs(stream));
--  NS_ENSURE_SUCCESS(rv, rv);
--
--  uint64_t available64;
--  rv = stream->Available(&available64);
--  NS_ENSURE_SUCCESS(rv, rv);
--  if (available64 == 0 || available64 > UINT32_MAX / sizeof(uint8_t))
--    return NS_ERROR_FILE_TOO_BIG;
--  uint32_t available = (uint32_t)available64;
--
--  // Read all the decoded data.
--  uint8_t* buffer = static_cast<uint8_t*>
--                               (nsMemory::Alloc(sizeof(uint8_t) * available));
--  if (!buffer)
--    return NS_ERROR_OUT_OF_MEMORY;
--  uint32_t numRead;
--  rv = stream->Read(TO_CHARBUFFER(buffer), available, &numRead);
--  if (NS_FAILED(rv) || numRead != available) {
--    nsMemory::Free(buffer);
--    return rv;
--  }
--
--  nsAutoCString mimeType;
--  rv = channel->GetContentType(mimeType);
--  if (NS_FAILED(rv)) {
--    nsMemory::Free(buffer);
--    return rv;
--  }
--
--  // ReplaceFaviconData can now do the dirty work.
--  rv = ReplaceFaviconData(aFaviconURI, buffer, available, mimeType, aExpiration);
--  nsMemory::Free(buffer);
--  NS_ENSURE_SUCCESS(rv, rv);
--
--  return NS_OK;
--}
--
--NS_IMETHODIMP
--nsFaviconService::GetFaviconURLForPage(nsIURI *aPageURI,
--                                       nsIFaviconDataCallback* aCallback)
--{
--  NS_ENSURE_ARG(aPageURI);
--  NS_ENSURE_ARG(aCallback);
--
--  nsresult rv = AsyncGetFaviconURLForPage::start(aPageURI, aCallback);
--  NS_ENSURE_SUCCESS(rv, rv);
--  return NS_OK;
--}
--
--NS_IMETHODIMP
--nsFaviconService::GetFaviconDataForPage(nsIURI* aPageURI,
--                                        nsIFaviconDataCallback* aCallback)
--{
--  NS_ENSURE_ARG(aPageURI);
--  NS_ENSURE_ARG(aCallback);
--
--  nsresult rv = AsyncGetFaviconDataForPage::start(aPageURI, aCallback);
--  NS_ENSURE_SUCCESS(rv, rv);
--  return NS_OK;
--}
--
--nsresult
--nsFaviconService::GetFaviconLinkForIcon(nsIURI* aFaviconURI,
--                                        nsIURI** aOutputURI)
--{
--  NS_ENSURE_ARG(aFaviconURI);
--  NS_ENSURE_ARG_POINTER(aOutputURI);
--
--  nsAutoCString spec;
--  if (aFaviconURI) {
--    nsresult rv = aFaviconURI->GetSpec(spec);
--    NS_ENSURE_SUCCESS(rv, rv);
--  }
--  return GetFaviconLinkForIconString(spec, aOutputURI);
--}
--
--
--static PLDHashOperator
--ExpireFailedFaviconsCallback(nsCStringHashKey::KeyType aKey,
--                             uint32_t& aData,
--                             void* userArg)
--{
--  uint32_t* threshold = reinterpret_cast<uint32_t*>(userArg);
--  if (aData < *threshold)
--    return PL_DHASH_REMOVE;
--  return PL_DHASH_NEXT;
--}
--
--
--NS_IMETHODIMP
--nsFaviconService::AddFailedFavicon(nsIURI* aFaviconURI)
--{
--  NS_ENSURE_ARG(aFaviconURI);
--
--  nsAutoCString spec;
--  nsresult rv = aFaviconURI->GetSpec(spec);
--  NS_ENSURE_SUCCESS(rv, rv);
--
--  mFailedFavicons.Put(spec, mFailedFaviconSerial);
--  mFailedFaviconSerial ++;
--
--  if (mFailedFavicons.Count() > MAX_FAVICON_CACHE_SIZE) {
--    // need to expire some entries, delete the FAVICON_CACHE_REDUCE_COUNT number
--    // of items that are the oldest
--    uint32_t threshold = mFailedFaviconSerial -
--                         MAX_FAVICON_CACHE_SIZE + FAVICON_CACHE_REDUCE_COUNT;
--    mFailedFavicons.Enumerate(ExpireFailedFaviconsCallback, &threshold);
--  }
--  return NS_OK;
--}
--
--
--NS_IMETHODIMP
--nsFaviconService::RemoveFailedFavicon(nsIURI* aFaviconURI)
--{
--  NS_ENSURE_ARG(aFaviconURI);
--
--  nsAutoCString spec;
--  nsresult rv = aFaviconURI->GetSpec(spec);
--  NS_ENSURE_SUCCESS(rv, rv);
--
--  // we silently do nothing and succeed if the icon is not in the cache
--  mFailedFavicons.Remove(spec);
--  return NS_OK;
--}
--
--
--NS_IMETHODIMP
--nsFaviconService::IsFailedFavicon(nsIURI* aFaviconURI, bool* _retval)
--{
--  NS_ENSURE_ARG(aFaviconURI);
--  nsAutoCString spec;
--  nsresult rv = aFaviconURI->GetSpec(spec);
--  NS_ENSURE_SUCCESS(rv, rv);
--
--  uint32_t serial;
--  *_retval = mFailedFavicons.Get(spec, &serial);
--  return NS_OK;
--}
--
--
--// nsFaviconService::GetFaviconLinkForIconString
--//
--//    This computes a favicon URL with string input and using the cached
--//    default one to minimize parsing.
--
--nsresult
--nsFaviconService::GetFaviconLinkForIconString(const nsCString& aSpec,
--                                              nsIURI** aOutput)
--{
--  if (aSpec.IsEmpty()) {
--    // default icon for empty strings
--    if (! mDefaultIcon) {
--      nsresult rv = NS_NewURI(getter_AddRefs(mDefaultIcon),
--                              NS_LITERAL_CSTRING(FAVICON_DEFAULT_URL));
--      NS_ENSURE_SUCCESS(rv, rv);
--    }
--    return mDefaultIcon->Clone(aOutput);
--  }
--
--  if (StringBeginsWith(aSpec, NS_LITERAL_CSTRING("chrome:"))) {
--    // pass through for chrome URLs, since they can be referenced without
--    // this service
--    return NS_NewURI(aOutput, aSpec);
--  }
--
--  nsAutoCString annoUri;
--  annoUri.AssignLiteral("moz-anno:" FAVICON_ANNOTATION_NAME ":");
--  annoUri += aSpec;
--  return NS_NewURI(aOutput, annoUri);
--}
--
--
--// nsFaviconService::GetFaviconSpecForIconString
--//
--//    This computes a favicon spec for when you don't want a URI object (as in
--//    the tree view implementation), sparing all parsing and normalization.
--void
--nsFaviconService::GetFaviconSpecForIconString(const nsCString& aSpec,
--                                              nsACString& aOutput)
--{
--  if (aSpec.IsEmpty()) {
--    aOutput.AssignLiteral(FAVICON_DEFAULT_URL);
--  } else if (StringBeginsWith(aSpec, NS_LITERAL_CSTRING("chrome:"))) {
--    aOutput = aSpec;
--  } else {
--    aOutput.AssignLiteral("moz-anno:" FAVICON_ANNOTATION_NAME ":");
--    aOutput += aSpec;
--  }
--}
--
--
--// nsFaviconService::OptimizeFaviconImage
--//
--// Given a blob of data (a image file already read into a buffer), optimize
--// its size by recompressing it as a 16x16 PNG.
--nsresult
--nsFaviconService::OptimizeFaviconImage(const uint8_t* aData, uint32_t aDataLen,
--                                       const nsACString& aMimeType,
--                                       nsACString& aNewData,
--                                       nsACString& aNewMimeType)
--{
--  nsresult rv;
--
--  nsCOMPtr<imgITools> imgtool = do_CreateInstance("@mozilla.org/image/tools;1");
--
--  nsCOMPtr<nsIInputStream> stream;
--  rv = NS_NewByteInputStream(getter_AddRefs(stream),
--                reinterpret_cast<const char*>(aData), aDataLen,
--                NS_ASSIGNMENT_DEPEND);
--  NS_ENSURE_SUCCESS(rv, rv);
--
--  // decode image
--  nsCOMPtr<imgIContainer> container;
--  rv = imgtool->DecodeImageData(stream, aMimeType, getter_AddRefs(container));
--  NS_ENSURE_SUCCESS(rv, rv);
--
--  aNewMimeType.AssignLiteral(DEFAULT_MIME_TYPE);
--
--  // scale and recompress
--  nsCOMPtr<nsIInputStream> iconStream;
--  rv = imgtool->EncodeScaledImage(container, aNewMimeType,
--                                  mOptimizedIconDimension,
--                                  mOptimizedIconDimension,
--                                  EmptyString(),
--                                  getter_AddRefs(iconStream));
--  NS_ENSURE_SUCCESS(rv, rv);
--
--  // Read the stream into a new buffer.
--  rv = NS_ConsumeStream(iconStream, UINT32_MAX, aNewData);
--  NS_ENSURE_SUCCESS(rv, rv);
--
--  return NS_OK;
--}
--
--nsresult
--nsFaviconService::GetFaviconDataAsync(nsIURI* aFaviconURI,
--                                      mozIStorageStatementCallback *aCallback)
--{
--  NS_ASSERTION(aCallback, "Doesn't make sense to call this without a callback");
--  nsCOMPtr<mozIStorageAsyncStatement> stmt = mDB->GetAsyncStatement(
--    "SELECT f.data, f.mime_type FROM moz_favicons f WHERE url = :icon_url"
--  );
--  NS_ENSURE_STATE(stmt);
--
--  nsresult rv = URIBinder::Bind(stmt, NS_LITERAL_CSTRING("icon_url"), aFaviconURI);
--  NS_ENSURE_SUCCESS(rv, rv);
--
--  nsCOMPtr<mozIStoragePendingStatement> pendingStatement;
--  return stmt->ExecuteAsync(aCallback, getter_AddRefs(pendingStatement));
--}
--
--////////////////////////////////////////////////////////////////////////////////
--//// ExpireFaviconsStatementCallbackNotifier
--
--ExpireFaviconsStatementCallbackNotifier::ExpireFaviconsStatementCallbackNotifier()
--{
--}
--
--
--NS_IMETHODIMP
--ExpireFaviconsStatementCallbackNotifier::HandleCompletion(uint16_t aReason)
--{
--  // We should dispatch only if expiration has been successful.
--  if (aReason != mozIStorageStatementCallback::REASON_FINISHED)
--    return NS_OK;
--
--  nsCOMPtr<nsIObserverService> observerService =
--    mozilla::services::GetObserverService();
--  if (observerService) {
--    (void)observerService->NotifyObservers(nullptr,
--                                           NS_PLACES_FAVICONS_EXPIRED_TOPIC_ID,
--                                           nullptr);
--  }
--
--  return NS_OK;
--}
-+/* -*- Mode: C++; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
-+/* This Source Code Form is subject to the terms of the Mozilla Public
-+ * License, v. 2.0. If a copy of the MPL was not distributed with this
-+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-+
-+/**
-+ * This is the favicon service, which stores favicons for web pages with your
-+ * history as you browse. It is also used to save the favicons for bookmarks.
-+ *
-+ * DANGER: The history query system makes assumptions about the favicon storage
-+ * so that icons can be quickly generated for history/bookmark result sets. If
-+ * you change the database layout at all, you will have to update both services.
-+ */
-+
-+#include "nsFaviconService.h"
-+
-+#include "nsNavHistory.h"
-+#include "nsPlacesMacros.h"
-+#include "Helpers.h"
-+#include "AsyncFaviconHelpers.h"
-+
-+#include "nsNetUtil.h"
-+#include "nsReadableUtils.h"
-+#include "nsStreamUtils.h"
-+#include "nsStringStream.h"
-+#include "plbase64.h"
-+#include "nsIClassInfoImpl.h"
-+#include "mozilla/ArrayUtils.h"
-+#include "mozilla/Preferences.h"
-+
-+// For large favicons optimization.
-+#include "imgITools.h"
-+#include "imgIContainer.h"
-+
-+// Default value for mOptimizedIconDimension
-+#define OPTIMIZED_FAVICON_DIMENSION 16
-+
-+#define MAX_FAVICON_CACHE_SIZE 256
-+#define FAVICON_CACHE_REDUCE_COUNT 64
-+
-+#define MAX_UNASSOCIATED_FAVICONS 64
-+
-+// When replaceFaviconData is called, we store the icons in an in-memory cache
-+// instead of in storage. Icons in the cache are expired according to this
-+// interval.
-+#define UNASSOCIATED_ICON_EXPIRY_INTERVAL 60000
-+
-+// The MIME type of the default favicon and favicons created by
-+// OptimizeFaviconImage.
-+#define DEFAULT_MIME_TYPE "image/png"
-+
-+using namespace mozilla;
-+using namespace mozilla::places;
-+
-+/**
-+ * Used to notify a topic to system observers on async execute completion.
-+ * Will throw on error.
-+ */
-+class ExpireFaviconsStatementCallbackNotifier : public AsyncStatementCallback
-+{
-+public:
-+  ExpireFaviconsStatementCallbackNotifier();
-+  NS_IMETHOD HandleCompletion(uint16_t aReason);
-+};
-+
-+
-+PLACES_FACTORY_SINGLETON_IMPLEMENTATION(nsFaviconService, gFaviconService)
-+
-+NS_IMPL_CLASSINFO(nsFaviconService, nullptr, 0, NS_FAVICONSERVICE_CID)
-+NS_IMPL_ISUPPORTS_CI(
-+  nsFaviconService
-+, nsIFaviconService
-+, mozIAsyncFavicons
-+, nsITimerCallback
-+)
-+
-+nsFaviconService::nsFaviconService()
-+  : mOptimizedIconDimension(OPTIMIZED_FAVICON_DIMENSION)
-+  , mFailedFaviconSerial(0)
-+  , mFailedFavicons(MAX_FAVICON_CACHE_SIZE)
-+  , mUnassociatedIcons(MAX_UNASSOCIATED_FAVICONS)
-+{
-+  NS_ASSERTION(!gFaviconService,
-+               "Attempting to create two instances of the service!");
-+  gFaviconService = this;
-+}
-+
-+
-+nsFaviconService::~nsFaviconService()
-+{
-+  NS_ASSERTION(gFaviconService == this,
-+               "Deleting a non-singleton instance of the service");
-+  if (gFaviconService == this)
-+    gFaviconService = nullptr;
-+}
-+
-+
-+nsresult
-+nsFaviconService::Init()
-+{
-+  mDB = Database::GetDatabase();
-+  NS_ENSURE_STATE(mDB);
-+
-+  mOptimizedIconDimension = Preferences::GetInt(
-+    "places.favicons.optimizeToDimension", OPTIMIZED_FAVICON_DIMENSION
-+  );
-+
-+  mExpireUnassociatedIconsTimer = do_CreateInstance("@mozilla.org/timer;1");
-+  NS_ENSURE_STATE(mExpireUnassociatedIconsTimer);
-+
-+  return NS_OK;
-+}
-+
-+NS_IMETHODIMP
-+nsFaviconService::ExpireAllFavicons()
-+{
-+  nsCOMPtr<mozIStorageAsyncStatement> unlinkIconsStmt = mDB->GetAsyncStatement(
-+    "UPDATE moz_places "
-+    "SET favicon_id = NULL "
-+    "WHERE favicon_id NOT NULL"
-+  );
-+  NS_ENSURE_STATE(unlinkIconsStmt);
-+  nsCOMPtr<mozIStorageAsyncStatement> removeIconsStmt = mDB->GetAsyncStatement(
-+    "DELETE FROM moz_favicons WHERE id NOT IN ("
-+      "SELECT favicon_id FROM moz_places WHERE favicon_id NOT NULL "
-+    ")"
-+  );
-+  NS_ENSURE_STATE(removeIconsStmt);
-+
-+  mozIStorageBaseStatement* stmts[] = {
-+    unlinkIconsStmt.get()
-+  , removeIconsStmt.get()
-+  };
-+  nsCOMPtr<mozIStoragePendingStatement> ps;
-+  nsRefPtr<ExpireFaviconsStatementCallbackNotifier> callback =
-+    new ExpireFaviconsStatementCallbackNotifier();
-+  nsresult rv = mDB->MainConn()->ExecuteAsync(
-+    stmts, ArrayLength(stmts), callback, getter_AddRefs(ps)
-+  );
-+  NS_ENSURE_SUCCESS(rv, rv);
-+
-+  return NS_OK;
-+}
-+
-+////////////////////////////////////////////////////////////////////////////////
-+//// nsITimerCallback
-+
-+static PLDHashOperator
-+ExpireNonrecentUnassociatedIconsEnumerator(
-+  UnassociatedIconHashKey* aIconKey,
-+  void* aNow)
-+{
-+  PRTime now = *(reinterpret_cast<PRTime*>(aNow));
-+  if (now - aIconKey->created >= UNASSOCIATED_ICON_EXPIRY_INTERVAL) {
-+    return PL_DHASH_REMOVE;
-+  }
-+  return PL_DHASH_NEXT;
-+}
-+
-+NS_IMETHODIMP
-+nsFaviconService::Notify(nsITimer* timer)
-+{
-+  if (timer != mExpireUnassociatedIconsTimer.get()) {
-+    return NS_ERROR_INVALID_ARG;
-+  }
-+
-+  PRTime now = PR_Now();
-+  mUnassociatedIcons.EnumerateEntries(
-+    ExpireNonrecentUnassociatedIconsEnumerator, &now);
-+  // Re-init the expiry timer if the cache isn't empty.
-+  if (mUnassociatedIcons.Count() > 0) {
-+    mExpireUnassociatedIconsTimer->InitWithCallback(
-+      this, UNASSOCIATED_ICON_EXPIRY_INTERVAL, nsITimer::TYPE_ONE_SHOT);
-+  }
-+
-+  return NS_OK;
-+}
-+
-+////////////////////////////////////////////////////////////////////////////////
-+//// nsIFaviconService
-+
-+NS_IMETHODIMP
-+nsFaviconService::GetDefaultFavicon(nsIURI** _retval)
-+{
-+  NS_ENSURE_ARG_POINTER(_retval);
-+
-+  // not found, use default
-+  if (!mDefaultIcon) {
-+    nsresult rv = NS_NewURI(getter_AddRefs(mDefaultIcon),
-+                            NS_LITERAL_CSTRING(FAVICON_DEFAULT_URL));
-+    NS_ENSURE_SUCCESS(rv, rv);
-+  }
-+  return mDefaultIcon->Clone(_retval);
-+}
-+
-+void
-+nsFaviconService::SendFaviconNotifications(nsIURI* aPageURI,
-+                                           nsIURI* aFaviconURI,
-+                                           const nsACString& aGUID)
-+{
-+  nsAutoCString faviconSpec;
-+  nsNavHistory* history = nsNavHistory::GetHistoryService();
-+  if (history && NS_SUCCEEDED(aFaviconURI->GetSpec(faviconSpec))) {
-+    history->SendPageChangedNotification(aPageURI,
-+                                         nsINavHistoryObserver::ATTRIBUTE_FAVICON,
-+                                         NS_ConvertUTF8toUTF16(faviconSpec),
-+                                         aGUID);
-+  }
-+}
-+
-+NS_IMETHODIMP
-+nsFaviconService::SetAndFetchFaviconForPage(nsIURI* aPageURI,
-+                                            nsIURI* aFaviconURI,
-+                                            bool aForceReload,
-+                                            uint32_t aFaviconLoadType,
-+                                            nsIFaviconDataCallback* aCallback)
-+{
-+  NS_ENSURE_ARG(aPageURI);
-+  NS_ENSURE_ARG(aFaviconURI);
-+
-+  // If a favicon is in the failed cache, only load it during a forced reload.
-+  bool previouslyFailed;
-+  nsresult rv = IsFailedFavicon(aFaviconURI, &previouslyFailed);
-+  NS_ENSURE_SUCCESS(rv, rv);
-+  if (previouslyFailed) {
-+    if (aForceReload)
-+      RemoveFailedFavicon(aFaviconURI);
-+    else
-+      return NS_OK;
-+  }
-+
-+  // Check if the icon already exists and fetch it from the network, if needed.
-+  // Finally associate the icon to the requested page if not yet associated.
-+  rv = AsyncFetchAndSetIconForPage::start(
-+    aFaviconURI, aPageURI, aForceReload ? FETCH_ALWAYS : FETCH_IF_MISSING,
-+    aFaviconLoadType, aCallback
-+  );
-+  NS_ENSURE_SUCCESS(rv, rv);
-+
-+  // DB will be updated and observers notified when data has finished loading.
-+  return NS_OK;
-+}
-+
-+NS_IMETHODIMP
-+nsFaviconService::ReplaceFaviconData(nsIURI* aFaviconURI,
-+                                    const uint8_t* aData,
-+                                    uint32_t aDataLen,
-+                                    const nsACString& aMimeType,
-+                                    PRTime aExpiration)
-+{
-+  NS_ENSURE_ARG(aFaviconURI);
-+  NS_ENSURE_ARG(aData);
-+  NS_ENSURE_TRUE(aDataLen > 0, NS_ERROR_INVALID_ARG);
-+  NS_ENSURE_TRUE(aMimeType.Length() > 0, NS_ERROR_INVALID_ARG);
-+  if (aExpiration == 0) {
-+    aExpiration = PR_Now() + MAX_FAVICON_EXPIRATION;
-+  }
-+
-+  UnassociatedIconHashKey* iconKey = mUnassociatedIcons.PutEntry(aFaviconURI);
-+  if (!iconKey) {
-+    return NS_ERROR_OUT_OF_MEMORY;
-+  }
-+
-+  iconKey->created = PR_Now();
-+
-+  // If the cache contains unassociated icons, an expiry timer should already exist, otherwise
-+  // there may be a timer left hanging around, so make sure we fire a new one.
-+  int32_t unassociatedCount = mUnassociatedIcons.Count();
-+  if (unassociatedCount == 1) {
-+    mExpireUnassociatedIconsTimer->Cancel();
-+    mExpireUnassociatedIconsTimer->InitWithCallback(
-+      this, UNASSOCIATED_ICON_EXPIRY_INTERVAL, nsITimer::TYPE_ONE_SHOT);
-+  }
-+
-+  IconData* iconData = &(iconKey->iconData);
-+  iconData->expiration = aExpiration;
-+  iconData->status = ICON_STATUS_CACHED;
-+  iconData->fetchMode = FETCH_NEVER;
-+  nsresult rv = aFaviconURI->GetSpec(iconData->spec);
-+  NS_ENSURE_SUCCESS(rv, rv);
-+
-+  // If the page provided a large image for the favicon (eg, a highres image
-+  // or a multiresolution .ico file), we don't want to store more data than
-+  // needed.
-+  if (aDataLen > MAX_ICON_FILESIZE(mOptimizedIconDimension)) {
-+    rv = OptimizeFaviconImage(aData, aDataLen, aMimeType, iconData->data, iconData->mimeType);
-+    NS_ENSURE_SUCCESS(rv, rv);
-+
-+    if (iconData->data.Length() > MAX_FAVICON_SIZE) {
-+      // We cannot optimize this favicon size and we are over the maximum size
-+      // allowed, so we will not save data to the db to avoid bloating it.
-+      mUnassociatedIcons.RemoveEntry(aFaviconURI);
-+      return NS_ERROR_FAILURE;
-+    }
-+  } else {
-+    iconData->mimeType.Assign(aMimeType);
-+    iconData->data.Assign(TO_CHARBUFFER(aData), aDataLen);
-+  }
-+
-+  // If the database contains an icon at the given url, we will update the
-+  // database immediately so that the associated pages are kept in sync.
-+  // Otherwise, do nothing and let the icon be picked up from the memory hash.
-+  rv = AsyncReplaceFaviconData::start(iconData);
-+  NS_ENSURE_SUCCESS(rv, rv);
-+
-+  return NS_OK;
-+}
-+
-+NS_IMETHODIMP
-+nsFaviconService::ReplaceFaviconDataFromDataURL(nsIURI* aFaviconURI,
-+                                               const nsAString& aDataURL,
-+                                               PRTime aExpiration)
-+{
-+  NS_ENSURE_ARG(aFaviconURI);
-+  NS_ENSURE_TRUE(aDataURL.Length() > 0, NS_ERROR_INVALID_ARG);
-+  if (aExpiration == 0) {
-+    aExpiration = PR_Now() + MAX_FAVICON_EXPIRATION;
-+  }
-+
-+  nsCOMPtr<nsIURI> dataURI;
-+  nsresult rv = NS_NewURI(getter_AddRefs(dataURI), aDataURL);
-+  NS_ENSURE_SUCCESS(rv, rv);
-+
-+  // Use the data: protocol handler to convert the data.
-+  nsCOMPtr<nsIIOService> ioService = do_GetIOService(&rv);
-+  NS_ENSURE_SUCCESS(rv, rv);
-+  nsCOMPtr<nsIProtocolHandler> protocolHandler;
-+  rv = ioService->GetProtocolHandler("data", getter_AddRefs(protocolHandler));
-+  NS_ENSURE_SUCCESS(rv, rv);
-+
-+  nsCOMPtr<nsIChannel> channel;
-+  rv = protocolHandler->NewChannel(dataURI, getter_AddRefs(channel));
-+  NS_ENSURE_SUCCESS(rv, rv);
-+
-+  // Blocking stream is OK for data URIs.
-+  nsCOMPtr<nsIInputStream> stream;
-+  rv = channel->Open(getter_AddRefs(stream));
-+  NS_ENSURE_SUCCESS(rv, rv);
-+
-+  uint64_t available64;
-+  rv = stream->Available(&available64);
-+  NS_ENSURE_SUCCESS(rv, rv);
-+  if (available64 == 0 || available64 > UINT32_MAX / sizeof(uint8_t))
-+    return NS_ERROR_FILE_TOO_BIG;
-+  uint32_t available = (uint32_t)available64;
-+
-+  // Read all the decoded data.
-+  uint8_t* buffer = static_cast<uint8_t*>
-+                               (nsMemory::Alloc(sizeof(uint8_t) * available));
-+  if (!buffer)
-+    return NS_ERROR_OUT_OF_MEMORY;
-+  uint32_t numRead;
-+  rv = stream->Read(TO_CHARBUFFER(buffer), available, &numRead);
-+  if (NS_FAILED(rv) || numRead != available) {
-+    nsMemory::Free(buffer);
-+    return rv;
-+  }
-+
-+  nsAutoCString mimeType;
-+  rv = channel->GetContentType(mimeType);
-+  if (NS_FAILED(rv)) {
-+    nsMemory::Free(buffer);
-+    return rv;
-+  }
-+
-+  // ReplaceFaviconData can now do the dirty work.
-+  rv = ReplaceFaviconData(aFaviconURI, buffer, available, mimeType, aExpiration);
-+  nsMemory::Free(buffer);
-+  NS_ENSURE_SUCCESS(rv, rv);
-+
-+  return NS_OK;
-+}
-+
-+NS_IMETHODIMP
-+nsFaviconService::GetFaviconURLForPage(nsIURI *aPageURI,
-+                                       nsIFaviconDataCallback* aCallback)
-+{
-+  NS_ENSURE_ARG(aPageURI);
-+  NS_ENSURE_ARG(aCallback);
-+
-+  nsresult rv = AsyncGetFaviconURLForPage::start(aPageURI, aCallback);
-+  NS_ENSURE_SUCCESS(rv, rv);
-+  return NS_OK;
-+}
-+
-+NS_IMETHODIMP
-+nsFaviconService::GetFaviconDataForPage(nsIURI* aPageURI,
-+                                        nsIFaviconDataCallback* aCallback)
-+{
-+  NS_ENSURE_ARG(aPageURI);
-+  NS_ENSURE_ARG(aCallback);
-+
-+  nsresult rv = AsyncGetFaviconDataForPage::start(aPageURI, aCallback);
-+  NS_ENSURE_SUCCESS(rv, rv);
-+  return NS_OK;
-+}
-+
-+nsresult
-+nsFaviconService::GetFaviconLinkForIcon(nsIURI* aFaviconURI,
-+                                        nsIURI** aOutputURI)
-+{
-+  NS_ENSURE_ARG(aFaviconURI);
-+  NS_ENSURE_ARG_POINTER(aOutputURI);
-+
-+  nsAutoCString spec;
-+  if (aFaviconURI) {
-+    nsresult rv = aFaviconURI->GetSpec(spec);
-+    NS_ENSURE_SUCCESS(rv, rv);
-+  }
-+  return GetFaviconLinkForIconString(spec, aOutputURI);
-+}
-+
-+
-+static PLDHashOperator
-+ExpireFailedFaviconsCallback(nsCStringHashKey::KeyType aKey,
-+                             uint32_t& aData,
-+                             void* userArg)
-+{
-+  uint32_t* threshold = reinterpret_cast<uint32_t*>(userArg);
-+  if (aData < *threshold)
-+    return PL_DHASH_REMOVE;
-+  return PL_DHASH_NEXT;
-+}
-+
-+
-+NS_IMETHODIMP
-+nsFaviconService::AddFailedFavicon(nsIURI* aFaviconURI)
-+{
-+  NS_ENSURE_ARG(aFaviconURI);
-+
-+  nsAutoCString spec;
-+  nsresult rv = aFaviconURI->GetSpec(spec);
-+  NS_ENSURE_SUCCESS(rv, rv);
-+
-+  mFailedFavicons.Put(spec, mFailedFaviconSerial);
-+  mFailedFaviconSerial ++;
-+
-+  if (mFailedFavicons.Count() > MAX_FAVICON_CACHE_SIZE) {
-+    // need to expire some entries, delete the FAVICON_CACHE_REDUCE_COUNT number
-+    // of items that are the oldest
-+    uint32_t threshold = mFailedFaviconSerial -
-+                         MAX_FAVICON_CACHE_SIZE + FAVICON_CACHE_REDUCE_COUNT;
-+    mFailedFavicons.Enumerate(ExpireFailedFaviconsCallback, &threshold);
-+  }
-+  return NS_OK;
-+}
-+
-+
-+NS_IMETHODIMP
-+nsFaviconService::RemoveFailedFavicon(nsIURI* aFaviconURI)
-+{
-+  NS_ENSURE_ARG(aFaviconURI);
-+
-+  nsAutoCString spec;
-+  nsresult rv = aFaviconURI->GetSpec(spec);
-+  NS_ENSURE_SUCCESS(rv, rv);
-+
-+  // we silently do nothing and succeed if the icon is not in the cache
-+  mFailedFavicons.Remove(spec);
-+  return NS_OK;
-+}
-+
-+
-+NS_IMETHODIMP
-+nsFaviconService::IsFailedFavicon(nsIURI* aFaviconURI, bool* _retval)
-+{
-+  NS_ENSURE_ARG(aFaviconURI);
-+  nsAutoCString spec;
-+  nsresult rv = aFaviconURI->GetSpec(spec);
-+  NS_ENSURE_SUCCESS(rv, rv);
-+
-+  uint32_t serial;
-+  *_retval = mFailedFavicons.Get(spec, &serial);
-+  return NS_OK;
-+}
-+
-+
-+// nsFaviconService::GetFaviconLinkForIconString
-+//
-+//    This computes a favicon URL with string input and using the cached
-+//    default one to minimize parsing.
-+
-+nsresult
-+nsFaviconService::GetFaviconLinkForIconString(const nsCString& aSpec,
-+                                              nsIURI** aOutput)
-+{
-+  if (aSpec.IsEmpty()) {
-+    // default icon for empty strings
-+    if (! mDefaultIcon) {
-+      nsresult rv = NS_NewURI(getter_AddRefs(mDefaultIcon),
-+                              NS_LITERAL_CSTRING(FAVICON_DEFAULT_URL));
-+      NS_ENSURE_SUCCESS(rv, rv);
-+    }
-+    return mDefaultIcon->Clone(aOutput);
-+  }
-+
-+  if (StringBeginsWith(aSpec, NS_LITERAL_CSTRING("chrome:"))) {
-+    // pass through for chrome URLs, since they can be referenced without
-+    // this service
-+    return NS_NewURI(aOutput, aSpec);
-+  }
-+
-+  nsAutoCString annoUri;
-+  annoUri.AssignLiteral("moz-anno:" FAVICON_ANNOTATION_NAME ":");
-+  annoUri += aSpec;
-+  return NS_NewURI(aOutput, annoUri);
-+}
-+
-+
-+// nsFaviconService::GetFaviconSpecForIconString
-+//
-+//    This computes a favicon spec for when you don't want a URI object (as in
-+//    the tree view implementation), sparing all parsing and normalization.
-+void
-+nsFaviconService::GetFaviconSpecForIconString(const nsCString& aSpec,
-+                                              nsACString& aOutput)
-+{
-+  if (aSpec.IsEmpty()) {
-+    aOutput.AssignLiteral(FAVICON_DEFAULT_URL);
-+  } else if (StringBeginsWith(aSpec, NS_LITERAL_CSTRING("chrome:"))) {
-+    aOutput = aSpec;
-+  } else {
-+    aOutput.AssignLiteral("moz-anno:" FAVICON_ANNOTATION_NAME ":");
-+    aOutput += aSpec;
-+  }
-+}
-+
-+
-+// nsFaviconService::OptimizeFaviconImage
-+//
-+// Given a blob of data (a image file already read into a buffer), optimize
-+// its size by recompressing it as a 16x16 PNG.
-+nsresult
-+nsFaviconService::OptimizeFaviconImage(const uint8_t* aData, uint32_t aDataLen,
-+                                       const nsACString& aMimeType,
-+                                       nsACString& aNewData,
-+                                       nsACString& aNewMimeType)
-+{
-+  nsresult rv;
-+
-+  nsCOMPtr<imgITools> imgtool = do_CreateInstance("@mozilla.org/image/tools;1");
-+
-+  nsCOMPtr<nsIInputStream> stream;
-+  rv = NS_NewByteInputStream(getter_AddRefs(stream),
-+                reinterpret_cast<const char*>(aData), aDataLen,
-+                NS_ASSIGNMENT_DEPEND);
-+  NS_ENSURE_SUCCESS(rv, rv);
-+
-+  // decode image
-+  nsCOMPtr<imgIContainer> container;
-+  rv = imgtool->DecodeImageData(stream, aMimeType, getter_AddRefs(container));
-+  NS_ENSURE_SUCCESS(rv, rv);
-+
-+  aNewMimeType.AssignLiteral(DEFAULT_MIME_TYPE);
-+
-+  // scale and recompress
-+  nsCOMPtr<nsIInputStream> iconStream;
-+  rv = imgtool->EncodeScaledImage(container, aNewMimeType,
-+                                  mOptimizedIconDimension,
-+                                  mOptimizedIconDimension,
-+                                  EmptyString(),
-+                                  getter_AddRefs(iconStream));
-+  NS_ENSURE_SUCCESS(rv, rv);
-+
-+  // Read the stream into a new buffer.
-+  rv = NS_ConsumeStream(iconStream, UINT32_MAX, aNewData);
-+  NS_ENSURE_SUCCESS(rv, rv);
-+
-+  return NS_OK;
-+}
-+
-+nsresult
-+nsFaviconService::GetFaviconDataAsync(nsIURI* aFaviconURI,
-+                                      mozIStorageStatementCallback *aCallback)
-+{
-+  NS_ASSERTION(aCallback, "Doesn't make sense to call this without a callback");
-+  nsCOMPtr<mozIStorageAsyncStatement> stmt = mDB->GetAsyncStatement(
-+    "SELECT f.data, f.mime_type FROM moz_favicons f WHERE url = :icon_url"
-+  );
-+  NS_ENSURE_STATE(stmt);
-+
-+  nsresult rv = URIBinder::Bind(stmt, NS_LITERAL_CSTRING("icon_url"), aFaviconURI);
-+  NS_ENSURE_SUCCESS(rv, rv);
-+
-+  nsCOMPtr<mozIStoragePendingStatement> pendingStatement;
-+  return stmt->ExecuteAsync(aCallback, getter_AddRefs(pendingStatement));
-+}
-+
-+////////////////////////////////////////////////////////////////////////////////
-+//// ExpireFaviconsStatementCallbackNotifier
-+
-+ExpireFaviconsStatementCallbackNotifier::ExpireFaviconsStatementCallbackNotifier()
-+{
-+}
-+
-+
-+NS_IMETHODIMP
-+ExpireFaviconsStatementCallbackNotifier::HandleCompletion(uint16_t aReason)
-+{
-+  // We should dispatch only if expiration has been successful.
-+  if (aReason != mozIStorageStatementCallback::REASON_FINISHED)
-+    return NS_OK;
-+
-+  nsCOMPtr<nsIObserverService> observerService =
-+    mozilla::services::GetObserverService();
-+  if (observerService) {
-+    (void)observerService->NotifyObservers(nullptr,
-+                                           NS_PLACES_FAVICONS_EXPIRED_TOPIC_ID,
-+                                           nullptr);
-+  }
-+
-+  return NS_OK;
-+}
++#define OPTIMIZED_FAVICON_DIMENSION 32
+ 
+ #define MAX_FAILED_FAVICONS 256
+ #define FAVICON_CACHE_REDUCE_COUNT 64
+ 
+ #define UNASSOCIATED_FAVICONS_LENGTH 32
+ 
+ // When replaceFaviconData is called, we store the icons in an in-memory cache
+ // instead of in storage. Icons in the cache are expired according to this
+@@ -621,8 +621,93 @@ ExpireFaviconsStatementCallbackNotifier:
+   if (observerService) {
+     (void)observerService->NotifyObservers(nullptr,
+                                            NS_PLACES_FAVICONS_EXPIRED_TOPIC_ID,
+                                            nullptr);
+   }
+ 
+   return NS_OK;
+ }
 +
 +NS_IMETHODIMP
 +nsFaviconService::GetFaviconForPage(nsIURI* aPageURI, nsIURI** _retval)
@@ -3305,335 +1174,254 @@ diff --git a/toolkit/components/places/nsFaviconService.cpp b/toolkit/components
 +  }
 +  return NS_ERROR_NOT_AVAILABLE;
 +}
-\ No newline at end of file
 diff --git a/toolkit/components/places/nsIFaviconService.idl b/toolkit/components/places/nsIFaviconService.idl
 --- a/toolkit/components/places/nsIFaviconService.idl
 +++ b/toolkit/components/places/nsIFaviconService.idl
-@@ -1,139 +1,145 @@
--/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
--/* This Source Code Form is subject to the terms of the Mozilla Public
-- * License, v. 2.0. If a copy of the MPL was not distributed with this
-- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
--
--#include "nsISupports.idl"
--
--interface nsIURI;
--
--[scriptable, uuid(e81e0b0c-b9f1-4c2e-8f3c-b809933cf73c)]
--interface nsIFaviconService : nsISupports
--{
--  // The favicon is being loaded from a private browsing window
--  const unsigned long FAVICON_LOAD_PRIVATE = 1;
--  // The favicon is being loaded from a non-private browsing window
--  const unsigned long FAVICON_LOAD_NON_PRIVATE = 2;
--
--  /**
--   * For a given icon URI, this will return a URI that will result in the image.
--   * In most cases, this is an annotation URI.  For chrome URIs, this will do
--   * nothing but returning the input URI.
--   *
--   * No validity checking is done. If you pass an icon URI that we've never
--   * seen, you'll get back a URI that references an invalid icon. The moz-anno
--   * protocol handler's special case for "favicon" annotations will resolve
--   * invalid icons to the default icon, although without caching.
--   * For invalid chrome URIs, you'll get a broken image.
--   *
--   * @param aFaviconURI
--   *        The URI of an icon in the favicon service.
--   * @return A URI that will give you the icon image.  This is NOT the URI of
--   *         the icon as set on the page, but a URI that will give you the
--   *         data out of the favicon service.  For a normal page with a
--   *         favicon we've stored, this will be an annotation URI which will
--   *         then cause the corresponding favicon data to be loaded async from
--   *         this service.  For pages where we don't have a favicon, this will
--   *         be a chrome URI of the default icon. For chrome URIs, the
--   *         output will be the same as the input.
--   */
--  nsIURI getFaviconLinkForIcon(in nsIURI aFaviconURI);
--
--  /**
--   * Expire all known favicons from the database.
--   *
--   * @note This is an async method.
--   *       On successful completion a "places-favicons-expired" notification is
--   *       dispatched through observer's service.
--   */
--  void expireAllFavicons();
--
--  /**
--   * Adds a given favicon's URI to the failed favicon cache.
--   *
--   * The lifespan of the favicon cache is up to the caching system.  This cache
--   * will also be written when setAndLoadFaviconForPage hits an error while
--   * fetching an icon.
--   *
--   * @param aFaviconURI
--   *        The URI of an icon in the favicon service.
--   */
--  void addFailedFavicon(in nsIURI aFaviconURI);
--
--  /**
--   * Removes the given favicon from the failed favicon cache.  If the icon is
--   * not in the cache, it will silently succeed.
--   *
--   * @param aFaviconURI
--   *        The URI of an icon in the favicon service.
--   */
--  void removeFailedFavicon(in nsIURI aFaviconURI);
--
--  /**
--   * Checks to see if a favicon is in the failed favicon cache.
--   * A positive return value means the icon is in the failed cache and you
--   * probably shouldn't try to load it.  A false return value means that it's
--   * worth trying to load it.
--   * This allows you to avoid trying to load "foo.com/favicon.ico" for every
--   * page on a site that doesn't have a favicon.
--   *
--   * @param aFaviconURI
--   *        The URI of an icon in the favicon service.
--   */
--  boolean isFailedFavicon(in nsIURI aFaviconURI);
--
--  /**
--   * The default favicon URI
--   */
--  readonly attribute nsIURI defaultFavicon;
--};
--
--[scriptable, function, uuid(c85e5c82-b70f-4621-9528-beb2aa47fb44)]
--interface nsIFaviconDataCallback : nsISupports
--{
--  /**
--   * Called when the required favicon's information is available.
--   *
--   * It's up to the invoking method to state if the callback is always invoked,
--   * or called on success only.  Check the method documentation to ensure that.
--   *
--   * The caller will receive the most information we can gather on the icon,
--   * but it's not guaranteed that all of them will be set.  For some method
--   * we could not know the favicon's data (it could just be too expensive to
--   * get it, or the method does not require we actually have any data).
--   * It's up to the caller to check aDataLen > 0 before using any data-related
--   * information like mime-type or data itself.
--   *
--   * @param aFaviconURI
--   *        Receives the "favicon URI" (not the "favicon link URI") associated
--   *        to the requested page.  This can be null if there is no associated
--   *        favicon URI, or the callback is notifying a failure.
--   * @param aDataLen
--   *        Size of the icon data in bytes.  Notice that a value of 0 does not
--   *        necessarily mean that we don't have an icon.
--   * @param aData
--   *        Icon data, or an empty array if aDataLen is 0.
--   * @param aMimeType
--   *        Mime type of the icon, or an empty string if aDataLen is 0.
--   *
--   * @note If you want to open a network channel to access the favicon, it's
--   *       recommended that you call the getFaviconLinkForIcon method to convert
--   *       the "favicon URI" into a "favicon link URI".
--   */
--  void onComplete(in nsIURI aFaviconURI,
--                  in unsigned long aDataLen,
--                  [const,array,size_is(aDataLen)] in octet aData,
--                  in AUTF8String aMimeType);
--};
--
--%{C++
--
--/**
-- * Notification sent when all favicons are expired.
-- */
--#define NS_PLACES_FAVICONS_EXPIRED_TOPIC_ID "places-favicons-expired"
--
--#define FAVICON_DEFAULT_URL "chrome://mozapps/skin/places/defaultFavicon.png"
--#define FAVICON_ERRORPAGE_URL "chrome://global/skin/icons/warning-16.png"
--
--%}
-+/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
-+/* This Source Code Form is subject to the terms of the Mozilla Public
-+ * License, v. 2.0. If a copy of the MPL was not distributed with this
-+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-+
-+#include "nsISupports.idl"
-+
-+interface nsIURI;
-+
-+[scriptable, uuid(e81e0b0c-b9f1-4c2e-8f3c-b809933cf73c)]
-+interface nsIFaviconService : nsISupports
-+{
-+  // The favicon is being loaded from a private browsing window
-+  const unsigned long FAVICON_LOAD_PRIVATE = 1;
-+  // The favicon is being loaded from a non-private browsing window
-+  const unsigned long FAVICON_LOAD_NON_PRIVATE = 2;
-+
-+  /**
-+   * For a given icon URI, this will return a URI that will result in the image.
-+   * In most cases, this is an annotation URI.  For chrome URIs, this will do
-+   * nothing but returning the input URI.
-+   *
-+   * No validity checking is done. If you pass an icon URI that we've never
-+   * seen, you'll get back a URI that references an invalid icon. The moz-anno
-+   * protocol handler's special case for "favicon" annotations will resolve
-+   * invalid icons to the default icon, although without caching.
-+   * For invalid chrome URIs, you'll get a broken image.
-+   *
-+   * @param aFaviconURI
-+   *        The URI of an icon in the favicon service.
-+   * @return A URI that will give you the icon image.  This is NOT the URI of
-+   *         the icon as set on the page, but a URI that will give you the
-+   *         data out of the favicon service.  For a normal page with a
-+   *         favicon we've stored, this will be an annotation URI which will
-+   *         then cause the corresponding favicon data to be loaded async from
-+   *         this service.  For pages where we don't have a favicon, this will
-+   *         be a chrome URI of the default icon. For chrome URIs, the
-+   *         output will be the same as the input.
-+   */
-+  nsIURI getFaviconLinkForIcon(in nsIURI aFaviconURI);
-+
-+  /**
-+   * Expire all known favicons from the database.
-+   *
-+   * @note This is an async method.
-+   *       On successful completion a "places-favicons-expired" notification is
-+   *       dispatched through observer's service.
-+   */
-+  void expireAllFavicons();
-+
-+  /**
-+   * Adds a given favicon's URI to the failed favicon cache.
-+   *
-+   * The lifespan of the favicon cache is up to the caching system.  This cache
-+   * will also be written when setAndLoadFaviconForPage hits an error while
-+   * fetching an icon.
-+   *
-+   * @param aFaviconURI
-+   *        The URI of an icon in the favicon service.
-+   */
-+  void addFailedFavicon(in nsIURI aFaviconURI);
-+
-+  /**
-+   * Removes the given favicon from the failed favicon cache.  If the icon is
-+   * not in the cache, it will silently succeed.
-+   *
-+   * @param aFaviconURI
-+   *        The URI of an icon in the favicon service.
-+   */
-+  void removeFailedFavicon(in nsIURI aFaviconURI);
-+
-+  /**
-+   * Checks to see if a favicon is in the failed favicon cache.
-+   * A positive return value means the icon is in the failed cache and you
-+   * probably shouldn't try to load it.  A false return value means that it's
-+   * worth trying to load it.
-+   * This allows you to avoid trying to load "foo.com/favicon.ico" for every
-+   * page on a site that doesn't have a favicon.
-+   *
-+   * @param aFaviconURI
-+   *        The URI of an icon in the favicon service.
-+   */
-+  boolean isFailedFavicon(in nsIURI aFaviconURI);
-+
-+  /**
-+   * The default favicon URI
-+   */
-+  readonly attribute nsIURI defaultFavicon;
-+
+@@ -81,16 +81,24 @@ interface nsIFaviconService : nsISupport
+    *        The URI of an icon in the favicon service.
+    */
+   boolean isFailedFavicon(in nsIURI aFaviconURI);
+ 
+   /**
+    * The default favicon URI
+    */
+   readonly attribute nsIURI defaultFavicon;
++  
 +  nsIURI getFaviconForPage(in nsIURI aPageURI);
++
 +  void getFaviconData(in nsIURI aFaviconURI,
 +                   out AUTF8String aMimeType,
 +                    [optional] out unsigned long aDataLen,
 +                      [array,retval,size_is(aDataLen)] out octet aData);
-+};
-+
-+[scriptable, function, uuid(c85e5c82-b70f-4621-9528-beb2aa47fb44)]
-+interface nsIFaviconDataCallback : nsISupports
-+{
-+  /**
-+   * Called when the required favicon's information is available.
-+   *
-+   * It's up to the invoking method to state if the callback is always invoked,
-+   * or called on success only.  Check the method documentation to ensure that.
-+   *
-+   * The caller will receive the most information we can gather on the icon,
-+   * but it's not guaranteed that all of them will be set.  For some method
-+   * we could not know the favicon's data (it could just be too expensive to
-+   * get it, or the method does not require we actually have any data).
-+   * It's up to the caller to check aDataLen > 0 before using any data-related
-+   * information like mime-type or data itself.
-+   *
-+   * @param aFaviconURI
-+   *        Receives the "favicon URI" (not the "favicon link URI") associated
-+   *        to the requested page.  This can be null if there is no associated
-+   *        favicon URI, or the callback is notifying a failure.
-+   * @param aDataLen
-+   *        Size of the icon data in bytes.  Notice that a value of 0 does not
-+   *        necessarily mean that we don't have an icon.
-+   * @param aData
-+   *        Icon data, or an empty array if aDataLen is 0.
-+   * @param aMimeType
-+   *        Mime type of the icon, or an empty string if aDataLen is 0.
-+   *
-+   * @note If you want to open a network channel to access the favicon, it's
-+   *       recommended that you call the getFaviconLinkForIcon method to convert
-+   *       the "favicon URI" into a "favicon link URI".
-+   */
-+  void onComplete(in nsIURI aFaviconURI,
-+                  in unsigned long aDataLen,
-+                  [const,array,size_is(aDataLen)] in octet aData,
-+                  in AUTF8String aMimeType);
-+};
-+
-+%{C++
-+
-+/**
-+ * Notification sent when all favicons are expired.
-+ */
-+#define NS_PLACES_FAVICONS_EXPIRED_TOPIC_ID "places-favicons-expired"
-+
-+#define FAVICON_DEFAULT_URL "chrome://mozapps/skin/places/defaultFavicon.png"
-+#define FAVICON_ERRORPAGE_URL "chrome://global/skin/icons/warning-16.png"
-+
-+%}
-diff --git a/toolkit/components/startup/public/moz.build b/toolkit/components/startup/public/moz.build
---- a/toolkit/components/startup/public/moz.build
-+++ b/toolkit/components/startup/public/moz.build
-@@ -1,13 +1,14 @@
- # -*- Mode: python; c-basic-offset: 4; indent-tabs-mode: nil; tab-width: 40 -*-
- # vim: set filetype=python:
- # This Source Code Form is subject to the terms of the Mozilla Public
- # License, v. 2.0. If a copy of the MPL was not distributed with this
- # file, You can obtain one at http://mozilla.org/MPL/2.0/.
++                        
+ };
  
- XPIDL_SOURCES += [
-     'nsIAppStartup.idl',
-+    'nsIAppStartup2.idl',
-     'nsIUserInfo.idl',
- ]
+ [scriptable, function, uuid(c85e5c82-b70f-4621-9528-beb2aa47fb44)]
+ interface nsIFaviconDataCallback : nsISupports
+ {
+   /**
+    * Called when the required favicon's information is available.
+    *
+diff --git a/toolkit/components/processsingleton/MainProcessSingleton.js b/toolkit/components/processsingleton/MainProcessSingleton.js
+--- a/toolkit/components/processsingleton/MainProcessSingleton.js
++++ b/toolkit/components/processsingleton/MainProcessSingleton.js
+@@ -82,21 +82,21 @@ MainProcessSingleton.prototype = {
+     switch (topic) {
+     case "app-startup": {
+       Services.obs.addObserver(this, "xpcom-shutdown", false);
  
- XPIDL_MODULE = 'appstartup'
+       // Load this script early so that console.* is initialized
+       // before other frame scripts.
+       globalmm.loadFrameScript("chrome://global/content/browser-content.js", true);
+       ppmm.addMessageListener("Console:Log", this.logConsoleMessage);
+-      globalmm.addMessageListener("Search:AddEngine", this.addSearchEngine);
++      ppmm.addMessageListener("Search:AddEngine", this.addSearchEngine);
+       break;
+     }
  
+     case "xpcom-shutdown":
+       ppmm.removeMessageListener("Console:Log", this.logConsoleMessage);
+-      globalmm.removeMessageListener("Search:AddEngine", this.addSearchEngine);
++      ppmm.removeMessageListener("Search:AddEngine", this.addSearchEngine);
+       break;
+     }
+   },
+ };
+ 
+ this.NSGetFactory = XPCOMUtils.generateNSGetFactory([MainProcessSingleton]);
+diff --git a/toolkit/components/search/nsSidebar.js b/toolkit/components/search/nsSidebar.js
+--- a/toolkit/components/search/nsSidebar.js
++++ b/toolkit/components/search/nsSidebar.js
+@@ -11,20 +11,18 @@ Cu.import("resource://gre/modules/XPCOMU
+ const SHERLOCK_FILE_EXT_REGEXP = /\.src$/i;
+ 
+ function nsSidebar() {
+ }
+ 
+ nsSidebar.prototype = {
+   init: function(window) {
+     this.window = window;
+-    this.mm = window.QueryInterface(Ci.nsIInterfaceRequestor)
+-                    .getInterface(Ci.nsIDocShell)
+-                    .QueryInterface(Ci.nsIInterfaceRequestor)
+-                    .getInterface(Ci.nsIContentFrameMessageManager);
++    this.mm = Components.classes["@mozilla.org/childprocessmessagemanager;1"]
++            .getService(Ci.nsISyncMessageSender);
+   },
+ 
+   // The suggestedTitle and suggestedCategory parameters are ignored, but remain
+   // for backward compatibility.
+   addSearchEngine: function(engineURL, iconURL, suggestedTitle, suggestedCategory) {
+     let dataType = SHERLOCK_FILE_EXT_REGEXP.test(engineURL) ?
+                    Ci.nsISearchEngine.DATA_TEXT :
+                    Ci.nsISearchEngine.DATA_XML;
+@@ -40,17 +38,17 @@ nsSidebar.prototype = {
+   // This function exists largely to implement window.external.AddSearchProvider(),
+   // to match other browsers' APIs.  The capitalization, although nonstandard here,
+   // is therefore important.
+   AddSearchProvider: function(engineURL) {
+     this.mm.sendAsyncMessage("Search:AddEngine", {
+       pageURL: this.window.document.documentURIObject.spec,
+       engineURL,
+       type: Ci.nsISearchEngine.DATA_XML
+-    });
++    },{win:this.window});
+   },
+ 
+   // This function exists to implement window.external.IsSearchProviderInstalled(),
+   // for compatibility with other browsers.  The function has been deprecated
+   // and so will not be implemented.
+   IsSearchProviderInstalled: function(engineURL) {
+     return 0;
+   },
+diff --git a/toolkit/mozapps/extensions/addonManager.js b/toolkit/mozapps/extensions/addonManager.js
+--- a/toolkit/mozapps/extensions/addonManager.js
++++ b/toolkit/mozapps/extensions/addonManager.js
+@@ -37,21 +37,21 @@ let gParentMM = null;
+ 
+ 
+ function amManager() {
+   Cu.import("resource://gre/modules/AddonManager.jsm");
+ 
+   let globalMM = Cc["@mozilla.org/globalmessagemanager;1"]
+                  .getService(Ci.nsIMessageListenerManager);
+   globalMM.loadFrameScript(CHILD_SCRIPT, true);
+-  globalMM.addMessageListener(MSG_INSTALL_ADDONS, this);
+ 
+   gParentMM = Cc["@mozilla.org/parentprocessmessagemanager;1"]
+                  .getService(Ci.nsIMessageListenerManager);
+   gParentMM.addMessageListener(MSG_INSTALL_ENABLED, this);
++  gParentMM.addMessageListener(MSG_INSTALL_ADDONS, this);
+ 
+   // Needed so receiveMessage can be called directly by JS callers
+   this.wrappedJSObject = this;
+ }
+ 
+ amManager.prototype = {
+   observe: function AMC_observe(aSubject, aTopic, aData) {
+     if (aTopic == "addons-startup")
+@@ -89,17 +89,17 @@ amManager.prototype = {
+     if (!AddonManager.isInstallAllowed(aMimetype, aInstallingPrincipal)) {
+       aCallback = null;
+       retval = false;
+     }
+ 
+     let installs = [];
+     function buildNextInstall() {
+       if (aUris.length == 0) {
+-        AddonManager.installAddonsFromWebpage(aMimetype, aBrowser, aInstallingPrincipal, installs);
++        AddonManager.installAddonsFromWebpage(aMimetype, null, aInstallingPrincipal, installs);
+         return;
+       }
+       let uri = aUris.shift();
+       AddonManager.getInstallForURL(uri, function buildNextInstall_getInstallForURL(aInstall) {
+         function callCallback(aUri, aStatus) {
+           try {
+             aCallback.onInstallEnded(aUri, aStatus);
+           }
+@@ -171,17 +171,17 @@ amManager.prototype = {
+                 url: url,
+                 status: status
+               });
+             },
+           };
+         }
+ 
+         return this.installAddonsFromWebpage(payload.mimetype,
+-          aMessage.target, payload.triggeringPrincipal, payload.uris,
++          null, payload.triggeringPrincipal, payload.uris,
+           payload.hashes, payload.names, payload.icons, callback);
+       }
+     }
+   },
+ 
+   classID: Components.ID("{4399533d-08d1-458c-a87a-235f74451cfa}"),
+   _xpcom_factory: {
+     createInstance: function AMC_createInstance(aOuter, aIid) {
+diff --git a/toolkit/mozapps/extensions/amContentHandler.js b/toolkit/mozapps/extensions/amContentHandler.js
+--- a/toolkit/mozapps/extensions/amContentHandler.js
++++ b/toolkit/mozapps/extensions/amContentHandler.js
+@@ -40,16 +40,30 @@ amContentHandler.prototype = {
+     let window = null;
+     let callbacks = aRequest.notificationCallbacks ?
+                     aRequest.notificationCallbacks :
+                     aRequest.loadGroup.notificationCallbacks;
+     if (callbacks)
+       window = callbacks.getInterface(Ci.nsIDOMWindow);
+ 
+     aRequest.cancel(Cr.NS_BINDING_ABORTED);
++    
++    let mm = Cc["@mozilla.org/childprocessmessagemanager;1"]
++            .getService(Ci.nsISyncMessageSender);
++   
++    return mm.sendSyncMessage(MSG_INSTALL_ADDONS, {
++      uris: [uri.spec],
++      hashes: [null],
++      names: [null],
++      icons: [null],
++      mimetype: XPI_CONTENT_TYPE,
++      triggeringPrincipal: aRequest.loadInfo.triggeringPrincipal,
++      callbackID: -1
++    }, {win: window})[0];    
++    
+ 
+     let installs = {
+       uris: [uri.spec],
+       hashes: [null],
+       names: [null],
+       icons: [null],
+       mimetype: XPI_CONTENT_TYPE,
+       triggeringPrincipal: aRequest.loadInfo.triggeringPrincipal,
+diff --git a/toolkit/mozapps/extensions/amInstallTrigger.js b/toolkit/mozapps/extensions/amInstallTrigger.js
+--- a/toolkit/mozapps/extensions/amInstallTrigger.js
++++ b/toolkit/mozapps/extensions/amInstallTrigger.js
+@@ -89,23 +89,17 @@ RemoteMediator.prototype = {
+           name: MSG_INSTALL_ADDONS,
+           target: element,
+           data: installs,
+         });
+       }
+     }
+ 
+     // Fall back to sending through the message manager
+-    let messageManager = window.QueryInterface(Ci.nsIInterfaceRequestor)
+-                               .getInterface(Ci.nsIWebNavigation)
+-                               .QueryInterface(Ci.nsIDocShell)
+-                               .QueryInterface(Ci.nsIInterfaceRequestor)
+-                               .getInterface(Ci.nsIContentFrameMessageManager);
+-
+-    return messageManager.sendSyncMessage(MSG_INSTALL_ADDONS, installs)[0];
++    return this.mm.sendSyncMessage(MSG_INSTALL_ADDONS, installs, {win: window})[0];
+   },
+ 
+   _addCallback: function(callback, urls) {
+     if (!callback || typeof callback != "function")
+       return -1;
+ 
+     let callbackID = this._windowID + "-" + ++this._lastCallbackID;
+     let callbackObject = new CallbackObject(callbackID, callback, urls, this);
 diff --git a/toolkit/xre/nsEmbedFunctions.cpp b/toolkit/xre/nsEmbedFunctions.cpp
 --- a/toolkit/xre/nsEmbedFunctions.cpp
 +++ b/toolkit/xre/nsEmbedFunctions.cpp
-@@ -96,16 +96,17 @@ using mozilla::ipc::TestShellCommandPare
- using mozilla::ipc::XPCShellEnvironment;
- 
- using mozilla::startup::sChildProcessType;
- 
- static NS_DEFINE_CID(kAppShellCID, NS_APPSHELL_CID);
+@@ -24,16 +24,17 @@
+ #include "nsIDirectoryService.h"
+ #include "nsIFile.h"
+ #include "nsIToolkitChromeRegistry.h"
+ #include "nsIToolkitProfile.h"
  
  #ifdef XP_WIN
- static const wchar_t kShellLibraryName[] =  L"shell32.dll";
+ #include <process.h>
+ #include "mozilla/ipc/WindowsMessageLoop.h"
 +#include "mozilla/widget/AudioSession.h"
  #endif
  
- nsresult
- XRE_LockProfileDirectory(nsIFile* aDirectory,
-                          nsISupports* *aLockObject)
- {
-   nsCOMPtr<nsIProfileLock> lock;
- 
-@@ -160,16 +161,20 @@ XRE_InitEmbedding2(nsIFile *aLibXULDirec
+ #include "nsAppDirectoryServiceDefs.h"
+ #include "nsAppRunner.h"
+ #include "nsAutoRef.h"
+ #include "nsDirectoryServiceDefs.h"
+ #include "nsExceptionHandler.h"
+ #include "nsString.h"
+@@ -179,16 +180,20 @@ XRE_InitEmbedding2(nsIFile *aLibXULDirec
  
    nsCOMPtr<nsIObserver> startupNotifier
      (do_CreateInstance(NS_APPSTARTUPNOTIFIER_CONTRACTID));
@@ -3654,7 +1442,7 @@ diff --git a/toolkit/xre/nsEmbedFunctions.cpp b/toolkit/xre/nsEmbedFunctions.cpp
  {
    NS_ASSERTION(gDirServiceProvider, "XRE_InitEmbedding was not called!");
    gDirServiceProvider->DoStartup();
-@@ -179,16 +184,20 @@ void
+@@ -198,16 +203,20 @@ void
  XRE_TermEmbedding()
  {
    if (--sInitCounter != 0)
@@ -3675,11 +1463,56 @@ diff --git a/toolkit/xre/nsEmbedFunctions.cpp b/toolkit/xre/nsEmbedFunctions.cpp
  const char*
  XRE_ChildProcessTypeToString(GeckoProcessType aProcessType)
  {
+diff --git a/widget/nsBaseAppShell.cpp b/widget/nsBaseAppShell.cpp
+--- a/widget/nsBaseAppShell.cpp
++++ b/widget/nsBaseAppShell.cpp
+@@ -8,21 +8,23 @@
+ #include "nsBaseAppShell.h"
+ #if defined(MOZ_CRASHREPORTER)
+ #include "nsExceptionHandler.h"
+ #endif
+ #include "nsThreadUtils.h"
+ #include "nsIObserverService.h"
+ #include "nsServiceManagerUtils.h"
+ #include "mozilla/Services.h"
++#include "nsXREAppData.h"
++extern const nsXREAppData* gAppData;
+ 
+ // When processing the next thread event, the appshell may process native
+ // events (if not in performance mode), which can result in suppressing the
+ // next thread event for at most this many ticks:
+-#define THREAD_EVENT_STARVATION_LIMIT PR_MillisecondsToInterval(20)
++#define THREAD_EVENT_STARVATION_LIMIT PR_MillisecondsToInterval(10)
+ 
+ NS_IMPL_ISUPPORTS(nsBaseAppShell, nsIAppShell, nsIThreadObserver, nsIObserver)
+ 
+ nsBaseAppShell::nsBaseAppShell()
+   : mSuspendNativeCount(0)
+   , mEventloopNestingLevel(0)
+   , mBlockedWait(nullptr)
+   , mFavorPerf(0)
+@@ -266,16 +268,17 @@ nsBaseAppShell::OnProcessNextEvent(nsITh
+   // When mayWait is true, we need to make sure that there is an event in the
+   // thread's event queue before we return.  Otherwise, the thread will block
+   // on its event queue waiting for an event.
+   bool needEvent = mayWait;
+   // Reset prior to invoking DoProcessNextNativeEvent which might cause
+   // NativeEventCallback to process gecko events.
+   mProcessedGeckoEvents = false;
+ 
++  if (gAppData)
+   if (mFavorPerf <= 0 && start > mSwitchTime + mStarvationDelay) {
+     // Favor pending native events
+     PRIntervalTime now = start;
+     bool keepGoing;
+     do {
+       mLastNativeEventTime = now;
+       keepGoing = DoProcessNextNativeEvent(false, recursionDepth);
+     } while (keepGoing && ((now = PR_IntervalNow()) - start) < limit);
 diff --git a/widget/windows/moz.build b/widget/windows/moz.build
 --- a/widget/windows/moz.build
 +++ b/widget/windows/moz.build
-@@ -45,23 +45,27 @@ UNIFIED_SOURCES += [
-     'nsWindow.cpp',
+@@ -47,23 +47,27 @@ UNIFIED_SOURCES += [
      'nsWindowBase.cpp',
      'nsWindowDbg.cpp',
      'nsWindowGfx.cpp',
@@ -3687,12 +1520,12 @@ diff --git a/widget/windows/moz.build b/widget/windows/moz.build
      'TaskbarPreview.cpp',
      'TaskbarPreviewButton.cpp',
      'TaskbarTabPreview.cpp',
--    'TaskbarWindowPreview.cpp',
+     'TaskbarWindowPreview.cpp',
 -    'WidgetTraceEvent.cpp',
-+    'TaskbarWindowPreview.cpp',    
      'WindowHook.cpp',
      'WinIMEHandler.cpp',
      'WinTaskbar.cpp',
+     'WinUtils.cpp',
  ]
  
 +if CONFIG['MOZ_INSTRUMENT_EVENT_LOOP']:    
@@ -3700,113 +1533,18 @@ diff --git a/widget/windows/moz.build b/widget/windows/moz.build
 +         'WidgetTraceEvent.cpp',
 +    ]
 +
- # The following files cannot be built in unified mode because they force NSPR logging.
- SOURCES += [
-     'nsIMM32Handler.cpp',
-     'WinMouseScrollHandler.cpp',
-     'WinUtils.cpp',
- ]
- 
  # The following files cannot be built in unified mode because of name clashes.
-diff --git a/widget/windows/nsAppShell.cpp b/widget/windows/nsAppShell.cpp
---- a/widget/windows/nsAppShell.cpp
-+++ b/widget/windows/nsAppShell.cpp
-@@ -167,16 +167,17 @@ nsAppShell::Init()
-     wc.lpszClassName = kWindowClass;
-     RegisterClassW(&wc);
-   }
- 
-   mEventWnd = CreateWindowW(kWindowClass, L"nsAppShell:EventWindow",
-                            0, 0, 0, 10, 10, nullptr, nullptr, module, nullptr);
-   NS_ENSURE_STATE(mEventWnd);
- 
-+  mAppStartup = do_GetService("@mozilla.org/toolkit/app-startup;1");
-   return nsBaseAppShell::Init();
- }
- 
- NS_IMETHODIMP
- nsAppShell::Run(void)
- {
-   // Ignore failure; failing to start the application is not exactly an
-   // appropriate response to failing to start an audio session.
-@@ -283,16 +284,17 @@ nsAppShell::ProcessNextNativeEvent(bool 
-         (msg.message >= NS_WM_IMEFIRST && msg.message <= NS_WM_IMELAST) ||
-         (msg.message >= WM_MOUSEFIRST && msg.message <= WM_MOUSELAST);
-     }
- 
-     if (gotMessage) {
-       if (msg.message == WM_QUIT) {
-         ::PostQuitMessage(msg.wParam);
-         Exit();
-+	  } else if (mAppStartup && NS_SUCCEEDED(mAppStartup->ProcessNativeEvent((void*)&msg))) {
-       } else {
-         // If we had UI activity we would be processing it now so we know we
-         // have either kUIActivity or kActivityNoUIAVail.
-         mozilla::HangMonitor::NotifyActivity(
-           uiMessage ? mozilla::HangMonitor::kUIActivity :
-                       mozilla::HangMonitor::kActivityNoUIAVail);
- 
-         if (msg.message >= WM_KEYFIRST && msg.message <= WM_KEYLAST &&
-diff --git a/widget/windows/nsAppShell.h b/widget/windows/nsAppShell.h
---- a/widget/windows/nsAppShell.h
-+++ b/widget/windows/nsAppShell.h
-@@ -2,16 +2,17 @@
- /* This Source Code Form is subject to the terms of the Mozilla Public
-  * License, v. 2.0. If a copy of the MPL was not distributed with this
-  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
- 
- #ifndef nsAppShell_h__
- #define nsAppShell_h__
- 
- #include "nsBaseAppShell.h"
-+#include "nsIAppStartup2.h"
- #include <windows.h>
- #include "mozilla/TimeStamp.h"
- #include "mozilla/Mutex.h"
- 
- // The maximum time we allow before forcing a native event callback.
- // In seconds.
- #define NATIVE_EVENT_STARVATION_LIMIT 1
- 
-@@ -44,11 +45,12 @@ protected:
-   static LRESULT CALLBACK EventWindowProc(HWND, UINT, WPARAM, LPARAM);
- 
- protected:
-   HWND mEventWnd;
-   bool mNativeCallbackPending;
- 
-   Mutex mLastNativeEventScheduledMutex;
-   TimeStamp mLastNativeEventScheduled;
-+  nsCOMPtr<nsIAppStartup2> mAppStartup;
- };
- 
- #endif // nsAppShell_h__
-diff --git a/widget/windows/nsClipboard.cpp b/widget/windows/nsClipboard.cpp
---- a/widget/windows/nsClipboard.cpp
-+++ b/widget/windows/nsClipboard.cpp
-@@ -80,17 +80,17 @@ NS_IMETHODIMP
- nsClipboard::Observe(nsISupports *aSubject, const char *aTopic,
-                      const char16_t *aData)
- {
-   // This will be called on shutdown.
-   ::OleFlushClipboard();
-   ::CloseClipboard();
- 
-   return NS_OK;
--}
-+	}
- 
- //-------------------------------------------------------------------------
- UINT nsClipboard::GetFormat(const char* aMimeStr)
- {
-   UINT format;
- 
-   if (strcmp(aMimeStr, kTextMime) == 0)
-     format = CF_TEXT;
+ SOURCES += [
+     'JumpListBuilder.cpp',
+     'nsBidiKeyboard.cpp',
+     'nsFilePicker.cpp',
+     'nsWidgetFactory.cpp',
+     'WinMouseScrollHandler.cpp',
+ ]
 diff --git a/widget/windows/nsWindow.cpp b/widget/windows/nsWindow.cpp
 --- a/widget/windows/nsWindow.cpp
 +++ b/widget/windows/nsWindow.cpp
-@@ -72,17 +72,19 @@
+@@ -76,17 +76,19 @@
  #include <psapi.h>
  
  #include "prlog.h"
@@ -3826,7 +1564,7 @@ diff --git a/widget/windows/nsWindow.cpp b/widget/windows/nsWindow.cpp
  #include "nsIScreenManager.h"
  #include "imgIContainer.h"
  #include "nsIFile.h"
-@@ -4317,24 +4324,24 @@ LRESULT CALLBACK nsWindow::WindowProcInt
+@@ -4319,24 +4321,24 @@ LRESULT CALLBACK nsWindow::WindowProcInt
        // Route WM_HSCROLL messages to the main window.
        hWnd = ::GetParent(::GetParent(hWnd));
      } else {
@@ -3853,125 +1591,41 @@ diff --git a/widget/windows/nsWindow.cpp b/widget/windows/nsWindow.cpp
  
    // Hold the window for the life of this method, in case it gets
    // destroyed during processing, unless we're in the dtor already.
-diff --git a/widget/xpwidgets/nsBaseAppShell.cpp b/widget/xpwidgets/nsBaseAppShell.cpp
---- a/widget/xpwidgets/nsBaseAppShell.cpp
-+++ b/widget/xpwidgets/nsBaseAppShell.cpp
-@@ -8,21 +8,24 @@
- #include "nsBaseAppShell.h"
- #if defined(MOZ_CRASHREPORTER)
- #include "nsExceptionHandler.h"
- #endif
- #include "nsThreadUtils.h"
- #include "nsIObserverService.h"
- #include "nsServiceManagerUtils.h"
- #include "mozilla/Services.h"
-+#include "nsXREAppData.h"
-+
-+extern const nsXREAppData* gAppData;
- 
- // When processing the next thread event, the appshell may process native
- // events (if not in performance mode), which can result in suppressing the
- // next thread event for at most this many ticks:
--#define THREAD_EVENT_STARVATION_LIMIT PR_MillisecondsToInterval(20)
-+#define THREAD_EVENT_STARVATION_LIMIT PR_MillisecondsToInterval(10)
- 
- NS_IMPL_ISUPPORTS(nsBaseAppShell, nsIAppShell, nsIThreadObserver, nsIObserver)
- 
- nsBaseAppShell::nsBaseAppShell()
-   : mSuspendNativeCount(0)
-   , mEventloopNestingLevel(0)
-   , mBlockedWait(nullptr)
-   , mFavorPerf(0)
-@@ -265,17 +268,17 @@ nsBaseAppShell::OnProcessNextEvent(nsITh
- 
-   // When mayWait is true, we need to make sure that there is an event in the
-   // thread's event queue before we return.  Otherwise, the thread will block
-   // on its event queue waiting for an event.
-   bool needEvent = mayWait;
-   // Reset prior to invoking DoProcessNextNativeEvent which might cause
-   // NativeEventCallback to process gecko events.
-   mProcessedGeckoEvents = false;
--
-+  if (gAppData)
-   if (mFavorPerf <= 0 && start > mSwitchTime + mStarvationDelay) {
-     // Favor pending native events
-     PRIntervalTime now = start;
-     bool keepGoing;
-     do {
-       mLastNativeEventTime = now;
-       keepGoing = DoProcessNextNativeEvent(false, recursionDepth);
-     } while (keepGoing && ((now = PR_IntervalNow()) - start) < limit);
-@@ -292,18 +295,18 @@ nsBaseAppShell::OnProcessNextEvent(nsITh
-     // events to process.  Note that an inner nested event loop causes
-     // 'mayWait' to become false too, through 'mBlockedWait'.
-     if (mExiting)
-       mayWait = false;
- 
-     mLastNativeEventTime = PR_IntervalNow();
-     if (!DoProcessNextNativeEvent(mayWait, recursionDepth) || !mayWait)
-       break;
--  }
--
-+  }
-+  
-   mBlockedWait = oldBlockedWait;
- 
-   // Make sure that the thread event queue does not block on its monitor, as
-   // it normally would do if it did not have any pending events.  To avoid
-   // that, we simply insert a dummy event into its queue during shutdown.
-   if (needEvent && !mExiting && !NS_HasPendingEvents(thr)) {
-     DispatchDummyEvent(thr);
-   }
-diff --git a/xpcom/glue/pldhash.cpp b/xpcom/glue/pldhash.cpp
---- a/xpcom/glue/pldhash.cpp
-+++ b/xpcom/glue/pldhash.cpp
-@@ -631,16 +631,18 @@ PL_DHashTableRawRemove(PLDHashTable *tab
-         MARK_ENTRY_FREE(entry);
-     }
-     table->entryCount--;
- }
- 
- uint32_t
- PL_DHashTableEnumerate(PLDHashTable *table, PLDHashEnumerator etor, void *arg)
- {
-+    MOZ_ASSERT(table != nullptr, "table must not be null");
-+    if (!table) return 0;
-     INCREMENT_RECURSION_LEVEL(table);
- 
-     char *entryAddr = table->entryStore;
-     uint32_t entrySize = table->entrySize;
-     uint32_t capacity = PL_DHASH_TABLE_SIZE(table);
-     uint32_t tableSize = capacity * entrySize;
-     char *entryLimit = entryAddr + tableSize;
-     uint32_t i = 0;
 diff --git a/xpcom/threads/HangMonitor.cpp b/xpcom/threads/HangMonitor.cpp
 --- a/xpcom/threads/HangMonitor.cpp
 +++ b/xpcom/threads/HangMonitor.cpp
-@@ -1,8 +1,9 @@
-+
- /* -*- Mode: C++; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
- /* This Source Code Form is subject to the terms of the Mozilla Public
-  * License, v. 2.0. If a copy of the MPL was not distributed with this
-  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
- 
- #include "mozilla/HangMonitor.h"
- #include "mozilla/BackgroundHangMonitor.h"
- #include "mozilla/Monitor.h"
-@@ -297,16 +298,17 @@ Shutdown()
- 
-   delete gMonitor;
-   gMonitor = nullptr;
+@@ -496,31 +496,31 @@ Shutdown()
+   // gAnnotators is a StaticAutoPtr, so we just need to null it out.
+   gAnnotators = nullptr;
+ #endif
  }
  
  static bool
  IsUIMessageWaiting()
  {
-+  return false;
- #ifndef XP_WIN
+-#ifndef XP_WIN
++//#ifndef XP_WIN
    return false;
- #else
-   #define NS_WM_IMEFIRST WM_IME_SETCONTEXT
-   #define NS_WM_IMELAST  WM_IME_KEYUP
+-#else
++//#else
+ #define NS_WM_IMEFIRST WM_IME_SETCONTEXT
+ #define NS_WM_IMELAST  WM_IME_KEYUP
    BOOL haveUIMessageWaiting = FALSE;
    MSG msg;
-   haveUIMessageWaiting |= ::PeekMessageW(&msg, nullptr, WM_KEYFIRST, 
+   haveUIMessageWaiting |= ::PeekMessageW(&msg, nullptr, WM_KEYFIRST,
+                                          WM_IME_KEYLAST, PM_NOREMOVE);
+   haveUIMessageWaiting |= ::PeekMessageW(&msg, nullptr, NS_WM_IMEFIRST,
+                                          NS_WM_IMELAST, PM_NOREMOVE);
+   haveUIMessageWaiting |= ::PeekMessageW(&msg, nullptr, WM_MOUSEFIRST,
+                                          WM_MOUSELAST, PM_NOREMOVE);
+   return haveUIMessageWaiting;
+-#endif
++//#endif
+ }
+ 
+ void
+ NotifyActivity(ActivityType aActivityType)
+ {
+   MOZ_ASSERT(NS_IsMainThread(),
+              "HangMonitor::Notify called from off the main thread.");
+ 

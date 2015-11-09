@@ -1,13 +1,8 @@
 #include "stdafx.h"
-#include "MozUtils.h"
 #include "nsIWindowWatcher.h"
 #include "nsIIOService.h"
-
 #include "nsDirectoryServiceUtils.h"
-
-#include "nsIDOMHTMLImageElement.h"
-#include "nsIDOMHTMLInputElement.h"
-#include "nsIDOMHTMLObjectElement.h"
+#include "nsIDocShell.h"
 
 #include "nsIDOMCSSPrimitiveValue.h"
 #include "nsIDOMCSSStyleDeclaration.h"
@@ -15,6 +10,10 @@
 
 #include "nsIDOMCharacterData.h"
 
+#include "nsIDOMHTMLDocument.h"
+#include "nsIDOMHTMLImageElement.h"
+#include "nsIDOMHTMLInputElement.h"
+#include "nsIDOMHTMLObjectElement.h"
 #include "nsIDOMHTMLAreaElement.h"
 #include "nsIDOMHTMLLinkElement.h"
 #include "nsIDOMHTMLAnchorElement.h"
@@ -585,8 +584,11 @@ BOOL LogMessage(const char* category, const char* message, const char* file, uin
 CString GetSearchURL(LPCTSTR query) 
 {
 	nsCOMPtr<nsIURIFixup> fixup(do_GetService("@mozilla.org/docshell/urifixup;1"));
+	nsCOMPtr<nsIURIFixupInfo> iuri;
+	if (!iuri)  return _T("");
+	
 	nsCOMPtr<nsIURI> uri;
-	fixup->KeywordToURI(CStringToNSCString(query), nullptr, getter_AddRefs(uri));
+	iuri->GetFixedURI(getter_AddRefs(uri));
 	if (!uri)  return _T("");
 
 	nsCString spec;
@@ -672,6 +674,8 @@ bool ZipExtractFiles(nsIFile* zipFile, nsIFile* folder)
 #include "mozilla/dom/ScriptSettings.h"
 #include "nsIJSContextStack.h"
 #include "jsapi.h"
+#include "js/GCAPI.h"
+#include "jsfriendapi.h"
 
 bool InjectJS(nsIDOMWindow* dom, const wchar_t* userScript, CString& result)
 {
@@ -717,19 +721,33 @@ bool InjectJS(nsIDOMWindow* dom, const wchar_t* userScript, CString& result)
 	nsCOMPtr<nsIScriptContext> scriptContext = global->GetContext();
 	NS_ENSURE_TRUE(scriptContext, FALSE);
 
+	NS_AUTO_POPUP_STATE_PUSHER popup(piWin, openAllowed);
+	
 	JSContext* cx = scriptContext->GetNativeContext();
 	if (!cx) return FALSE;
 
+	JS::Rooted<JSObject*> _globalJSObject(JS_GetRuntime(cx), innerGlobal->GetGlobalJSObject());
 	NS_ENSURE_SUCCESS(cs->Push(cx), FALSE);
 	JSAutoRequest ar(cx);
-	JSAutoCompartment ac(cx, scriptContext->GetWindowProxy());
+	JSAutoNullableCompartment ac(cx, _globalJSObject);
+
+	docShell->NotifyJSRunToCompletionStart();
+	
 	JS::Rooted<JSObject*> globalJSObject(cx, innerGlobal->GetGlobalJSObject());
 	JS::Rooted<JS::Value> v (cx, JS::UndefinedValue());
-	JS_EvaluateUCScript(cx, globalJSObject, userScript, wcslen(userScript), "kmeleon", 0, &v);
-
-	if (!v.isObject() && v.toString())
-		result = NSStringToCString(nsString(JS_GetStringCharsZ(cx, v.toString())));
+	JS::CompileOptions opts(cx);
+	opts.setFileAndLine("kmeleon", 0);
+	opts.setNoScriptRval(false);
+	JS::Evaluate(cx, globalJSObject, opts, userScript, wcslen(userScript), &v);
+	::JS_ReportPendingException(cx);
+	if (v.isString() && !v.isObject()) {
+		JSString* str = v.toString();
+		size_t l = JS_GetStringLength(str);		
+		js::CopyStringChars(cx, result.GetBufferSetLength(l + 1), str, l);
+		result.SetAt(l, 0);
+	}
 	cs->Pop(nullptr);	
+	docShell->NotifyJSRunToCompletionStop();
 	return TRUE;
 }
 

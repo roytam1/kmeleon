@@ -1,15 +1,9 @@
-#define MOZILLA_STRICT_API
-#define XPCOM_GLUE
-#include "xpcom-config.h"
-#include <nsXPCOM.h>
-#include <nsCOMPtr.h>
-#include <nsISupports.h>
 #include "nsIJSBridge.h"
-#include "nsIObserver.h"
 #include "nsEmbedString.h"
 #include "nsCOMArray.h"
 #include <map>
 #include <list>
+class nsIObserver;
 
 #define JSBRIDGE_CID { 0x842170a0, 0x5210, 0x11db, { 0xb0, 0xde, 0x08, 0x00, 0x20, 0x0c, 0x9a, 0x66}}
 static NS_DEFINE_CID(kJSBridgeCID, JSBRIDGE_CID);

@@ -4,6 +4,14 @@
 #include <windows.h>
 #include <string.h>
 #include <stdlib.h>
+
+#define MOZILLA_STRICT_API
+#define XPCOM_GLUE
+#include <xpcom-config.h>
+#include <js-config.h>
+#include <nsXPCOM.h>
+#include <nsCOMPtr.h>
+#include <nsISupports.h>
 #include <nsIDOMWindow.h>
 #include <nsIWindowWatcher.h>
 #include <nsServiceManagerUtils.h>
@@ -11,6 +19,7 @@
 #include <nsIEmbeddingSiteWindow.h>
 #include <nsComponentManagerUtils.h>
 #include <nsISimpleEnumerator.h>
+#include <nsIObserver.h>
 #include <nsMemory.h>
 #include <jsapi.h>
 

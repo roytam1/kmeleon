@@ -187,7 +187,7 @@ NS_METHOD nsGenericFactory::Create(nsISupports* outer, const nsIID& aIID, void* 
 }
 
 
-NS_COM_GLUE nsresult
+nsresult
 NS_NewGenericFactory(nsIGenericFactory* *result,
                      const nsModuleComponentInfo *info)
 {
