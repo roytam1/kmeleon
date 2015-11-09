@@ -1,0 +1,306 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release Static MFC|Win32">
+      <Configuration>Release Static MFC</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{7BB6C711-139E-C685-6DF2-191FFF772A85}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectName>k-meleon</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v100</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <UseOfMfc>Dynamic</UseOfMfc>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <UseOfMfc>Dynamic</UseOfMfc>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release Static MFC|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <UseOfMfc>Static</UseOfMfc>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release Static MFC|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>$(SolutionDir)..\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)..\_$(Configuration)\kmeleon\app\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)..\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)..\_$(Configuration)\kmeleon\app\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release Static MFC|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)..\release\</OutDir>
+    <IntDir>$(SolutionDir)..\_release\kmeleon\app\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>../shared;..\..\xulrunner-sdk\include\nspr;..\..\xulrunner-sdk\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+    </ClCompile>
+    <Link>
+      <TargetMachine>MachineX86</TargetMachine>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <AdditionalLibraryDirectories>..\..\xulrunner-sdk\lib_$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateMapFile>true</GenerateMapFile>
+      <LargeAddressAware>true</LargeAddressAware>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <AdditionalIncludeDirectories>../shared;..\..\xulrunner-sdk\include\nspr;..\..\xulrunner-sdk\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <Optimization>MinSpace</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <StringPooling>true</StringPooling>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+    </ClCompile>
+    <Link>
+      <TargetMachine>MachineX86</TargetMachine>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <HeapReserveSize>0x40000</HeapReserveSize>
+      <LargeAddressAware>true</LargeAddressAware>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <AdditionalLibraryDirectories>..\..\xulrunner-sdk\lib_$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release Static MFC|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <AdditionalIncludeDirectories>../shared;..\..\xulrunner-sdk\include\nspr;..\..\xulrunner-sdk\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <Optimization>MinSpace</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <StringPooling>true</StringPooling>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+    </ClCompile>
+    <Link>
+      <TargetMachine>MachineX86</TargetMachine>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <HeapReserveSize>0x40000</HeapReserveSize>
+      <LargeAddressAware>true</LargeAddressAware>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <AdditionalLibraryDirectories>..\..\xulrunner-sdk\lib_release</AdditionalLibraryDirectories>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\shared\Utils.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release Static MFC|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="AccelParser.cpp" />
+    <ClCompile Include="BrowserFrm.cpp" />
+    <ClCompile Include="BrowserFrmTab.cpp" />
+    <ClCompile Include="BrowserGlue.cpp" />
+    <ClCompile Include="BrowserImpl.cpp" />
+    <ClCompile Include="BrowserImplWebPrgrsLstnr.cpp" />
+    <ClCompile Include="BrowserView.cpp" />
+    <ClCompile Include="BrowserViewPanning.cpp" />
+    <ClCompile Include="BrowserViewUtils.cpp" />
+    <ClCompile Include="BrowserWindow.cpp" />
+    <ClCompile Include="CmdLine.cpp" />
+    <ClCompile Include="Components.cpp" />
+    <ClCompile Include="CookiePromptService.cpp" />
+    <ClCompile Include="CookiesViewerDlg.cpp" />
+    <ClCompile Include="defineMap.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release Static MFC|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="Dialogs.cpp" />
+    <ClCompile Include="FavIconList.cpp" />
+    <ClCompile Include="GenericDlg.cpp" />
+    <ClCompile Include="GenKeyPairDialogs.cpp" />
+    <ClCompile Include="HiddenWnd.cpp" />
+    <ClCompile Include="KmAbout.cpp" />
+    <ClCompile Include="KmAppInfo.cpp" />
+    <ClCompile Include="KmCommand.cpp" />
+    <ClCompile Include="KmFileLocProvider.cpp" />
+    <ClCompile Include="KmImage.cpp" />
+    <ClCompile Include="KmMenu.cpp" />
+    <ClCompile Include="KmSkin.cpp" />
+    <ClCompile Include="KmToolbar.cpp" />
+    <ClCompile Include="LangParser.cpp" />
+    <ClCompile Include="MenuParser.cpp" />
+    <ClCompile Include="MfcEmbed.cpp" />
+    <ClCompile Include="MostRecentUrls.cpp" />
+    <ClCompile Include="MozUtils.cpp" />
+    <ClCompile Include="NSSDialogs.cpp" />
+    <ClCompile Include="Parser.cpp" />
+    <ClCompile Include="PasswordViewerDlg.cpp" />
+    <ClCompile Include="Permissions.cpp" />
+    <ClCompile Include="Plugins.cpp" />
+    <ClCompile Include="Preferences.cpp" />
+    <ClCompile Include="PrintProgressDialog.cpp" />
+    <ClCompile Include="PrintSetupDialog.cpp" />
+    <ClCompile Include="ProfileMgr.cpp" />
+    <ClCompile Include="ProfilesDlg.cpp" />
+    <ClCompile Include="PromptService.cpp" />
+    <ClCompile Include="ReBarEx.cpp" />
+    <ClCompile Include="SaveAsHandler.cpp" />
+    <ClCompile Include="SideBar.cpp" />
+    <ClCompile Include="StdAfx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release Static MFC|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="TabReBar.cpp" />
+    <ClCompile Include="ToolBarEx.cpp" />
+    <ClCompile Include="Tooltips.cpp" />
+    <ClCompile Include="UnknownContentTypeHandler.cpp" />
+    <ClCompile Include="urlbar.cpp" />
+    <ClCompile Include="VisualStylesXP.cpp" />
+    <ClCompile Include="TooltipsProvider.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="AccelParser.h" />
+    <ClInclude Include="AutoComplete.h" />
+    <ClInclude Include="BrowserFrm.h" />
+    <ClInclude Include="BrowserFrmTab.h" />
+    <ClInclude Include="BrowserImpl.h" />
+    <ClInclude Include="BrowserView.h" />
+    <ClInclude Include="BrowserWindow.h" />
+    <ClInclude Include="CmdLine.h" />
+    <ClInclude Include="CookiePromptService.h" />
+    <ClInclude Include="Cookies.h" />
+    <ClInclude Include="CookiesViewerDlg.h" />
+    <ClInclude Include="DialogEx.h" />
+    <ClInclude Include="Dialogs.h" />
+    <ClInclude Include="FavIconList.h" />
+    <ClInclude Include="GenericDlg.h" />
+    <ClInclude Include="GenKeyPairDialogs.h" />
+    <ClInclude Include="HiddenWnd.h" />
+    <ClInclude Include="IBrowserFrameGlue.h" />
+    <ClInclude Include="KmAbout.h" />
+    <ClInclude Include="KmAppInfo.h" />
+    <ClInclude Include="KmCommand.h" />
+    <ClInclude Include="KMeleonConst.h" />
+    <ClInclude Include="KmFileLocProvider.h" />
+    <ClInclude Include="KmImage.h" />
+    <ClInclude Include="KmInstaller.h" />
+    <ClInclude Include="KmMenu.h" />
+    <ClInclude Include="KmSkin.h" />
+    <ClInclude Include="KmToolbar.h" />
+    <ClInclude Include="LangParser.h" />
+    <ClInclude Include="Log.h" />
+    <ClInclude Include="MenuParser.h" />
+    <ClInclude Include="MfcEmbed.h" />
+    <ClInclude Include="MostRecentUrls.h" />
+    <ClInclude Include="MozUtils.h" />
+    <ClInclude Include="NSSDialogs.h" />
+    <ClInclude Include="Parser.h" />
+    <ClInclude Include="PasswordViewerDlg.h" />
+    <ClInclude Include="Permissions.h" />
+    <ClInclude Include="Plugins.h" />
+    <ClInclude Include="Preferences.h" />
+    <ClInclude Include="PrintProgressDialog.h" />
+    <ClInclude Include="PrintSetupDialog.h" />
+    <ClInclude Include="ProfileMgr.h" />
+    <ClInclude Include="ProfilesDlg.h" />
+    <ClInclude Include="PromptService.h" />
+    <ClInclude Include="ReBarEx.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="SaveAsHandler.h" />
+    <ClInclude Include="SideBar.h" />
+    <ClInclude Include="StdAfx.h" />
+    <ClInclude Include="TabReBar.h" />
+    <ClInclude Include="ToolBarEx.h" />
+    <ClInclude Include="Tooltips.h" />
+    <ClInclude Include="TooltipsProvider.h" />
+    <ClInclude Include="UnknownContentTypeHandler.h" />
+    <ClInclude Include="urlbar.h" />
+    <ClInclude Include="VisualStylesXP.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\back.bmp" />
+    <None Include="res\broken.ico" />
+    <None Include="res\Cursor_10.cur" />
+    <None Include="res\Cursor_11.cur" />
+    <None Include="res\Cursor_12.cur" />
+    <None Include="res\Cursor_13.cur" />
+    <None Include="res\Cursor_14.cur" />
+    <None Include="res\Cursor_15.cur" />
+    <None Include="res\Cursor_16.cur" />
+    <None Include="res\Cursor_17.cur" />
+    <None Include="res\Cursor_27.cur" />
+    <None Include="res\KmeleonDocument.ico" />
+    <None Include="res\MozillaBrowser.ico" />
+    <None Include="res\off.ico" />
+    <None Include="res\offcheck.ico" />
+    <None Include="res\on.ico" />
+    <None Include="res\oncheck.ico" />
+    <None Include="res\popupblock.ico" />
+    <None Include="res\sinsecur.ico" />
+    <None Include="res\ssecur.ico" />
+    <None Include="res\toolbar1.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="mfcembed.rc" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties RESOURCE_FILE="MfcEmbed.rc" />
+    </VisualStudio>
+  </ProjectExtensions>
+</Project>
