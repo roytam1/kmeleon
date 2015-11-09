@@ -1,0 +1,52 @@
+<!ENTITY title "NewsFox 選項">
+<!ENTITY global "全域顯示樣式:">
+<!ENTITY checkOnStartup "啟動時更新所有 Feeds">
+<!ENTITY notifyUponNewArticles "當有新文章時通知我">
+<!ENTITY confirmDelete "當刪除群組或 Feeds 時要求確認">
+<!ENTITY confirmDeleteArticle "當刪除文章時要求確認">
+<!ENTITY shortcutkeys "快捷鍵:">
+<!ENTITY restart "(更改後可能需重新啟動 Newsfox)">
+<!ENTITY shortcutsNone "無">
+<!ENTITY shortcutsStd "標準">
+<!ENTITY shortcutsAlt "配合 Alt">
+<!ENTITY shortcutsCustom "自訂">
+<!ENTITY seehelp "按鈕選單可檢視快捷鍵清單。">
+<!ENTITY newsfox.dir "NewsFox 目錄">
+<!ENTITY moveNfDir "目錄內容:">
+<!ENTITY copy "複製">
+<!ENTITY move "移動">
+<!ENTITY noaction "無動作">
+<!ENTITY Child_directory "子目錄">
+<!ENTITY Parent_directory "父目錄">
+<!ENTITY dateStyle "日期樣式:">
+<!ENTITY changeToPresent "更改文章日期成目前時間，如果是:">
+<!ENTITY articleTooltips "內文摘要提示">
+<!ENTITY copyToClipboard "複製文章內文至剪貼簿">
+<!ENTITY selectAddedFeed "切換到下一個 Feed 當">
+<!ENTITY feedRefresh "Feed 更新:">
+<!ENTITY feedRefreshThreads "線程">
+<!ENTITY feedRefreshRenew "續領 (秒)">
+<!ENTITY feedSlowdown "對於較慢的電腦，請減少線程和/或增加續領時間。">
+<!ENTITY feedRefreshTimeout "Feed 更新逾時 (秒)">
+<!ENTITY horizontalPanes "水平版面 (需重新啟動 NewsFox)">
+<!ENTITY favicons "網站圖示">
+<!ENTITY updateTimeToBookmark "將 Feed 網址和更新時間寫入至書籤">
+<!ENTITY spam "啟用興趣篩選">
+<!ENTITY globalTab "全域設定">
+<!ENTITY feedTab "Feed/文章">
+<!ENTITY generalTab "一般">
+<!ENTITY shortcutsTab "快捷鍵">
+<!ENTITY keywordsTab "關鍵字">
+<!ENTITY shortcuts.operationHeader "操作">
+<!ENTITY shortcuts.select "選取一列，然後按下組合鍵來設定快捷鍵。">
+<!ENTITY shortcuts.warning "部份快捷可能會因為已被使用而無效。">
+<!ENTITY shortcuts.experiment "試驗去尋找可用的操作，或選擇一個預設的選項。">
+<!ENTITY keyword "關鍵字:">
+<!ENTITY keywordsHighlighted "要自動在文章中高亮標示的關鍵字。">
+<!ENTITY caseIgnored "所有搜尋使用小寫。">
+<!ENTITY statusBar "在狀態列顯示自動訂閱圖示">
+<!ENTITY statusBarText "文字:">
+<!ENTITY buttonText "Newsfox 按鈕文字:">
+<!ENTITY statusBarTextNew "# 新的">
+<!ENTITY statusBarTextUnread "# 未閱讀">
+<!ENTITY statusBarTextNone "無">

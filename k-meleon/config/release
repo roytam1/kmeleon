@@ -1,0 +1,18 @@
+# This make file should be identical to the beta mozconfig, apart from the
+# safeguard below
+. "$topsrcdir/build/mozconfig.win-common"
+. "$topsrcdir/build/win32/mozconfig.vs2010"
+. "$topsrcdir/kmeleon/config/common-opt"
+
+#mk_add_options MOZ_PGO=1
+
+ac_add_options --enable-official-branding
+ac_add_options --enable-release
+
+# safeguard against someone forgetting to re-set EARLY_BETA_OR_EARLIER in
+# defines.sh during the beta cycle
+export BUILDING_RELEASE=1
+
+export MOZ_OPTIMIZE_LDFLAGS="-opt:ref,icf"
+mk_add_options MOZ_OPTIMIZE_LDFLAGS="-opt:ref,icf"
+

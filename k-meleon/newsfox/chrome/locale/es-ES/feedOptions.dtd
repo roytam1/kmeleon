@@ -1,0 +1,25 @@
+<!ENTITY useGlobal "Usar configuración global">
+<!ENTITY feedAutoCheck "&apos;Refrescar todos los hilos&apos; marca este hilo para nuevas entradas">
+<!ENTITY dontDeleteUnread "No borrar los no leídos">
+<!ENTITY groups "Grupos:">
+<!ENTITY checkfeed "Comprobar hilo">
+<!ENTITY iconsrc "Icono fuente:">
+<!ENTITY authentication "Autenticación (sólo hilos seguros)">
+<!ENTITY username "Nombre de usuario:">
+<!ENTITY password "Contraseña:">
+<!ENTITY feedPrivate "Cifrar los hilos en el disco">
+<!ENTITY keepDays.pre "Mantener las entradas al menos">
+<!ENTITY keepDays.post "días">
+<!ENTITY mainTab "General">
+<!ENTITY filterTab "Filtro web">
+<!ENTITY securityTab "Seguridad">
+<!ENTITY filterNew "Descargar todos los nuevos artículos de las páginas web filtradas">
+<!ENTITY filterImages "Descargar las imágenes de las páginas web filtradas">
+<!ENTITY filterInfo "Introduzca un filtro para transformar el código HTML del enlace al artículo en una descripción extendida. Puede usar una expresión regular, o código JavaScript que pasará a ser la descripción extendida del artículo.">
+<!ENTITY filterJSinfo "Si se usa Javascript, están disponibles las siguientes variables:">
+<!ENTITY filterJSvar1 "linkDOM contiene el DOM del enlace a la página del artículo">
+<!ENTITY filterJSvar2 "linkHTML contiene el texto/html del enlace a la página del artículo">
+<!ENTITY filterJSvar3 "getElementsByClass(clase,etiqueta,nodo) devuelve un array con todos los elementos html con la etiqueta y la clase pasados, contenidos en el nodo">
+<!ENTITY filterMime "Ignorar el juego de caracteres (+ automático, &gt; probar, o el juego de caracteres)">
+<!ENTITY filterInfo2 "Debe introducir un filtro o las imágenes se descargarán del artículo actual, no como una página html. Para usar el filtro por defecto pulse la tecla de borrado.">
+<!ENTITY never "nunca">

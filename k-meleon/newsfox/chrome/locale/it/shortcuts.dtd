@@ -1,0 +1,24 @@
+<!ENTITY sCcustomShortcut "Selezionando un profilo di scorciatoie da tastiera diverso da quello predefinito, e chiudendo l&apos;estensione, sarà possibile accedere al file accel.xml che verrà creato all&apos;interno della cartella Newsfox nel profilo utilizzato. Modificando gli attributi &apos;modifiers&apos; e &apos;key&apos; sarà possibile definire nuove combinazioni.">
+<!ENTITY sCcustomHeading "Scorciatoie da tastiera personalizzate">
+<!ENTITY sCfixedHeading "Scorciatoie da tastiera predefinite">
+<!ENTITY sCartFeedHeading "Pannello dell&apos;articolo/feed">
+<!ENTITY sCviewArtHeading "Pannello di visualizzazione/articolo">
+<!ENTITY sCfeedHeading "Pannello dei feed">
+<!ENTITY sCarticleUp "Sposta l&apos;articolo in alto">
+<!ENTITY sCarticleDown "Sposta l&apos;articolo in basso">
+<!ENTITY sCupLevel "Livello superiore">
+<!ENTITY sCexpandTree "Espandi feed">
+<!ENTITY sCsame "stessa azione">
+<!ENTITY sCtoggleArtFlag "Spunta l&apos;articolo">
+<!ENTITY sCselToFocus "Seleziona articolo focalizzato">
+<!ENTITY sCfocusUp "Porta in primo piano l'articolo precedente">
+<!ENTITY sCfocusDown "Porta in primo piano l'articolo successivo">
+<!ENTITY sCmoveFeedUp "Sposta il feed in alto">
+<!ENTITY sCmoveFeedDown "Sposta il feed in basso">
+<!ENTITY sCfeedUp "Feed precedente">
+<!ENTITY sCfeedDown "Feed successivo">
+<!ENTITY sCexpColl "Espandi o contrai feed">
+<!ENTITY sCdeleteKey "Canc">
+<!ENTITY sCctrlKey "Ctrl">
+<!ENTITY sCshiftKey "Maiusc">
+<!ENTITY sCaltKey "Alt">

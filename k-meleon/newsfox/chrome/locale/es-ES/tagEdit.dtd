@@ -1,0 +1,9 @@
+<!ENTITY title "Editar etiquetas">
+<!ENTITY tagAdd "Etiquetas a añadir a los artículos seleccionados">
+<!ENTITY tagRemove "Etiquetas a eliminar de los artículos seleccionados">
+<!ENTITY tagDeleteCompletely "Etiquetas a eliminar de todos los artículos y de la lista de etiquetas">
+<!ENTITY colorVaries1 "AZUL: la etiqueta está en todos los artículos seleccionados">
+<!ENTITY colorVaries2 "mezcla: la etiqueta está en algunos artículos seleccionados">
+<!ENTITY colorVaries3 "Rojo: la etiqueta no está en ningún artículo seleccionado">
+<!ENTITY newTagAdd "Nuevas etiquetas a añadir a los artículos seleccionados">
+<!ENTITY newTagAddExample "&apos;/&apos; separa etiquetas: &apos;técnicas/noticias&apos;">

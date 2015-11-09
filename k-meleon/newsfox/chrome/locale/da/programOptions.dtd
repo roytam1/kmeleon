@@ -1,0 +1,52 @@
+<!ENTITY title "NewsFox Indstillinger">
+<!ENTITY global "Global visningsstil:">
+<!ENTITY checkOnStartup "Genindlæs alle feeds ved opstart">
+<!ENTITY notifyUponNewArticles "Giv besked når nye artikler udsendes">
+<!ENTITY confirmDelete "Spørg om bekræftelse når grupper eller feeds slettes">
+<!ENTITY confirmDeleteArticle "Spørg om bekræftelse når artikler slettes">
+<!ENTITY shortcutkeys "Genvejstaster:">
+<!ENTITY restart "(Ændring kan kræve genstart af Firefox)">
+<!ENTITY shortcutsNone "ingen">
+<!ENTITY shortcutsStd "standard">
+<!ENTITY shortcutsAlt "alternativ">
+<!ENTITY shortcutsCustom "tilpasset">
+<!ENTITY seehelp "menu har en liste med tastaturgenveje.">
+<!ENTITY newsfox.dir "NewsFox-mappe">
+<!ENTITY moveNfDir "Mappeindhold:">
+<!ENTITY copy "kopier">
+<!ENTITY move "flyt">
+<!ENTITY noaction "ingen handling">
+<!ENTITY Child_directory "Underordnet mappe">
+<!ENTITY Parent_directory "Overordnet mappe">
+<!ENTITY dateStyle "Datostil:">
+<!ENTITY changeToPresent "Ændr artikels dato til nu hvis:">
+<!ENTITY articleTooltips "Artikel værktøjstips">
+<!ENTITY copyToClipboard "Kopier artikeltekst til udklipsholder">
+<!ENTITY selectAddedFeed "Vælg nyt feed når det tilføjes">
+<!ENTITY feedRefresh "Feed-genindlæsning:">
+<!ENTITY feedRefreshThreads "tråde">
+<!ENTITY feedRefreshRenew "fornyelse (sekunder)">
+<!ENTITY feedSlowdown "For langsommere computere, reducer trådene og/eller forøg fornyelsestiden.">
+<!ENTITY feedRefreshTimeout "Timeout for genindlæsning af feed (sekunder)">
+<!ENTITY horizontalPanes "Vandrette paneler (kræver genstart)">
+<!ENTITY favicons "Favikoner">
+<!ENTITY updateTimeToBookmark "Skriv feed-url og tidspunkt for opdatering til bogmærke">
+<!ENTITY spam "Aktiver interessefilter">
+<!ENTITY globalTab "Globalt">
+<!ENTITY feedTab "Feeds/Artikler">
+<!ENTITY generalTab "Generelt">
+<!ENTITY shortcutsTab "Genveje">
+<!ENTITY keywordsTab "Nøgleord">
+<!ENTITY shortcuts.operationHeader "Handlinger">
+<!ENTITY shortcuts.select "Vælg en række og indtast en tastekombination for at sætte et tastetryk.">
+<!ENTITY shortcuts.warning "Mange tastetryk er allerede brugt og utilgængelige.">
+<!ENTITY shortcuts.experiment "Prøv dig frem eller vælg en af de forvalgte indstillinger.">
+<!ENTITY keyword "Nøgleord:">
+<!ENTITY keywordsHighlighted "Nøgleord bliver automatisk fremhævet i artikler.">
+<!ENTITY caseIgnored "Alle søgninger foregår med små bogstaver.">
+<!ENTITY statusBar "Ikonet Auto-abonner i statuslinjen">
+<!ENTITY statusBarText "Tekst:">
+<!ENTITY buttonText "Newsfox knaptekst:">
+<!ENTITY statusBarTextNew "# nye">
+<!ENTITY statusBarTextUnread "# ulæste">
+<!ENTITY statusBarTextNone "ingen">

@@ -1,0 +1,27 @@
+<!ENTITY name "Név:">
+<!ENTITY insertbefore "Ez elé:">
+<!ENTITY dragrtl "Húzd jobbról balra a hírfolyamot, hogy bekerüljön a csoportba.">
+<!ENTITY dragltr "Húzd balról jöbbra a hírfolyamot, hogy kikerüljön a csoportból.">
+<!ENTITY dragwithin "Húzd a csoporton belül a sorrend változtatásához.">
+<!ENTITY flagged "Zászló:">
+<!ENTITY either "egyik sem">
+<!ENTITY unread "Olvasatlan:">
+<!ENTITY searchtext "Keresendő:">
+<!ENTITY match "Találat:">
+<!ENTITY body "törzs">
+<!ENTITY title2 "cím">
+<!ENTITY tag "cimke">
+<!ENTITY casesensitive "Nagybetűérzékeny">
+<!ENTITY searchvalues "Keresett értékek">
+<!ENTITY textvalues "Szöveg">
+<!ENTITY time "Időpont:">
+<!ENTITY grouptosearch "Csoport, amelyben keresni kell:">
+<!ENTITY between "között">
+<!ENTITY and "és">
+<!ENTITY ago "ezelőtt">
+<!ENTITY hours "óra">
+<!ENTITY weeks "hét">
+<!ENTITY months "hónap">
+<!ENTITY years "év">
+<!ENTITY ever "örökké">
+<!ENTITY showUnread "Mutassa az olvasatlan cikkek számát (lassíthatja a NewsFox-ot)">

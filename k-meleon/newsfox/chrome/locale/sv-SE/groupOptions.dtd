@@ -1,0 +1,27 @@
+<!ENTITY name "Namn:">
+<!ENTITY insertbefore "Infoga före:">
+<!ENTITY dragrtl "Dra från höger till vänster för att lägga till flöden i gruppen.">
+<!ENTITY dragltr "Dra från vänster till höger för att ta bort flöden från gruppen.">
+<!ENTITY dragwithin "Dra inom gruppen för att sortera om.">
+<!ENTITY flagged "Flaggade:">
+<!ENTITY either "vilkendera">
+<!ENTITY unread "Olästa:">
+<!ENTITY searchtext "Söktext:">
+<!ENTITY match "Matchning:">
+<!ENTITY body "brödtext">
+<!ENTITY title2 "rubrik">
+<!ENTITY tag "tagg">
+<!ENTITY casesensitive "Skiftlägeskänslig">
+<!ENTITY searchvalues "Sökvärden">
+<!ENTITY textvalues "Textvärden">
+<!ENTITY time "Tid:">
+<!ENTITY grouptosearch "Grupp att söka inom:">
+<!ENTITY between "Mellan">
+<!ENTITY and "och">
+<!ENTITY ago "sedan">
+<!ENTITY hours "timmar">
+<!ENTITY weeks "veckor">
+<!ENTITY months "månader">
+<!ENTITY years "år">
+<!ENTITY ever "alla datum">
+<!ENTITY showUnread "Visa antal olästa artiklar (kan göra NewsFox långsamt)">

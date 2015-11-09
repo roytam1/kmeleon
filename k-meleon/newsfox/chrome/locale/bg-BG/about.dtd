@@ -1,0 +1,9 @@
+<!ENTITY projectOwner "собственик на проекта">
+<!ENTITY localization "Превод:">
+<!ENTITY primaryContact "основен контакт">
+<!ENTITY developer "рабработващ">
+<!ENTITY projectCreator "създател на проекта">
+<!ENTITY icons "Икони:">
+<!ENTITY fromFirefox "Повечето икони са (или са модифицирани) от Firefox/Thunderbird.">
+<!ENTITY fromFamfamfam "Иконите флаг, етикет, архив и затваряне са от famfamfam.com.">
+<!ENTITY helpADR "Благодарности към ADR за помощта му.">

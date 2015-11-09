@@ -1,0 +1,24 @@
+<!ENTITY sCcustomShortcut "要自訂快捷鍵，可在選項視窗中選取一種快捷鍵方式，然後退出 NewsFox，開啟 profile (設定檔) 資料夾中的 newsfox 資料夾，編輯 'accel.xml' 檔案裡的 'modifiers' 和 'key' 屬性。">
+<!ENTITY sCcustomHeading "自訂快捷鍵">
+<!ENTITY sCfixedHeading "固定快捷鍵">
+<!ENTITY sCartFeedHeading "文章/Feed 面板">
+<!ENTITY sCviewArtHeading "檢視/文章 面板">
+<!ENTITY sCfeedHeading "Feed 面板">
+<!ENTITY sCarticleUp "上一個文章">
+<!ENTITY sCarticleDown "下一個文章">
+<!ENTITY sCupLevel "上一層">
+<!ENTITY sCexpandTree "展開 Feed">
+<!ENTITY sCsame "同左">
+<!ENTITY sCtoggleArtFlag "標記/取消星號">
+<!ENTITY sCselToFocus "選擇文章">
+<!ENTITY sCfocusUp "焦點至上一個文章">
+<!ENTITY sCfocusDown "焦點至下一個文章">
+<!ENTITY sCmoveFeedUp "Feed 上移">
+<!ENTITY sCmoveFeedDown "Feed 下移">
+<!ENTITY sCfeedUp "上一個 Feed">
+<!ENTITY sCfeedDown "下一個 Feed">
+<!ENTITY sCexpColl "展開/收合 Feed">
+<!ENTITY sCdeleteKey "Delete">
+<!ENTITY sCctrlKey "Ctrl">
+<!ENTITY sCshiftKey "Shift">
+<!ENTITY sCaltKey "Alt">

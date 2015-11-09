@@ -1,0 +1,16 @@
+<!ENTITY info.title "Informations sur NewsFox">
+<!ENTITY need.help "Besoin d'aide ?">
+<!ENTITY newsfox.read "Lisez la">
+<!ENTITY overview "vue d'ensemble">
+<!ENTITY for.tutorial "pour un rapide tutoriel.">
+<!ENTITY like.newsfox "Vous aimez NewsFox ?">
+<!ENTITY consider.contributing "Vous pouvez envisager de contribuer au projet :">
+<!ENTITY spread.word "Faites connaître NewsFox.">
+<!ENTITY consider.donation "Vous appréciez le travail et vous vous sentez généreux ? Vous pouvez envisager de faire un don au projet NewsFox !">
+<!ENTITY miss.something "Quelque chose vous manque ?">
+<!ENTITY submit.bug "Soumettez un bogue ou une demande de nouvelle fonctionnalité.">
+<!ENTITY write.code "Vous voulez écrire du code ?">
+<!ENTITY newsfox.authors "Contactez un développeur.">
+<!ENTITY pre.for.more.info "">
+<!ENTITY visit.homepage "Visitez la page web">
+<!ENTITY for.more.info "pour plus d'informations.">

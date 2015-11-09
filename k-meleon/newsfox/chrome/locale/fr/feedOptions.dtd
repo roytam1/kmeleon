@@ -1,0 +1,25 @@
+<!ENTITY useGlobal "Utiliser le réglage global">
+<!ENTITY feedAutoCheck "&quot;Rafraîchir tous les flux&quot; vérifie s'il existe de nouveaux articles pour ce flux">
+<!ENTITY dontDeleteUnread "Ne pas supprimer les éléments non lus">
+<!ENTITY groups "Groupes :">
+<!ENTITY checkfeed "Vérifier le flux">
+<!ENTITY iconsrc "Icône :">
+<!ENTITY authentication "Authentification (flux sécurisés uniquement)">
+<!ENTITY username "Nom d'utilisateur :">
+<!ENTITY password "Mot de passe :">
+<!ENTITY feedPrivate "Chiffrer les articles du flux sur le disque">
+<!ENTITY keepDays.pre "Garder les articles au moins">
+<!ENTITY keepDays.post "jours">
+<!ENTITY mainTab "Général">
+<!ENTITY filterTab "Filtre web">
+<!ENTITY securityTab "Sécurité">
+<!ENTITY filterNew "Télécharger les pages web filtrées pour tous les nouveaux articles">
+<!ENTITY filterImages "Télécharger les images dans les pages web filtrées">
+<!ENTITY filterInfo "Saisir un filtre pour transformer le lien de l'article HTML en une description d'article étendue. Un filtre peut être soit une expression régulière ou un code Javascript dont les valeurs deviendront la description étendue de l'article.">
+<!ENTITY filterJSinfo "Lors de l'utilisation de Javascript, les variables suivantes sont disponibles :">
+<!ENTITY filterJSvar1 "linkDOM contient l'arbre DOM de la page du lien de l'article">
+<!ENTITY filterJSvar2 "linkHTML contient le texte/html de la page du lien de l'article">
+<!ENTITY filterJSvar3 "getElementsByClass(class, tag, node) retourne un tableau de tous les éléments HTML avec la balise donnée et de classe contenue dans le nœud donné">
+<!ENTITY filterMime "Outrepasser l'encodage (+ pour auto, &gt; pour test, ou encodage)">
+<!ENTITY filterInfo2 "Vous devez entrer un filtre ou des images qui seront téléchargées pour l'article courant, au lieu d'une page html. Pour utiliser le filtre par défaut, tapez la touche de retour arrière.">
+<!ENTITY never "jamais">

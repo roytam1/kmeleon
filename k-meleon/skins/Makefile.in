@@ -1,0 +1,11 @@
+include $(topsrcdir)/config/config.mk
+include $(topsrcdir)/config/rules.mk
+
+libs:: $(srcdir)/Default/*
+	$(INSTALL) $(IFLAGS1) $^ $(FINAL_TARGET)/Default
+
+libs:: $(srcdir)/Klassic/*
+	$(INSTALL) $(IFLAGS1) $^ $(FINAL_TARGET)/Klassic
+
+libs:: $(srcdir)/shared/*
+	$(INSTALL) $(IFLAGS1) $^ $(FINAL_TARGET)/shared

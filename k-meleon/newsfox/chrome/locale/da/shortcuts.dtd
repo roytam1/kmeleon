@@ -1,0 +1,24 @@
+<!ENTITY sCcustomShortcut "Tilpassede genvejstaster kan defineres ved, at redigere egenskaberne &quot;modifiers&quot; og &quot;keys&quot; i filen 'accel.xml' i NewsFox-mappen i profilmappen, efter du har valgt en række tastaturgenveje i indstillingsvinduet, og afsluttet NewsFox.">
+<!ENTITY sCcustomHeading "Tilpassede genveje">
+<!ENTITY sCfixedHeading "Faste genveje">
+<!ENTITY sCartFeedHeading "Artikel/feed-panel">
+<!ENTITY sCviewArtHeading "Vis/artikel-panel">
+<!ENTITY sCfeedHeading "Feed-panel">
+<!ENTITY sCarticleUp "Artikel op">
+<!ENTITY sCarticleDown "Artikel ned">
+<!ENTITY sCupLevel "Niveau op">
+<!ENTITY sCexpandTree "Udvid feed">
+<!ENTITY sCsame "det samme">
+<!ENTITY sCtoggleArtFlag "Slå markering for artikel til/fra">
+<!ENTITY sCselToFocus "Vælg den med fokus">
+<!ENTITY sCfocusUp "Fokus en artikel op">
+<!ENTITY sCfocusDown "Fokus en artikel ned">
+<!ENTITY sCmoveFeedUp "Flyt feed op">
+<!ENTITY sCmoveFeedDown "Flyt feed ned">
+<!ENTITY sCfeedUp "Feed op">
+<!ENTITY sCfeedDown "Feed ned">
+<!ENTITY sCexpColl "Udvid/sammenklap feed">
+<!ENTITY sCdeleteKey "slet">
+<!ENTITY sCctrlKey "ctrl">
+<!ENTITY sCshiftKey "skift">
+<!ENTITY sCaltKey "alt">

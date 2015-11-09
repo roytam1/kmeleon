@@ -1,0 +1,29 @@
+<!ENTITY overview.title "功能簡介">
+<!ENTITY adding.feeds "新增 Feed">
+<!ENTITY addnew.feeds "您可以按工具列上的 [新增 Feed] 按鈕來新增 Feed。">
+<!ENTITY addnew.feeds.opml "也可以利用「選項」按鈕選單從一個 OPML 檔案來匯入 Feeds。">
+<!ENTITY addnew.feeds.auto "您可以在 Firefox 選項視窗的「消息來源」標籤頁面直接設定以 NewsFox 作為預設的消息來源閱讀器，這樣當網頁有 RSS 可以訂閱時便可按網址列右方的 RSS 圖示直接以 NewsFox 來訂閱 Feed。">
+<!ENTITY alternative.use "NewsFox 也能閱讀 Firefox 的即時書籤。您可以按工具列上的 [管理即時書籤] 按鈕勾選要使用 NewsFox 來閱讀的即時書籤。">
+<!ENTITY feed.options "您可以利用左邊 Feed 面版中的右鍵選單或是右邊文章面板上方的 [配置 Feed 選項] 按鈕來變更 Feed 選項。">
+<!ENTITY remove.feeds "移除 Feed">
+<!ENTITY feed.remove "您可以按工具列上的 [刪除 Feed] 按鈕來永久移除一個 Feed 和它所有的文章。">
+<!ENTITY new.items "取得新文章">
+<!ENTITY retrieve.items "您可以按工具列上的 [更新] 按鈕來取得新的文章。">
+<!ENTITY retrieve.items.alt "您也可以在左邊 Feeds 面版中的 Feed 或群組上按滑鼠右鍵來取得新的文章。">
+<!ENTITY retrieve.options "您可以按「選項」按鈕選單開啟選項視窗來設定自動下載新文章。">
+<!ENTITY manage.title "管理文章">
+<!ENTITY manage.info "文章被點選之後會被標示成已閱讀。您可以按圖示來設定文章的「已閱讀/未閱讀」和「星號標記」狀態。">
+<!ENTITY manage.info2 "您可以利用右鍵選單、工具列按鈕，或是快捷鍵來將文章標示成「已閱讀/未閱讀」或是刪除它。">
+<!ENTITY manage.info3 "您可以按欄位標題來更改文章的排序方式。預設是最新的文章放在最上方，您可以按 R 欄位標題將未閱讀的文章放在最上方。">
+<!ENTITY groups.tags "群組">
+<!ENTITY groups.info "有一個名為 &apos;FEEDS&apos; 的群組，它包含了您所有的 Feeds。Feeds 可以被歸類到任何您自訂的群組中。一個 Feed 只有一個實體的副本: 當您將一個文章標示成已閱讀，它在所有群組中都會被標示成已閱讀。">
+<!ENTITY groups.info1 "您可以按工具列上的 [新增群組] 按鈕來建立新群組。">
+<!ENTITY groups.info2 "或是藉由搜尋 Feeds 文章來產生一個搜尋群組。例如，您可以搜尋所有 Feeds 文章中的關鍵字。只要按工具列上的「新增群組 -&gt; 搜尋群組」就能建立這種搜尋群組。">
+<!ENTITY groups.info3 "您可以按工具列上的 [刪除群組] 按鈕來刪除群組。">
+<!ENTITY groups.info4 "您可以利用群組來管理您的 Feeds: 您也許有新奇的、重要的、每日的、每週的、新聞、科技等群組。您可以管理任何想要的群組。">
+<!ENTITY groups.info5 "您可以利用左邊 Feed 面版中的右鍵選單或是右邊文章面板上方的 [配置 Feed 選項] 按鈕來變更群組的選項。">
+<!ENTITY other.title "其他">
+<!ENTITY other.dragndrop "您可以使用滑鼠拖曳的方式來變更 Feed 和群組的位置順序。">
+<!ENTITY other.art.toolbar "左邊 Feed 面版有右鍵選單可以使用；右邊文章面板有右鍵選單和工具列可以使用。當滑鼠停留在工具列的按鈕上時，會有工具提示告訴您該按鈕的功能。">
+<!ENTITY other.info "如果您發生所有 Feeds 都不見的情況 (這種機率很小)，「選項」按鈕選單中有「恢復」選項可以選擇。">
+<!ENTITY other.info2 "您可以按「選項」按鈕選單開啟選項視窗來設定鍵盤快捷鍵，然後在「說明」按鈕選單的「快捷鍵」就能看到可用的快捷鍵清單。">

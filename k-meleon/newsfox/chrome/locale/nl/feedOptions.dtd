@@ -1,0 +1,25 @@
+<!ENTITY useGlobal "Algemene instellingen gebruiken">
+<!ENTITY feedAutoCheck "‘Alle feeds verversen’ controleert deze feed op nieuwe artikelen">
+<!ENTITY dontDeleteUnread "Ongelezen artikelen niet verwijderen">
+<!ENTITY groups "Groepen:">
+<!ENTITY checkfeed "Feed controleren">
+<!ENTITY iconsrc "Bron van pictogram:">
+<!ENTITY authentication "Aanmelding (alleen beveiligde feeds)">
+<!ENTITY username "Gebruikersnaam:">
+<!ENTITY password "Wachtwoord:">
+<!ENTITY feedPrivate "Feedberichten op schijf versleutelen">
+<!ENTITY keepDays.pre "Berichten ten minste">
+<!ENTITY keepDays.post "dagen bewaren">
+<!ENTITY mainTab "Algemeen">
+<!ENTITY filterTab "Webfilter">
+<!ENTITY securityTab "Beveiliging">
+<!ENTITY filterNew "Gefilterde webpagina downloaden voor alle nieuwe artikelen">
+<!ENTITY filterImages "Afbeeldingen in gefilterde webpagina downloaden">
+<!ENTITY filterInfo "Voer een filter in om de HTML-koppeling van het artikel om te vormen tot een uitgebreide artikelbeschrijving. Een filter kan een reguliere expressie zijn waartegen wordt gematcht, of JavaScript-code waarvan de waarde de uitgebreide artikelbeschrijving zal worden.">
+<!ENTITY filterJSinfo "Bij gebruik van JavaScript zijn de volgende variabelen beschikbaar:">
+<!ENTITY filterJSvar1 "linkDOM bevat de DOM van de artikelkoppelingspagina">
+<!ENTITY filterJSvar2 "linkHTML bevat de tekst/HTML van de artikelkoppelingspagina">
+<!ENTITY filterJSvar3 "getElementsByClass(class, tag, node) geeft een lijst van alle HTML-elementen met een gegeven label en klasse vervat in de gegeven node">
+<!ENTITY filterMime "Karakterset overschrijven (+ voor automatisch, &gt; voor testen, of karakterset)">
+<!ENTITY filterInfo2 "U dient een filter in te geven of afbeeldingen worden gedownload voor het huidige artikel, geen HTML-pagina. Druk backspace om het standaardfilter te gebruiken.">
+<!ENTITY never "nooit">

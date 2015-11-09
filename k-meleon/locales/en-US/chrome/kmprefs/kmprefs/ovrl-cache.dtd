@@ -1,0 +1,11 @@
+<!ENTITY % prefDTD SYSTEM "chrome://kmprefs/locale/pref.dtd">%prefDTD;
+<!ENTITY cache.dsk.label	"Disk Cache">
+<!ENTITY cache.dsk.descr	"Files can be cached on disk so they do not need to be redownloaded in order to be redisplayed.">
+<!ENTITY cache.dsk.enable	"Cache files on disk">
+<!ENTITY cache.dsk.sizeBefore	"Use a maximum of">
+<!ENTITY cache.dsk.sizeAfter	"MB of disk space for caching">
+<!ENTITY cache.dsk.folder	"Cache Folder:">
+<!ENTITY cache.dsk.note		"&note; Cached files will be stored in a subfolder named &quot;Cache&quot; of the specified folder. &restartRequired;.">
+<!ENTITY cache.dsk.ssl		"Cache encrypted contents on disk (security risk)">
+<!ENTITY cache.ico.enable	"Cache website icons on disk">
+<!ENTITY cache.ico.note		"&note; Cached icons will be stored in a file named &quot;IconCache.dat&quot; in your profile folder.">

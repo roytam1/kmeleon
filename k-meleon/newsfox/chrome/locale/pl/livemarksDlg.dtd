@@ -1,0 +1,6 @@
+<!ENTITY titleColumn "Tytuł kanału">
+<!ENTITY urlColumn "Adres URL kanału">
+<!ENTITY newLivemarks "Znaleziono nową dynamiczną zakładkę!">
+<!ENTITY manageLivemarks2 "Wybierz zakładki, które chcesz czytać za pomocą NwesFoksa:">
+<!ENTITY newSyncmarks "Znaleziono nowe zakładki synchroniczne!">
+<!ENTITY selectAll "Zaznacz wszystko">

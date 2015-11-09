@@ -1,0 +1,31 @@
+<!ENTITY checkFeed "Kontrolli voogu">
+<!ENTITY troubleshoot "Otsi probleemile lahendust">
+<!ENTITY OPML.import "Impordi OPML...">
+<!ENTITY OPML.export "Ekspordi OPML...">
+<!ENTITY toolOptions.import.addfeeds "Lisa olemasolevatele voogudele">
+<!ENTITY toolOptions.import.startfresh "Alusta värskendust">
+<!ENTITY toolOptions.import.file "failist...">
+<!ENTITY toolOptions.import.URL "URL&apos;st...">
+<!ENTITY toolOptions.passwd "Parool...">
+<!ENTITY help "NewsFox&apos;i abi">
+<!ENTITY feeds "Vood">
+<!ENTITY r "R">
+<!ENTITY markAllAsUnread "Märgi kõik mitteloetuks">
+<!ENTITY tagSel "Lisa valitutele tag&apos;d">
+<!ENTITY sortFeeds "Soteeri vood">
+<!ENTITY unsortFeeds "Võta sorteering tagasi">
+<!ENTITY toolOptions.restoreBackup "Taasta varukoopia">
+<!ENTITY exportRSS "Ekspordi RSS&apos;i...">
+<!ENTITY wait "Oota turvalisuse huvides tõmbamise lõpuni">
+<!ENTITY tagEdit "Muuda valitud artiklite tag&apos;e">
+<!ENTITY addGroup.regular "Tavaline">
+<!ENTITY addGroup.search "Otsi">
+<!ENTITY addGroup.tag "Tag">
+<!ENTITY addFeed.regular "RSS/Atom">
+<!ENTITY addFeed.storage "Varundus">
+<!ENTITY prob "Pr">
+<!ENTITY mainToolbar "Peamine tööriistariba">
+<!ENTITY feedToolbar "Voogude tööriistariba">
+<!ENTITY Xtend "+">
+<!ENTITY markSelAsRead "Märgi valitu loetuks">
+<!ENTITY markSelAsUnread "Märgi valitu mitte-loetuks">

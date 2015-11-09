@@ -1,0 +1,9 @@
+<!ENTITY projectOwner "プロジェクトの所有者">
+<!ENTITY localization "翻訳者">
+<!ENTITY primaryContact "主要連絡先">
+<!ENTITY developer "開発者">
+<!ENTITY projectCreator "プロジェクト作者">
+<!ENTITY icons "アイコン:">
+<!ENTITY fromFirefox "ほとんどのアイコンはFirefox/Thunderbirdからのものです。">
+<!ENTITY fromFamfamfam "旗、タグ、ストレージとエンクロージャーアイコンはfamfamfam.comからのものです。">
+<!ENTITY helpADR "Thanks to ADR for icon help.">

@@ -1,0 +1,245 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://console2/skin/console2.css" type="text/css"?>
+<?xml-stylesheet href="chrome://console2/skin/console-toolbar.css" type="text/css"?>
+<?xml-stylesheet href="chrome://console2/content/console2.css" type="text/css"?>
+
+<!DOCTYPE window [
+<!ENTITY % configDTD SYSTEM "chrome://global/locale/config.dtd">
+  %configDTD;
+<!ENTITY % console2DTD SYSTEM "chrome://console2/locale/console2.dtd">
+  %console2DTD;
+<!ENTITY % console2fallbackDTD SYSTEM "chrome://console2/content/console2.dtd">
+  %console2fallbackDTD;
+]>
+
+<window
+    xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+    id="Console2Window"
+    title="&console.title;"
+    windowtype="global:console"
+    width="640" height="480"
+    persist="width height screenX screenY sizemode zlevel"
+    onload="window.sizeToContent();ConsoleStartUp();" onunload="ConsoleShutDown();"
+    onclose="return closeWindow(false);"
+>
+    <script type="application/x-javascript" src="chrome://global/content/globalOverlay.js"/>
+    <script type="application/x-javascript" src="chrome://global/content/nsDragAndDrop.js"/>
+    <script type="application/x-javascript" src="chrome://console2/content/console2.js"/>
+    <script type="application/x-javascript" src="chrome://console2/content/consolefilter.js"/>
+
+    <commandset id="consoleCommands">
+        <command id="cmd_ignore" oncommand="ignoreSelectedItems();" disabled="true"/>
+        <command id="cmd_blacklist" oncommand="blacklistSelectedItems();" disabled="true"/>
+        <command id="cmd_copy" oncommand="copySelectedItems();" disabled="true"/>
+        <command id="cmd_select_all" oncommand="selectAllItems();"/>
+        <command id="cmd_delete" oncommand="ignoreSelectedItems(true);" disabled="true"/>
+        <command id="cmd_close" oncommand="closeWindow(true);"/>
+    </commandset>
+
+    <keyset id="consoleKeys">
+        <key id="key_close"  key="&closeCmd.commandkey;" modifiers="accel" command="cmd_close"/>
+        <key id="key_close2" keycode="VK_ESCAPE" command="cmd_close"/>
+        <key id="key_focus1" key="&focus1.commandkey;" modifiers="accel" oncommand="_focus('TextboxEval');"/>
+        <key id="key_focus2" key="&focus2.commandkey;" modifiers="alt" oncommand="_focus('TextboxEval');"/>
+        <key id="key_search" key="&search.commandkey;" modifiers="accel" oncommand="_focus('TextboxFilter');"/>
+        <key id="key_menu" keycode="VK_F10" oncommand="toggleMenuFocus();"/>
+        <!-- ConsoleFilter -->
+        <key key="K" modifiers="accel" oncommand="ConsoleFilter.focus();"/>
+        <key key="Q" modifiers="accel" oncommand="ConsoleFilter.focus();"/>
+    </keyset>
+
+    <keyset id="taskKeys">
+        <key id="key_copy" key="&copyCmd.commandkey;" modifiers="accel" command="cmd_copy"/>
+        <key id="key_select_all" key="&selCmd.commandkey;" modifiers="accel" command="cmd_select_all"/>
+        <key id="key_delete" keycode="VK_DELETE" command="cmd_delete"/>
+    </keyset>
+
+    <broadcaster id="Console:sortAscend" label="&sortFirst.label;" oncommand="changeSortOrder('forward');"/>
+    <broadcaster id="Console:sortDescend" label="&sortLast.label;" oncommand="changeSortOrder('reverse');"/>
+    <broadcaster id="Console:enableCSS"/>
+    <broadcasterset id="ModeBroadcasters">
+        <broadcaster id="Console:modeErrors" label="&errors.label;" oncommand="toggleMode('Errors');"/>
+        <broadcaster id="Console:modeWarnings" label="&warnings.label;" oncommand="toggleMode('Warnings');"/>
+        <broadcaster id="Console:modeMessages" label="&messages.label;" oncommand="toggleMode('Messages');"/>
+        <broadcaster id="Console:modeLangJS" label="&lang.js.label;" oncommand="toggleMode('JS', 'Lang');"/>
+        <broadcaster id="Console:modeLangCSS" label="&lang.css.label;" oncommand="toggleMode('CSS', 'Lang');"/>
+        <broadcaster id="Console:modeLangXML" label="&lang.xml.label;" oncommand="toggleMode('XML', 'Lang');"/>
+		<!-- for k-meleon -->
+		<broadcaster id="Console:modeLangKMM" label="&lang.kmm.label;" oncommand="toggleMode('KMM', 'Lang');"/>
+		<!-- for k-meleon -->
+        <broadcaster id="Console:modeCtxChrome" label="&ctx.chr.label;" oncommand="toggleMode('Chrome', 'Ctx');"/>
+        <broadcaster id="Console:modeCtxContent" label="&ctx.cnt.label;" oncommand="toggleMode('Content', 'Ctx');"/>
+        <broadcaster id="Console:modeCtxResource" label="&ctx.res.label;" oncommand="toggleMode('Resource', 'Ctx');"/>
+        <broadcaster id="Console:modeDupes" label="&dupes.label;" oncommand="toggleDupes();"/>
+        <broadcaster id="Console:modeTimestamps" label="&timestamps.label;" oncommand="toggleTimestamps();"/>
+    </broadcasterset>
+
+    <toolbox id="ConsoleToolbox" mode="full">
+        <toolbarpalette id="ConsoleToolbarPalette">
+            <toolbarbutton id="modeButton" type="menu" label="&type.label;: &all.label;" accesskey="&type.accesskey;" _mixed="&mixed.label;" rotates="type" class="textonly">
+                <menupopup oncommand="((event.shiftKey)?toggleMode:changeMode)(event.target.getAttribute('_mode'));">
+                    <menuitem type="radio" group="type" label="&all.label;" accesskey="&all.accesskey;" _mode="All"/>
+                    <menuitem type="radio" group="type" label="&errors.label;" accesskey="&errors.accesskey;" _mode="Errors"/>
+                    <menuitem type="radio" group="type" label="&warnings.label;" accesskey="&warnings.accesskey;" _mode="Warnings"/>
+                    <menuitem type="radio" group="type" label="&messages.label;" accesskey="&messages.accesskey;" _mode="Messages"/>
+                </menupopup>
+            </toolbarbutton>
+
+            <toolbarbutton id="modeLangButton" type="menu" label="&lang.label;: &lang.all.label;" accesskey="&lang.accesskey;" _mixed="&mixed.label;" rotates="lang" class="textonly">
+                <menupopup oncommand="((event.shiftKey)?toggleMode:changeMode)(event.target.getAttribute('_mode'), 'Lang');">
+                    <menuitem type="radio" group="lang" label="&lang.all.label;" accesskey="&lang.all.accesskey;" _mode="All"/>
+                    <menuitem type="radio" group="lang" label="&lang.js.label;" accesskey="&lang.js.accesskey;" _mode="JS"/>
+                    <menuitem type="radio" group="lang" label="&lang.css.label;" accesskey="&lang.css.accesskey;" _mode="CSS" observes="Console:enableCSS"/>
+                    <menuitem type="radio" group="lang" label="&lang.xml.label;" accesskey="&lang.xml.accesskey;" _mode="XML"/>
+                    <!-- for k-meleon: -->
+                    <menuitem type="radio" group="lang" label="&lang.kmm.label;" accesskey="&lang.kmm.accesskey;" _mode="KMM"/>
+                </menupopup>
+            </toolbarbutton>
+
+            <toolbarbutton id="modeCtxButton" type="menu" label="&ctx.all.label;" accesskey="&ctx.accesskey;" rotates="ctx" class="textonly">
+                <menupopup oncommand="((event.shiftKey)?toggleMode:changeMode)(event.target.getAttribute('_mode'), 'Ctx');">
+                    <menuitem type="radio" group="ctx" label="&ctx.all.label;" accesskey="&ctx.all.accesskey;" _mode="All"/>
+                    <menuitem type="radio" group="ctx" label="&ctx.chr.label;" accesskey="&ctx.chr.accesskey;" _mode="Chrome"/>
+                    <menuitem type="radio" group="ctx" label="&ctx.cnt.label;" accesskey="&ctx.cnt.accesskey;" _mode="Content"/>
+		    <menuitem type="radio" group="ctx" label="&ctx.kmm.label;" accesskey="&ctx.kmm.accesskey;" _mode="KMM"/>
+                    <menuitem type="radio" group="ctx" label="&ctx.res.label;" accesskey="&ctx.res.accesskey;" _mode="Resource"/>
+                </menupopup>
+            </toolbarbutton>
+
+            <toolbarbutton id="item_modeAll" label="&all.label;" accesskey="&all2.accesskey;" tooltiptext="&all.tooltip;" oncommand="showAll();"/>
+            <toolbarbutton id="item_modeErrors" type="checkbox" observes="Console:modeErrors" accesskey="&errors2.accesskey;" tooltiptext="&errors.tooltip;"/>
+            <toolbarbutton id="item_modeWarnings" type="checkbox" observes="Console:modeWarnings" accesskey="&warnings2.accesskey;" tooltiptext="&warnings.tooltip;"/>
+            <toolbarbutton id="item_modeMessages" type="checkbox" observes="Console:modeMessages" accesskey="&messages2.accesskey;" tooltiptext="&messages.tooltip;"/>
+
+            <toolbarbutton id="item_modeLangJS" type="checkbox" observes="Console:modeLangJS" accesskey="&lang.js2.accesskey;" tooltiptext="&lang.js.tooltip;" class="textonly"/>
+            <toolbarbutton id="item_modeLangCSS" type="checkbox" observes="Console:modeLangCSS" accesskey="&lang.css2.accesskey;" tooltiptext="&lang.css.tooltip;" class="textonly"/>
+            <toolbarbutton id="item_modeLangXML" type="checkbox" observes="Console:modeLangXML" accesskey="&lang.xml2.accesskey;" tooltiptext="&lang.xml.tooltip;" class="textonly"/>
+            <!-- for k-meleon: -->
+            <toolbarbutton id="item_modeLangKMM" type="checkbox" observes="Console:modeLangKMM" accesskey="&lang.kmm2.accesskey;" tooltiptext="&lang.kmm.tooltip;" class="textonly"/>
+
+            <toolbarbutton id="item_modeCtxChrome" type="checkbox" observes="Console:modeCtxChrome" accesskey="&ctx.chr2.accesskey;" tooltiptext="&ctx.chr.tooltip;" class="textonly"/>
+            <toolbarbutton id="item_modeCtxContent" type="checkbox" observes="Console:modeCtxContent" accesskey="&ctx.cnt2.accesskey;" tooltiptext="&ctx.cnt.tooltip;" class="textonly"/>
+            <toolbarbutton id="item_modeCtxResource" type="checkbox" observes="Console:modeCtxResource" accesskey="&ctx.res2.accesskey;" tooltiptext="&ctx.res.tooltip;" class="textonly"/>
+
+            <toolbarbutton id="item_clearConsole" label="&clear.label;" accesskey="&clear.accesskey;" tooltiptext="&clear.tooltip;" oncommand="clearConsole();"/>
+            <toolbarbutton id="item_copyItem" observes="cmd_copy" label="&copyCmd.label;" tooltiptext="&copyCmd.tooltip;" class="textonly"/>
+
+            <toolbaritem id="search-box" flex="1" align="center">
+                <label value="&search.label;:" accesskey="&search.accesskey;" control="TextboxFilter"/>
+                <textbox id="TextboxFilter" flex="1" type="search" timeout="500" oncommand="filterConsole();"/>
+            </toolbaritem>
+<!-- start added for k-meleon 1.6: -->
+            <toolbaritem id="km-mod_label" flex="1" align="center">
+                <label value="&label.Console;"/>
+            </toolbaritem>
+<!-- end added for k-meleon 1.6 -->
+            <toolbarbutton id="menu_consoleTools" type="menu" label="&tools.label;" accesskey="&tools.accesskey;">
+                <menupopup>
+                    <menuitem id="options_dupes" type="checkbox" accesskey="&dupes.accesskey;" observes="Console:modeDupes"/>
+                    <menuitem id="options_timestamps" type="checkbox" accesskey="&timestamps.accesskey;" observes="Console:modeTimestamps"/>
+                    <menuitem id="pref_javascript.options.strict" type="checkbox" label="&strict.label;" accesskey="&strict.accesskey;" checked="false" oncommand="toggleBooleanPref(this.id.substr(5));"/>
+                    <menuitem id="pref_layout.css.report_errors" type="checkbox" label="&logCSS.label;" accesskey="&logCSS.accesskey;" checked="false" oncommand="toggleBooleanPref(this.id.substr(5));"/>
+                    <menuitem id="pref_dom.report_all_js_exceptions" type="checkbox" label="&logExcept.label;" accesskey="&logExcept.accesskey;" checked="false" oncommand="toggleBooleanPref(this.id.substr(5));"/>
+                    <menuseparator/>
+                    <menuitem type="radio" group="sort" accesskey="&sortFirst.accesskey;" observes="Console:sortAscend"/>
+                    <menuitem type="radio" group="sort" accesskey="&sortLast.accesskey;" observes="Console:sortDescend"/>
+                    <menuseparator/>
+                    <menuitem id="item_onTop" type="checkbox" label="&onTop.label;" accesskey="&onTop.accesskey;" checked="false" oncommand="toggleOnTop();"/>
+                    <menuitem id="item_noteFocus" type="checkbox" label="&noteFocus.label;" accesskey="&noteFocus.accesskey;" checked="false" oncommand="toggleNoteFocus();"/>
+                    <menuseparator/>
+                    <menuitem id="item_domainlst" label="&domainlst.label;" accesskey="&domainlst.accesskey;" oncommand="openDomainlist();"/>
+                    <menuitem label="&custom1.label;" accesskey="&custom1.accesskey;" observes="Console:customizeToolbar"/>
+                    <menuitem id="item_clearConsole2" label="&clearAll.label;" accesskey="&clearAll.accesskey;" oncommand="clearConsole();"/>
+                </menupopup>
+            </toolbarbutton>
+
+            <toolbaritem id="eval-box" flex="1">
+                <textbox id="TextboxEval"
+                         class="padded"
+                         type="autocomplete"
+                         newlines="replacewithspaces"
+                         autocompletesearch="form-history"
+                         autocompletesearchparam="Console2#TextboxEval"
+                         value=""
+                         onkeypress="onEvalKeyPress(event);"
+                         flex="1"/>
+                <toolbarbutton id="ButtonEval"
+                               label="&evaluate.label;"
+                               accesskey="&evaluate.accesskey;"
+                               tooltiptext="&evaluate.tooltip;"
+                               class="textonly"
+                               oncommand="onEvalTypein();"/>
+                <menupopup id="PopupEval"><richlistitem class="console-row"/></menupopup>
+            </toolbaritem>
+            <toolbaritem id="filter-box"
+                         flex="1">
+                <menulist id="ConsoleFilter2"
+                          editable="true"
+                          onkeydown="ConsoleFilter.onUpdate(event.keyCode == 13);"
+                          oninput="ConsoleFilter.onUpdate(false);"
+                          flex="1"
+                          disabled="true">
+                    <menupopup id="ConsoleFilterHistory"
+                               onpopupshowing="ConsoleFilter.onPopupHistory();"
+                               _showall="&lt;&showAll.label;&gt;"/>
+                </menulist>
+            </toolbaritem>
+        </toolbarpalette>
+
+        <toolbar id="ToolbarMode"
+                 class="chromeclass-toolbar"
+                 customizable="true"
+                 nowindowdrag="true"
+                 defaultset="item_modeAll,separator,item_modeErrors,item_modeWarnings,item_modeMessages,separator,item_clearConsole,spring,search-box"
+                 context="ToolbarContext"/>
+		<!-- for k-meleon
+		<toolbar id="ToolbarExt"
+                 class="chromeclass-toolbar"
+                 toolbarname="&extBar.label;"
+                 accesskey="&extBar.accesskey;"
+                 customizable="true"
+                 nowindowdrag="true"
+                 defaultset="item_modeLangJS,item_modeLangCSS,item_modeLangXML,separator,item_modeCtxChrome,item_modeCtxContent,item_modeCtxResource,spring,menu_consoleTools"
+                 context="ToolbarContext"/> -->
+		<toolbar id=""
+		 class="chromeclass-toolbar"
+		 toolbarname="&extBar.label;"
+		 accesskey="&extBar.accesskey;"
+			customizable="true"
+			nowindowdrag="true"
+			defaultset="item_modeLangJS,item_modeLangCSS,item_modeLangXML,item_modeLangKMM,separator,item_modeCtxChrome,item_modeCtxContent,item_modeCtxResource,spring,km-mod_label,menu_consoleTools"
+			context="ToolbarContext"/>
+		<!-- for k-meleon -->
+        <toolbar id="ToolbarEval"
+                 class="chromeclass-toolbar"
+                 toolbarname="&evalBar.label;"
+                 accesskey="&evalBar.accesskey;"
+                 customizable="true"
+                 nowindowdrag="true"
+                 defaultset="eval-box"
+                 context="ToolbarContext"/>
+
+        <toolbarset id="CustomToolbars" context="ToolbarContext"/>
+    </toolbox>
+
+    <richlistbox id="ConsoleBox" class="console-box" seltype="multiple" flex="1" context="ConsoleContext" persist="sortOrder mode modeLang modeCtx dupes timestamps"/>
+
+    <popupset id="ContextMenus">
+        <menupopup id="ConsoleContext">
+            <menuitem type="radio" group="sort" accesskey="&sortFirst.accesskey;" observes="Console:sortAscend"/>
+            <menuitem type="radio" group="sort" accesskey="&sortLast.accesskey;" observes="Console:sortDescend"/>
+            <menuseparator/>
+            <menuitem id="menu_ignore" label="&ignoreCmd.label;" accesskey="&ignoreCmd.accesskey;" observes="cmd_ignore"/>
+            <menuitem id="menu_blacklist" label="&blacklist.label;" accesskey="&blacklist.accesskey;" observes="cmd_blacklist" _label2="&blacklist2.label;"/>
+            <menuseparator/>
+            <menuitem id="menu_copy_cmd" key="key_copy" label="&copyCmd.label;" accesskey="&copyCmd.accesskey;" observes="cmd_copy"/>
+            <menuitem id="menu_select_all_cmd" key="key_select_all" label="&selCmd.label;" accesskey="&selCmd.accesskey;" observes="cmd_select_all"/>
+        </menupopup>
+    </popupset>
+
+    <iframe id="Evaluator"
+            type="chrome"
+            collapsed="true"
+            src="chrome://console2/content/blank.html"/>
+</window>

@@ -1,0 +1,52 @@
+<!ENTITY title "NewsFox - ustawienia">
+<!ENTITY global "Styl wyświetlania:">
+<!ENTITY checkOnStartup "Aktualizuj wszystkie kanały podczas uruchamiania">
+<!ENTITY notifyUponNewArticles "Powiadamiaj o nowych artykułach">
+<!ENTITY confirmDelete "Żądaj potwierdzenia usunięcia grup i kanałów">
+<!ENTITY confirmDeleteArticle "Żądaj potwierdzenia usunięcia artykułów">
+<!ENTITY shortcutkeys "Skróty klawiaturowe:">
+<!ENTITY restart "(Zmiany wymagają ponownego uruchomienia NewsFoksa)">
+<!ENTITY shortcutsNone "brak">
+<!ENTITY shortcutsStd "standardowe">
+<!ENTITY shortcutsAlt "alternatywne">
+<!ENTITY shortcutsCustom "użytkownika">
+<!ENTITY seehelp "Lista skrótów znajduje się w menu">
+<!ENTITY newsfox.dir "Katalog NewsFoksa">
+<!ENTITY moveNfDir "Katalog zawiera:">
+<!ENTITY copy "kopiuj">
+<!ENTITY move "przenieś">
+<!ENTITY noaction "brak działania">
+<!ENTITY Child_directory "Katalog podrzędny">
+<!ENTITY Parent_directory "Katalog główny">
+<!ENTITY dateStyle "Styl daty">
+<!ENTITY changeToPresent "Zmieniaj datę artykułu na aktualną jeśli data ma:">
+<!ENTITY articleTooltips "Wyświetlaj podpowiedzi dla artykułów">
+<!ENTITY copyToClipboard "Kopiuj zawartość artykułu do schowka">
+<!ENTITY selectAddedFeed "Uaktywniaj nowy kanał po dodaniu">
+<!ENTITY feedRefresh "Odświeżanie kanału:">
+<!ENTITY feedRefreshThreads "tematy">
+<!ENTITY feedRefreshRenew "odświeżenie (s)">
+<!ENTITY feedSlowdown "Na wolniejszych komputerach zmniejsza tematy i/lub zwiększa czas odświeżenia.">
+<!ENTITY feedRefreshTimeout "Limit czasu aktualizowania kanału (s)">
+<!ENTITY horizontalPanes "Wyświetlaj pionowy układ paneli (wymaga ponownego uruchomienia)">
+<!ENTITY favicons "Wyświetlaj ikony witryn">
+<!ENTITY updateTimeToBookmark "Zapisuj adres URL kanału i czas aktualizacji do zakładek">
+<!ENTITY spam "Włącz filtry zainteresowań">
+<!ENTITY globalTab "Globalne">
+<!ENTITY feedTab "Kanały/Artykuły">
+<!ENTITY generalTab "Ogólne">
+<!ENTITY shortcutsTab "Skróty klawiaturowe">
+<!ENTITY keywordsTab "Słowa kluczowe">
+<!ENTITY shortcuts.operationHeader "Operacja">
+<!ENTITY shortcuts.select "Aby określić skrót, zaznacz wiersz i wprowadź kombinację klawiszy">
+<!ENTITY shortcuts.warning "Wiele skrótów jest już używanych i są niedostępne.">
+<!ENTITY shortcuts.experiment "Sprawdź działanie lub wybierz jedną z predefiniowanych opcji.">
+<!ENTITY keyword "Słowo kluczowe:">
+<!ENTITY keywordsHighlighted "W artykułach, słowa kluczowe są automatycznie wyróżniane.">
+<!ENTITY caseIgnored "Wszystkie wyszukiwania są wykonywane bez rozróżniania wielkości liter.">
+<!ENTITY statusBar "Wyświetlaj na pasku stanu ikonę automatycznej subskrypcji">
+<!ENTITY statusBarText "Tekst:">
+<!ENTITY buttonText "Tekst przycisku Newsfox:">
+<!ENTITY statusBarTextNew "# nowych">
+<!ENTITY statusBarTextUnread "# nieprzeczytanych">
+<!ENTITY statusBarTextNone "brak">

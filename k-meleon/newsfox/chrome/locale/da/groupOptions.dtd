@@ -1,0 +1,27 @@
+<!ENTITY name "Navn:">
+<!ENTITY insertbefore "Indsæt foran:">
+<!ENTITY dragrtl "Træk fra højre til venstre for at føje feeds til gruppe.">
+<!ENTITY dragltr "Træk fra venstre til højre for at fjerne feeds fra gruppe.">
+<!ENTITY dragwithin "Træk indenfor gruppe for at omarrangere.">
+<!ENTITY flagged "Markeret">
+<!ENTITY either "begge">
+<!ENTITY unread "Ulæste:">
+<!ENTITY searchtext "Søg efter tekst:">
+<!ENTITY match "Match:">
+<!ENTITY body "meddelelsestekst">
+<!ENTITY title2 "titel">
+<!ENTITY tag "mærkat">
+<!ENTITY casesensitive "Versalfølsom">
+<!ENTITY searchvalues "Søgeværdier">
+<!ENTITY textvalues "Tekstværdier">
+<!ENTITY time "Tidspunkt:">
+<!ENTITY grouptosearch "Søg i gruppe:">
+<!ENTITY between "Mellem">
+<!ENTITY and "og">
+<!ENTITY ago "siden">
+<!ENTITY hours "timer">
+<!ENTITY weeks "uger">
+<!ENTITY months "måneder">
+<!ENTITY years "år">
+<!ENTITY ever "for evigt">
+<!ENTITY showUnread "Vis antallet af ulæste artikler (kan gøre NewsFox langsom)">

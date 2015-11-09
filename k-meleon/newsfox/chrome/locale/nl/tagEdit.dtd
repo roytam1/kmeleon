@@ -1,0 +1,9 @@
+<!ENTITY title "Labels bewerken">
+<!ENTITY tagAdd "Aan geselecteerde artikelen toe te voegen labels">
+<!ENTITY tagRemove "Van geselecteerde artikelen te verwijderen labels">
+<!ENTITY tagDeleteCompletely "Van alle artikelen en de lijst te verwijderen labels">
+<!ENTITY colorVaries1 "BLAUW: label geldt voor alle geselecteerde artikelen">
+<!ENTITY colorVaries2 "Mengsel: label geldt voor sommige van de geselecteerde artikelen">
+<!ENTITY colorVaries3 "ROOD: label geldt voor geen van de geselecteerde artikelen">
+<!ENTITY newTagAdd "Aan geselecteerde artikelen toe te voegen nieuwe labels">
+<!ENTITY newTagAddExample "‘/’ scheidt labels:‘tech/nieuws’">

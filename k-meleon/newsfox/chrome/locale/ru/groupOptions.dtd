@@ -1,0 +1,27 @@
+<!ENTITY name "Имя:">
+<!ENTITY insertbefore "Вставить перед:">
+<!ENTITY dragrtl "Чтобы добавить ленту в группу, нужно перетащить её название из правой колонки в левую.">
+<!ENTITY dragltr "Чтобы удалить ленту из группы, нужно перетащить её название из левой колонки в правую.">
+<!ENTITY dragwithin "Вы можете изменить порядок лент в группе, перетаскивая названия вверх или вниз.">
+<!ENTITY flagged "С флагом:">
+<!ENTITY either "и то и другое">
+<!ENTITY unread "Непрочитанные:">
+<!ENTITY searchtext "Текст для поиска:">
+<!ENTITY match "Совпадение:">
+<!ENTITY body "текст">
+<!ENTITY title2 "заголовок">
+<!ENTITY tag "бирка">
+<!ENTITY casesensitive "С учётом регистра">
+<!ENTITY searchvalues "Параметры поиска">
+<!ENTITY textvalues "Параметры текста">
+<!ENTITY time "Время:">
+<!ENTITY grouptosearch "Группа для поиска:">
+<!ENTITY between "В промежутке от">
+<!ENTITY and "до">
+<!ENTITY ago "тому назад">
+<!ENTITY hours "часов">
+<!ENTITY weeks "недель">
+<!ENTITY months "месяцев">
+<!ENTITY years "лет">
+<!ENTITY ever "бессрочно">
+<!ENTITY showUnread "Показать число непрочитанных записей (может замедлить работу NewsFox)">

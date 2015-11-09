@@ -1,0 +1,9 @@
+<!ENTITY title "編輯標籤">
+<!ENTITY tagAdd "套用標籤到所選的文章">
+<!ENTITY tagRemove "從所選的文章移除標籤">
+<!ENTITY tagDeleteCompletely "從所有文章和標籤清單中移除標籤">
+<!ENTITY colorVaries1 "藍色: 所選的文章包含此標籤">
+<!ENTITY colorVaries2 "混合: 所選的文章部分包含此標籤">
+<!ENTITY colorVaries3 "紅色: 所選的文章不包含此標籤">
+<!ENTITY newTagAdd "新增標籤到所選的文章">
+<!ENTITY newTagAddExample "若要使用多個標籤，請用 &apos;/&apos; 隔開標籤: 例如 &apos;科技/新聞&apos;">

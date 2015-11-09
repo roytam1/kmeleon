@@ -1,0 +1,6 @@
+<!ENTITY titleColumn "Feed title">
+<!ENTITY urlColumn "Feed URL">
+<!ENTITY newLivemarks "New Live Bookmarks are found!">
+<!ENTITY manageLivemarks2 "Choose Bookmarks that you want to read with NewsFox:">
+<!ENTITY newSyncmarks "New Sync Bookmarks are found!">
+<!ENTITY selectAll "Select All">

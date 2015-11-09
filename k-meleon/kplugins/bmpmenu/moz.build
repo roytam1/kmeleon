@@ -1,0 +1,24 @@
+# -*- Mode: python; c-basic-offset: 4; indent-tabs-mode: nil; tab-width: 40 -*-
+# vim: set filetype=python:
+
+LIBRARY_NAME = 'bmpmenu'
+
+SOURCES += [
+  '../../shared/Utils.cpp',
+  'bmp_menu.cpp',
+  'stdafx.cpp',  
+]
+
+DEFINES['UNICODE'] = True
+
+DEFINES['_UNICODE'] = True
+
+FORCE_SHARED_LIB = True
+
+DISABLE_STL_WRAPPING = True
+
+OS_LIBS += ['shell32.lib']
+
+LOCAL_INCLUDES += [
+  '../../shared'
+]

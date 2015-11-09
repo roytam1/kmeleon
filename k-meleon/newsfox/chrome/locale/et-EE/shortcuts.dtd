@@ -1,0 +1,24 @@
+<!ENTITY sCcustomShortcut "Kohandatud kiirklahve saab seada &apos;muutujate&apos; ja &apos;võtmete&apos; väärtusi muutes failis &apos;accel.xml&apos; profiili kataloogis asuvas newsfoxi kaustas (ennem tuleb määratleda valik kiirklahve valikute dialoogis ja NewsFox sulgeda).">
+<!ENTITY sCcustomHeading "Kohandatud lingid">
+<!ENTITY sCfixedHeading "Parandatud lingid">
+<!ENTITY sCartFeedHeading "Artikli/voo paan">
+<!ENTITY sCviewArtHeading "Vaata/artikli paan">
+<!ENTITY sCfeedHeading "Voo paan">
+<!ENTITY sCarticleUp "Artikkel üles">
+<!ENTITY sCarticleDown "Artikkel alla">
+<!ENTITY sCupLevel "Tase üles">
+<!ENTITY sCexpandTree "Laienda voog">
+<!ENTITY sCsame "sama">
+<!ENTITY sCtoggleArtFlag "Lülita artikli lipp sisse/välja">
+<!ENTITY sCselToFocus "Valik fookusesse">
+<!ENTITY sCfocusUp "Fookusega artikkel üles">
+<!ENTITY sCfocusDown "Fookusega artikkel alla">
+<!ENTITY sCmoveFeedUp "Liiguta voog üles">
+<!ENTITY sCmoveFeedDown "Liiguta voog alla">
+<!ENTITY sCfeedUp "Voog üles">
+<!ENTITY sCfeedDown "Voog alla">
+<!ENTITY sCexpColl "Laienda/kahanda voog">
+<!ENTITY sCdeleteKey "kustuta">
+<!ENTITY sCctrlKey "ctrl">
+<!ENTITY sCshiftKey "shift">
+<!ENTITY sCaltKey "alt">

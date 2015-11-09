@@ -1,0 +1,9 @@
+<!ENTITY projectOwner "Projektinhaber">
+<!ENTITY localization "Übersetzung:">
+<!ENTITY primaryContact "Hauptkontakt">
+<!ENTITY developer "Entwickler">
+<!ENTITY projectCreator "Projektautor">
+<!ENTITY icons "Symbole:">
+<!ENTITY fromFirefox "Die meisten Symbole sind, teilweise modifiziert, von Firefox/Thunderbird.">
+<!ENTITY fromFamfamfam "Kennzeichnungs-, Schlagwort-, Speicher- und Anhang-Symbole von famfamfam.com.">
+<!ENTITY helpADR "Danke an ADR für Hilfe bei den Symbolen.">

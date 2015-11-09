@@ -1,0 +1,29 @@
+# -*- Mode: python; c-basic-offset: 4; indent-tabs-mode: nil; tab-width: 40 -*-
+# vim: set filetype=python:
+
+LIBRARY_NAME = 'fullscreen'
+
+SOURCES += [
+  '../../shared/Utils.cpp',
+  'fullscreen.cpp',
+  'mozilla.cpp',  
+]
+
+DEFINES['UNICODE'] = True
+
+DEFINES['_UNICODE'] = True
+
+FORCE_SHARED_LIB = True
+
+DISABLE_STL_WRAPPING = True
+
+OS_LIBS += [
+  'shell32.lib',
+  CONFIG['XPCOM_GLUE_LDOPTS'],
+]
+
+LOCAL_INCLUDES += [
+  '../../shared'
+]
+	
+RCINCLUDE = 'fullscreen.rc'

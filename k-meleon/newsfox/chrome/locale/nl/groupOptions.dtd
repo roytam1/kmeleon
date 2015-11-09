@@ -1,0 +1,27 @@
+<!ENTITY name "Naam:">
+<!ENTITY insertbefore "Invoegen voor:">
+<!ENTITY dragrtl "Sleep van rechts naar links om feeds aan de groep toe te voegen.">
+<!ENTITY dragltr "Sleep van links naar rechts om feeds uit de groep te verwijderen.">
+<!ENTITY dragwithin "Sleep binnen de groep om de volgorde te wijzigen.">
+<!ENTITY flagged "Gemarkeerd:">
+<!ENTITY either "beide">
+<!ENTITY unread "Ongelezen:">
+<!ENTITY searchtext "Zoektekst:">
+<!ENTITY match "Match:">
+<!ENTITY body "tekst">
+<!ENTITY title2 "titel">
+<!ENTITY tag "label">
+<!ENTITY casesensitive "Hoofdlettergevoelig">
+<!ENTITY searchvalues "Zoekwaarden">
+<!ENTITY textvalues "Tekstwaarden">
+<!ENTITY time "Tijd:">
+<!ENTITY grouptosearch "Te doorzoeken groep:">
+<!ENTITY between "Tussen">
+<!ENTITY and "en">
+<!ENTITY ago "geleden">
+<!ENTITY hours "uur">
+<!ENTITY weeks "weken">
+<!ENTITY months "maanden">
+<!ENTITY years "jaar">
+<!ENTITY ever "altijd">
+<!ENTITY showUnread "Aantal ongelezen artikelen weergeven (kan NewsFox vertragen)">

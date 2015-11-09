@@ -1,0 +1,27 @@
+<!ENTITY name "Name:">
+<!ENTITY insertbefore "Einfügen vor:">
+<!ENTITY dragrtl "Eintrag von rechts nach links ziehen, um Feeds zur Gruppe hinzuzufügen.">
+<!ENTITY dragltr "Eintrag von links nach rechts ziehen, um Feeds aus der Gruppe zu entfernen.">
+<!ENTITY dragwithin "Zum Umsortieren innerhalb der Gruppe mit der Maus verschieben.">
+<!ENTITY flagged "Gekennzeichnet:">
+<!ENTITY either "Eines von beiden">
+<!ENTITY unread "Ungelesen:">
+<!ENTITY searchtext "Suchtext:">
+<!ENTITY match "Übereinstimmung mit:">
+<!ENTITY body "Artikeltext">
+<!ENTITY title2 "Titel">
+<!ENTITY tag "Schlagwort">
+<!ENTITY casesensitive "Groß-/Kleinschreibung beachten:">
+<!ENTITY searchvalues "Suchparameter">
+<!ENTITY textvalues "Textparameter">
+<!ENTITY time "Zeitraum:">
+<!ENTITY grouptosearch "Zu durchsuchende Gruppe:">
+<!ENTITY between "Von vor">
+<!ENTITY and "bis vor">
+<!ENTITY ago "vor">
+<!ENTITY hours "Stunden">
+<!ENTITY weeks "Wochen">
+<!ENTITY months "Monaten">
+<!ENTITY years "Jahren">
+<!ENTITY ever "jeder Zeit">
+<!ENTITY showUnread "Anzahl der ungelesenen Artikel anzeigen (kann NewsFox verlangsamen)">

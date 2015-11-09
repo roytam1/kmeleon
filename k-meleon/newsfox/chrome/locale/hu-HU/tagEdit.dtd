@@ -1,0 +1,9 @@
+<!ENTITY title "Címke szerkesztése">
+<!ENTITY tagAdd "Címke hozzáadása a kiválasztott cikkekhez">
+<!ENTITY tagRemove "Címkék eltávolítása a kiválasztott cikkekből">
+<!ENTITY tagDeleteCompletely "Címkék eltávolítása az összes cikkből és a címke listából">
+<!ENTITY colorVaries1 "KÉK: a címke az összes kiválasztott cikkben benne van">
+<!ENTITY colorVaries2 "keverék: a címke csak néhány kiválasztott cikkben van">
+<!ENTITY colorVaries3 "VÖRÖS: a címke nincs egyik kiválasztott cikkben sem">
+<!ENTITY newTagAdd "Új címkék hozzáadása a kiválasztott cikkekhez">
+<!ENTITY newTagAddExample "&apos;/&apos; válassza el a címkéket: &apos;tech/hírek&apos;">

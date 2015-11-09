@@ -1,0 +1,31 @@
+<!ENTITY checkFeed "Kontrollera flöde">
+<!ENTITY troubleshoot "Felsökning">
+<!ENTITY OPML.import "Importera OPML">
+<!ENTITY OPML.export "Exportera OPML">
+<!ENTITY toolOptions.import.addfeeds "Lägg till bland befintliga flöden">
+<!ENTITY toolOptions.import.startfresh "Börja om från början">
+<!ENTITY toolOptions.import.file "från fil">
+<!ENTITY toolOptions.import.URL "från URL">
+<!ENTITY toolOptions.passwd "Byt lösenord">
+<!ENTITY help "Hjälp om NewsFox">
+<!ENTITY feeds "Flöden">
+<!ENTITY r "L">
+<!ENTITY markAllAsUnread "Märk alla som olästa">
+<!ENTITY tagSel "Tagga markerade">
+<!ENTITY sortFeeds "Sortera flöden">
+<!ENTITY unsortFeeds "Ångra sortering">
+<!ENTITY toolOptions.restoreBackup "Återställ säkerhetskopia">
+<!ENTITY exportRSS "Exportera till RSS">
+<!ENTITY wait "För säkerhets skull, vänta tills inläsningen har slutförts">
+<!ENTITY tagEdit "Tagga markerade">
+<!ENTITY addGroup.regular "Normal">
+<!ENTITY addGroup.search "Sök">
+<!ENTITY addGroup.tag "Tagg">
+<!ENTITY addFeed.regular "RSS/Atom">
+<!ENTITY addFeed.storage "Lagring">
+<!ENTITY prob "Pr">
+<!ENTITY mainToolbar "NewsFox-fältet">
+<!ENTITY feedToolbar "Flödesfältet">
+<!ENTITY Xtend "+">
+<!ENTITY markSelAsRead "Märk markerade objekt som lästa">
+<!ENTITY markSelAsUnread "Märk markerade objekt som olästa">

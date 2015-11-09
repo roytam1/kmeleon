@@ -1,0 +1,10 @@
+kmeleon.jar:
+% content history %content/history/ 
+    content/history/controller.js
+    content/history/history.css
+    content/history/history.js
+    content/history/history.xul
+    content/history/sidebarUtils.js
+    content/history/tree.xml
+    content/history/treeView.js
+    content/history/utilityOverlay.js

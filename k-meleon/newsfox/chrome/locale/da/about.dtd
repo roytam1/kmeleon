@@ -1,0 +1,9 @@
+<!ENTITY projectOwner "projektejer">
+<!ENTITY localization "Oversættelse:">
+<!ENTITY primaryContact "Primær kontakt">
+<!ENTITY developer "udvikler">
+<!ENTITY projectCreator "har oprettet projektet">
+<!ENTITY icons "Ikoner:">
+<!ENTITY fromFirefox "De fleste ikoner er fra (eller ændret fra) Firefox/Thunderbird.">
+<!ENTITY fromFamfamfam "Ikoner for markering, mærkat, lager og indlæg er fra famfamfam.com.">
+<!ENTITY helpADR "Tak til ADR for hjælp med ikoner.">

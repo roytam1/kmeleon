@@ -1,0 +1,443 @@
+<?xml version="1.0"?>
+<!-- ***** BEGIN LICENSE BLOCK *****
+   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+   -
+   - The contents of this file are subject to the Mozilla Public License Version
+   - 1.1 (the "License"); you may not use this file except in compliance with
+   - the License. You may obtain a copy of the License at
+   - http://www.mozilla.org/MPL/
+   -
+   - Software distributed under the License is distributed on an "AS IS" basis,
+   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+   - for the specific language governing rights and limitations under the
+   - License.
+   -
+   - The Original Code is NewsFox.
+   -
+   - The Initial Developer of the Original Code is
+   - Andy Frank <andy@andyfrank.com>.
+   - Portions created by the Initial Developer are Copyright (C) 2005-2011
+   - the Initial Developer. All Rights Reserved.
+   -
+   - Contributor(s):
+   -   Andrey Gromyko <andrey@gromyko.name>
+   -   Ron Pruitt <wa84it@gmail.com>
+   -
+   - Alternatively, the contents of this file may be used under the terms of
+   - either the GNU General Public License Version 2 or later (the "GPL"), or
+   - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+   - in which case the provisions of the GPL or the LGPL are applicable instead
+   - of those above. If you wish to allow use of your version of this file only
+   - under the terms of either the GPL or the LGPL, and not to allow others to
+   - use your version of this file under the terms of the MPL, indicate your
+   - decision by deleting the provisions above and replace them with the notice
+   - and other provisions required by the LGPL or the GPL. If you do not delete
+   - the provisions above, a recipient may use your version of this file under
+   - the terms of any one of the MPL, the GPL or the LGPL.
+   -
+   - ***** END LICENSE BLOCK ***** -->
+
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://newsfox/skin/" type="text/css"?>
+
+<!DOCTYPE window [
+  <!ENTITY % newsfoxDTD SYSTEM "chrome://newsfox/locale/newsfox.dtd">
+  %newsfoxDTD;
+  <!ENTITY % commonDTD SYSTEM "chrome://newsfox/locale/common.dtd">
+  %commonDTD;
+]>
+
+
+<window id="newsfox-window" title="NewsFox" 
+  onload="startup()" onunload="cleanup()"
+  onkeypress="handleEvent(event)"
+  xmlns:html="http://www.w3.org/1999/xhtml"
+  xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+	<hbox width="0" height="0" id="nfrelicon">
+		<html:link rel="icon" href="chrome://newsfox/skin/newsfox-16.png"/>
+	</hbox>
+
+	<script src="globalfuncs.js"/>
+  <script src="livemarks.js"/>
+  <script src="options.js"/>
+  <script src="parser.js"/>
+  <script src="model.js"/>
+  <script src="ui.js"/>
+  <script src="file.js"/>
+  <script src="rss.js"/>
+  <script src="opml.js"/>
+
+	<stringbundleset id="stringbundleset">
+		<stringbundle id="newsfox-string-bundle" src="chrome://newsfox/locale/newsfox.properties"/>
+	</stringbundleset>
+
+  <command id="cmd_checkFeedsauto" oncommand="doCheckCancel();"/>
+  <command id="cmd_checkFeedsslct" oncommand="feedCheck(false);"/>
+  <command id="cmd_cancelCheckFeeds" oncommand="doCancelCheckFeeds();"/>
+  <command id="cmd_addFeed" oncommand="addFeed('regular');"/>
+  <command id="cmd_addStorageFeed" oncommand="addFeed('storage');"/>
+  <command id="cmd_deleteFeed" oncommand="deleteFeed(-1,true);"/>
+  <command id="cmd_delete" oncommand="deleteArticle();"/>
+  <command id="cmd_options" oncommand="showOptions();"/>
+  <command id="cmd_exportOpml" oncommand="exportOpml(true);"/>
+  <command id="cmd_help" oncommand="help();"/>
+  <command id="cmd_tagEdit" oncommand="tagEdit();"/>
+  <command id="cmd_home" oncommand="home();"/>
+  <command id="cmd_manageLivemarks" oncommand="manageLivemarks();"/>
+  <command id="cmd_markAllAsRead" oncommand="markFlaggedUnread(false,true);"/>
+  <command id="cmd_markAllAsUnread" oncommand="markFlaggedUnread(false,false);"/>
+  <command id="cmd_addSearch" oncommand="addGroup('search');"/>
+  <command id="cmd_addGroup" oncommand="addGroup('regular');"/>
+  <command id="cmd_deleteGroup" oncommand="deleteGroup(true);"/>
+  <command id="cmd_exportRSS" oncommand="exportRSS();"/>
+  <command id="cmd_fdgpOptions" oncommand="chooseOptions();"/>
+
+	<keyset id="shortcut-keys">
+		<key id="add-search-group-key" modifiers="" key=""
+			mod0="" key0="" mod1="" key1="s" mod2="alt" key2="z"
+			label="&sCaddSearch;" command="cmd_addSearch"/>
+		<key id="add-group-key" modifiers="" key=""
+			mod0="" key0="" mod1="" key1="g" mod2="alt" key2="x"
+			label="&sCaddGroup;" command="cmd_addGroup"/>
+		<key id="delete-group-key" modifiers="" key=""
+			mod0="" key0="" mod1="shift" key1="G" mod2="alt shift" key2="X"
+			label="&sCdeleteGroup;" command="cmd_deleteGroup"/>
+		<key id="add-feed-key" modifiers="" key=""
+			mod0="" key0="" mod1="" key1="f" mod2="alt" key2="c"
+			label="&sCadd;" command="cmd_addFeed"/>
+		<key id="delete-feed-key" modifiers="" key=""
+			mod0="" key0="" mod1="shift" key1="F" mod2="alt shift" key2="C"
+			label="&sCdelete;" command="cmd_deleteFeed"/>
+		<key id="delete-feed-from-group-key" modifiers="" key=""
+			mod0="" key0="" mod1="shift" key1="D" mod2="alt shift" key2="D"
+			label="&sCdeleteFeedFromGroup;" oncommand="deleteSingleFeedRow()"/>
+		<key id="refresh-key" modifiers="" key=""
+			mod0="" key0="" mod1="" key1="r" mod2="alt" key2="r"
+			label="&sCrefresh;" command="cmd_checkFeedsslct"/>
+		<key id="do-cancel-check-feeds-key" modifiers="" key=""
+			mod0="" key0="" mod1="" key1="q" mod2="alt" key2="q"
+			label="&sCcancel;" command="cmd_cancelCheckFeeds"/>
+		<key id="mark-all-read-key" modifiers="" key=""
+			mod0="" key0="" mod1="" key1="m" mod2="alt" key2="m"
+			label="&sCmarkAllAsRead;" command="cmd_markAllAsRead"/>
+		<key id="next-unread-key" modifiers="" key=""
+			mod0="" key0="" mod1="" key1="n" mod2="alt" key2="n"
+			label="&sCnextUnread;" oncommand="selectNextUnreadArticle();"/>
+		<key id="prev-unread-key" modifiers="" key=""
+			mod0="" key0="" mod1="" key1="p" mod2="alt" key2="p"
+			label="&sCpreviousUnread;" oncommand="selectPrevUnreadArticle();"/>
+		<key id="open-unread-key" modifiers="" key=""
+			mod0="" key0="" mod1="" key1="u" mod2="alt" key2="u"
+			label="&sCopenUnread;" oncommand="openUnread();"/>
+		<key id="options-key" modifiers="" key=""
+			mod0="" key0="" mod1="" key1="o" mod2="alt" key2="o"
+			label="&sCoptions;" command="cmd_fdgpOptions"/>
+		<key id="home-key" modifiers="" key=""
+			mod0="" key0="" mod1="" key1="h" mod2="alt" key2="i"
+			label="&sChomePage;" command="cmd_home"/>
+		<key id="open-selected-key" modifiers="" key=""
+			mod0="" key0="" mod1="" key1="v" mod2="alt" key2="y"
+			label="&sCopenSel;" oncommand="openArticle();"/>
+		<key id="delete-selected-key" modifiers="" key=""
+			mod0="" key0="" mod1="shift" key1="V" mod2="alt shift" key2="Y"
+			label="&sCdeleteSel;" oncommand="deleteArticle();"/>
+		<key id="manage-livemarks-key" modifiers="" key=""
+			mod0="" key0="" mod1="" key1="l" mod2="alt" key2="l"
+			label="&sCmanageLivemarks;" command="cmd_manageLivemarks"/>
+		<key id="toggle-filter-key" modifiers="" key=""
+			mod0="" key0="" mod1="" key1="w" mod2="alt" key2="w"
+			label="&sCtoggleFilter;" oncommand="toggleFilter();"/>
+	</keyset>
+
+	<popupset>
+		<tooltip id="loadingTooltip" style="font:bold 11px Tahoma; color:brown;">
+			<hbox>
+			<image src="chrome://newsfox/skin/newsfox-16.png"/>
+			<label value="&wait;"/>
+			</hbox>
+		</tooltip>
+
+		<tooltip id="artTooltip" onpopupshowing="return fillTooltip(event);" 
+					style="font:bold 11px Tahoma; color:brown;">
+			<deck id="artDeck" selectedIndex="1">
+			<iframe type="content" id="artD0" style="overflow: hidden"/>
+			<vbox>
+				<label id="artD1a"/>
+				<label id="artD1b"/>
+				<label id="artD1c"/>
+				<label id="artD1d"/>
+				<label id="artD1e"/>
+			</vbox>
+			</deck>
+		</tooltip>
+
+    <popup id="feedMenu" onpopupshowing="return onFeedMenuShowing(this);">	
+      <menuitem id="checkFeed" label="&sCrefresh;" oncommand="feedCheck(false);"/>
+      <menuitem id="checkFeed2" label="&exportRSS;" command="cmd_exportRSS"/>
+      <menuitem id="fMprops" command="cmd_fdgpOptions"/>
+			<menu id="fMprops2" label="&addGroup.tag;" >
+				<menupopup id="fMprops3"/>
+			</menu>
+      <menuitem label="&sCmarkAllAsRead;" oncommand="markFlaggedUnread(false,true);"/>
+      <menuitem id="home" label="&sChomePage;" oncommand="home();"/>
+      <menuitem id="home2" label="&OPML.export;" 
+					oncommand="exportOpml(false);"/>
+      <menuitem id="openSort" label="&sCopenUnread;" oncommand="openUnread();"/>
+      <menuitem id="openSort2" label="&sortFeeds;" oncommand="AtoZ();"/>
+      <menuitem id="openSort3" label="&unsortFeeds;" oncommand="unsortFeeds();"/>
+    </popup>
+
+    <popup id="artMenu" onpopupshowing="return onArtMenuShowing(this);">	
+      <menuitem id="marksel1" label="&sCmarkAllAsRead;" oncommand="markFlaggedUnread(false,true);"/>
+      <menuitem id="marksel2" label="&markSelAsRead;" oncommand="markSelected(true);"/>
+      <menuitem id="marksel3" label="&markSelAsUnread;" oncommand="markSelected(false);"/>
+      <menuitem label="&sCnextUnread;" oncommand="selectNextUnreadArticle();"/>
+      <menuitem label="&sCselAll;" oncommand="selectAllArticles();"/>
+      <menuitem label="&tagSel;" oncommand="tagEdit();"/>
+      <menuitem label="&sCopenSel;" oncommand="openArticle();"/>
+      <menuitem label="&sCdeleteSel;" oncommand="deleteArticle();"/>
+    </popup>
+
+    <popup id="toolbarContext">	
+      <menuitem id="mainMenuitem" label="&mainToolbar;" type="checkbox" 
+					checked="true" oncommand="doToolbar('mainToolbar');"/>
+      <menuitem id="feedMenuitem" label="&feedToolbar;" type="checkbox" 
+					checked="true" oncommand="doToolbar('feedToolbar');"/>
+    </popup>
+	</popupset>
+
+  <!-- Main Toolbar -->
+  <hbox class="heading" context="toolbarContext" id="mainToolbar">
+    <toolbar class="toolbar" pack="start" id="mainToolbarBar">
+      <toolbarbutton command="cmd_checkFeedsauto"
+        tooltiptext="&sCrefresh;" id="tBcheck"/>
+      <toolbarbutton command="cmd_checkFeedsauto"
+        tooltiptext="&sCcancel;" id="tBcancel" hidden="true"/>
+      <toolbarbutton type="menu" tooltiptext="&sCaddGroup;"
+					id="tBaddFolder" command="cmd_addGroup">
+        <menupopup onpopupshowing="onAddGroupMenuShowing(this);">
+					<menuitem label="&addGroup.regular;" default="true"/>
+					<menuitem label="&addGroup.search;" 
+							oncommand="addGroup('search'); event.stopPropagation();"/>
+					<menu label="&addGroup.tag;">
+						<menupopup id="aGtag"/>
+					</menu>
+				</menupopup>
+			</toolbarbutton>
+      <toolbarbutton command="cmd_deleteGroup"
+        tooltiptext="&sCdeleteGroup;" id="tBdelFolder"/>
+      <toolbarseparator id="tBsep1"/>
+      <toolbarbutton type="menu" tooltiptext="&sCadd;" id="tBadd"
+						command="cmd_addFeed">
+        <menupopup>
+					<menuitem label="&addFeed.regular;" default="true"/>
+					<menuitem label="&addFeed.storage;" 
+							oncommand="addFeed('storage'); event.stopPropagation();"/>
+				</menupopup>
+			</toolbarbutton>
+      <toolbarbutton command="cmd_deleteFeed" 
+				tooltiptext="&sCdelete;" id="tBdel"/>
+			<toolbarbutton  id="tBlivemark" command="cmd_manageLivemarks"
+				tooltiptext="&sCmanageLivemarks;"/>
+      <toolbarseparator id="tBsep2"/>
+      <toolbarbutton tooltiptext="&sCoptions;" type="menu" id="tBoptions">
+        <menupopup onpopupshowing="onOptMenuShowing(this);">
+            <menuitem label="&sCoptions;" command="cmd_options"/>
+          <menuitem id="tool.group" label="&groupOptions;" command="cmd_fdgpOptions"/>
+          <menuitem id="tool.feed" label="&feedOptions;" command="cmd_fdgpOptions"/>
+          <menuitem id="exportrss" label="&exportRSS;" command="cmd_exportRSS"/>
+					<menu id="importopml" label="&OPML.import;">
+						<menupopup>
+							<menu label="&toolOptions.import.addfeeds;">
+								<menupopup>
+			          	<menuitem label="&toolOptions.import.file;" oncommand="importOpml(false,true,false);"/>
+			          	<menuitem label="&toolOptions.import.URL;" oncommand="importOpml(false,false,false);"/>
+								</menupopup>
+							</menu>
+							<menu label="&toolOptions.import.startfresh;">
+								<menupopup>
+			          	<menuitem label="&toolOptions.import.file;" oncommand="importOpml(false,true,true);"/>
+			          	<menuitem label="&toolOptions.import.URL;" oncommand="importOpml(false,false,true);"/>
+								</menupopup>
+							</menu>
+						</menupopup>
+					</menu>
+          <menuitem id="exportopml" label="&OPML.export;" command="cmd_exportOpml"/>
+          <menuitem label="&sCprint;" oncommand="printArticle()"/>
+          <menuitem id="tool.passwd" label="&toolOptions.passwd;" oncommand="gSdr.changePassword();"/>
+					<menuseparator/>
+					<menuitem class="menuitem-iconic" id="tBmIrestore" label="&toolOptions.restoreBackup;" oncommand="restoreBackup();"/>
+        </menupopup>
+      </toolbarbutton>
+			<toolbarbutton tooltiptext="&help;" type="menu" id="tBhelp">
+				<menupopup>
+      		<menuitem label="&help;" command="cmd_help"/>
+					<menuitem id="help.shortcut" label="&sCshortcut;" oncommand="showShortcuts();"/>
+      		<menuitem label="&NewsFoxTeam;" oncommand="showAbout();"/>
+      		<menuitem label="NewsFox &sChomePage;" oncommand="showNF();"/>
+				</menupopup>
+			</toolbarbutton>
+			<toolbarbutton tooltiptext="History" type="menu" id="historyMenu">
+				<menupopup id="histPopup" onpopupshowing="onHistoryMenuShowing(this);"/>
+			</toolbarbutton>
+		</toolbar>
+		<progressmeter id="pmeter" mode="determined" value="0%" hidden="true"/>
+
+
+<!-- Elements between here and below comment not visible by default -->
+<!-- with the exception of spacer3                                  -->
+		<hbox flex="1">
+
+			<spacer flex="10" id="spacer1"/>
+
+			<toolbar class="toolbar" id="nameFTB" pack="start" flex="1">
+				<toolbarbutton type="menu" id="tBfBmenu" crop="end" flex="1">
+					<label id="mfeedTitle" crop="end" flex="1"/>
+					<menupopup>
+						<menuitem id="mmfBhome" command="cmd_home" label="&sChomePage;"/>
+						<menuitem id="mmfBcheck" command="cmd_checkFeedsslct" label="&sCrefresh;"/>
+						<menuitem id="mmfBtag" command="cmd_tagEdit" label="&tagEdit;" />
+						<menuitem id="mmfBmarkAllAsRead" command="cmd_markAllAsRead" label="&sCmarkAllAsRead;"/>
+						<menuitem id="mmfBmarkAllAsUnread" command="cmd_markAllAsUnread" label="&markAllAsUnread;"/>
+						<menuitem id="mmfBdelete" command="cmd_delete" label="&sCdeleteSel;"/>
+						<menuitem id="mmfBoptions" command="cmd_fdgpOptions" label="&sCoptions;"/>
+					</menupopup>
+				</toolbarbutton>
+			</toolbar>
+
+			<spacer flex="10" id="spacer2"/>
+
+			<toolbar class="toolbar" pack="start" id="buttonFTB">
+				<toolbarbutton id="mfBhome" command="cmd_home"
+						tooltiptext="&sChomePage;"/>
+				<toolbarbutton id="mfBcheck" command="cmd_checkFeedsslct"
+						tooltiptext="&sCrefresh;"/>
+				<toolbarbutton id="mfBcancel" command="cmd_checkFeedsauto" 
+						tooltiptext="&sCcancel;" hidden="true"/>
+				<toolbarbutton id="mfBtag" command="cmd_tagEdit"
+						tooltiptext="&tagEdit;" />
+				<toolbarbutton id="mfBmarkAllAsRead" command="cmd_markAllAsRead" 								tooltiptext="&sCmarkAllAsRead;"/>
+				<toolbarbutton id="mfBmarkAllAsUnread" command="cmd_markAllAsUnread" 							tooltiptext="&markAllAsUnread;"/>
+				<toolbarbutton id="mfBdelete" command="cmd_delete"
+						tooltiptext="&sCdeleteSel;"/>
+				<toolbarbutton id="mfBoptions" command="cmd_fdgpOptions"
+						ftext="&feedOptions;" gtext="&groupOptions;"/>
+	    </toolbar>
+
+			<spacer flex="10" id="spacer3"/>
+
+		</hbox>
+<!-- Elements between here and above comment not visible by default -->
+<!-- with the exception of spacer3                                  -->
+
+
+    <hbox id="busyAnimation" height="16" align="center" pack="end"
+						style="font:bold 11px Tahoma;">
+			<image id="pause-icon" hidden="true" onclick="changePauseStatus();"/>
+			<image id="play-icon" hidden="true" onclick="changePauseStatus();"/>
+      <label id="busyText" hidden="true" onclick="changePauseStatus();"/>
+      <label id="notBusyText" hidden="false"/>
+      <label id="busyTextNumbers"/>
+			<image id="newsfox-icon" src="chrome://newsfox/skin/newsfox-16.png"/>
+		</hbox>
+  </hbox>
+
+  <hbox flex="1" id="newsfox-panes">
+
+    <!-- Feed Tree -->
+    <tree id="newsfox.feedTree" seltype="single" persist="width" width="250"
+				hidecolumnpicker="true" class="feedtree" context="feedMenu"
+				ondragstart="dragFd(event);" 
+				ondragover="dragEvent=event;"
+				onselect="feedSelected()">
+      <treecols>
+        <treecol id="feedName" primary="true" flex="1" label="&feeds;"/>
+      </treecols>
+      <treechildren id="feedTreeChildren"/>
+    </tree>
+
+    <splitter id="feedsplitter" collapse="before">
+    	<grippy/>
+  	</splitter>
+
+		<vbox id="rightpane" flex="1" style="overflow: auto">
+      <!-- Feed control bar -->
+      <hbox class="feedHeading" id="feedToolbar" context="toolbarContext"
+						style="padding: 3px; margin-bottom:5px;">
+				<label id="feedTitle" crop="right" pack="start" flex="1"/>
+				<toolbar class="toolbar" id="feedToolbarBar" pack="end" 
+							style="padding-left: 5px;">
+					<toolbarbutton id="fBhome" command="cmd_home"
+							tooltiptext="&sChomePage;"/>
+					<toolbarbutton id="fBcheck" command="cmd_checkFeedsslct"
+							tooltiptext="&sCrefresh;"/>
+					<toolbarbutton id="fBcancel" command="cmd_checkFeedsauto" 
+						tooltiptext="&sCcancel;" hidden="true"/>
+					<toolbarseparator id="fBsep1" style="visibility: collapse;"/>
+					<toolbarbutton id="fBtag" command="cmd_tagEdit"
+							tooltiptext="&tagEdit;" />
+					<toolbarbutton id="fBmarkAllAsRead" command="cmd_markAllAsRead" 								tooltiptext="&sCmarkAllAsRead;"/>
+					<toolbarbutton id="fBmarkAllAsUnread" command="cmd_markAllAsUnread" 							tooltiptext="&markAllAsUnread;"/>
+					<toolbarseparator id="fBsep2" style="visibility: collapse;"/>
+					<toolbarbutton id="fBdelete" command="cmd_delete"
+							tooltiptext="&sCdeleteSel;"/>
+					<toolbarbutton id="fBoptions" command="cmd_fdgpOptions"
+							ftext="&feedOptions;" gtext="&groupOptions;"/>
+				</toolbar>
+      </hbox>
+
+			<box id="hbox3pane" orient="horizontal" flex="1" style="overflow: auto">
+    		<splitter id="hartsplitter" collapse="before">
+					<grippy/>
+  			</splitter>
+			</box>
+    	<box id="vbox3pane" orient="vertical" flex="1" style="overflow: auto">
+      	<!-- Article List -->
+      	<tree id="newsfox.articleTree" class="articletree" 
+						persist="height width" disableKeyNavigation="true"
+						height="200" width="200" flex="2" onselect="articleSelected()" 
+						onclick="if(event.button == 1) {articleTreeMClicked();
+							event.preventDefault();}"
+						onblur="if (!gOptions.markRead) markArtRead(true);"
+						ondblclick="articleTreeDblClicked();" context="artMenu"
+						ondraggesture="dragArt(event)" enableColumnDrag="true">
+        	<treecols id="artTreeCols">
+          	<treecol id="flag" label="&flagCol;" cycler="true" persist="width ordinal hidden"/>
+          	<splitter class="tree-splitter"/>
+          	<treecol id="title" label="&titleCol;" flex="5" persist="width ordinal hidden"/>
+          	<splitter class="tree-splitter"/>
+          	<treecol id="read" label="&r;" display="&readCol;" cycler="true" persist="width ordinal hidden"/>
+          	<splitter class="tree-splitter"/>
+          	<treecol id="Xtend" label="&Xtend;" display="&XtendCol;" flex="1" width="35" hidden="true" cycler="true" persist="width ordinal hidden"/>
+          	<splitter class="tree-splitter"/>
+          	<treecol id="prob" label="&prob;" display="&probCol;" width="35" persist="width ordinal hidden"/>
+          	<splitter class="tree-splitter"/>
+          	<treecol id="tag" label="&tagCol;" flex="2" width="35" hidden="true" persist="width ordinal hidden"/>
+          	<splitter class="tree-splitter"/>
+          	<treecol id="date" label="&dateCol;" flex="1" persist="width ordinal hidden"/>
+          	<splitter class="tree-splitter"/>
+          	<treecol id="source" label="&sourceCol;" flex="1" hidden="true" persist="width ordinal hidden"/>
+          	<splitter class="tree-splitter"/>
+          	<treecol id="author" label="&authorCol;" flex="1" hidden="true" persist="width ordinal hidden"/>
+          	<splitter class="tree-splitter"/>
+          	<treecol id="blog" label="&feedCol;" flex="1" hidden="true" persist="width ordinal hidden"/>
+        	</treecols>
+<!-- messiness of tooltip stuff due to Firefox bug#413268 -->
+        	<treechildren id="artTreeChildren" tooltip="artTooltip"/>
+      	</tree>
+
+    		<splitter id="vartsplitter" collapse="before">
+					<grippy/>
+  			</splitter>
+
+      	<!-- Content frame -->
+				<deck id="contentDeck" selectedIndex="0" persist="height width" 
+						height="300" width="300" flex="3">
+      		<iframe type="content" id="hrefContent" name="hrefContent"/>
+					<iframe type="content" id="buildContent" name="buildContent"/>
+				</deck>
+    	</box>
+		</vbox>
+  </hbox>
+</window>

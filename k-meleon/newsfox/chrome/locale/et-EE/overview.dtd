@@ -1,0 +1,29 @@
+<!ENTITY overview.title "Ülevaade">
+<!ENTITY adding.feeds "Lisan voogusid">
+<!ENTITY addnew.feeds "Lisa uusi vooge kasutades &quot;lisa voog&quot; nuppu">
+<!ENTITY addnew.feeds.opml "Uusi vooge saab importida OPML failist valikute menüü kaudu.">
+<!ENTITY addnew.feeds.auto "Valides &apos;NewsFox&apos;i&apos; &apos;Vood&apos; Firefox&apos;i valikute (eelistuste) paneelis, saab NewsFox uusi vooge lisada nende olemasolul aadressikasti paremasse serva tekkivale RSS ikoonile klikkides.">
+<!ENTITY alternative.use "NewsFox&apos;ga saab lugeda ka Live järjehoidjaid. Neid saab NewsFox&apos;ga lugemiseks valida &quot;Live järjehoidja&quot; nupule klikkides.">
+<!ENTITY feed.options "Voo valikuid saab muuta voogude paani (vasakul) kontekstmenüüde või vastava valikute nupu abil.">
+<!ENTITY remove.feeds "Eemaldan voogusid">
+<!ENTITY feed.remove "Eemalda voog lõplikult koos kõigi selle artiklitega &quot;kustuta voog&quot; nupu abil. Voog eemaldatakse kõigist gruppidest.">
+<!ENTITY new.items "Otsin uusi artikleid">
+<!ENTITY retrieve.items "Tõmba uued artiklid kasutades &quot;värskenda&quot; nuppu.">
+<!ENTITY retrieve.items.alt "Uusi artikleid saab kontrollida ka voo või grupi kontekstmenüüst.">
+<!ENTITY retrieve.options "Artiklite automaatse tõmbamise valikuid saab seada valikute menüüst.">
+<!ENTITY manage.title "Haldan artikleid">
+<!ENTITY manage.info "Artiklid märgitakse loetuks nende valimisel. Artikli loetud/mitteloetud ja märgistatud/mittemärgistatud staatust saab muuta vastaval ikoonil klikkides.">
+<!ENTITY manage.info2 "Artikleid saab märkida loetuks/mitteloetuks või kustutatuks kasutades kontekstmenüüd, tööriistariba nuppe või kiirklahve.">
+<!ENTITY manage.info3 "Artikleid saab sorteerida kolumni pealkirjale klikkides. Vaikimisi paigutatakse uusimad artiklid kõige üles. Lugemata artiklite kõige üleval kuvamiseks kliki loetud/mitteloetud kolumni pealkirjal.">
+<!ENTITY groups.tags "Grupid">
+<!ENTITY groups.info "Grupis nimega &apos;FEEDS&apos; sisalduvad kõik vood. Voog saab kuuluda piiramatul arvul gruppidesse. Voost on siiski ainult üks koopia: ühes grupis loetuks märgitud artikkel on seda ka teistes gruppides.">
+<!ENTITY groups.info1 "Gruppe saab lisada &quot;lisa grupp&quot; nupuga.">
+<!ENTITY groups.info2 "Gruppe saab moodustada ka otsingutest. Näiteks otsides kõiki &apos;NewsFox&apos; esinemisi voogudes, saab selle grupiks muuta kasutades lisa otsingugrupp nupuga.">
+<!ENTITY groups.info3 "Mõlemaid grupi tüüpe saab kustutada kustuta grupp nupuga.">
+<!ENTITY groups.info4 "Grupid on kasulikud voogude süstematiseerimisel: näiteks luues grupid uute, oluliste, igapäevaste, nädalaste, uudiste, tehnika jmt voogudele vastavalt enda paremale äranägemisele.">
+<!ENTITY groups.info5 "Grupi seadeid saab muuta voogude paani kontekstmenüüst või valikute nupuga.">
+<!ENTITY other.title "Mitmesugust">
+<!ENTITY other.dragndrop "Gruppide ja nende sees ka voogude järjekorda saab muuta hiirega lohistades.">
+<!ENTITY other.art.toolbar "Vasakul asuval voogude paanil on olemas kontekstmenüü. Paremal asuval artiklite paanil on nii kontekstmenüü kui ka tööriistariba. Nuppudele on lisatud selgitavad märkused (kuvatakse hiirega osutamisel).">
+<!ENTITY other.info "Kõikide voogude kadumise väga ebatõenäolise juhu jaoks on olemas taastamise võimalused peamises valikute menüüs.">
+<!ENTITY other.info2 "Klaviatuuri kiirklahve saab muuta valikute menüüst ja kõikide kiirklahvide loend on leitav abi menüüst.">

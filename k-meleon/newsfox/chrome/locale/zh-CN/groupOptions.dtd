@@ -1,0 +1,27 @@
+<!ENTITY name "名字：">
+<!ENTITY insertbefore "前插至：">
+<!ENTITY dragrtl "从右侧拖拽源到左侧可将该源加入到群组。">
+<!ENTITY dragltr "从左侧拖拽源到右侧可删除该群组中的源。">
+<!ENTITY dragwithin "在群组中拖拽源可改变它们的顺序。">
+<!ENTITY flagged "标志为：">
+<!ENTITY either "任一">
+<!ENTITY unread "未读的：">
+<!ENTITY searchtext "搜索文字：">
+<!ENTITY match "匹配：">
+<!ENTITY body "body">
+<!ENTITY title2 "title">
+<!ENTITY tag "标签">
+<!ENTITY casesensitive "匹配大小写">
+<!ENTITY searchvalues "搜索值">
+<!ENTITY textvalues "文字值">
+<!ENTITY time "时间：">
+<!ENTITY grouptosearch "要搜索的群组：">
+<!ENTITY between "介于">
+<!ENTITY and "和">
+<!ENTITY ago "前">
+<!ENTITY hours "小时">
+<!ENTITY weeks "周">
+<!ENTITY months "月">
+<!ENTITY years "年">
+<!ENTITY ever "永远">
+<!ENTITY showUnread "显示未读文章的个数（可能导致 NewsFox 变慢）">

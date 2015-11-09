@@ -1,0 +1,52 @@
+<!ENTITY title "NewsFox beállítások">
+<!ENTITY global "Globális megjelenítési stílus">
+<!ENTITY checkOnStartup "Minden hírfolyam frissítése indításkor">
+<!ENTITY notifyUponNewArticles "Értesítés, amikor új cikk(ek) érkeznek">
+<!ENTITY confirmDelete "Csoportok, hírfolyamok vagy cikkek törlésekor megerősítés kérése">
+<!ENTITY confirmDeleteArticle "Kérjen megerősítést cikkek törlése előtt">
+<!ENTITY shortcutkeys "Gyorsbillentyűk:">
+<!ENTITY restart "(Változtatáskor szükség lehet a NewsFox újraindítására)">
+<!ENTITY shortcutsNone "nincs">
+<!ENTITY shortcutsStd "szokásos">
+<!ENTITY shortcutsAlt "egyedi">
+<!ENTITY shortcutsCustom "egyedi">
+<!ENTITY seehelp "menü tartalmazza a gyorsbillentyűk listáját.">
+<!ENTITY newsfox.dir "NewsFox könyvtár">
+<!ENTITY moveNfDir "Könyvtár tartalma:">
+<!ENTITY copy "másol">
+<!ENTITY move "mozgat">
+<!ENTITY noaction "nincs mozgatás">
+<!ENTITY Child_directory "alkönyvtár">
+<!ENTITY Parent_directory "Szülőkönyvtár">
+<!ENTITY dateStyle "Dátum stílus">
+<!ENTITY changeToPresent "Változtassa meg a cikk dátumát a maira ha:">
+<!ENTITY articleTooltips "Cikk buborékok">
+<!ENTITY copyToClipboard "A cikk törzsét másolja a vágólapra">
+<!ENTITY selectAddedFeed "Válassza ki az új hírfolyamot hozzáadáskor">
+<!ENTITY feedRefresh "Hírfolyam frissítés:">
+<!ENTITY feedRefreshThreads "szálak">
+<!ENTITY feedRefreshRenew "frissítési időköz (másodperc)">
+<!ENTITY feedSlowdown "Lassabb számítógépekhez csökkentse a szálak számát és/vagy növelje a frissítési időközt.">
+<!ENTITY feedRefreshTimeout "Hírfolyam frissítésére várakozás (másodperc)">
+<!ENTITY horizontalPanes "Vízszintes panelek (újraindítás szükséges)">
+<!ENTITY favicons "Favicons">
+<!ENTITY updateTimeToBookmark "Írja a hírfolyam url-t és frissítési időpontot a könyvjelzőbe">
+<!ENTITY spam "&quot;Érdekes&quot; szűrő engedélyezése">
+<!ENTITY globalTab "Általános">
+<!ENTITY feedTab "Hírfolyam/Cikk">
+<!ENTITY generalTab "Általános">
+<!ENTITY shortcutsTab "Gyorsbillentyűk">
+<!ENTITY keywordsTab "Kulcsszavak">
+<!ENTITY shortcuts.operationHeader "Működés">
+<!ENTITY shortcuts.select "Válassza ki a sort és írja be a billentyűkombinációt a billentyűleütés beállításához.">
+<!ENTITY shortcuts.warning "Sok billentyűleütés már használatban van és nem elérhető.">
+<!ENTITY shortcuts.experiment "Próbáljon találni olyant, ami működik vagy válasszon egyet az előre beállítottak közül.">
+<!ENTITY keyword "Kulcsszó:">
+<!ENTITY keywordsHighlighted "A kulcsszavak kiemeltek lesznek a cikkekben.">
+<!ENTITY caseIgnored "Minden keresés kisbetűvel lesz végrehajtva.">
+<!ENTITY statusBar "Automatikus feliratkozás ikon az állapotsorban">
+<!ENTITY statusBarText "Szöveg">
+<!ENTITY buttonText "Newsfox gomb szöveg:">
+<!ENTITY statusBarTextNew "db új">
+<!ENTITY statusBarTextUnread "db olvasatlan">
+<!ENTITY statusBarTextNone "nincs">

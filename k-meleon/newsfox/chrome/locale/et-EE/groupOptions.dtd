@@ -1,0 +1,27 @@
+<!ENTITY name "Nimi:">
+<!ENTITY insertbefore "Sisesta enne:">
+<!ENTITY dragrtl "Lohista paremalt vasakule voo lisamiseks grupile.">
+<!ENTITY dragltr "Lohista vasakult paremale voo eemaldamiseks grupist.">
+<!ENTITY dragwithin "Lohista grupi sees ümber paigutamiseks.">
+<!ENTITY flagged "Märgistatud:">
+<!ENTITY either "või">
+<!ENTITY unread "Lugemata:">
+<!ENTITY searchtext "Otsi tekstist:">
+<!ENTITY match "Täpne vaste:">
+<!ENTITY body "keha">
+<!ENTITY title2 "pealkiri">
+<!ENTITY tag "tag">
+<!ENTITY casesensitive "Erista suur- ja väiketähti">
+<!ENTITY searchvalues "Otsi väärtustest">
+<!ENTITY textvalues "Tekstiväärtused">
+<!ENTITY time "Aeg:">
+<!ENTITY grouptosearch "Otsi grupist:">
+<!ENTITY between "Vahel">
+<!ENTITY and "ja">
+<!ENTITY ago "tagasi">
+<!ENTITY hours "tundi">
+<!ENTITY weeks "nädalat">
+<!ENTITY months "kuud">
+<!ENTITY years "aastat">
+<!ENTITY ever "ükskõik kui kaua">
+<!ENTITY showUnread "Näita lugemata artiklite arvu (võib NewsFox&apos;i aeglustada)">

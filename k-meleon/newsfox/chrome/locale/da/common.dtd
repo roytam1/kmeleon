@@ -1,0 +1,62 @@
+<!ENTITY NewsFoxTeam "NewsFox Team">
+<!ENTITY feedOptions "Feed-indstillinger">
+<!ENTITY text "Tekst">
+<!ENTITY webpage "Hjemmeside">
+<!ENTITY groupOptions "Gruppeindstillinger">
+<!ENTITY sCcancel "Annuller genindlæsning">
+<!ENTITY sCadd "Tilføj feed">
+<!ENTITY sCoptions "Indstillinger">
+<!ENTITY sChomePage "Hjemmeside">
+<!ENTITY sCmanageLivemarks "Håndter Live bogmærker">
+<!ENTITY sCmarkAllAsRead "Marker alle som læste">
+<!ENTITY sCdelete "Slet feed">
+<!ENTITY sCnextUnread "Næste ulæste">
+<!ENTITY sCopenUnread "Åbn ulæste">
+<!ENTITY sCopenSel "Åbn valgte">
+<!ENTITY sCdeleteSel "Slet valgte">
+<!ENTITY sCaddSearch "Tilføj søgegruppe">
+<!ENTITY sCaddGroup "Tilføj gruppe">
+<!ENTITY sCdeleteGroup "Slet gruppe">
+<!ENTITY sCshortcut "Tastaturgenveje">
+<!ENTITY sCrefresh "Genindlæs feeds">
+<!ENTITY sCpreviousUnread "Forrige ulæste">
+<!ENTITY sCdeleteFeedFromGroup "Slet feed fra gruppe">
+<!ENTITY sCkeystrokeHeading "Tastetryk">
+<!ENTITY sCselAll "Vælg alle artikler">
+<!ENTITY flagCol "Markering">
+<!ENTITY titleCol "Titel">
+<!ENTITY readCol "Læst">
+<!ENTITY dateCol "Dato">
+<!ENTITY authorCol "Forfatter">
+<!ENTITY sourceCol "Kilde">
+<!ENTITY feedCol "Feed">
+<!ENTITY tagCol "Mærkat">
+<!ENTITY probCol "Interesse">
+<!ENTITY threadCol "Tråd">
+<!ENTITY XtendCol "Filtreret web">
+<!ENTITY sCprint "Udskriv artikel">
+<!ENTITY sCtoggleFilter "Slå webfilter til / fra">
+<!ENTITY sortTab "Sortering">
+<!ENTITY sortArticles "Sorter artikler:">
+<!ENTITY firstSort "Første sortering:">
+<!ENTITY secondSort "Anden sortering:">
+<!ENTITY thirdSort "Tredie sortering:">
+<!ENTITY fourthSort "Fjerde sortering:">
+<!ENTITY noCol "Ingen">
+<!ENTITY ascendingDir "Stigende">
+<!ENTITY descendingDir "Faldende">
+<!ENTITY updatedUnread "Marker opdaterede artikler som ulæste">
+<!ENTITY yes "ja">
+<!ENTITY no "nej">
+<!ENTITY days "dage">
+<!ENTITY articles "Artikler">
+<!ENTITY displayStyle "Visningsstil:">
+<!ENTITY deleteOld "Slet gamle artikler">
+<!ENTITY autoRefresh "Auto-genindlæs:">
+<!ENTITY minutes "minut">
+<!ENTITY deleteOldKeepUnread "ja, behold ulæste">
+<!ENTITY deleteOldDeleteUnread "ja, slet ulæste">
+<!ENTITY oldMeans "Marker som gammel">
+<!ENTITY after "efter">
+<!ENTITY notInFeed "hvis ikke i feedet">
+<!ENTITY feeds "Feeds">

@@ -1,0 +1,24 @@
+<!ENTITY sCcustomShortcut "Произвольные сочетания клавиш могут быть определены с помощью редактирования атрибутов &apos;modifiers&apos; и &apos;key&apos; в файле accel.xml, находящемся в папке newsfox (которая располагается в папке профиля), после выбора набора сочетаний клавиш в окне настроек и закрытия NewsFox.">
+<!ENTITY sCcustomHeading "Пользовательские сочетания клавиш">
+<!ENTITY sCfixedHeading "Фиксированные сочетания клавиш">
+<!ENTITY sCartFeedHeading "Панель «Записи»/«Ленты»">
+<!ENTITY sCviewArtHeading "Панель «Обзор»/«Записи»">
+<!ENTITY sCfeedHeading "Панель «Ленты»">
+<!ENTITY sCarticleUp "Запись выше">
+<!ENTITY sCarticleDown "Запись ниже">
+<!ENTITY sCupLevel "На уровень вверх (свернуть)">
+<!ENTITY sCexpandTree "Развернуть ленту">
+<!ENTITY sCsame "то же самое">
+<!ENTITY sCtoggleArtFlag "Переключить флаг записи">
+<!ENTITY sCselToFocus "Выбор записи в фокусе">
+<!ENTITY sCfocusUp "Фокус на запись сверху">
+<!ENTITY sCfocusDown "Фокус на запись снизу">
+<!ENTITY sCmoveFeedUp "Переместить ленту вверх">
+<!ENTITY sCmoveFeedDown "Переместить ленту вниз">
+<!ENTITY sCfeedUp "Лента выше">
+<!ENTITY sCfeedDown "Лента ниже">
+<!ENTITY sCexpColl "Свернуть/развернуть ленту">
+<!ENTITY sCdeleteKey "Delete">
+<!ENTITY sCctrlKey "Ctrl">
+<!ENTITY sCshiftKey "Shift">
+<!ENTITY sCaltKey "Alt">

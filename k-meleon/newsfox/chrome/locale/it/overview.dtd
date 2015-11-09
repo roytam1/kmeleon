@@ -1,0 +1,29 @@
+<!ENTITY overview.title "Cenni preliminari">
+<!ENTITY adding.feeds "Aggiungere feed">
+<!ENTITY addnew.feeds "Aggiungere nuovi feed utilizzando il pulsante">
+<!ENTITY addnew.feeds.opml "I nuovi feed possono essere importati da un file OPML utilizzando l&apos;apposita funzione presente nel menu Opzioni">
+<!ENTITY addnew.feeds.auto "Selezionando &apos;Newsfox&apos; nel pannello &apos;Feed&apos; delle Opzioni di Firefox, sarà possibile aggiungere nuovi feed con NewsFox premendo l&apos;apposita icona all&apos;estrema destra sulla barra degli indirizzi">
+<!ENTITY alternative.use "NewsFox può gestire anche i Segnalibri Live di Firefox. È possibile selezionare quali Segnalibri Live leggere premendo il pulsante">
+<!ENTITY feed.options "Le opzioni dei feed possono essere modificate attraverso l&apos;apposita funzione nel menu contestuale della barra laterale dei feed o premendo uno dei pulsanti Opzioni">
+<!ENTITY remove.feeds "Eliminare feed">
+<!ENTITY feed.remove "È possibile eliminare definitivamente un feed e tutti i suoi articoli da tutti i gruppi premendo il pulsante">
+<!ENTITY new.items "Controllare la presenza di nuovi articoli">
+<!ENTITY retrieve.items "Per caricare i nuovi articoli utilizzare il pulsante">
+<!ENTITY retrieve.items.alt "È possibile caricare i nuovi articoli anche utilizzando la funzione presente nel menu contestuale dei feed e dei gruppi nella barra laterale">
+<!ENTITY retrieve.options "Nel menu opzioni è possibile impostare il caricamento automatico dei feed">
+<!ENTITY manage.title "Gestione degli articoli">
+<!ENTITY manage.info "Gli articoli vengono marcati come letti quando selezionati. Premendo le relative icone gli articoli posso essere marcati come Letti o Non letti e Spuntati o Non spuntati">
+<!ENTITY manage.info2 "Gli articoli possono essere cancellati o marcati come Letti o Non letti attraverso il menu contestuale, utilizzando gli appositi pulsanti o digitando le relative scorciatoie da tastiera">
+<!ENTITY manage.info3 "Gli articoli possono essere ordinati premendo le intestazioni delle colonne. La visualizzazione predefinita prevede che gli articoli siano ordinati dal più recente al più vecchio; per visualizzare prima gli articoli letti, fare clic sull&apos;intestazione della relativa colonna">
+<!ENTITY groups.tags "Gruppi">
+<!ENTITY groups.info "È sempre presente un gruppo &apos;Feed&apos; che contiene tutti feed. I feed possono essere inseriti in qualsiasi gruppo sebbene solo una copia del feed sia realmente caricata è di conseguenza il feed sarà automaticamente ricaricato o marcato come letto in tutti i gruppi ai quali appartiene">
+<!ENTITY groups.info1 "Per aggiungere nuovi gruppi utilizzare il pulsante">
+<!ENTITY groups.info2 "È possibile ad esempio effettuare una ricerca di tutte le occorrenze della parola &apos;Newsfox&apos; nei feed memorizzati: i risultati verranno inseriti in un apposito gruppo che può essere aggiunto utilizzando il pulsante">
+<!ENTITY groups.info3 "Per cancellare entrambi i tipi di gruppo utilizzare il pulsante">
+<!ENTITY groups.info4 "I gruppi possono essere utilizzati per organizzare i feed; è possibile ordinarli come nuovi, importanti, quotidiani, settimanali, news, tecnologia o qualsiasi altra categoria desiderata">
+<!ENTITY groups.info5 "Le opzioni dei gruppi possono essere modificate tramite il menu contestuale nella barra laterale dei feed o premendo uno dei pulsanti Opzioni">
+<!ENTITY other.title "Varie">
+<!ENTITY other.dragndrop "I feed posso essere ordinati all&apos;interno dei gruppi e i gruppi possono essere ordinati con il trascinamento">
+<!ENTITY other.art.toolbar "Sono presenti un menu contestuale nella barra laterale dei feed a sinistra e un menu contestuale e una barra degli strumenti sul lato destro della finestra di Newsfox. Rimanendo con il puntatore del mouse in attesa sulle icone dei pulsanti verrà visualizzato un suggerimento con il relativo significato">
+<!ENTITY other.info "Nel caso in cui i feed dovessero scomparire sarà possibile tentarne il ripristino utilizzando l&apos;apposita funzione presente nel menu Opzioni">
+<!ENTITY other.info2 "Le scorciatoie da tastiera possono essere impostate e modificate dal menu Opzioni. Una lista delle scorciatoie e visualizzabile attraverso il menu Guida di Newsfox">

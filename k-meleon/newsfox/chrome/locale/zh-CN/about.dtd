@@ -1,0 +1,9 @@
+<!ENTITY projectOwner "项目所有者">
+<!ENTITY localization "本地化：">
+<!ENTITY primaryContact "主要的联系人">
+<!ENTITY developer "开发人员">
+<!ENTITY projectCreator "项目创建者">
+<!ENTITY icons "图标：">
+<!ENTITY fromFirefox "绝大多数图标来自或修改自 Firefox/Thunderbird。">
+<!ENTITY fromFamfamfam "标志、标签、存储和附件图标来自 famfamfam.com。">
+<!ENTITY helpADR "感谢 ADR 帮助改进图标。">

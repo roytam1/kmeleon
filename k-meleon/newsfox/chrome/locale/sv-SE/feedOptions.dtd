@@ -1,0 +1,25 @@
+<!ENTITY useGlobal "Använd global inställning">
+<!ENTITY feedAutoCheck "&quot;Uppdatera alla flöden&quot; söker igenom detta flöde efter nya artiklar">
+<!ENTITY dontDeleteUnread "Ta inte bort olästa">
+<!ENTITY groups "Grupper:">
+<!ENTITY checkfeed "Kontrollera flöde">
+<!ENTITY iconsrc "Ikonkälla:">
+<!ENTITY authentication "Autentisering (endast säkra flöden)">
+<!ENTITY username "Användarnamn:">
+<!ENTITY password "Lösenord:">
+<!ENTITY feedPrivate "Kryptera flödesartiklar på disk">
+<!ENTITY keepDays.pre "Behåll artiklar åtminstone">
+<!ENTITY keepDays.post "dagar">
+<!ENTITY mainTab "Allmänt">
+<!ENTITY filterTab "Webbfilter">
+<!ENTITY securityTab "Säkerhet">
+<!ENTITY filterNew "Ladda ner filtrerad webbsida för alla nya artiklar">
+<!ENTITY filterImages "Ladda ner bilder på filtrerad webbsida">
+<!ENTITY filterInfo "Ange ett filter för att omforma artikellänkens HTML till en utökad artikelbeskrivning.  Ett filter kan vara antingen ett reguljärt uttryck som skall matchas eller JavaScript-kod vars värde kommer att bli den utökade artikelbeskrivningen.">
+<!ENTITY filterJSinfo "Vid användning av JavaScript är dessa variabler tillgängliga:">
+<!ENTITY filterJSvar1 "linkDOM innehåller DOM:en (Document Object Model) för artikellänkens sida">
+<!ENTITY filterJSvar2 "linkHTML innehåller texten/HTML:en för artikellänkens sida">
+<!ENTITY filterJSvar3 "getElementsByClass(klass, tagg, nod) returnerar en matris över alla HTML-element med den angivna taggen och klassen inom den angivna noden">
+<!ENTITY filterMime "Åsidosätt teckenuppsättning (+ för automatiskt, &gt; för test eller teckenuppsättning)">
+<!ENTITY filterInfo2 "Du måste ange ett filter, annars kommer bilder att laddas ner för den aktuella artikeln, inte någon HTML-sida.  För att använda standardfiltret, tryck ned backstegstangenten.">
+<!ENTITY never "aldrig">

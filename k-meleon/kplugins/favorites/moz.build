@@ -1,0 +1,34 @@
+# -*- Mode: python; c-basic-offset: 4; indent-tabs-mode: nil; tab-width: 40 -*-
+# vim: set filetype=python:
+
+LIBRARY_NAME = 'favorites'
+
+SOURCES += [
+  '../../shared/Utils.cpp',
+  '../rebar_menu/hot_tracking.cpp',
+  'ie_file.cpp',
+  'ie_plugin.cpp',
+  'ie_utils.cpp',
+  '../../shared/qsort.cpp'
+]
+
+DEFINES['UNICODE'] = True
+
+DEFINES['_UNICODE'] = True
+
+FORCE_SHARED_LIB = True
+
+DISABLE_STL_WRAPPING = True
+
+RCINCLUDE = 'ie_favorites.rc'
+
+OS_LIBS += [
+  'ole32.lib',
+  'comctl32.lib',
+  'comdlg32.lib',
+  'shell32.lib'
+]
+
+LOCAL_INCLUDES += [
+  '../../shared/'
+]

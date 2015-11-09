@@ -1,0 +1,31 @@
+<!ENTITY checkFeed "Feed aktualisieren">
+<!ENTITY troubleshoot "Fehlersuche">
+<!ENTITY OPML.import "OPML importieren">
+<!ENTITY OPML.export "OPML exportieren">
+<!ENTITY toolOptions.import.addfeeds "Zu einem vorhandenen Feed hinzufügen">
+<!ENTITY toolOptions.import.startfresh "Neu beginnen">
+<!ENTITY toolOptions.import.file "aus Datei">
+<!ENTITY toolOptions.import.URL "von URL">
+<!ENTITY toolOptions.passwd "Passwort ändern">
+<!ENTITY help "Hilfe zu NewsFox">
+<!ENTITY feeds "Feeds">
+<!ENTITY r "Gelesen">
+<!ENTITY markAllAsUnread "Alle als ungelesen markieren">
+<!ENTITY tagSel "Schlagwort hinzufügen">
+<!ENTITY sortFeeds "Feeds sortieren">
+<!ENTITY unsortFeeds "Sortierung rückgängig machen">
+<!ENTITY toolOptions.restoreBackup "Sicherung wiederherstellen">
+<!ENTITY exportRSS "Nach RSS exportieren">
+<!ENTITY wait "Warten Sie sicherheitshalber bis der Ladevorgang abgeschlossen ist">
+<!ENTITY tagEdit "Schlagwörter ausgewählter Artikel bearbeiten">
+<!ENTITY addGroup.regular "Neue Gruppe">
+<!ENTITY addGroup.search "Suchgruppe">
+<!ENTITY addGroup.tag "Schlagwortgruppe">
+<!ENTITY addFeed.regular "RSS/Atom">
+<!ENTITY addFeed.storage "Ablage">
+<!ENTITY prob "Priorität">
+<!ENTITY mainToolbar "Haupt-Symbolleiste">
+<!ENTITY feedToolbar "Feed-Symbolleiste">
+<!ENTITY Xtend "+">
+<!ENTITY markSelAsRead "Ausgewähltes als gelesen markieren">
+<!ENTITY markSelAsUnread "Ausgewähltes als ungelesen markieren">

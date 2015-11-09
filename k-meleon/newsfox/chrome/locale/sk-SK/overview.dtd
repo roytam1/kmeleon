@@ -1,0 +1,29 @@
+<!ENTITY overview.title "Súhrn">
+<!ENTITY adding.feeds "Pridávanie kanálov">
+<!ENTITY addnew.feeds "Pridať nové kanály použitím tlačidla pridať kanál.">
+<!ENTITY addnew.feeds.opml "Nové kanály môžu byť importované z OPML súboru v ponuke Možnosti.">
+<!ENTITY addnew.feeds.auto "Zvolením &apos;Newsfox&apos; na &apos;Feeds&apos; paneli Možnosti vo Firefoxe(nastavenia), NewsFox može pridať kanály kliknutím na ikonu RSS na pravej strane adresného riadka ak je kanál dostupný.">
+<!ENTITY alternative.use "NewsFox tiež môže čítať aktívne záložky Firefoxu. Môžete vybrať, ktoré aktívne záložky má NewsFox použiť, pomocou tlačidla Aktívne záložky.">
+<!ENTITY feed.options "Možnosti kanály sa môžu meniť cez kontextovú ponuku v paneli kanála(na ľavej strane) alebo pomocou tlačidla iné možnosti.">
+<!ENTITY remove.feeds "Odstraňovanie kanálov">
+<!ENTITY feed.remove "Úplné odstránenie kanálov a všetkých jeho článkov je umožnené tlačidlom odstrániť kanál. Toto odstráni kanál zo všetkých skupín.">
+<!ENTITY new.items "Kontrola nových článkov">
+<!ENTITY retrieve.items "Nové články získate pomocou tlačidla obnoviť.">
+<!ENTITY retrieve.items.alt "Nové články tiež môžete získať cez kontextovú ponuku kanála alebo skupiny v paneli kanála.">
+<!ENTITY retrieve.options "Možnosti pre automatické sťahovanie nových článkov môžete nastaviť v ponuke možnosti.">
+<!ENTITY manage.title "Spravovanie článkov">
+<!ENTITY manage.info "Články sú označené ako prečítané po zvolení.  Stav prečítané/neprečítané a označiť/odznačiť článku môže byť zvolený kliknutím na zodpovedajúcu ikonu.">
+<!ENTITY manage.info2 "Články môžu byť označené ako prečítané/neprečítané alebo zmazané použitím kontextovej ponuky, tlačidlom na paneli nástrojov alebo klávesovou skratkou.">
+<!ENTITY manage.info3 "Články môžu byť preskupené kliknutím na hlavičku stĺpca. Základný stav je mať najnovšie články navrchu. Na presunutie neprečítaných článkov navrch, kliknite na hlavičku stĺpca prečítané/neprečítané.">
+<!ENTITY groups.tags "Skupiny">
+<!ENTITY groups.info "Toto je skupina nazvaná &apos;KANÁLY&apos;, ktorá obsahuje všetky vaše kanály. Kanály môžu pozostávať z viacerých skupín ak chcete. Toto je len jedna kópia kanála: ak označíte článok ako prečítaný, je označený ako prečítaný vo všetkých skupinách.">
+<!ENTITY groups.info1 "Skupiny sa pridávajú tlačidlom pridať skupinu.">
+<!ENTITY groups.info2 "Sú tu tiež skupiny vytvorené podľa vyhľadávania medzi článkami. Napríklad, chcete vyhľadávať medzi všetkými článkami &apos;NewsFox&apos;. Tieto vyhľadávacie skupiny sú pridávané tlačidlom pridať vyhľadávaciu skupinu.">
+<!ENTITY groups.info3 "Obidva typy skupín sa odstraňujú tlačidlom zmazať skupinu.">
+<!ENTITY groups.info4 "Skupiny sa používajú na organizáciu vašich kanálov: môžete mať skupiny pre nové, dôležité, denné, týždenné, správy, tech. Môžete ich organizovať ako chcete.">
+<!ENTITY groups.info5 "Možnosti skupín sa menia z kontextovej ponuky v paneli kanála alebo cez tlačidlo iné možnosti.">
+<!ENTITY other.title "Rôzne">
+<!ENTITY other.dragndrop "Kanály môžu byť preskupené v skupinách a skupiny môžu byť preskupené použitím ťahaj a pusť.">
+<!ENTITY other.art.toolbar "Toto je kontextová ponuka pre panel kanála na ľavej strane. Toto je kontextová ponuka a panel nástrojov pre články na pravej strane. Bublinové popisy vysvetľujú význam tlačidiel.">
+<!ENTITY other.info "Ak sa z dôvodu neočákavanej udalosti stratia všetky vaše kanály, použite možnosť obnovenie v hlavnej ponuke možností.">
+<!ENTITY other.info2 "Klávesové skratky môžete nastaviť v ponuke možnosti a zoznam klávesových skratiek je dostupný v ponuke pomocníka.">

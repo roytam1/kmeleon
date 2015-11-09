@@ -1,0 +1,31 @@
+<!ENTITY checkFeed "Vérifier le flux">
+<!ENTITY troubleshoot "Dépannage">
+<!ENTITY OPML.import "Import OPML…">
+<!ENTITY OPML.export "Export OPML…">
+<!ENTITY toolOptions.import.addfeeds "Ajouter à des flux existants">
+<!ENTITY toolOptions.import.startfresh "Créer de nouveaux flux">
+<!ENTITY toolOptions.import.file "à partir d'un fichier…">
+<!ENTITY toolOptions.import.URL "à partir d'une URL…">
+<!ENTITY toolOptions.passwd "Mot de passe…">
+<!ENTITY help "Obtenir de l'aide pour NewsFox">
+<!ENTITY feeds "Flux">
+<!ENTITY r "Lu">
+<!ENTITY markAllAsUnread "Marquer tous comme non lus">
+<!ENTITY tagSel "Balise sélectionnée">
+<!ENTITY sortFeeds "Trier les flux">
+<!ENTITY unsortFeeds "Annuler le tri">
+<!ENTITY toolOptions.restoreBackup "Restaurer une sauvegarde">
+<!ENTITY exportRSS "Exporter en RSS...">
+<!ENTITY wait "Par mesure de sécurité, attendez jusqu'à la fin du chargement">
+<!ENTITY tagEdit "Éditer les balises des articles sélectionnés">
+<!ENTITY addGroup.regular "Nouveau">
+<!ENTITY addGroup.search "Rechercher">
+<!ENTITY addGroup.tag "Balise">
+<!ENTITY addFeed.regular "RSS/Atom">
+<!ENTITY addFeed.storage "Stockage">
+<!ENTITY prob "Pr">
+<!ENTITY mainToolbar "Barre d'outils principale">
+<!ENTITY feedToolbar "Barre d'outils des flux">
+<!ENTITY Xtend "+">
+<!ENTITY markSelAsRead "Marquer ceux sélectionnés comme lus">
+<!ENTITY markSelAsUnread "Marquer ceux sélectionnés comme non lus">

@@ -1,0 +1,162 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://history/content/history.css"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://history/skin/history.css"?>
+<!DOCTYPE page [
+<!ENTITY % historyDTD SYSTEM "chrome://history/locale/history.dtd">
+%historyDTD;
+<!ENTITY % viewSourceDTD SYSTEM "chrome://global/locale/viewSource.dtd">
+%viewSourceDTD;
+]>
+<window xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+	  orient="vertical"
+	  title="&window.title;"
+	  windowtype="kmeleon:history"
+	  height="550px"
+	  width="440px"
+      onload="window.sizeToContent();HistorySidebarInit();"
+      onclose="SidebarUtils.setMouseoverURL('');">
+	<script type="application/javascript" src="chrome://history/content/sidebarUtils.js"/>
+	<script type="application/javascript" src="chrome://history/content/history.js"/>
+	<script type="application/javascript" src="chrome://global/content/globalOverlay.js"/>	
+	<script type="application/javascript" src="chrome://history/content/utilityOverlay.js"/>
+
+	<script type="application/x-javascript">
+	<![CDATA[
+		var Cc = Components.classes;
+		var Ci = Components.interfaces;
+		var Cr = Components.results;
+		Components.utils.import("resource://gre/modules/PlacesUtils.jsm");
+		Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
+	]]>
+	</script>
+	<script type="application/javascript" src="chrome://history/content/controller.js"/>
+	<script type="application/javascript" src="chrome://history/content/treeView.js"/>
+	<commandset id="historyCommands" commandupdater="true" events="focus,sort,places" oncommandupdate="goUpdateHistoryCommands();">
+		<command id="historyCmd_open" oncommand="goDoHistoryCommand('historyCmd_open');"/>
+		<command id="historyCmd_opentab" oncommand="goDoHistoryCommand('historyCmd_opentab');"/>
+		<command id="historyCmd_opentabback" oncommand="goDoHistoryCommand('historyCmd_opentabback');"/>
+		<command id="historyCmd_delete" oncommand="goDoHistoryCommand('historyCmd_delete');"/>
+		<command id="historyCmd_deleteall" oncommand="goDoHistoryCommand('historyCmd_deleteall');"/>
+		<command id="historyCmd_copylink" oncommand="goDoHistoryCommand('historyCmd_copylink');"/>
+		<command id="historyCmd_opennewwindow" oncommand="goDoHistoryCommand('historyCmd_openwindow');"/>		
+		<command id="historyCmd_openbackwindow" oncommand="goDoHistoryCommand('historyCmd_openbackwindow');"/>		<!-- My new code ends here JohnHell  -->	
+	</commandset>
+	<keyset>
+		<key id="close-key" keycode="VK_ESCAPE"
+			oncommand="window.close();"/>
+	</keyset>
+	<menupopup id="historyContext">
+		<menuitem id="historyContext_open"
+              command="historyCmd_open"
+              label="&cmd.open.label;"
+              accesskey="&cmd.open.accesskey;"
+              selectiontype="single"
+              selection="link"/>
+		<menuitem id="historyContext_opentab"
+              command="historyCmd_opentab"
+              label="&cmd.opentab.label;"
+              accesskey="&cmd.opentab.accesskey;"
+              selectiontype="single"
+              selection="link"/>
+		<menuitem id="historyContext_opentabback"
+              command="historyCmd_opentabback"
+              label="&cmd.opentabback.label;"
+              accesskey="&cmd.opentabback.accesskey;"
+              selectiontype="single"
+              selection="link"/> 
+        <menuitem id="historyContext_opennewwindow"
+              command="historyCmd_opennewwindow"
+              label="&cmd.opennewwindow.label;"
+              accesskey="&cmd.opennewwindow.accesskey;"
+              selectiontype="single"
+              selection="link"/>
+	 <!--     <menuitem id="historyContext_opennewbackwindow"
+              command="historyCmd_openbackwindow"
+              label="&cmd.opennewbackwindow.label;"
+              accesskey="&cmd.opennewbackwindow.accesskey;"
+              selectiontype="single"
+              selection="link"/>-->
+	      
+	      
+        <menuitem id="historyContext_copylink"
+              command="historyCmd_copylink"
+              label="&copyLinkCmd.label;"
+              accesskey="&copyLinkCmd.accesskey;"
+              selectiontype="single"
+              selection="link"/>
+		<menuitem id="historyContext_delete_history"
+              command="historyCmd_delete"
+              label="&cmd.delete.label;"
+              accesskey="&cmd.delete.accesskey;"
+              closemenu="single"
+              selection="link"/>
+		<menuitem id="historyContext_deleteall_history"
+              command="historyCmd_deleteall"
+              label="&cmd.deleteall.label;"
+              accesskey="&cmd.deleteall.accesskey;"
+              closemenu="single"
+              selection="link"/>
+	</menupopup>
+	
+	<tooltip id="bhTooltip" noautohide="true"
+           onpopupshowing="fillInBHTooltip(document, event)">
+	    <vbox id="bhTooltipTextBox" flex="1">
+	      <label id="bhtTitleText" class="tooltip-label" />
+	      <label id="bhtUrlText" crop="center" class="tooltip-label" />
+	    </vbox>
+	  </tooltip>
+	<hbox id="sidebar-search-container" align="center">
+		<label id="sidebar-search-label"
+           value="&find.label;" accesskey="&find.accesskey;" 
+           control="search-box"/>
+		<textbox id="search-box" flex="1" type="search" class="compact"
+             aria-controls="historyTree"
+             oncommand="searchHistory(this.value);"/>
+		<button id="viewButton" style="min-width:0px !important;" type="menu"
+            label="&view.label;" accesskey="&view.accesskey;" selectedsort="day"
+            persist="selectedsort">
+			<menupopup>
+				<menuitem id="bydayandsite" label="&byDayAndSite.label;" 
+                  accesskey="&byDayAndSite.accesskey;" type="radio"
+                  oncommand="this.parentNode.parentNode.setAttribute('selectedsort', 'dayandsite'); GroupBy('dayandsite');"/>
+				<menuitem id="bysite" label="&bySite.label;"  
+                  accesskey="&bySite.accesskey;" type="radio"
+                  oncommand="this.parentNode.parentNode.setAttribute('selectedsort', 'site'); GroupBy('site');"/>
+				<menuitem id="byday" label="&byDate.label;" 
+                  accesskey="&byDate.accesskey;"
+                  type="radio"
+                  oncommand="this.parentNode.parentNode.setAttribute('selectedsort', 'day'); GroupBy('day');"/>
+				<menuitem id="byvisited" label="&byMostVisited.label;" 
+                  accesskey="&byMostVisited.accesskey;"
+                  type="radio"
+                  oncommand="this.parentNode.parentNode.setAttribute('selectedsort', 'visited'); GroupBy('visited');"/>
+				<menuitem id="bylastvisited" label="&byLastVisited.label;" 
+                  accesskey="&byLastVisited.accesskey;"
+                  type="radio"
+                  oncommand="this.parentNode.parentNode.setAttribute('selectedsort', 'lastvisited'); GroupBy('lastvisited');"/>
+			</menupopup>
+		</button>
+	</hbox>
+	<tree id="historyTree"
+        class="sidebar-placesTree"
+        flex="1"
+        type="places"
+        context="historyContext"
+        hidecolumnpicker="true"
+        onkeypress="SidebarUtils.handleTreeKeyPress(event);"
+        onclick="SidebarUtils.handleTreeClick(this, event, true);"
+        onmousemove="SidebarUtils.handleTreeMouseMove(event);"
+        onmouseout="SidebarUtils.setMouseoverURL('');">
+		<treecols>
+			<treecol id="title" flex="1" primary="true" hideheader="true"/>
+		</treecols>
+		<treechildren class="sidebar-placesTreechildren" flex="1" tooltip="bhTooltip"/>
+	</tree>
+	<vbox align="right">
+		<separator height="3"/>
+		<button label="&close.label;" accesskey="&close.accesskey;" oncommand="window.close();"/>
+		<separator height="3"/>
+	</vbox>
+
+</window>

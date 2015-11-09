@@ -1,0 +1,62 @@
+<!ENTITY NewsFoxTeam "NewsFox'i meeskond">
+<!ENTITY feedOptions "Voo valikud...">
+<!ENTITY text "Tekst">
+<!ENTITY webpage "Veebileht">
+<!ENTITY groupOptions "Grupi valikud">
+<!ENTITY sCcancel "Katkesta värskendus">
+<!ENTITY sCadd "Lisa uus voog">
+<!ENTITY sCoptions "Valikud">
+<!ENTITY sChomePage "Külasta kodulehte">
+<!ENTITY sCmanageLivemarks "Halda Live järjehoidjaid">
+<!ENTITY sCmarkAllAsRead "Märgi kõik loetuks">
+<!ENTITY sCdelete "Kustuta voog">
+<!ENTITY sCnextUnread "Järgmine lugemata">
+<!ENTITY sCopenUnread "Ava mitteloetud">
+<!ENTITY sCopenSel "Ava valitud">
+<!ENTITY sCdeleteSel "Kustuta valitud">
+<!ENTITY sCaddSearch "Lisa otsingurühm">
+<!ENTITY sCaddGroup "Lisa grupp">
+<!ENTITY sCdeleteGroup "Kustuta grupp">
+<!ENTITY sCshortcut "Kiirklahvid">
+<!ENTITY sCrefresh "Värskenda vood">
+<!ENTITY sCpreviousUnread "Eelmine lugemata">
+<!ENTITY sCdeleteFeedFromGroup "Kustuta vood grupist">
+<!ENTITY sCkeystrokeHeading "klahvilöök">
+<!ENTITY sCselAll "Vali kõik artiklid">
+<!ENTITY flagCol "Lipustatud">
+<!ENTITY titleCol "Pealkiri">
+<!ENTITY readCol "Loetud">
+<!ENTITY dateCol "Kuupäev">
+<!ENTITY authorCol "Autor">
+<!ENTITY sourceCol "Allikas">
+<!ENTITY feedCol "Voog">
+<!ENTITY tagCol "Märgis">
+<!ENTITY probCol "Oluline">
+<!ENTITY threadCol "Vestlus (thread)">
+<!ENTITY XtendCol "Filtreeritud veeb">
+<!ENTITY sCprint "Prindi artikkel">
+<!ENTITY sCtoggleFilter "Lülita veebifilter sisse/välja">
+<!ENTITY sortTab "Sorteerimine">
+<!ENTITY sortArticles "Sorteeri artiklid:">
+<!ENTITY firstSort "Esiteks sorteeri:">
+<!ENTITY secondSort "Teiseks sorteeri:">
+<!ENTITY thirdSort "Kolmandaks sorteeri:">
+<!ENTITY fourthSort "Neljandaks sorteeri:">
+<!ENTITY noCol "Pole">
+<!ENTITY ascendingDir "Tõusev järjestus">
+<!ENTITY descendingDir "Laskuv järjestus">
+<!ENTITY updatedUnread "Märgi uuendatud artkilid mitteloetuteks">
+<!ENTITY yes "jah">
+<!ENTITY no "ei">
+<!ENTITY days "päeva">
+<!ENTITY articles "Artiklid">
+<!ENTITY displayStyle "Kuva stiil:">
+<!ENTITY deleteOld "Kustuta vanad artiklid automaatselt">
+<!ENTITY autoRefresh "Värskenda iga">
+<!ENTITY minutes "minuti tagant">
+<!ENTITY deleteOldKeepUnread "jah, säilita lugemata">
+<!ENTITY deleteOldDeleteUnread "jah, kustuta lugemata">
+<!ENTITY oldMeans "Märgi vanaks">
+<!ENTITY after "peale">
+<!ENTITY notInFeed "kui ei ole voos">
+<!ENTITY feeds "Vood">

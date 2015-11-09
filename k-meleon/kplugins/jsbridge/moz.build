@@ -1,0 +1,32 @@
+# -*- Mode: python; c-basic-offset: 4; indent-tabs-mode: nil; tab-width: 40 -*-
+# vim: set filetype=python:
+
+DIRS += [
+  'idl'
+]                                      
+
+LIBRARY_NAME = 'jsbridge'
+
+SOURCES += [
+  'jscomp.cpp',
+  'jsplugin.cpp',
+  'nsGenericFactory.cpp',  
+]
+
+DEFINES['UNICODE'] = True
+
+DEFINES['_UNICODE'] = True
+
+FORCE_SHARED_LIB = True
+
+DISABLE_STL_WRAPPING = True
+
+OS_LIBS += [
+  CONFIG['XPCOM_GLUE_LDOPTS'],
+  CONFIG['MOZ_JS_LIBS']  
+]
+
+LOCAL_INCLUDES += [
+  '../../shared'
+]
+	

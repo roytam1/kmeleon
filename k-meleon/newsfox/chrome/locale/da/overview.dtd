@@ -1,0 +1,29 @@
+<!ENTITY overview.title "Oversigt">
+<!ENTITY adding.feeds "Tilføj feeds">
+<!ENTITY addnew.feeds "Tilføj nye feeds ved hjælp af knappen Tilføj feed.">
+<!ENTITY addnew.feeds.opml "Nye feeds kan importeres fra en OPML-fil i menuen Indstillinger.">
+<!ENTITY addnew.feeds.auto "NewsFox kan tilføje feeds, fra sider der har dem, ved enten at højreklikke på NewsFox-ikonet på  statuslinjen (det vil have en blå baggrund, hvis der er et feed), eller klikke på RSS-ikonet i højre side af URL-linjen.">
+<!ENTITY alternative.use "NewsFox kan også læse Firefox Live bogmærker. Du kan vælge hvilke Live bogmærker der skal læses med NewsFox ved at trykke på knappen Håndter Live bogmærker.">
+<!ENTITY feed.options "Feed-indstillinger kan ændres via genvejsmenuen i feed-panelet (venstre side) eller fra begge indstillingsknapper.">
+<!ENTITY remove.feeds "Fjern feeds">
+<!ENTITY feed.remove "Fjern et feed og alle dets artikler permanent ved hjælp af knappen Slet feed. Dette fjerner feedet fra alle grupper.">
+<!ENTITY new.items "Tjek for nye artikler">
+<!ENTITY retrieve.items "Hent nye artikler med knappen Genindlæs.">
+<!ENTITY retrieve.items.alt "Du kan også hente nye artikler med genvejsmenuen på et feed eller en gruppe i feed-panelet.">
+<!ENTITY retrieve.options "Indstillinger for automatisk hentning af artikler kan sættes i menuen Indstillinger">
+<!ENTITY manage.title "Håndtering af artikler">
+<!ENTITY manage.info "Artikler markeres som læste når de vælges. Status læst/ulæst og markeret/afmarkeret kan ændres ved at klikke på det relevante ikon.">
+<!ENTITY manage.info2 "Artikler kan markeres som læste/ulæste eller slettes via genvejsmenuen, knapper på værktøjslinjen eller genvejstaster.">
+<!ENTITY manage.info3 "Artikler kan sorteres ved at klikke på kolonneoverskrifterne. Standard er den nyeste artikel øverst. For at flytte ulæste artikler øverst, klik på kolonneoverskriften Læst/ulæst. (L)">
+<!ENTITY groups.tags "Grupper">
+<!ENTITY groups.info "Der er en gruppe der hedder 'FEEDS'. Der indeholder alle dine feeds. Feeds kan tilhøre så mange andre grupper du ønsker. Der er kun én kopi af et feed: Når du markerer en artikel som læst, bliver den markeret som læst i alle grupper.">
+<!ENTITY groups.info1 "Grupper tilføjes med knappen Tilføj gruppe.">
+<!ENTITY groups.info2 "Der findes også grupper dannet ved søgning i andre feeds. Du kunne f.eks. søge efter alle forekomster af 'NewsFox' i dine feeds. Disse søgegrupper tilføjes med knappen Tilføj gruppe.">
+<!ENTITY groups.info3 "Begge typer af grupper slettes med knappen Slet gruppe.">
+<!ENTITY groups.info4 "Grupper er gode til at organisere dine feeds: du kan have grupper til nye, vigtige, daglige, ugentlige, nyheder, tech. Du kan organisere som du vil.">
+<!ENTITY groups.info5 "Indstillinger for grupper kan ændres via genvejsmenuen i feed-panelet eller fra begge indstillingsknapper.">
+<!ENTITY other.title "Diverse">
+<!ENTITY other.dragndrop "Feeds kan omarrangeres indenfor grupper og grupper kan omarrangeres ved hjælp af træk og slip.">
+<!ENTITY other.art.toolbar "Der er en genvejsmenu til feed-panelet på venstre side. Der er en genvejsmenu og værktøjslinje til artikler på højre side. Værktøjstips forklarer knappernes betydning.">
+<!ENTITY other.info "Hvis det usandsynlige skulle ske, at alle dine feeds forsvinder, er der i hovedmenuen Indstillinger mulighed for at gendanne dem.">
+<!ENTITY other.info2 "Tastaturgenveje kan sættes i menuen Indstillinger og en liste med genveje er tilgængelig i menuen Hjælp.">

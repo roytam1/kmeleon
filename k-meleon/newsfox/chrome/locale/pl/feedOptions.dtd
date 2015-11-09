@@ -1,0 +1,25 @@
+<!ENTITY useGlobal "Użyj ustawień globalnych">
+<!ENTITY feedAutoCheck "Opcja &quot;Aktualizuj wszystkie kanały&quot; sprawdza, czy są nowe wpisy w tym kanale">
+<!ENTITY dontDeleteUnread "Nie usuwaj nieprzeczytanych">
+<!ENTITY groups "Grupy:">
+<!ENTITY checkfeed "Sprawdź kanał">
+<!ENTITY iconsrc "Źródło ikony:">
+<!ENTITY authentication "Autoryzacja (tylko bezpieczne kanały)">
+<!ENTITY username "Nazwa użytkownika:">
+<!ENTITY password "Hasło:">
+<!ENTITY feedPrivate "Szyfruj wiadomości kanału na dysku">
+<!ENTITY keepDays.pre "Przechowuj wpisy minimum przez">
+<!ENTITY keepDays.post "dni">
+<!ENTITY mainTab "Ogólne">
+<!ENTITY filterTab "Filtry sieciowe">
+<!ENTITY securityTab "Bezpieczeństwo">
+<!ENTITY filterNew "Pobieraj wszystkie nowe artykuły z filtrowanych stron">
+<!ENTITY filterImages "Pobieraj obrazki z filtrowanych stron">
+<!ENTITY filterInfo "Wprowadź filtry do przekształcania odnośnika HTML do artykułu na rozszerzony opis artykułu. Filtry mogą być wyrażeniami regularnymi lub kodem JavaScript.">
+<!ENTITY filterJSinfo "Dla JavaScriptu dostępne są następujące zmienne:">
+<!ENTITY filterJSvar1 "linkDOM zawiera DOM odnośnika do strony artykułu">
+<!ENTITY filterJSvar2 "linkHTML zawiera tekst/html odnośnika do strony artykułu">
+<!ENTITY filterJSvar3 "getElementsByClass(klasa,znacznik,węzeł) zwraca macierz wszystkich elementów html dostarczających znacznik i klasę zawarte w dostarczonym węźle">
+<!ENTITY filterMime "Zastępuj zestaw znaków (automatycznie - (+), test - (&gt;) lub właściwy zestaw)">
+<!ENTITY filterInfo2 "Należy wprowadzić filtr lub obrazki, które będą pobierane dla aktywnego artykułu - nie dla strony html. Aby zastosować domyślny filtr, należy nacisnąć klawisz cofania (Backspace).">
+<!ENTITY never "nigdy">

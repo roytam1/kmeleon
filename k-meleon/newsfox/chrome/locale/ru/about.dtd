@@ -1,0 +1,9 @@
+<!ENTITY projectOwner "владелец проекта">
+<!ENTITY localization "Переводчики:">
+<!ENTITY primaryContact "поддержка пользователей">
+<!ENTITY developer "разработчик">
+<!ENTITY projectCreator "автор проекта">
+<!ENTITY icons "Значки:">
+<!ENTITY fromFirefox "Большинство значков взято (либо модифицировано) из Firefox/Thunderbird.">
+<!ENTITY fromFamfamfam "Значки флажков, тегов, хранилищ и вложений — от famfamfam.com.">
+<!ENTITY helpADR "Спасибо ADR за помощь со значками.">

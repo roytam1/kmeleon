@@ -1,0 +1,62 @@
+<!ENTITY NewsFoxTeam "NewsFox Csapat">
+<!ENTITY feedOptions "Hírfolyam beállítások...">
+<!ENTITY text "Szöveg">
+<!ENTITY webpage "Weblap">
+<!ENTITY groupOptions "Csoport beállítások">
+<!ENTITY sCcancel "Frissítés visszavonása">
+<!ENTITY sCadd "Új hírfolyam hozzáadása">
+<!ENTITY sCoptions "Beállítások">
+<!ENTITY sChomePage "Látogassa meg a honlapot">
+<!ENTITY sCmanageLivemarks "Élő könyvjelzők kezelése">
+<!ENTITY sCmarkAllAsRead "Az összes jelölése olvasottként">
+<!ENTITY sCdelete "Hírfolyam törlése">
+<!ENTITY sCnextUnread "Következő olvasatlan">
+<!ENTITY sCopenUnread "Olvasatlan megnyitása">
+<!ENTITY sCopenSel "Kiválasztott megnyitása">
+<!ENTITY sCdeleteSel "Kiválasztott törlése">
+<!ENTITY sCaddSearch "Kereső csoport hozzáadása">
+<!ENTITY sCaddGroup "Csoport hozzáadása">
+<!ENTITY sCdeleteGroup "Csoport törlése">
+<!ENTITY sCshortcut "Gyorsbillentyűk">
+<!ENTITY sCrefresh "Hírfolyamok frissítése">
+<!ENTITY sCpreviousUnread "Előző olvasatlan">
+<!ENTITY sCdeleteFeedFromGroup "Hírfolyam törlése a csoportból">
+<!ENTITY sCkeystrokeHeading "billentyűk">
+<!ENTITY sCselAll "Az összes cikk kiválasztása">
+<!ENTITY flagCol "Zászló">
+<!ENTITY titleCol "Cím">
+<!ENTITY readCol "Olvasott">
+<!ENTITY dateCol "Dátum">
+<!ENTITY authorCol "Szerző">
+<!ENTITY sourceCol "Forrás">
+<!ENTITY feedCol "Hírfolyam">
+<!ENTITY tagCol "Címke">
+<!ENTITY probCol "Érdekes">
+<!ENTITY threadCol "Szál">
+<!ENTITY XtendCol "Szűrt Web">
+<!ENTITY sCprint "Cikk nyomtatása">
+<!ENTITY sCtoggleFilter "Web szűrő kapcsolása">
+<!ENTITY sortTab "Rendezés">
+<!ENTITY sortArticles "Cikkek rendezése:">
+<!ENTITY firstSort "Első rendezési kulcs:">
+<!ENTITY secondSort "Második rendezési kulcs:">
+<!ENTITY thirdSort "Harmadik rendezési kulcs:">
+<!ENTITY fourthSort "Negyedik rendezési kulcs:">
+<!ENTITY noCol "Nincs">
+<!ENTITY ascendingDir "Növekvő">
+<!ENTITY descendingDir "Csökkenő">
+<!ENTITY updatedUnread "Jelölje a módosított cikkeket olvasatlannak.">
+<!ENTITY yes "igen">
+<!ENTITY no "nem">
+<!ENTITY days "nap">
+<!ENTITY articles "Cikkek">
+<!ENTITY displayStyle "Megjelenítési mód:">
+<!ENTITY deleteOld "Automatikusan törölje a régi cikkeket">
+<!ENTITY autoRefresh "Automatikus frissítés minden">
+<!ENTITY minutes "percben">
+<!ENTITY deleteOldKeepUnread "igen, tartsa olvasatlanul">
+<!ENTITY deleteOldDeleteUnread "igen, törölje az olvasatlant">
+<!ENTITY oldMeans "Régi jelentése">
+<!ENTITY after "után">
+<!ENTITY notInFeed "nincs a hírfolyamban">
+<!ENTITY feeds "Hírfolyamok">

@@ -1,0 +1,29 @@
+<!ENTITY overview.title "Vue d'ensemble">
+<!ENTITY adding.feeds "Ajouter des flux">
+<!ENTITY addnew.feeds "Ajouter de nouveaux flux en utilisant le bouton &quot;Ajouter un nouveau flux&quot;.">
+<!ENTITY addnew.feeds.opml "Les nouveaux flux peuvent être importés d'un fichier OPML depuis le menu Options.">
+<!ENTITY addnew.feeds.auto "En choisissant &quot;NewsFox&quot; dans le panneaux &quot;Flux&quot; des options (préférences) de Firefox, NewsFox peut ajouter des flux en cliquant sur l'icône RSS se trouvant à droite de la barre d'adresses.">
+<!ENTITY alternative.use "NewsFox peut également lire les marque-pages dynamiques. Vous pouvez choisir quels marque-pages dynamiques lire avec NewsFox en utilisant le bouton &quot;Gérer les marque-pages dynamiques&quot;.">
+<!ENTITY feed.options "Les options des flux peuvent être changées depuis le menu contextuel dans le panneau des flux (côté gauche) ou depuis le bouton Options.">
+<!ENTITY remove.feeds "Supprimer des flux">
+<!ENTITY feed.remove "Pour supprimer un flux et tous ses articles de façon définitive, utilisez le bouton &quot;Supprimer le flux&quot;. Cela supprimera le flux de tous les groupes.">
+<!ENTITY new.items "Vérifier les nouveaux articles">
+<!ENTITY retrieve.items "Récupérez les nouveaux articles en utilisant le bouton &quot;Rafraîchir tous les flux&quot;.">
+<!ENTITY retrieve.items.alt "Vous pouvez également récupérer les nouveaux articles en utilisant le menu contextuel sur un flux ou un groupe dans le panneau des flux.">
+<!ENTITY retrieve.options "Les options de téléchargement automatique des nouveaux articles se trouvent dans le menu Options.">
+<!ENTITY manage.title "Gérer les articles">
+<!ENTITY manage.info "Les articles sont marqués comme lus lorsque vous les sélectionnez. Le statut lu/non lu et le drapeau d'un article peuvent être basculés en cliquant sur l'icône appropriée.">
+<!ENTITY manage.info2 "Vous pouvez marquer les articles comme lus/non lus ou les supprimer en utilisant le menu contextuel, les boutons dans la barre d'outils ou les touches de raccourcis.">
+<!ENTITY manage.info3 "Les articles peuvent être triés en cliquant sur les en-têtes de colonnes. Par défaut, les nouveaux articles sont en haut. Pour déplacer les articles non lus en tête de liste, cliquez sur l'en-tête &quot;Lu&quot;.">
+<!ENTITY groups.tags "Groupes">
+<!ENTITY groups.info "Le groupe nommé &quot;FLUX&quot; contient tous vos flux. Les flux peuvent appartenir à un nombre illimité de groupes. Il n'y a qu'une copie du flux : quand vous marquez un article comme lu, cette action est effectuée dans tous les groupes.">
+<!ENTITY groups.info1 "Pour ajouter des groupes, utilisez le bouton &quot;Ajouter un groupe&quot;.">
+<!ENTITY groups.info2 "Des groupes peuvent également être créés en cherchant parmi les flux. Par exemple, vous pourriez vouloir rechercher toutes les occurrences de &quot;NewsFox&quot; parmi vos flux. Les groupes de recherche peuvent être ajoutés grâce au bouton &quot;Ajouter un groupe de recherche&quot;.">
+<!ENTITY groups.info3 "Les deux types de groupes peuvent être supprimés grâce au bouton &quot;Supprimer le groupe&quot;.">
+<!ENTITY groups.info4 "Les groupes sont utiles pour organiser vos flux. Vous pouvez avoir des groupes pour les actualités importantes, quotidiennes ou hebdomadaires, technologiques, etc. Vous pouvez organiser vos groupes comme vous le souhaitez.">
+<!ENTITY groups.info5 "Les options des groupes peuvent être modifiées depuis le menu contextuel dans le panneau des flux ou en utilisant le bouton Options.">
+<!ENTITY other.title "Divers">
+<!ENTITY other.dragndrop "Les flux peuvent être réorganisés entre groupes et les groupes eux-même peuvent être réorganisés par glisser-déposer.">
+<!ENTITY other.art.toolbar "Il y a un menu contextuel dans le panneau des flux sur la gauche. Sur la droite, un menu contextuel et une barre d'outils sont disponibles. Les infobulles indiquent la signification des boutons.">
+<!ENTITY other.info "Dans l'éventualité peu probable que vos flux disparaissent, une option intitulée &quot;Restaurer une sauvegarde&quot; est disponible à partir du menu Options.">
+<!ENTITY other.info2 "Les raccourcis clavier peuvent être définis dans le menu options et une liste de ceux disponibles se trouve dans le menu &quot;Obtenir de l'aide pour NewsFox&quot;.">

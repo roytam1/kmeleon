@@ -1,0 +1,23 @@
+<!-- Error messages that are likely to be overridden by applications go in this
+     file, all messages that likely don't need to tie into app-specific UI
+     should go into netError.dtd -->
+
+<!ENTITY nssBadCert.title "This Connection is Untrusted">
+<!ENTITY nssBadCert.longDesc2 "<ul>
+<li>Normally, when you try to connect securely,
+sites will present trusted identification to prove that you are
+going to the right place. However, this site's identity can't be verified.</li>
+<li>If you have connected to this server successfully in the past, the error may be temporary, and you can try again later.</li>
+</ul>
+">
+
+<!ENTITY securityOverride.linkText "Or you can add an exception…">
+<!ENTITY securityOverride.exceptionButtonLabel "Add Exception…">
+<!ENTITY securityOverride.continueButtonLabel "Continue...">
+<!ENTITY securityOverride.warningContent "
+<p>You should not continue if you are using an internet connection that you do not trust completely or if you are not used to seeing a warning for this server.</p>
+<button command='addCertificateExceptionButton' id='addCertificateExceptionButton' >&securityOverride.continueButtonLabel;</button>
+<button command='vieshitAKAExamineCert'         id='vieshit' >&examineCert.label;</button>
+<button command='openCertificateManager'        id='CertificateManager' >&certmgr.title;</button>
+">
+

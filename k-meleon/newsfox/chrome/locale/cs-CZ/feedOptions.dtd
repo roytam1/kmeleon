@@ -1,0 +1,28 @@
+<!ENTITY useGlobal "Použít nastavení NewsFox">
+<!ENTITY feedAutoCheck "Aktualizovat tento kanál s ostatními kanály">
+<!ENTITY dontDeleteUnread "Nemazat nepřečtené">
+<!ENTITY groups "Složky:">
+<!ENTITY checkfeed "Aktualizovat kanál">
+<!ENTITY iconsrc "Ikona zdroje:">
+<!ENTITY authentication "Autentizace (pouze zabezpečené kanály)">
+<!ENTITY username "Uživatelské jméno:">
+<!ENTITY password "Heslo:">
+<!ENTITY feedPrivate "Šifrovat články kanálu na disku">
+<!ENTITY keepDays.pre "Nemazat články nejméně">
+<!ENTITY keepDays.post "dní">
+<!ENTITY mainTab "Obecné">
+<!ENTITY filterTab "Web filtr">
+<!ENTITY securityTab "Zabezpečení">
+<!ENTITY filterNew "Stahovat filtrované www stránky pro všechny nové články">
+<!ENTITY filterImages "Stahovat obrázky ve fitrovaných www stránkách.">
+<!ENTITY filterInfo "Vložení filtru pro převod odkazů na články do popisu článků. 
+
+
+Filtrem může být buď regulární výraz, který bude vyhodnocen nebo JavaScript kód jehož vrácená hodnota bude v rozšířeném popisu článku.">
+<!ENTITY filterJSinfo "Tyto proměnné budou dostupné použijete-li JavaScript:">
+<!ENTITY filterJSvar1 "linkDOM - DOM odkazu na článek">
+<!ENTITY filterJSvar2 "linkHTML - text/html odkaz na článek">
+<!ENTITY filterJSvar3 "getElementsByClass - pole všech html prvků (třídy, tagy, ...) obsažených ve vráceném uzlu">
+<!ENTITY filterMime "Potlačit znakovou sadu (+ pro auto, &gt; pro test, nebo znakovou sadu)">
+<!ENTITY filterInfo2 "Musíte zadat filtr nebo obrázk, ktoré budou stženy pro aktuální článek, ne html stránku. Pro návrat k původnímu filtru stiskněte klávesu &lt;BACKSPACE&gt;.">
+<!ENTITY never "nikdy">

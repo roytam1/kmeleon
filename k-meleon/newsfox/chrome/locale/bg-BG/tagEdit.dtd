@@ -1,0 +1,9 @@
+<!ENTITY title "Редактиране на етикети">
+<!ENTITY tagAdd "Етикети за добавяне към избраните статии">
+<!ENTITY tagRemove "Етикети за премахване от избраните статии">
+<!ENTITY tagDeleteCompletely "Етикети за изтриване от всички статии и от списъка">
+<!ENTITY colorVaries1 "СИНЬО: етикетът е на всички избрани статии">
+<!ENTITY colorVaries2 "смесено: етикетът е само на някои от статиите">
+<!ENTITY colorVaries3 "ЧЕРВЕНО: етикетът не е в избраните статии">
+<!ENTITY newTagAdd "Нови етикети за добавяне към избраните статии">
+<!ENTITY newTagAddExample "&apos;/&apos; разделя етикетите: &apos;tech/news&apos;">

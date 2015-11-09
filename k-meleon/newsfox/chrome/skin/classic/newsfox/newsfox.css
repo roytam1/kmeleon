@@ -1,0 +1,153 @@
+#newsfox-button
+	{ list-style-image: url("chrome://newsfox/skin/newsfox-24.png"); }
+toolbar[iconsize="small"] #newsfox-button
+	{ list-style-image: url("chrome://newsfox/skin/newsfox-16.png"); }
+#newsfox-status-button
+  { list-style-image: url("chrome://newsfox/skin/newsfox-24.png"); }
+toolbar[iconsize="small"] #newsfox-status-button
+	{ list-style-image: url("chrome://newsfox/skin/newsfox-16.png"); }
+#newsfox-status-button .button-menu-dropmarker,
+#newsfox-status-button .button-text
+	{ display: none; }
+#newsfox-status-label-box
+  { text-align: right; border: 0px; margin: 0px; }
+#newsfox-status-label
+  { width: 2.0em; border: 0px; margin: 0px; }  /* background: radial-gradient(#b0b0b0 40%, transparent); */
+
+treechildren::-moz-tree-cell-text  /* need for groupOptions.xul as well */
+	{ padding-left: 4px; }
+treechildren::-moz-tree-image(faviconcol)
+	{ height: 16px; width: 16px; }
+
+#fOlivemark
+	{ list-style-image: url("chrome://newsfox/skin/images/livemark.png"); }
+#fOhome
+	{ list-style-image: url("chrome://newsfox/skin/images/home.png"); }
+#pOhelp
+	{ list-style-image: url("chrome://newsfox/skin/images/help.png"); }
+#pOfolderClosed
+	{ list-style-image: url("chrome://newsfox/skin/images/folderClosed.png"); }
+
+@-moz-document url("chrome://newsfox/content/newsfox.xul")
+{
+	.heading
+		{ border-top: 1px solid white; margin-bottom: 2px; color: black; }
+
+	.feedHeading
+	{
+	  border-top:    1px solid #404040;
+	  border-left:   1px solid #404040;
+	  border-right:  1px solid white;
+	  border-bottom: 1px solid white;
+	  color: white; 
+	  background: #808080;
+	  font: 18px Tahoma;
+	}
+
+	#mfeedTitle { font-weight: bold; color: darkblue; }
+
+	.feedtree, .articletree
+		{ margin: 0px; border: none; -moz-appearance: none; }
+	.toolbar, .splitter
+		{ border: none; }
+
+	#busyAnimation
+		{ padding: 5px; }
+	#tBcheck, #tBcancel
+		{ margin-left: 4px; }
+	#newsfox-icon
+		{ margin-right: 4px; }
+	#feedMenu, #artMenu, #toolbarContext
+		{ background: -moz-dialog;  border: 1px solid black !important;}
+
+	treechildren::-moz-tree-cell-text(unread)
+		{ font-weight: bold; }
+	treechildren::-moz-tree-cell-text(noID)
+		{ text-decoration: line-through; }
+	treechildren::-moz-tree-cell-text(highprob,unread)
+		{ color: #500000; font-weight: bold; }
+	treechildren::-moz-tree-cell-text(highprob,unread,focus,selected)
+		{ color: white; font-weight: bold; }
+	treechildren::-moz-tree-cell-text(keyword)
+		{ color: #10a010; }
+	treechildren::-moz-tree-cell-text(keyword,focus,selected)
+		{ color: white; }
+	treechildren::-moz-tree-cell-text(once)
+		{ color: orange; }
+	treechildren::-moz-tree-cell-text(once,focus,selected)
+		{ color: white; }
+
+	treechildren::-moz-tree-cell(needsimages)
+		{ background-color: yellow; }
+
+/*  FF25 messed with tree row spacing */
+	treechildren::-moz-tree-row 
+		{ height: auto; border: 0px; }
+
+	treechildren::-moz-tree-row(current)
+		{ border: 1px dotted Highlight; }
+	treechildren::-moz-tree-row(current,selected)
+		{ border: 0px; }
+
+	toolbarbutton
+		{ border: 1px solid transparent; padding: 2px 1px 2px 2px; margin: 0px 1px 0px 1px; }
+	toolbarbutton:hover
+		{ background: #b0b0b0; border: 1px solid #0a0a0a; }
+	toolbarbutton[disabled="true"]
+		{ background: transparent; border: 1px solid transparent; }
+	.toolbarbutton-icon
+		{ padding: 1px; -moz-margin-end: 0px; }
+	.toolbarbutton-menu-dropmarker
+		{ padding: 2px 2px 2px 2px; }
+	.toolbarbutton-menubutton-dropmarker
+		{ border-left: 1px solid transparent; }
+	toolbarbutton:hover .toolbarbutton-menubutton-dropmarker
+		{ border-left: 1px solid #0a0a0a; }
+	toolbarbutton[type="menu-button"],
+	toolbarbutton[type="menu-button"]:hover,
+	toolbarbutton[type="menu-button"]:hover:active,
+	toolbarbutton[type="menu-button"][open="true"]
+		{ padding: 0 !important; }
+	.toolbarbutton-menubutton-button
+		{ margin: 0px; }
+
+	#tBcheck, #fBcheck, #mfBcheck
+		{ list-style-image: url("chrome://newsfox/skin/images/check.png"); }
+	#tBcancel, #fBcancel, #mfBcancel
+		{ list-style-image: url("chrome://newsfox/skin/images/cancel.png"); }
+	#tBaddFolder
+		{ list-style-image: url("chrome://newsfox/skin/images/addFolder.png"); }
+	#tBdelFolder
+		{ list-style-image: url("chrome://newsfox/skin/images/delFolder.png"); }
+	#tBadd
+		{ list-style-image: url("chrome://newsfox/skin/images/add.png"); }
+	#tBdel
+		{ list-style-image: url("chrome://newsfox/skin/images/del.png"); }
+	#tBlivemark
+		{ list-style-image: url("chrome://newsfox/skin/images/livemark.png"); }
+	#tBoptions, #fBoptions, #mfBoptions
+		{ list-style-image: url("chrome://newsfox/skin/images/options.png"); }
+	#tBhelp
+		{ list-style-image: url("chrome://newsfox/skin/images/help.png"); }
+	#fBhome, #mfBhome
+		{ list-style-image: url("chrome://newsfox/skin/images/home.png"); }
+	#fBtag, #mfBtag
+		{ list-style-image: url("chrome://newsfox/skin/images/tag.png"); }
+	#fBmarkAllAsRead, #mfBmarkAllAsRead
+		{ list-style-image: url("chrome://newsfox/skin/images/markAllAsRead.png"); }
+	#fBmarkAllAsUnread, #mfBmarkAllAsUnread
+		{ list-style-image: url("chrome://newsfox/skin/images/markAllAsUnread.png"); }
+	#fBdelete, #mfBdelete
+		{ list-style-image: url("chrome://newsfox/skin/images/delete.png"); }
+	#tBmIrestore
+		{ list-style-image: url("chrome://newsfox/skin/images/warning.png") }
+	#pause-icon
+		{ list-style-image: url("chrome://newsfox/skin/images/pause.png"); }
+	#play-icon
+		{ list-style-image: url("chrome://newsfox/skin/images/play.png"); }
+	#historyMenu
+		{ list-style-image: url("chrome://newsfox/skin/images/history.png"); }
+
+	#nameFTB, #mfBhome, #mfBcheck, #mfBcancel, #mfBtag, #mfBmarkAllAsRead, #mfBmarkAllAsUnread, #mfBdelete, #mfBoptions, #spacer1, #spacer2
+		{ display: none; }
+}

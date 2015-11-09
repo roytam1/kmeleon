@@ -1,0 +1,26 @@
+# -*- Mode: python; c-basic-offset: 4; indent-tabs-mode: nil; tab-width: 40 -*-
+# vim: set filetype=python:
+
+LIBRARY_NAME = 'privacy'
+
+SOURCES += [
+  'privacy.cpp',
+]
+
+DEFINES['UNICODE'] = True
+
+DEFINES['_UNICODE'] = True
+
+FORCE_SHARED_LIB = True
+
+DISABLE_STL_WRAPPING = True
+
+OS_LIBS += [
+  CONFIG['XPCOM_GLUE_LDOPTS'],
+]
+
+LOCAL_INCLUDES += [
+  '../../shared'
+]
+	
+RCINCLUDE = 'privacy_res.rc'

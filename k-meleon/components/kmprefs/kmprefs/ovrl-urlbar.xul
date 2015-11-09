@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<!DOCTYPE overlay SYSTEM "chrome://kmprefs/locale/kmprefs/ovrl-urlbar.dtd">
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+	<script type="application/x-javascript">
+<![CDATA[
+var URLBarHeight = {
+	pref : "kmeleon.urlbar.dropdown_lines",
+	init : function () {
+		var box = document.getElementById(this.pref),
+		val;
+		try {
+			val = pref.getIntPref(this.pref).toString(10);
+			if (val)
+				val--;
+		} catch (e) {
+			val = "";
+		}
+		box.value = val;
+	},
+	clear : function () {
+		var prefs = Components.classes['@mozilla.org/preferences-service;1']
+			.getService(Components.interfaces.nsIPrefService)
+			.getBranch('kmeleon.MRU.URL');
+		for (var a = 0, b = prefs.getChildList('', {}); a < b.length; a++)
+			prefs.clearUserPref(b[a]);
+	},
+	set : function () {
+		var box = document.getElementById(this.pref),
+		val = box.value;
+		if (val) {
+			var re = new RegExp("^[1-9][0-9]*$");
+			if (re.test(val))
+				pref.setIntPref(this.pref, parseInt(val) + 1);
+			else {
+				alert(document.getElementById("pref_bundle").getString("positive_integer_expected"));
+				this.init();
+				document.getElementById(this.pref).focus();
+			}
+		} else
+			restoreDefault(this.pref);
+	}
+};
+//addEventListener("load",URLBarHeight.init,true);
+]]>
+	</script>
+	<hbox id="urlbarheight" align="center">
+		<label value="&urlbar.height;"/>
+		<textbox id="kmeleon.urlbar.dropdown_lines" size="4" class="uri-element" oninput="URLBarHeight.set()"/>
+		<label value="&urlbar.lines;"/>
+	</hbox>
+</overlay>

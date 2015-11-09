@@ -1,0 +1,115 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+kmeleon.jar:
+% skin console2 classic/1.0 %skin/skin/classic/console2/
+% skin history classic/1.0 %skin/skin/classic/history/
+% skin kmprefs classic/1.0 %skin/skin/classic/kmprefs/
+% skin browser classic/1.0 %skin/classic/browser/ os=WINNT osversion<6
+% skin browser classic/1.0 %skin/classic/browser/ os!=WINNT
+# NOTE: If you add a new file here, you'll need to add it to the aero
+# section at the bottom of this file
+*       skin/classic/browser/downloads/allDownloadsViewOverlay.css   (downloads/allDownloadsViewOverlay.css)
+        skin/classic/browser/downloads/buttons.png                   (downloads/buttons.png)
+        skin/classic/browser/downloads/contentAreaDownloadsView.css  (downloads/contentAreaDownloadsView.css)
+        skin/classic/browser/downloads/download-glow-XPVista7.png             (downloads/download-glow-XPVista7.png)
+        skin/classic/browser/downloads/download-glow-menuPanel-XPVista7.png   (downloads/download-glow-menuPanel-XPVista7.png)
+        skin/classic/browser/downloads/download-notification-finish.png (downloads/download-notification-finish.png)
+        skin/classic/browser/downloads/download-notification-start.png (downloads/download-notification-start.png)
+        skin/classic/browser/downloads/download-summary.png          (downloads/download-summary.png)
+*       skin/classic/browser/downloads/downloads.css                 (downloads/downloads.css)
+        skin/classic/browser/preferences/alwaysAsk.png               (preferences/alwaysAsk.png)
+        skin/classic/browser/preferences/application.png             (preferences/application.png)
+        skin/classic/browser/preferences/mail.png                    (preferences/mail.png)
+        skin/classic/browser/preferences/Options.png                 (preferences/Options.png)
+#ifdef MOZ_SERVICES_SYNC
+        skin/classic/browser/preferences/Options-sync.png            (preferences/Options-sync.png)
+#endif
+        skin/classic/browser/preferences/saveFile.png                (preferences/saveFile.png)
+*       skin/classic/browser/preferences/preferences.css             (preferences/preferences.css)
+*       skin/classic/browser/preferences/in-content/preferences.css  (preferences/in-content/preferences.css)
+        skin/classic/browser/preferences/in-content/check.png        (../shared/incontentprefs/check.png)
+        skin/classic/browser/preferences/in-content/check@2x.png     (../shared/incontentprefs/check@2x.png)
+        skin/classic/browser/preferences/in-content/icons.png        (../shared/incontentprefs/icons.png)
+        skin/classic/browser/preferences/in-content/icons@2x.png     (../shared/incontentprefs/icons@2x.png)
+        skin/classic/browser/preferences/in-content/header.png       (../shared/incontentprefs/header.png)
+        skin/classic/browser/preferences/in-content/header@2x.png    (../shared/incontentprefs/header@2x.png)
+        skin/classic/browser/preferences/in-content/sorter.png       (../shared/incontentprefs/sorter.png)
+        skin/classic/browser/preferences/in-content/sorter@2x.png    (../shared/incontentprefs/sorter@2x.png)
+        skin/classic/browser/preferences/in-content/dropdown.png     (../shared/incontentprefs/dropdown.png)
+        skin/classic/browser/preferences/in-content/dropdown@2x.png  (../shared/incontentprefs/dropdown@2x.png)
+        skin/classic/browser/preferences/in-content/dropdown-disabled.png     (../shared/incontentprefs/dropdown-disabled.png)
+        skin/classic/browser/preferences/in-content/dropdown-disabled@2x.png  (../shared/incontentprefs/dropdown-disabled@2x.png)
+        skin/classic/browser/preferences/applications.css            (preferences/applications.css)
+        skin/classic/browser/preferences/aboutPermissions.css        (preferences/aboutPermissions.css)
+ 
+        skin/classic/console2/c2version.css        (console2/c2version.css)
+        skin/classic/console2/console2.css         (console2/console2.css)
+        skin/classic/console2/console-toolbar.css  (console2/console-toolbar.css)
+        skin/classic/console2/css.png              (console2/css.png)
+        skin/classic/console2/kmm.png              (console2/kmm.png)
+        skin/classic/console2/listheader.css       (console2/listheader.css)
+        skin/classic/console2/richlistbox.css      (console2/richlistbox.css)
+        skin/classic/console2/toolbar.css          (console2/toolbar.css)
+        skin/classic/console2/xml.png              (console2/xml.png)
+        skin/classic/console2/import/bullet-error.png          (console2/import/bullet-error.png)
+        skin/classic/console2/import/bullet-message.png        (console2/import/bullet-message.png)
+        skin/classic/console2/import/bullet-warning.png        (console2/import/bullet-warning.png)
+        skin/classic/console2/import/console-toolbar.png       (console2/import/console-toolbar.png)
+        skin/classic/console2/import/console-toolbar-small.png (console2/import/console-toolbar-small.png)
+        skin/classic/console2/import/Error.png                 (console2/import/Error.png)
+        skin/classic/history/calendar.png           (history/calendar.png)
+        skin/classic/history/history.css            (history/history.css)
+        skin/classic/kmprefs/kmprefs.css            (kmprefs/kmprefs.css)
+        skin/classic/kmprefs/gestures/down.gif      (kmprefs/gestures/down.gif)
+        skin/classic/kmprefs/gestures/downleft.gif  (kmprefs/gestures/downleft.gif)
+        skin/classic/kmprefs/gestures/downright.gif (kmprefs/gestures/downright.gif)
+        skin/classic/kmprefs/gestures/left.gif      (kmprefs/gestures/left.gif)
+        skin/classic/kmprefs/gestures/LR.gif        (kmprefs/gestures/LR.gif)
+        skin/classic/kmprefs/gestures/right.gif     (kmprefs/gestures/right.gif)
+        skin/classic/kmprefs/gestures/RL.gif        (kmprefs/gestures/RL.gif)
+        skin/classic/kmprefs/gestures/up.gif        (kmprefs/gestures/up.gif)
+        skin/classic/kmprefs/gestures/upleft.gif    (kmprefs/gestures/upleft.gif)
+        skin/classic/kmprefs/gestures/upright.gif   (kmprefs/gestures/upright.gif)        
+        skin/classic/kmprefs/firefox/preferences.css    (kmprefs/firefox/preferences.css)
+                        
+#ifdef XP_WIN
+kmeleon.jar:
+% skin browser classic/1.0 %skin/classic/aero/browser/ os=WINNT osversion>=6
+*       skin/classic/aero/browser/downloads/allDownloadsViewOverlay.css (downloads/allDownloadsViewOverlay-aero.css)
+        skin/classic/aero/browser/downloads/buttons.png              (downloads/buttons-aero.png)
+        skin/classic/aero/browser/downloads/contentAreaDownloadsView.css (downloads/contentAreaDownloadsView.css)
+        skin/classic/aero/browser/downloads/download-glow.png        (downloads/download-glow.png)
+        skin/classic/aero/browser/downloads/download-glow-XPVista7.png        (downloads/download-glow-XPVista7.png)
+        skin/classic/aero/browser/downloads/download-glow-menuPanel.png   (downloads/download-glow-menuPanel.png)
+        skin/classic/aero/browser/downloads/download-glow-menuPanel-XPVista7.png   (downloads/download-glow-menuPanel-XPVista7.png)
+        skin/classic/aero/browser/downloads/download-notification-finish.png (downloads/download-notification-finish.png)
+        skin/classic/aero/browser/downloads/download-notification-start.png (downloads/download-notification-start.png)
+        skin/classic/aero/browser/downloads/download-summary.png     (downloads/download-summary.png)
+*       skin/classic/aero/browser/downloads/downloads.css            (downloads/downloads-aero.css)
+        skin/classic/aero/browser/preferences/alwaysAsk.png          (preferences/alwaysAsk-aero.png)
+        skin/classic/aero/browser/preferences/application.png        (preferences/application-aero.png)
+        skin/classic/aero/browser/preferences/mail.png               (preferences/mail-aero.png)
+        skin/classic/aero/browser/preferences/Options.png            (preferences/Options-aero.png)
+#ifdef MOZ_SERVICES_SYNC
+        skin/classic/aero/browser/preferences/Options-sync.png       (preferences/Options-sync.png)
+#endif
+        skin/classic/aero/browser/preferences/saveFile.png           (preferences/saveFile-aero.png)
+*       skin/classic/aero/browser/preferences/preferences.css        (preferences/preferences.css)
+*       skin/classic/aero/browser/preferences/in-content/preferences.css (preferences/in-content/preferences.css)
+        skin/classic/aero/browser/preferences/in-content/check.png       (../shared/incontentprefs/check.png)
+        skin/classic/aero/browser/preferences/in-content/check@2x.png    (../shared/incontentprefs/check@2x.png)
+        skin/classic/aero/browser/preferences/in-content/icons.png       (../shared/incontentprefs/icons.png)
+        skin/classic/aero/browser/preferences/in-content/icons@2x.png    (../shared/incontentprefs/icons@2x.png)
+        skin/classic/aero/browser/preferences/in-content/header.png      (../shared/incontentprefs/header.png)
+        skin/classic/aero/browser/preferences/in-content/header@2x.png   (../shared/incontentprefs/header@2x.png)
+        skin/classic/aero/browser/preferences/in-content/sorter.png      (../shared/incontentprefs/sorter.png)
+        skin/classic/aero/browser/preferences/in-content/sorter@2x.png   (../shared/incontentprefs/sorter@2x.png)
+        skin/classic/aero/browser/preferences/in-content/dropdown.png    (../shared/incontentprefs/dropdown.png)
+        skin/classic/aero/browser/preferences/in-content/dropdown@2x.png (../shared/incontentprefs/dropdown@2x.png)
+        skin/classic/aero/browser/preferences/in-content/dropdown-disabled.png    (../shared/incontentprefs/dropdown-disabled.png)
+        skin/classic/aero/browser/preferences/in-content/dropdown-disabled@2x.png (../shared/incontentprefs/dropdown-disabled@2x.png)
+        skin/classic/aero/browser/preferences/applications.css       (preferences/applications.css)
+        skin/classic/aero/browser/preferences/aboutPermissions.css   (preferences/aboutPermissions.css)
+ 

@@ -1,0 +1,29 @@
+<!ENTITY overview.title "概述">
+<!ENTITY adding.feeds "添加源">
+<!ENTITY addnew.feeds "使用添加源按钮添加新的源。">
+<!ENTITY addnew.feeds.opml "在选项菜单中可以从 OPML 文件导入新的源。">
+<!ENTITY addnew.feeds.auto "打开 Firefox 选项的&apos;收取点&apos;面板，勾选 &apos;Newsfox&apos;，这样当有可用的源时就可以通过点击地址栏右侧的 RSS 图标来使用 NewsFox 添加源。">
+<!ENTITY alternative.use "NewsFox 同样可以读取 Firefox 的实时书签。您可以使用实时书签按钮选择要用 NewsFox 阅读的实时书签。">
+<!ENTITY feed.options "您可以在源面板（左侧）的上下文菜单或从其他的选项按钮更改源的选项设置。">
+<!ENTITY remove.feeds "移除源">
+<!ENTITY feed.remove "使用删除源按钮永久删除一个源及其所有的文章。这么做将从所有的群组中删除这个源。">
+<!ENTITY new.items "检查文章的更新">
+<!ENTITY retrieve.items "使用刷新按钮获取新的文章。">
+<!ENTITY retrieve.items.alt "您也可以通过右键点击源面板下的某个源或群组获取新文章。">
+<!ENTITY retrieve.options "您可以在选项菜单下设置与自动下载新文章有关的选项。">
+<!ENTITY manage.title "管理文章">
+<!ENTITY manage.info "被选中的文章将标记为已读状态。您可以点击相关的按钮来切换某篇文章的已读/未读及标记/未标记状态。">
+<!ENTITY manage.info2 "您可以利用右键菜单、工具栏图标或快捷键来删除文章或将其标记为已读/未读。">
+<!ENTITY manage.info3 "点击列首可以为文章进行排序，默认是最新的文章排在列首。要将未读文章移动到列首可以点击已读/未读列的列首。">
+<!ENTITY groups.tags "群组">
+<!ENTITY groups.info "默认您的所有源都包含在一个名为&apos;源&apos;的群组中，当然您也可以按您的要求将源加入其他群组中。每个源只能有一个副本：当您将某篇文章标记为已读，则在所有群组中都是标记为已读。">
+<!ENTITY groups.info1 "您可以使用添加群组按钮来添加新的群组。">
+<!ENTITY groups.info2 "NewFox 同时也允许添加用于查找源的群组，例如您可以在您的源中查找包含 &apos;NewsFox&apos; 关键字的所有源。您可以使用添加查找群组按钮来添加查找群组。">
+<!ENTITY groups.info3 "您可以使用删除群组按钮来删除这两种群组。">
+<!ENTITY groups.info4 "群组对于组织您的源很有帮助：您可以建立诸如新的、重要的、每日的、每周的、新闻或技术群组，这样您就可以按您的要求对源进行组织。">
+<!ENTITY groups.info5 "您可以在源面板的上下文菜单或从其他选项按钮中对群组选项进行更改。">
+<!ENTITY other.title "其他">
+<!ENTITY other.dragndrop "您可以对群组中的源进行重新排序，同时群组也可以通过拖拽进行排序。">
+<!ENTITY other.art.toolbar "在左侧的源面板包含上下文菜单，在右侧的文章也包含上下文菜单和工具栏。工具提示可以帮助解释各个按钮的含义。">
+<!ENTITY other.info "如果很不幸您所有的源都丢失了，我们在主选项菜单中提供了恢复源的设置。">
+<!ENTITY other.info2 "键盘快捷键可以通过在选项菜单中进行设置，在帮助菜单下我们则提供了一系列可用的快捷键。">

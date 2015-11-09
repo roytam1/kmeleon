@@ -1,0 +1,62 @@
+<!ENTITY NewsFoxTeam "NewsFox-Team">
+<!ENTITY feedOptions "Feed-Einstellungen">
+<!ENTITY text "Text">
+<!ENTITY webpage "Webseite">
+<!ENTITY groupOptions "Gruppen-Einstellungen...">
+<!ENTITY sCcancel "Aktualisierung abbrechen">
+<!ENTITY sCadd "Neuen Feed hinzufügen">
+<!ENTITY sCoptions "Einstellungen...">
+<!ENTITY sChomePage "Homepage besuchen">
+<!ENTITY sCmanageLivemarks "Dynamische Lesezeichen verwalten">
+<!ENTITY sCmarkAllAsRead "Alle als gelesen markieren">
+<!ENTITY sCdelete "Feed löschen">
+<!ENTITY sCnextUnread "Zum nächsten Ungelesenen wechseln">
+<!ENTITY sCopenUnread "Ungelesene öffnen">
+<!ENTITY sCopenSel "Öffnen">
+<!ENTITY sCdeleteSel "Löschen">
+<!ENTITY sCaddSearch "Suchgruppe hinzufügen">
+<!ENTITY sCaddGroup "Gruppe hinzufügen">
+<!ENTITY sCdeleteGroup "Gruppe löschen">
+<!ENTITY sCshortcut "Tastaturkürzel">
+<!ENTITY sCrefresh "Feeds aktualisieren">
+<!ENTITY sCpreviousUnread "Zum vorigen Ungelesenen wechseln">
+<!ENTITY sCdeleteFeedFromGroup "Feed aus Gruppe entfernen">
+<!ENTITY sCkeystrokeHeading "Tastenkürzel">
+<!ENTITY sCselAll "Alle Artikel auswählen">
+<!ENTITY flagCol "Kennzeichnung">
+<!ENTITY titleCol "Titel">
+<!ENTITY readCol "Gelesen">
+<!ENTITY dateCol "Datum">
+<!ENTITY authorCol "Autor">
+<!ENTITY sourceCol "Quelle">
+<!ENTITY feedCol "Feed">
+<!ENTITY tagCol "Schlagwort">
+<!ENTITY probCol "Interessen">
+<!ENTITY threadCol "Thema">
+<!ENTITY XtendCol "Gefilterte Webseite">
+<!ENTITY sCprint "Artikel drucken">
+<!ENTITY sCtoggleFilter "Web-Filter ein-/ausschalten">
+<!ENTITY sortTab "Sortierung">
+<!ENTITY sortArticles "Artikel sortieren:">
+<!ENTITY firstSort "Erste Sortierung:">
+<!ENTITY secondSort "Zweite Sortierung:">
+<!ENTITY thirdSort "Dritte Sortierung:">
+<!ENTITY fourthSort "Vierte Sortierung:">
+<!ENTITY noCol "Keine">
+<!ENTITY ascendingDir "Aufsteigend">
+<!ENTITY descendingDir "Absteigend">
+<!ENTITY updatedUnread "Aktualisierte Artikel als ungelesen markieren">
+<!ENTITY yes "Ja">
+<!ENTITY no "Nein">
+<!ENTITY days "Tagen">
+<!ENTITY articles "Artikel">
+<!ENTITY displayStyle "Anzeigestil:">
+<!ENTITY deleteOld "Alte Einträge automatisch löschen:">
+<!ENTITY autoRefresh "Automatisch aktualisieren:">
+<!ENTITY minutes "Minuten">
+<!ENTITY deleteOldKeepUnread "Ja, ungelesene behalten">
+<!ENTITY deleteOldDeleteUnread "Ja, ungelesene löschen">
+<!ENTITY oldMeans "Als alt einstufen:">
+<!ENTITY after "Nach">
+<!ENTITY notInFeed "Wenn nicht in den Feeds">
+<!ENTITY feeds "Feeds">

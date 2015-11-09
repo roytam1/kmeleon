@@ -1,0 +1,24 @@
+<!ENTITY sCcustomShortcut "Benutzerdefinierte Tastaturkürzel können durch Bearbeiten der Attribute &quot;modifiers&quot; und &quot;key&quot; in der Datei &quot;accel.xml&quot; im Ordner &quot;newsfox&quot; im Profilordner nach Auswahl eines Tastaturkürzel-Satzes im Einstellungsdialog und dem Beenden von Newsfox festgelegt werden.">
+<!ENTITY sCcustomHeading "Benutzerdefinierte Tastaturkürzel">
+<!ENTITY sCfixedHeading "Feste Tastaturkürzel">
+<!ENTITY sCartFeedHeading "Artikel/Feed-Ansicht">
+<!ENTITY sCviewArtHeading "Vorschau/Artikel-Ansicht">
+<!ENTITY sCfeedHeading "Feed-Ansicht">
+<!ENTITY sCarticleUp "Artikel nach oben">
+<!ENTITY sCarticleDown "Artikel nach unten">
+<!ENTITY sCupLevel "Ebene nach oben">
+<!ENTITY sCexpandTree "Feed ausklappen">
+<!ENTITY sCsame "genauso">
+<!ENTITY sCtoggleArtFlag "Kennzeichnung wechseln">
+<!ENTITY sCselToFocus "Fokussierung auswählen">
+<!ENTITY sCfocusUp "Vorigen Artikel fokussieren">
+<!ENTITY sCfocusDown "Nächsten Artikel fokussieren">
+<!ENTITY sCmoveFeedUp "Feed aufwärts bewegen">
+<!ENTITY sCmoveFeedDown "Feed abwärts bewegen">
+<!ENTITY sCfeedUp "Feed aufwärts">
+<!ENTITY sCfeedDown "Feed abwärts">
+<!ENTITY sCexpColl "Feed ein-/ausklappen">
+<!ENTITY sCdeleteKey "Entfernen">
+<!ENTITY sCctrlKey "Strg">
+<!ENTITY sCshiftKey "Umschalt">
+<!ENTITY sCaltKey "Alt">

@@ -1,0 +1,52 @@
+<!ENTITY title "NewsFox&apos;i valikud">
+<!ENTITY global "Üldine kuva stiil:">
+<!ENTITY checkOnStartup "Värskenda kõik vood käivitamisel">
+<!ENTITY notifyUponNewArticles "Teavita uues artiklist">
+<!ENTITY confirmDelete "Küsi kinnitust grupi või voo kustutamisel">
+<!ENTITY confirmDeleteArticle "Küsi kinnitust artikli kustutamisel">
+<!ENTITY shortcutkeys "Kiirklahvid:">
+<!ENTITY restart "(Muudatuseks võib vajalik olla NewsFox&apos;i restart)">
+<!ENTITY shortcutsNone "pole">
+<!ENTITY shortcutsStd "standard">
+<!ENTITY shortcutsAlt "alternatiiv">
+<!ENTITY shortcutsCustom "kohandatud">
+<!ENTITY seehelp "menüüs näidatakse kiirklahve.">
+<!ENTITY newsfox.dir "NewsFox&apos;i kaust">
+<!ENTITY moveNfDir "Kausta sisu:">
+<!ENTITY copy "kopeeri">
+<!ENTITY move "liiguta">
+<!ENTITY noaction "tegevust pole">
+<!ENTITY Child_directory "Alanevkaust">
+<!ENTITY Parent_directory "Ülenev kaust">
+<!ENTITY dateStyle "Kuupäevastiil:">
+<!ENTITY changeToPresent "Muuda artikli kuupäev tänaseks kui:">
+<!ENTITY articleTooltips "Artikli vihjed">
+<!ENTITY copyToClipboard "Kopeeri artikli tekst lõikelauale">
+<!ENTITY selectAddedFeed "Vali voog selle lisamisel">
+<!ENTITY feedRefresh "Voo värskendus:">
+<!ENTITY feedRefreshThreads "lõimed">
+<!ENTITY feedRefreshRenew "värskendus(sekundit)">
+<!ENTITY feedSlowdown "Aeglasemate arvutite puhul vähenda lõimede arvu ja/või suurenda värskenduse vahemikku.">
+<!ENTITY feedRefreshTimeout "Voo uuendamise ooteaeg (sekundit)">
+<!ENTITY horizontalPanes "Horisontaalsed paanid (vajalik taaskäivitus)">
+<!ENTITY favicons "Favicon&apos;id">
+<!ENTITY updateTimeToBookmark "Salvesta voo url ja uuendamise vahemik järjehoidjana">
+<!ENTITY spam "Võimalda olulisuse filter">
+<!ENTITY globalTab "Üldine">
+<!ENTITY feedTab "Vood/Artiklid">
+<!ENTITY generalTab "Üldine">
+<!ENTITY shortcutsTab "Otseteed:">
+<!ENTITY keywordsTab "Märksõnad">
+<!ENTITY shortcuts.operationHeader "Tegevus">
+<!ENTITY shortcuts.select "Vali rida ja vajuta klahvikombinatsiooni kiirvaliku salvestamiseks.">
+<!ENTITY shortcuts.warning "Palju klahvikombinatsioone on juba kasutuses ja ei ole valitavad.">
+<!ENTITY shortcuts.experiment "Katseta, et leida endale sobivat seadistust või vali üks eelnevalt sisestatud variantidest.">
+<!ENTITY keyword "Märksõna:">
+<!ENTITY keywordsHighlighted "Märksõnad tõstetakse artiklites automaatselt esile.">
+<!ENTITY caseIgnored "Kõik otsingud viiakse läbi väiketähti kasutades.">
+<!ENTITY statusBar "Automaatse tellimise ikood staatuse ribal">
+<!ENTITY statusBarText "Tekst:">
+<!ENTITY buttonText "Newsfoxi nupu tekst:">
+<!ENTITY statusBarTextNew "# uus">
+<!ENTITY statusBarTextUnread "# lugemata">
+<!ENTITY statusBarTextNone "pole">

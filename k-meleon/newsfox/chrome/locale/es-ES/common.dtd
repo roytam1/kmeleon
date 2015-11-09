@@ -1,0 +1,62 @@
+<!ENTITY NewsFoxTeam "Equipo de NewsFox">
+<!ENTITY feedOptions "Opciones del hilo...">
+<!ENTITY text "Texto">
+<!ENTITY webpage "Página web">
+<!ENTITY groupOptions "Opciones de grupo...">
+<!ENTITY sCcancel "Cancelar refrescar">
+<!ENTITY sCadd "Añadir un nuevo hilo">
+<!ENTITY sCoptions "Opciones">
+<!ENTITY sChomePage "Visitar página principal">
+<!ENTITY sCmanageLivemarks "Administrar marcadores dinámicos">
+<!ENTITY sCmarkAllAsRead "Marcar todos como leídos">
+<!ENTITY sCdelete "Borrar">
+<!ENTITY sCnextUnread "Próximo no leído">
+<!ENTITY sCopenUnread "Abrir los no leídos">
+<!ENTITY sCopenSel "Abrir los seleccionados">
+<!ENTITY sCdeleteSel "Borrar los seleccionados">
+<!ENTITY sCaddSearch "Añadir grupo de búsqueda">
+<!ENTITY sCaddGroup "Añadir grupo">
+<!ENTITY sCdeleteGroup "Borrar grupo">
+<!ENTITY sCshortcut "Combinaciones de teclas">
+<!ENTITY sCrefresh "Refrescar hilos">
+<!ENTITY sCpreviousUnread "Anterior no leído">
+<!ENTITY sCdeleteFeedFromGroup "Borrar hilo del grupo">
+<!ENTITY sCkeystrokeHeading "Pulsación de tecla">
+<!ENTITY sCselAll "Seleccionar todos los artículos">
+<!ENTITY flagCol "Marcado">
+<!ENTITY titleCol "Título">
+<!ENTITY readCol "Leído">
+<!ENTITY dateCol "Fecha">
+<!ENTITY authorCol "Autor">
+<!ENTITY sourceCol "Fuente">
+<!ENTITY feedCol "Hilo">
+<!ENTITY tagCol "Etiqueta">
+<!ENTITY probCol "Interés">
+<!ENTITY threadCol "Hilo">
+<!ENTITY XtendCol "Web filtrada">
+<!ENTITY sCprint "Imprimir artículo">
+<!ENTITY sCtoggleFilter "Cambiar filtro web">
+<!ENTITY sortTab "Ordenación">
+<!ENTITY sortArticles "Ordenar artículos:">
+<!ENTITY firstSort "Primer criterio:">
+<!ENTITY secondSort "Segundo criterio:">
+<!ENTITY thirdSort "Tercer criterio:">
+<!ENTITY fourthSort "Cuarto criterio:">
+<!ENTITY noCol "Ninguno">
+<!ENTITY ascendingDir "Ascendente">
+<!ENTITY descendingDir "Descendente">
+<!ENTITY updatedUnread "Marcar los artículos actualizados como no leídos">
+<!ENTITY yes "Sí">
+<!ENTITY no "No">
+<!ENTITY days "días">
+<!ENTITY articles "Artículos">
+<!ENTITY displayStyle "Estilo de visualización:">
+<!ENTITY deleteOld "Borrar automáticamente las entradas antiguas">
+<!ENTITY autoRefresh "Recargar automáticamente cada">
+<!ENTITY minutes "minuto(s)">
+<!ENTITY deleteOldKeepUnread "sí, mantener los no leídos">
+<!ENTITY deleteOldDeleteUnread "sí, borrar los no leídos">
+<!ENTITY oldMeans "Establecer como antigua">
+<!ENTITY after "después de">
+<!ENTITY notInFeed "si no está en el hilo">
+<!ENTITY feeds "Hilos">

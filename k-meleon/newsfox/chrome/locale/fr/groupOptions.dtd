@@ -1,0 +1,27 @@
+<!ENTITY name "Nom :">
+<!ENTITY insertbefore "Insérer avant :">
+<!ENTITY dragrtl "Glisser de droite à gauche pour ajouter des flux au groupe.">
+<!ENTITY dragltr "Glisser de gauche à droite pour enlever des flux du groupe.">
+<!ENTITY dragwithin "Glisser à l'intérieur du groupe pour réorganiser.">
+<!ENTITY flagged "Drapeau :">
+<!ENTITY either "oui ou non">
+<!ENTITY unread "Non lu :">
+<!ENTITY searchtext "Recherche de texte :">
+<!ENTITY match "Correspondances :">
+<!ENTITY body "corps">
+<!ENTITY title2 "titre">
+<!ENTITY tag "balise">
+<!ENTITY casesensitive "Respecter la casse :">
+<!ENTITY searchvalues "Valeurs de recherche">
+<!ENTITY textvalues "Valeurs de texte">
+<!ENTITY time "Période :">
+<!ENTITY grouptosearch "Rechercher dans le groupe :">
+<!ENTITY between "entre">
+<!ENTITY and "et">
+<!ENTITY ago ".">
+<!ENTITY hours "heure">
+<!ENTITY weeks "semaines">
+<!ENTITY months "mois">
+<!ENTITY years "ans">
+<!ENTITY ever "toujours">
+<!ENTITY showUnread "Afficher le nombre d'articles non lus (peut ralentir NewsFox)">

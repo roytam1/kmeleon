@@ -1,0 +1,9 @@
+<!ENTITY title "Schlagwörter bearbeiten">
+<!ENTITY tagAdd "Ausgewählten Artikeln Schlagwörter hinzufügen">
+<!ENTITY tagRemove "Schlagwörter von ausgewählten Artikeln entfernen">
+<!ENTITY tagDeleteCompletely "Schlagwörter von allen Artikeln und aus der Schlagwortliste entfernen">
+<!ENTITY colorVaries1 "BLAU: Schlagwort ist in allen ausgewählten Artikeln">
+<!ENTITY colorVaries2 "normal: Schlagwort ist in manchen ausgewählten Artikeln">
+<!ENTITY colorVaries3 "ROT: Schlagwort ist in keinem ausgewählten Artikel">
+<!ENTITY newTagAdd "Ausgewählten Artikeln neue Schlagwörter hinzufügen">
+<!ENTITY newTagAddExample "Schlagwörter durch &apos;/&apos; trennen: &apos;Hobby/Freizeit&apos;">

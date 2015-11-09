@@ -1,0 +1,31 @@
+<!ENTITY checkFeed "Overiť kanál">
+<!ENTITY troubleshoot "Riešenie problémov">
+<!ENTITY OPML.import "Importovať OPML...">
+<!ENTITY OPML.export "Exportovať OPML...">
+<!ENTITY toolOptions.import.addfeeds "Pridať k existujúcemu kanálu">
+<!ENTITY toolOptions.import.startfresh "Spustiť obnovu">
+<!ENTITY toolOptions.import.file "zo súboru...">
+<!ENTITY toolOptions.import.URL "z URL...">
+<!ENTITY toolOptions.passwd "Heslo...">
+<!ENTITY help "Pomocník pre NewsFox">
+<!ENTITY feeds "Kanály">
+<!ENTITY r "R">
+<!ENTITY markAllAsUnread "Označiť všetky ako neprečítané">
+<!ENTITY tagSel "Značky zvolené">
+<!ENTITY sortFeeds "Triediť kanály">
+<!ENTITY unsortFeeds "Zrušiť triedenie">
+<!ENTITY toolOptions.restoreBackup "Obnoviť zálohu">
+<!ENTITY exportRSS "Exportovať do RSS">
+<!ENTITY wait "Kvôli bezpečnosti počkajte, pokiaľ bude načítanie kompletné">
+<!ENTITY tagEdit "Editovať vybrané značky článkov">
+<!ENTITY addGroup.regular "Regulérny">
+<!ENTITY addGroup.search "Vyhľadávať">
+<!ENTITY addGroup.tag "Značka">
+<!ENTITY addFeed.regular "RSS/Atom">
+<!ENTITY addFeed.storage "Uloženie">
+<!ENTITY prob "Pr">
+<!ENTITY mainToolbar "Hlavný panel nástrojov">
+<!ENTITY feedToolbar "Panel nástrojov pre kanály">
+<!ENTITY Xtend "+">
+<!ENTITY markSelAsRead "Označiť ako prečítané">
+<!ENTITY markSelAsUnread "Označiť ako neprečítané">

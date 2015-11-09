@@ -1,0 +1,52 @@
+<!ENTITY title "NewsFox-opties">
+<!ENTITY global "Algemene weergavestijl:">
+<!ENTITY checkOnStartup "Alle feeds vernieuwen bij opstarten">
+<!ENTITY notifyUponNewArticles "Bericht geven wanneer nieuw(e) artikel(en) word(t)(en) gepost">
+<!ENTITY confirmDelete "Om bevestiging vragen bij verwijderen van groepen of feeds">
+<!ENTITY confirmDeleteArticle "Om bevestiging vragen bij verwijderen artikelen">
+<!ENTITY shortcutkeys "Sneltoetsen:">
+<!ENTITY restart "(Wijzigingen worden mogelijk pas doorgevoerd na herstarten van NewsFox)">
+<!ENTITY shortcutsNone "geen">
+<!ENTITY shortcutsStd "standaard">
+<!ENTITY shortcutsAlt "alternatief">
+<!ENTITY shortcutsCustom "aangepast">
+<!ENTITY seehelp "menu bevat een lijst met sneltoetsen">
+<!ENTITY newsfox.dir "NewsFox-map">
+<!ENTITY moveNfDir "Mapinhoud:">
+<!ENTITY copy "kopiëren">
+<!ENTITY move "verplaatsen">
+<!ENTITY noaction "geen actie">
+<!ENTITY Child_directory "Onderliggende map">
+<!ENTITY Parent_directory "Bovenliggende map">
+<!ENTITY dateStyle "Datumstijl:">
+<!ENTITY changeToPresent "Artikeltijd naar huidige datum wijzigen als:">
+<!ENTITY articleTooltips "Artikeltooltips">
+<!ENTITY copyToClipboard "Tekst naar Klembord kopiëren">
+<!ENTITY selectAddedFeed "Nieuwe feed selecteren bij toevoegen">
+<!ENTITY feedRefresh "Feedverversing:">
+<!ENTITY feedRefreshThreads "discussies">
+<!ENTITY feedRefreshRenew "vernieuwing (seconden)">
+<!ENTITY feedSlowdown "Vermidner het aantal discussies en/of verhoog de verversingstijd voor langzamere computers.">
+<!ENTITY feedRefreshTimeout "Vervaltijd feedverversing (seconden)">
+<!ENTITY horizontalPanes "Horizontale vensters (herstart nodig)">
+<!ENTITY favicons "Favicons">
+<!ENTITY updateTimeToBookmark "Feed-URL en bijwerktijden in bladwijzer wegschrijven">
+<!ENTITY spam "Interessefilter inschakelen">
+<!ENTITY globalTab "Algemeen">
+<!ENTITY feedTab "Feeds/Artikelen">
+<!ENTITY generalTab "Algemeen">
+<!ENTITY shortcutsTab "Snelkoppelingen">
+<!ENTITY keywordsTab "Sleutelwoorden">
+<!ENTITY shortcuts.operationHeader "Operatie">
+<!ENTITY shortcuts.select "Selecteer een rij en type een toetscombinatie in om een sneltoets in te stellen.">
+<!ENTITY shortcuts.warning "Veel sneltoetsen zijn al in gebruik en niet beschikbaar.">
+<!ENTITY shortcuts.experiment "Experimenteer om uit te zoeken wat werkt of kies één van de vooraf ingestelde opties.">
+<!ENTITY keyword "Sleutelwoord:">
+<!ENTITY keywordsHighlighted "Sleutelwoorden worden automatisch geaccentueerd in artikelen.">
+<!ENTITY caseIgnored "Alle zoekopdrachten worden uitgevoerd in kleine letters.">
+<!ENTITY statusBar "Pictogram voor automatisch abonneren in statusbalk">
+<!ENTITY statusBarText "Tekst:">
+<!ENTITY buttonText "NewsFox-knoptekst:">
+<!ENTITY statusBarTextNew "# nieuw">
+<!ENTITY statusBarTextUnread "# ongelezen">
+<!ENTITY statusBarTextNone "geen">

@@ -1,0 +1,24 @@
+<!ENTITY sCcustomShortcut "Aangepaste sneltoetsen kunnen worden gedefinieerd door de attributen ‘modifier’ en ‘key’ in het bestand ‘accel.xml’ in de NewsFox-map in uw profielmap te bewerken, nadat u een set van sneltoetsen in de optiesvenster hebt geselecteerd en NewsFox hebt afgesloten.">
+<!ENTITY sCcustomHeading "Aangepaste sneltoetsen">
+<!ENTITY sCfixedHeading "Vaste sneltoetsen">
+<!ENTITY sCartFeedHeading "Artikel-/feedvenster">
+<!ENTITY sCviewArtHeading "Beeld-/artikelvenster">
+<!ENTITY sCfeedHeading "Feedvenster">
+<!ENTITY sCarticleUp "Artikel omhoog">
+<!ENTITY sCarticleDown "Artikel omlaag">
+<!ENTITY sCupLevel "Niveau omhoog">
+<!ENTITY sCexpandTree "Feed uitklappen">
+<!ENTITY sCsame "zelfde">
+<!ENTITY sCtoggleArtFlag "Artikellabel wisselen">
+<!ENTITY sCselToFocus "Te focussen selectie">
+<!ENTITY sCfocusUp "Focus artikel omhoog">
+<!ENTITY sCfocusDown "Focus artikel omlaag">
+<!ENTITY sCmoveFeedUp "Feed omhoog verplaatsen">
+<!ENTITY sCmoveFeedDown "Feed omlaag verplaatsen">
+<!ENTITY sCfeedUp "Feed omhoog">
+<!ENTITY sCfeedDown "Feed omlaag">
+<!ENTITY sCexpColl "Feed uitklappen/inklappen">
+<!ENTITY sCdeleteKey "delete">
+<!ENTITY sCctrlKey "ctrl">
+<!ENTITY sCshiftKey "shift">
+<!ENTITY sCaltKey "alt">

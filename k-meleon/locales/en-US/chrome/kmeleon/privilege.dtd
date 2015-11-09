@@ -1,0 +1,18 @@
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
+
+<!ENTITY loadError.label "K-Meleon profile write privilege warning">
+<!ENTITY warningTitle.label "<h1>WARNING</h1>">
+
+<!ENTITY privilegeError.longDesc "
+<ul>
+  <li>You do not have write authority to the profile which is being used in K-Meleon.</li>
+  <li>This means that any changes you make from preferences <u>will not be maintained</u> for your next use of K-Meleon.  Browsing history and passwords will also <u>not be kept</u>.</li>
+  <li>You will need to make a change in your operating system to grant write authority to the user ID that your are using.  The write authority should be for the profile folder.  You can find your current profile folder by using the menu in K-Meleon.
+From the EDIT menu click on CONFIGURATION and then PROFILE DIRECTORY.</li>
+</ul>
+">
+
+<!ENTITY privilegeRefer.longRef "More information is available on ">
+<!ENTITY privilegeRefer.shortRef "K-Meleon's web site"> 

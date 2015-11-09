@@ -1,0 +1,23 @@
+# -*- Mode: python; c-basic-offset: 4; indent-tabs-mode: nil; tab-width: 40 -*-
+# vim: set filetype=python:
+
+DIST_SUBDIR = 'kplugins'
+
+PARALLEL_DIRS += [
+    'bmpmenu',
+    'bookmarks',
+    'favorites',
+    'fullscreen',
+    'gestures',
+    'hotlist',
+    'jsbridge',
+#    'update',
+    'login',
+    'macros',
+    'privacy',
+    'rebar_menu',
+    'sessions',
+    'spellcheck',
+    'toolbars'
+]
+

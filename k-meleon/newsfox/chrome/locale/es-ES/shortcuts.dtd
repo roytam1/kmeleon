@@ -1,0 +1,24 @@
+<!ENTITY sCcustomShortcut "Las combinaciones de teclas pueden definirse editando los &apos;modificadores&apos; y las &apos;teclas&apos; en el archivo &apos;accel.xml&apos; de la carpeta de newsfox en la carpeta del perfil, después de seleccionar un conjunto de combinaciones en el cuadro de opciones y cerrando Newsfox.">
+<!ENTITY sCcustomHeading "Combinaciones de teclas personalizadas">
+<!ENTITY sCfixedHeading "Combinaciones de teclas fijas">
+<!ENTITY sCartFeedHeading "Artículo/panel de hilos">
+<!ENTITY sCviewArtHeading "Ver/artículo panel">
+<!ENTITY sCfeedHeading "Panel de hilos">
+<!ENTITY sCarticleUp "Subir artículo">
+<!ENTITY sCarticleDown "Bajar artículo">
+<!ENTITY sCupLevel "Subir nivel">
+<!ENTITY sCexpandTree "Expandir hilo">
+<!ENTITY sCsame "igual">
+<!ENTITY sCtoggleArtFlag "Cambiar marca de artículo">
+<!ENTITY sCselToFocus "Dar el foco a la selección">
+<!ENTITY sCfocusUp "Dar el foco al artículo superior">
+<!ENTITY sCfocusDown "Dar el foco al artículo inferior">
+<!ENTITY sCmoveFeedUp "Mover hilo arriba">
+<!ENTITY sCmoveFeedDown "Mover hilo abajo">
+<!ENTITY sCfeedUp "Subir hilo">
+<!ENTITY sCfeedDown "Bajar hilo">
+<!ENTITY sCexpColl "Expandir/contraer hilo">
+<!ENTITY sCdeleteKey "borrar">
+<!ENTITY sCctrlKey "ctrl">
+<!ENTITY sCshiftKey "mayús">
+<!ENTITY sCaltKey "alt">

@@ -1,0 +1,25 @@
+<!ENTITY useGlobal "Použiť všeobecné nastavenia">
+<!ENTITY feedAutoCheck "&apos;Obnoviť všetky kanály&apos; vybrať tento kanál pre nové položky">
+<!ENTITY dontDeleteUnread "Nezmazať neprečítané">
+<!ENTITY groups "Skupiny:">
+<!ENTITY checkfeed "Skontrolovať kanál">
+<!ENTITY iconsrc "Zdroj ikony:">
+<!ENTITY authentication "Overenie pravosti (len zabezpečené kanály)">
+<!ENTITY username "Používateľské meno:">
+<!ENTITY password "Heslo:">
+<!ENTITY feedPrivate "Zašifrovať kanál článkov na disku">
+<!ENTITY keepDays.pre "Ponechať položky najmenej">
+<!ENTITY keepDays.post "dní">
+<!ENTITY mainTab "Všeobecné">
+<!ENTITY filterTab "Web filter">
+<!ENTITY securityTab "Bezpečnosť">
+<!ENTITY filterNew "Prevziať filtrované webové stránky pre všetky nové články.">
+<!ENTITY filterImages "Prevziať obrázky vo filtrovanej webovej stránke">
+<!ENTITY filterInfo "Vložte filter pre transformovanie HTML odkazu článku do rozšíreného popisu článku. Filter môže byť buď zodpevadajúci regulárny výraz, alebo JavaScript kód, ktorého hodnota sa stane rozšíreným popisom článku.">
+<!ENTITY filterJSinfo "Pri používaní JavaScriptu sú dostupné tieto premenné:">
+<!ENTITY filterJSvar1 "linkDOM obsahuje DOM z odkazu článku">
+<!ENTITY filterJSvar2 "linkHTML obsahuje text/html z odkazu článku">
+<!ENTITY filterJSvar3 "getElementsByClass(trieda, značka, uzol) vracia pole všetkých html elementov s danou značkou a triedou obsiahnutou v danom uzle">
+<!ENTITY filterMime "Potlačiť znakovú sadu (+ pre auto, &gt; pre test, alebo znakovú sadu)">
+<!ENTITY filterInfo2 "Musíte vložiť filter alebo obrázky, ktoré budú stiahnuté pre aktuálny článok, nie html stránku. Pre použitie pôvodného filtra stlačte klávesu backspace.">
+<!ENTITY never "nikdy">

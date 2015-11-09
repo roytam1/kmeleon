@@ -1,0 +1,52 @@
+<!ENTITY title "NewsFox - Opciones">
+<!ENTITY global "Estilo de visualización global:">
+<!ENTITY checkOnStartup "Refrescar todos los hilos en el inicio">
+<!ENTITY notifyUponNewArticles "Notificarme cuando se publiquen nuevos artículos">
+<!ENTITY confirmDelete "Pedir confirmación al borrar grupos o hilos">
+<!ENTITY confirmDeleteArticle "Pedir confirmación al borrar artículos">
+<!ENTITY shortcutkeys "Combinaciones de teclas:">
+<!ENTITY restart "(los cambios pueden requerir reiniciar Newsfox)">
+<!ENTITY shortcutsNone "ninguno">
+<!ENTITY shortcutsStd "estandar">
+<!ENTITY shortcutsAlt "alternativo">
+<!ENTITY shortcutsCustom "personalizado">
+<!ENTITY seehelp "el menú tiene una lista de las combinaciones.">
+<!ENTITY newsfox.dir "Carpeta de Newsfox">
+<!ENTITY moveNfDir "Contenidos de la carpeta:">
+<!ENTITY copy "copiar">
+<!ENTITY move "mover">
+<!ENTITY noaction "no hacer nada">
+<!ENTITY Child_directory "Carpeta hija">
+<!ENTITY Parent_directory "Carpeta padre">
+<!ENTITY dateStyle "Estilo de fecha:">
+<!ENTITY changeToPresent "Cambiar la fecha del artículo a la actual si:">
+<!ENTITY articleTooltips "Consejos de los artículos">
+<!ENTITY copyToClipboard "Copiar el cuerpo del artículo al portapapeles">
+<!ENTITY selectAddedFeed "Seleccionar nuevo hilo al añadir">
+<!ENTITY feedRefresh "Refresco de hilo:">
+<!ENTITY feedRefreshThreads "procesos">
+<!ENTITY feedRefreshRenew "renovación (segundos)">
+<!ENTITY feedSlowdown "Para ordenadores lentos, disminuye los hilos y/o sube el tiempo de renovación.">
+<!ENTITY feedRefreshTimeout "Tiempo de recarga de hilos (segundos)">
+<!ENTITY horizontalPanes "Paneles horizontales (requiere reiniciar)">
+<!ENTITY favicons "Favicons">
+<!ENTITY updateTimeToBookmark "Escribir las direcciones de los hilos y las fechas de actualización en los marcadores">
+<!ENTITY spam "Habilitar filtro de interés">
+<!ENTITY globalTab "Global">
+<!ENTITY feedTab "Hilos/Artículos">
+<!ENTITY generalTab "General">
+<!ENTITY shortcutsTab "Combinaciones de teclas">
+<!ENTITY keywordsTab "Palabras claves">
+<!ENTITY shortcuts.operationHeader "Operación">
+<!ENTITY shortcuts.select "Seleccione una fila y escriba la combinación de teclas">
+<!ENTITY shortcuts.warning "Algunas teclas pueden estar ya en uso y por tanto no estarán disponibles.">
+<!ENTITY shortcuts.experiment "Haga pruebas para encontrar las que funcionen o elija una de las opciones por defecto.">
+<!ENTITY keyword "Palabra clave:">
+<!ENTITY keywordsHighlighted "Las palabras claves se resaltan automáticamente en los artículos.">
+<!ENTITY caseIgnored "Todas las búsquedas se hacen usando minúsculas.">
+<!ENTITY statusBar "Icono de suscripción automática en la barra de estado">
+<!ENTITY statusBarText "Texto:">
+<!ENTITY buttonText "Botón de texto Newsfox:">
+<!ENTITY statusBarTextNew "# nuevo">
+<!ENTITY statusBarTextUnread "# no leído">
+<!ENTITY statusBarTextNone "ninguno">

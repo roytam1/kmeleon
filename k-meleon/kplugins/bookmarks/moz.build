@@ -1,0 +1,36 @@
+# -*- Mode: python; c-basic-offset: 4; indent-tabs-mode: nil; tab-width: 40 -*-
+# vim: set filetype=python:
+
+LIBRARY_NAME = 'bookmarks'
+
+SOURCES += [
+  '../../shared/DialogUtils.cpp',
+  '../../shared/Utils.cpp',
+  '../rebar_menu/hot_tracking.cpp',
+  'ns_bookmarks.cpp',
+  'ns_bookmarks_edit.cpp',
+  'ns_bookmarks_utils.cpp',
+  '../../shared/qsort.cpp',
+  '../../shared/stristr.cpp',
+]
+
+DEFINES['UNICODE'] = True
+
+DEFINES['_UNICODE'] = True
+
+FORCE_SHARED_LIB = True
+
+DISABLE_STL_WRAPPING = True
+
+RCINCLUDE = 'ns_bookmarks.rc'
+
+OS_LIBS += [
+  'comctl32.lib',
+  'comdlg32.lib',
+  'shell32.lib',
+  'imm32.lib'
+]
+
+LOCAL_INCLUDES += [
+  '../../shared'
+]

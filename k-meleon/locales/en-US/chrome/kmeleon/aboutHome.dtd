@@ -1,0 +1,16 @@
+<!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd">
+%brandDTD;
+
+<!-- These strings are used in the about:home page -->
+
+<!ENTITY abouthome.pageTitle "&brandFullName; Start Page">
+<!ENTITY abouthome.searchEngineButton.label "Search">
+
+<!ENTITY abouthome.bookmarksButton.label "Bookmarks">
+<!ENTITY abouthome.historyButton.label   "History">
+<!ENTITY abouthome.lastSessionButton.label   "Open last session">
+<!ENTITY abouthome.settingsButton.label  "Settings">
+<!ENTITY abouthome.addonsButton.label    "Add-ons">
+<!ENTITY abouthome.appsButton.label      "Marketplace">
+<!ENTITY abouthome.downloadsButton.label "Downloads">
+<!ENTITY abouthome.syncButton.label      "&syncBrand.shortName.label;">

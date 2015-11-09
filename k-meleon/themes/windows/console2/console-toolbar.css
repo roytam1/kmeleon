@@ -1,0 +1,113 @@
+/* :::::::: toolbar icons (from the Winstripe theme) ::::::::::::::: */
+
+toolbar toolbarbutton:not([type="menu"]):not([class~="textonly"]) .toolbarbutton-text {
+	-moz-margin-start: 4px !important;
+}
+toolbar toolbarbutton:not([type="menu"]):not([class~="textonly"]) .toolbarbutton-icon {
+	-moz-margin-start: 3px;
+}
+
+toolbar[mode="icons"] toolbarbutton:not([type="menu"]):not([class~="textonly"]) > .toolbarbutton-text,
+toolbar[mode="text"] toolbarbutton:not([type="menu"]):not([class~="textonly"]) > .toolbarbutton-icon {
+	display: none;
+}
+
+toolbar[mode="icons"] > .textonly > .toolbarbutton-text,
+toolbar[mode="icons"] toolbarpaletteitem > .textonly > .toolbarbutton-text {
+	display: -moz-box;
+}
+
+#item_modeAll,
+#item_modeErrors,
+#item_modeWarnings,
+#item_modeMessages,
+#item_clearConsole {
+	list-style-image: url("chrome://console2/skin/import/console-toolbar.png");
+}
+
+#item_modeAll {
+	-moz-image-region: rect(0px 24px 24px 0px);
+}
+#item_modeAll:hover {
+	-moz-image-region: rect(24px 24px 48px 0px);
+}
+
+#item_modeErrors {
+	-moz-image-region: rect(0px 96px 24px 72px);
+}
+#item_modeErrors:hover,
+#item_modeErrors[checked="true"] {
+	-moz-image-region: rect(24px 96px 48px 72px);
+}
+
+#item_modeWarnings {
+	-moz-image-region: rect(0px 72px 24px 48px);
+}
+#item_modeWarnings:hover,
+#item_modeWarnings[checked="true"] {
+	-moz-image-region: rect(24px 72px 48px 48px);
+}
+
+#item_modeMessages {
+	-moz-image-region: rect(0px 48px 24px 24px);
+}
+#item_modeMessages:hover,
+#item_modeMessages[checked="true"] {
+	-moz-image-region: rect(24px 48px 48px 24px);
+}
+
+#item_clearConsole {
+	-moz-image-region: rect(0px 120px 24px 96px);
+}
+#item_clearConsole:hover {
+	-moz-image-region: rect(24px 120px 48px 96px);
+}
+
+
+/* :::::::: small toolbar icons (from the Qute theme) ::::::::::::::: */
+
+toolbar[iconsize="small"] #item_modeAll,
+toolbar[iconsize="small"] #item_modeErrors,
+toolbar[iconsize="small"] #item_modeWarnings,
+toolbar[iconsize="small"] #item_modeMessages,
+toolbar[iconsize="small"] #item_clearConsole {
+	list-style-image: url("chrome://console2/skin/import/console-toolbar-small.png");
+}
+
+toolbar[iconsize="small"] #item_modeAll {
+	-moz-image-region: rect(0px, 16px, 16px, 0px);
+}
+toolbar[iconsize="small"] #item_modeAll:hover {
+	-moz-image-region: rect(16px, 16px, 32px, 0px);
+}
+
+toolbar[iconsize="small"] #item_modeErrors {
+	-moz-image-region: rect(0px, 32px, 16px, 16px);
+}
+toolbar[iconsize="small"] #item_modeErrors:hover,
+toolbar[iconsize="small"] #item_modeErrors[checked="true"] {
+	-moz-image-region: rect(16px, 32px, 32px, 16px);
+}
+
+toolbar[iconsize="small"] #item_modeWarnings {
+	-moz-image-region: rect(0px, 48px, 16px, 32px);
+}
+toolbar[iconsize="small"] #item_modeWarnings:hover,
+toolbar[iconsize="small"] #item_modeWarnings[checked="true"] {
+	-moz-image-region: rect(16px, 48px, 32px, 32px);
+}
+
+toolbar[iconsize="small"] #item_modeMessages {
+	-moz-image-region: rect(0px, 64px, 16px, 48px);
+}
+toolbar[iconsize="small"] #item_modeMessages:hover,
+toolbar[iconsize="small"] #item_modeMessages[checked="true"] {
+	-moz-image-region: rect(16px, 64px, 32px, 48px);
+}
+
+toolbar[iconsize="small"] #item_clearConsole {
+	-moz-image-region: rect(0px, 80px, 16px, 64px);
+}
+toolbar[iconsize="small"] #item_clearConsole:hover {
+	-moz-image-region: rect(16px, 80px, 32px, 64px);
+}

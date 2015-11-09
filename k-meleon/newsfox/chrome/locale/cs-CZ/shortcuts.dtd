@@ -1,0 +1,24 @@
+<!ENTITY sCcustomShortcut "Vlastní klávesové zkratky mohou být definovány úpravou atributů &apos;modifiers&apos; a &apos;key&apos;, v souboru &apos;accel.xml&apos; ve vašem profilu ve složce &apos;newsfox&apos;, po výběru a nastavení klávesových zkratek na kartě  &apos;Klávesové zkratky&apos; v okně &apos;Možnosti&apos; a restartu Newsfox.">
+<!ENTITY sCcustomHeading "Uživatelské zkratky">
+<!ENTITY sCfixedHeading "Pevné zkratky">
+<!ENTITY sCartFeedHeading "Panel kanálů">
+<!ENTITY sCviewArtHeading "Panel zpráv">
+<!ENTITY sCfeedHeading "Panel kanálů">
+<!ENTITY sCarticleUp "Nahoru">
+<!ENTITY sCarticleDown "Dolů">
+<!ENTITY sCupLevel "O úroveň výš">
+<!ENTITY sCexpandTree "Rozbalit kanál">
+<!ENTITY sCsame "Beze změny">
+<!ENTITY sCtoggleArtFlag "Přiřadit visačku ke článek">
+<!ENTITY sCselToFocus "Vybrat na pozici kurzoru">
+<!ENTITY sCfocusUp "Kurzor nahoru">
+<!ENTITY sCfocusDown "Kurzor dolů">
+<!ENTITY sCmoveFeedUp "přesunout kanál nahoru">
+<!ENTITY sCmoveFeedDown "Přesunout kanál dolů">
+<!ENTITY sCfeedUp "Přesunout kanál nahoru">
+<!ENTITY sCfeedDown "kanál dolů">
+<!ENTITY sCexpColl "Rozbalit/Sbalit kanál">
+<!ENTITY sCdeleteKey "&lt;DEL&gt;">
+<!ENTITY sCctrlKey "&lt;CTRL&gt;">
+<!ENTITY sCshiftKey "&lt;SHIFT&gt;">
+<!ENTITY sCaltKey "&lt;ALT&gt;">

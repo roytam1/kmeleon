@@ -1,0 +1,27 @@
+<!ENTITY name "名稱:">
+<!ENTITY insertbefore "放在之前:">
+<!ENTITY dragrtl "從右側拖曳 Feed 到左側可將該 Feed 加到群組中。">
+<!ENTITY dragltr "從左側拖曳 Feed 到右側可將該 Feed 從群組中移除。">
+<!ENTITY dragwithin "在群組中拖曳 Feeds 可更改它們的位置順序。">
+<!ENTITY flagged "星號標記的:">
+<!ENTITY either "兩者皆是">
+<!ENTITY unread "未閱讀的:">
+<!ENTITY searchtext "搜尋文字">
+<!ENTITY match "搜尋:">
+<!ENTITY body "內文">
+<!ENTITY title2 "標題">
+<!ENTITY tag "標籤">
+<!ENTITY casesensitive "大小寫視為相異">
+<!ENTITY searchvalues "搜尋條件">
+<!ENTITY textvalues "文字條件">
+<!ENTITY time "時間:">
+<!ENTITY grouptosearch "要搜尋的群組:">
+<!ENTITY between "介於">
+<!ENTITY and "和">
+<!ENTITY ago "之前">
+<!ENTITY hours "小時">
+<!ENTITY weeks "星期">
+<!ENTITY months "月">
+<!ENTITY years "年">
+<!ENTITY ever "不限">
+<!ENTITY showUnread "顯示未閱讀的文章數 (可能會拖慢 NewsFox)">

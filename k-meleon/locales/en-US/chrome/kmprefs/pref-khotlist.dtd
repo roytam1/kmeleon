@@ -1,0 +1,11 @@
+<!ENTITY % prefDTD SYSTEM "chrome://kmprefs/locale/pref.dtd">%prefDTD;
+<!ENTITY % plugDTD SYSTEM "chrome://kmprefs/locale/kplugins/kplugins.dtd">%plugDTD;
+<!ENTITY hotlist.header		"Opera Hotlist Plugin">
+<!ENTITY hotlist.enable		"Enable support for Opera Hotlist (&restartRequired;)">
+<!ENTITY hotlist.open		"Open Opera Bookmarks">
+<!ENTITY hotlist.newitemFolder	"Folder for new bookmarks:">
+<!ENTITY hotlist.file.label	"Opera Hotlist File">
+<!ENTITY hotlist.file.warning	"&WARNING; When you make K-Meleon use the Opera browser's hotlist file, then do not use both browsers at the same time - this may result in data loss!">
+<!ENTITY hotlist.menu		"Hotlist Menu">
+<!ENTITY hotlist.manager	"Hotlist Manager">
+<!ENTITY hotlist.useOrder	"Use 'Order' property">

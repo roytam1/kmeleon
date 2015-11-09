@@ -1,0 +1,180 @@
+<?xml version="1.0"?>
+<!-- ***** BEGIN LICENSE BLOCK *****
+   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+   -
+   - The contents of this file are subject to the Mozilla Public License Version
+   - 1.1 (the "License"); you may not use this file except in compliance with
+   - the License. You may obtain a copy of the License at
+   - http://www.mozilla.org/MPL/
+   -
+   - Software distributed under the License is distributed on an "AS IS" basis,
+   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+   - for the specific language governing rights and limitations under the
+   - License.
+   -
+   - The Original Code is NewsFox.
+   -
+   - The Initial Developer of the Original Code is
+   - Ron Pruitt <wa84it@gmail.com>.
+   - Portions created by the Initial Developer are Copyright (C) 2006-2011
+   - the Initial Developer. All Rights Reserved.
+   -
+   - Contributor(s):
+   -
+   - Alternatively, the contents of this file may be used under the terms of
+   - either the GNU General Public License Version 2 or later (the "GPL"), or
+   - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+   - in which case the provisions of the GPL or the LGPL are applicable instead
+   - of those above. If you wish to allow use of your version of this file only
+   - under the terms of either the GPL or the LGPL, and not to allow others to
+   - use your version of this file under the terms of the MPL, indicate your
+   - decision by deleting the provisions above and replace them with the notice
+   - and other provisions required by the LGPL or the GPL. If you do not delete
+   - the provisions above, a recipient may use your version of this file under
+   - the terms of any one of the MPL, the GPL or the LGPL.
+   -
+   - ***** END LICENSE BLOCK ***** -->
+
+<?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
+<?xml-stylesheet href="chrome://newsfox/skin/" type="text/css"?>
+
+<!DOCTYPE window [
+  <!ENTITY % groupOptionsDTD SYSTEM "chrome://newsfox/locale/groupOptions.dtd">
+  %groupOptionsDTD;
+  <!ENTITY % commonDTD SYSTEM "chrome://newsfox/locale/common.dtd">
+  %commonDTD;
+]>
+
+<dialog id="groupOptionsDlg" title="&groupOptions;"
+  xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+  onload="goinit();"
+  ondialogaccept="return doAccept();"
+  ondialogcancel="return true;">
+
+	<script src="groupOptions.js"/>
+
+  <stringbundleset id="stringbundleset">
+    <stringbundle id="newsfox-string-bundle" src="chrome://newsfox/locale/newsfox.properties"/>
+  </stringbundleset>
+
+<vbox flex="1">
+  <vbox id="part1">
+    <hbox align="center">
+      <label value="&name;" control="Name"/>
+      <textbox id="Name" size="31"/>
+      <spacer id="grpmovespacer" width="8"/>
+      <label id="grpmovelabel" value="&insertbefore;" control="grpmove"/>
+      <menulist id="grpmove" maxwidth="205">
+        <menupopup/>
+      </menulist>
+    </hbox>
+	</vbox>
+	<vbox id="part2">
+		<groupbox>
+			<caption label="&searchvalues;"/>
+			<hbox align="center">
+				<label value="&flagged;" control="radioFlagged"/>
+				<radiogroup id="radioFlagged" orient="horizontal">
+					<radio label="&yes;"/>
+					<radio label="&no;"/>
+					<radio label="&either;"/>
+				</radiogroup>
+			</hbox>
+			<hbox align="center">
+				<label value="&unread;" control="radioUnread"/>
+				<radiogroup id="radioUnread" orient="horizontal">
+					<radio label="&yes;"/>
+					<radio label="&no;"/>
+					<radio label="&either;"/>
+				</radiogroup>
+			</hbox>
+			<hbox align="center">
+	      <label id="Date" value="&time;"/>
+	      <spacer width="2"/>
+	      <label value="&between;" control="startT"/>
+	      <textbox id="startT" size="7" onchange="startBox()"/>
+	      <menulist id="datemenuStart" maxwidth="205" oncommand="startChg()">
+	        <menupopup>
+						<menuitem label="&hours;"/>
+						<menuitem label="&days;"/>
+						<menuitem label="&weeks;"/>
+						<menuitem label="&months;"/>
+						<menuitem label="&years;"/>
+						<menuitem label="&ever;"/>
+					</menupopup>
+	      </menulist>
+				<label value="&and;" control="endT"/>
+	      <textbox id="endT" size="7" onchange="endBox()"/>
+	      <menulist id="datemenuEnd" maxwidth="205" oncommand="endChg()">
+	        <menupopup>
+						<menuitem label="&hours;"/>
+						<menuitem label="&days;"/>
+						<menuitem label="&weeks;"/>
+						<menuitem label="&months;"/>
+						<menuitem label="&years;"/>
+					</menupopup>
+	      </menulist>
+				<label value="&ago;"/>
+			</hbox>
+			<groupbox>
+				<caption label="&textvalues;"/>
+			<hbox align="center">
+	      <label value="&searchtext;" control="Srchtxt"/>
+	      <textbox id="Srchtxt" size="50" onchange="srchtxtChange()"/>
+			</hbox>
+			<hbox align="center">
+				<label value="&match;"/>
+				<checkbox id="matchBody" label="&body;"/>
+				<checkbox id="matchTitle" label="&title2;"/>
+				<checkbox id="matchTag" label="&tag;"/>
+			</hbox>
+			<hbox align="center">
+				<label value="&casesensitive;" control="radioCase"/>
+				<radiogroup id="radioCase" orient="horizontal">
+					<radio label="&yes;"/>
+					<radio label="&no;"/>
+				</radiogroup>
+			</hbox>
+			</groupbox>
+			<hbox align="center">
+	      <label id="grplabel" value="&grouptosearch;" control="grpmenu"/>
+	      <menulist id="grpmenu" maxwidth="205" oncommand="fixGroupEdit()">
+	        <menupopup/>
+	      </menulist>
+			</hbox>
+		</groupbox>
+		<checkbox id="showUnread" label="&showUnread;" checked="false"/>
+	</vbox>
+	<vbox id="part3" flex="1">
+		<separator class="thin"/>
+    <label id="dragrtl" value="&dragrtl;"/>
+    <label id="dragltr" value="&dragltr;"/>
+    <label value="&dragwithin;"/>
+		<separator class="thin"/>
+    <hbox align="center" flex="1">
+    <tree id="group.edit" seltype="single" persist="width" 
+	height="380" width="225" hidecolumnpicker="true" 
+	ondblclick="delFd(event); fixMenuList()" 
+	ondragstart="startDrag(event)" ondragleave="fixMenuList()"
+					class="tree" flex="1">
+      <treecols>
+        <treecol id="feedsLeft" primary="true" flex="1" label="left"/>
+      </treecols>
+      <treechildren flex="1"/>
+    </tree>
+    <spacer id="group.feedsspacer" width="20"/>
+    <tree id="group.feeds" seltype="single" persist="width" 
+	height="380" width="225" hidecolumnpicker="true" 
+	ondblclick="addFd(event); fixMenuList()"
+	ondragstart="startDrag(event)" ondragleave="fixMenuList()"
+					class="tree" flex="1">
+      <treecols>
+        <treecol id="feedsRight" primary="true" flex="1" label="right"/>
+      </treecols>
+      <treechildren flex="1"/>
+    </tree>
+    </hbox>
+	</vbox>
+</vbox>
+</dialog>
+

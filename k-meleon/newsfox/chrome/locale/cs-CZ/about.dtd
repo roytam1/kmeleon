@@ -1,0 +1,9 @@
+<!ENTITY projectOwner "koordinátor projektu">
+<!ENTITY localization "Lokalizace:">
+<!ENTITY primaryContact "primární kontakt">
+<!ENTITY developer "vývojář">
+<!ENTITY projectCreator "zakladatel projektu">
+<!ENTITY icons "Ikony:">
+<!ENTITY fromFirefox "Většina ikon je převzata z Firefox/Thunderbird.">
+<!ENTITY fromFamfamfam "Příznak, visačka, sklad a uzavřít jsou převzaty z famfamfam.com">
+<!ENTITY helpADR "Díky ADR za pomoc s ikonami.">

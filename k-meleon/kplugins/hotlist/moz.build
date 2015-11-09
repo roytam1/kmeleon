@@ -1,0 +1,30 @@
+# -*- Mode: python; c-basic-offset: 4; indent-tabs-mode: nil; tab-width: 40 -*-
+# vim: set filetype=python:
+
+LIBRARY_NAME = 'hotlist'
+
+SOURCES += [
+  '../../shared/Utils.cpp',
+  '../rebar_menu/hot_tracking.cpp',
+  'op_edit.cpp',
+  'op_file.cpp',
+  'op_plugin.cpp',
+  'op_utils.cpp',
+  '../../shared/qsort.cpp',
+  '../../shared/stristr.cpp',
+]
+
+FORCE_SHARED_LIB = True
+
+DISABLE_STL_WRAPPING = True
+
+RCINCLUDE = 'op_hotlist.rc'
+
+OS_LIBS += [
+  'comctl32.lib',
+  'comdlg32.lib',
+]
+
+LOCAL_INCLUDES += [
+  '../../shared'
+]

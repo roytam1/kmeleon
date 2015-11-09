@@ -1,0 +1,27 @@
+<!ENTITY name "Name:">
+<!ENTITY insertbefore "Insert before:">
+<!ENTITY dragrtl "Drag from right to left to add feeds to group.">
+<!ENTITY dragltr "Drag from left to right to remove feeds from group.">
+<!ENTITY dragwithin "Drag within group to reorder.">
+<!ENTITY flagged "Flagged:">
+<!ENTITY either "either">
+<!ENTITY unread "Unread:">
+<!ENTITY searchtext "Search text:">
+<!ENTITY match "Match:">
+<!ENTITY body "body">
+<!ENTITY title2 "title">
+<!ENTITY tag "tag">
+<!ENTITY casesensitive "Case sensitive">
+<!ENTITY searchvalues "Search values">
+<!ENTITY textvalues "Text values">
+<!ENTITY time "Time:">
+<!ENTITY grouptosearch "Group to search:">
+<!ENTITY between "Between">
+<!ENTITY and "and">
+<!ENTITY ago "ago">
+<!ENTITY hours "hours">
+<!ENTITY weeks "weeks">
+<!ENTITY months "months">
+<!ENTITY years "years">
+<!ENTITY ever "forever">
+<!ENTITY showUnread "Show number of unread articles (may slow NewsFox down)">

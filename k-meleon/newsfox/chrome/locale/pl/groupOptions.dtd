@@ -1,0 +1,27 @@
+<!ENTITY name "Nazwa:">
+<!ENTITY insertbefore "Wstaw przed:">
+<!ENTITY dragrtl "Aby dodać kanał do grupy, przeciągnij go z prawej strony na lewą.">
+<!ENTITY dragltr "Aby usunąć kanał z grupy, przeciągnij go z lewej strony na prawą.">
+<!ENTITY dragwithin "Aby zmienić kolejność kanałów, należy przeciągać je pomiędzy sobą.">
+<!ENTITY flagged "Oznaczone:">
+<!ENTITY either "żaden">
+<!ENTITY unread "Nieprzeczytane:">
+<!ENTITY searchtext "Szukana fraza:">
+<!ENTITY match "Szukaj w:">
+<!ENTITY body "zawartości">
+<!ENTITY title2 "tytule">
+<!ENTITY tag "etykiecie">
+<!ENTITY casesensitive "Rozróżniaj wielkość znaków">
+<!ENTITY searchvalues "Opcje szukania">
+<!ENTITY textvalues "Opcje tekstu">
+<!ENTITY time "Zakres szukania:">
+<!ENTITY grouptosearch "Grupa do przeszukania:">
+<!ENTITY between "Pomiędzy">
+<!ENTITY and "i">
+<!ENTITY ago "temu">
+<!ENTITY hours "godzin">
+<!ENTITY weeks "tygodni">
+<!ENTITY months "miesięcy">
+<!ENTITY years "lat">
+<!ENTITY ever "wszystko">
+<!ENTITY showUnread "Wyświetlaj ilość nieprzeczytanych wiadomości (może powodować spowolnienie NewsFoksa)">

@@ -1,0 +1,62 @@
+<!ENTITY NewsFoxTeam "NewsFox-team">
+<!ENTITY feedOptions "Feedopties">
+<!ENTITY text "Tekst">
+<!ENTITY webpage "Webpagina">
+<!ENTITY groupOptions "Groepsopties">
+<!ENTITY sCcancel "Verversen afbreken">
+<!ENTITY sCadd "Feed toevoegen">
+<!ENTITY sCoptions "Opties">
+<!ENTITY sChomePage "Startpagina">
+<!ENTITY sCmanageLivemarks "Livebladwijzers beheren">
+<!ENTITY sCmarkAllAsRead "Alles als gelezen markeren">
+<!ENTITY sCdelete "Verwijderen">
+<!ENTITY sCnextUnread "Volgende ongelezen">
+<!ENTITY sCopenUnread "Ongelezen artikelen openen">
+<!ENTITY sCopenSel "Geselecteerde artikelen openen">
+<!ENTITY sCdeleteSel "Geselecteerde artikelen verwijderen">
+<!ENTITY sCaddSearch "Zoekgroep toevoegen">
+<!ENTITY sCaddGroup "Groep toevoegen">
+<!ENTITY sCdeleteGroup "Groep verwijderen">
+<!ENTITY sCshortcut "Sneltoetsen">
+<!ENTITY sCrefresh "Feeds verversen">
+<!ENTITY sCpreviousUnread "Vorige ongelezen">
+<!ENTITY sCdeleteFeedFromGroup "Feed uit groep verwijderen">
+<!ENTITY sCkeystrokeHeading "Toetsaanslag">
+<!ENTITY sCselAll "Alle artikelen selecteren">
+<!ENTITY flagCol "Gelabeld">
+<!ENTITY titleCol "Titel">
+<!ENTITY readCol "Gelezen">
+<!ENTITY dateCol "Datum">
+<!ENTITY authorCol "Schrijver">
+<!ENTITY sourceCol "Bron">
+<!ENTITY feedCol "Feed">
+<!ENTITY tagCol "Label">
+<!ENTITY probCol "Interesse">
+<!ENTITY threadCol "Discussie">
+<!ENTITY XtendCol "Gefilterd web">
+<!ENTITY sCprint "Artikel afdrukken">
+<!ENTITY sCtoggleFilter "Webfilter wisselen">
+<!ENTITY sortTab "Sorteren">
+<!ENTITY sortArticles "Artikelen sorteren:">
+<!ENTITY firstSort "Eerste sortering:">
+<!ENTITY secondSort "Tweede sortering:">
+<!ENTITY thirdSort "Derde sortering:">
+<!ENTITY fourthSort "Vierde sortering:">
+<!ENTITY noCol "Geen">
+<!ENTITY ascendingDir "Oplopend">
+<!ENTITY descendingDir "Aflopend">
+<!ENTITY updatedUnread "Bijgewerkte artikelen als niet gelezen markeren">
+<!ENTITY yes "ja">
+<!ENTITY no "nee">
+<!ENTITY days "dagen">
+<!ENTITY articles "Artikelen">
+<!ENTITY displayStyle "Weergavestijl:">
+<!ENTITY deleteOld "Oude artikelen verwijderen">
+<!ENTITY autoRefresh "Elke">
+<!ENTITY minutes "minu(u)t(en) automatisch verversen">
+<!ENTITY deleteOldKeepUnread "ja, ongelezen berichten bewaren">
+<!ENTITY deleteOldDeleteUnread "ja, ongelezen berichten verwijderen">
+<!ENTITY oldMeans "Als oud instellen">
+<!ENTITY after "na">
+<!ENTITY notInFeed "als niet in de feed">
+<!ENTITY feeds "Feeds">

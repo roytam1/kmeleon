@@ -1,0 +1,31 @@
+<!ENTITY checkFeed "Проверка на емисия">
+<!ENTITY troubleshoot "Откриване на проблеми">
+<!ENTITY OPML.import "Внасяне на OPML...">
+<!ENTITY OPML.export "Изнасяне на OPML...">
+<!ENTITY toolOptions.import.addfeeds "Добавяне към съществуващи емисии">
+<!ENTITY toolOptions.import.startfresh "Нов старт">
+<!ENTITY toolOptions.import.file "от файл...">
+<!ENTITY toolOptions.import.URL "от URL...">
+<!ENTITY toolOptions.passwd "Парола...">
+<!ENTITY help "Помощ за NewsFox">
+<!ENTITY feeds "Емисии">
+<!ENTITY r "Ч">
+<!ENTITY markAllAsUnread "Отбелязване всичко като непрочетено">
+<!ENTITY tagSel "Етикет на избраното">
+<!ENTITY sortFeeds "Сортиране">
+<!ENTITY unsortFeeds "Отмяна на сортиране">
+<!ENTITY toolOptions.restoreBackup "Възстановяване на резервно копие">
+<!ENTITY exportRSS "Изнасяне в RSS...">
+<!ENTITY wait "За по-сигурно, изчакайте докато завърши зареждането">
+<!ENTITY tagEdit "Редактиране на избраните етикети">
+<!ENTITY addGroup.regular "Постоянни">
+<!ENTITY addGroup.search "Търсене">
+<!ENTITY addGroup.tag "Етикет">
+<!ENTITY addFeed.regular "RSS/Atom">
+<!ENTITY addFeed.storage "Съхраняване">
+<!ENTITY prob "пр">
+<!ENTITY mainToolbar "Главна лента">
+<!ENTITY feedToolbar "Лента на емисиите">
+<!ENTITY Xtend "+">
+<!ENTITY markSelAsRead "Маркиране на избраните като прочетени">
+<!ENTITY markSelAsUnread "Маркиране на избраните като непрочетени">

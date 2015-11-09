@@ -1,0 +1,52 @@
+<!ENTITY title "Možnosti NewsFox">
+<!ENTITY global "Všeobecný štýl:">
+<!ENTITY checkOnStartup "Obnoviť všetky kanály pri spustení">
+<!ENTITY notifyUponNewArticles "Upozorniť ak bol pridaný nový článok(y)">
+<!ENTITY confirmDelete "Opýtať sa na potvrdenie pred zmazaním skupín alebo kanálov">
+<!ENTITY confirmDeleteArticle "Opýtať sa na potvrdenie pred zmazaním článkov">
+<!ENTITY shortcutkeys "Klávesové skratky:">
+<!ENTITY restart "(Zmena môže vyžadovať reštartovanie NewsFox)">
+<!ENTITY shortcutsNone "žiadne">
+<!ENTITY shortcutsStd "štandardné">
+<!ENTITY shortcutsAlt "alternatívne">
+<!ENTITY shortcutsCustom "vlastné">
+<!ENTITY seehelp "ponuka má zoznam klávesových skratiek.">
+<!ENTITY newsfox.dir "Priečinok Newsfox">
+<!ENTITY moveNfDir "Obsah priečinka:">
+<!ENTITY copy "kopírovať">
+<!ENTITY move "presunúť">
+<!ENTITY noaction "žiadna akcia">
+<!ENTITY Child_directory "Podpriečinok">
+<!ENTITY Parent_directory "Rodičovský priečinok">
+<!ENTITY dateStyle "Štýl dátumu:">
+<!ENTITY changeToPresent "Zmeniť dátum ělánkov na aktuálny čas ak:">
+<!ENTITY articleTooltips "Popisy článkov">
+<!ENTITY copyToClipboard "Kopírovať telo článkov do schránky">
+<!ENTITY selectAddedFeed "Vybrať nové kanály po pridaní">
+<!ENTITY feedRefresh "Obnovenie kanála:">
+<!ENTITY feedRefreshThreads "vlákna">
+<!ENTITY feedRefreshRenew "obnova(sekundy)">
+<!ENTITY feedSlowdown "U pomalších počítačov, znížiť vlákna a / alebo zvýšiť čas obnovy.">
+<!ENTITY feedRefreshTimeout "Doba obnovenia kanála (sekundy)">
+<!ENTITY horizontalPanes "Horizontálne panely (vyžaduje reštartovanie)">
+<!ENTITY favicons "Favikony">
+<!ENTITY updateTimeToBookmark "Zapísať url kanála a aktualizovaný čas do záložky">
+<!ENTITY spam "Zapnúť filter">
+<!ENTITY globalTab "Všeobecné">
+<!ENTITY feedTab "Kanál/Články">
+<!ENTITY generalTab "Všeobecné">
+<!ENTITY shortcutsTab "Klávesové skratky">
+<!ENTITY keywordsTab "Kľúčové slová">
+<!ENTITY shortcuts.operationHeader "Úloha">
+<!ENTITY shortcuts.select "Vybrať riadok a vložiť kombináciu kláves.">
+<!ENTITY shortcuts.warning "Veľa klávesových kombinácií sa už používa a sú nedostupné.">
+<!ENTITY shortcuts.experiment "Skúste experimentovať, ktoré sú funkčné, alebo použite prednastavené možnosti.">
+<!ENTITY keyword "Kľúčové slovo:">
+<!ENTITY keywordsHighlighted "Kľúčové slovo sa automaticky zvýrazní v článku.">
+<!ENTITY caseIgnored "Všetky vyhľadávania sa robia s malými písmenami.">
+<!ENTITY statusBar "Ikona autoodoberania v stavovom riadku">
+<!ENTITY statusBarText "Text:">
+<!ENTITY buttonText "Text tlačidla Newsfox:">
+<!ENTITY statusBarTextNew "# nový">
+<!ENTITY statusBarTextUnread "# neprečítaný">
+<!ENTITY statusBarTextNone "žiadny">

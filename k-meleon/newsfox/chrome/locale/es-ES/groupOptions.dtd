@@ -1,0 +1,27 @@
+<!ENTITY name "Nombre:">
+<!ENTITY insertbefore "Añadir antes de:">
+<!ENTITY dragrtl "Arrastre desde la izquierda a la derecha para añadir hilos al grupo.">
+<!ENTITY dragltr "Arrastre de la izquierda a la derecha para eliminar hilos del grupo.">
+<!ENTITY dragwithin "Arrastre dentro del grupo para reordenar.">
+<!ENTITY flagged "Marcado:">
+<!ENTITY either "Cualquiera">
+<!ENTITY unread "No leídos:">
+<!ENTITY searchtext "Texto de búsqueda:">
+<!ENTITY match "Coincidir:">
+<!ENTITY body "body">
+<!ENTITY title2 "título">
+<!ENTITY tag "etiqueta">
+<!ENTITY casesensitive "Distinguir mayúsculas">
+<!ENTITY searchvalues "Buscar valores">
+<!ENTITY textvalues "Texto de los valores">
+<!ENTITY time "Hora:">
+<!ENTITY grouptosearch "Grupo a buscar:">
+<!ENTITY between "Entre">
+<!ENTITY and "y">
+<!ENTITY ago "hace">
+<!ENTITY hours "horas">
+<!ENTITY weeks "semanas">
+<!ENTITY months "meses">
+<!ENTITY years "años">
+<!ENTITY ever "cualquiera">
+<!ENTITY showUnread "Mostrar el número de los artículos no leídos (puede ralentizar NewsFox)">

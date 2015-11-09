@@ -1,0 +1,24 @@
+kmeleon.jar:
+% content console2 %content/console2/
+% override chrome://global/content/bindings/richlistbox.xml	chrome://console2/content/global/richlistbox.xml
+    content/console2/blank.html
+    content/console2/blocklist.js
+    content/console2/blocklist.xul
+    content/console2/console2.css
+    content/console2/console2.dtd
+    content/console2/console2.js
+    content/console2/console2.xml
+    content/console2/console2.xul
+    content/console2/consolefilter.js
+    content/console2/contents.rdf
+    content/console2/domainlist.js
+    content/console2/domainlist.xul
+    content/console2/overlay.xul
+    content/console2/overlay0.xul
+    content/console2/seamonkey-hack.xul
+    content/console2/seamonkey-overlay.xul
+    content/console2/seamonkey.css
+    content/console2/textbox191.css
+    content/console2/global/blank.xul       (global/blank.xul)
+    content/console2/global/listbox.xml     (global/listbox.xml)
+    content/console2/global/richlistbox.xml (global/richlistbox.xml)

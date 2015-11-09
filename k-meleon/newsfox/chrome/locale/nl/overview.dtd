@@ -1,0 +1,29 @@
+<!ENTITY overview.title "Overzicht">
+<!ENTITY adding.feeds "Feeds toevoegen">
+<!ENTITY addnew.feeds "Voeg nieuwe feeds toe door gebruik te maken van de knop Feed toevoegen.">
+<!ENTITY addnew.feeds.opml "Nieuwe feeds kunnen worden geïmporteerd uit een OPML-bestand in het optiesmenu.">
+<!ENTITY addnew.feeds.auto "Door ‘NewsFox’ te kiezen in het venster ‘Feeds’ van de Firefox-opties (voorkeursinstellingen) kan NewsFox feeds toevoegen door op het RSS-pictogram aan de rechterzijde van de locatiebalk te klikken indien een feed beschikbaar is.">
+<!ENTITY alternative.use "NewsFox kan ook de Livebladwijzers van Firefox lezen. U kunt kiezen welke Livebladwijzers u wilt lezen met NewsFox door gebruik te maken van de knop Livebladwijzers.">
+<!ENTITY feed.options "De feedopties kunnen worden gewijzigd vanuit het contextmenu het feedvenster (aan de linkerkant) of vanuit elke optiesknop.">
+<!ENTITY remove.feeds "Feeds verwijderen">
+<!ENTITY feed.remove "Verwijder een feed en alle bijbehorende artikelen permanent door gebruik te maken van de knop Feed verwijderen. Dit verwijdert de feed uit alle groepen.">
+<!ENTITY new.items "Op nieuwe artikelen controleren">
+<!ENTITY retrieve.items "U kunt nieuwe artikelen ophalen door op de knop Vernieuwen te drukken.">
+<!ENTITY retrieve.items.alt "U kunt ook nieuwe artikelen ophalen door het contextmenu te gebruiken op een feed of groep in het feedvenster.">
+<!ENTITY retrieve.options "Opties voor het automatisch downloaden van nieuwe artikelen kunnen worden ingesteld in het optiesmenu.">
+<!ENTITY manage.title "Artikelen beheren">
+<!ENTITY manage.info "Artikelen worden gemarkeerd als gelezen wanneer ze worden geselecteerd. De gelezen/ongelezen en gemarkeerd/ongemarkeerd status van een artikel kan worden gewisseld door te klikken op het bijbehorende pictogram.">
+<!ENTITY manage.info2 "Artikelen kunnen worden gemarkeerd als gelezen/ongelezen of verwijderd middels het contextmenu, werkbalkknoppen of sneltoetsen.">
+<!ENTITY manage.info3 "Artikelen kunnen worden gesorteerd door op de kolomkoppen te klikken. Standaard worden de nieuwste artikelen bovenaan weergegeven. Klik op de gelezen/ongelezen-kolomkop om ongelezen artikelen naar boven te verplaatsen.">
+<!ENTITY groups.tags "Groepen">
+<!ENTITY groups.info "Er is een groep genaamd ‘FEEDS’ die al uw feeds bevat. Feeds kunnen onder zoveel andere groepen vallen als u wilt. Er bestaat maar één versie van een feed: wanneer u een artikel als gelezen markeert gebeurt dit in alle groepen.">
+<!ENTITY groups.info1 "Groepen kunnen worden toegevoegd met de knop Groep toevoegen.">
+<!ENTITY groups.info2 "Groepen kunnen ook worden gevormd door in de feeds te zoeken.U kunt bijvoorbeeld zoeken naar alle verwijzingen naar ‘NewsFox’ binnen uw feeds. Deze zoekgroepen kunnen worden toegevoegd door op de knop Zoekgroep toevoegen te drukken.">
+<!ENTITY groups.info3 "Beide groeptypes kunnen worden verwijderd met de knop Groep verwijderen.">
+<!ENTITY groups.info4 "Groepen kunnen nuttig zijn om uw feeds te organiseren: u kunt bijvoorbeeld groepen maken voor nieuwe, belangrijke, dagelijkse, wekelijkse of technische berichten. De keus is aan u.">
+<!ENTITY groups.info5 "Groepsopties kunnen worden gewijzigd via het contextmenu in het feedvenster of middels één van de optiesknoppen.">
+<!ENTITY other.title "Diversen">
+<!ENTITY other.dragndrop "Feeds kunnen worden geordend binnen groepen en groepen kunnen worden geordend door met ze te slepen.">
+<!ENTITY other.art.toolbar "Er is een contextmenu voor het feedvenster aan de linkerzijde. Er is tevens een contextmenu en werkbalk voor artikelen aan de rechterzijde. Tooltips leggen de betekenis van de knoppen uit.">
+<!ENTITY other.info "In het onwaarschijnlijke geval dat al uw feeds verdwijnen bestaan er opties in het hoofdvenster om ze weer terug te halen.">
+<!ENTITY other.info2 "Sneltoetsen kunnen worden ingesteld in het optiesmenu, en een lijst met sneltoetsen is beschikbaar in het menu Help.">

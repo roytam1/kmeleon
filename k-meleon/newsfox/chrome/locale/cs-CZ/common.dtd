@@ -1,0 +1,62 @@
+<!ENTITY NewsFoxTeam "NewsFox team">
+<!ENTITY feedOptions "Nastavení kanálu">
+<!ENTITY text "text">
+<!ENTITY webpage "html">
+<!ENTITY groupOptions "Nastavení složky">
+<!ENTITY sCcancel "Zrušit aktualizaci">
+<!ENTITY sCadd "Přidat kanál">
+<!ENTITY sCoptions "Nastavení">
+<!ENTITY sChomePage "Domovská stránka">
+<!ENTITY sCmanageLivemarks "Záložky Firefox">
+<!ENTITY sCmarkAllAsRead "Označit vše jako přečtené">
+<!ENTITY sCdelete "Odstranit kanál">
+<!ENTITY sCnextUnread "Další nepřečtený">
+<!ENTITY sCopenUnread "Otevřít nepřečtené">
+<!ENTITY sCopenSel "Otevřít vybrané">
+<!ENTITY sCdeleteSel "Odstranit vybrané">
+<!ENTITY sCaddSearch "Přidat vyhledávací skupinu">
+<!ENTITY sCaddGroup "Přidat složku">
+<!ENTITY sCdeleteGroup "Odstranit složku">
+<!ENTITY sCshortcut "Klávesové zkratky">
+<!ENTITY sCrefresh "Aktualizovat kanály">
+<!ENTITY sCpreviousUnread "Předchozí napřečtená">
+<!ENTITY sCdeleteFeedFromGroup "Odstranit kanál ze složky">
+<!ENTITY sCkeystrokeHeading "Stisk klávesy">
+<!ENTITY sCselAll "Vybrat všechny články">
+<!ENTITY flagCol "Příznak">
+<!ENTITY titleCol "Název">
+<!ENTITY readCol "Přečteno">
+<!ENTITY dateCol "Datum">
+<!ENTITY authorCol "Autor">
+<!ENTITY sourceCol "Zdroj">
+<!ENTITY feedCol "Kanál">
+<!ENTITY tagCol "Visačka">
+<!ENTITY probCol "Rating">
+<!ENTITY threadCol "Vlákno">
+<!ENTITY XtendCol "Filtr">
+<!ENTITY sCprint "Tisk článku">
+<!ENTITY sCtoggleFilter "Změnit web filtr">
+<!ENTITY sortTab "Řazení">
+<!ENTITY sortArticles "Řazení článků">
+<!ENTITY firstSort "První kritérium">
+<!ENTITY secondSort "Druhé kritérium">
+<!ENTITY thirdSort "Třetí kritérium">
+<!ENTITY fourthSort "Čtvrté kritérium">
+<!ENTITY noCol "žádné">
+<!ENTITY ascendingDir "vzestupně">
+<!ENTITY descendingDir "sestupně">
+<!ENTITY updatedUnread "Označit aktualizované články jako nepřečtené">
+<!ENTITY yes "ano">
+<!ENTITY no "ne">
+<!ENTITY days "dnech">
+<!ENTITY articles "Články">
+<!ENTITY displayStyle "Uspořádání:">
+<!ENTITY deleteOld "Automaticky mazat staré články">
+<!ENTITY autoRefresh "Aktualizace po">
+<!ENTITY minutes "minutách">
+<!ENTITY deleteOldKeepUnread "ano, kromě nepřečtených">
+<!ENTITY deleteOldDeleteUnread "ano i nepřečtené">
+<!ENTITY oldMeans "za staré považovat články">
+<!ENTITY after "po">
+<!ENTITY notInFeed "bez kanálu">
+<!ENTITY feeds "Kanály">

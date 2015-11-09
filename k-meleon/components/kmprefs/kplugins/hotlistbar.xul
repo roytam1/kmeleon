@@ -1,0 +1,82 @@
+<?xml version="1.0"?>
+<!DOCTYPE overlay SYSTEM "chrome://kmprefs/locale/kplugins/hotlistbar.dtd">
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+	<script type="application/x-javascript">
+<![CDATA[
+var kHotlistBar = {
+	_base : null,
+	_pref : null,
+	_ctrl : null,
+	init : function () {
+		if (kPlugin.absent("hotlist")) {
+			var node = document.getElementById("kHotlistTBar");
+			node.parentNode.removeChild(node);
+			node = document.getElementById("kHotlistTBarTab");
+			node.parentNode.removeChild(node);
+		} else {
+			this._base = "kmeleon.plugins.hotlist.";
+			this._pref = new Array("chevron",
+					"buttonIcons",
+					"rebar");
+			this._ctrl = new Array("buttonMaxWidth",
+					"buttonMinWidth",
+					"toolbarFolder");
+			this._setControls();
+			for (var j = 0; j < this._pref.length; j++)
+				initCheckbox(this._base + this._pref[j]);
+			for (var j = 0; j < this._ctrl.length; j++)
+				initTextbox(this._base + this._ctrl[j], false);
+		}
+	},
+	_setControls : function () {
+		var dis = !kPlugin.load("hotlist");
+		for (var j = 0; j < this._pref.length; j++)
+			document.getElementById(this._base + this._pref[j]).disabled = dis;
+		for (var j = 0; j < this._ctrl.length; j++)
+			document.getElementById(this._base + this._ctrl[j]).disabled = dis;
+		for (var j = 0; j < 3; j++)
+			document.getElementById("kHotlistTBar" + [j]).disabled = dis;
+		try {
+			document.getElementById("kHotlistTBarTab").setAttribute("disabled", dis);
+		} catch (e) {}
+	}
+};
+//addEventListener("load",kHotlistBar.init,true);
+]]>
+	</script>
+	<tabpanel id="kHotlistTBar" flex="1" orient="vertical" style="overflow:auto">
+		<separator class="thin"/>
+		<checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.plugins.hotlist.rebar" label="&hotlistbar.enable;"/>
+		<separator class="thick"/>
+		<grid>
+			<columns>
+				<column/>
+				<column flex="1"/>
+				<column/>
+			</columns>
+			<rows>
+				<row align="center">
+					<label value="&toolbar.folder;"/>
+					<textbox id="kmeleon.plugins.hotlist.toolbarFolder" flex="1" class="uri-element" oninput="setCharPref(this.id,this.value)"/>
+					<button id="kHotlistTBar0" label="&restoreDefault;" oncommand="restoreDefault(this.previousSibling.id);initTextbox(this.previousSibling.id,false)"/>
+				</row>
+				<row align="center">
+					<label value="&toolbar.buttonMinWidth;"/>
+					<textbox id="kmeleon.plugins.hotlist.buttonMinWidth" flex="1" class="uri-element" oninput="setIntPref(this.id,this.value)"/>
+					<button id="kHotlistTBar1" label="&restoreDefault;" oncommand="restoreDefault(this.previousSibling.id);initTextbox(this.previousSibling.id,false)"/>
+				</row>
+				<row align="center">
+					<label value="&toolbar.buttonMaxWidth;"/>
+					<textbox id="kmeleon.plugins.hotlist.buttonMaxWidth" flex="1" class="uri-element" oninput="setIntPref(this.id,this.value)"/>
+					<button id="kHotlistTBar2" label="&restoreDefault;" oncommand="restoreDefault(this.previousSibling.id);initTextbox(this.previousSibling.id,false)"/>
+				</row>
+			</rows>
+		</grid>
+		<separator class="thick"/>
+		<checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.plugins.hotlist.chevron" label="&hotlistbar.chevron;"/>
+		<checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.plugins.hotlist.buttonIcons" label="&toolbar.buttonIcons;"/>
+		<vbox flex="1"/>
+		<description>&restartNote1;</description>
+	</tabpanel>
+	<tab id="kHotlistTBarTab" label="&hotlistbar.label;"/>
+</overlay>

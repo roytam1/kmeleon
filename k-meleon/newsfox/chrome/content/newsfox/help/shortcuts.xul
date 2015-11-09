@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
+<?xml-stylesheet href="chrome://newsfox/content/help/style.css" type="text/css"?>
+
+<!DOCTYPE window [
+  <!ENTITY % shortcutsDTD SYSTEM "chrome://newsfox/locale/shortcuts.dtd">
+  %shortcutsDTD;
+  <!ENTITY % commonDTD SYSTEM "chrome://newsfox/locale/common.dtd">
+  %commonDTD;
+]>
+
+<dialog id="shortcutsDlg" title="&sCshortcut;"  
+  xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+  onload="loadCustom();"
+  buttons="accept">
+
+	<script src="chrome://newsfox/content/globalfuncs.js"/>
+		<script><![CDATA[
+			function loadCustom()
+			{
+				var file = NFgetProfileDir();
+				file.append("accel.xml");
+				if (file.exists())
+				{
+					var xml = xmlLoad(getFileSpec(file));
+    			var kids = xml.getElementsByTagName("key");
+    			for (var i=0; i<kids.length; i++)
+    			{
+						var idkey = document.getElementById(kids[i].getAttribute("id"));
+						if (idkey)
+						{
+							var mods = kids[i].getAttribute("modifiers");
+							mods += (mods.length > 0) ? "-" : "";
+							mods = mods.replace(/ /g,"-");
+							var altVal = document.getElementById("altVal").childNodes[0].nodeValue;
+							mods = mods.replace(/alt-/g,altVal + "-");
+							var shiftVal = document.getElementById("shiftVal").childNodes[0].nodeValue;
+							mods = mods.replace(/shift-/g,shiftVal + "-");
+							var ctrlVal = document.getElementById("ctrlVal").childNodes[0].nodeValue;
+							mods = mods.replace(/ctrl-/g,ctrlVal + "-");
+							idkey.childNodes[0].nodeValue = mods + kids[i].getAttribute("key");
+						}
+					}
+				}
+//			var loc = NFgetPref("general.useragent.locale","str",null,true);
+//			if (loc == "zh-TW") // for example
+//				document.getElementById("dlgXhtmlID").setAttribute("style", "font-size: 12px;");
+			}
+
+			var startPos=0;
+			var mouseDown = function(event)
+			{
+				if (startPos != 0)
+					startPos = 0;
+				else if (event.target.localName != "dialog")
+					startPos = [ event.clientX, event.clientY];
+			}
+			var mouseMove = function(event)
+			{
+   			if (startPos != 0)
+				{
+					var newX = event.screenX-startPos[0];
+					var newY = event.screenY-startPos[1];
+					window.moveTo(newX,newY);
+				}
+			}
+			var mouseUp = function(event) { startPos=0; }
+
+			window.addEventListener("mousedown",mouseDown, false);
+			window.addEventListener("mouseup",mouseUp, false);
+			window.addEventListener("mousemove",mouseMove, false);
+		]]></script>
+
+<vbox id="dlgXhtmlID" class="dlgXhtml">
+<hbox>
+<span xmlns="http://www.w3.org/1999/xhtml">
+<h2><img src="chrome://newsfox/skin/newsfox-32.png"/>&#160;&sCshortcut;</h2>
+<table id="bigtable" cellspacing="5" cellpadding="20">
+	<tr>
+		<th class="overallHeading">&sCcustomHeading;</th>
+		<th class="overallHeading">&sCfixedHeading;</th>
+	</tr>
+	<tr>
+		<td style="vertical-align:top">
+			<table border="1" cellspacing="0" cellpadding="0">
+				<tr>
+					<th nowrap="true" align="left">&sCkeystrokeHeading;</th>
+					<th nowrap="true" align="left">&sCartFeedHeading;</th>
+				</tr>
+				<tr>
+					<td class="keystroke" id="add-search-group-key"> </td>
+					<td nowrap="true">&sCaddSearch;</td>
+				</tr>
+				<tr class="even">
+					<td class="keystroke" id="add-group-key"> </td>
+					<td nowrap="true">&sCaddGroup;</td>
+				</tr>
+				<tr>
+					<td class="keystroke" id="delete-group-key"> </td>
+					<td nowrap="true">&sCdeleteGroup;</td>
+				</tr>
+				<tr class="even">
+					<td class="keystroke" id="add-feed-key"> </td>
+					<td nowrap="true">&sCadd;</td>
+				</tr>
+				<tr>
+					<td class="keystroke" id="delete-feed-key"> </td>
+					<td nowrap="true">&sCdelete;</td>
+				</tr>
+				<tr class="even">
+					<td class="keystroke" id="delete-feed-from-group-key"> </td>
+					<td nowrap="true">&sCdeleteFeedFromGroup;</td>
+				</tr>
+				<tr>
+					<td class="keystroke" id="refresh-key"> </td>
+					<td nowrap="true">&sCrefresh;</td>
+				</tr>
+				<tr class="even">
+					<td class="keystroke" id="do-cancel-check-feeds-key"> </td>
+					<td nowrap="true">&sCcancel;</td>
+				</tr>
+				<tr>
+					<td class="keystroke" id="mark-all-read-key"> </td>
+					<td nowrap="true">&sCmarkAllAsRead;</td>
+				</tr>
+				<tr class="even">
+					<td class="keystroke" id="next-unread-key"> </td>
+					<td nowrap="true">&sCnextUnread;</td>
+				</tr>
+				<tr>
+					<td class="keystroke" id="prev-unread-key"> </td>
+					<td nowrap="true">&sCpreviousUnread;</td>
+				</tr>
+				<tr class="even">
+					<td class="keystroke" id="open-unread-key"> </td>
+					<td nowrap="true">&sCopenUnread;</td>
+				</tr>
+				<tr>
+					<td class="keystroke" id="options-key"> </td>
+					<td nowrap="true">&sCoptions;</td>
+				</tr>
+				<tr class="even">
+					<td class="keystroke" id="home-key"> </td>
+					<td nowrap="true">&sChomePage;</td>
+				</tr>
+				<tr>
+					<td class="keystroke" id="open-selected-key"> </td>
+					<td nowrap="true">&sCopenSel;</td>
+				</tr>
+				<tr class="even">
+					<td class="keystroke" id="delete-selected-key"> </td>
+					<td nowrap="true">&sCdeleteSel;</td>
+				</tr>
+				<tr>
+					<td class="keystroke" id="manage-livemarks-key"> </td>
+					<td nowrap="true">&sCmanageLivemarks;</td>
+				</tr>
+				<tr class="even">
+					<td class="keystroke" id="toggle-filter-key"> </td>
+					<td nowrap="true">&sCtoggleFilter;</td>
+				</tr>
+  <!-- To make sure table is wide enough. First column is not filled in
+       until table is constructed. -->
+				<tr style="visibility: collapse;">
+					<td class="keystroke" nowrap="true">Ctrl-Shift-D</td>
+					<td nowrap="true">&sCmanageLivemarks;</td>
+				</tr>
+			</table>
+		</td>
+		<td style="vertical-align:top">
+			<table border="1" cellspacing="0" cellpadding="0">
+				<tr>
+					<th nowrap="true" align="left">&sCkeystrokeHeading;</th>
+					<th nowrap="true" align="left">&sCviewArtHeading;</th>
+					<th nowrap="true" align="left">&sCfeedHeading;</th>
+				</tr>
+				<tr>
+					<td class="keystroke" nowrap="true"><img class="Iarr" src="images/left.png"/></td>
+					<td nowrap="true">&sCarticleUp;</td>
+					<td nowrap="true">&sCupLevel;</td>
+				</tr>
+				<tr class="even">
+					<td class="keystroke" nowrap="true"><img class="Iarr" src="images/right.png"/></td>
+					<td nowrap="true">&sCarticleDown;</td>
+					<td nowrap="true">&sCexpandTree;</td>
+				</tr>
+				<tr>
+					<td class="keystroke" nowrap="true">&sCaltKey;-<img class="Iarr" src="images/up.png"/></td>
+					<td nowrap="true">&sCpreviousUnread;</td>
+					<td nowrap="true">&sCsame;</td>
+				</tr>
+				<tr class="even">
+					<td class="keystroke" nowrap="true">&sCaltKey;-<img class="Iarr" src="images/down.png"/></td>
+					<td nowrap="true">&sCnextUnread;</td>
+					<td nowrap="true">&sCsame;</td>
+				</tr>
+				<tr>
+					<td class="keystroke" nowrap="true">&sCctrlKey;-<img class="Iarr" src="images/left.png"/></td>
+					<td nowrap="true">&sCmarkAllAsRead;</td>
+					<td nowrap="true">&sCsame;</td>
+				</tr>
+				<tr class="even">
+					<td class="keystroke" nowrap="true">&sCctrlKey;-&sCshiftKey;-<img class="Iarr" src="images/left.png"/></td>
+					<td nowrap="true">&sCtoggleArtFlag;</td>
+					<td nowrap="true">&sCsame;</td>
+				</tr>
+				<tr>
+					<td class="keystroke" nowrap="true">&sCctrlKey;-<img class="Iarr" src="images/right.png"/></td>
+					<td nowrap="true">&sCselToFocus;</td>
+					<td nowrap="true"></td>
+				</tr>
+				<tr class="even">
+					<td class="keystroke" nowrap="true">&sCctrlKey;-&sCshiftKey;-<img class="Iarr" src="images/right.png"/></td>
+					<td nowrap="true">&sCopenSel;</td>
+					<td nowrap="true"></td>
+				</tr>
+				<tr>
+					<td class="keystroke" nowrap="true">&sCctrlKey;-<img class="Iarr" src="images/up.png"/></td>
+					<td nowrap="true">&sCfocusUp;</td>
+					<td nowrap="true">&sCmoveFeedUp;</td>
+				</tr>
+				<tr class="even">
+					<td class="keystroke" nowrap="true">&sCctrlKey;-<img class="Iarr" src="images/down.png"/></td>
+					<td nowrap="true">&sCfocusDown;</td>
+					<td nowrap="true">&sCmoveFeedDown;</td>
+				</tr>
+				<tr>
+					<td class="keystroke" nowrap="true">&sCctrlKey;-&sCaltKey;-<img class="Iarr" src="images/left.png"/></td>
+					<td nowrap="true">&sCfeedUp;</td>
+					<td nowrap="true">&sCsame;</td>
+				</tr>
+				<tr class="even">
+					<td class="keystroke" nowrap="true">&sCctrlKey;-&sCaltKey;-<img class="Iarr" src="images/right.png"/></td>
+					<td nowrap="true">&sCfeedDown;</td>
+					<td nowrap="true">&sCsame;</td>
+				</tr>
+				<tr>
+					<td class="keystroke" nowrap="true">&sCctrlKey;-&sCaltKey;-<img class="Iarr" src="images/up.png"/></td>
+					<td nowrap="true">&sCprint;</td>
+					<td nowrap="true">&sCsame;</td>
+				</tr>
+				<tr class="even">
+					<td class="keystroke" nowrap="true">&sCctrlKey;-&sCaltKey;-<img class="Iarr" src="images/down.png"/></td>
+					<td nowrap="true">&sCexpColl;</td>
+					<td nowrap="true">&sCsame;</td>
+				</tr>
+				<tr>
+					<td class="keystroke" nowrap="true">&sCctrlKey;-&sCaltKey;-&sCshiftKey;-<img class="Iarr" src="images/right.png"/></td>
+					<td nowrap="true">&sCtoggleFilter;</td>
+					<td nowrap="true">&sCsame;</td>
+				</tr>
+				<tr class="even">
+					<td class="keystroke" nowrap="true">&sCctrlKey;-A</td>
+					<td nowrap="true">&sCselAll;</td>
+					<td nowrap="true"></td>
+				</tr>
+				<tr>
+					<td class="keystroke" nowrap="true">&sCshiftKey;-&sCdeleteKey;, &sCctrlKey;-a</td>
+					<td nowrap="true">&sCselAll;</td>
+					<td nowrap="true">&sCsame;</td>
+				</tr>
+				<tr class="even">
+					<td class="keystroke" nowrap="true">&sCdeleteKey;</td>
+					<td nowrap="true">&sCdeleteSel;</td>
+					<td nowrap="true">&sCdelete;</td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+</table>
+</span>
+</hbox>
+<description width="5" maxwidth="600">&sCcustomShortcut;</description>
+</vbox>
+
+<label id="shiftVal" hidden="true">&sCshiftKey;</label>
+<label id="ctrlVal" hidden="true">&sCctrlKey;</label>
+<label id="altVal" hidden="true">&sCaltKey;</label>
+
+</dialog>
+

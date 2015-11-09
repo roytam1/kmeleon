@@ -1,0 +1,18 @@
+<!ENTITY manager.hide		"Hide properties and buttons">
+<!ENTITY menu.folder		"Menu Folder:">
+<!ENTITY menu.order		"Menu Order">
+<!ENTITY menu.sortAscending	"Sort ascending (a-z)">
+<!ENTITY menu.sortDescending	"Sort descending (z-a)">
+<!ENTITY menu.foldersFirst	"Show folders first">
+<!ENTITY spillover.label	"Menu Spillover">
+<!ENTITY spillover.descr	"When a (sub)menu is spilling over:">
+<!ENTITY spillover.arrows	"Show scrolling arrows">
+<!ENTITY spillover.submenu	"Show a submenu">
+<!ENTITY spillover.forceBefore	"Force spillover after">
+<!ENTITY spillover.forceAfter	"entries">
+<!ENTITY toolbar.folder		"Toolbar Folder:">
+<!ENTITY toolbar.title		"Toolbar Title:">
+<!ENTITY toolbar.buttonWidth	"Toolbar Button Width">
+<!ENTITY toolbar.buttonMinWidth	"Min. Button Width (in mm):">
+<!ENTITY toolbar.buttonMaxWidth	"Max. Button Width (in mm):">
+<!ENTITY toolbar.buttonIcons	"Show button icons">

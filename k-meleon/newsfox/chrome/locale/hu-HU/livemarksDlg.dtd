@@ -1,0 +1,6 @@
+<!ENTITY titleColumn "Hírfolyam cím">
+<!ENTITY urlColumn "Hírfolyam URL">
+<!ENTITY newLivemarks "Új élő könyvjelző!">
+<!ENTITY manageLivemarks2 "Válassza ki a könyvjelzőket, melyeket NewsFox-szal akar olvasni!">
+<!ENTITY newSyncmarks "Új szinkronizációs könyvjelző!">
+<!ENTITY selectAll "Mind kiválasztása">

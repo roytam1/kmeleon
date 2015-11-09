@@ -1,0 +1,9 @@
+<!ENTITY title "Редактировать Бирки">
+<!ENTITY tagAdd "Бирки для присвоения">
+<!ENTITY tagRemove "Бирки для удаления">
+<!ENTITY tagDeleteCompletely "Бирки для полного удаления отовсюду">
+<!ENTITY colorVaries1 "СИНИЙ: бирка есть во всех выбранных записях">
+<!ENTITY colorVaries2 "ФИОЛЕТОВЫЙ: бирка есть в некоторых из выбранных записей">
+<!ENTITY colorVaries3 "КРАСНЫЙ: бирки нет ни в одной из выбранных записей">
+<!ENTITY newTagAdd "Новые бирки для добавления к выбранным записям">
+<!ENTITY newTagAddExample "&apos;/&apos; разделяет бирки: &apos;tech/news&apos;">

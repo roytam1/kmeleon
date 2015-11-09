@@ -1,0 +1,62 @@
+<!ENTITY NewsFoxTeam "Екипът на NewsFox">
+<!ENTITY feedOptions "Настройки на емисия...">
+<!ENTITY text "Текст">
+<!ENTITY webpage "Уеб страница">
+<!ENTITY groupOptions "Настройки на група...">
+<!ENTITY sCcancel "Отказване на обновяването">
+<!ENTITY sCadd "Добавяне на нова емисия">
+<!ENTITY sCoptions "Опции">
+<!ENTITY sChomePage "Домашна страница">
+<!ENTITY sCmanageLivemarks "Управляване на живите отметки">
+<!ENTITY sCmarkAllAsRead "Отбелязване всичко като прочетено">
+<!ENTITY sCdelete "Изтриване на емисия">
+<!ENTITY sCnextUnread "Следващо непрочетено">
+<!ENTITY sCopenUnread "Отваряне на непрочетените">
+<!ENTITY sCopenSel "Отваряне на избраните">
+<!ENTITY sCdeleteSel "Изтриване на избраните">
+<!ENTITY sCaddSearch "Добавяне на група за търсене">
+<!ENTITY sCaddGroup "Добавяне на група">
+<!ENTITY sCdeleteGroup "Изтриване на група">
+<!ENTITY sCshortcut "Клавиши за бърз достъп">
+<!ENTITY sCrefresh "Обновяване на емисиите">
+<!ENTITY sCpreviousUnread "Предишна непрочетена">
+<!ENTITY sCdeleteFeedFromGroup "Изтриване на емисия от група">
+<!ENTITY sCkeystrokeHeading "Натискане">
+<!ENTITY sCselAll "Избиране на всичко">
+<!ENTITY flagCol "Със флаг">
+<!ENTITY titleCol "Заглавие">
+<!ENTITY readCol "Прочетено">
+<!ENTITY dateCol "Дата">
+<!ENTITY authorCol "Автор">
+<!ENTITY sourceCol "Източник">
+<!ENTITY feedCol "Емисия">
+<!ENTITY tagCol "Етикет">
+<!ENTITY probCol "Интерес">
+<!ENTITY threadCol "Тема">
+<!ENTITY XtendCol "Филтрирани">
+<!ENTITY sCprint "Печат на статия">
+<!ENTITY sCtoggleFilter "Включване на уеб-филтър">
+<!ENTITY sortTab "Сортиране">
+<!ENTITY sortArticles "Сортиране на публикации:">
+<!ENTITY firstSort "Първо сортиране:">
+<!ENTITY secondSort "Второ сортиране:">
+<!ENTITY thirdSort "Трето сортиране:">
+<!ENTITY fourthSort "Четвърто сортиране:">
+<!ENTITY noCol "Нищо">
+<!ENTITY ascendingDir "Възходящо">
+<!ENTITY descendingDir "Низходящо">
+<!ENTITY updatedUnread "Маркиране на непрочетените като прочетени">
+<!ENTITY yes "да">
+<!ENTITY no "не">
+<!ENTITY days "дни">
+<!ENTITY articles "Публикации">
+<!ENTITY displayStyle "Начин на показване:">
+<!ENTITY deleteOld "Автоматично изтриване на старите записи">
+<!ENTITY autoRefresh "Авто-обновяване на всеки">
+<!ENTITY minutes "минути">
+<!ENTITY deleteOldKeepUnread "да, нека остане непрочетено">
+<!ENTITY deleteOldDeleteUnread "да, изтриване на непрочетеното">
+<!ENTITY oldMeans "Старо е">
+<!ENTITY after "след">
+<!ENTITY notInFeed "не в емисията">
+<!ENTITY feeds "Емисии">

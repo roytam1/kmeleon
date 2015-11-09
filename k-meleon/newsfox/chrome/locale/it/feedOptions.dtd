@@ -1,0 +1,25 @@
+<!ENTITY useGlobal "utilizza impostazioni globali">
+<!ENTITY feedAutoCheck "&apos;Ricarica tutti i feed&apos; verifica la presenza di nuovi articoli">
+<!ENTITY dontDeleteUnread "Non cancellare gli articoli non letti">
+<!ENTITY groups "Gruppi:">
+<!ENTITY checkfeed "Controlla feed">
+<!ENTITY iconsrc "Percorso dell&apos;icona:">
+<!ENTITY authentication "Autenticazione (solo per feed certificati)">
+<!ENTITY username "Nome utente:">
+<!ENTITY password "Password:">
+<!ENTITY feedPrivate "Esegui la crittografia sul disco degli articoli del feed">
+<!ENTITY keepDays.pre "Mantieni le voci per">
+<!ENTITY keepDays.post "giorni">
+<!ENTITY mainTab "Generale">
+<!ENTITY filterTab "Filtro web">
+<!ENTITY securityTab "Sicurezza">
+<!ENTITY filterNew "Scarica pagine web filtrate per tutti i nuovi articoli">
+<!ENTITY filterImages "Scarica le immagini delle pagine web filtrate">
+<!ENTITY filterInfo "Inserire il filtro in modo da trasformare il link HTML di un articolo in una descrizione dell&apos;articolo stesso. Il filtro può essere un&apos;espressione regolare corrispondente o un codice JavaScript il cui valore sarà trasformato nella descrizione estesa">
+<!ENTITY filterJSinfo "Variabili disponibili utilizzando JavaScript:">
+<!ENTITY filterJSvar1 "linkDOM contiene il DOM della pagina dell&apos;articolo">
+<!ENTITY filterJSvar2 "linkHTML contiene il testo e il codice HTML della pagina dell&apos;articolo">
+<!ENTITY filterJSvar3 "getElementByClass (classe, tag, nodo) restituisce un array di tutti gli elementi HTML con le classi e i tag associati ai nodi">
+<!ENTITY filterMime "Sovrascrivi set di caratteri (inserire il set desiderato oppure &apos;+&apos; = automatico o &apos;&gt;&apos; = test)">
+<!ENTITY filterInfo2 "Inserire un filtro se non si desidera scaricare le immagini al posto della pagina HTML. Per utilizzare il filtro predefinito premere il tasto Backspace.">
+<!ENTITY never "mai">

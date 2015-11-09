@@ -1,0 +1,24 @@
+<!ENTITY sCcustomShortcut "Vlastné klávesové skratky môžu byť nadefinované úpravou atribútov &apos;modifiers&apos; a &apos;key&apos;, v súbore &apos;accel.xml&apos; v profile v priečinku newsfox, po vybratí a nastavení klávesových skratiek v okne možnosti a ukončení Newsfox.">
+<!ENTITY sCcustomHeading "Vlastné klávesové skratky">
+<!ENTITY sCfixedHeading "Fixné skratky">
+<!ENTITY sCartFeedHeading "Článok/panel kanála">
+<!ENTITY sCviewArtHeading "Zobraziť/panel článku">
+<!ENTITY sCfeedHeading "Panel kanála">
+<!ENTITY sCarticleUp "Článok hore">
+<!ENTITY sCarticleDown "Článok dole">
+<!ENTITY sCupLevel "O úroveň vyššie">
+<!ENTITY sCexpandTree "Rozšíriť kanál">
+<!ENTITY sCsame "rovnaký">
+<!ENTITY sCtoggleArtFlag "Označiť článok vlajkou">
+<!ENTITY sCselToFocus "Výber pre zameranie">
+<!ENTITY sCfocusUp "Zamerať článok hore">
+<!ENTITY sCfocusDown "Zamerať článok dole">
+<!ENTITY sCmoveFeedUp "Presunúť kanál hore">
+<!ENTITY sCmoveFeedDown "Presunúť kanál dole">
+<!ENTITY sCfeedUp "Kanál hore">
+<!ENTITY sCfeedDown "Kanál dole">
+<!ENTITY sCexpColl "Rozšíriť/zbaliť kanál">
+<!ENTITY sCdeleteKey "zmazať">
+<!ENTITY sCctrlKey "ctrl">
+<!ENTITY sCshiftKey "shift">
+<!ENTITY sCaltKey "alt">

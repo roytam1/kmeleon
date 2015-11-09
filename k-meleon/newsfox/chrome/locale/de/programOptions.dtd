@@ -1,0 +1,52 @@
+<!ENTITY title "NewsFox - Einstellungen">
+<!ENTITY global "Globaler Anzeigestil:">
+<!ENTITY checkOnStartup "Alle Feeds beim Start aktualisieren">
+<!ENTITY notifyUponNewArticles "Benachrichtigen, wenn neue Artikel erscheinen">
+<!ENTITY confirmDelete "Vor dem Löschen von Gruppen oder Feeds nach einer Bestätigung fragen">
+<!ENTITY confirmDeleteArticle "Vor dem Löschen von Artikeln nach einer Bestätigung fragen">
+<!ENTITY shortcutkeys "Tastaturkürzel:">
+<!ENTITY restart "(Änderungen sind eventuell erst nach einen Neustart des Browsers wirksam)">
+<!ENTITY shortcutsNone "Keine">
+<!ENTITY shortcutsStd "Standard">
+<!ENTITY shortcutsAlt "Alternativ">
+<!ENTITY shortcutsCustom "Benutzerdefiniert">
+<!ENTITY seehelp "- Menü enthält eine Liste von Tastaturkürzeln.">
+<!ENTITY newsfox.dir "NewsFox-Ordner">
+<!ENTITY moveNfDir "Ordner enthält:">
+<!ENTITY copy "kopieren">
+<!ENTITY move "verschieben">
+<!ENTITY noaction "keine Aktion">
+<!ENTITY Child_directory "Unterordner">
+<!ENTITY Parent_directory "Übergeordneter Ordner">
+<!ENTITY dateStyle "Datumsformat:">
+<!ENTITY changeToPresent "Datum des Artikels auf aktuelle Zeit ändern, falls:">
+<!ENTITY articleTooltips "Artikel-Tooltips">
+<!ENTITY copyToClipboard "Quelltext des Artikel-Inhalts in die Zwischenablage kopieren">
+<!ENTITY selectAddedFeed "Neuen Feed nach dem hinzufügen auswählen">
+<!ENTITY feedRefresh "Feed aktualisieren:">
+<!ENTITY feedRefreshThreads "Themen">
+<!ENTITY feedRefreshRenew "Erneuerung(Sekunden)">
+<!ENTITY feedSlowdown "Bei langsameren Computern verringern Sie die Anzahl der Themen bzw. erhöhen Sie die Aktualisierungsintervall.">
+<!ENTITY feedRefreshTimeout "Zeitüberschreitung bei Aktualisierung der Feeds (in Sekunden)">
+<!ENTITY horizontalPanes "Spalten-Ansicht (erfordert erneutes Aufrufen von Newsfox)">
+<!ENTITY favicons "Favicons">
+<!ENTITY updateTimeToBookmark "Feed-Adresse und Aktualisierungszeiten in Lesezeichen schreiben">
+<!ENTITY spam "Interessenfilter aktivieren">
+<!ENTITY globalTab "Global">
+<!ENTITY feedTab "Feeds/Artikel">
+<!ENTITY generalTab "Allgemein">
+<!ENTITY shortcutsTab "Tastaturbefehle">
+<!ENTITY keywordsTab "Schlüsselwörter">
+<!ENTITY shortcuts.operationHeader "Befehl">
+<!ENTITY shortcuts.select "Wählen Sie eine Zeile aus und tippen Sie eine Tastenkombination um einen Tastaturbefehl zu setzen.">
+<!ENTITY shortcuts.warning "Viele Tastaturkürzel werden schon verwendet und können nicht ausgewählt werden.">
+<!ENTITY shortcuts.experiment "Experimentieren Sie etwas um herauszufinden was funktioniert oder wählen Sie eine der vorgegebenen Optionen.">
+<!ENTITY keyword "Schlüsselwort:">
+<!ENTITY keywordsHighlighted "Schlüsselwörter werden in Artikeln automatisch hervorgehoben.">
+<!ENTITY caseIgnored "Alle Suchen werden in Kleinschreibung durchgeführt.">
+<!ENTITY statusBar "Symbol &quot;Feed abonnieren&quot; in der Statusleiste anzeigen">
+<!ENTITY statusBarText "Text:">
+<!ENTITY buttonText "Newsfox Schaltflächenbeschriftung">
+<!ENTITY statusBarTextNew "Anzahl neuer Artikel">
+<!ENTITY statusBarTextUnread "Anzahl ungelesener Artikel">
+<!ENTITY statusBarTextNone "keiner">

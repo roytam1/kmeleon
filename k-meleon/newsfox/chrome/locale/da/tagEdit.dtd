@@ -1,0 +1,9 @@
+<!ENTITY title "Rediger mærkater">
+<!ENTITY tagAdd "Mærkater der skal føjes til valgte artikler">
+<!ENTITY tagRemove "Mærkater der skal fjernes fra valgte artikler">
+<!ENTITY tagDeleteCompletely "Mærkater der skal slettes fra alle artikler og mærkatliste">
+<!ENTITY colorVaries1 "BLÅ: mærkat findes i alle valgte artikler">
+<!ENTITY colorVaries2 "BLANDET: mærkat er i nogle valgte artikler">
+<!ENTITY colorVaries3 "RØD. mærkat findes ikke i nogen valgte artikler">
+<!ENTITY newTagAdd "Nyt mærkat der skal føjes til valgte artikler">
+<!ENTITY newTagAddExample "'/' separerer mærkater: 'tech/nyheder'">

@@ -1,0 +1,181 @@
+.km_Color {
+  color: #62AC2A;
+}
+.km_Border {
+  border-color: #62AC2A;
+  border-style: solid;
+}
+.km_TextBorder {
+  border: 1px solid ThreeDShadow;
+}
+.km_SpecialBorder {
+  border-top-width: 0;
+  border-bottom-width: 2px;
+  border-left-width: 0;
+  border-right-width: 0;
+}
+.km_Icon, .km_Logo {
+  background-image: url(about:logo);
+  background-repeat: no-repeat;
+  background-position: left bottom;
+}
+body[dir="rtl"] .km_Icon {
+  background-position: right bottom;
+}
+.km_IconWidth, .km_LogoWidth {
+  -moz-margin-start: 150px;
+  -moz-padding-start: 32px;
+}
+.km_IconHeight, .km_LogoHeight {
+  min-height: 200px;
+}
+.km_Text {
+  color: -moz-FieldText;
+  font: message-box;
+}
+.km_TextBackground {
+  background-color: -moz-Field;
+}
+.km_PageBackground {
+  background-color: -moz-Dialog;
+}
+.km_PageContainer {
+  -moz-padding-start: 30px;
+  -moz-border-radius: 10px;
+  min-width: 400px;
+  max-width: 52em;
+}
+.km_Button {
+  margin-top: 1.4em;
+}
+.km_Button button {
+  margin-top: 0.6em;
+}
+a {
+  color: inherit;
+  background-color: inherit;
+  text-decoration: underline;
+}
+a:hover {
+  color: HighlightText;
+  background-color: Highlight;
+  text-decoration: none;
+}
+html {
+  background: -moz-Dialog;
+}
+body {
+  margin: 0;
+  padding: 0 1em;
+}
+div {
+  margin: 0;
+  padding: 0;
+}
+p, ul, ol {
+  margin: 1em 0;
+  padding: 0;
+}
+h1 {
+  font-size: 130%;
+  margin: 0;
+  padding: 0;
+}
+h1 + p {
+  font-size: 110%;
+  margin: 0;
+  padding: 1em 0;
+  border-top-width: 1px;
+  border-bottom-width: 1px;
+  border-left-width: 0;
+  border-right-width: 0;
+}
+h1 + p + div {
+  font-size: 110%;
+}
+ul, ol {
+  -moz-margin-start: 1.5em;
+}
+h2 {
+  font-size: 130%;
+}
+ul {
+  list-style: square;
+}
+li {
+  margin-bottom: 0.5em;
+}
+div.km_PageContainer {
+  margin: 4em auto;
+  padding: 3em;
+}
+fieldset.km_PageContainer {
+  margin: 3.35em auto 4em;
+  padding: 2.35em 3em 3em;
+}
+#head > a	 { text-decoration: none; font-size: 100%; }
+h2,
+ul.credits	 { text-align: center; }
+ul.credits	 { margin: 0; list-style-type: none; }
+ul.credits > li	 { margin: 0 0 3em; }
+p#government  { font-size: 83.3%;}
+p.fsize,
+ul.fsize > li { font-size: 90%; }
+p#useragent,
+p#buildid	 { margin: 1.2em; text-align: left; font-size: 83.3%;}
+#main 		 { font-size: 120%; }
+#main p		 { text-align: justify; }
+#main hr	 { margin: 1em 0; }
+@media screen {
+#dummy1		 { height: 9.5em; }
+#dummy2		 { height: 11em; }
+#creditsScrollBox{ height: 11em; min-height: 11em; overflow: hidden; }
+}
+
+@media print {
+
+.km_Color, .km_Text {
+  color: #000;
+}
+.km_Border {
+  border-color: #000;
+}
+.km_TextBorder {
+  border: 0;
+}
+.km_Icon, .km_Logo, .km_TextBackground, .km_PageBackground {
+  background: none;
+}
+.km_IconWidth, .km_LogoWidth {
+  -moz-margin-start: 0;
+  -moz-padding-start: 0;
+}
+.km_IconHeight, .km_LogoHeight {
+  min-height: 0;
+}
+.km_PageContainer {
+  -moz-padding-start: 0;
+  -moz-border-radius: 0;
+  min-width: 90%;
+  max-width: 90%;
+}
+fieldset.km_PageContainer legend, .km_Button {
+  display: none;
+}
+body, .km_PageContainer {
+  margin: 0;
+  padding: 0;
+}
+a {
+  color: #000;
+  background: none;
+  text-decoration: none;
+}
+ul.credits	 { margin: 1em 0; -moz-margin-start: 1.5em; list-style-type: square; text-align: left; }
+ul.credits > li	 { margin: 0 0 0.5em; }
+#dummy1,
+#dummy2		 { display: none; }
+#creditsScrollBox{ overflow: visible; }
+#main	 	 { position: relative; }
+
+}

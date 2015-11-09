@@ -1,0 +1,25 @@
+<!ENTITY useGlobal "使用全域設定">
+<!ENTITY feedAutoCheck "當按下 [更新所有 Feeds] 按鈕時一併檢查此 Feed 的新文章">
+<!ENTITY dontDeleteUnread "不要刪除未閱讀文章">
+<!ENTITY groups "群組:">
+<!ENTITY checkfeed "更新 Feed">
+<!ENTITY iconsrc "圖示來源:">
+<!ENTITY authentication "驗證 (僅用於需要密碼的 Feeds)">
+<!ENTITY username "帳號:">
+<!ENTITY password "密碼:">
+<!ENTITY feedPrivate "替磁碟上的 Feed 文章加密">
+<!ENTITY keepDays.pre "保留文章至少">
+<!ENTITY keepDays.post "天">
+<!ENTITY mainTab "一般">
+<!ENTITY filterTab "網頁過濾">
+<!ENTITY securityTab "安全性">
+<!ENTITY filterNew "下載已過濾網頁的所有新文章">
+<!ENTITY filterImages "下載已過濾網頁的圖片">
+<!ENTITY filterInfo "輸入一個過濾條件來將文章鏈結 HTML 轉換成一個附加的文章描述。過濾條件可以是一個符合條件的規則表達式，或其值要做為附加文章描述的 JavaScript 程式碼。">
+<!ENTITY filterJSinfo "當使用 JavaScript 時這些變數是有效的:">
+<!ENTITY filterJSvar1 "linkDOM 包含文章鏈結頁面的 DOM">
+<!ENTITY filterJSvar2 "linkHTML 包含文章鏈結頁面的 text/html">
+<!ENTITY filterJSvar3 "getElementsByClass(class, tag, node) 會將所有包含 tag、class、node 的 HTML 元素傳回一個陣列">
+<!ENTITY filterMime "替換編碼 (+ 為自動, &gt; 為測試, 或編碼)">
+<!ENTITY filterInfo2 "您必須輸入一個過濾條件否則將會下載文章的圖片而不是 HTML 網頁。要使用預設的過濾條件請按 backspace 鍵。">
+<!ENTITY never "不使用">

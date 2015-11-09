@@ -1,0 +1,62 @@
+<!ENTITY NewsFoxTeam "Zespół NewsFox">
+<!ENTITY feedOptions "Opcje kanału">
+<!ENTITY text "Tekst">
+<!ENTITY webpage "Strona internetowa">
+<!ENTITY groupOptions "Opcje grupy">
+<!ENTITY sCcancel "Anuluj odświeżanie">
+<!ENTITY sCadd "Dodaj nowy kanał">
+<!ENTITY sCoptions "Opcje">
+<!ENTITY sChomePage "Odwiedź stronę domową">
+<!ENTITY sCmanageLivemarks "Zarządzaj dynamicznymi zakładkami">
+<!ENTITY sCmarkAllAsRead "Oznacz wszystkie jako przeczytane">
+<!ENTITY sCdelete "Usuń">
+<!ENTITY sCnextUnread "Następny nieprzeczytany">
+<!ENTITY sCopenUnread "Otwórz nieprzeczytane">
+<!ENTITY sCopenSel "Otwórz wybrane">
+<!ENTITY sCdeleteSel "Usuń wybrane">
+<!ENTITY sCaddSearch "Dodaj wyszukaną grupę">
+<!ENTITY sCaddGroup "Dodaj grupę">
+<!ENTITY sCdeleteGroup "Usuń grupę">
+<!ENTITY sCshortcut "Skróty klawiaturowe">
+<!ENTITY sCrefresh "Odśwież kanały">
+<!ENTITY sCpreviousUnread "Poprzedni nieprzeczytany">
+<!ENTITY sCdeleteFeedFromGroup "Usuń kanał z grupy">
+<!ENTITY sCkeystrokeHeading "Skrót">
+<!ENTITY sCselAll "Zaznacz wszystkie artykuły">
+<!ENTITY flagCol "Oznaczony">
+<!ENTITY titleCol "Tytuł">
+<!ENTITY readCol "Czytaj">
+<!ENTITY dateCol "Data">
+<!ENTITY authorCol "Autor">
+<!ENTITY sourceCol "Źródło">
+<!ENTITY feedCol "Kanał">
+<!ENTITY tagCol "Etykieta">
+<!ENTITY probCol "Zainteresowania">
+<!ENTITY threadCol "Wątek">
+<!ENTITY XtendCol "Filtrowane witryny">
+<!ENTITY sCprint "Drukuj artykuł">
+<!ENTITY sCtoggleFilter "Włącz/wyłącz filtr sieciowy">
+<!ENTITY sortTab "Sortowanie">
+<!ENTITY sortArticles "Sortuj artykuły wg:">
+<!ENTITY firstSort "Pierwszy warunek:">
+<!ENTITY secondSort "Drugi warunek:">
+<!ENTITY thirdSort "Trzeci warunek:">
+<!ENTITY fourthSort "Czwarty warunek:">
+<!ENTITY noCol "Brak">
+<!ENTITY ascendingDir "Rosnąco">
+<!ENTITY descendingDir "Malejąco">
+<!ENTITY updatedUnread "Oznaczaj zaktualizowane artykuły jako nieprzeczytane">
+<!ENTITY yes "tak">
+<!ENTITY no "nie">
+<!ENTITY days "dniach">
+<!ENTITY articles "Wiadomości">
+<!ENTITY displayStyle "Styl wyświetlania:">
+<!ENTITY deleteOld "Usuwaj automatycznie stare artykuły">
+<!ENTITY autoRefresh "Aktualizuj co">
+<!ENTITY minutes "min">
+<!ENTITY deleteOldKeepUnread "tak, pozostaw nieprzeczytane">
+<!ENTITY deleteOldDeleteUnread "tak, usuń nieprzeczytane">
+<!ENTITY oldMeans "Oznacz jako stare">
+<!ENTITY after "po">
+<!ENTITY notInFeed "jeśli nie są w kanale">
+<!ENTITY feeds "Kanały">
