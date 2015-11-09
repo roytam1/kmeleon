@@ -25,6 +25,7 @@
 #include "kmeleon_plugin.h"
 // Mozilla Includes
 #include "nsIToolkitProfileService.h"
+#include "nsXULAppAPI.h"
 
 // Constants
 #define kRegistryGlobalPrefsSubtreeString (nsString(L"global-prefs"))

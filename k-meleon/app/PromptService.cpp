@@ -52,7 +52,7 @@ extern CWnd* CWndForDOMWindow(nsIDOMWindow *aWindow);
 
 
 //*****************************************************************************
-NS_IMPL_ISUPPORTS(CPromptService, nsIPromptFactory, nsIPrompt, nsIAuthPrompt, nsIPromptService)
+NS_IMPL_ISUPPORTS(CPromptService, nsIPromptFactory, nsIPrompt, nsIAuthPrompt, nsIPromptService, nsIContentPermissionPrompt)
 //NS_IMPL_ISUPPORTS1(CPromptService, nsIPromptService/*, nsINonBlockingAlertService*/)
 
 CPromptService::CPromptService()
@@ -663,6 +663,77 @@ CPromptService::ShowNonBlockingAlert(nsIDOMWindow *aParent,
   return result ? NS_OK : NS_ERROR_FAILURE;
 }
 */
+#include "nsIArray.h"
+#include "nsIPrincipal.h"
+#include "nsIPermissionManager.h"
+#include "nsIScriptGlobalObject.h"
+#include "nsPIDOMWindow.h"
+#include "nsIDocShell.h"
+#include "nsIScriptContext.h"
+
+NS_IMETHODIMP CPromptService::Prompt(nsIContentPermissionRequest *request)
+{
+	nsCOMPtr<nsIContentPermissionType> perm;
+	nsCOMPtr<nsIArray> types;
+	request->GetTypes(getter_AddRefs(types));
+	NS_ENSURE_TRUE(types, NS_ERROR_FAILURE);
+	
+	types->QueryElementAt(0, NS_ICONTENTPERMISSIONTYPE_IID, getter_AddRefs(perm));
+	NS_ENSURE_TRUE(perm, NS_ERROR_FAILURE);
+
+	nsCString type;
+	nsDependentCString permType;
+	perm->GetType(type);	
+	if (type.Compare("geolocation") == 0)
+		permType.Assign("geo");
+	else
+		permType.Assign(type);
+
+	nsCOMPtr<nsIPrincipal> principal;
+	request->GetPrincipal(getter_AddRefs(principal));
+	NS_ENSURE_TRUE(principal, NS_ERROR_FAILURE);
+
+	nsCOMPtr<nsIURI> uri;
+	principal->GetURI(getter_AddRefs(uri));
+	NS_ENSURE_TRUE(uri, NS_ERROR_FAILURE);
+
+	nsCOMPtr<nsIPermissionManager> permManager = do_GetService(NS_PERMISSIONMANAGER_CONTRACTID);
+	NS_ENSURE_TRUE(permManager, NS_ERROR_FAILURE);
+	
+	uint32_t result;
+	nsresult rv = permManager->TestExactPermissionFromPrincipal(principal, permType.get(), &result);
+	if (NS_FAILED(rv) || result == nsIPermissionManager::DENY_ACTION) {
+		return NS_ERROR_FAILURE;
+	}
+
+	if (NS_FAILED(rv) || result == nsIPermissionManager::ALLOW_ACTION) {
+
+		nsCOMPtr<nsIDOMWindow> dom;
+		request->GetWindow(getter_AddRefs(dom));
+		NS_ENSURE_TRUE(dom, NS_ERROR_FAILURE);
+
+		nsCOMPtr<nsPIDOMWindow> piWin(do_QueryInterface(dom));
+		if (!piWin) return NS_ERROR_FAILURE;
+		nsIDocShell* docShell = piWin->GetDocShell();
+		if (!docShell) return NS_ERROR_FAILURE;
+
+		nsCOMPtr<nsIScriptGlobalObject> global = docShell->GetScriptGlobalObject();
+		NS_ENSURE_TRUE(global, NS_ERROR_FAILURE);
+
+		nsPIDOMWindow *innerWin = piWin->GetCurrentInnerWindow();
+		nsCOMPtr<nsIScriptGlobalObject> innerGlobal = do_QueryInterface(innerWin);
+		nsCOMPtr<nsIScriptContext> scriptContext = global->GetContext();
+		NS_ENSURE_TRUE(scriptContext, NS_ERROR_FAILURE);
+
+		JSContext* cx = scriptContext->GetNativeContext();
+		JS::Rooted<JS::Value> v(cx, JS::UndefinedValue());
+		request->Allow(v);
+		return NS_OK;
+	}
+
+	return NS_ERROR_NOT_IMPLEMENTED;
+}
+
 //*****************************************************************************
 // CPromptServiceFactory
 //*****************************************************************************   

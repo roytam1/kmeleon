@@ -347,6 +347,8 @@ LRESULT CHiddenWnd::OnDeferSaveAs(WPARAM wParam, LPARAM lParam)
 	return NS_SUCCEEDED(rv);
 }
 
+#include "nsXULAppAPI.h"
+extern XRE_TermEmbeddingType XRE_TermEmbedding;
 void CHiddenWnd::OnEndSession(BOOL bEnding)
 {
    if (!bEnding) return;

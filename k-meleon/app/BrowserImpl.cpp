@@ -74,7 +74,6 @@
 #include "MozUtils.h"
 
 #include "nsIDOMEvent.h"
-#include "nsIDOMPopupBlockedEvent.h"
 #include "nsIDOMMouseEvent.h"
 #include "nsIDOMKeyEvent.h"
 #include "nsIDOMEventTarget.h"
@@ -82,14 +81,12 @@
 #include "nsIDOMEventTarget.h"
 #include "nsIDOMLocation.h"
 #include "nsPIDOMWindow.h"
-
 #include "nsIScriptSecurityManager.h" 
-
+#include "nsIDOMHTMLDocument.h"
 
 #ifdef USE_WINDOW_PROVIDER
 #include "nsIBrowserDOMWindow.h"
 #endif
-#include "jsapi.h"
 
 #include "BrowserFrm.h" // XXXXX
 #include "BrowserView.h" 
@@ -911,7 +908,8 @@ NS_IMETHODIMP CBrowserImpl::HandleEvent(nsIDOMEvent *aEvent)
 
 	if (type.Equals(NS_LITERAL_STRING("DOMPopupBlocked")))
 	{
-		nsCOMPtr<nsIDOMPopupBlockedEvent> popupEvent = do_QueryInterface(aEvent);
+		// Can't include the popup event class anymore
+	/*	nsCOMPtr<PopupBlockedEvent> popupEvent = do_QueryInterface(aEvent);
 		NS_ENSURE_TRUE (popupEvent, NS_ERROR_FAILURE);
 
 		nsCOMPtr<nsIURI> uri;
@@ -934,9 +932,9 @@ NS_IMETHODIMP CBrowserImpl::HandleEvent(nsIDOMEvent *aEvent)
 		nsCString host;
 		rv = uri->GetHost(host);
 		NS_ENSURE_SUCCESS (rv, rv);
-		NS_ENSURE_TRUE (host.Length(), NS_OK);
+		NS_ENSURE_TRUE (host.Length(), NS_OK);*/
 	
-		m_pBrowserFrameGlue->PopupBlocked(host.get());
+		m_pBrowserFrameGlue->PopupBlocked("");
 		return NS_OK;
 	}
 

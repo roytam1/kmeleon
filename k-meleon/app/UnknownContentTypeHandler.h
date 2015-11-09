@@ -53,6 +53,7 @@ protected:
 
 #include "resource.h"
 #include "nsITransfer.h"
+class nsIWebBrowserPersist;
 
 class CProgressDialog : public CDialog,
 	public nsITransfer,

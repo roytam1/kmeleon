@@ -35,6 +35,7 @@ class nsIFactory;
 #include "nsIPromptService.h"
 #include "nsIAuthPrompt.h"
 #include "nsIAuthPrompt2.h"
+#include "nsIContentPermissionPrompt.h"
 
 #include "nsIWindowWatcher.h"
 #include "nsEmbedCID.h"
@@ -44,7 +45,7 @@ class nsIFactory;
 static NS_DEFINE_CID(kPromptServiceCID, NS_PROMPTSERVICE_CID);
 
 class CPromptService:	public nsIPromptFactory, public nsIPromptService, public nsIPrompt,
-	public nsIAuthPrompt2, public nsIAuthPrompt
+						public nsIAuthPrompt2, public nsIAuthPrompt, public nsIContentPermissionPrompt
 {
 public:
 	CPromptService();
@@ -56,6 +57,7 @@ public:
 	NS_DECL_NSIPROMPTSERVICE
 	NS_DECL_NSIAUTHPROMPT
 	NS_DECL_NSIAUTHPROMPT2
+	NS_DECL_NSICONTENTPERMISSIONPROMPT
 
 	// NS_DECL_NSINONBLOCKINGALERTSERVICE
 protected:

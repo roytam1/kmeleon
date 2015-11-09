@@ -18,11 +18,9 @@
 */
 
 #include "StdAfx.h"
-#include "nsIFile.h"
-#include "nsILocalFile.h"
-#include "nsAppDirectoryServiceDefs.h"
 #include "MostRecentUrls.h"
 #include "MfcEmbed.h"
+
 extern CMfcEmbedApp theApp;
 
 CMostRecentUrls::CMostRecentUrls()

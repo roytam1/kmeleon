@@ -260,7 +260,7 @@ NS_IMETHODIMP CNSSDialogs::ViewCert(nsIInterfaceRequestor *ctx, nsIX509Cert *cer
 	cert->GetSha1Fingerprint (value);
 	viewCertGeneral.m_csSHA1 = W2CT(value.get());
 
-	cert->GetMd5Fingerprint (value);
+	cert->GetSha256Fingerprint (value);
 	viewCertGeneral.m_csMD5 = W2CT(value.get());
 	
 	viewCert.m_psh.dwFlags |= PSH_NOAPPLYNOW;
@@ -820,10 +820,8 @@ BOOL CViewCertDetailsPage::OnInitDialog()
 
 		if (displayVal.IsEmpty())
 		{
-			char *title;
-			cert->GetWindowTitle(&title);
-			displayVal = A2W(title);
-			nsMemory::Free(title);
+			nsString title;
+			cert->GetWindowTitle(displayVal);
 		}
 		
 		nsIX509Cert *pCert = cert;

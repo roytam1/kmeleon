@@ -16,6 +16,8 @@
 #define XPCOM_GLUE
 #include "xpcom-config.h"
 #include <nsCOMPtr.h>
+#include <nsStringAPI.h>
+#include <nsEmbedString.h>
 #include <nsServiceManagerUtils.h>
 #include <nsIWebBrowser.h>
 #include <nsIWebBrowserFocus.h>
@@ -29,8 +31,7 @@
 #include <nsISelection.h>
 #include <nsIInlineSpellChecker.h>
 #include <nsIEditorSpellCheck.h>
-#include <nsStringAPI.h>
-#include <nsEmbedString.h>
+
 #include <nsMemory.h>
 #include "nsIDOMDocument.h"
 #include "nsIDocShell.h"
@@ -46,6 +47,9 @@
 #include <oleacc.h>
 #include <servprov.h>
 #include <mozISpellCheckingEngine.h>
+
+#include "mozilla/fallible.h"
+#include "mozilla/a11y/Accessible.h"
 
 #include <algorithm>
 
@@ -653,7 +657,6 @@ int message_box(HWND hwnd, LPCSTR lpText, LPCSTR lpTitle, UINT style)
 	return MessageBoxA(hwnd, kPlugin.kFuncs->Translate(lpText), kPlugin.kFuncs->Translate(lpTitle), style);
 }
 
-
 /*
   Get screen position of a word by accesibility API
   provided mozilla and windows .
@@ -672,9 +675,11 @@ BOOL get_word_pos(HWND hwnd, nsCOMPtr<nsIDOMNode>& node, PRInt32 offset, int& rx
 	
 	// below code is related with Microsoft Active Accessibility
 	
+	mozilla::a11y::Accessible* acc = accessible->ToInternalAccessible();
+	
 	// This is MS COM component, isn't XPCOM.
 	IAccessible* pAccessible = NULL;
-	rv = accessible->GetNativeInterface((void**) &pAccessible);
+	acc->GetNativeInterface((void**) &pAccessible);
 	NS_ENSURE_SUCCESS(rv, FALSE);
 	NS_ENSURE_TRUE(pAccessible, FALSE);
 	

@@ -35,7 +35,6 @@
 #include "nsIInterfaceRequestorUtils.h"
 #include "nsIWebNavigation.h"
 #include "utf.h"
-#include "nsIMarkupDocumentViewer.h"
 #include "nsIWebBrowserFocus.h"
 
 nsresult NewURI(nsIURI **result, const nsACString &spec)
@@ -183,17 +182,14 @@ NS_IMETHODIMP AutocompletePopup::OpenAutocompletePopup(nsIAutoCompleteInput *inp
 	rv = docShell->GetContentViewer(getter_AddRefs(contentViewer));
 	NS_ENSURE_SUCCESS(rv, rv);
 
-	nsCOMPtr<nsIMarkupDocumentViewer> markupViewer = do_QueryInterface(contentViewer, &rv);
-	NS_ENSURE_SUCCESS(rv, rv);
-
 	// Calc height of the list
 	int lineHeight = ::SendMessage(hList, LB_GETITEMHEIGHT, 0, 0L);
 	int height = nLine > mNbLine ? (mNbLine+1)*lineHeight : lineHeight*(nLine+1);
 
 	// Match the font size with the zoom
 	float zoom, fzoom;
-	markupViewer->GetTextZoom(&zoom);
-	markupViewer->GetFullZoom(&fzoom);
+	contentViewer->GetTextZoom(&zoom);
+	contentViewer->GetFullZoom(&fzoom);
 	
 	zoom *= fzoom;
 	if (zoom != mZoom) {
@@ -272,7 +268,7 @@ NS_IMETHODIMP AutocompletePopup::Invalidate()
 	mInput->GetController(getter_AddRefs(controller));
 
 	controller->GetMatchCount(&nLine);
-	for (int i=0;i<nLine;i++) {
+	for (unsigned int i=0;i<nLine;i++) {
 		nsString line;
 		controller->GetLabelAt(i, line);
 		::SendMessage(hList, LB_ADDSTRING, 0, (LPARAM)line.get());

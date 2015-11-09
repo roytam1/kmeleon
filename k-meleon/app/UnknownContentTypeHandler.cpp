@@ -215,7 +215,7 @@ NS_IMETHODIMP CUnknownContentTypeHandler::PromptForSaveToFileAsync(nsIHelperAppL
 {
 	return NS_ERROR_NOT_IMPLEMENTED;
 }
-
+#if 0
 // prompt the user for a file name to save the unknown content to as instructed
 NS_IMETHODIMP
 	CUnknownContentTypeHandler::PromptForSaveToFile(nsIHelperAppLauncher *aLauncher, nsISupports *aWindowContext, const PRUnichar * aDefaultFile, const PRUnichar * aSuggestedFileExtension, bool aForcePrompt, nsIFile * *aNewFile)
@@ -410,6 +410,7 @@ NS_IMETHODIMP
 
 #endif
 }
+#endif
 
 CString CUnknownContentTypeHandler::GetTypeName()
 {
@@ -549,7 +550,6 @@ be able to do some better stuff.  We need an implementation that supports:
 NS_IMPL_ISUPPORTS(CProgressDialog, nsITransfer, nsIWebProgressListener2, nsIWebProgressListener, nsISupportsWeakReference)
 
 	CProgressDialog::CProgressDialog(BOOL bAuto) {
-		NS_INIT_ISUPPORTS();
 
 		//mObserver = NULL;
 		mCancelable = nullptr;
@@ -1285,6 +1285,11 @@ NS_IMETHODIMP CProgressDialog::Init(nsIURI *aSource, nsIURI *aTarget, const nsAS
 }
 
 NS_IMETHODIMP CProgressDialog::OnRefreshAttempted(nsIWebProgress *aWebProgress, nsIURI *aRefreshURI, int32_t aMillis, bool aSameURI, bool *_retval)
+{
+	return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP CProgressDialog::SetRedirects(class nsIArray *)
 {
 	return NS_ERROR_NOT_IMPLEMENTED;
 }

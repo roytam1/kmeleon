@@ -35,7 +35,6 @@
 #include "nsIMutableArray.h"
 #include "nsISSLStatus.h"
 #include "nsIDialogParamBlock.h"
-#include "nsICertOverrideService.h"
 #include "nsIX509CertDB.h"
 #include "nsIDOMEventTarget.h"
 
@@ -239,7 +238,7 @@ void CBrowserGlue::SetVisibility(bool aVisibility)
 
 		mpBrowserFrame->ShowWindow(SW_SHOW);
 		// pThis->SetActiveWindow();
-		mpBrowserFrame->UpdateWindow();
+		//mpBrowserFrame->UpdateWindow();
 	}
 	else
 	{
@@ -324,9 +323,19 @@ void CBrowserGlue::PopupBlocked(const char* uri)
 	if (!theApp.preferences.GetBool("browser.popups.showPopupBlocker", PR_TRUE)
 		|| !mPopupBlockedHost.IsEmpty())
 		return;
-
-	USES_CONVERSION;
-	mPopupBlockedHost = A2CT(uri);
+	
+	if (!*uri) {
+		// XXX Which is obviously not always true
+		nsCOMPtr<nsIURI> uri;
+		mpBrowserView->GetBrowserWrapper()->GetCurrentURI(getter_AddRefs(uri));
+		nsCString host;
+		uri->GetHost(host);
+		mPopupBlockedHost = NSCStringToCString(host);
+	}
+	else {
+		USES_CONVERSION;
+		mPopupBlockedHost = A2CT(uri);
+	}
 	if (mpBrowserFrame->GetActiveView() == mpBrowserView)
 		mpBrowserFrame->UpdatePopupNotification(mPopupBlockedHost);
 }
@@ -483,18 +492,32 @@ CBrowserWrapper* CBrowserGlue::ReuseWindow(BOOL useCurrent)
 #include "nsISSLStatus.h"
 #include "nsIDialogParamBlock.h"
 #include "nsICertOverrideService.h"
-#include "nsIRecentBadCertsService.h"
+#include "nsISSLStatusProvider.h"
+#include "nsISecureBrowserUI.h"
+#include "nsIChannel.h"
 
 bool CBrowserGlue::performXULCommand(LPCWSTR id, LPCTSTR siteUri)
 {
 	if (wcscmp(id, L"addCertificateExceptionButton") == 0)
 	{
-		nsCOMPtr<nsIX509CertDB> certDB = do_GetService("@mozilla.org/security/x509certdb;1");
-		if (!certDB) return false;
-
 		nsCOMPtr<nsIURI> uri;
-		//::NewURI(getter_AddRefs(uri), CStringToNSString(siteUri));
 		mpBrowserView->GetBrowserWrapper()->GetCurrentURI(getter_AddRefs(uri));
+		
+		nsCOMPtr<nsIDocShell> docShell = mpBrowserView->GetBrowserWrapper()->GetDocShell();
+		NS_ENSURE_TRUE(docShell, FALSE);
+
+		nsCOMPtr<nsIChannel> channel;
+		docShell->GetFailedChannel(getter_AddRefs(channel));
+		NS_ENSURE_TRUE(channel, FALSE);
+
+		nsCOMPtr<nsISupports> secinfo;
+		channel->GetSecurityInfo(getter_AddRefs(secinfo));
+		nsCOMPtr<nsISSLStatusProvider> SSLProvider = do_QueryInterface(secinfo);
+		NS_ENSURE_TRUE(SSLProvider, FALSE);
+
+		nsCOMPtr<nsISSLStatus> certStatus;
+		SSLProvider->GetSSLStatus(getter_AddRefs(certStatus));
+		if (!certStatus) return FALSE;
 
 		PRInt32 port;
 		nsCString host;
@@ -504,14 +527,6 @@ bool CBrowserGlue::performXULCommand(LPCWSTR id, LPCTSTR siteUri)
 
 		CString hostAndPort;
 		hostAndPort.Format(_T("%s:%d"), NSCStringToCString(host), port);
-
-		nsCOMPtr<nsIRecentBadCerts> recentCertsSvc;
-		certDB->GetRecentBadCerts(false, getter_AddRefs(recentCertsSvc));
-		if (!recentCertsSvc) return false;
-
-		nsCOMPtr<nsISSLStatus> certStatus;
-		recentCertsSvc->GetRecentBadCert(CStringToNSString(hostAndPort), getter_AddRefs(certStatus));
-		if (!certStatus) return false;
 
 		int32_t certFailureFlags = 0;
 		bool isDomainMismatch, isInvalidTime, isUntrusted;
@@ -548,9 +563,6 @@ bool CBrowserGlue::performXULCommand(LPCWSTR id, LPCTSTR siteUri)
 
 	if (wcscmp(id, L"vieshit") == 0)
 	{
-		nsCOMPtr<nsIX509CertDB> certDB = do_GetService("@mozilla.org/security/x509certdb;1");
-		if (!certDB) return false;
-
 		nsCOMPtr<nsIURI> uri;
 		mpBrowserView->GetBrowserWrapper()->GetCurrentURI(getter_AddRefs(uri));
 
@@ -564,13 +576,22 @@ bool CBrowserGlue::performXULCommand(LPCWSTR id, LPCTSTR siteUri)
 		CString hostAndPort;
 		hostAndPort.Format(_T("%s:%d"), NSCStringToCString(host), port);
 
-		nsCOMPtr<nsIRecentBadCerts> recentCertsSvc;
-		certDB->GetRecentBadCerts(false, getter_AddRefs(recentCertsSvc));
-		if (!recentCertsSvc) return false;
+
+		nsCOMPtr<nsIDocShell> docShell = mpBrowserView->GetBrowserWrapper()->GetDocShell();
+		NS_ENSURE_TRUE(docShell, FALSE);
+
+		nsCOMPtr<nsIChannel> channel;
+		docShell->GetFailedChannel(getter_AddRefs(channel));
+		NS_ENSURE_TRUE(channel, FALSE);
+
+		nsCOMPtr<nsISupports> secinfo;
+		channel->GetSecurityInfo(getter_AddRefs(secinfo));
+		nsCOMPtr<nsISSLStatusProvider> SSLProvider = do_QueryInterface(secinfo);
+		NS_ENSURE_TRUE(SSLProvider, FALSE);
 
 		nsCOMPtr<nsISSLStatus> certStatus;
-		recentCertsSvc->GetRecentBadCert(CStringToNSString(hostAndPort), getter_AddRefs(certStatus));
-		if (!certStatus) return false;
+		SSLProvider->GetSSLStatus(getter_AddRefs(certStatus));
+		if (!certStatus) return FALSE;
 
 		nsCOMPtr<nsIX509Cert> cert;
 		certStatus->GetServerCert(getter_AddRefs(cert));

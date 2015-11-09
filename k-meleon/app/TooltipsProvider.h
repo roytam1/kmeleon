@@ -34,7 +34,6 @@ public:
 
     // ctor/dtor
     CTooltipTextProvider() {
-        NS_INIT_ISUPPORTS();
     }
     virtual ~CTooltipTextProvider() {
     }

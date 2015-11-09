@@ -9,6 +9,7 @@
 #include "resource.h"
 #include "nsIWebProgressListener.h"
 class nsIWebBrowser;
+class nsIPrintSettings;
 
 /////////////////////////////////////////////////////////////////////////////
 // CPrintProgressDialog dialog

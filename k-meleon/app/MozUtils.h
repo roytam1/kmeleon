@@ -2,8 +2,10 @@
 #ifndef __MOZUTILS_H__
 #define __MOZUTILS_H__
 
-inline nsString CStringToNSString(LPCTSTR aStr);
-inline nsCString CStringToNSCString(LPCTSTR aStr);
+#include "stdafx.h"
+
+nsString CStringToNSString(LPCTSTR aStr);
+nsCString CStringToNSCString(LPCTSTR aStr);
 nsCString CStringToNSUTF8String(LPCTSTR aStr);
 
 //__forceinline PRUnichar* CStringToPRUnichar(LPCTSTR aStr) 
@@ -12,9 +14,9 @@ nsCString CStringToNSUTF8String(LPCTSTR aStr);
 #define CStringToPRUnichar(str) CT2W(str)
 
 CString PRUnicharToCString(const PRUnichar* str);
-inline CString NSStringToCString(const nsString& aStr);
+CString NSStringToCString(const nsString& aStr);
 CString NSUTF8StringToCString(const nsCString& aStr);
-inline CString NSCStringToCString(const nsCString& aStr);
+CString NSCStringToCString(const nsCString& aStr);
 
 bool ZipExtractFiles(nsIFile* zipFile, nsIFile* dir); 
 nsresult NewURI(nsIURI **result, const nsACString &spec);

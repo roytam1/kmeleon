@@ -24,6 +24,7 @@
 #include "MfcEmbed.h"
 #include "nsAppShellCID.h"
 #include "nsIAppShellService.h"
+#include "nsXULAppAPI.h"
 
 NS_IMPL_ISUPPORTS(KmAppInfo, nsIXULAppInfo, nsIXULRuntime, nsIAppStartup, nsIAppStartup2)
 
@@ -218,10 +219,17 @@ NS_IMETHODIMP KmAppInfo::GetLastRunCrashID(nsAString & aLastRunCrashID)
 	return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP KmAppInfo::GetBrowserTabsRemote(bool *aBrowserTabsRemote)
+NS_IMETHODIMP KmAppInfo::GetBrowserTabsRemoteAutostart(bool *aBrowserTabsRemote)
 {
 	*aBrowserTabsRemote = false;
 	return NS_OK;
+}
+
+/* readonly attribute boolean accessibilityEnabled; */
+NS_IMETHODIMP KmAppInfo::GetAccessibilityEnabled(bool *aAccessibilityEnabled)
+{
+	*aAccessibilityEnabled = false;
+    return NS_OK;
 }
 
 NS_IMETHODIMP KmAppInfo::GetDefaultUpdateChannel(nsACString & aDefaultUpdateChannel)
@@ -230,6 +238,17 @@ NS_IMETHODIMP KmAppInfo::GetDefaultUpdateChannel(nsACString & aDefaultUpdateChan
 }
 
 NS_IMETHODIMP KmAppInfo::GetDistributionID(nsACString & aDistributionID)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP KmAppInfo::GetKeyboardMayHaveIME(bool *ime)
+{
+	*ime = true;
+    return NS_OK;
+}
+
+NS_IMETHODIMP KmAppInfo::GetIsOfficial(bool *)
 {
 	return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -389,4 +408,20 @@ NS_IMETHODIMP KmAppInfo::ProcessNativeEvent(void* aMsg)
 		::DispatchMessage(msg);
 	}
 	return NS_OK;    
+}
+
+#include "nsIAccessibilityService.h"
+NS_IMETHODIMP KmAppInfo::GetAccessibilityIsUIA(bool *aAccessibilityIsUIA)
+{
+	*aAccessibilityIsUIA = false;
+#if defined(ACCESSIBILITY) && defined(XP_WIN)
+	nsCOMPtr<nsIAccessibilityService> serv = do_GetService("@mozilla.org/accessibilityService;1");
+		// This is the same check the a11y service does to identify uia clients.
+	if (serv != nullptr &&
+		(::GetModuleHandleW(L"uiautomation") ||
+		::GetModuleHandleW(L"uiautomationcore"))) {
+		*aAccessibilityIsUIA = true;
+	}
+#endif
+	return NS_OK;
 }

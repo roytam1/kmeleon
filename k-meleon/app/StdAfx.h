@@ -64,6 +64,8 @@
 #define NS_ARRAY_LENGTH(array_) \
   (sizeof(array_)/sizeof(array_[0]))
   
+
+#include <mozilla/Char16.h>
 #include <afxwin.h>         // MFC core and standard components
 #include <afxext.h>         // MFC extensions
 #include <afxdisp.h>        // Classes MFC Automation
@@ -80,6 +82,7 @@
 
 #undef min
 #undef max
+#include <algorithm>
 
 #ifdef _UNICODE
 #if defined _M_IX86
@@ -95,97 +98,40 @@
 #undef DEBUG
 #endif
 
-#define XP_WIN
 #define XPCOM_GLUE
-#define MOZILLA_STRICT_API
 #define INTERNAL_SIDEBAR
 #define INTERNAL_SITEICONS
 
+#include "js-config.h"
+#include "nsCOMPtr.h"
 
-
-// docshell: 
-#include "nsIDocShell.h"
-
-// dom:
-#include "nsIDOMNode.h"
-#include "nsIDOMWindow.h"
-#include "nsIDOMDocument.h"
-#include "nsIDOMElement.h"
-#include "nsIDOMHTMLDocument.h"
-
-/*
-#include "nsIDOMWindowCollection.h"
-#include "nsIDOMHTMLAnchorElement.h"
-#include "nsIDOMHTMLImageElement.h"
-#include "nsIWebNavigation.h"
-#include "nsIDocShellTreeOwner.h"
-#include "nsIDocShellTreeItem.h"
-#include "nsIDOMHTMLFrameSetElement.h"
-*/
-
-// embed_base: 
-#include "nsIWindowCreator.h"
-
-// necko: 
-//#include "nsIPrompt.h"
 #include "nsIURI.h"
-
-// nkcache:
-#include "nsICacheService.h"
-
-#include "nsXULAppAPI.h"
-#include "nsXPCOMGlue.h"
-#include "nsCOMPtr.h"
-#include "nsAppDirectoryServiceDefs.h"
-#include "nsProfileDirServiceProvider.h"
-
-// string:
-#include "nsEmbedString.h"
-
-// uriloader:
-#include "nsIWebProgress.h"
-#include "nsIWebProgressListener2.h"
-
-// wallet: 
-//#include "nsIWalletService.h"
-
-// webBrowser_core: 
-#include "nsIWebBrowser.h"
-#include "nsIWebBrowserChrome.h"
-#include "nsIContextMenuListener2.h"
-#include "nsIWebBrowserPrint.h"
-
-#include "nsCWebBrowser.h"
-
-// webbrowserpersist: 
-#include "nsIWebBrowserPersist.h"
-
-// webshell: 
-#include "nsIClipboardCommands.h"
-
-// widget:
-/*
-#include "nsIBaseWindow.h"
-#include "nsWidgetsCID.h"
-#include "nsIFilePicker.h"
-#include "nsIWidget.h"*/
-
-// xpcom:
-#include "nsCOMPtr.h"
-#include "nsWeakReference.h"
-
-#include "nsIInterfaceRequestor.h"
-#include "nsIServiceManager.h"
-#include "nsError.h"
-#include "imgIContainer.h"
-#include "nsAppDirectoryServiceDefs.h"
-#include "nsIObserver.h"
-#include "nsIObserverService.h"
+#include "nsIFile.h"
 #include "nsMemory.h"
+#include "nsNetCID.h"
+#include "nsEmbedCID.h"
+#include "nsIObserver.h"
+#include "nsEmbedString.h"
+#include "nsWeakReference.h"
+#include "nsIWindowCreator.h"
+#include "nsIInterfaceRequestor.h"
 #include "nsServiceManagerUtils.h"
 #include "nsComponentManagerUtils.h"
-#include "nsNetCID.h"
 #include "nsIInterfaceRequestorUtils.h"
+#include "nsAppDirectoryServiceDefs.h"
+
+#if defined(THERECANBENODEBUG) 
+#define DEBUG
+#endif
+
+#include "nsIDOMNode.h"
+#include "nsIDOMWindow.h"
+#include "nsIDOMElement.h"
+#include "nsIDOMDocument.h"
+
+#include "nsIWebBrowser.h"
+#include "nsIWebBrowserChrome.h"
+#include "nsIWebProgressListener.h"
 
 // nspr: 
 

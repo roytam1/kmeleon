@@ -23,14 +23,19 @@ class nsIX509Cert;
 #include "IBrowserFrameGlue.h"
 
 #include "nsICommandManager.h"
-#include "nsIPrintSettings.h"
-#include "nsIWebBrowserFind.h"
+#include "nsIClipboardCommands.h"
+#include "nsIDocShell.h"
 #include "nsIWebNavigation.h"
-#include "nsIWebBrowserFocus.h"
 #include "nsIWebBrowser.h"
-#include "nsIMarkupDocumentViewer.h"
+#include "nsIWebBrowserFocus.h"
+#include "nsIWebBrowserPrint.h"
+#include "nsIBaseWindow.h"
+
+
 class nsITypeAheadFind;
 class nsIDOMKeyEvent;
+class nsIPrintSettings;
+class nsIWebBrowserFocus;
 
 class CBrowserImpl;
 
@@ -76,7 +81,7 @@ public:
 	void SetBrowserGlue(PBROWSERGLUE pBrowserGlue);
 	void SetChromeMask(INT mask) { mChromeMask = mask; }
 	void SetPositionAndSize(int x, int y, int cx, int cy) { 
-		if (mBaseWindow) mBaseWindow->SetPositionAndSize(0, 0, cx, cy, PR_TRUE);
+		if (mBaseWindow) mBaseWindow->SetPositionAndSize(0, 0, cx, cy, true);
 	}
 	void ShowScrollbars(BOOL visible);
 	BOOL ScrollBy(int32_t dx, int32_t dy);
@@ -84,7 +89,7 @@ public:
 	void GoBack() { if (mWebNav) mWebNav->GoBack(); }
 	void GoForward() { if (mWebNav) mWebNav->GoForward(); }
 	void Stop() { if(mWebNav) mWebNav->Stop(nsIWebNavigation::STOP_ALL); }
-
+	
 	bool SetScrollPosition(POINT scroll)
 	{
 		nsCOMPtr<nsIDOMWindow> dom;
@@ -339,7 +344,7 @@ public:
 		return isPreview;
 	}
 
-	already_AddRefed<nsIMarkupDocumentViewer> GetMarkupViewer();
+	already_AddRefed<nsIContentViewer> GetContentViewer();
 	BOOL SetFullZoom(float textzoom);
 	float GetFullZoom();
 	BOOL ChangeFullZoom(int change);
@@ -380,6 +385,8 @@ public:
 	bool TypeAheadFind(nsIDOMKeyEvent* keyEvent);
 	void EndTypeAheadFind();
 	nsString mSearchString;
+	BOOL GetCertificate(nsIX509Cert** certificate);
+	nsIDocShell* GetDocShell();
 /*	void SetMatchCase(BOOL);
 	void SetWrapAround(BOOL);
 	wchar_t* GetSearchString();
@@ -396,11 +403,9 @@ private:
 	BOOL _GetSelection(nsIDOMWindow* dom, nsAString& aSelText);
 	BOOL _InjectCSS(nsIDOMWindow* dom, const wchar_t* userStyleSheet);
 	BOOL _Highlight(nsIDOMWindow* dom, const PRUnichar* backcolor, const PRUnichar* word, BOOL matchCase);
-	BOOL _Save(nsIURI* aURI, nsIDOMDocument* aDocument, LPCTSTR filename, nsIURI* aReferrer, nsISupports* aDescriptor);
-	BOOL GetCertificate(nsIX509Cert** certificate);
+	BOOL _Save(nsIURI* aURI, nsIDOMDocument* aDocument, LPCTSTR filename, nsIURI* aReferrer, nsISupports* aDescriptor);	
 	bool CheckNode(nsIDOMElement* elem);
 	
-	nsIDocShell* GetDocShell();
 
 #ifndef FINDBAR_USE_TYPEAHEAD
 	void CollapseSelToStartInFrame(nsIDOMWindow* dom);

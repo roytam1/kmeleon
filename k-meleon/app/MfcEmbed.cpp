@@ -66,11 +66,14 @@
 #include <io.h>
 #include <fcntl.h>
 
+#include "nsXULAppAPI.h"
+#include "nsXPCOMGlue.h"
 #include "nsIIOService.h"
 #include "nsIWindowWatcher.h"
 #include "nsIChromeRegistry.h"
 #include "nsIAppStartup.h"
 #include "nsToolkitCompsCID.h"
+#include "nsIObserverService.h"
 #include <locale.h>
 
 static UINT WM_POSTEVENT = RegisterWindowMessage(_T("XPCOM_PostEvent"));
@@ -579,7 +582,15 @@ BOOL CMfcEmbedApp::InitInstance()
 #ifdef _DEBUG
 	ShowDebugConsole();
 	_CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
+	_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_DEBUG);
+	_CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_DEBUG);
+	_CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_DEBUG);
 #endif
+
+	INITCOMMONCONTROLSEX InitCtrls;
+	InitCtrls.dwSize = sizeof(InitCtrls);
+	InitCtrls.dwICC = ICC_WIN95_CLASSES;
+	InitCommonControlsEx(&InitCtrls);
 
    CWinApp::InitInstance();
    AfxOleInit();
@@ -1102,7 +1113,7 @@ void CMfcEmbedApp::OnToggleOffline()
 
 void CMfcEmbedApp::OnToggleJS()
 {
-	bool enable = !preferences.GetBool("javascript.enabled", 1);
+	int enable = !preferences.GetBool("javascript.enabled", 1);
 	preferences.SetBool("javascript.enabled", enable);
 
 	CBrowserFrame* pBrowserFrame = NULL;
@@ -1637,6 +1648,7 @@ CString CMfcEmbedApp::GetFolder(FolderType folder)
 #include "nsIFileProtocolHandler.h"
 #include "nsIRDFContainer.h"
 #include "nsIRDFRemoteDataSource.h"
+#include "nsDirectoryServiceUtils.h"
 
 void CMfcEmbedApp::CheckProfileVersion()
 {
@@ -1866,7 +1878,7 @@ BOOL CMfcEmbedApp::PumpMessage2(UINT filter)
 {
 	_AFX_THREAD_STATE *pState = AfxGetThreadState();
 
-	if (!::GetMessage(&(pState->m_msgCur), NULL, NULL, filter))
+	if (!::GetMessageW(&(pState->m_msgCur), NULL, NULL, filter))
 	{
 #ifdef _DEBUG
 		TRACE(traceAppMsg, 1, "CWinThread::PumpMessage - Received WM_QUIT.\n");

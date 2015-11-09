@@ -20,7 +20,7 @@
 
 #define MOZILLA_STRICT_API
 #include <tchar.h>
-#include "stdafx.h"
+
 #include "nsCOMPtr.h"
 #include "nsIWebBrowser.h"
 #include "nsIDOMEventTarget.h"
@@ -131,7 +131,7 @@ public:
 	{		
 	}
 
-	BOOL Init(HWND hwnd)
+	bool Init(HWND hwnd)
 	{
 		
 		if (!kPlugin.kFuncs->GetMozillaWebBrowser(hwnd, getter_AddRefs(mWebBrowser)))
@@ -147,16 +147,16 @@ public:
 		
 		nsCOMPtr<nsIDOMWindow> domWin;
 		mWebBrowser->GetContentDOMWindow (getter_AddRefs(domWin));
-		NS_ENSURE_TRUE (domWin, NS_ERROR_FAILURE);
+		NS_ENSURE_TRUE(domWin, false);
 		
 		// Prevent crash in embed component if the browser was closed
 		nsCOMPtr<nsIDOMDocument> doc;
 		domWin->GetDocument(getter_AddRefs(doc));
-		NS_ENSURE_TRUE (doc, NS_ERROR_FAILURE);
+		NS_ENSURE_TRUE(doc, false);
 
 		nsCOMPtr<nsIDOMEventTarget> target;	
 		domWin->GetWindowRoot (getter_AddRefs(target));
-		NS_ENSURE_TRUE (target, NS_ERROR_FAILURE);
+		NS_ENSURE_TRUE(target, false);
 		
 		nsCOMPtr<nsPIDOMWindow> piWin(do_QueryInterface(domWin));
 		if (!piWin) return NULL;

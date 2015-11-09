@@ -71,7 +71,7 @@ static nsAutoCString
 }
 
 NS_IMETHODIMP
-	KmAbout::NewChannel(nsIURI *aURI, nsIChannel **result) 
+KmAbout::NewChannel(nsIURI *aURI, nsILoadInfo *aLoadInfo, nsIChannel **result) 
 {
 	NS_ENSURE_ARG_POINTER(aURI);
 	NS_ASSERTION(result, "must not be null");
@@ -114,4 +114,10 @@ KmAbout::GetURIFlags(nsIURI *aURI, uint32_t *result)
 	}
 
 	return NS_ERROR_ILLEGAL_VALUE;
+}
+
+NS_IMETHODIMP
+KmAbout::GetIndexedDBOriginPostfix(class nsIURI *,class nsAString &)
+{
+	return NS_ERROR_NOT_IMPLEMENTED;
 }

@@ -27,20 +27,20 @@
 #include "mfcembed.h"
 #include "Utils.h"
 
+#include "nsIBaseWindow.h"
 #include "nsIWidget.h"
 #include "nsISHistory.h"
 #include "nsISHEntry.h"
 #include "nsIDOMHTMLFrameSetElement.h"
 #include "nsIDocShellTreeItem.h"
+#include "nsIWebBrowserFocus.h"
 
 #include "nsIContentViewer.h"
-#include "nsIMarkupDocumentViewer.h" 
 #include "nsIDocCharset.h"
 #include "nsISelection.h"
 #include "nsISHistoryInternal.h"
 #include "nsIDOMText.h"
 #include "nsIDOMNodeList.h"
-#include "nsIDOMHTMLScriptElement.h"
 #include "nsIDOMWindowCollection.h"
 #include "nsIWebPageDescriptor.h"
 #include "nsIDocShell.h"
@@ -54,14 +54,17 @@
 #include "nsICertificateDialogs.h"
 #include "nsIScriptSecurityManager.h"
 
+#include "nsIDOMHTMLDocument.h"
 #include "nsIDOMHTMLTextAreaElement.h"
-
+#include "nsIDOMHTMLScriptElement.h"
 #include "nsIDOMHTMLInputElement.h"
 #include "nsIDOMHTMLEmbedElement.h"
 #include "nsIDOMHTMLObjectElement.h"
 #include "nsIDOMHTMLButtonElement.h"
 #include "nsIDOMHTMLSelectElement.h"
 #include "nsITypeAheadFind.h"
+#include "nsIWebBrowserFind.h"
+
 //#include "nsIFocusController.h"
 //#include "nsIDOMNSHTMLDocument.h"
 
@@ -82,7 +85,9 @@
 #include "nsIDOMWindowCollection.h"
 #include "nsPIDOMWindow.h"
 #include "nsIFocusManager.h"
-#include "nsIScriptContext.h"
+#include "nsIDocument.h"
+#include "nsIPrintSettings.h"
+#include "nsIScrollable.h"
 
 static const PRUnichar kSpan[] = L"span";
 static const PRUnichar kStyle[] = L"style";
@@ -124,6 +129,9 @@ void CBrowserWrapper::SetBrowserFrameGlue(PBROWSERFRAMEGLUE pBrowserFrameGlue)
 //		mpBrowserImpl->Init(pBrowserFrameGlue, mWebBrowser);
 }
 
+#include "nsIXPConnect.h"
+#include "jsfriendapi.h"
+#include "nsJSPrincipals.h"
 BOOL CBrowserWrapper::CreateBrowser(CWnd* parent, uint32_t chromeFlags)
 {
 	mChromeContent = chromeFlags & nsIWebBrowserChrome::CHROME_OPENAS_CHROME;
@@ -208,15 +216,23 @@ BOOL CBrowserWrapper::CreateBrowser(CWnd* parent, uint32_t chromeFlags)
 			do_GetService(NS_SCRIPTSECURITYMANAGER_CONTRACTID, &rv);
 		if (ssm) { // Sometimes this happens really early  See bug 793370.
 			nsCOMPtr<nsIPrincipal> principal;
-			ssm->GetSubjectPrincipal(getter_AddRefs(principal));
-			if (!principal) {
+			nsCOMPtr<nsIXPConnect> xpconnect = do_GetService("@mozilla.org/js/xpc/XPConnect;1");
+			JSContext* cx = xpconnect->GetCurrentJSContext();
+			if (cx) {
+				JSCompartment *compartment = js::GetContextCompartment(cx);
+				if (compartment) {
+					JSPrincipals *principals = JS_GetCompartmentPrincipals(compartment);
+					principal = static_cast<nsJSPrincipals *>(principals);
+				}
+			}
+			if (!principal && chromeFlags & nsIWebBrowserChrome::CHROME_OPENAS_CHROME) {
 				ssm->GetSystemPrincipal(getter_AddRefs(principal));
 			}
 			rv = GetDocShell()->CreateAboutBlankContentViewer(principal);
 			NS_ENSURE_SUCCESS(rv, FALSE);
-			//nsCOMPtr<nsIDocument> doc = do_GetInterface(GetDocShell());
-			//NS_ENSURE_TRUE(!!doc, NS_ERROR_FAILURE);
-			//doc->SetIsInitialDocument(true);
+			nsCOMPtr<nsIDocument> doc = do_GetInterface(GetDocShell());
+			NS_ENSURE_TRUE(!!doc, FALSE);
+			doc->SetIsInitialDocument(true);
 		}
 	}
 
@@ -506,23 +522,19 @@ BOOL CBrowserWrapper::GetCharset(char* aCharset)
 	if (NS_FAILED(result) || !contentViewer) 
 		return FALSE;
 
-	nsCOMPtr<nsIMarkupDocumentViewer> mdv = do_QueryInterface(contentViewer,&result);
-	if (NS_FAILED(result) || !mdv) 
-		return FALSE;
-
 	nsCString mCharset;
-	result = mdv->GetForceCharacterSet(mCharset);
-
+	result = contentViewer->GetForceCharacterSet(mCharset);
+	
 	if (NS_FAILED(result) || mCharset.IsEmpty() )
 	{
-
+		
 		// If no forced charset look for the document charset
 		nsCString charset;
 		DocShell->GetCharset(charset);
 		if (charset.IsEmpty())
 		{
 			// If no document charset use default
-			result = mdv->GetHintCharacterSet(mCharset);
+			result = contentViewer->GetHintCharacterSet(mCharset);
 		}
 		else
 		{
@@ -546,13 +558,9 @@ BOOL CBrowserWrapper::ForceCharset(const char *aCharSet)
 	if (NS_FAILED(result) || !contentViewer) 
 		return FALSE;
 
-	nsCOMPtr<nsIMarkupDocumentViewer> mdv = do_QueryInterface(contentViewer,&result);
-	if (NS_FAILED(result) || !mdv) 
-		return FALSE;
-
 	nsCString mCharset;
 	mCharset = aCharSet;
-	result = mdv->SetForceCharacterSet(mCharset);
+	result = contentViewer->SetForceCharacterSet(mCharset);
 
 	if (NS_SUCCEEDED(result))
 		mWebNav->Reload(nsIWebNavigation::LOAD_FLAGS_CHARSET_CHANGE);
@@ -574,10 +582,10 @@ BOOL CBrowserWrapper::ScrollBy(int32_t dx, int32_t dy)
 	}
 	NS_ENSURE_TRUE(dom, FALSE);
 
-	return dom->ScrollBy (dx, dy);
+	return NS_SUCCEEDED(dom->ScrollBy (dx, dy));
 }
 
-already_AddRefed<nsIMarkupDocumentViewer> CBrowserWrapper::GetMarkupViewer()
+already_AddRefed<nsIContentViewer> CBrowserWrapper::GetContentViewer()
 {
 	nsresult rv;
 	nsCOMPtr<nsIDocShell> docShell = GetDocShell();
@@ -587,15 +595,12 @@ already_AddRefed<nsIMarkupDocumentViewer> CBrowserWrapper::GetMarkupViewer()
 	rv = docShell->GetContentViewer(getter_AddRefs(contentViewer));
 	NS_ENSURE_SUCCESS(rv, NULL);
 
-	nsCOMPtr<nsIMarkupDocumentViewer> _markupViewer = do_QueryInterface(contentViewer, &rv);
-	NS_ENSURE_SUCCESS(rv, NULL);
-
-	return _markupViewer.forget();	
+	return contentViewer.forget();	
 }
 
 BOOL CBrowserWrapper::SetFullZoom(float textzoom)
 {
-	nsCOMPtr<nsIMarkupDocumentViewer> markupViewer = GetMarkupViewer();
+	nsCOMPtr<nsIContentViewer> markupViewer = GetContentViewer();
 	NS_ENSURE_TRUE(markupViewer, FALSE);
 	nsresult rv = markupViewer->SetFullZoom(textzoom);
 	return NS_SUCCEEDED(rv);
@@ -603,7 +608,7 @@ BOOL CBrowserWrapper::SetFullZoom(float textzoom)
 
 float CBrowserWrapper::GetFullZoom()
 {
-	nsCOMPtr<nsIMarkupDocumentViewer> markupViewer = GetMarkupViewer();
+	nsCOMPtr<nsIContentViewer> markupViewer = GetContentViewer();
 	NS_ENSURE_TRUE(markupViewer, FALSE);
 	float textzoom;
 	nsresult rv = markupViewer->GetFullZoom(&textzoom);
@@ -970,13 +975,6 @@ BOOL CBrowserWrapper::InjectCSS(const wchar_t* userStyleSheet)
 	return _InjectCSS(dom, userStyleSheet);
 }
 
-#include "nsIXPConnect.h"
-#include "nsIScriptObjectPrincipal.h"
-#include "mozilla/dom/ScriptSettings.h"
-#include "nsIJSContextStack.h"
-#include "jsapi.h"
-#include "mozilla\dom\ScriptSettings.h"
-
 BOOL CBrowserWrapper::InjectJS(const wchar_t* userScript, CString& result, bool bTopWindow)
 {	
 	nsresult rv;
@@ -1127,7 +1125,6 @@ BOOL CBrowserWrapper::GetSelection(CString& aSelText)
 void CBrowserWrapper::SetVisible(BOOL aVisible)
 {
 	mWebBrowser->SetIsActive(aVisible);
-	TRACE2("Set Active Browser %u for window %s\n", aVisible, (LPCTSTR)GetTitle());
 }
 
 struct PRThread;
@@ -1156,16 +1153,17 @@ NS_IMPL_ISUPPORTS(focusActive, nsIRunnable)
 	return mFocus->Activate();	
 }
 
-#include "nsIPresShell.h"
+//XXX Can't be included anymore, the focus patch can't work.
+//#include "nsIPresShell.h"
 void CBrowserWrapper::SetActive(BOOL aActive)
 {	
 	NS_ENSURE_TRUE(mWebBrowserFocus, );
 	TRACE2("Set Focus Active Browser %u for window %s\n", aActive, (LPCTSTR)GetTitle());
 	if (aActive) {
-		nsCOMPtr<nsIPresShell> presShell;
+		//nsCOMPtr<nsIPresShell> presShell;
 		nsCOMPtr<nsIDocShell> docShell = GetDocShell();
-		if (docShell) presShell = docShell->GetPresShell();
-		if (!presShell) {
+		//if (docShell) presShell = docShell->GetPresShell();
+		if (!docShell) {
 			// Setting the focus later because this does not work on new tab
 			// mWebBrowserFocus->Activate(); 
 			nsCOMPtr<nsIThreadManager> tm = do_GetService("@mozilla.org/thread-manager;1");
@@ -1715,7 +1713,7 @@ BOOL CBrowserWrapper::_Save(nsIURI* aURI,
 
 		handler->SetTempFile(file);
 		persist->SetProgressListener(handler);
-		rv = persist->SaveURI(aURI, aDescriptor, aReferrer, nullptr, nullptr, file, nullptr);
+		rv = persist->SaveURI(aURI, aDescriptor, aReferrer, 0, nullptr, nullptr, file, nullptr);
 		if (NS_FAILED(rv))
 			persist->SetProgressListener(nullptr);
 	}
