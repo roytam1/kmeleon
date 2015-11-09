@@ -1,0 +1,24 @@
+<!ENTITY sCcustomShortcut "在 Newsfox 的选项对话框中选择所有的键盘快捷键并退出 Newsfox 之后，就可以通过修改配置文件夹的 newsfox 文件夹中的 ‘accel.xml’ 文件内的 ‘modifiers’ 和 ‘key’ 属性来自定义键盘快捷键。">
+<!ENTITY sCcustomHeading "自定义快捷键">
+<!ENTITY sCfixedHeading "固定的快捷键">
+<!ENTITY sCartFeedHeading "文章/源面板">
+<!ENTITY sCviewArtHeading "查看/文章面板">
+<!ENTITY sCfeedHeading "源面板">
+<!ENTITY sCarticleUp "文章上移">
+<!ENTITY sCarticleDown "文章下移">
+<!ENTITY sCupLevel "上移量">
+<!ENTITY sCexpandTree "展开源">
+<!ENTITY sCsame "相同">
+<!ENTITY sCtoggleArtFlag "添加或移除文章的标记">
+<!ENTITY sCselToFocus "切换到所选项">
+<!ENTITY sCfocusUp "定位到上一个文章">
+<!ENTITY sCfocusDown "定位到下一个文章">
+<!ENTITY sCmoveFeedUp "将源上移">
+<!ENTITY sCmoveFeedDown "将源下移">
+<!ENTITY sCfeedUp "源上移">
+<!ENTITY sCfeedDown "源下移">
+<!ENTITY sCexpColl "展开/折叠源">
+<!ENTITY sCdeleteKey "delete">
+<!ENTITY sCctrlKey "ctrl">
+<!ENTITY sCshiftKey "shift">
+<!ENTITY sCaltKey "alt">

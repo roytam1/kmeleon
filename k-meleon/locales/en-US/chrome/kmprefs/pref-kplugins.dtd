@@ -1,0 +1,6 @@
+<!ENTITY % prefDTD SYSTEM "chrome://kmprefs/locale/pref.dtd">%prefDTD;
+<!ENTITY kplugins.header	"K-Meleon Plugins">
+<!ENTITY kplugins.enable	"Enable/Disable K-Meleon Plugins">
+<!ENTITY kplugins.hint		"Determine which plugins you want to use:">
+<!ENTITY kplugins.name		"Name">
+<!ENTITY kplugins.descr		"Description">

@@ -1,0 +1,52 @@
+<!ENTITY title "Options de NewsFox">
+<!ENTITY global "Style d'affichage global :">
+<!ENTITY checkOnStartup "Rafraîchir tous les flux au démarrage">
+<!ENTITY notifyUponNewArticles "Avertir quand de nouveaux articles sont publiés">
+<!ENTITY confirmDelete "Demander une confirmation lors de la suppression de groupes ou de flux">
+<!ENTITY confirmDeleteArticle "Demander une confirmation lors de la suppression d'articles">
+<!ENTITY shortcutkeys "Touches de raccourci :">
+<!ENTITY restart "(Les modifications peuvent nécessiter un redémarrage de NewsFox)">
+<!ENTITY shortcutsNone "aucun">
+<!ENTITY shortcutsStd "standard">
+<!ENTITY shortcutsAlt "alternatif">
+<!ENTITY shortcutsCustom "personnalisé">
+<!ENTITY seehelp "Le menu a une liste de touches de raccourcis.">
+<!ENTITY newsfox.dir "Répertoire de NewsFox">
+<!ENTITY moveNfDir "Contenu des répertoires">
+<!ENTITY copy "Copier">
+<!ENTITY move "Déplacer">
+<!ENTITY noaction "Pas d'action">
+<!ENTITY Child_directory "Répertoire enfant">
+<!ENTITY Parent_directory "Répertoire parent">
+<!ENTITY dateStyle "Format de date :">
+<!ENTITY changeToPresent "Changer la date de l'article par la date actuelle si :">
+<!ENTITY articleTooltips "Infobulles des articles">
+<!ENTITY copyToClipboard "Copier le corps d'un article dans le presse-papiers">
+<!ENTITY selectAddedFeed "Sélectionner le nouveau flux après ajout">
+<!ENTITY feedRefresh "Rafraîchissement du flux :">
+<!ENTITY feedRefreshThreads "processus">
+<!ENTITY feedRefreshRenew "renouvellement (secondes)">
+<!ENTITY feedSlowdown "Pour les ordinateurs lents, réduire le nombre de processus et/ou augmenter le fréquence de renouvellement.">
+<!ENTITY feedRefreshTimeout "Temps imparti au rafraîchissement du flux (secondes)">
+<!ENTITY horizontalPanes "Panneaux horizontaux (nécessite un redémarrage)">
+<!ENTITY favicons "Favicônes">
+<!ENTITY updateTimeToBookmark "Écrire les URL et heures de mise à jour des flux dans les marque-pages">
+<!ENTITY spam "Activer le filtre d'intérêt">
+<!ENTITY globalTab "Global">
+<!ENTITY feedTab "Flux/Articles">
+<!ENTITY generalTab "Général">
+<!ENTITY shortcutsTab "Raccourcis">
+<!ENTITY keywordsTab "Mots-clé">
+<!ENTITY shortcuts.operationHeader "Opération">
+<!ENTITY shortcuts.select "Sélectionner une colonne et entrer une combinaison de touches.">
+<!ENTITY shortcuts.warning "De nombreuses combinaisons de touches sont déjà utilisées et indisponibles.">
+<!ENTITY shortcuts.experiment "Expérimentez pour voir ce qui fonctionne ou bien choisissez parmi les options prédéfinies.">
+<!ENTITY keyword "Mot-clé :">
+<!ENTITY keywordsHighlighted "Les mots-clé sont automatiquement surlignés dans les articles.">
+<!ENTITY caseIgnored "Toutes les recherches sont effectuées en lettres minuscules.">
+<!ENTITY statusBar "Icône d'abonnement automatique dans la barre d'état">
+<!ENTITY statusBarText "Texte :">
+<!ENTITY buttonText "Bouton texte Newsfox :">
+<!ENTITY statusBarTextNew "# nouveaux">
+<!ENTITY statusBarTextUnread "# non lus">
+<!ENTITY statusBarTextNone "aucun">

@@ -1,0 +1,17 @@
+# This file is sourced by the nightly, beta, and release mozconfigs.
+
+#. "$topsrcdir/kmeleon/config/common"
+
+# Treat warnings as errors in directories with FAIL_ON_WARNINGS.
+ac_add_options --enable-warnings-as-errors
+
+# Package js shell.
+export MOZ_PACKAGE_JSSHELL=1
+
+ac_add_options --enable-application=kmeleon
+ac_add_options --disable-crashreporter
+ac_add_options --disable-parental-controls
+ac_add_options --disable-maintenance-service 
+ac_add_options --disable-webrtc
+ac_add_options --disable-updater
+ac_add_options --disable-webapp-runtime

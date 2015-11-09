@@ -1,0 +1,9 @@
+<!ENTITY title "タグの編集">
+<!ENTITY tagAdd "選択した記事にタグを追加">
+<!ENTITY tagRemove "選択した記事のタグを削除">
+<!ENTITY tagDeleteCompletely "すべての記事とタグリストからタグを削除">
+<!ENTITY colorVaries1 "青: すべての選択された記事にタグがあります">
+<!ENTITY colorVaries2 "ブレンド: いくつかの選択された記事にタグがあります">
+<!ENTITY colorVaries3 "赤: 選択された記事にタグはありません">
+<!ENTITY newTagAdd "選択した記事に新しいタグを追加">
+<!ENTITY newTagAddExample "&apos;/&apos; タグを分離します: &apos;tech/news&apos;">

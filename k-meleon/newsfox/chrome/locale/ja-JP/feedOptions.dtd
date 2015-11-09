@@ -1,0 +1,25 @@
+<!ENTITY useGlobal "グローバル設定を使用">
+<!ENTITY feedAutoCheck "&apos;すべてのフィードを更新&apos;はフィードに新しいエントリーがあるかチェックします">
+<!ENTITY dontDeleteUnread "未読記事を削除しない">
+<!ENTITY groups "グループ:">
+<!ENTITY checkfeed "フィードをチェック">
+<!ENTITY iconsrc "アイコンソース:">
+<!ENTITY authentication "認証(安全なフィードのみ)">
+<!ENTITY username "ユーザー名:">
+<!ENTITY password "パスワード:">
+<!ENTITY feedPrivate "ディスク上のフィードと記事を暗号化">
+<!ENTITY keepDays.pre "最低限の記事を保存">
+<!ENTITY keepDays.post "日">
+<!ENTITY mainTab "全般">
+<!ENTITY filterTab "ウェブフィルタ">
+<!ENTITY securityTab "セキュリティ">
+<!ENTITY filterNew "フィルターに通されたウェブページのすべての新しい記事をダウンロードする">
+<!ENTITY filterImages "フィルターに通されたウェブページのイメージをダウンロードする">
+<!ENTITY filterInfo "フィルタを入れて、記事リンクHTMLを拡張記事記述に変えてください。フィルタは、マッチされる正規表現または価値が延長した記事説明になるJavaScriptコードでもありえます。">
+<!ENTITY filterJSinfo "JavaScriptを使用するとき、これらの変数は利用可能です:">
+<!ENTITY filterJSvar1 "リンクDOMは記事リンクページのDOMを含んでいます。">
+<!ENTITY filterJSvar2 "リンクHTMLは記事リンクページのテキスト/htmlを含んでいます。">
+<!ENTITY filterJSvar3 "getElementsByClass（クラス、タグ、ノード）は、所定のノードに含まれる伝えられたタグとクラスで多数のすべてのhtml要素を返します。">
+<!ENTITY filterMime "文字コードを無効にする(+ for auto, &gt; for test, or charset)">
+<!ENTITY filterInfo2 "You must enter a filter or images will be downloaded for the current article, not an html page. To use the default filter press the backspace key.">
+<!ENTITY never "決してしない">

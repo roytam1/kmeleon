@@ -1,0 +1,24 @@
+<!ENTITY sCcustomShortcut "Les raccourcis personnalisées peuvent être définis en éditant les attributs &apos;modifieur&apos; et &apos;touche&apos; du fichier accel.xml dans le répertoire de NewsFox de votre profil après avoir défini une série de raccourcis clavier dans la boîte d&apos;options et avoir quitté NewsFox.">
+<!ENTITY sCcustomHeading "Raccourcis personnalisés">
+<!ENTITY sCfixedHeading "Raccourcis fixes">
+<!ENTITY sCartFeedHeading "Panneau article/flux">
+<!ENTITY sCviewArtHeading "Panneau vue/article">
+<!ENTITY sCfeedHeading "Panneau flux">
+<!ENTITY sCarticleUp "Monter l&apos;article">
+<!ENTITY sCarticleDown "Descendre l&apos;article">
+<!ENTITY sCupLevel "Niveau supérieur">
+<!ENTITY sCexpandTree "Développer le flux">
+<!ENTITY sCsame "idem">
+<!ENTITY sCtoggleArtFlag "Changer le drapeau de l&apos;article">
+<!ENTITY sCselToFocus "Sélectionner le focus">
+<!ENTITY sCfocusUp "Focus sur l&apos;article du haut">
+<!ENTITY sCfocusDown "Focus sur l&apos;article du bas">
+<!ENTITY sCmoveFeedUp "Monter le flux">
+<!ENTITY sCmoveFeedDown "Descendre le flux">
+<!ENTITY sCfeedUp "Flux haut">
+<!ENTITY sCfeedDown "Flux bas">
+<!ENTITY sCexpColl "Déplier/replier les flux">
+<!ENTITY sCdeleteKey "Suppr">
+<!ENTITY sCctrlKey "Ctrl">
+<!ENTITY sCshiftKey "Maj">
+<!ENTITY sCaltKey "Alt">

@@ -1,0 +1,31 @@
+<!ENTITY checkFeed "更新 Feed">
+<!ENTITY troubleshoot "疑難排解">
+<!ENTITY OPML.import "匯入 OPML">
+<!ENTITY OPML.export "匯出 OPML">
+<!ENTITY toolOptions.import.addfeeds "加到現有的 Feeds">
+<!ENTITY toolOptions.import.startfresh "覆蓋現有的 Feeds">
+<!ENTITY toolOptions.import.file "從檔案">
+<!ENTITY toolOptions.import.URL "從網址">
+<!ENTITY toolOptions.passwd "更改密碼">
+<!ENTITY help "NewsFox 說明">
+<!ENTITY feeds "Feeds">
+<!ENTITY r "R">
+<!ENTITY markAllAsUnread "全部標示成未閱讀">
+<!ENTITY tagSel "編輯標籤">
+<!ENTITY sortFeeds "排序 Feeds">
+<!ENTITY unsortFeeds "復原排序">
+<!ENTITY toolOptions.restoreBackup "還原備份">
+<!ENTITY exportRSS "匯出至 RSS">
+<!ENTITY wait "為了安全起見，請等候直到載入完成">
+<!ENTITY tagEdit "編輯所選文章的標籤">
+<!ENTITY addGroup.regular "規則群組">
+<!ENTITY addGroup.search "搜尋群組">
+<!ENTITY addGroup.tag "標籤群組">
+<!ENTITY addFeed.regular "RSS/Atom">
+<!ENTITY addFeed.storage "儲存裝置">
+<!ENTITY prob "Pr">
+<!ENTITY mainToolbar "主工具列">
+<!ENTITY feedToolbar "Feed 工具列">
+<!ENTITY Xtend "+">
+<!ENTITY markSelAsRead "標記為已閱讀">
+<!ENTITY markSelAsUnread "標記為未閱讀">

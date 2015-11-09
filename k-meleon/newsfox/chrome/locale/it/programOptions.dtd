@@ -1,0 +1,52 @@
+<!ENTITY title "Opzioni di NewsFox">
+<!ENTITY global "Stile di visualizzazione globale:">
+<!ENTITY checkOnStartup "Ricarica tutti i feed all&apos;avvio">
+<!ENTITY notifyUponNewArticles "Segnala la presenza di nuovi articoli">
+<!ENTITY confirmDelete "Chiedi conferma prima di eliminare gruppi o feed">
+<!ENTITY confirmDeleteArticle "Chiedi conferma prima di eliminare gli articoli">
+<!ENTITY shortcutkeys "Scorciatoie da tastiera:">
+<!ENTITY restart "(Riavviare Newsfox per rendere effettive le modifiche)">
+<!ENTITY shortcutsNone "nessuna">
+<!ENTITY shortcutsStd "predefinite">
+<!ENTITY shortcutsAlt "alternate">
+<!ENTITY shortcutsCustom "personalizzate">
+<!ENTITY seehelp "Dal menu della guida è possibile accedere ad una lista di scorciatoie da tastiera">
+<!ENTITY newsfox.dir "Cartella di Newsfox">
+<!ENTITY moveNfDir "Contenuto cartella:">
+<!ENTITY copy "copia">
+<!ENTITY move "sposta">
+<!ENTITY noaction "nessuna azione">
+<!ENTITY Child_directory "Cartella secondaria">
+<!ENTITY Parent_directory "Cartella principale">
+<!ENTITY dateStyle "Formato data:">
+<!ENTITY changeToPresent "Utilizza la data attuale se quella dell'articolo:">
+<!ENTITY articleTooltips "Attiva suggerimenti articoli">
+<!ENTITY copyToClipboard "Copia il corpo dell&apos;articolo negli appunti">
+<!ENTITY selectAddedFeed "Seleziona un nuovo feed quando viene aggiunto">
+<!ENTITY feedRefresh "Aggiornamento feed:">
+<!ENTITY feedRefreshThreads "threads">
+<!ENTITY feedRefreshRenew "aggiornamento(secondi)">
+<!ENTITY feedSlowdown "Per computer lenti, diminuire i threads e/o aumentare il periodo di aggiornamento.">
+<!ENTITY feedRefreshTimeout "Tempo di aggiornamento dei feed in secondi">
+<!ENTITY horizontalPanes "Visualizza pannello orizzontale (richiede il riavvio)">
+<!ENTITY favicons "Visualizza favicon">
+<!ENTITY updateTimeToBookmark "Scrivi l&apos;Url del feed e la sua data di aggiornamento nel segnalibro">
+<!ENTITY spam "Attiva il filtro &apos;Interesse&apos;">
+<!ENTITY globalTab "Globali">
+<!ENTITY feedTab "Feed/Articoli">
+<!ENTITY generalTab "Generale">
+<!ENTITY shortcutsTab "Scorciatoie">
+<!ENTITY keywordsTab "Parole chiave">
+<!ENTITY shortcuts.operationHeader "Operazione">
+<!ENTITY shortcuts.select "Per impostare una scorciatoia selezionare una riga e digitare una combinazione di tasti.">
+<!ENTITY shortcuts.warning "Molte combinazioni non sono disponibili perché già in uso.">
+<!ENTITY shortcuts.experiment "È possibile effettuare vari tentativi per trovarne una funzionante o sceglierne una tra quelle predefinite.">
+<!ENTITY keyword "Parola chiave:">
+<!ENTITY keywordsHighlighted "Le parole chiave all&apos;interno degli articoli vengono evidenziate automaticamente.">
+<!ENTITY caseIgnored "Le ricerche sono effettuate ignorando le maiuscole.">
+<!ENTITY statusBar "Visualizza icona sottoscrizione automatica nella barra di stato">
+<!ENTITY statusBarText "Testo:">
+<!ENTITY buttonText "Testo del pulsante Newsfox:">
+<!ENTITY statusBarTextNew "# nuovo">
+<!ENTITY statusBarTextUnread "# non letto">
+<!ENTITY statusBarTextNone "nessuno">

@@ -1,0 +1,513 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/css" href="chrome://global/skin/"?>
+<?xml-stylesheet type="text/css" href="chrome://kmprefs/skin/"?>
+<?xul-overlay href="chrome://kmprefs/content/kmprefs/ovrl-popups.xul"?>
+<?xul-overlay href="chrome://kmprefs/content/kplugins/fullscreen.xul"?>
+<!DOCTYPE page SYSTEM "chrome://kmprefs/locale/pref-appearance.dtd">
+<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" id="prefAppearance" onload="init()">
+	<stringbundle id="pref_bundle" src="chrome://kmprefs/locale/pref.properties"/>
+	<stringbundle id="lang_bundle" src="chrome://global/locale/languageNames.properties"/>
+	<stringbundle id="regn_bundle" src="chrome://global/locale/regionNames.properties"/>
+	<script type="application/x-javascript" src="chrome://kmprefs/content/pref.js"/>
+	<script type="application/x-javascript" src="chrome://kmprefs/content/kmprefs/homepage.js"/>
+	<script type="application/x-javascript">
+<![CDATA[
+
+Components.utils.import("resource:///modules/KMeleon.jsm");
+
+function init() {
+	initCheckbox("kmeleon.display.accelInMenus");
+	initCheckbox("kmeleon.favicons.show");
+	initCheckbox("kmeleon.favicons.titleBar");
+	document.getElementById("kmeleon.favicons.titleBar").disabled = !pref.getBoolPref("kmeleon.favicons.show");
+	initTextbox("kmeleon.display.title", false);
+
+	Skin = new kmSkin;
+	Throbber = new kmThrobber;
+	kBMPMenu.init();
+	kFullscreen.init();
+	Language.init();
+	main();
+	for (var j = 0, b = document.getElementById("popups.appearance").getElementsByTagName("checkbox"), d = !getPrefValue("javascript.enabled"); j < b.length; j++)
+		initCheckbox(b[j].id);
+	if (getPrefValue(kmPrefs.last) == "appearance") {
+		Language.elem.focus();
+		restoreDefault(kmPrefs.last);
+	}
+}
+function main() {
+	Window.init(Maximized.init(Fullscreen.init()));
+}
+var Language = {
+	lang : null,
+	regn : null,
+	pref : null,
+	elem : null,
+	lcls : null,
+	init : function () {
+		this.lang = document.getElementById("lang_bundle");
+		this.regn = document.getElementById("regn_bundle");
+		this.pref = new Array("general.useragent.locale",
+				"general.useragent.contentlocale");
+		this.elem = document.getElementById(this.pref[0]);
+		this.lcls = new Array();
+		this.lcls = KMeleon.GetLocales();
+		//this._getLocales();
+		this.elem.appendChild(document.createElement("menupopup"));
+		for (var j = 0, l, r, item = document.createElement("menuitem"); j < this.lcls.length; j++) {
+			item.setAttribute("value", this.lcls[j]);
+			l = this.lcls[j].substr(0, 2).toLowerCase();
+			r = this.lcls[j].substr(3, 2).toLowerCase();
+			if (l == r)
+				r = "";
+			else
+				try {
+					r = this.regn.getString(r);
+				} catch (e) {
+					r = "";
+				}
+			try {
+				l = this.lang.getString(l);
+				if (r)
+					l += " (" + r + ")";
+			} catch (e) {
+				l = this.lcls[j];
+			}
+			item.setAttribute("label", l);
+			this.elem.firstChild.appendChild(item.cloneNode(true));
+		}
+		if (j == 1)
+			this.elem.disabled = true;
+		initMenulist(this.pref[0], "", "");
+	},
+	_getLocales : function () {
+		this.lcls[0] = "en-US";
+		var dir = getFile(getFolder("CurProcD"), "locales");
+		if (dir.exists() && dir.isDirectory()) {
+			var file,
+			files = dir.directoryEntries;
+			while (files.hasMoreElements()) {
+				file = files.getNext();
+				if (file instanceof Components.interfaces.nsILocalFile)
+					if (file.isDirectory())
+						this.lcls[this.lcls.length] = file.leafName;
+			}
+		}
+	},
+	setLocale : function (locale) {
+		pref.setCharPref(this.pref[0], locale);
+		pref.setCharPref(this.pref[1], locale.substr(3, 2));
+		// Avoid Bug 1008
+		if (Homepage.isDefault())
+			Homepage.restoreDefault();
+		pref.setCharPref(kmPrefs.last, "appearance");
+		kmPrefs.save();
+		setTimeout("top.location.reload()", 100);
+	}
+};
+var kBMPMenu = {
+	name : "bmpmenu",
+	pref : "kmeleon.plugins.bmpmenu.load",
+	init : function () {
+		if (kPlugin.absent(this.name))
+			document.getElementById(this.pref).setAttribute("hidden", true);
+		else
+			initCheckbox(this.pref);
+	}
+};
+var Skin;
+function kmSkin() {
+	this.elem = document.getElementById(this.pref);
+	//this.skins = ["default"];  
+	// bug: this._getSkins("KUSkins",false);
+	//this._getSkins("KUserSettings", "skins");
+	//this._getSkins("KASkins", false);
+	//this.skins.shift(); // remove "default" (no valid skin)
+	//this.skins = this.skins.sort(alphabetical);
+	this.skins = KMeleon.GetSkins();
+	this.init();
+}
+kmSkin.prototype = {
+	pref : "kmeleon.general.skinsCurrent",
+	init : function () {
+		this.elem.appendChild(document.createElement("menupopup"));
+		for (var j = 0, item = document.createElement("menuitem"); j < this.skins.length; j++) {
+			item.setAttribute("value", this.skins[j]);
+			item.setAttribute("label", this.skins[j]);
+			this.elem.firstChild.appendChild(item.cloneNode(true));
+		}
+		initMenulist(this.pref, "", document.getElementById("pref_bundle").getString("file_not_found"));
+		initCheckbox("kmeleon.display.backgroundImageEnabled");
+	},
+	_getSkins : function (folder, subfolder) {
+		folder = getFolder(folder);
+		var dir = getFile(folder, subfolder);
+		if (dir.exists() && dir.isDirectory()) {
+			var file,
+			files = dir.directoryEntries;
+			while (files.hasMoreElements()) {
+				file = files.getNext();
+				if (file instanceof Components.interfaces.nsILocalFile)
+					if (file.isDirectory()) {
+						for (var j = 0, k = true, l = file.leafName; j < this.skins.length; j++)
+							if (l.toLowerCase() == this.skins[j].toLowerCase())
+								k = false;
+						if (k)
+							this.skins[this.skins.length] = l;
+					}
+			}
+		}
+	}
+};
+var Throbber;
+function kmThrobber() {
+	this.elem = document.getElementById(this.pref);
+	this._im1 = "user_pref(\"" + this.pref + "\", ";
+	this._im2 = ");";
+	this._rx1 = "user_pref[\\s]*\\([\\s]*." + this.pref + ".[\\s]*,[\\s]*";
+	this._rx2 = "[\\s]*\\)[\\s]*;";
+	this._Import = new Array(this._im1 + "false" + this._im2, this._im1 + "true" + this._im2);
+	this._RegExp = new Array(this._rx1 + "false" + this._rx2, this._rx1 + "true" + this._rx2);
+	this.init();
+}
+kmThrobber.prototype = {
+	pref : "kmeleon.toolband.Throbber.visibility",
+	init : function () {
+		var txt = getFileContents(UserPrefs);
+		if (testMultiline(txt, this._RegExp[0]))
+			this.elem.checked = false;
+		else
+			if (testMultiline(txt, this._RegExp[1]))
+				this.elem.checked = true;
+			else
+				initCheckbox(this.pref);
+	},
+	toggle : function () {
+		removeFromFile(UserPrefs, this._RegExp[0]);
+		removeFromFile(UserPrefs, this._RegExp[1]);
+		if (this.elem.checked)
+			pref.setBoolPref(this.pref, true);
+		else
+			addToUserPrefs(this._Import[0]);
+		this.init();
+	}
+};
+var Fullscreen = {
+	name : "fullscreen",
+	auto : "kmeleon.plugins.fullscreen.auto", // ineffective
+	pref : "kmeleon.plugins.fullscreen.last",
+	init : function () {
+		// remove pre-1.5 settings:
+		removeFromFile(UserPrefs, "user_pref[\\s]*\\([\\s]*." + this.auto + ".[\\s]*,[\\s]*true[\\s]*\\)[\\s]*;");
+		removeFromFile(UserPrefs, "user_pref[\\s]*\\([\\s]*." + this.auto + ".[\\s]*,[\\s]*false[\\s]*\\)[\\s]*;");
+		this.elem = document.getElementById(this.pref);
+		this._im1 = "user_pref(\"" + this.pref + "\", ";
+		this._im2 = ");";
+		this._rx1 = "user_pref[\\s]*\\([\\s]*." + this.pref + ".[\\s]*,[\\s]*";
+		this._rx2 = "[\\s]*\\)[\\s]*;";
+		this._Import = new Array(this._im1 + "false" + this._im2, this._im1 + "true" + this._im2);
+		this._RegExp = new Array(this._rx1 + "false" + this._rx2, this._rx1 + "true" + this._rx2);
+		var txt = getFileContents(UserPrefs);
+		var off = testMultiline(txt, this._RegExp[1]);
+		if (kPlugin.absent(this.name))
+			this.elem.parentNode.setAttribute("hidden", true);
+		else {
+			this.elem.disabled = !kPlugin.load(this.name);
+			if (off)
+				this.elem.selectedIndex = 0;
+			else
+				if (testMultiline(txt, this._RegExp[0]))
+					this.elem.selectedIndex = 1;
+				else
+					this.elem.selectedIndex = 2;
+		}
+		return kPlugin.load(this.name) && off;
+	},
+	toggle : function (elem) {
+		removeFromFile(UserPrefs, this._RegExp[0]);
+		removeFromFile(UserPrefs, this._RegExp[1]);
+		if (this.elem.value)
+			addToUserPrefs(this._im1 + this.elem.value + this._im2);
+		else
+			pref.setBoolPref(this.pref, false);
+		main();
+	}
+};
+var Maximized = {
+	pref : "kmeleon.display.maximized",
+	init : function (on) {
+		this.elem = document.getElementById(this.pref);
+		this._im1 = "user_pref(\"" + this.pref + "\", ";
+		this._im2 = ");";
+		this._rx1 = "user_pref[\\s]*\\([\\s]*." + this.pref + ".[\\s]*,[\\s]*";
+		this._rx2 = "[\\s]*\\)[\\s]*;";
+		this._Import = new Array(this._im1 + "false" + this._im2, this._im1 + "true" + this._im2);
+		this._RegExp = new Array(this._rx1 + "false" + this._rx2, this._rx1 + "true" + this._rx2);
+		var txt = getFileContents(UserPrefs);
+		var off = testMultiline(txt, this._RegExp[1]);
+		if (off)
+			this.elem.selectedIndex = 0;
+		else
+			if (testMultiline(txt, this._RegExp[0]))
+				this.elem.selectedIndex = 1;
+			else
+				this.elem.selectedIndex = 2;
+		this.elem.disabled = on;
+		return on || off;
+	},
+	toggle : function () {
+		removeFromFile(UserPrefs, this._RegExp[0]);
+		removeFromFile(UserPrefs, this._RegExp[1]);
+		if (this.elem.value)
+			addToUserPrefs(this._im1 + this.elem.value + this._im2);
+		else
+			pref.setBoolPref(this.pref, false);
+		main();
+	}
+};
+var Window = {
+	init : function (off) {
+		this.bndl = document.getElementById("pref_bundle");
+		this.bttn = document.getElementsByTagName("button");
+		this.tbox = document.getElementsByTagName("textbox");
+		for (var j = 2; j < 6; j++) {
+			this.tbox[j].disabled = off;
+			this.tbox[j].setAttribute("readonly", true);
+			this.tbox[j].value = getIntUserPref(this.tbox[j].id, "");
+		}
+		this.bttn[0].label = this.bndl.getString("edit");
+		this.bttn[0].disabled = off;
+		this.bttn[1].disabled = off;
+		this.bttn[2].label = this.bndl.getString("edit");
+		this.bttn[2].disabled = off;
+		this.bttn[3].disabled = off;
+		this.bttn[4].disabled = off ? off : !((getIntUserPref(this.tbox[1].id, "")) && (getIntUserPref(this.tbox[2].id, "")));
+	},
+	clear : function (start, end) {
+		for (var j = start; j < end + 1; j++)
+			removeFromFile(UserPrefs, "user_pref[\\s]*\\([\\s]*." + this.tbox[j].id + ".[\\s]*,[\\s]*[\\d]+[\\s]*\\)[\\s]*;");
+	},
+	center : function () {
+		var w = parseInt(getIntUserPref(this.tbox[1].id, ""));
+		var h = parseInt(getIntUserPref(this.tbox[2].id, ""));
+		this.clear(3, 4);
+		addToUserPrefs("user_pref(\"" + this.tbox[4].id + "\", " + Math.floor((screen.height - h) / 2).toString(10) + ");");
+		addToUserPrefs("user_pref(\"" + this.tbox[3].id + "\", " + Math.floor((screen.width - w) / 2).toString(10) + ");");
+		main();
+	},
+	editSave : function (elem, start, end) {
+		for (var j = 0; j < this.bttn.length; j++)
+			this.bttn[j].disabled = true;
+		if (elem.label == this.bndl.getString("save")) {
+			for (var j = start; j < end + 1; j++)
+				this.tbox[j].setAttribute("readonly", true);
+			this.clear(start, end);
+			for (var j = end, val; j > start - 1; j--) {
+				val = parseInt(this.tbox[j].value);
+				if (!isNaN(val))
+					addToUserPrefs("user_pref(\"" + this.tbox[j].id + "\", " + val.toString(10) + ");");
+				else
+					this.tbox[j].value = "";
+			}
+			main();
+		} else {
+			for (var j = start; j < end + 1; j++)
+				this.tbox[j].removeAttribute("readonly");
+			this.tbox[start].focus();
+			elem.label = this.bndl.getString("save");
+			this.bttn[start - 2].disabled = false;
+			if (!kPlugin.absent(Fullscreen.name))
+				Fullscreen.elem.disabled = true;
+			Maximized.elem.disabled = true;
+		}
+	}
+};
+]]>
+	</script>
+	<vbox flex="1" style="overflow:auto">
+		<dialogheader title="&appearance.header;"/>
+		<separator class="thin"/>
+		<tabcontrol flex="1">
+			<tabbox flex="1">
+				<tabs>
+					<tab label="&general;"/>
+					<tab id="kFullscreenTab"/>
+					<tab label="&startup;" oncommand="main()" onfocus="main()"/>
+					<tab id="popups.tab"/>
+				</tabs>
+				<tabpanels flex="1">
+					<tabpanel flex="1" orient="vertical" style="overflow:auto">
+						<!-- General Appearance -->
+						<separator class="thin"/>
+						<grid>
+							<columns>
+								<column flex="1"/>
+								<column flex="1"/>
+							</columns>
+							<rows>
+								<row>
+									<groupbox flex="1">
+										<caption>
+											<label>&appearance.language;</label>
+										</caption>
+										<menulist id="general.useragent.locale" oncommand="Language.setLocale(this.value)"/>
+										<separator class="thin"/>
+									</groupbox>
+									<spacer/>
+								</row>
+								<separator class="thick"/>
+								<separator class="groove"/>
+								<separator class="thick"/>
+								<!--    <groupbox style="border-top:0;border-left:0;border-right:0"/> -->
+								<row>
+									<groupbox flex="1">
+										<caption>
+											<label>&appearance.skin;</label>
+										</caption>
+										<menulist id="kmeleon.general.skinsCurrent" oncommand="setCharPref(this.id,this.value)"/>
+										<separator class="thin"/>
+										<checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.plugins.bmpmenu.load" label="&appearance.menuIcons;"/>
+										<checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.display.backgroundImageEnabled" label="&appearance.backBMP;"/>
+										<checkbox oncommand="Throbber.toggle()" id="kmeleon.toolband.Throbber.visibility" label="&appearance.throbber;"/>
+										<hbox align="center">
+											<label value="&appearance.toolbarSize;"/>
+											<textbox size="2" type="number" min="0" max="64" increment="4" decimalplaces="0" id="kmeleon.display.toolbars_size" onchange="if(this.value==4) this.value = 16; else if(this.value&lt;16) this.value = 0; setIntPref(this.id,this.value)"/>
+										</hbox>
+										<separator class="thin"/>
+									</groupbox>
+									<vbox flex="1">
+										<separator class="thick"/>
+										<checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.display.accelInMenus" label="&appearance.menuAccels;"/>
+										<separator class="thin"/>
+										<checkbox oncommand="toggleCheckbox(this.id);this.nextSibling.disabled=!this.checked" id="kmeleon.favicons.show" label="&appearance.siteIcons;"/>
+										<checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.favicons.titleBar" label="&appearance.siteIcons.inTitle;" style="margin-left:2em"/>
+										<separator class="thin"/>
+										<checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.display.hideTitleBar" label="&appearance.TitleBar;"/>
+										<vbox flex="1"/>
+										<hbox align="center">
+											<label value="&appearance.windowTitle;"/>
+											<textbox id="kmeleon.display.title" flex="1" class="uri-element" oninput="setCharPref(this.id,this.value)"/>
+										</hbox>
+										<separator class="thin"/>
+									</vbox>
+								</row>
+								<separator class="thick"/>
+								<groupbox style="border-top:0;border-left:0;border-right:0">
+									<description>&restartNote1;</description>
+								</groupbox>
+							</rows>
+						</grid>
+						<!-- General Appearance -->
+					</tabpanel>
+					<tabpanel flex="1" orient="vertical" style="overflow:auto">
+						<vbox id="kFullscreenDisplay"/>
+					</tabpanel>
+					<tabpanel flex="1" orient="vertical" style="overflow:auto">
+						<!-- Startup Appearance -->
+						<separator class="thin"/>
+						<groupbox>
+							<caption>
+								<label>&window.size;</label>
+							</caption>
+							<separator class="thin"/>
+							<hbox align="center">
+								<grid>
+									<columns>
+										<column/>
+										<column/>
+										<column/>
+									</columns>
+									<rows>
+										<row align="center">
+											<label value="&width;"/>
+											<textbox id="kmeleon.display.width" size="4" class="uri-element" oninput="setIntPref(this.id,this.value)"/>
+											<label value="&pixels;"/>
+										</row>
+										<row align="center">
+											<label value="&height;"/>
+											<textbox id="kmeleon.display.height" size="4" class="uri-element" oninput="setIntPref(this.id,this.value)"/>
+											<label value="&pixels;"/>
+										</row>
+									</rows>
+								</grid>
+								<hbox>
+									<button oncommand="Window.editSave(this,2,3)"/>
+									<button label="&clear;" oncommand="Window.clear(2,3);main()"/>
+									<hbox flex="1"/>
+								</hbox>
+							</hbox>
+							<separator class="thin"/>
+							<hbox>
+								<groupbox>
+									<caption>
+										<label>&maximized;</label>
+									</caption>
+									<radiogroup id="kmeleon.display.maximized" oncommand="Maximized.toggle()">
+										<radio value="true" label="&always;"/>
+										<radio value="false" label="&never;"/>
+										<radio value="" label="&asClosed;"/>
+									</radiogroup>
+								</groupbox>
+								<groupbox>
+									<caption>
+										<label>&fullscreen;</label>
+									</caption>
+									<radiogroup id="kmeleon.plugins.fullscreen.last" oncommand="Fullscreen.toggle()">
+										<radio value="true" label="&always;"/>
+										<radio value="false" label="&never;"/>
+										<radio value="" label="&asClosed;"/>
+									</radiogroup>
+								</groupbox>
+							</hbox>
+						</groupbox>
+						<separator class="thin"/>
+						<groupbox>
+							<caption>
+								<label>&window.position;</label>
+							</caption>
+							<separator class="thin"/>
+							<hbox align="center">
+								<grid>
+									<columns>
+										<column/>
+										<column/>
+										<column/>
+									</columns>
+									<rows>
+										<row align="center">
+											<label value="&left;"/>
+											<textbox id="kmeleon.display.XPos" size="4" class="uri-element" oninput="setIntPref(this.id,this.value)"/>
+											<label value="&pixels;"/>
+										</row>
+										<row align="center">
+											<label value="&top;"/>
+											<textbox id="kmeleon.display.YPos" size="4" class="uri-element" oninput="setIntPref(this.id,this.value)"/>
+											<label value="&pixels;"/>
+										</row>
+									</rows>
+								</grid>
+								<hbox>
+									<button oncommand="Window.editSave(this,4,5)"/>
+									<button label="&clear;" oncommand="Window.clear(4,5);main()"/>
+									<hbox flex="1"/>
+								</hbox>
+							</hbox>
+							<separator class="thin"/>
+							<hbox>
+								<button label="&center;" oncommand="Window.center()"/>
+								<hbox flex="1"/>
+							</hbox>
+						</groupbox>
+						<vbox flex="1"/>
+						<description>&restartNote1;</description>
+						<!-- Startup Appearance -->
+					</tabpanel>
+					<tabpanel flex="1" orient="vertical" style="overflow:auto">
+						<separator class="thin"/>
+						<groupbox id="popups.appearance"/>
+					</tabpanel>
+				</tabpanels>
+			</tabbox>
+		</tabcontrol>
+	</vbox>
+</page>

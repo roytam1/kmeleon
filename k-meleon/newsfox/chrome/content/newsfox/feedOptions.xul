@@ -1,0 +1,339 @@
+<?xml version="1.0"?>
+<!-- ***** BEGIN LICENSE BLOCK *****
+   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+   -
+   - The contents of this file are subject to the Mozilla Public License Version
+   - 1.1 (the "License"); you may not use this file except in compliance with
+   - the License. You may obtain a copy of the License at
+   - http://www.mozilla.org/MPL/
+   -
+   - Software distributed under the License is distributed on an "AS IS" basis,
+   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+   - for the specific language governing rights and limitations under the
+   - License.
+   -
+   - The Original Code is NewsFox.
+   -
+   - The Initial Developer of the Original Code is
+   - Andy Frank <andy@andyfrank.com>.
+   - Portions created by the Initial Developer are Copyright (C) 2005-2011
+   - the Initial Developer. All Rights Reserved.
+   -
+   - Contributor(s):
+   - Andrey Gromyko <andrey@gromyko.name>
+   - Ron Pruitt <wa84it@gmail.com>
+   -
+   - Alternatively, the contents of this file may be used under the terms of
+   - either the GNU General Public License Version 2 or later (the "GPL"), or
+   - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+   - in which case the provisions of the GPL or the LGPL are applicable instead
+   - of those above. If you wish to allow use of your version of this file only
+   - under the terms of either the GPL or the LGPL, and not to allow others to
+   - use your version of this file under the terms of the MPL, indicate your
+   - decision by deleting the provisions above and replace them with the notice
+   - and other provisions required by the LGPL or the GPL. If you do not delete
+   - the provisions above, a recipient may use your version of this file under
+   - the terms of any one of the MPL, the GPL or the LGPL.
+   -
+   - ***** END LICENSE BLOCK ***** -->
+
+<?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
+<?xml-stylesheet href="chrome://newsfox/skin/" type="text/css"?>
+
+<!DOCTYPE window [
+  <!ENTITY % feedOptionsDTD SYSTEM "chrome://newsfox/locale/feedOptions.dtd">
+  %feedOptionsDTD;
+  <!ENTITY % commonDTD SYSTEM "chrome://newsfox/locale/common.dtd">
+  %commonDTD;
+]>
+
+<dialog id="feedOptionsDlg" title="&feedOptions;"
+  xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+  onload="init();"
+  buttons="accept,cancel,disclosure"
+  buttonlabeldisclosure="&checkfeed;"
+  ondialogaccept="return doAccept();"
+  ondialogcancel="return true;"
+  ondialogdisclosure="return doCheckFeed();">
+
+	<script src="globalfuncs.js"/>
+	<script src="feedOptions.js"/>
+
+	<stringbundleset id="stringbundleset">
+		<stringbundle id="newsfox-string-bundle" src="chrome://newsfox/locale/newsfox.properties"/>
+	</stringbundleset>
+
+	<tabbox>
+		<tabs>
+			<tab label="&mainTab;"/>
+			<tab label="&sortTab;"/>
+			<tab label="&securityTab;"/>
+			<tab id="filterTab" label="&filterTab;"/>
+		</tabs>
+		<tabpanels flex="1">
+			<tabpanel>
+				<hbox>
+				  <vbox>
+						<spacer flex="1"/>
+						<hbox id="storageH1" align="center">
+							<image id="fOlivemark"/>
+							<textbox id="url" size="55" onchange="feedChange()"/>
+						</hbox>
+				    <hbox align="center">
+							<image id="cbiconsrc" style="width: 16px; height: 16px;"
+									onclick="toggleIcon();"/>
+							<textbox id="Name" size="33"/>
+						</hbox>
+						<hbox id="storageH2" align="center">
+							<image id="fOhome"/>
+							<textbox id="Homepage" size="55"/>
+				    </hbox>
+						<spacer flex="1"/>
+						<groupbox>
+							<caption label="&articles;"/>
+					    <hbox align="center">
+					      <label value="&displayStyle;" control="style"/>
+					      <menulist id="style">
+					        <menupopup>
+					          <menuitem value="0" label="&useGlobal;"/>
+					          <menuitem value="1" label="&text;"/>
+					          <menuitem value="2" label="&webpage;"/>
+					          <menuitem value="3" label="&webpage; (-JS)"/>
+					          <menuitem value="4" label="&text; (XHTML)"/>
+					        </menupopup>
+					      </menulist>
+					      <spacer flex="1"/>
+					    </hbox>
+							<vbox id="storageH3">
+						    <hbox align="center">
+						      <label value="&deleteOld;" control="deleteOld"/>
+						      <menulist id="deleteOld" oncommand="doDeleteOld()">
+						        <menupopup>
+						          <menuitem value="0" label="&useGlobal;"/>
+						          <menuitem value="1" label="&deleteOldKeepUnread;"/>
+						          <menuitem value="2" label="&deleteOldDeleteUnread;"/>
+						          <menuitem value="3" label="&no;"/>
+						        </menupopup>
+						      </menulist>
+						    </hbox>
+								<hbox class="indent" align="center">
+									<label value="&oldMeans;" control="daysFeed"/>
+						      <menulist id="daysFeed" oncommand="doDeleteOld()">
+						        <menupopup>
+						          <menuitem value="0" label="&notInFeed;"/>
+						          <menuitem value="1" label="&after;"/>
+						        </menupopup>
+						      </menulist>
+									<textbox id="daysToKeep" maxlength="2" maxwidth="30"/>
+									<label id="daysToKeepLabel" value="&days;" control="daysToKeep"/>
+								</hbox>
+						    <hbox align="center">
+						      <label value="&updatedUnread;" control="updateUnread"/>
+						      <menulist id="updateUnread">
+						        <menupopup>
+						          <menuitem value="0" label="&useGlobal;"/>
+						          <menuitem value="1" label="&yes;"/>
+						          <menuitem value="2" label="&no;"/>
+						        </menupopup>
+						      </menulist>
+						      <spacer flex="1"/>
+						    </hbox>
+							</vbox>
+						</groupbox>
+						<spacer flex="1"/>
+
+						<groupbox id="storageH4">
+							<caption id="refreshCaption" label=""/>
+							<hbox align="center">
+								<label value="&autoRefresh;" control="mLtime"/>
+								<textbox id="autoRefreshInterval" size="3"
+										onchange="autoInterval()"/>
+						    <menulist id="mLtime" oncommand="doAutoRefresh(true)">
+						      <menupopup>
+						        <menuitem value="0" label="&useGlobal;"/>
+						        <menuitem value="1" label="&minutes;"/>
+						        <menuitem value="2" label="&never;"/>
+						      </menupopup>
+						    </menulist>
+							</hbox>
+					    <checkbox id="cbAutoCheck" label="&feedAutoCheck;"
+									checked="true"/>
+						</groupbox>
+						<spacer flex="1"/>
+				  </vbox>
+				  <spacer width="10"/>
+				  <vbox>
+				    <listbox id="grplist" width="185" flex="1">
+				      <listhead>
+				        <listheader label="&groups;"/>
+				      </listhead>
+				    </listbox>
+				  </vbox>
+				</hbox>
+			</tabpanel>
+			<tabpanel>
+				<vbox>
+					<groupbox>
+						<caption label="&sortArticles;"/>
+						<checkbox id="cbGlobalSort" label="&useGlobal;" checked="true" oncommand="sortChg()"/>
+						<grid flex="1">
+							<columns>
+								<column/>
+								<column/>
+								<column/>
+							</columns>
+							<rows>
+								<row align="center">
+				      		<label value="&firstSort;" control="sort1"/>
+				      		<menulist id="sort1" oncommand="sortChg()">
+				        		<menupopup>
+				          		<menuitem label="&noCol;"/>
+				          		<menuitem label="&flagCol;"/>
+				          		<menuitem label="&titleCol;"/>
+				          		<menuitem label="&readCol;"/>
+				          		<menuitem label="&dateCol;" selected="true"/>
+				          		<menuitem label="&authorCol;"/>
+				          		<menuitem label="&sourceCol;"/>
+				          		<menuitem label="&feedCol;"/>
+				          		<menuitem label="&probCol;"/>
+				          		<menuitem label="&threadCol;"/>
+				        		</menupopup>
+				      		</menulist>
+				      		<menulist id="dir1">
+				        		<menupopup>
+				          		<menuitem label="&ascendingDir;"/>
+				          		<menuitem label="&descendingDir;"/>
+				        		</menupopup>
+									</menulist>
+								</row>
+								<row align="center">
+				      		<label value="&secondSort;" control="sort2"/>
+				      		<menulist id="sort2" oncommand="sortChg()">
+				        		<menupopup>
+				          		<menuitem label="&noCol;"/>
+				          		<menuitem label="&flagCol;"/>
+				          		<menuitem label="&titleCol;"/>
+				          		<menuitem label="&readCol;"/>
+				          		<menuitem label="&dateCol;"/>
+				          		<menuitem label="&authorCol;"/>
+				          		<menuitem label="&sourceCol;"/>
+				          		<menuitem label="&feedCol;"/>
+				          		<menuitem label="&probCol;"/>
+				          		<menuitem label="&threadCol;"/>
+				        		</menupopup>
+				      		</menulist>
+				      		<menulist id="dir2">
+				        		<menupopup>
+				          		<menuitem label="&ascendingDir;"/>
+				          		<menuitem label="&descendingDir;"/>
+				        		</menupopup>
+									</menulist>
+								</row>
+								<row align="center">
+				      		<label value="&thirdSort;" control="sort3"/>
+				      		<menulist id="sort3" oncommand="sortChg()">
+				        		<menupopup>
+				          		<menuitem label="&noCol;"/>
+				          		<menuitem label="&flagCol;"/>
+				          		<menuitem label="&titleCol;"/>
+				          		<menuitem label="&readCol;"/>
+				          		<menuitem label="&dateCol;"/>
+				          		<menuitem label="&authorCol;"/>
+				          		<menuitem label="&sourceCol;"/>
+				          		<menuitem label="&feedCol;"/>
+				          		<menuitem label="&probCol;"/>
+				          		<menuitem label="&threadCol;"/>
+				        		</menupopup>
+				      		</menulist>
+				      		<menulist id="dir3">
+				        		<menupopup>
+				          		<menuitem label="&ascendingDir;"/>
+				          		<menuitem label="&descendingDir;"/>
+				        		</menupopup>
+									</menulist>
+								</row>
+								<row align="center">
+				      		<label value="&fourthSort;" control="sort4"/>
+				      		<menulist id="sort4" oncommand="sortChg()">
+				        		<menupopup>
+				          		<menuitem label="&noCol;"/>
+				          		<menuitem label="&flagCol;"/>
+				          		<menuitem label="&titleCol;"/>
+				          		<menuitem label="&readCol;"/>
+				          		<menuitem label="&dateCol;"/>
+				          		<menuitem label="&authorCol;"/>
+				          		<menuitem label="&sourceCol;"/>
+				          		<menuitem label="&feedCol;"/>
+				          		<menuitem label="&probCol;"/>
+				          		<menuitem label="&threadCol;"/>
+				        		</menupopup>
+				      		</menulist>
+				      		<menulist id="dir4">
+				        		<menupopup>
+				          		<menuitem label="&ascendingDir;"/>
+				          		<menuitem label="&descendingDir;"/>
+				        		</menupopup>
+									</menulist>
+								</row>
+							</rows>
+				    </grid>
+					</groupbox>
+					<spacer flex="1"/>
+				</vbox>
+			</tabpanel>
+			<tabpanel>
+				<vbox>
+					<checkbox id="cbPrivate" label="&feedPrivate;" checked="false"/>
+					<groupbox id="authGroupbox">
+						<caption label="&authentication;"/>
+						<grid flex="1">
+							<columns>
+								<column/>
+								<column flex="1"/>
+							</columns>
+							<rows>
+								<row align="center">
+									<label value="&username;" control="username"/>
+									<textbox id="username" size="55"/>
+								</row>
+								<row align="center">
+									<label value="&password;" control="password"/>
+									<textbox type="password" id="password" size="55"/>
+								</row>
+							</rows>
+						</grid>
+					</groupbox>
+				</vbox>
+			</tabpanel>
+			<tabpanel>
+				<vbox>
+					<checkbox id="cbFilterNew" label="&filterNew;" checked="false"/>
+					<checkbox id="cbFilterImages" label="&filterImages;"
+							checked="false" oncommand="onFilterImagesCommand(this)"/>
+					<groupbox>
+						<textbox multiline="true" rows="5" cols="80" id="Xfilter"
+								value="&filterInfo;" value2="&filterInfo2;"
+								onfocus="if (noFilter) { this.value=''; noFilter = false; }"
+								onchange="filterChange = true;"/>
+						<radiogroup id="radioFilterType" orient="horizontal">
+							<radio label="RegExp"/>
+							<radio label="JavaScript"/>
+							<radio label="XPath"/>
+							<radio label="&webpage;"/>
+						</radiogroup>
+					</groupbox>
+					<description width="200">&filterJSinfo;</description>
+					<description width="200">&filterJSvar1;</description>
+					<description width="200">&filterJSvar2;</description>
+					<description width="200">&filterJSvar3;</description>
+					<hbox>
+						<checkbox id="cbFilterMime" label="&filterMime;"
+								checked="false" oncommand="onFilterMimeCommand()"/>
+						<textbox id="cbFilterMimeType" disabled="true"/>
+					</hbox>
+				</vbox>
+			</tabpanel>
+		</tabpanels>
+	</tabbox>
+</dialog>
+

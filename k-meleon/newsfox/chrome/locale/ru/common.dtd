@@ -1,0 +1,62 @@
+<!ENTITY NewsFoxTeam "Команда NewsFox">
+<!ENTITY feedOptions "Параметры ленты...">
+<!ENTITY text "Текст">
+<!ENTITY webpage "Веб-страница">
+<!ENTITY groupOptions "Параметры группы...">
+<!ENTITY sCcancel "Прервать обновление">
+<!ENTITY sCadd "Добавить новую ленту">
+<!ENTITY sCoptions "Настройки">
+<!ENTITY sChomePage "Открыть домашнюю страницу этой ленты">
+<!ENTITY sCmanageLivemarks "Управление Живыми Закладками">
+<!ENTITY sCmarkAllAsRead "Отметить все записи как прочитанные">
+<!ENTITY sCdelete "Удалить ленту">
+<!ENTITY sCnextUnread "Следующая непрочитанная запись">
+<!ENTITY sCopenUnread "Открыть непрочитанные записи">
+<!ENTITY sCopenSel "Открыть выделенные записи">
+<!ENTITY sCdeleteSel "Удалить выделенное">
+<!ENTITY sCaddSearch "Добавить группу для поиска">
+<!ENTITY sCaddGroup "Добавить группу">
+<!ENTITY sCdeleteGroup "Удалить группу">
+<!ENTITY sCshortcut "Сочетания клавиш">
+<!ENTITY sCrefresh "Обновить ленты">
+<!ENTITY sCpreviousUnread "Предыдущая непрочитанная запись">
+<!ENTITY sCdeleteFeedFromGroup "Удалить ленту из группы">
+<!ENTITY sCkeystrokeHeading "Сочетание">
+<!ENTITY sCselAll "Выбрать все записи">
+<!ENTITY flagCol "Флажок">
+<!ENTITY titleCol "Заголовок">
+<!ENTITY readCol "Прочитанные">
+<!ENTITY dateCol "Дата">
+<!ENTITY authorCol "Автор">
+<!ENTITY sourceCol "Источник">
+<!ENTITY feedCol "Лента">
+<!ENTITY tagCol "Тег">
+<!ENTITY probCol "Вероятность">
+<!ENTITY threadCol "Топик">
+<!ENTITY XtendCol "Веб-фильтр">
+<!ENTITY sCprint "Распечатать запись">
+<!ENTITY sCtoggleFilter "Включить/выключить веб-фильтр">
+<!ENTITY sortTab "Сортировка">
+<!ENTITY sortArticles "Сортировка записей:">
+<!ENTITY firstSort "1-й уровень:">
+<!ENTITY secondSort "2-й уровень:">
+<!ENTITY thirdSort "3-й уровень:">
+<!ENTITY fourthSort "4-й уровень:">
+<!ENTITY noCol "нет">
+<!ENTITY ascendingDir "по возрастанию">
+<!ENTITY descendingDir "по убыванию">
+<!ENTITY updatedUnread "Отмечать изменившиеся записи как непрочитанные">
+<!ENTITY yes "да">
+<!ENTITY no "нет">
+<!ENTITY days "дней">
+<!ENTITY articles "Записи">
+<!ENTITY displayStyle "Стиль отображения:">
+<!ENTITY deleteOld "Удалять старые записи автоматически?">
+<!ENTITY autoRefresh "Автообновление каждые">
+<!ENTITY minutes "минут">
+<!ENTITY deleteOldKeepUnread "да, но оставлять непрочитанные">
+<!ENTITY deleteOldDeleteUnread "да, также удалять непрочитанные">
+<!ENTITY oldMeans "Признавать записи старыми">
+<!ENTITY after "через">
+<!ENTITY notInFeed "если их больше нет в ленте на сервере">
+<!ENTITY feeds "Ленты">

@@ -1,0 +1,29 @@
+<!ENTITY overview.title "Áttekintés">
+<!ENTITY adding.feeds "Hírfolyam hozzáadása">
+<!ENTITY addnew.feeds "Új hírfolyamot a hírfolyam hozzáadása gomb segítségével tud hozzáadni.">
+<!ENTITY addnew.feeds.opml "Új hírfolyamok importálhatóak OPML fájlból a beállítások menüben.">
+<!ENTITY addnew.feeds.auto "Ha a &apos;NewsFox&apos; lehetőséget választja a &apos;Hírfolyam&apos; panelen a Firefox beállításokban, felveheti a NewsFoxba a hírfolyamot az RSS ikonra kattintva az URL jobb oldalán, amikor az oldalon RSS hírfolyam elérhető.">
+<!ENTITY alternative.use "NewsFox tudja olvasni a Firefox élő könyvjelzőit is. Kiválaszthatja, hogy mely élő könyvjelzőket akar NewsFox-szal olvasni az Élő könyvjelzők gomb használatával.">
+<!ENTITY feed.options "Egy hírfolyam beállításai megváltoztathatók a hírfolyamok panel helyi menüjében vagy a Beállítások gomb használatával.">
+<!ENTITY remove.feeds "Hírfolyam eltávolítása">
+<!ENTITY feed.remove "Végleg eltávolíthat egy hírfolyamot és benne minden cikket a hírfolyam törlése gomb használatával. Ez eltávolítja a hírfolyamot minden csoportból.">
+<!ENTITY new.items "Új cikkek keresése">
+<!ENTITY retrieve.items "Letöltheti az új cikkeket a frissítés gombbal.">
+<!ENTITY retrieve.items.alt "Megkaphatja az új cikkeket a helyi menüt használva egy hírfolyamon vagy csoporton is.">
+<!ENTITY retrieve.options "Az automatikus letöltés jellemzőit a beállítások menüben állíthatja be.">
+<!ENTITY manage.title "Cikkek kezelése">
+<!ENTITY manage.info "A cikkek olvasottá válnak, amikor kiválasztja őket. Az cikkek olvasott/olvasatlan és zászlós/zászlótlan állapotát a megfelelő ikonon kattintva tudja változtatni.">
+<!ENTITY manage.info2 "A cikkek olvasottá/olvasatlanná tehetők és törölhetők a helyi menü használatával, az eszközsor gombjaival vagy gyorsbillentyű használatával.">
+<!ENTITY manage.info3 "A cikkeket rendezni lehet a megfelelő oszlop fejlécére kattintva. Alapból a legújabb cikkek vannak felül. Ahhoz, hogy az olvasatlan cikkek kerüljenek felülre, kattintson az olvasott/olvasatlan oszlop fejlécére.">
+<!ENTITY groups.tags "Csoportok">
+<!ENTITY groups.info "A &apos;Hírfolyamok&apos; csoport tartalmazza az összes hírfolyamot. Egy hírfolyam akárhány csoporthoz tartozhat,de akkor is csak egy példányban létezik: ha olvasottá tesz egy cikket, akkor minden csoportban olvasott lesz.">
+<!ENTITY groups.info1 "Új csoportot a csoport hozzáadás gombbal hozhat létre.">
+<!ENTITY groups.info2 "Vannak csoportok, melyek egy-egy keresés eredményét tartalmazzák. Például megkeresheti a &apos;NewsFox&apos; összes előfordulását a hírfolyamokban. Ezeket a csoportokat a keresési csoport gombbal hozhatja létre.">
+<!ENTITY groups.info3 "A csoportok mindkét típusát a csoport törlése gombbal törölheti.">
+<!ENTITY groups.info4 "Csoportok segítségével rendezheti a hírfolyamokat: lehetnek csoportok új, fontos, napi, heti, hír, technikai stb. folyamoknak. Úgy csoportosít, ahogy akar.">
+<!ENTITY groups.info5 "A csoport beállítások a hírfolyamok panel helyi menüjében, vagy valamelyik beállítások gombot használva változtathatók.">
+<!ENTITY other.title "Egyebek">
+<!ENTITY other.dragndrop "Hírfolyamok a csoportokon belül és a csoportok sorrendje az egérrel húzva változtatható.">
+<!ENTITY other.art.toolbar "Van helyi menü a hírfolyam panelhez a bal oldalon. Van helyi menü és eszközsor a cikkekhez a jobb oldalon. Buboréksúgó magyarázza gombok jelentését.">
+<!ENTITY other.info "Abban a valószínűtlen esetben, ha a hírfolyamok eltűnnének, használja a visszaállítás lehetőségeket a fő beállítások képernyőn.">
+<!ENTITY other.info2 "Gyorsbillentyűket be lehet kapcsolni a beállítások menüben, a gyorsbillentyűk listája megtalálható a súgóban.">

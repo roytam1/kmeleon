@@ -1,0 +1,20 @@
+# -*- Mode: python; c-basic-offset: 4; indent-tabs-mode: nil; tab-width: 40 -*-
+# vim: set filetype=python:
+
+LIBRARY_NAME = 'gestures'
+
+SOURCES += [
+  'gestures.cpp',
+]
+
+DEFINES['UNICODE'] = True
+
+DEFINES['_UNICODE'] = True
+
+FORCE_SHARED_LIB = True
+
+DISABLE_STL_WRAPPING = True
+
+LOCAL_INCLUDES += [
+  '../../shared'
+]

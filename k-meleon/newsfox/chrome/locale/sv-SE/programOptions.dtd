@@ -1,0 +1,52 @@
+<!ENTITY title "Inställningar för NewsFox">
+<!ENTITY global "Globalt visningsformat:">
+<!ENTITY checkOnStartup "Uppdatera alla flöden vid programstart">
+<!ENTITY notifyUponNewArticles "Meddela när nya artiklar finns tillgängliga">
+<!ENTITY confirmDelete "Be om bekräftelse vid borttagning av grupper eller flöden">
+<!ENTITY confirmDeleteArticle "Be om bekräftelse vid borttagning av artiklar">
+<!ENTITY shortcutkeys "Kortkommandon:">
+<!ENTITY restart "(Ändringar kräver att NewsFox startas om)">
+<!ENTITY shortcutsNone "inget">
+<!ENTITY shortcutsStd "standard">
+<!ENTITY shortcutsAlt "alternativ">
+<!ENTITY shortcutsCustom "eget">
+<!ENTITY seehelp "-menyn har en lista över kortkommandon.">
+<!ENTITY newsfox.dir "NewsFox-mapp">
+<!ENTITY moveNfDir "Mappinnehåll:">
+<!ENTITY copy "kopiera">
+<!ENTITY move "flytta">
+<!ENTITY noaction "ingen åtgärd">
+<!ENTITY Child_directory "Underordnad mapp">
+<!ENTITY Parent_directory "Överordnad mapp">
+<!ENTITY dateStyle "Datumformat:">
+<!ENTITY changeToPresent "Ändra artikelns datum till nuvarande tid om:">
+<!ENTITY articleTooltips "Artikelverktygstips">
+<!ENTITY copyToClipboard "Kopiera artikelns brödtext till Urklipp">
+<!ENTITY selectAddedFeed "Markera nytt flöde när det läggs till">
+<!ENTITY feedRefresh "Flödesuppdatering:">
+<!ENTITY feedRefreshThreads "trådar">
+<!ENTITY feedRefreshRenew "uppdateringsintervall (s)">
+<!ENTITY feedSlowdown "På långsammare datorer kan du minska antalet trådar och/eller öka uppdateringsintervallet.">
+<!ENTITY feedRefreshTimeout "Tidsgräns för flödesuppdatering (s)">
+<!ENTITY horizontalPanes "Vågräta paneler (kräver omstart)">
+<!ENTITY favicons "Sajtikoner">
+<!ENTITY updateTimeToBookmark "Skriv flödes-URL och uppdatera tider till bokmärke">
+<!ENTITY spam "Aktivera intressefilter">
+<!ENTITY globalTab "Globalt">
+<!ENTITY feedTab "Flöden/Artiklar">
+<!ENTITY generalTab "Allmänt">
+<!ENTITY shortcutsTab "Kortkommandon">
+<!ENTITY keywordsTab "Nyckelord">
+<!ENTITY shortcuts.operationHeader "Operation">
+<!ENTITY shortcuts.select "Välj en rad och tryck in en tangentkombination för att ange ett kortkommando.">
+<!ENTITY shortcuts.warning "Många kortkommandon används redan och är inte tillgängliga.">
+<!ENTITY shortcuts.experiment "Experimentera för att hitta vilka som fungerar eller välj ett av förvalsalternativen.">
+<!ENTITY keyword "Nyckelord:">
+<!ENTITY keywordsHighlighted "Nyckelord markeras automatiskt i artiklar.">
+<!ENTITY caseIgnored "Alla söksträngar skrivs med gemener.">
+<!ENTITY statusBar "Prenumerera automatiskt-ikon i statusfältet">
+<!ENTITY statusBarText "Text:">
+<!ENTITY buttonText "Text för Newsfox-knappen:">
+<!ENTITY statusBarTextNew "# ny(a)">
+<!ENTITY statusBarTextUnread "# oläst(a)">
+<!ENTITY statusBarTextNone "ingen">

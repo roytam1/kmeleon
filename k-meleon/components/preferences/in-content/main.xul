@@ -1,0 +1,351 @@
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this file,
+   - You can obtain one at http://mozilla.org/MPL/2.0/.  -->
+
+<script type="application/javascript" 
+        src="chrome://browser/content/preferences/in-content/main.js"/>
+
+<preferences id="mainPreferences">
+
+    <!-- Startup -->
+    <preference id="browser.startup.page"
+                name="browser.startup.page"
+                type="int"/>
+    <preference id="browser.startup.homepage"
+                name="browser.startup.homepage"
+                type="wstring"/>
+
+    <preference id="pref.browser.homepage.disable_button.current_page"
+                name="pref.browser.homepage.disable_button.current_page"
+                type="bool"/>
+    <preference id="pref.browser.homepage.disable_button.bookmark_page"
+                name="pref.browser.homepage.disable_button.bookmark_page"
+                type="bool"/>
+    <preference id="pref.browser.homepage.disable_button.restore_default"
+                name="pref.browser.homepage.disable_button.restore_default"
+                type="bool"/>
+
+    <preference id="browser.privatebrowsing.autostart"
+                name="browser.privatebrowsing.autostart"
+                type="bool"
+                onchange="gMainPane.updateBrowserStartupLastSession();"/>
+
+    <!-- Appearance -->
+    <preference id="general.useragent.locale"
+                name="general.useragent.locale"
+                type="wstring"/>
+    <preference id="kmeleon.general.skinsCurrent"
+                name="kmeleon.general.skinsCurrent"
+                type="string"/>
+    <preference id="kmeleon.general.skinsCurrent"
+                name="kmeleon.general.skinsCurrent"
+                type="string"/>
+    <preference id="kmeleon.display.backgroundImageEnabled"
+                name="kmeleon.display.backgroundImageEnabled"
+                type="bool"
+                />      
+    <preference id="kmeleon.display.backgroundImage"
+                name="kmeleon.display.backgroundImage"
+                onchange="gMainPane.displayBackgroundPref();"
+                type="file"/>
+    <preference id="kmeleon.display.toolbars_size"
+                name="kmeleon.display.toolbars_size"
+                type="string"/>                
+                
+
+    <!-- Downloads -->
+    <preference id="browser.download.useDownloadDir"
+                name="browser.download.useDownloadDir"
+                type="bool"/>
+
+    <preference id="browser.download.folderList"
+                name="browser.download.folderList"
+                type="int"/>
+    <preference id="browser.download.dir"
+                name="browser.download.dir"
+                type="file"
+                onchange="gMainPane.displayDownloadDirPref();"/>
+    <preference id="kmeleon.download.useSaveDir"
+                name="kmeleon.download.useSaveDir"
+                type="bool"/>      
+    <preference id="kmeleon.download.saveDir"
+                name="kmeleon.download.saveDir"
+                type="file"
+                onchange="gMainPane.displaySaveDirPref();"/>
+    <preference id="kmeleon.download.saveFolderList"
+                name="kmeleon.download.saveFolderList"
+                type="int"/>                
+    <!-- Tab preferences 
+    Preferences:
+
+    browser.link.open_newwindow
+        1 opens such links in the most recent window or tab,
+        2 opens such links in a new window,
+        3 opens such links in a new tab
+    browser.tabs.loadInBackground
+    - true if display should switch to a new tab which has been opened from a
+      link, false if display shouldn't switch
+    browser.tabs.warnOnClose
+    - true if when closing a window with multiple tabs the user is warned and
+      allowed to cancel the action, false to just close the window
+    browser.tabs.warnOnOpen
+    - true if the user should be warned if he attempts to open a lot of tabs at
+      once (e.g. a large folder of bookmarks), false otherwise
+    browser.taskbar.previews.enable
+    - true if tabs are to be shown in the Windows 7 taskbar    
+    -->
+
+    <preference id="browser.link.open_newwindow"
+                name="browser.link.open_newwindow"
+                type="int"/>
+    <preference id="browser.tabs.loadInBackground"
+                name="browser.tabs.loadInBackground"
+                type="bool"
+                inverted="true"/>
+    <preference id="browser.tabs.warnOnClose"
+                name="browser.tabs.warnOnClose"
+                type="bool"/>
+    <preference id="browser.tabs.warnOnOpen"
+                name="browser.tabs.warnOnOpen"
+                type="bool"/>
+    <preference id="browser.sessionstore.restore_on_demand"
+                name="browser.sessionstore.restore_on_demand"
+                type="bool"/>
+#ifdef XP_WIN
+    <preference id="browser.taskbar.previews.enable"
+                name="browser.taskbar.previews.enable"
+                type="bool"/>
+#endif
+    <preference id="browser.tabs.closeButtons"
+                name="browser.tabs.closeButtons"
+                type="int"/>
+    <preference id="browser.tabs.autoHide"
+                name="browser.tabs.autoHide"
+                type="bool"/>
+</preferences>
+
+<hbox id="header-general"
+      class="header"
+      data-category="paneGeneral">
+  <image class="header-icon"/>
+  <label class="header-name"
+         value="&paneGeneral.title;"/>
+</hbox>
+
+<!-- Startup -->
+<groupbox id="startupGroup" data-category="paneGeneral">
+  <caption label="&startup.label;"/>
+
+  <hbox align="center">
+    <label value="&startupPage.label;"
+           accesskey="&startupPage.accesskey;"
+           control="browserStartupPage"/>
+    <menulist id="browserStartupPage"
+              preference="browser.startup.page">
+      <menupopup>
+      <menuitem label="&startupHomePage.label;"
+                value="1"
+                id="browserStartupHomePage"/>
+      <menuitem label="&startupBlankPage.label;"
+                value="0"
+                id="browserStartupBlank"/>
+      <menuitem label="&startupLastSession.label;"
+                value="3"
+                id="browserStartupLastSession"/>
+      </menupopup>
+    </menulist>
+  </hbox>
+  <separator class="thin"/>
+  <hbox align="center">
+    <label value="&homepage.label;"
+           accesskey="&homepage.accesskey;"
+           control="browserHomePage"/>
+    <textbox id="browserHomePage"
+             class="padded uri-element"
+             flex="1"
+             type="autocomplete"
+             autocompletesearch="history"
+             onsyncfrompreference="return gMainPane.syncFromHomePref();"
+             onsynctopreference="return gMainPane.syncToHomePref(this.value);"
+             placeholder="&abouthome.pageTitle;"
+             preference="browser.startup.homepage"/>
+  </hbox>
+  <hbox align="center" pack="end">
+    <button label=""
+            accesskey="&useCurrentPage.accesskey;"
+            label1="&useCurrentPage.label;"
+            label2="&useMultiple.label;"
+            oncommand="gMainPane.setHomePageToCurrent();"
+            id="useCurrent"
+            preference="pref.browser.homepage.disable_button.current_page"/>
+    <button label="&chooseBookmark.label;"
+            accesskey="&chooseBookmark.accesskey;"
+            oncommand="gMainPane.setHomePageToBookmark();"
+            id="useBookmark"
+            preference="pref.browser.homepage.disable_button.bookmark_page"/>
+    <button label="&restoreDefault.label;"
+            accesskey="&restoreDefault.accesskey;"
+            oncommand="gMainPane.restoreDefaultHomePage();"
+            id="restoreDefaultHomePage"
+            preference="pref.browser.homepage.disable_button.restore_default"/>
+  </hbox>
+</groupbox>
+
+<stringbundle id="lang_bundle" src="chrome://global/locale/languageNames.properties"/>
+<stringbundle id="regn_bundle" src="chrome://global/locale/regionNames.properties"/>
+<groupbox id="displayGroup" data-category="paneGeneral">
+<caption label="&appearance.header;"/>
+
+  <grid id="">
+    <columns>
+      <column />
+      <column flex="1"/>
+      <column flex="1"/>
+    </columns>
+    <rows>
+      <row align="center">
+      
+        
+        <label value="&appearance.language;"
+               control="appLocale"/>
+        <menulist style="width:100px" id="appLocale"
+                  preference="general.useragent.locale"
+                  onsyncfrompreference="return gMainPane.getLocale();"
+                  onsynctopreference="return gMainPane.setLocale();">
+        </menulist>
+      </row>
+      <row align="center">
+        <label value="&appearance.skin;"
+               control="appSkin"/>
+        <menulist id="appSkin"
+                  preference="kmeleon.general.skinsCurrent"
+                  onsyncfrompreference="return gMainPane.getSkin();">
+        </menulist>
+      
+      </row>
+    
+    </rows>
+  </grid>
+  
+  <!--<hbox align="center">
+    <label value="&appearance.toolbarSize;"/>
+    <textbox size="2" type="number" min="0" max="64" increment="4" decimalplaces="0" preference="kmeleon.display.toolbars_size" onchange="if(this.value==4) this.value = 16; else if(this.value&lt;16) this.value = 0;"/>
+  </hbox>-->
+                    
+  <checkbox preference="kmeleon.display.backgroundImageEnabled" 
+						label="&appearance.backBMP;"
+						onsyncfrompreference="return gMainPane.readUseBackground();"/>
+    
+ <!-- <hbox align="center">
+      <label value="&appearance.backImage;"/>
+      <filefield id="backgroundImage"
+                 flex="1"
+                 preference="kmeleon.display.backgroundImage"
+                 preference-editable="true"
+                 aria-labelledby="backgroundImage"
+                 onsyncfrompreference="return gMainPane.displayBackgroundPref();"/>
+      <button id="chooseBackground"
+              oncommand="gMainPane.chooseBackground();"
+              label="&chooseFolderWin.label;"/>
+  </hbox>  -->
+</groupbox>
+
+<!-- Downloads -->
+<groupbox id="downloadsGroup" data-category="paneGeneral">
+  <caption label="&downloads.label;"/>
+
+  <radiogroup id="saveWhere"
+              preference="browser.download.useDownloadDir"
+              onsyncfrompreference="return gMainPane.readUseDownloadDir();">
+    <hbox id="saveToRow">
+      <radio id="saveTo"
+             value="true"
+             label="&download.folder;"
+             
+             aria-labelledby="saveTo downloadFolder"/>
+      <filefield id="downloadFolder"
+                 flex="1"
+                 preference="browser.download.folderList"
+                 preference-editable="true"
+                 aria-labelledby="saveTo"
+                 onsyncfrompreference="return gMainPane.displayDownloadDirPref();"
+                 onsynctopreference="return gMainPane.getFolderListPref()"/>
+      <button id="chooseFolder"
+              oncommand="gMainPane.chooseFolder();"
+#ifdef XP_MACOSX
+              accesskey="&chooseFolderMac.accesskey;"
+              label="&chooseFolderMac.label;"
+#else
+              accesskey="&chooseFolderWin.accesskey;"
+              label="&chooseFolderWin.label;"
+#endif
+              preference="browser.download.folderList"
+              onsynctopreference="return gMainPane.getFolderListPref();"/>
+    </hbox>
+    <radio id="alwaysAsk"
+           value="false"
+           label="&alwaysAsk.label;"
+           accesskey="&alwaysAsk.accesskey;"/>
+  </radiogroup>
+  
+  <checkbox id="warnCloseMultiple" label="&download.saveAs.option;"
+              accesskey="&warnCloseMultipleTabs.accesskey;"
+              preference="kmeleon.download.useSaveDir"
+              onsyncfrompreference="gMainPane.readUseSaveDir()"
+              />
+  <hbox align="center">
+  <label value="&download.saveAs.folder;"/>
+  <filefield id="saveFolder"
+             flex="1"
+             preference="kmeleon.download.saveFolderList"
+             preference-editable="true"
+             aria-labelledby="saveTo"
+             onsyncfrompreference="return gMainPane.displaySaveDirPref();"
+             onsynctopreference="return gMainPane.getSaveFolderListPref()"/>   
+  <button id="chooseSaveFolder"
+          oncommand="gMainPane.chooseSaveFolder();"
+          accesskey="&chooseFolderWin.accesskey;"
+          label="&chooseFolderWin.label;"
+          preference="kmeleon.download.saveFolderList"
+          onsynctopreference="return gMainPane.getSaveFolderListPref();"/>             
+  </hbox>
+</groupbox>
+
+<!-- Tab preferences -->
+<groupbox data-category="paneGeneral">
+    <caption label="&tabsGroup.label;"/>
+    <checkbox id="linkTargeting" label="&newWindowsAsTabs.label;"
+              accesskey="&newWindowsAsTabs.accesskey;"
+              preference="browser.link.open_newwindow"
+              onsyncfrompreference="return gMainPane.readLinkTarget();"
+              onsynctopreference="return gMainPane.writeLinkTarget();"/>
+
+    <checkbox id="warnCloseMultiple" label="&warnCloseMultipleTabs.label;"
+              accesskey="&warnCloseMultipleTabs.accesskey;"
+              preference="browser.tabs.warnOnClose"/>
+
+ <!--   <checkbox id="warnOpenMany" label="&warnOpenManyTabs.label;"
+              accesskey="&warnOpenManyTabs.accesskey;"
+              preference="browser.tabs.warnOnOpen"/>
+-->
+    <checkbox id="restoreOnDemand" label="&restoreTabsOnDemand.label;"
+              accesskey="&restoreTabsOnDemand.accesskey;"
+              preference="browser.sessionstore.restore_on_demand"/>
+
+   <!-- <checkbox id="switchToNewTabs" label="&switchToNewTabs.label;"
+              accesskey="&switchToNewTabs.accesskey;"
+              preference="browser.tabs.loadInBackground"/>
+
+#ifdef XP_WIN
+ <!--
+    <checkbox id="showTabsInTaskbar" label="&showTabsInTaskbar.label;"
+              accesskey="&showTabsInTaskbar.accesskey;"
+              preference="browser.taskbar.previews.enable"/>-->
+#endif
+    <checkbox id="closeButtons" label="&tabbar.closeButtons;"
+              onsyncfrompreference="return gMainPane.readCloseButtons();"
+              onsynctopreference="return gMainPane.toggleCloseButtons();"
+              preference="browser.tabs.closeButtons"/>
+    <checkbox id="tabAutoHide" label="&tabbar.autoHide;"
+              preference="browser.tabs.autoHide"/>
+</groupbox>

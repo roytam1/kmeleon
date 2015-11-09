@@ -1,0 +1,64 @@
+kmeleon.jar:
+% content kmprefs %content/kmprefs/ contentaccessible=yes
+    content/kmprefs/pref-appearance.xul
+    content/kmprefs/pref-browsing.xul
+    content/kmprefs/pref-cache.xul
+    content/kmprefs/pref-display.xul
+    content/kmprefs/pref-encryption.xul
+    content/kmprefs/pref-filetypes.xul
+    content/kmprefs/pref-filters.xul
+    content/kmprefs/pref-history.xul
+    content/kmprefs/pref-hotlinks.xul
+    content/kmprefs/pref-javascript.xul
+    content/kmprefs/pref-kbookmarks.xul
+    content/kmprefs/pref-kfavorites.xul
+    content/kmprefs/pref-kfullscreen.xul
+    content/kmprefs/pref-kgestures.xul
+    content/kmprefs/pref-khotlist.xul
+    content/kmprefs/pref-kmacros.xul
+    content/kmprefs/pref-kplugins.xul
+    content/kmprefs/pref-network.xul
+    content/kmprefs/pref-privacy.xul
+    content/kmprefs/pref-proxy.xul
+    content/kmprefs/pref-tabs.xul
+    content/kmprefs/pref-toolbars.xul
+    content/kmprefs/pref-webfind.xul
+    content/kmprefs/pref.js
+    content/kmprefs/pref.xul
+    content/kmprefs/firefox/actionsshared.js      (firefox/actionsshared.js)
+    content/kmprefs/firefox/applications.js       (firefox/applications.js) 
+    content/kmprefs/firefox/applications.xul      (firefox/applications.xul)
+    content/kmprefs/firefox/changeaction.js       (firefox/changeaction.js) 
+    content/kmprefs/firefox/changeaction.xul      (firefox/changeaction.xul)
+    content/kmprefs/firefox/downloadactions.js    (firefox/downloadactions.js)
+    content/kmprefs/firefox/downloadactions.xul   (firefox/downloadactions.xul)
+    content/kmprefs/firefox/preferences.css       (firefox/preferences.css)
+    content/kmprefs/firefox/preferences.xml       (firefox/preferences.xml)
+    content/kmprefs/kmprefs/DefaultBrowser.js     (kmprefs/DefaultBrowser.js)
+    content/kmprefs/kmprefs/dlg-gestures.xul      (kmprefs/dlg-gestures.xul)
+    content/kmprefs/kmprefs/dlg-languages-add.js  (kmprefs/dlg-languages-add.js)
+    content/kmprefs/kmprefs/dlg-languages-add.xul (kmprefs/dlg-languages-add.xul)
+    content/kmprefs/kmprefs/dlg-webfind.xul       (kmprefs/dlg-webfind.xul)
+    content/kmprefs/kmprefs/homepage.js           (kmprefs/homepage.js)
+    content/kmprefs/kmprefs/ovrl-cache.xul        (kmprefs/ovrl-cache.xul)
+    content/kmprefs/kmprefs/ovrl-donottrack.xul   (kmprefs/ovrl-donottrack.xul)
+    content/kmprefs/kmprefs/ovrl-history.xul      (kmprefs/ovrl-history.xul)
+    content/kmprefs/kmprefs/ovrl-javascript.xul   (kmprefs/ovrl-javascript.xul)
+    content/kmprefs/kmprefs/ovrl-languages.js     (kmprefs/ovrl-languages.js)
+    content/kmprefs/kmprefs/ovrl-languages.xul    (kmprefs/ovrl-languages.xul)
+    content/kmprefs/kmprefs/ovrl-popups.xul       (kmprefs/ovrl-popups.xul)
+    content/kmprefs/kmprefs/ovrl-prefetch.xul     (kmprefs/ovrl-prefetch.xul)
+    content/kmprefs/kmprefs/ovrl-referrer.xul     (kmprefs/ovrl-referrer.xul)
+    content/kmprefs/kmprefs/ovrl-tabbar.xul       (kmprefs/ovrl-tabbar.xul)
+    content/kmprefs/kmprefs/ovrl-urlbar.xul       (kmprefs/ovrl-urlbar.xul)
+    content/kmprefs/kmprefs/permissions.css       (kmprefs/permissions.css)
+    content/kmprefs/kmprefs/permissions.js        (kmprefs/permissions.js)
+    content/kmprefs/kmprefs/permissions.xul       (kmprefs/permissions.xul)
+    content/kmprefs/kmprefs/xml.js                (kmprefs/xml.js)
+    content/kmprefs/kplugins/booklistmanager.xul  (kplugins/booklistmanager.xul)
+    content/kmprefs/kplugins/bookmarksbar.xul     (kplugins/bookmarksbar.xul)
+    content/kmprefs/kplugins/favoritesbar.xul     (kplugins/favoritesbar.xul)
+    content/kmprefs/kplugins/fullscreen.xul       (kplugins/fullscreen.xul)
+    content/kmprefs/kplugins/gestures.xml         (kplugins/gestures.xml)
+    content/kmprefs/kplugins/hotlistbar.xul       (kplugins/hotlistbar.xul)
+    content/kmprefs/kplugins/jsbridge.js          (kplugins/jsbridge.js)

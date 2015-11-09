@@ -1,0 +1,28 @@
+/* :::::::: main toolbar icon ::::::::::::::: */
+
+#console2-button {
+	list-style-image: url("chrome://console2/skin/import/console-toolbar.png");
+	-moz-image-region: rect(0px 96px 24px 72px);
+}
+#console2-button:hover {
+	-moz-image-region: rect(24px 96px 48px 72px);
+}
+
+/*
+toolbar[iconsize="small"] #console2-button {
+	list-style-image: url("chrome://console2/skin/import/console-toolbar-small.png");
+	-moz-image-region: rect(0px, 32px, 16px, 16px);
+}
+toolbar[iconsize="small"] #console2-button:hover {
+	-moz-image-region: rect(16px, 32px, 32px, 16px);
+}
+*/
+
+toolbar[iconsize="small"] #console2-button {
+	list-style-image: url("chrome://console2/skin/import/Error.png");
+	-moz-image-region: rect(0px 32px 32px 0px);
+}
+toolbar[iconsize="small"] #console2-button > image {
+	width: 16px;
+	height: 16px;
+}

@@ -1,0 +1,24 @@
+<!ENTITY sCcustomShortcut "Egyedi gyorsbillentyűk megadhatók a &apos;modifiers&apos; szerkesztésével és a &apos;key&apos; jellemző az &apos;accel.xml&apos; fájlban a newsfox mappában a profil mappában,  a gyorsbillentyű-készlet kiválasztása után a beállítások párbeszédpanelen és miután kilépett a Newsfoxból.">
+<!ENTITY sCcustomHeading "Egyedi gyorsbillentyűk">
+<!ENTITY sCfixedHeading "Beépített gyorsbillentyűk">
+<!ENTITY sCartFeedHeading "Cikk/hírfolyam panel">
+<!ENTITY sCviewArtHeading "Nézet/cikk panel">
+<!ENTITY sCfeedHeading "Hírfolyam panel">
+<!ENTITY sCarticleUp "Egy cikkel feljebb">
+<!ENTITY sCarticleDown "Egy cikkel lejjebb">
+<!ENTITY sCupLevel "Egy szinttel feljebb">
+<!ENTITY sCexpandTree "Hírfolyam kibontása">
+<!ENTITY sCsame "ugyanaz">
+<!ENTITY sCtoggleArtFlag "Cikk zászló cseréje">
+<!ENTITY sCselToFocus "Fókusz kiválasztása">
+<!ENTITY sCfocusUp "Cikkfókusz felfelé">
+<!ENTITY sCfocusDown "Cikkfókusz lefelé">
+<!ENTITY sCmoveFeedUp "Hírfolyam mozgatása felfelé">
+<!ENTITY sCmoveFeedDown "Hírfolyam mozgatása lefelé">
+<!ENTITY sCfeedUp "Hírfolyam felfelé">
+<!ENTITY sCfeedDown "Hírfolyam lefelé">
+<!ENTITY sCexpColl "Hírfolyam kinyitása/összecsukása">
+<!ENTITY sCdeleteKey "törlés">
+<!ENTITY sCctrlKey "ctrl">
+<!ENTITY sCshiftKey "shift">
+<!ENTITY sCaltKey "alt">

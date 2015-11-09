@@ -1,0 +1,31 @@
+<!ENTITY checkFeed "Tjek feed">
+<!ENTITY troubleshoot "Fejlfinding">
+<!ENTITY OPML.import "Importer OPML">
+<!ENTITY OPML.export "Eksporter OPML">
+<!ENTITY toolOptions.import.addfeeds "Føj til eksisterende feeds">
+<!ENTITY toolOptions.import.startfresh "Start en ny">
+<!ENTITY toolOptions.import.file "fra fil">
+<!ENTITY toolOptions.import.URL "fra URL">
+<!ENTITY toolOptions.passwd "Skift adgangskode">
+<!ENTITY help "Få hjælp til NewsFox">
+<!ENTITY feeds "Feeds">
+<!ENTITY r "L">
+<!ENTITY markAllAsUnread "Marker alle som ulæste">
+<!ENTITY tagSel "Sæt mærkat på valgte">
+<!ENTITY sortFeeds "Sorter feeds">
+<!ENTITY unsortFeeds "Fortryd sortering">
+<!ENTITY toolOptions.restoreBackup "Genindlæs backup">
+<!ENTITY exportRSS "Eksporter RSS">
+<!ENTITY wait "For en sikkerheds skyld, vent indtil indlæsningen er færdig">
+<!ENTITY tagEdit "Sæt mærkat på valgte">
+<!ENTITY addGroup.regular "Normal">
+<!ENTITY addGroup.search "Søgning">
+<!ENTITY addGroup.tag "Mærkat">
+<!ENTITY addFeed.regular "RSS/Atom">
+<!ENTITY addFeed.storage "Opbevaring">
+<!ENTITY prob "Sa">
+<!ENTITY mainToolbar "Værktøjslinje">
+<!ENTITY feedToolbar "Feed-linje">
+<!ENTITY Xtend "+">
+<!ENTITY markSelAsRead "Marker valgte som læste">
+<!ENTITY markSelAsUnread "Marker valgte som ulæste">

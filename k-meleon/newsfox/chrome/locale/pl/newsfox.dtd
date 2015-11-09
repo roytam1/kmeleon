@@ -1,0 +1,31 @@
+<!ENTITY checkFeed "Sprawdź kanał">
+<!ENTITY troubleshoot "Rozwiązywanie problemów">
+<!ENTITY OPML.import "Importuj OPML">
+<!ENTITY OPML.export "Eksportuj OPML">
+<!ENTITY toolOptions.import.addfeeds "Dodaj do istniejących kanałów">
+<!ENTITY toolOptions.import.startfresh "Utwórz nowy">
+<!ENTITY toolOptions.import.file "z pliku">
+<!ENTITY toolOptions.import.URL "z URL">
+<!ENTITY toolOptions.passwd "Hasło">
+<!ENTITY help "Pomoc">
+<!ENTITY feeds "Kanały">
+<!ENTITY r "Status">
+<!ENTITY markAllAsUnread "Oznacz wszystkie jako nieprzeczytane">
+<!ENTITY tagSel "Dodaj etykiety do zaznaczonych">
+<!ENTITY sortFeeds "Sortuj kanały">
+<!ENTITY unsortFeeds "Cofnij sortowanie">
+<!ENTITY toolOptions.restoreBackup "Odtwórz kopię zapasową">
+<!ENTITY exportRSS "Eksportuj do RSS">
+<!ENTITY wait "Proszę czekać do zakończenia pobierania">
+<!ENTITY tagEdit "Edytuj etykiety wybranego artykułu">
+<!ENTITY addGroup.regular "Regularne">
+<!ENTITY addGroup.search "Szukaj">
+<!ENTITY addGroup.tag "Etykieta">
+<!ENTITY addFeed.regular "RSS/Atom">
+<!ENTITY addFeed.storage "Magazyn">
+<!ENTITY prob "Pr">
+<!ENTITY mainToolbar "Główny pasek narzędzi">
+<!ENTITY feedToolbar "Pasek narzędzi kanałów">
+<!ENTITY Xtend "+">
+<!ENTITY markSelAsRead "Oznacz zaznaczone jako przeczytane">
+<!ENTITY markSelAsUnread "Oznacz zaznaczone jako nieprzeczytane">

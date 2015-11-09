@@ -1,0 +1,9 @@
+<!ENTITY projectOwner "propriétaire du projet">
+<!ENTITY localization "Traduction :">
+<!ENTITY primaryContact "contact principal">
+<!ENTITY developer "développeur">
+<!ENTITY projectCreator "créateur du projet">
+<!ENTITY icons "Icônes :">
+<!ENTITY fromFirefox "La plupart des icônes de (ou modifiées de) Firefox/Thunderbird.">
+<!ENTITY fromFamfamfam "Icônes drapeau, balise, stockage et pièce jointe de famfamfam.com.">
+<!ENTITY helpADR "Merci à ADR pour l'aide sur les icônes.">

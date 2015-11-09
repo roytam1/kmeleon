@@ -1,0 +1,390 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/css" href="chrome://global/skin/"?>
+<?xml-stylesheet type="text/css" href="chrome://kmprefs/skin/"?>
+<!DOCTYPE page SYSTEM "chrome://kmprefs/locale/pref-kgestures.dtd">
+<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" id="prefGestures" onload="init()" onunload="kGestures.exit()">
+	<stringbundle id="pref_bundle" src="chrome://kmprefs/locale/pref.properties"/>
+	<stringbundle id="xml_bundle" src="chrome://kmprefs/locale/kmprefs/xml.properties"/>
+	<stringbundle id="gestures_bundle" src="chrome://kmprefs/locale/kplugins/gestures.properties"/>
+	<stringbundle id="kplugin_bundle" src="chrome://kmprefs/locale/kplugins/kplugins.properties"/>
+	<script type="application/x-javascript" src="chrome://kmprefs/content/pref.js"/>
+	<script type="application/x-javascript" src="chrome://kmprefs/content/kmprefs/xml.js"/>
+	<script type="application/x-javascript">
+<![CDATA[
+Components.utils.import("resource://gre/modules/Services.jsm");
+
+var menu;
+CFGtoXML.init("gestures");
+var DefActions,
+UsrActions = new XML("file:///" + getFile(getFolder("KUserSettings"), "gestures.xml").path);
+var req = new XMLHttpRequest();
+req.open('GET', "chrome://kmprefs/content/kplugins/gestures.xml", false);
+req.send(null);
+DefActions = req.responseXML;
+//DefActions = new XML("chrome://kmprefs/content/kplugins/gestures.xml");
+
+//if (DefActions.data != null || UsrActions != null) init();  // moved to onload in xul page
+function init(e) {
+	var mitem = document.createElement("menuitem");
+	mitem.setAttribute("value", "");
+	mitem.setAttribute("label", document.getElementById("gestures_bundle").getString("action_none"));
+	menu = document.createElement("menupopup");
+	menu.appendChild(mitem);
+	var gafiles = [UsrActions, DefActions];
+	var actions,
+	command,
+	caption,
+	item;
+	for (var i = 0; i < gafiles.length; i++) {
+		try {
+			//alert("Try:"+gafiles[i]+" or "+gafiles[i].data.getElementsByTagName("action"));
+			actions = null;
+			command = null;
+			caption = null;
+			item = null;
+
+			actions = gafiles[i].documentElement ? gafiles[i].documentElement.getElementsByTagName("action") : gafiles[i].data.getElementsByTagName("action");
+			for (var j = 0; j < actions.length; j++) {
+				command = actions[j].getAttribute("command");
+				caption = actions[j].getAttribute("caption");
+				item = document.createElement("menuitem");
+				//alert(command+":"+caption+":"+item);
+				if (command.indexOf("(") > 0) {
+					var plugin = command.split("(")[0];
+					caption += " " + document.getElementById("gestures_bundle").getString("required_plugin").replace(/%S/, kPlugin.fullName(plugin));
+					if (!kPlugin.load(plugin))
+						item.setAttribute("disabled", true);
+				}
+				item.setAttribute("value", command);
+				item.setAttribute("label", caption);
+				menu.appendChild(item);
+			}
+		} catch (e) {
+		//	alert("Error init(): " + e);
+		//	Services.prompt.alert(null, "Mouse Gestures", "Error init(): " + e);
+		}
+	}
+	try {
+		kGestures.init();
+	} catch (e) {
+		Services.console.logStringMessage("kGestures.init() failed:"+e+"\n");
+		//Services.prompt.alert(null, "Mouse Gestures", "Error kGestures.init(): " + e);
+	} // Usually this error happend when xul page elements aren't loaded yet
+}
+var kGestures = {
+	_base : null,
+	_pref : null,
+	_menu : null,
+	load : null,
+	init : function () {
+		this.load = kPlugin.load("gestures");
+		this._base = "kmeleon.plugins.gestures.";
+		this._pref = new Array("load");
+		this._menu = document.getElementsByTagName("menulist");
+		initCheckbox(this._base + this._pref[0]);
+		for (var j = 1; j < this._menu.length; j++) {
+			if (this._menu[j].hasChildNodes())
+				this._menu[j].removeChild(this._menu[j].firstChild);
+			this._menu[j].appendChild(menu.cloneNode(true));
+		}
+		this.initActions();
+		this._initAccel();
+		this._setControls();
+	},
+	exit : function () {
+		UsrActions.save(getFile(getFolder("KUserSettings"), "gestures.xml"), ["caption", "command"]);
+	},
+	setAction : function (elem) {
+		pref.setCharPref(this._base + this._menu[0].value + elem.id, elem.value);
+		if (!(elem.value) && (this._menu[0].value))
+			restoreDefault(this._base + this._menu[0].value + elem.id);
+	},
+	initActions : function () {
+		for (var j = 1, m = this._base + this._menu[0].value, s = document.getElementById("pref_bundle").getString("pref_unknown_or_invalid"); j < this._menu.length; j++)
+			initMenulist(this._menu[j].id, m, s);
+	},
+	toggle : function () {
+		toggleCheckbox(this._base + this._pref[0]);
+		this.load = !this.load;
+		this._setControls();
+	},
+	_initAccel : function () {
+		var item = this._menu[0].firstChild.firstChild,
+		keys = new Array("RButton", "ALT", "CTRL", "SHIFT"),
+		data = getFileContents(getFile(getFolder("KDefSettings"), "accel.cfg"));
+		if (data)
+			for (var j = 1; j < keys.length; j++) {
+				item = item.nextSibling;
+				if (testMultiline(data, keys[j] + "[ \\t]+" + keys[0]))
+					if (testMultiline(data, "^[ \\t]*#[ \\t#]*" + keys[j] + "[ \\t]+" + keys[0])) {
+						// commented out
+					} else {
+						item.setAttribute("tooltiptext", document.getElementById("gestures_bundle").getString("possible_conflict").replace(/%S/, keys[j] + " " + keys[0]));
+						item.style.color = "red";
+					}
+			}
+	},
+	_setControls : function () {
+		for (var j = 0; j < this._menu.length; j++)
+			this._menu[j].disabled = !this.load;
+	}
+};
+var Database = {
+	_add : false,
+	_ndx : false,
+	_cap : null,
+	_url : null,
+	dflt : false,
+	done : false,
+	tree : null,
+	init : function () {
+		if (!this.done) {
+			this.done = true;
+			this.tree = document.getElementById("database");
+			while (this.tree.hasChildNodes())
+				this.tree.removeChild(this.tree.firstChild);
+			try {
+				this.fill(UsrActions, this.tree);
+			} catch (e) {
+				this.done = false;
+			}
+			this.tree.parentNode.parentNode.parentNode.view.selection.select(0);
+		}
+		if (!this.dflt) {
+			this.dflt = true;
+			try {
+				this.fill(DefActions, document.getElementById("default"));
+			} catch (e) {
+				this.dflt = false;
+			}
+		}
+	},
+	fill : function (source, target) {
+	//	for (var j = 0, actions = source.data.documentElement.getElementsByTagName("action"), titem, tcell; j < actions.length; j++) {
+		    var actions = source.data ? source.data.documentElement.getElementsByTagName("action") : source.documentElement.getElementsByTagName("action");
+		    for (var j = 0, titem, tcell; j < actions.length; j++) {
+			titem = document.createElement("treeitem");
+			titem.appendChild(document.createElement("treerow"));
+			tcell = document.createElement("treecell");
+			tcell.setAttribute("label", actions[j].getAttribute("caption"));
+			titem.firstChild.appendChild(tcell);
+			tcell = document.createElement("treecell");
+			tcell.setAttribute("label", actions[j].getAttribute("command"));
+			titem.firstChild.appendChild(tcell);
+			target.appendChild(titem);
+		}
+	},
+	del : function () {
+		this._ndx = this._current();
+		if (this._ndx > -1) {
+			this.tree.removeChild(this.tree.childNodes[this._ndx]);
+			if (UsrActions.del("action", this._ndx))
+				this._refresh();
+		}
+	},
+	add : function () {
+		this._ndx = -1;
+		this._add = true;
+		this._cap = null;
+		this._com = null;
+		window.openDialog("chrome://kmprefs/content/kmprefs/dlg-gestures.xul", "gestAdd", "chrome,modal=yes,resizable=no", this);
+	},
+	edit : function () {
+		this._ndx = this._current();
+		this._add = false;
+		this._cap = this.tree.childNodes[this._ndx].firstChild.firstChild.getAttribute("label");
+		this._com = this.tree.childNodes[this._ndx].firstChild.firstChild.nextSibling.getAttribute("label");
+		window.openDialog("chrome://kmprefs/content/kmprefs/dlg-gestures.xul", "gestEdit", "chrome,modal=yes,resizable=no", this);
+	},
+	select : function () {
+		var ndx = this._current();
+		document.getElementById("edit").setAttribute("disabled", (ndx == -1));
+		document.getElementById("delete").setAttribute("disabled", (ndx == -1));
+	},
+	set : function (caption, command) {
+		if ((this._cap != caption) || (this._com != command)) {
+			UsrActions.set("action", this._ndx, ["caption", "command"], [caption, command], null);
+			this._refresh();
+			this.done = false;
+			this.init();
+		}
+	},
+	_current : function () {
+		var ndx = this.tree.parentNode.parentNode.parentNode.currentIndex;
+		return (ndx > this.tree.childNodes.length) ? -1 : ndx - 1;
+	},
+	_refresh : function () {
+		init(false);
+	}
+};
+]]>
+	</script>
+	<keyset>
+		<key id="addKey" keycode="VK_INSERT" oncommand="Database.add()"/>
+		<key id="delKey" keycode="VK_DELETE" oncommand="Database.del()"/>
+	</keyset>
+	<vbox flex="1" style="overflow:auto">
+		<dialogheader title="&gestures.header;"/>
+		<separator class="thin"/>
+		<checkbox oncommand="kGestures.toggle()" id="kmeleon.plugins.gestures.load" label="&gestures.enable;"/>
+		<separator class="thick"/>
+		<tabcontrol flex="1">
+			<tabbox flex="1">
+				<tabs>
+					<tab label="&gestures.label;"/>
+					<tab label="&actions.label;" oncommand="Database.init()" onfocus="Database.init()"/>
+				</tabs>
+				<tabpanels flex="1">
+					<tabpanel flex="1" orient="vertical" style="overflow:auto">
+						<!-- Gesture Actions -->
+						<separator class="thin"/>
+						<description>&gestures.descr;</description>
+						<separator class="thin"/>
+						<grid>
+							<columns>
+								<column/>
+								<column/>
+								<column flex="1"/>
+							</columns>
+							<rows>
+								<row align="center">
+									<label value="&gestures.gesture;"/>
+									<label value="&gestures.modkey;"/>
+									<label value="&gestures.action;"/>
+								</row>
+								<row>
+									<separator class="thin"/>
+								</row>
+								<row align="center">
+									<hbox align="center">
+										<image src="chrome://kmprefs/skin/gestures/left.gif"/>
+										<label value="&gestures.left;"/>
+									</hbox>
+									<menulist id="modkey" oncommand="kGestures.initActions()">
+										<menupopup>
+											<menuitem value="" label="&gestures.modkey.none;"/>
+											<menuitem value="AR" label="&AltKey;"/>
+											<menuitem value="CR" label="&CtrlKey;"/>
+											<menuitem value="SR" label="&ShiftKey;"/>
+										</menupopup>
+									</menulist>
+									<menulist id="left" oncommand="kGestures.setAction(this)" flex="1"/>
+								</row>
+								<row align="center">
+									<hbox align="center">
+										<image src="chrome://kmprefs/skin/gestures/right.gif"/>
+										<label value="&gestures.right;"/>
+									</hbox>
+									<spacer/>
+									<menulist id="right" oncommand="kGestures.setAction(this)" flex="1"/>
+								</row>
+								<row align="center">
+									<hbox align="center">
+										<image src="chrome://kmprefs/skin/gestures/up.gif"/>
+										<label value="&gestures.up;"/>
+									</hbox>
+									<spacer/>
+									<menulist id="up" oncommand="kGestures.setAction(this)" flex="1"/>
+								</row>
+								<row align="center">
+									<hbox align="center">
+										<image src="chrome://kmprefs/skin/gestures/down.gif"/>
+										<label value="&gestures.down;"/>
+									</hbox>
+									<spacer/>
+									<menulist id="down" oncommand="kGestures.setAction(this)" flex="1"/>
+								</row>
+								<row align="center">
+									<hbox align="center">
+										<image src="chrome://kmprefs/skin/gestures/upright.gif"/>
+										<label value="&gestures.upright;"/>
+									</hbox>
+									<spacer/>
+									<menulist id="upright" oncommand="kGestures.setAction(this)" flex="1"/>
+								</row>
+								<row align="center">
+									<hbox align="center">
+										<image src="chrome://kmprefs/skin/gestures/downleft.gif"/>
+										<label value="&gestures.downleft;"/>
+									</hbox>
+									<spacer/>
+									<menulist id="downleft" oncommand="kGestures.setAction(this)" flex="1"/>
+								</row>
+								<row align="center">
+									<hbox align="center">
+										<image src="chrome://kmprefs/skin/gestures/upleft.gif"/>
+										<label value="&gestures.upleft;"/>
+									</hbox>
+									<spacer/>
+									<menulist id="upleft" oncommand="kGestures.setAction(this)" flex="1"/>
+								</row>
+								<row align="center">
+									<hbox align="center">
+										<image src="chrome://kmprefs/skin/gestures/downright.gif"/>
+										<label value="&gestures.downright;"/>
+									</hbox>
+									<spacer/>
+									<menulist id="downright" oncommand="kGestures.setAction(this)" flex="1"/>
+								</row>
+								<row align="center">
+									<hbox align="center">
+										<image src="chrome://kmprefs/skin/gestures/LR.gif"/>
+										<label value="&gestures.LR;"/>
+									</hbox>
+									<spacer/>
+									<menulist id="LR" oncommand="kGestures.setAction(this)" flex="1"/>
+								</row>
+								<row align="center">
+									<hbox align="center">
+										<image src="chrome://kmprefs/skin/gestures/RL.gif"/>
+										<label value="&gestures.RL;"/>
+									</hbox>
+									<spacer/>
+									<menulist id="RL" oncommand="kGestures.setAction(this)" flex="1"/>
+								</row>
+							</rows>
+						</grid>
+						<vbox flex="1"/>
+						<description>&gestures.note;</description>
+						<!-- Gesture Actions -->
+					</tabpanel>
+					<tabpanel flex="1" orient="vertical" style="overflow:auto">
+						<!-- Database -->
+						<separator class="thin"/>
+						<description>&actions.descr;</description>
+						<separator class="thin"/>
+						<tree flex="1" seltype="single" hidecolumnpicker="true" treelines="true" onselect="Database.select()">
+							<treecols>
+								<treecol label="&actions.caption;" flex="1" primary="true"/>
+								<splitter class="tree-splitter"/>
+								<treecol label="&actions.command;" flex="1"/>
+							</treecols>
+							<treechildren>
+								<treeitem container="true" open="true">
+									<treerow>
+										<treecell label="&actions.user;"/>
+									</treerow>
+									<treechildren id="database"/>
+								</treeitem>
+								<treeitem container="true" open="true">
+									<treerow>
+										<treecell label="&actions.default;"/>
+									</treerow>
+									<treechildren id="default"/>
+								</treeitem>
+							</treechildren>
+						</tree>
+						<separator class="thin"/>
+						<hbox>
+							<button label="&add;" oncommand="Database.add()" key="addKey"/>
+							<button id="edit" label="&edit;" oncommand="Database.edit()" disabled="true"/>
+							<button id="delete" label="&delete;" oncommand="Database.del()" key="delKey" disabled="true"/>
+							<hbox flex="1"/>
+						</hbox>
+						<!-- Database -->
+					</tabpanel>
+				</tabpanels>
+			</tabbox>
+		</tabcontrol>
+	</vbox>
+</page>

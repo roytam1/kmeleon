@@ -1,0 +1,29 @@
+<!ENTITY overview.title "Overview">
+<!ENTITY adding.feeds "Adding feeds">
+<!ENTITY addnew.feeds "Add new feeds using the add feed button.">
+<!ENTITY addnew.feeds.opml "New feeds can be imported from an OPML file on the options menu.">
+<!ENTITY addnew.feeds.auto "By choosing &apos;Newsfox&apos; in the &apos;Feeds&apos; panel of Firefox options(preferences), NewsFox can add feeds by clicking the RSS icon at the right side of the URL box when a feed is available.">
+<!ENTITY alternative.use "NewsFox can also read Firefox Live Bookmarks. You can choose which Live Bookmarks to read with NewsFox using the Live Bookmarks button.">
+<!ENTITY feed.options "Feed options can be changed from the context menu in the feed pane(left hand side) or from either options button.">
+<!ENTITY remove.feeds "Removing feeds">
+<!ENTITY feed.remove "Permanently remove a feed and all its articles using the delete feed button.  This will remove the feed from all groups.">
+<!ENTITY new.items "Checking for new articles">
+<!ENTITY retrieve.items "Get new articles using the refresh button.">
+<!ENTITY retrieve.items.alt "You can also get new articles by using the context menu on a feed or group in the feed pane.">
+<!ENTITY retrieve.options "Options for automatically downloading new articles can be set on the options menu.">
+<!ENTITY manage.title "Managing articles">
+<!ENTITY manage.info "Articles are marked as read when selected.  Read/unread and flagged/unflagged status of an article can be toggled by clicking the appropriate icon.">
+<!ENTITY manage.info2 "Articles can be marked as read/unread or deleted using the context menu, toolbar buttons, or shortcut keys.">
+<!ENTITY manage.info3 "Articles can be resorted by clicking on the column headers.  The default is to have newest articles at the top.  To move unread articles to the top, click on the read/unread column header.">
+<!ENTITY groups.tags "Groups">
+<!ENTITY groups.info "There is a group named &apos;FEEDS&apos; that contains all your feeds.  Feeds can belong to as many other groups as you wish.  There is only one copy of a feed: when you mark an article as read, it is marked read in all groups.">
+<!ENTITY groups.info1 "Groups are added with the add group button.">
+<!ENTITY groups.info2 "There are also groups formed by searching among feeds.  For instance you could search for all occurrences of &apos;NewsFox&apos; among your feeds. These search groups are added with the add search group button.">
+<!ENTITY groups.info3 "Both types of groups are deleted with the delete group button.">
+<!ENTITY groups.info4 "Groups are useful to organize your feeds: you might have groups for new, important, daily, weekly, news, tech.  You can organize however you want.">
+<!ENTITY groups.info5 "Group options can be changed from the context menu in the feed pane or from either options button.">
+<!ENTITY other.title "Miscellaneous">
+<!ENTITY other.dragndrop "Feeds can be reordered within groups and groups can be reordered using drag and drop.">
+<!ENTITY other.art.toolbar "There is a context menu for the feed pane on the left hand side. There is a context menu and toolbar for articles on the right hand side.  Tooltips explain the button meanings.">
+<!ENTITY other.info "In the unlikely event that all your feeds disappear, there are recovery options on the main options menu.">
+<!ENTITY other.info2 "Keyboard shortcuts can be set on the options menu, and a list of shortcuts is available on the help menu.">

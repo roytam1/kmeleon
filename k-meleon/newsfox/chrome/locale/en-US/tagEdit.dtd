@@ -1,0 +1,9 @@
+<!ENTITY title "Edit Tags">
+<!ENTITY tagAdd "Tags to add to selected articles">
+<!ENTITY tagRemove "Tags to remove from selected articles">
+<!ENTITY tagDeleteCompletely "Tags to delete from all articles and tag list">
+<!ENTITY colorVaries1 "BLUE: tag is in all selected articles">
+<!ENTITY colorVaries2 "blend: tag is in some selected articles">
+<!ENTITY colorVaries3 "RED: tag is in no selected articles">
+<!ENTITY newTagAdd "New tags to add to selected articles">
+<!ENTITY newTagAddExample "&apos;/&apos; separates tags: &apos;tech/news&apos;">

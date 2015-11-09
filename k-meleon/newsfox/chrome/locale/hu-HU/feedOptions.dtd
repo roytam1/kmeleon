@@ -1,0 +1,25 @@
+<!ENTITY useGlobal "Központi beállítások használata">
+<!ENTITY feedAutoCheck "&apos;Az összes hírfolyam frissítése&apos; ezen a hírfolyamon is keressen új cikket">
+<!ENTITY dontDeleteUnread "Ne törölje az olvasatlan cikkeket">
+<!ENTITY groups "Csoportok:">
+<!ENTITY checkfeed "Hírfolyam ellenőrzése">
+<!ENTITY iconsrc "Ikon forrás:">
+<!ENTITY authentication "Azonosítás (csak biztonságos hírfolyamnál)">
+<!ENTITY username "Felhasználó:">
+<!ENTITY password "Jelszó:">
+<!ENTITY feedPrivate "Cikkek kódolása a lemezen">
+<!ENTITY keepDays.pre "A cikkek megtartása legalább">
+<!ENTITY keepDays.post "nap">
+<!ENTITY mainTab "Általános">
+<!ENTITY filterTab "Szűrő">
+<!ENTITY securityTab "Biztonság">
+<!ENTITY filterNew "Töltse le a szűrt weboldalt minden új cikk esetén">
+<!ENTITY filterImages "Töltse le a képeket a szúrt weboldalon">
+<!ENTITY filterInfo "Adj meg egy szűrőt a cikk link HTML-jének a cikk kibővített leírásává való alakításhoz. A szűrő lehet egy reguláris kifejezés vagy JavaScript kód, aminek az értéke lesz a cikk kibővített leírása.">
+<!ENTITY filterJSinfo "JavaScript használata esetén a következő változók állnak rendelkezésre.">
+<!ENTITY filterJSvar1 "linkDOM tartalmazza a cikk oldalának DOM-ját">
+<!ENTITY filterJSvar2 "linkHTML tartalmazza a cikk oldalának HTML szövegét">
+<!ENTITY filterJSvar3 "getElementsByClass(osztály, címke, csomópont) megad minden olyan html element az adott csomópont alatt, mely a megadott cimkével és osztállyal rendelkezik.">
+<!ENTITY filterMime "Karakterkészlet felülírása (+ automatikushoz, &gt; a teszthez, vagy karakterkészlet)">
+<!ENTITY filterInfo2 "Meg kell adnod egy szűrőt vagy képek lesznek letöltve az adott cikkhez nem a html oldal. Az alapértelmezett szűrő használatához nyomd meg a Backspace gombot.">
+<!ENTITY never "soha">

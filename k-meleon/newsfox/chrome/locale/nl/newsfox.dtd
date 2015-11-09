@@ -1,0 +1,31 @@
+<!ENTITY checkFeed "Feed controleren">
+<!ENTITY troubleshoot "Probleem oplossen">
+<!ENTITY OPML.import "OPML importeren">
+<!ENTITY OPML.export "OPML exporteren">
+<!ENTITY toolOptions.import.addfeeds "Aan bestaande feeds toevoegen">
+<!ENTITY toolOptions.import.startfresh "Starten als blanco">
+<!ENTITY toolOptions.import.file "van bestand">
+<!ENTITY toolOptions.import.URL "van URL">
+<!ENTITY toolOptions.passwd "Wachtwoord wijzigen">
+<!ENTITY help "Hulp bij NewsFox">
+<!ENTITY feeds "Feeds">
+<!ENTITY r "R">
+<!ENTITY markAllAsUnread "Alles als ongelezen markeren">
+<!ENTITY tagSel "Selectie labellen">
+<!ENTITY sortFeeds "Feeds sorteren">
+<!ENTITY unsortFeeds "Sorteren ongedaan maken">
+<!ENTITY toolOptions.restoreBackup "Back-up terugzetten">
+<!ENTITY exportRSS "Naar RSS exporteren">
+<!ENTITY wait "Wacht in verband met de veiligheid totdat het laden is afgerond">
+<!ENTITY tagEdit "Geselecteerd label">
+<!ENTITY addGroup.regular "Regulier">
+<!ENTITY addGroup.search "Zoeken">
+<!ENTITY addGroup.tag "Label">
+<!ENTITY addFeed.regular "RSS/Atom">
+<!ENTITY addFeed.storage "Opslag">
+<!ENTITY prob "Wrsch">
+<!ENTITY mainToolbar "Hoofdwerkbalk">
+<!ENTITY feedToolbar "Feedwerkbalk">
+<!ENTITY Xtend "+">
+<!ENTITY markSelAsRead "Selectie als gelezen markeren">
+<!ENTITY markSelAsUnread "Selectie als ongelezen markeren">

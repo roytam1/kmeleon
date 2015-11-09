@@ -1,0 +1,9 @@
+<!ENTITY projectOwner "projekti omanik">
+<!ENTITY localization "Tõlked:">
+<!ENTITY primaryContact "esmane kontakt">
+<!ENTITY developer "arendaja">
+<!ENTITY projectCreator "projekti looja">
+<!ENTITY icons "Ikoonid:">
+<!ENTITY fromFirefox "Enamik ikoone pärit (või põhinevad) Firefox&apos;l/Thunderbird&apos;l.">
+<!ENTITY fromFamfamfam "Sildi, märgistuse, salvestamise ja kaasamise ikoonid pärit famfamfam.com&apos;st.">
+<!ENTITY helpADR "Tänan ADR&apos;i ikooniabi eest.">

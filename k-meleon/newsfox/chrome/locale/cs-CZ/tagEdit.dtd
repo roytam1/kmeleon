@@ -1,0 +1,9 @@
+<!ENTITY title "Přiřazení visaček">
+<!ENTITY tagAdd "Přiřazení visaček vybraným článkům">
+<!ENTITY tagRemove "Odstranění visaček z vybraných článků">
+<!ENTITY tagDeleteCompletely "Odstranění visaček ze všech článků i ze seznamu visaček">
+<!ENTITY colorVaries1 "modrá: visačka je u všech vybraných článků">
+<!ENTITY colorVaries2 "červeno i modrá: visačka je u některých vybraných článků">
+<!ENTITY colorVaries3 "červená: visačka není u žádných vybraných článků">
+<!ENTITY newTagAdd "Nové visačky pro přiřazení vybraným zprávám">
+<!ENTITY newTagAddExample "&apos;/&apos; oddělení visaček: &apos;tech/news&apos;">

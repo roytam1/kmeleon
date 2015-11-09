@@ -1,0 +1,25 @@
+<!ENTITY useGlobal "Използване на глобалните настройки">
+<!ENTITY feedAutoCheck "&quot;Обновяване на всички емисии&quot; проверява тази емисия за нови публикации">
+<!ENTITY dontDeleteUnread "Не изтривай непрочетени">
+<!ENTITY groups "Групи:">
+<!ENTITY checkfeed "Проверяване на емисия">
+<!ENTITY iconsrc "Източник за икона:">
+<!ENTITY authentication "Идентификация">
+<!ENTITY username "Потребителско име:">
+<!ENTITY password "Парола:">
+<!ENTITY feedPrivate "Криптиране на публикациите">
+<!ENTITY keepDays.pre "Съхраняване на публикациите">
+<!ENTITY keepDays.post "дена">
+<!ENTITY mainTab "Общи">
+<!ENTITY filterTab "Уеб филтър">
+<!ENTITY securityTab "Сигурност">
+<!ENTITY filterNew "Сваляне на филтрираните страници за всички нови статии">
+<!ENTITY filterImages "Сваляне на изображения от филтрираните уебстраници">
+<!ENTITY filterInfo "Въвеждане на филтър, за да трансформира връзката от HTML в описание на статията.">
+<!ENTITY filterJSinfo "При използване на JavaScript са възможни следните променливи:">
+<!ENTITY filterJSvar1 "linkDOM contains the DOM of the article link page">
+<!ENTITY filterJSvar2 "linkHTML contains the text/html of the article link page">
+<!ENTITY filterJSvar3 "getElementsByClass(class, tag, node) returns an array of all html elements with given tag and class contained in given node">
+<!ENTITY filterMime "Презапиши кодировката (+ за авто, &gt; за проба или задаване)">
+<!ENTITY filterInfo2 "Трябва да зададете филтър или изображения, които да бъдат свалени от статията, а не html-страница. За да използвате вградените филтри, натиснете клавиш Backspace.">
+<!ENTITY never "никога">

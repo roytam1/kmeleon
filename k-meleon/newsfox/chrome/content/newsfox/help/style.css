@@ -1,0 +1,23 @@
+body 
+{ 
+  background: white; 
+  font: 10pt Verdana,sans-serif;
+	padding-left: 10px;
+} 
+
+html { background: white; }
+
+.lang
+{
+	margin-right: 4px; font-size: larger; font-family: 'Courier New';
+	display: inline-block; width: 3.2em;
+}
+.name { margin-left: 4px; font-size: larger }
+
+/* shortcuts.xhtml */
+th { padding: 0 0.5em 0 0.5em !important; }
+td { padding: 0 0.5em 0 0.5em !important; }
+.keystroke { text-align: center; }
+.even { background-color: #ccc; }
+#shortcutsDlg { background: white; }
+.Iarr { vertical-align: middle; }

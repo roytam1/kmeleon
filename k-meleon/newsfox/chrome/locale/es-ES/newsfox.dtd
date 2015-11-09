@@ -1,0 +1,31 @@
+<!ENTITY checkFeed "Comprobar hilo">
+<!ENTITY troubleshoot "Resolver problema">
+<!ENTITY OPML.import "Importar OPML...">
+<!ENTITY OPML.export "Exportar OPML...">
+<!ENTITY toolOptions.import.addfeeds "Añadir a los hilos existentes">
+<!ENTITY toolOptions.import.startfresh "Inicio limpio">
+<!ENTITY toolOptions.import.file "desde archivo...">
+<!ENTITY toolOptions.import.URL "desde URL...">
+<!ENTITY toolOptions.passwd "Cambiar contraseña ...">
+<!ENTITY help "Obtener ayuda para NewsFox">
+<!ENTITY feeds "Hilos">
+<!ENTITY r "L">
+<!ENTITY markAllAsUnread "Marcar todos como no leídos">
+<!ENTITY tagSel "Etiqueta seleccionada">
+<!ENTITY sortFeeds "Ordenar hilos">
+<!ENTITY unsortFeeds "Deshacer ordenación">
+<!ENTITY toolOptions.restoreBackup "Restaurar copia de seguridad">
+<!ENTITY exportRSS "Exportar a RSS...">
+<!ENTITY wait "Por seguridad, espere hasta que termine la carga">
+<!ENTITY tagEdit "Editar las etiquetas de los artículos seleccionados">
+<!ENTITY addGroup.regular "Regular">
+<!ENTITY addGroup.search "Buscar">
+<!ENTITY addGroup.tag "Etiqueta">
+<!ENTITY addFeed.regular "RSS/Atom">
+<!ENTITY addFeed.storage "Almacenamiento">
+<!ENTITY prob "Prob.">
+<!ENTITY mainToolbar "Barra de herramientas principal">
+<!ENTITY feedToolbar "Barra de herramientas de hilos">
+<!ENTITY Xtend "+">
+<!ENTITY markSelAsRead "Marcar seleccionados como leídos">
+<!ENTITY markSelAsUnread "Marcar seleccionados como no leídos">

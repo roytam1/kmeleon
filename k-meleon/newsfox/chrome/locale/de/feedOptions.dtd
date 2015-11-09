@@ -1,0 +1,25 @@
+<!ENTITY useGlobal "Globale Einstellung">
+<!ENTITY feedAutoCheck "Diesen Feed bei &quot;Alle Feeds aktualisieren&quot; auf neue Einträge überprüfen">
+<!ENTITY dontDeleteUnread "Ungelesene Einträge nicht löschen">
+<!ENTITY groups "Gruppen:">
+<!ENTITY checkfeed "Feed überprüfen">
+<!ENTITY iconsrc "Favicon:">
+<!ENTITY authentication "Authentifizierung (nur sichere Feeds)">
+<!ENTITY username "Benutzername:">
+<!ENTITY password "Passwort:">
+<!ENTITY feedPrivate "Feed-Artikel auf Festplatte verschlüsseln">
+<!ENTITY keepDays.pre "Einträge mindestens">
+<!ENTITY keepDays.post "Tage behalten">
+<!ENTITY mainTab "Allgemein">
+<!ENTITY filterTab "Web-Filter">
+<!ENTITY securityTab "Sicherheit">
+<!ENTITY filterNew "Für alle neuen Artikel gefilterte Webseite herunterladen">
+<!ENTITY filterImages "Grafiken in gefilterter Webseite herunterladen">
+<!ENTITY filterInfo "Sie können einen Filter angeben, mit dem die HTML-Version des Artikels in eine erweiterte Artikel-Beschreibung umgewandelt wird. Ein Filter kann entweder ein regulärer Ausdruck sein, für den es eine Übereinstimmung gibt, oder JavaScript-Code, dessen Wert die erweiterte Artikel-Beschreibung ergibt.">
+<!ENTITY filterJSinfo "Bei der Verwendung von JavaScript sind folgende Variablen verfügbar:">
+<!ENTITY filterJSvar1 "linkDOM enthält das Document Object Model (DOM) der Artikel-Webseite.">
+<!ENTITY filterJSvar2 "linkHTML enthält nur den HTML-Teil der Artikel-Webseite.">
+<!ENTITY filterJSvar3 "getElementsByClass(class, tag, node) liefert ein Array mit allen HTML-Elementen der Artikel-Webseite zurück, die das entsprechende Tag und die entsprechende Klasse im angegebenen Node enthalten.">
+<!ENTITY filterMime "Zeichenkodierung überschreiben (+ für automatisch, &gt; zum Testen oder Kodierung eingeben)">
+<!ENTITY filterInfo2 "Sie müssen einen Filter eingeben, da sonst die Grafiken des aktuellen Artikels heruntergeladen werden und nicht eine HTML-Seite. Um den Standardfilter zu verwenden, bitte die Rücktaste drücken.">
+<!ENTITY never "Nie">

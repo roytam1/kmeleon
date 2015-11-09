@@ -1,0 +1,31 @@
+<!ENTITY checkFeed "Hírfolyam ellenőrzése">
+<!ENTITY troubleshoot "Hibaelhárítás">
+<!ENTITY OPML.import "OPML importálása...">
+<!ENTITY OPML.export "OPML exportálása">
+<!ENTITY toolOptions.import.addfeeds "Hozzáadás a létező hírfolyamokhoz">
+<!ENTITY toolOptions.import.startfresh "Friss indulás">
+<!ENTITY toolOptions.import.file "fájlból...">
+<!ENTITY toolOptions.import.URL "URL-ről">
+<!ENTITY toolOptions.passwd "Jelszó">
+<!ENTITY help "Segítségkérés a Newsfox-hoz">
+<!ENTITY feeds "Hírfolyamok">
+<!ENTITY r "O">
+<!ENTITY markAllAsUnread "Az összes jelölése olvasatlanként">
+<!ENTITY tagSel "Címke kiválasztva">
+<!ENTITY sortFeeds "Hírfolyamok rendezése">
+<!ENTITY unsortFeeds "Rendezés visszavonása">
+<!ENTITY toolOptions.restoreBackup "Biztonsági mentés visszaállíítása">
+<!ENTITY exportRSS "Exportálás RSS-be...">
+<!ENTITY wait "Biztonsági okokból várjon, amíg teljesen betöltődik">
+<!ENTITY tagEdit "Kiválasztott cikk címkéinek szerkesztése">
+<!ENTITY addGroup.regular "Szabályos">
+<!ENTITY addGroup.search "Keresés">
+<!ENTITY addGroup.tag "Címke">
+<!ENTITY addFeed.regular "RSS/Atom">
+<!ENTITY addFeed.storage "Tárolás">
+<!ENTITY prob "Pr">
+<!ENTITY mainToolbar "Fő eszköztár">
+<!ENTITY feedToolbar "Hírfolyam eszköztár">
+<!ENTITY Xtend "+">
+<!ENTITY markSelAsRead "Kijelölt megjelölése olvasottként">
+<!ENTITY markSelAsUnread "Kijelölt megjelölése olvasatlanként">

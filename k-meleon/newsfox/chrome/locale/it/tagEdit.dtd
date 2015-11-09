@@ -1,0 +1,9 @@
+<!ENTITY title "Modifica tag">
+<!ENTITY tagAdd "Tag da aggiungere agli articoli selezionati">
+<!ENTITY tagRemove "Tag da eliminare dagli articoli selezionati">
+<!ENTITY tagDeleteCompletely "Tag da eliminare dalla lista dei tag e da tutti gli articoli">
+<!ENTITY colorVaries1 "Blu: il tag è presente in tutti gli articoli selezionati">
+<!ENTITY colorVaries2 "Viola: il tag è presente in alcuni articoli selezionati">
+<!ENTITY colorVaries3 "Rosso: il tag non è presente negli articoli selezionati">
+<!ENTITY newTagAdd "Nuovi tag da aggiungere agli articoli selezionati">
+<!ENTITY newTagAddExample "Utilizzare &quot;/&quot; per separare i tag: tecnologia/news/...">

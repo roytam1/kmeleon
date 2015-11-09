@@ -1,0 +1,24 @@
+<!ENTITY sCcustomShortcut "Клавишите за бърз достъп могат да се определят, чрез редактиране на 'modifiers' и 'key' атрибутите на файл 'accel.xml'.">
+<!ENTITY sCcustomHeading "Потребителски бързи клавиши">
+<!ENTITY sCfixedHeading "Фиксирани клавиши">
+<!ENTITY sCartFeedHeading "Панел на емисиите">
+<!ENTITY sCviewArtHeading "Панел на статите">
+<!ENTITY sCfeedHeading "Панел на емисията">
+<!ENTITY sCarticleUp "Нагоре">
+<!ENTITY sCarticleDown "Надолу">
+<!ENTITY sCupLevel "Ниво нагоре">
+<!ENTITY sCexpandTree "Разгъване">
+<!ENTITY sCsame "също">
+<!ENTITY sCtoggleArtFlag "Флаг за статията">
+<!ENTITY sCselToFocus "Фокусиране на селекцията">
+<!ENTITY sCfocusUp "Фокусираната статия нагоре">
+<!ENTITY sCfocusDown "Фокусираната статия надолу">
+<!ENTITY sCmoveFeedUp "Преместване нагоре">
+<!ENTITY sCmoveFeedDown "Преместване надолу">
+<!ENTITY sCfeedUp "Нагоре">
+<!ENTITY sCfeedDown "Надолу">
+<!ENTITY sCexpColl "Разгъване/свиване на емисията">
+<!ENTITY sCdeleteKey "delete">
+<!ENTITY sCctrlKey "ctrl">
+<!ENTITY sCshiftKey "shift">
+<!ENTITY sCaltKey "alt">

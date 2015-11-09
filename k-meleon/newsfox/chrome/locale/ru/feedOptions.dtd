@@ -1,0 +1,25 @@
+<!ENTITY useGlobal "Использовать глобальные настройки">
+<!ENTITY feedAutoCheck "&apos;Обновить все ленты&apos; проверяет эту ленту на новые записи">
+<!ENTITY dontDeleteUnread "Не удалять непрочитанные">
+<!ENTITY groups "Группы:">
+<!ENTITY checkfeed "Проверить ленту">
+<!ENTITY iconsrc "Путь к значку:">
+<!ENTITY authentication "Авторизация (только для лент с авторизацией)">
+<!ENTITY username "Имя пользователя:">
+<!ENTITY password "Пароль:">
+<!ENTITY feedPrivate "Хранить записи лент в зашифрованном виде">
+<!ENTITY keepDays.pre "Не удалять записи хотя бы">
+<!ENTITY keepDays.post "дней">
+<!ENTITY mainTab "Общие">
+<!ENTITY filterTab "Веб-фильтр">
+<!ENTITY securityTab "Безопасность">
+<!ENTITY filterNew "Загружать фильтрованные веб-страницы для всех записей">
+<!ENTITY filterImages "Загружать изображения для фильтрованных веб-страниц">
+<!ENTITY filterInfo "Введите фильтр для получения расширенного описания записи из HTML-кода по ссылке записи.  Фильтр может быть либо регулярным выражением, по которому будет идти сравнение, либо JavaScript кодом, чьё значение станет расширенным описанием записи.">
+<!ENTITY filterJSinfo "При использовании JavaScript доступны следующие переменные:">
+<!ENTITY filterJSvar1 "linkDOM содержит DOM (объектную модель документа) по ссылке записи">
+<!ENTITY filterJSvar2 "linkHTML содержит текст/html страницы по ссылке записи">
+<!ENTITY filterJSvar3 "getElementsByClass(class, tag, node) возвращает массив всех HTML-элементов по указанным тегу и классу в указанном узле">
+<!ENTITY filterMime "Указать кодировку (+ для автоопределения, &gt; для тестирования, либо вписать кодировку)">
+<!ENTITY filterInfo2 "Вы должны указать фильтр, иначе изображения будут загружаться в текущей записи вместо HTML страницы.  Для использования фильтра по умолчанию нажмите клавишу удаления (backspace).">
+<!ENTITY never "никогда">

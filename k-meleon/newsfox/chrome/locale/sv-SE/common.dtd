@@ -1,0 +1,62 @@
+<!ENTITY NewsFoxTeam "NewsFox-gruppen">
+<!ENTITY feedOptions "Flödesinställningar">
+<!ENTITY text "Text">
+<!ENTITY webpage "Webbsida">
+<!ENTITY groupOptions "Gruppinställningar">
+<!ENTITY sCcancel "Avbryt uppdatering">
+<!ENTITY sCadd "Lägg till flöde">
+<!ENTITY sCoptions "Inställningar">
+<!ENTITY sChomePage "Webbsida">
+<!ENTITY sCmanageLivemarks "Hantera smarta bokmärken">
+<!ENTITY sCmarkAllAsRead "Märk alla som lästa">
+<!ENTITY sCdelete "Ta bort flöde">
+<!ENTITY sCnextUnread "Nästa olästa">
+<!ENTITY sCopenUnread "Öppna olästa">
+<!ENTITY sCopenSel "Öppna markerade">
+<!ENTITY sCdeleteSel "Ta bort markerade">
+<!ENTITY sCaddSearch "Lägg till sökgrupp">
+<!ENTITY sCaddGroup "Lägg till grupp">
+<!ENTITY sCdeleteGroup "Ta bort grupp">
+<!ENTITY sCshortcut "Kortkommandon">
+<!ENTITY sCrefresh "Uppdatera flöden">
+<!ENTITY sCpreviousUnread "Föregående olästa">
+<!ENTITY sCdeleteFeedFromGroup "Ta bort flöde från grupp">
+<!ENTITY sCkeystrokeHeading "Kortkommando">
+<!ENTITY sCselAll "Markera alla artiklar">
+<!ENTITY flagCol "Flagga">
+<!ENTITY titleCol "Rubrik">
+<!ENTITY readCol "Lästa">
+<!ENTITY dateCol "Datum">
+<!ENTITY authorCol "Författare">
+<!ENTITY sourceCol "Källa">
+<!ENTITY feedCol "Flöde">
+<!ENTITY tagCol "Tagg">
+<!ENTITY probCol "Intresse">
+<!ENTITY threadCol "Tråd">
+<!ENTITY XtendCol "Filtrerad sida">
+<!ENTITY sCprint "Skriv ut artikel">
+<!ENTITY sCtoggleFilter "Växla webbfilter">
+<!ENTITY sortTab "Sortering">
+<!ENTITY sortArticles "Sortera artiklar:">
+<!ENTITY firstSort "1:a sorteringskolumn:">
+<!ENTITY secondSort "2:a sorteringskolumn:">
+<!ENTITY thirdSort "3:e sorteringskolumn:">
+<!ENTITY fourthSort "4:e sorteringskolumn:">
+<!ENTITY noCol "Ingen">
+<!ENTITY ascendingDir "Stigande">
+<!ENTITY descendingDir "Fallande">
+<!ENTITY updatedUnread "Märk uppdaterade artiklar som olästa">
+<!ENTITY yes "ja">
+<!ENTITY no "nej">
+<!ENTITY days "dagar">
+<!ENTITY articles "Artiklar">
+<!ENTITY displayStyle "Visningsformat:">
+<!ENTITY deleteOld "Ta bort gamla artiklar">
+<!ENTITY autoRefresh "Uppdatera automatiskt: ">
+<!ENTITY minutes "minut(er)">
+<!ENTITY deleteOldKeepUnread "ja, behåll olästa">
+<!ENTITY deleteOldDeleteUnread "ja, ta bort olästa">
+<!ENTITY oldMeans "Ange som gammal">
+<!ENTITY after "efter">
+<!ENTITY notInFeed "om inte längre i flödet">
+<!ENTITY feeds "Flöden">

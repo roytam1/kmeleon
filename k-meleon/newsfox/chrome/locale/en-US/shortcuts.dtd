@@ -1,0 +1,24 @@
+<!ENTITY sCcustomShortcut "Custom shortcut keys can be defined by editing the &apos;modifiers&apos; and &apos;key&apos; attributes in the file &apos;accel.xml&apos; in the newsfox folder within the profile folder after selecting a set of keyboard shortcuts in the options dialog and quitting Newsfox.">
+<!ENTITY sCcustomHeading "Custom Shortcuts">
+<!ENTITY sCfixedHeading "Fixed Shortcuts">
+<!ENTITY sCartFeedHeading "Article/feed pane">
+<!ENTITY sCviewArtHeading "View/article pane">
+<!ENTITY sCfeedHeading "Feed pane">
+<!ENTITY sCarticleUp "Article up">
+<!ENTITY sCarticleDown "Article down">
+<!ENTITY sCupLevel "Up level">
+<!ENTITY sCexpandTree "Expand feed">
+<!ENTITY sCsame "same">
+<!ENTITY sCtoggleArtFlag "Toggle article flag">
+<!ENTITY sCselToFocus "Selection to focus">
+<!ENTITY sCfocusUp "Focus article up">
+<!ENTITY sCfocusDown "Focus article down">
+<!ENTITY sCmoveFeedUp "Move feed up">
+<!ENTITY sCmoveFeedDown "Move feed down">
+<!ENTITY sCfeedUp "Feed up">
+<!ENTITY sCfeedDown "Feed down">
+<!ENTITY sCexpColl "Expand/collapse feed">
+<!ENTITY sCdeleteKey "delete">
+<!ENTITY sCctrlKey "ctrl">
+<!ENTITY sCshiftKey "shift">
+<!ENTITY sCaltKey "alt">

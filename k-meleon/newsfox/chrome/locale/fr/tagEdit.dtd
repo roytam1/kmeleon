@@ -1,0 +1,9 @@
+<!ENTITY title "Éditer les balises">
+<!ENTITY tagAdd "Balises à ajouter aux articles sélectionnés">
+<!ENTITY tagRemove "Balises à supprimer des articles sélectionnés">
+<!ENTITY tagDeleteCompletely "Balises à supprimer de tous les articles et de la liste des balises.">
+<!ENTITY colorVaries1 "BLEU : balise présente dans tous les articles sélectionnés">
+<!ENTITY colorVaries2 "Mélange : balise présente dans certains articles sélectionnés">
+<!ENTITY colorVaries3 "ROUGE : balise présente dans aucun article sélectionné">
+<!ENTITY newTagAdd "Nouvelles balises à ajouter aux articles sélectionnés">
+<!ENTITY newTagAddExample "&apos;/&apos; sépare les balises : &apos;techno/actualités&apos;">

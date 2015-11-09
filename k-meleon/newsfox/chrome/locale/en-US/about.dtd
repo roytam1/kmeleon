@@ -1,0 +1,9 @@
+<!ENTITY projectOwner "project owner">
+<!ENTITY localization "Localization:">
+<!ENTITY primaryContact "primary contact">
+<!ENTITY developer "developer">
+<!ENTITY projectCreator "project creator">
+<!ENTITY icons "Icons:">
+<!ENTITY fromFirefox "Most icons from(or modified from) Firefox/Thunderbird.">
+<!ENTITY fromFamfamfam "Flag, tag, storage and enclosure icons from famfamfam.com.">
+<!ENTITY helpADR "Thanks to ADR for icon help.">

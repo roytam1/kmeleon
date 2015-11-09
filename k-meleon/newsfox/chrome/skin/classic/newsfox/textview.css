@@ -1,0 +1,10 @@
+body
+	{ font:10pt Verdana,sans-serif; background:white; }
+#newsfox-box
+	{ background: #e3dfd9; padding:10px; overflow:hidden; }
+.srch
+	{ color: red; font-weight: bold; }
+.keyword
+	{ color: green; font-weight: bold; }
+.once
+	{ color: orange; font-weight: bold; }

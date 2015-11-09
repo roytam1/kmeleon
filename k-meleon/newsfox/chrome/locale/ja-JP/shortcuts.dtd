@@ -1,0 +1,24 @@
+<!ENTITY sCcustomShortcut "ショートカットキーを編集するには、プロファイルフォルダのNewsfoxフォルダから &apos;accel.xml&apos;ファイルを開き &apos;modifiers&apos; と &apos;key&apos;の文字を変更することによって編集できます。">
+<!ENTITY sCcustomHeading "カスタムショートカット">
+<!ENTITY sCfixedHeading "修正したショートカット">
+<!ENTITY sCartFeedHeading "記事/フィードの枠">
+<!ENTITY sCviewArtHeading "表示/記事の枠">
+<!ENTITY sCfeedHeading "フィードの枠">
+<!ENTITY sCarticleUp "上の記事へ">
+<!ENTITY sCarticleDown "下の記事へ">
+<!ENTITY sCupLevel "レベルアップ">
+<!ENTITY sCexpandTree "拡張フィード">
+<!ENTITY sCsame "同上">
+<!ENTITY sCtoggleArtFlag "記事の旗を切り替える">
+<!ENTITY sCselToFocus "選択したものに焦点をあわせる">
+<!ENTITY sCfocusUp "上の記事へ焦点をあわせる">
+<!ENTITY sCfocusDown "下の記事へ焦点をあわせる">
+<!ENTITY sCmoveFeedUp "上のフィードへ移動">
+<!ENTITY sCmoveFeedDown "下のフィードへ移動">
+<!ENTITY sCfeedUp "上のフィードへ">
+<!ENTITY sCfeedDown "下のフィードへ">
+<!ENTITY sCexpColl "フィードを広げる/折りたたむ">
+<!ENTITY sCdeleteKey "消去">
+<!ENTITY sCctrlKey "ctrl">
+<!ENTITY sCshiftKey "shift">
+<!ENTITY sCaltKey "alt">

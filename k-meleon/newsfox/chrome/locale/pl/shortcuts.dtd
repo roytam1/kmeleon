@@ -1,0 +1,24 @@
+<!ENTITY sCcustomShortcut "Można określić własne skróty klawiaturowe poprzez zmianę atrybutów &quot;modifiers&quot; i &quot;key&quot; edytując plik &quot;accel.xml&quot; znajdujący się w folderze profilu. Operacja ta jest możliwa po uaktywnieniu w opcjach rozszerzenia skrótów klawiaturowych i zamknięciu Newsfoksa.">
+<!ENTITY sCcustomHeading "Skróty użytkownika">
+<!ENTITY sCfixedHeading "Skróty zdefiniowane">
+<!ENTITY sCartFeedHeading "Panel artykułu/kanału">
+<!ENTITY sCviewArtHeading "Panel widoku/artykułu">
+<!ENTITY sCfeedHeading "Panel kanału">
+<!ENTITY sCarticleUp "Przesuń artykuł w górę">
+<!ENTITY sCarticleDown "Przesuń artykuł w dół">
+<!ENTITY sCupLevel "Przejdź do wyższego poziomu">
+<!ENTITY sCexpandTree "Rozwiń kanał">
+<!ENTITY sCsame "to samo działanie">
+<!ENTITY sCtoggleArtFlag "Zmień etykietę artykułu">
+<!ENTITY sCselToFocus "Przejdź do zaznaczenia">
+<!ENTITY sCfocusUp "Przejdź do artykułu powyżej">
+<!ENTITY sCfocusDown "Przejdź do artykułu poniżej">
+<!ENTITY sCmoveFeedUp "Przenieś kanał na górę">
+<!ENTITY sCmoveFeedDown "Przenieś kanał na dół">
+<!ENTITY sCfeedUp "Przesuń kanał w dół">
+<!ENTITY sCfeedDown "Przesuń kanał w górę">
+<!ENTITY sCexpColl "Rozwiń/Zwiń kanał">
+<!ENTITY sCdeleteKey "Delete">
+<!ENTITY sCctrlKey "Ctrl">
+<!ENTITY sCshiftKey "Shift">
+<!ENTITY sCaltKey "Alt">

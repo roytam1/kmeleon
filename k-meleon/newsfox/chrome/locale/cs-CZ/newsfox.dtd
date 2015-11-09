@@ -1,0 +1,31 @@
+<!ENTITY checkFeed "Ověřit kanál.">
+<!ENTITY troubleshoot "Řešení problémů">
+<!ENTITY OPML.import "Import OPML">
+<!ENTITY OPML.export "Export OPML">
+<!ENTITY toolOptions.import.addfeeds "přidat kanály a zachovat existující články">
+<!ENTITY toolOptions.import.startfresh "přepsat kanály a smazat všechny existující články">
+<!ENTITY toolOptions.import.file "ze souboru">
+<!ENTITY toolOptions.import.URL "z adresy">
+<!ENTITY toolOptions.passwd "Změna hesla">
+<!ENTITY help "Nápověda">
+<!ENTITY feeds "Kanály">
+<!ENTITY r "Přečteno">
+<!ENTITY markAllAsUnread "Označit vše jako nepřečtené">
+<!ENTITY tagSel "Přiřadit visačky vybraným">
+<!ENTITY sortFeeds "Seřadit kanály">
+<!ENTITY unsortFeeds "Zrušit řazení">
+<!ENTITY toolOptions.restoreBackup "Obnovení kanálů ze zálohy">
+<!ENTITY exportRSS "Export RSS">
+<!ENTITY wait "Počkejte, dokud nebude načtení kompletní">
+<!ENTITY tagEdit "Přiřazení visaček">
+<!ENTITY addGroup.regular "Normální složka">
+<!ENTITY addGroup.search "Vyhledávací složka">
+<!ENTITY addGroup.tag "Složka visaček">
+<!ENTITY addFeed.regular "RSS/Atom">
+<!ENTITY addFeed.storage "Sklad">
+<!ENTITY prob "Rating">
+<!ENTITY mainToolbar "Hlavní nástrojová lišta">
+<!ENTITY feedToolbar "Nástrojová lišta kanálů">
+<!ENTITY Xtend "Filtr">
+<!ENTITY markSelAsRead "Označit jako přečtené">
+<!ENTITY markSelAsUnread "Označit jako nepřečtené">

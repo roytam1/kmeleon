@@ -1,0 +1,9 @@
+<!ENTITY projectOwner "projektansvarig">
+<!ENTITY localization "Översättning:">
+<!ENTITY primaryContact "huvudkontaktperson">
+<!ENTITY developer "utvecklare">
+<!ENTITY projectCreator "projektets skapare">
+<!ENTITY icons "Ikoner:">
+<!ENTITY fromFirefox "De flesta ikonerna från (eller modifikationer av) Firefox/Thunderbird.">
+<!ENTITY fromFamfamfam "Flagg-, tagg-, lagrings- och omslutningsikoner från famfamfam.com.">
+<!ENTITY helpADR "Tack till ADR för hjälp med ikoner.">

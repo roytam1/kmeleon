@@ -1,0 +1,62 @@
+<!ENTITY NewsFoxTeam "NewsFox Team">
+<!ENTITY feedOptions "Feed Options">
+<!ENTITY text "Text">
+<!ENTITY webpage "Web Page">
+<!ENTITY groupOptions "Group Options">
+<!ENTITY sCcancel "Cancel refresh">
+<!ENTITY sCadd "Add feed">
+<!ENTITY sCoptions "Options">
+<!ENTITY sChomePage "Homepage">
+<!ENTITY sCmanageLivemarks "Manage Live Bookmarks">
+<!ENTITY sCmarkAllAsRead "Mark all as read">
+<!ENTITY sCdelete "Delete feed">
+<!ENTITY sCnextUnread "Next unread">
+<!ENTITY sCopenUnread "Open unread">
+<!ENTITY sCopenSel "Open selected">
+<!ENTITY sCdeleteSel "Delete selected">
+<!ENTITY sCaddSearch "Add search group">
+<!ENTITY sCaddGroup "Add group">
+<!ENTITY sCdeleteGroup "Delete group">
+<!ENTITY sCshortcut "Keyboard Shortcuts">
+<!ENTITY sCrefresh "Refresh feeds">
+<!ENTITY sCpreviousUnread "Previous unread">
+<!ENTITY sCdeleteFeedFromGroup "Delete feed from group">
+<!ENTITY sCkeystrokeHeading "Keystroke">
+<!ENTITY sCselAll "Select all articles">
+<!ENTITY flagCol "Flag">
+<!ENTITY titleCol "Title">
+<!ENTITY readCol "Read">
+<!ENTITY dateCol "Date">
+<!ENTITY authorCol "Author">
+<!ENTITY sourceCol "Source">
+<!ENTITY feedCol "Feed">
+<!ENTITY tagCol "Tag">
+<!ENTITY probCol "Interest">
+<!ENTITY threadCol "Thread">
+<!ENTITY XtendCol "Filtered Web">
+<!ENTITY sCprint "Print article">
+<!ENTITY sCtoggleFilter "Toggle web filter">
+<!ENTITY sortTab "Sorting">
+<!ENTITY sortArticles "Sort Articles:">
+<!ENTITY firstSort "First sort:">
+<!ENTITY secondSort "Second sort:">
+<!ENTITY thirdSort "Third sort:">
+<!ENTITY fourthSort "Fourth sort:">
+<!ENTITY noCol "None">
+<!ENTITY ascendingDir "Ascending">
+<!ENTITY descendingDir "Descending">
+<!ENTITY updatedUnread "Mark updated articles as unread">
+<!ENTITY yes "yes">
+<!ENTITY no "no">
+<!ENTITY days "days">
+<!ENTITY articles "Articles">
+<!ENTITY displayStyle "Display Style:">
+<!ENTITY deleteOld "Delete old articles">
+<!ENTITY autoRefresh "Auto-refresh: ">
+<!ENTITY minutes "minute(s)">
+<!ENTITY deleteOldKeepUnread "yes, keep unread">
+<!ENTITY deleteOldDeleteUnread "yes, delete unread">
+<!ENTITY oldMeans "Set as old">
+<!ENTITY after "after">
+<!ENTITY notInFeed "if not in feed">
+<!ENTITY feeds "Feeds">

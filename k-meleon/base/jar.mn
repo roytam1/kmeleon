@@ -1,0 +1,28 @@
+kmeleon.jar:
+% content kmeleon %content/kmeleon/ 
+% content browser kmeleon/content/browser/  contentaccessible=yes
+% override chrome://global/content/about.xhtml chrome://kmeleon/content/about.xhtml
+% override chrome://global/content/netError.xhtml chrome://kmeleon/content/netError.xhtml
+% override chrome://global/content/viewSource.js chrome://kmeleon/content/viewSource.js
+% override chrome://global/content/viewSource.xul chrome://kmeleon/content/viewSource.xul
+
+    content/kmeleon/about.css                 (content/about.css)
+    content/kmeleon/about.xhtml               (content/about.xhtml)       
+    content/kmeleon/commands.xhtml            (content/commands.xhtml)       
+    content/kmeleon/netError.xhtml            (content/netError.xhtml)       
+    content/kmeleon/netError.xul              (content/netError.xul)       
+    content/kmeleon/privilege.xhtml           (content/privilege.xhtml)       
+    content/kmeleon/viewSource.js             (content/viewSource.js)       
+    content/kmeleon/viewSource.xul            (content/viewSource.xul)       
+    content/kmeleon/aboutHome/aboutHome.css   (content/aboutHome/aboutHome.css)       
+    content/kmeleon/aboutHome/aboutHome.js    (content/aboutHome/aboutHome.js)       
+    content/kmeleon/aboutHome/aboutHome.xhtml (content/aboutHome/aboutHome.xhtml)       
+
+% content branding %content/branding/ contentaccessible=yes
+    content/branding/about.png (branding/about.png)
+    content/branding/icon16.png (branding/icon16.png)    
+    content/branding/icon32.png (branding/icon32.png)
+    content/branding/icon48.png (branding/icon48.png)
+    content/branding/icon64.png (branding/icon64.png)
+    content/branding/logo.png (branding/logo.png)
+    

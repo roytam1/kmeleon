@@ -1,0 +1,2862 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en"><head><title>K-Meleon Quick Reference</title>
+
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="COPYRIGHT" content="COPYLEFT desga2 (c) 2008">
+<script language="JavaScript">
+function mostrar(capa){
+document.getElementById(capa).style.visibility="visible";
+}
+function ocultar(capa){
+document.getElementById(capa).style.visibility="hidden";
+}
+</script></head><body style="margin: 0pt; font-family: Verdana,Helvetica;" onscroll="ocultar('fixindex')" onclick="ocultar('fixindex')" bgcolor="#cccccc" marginheight="0" marginwidth="0">
+<a id="arriba" name="arriba"></a>
+<br>
+<h2 align="center"><u>K-Meleon Quick Reference</u></h2>
+<br>
+<div id="indexAccel" style="position: fixed; top: 40%; left: 98%;" onmouseover="mostrar('fixindex')" align="right">
+<table summary="IndexAccel" style="font-size: 11px;" align="center" bgcolor="#8f8f8f" border="1" bordercolor="#000000" cellpadding="2" width="100%">
+<tbody><tr valign="top">
+<th align="center" bgcolor="#8f8f8f" width="100%"><font color="#ffffff">I<br>N<br>D<br>E<br>X<br></font></th>
+</tr>
+</tbody></table>
+</div>
+<div id="fixindex" style="position: fixed; top: 40%; left: 80%; visibility: hidden; opacity: 0.9;" align="right">
+<table summary="FixIndex" style="font-size: 11px;" align="center" bgcolor="#cfcfcf" border="1" bordercolor="#000000" cellpadding="2" width="100%">
+<tbody><tr valign="top">
+<td align="center" bgcolor="#8f8f8f" width="30%"><font color="#ffffff"><a title="ÍNDICE" href="#arriba"><b>Index</b></a></font></td>
+</tr>
+<tr valign="top">
+<td><a title="Command line" href="#l_cmdlineopt"><b>Command Line Options</b></a></td>
+</tr>
+<tr valign="top">
+<td><a title="Mouse Configuration" href="#l_mousecfg"><b>Mouse Accelerators</b></a></td>
+</tr>
+<tr valign="top">
+<td><a title="Keys table" href="#l_teclas"><b>Special Keys to Accel</b></a></td>
+</tr>
+<tr valign="top">
+<td><a title="Default Accelerators" href="#l_defaccel"><b>Accelerators Keys</b></a></td>
+</tr>
+<tr valign="top">
+<td><a title="Command IDs" href="#t_id"><b>Command IDs</b></a></td>
+</tr>
+<tr valign="top">
+<td><a title="Plugin Commands" href="#plugins"><b>Plugin Commands</b></a></td>
+</tr>
+<tr valign="top">
+<td><a title="Check for updates" href="#abajo"><b>Documentation Online</b></a></td>
+</tr>
+</tbody></table>
+</div>
+<a id="indice" name="indice"></a>
+<div id="main-nav" style="margin-left: 4%;">
+<h3 style="margin-left: 4%;">INDEX:</h3>
+<ul>
+	<li><a title="Command line" href="#l_cmdlineopt">Command Line Options</a></li>
+	<li><a title="Mouse Configuration" href="#l_mousecfg">Mouse Accelerators</a></li>
+	<li><a title="Keys table" href="#l_teclas">Special Keys to Accelerators</a></li>
+	<li><a title="Default Accelerators" href="#l_defaccel">Default Accelerators Keys</a></li>
+	<li><a title="ID Commands" href="#t_id">Command IDs</a></li>
+	<li class="highlight"><a title="Plugin Commands" href="#plugins">Plugin Commands</a>
+		<ul><li class="highlight"><a href="#p_bookmarks">Bmpmenu Plugin</a></li>
+			<li class="highlight"><a href="#p_Bmpmenu">Bookmarks Plugin</a></li>
+			<li class="highlight"><a href="#p_favoritos">Favorites Plugin</a></li>
+			<li class="highlight"><a href="#p_fullscreen">Fullscreen Plugin</a></li>
+			<li class="highlight"><a href="#p_gestures">Gestures Plugin</a></li>
+			<li class="highlight"><a href="#p_hotlist">Hotlist Plugin</a></li>
+			<li class="highlight"><a href="#p_jsbridge">JSBridge Plugin</a></li>
+			<li class="highlight"><a href="#p_privacy">Privacy Plugin</a></li>
+			<li class="highlight"><a href="#p_rebar">Rebarmenu Plugin</a></li>
+			<li class="highlight"><a href="#p_sessions">Sessions Plugin</a></li>
+			<li class="highlight"><a href="#p_toolbars">Toolbars Plugin</a></li>
+			<li class="highlight"><a href="#p_update">Update Plugin</a></li>
+			<li class="highlight"><a href="#p_macros">Macros Plugin</a></li>
+		</ul>
+		</li>
+		<li><a title="Profile location" href="#profile">Profile location</a></li>
+		<li><a title="Advanced Preferences" href="#abajo">Advanced Preferences</a> (under construction)</li>
+		<li><a title="Accelerators definitions" href="#abajo">Accelerators definitions</a> (under construction)</li>
+		<li><a title="Menus structures" href="#abajo">Menus structures</a> (under construction)</li>
+		<li><a title="Menus definitions" href="#abajo">Menus definitions</a> (under construction)</li>
+		<li><a title="Skins structures" href="#abajo">Skins structures</a> (under construction)</li>
+		<li><a title="How to create a toolbar" href="#abajo">How to create a toolbar</a> (under construction)</li>
+		<li><a title="How to create a skin" href="#abajo">How to create a skin</a> (under construction)</li>
+		<li><a title="Macro structures" href="#abajo">Macro structures</a> (under construction)</li>
+		<li><a title="Macro Documentation" href="#abajo">Macro Documentation</a> (under construction)</li>
+		<li><a title="Check for updates" href="#abajo">Documentation &amp; Online version</a></li>
+</ul>
+</div>
+<br>
+<a id="l_cmdlineopt" name="l_cmdlineopt"></a>
+<h2 align="center">Command Line Options</h2>
+<table summary="Command line options table" style="font-size: 11px;" align="center" bgcolor="#eeeeee" border="1" bordercolor="#000000" cellpadding="2" width="80%">
+<tbody><tr valign="top">
+<td bgcolor="#015192" width="30%"><font color="#ffffff"><b>Parameter</b></font></td>
+<td bgcolor="#015192"><font color="#ffffff"><center><b>Effect</b></center></font></td>
+</tr>
+<tr valign="top">
+<td><b>-chrome</b></td>
+<td>If the browser window hosting chrome or content. (old option, useless?)</td>
+</tr>
+<tr valign="top">
+<td><b>-new</b></td>
+<td>Starts a new browser instance. Available since K-Meleon 1.1.</td>
+</tr>
+<tr valign="top">
+<td><b>-norestrict</b></td>
+<td>K-Meleon 1.5.1 try to run itself with lower privilege by default.
+This option remove the security restriction added in 1.5.1. Available
+since K-Meleon 1.5.2.</td>
+</tr>
+<tr valign="top">
+<td><b>-P mostrecent</b></td>
+<td>Starts K-Meleon with the most recently used profile.</td>
+</tr>
+<tr valign="top">
+<td><b>-P "profile name"</b></td>
+<td>Starts K-Meleon with the specified profile.</td>
+</tr>
+<tr valign="top">
+<td><b>-profilesDir $appdata</b></td>
+<td>Starts K-Meleon with the <a href="#profile">profile location</a> set to the %AppData% directory (overriding profile.ini).</td>
+</tr>
+<tr valign="top">
+<td><b>-profilesDir "path"</b></td>
+<td>Starts K-Meleon with the <a href="#profile">profile location</a> set to the specified directory (overriding profile.ini).</td>
+</tr>
+<tr valign="top">
+<td><b>"URL"</b></td>
+<td>Starts K-Meleon with the specified URL (overriding homepage settings).</td>
+</tr>
+<tr valign="top">
+<td><b>-webapp</b></td>
+<td>Starts K-Meleon in kiosk mode. Available since K-Meleon 1.5.</td>
+</tr>
+</tbody></table>
+<h6><p align="center"><a href="http://kmeleon.sourceforge.net/wiki/CommandLineOptions">More info about this in K-Meleon Documentation online.</a></p></h6>
+<p align="center"><a href="#indice">INDEX</a></p>
+<br>
+<br>
+<a id="l_mousecfg" name="l_mousecfg"></a>
+<h2 align="center">Mouse Accelerators</h2>
+<p align="center">You can found this accels definitions in <b>accel.kmm</b> file in folder \K-Meleon\macros.<br>
+You can change this configuration in menu Tools -&gt; Mouse Accelerators.</p>
+<table summary="Mouse configuration table" style="font-size: 11px;" align="center" bgcolor="#eeeeee" border="1" bordercolor="#000000" cellpadding="2" width="80%">
+<tbody><tr valign="top">
+<td bgcolor="#015192" width="20%"><font color="#ffffff"><b>Action</b></font></td>
+<td bgcolor="#015192" width="20%"><font color="#ffffff"><b>Default</b></font></td>
+<td bgcolor="#015192" width="20%"><font color="#ffffff"><b>Firefox 2.0</b></font></td>
+<td bgcolor="#015192" width="20%"><font color="#ffffff"><b>SeaMonkey 1.1</b></font></td>
+<td bgcolor="#015192" width="20%"><font color="#ffffff"><b>Opera 9.2</b></font></td>
+</tr>
+<tr valign="top">
+<td><b>Ctrl+LeftClick</b></td>
+<td>Open in foreground.</td>
+<td>Open in background.</td>
+<td>Open in background.</td>
+<td>(nothing).</td>
+</tr>
+<tr valign="top">
+<td><b>Shift+LeftClick</b></td>
+<td>Open in foreground.</td>
+<td>Open in new window.</td>
+<td>Save link target.</td>
+<td>Open in foreground.</td>
+</tr>
+<tr valign="top">
+<td><b>Ctrl+Shift+LeftClick</b></td>
+<td>(nothing).</td>
+<td>Open in foreground.</td>
+<td>Open in foreground.</td>
+<td>Open in background.</td>
+</tr>
+<tr valign="top">
+<td><b>Alt+Shift+LeftClick</b></td>
+<td>(nothing).</td>
+<td>(nothing).</td>
+<td>(nothing).</td>
+<td>Open in foreground.</td>
+</tr>
+<tr valign="top">
+<td><b>Ctrl+Alt+Shift+LeftClick</b></td>
+<td>(nothing).</td>
+<td>(nothing).</td>
+<td>(nothing).</td>
+<td>Open in background.</td>
+</tr>
+<tr valign="top">
+<td><b>MiddleClick</b></td>
+<td>Open in foreground.</td>
+<td>Open in background.</td>
+<td>Open in background.</td>
+<td>Open in background.</td>
+</tr>
+<tr valign="top">
+<td><b>Shift+MiddleClick</b></td>
+<td>(nothing).</td>
+<td>Open in foreground.</td>
+<td>Open in foreground.</td>
+<td>(nothing).</td>
+</tr>
+<tr valign="top">
+<td><b>Ctrl+RightClick</b></td>
+<td>Open in background.</td>
+<td>Open in foreground.</td>
+<td>Open in foreground.</td>
+<td>(nothing).</td>
+</tr>
+</tbody></table>
+<h6><p align="center"><a href="http://kmeleon.sourceforge.net/wiki/FAQ#mouseaccels">More info about this in K-Meleon Documentation online.</a></p></h6>
+<p align="center"><a href="#indice">INDEX</a></p>
+<br>
+<br>
+<a id="l_teclas" name="l_teclas"></a>
+<h2 align="center">Special Keys to Accelerators</h2>
+<table summary="Table" style="font-size: 11px;" align="center" border="0" cellpadding="2" width="92%">
+<tbody><tr><th>
+<table summary="Keys table" style="font-size: 11px;" align="center" bgcolor="#eeeeee" border="1" bordercolor="#000000" cellpadding="2" width="92%">
+<tbody><tr valign="top">
+<td bgcolor="#015192" width="50%"><font color="#ffffff"><b>KM Key</b></font></td>
+<td bgcolor="#015192"><font color="#ffffff"><b>Control Key</b></font></td>
+</tr>
+<tr valign="top">
+<td><b>CTRL</b></td>
+<td>Control key</td>
+</tr>
+<tr valign="top">
+<td><b>SHIFT</b></td>
+<td>Shift key</td>
+</tr>
+<tr valign="top">
+<td><b>ALT</b></td>
+<td>Alternative key</td>
+</tr>
+<tr valign="top">
+<td colspan="2"> </td>
+</tr>
+<tr valign="top">
+<td bgcolor="#015192" width="50%"><font color="#ffffff"><b>KM Key</b></font></td>
+<td bgcolor="#015192"><font color="#ffffff"><b>Normal Keys</b></font></td>
+</tr>
+<tr valign="top">
+<td><b>A-Z, a-z, 0-9, rest of symbols</b></td>
+<td>A-Z, a-z, 0-9, rest of symbols</td>
+</tr>
+<tr valign="top">
+<td colspan="2"> </td>
+</tr>
+<tr valign="top">
+<td bgcolor="#015192" width="50%"><font color="#ffffff"><b>KM Key</b></font></td>
+<td bgcolor="#015192"><font color="#ffffff"><b>Function key</b></font></td>
+</tr>
+<tr valign="top">
+<td><b>VK_F1</b></td>
+<td>F1</td>
+</tr>
+<tr valign="top">
+<td><b>VK_F2</b></td>
+<td>F2</td>
+</tr>
+<tr valign="top">
+<td><b>VK_F3</b></td>
+<td>F3</td>
+</tr>
+<tr valign="top">
+<td><b>VK_F4</b></td>
+<td>F4</td>
+</tr>
+<tr valign="top">
+<td><b>VK_F5</b></td>
+<td>F5</td>
+</tr>
+<tr valign="top">
+<td><b>VK_F6</b></td>
+<td>F6</td>
+</tr>
+<tr valign="top">
+<td><b>VK_F7</b></td>
+<td>F7</td>
+</tr>
+<tr valign="top">
+<td><b>VK_F8</b></td>
+<td>F8</td>
+</tr>
+<tr valign="top">
+<td><b>VK_F9</b></td>
+<td>F9</td>
+</tr>
+<tr valign="top">
+<td><b>VK_F10</b></td>
+<td>F10</td>
+</tr>
+<tr valign="top">
+<td><b>VK_F11</b></td>
+<td>F11</td>
+</tr>
+<tr valign="top">
+<td><b>VK_F12</b></td>
+<td>F12</td>
+</tr>
+<tr valign="top">
+<td colspan="2"> </td>
+</tr>
+<tr valign="top">
+<td bgcolor="#015192" width="50%"><font color="#ffffff"><b>KM Key</b></font></td>
+<td bgcolor="#015192"><font color="#ffffff"><b>System key</b></font></td>
+</tr>
+<tr valign="top">
+<td><b>VK_LWIN</b></td>
+<td>Left Windows key</td>
+</tr>
+<tr valign="top">
+<td><b>VK_RWIN</b></td>
+<td>Right Windows key</td>
+</tr>
+<tr valign="top">
+<td><b>VK_APPS</b></td>
+<td>Menu key</td>
+</tr>
+</tbody></table>
+</th>
+<th>
+<table summary="Keys table" style="font-size: 11px;" align="center" bgcolor="#eeeeee" border="1" bordercolor="#000000" cellpadding="2" width="92%">
+<tbody><tr valign="top">
+<td bgcolor="#015192" width="50%"><font color="#ffffff"><b>KM Key</b></font></td>
+<td bgcolor="#015192"><font color="#ffffff"><b>Special Key</b></font></td>
+</tr>
+<tr valign="top">
+<td><b>VK_ESCAPE</b></td>
+<td>Escape key</td>
+</tr>
+<tr valign="top">
+<td><b>VK_TAB</b></td>
+<td>Tabulator key</td>
+</tr>
+<tr valign="top">
+<td><b>VK_CAPITAL</b></td>
+<td>Caps lock key</td>
+</tr>
+<tr valign="top">
+<td><b>VK_BACK</b></td>
+<td>Backspace</td>
+</tr>
+<tr valign="top">
+<td><b>VK_RETURN</b></td>
+<td>Return key</td>
+</tr>
+<tr valign="top">
+<td><b>VK_SPACE</b></td>
+<td>Spacebar key</td>
+</tr>
+<tr valign="top">
+<td><b>VK_MENU</b></td>
+<td>Alt Gr key</td>
+</tr>
+<tr valign="top">
+<td><b>VK_PLUS</b></td>
+<td>+</td>
+</tr>
+<tr valign="top">
+<td><b>VK_MINUS</b></td>
+<td>-</td>
+</tr>
+<tr valign="top">
+<td><b>VK_PRINT VK_SNAPSHOT</b></td>
+<td>Print Screen key<br>(not work for accels)</td>
+</tr>
+<tr valign="top">
+<td><b>VK_SCROLL</b></td>
+<td>Scroll Lock key</td>
+</tr>
+<tr valign="top">
+<td><b>VK_PAUSE</b></td>
+<td>Pause key</td>
+</tr>
+<tr valign="top">
+<td><b>VK_INSERT</b></td>
+<td>Insert key</td>
+</tr>
+<tr valign="top">
+<td><b>VK_DELETE</b></td>
+<td>Delete key</td>
+</tr>
+<tr valign="top">
+<td><b>VK_HOME</b></td>
+<td>Home key</td>
+</tr>
+<tr valign="top">
+<td><b>VK_END</b></td>
+<td>End key</td>
+</tr>
+<tr valign="top">
+<td><b>VK_PRIOR VK_PAGE_UP</b></td>
+<td>Page Up key</td>
+</tr>
+<tr valign="top">
+<td><b>VK_NEXT VK_PAGE_DOWN</b></td>
+<td>Page Down key</td>
+</tr>
+<tr valign="top">
+<td colspan="2"> </td>
+</tr>
+<tr valign="top">
+<td bgcolor="#015192" width="50%"><font color="#ffffff"><b>KM Key</b></font></td>
+<td bgcolor="#015192"><font color="#ffffff"><b>Cursor Key</b></font></td>
+</tr>
+<tr valign="top">
+<td><b>VK_LEFT</b></td>
+<td>Left cursor key</td>
+</tr>
+<tr valign="top">
+<td><b>VK_UP</b></td>
+<td>Up cursor key</td>
+</tr>
+<tr valign="top">
+<td><b>VK_DOWN</b></td>
+<td>Down cursor key</td>
+</tr>
+<tr valign="top">
+<td><b>VK_RIGHT</b></td>
+<td>Right cursor key</td>
+</tr>
+</tbody></table>
+</th>
+<th>
+<table summary="Keys table" style="font-size: 11px;" align="center" bgcolor="#eeeeee" border="1" bordercolor="#000000" cellpadding="2" width="92%">
+<tbody><tr valign="top">
+<td bgcolor="#015192" width="50%"><font color="#ffffff"><b>KM Key</b></font></td>
+<td bgcolor="#015192"><font color="#ffffff"><b>Keypad</b></font></td>
+</tr>
+<tr valign="top">
+<td><b>VK_NUMLOCK</b></td>
+<td>Num Lock key</td>
+</tr>
+<tr valign="top">
+<td><b>VK_DIVIDE</b></td>
+<td>/</td>
+</tr>
+<tr valign="top">
+<td><b>VK_MULTIPLY</b></td>
+<td>*</td>
+</tr>
+<tr valign="top">
+<td><b>VK_SUBTRACT</b></td>
+<td>-</td>
+</tr>
+<tr valign="top">
+<td><b>VK_ADD</b></td>
+<td>+</td>
+</tr>
+<tr valign="top">
+<td><b>VK_DECIMAL</b></td>
+<td>.</td>
+</tr>
+<tr valign="top">
+<td><b>VK_NUMPAD0</b></td>
+<td>0</td>
+</tr>
+<tr valign="top">
+<td><b>VK_NUMPAD1</b></td>
+<td>1</td>
+</tr>
+<tr valign="top">
+<td><b>VK_NUMPAD2</b></td>
+<td>2</td>
+</tr>
+<tr valign="top">
+<td><b>VK_NUMPAD3</b></td>
+<td>3</td>
+</tr>
+<tr valign="top">
+<td><b>VK_NUMPAD4</b></td>
+<td>4</td>
+</tr>
+<tr valign="top">
+<td><b>VK_NUMPAD5</b></td>
+<td>5</td>
+</tr>
+<tr valign="top">
+<td><b>VK_NUMPAD6</b></td>
+<td>6</td>
+</tr>
+<tr valign="top">
+<td><b>VK_NUMPAD7</b></td>
+<td>7</td>
+</tr>
+<tr valign="top">
+<td><b>VK_NUMPAD8</b></td>
+<td>8</td>
+</tr>
+<tr valign="top">
+<td><b>VK_NUMPAD9</b></td>
+<td>9</td>
+</tr>
+<tr valign="top">
+<td colspan="2"> </td>
+</tr>
+<tr valign="top">
+<td bgcolor="#015192" width="50%"><font color="#ffffff"><b>KM Key</b></font></td>
+<td bgcolor="#015192"><font color="#ffffff"><b>Mouse button</b></font></td>
+</tr>
+<tr valign="top">
+<td><b>LButton</b></td>
+<td>Left button</td>
+</tr>
+<tr valign="top">
+<td><b>MButton</b></td>
+<td>Middle button</td>
+</tr>
+<tr valign="top">
+<td><b>RButton</b></td>
+<td>Right button</td>
+</tr>
+</tbody></table>
+</th>
+</tr></tbody></table>
+<h6><p align="center"><a href="http://kmeleon.sourceforge.net/wiki/ConfigFiles#accel">More info about this in K-Meleon Documentation online.</a></p></h6>
+<p align="center"><a href="#indice">INDEX</a></p>
+<br>
+<br>
+<a id="l_defaccel" name="l_defaccel"></a>
+<h2 align="center">Default Accelerators Keys</h2>
+<p align="center">You can found this default accelerators in <b>accel.cfg</b> file in folder \K-Meleon\defaults\settings.<br>
+Or defined in the corresponding macro file with setaccel() macro function.</p>
+<table summary="Default Accelerators table" style="font-size: 11px;" align="center" bgcolor="#eeeeee" border="1" bordercolor="#000000" cellpadding="2" width="92%">
+<tbody><tr valign="top">
+<td bgcolor="#015192" width="20%"><font color="#ffffff"><b>KM Accelerator</b></font></td>
+<td bgcolor="#015192"><font color="#ffffff"><b><center>Function</center></b></font></td>
+<td bgcolor="#015192"><font color="#ffffff"><b><center>Action</center></b></font></td>
+</tr>
+<tr valign="top">
+<td colspan="3" align="center" bgcolor="#015192"><font color="#ffffff"><b>Link Handling</b></font></td>
+</tr>
+<tr valign="top">
+<td><b>MButton</b></td>
+<td>ID_OPEN_LINK_IN_NEW_TAB <b>|</b> ID_OPEN_LINK_IN_NEW_WINDOW</td>
+<td>Middle-click open links to new tab/window.</td>
+</tr>
+<tr valign="top">
+<td>#<b>MButton</b></td>
+<td>ID_OPEN_LINK_IN_BACKGROUNDTAB <b>|</b> ID_OPEN_LINK_IN_BACKGROUND</td>
+<td>Middle-click open links to new background tab/window. This is commented, is optional.</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL LButton</b></td>
+<td>ID_OPEN_LINK_IN_NEW_TAB <b>|</b> ID_OPEN_LINK_IN_NEW_WINDOW</td>
+<td>Ctrl+Left-click links to new tabs/windows.</td>
+</tr>
+<tr valign="top">
+<td><b>SHIFT LButton</b></td>
+<td>ID_OPEN_LINK_IN_NEW_WINDOW <b>|</b> ID_OPEN_LINK_IN_NEW_WINDOW</td>
+<td>Shift+Left-click links to new tabs/windows.</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL RButton</b></td>
+<td>ID_OPEN_LINK_IN_BACKGROUNDTAB <b>|</b> ID_OPEN_LINK_IN_BACKGROUND</td>
+<td>Ctrl+Right-click links to background tab/window.</td>
+</tr>
+<tr valign="top">
+<td><b>ALT LButton</b></td>
+<td>ID_COPY_LINK_LOCATION</td>
+<td>Alt+Left-click link urls to the clipboard for download managers to catch them.</td>
+</tr>
+<tr valign="top">
+<td colspan="3" align="center" bgcolor="#015192"><font color="#ffffff"><b>Window/Tab Handling</b></font></td>
+</tr>
+<tr valign="top">
+<td>#<b>ALT VK_F4</b></td>
+<td>ID_FILE_CLOSE</td>
+<td> Close current active window. This is commented, because Alt+F4 is a system keys shortcut.</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL VK_F4</b></td>
+<td>ID_CLOSE_TAB</td>
+<td>Close current active tab.</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL SHIFT VK_F4</b></td>
+<td>ID_CLOSE_ALLTAB</td>
+<td>Close all tabs.</td>
+</tr>
+<tr valign="top">
+<td><b>SHIFT VK_F4</b></td>
+<td>ID_CLOSE_ALLOTHERTAB</td>
+<td>Close all others tabs except the current active tab.</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL ALT VK_F4</b></td>
+<td>ID_APP_EXIT</td>
+<td>Exit K-Meleon, close all K-Meleon windows.</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL VK_TAB</b></td>
+<td>ID_TAB_NEXT <b>|</b> ID_WINDOW_NEXT</td>
+<td>Go to next tab/window.</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL SHIFT VK_TAB</b></td>
+<td>ID_TAB_PREV <b>|</b> ID_WINDOW_PREV</td>
+<td>Go to previous tab/window.</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL VK_PRIOR</b></td>
+<td>ID_TAB_PREV</td>
+<td>Go to previous tab.</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL VK_NEXT</b></td>
+<td>ID_TAB_NEXT</td>
+<td>Go to next tab.</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL ALT VK_TAB</b></td>
+<td>ID_TAB_LAST</td>
+<td>Go to last previous selected tab.</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL VK_F7</b></td>
+<td>ID_WINDOW_NEXT</td>
+<td>Go to next K-Meleon window.</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL SHIFT VK_F7</b></td>
+<td>ID_WINDOW_PREV</td>
+<td>Go to previous K-Meleon window.</td>
+</tr>
+<tr valign="top">
+<td><b>ALT VK_LEFT</b></td>
+<td>ID_NAV_BACK</td>
+<td>Go back one page.</td>
+</tr>
+<tr valign="top">
+<td><b>ALT VK_RIGHT</b></td>
+<td>ID_NAV_FORWARD</td>
+<td>Go forward one page.</td>
+</tr>
+<tr valign="top">
+<td><b>ALT VK_HOME</b></td>
+<td>ID_NAV_HOME</td>
+<td>Load Home page.</td>
+</tr>
+<tr valign="top">
+<td><b>SHIFT VK_BACK</b></td>
+<td>ID_NAV_BACK</td>
+<td>Go back one page.</td>
+</tr>
+<tr valign="top">
+<td><b>VK_ESCAPE</b></td>
+<td>ID_NAV_STOP</td>
+<td>Stop loading current page.</td>
+</tr>
+<tr valign="top">
+<td colspan="3" align="center" bgcolor="#015192"><font color="#ffffff"><b>Function Keys</b></font></td>
+</tr>
+<tr valign="top">
+<td><b>VK_F1</b></td>
+<td>ID_LINK_KMELEON_MANUAL</td>
+<td>Load K-Meleon User's Guide and Reference Manual web page.</td>
+</tr>
+<tr valign="top">
+<td><b>VK_F2</b></td>
+<td>ID_PREFERENCES</td>
+<td>Open Preferences panel.</td>
+</tr>
+<tr valign="top">
+<td><b>VK_F3</b></td>
+<td>ID_EDIT_FINDNEXT</td>
+<td>Find next occurrence searched.</td>
+</tr>
+<tr valign="top">
+<td><b>SHIFT VK_F3</b></td>
+<td>ID_EDIT_FINDPREV</td>
+<td>Find previous occurrence searched.</td>
+</tr>
+<tr valign="top">
+<td><b>VK_F5</b></td>
+<td>ID_NAV_RELOAD</td>
+<td>Reload current page.</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL VK_F5</b></td>
+<td>ID_NAV_FORCE_RELOAD</td>
+<td>Force reload current page.</td>
+</tr>
+<tr valign="top">
+<td><b>SHIFT VK_F5</b></td>
+<td>ID_NAV_FORCE_RELOAD</td>
+<td>Force reload current page.</td>
+</tr>
+<tr valign="top">
+<td><b>VK_F6</b></td>
+<td>ID_SELECT_URL</td>
+<td>Select text in URL bar adress.</td>
+</tr>
+<tr valign="top">
+<td><b>VK_F11</b></td>
+<td>fullscreen()</td>
+<td>Toggle to fullscreen mode.</td>
+</tr>
+<tr valign="top">
+<td colspan="3" align="center" bgcolor="#015192"><font color="#ffffff"><b>General</b></font></td>
+</tr>
+<tr valign="top">
+<td><b>CTRL SHIFT S</b></td>
+<td>ID_VIEW_STATUS_BAR</td>
+<td>Hide or show the status bar.</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL A</b></td>
+<td>ID_EDIT_SELECT_ALL</td>
+<td>Select all text. This is commented, because Ctrl+A is a system keys shortcut.</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL B</b></td>
+<td>bookmarks(edit)</td>
+<td>Open Bookmarks editor.</td>
+</tr>
+<tr valign="top">
+<td>#<b>CTRL C</b></td>
+<td>ID_EDIT_COPY</td>
+<td>Copy selected to clipboard. This is commented, because Ctrl+C is a system keys shortcut.</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL D</b></td>
+<td>bookmarks(add)</td>
+<td>Adds the page to bookmarks.</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL F</b></td>
+<td>ID_EDIT_FIND</td>
+<td>Show Find bar at bottom.</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL G</b></td>
+<td>ID_NAV_SEARCH</td>
+<td>Open Web Search prompt. If text is selected, searchs the selected text in web search engine.</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL H</b></td>
+<td>macros(Places_History)</td>
+<td>Opens the history window.</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL I</b></td>
+<td>ID_VIEW_PAGE_INFO</td>
+<td>Show a new window with the current page info.</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL L</b></td>
+<td>ID_SELECT_URL</td>
+<td>Select text in URL bar adress.</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL N</b></td>
+<td>ID_NEW_BROWSER</td>
+<td>Opens a new K-Meleon window.</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL O</b></td>
+<td>ID_FILE_OPEN</td>
+<td>Show Open file dialog.</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL P</b></td>
+<td>ID_FILE_PRINT</td>
+<td>Open Print dialog.</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL R</b></td>
+<td>ID_NAV_RELOAD</td>
+<td>Reload current page.</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL S</b></td>
+<td>ID_FILE_SAVE_AS</td>
+<td>Open Save As file dialog.</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL T</b></td>
+<td>ID_NEW_TAB</td>
+<td>Open new tab.</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL U</b></td>
+<td>ID_VIEW_SOURCE</td>
+<td>Open a new window with the source code of current page.</td>
+</tr>
+<tr valign="top">
+<td>#<b>CTRL V</b></td>
+<td>ID_EDIT_PASTE</td>
+<td>Paste the contents of the clipboard. This is commented, because Ctrl+V is a system keys shortcut.</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL W</b></td>
+<td>ID_CLOSE_TAB <b>|</b> ID_FILE_CLOSE</td>
+<td>Close current tab/window.</td>
+</tr>
+<tr valign="top">
+<td>#<b>CTRL X</b></td>
+<td>ID_EDIT_CUT</td>
+<td>Cut out the selected text (Copy selected text to the clipboard
+before deleting it). This is commented, because Ctrl+X is a system keys
+shortcut.</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL Y</b></td>
+<td>ID_EDIT_REDO</td>
+<td>Redo the latest undo changes. This is commented, because Ctrl+Y is a system keys shortcut.</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL Z</b></td>
+<td>ID_EDIT_UNDO</td>
+<td>Undo the latest changes. This is commented, because Ctrl+Z is a system keys shortcut.</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL ALT S</b></td>
+<td>sessions(Save)</td>
+<td>Save the current session.</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL ALT P</b></td>
+<td>ID_FILE_PRINTPREVIEW</td>
+<td>Toggle to print preview.</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL ALT W</b></td>
+<td>ID_CLOSE_ALLOTHERTAB</td>
+<td>Close all other tabs but not current active tab.</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL ALT Z</b></td>
+<td>sessions(Undo)</td>
+<td>Undo last closed tab/window.</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL SHIFT R</b></td>
+<td>ID_NAV_FORCE_RELOAD</td>
+<td>Force reload of current page.</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL SHIFT W</b></td>
+<td>ID_CLOSE_ALLTAB</td>
+<td>Close all tabs.</td>
+</tr>
+<tr valign="top">
+<td colspan="3" align="center" bgcolor="#015192"><font color="#ffffff"><b>Zoom</b></font></td>
+</tr>
+<tr valign="top">
+<td><b>CTRL VK_PLUS</b></td>
+<td>ID_FULLZOOM_INCREASE</td>
+<td>Full zoom into the current page.</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL VK_ADD</b></td>
+<td>ID_FULLZOOM_INCREASE</td>
+<td>Full zoom into the current page.</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL VK_MINUS</b></td>
+<td>ID_FULLZOOM_DECREASE</td>
+<td>Full zoom out of the current page.</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL VK_SUBTRACT</b></td>
+<td>ID_FULLZOOM_DECREASE</td>
+<td>Full zoom out of the current page.</td>
+</tr>
+<tr valign="top">
+<td colspan="3" align="center" bgcolor="#015192"><font color="#ffffff"><b>Defined by Macros: accel.kmm</b></font></td>
+</tr>
+<tr valign="top">
+<td><b>CTRL LButton</b></td>
+<td>ID_OPEN_LINK_IN_NEW_TAB <b>|</b> ID_OPEN_LINK_IN_NEW_WINDOW</td>
+<td>Default K-Meleon.</td>
+</tr>
+<tr valign="top">
+<td><b>SHIFT LButton</b></td>
+<td>ID_OPEN_LINK_IN_NEW_TAB <b>|</b> ID_OPEN_LINK_IN_NEW_WINDOW</td>
+<td>Default K-Meleon.</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL SHIFT LButton</b></td>
+<td>(not defined)</td>
+<td>Default K-Meleon.</td>
+</tr>
+<tr valign="top">
+<td><b>ALT SHIFT LButton</b></td>
+<td>(not defined)</td>
+<td>Default K-Meleon.</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL ALT SHIFT LButton</b></td>
+<td>(not defined)</td>
+<td>Default K-Meleon.</td>
+</tr>
+<tr valign="top">
+<td><b>MButton</b></td>
+<td>ID_OPEN_LINK_IN_NEW_TAB <b>|</b> ID_OPEN_LINK_IN_NEW_WINDOW</td>
+<td>Default K-Meleon.</td>
+</tr>
+<tr valign="top">
+<td><b>SHIFT MButton</b></td>
+<td>(not defined)</td>
+<td>Default K-Meleon.</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL RButton</b></td>
+<td>ID_OPEN_LINK_IN_BACKGROUNDTAB <b>|</b> ID_OPEN_LINK_IN_BACKGROUND</td>
+<td>Default K-Meleon.</td>
+</tr>
+
+<tr valign="top">
+<td><b>CTRL LButton</b></td>
+<td>(not defined)</td>
+<td>Opera 9.2.</td>
+</tr>
+<tr valign="top">
+<td><b>SHIFT LButton</b></td>
+<td>ID_OPEN_LINK_IN_NEW_TAB <b>|</b> ID_OPEN_LINK_IN_NEW_WINDOW</td>
+<td>Opera 9.2.</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL SHIFT LButton</b></td>
+<td>ID_OPEN_LINK_IN_BACKGROUNDTAB <b>|</b> ID_OPEN_LINK_IN_BACKGROUND</td>
+<td>Opera 9.2.</td>
+</tr>
+<tr valign="top">
+<td><b>ALT SHIFT LButton</b></td>
+<td>ID_OPEN_LINK_IN_NEW_TAB <b>|</b> ID_OPEN_LINK_IN_NEW_WINDOW</td>
+<td>Opera 9.2.</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL ALT SHIFT LButton</b></td>
+<td>ID_OPEN_LINK_IN_BACKGROUNDTAB <b>|</b> ID_OPEN_LINK_IN_BACKGROUND</td>
+<td>Opera 9.2.</td>
+</tr>
+<tr valign="top">
+<td><b>MButton</b></td>
+<td>ID_OPEN_LINK_IN_BACKGROUNDTAB <b>|</b> ID_OPEN_LINK_IN_BACKGROUND</td>
+<td>Opera 9.2.</td>
+</tr>
+<tr valign="top">
+<td><b>SHIFT MButton</b></td>
+<td>(not defined)</td>
+<td>Opera 9.2.</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL RButton</b></td>
+<td>(not defined)</td>
+<td>Opera 9.2.</td>
+</tr>
+
+<tr valign="top">
+<td><b>CTRL LButton</b></td>
+<td>ID_OPEN_LINK_IN_BACKGROUNDTAB <b>|</b> ID_OPEN_LINK_IN_BACKGROUND</td>
+<td>Mozilla browsers (FF &amp; SM).</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL SHIFT LButton</b></td>
+<td>ID_OPEN_LINK_IN_NEW_TAB <b>|</b> ID_OPEN_LINK_IN_NEW_WINDOW</td>
+<td>Mozilla browsers (FF &amp; SM).</td>
+</tr>
+<tr valign="top">
+<td><b>ALT SHIFT LButton</b></td>
+<td>(not defined)</td>
+<td>Mozilla browsers (FF &amp; SM).</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL ALT SHIFT LButton</b></td>
+<td>(not defined)</td>
+<td>Mozilla browsers (FF &amp; SM).</td>
+</tr>
+<tr valign="top">
+<td><b>MButton</b></td>
+<td>ID_OPEN_LINK_IN_BACKGROUNDTAB <b>|</b> ID_OPEN_LINK_IN_BACKGROUND</td>
+<td>Mozilla browsers (FF &amp; SM).</td>
+</tr>
+<tr valign="top">
+<td><b>SHIFT MButton</b></td>
+<td>ID_OPEN_LINK_IN_NEW_TAB <b>|</b> ID_OPEN_LINK_IN_NEW_WINDOW</td>
+<td>Mozilla browsers (FF &amp; SM).</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL RButton</b></td>
+<td>ID_OPEN_LINK_IN_NEW_TAB <b>|</b> ID_OPEN_LINK_IN_NEW_WINDOW</td>
+<td>Mozilla browsers (FF &amp; SM).</td>
+</tr>
+<tr valign="top">
+<td><b>SHIFT LButton</b></td>
+<td>ID_OPEN_LINK_IN_NEW_WINDOW</td>
+<td>Firefox 2.</td>
+</tr>
+<tr valign="top">
+<td><b>SHIFT LButton</b></td>
+<td>ID_SAVE_LINK_AS</td>
+<td>Seamonkey 1.1.</td>
+</tr>
+<tr valign="top">
+<td><b>ALT D</b></td>
+<td>ID_SELECT_URL</td>
+<td>Default K-Meleon.</td>
+</tr>
+<tr valign="top">
+<td colspan="3" align="center" bgcolor="#015192"><font color="#ffffff"><b>Defined by Macros: domcomplete.kmm</b></font></td>
+</tr>
+<tr valign="top">
+<td><b>CTRL VK_RETURN</b></td>
+<td>macros(domComplete(0))</td>
+<td>Manual domain completion: www.&lt;URL&gt;.com</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL ALT VK_RETURN</b></td>
+<td>macros(domComplete(1))</td>
+<td>Manual domain completion: www.&lt;URL&gt;.net</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL SHIFT VK_RETURN</b></td>
+<td>macros(domComplete(2))</td>
+<td>Manual domain completion: www.&lt;URL&gt;.org</td>
+</tr>
+<tr valign="top">
+<td colspan="3" align="center" bgcolor="#015192"><font color="#ffffff"><b>Defined by Macros: hotlink.kmm</b></font></td>
+</tr>
+<tr valign="top">
+<td><b>CTRL [0-9]</b></td>
+<td>macros(hotlink(0-9))</td>
+<td>Hotlinks Ctrl+[0-9] to open defined web pages.</td>
+</tr>
+<tr valign="top">
+<td colspan="3" align="center" bgcolor="#015192"><font color="#ffffff"><b>Defined by Macros: ie.kmm</b></font></td>
+</tr>
+<tr valign="top">
+<td><b>CTRL ALT I</b></td>
+<td>macros(IE_OpenPage)</td>
+<td>Open current page in IE.</td>
+</tr>
+<tr valign="top">
+<td colspan="3" align="center" bgcolor="#015192"><font color="#ffffff"><b>Defined by Macros: main.kmm</b></font></td>
+</tr>
+<tr valign="top">
+<td><b>CTRL ALT O</b></td>
+<td>macros(OpenURL)</td>
+<td>Prompt for an URL to open.</td>
+</tr>
+<tr valign="top">
+<td><b>VK_F7</b></td>
+<td>macros(pref_ToggleJavaScript)</td>
+<td>Toggle JavaScript execution.</td>
+</tr>
+<tr valign="top">
+<td><b>VK_F8</b></td>
+<td>macros(pref_TogglePopups)</td>
+<td>Toggle popup blocking.</td>
+</tr>
+<tr valign="top">
+<td><b>VK_F9</b></td>
+<td>macros(pref_ToggleImages)</td>
+<td>Toggle image loading.</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL ALT N</b></td>
+<td>macros(Go_New)</td>
+<td>Open URL Bar contents in a new page.</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL ALT V</b></td>
+<td>macros(Go_Paste)</td>
+<td>Open Clipboard contents as URL.</td>
+</tr>
+<tr valign="top">
+<td colspan="3" align="center" bgcolor="#015192"><font color="#ffffff"><b>Defined by Macros: search.kmm</b></font></td>
+</tr>
+<tr valign="top">
+<td><b>CTRL G</b></td>
+<td>macros(Search)</td>
+<td>Consult the default search engine.</td>
+</tr>
+<tr valign="top">
+<td><b>SHIFT VK_RETURN</b></td>
+<td>macros(Search)</td>
+<td>Consult the default search engine.</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL SHIFT V</b></td>
+<td>macros(Search_PasteAndSearch)</td>
+<td>Search the Web for Clipboard contents.</td>
+</tr>
+<tr valign="top">
+<td colspan="3" align="center" bgcolor="#015192"><font color="#ffffff"><b>Defined by Macros: zoom.kmm</b></font></td>
+</tr>
+<tr valign="top">
+<td><b>ALT VK_PLUS</b></td>
+<td>macros(Zoom_Images_In)</td>
+<td>Increase image size.</td>
+</tr>
+<tr valign="top">
+<td><b>ALT VK_ADD</b></td>
+<td>macros(Zoom_Images_In)</td>
+<td>Increase image size.</td>
+</tr>
+<tr valign="top">
+<td><b>ALT VK_MINUS</b></td>
+<td>macros(Zoom_Images_Out)</td>
+<td>Decrease image size.</td>
+</tr>
+<tr valign="top">
+<td><b>ALT VK_SUBTRACT</b></td>
+<td>macros(Zoom_Images_Out)</td>
+<td>Decrease image size.</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL ALT VK_PLUS</b></td>
+<td>ID_FONT_INCREASE</td>
+<td>Increase the font size in the current page.</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL ALT VK_ADD</b></td>
+<td>ID_FONT_INCREASE</td>
+<td>Increase the font size in the current page.</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL ALT VK_MINUS</b></td>
+<td>ID_FONT_DECREASE</td>
+<td>Decrease the font size in the current page.</td>
+</tr>
+<tr valign="top">
+<td><b>CTRL ALT VK_SUBTRACT</b></td>
+<td>ID_FONT_DECREASE</td>
+<td>Decrease the font size in the current page.</td>
+</tr>
+</tbody></table>
+<h6><p align="center"><a href="">No more info available about this in K-Meleon Documentation online yet.</a></p></h6>
+<p align="center"><a href="#indice">INDEX</a></p>
+<br>
+<br>
+<a id="t_id" name="t_id"></a>
+<h2 align="center">Command IDs</h2>
+<table summary="Command IDs table" style="font-size: 11px;" align="center" bgcolor="#eeeeee" border="1" bordercolor="#000000" cellpadding="4" width="80%">
+<tbody><tr>
+<td bgcolor="#015192" width="38%"><font color="#ffffff"><b>COMMAND ID</b></font></td>
+<td bgcolor="#015192"><font color="#ffffff"><b>FUNCTION</b></font></td>
+</tr>
+<tr>
+<td><b>ID_APP_ABOUT</b></td>
+<td>Opens the 'About K-Meleon' dialog.</td>
+</tr>
+<tr>
+<td><b>ID_APP_EXIT</b></td>
+<td>Terminates K-Meleon.</td>
+</tr>
+<tr>
+<td><b>ID_CLOSE_ALLOTHERTAB</b></td>
+<td>Close all other tabs but not current active tab.</td>
+</tr>
+<tr>
+<td><b>ID_CLOSE_ALLTAB</b></td>
+<td>Close all tabs.</td>
+</tr>
+<tr>
+<td><b>ID_CLOSE_TAB</b></td>
+<td>Close current active tab.</td>
+</tr>
+<tr>
+<td><b>ID_COOKIE_PERM</b></td>
+<td>Open Cookie Manager dialog.</td>
+</tr>
+<tr>
+<td><b>ID_COOKIES_VIEWER</b></td>
+<td>Open Cookies Viewer dialog.</td>
+</tr>
+<tr>
+<td><b>ID_COPY_IMAGE_CONTENT</b></td>
+<td>Copies the image to clipboard.</td>
+</tr>
+<tr>
+<td><b>ID_COPY_IMAGE_LOCATION</b></td>
+<td>Copy image location to the clipboard.</td>
+</tr>
+<tr>
+<td><b>ID_COPY_LINK_LOCATION</b></td>
+<td>Copy link location to the clipboard.</td>
+</tr>
+<tr>
+<td><b>ID_EDIT_CLEAR</b></td>
+<td>Delete the selected text.</td>
+</tr>
+<tr>
+<td><b>ID_EDIT_COPY</b></td>
+<td>Copy selected text to the clipboard.</td>
+</tr>
+<tr>
+<td><b>ID_EDIT_CUT</b></td>
+<td>Cut out the selected text. (Copy selected text to the clipboard before deleting it)</td>
+</tr>
+<tr>
+<td><b>ID_EDIT_FIND</b></td>
+<td>Open the search dialog.</td>
+</tr>
+<tr>
+<td><b>ID_EDIT_FINDNEXT</b></td>
+<td>Search forward.</td>
+</tr>
+<tr>
+<td><b>ID_EDIT_FINDPREV</b></td>
+<td>Search backward.</td>
+</tr>
+<tr>
+<td><b>ID_EDIT_PASTE</b></td>
+<td>Paste in the text from clipboard.</td>
+</tr>
+<tr>
+<td><b>ID_EDIT_REDO</b></td>
+<td>Redo the latest undo changes.</td>
+</tr>
+<tr>
+<td><b>ID_EDIT_SELECT_ALL</b></td>
+<td>Select all text.</td>
+</tr>
+<tr>
+<td><b>ID_EDIT_SELECT_NONE</b></td>
+<td>Clear the selection.</td>
+</tr>
+<tr>
+<td><b>ID_EDIT_UNDO</b></td>
+<td>Undo the latest changes.</td>
+</tr>
+<tr>
+<td><b>ID_FILE_CLOSE</b></td>
+<td>Close the open file.</td>
+</tr>
+<tr>
+<td><b>ID_FILE_OPEN</b></td>
+<td>Bring up the open file dialog.</td>
+</tr>
+<tr>
+<td><b>ID_FILE_PRINT</b></td>
+<td>Open the print dialog.</td>
+</tr>
+<tr>
+<td><b>ID_FILE_PRINTPREVIEW</b></td>
+<td>Enter print preview mode. Select again to leave.</td>
+</tr>
+<tr>
+<td><b>ID_FILE_PRINTSETUP</b></td>
+<td>Opens the page setup dialog.</td>
+</tr>
+<tr>
+<td><b>ID_FILE_SAVE_AS</b></td>
+<td>Open the 'Save as ...' dialog.</td>
+</tr>
+<tr>
+<td><b>ID_FILE_SAVE_FRAME_AS</b></td>
+<td>Open the 'Save as ...' dialog to save selected frame.</td>
+</tr>
+<tr>
+<td><b>ID_FONT_DECREASE</b></td>
+<td>Decrease the font size.</td>
+</tr>
+<tr>
+<td><b>ID_FONT_INCREASE</b></td>
+<td>Increase the font size.</td>
+</tr>
+<tr>
+<td><b>ID_FULLZOOM_DECREASE</b></td>
+<td>Decrease full page zoom, the font and images size.</td>
+</tr>
+<tr>
+<td><b>ID_FULLZOOM_INCREASE</b></td>
+<td>Increase full page zoom, the font and images size.</td>
+</tr>
+<tr>
+<td><b>ID_IMAGE_PERM</b></td>
+<td>Open Image Manager dialog.</td>
+</tr>
+<tr>
+<td><b>ID_LINK_ABOUT_PLUGINS</b></td>
+<td>Display installed plugins list.</td>
+</tr>
+<tr>
+<td><b>ID_LINK_KMELEON_FORUM</b></td>
+<td>Go to the K-Meleon forums.</td>
+</tr>
+<tr>
+<td><b>ID_LINK_KMELEON_HOME</b></td>
+<td>Go to the K-Meleon home page.</td>
+</tr>
+<tr>
+<td><b>ID_LINK_KMELEON_MANUAL</b></td>
+<td>Go to the K-Meleon online documentation.</td>
+</tr>
+<tr>
+<td><b>ID_LINK_KMELEON_FAQ</b></td>
+<td>Go to the K-Meleon FAQ online.</td>
+</tr>
+<tr>
+<td><b>ID_MANAGE_PROFILES</b></td>
+<td>Open the profiles manager/selector.</td>
+</tr>
+<tr>
+<td><b>ID_MAXIMIZE_WINDOW</b></td>
+<td>Maximize K-Meleon active window.</td>
+</tr>
+<tr>
+<td><b>ID_MINIMIZE_WINDOW</b></td>
+<td>Minimize K-Meleon active window.</td>
+</tr>
+<tr>
+<td><b>ID_NAV_BACK</b></td>
+<td>Go back one page.</td>
+</tr>
+<tr>
+<td><b>ID_NAV_FORWARD</b></td>
+<td>Go forward one page.</td>
+</tr>
+<tr>
+<td><b>ID_NAV_FORCE_RELOAD</b></td>
+<td>Reload current page without cache query.</td>
+</tr>
+<tr>
+<td><b>ID_NAV_GO</b></td>
+<td>Go to URL.</td>
+</tr>
+<tr>
+<td><b>ID_NAV_HOME</b></td>
+<td>Go to home page.</td>
+</tr>
+<tr>
+<td><b>ID_NAV_RELOAD</b></td>
+<td>Reload current page.</td>
+</tr>
+<tr>
+<td><b>ID_NAV_SEARCH</b></td>
+<td>Calls the search dialog. See the preference for kmeleon.general.searchEngine</td>
+</tr>
+<tr>
+<td><b>ID_NAV_STOP</b></td>
+<td>Stop loading.</td>
+</tr>
+<tr>
+<td><b>ID_NEW_BROWSER</b></td>
+<td>Open a new browser window.</td>
+</tr>
+<tr>
+<td><b>ID_NEW_TAB</b></td>
+<td>Open a new tab.</td>
+</tr>
+<tr>
+<td><b>ID_OFFLINE</b></td>
+<td>Toggle browser online/offline.</td>
+</tr>
+<tr>
+<td><b>ID_OPEN_FRAME</b></td>
+<td>Opens the selected frame.</td>
+</tr>
+<tr>
+<td><b>ID_OPEN_FRAME_IN_BACKGROUND</b></td>
+<td>Opens the selected frame in a new background window.</td>
+</tr>
+<tr>
+<td><b>ID_OPEN_FRAME_IN_BACKGROUNDTAB</b></td>
+<td>Opens the selected frame in a new background tab.</td>
+</tr>
+<tr>
+<td><b>ID_OPEN_FRAME_IN_NEW_TAB</b></td>
+<td>Opens the selected frame in a new tab.</td>
+</tr>
+<tr>
+<td><b>ID_OPEN_FRAME_IN_NEW_WINDOW</b></td>
+<td>Opens the selected frame in a new window.</td>
+</tr>
+<tr>
+<td><b>ID_OPEN_LINK</b></td>
+<td>Opens the active link in the current browser window.</td>
+</tr>
+<tr>
+<td><b>ID_OPEN_LINK_IN_BACKGROUND</b></td>
+<td>Opens the active link in a new browser window placed in the background.</td>
+</tr>
+<tr>
+<td><b>ID_OPEN_LINK_IN_BACKGROUNDTAB</b></td>
+<td>Opens the active link in a new tab in the background.</td>
+</tr>
+<tr>
+<td><b>ID_OPEN_LINK_IN_NEW_TAB</b></td>
+<td>Opens the active link in a new tab in the foreground.</td>
+</tr>
+<tr>
+<td><b>ID_OPEN_LINK_IN_NEW_WINDOW</b></td>
+<td>Opens the active link in a new browser window placed in the foreground.</td>
+</tr>
+<tr>
+<td><b>ID_PASSWORDS_VIEWER</b></td>
+<td>Open Passwords Viewer dialog.</td>
+</tr>
+<tr>
+<td><b>ID_POPUP_PERM</b></td>
+<td>Open Popup Manager dialog.</td>
+</tr>
+<tr>
+<td><b>ID_PREFERENCES</b></td>
+<td>Opens the preference/configuration panel.</td>
+</tr>
+<tr>
+<td><b>ID_RESTORE_WINDOW</b></td>
+<td>Restore the previous size of the K-Meleon active window.</td>
+</tr>
+<tr>
+<td><b>ID_SAVE_IMAGE_AS</b></td>
+<td>Save an image.</td>
+</tr>
+<tr>
+<td><b>ID_SAVE_LINK_AS</b></td>
+<td>Save a link.</td>
+</tr>
+<tr>
+<td><b>ID_SELECT_URL</b></td>
+<td>Select the text of the URL.</td>
+</tr>
+<tr>
+<td><b>ID_TAB_LAST</b></td>
+<td>Go to previously selected tab.</td>
+</tr>
+<tr>
+<td><b>ID_TAB_NEXT</b></td>
+<td>Go to next tab.</td>
+</tr>
+<tr>
+<td><b>ID_TAB_PREV</b></td>
+<td>Go to previous tab.</td>
+</tr>
+<tr>
+<td><b>ID_TOGGLE_WINDOW</b></td>
+<td>Toggle window size to maximized of the K-Meleon active window.</td>
+</tr>
+<tr>
+<td><b>ID_TOOLBARS_LOCK</b></td>
+<td>Locks the toolbars from being moved manualy.</td>
+</tr>
+<tr>
+<td><b>ID_VIEW_FRAME_INFO</b></td>
+<td>Display frame info in cache.</td>
+</tr>
+<tr>
+<td><b>ID_VIEW_FRAME_SOURCE</b></td>
+<td>View the frame source.</td>
+</tr>
+<tr>
+<td><b>ID_VIEW_IMAGE</b></td>
+<td>View an image.</td>
+</tr>
+<tr>
+<td><b>ID_VIEW_PAGE_INFO</b></td>
+<td>Display page info in cache.</td>
+</tr>
+<tr>
+<td><b>ID_VIEW_SOURCE</b></td>
+<td>View page source.</td>
+</tr>
+<tr>
+<td><b>ID_VIEW_STATUS_BAR</b></td>
+<td>Toggle statusbar.</td>
+</tr>
+<tr>
+<td><b>ID_VIEW_TOOLBAR</b></td>
+<td>Toggle toolbar.</td>
+</tr>
+<tr>
+<td><b>ID_WINDOW_NEXT</b></td>
+<td>Switch to next browser window.</td>
+</tr>
+<tr>
+<td><b>ID_WINDOW_PREV</b></td>
+<td>Switch to previous browser window.</td>
+</tr>
+</tbody></table>
+<br>
+<h6><p align="center"><a href="http://kmeleon.sourceforge.net/wiki/CommandIds">More info about this in K-Meleon Documentation online.</a></p></h6>
+<p align="center"><a href="#indice">INDEX</a></p>
+<br>
+<br>
+<a id="plugins" name="plugins"></a>
+<h2 align="center">Plugin Commands</h2>
+<p align="center">These commands are provided by the kplugins (plugins
+for K-Meleon) and it's the dll files that you find the folder
+\K-Meleon\kplugins.</p>
+<a id="p_bmpmenu" name="p_bmpmenu"></a>
+<a id="p_bookmarks" name="p_bookmarks"></a>
+<table summary="Tabla comandos" style="font-size: 11px;" align="center" bgcolor="#eeeeee" border="1" bordercolor="#000000" cellpadding="4" width="92%">
+<tbody><tr valign="top">
+<td bgcolor="#015192" width="28%"><font color="#ffffff"><b>Bmpmenu Plugin</b></font></td>
+<td bgcolor="#015192" width="38%"><font color="#ffffff"><b>Function</b></font></td>
+<td bgcolor="#015192"><font color="#ffffff"><b>Available in</b></font></td>
+</tr>
+<tr valign="top">
+<td><b>bmpmenu()</b></td>
+<td>Show icons in menu.</td>
+<td>Menus</td>
+</tr>
+<tr valign="top">
+<td bgcolor="#015192" width="28%"><font color="#ffffff"><b>Bookmarks Plugin</b></font></td>
+<td bgcolor="#015192" width="38%"><font color="#ffffff"><b>Function</b></font></td>
+<td bgcolor="#015192"><font color="#ffffff"><b>Available in</b></font></td>
+</tr>
+<tr valign="top">
+<td><b>bookmarks()</b></td>
+<td>Show bookmarks in a menu list.</td>
+<td>Menus</td>
+</tr>
+<tr valign="top">
+<td><b>bookmarks(Add)</b></td>
+<td>Adds the page to bookmarks.</td>
+<td>Accel, Menus, Toolbars</td>
+</tr>
+<tr valign="top">
+<td><b>bookmarks(AddLink)</b></td>
+<td>Adds the selected link to bookmarks.</td>
+<td>Menus</td>
+</tr>
+<tr valign="top">
+<td><b>bookmarks(AddToolbar)</b></td>
+<td>Add the selected link to bookmarks bar.</td>
+<td>Accel, Menus, Toolbars</td>
+</tr>
+<tr valign="top">
+<td><b>bookmarks(Config)</b></td>
+<td>Opens bookmarks plugin configurations.</td>
+<td>Accel, Menus, Toolbars</td>
+</tr>
+<tr valign="top">
+<td><b>bookmarks(Edit)</b></td>
+<td>Opens the 'Edit bookmarks' window.</td>
+<td>Accel, Menus, Toolbars</td>
+</tr>
+<tr valign="top">
+<td colspan="3"><b> </b></td>
+</tr>
+<tr valign="top">
+<td><b>plugin(bookmarks, "Config");<br>
+plugin(bookmarks, "Add");<br>
+plugin(bookmarks, "AddToolbar");<br>
+plugin(bookmarks, "Edit");<br>
+plugin(bookmarks, "AddLink");<br>
+$page = pluginmsgex(bookmarks, "FindNick", $nickname, STRING);</b></td>
+<td>Same as previous descriptions.</td>
+<td>Macros</td>
+</tr>
+<tr valign="top">
+<td colspan="3"><p align="center"><a href="#indice">INDEX</a></p></td>
+</tr>
+</tbody></table>
+<a id="p_favoritos" name="p_favoritos"></a>
+<table summary="Tabla comandos" style="font-size: 11px;" align="center" bgcolor="#eeeeee" border="1" bordercolor="#000000" cellpadding="4" width="92%">
+<tbody><tr valign="top">
+<td bgcolor="#015192" width="28%"><font color="#ffffff"><b>Favorites Plugin</b></font></td>
+<td bgcolor="#015192" width="38%"><font color="#ffffff"><b>Function</b></font></td>
+<td bgcolor="#015192"><font color="#ffffff"><b>Available in</b></font></td>
+</tr>
+<tr valign="top">
+<td><b>favorites()</b></td>
+<td>Show favorites in a menu list.</td>
+<td>Menus</td>
+</tr>
+<tr valign="top">
+<td><b>favorites(Add)</b></td>
+<td>Adds the page to favorites.</td>
+<td>Accel, Menus, Toolbars</td>
+</tr>
+<tr valign="top">
+<td><b>favorites(AddLink)</b></td>
+<td>Adds the selected link to favorites.</td>
+<td>Menus</td>
+</tr>
+<tr valign="top">
+<td><b>favorites(Config)</b></td>
+<td>Opens favorites plugin configurations.</td>
+<td>Accel, Menus, Toolbars</td>
+</tr>
+<tr valign="top">
+<td><b>favorites(Edit)</b></td>
+<td>Opens the favorites folder in Windows Explorer.</td>
+<td>Accel, Menus, Toolbars</td>
+</tr>
+<tr valign="top">
+<td colspan="3"><b> </b></td>
+</tr>
+<tr valign="top">
+<td><b>plugin(favorites, "Config");<br>
+plugin(favorites, "Add");<br>
+plugin(favorites, "Edit");<br>
+plugin(favorites, "AddLink");<br>
+$page = pluginmsgex(bookmarks, "FindNick", $nickname, STRING);</b></td>
+<td>Same as previous descriptions.</td>
+<td>Macros</td>
+</tr>
+<tr valign="top">
+<td colspan="3"><p align="center"><a href="#indice">INDEX</a></p></td>
+</tr>
+</tbody></table>
+<a id="p_fullscreen" name="p_fullscreen"></a>
+<table summary="Tabla comandos" style="font-size: 11px;" align="center" bgcolor="#eeeeee" border="1" bordercolor="#000000" cellpadding="4" width="92%">
+<tbody><tr valign="top">
+<td bgcolor="#015192" width="28%"><font color="#ffffff"><b>Fullscreen Plugin</b></font></td>
+<td bgcolor="#015192" width="38%"><font color="#ffffff"><b>Function</b></font></td>
+<td bgcolor="#015192"><font color="#ffffff"><b>Available in</b></font></td>
+</tr>
+<tr valign="top">
+<td><b>fullscreen()</b></td>
+<td>Toggles fullscreen.</td>
+<td>Accel, Menus, Toolbars</td>
+</tr>
+<tr valign="top">
+<td><b>plugin(fullscreen);</b></td>
+<td>Toggles fullscreen.</td>
+<td>Macros</td>
+</tr>
+<tr valign="top">
+<td colspan="3"><p align="center"><a href="#indice">INDEX</a></p></td>
+</tr>
+</tbody></table>
+<a id="p_gestures" name="p_gestures"></a>
+<table summary="Tabla comandos" style="font-size: 11px;" align="center" bgcolor="#eeeeee" border="1" bordercolor="#000000" cellpadding="4" width="92%">
+<tbody><tr valign="top">
+<td bgcolor="#015192" width="28%"><font color="#ffffff"><b>Gestures Plugin</b></font></td>
+<td bgcolor="#015192" width="38%"><font color="#ffffff"><b>Function</b></font></td>
+<td bgcolor="#015192"><font color="#ffffff"><b>Available in</b></font></td>
+</tr>
+<tr valign="top">
+<td><b>-</b></td>
+<td>Gestures plugin can't be called.<br>You can configure Mouse Gestures from Preferences.</td>
+<td>None</td>
+</tr>
+</tbody></table>
+<a id="p_historial" name="p_historial"></a>
+
+<a id="p_hotlist" name="p_hotlist"></a>
+<table summary="Tabla comandos" style="font-size: 11px;" align="center" bgcolor="#eeeeee" border="1" bordercolor="#000000" cellpadding="4" width="92%">
+<tbody><tr valign="top">
+<td bgcolor="#015192" width="28%"><font color="#ffffff"><b>Hotlist Plugin</b></font></td>
+<td bgcolor="#015192" width="38%"><font color="#ffffff"><b>Function</b></font></td>
+<td bgcolor="#015192"><font color="#ffffff"><b>Available in</b></font></td>
+</tr>
+<tr valign="top">
+<td><b>hotlist()</b></td>
+<td>Show hotlist in a menu list.</td>
+<td>Menus</td>
+</tr>
+<tr valign="top">
+<td><b>hotlist(Add)</b></td>
+<td>Adds the page to the hotlist.</td>
+<td>Accel, Menus, Toolbars</td>
+</tr>
+<tr valign="top">
+<td><b>hotlist(AddLink)</b></td>
+<td>Adds the selected link to the hotlist.</td>
+<td>Menus</td>
+</tr>
+<tr valign="top">
+<td><b>hotlist(Config)</b></td>
+<td>Opens hotlist plugin configurations.</td>
+<td>Accel, Menus, Toolbars</td>
+</tr>
+<tr valign="top">
+<td><b>hotlist(Edit)</b></td>
+<td>Opens the 'edit hotlist' window.</td>
+<td>Accel, Menus, Toolbars</td>
+</tr>
+<tr valign="top">
+<td colspan="3"><b> </b></td>
+</tr>
+<tr valign="top">
+<td><b>plugin(hotlist, "Edit");<br>
+plugin(hotlist, "AddLink");<br>
+$page = pluginmsgex(bookmarks, "FindNick", $nickname, STRING);</b></td>
+<td>Same as previous descriptions.</td>
+<td>Macros</td>
+</tr>
+<tr valign="top">
+<td colspan="3"><p align="center"><a href="#indice">INDEX</a></p></td>
+</tr>
+</tbody></table>
+<a id="p_jsbridge" name="p_jsbridge"></a>
+<table summary="Tabla comandos" style="font-size: 11px;" align="center" bgcolor="#eeeeee" border="1" bordercolor="#000000" cellpadding="4" width="92%">
+<tbody><tr valign="top">
+<td bgcolor="#015192" width="28%"><font color="#ffffff"><b>JSBridge Plugin</b></font></td>
+<td bgcolor="#015192" width="38%"><font color="#ffffff"><b>Function</b></font></td>
+<td bgcolor="#015192"><font color="#ffffff"><b>Available in</b></font></td>
+</tr>
+<tr valign="top">
+<td><b>-</b></td>
+<td>JSBridge plugin can't be called.<br>This is a plugin for K-Meleon kernel use only.</td>
+<td>None</td>
+</tr>
+</tbody></table>
+<a id="p_privacy" name="p_privacy"></a>
+<table summary="Tabla comandos" style="font-size: 11px;" align="center" bgcolor="#eeeeee" border="1" bordercolor="#000000" cellpadding="4" width="92%">
+<tbody><tr valign="top">
+<td bgcolor="#015192" width="28%"><font color="#ffffff"><b>Privacy Plugin</b></font></td>
+<td bgcolor="#015192" width="38%"><font color="#ffffff"><b>Function</b></font></td>
+<td bgcolor="#015192"><font color="#ffffff"><b>Available in</b></font></td>
+</tr>
+<tr valign="top">
+<td><b>privacy(ClearCache)</b></td>
+<td>Deletes disk cache.</td>
+<td>Accel, Menus, Toolbars</td>
+</tr>
+<tr valign="top">
+<td><b>privacy(ClearCookies)</b></td>
+<td>Deletes the cookie file.</td>
+<td>Accel, Menus, Toolbars</td>
+</tr>
+<tr valign="top">
+<td><b>privacy(ClearHistory)</b></td>
+<td>Deletes the history file.</td>
+<td>Accel, Menus, Toolbars</td>
+</tr>
+<tr valign="top">
+<td><b>privacy(ClearMRU)</b></td>
+<td>Clears the URL bar dropdown list.</td>
+<td>Accel, Menus, Toolbars</td>
+</tr>
+<tr valign="top">
+<td><b>privacy(ClearSignon)</b></td>
+<td>Deletes the passwords file.</td>
+<td>Accel, Menus, Toolbars</td>
+</tr>
+<tr valign="top">
+<td><b>plugin(privacy, "ClearCache");<br>
+plugin(privacy, "ClearCookies");<br>
+plugin(privacy, "ClearHistory");<br>
+plugin(privacy, "ClearMRU");<br>
+plugin(privacy, "ClearSignon");</b></td>
+<td>Same as previous descriptions.</td>
+<td>Macros</td>
+</tr>
+<tr valign="top">
+<td colspan="3"><p align="center"><a href="#indice">INDEX</a></p></td>
+</tr>
+</tbody></table>
+<a id="p_rebar" name="p_rebar"></a>
+<table summary="Tabla comandos" style="font-size: 11px;" align="center" bgcolor="#eeeeee" border="1" bordercolor="#000000" cellpadding="4" width="92%">
+<tbody><tr valign="top">
+<td bgcolor="#015192" width="28%"><font color="#ffffff"><b>Rebarmenu Plugin</b></font></td>
+<td bgcolor="#015192" width="38%"><font color="#ffffff"><b>Function</b></font></td>
+<td bgcolor="#015192"><font color="#ffffff"><b>Available in</b></font></td>
+</tr>
+<tr valign="top">
+<td><b>rebarmenu(MenuName)</b></td>
+<td>Generic syntax to popup a defined menu.</td>
+<td>Accel, Toolbars</td>
+</tr>
+<tr valign="top">
+<td><b>rebarmenu(&amp;Web Search)</b></td>
+<td>Popup Web Search menu.</td>
+<td>Accel, Toolbars</td>
+</tr>
+<tr valign="top">
+<td><b>rebarmenu(User Agent)</b></td>
+<td>Popup User Agent menu.</td>
+<td>Accel, Toolbars</td>
+</tr>
+<tr valign="top">
+<td><b>rebarmenu(Privacy)</b></td>
+<td>Popup Privacy menu.</td>
+<td>Accel, Toolbars</td>
+</tr>
+<tr valign="top">
+<td><b>rebarmenu(Compact Menu)</b></td>
+<td>Popup Compact menu.</td>
+<td>Accel, Toolbars</td>
+</tr>
+<tr valign="top">
+<td><b>rebarmenu(T&amp;abs)</b></td>
+<td>Open tabs list menu.</td>
+<td>Accel, Toolbars</td>
+</tr>
+<tr valign="top">
+<td><b>plugin(rebarmenu, "MenuName");</b></td>
+<td>Show the popup menu.</td>
+<td>Macros</td>
+</tr>
+<tr valign="top">
+<td colspan="3"><p align="center"><a href="#indice">INDEX</a></p></td>
+</tr>
+</tbody></table>
+<a id="p_sessions" name="p_sessions"></a>
+<table summary="Tabla comandos" style="font-size: 11px;" align="center" bgcolor="#eeeeee" border="1" bordercolor="#000000" cellpadding="4" width="92%">
+<tbody><tr valign="top">
+<td bgcolor="#015192" width="28%"><font color="#ffffff"><b>Sessions Plugin</b></font></td>
+<td bgcolor="#015192" width="38%"><font color="#ffffff"><b>Function</b></font></td>
+<td bgcolor="#015192"><font color="#ffffff"><b>Available in</b></font></td>
+</tr>
+<tr valign="top">
+<td><b>sessions(Config)</b></td>
+<td>Opens sessions plugin configurations.</td>
+<td>Accel, Menus, Toolbars</td>
+</tr>
+<tr valign="top">
+<td><b>sessions(Save)</b></td>
+<td>Save current session.</td>
+<td>Accel, Menus, Toolbars</td>
+</tr>
+<tr valign="top">
+<td><b>sessions(Undo)</b></td>
+<td>Undo last closed tab/window.</td>
+<td>Accel, Menus, Toolbars</td>
+</tr>
+<tr valign="top">
+<td><b>plugin(sessions, "Config");<br>
+plugin(sessions, "Save");<br>
+plugin(sessions, "Undo");<br>
+</b></td>
+<td>Same as previous descriptions.</td>
+<td>Macros</td>
+</tr>
+<tr valign="top">
+<td colspan="3"><p align="center"><a href="#indice">INDEX</a></p></td>
+</tr>
+</tbody></table>
+<a id="p_toolbars" name="p_toolbars"></a>
+<table summary="Tabla comandos" style="font-size: 11px;" align="center" bgcolor="#eeeeee" border="1" bordercolor="#000000" cellpadding="4" width="92%">
+<tbody><tr valign="top">
+<td bgcolor="#015192" width="70%"><font color="#ffffff"><b>Toolbars Plugin</b></font></td>
+<td bgcolor="#015192"><font color="#ffffff"><b>Function (available only in Macros)</b></font></td>
+</tr>
+<tr valign="top">
+<td><b>$bChecked = pluginmsgex(toolbars, "IsButtonChecked", "&lt;ToolbarName&gt;, &lt;ButtonID&gt;", INT);</b></td>
+<td><br></td>
+</tr>
+<tr valign="top">
+<td><b>$bEnabled = pluginmsgex(toolbars, "IsButtonEnabled", "&lt;ToolbarName&gt;, &lt;ButtonID&gt;", INT);</b></td>
+<td><br></td>
+</tr>
+<tr valign="top">
+<td><b>pluginmsg(toolbars, "CheckButton", "&lt;ToolbarName&gt;, &lt;ButtonID&gt;, [0|1]");</b></td>
+<td><br></td>
+</tr>
+<tr valign="top">
+<td><b>pluginmsg(toolbars, "EnableButton", "&lt;ToolbarName&gt;, &lt;ButtonID&gt;, [0|1]");</b></td>
+<td><br></td>
+</tr>
+<tr valign="top">
+<td><b>pluginmsg(toolbars, "SetButtonImage", "&lt;ToolbarName&gt;, &lt;ButtonID&gt;, [HOT|COLD|DEAD], Path/to/new/image.bmp[0]");</b></td>
+<td><br></td>
+</tr>
+<tr valign="top">
+<td><b>pluginmsg(toolbars, "AddToolbar", "<toolbarname>, &lt;ButtonWidth&gt;, &lt;ButtonHeight&gt;","");</toolbarname></b></td>
+<td><br></td>
+</tr>
+<tr valign="top">
+<td><b>pluginmsg(toolbars, "AddButton", "&lt;ToolbarName&gt;,
+&lt;ButtonName&gt;, &lt;Command&gt;, &lt;MenuName&gt;,
+&lt;TooltipText&gt;, &lt;ButtonWidth&gt;, &lt;ButtonHeight&gt;,
+hot.bmp[0], cold.bmp[0], dead.bmp[0]","");</b></td>
+<td><br></td>
+</tr>
+<tr valign="top">
+<td colspan="3"><p align="center"><u><b>Notes:</b></u><br>
+</p><ul>
+<li>Currently, buttons are identified by command, not by name. Consequently, <buttonid> must be replaced by the command associated to the button rather than the button's name.</buttonid></li>
+<li><b>AddToolbar</b> and <b>AddButton</b> can be used <b>OnSetup</b> only.</li>
+</ul>
+<p></p></td>
+</tr>
+<tr valign="top">
+<td colspan="3"><p align="center"><a href="#indice">INDEX</a></p></td>
+</tr>
+</tbody></table>
+<a id="p_update" name="p_update"></a>
+<table summary="Tabla comandos" style="font-size: 11px;" align="center" bgcolor="#eeeeee" border="1" bordercolor="#000000" cellpadding="4" width="92%">
+<tbody><tr valign="top">
+<td bgcolor="#015192" width="28%"><font color="#ffffff"><b>Update Plugin</b></font></td>
+<td bgcolor="#015192" width="38%"><font color="#ffffff"><b>Function</b></font></td>
+<td bgcolor="#015192"><font color="#ffffff"><b>Available in</b></font></td>
+</tr>
+<tr valign="top">
+<td><b>-</b></td>
+<td>This plugin check for K-Meleon updates at start K-Meleon.</td>
+<td>None.</td>
+</tr>
+</tbody></table>
+<a id="p_macros" name="p_macros"></a>
+<table summary="Tabla comandos" style="font-size: 11px;" align="center" bgcolor="#eeeeee" border="1" bordercolor="#000000" cellpadding="4" width="92%">
+<tbody><tr valign="top">
+<td bgcolor="#015192" width="28%"><font color="#ffffff"><b>MACROS Plugin, some useful macros</b></font></td>
+<td bgcolor="#015192" width="38%"><font color="#ffffff"><b>Function</b></font></td>
+<td bgcolor="#015192"><font color="#ffffff"><b>Available in Accel, Macros, Menus, Toolbars</b></font></td>
+</tr>
+<tr valign="top">
+<td><b>macros(MACRO_NAME)</b></td>
+<td>Generic syntax to call a macro.</td>
+<td>Macro defined in file:</td>
+</tr>
+<tr valign="top">
+<td><b>macros(Accel_Mouse([option]))</b></td>
+<td>Apply the specified <a href="#l_mousecfg">mouse accelerator configuration</a>. Options:<br>
+empty =&gt; K-Meleon defaults<br>
+"Firefox 2.0"<br>
+"SeaMonkey 1.1"<br>
+"Opera 9.2"</td>
+<td>Macro defined in file: accel.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(cfg_FileNotFound)</b></td>
+<td>Show a warning of a file not found.</td>
+<td>Macro defined in file: cfg.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(cfg_ProfileDir)</b></td>
+<td>Open the profile directory.</td>
+<td>Macro defined in file: cfg.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(cfg_SettingsDir)</b></td>
+<td>Open the settings directory.</td>
+<td>Macro defined in file: cfg.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(cfg_Macros)</b></td>
+<td>Open the default macros directory.</td>
+<td>Macro defined in file: cfg.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(cfg_UserMacros)</b></td>
+<td>Open the user macros directory.</td>
+<td>Macro defined in file: cfg.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(cfg_Commands)</b></td>
+<td>View a list of commands available for menus, macros and toolbars.</td>
+<td>Macro defined in file: cfg.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(cfg_Skin)</b></td>
+<td>Edit a skin configuration file.</td>
+<td>Macro defined in file: cfg.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(cfg_Settings)</b></td>
+<td>Edit a configuration file.</td>
+<td>Macro defined in file: cfg.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(cfg_UserPrefs)</b></td>
+<td>Edit a preferences file.</td>
+<td>Macro defined in file: cfg.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(cfg_UserStyle)</b></td>
+<td>Edit a user style sheet.</td>
+<td>Macro defined in file: cfg.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>MIGRATION COMPATIBILITY</b><br>(only one execution is needed)</td>
+<td>This macro is used to migrate K-Meleon profiles from versions 1.0 to 1.1 and from 1.1 to 1.5.<br>
+It support the compatibility to Preferences, Groups/Sessions and Layer/Tabs.</td>
+<td>Macro defined in file: compat.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(Console2)</b></td>
+<td>Open the enhanced error console.</td>
+<td>Macro defined in file: console2.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(DocInfo_Image)</b></td>
+<td>View image properties.</td>
+<td>Macro defined in file: docinfo.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(DocInfo_Link)</b></td>
+<td>View link properties.</td>
+<td>Macro defined in file: docinfo.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(DocInfo_Page_Links)</b></td>
+<td>View all links in the current page.</td>
+<td>Macro defined in file: docinfo.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(DocInfo_Frame_Links)</b></td>
+<td>View all links in the current frame.</td>
+<td>Macro defined in file: docinfo.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(DocInfo_Page_LinkedImages)</b></td>
+<td>View all images linked by the current page.</td>
+<td>Macro defined in file: docinfo.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(DocInfo_Frame_LinkedImages)</b></td>
+<td>View all images linked by the current frame.</td>
+<td>Macro defined in file: docinfo.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(DocInfo_Page_Images)</b></td>
+<td>View all images in the current page.</td>
+<td>Macro defined in file: docinfo.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(DocInfo_Frame_Images)</b></td>
+<td>View all images in the current frame.</td>
+<td>Macro defined in file: docinfo.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(domComplete(0))</b></td>
+<td>Complete the domain of URL bar text and go it. www.&lt;URL&gt;.com</td>
+<td>Macro defined in file: domcomplete.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(domComplete(1))</b></td>
+<td>Complete the domain of URL bar text and go it. www.&lt;URL&gt;.net</td>
+<td>Macro defined in file: domcomplete.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(domComplete(2))</b></td>
+<td>Complete the domain of URL bar text and go it. www.&lt;URL&gt;.org</td>
+<td>Macro defined in file: domcomplete.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(Encoding_AutoDetect([CHARSET]))</b></td>
+<td>Apply the specified character set autodetection method.<br>
+For CHARSET look in macro file.</td>
+<td>Macro defined in file: encoding.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(Encoding_ForceCharset([CHARSET]))</b></td>
+<td>Force the specified character set encoding.<br>
+For CHARSET look in macro file.</td>
+<td>Macro defined in file: encoding.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(hotlink(N)) =&gt; N=[0-9]</b></td>
+<td>Open the specified hotlink.</td>
+<td>Macro defined in file: hotlink.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(IE_OpenPage)</b></td>
+<td>Opens the current page in Internet Explorer.</td>
+<td>Macro defined in file: ie.kmm (sendto.kmm)</td>
+</tr>
+<tr valign="top">
+<td><b>macros(IE_OpenLink)</b></td>
+<td>Open link in Internet Explorer.</td>
+<td>Macro defined in file: ie.kmm (sendto.kmm)</td>
+</tr>
+<tr valign="top">
+<td><b>macros(IE_OpenImage)</b></td>
+<td>Open image in Internet Explorer.</td>
+<td>Macro defined in file: ie.kmm (sendto.kmm)</td>
+</tr>
+<tr valign="top">
+<td><b>macros(IE_OpenURL)</b></td>
+<td>Opens the URL bar text in Internet Explorer.</td>
+<td>Macro defined in file: ie.kmm (sendto.kmm)</td>
+</tr>
+<tr valign="top">
+<td><b>macros(Mail_ConfigureMail)</b></td>
+<td>Opens the dialog to configure your mail client.</td>
+<td>Macro defined in file: mail.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(Mail_ConfigureNews)</b></td>
+<td>Opens the dialog to configure your news client.</td>
+<td>Macro defined in file: mail.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(Mail_ReadMail)</b></td>
+<td>Opens your preferred email client.</td>
+<td>Macro defined in file: mail.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(Mail_ReadNews)</b></td>
+<td>Opens your preferred news client.</td>
+<td>Macro defined in file: mail.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(Mail_ComposeMessage)</b></td>
+<td>Opens your mail client.</td>
+<td>Macro defined in file: mail.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(Mail_SendPageURL)</b></td>
+<td>Send a link to the current page by mail.</td>
+<td>Macro defined in file: mail.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(Mail_SendLinkURL)</b></td>
+<td>Send the current link by mail.</td>
+<td>Macro defined in file: mail.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(Mail_SendImageURL)</b></td>
+<td>Send a link to the current image by mail.</td>
+<td>Macro defined in file: mail.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(Mail_SendFrameURL)</b></td>
+<td>Send a link to the current frame by mail.</td>
+<td>Macro defined in file: mail.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(Mail_SendSelection)</b></td>
+<td>Send the selected text by mail.</td>
+<td>Macro defined in file: mail.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(mtypes)</b></td>
+<td>Change file type settings.</td>
+<td>Macro defined in file: mtypes.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(NewsFox)</b></td>
+<td>Open NewsFox for reading news feeds.</td>
+<td>Macro defined in file: newsfox.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(Proxy_None)</b></td>
+<td>Connect directly to the Internet.</td>
+<td>Macro defined in file: proxy.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(Proxy_Auto)</b></td>
+<td>Connect to the Internet over any detected proxy.</td>
+<td>Macro defined in file: proxy.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(Proxy_Custom([option]))</b></td>
+<td>Connect to the Internet over the specified proxy. Options:<br>
+proxyN =&gt; where N is a number from 1 to N proxies defined in Preferences
+kmeleon.plugins.macros.proxyN.name</td>
+<td>Macro defined in file: proxy.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(Reload_Continuously)</b></td>
+<td>Continuously reload the current page.</td>
+<td>Macro defined in file: reload.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(Search)</b></td>
+<td>Uses the default search engine to search for the selected text or
+URL bar text (if different from page URL). Otherwise, the search prompt
+will appear.</td>
+<td>Macro defined in file: search.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(Search_PasteAndSearch)</b></td>
+<td>Search the Web for Clipboard contents.</td>
+<td>Macro defined in file: search.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(Search_ToggleEngineLock)</b></td>
+<td>Lock or unlock the current search engine as the default engine.</td>
+<td>Macro defined in file: search.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(Search_Metasearch)</b></td>
+<td>Search the Web using multiple engines.</td>
+<td>Macro defined in file: search.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(Search_KMForums)</b></td>
+<td>Search the K-Meleon forums.</td>
+<td>Macro defined in file: search.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(Search_Engine([option]))</b></td>
+<td>Search the Web using the specified engine. Options:<br>
+N =&gt; number of search engine<br>
+Look web search Preferences, kmeleon.plugins.macros.search.engine<br>
+or search.xml file in your profile folder.</td>
+<td>Macro defined in file: search.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(Translate_From([option]))</b></td>
+<td>Translate from the specified language. Options:<br>
+xx =&gt; Where xx is a local language pair;<br>en=english, es=spanish, ...</td>
+<td>Macro defined in file: translate.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(Translate_To([option]))</b></td>
+<td>Translate to the specified language. Options:<br>
+xx =&gt; Where xx is a local language pair;<br>en=english, es=spanish, ...</td>
+<td>Macro defined in file: translate.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(Translate_ToggleRegion([option]))</b></td>
+<td>Show languages from the specified region in the translation menu or not. Options:<br>
+0 =&gt; West European<br>
+1 =&gt; North European<br>
+2 =&gt; East European<br>
+3 =&gt; South European<br>
+4 =&gt; East Asian<br>
+5 =&gt; SE And SW Asian<br>
+6 =&gt; Middle Eastern</td>
+<td>Macro defined in file: translate.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(UserAgent([option]))</b></td>
+<td>Set the specified User Agent string. Options:<br>
+empty =&gt; K-Meleon default<br>
+1 =&gt; Firefox 2.0<br>
+2 =&gt; SeaMonkey 1.1</td>
+<td>Macro defined in file: useragent.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(UserAgent_Custom)</b></td>
+<td>Set a custom User Agent string.</td>
+<td>Macro defined in file: useragent.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(UserAgent_AlertString)</b></td>
+<td>View the current User Agent string.</td>
+<td>Macro defined in file: useragent.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(UserAgent_ToggleReset)</b></td>
+<td>Toggle resetting the default User Agent string when exiting.</td>
+<td>Macro defined in file: useragent.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(Zoom_In)</b></td>
+<td>Perform the Zoom In button action.</td>
+<td>Macro defined in file: zoom.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(Zoom_Out)</b></td>
+<td>Perform the Zoom Out button action.</td>
+<td>Macro defined in file: zoom.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(Zoom_Page_In)</b></td>
+<td>Increases the size of images and text on the page.</td>
+<td>Macro defined in file: zoom.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(Zoom_Page_Out)</b></td>
+<td>Decreases the size of images and text on the page.</td>
+<td>Macro defined in file: zoom.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(Zoom_Images_In)</b></td>
+<td>Increases the size of images on the page.</td>
+<td>Macro defined in file: zoom.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(Zoom_Images_Out)</b></td>
+<td>Decreases the size of images on the page.</td>
+<td>Macro defined in file: zoom.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(Zoom_Image_In)</b></td>
+<td>Increase the size of the current image.</td>
+<td>Macro defined in file: zoom.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(Zoom_Image_Out)</b></td>
+<td>Decrease the size of the current image.</td>
+<td>Macro defined in file: zoom.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(Zoom_Page)</b></td>
+<td>Let zoom buttons effect text and images.</td>
+<td>Macro defined in file: zoom.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(Zoom_Text)</b></td>
+<td>Let zoom buttons effect text only.</td>
+<td>Macro defined in file: zoom.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(Zoom_Images)</b></td>
+<td>Let zoom buttons effect images only.</td>
+<td>Macro defined in file: zoom.kmm</td>
+</tr>
+<tr valign="top">
+<td bgcolor="#015192" width="28%"><font color="#ffffff"><b>MAIN MACROS, some useful macros</b></font></td>
+<td bgcolor="#015192" width="38%"><font color="#ffffff"><b>Function</b></font></td>
+<td bgcolor="#015192"><font color="#ffffff"><b>Available in Accel, Macros, Menus, Toolbars</b></font></td>
+</tr>
+<tr valign="top">
+<td>- Events strings:<br>
+<b>$OnInit<br>
+$OnSetup<br>
+$OnStartup<br>
+$OnOpenWindow<br>
+$OnOpenTab<br>
+$OnLoad<br>
+$OnLoadOnce<br>
+$OnActivateWindow<br>
+$OnCloseWindow<br>
+$OnCloseTab<br>
+$OnCloseGroup<br>
+$OnWMAppExit<br>
+$OnQuit</b></td>
+<td>Append any macro to be executed On[event] to the appropriate string (semicolon-separated lists ';').</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td>- Macro modules string:<br>
+<b>$macroModules</b></td>
+<td>Append any installed module's name to this string (semicolon-separated list ';').</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td>- Plugins presence:<br>
+<b>$kBookmarks<br>
+$kFavorites<br>
+$kFullscreen<br>
+$kHistory<br>
+$kHotlist<br>
+$kLayers<br>
+$kLayersOnly<br>
+$kPrivacy<br>
+$kRebarmenu<br>
+$kSessions<br>
+$kToolbars<br>
+$kTabs</b></td>
+<td>Use these global vars to determine the presence of a plugin.<br>
+Do not read kmeleon.plugins.?.load at runtime! (The pref may be false although the plugin is currently loaded or vice versa.</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(kTabs_Detach)</b></td>
+<td>Detach this tab from the current window.</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(kTabs_ReloadAll)</b></td>
+<td>Reload all tabs in the current window.</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(kPrivacy_ClearAll)</b></td>
+<td>Deletes all your privacy data: cache, cookies, history, URL bar history and passwords.</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(kmPrefs([section]))</b></td>
+<td>Change preferences and settings.</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td>- Use for text files: (Open)<br>
+<b>macros(getExtensionHandler)</b><br>
+- Use for script files: (Edit)<br>
+<b>macros(getSecureExtensionHandler)</b></td>
+<td>These macros can be used in conjunction with the exec() and
+ promptforfile() statements to get a command line and a file
+ type description for a given file extension.</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td>- To open URLs:<br>
+<b><br><br>macros(OpenURL)<br><br>
+macros(OpenURL_InBg)<br><br>
+macros(OpenURL_InNew)<br><br><br>
+macros(OpenURL_InNewWindow)<br><br>
+macros(OpenURL_Selected)<br><br><br>
+macros(OpenURL_Typed)</b></td>
+<td>Except OpenURL these macros can only be called by other macros, 
+because macro function caller must previously define the variable <b>$OpenURL</b> with the URL to open.<br>
+Prompt for an URL to open.<br><br>
+Same as OpenURL_InNew, but in background.<br><br>
+Open an URL in a new tab if tabs are enabled, in a new window otherwise.<br><br>
+Open an URL in a new window.<br><br>
+Use this method when an URL was generated from selected text.<br><br>
+Use this method when an URL was generated from a direct user input (by typing into URL Bar or any prompt).</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td>- Mozilla Chrome:<br>
+<b>macros(moz_AboutCache_Image)<br>
+macros(moz_AboutCache)<br>
+macros(moz_AboutConfig)<br>
+macros(moz_JSConsole)<br>
+macros(moz_CertificateViewer)
+</b></td>
+<td><br>View cache information.<br>
+View information about the Cache Service.<br>
+View the browser configuration page<br>
+Open the error console<br>
+View stored certificates
+</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td>- Paths to Privacy Preferences:<br>
+<b>$pref_Animation<br>
+$pref_Colors<br>
+$pref_Cookies<br>
+$pref_Frames<br>
+$pref_Images<br>
+$pref_Java<br>
+$pref_JavaScript<br>
+$pref_Popups<br>
+$pref_Referer
+</b></td>
+<td>To use with getpref(TYPE,[preference]).</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>$pref_JavaSupport</b></td>
+<td>Use this global var to determine whether Java can be enabled at runtime.</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(pref_ToggleAnimation)</b></td>
+<td>Toggle image animation.</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(pref_ToggleColors)</b></td>
+<td>Toggle page colors.</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(pref_ToggleCookies)</b></td>
+<td>Toggle cookie acceptance.</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(pref_ToggleFrames)</b></td>
+<td>Toggle frame support.</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(pref_ToggleImages)</b></td>
+<td>Toggle image loading.</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(pref_ToggleJava)</b></td>
+<td>Toggle Java support.</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(pref_ToggleJavaScript)</b></td>
+<td>Toggle JavaScript execution.</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(pref_TogglePopups)</b></td>
+<td>Toggle popup blocking.</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(pref_ToggleReferer)</b></td>
+<td>Toggle HTTP referer transmission.</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td>- Type Ahead Find (Page Search):<br>
+<b>$_pref_TAF<br>
+macros(pref_ToggleTAF)<br>
+macros(pref_ToggleTAFAuto)<br>
+macros(pref_ToggleTAFLinks)<br></b></td>
+<td><br>Path to Preference.<br>
+Toggle Find As You Type.<br>
+Toggle Find As You Type Autostart.<br>
+Toggle Find As You Type in links only.
+</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td>- K-Meleon Preferences:<br>
+<b>$KM_Version<br>
+$KM_Flashblock<br>
+$KM_Adblock</b></td>
+<td><br>K-Meleon version.<br>
+Path to Flashblock preference.<br>
+Path to Adblock preference.</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(KM_ToggleFlashblock)</b></td>
+<td>Toggle Flashblock.</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(KM_ToggleAdblock)</b></td>
+<td>Toggle Ad-Blocking StyleSheet.</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td>- Homepage preferences:<br>
+<b>$KM_Homepage<br>
+$KM_HomeSess<br>
+$KM_StartHome<br>
+$KM_StartSess</b></td>
+<td><br>Path to Homepage preference.<br>
+Path to Home Session preference.<br>
+Path to Start Home preference.<br>
+Path to Start Session preference.</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(KM_SetAsHomepage)</b></td>
+<td>Set the current page as the Home page.</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(KM_StartBlank)</b></td>
+<td>Let K-Meleon start with a blank page.</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(KM_StartWithHomepage)</b></td>
+<td>Let K-Meleon start with the Home page.</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(KM_StartWithSession)</b></td>
+<td>Let K-Meleon start with a saved session.</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td>- JavaScript Document Handling:<br><br>
+<b>$JS_doit<br><br><br>
+$JS_func<br><br><br>
+$JS_last<br><br><br>
+$JS_fail</b></td>
+<td>Parameters for JS_hndlDoc(s) (set those you need before calling the macro):<br>
+Takes the code to be executed in the context of each frame.<br><br>
+Is the right place for functions and global variables (e.g. when you want to count something over all frames)<br><br>
+Is the right place for finishing actions (e.g. when you want to alert what you have counted over all frames)<br><br>
+Is the right place to handle errors that may occur when accessing a frame (Gecko prevents cross-site scripting)</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(JS_hndlDocs)</b></td>
+<td>To inject JS in each frame.</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(JS_hndlDoc)</b></td>
+<td>Same as JS_hndlDocs, but only for the current frame.</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(JS_hndlTop)</b></td>
+<td>Same as JS_hndlDoc, but only for the topmost frame (to avoid cross site scripting).</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td>- JavaScript Image Handling:<br><br>
+<b>$JS_doitImage<br><br><br>
+$JS_doitInput</b></td>
+<td>Parameters for JS_hndlImage (set those you need before calling the macro):<br>
+Takes the code to be executed in the context of all matching images in the current frame.<br><br>
+Takes the code to be executed in the context of all matching image-type input elements in the current frame</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(JS_hndlImage)</b></td>
+<td>To inject JS for images.</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td>- Parameter for JS_hndlLink:<br><br>
+<b>$JS_doitLink</b></td>
+<td>Parameters for JS_hndlLink (set this you need before calling the macro):<br>
+Takes the code to be executed in the context of all matching links in the current frame.</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(JS_hndlLink)</b></td>
+<td>To inject JS in all matching links in the current frame.</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(JS_reloadFrame)</b></td>
+<td>Reload the current frame.</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(JS_reloadImage)</b></td>
+<td>Reload the current image.</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(JS_killApplets)</b></td>
+<td>Erase all Java applets in the current page.</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(JS_killFlash)</b></td>
+<td>Erase all Flash objects in the current page.</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(JS_scrollTop)</b></td>
+<td>Scroll to the top of the current page.</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(JS_scrollBottom)</b></td>
+<td>Scroll to the bottom of the current page.</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(JS_scrollLeft)</b></td>
+<td>Scroll to the left end of the current page.</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(JS_scrollRight)</b></td>
+<td>Scroll to the right end of the current page.</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(Go_Copy)</b></td>
+<td>Copy URL Bar contents to the Clipboard.</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(Go_New)</b></td>
+<td>Open URL Bar contents in a new page.</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(Go_Paste)</b></td>
+<td>Open Clipboard contents as URL.</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(Go_Reset)</b></td>
+<td>Reset the URL Bar.</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(Go_Selected)</b></td>
+<td>Open the selected text as URL or open URL Bar contents.</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(Go_Top)</b></td>
+<td>Go to the topmost directory level of the current domain.</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(Go_Up)</b></td>
+<td>Go up one directory level in the current domain.</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(Home)</b></td>
+<td>Perform the Home button action.</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(RSS)</b></td>
+<td>Perform the RSS button action.</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(Open_TextAsURL)</b></td>
+<td>Open the selected text as URL.</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(Open_KMReadme)</b></td>
+<td>View basic information on the K-Meleon project.</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(Open_KMWiki)</b></td>
+<td>Go to the K-Meleon Wiki.</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(ExecMacros_Frames)</b></td>
+<td>Execute one or more macros if frame support is granted.<br>
+Parameters (set before calling):<br>
+<b>$ExecMacros</b> = The macros to be executed (semicolon-separated list ';').</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(ExecMacros_JavaScript)</b></td>
+<td>Execute one or more macros if JavaScript execution is granted.<br>
+Parameters (set before calling):<br>
+<b>$ExecMacros</b> = The macros to be executed (semicolon-separated list ';').</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(ExecMacros_Popups)</b></td>
+<td>Execute one or more macros overriding any restriction in regard to popup windows.<br>
+Parameters (set before calling):<br>
+<b>$ExecMacros</b> = The macros to be executed (semicolon-separated list ';').<br>
+<b>$ForceTab</b> = Force popups into tabs (true or false).</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td><b>macros(ExecMacros_List)</b></td>
+<td>Execute one or more macros for each item of a semicolon-separated list (;).<br>
+Parameters (set before calling):<br>
+<b>$ExecMacros</b> = The macros to be executed (semicolon-separated list ';').<br>
+<b>$List</b> = The list to be processed ("[string1];[string2];...;[stringN];" or an empty string).<br>
+<br>Output (for use in your macros):<br>
+<b>$ListItem</b> = The current substring [stringM].</td>
+<td>Macro defined in file: main.kmm</td>
+</tr>
+<tr valign="top">
+<td colspan="3"><p align="center"><a href="#indice">INDEX</a></p></td>
+</tr>
+</tbody></table>
+<br>
+<h6><p align="center"><a href="http://kmeleon.sourceforge.net/wiki/EndUserDocs">More info about this in K-Meleon Documentation online.</a></p></h6>
+<br>
+<br>
+<a id="profile" name="profile"></a>
+<h2 align="center">K-Meleon's Profile</h2>
+<h3 style="margin-left: 4%;">Location</h3>
+<p style="margin-left: 4%; margin-right: 4%;">
+Since version 1.0, K-Meleon is storing its profiles in your Application
+Data (%AppData%) directory by default.
+This is to ensure that K-Meleon has the necessary privileges to write
+to its profile directory on modern NT-based Windows operating systems
+(NT/2000/XP/Vista) which are the most common today.
+The location of the %AppData% directory depends on your specific
+Windows version.
+In case of doubt, you can always open your current profile directory
+from out of K-Meleon (choose Edit &gt; Configuration &gt; Profile
+Directory).
+</p>
+<p style="margin-left: 4%; margin-right: 4%;">
+To set a different location for your profiles, you have the following possibilities:
+</p>
+<h4 style="margin-left: 4%;">Set the profile location through a profile.ini file:</h4>
+<p style="margin-left: 4%; margin-right: 4%;">When installing K-Meleon
+using the setup program, you are given the possibility to locate your
+profiles in the K-Meleon installation directory (which is the classic
+behavior) instead of the %AppData% directory.
+When you are asked to select the components to install, simply uncheck
+the option "Multi-user Profiles".
+The setup program will then create a file called profile.ini (which is
+a simple text file) in your K-Meleon installation directory (where
+k-meleon.exe resides).
+By default, profile.ini has the following contents (an empty
+profile.ini has the same effect):
+</p>
+<pre style="margin-left: 4%; margin-right: 4%;">[profile]
+path=Profiles
+isRelative=1
+</pre>
+<p style="margin-left: 4%; margin-right: 4%;">
+The value of the variable path specifies the location of the folder which contains your profiles.
+If the variable isRelative is set to 1, the value of path is taken relative to the K-Meleon installation directory.
+In the above case, your profiles will be located in subfolder Profiles of the K-Meleon installation directory.
+Otherwise, if isRelative is set to 0, the value of path must be a fully qualified path.
+</p>
+<h4 style="margin-left: 4%;">Set the profile location through the -profilesDir command line switch:</h4>
+<p style="margin-left: 4%; margin-right: 4%;">
+This switch overrides profile.ini. See <a href="#l_cmdlineopt">command line options</a>.
+</p>
+<h3 style="margin-left: 4%;">Profile Advanced Location</h3>
+<p style="margin-left: 4%; margin-right: 4%;">
+K-Meleon 1.5.x has a new profile component (similar to the one of Firefox - or it even is the one of Firefox).
+In K-Meleon 1.5 the file <b>profiles.ini</b> is the profile pointer.
+In previous versions the file <b>registry.dat</b> is the profile pointer.
+The purpose of the profile pointer is to tell the browser what profiles exist and where they are located.
+In order to move or rename profile directories, just edit profiles.ini (registry.dat is synchronized automatically).
+</p>
+<p style="margin-left: 4%; margin-right: 4%;">
+The <b>profile.ini</b>
+file that can be placed in the K-Meleon installation directory, is just
+a pointer to the profile pointer - it tells K-Meleon where to look for
+the actual profile pointer (<b>profiles.ini</b> or <b>registry.dat</b>).
+</p>
+<p style="margin-left: 4%; margin-right: 4%;">
+One of the advantages of the new system is portability. In order to get
+a portable installation of K-Meleon 1.5, you just need to uncheck the
+option "Multi-user profiles" when installing (or manually place a
+profile.ini in the installation directory).
+You can then just copy the installation directory to a USB stick - the
+installation will work whatever drive letter the stick may get.
+</p>
+<p style="margin-left: 4%; margin-right: 4%;">
+If you like more info about this you can read this online <a href="http://kb.mozillazine.org/Profiles.ini_file">Mozilla documentation</a>.
+</p>
+<h3 style="margin-left: 4%;">Migrating Profiles</h3>
+<p style="margin-left: 4%; margin-right: 4%;">
+By using an old profile with a new version of K-Meleon you might miss some of the new features.
+Compare your profile files with those available in C:\Program Files\K-Meleon\defaults\profile\ and do the needed adjustments.
+<br>For migrating from K-Meleon 0.7 to K-Meleon 0.8 these new features
+include LButton, MButton and RButton in accel.cfg, and
+DocumentImagePopup and FrameDocumentImagePopup in menus.cfg.
+</p><h4 style="margin-left: 4%;">Backup your old K-Meleon profile</h4>
+<p style="margin-left: 4%; margin-right: 4%;">
+The profile files are normally located in:
+</p>
+<pre style="margin-left: 4%; margin-right: 4%;">C:\Program Files\K-Meleon\Profiles\[your name]\!!!!!!!!.slt
+</pre>
+<p style="margin-left: 4%; margin-right: 4%;">
+The following files can be backed up to tranfer your profile to a new install of K-Meleon.
+Do not try to transfer any other files. (and never mind if your profile doesn't have all of these files)
+</p>
+<ul style="margin-left: 4%; margin-right: 4%;">
+<li>accel.cfg<br>
+    * Configuration file for keyboard accelerators (shortcuts)</li>
+<li>bookmarks.html<br>
+    * A Hypertext document containing your saved bookmarks.</li>
+<li>cookperm.txt<br>
+    * Your cookie permissions file.</li>
+<li>macros.cfg<br>
+    * Configuration file for macros</li>
+<li>menus.cfg<br>
+    * Configuration file for the browser menus. These define the order and text displayed for all menus</li>
+<li>opera.adr<br>
+    * A text file containing your saved hotlist.</li>
+<li>Prefs.js<br> * Preference file edited through the preference dialog
+(or about:config). * WARNING - It is best not to tranfer the complete
+file. Copy into user.js the preferences you want to keep. Do not
+transfer prefs which reference your old profile.
+</li>
+<li>User.js<br>
+    * User preference file which overrides the Prefs.js file.</li>
+</ul>
+<h4 style="margin-left: 4%;">Other files that you should consider saving.</h4>
+<ul style="margin-left: 4%; margin-right: 4%;">
+<li>K-Meleon\Profiles\[your name]\!!!!!!!!.slt\Chrome\userContent.css<br>
+    * This is a Cascading Style Sheet that controls K-Meleon's display content</li>
+<li>K-Meleon\Skins\[downloaded skins]<br>
+    * Save any downloaded skins that you may have in this folder.</li>
+<li>K-Meleon\plugins\[added plugins]<br>
+    * Backup any extra plugins you may have added.</li>
+</ul>
+<h4 style="margin-left: 4%;">Installing your new K-Meleon</h4>
+<ol style="margin-left: 4%; margin-right: 4%;">
+<li>Save the above files in a safe place.</li>
+<li>Uninstall K-Meleon.</li>
+<li>Ensure that the directory C:\Progam Files\K-Meleon is either empty or deleted.</li>
+<li>Install K-Meleon and make your choice of options to include.</li>
+<li>Start K-Meleon in the default profile. Go to Edit &gt; Manage
+Profiles &gt; New &gt; [your name] &gt; check Ask At Startup &gt; OK</li>
+<li>Close K-Meleon and open your file manager.</li>
+<li>Copy your saved profile files into their respective directories.</li>
+<li>Restart K-Meleon, selecting the new profile. If all went well, your are now enjoying you newly updated K-Meleon.</li>
+</ol>
+<br>
+<br>
+<hr width="70%">
+<br>
+<h2 align="center">Links to Online Documentation</h2>
+<p align="center"><a title="FAQ" href="http://kmeleon.sourceforge.net/wiki/FAQ">K-Meleon FAQ</a></p>
+<p align="center"><a title="Configuration Files" href="http://kmeleon.sourceforge.net/wiki/ConfigFiles">K-Meleon Configuration Files</a></p>
+<p align="center"><a title="K-Meleon 1.x Reference" href="http://home.arcor.de/cool.mckluus/software/kmeleon/project/reference/index.html">K-Meleon 1.x Reference by kko</a></p>
+<p align="center"><a title="Macro Guidelines" href="http://kmeleon.sourceforge.net/wiki/MacroGuidelines">Macro Guidelines to do macro codes</a></p>
+<p align="center"><a title="Macro Language" href="http://kmeleon.sourceforge.net/wiki/MacroLanguage">Macro Language Documentation</a></p>
+<p align="center"><a title="Macro Language2" href="http://kmeleon.sourceforge.net/wiki/MacroLanguage2">Macro Language Documentation rearranged and completed by JamesD</a></p>
+<p align="center"><a title="Macro Language kko" href="http://home.arcor.de/cool.mckluus/software/kmeleon/project/reference/macrolanguage/index.html">Macro Language Documentation by kko</a></p>
+<p align="center"><a title="Extension Setup" href="http://pagesperso-orange.fr/jujuland46/JujuLand/KMES/KMES-Generalities.html">Extension Setup 1.9.0 for K-Meleon 1.1 by JujuLand</a></p>
+<p align="center"><a title="K-Meleon Extensions" href="http://kmext.sourceforge.net/">K-Meleon Extensions</a></p>
+<p align="center"><a title="Unofficial K-Meleon Distributions" href="http://kmeleon.sourceforge.net/wiki/UKmeleon">Unofficial K-Meleon Distributions</a></p>
+<p align="center"><a title="Online version" href="http://kmext.sourceforge.net/kmqr/commands_16x.html">Online version of this file</a></p>
+<p align="center"><a title="Old version" href="http://kmext.sourceforge.net/kmqr/commands_15x.html">Before version to 1.5.X</a></p>
+<p align="center"><a title="Check for updates" href="http://kmext.sourceforge.net/kmqr/commands.html">Check for updates and more recent version</a></p>
+<br>
+<br>
+<p align="center"><a id="abajo" name="abajo" href="#arriba">UP</a></p>
+<br>
+
+</body></html>

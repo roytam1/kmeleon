@@ -1,0 +1,9 @@
+<!ENTITY title "Edycja etykiet">
+<!ENTITY tagAdd "Etykiety do dodania">
+<!ENTITY tagRemove "Etykiety do usunięcia">
+<!ENTITY tagDeleteCompletely "Etykiety do usunięcia ze wszystkich wiadomości i listy etykiet">
+<!ENTITY colorVaries1 "Niebieski: Etykieta jest we wszystkich zaznaczonych wiadomościach">
+<!ENTITY colorVaries2 "Mieszany: Etykieta jest w części zaznaczonych wiadomości">
+<!ENTITY colorVaries3 "Czerwony: Etykieta jest w niezaznaczonych wiadomościach">
+<!ENTITY newTagAdd "Nowe etykiety do dodania">
+<!ENTITY newTagAddExample "&quot;/&quot; oddziela etykiety: &quot;tech/news&quot;">

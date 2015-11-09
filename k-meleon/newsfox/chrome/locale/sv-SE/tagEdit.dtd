@@ -1,0 +1,9 @@
+<!ENTITY title "Redigera taggar">
+<!ENTITY tagAdd "Taggar som skall bifogas markerade artiklar">
+<!ENTITY tagRemove "Taggar som skall tas bort från markerade artiklar">
+<!ENTITY tagDeleteCompletely "Taggar som skall tas bort från alla artiklar och tagglistan">
+<!ENTITY colorVaries1 "BLÅ: Taggen finns i alla markerade artiklar">
+<!ENTITY colorVaries2 "blandning: Taggen finns i några markerade artiklar">
+<!ENTITY colorVaries3 "RÖD: Taggen finns inte i några markerade artiklar">
+<!ENTITY newTagAdd "Nya taggar som skall bifogas markerade artiklar">
+<!ENTITY newTagAddExample "&quot;/&quot; avgränsar taggar, t.ex. &quot;teknik/nyheter&quot;">

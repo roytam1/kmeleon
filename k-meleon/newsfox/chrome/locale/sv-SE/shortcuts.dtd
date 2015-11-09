@@ -1,0 +1,24 @@
+<!ENTITY sCcustomShortcut "Egna kortkommandon kan definieras genom att redigera attributen &quot;modifiers&quot; (låstangenter; Ctrl, Alt o.dyl.) och &quot;key&quot; (tangent) i filen &quot;accel.xml&quot; i NewsFox-mappen i din profilmapp, efter att du först har valt en uppsättning kortkommandon i inställningarna och avslutat NewsFox.">
+<!ENTITY sCcustomHeading "Egna kortkommandon">
+<!ENTITY sCfixedHeading "Fasta kortkommandon">
+<!ENTITY sCartFeedHeading "Artikel-/flödespanel">
+<!ENTITY sCviewArtHeading "Visnings-/artikelpanel">
+<!ENTITY sCfeedHeading "Flödespanel">
+<!ENTITY sCarticleUp "En artikel upp">
+<!ENTITY sCarticleDown "En artikel ner">
+<!ENTITY sCupLevel "En nivå uppåt">
+<!ENTITY sCexpandTree "Visa flödesträd">
+<!ENTITY sCsame "samma">
+<!ENTITY sCtoggleArtFlag "Växla artikelflagga">
+<!ENTITY sCselToFocus "Fokusera markering">
+<!ENTITY sCfocusUp "Flytta markering upp">
+<!ENTITY sCfocusDown "Flytta markering ner">
+<!ENTITY sCmoveFeedUp "Flytta flöde upp">
+<!ENTITY sCmoveFeedDown "Flytta flöde ner">
+<!ENTITY sCfeedUp "Ett flöde upp">
+<!ENTITY sCfeedDown "Ett flöde ner">
+<!ENTITY sCexpColl "Visa/dölj flödesträd">
+<!ENTITY sCdeleteKey "Delete">
+<!ENTITY sCctrlKey "Ctrl">
+<!ENTITY sCshiftKey "Skift">
+<!ENTITY sCaltKey "Alt">

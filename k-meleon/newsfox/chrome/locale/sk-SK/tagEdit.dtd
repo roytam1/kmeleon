@@ -1,0 +1,9 @@
+<!ENTITY title "Upraviť značky">
+<!ENTITY tagAdd "Značky pre pridanie k zvoleným článkom">
+<!ENTITY tagRemove "Značky pre odstránenie zo zvolených článkov">
+<!ENTITY tagDeleteCompletely "Značky pre zmazanie zo všetkých článkov a zoznamu značiek">
+<!ENTITY colorVaries1 "MODRÁ: značka je vo všetkých zvolených článkoch">
+<!ENTITY colorVaries2 "zmiešané: značka je v niektorých zvolených článkoch">
+<!ENTITY colorVaries3 "ČERVENÁ: značka nie je vo zvolených článkoch">
+<!ENTITY newTagAdd "Nové značky pre pridanie do zvolených článkov">
+<!ENTITY newTagAddExample "&apos;/&apos; oddelené značky: &apos;tech/správy&apos;">

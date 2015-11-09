@@ -1,0 +1,25 @@
+<!ENTITY useGlobal "Use Global Setting">
+<!ENTITY feedAutoCheck "&apos;Refresh all feeds&apos; checks this feed for new articles">
+<!ENTITY dontDeleteUnread "Do not delete unread">
+<!ENTITY groups "Groups:">
+<!ENTITY checkfeed "Check Feed">
+<!ENTITY iconsrc "Icon source:">
+<!ENTITY authentication "Authentication (secure feeds only)">
+<!ENTITY username "Username:">
+<!ENTITY password "Password:">
+<!ENTITY feedPrivate "Encrypt feed articles on disk">
+<!ENTITY keepDays.pre "Keep articles at least">
+<!ENTITY keepDays.post "days">
+<!ENTITY mainTab "General">
+<!ENTITY filterTab "Web filter">
+<!ENTITY securityTab "Security">
+<!ENTITY filterNew "Download filtered web page for all new articles">
+<!ENTITY filterImages "Download images in filtered web page">
+<!ENTITY filterInfo "Enter a filter to transform the article link HTML into an extended article description.  A filter can be either a regular expression that will be matched, or JavaScript code whose value will become the extended article description.">
+<!ENTITY filterJSinfo "When using JavaScript these variables are available:">
+<!ENTITY filterJSvar1 "linkDOM contains the DOM of the article link page">
+<!ENTITY filterJSvar2 "linkHTML contains the text/html of the article link page">
+<!ENTITY filterJSvar3 "getElementsByClass(class, tag, node) returns an array of all html elements with given tag and class contained in given node">
+<!ENTITY filterMime "Override charset (+ for auto, &gt; for test, or charset)">
+<!ENTITY filterInfo2 "You must enter a filter or images will be downloaded for the current article, not an html page.  To use the default filter press the backspace key.">
+<!ENTITY never "never">

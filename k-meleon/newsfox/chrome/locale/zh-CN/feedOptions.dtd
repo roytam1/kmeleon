@@ -1,0 +1,25 @@
+<!ENTITY useGlobal "使用全局设置">
+<!ENTITY feedAutoCheck "&apos;更新所有的源&apos; 将检查该源的更新">
+<!ENTITY dontDeleteUnread "不删除未读的源">
+<!ENTITY groups "群组：">
+<!ENTITY checkfeed "检查源">
+<!ENTITY iconsrc "图标来自：">
+<!ENTITY authentication "认证（只用于安全性的源）">
+<!ENTITY username "用户名：">
+<!ENTITY password "密码：">
+<!ENTITY feedPrivate "对磁盘上该源的文章进行加密">
+<!ENTITY keepDays.pre "将文章保留至少">
+<!ENTITY keepDays.post "天">
+<!ENTITY mainTab "常规">
+<!ENTITY filterTab "网页过滤">
+<!ENTITY securityTab "安全">
+<!ENTITY filterNew "下载过滤所有新文章后的网页">
+<!ENTITY filterImages "在过滤后的网页中下载图片">
+<!ENTITY filterInfo "输入过滤规则用以将文章链接 HTML 转换为可扩展的文章描述。过滤规则包括可匹配的正则表达式或值可以转换为可扩展文章描述的 JavaScript 代码。">
+<!ENTITY filterJSinfo "使用 JavaScript 时允许使用下列变量：">
+<!ENTITY filterJSvar1 "linkDOM 包含的是文章链接页面的 DOM">
+<!ENTITY filterJSvar2 "linkHTML 包含的是文章链接页面的 text/html">
+<!ENTITY filterJSvar3 "getElementsByClass(class, tag, node) 返回的是给定结点中包含有给定 tag 和 class 的所有 html 元素的数组">
+<!ENTITY filterMime "覆盖字符集（+ 为自动，&gt; 为测试，或字符集）">
+<!ENTITY filterInfo2 "您必须输入一条筛选规则或图片将下载到当前文章，而非 html 页面，按退格键使用默认筛选规则。">
+<!ENTITY never "不这么做">

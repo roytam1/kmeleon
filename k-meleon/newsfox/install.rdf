@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+
+<RDF xmlns="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:em="http://www.mozilla.org/2004/em-rdf#">
+
+ <Description about="urn:mozilla:install-manifest">
+
+  <em:id>{899DF1F8-2F43-4394-8315-37F6744E6319}</em:id>
+	<em:version>1.0.9.1</em:version>
+	<em:type>2</em:type>
+  <em:name>NewsFox</em:name>
+  <em:description>RSS/Atom News Reader.</em:description>
+  <em:creator>Andy Frank</em:creator>
+  <em:contributor>Andrey Gromyko</em:contributor>
+	<em:contributor>Ron Pruitt</em:contributor>
+  <em:homepageURL>http://newsfox.mozdev.org/</em:homepageURL>
+  <em:aboutURL>chrome://newsfox/content/help/about.xhtml</em:aboutURL>
+	<em:iconURL>chrome://newsfox/skin/newsfox-32.png</em:iconURL>
+
+  <em:targetApplication><!-- Firefox -->
+   <Description>
+    <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id>
+    <em:minVersion>2.0</em:minVersion>
+		<em:maxVersion>32.0a1</em:maxVersion> <!-- check AMO -->
+   </Description>
+  </em:targetApplication>
+  
+  <em:targetApplication><!-- K-Meleon -->
+   <Description>
+    <em:id>{944df56f-c0ec-4d7b-94b6-f625c8cc96ea}</em:id>
+    <em:minVersion>1.5</em:minVersion>
+		<em:maxVersion>75.0</em:maxVersion> <!-- check AMO -->
+   </Description>
+  </em:targetApplication>  
+
+  <em:targetApplication><!-- SeaMonkey -->
+   <Description>
+    <em:id>{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}</em:id>
+    <em:minVersion>2.0</em:minVersion>
+		<em:maxVersion>2.29a1</em:maxVersion>
+   </Description>
+  </em:targetApplication>
+
+ </Description>
+
+</RDF>

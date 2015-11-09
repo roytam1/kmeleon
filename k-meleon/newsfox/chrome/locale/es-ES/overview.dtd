@@ -1,0 +1,29 @@
+<!ENTITY overview.title "Guía rápida">
+<!ENTITY adding.feeds "Añadir hilos">
+<!ENTITY addnew.feeds "Añada nuevos hilos usando el botón añadir hilo.">
+<!ENTITY addnew.feeds.opml "Puede importar nuevos hilos de un archivo OPML desde el menú opciones.">
+<!ENTITY addnew.feeds.auto "Si elige &apos;Newsfox&apos; en el apartado &apos;Canales&apos; de las opciones de Firefox, NewsFox puede añadir hilos pulsando sobre el icono RSS de la esquina derecha de la barra de direcciones.">
+<!ENTITY alternative.use "NewsFox puede usar también los marcadores dinámicos de Firefox. Puede seleccionar qué marcadores leer con NewsFox usando el botón marcadores dinámicos.">
+<!ENTITY feed.options "Las opciones de hilos pueden cambiarse desde el menú contextual en el panel de canales (mitad izquierda) o desde el botón de opciones.">
+<!ENTITY remove.feeds "Borrar hilos">
+<!ENTITY feed.remove "Borra permanentemente un hilo y todos sus artículos al usar el botón de borrar hilo. Se eliminará el hilo de todos los grupos.">
+<!ENTITY new.items "Comprobación de nuevos artículos">
+<!ENTITY retrieve.items "Obtenga los neuvos artículos usando el botón recargar.">
+<!ENTITY retrieve.items.alt "También puede comprobar los nuevos artículos usando el menú contextual de un hilo o grupo en el panel de canales.">
+<!ENTITY retrieve.options "Puede establecer las opciones para descargar automáticamente los nuevos artículos en el menú opciones.">
+<!ENTITY manage.title "Administración de artículos">
+<!ENTITY manage.info "Los artículos se marcarán como leídos al seleccionarlos. Puede cambiar el estado de leído/no leído y marcado/no marcado usando el icono adecuado.">
+<!ENTITY manage.info2 "Los artículos pueden marcarse como leído/no leído, así como borrarse desde el menú contextual, los botones de la barra de herramientas o usando las combinaciones de teclas.">
+<!ENTITY manage.info3 "Puede restaurar los artículos pulsando en las cabeceras de las columnas. El comportamiento por defecto es tener los artículos más nuevos al principio. Para mover los artículos no leídos al inicio, pulse la cabecera de la columna leído/no leído.">
+<!ENTITY groups.tags "Grupos">
+<!ENTITY groups.info "Existe un grupo llamado &apos;HILOS&apos; que contiene todos sus hilos. Los hilos pueden pertenecer a tantos grupos como quiera. Sólo existe una copia de cada hilo: si marca un artículo como leído, se marca en todos los grupos.">
+<!ENTITY groups.info1 "Puede añadir grupos usando el botón añadir grupo.">
+<!ENTITY groups.info2 "También hay grupos formados como resultado de la búsqueda en hilos. Por ejemplo puede buscar todas las apariciones de &apos;NewsFox&apos; en sus hilos. Los grupos de búsqueda se pueden añadir usando el botón añadir grupo de búsqueda.">
+<!ENTITY groups.info3 "Ambos tipos de grupos pueden borrarse usando el botón borrar grupo.">
+<!ENTITY groups.info4 "Los grupos son útiles para organizar sus hilos: puede usar grupos para las novedades, importantes, diarios, semanales, noticias, artículos técnicos. Puede organizarse como prefiera.">
+<!ENTITY groups.info5 "Las opciones de grupos pueden cambiarse desde el menú contextual del panel de canales o usando el botón opciones.">
+<!ENTITY other.title "Varios">
+<!ENTITY other.dragndrop "Los hilos pueden reordenarse en los grupos y los grupos pueden ordenarse arrastrando y soltando.">
+<!ENTITY other.art.toolbar "Existe un menú contextual en la mitad izquierda del panel de canales. Hay un menú contextual y una barra de herramientas para los artículos en la mitad derecha. Los títulos emergentes explican la función de cada botón.">
+<!ENTITY other.info "Si por alguna razón sus canales desaparecen, hay opciones de recuperación en el menú principal de opciones.">
+<!ENTITY other.info2 "Las combinaciones de teclas pueden establecerse en el menú opciones, y una lista de las combinaciones se puede consultar en el menú ayuda.">

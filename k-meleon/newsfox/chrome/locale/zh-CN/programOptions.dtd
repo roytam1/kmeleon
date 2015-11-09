@@ -1,0 +1,52 @@
+<!ENTITY title "NewsFox 选项">
+<!ENTITY global "全局显示的样式：">
+<!ENTITY checkOnStartup "启动时更新所有源">
+<!ENTITY notifyUponNewArticles "当有新文章提交时通知我">
+<!ENTITY confirmDelete "删除群组或源时要求确认">
+<!ENTITY confirmDeleteArticle "删除文章时要求确认">
+<!ENTITY shortcutkeys "键盘快捷键：">
+<!ENTITY restart "（这些更改可能需要重启 Newsfox 才能生效）">
+<!ENTITY shortcutsNone "无">
+<!ENTITY shortcutsStd "standard">
+<!ENTITY shortcutsAlt "alternate">
+<!ENTITY shortcutsCustom "custom">
+<!ENTITY seehelp "菜单中包含一个所有键盘快捷键的列表。">
+<!ENTITY newsfox.dir "Newsfox 目录">
+<!ENTITY moveNfDir "目录内容：">
+<!ENTITY copy "复制">
+<!ENTITY move "移动">
+<!ENTITY noaction "无操作">
+<!ENTITY Child_directory "子目录">
+<!ENTITY Parent_directory "父目录">
+<!ENTITY dateStyle "日期样式：">
+<!ENTITY changeToPresent "将文章日期更改为当前时间，当：">
+<!ENTITY articleTooltips "文章的工具提示">
+<!ENTITY copyToClipboard "复制文章主体到剪贴板">
+<!ENTITY selectAddedFeed "当添加新的源时立即选择该源">
+<!ENTITY feedRefresh "源更新间隔：">
+<!ENTITY feedRefreshThreads "线程">
+<!ENTITY feedRefreshRenew "续租时长（秒）">
+<!ENTITY feedSlowdown "对于性能缓慢的计算机，请减少线程数或增加续租时长。">
+<!ENTITY feedRefreshTimeout "源更新的超时时限（秒）">
+<!ENTITY horizontalPanes "水平面板（需要重启动）">
+<!ENTITY favicons "小图标">
+<!ENTITY updateTimeToBookmark "将源地址和更新次数写入书签">
+<!ENTITY spam "启用收藏夹过滤器">
+<!ENTITY globalTab "全局">
+<!ENTITY feedTab "源/文章">
+<!ENTITY generalTab "常规">
+<!ENTITY shortcutsTab "快捷键">
+<!ENTITY keywordsTab "关键字">
+<!ENTITY shortcuts.operationHeader "操作">
+<!ENTITY shortcuts.select "选择一列并输入组合键。">
+<!ENTITY shortcuts.warning "您的许多按键已被占用。">
+<!ENTITY shortcuts.experiment "实验性：用于查找可用的操作或选择其中一个预设选项。">
+<!ENTITY keyword "关键字：">
+<!ENTITY keywordsHighlighted "自动高亮文章内的关键字。">
+<!ENTITY caseIgnored "所有的关键字搜索均为小写。">
+<!ENTITY statusBar "在状态栏显示自动订阅图标">
+<!ENTITY statusBarText "文字：">
+<!ENTITY buttonText "Newsfox 按钮的文字：">
+<!ENTITY statusBarTextNew "# 更新">
+<!ENTITY statusBarTextUnread "# 未读">
+<!ENTITY statusBarTextNone "无">

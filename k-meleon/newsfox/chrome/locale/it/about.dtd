@@ -1,0 +1,9 @@
+<!ENTITY projectOwner "Autore">
+<!ENTITY localization "Localizzazioni:">
+<!ENTITY primaryContact "contatto principale">
+<!ENTITY developer "Sviluppatore">
+<!ENTITY projectCreator "Autore del progetto">
+<!ENTITY icons "Icone:">
+<!ENTITY fromFirefox "La maggior parte delle icone sono state ottenute da Firefox e Thunderbird (o modificando quelle presenti nei due programmi).">
+<!ENTITY fromFamfamfam "Le icone di spunta, tag, archivio e allegati provengono da famfamfam.com.">
+<!ENTITY helpADR "Si ringrazia ADR per l&apos;aiuto con le icone.">

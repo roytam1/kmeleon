@@ -1,0 +1,16 @@
+kmeleon.jar:
+% content flashblock %content/flashblock/ contentaccessible=yes
+    content/flashblock/authorware.png
+    content/flashblock/director.png
+    content/flashblock/flash.png
+    content/flashblock/flashblock-prefs.js
+    content/flashblock/flashblock.css
+    content/flashblock/flashblock.dtd
+    content/flashblock/flashblock.xml
+    content/flashblock/flashplay.png
+    content/flashblock/options.js
+    content/flashblock/options.xul
+    content/flashblock/silverlight.png
+    content/flashblock/silverplay.png
+    content/flashblock/version.dtd
+    content/flashblock/videoblock.xml

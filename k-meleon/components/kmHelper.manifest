@@ -1,0 +1,9 @@
+component {6e4995c3-deef-46a2-be73-154647710190} kmHelper.js
+contract @kmeleon/helper;1 {6e4995c3-deef-46a2-be73-154647710190}
+category app-startup kmHelper @kmeleon/helper;1
+interfaces kmHelper.xpt
+
+component {749e62f4-60ae-4569-a8a2-de78b649660f} nsLoginManagerPrompter.js
+contract @mozilla.org/passwordmanager/authpromptfactory;1 {749e62f4-60ae-4569-a8a2-de78b649660f}
+component {8aa66d77-1bbb-45a6-991e-b8f47751c292} nsLoginManagerPrompter.js
+contract @mozilla.org/login-manager/prompter;1 {8aa66d77-1bbb-45a6-991e-b8f47751c292}

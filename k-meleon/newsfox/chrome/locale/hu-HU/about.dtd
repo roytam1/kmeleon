@@ -1,0 +1,9 @@
+<!ENTITY projectOwner "projekt gazda">
+<!ENTITY localization "Fordítás:">
+<!ENTITY primaryContact "elsődleges kapcsolat">
+<!ENTITY developer "fejlesztő">
+<!ENTITY projectCreator "projekt létrehozó">
+<!ENTITY icons "Ikonok:">
+<!ENTITY fromFirefox "A legtöbb ikon (vagy módosítva a) Firefox/Thunderbirdből.">
+<!ENTITY fromFamfamfam "Zászló, címke, tárolás és melléklet ikon a famfamfam.com-tól">
+<!ENTITY helpADR "Köszönet az ADR-nek az ikon-segítségért.">

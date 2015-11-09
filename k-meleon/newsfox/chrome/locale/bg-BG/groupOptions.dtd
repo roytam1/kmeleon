@@ -1,0 +1,27 @@
+<!ENTITY name "Име:">
+<!ENTITY insertbefore "Въвеждане преди:">
+<!ENTITY dragrtl "Влачете от дясно на ляво, за да добавите емисия в група.">
+<!ENTITY dragltr "Влачете от ляво на дясно, за да премахнете емисия от група.">
+<!ENTITY dragwithin "Влачете в групата за преподреждане.">
+<!ENTITY flagged "С флаг:">
+<!ENTITY either "и двете">
+<!ENTITY unread "Непрочетени:">
+<!ENTITY searchtext "Търсене на текст:">
+<!ENTITY match "Съвпадения:">
+<!ENTITY body "тяло">
+<!ENTITY title2 "заглавие">
+<!ENTITY tag "етикет">
+<!ENTITY casesensitive "Case sensitive">
+<!ENTITY searchvalues "Търсене на величини">
+<!ENTITY textvalues "Текстова величина">
+<!ENTITY time "Време:">
+<!ENTITY grouptosearch "Група за търсене:">
+<!ENTITY between "Между">
+<!ENTITY and "и">
+<!ENTITY ago "преди">
+<!ENTITY hours "часа">
+<!ENTITY weeks "седмици">
+<!ENTITY months "месеци">
+<!ENTITY years "години">
+<!ENTITY ever "завинаги">
+<!ENTITY showUnread "Показване на броят непрочетени статии (може да забави NewsFox)">

@@ -1,0 +1,52 @@
+<!ENTITY title "Настройки на NewsFox">
+<!ENTITY global "Стил на показване:">
+<!ENTITY checkOnStartup "Обновяване на всички емисии при старт">
+<!ENTITY notifyUponNewArticles "Известяване при откриване на нови публикации">
+<!ENTITY confirmDelete "Питане за потвърждение, при изтриване на групи, емисии или заглавия">
+<!ENTITY confirmDeleteArticle "Питане за потвърждение при изтриване на публикации">
+<!ENTITY shortcutkeys "Бутони за бърз достъп:">
+<!ENTITY restart "(Промяната изисква рестартиране на Newsfox)">
+<!ENTITY shortcutsNone "няма">
+<!ENTITY shortcutsStd "стандартни">
+<!ENTITY shortcutsAlt "алтернативни">
+<!ENTITY shortcutsCustom "по избор">
+<!ENTITY seehelp "в менюто има списък на бутоните за бърз достъп.">
+<!ENTITY newsfox.dir "Директория на Newsfox">
+<!ENTITY moveNfDir "Директорията съдържа:">
+<!ENTITY copy "копиране">
+<!ENTITY move "преместване">
+<!ENTITY noaction "няма">
+<!ENTITY Child_directory "Поддиректория">
+<!ENTITY Parent_directory "Основна директория">
+<!ENTITY dateStyle "Стил на датата:">
+<!ENTITY changeToPresent "Промяна на датата на публикацията ако:">
+<!ENTITY articleTooltips "Подсказки на публикацията">
+<!ENTITY copyToClipboard "Копиране на публикацията в Клипборда">
+<!ENTITY selectAddedFeed "Избиране на новата емисия след добавяне">
+<!ENTITY feedRefresh "Обновяване:">
+<!ENTITY feedRefreshThreads "теми">
+<!ENTITY feedRefreshRenew "обновяване(секунди)">
+<!ENTITY feedSlowdown "За по-бавни компютри - намалете темите и/или увеличете времето за обновяване">
+<!ENTITY feedRefreshTimeout "Време за обновяване на емисиите (в секунди)">
+<!ENTITY horizontalPanes "Хоризонтални панели (изисква рестартиране)">
+<!ENTITY favicons "Фавикони">
+<!ENTITY updateTimeToBookmark "Напишете адреса и времето за обновяване на отметката">
+<!ENTITY spam "Включване на интерес-филтъра">
+<!ENTITY globalTab "Глобални">
+<!ENTITY feedTab "Емисии/Статии">
+<!ENTITY generalTab "Общи">
+<!ENTITY shortcutsTab "Бързи клавиши">
+<!ENTITY keywordsTab "Ключови думи">
+<!ENTITY shortcuts.operationHeader "Операция">
+<!ENTITY shortcuts.select "Изберете ред и натиснете клавишната комбинация, за да я зададете.">
+<!ENTITY shortcuts.warning "Много от клавишните комбинации вече се използват или не са налични.">
+<!ENTITY shortcuts.experiment "Експериментирайте, за да откриете кои работят или изберете от предварително зададените.">
+<!ENTITY keyword "Ключова дума:">
+<!ENTITY keywordsHighlighted "Ключовите думи автоматично се оцветяват в статиите.">
+<!ENTITY caseIgnored "Всички търсения се правят с малки букви.">
+<!ENTITY statusBar "Икона за автоматично абониране в лентата">
+<!ENTITY statusBarText "Текст:">
+<!ENTITY buttonText "Текст на бутона Newsfox">
+<!ENTITY statusBarTextNew "# ново">
+<!ENTITY statusBarTextUnread "# непрочетено">
+<!ENTITY statusBarTextNone "няма">

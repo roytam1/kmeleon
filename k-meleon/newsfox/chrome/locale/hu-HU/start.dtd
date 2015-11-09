@@ -1,0 +1,16 @@
+<!ENTITY info.title "NewsFox Információ">
+<!ENTITY need.help "Segítségre van szüksége?">
+<!ENTITY newsfox.read "Olvassa el az">
+<!ENTITY overview "áttekintést">
+<!ENTITY for.tutorial "egy gyors bevezetésért.">
+<!ENTITY like.newsfox "Szereti a Newsfox-ot?">
+<!ENTITY consider.contributing "Ha azon gondolkozik, hogy hozzájárulna a projekhez:">
+<!ENTITY spread.word "Ismertesse meg másokkal — terjessze a NewsFox hírét.">
+<!ENTITY consider.donation "Értékeli a munkát és bőkezűnek érzi magát? Fontoljon meg pénzbeli adományt a NewsFox projekt számára!">
+<!ENTITY miss.something "Hiányol valamit?">
+<!ENTITY submit.bug "Küldjön hibajelentést vagy fejlesztési igényt.">
+<!ENTITY write.code "Kódot szeretni írni?">
+<!ENTITY newsfox.authors "Vegye fel a kapcsolatot egy fejlesztővel.">
+<!ENTITY pre.for.more.info "További információkért látogassa meg a">
+<!ENTITY visit.homepage "NewsFox honlapot">
+<!ENTITY for.more.info "!">

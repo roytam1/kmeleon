@@ -1,0 +1,29 @@
+<!ENTITY overview.title "Översikt">
+<!ENTITY adding.feeds "Att lägga till flöden">
+<!ENTITY addnew.feeds "Lägg till nya flöden m.h.a. lägg till flöde-knappen.">
+<!ENTITY addnew.feeds.opml "Nya flöden kan importeras från en OPML-fil via inställningsmenyn.">
+<!ENTITY addnew.feeds.auto "Genom att välja &quot;NewsFox&quot; i panelen &quot;Flöden&quot; i Firefox inställningar, så kan NewsFox lägga till flöden när du klickar på RSS-ikonen på höger sida i adressfältet (visas när ett flöde är tillgängligt).">
+<!ENTITY alternative.use "NewsFox kan även läsa Firefox smarta bokmärken. Du kan välja vilka smarta bokmärken som skall läsas med NewsFox via smarta bokmärken-knappen.">
+<!ENTITY feed.options "Flödesinställningar kan ändras via snabbmenyn i flödespanelen (vänster sida) eller via någon av inställningsknapparna.">
+<!ENTITY remove.feeds "Att ta bort flöden">
+<!ENTITY feed.remove "Ta bort ett flöde och alla dess artiklar permanent m.h.a. ta bort flöde-knappen.  Detta tar bort flödet från alla grupper.">
+<!ENTITY new.items "Att söka efter nya artiklar">
+<!ENTITY retrieve.items "Hämta nya artiklar m.h.a. uppdateringsknappen.">
+<!ENTITY retrieve.items.alt "Du kan också hämta nya artiklar via snabbmenyn för ett flöde eller en grupp i flödespanelen.">
+<!ENTITY retrieve.options "Inställningar för automatisk nerladdning av nya artiklar kan anges i inställningsmenyn.">
+<!ENTITY manage.title "Att hantera artiklar">
+<!ENTITY manage.info "Artiklar märks som lästa när de markeras.  Statusarna läst/oläst och flaggad/oflaggad för en artikel kan växlas genom att klicka på lämplig ikon.">
+<!ENTITY manage.info2 "Artiklar kan märkas som lästa/olästa eller tas bort via snabbmenyn, verktygsfältsknappar eller kortkommandon.">
+<!ENTITY manage.info3 "Artiklar kan sorteras om genom att klicka på kolumnrubrikerna.  Standard är att ha de nyaste artiklarna överst.  För att flytta olästa artiklar överst, klicka på kolumnrubriken lästa/olästa.">
+<!ENTITY groups.tags "Grupper">
+<!ENTITY groups.info "Det finns en grupp vid namn &quot;FLÖDEN&quot; som innehåller alla dina flöden.  Flöden kan tillhöra precis så många grupper som du själv vill.  Det finns endast en kopia av ett flöde: När du märker en artikel som läst, så markeras den som läst i alla grupper.">
+<!ENTITY groups.info1 "Grupper läggs till m.h.a. lägg till grupp-knappen.">
+<!ENTITY groups.info2 "Det finns även grupper som skapas genom sökning bland flöden.  Du kan exempelvis söka efter alla förekomster av &quot;NewsFox&quot; bland dina flöden. Dessa sökgrupper läggs till med lägg till sökgrupp-knappen.">
+<!ENTITY groups.info3 "Bägge grupptyperna tas bort m.h.a. ta bort grupp-knappen.">
+<!ENTITY groups.info4 "Grupper är användbara för att ordna dina flöden: Du kanske vill ha grupper för nytt, viktigt, idag, i veckan, nyheter, skogspatologi o.s.v.  Du kan ordna dem som du vill.">
+<!ENTITY groups.info5 "Gruppinställningar kan ändras via snabbmenyn i flödespanelen eller via någon av inställningsknapparna.">
+<!ENTITY other.title "Övrig information">
+<!ENTITY other.dragndrop "Flöden kan sorteras om inom grupper, och grupper kan sorteras om, genom att använda dra och släpp.">
+<!ENTITY other.art.toolbar "Det finns en snabbmeny för flödespanelen på vänster sida. Det finns en snabbmeny och ett verktygsfält för artiklar på höger sida.  Verktygstips förklarar knapparnas funktioner.">
+<!ENTITY other.info "Om det osannolika skulle inträffa att alla dina flöden försvinner, så finns det återställningsalternativ i huvudinställningsmenyn.">
+<!ENTITY other.info2 "Kortkommandon kan anges i inställningsmenyn och en lista över kortkommandon finns tillgänglig i hjälpmenyn.">

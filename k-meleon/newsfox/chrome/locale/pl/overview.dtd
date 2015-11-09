@@ -1,0 +1,29 @@
+<!ENTITY overview.title "Opis">
+<!ENTITY adding.feeds "Dodawanie kanałów">
+<!ENTITY addnew.feeds "Nowe kanały można dodać używając przycisku dodawania kanału.">
+<!ENTITY addnew.feeds.opml "Można dokonać importu nowych kanałów z poziomu opcji rozszerzenia importując plik OPML.">
+<!ENTITY addnew.feeds.auto "Kanały można także dodawać wybierając element &quot;NewsFox&quot; z poziomu opcji Firefoksa na karcie &quot;Kanały&quot;, oraz klikając na ikonie RSS - jeśli kanał jest dostępny - znajdującą się po prawej stronie paska adresu.">
+<!ENTITY alternative.use "Za pomocą NewsFoksa można także czytać dynamiczne zakładki. Zakładki do czytania można wybrać używając przycisku dynamicznych zakładek.">
+<!ENTITY feed.options "Opcje kanału można zmieniać wybierając odpowiednie opcje z menu kontekstowego panelu znajdującego się po lewej stronie lub z opcji przycisku.">
+<!ENTITY remove.feeds "Usuwanie kanałów">
+<!ENTITY feed.remove "Można całkowicie usunąć kanał z jego zawartością używając przycisku usuwania kanału. Spowoduje to usunięcie kanału ze wszystkich grup.">
+<!ENTITY new.items "Sprawdzanie dostępności nowych artykułów">
+<!ENTITY retrieve.items "Nowe artykuły można pobrać używając przycisku &quot;Odśwież&quot;">
+<!ENTITY retrieve.items.alt "Nowe artykuły można także pobrać używając odpowiednich opcji z menu kontekstowego kanału lub grupy w panelu kanału.">
+<!ENTITY retrieve.options "Ustawienia automatycznego pobierania nowych artykułów należy określić w opcjach.">
+<!ENTITY manage.title "Zarządzanie artykułami">
+<!ENTITY manage.info "Po wybraniu artykułu jest on automatycznie oznaczany jako przeczytany. Status artykułu, przeczytany/nieprzeczytany oraz oznaczony/nieoznaczony, można zmieniać klikając odpowiednie ikony.">
+<!ENTITY manage.info2 "Artykuły mogą być oznaczane jako przeczytane/nieprzeczytane lub usuwane z poziomu menu kontekstowego, za pomocą przycisków narzędziowych lub skrótów klawiaturowych.">
+<!ENTITY manage.info3 "Artykuły można ponownie odtworzyć za pomocą kliknięcia na nagłówkach kolumn. Domyślnie, nowe artykuły są zawsze na górze. Aby przesunąć na górę nieprzeczytane artykuły, należy kliknąć na nagłówku kolumny przeczytanych/nieprzeczytanych artykułów.">
+<!ENTITY groups.tags "Grupy">
+<!ENTITY groups.info "Grupa o nazwie &quot;Kanały&quot; zawiera wszystkie kanały. Kanały mogą należeć do różnych grup. Zaznaczenie artykułu jako przeczytanego w jakiejś grupie, spowoduje oznaczenie go jako przeczytanego we wszystkich grupach, w których on się znajduje.">
+<!ENTITY groups.info1 "Grupy dodaje się za pomocą przycisku &quot;Dodaj grupę&quot;">
+<!ENTITY groups.info2 "Są także grupy uformowane poprzez szukanie wśród kanałów. Na przykład można wyszukać wszystkie wystąpienia &quot;NewsFox&quot; wśród kanałów użytkownika. Te grupy są dodawane za pomocą przycisku &quot;Dodaj wyszukaną grupę&quot;">
+<!ENTITY groups.info3 "Oba typy grup można usuwać za pomocą przycisku usuwania grup.">
+<!ENTITY groups.info4 "Grupy są bardzo użyteczne do organizowania kanałów. Można utworzyć grupy dla różnych zagadnień, czy priorytetów np. ważne, dzienne, tygodniowe, wiadomości, techniczne.">
+<!ENTITY groups.info5 "Opcje grup można zmieniać poprzez menu kontekstowe panelu kanału lub za pomocą przycisku opcji.">
+<!ENTITY other.title "Różne">
+<!ENTITY other.dragndrop "W obrębie grup można zmieniać kolejność kanałów, a także samą kolejność grup przeciągając je w odpowiednie miejsce.">
+<!ENTITY other.art.toolbar "Po lewej stronie znajduje się panel kanału, który ma menu kontekstowe. Po prawej stronie znajduje się pasek narzędzi z menu kontekstowym dla artykułów. Podpowiedzi informują o działaniu danego przycisku.">
+<!ENTITY other.info "W przypadku gdy wszystkie kanały przestały się wyświetlać, należy użyć opcji odtwarzania znajdujących się w głównym menu opcji.">
+<!ENTITY other.info2 "W opcjach można określić skróty klawiaturowe. Lista skrótów jest dostępna w pomocy.">

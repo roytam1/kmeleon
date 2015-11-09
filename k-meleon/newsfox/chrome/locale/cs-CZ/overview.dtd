@@ -1,0 +1,34 @@
+<!ENTITY overview.title "Nápověda">
+<!ENTITY adding.feeds "Přidávání kanálů">
+<!ENTITY addnew.feeds "Přidání nového kanálu tlačítkem 'Přidat kanál'">
+<!ENTITY addnew.feeds.opml "Nové kanály mohou být importovány z OPML souboru v nabídce 'Nastavení'">
+<!ENTITY addnew.feeds.auto "Volbou 'NewsFox' na kartě 'Kanály' v okně 'Možnosti' ve Firefoxu (Nástroje &gt;&gt; Nastavení), můžete přidávat kanály do NewsFox kliknutím na ikonu RSS, která se objeví na pravé straně adresního řádku je-li kanál dostupný.">
+<!ENTITY alternative.use "NewsFox také může načítat obsah záložek Firefoxu. Můžete vybrat, které záložky mají být načteny do NewsFox pomocí tlačítka 'Záložky Firefox'.">
+<!ENTITY feed.options "Nastavení každého kanálu se může měnit přes kontextovou nabídku v panelu kanálů (levý panel) nebo pomocí tlačítka 'Nastavení'.">
+<!ENTITY remove.feeds "Odstraňování kanálů">
+<!ENTITY feed.remove "Úplné odstranění kanálu a všech jeho článků tlačítkem 'Odstranit kanál'. Kanál bude odstraněn ze všech složek.">
+<!ENTITY new.items "Kontrola nových článků">
+<!ENTITY retrieve.items "Načtení nových článků tlačítkem 'Aktualizovat'">
+<!ENTITY retrieve.items.alt "Nové články je také možno načíst přes kontextovou nabídku kanálu nebo složky kanálů v panelu kanálů.">
+<!ENTITY retrieve.options "Automatické stahování nových článků můžete nastavit v nabídce 'Nastavení'.">
+<!ENTITY manage.title "Správa článků">
+<!ENTITY manage.info "Články jsou označeny jako prečtené po najetí kurzorem.  Stav prečteno/neprečteno a označit/odznačit může být změněn kliknutím na příslušné tlačítko.">
+<!ENTITY manage.info2 "Články mohou být označeny jako prečtené/neprečtené nebo odstraněny poumocí kontextové nabídky, tlačítkem na panelu nástrojů nebo klávesovou zkratkou.">
+<!ENTITY manage.info3 "Články mohou být seřazeny kliknutím na hlavičku příslušného sloupce. Ve výchozím stavu jsou nejnovější články nahoře. Pro přesun nepřečtených článků nahoru, klikněte na hlavičku sloupce 'Přečteno'.">
+<!ENTITY groups.tags "Složky">
+<!ENTITY groups.info "Výchozí složka se nazývá 'Všechny kanály' a obsahuje všechny vaše kanály. Chcete-li, mohou být kanály zařazeny do více složek. Označíte-li článek jako přečtený, je takto automaticky označen ve všech složkách..">
+<!ENTITY groups.info1 "Složky se přidávají tlačítkem 'Přidat složku'.">
+<!ENTITY groups.info2 "Existují též složky vytvořené na základě vyhledávacích kritérií. Například chcete vyhledat všechny články obsahující text 'NewsFox'. Tyto složky jsou přidávány tlačítkem 'Přidat vyhledávací složku'">
+<!ENTITY groups.info3 "Oba typy složek se odstraňují tlačítkem 'Odstranit složku'.">
+<!ENTITY groups.info4 "Složky se používají pro lepší organizaci kanálů - můžete mít složky pro nové, důležité, technické nebo jiné kanály. Můžete je vytvářet a organizovat libovolně podle vašich požadavků.">
+<!ENTITY groups.info5 "Vlastnosti složek se mění z kontextové nabídky v panelu kanálů nebo tlačítkem 'Nastavení'.">
+<!ENTITY other.title "Různé">
+<!ENTITY other.dragndrop "Kanály a skupiny mohou být přeskupovány pomocí myši metodou táhni - pusť.">
+<!ENTITY other.art.toolbar "Kontextová nabídka pro panel kanálů je vlevo.
+
+
+Kontextová nabídka a panel nástrojů pro články je vpravo.
+
+Bublinová nápověda vysvětluje význam jednotlivých tlačítek.">
+<!ENTITY other.info "Jestliže z nějakého důvodu dojde ke ztrátě všech vašich kanálů, můžete je obnovit ze zálohy pomocí nabídky 'Nastavení' &gt;&gt; 'Obnovení kanálů ze zálohy'.">
+<!ENTITY other.info2 "Klávesové zkratky je možno nastavit v nabídce 'Nastavení' &gt;&gt; 'Nastavení NewsFox' na kartě 'Klávesové zkratky', seznam klávesových zkratek je dostupný v nabídce 'Nápověda'.">

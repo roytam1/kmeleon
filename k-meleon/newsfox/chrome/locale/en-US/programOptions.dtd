@@ -1,0 +1,52 @@
+<!ENTITY title "NewsFox Options">
+<!ENTITY global "Global Display Style:">
+<!ENTITY checkOnStartup "Refresh all feeds on startup">
+<!ENTITY notifyUponNewArticles "Notify when new article(s) posted">
+<!ENTITY confirmDelete "Ask for confirmation when deleting groups or feeds">
+<!ENTITY confirmDeleteArticle "Ask for confirmation when deleting articles">
+<!ENTITY shortcutkeys "Shortcut keys:">
+<!ENTITY restart "(Change may require restarting Newsfox)">
+<!ENTITY shortcutsNone "none">
+<!ENTITY shortcutsStd "standard">
+<!ENTITY shortcutsAlt "alternate">
+<!ENTITY shortcutsCustom "custom">
+<!ENTITY seehelp " menu has a list of shortcut keys.">
+<!ENTITY newsfox.dir "Newsfox directory">
+<!ENTITY moveNfDir "Directory contents:">
+<!ENTITY copy "copy">
+<!ENTITY move "move">
+<!ENTITY noaction "no action">
+<!ENTITY Child_directory "Child directory">
+<!ENTITY Parent_directory "Parent directory">
+<!ENTITY dateStyle "Date Style:">
+<!ENTITY changeToPresent "Change article date to present time if:">
+<!ENTITY articleTooltips "Article tooltips">
+<!ENTITY copyToClipboard "Copy article body to clipboard">
+<!ENTITY selectAddedFeed "Select new feed when added">
+<!ENTITY feedRefresh "Feed refresh:">
+<!ENTITY feedRefreshThreads "threads">
+<!ENTITY feedRefreshRenew "renewal(seconds)">
+<!ENTITY feedSlowdown "For slower computers, decrease the threads and/or increase the renewal time.">
+<!ENTITY feedRefreshTimeout "Feed refresh timeout (seconds)">
+<!ENTITY horizontalPanes "Horizontal panes (requires restart)">
+<!ENTITY favicons "Favicons">
+<!ENTITY updateTimeToBookmark "Write feed url and update times to bookmark">
+<!ENTITY spam "Enable interest filter">
+<!ENTITY globalTab "Global">
+<!ENTITY feedTab "Feeds/Articles">
+<!ENTITY generalTab "General">
+<!ENTITY shortcutsTab "Shortcuts">
+<!ENTITY keywordsTab "Keywords">
+<!ENTITY shortcuts.operationHeader "Operation">
+<!ENTITY shortcuts.select "Select a row and type a key combination to set a keystroke.">
+<!ENTITY shortcuts.warning "Many keystrokes are already used and unavailable.">
+<!ENTITY shortcuts.experiment "Experiment to find what works or choose one of the preset options.">
+<!ENTITY keyword "Keyword:">
+<!ENTITY keywordsHighlighted "Keywords are automatically highlighted in articles.">
+<!ENTITY caseIgnored "All searches are done in lower case.">
+<!ENTITY statusBar "Autosubscribe icon in status bar">
+<!ENTITY statusBarText "Text:">
+<!ENTITY buttonText "Newsfox button text:">
+<!ENTITY statusBarTextNew "# new">
+<!ENTITY statusBarTextUnread "# unread">
+<!ENTITY statusBarTextNone "none">

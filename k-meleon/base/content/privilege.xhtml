@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html [
+  <!ENTITY % htmlDTD
+    PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "DTD/xhtml1-strict.dtd">
+  %htmlDTD;
+  <!ENTITY % privilegeDTD
+    SYSTEM "chrome://kmeleon/locale/privilege.dtd">
+  %privilegeDTD;
+  <!ENTITY % globalDTD
+    SYSTEM "chrome://global/locale/global.dtd">
+  %globalDTD;
+]>
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <head>
+    <title>&loadError.label;</title>
+    <link rel="stylesheet" href="chrome://global/skin/netError.css" type="text/css" media="all" />
+    <link rel="icon" type="image/png" id="favicon" href="chrome://global/skin/icons/warning-16.png"/>
+  </head>
+
+  <body>
+    <div id="errorContainer">
+      <div id="errorTitlesContainer">
+
+      </div>
+      <div id="errorDescriptionsContainer">
+
+      </div>
+    </div>
+    <div id="errorPageContainer">
+
+      <!-- Error Title -->
+      <div id="errorTitle">
+        <h1>&warningTitle.label;</h1>
+      </div>
+	  <!-- Error Long Description -->
+      <div id="errorLongContent">
+        &privilegeError.longDesc;
+
+      <!-- Error More Info -->
+	  <div id="errorReference" />
+        <p>&privilegeRefer.longRef; <a href="http://kmeleon.sourceforge.net/wiki/FAQ#forgetsettings">&privilegeRefer.shortRef;</a></p>
+	  </div>
+    </div>
+  </body>
+</html>

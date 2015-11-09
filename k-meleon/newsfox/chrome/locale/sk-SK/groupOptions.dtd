@@ -1,0 +1,27 @@
+<!ENTITY name "Názov:">
+<!ENTITY insertbefore "Vložiť pred:">
+<!ENTITY dragrtl "Pretiahnuť zprava doľava na pridanie kanálov do skupiny.">
+<!ENTITY dragltr "Pretiahnuť zľava doprava na odstránenie kanálov zo skupiny.">
+<!ENTITY dragwithin "Pretiahnuť v skupine na preskupenie.">
+<!ENTITY flagged "Označené:">
+<!ENTITY either "obe">
+<!ENTITY unread "Neprečítané:">
+<!ENTITY searchtext "Hľadať text:">
+<!ENTITY match "Porovnať:">
+<!ENTITY body "telo">
+<!ENTITY title2 "názov">
+<!ENTITY tag "značka">
+<!ENTITY casesensitive "Citlivý na veľkosť písmena">
+<!ENTITY searchvalues "Hodnoty hľadania">
+<!ENTITY textvalues "Hodnoty textu">
+<!ENTITY time "Čas:">
+<!ENTITY grouptosearch "Skupina na hľadanie:">
+<!ENTITY between "Medzi">
+<!ENTITY and "a">
+<!ENTITY ago "späť">
+<!ENTITY hours "hodín">
+<!ENTITY weeks "týždňov">
+<!ENTITY months "mesiacov">
+<!ENTITY years "rokov">
+<!ENTITY ever "vždy">
+<!ENTITY showUnread "Zobraziť počet neprečítaných článkov (môže spomaliť NewsFox)">

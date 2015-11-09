@@ -1,0 +1,62 @@
+<!ENTITY NewsFoxTeam "NewsFox 團隊">
+<!ENTITY feedOptions "Feed 選項">
+<!ENTITY text "文字">
+<!ENTITY webpage "網頁">
+<!ENTITY groupOptions "群組選項">
+<!ENTITY sCcancel "取消更新">
+<!ENTITY sCadd "新增 Feed">
+<!ENTITY sCoptions "選項">
+<!ENTITY sChomePage "瀏覽首頁">
+<!ENTITY sCmanageLivemarks "管理即時書籤">
+<!ENTITY sCmarkAllAsRead "全部標示成已閱讀">
+<!ENTITY sCdelete "刪除 Feed">
+<!ENTITY sCnextUnread "下一個未閱讀文章">
+<!ENTITY sCopenUnread "開啟未閱讀文章">
+<!ENTITY sCopenSel "開啟所選的文章">
+<!ENTITY sCdeleteSel "刪除所選的文章">
+<!ENTITY sCaddSearch "新增搜尋群組">
+<!ENTITY sCaddGroup "新增群組">
+<!ENTITY sCdeleteGroup "刪除群組">
+<!ENTITY sCshortcut "快捷鍵">
+<!ENTITY sCrefresh "更新 Feeds">
+<!ENTITY sCpreviousUnread "上一個未閱讀文章">
+<!ENTITY sCdeleteFeedFromGroup "從群組刪除 Feed">
+<!ENTITY sCkeystrokeHeading "快捷鍵">
+<!ENTITY sCselAll "選取所有文章">
+<!ENTITY flagCol "星號">
+<!ENTITY titleCol "標題">
+<!ENTITY readCol "已閱讀">
+<!ENTITY dateCol "日期">
+<!ENTITY authorCol "作者">
+<!ENTITY sourceCol "來源">
+<!ENTITY feedCol "Feed">
+<!ENTITY tagCol "標籤">
+<!ENTITY probCol "興趣">
+<!ENTITY threadCol "線程">
+<!ENTITY XtendCol "已過濾的網頁">
+<!ENTITY sCprint "列印文章">
+<!ENTITY sCtoggleFilter "啟用網頁過濾">
+<!ENTITY sortTab "排序">
+<!ENTITY sortArticles "排序文章:">
+<!ENTITY firstSort "首要排序:">
+<!ENTITY secondSort "次要排序:">
+<!ENTITY thirdSort "第三排序:">
+<!ENTITY fourthSort "第四排序:">
+<!ENTITY noCol "無">
+<!ENTITY ascendingDir "遞增">
+<!ENTITY descendingDir "遞減">
+<!ENTITY updatedUnread "將已更新的文章標示為未閱讀">
+<!ENTITY yes "是">
+<!ENTITY no "否">
+<!ENTITY days "天">
+<!ENTITY articles "文章">
+<!ENTITY displayStyle "顯示樣式:">
+<!ENTITY deleteOld "自動刪除舊文章">
+<!ENTITY autoRefresh "自動更新，每">
+<!ENTITY minutes "分鐘">
+<!ENTITY deleteOldKeepUnread "是，但保留未閱讀文章">
+<!ENTITY deleteOldDeleteUnread "是，同時刪除未閱讀文章">
+<!ENTITY oldMeans "舊文章是指">
+<!ENTITY after "超過">
+<!ENTITY notInFeed "已不在 feed 中的">
+<!ENTITY feeds "Feeds">

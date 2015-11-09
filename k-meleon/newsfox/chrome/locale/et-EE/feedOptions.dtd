@@ -1,0 +1,25 @@
+<!ENTITY useGlobal "Kasuta üldisi sätteid">
+<!ENTITY feedAutoCheck "&apos;Värskenda kõik vood&apos; Kontrollib uute artiklite olemasolu selles voos">
+<!ENTITY dontDeleteUnread "Ära kustuta lugemata">
+<!ENTITY groups "Grupid:">
+<!ENTITY checkfeed "Kontrolli voogu">
+<!ENTITY iconsrc "Ikooni asukoht:">
+<!ENTITY authentication "Tuvastus (ainult turvalistel voogudel)">
+<!ENTITY username "Kasutajanimi:">
+<!ENTITY password "Parool:">
+<!ENTITY feedPrivate "Krüpteeri voo artiklid kettal">
+<!ENTITY keepDays.pre "Hoia artikleid alles vähemalt">
+<!ENTITY keepDays.post "päeva">
+<!ENTITY mainTab "Üldine">
+<!ENTITY filterTab "Veebifilter">
+<!ENTITY securityTab "Turvalisus">
+<!ENTITY filterNew "Laadi kõikide artiklite jaoks filtreeritud veebileht">
+<!ENTITY filterImages "Laadi pildid filtreeritud veebilehele">
+<!ENTITY filterInfo "Sisesta filter, et muuta lingitud artikli html artikli laiendatud kirjelduseks. Filtrit võib olla kas regulaarväljend, mille järgi otsitakse või JavaScript&apos;i kood, mille väärtusest saab artikli laiendatud kirjeldus.">
+<!ENTITY filterJSinfo "JavaScript&apos;i kasutades on kasutada järgnevad muutujad:">
+<!ENTITY filterJSvar1 "linkDOM sisaldab lingitud artikli lehe DOM&apos;i">
+<!ENTITY filterJSvar2 "linkHTML sisaldab lingitud artikli lehe teksti/htmli">
+<!ENTITY filterJSvar3 "getElementsByClass(class, tag, node) tagastab kõikide html elemendid nimetatud tag&apos;i ja class&apos;ga antud node&apos;s">
+<!ENTITY filterMime "Tähestiku override (+ automaatse jaoks, &gt; testi jaoks, või nimeta tähestik)">
+<!ENTITY filterInfo2 "Tuleb sisestada filter, muidu laetakse praeguse artikli kohta alla pildid html-i asemel. Vaikefiltri kasutamiseks vajuta backspace klahvi.">
+<!ENTITY never "mitte kunagi">

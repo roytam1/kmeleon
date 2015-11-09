@@ -1,0 +1,31 @@
+<!ENTITY checkFeed "Обновить ленту">
+<!ENTITY troubleshoot "Найти неисправность">
+<!ENTITY OPML.import "Импортировать OPML...">
+<!ENTITY OPML.export "Экспортировать OPML...">
+<!ENTITY toolOptions.import.addfeeds "Добавить к существующим лентам">
+<!ENTITY toolOptions.import.startfresh "Начать обновление">
+<!ENTITY toolOptions.import.file "из файла...">
+<!ENTITY toolOptions.import.URL "по ссылке...">
+<!ENTITY toolOptions.passwd "Сменить пароль...">
+<!ENTITY help "Справка по NewsFox">
+<!ENTITY feeds "Ленты">
+<!ENTITY r "R">
+<!ENTITY markAllAsUnread "Отметить все записи как непрочитанные">
+<!ENTITY tagSel "Редактировать бирки">
+<!ENTITY sortFeeds "Сортировать ленты">
+<!ENTITY unsortFeeds "Отменить сортировку">
+<!ENTITY toolOptions.restoreBackup "Восстановить из резервной копии">
+<!ENTITY exportRSS "Экспортировать в RSS...">
+<!ENTITY wait "Для надёжности подождите, пока закончится загрузка">
+<!ENTITY tagEdit "Редактировать бирки выделенных записей">
+<!ENTITY addGroup.regular "Обычную">
+<!ENTITY addGroup.search "Поисковую">
+<!ENTITY addGroup.tag "Бирку">
+<!ENTITY addFeed.regular "RSS/Atom">
+<!ENTITY addFeed.storage "Хранилище">
+<!ENTITY prob "Вер">
+<!ENTITY mainToolbar "Главная панель инструментов">
+<!ENTITY feedToolbar "Панель инструментов Лент">
+<!ENTITY Xtend "+">
+<!ENTITY markSelAsRead "Отметить выбранное как прочитанное">
+<!ENTITY markSelAsUnread "Отметить выбранное как непрочитанное">

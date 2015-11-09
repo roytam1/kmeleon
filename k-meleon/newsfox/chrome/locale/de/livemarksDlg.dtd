@@ -1,0 +1,6 @@
+<!ENTITY titleColumn "Feed-Name">
+<!ENTITY urlColumn "Feed-Adresse">
+<!ENTITY newLivemarks "Neue dynamische Lesezeichen wurden gefunden!">
+<!ENTITY manageLivemarks2 "Lesezeichen auswählen, die mit NewsFox gelesen werden sollen:">
+<!ENTITY newSyncmarks "Neue Sync-Lesezeichen wurden gefunden!">
+<!ENTITY selectAll "Alle auswählen">

@@ -1,0 +1,9 @@
+<!ENTITY title "Muuda tag&apos;e">
+<!ENTITY tagAdd "Lisa valitud artiklitele järgmised tag&apos;d">
+<!ENTITY tagRemove "Eemalda valitud artiklitelt järgmised tag&apos;d">
+<!ENTITY tagDeleteCompletely "Kustuta järgmised tag&apos;d kõigilt artiklitelt ja tag&apos;de nimekirjast">
+<!ENTITY colorVaries1 "SININE: tag on kõigil valitud artiklitel">
+<!ENTITY colorVaries2 "segu: tag on mõnedel valitud artiklitel">
+<!ENTITY colorVaries3 "PUNANE: tag&apos;i pole ühelgi valitud artiklil">
+<!ENTITY newTagAdd "Lisa valitud artiklitele uus tag">
+<!ENTITY newTagAddExample "&apos;/&apos; eraldab tag&apos;e: &apos;tech/uudised&apos;">

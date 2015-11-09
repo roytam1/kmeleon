@@ -1,0 +1,21 @@
+# -*- Mode: python; c-basic-offset: 4; indent-tabs-mode: nil; tab-width: 40 -*-
+# vim: set filetype=python:
+
+LIBRARY_NAME = 'rebarmenu'
+
+SOURCES += [
+  'hot_tracking.cpp',
+  'rebar_menu.cpp',
+]
+
+DEFINES['UNICODE'] = True
+
+DEFINES['_UNICODE'] = True
+
+FORCE_SHARED_LIB = True
+
+DISABLE_STL_WRAPPING = True
+
+LOCAL_INCLUDES += [
+  '../../shared'
+]

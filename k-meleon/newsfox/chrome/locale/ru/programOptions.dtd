@@ -1,0 +1,52 @@
+<!ENTITY title "Настройки NewsFox">
+<!ENTITY global "Глобальный стиль отображения:">
+<!ENTITY checkOnStartup "Обновлять все ленты при запуске">
+<!ENTITY notifyUponNewArticles "Уведомлять о появлении новых записей">
+<!ENTITY confirmDelete "Спрашивать подтверждение при удалении групп или лент">
+<!ENTITY confirmDeleteArticle "Спрашивать подтверждение при удалении записей">
+<!ENTITY shortcutkeys "Сочетания клавиш:">
+<!ENTITY restart "(при изменении параметров может потребоваться перезапуск NewsFox)">
+<!ENTITY shortcutsNone "не использовать">
+<!ENTITY shortcutsStd "стандартные">
+<!ENTITY shortcutsAlt "альтернативные">
+<!ENTITY shortcutsCustom "пользовательские">
+<!ENTITY seehelp "— в этом меню отображён список сочетаний клавиш.">
+<!ENTITY newsfox.dir "Директория NewsFox">
+<!ENTITY moveNfDir "Содержание папки:">
+<!ENTITY copy "копировать">
+<!ENTITY move "переместить">
+<!ENTITY noaction "ничего не делать">
+<!ENTITY Child_directory "Дочерняя папка">
+<!ENTITY Parent_directory "Родительская папка">
+<!ENTITY dateStyle "Стиль отображения даты:">
+<!ENTITY changeToPresent "Изменить дату для записи, если она:">
+<!ENTITY articleTooltips "Показывать содержание записи во всплывающей подсказке">
+<!ENTITY copyToClipboard "Копировать текст записи в буфер обмена">
+<!ENTITY selectAddedFeed "Переходить на новую ленту при её добавлении">
+<!ENTITY feedRefresh "Обновить фид:">
+<!ENTITY feedRefreshThreads "темы">
+<!ENTITY feedRefreshRenew "обновление(секунды)">
+<!ENTITY feedSlowdown "Для слабых компьютеров, уменьшите кол-во тем и/или увеличьте время обновления.">
+<!ENTITY feedRefreshTimeout "Интервал обновления ленты (в секундах)">
+<!ENTITY horizontalPanes "Располагать панели горизонтально (требуется перезапуск)">
+<!ENTITY favicons "Использовать веб-значки (favicons)">
+<!ENTITY updateTimeToBookmark "Записывать в закладку URL ленты и время обновления">
+<!ENTITY spam "Включить SPAM-фильтр">
+<!ENTITY globalTab "Глобальные">
+<!ENTITY feedTab "Ленты и Записи">
+<!ENTITY generalTab "Общие">
+<!ENTITY shortcutsTab "Сочетания клавиш">
+<!ENTITY keywordsTab "Ключевые слова">
+<!ENTITY shortcuts.operationHeader "Действие">
+<!ENTITY shortcuts.select "Выберите мышкой действие и введите сочетание клавиш для вызова этого действия.">
+<!ENTITY shortcuts.warning "Многие сочетания уже используются и окажутся недоступными.">
+<!ENTITY shortcuts.experiment "Экспериментируйте, дабы найти, какие сочетания работают, либо выберите стандартное сочетание.">
+<!ENTITY keyword "Ключевое слово:">
+<!ENTITY keywordsHighlighted "Ключевые слова автоматически подсвечиваются в записях лент.">
+<!ENTITY caseIgnored "Поиск производится в нижнем регистре символов.">
+<!ENTITY statusBar "Показывать значок автоподписки на RSS в строке состояния">
+<!ENTITY statusBarText "Текст:">
+<!ENTITY buttonText "Текст кнопки Newsfox:">
+<!ENTITY statusBarTextNew "кол-во новых">
+<!ENTITY statusBarTextUnread "кол-во непрочитанных">
+<!ENTITY statusBarTextNone "ничего">

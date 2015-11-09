@@ -1,0 +1,25 @@
+<!ENTITY useGlobal "Brug globale indstillinger">
+<!ENTITY feedAutoCheck "'Genindlæs alle feeds' tjekker dette feed for nye artikler">
+<!ENTITY dontDeleteUnread "Slet ikke ulæste">
+<!ENTITY groups "Grupper:">
+<!ENTITY checkfeed "Tjek feed">
+<!ENTITY iconsrc "Ikonkilde:">
+<!ENTITY authentication "Bekræftelse (kun sikre feeds)">
+<!ENTITY username "Brugernavn:">
+<!ENTITY password "Adgangskode:">
+<!ENTITY feedPrivate "Krypter feed-artikler på disken">
+<!ENTITY keepDays.pre "Gem artikler i mindst">
+<!ENTITY keepDays.post "dage">
+<!ENTITY mainTab "Generelt">
+<!ENTITY filterTab "Web-filter">
+<!ENTITY securityTab "Sikkerhed">
+<!ENTITY filterNew "Download filtreret hjemmeside for alle nye artikler">
+<!ENTITY filterImages "Download billeder i filtreret hjemmeside">
+<!ENTITY filterInfo "Indtast et filter til at omdanne HTML-linket til artiklen til en udvidet beskrivelse. Et filter kan enten være et regulært udtryk, der vil blive matchet, eller JavaScript-kode, hvis værdi vil blive den udvidede artikelbeskrivelse.">
+<!ENTITY filterJSinfo "Når der bruges JavaScript er disse variabler tilgængelige:">
+<!ENTITY filterJSvar1 "linkDOM indeholder DOM'en af artiklens link-side">
+<!ENTITY filterJSvar2 "linkHTML indeholder HTML-kilden af artiklens link-side">
+<!ENTITY filterJSvar3 "getElementsByClass(class, tag, node) returnerer et array af alle HTML-elementer med det givne tag og den givne class, som er indeholdt i den givne node">
+<!ENTITY filterMime "Overskriv tegnkodning (+ for auto, &gt; for test eller tegnkodning)">
+<!ENTITY filterInfo2 "Du skal indtaste et filter ellers bliver billeder downloaded til den pågældende artikel. For at bruge standard filteret tryk på tasten Tilbage.">
+<!ENTITY never "aldrig">

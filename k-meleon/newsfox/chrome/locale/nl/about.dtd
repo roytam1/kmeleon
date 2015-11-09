@@ -1,0 +1,9 @@
+<!ENTITY projectOwner "Projecteigenaar">
+<!ENTITY localization "Vertaling:">
+<!ENTITY primaryContact "eerste contactpersoon">
+<!ENTITY developer "ontwikkelaar">
+<!ENTITY projectCreator "projectbedenker">
+<!ENTITY icons "Pictogrammen:">
+<!ENTITY fromFirefox "De meeste pictogrammen zijn afkomstig van (of aangepast van) Firefox/Thunderbird.">
+<!ENTITY fromFamfamfam "Pictogrammen voor vlaggen, labellen, opslaan en opnemen van famfamfam.com.">
+<!ENTITY helpADR "Een woord van dank aan ADR voor hulp bij de pictogrammen.">

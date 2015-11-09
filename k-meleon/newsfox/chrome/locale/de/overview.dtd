@@ -1,0 +1,29 @@
+<!ENTITY overview.title "Übersicht">
+<!ENTITY adding.feeds "Feeds hinzufügen">
+<!ENTITY addnew.feeds "Neue Feeds können über die Schaltfläche &quot;Neue Feeds hinzufügen&quot; angelegt werden.">
+<!ENTITY addnew.feeds.opml "Neue Feeds können über das Haupteinstellungsmenü aus einer OPML-Datei importiert werden.">
+<!ENTITY addnew.feeds.auto "Durch die Auswahl von &quot;Newsfox&quot; im &quot;Feeds&quot;-Tab der Firefox-Einstellungen, können Feeds durch Anklicken des RSS-Symbols auf der rechten Seite der Adresszeile zu NewsFox hinzugefügt werden, wenn Feeds verfügbar sind.">
+<!ENTITY alternative.use "Eine alternative Möglichkeit ist, die dynamischen Lesezeichen von Firefox zu nutzen. Sie können über die Schaltfläche &quot;Dynamische Lesezeichen verwalten&quot; auswählen, welche dynamischen Lesezeichen Sie mit NewsFox lesen möchten.">
+<!ENTITY feed.options "Die Einstellungen von NewsFox erreichen Sie über das Kontextmenü in der Feed-Ansicht (linke Seite) oder über das Einstellungssymbol.">
+<!ENTITY remove.feeds "Feeds entfernen">
+<!ENTITY feed.remove "Um einen Feed und alle seine Artikel dauerhaft zu entfernen, klicken Sie mit der rechten Maustaste darauf und wählen Sie im Kontextmenü &quot;Löschen&quot;. Hierdurch wird der Feed aus allen Gruppen entfernt.">
+<!ENTITY new.items "Neue Artikel abrufen">
+<!ENTITY retrieve.items "Neue Artikel werden über das Aktualisierungssymbol abgerufen.">
+<!ENTITY retrieve.items.alt "Neue Artikel können Sie auch über das Kontextmenü in der Feed-Ansicht abrufen, es können einzelne Feeds oder auch Gruppen ausgewählt werden.">
+<!ENTITY retrieve.options "In den Einstellungen kann das automatische Herunterladen neuer Artikel festgelegt werden.">
+<!ENTITY manage.title "Artikel verwalten">
+<!ENTITY manage.info "Artikel werden als gelesen markiert, wenn sie ausgewählt werden. Den Status für gelesen/ungelesen und die Kennzeichnung eines Artikels kann durch anklicken des jeweiligen Symbols geändert werden.">
+<!ENTITY manage.info2 "Artikel können über das Kontextmenü, die Werkzeugleiste oder die Tastaturkürzel als gelesen/ungelesen markiert oder gelöscht werden.">
+<!ENTITY manage.info3 "Artikel können über die Spaltenüberschriften neu sortiert werden. Standard ist, dass neuste Artikel oben sind. Um ungelesene Artikel nach oben zu verschieben, klicken Sie auf die &quot;gelesen/ungelesen&quot;-Spaltenüberschrift.">
+<!ENTITY groups.tags "Gruppen">
+<!ENTITY groups.info "Die Gruppe &quot;FEEDS&quot; enthält alle Ihre Feeds. Feeds können so vielen Gruppen angehören, wie Sie wollen. Es gibt nur eine Kopie des Feeds: wenn Sie einen Artikel als gelesen markieren, ist er in allen Gruppen als gelesen markiert.">
+<!ENTITY groups.info1 "Gruppen werden über die Gruppenschaltfläche hinzugefügt.">
+<!ENTITY groups.info2 "Es können auch Suchgruppen hinzugefügt werden. Z. B. könnten Sie nach allen Vorkommen von &quot;NewsFox&quot; in Ihren Feeds suchen. Diese Gruppen werden über die Suchgruppenschaltfläche hinzugefügt.">
+<!ENTITY groups.info3 "Beide Gruppenarten werden über die &quot;Gruppe lösche&quot;-Schaltfläche gelöscht.">
+<!ENTITY groups.info4 "Gruppen sind nützlich zum Organisieren Ihrer Feeds: Sie können z. B. Gruppen für neue, wichtige, tägliche oder wöchentliche Feeds anlegen.">
+<!ENTITY groups.info5 "Gruppeneinstellungen können über das Kontextmenü der Feed-Ansicht oder über das Einstellungssymbol geändert werden.">
+<!ENTITY other.title "Verschiedenes">
+<!ENTITY other.dragndrop "Feeds in Gruppen und Gruppen können per &quot;Drag&amp;Drop&quot; neu angeordnet werden.">
+<!ENTITY other.art.toolbar "Es gibt ein Kontextmenü für die Feed-Ansicht auf der linken Seite. Es gibt ein Kontextmenü und eine Werkzeugleiste für Artikel auf der rechten Seite. Tooltips erklären die Funktion der Schaltflächen.">
+<!ENTITY other.info "Für den unglücklichen Fall, dass alle Ihre Feeds verschwunden sind, gibt es eine Wiederherstellungsoption im Haupteinstellungsmenü.">
+<!ENTITY other.info2 "Tastaturkürzel können in den Einstellungen festgelegt werden. Eine Liste der Tastaturkürzel finden Sie in der Hilfe.">
