@@ -322,6 +322,7 @@ void DestroyTab(HWND parent, HWND tab)
 		Window* w = currentSession.getWindow(parent);
 		if (w) { 
 			Tab t = w->getTab(tab);	
+			t.saveScrollState();
 			Window ww = Window(NULL);
 			ww.addTab(t);
 			undo.addWindow(ww);
