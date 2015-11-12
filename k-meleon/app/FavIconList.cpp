@@ -350,7 +350,7 @@ int CFavIconList::GetIcon(nsIURI *aURI, nsIURI* aPageURI, BOOL download)
 	USES_CONVERSION;
 
 	if (download) {
-		iconCallback* ic = new iconCallback(this, aURI, aPageURI);
+		nsCOMPtr<iconCallback> ic = new iconCallback(this, aURI, aPageURI);
 		nsCOMPtr<mozIAsyncFavicons> afis = GetIconService();
 		if (!afis) return FALSE;
 		nsresult rv = afis->SetAndFetchFaviconForPage(aPageURI, aURI, false, nsIFaviconService::FAVICON_LOAD_NON_PRIVATE, ic);
