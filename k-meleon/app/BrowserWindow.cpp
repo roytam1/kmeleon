@@ -205,36 +205,35 @@ BOOL CBrowserWrapper::CreateBrowser(CWnd* parent, uint32_t chromeFlags)
 	parent->GetClientRect(rect);
 	rv = mBaseWindow->InitWindow(nsNativeWidget(parent->GetSafeHwnd()), nullptr, 0, 0, rect.Width(), rect.Height());
 	rv = mBaseWindow->Create();
-
-	if (mChromeContent) {
-		// Eagerly create an about:blank content viewer with the right principal here,
-		// rather than letting it happening in the upcoming call to
-		// SetInitialPrincipalToSubject. This avoids creating the about:blank document
-		// and then blowing it away with a second one, which can cause problems for the
-		// top-level chrome window case. See bug 789773.
-		nsCOMPtr<nsIScriptSecurityManager> ssm =
-			do_GetService(NS_SCRIPTSECURITYMANAGER_CONTRACTID, &rv);
-		if (ssm) { // Sometimes this happens really early  See bug 793370.
-			nsCOMPtr<nsIPrincipal> principal;
-			nsCOMPtr<nsIXPConnect> xpconnect = do_GetService("@mozilla.org/js/xpc/XPConnect;1");
-			JSContext* cx = xpconnect->GetCurrentJSContext();
-			if (cx) {
-				JSCompartment *compartment = js::GetContextCompartment(cx);
-				if (compartment) {
-					JSPrincipals *principals = JS_GetCompartmentPrincipals(compartment);
-					principal = static_cast<nsJSPrincipals *>(principals);
-				}
+	
+	// Eagerly create an about:blank content viewer with the right principal here,
+	// rather than letting it happening in the upcoming call to
+	// SetInitialPrincipalToSubject. This avoids creating the about:blank document
+	// and then blowing it away with a second one, which can cause problems for the
+	// top-level chrome window case. See bug 789773.
+	nsCOMPtr<nsIScriptSecurityManager> ssm =
+		do_GetService(NS_SCRIPTSECURITYMANAGER_CONTRACTID, &rv);
+	if (ssm) { // Sometimes this happens really early  See bug 793370.
+		nsCOMPtr<nsIPrincipal> principal;
+		nsCOMPtr<nsIXPConnect> xpconnect = do_GetService("@mozilla.org/js/xpc/XPConnect;1");
+		JSContext* cx = xpconnect->GetCurrentJSContext();
+		if (cx) {
+			JSCompartment *compartment = js::GetContextCompartment(cx);
+			if (compartment) {
+				JSPrincipals *principals = JS_GetCompartmentPrincipals(compartment);
+				principal = static_cast<nsJSPrincipals *>(principals);
 			}
-			if (!principal && chromeFlags & nsIWebBrowserChrome::CHROME_OPENAS_CHROME) {
-				ssm->GetSystemPrincipal(getter_AddRefs(principal));
-			}
-			rv = GetDocShell()->CreateAboutBlankContentViewer(principal);
-			NS_ENSURE_SUCCESS(rv, FALSE);
-			nsCOMPtr<nsIDocument> doc = do_GetInterface(GetDocShell());
-			NS_ENSURE_TRUE(!!doc, FALSE);
-			doc->SetIsInitialDocument(true);
 		}
+		if (!principal && chromeFlags & nsIWebBrowserChrome::CHROME_OPENAS_CHROME) {
+			ssm->GetSystemPrincipal(getter_AddRefs(principal));
+		}
+		rv = GetDocShell()->CreateAboutBlankContentViewer(principal);
+		NS_ENSURE_SUCCESS(rv, FALSE);
+		nsCOMPtr<nsIDocument> doc = do_GetInterface(GetDocShell());
+		NS_ENSURE_TRUE(!!doc, FALSE);
+		doc->SetIsInitialDocument(true);
 	}
+	
 
 	// Register the BrowserImpl object to receive progress messages
 	// These callbacks will be used to update the status/progress bars
