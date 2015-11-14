@@ -210,8 +210,10 @@ BOOL CHiddenWnd::ShowBrowser(LPTSTR URI, BOOL webapp, BOOL atStart) {
 		  PRUint32 chromeMask = nsIWebBrowserChrome::CHROME_WINDOW_RESIZE |
                      nsIWebBrowserChrome::CHROME_WINDOW_CLOSE |
                      nsIWebBrowserChrome::CHROME_TITLEBAR |
+                     nsIWebBrowserChrome::CHROME_SCROLLBARS |
                      nsIWebBrowserChrome::CHROME_WINDOW_MIN;
 		  browser = theApp.CreateNewBrowserFrame(chromeMask, FALSE, NULL);
+		  wrapper = browser->GetActiveView()->GetBrowserWrapper();
 	  } else if (openmode == 2 || !theApp.m_pMostRecentBrowserFrame ) {
 		browser = theApp.CreateNewBrowserFrame();
 		wrapper = browser->GetActiveView()->GetBrowserWrapper();
