@@ -327,8 +327,10 @@ NS_METHOD KmFileLocProvider::GetProductDirectory(nsIFile **aLocalFile, bool aLoc
 
 	if (theApp.cmdline.m_sProfilesDir)
 	{
-		nsCOMPtr<nsILocalFile> tempPath(do_CreateInstance(NS_LOCAL_FILE_CONTRACTID));
-		rv = tempPath->InitWithNativePath(nsDependentCString(theApp.cmdline.m_sProfilesDir));
+		nsCOMPtr<nsIFile> tempPath;
+		nsString aCStr;
+		NS_CStringToUTF16(nsDependentCString(theApp.cmdline.m_sProfilesDir), NS_CSTRING_ENCODING_ASCII, aCStr);
+		rv = NS_NewLocalFile(aCStr, true, getter_AddRefs(tempPath));
 		if (NS_FAILED(rv)) return rv;
 		*aLocalFile = tempPath;
 		NS_ADDREF(*aLocalFile);
