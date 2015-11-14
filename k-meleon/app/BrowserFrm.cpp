@@ -1401,14 +1401,20 @@ void CBrowserFrame::OnSysCommand(UINT nID, LPARAM lParam)
 	if (nID == SC_MINIMIZE) {
 		// We're taking care of the focus here, because it will
 		// be lost after that and not correctly memorized.
-        m_wndLastFocused = ::GetFocus();
+		m_wndLastFocused = ::GetFocus();
 		if (::IsChild(GetActiveView()->m_hWnd, m_wndLastFocused))
-		   GetActiveView()->Activate(FALSE);
-	} else if (nID == SC_RESTORE) {
+			GetActiveView()->Activate(FALSE);
+		GetActiveView()->GetBrowserWrapper()->SetVisible(false);
+	}
+	else if (nID == SC_RESTORE) {
+		if (IsIconic())
+			GetActiveView()->GetBrowserWrapper()->SetVisible(true);
 		if (!(GetStyle() & WS_DLGFRAME) && IsZoomed())
 			ModifyStyle(0, WS_THICKFRAME);
 	}
 	else if (nID == SC_MAXIMIZE) {
+		if (IsIconic())
+			GetActiveView()->GetBrowserWrapper()->SetVisible(true);
 		if (!(GetStyle() & WS_DLGFRAME))
 			ModifyStyle(WS_THICKFRAME, 0);
 	}
