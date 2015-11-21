@@ -620,6 +620,7 @@
 #define IDS_INSTALL_FAILED              62268
 #define IDS_INSTALL_CONFIRM             62269
 #define IDS_MORE_OPTIONS                62270
+#define IDS_WEBPAGE_TEXT                62271
 
 // Next default values for new objects
 // 

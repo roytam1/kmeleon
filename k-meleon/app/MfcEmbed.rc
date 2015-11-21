@@ -1562,6 +1562,7 @@ BEGIN
     IDS_INSTALL_FAILED      "The package installation failed. "
     IDS_INSTALL_CONFIRM     "Do you want to install the skin %s ?"
     IDS_MORE_OPTIONS        "Right click for more options"
+    IDS_WEBPAGE_TEXT        "Text file"
 END
 
 STRINGTABLE
