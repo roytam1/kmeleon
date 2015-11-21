@@ -264,13 +264,18 @@ NS_IMETHODIMP CSaveAsHandler::Save(const char* contentType, const char* disposit
 	}
 
 	CString filter;
-
+	int defaultSaveType = 1;
 	if (isHTML && mDocument) {
 		filter.LoadString(IDS_WEBPAGE_HTMLONLY);
 		filter += _T(" (*.htm;*.html;*.xhtml)|*.htm;*.html;*.xhtml|");
 		CString complete;
 		complete.LoadString(IDS_WEBPAGE_COMPLETE);
 		filter += complete + _T(" (*.htm;*.html;*.xhtml)|*.htm;*.html;*.xhtml|");
+		complete.LoadString(IDS_WEBPAGE_TEXT);
+		filter += complete + _T(" (*.txt)|*.txt|");
+		defaultSaveType = theApp.preferences.iSaveType;
+		if (defaultSaveType < 0 || defaultSaveType>3) 
+			defaultSaveType = 2;
 	}
 	else
 	{
@@ -296,6 +301,7 @@ NS_IMETHODIMP CSaveAsHandler::Save(const char* contentType, const char* disposit
 		fileDlg.Get
 	*/
 
+	
 
 	TCHAR* lpszFilter = filter.GetBuffer(0);
 	for (int i=0; lpszFilter[i]; i++)
@@ -312,7 +318,7 @@ NS_IMETHODIMP CSaveAsHandler::Save(const char* contentType, const char* disposit
 	ofn.Flags = OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
 	ofn.lpstrInitialDir = theApp.preferences.saveDir;
 	ofn.lpstrDefExt = extension;
-	ofn.nFilterIndex = (mDocument && isHTML) ? theApp.preferences.iSaveType == 2 ? 2 : 1 : 1;
+	ofn.nFilterIndex = defaultSaveType;
 
 	if( ::GetSaveFileName(&ofn) )
 	{
@@ -325,7 +331,7 @@ NS_IMETHODIMP CSaveAsHandler::Save(const char* contentType, const char* disposit
 		if (isHTML)
 			theApp.preferences.iSaveType = ofn.nFilterIndex;
 
-		rv = DownloadTo(CStringToNSString(strFullPath), isHTML, theApp.preferences.iSaveType == 2);
+		rv = DownloadTo(CStringToNSString(strFullPath), isHTML, theApp.preferences.iSaveType);
 	}
 
 	filter.ReleaseBuffer();
@@ -334,7 +340,7 @@ NS_IMETHODIMP CSaveAsHandler::Save(const char* contentType, const char* disposit
 	return rv;
 }
 
-NS_IMETHODIMP CSaveAsHandler::DownloadTo(nsString& aFilename, BOOL isHTML, BOOL saveComplete)
+NS_IMETHODIMP CSaveAsHandler::DownloadTo(nsString& aFilename, BOOL isHTML, int saveType)
 {	
 	NS_ENSURE_TRUE(aFilename.Length(), NS_ERROR_FAILURE);
 
@@ -369,8 +375,8 @@ NS_IMETHODIMP CSaveAsHandler::DownloadTo(nsString& aFilename, BOOL isHTML, BOOL 
 		if (isHTML) 
 		{
 			nsCOMPtr<nsIFile> dataFolder;
-
-			if (saveComplete) 
+			uint32_t encodingFlags = 0;
+			if (saveType == 2) 
 			{  
 				// cf.m_ofn.nFilterIndex == 3 indicates
 				// user want to save the complete document including
@@ -396,7 +402,14 @@ NS_IMETHODIMP CSaveAsHandler::DownloadTo(nsString& aFilename, BOOL isHTML, BOOL 
 #endif
 				NS_ENSURE_SUCCESS(rv,rv);
 			}
-			rv = persist->SaveDocument(mDocument, file, dataFolder, mContentType.get(), 0, 0);
+			else if (saveType == 3) {
+				encodingFlags = nsIWebBrowserPersist::ENCODE_FLAGS_FORMATTED
+					|| nsIWebBrowserPersist::ENCODE_FLAGS_ABSOLUTE_LINKS
+					|| nsIWebBrowserPersist::ENCODE_FLAGS_NOFRAMES_CONTENT;		
+				mContentType = "text/plain";
+
+			}
+			rv = persist->SaveDocument(mDocument, file, dataFolder, mContentType.get(), encodingFlags, 0);
 		}
 		else
 			rv = persist->SaveURI(mURL, mDescriptor, mReferrer, 0, nullptr, nullptr, file, nullptr);

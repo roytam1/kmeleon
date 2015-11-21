@@ -15,7 +15,7 @@ public:
 	NS_DECL_ISUPPORTS
 	NS_DECL_NSIWEBPROGRESSLISTENER
 	NS_IMETHOD Save(const char* contentType, const char* disposition = NULL);
-	NS_IMETHOD DownloadTo(nsString& aFilename, BOOL isHTML = FALSE, BOOL complete = FALSE);
+	NS_IMETHOD DownloadTo(nsString& aFilename, BOOL isHTML = FALSE, int saveType = 1);
 	void SetTempFile(nsIFile* aFile) { mFile = aFile; } 
 
 protected:
