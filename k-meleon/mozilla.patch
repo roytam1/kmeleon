@@ -583,6 +583,29 @@ diff --git a/embedding/components/printingui/win/nsPrintDialogUtil.cpp b/embeddi
    return rv;
  }
  
+diff --git a/embedding/components/webbrowserpersist/nsWebBrowserPersist.cpp b/embedding/components/webbrowserpersist/nsWebBrowserPersist.cpp
+--- a/embedding/components/webbrowserpersist/nsWebBrowserPersist.cpp
++++ b/embedding/components/webbrowserpersist/nsWebBrowserPersist.cpp
+@@ -1221,17 +1221,18 @@ nsresult nsWebBrowserPersist::SaveURIInt
+     nsCOMPtr<nsIPrivateBrowsingChannel> pbChannel = do_QueryInterface(inputChannel);
+     if (pbChannel)
+     {
+         pbChannel->SetPrivate(aIsPrivate);
+     }
+ 
+     if (NS_FAILED(rv) || inputChannel == nullptr)
+     {
+-        EndDownload(NS_ERROR_FAILURE);
++        //No point in stopping the download because of a single failure
++        //EndDownload(NS_ERROR_FAILURE);
+         return NS_ERROR_FAILURE;
+     }
+ 
+     // Disable content conversion
+     if (mPersistFlags & PERSIST_FLAGS_NO_CONVERSION)
+     {
+         nsCOMPtr<nsIEncodedChannel> encodedChannel(do_QueryInterface(inputChannel));
+         if (encodedChannel)
 diff --git a/gfx/layers/d3d11/CompositorD3D11.cpp b/gfx/layers/d3d11/CompositorD3D11.cpp
 --- a/gfx/layers/d3d11/CompositorD3D11.cpp
 +++ b/gfx/layers/d3d11/CompositorD3D11.cpp
@@ -1058,6 +1081,412 @@ diff --git a/security/nss/lib/freebl/mpi/Makefile.win b/security/nss/lib/freebl/
  MPICMN += -DMP_ASSEMBLY_MULTIPLY -DMP_ASSEMBLY_SQUARE -DMP_ASSEMBLY_DIV_2DX1D
  #CFLAGS= -Od -Z7 -MD -W3 -nologo -D_X86_ -DXP_PC \
   -DDEBUG -D_DEBUG -UNDEBUG -DWIN32 -D_WINDOWS -DWIN95 $(MPICMN)
+diff --git a/toolkit/components/passwordmgr/LoginManagerContent.jsm b/toolkit/components/passwordmgr/LoginManagerContent.jsm
+--- a/toolkit/components/passwordmgr/LoginManagerContent.jsm
++++ b/toolkit/components/passwordmgr/LoginManagerContent.jsm
+@@ -195,66 +195,157 @@ var LoginManagerContent = {
+                         actionOrigin: actionOrigin,
+                         options: options };
+ 
+     return this._sendRequest(messageManager, requestData,
+                              "RemoteLogins:findLogins",
+                              messageData);
+   },
+ 
++  doAutocompleteSearch: function({ formOrigin, actionOrigin,
++                                   searchString, previousResult,
++                                   rect, requestId, remote }, target) {
++    // Note: previousResult is a regular object, not an
++    // nsIAutoCompleteResult.
++    var result;
++
++    let searchStringLower = searchString.toLowerCase();
++    let logins;
++    if (previousResult &&
++        searchStringLower.startsWith(previousResult.searchString.toLowerCase())) {
++      log("Using previous autocomplete result");
++
++      // We have a list of results for a shorter search string, so just
++      // filter them further based on the new search string.
++      logins = previousResult.logins;
++    } else {
++      log("Creating new autocomplete search result.");
++
++      // Grab the logins from the database.
++      logins = Services.logins.findLogins({}, formOrigin, actionOrigin, null);
++    }
++
++    let matchingLogins = logins.filter(function(fullMatch) {
++      let match = fullMatch.username;
++
++      // Remove results that are too short, or have different prefix.
++      // Also don't offer empty usernames as possible results.
++      return match && match.toLowerCase().startsWith(searchStringLower);
++    });
++
++    // XXX In the E10S case, we're responsible for showing our own
++    // autocomplete popup here because the autocomplete protocol hasn't
++    // been e10s-ized yet. In the non-e10s case, our caller is responsible
++    // for showing the autocomplete popup (via the regular
++    // nsAutoCompleteController).
++    if (remote) {
++      result = new UserAutoCompleteResult(searchString, matchingLogins);
++      AutoCompleteE10S.showPopupWithResults(target.ownerDocument.defaultView, rect, result);
++    }
++    
++    return Promise.resolve(matchingLogins);
++    
++    target.messageManager.sendAsyncMessage("RemoteLogins:loginsAutoCompleted",
++                                           { requestId: requestId,
++                                             logins: matchingLogins });
++  },
++
+   _autoCompleteSearchAsync: function(aSearchString, aPreviousResult,
+                                      aElement, aRect) {
+     let doc = aElement.ownerDocument;
+     let form = aElement.form;
+     let win = doc.defaultView;
+ 
+     let formOrigin = LoginUtils._getPasswordOrigin(doc.documentURI);
+     let actionOrigin = LoginUtils._getActionOrigin(form);
+ 
+-    let messageManager = messageManagerFromWindow(win);
++    //let messageManager = messageManagerFromWindow(win);
+ 
+     let remote = (Services.appinfo.processType ===
+                   Services.appinfo.PROCESS_TYPE_CONTENT);
+ 
+     let requestData = {};
+     let messageData = { formOrigin: formOrigin,
+                         actionOrigin: actionOrigin,
+                         searchString: aSearchString,
+                         previousResult: aPreviousResult,
+                         rect: aRect,
+                         remote: remote };
+ 
++    return this.doAutocompleteSearch(messageData);
+     return this._sendRequest(messageManager, requestData,
+                              "RemoteLogins:autoCompleteLogins",
+                              messageData);
+   },
+ 
+   /*
+    * onFormPassword
+    *
+    * Called when an <input type="password"> element is added to the page
+    */
+   onFormPassword: function (event) {
+     if (!event.isTrusted)
+       return;
+     let form = event.target;
+ 
+     let doc = form.ownerDocument;
+-    let win = doc.defaultView;
++    /*let win = doc.defaultView;
+     let messageManager = messageManagerFromWindow(win);
+ 
+     messageManager.sendAsyncMessage("LoginStats:LoginEncountered");
+     if (!gEnabled)
+       return;
+ 
+     log("onFormPassword for", form.ownerDocument.documentURI);
+     this._asyncFindLogins(form, { showMasterPassword: true })
+         .then(this.loginsFound.bind(this))
+-        .then(null, Cu.reportError);
+-  },
++        .then(null, Cu.reportError);*/
++	
++    log("onFormPassword for", doc.documentURI);
++
++      // If there are no logins for this site, bail out now.
++      let formOrigin = LoginUtils._getPasswordOrigin(doc.documentURI);
++      if (!Services.logins.countLogins(formOrigin, "", null))
++          return;
++
++      // If we're currently displaying a master password prompt, defer
++      // processing this form until the user handles the prompt.
++      if (Services.logins.uiBusy) {
++        log("deferring onFormPassword for", doc.documentURI);
++        let self = this;
++        let observer = {
++            QueryInterface: XPCOMUtils.generateQI([Ci.nsIObserver, Ci.nsISupportsWeakReference]),
++
++            observe: function (subject, topic, data) {
++                log("Got deferred onFormPassword notification:", topic);
++                // Only run observer once.
++                Services.obs.removeObserver(this, "passwordmgr-crypto-login");
++                Services.obs.removeObserver(this, "passwordmgr-crypto-loginCanceled");
++                if (topic == "passwordmgr-crypto-loginCanceled")
++                    return;
++                self.onFormPassword(event);
++            },
++            handleEvent : function (event) {
++                // Not expected to be called
++            }
++        };
++        // Trickyness follows: We want an observer, but don't want it to
++        // cause leaks. So add the observer with a weak reference, and use
++        // a dummy event listener (a strong reference) to keep it alive
++        // until the form is destroyed.
++        Services.obs.addObserver(observer, "passwordmgr-crypto-login", true);
++        Services.obs.addObserver(observer, "passwordmgr-crypto-loginCanceled", true);
++        form.addEventListener("mozCleverClosureHack", observer);
++        return;
++      }
++
++      let autofillForm = gAutofillForms && !PrivateBrowsingUtils.isWindowPrivate(doc.defaultView);
++
++      this._fillForm(form, autofillForm, false, false, null);
++    },
+ 
+   loginsFound: function({ form, loginsFound }) {
+     let doc = form.ownerDocument;
+     let autofillForm = gAutofillForms && !PrivateBrowsingUtils.isContentWindowPrivate(doc.defaultView);
+ 
+     this._fillForm(form, autofillForm, false, false, loginsFound);
+   },
+ 
+@@ -291,21 +382,28 @@ var LoginManagerContent = {
+ 
+     log("onUsernameInput from", event.type);
+ 
+     // Make sure the username field fillForm will use is the
+     // same field as the autocomplete was activated on.
+     var [usernameField, passwordField, ignored] =
+         this._getFormFields(acForm, false);
+     if (usernameField == acInputField && passwordField) {
+-      this._asyncFindLogins(acForm, { showMasterPassword: false })
++      /*this._asyncFindLogins(acForm, { showMasterPassword: false })
+           .then(({ form, loginsFound }) => {
+               this._fillForm(form, true, true, true, loginsFound);
+           })
+-          .then(null, Cu.reportError);
++          .then(null, Cu.reportError);*/
++	  
++	  // If the user has a master password but itsn't logged in, bail
++            // out now to prevent annoying prompts.
++            if (!Services.logins.isLoggedIn)
++                return;
++
++            this._fillForm(acForm, true, true, true, null);
+     } else {
+       // Ignore the event, it's for some input we don't care about.
+     }
+   },
+ 
+ 
+   /*
+    * _getPasswordFields
+@@ -478,16 +576,23 @@ var LoginManagerContent = {
+    * _onFormSubmit
+    *
+    * Called by the our observer when notified of a form submission.
+    * [Note that this happens before any DOM onsubmit handlers are invoked.]
+    * Looks for a password change in the submitted form, so we can update
+    * our stored password.
+    */
+   _onFormSubmit : function (form) {
++        // For E10S this will need to move.
++        function getPrompter(aWindow) {
++            var prompterSvc = Cc["@mozilla.org/login-manager/prompter;1"].
++                              createInstance(Ci.nsILoginManagerPrompter);
++            prompterSvc.init(aWindow);
++            return prompterSvc;
++        }
+     var doc = form.ownerDocument;
+     var win = doc.defaultView;
+ 
+     if (PrivateBrowsingUtils.isContentWindowPrivate(win)) {
+       // We won't do anything in private browsing mode anyway,
+       // so there's no need to perform further checks.
+       log("(form submission ignored in private browsing mode)");
+       return;
+@@ -529,17 +634,17 @@ var LoginManagerContent = {
+          this._isAutocompleteDisabled(usernameField) ||
+          this._isAutocompleteDisabled(newPasswordField) ||
+          this._isAutocompleteDisabled(oldPasswordField)) &&
+         !gStoreWhenAutocompleteOff) {
+       log("(form submission ignored -- autocomplete=off found)");
+       return;
+     }
+ 
+-    // Don't try to send DOM nodes over IPC.
++   /* // Don't try to send DOM nodes over IPC.
+     let mockUsername = usernameField ?
+                          { name: usernameField.name,
+                            value: usernameField.value } :
+                          null;
+     let mockPassword = { name: newPasswordField.name,
+                          value: newPasswordField.value };
+     let mockOldPassword = oldPasswordField ?
+                             { name: oldPasswordField.name,
+@@ -551,17 +656,116 @@ var LoginManagerContent = {
+ 
+     let messageManager = messageManagerFromWindow(win);
+     messageManager.sendAsyncMessage("RemoteLogins:onFormSubmit",
+                                     { hostname: hostname,
+                                       formSubmitURL: formSubmitURL,
+                                       usernameField: mockUsername,
+                                       newPasswordField: mockPassword,
+                                       oldPasswordField: mockOldPassword },
+-                                    { openerWin: opener });
++                                    { openerWin: opener });*/
++     
++      if (!Services.logins.getLoginSavingEnabled(hostname)) {
++        log("(form submission ignored -- saving is disabled for:", hostname, ")");
++        return;
++      }
++
++      var formLogin = Cc["@mozilla.org/login-manager/loginInfo;1"].
++                      createInstance(Ci.nsILoginInfo);
++      formLogin.init(hostname, formSubmitURL, null,
++                  (usernameField ? usernameField.value : ""),
++                  newPasswordField.value,
++                  (usernameField ? usernameField.name  : ""),
++                  newPasswordField.name);
++
++      // If we didn't find a username field, but seem to be changing a
++      // password, allow the user to select from a list of applicable
++      // logins to update the password for.
++      if (!usernameField && oldPasswordField) {
++
++          var logins = Services.logins.findLogins({}, hostname, formSubmitURL, null);
++
++          if (logins.length == 0) {
++              // Could prompt to save this as a new password-only login.
++              // This seems uncommon, and might be wrong, so ignore.
++              log("(no logins for this host -- pwchange ignored)");
++              return;
++          }
++
++          var prompter = getPrompter(win);
++
++          if (logins.length == 1) {
++              var oldLogin = logins[0];
++              formLogin.username      = oldLogin.username;
++              formLogin.usernameField = oldLogin.usernameField;
++
++              prompter.promptToChangePassword(oldLogin, formLogin);
++          } else {
++              prompter.promptToChangePasswordWithUsernames(
++                                  logins, logins.length, formLogin);
++          }
++
++          return;
++        }
++
++
++        // Look for an existing login that matches the form login.
++        var existingLogin = null;
++        var logins = Services.logins.findLogins({}, hostname, formSubmitURL, null);
++
++        for (var i = 0; i < logins.length; i++) {
++            var same, login = logins[i];
++
++            // If one login has a username but the other doesn't, ignore
++            // the username when comparing and only match if they have the
++            // same password. Otherwise, compare the logins and match even
++            // if the passwords differ.
++            if (!login.username && formLogin.username) {
++                var restoreMe = formLogin.username;
++                formLogin.username = "";
++                same = formLogin.matches(login, false);
++                formLogin.username = restoreMe;
++            } else if (!formLogin.username && login.username) {
++                formLogin.username = login.username;
++                same = formLogin.matches(login, false);
++                formLogin.username = ""; // we know it's always blank.
++            } else {
++                same = formLogin.matches(login, true);
++            }
++
++            if (same) {
++                existingLogin = login;
++                break;
++            }
++        }
++
++        if (existingLogin) {
++            log("Found an existing login matching this form submission");
++
++            // Change password if needed.
++            if (existingLogin.password != formLogin.password) {
++                log("...passwords differ, prompting to change.");
++                prompter = getPrompter(win);
++                prompter.promptToChangePassword(existingLogin, formLogin);
++            } else {
++                // Update the lastUsed timestamp.
++                var propBag = Cc["@mozilla.org/hash-property-bag;1"].
++                              createInstance(Ci.nsIWritablePropertyBag);
++                propBag.setProperty("timeLastUsed", Date.now());
++                propBag.setProperty("timesUsedIncrement", 1);
++                Services.logins.modifyLogin(existingLogin, propBag);
++            }
++
++            return;
++        }
++
++
++        // Prompt user to save login (via dialog or notification bar)
++        prompter = getPrompter(win);
++        prompter.promptToSavePassword(formLogin);
+   },
+ 
+   /*
+    * _fillform
+    *
+    * Fill the form with the provided login information.
+    * The logins are returned so they can be reused for
+    * optimization. Success of action is also returned in format
+@@ -593,16 +797,27 @@ var LoginManagerContent = {
+       if (userTriggered) {
+         // Ignore fills as a result of user action.
+         return;
+       }
+       const autofillResultHist = Services.telemetry.getHistogramById("PWMGR_FORM_AUTOFILL_RESULT");
+       autofillResultHist.add(result);
+     }
+ 
++    // Need to get a list of logins if we weren't given them
++    if (foundLogins == null) {
++      var formOrigin =
++          LoginUtils._getPasswordOrigin(form.ownerDocument.documentURI);
++      var actionOrigin = LoginUtils._getActionOrigin(form);
++          foundLogins = Services.logins.findLogins({}, formOrigin, actionOrigin, null);
++          log("found", foundLogins.length, "matching logins.");
++    } else {
++       log("reusing logins from last form.");
++    }
++    
+     // Nothing to do if we have no matching logins available.
+     if (foundLogins.length == 0) {
+       // We don't log() here since this is a very common case.
+       recordAutofillResult(AUTOFILL_RESULT.NO_SAVED_LOGINS);
+       return [false, foundLogins];
+     }
+ 
+     // Heuristically determine what the user/pass fields are
+@@ -783,18 +998,18 @@ var LoginManagerContent = {
+ 
+     this._notifyFoundLogins(didntFillReason, usernameField, passwordField,
+                             foundLogins, selectedLogin);
+ 
+     if (didFillForm) {
+       recordAutofillResult(AUTOFILL_RESULT.FILLED);
+       let doc = form.ownerDocument;
+       let win = doc.defaultView;
+-      let messageManager = messageManagerFromWindow(win);
+-      messageManager.sendAsyncMessage("LoginStats:LoginFillSuccessful");
++      //let messageManager = messageManagerFromWindow(win);
++      //messageManager.sendAsyncMessage("LoginStats:LoginFillSuccessful");
+     } else {
+       let autofillResult = AUTOFILL_RESULT.UNKNOWN_FAILURE;
+       switch (didntFillReason) {
+         // existingPassword is already handled above
+         case "existingUsername":
+           autofillResult = AUTOFILL_RESULT.EXISTING_USERNAME;
+           break;
+         case "multipleLogins":
 diff --git a/toolkit/components/places/nsFaviconService.cpp b/toolkit/components/places/nsFaviconService.cpp
 --- a/toolkit/components/places/nsFaviconService.cpp
 +++ b/toolkit/components/places/nsFaviconService.cpp
@@ -1274,6 +1703,99 @@ diff --git a/toolkit/components/search/nsSidebar.js b/toolkit/components/search/
    IsSearchProviderInstalled: function(engineURL) {
      return 0;
    },
+diff --git a/toolkit/mozapps/downloads/nsHelperAppDlg.js b/toolkit/mozapps/downloads/nsHelperAppDlg.js
+--- a/toolkit/mozapps/downloads/nsHelperAppDlg.js
++++ b/toolkit/mozapps/downloads/nsHelperAppDlg.js
+@@ -951,17 +951,18 @@ nsUnknownContentTypeDialog.prototype = {
+       // application/x-msdownload since we want users to be able to
+       // autodownload these to disk.
+       if (needUpdate && this.mLauncher.MIMEInfo.MIMEType != "application/octet-stream")
+         this.updateHelperAppPref();
+     } catch(e) { }
+ 
+     // Unhook dialog from this object.
+     this.mDialog.dialog = null;
+-
++    this.cleanUp();
++    
+     // Close up dialog by returning true.
+     return true;
+   },
+ 
+   // onCancel:
+   onCancel: function() {
+     // Remove our web progress listener.
+     this.mLauncher.setWebProgressListener(null);
+@@ -969,20 +970,30 @@ nsUnknownContentTypeDialog.prototype = {
+     // Cancel app launcher.
+     try {
+       this.mLauncher.cancel(Components.results.NS_BINDING_ABORTED);
+     } catch(exception) {
+     }
+ 
+     // Unhook dialog from this object.
+     this.mDialog.dialog = null;
+-
++    this.cleanUp();   
++    
+     // Close up dialog by returning true.
+     return true;
+   },
++  
++  cleanUp: function() {
++    // If the window that launched the download is "about:blank"
++    // then we need to close it.
++    let parent = this.mContext.QueryInterface(Ci.nsIInterfaceRequestor).getInterface(Ci.nsIDOMWindow);
++    if (parent && parent.document.location == 'about:blank') {
++      parent.close();
++    }
++  },
+ 
+   // dialogElement:  Convenience.
+   dialogElement: function(id) {
+     return this.mDialog.document.getElementById(id);
+   },
+ 
+   // Retrieve the pretty description from the file
+   getFileDisplayName: function getFileDisplayName(file)
+diff --git a/toolkit/mozapps/extensions/AddonManager.jsm b/toolkit/mozapps/extensions/AddonManager.jsm
+--- a/toolkit/mozapps/extensions/AddonManager.jsm
++++ b/toolkit/mozapps/extensions/AddonManager.jsm
+@@ -2131,31 +2131,31 @@ var AddonManagerInternal = {
+       if (!this.isInstallEnabled(aMimetype)) {
+         for (let install of aInstalls)
+           install.cancel();
+ 
+         weblistener.onWebInstallDisabled(topBrowser, aInstallingPrincipal.URI,
+                                          aInstalls, aInstalls.length);
+         return;
+       }
+-      else if (!aBrowser.contentPrincipal || !aInstallingPrincipal.subsumes(aBrowser.contentPrincipal)) {
++ /*     else if (!aBrowser.contentPrincipal || !aInstallingPrincipal.subsumes(aBrowser.contentPrincipal)) {
+         for (let install of aInstalls)
+           install.cancel();
+ 
+         if (weblistener instanceof Ci.amIWebInstallListener2) {
+           weblistener.onWebInstallOriginBlocked(topBrowser, aInstallingPrincipal.URI,
+                                                 aInstalls, aInstalls.length);
+         }
+         return;
+-      }
++      }*/
+ 
+       // The installs may start now depending on the web install listener,
+       // listen for the browser navigating to a new origin and cancel the
+       // installs in that case.
+-      new BrowserListener(aBrowser, aInstallingPrincipal, aInstalls);
++      //new BrowserListener(aBrowser, aInstallingPrincipal, aInstalls);
+ 
+       if (!this.isInstallAllowed(aMimetype, aInstallingPrincipal)) {
+         if (weblistener.onWebInstallBlocked(topBrowser, aInstallingPrincipal.URI,
+                                             aInstalls, aInstalls.length)) {
+           aInstalls.forEach(function(aInstall) {
+             aInstall.install();
+           });
+         }
 diff --git a/toolkit/mozapps/extensions/addonManager.js b/toolkit/mozapps/extensions/addonManager.js
 --- a/toolkit/mozapps/extensions/addonManager.js
 +++ b/toolkit/mozapps/extensions/addonManager.js
@@ -1300,25 +1822,6 @@ diff --git a/toolkit/mozapps/extensions/addonManager.js b/toolkit/mozapps/extens
  amManager.prototype = {
    observe: function AMC_observe(aSubject, aTopic, aData) {
      if (aTopic == "addons-startup")
-@@ -89,17 +89,17 @@ amManager.prototype = {
-     if (!AddonManager.isInstallAllowed(aMimetype, aInstallingPrincipal)) {
-       aCallback = null;
-       retval = false;
-     }
- 
-     let installs = [];
-     function buildNextInstall() {
-       if (aUris.length == 0) {
--        AddonManager.installAddonsFromWebpage(aMimetype, aBrowser, aInstallingPrincipal, installs);
-+        AddonManager.installAddonsFromWebpage(aMimetype, null, aInstallingPrincipal, installs);
-         return;
-       }
-       let uri = aUris.shift();
-       AddonManager.getInstallForURL(uri, function buildNextInstall_getInstallForURL(aInstall) {
-         function callCallback(aUri, aStatus) {
-           try {
-             aCallback.onInstallEnded(aUri, aStatus);
-           }
 @@ -171,17 +171,17 @@ amManager.prototype = {
                  url: url,
                  status: status
@@ -1329,7 +1832,7 @@ diff --git a/toolkit/mozapps/extensions/addonManager.js b/toolkit/mozapps/extens
  
          return this.installAddonsFromWebpage(payload.mimetype,
 -          aMessage.target, payload.triggeringPrincipal, payload.uris,
-+          null, payload.triggeringPrincipal, payload.uris,
++          aMessage.objects.win.document.documentElement, payload.triggeringPrincipal, payload.uris,
            payload.hashes, payload.names, payload.icons, callback);
        }
      }
@@ -1482,7 +1985,7 @@ diff --git a/widget/nsBaseAppShell.cpp b/widget/nsBaseAppShell.cpp
  // events (if not in performance mode), which can result in suppressing the
  // next thread event for at most this many ticks:
 -#define THREAD_EVENT_STARVATION_LIMIT PR_MillisecondsToInterval(20)
-+#define THREAD_EVENT_STARVATION_LIMIT PR_MillisecondsToInterval(10)
++#define THREAD_EVENT_STARVATION_LIMIT PR_MillisecondsToInterval(5)
  
  NS_IMPL_ISUPPORTS(nsBaseAppShell, nsIAppShell, nsIThreadObserver, nsIObserver)
  
@@ -1500,7 +2003,7 @@ diff --git a/widget/nsBaseAppShell.cpp b/widget/nsBaseAppShell.cpp
    // NativeEventCallback to process gecko events.
    mProcessedGeckoEvents = false;
  
-+  if (gAppData)
++  if (gAppData) {
    if (mFavorPerf <= 0 && start > mSwitchTime + mStarvationDelay) {
      // Favor pending native events
      PRIntervalTime now = start;
@@ -1509,6 +2012,24 @@ diff --git a/widget/nsBaseAppShell.cpp b/widget/nsBaseAppShell.cpp
        mLastNativeEventTime = now;
        keepGoing = DoProcessNextNativeEvent(false, recursionDepth);
      } while (keepGoing && ((now = PR_IntervalNow()) - start) < limit);
+@@ -293,16 +296,17 @@ nsBaseAppShell::OnProcessNextEvent(nsITh
+     // 'mayWait' to become false too, through 'mBlockedWait'.
+     if (mExiting)
+       mayWait = false;
+ 
+     mLastNativeEventTime = PR_IntervalNow();
+     if (!DoProcessNextNativeEvent(mayWait, recursionDepth) || !mayWait)
+       break;
+   }
++  }
+ 
+   mBlockedWait = oldBlockedWait;
+ 
+   // Make sure that the thread event queue does not block on its monitor, as
+   // it normally would do if it did not have any pending events.  To avoid
+   // that, we simply insert a dummy event into its queue during shutdown.
+   if (needEvent && !mExiting && !NS_HasPendingEvents(thr)) {
+     DispatchDummyEvent(thr);
 diff --git a/widget/windows/moz.build b/widget/windows/moz.build
 --- a/widget/windows/moz.build
 +++ b/widget/windows/moz.build
