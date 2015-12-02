@@ -803,10 +803,13 @@ kmeleonPointInfo *GetInfoAtClick(HWND hWnd)
 	gPointInfo.linktitle = NULL;
 
 	CBrowserFrame *pBrowserFrame = GetFrame(hWnd);
-	if (!pBrowserFrame) return &gPointInfo;
+	if (!pBrowserFrame) return nullptr;
 
 	CBrowserView *pBrowserView = pBrowserFrame->GetActiveView(); 
-	if (!pBrowserView) return &gPointInfo;
+	if (!pBrowserView) return nullptr;
+
+	if (!pBrowserView->m_contextNode)
+		return nullptr;
 
 	USES_CONVERSION;
 	gPointInfo.page = strdup(T2CA(pBrowserView->GetCurrentURI()));

@@ -20,14 +20,24 @@
  */
 
 #define _WIN32_WINNT 0x0500
-#define WIN32_LEAN_AND_MEAN
+
+#include "mozilla/Char16.h"
 #include <windows.h>
 #include <math.h>
 #include <tchar.h>
+#include <gdiplus.h>
+using namespace Gdiplus;
+#pragma comment(lib, "gdiplus.lib") 
+
+ULONG_PTR  gdiplusToken = NULL;
+
+#define XPCOM_GLUE_AVOID_NSPR
+#include "mozilla-config.h"
 
 #define KMELEON_PLUGIN_EXPORTS
 #include "kmeleon_plugin.h"
 #include "../../app/KMeleonConst.h"
+#include "strconv.h"
 
 #define _Tr(x) kPlugin.kFuncs->Translate(_T(x))
 
@@ -128,8 +138,10 @@ int Init(){
 }
 
 void Create(HWND parent){
-    KMeleonWndProc = (void *) GetWindowLong(parent, GWL_WNDPROC);
+    KMeleonWndProc = (void *)GetWindowLong(parent, GWL_WNDPROC);
     SetWindowLong(parent, GWL_WNDPROC, (LONG)WndProc);
+    GdiplusStartupInput gdiplusStartupInput;
+    GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
 }
 
 void Config(HWND parent){
@@ -137,6 +149,7 @@ void Config(HWND parent){
 }
 
 void Quit(){
+    if (gdiplusToken) GdiplusShutdown(gdiplusToken);
 }
 
 void DoMenu(HMENU menu, char *param){
@@ -215,8 +228,9 @@ DIRECTION findDir(POINT p1, POINT p2) {
 
 static UINT  m_captured;
 static UINT  m_defercapture;
-kmeleonPointInfo* m_pInfo;
+kmeleonPointInfo* m_pInfo = nullptr;
 static POINT m_posDown;
+static POINT m_posDraw;
 static SYSTEMTIME m_stDown;
 static int m_virt;
 
@@ -228,9 +242,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
         WORD command = LOWORD(wParam);
 
         if (command == id_defercapture) {
+            m_pInfo = kPlugin.kFuncs->GetInfoAtClick(hWnd);
+            if (!m_pInfo || (m_captured == WM_LBUTTONDOWN && m_pInfo->isInput))
+                return 0;
             m_captured = m_defercapture;
-			m_pInfo = kPlugin.kFuncs->GetInfoAtClick(hWnd);
-			SetCapture(hWnd);
+            SetCapture(hWnd);
         }
     }
 	else if (m_rocking && ((message == WM_RBUTTONUP) || (message == WM_LBUTTONUP)))
@@ -275,10 +291,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                     //SetCapture(hWnd);
                     m_defercapture = m_captured = mouseMsg;
                     GetSystemTime(&m_stDown);
+                    m_posDraw = m_posDown;
+                    HWND targetWnd = WindowFromPoint(m_posDown);
+                    ScreenToClient(targetWnd, &m_posDraw);
                     PostMessage(hWnd, WM_COMMAND, id_defercapture, 0);
-					//m_pInfo = kPlugin.kFuncs->GetInfoAtClick(hWnd);
-					//SetCapture(hWnd);
-                    
+                    //m_pInfo = kPlugin.kFuncs->GetInfoAtClick(hWnd);
+                    //SetCapture(hWnd);
+
                     return MA_ACTIVATE;
                 }
             }
@@ -296,7 +315,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 	else if (message == WM_CAPTURECHANGED && (HWND)lParam!=hWnd)
 	{
 		ReleaseCapture();
-        m_captured = 0;
+		HWND targetWnd = WindowFromPoint(m_posDown);
+		ClientToScreen(targetWnd, &m_posDraw);
+		if (m_captured == WM_RBUTTONDOWN && (m_posDraw.x != m_posDown.x || m_posDraw.y != m_posDown.y))
+			RedrawWindow(targetWnd, NULL, NULL, RDW_INVALIDATE | RDW_ALLCHILDREN);
+		m_captured = 0;
 	}
     else if (message == WM_LBUTTONDOWN && m_captured == WM_RBUTTONDOWN ||
     		 message == WM_RBUTTONDOWN && m_captured == WM_LBUTTONDOWN)
@@ -317,13 +340,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 		m_preventpopup = 2;
 		//m_captured = 0;
     }
-    else if (message == WM_MOUSEMOVE && m_captured == WM_LBUTTONDOWN && m_virt == 0 && !m_rocking) {
+    else if (message == WM_MOUSEMOVE && m_captured == WM_LBUTTONDOWN && !m_rocking) {
     
         POINT m_posMove;
         GetCursorPos(&m_posMove);
-        
-        if (abs(m_posMove.x - m_posDown.x) > 1 ||
-            abs(m_posMove.y - m_posDown.y) > 1)
+		int allow = 1;
+		kPlugin.kFuncs->GetPreference(PREF_BOOL, PREF_"allow_left", &allow, &allow);
+
+        if ( (abs(m_posMove.x - m_posDown.x) > 1 || abs(m_posMove.y - m_posDown.y) > 1)
+			&& m_virt == 0 || !allow)
+			//&& (!(m_pInfo->link && strlen(m_pInfo->link)) || !allow) )
         {
 	        ReleaseCapture();
 	        m_captured = 0;
@@ -333,7 +359,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 			//SetCursorPos(m_posDown.x, m_posDown.y);
 			//if (!m_pInfo->isInput && !(m_pInfo->link && *m_pInfo->link) && !(m_pInfo->image && *m_pInfo->image))
 			//	PostMessage(WindowFromPoint(m_posDown), WM_LBUTTONUP, wParam, MAKELONG(m_posDownClient.x, m_posDownClient.y));
-			//PostMessage(WindowFromPoint(m_posDown), WM_LBUTTONDOWN, wParam, MAKELONG(m_posDownClient.x, m_posDownClient.y));
+			PostMessage(WindowFromPoint(m_posDown), WM_LBUTTONDOWN, wParam, MAKELONG(m_posDownClient.x, m_posDownClient.y));
 			//SetCursorPos(m_posMove.x, m_posMove.y);
      	}
     }
@@ -357,10 +383,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
         kPlugin.kFuncs->GetPreference(PREF_INT, PREF_"maxtime", &MAXTIME, &MAXTIME);
 
         if ( u2 - u1 > MAXTIME ) {
-            if ( u2 - u1 > 3*MAXTIME/2 )
-                dir = NOMOVE;
-            else
-                dir = (dir != NOMOVE ? BADMOVE : NOMOVE);
+			dir = BADMOVE;
         }
 
         char szTxt[100];
@@ -397,34 +420,62 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
         int id = 0;
         if (*szTxt)
             id = kPlugin.kFuncs->GetID(szTxt);
-        
+		        
 		HWND targetWnd = WindowFromPoint(m_posDown);
 		ScreenToClient(targetWnd, &m_posDown);
 		ScreenToClient(targetWnd, &m_posUp);
-		if (m_captured == WM_LBUTTONDOWN && (id == 0 || m_virt == 0)) {
+
+		if (m_captured == WM_LBUTTONDOWN && id == 0) { 
 			//SendMessage(targetWnd, WM_LBUTTONDOWN, MK_LBUTTON, MAKELONG(m_posDown.x, m_posDown.y));
         	PostMessage(targetWnd, WM_LBUTTONUP, wParam, MAKELONG(m_posUp.x, m_posUp.y));
 		}
         else if (m_rocking)
             m_rocking = FALSE;
-		else if (dir == NOMOVE && m_captured == WM_RBUTTONDOWN /*&& m_virt == 0*/ && id <= 0) {
+		else if (dir == NOMOVE && m_captured == WM_RBUTTONDOWN && id == 0) {
 			//SendMessage(targetWnd, WM_RBUTTONDOWN, wParam, MAKELONG(m_posDown.x, m_posDown.y));
 			PostMessage(targetWnd, WM_RBUTTONUP, wParam, MAKELONG(m_posDown.x, m_posDown.y));
             //PostMessage(GetFocus(), WM_CONTEXTMENU, (WPARAM) hWnd, MAKELONG(m_posUp.x, m_posUp.y));
 		}
-		else if (m_captured == WM_MBUTTONDOWN && (id == 0 || m_virt == 0)) {
+		else if (m_captured == WM_MBUTTONDOWN && id == 0) {
 			//SendMessage(targetWnd, WM_MBUTTONDOWN, MK_LBUTTON, MAKELONG(m_posDown.x, m_posDown.y));
-        	PostMessage(targetWnd, WM_MBUTTONUP, wParam, MAKELONG(m_posUp.x, m_posUp.y));
+			PostMessage(targetWnd, WM_MBUTTONUP, wParam, MAKELONG(m_posUp.x, m_posUp.y));
 		}
-        else if (dir != BADMOVE && id > 0)
-            PostMessage(hWnd, WM_COMMAND, id, 0L);
+		else if (dir != BADMOVE && id > 0) {
+			if (id == kPlugin.kFuncs->GetID("navSearch")) {
+				int len = kPlugin.kFuncs->GetWindowVar(hWnd, Window_SelectedText, NULL);
+				wchar_t* query = (wchar_t*)malloc(len*sizeof(wchar_t));
+				kPlugin.kFuncs->GetWindowVar(hWnd, Window_SelectedText, query);
+				SendMessage(hWnd, WM_COMMAND, id, (LPARAM)query);
+				free(query);
+			} else
+				PostMessage(hWnd, WM_COMMAND, id, 0);			
+		}
 
         ReleaseCapture();
         m_captured = m_defercapture = 0;
-       // if (dir != BADMOVE)
-            return 0;
+        return 0;
     }
 
+	if (m_captured == WM_RBUTTONDOWN && message == WM_MOUSEMOVE)
+	{
+		//GDI+ draw
+		HWND targetWnd = WindowFromPoint(m_posDown);
+		POINT newPos;
+		newPos.x = LOWORD(lParam);
+		newPos.y = HIWORD(lParam);
+		ClientToScreen(hWnd, &newPos);
+		int tt = ScreenToClient(targetWnd, &newPos);
+		if (newPos.x > 0 && newPos.y > 0 && newPos.x < 32768 && newPos.y < 32768) {
+			HDC hdc = GetDC(targetWnd);
+			Graphics graphics(hdc);
+			graphics.SetSmoothingMode(SmoothingModeAntiAlias);
+			graphics.SetPixelOffsetMode(Gdiplus::PixelOffsetMode::PixelOffsetModeHighQuality);
+			Pen pen(Color(200, 0, 0, 255), 2);
+			graphics.DrawLine(&pen, m_posDraw.x, m_posDraw.y, newPos.x, newPos.y);
+			m_posDraw = newPos;
+			ReleaseDC(targetWnd, hdc);
+		}
+	}
     return CallWindowProc((WNDPROC)KMeleonWndProc, hWnd, message, wParam, lParam);
 }
 
