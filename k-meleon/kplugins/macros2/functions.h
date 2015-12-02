@@ -297,7 +297,7 @@ Value ExecuteFunction(const char* name);
 			else if (data->getstr(2).compare("openbgtab") == 0)
 				w = OPEN_BACKGROUNDTAB;
 		}
-		kFuncs->NavigateTo((char*)(EscapeURL(data->getstr(1)).c_str()), w, NULL);
+		kFuncs->NavigateTo((char*)(data->getstr(1).c_str()), w, NULL);
 		return "";
 	}
 

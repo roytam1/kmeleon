@@ -266,74 +266,88 @@ BOOL ParsePluginCommand(char *pszCommand, char** plugin, char **parameter)
 	return TRUE;
 }
 
+HWND NavigateTo(const TCHAR *lpctUrl, int windowState, HWND mainWnd)
+{
+	CBrowserFrame *frame = GetFrame(mainWnd);
+	CBrowserView *view = frame ? frame->GetActiveView() : NULL;
+	CBrowserFrame* newFrame = NULL;
+	CBrowserTab* newTab = NULL;
+	BOOL bBackground = FALSE;
+
+	switch (windowState & 15) {
+	case OPEN_NORMAL:
+		if (!frame) return NULL;
+		if (lpctUrl) frame->OpenURL(lpctUrl);
+		break;
+
+	case OPEN_BACKGROUND:
+		bBackground = TRUE;
+	case OPEN_NEW:
+		if (!lpctUrl)
+			newFrame = theApp.CreateNewBrowserFrame(nsIWebBrowserChrome::CHROME_ALL, bBackground);
+		else if (view)
+			newFrame = view->OpenURLInNewWindow(lpctUrl, NULL, bBackground);
+		else
+			newFrame = theApp.CreateNewBrowserFrameWithUrl(lpctUrl, NULL, bBackground);
+		break;
+
+	case OPEN_BACKGROUNDTAB:
+		bBackground = TRUE;
+	case OPEN_NEWTAB:
+		if (!frame) return NULL;
+		if (!frame->IsKindOf(RUNTIME_CLASS(CBrowserFrmTab))) {
+			if (!lpctUrl)
+				newFrame = theApp.CreateNewBrowserFrame(nsIWebBrowserChrome::CHROME_ALL, bBackground);
+			else if (view)
+				newFrame = view->OpenURLInNewWindow(lpctUrl, NULL, bBackground);
+			else
+				newFrame = theApp.CreateNewBrowserFrameWithUrl(lpctUrl, NULL, bBackground);
+			break;
+		}
+
+		if (!lpctUrl)
+			newTab = ((CBrowserFrmTab*)frame)->CreateBrowserTab();
+		else if (view)
+			newTab = ((CBrowserTab*)view)->OpenURLInNewTab(lpctUrl, NULL, TRUE);
+		else {
+			newTab = ((CBrowserFrmTab*)frame)->CreateBrowserTab();
+			if (!newTab) return NULL;
+			newTab->OpenURL(lpctUrl);
+		}
+
+		if (!newTab) return NULL;
+		if (!bBackground) ((CBrowserFrmTab*)frame)->SetActiveBrowser(newTab);
+
+		if ((windowState & OPEN_CLONE) && view)
+			view->CloneBrowser(newTab);
+		break;
+	}
+
+	if (newFrame && frame && (windowState & OPEN_CLONE)) {
+		CBrowserView *view = frame->GetActiveView();
+		if (view) view->CloneBrowser(newFrame->GetActiveView());
+	}
+
+	return newTab ? newTab->m_hWnd :
+		(newFrame ? newFrame->m_hWnd :
+		(frame ? frame->GetActiveView()->m_hWnd : NULL));
+}
+
 HWND NavigateTo(const char *url, int windowState, HWND mainWnd)
 {
-   CBrowserFrame *frame = GetFrame(mainWnd);
-   CBrowserView *view = frame ? frame->GetActiveView() : NULL;
-
    USES_CONVERSION;
-   LPCTSTR lpctUrl = A2CT(url);
-   CBrowserFrame* newFrame = NULL;
-   CBrowserTab* newTab = NULL;
-   BOOL bBackground = FALSE;
+   const TCHAR* lpctUrl = nullptr;
+   if (url) lpctUrl = A2CT(url);
+   return NavigateTo(lpctUrl, windowState, mainWnd);
+}
 
-   switch(windowState&15) {
-   case OPEN_NORMAL:
-      if (!frame) return NULL;
-      if (lpctUrl) frame->OpenURL(lpctUrl);
-      break;
-   
-   case OPEN_BACKGROUND: 
-	   bBackground = TRUE;
-   case OPEN_NEW:
-      if (!lpctUrl)
-         newFrame = theApp.CreateNewBrowserFrame(nsIWebBrowserChrome::CHROME_ALL, bBackground);
-	  else if (view)
-         newFrame = view->OpenURLInNewWindow(lpctUrl, NULL, bBackground);
-	  else 
-         newFrame = theApp.CreateNewBrowserFrameWithUrl(lpctUrl, NULL, bBackground);
-      break;
-
-   case OPEN_BACKGROUNDTAB:
-      bBackground = TRUE;
-   case OPEN_NEWTAB:
-      if (!frame) return NULL;
-	  if (!frame->IsKindOf(RUNTIME_CLASS(CBrowserFrmTab))) {
-		  if (!lpctUrl)
-			 newFrame = theApp.CreateNewBrowserFrame(nsIWebBrowserChrome::CHROME_ALL, bBackground);
-		  else if (view)
-			 newFrame = view->OpenURLInNewWindow(lpctUrl, NULL, bBackground);
-		  else 
-			 newFrame = theApp.CreateNewBrowserFrameWithUrl(lpctUrl, NULL, bBackground);
-		  break;
-	  }		
-      
-      if (!lpctUrl)
-         newTab = ((CBrowserFrmTab*)frame)->CreateBrowserTab();
-      else if (view)
-         newTab = ((CBrowserTab*)view)->OpenURLInNewTab(lpctUrl, NULL, TRUE);
-      else {
-         newTab = ((CBrowserFrmTab*)frame)->CreateBrowserTab();
-         if (!newTab) return NULL;
-         newTab->OpenURL(lpctUrl);
-	  }
-
-      if (!newTab) return NULL;
-      if (!bBackground) ((CBrowserFrmTab*)frame)->SetActiveBrowser(newTab);
-
-      if ((windowState & OPEN_CLONE) && view)
-         view->CloneBrowser(newTab);
-      break;
-   }
-   
-   if (newFrame && frame && (windowState & OPEN_CLONE)) {
-	   CBrowserView *view = frame->GetActiveView(); 
-	   if (view) view->CloneBrowser(newFrame->GetActiveView());
-   }
-
-   return newTab ? newTab->m_hWnd : 
-      (newFrame ? newFrame->m_hWnd : 
-	     (frame ? frame->GetActiveView()->m_hWnd : NULL));
+HWND NavigateToUTF8(const char *url, int windowState, HWND mainWnd)
+{
+	TCHAR* lpctUrl = nullptr;
+	if (url) lpctUrl = WDecodeUTF8(url);
+	HWND h = NavigateTo(lpctUrl, windowState, mainWnd);
+	if (lpctUrl) free(lpctUrl);
+	return h;
 }
 
 void _NavigateTo(const char *url, int windowState, HWND mainWnd)
@@ -553,17 +567,11 @@ int SetMozillaSessionHistory (HWND hWnd, const char **titles, const char **urls,
 		nsCOMPtr<nsIURI> uri;
 		NewURI(getter_AddRefs(uri), nsDependentCString(urls[index]));
 		view->GetBrowserGlue()->UpdateCurrentURI(uri);
-		view->GetBrowserGlue()->mPendingLocation = urls[index];
+		MultiByteToWideChar(CP_UTF8, 0, urls[index], -1, view->GetBrowserGlue()->mPendingLocation.GetBufferSetLength(strlen(urls[index])), strlen(urls[index]));
 		view->GetBrowserGlue()->mHIndex = index;
 		theApp.favicons.GetFaviconForPage(uri, getter_AddRefs(view->GetBrowserGlue()->mIconURI));
 		view->GetBrowserGlue()->mIcon = theApp.favicons.GetIconForPage(A2CW(urls[index]));
 		view->GetBrowserGlue()->SetBrowserTitle(NSUTF8StringToCString(nsDependentCString(titles[index])));
-		uri->SetPath(NS_LITERAL_CSTRING(""));
-		nsCString host;
-		uri->GetHost(host);
-		host.Insert("http://", 0, 7);
-		uri->SetSpec(host);
-		//view->GetBrowserGlue()->mIconURI = uri;
 		((CBrowserFrmTab*) GetFrame(hWnd))->SetTabIcon((CBrowserTab*)view, view->GetBrowserGlue()->mIcon);
 		// Let the session plugin know about it
 		GetFrame(hWnd)->PostMessageW(UWM_UPDATEBUSYSTATE,0,(LPARAM)hWnd);
@@ -1037,7 +1045,7 @@ UINT GetWindowVarUTF8(HWND hWnd, WindowVarType type, void* ret)
 
 		case Window_UrlBar: {
 			CString url = frame->m_wndUrlBar.GetEnteredURL();
-			retLen = url.GetLength() + 1;
+			retLen = url.GetLength() * 3 + 1;
 			if (ret) {
 				char* utf = EncodeUTF8(url);
 				strcpy((char*)ret, utf);
@@ -1077,7 +1085,7 @@ UINT GetWindowVarUTF8(HWND hWnd, WindowVarType type, void* ret)
 		
 		case Window_URL: {
 			CString url = browser->GetURI();
-			retLen = url.GetLength() + 1;
+			retLen = url.GetLength() * 3 + 1;
 			if (ret) {
 				char* utf = EncodeUTF8(url);
 				strcpy((char*)ret, utf);
@@ -1101,14 +1109,14 @@ UINT GetWindowVarUTF8(HWND hWnd, WindowVarType type, void* ret)
 
 		case Window_LinkURL: {
 			CString url = view->GetContextLinkUrl();
-			retLen = url.GetLength() + 1;
+			retLen = url.GetLength() * 3 + 1;
 			if (ret) strcpy((char*)ret, T2CA(url));
 			break;
 		}
 
 		case Window_ImageURL: {
 			CString url = view->GetContextImageUrl();
-			retLen = url.GetLength() + 1;
+			retLen = url.GetLength() * 3 + 1;
 			if (ret) {
 				char* utf = EncodeUTF8(url);
 				strcpy((char*)ret, utf);
@@ -1130,7 +1138,7 @@ UINT GetWindowVarUTF8(HWND hWnd, WindowVarType type, void* ret)
 
 		case Window_FrameURL: {
 			CString url = view->GetContextFrameUrl();
-			retLen = url.GetLength() + 1;
+			retLen = url.GetLength() * 3 + 1;
 			if (ret) {
 				char* utf = EncodeUTF8(url);
 				strcpy((char*)ret, utf);
@@ -2128,7 +2136,7 @@ kmeleonFunctions kmelFuncsUTF8 = {
    GetInfoAtClick,
    GetKmeleonVersion,
    NULL,
-   NavigateTo,
+   NavigateToUTF8,
    TranslateUTF8,
    SetGlobalVar,
    GetFolderUTF8,
