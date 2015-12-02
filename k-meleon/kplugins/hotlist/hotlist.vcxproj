@@ -54,13 +54,13 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)..\$(Configuration)\kplugins</OutDir>
-    <IntDir>$(SolutionDir)..\_$(Configuration)\kmeleon\kplugins\$(ProjectName)</IntDir>
+    <OutDir>$(SolutionDir)..\$(Configuration)\kplugins\</OutDir>
+    <IntDir>$(SolutionDir)..\_$(Configuration)\kmeleon\kplugins\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)..\$(Configuration)\kplugins</OutDir>
-    <IntDir>$(SolutionDir)..\_$(Configuration)\kmeleon\kplugins\$(ProjectName)</IntDir>
+    <OutDir>$(SolutionDir)..\$(Configuration)\kplugins\</OutDir>
+    <IntDir>$(SolutionDir)..\_$(Configuration)\kmeleon\kplugins\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -91,6 +91,7 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <AdditionalIncludeDirectories>..\..\shared;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
