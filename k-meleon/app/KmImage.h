@@ -63,6 +63,7 @@ class kImageObserver : public IDownloadObserver
 public:
 	static bool LoadImage(IImageObserver* observer, nsIURI* imgUri) 
 	{
+		if (!observer) return false;
 		kImageObserver* obs = new kImageObserver(observer);
 		return DownloadToStream(imgUri, obs);
 	}	

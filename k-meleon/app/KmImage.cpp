@@ -74,7 +74,6 @@ NS_IMETHODIMP nsImageObserver::Notify(imgIRequest *aProxy, int32_t aType, const 
 		mObserver->ImageLoaded(img);
 		aProxy->CancelAndForgetObserver(NS_OK);
 		//mRequest = nullptr;
-		delete mObserver;
 		if (mNeedRelease) NS_RELEASE_THIS();		
 		// Can't release here anymore else gecko crash 
 		/*nsCOMPtr<nsIThreadManager> tm = do_GetService("@mozilla.org/thread-manager;1");
