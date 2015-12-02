@@ -100,7 +100,7 @@ public:
 	KmMenuService() : mLastActivated(NULL) {
 		DWORD dwVersion = ::GetVersion();
 		dwVersion = (DWORD)(LOBYTE(LOWORD(dwVersion)));
-		mOwnerDraw = true;//dwVersion<=5;
+		mOwnerDraw = -1;//dwVersion<=5;
 
 		NONCLIENTMETRICS ncm = {0};
 		ncm.cbSize = sizeof(ncm);
@@ -231,9 +231,7 @@ public:
 		return FALSE;
 	}
 
-	BOOL IsOwnerDraw() {
-		return mOwnerDraw;
-	}
+	bool IsOwnerDraw();
 
 	~KmMenuService() {
 		Destroy();
