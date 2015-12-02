@@ -70,6 +70,12 @@ int KmToolbar::AddImage(LPCTSTR cold, UINT w, UINT h, LPCTSTR hot, LPCTSTR dead,
 	if (cold && img.LoadFromSkin(cold, &r)) {	
 
 		if (!mHot.m_hImageList) {
+			
+			if (!mWidth) {
+				mWidth = w ? w : theApp.skin.GetUserWidth();
+				mHeight = h ? h : theApp.skin.GetUserHeight();
+			}
+
 			mHot.Create(mWidth, mHeight, ILC_MASK|ILC_COLOR32, 0, 10);
 			mCold.Create(mWidth, mHeight, ILC_MASK|ILC_COLOR32, 0, 10);
 			mDead.Create(mWidth, mHeight, ILC_MASK|ILC_COLOR32, 0, 10);
@@ -132,9 +138,7 @@ int KmToolbar::SetImage(UINT id, LPCTSTR cold, LPCTSTR hot, LPCTSTR dead)
 {
 	KmButton* b = GetButton(id);
 	if (!b) return -1;
-	int w = mWidth ? mWidth : theApp.skin.GetUserWidth();
-	int h = mHeight ? mHeight : theApp.skin.GetUserHeight();
-	b->mImageIndex = AddImage(cold, w, h, hot, dead, b->mImageIndex);
+	b->mImageIndex = AddImage(cold, 0, 0, hot, dead, b->mImageIndex);
 	Refresh();
 	return b->mImageIndex;
 }
@@ -165,11 +169,6 @@ void KmToolbar::AddItem(KmButton& button, int before, UINT w, UINT h)
 
 		if (!w) w = mWidth ? mWidth : theApp.skin.GetUserWidth();
 		if (!h) h = mHeight ? mHeight : theApp.skin.GetUserHeight();
-
-		if (!mWidth) {
-			mWidth = w;
-			mHeight = h;
-		}
 
 		pbutton->mImageIndex = AddImage(
 			button.mColdImage, w, h,
