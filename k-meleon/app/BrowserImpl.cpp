@@ -682,7 +682,16 @@ NS_IMETHODIMP CBrowserImpl::HandleEvent(nsIDOMEvent *aEvent)
 		HWND h = m_pBrowserFrameGlue->GetBrowserFrameNativeWnd();
 		CBrowserFrame* frame = (CBrowserFrame*)CWnd::FromHandle(h);
 		CBrowserView* view = (CBrowserView*)frame->GetActiveView();
-		view->m_contextNode = node;
+
+		aEvent->GetOriginalTarget(getter_AddRefs(target));
+		node = do_QueryInterface(target);
+		nsString name;
+		node->GetNodeName(name);
+		if (name.Compare(L"xul:thumb") == 0 || name.Compare(L"xul:scrollbarbutton") == 0 || name.Compare(L"xul:slider") == 0) {
+			view->m_contextNode = nullptr;
+		}
+		else
+			view->m_contextNode = node;
 
 		view->GetBrowserWrapper()->EndTypeAheadFind();
 		return NS_OK;
