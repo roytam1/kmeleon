@@ -242,6 +242,16 @@ public:
 		return *this;
 	}
 
+	Value operator =(const char* right) {
+		if (t != VALUE_STRING) {
+			t = VALUE_STRING;
+			str = new MString(right);
+		}
+		else
+			*str = right;
+		return *this;
+	}
+
 	Value operator =(const MInt right) {
 		if (t == VALUE_STRING) delete str;
 		t = VALUE_INT;

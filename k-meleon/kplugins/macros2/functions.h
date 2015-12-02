@@ -1070,10 +1070,19 @@ Value ExecuteFunction(const char* name);
 			return "";
 		FILE* f = _wfopen(data->getstr(1).utf16(), L"r");
 		if (f) {
-			char* buffer = new char[65536];
+			byte* buffer = new byte[65536];
 			int size = fread(buffer, sizeof(char), 65536-1, f);
 			buffer[size] = 0;
-			Value ret = buffer;
+			Value ret;
+			if (buffer[0] == 0xEF && buffer[1] == 0xBB && buffer[2] == 0xBF)
+				ret = (const char*)(buffer+3);
+			else if (buffer[0] == 0xFF && buffer[1] == 0xFE)
+				ret = Value(CUTF16_to_UTF8((wchar_t*)(buffer + 2)));
+			else if (data->getstr(2) == "ansi")
+				ret = Value(CANSI_to_UTF8((char*)buffer));
+			else
+				ret = (const char*)buffer;
+				
 			fclose(f);
 			delete  [] buffer;
 			return ret;
