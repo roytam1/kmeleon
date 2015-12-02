@@ -806,6 +806,9 @@ NS_IMETHODIMP streamListener::OnStopRequest(nsIRequest *aRequest, nsISupports *a
 
 bool DownloadToStream(nsIURI* uri, IDownloadObserver* observer)
 {
+	NS_ENSURE_TRUE(observer, false);
+	nsCOMPtr<nsIStreamListener> l = new streamListener(observer);
+
 	nsresult rv;
 	nsCOMPtr<nsIIOService> io = do_GetService("@mozilla.org/network/io-service;1", &rv);
 	NS_ENSURE_SUCCESS(rv, false);
@@ -813,8 +816,7 @@ bool DownloadToStream(nsIURI* uri, IDownloadObserver* observer)
 	nsCOMPtr<nsIChannel> channel;
 	io->NewChannelFromURI(uri, getter_AddRefs(channel));
 	NS_ENSURE_TRUE(channel, false);
-
-	nsCOMPtr<nsIStreamListener> l = new streamListener(observer);
+	
 	rv = channel->AsyncOpen(l, nullptr);
 	return NS_SUCCEEDED(rv);
 }

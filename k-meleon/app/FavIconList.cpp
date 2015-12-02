@@ -485,12 +485,7 @@ bool CFavIconList::DwnFavIcon(nsIURI* iconURI, nsIURI* pageURI, bool reload)
 	iconURI->GetScheme(scheme);
 
 	iconObserver* io = new iconObserver(this, iconURI, pageURI);
-	if (!kImageObserver::LoadImage(io, iconURI)) {
-		delete io;
-		return false;
-	}
-
-	return true;
+	return kImageObserver::LoadImage(io, iconURI);
 }
 
 mozIAsyncFavicons* CFavIconList::GetIconService() 
