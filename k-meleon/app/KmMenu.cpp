@@ -328,7 +328,7 @@ BOOL KmMenu::Build(CMenu &menu, int before)
 								
 				if (!theApp.menus.IsOwnerDraw())
 				{
-					int idx = theApp.skin.GetIconIndex(item.command);
+					/*int idx = theApp.skin.GetIconIndex(item.command);
 					if (idx >= 0) {
 						MENUITEMINFO mi = {0};
 						mi.cbSize = sizeof(mi);
@@ -341,14 +341,14 @@ BOOL KmMenu::Build(CMenu &menu, int before)
 						DeleteObject(icon);
 						mi.hbmpChecked = mi.hbmpUnchecked = ii.hbmColor;//IconToBitmap(il, idx);
 						menu.SetMenuItemInfo(item.command, &mi);
-					}
+					}*/
 				} else {
 					MENUITEMINFO mi = {0};
 					mi.cbSize = sizeof(mi);
 					mi.fMask = MIIM_FTYPE;
 					mi.fType = MF_STRING | MF_OWNERDRAW;
 					mi.dwItemData = 0;//(ULONG_PTR)&item;//(ULONG_PTR)_wcsdup((LPCTSTR)pTranslated);
-					menu.SetMenuItemInfo(item.command, &mi);
+					VERIFY(menu.SetMenuItemInfo(item.command, &mi));
 				}				
 
 				//LOG_2("Added menu item %s with command %d", _label, item.command);
@@ -550,9 +550,11 @@ void KmMenuService::DrawItem(LPDRAWITEMSTRUCT dis)
 			SetTextColor(dis->hDC, GetSysColor(COLOR_GRAYTEXT));
 	
 	dis->rcItem.left += ::GetSystemMetrics(SM_CXEDGE);
-	DRAWBITMAPPROC drawProc;
-	if (!mProcList.Lookup((HMENU)dis->hwndItem, drawProc) || !drawProc(dis))
-		DrawBitmap(dis);
+	if (theApp.preferences.GetBool("kmeleon.display.bitmapInMenus", TRUE)) {
+		DRAWBITMAPPROC drawProc;
+		if (!mProcList.Lookup((HMENU)dis->hwndItem, drawProc) || !drawProc(dis))
+			DrawBitmap(dis);
+	}
 	dis->rcItem.left += theApp.skin.GetDefWidth() + ::GetSystemMetrics(SM_CXEDGE) + 1;
 
 	DrawText(dis->hDC, text, _tcslen(text), &dis->rcItem, DT_SINGLELINE | DT_VCENTER | DT_NOCLIP);
@@ -625,22 +627,30 @@ void KmMenuService::MeasureItem(LPMEASUREITEMSTRUCT lpMeasureItemStruct)
 	if (rcText.right > mMaxTextLength) mMaxTextLength = rcText.right;
 	lpMeasureItemStruct->itemWidth = mMaxTextLength; 
 
-	CString accel = theApp.accel.GetStrAccel(lpMeasureItemStruct->itemID);
-	if (accel.GetLength()) {
-		GetTextExtentPoint32(hDC, accel, accel.GetLength(), &size);
-		if (size.cx > mMaxAccelLength) mMaxAccelLength = size.cx;
+	if (theApp.preferences.GetBool("kmeleon.display.accelInMenus", TRUE)) {
+		CString accel = theApp.accel.GetStrAccel(lpMeasureItemStruct->itemID);
+		if (accel.GetLength()) {
+			GetTextExtentPoint32(hDC, accel, accel.GetLength(), &size);
+			if (size.cx > mMaxAccelLength) mMaxAccelLength = size.cx;
+		}
+		if (mMaxAccelLength > 0)
+			lpMeasureItemStruct->itemWidth += spaceBetween + mMaxAccelLength;
 	}
-	if (mMaxAccelLength > 0) 
-		lpMeasureItemStruct->itemWidth += spaceBetween + mMaxAccelLength; 
-	
+
 	lpMeasureItemStruct->itemHeight = GetSystemMetrics(SM_CYMENUSIZE);
 	UINT height = theApp.skin.GetDefHeight();
 	UINT width = theApp.skin.GetDefWidth();
-	lpMeasureItemStruct->itemWidth += width + ::GetSystemMetrics(SM_CXEDGE) * 2 + 1;
+	lpMeasureItemStruct->itemWidth += width +::GetSystemMetrics(SM_CXEDGE) * 2 + 1;
 	if (lpMeasureItemStruct->itemHeight < height+2)
 		lpMeasureItemStruct->itemHeight = height+2;
 	SelectObject(hDC, oldFont);
 	ReleaseDC(hWnd, hDC);	
+}
+
+bool KmMenuService::IsOwnerDraw() {
+	if (mOwnerDraw == -1)
+		mOwnerDraw = theApp.preferences.GetBool("kmeleon.display.bitmapInMenus", true);
+	return mOwnerDraw > 0 ? true : false;
 }
 
 /*
