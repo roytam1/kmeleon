@@ -31,24 +31,17 @@ using namespace Gdiplus;
 
 ULONG_PTR  gdiplusToken = NULL;
 
-#define XPCOM_GLUE_AVOID_NSPR
-#include "mozilla-config.h"
-
 #define KMELEON_PLUGIN_EXPORTS
+#define _Tr(x) kPlugin.kFuncs->Translate(_T(x))
+#define PLUGIN_NAME "Mouse Gestures Plugin"
+#define NO_OPTIONS _Tr("This plugin has no user configurable options.")
+#define PREF_ "kmeleon.plugins.gestures."
+#define NOTFOUND -1
+
 #include "kmeleon_plugin.h"
 #include "../../app/KMeleonConst.h"
 #include "strconv.h"
-
-#define _Tr(x) kPlugin.kFuncs->Translate(_T(x))
-
-#define PLUGIN_NAME "Mouse Gestures Plugin"
-#define NO_OPTIONS _Tr("This plugin has no user configurable options.")
-
-#define PREF_ "kmeleon.plugins.gestures."
-
-
-#define NOTFOUND -1
-
+#include "mozilla.h"
 
 BOOL APIENTRY DllMain (
         HANDLE hModule,
@@ -67,7 +60,10 @@ void * KMeleonWndProc;
 
 int Init();
 void Create(HWND parent);
+void Destroy(HWND parent);
 void Config(HWND parent);
+void CreateTab(HWND parent, HWND tab);
+void DestroyTab(HWND parent, HWND tab);
 void Quit();
 void DoMenu(HMENU menu, char *param);
 long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2);
@@ -80,6 +76,29 @@ kmeleonPlugin kPlugin = {
     DoMessage
 };
 
+#include <map>
+template<class T>
+class WinData {
+protected:
+	typedef std::map<HWND, T> S;
+	S s;
+
+public:
+	T& Attach(HWND hWnd) {
+		auto it = s.find(hWnd);
+		if (it != s.end()) return it->second;
+		auto p = s.insert(std::pair<HWND, T>(hWnd, T()));
+		return p.first->second;
+	}
+
+	void Detach(HWND hWnd) {
+		s.erase(hWnd);
+	}
+
+};
+
+WinData<nsCOMPtr<CDomEventListener>> winData;
+
 long DoMessage(const char *to, const char *from, const char *subject, long data1, long data2)
 {
     if (to[0] == '*' || stricmp(to, kPlugin.dllname) == 0) {
@@ -89,6 +108,15 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
         else if (strcmp(subject, "Create") == 0) {
             Create((HWND)data1);
         }
+		else if (strcmp(subject, "CreateTab") == 0) {
+			CreateTab((HWND)data1, (HWND)data2);
+		}
+		else if (strcmp(subject, "DestroyTab") == 0) {
+			DestroyTab((HWND)data1, (HWND)data2);
+		}
+		else if (strcmp(subject, "Destroy") == 0) {
+			Destroy((HWND)data1);
+		}
         else if (strcmp(subject, "Config") == 0) {
             Config((HWND)data1);
         }
@@ -142,6 +170,21 @@ void Create(HWND parent){
     SetWindowLong(parent, GWL_WNDPROC, (LONG)WndProc);
     GdiplusStartupInput gdiplusStartupInput;
     GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
+}
+
+void CreateTab(HWND hWndParent, HWND hTab) {
+	nsCOMPtr<CDomEventListener>& l = winData.Attach(hWndParent);
+	if (!l) l = new CDomEventListener(hWndParent);
+	l->Init(hTab);
+}
+
+void DestroyTab(HWND hWndParent, HWND hTab) {
+	nsCOMPtr<CDomEventListener>& l = winData.Attach(hWndParent);
+	if (l) l->Done(hTab);
+}
+
+void Destroy(HWND hWnd) {
+	winData.Detach(hWnd);
 }
 
 void Config(HWND parent){
@@ -318,7 +361,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 		HWND targetWnd = WindowFromPoint(m_posDown);
 		ClientToScreen(targetWnd, &m_posDraw);
 		if (m_captured == WM_RBUTTONDOWN && (m_posDraw.x != m_posDown.x || m_posDraw.y != m_posDown.y))
-			RedrawWindow(targetWnd, NULL, NULL, RDW_INVALIDATE | RDW_ALLCHILDREN);
+			RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE | RDW_ALLCHILDREN);
 		m_captured = 0;
 	}
     else if (message == WM_LBUTTONDOWN && m_captured == WM_RBUTTONDOWN ||
