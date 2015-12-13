@@ -27,6 +27,7 @@
 #include "nsIScriptError.h"
 #include "nsIEmbeddingSiteWindow.h"
 #include "nsIWebBrowserFocus.h"
+#include "nsIBrowserSearchService.h"
 #include "nsIURIFixup.h"
 
 #include "nsIZipReader.h"
@@ -583,13 +584,20 @@ BOOL LogMessage(const char* category, const char* message, const char* file, uin
 
 CString GetSearchURL(LPCTSTR query) 
 {
-	nsCOMPtr<nsIURIFixup> fixup(do_GetService("@mozilla.org/docshell/urifixup;1"));
-	nsCOMPtr<nsIURIFixupInfo> iuri;
-	if (!iuri)  return _T("");
-	
+	nsCOMPtr<nsIBrowserSearchService> ss = do_GetService("@mozilla.org/browser/search-service;1");
+	if (!ss) return _T("");
+
+	nsCOMPtr<nsISearchEngine> engine;
+	ss->GetCurrentEngine(getter_AddRefs(engine));
+	if (!engine) return _T("");
+
+	nsCOMPtr<nsISearchSubmission> sub;
+	engine->GetSubmission(nsDependentString(query), nsDependentString(L""), nsDependentString(L""), getter_AddRefs(sub));
+	if (!sub) return _T("");
+
 	nsCOMPtr<nsIURI> uri;
-	iuri->GetFixedURI(getter_AddRefs(uri));
-	if (!uri)  return _T("");
+	sub->GetUri(getter_AddRefs(uri));
+	if (!uri) return _T("");
 
 	nsCString spec;
 	uri->GetSpec(spec);
