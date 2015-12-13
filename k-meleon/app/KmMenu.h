@@ -168,6 +168,7 @@ public:
 
 	void RebuildAll() 
 	{
+		mOwnerDraw = -1;
 		KmMenu* kmenu;
 		CString s;
 		POSITION pos = mMenus.GetStartPosition();

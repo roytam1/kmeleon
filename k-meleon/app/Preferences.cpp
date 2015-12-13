@@ -313,6 +313,11 @@ void CPreferences::AdBlockChanged()
 	LoadAdBlock(GetBool("kmeleon.adblocking", false));
 }
 
+void CPreferences::MenuChanged()
+{
+	theApp.menus.RebuildAll();
+}
+
 void CPreferences::Release() {
 	m_prefservice = nullptr;
 	m_prefs = nullptr;
@@ -348,6 +353,7 @@ void CPreferences::Load() {
    new CPrefObserver("kmeleon.general.skinsCurrent", &CPreferences::SkinChanged);
    new CPrefObserver("kmeleon.display.backgroundImageEnabled", &CPreferences::BackgroundChanged);
    new CPrefObserver("kmeleon.display.backgroundImage", &CPreferences::BackgroundChanged);
+   new CPrefObserver("kmeleon.display.bitmapInMenus", &CPreferences::MenuChanged);
 
    // -- Folders XXX have to put this somewhere else
    
