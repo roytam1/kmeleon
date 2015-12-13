@@ -74,6 +74,9 @@
 #include "nsIAppStartup.h"
 #include "nsToolkitCompsCID.h"
 #include "nsIObserverService.h"
+#include "nsICommandLineRunner.h"
+#include "nsDirectoryServiceDefs.h"
+#include "nsDirectoryServiceUtils.h"
 #include <locale.h>
 
 static UINT WM_POSTEVENT = RegisterWindowMessage(_T("XPCOM_PostEvent"));
@@ -555,6 +558,33 @@ BOOL CMfcEmbedApp::InitEmbedding(const char* profile)
 	}
 	
 	NS_LogTerm();
+
+	nsCOMPtr<nsICommandLineRunner> cmdLine = do_CreateInstance("@mozilla.org/toolkit/command-line;1");
+	if (cmdLine) {
+		nsCOMPtr<nsIFile> workingDir;
+		NS_GetSpecialDirectory(NS_OS_CURRENT_WORKING_DIR, getter_AddRefs(workingDir));
+		int argc;
+		LPWSTR* argv16 = CommandLineToArgvW(GetCommandLineW(), &argc);
+		int l = 0;
+		for (int i = 0; i < argc; i++) {
+			l += wcslen(argv16[i]) + 1;
+		}
+		char *_argv = new char[l * 3];
+		char** argv = new char*[argc];
+		for (int i = 0; i < argc; i++) {
+			argv[i] = _argv;
+			int x = WideCharToMultiByte(CP_UTF8, 0, argv16[i], -1, _argv, l, NULL, NULL);
+			_argv += x;
+			l -= x;
+		}
+
+		LocalFree(argv16);
+		cmdLine->Init(argc, argv, workingDir, nsICommandLine::STATE_INITIAL_LAUNCH);
+		delete[] argv[0];
+		delete[] argv;
+		nsCOMPtr<nsIObserverService> observer(do_GetService("@mozilla.org/observer-service;1"));
+		if (observer) observer->NotifyObservers(nullptr, "command-line-startup", nullptr);
+	}
 	return TRUE;
 }
 
