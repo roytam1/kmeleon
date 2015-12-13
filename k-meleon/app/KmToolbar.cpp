@@ -66,7 +66,7 @@ int KmToolbar::AddImage(LPCTSTR cold, UINT w, UINT h, LPCTSTR hot, LPCTSTR dead,
 {
 	KmImage img;
 	int index = -1;
-	RECT r = {0,0,w,h};
+	RECT r = { 0, 0, w?w:mWidth, h?h:mHeight };
 	if (cold && img.LoadFromSkin(cold, &r)) {	
 
 		if (!mHot.m_hImageList) {
