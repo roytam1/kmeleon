@@ -321,6 +321,7 @@ public:
    void AdBlockChanged();
    void SkinChanged();
    void BackgroundChanged();
+   void MenuChanged();
 
 protected:
    nsCOMPtr<nsIPrefBranch> m_prefs;
