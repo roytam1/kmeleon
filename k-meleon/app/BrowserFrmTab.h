@@ -99,6 +99,9 @@ protected:
 	afx_msg void OnOpenFrameInBackgroundTab();
 	afx_msg void OnOpenLinkInNewTab();
 	afx_msg void OnOpenLinkInBackgroundTab();
+	afx_msg void OnOpenImageInNewTab();
+	afx_msg void OnOpenImageInBackgroundTab();
+	afx_msg void OnViewImageInNewWindow();
 
 	DECLARE_MESSAGE_MAP()
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);

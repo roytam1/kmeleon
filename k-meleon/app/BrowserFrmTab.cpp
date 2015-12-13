@@ -866,6 +866,9 @@ BEGIN_MESSAGE_MAP(CBrowserTab, CBrowserView)
 	ON_COMMAND(ID_OPEN_LINK_IN_BACKGROUNDTAB, OnOpenLinkInBackgroundTab)
 	ON_COMMAND(ID_OPEN_FRAME_IN_NEW_TAB, OnOpenFrameInNewTab)
 	ON_COMMAND(ID_OPEN_FRAME_IN_BACKGROUNDTAB, OnOpenFrameInBackgroundTab)
+	ON_COMMAND(ID_OPEN_IMAGE_IN_NEW_TAB, OnOpenImageInNewTab)
+	ON_COMMAND(ID_OPEN_IMAGE_IN_BACKGROUNDTAB, OnOpenImageInBackgroundTab)
+	ON_COMMAND(ID_VIEW_IMAGE, OnViewImageInNewWindow)
 	ON_WM_KEYDOWN()
 	ON_WM_KEYUP()
 END_MESSAGE_MAP()
@@ -938,6 +941,38 @@ void CBrowserTab::OnOpenFrameInBackgroundTab()
 	CString url = m_pWindow->GetFrameURL(m_contextNode);
 	if (url.IsEmpty()) return;
 	OpenURLInNewTab(url, GetCurrentURI(), TRUE);
+}
+
+void CBrowserTab::OnOpenImageInNewTab()
+{
+	CString imgSrc;
+	if (!::GetImageSrc(m_contextNode, imgSrc))
+		if (!::GetBackgroundImageSrc(m_contextNode, imgSrc))
+			return;
+	
+	OpenURLInNewTab(imgSrc, GetCurrentURI(), FALSE);
+}
+
+void CBrowserTab::OnOpenImageInBackgroundTab()
+{
+	CString imgSrc;
+	if (!::GetImageSrc(m_contextNode, imgSrc))
+		if (!::GetBackgroundImageSrc(m_contextNode, imgSrc))
+			return;
+	OpenURLInNewTab(imgSrc, GetCurrentURI(), TRUE);
+}
+
+void CBrowserTab::OnViewImageInNewWindow()
+{
+	CString imgSrc;
+	if (!::GetImageSrc(m_contextNode, imgSrc))
+		if (!::GetBackgroundImageSrc(m_contextNode, imgSrc))
+			return;
+
+	if (theApp.preferences.GetInt("browser.link.open_newwindow", 1) == 3)
+		OpenURLInNewTab(imgSrc, m_pWindow->GetDocURL(m_contextNode), FALSE);
+	else
+		OpenURLInNewWindow(imgSrc, m_pWindow->GetDocURL(m_contextNode), FALSE);
 }
 
 void CBrowserFrmTab::OnSysCommand(UINT nID, LPARAM lParam)
