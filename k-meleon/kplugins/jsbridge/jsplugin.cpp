@@ -160,10 +160,10 @@ long DoMessage(const char *to, const char *from, const char *subject,
 			if (getJSB()) getJSB()->OnSwitchTab((HWND)data1, (HWND)data2);
 		}	
 		else if (strcmp(subject, "CreateTab") == 0) {
-			if (getJSB()) getJSB()->OnCreateTab((HWND)data1);
+			if (getJSB()) getJSB()->OnCreateTab((HWND)data2);
 		}
 		else if (strcmp(subject, "DestroyTab") == 0) {
-			if (getJSB()) getJSB()->OnDestroyTab((HWND)data1);
+			if (getJSB()) getJSB()->OnDestroyTab((HWND)data2);
 		}
 
 		else return 0;

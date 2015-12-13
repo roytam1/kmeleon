@@ -449,7 +449,19 @@ public:
 	HWND hWnd;
 };
 
-NS_IMPL_ISUPPORTS (CWin, kmIWindow)
+NS_IMPL_ISUPPORTS(CWin, kmIWindow)
+
+class CTab : public kmITab {
+public:
+	NS_DECL_ISUPPORTS
+	NS_DECL_KMITAB
+
+	CTab(HWND ahWnd) : hWnd(ahWnd) {};
+	virtual ~CTab() {};
+	HWND hWnd;
+};
+
+NS_IMPL_ISUPPORTS(CTab, kmITab)
 
 NS_IMETHODIMP CWin::GetHandle(void **aHandle)
 {
@@ -477,6 +489,33 @@ NS_IMETHODIMP CWin::GetTabs(uint32_t *length, nsIWebBrowser * **list)
 	if (length) *length = size;
 	*list = wins;
     return NS_OK;
+}
+
+NS_IMETHODIMP CTab::GetHandle(void **aHandle)
+{
+	*aHandle = hWnd;
+	return NS_OK;
+}
+
+NS_IMETHODIMP CTab::GetBrowser(nsIWebBrowser **browser)
+{
+	BOOL s = kPlugin.kFuncs->GetMozillaWebBrowser(hWnd, browser);
+	return s ? NS_OK : NS_ERROR_FAILURE;
+}
+
+NS_IMETHODIMP CTab::GetRoot(nsIDOMEventTarget **root)
+{
+	nsCOMPtr<nsIWebBrowser> browser;
+	kPlugin.kFuncs->GetMozillaWebBrowser(hWnd, getter_AddRefs(browser));
+	if (!browser) return NS_ERROR_FAILURE;
+
+	nsCOMPtr<nsIDOMWindow> dom;
+	browser->GetContentDOMWindow(getter_AddRefs(dom));
+	if (!dom) return NS_ERROR_FAILURE;
+
+	dom->GetWindowRoot(root);
+	if (!root) return NS_ERROR_FAILURE;
+	return NS_OK;
 }
 
 NS_IMETHODIMP CJSBridge::GetWindows(uint32_t *length, kmIWindow * **list)
@@ -572,45 +611,34 @@ void CJSBridge::OnSwitchTab(HWND oldhWnd, HWND newhWnd)
 	browser->GetContentDOMWindow(getter_AddRefs(dom));
 	if (!dom) return;
 
+	nsCOMPtr<nsIDOMEventTarget> root;
+	dom->GetWindowRoot(getter_AddRefs(root));
+
 	mListeners.EnumerateForwards(notifySwitchTab, dom);
 }
 
 bool notifyCreateTab(nsIObserver *aListener, void* aData)
 {
-	kmIWindow* winData = static_cast<kmIWindow*>(aData);
+	kmITab* winData = static_cast<kmITab*>(aData);
 	aListener->Observe(winData, "kmeleon-opentab", nullptr);
 	return true;
 }
 
 void CJSBridge::OnCreateTab(HWND hWnd)
 {
-	nsCOMPtr<nsIWebBrowser> browser;
-	kPlugin.kFuncs->GetMozillaWebBrowser(hWnd, getter_AddRefs(browser));
-	if (!browser) return;
-
-	nsCOMPtr<nsIDOMWindow> dom;
-	browser->GetContentDOMWindow(getter_AddRefs(dom));
-	if (!dom) return;
-
-	mListeners.EnumerateForwards(notifyCreateTab, dom);
+	nsCOMPtr<kmITab> tab = new CTab(hWnd);
+	mListeners.EnumerateForwards(notifyCreateTab, tab.get());
 }
 
 bool notifyDestroyTab(nsIObserver *aListener, void* aData)
 {
-	kmIWindow* winData = static_cast<kmIWindow*>(aData);
+	nsISupports* winData = static_cast<nsISupports*>(aData);
 	aListener->Observe(winData, "kmeleon-closetab", nullptr);
 	return true;
 }
 
 void CJSBridge::OnDestroyTab(HWND hWnd)
 {
-	nsCOMPtr<nsIWebBrowser> browser;
-	kPlugin.kFuncs->GetMozillaWebBrowser(hWnd, getter_AddRefs(browser));
-	if (!browser) return;
-
-	nsCOMPtr<nsIDOMWindow> dom;
-	browser->GetContentDOMWindow(getter_AddRefs(dom));
-	if (!dom) return;
-
-	mListeners.EnumerateForwards(notifyDestroyTab, dom);
+	nsCOMPtr<kmITab> tab = new CTab(hWnd);
+	mListeners.EnumerateForwards(notifyDestroyTab, tab.get());
 }
