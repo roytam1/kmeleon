@@ -1,3 +1,18 @@
+diff --git a/.hgignore b/.hgignore
+--- a/.hgignore
++++ b/.hgignore
+@@ -91,8 +91,11 @@ GPATH
+ # once legal has centralized their ToS and PP hosting infrastructure,
+ # (expected Q4 2014) the legal doc build stuff for Loop can be removed,
+ # including the following three lines
+ ^browser/components/loop/standalone/content/legal/styles/.*\.css$
+ ^browser/components/loop/standalone/content/legal/terms/en_US\.html$
+ 
+ # Android Gradle artifacts.
+ ^mobile/android/gradle/.gradle
++
++_DEBUG/
++_RELEASE/
 diff --git a/Makefile.in b/Makefile.in
 --- a/Makefile.in
 +++ b/Makefile.in
@@ -514,7 +529,27 @@ diff --git a/dom/plugins/base/nsPluginInstanceOwner.cpp b/dom/plugins/base/nsPlu
 diff --git a/embedding/browser/nsDocShellTreeOwner.cpp b/embedding/browser/nsDocShellTreeOwner.cpp
 --- a/embedding/browser/nsDocShellTreeOwner.cpp
 +++ b/embedding/browser/nsDocShellTreeOwner.cpp
-@@ -837,22 +837,24 @@ nsDocShellTreeOwner::AddChromeListeners(
+@@ -683,17 +683,18 @@ nsDocShellTreeOwner::OnProgressChange(ns
+                                       int32_t aCurSelfProgress,
+                                       int32_t aMaxSelfProgress,
+                                       int32_t aCurTotalProgress,
+                                       int32_t aMaxTotalProgress)
+ {
+     // In the absence of DOM document creation event, this method is the
+     // most convenient place to install the mouse listener on the
+     // DOM document.
+-    return AddChromeListeners();
++    // return AddChromeListeners();
++    return NS_OK;
+ }
+ 
+ NS_IMETHODIMP
+ nsDocShellTreeOwner::OnStateChange(nsIWebProgress* aProgress,
+                                    nsIRequest* aRequest,
+                                    uint32_t aProgressStateFlags,
+                                    nsresult aStatus)
+ {
+@@ -837,22 +838,24 @@ nsDocShellTreeOwner::AddChromeListeners(
        rv = mChromeContextMenuListener->AddChromeListeners();
      }
    }
@@ -545,8 +580,17 @@ diff --git a/embedding/browser/nsDocShellTreeOwner.cpp b/embedding/browser/nsDoc
  
  
  NS_IMETHODIMP
-@@ -905,17 +907,17 @@ nsDocShellTreeOwner::HandleEvent(nsIDOME
-       handler->CanDropLink(dragEvent, false, &canDropLink);
+@@ -897,25 +900,25 @@ nsDocShellTreeOwner::HandleEvent(nsIDOME
+   }
+ 
+   nsCOMPtr<nsIDroppedLinkHandler> handler = do_GetService("@mozilla.org/content/dropped-link-handler;1");
+   if (handler) {
+     nsAutoString eventType;
+     aEvent->GetType(eventType);
+     if (eventType.EqualsLiteral("dragover")) {
+       bool canDropLink;
+-      handler->CanDropLink(dragEvent, false, &canDropLink);
++	  handler->CanDropLink(dragEvent, false, &canDropLink);
        if (canDropLink)
          aEvent->PreventDefault();
      }
@@ -564,6 +608,36 @@ diff --git a/embedding/browser/nsDocShellTreeOwner.cpp b/embedding/browser/nsDoc
          aEvent->PreventDefault();
        }
      }
+diff --git a/embedding/browser/nsWebBrowser.cpp b/embedding/browser/nsWebBrowser.cpp
+--- a/embedding/browser/nsWebBrowser.cpp
++++ b/embedding/browser/nsWebBrowser.cpp
+@@ -89,23 +89,23 @@ nsWebBrowser::~nsWebBrowser()
+ }
+ 
+ NS_IMETHODIMP nsWebBrowser::InternalDestroy()
+ {
+   if (mInternalWidget) {
+     mInternalWidget->SetWidgetListener(nullptr);
+     mInternalWidget->Destroy();
+     mInternalWidget = nullptr; // Force release here.
+-  }
++  } 
+ 
+   SetDocShell(nullptr);
+ 
+   if (mDocShellTreeOwner) {
+-    mDocShellTreeOwner->WebBrowser(nullptr);
+-    mDocShellTreeOwner = nullptr;
++	  mDocShellTreeOwner->WebBrowser(nullptr);
++	  mDocShellTreeOwner = nullptr;
+   }
+ 
+   mInitInfo = nullptr;
+ 
+   mListenerArray = nullptr;
+ 
+   return NS_OK;
+ }
 diff --git a/embedding/components/printingui/win/nsPrintDialogUtil.cpp b/embedding/components/printingui/win/nsPrintDialogUtil.cpp
 --- a/embedding/components/printingui/win/nsPrintDialogUtil.cpp
 +++ b/embedding/components/printingui/win/nsPrintDialogUtil.cpp
@@ -596,7 +670,7 @@ diff --git a/embedding/components/webbrowserpersist/nsWebBrowserPersist.cpp b/em
      if (NS_FAILED(rv) || inputChannel == nullptr)
      {
 -        EndDownload(NS_ERROR_FAILURE);
-+        //No point in stopping the download because of a single failure
++		//No point in stopping the download because of a single failure
 +        //EndDownload(NS_ERROR_FAILURE);
          return NS_ERROR_FAILURE;
      }
@@ -753,6 +827,23 @@ diff --git a/js/xpconnect/idl/moz.build b/js/xpconnect/idl/moz.build
      'xpccomponents.idl',
      'xpcexception.idl',
      'xpcIJSGetFactory.idl',
+diff --git a/js/xpconnect/idl/nsIJSContextStack.idl b/js/xpconnect/idl/nsIJSContextStack.idl
+new file mode 100644
+--- /dev/null
++++ b/js/xpconnect/idl/nsIJSContextStack.idl
+@@ -0,0 +1,12 @@
++#include "nsISupports.idl"
++
++[ptr] native JSContext(JSContext);
++
++[uuid(c67d8270-3189-11d3-9885-006008962422)]
++interface nsIJSContextStack : nsISupports
++{
++    JSContext                   pop();
++    void                        push(in JSContext cx);
++};
++
++
 diff --git a/js/xpconnect/src/nsXPConnect.cpp b/js/xpconnect/src/nsXPConnect.cpp
 --- a/js/xpconnect/src/nsXPConnect.cpp
 +++ b/js/xpconnect/src/nsXPConnect.cpp
