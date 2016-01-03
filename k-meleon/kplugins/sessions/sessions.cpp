@@ -321,15 +321,16 @@ void DestroyTab(HWND parent, HWND tab)
 	if (destroying != parent) {
 		Window* w = currentSession.getWindow(parent);
 		if (w) { 
-			Tab t = w->getTab(tab);	
-			t.saveScrollState();
-			Window ww = Window(NULL);
-			ww.addTab(t);
-			undo.addWindow(ww);
+			Tab* t = w->getTab(tab);
+			if (t) {
+				t->saveScrollState();
+				Window ww = Window(NULL);
+				ww.addTab(*t);
+				undo.addWindow(ww);
+			}
 		}
-	}
-
-	currentSession.removeTab(parent, tab);	
+	}	
+	currentSession.removeTab(parent, tab);
 }
 
 void RestoreSession(BOOL afterCrash = FALSE)

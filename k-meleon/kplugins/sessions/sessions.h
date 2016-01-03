@@ -65,6 +65,7 @@ public:
 
 	void wasclosed() {
 		todelete = true;
+		saveScrollState();
 		hWnd = NULL;
 	}
 
@@ -339,14 +340,14 @@ public:
 		return w;
 	}
 
-	Tab getTab(HWND hWnd) {
+	Tab* getTab(HWND hWnd) {
 		TABLIST::iterator iter;
 		for (iter = tabsList.begin(); iter != tabsList.end(); iter++) {
 			if ((*iter).hWnd == hWnd) break;
 		}
 		//assert(iter != tabsList.end());
-		if (iter == tabsList.end()) return Tab(NULL, NULL);
-		return *iter;
+		if (iter == tabsList.end()) return nullptr;
+		return &*iter;
 	}
 
 	friend class SessionStore;
@@ -415,9 +416,8 @@ public:
 	Window* findWindowWithTab(HWND hTab) {
 		WINLIST::iterator iter;
 		for (iter = windowsList.begin(); iter != windowsList.end(); iter++) {
-			Tab tab = (*iter).getTab(hTab);
-			if (tab.hWnd)
-				return (&*iter);
+			Tab* tab = (*iter).getTab(hTab);
+			if (tab) return (&*iter);
 		}
 		return NULL;
 	}

@@ -390,9 +390,15 @@ kmeleonDocInfo * GetDocInfoUTF8(HWND mainWnd)
    }
 #endif
 
-   POINT scroll = browser->GetScrollPosition();
-   kDocInfo.scrollX = scroll.x;
-   kDocInfo.scrollY = scroll.y;
+   if (view->GetBrowserGlue()->mHIndex >= 0) {
+      kDocInfo.scrollX = view->GetBrowserGlue()->mScroll.x;
+      kDocInfo.scrollY = view->GetBrowserGlue()->mScroll.y;
+   }
+   else {
+      POINT scroll = browser->GetScrollPosition();
+      kDocInfo.scrollX = scroll.x;
+      kDocInfo.scrollY = scroll.y;
+   }
    return &kDocInfo;
 }
 
