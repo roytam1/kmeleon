@@ -583,7 +583,7 @@ BOOL CMfcEmbedApp::InitEmbedding(const char* profile)
 		delete[] argv[0];
 		delete[] argv;
 		nsCOMPtr<nsIObserverService> observer(do_GetService("@mozilla.org/observer-service;1"));
-		if (observer) observer->NotifyObservers(nullptr, "command-line-startup", nullptr);
+		if (observer) observer->NotifyObservers(cmdLine, "command-line-startup", nullptr);
 	}
 	return TRUE;
 }
