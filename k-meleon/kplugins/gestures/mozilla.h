@@ -122,10 +122,12 @@ public:
 	int type;
 	nsCString link;
 	nsString data;
+	nsPoint pt;
 
 	CDomEventListener(HWND hwnd)
 	{
 		mhWnd = hwnd;
+		type = HAS_NONE;
 	}
 
 	~CDomEventListener()
@@ -224,11 +226,16 @@ NS_IMETHODIMP CDomEventListener::HandleEvent(nsIDOMEvent* aEvent)
 		if (protocol.Compare(L"about") == 0 || protocol.Compare(L"chrome") == 0)
 			return NS_OK;
 
+		nsCOMPtr<nsIDOMMouseEvent> mouseEvent(do_QueryInterface(aEvent));
+		if (!mouseEvent) return NS_ERROR_FAILURE;
+		mouseEvent->GetScreenX(&pt.x);
+		mouseEvent->GetScreenY(&pt.y);
+
 		nsCOMPtr<nsIDOMDragEvent> dragEvent(do_QueryInterface(aEvent));
 		if (!dragEvent) return NS_ERROR_FAILURE;
 		nsCOMPtr<nsIDOMDataTransfer> dt;
 		dragEvent->GetDataTransfer(getter_AddRefs(dt));
-
+		
 		nsString _data;
 		dt->GetData(NS_LITERAL_STRING("text/plain"), _data);
 		_data.Trim("");
@@ -318,6 +325,15 @@ NS_IMETHODIMP CDomEventListener::HandleEvent(nsIDOMEvent* aEvent)
 		if (type == HAS_NONE || IsInputOrObject(element)) 
 			return NS_OK;
 
+		nsPoint dpt;
+		nsCOMPtr<nsIDOMMouseEvent> mouseEvent(do_QueryInterface(aEvent));
+		if (!mouseEvent) return NS_ERROR_FAILURE;
+		mouseEvent->GetScreenX(&dpt.x);
+		mouseEvent->GetScreenY(&dpt.y);
+
+		if (abs(dpt.x - pt.x) < 2 && abs(dpt.y - pt.y) < 2)
+			return NS_OK;
+
 		nsCString pref;
 		pref = NS_LITERAL_CSTRING(PREF_);
 		pref.Append("SD");
@@ -326,6 +342,7 @@ NS_IMETHODIMP CDomEventListener::HandleEvent(nsIDOMEvent* aEvent)
 		case HAS_TEXT: pref.Append("Text"); break;
 		case HAS_LINK: pref.Append("Link"); break;
 		case HAS_IMAGE: pref.Append("Image"); break;
+		default: return NS_OK;
 		}
 
 		char command[100];
@@ -339,6 +356,7 @@ NS_IMETHODIMP CDomEventListener::HandleEvent(nsIDOMEvent* aEvent)
 		}
 
 		aEvent->PreventDefault();
+		type = HAS_NONE;
 		return NS_OK;		
 	}
 	return NS_OK;
