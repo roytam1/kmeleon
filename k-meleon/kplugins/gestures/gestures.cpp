@@ -279,17 +279,20 @@ static int m_virt;
 
 static BOOL m_rocking = FALSE;
 static BOOL m_preventpopup = FALSE;
+static BOOL m_trail = TRUE;
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
     if (message == WM_COMMAND){
         WORD command = LOWORD(wParam);
 
         if (command == id_defercapture) {
+            kPlugin.kFuncs->GetPreference(PREF_BOOL, PREF_"mousetrail", &m_trail, &m_trail);
             m_pInfo = kPlugin.kFuncs->GetInfoAtClick(hWnd);
             if (!m_pInfo || (m_captured == WM_LBUTTONDOWN && m_pInfo->isInput))
                 return 0;
             m_captured = m_defercapture;
             SetCapture(hWnd);
+			
         }
     }
 	else if (m_rocking && ((message == WM_RBUTTONUP) || (message == WM_LBUTTONUP)))
@@ -332,7 +335,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 
                 if (mouseMsg == WM_RBUTTONDOWN || m_virt != 0 || mouseMsg == WM_LBUTTONDOWN) {
                     //SetCapture(hWnd);
-                    m_defercapture = m_captured = mouseMsg;
+                    m_defercapture = mouseMsg;
                     GetSystemTime(&m_stDown);
                     m_posDraw = m_posDown;
                     HWND targetWnd = WindowFromPoint(m_posDown);
@@ -360,7 +363,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 		ReleaseCapture();
 		HWND targetWnd = WindowFromPoint(m_posDown);
 		ClientToScreen(targetWnd, &m_posDraw);
-		if (m_captured == WM_RBUTTONDOWN && (m_posDraw.x != m_posDown.x || m_posDraw.y != m_posDown.y))
+		if (m_trail && m_captured == WM_RBUTTONDOWN && (m_posDraw.x != m_posDown.x || m_posDraw.y != m_posDown.y))
 			RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE | RDW_ALLCHILDREN);
 		m_captured = 0;
 	}
@@ -499,7 +502,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
         return 0;
     }
 
-	if (m_captured == WM_RBUTTONDOWN && message == WM_MOUSEMOVE)
+	if (m_captured == WM_RBUTTONDOWN && message == WM_MOUSEMOVE && m_trail)
 	{
 		//GDI+ draw
 		HWND targetWnd = WindowFromPoint(m_posDown);
