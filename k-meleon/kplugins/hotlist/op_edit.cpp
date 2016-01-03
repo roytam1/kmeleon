@@ -1509,7 +1509,7 @@ static void OnRClick(HWND hTree)
    if (hItem) {
       TreeView_SelectItem(hTree, hItem);
 
-      HMENU topMenu = LoadMenu(kPlugin.hDllInstance, MAKEINTRESOURCE(IDR_CONTEXTMENU));
+      HMENU topMenu = gLoc->LoadMenu(IDR_CONTEXTMENU);
       HMENU contextMenu = GetSubMenu(topMenu, 0);
 
       CBookmarkNode *node = GetBookmarkNode(hTree, hItem);
