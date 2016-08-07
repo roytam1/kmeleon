@@ -523,6 +523,9 @@ long DoMessage(const char *to, const char *from, const char *subject, long data1
 		else if (strcmp(subject, "Create") == 0) {
 			Create((HWND)data1);
 		}
+		else if (strcmp(subject, "SwitchTab") == 0) {
+			ExecuteMacro((HWND)data2, "OnSwitchTab", false);
+		}
 		else if (strcmp(subject, "CreateTab") == 0) {
 			ExecuteMacro(data2?(HWND)data2:(HWND)data1, "OnOpenTab", false);
 		}
