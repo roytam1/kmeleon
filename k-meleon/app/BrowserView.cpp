@@ -243,7 +243,8 @@ BOOL CBrowserView::PreCreateWindow(CREATESTRUCT& cs)
     if (!CWnd::PreCreateWindow(cs))
         return FALSE;
 
-    //cs.dwExStyle |= WS_EX_CLIENTEDGE;
+	if (theApp.preferences.GetBool("kmeleon.display.clientEdge", false))
+		cs.dwExStyle |= WS_EX_CLIENTEDGE;
     cs.style &= ~WS_BORDER;
     cs.style |= WS_CLIPCHILDREN|WS_CLIPSIBLINGS;
     cs.lpszClass = AfxRegisterWndClass(CS_DBLCLKS, 
