@@ -37,6 +37,8 @@ public:
 			return mpBrowserView->GetBrowserWrapper();
 
 		CBrowserTab* tab = ((CBrowserFrmTab*)mpBrowserFrame)->CreateBrowserTab();
+		if (!tab) return NULL;
+
 		if ( !theApp.preferences.GetBool("kmeleon.tabs.loadDivertedInBackground", FALSE)
 			&& mpBrowserView == mpBrowserFrame->GetActiveView())
 			((CBrowserFrmTab*)mpBrowserFrame)->SetActiveBrowser(tab);
