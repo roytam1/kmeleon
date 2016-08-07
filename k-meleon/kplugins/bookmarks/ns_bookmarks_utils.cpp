@@ -735,8 +735,8 @@ void ParseBookmarks(char *bmFileBuffer, CBookmarkNode &node)
          }
 
          // if we have no name, set our name to the url
-         if (name[0] == 0)
-            name = url;
+         //if (name[0] == 0)
+         //   name = url;
 
          char *pszTxt, *pszUrl;
          pszUrl = DecodeQuotes(url ? url : "");
