@@ -108,6 +108,11 @@ void CReBarEx::OnNcPaint()
 
 void CReBarEx::SetNeedSeparator(bool aNeed)
 {
+	if (theApp.preferences.GetBool("kmeleon.display.clientEdge", false)) {
+		mNeedSeparator = false;
+		return;
+	}	
+
 	if (aNeed && m_dwStyle & CBRS_ALIGN_TOP)
 		SetBorders(0,0,0,2);
 	else if (aNeed && m_dwStyle & CBRS_ALIGN_BOTTOM)
