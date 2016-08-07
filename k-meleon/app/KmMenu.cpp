@@ -549,13 +549,15 @@ void KmMenuService::DrawItem(LPDRAWITEMSTRUCT dis)
 		else
 			SetTextColor(dis->hDC, GetSysColor(COLOR_GRAYTEXT));
 	
-	dis->rcItem.left += ::GetSystemMetrics(SM_CXEDGE);
+	int cEdge = ::GetSystemMetrics(SM_CXEDGE);
+	cEdge--;
+	dis->rcItem.left += cEdge;
 	if (theApp.preferences.GetBool("kmeleon.display.bitmapInMenus", TRUE)) {
 		DRAWBITMAPPROC drawProc;
 		if (!mProcList.Lookup((HMENU)dis->hwndItem, drawProc) || !drawProc(dis))
 			DrawBitmap(dis);
 	}
-	dis->rcItem.left += theApp.skin.GetDefWidth() + ::GetSystemMetrics(SM_CXEDGE) + 1;
+	dis->rcItem.left += theApp.skin.GetDefWidth() + cEdge + 1;
 
 	DrawText(dis->hDC, text, _tcslen(text), &dis->rcItem, DT_SINGLELINE | DT_VCENTER | DT_NOCLIP);
 
