@@ -14,6 +14,9 @@
     <ClCompile Include="..\..\shared\Utils.cpp" />
     <ClCompile Include="privacy.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="privacy_private.rc" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{F80DCDF9-D001-47F7-97D5-26EF62BF91AF}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
@@ -61,6 +64,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\..\xulrunner-sdk\include\nspr;..\..\..\xulrunner-sdk\include;..\..\shared;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
