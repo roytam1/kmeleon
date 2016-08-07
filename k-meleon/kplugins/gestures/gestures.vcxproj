@@ -16,6 +16,9 @@
   <ItemGroup>
     <ClInclude Include="mozilla.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="C:\Users\Dorian.A\AppData\Local\Temp\Report20160727-1926.diagsession" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{2E6C70BF-E9CA-416A-B341-2B8550919D9E}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
@@ -63,6 +66,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\..\xulrunner-sdk\include\nspr;..\..\..\xulrunner-sdk\include;..\..\shared;h:\Program Files (x86)\Visual Leak Detector\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
