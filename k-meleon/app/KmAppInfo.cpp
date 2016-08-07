@@ -26,7 +26,7 @@
 #include "nsIAppShellService.h"
 #include "nsXULAppAPI.h"
 
-NS_IMPL_ISUPPORTS(KmAppInfo, nsIXULAppInfo, nsIXULRuntime, nsIAppStartup, nsIAppStartup2)
+NS_IMPL_ISUPPORTS(KmAppInfo, nsIXULAppInfo, nsIXULRuntime, nsIAppStartup, nsIAppStartup)
 
 /* readonly attribute ACString vendor; */
 NS_IMETHODIMP KmAppInfo::GetVendor(nsACString & aVendor)
@@ -396,7 +396,7 @@ NS_IMETHODIMP KmAppInfo::SetInterrupted(bool aInterrupted)
 	mInterrupted = aInterrupted;
 	return NS_OK;    
 }
-
+/*
 NS_IMETHODIMP KmAppInfo::ProcessNativeEvent(void* aMsg)
 {
 	_AFX_THREAD_STATE *pState = AfxGetThreadState();
@@ -409,7 +409,7 @@ NS_IMETHODIMP KmAppInfo::ProcessNativeEvent(void* aMsg)
 	}
 	return NS_OK;    
 }
-
+*/
 #include "nsIAccessibilityService.h"
 NS_IMETHODIMP KmAppInfo::GetAccessibilityIsUIA(bool *aAccessibilityIsUIA)
 {
