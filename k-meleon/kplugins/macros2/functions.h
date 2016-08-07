@@ -213,8 +213,8 @@ Value ExecuteFunction(const char* name);
 		case WM_COMMAND:
 			switch (LOWORD(wParam)) {
 		case IDOK: {
-			char tmp[4096];
-			GetDlgItemTextUTF8(hwnd, IDC_ANSWER, tmp, 4096);
+			char tmp[32768];
+			GetDlgItemTextUTF8(hwnd, IDC_ANSWER, tmp, 32768);
 			answer = tmp;
 			EndDialog( hwnd, IDOK );
 			break;
@@ -235,12 +235,12 @@ Value ExecuteFunction(const char* name);
 	{
 		DWORD ret;
 		if (gUnicode) {
-			WCHAR tmp[4096];
+			WCHAR tmp[32768];
 			ret = GetPrivateProfileStringW(CUTF8_to_UTF16(lpAppName), CUTF8_to_UTF16(lpKeyName), CUTF8_to_UTF16(lpDefault), tmp, sizeof(tmp)/sizeof(WCHAR), CUTF8_to_UTF16(filename));
 			str.assign(CUTF16_to_UTF8(tmp));
 		}
 		else {
-			char tmp[4096];
+			char tmp[32768];
 			ret = GetPrivateProfileStringA(CUTF8_to_ANSI(lpAppName), CUTF8_to_ANSI(lpKeyName), CUTF8_to_ANSI(lpDefault), tmp, sizeof(tmp), CUTF8_to_ANSI(filename));
 			str.assign(CANSI_to_UTF8(tmp));
 		}	
@@ -1050,8 +1050,8 @@ Value ExecuteFunction(const char* name);
 		else
 			bTopWindow = 1;
 		
-		char result[4096];
-		kPlugin.kFuncs->InjectJS2(data->getstr(1), bTopWindow, result, 4096, data->c.hWnd);
+		char result[32768];
+		kPlugin.kFuncs->InjectJS2(data->getstr(1), bTopWindow, result, 32768, data->c.hWnd);
 		return result;
 	}
 
@@ -1070,8 +1070,13 @@ Value ExecuteFunction(const char* name);
 			return "";
 		FILE* f = _wfopen(data->getstr(1).utf16(), L"r");
 		if (f) {
-			byte* buffer = new byte[65536];
-			int size = fread(buffer, sizeof(char), 65536-1, f);
+			fseek(f, 0, SEEK_END);
+			long l = ftell(f);
+			rewind(f);
+			if (l > 1024 * 1024) l = 1024 * 1024;
+			byte* buffer = new byte[l+1];
+
+			int size = fread(buffer, sizeof(char), l, f);
 			buffer[size] = 0;
 			Value ret;
 			if (buffer[0] == 0xEF && buffer[1] == 0xBB && buffer[2] == 0xBF)
