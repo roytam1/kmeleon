@@ -1,0 +1,43 @@
+diff --git a/netwerk/protocol/res/nsResProtocolHandler.cpp b/netwerk/protocol/res/nsResProtocolHandler.cpp
+index 97788082f..9c977f048 100644
+--- a/netwerk/protocol/res/nsResProtocolHandler.cpp
++++ b/netwerk/protocol/res/nsResProtocolHandler.cpp
+@@ -9,6 +9,7 @@
+ 
+ #include "nsResProtocolHandler.h"
+ #include "nsIIOService.h"
++#include "nsDirectoryServiceDefs.h"
+ #include "nsIFile.h"
+ #include "nsNetUtil.h"
+ #include "nsURLHelper.h"
+@@ -131,11 +132,18 @@ nsResProtocolHandler::Init()
+     rv = mozilla::Omnijar::GetURIString(mozilla::Omnijar::GRE, greURI);
+     NS_ENSURE_SUCCESS(rv, rv);
+ 
++
+     //
+     // make resource:/// point to the application directory or omnijar
+     //
++    nsCOMPtr<nsIFile> file;
++    rv = NS_GetSpecialDirectory(NS_OS_CURRENT_PROCESS_DIR, getter_AddRefs(file));
++    NS_ENSURE_SUCCESS(rv, rv);
++    nsCOMPtr<nsIFile> parent;
++    file->GetParent(getter_AddRefs(parent));
++
+     nsCOMPtr<nsIURI> uri;
+-    rv = NS_NewURI(getter_AddRefs(uri), appURI.Length() ? appURI : greURI);
++    rv = mIOService->NewFileURI(parent, getter_AddRefs(uri));
+     NS_ENSURE_SUCCESS(rv, rv);
+ 
+     rv = SetSubstitution(EmptyCString(), uri);
+@@ -144,6 +152,10 @@ nsResProtocolHandler::Init()
+     //
+     // make resource://app/ point to the application directory or omnijar
+     //
++    //nsCOMPtr<nsIURI> uri;
++    rv = NS_NewURI(getter_AddRefs(uri), appURI.Length() ? appURI : greURI);
++    NS_ENSURE_SUCCESS(rv, rv);
++
+     rv = SetSubstitution(kAPP, uri);
+     NS_ENSURE_SUCCESS(rv, rv);
+ 
