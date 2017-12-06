@@ -61,6 +61,7 @@ NS_IMETHODIMP KmAppInfo::GetID(nsACString & aID)
 /* readonly attribute ACString version; */
 NS_IMETHODIMP KmAppInfo::GetVersion(nsACString & aVersion)
 {
+#if 0
 	bool ff = false;
 	nsCOMPtr<nsIPrefService> m_prefservice = do_GetService(NS_PREFSERVICE_CONTRACTID);
 	if (m_prefservice) {
@@ -71,7 +72,9 @@ NS_IMETHODIMP KmAppInfo::GetVersion(nsACString & aVersion)
 		}
 	}
 	aVersion = !ff ? NS_STRINGIFY(KMELEON_UVERSION) : MOZILLA_VERSION;
-	//aVersion = MOZILLA_VERSION;
+#else
+	aVersion = NS_STRINGIFY(KMELEON_UVERSION);
+#endif
 	return NS_OK;
 }
 
@@ -91,7 +94,11 @@ NS_IMETHODIMP KmAppInfo::GetProcessID(uint32_t *aProcessID)
 /* readonly attribute ACString platformVersion; */
 NS_IMETHODIMP KmAppInfo::GetPlatformVersion(nsACString & aPlatformVersion)
 {
+#if 0
 	aPlatformVersion = NS_STRINGIFY(MOZILLA_VERSION_U);
+#else
+	aPlatformVersion = NS_STRINGIFY(KMELEON_UVERSION);
+#endif
 	return NS_OK;
 }
 
@@ -214,10 +221,10 @@ NS_IMETHODIMP KmAppInfo::GetReplacedLockTime(PRTime *aReplacedLockTime)
 }
 
 /* readonly attribute DOMString lastRunCrashID; */
-NS_IMETHODIMP KmAppInfo::GetLastRunCrashID(nsAString & aLastRunCrashID)
+/*NS_IMETHODIMP KmAppInfo::GetLastRunCrashID(nsAString & aLastRunCrashID)
 {
 	return NS_ERROR_NOT_IMPLEMENTED;
-}
+}*/
 
 NS_IMETHODIMP KmAppInfo::GetBrowserTabsRemoteAutostart(bool *aBrowserTabsRemote)
 {
@@ -373,10 +380,10 @@ NS_IMETHODIMP KmAppInfo::GetWasRestarted(bool *aWasRestarted)
 }
 
 /* readonly attribute boolean restartingTouchEnvironment; */
-NS_IMETHODIMP KmAppInfo::GetRestartingTouchEnvironment(bool *aRestartingTouchEnvironment)
+/*NS_IMETHODIMP KmAppInfo::GetRestartingTouchEnvironment(bool *aRestartingTouchEnvironment)
 {
 	return NS_ERROR_NOT_IMPLEMENTED;
-}
+}*/
 
 /* [implicit_jscontext] jsval getStartupInfo (); */
 NS_IMETHODIMP KmAppInfo::GetStartupInfo(JSContext* cx, JS::MutableHandleValue _retval)
