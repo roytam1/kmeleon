@@ -1,0 +1,46 @@
+diff -rU5 ../KMXULRunner_Pale-Moon/obj-xulrunner-i686-pc-mingw32/dist/include/mozilla/a11y/Accessible.h xulrunner-sdk/include/mozilla/a11y/Accessible.h
+--- ../KMXULRunner_Pale-Moon/obj-xulrunner-i686-pc-mingw32/dist/include/mozilla/a11y/Accessible.h	2017-09-24 07:20:56 +0800
++++ xulrunner-sdk/include/mozilla/a11y/Accessible.h	2017-11-29 07:33:12 +0800
+@@ -10,11 +10,12 @@
+ #include "mozilla/a11y/RelationType.h"
+ #include "mozilla/a11y/Role.h"
+ #include "mozilla/a11y/States.h"
+ 
+ #include "nsIContent.h"
+-#include "nsString.h"
++//#include "nsString.h"
++#include <nsStringAPI.h>
+ #include "nsTArray.h"
+ #include "nsRefPtrHashtable.h"
+ 
+ struct nsRoleMapEntry;
+ 
+diff -rU5 ../KMXULRunner_Pale-Moon/obj-xulrunner-i686-pc-mingw32/dist/include/nsISupportsImpl.h xulrunner-sdk/include/nsISupportsImpl.h
+--- ../KMXULRunner_Pale-Moon/obj-xulrunner-i686-pc-mingw32/dist/include/nsISupportsImpl.h	2017-11-29 00:16:24 +0800
++++ xulrunner-sdk/include/nsISupportsImpl.h	2017-11-29 00:39:21 +0800
+@@ -18,11 +18,11 @@
+ #include "prthread.h" /* needed for thread-safety checks */
+ #endif // !XPCOM_GLUE_AVOID_NSPR
+ 
+ #include "nsDebug.h"
+ #include "nsXPCOM.h"
+-#ifndef XPCOM_GLUE
++#if 1//ndef XPCOM_GLUE
+ #include "mozilla/Atomics.h"
+ #endif
+ #include "mozilla/Attributes.h"
+ #include "mozilla/Assertions.h"
+ #include "mozilla/Compiler.h"
+@@ -333,11 +333,11 @@
+   nsrefcnt operator++(int) = delete;
+   nsrefcnt operator--(int) = delete;
+   nsrefcnt mValue;
+ };
+ 
+-#ifndef XPCOM_GLUE
++#if 1//ndef XPCOM_GLUE
+ namespace mozilla {
+ class ThreadSafeAutoRefCnt
+ {
+ public:
+   ThreadSafeAutoRefCnt() : mValue(0) {}
