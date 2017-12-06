@@ -93,6 +93,7 @@
       <StringPooling>true</StringPooling>
       <AdditionalIncludeDirectories>$(IntDir);..\..\..\xulrunner-sdk\include\nspr;..\..\..\xulrunner-sdk\include;..\..\shared;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>
+      <DisableSpecificWarnings>4800;4819;4996</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -102,12 +103,12 @@
       <LargeAddressAware>true</LargeAddressAware>
       <ProgramDatabaseFile>$(IntDir)$(TargetName).pdb</ProgramDatabaseFile>
       <ImportLibrary>$(IntDir)$(TargetName).lib</ImportLibrary>
-      <AdditionalLibraryDirectories>..\..\..\xulrunner-sdk\lib_$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\..\xulrunner-sdk\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>nss3.lib;xul.lib;mozalloc.lib;mozjs.lib;xpcomglue_s.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
-      <Command>..\..\..\xulrunner-sdk\bin\header.py -I ../../../xulrunner-sdk/idl -o "$(IntDir)nsIJSBridge.h" idl/nsIJSBridge.idl 
-..\..\..\xulrunner-sdk\bin\typelib.py -I ../../../xulrunner-sdk/idl  -o "$(IntDir)jsbridge.xpt" idl/nsIJSBridge.idl </Command>
+      <Command>c:\mozilla-build\python\python ..\..\..\xulrunner-sdk\sdk\bin\header.py -I ../../../xulrunner-sdk/idl -o "$(IntDir)nsIJSBridge.h" idl/nsIJSBridge.idl
+c:\mozilla-build\python\python ..\..\..\xulrunner-sdk\sdk\bin\typelib.py -I ../../../xulrunner-sdk/idl  -o "$(IntDir)jsbridge.xpt" idl/nsIJSBridge.idl</Command>
     </PreBuildEvent>
     <PostBuildEvent>
       <Command>copy "$(IntDir)jsbridge.xpt" "$(OutDir)..\browser\components"</Command>
