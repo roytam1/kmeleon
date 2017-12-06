@@ -38,6 +38,7 @@ extern CMfcEmbedApp theApp;
 #include "MenuParser.h"
 
 #include "nsICacheService.h"
+#include "nsICacheStorageService.h"
 
 
 int SessionSize=0;
@@ -1479,6 +1480,14 @@ void SetCheck(int id, BOOL mark) {
 void ClearCache(int cache) {
    nsresult rv;
 
+  // cache v2 API
+  nsCOMPtr<nsICacheStorageService> CacheStorageService(do_GetService("@mozilla.org/netwerk/cache-storage-service;1", &rv));
+  if (NS_FAILED(rv)) return;
+
+  CacheStorageService->Clear();
+  CacheStorageService->PurgeFromMemory(3);
+
+  // below is cache v1 API
    nsCOMPtr<nsICacheService> CacheService =
       do_GetService(NS_CACHESERVICE_CONTRACTID, &rv);
    if (NS_FAILED(rv)) return;
