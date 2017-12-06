@@ -1,0 +1,1223 @@
+diff --git a/browser/components/build/moz.build b/browser/components/build/moz.build
+index f8073907e..eb5ffdf7e 100644
+--- a/browser/components/build/moz.build
++++ b/browser/components/build/moz.build
+@@ -22,6 +22,11 @@ LOCAL_INCLUDES += [
+     '../shell',
+ ]
+ 
++if CONFIG['JS_SHARED_LIBRARY']:
++    USE_LIBS += [
++        'js',
++    ]
++
+ if CONFIG['OS_ARCH'] == 'WINNT':
+     OS_LIBS += [
+         'ole32',
+diff --git a/browser/confvars.sh b/browser/confvars.sh
+index ba760f0aa..39bd02af6 100755
+--- a/browser/confvars.sh
++++ b/browser/confvars.sh
+@@ -17,7 +17,7 @@ MOZ_APP_VERSION=`cat ${_topsrcdir}/$MOZ_BUILD_APP/config/version.txt`
+ MOZ_EXTENSIONS_DEFAULT=" gio"
+ 
+ MOZ_SERVICES_FXACCOUNTS=1
+-MOZ_DISABLE_EXPORT_JS=1
++MOZ_DISABLE_EXPORT_JS=
+ MOZ_WEBGL_CONFORMANT=1
+ MOZ_ACTIVITIES=1
+ MOZ_JSDOWNLOADS=1
+diff --git a/caps/nsScriptSecurityManager.cpp b/caps/nsScriptSecurityManager.cpp
+index 5cef6cb6a..d830f15eb 100644
+--- a/caps/nsScriptSecurityManager.cpp
++++ b/caps/nsScriptSecurityManager.cpp
+@@ -393,6 +393,8 @@ nsScriptSecurityManager::ContentSecurityPolicyPermitsJSAction(JSContext *cx)
+ {
+     MOZ_ASSERT(cx == nsContentUtils::GetCurrentJSContext());
+     nsCOMPtr<nsIPrincipal> subjectPrincipal = nsContentUtils::SubjectPrincipal();
++    if (!subjectPrincipal)
++        return true;
+     nsCOMPtr<nsIContentSecurityPolicy> csp;
+     nsresult rv = subjectPrincipal->GetCsp(getter_AddRefs(csp));
+     NS_ASSERTION(NS_SUCCEEDED(rv), "CSP: Failed to get CSP from principal.");
+diff --git a/configure.in b/configure.in
+index 1ac85b38f..8f1ecbdf4 100644
+--- a/configure.in
++++ b/configure.in
+@@ -4231,11 +4231,11 @@
+ case "$MOZ_WIDGET_TOOLKIT" in
+ 
+ cairo-windows)
+     MOZ_WIDGET_TOOLKIT=windows
+     MOZ_PDF_PRINTING=1
+-    MOZ_INSTRUMENT_EVENT_LOOP=1
++    MOZ_INSTRUMENT_EVENT_LOOP=
+     if test -n "$GNU_CC"; then
+         MOZ_FOLD_LIBS=
+     fi
+     ;;
+ 
+diff --git a/docshell/base/nsDocShell.cpp b/docshell/base/nsDocShell.cpp
+index d105d6811..cec5191f5 100644
+--- a/docshell/base/nsDocShell.cpp
++++ b/docshell/base/nsDocShell.cpp
+@@ -10596,7 +10596,7 @@ nsDocShell::DoURILoad(nsIURI* aURI,
+     // timing attacks to read data from cross-origin iframes. If this widens
+     // we should add a protocol flag for whether the scheme is allowed in
+     // frames and use something like nsNetUtil::NS_URIChainHasFlags.
+-    nsCOMPtr<nsIURI> tempURI = aURI;
++    /*nsCOMPtr<nsIURI> tempURI = aURI;
+     nsCOMPtr<nsINestedURI> nestedURI = do_QueryInterface(tempURI);
+     while (nestedURI) {
+       // view-source should always be an nsINestedURI, loop and check the
+@@ -10608,7 +10608,7 @@ nsDocShell::DoURILoad(nsIURI* aURI,
+       }
+       nestedURI->GetInnerURI(getter_AddRefs(tempURI));
+       nestedURI = do_QueryInterface(tempURI);
+-    }
++    }*/
+   }
+ 
+   // open a channel for the url
+diff --git a/dom/base/nsGlobalWindow.cpp b/dom/base/nsGlobalWindow.cpp
+index b809e58b0..562d5371c 100644
+--- a/dom/base/nsGlobalWindow.cpp
++++ b/dom/base/nsGlobalWindow.cpp
+@@ -7197,6 +7197,7 @@ NS_IMETHODIMP
+ nsGlobalWindow::GetWindowRoot(nsIDOMEventTarget **aWindowRoot)
+ {
+   nsCOMPtr<nsPIWindowRoot> root = GetTopWindowRoot();
++  NS_ENSURE_TRUE(root, NS_ERROR_FAILURE);
+   return CallQueryInterface(root, aWindowRoot);
+ }
+ 
+diff --git a/dom/plugins/base/nsPluginInstanceOwner.cpp b/dom/plugins/base/nsPluginInstanceOwner.cpp
+index dc056d996..24d4246db 100644
+--- a/dom/plugins/base/nsPluginInstanceOwner.cpp
++++ b/dom/plugins/base/nsPluginInstanceOwner.cpp
+@@ -704,6 +704,7 @@ NS_IMETHODIMP nsPluginInstanceOwner::GetNetscapeWindow(void *value)
+     if (win) {
+       nsView *view = nsView::GetViewFor(win);
+       NS_ASSERTION(view, "No view for widget");
++      if (!view) return NS_ERROR_FAILURE;
+       nsPoint offset = view->GetOffsetTo(nullptr);
+ 
+       if (offset.x || offset.y) {
+diff --git a/embedding/browser/nsDocShellTreeOwner.cpp b/embedding/browser/nsDocShellTreeOwner.cpp
+index 88283d9d4..cb046b997 100644
+--- a/embedding/browser/nsDocShellTreeOwner.cpp
++++ b/embedding/browser/nsDocShellTreeOwner.cpp
+@@ -688,7 +688,8 @@ nsDocShellTreeOwner::OnProgressChange(nsIWebProgress* aProgress,
+     // In the absence of DOM document creation event, this method is the
+     // most convenient place to install the mouse listener on the
+     // DOM document.
+-    return AddChromeListeners();
++    // return AddChromeListeners();
++    return NS_OK;
+ }
+ 
+ NS_IMETHODIMP
+@@ -843,11 +844,14 @@ nsDocShellTreeOwner::AddChromeListeners()
+   GetDOMEventTarget(mWebBrowser, getter_AddRefs(target));
+ 
+   EventListenerManager* elmP = target->GetOrCreateListenerManager();
+-  if (elmP) {
+-    elmP->AddEventListenerByType(this, NS_LITERAL_STRING("dragover"),
+-                                 TrustedEventsAtSystemGroupBubble());
+-    elmP->AddEventListenerByType(this, NS_LITERAL_STRING("drop"),
+-                                 TrustedEventsAtSystemGroupBubble());
++  if (target) {
++    EventListenerManager* elmP = target->GetOrCreateListenerManager();
++    if (elmP) {
++      elmP->AddEventListenerByType(this, NS_LITERAL_STRING("dragover"),
++                                   TrustedEventsAtSystemGroupBubble());
++      elmP->AddEventListenerByType(this, NS_LITERAL_STRING("drop"),
++                                   TrustedEventsAtSystemGroupBubble());
++    }
+   }
+ 
+   return rv;
+@@ -910,7 +914,7 @@ nsDocShellTreeOwner::HandleEvent(nsIDOMEvent* aEvent)
+       nsIWebNavigation* webnav = static_cast<nsIWebNavigation *>(mWebBrowser);
+ 
+       nsAutoString link, name;
+-      if (webnav && NS_SUCCEEDED(handler->DropLink(dragEvent, link, false, name))) {
++      if (webnav && NS_SUCCEEDED(handler->DropLink(dragEvent, name, false, link))) {
+         if (!link.IsEmpty()) {
+           webnav->LoadURI(link.get(), 0, nullptr, nullptr, nullptr);
+         }
+diff --git a/embedding/components/printingui/win/nsPrintDialogUtil.cpp b/embedding/components/printingui/win/nsPrintDialogUtil.cpp
+index 2370edb44..6634c7f89 100644
+--- a/embedding/components/printingui/win/nsPrintDialogUtil.cpp
++++ b/embedding/components/printingui/win/nsPrintDialogUtil.cpp
+@@ -1073,7 +1073,7 @@ nsresult NativeShowPrintDialog(HWND                aHWnd,
+ 
+   nsresult rv = ShowNativePrintDialog(aHWnd, aPrintSettings);
+   if (aHWnd) {
+-    ::DestroyWindow(aHWnd);
++    //::DestroyWindow(aHWnd);
+   }
+ 
+   return rv;
+diff --git a/embedding/components/webbrowserpersist/nsWebBrowserPersist.cpp b/embedding/components/webbrowserpersist/nsWebBrowserPersist.cpp
+index e31075e21..d0147c8d6 100644
+--- a/embedding/components/webbrowserpersist/nsWebBrowserPersist.cpp
++++ b/embedding/components/webbrowserpersist/nsWebBrowserPersist.cpp
+@@ -1228,7 +1228,8 @@ nsresult nsWebBrowserPersist::SaveURIInternal(
+ 
+     if (NS_FAILED(rv) || inputChannel == nullptr)
+     {
+-        EndDownload(NS_ERROR_FAILURE);
++        //No point in stopping the download because of a single failure
++        //EndDownload(NS_ERROR_FAILURE);
+         return NS_ERROR_FAILURE;
+     }
+ 
+diff --git a/gfx/layers/d3d11/CompositorD3D11.cpp b/gfx/layers/d3d11/CompositorD3D11.cpp
+index 2533b4807..923b06848 100644
+--- a/gfx/layers/d3d11/CompositorD3D11.cpp
++++ b/gfx/layers/d3d11/CompositorD3D11.cpp
+@@ -1117,7 +1117,8 @@ CompositorD3D11::EndFrame()
+         rects.push_back(rect);
+       }
+ 
+-      params.pDirtyRects = &rects.front();
++      if (rects.size())
++        params.pDirtyRects = &rects.front();
+       chain->Present1(presentInterval, mDisableSequenceForNextFrame ? DXGI_PRESENT_DO_NOT_SEQUENCE : 0, &params);
+     } else {
+       mSwapChain->Present(presentInterval, mDisableSequenceForNextFrame ? DXGI_PRESENT_DO_NOT_SEQUENCE : 0);
+diff --git a/image/decoders/nsICODecoder.cpp b/image/decoders/nsICODecoder.cpp
+index 6d17c5e87..8708d2518 100644
+--- a/image/decoders/nsICODecoder.cpp
++++ b/image/decoders/nsICODecoder.cpp
+@@ -20,7 +20,7 @@ namespace image {
+ #define ICONCOUNTOFFSET 4
+ #define DIRENTRYOFFSET 6
+ #define BITMAPINFOSIZE 40
+-#define PREFICONSIZE 16
++#define PREFICONSIZE 32
+ 
+ // ----------------------------------------
+ // Actual Data Processing
+diff --git a/intl/icu/source/common/Makefile.in b/intl/icu/source/common/Makefile.in
+index 59ffb7377..bbc54321c 100644
+--- a/intl/icu/source/common/Makefile.in
++++ b/intl/icu/source/common/Makefile.in
+@@ -229,3 +229,6 @@ ifneq ($(patsubst %clean,,$(MAKECMDGOALS)),)
+ endif
+ endif
+ 
++CFLAGS += -O1 -GL -Gw
++CXXFLAGS += -O1 -GL -Gw
++LDFLAGS += -opt:ref,icf -LARGEADDRESSAWARE -LTCG
+diff --git a/intl/icu/source/i18n/Makefile.in b/intl/icu/source/i18n/Makefile.in
+index 2fe9b3d8d..8f225ee03 100644
+--- a/intl/icu/source/i18n/Makefile.in
++++ b/intl/icu/source/i18n/Makefile.in
+@@ -208,3 +208,7 @@ ifneq ($(patsubst %clean,,$(MAKECMDGOALS)),)
+ -include $(DEPS)
+ endif
+ endif
++
++CFLAGS += -O1 -GL -Gw
++CXXFLAGS += -O1 -GL -Gw
++LDFLAGS += -opt:ref,icf -LARGEADDRESSAWARE -LTCG
+diff --git a/js/src/jsapi.cpp b/js/src/jsapi.cpp
+index 6ee59c809..84901bbf2 100644
+--- a/js/src/jsapi.cpp
++++ b/js/src/jsapi.cpp
+@@ -115,6 +115,12 @@ using js::frontend::Parser;
+ #define JS_ADDRESSOF_VA_LIST(ap) (&(ap))
+ #endif
+ 
++JS_PUBLIC_API(bool)
++JS::JS_RequireArgsAtLeast(JSContext* cx, JS::CallArgs& args,
++const char* fnname, unsigned required) {
++    return args.requireAtLeast(cx, fnname, required);
++}
++
+ bool
+ JS::CallArgs::requireAtLeast(JSContext* cx, const char* fnname, unsigned required) const
+ {
+diff --git a/js/src/jsapi.h b/js/src/jsapi.h
+index 4f6ae4a97..b6c99db3d 100644
+--- a/js/src/jsapi.h
++++ b/js/src/jsapi.h
+@@ -37,6 +37,9 @@
+ 
+ namespace JS {
+ 
++extern JS_PUBLIC_API(bool)
++  JS_RequireArgsAtLeast(JSContext* cx, JS::CallArgs& args, const char* fnname, unsigned required);
++
+ class Latin1CharsZ;
+ class TwoByteChars;
+ 
+diff --git a/js/xpconnect/idl/moz.build b/js/xpconnect/idl/moz.build
+index c1ed1e21c..be265ab7d 100644
+--- a/js/xpconnect/idl/moz.build
++++ b/js/xpconnect/idl/moz.build
+@@ -7,6 +7,7 @@
+ XPIDL_SOURCES += [
+     'mozIJSSubScriptLoader.idl',
+     'nsIAddonInterposition.idl',
++    'nsIJSContextStack.idl',
+     'nsIJSRuntimeService.idl',
+     'nsIRemoteTagService.idl',
+     'nsIScriptError.idl',
+diff --git a/js/xpconnect/idl/nsIJSContextStack.idl b/js/xpconnect/idl/nsIJSContextStack.idl
+new file mode 100644
+--- /dev/null
++++ b/js/xpconnect/idl/nsIJSContextStack.idl
+@@ -0,0 +1,12 @@
++#include "nsISupports.idl"
++
++[ptr] native JSContext(JSContext);
++
++[uuid(c67d8270-3189-11d3-9885-006008962422)]
++interface nsIJSContextStack : nsISupports
++{
++    JSContext                   pop();
++    void                        push(in JSContext cx);
++};
++
++
+diff --git a/js/xpconnect/src/nsXPConnect.cpp b/js/xpconnect/src/nsXPConnect.cpp
+index d1e4aa981..166ce1fff 100644
+--- a/js/xpconnect/src/nsXPConnect.cpp
++++ b/js/xpconnect/src/nsXPConnect.cpp
+@@ -41,7 +41,8 @@ NS_IMPL_ISUPPORTS(nsXPConnect,
+                   nsIXPConnect,
+                   nsISupportsWeakReference,
+                   nsIThreadObserver,
+-                  nsIJSRuntimeService)
++                  nsIJSRuntimeService,
++                  nsIJSContextStack)
+ 
+ nsXPConnect* nsXPConnect::gSelf = nullptr;
+ bool         nsXPConnect::gOnceAliveNowDead = false;
+@@ -1012,6 +1013,19 @@ nsXPConnect::AfterProcessNextEvent(nsIThreadInternal* aThread,
+     return NS_OK;
+ }
+ 
++NS_IMETHODIMP
++nsXPConnect::Push(JSContext *aJSContext)
++{
++  return PushJSContextNoScriptContext(aJSContext) ? NS_OK : NS_ERROR_FAILURE;
++}
++
++NS_IMETHODIMP
++nsXPConnect::Pop(JSContext **aJSContext)
++{
++  PopJSContextNoScriptContext();//*aJSContext = XPCJSRuntime::Get()->GetJSContextStack()->Pop();
++  return NS_OK;
++}
++
+ NS_IMETHODIMP
+ nsXPConnect::OnDispatchedEvent(nsIThreadInternal* aThread)
+ {
+@@ -1089,7 +1103,7 @@ namespace xpc {
+ bool
+ PushJSContextNoScriptContext(JSContext* aCx)
+ {
+-    MOZ_ASSERT_IF(aCx, !GetScriptContextFromJSContext(aCx));
++    //MOZ_ASSERT_IF(aCx, !GetScriptContextFromJSContext(aCx));
+     return XPCJSRuntime::Get()->GetJSContextStack()->Push(aCx);
+ }
+ 
+diff --git a/js/xpconnect/src/xpcprivate.h b/js/xpconnect/src/xpcprivate.h
+index 782aefbac..7670ece43 100644
+--- a/js/xpconnect/src/xpcprivate.h
++++ b/js/xpconnect/src/xpcprivate.h
+@@ -112,6 +112,7 @@
+ #include "nsIXPConnect.h"
+ #include "nsIInterfaceInfo.h"
+ #include "nsIXPCScriptable.h"
++#include "nsIJSContextStack.h"
+ #include "nsIJSRuntimeService.h"
+ #include "nsIObserver.h"
+ #include "nsWeakReference.h"
+@@ -252,7 +253,8 @@ static inline bool IS_WN_REFLECTOR(JSObject* obj)
+ class nsXPConnect final : public nsIXPConnect,
+                           public nsIThreadObserver,
+                           public nsSupportsWeakReference,
+-                          public nsIJSRuntimeService
++                          public nsIJSRuntimeService,
++                          public nsIJSContextStack
+ {
+ public:
+     // all the interface method declarations...
+@@ -260,6 +262,7 @@ public:
+     NS_DECL_NSIXPCONNECT
+     NS_DECL_NSITHREADOBSERVER
+     NS_DECL_NSIJSRUNTIMESERVICE
++    NS_DECL_NSIJSCONTEXTSTACK
+ 
+     // non-interface implementation
+ public:
+diff --git a/netwerk/base/ProxyAutoConfig.cpp b/netwerk/base/ProxyAutoConfig.cpp
+index 3b2ca9585..cc28d59d9 100644
+--- a/netwerk/base/ProxyAutoConfig.cpp
++++ b/netwerk/base/ProxyAutoConfig.cpp
+@@ -416,6 +416,9 @@ bool PACDnsResolve(JSContext *cx, unsigned int argc, JS::Value *vp)
+     return false;
+   }
+ 
++  if (!JS::JS_RequireArgsAtLeast(cx, args, "dnsResolve", 1))
++     return false;
++ 
+   JS::Rooted<JSString*> arg1(cx);
+   if (!JS_ConvertArguments(cx, args, "S", arg1.address()))
+     return false;
+@@ -465,6 +468,9 @@ bool PACProxyAlert(JSContext *cx, unsigned int argc, JS::Value *vp)
+ {
+   JS::CallArgs args = CallArgsFromVp(argc, vp);
+ 
++  if (!JS::JS_RequireArgsAtLeast(cx, args, "alert", 1))
++     return false;
++
+   JS::Rooted<JSString*> arg1(cx);
+   if (!JS_ConvertArguments(cx, args, "S", arg1.address()))
+     return false;
+diff --git a/python/mozbuild/mozbuild/frontend/context.py b/python/mozbuild/mozbuild/frontend/context.py
+index d2c033030..a62894835 100644
+--- a/python/mozbuild/mozbuild/frontend/context.py
++++ b/python/mozbuild/mozbuild/frontend/context.py
+@@ -413,6 +413,19 @@ VARIABLES = {
+         This variable contains a list of source code files to compile.
+         Accepts assembler, C, C++, Objective C/C++.
+         """, None),
++        
++     'SOURCES_NOPCH': (StrictOrderingOnAppendList, list,
++        """Source code files.
++
++        This variable contains a list of source code files not using
++        the precompiled header.
++        """, 'compile'),        
++        
++     'PCHHDR': (unicode, unicode,
++        "", None),   
++     'PCHSRC': (unicode, unicode,
++        "", None),      
++         
+ 
+     'GENERATED_SOURCES': (StrictOrderingOnAppendList, list,
+         """Generated source code files.
+diff --git a/python/mozbuild/mozbuild/frontend/emitter.py b/python/mozbuild/mozbuild/frontend/emitter.py
+index 0896cbefa..c92223626 100644
+--- a/python/mozbuild/mozbuild/frontend/emitter.py
++++ b/python/mozbuild/mozbuild/frontend/emitter.py
+@@ -422,6 +422,9 @@ class TreeMetadataEmitter(LoggingMixin):
+             'DEFFILE',
+             'WIN32_EXE_LDFLAGS',
+             'LD_VERSION_SCRIPT',
++            'SOURCES_NOPCH',
++            'PCHHDR',
++            'PCHSRC',
+         ]
+         for v in varlist:
+             if v in context and context[v]:
+diff --git a/security/nss/coreconf/WIN32.mk b/security/nss/coreconf/WIN32.mk
+index be795f0ce..1d68b4ba3 100644
+--- a/security/nss/coreconf/WIN32.mk
++++ b/security/nss/coreconf/WIN32.mk
+@@ -109,9 +109,9 @@ ifdef NS_USE_GCC
+     DLLFLAGS  += -mwindows -o $@ -shared -Wl,--export-all-symbols $(if $(IMPORT_LIBRARY),$(_GEN_IMPORT_LIB))
+     ifdef BUILD_OPT
+ 	ifeq (11,$(ALLOW_OPT_CODE_SIZE)$(OPT_CODE_SIZE))
+-		OPTIMIZER += -Os
++		OPTIMIZER += -Os -GFL -Gw
+ 	else
+-		OPTIMIZER += -O2
++		OPTIMIZER += -O2 -GFL -Gw
+ 	endif
+ 	DEFINES    += -UDEBUG -DNDEBUG
+     else
+diff --git a/security/nss/coreconf/command.mk b/security/nss/coreconf/command.mk
+index 5e92748aa..00171f8a3 100644
+--- a/security/nss/coreconf/command.mk
++++ b/security/nss/coreconf/command.mk
+@@ -11,7 +11,7 @@
+ AS            = $(CC)
+ ASFLAGS      += $(CFLAGS)
+ CCF           = $(CC) $(CFLAGS)
+-LINK_DLL      = $(LD) $(OS_DLLFLAGS) $(DLLFLAGS) $(XLDFLAGS)
++LINK_DLL      = $(LD) $(OS_DLLFLAGS) $(DLLFLAGS) $(XLDFLAGS) -opt:ref,icf -LARGEADDRESSAWARE -LTCG
+ CFLAGS        = $(OPTIMIZER) $(OS_CFLAGS) $(WARNING_CFLAGS) $(XP_DEFINE) \
+                 $(DEFINES) $(INCLUDES) $(XCFLAGS)
+ PERL          = perl
+diff --git a/security/nss/lib/freebl/Makefile b/security/nss/lib/freebl/Makefile
+index 914a0119c..cee757429 100644
+--- a/security/nss/lib/freebl/Makefile
++++ b/security/nss/lib/freebl/Makefile
+@@ -149,7 +149,7 @@ else
+     DEFINES += -DMP_ASSEMBLY_MULTIPLY -DMP_ASSEMBLY_SQUARE 
+     DEFINES += -DMP_ASSEMBLY_DIV_2DX1D -DMP_USE_UINT_DIGIT -DMP_NO_MP_WORD
+     ifdef BUILD_OPT
+-	OPTIMIZER += -Ox  # maximum optimization for freebl
++	OPTIMIZER += -Ox -GFL  # maximum optimization for freebl
+     endif
+     # The Intel AES assembly code requires Visual C++ 2010.
+     # if $(_MSC_VER) >= 1600 (Visual C++ 2010)
+@@ -171,7 +171,7 @@ ifdef NS_USE_GCC
+ else
+ # MSVC
+     ifdef BUILD_OPT
+-	OPTIMIZER += -Ox  # maximum optimization for freebl
++	OPTIMIZER += -Ox -GFL  # maximum optimization for freebl
+     endif
+     ASFILES  = arcfour-amd64-masm.asm mpi_amd64_masm.asm mp_comba_amd64_masm.asm
+     DEFINES += -DNSS_BEVAND_ARCFOUR -DMPI_AMD64 -DMP_ASSEMBLY_MULTIPLY
+diff --git a/toolkit/components/passwordmgr/LoginManagerContent.jsm b/toolkit/components/passwordmgr/LoginManagerContent.jsm
+index 973b36a03..559875116 100644
+--- a/toolkit/components/passwordmgr/LoginManagerContent.jsm
++++ b/toolkit/components/passwordmgr/LoginManagerContent.jsm
+@@ -200,6 +200,54 @@ var LoginManagerContent = {
+                              messageData);
+   },
+ 
++  doAutocompleteSearch: function({ formOrigin, actionOrigin,
++                                   searchString, previousResult,
++                                   rect, requestId, remote }, target) {
++    // Note: previousResult is a regular object, not an
++    // nsIAutoCompleteResult.
++    var result;
++
++    let searchStringLower = searchString.toLowerCase();
++    let logins;
++    if (previousResult &&
++        searchStringLower.startsWith(previousResult.searchString.toLowerCase())) {
++      log("Using previous autocomplete result");
++
++      // We have a list of results for a shorter search string, so just
++      // filter them further based on the new search string.
++      logins = previousResult.logins;
++    } else {
++      log("Creating new autocomplete search result.");
++
++      // Grab the logins from the database.
++      logins = Services.logins.findLogins({}, formOrigin, actionOrigin, null);
++    }
++
++    let matchingLogins = logins.filter(function(fullMatch) {
++      let match = fullMatch.username;
++
++      // Remove results that are too short, or have different prefix.
++      // Also don't offer empty usernames as possible results.
++      return match && match.toLowerCase().startsWith(searchStringLower);
++    });
++
++    // XXX In the E10S case, we're responsible for showing our own
++    // autocomplete popup here because the autocomplete protocol hasn't
++    // been e10s-ized yet. In the non-e10s case, our caller is responsible
++    // for showing the autocomplete popup (via the regular
++    // nsAutoCompleteController).
++    if (remote) {
++      result = new UserAutoCompleteResult(searchString, matchingLogins);
++      AutoCompleteE10S.showPopupWithResults(target.ownerDocument.defaultView, rect, result);
++    }
++    
++    return Promise.resolve(matchingLogins);
++    
++    target.messageManager.sendAsyncMessage("RemoteLogins:loginsAutoCompleted",
++                                           { requestId: requestId,
++                                             logins: matchingLogins });
++  },
++
+   _autoCompleteSearchAsync: function(aSearchString, aPreviousResult,
+                                      aElement, aRect) {
+     let doc = aElement.ownerDocument;
+@@ -209,7 +257,7 @@ var LoginManagerContent = {
+     let formOrigin = LoginUtils._getPasswordOrigin(doc.documentURI);
+     let actionOrigin = LoginUtils._getActionOrigin(form);
+ 
+-    let messageManager = messageManagerFromWindow(win);
++    //let messageManager = messageManagerFromWindow(win);
+ 
+     let remote = (Services.appinfo.processType ===
+                   Services.appinfo.PROCESS_TYPE_CONTENT);
+@@ -222,6 +270,7 @@ var LoginManagerContent = {
+                         rect: aRect,
+                         remote: remote };
+ 
++    return this.doAutocompleteSearch(messageData);
+     return this._sendRequest(messageManager, requestData,
+                              "RemoteLogins:autoCompleteLogins",
+                              messageData);
+@@ -238,7 +287,7 @@ var LoginManagerContent = {
+     let form = event.target;
+ 
+     let doc = form.ownerDocument;
+-    let win = doc.defaultView;
++    /*let win = doc.defaultView;
+     let messageManager = messageManagerFromWindow(win);
+ 
+     messageManager.sendAsyncMessage("LoginStats:LoginEncountered");
+@@ -248,7 +297,49 @@ var LoginManagerContent = {
+     log("onFormPassword for", form.ownerDocument.documentURI);
+     this._asyncFindLogins(form, { showMasterPassword: true })
+         .then(this.loginsFound.bind(this))
+-        .then(null, Cu.reportError);
++        .then(null, Cu.reportError);*/
++
++    log("onFormPassword for", doc.documentURI);
++
++      // If there are no logins for this site, bail out now.
++      let formOrigin = LoginUtils._getPasswordOrigin(doc.documentURI);
++      if (!Services.logins.countLogins(formOrigin, "", null))
++          return;
++
++      // If we're currently displaying a master password prompt, defer
++      // processing this form until the user handles the prompt.
++      if (Services.logins.uiBusy) {
++        log("deferring onFormPassword for", doc.documentURI);
++        let self = this;
++        let observer = {
++            QueryInterface: XPCOMUtils.generateQI([Ci.nsIObserver, Ci.nsISupportsWeakReference]),
++
++            observe: function (subject, topic, data) {
++                log("Got deferred onFormPassword notification:", topic);
++                // Only run observer once.
++                Services.obs.removeObserver(this, "passwordmgr-crypto-login");
++                Services.obs.removeObserver(this, "passwordmgr-crypto-loginCanceled");
++                if (topic == "passwordmgr-crypto-loginCanceled")
++                    return;
++                self.onFormPassword(event);
++            },
++            handleEvent : function (event) {
++                // Not expected to be called
++            }
++        };
++        // Trickyness follows: We want an observer, but don't want it to
++        // cause leaks. So add the observer with a weak reference, and use
++        // a dummy event listener (a strong reference) to keep it alive
++        // until the form is destroyed.
++        Services.obs.addObserver(observer, "passwordmgr-crypto-login", true);
++        Services.obs.addObserver(observer, "passwordmgr-crypto-loginCanceled", true);
++        form.addEventListener("mozCleverClosureHack", observer);
++        return;
++      }
++
++      let autofillForm = gAutofillForms && !PrivateBrowsingUtils.isWindowPrivate(doc.defaultView);
++
++      this._fillForm(form, autofillForm, false, false, null);
+   },
+ 
+   loginsFound: function({ form, loginsFound }) {
+@@ -296,11 +387,18 @@ var LoginManagerContent = {
+     var [usernameField, passwordField, ignored] =
+         this._getFormFields(acForm, false);
+     if (usernameField == acInputField && passwordField) {
+-      this._asyncFindLogins(acForm, { showMasterPassword: false })
++      /*this._asyncFindLogins(acForm, { showMasterPassword: false })
+           .then(({ form, loginsFound }) => {
+               this._fillForm(form, true, true, true, loginsFound);
+           })
+-          .then(null, Cu.reportError);
++          .then(null, Cu.reportError);*/
++	  
++	  // If the user has a master password but itsn't logged in, bail
++            // out now to prevent annoying prompts.
++            if (!Services.logins.isLoggedIn)
++                return;
++
++            this._fillForm(acForm, true, true, true, null);
+     } else {
+       // Ignore the event, it's for some input we don't care about.
+     }
+@@ -483,6 +581,13 @@ var LoginManagerContent = {
+    * our stored password.
+    */
+   _onFormSubmit : function (form) {
++        // For E10S this will need to move.
++        function getPrompter(aWindow) {
++            var prompterSvc = Cc["@mozilla.org/login-manager/prompter;1"].
++                              createInstance(Ci.nsILoginManagerPrompter);
++            prompterSvc.init(aWindow);
++            return prompterSvc;
++        }
+     var doc = form.ownerDocument;
+     var win = doc.defaultView;
+ 
+@@ -534,7 +639,7 @@ var LoginManagerContent = {
+       return;
+     }
+ 
+-    // Don't try to send DOM nodes over IPC.
++    /* // Don't try to send DOM nodes over IPC.
+     let mockUsername = usernameField ?
+                          { name: usernameField.name,
+                            value: usernameField.value } :
+@@ -556,7 +661,106 @@ var LoginManagerContent = {
+                                       usernameField: mockUsername,
+                                       newPasswordField: mockPassword,
+                                       oldPasswordField: mockOldPassword },
+-                                    { openerWin: opener });
++                                    { openerWin: opener });*/
++     
++      if (!Services.logins.getLoginSavingEnabled(hostname)) {
++        log("(form submission ignored -- saving is disabled for:", hostname, ")");
++        return;
++      }
++
++      var formLogin = Cc["@mozilla.org/login-manager/loginInfo;1"].
++                      createInstance(Ci.nsILoginInfo);
++      formLogin.init(hostname, formSubmitURL, null,
++                  (usernameField ? usernameField.value : ""),
++                  newPasswordField.value,
++                  (usernameField ? usernameField.name  : ""),
++                  newPasswordField.name);
++
++      // If we didn't find a username field, but seem to be changing a
++      // password, allow the user to select from a list of applicable
++      // logins to update the password for.
++      if (!usernameField && oldPasswordField) {
++
++          var logins = Services.logins.findLogins({}, hostname, formSubmitURL, null);
++
++          if (logins.length == 0) {
++              // Could prompt to save this as a new password-only login.
++              // This seems uncommon, and might be wrong, so ignore.
++              log("(no logins for this host -- pwchange ignored)");
++              return;
++          }
++
++          var prompter = getPrompter(win);
++
++          if (logins.length == 1) {
++              var oldLogin = logins[0];
++              formLogin.username      = oldLogin.username;
++              formLogin.usernameField = oldLogin.usernameField;
++
++              prompter.promptToChangePassword(oldLogin, formLogin);
++          } else {
++              prompter.promptToChangePasswordWithUsernames(
++                                  logins, logins.length, formLogin);
++          }
++
++          return;
++        }
++
++
++        // Look for an existing login that matches the form login.
++        var existingLogin = null;
++        var logins = Services.logins.findLogins({}, hostname, formSubmitURL, null);
++
++        for (var i = 0; i < logins.length; i++) {
++            var same, login = logins[i];
++
++            // If one login has a username but the other doesn't, ignore
++            // the username when comparing and only match if they have the
++            // same password. Otherwise, compare the logins and match even
++            // if the passwords differ.
++            if (!login.username && formLogin.username) {
++                var restoreMe = formLogin.username;
++                formLogin.username = "";
++                same = formLogin.matches(login, false);
++                formLogin.username = restoreMe;
++            } else if (!formLogin.username && login.username) {
++                formLogin.username = login.username;
++                same = formLogin.matches(login, false);
++                formLogin.username = ""; // we know it's always blank.
++            } else {
++                same = formLogin.matches(login, true);
++            }
++
++            if (same) {
++                existingLogin = login;
++                break;
++            }
++        }
++
++        if (existingLogin) {
++            log("Found an existing login matching this form submission");
++
++            // Change password if needed.
++            if (existingLogin.password != formLogin.password) {
++                log("...passwords differ, prompting to change.");
++                prompter = getPrompter(win);
++                prompter.promptToChangePassword(existingLogin, formLogin);
++            } else {
++                // Update the lastUsed timestamp.
++                var propBag = Cc["@mozilla.org/hash-property-bag;1"].
++                              createInstance(Ci.nsIWritablePropertyBag);
++                propBag.setProperty("timeLastUsed", Date.now());
++                propBag.setProperty("timesUsedIncrement", 1);
++                Services.logins.modifyLogin(existingLogin, propBag);
++            }
++
++            return;
++        }
++
++
++        // Prompt user to save login (via dialog or notification bar)
++        prompter = getPrompter(win);
++        prompter.promptToSavePassword(formLogin);
+   },
+ 
+   /*
+@@ -598,6 +802,17 @@ var LoginManagerContent = {
+       autofillResultHist.add(result);
+     }
+ 
++    // Need to get a list of logins if we weren't given them
++    if (foundLogins == null) {
++      var formOrigin =
++          LoginUtils._getPasswordOrigin(form.ownerDocument.documentURI);
++      var actionOrigin = LoginUtils._getActionOrigin(form);
++          foundLogins = Services.logins.findLogins({}, formOrigin, actionOrigin, null);
++          log("found", foundLogins.length, "matching logins.");
++    } else {
++       log("reusing logins from last form.");
++    }
++    
+     // Nothing to do if we have no matching logins available.
+     if (foundLogins.length == 0) {
+       // We don't log() here since this is a very common case.
+@@ -788,8 +1003,8 @@ var LoginManagerContent = {
+       recordAutofillResult(AUTOFILL_RESULT.FILLED);
+       let doc = form.ownerDocument;
+       let win = doc.defaultView;
+-      let messageManager = messageManagerFromWindow(win);
+-      messageManager.sendAsyncMessage("LoginStats:LoginFillSuccessful");
++      //let messageManager = messageManagerFromWindow(win);
++      //messageManager.sendAsyncMessage("LoginStats:LoginFillSuccessful");
+     } else {
+       let autofillResult = AUTOFILL_RESULT.UNKNOWN_FAILURE;
+       switch (didntFillReason) {
+diff --git a/toolkit/components/places/nsFaviconService.cpp b/toolkit/components/places/nsFaviconService.cpp
+index b46f1b1d0..d627fb06d 100644
+--- a/toolkit/components/places/nsFaviconService.cpp
++++ b/toolkit/components/places/nsFaviconService.cpp
+@@ -36,7 +36,7 @@
+ #include "imgIContainer.h"
+ 
+ // Default value for mOptimizedIconDimension
+-#define OPTIMIZED_FAVICON_DIMENSION 16
++#define OPTIMIZED_FAVICON_DIMENSION 32
+ 
+ #define MAX_FAILED_FAVICONS 256
+ #define FAVICON_CACHE_REDUCE_COUNT 64
+@@ -626,3 +626,88 @@ ExpireFaviconsStatementCallbackNotifier::HandleCompletion(uint16_t aReason)
+ 
+   return NS_OK;
+ }
++
++NS_IMETHODIMP
++nsFaviconService::GetFaviconForPage(nsIURI* aPageURI, nsIURI** _retval)
++{
++  NS_ENSURE_ARG(aPageURI);
++  NS_ENSURE_ARG_POINTER(_retval);
++
++  nsCOMPtr<mozIStorageStatement> stmt = mDB->GetStatement(
++    "SELECT f.id, f.url, length(f.data), f.expiration "
++    "FROM moz_places h "
++    "JOIN moz_favicons f ON h.favicon_id = f.id "
++    "WHERE h.url = :page_url "
++    "LIMIT 1"
++  );
++  NS_ENSURE_STATE(stmt);
++  mozStorageStatementScoper scoper(stmt);
++
++  nsresult rv = URIBinder::Bind(stmt, NS_LITERAL_CSTRING("page_url"), aPageURI);
++  NS_ENSURE_SUCCESS(rv, rv);
++
++  bool hasResult;
++  if (NS_SUCCEEDED(stmt->ExecuteStep(&hasResult)) && hasResult) {
++    nsCString url;
++    rv = stmt->GetUTF8String(1, url);
++    NS_ENSURE_SUCCESS(rv, rv);
++
++    return NS_NewURI(_retval, url);
++  }
++  return NS_ERROR_NOT_AVAILABLE;
++}
++
++NS_IMETHODIMP
++nsFaviconService::GetFaviconData(nsIURI* aFaviconURI, nsACString& aMimeType,
++                                 uint32_t* aDataLen, uint8_t** aData)
++{
++  NS_ENSURE_ARG(aFaviconURI);
++  NS_ENSURE_ARG_POINTER(aDataLen);
++  NS_ENSURE_ARG_POINTER(aData);
++
++  nsCOMPtr<mozIStorageStatement> stmt = mDB->GetStatement(
++    "SELECT f.data, f.mime_type FROM moz_favicons f WHERE url = :icon_url"
++  );
++  NS_ENSURE_STATE(stmt);
++  mozStorageStatementScoper scoper(stmt);
++
++  nsresult rv = URIBinder::Bind(stmt, NS_LITERAL_CSTRING("icon_url"), aFaviconURI);
++  NS_ENSURE_SUCCESS(rv, rv);
++
++  bool hasResult = false;
++  if (NS_SUCCEEDED(stmt->ExecuteStep(&hasResult)) && hasResult) {
++    rv = stmt->GetUTF8String(1, aMimeType);
++    NS_ENSURE_SUCCESS(rv, rv);
++
++	bool isNull;
++	rv = stmt->GetIsNull(0, &isNull);
++    MOZ_ASSERT(NS_SUCCEEDED(rv));
++
++	if (!isNull) return stmt->GetBlob(0, aDataLen, aData);
++  }
++
++  stmt = mDB->GetStatement(
++    "SELECT f.data, f.mime_type "
++    "FROM moz_places h "
++    "JOIN moz_favicons f ON h.favicon_id = f.id "
++    "WHERE h.url = :page_url "
++    "LIMIT 1"
++  );
++  NS_ENSURE_STATE(stmt);
++  mozStorageStatementScoper scoper2(stmt);
++
++  rv = URIBinder::Bind(stmt, NS_LITERAL_CSTRING("page_url"), aFaviconURI);
++  NS_ENSURE_SUCCESS(rv, rv);
++
++  if (NS_SUCCEEDED(stmt->ExecuteStep(&hasResult)) && hasResult) {
++    rv = stmt->GetUTF8String(1, aMimeType);
++    NS_ENSURE_SUCCESS(rv, rv);
++
++	bool isNull;
++	rv = stmt->GetIsNull(0, &isNull);
++    MOZ_ASSERT(NS_SUCCEEDED(rv));
++
++	if (!isNull) return stmt->GetBlob(0, aDataLen, aData);
++  }
++  return NS_ERROR_NOT_AVAILABLE;
++}
+diff --git a/toolkit/components/places/nsIFaviconService.idl b/toolkit/components/places/nsIFaviconService.idl
+index b70067ed0..93a840814 100644
+--- a/toolkit/components/places/nsIFaviconService.idl
++++ b/toolkit/components/places/nsIFaviconService.idl
+@@ -86,6 +86,14 @@ interface nsIFaviconService : nsISupports
+    * The default favicon URI
+    */
+   readonly attribute nsIURI defaultFavicon;
++  
++  nsIURI getFaviconForPage(in nsIURI aPageURI);
++
++  void getFaviconData(in nsIURI aFaviconURI,
++                   out AUTF8String aMimeType,
++                    [optional] out unsigned long aDataLen,
++                      [array,retval,size_is(aDataLen)] out octet aData);
++                        
+ };
+ 
+ [scriptable, function, uuid(c85e5c82-b70f-4621-9528-beb2aa47fb44)]
+diff --git a/toolkit/components/processsingleton/MainProcessSingleton.js b/toolkit/components/processsingleton/MainProcessSingleton.js
+index 9ce421395..9b8549e95 100644
+--- a/toolkit/components/processsingleton/MainProcessSingleton.js
++++ b/toolkit/components/processsingleton/MainProcessSingleton.js
+@@ -79,13 +79,13 @@ MainProcessSingleton.prototype = {
+       // before other frame scripts.
+       Services.mm.loadFrameScript("chrome://global/content/browser-content.js", true);
+       Services.ppmm.addMessageListener("Console:Log", this.logConsoleMessage);
+-      Services.mm.addMessageListener("Search:AddEngine", this.addSearchEngine);
++      Services.ppmm.addMessageListener("Search:AddEngine", this.addSearchEngine);
+       break;
+     }
+ 
+     case "xpcom-shutdown":
+       Services.ppmm.removeMessageListener("Console:Log", this.logConsoleMessage);
+-      Services.mm.removeMessageListener("Search:AddEngine", this.addSearchEngine);
++      Services.ppmm.removeMessageListener("Search:AddEngine", this.addSearchEngine);
+       break;
+     }
+   },
+diff --git a/toolkit/components/search/nsSidebar.js b/toolkit/components/search/nsSidebar.js
+index b2a47cf32..082e80ea5 100644
+--- a/toolkit/components/search/nsSidebar.js
++++ b/toolkit/components/search/nsSidebar.js
+@@ -16,10 +16,8 @@ function nsSidebar() {
+ nsSidebar.prototype = {
+   init: function(window) {
+     this.window = window;
+-    this.mm = window.QueryInterface(Ci.nsIInterfaceRequestor)
+-                    .getInterface(Ci.nsIDocShell)
+-                    .QueryInterface(Ci.nsIInterfaceRequestor)
+-                    .getInterface(Ci.nsIContentFrameMessageManager);
++    this.mm = Components.classes["@mozilla.org/childprocessmessagemanager;1"]
++            .getService(Ci.nsISyncMessageSender);
+   },
+ 
+   // The suggestedTitle and suggestedCategory parameters are ignored, but remain
+@@ -45,7 +43,7 @@ nsSidebar.prototype = {
+       pageURL: this.window.document.documentURIObject.spec,
+       engineURL,
+       type: Ci.nsISearchEngine.DATA_XML
+-    });
++    },{win:this.window});
+   },
+ 
+   // This function exists to implement window.external.IsSearchProviderInstalled(),
+diff --git a/toolkit/mozapps/downloads/nsHelperAppDlg.js b/toolkit/mozapps/downloads/nsHelperAppDlg.js
+index 730515e53..53ed509eb 100644
+--- a/toolkit/mozapps/downloads/nsHelperAppDlg.js
++++ b/toolkit/mozapps/downloads/nsHelperAppDlg.js
+@@ -974,6 +974,8 @@ nsUnknownContentTypeDialog.prototype = {
+     // Unhook dialog from this object.
+     this.mDialog.dialog = null;
+ 
++    this.cleanUp();
++    
+     // Close up dialog by returning true.
+     return true;
+   },
+@@ -992,9 +994,20 @@ nsUnknownContentTypeDialog.prototype = {
+     // Unhook dialog from this object.
+     this.mDialog.dialog = null;
+ 
++    this.cleanUp();   
++    
+     // Close up dialog by returning true.
+     return true;
+   },
++  
++  cleanUp: function() {
++    // If the window that launched the download is "about:blank"
++    // then we need to close it.
++    let parent = this.mContext.QueryInterface(Ci.nsIInterfaceRequestor).getInterface(Ci.nsIDOMWindow);
++    if (parent && parent.document.location == 'about:blank') {
++      parent.close();
++    }
++  },
+ 
+   // dialogElement:  Convenience.
+   dialogElement: function(id) {
+diff --git a/toolkit/mozapps/extensions/AddonManager.jsm b/toolkit/mozapps/extensions/AddonManager.jsm
+index 38303726b..a586ece1a 100644
+--- a/toolkit/mozapps/extensions/AddonManager.jsm
++++ b/toolkit/mozapps/extensions/AddonManager.jsm
+@@ -2014,7 +2014,7 @@ var AddonManagerInternal = {
+                                          aInstalls, aInstalls.length);
+         return;
+       }
+-      else if (!aBrowser.contentPrincipal || !aInstallingPrincipal.subsumes(aBrowser.contentPrincipal)) {
++      /*else if (!aBrowser.contentPrincipal || !aInstallingPrincipal.subsumes(aBrowser.contentPrincipal)) {
+         for (let install of aInstalls)
+           install.cancel();
+ 
+@@ -2023,12 +2023,12 @@ var AddonManagerInternal = {
+                                                 aInstalls, aInstalls.length);
+         }
+         return;
+-      }
++      }*/
+ 
+       // The installs may start now depending on the web install listener,
+       // listen for the browser navigating to a new origin and cancel the
+       // installs in that case.
+-      new BrowserListener(aBrowser, aInstallingPrincipal, aInstalls);
++      //new BrowserListener(aBrowser, aInstallingPrincipal, aInstalls);
+ 
+       if (!this.isInstallAllowed(aMimetype, aInstallingPrincipal)) {
+         if (weblistener.onWebInstallBlocked(topBrowser, aInstallingPrincipal.URI,
+diff --git a/toolkit/mozapps/extensions/addonManager.js b/toolkit/mozapps/extensions/addonManager.js
+index 862b1ea69..293394092 100644
+--- a/toolkit/mozapps/extensions/addonManager.js
++++ b/toolkit/mozapps/extensions/addonManager.js
+@@ -42,11 +42,11 @@ function amManager() {
+   let globalMM = Cc["@mozilla.org/globalmessagemanager;1"]
+                  .getService(Ci.nsIMessageListenerManager);
+   globalMM.loadFrameScript(CHILD_SCRIPT, true);
+-  globalMM.addMessageListener(MSG_INSTALL_ADDONS, this);
+ 
+   gParentMM = Cc["@mozilla.org/parentprocessmessagemanager;1"]
+                  .getService(Ci.nsIMessageListenerManager);
+   gParentMM.addMessageListener(MSG_INSTALL_ENABLED, this);
++  gParentMM.addMessageListener(MSG_INSTALL_ADDONS, this);
+ 
+   // Needed so receiveMessage can be called directly by JS callers
+   this.wrappedJSObject = this;
+@@ -176,7 +176,7 @@ amManager.prototype = {
+         }
+ 
+         return this.installAddonsFromWebpage(payload.mimetype,
+-          aMessage.target, payload.triggeringPrincipal, payload.uris,
++          aMessage.objects.win.document.documentElement, payload.triggeringPrincipal, payload.uris,
+           payload.hashes, payload.names, payload.icons, callback);
+       }
+     }
+diff --git a/toolkit/mozapps/extensions/amContentHandler.js b/toolkit/mozapps/extensions/amContentHandler.js
+index 708f670b1..bb19dc709 100644
+--- a/toolkit/mozapps/extensions/amContentHandler.js
++++ b/toolkit/mozapps/extensions/amContentHandler.js
+@@ -45,6 +45,20 @@ amContentHandler.prototype = {
+       window = callbacks.getInterface(Ci.nsIDOMWindow);
+ 
+     aRequest.cancel(Cr.NS_BINDING_ABORTED);
++    
++    let mm = Cc["@mozilla.org/childprocessmessagemanager;1"]
++            .getService(Ci.nsISyncMessageSender);
++   
++    return mm.sendSyncMessage(MSG_INSTALL_ADDONS, {
++      uris: [uri.spec],
++      hashes: [null],
++      names: [null],
++      icons: [null],
++      mimetype: XPI_CONTENT_TYPE,
++      triggeringPrincipal: aRequest.loadInfo.triggeringPrincipal,
++      callbackID: -1
++    }, {win: window})[0];    
++    
+ 
+     let installs = {
+       uris: [uri.spec],
+diff --git a/toolkit/mozapps/extensions/amInstallTrigger.js b/toolkit/mozapps/extensions/amInstallTrigger.js
+index b83cbe60b..58e1e1d8f 100644
+--- a/toolkit/mozapps/extensions/amInstallTrigger.js
++++ b/toolkit/mozapps/extensions/amInstallTrigger.js
+@@ -94,13 +94,7 @@ RemoteMediator.prototype = {
+     }
+ 
+     // Fall back to sending through the message manager
+-    let messageManager = window.QueryInterface(Ci.nsIInterfaceRequestor)
+-                               .getInterface(Ci.nsIWebNavigation)
+-                               .QueryInterface(Ci.nsIDocShell)
+-                               .QueryInterface(Ci.nsIInterfaceRequestor)
+-                               .getInterface(Ci.nsIContentFrameMessageManager);
+-
+-    return messageManager.sendSyncMessage(MSG_INSTALL_ADDONS, installs)[0];
++    return this.mm.sendSyncMessage(MSG_INSTALL_ADDONS, installs, {win: window})[0];
+   },
+ 
+   _addCallback: function(callback, urls) {
+diff --git a/toolkit/xre/nsEmbedFunctions.cpp b/toolkit/xre/nsEmbedFunctions.cpp
+index 07dac1810..5f8001921 100644
+--- a/toolkit/xre/nsEmbedFunctions.cpp
++++ b/toolkit/xre/nsEmbedFunctions.cpp
+@@ -29,6 +29,7 @@
+ #ifdef XP_WIN
+ #include <process.h>
+ #include "mozilla/ipc/WindowsMessageLoop.h"
++#include "mozilla/widget/AudioSession.h"
+ #endif
+ 
+ #include "nsAppDirectoryServiceDefs.h"
+@@ -183,6 +184,10 @@ XRE_InitEmbedding2(nsIFile *aLibXULDirectory,
+ 
+   startupNotifier->Observe(nullptr, APPSTARTUP_TOPIC, nullptr);
+ 
++#ifdef XP_WIN
++  mozilla::widget::StartAudioSession();
++#endif
++
+   return NS_OK;
+ }
+ 
+@@ -202,6 +207,10 @@ XRE_TermEmbedding()
+   NS_ASSERTION(gDirServiceProvider,
+                "XRE_TermEmbedding without XRE_InitEmbedding");
+ 
++#ifdef XP_WIN
++  mozilla::widget::StopAudioSession();
++#endif
++  
+   gDirServiceProvider->DoShutdown();
+   NS_ShutdownXPCOM(nullptr);
+   delete gDirServiceProvider;
+diff --git a/widget/nsBaseAppShell.cpp b/widget/nsBaseAppShell.cpp
+index 543092050..ce7b2f432 100644
+--- a/widget/nsBaseAppShell.cpp
++++ b/widget/nsBaseAppShell.cpp
+@@ -10,11 +10,13 @@
+ #include "nsIObserverService.h"
+ #include "nsServiceManagerUtils.h"
+ #include "mozilla/Services.h"
++#include "nsXREAppData.h"
++extern const nsXREAppData* gAppData;
+ 
+ // When processing the next thread event, the appshell may process native
+ // events (if not in performance mode), which can result in suppressing the
+ // next thread event for at most this many ticks:
+-#define THREAD_EVENT_STARVATION_LIMIT PR_MillisecondsToInterval(20)
++#define THREAD_EVENT_STARVATION_LIMIT PR_MillisecondsToInterval(5)
+ 
+ NS_IMPL_ISUPPORTS(nsBaseAppShell, nsIAppShell, nsIThreadObserver, nsIObserver)
+ 
+@@ -269,6 +271,7 @@ nsBaseAppShell::OnProcessNextEvent(nsIThreadInternal *thr, bool mayWait,
+   // NativeEventCallback to process goanna events.
+   mProcessedGoannaEvents = false;
+ 
++  if (gAppData) {
+   if (mFavorPerf <= 0 && start > mSwitchTime + mStarvationDelay) {
+     // Favor pending native events
+     PRIntervalTime now = start;
+@@ -296,6 +299,7 @@ nsBaseAppShell::OnProcessNextEvent(nsIThreadInternal *thr, bool mayWait,
+     if (!DoProcessNextNativeEvent(mayWait, recursionDepth) || !mayWait)
+       break;
+   }
++  }
+ 
+   mBlockedWait = oldBlockedWait;
+ 
+diff --git a/widget/windows/moz.build b/widget/windows/moz.build
+index d8ed352be..9f760235e 100644
+--- a/widget/windows/moz.build
++++ b/widget/windows/moz.build
+@@ -49,13 +49,17 @@ UNIFIED_SOURCES += [
+     'TaskbarPreviewButton.cpp',
+     'TaskbarTabPreview.cpp',
+     'TaskbarWindowPreview.cpp',
+-    'WidgetTraceEvent.cpp',
+     'WindowHook.cpp',
+     'WinIMEHandler.cpp',
+     'WinTaskbar.cpp',
+     'WinUtils.cpp',
+ ]
+ 
++if CONFIG['MOZ_INSTRUMENT_EVENT_LOOP']:    
++    UNIFIED_SOURCES += [
++         'WidgetTraceEvent.cpp',
++    ]
++
+ # The following files cannot be built in unified mode because of name clashes.
+ SOURCES += [
+     'JumpListBuilder.cpp',
+diff --git a/widget/windows/nsWindow.cpp b/widget/windows/nsWindow.cpp
+index 313c1304b..47de43ff2 100644
+--- a/widget/windows/nsWindow.cpp
++++ b/widget/windows/nsWindow.cpp
+@@ -81,7 +81,9 @@
+ #include "prmem.h"
+ #include "prenv.h"
+ 
++#ifdef MOZ_INSTRUMENT_EVENT_LOOP
+ #include "mozilla/WidgetTraceEvent.h"
++#endif
+ #include "nsIAppShell.h"
+ #include "nsISupportsPrimitives.h"
+ #include "nsIDOMMouseEvent.h"
+@@ -4345,14 +4347,14 @@ LRESULT CALLBACK nsWindow::WindowProcInternal(HWND hWnd, UINT msg, WPARAM wParam
+       return ::CallWindowProcW(prevWindowProc, hWnd, msg, wParam, lParam);
+     }
+   }
+-
++#ifdef MOZ_INSTRUMENT_EVENT_LOOP
+   if (msg == MOZ_WM_TRACE) {
+     // This is a tracer event for measuring event loop latency.
+     // See WidgetTraceEvent.cpp for more details.
+     mozilla::SignalTracerThread();
+     return 0;
+   }
+-
++#endif
+   // Get the window which caused the event and ask it to process the message
+   nsWindow *targetWindow = WinUtils::GetNSWindowPtr(hWnd);
+   NS_ASSERTION(targetWindow, "nsWindow* is null!");
+diff --git a/xpcom/threads/HangMonitor.cpp b/xpcom/threads/HangMonitor.cpp
+index 6f6340d45..841f0e066 100644
+--- a/xpcom/threads/HangMonitor.cpp
++++ b/xpcom/threads/HangMonitor.cpp
+@@ -488,7 +488,7 @@ Shutdown()
+ static bool
+ IsUIMessageWaiting()
+ {
+-#ifndef XP_WIN
++#if 1//ndef XP_WIN
+   return false;
+ #else
+ #define NS_WM_IMEFIRST WM_IME_SETCONTEXT
