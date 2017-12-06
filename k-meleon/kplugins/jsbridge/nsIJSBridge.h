@@ -1,5 +1,5 @@
 /*
- * DO NOT EDIT.  THIS FILE IS GENERATED FROM nsIJSBridge.idl
+ * DO NOT EDIT.  THIS FILE IS GENERATED FROM idl/nsIJSBridge.idl
  */
 
 #ifndef __gen_nsIJSBridge_h__
@@ -54,15 +54,15 @@ class NS_NO_VTABLE kmICommandFunction : public nsISupports {
 
 /* Use this macro when declaring classes that implement this interface. */
 #define NS_DECL_KMICOMMANDFUNCTION \
-  NS_IMETHOD OnCommand(nsIDOMWindow *win, uint32_t mode, const char * arg); 
+  NS_IMETHOD OnCommand(nsIDOMWindow *win, uint32_t mode, const char * arg) override; 
 
 /* Use this macro to declare functions that forward the behavior of this interface to another object. */
 #define NS_FORWARD_KMICOMMANDFUNCTION(_to) \
-  NS_IMETHOD OnCommand(nsIDOMWindow *win, uint32_t mode, const char * arg) { return _to OnCommand(win, mode, arg); } 
+  NS_IMETHOD OnCommand(nsIDOMWindow *win, uint32_t mode, const char * arg) override { return _to OnCommand(win, mode, arg); } 
 
 /* Use this macro to declare functions that forward the behavior of this interface to another object in a safe way. */
 #define NS_FORWARD_SAFE_KMICOMMANDFUNCTION(_to) \
-  NS_IMETHOD OnCommand(nsIDOMWindow *win, uint32_t mode, const char * arg) { return !_to ? NS_ERROR_NULL_POINTER : _to->OnCommand(win, mode, arg); } 
+  NS_IMETHOD OnCommand(nsIDOMWindow *win, uint32_t mode, const char * arg) override { return !_to ? NS_ERROR_NULL_POINTER : _to->OnCommand(win, mode, arg); } 
 
 #if 0
 /* Use the code below as a template for the implementation class for this interface. */
@@ -84,7 +84,7 @@ protected:
 };
 
 /* Implementation file */
-NS_IMPL_ISUPPORTS1(kmCommandFunction, kmICommandFunction)
+NS_IMPL_ISUPPORTS(kmCommandFunction, kmICommandFunction)
 
 kmCommandFunction::kmCommandFunction()
 {
@@ -127,15 +127,15 @@ class NS_NO_VTABLE kmICallback : public nsISupports {
 
 /* Use this macro when declaring classes that implement this interface. */
 #define NS_DECL_KMICALLBACK \
-  NS_IMETHOD Run(const char * arg, bool *_retval); 
+  NS_IMETHOD Run(const char * arg, bool *_retval) override; 
 
 /* Use this macro to declare functions that forward the behavior of this interface to another object. */
 #define NS_FORWARD_KMICALLBACK(_to) \
-  NS_IMETHOD Run(const char * arg, bool *_retval) { return _to Run(arg, _retval); } 
+  NS_IMETHOD Run(const char * arg, bool *_retval) override { return _to Run(arg, _retval); } 
 
 /* Use this macro to declare functions that forward the behavior of this interface to another object in a safe way. */
 #define NS_FORWARD_SAFE_KMICALLBACK(_to) \
-  NS_IMETHOD Run(const char * arg, bool *_retval) { return !_to ? NS_ERROR_NULL_POINTER : _to->Run(arg, _retval); } 
+  NS_IMETHOD Run(const char * arg, bool *_retval) override { return !_to ? NS_ERROR_NULL_POINTER : _to->Run(arg, _retval); } 
 
 #if 0
 /* Use the code below as a template for the implementation class for this interface. */
@@ -157,7 +157,7 @@ protected:
 };
 
 /* Implementation file */
-NS_IMPL_ISUPPORTS1(kmCallback, kmICallback)
+NS_IMPL_ISUPPORTS(kmCallback, kmICallback)
 
 kmCallback::kmCallback()
 {
@@ -203,18 +203,18 @@ class NS_NO_VTABLE kmIWindow : public nsISupports {
 
 /* Use this macro when declaring classes that implement this interface. */
 #define NS_DECL_KMIWINDOW \
-  NS_IMETHOD GetHandle(void **aHandle); \
-  NS_IMETHOD GetTabs(uint32_t *length, nsIWebBrowser * **list); 
+  NS_IMETHOD GetHandle(void **aHandle) override; \
+  NS_IMETHOD GetTabs(uint32_t *length, nsIWebBrowser * **list) override; 
 
 /* Use this macro to declare functions that forward the behavior of this interface to another object. */
 #define NS_FORWARD_KMIWINDOW(_to) \
-  NS_IMETHOD GetHandle(void **aHandle) { return _to GetHandle(aHandle); } \
-  NS_IMETHOD GetTabs(uint32_t *length, nsIWebBrowser * **list) { return _to GetTabs(length, list); } 
+  NS_IMETHOD GetHandle(void **aHandle) override { return _to GetHandle(aHandle); } \
+  NS_IMETHOD GetTabs(uint32_t *length, nsIWebBrowser * **list) override { return _to GetTabs(length, list); } 
 
 /* Use this macro to declare functions that forward the behavior of this interface to another object in a safe way. */
 #define NS_FORWARD_SAFE_KMIWINDOW(_to) \
-  NS_IMETHOD GetHandle(void **aHandle) { return !_to ? NS_ERROR_NULL_POINTER : _to->GetHandle(aHandle); } \
-  NS_IMETHOD GetTabs(uint32_t *length, nsIWebBrowser * **list) { return !_to ? NS_ERROR_NULL_POINTER : _to->GetTabs(length, list); } 
+  NS_IMETHOD GetHandle(void **aHandle) override { return !_to ? NS_ERROR_NULL_POINTER : _to->GetHandle(aHandle); } \
+  NS_IMETHOD GetTabs(uint32_t *length, nsIWebBrowser * **list) override { return !_to ? NS_ERROR_NULL_POINTER : _to->GetTabs(length, list); } 
 
 #if 0
 /* Use the code below as a template for the implementation class for this interface. */
@@ -236,7 +236,7 @@ protected:
 };
 
 /* Implementation file */
-NS_IMPL_ISUPPORTS1(kmWindow, kmIWindow)
+NS_IMPL_ISUPPORTS(kmWindow, kmIWindow)
 
 kmWindow::kmWindow()
 {
@@ -256,6 +256,103 @@ NS_IMETHODIMP kmWindow::GetHandle(void **aHandle)
 
 /* void getTabs ([optional] out unsigned long length, [array, size_is (length), retval] out nsIWebBrowser list); */
 NS_IMETHODIMP kmWindow::GetTabs(uint32_t *length, nsIWebBrowser * **list)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* End of implementation class template. */
+#endif
+
+
+/* starting interface:    kmITab */
+#define KMITAB_IID_STR "83910267-7670-4493-99c1-dd540a036ef6"
+
+#define KMITAB_IID \
+  {0x83910267, 0x7670, 0x4493, \
+    { 0x99, 0xc1, 0xdd, 0x54, 0x0a, 0x03, 0x6e, 0xf6 }}
+
+class NS_NO_VTABLE kmITab : public nsISupports {
+ public: 
+
+  NS_DECLARE_STATIC_IID_ACCESSOR(KMITAB_IID)
+
+  /* readonly attribute voidPtr handle; */
+  NS_IMETHOD GetHandle(void **aHandle) = 0;
+
+  /* readonly attribute nsIWebBrowser browser; */
+  NS_IMETHOD GetBrowser(nsIWebBrowser * *aBrowser) = 0;
+
+  /* readonly attribute nsIDOMEventTarget root; */
+  NS_IMETHOD GetRoot(nsIDOMEventTarget * *aRoot) = 0;
+
+};
+
+  NS_DEFINE_STATIC_IID_ACCESSOR(kmITab, KMITAB_IID)
+
+/* Use this macro when declaring classes that implement this interface. */
+#define NS_DECL_KMITAB \
+  NS_IMETHOD GetHandle(void **aHandle) override; \
+  NS_IMETHOD GetBrowser(nsIWebBrowser * *aBrowser) override; \
+  NS_IMETHOD GetRoot(nsIDOMEventTarget * *aRoot) override; 
+
+/* Use this macro to declare functions that forward the behavior of this interface to another object. */
+#define NS_FORWARD_KMITAB(_to) \
+  NS_IMETHOD GetHandle(void **aHandle) override { return _to GetHandle(aHandle); } \
+  NS_IMETHOD GetBrowser(nsIWebBrowser * *aBrowser) override { return _to GetBrowser(aBrowser); } \
+  NS_IMETHOD GetRoot(nsIDOMEventTarget * *aRoot) override { return _to GetRoot(aRoot); } 
+
+/* Use this macro to declare functions that forward the behavior of this interface to another object in a safe way. */
+#define NS_FORWARD_SAFE_KMITAB(_to) \
+  NS_IMETHOD GetHandle(void **aHandle) override { return !_to ? NS_ERROR_NULL_POINTER : _to->GetHandle(aHandle); } \
+  NS_IMETHOD GetBrowser(nsIWebBrowser * *aBrowser) override { return !_to ? NS_ERROR_NULL_POINTER : _to->GetBrowser(aBrowser); } \
+  NS_IMETHOD GetRoot(nsIDOMEventTarget * *aRoot) override { return !_to ? NS_ERROR_NULL_POINTER : _to->GetRoot(aRoot); } 
+
+#if 0
+/* Use the code below as a template for the implementation class for this interface. */
+
+/* Header file */
+class kmTab : public kmITab
+{
+public:
+  NS_DECL_ISUPPORTS
+  NS_DECL_KMITAB
+
+  kmTab();
+
+private:
+  ~kmTab();
+
+protected:
+  /* additional members */
+};
+
+/* Implementation file */
+NS_IMPL_ISUPPORTS(kmTab, kmITab)
+
+kmTab::kmTab()
+{
+  /* member initializers and constructor code */
+}
+
+kmTab::~kmTab()
+{
+  /* destructor code */
+}
+
+/* readonly attribute voidPtr handle; */
+NS_IMETHODIMP kmTab::GetHandle(void **aHandle)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* readonly attribute nsIWebBrowser browser; */
+NS_IMETHODIMP kmTab::GetBrowser(nsIWebBrowser * *aBrowser)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/* readonly attribute nsIDOMEventTarget root; */
+NS_IMETHODIMP kmTab::GetRoot(nsIDOMEventTarget * *aRoot)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -298,30 +395,30 @@ class NS_NO_VTABLE kmICommand : public nsISupports {
 
 /* Use this macro when declaring classes that implement this interface. */
 #define NS_DECL_KMICOMMAND \
-  NS_IMETHOD GetName(nsACString & aName); \
-  NS_IMETHOD GetDesc(nsACString & aDesc); \
-  NS_IMETHOD GetAccel(nsACString & aAccel); \
-  NS_IMETHOD GetCommand(kmICommandFunction * *aCommand); \
-  NS_IMETHOD GetImage(nsACString & aImage); \
-  NS_IMETHOD SetImage(const nsACString & aImage); 
+  NS_IMETHOD GetName(nsACString & aName) override; \
+  NS_IMETHOD GetDesc(nsACString & aDesc) override; \
+  NS_IMETHOD GetAccel(nsACString & aAccel) override; \
+  NS_IMETHOD GetCommand(kmICommandFunction * *aCommand) override; \
+  NS_IMETHOD GetImage(nsACString & aImage) override; \
+  NS_IMETHOD SetImage(const nsACString & aImage) override; 
 
 /* Use this macro to declare functions that forward the behavior of this interface to another object. */
 #define NS_FORWARD_KMICOMMAND(_to) \
-  NS_IMETHOD GetName(nsACString & aName) { return _to GetName(aName); } \
-  NS_IMETHOD GetDesc(nsACString & aDesc) { return _to GetDesc(aDesc); } \
-  NS_IMETHOD GetAccel(nsACString & aAccel) { return _to GetAccel(aAccel); } \
-  NS_IMETHOD GetCommand(kmICommandFunction * *aCommand) { return _to GetCommand(aCommand); } \
-  NS_IMETHOD GetImage(nsACString & aImage) { return _to GetImage(aImage); } \
-  NS_IMETHOD SetImage(const nsACString & aImage) { return _to SetImage(aImage); } 
+  NS_IMETHOD GetName(nsACString & aName) override { return _to GetName(aName); } \
+  NS_IMETHOD GetDesc(nsACString & aDesc) override { return _to GetDesc(aDesc); } \
+  NS_IMETHOD GetAccel(nsACString & aAccel) override { return _to GetAccel(aAccel); } \
+  NS_IMETHOD GetCommand(kmICommandFunction * *aCommand) override { return _to GetCommand(aCommand); } \
+  NS_IMETHOD GetImage(nsACString & aImage) override { return _to GetImage(aImage); } \
+  NS_IMETHOD SetImage(const nsACString & aImage) override { return _to SetImage(aImage); } 
 
 /* Use this macro to declare functions that forward the behavior of this interface to another object in a safe way. */
 #define NS_FORWARD_SAFE_KMICOMMAND(_to) \
-  NS_IMETHOD GetName(nsACString & aName) { return !_to ? NS_ERROR_NULL_POINTER : _to->GetName(aName); } \
-  NS_IMETHOD GetDesc(nsACString & aDesc) { return !_to ? NS_ERROR_NULL_POINTER : _to->GetDesc(aDesc); } \
-  NS_IMETHOD GetAccel(nsACString & aAccel) { return !_to ? NS_ERROR_NULL_POINTER : _to->GetAccel(aAccel); } \
-  NS_IMETHOD GetCommand(kmICommandFunction * *aCommand) { return !_to ? NS_ERROR_NULL_POINTER : _to->GetCommand(aCommand); } \
-  NS_IMETHOD GetImage(nsACString & aImage) { return !_to ? NS_ERROR_NULL_POINTER : _to->GetImage(aImage); } \
-  NS_IMETHOD SetImage(const nsACString & aImage) { return !_to ? NS_ERROR_NULL_POINTER : _to->SetImage(aImage); } 
+  NS_IMETHOD GetName(nsACString & aName) override { return !_to ? NS_ERROR_NULL_POINTER : _to->GetName(aName); } \
+  NS_IMETHOD GetDesc(nsACString & aDesc) override { return !_to ? NS_ERROR_NULL_POINTER : _to->GetDesc(aDesc); } \
+  NS_IMETHOD GetAccel(nsACString & aAccel) override { return !_to ? NS_ERROR_NULL_POINTER : _to->GetAccel(aAccel); } \
+  NS_IMETHOD GetCommand(kmICommandFunction * *aCommand) override { return !_to ? NS_ERROR_NULL_POINTER : _to->GetCommand(aCommand); } \
+  NS_IMETHOD GetImage(nsACString & aImage) override { return !_to ? NS_ERROR_NULL_POINTER : _to->GetImage(aImage); } \
+  NS_IMETHOD SetImage(const nsACString & aImage) override { return !_to ? NS_ERROR_NULL_POINTER : _to->SetImage(aImage); } 
 
 #if 0
 /* Use the code below as a template for the implementation class for this interface. */
@@ -343,7 +440,7 @@ protected:
 };
 
 /* Implementation file */
-NS_IMPL_ISUPPORTS1(kmCommand, kmICommand)
+NS_IMPL_ISUPPORTS(kmCommand, kmICommand)
 
 kmCommand::kmCommand()
 {
@@ -423,30 +520,30 @@ class NS_NO_VTABLE kmIButton : public nsISupports {
 
 /* Use this macro when declaring classes that implement this interface. */
 #define NS_DECL_KMIBUTTON \
-  NS_IMETHOD GetImage(char * *aImage); \
-  NS_IMETHOD SetImage(const char * aImage); \
-  NS_IMETHOD GetChecked(bool *aChecked); \
-  NS_IMETHOD SetChecked(bool aChecked); \
-  NS_IMETHOD GetDisabled(bool *aDisabled); \
-  NS_IMETHOD SetDisabled(bool aDisabled); 
+  NS_IMETHOD GetImage(char * *aImage) override; \
+  NS_IMETHOD SetImage(const char * aImage) override; \
+  NS_IMETHOD GetChecked(bool *aChecked) override; \
+  NS_IMETHOD SetChecked(bool aChecked) override; \
+  NS_IMETHOD GetDisabled(bool *aDisabled) override; \
+  NS_IMETHOD SetDisabled(bool aDisabled) override; 
 
 /* Use this macro to declare functions that forward the behavior of this interface to another object. */
 #define NS_FORWARD_KMIBUTTON(_to) \
-  NS_IMETHOD GetImage(char * *aImage) { return _to GetImage(aImage); } \
-  NS_IMETHOD SetImage(const char * aImage) { return _to SetImage(aImage); } \
-  NS_IMETHOD GetChecked(bool *aChecked) { return _to GetChecked(aChecked); } \
-  NS_IMETHOD SetChecked(bool aChecked) { return _to SetChecked(aChecked); } \
-  NS_IMETHOD GetDisabled(bool *aDisabled) { return _to GetDisabled(aDisabled); } \
-  NS_IMETHOD SetDisabled(bool aDisabled) { return _to SetDisabled(aDisabled); } 
+  NS_IMETHOD GetImage(char * *aImage) override { return _to GetImage(aImage); } \
+  NS_IMETHOD SetImage(const char * aImage) override { return _to SetImage(aImage); } \
+  NS_IMETHOD GetChecked(bool *aChecked) override { return _to GetChecked(aChecked); } \
+  NS_IMETHOD SetChecked(bool aChecked) override { return _to SetChecked(aChecked); } \
+  NS_IMETHOD GetDisabled(bool *aDisabled) override { return _to GetDisabled(aDisabled); } \
+  NS_IMETHOD SetDisabled(bool aDisabled) override { return _to SetDisabled(aDisabled); } 
 
 /* Use this macro to declare functions that forward the behavior of this interface to another object in a safe way. */
 #define NS_FORWARD_SAFE_KMIBUTTON(_to) \
-  NS_IMETHOD GetImage(char * *aImage) { return !_to ? NS_ERROR_NULL_POINTER : _to->GetImage(aImage); } \
-  NS_IMETHOD SetImage(const char * aImage) { return !_to ? NS_ERROR_NULL_POINTER : _to->SetImage(aImage); } \
-  NS_IMETHOD GetChecked(bool *aChecked) { return !_to ? NS_ERROR_NULL_POINTER : _to->GetChecked(aChecked); } \
-  NS_IMETHOD SetChecked(bool aChecked) { return !_to ? NS_ERROR_NULL_POINTER : _to->SetChecked(aChecked); } \
-  NS_IMETHOD GetDisabled(bool *aDisabled) { return !_to ? NS_ERROR_NULL_POINTER : _to->GetDisabled(aDisabled); } \
-  NS_IMETHOD SetDisabled(bool aDisabled) { return !_to ? NS_ERROR_NULL_POINTER : _to->SetDisabled(aDisabled); } 
+  NS_IMETHOD GetImage(char * *aImage) override { return !_to ? NS_ERROR_NULL_POINTER : _to->GetImage(aImage); } \
+  NS_IMETHOD SetImage(const char * aImage) override { return !_to ? NS_ERROR_NULL_POINTER : _to->SetImage(aImage); } \
+  NS_IMETHOD GetChecked(bool *aChecked) override { return !_to ? NS_ERROR_NULL_POINTER : _to->GetChecked(aChecked); } \
+  NS_IMETHOD SetChecked(bool aChecked) override { return !_to ? NS_ERROR_NULL_POINTER : _to->SetChecked(aChecked); } \
+  NS_IMETHOD GetDisabled(bool *aDisabled) override { return !_to ? NS_ERROR_NULL_POINTER : _to->GetDisabled(aDisabled); } \
+  NS_IMETHOD SetDisabled(bool aDisabled) override { return !_to ? NS_ERROR_NULL_POINTER : _to->SetDisabled(aDisabled); } 
 
 #if 0
 /* Use the code below as a template for the implementation class for this interface. */
@@ -468,7 +565,7 @@ protected:
 };
 
 /* Implementation file */
-NS_IMPL_ISUPPORTS1(kmButton, kmIButton)
+NS_IMPL_ISUPPORTS(kmButton, kmIButton)
 
 kmButton::kmButton()
 {
@@ -618,84 +715,84 @@ class NS_NO_VTABLE nsIJSBridge : public nsISupports {
 
 /* Use this macro when declaring classes that implement this interface. */
 #define NS_DECL_NSIJSBRIDGE \
-  NS_IMETHOD SetMenuCallback(const char * menu, const char * label, kmICommandFunction *command, const char * before); \
-  NS_IMETHOD SetMenu(const char * menu, uint16_t type, const char * label, const char * command, const char * before); \
-  NS_IMETHOD RebuildMenu(const char * menu); \
-  NS_IMETHOD CreateButton(const char * cmd, const char * menu, const char * tooltip, const char * label, kmIButton * *_retval); \
-  NS_IMETHOD CreateCallbackButton(kmICommandFunction *command, const char * menu, const char * tooltip, const char * label, kmIButton * *_retval); \
-  NS_IMETHOD AddToolbar(const char * toolbar, uint32_t width, uint32_t height); \
-  NS_IMETHOD AddButton(const char * toolbar, const char * command, const char * menu, const char * tooltip); \
-  NS_IMETHOD RemoveButton(const char * toolbar, const char * command); \
-  NS_IMETHOD Id(nsIDOMWindow *window, const char * id); \
-  NS_IMETHOD SendMessage(const char * plugin, const char * to, const char * from, const char * data1, int32_t *_retval); \
-  NS_IMETHOD GetCmdList(uint32_t *length, kmICommand * **list); \
-  NS_IMETHOD RegisterCmd(const char * name, const char * desc, kmICommandFunction *command, JS::HandleValue icon, kmICallback *enabled, kmICallback *checked, JSContext* cx, int32_t *_retval); \
-  NS_IMETHOD UnregisterCmd(const char * name); \
-  NS_IMETHOD SetCmdIcon(const char * name, JS::HandleValue icon, JSContext* cx); \
-  NS_IMETHOD SetButtonIcon(const char * toolbar, const char * command, JS::HandleValue icon, JSContext* cx); \
-  NS_IMETHOD SetAccel(const char * key, const char * command); \
-  NS_IMETHOD Open(const char * url, uint16_t state, nsIWebBrowser * *_retval); \
-  NS_IMETHOD GetActiveBrowser(nsIWebBrowser * *_retval); \
-  NS_IMETHOD GetCurrentWindow(kmIWindow * *_retval); \
-  NS_IMETHOD GetWindows(uint32_t *length, kmIWindow * **list); \
-  NS_IMETHOD AddListener(nsIObserver *listener); \
-  NS_IMETHOD RemoveListener(nsIObserver *listener); \
-  NS_IMETHOD LoadPlugin(const char * path); \
-  NS_IMETHOD ShowMenu(const char * name, bool sendCommand, int32_t *_retval); 
+  NS_IMETHOD SetMenuCallback(const char * menu, const char * label, kmICommandFunction *command, const char * before) override; \
+  NS_IMETHOD SetMenu(const char * menu, uint16_t type, const char * label, const char * command, const char * before) override; \
+  NS_IMETHOD RebuildMenu(const char * menu) override; \
+  NS_IMETHOD CreateButton(const char * cmd, const char * menu, const char * tooltip, const char * label, kmIButton * *_retval) override; \
+  NS_IMETHOD CreateCallbackButton(kmICommandFunction *command, const char * menu, const char * tooltip, const char * label, kmIButton * *_retval) override; \
+  NS_IMETHOD AddToolbar(const char * toolbar, uint32_t width, uint32_t height) override; \
+  NS_IMETHOD AddButton(const char * toolbar, const char * command, const char * menu, const char * tooltip) override; \
+  NS_IMETHOD RemoveButton(const char * toolbar, const char * command) override; \
+  NS_IMETHOD Id(nsIDOMWindow *window, const char * id) override; \
+  NS_IMETHOD SendMessage(const char * plugin, const char * to, const char * from, const char * data1, int32_t *_retval) override; \
+  NS_IMETHOD GetCmdList(uint32_t *length, kmICommand * **list) override; \
+  NS_IMETHOD RegisterCmd(const char * name, const char * desc, kmICommandFunction *command, JS::HandleValue icon, kmICallback *enabled, kmICallback *checked, JSContext* cx, int32_t *_retval) override; \
+  NS_IMETHOD UnregisterCmd(const char * name) override; \
+  NS_IMETHOD SetCmdIcon(const char * name, JS::HandleValue icon, JSContext* cx) override; \
+  NS_IMETHOD SetButtonIcon(const char * toolbar, const char * command, JS::HandleValue icon, JSContext* cx) override; \
+  NS_IMETHOD SetAccel(const char * key, const char * command) override; \
+  NS_IMETHOD Open(const char * url, uint16_t state, nsIWebBrowser * *_retval) override; \
+  NS_IMETHOD GetActiveBrowser(nsIWebBrowser * *_retval) override; \
+  NS_IMETHOD GetCurrentWindow(kmIWindow * *_retval) override; \
+  NS_IMETHOD GetWindows(uint32_t *length, kmIWindow * **list) override; \
+  NS_IMETHOD AddListener(nsIObserver *listener) override; \
+  NS_IMETHOD RemoveListener(nsIObserver *listener) override; \
+  NS_IMETHOD LoadPlugin(const char * path) override; \
+  NS_IMETHOD ShowMenu(const char * name, bool sendCommand, int32_t *_retval) override; 
 
 /* Use this macro to declare functions that forward the behavior of this interface to another object. */
 #define NS_FORWARD_NSIJSBRIDGE(_to) \
-  NS_IMETHOD SetMenuCallback(const char * menu, const char * label, kmICommandFunction *command, const char * before) { return _to SetMenuCallback(menu, label, command, before); } \
-  NS_IMETHOD SetMenu(const char * menu, uint16_t type, const char * label, const char * command, const char * before) { return _to SetMenu(menu, type, label, command, before); } \
-  NS_IMETHOD RebuildMenu(const char * menu) { return _to RebuildMenu(menu); } \
-  NS_IMETHOD CreateButton(const char * cmd, const char * menu, const char * tooltip, const char * label, kmIButton * *_retval) { return _to CreateButton(cmd, menu, tooltip, label, _retval); } \
-  NS_IMETHOD CreateCallbackButton(kmICommandFunction *command, const char * menu, const char * tooltip, const char * label, kmIButton * *_retval) { return _to CreateCallbackButton(command, menu, tooltip, label, _retval); } \
-  NS_IMETHOD AddToolbar(const char * toolbar, uint32_t width, uint32_t height) { return _to AddToolbar(toolbar, width, height); } \
-  NS_IMETHOD AddButton(const char * toolbar, const char * command, const char * menu, const char * tooltip) { return _to AddButton(toolbar, command, menu, tooltip); } \
-  NS_IMETHOD RemoveButton(const char * toolbar, const char * command) { return _to RemoveButton(toolbar, command); } \
-  NS_IMETHOD Id(nsIDOMWindow *window, const char * id) { return _to Id(window, id); } \
-  NS_IMETHOD SendMessage(const char * plugin, const char * to, const char * from, const char * data1, int32_t *_retval) { return _to SendMessage(plugin, to, from, data1, _retval); } \
-  NS_IMETHOD GetCmdList(uint32_t *length, kmICommand * **list) { return _to GetCmdList(length, list); } \
-  NS_IMETHOD RegisterCmd(const char * name, const char * desc, kmICommandFunction *command, JS::HandleValue icon, kmICallback *enabled, kmICallback *checked, JSContext* cx, int32_t *_retval) { return _to RegisterCmd(name, desc, command, icon, enabled, checked, cx, _retval); } \
-  NS_IMETHOD UnregisterCmd(const char * name) { return _to UnregisterCmd(name); } \
-  NS_IMETHOD SetCmdIcon(const char * name, JS::HandleValue icon, JSContext* cx) { return _to SetCmdIcon(name, icon, cx); } \
-  NS_IMETHOD SetButtonIcon(const char * toolbar, const char * command, JS::HandleValue icon, JSContext* cx) { return _to SetButtonIcon(toolbar, command, icon, cx); } \
-  NS_IMETHOD SetAccel(const char * key, const char * command) { return _to SetAccel(key, command); } \
-  NS_IMETHOD Open(const char * url, uint16_t state, nsIWebBrowser * *_retval) { return _to Open(url, state, _retval); } \
-  NS_IMETHOD GetActiveBrowser(nsIWebBrowser * *_retval) { return _to GetActiveBrowser(_retval); } \
-  NS_IMETHOD GetCurrentWindow(kmIWindow * *_retval) { return _to GetCurrentWindow(_retval); } \
-  NS_IMETHOD GetWindows(uint32_t *length, kmIWindow * **list) { return _to GetWindows(length, list); } \
-  NS_IMETHOD AddListener(nsIObserver *listener) { return _to AddListener(listener); } \
-  NS_IMETHOD RemoveListener(nsIObserver *listener) { return _to RemoveListener(listener); } \
-  NS_IMETHOD LoadPlugin(const char * path) { return _to LoadPlugin(path); } \
-  NS_IMETHOD ShowMenu(const char * name, bool sendCommand, int32_t *_retval) { return _to ShowMenu(name, sendCommand, _retval); } 
+  NS_IMETHOD SetMenuCallback(const char * menu, const char * label, kmICommandFunction *command, const char * before) override { return _to SetMenuCallback(menu, label, command, before); } \
+  NS_IMETHOD SetMenu(const char * menu, uint16_t type, const char * label, const char * command, const char * before) override { return _to SetMenu(menu, type, label, command, before); } \
+  NS_IMETHOD RebuildMenu(const char * menu) override { return _to RebuildMenu(menu); } \
+  NS_IMETHOD CreateButton(const char * cmd, const char * menu, const char * tooltip, const char * label, kmIButton * *_retval) override { return _to CreateButton(cmd, menu, tooltip, label, _retval); } \
+  NS_IMETHOD CreateCallbackButton(kmICommandFunction *command, const char * menu, const char * tooltip, const char * label, kmIButton * *_retval) override { return _to CreateCallbackButton(command, menu, tooltip, label, _retval); } \
+  NS_IMETHOD AddToolbar(const char * toolbar, uint32_t width, uint32_t height) override { return _to AddToolbar(toolbar, width, height); } \
+  NS_IMETHOD AddButton(const char * toolbar, const char * command, const char * menu, const char * tooltip) override { return _to AddButton(toolbar, command, menu, tooltip); } \
+  NS_IMETHOD RemoveButton(const char * toolbar, const char * command) override { return _to RemoveButton(toolbar, command); } \
+  NS_IMETHOD Id(nsIDOMWindow *window, const char * id) override { return _to Id(window, id); } \
+  NS_IMETHOD SendMessage(const char * plugin, const char * to, const char * from, const char * data1, int32_t *_retval) override { return _to SendMessage(plugin, to, from, data1, _retval); } \
+  NS_IMETHOD GetCmdList(uint32_t *length, kmICommand * **list) override { return _to GetCmdList(length, list); } \
+  NS_IMETHOD RegisterCmd(const char * name, const char * desc, kmICommandFunction *command, JS::HandleValue icon, kmICallback *enabled, kmICallback *checked, JSContext* cx, int32_t *_retval) override { return _to RegisterCmd(name, desc, command, icon, enabled, checked, cx, _retval); } \
+  NS_IMETHOD UnregisterCmd(const char * name) override { return _to UnregisterCmd(name); } \
+  NS_IMETHOD SetCmdIcon(const char * name, JS::HandleValue icon, JSContext* cx) override { return _to SetCmdIcon(name, icon, cx); } \
+  NS_IMETHOD SetButtonIcon(const char * toolbar, const char * command, JS::HandleValue icon, JSContext* cx) override { return _to SetButtonIcon(toolbar, command, icon, cx); } \
+  NS_IMETHOD SetAccel(const char * key, const char * command) override { return _to SetAccel(key, command); } \
+  NS_IMETHOD Open(const char * url, uint16_t state, nsIWebBrowser * *_retval) override { return _to Open(url, state, _retval); } \
+  NS_IMETHOD GetActiveBrowser(nsIWebBrowser * *_retval) override { return _to GetActiveBrowser(_retval); } \
+  NS_IMETHOD GetCurrentWindow(kmIWindow * *_retval) override { return _to GetCurrentWindow(_retval); } \
+  NS_IMETHOD GetWindows(uint32_t *length, kmIWindow * **list) override { return _to GetWindows(length, list); } \
+  NS_IMETHOD AddListener(nsIObserver *listener) override { return _to AddListener(listener); } \
+  NS_IMETHOD RemoveListener(nsIObserver *listener) override { return _to RemoveListener(listener); } \
+  NS_IMETHOD LoadPlugin(const char * path) override { return _to LoadPlugin(path); } \
+  NS_IMETHOD ShowMenu(const char * name, bool sendCommand, int32_t *_retval) override { return _to ShowMenu(name, sendCommand, _retval); } 
 
 /* Use this macro to declare functions that forward the behavior of this interface to another object in a safe way. */
 #define NS_FORWARD_SAFE_NSIJSBRIDGE(_to) \
-  NS_IMETHOD SetMenuCallback(const char * menu, const char * label, kmICommandFunction *command, const char * before) { return !_to ? NS_ERROR_NULL_POINTER : _to->SetMenuCallback(menu, label, command, before); } \
-  NS_IMETHOD SetMenu(const char * menu, uint16_t type, const char * label, const char * command, const char * before) { return !_to ? NS_ERROR_NULL_POINTER : _to->SetMenu(menu, type, label, command, before); } \
-  NS_IMETHOD RebuildMenu(const char * menu) { return !_to ? NS_ERROR_NULL_POINTER : _to->RebuildMenu(menu); } \
-  NS_IMETHOD CreateButton(const char * cmd, const char * menu, const char * tooltip, const char * label, kmIButton * *_retval) { return !_to ? NS_ERROR_NULL_POINTER : _to->CreateButton(cmd, menu, tooltip, label, _retval); } \
-  NS_IMETHOD CreateCallbackButton(kmICommandFunction *command, const char * menu, const char * tooltip, const char * label, kmIButton * *_retval) { return !_to ? NS_ERROR_NULL_POINTER : _to->CreateCallbackButton(command, menu, tooltip, label, _retval); } \
-  NS_IMETHOD AddToolbar(const char * toolbar, uint32_t width, uint32_t height) { return !_to ? NS_ERROR_NULL_POINTER : _to->AddToolbar(toolbar, width, height); } \
-  NS_IMETHOD AddButton(const char * toolbar, const char * command, const char * menu, const char * tooltip) { return !_to ? NS_ERROR_NULL_POINTER : _to->AddButton(toolbar, command, menu, tooltip); } \
-  NS_IMETHOD RemoveButton(const char * toolbar, const char * command) { return !_to ? NS_ERROR_NULL_POINTER : _to->RemoveButton(toolbar, command); } \
-  NS_IMETHOD Id(nsIDOMWindow *window, const char * id) { return !_to ? NS_ERROR_NULL_POINTER : _to->Id(window, id); } \
-  NS_IMETHOD SendMessage(const char * plugin, const char * to, const char * from, const char * data1, int32_t *_retval) { return !_to ? NS_ERROR_NULL_POINTER : _to->SendMessage(plugin, to, from, data1, _retval); } \
-  NS_IMETHOD GetCmdList(uint32_t *length, kmICommand * **list) { return !_to ? NS_ERROR_NULL_POINTER : _to->GetCmdList(length, list); } \
-  NS_IMETHOD RegisterCmd(const char * name, const char * desc, kmICommandFunction *command, JS::HandleValue icon, kmICallback *enabled, kmICallback *checked, JSContext* cx, int32_t *_retval) { return !_to ? NS_ERROR_NULL_POINTER : _to->RegisterCmd(name, desc, command, icon, enabled, checked, cx, _retval); } \
-  NS_IMETHOD UnregisterCmd(const char * name) { return !_to ? NS_ERROR_NULL_POINTER : _to->UnregisterCmd(name); } \
-  NS_IMETHOD SetCmdIcon(const char * name, JS::HandleValue icon, JSContext* cx) { return !_to ? NS_ERROR_NULL_POINTER : _to->SetCmdIcon(name, icon, cx); } \
-  NS_IMETHOD SetButtonIcon(const char * toolbar, const char * command, JS::HandleValue icon, JSContext* cx) { return !_to ? NS_ERROR_NULL_POINTER : _to->SetButtonIcon(toolbar, command, icon, cx); } \
-  NS_IMETHOD SetAccel(const char * key, const char * command) { return !_to ? NS_ERROR_NULL_POINTER : _to->SetAccel(key, command); } \
-  NS_IMETHOD Open(const char * url, uint16_t state, nsIWebBrowser * *_retval) { return !_to ? NS_ERROR_NULL_POINTER : _to->Open(url, state, _retval); } \
-  NS_IMETHOD GetActiveBrowser(nsIWebBrowser * *_retval) { return !_to ? NS_ERROR_NULL_POINTER : _to->GetActiveBrowser(_retval); } \
-  NS_IMETHOD GetCurrentWindow(kmIWindow * *_retval) { return !_to ? NS_ERROR_NULL_POINTER : _to->GetCurrentWindow(_retval); } \
-  NS_IMETHOD GetWindows(uint32_t *length, kmIWindow * **list) { return !_to ? NS_ERROR_NULL_POINTER : _to->GetWindows(length, list); } \
-  NS_IMETHOD AddListener(nsIObserver *listener) { return !_to ? NS_ERROR_NULL_POINTER : _to->AddListener(listener); } \
-  NS_IMETHOD RemoveListener(nsIObserver *listener) { return !_to ? NS_ERROR_NULL_POINTER : _to->RemoveListener(listener); } \
-  NS_IMETHOD LoadPlugin(const char * path) { return !_to ? NS_ERROR_NULL_POINTER : _to->LoadPlugin(path); } \
-  NS_IMETHOD ShowMenu(const char * name, bool sendCommand, int32_t *_retval) { return !_to ? NS_ERROR_NULL_POINTER : _to->ShowMenu(name, sendCommand, _retval); } 
+  NS_IMETHOD SetMenuCallback(const char * menu, const char * label, kmICommandFunction *command, const char * before) override { return !_to ? NS_ERROR_NULL_POINTER : _to->SetMenuCallback(menu, label, command, before); } \
+  NS_IMETHOD SetMenu(const char * menu, uint16_t type, const char * label, const char * command, const char * before) override { return !_to ? NS_ERROR_NULL_POINTER : _to->SetMenu(menu, type, label, command, before); } \
+  NS_IMETHOD RebuildMenu(const char * menu) override { return !_to ? NS_ERROR_NULL_POINTER : _to->RebuildMenu(menu); } \
+  NS_IMETHOD CreateButton(const char * cmd, const char * menu, const char * tooltip, const char * label, kmIButton * *_retval) override { return !_to ? NS_ERROR_NULL_POINTER : _to->CreateButton(cmd, menu, tooltip, label, _retval); } \
+  NS_IMETHOD CreateCallbackButton(kmICommandFunction *command, const char * menu, const char * tooltip, const char * label, kmIButton * *_retval) override { return !_to ? NS_ERROR_NULL_POINTER : _to->CreateCallbackButton(command, menu, tooltip, label, _retval); } \
+  NS_IMETHOD AddToolbar(const char * toolbar, uint32_t width, uint32_t height) override { return !_to ? NS_ERROR_NULL_POINTER : _to->AddToolbar(toolbar, width, height); } \
+  NS_IMETHOD AddButton(const char * toolbar, const char * command, const char * menu, const char * tooltip) override { return !_to ? NS_ERROR_NULL_POINTER : _to->AddButton(toolbar, command, menu, tooltip); } \
+  NS_IMETHOD RemoveButton(const char * toolbar, const char * command) override { return !_to ? NS_ERROR_NULL_POINTER : _to->RemoveButton(toolbar, command); } \
+  NS_IMETHOD Id(nsIDOMWindow *window, const char * id) override { return !_to ? NS_ERROR_NULL_POINTER : _to->Id(window, id); } \
+  NS_IMETHOD SendMessage(const char * plugin, const char * to, const char * from, const char * data1, int32_t *_retval) override { return !_to ? NS_ERROR_NULL_POINTER : _to->SendMessage(plugin, to, from, data1, _retval); } \
+  NS_IMETHOD GetCmdList(uint32_t *length, kmICommand * **list) override { return !_to ? NS_ERROR_NULL_POINTER : _to->GetCmdList(length, list); } \
+  NS_IMETHOD RegisterCmd(const char * name, const char * desc, kmICommandFunction *command, JS::HandleValue icon, kmICallback *enabled, kmICallback *checked, JSContext* cx, int32_t *_retval) override { return !_to ? NS_ERROR_NULL_POINTER : _to->RegisterCmd(name, desc, command, icon, enabled, checked, cx, _retval); } \
+  NS_IMETHOD UnregisterCmd(const char * name) override { return !_to ? NS_ERROR_NULL_POINTER : _to->UnregisterCmd(name); } \
+  NS_IMETHOD SetCmdIcon(const char * name, JS::HandleValue icon, JSContext* cx) override { return !_to ? NS_ERROR_NULL_POINTER : _to->SetCmdIcon(name, icon, cx); } \
+  NS_IMETHOD SetButtonIcon(const char * toolbar, const char * command, JS::HandleValue icon, JSContext* cx) override { return !_to ? NS_ERROR_NULL_POINTER : _to->SetButtonIcon(toolbar, command, icon, cx); } \
+  NS_IMETHOD SetAccel(const char * key, const char * command) override { return !_to ? NS_ERROR_NULL_POINTER : _to->SetAccel(key, command); } \
+  NS_IMETHOD Open(const char * url, uint16_t state, nsIWebBrowser * *_retval) override { return !_to ? NS_ERROR_NULL_POINTER : _to->Open(url, state, _retval); } \
+  NS_IMETHOD GetActiveBrowser(nsIWebBrowser * *_retval) override { return !_to ? NS_ERROR_NULL_POINTER : _to->GetActiveBrowser(_retval); } \
+  NS_IMETHOD GetCurrentWindow(kmIWindow * *_retval) override { return !_to ? NS_ERROR_NULL_POINTER : _to->GetCurrentWindow(_retval); } \
+  NS_IMETHOD GetWindows(uint32_t *length, kmIWindow * **list) override { return !_to ? NS_ERROR_NULL_POINTER : _to->GetWindows(length, list); } \
+  NS_IMETHOD AddListener(nsIObserver *listener) override { return !_to ? NS_ERROR_NULL_POINTER : _to->AddListener(listener); } \
+  NS_IMETHOD RemoveListener(nsIObserver *listener) override { return !_to ? NS_ERROR_NULL_POINTER : _to->RemoveListener(listener); } \
+  NS_IMETHOD LoadPlugin(const char * path) override { return !_to ? NS_ERROR_NULL_POINTER : _to->LoadPlugin(path); } \
+  NS_IMETHOD ShowMenu(const char * name, bool sendCommand, int32_t *_retval) override { return !_to ? NS_ERROR_NULL_POINTER : _to->ShowMenu(name, sendCommand, _retval); } 
 
 #if 0
 /* Use the code below as a template for the implementation class for this interface. */
@@ -717,7 +814,7 @@ protected:
 };
 
 /* Implementation file */
-NS_IMPL_ISUPPORTS1(nsJSBridge, nsIJSBridge)
+NS_IMPL_ISUPPORTS(nsJSBridge, nsIJSBridge)
 
 nsJSBridge::nsJSBridge()
 {
