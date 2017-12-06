@@ -19,6 +19,7 @@
 #define MOZILLA_STRICT_API
 #include "mozilla-config.h"
 #include "mozilla/Char16.h"
+#include "nsICacheStorageService.h"
 
 #include <tchar.h>
 #include <windows.h>
@@ -34,7 +35,7 @@ Locale* gLoc = NULL;
 
 #define PLUGIN_NAME "Privacy Plugin"
 
-#define PREFERENCE_CACHE_PARENTDIR      "browser.cache.disk.parent_directory"
+//#define PREFERENCE_CACHE_PARENTDIR      "browser.cache.disk.parent_directory"
 #define PREFERENCE_MRU_MAXURLS          "kmeleon.MRU.maxURLs"
 #define PREFERENCE_MRU_URL              "kmeleon.MRU.URL"
 #define PREFERENCE_SIGNON_FILE          "signon.SignonFileName"
@@ -111,7 +112,7 @@ void InitGlobals()
     cmdClearSignon = kFuncs->GetCommandIDs(1);
     cmdClearHistory = kFuncs->GetCommandIDs(1);
     cmdConfig = kFuncs->GetCommandIDs(1);
-    kFuncs->GetPreference(PREF_UNISTRING, PREFERENCE_CACHE_PARENTDIR, cacheParentDir, NULL);
+//    kFuncs->GetPreference(PREF_UNISTRING, PREFERENCE_CACHE_PARENTDIR, cacheParentDir, NULL);
     kFuncs->GetPreference(PREF_UNISTRING, PREFERENCE_SIGNON_FILE, signonFileName, NULL);
 }
 
@@ -180,6 +181,7 @@ void ClearSignon()
 	PasswordManager->RemoveAllLogins();
 }
 
+/*
 // Delete all the files in a directory
 void EmptyDirectory(LPCTSTR sDirectory)
 {
@@ -209,7 +211,7 @@ void EmptyDirectory(LPCTSTR sDirectory)
         FindClose(hFind);
     }
 }
-
+*/
 // Clear the cache
 void ClearCache()
 {
@@ -231,7 +233,7 @@ enum
 // Clear the cache
 void RemoveCache()
 {
-    TCHAR cacheDir[MAX_PATH];
+/*    TCHAR cacheDir[MAX_PATH];
     _tcscpy(cacheDir, cacheParentDir);
     _tcscat(cacheDir, _T("Cache\\"));
     
@@ -240,7 +242,13 @@ void RemoveCache()
     _tcscpy(cacheDir, cacheParentDir);
     _tcscat(cacheDir, _T("Cache.Trash\\"));
 
-    EmptyDirectory(cacheDir);
+    EmptyDirectory(cacheDir);*/
+	nsresult rv;
+
+	nsCOMPtr<nsICacheStorageService> CacheStorageService(do_GetService("@mozilla.org/netwerk/cache-storage-service;1", &rv));
+	if (NS_FAILED(rv)) return;
+
+	CacheStorageService->Clear();
 }
 
 // Clear the MRUs
