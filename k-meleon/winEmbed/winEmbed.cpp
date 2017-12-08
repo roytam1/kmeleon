@@ -96,6 +96,7 @@ static nsresult StartupProfile();
 static UINT gDialogCount = 0;
 static HINSTANCE ghInstanceApp = NULL;
 static char gFirstURL[1024];
+static WNDPROC lpfnEditWndProc = 0;
 
 // like strpbrk but finds the *last* char, not the first
 static char*
@@ -800,6 +801,34 @@ nsresult StartupProfile()
 
 }
 
+//In Subclass Proc
+LRESULT CALLBACK AddressBarSubClassProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	switch (msg)
+	{
+	case WM_KEYDOWN:
+		switch (wParam)
+		{
+		case VK_RETURN:
+			//MessageBoxA(NULL, "Enter pressed", "AddressBarSubClassProc", 0);
+			nsIWebBrowserChrome *chrome = nullptr;
+			if (hwnd)
+			{
+				chrome = (nsIWebBrowserChrome *)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+			}
+			if (chrome)
+			{
+				HWND hwndDlg = GetBrowserDlgFromChrome(chrome);
+				SendMessage(hwndDlg, WM_COMMAND, IDC_GO, 0);
+			}
+			break;
+		}
+		break;
+
+	}
+
+	return CallWindowProc(lpfnEditWndProc, hwnd, msg, wParam, lParam);
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // WebBrowserChromeUI
@@ -849,6 +878,9 @@ HWND WebBrowserChromeUI::CreateNativeWindow(nsIWebBrowserChrome* chrome)
     {
       SendMessage(hwndAddress, CB_ADDSTRING, 0, (LPARAM) gDefaultURLs[i]);
     }
+	HWND hwndEdit = GetWindow(hwndAddress, GW_CHILD);
+	SetWindowLongPtr(hwndEdit, GWLP_USERDATA, (LONG_PTR)chrome);  // save the browser LONG_PTR.
+	lpfnEditWndProc = (WNDPROC)SetWindowLongPtr(hwndEdit, GWL_WNDPROC, (DWORD)AddressBarSubClassProc);
   }
 
   // Fetch the browser window handle
