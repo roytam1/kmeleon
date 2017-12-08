@@ -25,11 +25,6 @@
 #include <windows.h>
 #include <math.h>
 #include <tchar.h>
-#include <gdiplus.h>
-using namespace Gdiplus;
-#pragma comment(lib, "gdiplus.lib") 
-
-ULONG_PTR  gdiplusToken = NULL;
 
 #define KMELEON_PLUGIN_EXPORTS
 #define _Tr(x) kPlugin.kFuncs->Translate(_T(x))
@@ -168,8 +163,6 @@ int Init(){
 void Create(HWND parent){
     KMeleonWndProc = (void *)GetWindowLong(parent, GWL_WNDPROC);
     SetWindowLong(parent, GWL_WNDPROC, (LONG)WndProc);
-    GdiplusStartupInput gdiplusStartupInput;
-    GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
 }
 
 void CreateTab(HWND hWndParent, HWND hTab) {
@@ -192,7 +185,6 @@ void Config(HWND parent){
 }
 
 void Quit(){
-    if (gdiplusToken) GdiplusShutdown(gdiplusToken);
 }
 
 void DoMenu(HMENU menu, char *param){
@@ -273,26 +265,20 @@ static UINT  m_captured;
 static UINT  m_defercapture;
 kmeleonPointInfo* m_pInfo = nullptr;
 static POINT m_posDown;
-static POINT m_posDraw;
 static SYSTEMTIME m_stDown;
 static int m_virt;
 
 static BOOL m_rocking = FALSE;
 static BOOL m_preventpopup = FALSE;
-static BOOL m_trail = TRUE;
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
     if (message == WM_COMMAND){
         WORD command = LOWORD(wParam);
 
         if (command == id_defercapture) {
-            kPlugin.kFuncs->GetPreference(PREF_BOOL, PREF_"mousetrail", &m_trail, &m_trail);
-            m_pInfo = kPlugin.kFuncs->GetInfoAtClick(hWnd);
-            if (!m_pInfo || (m_captured == WM_LBUTTONDOWN && m_pInfo->isInput))
-                return 0;
             m_captured = m_defercapture;
-            SetCapture(hWnd);
-			
+			m_pInfo = kPlugin.kFuncs->GetInfoAtClick(hWnd);
+			SetCapture(hWnd);
         }
     }
 	else if (m_rocking && ((message == WM_RBUTTONUP) || (message == WM_LBUTTONUP)))
@@ -335,15 +321,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 
                 if (mouseMsg == WM_RBUTTONDOWN || m_virt != 0 || mouseMsg == WM_LBUTTONDOWN) {
                     //SetCapture(hWnd);
-                    m_defercapture = mouseMsg;
+                    m_defercapture = m_captured = mouseMsg;
                     GetSystemTime(&m_stDown);
-                    m_posDraw = m_posDown;
-                    HWND targetWnd = WindowFromPoint(m_posDown);
-                    ScreenToClient(targetWnd, &m_posDraw);
                     PostMessage(hWnd, WM_COMMAND, id_defercapture, 0);
-                    //m_pInfo = kPlugin.kFuncs->GetInfoAtClick(hWnd);
-                    //SetCapture(hWnd);
-
+					//m_pInfo = kPlugin.kFuncs->GetInfoAtClick(hWnd);
+					//SetCapture(hWnd);
+                    
                     return MA_ACTIVATE;
                 }
             }
@@ -361,11 +344,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
 	else if (message == WM_CAPTURECHANGED && (HWND)lParam!=hWnd)
 	{
 		ReleaseCapture();
-		HWND targetWnd = WindowFromPoint(m_posDown);
-		ClientToScreen(targetWnd, &m_posDraw);
-		if (m_trail && m_captured == WM_RBUTTONDOWN && (m_posDraw.x != m_posDown.x || m_posDraw.y != m_posDown.y))
-			RedrawWindow(hWnd, NULL, NULL, RDW_INVALIDATE | RDW_ALLCHILDREN);
-		m_captured = 0;
+        m_captured = 0;
 	}
     else if (message == WM_LBUTTONDOWN && m_captured == WM_RBUTTONDOWN ||
     		 message == WM_RBUTTONDOWN && m_captured == WM_LBUTTONDOWN)
@@ -502,26 +481,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
         return 0;
     }
 
-	if (m_captured == WM_RBUTTONDOWN && message == WM_MOUSEMOVE && m_trail)
-	{
-		//GDI+ draw
-		HWND targetWnd = WindowFromPoint(m_posDown);
-		POINT newPos;
-		newPos.x = LOWORD(lParam);
-		newPos.y = HIWORD(lParam);
-		ClientToScreen(hWnd, &newPos);
-		int tt = ScreenToClient(targetWnd, &newPos);
-		if (newPos.x > 0 && newPos.y > 0 && newPos.x < 32768 && newPos.y < 32768) {
-			HDC hdc = GetDC(targetWnd);
-			Graphics graphics(hdc);
-			graphics.SetSmoothingMode(SmoothingModeAntiAlias);
-			graphics.SetPixelOffsetMode(Gdiplus::PixelOffsetMode::PixelOffsetModeHighQuality);
-			Pen pen(Color(200, 0, 0, 255), 2);
-			graphics.DrawLine(&pen, m_posDraw.x, m_posDraw.y, newPos.x, newPos.y);
-			m_posDraw = newPos;
-			ReleaseDC(targetWnd, hdc);
-		}
-	}
     return CallWindowProc((WNDPROC)KMeleonWndProc, hWnd, message, wParam, lParam);
 }
 
