@@ -24,7 +24,10 @@ class nsIX509Cert;
 
 #include "nsICommandManager.h"
 #include "nsIClipboardCommands.h"
+#include "nsPIDOMWindow.h"
 #include "nsIDocShell.h"
+#include "nsIDocument.h"
+#include "nsISelection.h"
 #include "nsIWebNavigation.h"
 #include "nsIWebBrowser.h"
 #include "nsIWebBrowserFocus.h"
@@ -119,12 +122,24 @@ public:
 		return NS_SUCCEEDED(ds->SetAllowJavascript(allow));
 	}
 
-	BOOL IsJSAllowed() 
+	BOOL IsJSAllowed()
 	{
 		nsCOMPtr<nsIDocShell> ds = GetDocShell();
 		bool res = false;
 		ds->GetAllowJavascript(&res);
 		return res;
+	}
+
+	BOOL IsSelectionCollapsed()
+	{
+		nsCOMPtr<nsIDOMWindow> dom;
+		if (mWebBrowser) mWebBrowser->GetContentDOMWindow(getter_AddRefs(dom));
+		nsCOMPtr<nsPIDOMWindow> domWindow = do_QueryInterface(dom);
+		nsCOMPtr<nsISelection> domSelection;
+		domWindow->GetSelection(getter_AddRefs(domSelection));
+		bool selectionCollapsed = false;
+		domSelection->GetIsCollapsed(&selectionCollapsed);
+		return selectionCollapsed;
 	}
 
 	BOOL Reload(bool force)

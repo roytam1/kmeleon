@@ -428,10 +428,11 @@ BOOL CBrowserGlue::FocusPrevElement()
 void  CBrowserGlue::ShowContextMenu(UINT aContextFlags)
 {
 	CString menu;
-	if ( !(aContextFlags & CONTEXT_LINK) &&
+	if (!(aContextFlags & CONTEXT_LINK) &&
 		!(aContextFlags & CONTEXT_IMAGE) &&
-		mpBrowserView->GetBrowserWrapper()->CanCopy())
+		!mpBrowserView->GetBrowserWrapper()->IsSelectionCollapsed())
 	{
+//		printf("CBrowserGlue::ShowContextMenu(%08x) = SelectedText\n", aContextFlags);
 		menu = _T("SelectedText");
 	}
 	else {
