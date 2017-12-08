@@ -28,6 +28,15 @@
 
 NS_IMPL_ISUPPORTS(KmAppInfo, nsIXULAppInfo, nsIXULRuntime, nsIAppStartup, nsIAppStartup)
 
+const unsigned char mozilla_buildid[] =
+{
+    BUILD_YEAR_CH0, BUILD_YEAR_CH1, BUILD_YEAR_CH2, BUILD_YEAR_CH3,
+    BUILD_MONTH_CH0, BUILD_MONTH_CH1,
+    BUILD_DAY_CH0, BUILD_DAY_CH1,
+    '\0'
+};
+
+
 /* readonly attribute ACString vendor; */
 NS_IMETHODIMP KmAppInfo::GetVendor(nsACString & aVendor)
 {
@@ -105,7 +114,8 @@ NS_IMETHODIMP KmAppInfo::GetPlatformVersion(nsACString & aPlatformVersion)
 /* readonly attribute ACString platformBuildID; */
 NS_IMETHODIMP KmAppInfo::GetPlatformBuildID(nsACString & aPlatformBuildID)
 {
-	aPlatformBuildID = NS_STRINGIFY(MOZILLA_BUILDID);
+//	aPlatformBuildID = NS_STRINGIFY(MOZILLA_BUILDID);
+	aPlatformBuildID.AssignASCII((char*)&mozilla_buildid[0]);
 	return NS_OK;
 }
 
