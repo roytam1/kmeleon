@@ -7,9 +7,10 @@
 pref("kmeleon.favicons.titleBar", false);
 pref("kmeleon.general.startHome", true);
 pref("kmeleon.urlbar.dropdown_lines", 10);
-pref("kmeleon.toolband.Throbber.visibility", true);
-
-pref("browser.tabs.loadDivertedInBackground", false);
+pref("browser.tabs.closeButtons", 2);
+pref("zoom.defaultPercent", 100);
+pref("kmeleon.tabs.loadDivertedInBackground", false);
+pref("network.proxy.type", 0);
 
 // Firefox MIME Type Editor
 pref("browser.download.show_plugins_in_list", true);
@@ -87,6 +88,10 @@ pref("kmeleon.tabs.useLoadingIcon", true);
 
 /********************************************************************************************************/
 // Macros
+pref("kmeleon.plugins.macros.helpmenu.openintab", false);
+
+// How open searched typed option
+pref("kmeleon.plugins.macros.searchtyped.openurl", "opentab");
 
 // Hotlinks
 pref("kmeleon.plugins.macros.hotlink0.new", false);
@@ -99,3 +104,5 @@ pref("kmeleon.plugins.macros.hotlink6.new", false);
 pref("kmeleon.plugins.macros.hotlink7.new", false);
 pref("kmeleon.plugins.macros.hotlink8.new", false);
 pref("kmeleon.plugins.macros.hotlink9.new", false);
+
+pref("kmeleon.plugins.macros.proxy0.http.proxy.pipelining", false);
