@@ -32,6 +32,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "login", "kplugins\login\log
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spellcheck", "kplugins\spellcheck\spellcheck.vcxproj", "{3D4DAD90-C0B3-4741-B9C1-6A3C5AD57F7E}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "winEmbed", "winEmbed\winEmbed.vcxproj", "{C938963C-0912-4455-B008-9F385023ECDB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -129,6 +131,12 @@ Global
 		{3D4DAD90-C0B3-4741-B9C1-6A3C5AD57F7E}.Release Static MFC|Win32.Build.0 = Release|Win32
 		{3D4DAD90-C0B3-4741-B9C1-6A3C5AD57F7E}.Release|Win32.ActiveCfg = Release|Win32
 		{3D4DAD90-C0B3-4741-B9C1-6A3C5AD57F7E}.Release|Win32.Build.0 = Release|Win32
+		{C938963C-0912-4455-B008-9F385023ECDB}.Debug|Win32.ActiveCfg = Debug|Win32
+		{C938963C-0912-4455-B008-9F385023ECDB}.Debug|Win32.Build.0 = Debug|Win32
+		{C938963C-0912-4455-B008-9F385023ECDB}.Release Static MFC|Win32.ActiveCfg = Release Static MFC|Win32
+		{C938963C-0912-4455-B008-9F385023ECDB}.Release Static MFC|Win32.Build.0 = Release Static MFC|Win32
+		{C938963C-0912-4455-B008-9F385023ECDB}.Release|Win32.ActiveCfg = Release|Win32
+		{C938963C-0912-4455-B008-9F385023ECDB}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

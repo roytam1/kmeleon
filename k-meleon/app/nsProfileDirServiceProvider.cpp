@@ -3,8 +3,12 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+#ifndef _NONAFX
 #include "StdAfx.h"
-//#include "nsProfileDirServiceProvider.h"
+#else
+#include "winEmbed.h"
+#endif
+#include "nsProfileDirServiceProvider.h"
 #include "nsProfileStringTypes.h"
 #include "nsProfileLock.h"
 #include "nsIFile.h"
@@ -138,7 +142,7 @@ nsProfileDirServiceProvider::Shutdown()
 // nsProfileDirServiceProvider::nsISupports
 //*****************************************************************************
 
-NS_IMPL_ISUPPORTS1(nsProfileDirServiceProvider,
+NS_IMPL_ISUPPORTS(nsProfileDirServiceProvider,
                    nsIDirectoryServiceProvider)
 
 //*****************************************************************************
@@ -229,7 +233,9 @@ nsProfileDirServiceProvider::GetFile(const char *prop, bool *persistant, nsIFile
 
   
   if (localFile && NS_SUCCEEDED(rv))
-    return CallQueryInterface(localFile, _retval);
+    return localFile->QueryInterface(NS_GET_IID(nsIFile), (void**)_retval);
+  //    return CallQueryInterface(localFile, _retval);
+
 
   return rv;
 }
