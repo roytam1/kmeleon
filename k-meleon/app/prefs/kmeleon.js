@@ -68,6 +68,9 @@ pref("kmeleon.plugins.gestures.right", "ID_NAV_FORWARD");
 pref("kmeleon.plugins.gestures.up", "ID_OPEN_LINK_IN_NEW_TAB");
 pref("kmeleon.plugins.gestures.upleft", "ID_TAB_PREV");
 pref("kmeleon.plugins.gestures.upright", "ID_TAB_NEXT");
+pref("kmeleon.plugins.gestures.SDLink", "ID_OPEN_LINK_IN_BACKGROUNDTAB");
+pref("kmeleon.plugins.gestures.SDImage", "viewImage");
+pref("kmeleon.plugins.gestures.SDText", "ID_NAV_SEARCH");
 
 pref("kmeleon.plugins.layers.load", false);
 
@@ -93,9 +96,11 @@ pref("kmeleon.display.maximized", false);
 pref("kmeleon.display.disableResize", false);
 pref("kmeleon.display.accelInMenus", true);
 pref("kmeleon.display.hideTitleBar", false);
+pref("kmeleon.display.toolbars_line", true);
 pref("kmeleon.favicons.show", true);
 pref("browser.chrome.site_icons", true);
-pref("browser.chrome.favicons", false);
+pref("browser.chrome.favicons", true);
+
 
 //pref("kmeleon.urlbar.dropdown_lines", 10); // To not set by default
 
@@ -184,7 +189,7 @@ pref("general.autoScroll", true);
 
 // external link handling in tabbed browsers. values from nsIBrowserDOMWindow.
 // 0=default window, 1=current window/tab, 2=new window, 3=new tab in most recent window
-pref("browser.link.open_external", 2); // open externally-launched links in a new window
+pref("browser.link.open_external", 3); 
 
 // handle links targeting new windows
 //2 (default): In a new window 3: In a new tab 1 (or anything else): In the current window
@@ -242,13 +247,21 @@ pref("extensions.update.url", "https://versioncheck.addons.mozilla.org/update/Ve
 pref("extensions.getAddons.cache.enabled", true);
 pref("xpinstall.enabled", true);
 pref("xpinstall.whitelist.add", "addons.mozilla.org");
-pref("extensions.blocklist.enabled", false);
+pref("extensions.blocklist.enabled", true);
 pref("extensions.logging.enabled", false);
 pref("extensions.strictCompatibility", false);
+pref("extensions.update.autoUpdateDefault", false);
+pref("general.skins.selectedSkin", "classic/1.0");
 //pref("plugins.click_to_play", true);
 
 // preferences
 pref("browser.preferences.instantApply", false);
+pref("browser.translation.ui.show", false);
+pref("app.support.baseURL", "https://support.mozilla.org/1/firefox/%VERSION%/%OS%/%LOCALE%/");
+pref("browser.search.showOneOffButtons", true);
+pref("pdfjs.disabled", true);
+pref("browser.eme.ui.enabled", true);
 
+// Others
 pref("security.csp.speccompliant", true);
 pref("places.favicons.optimizeToDimension", 32);
