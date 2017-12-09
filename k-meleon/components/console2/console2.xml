@@ -15,7 +15,7 @@
 		</content>
 
 		<implementation implements="nsIConsoleListener">
-			<field name="mCService" readonly="true">Components.classes["@mozilla.org/consoleservice;1"].getService(Components.interfaces.nsIConsoleService_MOZILLA_1_8_BRANCH || Components.interfaces.nsIConsoleService)</field>
+			<field name="mCService" readonly="true">Components.classes["@mozilla.org/consoleservice;1"].getService(Components.interfaces.nsIConsoleService)</field>
 			<field name="mListeners" readonly="true">[]</field>
 			<field name="mMsgQueue" readonly="true">[]</field>
 			<field name="mDupeCache">null</field>
@@ -209,9 +209,14 @@
 					if (aMessage.sourceLine)
 					{
 						// malformed-xml errors include their own caret -----v
+						if(aMessage.sourceLine.length > 100){row.setAttribute("code", aMessage.sourceLine.substring(0,100).replace(/\n\-+\^$/, "").replace(/\s/g, " ")+"/* ... */");
+						row.setAttribute("column", aMessage.columnNumber || 0);
+						row.setAttribute("errorDots", this.repeatChar(" ", (aMessage.columnNumber > 100) ? 105 : aMessage.columnNumber));
+						} else {
 						row.setAttribute("code", aMessage.sourceLine.replace(/\n\-+\^$/, "").replace(/\s/g, " "));
 						row.setAttribute("column", aMessage.columnNumber || 0);
 						row.setAttribute("errorDots", this.repeatChar(" ", aMessage.columnNumber));
+						}
 					}
 					if (("nsIScriptError2" in Components.interfaces &&
 						aMessage instanceof Components.interfaces.nsIScriptError2 &&
@@ -522,7 +527,7 @@
 
 			<constructor><![CDATA[
 				var x = document.getAnonymousElementByAttribute(this, "anonid", "main-box");
-				this.scrollBoxObject = x.boxObject.QueryInterface(Components.interfaces.nsIScrollBoxObject);
+				this.scrollBoxObject = x.boxObject;
 				this._bundle = document.getAnonymousElementByAttribute(this, "anonid", "string-bundle");
 				this.initDupeFinder();
 				this._limit = this.mPrefs.getIntPref("extensions.console2.max-errors");
