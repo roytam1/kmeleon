@@ -246,10 +246,9 @@ NS_IMETHODIMP CSaveAsHandler::Save(const char* contentType, const char* disposit
 #endif
 
 	TCHAR* szFileName = new TCHAR[MAX_PATH+1];
-	_tcsncpy(szFileName, W2CT(fileName.get()), MAX_PATH);
-	szFileName[MAX_PATH] = 0;
+	_tcsncpy(szFileName, W2CT(fileName.get()), MAX_PATH-20);
+	szFileName[MAX_PATH-20] = 0;
 	MakeFilename(szFileName);
-	if (fileName.Length() > MAX_PATH) szFileName[0] = 0; // ditch super-long filename and let user enter new name instead
 
 	//["@mozilla.org/intl/texttosuburi;1"]
 
