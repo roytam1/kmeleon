@@ -946,10 +946,10 @@ void CBrowserView::OnViewPageInfo()
 	CString uri = m_pWindow->GetURI();
 
 	// Build the page info url
-	if (uri.Find(_T("https://")) == -1)
-		uri.Insert(0, _T("about:cache-entry?client=HTTP&sb=1&key="));
-	else
-		uri.Insert(0, _T("about:cache-entry?client=HTTP-memory-only&sb=1&key="));
+	/*if (uri.Find(_T("https://")) == -1)
+		uri.Insert(0, _T("about:cache-entry?storage=disk&context=&eid=&uri="));
+	else*/
+		uri.Insert(0, _T("about:cache-entry?storage=disk&context=&eid=&uri="));
 
 	OpenURLInNewWindow(uri);
 }
@@ -960,10 +960,10 @@ void CBrowserView::OnViewFrameInfo()
 	if (viewFrameInfoUrl.IsEmpty()) return;
 
 
-   if (viewFrameInfoUrl.Find(_T("https://")) == -1)
-      viewFrameInfoUrl = _T("about:cache-entry?client=HTTP&sb=1&key=") + viewFrameInfoUrl;
-   else
-      viewFrameInfoUrl = _T("about:cache-entry?client=HTTP-memory-only&sb=1&key=") + viewFrameInfoUrl;
+   /*if (viewFrameInfoUrl.Find(_T("https://")) == -1)
+      viewFrameInfoUrl = _T("about:cache-entry?storage=disk&context=&eid=&uri=") + viewFrameInfoUrl;
+   else*/
+      viewFrameInfoUrl = _T("about:cache-entry?storage=disk&context=&eid=&uri=") + viewFrameInfoUrl;
 
    OpenURLInNewWindow(viewFrameInfoUrl);
 }
