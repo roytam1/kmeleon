@@ -276,13 +276,37 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
         WORD command = LOWORD(wParam);
 
         if (command == id_defercapture) {
-            m_captured = m_defercapture;
+            char cName[MAX_PATH]; HWND wndPoint;
+            POINT m_posUp;
+            GetCursorPos(&m_posUp);
+
+            wndPoint = WindowFromPoint(m_posUp);
+            GetClassNameA((HWND)wndPoint, cName, MAX_PATH);
+            if (strcmp(cName, "MozillaWindowClass") != 0) {
+                //printf("gestures::WndProc(WM_COMMAND)  lParam = %d, wndPoint = %d(%s)\n", lParam, wndPoint, cName);
+                ReleaseCapture();
+                m_captured = 0;
+
+                POINT m_posDownClient = m_posUp;
+                ScreenToClient(WindowFromPoint(m_posUp), &m_posDownClient);
+                //SetCursorPos(m_posDown.x, m_posDown.y);
+                //if (!m_pInfo->isInput && !(m_pInfo->link && *m_pInfo->link) && !(m_pInfo->image && *m_pInfo->image))
+                //    PostMessage(WindowFromPoint(m_posDown), WM_LBUTTONUP, wParam, MAKELONG(m_posDownClient.x, m_posDownClient.y));
+                PostMessage(WindowFromPoint(m_posUp), lParam, wParam, MAKELONG(m_posDownClient.x, m_posDownClient.y));
+
+                goto bailout;
+            }
+            //printf("gestures::WndProc(WM_COMMAND) lParam = %d\n", lParam);
             m_pInfo = kPlugin.kFuncs->GetInfoAtClick(hWnd);
+            if (!m_pInfo || (m_captured == WM_LBUTTONDOWN && m_pInfo->isInput))
+                return 0;
+            m_captured = m_defercapture;
             SetCapture(hWnd);
         }
     }
     else if (m_rocking && ((message == WM_RBUTTONUP) || (message == WM_LBUTTONUP)))
     {
+        //printf("gestures::WndProc(WM_BUTTONUP) && m_rocking,  lParam = %d\n", lParam);
         m_preventpopup--;
         if (!m_preventpopup) {
             m_rocking = FALSE;
@@ -298,7 +322,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
         return 0;
     }
     else if (message == WM_MOUSEACTIVATE && !m_captured){
-        HWND hDesktopWnd = (HWND) wParam;
+        //printf("gestures::WndProc(WM_MOUSEACTIVATE) && !m_captured, lParam = %d\n", lParam);
+        HWND hDesktopWnd = (HWND)wParam;
         UINT nHitTest = LOWORD(lParam);
         UINT mouseMsg = HIWORD(lParam);
 
@@ -323,7 +348,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
                     //SetCapture(hWnd);
                     m_defercapture = m_captured = mouseMsg;
                     GetSystemTime(&m_stDown);
-                    PostMessage(hWnd, WM_COMMAND, id_defercapture, 0);
+                    PostMessage(hWnd, WM_COMMAND, id_defercapture, mouseMsg);
                     //m_pInfo = kPlugin.kFuncs->GetInfoAtClick(hWnd);
                     //SetCapture(hWnd);
 
@@ -338,17 +363,20 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
              message == WM_LBUTTONDBLCLK ||
              message == WM_MBUTTONDBLCLK ||
              message == WM_RBUTTONDBLCLK){
+        //printf("gestures::WndProc(WM_BUTTONDBLCLK), lParam = %d\n", lParam);
         ReleaseCapture();
         m_captured = 0;
     }
     else if (message == WM_CAPTURECHANGED && (HWND)lParam!=hWnd)
     {
+        //printf("gestures::WndProc(WM_CAPTURECHANGED) && (HWND)lParam!=hWnd, lParam = %d\n", lParam);
         ReleaseCapture();
         m_captured = 0;
     }
     else if (message == WM_LBUTTONDOWN && m_captured == WM_RBUTTONDOWN ||
              message == WM_RBUTTONDOWN && m_captured == WM_LBUTTONDOWN)
     {
+        //printf("gestures::WndProc(WM_BUTTONDOWN), lParam = %d\n", lParam);
         char szPref[100], szTxt[100];
         strcpy(szPref, PREF_);
 
@@ -366,6 +394,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
         //m_captured = 0;
     }
     else if (message == WM_MOUSEMOVE && m_captured == WM_LBUTTONDOWN && !m_rocking) {
+        //printf("gestures::WndProc(WM_MOUSEMOVE) && m_captured == WM_LBUTTONDOWN && !m_rocking, lParam = %d\n", lParam);
 
         POINT m_posMove;
         GetCursorPos(&m_posMove);
@@ -388,14 +417,25 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
             //SetCursorPos(m_posMove.x, m_posMove.y);
          }
     }
-    else if ((message == WM_LBUTTONUP && m_captured == WM_LBUTTONDOWN ||
-              message == WM_MBUTTONUP && m_captured == WM_MBUTTONDOWN ||
-              message == WM_RBUTTONUP && m_captured == WM_RBUTTONDOWN)
+    else if (((message == WM_LBUTTONUP && m_captured == WM_LBUTTONDOWN) ||
+              (message == WM_MBUTTONUP && m_captured == WM_MBUTTONDOWN) ||
+              (message == WM_RBUTTONUP && m_captured == WM_RBUTTONDOWN))
               && !m_rocking)
     {
+        char cName[MAX_PATH]; HWND wndPoint;
         POINT m_posUp;
         GetCursorPos(&m_posUp);
+        wndPoint = WindowFromPoint(m_posUp);
+        GetClassNameA((HWND)wndPoint, cName, MAX_PATH);
+        //printf("gestures::WndProc(WM_BUTTONUP) && m_captured == WM_BUTTONDOWN && !m_rocking, wndPoint = %d(%s)\n", wndPoint, cName);
+#if 0
+        if (strcmp(cName, "MozillaWindowClass") != 0) {
+            ReleaseCapture();
+            m_captured = 0;
 
+            goto bailout;
+        }
+#endif
         DIRECTION dir = findDir(m_posDown, m_posUp);
 
         SYSTEMTIME m_stUp;
@@ -481,6 +521,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam){
         return 0;
     }
 
+bailout:
     return CallWindowProc((WNDPROC)KMeleonWndProc, hWnd, message, wParam, lParam);
 }
 
