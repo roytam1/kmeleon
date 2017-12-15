@@ -9,6 +9,10 @@ Cu.import('resource://gre/modules/AddonManager.jsm');
 Cu.import("resource://gre/modules/NetUtil.jsm");
 Cu.import("resource://gre/modules/Log.jsm");
 
+XPCOMUtils.defineLazyModuleGetter(this, "UserAgentOverrides",
+                                  "resource://gre/modules/UserAgentOverrides.jsm");
+
+
 XPCOMUtils.defineLazyModuleGetter(this,
   "LoginManagerContent", "resource://gre/modules/LoginManagerContent.jsm");
 
@@ -100,6 +104,7 @@ kmHelper.prototype = {
       case 'kmeleon-init':	
         this.updatePrefs();
         this.initAddon();  
+        UserAgentOverrides.init();
         Services.obs.removeObserver(this, 'kmeleon-init');
         break;
       /*case 'content-document-global-created':	
@@ -111,6 +116,7 @@ kmHelper.prototype = {
         Services.obs.removeObserver(this, 'content-document-global-created');
         break;*/			
       case 'xpcom-shutdown' :	
+        UserAgentOverrides.uninit();
         //Services.obs.removeObserver(this, 'content-document-global-created');
         Services.obs.removeObserver(this, "addon-install-blocked");    
         Services.obs.removeObserver(this, "addon-install-failed");  
