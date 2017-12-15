@@ -80,6 +80,8 @@ kmHelper.prototype = {
     browser.addEventListener("blur", function(event) {
       LoginManagerContent.onUsernameInput(event);
     });
+    browser.addEventListener("flashblockCheckLoad", Flashblock.checkLoadFlash, true, true);
+    
     return true;
   },
 
@@ -176,9 +178,9 @@ kmHelper.prototype = {
         // can receive observer events from other tabs! Ensure this event
         // is about our content.
         
-        logger.debug("Form submit observer notified." + domWin.top + " " + this.domWindow);
+        //logger.debug("Form submit observer notified." + domWin.top + " " + this.domWindow);
         //if (domWin.top != this.domWindow)
-          //  return; // Look like useless and don't work on the first tab
+        //  return; // Look like useless and don't work on the first tab
                 
         let target = domWin.QueryInterface(Ci.nsIDOMEventTarget);
         if (!target)
@@ -389,3 +391,223 @@ kmHelper.prototype = {
   }
 };
 const NSGetFactory = XPCOMUtils.generateNSGetFactory([kmHelper]);
+
+var Flashblock = {
+
+	whiteList: null,
+	
+	getFlashblockWhitelist : function() {
+		//if (!Flashblock.whiteList)
+			Flashblock.loadWhitelist();
+		return Flashblock.whiteList;
+	},
+	
+	isTargetEnabled : function() {
+	        var prefs = Components.classes["@mozilla.org/preferences-service;1"]
+	                              .getService(Components.interfaces.nsIPrefBranch);
+
+	        if(prefs.getPrefType("flashblock.silverlight.blocked") == prefs.PREF_BOOL)
+	            return prefs.getBoolPref("flashblock.whitelist.includeTarget");
+	        return true;
+	    },
+	
+	checkLoadFlash : function (e) {
+		if(
+			(e.target &&
+				(e.target.ownerDocument && e.target.ownerDocument.location && (Flashblock.checkWhitelist(e.target.ownerDocument.location)) ||
+				(Flashblock.isTargetEnabled() && Flashblock.checkWhitelist(Flashblock.getTargetURI(e.target))) ||
+				Flashblock.blockedByContentPolicy(e.target)))
+			) {
+			e.preventDefault();
+		}
+		e.stopPropagation();
+	},
+	
+	checkWhitelist : function (url) {
+		if(!FBlockUtils.isLocalBlocked()) {
+			if(url.protocol == "file:")
+				return true;
+		}
+
+		return this.checkHostInWhitelist(url.host) ||  this.checkHostInWhitelist(url.spec);
+	},
+	
+	checkHostInWhitelist : function (host) {
+		if (!host)
+			return false;
+		var fl = this.getFlashblockWhitelist()
+		for (var i = 0; i < fl.length; i++) {
+			// Handle *
+			var expr = fl[i];
+			expr = expr.replace(/\./g, "\\.");
+			expr = expr.replace(/\-/g, "\\-");
+			expr = expr.replace(/\?/g, "\\?");
+			expr = expr.replace(/\+/g, "\\+");
+			//expr = expr.replace(/\*/g, "[A-Za-z0-9_\\-\\.]*")
+			//expr = expr.replace(/\*/g, "[^ \t\v\n\r\f]*")
+			expr = expr.replace(/\*/g, ".*")
+			if (expr.slice(-2) != ".*")
+				expr = expr + ".*"
+			expr = expr + "$"; // "^" + 
+
+			var re = new RegExp(expr);
+			if(re.test(host))
+				return true;
+		}
+		return false;
+	},
+	
+	loadWhitelist : function () {
+		var flashblockPref = FBlockUtils.getWhitelist();
+		Flashblock.whiteList = new Array();
+		if (flashblockPref)
+		    Flashblock.whiteList = flashblockPref.split(",");
+	},
+	
+	blockedByContentPolicy : function(node) {
+		try {
+			var uri = this.getTargetURI(node);
+			// Ask content policy whether this object is already blocked
+			var ios = Components.classes["@mozilla.org/network/io-service;1"]
+				.getService(Components.interfaces.nsIIOService);
+			var requestOrigin = ios.newURI(node.ownerDocument.location, null, null);
+			var contentPolicy = Components.classes["@mozilla.org/layout/content-policy;1"]
+				.getService(Components.interfaces.nsIContentPolicy);
+			var blockType = contentPolicy.shouldLoad(Components.interfaces.nsIContentPolicy.TYPE_OBJECT,
+						uri, requestOrigin, node,
+						node.getAttribute("type"), null);
+			return blockType != Components.interfaces.nsIContentPolicy.ACCEPT;
+		}
+		catch (e) {
+			Components.utils.reportError(e);
+			return false;
+		}
+	},
+	
+	getTargetURI : function(node) {
+		var targetURI;
+		try {
+			// Get object URI in the same way as nsObjectLoadingContent::LoadObject()
+			var relativeURI;
+			switch (node.localName.toLowerCase()) {
+				case "object":
+					relativeURI = node.getAttribute("data") || node.getAttribute("src") || "";
+					if (!relativeURI) {
+						var params = node.getElementsByTagName("param");
+
+						for (var ii = 0; ii < params.length; ii++) {
+							var name = params[ii].getAttribute("name");
+							switch (name) {
+								case "movie":
+								case "src":
+									relativeURI = params[ii].getAttribute("value");
+									break;
+							}
+						}
+					}
+					break;
+				case "embed":
+					relativeURI = node.getAttribute("src") || "";
+					break;
+			}
+
+			var ios = Components.classes["@mozilla.org/network/io-service;1"]
+				.getService(Components.interfaces.nsIIOService);
+			var baseURI = ios.newURI(node.baseURI, null, null);
+			var codeBase = node.getAttribute("codebase");
+			if (codeBase) {
+				try {
+					baseURI = ios.newURI(codeBase, node.ownerDocument.characterSet, baseURI);
+				} catch (e) {}  // Ignore invalid codebase attribute
+			}
+			if (node.ownerDocument)
+				targetURI = ios.newURI(relativeURI, node.ownerDocument.characterSet, baseURI);
+			else
+				targetURI = ios.newURI(relativeURI, null, baseURI);
+		}
+		catch (e) {
+			Components.utils.reportError(e);
+		}
+		return targetURI;
+	}
+}
+
+var gFlashblockWhitelist;
+
+var FBlockUtils = {
+
+  /// PREFS FUNCTIONS
+
+  prefs: Components.classes["@mozilla.org/preferences-service;1"]
+         .getService(Components.interfaces.nsIPrefBranch)
+         .QueryInterface(Components.interfaces.nsIPrefBranchInternal),
+
+  // Returns the value of the flashblock.enabled pref
+  isEnabled: function() {
+    if(this.prefs.getPrefType("flashblock.enabled") == this.prefs.PREF_BOOL)
+      return this.prefs.getBoolPref("flashblock.enabled");
+    else {
+      this.prefs.setBoolPref("flashblock.enabled", true);
+      return true;
+    }
+  },
+
+  isVideoEnabled : function() {
+    return this.prefs.getBoolPref("flashblock.html5video.blocked");
+  },
+
+  isSilverlightEnabled : function() {
+    return this.prefs.getBoolPref("flashblock.silverlight.blocked");
+  },
+
+  isTargetEnabled : function() {
+    return this.prefs.getBoolPref("flashblock.whitelist.includeTarget");
+  },
+
+  isWeaveEnabled : function() {
+    return this.prefs.getBoolPref("services.sync.prefs.sync.flashblock.whitelist");
+  },
+
+  // Returns the value of the flashblock.blockLocal pref
+  isLocalBlocked: function() {
+    if(this.prefs.getPrefType("flashblock.blockLocal") == this.prefs.PREF_BOOL)
+      return this.prefs.getBoolPref("flashblock.blockLocal");
+    else {
+      return false;
+    }
+  },
+
+  // Returns the value of the javascript.enabled pref
+  isJavascriptEnabled:function() {
+    return this.prefs.getBoolPref("javascript.enabled");
+  },
+
+  // Returns the value of the browser.toolbars.showbutton.flashblockMozToggle pref
+  isButtonEnabled: function() {
+  	var buttonpref = "browser.toolbars.showbutton.flashblockMozToggle";
+    if(this.prefs.getPrefType(buttonpref) == this.prefs.PREF_BOOL)
+        return this.prefs.getBoolPref(buttonpref);
+    else {
+        this.prefs.setBoolPref(buttonpref, true);
+        return true;
+    }
+  },
+
+  // Sets the flashblock.enabled pref to the given boolean value
+  setEnabled: function(enabled) {
+    return this.prefs.setBoolPref("flashblock.enabled", enabled);
+  },
+
+  // Returns the value of the flashblock.whitelist pref
+  getWhitelist: function() {
+    if(this.prefs.getPrefType("flashblock.whitelist") == this.prefs.PREF_STRING)
+	    return this.prefs.getCharPref("flashblock.whitelist");
+	else
+		return "";
+  },
+
+  // Set the flashblock.whitelist pref to the given string
+  setWhitelist: function(prefStr) {
+    this.prefs.setCharPref("flashblock.whitelist", prefStr);
+  }
+}
