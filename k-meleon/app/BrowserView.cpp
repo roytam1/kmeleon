@@ -681,7 +681,8 @@ void CBrowserView::OnCopyLinkText()
 
 	if (!OpenClipboard())
 		return;
-
+    title.TrimLeft(L"\t ");
+    while (title.Replace(L"  ", L" "));
 	SetClipboardTextData(m_hWnd, title);
 }
 
