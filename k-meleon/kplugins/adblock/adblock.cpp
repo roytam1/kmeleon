@@ -812,6 +812,9 @@ extern nsresult NS_NewGenericFactory(nsIGenericFactory* *result,
                      const nsModuleComponentInfo *info);
 
 using namespace std;
+
+#if 0
+
 #define BUFFERSIZE 4096
 bool DownloadFile(string url, LPCSTR filename){
     string request; // HTTP Header //
@@ -902,6 +905,8 @@ bool DownloadFile(string url, LPCSTR filename){
  
     return TRUE;
 }
+
+#endif
 
 #include "nsIWebBrowserPersist.h"
 #include "nsCWebBrowserPersist.h"
@@ -1034,7 +1039,7 @@ bool Subscriptions::_Download()
 	dwnIt++;
 	nsresult rv = persist->SaveURI(uri, nullptr, nullptr, 0, nullptr, nullptr, file, nullptr);
 	NS_ENSURE_SUCCESS(rv, false);
-	
+    return true;
 }
 
 bool Subscriptions::Add(const char* s) 
@@ -1092,7 +1097,8 @@ bool InitSubs()
 	}
 	else
 		s->Parse();
-delete s;
+    delete s;
+    return true;
 }
 
 BOOL Init() 
