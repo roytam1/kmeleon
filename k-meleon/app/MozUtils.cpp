@@ -316,11 +316,12 @@ BOOL IsContentEditable(nsIDOMNode* node)
 
 		if (nodeType == nsIDOMNode::ELEMENT_NODE) {
 			// Test if the element has an associated link
-			nsString attr;
+			nsString attr; bool _retval;
 			nsCOMPtr<nsIDOMElement> element(do_QueryInterface(node));		
 			if (!element) break;
+			element->HasAttribute(NS_LITERAL_STRING("contenteditable"), &_retval);
 			element->GetAttribute(NS_LITERAL_STRING("contenteditable"), attr);
-			if (wcscmp(attr.get(), L"true") == 0)
+			if (_retval && (attr.Length() == 0 || wcscmp(attr.get(), L"true") == 0))
 				return TRUE;
 		}
 
