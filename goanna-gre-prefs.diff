@@ -1,0 +1,31 @@
+diff --git a/modules/libpref/Makefile.in b/modules/libpref/Makefile.in
+index f8965daaf..159d98c7d 100644
+--- a/modules/libpref/Makefile.in
++++ b/modules/libpref/Makefile.in
+@@ -26,6 +26,10 @@ grepref_files += $(topsrcdir)/mobile/android/chrome/content/healthreport-prefs.j
+ endif
+ endif
+ 
++GRE_BUILDID   := $(strip $(firstword $(shell cat $(DEPTH)/config/buildid 2>/dev/null)))
++
++DEFINES += -DGRE_BUILDID=$(GRE_BUILDID)
++
+ goanna.js: $(grepref_files)
+ 	$(call py_action,preprocessor,$(PREF_PPFLAGS) $(DEFINES) $(ACDEFINES) $(XULPPFLAGS) $^ -o $@)
+ 
+diff --git a/modules/libpref/init/all.js b/modules/libpref/init/all.js
+index 6551eb596..e96102c48 100644
+--- a/modules/libpref/init/all.js
++++ b/modules/libpref/init/all.js
+@@ -4907,3 +4907,11 @@ pref("dom.secureelement.enabled", false);
+ 
+ // Turn rewriting of youtube embeds on/off
+ pref("plugins.rewrite_youtube_embeds", true);
++
++// additional
++lock_pref("platform.name", "Goanna");
++#filter substitution
++lock_pref("platform.version", @MOZILLA_VERSION@);
++lock_pref("platform.buildid", "@GRE_BUILDID@");
++#unfilter substitution
++
