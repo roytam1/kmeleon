@@ -25,6 +25,7 @@
 #include "nsAppShellCID.h"
 #include "nsIAppShellService.h"
 #include "nsXULAppAPI.h"
+#include "nsIPrefService.h"
 
 NS_IMPL_ISUPPORTS(KmAppInfo, nsIXULAppInfo, nsIXULRuntime, nsIAppStartup, nsIAppStartup)
 
@@ -114,8 +115,26 @@ NS_IMETHODIMP KmAppInfo::GetPlatformVersion(nsACString & aPlatformVersion)
 /* readonly attribute ACString platformBuildID; */
 NS_IMETHODIMP KmAppInfo::GetPlatformBuildID(nsACString & aPlatformBuildID)
 {
+	nsCString string;
+	nsCOMPtr<nsIPrefService> prefService = do_GetService(NS_PREFSERVICE_CONTRACTID);
+	nsCOMPtr<nsIPrefBranch> prefs;
+	if (!prefService) goto _pbid_fallback;
+	prefService->GetBranch("", getter_AddRefs(prefs));
+
+	if (!prefs || !NS_SUCCEEDED(prefs->GetCharPref("platform.buildid", getter_Copies(string))))
+		goto _pbid_fallback;
+	if (string.Length() < 8)
+		goto _pbid_fallback;
+
+	string.Cut(9, 0); // remove everything after yyyymmdd
+	aPlatformBuildID = string;
+	return NS_OK;
+
+_pbid_fallback:
 //	aPlatformBuildID = NS_STRINGIFY(MOZILLA_BUILDID);
+	// for fallback
 	aPlatformBuildID.AssignASCII((char*)&mozilla_buildid[0]);
+
 	return NS_OK;
 }
 
