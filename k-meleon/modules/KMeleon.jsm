@@ -18,59 +18,6 @@ logger.level = Log.Level.Debug;
 logger.addAppender(new Log.ConsoleAppender(formatter));
 logger.addAppender(new Log.DumpAppender(formatter));
 
-function KMenu(name) {
-  this.name = name;
-}
-
-KMenu.prototype = {
-  name: null,
-  
-  addItem: function (label, command, position) {
-    JsBridge.SetMenu(this.name, JsBridge.MENU_COMMAND, label, command, position);
-  },  
-  
-  removeItem: function (command) {
-    JsBridge.SetMenu(this.name, JsBridge.MENU_COMMAND, '', command);
-  }
-}
-
-function KToolbar(name) {
-  this.name = name;
-}
-
-KToolbar.prototype = {
-  name: null,
-  
-  addButton: function(command, menu) {
-    return JsBridge.AddButton(this.name, command, menu);
-  },
-  
-  removeButton: function(command) {
-    return JsBridge.RemoveButton(this.name, command);
-  },
-}
-
-function KCommand(name, desc, callback) {
-  this.name = name;
-}
-
-KCommand.prototype = {
-  name: null,
-  
-  checked: function(bool) {
-  },
-  
-  disabled: function(bool) {
-  },
-  
-  setIcon: function(icon) {
-  },
-  
-  setDesc: function(text) {
-  }
-
-}
-
 this.KMeleon = {
 
   MENU_COMMAND: JsBridge.MENU_COMMAND,
@@ -240,21 +187,5 @@ this.KMeleon = {
   
   SetAccel: function(key, command) {
     return JsBridge.SetAccel(key, command);
-  },
-  
-  GetMenu: function(name) {
-    return new KMenu(name);
-  },
-  
-  GetToolbar: function(name) {
-    return new KToolbar(name);
-  },
-  
-  AddListener: function(listener) {
-    return JsBridge.AddListener(listener);
-  },
-  
-  RemoveListener: function(name) {
-    return JsBridge.RemoveListener(listener);
   }
 }
