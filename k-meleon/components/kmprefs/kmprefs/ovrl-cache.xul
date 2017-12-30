@@ -113,6 +113,5 @@ var DiskCache = {
 		<description style="margin-left:2.5em">&cache.dsk.note;</description>
 		<separator class="thin"/>
 		<checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.favicons.cached" label="&cache.ico.enable;"/>
-		<description style="margin-left:2.5em">&cache.ico.note;</description>
 	</groupbox>
 </overlay>

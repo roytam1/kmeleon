@@ -11,6 +11,8 @@
 	command="ID_NAV_RELOAD"/>
 	<action caption="&ID_NAV_FORCE_RELOAD;"
 	command="ID_NAV_FORCE_RELOAD"/>
+	<action caption="&ID_NAV_SEARCH;"
+	command="ID_NAV_SEARCH"/>	
 	<action caption="&ID_NEW_BROWSER;"
 	command="ID_NEW_BROWSER"/>
 	<action caption="&ID_NEW_TAB;"
@@ -83,4 +85,10 @@
 	command="favorites(Add)"/>
 	<action caption="&hotlistAdd;"
 	command="hotlist(Add)"/>
+	<action caption="&viewImage;"
+	command="viewImage"/>
+	<action caption="&ID_OPEN_LINK_IN_BACKGROUNDTAB;"
+	command="openLinkInBackgroundTab"/>
+	<action caption="&ID_NAV_SEARCH;"
+	command="navSearch"/>
 </actions>

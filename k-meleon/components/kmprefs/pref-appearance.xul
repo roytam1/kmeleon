@@ -19,12 +19,13 @@ function init() {
 	initCheckbox("kmeleon.display.accelInMenus");
 	initCheckbox("kmeleon.favicons.show");
 	initCheckbox("kmeleon.favicons.titleBar");
+	initCheckbox("kmeleon.display.hideTitleBar");
 	document.getElementById("kmeleon.favicons.titleBar").disabled = !pref.getBoolPref("kmeleon.favicons.show");
 	initTextbox("kmeleon.display.title", false);
+	initTextbox("kmeleon.display.toolbars_size", false);
 
 	Skin = new kmSkin;
 	Throbber = new kmThrobber;
-	kBMPMenu.init();
 	kFullscreen.init();
 	Language.init();
 	main();
@@ -105,16 +106,7 @@ var Language = {
 		setTimeout("top.location.reload()", 100);
 	}
 };
-var kBMPMenu = {
-	name : "bmpmenu",
-	pref : "kmeleon.plugins.bmpmenu.load",
-	init : function () {
-		if (kPlugin.absent(this.name))
-			document.getElementById(this.pref).setAttribute("hidden", true);
-		else
-			initCheckbox(this.pref);
-	}
-};
+
 var Skin;
 function kmSkin() {
 	this.elem = document.getElementById(this.pref);
@@ -366,7 +358,7 @@ var Window = {
 										</caption>
 										<menulist id="kmeleon.general.skinsCurrent" oncommand="setCharPref(this.id,this.value)"/>
 										<separator class="thin"/>
-										<checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.plugins.bmpmenu.load" label="&appearance.menuIcons;"/>
+										<checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.display.bitmapInMenus" label="&appearance.menuIcons;"/>
 										<checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.display.backgroundImageEnabled" label="&appearance.backBMP;"/>
 										<checkbox oncommand="Throbber.toggle()" id="kmeleon.toolband.Throbber.visibility" label="&appearance.throbber;"/>
 										<hbox align="center">

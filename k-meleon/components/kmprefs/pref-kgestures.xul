@@ -233,6 +233,7 @@ var Database = {
 				<tabs>
 					<tab label="&gestures.label;"/>
 					<tab label="&actions.label;" oncommand="Database.init()" onfocus="Database.init()"/>
+					<tab label="&super-drags.label;"/>
 				</tabs>
 				<tabpanels flex="1">
 					<tabpanel flex="1" orient="vertical" style="overflow:auto">
@@ -382,6 +383,47 @@ var Database = {
 							<hbox flex="1"/>
 						</hbox>
 						<!-- Database -->
+					</tabpanel>
+					<tabpanel flex="1" orient="vertical" style="overflow:auto">
+						<!-- Super Drags -->
+						<separator class="thin"/>
+						<description>&super-drags.descr;</description>
+						<separator class="thin"/>
+						<grid>
+							<columns>
+								<column/>
+								<column/>
+								<column flex="1"/>
+							</columns>
+							<rows>
+								<row align="center">
+									<label value="&gestures.gesture;"/>
+									<label value="&gestures.action;"/>
+								</row>
+								<row>
+									<separator class="thin"/>
+								</row>
+								<row align="center">
+									<hbox align="center">
+										<label value="&super-drag.image;"/>
+									</hbox>
+									<menulist id="SDImage" oncommand="kGestures.setAction(this)" flex="1"/>
+								</row>
+								<row align="center">
+									<hbox align="center">
+										<label value="&super-drag.link;"/>
+									</hbox>
+									<menulist id="SDLink" oncommand="kGestures.setAction(this)" flex="1"/>
+								</row>
+								<row align="center">
+									<hbox align="center">
+										<label value="&super-drag.text;"/>
+									</hbox>
+									<menulist id="SDText" oncommand="kGestures.setAction(this)" flex="1"/>
+								</row>
+							</rows>
+						</grid>
+						<!-- Super Drags -->
 					</tabpanel>
 				</tabpanels>
 			</tabbox>
