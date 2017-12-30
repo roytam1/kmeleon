@@ -26,28 +26,18 @@
 <!ENTITY checkSpelling.label             "Check my spelling as I type">
 <!ENTITY checkSpelling.accesskey         "t">
 
-<!ENTITY systemDefaults.label            "System Defaults">
-<!ENTITY alwaysCheckDefault.label        "Always check to see if &brandShortName; is the default browser on startup"><!--XXX-->
-<!ENTITY alwaysCheckDefault.accesskey    "w">
-<!ENTITY setDefault.label                "Make &brandShortName; the default browser">
-<!ENTITY setDefault.accesskey            "d">
-<!ENTITY isDefault.label                 "&brandShortName; is currently your default browser">
-
 <!ENTITY dataChoicesTab.label            "Data Choices">
 
-<!ENTITY healthReportSection.label       "&brandShortName; Health Report">
 <!ENTITY healthReportDesc.label          "Helps you understand your browser performance and shares data with &vendorShortName; about your browser health">
 <!ENTITY enableHealthReport.label        "Enable &brandShortName; Health Report">
 <!ENTITY enableHealthReport.accesskey    "R">
 <!ENTITY healthReportLearnMore.label     "Learn More">
 
-<!ENTITY telemetrySection.label          "Telemetry">
 <!ENTITY telemetryDesc.label             "Shares performance, usage, hardware and customization data about your browser with &vendorShortName; to help us make &brandShortName; better">
-<!ENTITY enableTelemetry.label           "Enable Telemetry">
-<!ENTITY enableTelemetry.accesskey       "T">
+<!ENTITY enableTelemetryData.label       "Share additional data (i.e., Telemetry)">
+<!ENTITY enableTelemetryData.accesskey   "T">
 <!ENTITY telemetryLearnMore.label        "Learn More">
 
-<!ENTITY crashReporterSection.label      "Crash Reporter">
 <!ENTITY crashReporterDesc.label         "&brandShortName; submits crash reports to help &vendorShortName; make your browser more stable and secure">
 <!ENTITY enableCrashReporter.label       "Enable Crash Reporter">
 <!ENTITY enableCrashReporter.accesskey   "C">
@@ -125,12 +115,12 @@
 <!ENTITY certificateTab.label            "Certificates">
 <!ENTITY certSelection.description       "When a server requests my personal certificate:">
 <!ENTITY certs.auto                      "Select one automatically">
-<!ENTITY certs.auto.accesskey            "l">
+<!ENTITY certs.auto.accesskey            "S">
 <!ENTITY certs.ask                       "Ask me every time">
-<!ENTITY certs.ask.accesskey             "i">
+<!ENTITY certs.ask.accesskey             "A">
+<!ENTITY enableOCSP.label                "Query OCSP responder servers to confirm the current validity of certificates">
+<!ENTITY enableOCSP.accesskey            "Q">
 <!ENTITY viewCerts.label                 "View Certificates">
-<!ENTITY viewCerts.accesskey             "s">
-<!ENTITY verify2.label                   "Validation">
-<!ENTITY verify2.accesskey               "V">
+<!ENTITY viewCerts.accesskey             "C">
 <!ENTITY viewSecurityDevices.label       "Security Devices">
-<!ENTITY viewSecurityDevices.accesskey   "y">
+<!ENTITY viewSecurityDevices.accesskey   "D">

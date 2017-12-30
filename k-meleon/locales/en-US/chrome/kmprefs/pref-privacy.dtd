@@ -9,6 +9,7 @@
 <!ENTITY cookies.accept.noForeign	"From the originating website only">
 <!ENTITY cookies.accept.p3p		"According to privacy settings">
 <!ENTITY cookies.accept.never		"Never (Block cookies)">
+<!ENTITY cookies.accept.visited		"From visited sites only">
 <!ENTITY cookies.keep			"Keep Cookies">
 <!ENTITY cookies.keep.normally		"Until time of expiration">
 <!ENTITY cookies.keep.session		"Until end of session">

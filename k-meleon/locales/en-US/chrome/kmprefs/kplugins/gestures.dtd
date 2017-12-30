@@ -16,6 +16,13 @@
 <!ENTITY gestures.RL		"Right and Left">
 <!ENTITY gestures.note		"&note; Gesture '&gestures.LR;' can be alternatively performed by pressing the right mouse button while holding the left one down. Gesture '&gestures.RL;' accordingly.">
 
+<!-- Super Drags -->
+<!ENTITY super-drags.label	"Super Drags">
+<!ENTITY super-drags.descr	"Super Drags are drag and drop gestures actions for images, links and texts.">
+<!ENTITY super-drag.image	"Super Drag Image">
+<!ENTITY super-drag.link	"Super Drag Link">
+<!ENTITY super-drag.text	"Super Drag Text">
+
 <!-- Default Actions -->
 <!ENTITY ID_NAV_BACK			"Back">
 <!ENTITY ID_NAV_FORWARD			"Forward">
@@ -30,6 +37,7 @@
 <!ENTITY ID_TAB_PREV			"Previous Tab">
 <!ENTITY ID_TAB_LAST			"Previously Selected Tab">
 <!ENTITY ID_NAV_HOME			"Open Home Page">
+<!ENTITY ID_NAV_SEARCH		"Search for Selected Text">
 <!ENTITY macrosHome			"Perform 'Start with ...' Action">
 <!ENTITY macrosGo_Up			"Go Up One Directory Level">
 <!ENTITY macrosGo_Top			"Go To Top Directory Level">
@@ -58,3 +66,6 @@
 <!ENTITY bookmarksAdd			"Add Page To Bookmarks">
 <!ENTITY favoritesAdd			"Add Page To Favorites">
 <!ENTITY hotlistAdd			"Add Page To Hotlist">
+
+<!-- Super Drags Actions -->
+<!ENTITY viewImage	"View Image">
