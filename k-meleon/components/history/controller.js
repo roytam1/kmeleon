@@ -51,16 +51,16 @@ HistoryController.prototype = {
 	doCommand : function PC_doCommand(aCommand) {
 		switch (aCommand) {
 		case "historyCmd_open":
-			PlacesUIUtils.openNodeIn(this._view.selectedNode, "current", this._view);
+                        KMeleon.Open(this._view.selectedNode.uri, KMeleon.OPEN_NORMAL);
 			break;
 		case "historyCmd_opentab":
-			PlacesUIUtils.openNodeIn(this._view.selectedNode, "tab", this._view);
+                        KMeleon.Open(this._view.selectedNode.uri, KMeleon.OPEN_NEWTAB);
 			break;
 		case "historyCmd_opentabback":
 			KMeleon.Open(this._view.selectedNode.uri, KMeleon.OPEN_BACKGROUNDTAB);
 			break;
 		case "historyCmd_openwindow":
-			PlacesUIUtils.openNodeIn(this._view.selectedNode, "window", this._view);
+                        KMeleon.Open(this._view.selectedNode.uri, KMeleon.OPEN_NEW);
 			break;
 		case "historyCmd_openbackwindow":
 			KMeleon.Open(this._view.selectedNode.uri, KMeleon.OPEN_BACKGROUND);
@@ -114,8 +114,8 @@ HistoryController.prototype = {
 				// to delete a child of a live bookmark folder, since when the folder
 				// refreshes, the child will return.
 				var parent = nodes[i].parent || root;
-				if (PlacesUtils.isReadonlyFolder(parent))
-					return false;
+				//if (PlacesUtils.isReadonlyFolder(parent))
+				//	return false;
 			}
 		}
 		return true;

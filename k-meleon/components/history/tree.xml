@@ -45,7 +45,7 @@
       <property name="view">
         <getter><![CDATA[
           try {
-            return this.treeBoxObject.view.wrappedJSObject;
+            return this.treeBoxObject.view.wrappedJSObject || null;
           }
           catch(e) {
             return null;
@@ -312,9 +312,9 @@
           for (let i = 0; i < rc; ++i) {
             let min = { }, max = { };
             selection.getRangeAt(i, min, max);
-
-            for (let j = min.value; j <= max.value; ++j)
+            for (let j = min.value; j <= max.value; ++j) {
               nodes.push(resultview.nodeForTreeIndex(j));
+            }
           }
           return nodes;
         ]]></getter>
@@ -453,8 +453,6 @@
           //
           // If the sole selection is the bookmarks toolbar folder, we insert
           // into it even if it is not opened
-          var itemId =
-            PlacesUtils.getConcreteItemId(resultView.nodeForTreeIndex(max.value));
           if (selection.count == 1 && resultView.isContainer(max.value) &&
               !this.flatList)
             orientation = Ci.nsITreeView.DROP_ON;
@@ -531,9 +529,11 @@
           if (PlacesControllerDragHelper.disallowInsertion(container))
             return null;
 
+          let tagName = PlacesUtils.nodeIsTagQuery(container) ?
+                          container.title : null;
           return new InsertionPoint(PlacesUtils.getConcreteItemId(container),
                                     index, orientation,
-                                    PlacesUtils.nodeIsTagQuery(container),
+                                    tagName,
                                     dropNearItemId);
         ]]></body>
       </method>
@@ -553,6 +553,9 @@
         <parameter name="aIDs"/>
         <parameter name="aOpenContainers"/>
         <body><![CDATA[
+          // Never open containers in flat lists.
+          if (this.flatList)
+            aOpenContainers = false;
           // By default, we do search and select within containers which were
           // closed (note that containers in which nodes were not found are
           // closed).
@@ -601,8 +604,13 @@
                 nodesURIChecked.indexOf(node.uri) != -1)
               return foundOne;
 
+            // Don't try to open a query or a shurtcut, since it may return
+            // any duplicate data and be infinitely nested.  Though, if it has
+            // been explicitly opened by the caller, search into it.
+            let shouldOpen = aOpenContainers &&
+                             node.type == Ci.nsINavHistoryResultNode.RESULT_TYPE_FOLDER;
             PlacesUtils.asContainer(node);
-            if (!aOpenContainers && !node.containerOpen)
+            if (!node.containerOpen && !shouldOpen)
               return foundOne;
 
             nodesURIChecked.push(node.uri);
@@ -739,11 +747,9 @@
         if (event.target.localName != "treechildren")
           return;
 
-        let row = { }, col = { }, child = { };
-        this.treeBoxObject.getCellAt(event.clientX, event.clientY,
-                                     row, col, child);
-        let node = row.value != -1 ?
-                   this.view.nodeForTreeIndex(row.value) :
+        let cell = this.treeBoxObject.getCellAt(event.clientX, event.clientY);
+        let node = cell.row != -1 ?
+                   this.view.nodeForTreeIndex(cell.row) :
                    this.result.root;
         // cache the dropTarget for the view
         PlacesControllerDragHelper.currentDropTarget = node;
@@ -753,11 +759,11 @@
         let tbo = this.treeBoxObject;
         let rowHeight = tbo.rowHeight;
         let eventY = event.clientY - tbo.treeBody.boxObject.y -
-                     rowHeight * (row.value - tbo.getFirstVisibleRow());
+                     rowHeight * (cell.row - tbo.getFirstVisibleRow());
 
         let orientation = Ci.nsITreeView.DROP_BEFORE;
 
-        if (row.value == -1) {
+        if (cell.row == -1) {
           // If the row is not valid we try to insert inside the resultNode.
           orientation = Ci.nsITreeView.DROP_ON;
         }
@@ -774,7 +780,7 @@
           orientation = Ci.nsITreeView.DROP_ON;
         }
 
-        if (!this.view.canDrop(row.value, orientation, event.dataTransfer))
+        if (!this.view.canDrop(cell.row, orientation, event.dataTransfer))
           return;
 
         event.preventDefault();

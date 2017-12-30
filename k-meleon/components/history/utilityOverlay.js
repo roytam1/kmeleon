@@ -100,7 +100,8 @@ function openUILink(url, event, aIgnoreButton, aIgnoreAlt, aAllowThirdPartyFixup
       allowThirdPartyFixup: aAllowThirdPartyFixup,
       postData: aPostData,
       referrerURI: aReferrerURI,
-      initiatingDoc: event ? event.target.ownerDocument : null
+      referrerPolicy: Components.interfaces.nsIHttpChannel.REFERRER_POLICY_DEFAULT,
+      initiatingDoc: event ? event.target.ownerDocument : null,
     };
   }
 
@@ -229,6 +230,7 @@ function openLinkIn(url, where, params) {
   const Ci = Components.interfaces;
   
   /**   K-Meleon **********************/
+  var w;
   if (where == "tab")
     w = KMeleon.Open(url, aInBackground ? KMeleon.OPEN_BACKGROUNDTAB : KMeleon.OPEN_NEWTAB);
   else if (where == "window")
@@ -240,103 +242,8 @@ function openLinkIn(url, where, params) {
   return;
   /*************************************/
   
-  var w = getTopWin();
-  if ((where == "tab" || where == "tabshifted") &&
-      w && !w.toolbar.visible) {
-    w = getTopWin(true);
-    aRelatedToCurrent = false;
-  }
+  
 
-  if (!w || where == "window") {
-    var sa = Cc["@mozilla.org/supports-array;1"].
-             createInstance(Ci.nsISupportsArray);
-
-    var wuri = Cc["@mozilla.org/supports-string;1"].
-               createInstance(Ci.nsISupportsString);
-    wuri.data = url;
-
-    let charset = null;
-    if (aCharset) {
-      charset = Cc["@mozilla.org/supports-string;1"]
-                  .createInstance(Ci.nsISupportsString);
-      charset.data = "charset=" + aCharset;
-    }
-
-    var allowThirdPartyFixupSupports = Cc["@mozilla.org/supports-PRBool;1"].
-                                       createInstance(Ci.nsISupportsPRBool);
-    allowThirdPartyFixupSupports.data = aAllowThirdPartyFixup;
-
-    sa.AppendElement(wuri);
-    sa.AppendElement(charset);
-    sa.AppendElement(aReferrerURI);
-    sa.AppendElement(aPostData);
-    sa.AppendElement(allowThirdPartyFixupSupports);
-
-    let features = "chrome,dialog=no,all";
-    if (aIsPrivate) {
-      features += ",private";
-    }
-
-    Services.ww.openWindow(w || window, getBrowserURL(), null, features, sa);
-    return;
-  }
-
-  let loadInBackground = where == "current" ? false : aInBackground;
-  if (loadInBackground == null) {
-    loadInBackground = aFromChrome ?
-                         false :
-                         getBoolPref("browser.tabs.loadInBackground");
-  }
-
-  if (where == "current" && w.gBrowser.selectedTab.pinned) {
-    try {
-      let uriObj = Services.io.newURI(url, null, null);
-      if (!uriObj.schemeIs("javascript") &&
-          w.gBrowser.currentURI.host != uriObj.host) {
-        where = "tab";
-        loadInBackground = false;
-      }
-    } catch (err) {
-      where = "tab";
-      loadInBackground = false;
-    }
-  }
-
-  // Raise the target window before loading the URI, since loading it may
-  // result in a new frontmost window (e.g. "javascript:window.open('');").
-  w.focus();
-
-  switch (where) {
-  case "current":
-    let flags = Ci.nsIWebNavigation.LOAD_FLAGS_NONE;
-    if (aAllowThirdPartyFixup)
-      flags |= Ci.nsIWebNavigation.LOAD_FLAGS_ALLOW_THIRD_PARTY_FIXUP;
-    if (aDisallowInheritPrincipal)
-      flags |= Ci.nsIWebNavigation.LOAD_FLAGS_DISALLOW_INHERIT_OWNER;
-    if (aIsUTF8)
-      flags |= Ci.nsIWebNavigation.LOAD_FLAGS_URI_IS_UTF8;
-    w.gBrowser.loadURIWithFlags(url, flags, aReferrerURI, null, aPostData);
-    break;
-  case "tabshifted":
-    loadInBackground = !loadInBackground;
-    // fall through
-  case "tab":
-    let browser = w.gBrowser;
-    browser.loadOneTab(url, {
-                       referrerURI: aReferrerURI,
-                       charset: aCharset,
-                       postData: aPostData,
-                       inBackground: loadInBackground,
-                       allowThirdPartyFixup: aAllowThirdPartyFixup,
-                       relatedToCurrent: aRelatedToCurrent,
-                       isUTF8: aIsUTF8});
-    break;
-  }
-
-  w.gBrowser.selectedBrowser.focus();
-
-  if (!loadInBackground && w.isBlankPageURL(url))
-    w.focusAndSelectUrlBar();
 }
 
 // Used as an onclick handler for UI elements with link-like behavior.
@@ -388,11 +295,10 @@ function gatherTextUnder ( root )
       // Add this text to our collection.
       text += " " + node.data;
     } else if ( node instanceof HTMLImageElement) {
-      // If it has an alt= attribute, use that.
+      // If it has an "alt" attribute, add that.
       var altText = node.getAttribute( "alt" );
       if ( altText && altText != "" ) {
-        text = altText;
-        break;
+        text += " " + altText;
       }
     }
     // Find next node to test.
@@ -412,10 +318,8 @@ function gatherTextUnder ( root )
       }
     }
   }
-  // Strip leading whitespace.
-  text = text.replace( /^\s+/, "" );
-  // Strip trailing whitespace.
-  text = text.replace( /\s+$/, "" );
+  // Strip leading and tailing whitespace.
+  text = text.trim();
   // Compress remaining whitespace.
   text = text.replace( /\s+/g, " " );
   return text;
@@ -437,8 +341,13 @@ function isBidiEnabled() {
   if (getBoolPref("bidi.browser.ui", false))
     return true;
 
-  // if the pref isn't set, check for an RTL locale and force the pref to true
-  // if we find one.
+  // then check intl.uidirection.<locale>
+  var chromeReg = Components.classes["@mozilla.org/chrome/chrome-registry;1"].
+                  getService(Components.interfaces.nsIXULChromeRegistry);
+  if (chromeReg.isLocaleRTL("global"))
+    return true;
+
+  // now see if the system locale is an RTL one.
   var rv = false;
 
   try {
@@ -450,6 +359,7 @@ function isBidiEnabled() {
       case "ar-":
       case "he-":
       case "fa-":
+      case "ug-":
       case "ur-":
       case "syr":
         rv = true;
@@ -465,6 +375,9 @@ function openAboutDialog() {
   while (enumerator.hasMoreElements()) {
     // Only open one about window (Bug 599573)
     let win = enumerator.getNext();
+    if (win.closed) {
+      continue;
+    }
     win.focus();
     return;
   }
@@ -682,10 +595,29 @@ function openPrefsHelp() {
 function trimURL(aURL) {
   // This function must not modify the given URL such that calling
   // nsIURIFixup::createFixupURI with the result will produce a different URI.
-  return aURL /* remove single trailing slash for http/https/ftp URLs */
-             .replace(/^((?:http|https|ftp):\/\/[^/]+)\/$/, "$1")
-              /* remove http:// unless the host starts with "ftp\d*\." or contains "@" */
-             .replace(/^http:\/\/((?!ftp\d*\.)[^\/@]+(?:\/|$))/, "$1");
+
+  // remove single trailing slash for http/https/ftp URLs
+  let url = aURL.replace(/^((?:http|https|ftp):\/\/[^/]+)\/$/, "$1");
+
+  // remove http://
+  if (!url.startsWith("http://")) {
+    return url;
+  }
+  let urlWithoutProtocol = url.substring(7);
+
+  let flags = Services.uriFixup.FIXUP_FLAG_ALLOW_KEYWORD_LOOKUP |
+              Services.uriFixup.FIXUP_FLAG_FIX_SCHEME_TYPOS;
+  let fixedUpURL = Services.uriFixup.createFixupURI(urlWithoutProtocol, flags);
+  let expectedURLSpec;
+  try {
+    expectedURLSpec = makeURI(aURL).spec;
+  } catch (ex) {
+    return url;
+  }
+  if (fixedUpURL.spec == expectedURLSpec) {
+    return urlWithoutProtocol;
+  }
+  return url;
 }
 
 function getShellService()

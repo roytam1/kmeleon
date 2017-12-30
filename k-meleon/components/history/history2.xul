@@ -150,10 +150,5 @@
 		</treecols>
 		<treechildren class="sidebar-placesTreechildren" flex="1" tooltip="bhTooltip"/>
 	</tree>
-	<vbox align="right">
-		<separator height="3"/>
-		<button label="&close.label;" accesskey="&close.accesskey;" oncommand="window.close();"/>
-		<separator height="3"/>
-	</vbox>
 
 </window>
