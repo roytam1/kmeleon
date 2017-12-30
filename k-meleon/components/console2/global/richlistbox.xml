@@ -1,42 +1,8 @@
 <?xml version="1.0"?>
 
-<!-- ***** BEGIN LICENSE BLOCK *****
-   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
-   -
-   - The contents of this file are subject to the Mozilla Public License Version
-   - 1.1 (the "License"); you may not use this file except in compliance with
-   - the License. You may obtain a copy of the License at
-   - http://www.mozilla.org/MPL/
-   -
-   - Software distributed under the License is distributed on an "AS IS" basis,
-   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
-   - for the specific language governing rights and limitations under the
-   - License.
-   -
-   - The Original Code is Richlistbox code.
-   -
-   - The Initial Developer of the Original Code is
-   - IBM Corporation.
-   - Portions created by the Initial Developer are Copyright (C) 2005
-   - IBM Corporation. All Rights Reserved.
-   -
-   - Contributor(s):
-   -   Doron Rosenberg <doronr@us.ibm.com> (Original Author)
-   -   Simon Bünzli <zeniko@gmail.com>
-   -
-   - Alternatively, the contents of this file may be used under the terms of
-   - either the GNU General Public License Version 2 or later (the "GPL"), or
-   - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
-   - in which case the provisions of the GPL or the LGPL are applicable instead
-   - of those above. If you wish to allow use of your version of this file only
-   - under the terms of either the GPL or the LGPL, and not to allow others to
-   - use your version of this file under the terms of the MPL, indicate your
-   - decision by deleting the provisions above and replace them with the notice
-   - and other provisions required by the GPL or the LGPL. If you do not delete
-   - the provisions above, a recipient may use your version of this file under
-   - the terms of any one of the MPL, the GPL or the LGPL.
-   -
-   - ***** END LICENSE BLOCK ***** -->
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this
+   - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
 
 <bindings id="richlistboxBindings"
           xmlns="http://www.mozilla.org/xbl"
@@ -44,13 +10,12 @@
           xmlns:xbl="http://www.mozilla.org/xbl">
 
   <binding id="richlistbox"
-           extends="chrome://console2/content/global/listbox.xml#listbox-base">
+           extends="chrome://global/content/bindings/listbox.xml#listbox-base">
     <resources>
-      <stylesheet src="chrome://console2/skin/richlistbox.css"/>
       <stylesheet src="chrome://global/skin/richlistbox.css"/>
     </resources>
 
-    <content console2themeable="true">
+    <content>
       <children includes="listheader"/>
       <xul:scrollbox allowevents="true" orient="vertical" anonid="main-box"
                      flex="1" style="overflow: auto;" xbl:inherits="dir,pack">
@@ -63,7 +28,7 @@
         document.getAnonymousElementByAttribute(this, "anonid", "main-box");
       </field>
       <field name="scrollBoxObject">
-        this._scrollbox.boxObject.QueryInterface(Components.interfaces.nsIScrollBoxObject);
+        this._scrollbox.boxObject;
       </field>
       <constructor>
         <![CDATA[
@@ -95,7 +60,7 @@
             // remember the current item and all selected items with IDs
             var state = this.currentItem ? this.currentItem.id : "";
             if (this.selType == "multiple" && this.selectedCount) {
-              function getId(aItem) { return aItem.id; }
+              let getId = function getId(aItem) { return aItem.id; }
               state += " " + this.selectedItems.filter(getId).map(getId).join(" ");
             }
             if (state)
@@ -239,23 +204,17 @@
           <![CDATA[
             if (!aElement)
               return;
-            if (!this._geckoGtOrEq("1.9b5")) {
-              this.scrollBoxObject.ensureElementIsVisible(aElement);
+            var targetRect = aElement.getBoundingClientRect();
+            var scrollRect = this._scrollbox.getBoundingClientRect();
+            var offset = targetRect.top - scrollRect.top;
+            if (offset >= 0) {
+              // scrollRect.bottom wouldn't take a horizontal scroll bar into account
+              let scrollRectBottom = scrollRect.top + this._scrollbox.clientHeight;
+              offset = targetRect.bottom - scrollRectBottom;
+              if (offset <= 0)
+                return;
             }
-            else {
-              // Bug 486821 - Misplaced white line under last visible entry of location bar autocomplete.
-              var targetRect = aElement.getBoundingClientRect();
-              var scrollRect = this._scrollbox.getBoundingClientRect();
-              var offset = targetRect.top - scrollRect.top;
-              if (offset >= 0) {
-                // scrollRect.bottom wouldn't take a horizontal scroll bar into account
-                var scrollRectBottom = scrollRect.top + this._scrollbox.clientHeight;
-                offset = targetRect.bottom - scrollRectBottom;
-                if (offset <= 0)
-                  return;
-              }
-              this._scrollbox.scrollTop += offset;
-            }
+            this._scrollbox.scrollTop += offset;
           ]]>
         </body>
       </method>
@@ -475,13 +434,11 @@
             if (!aItem)
               return false;
 
-            var y = {};
-            this.scrollBoxObject.getPosition({}, y);
-            y.value += this.scrollBoxObject.y;
+            var y = this.scrollBoxObject.positionY + this.scrollBoxObject.y;
 
             // Partially visible items are also considered visible
-            return (aItem.boxObject.y + aItem.boxObject.height > y.value) &&
-                   (aItem.boxObject.y < y.value + this.scrollBoxObject.height);
+            return (aItem.boxObject.y + aItem.boxObject.height > y) &&
+                   (aItem.boxObject.y < y + this.scrollBoxObject.height);
           ]]>
         </body>
       </method>
@@ -544,24 +501,6 @@
           }
         ]]>
       </handler>
-      <handler event="contextmenu">
-        <![CDATA[
-          // Bug 387109 - context menu regressions WRT richlistbox
-          var appInfo = Components.classes["@mozilla.org/xre/app-info;1"]
-                                  .getService(Components.interfaces.nsIXULAppInfo);
-          var versionChecker = Components.classes["@mozilla.org/xpcom/version-comparator;1"]
-                                         .getService(Components.interfaces.nsIVersionComparator);
-          if(versionChecker.compare(appInfo.platformVersion, "1.9a8") > 0)
-            return;
-          // if the context menu was opened via the keyboard, display it in the
-          // right location.
-          if (event.button != 2) {
-            var popup = document.getElementById(this.getAttribute("context"));
-            if (popup)
-              popup.showPopup(this.currentItem, -1, -1, "context", "bottomleft", "topleft");
-          }
-        ]]>
-      </handler>
 
       <handler event="MozSwipeGesture">
         <![CDATA[
@@ -580,13 +519,12 @@
   </binding>
 
   <binding id="richlistitem"
-           extends="chrome://console2/content/global/listbox.xml#listitem">
+           extends="chrome://global/content/bindings/listbox.xml#listitem">
     <content>
       <children/>
     </content>
 
     <resources>
-      <stylesheet src="chrome://console2/skin/richlistbox.css"/>
       <stylesheet src="chrome://global/skin/richlistbox.css"/>
     </resources>
 
@@ -618,7 +556,7 @@
             const XULNS =
               "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
             return Array.map(this.getElementsByTagNameNS(XULNS, "label"),
-                             function (label) {label.value})
+                             function (label) label.value)
                         .join(" ");
           ]]>
         </getter>
@@ -643,18 +581,6 @@
         </setter>
       </property>
     </implementation>
-
-    <handlers>
-      <handler event="contextmenu" phase="capturing">
-        <![CDATA[
-          if(this._geckoGtOrEq("1.9b5"))
-            return;
-          // handle someone right-clicking on an item other than the current one
-          if (event.target == this && this.control)
-            this.control.currentItem = this;
-        ]]>
-      </handler>
-    </handlers>
   </binding>
 </bindings>
 
