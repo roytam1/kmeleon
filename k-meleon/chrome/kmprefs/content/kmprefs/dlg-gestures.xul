@@ -1,23 +1,25 @@
 <?xml version="1.0"?>
-<?xml-stylesheet type="text/css" href="chrome://communicator/skin/"?>
+<?xml-stylesheet type="text/css" href="chrome://global/skin/"?>
 <!DOCTYPE dialog SYSTEM "chrome://kmprefs/locale/pref-kgestures.dtd">
 <dialog xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" 
-id="findDialog" title="&gestures.dlg.titleEdit;" addtitle="&gestures.dlg.titleAdd;" onload="init()" 
-style="&gestures.dlg.style;" contextmenu="0" 
-buttons="accept,cancel" 
-buttonlabelaccept="&dialog.accept.label;" 
-ondialogaccept="accept()" 
-buttonlabelcancel="&dialog.cancel.label;" 
-persist="screenX screenY width height">
-
-<stringbundle id="pref_bundle" src="chrome://kmprefs/locale/pref.properties"/>
-
-<script type="application/x-javascript" src="chrome://kmprefs/content/pref.js"/>
-<script type="application/x-javascript">
+		id="findDialog" 
+		title="&gestures.dlg.titleEdit;" 
+		addtitle="&gestures.dlg.titleAdd;" 
+		onload="window.sizeToContent();init()" 
+		style="&gestures.dlg.style;" 
+		contextmenu="0" 
+		buttons="accept,cancel" 
+		buttonlabelaccept="&dialog.accept.label;" 
+		ondialogaccept="accept()" 
+		buttonlabelcancel="&dialog.cancel.label;" 
+		persist="screenX screenY width height">
+	<stringbundle id="pref_bundle" src="chrome://kmprefs/locale/pref.properties"/>
+	<script type="application/x-javascript" src="chrome://kmprefs/content/pref.js"/>
+	<script type="application/x-javascript">
 <![CDATA[
 var Database = window.arguments[0];
 function init() {
-	if(Database._add)
+	if (Database._add)
 		document.title = document.documentElement.getAttribute("addtitle");
 	else {
 		document.getElementById("caption").value = Database._cap;
@@ -26,29 +28,28 @@ function init() {
 }
 function accept() {
 	var cap = document.getElementById("caption").value,
-	    com = document.getElementById("command").value;
-	if((cap) && (com)) Database.set(cap,com);
+	com = document.getElementById("command").value;
+	if ((cap) && (com))
+		Database.set(cap, com);
 }
 ]]>
-</script>
-
-<vbox flex="1">
-  <grid>
-    <columns>
-      <column style="padding-right:1em"/>
-      <column flex="1"/>
-    </columns>
-    <rows>
-      <row align="center">
-        <label value="&gestures.dlg.caption;"/>
-        <textbox id="caption" flex="1" class="uri-element"/>
-      </row>
-      <row align="center">
-        <label value="&gestures.dlg.command;"/>
-        <textbox id="command" flex="1" class="uri-element"/>
-      </row>
-    </rows>
-  </grid>
-</vbox>
-
+	</script>
+	<vbox flex="1">
+		<grid>
+			<columns>
+				<column style="padding-right:1em"/>
+				<column flex="1"/>
+			</columns>
+			<rows>
+				<row align="center">
+					<label value="&gestures.dlg.caption;"/>
+					<textbox id="caption" flex="1" class="uri-element"/>
+				</row>
+				<row align="center">
+					<label value="&gestures.dlg.command;"/>
+					<textbox id="command" flex="1" class="uri-element"/>
+				</row>
+			</rows>
+		</grid>
+	</vbox>
 </dialog>

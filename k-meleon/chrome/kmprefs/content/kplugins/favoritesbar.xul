@@ -1,227 +1,222 @@
 <?xml version="1.0"?>
 <!DOCTYPE overlay SYSTEM "chrome://kmprefs/locale/kplugins/favoritesbar.dtd">
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
-
-<script type="application/x-javascript">
+	<script type="application/x-javascript">
 <![CDATA[
 var kFavSubfolder = {
-
-_base: null,
-_root: null,
-_path: null,
-
-init: function(folderID) {
-	this._base = "kmeleon.plugins.favorites.";
-	this._root = this._base + "directory";
-	this._path = getFolder(this._root);
-
-	if(!this._path) {
-		this._path = getKey(HKCU,"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\User Shell Folders","Favorites");
-		if(this._path==null) {
-			this._path = getKey(HKCU,"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders","Favorites");
-			if(this._path==null)
+	_base : null,
+	_root : null,
+	_path : null,
+	init : function (folderID) {
+		this._base = "kmeleon.plugins.favorites.";
+		this._root = this._base + "directory";
+		this._path = getFolder(this._root);
+		if (!this._path) {
+			this._path = getKey(HKCU, "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\User Shell Folders", "Favorites");
+			if (this._path == null) {
+				this._path = getKey(HKCU, "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders", "Favorites");
+				if (this._path == null)
+					this._path = false;
+			} else
+				this._path = expandEnvironmentStrings(this._path);
+		}
+		if (this._path) {
+			var dir = getFile(this._path, "");
+			if (!dir.exists() || !dir.isDirectory())
 				this._path = false;
-		} else
-			this._path = expandEnvironmentStrings(this._path);
-	}
-	if(this._path) {
-		var dir = getFile(this._path,"");
-		if(!dir.exists() || !dir.isDirectory())
-			this._path = false;
-	}
-
-	var sub = document.getElementById(this._base+folderID);
-
-	initTextbox(this._base+folderID,false);
-	sub.nextSibling.disabled = (this._path) ? !kPlugin.load("favorites") : true;
-},
-select: function(prefID) {
-	var dir = getFile(this._path,"");
-	var fp  = Components.classes["@mozilla.org/filepicker;1"]
-			    .createInstance(nsIFilePicker);
-
-	fp.init(window,document.getElementById("pref_bundle").getString("select_"+prefID),nsIFilePicker.modeGetFolder);
-	fp.appendFilters(nsIFilePicker.filterAll);
-	fp.displayDirectory = dir;
-
-	dir = dir.path;
-
-	var ret = fp.show();
-	if (ret == nsIFilePicker.returnOK) {
-		var tbf = fp.file.path;
-		if(tbf.indexOf(dir) == 0) {
-			tbf = tbf.replace(dir,"");
-			if(tbf) tbf = tbf.replace(/\\/g,"/").substring(1,tbf.length);
-			document.getElementById(prefID).value = tbf;
-			setCharPref(prefID,tbf);
+		}
+		var sub = document.getElementById(this._base + folderID);
+		initTextbox(this._base + folderID, false);
+		sub.nextSibling.disabled = (this._path) ? !kPlugin.load("favorites") : true;
+	},
+	select : function (prefID) {
+		var dir = getFile(this._path, "");
+		var fp = Components.classes["@mozilla.org/filepicker;1"]
+			.createInstance(nsIFilePicker);
+		fp.init(window, document.getElementById("pref_bundle").getString("select_" + prefID), nsIFilePicker.modeGetFolder);
+		fp.appendFilters(nsIFilePicker.filterAll);
+		fp.displayDirectory = dir;
+		dir = dir.path;
+		var ret = fp.show();
+		if (ret == nsIFilePicker.returnOK) {
+			var tbf = fp.file.path;
+			if (tbf.indexOf(dir) == 0) {
+				tbf = tbf.replace(dir, "");
+				if (tbf)
+					tbf = tbf.replace(/\\/g, "/").substring(1, tbf.length);
+				document.getElementById(prefID).value = tbf;
+				setCharPref(prefID, tbf);
+			}
 		}
 	}
-}
-
 };
 var kFavoritesBar = {
-
-_base: null,
-_pref: null,
-_ctrl: null,
-_ctrL: null,
-
-_bMW : null,
-
-init : function() {
-	if(kPlugin.absent("favorites")) {
-		var node = document.getElementById("kFavoritesTBar");
-		node.parentNode.removeChild(node);
-		node = document.getElementById("kFavoritesTBarTab");
-		node.parentNode.removeChild(node);
-	} else {
-		this._base = "kmeleon.plugins.favorites.";
-		this._pref = new Array(	"chevron",
+	_base : null,
+	_pref : null,
+	_ctrl : null,
+	_ctrL : null,
+	_bMW : null,
+	init : function () {
+		if (kPlugin.absent("favorites")) {
+			var node = document.getElementById("kFavoritesTBar");
+			node.parentNode.removeChild(node);
+			node = document.getElementById("kFavoritesTBarTab");
+			node.parentNode.removeChild(node);
+		} else {
+			this._base = "kmeleon.plugins.favorites.";
+			this._pref = new Array("chevron",
 					"buttonIcons",
 					"rebar");
-		this._ctrl = new Array(	"buttonMaxWidth",
+			this._ctrl = new Array("buttonMaxWidth",
 					"title",
 					"toolbarFolder");
-		this._ctrL = new Array(	"characters",
+			this._ctrL = new Array("characters",
 					"pixels");
-		this._bMW  = this._base + "buttonMaxWidth";
-		this._initTitle();
-		this._setControls();
-		for(var j=0;j<this._pref.length;j++) initCheckbox(this._base+this._pref[j]);
-		kFavSubfolder.init("toolbarFolder");
-	}
-},
-setWidth: function(elemID,prefVal) {
-	var val = parseInt(prefVal);
-
-	if(prefVal)
-		if(isNaN(val) || val<0)
-			alert(document.getElementById("pref_bundle").getString("positive_integer_expected"));
-		else	switch(elemID) {
-				case "pixels"    : pref.setIntPref(this._bMW,val); break;
-				case "characters": pref.setIntPref(this._bMW,-++val); break;
-			}
-	else restoreDefault(this._bMW);
-},
-toggleWidth: function() {
-	var grp = document.getElementById(this._bMW);
-	var val = document.getElementById(this._bMW).value;
-
-	document.getElementById("pixels"    ).disabled = (grp.selectedIndex == 1) ? false : true;
-	document.getElementById("characters").disabled = (grp.selectedIndex == 2) ? false : true;
-	if(grp.selectedIndex == 0) pref.setIntPref(this._bMW,0);
-},
-_initTitle: function() {
-	initTextbox(this._base+"title",document.getElementById("pref_bundle").getString("toolbar_title_none"));
-},
-_initWidth: function() {
-	var grp = document.getElementById(this._bMW), val;
-
-	try {
-		val = pref.getIntPref(this._bMW);
-	} catch(e) {
-		document.getElementById(this._bMW        ).disabled = true;
-		document.getElementById("pixels"         ).disabled = true;
-		document.getElementById("characters"     ).disabled = true;
-		document.getElementById("kFavoritesTBar4").disabled = true;
-	}
-
-	if(isNaN(val)) {
-		grp.selectedIndex =-1;
-	} else
-		if(val == 0) {
-			grp.selectedIndex = 0;
+			this._bMW = this._base + "buttonMaxWidth";
+			this._initTitle();
+			this._setControls();
+			for (var j = 0; j < this._pref.length; j++)
+				initCheckbox(this._base + this._pref[j]);
+			kFavSubfolder.init("toolbarFolder");
+		}
+	},
+	setWidth : function (elemID, prefVal) {
+		var val = parseInt(prefVal);
+		
+		if (prefVal)
+			if (isNaN(val) || val < 0)
+				alert(document.getElementById("pref_bundle").getString("positive_integer_expected"));
+			else
+				switch (elemID) {
+				case "pixels":
+					pref.setIntPref(this._bMW, val);
+					break;
+				case "characters":
+					pref.setIntPref(this._bMW,  - ++val);
+					break;
+				}
+		else
+			restoreDefault(this._bMW);
+	},
+	toggleWidth : function () {
+		var grp = document.getElementById(this._bMW);
+		var val = document.getElementById(this._bMW).value;
+		
+		document.getElementById("pixels").disabled = (grp.selectedIndex == 1) ? false : true;
+		document.getElementById("characters").disabled = (grp.selectedIndex == 2) ? false : true;
+		if (grp.selectedIndex == 0)
+			pref.setIntPref(this._bMW, 0);
+	},
+	_initTitle : function () {
+		initTextbox(this._base + "title", document.getElementById("pref_bundle").getString("toolbar_title_none"));
+	},
+	_initWidth : function () {
+		var grp = document.getElementById(this._bMW),
+		val;
+		try {
+			val = pref.getIntPref(this._bMW);
+		} catch (e) {
+			document.getElementById(this._bMW).disabled = true;
+			document.getElementById("pixels").disabled = true;
+			document.getElementById("characters").disabled = true;
+			document.getElementById("kFavoritesTBar4").disabled = true;
+		}
+		if (isNaN(val)) {
+			grp.selectedIndex = -1;
 		} else
-			if(val > 0) {
-				grp.selectedIndex = 1;
-				document.getElementById("pixels").value = val.toString(10);
-			} else {
-				grp.selectedIndex = 2;
-				document.getElementById("characters").value = (-++val).toString(10);
-			}
-	document.getElementById("pixels"    ).disabled = (val > 0) ? false : true;
-	document.getElementById("characters").disabled = (val < 0) ? false : true;
-},
-_setControls: function() {
-	var dis = !kPlugin.load("favorites");
-	if( dis) this._initWidth();
-	for(var j=0;j<this._pref.length;j++)
-		document.getElementById(this._base+this._pref[j]).disabled = dis;
-	for(var j=0;j<this._ctrl.length;j++)
-		document.getElementById(this._base+this._ctrl[j]).disabled = dis;
-	for(var j=0;j<this._ctrL.length;j++) {
-		document.getElementById(this._ctrL[j]).disabled = dis;
-		document.getElementById(this._ctrL[j]).nextSibling.disabled = dis;
+			if (val == 0) {
+				grp.selectedIndex = 0;
+			} else
+				if (val > 0) {
+					grp.selectedIndex = 1;
+					document.getElementById("pixels").value = val.toString(10);
+				} else {
+					grp.selectedIndex = 2;
+					document.getElementById("characters").value = ( - ++val).toString(10);
+				}
+		document.getElementById("pixels").disabled = (val > 0) ? false : true;
+		document.getElementById("characters").disabled = (val < 0) ? false : true;
+	},
+	_setControls : function () {
+		var dis = !kPlugin.load("favorites");
+		if (dis)
+			this._initWidth();
+		for (var j = 0; j < this._pref.length; j++)
+			document.getElementById(this._base + this._pref[j]).disabled = dis;
+		for (var j = 0; j < this._ctrl.length; j++)
+			document.getElementById(this._base + this._ctrl[j]).disabled = dis;
+		for (var j = 0; j < this._ctrL.length; j++) {
+			document.getElementById(this._ctrL[j]).disabled = dis;
+			document.getElementById(this._ctrL[j]).nextSibling.disabled = dis;
+		}
+		if (!dis)
+			this._initWidth();
+		for (var j = 0; j < 5; j++)
+			document.getElementById("kFavoritesTBar" + [j]).disabled = dis;
+		try {
+			document.getElementById("kFavoritesTBarTab").setAttribute("disabled", dis);
+		} catch (e) {}
 	}
-	if(!dis) this._initWidth();
-	for(var j=0;j<5;j++)
-		document.getElementById("kFavoritesTBar"+[j]).disabled = dis;
-	try {
-		document.getElementById("kFavoritesTBarTab").setAttribute("disabled",dis);
-	} catch(e) {}
-}
-
 };
 //addEventListener("load",kFavoritesBar.init,true);
 ]]>
-</script>
-
-<tabpanel id="kFavoritesTBar" flex="1" orient="vertical" style="overflow:auto">
-  <separator class="thin"/>
-  <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.plugins.favorites.rebar" label="&favoritesbar.enable;"/>
-  <separator class="thick"/>
-  <grid>
-    <columns>
-      <column/>
-      <column flex="1"/>
-      <column/>
-      <column/>
-    </columns>
-    <rows>
-      <row align="center">
-        <label value="&toolbar.folder;"/>
-        <textbox id="kmeleon.plugins.favorites.toolbarFolder" flex="1" class="uri-element" oninput="setCharPref(this.id,this.value)"/>
-        <button id="kFavoritesTBar0" label="&browse;" oncommand="kFavSubfolder.select(this.previousSibling.id)"/>
-        <button id="kFavoritesTBar1" label="&restoreDefault;" oncommand="restoreDefault(this.previousSibling.previousSibling.id);kFavSubfolder.init('toolbarFolder')"/>
-      </row>
-      <row align="center">
-        <label value="&toolbar.title;"/>
-        <textbox id="kmeleon.plugins.favorites.title" flex="1" class="uri-element" oninput="setCharPref(this.id,this.value)"/>
-        <button id="kFavoritesTBar2" label="&clear;" oncommand="pref.setCharPref(this.previousSibling.id,'');kFavoritesBar._initTitle()"/>
-        <button id="kFavoritesTBar3" label="&restoreDefault;" oncommand="restoreDefault(this.previousSibling.previousSibling.id);kFavoritesBar._initTitle()"/>
-      </row>
-    </rows>
-  </grid>
-  <separator class="thick"/>
-  <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.plugins.favorites.chevron" label="&favoritesbar.chevron;"/>
-  <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.plugins.favorites.buttonIcons" label="&toolbar.buttonIcons;"/>
-  <separator class="thick"/>
-  <groupbox>
-    <caption><label>&toolbar.buttonWidth;</label></caption>
-    <separator class="thin"/>
-    <radiogroup id="kmeleon.plugins.favorites.buttonMaxWidth">
-      <radio value="0" oncommand="kFavoritesBar.toggleWidth()" label="&favoritesbar.fixedAuto;"/>
-      <hbox align="center">
-        <radio value="1" oncommand="kFavoritesBar.toggleWidth();this.nextSibling.focus()" label="&favoritesbar.fixedPixelsBefore;"/>
-        <textbox id="pixels" size="4" class="uri-element" oninput="setWidth(this.id,this.value)"/>
-        <label value="&favoritesbar.fixedPixelsAfter;"/>
-      </hbox>
-      <hbox align="center">
-        <radio value="2" oncommand="kFavoritesBar.toggleWidth();this.nextSibling.focus()" label="&favoritesbar.variableBefore;"/>
-        <textbox id="characters" size="4" class="uri-element" oninput="setWidth(this.id,this.value)"/>
-        <label value="&favoritesbar.variableAfter;"/>
-      </hbox>
-    </radiogroup>
-    <separator class="thin"/>
-    <hbox>
-      <button id="kFavoritesTBar4" label="&restoreDefault;" oncommand="restoreDefault('kmeleon.plugins.favorites.buttonMaxWidth');kFavoritesBar._initWidth()"/>
-      <hbox flex="1"/>
-    </hbox>
-  </groupbox>
-  <vbox flex="1"/>
-  <description>&restartNote1;</description>
-</tabpanel>
-
-<tab id="kFavoritesTBarTab" label="&favoritesbar.label;"/>
-
+	</script>
+	<tabpanel id="kFavoritesTBar" flex="1" orient="vertical" style="overflow:auto">
+		<separator class="thin"/>
+		<checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.plugins.favorites.rebar" label="&favoritesbar.enable;"/>
+		<separator class="thick"/>
+		<grid>
+			<columns>
+				<column/>
+				<column flex="1"/>
+				<column/>
+				<column/>
+			</columns>
+			<rows>
+				<row align="center">
+					<label value="&toolbar.folder;"/>
+					<textbox id="kmeleon.plugins.favorites.toolbarFolder" flex="1" class="uri-element" oninput="setCharPref(this.id,this.value)"/>
+					<button id="kFavoritesTBar0" label="&browse;" oncommand="kFavSubfolder.select(this.previousSibling.id)"/>
+					<button id="kFavoritesTBar1" label="&restoreDefault;" oncommand="restoreDefault(this.previousSibling.previousSibling.id);kFavSubfolder.init('toolbarFolder')"/>
+				</row>
+				<row align="center">
+					<label value="&toolbar.title;"/>
+					<textbox id="kmeleon.plugins.favorites.title" flex="1" class="uri-element" oninput="setCharPref(this.id,this.value)"/>
+					<button id="kFavoritesTBar2" label="&clear;" oncommand="pref.setCharPref(this.previousSibling.id,'');kFavoritesBar._initTitle()"/>
+					<button id="kFavoritesTBar3" label="&restoreDefault;" oncommand="restoreDefault(this.previousSibling.previousSibling.id);kFavoritesBar._initTitle()"/>
+				</row>
+			</rows>
+		</grid>
+		<separator class="thick"/>
+		<checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.plugins.favorites.chevron" label="&favoritesbar.chevron;"/>
+		<checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.plugins.favorites.buttonIcons" label="&toolbar.buttonIcons;"/>
+		<separator class="thick"/>
+		<groupbox>
+			<caption>
+				<label>&toolbar.buttonWidth;</label>
+			</caption>
+			<separator class="thin"/>
+			<radiogroup id="kmeleon.plugins.favorites.buttonMaxWidth">
+				<radio value="0" oncommand="kFavoritesBar.toggleWidth()" label="&favoritesbar.fixedAuto;"/>
+				<hbox align="center">
+					<radio value="1" oncommand="kFavoritesBar.toggleWidth();this.nextSibling.focus()" label="&favoritesbar.fixedPixelsBefore;"/>
+					<textbox id="pixels" size="4" class="uri-element" oninput="setWidth(this.id,this.value)"/>
+					<label value="&favoritesbar.fixedPixelsAfter;"/>
+				</hbox>
+				<hbox align="center">
+					<radio value="2" oncommand="kFavoritesBar.toggleWidth();this.nextSibling.focus()" label="&favoritesbar.variableBefore;"/>
+					<textbox id="characters" size="4" class="uri-element" oninput="setWidth(this.id,this.value)"/>
+					<label value="&favoritesbar.variableAfter;"/>
+				</hbox>
+			</radiogroup>
+			<separator class="thin"/>
+			<hbox>
+				<button id="kFavoritesTBar4" label="&restoreDefault;" oncommand="restoreDefault('kmeleon.plugins.favorites.buttonMaxWidth');kFavoritesBar._initWidth()"/>
+				<hbox flex="1"/>
+			</hbox>
+		</groupbox>
+		<vbox flex="1"/>
+		<description>&restartNote1;</description>
+	</tabpanel>
+	<tab id="kFavoritesTBarTab" label="&favoritesbar.label;"/>
 </overlay>

@@ -3,16 +3,11 @@
 <?xml-stylesheet type="text/css" href="chrome://kmprefs/skin/"?>
 <?xul-overlay href="chrome://kmprefs/content/kplugins/fullscreen.xul"?>
 <!DOCTYPE page SYSTEM "chrome://kmprefs/locale/pref-kfullscreen.dtd">
-<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" 
-id="prefKFullscreen" onload="kFullscreen.init()">
-
-<stringbundle id="pref_bundle" src="chrome://kmprefs/locale/pref.properties"/>
-
-<script type="application/x-javascript" src="chrome://kmprefs/content/pref.js"/>
-
-<vbox flex="1" style="overflow:auto">
-  <dialogheader title="&fullscreen.header;"/>
-  <vbox id="kFullscreenDisplay"/>
-</vbox>
-
+<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" id="prefKFullscreen" onload="kFullscreen.init()">
+	<stringbundle id="pref_bundle" src="chrome://kmprefs/locale/pref.properties"/>
+	<script type="application/x-javascript" src="chrome://kmprefs/content/pref.js"/>
+	<vbox flex="1" style="overflow:auto">
+		<dialogheader title="&fullscreen.header;"/>
+		<vbox id="kFullscreenDisplay"/>
+	</vbox>
 </page>

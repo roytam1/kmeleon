@@ -6,6 +6,10 @@ const kShowPluginsInList = "browser.download.show_plugins_in_list";
 const kHideTypesWithoutExtensions = "browser.download.hide_plugins_without_extensions";
 const kRootTypePrefix = "urn:mimetype:";
 
+const Cu = Components.utils;
+Cu.import('resource://gre/modules/XPCOMUtils.jsm');
+Cu.import('resource://gre/modules/Services.jsm');
+
 ///////////////////////////////////////////////////////////////////////////////
 // MIME Types Datasource RDF Utils
 function NC_URI(aProperty)
@@ -231,8 +235,12 @@ var gDownloadActionsWindow = {
   
   _getLiteralValue: function (aResource, aProperty)
   {
-    var property = this._rdf.GetResource(NC_URI(aProperty));
-    var value = this._mimeDS.GetTarget(aResource, property, true);
+    var value;
+    try {
+      var property = this._rdf.GetResource(NC_URI(aProperty));      
+      value = this._mimeDS.GetTarget(aResource, property, true);
+    } catch (e) {      
+    }
     if (value)
       return value.QueryInterface(Components.interfaces.nsIRDFLiteral).Value;
     return "";

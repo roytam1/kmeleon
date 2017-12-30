@@ -2,509 +2,587 @@
 <?xml-stylesheet type="text/css" href="chrome://global/skin/"?>
 <?xml-stylesheet type="text/css" href="chrome://kmprefs/skin/"?>
 <?xul-overlay href="chrome://kmprefs/content/kmprefs/ovrl-javascript.xul"?>
+<?xul-overlay href="chrome://kmprefs/content/kmprefs/ovrl-languages.xul"?>
 <!DOCTYPE page SYSTEM "chrome://kmprefs/locale/pref-display.dtd">
-<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" 
-id="prefDisplay" onload="init()">
-
-<stringbundle id="pref_bundle" src="chrome://kmprefs/locale/pref.properties"/>
-<stringbundle id="font_bundle" src="chrome://kmprefs/locale/pref-display.properties"/>
-
-<script type="application/x-javascript" src="chrome://kmprefs/content/pref.js"/>
-<script type="application/x-javascript" src="chrome://kmprefs/content/kplugins/jsbridge.js"/>
-<script type="application/x-javascript">
+<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" id="prefDisplay" onload="init()">
+	<stringbundle id="pref_bundle" src="chrome://kmprefs/locale/pref.properties"/>
+	<stringbundle id="font_bundle" src="chrome://kmprefs/locale/pref-display.properties"/>
+	<script type="application/x-javascript" src="chrome://kmprefs/content/pref.js"/>
+	<script type="application/x-javascript" src="chrome://kmprefs/content/kplugins/jsbridge.js"/>
+	<!-- <script type="application/x-javascript" src="chrome://kmprefs/content/kmprefs/ovrl-languages.js"/> -->
+	<stringbundleset id="lang_stringbundleset">
+		<stringbundle id="acceptedBundle"
+              src="resource://gre/res/language.properties"/>
+		<stringbundle id="languagesBundle"
+              src="chrome://global/locale/languageNames.properties"/>
+		<stringbundle id="regionsBundle"
+              src="chrome://global/locale/regionNames.properties"/>
+		<stringbundle id="prefLangBundle"
+              src="chrome://kmprefs/locale/kmprefs/ovrl-languages.properties"/>
+		<script type="application/x-javascript" src="chrome://kmprefs/content/kmprefs/ovrl-languages.js"/>
+	</stringbundleset>
+	<script type="application/x-javascript">
 <![CDATA[
 function init() {
-	if(JSB.load) {
+	if (JSB.load) {
 		document.getElementById("imagePerm").removeAttribute("hidden");
 	}
-	for(var j=0,b=document.getElementsByTagName("checkbox");j<b.length;j++)
-		if(b[j].getAttribute("id") == "CSS")
-			b[j].checked = testMultiline(getFileContents(UserStyle),Placeholder._RegExp);
+	for (var j = 0, b = document.getElementsByTagName("checkbox"); j < b.length; j++)
+		if (b[j].getAttribute("id") == "CSS")
+			b[j].checked = testMultiline(getFileContents(UserStyle), Placeholder._RegExp);
 		else
-		if(b[j].getAttribute("id") == "Marquee")
-			b[j].checked = testMultiline(getFileContents(UserStyle),Marquee._RegExp);
-		else
-		if(b[j].getAttribute("id") == "browser.display.use_document_fonts")
-			continue;
-		else
-			initCheckbox(b[j].getAttribute("id"));
-	for(var j=0,r=document.getElementsByTagName("radiogroup");j<r.length;j++)
+			if (b[j].getAttribute("id") == "Marquee")
+				b[j].checked = testMultiline(getFileContents(UserStyle), Marquee._RegExp);
+			else
+				if (b[j].getAttribute("id") == "browser.display.use_document_fonts")
+					continue;
+				else
+					initCheckbox(b[j].getAttribute("id"));
+	for (var j = 0, r = document.getElementsByTagName("radiogroup"); j < r.length; j++)
 		initRadiogroup(r[j].getAttribute("id"));
 	Source.init();
-//	setInterval("initCheckbox('browser.frames.enabled');initRadiogroup('image.animation_mode');initRadiogroup('permissions.default.image')",100);
+	//   setInterval("initCheckbox('browser.frames.enabled');initRadiogroup('image.animation_mode');initRadiogroup('permissions.default.image')",100);
+	Zoom.init();
 }
-
 var Marquee = {
-
-_Import: "marquee { -moz-binding: none; }",
-_RegExp: "marquee[\\s]*\\{[\\s]*-moz-binding:[\\s]*none[\\s]*;[\\s]*\\}",
-
-toggle: function(elem) {
-	if(elem.checked)
-		addToUserStyle(this._Import);
-	else
-		removeFromFile(UserStyle,this._RegExp);
-}
-
+	_Import : "marquee { -moz-binding: none; }",
+	_RegExp : "marquee[\\s]*\\{[\\s]*-moz-binding:[\\s]*none[\\s]*;[\\s]*\\}",
+	toggle : function (elem) {
+		if (elem.checked)
+			addToUserStyle(this._Import);
+		else
+			removeFromFile(UserStyle, this._RegExp);
+	}
 };
-
 var Placeholder = {
-
-_Import: "img { -moz-force-broken-image-icon: 1; }",
-_RegExp: "img[\\s]*\\{[\\s]*-moz-force-broken-image-icon:[\\s]*1[\\s]*;[\\s]*\\}",
-_Elmnts: [	"browser.display.show_image_placeholders",
+	_Import : "img { -moz-force-broken-image-icon: 1; }",
+	_RegExp : "img[\\s]*\\{[\\s]*-moz-force-broken-image-icon:[\\s]*1[\\s]*;[\\s]*\\}",
+	_Elmnts : ["browser.display.show_image_placeholders",
 		"browser.display.force_inline_alttext",
 		"CSS"],
-
-toggle: function(elem) {
-	switch(elem.id) {
-		case this._Elmnts[0] :	toggleCheckbox(this._Elmnts[0]); if(document.getElementById(this._Elmnts[1]).checked) toggleCheckbox(this._Elmnts[1]); break;
-		case this._Elmnts[1] :	toggleCheckbox(this._Elmnts[1]); if(document.getElementById(this._Elmnts[0]).checked) toggleCheckbox(this._Elmnts[0]);
-					removeFromFile(UserStyle,this._RegExp); break;
-		case this._Elmnts[2] :	if(document.getElementById(this._Elmnts[2]).checked) {
-						if(document.getElementById(this._Elmnts[1]).checked) toggleCheckbox(this._Elmnts[1]);
-						addToUserStyle(this._Import);
-					} else
-						removeFromFile(UserStyle,this._RegExp);
-					break;
+	toggle : function (elem) {
+		switch (elem.id) {
+		case this._Elmnts[0]:
+			toggleCheckbox(this._Elmnts[0]);
+			if (document.getElementById(this._Elmnts[1]).checked)
+				toggleCheckbox(this._Elmnts[1]);
+			break;
+		case this._Elmnts[1]:
+			toggleCheckbox(this._Elmnts[1]);
+			if (document.getElementById(this._Elmnts[0]).checked)
+				toggleCheckbox(this._Elmnts[0]);
+			removeFromFile(UserStyle, this._RegExp);
+			break;
+		case this._Elmnts[2]:
+			if (document.getElementById(this._Elmnts[2]).checked) {
+				if (document.getElementById(this._Elmnts[1]).checked)
+					toggleCheckbox(this._Elmnts[1]);
+				addToUserStyle(this._Import);
+			} else
+				removeFromFile(UserStyle, this._RegExp);
+			break;
+		}
 	}
-}
-
 };
-
 var Source = {
-
-pref: null,
-init: function() {
-	this.pref = new Array(	"kmeleon.general.sourceEnabled",
+	pref : null,
+	init : function () {
+		this.pref = new Array("kmeleon.general.sourceEnabled",
 				"kmeleon.general.sourceCommand");
-	initCheckbox(this.pref[0]);
-	initTextbox(this.pref[1],document.getElementById("pref_bundle").getString("pref_not_set"));
-	var elem = document.getElementById(this.pref[1]);
-	elem.disabled = !pref.getBoolPref(this.pref[0]);
-	elem.previousSibling.disabled = elem.disabled;
-	elem.nextSibling.disabled = elem.disabled;
-},
-selectFile: function() {
-	var bnd = document.getElementById("pref_bundle");
-	var dir = getFile(getFolder("ProgF"),"");
-	var fp  = Components.classes["@mozilla.org/filepicker;1"]
-			    .createInstance(nsIFilePicker);
-
-	fp.init(window,bnd.getString("select_"+this.pref[1]),nsIFilePicker.modeOpen);
-	fp.appendFilters(nsIFilePicker.filterApps);
-	fp.displayDirectory = dir;
-
-	var ret = fp.show();
-	if (ret == nsIFilePicker.returnOK) {
-		setCharPref(this.pref[1],fp.file.path);
-		initTextbox(this.pref[1],"");
+		initCheckbox(this.pref[0]);
+		initTextbox(this.pref[1], document.getElementById("pref_bundle").getString("pref_not_set"));
+		var elem = document.getElementById(this.pref[1]);
+		elem.disabled = !pref.getBoolPref(this.pref[0]);
+		elem.previousSibling.disabled = elem.disabled;
+		elem.nextSibling.disabled = elem.disabled;
+	},
+	selectFile : function () {
+		var bnd = document.getElementById("pref_bundle");
+		var dir = getFile(getFolder("ProgF"), "");
+		var fp = Components.classes["@mozilla.org/filepicker;1"]
+			.createInstance(nsIFilePicker);
+		fp.init(window, bnd.getString("select_" + this.pref[1]), nsIFilePicker.modeOpen);
+		fp.appendFilters(nsIFilePicker.filterApps);
+		fp.displayDirectory = dir;
+		var ret = fp.show();
+		if (ret == nsIFilePicker.returnOK) {
+			setCharPref(this.pref[1], fp.file.path);
+			initTextbox(this.pref[1], "");
+		}
 	}
-}
-
 };
-
 var doneFonts = false;
 function initFonts() {
-	if(!doneFonts) {
+	if (!doneFonts) {
 		doneFonts = true;
-
 		var prefID = "browser.display.use_document_fonts";
-		document.getElementById(prefID).checked = (pref.getIntPref(prefID)>0);
-
+		document.getElementById(prefID).checked = (pref.getIntPref(prefID) > 0);
 		Fonts.init();
 	}
 }
-
 var FontEnumerator = Components.classes["@mozilla.org/gfx/fontenumerator;1"]
-			       .createInstance()
-			       .QueryInterface(Components.interfaces.nsIFontEnumerator);
-
+	.createInstance()
+	.QueryInterface(Components.interfaces.nsIFontEnumerator);
 var Fonts = {
-
-allFnts: null,
-langGrp: null,
-fontTyp: [ "serif", "sans-serif", "cursive", "fantasy", "monospace" ],
-
-pref: "font.language.group",
-init: function() {
-//	this.langGrp = getPrefValue(this.pref); // returns properties file location
-	this.langGrp = document.getElementById(this.pref).value;
-	this._initSize("font.size.fixed",this.langGrp,false);
-	this._initSize("font.size.variable",this.langGrp,false);
-	this._initSize("font.minimum-size",this.langGrp,document.getElementById("font_bundle").getString("min_size_none"));
-	document.getElementById("default").value = getPrefValue("font.default."+this.langGrp);
-	for(var i=0;i<this.fontTyp.length;i++)
-		this._initList(this.langGrp,this.fontTyp[i]);
-},
-_initList: function(langGroup,fontType) {
-	var elem = document.getElementById(fontType);
-	elem.disabled = true;
-	elem.removeChild(elem.firstChild);
-
-	var count = { value: 0 },
-	    deflt = null,
-	    fonts = FontEnumerator.EnumerateFonts(langGroup,fontType,count);
-
-	if(fonts.length)
-		deflt = FontEnumerator.getDefaultFont(langGroup,fontType);
-	else {
-		// skip generic font type and try to find any fonts
-		fonts = FontEnumerator.EnumerateFonts(langGroup,"",count);
-		if(fonts.length)
-			deflt = FontEnumerator.getDefaultFont(langGroup,"");
-	}
-
-	if(!this.allFnts)
-		this.allFnts = FontEnumerator.EnumerateAllFonts(count);
-
-	var litem,
-	    pitem = document.createElement("menupopup");
-	if(fonts.length) {
-		// list language-specific fonts first
-		if(deflt) {
-			// list default font first
-			litem = document.createElement("menuitem");
-			litem.setAttribute("value",""); // blank value
-			litem.setAttribute("label",document.getElementById("font_bundle").getString("default_font").replace(/%S/,deflt));
-			pitem.appendChild(litem);
-			pitem.appendChild(document.createElement("menuseparator"));
+	allFnts : null,
+	langGrp : null,
+	fontTyp : ["serif", "sans-serif", "cursive", "fantasy", "monospace"],
+	pref : "font.language.group",
+	init : function () {
+		//   this.langGrp = getPrefValue(this.pref); // returns properties file location
+		this.langGrp = document.getElementById(this.pref).value;
+		this._initSize("font.size.fixed", this.langGrp, false);
+		this._initSize("font.size.variable", this.langGrp, false);
+		this._initSize("font.minimum-size", this.langGrp, document.getElementById("font_bundle").getString("min_size_none"));
+		document.getElementById("default").value = getPrefValue("font.default." + this.langGrp);
+		for (var i = 0; i < this.fontTyp.length; i++)
+			this._initList(this.langGrp, this.fontTyp[i]);
+	},
+	_initList : function (langGroup, fontType) {
+		var elem = document.getElementById(fontType);
+		elem.disabled = true;
+		elem.removeChild(elem.firstChild);
+		var count = {
+			value : 0
+		},
+		deflt = null,
+		fonts = FontEnumerator.EnumerateFonts(langGroup, fontType, count);
+		if (fonts.length)
+			deflt = FontEnumerator.getDefaultFont(langGroup, fontType);
+		else {
+			// skip generic font type and try to find any fonts
+			fonts = FontEnumerator.EnumerateFonts(langGroup, "", count);
+			if (fonts.length)
+				deflt = FontEnumerator.getDefaultFont(langGroup, "");
 		}
-		for(var i=0;i<fonts.length;i++) {
-			litem = document.createElement("menuitem");
-			litem.setAttribute("value",fonts[i]);
-			litem.setAttribute("label",fonts[i]);
-			pitem.appendChild(litem);
-		}
-	}
-	if(this.allFnts.length>fonts.length) {
-		if(fonts.length)
-			pitem.appendChild(document.createElement("menuseparator"));
-		for(var i=0,j=0,t;i<this.allFnts.length;i++) {
-			try {
-				t = fonts[j];
-			} catch(e) {
-				t = null;
-			}
-			if(this.allFnts[i]==t) {
-				j++;
-				continue;
-			} else {
+		if (!this.allFnts)
+			this.allFnts = FontEnumerator.EnumerateAllFonts(count);
+		var litem,
+		pitem = document.createElement("menupopup");
+		if (fonts.length) {
+			// list language-specific fonts first
+			if (deflt) {
+				// list default font first
 				litem = document.createElement("menuitem");
-				litem.setAttribute("value",this.allFnts[i]);
-				litem.setAttribute("label",this.allFnts[i]);
+				litem.setAttribute("value", ""); // blank value
+				litem.setAttribute("label", document.getElementById("font_bundle").getString("default_font").replace(/%S/, deflt));
+				pitem.appendChild(litem);
+				pitem.appendChild(document.createElement("menuseparator"));
+			}
+			for (var i = 0; i < fonts.length; i++) {
+				litem = document.createElement("menuitem");
+				litem.setAttribute("value", fonts[i]);
+				litem.setAttribute("label", fonts[i]);
 				pitem.appendChild(litem);
 			}
 		}
-	}
-
-	elem.appendChild(pitem);
-
-	if(deflt==null)
-		deflt = this._getDefault(langGroup,fontType,elem);
-	else {
-		elem.selectedIndex = 0;
+		if (this.allFnts.length > fonts.length) {
+			if (fonts.length)
+				pitem.appendChild(document.createElement("menuseparator"));
+			for (var i = 0, j = 0, t; i < this.allFnts.length; i++) {
+				try {
+					t = fonts[j];
+				} catch (e) {
+					t = null;
+				}
+				if (this.allFnts[i] == t) {
+					j++;
+					continue;
+				} else {
+					litem = document.createElement("menuitem");
+					litem.setAttribute("value", this.allFnts[i]);
+					litem.setAttribute("label", this.allFnts[i]);
+					pitem.appendChild(litem);
+				}
+			}
+		}
+		elem.appendChild(pitem);
+		if (deflt == null)
+			deflt = this._getDefault(langGroup, fontType, elem);
+		else {
+			elem.selectedIndex = 0;
+			elem.disabled = false;
+			return;
+		}
+		elem.selectedItem = (deflt == null) ? elem.firstChild.firstChild : elem.getElementsByAttribute("value", deflt)[0];
+		var pref = "font.name." + fontType + "." + langGroup;
+		if (getPrefValue(pref) == null)
+			setCharPref(pref, elem.value);
 		elem.disabled = false;
-		return;
-	}
-	elem.selectedItem = (deflt==null) ? elem.firstChild.firstChild : elem.getElementsByAttribute("value",deflt)[0];
-
-	var pref = "font.name."+fontType+"."+langGroup;
-	if(getPrefValue(pref)==null)
-		setCharPref(pref,elem.value);
-
-	elem.disabled = false;
-},
-_initSize: function(boxID,subID,emptyStr) {
-	var box = document.getElementById(boxID),
-	    val = getPrefValue(boxID+"."+subID);
-
-	box.removeAttribute("onfocus");
-	box.removeAttribute("onblur");
-	if(val==null) {
-		val = document.getElementById("pref_bundle").getString("pref_not_set");
-		if(!box.readonly) {
-			box.setAttribute("onfocus","this.value=''");
-			box.setAttribute("onblur","Fonts._initSize('"+boxID+"','"+subID+"',"+((emptyStr)?("'"+emptyStr+"'"):"false")+")");
+	},
+	_initSize : function (boxID, subID, emptyStr) {
+		var box = document.getElementById(boxID),
+		val = getPrefValue(boxID + "." + subID);
+		box.removeAttribute("onfocus");
+		box.removeAttribute("onblur");
+		if (val == null) {
+			val = document.getElementById("pref_bundle").getString("pref_not_set");
+			if (!box.readonly) {
+				box.setAttribute("onfocus", "this.value=''");
+				box.setAttribute("onblur", "Fonts._initSize('" + boxID + "','" + subID + "'," + ((emptyStr) ? ("'" + emptyStr + "'") : "false") + ")");
+			}
+			box.value = (emptyStr) ? emptyStr : val;
+			return;
 		}
-		box.value = (emptyStr) ? emptyStr : val;
-		return;
-	}
-	if(!val && emptyStr) {
-		if(!box.readonly) {
-			box.setAttribute("onfocus","this.value=''");
-			box.setAttribute("onblur","Fonts._initSize('"+boxID+"','"+subID+"','"+emptyStr+"')");
-		}
-		box.value = emptyStr;
-	} else
-		box.value = val;
-},
-setSize: function(boxID,prefVal) {
-	if(prefVal) {
-		var re = new RegExp("^[0-9]+$");
-		if(re.test(prefVal)) {
-			prefVal = parseInt(prefVal);
-			if(prefVal)
-				pref.setIntPref(boxID+"."+this.langGrp,prefVal);
-			else
-				restoreDefault(boxID+"."+this.langGrp);
+		if (!val && emptyStr) {
+			if (!box.readonly) {
+				box.setAttribute("onfocus", "this.value=''");
+				box.setAttribute("onblur", "Fonts._initSize('" + boxID + "','" + subID + "','" + emptyStr + "')");
+			}
+			box.value = emptyStr;
+		} else
+			box.value = val;
+	},
+	setSize : function (boxID, prefVal) {
+		if (prefVal) {
+			var re = new RegExp("^[0-9]+$");
+			if (re.test(prefVal)) {
+				prefVal = parseInt(prefVal);
+				if (prefVal)
+					pref.setIntPref(boxID + "." + this.langGrp, prefVal);
+				else
+					restoreDefault(boxID + "." + this.langGrp);
+			} else {
+				alert(document.getElementById("pref_bundle").getString("positive_integer_expected"));
+				document.getElementById(boxID).value = getPrefValue(boxID + "." + this.langGrp);
+				document.getElementById(boxID).focus();
+			}
+		} else
+			restoreDefault(boxID + "." + this.langGrp);
+	},
+	setFont : function (fontName, fontType) {
+		if (fontName)
+			setCharPref("font.name." + fontType + "." + this.langGrp, fontName);
+		else
+			restoreDefault("font.name." + fontType + "." + this.langGrp);
+	},
+	setDefaultFont : function (fontName) {
+		setCharPref("font.default." + this.langGrp, fontName);
+	},
+	_getDefault : function (langGroup, fontType, listItem) {
+		var val = getPrefValue("font.name." + fontType + "." + langGroup),
+		itm;
+		if (val == null) {
+			val = getPrefValue("font.name-list." + fontType + "." + langGroup);
+			if (val == null)
+				return null;
+			for (var i = 0; i < val.length; i++) {
+				val[i] = val[i].replace(/^\s*(.*)\s*$/, "$1") // remove leading/trailing whitespace
+					itm = listItem.getElementsByAttribute("value", val[i]);
+				if (itm && itm.item(0))
+					return val[i];
+			}
 		} else {
-			alert(document.getElementById("pref_bundle").getString("positive_integer_expected"));
-			document.getElementById(boxID).value = getPrefValue(boxID+"."+this.langGrp);
-			document.getElementById(boxID).focus();
+			itm = listItem.getElementsByAttribute("value", val);
+			if (itm && itm.item(0))
+				return val;
 		}
-	} else
-		restoreDefault(boxID+"."+this.langGrp);
-},
-setFont: function(fontName,fontType) {
-	if(fontName)
-		setCharPref("font.name."+fontType+"."+this.langGrp,fontName);
-	else
-		restoreDefault("font.name."+fontType+"."+this.langGrp);
-},
-setDefaultFont: function(fontName) {
-	setCharPref("font.default."+this.langGrp,fontName);
-},
-_getDefault: function(langGroup,fontType,listItem) {
-	var val = getPrefValue("font.name."+fontType+"."+langGroup), itm;
-
-	if(val==null) {
-		val = getPrefValue("font.name-list."+fontType+"."+langGroup);
-		if(val==null)
-			return null;
-		for(var i=0;i<val.length;i++) {
-			val[i] = val[i].replace(/^\s*(.*)\s*$/,"$1") // remove leading/trailing whitespace
-			itm = listItem.getElementsByAttribute("value",val[i]);
-			if(itm && itm.item(0))
-				return val[i];
-		}
-	} else {
-		itm = listItem.getElementsByAttribute("value",val);
-		if(itm && itm.item(0))
-			return val;
+		return null;
 	}
-	return null;
-}
-
+};
+var Zoom = {
+	pref : "zoom.defaultPercent",
+	prefmin : "zoom.minPercent",
+	prefmax : "zoom.maxPercent",
+	min : 30,
+	default: 100,
+	max : 300,
+	init : function () {
+		var numberbox = document.getElementById("zoom.defaultPercent");
+		var slider = document.getElementById("zoom.defaultPercentS");
+		var zoom_value = getPrefValue(Zoom.pref);
+		var zmin_p = getPrefValue(Zoom.prefmin);
+		var zmax_p = getPrefValue(Zoom.prefmax);
+		if (parseInt(zoom_value) > parseInt(zmax_p)) {
+			zoom_value = zmax_p;
+		} else if (parseInt(zoom_value) < parseInt(zmin_p)) {
+			zoom_value = zmin_p;
+		}
+		numberbox.valueNumber = zoom_value;
+		//numberbox.setAttribute("min",zmin_p);
+		numberbox.setAttribute("max", zmax_p);
+		document.getElementById("zlabel_min").value = zmin_p + " %";
+		document.getElementById("zlabel_max").value = zmax_p + " %";
+		slider.value = zoom_value;
+		slider.setAttribute("min", zmin_p);
+		slider.setAttribute("max", zmax_p);
+	},
+	changed : function (PrefID) {
+		var numberbox = document.getElementById("zoom.defaultPercent");
+		var slider = document.getElementById("zoom.defaultPercentS");
+		if (PrefID == numberbox.getAttribute("id")) {
+			var zmin_p = getPrefValue(Zoom.prefmin);
+			var zmax_p = getPrefValue(Zoom.prefmax);
+			var inputvalue = numberbox.valueNumber;
+			if (parseInt(inputvalue) >= parseInt(getPrefValue(Zoom.prefmin)) && parseInt(inputvalue) <= parseInt(getPrefValue(Zoom.prefmax))) {
+				slider.value = numberbox.valueNumber;
+				setIntPref(Zoom.pref, numberbox.valueNumber);
+			} else if (parseInt(inputvalue) > parseInt(zmax_p)) {
+				slider.value = zmax_p;
+				setIntPref(Zoom.pref, zmax_p);
+			} else if (parseInt(inputvalue) < parseInt(zmin_p)) {
+				slider.value = zmin_p;
+				setIntPref(Zoom.pref, zmin_p);
+			}
+		} else {
+			numberbox.valueNumber = slider.value;
+			setIntPref(Zoom.pref, numberbox.valueNumber);
+		}
+	},
+	normal : function () {
+		setIntPref(Zoom.pref, Zoom.default);
+			setIntPref(Zoom.prefmin, Zoom.min);
+			setIntPref(Zoom.prefmax, Zoom.max);
+			Zoom.init();
+	}
 };
 ]]>
-</script>
-
-<vbox flex="1" style="overflow:auto">
-  <dialogheader title="&display.header;"/>
-  <separator class="thin"/>
-  <tabcontrol flex="1">
-    <tabbox flex="1">
-      <tabs>
-        <tab label="&general;"/>
-        <tab label="&fonts.label;" oncommand="initFonts()" onfocus="initFonts()"/>
-        <tab label="&images.label;"/>
-      </tabs>
-      <tabpanels flex="1">
-        <tabpanel flex="1" orient="vertical" style="overflow:auto">
-<!-- General -->
-<separator class="thin"/>
-<groupbox>
-  <caption><label>&frames.label;</label></caption>
-  <checkbox oncommand="toggleCheckbox(this.id)" id="browser.frames.enabled" label="&frames.enable;"/>
-  <checkbox oncommand="toggleCheckbox(this.id)" id="layout.frames.force_resizability" label="&frames.resizable;"/>
-  <separator class="thin"/>
-</groupbox>
-<separator class="thin"/>
-<groupbox>
-  <caption><label>&text.label;</label></caption>
-  <checkbox oncommand="toggleCheckbox(this.id)" id="browser.blink_allowed" label="&text.blink;"/>
-  <checkbox oncommand="Marquee.toggle(this)" id="Marquee" label="&text.marquee;"/>
-  <description>&marquee.note;</description>
-</groupbox>
-<separator class="thin"/>
-<groupbox>
-  <caption><label>&source.label;</label></caption>
-  <checkbox oncommand="toggleCheckbox(this.id);Source.init()" id="kmeleon.general.sourceEnabled" label="&source.external;"/>
-  <hbox align="center" style="padding-left:2em">
-    <label value="&source.viewer;"/>
-    <textbox id="kmeleon.general.sourceCommand" flex="1" class="uri-element" oninput="setCharPref(this.id,this.value)"/>
-    <button label="&browse;" oncommand="Source.selectFile()"/>
-  </hbox>
-</groupbox>
-<!-- General -->
-	</tabpanel>
-        <tabpanel flex="1" orient="vertical" style="overflow:auto">
-<!-- Fonts -->
-<groupbox>
-  <caption>
-    <hbox align="center">
-      <label value="&fonts.forLanguage;"/>
-      <menulist id="font.language.group" oncommand="Fonts.init()">
-        <menupopup>
-          <menuitem value="x-western" label="&font.langGroup.latin1;"/>
-          <menuitem value="x-central-euro" label="&font.langGroup.latin2;"/>
-          <menuitem value="ja" label="&font.langGroup.japanese;"/>
-          <menuitem value="zh-CN" label="&font.langGroup.simpl-chinese;"/>
-          <menuitem value="zh-TW" label="&font.langGroup.trad-chinese;"/>
-          <menuitem value="zh-HK" label="&font.langGroup.trad-chinese-hk;"/>
-          <menuitem value="ko" label="&font.langGroup.korean;"/>
-          <menuitem value="x-cyrillic" label="&font.langGroup.cyrillic;"/>
-          <menuitem value="x-baltic" label="&font.langGroup.baltic;"/>
-          <menuitem value="el" label="&font.langGroup.el;"/>
-          <menuitem value="tr" label="&font.langGroup.turkish;"/>
-          <menuitem value="th" label="&font.langGroup.thai;"/>
-          <menuitem value="he" label="&font.langGroup.hebrew;"/>
-          <menuitem value="ar" label="&font.langGroup.arabic;"/>
-          <menuitem value="x-devanagari" label="&font.langGroup.devanagari;"/>
-          <menuitem value="x-tamil" label="&font.langGroup.tamil;"/>
-          <menuitem value="x-armn" label="&font.langGroup.armenian;"/>
-          <menuitem value="x-beng" label="&font.langGroup.bengali;"/>
-          <menuitem value="x-cans" label="&font.langGroup.canadian;"/>
-          <menuitem value="x-ethi" label="&font.langGroup.ethiopic;"/>
-          <menuitem value="x-geor" label="&font.langGroup.georgian;"/>
-          <menuitem value="x-gujr" label="&font.langGroup.gujarati;"/>
-          <menuitem value="x-guru" label="&font.langGroup.gurmukhi;"/>
-          <menuitem value="x-khmr" label="&font.langGroup.khmer;"/>
-          <menuitem value="x-mlym" label="&font.langGroup.malayalam;"/>
-	  <menuseparator/>
-          <menuitem value="x-unicode" label="&font.langGroup.unicode;"/>
-          <!--menuitem value="x-user-def" label="&font.langGroup.user-def;"/-->
-        </menupopup>
-      </menulist>
-    </hbox>
- </caption>
-  <separator class="thin"/>
-  <grid>
-    <columns>
-      <column/>
-      <column flex="1"/>
-      <column/>
-    </columns>
-    <rows>
-      <row align="center">
-        <label value="&fonts.genericType;"/>
-        <label value="&fonts.typeface;"/>
-        <label value="&fonts.size;"/>
-      </row>
-      <row>
-        <separator class="thin"/>
-      </row>
-      <row align="center">
-        <label value="&fonts.proportional;"/>
-        <menulist id="default" oncommand="Fonts.setDefaultFont(this.value)">
-          <menupopup>
-            <menuitem value="serif" label="&fonts.default.serif;"/>
-            <menuitem value="sans-serif" label="&fonts.default.sans-serif;"/>
-          </menupopup>
-        </menulist>
-        <textbox id="font.size.variable" class="uri-element" size="4" oninput="Fonts.setSize(this.id,this.value)"/>
-      </row>
-      <row align="center">
-        <hbox align="center" pack="end">
-          <label value="&fonts.serif;"/>
-        </hbox>
-        <menulist id="serif" oncommand="Fonts.setFont(this.value,this.id)">
-          <menupopup/>
-        </menulist>
-        <spacer/>
-      </row>
-      <row align="center">
-        <hbox align="center" pack="end">
-          <label value="&fonts.sans-serif;"/>
-        </hbox>
-        <menulist id="sans-serif" oncommand="Fonts.setFont(this.value,this.id)">
-          <menupopup/>
-        </menulist>
-        <spacer/>
-      </row>
-      <row align="center">
-        <hbox align="center" pack="end">
-          <label value="&fonts.cursive;"/>
-        </hbox>
-        <menulist id="cursive" oncommand="Fonts.setFont(this.value,this.id)">
-          <menupopup/>
-        </menulist>
-        <spacer/>
-      </row>
-      <row align="center">
-        <hbox align="center" pack="end">
-          <label value="&fonts.fantasy;"/>
-        </hbox>
-        <menulist id="fantasy" oncommand="Fonts.setFont(this.value,this.id)">
-          <menupopup/>
-        </menulist>
-        <spacer/>
-      </row>
-      <row>
-        <separator class="thin"/>
-      </row>
-      <row align="center">
-        <label value="&fonts.monospace;"/>
-        <menulist id="monospace" oncommand="Fonts.setFont(this.value,this.id)">
-          <menupopup/>
-        </menulist>
-        <textbox id="font.size.fixed" class="uri-element" size="4" oninput="Fonts.setSize(this.id,this.value)"/>
-      </row>
-      <row>
-        <separator class="thin"/>
-      </row>
-      <row>
-        <spacer/>
-        <hbox align="center" pack="end">
-          <label value="&fonts.minSize;"/>
-        </hbox>
-        <textbox id="font.minimum-size" class="uri-element" size="4" oninput="Fonts.setSize(this.id,this.value)"/>
-      </row>
-    </rows>
-  </grid>
-  <separator class="thin"/>
-</groupbox>
-<separator class="thin"/>
-<checkbox oncommand="pref.setIntPref(this.id,this.checked?1:0)" id="browser.display.use_document_fonts" label="&fonts.useDocFonts;"/>
-<!-- Toggle between 0 (never) and 1 (quick); 2 (always) is deprecated -->
-<!-- Fonts -->
-	</tabpanel>
-        <tabpanel flex="1" orient="vertical" style="overflow:auto">
-<!-- Images -->
-<separator class="thin"/>
-<hbox>
-  <groupbox flex="1">
-    <caption><label>&images.load;</label></caption>
-    <radiogroup oncommand="toggleRadiogroup(this.id)" id="permissions.default.image">
-      <radio value="2" label="&images.load.never;"/>
-      <radio value="1" label="&images.load.always;"/>
-      <radio value="3" label="&images.load.noForeign;"/>
-    </radiogroup>
-    <separator class="thin"/>
-    <hbox id="imagePerm" hidden="true">
-      <button label="&exceptions;" oncommand="JSB.id('ID_IMAGE_PERM')"/>
-      <hbox flex="1"/>
-    </hbox>
-  </groupbox>
-  <groupbox flex="1">
-    <caption><label>&images.loop;</label></caption>
-    <radiogroup oncommand="toggleRadiogroup(this.id)" id="image.animation_mode">
-      <radio value="none" label="&images.loop.none;"/>
-      <radio value="normal" label="&images.loop.normal;"/>
-      <radio value="once" label="&images.loop.once;"/>
-    </radiogroup>
-    <separator class="thin"/>
-  </groupbox>
-</hbox>
-<separator class="thick"/>
-<checkbox oncommand="toggleCheckbox(this.id)" id="browser.enable_automatic_image_resizing" label="&images.resizing;"/>
-<separator class="thin"/>
-<vbox id="domDISS"/>
-<separator class="thick"/>
-<groupbox>
-  <caption><label>&images.missing;</label></caption>
-  <checkbox oncommand="Placeholder.toggle(this);init()" id="browser.display.show_image_placeholders" label="&images.placeholders;"/>
-  <checkbox oncommand="Placeholder.toggle(this);init()" id="browser.display.force_inline_alttext" label="&images.inline.force;"/>
-  <description>&images.inline.note;</description>
-  <checkbox oncommand="Placeholder.toggle(this);init()" id="CSS" label="&images.block.force;"/>
-  <description>&restartNote1;</description>
-</groupbox>
-<!-- Images -->
-	</tabpanel>
-      </tabpanels>
-    </tabbox>
-  </tabcontrol>
-</vbox>
-
+	</script>
+	<vbox flex="1" style="overflow:auto">
+		<dialogheader title="&display.header;"/>
+		<separator class="thin"/>
+		<tabcontrol flex="1">
+			<tabbox flex="1">
+				<tabs>
+					<tab label="&general;"/>
+					<tab label="&fonts.label;" oncommand="initFonts()" onfocus="initFonts()"/>
+					<tab label="&images.label;"/>
+					<tab id="LanguagesWebTab" oncommand="initLangWeb()" onfocus="initLangWeb()"/> 
+				</tabs>
+				<tabpanels flex="1">
+					<tabpanel flex="1" orient="vertical" style="overflow:auto">
+						<!-- General -->
+						<separator class="thin"/>
+						<groupbox>
+							<caption>
+								<label>&frames.label;</label>
+							</caption>
+							<checkbox oncommand="toggleCheckbox(this.id)" id="browser.frames.enabled" label="&frames.enable;"/>
+							<checkbox oncommand="toggleCheckbox(this.id)" id="layout.frames.force_resizability" label="&frames.resizable;"/>
+							<separator class="thin"/>
+						</groupbox>
+						<separator class="thin"/>
+						<groupbox>
+							<caption>
+								<label>&text.label;</label>
+							</caption>
+							<checkbox oncommand="toggleCheckbox(this.id)" id="browser.blink_allowed" label="&text.blink;"/>
+							<checkbox oncommand="Marquee.toggle(this)" id="Marquee" label="&text.marquee;"/>
+							<description>&marquee.note;</description>
+						</groupbox>
+						<separator class="thin"/>
+						<groupbox>
+							<caption>
+								<label>&source.label;</label>
+							</caption>
+							<checkbox oncommand="toggleCheckbox(this.id);Source.init()" id="kmeleon.general.sourceEnabled" label="&source.external;"/>
+							<hbox align="center" style="padding-left:2em">
+								<label value="&source.viewer;"/>
+								<textbox id="kmeleon.general.sourceCommand" flex="1" class="uri-element" oninput="setCharPref(this.id,this.value)"/>
+								<button label="&browse;" oncommand="Source.selectFile()"/>
+							</hbox>
+						</groupbox>
+						<separator class="thin"/>
+						<groupbox>
+							<caption>
+								<label>&zoom.label;</label>
+							</caption>
+							<label value="&zoom.description;"/>
+							<hbox align="center">
+								<label id="zlabel_min" value="min %"/>
+								<scale id="zoom.defaultPercentS" min="0" max="300" width="270" onchange="Zoom.changed(this.id)"/>
+								<label id="zlabel_max" value="max %"/>
+								<separator class="thin"/>
+								<textbox id="zoom.defaultPercent" type="number" min="0" max="300" width="50" oninput="Zoom.changed(this.id)" onchange="Zoom.changed(this.id)"/>
+								<separator class="thin"/>
+								<button label="&zoom.normal;" oncommand="Zoom.normal()"/>
+							</hbox>
+						</groupbox>
+						<!-- General -->
+					</tabpanel>
+					<tabpanel flex="1" orient="vertical" style="overflow:auto">
+						<!-- Fonts -->
+						<groupbox>
+							<caption>
+								<hbox align="center">
+									<label value="&fonts.forLanguage;"/>
+									<menulist id="font.language.group" oncommand="Fonts.init()">
+										<menupopup>
+											<menuitem value="x-western" label="&font.langGroup.latin1;"/>
+											<menuitem value="x-central-euro" label="&font.langGroup.latin2;"/>
+											<menuitem value="ja" label="&font.langGroup.japanese;"/>
+											<menuitem value="zh-CN" label="&font.langGroup.simpl-chinese;"/>
+											<menuitem value="zh-TW" label="&font.langGroup.trad-chinese;"/>
+											<menuitem value="zh-HK" label="&font.langGroup.trad-chinese-hk;"/>
+											<menuitem value="ko" label="&font.langGroup.korean;"/>
+											<menuitem value="x-cyrillic" label="&font.langGroup.cyrillic;"/>
+											<menuitem value="x-baltic" label="&font.langGroup.baltic;"/>
+											<menuitem value="el" label="&font.langGroup.el;"/>
+											<menuitem value="tr" label="&font.langGroup.turkish;"/>
+											<menuitem value="th" label="&font.langGroup.thai;"/>
+											<menuitem value="he" label="&font.langGroup.hebrew;"/>
+											<menuitem value="ar" label="&font.langGroup.arabic;"/>
+											<menuitem value="x-devanagari" label="&font.langGroup.devanagari;"/>
+											<menuitem value="x-tamil" label="&font.langGroup.tamil;"/>
+											<menuitem value="x-armn" label="&font.langGroup.armenian;"/>
+											<menuitem value="x-beng" label="&font.langGroup.bengali;"/>
+											<menuitem value="x-cans" label="&font.langGroup.canadian;"/>
+											<menuitem value="x-ethi" label="&font.langGroup.ethiopic;"/>
+											<menuitem value="x-geor" label="&font.langGroup.georgian;"/>
+											<menuitem value="x-gujr" label="&font.langGroup.gujarati;"/>
+											<menuitem value="x-guru" label="&font.langGroup.gurmukhi;"/>
+											<menuitem value="x-khmr" label="&font.langGroup.khmer;"/>
+											<menuitem value="x-mlym" label="&font.langGroup.malayalam;"/>
+											<menuseparator/>
+											<menuitem value="x-unicode" label="&font.langGroup.unicode;"/>
+											<!--menuitem value="x-user-def" label="&font.langGroup.user-def;"/-->
+										</menupopup>
+									</menulist>
+								</hbox>
+							</caption>
+							<separator class="thin"/>
+							<grid>
+								<columns>
+									<column/>
+									<column flex="1"/>
+									<column/>
+								</columns>
+								<rows>
+									<row align="center">
+										<label value="&fonts.genericType;"/>
+										<label value="&fonts.typeface;"/>
+										<label value="&fonts.size;"/>
+									</row>
+									<row>
+										<separator class="thin"/>
+									</row>
+									<row align="center">
+										<label value="&fonts.proportional;"/>
+										<menulist id="default" oncommand="Fonts.setDefaultFont(this.value)">
+											<menupopup>
+												<menuitem value="serif" label="&fonts.default.serif;"/>
+												<menuitem value="sans-serif" label="&fonts.default.sans-serif;"/>
+											</menupopup>
+										</menulist>
+										<textbox id="font.size.variable" class="uri-element" size="4" oninput="Fonts.setSize(this.id,this.value)"/>
+									</row>
+									<row align="center">
+										<hbox align="center" pack="end">
+											<label value="&fonts.serif;"/>
+										</hbox>
+										<menulist id="serif" oncommand="Fonts.setFont(this.value,this.id)">
+											<menupopup/>
+										</menulist>
+										<spacer/>
+									</row>
+									<row align="center">
+										<hbox align="center" pack="end">
+											<label value="&fonts.sans-serif;"/>
+										</hbox>
+										<menulist id="sans-serif" oncommand="Fonts.setFont(this.value,this.id)">
+											<menupopup/>
+										</menulist>
+										<spacer/>
+									</row>
+									<row align="center">
+										<hbox align="center" pack="end">
+											<label value="&fonts.cursive;"/>
+										</hbox>
+										<menulist id="cursive" oncommand="Fonts.setFont(this.value,this.id)">
+											<menupopup/>
+										</menulist>
+										<spacer/>
+									</row>
+									<row align="center">
+										<hbox align="center" pack="end">
+											<label value="&fonts.fantasy;"/>
+										</hbox>
+										<menulist id="fantasy" oncommand="Fonts.setFont(this.value,this.id)">
+											<menupopup/>
+										</menulist>
+										<spacer/>
+									</row>
+									<row>
+										<separator class="thin"/>
+									</row>
+									<row align="center">
+										<label value="&fonts.monospace;"/>
+										<menulist id="monospace" oncommand="Fonts.setFont(this.value,this.id)">
+											<menupopup/>
+										</menulist>
+										<textbox id="font.size.fixed" class="uri-element" size="4" oninput="Fonts.setSize(this.id,this.value)"/>
+									</row>
+									<row>
+										<separator class="thin"/>
+									</row>
+									<row>
+										<spacer/>
+										<hbox align="center" pack="end">
+											<label value="&fonts.minSize;"/>
+										</hbox>
+										<textbox id="font.minimum-size" class="uri-element" size="4" oninput="Fonts.setSize(this.id,this.value)"/>
+									</row>
+								</rows>
+							</grid>
+							<separator class="thin"/>
+						</groupbox>
+						<separator class="thin"/>
+						<checkbox oncommand="pref.setIntPref(this.id,this.checked?1:0)" id="browser.display.use_document_fonts" label="&fonts.useDocFonts;"/>
+						<!-- Toggle between 0 (never) and 1 (quick); 2 (always) is deprecated -->
+						<!-- Fonts -->
+					</tabpanel>
+					<tabpanel flex="1" orient="vertical" style="overflow:auto">
+						<!-- Images -->
+						<separator class="thin"/>
+						<hbox>
+							<groupbox flex="1">
+								<caption>
+									<label>&images.load;</label>
+								</caption>
+								<radiogroup oncommand="toggleRadiogroup(this.id)" id="permissions.default.image">
+									<radio value="2" label="&images.load.never;"/>
+									<radio value="1" label="&images.load.always;"/>
+									<radio value="3" label="&images.load.noForeign;"/>
+								</radiogroup>
+								<separator class="thin"/>
+								<hbox id="imagePerm" hidden="true">
+									<button label="&exceptions;" oncommand="JSB.id('ID_IMAGE_PERM')"/>
+									<hbox flex="1"/>
+								</hbox>
+							</groupbox>
+							<groupbox flex="1">
+								<caption>
+									<label>&images.loop;</label>
+								</caption>
+								<radiogroup oncommand="toggleRadiogroup(this.id)" id="image.animation_mode">
+									<radio value="none" label="&images.loop.none;"/>
+									<radio value="normal" label="&images.loop.normal;"/>
+									<radio value="once" label="&images.loop.once;"/>
+								</radiogroup>
+								<separator class="thin"/>
+							</groupbox>
+						</hbox>
+						<separator class="thick"/>
+						<checkbox oncommand="toggleCheckbox(this.id)" id="browser.enable_automatic_image_resizing" label="&images.resizing;"/>
+						<separator class="thin"/>
+						<vbox id="domDISS"/>
+						<separator class="thick"/>
+						<groupbox>
+							<caption>
+								<label>&images.missing;</label>
+							</caption>
+							<checkbox oncommand="Placeholder.toggle(this);init()" id="browser.display.show_image_placeholders" label="&images.placeholders;"/>
+							<checkbox oncommand="Placeholder.toggle(this);init()" id="browser.display.force_inline_alttext" label="&images.inline.force;"/>
+							<description>&images.inline.note;</description>
+							<checkbox oncommand="Placeholder.toggle(this);init()" id="CSS" label="&images.block.force;"/>
+							<description>&restartNote1;</description>
+						</groupbox>
+						<!-- Images -->
+					</tabpanel>
+					<!-- Languages -->
+					<tabpanel id="LanguagesWebPages"/>
+				</tabpanels>
+			</tabbox>
+		</tabcontrol>
+	</vbox>
 </page>

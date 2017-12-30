@@ -1,128 +1,117 @@
 <?xml version="1.0"?>
 <!DOCTYPE overlay SYSTEM "chrome://kmprefs/locale/kmprefs/ovrl-cache.dtd">
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
-
-<script type="application/x-javascript">
+	<script type="application/x-javascript">
 <![CDATA[
 var Cache = {
-
-clear: function(storagePolicy) {
-	Components.classes["@mozilla.org/network/cache-service;1"]
-		  .getService(Components.interfaces.nsICacheService)
-		  .evictEntries(storagePolicy);
-},
-view: function(device) {
-	window.open("about:cache?device="+device);
-},
-setSize: function(prefID,prefVal) {
-	if(prefVal) {
-		var re = new RegExp("^[0-9]+$");
-		if(re.test(prefVal) && parseInt(prefVal)>0)
-			pref.setIntPref(prefID,parseInt(prefVal) << 10);
-		else {
-			alert(document.getElementById("pref_bundle").getString("positive_integer_expected"));
-			document.getElementById(prefID).value = "";
-			document.getElementById(prefID).focus();
-		}
-	} else
-		restoreDefault(prefID);
-	return pref.getIntPref(prefID);
-}
-
+	clear : function (storagePolicy) {
+		Components.classes["@mozilla.org/network/cache-service;1"]
+		.getService(Components.interfaces.nsICacheService)
+		.evictEntries(storagePolicy);
+	},
+	view : function (device) {
+		window.open("about:cache?device=" + device);
+	},
+	setSize : function (prefID, prefVal) {
+		if (prefVal) {
+			var re = new RegExp("^[0-9]+$");
+			if (re.test(prefVal) && parseInt(prefVal) > 0)
+				pref.setIntPref(prefID, parseInt(prefVal) << 10);
+			else {
+				alert(document.getElementById("pref_bundle").getString("positive_integer_expected"));
+				document.getElementById(prefID).value = "";
+				document.getElementById(prefID).focus();
+			}
+		} else
+			restoreDefault(prefID);
+		return pref.getIntPref(prefID);
+	}
 };
-
 var DiskCache = {
-
-pref: null,
-size: null,
-path: null,
-
-init: function() {
-	this.pref = new Array(	"browser.cache.disk.enable",
+	pref : null,
+	size : null,
+	path : null,
+	init : function () {
+		this.pref = new Array("browser.cache.disk.enable",
 				"browser.cache.disk_cache_ssl",
 				"kmeleon.favicons.cached",
 				"browser.cache.disk.capacity",
 				"browser.cache.disk.parent_directory");
-	this.size = pref.getIntPref(this.pref[3]);
-	this.path = getFolder(this.pref[4]);
-	if(!this.path) {
-		this.path = getFolder("ProfLD");
-		if(!this.path)
-			this.path = getFolder("ProfD");
+		this.size = pref.getIntPref(this.pref[3]);
+		this.path = getFolder(this.pref[4]);
+		if (!this.path) {
+			this.path = getFolder("ProfLD");
+			if (!this.path)
+				this.path = getFolder("ProfD");
+		}
+		document.getElementById(this.pref[0]).checked = (this.size > 0) && pref.getBoolPref(this.pref[0]);
+		initCheckbox(this.pref[1]);
+		initCheckbox(this.pref[2]);
+		document.getElementById(this.pref[3]).value = (this.size > 0) ? (this.size >> 10).toString(10) : "";
+		document.getElementById(this.pref[4]).value = (this.path) ? this.path : "";
+		this._setControls();
+	},
+	toggle : function () {
+		toggleCheckbox(this.pref[0]);
+		this._setControls();
+		if (this.size < 1)
+			document.getElementById(this.pref[3]).focus();
+	},
+	select : function () {
+		var fp = Components.classes["@mozilla.org/filepicker;1"]
+			.createInstance(nsIFilePicker);
+		fp.init(window, document.getElementById("pref_bundle").getString("select_" + this.pref[4]), nsIFilePicker.modeGetFolder);
+		fp.appendFilters(nsIFilePicker.filterAll);
+		if (this.path)
+			fp.displayDirectory = getFile(this.path, "");
+		var ret = fp.show();
+		if (ret == nsIFilePicker.returnOK) {
+			document.getElementById(this.pref[4]).value = fp.file.path;
+			setCharPref(this.pref[4], fp.file.path);
+		}
+	},
+	_setControls : function () {
+		var dis = !document.getElementById(this.pref[0]).checked;
+		document.getElementById(this.pref[1]).disabled = dis;
+		document.getElementById(this.pref[3]).disabled = dis;
+		document.getElementById(this.pref[3]).previousSibling.disabled = dis;
+		document.getElementById(this.pref[3]).nextSibling.disabled = dis;
+		document.getElementById("clearDisk").disabled = dis;
+		document.getElementById("clearDisk").nextSibling.disabled = dis;
 	}
-
-	document.getElementById(this.pref[0]).checked = (this.size>0) && pref.getBoolPref(this.pref[0]);
-	initCheckbox(this.pref[1]);
-	initCheckbox(this.pref[2]);
-	document.getElementById(this.pref[3]).value = (this.size>0) ? (this.size >> 10).toString(10) : "";
-	document.getElementById(this.pref[4]).value = (this.path) ? this.path : "";
-
-	this._setControls();
-},
-toggle: function() {
-	toggleCheckbox(this.pref[0]);
-	this._setControls();
-	if(this.size<1)
-		document.getElementById(this.pref[3]).focus();
-},
-select: function() {
-	var fp  = Components.classes["@mozilla.org/filepicker;1"]
-			    .createInstance(nsIFilePicker);
-
-	fp.init(window,document.getElementById("pref_bundle").getString("select_"+this.pref[4]),nsIFilePicker.modeGetFolder);
-	fp.appendFilters(nsIFilePicker.filterAll);
-	if(this.path) fp.displayDirectory = getFile(this.path,"");
-
-	var ret = fp.show();
-	if (ret == nsIFilePicker.returnOK) {
-		document.getElementById(this.pref[4]).value = fp.file.path;
-		setCharPref(this.pref[4],fp.file.path);
-	}
-},
-_setControls: function() {
-	var dis = !document.getElementById(this.pref[0]).checked;
-	document.getElementById(this.pref[1]).disabled = dis;
-	document.getElementById(this.pref[3]).disabled = dis;
-	document.getElementById(this.pref[3]).previousSibling.disabled = dis;
-	document.getElementById(this.pref[3]).nextSibling.disabled = dis;
-	document.getElementById("clearDisk").disabled = dis;
-	document.getElementById("clearDisk").nextSibling.disabled = dis;
-}
-
 };
 //addEventListener("load",DiskCache.init,true);
 ]]>
-</script>
-
-<groupbox id="diskcache">
-  <caption><label>&cache.dsk.label;</label></caption>
-  <hbox>
-    <description flex="1">&cache.dsk.descr;</description>
-    <vbox>
-      <hbox>
-        <button label="&clear;" id="clearDisk" oncommand="Cache.clear(Components.interfaces.nsICache.STORE_ON_DISK)"/>
-        <button label="&view;" oncommand="Cache.view('disk')"/>
-      </hbox>
-      <spacer/>
-    </vbox>
-  </hbox>
-  <checkbox oncommand="DiskCache.toggle()" id="browser.cache.disk.enable" label="&cache.dsk.enable;"/>
-  <checkbox oncommand="toggleCheckbox(this.id)" id="browser.cache.disk_cache_ssl" label="&cache.dsk.ssl;" style="margin-left:2em"/>
-  <hbox align="center" style="margin-left:3.65em">
-    <label value="&cache.dsk.sizeBefore;"/>
-    <textbox id="browser.cache.disk.capacity" size="4" class="uri-element" oninput="DiskCache.size=Cache.setSize(this.id,this.value)"/>
-    <label value="&cache.dsk.sizeAfter;"/>
-  </hbox>
-  <separator class="thin"/>
-  <hbox align="center" style="margin-left:2em">
-    <label value="&cache.dsk.folder;"/>
-    <textbox id="browser.cache.disk.parent_directory" flex="1" class="uri-element" readonly="true"/>
-    <button label="&browse;" oncommand="DiskCache.select(this.previousSibling.id)"/>
-  </hbox>
-  <description style="margin-left:2.5em">&cache.dsk.note;</description>
-  <separator class="thin"/>
-  <checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.favicons.cached" label="&cache.ico.enable;"/>
-  <description style="margin-left:2.5em">&cache.ico.note;</description>
-</groupbox>
-
+	</script>
+	<groupbox id="diskcache">
+		<caption>
+			<label>&cache.dsk.label;</label>
+		</caption>
+		<hbox>
+			<description flex="1">&cache.dsk.descr;</description>
+			<vbox>
+				<hbox>
+					<button label="&clear;" id="clearDisk" oncommand="Cache.clear(Components.interfaces.nsICache.STORE_ON_DISK)"/>
+					<button label="&view;" oncommand="Cache.view('disk')"/>
+				</hbox>
+				<spacer/>
+			</vbox>
+		</hbox>
+		<checkbox oncommand="DiskCache.toggle()" id="browser.cache.disk.enable" label="&cache.dsk.enable;"/>
+		<checkbox oncommand="toggleCheckbox(this.id)" id="browser.cache.disk_cache_ssl" label="&cache.dsk.ssl;" style="margin-left:2em"/>
+		<hbox align="center" style="margin-left:3.65em">
+			<label value="&cache.dsk.sizeBefore;"/>
+			<textbox id="browser.cache.disk.capacity" size="4" class="uri-element" oninput="DiskCache.size=Cache.setSize(this.id,this.value)"/>
+			<label value="&cache.dsk.sizeAfter;"/>
+		</hbox>
+		<separator class="thin"/>
+		<hbox align="center" style="margin-left:2em">
+			<label value="&cache.dsk.folder;"/>
+			<textbox id="browser.cache.disk.parent_directory" flex="1" class="uri-element" readonly="true"/>
+			<button label="&browse;" oncommand="DiskCache.select(this.previousSibling.id)"/>
+		</hbox>
+		<description style="margin-left:2.5em">&cache.dsk.note;</description>
+		<separator class="thin"/>
+		<checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.favicons.cached" label="&cache.ico.enable;"/>
+	</groupbox>
 </overlay>

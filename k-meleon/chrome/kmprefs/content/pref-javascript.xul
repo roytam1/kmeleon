@@ -4,63 +4,68 @@
 <?xul-overlay href="chrome://kmprefs/content/kmprefs/ovrl-javascript.xul"?>
 <?xul-overlay href="chrome://kmprefs/content/kmprefs/ovrl-popups.xul"?>
 <!DOCTYPE page SYSTEM "chrome://kmprefs/locale/pref-javascript.dtd">
-<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" 
-id="prefJavaScript" onload="init()">
-
-<stringbundle id="pref_bundle" src="chrome://kmprefs/locale/pref.properties"/>
-
-<script type="application/x-javascript" src="chrome://kmprefs/content/pref.js"/>
-<script type="application/x-javascript">
+<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" id="prefJavaScript" onload="init()">
+	<stringbundle id="pref_bundle" src="chrome://kmprefs/locale/pref.properties"/>
+	<script type="application/x-javascript" src="chrome://kmprefs/content/pref.js"/>
+	<script type="application/x-javascript">
 <![CDATA[
 function init() {
-	if(JSB.load)
+	if (JSB.load)
 		document.getElementById("popupsPerm").removeAttribute("hidden");
-	for(var j=0,b=document.getElementsByTagName("checkbox");j<b.length;j++)
+	for (var j = 0, b = document.getElementsByTagName("checkbox"); j < b.length; j++)
 		initCheckbox(b[j].getAttribute("id"));
-	for(var j=0,r=document.getElementsByTagName("radiogroup");j<r.length;j++)
+	for (var j = 0, r = document.getElementsByTagName("radiogroup"); j < r.length; j++)
 		initRadiogroup(r[j].getAttribute("id"));
-//	setInterval("initCheckbox('javascript.enabled')",100);
-//	setInterval("initCheckbox('dom.disable_open_during_load')",100);
+	//	setInterval("initCheckbox('javascript.enabled')",100);
+	//	setInterval("initCheckbox('dom.disable_open_during_load')",100);
+}
+function scriptPermissions() {
+	var script = "blockVisible:true,sessionVisible:false,allowVisible:true,permissionType:script,windowTitle:scriptpermissionstitle,introText:scriptpermissionstext,prefilledHost:empty";
+	window.openDialog("chrome://kmprefs/content/kmprefs/permissions.xul?"+script, "_blank", "chrome,centerscreen", null);
 }
 ]]>
-</script>
-
-<vbox flex="1" style="overflow:auto">
-  <dialogheader title="&javascript.header;"/>
-  <separator class="thin"/>
-  <tabcontrol flex="1">
-    <tabbox flex="1">
-      <tabs>
-        <tab label="&general;"/>
-        <tab id="popups.tab"/>
-      </tabs>
-      <tabpanels flex="1">
-        <tabpanel flex="1" orient="vertical" style="overflow:auto">
-<!-- General -->
-<separator class="thin"/>
-<checkbox id="javascript.enabled"/>
-<separator class="thick"/>
-<groupbox>
-  <caption><label>&contentManip;</label></caption>
-  <vbox id="domDISS"/>
-</groupbox>
-<separator class="thin"/>
-<groupbox id="windowManip"/>
-<!-- General -->
-	</tabpanel>
-        <tabpanel flex="1" orient="vertical" style="overflow:auto">
-<!-- Popups -->
-<separator class="thin"/>
-<groupbox id="popups.blocker"/>
-<separator class="thin"/>
-<groupbox id="popups.diversion"/>
-<separator class="thin"/>
-<groupbox id="popups.appearance"/>
-<!-- Popups -->
-	</tabpanel>
-      </tabpanels>
-    </tabbox>
-  </tabcontrol>
-</vbox>
-
+	</script>
+	<vbox flex="1" style="overflow:auto">
+		<dialogheader title="&javascript.header;"/>
+		<separator class="thin"/>
+		<tabcontrol flex="1">
+			<tabbox flex="1">
+				<tabs>
+					<tab label="&general;"/>
+					<tab id="popups.tab"/>
+				</tabs>
+				<tabpanels flex="1">
+					<tabpanel flex="1" orient="vertical" style="overflow:auto">
+						<!-- General -->
+						<separator class="thin"/>
+						<hbox align="center">
+							<checkbox id="javascript.enabled"/>
+							<spacer flex="1"/>
+							<button oncommand="scriptPermissions();" label="&javascript.permissions;"/>
+						</hbox>
+						<separator class="thick"/>
+						<groupbox>
+							<caption>
+								<label>&contentManip;</label>
+							</caption>
+							<vbox id="domDISS"/>
+						</groupbox>
+						<separator class="thin"/>
+						<groupbox id="windowManip"/>
+						<!-- General -->
+					</tabpanel>
+					<tabpanel flex="1" orient="vertical" style="overflow:auto">
+						<!-- Popups -->
+						<separator class="thin"/>
+						<groupbox id="popups.blocker"/>
+						<separator class="thin"/>
+						<groupbox id="popups.diversion"/>
+						<separator class="thin"/>
+						<groupbox id="popups.appearance"/>
+						<!-- Popups -->
+					</tabpanel>
+				</tabpanels>
+			</tabbox>
+		</tabcontrol>
+	</vbox>
 </page>

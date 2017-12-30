@@ -14,7 +14,7 @@ JSBridge.prototype = {
 
 id: function(commandID) {
 	if(this.load)
-		this._jsb.id(top,commandID);
+		this._jsb.id(null ,commandID);
 },
 rebuildmenu: function(menuName) {
 	if(this.load)

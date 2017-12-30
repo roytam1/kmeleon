@@ -1,55 +1,55 @@
 <?xml version="1.0"?>
 <!DOCTYPE overlay SYSTEM "chrome://kmprefs/locale/kmprefs/ovrl-popups.dtd">
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
-
-<script type="application/x-javascript" src="chrome://kmprefs/content/kplugins/jsbridge.js"/>
-
-<tab id="popups.tab" label="&popups.label;"/>
-
-<groupbox id="popups.blocker">
-  <caption><label>&popups.blocker.label;</label></caption>
-  <checkbox oncommand="toggleCheckbox(this.id)" id="dom.disable_open_during_load" label="&popups.blocker.descr;"/>
-  <hbox id="popupsPerm" hidden="true">
-    <button label="&exceptions;" oncommand="JSB.id('ID_POPUP_PERM')" style="margin-left:2.25em"/>
-    <hbox flex="1"/>
-  </hbox>
-  <separator class="thin"/>
-  <description>&popups.blocker.note;</description>
-</groupbox>
-
-<groupbox id="popups.diversion">
-  <!-- Mozilla 1.8 -->
-  <caption><label>&popups.diversion.label;</label></caption>
-  <separator class="thin"/>
-  <description>&popups.diversion.descr;</description>
-  <radiogroup id="browser.link.open_newwindow.restriction" oncommand="toggleRadiogroup(this.id)">
-    <radio value="0" label="&treatAsLink;"/>
-    <radio value="1" label="&openWindow;"/>
-    <radio value="2" label="&openAppearance;"/>
-  </radiogroup>
-</groupbox>
-
-<groupbox id="popups.appearance">
-  <caption><label>&popups.appearance.label;</label></caption>
-  <checkbox oncommand="toggleCheckbox(this.id)" id="dom.disable_window_open_feature.resizable" label="&domDWOFresizable;"/>
-  <checkbox oncommand="toggleCheckbox(this.id)" id="dom.disable_window_open_feature.minimizable" label="&domDWOFminimizable;"/>
-  <separator class="thin"/>
-  <description>&popups.appearance.descr;</description>
-  <hbox>
-    <vbox>
-      <checkbox oncommand="toggleCheckbox(this.id)" id="dom.disable_window_open_feature.menubar" label="&domDWOFmenubar;"/>
-      <checkbox oncommand="toggleCheckbox(this.id)" id="dom.disable_window_open_feature.location" label="&domDWOFlocation;"/>
-    </vbox>
-    <vbox>
-      <checkbox oncommand="toggleCheckbox(this.id)" id="dom.disable_window_open_feature.toolbar" label="&domDWOFtoolbar;"/>
-      <checkbox oncommand="toggleCheckbox(this.id)" id="dom.disable_window_open_feature.personalbar" label="&domDWOFpersonalbar;"/>
-    </vbox>
-    <vbox>
-      <checkbox oncommand="toggleCheckbox(this.id)" id="dom.disable_window_open_feature.scrollbars" label="&domDWOFscrollbars;"/>
-      <checkbox oncommand="toggleCheckbox(this.id)" id="dom.disable_window_open_feature.status" label="&domDWOFstatus;"/>
-    </vbox>
-  </hbox>
-  <separator class="thin"/>
-</groupbox>
-
+	<script type="application/x-javascript" src="chrome://kmprefs/content/kplugins/jsbridge.js"/>
+	<tab id="popups.tab" label="&popups.label;"/>
+	<groupbox id="popups.blocker">
+		<caption>
+			<label>&popups.blocker.label;</label>
+		</caption>
+		<checkbox oncommand="toggleCheckbox(this.id)" id="dom.disable_open_during_load" label="&popups.blocker.descr;"/>
+		<hbox id="popupsPerm" hidden="true">
+			<button label="&exceptions;" oncommand="JSB.id('ID_POPUP_PERM')" style="margin-left:2.25em"/>
+			<hbox flex="1"/>
+		</hbox>
+		<separator class="thin"/>
+		<description>&popups.blocker.note;</description>
+	</groupbox>
+	<groupbox id="popups.diversion">
+		<!-- Mozilla 1.8 -->
+		<caption>
+			<label>&popups.diversion.label;</label>
+		</caption>
+		<separator class="thin"/>
+		<description>&popups.diversion.descr;</description>
+		<radiogroup id="browser.link.open_newwindow.restriction" oncommand="toggleRadiogroup(this.id)">
+			<radio value="0" label="&treatAsLink;"/>
+			<radio value="1" label="&openWindow;"/>
+			<radio value="2" label="&openAppearance;"/>
+		</radiogroup>
+	</groupbox>
+	<groupbox id="popups.appearance">
+		<caption>
+			<label>&popups.appearance.label;</label>
+		</caption>
+		<checkbox oncommand="toggleCheckbox(this.id)" id="dom.disable_window_open_feature.resizable" label="&domDWOFresizable;"/>
+		<checkbox oncommand="toggleCheckbox(this.id)" id="dom.disable_window_open_feature.minimizable" label="&domDWOFminimizable;"/>
+		<separator class="thin"/>
+		<description>&popups.appearance.descr;</description>
+		<hbox>
+			<vbox>
+				<checkbox oncommand="toggleCheckbox(this.id)" id="dom.disable_window_open_feature.menubar" label="&domDWOFmenubar;"/>
+				<checkbox oncommand="toggleCheckbox(this.id)" id="dom.disable_window_open_feature.location" label="&domDWOFlocation;"/>
+			</vbox>
+			<vbox>
+				<checkbox oncommand="toggleCheckbox(this.id)" id="dom.disable_window_open_feature.toolbar" label="&domDWOFtoolbar;"/>
+				<checkbox oncommand="toggleCheckbox(this.id)" id="dom.disable_window_open_feature.personalbar" label="&domDWOFpersonalbar;"/>
+			</vbox>
+			<vbox>
+				<checkbox oncommand="toggleCheckbox(this.id)" id="dom.disable_window_open_feature.scrollbars" label="&domDWOFscrollbars;"/>
+				<checkbox oncommand="toggleCheckbox(this.id)" id="dom.disable_window_open_feature.status" label="&domDWOFstatus;"/>
+			</vbox>
+		</hbox>
+		<separator class="thin"/>
+	</groupbox>
 </overlay>

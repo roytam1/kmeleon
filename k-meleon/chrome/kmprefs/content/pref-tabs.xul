@@ -3,119 +3,114 @@
 <?xml-stylesheet type="text/css" href="chrome://kmprefs/skin/"?>
 <?xul-overlay href="chrome://kmprefs/content/kmprefs/ovrl-tabbar.xul"?>
 <!DOCTYPE page SYSTEM "chrome://kmprefs/locale/pref-tabs.dtd">
-<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" 
-id="prefTabs" onload="Tabs.init()">
-
-<stringbundle id="pref_bundle" src="chrome://kmprefs/locale/pref.properties"/>
-
-<script type="application/x-javascript" src="chrome://kmprefs/content/pref.js"/>
-<script type="application/x-javascript">
+<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" id="prefTabs" onload="Tabs.init()">
+	<stringbundle id="pref_bundle" src="chrome://kmprefs/locale/pref.properties"/>
+	<script type="application/x-javascript" src="chrome://kmprefs/content/pref.js"/>
+	<script type="application/x-javascript">
 <![CDATA[
 var Tabs = {
-
-pref: "kmeleon.notab",
-init: function() {
-	this.elem = document.getElementById(this.pref);
-
-	initCheckbox(this.pref);
-	initCheckbox("browser.tabs.warnOnClose");
-	initRadiogroup("kmeleon.tabs.onOpenOption");
-	initRadiogroup("kmeleon.tabs.onCloseOption");
-	initRadiogroup("kmeleon.tabs.onCloseLast");
-	TabBar.init();
-
-	this._setControls();
-},
-toggle: function() {
-	toggleCheckbox(this.pref);
-
-	var ogrp = "kmeleon.general.opengroup";
-	if(pref.getBoolPref(this.pref))
-		setCharPref(ogrp,"ID_OPEN_LINK_IN_NEW_WINDOW|ID_OPEN_LINK_IN_BACKGROUND");
-	else
-		setCharPref(ogrp,"ID_OPEN_LINK_IN_NEW_TAB|ID_OPEN_LINK_IN_BACKGROUNDTAB");
-
-	this._setControls();
-},
-_setControls: function() {
-	disableAll(!this.elem.checked);
-	this.elem.disabled = false;
-}
-
+	pref : "kmeleon.notab",
+	init : function () {
+		this.elem = document.getElementById(this.pref);
+		initCheckbox(this.pref);
+		initCheckbox("browser.tabs.warnOnClose");
+		initRadiogroup("kmeleon.tabs.onOpenOption");
+		initRadiogroup("kmeleon.tabs.onCloseOption");
+		initRadiogroup("kmeleon.tabs.onCloseLast");
+		TabBar.init();
+		this._setControls();
+	},
+	toggle : function () {
+		toggleCheckbox(this.pref);
+		var ogrp = "kmeleon.general.opengroup";
+		if (pref.getBoolPref(this.pref))
+			setCharPref(ogrp, "ID_OPEN_LINK_IN_NEW_WINDOW|ID_OPEN_LINK_IN_BACKGROUND");
+		else
+			setCharPref(ogrp, "ID_OPEN_LINK_IN_NEW_TAB|ID_OPEN_LINK_IN_BACKGROUNDTAB");
+		this._setControls();
+	},
+	_setControls : function () {
+		disableAll(!this.elem.checked);
+		this.elem.disabled = false;
+	}
 };
 ]]>
-</script>
-
-<vbox flex="1" style="overflow:auto">
-  <dialogheader title="&tabs.header;"/>
-  <separator class="thin"/>
-  <checkbox oncommand="Tabs.toggle()" id="kmeleon.notab" label="&tabs.enable;" inverse="true"/>
-  <separator class="thick"/>
-  <tabcontrol flex="1">
-    <tabbox flex="1">
-      <tabs>
-        <tab label="&general;"/>
-        <tab id="TabBarTab"/>
-      </tabs>
-      <tabpanels flex="1">
-        <tabpanel flex="1" orient="vertical" style="overflow:auto">
-<!-- General -->
-<separator class="thin"/>
-<grid>
-  <columns>
-    <column flex="1"/>
-    <column flex="1"/>
-  </columns>
-  <rows>
-    <row>
-      <groupbox flex="1">
-        <caption><label>&tabs.open;</label></caption>
-	<separator class="thin"/>
-        <radiogroup oncommand="toggleRadiogroup(this.id)" id="kmeleon.tabs.onOpenOption">
-          <radio value="1" label="&tabs.open.nextToCurrent;"/>
-          <radio value="0" label="&tabs.open.nextToLast;"/>
-        </radiogroup>
-	<separator class="thin"/>
-      </groupbox>
-      <groupbox flex="1">
-        <caption><label>&tabs.close;</label></caption>
-	<separator class="thin"/>
-        <radiogroup oncommand="toggleRadiogroup(this.id)" id="kmeleon.tabs.onCloseOption">
-          <radio value="0" label="&tabs.close.focusNext;"/>
-          <radio value="1" label="&tabs.close.focusPrevious;"/>
-          <radio value="2" label="&tabs.close.focusSelected;"/>
-        </radiogroup>
-	<separator class="thin"/>
-      </groupbox>
-    </row>
-    <row>
-      <spacer/>
-      <separator class="thin"/>
-    </row>
-    <row>
-      <spacer/>
-      <vbox>
-        <groupbox flex="1">
-          <caption><label>&tabs.last;</label></caption>
-	  <separator class="thin"/>
-          <radiogroup oncommand="toggleRadiogroup(this.id)" id="kmeleon.tabs.onCloseLast">
-            <radio value="1" label="&tabs.last.empty;"/>
-            <radio value="0" label="&tabs.last.close;"/>
-          </radiogroup>
-	  <separator class="thin"/>
-        </groupbox>
-        <separator class="thin"/>
-        <checkbox oncommand="toggleCheckbox(this.id)" id="browser.tabs.warnOnClose" label="&tabs.confirmClose;" style="margin-left:1.3em"/>
-      </vbox>
-    </row>
-  </rows>
-</grid>
-<!-- General -->
-        </tabpanel>
-        <tabpanel id="TabBar"/>
-      </tabpanels>
-    </tabbox>
-  </tabcontrol>
-</vbox>
-
+	</script>
+	<vbox flex="1" style="overflow:auto">
+		<dialogheader title="&tabs.header;"/>
+		<separator class="thin"/>
+		<checkbox oncommand="Tabs.toggle()" id="kmeleon.notab" label="&tabs.enable;" inverse="true"/>
+		<separator class="thick"/>
+		<tabcontrol flex="1">
+			<tabbox flex="1">
+				<tabs>
+					<tab label="&general;"/>
+					<tab id="TabBarTab"/>
+				</tabs>
+				<tabpanels flex="1">
+					<tabpanel flex="1" orient="vertical" style="overflow:auto">
+						<!-- General -->
+						<separator class="thin"/>
+						<grid>
+							<columns>
+								<column flex="1"/>
+								<column flex="1"/>
+							</columns>
+							<rows>
+								<row>
+									<groupbox flex="1">
+										<caption>
+											<label>&tabs.open;</label>
+										</caption>
+										<separator class="thin"/>
+										<radiogroup oncommand="toggleRadiogroup(this.id)" id="kmeleon.tabs.onOpenOption">
+											<radio value="1" label="&tabs.open.nextToCurrent;"/>
+											<radio value="0" label="&tabs.open.nextToLast;"/>
+										</radiogroup>
+										<separator class="thin"/>
+									</groupbox>
+									<groupbox flex="1">
+										<caption>
+											<label>&tabs.close;</label>
+										</caption>
+										<separator class="thin"/>
+										<radiogroup oncommand="toggleRadiogroup(this.id)" id="kmeleon.tabs.onCloseOption">
+											<radio value="0" label="&tabs.close.focusNext;"/>
+											<radio value="1" label="&tabs.close.focusPrevious;"/>
+											<radio value="2" label="&tabs.close.focusSelected;"/>
+										</radiogroup>
+										<separator class="thin"/>
+									</groupbox>
+								</row>
+								<row>
+									<spacer/>
+									<separator class="thin"/>
+								</row>
+								<row>
+									<spacer/>
+									<vbox>
+										<groupbox flex="1">
+											<caption>
+												<label>&tabs.last;</label>
+											</caption>
+											<separator class="thin"/>
+											<radiogroup oncommand="toggleRadiogroup(this.id)" id="kmeleon.tabs.onCloseLast">
+												<radio value="1" label="&tabs.last.empty;"/>
+												<radio value="0" label="&tabs.last.close;"/>
+											</radiogroup>
+											<separator class="thin"/>
+										</groupbox>
+										<separator class="thin"/>
+										<checkbox oncommand="toggleCheckbox(this.id)" id="browser.tabs.warnOnClose" label="&tabs.confirmClose;" style="margin-left:1.3em"/>
+									</vbox>
+								</row>
+							</rows>
+						</grid>
+						<!-- General -->
+					</tabpanel>
+					<tabpanel id="TabBar"/>
+				</tabpanels>
+			</tabbox>
+		</tabcontrol>
+	</vbox>
 </page>
