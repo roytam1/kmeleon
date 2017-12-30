@@ -33,7 +33,8 @@ class nsIX509Cert;
 #include "nsIWebBrowserFocus.h"
 #include "nsIWebBrowserPrint.h"
 #include "nsIBaseWindow.h"
-
+#include "nsIDOMNSEditableElement.h"
+#include "nsIEditor.h"
 
 class nsITypeAheadFind;
 class nsIDOMKeyEvent;
@@ -130,13 +131,50 @@ public:
 		return res;
 	}
 
-	BOOL IsSelectionCollapsed()
+	BOOL GetEditor2(nsCOMPtr<nsPIDOMWindow> piWin, nsCOMPtr<nsIEditor>& editor)
+	{
+		if (!piWin) return FALSE;
+		nsIDocShell* docShell = piWin->GetDocShell();
+		if (!docShell) return FALSE;
+
+		docShell->GetEditor(getter_AddRefs(editor));
+		NS_ENSURE_TRUE(editor, FALSE);
+		return TRUE;
+	}
+
+	BOOL GetEditor1(nsCOMPtr<nsIEditor>& editor)
+	{
+		nsresult rv;
+
+		NS_ENSURE_TRUE(mWebBrowserFocus, FALSE);
+
+		nsCOMPtr<nsIDOMElement> elem;
+		rv = mWebBrowserFocus->GetFocusedElement(getter_AddRefs(elem));
+		NS_ENSURE_TRUE(elem, FALSE);
+
+		nsCOMPtr<nsIDOMNSEditableElement> ee(do_QueryInterface(elem));
+		NS_ENSURE_TRUE(ee, FALSE);
+
+		rv = ee->GetEditor(getter_AddRefs(editor));
+		NS_ENSURE_TRUE(editor, FALSE);
+
+		return TRUE;
+	}
+
+	BOOL CanCopy2()
 	{
 		nsCOMPtr<nsIDOMWindow> dom;
 		if (mWebBrowser) mWebBrowser->GetContentDOMWindow(getter_AddRefs(dom));
 		nsCOMPtr<nsPIDOMWindow> domWindow = do_QueryInterface(dom);
+		nsCOMPtr<nsIEditor> editor;
 		nsCOMPtr<nsISelection> domSelection;
-		domWindow->GetSelection(getter_AddRefs(domSelection));
+		if (GetEditor1(editor) || GetEditor2(domWindow, editor)) {
+			editor->GetSelection(getter_AddRefs(domSelection));
+		} else {
+			domWindow->GetSelection(getter_AddRefs(domSelection));
+		}
+		NS_ENSURE_TRUE(domSelection, false);
+
 		bool selectionCollapsed = false;
 		domSelection->GetIsCollapsed(&selectionCollapsed);
 		return selectionCollapsed;
