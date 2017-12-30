@@ -177,7 +177,7 @@ public:
 
 		bool selectionCollapsed = false;
 		domSelection->GetIsCollapsed(&selectionCollapsed);
-		return selectionCollapsed;
+		return !selectionCollapsed;
 	}
 
 	BOOL Reload(bool force)
