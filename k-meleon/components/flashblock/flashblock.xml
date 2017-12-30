@@ -5,18 +5,34 @@
    xmlns:html="http://www.w3.org/1999/xhtml"
 >
 
-<binding id="flash">
+<binding id="flash"
+         bindToUntrustedContent="true">
   <implementation>
     <constructor>
         <![CDATA[
 
+//From Jesse's XPCNativeWrapper: http://mavra.perilith.com/~luser/content/native.js
+function nativeMethod(untrustedObject, methodName)
+{
+  // happier stack traces and faster multiple calls
+  var fun = Components.lookupMethod(untrustedObject, methodName);
+  
+  return function()
+  {
+    return fun.apply(untrustedObject, arguments);
+  }
+}
 
 function flashblockCreatePlaceholder(isStandalone) {
 	// Create placeholder
 	var flashblockCreateElement;
 	var placeholder;
-	placeholder = document.createElementNS( "http://www.w3.org/1999/xhtml", "div"); 
-	
+	try {
+		flashblockCreateElement = nativeMethod(document, "createElementNS");
+		placeholder = flashblockCreateElement("http://www.w3.org/1999/xhtml", "div");
+	} catch (e) {
+		placeholder = document.createElementNS( "http://www.w3.org/1999/xhtml", "div"); 
+	}
 	placeholder.isStandalone = isStandalone;
 	return placeholder;
 }
@@ -95,13 +111,14 @@ function flashblockIsWhitelisted(node, type) {
 	// thought of it on my own. :-)
 	// Lor 20041215: Use "UIEvents" to make it work in post-1.0 FF
 	// (thanks to Neil again)
+	// bz says QI is a no-op.
 	document.QueryInterface(Components.interfaces.nsIDOMDocument);
 	var flashblockEvent = document.createEvent("UIEvents");
 	if(flashblockEvent) {
 		var evt = type == "silverlight" ? "silverblockCheckLoad" : "flashblockCheckLoad";
 		flashblockEvent.initEvent(evt, true, true);
 		node.dispatchEvent(flashblockEvent);
-		if(flashblockEvent.getPreventDefault() == true) {
+		if(flashblockEvent.defaultPrevented || node.hasAttribute("data-flashblockWhitelisted")) {
 			// Whitelisted
 			return true;
 		}
@@ -280,8 +297,13 @@ flashblockStylePlaceholder(current, placeholder, isStandalone);
 flashblockSetTitle(current, placeholder, isStandalone);
 
 // Replace the flash document with a placeholder.
-window.setTimeout(flashblockShowPlaceholder, 0);
-
+try {
+    var flashblockSetTimeout = nativeMethod(window, "setTimeout");
+    flashblockSetTimeout(flashblockShowPlaceholder, 0);
+}
+catch (e) {
+    window.setTimeout(flashblockShowPlaceholder, 0);
+}
 
 // Change the placeholder background when the mouse enters/exits the div.
 placeholder.addEventListener("mouseover",
@@ -310,25 +332,29 @@ placeholder.addEventListener("keypress", flashblockShowFlash, "false");
   </implementation>
 </binding>
 
-<binding id="director" extends="#flash">
+<binding id="director" extends="#flash"
+         bindToUntrustedContent="true">
   <implementation>
     <field name="flashblockType">"director"</field>
   </implementation>
 </binding>
 
-<binding id="authorware" extends="#flash">
+<binding id="authorware" extends="#flash"
+         bindToUntrustedContent="true">
   <implementation>
     <field name="flashblockType">"authorware"</field>
   </implementation>
 </binding>
 
-<binding id="silverlight" extends="#flash">
+<binding id="silverlight" extends="#flash"
+         bindToUntrustedContent="true">
   <implementation>
     <field name="flashblockType">"silverlight"</field>
   </implementation>
 </binding>
 
-<binding id="brokenobject">
+<binding id="brokenobject"
+         bindToUntrustedContent="true">
   <implementation>
 
     <field name="brokenObject">"yes"</field>
@@ -336,18 +362,34 @@ placeholder.addEventListener("keypress", flashblockShowFlash, "false");
     <constructor>
         <![CDATA[
 
+//From Jesse's XPCNativeWrapper: http://mavra.perilith.com/~luser/content/native.js
+function nativeMethod(untrustedObject, methodName)
+{
+  // happier stack traces and faster multiple calls
+  var fun = Components.lookupMethod(untrustedObject, methodName);
+  
+  return function()
+  {
+    return fun.apply(untrustedObject, arguments);
+  }
+}
+
 function flashblockCreatePlaceholder(isStandalone) {
 	// Create placeholder
 	var flashblockCreateElement;
 	var placeholder;
-	placeholder = document.createElementNS( "http://www.w3.org/1999/xhtml", "div"); 
-	
+	try {
+		flashblockCreateElement = nativeMethod(document, "createElementNS");
+		placeholder = flashblockCreateElement("http://www.w3.org/1999/xhtml", "div");
+	} catch (e) {
+		placeholder = document.createElementNS( "http://www.w3.org/1999/xhtml", "div"); 
+	}
 	placeholder.isStandalone = isStandalone;
 	return placeholder;
 }
 
 // Substitute the animation with a placeholder
-function flashblockShowPlaceholder() {
+function flashblockShowPlaceholder(placeholder, current, parent) {
 	// Just in case the object has been moved away from under our feet during
 	// the timeout, re-assign the parent node. See bug 13680
 	// parent = current.parentNode;
@@ -420,13 +462,15 @@ function flashblockIsWhitelisted(node, type) {
 	// thought of it on my own. :-)
 	// Lor 20041215: Use "UIEvents" to make it work in post-1.0 FF
 	// (thanks to Neil again)
+	// bz says QI is a no-op.
 	document.QueryInterface(Components.interfaces.nsIDOMDocument);
 	var flashblockEvent = document.createEvent("UIEvents");
 	if(flashblockEvent) {
 		var evt = type == "silverlight" ? "silverblockCheckLoad" : "flashblockCheckLoad";
 		flashblockEvent.initEvent(evt, true, true);
 		node.dispatchEvent(flashblockEvent);
-		if(flashblockEvent.getPreventDefault() == true) {
+    node.ownerDocument.defaultView.console.log(node.ownerDocument.URL + " ==> " + flashblockEvent.defaultPrevented);
+		if(flashblockEvent.defaultPrevented || node.hasAttribute("data-flashblockWhitelisted")) {
 			// Whitelisted
 			return true;
 		}
@@ -630,8 +674,13 @@ flashblockStylePlaceholder(current, placeholder, isStandalone);
 flashblockSetTitle(current, placeholder, isStandalone);
 
 // Replace the flash document with a placeholder.
-window.setTimeout(flashblockShowPlaceholder, 0, placeholder, current, parent);
-
+try {
+    var flashblockSetTimeout = nativeMethod(window, "setTimeout");
+    flashblockSetTimeout(flashblockShowPlaceholder, 0, placeholder, current, parent);
+}
+catch (e) {
+    window.setTimeout(flashblockShowPlaceholder, 0, placeholder, current, parent);
+}
 
 // Change the placeholder background when the mouse enters/exits the div.
 placeholder.addEventListener("mouseover",
@@ -660,18 +709,20 @@ placeholder.addEventListener("keypress", flashblockShowFlash, "false");
   </implementation>
 </binding>
 
-<binding id="sifr-replaced">
+<binding id="sifr-replaced"
+         bindToUntrustedContent="true">
   <implementation>
     <constructor>
         <![CDATA[
 
+// bz says QI is a no-op.
 document.QueryInterface(Components.interfaces.nsIDOMDocument);
 event = document.createEvent("UIEvents");
 
 if(event) {
 	event.initEvent("flashblockCheckLoad", true, true);
 	this.dispatchEvent(event);
-	if(event.getPreventDefault() == true) {
+	if(event.defaultPrevented || this.hasAttribute("data-flashblockWhitelisted")) {
 		// Whitelisted
 		return;
 	}
@@ -687,18 +738,20 @@ this.style.overflow ="hidden";
   </implementation>
 </binding>
 
-<binding id="sifr-alternate">
+<binding id="sifr-alternate"
+         bindToUntrustedContent="true">
   <implementation>
     <constructor>
         <![CDATA[
 
+// bz says QI is a no-op.
 document.QueryInterface(Components.interfaces.nsIDOMDocument);
 var event = document.createEvent("UIEvents");
 
 if(event) {
 	event.initEvent("flashblockCheckLoad", true, true);
 	this.dispatchEvent(event);
-	if(event.getPreventDefault() == true) {
+	if(event.defaultPrevented || this.hasAttribute("data-flashblockWhitelisted")) {
 		// Whitelisted
 		return;
 	}

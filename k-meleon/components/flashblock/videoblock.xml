@@ -5,7 +5,8 @@
    xmlns:html="http://www.w3.org/1999/xhtml"
 >
 
-<binding id="html5video">
+<binding id="html5video"
+         bindToUntrustedContent="true">
   <implementation>
     <constructor>
         <![CDATA[
@@ -89,7 +90,7 @@ function flashblockIsWhitelisted(node) {
     var evt = "HTML5VideoCheckLoad";
     flashblockEvent.initEvent(evt, true, true);
     node.dispatchEvent(flashblockEvent);
-    if(flashblockEvent.getPreventDefault())
+    if(flashblockEvent.defaultPrevented || node.hasAttribute("data-flashblockWhitelisted"))
       return true; // Whitelisted
   }
   return false;
