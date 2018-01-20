@@ -965,7 +965,7 @@ index 730515e53..860fa05de 100644
 +      // K-Meleon hack!!
 +      try {
 +        var jsb = Components.classes["@kmeleon/jsbridge;1"].getService(Components.interfaces["nsIJSBridge"]);
-+        var wb = jsb.Open("about:blank",3); //3=newtab
++        var wb = jsb.Open("about:blank",4); //4=newbgtab
 +        parent = wb.contentDOMWindow;
 +      } catch (ex) {}
 +    }
