@@ -954,44 +954,59 @@ index b2a47cf32..082e80ea5 100644
  
    // This function exists to implement window.external.IsSearchProviderInstalled(),
 diff --git a/toolkit/mozapps/downloads/nsHelperAppDlg.js b/toolkit/mozapps/downloads/nsHelperAppDlg.js
-index 730515e53..fc63ac002 100644
+index 730515e53..860fa05de 100644
 --- a/toolkit/mozapps/downloads/nsHelperAppDlg.js
 +++ b/toolkit/mozapps/downloads/nsHelperAppDlg.js
-@@ -974,6 +974,8 @@ nsUnknownContentTypeDialog.prototype = {
+@@ -221,6 +221,15 @@ nsUnknownContentTypeDialog.prototype = {
+       parent = aContext.QueryInterface(Ci.nsIInterfaceRequestor).getInterface(Ci.nsIDOMWindow);
+     } catch (ex) {}
+ 
++    if(!parent) {
++      // K-Meleon hack!!
++      try {
++        var jsb = Components.classes["@kmeleon/jsbridge;1"].getService(Components.interfaces["nsIJSBridge"]);
++        var wb = jsb.Open("about:blank",3); //3=newtab
++        parent = wb.contentDOMWindow;
++      } catch (ex) {}
++    }
++
+     if (parent) {
+       gDownloadLastDir = new downloadModule.DownloadLastDir(parent);
+     } else {
+@@ -974,6 +983,8 @@ nsUnknownContentTypeDialog.prototype = {
      // Unhook dialog from this object.
      this.mDialog.dialog = null;
  
 +    this.cleanUp();
-+    
++
      // Close up dialog by returning true.
      return true;
    },
-@@ -992,9 +994,25 @@ nsUnknownContentTypeDialog.prototype = {
+@@ -992,10 +1003,24 @@ nsUnknownContentTypeDialog.prototype = {
      // Unhook dialog from this object.
      this.mDialog.dialog = null;
  
-+    this.cleanUp();   
-+    
++    this.cleanUp();
++
      // Close up dialog by returning true.
      return true;
    },
-+  
+ 
 +  cleanUp: function() {
 +    // If the window that launched the download is "about:blank"
 +    // then we need to close it.
++    let parent;
 +    try {
-+      var ir = this.mContext.QueryInterface(Components.interfaces.nsIInterfaceRequestor);
-+      var dwi = ir.getInterface(Components.interfaces.nsIDOMWindow);
-+      if (dwi && dwi.document.location == 'about:blank') {
-+        dwi.close();
-+      }
-+    } catch (ex) {
-+      return;
++      parent = aContext.QueryInterface(Ci.nsIInterfaceRequestor).getInterface(Ci.nsIDOMWindow);
++    } catch (ex) {}
++    if (parent && parent.document.location == 'about:blank') {
++      parent.close();
 +    }
 +  },
- 
++
    // dialogElement:  Convenience.
    dialogElement: function(id) {
+     return this.mDialog.document.getElementById(id);
 diff --git a/toolkit/mozapps/extensions/AddonManager.jsm b/toolkit/mozapps/extensions/AddonManager.jsm
 index 38303726b..a586ece1a 100644
 --- a/toolkit/mozapps/extensions/AddonManager.jsm
