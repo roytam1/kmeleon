@@ -189,5 +189,19 @@
     <Filter Include="Resources">
       <UniqueIdentifier>{81230a88-6d57-48e3-94b4-731a450f618e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Application Manifest Files">
+      <UniqueIdentifier>{788e4691-d169-4033-b6d2-1a20d3c68eb2}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="DPIaware.manifest">
+      <Filter>Application Manifest Files</Filter>
+    </Manifest>
+    <Manifest Include="comctl6.manifest">
+      <Filter>Application Manifest Files</Filter>
+    </Manifest>
+    <Manifest Include="compatibility.manifest">
+      <Filter>Application Manifest Files</Filter>
+    </Manifest>
   </ItemGroup>
 </Project>

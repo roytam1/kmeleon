@@ -106,6 +106,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>
       <DisableSpecificWarnings>4800;4819;4996;4244</DisableSpecificWarnings>
+      <AdditionalOptions>/FS %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <TargetMachine>MachineX86</TargetMachine>
@@ -301,6 +302,11 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="mfcembed.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="comctl6.manifest" />
+    <Manifest Include="compatibility.manifest" />
+    <Manifest Include="DPIaware.manifest" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -108,6 +108,7 @@
       <DisableSpecificWarnings>4800;4819;4996</DisableSpecificWarnings>
       <ShowIncludes>false</ShowIncludes>
       <PrecompiledHeaderFile />
+      <AdditionalOptions>/FS %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <TargetMachine>MachineX86</TargetMachine>
