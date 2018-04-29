@@ -21,9 +21,8 @@
 #pragma once
 
 #include "afxtempl.h"
-
-#include "imgIRequest.h"
 #include "imgINotificationObserver.h"
+#include "imgIRequest.h"
 
 class CFavIconList;
 
@@ -53,21 +52,19 @@ private:
 	int m_iDefaultIcon;
 	int m_iLoadingIcon;
 	int m_iOffset;
-	//nsCOMPtr<IconObserver> mIconObserver;
 	
-	void AddMap(const char *uri, int index, const char* pageUri = nullptr);
+	void AddMap(const char *uri, int index);
 	int AddDownloadedIcon(char* uri, TCHAR* file, nsresult aStatus);
 	BOOL LoadCache();
-	
 
 public:
 	CFavIconList();
 	virtual ~CFavIconList();
 
 	BOOL WriteCache();
-	int AddIcon(const char* uri, CBitmap*, CBitmap*, const char* pageUri = nullptr);
-	int AddIcon(const char* uri, CBitmap*, COLORREF, const char* pageUri = nullptr);
-	int AddIcon(const char* uri, HICON icon, const char* pageUri = nullptr);
+	int AddIcon(const char* uri, CBitmap*, CBitmap*);
+	int AddIcon(const char* uri, CBitmap*, COLORREF);
+	int AddIcon(const char* uri, HICON icon);
 
 	int GetHostIcon(const TCHAR* aUri);
 	int GetIcon(const TCHAR* uri);

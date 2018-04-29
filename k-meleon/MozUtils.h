@@ -39,4 +39,35 @@ bool GetFrameURL(nsIWebBrowser* aWebBrowser, nsIDOMNode* aNode, nsString& url);
 
 BOOL LogMessage(const char* category, const char* message, const char* file, uint line, uint flags);
 
+interface IDownloadObserver {
+	virtual void OnDownload(nsIURI*, nsresult, LPSTREAM, LPCTSTR) = 0;
+	virtual ~IDownloadObserver() {};
+};
+
+bool DownloadToStream(nsIURI* uri, IDownloadObserver*);
+bool DownloadToFile(nsIURI* uri, LPCTSTR path, IDownloadObserver*);
+
+#include "nsIStreamListener.h"
+class streamListener : public nsIStreamListener, public nsSupportsWeakReference
+{
+public:
+	NS_DECL_ISUPPORTS
+	NS_DECL_NSISTREAMLISTENER
+	NS_DECL_NSIREQUESTOBSERVER
+
+	streamListener(IDownloadObserver* observer, LPCTSTR path = NULL, LPSTREAM stream = NULL) : 
+		mStream(stream), 
+		mPath(path),
+		mObserver(observer) {		
+	}
+
+	virtual ~streamListener() { 
+		if (mObserver) delete mObserver;
+	}
+protected:
+	IDownloadObserver* mObserver;
+	CComPtr<IStream> mStream;
+	CString mPath;
+};
+
 #endif

@@ -927,7 +927,7 @@ void CTabReBar::OnNMCustomdraw(NMHDR *pNMHDR, LRESULT *pResult)
 			}			
 		}
 		
-		UINT textFlag = DT_LEFT | DT_SINGLELINE | DT_VCENTER | DT_HIDEPREFIX | DT_WORD_ELLIPSIS;
+		UINT textFlag = DT_LEFT | DT_SINGLELINE | DT_VCENTER /*| DT_HIDEPREFIX*/ | DT_WORD_ELLIPSIS;
 		
 		CString text = GetButtonText(index);
 		int image = GetItemImage(pNMCD->nmcd.dwItemSpec);

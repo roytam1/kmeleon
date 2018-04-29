@@ -18,7 +18,7 @@ public:
 		cmdMap.insert(std::pair<UINT,nsICommandFunction*>(id, command));
 	}
 	bool Run(UINT command, UINT mode) {
-		auto iter = cmdMap.find(command);
+		std::map<UINT, nsCOMPtr<nsICommandFunction>>::iterator iter = cmdMap.find(command);
 		if (iter != cmdMap.end() && iter->second) {
 			iter->second->OnCommand(mode);
 			return true;

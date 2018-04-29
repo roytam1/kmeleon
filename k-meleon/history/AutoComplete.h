@@ -95,7 +95,7 @@ NS_IMETHODIMP CACListener::OnSearchResult(nsIAutoCompleteSearch *search, nsIAuto
 		}
 	}
 	else
-		m_oldResult = nsnull;
+		m_oldResult = NULL;
 
 	return NS_OK;
 }
@@ -215,7 +215,7 @@ int AutoComplete(char* aSearchString, AutoCompleteResult** results)
 #if GECKO_VERSION > 18		
 		// Now there is a bug preventing the usage of the old result.
 		// The new search string is not passed to the result *-)
-		autoComplete->StartSearch(searchString, EmptyString(), nsnull /*m_oldResult*/, &listener);
+		autoComplete->StartSearch(searchString, EmptyString(), NULL /*m_oldResult*/, &listener);
 #else
 		// I'm not using oldresult to partially fix a weird behavior
 		// of mozilla who always cut prefix of url before searching  

@@ -103,7 +103,7 @@ void CReBarEx::OnNcPaint()
 	SendMessage(WM_ERASEBKGND, (WPARAM)dc.m_hDC);
 
 	// draw gripper in non-client area
-	DrawNCGripper(&dc, rectWindow);
+	//DrawNCGripper(&dc, rectWindow);
 }
 
 void CReBarEx::SetNeedSeparator(bool aNeed)

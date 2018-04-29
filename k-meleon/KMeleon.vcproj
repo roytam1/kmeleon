@@ -1,426 +1,611 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.10"
+	Version="8.00"
 	Name="k-meleon"
+	ProjectGUID="{A1E2BBD2-452C-41F6-A64A-9476398A17DA}"
 	RootNamespace="k-meleon"
-	SccProjectName=""
-	SccLocalPath=""
-	Keyword="MFCProj">
+	Keyword="MFCProj"
+	>
 	<Platforms>
 		<Platform
-			Name="Win32"/>
+			Name="Win32"
+		/>
 	</Platforms>
+	<ToolFiles>
+	</ToolFiles>
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
 			OutputDirectory=".\Debug"
 			IntermediateDirectory=".\Debug"
 			ConfigurationType="1"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="2"
-			ATLMinimizesCRunTimeLibraryUsage="FALSE"
-			CharacterSet="2">
+			ATLMinimizesCRunTimeLibraryUsage="false"
+			CharacterSet="2"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+				PreprocessorDefinitions="_DEBUG"
+				MkTypLibCompatible="true"
+				SuppressStartupBanner="true"
+				TargetEnvironment="1"
+				TypeLibraryName=".\Debug/KMeleon.tlb"
+				HeaderFileName=""
+			/>
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="../mozilla/mozilla/dist/include/suitetypeaheadfind;../mozilla/mozilla/dist/include/thebes;../mozilla/mozilla/dist/include/chrome;../mozilla/mozilla/dist/include;../mozilla/mozilla/dist/include/chardet;../mozilla/mozilla/dist/include/js;../mozilla/mozilla/dist/include/xpconnect;../mozilla/mozilla/dist/include/caps;../mozilla/mozilla/dist/include/mimetype;../mozilla/mozilla/dist/include/imglib2;../mozilla/mozilla/dist/include/content;../mozilla/mozilla/dist/include/locale;../mozilla/mozilla/dist/include/pipboot;../mozilla/mozilla/dist/include/pippki;../mozilla/mozilla/dist/include/pipnss;../mozilla/mozilla/dist/include/cookie;../mozilla/mozilla/dist/include/xpcom_obsolete;../mozilla/mozilla/dist/include/typeaheadfind;../mozilla/mozilla/dist/include/appcomps;../mozilla/mozilla/dist/include/history;../mozilla/mozilla/dist/include/rdf;../mozilla/mozilla/dist/include/docshell;../mozilla/mozilla/dist/include/dom;../mozilla/mozilla/dist/include/embed_base;../mozilla/mozilla/dist/include/exthandler;../mozilla/mozilla/dist/include/find;../mozilla/mozilla/dist/include/gfx;../mozilla/mozilla/dist/include/helperAppDlg;../mozilla/mozilla/dist/include/intl;../mozilla/mozilla/dist/include/layout;../mozilla/mozilla/dist/include/necko;../mozilla/mozilla/dist/include/nkcache;../mozilla/mozilla/dist/include/pref;../mozilla/mozilla/dist/include/profile;../mozilla/mozilla/dist/include/shistory;../mozilla/mozilla/dist/include/string;../mozilla/mozilla/dist/include/uriloader;../mozilla/mozilla/dist/include/wallet;../mozilla/mozilla/dist/include/webBrowser_core;../mozilla/mozilla/dist/include/webbrowserpersist;../mozilla/mozilla/dist/include/webshell;../mozilla/mozilla/dist/include/widget;../mozilla/mozilla/dist/include/windowwatcher;../mozilla/mozilla/dist/include/xpcom;../mozilla/mozilla/dist/include/nspr;../mozilla/mozilla/dist/include/webbrwsr;../mozilla/mozilla/dist/include/commandhandler;../mozilla/mozilla/dist/include/plugin"
 				PreprocessorDefinitions="_DEBUG;WIN32;_WINDOWS;HW_THREADS;XP_PC;XP_WIN;XP_WIN32;WINVER=0x400;XPCOM_GLUE;"
 				BasicRuntimeChecks="3"
-				SmallerTypeCheck="TRUE"
+				SmallerTypeCheck="true"
 				RuntimeLibrary="3"
-				BufferSecurityCheck="TRUE"
-				EnableFunctionLevelLinking="TRUE"
-				UsePrecompiledHeader="3"
+				BufferSecurityCheck="true"
+				EnableFunctionLevelLinking="true"
+				UsePrecompiledHeader="2"
 				PrecompiledHeaderThrough="stdafx.h"
 				BrowseInformation="1"
 				WarningLevel="3"
-				SuppressStartupBanner="TRUE"
+				SuppressStartupBanner="true"
 				DebugInformationFormat="4"
-				CompileAs="0"/>
+				CompileAs="0"
+			/>
 			<Tool
-				Name="VCCustomBuildTool"/>
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="1033"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="xpcomglue.lib embed_base_s.lib nspr4.lib"
 				OutputFile="..\debug\$(ProjectName).exe"
-				SuppressStartupBanner="TRUE"
+				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="..\mozilla\mozilla\dist\lib_debug"
 				IgnoreDefaultLibraryNames=""
-				GenerateDebugInformation="TRUE"
-				GenerateMapFile="TRUE"
+				GenerateDebugInformation="true"
+				GenerateMapFile="true"
 				MapFileName=".\Debug/k-meleon.map"
 				SubSystem="2"
-				TargetMachine="1"/>
+				TargetMachine="1"
+			/>
 			<Tool
-				Name="VCMIDLTool"
-				PreprocessorDefinitions="_DEBUG"
-				MkTypLibCompatible="TRUE"
-				SuppressStartupBanner="TRUE"
-				TargetEnvironment="1"
-				TypeLibraryName=".\Debug/KMeleon.tlb"
-				HeaderFileName=""/>
+				Name="VCALinkTool"
+			/>
 			<Tool
-				Name="VCPostBuildEventTool"/>
+				Name="VCManifestTool"
+			/>
 			<Tool
-				Name="VCPreBuildEventTool"/>
+				Name="VCXDCMakeTool"
+			/>
 			<Tool
-				Name="VCPreLinkEventTool"/>
+				Name="VCBscMakeTool"
+			/>
 			<Tool
-				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="_DEBUG"
-				Culture="1033"/>
+				Name="VCFxCopTool"
+			/>
 			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
+				Name="VCAppVerifierTool"
+			/>
 			<Tool
-				Name="VCXMLDataGeneratorTool"/>
+				Name="VCWebDeploymentTool"
+			/>
 			<Tool
-				Name="VCWebDeploymentTool"/>
-			<Tool
-				Name="VCManagedWrapperGeneratorTool"/>
-			<Tool
-				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+				Name="VCPostBuildEventTool"
+			/>
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory=".\Release"
 			IntermediateDirectory=".\Release"
 			ConfigurationType="1"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="2"
-			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			ATLMinimizesCRunTimeLibraryUsage="false"
 			CharacterSet="2"
-			WholeProgramOptimization="TRUE">
+			WholeProgramOptimization="1"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+				PreprocessorDefinitions="NDEBUG"
+				MkTypLibCompatible="true"
+				SuppressStartupBanner="true"
+				TargetEnvironment="1"
+				TypeLibraryName=".\Release/KMeleon.tlb"
+				HeaderFileName=""
+			/>
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="1"
 				AdditionalIncludeDirectories="../mozilla/mozilla/dist/include/chrome;../mozilla/mozilla/dist/include;../mozilla/mozilla/dist/include/chardet;../mozilla/mozilla/dist/include/js;../mozilla/mozilla/dist/include/xpconnect;../mozilla/mozilla/dist/include/caps;../mozilla/mozilla/dist/include/mimetype;../mozilla/mozilla/dist/include/imglib2;../mozilla/mozilla/dist/include/content;../mozilla/mozilla/dist/include/locale;../mozilla/mozilla/dist/include/pipboot;../mozilla/mozilla/dist/include/pippki;../mozilla/mozilla/dist/include/pipnss;../mozilla/mozilla/dist/include/cookie;../mozilla/mozilla/dist/include/xpcom_obsolete;../mozilla/mozilla/dist/include/typeaheadfind;../mozilla/mozilla/dist/include/appcomps;../mozilla/mozilla/dist/include/history;../mozilla/mozilla/dist/include/rdf;../mozilla/mozilla/dist/include/docshell;../mozilla/mozilla/dist/include/dom;../mozilla/mozilla/dist/include/embed_base;../mozilla/mozilla/dist/include/exthandler;../mozilla/mozilla/dist/include/find;../mozilla/mozilla/dist/include/gfx;../mozilla/mozilla/dist/include/helperAppDlg;../mozilla/mozilla/dist/include/intl;../mozilla/mozilla/dist/include/layout;../mozilla/mozilla/dist/include/necko;../mozilla/mozilla/dist/include/nkcache;../mozilla/mozilla/dist/include/pref;../mozilla/mozilla/dist/include/profile;../mozilla/mozilla/dist/include/shistory;../mozilla/mozilla/dist/include/string;../mozilla/mozilla/dist/include/uriloader;../mozilla/mozilla/dist/include/wallet;../mozilla/mozilla/dist/include/webBrowser_core;../mozilla/mozilla/dist/include/webbrowserpersist;../mozilla/mozilla/dist/include/webshell;../mozilla/mozilla/dist/include/widget;../mozilla/mozilla/dist/include/windowwatcher;../mozilla/mozilla/dist/include/xpcom;../mozilla/mozilla/dist/include/nspr;../mozilla/mozilla/dist/include/webbrwsr;../mozilla/mozilla/dist/include/commandhandler;../mozilla/mozilla/dist/include/plugin"
 				PreprocessorDefinitions="WIN32;_WINDOWS;HW_THREADS;XP_PC;XP_WIN;XP_WIN32;WINVER=0x400;_WIN32_IE=0x0500;XPCOM_GLUE"
-				StringPooling="TRUE"
+				StringPooling="true"
 				RuntimeLibrary="2"
-				EnableFunctionLevelLinking="TRUE"
-				UsePrecompiledHeader="3"
+				EnableFunctionLevelLinking="true"
+				UsePrecompiledHeader="2"
 				PrecompiledHeaderThrough="StdAfx.h"
 				AssemblerListingLocation=".\Release/"
 				ObjectFile=".\Release/"
 				ProgramDataBaseFileName=".\Release/"
 				BrowseInformation="1"
 				WarningLevel="3"
-				SuppressStartupBanner="TRUE"
-				CompileAs="0"/>
+				SuppressStartupBanner="true"
+				CompileAs="0"
+			/>
 			<Tool
-				Name="VCCustomBuildTool"/>
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="1033"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="-HEAP:0x40000"
 				AdditionalDependencies="xpcomglue.lib embed_base_s.lib nspr4.lib"
 				OutputFile="..\release\k-meleon.exe"
 				LinkIncremental="1"
-				SuppressStartupBanner="TRUE"
+				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="..\mozilla\mozilla\dist\lib"
 				SubSystem="2"
 				OptimizeForWindows98="1"
-				TargetMachine="1"/>
+				TargetMachine="1"
+			/>
 			<Tool
-				Name="VCMIDLTool"
-				PreprocessorDefinitions="NDEBUG"
-				MkTypLibCompatible="TRUE"
-				SuppressStartupBanner="TRUE"
-				TargetEnvironment="1"
-				TypeLibraryName=".\Release/KMeleon.tlb"
-				HeaderFileName=""/>
+				Name="VCALinkTool"
+			/>
 			<Tool
-				Name="VCPostBuildEventTool"/>
+				Name="VCManifestTool"
+			/>
 			<Tool
-				Name="VCPreBuildEventTool"/>
+				Name="VCXDCMakeTool"
+			/>
 			<Tool
-				Name="VCPreLinkEventTool"/>
+				Name="VCBscMakeTool"
+			/>
 			<Tool
-				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="NDEBUG"
-				Culture="1033"/>
+				Name="VCFxCopTool"
+			/>
 			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
+				Name="VCAppVerifierTool"
+			/>
 			<Tool
-				Name="VCXMLDataGeneratorTool"/>
+				Name="VCWebDeploymentTool"
+			/>
 			<Tool
-				Name="VCWebDeploymentTool"/>
-			<Tool
-				Name="VCManagedWrapperGeneratorTool"/>
-			<Tool
-				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+				Name="VCPostBuildEventTool"
+			/>
 		</Configuration>
 		<Configuration
 			Name="Release MFC Static|Win32"
 			OutputDirectory="$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="1"
-			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			ATLMinimizesCRunTimeLibraryUsage="false"
 			CharacterSet="2"
-			WholeProgramOptimization="TRUE">
+			WholeProgramOptimization="1"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+				PreprocessorDefinitions="NDEBUG"
+				MkTypLibCompatible="true"
+				SuppressStartupBanner="true"
+				TargetEnvironment="1"
+				TypeLibraryName=".\Release/KMeleon.tlb"
+				HeaderFileName=""
+			/>
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="1"
 				AdditionalIncludeDirectories="../mozilla/mozilla/dist/include/chrome;../mozilla/mozilla/dist/include;../mozilla/mozilla/dist/include/chardet;../mozilla/mozilla/dist/include/js;../mozilla/mozilla/dist/include/xpconnect;../mozilla/mozilla/dist/include/caps;../mozilla/mozilla/dist/include/mimetype;../mozilla/mozilla/dist/include/imglib2;../mozilla/mozilla/dist/include/content;../mozilla/mozilla/dist/include/locale;../mozilla/mozilla/dist/include/pipboot;../mozilla/mozilla/dist/include/pippki;../mozilla/mozilla/dist/include/pipnss;../mozilla/mozilla/dist/include/cookie;../mozilla/mozilla/dist/include/xpcom_obsolete;../mozilla/mozilla/dist/include/typeaheadfind;../mozilla/mozilla/dist/include/appcomps;../mozilla/mozilla/dist/include/history;../mozilla/mozilla/dist/include/rdf;../mozilla/mozilla/dist/include/docshell;../mozilla/mozilla/dist/include/dom;../mozilla/mozilla/dist/include/embed_base;../mozilla/mozilla/dist/include/exthandler;../mozilla/mozilla/dist/include/find;../mozilla/mozilla/dist/include/gfx;../mozilla/mozilla/dist/include/helperAppDlg;../mozilla/mozilla/dist/include/intl;../mozilla/mozilla/dist/include/layout;../mozilla/mozilla/dist/include/necko;../mozilla/mozilla/dist/include/nkcache;../mozilla/mozilla/dist/include/pref;../mozilla/mozilla/dist/include/profile;../mozilla/mozilla/dist/include/shistory;../mozilla/mozilla/dist/include/string;../mozilla/mozilla/dist/include/uriloader;../mozilla/mozilla/dist/include/wallet;../mozilla/mozilla/dist/include/webBrowser_core;../mozilla/mozilla/dist/include/webbrowserpersist;../mozilla/mozilla/dist/include/webshell;../mozilla/mozilla/dist/include/widget;../mozilla/mozilla/dist/include/windowwatcher;../mozilla/mozilla/dist/include/xpcom;../mozilla/mozilla/dist/include/nspr;../mozilla/mozilla/dist/include/webbrwsr;../mozilla/mozilla/dist/include/commandhandler;../mozilla/mozilla/dist/include/plugin"
 				PreprocessorDefinitions="WIN32;_WINDOWS;HW_THREADS;XP_PC;XP_WIN;XP_WIN32;WINVER=0x400;_WIN32_IE=0x0500;XPCOM_GLUE;"
-				StringPooling="TRUE"
+				StringPooling="true"
 				RuntimeLibrary="2"
-				TreatWChar_tAsBuiltInType="TRUE"
-				UsePrecompiledHeader="3"
+				TreatWChar_tAsBuiltInType="true"
+				UsePrecompiledHeader="2"
 				PrecompiledHeaderThrough="StdAfx.h"
 				BrowseInformation="1"
 				WarningLevel="3"
-				SuppressStartupBanner="TRUE"
+				SuppressStartupBanner="true"
 				DebugInformationFormat="3"
-				CompileAs="0"/>
+				CompileAs="0"
+			/>
 			<Tool
-				Name="VCCustomBuildTool"/>
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="1033"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="-HEAP:0x40000"
 				AdditionalDependencies="xpcomglue.lib embed_base_s.lib nspr4.lib"
 				OutputFile="..\release\k-meleonW9x.exe"
 				LinkIncremental="1"
-				SuppressStartupBanner="TRUE"
+				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="..\mozilla\mozilla\dist\lib"
-				GenerateDebugInformation="TRUE"
+				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
 				OptimizeForWindows98="1"
-				TargetMachine="1"/>
+				TargetMachine="1"
+			/>
 			<Tool
-				Name="VCMIDLTool"
-				PreprocessorDefinitions="NDEBUG"
-				MkTypLibCompatible="TRUE"
-				SuppressStartupBanner="TRUE"
-				TargetEnvironment="1"
-				TypeLibraryName=".\Release/KMeleon.tlb"
-				HeaderFileName=""/>
+				Name="VCALinkTool"
+			/>
 			<Tool
-				Name="VCPostBuildEventTool"/>
+				Name="VCManifestTool"
+			/>
 			<Tool
-				Name="VCPreBuildEventTool"/>
+				Name="VCXDCMakeTool"
+			/>
 			<Tool
-				Name="VCPreLinkEventTool"/>
+				Name="VCBscMakeTool"
+			/>
 			<Tool
-				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="NDEBUG"
-				Culture="1033"/>
+				Name="VCFxCopTool"
+			/>
 			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
+				Name="VCAppVerifierTool"
+			/>
 			<Tool
-				Name="VCXMLDataGeneratorTool"/>
+				Name="VCWebDeploymentTool"
+			/>
 			<Tool
-				Name="VCWebDeploymentTool"/>
-			<Tool
-				Name="VCManagedWrapperGeneratorTool"/>
-			<Tool
-				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+				Name="VCPostBuildEventTool"
+			/>
 		</Configuration>
 		<Configuration
 			Name="Release MFC Static Unicode|Win32"
 			OutputDirectory="$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="1"
-			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			ATLMinimizesCRunTimeLibraryUsage="false"
 			CharacterSet="1"
-			WholeProgramOptimization="TRUE">
+			WholeProgramOptimization="1"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+				PreprocessorDefinitions="NDEBUG"
+				MkTypLibCompatible="true"
+				SuppressStartupBanner="true"
+				TargetEnvironment="1"
+				TypeLibraryName=".\Release/KMeleon.tlb"
+				HeaderFileName=""
+			/>
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="1"
 				AdditionalIncludeDirectories="../mozilla/mozilla/dist/include/thebes;../mozilla/mozilla/dist/include/suitetypeaheadfind;../mozilla/mozilla/dist/include/chrome;../mozilla/mozilla/dist/include;../mozilla/mozilla/dist/include/chardet;../mozilla/mozilla/dist/include/js;../mozilla/mozilla/dist/include/xpconnect;../mozilla/mozilla/dist/include/caps;../mozilla/mozilla/dist/include/mimetype;../mozilla/mozilla/dist/include/imglib2;../mozilla/mozilla/dist/include/content;../mozilla/mozilla/dist/include/locale;../mozilla/mozilla/dist/include/pipboot;../mozilla/mozilla/dist/include/pippki;../mozilla/mozilla/dist/include/pipnss;../mozilla/mozilla/dist/include/cookie;../mozilla/mozilla/dist/include/xpcom_obsolete;../mozilla/mozilla/dist/include/typeaheadfind;../mozilla/mozilla/dist/include/appcomps;../mozilla/mozilla/dist/include/history;../mozilla/mozilla/dist/include/rdf;../mozilla/mozilla/dist/include/docshell;../mozilla/mozilla/dist/include/dom;../mozilla/mozilla/dist/include/embed_base;../mozilla/mozilla/dist/include/exthandler;../mozilla/mozilla/dist/include/find;../mozilla/mozilla/dist/include/gfx;../mozilla/mozilla/dist/include/helperAppDlg;../mozilla/mozilla/dist/include/intl;../mozilla/mozilla/dist/include/layout;../mozilla/mozilla/dist/include/necko;../mozilla/mozilla/dist/include/nkcache;../mozilla/mozilla/dist/include/pref;../mozilla/mozilla/dist/include/profile;../mozilla/mozilla/dist/include/shistory;../mozilla/mozilla/dist/include/string;../mozilla/mozilla/dist/include/uriloader;../mozilla/mozilla/dist/include/wallet;../mozilla/mozilla/dist/include/webBrowser_core;../mozilla/mozilla/dist/include/webbrowserpersist;../mozilla/mozilla/dist/include/webshell;../mozilla/mozilla/dist/include/widget;../mozilla/mozilla/dist/include/windowwatcher;../mozilla/mozilla/dist/include/xpcom;../mozilla/mozilla/dist/include/nspr;../mozilla/mozilla/dist/include/webbrwsr;../mozilla/mozilla/dist/include/commandhandler;../mozilla/mozilla/dist/include/plugin"
 				PreprocessorDefinitions="WIN32;_WINDOWS;HW_THREADS;XP_PC;XP_WIN;XP_WIN32;WINVER=0x400;_WIN32_IE=0x0500;XPCOM_GLUE;"
-				StringPooling="TRUE"
+				StringPooling="true"
 				RuntimeLibrary="2"
-				TreatWChar_tAsBuiltInType="TRUE"
-				UsePrecompiledHeader="3"
+				TreatWChar_tAsBuiltInType="true"
+				UsePrecompiledHeader="2"
 				BrowseInformation="1"
 				WarningLevel="3"
-				SuppressStartupBanner="TRUE"
+				SuppressStartupBanner="true"
 				DebugInformationFormat="3"
-				CompileAs="0"/>
+				CompileAs="0"
+			/>
 			<Tool
-				Name="VCCustomBuildTool"/>
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="1033"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="-HEAP:0x40000"
 				AdditionalDependencies="xpcomglue.lib embed_base_s.lib nspr4.lib uafxcw.lib atls.lib comsupp.lib msvcrt.lib msvcprt.lib libunicows.lib kernel32.lib user32.lib gdi32.lib msimg32.lib comdlg32.lib winspool.lib advapi32.lib shell32.lib comctl32.lib shlwapi.lib ole32.lib oleaut32.lib oldnames.lib uuid.lib oleacc.lib profdirserviceprovidersa_s.lib"
 				OutputFile="..\release\k-meleon.exe"
 				LinkIncremental="1"
-				SuppressStartupBanner="TRUE"
+				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="..\mozilla\mozilla\dist\lib"
-				IgnoreAllDefaultLibraries="TRUE"
-				GenerateDebugInformation="TRUE"
+				IgnoreAllDefaultLibraries="true"
+				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
 				OptimizeForWindows98="1"
-				TargetMachine="1"/>
+				TargetMachine="1"
+			/>
 			<Tool
-				Name="VCMIDLTool"
-				PreprocessorDefinitions="NDEBUG"
-				MkTypLibCompatible="TRUE"
-				SuppressStartupBanner="TRUE"
-				TargetEnvironment="1"
-				TypeLibraryName=".\Release/KMeleon.tlb"
-				HeaderFileName=""/>
+				Name="VCALinkTool"
+			/>
 			<Tool
-				Name="VCPostBuildEventTool"/>
+				Name="VCManifestTool"
+			/>
 			<Tool
-				Name="VCPreBuildEventTool"/>
+				Name="VCXDCMakeTool"
+			/>
 			<Tool
-				Name="VCPreLinkEventTool"/>
+				Name="VCBscMakeTool"
+			/>
 			<Tool
-				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="NDEBUG"
-				Culture="1033"/>
+				Name="VCFxCopTool"
+			/>
 			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
+				Name="VCAppVerifierTool"
+			/>
 			<Tool
-				Name="VCXMLDataGeneratorTool"/>
+				Name="VCWebDeploymentTool"
+			/>
 			<Tool
-				Name="VCWebDeploymentTool"/>
-			<Tool
-				Name="VCManagedWrapperGeneratorTool"/>
-			<Tool
-				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+				Name="VCPostBuildEventTool"
+			/>
 		</Configuration>
 		<Configuration
 			Name="Debug Unicode|Win32"
 			OutputDirectory="$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="2"
-			ATLMinimizesCRunTimeLibraryUsage="FALSE"
-			CharacterSet="1">
+			ATLMinimizesCRunTimeLibraryUsage="false"
+			CharacterSet="1"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+				PreprocessorDefinitions="_DEBUG"
+				MkTypLibCompatible="true"
+				SuppressStartupBanner="true"
+				TargetEnvironment="1"
+				TypeLibraryName=".\Debug/KMeleon.tlb"
+				HeaderFileName=""
+			/>
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="../mozilla/mozilla/dist/include/suitetypeaheadfind;../mozilla/mozilla/dist/include/chrome;../mozilla/mozilla/dist/include/thebes;../mozilla/mozilla/dist/include;../mozilla/mozilla/dist/include/chardet;../mozilla/mozilla/dist/include/js;../mozilla/mozilla/dist/include/xpconnect;../mozilla/mozilla/dist/include/caps;../mozilla/mozilla/dist/include/mimetype;../mozilla/mozilla/dist/include/imglib2;../mozilla/mozilla/dist/include/content;../mozilla/mozilla/dist/include/locale;../mozilla/mozilla/dist/include/pipboot;../mozilla/mozilla/dist/include/pippki;../mozilla/mozilla/dist/include/pipnss;../mozilla/mozilla/dist/include/cookie;../mozilla/mozilla/dist/include/xpcom_obsolete;../mozilla/mozilla/dist/include/typeaheadfind;../mozilla/mozilla/dist/include/appcomps;../mozilla/mozilla/dist/include/history;../mozilla/mozilla/dist/include/rdf;../mozilla/mozilla/dist/include/docshell;../mozilla/mozilla/dist/include/dom;../mozilla/mozilla/dist/include/embed_base;../mozilla/mozilla/dist/include/exthandler;../mozilla/mozilla/dist/include/find;../mozilla/mozilla/dist/include/gfx;../mozilla/mozilla/dist/include/helperAppDlg;../mozilla/mozilla/dist/include/intl;../mozilla/mozilla/dist/include/layout;../mozilla/mozilla/dist/include/necko;../mozilla/mozilla/dist/include/nkcache;../mozilla/mozilla/dist/include/pref;../mozilla/mozilla/dist/include/profile;../mozilla/mozilla/dist/include/shistory;../mozilla/mozilla/dist/include/string;../mozilla/mozilla/dist/include/uriloader;../mozilla/mozilla/dist/include/wallet;../mozilla/mozilla/dist/include/webBrowser_core;../mozilla/mozilla/dist/include/webbrowserpersist;../mozilla/mozilla/dist/include/webshell;../mozilla/mozilla/dist/include/widget;../mozilla/mozilla/dist/include/windowwatcher;../mozilla/mozilla/dist/include/xpcom;../mozilla/mozilla/dist/include/nspr;../mozilla/mozilla/dist/include/webbrwsr;../mozilla/mozilla/dist/include/commandhandler;../mozilla/mozilla/dist/include/plugin"
 				PreprocessorDefinitions="_DEBUG;WIN32;_WINDOWS;HW_THREADS;XP_PC;XP_WIN;XP_WIN32;WINVER=0x400;XPCOM_GLUE;"
 				BasicRuntimeChecks="3"
-				SmallerTypeCheck="TRUE"
+				SmallerTypeCheck="true"
 				RuntimeLibrary="3"
-				BufferSecurityCheck="TRUE"
-				EnableFunctionLevelLinking="TRUE"
-				UsePrecompiledHeader="3"
+				BufferSecurityCheck="true"
+				EnableFunctionLevelLinking="true"
+				UsePrecompiledHeader="2"
 				PrecompiledHeaderThrough="stdafx.h"
 				BrowseInformation="1"
 				WarningLevel="3"
-				SuppressStartupBanner="TRUE"
+				SuppressStartupBanner="true"
 				DebugInformationFormat="4"
-				CompileAs="0"/>
+				CompileAs="0"
+			/>
 			<Tool
-				Name="VCCustomBuildTool"/>
-			<Tool
-				Name="VCLinkerTool"
-				OutputFile="..\debug\$(ProjectName).exe"
-				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="..\mozilla\mozilla\dist\lib_debug"
-				IgnoreAllDefaultLibraries="FALSE"
-				IgnoreDefaultLibraryNames=""
-				GenerateDebugInformation="TRUE"
-				GenerateMapFile="TRUE"
-				MapFileName=".\Debug/k-meleon.map"
-				SubSystem="2"
-				TargetMachine="1"/>
-			<Tool
-				Name="VCMIDLTool"
-				PreprocessorDefinitions="_DEBUG"
-				MkTypLibCompatible="TRUE"
-				SuppressStartupBanner="TRUE"
-				TargetEnvironment="1"
-				TypeLibraryName=".\Debug/KMeleon.tlb"
-				HeaderFileName=""/>
-			<Tool
-				Name="VCPostBuildEventTool"/>
-			<Tool
-				Name="VCPreBuildEventTool"/>
-			<Tool
-				Name="VCPreLinkEventTool"/>
+				Name="VCManagedResourceCompilerTool"
+			/>
 			<Tool
 				Name="VCResourceCompilerTool"
 				PreprocessorDefinitions="_DEBUG"
-				Culture="1033"/>
+				Culture="1033"
+			/>
 			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
+				Name="VCPreLinkEventTool"
+			/>
 			<Tool
-				Name="VCXMLDataGeneratorTool"/>
+				Name="VCLinkerTool"
+				OutputFile="..\debug\$(ProjectName).exe"
+				SuppressStartupBanner="true"
+				AdditionalLibraryDirectories="..\mozilla\mozilla\dist\lib_debug"
+				IgnoreAllDefaultLibraries="false"
+				IgnoreDefaultLibraryNames=""
+				GenerateDebugInformation="true"
+				GenerateMapFile="true"
+				MapFileName=".\Debug/k-meleon.map"
+				SubSystem="2"
+				TargetMachine="1"
+			/>
 			<Tool
-				Name="VCWebDeploymentTool"/>
+				Name="VCALinkTool"
+			/>
 			<Tool
-				Name="VCManagedWrapperGeneratorTool"/>
+				Name="VCManifestTool"
+			/>
 			<Tool
-				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCWebDeploymentTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
 		</Configuration>
 		<Configuration
 			Name="Release Unicode|Win32"
 			OutputDirectory="$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="2"
-			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			ATLMinimizesCRunTimeLibraryUsage="false"
 			CharacterSet="1"
-			WholeProgramOptimization="TRUE">
+			WholeProgramOptimization="1"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+				PreprocessorDefinitions="NDEBUG"
+				MkTypLibCompatible="true"
+				SuppressStartupBanner="true"
+				TargetEnvironment="1"
+				TypeLibraryName=".\Release/KMeleon.tlb"
+				HeaderFileName=""
+			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalOptions="/wd4996 /wd4800 /wd4005"
 				Optimization="1"
-				AdditionalIncludeDirectories="../mozilla/mozilla/dist/include/chrome;../mozilla/mozilla/dist/include;../mozilla/mozilla/dist/include/chardet;../mozilla/mozilla/dist/include/js;../mozilla/mozilla/dist/include/xpconnect;../mozilla/mozilla/dist/include/caps;../mozilla/mozilla/dist/include/mimetype;../mozilla/mozilla/dist/include/imglib2;../mozilla/mozilla/dist/include/content;../mozilla/mozilla/dist/include/locale;../mozilla/mozilla/dist/include/pipboot;../mozilla/mozilla/dist/include/pippki;../mozilla/mozilla/dist/include/pipnss;../mozilla/mozilla/dist/include/cookie;../mozilla/mozilla/dist/include/xpcom_obsolete;../mozilla/mozilla/dist/include/typeaheadfind;../mozilla/mozilla/dist/include/appcomps;../mozilla/mozilla/dist/include/history;../mozilla/mozilla/dist/include/rdf;../mozilla/mozilla/dist/include/docshell;../mozilla/mozilla/dist/include/dom;../mozilla/mozilla/dist/include/embed_base;../mozilla/mozilla/dist/include/exthandler;../mozilla/mozilla/dist/include/find;../mozilla/mozilla/dist/include/gfx;../mozilla/mozilla/dist/include/helperAppDlg;../mozilla/mozilla/dist/include/intl;../mozilla/mozilla/dist/include/layout;../mozilla/mozilla/dist/include/necko;../mozilla/mozilla/dist/include/nkcache;../mozilla/mozilla/dist/include/pref;../mozilla/mozilla/dist/include/profile;../mozilla/mozilla/dist/include/shistory;../mozilla/mozilla/dist/include/string;../mozilla/mozilla/dist/include/uriloader;../mozilla/mozilla/dist/include/wallet;../mozilla/mozilla/dist/include/webBrowser_core;../mozilla/mozilla/dist/include/webbrowserpersist;../mozilla/mozilla/dist/include/webshell;../mozilla/mozilla/dist/include/widget;../mozilla/mozilla/dist/include/windowwatcher;../mozilla/mozilla/dist/include/xpcom;../mozilla/mozilla/dist/include/nspr;../mozilla/mozilla/dist/include/webbrwsr;../mozilla/mozilla/dist/include/commandhandler;../mozilla/mozilla/dist/include/plugin"
-				PreprocessorDefinitions="WIN32;_WINDOWS;HW_THREADS;XP_PC;XP_WIN;XP_WIN32;WINVER=0x400;_WIN32_IE=0x0500;XPCOM_GLUE"
-				StringPooling="TRUE"
+				AdditionalIncludeDirectories="../mozilla/mozilla/dist/include/chrome;../mozilla/mozilla/dist/include;../mozilla/mozilla/dist/include/chardet;../mozilla/mozilla/dist/include/js;../mozilla/mozilla/dist/include/xpconnect;../mozilla/mozilla/dist/include/caps;../mozilla/mozilla/dist/include/mimetype;../mozilla/mozilla/dist/include/imglib2;../mozilla/mozilla/dist/include/content;../mozilla/mozilla/dist/include/locale;../mozilla/mozilla/dist/include/pipboot;../mozilla/mozilla/dist/include/pippki;../mozilla/mozilla/dist/include/pipnss;../mozilla/mozilla/dist/include/cookie;../mozilla/mozilla/dist/include/xpcom_obsolete;../mozilla/mozilla/dist/include/typeaheadfind;../mozilla/mozilla/dist/include/appcomps;../mozilla/mozilla/dist/include/history;../mozilla/mozilla/dist/include/rdf;../mozilla/mozilla/dist/include/docshell;../mozilla/mozilla/dist/include/dom;../mozilla/mozilla/dist/include/embed_base;../mozilla/mozilla/dist/include/exthandler;../mozilla/mozilla/dist/include/find;../mozilla/mozilla/dist/include/gfx;../mozilla/mozilla/dist/include/helperAppDlg;../mozilla/mozilla/dist/include/intl;../mozilla/mozilla/dist/include/layout;../mozilla/mozilla/dist/include/necko;../mozilla/mozilla/dist/include/nkcache;../mozilla/mozilla/dist/include/pref;../mozilla/mozilla/dist/include/profile;../mozilla/mozilla/dist/include/shistory;../mozilla/mozilla/dist/include/string;../mozilla/mozilla/dist/include/uriloader;../mozilla/mozilla/dist/include/wallet;../mozilla/mozilla/dist/include/webBrowser_core;../mozilla/mozilla/dist/include/webbrowserpersist;../mozilla/mozilla/dist/include/webshell;../mozilla/mozilla/dist/include/widget;../mozilla/mozilla/dist/include/windowwatcher;../mozilla/mozilla/dist/include/xpcom;../mozilla/mozilla/dist/include/nspr;../mozilla/mozilla/dist/include/webbrwsr;../mozilla/mozilla/dist/include/commandhandler;../mozilla/mozilla/dist/include/plugin;&quot;F:\Microsoft Visual Studio 8\VC\PlatformSDK\Include&quot;;&quot;F:\Microsoft Visual Studio 8\VC\atlmfc\include&quot;;&quot;F:\Microsoft Visual Studio 8\VC\include&quot;"
+				PreprocessorDefinitions="WIN32;_WINDOWS;HW_THREADS;XP_PC;XP_WIN;XP_WIN32;WINVER=0x400;_WIN32_IE=0x0500;XPCOM_GLUE;GECKO_VERSION=2481"
+				IgnoreStandardIncludePath="true"
+				StringPooling="true"
 				RuntimeLibrary="2"
-				EnableFunctionLevelLinking="TRUE"
-				UsePrecompiledHeader="3"
+				EnableFunctionLevelLinking="true"
+				UsePrecompiledHeader="0"
 				PrecompiledHeaderThrough="StdAfx.h"
 				AssemblerListingLocation=".\Release/"
 				ObjectFile=".\Release/"
 				ProgramDataBaseFileName=".\Release/"
 				BrowseInformation="1"
 				WarningLevel="3"
-				SuppressStartupBanner="TRUE"
-				CompileAs="0"/>
+				SuppressStartupBanner="true"
+				CompileAs="0"
+			/>
 			<Tool
-				Name="VCCustomBuildTool"/>
-			<Tool
-				Name="VCLinkerTool"
-				AdditionalOptions="-HEAP:0x40000"
-				AdditionalDependencies="xpcomglue.lib embed_base_s.lib nspr4.lib"
-				OutputFile="..\release\k-meleon.exe"
-				LinkIncremental="1"
-				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="..\mozilla\mozilla\dist\lib"
-				SubSystem="2"
-				OptimizeForWindows98="1"
-				TargetMachine="1"/>
-			<Tool
-				Name="VCMIDLTool"
-				PreprocessorDefinitions="NDEBUG"
-				MkTypLibCompatible="TRUE"
-				SuppressStartupBanner="TRUE"
-				TargetEnvironment="1"
-				TypeLibraryName=".\Release/KMeleon.tlb"
-				HeaderFileName=""/>
-			<Tool
-				Name="VCPostBuildEventTool"/>
-			<Tool
-				Name="VCPreBuildEventTool"/>
-			<Tool
-				Name="VCPreLinkEventTool"/>
+				Name="VCManagedResourceCompilerTool"
+			/>
 			<Tool
 				Name="VCResourceCompilerTool"
 				PreprocessorDefinitions="NDEBUG"
-				Culture="1033"/>
+				Culture="1033"
+			/>
 			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
+				Name="VCPreLinkEventTool"
+			/>
 			<Tool
-				Name="VCXMLDataGeneratorTool"/>
+				Name="VCLinkerTool"
+				AdditionalOptions="-HEAP:0x40000"
+				AdditionalDependencies="nss3.lib mozalloc.lib mozjs.lib xpcomglue.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib"
+				OutputFile="..\release\k-meleon.exe"
+				LinkIncremental="1"
+				SuppressStartupBanner="true"
+				AdditionalLibraryDirectories="..\mozilla\mozilla\dist\lib"
+				SubSystem="2"
+				OptimizeForWindows98="1"
+				TargetMachine="1"
+			/>
 			<Tool
-				Name="VCWebDeploymentTool"/>
+				Name="VCALinkTool"
+			/>
 			<Tool
-				Name="VCManagedWrapperGeneratorTool"/>
+				Name="VCManifestTool"
+			/>
 			<Tool
-				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCWebDeploymentTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
 		</Configuration>
 	</Configurations>
 	<References>
@@ -428,619 +613,818 @@
 	<Files>
 		<Filter
 			Name="Source Files"
-			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
+			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
+			>
 			<File
-				RelativePath="About.cpp">
+				RelativePath="About.cpp"
+				>
 				<FileConfiguration
 					Name="Debug|Win32"
-					ExcludedFromBuild="TRUE">
+					ExcludedFromBuild="true"
+					>
 					<Tool
-						Name="VCCLCompilerTool"/>
+						Name="VCCLCompilerTool"
+					/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Release|Win32"
-					ExcludedFromBuild="TRUE">
+					ExcludedFromBuild="true"
+					>
 					<Tool
-						Name="VCCLCompilerTool"/>
+						Name="VCCLCompilerTool"
+					/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Release MFC Static|Win32"
-					ExcludedFromBuild="TRUE">
+					ExcludedFromBuild="true"
+					>
 					<Tool
-						Name="VCCLCompilerTool"/>
+						Name="VCCLCompilerTool"
+					/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Release MFC Static Unicode|Win32"
-					ExcludedFromBuild="TRUE">
+					ExcludedFromBuild="true"
+					>
 					<Tool
-						Name="VCCLCompilerTool"/>
+						Name="VCCLCompilerTool"
+					/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug Unicode|Win32"
-					ExcludedFromBuild="TRUE">
+					ExcludedFromBuild="true"
+					>
 					<Tool
-						Name="VCCLCompilerTool"/>
+						Name="VCCLCompilerTool"
+					/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Release Unicode|Win32"
-					ExcludedFromBuild="TRUE">
+					ExcludedFromBuild="true"
+					>
 					<Tool
-						Name="VCCLCompilerTool"/>
+						Name="VCCLCompilerTool"
+					/>
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="AccelParser.cpp">
+				RelativePath="AccelParser.cpp"
+				>
 			</File>
 			<File
-				RelativePath="BrowserFrm.cpp">
+				RelativePath="BrowserFrm.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\BrowserFrmTab.cpp">
+				RelativePath=".\BrowserFrmTab.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\BrowserGlue.cpp">
+				RelativePath=".\BrowserGlue.cpp"
+				>
 			</File>
 			<File
-				RelativePath="BrowserImpl.cpp">
+				RelativePath="BrowserImpl.cpp"
+				>
 			</File>
 			<File
-				RelativePath="BrowserImplCtxMenuLstnr.cpp">
+				RelativePath="BrowserImplWebPrgrsLstnr.cpp"
+				>
 			</File>
 			<File
-				RelativePath="BrowserImplWebPrgrsLstnr.cpp">
+				RelativePath="BrowserView.cpp"
+				>
 			</File>
 			<File
-				RelativePath="BrowserView.cpp">
+				RelativePath="BrowserViewPanning.cpp"
+				>
 			</File>
 			<File
-				RelativePath="BrowserViewPanning.cpp">
+				RelativePath="BrowserViewUtils.cpp"
+				>
 			</File>
 			<File
-				RelativePath="BrowserViewUtils.cpp">
+				RelativePath=".\BrowserWindow.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\BrowserWindow.cpp">
+				RelativePath="CmdLine.cpp"
+				>
 			</File>
 			<File
-				RelativePath="CmdLine.cpp">
+				RelativePath=".\CookiesViewerDlg.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\CookiesViewerDlg.cpp">
-			</File>
-			<File
-				RelativePath="defineMap.cpp">
+				RelativePath="defineMap.cpp"
+				>
 				<FileConfiguration
 					Name="Debug|Win32"
-					ExcludedFromBuild="TRUE">
+					ExcludedFromBuild="true"
+					>
 					<Tool
-						Name="VCCLCompilerTool"/>
+						Name="VCCLCompilerTool"
+					/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Release|Win32"
-					ExcludedFromBuild="TRUE">
+					ExcludedFromBuild="true"
+					>
 					<Tool
-						Name="VCCLCompilerTool"/>
+						Name="VCCLCompilerTool"
+					/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Release MFC Static|Win32"
-					ExcludedFromBuild="TRUE">
+					ExcludedFromBuild="true"
+					>
 					<Tool
-						Name="VCCLCompilerTool"/>
+						Name="VCCLCompilerTool"
+					/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Release MFC Static Unicode|Win32"
-					ExcludedFromBuild="TRUE">
+					ExcludedFromBuild="true"
+					>
 					<Tool
-						Name="VCCLCompilerTool"/>
+						Name="VCCLCompilerTool"
+					/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug Unicode|Win32"
-					ExcludedFromBuild="TRUE">
+					ExcludedFromBuild="true"
+					>
 					<Tool
-						Name="VCCLCompilerTool"/>
+						Name="VCCLCompilerTool"
+					/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Release Unicode|Win32"
-					ExcludedFromBuild="TRUE">
+					ExcludedFromBuild="true"
+					>
 					<Tool
-						Name="VCCLCompilerTool"/>
+						Name="VCCLCompilerTool"
+					/>
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="Dialogs.cpp">
+				RelativePath="Dialogs.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\FavIconList.cpp">
+				RelativePath=".\FavIconList.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\GenericDlg.cpp">
+				RelativePath=".\GenericDlg.cpp"
+				>
 			</File>
 			<File
-				RelativePath="HiddenWnd.cpp">
+				RelativePath="HiddenWnd.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\KmCommand.cpp">
+				RelativePath=".\KmAbout.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\KmMenu.cpp">
+				RelativePath=".\KmAppInfo.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\LangParser.cpp">
+				RelativePath=".\KmCommand.cpp"
+				>
 			</File>
 			<File
-				RelativePath="MenuParser.cpp">
+				RelativePath=".\KmFileLocProvider.cpp"
+				>
 			</File>
 			<File
-				RelativePath="MfcEmbed.cpp">
+				RelativePath=".\KmMenu.cpp"
+				>
 			</File>
 			<File
-				RelativePath="MostRecentUrls.cpp">
+				RelativePath=".\LangParser.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\MozUtils.cpp">
+				RelativePath="MenuParser.cpp"
+				>
 			</File>
 			<File
-				RelativePath="Parser.cpp">
+				RelativePath="MfcEmbed.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\PasswordViewerDlg.cpp">
+				RelativePath="MostRecentUrls.cpp"
+				>
 			</File>
 			<File
-				RelativePath=".\Permissions.cpp">
+				RelativePath=".\MozUtils.cpp"
+				>
 			</File>
 			<File
-				RelativePath="Plugins.cpp">
+				RelativePath="Parser.cpp"
+				>
 			</File>
 			<File
-				RelativePath="Preferences.cpp">
+				RelativePath=".\PasswordViewerDlg.cpp"
+				>
 			</File>
 			<File
-				RelativePath="PreferencesDlg.cpp">
+				RelativePath=".\Permissions.cpp"
+				>
+			</File>
+			<File
+				RelativePath="Plugins.cpp"
+				>
+			</File>
+			<File
+				RelativePath="Preferences.cpp"
+				>
+			</File>
+			<File
+				RelativePath="PreferencesDlg.cpp"
+				>
 				<FileConfiguration
 					Name="Debug|Win32"
-					ExcludedFromBuild="TRUE">
+					ExcludedFromBuild="true"
+					>
 					<Tool
-						Name="VCCLCompilerTool"/>
+						Name="VCCLCompilerTool"
+					/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Release|Win32"
-					ExcludedFromBuild="TRUE">
+					ExcludedFromBuild="true"
+					>
 					<Tool
-						Name="VCCLCompilerTool"/>
+						Name="VCCLCompilerTool"
+					/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Release MFC Static|Win32"
-					ExcludedFromBuild="TRUE">
+					ExcludedFromBuild="true"
+					>
 					<Tool
-						Name="VCCLCompilerTool"/>
+						Name="VCCLCompilerTool"
+					/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Release MFC Static Unicode|Win32"
-					ExcludedFromBuild="TRUE">
+					ExcludedFromBuild="true"
+					>
 					<Tool
-						Name="VCCLCompilerTool"/>
+						Name="VCCLCompilerTool"
+					/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug Unicode|Win32"
-					ExcludedFromBuild="TRUE">
+					ExcludedFromBuild="true"
+					>
 					<Tool
-						Name="VCCLCompilerTool"/>
+						Name="VCCLCompilerTool"
+					/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Release Unicode|Win32"
-					ExcludedFromBuild="TRUE">
-					<Tool
-						Name="VCCLCompilerTool"/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="PrintProgressDialog.cpp">
-			</File>
-			<File
-				RelativePath="PrintSetupDialog.cpp">
-				<FileConfiguration
-					Name="Release|Win32">
+					ExcludedFromBuild="true"
+					>
 					<Tool
 						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="1"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release Unicode|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="1"/>
+					/>
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="ProfileMgr.cpp">
+				RelativePath="PrintProgressDialog.cpp"
+				>
 			</File>
 			<File
-				RelativePath="ProfilesDlg.cpp">
-			</File>
-			<File
-				RelativePath="ReBarEx.cpp">
-			</File>
-			<File
-				RelativePath=".\SaveAsHandler.cpp">
-			</File>
-			<File
-				RelativePath=".\SideBar.cpp">
-			</File>
-			<File
-				RelativePath="StdAfx.cpp">
+				RelativePath="PrintSetupDialog.cpp"
+				>
 				<FileConfiguration
-					Name="Debug|Win32">
+					Name="Release|Win32"
+					>
 					<Tool
 						Name="VCCLCompilerTool"
 						UsePrecompiledHeader="1"
-						PrecompiledHeaderThrough="stdafx.h"/>
+					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release|Win32">
+					Name="Release Unicode|Win32"
+					>
 					<Tool
 						Name="VCCLCompilerTool"
 						UsePrecompiledHeader="1"
-						PrecompiledHeaderThrough="stdafx.h"/>
+					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="ProfileMgr.cpp"
+				>
+			</File>
+			<File
+				RelativePath="ProfilesDlg.cpp"
+				>
+			</File>
+			<File
+				RelativePath="ReBarEx.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\SaveAsHandler.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\SideBar.cpp"
+				>
+			</File>
+			<File
+				RelativePath="StdAfx.cpp"
+				>
 				<FileConfiguration
-					Name="Release MFC Static|Win32">
+					Name="Debug|Win32"
+					>
 					<Tool
 						Name="VCCLCompilerTool"
 						UsePrecompiledHeader="1"
-						PrecompiledHeaderThrough="stdafx.h"/>
+						PrecompiledHeaderThrough="stdafx.h"
+					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release MFC Static Unicode|Win32">
+					Name="Release|Win32"
+					>
 					<Tool
 						Name="VCCLCompilerTool"
 						UsePrecompiledHeader="1"
-						PrecompiledHeaderThrough="stdafx.h"/>
+						PrecompiledHeaderThrough="stdafx.h"
+					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug Unicode|Win32">
+					Name="Release MFC Static|Win32"
+					>
 					<Tool
 						Name="VCCLCompilerTool"
 						UsePrecompiledHeader="1"
-						PrecompiledHeaderThrough="stdafx.h"/>
+						PrecompiledHeaderThrough="stdafx.h"
+					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release Unicode|Win32">
+					Name="Release MFC Static Unicode|Win32"
+					>
 					<Tool
 						Name="VCCLCompilerTool"
 						UsePrecompiledHeader="1"
-						PrecompiledHeaderThrough="stdafx.h"/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\TabReBar.cpp">
-			</File>
-			<File
-				RelativePath="ToolBarEx.cpp">
-			</File>
-			<File
-				RelativePath="Tooltips.cpp">
-			</File>
-			<File
-				RelativePath=".\urlbar.cpp">
-			</File>
-			<File
-				RelativePath="Utils.cpp">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="0"/>
+						PrecompiledHeaderThrough="stdafx.h"
+					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release|Win32">
+					Name="Debug Unicode|Win32"
+					>
 					<Tool
 						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="0"/>
+						UsePrecompiledHeader="1"
+						PrecompiledHeaderThrough="stdafx.h"
+					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release MFC Static|Win32">
+					Name="Release Unicode|Win32"
+					>
 					<Tool
 						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="0"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release MFC Static Unicode|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="0"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug Unicode|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="0"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release Unicode|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="0"/>
+						UsePrecompiledHeader="1"
+						PrecompiledHeaderThrough="stdafx.h"
+					/>
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\VisualStylesXP.cpp">
+				RelativePath=".\TabReBar.cpp"
+				>
 			</File>
 			<File
-				RelativePath="winEmbedFileLocProvider.cpp">
+				RelativePath="ToolBarEx.cpp"
+				>
+			</File>
+			<File
+				RelativePath="Tooltips.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\urlbar.cpp"
+				>
+			</File>
+			<File
+				RelativePath="Utils.cpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release MFC Static|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release MFC Static Unicode|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug Unicode|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release Unicode|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\VisualStylesXP.cpp"
+				>
 			</File>
 			<Filter
 				Name="Components"
-				Filter="">
+				>
 				<File
-					RelativePath=".\Components.cpp">
+					RelativePath=".\Components.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\CookiePromptService.cpp">
+					RelativePath=".\CookiePromptService.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\FontPackageHandler.cpp">
+					RelativePath=".\GenKeyPairDialogs.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\GenKeyPairDialogs.cpp">
+					RelativePath=".\nsGenericFactory.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\nsGenericFactory.cpp">
+					RelativePath=".\NSSDialogs.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\NSSDialogs.cpp">
+					RelativePath="PromptService.cpp"
+					>
 				</File>
 				<File
-					RelativePath="PromptService.cpp">
+					RelativePath=".\TooltipsProvider.cpp"
+					>
 				</File>
 				<File
-					RelativePath=".\TooltipsProvider.cpp">
-				</File>
-				<File
-					RelativePath="UnknownContentTypeHandler.cpp">
+					RelativePath="UnknownContentTypeHandler.cpp"
+					>
 				</File>
 			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
-			Filter="h;hpp;hxx;hm;inl">
+			Filter="h;hpp;hxx;hm;inl"
+			>
 			<File
-				RelativePath="About.h">
+				RelativePath="About.h"
+				>
 			</File>
 			<File
-				RelativePath="AccelParser.h">
+				RelativePath="AccelParser.h"
+				>
 			</File>
 			<File
-				RelativePath="BrowserFrm.h">
+				RelativePath="BrowserFrm.h"
+				>
 			</File>
 			<File
-				RelativePath=".\BrowserFrmTab.h">
+				RelativePath=".\BrowserFrmTab.h"
+				>
 			</File>
 			<File
-				RelativePath="BrowserImpl.h">
+				RelativePath="BrowserImpl.h"
+				>
 			</File>
 			<File
-				RelativePath="BrowserView.h">
+				RelativePath="BrowserView.h"
+				>
 			</File>
 			<File
-				RelativePath=".\BrowserWindow.h">
+				RelativePath=".\BrowserWindow.h"
+				>
 			</File>
 			<File
-				RelativePath="CmdLine.h">
+				RelativePath="CmdLine.h"
+				>
 			</File>
 			<File
-				RelativePath=".\Cookies.h">
+				RelativePath=".\Cookies.h"
+				>
 			</File>
 			<File
-				RelativePath=".\CookiesViewerDlg.h">
+				RelativePath=".\CookiesViewerDlg.h"
+				>
 			</File>
 			<File
-				RelativePath="Dialogs.h">
+				RelativePath="Dialogs.h"
+				>
 			</File>
 			<File
-				RelativePath=".\FavIconList.h">
+				RelativePath=".\FavIconList.h"
+				>
 			</File>
 			<File
-				RelativePath=".\GenericDlg.h">
+				RelativePath=".\GenericDlg.h"
+				>
 			</File>
 			<File
-				RelativePath="HiddenWnd.h">
+				RelativePath="HiddenWnd.h"
+				>
 			</File>
 			<File
-				RelativePath="IBrowserFrameGlue.h">
+				RelativePath="IBrowserFrameGlue.h"
+				>
 			</File>
 			<File
-				RelativePath=".\KmCommand.h">
+				RelativePath=".\KmCommand.h"
+				>
 			</File>
 			<File
-				RelativePath="kmeleon_plugin.h">
+				RelativePath="kmeleon_plugin.h"
+				>
 			</File>
 			<File
-				RelativePath="KmeleonConst.h">
+				RelativePath="KmeleonConst.h"
+				>
 			</File>
 			<File
-				RelativePath=".\KmMenu.h">
+				RelativePath=".\KmMenu.h"
+				>
 			</File>
 			<File
-				RelativePath=".\LangParser.h">
+				RelativePath=".\LangParser.h"
+				>
 			</File>
 			<File
-				RelativePath="Log.h">
+				RelativePath="Log.h"
+				>
 			</File>
 			<File
-				RelativePath="MenuParser.h">
+				RelativePath="MenuParser.h"
+				>
 			</File>
 			<File
-				RelativePath="MfcEmbed.h">
+				RelativePath="MfcEmbed.h"
+				>
 			</File>
 			<File
-				RelativePath=".\MozUtils.h">
+				RelativePath=".\MozUtils.h"
+				>
 			</File>
 			<File
-				RelativePath=".\PasswordViewerDlg.h">
+				RelativePath=".\PasswordViewerDlg.h"
+				>
 			</File>
 			<File
-				RelativePath=".\Permissions.h">
+				RelativePath=".\Permissions.h"
+				>
 			</File>
 			<File
-				RelativePath="Plugins.h">
+				RelativePath="Plugins.h"
+				>
 			</File>
 			<File
-				RelativePath="Preferences.h">
+				RelativePath="Preferences.h"
+				>
 			</File>
 			<File
-				RelativePath="PrintProgressDialog.h">
+				RelativePath="PrintProgressDialog.h"
+				>
 			</File>
 			<File
-				RelativePath="PrintSetupDialog.h">
+				RelativePath="PrintSetupDialog.h"
+				>
 			</File>
 			<File
-				RelativePath="ProfileMgr.h">
+				RelativePath="ProfileMgr.h"
+				>
 			</File>
 			<File
-				RelativePath="ProfilesDlg.h">
+				RelativePath="ProfilesDlg.h"
+				>
 			</File>
 			<File
-				RelativePath="ReBarEx.h">
+				RelativePath="ReBarEx.h"
+				>
 			</File>
 			<File
-				RelativePath="Resource.h">
+				RelativePath="Resource.h"
+				>
 			</File>
 			<File
-				RelativePath=".\SaveAsHandler.h">
+				RelativePath=".\SaveAsHandler.h"
+				>
 			</File>
 			<File
-				RelativePath=".\SideBar.h">
+				RelativePath=".\SideBar.h"
+				>
 			</File>
 			<File
-				RelativePath="StdAfx.h">
+				RelativePath="StdAfx.h"
+				>
 			</File>
 			<File
-				RelativePath=".\TabReBar.h">
+				RelativePath=".\TabReBar.h"
+				>
 			</File>
 			<File
-				RelativePath="ToolBarEx.h">
+				RelativePath="ToolBarEx.h"
+				>
 			</File>
 			<File
-				RelativePath="ToolBarWrapper.h">
+				RelativePath="ToolBarWrapper.h"
+				>
 			</File>
 			<File
-				RelativePath="Tooltips.h">
+				RelativePath="Tooltips.h"
+				>
 			</File>
 			<File
-				RelativePath=".\urlbar.h">
+				RelativePath=".\urlbar.h"
+				>
 			</File>
 			<File
-				RelativePath="Utils.h">
+				RelativePath="Utils.h"
+				>
 			</File>
 			<File
-				RelativePath="version.h">
+				RelativePath="version.h"
+				>
 			</File>
 			<File
-				RelativePath=".\VisualStylesXP.h">
+				RelativePath=".\VisualStylesXP.h"
+				>
 			</File>
 			<File
-				RelativePath="winEmbedFileLocProvider.h">
+				RelativePath="winEmbedFileLocProvider.h"
+				>
 			</File>
 			<Filter
 				Name="Components"
-				Filter="">
+				>
 				<File
-					RelativePath=".\CookiePromptService.h">
+					RelativePath=".\CookiePromptService.h"
+					>
 				</File>
 				<File
-					RelativePath=".\FontPackageHandler.h">
+					RelativePath=".\FontPackageHandler.h"
+					>
 				</File>
 				<File
-					RelativePath=".\GenKeyPairDialogs.h">
+					RelativePath=".\GenKeyPairDialogs.h"
+					>
 				</File>
 				<File
-					RelativePath=".\NSSDialogs.h">
+					RelativePath=".\NSSDialogs.h"
+					>
 				</File>
 				<File
-					RelativePath="PromptService.h">
+					RelativePath="PromptService.h"
+					>
 				</File>
 				<File
-					RelativePath=".\TooltipsProvider.h">
+					RelativePath=".\TooltipsProvider.h"
+					>
 				</File>
 				<File
-					RelativePath="UnknownContentTypeHandler.h">
+					RelativePath="UnknownContentTypeHandler.h"
+					>
 				</File>
 			</Filter>
 		</Filter>
 		<Filter
 			Name="Resource Files"
-			Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe">
+			Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
+			>
 			<File
-				RelativePath="res\back.bmp">
+				RelativePath="res\back.bmp"
+				>
 			</File>
 			<File
-				RelativePath="res\broken.ico">
+				RelativePath="res\broken.ico"
+				>
 			</File>
 			<File
-				RelativePath="res\Cursor_10.cur">
+				RelativePath="res\Cursor_10.cur"
+				>
 			</File>
 			<File
-				RelativePath="res\Cursor_11.cur">
+				RelativePath="res\Cursor_11.cur"
+				>
 			</File>
 			<File
-				RelativePath="res\Cursor_12.cur">
+				RelativePath="res\Cursor_12.cur"
+				>
 			</File>
 			<File
-				RelativePath="res\Cursor_13.cur">
+				RelativePath="res\Cursor_13.cur"
+				>
 			</File>
 			<File
-				RelativePath="res\Cursor_14.cur">
+				RelativePath="res\Cursor_14.cur"
+				>
 			</File>
 			<File
-				RelativePath="res\Cursor_15.cur">
+				RelativePath="res\Cursor_15.cur"
+				>
 			</File>
 			<File
-				RelativePath="res\Cursor_16.cur">
+				RelativePath="res\Cursor_16.cur"
+				>
 			</File>
 			<File
-				RelativePath="res\Cursor_17.cur">
+				RelativePath="res\Cursor_17.cur"
+				>
 			</File>
 			<File
-				RelativePath="res\Cursor_27.cur">
+				RelativePath="res\Cursor_27.cur"
+				>
 			</File>
 			<File
-				RelativePath="res\KmeleonDocument.ico">
+				RelativePath="res\KmeleonDocument.ico"
+				>
 			</File>
 			<File
-				RelativePath=".\MfcEmbed.rc">
+				RelativePath=".\MfcEmbed.rc"
+				>
 			</File>
 			<File
-				RelativePath="res\MozillaBrowser.ico">
+				RelativePath="res\MozillaBrowser.ico"
+				>
 			</File>
 			<File
-				RelativePath="res\off.ico">
+				RelativePath="res\off.ico"
+				>
 			</File>
 			<File
-				RelativePath="res\offcheck.ico">
+				RelativePath="res\offcheck.ico"
+				>
 			</File>
 			<File
-				RelativePath="res\on.ico">
+				RelativePath="res\on.ico"
+				>
 			</File>
 			<File
-				RelativePath="res\oncheck.ico">
+				RelativePath="res\oncheck.ico"
+				>
 			</File>
 			<File
-				RelativePath=".\res\popupblock.ico">
+				RelativePath=".\res\popupblock.ico"
+				>
 			</File>
 			<File
-				RelativePath="res\sinsecur.ico">
+				RelativePath="res\sinsecur.ico"
+				>
 			</File>
 			<File
-				RelativePath="res\ssecur.ico">
+				RelativePath="res\ssecur.ico"
+				>
 			</File>
 			<File
-				RelativePath=".\res\toolbar1.bmp">
+				RelativePath=".\res\toolbar1.bmp"
+				>
 			</File>
 		</Filter>
 	</Files>
 	<Globals>
 		<Global
 			Name="RESOURCE_FILE"
-			Value="MfcEmbed.rc"/>
+			Value="MfcEmbed.rc"
+		/>
 	</Globals>
 </VisualStudioProject>

@@ -365,7 +365,7 @@ HWND FindMenuBar(HWND hWndParent)
 
 void DoLocale() {	
 	if (!m_menu) return;
-	int count = kPlugin.kFuncs->GetWindowsList(nullptr, 0);
+	int count = kPlugin.kFuncs->GetWindowsList(0, 0);
 	if (!(count>0)) return;
 
 	HWND* hwnd = new HWND[count];

@@ -21,11 +21,11 @@
  *   Pierre Phaneuf <pp@ludusdesign.com>
  */
 
-#include "stdafx.h"
 //#include "nsEscape.h"
+#include "StdAfx.h"
+#include "UnknownContentTypeHandler.h"
 #include <wininet.h>
 #include <cderr.h>
-#include "UnknownContentTypeHandler.h"
 #include "Utils.h"
 #include "MozUtils.h"
 #include "MfcEmbed.h"
@@ -35,6 +35,7 @@
 #include "nsIHttpChannel.h"
 #include "nsIMIMEInfo.h"
 #include "nsIWindowWatcher.h"
+
 
 const PRTime _pr_filetime_offset = 116444736000000000i64;
 const PRTime _pr_filetime_divisor = 10i64;
@@ -1178,7 +1179,7 @@ nsresult NewDownloadFactory(nsIFactory** aFactory) {
 
 */
 
-// Boû‘e de dialogue COpenSaveDlg
+// Bo?e de dialogue COpenSaveDlg
 
 //IMPLEMENT_DYNAMIC(COpenSaveDlg, CDialog)
 COpenSaveDlg::COpenSaveDlg(CWnd* pParent /*=NULL*/)

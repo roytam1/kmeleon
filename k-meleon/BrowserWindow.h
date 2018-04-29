@@ -270,7 +270,7 @@ public:
 	{
 		nsIDOMWindow* dom = nullptr;
 		if (mWebBrowser) mWebBrowser->GetContentDOMWindow(&dom);
-		return (decltype(nullptr))dom;
+		return dom;
 	}
 	 
 	NS_IMETHODIMP GetWebBrowser(nsIWebBrowser **aWebBrowser) const

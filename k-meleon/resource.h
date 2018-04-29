@@ -605,6 +605,10 @@
 #define IDS_EXTERNAL_HANDLER_QUESTION   62265
 #define IDS_START_FAILED                62266
 
+#ifndef IDC_STATIC
+#define IDC_STATIC				-1
+#endif
+
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED

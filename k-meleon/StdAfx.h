@@ -57,12 +57,14 @@
 #endif
 #endif
 
+/*
 #pragma comment(lib, "mozjs.lib")
 #ifdef _AFXDLL
 	#pragma comment(lib, "xpcomglue.lib")
 #else
 	#pragma comment(lib, "xpcomglue_staticruntime.lib")
 #endif
+*/
 
 #define _ATL_CSTRING_EXPLICIT_CONSTRUCTORS	// some CString constructors will be explicit 
 
@@ -97,8 +99,10 @@
 //#include <afxcontrolbars.h>     // prise en charge des MFC pour les rubans et les barres de contrôles
 #include <afxtempl.h>
 #include <afxole.h>
-#include <afxtoolbar.h>
-#include <afxframewndex.h>
+//#include <afxtoolbar.h>
+//#include <afxframewndex.h>
+
+#include "gdiplus.h"
 
 #undef min
 #undef max

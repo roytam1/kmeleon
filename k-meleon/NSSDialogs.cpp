@@ -259,8 +259,8 @@ NS_IMETHODIMP CNSSDialogs::ViewCert(nsIInterfaceRequestor *ctx, nsIX509Cert *cer
 	cert->GetSha1Fingerprint (value);
 	viewCertGeneral.m_csSHA1 = W2CT(value.get());
 
-	cert->GetMd5Fingerprint (value);
-	viewCertGeneral.m_csMD5 = W2CT(value.get());
+	/*cert->GetMd5Fingerprint (value);
+	viewCertGeneral.m_csMD5 = W2CT(value.get());*/
 	
 	viewCert.m_psh.dwFlags |= PSH_NOAPPLYNOW;
 	viewCert.AddPage(&viewCertGeneral);

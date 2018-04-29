@@ -204,10 +204,10 @@ NS_IMETHODIMP KmAppInfo::GetReplacedLockTime(PRTime *aReplacedLockTime)
 }
 
 /* readonly attribute DOMString lastRunCrashID; */
-NS_IMETHODIMP KmAppInfo::GetLastRunCrashID(nsAString & aLastRunCrashID)
+/*NS_IMETHODIMP KmAppInfo::GetLastRunCrashID(nsAString & aLastRunCrashID)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
-}
+}*/
 
 /* void createHiddenWindow (); */
 NS_IMETHODIMP KmAppInfo::CreateHiddenWindow()
