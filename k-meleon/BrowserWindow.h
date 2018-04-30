@@ -280,6 +280,7 @@ public:
 		return NS_OK;
 	}
 
+	void SetVisible(BOOL aVisible);
 	void SetActive(BOOL aActive);
 	int GetSecurityState();
 
