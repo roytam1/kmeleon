@@ -100,6 +100,12 @@ NS_IMETHODIMP CACListener::OnSearchResult(nsIAutoCompleteSearch *search, nsIAuto
 	return NS_OK;
 }
 
+/* void onUpdateSearchResult (in nsIAutoCompleteSearch search, in nsIAutoCompleteResult result); */
+NS_IMETHODIMP CACListener::OnUpdateSearchResult(nsIAutoCompleteSearch *search, nsIAutoCompleteResult *result)
+{
+    return NS_ERROR_NOT_IMPLEMENTED;
+}
+
 #else
 
 class CACListener :  public nsIAutoCompleteListener
