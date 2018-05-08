@@ -1438,6 +1438,7 @@ INT_PTR CBrowserFrame::DoModal()
 		bEnableParent = TRUE;
 	}
 
+	::EnableWindow(m_hWnd, TRUE);
 	m_nFlags |= WF_CONTINUEMODAL;
 	RunModalLoop(0);
 	
