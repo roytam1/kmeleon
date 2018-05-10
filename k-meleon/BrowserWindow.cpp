@@ -971,7 +971,6 @@ BOOL CBrowserWrapper::InjectJS(const wchar_t* userScript, CString& result, bool 
 	}
 
 	NS_ENSURE_SUCCESS(rv, FALSE);*/
-	
 	PRBool jsEnabled = PR_TRUE;
 	jsEnabled = theApp.preferences.GetBool("javascript.enabled", jsEnabled);
 	theApp.preferences.SetBool("javascript.enabled", true);
@@ -988,12 +987,9 @@ BOOL CBrowserWrapper::InjectJS(const wchar_t* userScript, CString& result, bool 
 	//options.setFileAndLine("kmeleon",0).setVersion(JSVERSION_DEFAULT);
 
     nsCOMPtr<nsIScriptObjectPrincipal> sgoPrincipal = do_QueryInterface(sgo);
-	ctx->EvaluateString(nsEmbedString(userScript), global,
-						options, false, nullptr/*retval.address()*/);
-	
-	//result = NSStringToCString(nsString(JS_GetStringCharsZ(ctx->GetNativeContext(), retval.toString())));
+	ctx->EvaluateString(nsEmbedString(userScript), global, options, false, retval.address());
+	if (retval.isString() && !retval.isObject()) result = NSStringToCString(nsString(JS_GetStringCharsZ(ctx->GetNativeContext(), retval.toString())));
 	theApp.preferences.SetBool("javascript.enabled", jsEnabled);
-
 	return TRUE;
 }
 
