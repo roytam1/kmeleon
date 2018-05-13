@@ -22,8 +22,17 @@
 #include "KmAppInfo.h"
 #include "KMeleonConst.h"
 #include "MfcEmbed.h"
+#include "nsIPrefService.h"
 
 NS_IMPL_ISUPPORTS3(KmAppInfo, nsIXULAppInfo, nsIXULRuntime, nsIAppStartup)
+
+const unsigned char mozilla_buildid[] =
+{
+    BUILD_YEAR_CH0, BUILD_YEAR_CH1, BUILD_YEAR_CH2, BUILD_YEAR_CH3,
+    BUILD_MONTH_CH0, BUILD_MONTH_CH1,
+    BUILD_DAY_CH0, BUILD_DAY_CH1,
+    '\0'
+};
 
 /* readonly attribute ACString vendor; */
 NS_IMETHODIMP KmAppInfo::GetVendor(nsACString & aVendor)
@@ -58,6 +67,7 @@ NS_IMETHODIMP KmAppInfo::GetID(nsACString & aID)
 /* readonly attribute ACString version; */
 NS_IMETHODIMP KmAppInfo::GetVersion(nsACString & aVersion)
 {
+#if 0
 	bool ff = false;
 	nsCOMPtr<nsIPrefService> m_prefservice = do_GetService(NS_PREFSERVICE_CONTRACTID);
 	if (m_prefservice) {
@@ -68,7 +78,10 @@ NS_IMETHODIMP KmAppInfo::GetVersion(nsACString & aVersion)
 		}
 	}
 	aVersion = !ff ? NS_STRINGIFY(KMELEON_UVERSION) : MOZILLA_VERSION;
-    return NS_OK;
+#else
+	aVersion = NS_STRINGIFY(KMELEON_UVERSION);
+#endif
+	return NS_OK;
 }
 
 /* readonly attribute ACString appBuildID; */
@@ -81,14 +94,37 @@ NS_IMETHODIMP KmAppInfo::GetAppBuildID(nsACString & aAppBuildID)
 /* readonly attribute ACString platformVersion; */
 NS_IMETHODIMP KmAppInfo::GetPlatformVersion(nsACString & aPlatformVersion)
 {
-	aPlatformVersion = NS_STRINGIFY(MOZILLA_VERSION);
+#if 0
+	aPlatformVersion = NS_STRINGIFY(MOZILLA_VERSION_U);
+#else
+	aPlatformVersion = NS_STRINGIFY(KMELEON_UVERSION);
+#endif
     return NS_OK;
 }
 
 /* readonly attribute ACString platformBuildID; */
 NS_IMETHODIMP KmAppInfo::GetPlatformBuildID(nsACString & aPlatformBuildID)
 {
-	aPlatformBuildID = NS_STRINGIFY(MOZILLA_BUILDID);
+	nsCString string;
+	nsCOMPtr<nsIPrefService> prefService = do_GetService(NS_PREFSERVICE_CONTRACTID);
+	nsCOMPtr<nsIPrefBranch> prefs;
+	if (!prefService) goto _pbid_fallback;
+	prefService->GetBranch("", getter_AddRefs(prefs));
+
+	if (!prefs || !NS_SUCCEEDED(prefs->GetCharPref("platform.buildid", getter_Copies(string))))
+		goto _pbid_fallback;
+	if (string.Length() < 8)
+		goto _pbid_fallback;
+
+	string.Cut(9, 0); // remove everything after yyyymmdd
+	aPlatformBuildID = string;
+	return NS_OK;
+
+_pbid_fallback:
+//	aPlatformBuildID = NS_STRINGIFY(MOZILLA_BUILDID);
+	// for fallback
+	aPlatformBuildID.AssignASCII((char*)&mozilla_buildid[0]);
+
     return NS_OK;
 }
 
