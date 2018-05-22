@@ -164,7 +164,13 @@ public:
 	BOOL CanCopy2()
 	{
 		nsCOMPtr<nsIDOMWindow> dom;
-		if (mWebBrowser) mWebBrowser->GetContentDOMWindow(getter_AddRefs(dom));
+		nsresult rv;
+		if (mWebBrowser) {
+			nsCOMPtr<nsIWebBrowserFocus> focus = do_GetInterface(mWebBrowser);
+			rv = focus->GetFocusedWindow(getter_AddRefs(dom));
+			if (NS_FAILED(rv))
+				mWebBrowser->GetContentDOMWindow(getter_AddRefs(dom));
+		}
 		nsCOMPtr<nsPIDOMWindow> domWindow = do_QueryInterface(dom);
 		nsCOMPtr<nsIEditor> editor;
 		nsCOMPtr<nsISelection> domSelection;
@@ -177,6 +183,7 @@ public:
 
 		bool selectionCollapsed = false;
 		domSelection->GetIsCollapsed(&selectionCollapsed);
+//		printf("CBrowserWrapper::CanCopy2() = %d\n", !selectionCollapsed);
 		return !selectionCollapsed;
 	}
 
