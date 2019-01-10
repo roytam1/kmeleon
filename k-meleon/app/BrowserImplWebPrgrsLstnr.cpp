@@ -37,6 +37,7 @@
 #include "nsIRequest.h"
 #include "nsIChannel.h"
 #include "nsIWebProgress.h"
+#include "nsPIDOMWindow.h"
 
 //*****************************************************************************
 // CBrowserImpl::nsIWebProgressListener Implementation
@@ -148,17 +149,19 @@ NS_IMETHODIMP CBrowserImpl::OnLocationChange(nsIWebProgress* aWebProgress,
   if (aWebProgress) {
     nsCOMPtr<nsIDOMWindow>  domWindow;
     nsCOMPtr<nsIDOMWindow>  topDomWindow;
+    nsCOMPtr<nsPIDOMWindow>  pdomWindow;
     aWebProgress->GetDOMWindow(getter_AddRefs(domWindow));
     if (domWindow) { // Get root domWindow
-      domWindow->GetTop(getter_AddRefs(topDomWindow));
+      pdomWindow = do_QueryInterface(domWindow);
+      topDomWindow = pdomWindow->GetTop();
     }
-    if (domWindow != topDomWindow)
+    if (pdomWindow != topDomWindow)
       isSubFrameLoad = PR_TRUE;
 
   }
 
   if (isSubFrameLoad)
-	  return NS_OK;
+      return NS_OK;
 
     m_pBrowserFrameGlue->UpdateCurrentURI(location);
 

@@ -865,13 +865,15 @@ NS_IMETHODIMP CBrowserImpl::HandleEvent(nsIDOMEvent *aEvent)
 
 			/* See if this is from the toplevel frame */
 			nsCOMPtr<nsIDOMWindow> domWin;
+			nsCOMPtr<nsPIDOMWindow> pdomWin;
 			domDoc->GetDefaultView(getter_AddRefs(domWin));
 			NS_ENSURE_TRUE (domWin, NS_ERROR_FAILURE);
 
 			nsCOMPtr<nsIDOMWindow> topDomWin;
-			domWin->GetTop (getter_AddRefs (topDomWin));
+			pdomWin = do_QueryInterface(domWin);
+			topDomWin = pdomWin->GetTop();
 
-			nsCOMPtr<nsISupports> domWinAsISupports (do_QueryInterface (domWin));
+			nsCOMPtr<nsISupports> domWinAsISupports (do_QueryInterface (pdomWin));
 			nsCOMPtr<nsISupports> topDomWinAsISupports (do_QueryInterface (topDomWin));
 			/* disallow subframes to set favicon */
 			if (domWinAsISupports != topDomWinAsISupports) return NS_OK;

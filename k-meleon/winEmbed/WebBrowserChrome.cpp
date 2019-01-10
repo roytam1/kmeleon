@@ -31,6 +31,7 @@
 #include "resource.h"
 #include "winEmbed.h"
 #include "WebBrowserChrome.h"
+#include "nsPIDOMWindow.h"
 
 // OS headers
 #include <stdio.h>
@@ -284,12 +285,14 @@ NS_IMETHODIMP WebBrowserChrome::OnLocationChange(nsIWebProgress* aWebProgress,
   PRBool isSubFrameLoad = PR_FALSE; // Is this a subframe load
   if (aWebProgress) {
     nsCOMPtr<nsIDOMWindow>  domWindow;
-    nsCOMPtr<nsIDOMWindow>  topDomWindow;
+    nsCOMPtr<nsPIDOMWindow>  pdomWindow;
+    nsCOMPtr<nsPIDOMWindow>  topDomWindow;
     aWebProgress->GetDOMWindow(getter_AddRefs(domWindow));
     if (domWindow) { // Get root domWindow
-      domWindow->GetTop(getter_AddRefs(topDomWindow));
+      pdomWindow = do_QueryInterface(domWindow);
+      topDomWindow = pdomWindow->GetTop();
     }
-    if (domWindow != topDomWindow)
+    if (pdomWindow != topDomWindow)
       isSubFrameLoad = PR_TRUE;
   }
   if (!isSubFrameLoad)

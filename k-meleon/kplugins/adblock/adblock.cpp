@@ -34,6 +34,7 @@
 #include "nsGenericFactory.h"
 #include "adcomp.h"
 #include "nsEmbedString.h"
+#include "nsPIDOMWindow.h"
 #include "nsIDOMWindow.h"
 #include "nsIDOMDocument.h"
 #include "nsIDOMLocation.h" 
@@ -679,11 +680,10 @@ NS_IMETHODIMP Policy::Observe(nsISupports *aSubject, const char * aTopic, const 
 	static vector<nsIDOMWindow*> domPopup;
 	if (strcmp(aTopic, "content-document-global-created") == 0)
 	{
-		nsCOMPtr<nsIDOMWindow> dom = do_QueryInterface(aSubject);
+		nsCOMPtr<nsPIDOMWindow> dom = do_QueryInterface(aSubject);
 		if (!dom) return NS_OK;
 
-		nsCOMPtr<nsIDOMWindow> opener;
-		dom->GetOpener(getter_AddRefs(opener));
+		nsCOMPtr<nsPIDOMWindow> opener = dom->GetOpener();
 		if (!opener) return NS_OK;
 
 		nsCOMPtr<nsIDOMLocation> location;
@@ -749,8 +749,8 @@ NS_IMETHODIMP Policy::Observe(nsISupports *aSubject, const char * aTopic, const 
 			nsCOMPtr<nsIURI> uri;
 			channel->GetURI(getter_AddRefs(uri));
 
-			nsCOMPtr<nsIDOMWindow> opener;
-			dom->GetOpener(getter_AddRefs(opener));
+			nsCOMPtr<nsPIDOMWindow> pdom = do_QueryInterface(dom);
+			nsCOMPtr<nsPIDOMWindow> opener = pdom->GetOpener();
 			if (!opener) return NS_OK;
 
 			nsCOMPtr<nsIDOMDocument> document;
@@ -1183,8 +1183,8 @@ void Create(HWND hwnd)
 	browser->GetContentDOMWindow(getter_AddRefs(dom));
 	if (!dom) return;
 	
-	nsCOMPtr<nsIDOMWindow> opener;
-	dom->GetOpener(getter_AddRefs(opener));
+	nsCOMPtr<nsPIDOMWindow> pdom = do_QueryInterface(dom);
+	nsCOMPtr<nsIDOMWindow> opener = pdom->GetOpener();
 
 	//kmeleonDocInfo *info = kPlugin.kFuncs->GetDocInfo(hwnd);
 	//rules.match(info->url
