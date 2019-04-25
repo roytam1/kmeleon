@@ -747,7 +747,7 @@ bool InjectJS(nsIDOMWindow* dom, const wchar_t* userScript, CString& result)
 	JS::CompileOptions opts(cx);
 	opts.setFileAndLine("kmeleon", 0);
 	opts.setNoScriptRval(false);
-	JS::Evaluate(cx, globalJSObject, opts, userScript, wcslen(userScript), &v);
+	JS::Evaluate(cx, opts, userScript, wcslen(userScript), &v);
 	::JS_ReportPendingException(cx);
 	if (v.isString() && !v.isObject()) {
 		JSString* str = v.toString();
