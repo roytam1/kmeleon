@@ -353,6 +353,8 @@ var Zoom = {
 					<tabpanel flex="1" orient="vertical" style="overflow:auto">
 						<!-- General -->
 						<separator class="thin"/>
+
+						<!-- FRAMES OLD ... ######  pref obsolete, not working anymore
 						<groupbox>
 							<caption>
 								<label>&frames.label;</label>
@@ -361,6 +363,52 @@ var Zoom = {
 							<checkbox oncommand="toggleCheckbox(this.id)" id="layout.frames.force_resizability" label="&frames.resizable;"/>
 							<separator class="thin"/>
 						</groupbox>
+						 FRAMES OLD -->
+
+						<hbox>
+						<!-- NEW: SUBDOCUMENTS / IFRAMES ######  ToDo: Create Exceptions Editor, add default pref, add in DTD universal "&permissions.load.never/always/noForeign", replace here with copy of Images code below and rename labels -->
+							<groupbox flex="1">
+								<caption>
+									<!--label>&subdocuments.load;</label-->
+									<label>Load Subdocuments (iframes etc.)</label>
+								</caption>
+								<radiogroup oncommand="try{pref.getIntPref(this.id);} catch(e){pref.setIntPref(this.id,1);} toggleRadiogroup(this.id);" id="permissions.default.subdocument">
+									<radio value="" label="&images.load.always;" hidden="true"/>
+									<!--radio value="2" label="&permissions.load.never;"/-->
+									<radio value="2" label="Never"/>
+									<radio value="1" label="&images.load.always;"/>
+									<radio value="3" label="&images.load.noForeign;"/>
+								</radiogroup>
+								<separator class="thin"/>
+								<hbox id="subdocPerm">
+									<!--button label="&exceptions;" oncommand="JSB.id('ID_SUBDOCUMENT_PERM')"/ -->
+									<button label="&exceptions;" oncommand="alert('Not yet implemented.\nUse addon ExExceptions special KM-version.\nOr edit permissions.sqlite manually (type is subdocument)');"/>
+									<hbox flex="1"/>
+								</hbox>
+							</groupbox>
+
+						<!-- NEW: MEDIA  ######  ToDo: Create Exceptions Editor, add default pref, add in DTD universal "&permissions.load.never/always/noForeign", replace here with copy of Images code below and rename labels -->
+							<groupbox flex="1">
+								<caption>
+									<!--label>&media.load;</label-->
+									<label>Load Media (HTML5 Audio Video)</label>
+								</caption>
+								<radiogroup oncommand="try{pref.getIntPref(this.id);} catch(e){pref.setIntPref(this.id,1);} toggleRadiogroup(this.id);" id="permissions.default.media">
+									<radio value="" label="&images.load.always;" hidden="true"/>
+									<!--radio value="2" label="&permissions.load.never;"/-->
+									<radio value="2" label="Never"/>
+									<radio value="1" label="&images.load.always;"/>
+									<radio value="3" label="&images.load.noForeign;"/>
+								</radiogroup>
+								<separator class="thin"/>
+								<hbox id="mediaPerm">
+									<!--button label="&exceptions;" oncommand="JSB.id('ID_MEDIA_PERM')"/ -->
+									<button label="&exceptions;" oncommand="alert('Not yet implemented.\nEdit permissions.sqlite manually (type is media)\nFuture editor can look exactly like Image Exceptions:'); JSB.id('ID_IMAGE_PERM')"/>
+									<hbox flex="1"/>
+								</hbox>
+							</groupbox>
+						</hbox>
+
 						<separator class="thin"/>
 						<groupbox>
 							<caption>
