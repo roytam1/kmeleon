@@ -1,6 +1,6 @@
 diff -rU5 ../KMXULRunner_Pale-Moon/obj-xulrunner-i686-pc-mingw32/dist/include/mozilla/a11y/Accessible.h xulrunner-sdk/include/mozilla/a11y/Accessible.h
---- ../KMXULRunner_Pale-Moon/obj-xulrunner-i686-pc-mingw32/dist/include/mozilla/a11y/Accessible.h	2017-09-24 07:20:56 +0800
-+++ xulrunner-sdk/include/mozilla/a11y/Accessible.h	2017-11-29 07:33:12 +0800
+--- ../KMXULRunner_Pale-Moon/obj-xulrunner-i686-pc-mingw32/dist/include/mozilla/a11y/Accessible.h	2020-05-30 12:53:41.165183000 +0800
++++ xulrunner-sdk/include/mozilla/a11y/Accessible.h	2020-06-14 16:49:14.447584100 +0800
 @@ -10,11 +10,12 @@
  #include "mozilla/a11y/RelationType.h"
  #include "mozilla/a11y/Role.h"
@@ -12,12 +12,41 @@ diff -rU5 ../KMXULRunner_Pale-Moon/obj-xulrunner-i686-pc-mingw32/dist/include/mo
 +#include <nsStringAPI.h>
  #include "nsTArray.h"
  #include "nsRefPtrHashtable.h"
+ #include "nsRect.h"
  
  struct nsRoleMapEntry;
+diff -rU5 ../KMXULRunner_Pale-Moon/obj-xulrunner-i686-pc-mingw32/dist/include/nsCoord.h xulrunner-sdk/include/nsCoord.h
+--- ../KMXULRunner_Pale-Moon/obj-xulrunner-i686-pc-mingw32/dist/include/nsCoord.h	2018-03-04 20:37:20.775205000 +0800
++++ xulrunner-sdk/include/nsCoord.h	2020-06-14 16:57:30.063931800 +0800
+@@ -161,11 +161,11 @@
+     // infinity + anything = anything + infinity = infinity
+     return nscoord_MAX;
+   } else {
+     // a + b = a + b
+     // Cap the result, just in case we're dealing with numbers near nscoord_MAX
+-    return std::min(nscoord_MAX, a + b);
++    return (std::min)(nscoord_MAX, a + b);
+   }
+ #endif
+ }
+ 
+ /**
+@@ -209,11 +209,11 @@
+       // case (c) for integers
+       return nscoord_MAX;
+     } else {
+       // case (d) for integers
+       // Cap the result, in case we're dealing with numbers near nscoord_MAX
+-      return std::min(nscoord_MAX, a - b);
++      return (std::min)(nscoord_MAX, a - b);
+     }
+ #endif
+   }
+ }
  
 diff -rU5 ../KMXULRunner_Pale-Moon/obj-xulrunner-i686-pc-mingw32/dist/include/nsISupportsImpl.h xulrunner-sdk/include/nsISupportsImpl.h
---- ../KMXULRunner_Pale-Moon/obj-xulrunner-i686-pc-mingw32/dist/include/nsISupportsImpl.h	2017-11-29 00:16:24 +0800
-+++ xulrunner-sdk/include/nsISupportsImpl.h	2017-11-29 00:39:21 +0800
+--- ../KMXULRunner_Pale-Moon/obj-xulrunner-i686-pc-mingw32/dist/include/nsISupportsImpl.h	2020-02-01 08:15:34.751398000 +0800
++++ xulrunner-sdk/include/nsISupportsImpl.h	2020-06-14 16:48:21.795572600 +0800
 @@ -18,11 +18,11 @@
  #include "prthread.h" /* needed for thread-safety checks */
  #endif // !XPCOM_GLUE_AVOID_NSPR
@@ -31,7 +60,7 @@ diff -rU5 ../KMXULRunner_Pale-Moon/obj-xulrunner-i686-pc-mingw32/dist/include/ns
  #include "mozilla/Attributes.h"
  #include "mozilla/Assertions.h"
  #include "mozilla/Compiler.h"
-@@ -333,11 +333,11 @@
+@@ -345,11 +345,11 @@
    nsrefcnt operator++(int) = delete;
    nsrefcnt operator--(int) = delete;
    nsrefcnt mValue;
@@ -44,3 +73,93 @@ diff -rU5 ../KMXULRunner_Pale-Moon/obj-xulrunner-i686-pc-mingw32/dist/include/ns
  {
  public:
    ThreadSafeAutoRefCnt() : mValue(0) {}
+diff -rU5 ../KMXULRunner_Pale-Moon/obj-xulrunner-i686-pc-mingw32/dist/include/nsRect.h xulrunner-sdk/include/nsRect.h
+--- ../KMXULRunner_Pale-Moon/obj-xulrunner-i686-pc-mingw32/dist/include/nsRect.h	2020-05-30 12:53:41.821220000 +0800
++++ xulrunner-sdk/include/nsRect.h	2020-06-14 16:59:55.228234700 +0800
+@@ -75,30 +75,30 @@
+   {
+ #ifdef NS_COORD_IS_FLOAT
+     return UnionEdges(aRect);
+ #else
+     nsRect result;
+-    result.x = std::min(aRect.x, x);
+-    int64_t w = std::max(int64_t(aRect.x) + aRect.width, int64_t(x) + width) - result.x;
++    result.x = (std::min)(aRect.x, x);
++    int64_t w = (std::max)(int64_t(aRect.x) + aRect.width, int64_t(x) + width) - result.x;
+     if (MOZ_UNLIKELY(w > nscoord_MAX)) {
+       NS_WARNING("Overflowed nscoord_MAX in conversion to nscoord width");
+       // Clamp huge negative x to nscoord_MIN / 2 and try again.
+-      result.x = std::max(result.x, nscoord_MIN / 2);
+-      w = std::max(int64_t(aRect.x) + aRect.width, int64_t(x) + width) - result.x;
++      result.x = (std::max)(result.x, nscoord_MIN / 2);
++      w = (std::max)(int64_t(aRect.x) + aRect.width, int64_t(x) + width) - result.x;
+       if (MOZ_UNLIKELY(w > nscoord_MAX)) {
+         w = nscoord_MAX;
+       }
+     }
+     result.width = nscoord(w);
+ 
+-    result.y = std::min(aRect.y, y);
+-    int64_t h = std::max(int64_t(aRect.y) + aRect.height, int64_t(y) + height) - result.y;
++    result.y = (std::min)(aRect.y, y);
++    int64_t h = (std::max)(int64_t(aRect.y) + aRect.height, int64_t(y) + height) - result.y;
+     if (MOZ_UNLIKELY(h > nscoord_MAX)) {
+       NS_WARNING("Overflowed nscoord_MAX in conversion to nscoord height");
+       // Clamp huge negative y to nscoord_MIN / 2 and try again.
+-      result.y = std::max(result.y, nscoord_MIN / 2);
+-      h = std::max(int64_t(aRect.y) + aRect.height, int64_t(y) + height) - result.y;
++      result.y = (std::max)(result.y, nscoord_MIN / 2);
++      h = (std::max)(int64_t(aRect.y) + aRect.height, int64_t(y) + height) - result.y;
+       if (MOZ_UNLIKELY(h > nscoord_MAX)) {
+         h = nscoord_MAX;
+       }
+     }
+     result.height = nscoord(h);
+@@ -226,13 +226,13 @@
+ {
+   nsIntRect rect;
+   rect.x = NSToIntRoundUp(NSAppUnitsToDoublePixels(x, aAppUnitsPerPixel) * aXScale);
+   rect.y = NSToIntRoundUp(NSAppUnitsToDoublePixels(y, aAppUnitsPerPixel) * aYScale);
+   // Avoid negative widths and heights due to overflow
+-  rect.width  = std::max(0, NSToIntRoundUp(NSAppUnitsToDoublePixels(XMost(),
++  rect.width  = (std::max)(0, NSToIntRoundUp(NSAppUnitsToDoublePixels(XMost(),
+                                aAppUnitsPerPixel) * aXScale) - rect.x);
+-  rect.height = std::max(0, NSToIntRoundUp(NSAppUnitsToDoublePixels(YMost(),
++  rect.height = (std::max)(0, NSToIntRoundUp(NSAppUnitsToDoublePixels(YMost(),
+                                aAppUnitsPerPixel) * aYScale) - rect.y);
+   return rect;
+ }
+ 
+ // scale the rect but round to smallest containing rect
+@@ -242,13 +242,13 @@
+ {
+   nsIntRect rect;
+   rect.x = NSToIntFloor(NSAppUnitsToFloatPixels(x, float(aAppUnitsPerPixel)) * aXScale);
+   rect.y = NSToIntFloor(NSAppUnitsToFloatPixels(y, float(aAppUnitsPerPixel)) * aYScale);
+   // Avoid negative widths and heights due to overflow
+-  rect.width  = std::max(0, NSToIntCeil(NSAppUnitsToFloatPixels(XMost(),
++  rect.width  = (std::max)(0, NSToIntCeil(NSAppUnitsToFloatPixels(XMost(),
+                             float(aAppUnitsPerPixel)) * aXScale) - rect.x);
+-  rect.height = std::max(0, NSToIntCeil(NSAppUnitsToFloatPixels(YMost(),
++  rect.height = (std::max)(0, NSToIntCeil(NSAppUnitsToFloatPixels(YMost(),
+                             float(aAppUnitsPerPixel)) * aYScale) - rect.y);
+   return rect;
+ }
+ 
+ // scale the rect but round to largest contained rect
+@@ -258,13 +258,13 @@
+ {
+   nsIntRect rect;
+   rect.x = NSToIntCeil(NSAppUnitsToFloatPixels(x, float(aAppUnitsPerPixel)) * aXScale);
+   rect.y = NSToIntCeil(NSAppUnitsToFloatPixels(y, float(aAppUnitsPerPixel)) * aYScale);
+   // Avoid negative widths and heights due to overflow
+-  rect.width  = std::max(0, NSToIntFloor(NSAppUnitsToFloatPixels(XMost(),
++  rect.width  = (std::max)(0, NSToIntFloor(NSAppUnitsToFloatPixels(XMost(),
+                              float(aAppUnitsPerPixel)) * aXScale) - rect.x);
+-  rect.height = std::max(0, NSToIntFloor(NSAppUnitsToFloatPixels(YMost(),
++  rect.height = (std::max)(0, NSToIntFloor(NSAppUnitsToFloatPixels(YMost(),
+                              float(aAppUnitsPerPixel)) * aYScale) - rect.y);
+   return rect;
+ }
+ 
+ inline nsIntRect
