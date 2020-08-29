@@ -195,6 +195,17 @@ NS_IMETHODIMP KmAppInfo::GetProcessType(uint32_t *aProcessType)
 	return NS_OK;
 }
 
+/* readonly attribute boolean is64Bit; */
+NS_IMETHODIMP KmAppInfo::GetIs64Bit(bool* aResult)
+{
+#ifdef _WIN64
+	*aResult = true;
+#else
+	*aResult = false;
+#endif
+	return NS_OK;
+}
+
 #include "nsINIParser.h"
 #define NS_LINEBREAK "\015\012"
 #define FILE_COMPATIBILITY_INFO NS_LITERAL_CSTRING("compatibility.ini")
