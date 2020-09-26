@@ -97,7 +97,7 @@
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <AdditionalIncludeDirectories>../shared;..\..\xulrunner-sdk\include\nspr;..\..\xulrunner-sdk\include;..\..\kmeleon-source\k-meleon\winEmbed;D:\Test\kmeleon-source\k-meleon\winEmbed;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../shared;..\..\xulrunner-sdk\include\nspr;..\..\xulrunner-sdk\include;..\..\k-meleon\winEmbed;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>MinSpace</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <WholeProgramOptimization>true</WholeProgramOptimization>
