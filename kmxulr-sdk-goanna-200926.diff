@@ -1,6 +1,22 @@
-diff -rU5 ../KMXULRunner_Pale-Moon/obj-xulrunner-i686-pc-mingw32/dist/include/mozilla/a11y/Accessible.h xulrunner-sdk/include/mozilla/a11y/Accessible.h
---- ../KMXULRunner_Pale-Moon/obj-xulrunner-i686-pc-mingw32/dist/include/mozilla/a11y/Accessible.h	2020-05-30 12:53:41.165183000 +0800
-+++ xulrunner-sdk/include/mozilla/a11y/Accessible.h	2020-06-14 16:49:14.447584100 +0800
+diff -rU5 ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/js/Debug.h xulrunner-sdk/include/js/Debug.h
+--- ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/js/Debug.h	2020-09-25 22:21:03.933524000 +0800
++++ xulrunner-sdk/include/js/Debug.h	2020-09-26 23:35:46.657650300 +0800
+@@ -131,11 +131,11 @@
+     js::Debugger* debugger;
+ 
+     // Check that |thing| is in the same compartment as our debuggerObject. Used
+     // for assertions when constructing BuiltThings. We can overload this as we
+     // add more instantiations of BuiltThing.
+-#if DEBUG
++#ifndef NDEBUG
+     void assertBuilt(JSObject* obj);
+ #else
+     void assertBuilt(JSObject* obj) { }
+ #endif
+ 
+diff -rU5 ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/mozilla/a11y/Accessible.h xulrunner-sdk/include/mozilla/a11y/Accessible.h
+--- ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/mozilla/a11y/Accessible.h	2020-09-10 22:18:09.975806000 +0800
++++ xulrunner-sdk/include/mozilla/a11y/Accessible.h	2020-09-26 23:32:32.195527700 +0800
 @@ -10,11 +10,12 @@
  #include "mozilla/a11y/RelationType.h"
  #include "mozilla/a11y/Role.h"
@@ -15,9 +31,10 @@ diff -rU5 ../KMXULRunner_Pale-Moon/obj-xulrunner-i686-pc-mingw32/dist/include/mo
  #include "nsRect.h"
  
  struct nsRoleMapEntry;
-diff -rU5 ../KMXULRunner_Pale-Moon/obj-xulrunner-i686-pc-mingw32/dist/include/nsCoord.h xulrunner-sdk/include/nsCoord.h
---- ../KMXULRunner_Pale-Moon/obj-xulrunner-i686-pc-mingw32/dist/include/nsCoord.h	2018-03-04 20:37:20.775205000 +0800
-+++ xulrunner-sdk/include/nsCoord.h	2020-06-14 16:57:30.063931800 +0800
+Only in xulrunner-sdk/include/mozilla: VisualEventTracer.h
+diff -rU5 ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/nsCoord.h xulrunner-sdk/include/nsCoord.h
+--- ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/nsCoord.h	2020-09-10 22:18:15.116100000 +0800
++++ xulrunner-sdk/include/nsCoord.h	2020-09-26 23:32:32.196527700 +0800
 @@ -161,11 +161,11 @@
      // infinity + anything = anything + infinity = infinity
      return nscoord_MAX;
@@ -44,9 +61,9 @@ diff -rU5 ../KMXULRunner_Pale-Moon/obj-xulrunner-i686-pc-mingw32/dist/include/ns
    }
  }
  
-diff -rU5 ../KMXULRunner_Pale-Moon/obj-xulrunner-i686-pc-mingw32/dist/include/nsISupportsImpl.h xulrunner-sdk/include/nsISupportsImpl.h
---- ../KMXULRunner_Pale-Moon/obj-xulrunner-i686-pc-mingw32/dist/include/nsISupportsImpl.h	2020-02-01 08:15:34.751398000 +0800
-+++ xulrunner-sdk/include/nsISupportsImpl.h	2020-06-14 16:48:21.795572600 +0800
+diff -rU5 ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/nsISupportsImpl.h xulrunner-sdk/include/nsISupportsImpl.h
+--- ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/nsISupportsImpl.h	2020-09-10 22:18:37.479379000 +0800
++++ xulrunner-sdk/include/nsISupportsImpl.h	2020-09-26 23:32:32.196527700 +0800
 @@ -18,11 +18,11 @@
  #include "prthread.h" /* needed for thread-safety checks */
  #endif // !XPCOM_GLUE_AVOID_NSPR
@@ -73,9 +90,10 @@ diff -rU5 ../KMXULRunner_Pale-Moon/obj-xulrunner-i686-pc-mingw32/dist/include/ns
  {
  public:
    ThreadSafeAutoRefCnt() : mValue(0) {}
-diff -rU5 ../KMXULRunner_Pale-Moon/obj-xulrunner-i686-pc-mingw32/dist/include/nsRect.h xulrunner-sdk/include/nsRect.h
---- ../KMXULRunner_Pale-Moon/obj-xulrunner-i686-pc-mingw32/dist/include/nsRect.h	2020-05-30 12:53:41.821220000 +0800
-+++ xulrunner-sdk/include/nsRect.h	2020-06-14 16:59:55.228234700 +0800
+Only in xulrunner-sdk/include: nsIVisualEventTracer.h
+diff -rU5 ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/nsRect.h xulrunner-sdk/include/nsRect.h
+--- ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/nsRect.h	2020-09-10 22:18:15.119100000 +0800
++++ xulrunner-sdk/include/nsRect.h	2020-09-26 23:32:32.197527800 +0800
 @@ -75,30 +75,30 @@
    {
  #ifdef NS_COORD_IS_FLOAT
