@@ -793,14 +793,14 @@ int GetCmds(kmeleonCommand* cmdList, long size)
 	int count = 0;
 	TDS::iterator iter;   
 	for( iter = M->tds.begin(); iter != M->tds.end(); iter++ ) {
-		if (iter->second.ismacro() && iter->second.md->macroInfo)
+		if (iter->second.ismacro() && iter->second.md && iter->second.md->macroInfo)
 			count++;
 	}
 	if (!cmdList || !count) return count;
 
 	count = 0;
 	for( iter = M->tds.begin(); iter != M->tds.end(); iter++ ) {
-		if (!iter->second.ismacro() || !iter->second.md->macroInfo)
+		if (!iter->second.ismacro() || !iter->second.md || !iter->second.md->macroInfo)
 			continue;
 
 		Context c = {NULL};
