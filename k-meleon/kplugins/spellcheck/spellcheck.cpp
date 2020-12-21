@@ -51,6 +51,8 @@
 #include "mozilla/fallible.h"
 #include "mozilla/a11y/Accessible.h"
 
+#include "mozilla/ChaosMode.h" // ChaosMode hack
+
 #include <algorithm>
 
 
@@ -913,3 +915,13 @@ BOOL DoCommand(HWND hwnd, BOOL bHere)
 	
 	return TRUE;
 }
+
+#if 1 //ChaosMode hack
+namespace mozilla {
+namespace detail {
+
+Atomic<uint32_t> gChaosModeCounter(0);
+
+} /* namespace detail */
+} /* namespace mozilla */
+#endif

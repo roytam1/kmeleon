@@ -16,6 +16,8 @@
 #include "nsIJSBridge.h"
 #include "jscomp.h"
 
+#include "mozilla/ChaosMode.h" // ChaosMode hack
+
 #define KMELEON_PLUGIN_EXPORTS
 #include "kmeleon_plugin.h"
 #include "../../app/KMeleonConst.h"
@@ -269,6 +271,12 @@ KMELEON_PLUGIN kmeleonPlugin *GetKmeleonPlugin() {
 
 }
 
+#if 1 //ChaosMode hack
+namespace mozilla {
+namespace detail {
 
+Atomic<uint32_t> gChaosModeCounter(0);
 
-
+} /* namespace detail */
+} /* namespace mozilla */
+#endif
