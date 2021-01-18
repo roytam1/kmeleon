@@ -822,6 +822,7 @@ int CUrlBar::Create(DWORD style, RECT &rect, CWnd *parentWnd, UINT id)
 HBRUSH CUrlBar::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 {
 	//pDC->SetBkMode(TRANSPARENT);
+	pDC->SetTextColor(GetSysColor(COLOR_WINDOWTEXT));
 	pDC->SetBkColor(m_crBkclr[m_HighlightType]);
 	return m_brBkgnd[m_HighlightType];
 }
