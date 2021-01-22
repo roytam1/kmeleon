@@ -20,7 +20,7 @@
     windowtype="global:console"
     width="640" height="480"
     persist="width height screenX screenY sizemode zlevel"
-    onload="window.sizeToContent();ConsoleStartUp();" onunload="ConsoleShutDown();"
+    onload="ConsoleStartUp();" onunload="ConsoleShutDown();"
     onclose="return closeWindow(false);"
 >
     <script type="application/x-javascript" src="chrome://global/content/globalOverlay.js"/>

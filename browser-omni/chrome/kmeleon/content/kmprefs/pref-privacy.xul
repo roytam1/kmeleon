@@ -167,6 +167,7 @@ var UserAgent = {
 									<radio value="2" label="&cookies.accept.never;"/>
 									<radio value="0" label="&cookies.accept.always;"/>
 									<radio value="1" label="&cookies.accept.noForeign;"/>
+									<radio value="3" label="&cookies.accept.visited;"/>
 									<vbox id="p3p" hidden="true">
 										<radio value="3" label="&cookies.accept.p3p;"/>
 										<hbox>

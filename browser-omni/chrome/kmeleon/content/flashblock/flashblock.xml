@@ -118,7 +118,7 @@ function flashblockIsWhitelisted(node, type) {
 		var evt = type == "silverlight" ? "silverblockCheckLoad" : "flashblockCheckLoad";
 		flashblockEvent.initEvent(evt, true, true);
 		node.dispatchEvent(flashblockEvent);
-		if(flashblockEvent.getPreventDefault() || node.hasAttribute("data-flashblockWhitelisted")) {
+		if(flashblockEvent.defaultPrevented || node.hasAttribute("data-flashblockWhitelisted")) {
 			// Whitelisted
 			return true;
 		}

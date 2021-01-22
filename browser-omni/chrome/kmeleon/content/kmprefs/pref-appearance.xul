@@ -19,6 +19,7 @@ function init() {
 	initCheckbox("kmeleon.display.accelInMenus");
 	initCheckbox("kmeleon.favicons.show");
 	initCheckbox("kmeleon.favicons.titleBar");
+	initCheckbox("kmeleon.display.hideTitleBar");
 	document.getElementById("kmeleon.favicons.titleBar").disabled = !pref.getBoolPref("kmeleon.favicons.show");
 	initTextbox("kmeleon.display.title", false);
 	initTextbox("kmeleon.display.toolbars_size", false);

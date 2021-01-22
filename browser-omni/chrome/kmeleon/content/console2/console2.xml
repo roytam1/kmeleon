@@ -209,9 +209,14 @@
 					if (aMessage.sourceLine)
 					{
 						// malformed-xml errors include their own caret -----v
+						if(aMessage.sourceLine.length > 100){row.setAttribute("code", aMessage.sourceLine.substring(0,100).replace(/\n\-+\^$/, "").replace(/\s/g, " ")+"/* ... */");
+						row.setAttribute("column", aMessage.columnNumber || 0);
+						row.setAttribute("errorDots", this.repeatChar(" ", (aMessage.columnNumber > 100) ? 105 : aMessage.columnNumber));
+						} else {
 						row.setAttribute("code", aMessage.sourceLine.replace(/\n\-+\^$/, "").replace(/\s/g, " "));
 						row.setAttribute("column", aMessage.columnNumber || 0);
 						row.setAttribute("errorDots", this.repeatChar(" ", aMessage.columnNumber));
+						}
 					}
 					if (("nsIScriptError2" in Components.interfaces &&
 						aMessage instanceof Components.interfaces.nsIScriptError2 &&

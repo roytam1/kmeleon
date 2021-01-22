@@ -9,12 +9,9 @@
 %viewSourceDTD;
 ]>
 <window xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-	  orient="vertical"
 	  title="&window.title;"
 	  windowtype="kmeleon:history"
-	  height="550px"
-	  width="440px"
-      onload="window.sizeToContent();HistorySidebarInit();"
+      onload="HistorySidebarInit();"
       onclose="SidebarUtils.setMouseoverURL('');">
 	<script type="application/javascript" src="chrome://history/content/sidebarUtils.js"/>
 	<script type="application/javascript" src="chrome://history/content/history.js"/>
