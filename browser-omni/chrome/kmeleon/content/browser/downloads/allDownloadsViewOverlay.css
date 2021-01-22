@@ -21,6 +21,15 @@ richlistitem.download[active] {
   -moz-binding: url('chrome://browser/content/downloads/download.xml#download-full-ui');
 }
 
+richlistitem.download[active]:-moz-any([state="-1"],/* Starting (initial) */
+                                       [state="0"], /* Downloading        */
+                                       [state="4"], /* Paused             */
+                                       [state="5"], /* Starting (queued)  */
+                                       [state="7"]) /* Scanning           */
+{
+  -moz-binding: url('chrome://browser/content/downloads/download.xml#download-in-progress-full-ui');
+}
+
 .download-state:not(          [state="0"]  /* Downloading        */)
                                            .downloadPauseMenuItem,
 .download-state:not(          [state="4"]  /* Paused             */)
@@ -28,12 +37,6 @@ richlistitem.download[active] {
 .download-state:not(:-moz-any([state="2"], /* Failed             */
                               [state="4"]) /* Paused             */)
                                            .downloadCancelMenuItem,
-/* Blocked (dirty) downloads that have not been confirmed and
-   have temporary data. */
-.download-state:not(          [state="8"]  /* Blocked (dirty)    */)
-                                           .downloadUnblockMenuItem,
-.download-state[state="8"]:not(.temporary-block)
-                                           .downloadUnblockMenuItem,
 .download-state[state]:not(:-moz-any([state="1"], /* Finished           */
                                      [state="2"], /* Failed             */
                                      [state="3"], /* Canceled           */
@@ -47,7 +50,7 @@ richlistitem.download[active] {
                               [state="4"], /* Paused             */
                               [state="5"]) /* Starting (queued)  */)
                                            .downloadShowMenuItem,
-.download-state[state="7"]                 .downloadCommandsSeparator
+.download-state[state="7"] /* Scanning */  .downloadCommandsSeparator
 {
   display: none;
 }

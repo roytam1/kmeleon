@@ -8,6 +8,15 @@ richlistitem[type="download"] {
   -moz-binding: url('chrome://browser/content/downloads/download.xml#download');
 }
 
+richlistitem[type="download"]:-moz-any([state="-1"],/* Starting (initial) */
+                                       [state="0"], /* Downloading        */
+                                       [state="4"], /* Paused             */
+                                       [state="5"], /* Starting (queued)  */
+                                       [state="7"]) /* Scanning           */
+{
+  -moz-binding: url('chrome://browser/content/downloads/download.xml#download-in-progress');
+}
+
 richlistitem[type="download"]:not([selected]) button {
   /* Only focus buttons in the selected item. */
   -moz-user-focus: none;
@@ -26,9 +35,9 @@ richlistitem[type="download"]:not([selected]) button {
                                            .downloadTypeIcon.blockedIcon,
 
 .download-state:not(:-moz-any([state="-1"],/* Starting (initial) */
-                              [state="5"], /* Starting (queued)  */
                               [state="0"], /* Downloading        */
                               [state="4"], /* Paused             */
+                              [state="5"], /* Starting (queued)  */
                               [state="7"]) /* Scanning           */)
                                            .downloadProgress,
 
@@ -37,13 +46,6 @@ richlistitem[type="download"]:not([selected]) button {
 
 .download-state:not(          [state="4"]  /* Paused             */)
                                            .downloadResumeMenuItem,
-
-/* Blocked (dirty) downloads that have not been confirmed and
-   have temporary data. */
-.download-state:not(          [state="8"]  /* Blocked (dirty)    */)
-                                           .downloadUnblockMenuItem,
-.download-state[state="8"]:not(.temporary-block)
-                                           .downloadUnblockMenuItem,
 
 .download-state:not(:-moz-any([state="2"], /* Failed             */
                               [state="4"]) /* Paused             */)
@@ -64,33 +66,35 @@ richlistitem[type="download"]:not([selected]) button {
                               [state="5"]) /* Starting (queued)  */)
                                            .downloadShowMenuItem,
 
-.download-state[state="7"]                 .downloadCommandsSeparator
+.download-state[state="7"] /* Scanning */  .downloadCommandsSeparator
 
 {
   display: none;
 }
 
-/*** Visibility of download buttons ***/
+/*** Visibility of download buttons and indicator controls. ***/
 
 .download-state:not(:-moz-any([state="-1"],/* Starting (initial) */
-                              [state="5"], /* Starting (queued)  */
                               [state="0"], /* Downloading        */
-                              [state="4"]) /* Paused             */)
+                              [state="4"], /* Paused             */
+                              [state="5"]) /* Starting (queued)  */)
                                            .downloadCancel,
-
-/* Blocked (dirty) downloads that have not been confirmed and
-   have temporary data. */
-.download-state:not(          [state="8"]  /* Blocked (dirty)    */)
-                                           .downloadConfirmBlock,
-.download-state[state="8"]:not(.temporary-block)
-                                           .downloadConfirmBlock,
 
 .download-state:not(:-moz-any([state="2"], /* Failed             */
                               [state="3"]) /* Canceled           */)
                                            .downloadRetry,
 
 .download-state:not(          [state="1"]  /* Finished           */)
-                                           .downloadShow
+                                           .downloadShow,
+
+#downloads-indicator:-moz-any([progress],
+                              [counter],
+                              [paused])    #downloads-indicator-icon,
+
+#downloads-indicator:not(:-moz-any([progress],
+                                   [counter],
+                                   [paused]))
+                                           #downloads-indicator-progress-area
 
 {
   visibility: hidden;
@@ -107,4 +111,22 @@ richlistitem[type="download"]:not([selected]) button {
 #downloadsFooter:not([showingsummary]) > #downloadsSummary
 {
   display: none;
+}
+
+/* Hacks for toolbar full and text modes, until bug 573329 removes them */
+
+toolbar[mode="text"] > #downloads-indicator {
+  display: -moz-box;
+  -moz-box-orient: vertical;
+  -moz-box-pack: center;
+}
+
+toolbar[mode="text"] > #downloads-indicator > .toolbarbutton-text {
+  -moz-box-ordinal-group: 1;
+}
+
+toolbar[mode="text"] > #downloads-indicator > .toolbarbutton-icon {
+  display: -moz-box;
+  -moz-box-ordinal-group: 2;
+  visibility: collapse;
 }

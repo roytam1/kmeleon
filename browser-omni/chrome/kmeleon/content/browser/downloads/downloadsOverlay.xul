@@ -16,10 +16,6 @@
              oncommand="goDoCommand('downloadsCmd_pauseResume')"/>
     <command id="downloadsCmd_cancel"
              oncommand="goDoCommand('downloadsCmd_cancel')"/>
-    <command id="downloadsCmd_unblock"
-             oncommand="goDoCommand('downloadsCmd_unblock')"/>
-    <command id="downloadsCmd_confirmBlock"
-             oncommand="goDoCommand('downloadsCmd_confirmBlock')"/>
     <command id="downloadsCmd_open"
              oncommand="goDoCommand('downloadsCmd_open')"/>
     <command id="downloadsCmd_show"
@@ -45,6 +41,7 @@
            type="arrow"
            orient="vertical"
            level="top"
+           consumeoutsideclicks="true"
            onpopupshown="DownloadsPanel.onPopupShown(event);"
            onpopuphidden="DownloadsPanel.onPopupHidden(event);">
       <!-- The following popup menu should be a child of the panel element,
@@ -64,10 +61,6 @@
                   class="downloadCancelMenuItem"
                   label="&cmd.cancel.label;"
                   accesskey="&cmd.cancel.accesskey;"/>
-        <menuitem command="downloadsCmd_unblock"
-                  class="downloadUnblockMenuItem"
-                  label="&cmd.unblock.label;"
-                  accesskey="&cmd.unblock.accesskey;"/>
         <menuitem command="cmd_delete"
                   class="downloadRemoveFromHistoryMenuItem"
                   label="&cmd.removeFromHistory.label;"
@@ -104,7 +97,7 @@
                    ondragstart="DownloadsView.onDownloadDragStart(event);"/>
       <description id="emptyDownloads"
                    mousethrough="always">
-         &downloadsPanelEmpty.label;
+           &downloadsPanelEmpty.label;
       </description>
 
       <vbox id="downloadsFooter">
