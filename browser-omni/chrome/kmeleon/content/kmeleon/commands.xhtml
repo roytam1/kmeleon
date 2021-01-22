@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html [
+  <!ENTITY % htmlDTD
+    PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "DTD/xhtml1-strict.dtd">
+  %htmlDTD;
+]>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" class="km_PageBackground">
+<head>
+<script type="text/javascript;version=1.8"><![CDATA[
+
+Components.utils.import("resource:///modules/KMeleon.jsm");
+
+window.addEventListener('pageshow', function () {
+  var i,list = KMeleon.GetCmdList();
+  var el = document.getElementById("list");	
+  list.sort(function(a,b) { return a.name < b.name ? -1 : (a.name > b.name ? 1 : 0); });
+  
+  for (i=0;i<list.length;i++) {
+    var tr = document.createElement("tr");
+    
+    var td = document.createElement("td");
+    td.appendChild(document.createTextNode(list[i].name));
+    tr.appendChild(td);
+    
+    td = document.createElement("td");
+    td.appendChild(document.createTextNode(list[i].desc));
+    tr.appendChild(td);
+    
+    td = document.createElement("td");
+    td.appendChild(document.createTextNode(list[i].accel));
+    tr.appendChild(td);
+    el.appendChild(tr);
+  }
+  
+});
+
+
+]]></script>
+</head>
+
+<body>
+</body>
+<table id="list">
+</table>
+
+</html>
+
+

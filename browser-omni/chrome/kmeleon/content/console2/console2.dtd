@@ -1,0 +1,155 @@
+<!ENTITY console.title       "Error Console">
+<!ENTITY console.accesskey   "E">
+<!ENTITY console.tooltiptext "Display the Error Console">
+
+<!ENTITY type.label          "Type">
+<!ENTITY type.accesskey      "y">
+<!ENTITY all.label           "All">
+<!ENTITY all.accesskey       "A">
+<!ENTITY errors.label        "Errors">
+<!ENTITY errors.accesskey    "E">
+<!ENTITY warnings.label      "Warnings">
+<!ENTITY warnings.accesskey  "W">
+<!ENTITY messages.label      "Messages">
+<!ENTITY messages.accesskey  "M">
+<!ENTITY mixed.label         "Mixed">
+
+<!ENTITY lang.label          "Lang">
+<!ENTITY lang.accesskey      "L">
+<!ENTITY lang.all.label      "All">
+<!ENTITY lang.all.accesskey  "A">
+<!ENTITY lang.js.label       "JS">
+<!ENTITY lang.js.accesskey   "J">
+<!ENTITY lang.css.label      "CSS">
+<!ENTITY lang.css.accesskey  "C">
+<!ENTITY lang.xml.label      "XML">
+<!ENTITY lang.xml.accesskey  "X">
+<!ENTITY lang.kmm.label      "KMM">
+<!ENTITY lang.kmm.accesskey  "K">
+
+<!ENTITY ctx.accesskey       "n">
+<!ENTITY ctx.all.label       "Anywhere">
+<!ENTITY ctx.all.accesskey   "A">
+<!ENTITY ctx.chr.label       "Chrome">
+<!ENTITY ctx.chr.accesskey   "C">
+<!ENTITY ctx.cnt.label       "Content">
+<!ENTITY ctx.cnt.accesskey   "o">
+<!ENTITY ctx.kmm.label      "KMM">
+<!ENTITY ctx.kmm.accesskey  "K">
+<!ENTITY ctx.res.label       "Resource">
+<!ENTITY ctx.res.accesskey   "R">
+
+<!ENTITY tools.label         "Options">
+<!ENTITY tools.accesskey     "O">
+<!ENTITY dupes.label         "Hide Duplicates">
+<!ENTITY dupes.accesskey     "D">
+<!ENTITY timestamps.label     "Show Timestamps">
+<!ENTITY timestamps.accesskey "w">
+<!ENTITY strict.label        "Report Strict Warnings">
+<!ENTITY strict.accesskey    "S">
+<!ENTITY logCSS.label        "Report CSS Errors">
+<!ENTITY logCSS.accesskey    "e">
+<!ENTITY logExcept.label     "Report All JS Exceptions">
+<!ENTITY logExcept.accesskey "J">
+<!ENTITY onTop.label         "Always On Top">
+<!ENTITY onTop.accesskey     "A">
+<!ENTITY noteFocus.label     "Focus On Report">
+<!ENTITY noteFocus.accesskey "R">
+<!ENTITY domainlst.label     "Manage Domain Blocker...">
+<!ENTITY domainlst.accesskey "B">
+<!ENTITY custom1.label       "Customize Toolbar...">
+<!ENTITY custom1.accesskey   "t">
+<!ENTITY clearAll.label      "Clear Console">
+<!ENTITY clearAll.accesskey  "C">
+
+<!ENTITY clear.label         "Clear">
+<!ENTITY clear.accesskey     "r">
+<!ENTITY search.label        "Search">
+<!ENTITY search.accesskey    "S">
+<!ENTITY evaluate.label      "Evaluate">
+<!ENTITY evaluate.accesskey  "v">
+
+<!ENTITY all2.accesskey      "A">
+<!ENTITY errors2.accesskey   "E">
+<!ENTITY warnings2.accesskey "W">
+<!ENTITY messages2.accesskey "M">
+
+<!ENTITY lang.js2.accesskey  "J">
+<!ENTITY lang.css2.accesskey "C">
+<!ENTITY lang.xml2.accesskey "X">
+<!ENTITY ctx.chr2.accesskey  "h">
+<!ENTITY ctx.cnt2.accesskey  "t">
+<!ENTITY ctx.res2.accesskey  "z">
+
+<!ENTITY all3.accesskey      "&all2.accesskey;">
+<!ENTITY errors3.accesskey   "r">
+<!ENTITY warnings3.accesskey "g">
+<!ENTITY messages3.accesskey "&messages2.accesskey;">
+<!ENTITY clear3.accesskey    "l">
+
+<!ENTITY lang3.accesskey     ":">
+<!ENTITY lang.js3.accesskey  "&lang.js2.accesskey;">
+<!ENTITY lang.css3.accesskey "&lang.css2.accesskey;">
+<!ENTITY lang.xml3.accesskey "&lang.xml2.accesskey;">
+<!ENTITY ctx.chr3.accesskey  "o">
+<!ENTITY ctx.cnt3.accesskey  "n">
+<!ENTITY ctx.res3.accesskey  "z">
+
+<!ENTITY evaluate3.accesskey "u">
+<!ENTITY tools3.accesskey    "p">
+<!ENTITY ctx3.accesskey      "Q">
+
+<!ENTITY sortFirst.label     "First &gt; Last Sort Order">
+<!ENTITY sortFirst.accesskey "f">
+<!ENTITY sortLast.label      "Last &gt; First Sort Order">
+<!ENTITY sortLast.accesskey  "l">
+<!ENTITY ignoreCmd.label     "Ignore Message">
+<!ENTITY ignoreCmd.accesskey "M">
+<!ENTITY blacklist.label     "Block Domain">
+<!ENTITY blacklist2.label    "Ignore Domain">
+<!ENTITY blacklist.accesskey "D">
+<!ENTITY copyCmd.label       "Copy">
+<!ENTITY copyCmd.accesskey   "C">
+<!ENTITY copyCmd.commandkey  "C">
+<!ENTITY selCmd.label        "Select All">
+<!ENTITY selCmd.accesskey    "A">
+<!ENTITY selCmd.commandkey   "A">
+
+<!ENTITY menuBar.tooltip     "Menu Bar">
+<!ENTITY toolbarsCmd.label   "Show/Hide">
+<!ENTITY toolbarsCmd.accesskey "w">
+<!ENTITY modeBar.label       "Mode Toolbar">
+<!ENTITY modeBar.accesskey   "M">
+<!ENTITY extBar.label        "Second Toolbar">
+<!ENTITY extBar.accesskey    "S">
+<!ENTITY evalBar.label       "Evaluate Toolbar">
+<!ENTITY evalBar.accesskey   "E">
+<!ENTITY customize.label     "Customize...">
+<!ENTITY customize.accesskey "C">
+
+<!ENTITY closeCmd.commandkey "w">
+<!ENTITY focus1.commandkey   "l">
+<!ENTITY focus2.commandkey   "d">
+<!ENTITY search.commandkey   "k">
+
+<!ENTITY dupes.tooltip       "# of duplicate entries">
+<!ENTITY errLine.label       "Line:">
+
+<!ENTITY all.tooltip         "Toggle all entries to be shown">
+<!ENTITY errors.tooltip      "Show/hide all Errors">
+<!ENTITY warnings.tooltip    "Show/hide all Warnings">
+<!ENTITY messages.tooltip    "Show/hide all Messages">
+
+<!ENTITY lang.js.tooltip     "Show/hide all JavaScript related entries">
+<!ENTITY lang.css.tooltip    "Show/hide all Stylesheet related entries">
+<!ENTITY lang.xml.tooltip    "Show/hide all HTML/XML/XUL related entries">
+<!ENTITY ctx.chr.tooltip     "Show/hide all Application/Extension related entries">
+<!ENTITY ctx.cnt.tooltip     "Show/hide all Website/Mail related entries">
+<!ENTITY lang.kmm.tooltip     "Show/hide all KMeleon macros related entries">
+<!ENTITY ctx.res.tooltip     "Show/hide all Resource related entries">
+
+<!ENTITY clear.tooltip       "Permanently delete all entries">
+<!ENTITY copyCmd.tooltip     "Copy all selected entries">
+<!ENTITY evaluate.tooltip    "Evaluate the entered JavaScript expression">
+
+<!ENTITY showAll.label       "Show All">

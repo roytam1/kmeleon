@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?> 
+
+<!DOCTYPE dialog SYSTEM "chrome://console2/locale/domainlist.dtd" >
+
+<dialog
+	xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+	id="Console2BlacklistDialog"
+	windowtype="global:console2:blacklist"
+	title="&domainlist.title;"
+	buttons="accept,extra2"
+	onload="DomainlistStartUp();"
+	onunload="DomainlistShutDown();"
+	ondialogextra2="removeDomain();"
+	buttonlabelaccept="&close.label;"
+	buttonaccesskeyaccept="&close.accesskey;"
+	buttonlabelextra2="&remove.label;"
+	buttonaccesskeyextra2="&remove.accesskey;"
+	defaultButton="cancel"
+	width="350" height="400"
+	persist="width height screenX screenY"
+>
+	<script type="application/x-javascript" src="chrome://console2/content/domainlist.js"/>
+	
+	<description control="uri">&uri.description;</description>
+	<hbox align="start">
+		<textbox id="uri" flex="1" oninput="onURIInput();" onkeypress="if (event.keyCode == event.DOM_VK_RETURN) { addDomain(BLOCK_DOMAIN); event.preventDefault(); }"/>
+	</hbox>
+	<hbox pack="end">
+		<button id="allow" disabled="true" label="&allow.label;" accesskey="&allow.accesskey;" oncommand="addDomain(ALLOW_DOMAIN);"/>
+		<button id="block" disabled="true" label="&block.label;" accesskey="&block.accesskey;" oncommand="addDomain(BLOCK_DOMAIN);" default="true"/>
+	</hbox>
+	<separator class="thin"/>
+	
+	<tree id="domains" flex="1" hidecolumnpicker="true" persist="sorting">
+		<treecols onclick="if (event.originalTarget.id) sortByColumn(event.originalTarget.id);">
+			<treecol id="domain" label="&col.domain.label;" flex="3" persist="width"/>
+			<splitter class="tree-splitter"/>
+			<treecol id="status" label="&col.status.label;" flex="1" persist="width"/>
+		</treecols>
+		<treechildren alternatingbackground="true"/>
+	</tree>
+</dialog>

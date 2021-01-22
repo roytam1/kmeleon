@@ -1,0 +1,173 @@
+@import url("chrome://console2/skin/c2version.css");
+
+@namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
+
+/* :::::::: console rows ::::::::::::::: */
+
+.console-row {
+	border-bottom: 1px solid ThreeDShadow;
+	padding: 0px;
+}
+
+.console-row-icon {
+	padding: 3px;
+	-moz-padding-start: 5px;
+	-moz-box-align: start !important;
+}
+
+.console-row-icon image {
+	list-style-image: inherit;
+}
+
+.console-row-dupes {
+	font-weight: bold;
+	padding: 0px 5px;
+}
+
+.console-row-dupes:not([value]) {
+	display: none;
+}
+
+/* ........ error/warning rows .............. */
+
+.console-row-code {
+	padding: 3px 0px;
+	color: #404040;
+	font-size: larger;
+}
+
+.console-dots,
+.console-caret {
+	height: 9px;
+}
+
+.console-dots {
+	background: url("data:image/gif;base64,R0lGODlhBQAJAIAAAACmUQAAACH5BAEAAAEALAAAAAAFAAkAAAIHjI+pywpfAAA7") repeat-x top left;
+}
+
+.console-caret {
+	width: 7px;
+	background: url("data:image/gif;base64,R0lGODlhBwAJAIABAACmUQAAACH5BAEAAAEALAAAAAAHAAkAAAIOjGEJq8sOVZIzoHotSwUAOw==") no-repeat top left;
+}
+
+.console-row[type="error"] description {
+	font-weight: bold;
+}
+
+/* ........ message rows .............. */
+
+.console-row[type="message"] description {
+	/*font-family: monospace;*/
+}
+
+/* ........ selected state .............. */
+
+.console-row-code[selected="true"],
+.console-row[selected="true"] .text-link {
+	color: inherit !important;
+}
+
+/* ........ current state .............. */
+
+#ConsoleBox:focus > .console-row[current="true"] {
+	outline: 1px dotted -moz-FieldText !important;
+}
+
+
+/* :::::::: icons (from the Winstripe theme) ::::::::::::::: */
+
+.console-row[type="error"] {
+	list-style-image: url("chrome://console2/skin/import/bullet-error.png");
+}
+
+.console-row[type="warning"] {
+	list-style-image: url("chrome://console2/skin/import/bullet-warning.png");
+}
+
+.console-row[type="message"] {
+	list-style-image: url("chrome://console2/skin/import/bullet-message.png");
+}
+
+.console-row[category~="CSS"] .console-row-icon box {
+	background: url("chrome://console2/skin/css.png") no-repeat center;
+}
+
+/* for k-meleon: */
+.console-row[category~="macro"] .console-row-icon box {
+	background: url("chrome://console2/skin/kmm.png") no-repeat center;
+}/*
+.console-row[category]:not([category~="javascript"]):not([category~="JavaScript"]):not([category~="CSS"]) .console-row-icon box {
+	background: url("chrome://console2/skin/xml.png") no-repeat center;
+}*/
+.console-row[category]:not([category~="javascript"]):not([category~="JavaScript"]):not([category~="CSS"]):not([category~="macro"]) .console-row-icon box {
+	background: url("chrome://console2/skin/xml.png") no-repeat center;
+}
+
+
+/* :::::::: toolbars ::::::::::::::: */
+
+toolbaritem > textbox {
+	margin: 2px !important;
+}
+
+#ButtonEval {
+	margin-top: 0px !important;
+	margin-bottom: 0px !important;
+	-moz-margin-start: 0px !important;
+	-moz-margin-end: 2px !important;
+	padding-top: 0px !important;
+	padding-bottom: 0px !important;
+}
+
+#PopupEval {
+	padding: 1px;
+	-moz-margin-start: -2px;
+	margin-top: 3px;
+	color: -moz-FieldText !important;
+	background: -moz-Field !important;
+}
+
+toolbarseparator {
+	min-height: 1em;
+}
+
+toolbarbutton:focus {
+	outline: 1px dotted ThreeDShadow !important;
+	-moz-outline-radius: 4px !important;
+}
+
+toolbarbutton:hover:focus {
+	outline: none !important;
+}
+
+
+/* :::::::: diverse bug fixes ::::::::::::::: */
+
+/* ........ toolbar buttons for Thunderbird/Qute .............. */
+
+/*
+toolbarbutton {
+	padding: 3px !important;
+}
+*/
+
+.toolbarbutton-icon {
+	-moz-margin-end: 5px;
+}
+
+.toolbarbutton-menu-dropmarker {
+	margin: 0px;
+}
+
+/* ........ toolbar button text spacing .............. */
+
+.toolbarbutton-text {
+	-moz-padding-start: 0px;
+	-moz-padding-end: 5px;
+}
+
+/* ........ bug 307447 .............. */
+
+toolbar:first-child {
+	border-top: 0px;
+}

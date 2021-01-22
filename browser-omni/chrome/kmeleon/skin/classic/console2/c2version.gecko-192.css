@@ -1,0 +1,15 @@
+@namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
+
+.console-row[type="error"] description {
+	white-space: pre-wrap;
+}
+
+/* ........ message rows .............. */
+
+.console-row[type="message"] description {
+	white-space: pre-wrap;
+}
+
+#ConsoleBox:focus > .console-row[current="true"] {
+	outline-offset: -2px;
+}

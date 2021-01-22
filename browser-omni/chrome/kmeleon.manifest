@@ -1,0 +1,25 @@
+content branding kmeleon/content/branding/ contentaccessible=yes
+content kmeleon kmeleon/content/kmeleon/
+skin kmeleon	classic/1.0 kmeleon/skin/classic/kmeleon/ 
+override chrome://global/content/about.xhtml chrome://kmeleon/content/about.xhtml
+override chrome://global/locale/netErrorApp.dtd chrome://kmeleon/locale/netErrorApp.dtd
+override chrome://global/content/netError.xhtml chrome://kmeleon/content/netError.xhtml
+override chrome://global/content/viewSource.js chrome://kmeleon/content/viewSource.js
+override chrome://global/content/viewSource.xul chrome://kmeleon/content/viewSource.xul
+
+content history kmeleon/content/history/
+skin	history	classic/1.0 kmeleon/skin/classic/history/
+
+content console2 kmeleon/content/console2/
+skin	console2	classic/1.0 kmeleon/skin/classic/console2/
+
+content kmprefs	 kmeleon/content/kmprefs/ contentaccessible=yes
+skin kmprefs classic/1.0 kmeleon/skin/classic/kmprefs/
+
+content browser kmeleon/content/browser/  contentaccessible=yes
+skin browser classic/1.0 kmeleon/skin/classic/aero/browser/ os=WINNT osversion>=6
+skin browser classic/1.0 kmeleon/skin/classic/browser/ os!=WINNT
+skin browser classic/1.0 kmeleon/skin/classic/browser/ os=WINNT osversion<6
+
+content flashblock kmeleon/content/flashblock/  contentaccessible=yes
+

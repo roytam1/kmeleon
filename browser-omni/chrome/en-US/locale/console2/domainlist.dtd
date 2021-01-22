@@ -1,0 +1,16 @@
+<!ENTITY domainlist.title    "Error Console - Domain Blocker">
+
+<!ENTITY close.label         "Close">
+<!ENTITY close.accesskey     "C">
+<!ENTITY remove.label        "Remove Entry">
+<!ENTITY remove.accesskey    "R">
+
+<!ENTITY uri.description     "You can specify here which domains you want to allow or disallow to send message entries to the console. Enter any domain name (or * for all domains) and hit Allow or Block:">
+
+<!ENTITY allow.label         "Allow">
+<!ENTITY allow.accesskey     "A">
+<!ENTITY block.label         "Block">
+<!ENTITY block.accesskey     "B">
+
+<!ENTITY col.domain.label    "Domain">
+<!ENTITY col.status.label    "Status">

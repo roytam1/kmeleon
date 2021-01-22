@@ -1,0 +1,770 @@
+<?xml version="1.0"?> 
+<?xml-stylesheet type="text/css" href="chrome://global/skin/"?>
+<?xml-stylesheet type="text/css" href="chrome://kmprefs/skin/"?>
+<!DOCTYPE page SYSTEM "chrome://kmprefs/locale/pref-proxy.dtd">
+<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" id="prefProxy" onload="Proxy.init()" onunload="CustomProxy.exit()">
+	<stringbundle id="pref_bundle" src="chrome://kmprefs/locale/pref.properties"/>
+	<stringbundle id="prox_bundle" src="chrome://kmprefs/locale/pref-proxy.properties"/>
+	<script type="application/x-javascript" src="chrome://kmprefs/content/pref.js"/>
+	<script type="application/x-javascript" src="chrome://kmprefs/content/kplugins/jsbridge.js"/>
+	<script type="application/x-javascript">
+<![CDATA[
+var CustomProxy = {
+	base : "kmeleon.plugins.macros.",
+	temp : "proxy.temp",
+	list : {
+		pref : "proxy.configs",
+		value : null
+	}, // the list of custom proxy configurations
+	name : {
+		pref : ".name",
+		value : null
+	}, // these are their real names
+	
+	crrnt : {
+		pref : "proxy.current",
+		value : null
+	},
+	
+	_menu : "_Custom_Proxies", // menu name
+	_cmnd : "Proxy_Custom", // macro name
+	_done : false,
+	
+	// controls:  | radiogroups  | menulists                                    | checkboxes                                                                   | special (integer) textboxes for ports                                                              | normal (string) textboxes
+	pref : {
+		name : [".proxy.type", ".http.proxy.version", ".proxy.socks_version", ".http.proxy.keep-alive", ".http.proxy.pipelining", ".proxy.socks_remote_dns", ".proxy.http_port", ".proxy.ssl_port", ".proxy.ftp_port", ".proxy.gopher_port", ".proxy.socks_port", ".name", ".proxy.autoconfig_url", ".proxy.http", ".proxy.ssl", ".proxy.ftp", ".proxy.gopher", ".proxy.socks", ".proxy.no_proxies_on"	],
+		type : [	1, 					2, 						1, 							0, 						0, 							0, 						1, 				1, 					1, 					1, 						1, 			2, 					2, 					2, 			2, 				2, 				2, 				2, 					2			],
+		dflt : [	"1", 			"1.1", 						"5", 					"true", 				"false", 					"false", 					"0", 			"0", 				"0", 				"0", 					"0", 		"", 				"", 				"", 		"", 			"", 			"", 			"", 	"localhost, 127.0.0.1"	]
+	},
+	
+	init : function () {
+		this.list.value = [];
+		this.name.value = [];
+		
+		var lst = getPrefValue(this.base + this.list.pref);
+		if (lst) {
+			lst = lst.split(";");
+			for (var i = 0; i < lst.length; i++)
+				if (lst[i] != "") {
+					this.list.value[this.list.value.length] = lst[i];
+					this.name.value[this.name.value.length] = getPrefValue(this.base + lst[i] + this.name.pref);
+				}
+		} // else
+		//	this.compatibility();
+		
+		var v = getPrefValue(this.base + this.crrnt.pref);
+		this.crrnt.value = (v == null && this.list.value.length) ? this.list.value[0] : v;
+		
+		this._setDefaults();
+		this._initMenulist();
+		
+		this._initTab(this.temp);
+		this._setControls("new");
+		
+		for (var i = 0; i < this.list.value.length; i++)
+			this._createTab(i);
+		this._setButtonState();
+	},
+	compatibility : function () {
+		// check for old (macro-generated) configurations
+		var oldID = this._getNextListID(),
+		oldName = getPrefValue(this.base + oldID + this.name.pref);
+		while (oldName) {
+			this.list.value[this.list.value.length] = oldID;
+			this.name.value[this.name.value.length] = oldName;
+			
+			// move these prefs:
+			pref.setIntPref(this.base + oldID + this.pref.name[6], pref.getIntPref(this.base + oldID + this.pref.name[6].replace(/\.proxy/, "")));
+			restoreDefault(this.base + oldID + this.pref.name[6].replace(/\.proxy/, ""));
+			setCharPref(this.base + oldID + this.pref.name[13], getPrefValue(this.base + oldID + this.pref.name[13].replace(/\.proxy/, "")));
+			restoreDefault(this.base + oldID + this.pref.name[13].replace(/\.proxy/, ""));
+			
+			oldID = this._getNextListID();
+			oldName = getPrefValue(this.base + oldID + this.name.pref);
+		}
+		if (this.list.value.length)
+			setCharPref(this.base + this.list.pref, this.list.value.join(";") + (";"));
+		for (var i = 0; i < this.list.value.length; i++)
+			for (var j = 0, p, v; j < this.pref.name.length; j++) {
+				p = this.base + this.list.value[i] + this.pref.name[j];
+				v = getPrefValue(p);
+				if (v == null) {
+					v = this.pref.dflt[j];
+					switch (this.pref.type[j]) {
+					case 0:
+						pref.setBoolPref(p, (v == "true"));
+						break;
+					case 1:
+						pref.setIntPref(p, parseInt(v));
+						break;
+					case 2:
+						setCharPref(p, v);
+					}
+				}
+			}
+		
+		// check whether any proxy was set through the pre-1.5 native pref panel
+		var a = [],
+		old = false;
+		for (i = 0; i < this.pref.name.length; i++)
+			switch (i) {
+			case 0:
+				a[i] = this.pref.dflt[i];
+				break; // type
+			case 11:
+				a[i] = "";
+				break; // name
+			default:
+				a[i] = getPrefValue("network" + this.pref.name[i]);
+				if (a[i] != this.pref.dflt[i])
+					old = true;
+			}
+		if (old) {
+			oldID = this._getNextListID();
+			oldName = document.getElementById("prox_bundle").getString("default_name").replace("%S", oldID.replace("proxy", ""));
+			this.list.value[this.list.value.length] = oldID;
+			this.name.value[this.name.value.length] = oldName;
+			a[0] = (a[12]) ? "2" : "1"; // PAC or manual?
+			a[11] = oldName;
+			setCharPref(this.base + this.list.pref, this.list.value.join(";") + (";"));
+			for (i = 0; i < this.pref.name.length; i++) {
+				p = this.base + oldID + this.pref.name[i];
+				v = a[i];
+				switch (this.pref.type[i]) {
+				case 0:
+					pref.setBoolPref(p, (v == "true"));
+					break;
+				case 1:
+					pref.setIntPref(p, parseInt(v));
+					break;
+				case 2:
+					setCharPref(p, v);
+				}
+			}
+		}
+		
+		// update menu
+		for (i = 0; i < this.list.value.length; i++)
+			this._addMenu(this.list.value[i]);
+	},
+	apply : function (prefID) {
+		if (prefID) {
+			for (var i = 0, p, v; i < this.pref.name.length; i++) {
+				p = "network" + this.pref.name[i];
+				v = getPrefValue(this.base + prefID + this.pref.name[i]);
+				switch (this.pref.type[i]) {
+				case 0:
+					pref.setBoolPref(p, (v == "true"));
+					break;
+				case 1:
+					pref.setIntPref(p, parseInt(v));
+					break;
+				case 2:
+					pref.setCharPref(p, v);
+				}
+			}
+			this.crrnt.value = prefID;
+			setCharPref(this.base + this.crrnt.pref, prefID)
+			this._initMenulist();
+			this._setButtonState();
+		}
+	},
+	add : function () {
+		if (this._invalidName())
+			return;
+		
+		var id = this._getNextListID();
+		
+		for (var i = 0, p, v; i < this.pref.name.length; i++) {
+			p = this.base + id + this.pref.name[i];
+			v = getPrefValue(this.base + this.temp + this.pref.name[i]);
+			switch (this.pref.type[i]) {
+			case 0:
+				pref.setBoolPref(p, (v == "true"));
+				break;
+			case 1:
+				pref.setIntPref(p, parseInt(v));
+				break;
+			case 2:
+				setCharPref(p, v);
+			}
+		}
+		
+		this.list.value[this.list.value.length] = id;
+		this.name.value[this.name.value.length] = getPrefValue(this.base + id + this.name.pref);
+		
+		if (this.crrnt.value == null) {
+			setCharPref(this.base + this.crrnt.pref, id);
+			this.crrnt.value = id;
+		}
+		
+		v = getPrefValue(this.base + this.list.pref);
+		setCharPref(this.base + this.list.pref, (v == null ? "" : v) + id + ";");
+		
+		this._addMenu(id);
+		this._initMenulist();
+		this._createTab(this.list.value.length - 1);
+		
+		this._setDefaults();
+		this._initTab(this.temp);
+		this._setControls("new");
+		
+		this.selectTab(id);
+	},
+	del : function (prefID) {
+		for (var i = 0, a, b, c; i < this.pref.name.length; i++)
+			restoreDefault(this.base + prefID + this.pref.name[i]);
+		
+		for (i = 0, a = []; i < this.list.value.length; i++)
+			if (this.list.value[i] != prefID)
+				a[a.length] = this.list.value[i];
+			else
+				b = i;
+		this.list.value = a;
+		setCharPref(this.base + this.list.pref, a.join(";") + (";"));
+		
+		for (i = 0, a = []; i < this.name.value.length; i++)
+			if (i != b)
+				a[a.length] = this.name.value[i];
+		this.name.value = a;
+		
+		if (this.list.value.length == 0)
+			c = "new";
+		else
+			if (b == this.list.value.length)
+				c = this.list.value[b - 1];
+			else
+				c = this.list.value[b];
+		
+		if (!this.list.value.length) {
+			restoreDefault(this.base + this.crrnt.pref);
+			restoreDefault(this.base + this.list.pref);
+			for (i = 0; i < this.pref.name.length; i++) {
+				if (i == 0 || i == 1 || i == 3 || i == 4)
+					continue;
+				restoreDefault("network" + this.pref.name[i]);
+			}
+		} else
+			setCharPref(this.base + this.crrnt.pref, c);
+		
+		this._delMenu(prefID);
+		this._initMenulist();
+		
+		document.getElementsByTagName("tabs")[0].removeChild(document.getElementById("tab_" + prefID));
+		document.getElementsByTagName("tabpanels")[0].removeChild(document.getElementById(prefID));
+		
+		this.selectTab(c);
+	},
+	selectTab : function (id) {
+		document.getElementsByTagName("tabbox")[0].selectedTab = document.getElementById("tab_" + id);
+		document.getElementsByTagName("tabbox")[0].selectedPanel = document.getElementById(id);
+		if (id != "new")
+			document.getElementById("tab_new").selected = false;
+		document.getElementById(id).getElementsByTagName("textbox")[0].focus();
+	},
+	_initMenulist : function () {
+		var mlID = this.base + this.crrnt.pref,
+		mlst = document.getElementById(mlID),
+		mitm,
+		mppp = document.createElement("menupopup");
+		
+		if (this.list.value.length) {
+			for (var i = 0; i < this.list.value.length; i++) {
+				mitm = document.createElement("menuitem");
+				mitm.setAttribute("value", this.list.value[i]);
+				mitm.setAttribute("label", this.name.value[i]);
+				mppp.appendChild(mitm);
+			}
+			mlst.disabled = false;
+		} else
+			mlst.disabled = true;
+		try {
+			mlst.removeChild(mlst.firstChild);
+		} catch (e) {}
+		mlst.appendChild(mppp.cloneNode(true));
+		initMenulist(mlID, "", "");
+	},
+	_initTab : function (prefID) {
+		for (var i = 0, p; i < this.pref.name.length; i++) {
+			p = this.base + prefID + this.pref.name[i];
+			if (!i) {
+				initRadiogroup(p);
+				continue;
+			}
+			if (i < 3) {
+				initMenulist(p, "", "");
+				continue;
+			}
+			if (i < 6) {
+				initCheckbox(p);
+				continue;
+			}
+			if (i < 11)
+				this._initTextbox(p);
+			else
+				initTextbox(p);
+		}
+	},
+	_initTextbox : function (prefID) {
+		var box = document.getElementById(prefID),
+		val = getPrefValue(prefID);
+		
+		box.value = val == "0" ? "" : val;
+	},
+	_addMenu : function (id) {
+		JSB.setmenu(this._menu, "macro", getPrefValue(this.base + id + this.name.pref), this._cmnd + "(" + id + ")", "");
+	},
+	_delMenu : function (id) {
+		JSB.setmenu(this._menu, "macro", "", this._cmnd + "(" + id + ")", "");
+		JSB.rebuildmenu(this._menu);
+	},
+	_createTab : function (indx) {
+		var tabs = document.getElementsByTagName("tab"),
+		elem = tabs[1].cloneNode(true),
+		t,
+		id = this.list.value[indx];
+		
+		// tab
+		elem.setAttribute("label", this.name.value[indx]);
+		elem.setAttribute("id", "tab_" + id);
+		document.getElementsByTagName("tabs")[0].appendChild(elem);
+		
+		// tabpanel
+		elem = document.getElementsByTagName("tabpanel")[1].cloneNode(true);
+		elem.setAttribute("id", id);
+		this._sanitizeIDs(elem, id, 0, "radiogroup");
+		this._sanitizeIDs(elem, id, 1, "menulist");
+		this._sanitizeIDs(elem, id, 3, "checkbox");
+		this._sanitizeIDs(elem, id, 6, "textbox");
+		t = elem.getElementsByTagName("button");
+		t[0].setAttribute("hidden", true);
+		t[1].removeAttribute("hidden");
+		t[2].removeAttribute("hidden");
+		t = pref.getIntPref("network.proxy.type");
+		elem.getElementsByTagName("button")[2].disabled = (this.crrnt.value == id) && (t == 1 || t == 2);
+		elem.getElementsByTagName("grid")[0].setAttribute("hidden", true);
+		document.getElementsByTagName("tabpanels")[0].appendChild(elem);
+		
+		this._initTab(id);
+		this._setControls(id);
+	},
+	_invalidName : function () {
+		var elem = document.getElementById(this.base + this.temp + this.name.pref),
+		name = elem.value;
+		
+		if (name == "") {
+			alert(document.getElementById("prox_bundle").getString("name_missing"));
+			elem.focus();
+			return true;
+		}
+		for (var i = 0; i < this.name.value.length; i++)
+			if (name == this.name.value[i]) {
+				alert(document.getElementById("prox_bundle").getString("name_existing").replace(/%S/, name));
+				elem.focus();
+				return true;
+			}
+		return false;
+	},
+	_getNextListID : function () {
+		for (var i = 1, k = true; k; i++) {
+			for (var j = 0, s; j < this.list.value.length; j++) {
+				s = "proxy" + i.toString(10);
+				if (s == this.list.value[j])
+					break;
+			}
+			k = (j < this.list.value.length);
+		}
+		return "proxy" + (--i).toString(10);
+	},
+	_sanitizeIDs : function (elem, newID, min, tagName) {
+		var tag = elem.getElementsByTagName(tagName);
+		
+		for (var i = 0; i < tag.length; i++)
+			for (var j = min; j < this.pref.name.length; j++)
+				if (tag[i].id.indexOf(this.pref.name[j]) > 0) {
+					tag[i].setAttribute("id", this.base + newID + this.pref.name[j]);
+					break;
+				}
+	},
+	_setButtonState : function () {
+		// delete button
+		var t = pref.getIntPref("network.proxy.type");
+		for (var i = 0; i < this.list.value.length; i++)
+			document.getElementById(this.list.value[i]).getElementsByTagName("button")[2].disabled = (this.list.value[i] == this.crrnt.value) && (t == 1 || t == 2);
+	},
+	_setControls : function (id) {
+		var b,
+		elem = document.getElementById(id);
+		
+		if (id == "new")
+			id = this.temp;
+		
+		//b = elem.getElementsByTagName("checkbox");
+		//b[1].disabled = !((elem.getElementsByTagName("menulist")[0].value == "1.1") && b[0].checked);
+		
+		b = (elem.getElementsByTagName("radiogroup")[0].value == "1");
+		for (var i = 2; i < this.pref.name.length; i++) {
+			if (i == 3 || i == 4 || i == 11)
+				continue;
+			document.getElementById(this.base + id + this.pref.name[i]).disabled = (b && i == 12) || (!b && i != 12);
+		}
+	},
+	_setIntPref : function (prefID, prefVal) {
+		if (prefVal) {
+			var re = new RegExp("^[1-9][0-9]*$");
+			if (re.test(prefVal))
+				pref.setIntPref(prefID, parseInt(prefVal));
+			else {
+				alert(document.getElementById("pref_bundle").getString("positive_integer_expected"));
+				this._initTextbox(prefID);
+				document.getElementById(prefID).focus();
+			}
+		} else
+			pref.setIntPref(prefID, 0);
+	},
+	_setDefaults : function () {
+		for (var i = 0, p, v; i < this.pref.name.length; i++) {
+			p = this.base + this.temp + this.pref.name[i];
+			v = this.pref.dflt[i];
+			switch (this.pref.type[i]) {
+			case 0:
+				pref.setBoolPref(p, (v == "true"));
+				break;
+			case 1:
+				pref.setIntPref(p, parseInt(v));
+				break;
+			case 2:
+				pref.setCharPref(p, v);
+			}
+		}
+	},
+	exit : function () {
+		for (var i = 0; i < this.pref.name.length; i++)
+			restoreDefault(this.base + this.temp + this.pref.name[i]);
+	}
+	
+};
+
+var Proxy = {
+	
+	pref : "network.proxy.type",
+	http : [".version",  ".pipelining"],
+	prox : [".proxy.version", ".proxy.pipelining"],
+	base : ["network.http", "kmeleon.plugins.macros.proxy0.http"],
+	elem : null,
+	type : null,
+	
+	init : function () {
+		this.elem = document.getElementById(this.pref);
+		this.type = pref.getIntPref(this.pref);
+		
+		initRadiogroup(this.pref);
+		if (this.type != 0 && this.type != 4)
+			this.elem.selectedIndex = 2;
+		
+		var p = this.base[1] + this.prox[0];
+		if (getPrefValue(p) == null)
+			pref.setCharPref(p, pref.getCharPref(this.base[0] + this.prox[0]));
+		p = this.base[1] + this.prox[1];
+    if (getPrefValue(p) == null)
+			pref.setIntPref(p, pref.getIntPref(this.base[0] + this.prox[1]));
+		//p = this.base[1] + this.prox[2];
+		//if (getPrefValue(p) == null)
+			//pref.setBoolPref(p, pref.getBoolPref(this.base[0] + this.prox[2]));
+		
+		for (var i = 0; i < this.http.length; i++)
+			if (!i) {
+				initMenulist(this.base[0] + this.http[i], "", "");
+				initMenulist(this.base[1] + this.prox[i], "", "");
+			} else {
+				initCheckbox(this.base[0] + this.http[i]);
+				initCheckbox(this.base[1] + this.prox[i]);
+			}
+		
+		if (JSB.load) {
+			document.getElementById("JSBridgeOff").setAttribute("hidden", true);
+			document.getElementById("JSBridgeOn").removeAttribute("hidden");
+		}
+		if (!kPlugin.load("macros") || !kMacrosModule.load("proxy"))
+			document.getElementById("JSBridgeOn").parentNode.setAttribute("hidden", true);
+		
+		CustomProxy.init();
+		this._setControls();
+	},
+	setType : function (n) {
+		n = parseInt(n);
+		if (isNaN(n))
+			CustomProxy.apply(CustomProxy.crrnt.value);
+		else {
+			if (n == 4) {
+				pref.setCharPref(this.base[0] + this.prox[0], pref.getCharPref(this.base[1] + this.prox[0]));
+				pref.setBoolPref(this.base[0] + this.prox[1], pref.getBoolPref(this.base[1] + this.prox[1]));
+				//pref.setBoolPref(this.base[0] + this.prox[2], pref.getBoolPref(this.base[1] + this.prox[2]));
+			}
+			pref.setIntPref(this.pref, n);
+			CustomProxy._setButtonState();
+		}
+		this.type = pref.getIntPref(this.pref);
+	},
+	setCustom : function (n) {
+		this.elem.selectedIndex = 2;
+		CustomProxy.apply(n);
+	},
+	_setControls : function () {
+		//var b = this.elem.getElementsByTagName("checkbox");
+		//b[1].disabled = !((this.elem.getElementsByTagName("menulist")[0].value == "1.1") && b[0].checked);
+		//b[3].disabled = !((this.elem.getElementsByTagName("menulist")[1].value == "1.1") && b[2].checked);
+		document.getElementById("CustomProxy").disabled = !CustomProxy.list.value.length;
+	},
+	_setVersion : function (prefVal) {
+		setCharPref(this.base[1] + this.prox[0], prefVal);
+		if (this.type == 4)
+			setCharPref(this.base[0] + this.prox[0], prefVal);
+		this._setControls();
+	},
+
+	_togglePipelining : function () {
+		toggleCheckbox(this.base[1] + this.prox[1]);
+		if (this.type == 4)
+			pref.setBoolPref(this.base[0] + this.prox[1], pref.getBoolPref(this.base[1] + this.prox[1]));
+	}
+};
+]]>
+	</script>
+	<vbox flex="1" style="overflow:auto">
+		<dialogheader title="&proxy.header;"/>
+		<separator class="thin"/>
+		<tabcontrol flex="1">
+			<tabbox flex="1">
+				<tabs>
+					<tab label="&general;" oncommand="Proxy._setControls()" onfocus="Proxy._setControls()"/>
+					<tab label="&proxy.new;" id="tab_new"/>
+				</tabs>
+				<tabpanels flex="1">
+					<tabpanel flex="1" orient="vertical" style="overflow:auto">
+						<!-- General -->
+						<separator class="thin"/>
+						<description>&proxy.descr;</description>
+						<separator class="thick"/>
+						<radiogroup id="network.proxy.type" oncommand="Proxy.setType(this.value)">
+							<radio value="0" label="&proxy.none;"/>
+							<separator class="thin"/>
+							<hbox align="center" style="margin-left:2em">
+								<label value="&network.http.before;"/>
+								<menulist id="network.http.version" oncommand="setCharPref(this.id,this.value);Proxy._setControls()">
+									<menupopup>
+										<menuitem value="0.9" label="0.9"/>
+										<menuitem value="1.0" label="1.0"/>
+										<menuitem value="1.1" label="1.1"/>
+									</menupopup>
+								</menulist>
+								<label value="&network.http.after;"/>
+								<!--<checkbox id="network.http.keep-alive" oncommand="toggleCheckbox(this.id);Proxy._setControls()" label="&network.keepAlive;"/>-->
+								<checkbox id="network.http.pipelining" oncommand="toggleCheckbox(this.id)" label="&network.pipelining;"/>
+							</hbox>
+							<separator class="thick"/>
+							<radio value="4" label="&proxy.wpad;"/>
+							<separator class="thin"/>
+							<hbox align="center" style="margin-left:2em">
+								<label value="&network.http.before;"/>
+								<menulist id="kmeleon.plugins.macros.proxy0.http.proxy.version" oncommand="Proxy._setVersion(this.value)">
+									<menupopup>
+										<menuitem value="0.9" label="0.9"/>
+										<menuitem value="1.0" label="1.0"/>
+										<menuitem value="1.1" label="1.1"/>
+									</menupopup>
+								</menulist>
+								<label value="&network.http.after;"/>
+
+								<checkbox id="kmeleon.plugins.macros.proxy0.http.proxy.pipelining" oncommand="Proxy._togglePipelining()" label="&network.pipelining;"/>
+							</hbox>
+							<separator class="thick"/>
+							<radio value="X" label="&proxy.user;" id="CustomProxy"/>
+							<separator class="thin"/>
+							<vbox style="margin-left:2em">
+								<hbox align="center">
+									<menulist id="kmeleon.plugins.macros.proxy.current" oncommand="Proxy.setCustom(this.value)"/>
+									<button label="&proxy.user.new;" oncommand="CustomProxy.selectTab('new')"/>
+								</hbox>
+								<separator class="thin"/>
+								<description>&proxy.user.descr;</description>
+							</vbox>
+							<vbox style="margin-left:2em">
+								<separator class="thin"/>
+								<description>&proxy.user.menu;</description>
+								<description id="JSBridgeOn" hidden="true">&macrosNote;</description>
+								<description id="JSBridgeOff">&proxy.user.note;</description>
+							</vbox>
+						</radiogroup>
+						<vbox flex="1"/>
+						<description>&network.note;</description>
+						<!-- General -->
+					</tabpanel>
+					<tabpanel flex="1" orient="vertical" style="overflow:auto" id="new">
+						<!-- New Configuration -->
+						<hbox align="center">
+							<label value="&proxy.cfg;"/>
+							<spacer flex="1"/>
+							<button label="&proxy.new.save;" oncommand="CustomProxy.add()"/>
+							<button label="&proxy.cfg.apply;" oncommand="Proxy.setCustom(this.parentNode.parentNode.id)" hidden="true"/>
+							<button label="&delete;" oncommand="CustomProxy.del(this.parentNode.parentNode.id)" hidden="true"/>
+						</hbox>
+						<separator class="thin"/>
+						<grid style="margin-left:2em">
+							<columns>
+								<column/>
+								<column/>
+								<column flex="1"/>
+							</columns>
+							<rows>
+								<row align="center">
+									<label value="&proxy.cfg.name;"/>
+									<textbox id="kmeleon.plugins.macros.proxy.temp.name" flex="1" class="uri-element" oninput="setCharPref(this.id,this.value)"/>
+									<spacer/>
+								</row>
+								<row>
+									<spacer/>
+									<description>&proxy.cfg.name.eg;</description>
+									<spacer/>
+								</row>
+							</rows>
+						</grid>
+						<separator class="thin"/>
+						<hbox align="center" style="margin-left:2em">
+							<label value="&network.http.before;"/>
+							<menulist id="kmeleon.plugins.macros.proxy.temp.http.proxy.version" oncommand="setCharPref(this.id,this.value);CustomProxy._setControls(this.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.id)">
+								<menupopup>
+									<menuitem value="0.9" label="0.9"/>
+									<menuitem value="1.0" label="1.0"/>
+									<menuitem value="1.1" label="1.1"/>
+								</menupopup>
+							</menulist>
+							<label value="&network.http.after;"/>
+							<!--<checkbox id="kmeleon.plugins.macros.proxy.temp.http.proxy.keep-alive" oncommand="toggleCheckbox(this.id);CustomProxy._setControls(this.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.id)" label="&network.keepAlive;"/>-->
+							<checkbox id="kmeleon.plugins.macros.proxy.temp.http.proxy.pipelining" oncommand="toggleCheckbox(this.id)" label="&network.pipelining;"/>
+						</hbox>
+						<separator class="thick"/>
+						<radiogroup id="kmeleon.plugins.macros.proxy.temp.proxy.type" oncommand="toggleRadiogroup(this.id);CustomProxy._setControls(this.parentNode.id,true)" align="stretch">
+							<radio value="2" label="&proxy.pac;"/>
+							<separator class="thin"/>
+							<vbox style="margin-left:2em">
+								<textbox id="kmeleon.plugins.macros.proxy.temp.proxy.autoconfig_url" flex="1" class="uri-element" oninput="setCharPref(this.id,this.value)"/>
+								<description>&proxy.pac.url.eg;</description>
+							</vbox>
+							<separator class="thin"/>
+							<radio value="1" label="&proxy.man;"/>
+							<separator class="thin"/>
+							<grid style="margin-left:2em">
+								<columns>
+									<column/>
+									<column flex="1"/>
+									<column/>
+								</columns>
+								<rows>
+									<row align="center">
+										<label value="&proxy.man.for;"/>
+										<label value="&proxy.man.host;"/>
+										<label value="&proxy.man.port;"/>
+									</row>
+									<row>
+										<spacer/>
+										<spacer/>
+										<separator class="thin"/>
+									</row>
+									<row align="center">
+										<hbox align="center">
+											<label value="&proxy.man.http;"/>
+											<!-- dummy: -->
+											<menulist hidden="true">
+												<menupopup>
+													<menuitem value="0" label="0"/>
+												</menupopup>
+											</menulist>
+										</hbox>
+										<textbox id="kmeleon.plugins.macros.proxy.temp.proxy.http" flex="1" class="uri-element" oninput="setCharPref(this.id,this.value)"/>
+										<textbox id="kmeleon.plugins.macros.proxy.temp.proxy.http_port" size="5" class="uri-element" oninput="CustomProxy._setIntPref(this.id,this.value)"/>
+									</row>
+									<row align="center">
+										<hbox align="center">
+											<label value="&proxy.man.ssl;"/>
+											<!-- dummy: -->
+											<menulist hidden="true">
+												<menupopup>
+													<menuitem value="0" label="0"/>
+												</menupopup>
+											</menulist>
+										</hbox>
+										<textbox id="kmeleon.plugins.macros.proxy.temp.proxy.ssl" flex="1" class="uri-element" oninput="setCharPref(this.id,this.value)"/>
+										<textbox id="kmeleon.plugins.macros.proxy.temp.proxy.ssl_port" size="5" class="uri-element" oninput="CustomProxy._setIntPref(this.id,this.value)"/>
+									</row>
+									<row align="center">
+										<hbox align="center">
+											<label value="&proxy.man.ftp;"/>
+											<!-- dummy: -->
+											<menulist hidden="true">
+												<menupopup>
+													<menuitem value="0" label="0"/>
+												</menupopup>
+											</menulist>
+										</hbox>
+										<textbox id="kmeleon.plugins.macros.proxy.temp.proxy.ftp" flex="1" class="uri-element" oninput="setCharPref(this.id,this.value)"/>
+										<textbox id="kmeleon.plugins.macros.proxy.temp.proxy.ftp_port" size="5" class="uri-element" oninput="CustomProxy._setIntPref(this.id,this.value)"/>
+									</row>
+									<row align="center">
+										<hbox align="center">
+											<label value="&proxy.man.gopher;"/>
+											<!-- dummy: -->
+											<menulist hidden="true">
+												<menupopup>
+													<menuitem value="0" label="0"/>
+												</menupopup>
+											</menulist>
+										</hbox>
+										<textbox id="kmeleon.plugins.macros.proxy.temp.proxy.gopher" flex="1" class="uri-element" oninput="setCharPref(this.id,this.value)"/>
+										<textbox id="kmeleon.plugins.macros.proxy.temp.proxy.gopher_port" size="5" class="uri-element" oninput="CustomProxy._setIntPref(this.id,this.value)"/>
+									</row>
+									<row align="center">
+										<hbox align="center">
+											<label value="&proxy.man.socks;"/>
+											<menulist id="kmeleon.plugins.macros.proxy.temp.proxy.socks_version" oncommand="setIntPref(this.id,this.value)">
+												<menupopup>
+													<menuitem value="4" label="4"/>
+													<menuitem value="5" label="5"/>
+												</menupopup>
+											</menulist>
+										</hbox>
+										<textbox id="kmeleon.plugins.macros.proxy.temp.proxy.socks" flex="1" class="uri-element" oninput="setCharPref(this.id,this.value)"/>
+										<textbox id="kmeleon.plugins.macros.proxy.temp.proxy.socks_port" size="5" class="uri-element" oninput="CustomProxy._setIntPref(this.id,this.value)"/>
+									</row>
+									<row align="center">
+										<spacer/>
+										<checkbox id="kmeleon.plugins.macros.proxy.temp.proxy.socks_remote_dns" oncommand="toggleCheckbox(this.id)" label="&proxy.man.socks.dns;"/>
+										<spacer/>
+									</row>
+								</rows>
+							</grid>
+							<separator class="thin"/>
+							<grid style="margin-left:2em">
+								<columns>
+									<column/>
+									<column flex="1"/>
+								</columns>
+								<rows>
+									<row align="center">
+										<label value="&proxy.man.noneFor;"/>
+										<textbox id="kmeleon.plugins.macros.proxy.temp.proxy.no_proxies_on" flex="1" class="uri-element" oninput="setCharPref(this.id,this.value)"/>
+									</row>
+									<row align="center">
+										<spacer/>
+										<description>&proxy.man.noneFor.eg;</description>
+									</row>
+								</rows>
+							</grid>
+						</radiogroup>
+						<!-- New Configuration -->
+					</tabpanel>
+				</tabpanels>
+			</tabbox>
+		</tabcontrol>
+	</vbox>
+</page>

@@ -1,0 +1,119 @@
+@namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
+
+/* :::::::: basic toolbar functionality ::::::::::::::: */
+
+toolbox toolbarbutton {
+	-moz-user-focus: normal;
+}
+
+toolbox toolbarbutton:hover {
+	-moz-user-focus: ignore;
+}
+
+toolbarbutton[type="menu"] {
+	-moz-binding: url("chrome://console2/content/console2.xml#toolbarbutton");
+}
+
+#PopupEval {
+	-moz-binding: url("chrome://console2/content/console2.xml#popup");
+}
+
+#PopupEval > .console-row {
+	overflow-x: hidden;
+	overflow-y: visible;
+}
+
+/* :::::::: basic console appearance ::::::::::::::: */
+
+.console-box {
+	-moz-binding: url("chrome://console2/content/console2.xml#console");
+}
+
+.console-row {
+	-moz-binding: url("chrome://console2/content/console2.xml#item");
+}
+
+sourcelink {
+	-moz-binding: url("chrome://console2/content/console2.xml#sourcelink");
+	margin: 1px 4px 2px 4px; /* compensation for sourcelink > label */
+}
+
+sourcelink > label {
+	margin: 0px;
+}
+
+.console-row-number[number="0"],
+.console-row-number:not([number]),
+.console-row-code:not([code]),
+.console-box:not([dupes="false"]) .console-row-dupes,
+.console-row-timestamp:not([value]),
+.console-box[timestamps="false"] .console-row-timestamp
+{
+	display: none;
+}
+
+.console-row-code {
+	direction: ltr !important;
+}
+
+.console-row-code > box {
+	overflow-x: hidden;
+}
+
+.console-dots {
+	margin-right: 0px;
+}
+
+.console-caret {
+	margin-left: 0px;
+}
+
+.console-row-content > box > description{
+	white-space: pre-wrap;
+}
+
+/* :::::::: hiding of rows for each mode ::::::::::::::: */
+
+.console-box:not([mode~="Errors"]) > .console-row[type="error"],
+.console-box:not([mode~="Warnings"]) > .console-row[type="warning"],
+.console-box:not([mode~="Messages"]) > .console-row[type="message"],
+
+.console-box:not([modeLang~="JS"]) > .console-row:not([category]),
+.console-box:not([modeLang~="JS"]) > .console-row[category~="javascript"],
+.console-box:not([modeLang~="JS"]) > .console-row[category~="JavaScript"],
+.console-box:not([modeLang~="CSS"]) > .console-row[category~="CSS"],
+.console-box:not([modeLang~="KMM"]) > .console-row[category~="macro"],
+.console-box:not([modeLang~="XML"]) > .console-row[category]:not([category~="javascript"]):not([category~="JavaScript"]):not([category~="CSS"]):not([category~="macro"]),
+
+.console-box:not([modeCtx~="Chrome"]) > .console-row[category~="macro"],
+.console-box:not([modeCtx~="Chrome"]) > .console-row[category~="chrome"]:not([href^="resource://"]),
+.console-box:not([modeCtx~="Chrome"]) > .console-row[category~="component"],
+.console-box:not([modeCtx~="Chrome"]) > .console-row[category~="XPConnect"],
+.console-box:not([modeCtx~="Chrome"]) > .console-row[href^="chrome://"],
+/*.console-box:not([modeCtx~="Chrome"]) > .console-row[href^="resource://"],*/
+.console-box:not([modeCtx~="Chrome"]) > .console-row[type="error"]:not([category]),
+
+.console-box:not([modeCtx~="Content"]) > .console-row:not([category]):not([href^="chrome://"]):not([type="error"]),
+.console-box:not([modeCtx~="Content"]) > .console-row[category]:not([category~="chrome"]):not([category~="component"]):not([category~="XPConnect"]):not([href^="chrome://"]):not([category="Add-on SDK"]):not([category~="macro"])
+/*:not([href^="resource://"])*/
+,
+.console-box[dupes="false"] > .console-row[dupe="true"],
+
+.console-box:not([modeCtx~="Resource"]) > .console-row[href^="resource://"],
+.console-box:not([modeCtx~="Resource"]) > .console-row[category="Add-on SDK"], /* Safe bet. */
+
+.console-row[type="hidden"] {
+	display: none;
+}
+
+/* :: Bug 312247 (content is rendered outside the window if width is reduced) :: */
+
+hbox.textbox-input-box {
+  overflow-x: hidden;
+}
+
+/* ::  Bug 479588 (Error console's text box should always be LTR) :: */
+
+#TextboxEval {
+  direction: ltr;
+}

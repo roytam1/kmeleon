@@ -1,0 +1,126 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://communicator/skin/formatting.css" type="text/css"?>
+
+<!DOCTYPE overlay>
+
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+	<script type="application/x-javascript"><![CDATA[
+		// XPFE SeaMonkey toolbars are not customizable except for SuiteRunner.
+		// If we have an EM, we have toolkit, thus we have the Customize Toolbar functions.
+		function hasToolkit()
+		{
+			return "@mozilla.org/extensions/manager;1" in Components.classes ||
+				"nsIFormHistory" in Components.interfaces ||
+				"nsIFormHistory2" in Components.interfaces;
+		}
+
+		function initToolbars()
+		{
+			window.removeEventListener("load", initToolbars, false);
+			
+			if (hasToolkit()) // SeaMonkey 2.0a
+				return;
+			var palette = _("ConsoleToolbarPalette");
+			if (!palette) // SeaMonkey 1.5a
+			{
+				_("Console:customizeToolbar").setAttribute("disabled", "true");
+				return;
+			}
+			palette.collapsed = true;
+			
+			var toolbars = document.getElementsByTagName("toolbar");
+			for (var i = 0; i < toolbars.length; i++)
+			{
+				var toolbar = toolbars[i];
+				toolbar.getAttribute("defaultset").split(",").forEach(function(aID) {
+					if (/separator|spring|spacer/.test(aID))
+					{
+						toolbar.appendChild(document.createElement("toolbar" + aID));
+						if (aID == "spring")
+							toolbar.lastChild.flex = 1;
+					}
+					else
+					{
+						toolbar.appendChild(_(aID));
+					}
+				});
+				toolbar.setAttribute("iconsize", "small");
+				toolbar.removeAttribute("context");
+			}
+			var item = _("item_clearConsole2");
+			item.hidden = item.previousSibling.hidden = true;
+			initOnButtonClick();
+		}
+
+		function initSidebarToolbars()
+		{
+			window.removeEventListener("load", initSidebarToolbars, false);
+
+			var toolbars = document.getElementsByTagName("toolbar");
+			for (var i = 0; i < toolbars.length; i++)
+			{
+				var toolbar = toolbars[i];
+				toolbar.setAttribute("iconsize", "small");
+				toolbar.removeAttribute("context");
+			}
+			
+			if (hasToolkit()) // SeaMonkey 2.0a
+				return;
+			var palette = _("ConsoleToolbarPalette");
+			if (!palette) // SeaMonkey 1.5a
+			{
+				_("Console:customizeToolbar").setAttribute("disabled", "true");
+				return;
+			}
+			palette.collapsed = true;
+			
+			var toolbar = _("ToolbarMode");
+			for (var mode in gModes)
+			{
+				toolbar.appendChild(_("mode" + mode + "Button"));
+			}
+			toolbar.appendChild(document.createElement("toolbarseparator"));
+			toolbar.appendChild(_("menu_consoleTools"));
+			
+			_("ToolbarExt").appendChild(_("search-box"));
+			_("ToolbarEval").appendChild(_("eval-box"));
+			var item = _("item_clearConsole2");
+			item.hidden = !(item.previousSibling.hidden = true);
+		}
+
+		// Hack for diverting calls to viewSource to the right place
+		window._openDialog = window.openDialog;
+		window.openDialog = function(aURL, aName, aDecor, aHref, aCharSet, aReferrer, aPostData) {
+			var appInfo = Components.classes["@mozilla.org/xre/app-info;1"]
+					.getService(Components.interfaces.nsIXULAppInfo);
+			var versionChecker = Components.classes["@mozilla.org/xpcom/version-comparator;1"]
+					.getService(Components.interfaces.nsIVersionComparator);
+			if (aURL == "chrome://global/content/viewSource.xul" &&
+				versionChecker.compare(appInfo.version, "2.1a2pre") < 0)
+			{
+				aURL = "chrome://navigator/content/viewSource.xul";
+			}
+			else if (aURL == "chrome://global/content/customizeToolbar.xul" && !hasToolkit())
+			{
+				throw new Error(aURL + " not found!");
+			}
+			window._openDialog(aURL, aName, aDecor, aHref, aCharSet, aReferrer, aPostData);
+		};
+
+		// Toolkit checks in this function whether the last window may be closed
+		if (!window.closeWindow)
+		{
+			window.closeWindow = function(aClose)
+			{
+				if (aClose)
+				{
+					window.close();
+				}
+				
+				return true;
+			}
+		}
+		
+		window.addEventListener("load", (_inSidebar())?initSidebarToolbars:initToolbars, false);
+	]]></script>
+</overlay>

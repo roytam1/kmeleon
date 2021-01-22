@@ -1,0 +1,8 @@
+@namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
+
+/* :::::::: basic toolbar functionality ::::::::::::::: */
+
+#toolsPopup > menuitem[oncommand='toJavaScriptConsole();'],
+#javascriptConsole {
+  display: none;
+}

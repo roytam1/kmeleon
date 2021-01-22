@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://console2/skin/toolbar.css" type="text/css"?>
+<?xml-stylesheet href="chrome://console2/content/seamonkey.css" type="text/css"?>
+
+<!DOCTYPE overlay SYSTEM "chrome://console2/locale/console2.dtd">
+
+<overlay id="console2Overlay" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+	<script type="application/x-javascript"><![CDATA[
+		function toErrorConsole()
+		{
+			toOpenWindowByType("global:console", "chrome://console2/content/console2.xul");
+		}
+
+		function console2Init(){
+			var sss = Components.classes["@mozilla.org/content/style-sheet-service;1"]
+					.getService(Components.interfaces.nsIStyleSheetService);
+			var uss = Components.classes["@mozilla.org/network/io-service;1"]
+					.getService(Components.interfaces.nsIIOService)
+					.newURI("chrome://console2/skin/listheader.css", null, null);
+			if(!sss.sheetRegistered(uss, sss.USER_SHEET))
+				sss.loadAndRegisterSheet(uss, sss.USER_SHEET);
+		}
+		console2Init();
+	]]></script>
+
+	<command id="Tasks:ErrorConsole" oncommand="toErrorConsole();"/>
+	
+	<broadcasterset id="mainBroadcasterSet">
+		<broadcaster id="viewConsole2Sidebar" autoCheck="false" label="&console.title;" type="checkbox" group="sidebar" sidebarurl="chrome://console2/content/console2.xul" oncommand="toggleSidebar('viewConsole2Sidebar');"/>
+	</broadcasterset>
+	
+	<toolbarpalette id="BrowserToolbarPalette"> <!-- Firefox (toolbar) -->
+		<toolbarbutton id="console2-button" class="toolbarbutton-1 chromeclass-toolbar-additional" label="&console.title;" tooltiptext="&console.tooltiptext;" oncommand="if (event.shiftKey) toggleSidebar('viewConsole2Sidebar'); else toErrorConsole();" onclick="if (event.button == 1) toggleSidebar('viewConsole2Sidebar');"/>
+	</toolbarpalette>
+	
+	<toolbarpalette id="MailToolbarPalette"> <!-- Thunderbird (toolbar) -->
+		<toolbarbutton id="console2-button" class="toolbarbutton-1 chromeclass-toolbar-additional" label="&console.title;" tooltiptext="&console.tooltiptext;" oncommand="toErrorConsole();"/>
+	</toolbarpalette>
+
+	<toolbarpalette id="MsgComposeToolbarPalette"> <!-- Thunderbird (toolbar) -->
+		<toolbarbutton id="console2-button" class="toolbarbutton-1 chromeclass-toolbar-additional" label="&console.title;" tooltiptext="&console.tooltiptext;" oncommand="toErrorConsole();"/>
+	</toolbarpalette>
+
+	<menupopup id="toolsPopup">
+		<menuitem id="errorConsole" label="&console.title;" oncommand="toErrorConsole();" insertbefore="java"/>
+	</menupopup>
+	
+	<menupopup id="viewSidebarMenu">
+		<menuitem accesskey="&console.accesskey;" observes="viewConsole2Sidebar"/>
+	</menupopup>
+</overlay>

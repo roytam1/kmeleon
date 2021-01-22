@@ -1,0 +1,857 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE bindings SYSTEM "chrome://console2/locale/console2.dtd">
+
+<bindings id="console2Bindings" xmlns="http://www.mozilla.org/xbl" xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" xmlns:xbl="http://www.mozilla.org/xbl">
+
+	<!-- ########################   Console Box   ######################## -->
+
+	<binding id="console" extends="chrome://console2/content/global/richlistbox.xml#richlistbox">
+		<content console2themeable="true">
+			<xul:scrollbox allowevents="true" orient="vertical" anonid="main-box" flex="1" style="overflow: auto;">
+				<children/>
+			</xul:scrollbox>
+			<xul:stringbundle src="chrome://console2/locale/console2.properties" anonid="string-bundle"/>
+		</content>
+
+		<implementation implements="nsIConsoleListener">
+			<field name="mCService" readonly="true">Components.classes["@mozilla.org/consoleservice;1"].getService(Components.interfaces.nsIConsoleService)</field>
+			<field name="mListeners" readonly="true">[]</field>
+			<field name="mMsgQueue" readonly="true">[]</field>
+			<field name="mDupeCache">null</field>
+			<field name="mPrefs" readonly="true">Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefBranch2);</field>
+			<field name="_limit">1000</field>
+
+			<property name="reversed" onget="return this.sortOrder == 'reverse';" readonly="true"/>
+			<property name="count" onget="return this.childNodes.length;" readonly="true"/>
+
+			<property name="dupes" onget="return this.getAttribute('dupes') != 'false';">
+				<setter><![CDATA[
+					if (!val)
+					{
+						this.setAttribute("dupes", "false");
+					}
+					else
+					{
+						this.removeAttribute("dupes");
+					}
+					return val;
+				]]></setter>
+			</property>
+
+			<property name="timestamps" onget="return this.getAttribute('timestamps') != 'false';">
+				<setter><![CDATA[
+					if (!val)
+					{
+						this.setAttribute("timestamps", "false");
+					}
+					else
+					{
+						this.removeAttribute("timestamps");
+					}
+					return val;
+				]]></setter>
+			</property>
+
+			<property name="sortOrder" onget="return this.getAttribute('sortOrder');">
+				<setter><![CDATA[
+					if (this.reversed != (val == "reverse"))
+					{
+						this.reverseRows();
+						this.setAttribute("sortOrder", val);
+					}
+					return val;
+				]]></setter>
+			</property>
+
+			<!-- ///////////////// main functionality ///////////////// -->
+
+			<method name="appendInitialItems">
+				<body><![CDATA[
+					var out = {}; // Mozilla Bug 664695
+					var messages = this.mCService.getMessageArray(out, {}) || out.value || [];
+					
+					// go back to the latest "Clear" marker
+					var limit = Math.max(messages.length - this._limit, 0);
+					for (var i = messages.length - 1; i >= limit && messages[i].message; i--);
+					
+					while (++i < messages.length)
+					{
+						this.appendItem(messages[i]);
+					}
+				]]></body>
+			</method>
+
+			<method name="observe">
+				<parameter name="aMessage"/>
+				<body><![CDATA[
+					try
+					{
+						this.mMsgQueue.push(aMessage);
+						if (this.mMsgQueue.length == 1)
+						{
+							setTimeout(function(c) { c.observe_process(); }, 0, this);
+						}
+					}
+					catch (ex) { }
+				]]></body>
+			</method>
+
+			<method name="observe_process">
+				<body><![CDATA[
+					try
+					{ // prevent a DoS by processing a maximum of 10 items without interruption
+						for (var i = Math.min(this.mMsgQueue.length, 10); i > 0; i--)
+						{
+							this.observe_delayed(this.mMsgQueue.shift());
+						}
+						if (this.mMsgQueue.length > 0)
+						{
+							setTimeout(function(c) { c.observe_process(); }, 0, this);
+						}
+					}
+					catch (ex) { }
+				]]></body>
+			</method>
+
+			<method name="observe_delayed">
+				<parameter name="aMessage"/>
+				<body><![CDATA[
+					if (!this.reversed)
+					{
+						for (var item = this.lastChild; item && !item.visible; item = item.previousSibling);
+						var lastVisible = this._isItemVisible(item);
+					}
+					
+					this.appendItem(aMessage);
+					
+					if (!this.reversed && lastVisible && this.lastChild.visible)
+					{
+						this.ensureElementIsVisible(this.lastChild);
+					}
+				]]></body>
+			</method>
+
+			<method name="appendItem">
+				<parameter name="aMessage"/>
+				<body><![CDATA[
+				/* This method may be called in cases where the code
+				* called by this method has thrown an exception because
+				* some resource ran OUT OF MEMORY (OOM).
+				*
+				* This method must not throw an exception, because
+				* an exception thrown by it could be asynchrounously
+				* dispatched back to this method resulting in an
+				* asynchronous loop - bug 288544.
+				*
+				* If you need any try/catch handling for code in this
+				* function, please stick it in its own try block inside
+				* the main try block. Do *NOT* use the main try block.
+				*/
+					try {
+						if (aMessage instanceof Components.interfaces.nsIScriptError)
+						{
+							this.appendError(aMessage);
+						}
+						else if (aMessage instanceof Components.interfaces.nsIConsoleMessage)
+						{
+							if (aMessage.message)
+							{
+								this.appendMessage(aMessage.message);
+							}
+							else if (this.firstChild) // reached a "Clear" marker
+							{
+								this.removeAllRows();
+							}
+						}
+						else
+						{
+							this.appendMessage(aMessage);
+						}
+					} catch (e) {
+						/* This catch block is for bug 288544,
+						* if you want to handle some edge case, please
+						* make your own inner try block inside preceding
+						* try block. Do *NOT* stick any code in here.
+						*/
+					}
+				]]></body>
+			</method>
+
+			<method name="appendError">
+				<parameter name="aMessage"/>
+				<body><![CDATA[
+					var isWarning = (aMessage.flags & Components.interfaces.nsIScriptError.warningFlag) ||
+									(aMessage.flags & Components.interfaces.nsIScriptError.strictFlag);
+					if (/^(uncaught exception: )?\[Exception... /.test(aMessage.errorMessage))
+					{
+						aMessage = this.parseUncaughtException(aMessage);
+					}
+					var row = this.createConsoleRow(aMessage.errorMessage, (isWarning)?"warning":"error");
+					
+					row.setAttribute("typetext", this._bundle.getString((isWarning)?"typeWarning":"typeError"));
+					
+					if (aMessage.category)
+					{
+						row.setAttribute("category", aMessage.category);
+					}
+					
+					if (aMessage.sourceName)
+					{
+						row.setAttribute("href", aMessage.sourceName.replace(/^resource\:\/\/\//, 'resource://app/'));
+						row.setAttribute("line", aMessage.lineNumber || 0);
+					}
+					else
+					{
+						row.setAttribute("hideSource", "true");
+					}
+					
+					if (aMessage.sourceLine)
+					{
+						// malformed-xml errors include their own caret -----v
+						row.setAttribute("code", aMessage.sourceLine.replace(/\n\-+\^$/, "").replace(/\s/g, " "));
+						row.setAttribute("column", aMessage.columnNumber || 0);
+						row.setAttribute("errorDots", this.repeatChar(" ", aMessage.columnNumber));
+					}
+					if (("nsIScriptError2" in Components.interfaces &&
+						aMessage instanceof Components.interfaces.nsIScriptError2 &&
+						"timeStamp" in aMessage) ||
+						(aMessage instanceof Components.interfaces.nsIScriptError &&
+						"timeStamp" in aMessage))
+					{
+						var ts = new Date(aMessage.timeStamp);
+						var tss = ts.toTimeString();
+						tss = ts.toDateString() + " " + tss.substr(0, tss.indexOf(" "));
+						row.setAttribute("timestamp", tss);
+					}
+					
+					this.appendConsoleRow(row);
+				]]></body>
+			</method>
+
+			<method name="appendMessage">
+				<parameter name="aMessage"/>
+				<parameter name="aType"/>
+				<body><![CDATA[
+					var row = this.createConsoleRow(aMessage, aType);
+					
+					// all messages are from chrome
+					row.setAttribute("href", "chrome://");
+					row.setAttribute("hideSource", "true");
+					
+					this.appendConsoleRow(row);
+				]]></body>
+			</method>
+
+			<method name="appendConsoleRow">
+				<parameter name="aRow"/>
+				<body><![CDATA[
+					aRow.hidden = true;
+					
+					if (!this.reversed)
+					{
+						this.appendChild(aRow);
+					}
+					else
+					{
+						this.insertBefore(aRow, this.firstChild);
+					}
+					
+					if (this.mListeners.length)
+					{
+						try
+						{
+							this.mListeners.forEach(function(aListener) { aListener.listen(aRow); });
+						}
+						catch (ex) { } // in case a listener fails to handle an exception
+					}
+					
+					aRow.hidden = !!aRow._hidden; // could be a hint from a listener
+					
+					var overflow = this.count - this._limit;
+					while (overflow-- > 0)
+					{
+						var item = (this.reversed)?this.lastChild:this.firstChild;
+						this.removeConsoleRow(item);
+					}
+				]]></body>
+			</method>
+
+			<method name="removeConsoleRow">
+				<parameter name="aRow"/>
+				<body><![CDATA[
+					if (!aRow || aRow.parentNode != this)
+					{
+						return;
+					}
+					if (aRow.current)
+					{
+						aRow.hidden = true; // otherwise we might find ourselves
+						this.currentItem = this.getNextVisible(aRow, false) || aRow.nextSibling || aRow.previousSibling;
+					}
+					var label = aRow.label2;
+					if (label in this.mDupeCache) if (this.mDupeCache[label] == aRow) {
+						delete this.mDupeCache[label]; // avoiding a memory leak
+					}
+					this.removeChild(aRow);
+				]]></body>
+			</method>
+
+			<method name="removeAllRows">
+				<body><![CDATA[
+					this.clearSelection();
+					this.current = null;
+					while (this.firstChild)
+					{
+						this.removeConsoleRow(this.lastChild);
+					}
+				]]></body>
+			</method>
+
+			<method name="reverseRows">
+				<body><![CDATA[
+					var children = this.children;
+					for (var i = children.length - 2; i >= 0; i--)
+					{
+						this.appendChild(children[i]);
+					}
+				]]></body>
+			</method>
+
+			<method name="clear">
+				<body><![CDATA[
+					this.mCService.logStringMessage(null);
+					if (this.mCService.reset)
+					{
+						this.mCService.reset();
+					}
+				]]></body>
+			</method>
+
+			<method name="scrollToSelectedItem">
+				<body><![CDATA[
+					setTimeout(function(aConsole) {
+						var item = (aConsole.currentItem && aConsole.currentItem.selected)?aConsole.currentItem:aConsole.selectedItem;
+						if (item && item.visible)
+						{
+							aConsole.ensureElementIsVisible(item);
+						}
+					}, 0, this);
+				]]></body>
+			</method>
+
+			<!-- ///////////////// utility functions ///////////////// -->
+
+			<method name="createConsoleRow">
+				<parameter name="aMessage"/>
+				<parameter name="aType"/>
+				<body><![CDATA[
+					var row = document.createElement("richlistitem");
+					
+					row.setAttribute("class", "console-row");
+					row.setAttribute("msg", aMessage);
+					row.setAttribute("type", aType || "message");
+					row.__console = this;
+					
+					return row;
+				]]></body>
+			</method>
+
+			<method name="parseUncaughtException">
+				<parameter name="aMessage"/>
+				<body><![CDATA[
+					/*** from the one-regexp-is-worth-a-whole-parser dept. ***/
+					
+					// cf. http://lxr.mozilla.org/mozilla/source/js/src/xpconnect/src/xpcexception.cpp#347 and http://lxr.mozilla.org/mozilla/source/js/src/xpconnect/src/xpcstack.cpp#318 and http://lxr.mozilla.org/mozilla/source/dom/src/base/nsDOMException.cpp#315
+					if (/^(?:uncaught exception: )?\[Exception... "(?!<no message>)([\s\S]+)"  nsresult: "0x\S+ \((.+)\)"  location: "(?:(?:JS|native) frame :: (?!<unknown filename>)(.+) :: .+ :: line (\d+)|<unknown>)"  data: (?:yes|no)\]$/.test(aMessage.errorMessage) || /^(?:uncaught exception: )?\[Exception... "(?!<no message>)([\s\S]+)"  code: "\d+" nsresult: "0x\S+ \((.+)\)"  location: "(?:(.+) Line: (\d+)|<unknown>)"\]$/.test(aMessage.errorMessage))
+					{
+						return {
+							errorMessage: RegExp.$1 + ((RegExp.$1.indexOf(RegExp.$2) == -1)?" = " + RegExp.$2:""),
+							sourceName: RegExp.$3,
+							lineNumber: RegExp.$4
+						};
+					}
+					return aMessage;
+				]]></body>
+			</method>
+
+			<method name="getNextVisible">
+				<parameter name="aRow"/>
+				<parameter name="aReversed"/>
+				<body><![CDATA[
+					var row = !aReversed ?
+						this.getNextItem(aRow, 1) || this.getPreviousItem(aRow, 1) :
+						this.getPreviousItem(aRow, 1) || this.getNextItem(aRow, 1);
+					return row;
+				]]></body>
+			</method>
+
+			<method name="repeatChar">
+				<parameter name="aChar"/>
+				<parameter name="aCol"/>
+				<body><![CDATA[
+					var str = aChar;
+					
+					for (var i = aChar.length; i < aCol; i += i)
+					{
+						str += str;
+					}
+					
+					return str.slice(i - aCol);
+				]]></body>
+			</method>
+
+			<method name="registerListener">
+				<parameter name="aListener"/>
+				<parameter name="aDoesRemove"/>
+				<body><![CDATA[
+					if (this.mListeners.indexOf(aListener) == -1)
+					{
+						if (!aDoesRemove)
+						{
+							this.mListeners.push(aListener);
+						}
+						else
+						{
+							this.mListeners.unshift(aListener);
+						}
+					}
+				]]></body>
+			</method>
+
+			<method name="unregisterListener">
+				<parameter name="aListener"/>
+				<body><![CDATA[
+					var ix = this.mListeners.indexOf(aListener);
+					if (ix > -1)
+					{
+						this.mListeners.splice(ix, 1);
+					}
+				]]></body>
+			</method>
+
+			<method name="initDupeFinder">
+				<body><![CDATA[
+					this.mDupeCache = {};
+					this.registerListener({
+						mDupeCache: this.mDupeCache,
+						listen: function(aRow) {
+							if (!aRow.parentNode)
+							{
+								return;
+							}
+							var label = aRow.label2;
+							if (label in this.mDupeCache)
+							{
+								var oldRow = this.mDupeCache[label];
+								oldRow.setAttribute("dupe", "true");
+								aRow.setAttribute("dupes", parseInt(oldRow.getAttribute("dupes") || "1") + 1);
+							}
+							this.mDupeCache[label] = aRow;
+						}
+					});
+				]]></body>
+			</method>
+
+			<!-- ///////////////// overwriting listbox ///////////////// -->
+
+			<method name="moveByOffset">
+				<parameter name="offset"/>
+				<parameter name="isSelecting"/>
+				<parameter name="isSelectingRange"/>
+				<body><![CDATA[
+					// !!! assert this.children.length == this.childNodes.length !!!
+					if ((isSelectingRange || !isSelecting) && this.selType != "multiple")
+						return;
+
+					var newIndex = this.currentIndex + offset;
+					if (newIndex < 0)
+						newIndex = 0;
+
+					var numItems = this.getRowCount();
+					if (newIndex > numItems - 1)
+						newIndex = numItems - 1;
+
+					var itemAtIndex = this.getItemAtIndex(newIndex);
+					var newItem = itemAtIndex;
+					// make sure that the item is actually visible/selectable
+					if (this._userSelecting && newItem && !this._canUserSelect(newItem))
+					{
+						newItem = this.getNextVisible(itemAtIndex, offset > 1 || offset == -1);
+						// make sure to scroll at least by one item when page scrolling
+						if ((offset > 1 || offset < -1) && newItem == this.currentItem)
+							newItem = this.getNextVisible(itemAtIndex, offset < 0);
+					}
+					if (newItem)
+					{
+						if (isSelectingRange)
+							this.selectItemRange(null, newItem);
+						else if (isSelecting)
+							this.selectItem(newItem);
+
+						this.currentItem = newItem;
+						this.ensureIndexIsVisible(this.getIndexOfItem(newItem));
+						if (!newItem || newItem.boxObject.height <= this.scrollBoxObject.height)
+							this.ensureIndexIsVisible(this.getIndexOfItem(newItem));
+						else // always show the top of overlong rows
+							this.scrollToIndex(this.currentIndex);
+					}
+				]]></body>
+			</method>
+
+			<method name="addItemToSelection">
+				<parameter name="item"/>
+				<body><![CDATA[
+					if (item.selected || !item.visible)
+					{
+						if (item.selected && !item.visible)
+						{ // we probably don't expect hidden items to be selected
+							this.removeItemFromSelection(item);
+						}
+						return;
+					}
+					
+					this.selectedItems.push(item);
+					item.selected = true;
+					
+					this._fireOnSelect();
+				]]></body>
+			</method>
+
+			<!-- ///////////////// overwriting richlistbox ///////////////// -->
+
+			<constructor><![CDATA[
+				var x = document.getAnonymousElementByAttribute(this, "anonid", "main-box");
+				this.scrollBoxObject = x.boxObject;
+				this._bundle = document.getAnonymousElementByAttribute(this, "anonid", "string-bundle");
+				this.initDupeFinder();
+				this._limit = this.mPrefs.getIntPref("extensions.console2.max-errors");
+				
+				// delay message loading for faster startup
+				setTimeout(function(aConsole, aTmpItem) {
+					aConsole.removeChild(aTmpItem);
+					aConsole.appendInitialItems();
+					aConsole.mCService.registerListener(aConsole);
+					aConsole.currentItem = aConsole.firstChild;
+				}, 0, this, this.insertItemAt(0, this._bundle.getString("msgLoading")));
+			]]></constructor>
+
+			<destructor><![CDATA[
+				this.mCService.unregisterListener(this);
+			]]></destructor>
+
+			<property name="children" onget="return Array.slice(this.childNodes);" readonly="true"/>
+		</implementation>
+	</binding>
+
+	<!-- ########################   Console Item   ######################## -->
+
+	<binding id="item" extends="chrome://console2/content/global/richlistbox.xml#richlistitem">
+		<content>
+			<xul:box flex="1">
+				<xul:box class="console-row-icon" xbl:inherits="selected">
+					<xul:stack>
+						<xul:image xbl:inherits="src,type"/>
+						<xul:box/>
+					</xul:stack>
+				</xul:box>
+				<xul:vbox class="console-row-content" flex="1">
+					<xul:box>
+						<xul:description xbl:inherits="xbl:text=msg" flex="1"/>
+						<xul:label class="console-row-dupes" xbl:inherits="value=dupes" tooltiptext="&dupes.tooltip;"/>
+						<xul:label class="console-row-timestamp" xbl:inherits="value=timestamp"/>
+					</xul:box>
+					<xul:box xbl:inherits="hidden=hideSource">
+						<xul:sourcelink xbl:inherits="href,line,tooltiptext=href" flex="1" crop="end"/>
+						<xul:spacer flex="99999"/>
+						<xul:box class="console-row-number" xbl:inherits="number=line">
+							<xul:label value="&errLine.label;"/>
+							<xul:label xbl:inherits="value=line"/>
+						</xul:box>
+					</xul:box>
+					<xul:vbox class="console-row-code" xbl:inherits="selected,code">
+						<xul:label class="monospace" xbl:inherits="value=code" crop="end"/>
+						<xul:box class="console-row-number" xbl:inherits="number=column">
+							<xul:label class="monospace console-dots" xbl:inherits="value=errorDots"/>
+							<xul:label class="monospace console-caret" value=" "/>
+						</xul:box>
+					</xul:vbox>
+				</xul:vbox>
+			</xul:box>
+		</content>
+
+		<implementation>
+			<property name="visible" readonly="true">
+				<getter><![CDATA[
+					try
+					{
+						return this.boxObject.height > 0;
+					}
+					catch (ex)
+					{
+						return this.parentNode && !this.hidden;
+					}
+				]]></getter>
+			</property>
+
+			<property name="label" readonly="true">
+				<getter><![CDATA[
+					var bundle = this.__console._bundle;
+					
+					function format(aID, aArgs)
+					{
+						return bundle.getFormattedString(aID, aArgs);
+					}
+					
+					var label = this.getAttribute("msg");
+					if (this.hasAttribute("typetext"))
+					{
+						label = this.getAttribute("typetext") + " " + label;
+					}
+					if (this.hasAttribute("timestamp"))
+					{
+						label = this.getAttribute("timestamp") + "\n" + label;
+					}
+
+					if (this.hasAttribute("href") && !this.getAttribute("hideSource"))
+					{
+						label += "\n" + format("errFile", [this.getAttribute("href")]);
+						if (this.hasAttribute("line") && this.hasAttribute("column") && this.getAttribute("column") != "0")
+						{
+							label += "\n" + format("errLineCol", [this.getAttribute("line"), this.getAttribute("column")]);
+						}
+						else if (this.hasAttribute("line") && this.getAttribute("line") != "0")
+						{
+							label += "\n" + format("errLine", [this.getAttribute("line")]);
+						}
+					}
+					if (this.hasAttribute("code"))
+					{
+						label += "\n" + bundle.getString("errCode") + "\n" + this.getAttribute("code");
+					}
+					
+					return label;
+				]]></getter>
+			</property>
+
+			<property name="label2" readonly="true">
+				<getter><![CDATA[
+					var bundle = this.__console._bundle;
+					
+					function format(aID, aArgs)
+					{
+						return bundle.getFormattedString(aID, aArgs);
+					}
+					
+					var label = this.getAttribute("msg");
+					if (this.hasAttribute("typetext"))
+					{
+						label = this.getAttribute("typetext") + " " + label;
+					}
+
+					if (this.hasAttribute("href") && !this.getAttribute("hideSource"))
+					{
+						label += "\n" + format("errFile", [this.getAttribute("href")]);
+						if (this.hasAttribute("line") && this.hasAttribute("column") && this.getAttribute("column") != "0")
+						{
+							label += "\n" + format("errLineCol", [this.getAttribute("line"), this.getAttribute("column")]);
+						}
+						else if (this.hasAttribute("line") && this.getAttribute("line") != "0")
+						{
+							label += "\n" + format("errLine", [this.getAttribute("line")]);
+						}
+					}
+					if (this.hasAttribute("code"))
+					{
+						label += "\n" + bundle.getString("errCode") + "\n" + this.getAttribute("code");
+					}
+					
+					return label;
+				]]></getter>
+			</property>
+
+			<property name="searchLabel" onget="return (this.visible)?this.getAttribute('msg'):'';" readonly="true"/>
+		</implementation>
+	</binding>
+
+	<!-- use this binding, if performance is more important than style -->
+	<binding id="item-light" extends="#item">
+		<content>
+			<xul:vbox flex="1">
+				<xul:label xbl:inherits="value=msg" flex="1" crop="end"/>
+				<xul:sourcelink xbl:inherits="href,line,tooltiptext=href" flex="1" crop="end"/>
+			</xul:vbox>
+		</content>
+	</binding>
+
+	<!-- ########################   Source Link   ######################## -->
+
+	<binding id="sourcelink" extends="xul:box">
+		<content>
+			<xul:label class="text-link" xbl:inherits="href,value=href,flex,crop" ondraggesture="nsDragAndDrop.startDrag(event, this.parentNode); event.stopPropagation();"/>
+		</content>
+
+		<implementation>
+			<constructor><![CDATA[
+				// hack against one of the many bugs referenced by bug 302294
+				document.getAnonymousNodes(this)[0].setAttribute("value", this.getAttribute("href").replace(/^(.{253})(?=.{4,}).*/, "$1..."));
+			]]></constructor>
+
+			<field name="mPrefs" readonly="true">Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefBranch2);</field>
+
+			<method name="onDragStart">
+				<parameter name="aEvent"/>
+				<parameter name="aXferData"/>
+				<parameter name="aDragAction"/>
+				<body><![CDATA[
+					var URI = this.getAttribute("href");
+					aXferData.data = new TransferData();
+					aXferData.data.addDataForFlavour("text/unicode", URI);
+					aXferData.data.addDataForFlavour("text/x-moz-url", URI + "\n" + URI.replace(/^.*\//, ""));
+					aXferData.data.addDataForFlavour("text/html", '<a href="' + URI + '">' + URI + '</a>');
+				]]></body>
+			</method>
+
+			<method name="_viewSource">
+				<body><![CDATA[
+					try
+					{
+						if (!this.mPrefs.getBoolPref("view_source.editor.external"))
+						{
+							return false;
+						}
+						
+						var scriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"].getService(Components.interfaces.mozIJSSubScriptLoader);
+						var context = {};
+						
+						scriptLoader.loadSubScript("chrome://global/content/contentAreaUtils.js", context);
+						scriptLoader.loadSubScript("chrome://global/content/viewSourceUtils.js", context);
+					}
+					catch (ex)
+					{
+						return false;
+					}
+
+					var url = this.getAttribute("href");
+					url = url.substring(url.lastIndexOf(" ") + 1);
+					var line = (context.gViewSourceUtils.openInExternalEditor.length == 5) ?
+								parseInt(this.getAttribute("line") || 0) :
+								undefined;
+					context.gViewSourceUtils.openInExternalEditor(url, null, null, line);
+					
+					return true;
+				]]></body>
+			</method>
+		</implementation>
+
+		<handlers>
+			<handler event="click" phase="capturing" button="0" preventdefault="true"><![CDATA[
+				if (event.originalTarget.className == "text-link" && !this._viewSource())
+				{
+					var url = this.getAttribute("href");
+					//url = url.substring(url.lastIndexOf(" ") + 1);
+					var line = this.getAttribute("line");
+					openDialog("chrome://global/content/viewSource.xul", "_blank", "all,dialog=no", url, null, null, line);
+				}
+			]]></handler>
+		</handlers>
+	</binding>
+
+	<!-- ########################   Toolbar Button   ######################## -->
+
+	<binding id="toolbarbutton" extends="chrome://global/content/bindings/toolbarbutton.xml#menu">
+		<implementation>
+			<method name="rotateValue">
+				<body><![CDATA[
+					var group = this.getAttribute("rotates");
+					var items = this.getElementsByAttribute("group", group);
+					items = Array.prototype.slice.call(items).filter(function(aItem) {
+						return aItem.getAttribute("disabled") != "true";
+					});
+					
+					if (group && items.length)
+					{
+						for (var i = 0; i < items.length && items[i].getAttribute("checked") != "true"; i++);
+						if (i < items.length)
+						{
+							items[i].removeAttribute("checked");
+						}
+						if (++i >= items.length)
+						{
+							i = 0;
+						}
+						items[i].setAttribute("checked", "true");
+						items[i].doCommand();
+					}
+				]]></body>
+			</method>
+		</implementation>
+
+		<handlers>
+			<handler event="keypress" keycode="VK_ENTER" phase="target" action="this.doCommand();"/>
+			<handler event="keypress" keycode="VK_RETURN" phase="target" action="this.doCommand();"/>
+			<handler event="keypress" key=" " phase="target" action="this.doCommand();"/>
+			<handler event="click" button="1" phase="target" action="this.rotateValue();"/>
+			<handler event="click" button="2" modifiers="shift" phase="target" preventdefault="true" action="this.rotateValue();"/> <!-- for testing on a 2-button mouse (the context menu is more easily suppressed than the popup menu) -->
+
+			<handler event="command" phase="target"><![CDATA[
+				var menus = document.getElementsByAttribute("type", "menu");
+				for (var i = 0; i < menus.length; i++)
+				{
+					if (menus[i] != this)
+					{
+						menus[i].open = false;
+					}
+				}
+				setTimeout(function(aMenu) { aMenu.open = true; }, 0, this);
+			]]></handler>
+
+			<handler event="mouseover"><![CDATA[
+				var menus = document.getElementsByAttribute("type", "menu");
+				for (var i = 0; i < menus.length && !menus[i].open; i++);
+				if (i < menus.length && !this.open)
+				{
+					this.doCommand();
+				}
+			]]></handler>
+		</handlers>
+	</binding>
+
+	<!-- ########################   Evaluate Popup   ######################## -->
+
+	<binding id="popup" extends="chrome://global/content/bindings/popup.xml#popup">
+		<content>
+			<children/>
+		</content>
+
+		<implementation>
+			<field name="mTimeout" readonly="true">2500</field>
+
+			<method name="_startTimeout">
+				<body><![CDATA[
+					this._clearTimeout();
+					this.__timeout = setTimeout(function(aPopup) { aPopup.hidePopup(); }, this.mTimeout, this);
+				]]></body>
+			</method>
+
+			<method name="_clearTimeout">
+				<body><![CDATA[
+					if (this.__timeout)
+					{
+						clearTimeout(this.__timeout);
+						this.__timeout = null;
+					}
+				]]></body>
+			</method>
+		</implementation>
+
+		<handlers>
+			<handler event="click" phase="capturing" action="this.hidePopup(); event.stopPropagation();"/>
+			<handler event="mousedown" phase="capturing" action="event.stopPropagation();"/>
+			<handler event="mouseover" action="this._clearTimeout()"/>
+			<handler event="mouseout" action="this._startTimeout();"/>
+			<handler event="popupshown" action="this._startTimeout();"/>
+			<handler event="popuphidden" action="this._clearTimeout();"/>
+		</handlers>
+	</binding>
+</bindings>

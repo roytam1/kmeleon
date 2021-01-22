@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/css" href="chrome://global/skin/"?>
+<!DOCTYPE dialog SYSTEM "chrome://kmprefs/locale/pref-webfind.dtd">
+<dialog xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" 
+		id="findDialog" 
+		title="&webfind.dlg.titleEdit;" 
+		addtitle="&webfind.dlg.titleAdd;" 
+		onload="window.sizeToContent();init()" 
+		style="&webfind.dlg.style;" 
+		contextmenu="0" 
+		buttons="accept,cancel" 
+		buttonlabelaccept="&dialog.accept.label;" 
+		ondialogaccept="accept()" 
+		buttonlabelcancel="&dialog.cancel.label;" 
+		persist="screenX screenY width height">
+	<stringbundle id="pref_bundle" src="chrome://kmprefs/locale/pref.properties"/>
+	<script type="application/x-javascript" src="chrome://kmprefs/content/pref.js"/>
+	<script type="application/x-javascript">
+<![CDATA[
+var Database = window.arguments[0];
+function init() {
+	if (Database._add)
+		document.title = document.documentElement.getAttribute("addtitle");
+	else {
+		document.getElementById("caption").value = Database._cap;
+		document.getElementById("url").value = Database._url;
+	}
+}
+function accept() {
+	var cap = document.getElementById("caption").value,
+	url = document.getElementById("url").value;
+	if ((cap) && (url))
+		Database.set(cap, url);
+}
+]]>
+	</script>
+	<vbox flex="1">
+		<grid>
+			<columns>
+				<column style="padding-right:1em"/>
+				<column flex="1"/>
+			</columns>
+			<rows>
+				<row align="center">
+					<label value="&webfind.dlg.caption;"/>
+					<textbox id="caption" flex="1" class="uri-element"/>
+				</row>
+				<row align="center">
+					<label value="&webfind.dlg.url;"/>
+					<textbox id="url" flex="1" class="uri-element"/>
+				</row>
+			</rows>
+		</grid>
+	</vbox>
+</dialog>

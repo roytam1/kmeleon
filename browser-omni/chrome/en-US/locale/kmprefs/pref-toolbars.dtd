@@ -1,0 +1,10 @@
+<!ENTITY % prefDTD SYSTEM "chrome://kmprefs/locale/pref.dtd">%prefDTD;
+<!ENTITY toolbars.header	"Toolbar Options">
+<!ENTITY toolbars.general	"Main Toolbars">
+<!ENTITY toolbars.enable	"Enable Customizable Toolbars">
+<!ENTITY toolbars.menuAsToolbar	"Display menu bar as a toolbar. The font in menu bar will no longer follow the style of general windows setting for menus.">
+<!ENTITY toolbars.menuHide	"Hide menu bar. Remember that you can use F2 key to open Preferences and change this option.">
+<!ENTITY toolbars.URLBarTitle	"URL Bar Title:">
+<!ENTITY toolbars.hideLines	"Hide toolbars line">
+<!ENTITY toolbars.urltoolbar.label	"URL toolbar">
+<!ENTITY toolbars.menutoolbar.label	"Menu toolbar">

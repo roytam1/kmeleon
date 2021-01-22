@@ -1,0 +1,184 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/css" href="chrome://global/skin/"?>
+<?xml-stylesheet type="text/css" href="chrome://kmprefs/skin/"?>
+<?xul-overlay href="chrome://kmprefs/content/firefox/downloadactions.xul"?>
+<!DOCTYPE page SYSTEM "chrome://kmprefs/locale/pref-filetypes.dtd">
+<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" id="prefFiletypes" onload="Download.init()" onunload="gDownloadActionsWindow.uninit()">
+	<stringbundle id="pref_bundle" src="chrome://kmprefs/locale/pref.properties"/>
+	<stringbundle id="bundlePreferences"/>
+	<script type="application/x-javascript" src="chrome://kmprefs/content/pref.js"/>
+	<script type="application/x-javascript">
+<![CDATA[
+var Download = {
+	_base : null,
+	_done : null,
+	_pref : null,
+	init : function () {
+		this._base = "kmeleon.download.";
+		this._pref = new Array("saveUseTitle",
+				"showMinimizedDialog",
+				"flashWhenCompleted",
+				"closeDownloadDialog");
+		for (var j = 0; j < this._pref.length; j++)
+			initCheckbox(this._base + this._pref[j]);
+		this.initSave();
+		this.initSaveAs();
+	},
+	initSave : function () {
+		var prefs = new Array("SaveUnkownContent",
+				"askOpenSave");
+		initCheckbox(this._base + prefs[0]);
+		initCheckbox(this._base + prefs[1]);
+		initRadiogroup("browser.download.useDownloadDir");
+		initTextbox("browser.download.dir", document.getElementById("pref_bundle").getString("pref_not_set"));
+
+		var off = !document.getElementById(this._base + prefs[0]).checked;
+		
+		for (var j = 1; j < prefs.length; j++)
+			document.getElementById(this._base + prefs[j]).disabled = off;
+		document.getElementById("browser.download.dir").disabled = off;
+		document.getElementById("browser.download.useDownloadDir").disabled = off;
+		//document.getElementById("browser.download.folderList").disabled = off;
+		document.getElementById("browser.download.dir").previousSibling.disabled = off;
+		document.getElementById("browser.download.dir").nextSibling.disabled = off;
+
+		this.initDFLbox();
+	},
+	initDFLbox : function () {
+		var prefDFL = "browser.download.folderList";
+		var box = document.getElementById(prefDFL);
+		var prefDownDir = "browser.download.dir";
+		if (!box) {
+			return;
+		}
+		var saveq = document.getElementById("kmeleon.download.SaveUnkownContent");
+		var valDownDir = getPrefValue(prefDownDir);
+		if (valDownDir == "" || !saveq.checked) {
+			box.disabled = true;
+			return;
+		} else {
+			box.disabled = false;
+		}
+		try {
+			box.checked = (getPrefValue(prefDFL) == 2) ? true : false;
+		} catch (e) {
+			box.disabled = true;
+			box.label = "error";
+		}
+	},
+	initSaveAs : function () {
+		initCheckbox(this._base + "useSaveDir");
+		initTextbox(this._base + "saveDir", document.getElementById("pref_bundle").getString("pref_not_set"));
+		var off = !document.getElementById(this._base + "useSaveDir").checked;
+		document.getElementById(this._base + "saveDir").disabled = off;
+		document.getElementById(this._base + "saveDir").previousSibling.disabled = off;
+		document.getElementById(this._base + "saveDir").nextSibling.disabled = off;
+	},
+	initTypes : function () {
+		if (!this._done) {
+			gDownloadActionsWindow.init();
+			this._done = true;
+		}
+	},
+	select : function (prefID) {
+		var dir = getFolder(prefID);
+		var fp = Components.classes["@mozilla.org/filepicker;1"]
+			.createInstance(nsIFilePicker);
+		var sn = "select_" + prefID.replace('browser', 'kmeleon');
+		fp.init(window, document.getElementById("pref_bundle").getString(sn), nsIFilePicker.modeGetFolder);
+		fp.appendFilters(nsIFilePicker.filterAll);
+		if (dir)
+			fp.displayDirectory = getFile(dir, "");
+		var ret = fp.show();
+		if (ret == nsIFilePicker.returnOK) {
+			document.getElementById(prefID).value = fp.file.path;
+			setCharPref(prefID, fp.file.path);
+		}
+	},
+	toggleDFLbox : function (prefDFL) {
+		//var prefDFL = "browser.download.folderList";
+		var val;
+		try {
+			val = getPrefValue(prefDFL);
+			var box = document.getElementById(prefDFL);
+		} catch (e) {
+			box.label = val;
+		}
+		if (val == 2) {
+			pref.setIntPref(prefDFL, 1);
+			box.checked = false;
+		} else {
+			pref.setIntPref(prefDFL, 2);
+			box.checked = true;
+		}
+	}
+};
+]]>
+	</script>
+	<vbox flex="1" style="overflow:auto">
+		<dialogheader title="&filetypes.label;"/>
+		<separator class="thin"/>
+		<tabcontrol flex="1">
+			<tabbox flex="1">
+				<tabs>
+					<tab label="&general;"/>
+					<tab label="&filetypes.byType;" oncommand="Download.initTypes()" onfocus="Download.initTypes()"/>
+				</tabs>
+				<tabpanels flex="1">
+					<tabpanel flex="1" orient="vertical" style="overflow:auto">
+						<!-- General -->
+						<separator class="thin"/>
+						<checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.download.saveUseTitle" label="&download.suggestTitle;"/>
+						<separator class="thick"/>
+						<groupbox>
+							<caption>
+								<label>&download.whenUnknown;</label>
+							</caption>
+							<separator class="thin"/>
+							<checkbox oncommand="toggleCheckbox(this.id);Download.initSave()" id="kmeleon.download.SaveUnkownContent" label="&download.offerSave;"/>
+							<checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.download.askOpenSave" label="&download.askOpenSave;" style="margin-left:2em"/>
+							<separator class="thin"/>
+							<radiogroup id="browser.download.useDownloadDir" oncommand="toggleRadiogroup(this.id)" style="margin-left:1.65em">
+								<radio value="false" label="&download.askLocation;"/>
+								<radio value="true"  label="&download.useDownloadDir;"/>
+							</radiogroup>
+							<hbox align="center">
+								<checkbox oncommand="Download.toggleDFLbox(this.id)" id="browser.download.folderList" label="&download.folder;" style="margin-left:2em"/>
+								<textbox id="browser.download.dir" flex="1" class="uri-element" readonly="true"/>
+								<button label="&browse;" oncommand="Download.select(this.previousSibling.id);Download.initDFLbox()"/>
+							</hbox>
+						</groupbox>
+						<separator class="thick"/>
+						<checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.download.showMinimizedDialog" label="&download.minimizeDialog;"/>
+						<separator class="thick"/>
+						<groupbox>
+							<caption>
+								<label>&download.whenComplete;</label>
+							</caption>
+							<separator class="thin"/>
+							<checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.download.flashWhenCompleted" label="&download.whenComplete.flash;"/>
+							<checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.download.closeDownloadDialog" label="&download.whenComplete.close;"/>
+							<separator class="thin"/>
+						</groupbox>
+						<separator class="thick"/>
+						<groupbox>
+							<caption>
+								<label>&download.saveAs;</label>
+							</caption>
+							<separator class="thin"/>
+							<checkbox oncommand="toggleCheckbox(this.id);Download.initSaveAs()" id="kmeleon.download.useSaveDir" label="&download.saveAs.option;"/>
+							<separator class="thin"/>
+							<hbox align="center" style="margin-left:2em">
+								<label value="&download.saveAs.folder;"/>
+								<textbox id="kmeleon.download.saveDir" flex="1" class="uri-element" readonly="true"/>
+								<button label="&browse;" oncommand="Download.select(this.previousSibling.id)"/>
+							</hbox>
+						</groupbox>
+						<!-- General -->
+					</tabpanel>
+					<tabpanel id="prefMimetypes"/>
+				</tabpanels>
+			</tabbox>
+		</tabcontrol>
+	</vbox>
+</page>

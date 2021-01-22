@@ -1,0 +1,7 @@
+manifest chrome/en-US.manifest
+manifest chrome/kmeleon.manifest
+manifest components/kmSearch.manifest
+manifest components/kmHelper.manifest
+manifest components/BrowserFeeds.manifest
+interfaces components/jsbridge.xpt
+interfaces components/browser-feeds.xpt

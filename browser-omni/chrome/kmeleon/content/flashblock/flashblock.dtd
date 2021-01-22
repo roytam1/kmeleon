@@ -1,0 +1,37 @@
+<!ENTITY options.title "Flashblock Options">
+<!ENTITY preferences.title "Flashblock">
+
+<!ENTITY general.label "On/Off">
+<!ENTITY flashblockEnable "Enable Flashblock">
+<!ENTITY videoblockEnable "Block HTML5 video as well">
+<!ENTITY silverblockEnable "Block Silverlight as well">
+<!ENTITY flashblock.includeTarget.label "Whitelist should check the source of flash objects (such as embedded videos) as well">
+<!ENTITY enableJavascript.label "Javascript must be enabled for Flashblock to work.">
+
+<!ENTITY preferences.general.label "General">
+<!ENTITY whitelist.label "Whitelist">
+<!ENTITY whitelistDescription "You can specify a whitelist of websites which
+can load Flash content. Enter the name of a web site and click Add to add it to
+the whitelist.">
+<!ENTITY flashblock.weave.sync "Use Weave/&brandShortName; Sync to synchronize the whitelist if available">
+
+<!ENTITY btnShowButton.label "Show toolbar button">
+<!ENTITY btnAdd.label "Add">
+<!ENTITY btnRemove.label "Remove Site">
+<!ENTITY btnRemoveAll.label "Remove All Sites">
+<!ENTITY btnToggle.label "Flashblock">
+<!ENTITY btnToggle.labelon "FB:On">
+<!ENTITY btnToggle.labeloff "FB:Off">
+<!ENTITY btnToggle.tooltip "Enable/Disable Flashblock">
+
+<!ENTITY flashAllow.label "Allow Flash from this site">
+<!ENTITY flashAllow.accesskey "A">
+
+<!ENTITY flashCopyLocation.label "Copy Flash location">
+<!ENTITY flashCopyLocation.accesskey "C">
+
+<!ENTITY flashWhitelist.label "Flashblock Options">
+<!ENTITY flashWhitelist.accesskey "O">
+
+<!ENTITY flashRemove.label "Remove this Flash">
+<!ENTITY flashRemove.accesskey "R">

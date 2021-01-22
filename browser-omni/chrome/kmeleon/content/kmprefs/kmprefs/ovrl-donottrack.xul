@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<!DOCTYPE overlay SYSTEM "chrome://kmprefs/locale/kmprefs/ovrl-donottrack.dtd">
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+	<script type="application/x-javascript">
+<![CDATA[
+function donottrack() {
+	var enabled = "privacy.donottrackheader.enabled",
+	value = "privacy.donottrackheader.value",
+	list = document.getElementById(value);
+	initCheckbox(enabled);
+	list.disabled = !pref.getBoolPref(enabled);
+	for (var a in list.firstChild.childNodes)
+		list.firstChild.childNodes[a].value == getPrefValue(value) ? list.selectedIndex = a : 0;
+}
+]]>
+	</script>
+	<groupbox id="donottrack">
+		<caption>
+			<label>&donottrack.label;</label>
+		</caption>
+		<description>&donottrack.descr;</description>
+		<hbox>
+			<checkbox id="privacy.donottrackheader.enabled" label="&donottrack.enable;" align="center" oncommand="toggleCheckbox(this.id);this.nextSibling.disabled=!this.checked"/>
+			<menulist id="privacy.donottrackheader.value" oncommand="setIntPref(this.id,this.value)">
+				<menupopup>
+					<menuitem label="&donottrack.item1;" value="0"/>
+					<menuitem label="&donottrack.item2;" value="1"/>
+				</menupopup>
+			</menulist>
+		</hbox>
+	</groupbox>
+</overlay>

@@ -1,0 +1,255 @@
+<?xml version="1.0"?>
+
+<bindings
+   xmlns="http://www.mozilla.org/xbl"
+   xmlns:html="http://www.w3.org/1999/xhtml"
+>
+
+<binding id="html5video"
+         bindToUntrustedContent="true">
+  <implementation>
+    <constructor>
+        <![CDATA[
+
+//From Jesse's XPCNativeWrapper: http://mavra.perilith.com/~luser/content/native.js
+function nativeMethod(untrustedObject, methodName)
+{
+  // happier stack traces and faster multiple calls
+  var fun = Components.lookupMethod(untrustedObject, methodName);
+  
+  return function()
+  {
+    return fun.apply(untrustedObject, arguments);
+  }
+}
+
+function flashblockCreatePlaceholder() {
+  // Create placeholder
+  var flashblockCreateElement;
+  var placeholder;
+  try {
+    flashblockCreateElement = nativeMethod(document, "createElementNS");
+    placeholder = flashblockCreateElement("http://www.w3.org/1999/xhtml", "div");
+  } catch (e) {
+    placeholder = document.createElementNS( "http://www.w3.org/1999/xhtml", "div"); 
+  }
+  return placeholder;
+}
+
+// Substitute the animation with a placeholder
+function flashblockShowPlaceholder() {
+  // Just in case the object has been moved away from under our feet during
+  // the timeout, re-assign the parent node. See bug 13680
+  // parent = current.parentNode;
+  var newParent = current.parentNode;
+  parent = newParent ? newParent : parent;
+
+  // Fix for Flashblock Bug 22168 (Node was not found" code: "8").
+  // if the LSB is 1, it means the nodes are unrelated (e.g. different window).
+  if (current.compareDocumentPosition(parent) & 1)
+    return;
+
+  if ("pause" in current)
+    current.pause();
+  // if ("LoadMovie" in current)
+  //  current.LoadMovie(0, "");
+  parent.insertBefore(placeholder, current);
+  parent.removeChild(current); 
+}
+
+// Show the original animation
+function flashblockShowFlash(event) {
+  if( event.type == "keypress" && event.keyCode != KeyEvent.DOM_VK_RETURN)
+    return false;
+  event.stopPropagation();
+  var parent = placeholder.parentNode;
+  if (placeholder.hasAttribute("srcAttribute"))
+    current.setAttribute("src", placeholder.getAttribute("srcAttribute"));
+
+  var params = current.getElementsByTagName("source");
+  for (var ii = 0; ii < params.length; ii++) {
+    if (params[ii].hasAttribute("srcParam")) {
+      params[ii].setAttribute("src", params[ii].getAttribute("srcParam"));
+      params[ii].removeAttribute("srcParam")
+    }
+  }
+//  if (!current.hasAttribute("controls"))
+//    current.setAttribute("controls", "");
+
+  parent.insertBefore(current, placeholder);
+  parent.removeChild(placeholder);
+  current.load();
+}
+
+function flashblockIsWhitelisted(node) {
+  // Check if the page that loaded the Flash site is whitelisted
+  document.QueryInterface(Components.interfaces.nsIDOMDocument);
+  var flashblockEvent = document.createEvent("UIEvents");
+
+  if(flashblockEvent) {
+    var evt = "HTML5VideoCheckLoad";
+    flashblockEvent.initEvent(evt, true, true);
+    node.dispatchEvent(flashblockEvent);
+    if(flashblockEvent.defaultPrevented || node.hasAttribute("data-flashblockWhitelisted"))
+      return true; // Whitelisted
+  }
+  return false;
+}
+
+function flashblockSetImage(placeholder, type) {
+  var inactiveurl = "url(chrome://flashblock/content/" + type + ".png) no-repeat center";
+  var playimage = "url(chrome://flashblock/content/flashplay.png)";
+  switch (type) {
+    case "html5video":
+      // playimage = "url(chrome://flashblock/content/silverplay.png)";
+      break;
+    default:
+      break;
+  }
+  var activeurl = playimage + " no-repeat center";
+  placeholder.setAttribute("bgInactive", inactiveurl);
+  placeholder.setAttribute("bgActive", activeurl);
+  placeholder.style.setProperty("background", inactiveurl, "important");
+}
+
+function flashblockStylePlaceholder(flash, placeholder) {
+  // If object's size was relative, use that.
+  // Otherwise, set size to minimum 32x32 px
+  placeholder.style.setProperty("min-width", "32px", "important");
+  placeholder.style.setProperty("min-height", "32px", "important");
+  // The size and positioning may come from a class
+  var fClass = flash.getAttribute("class");
+  if (fClass)
+    placeholder.setAttribute("class", fClass);
+
+  var fStyle = window.getComputedStyle(flash, null);
+
+  var fWidth = fStyle.getPropertyValue("width");
+  var width = parseInt(flash.width || flash.style.width);
+  if (fWidth && parseInt(fWidth) > 32)
+    width = fWidth;
+  //else if(flash.width.match("%$"))
+  //  width = flash.width;
+  else if (width)
+      width = Math.max(width,32) + "px";
+  else
+    width = "32px"
+
+  var fHeight = fStyle.getPropertyValue("height");
+  var height = parseInt(flash.height || flash.style.height);
+  if (fHeight && parseInt(fHeight) > 32)
+    height = fHeight;
+  // else if(flash.height.match("%$"))
+  //  height = flash.height;
+  else if (height)
+    height = Math.max(height,32) + "px";
+  else 
+    height = "32px"
+
+  placeholder.style.width = width;
+  placeholder.style.height = height;
+
+  // Add styling rules to placeholder div.
+  placeholder.style.border = "1px solid #dfdfdf";
+  placeholder.style.cursor = "pointer";
+  placeholder.style.overflow = "hidden";
+  var disp = fStyle.getPropertyValue("display");
+  placeholder.style.display = disp == "block" ? "block" : "inline-block";
+  placeholder.style.setProperty("visibility", "visible", "important");
+  placeholder.style.setProperty("opacity", "100", "important");
+
+  // The size of the placeholder should include borders too,
+  // otherwise scrollbars appear for blocked standalone objects
+  placeholder.style.MozBoxSizing = "border-box";
+
+  // Make some style adjustments since the placeholder is a <div>
+  // element instead of a <embed>, <object>, ... element.
+  // An <embed> will be centered if the parent has
+  // 'text-align: center' but a <div> will not. This code fixes that.
+  var parentStyle = window.getComputedStyle(flash.parentNode, "");
+  if (parentStyle.getPropertyValue("text-align") == "center") {
+    placeholder.style.marginRight = "auto";
+    placeholder.style.marginLeft = "auto";
+  }
+}
+
+function flashblockSetTitle(current, placeholder) {
+  // non-null "about:blank" value to prevent OS/2 crashing
+  var fakeURI = "about:blank";
+  if (current.src) {
+    var srcURI = current.src;
+    placeholder.title = srcURI;
+    placeholder.setAttribute("srcAttribute", srcURI);
+    current.src = fakeURI;
+  }
+  var params = current.getElementsByTagName("source");
+  for (var ii = 0; ii < params.length; ii++) {
+    if (params[ii].src) {
+      var type = params[ii].type;
+      if (type == "video/ogg" || type == "video/webm")
+        placeholder.title = params[ii].src;
+      params[ii].setAttribute("srcParam", params[ii].src);
+      params[ii].src = fakeURI;
+    }
+  }
+}
+
+if(flashblockIsWhitelisted(this))
+    return;
+
+var current = this;
+var parent = current.parentNode;
+
+// Check parent too (case of working EMBED inside broken OBJECT)
+if (current.overrideCTV || parentNode.overrideCTV) {
+    return;
+}
+current.overrideCTV = true;
+
+// Create placeholder div
+var placeholder = flashblockCreatePlaceholder();
+
+// Set placeholder image
+flashblockSetImage(placeholder, "flash");
+
+flashblockStylePlaceholder(current, placeholder);
+
+flashblockSetTitle(current, placeholder);
+
+// Replace the video element with a placeholder.
+try {
+    var flashblockSetTimeout = nativeMethod(window, "setTimeout");
+    flashblockSetTimeout(flashblockShowPlaceholder, 0);
+}
+catch (e) {
+    window.setTimeout(flashblockShowPlaceholder, 0);
+}
+
+// Change the placeholder background when the mouse enters/exits the div.
+placeholder.addEventListener("mouseover",
+  function(event) {event.target.style
+                        .setProperty("background", event.target.getAttribute("bgActive"), "important");
+                  },
+  "false"
+);
+placeholder.addEventListener("mouseout",
+  function(event) {event.target.style
+                        .setProperty("background", event.target.getAttribute("bgInactive"), "important");
+                  },
+  "false"
+);
+
+// Replace the placeholder with the flash document.
+placeholder.addEventListener("click", flashblockShowFlash, "false");
+
+// Accessibility
+placeholder.setAttribute("tabindex", "0");
+placeholder.setAttribute("role", "button");
+placeholder.addEventListener("keypress", flashblockShowFlash, "false");
+
+        ]]>
+    </constructor>
+  </implementation>
+</binding>
+
+</bindings>

@@ -1,0 +1,115 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+
+<!DOCTYPE dialog [
+<!ENTITY % flashblockDTD  SYSTEM "chrome://flashblock/locale/flashblock.dtd">
+  %flashblockDTD;
+<!ENTITY % flashblock2DTD SYSTEM "chrome://flashblock/content/flashblock.dtd">
+  %flashblock2DTD;
+<!ENTITY % versionDTD     SYSTEM "chrome://flashblock/content/version.dtd">
+  %versionDTD;
+<!ENTITY % brandDTD       SYSTEM "chrome://branding/locale/brand.dtd">
+  %brandDTD;
+]>
+
+<dialog
+    id="FlashblockOptions"
+    title="&options.title;"
+    buttons="accept, cancel"
+    xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+	style="max-width: 36em;"
+    onload="FBlockOptions.onLoad();window.sizeToContent();"
+    ondialogaccept="doOK();">
+
+<script type="application/x-javascript" src="flashblock-prefs.js"/>
+<script type="application/x-javascript" src="options.js"/>
+<stringbundle id="bundle_flashblock"
+              src="chrome://flashblock/locale/flashblock.properties"/>
+<stringbundle id="bundle_brand"
+              src="chrome://global/locale/brand.properties"/>
+
+<groupbox id="version"
+          orient="horizontal"
+          pack="start">
+  <description>&preferences.title;</description>
+  <description id="flashblockVersion"
+               style="margin-left:0;">&extension.version;</description>
+</groupbox>
+
+<tabbox flex="1">
+  <tabs>
+    <tab label="&preferences.general.label;" accesskey=""/>
+    <tab label="&whitelist.label;"           accesskey=""/>
+  </tabs>
+
+  <tabpanels flex="1">
+
+    <vbox id="general">
+      <groupbox>
+        <checkbox id="fb_enableCheckbox"
+                  flex="1"
+                  align="start"
+                  label="&flashblockEnable;"
+                  oncommand="FBlockOptions.updateState();"/>
+        <vbox class="indent">
+          <checkbox id="vb_enableCheckbox"
+                    flex="1"
+                    align="start"
+                    label="&videoblockEnable;"/>
+          <checkbox id="sb_enableCheckbox"
+                    flex="1"
+                    align="start"
+                    label="&silverblockEnable;"/>
+          <checkbox id="fb_includeTarget"
+                    flex="1"
+                    align="start"
+                    label="&flashblock.includeTarget.label;"/>
+        </vbox>
+        <description>&enableJavascript.label;</description>
+      </groupbox>
+
+      <groupbox>
+        <checkbox id="fb_enableWeave"
+                  flex="1"
+                  align="start"
+                  label="&flashblock.weave.sync;"/>
+      </groupbox>
+    </vbox>
+
+    <vbox id="whitelist"
+          flex="1">
+      <description>&whitelistDescription;</description>
+      <separator class="thin"/>
+      <hbox>
+        <textbox id="fb_siteTextbox"
+                 flex="1"
+                 onkeypress="addOnKeypress(event);"
+                 oninput="siteInput(event.target);"/>
+        <button id="btnAdd"
+                label="&btnAdd.label;"
+                disabled="true"
+                oncommand="addSite();"/>
+      </hbox>
+      <hbox>
+        <vbox flex="1">
+          <listbox id="fb_sitelist"
+                   seltype="single"
+                   style="height: 14em;"
+                   onselect="siteSelected(event.target);"/>
+        </vbox>
+        <vbox>
+          <button id="fb_btnRemove"
+                  label="&btnRemove.label;"
+                  disabled="true"
+                  oncommand="removeSite();"/>
+          <button id="fb_btnRemoveAll"
+                  label="&btnRemoveAll.label;"
+                  oncommand="removeAllSites();"/>
+        </vbox>
+      </hbox>
+    </vbox>
+
+  </tabpanels>
+</tabbox>
+
+</dialog>

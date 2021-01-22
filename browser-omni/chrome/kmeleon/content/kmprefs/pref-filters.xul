@@ -1,0 +1,142 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/css" href="chrome://global/skin/"?>
+<?xml-stylesheet type="text/css" href="chrome://kmprefs/skin/"?>
+<?xul-overlay href="chrome://kmprefs/content/kmprefs/ovrl-popups.xul"?>
+<!DOCTYPE page SYSTEM "chrome://kmprefs/locale/pref-filters.dtd">
+<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" id="prefFilters" onload="init()">
+	<script type="application/x-javascript" src="chrome://kmprefs/content/pref.js"/>
+	<script type="application/x-javascript">
+<![CDATA[
+function init() {
+	if (JSB.load)
+		document.getElementById("popupsPerm").removeAttribute("hidden");
+	initCheckbox("dom.disable_open_during_load");
+	var Flashblock = new StyleSheet("kmeleon.flashblock", "@import url.chrome://flashblock/content/flashblock.css.;");
+	var Adblocking = new StyleSheet("kmeleon.adblocking", "@import url.adblock.css.;");
+	initCheckbox("kmeleon.flashblock");
+	initCheckbox("flashblock.silverlight.blocked");
+	if (!pref.getBoolPref("kmeleon.flashblock"))
+		document.getElementById("flashblock.silverlight.blocked").disabled = true;
+	if (!pref.getBoolPref("javascript.enabled")) {
+		document.getElementById("kmeleon.flashblock").disabled = true;
+		document.getElementById("flashblock.silverlight.blocked").disabled = true;
+	}
+}
+function StyleSheet(prefID, regExp) {
+	this._pref = prefID;
+	this._rexp = regExp;
+	this.init();
+}
+StyleSheet.prototype = {
+	init : function () {
+		if (testMultiline(getFileContents(UserStyle), this._rexp)) {
+			// remove static pre-1.5 style rules in favour of dynamic 1.5 prefs
+			removeFromFile(UserStyle, this._rexp);
+			pref.setBoolPref(this._pref, true);
+		}
+		initCheckbox(this._pref);
+	}
+};
+function whitelist() {
+	window.openDialog("chrome://flashblock/content/options.xul", "", "chrome,centerscreen,modal");
+}
+function edit_cssAdblock() {
+	var css_doctype = "";
+	var css_cmd = "";
+	var wrk = Components.classes["@mozilla.org/windows-registry-key;1"]
+		.createInstance(Components.interfaces.nsIWindowsRegKey);
+	try {
+		wrk.open(wrk.ROOT_KEY_CLASSES_ROOT,
+			".css\\",
+			wrk.ACCESS_READ);
+		css_doctype = wrk.readStringValue("");
+	} catch (e) {
+		css_doctype = "";
+	}
+	if (css_doctype != "") {
+		try {
+			wrk.open(wrk.ROOT_KEY_CLASSES_ROOT,
+				css_doctype + "\\shell\\edit\\command\\",
+				wrk.ACCESS_READ);
+			css_cmd = wrk.readStringValue("");
+		} catch (e) {
+			css_cmd = "";
+		}
+	}
+	if (css_cmd == "") {
+		try {
+			wrk.open(wrk.ROOT_KEY_CLASSES_ROOT,
+				css_doctype + "\\shell\\",
+				wrk.ACCESS_READ);
+			css_cmd = wrk.readStringValue("");
+		} catch (e) {
+			css_cmd = "";
+		}
+	}
+	wrk.close();
+	var adb_file = getFolder("UChrm") + "\\adblock.css";
+	var proc = Components.classes["@mozilla.org/process/util;1"]
+		.createInstance(Components.interfaces.nsIProcess);
+
+	if (css_cmd != "") {
+		css_cmd = css_cmd.replace(' "%1"', '');
+		css_cmd = css_cmd.replace('"', '', "g");
+		var lFile = Components.classes["@mozilla.org/file/local;1"]
+			.createInstance(Components.interfaces.nsILocalFile);
+		var lPath = css_cmd;
+		lFile.initWithPath(lPath);
+		proc.init(lFile);
+	} else {
+		proc.init(getFile(getFolder("WinD"), "notepad.exe"));
+		//proc.run(true,[getFile(getFolder("UChrm"),"adblock.css")],1);
+	}
+	proc.run(false, [adb_file], 1);
+}
+function checkFlashblock(prefID) {
+	toggleCheckbox(prefID)
+	if (!pref.getBoolPref("kmeleon.flashblock"))
+		document.getElementById("flashblock.silverlight.blocked").disabled = true;
+	else
+		document.getElementById("flashblock.silverlight.blocked").disabled = false;
+}
+]]>
+	</script>
+	<vbox flex="1" style="overflow:auto">
+		<dialogheader title="&filters.header;"/>
+		<separator class="thin"/>
+		<groupbox id="popups.blocker"/>
+		<separator class="thin"/>
+		<groupbox>
+			<caption>
+				<label>&flashblock.label;</label>
+			</caption>
+			<description>&flashblock.descr;</description>
+			<hbox>
+				<checkbox oncommand="checkFlashblock(this.id)" id="kmeleon.flashblock" label="&flashblock.enable;"/>
+				<spacer flex="1" />
+				<button label="&flashblock.whitelist;" oncommand="whitelist()" style="margin-right:2.25em"/>
+			</hbox>
+			<hbox class="indent">
+				<checkbox oncommand="toggleCheckbox(this.id)" id="flashblock.silverlight.blocked" label="&silverblock.enable;"/>
+			</hbox>
+			<separator class="thin"/>
+			<description>&flash.note;</description>
+		</groupbox>
+		<separator class="thin"/>
+		<groupbox>
+			<caption>
+				<label>&cssAdblock.label;</label>
+			</caption>
+			<description>&cssAdblock.descr;</description>
+			<hbox>
+				<checkbox oncommand="toggleCheckbox(this.id)" id="kmeleon.adblocking" label="&cssAdblock.enable;"/>
+				<spacer flex="1" />
+				<button label="&cssAdblock.edit;" oncommand="edit_cssAdblock()" style="margin-right:2.25em"/>
+			</hbox>
+			<separator class="thin"/>
+			<description>&cssAdblock.note;</description>
+			<separator class="thin"/>
+			<description>&cssAdblock.warning;</description>
+		</groupbox>
+	</vbox>
+</page>
