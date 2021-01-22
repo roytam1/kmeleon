@@ -1,13 +1,16 @@
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this file,
- * You can obtain one at http://mozilla.org/MPL/2.0/. */
-
-"use strict";
+/*
+//@line 6 "c:\builds\moz2_slave\rel-m-esr38-w32_bld-0000000000\build\browser\components\preferences\applications.js"
+ */
 
 //****************************************************************************//
 // Constants & Enumeration Values
 
+var Cc = Components.classes;
+var Ci = Components.interfaces;
+var Cr = Components.results;
+
 Components.utils.import('resource://gre/modules/Services.jsm');
+
 const TYPE_MAYBE_FEED = "application/vnd.mozilla.maybe.feed";
 const TYPE_MAYBE_VIDEO_FEED = "application/vnd.mozilla.maybe.video.feed";
 const TYPE_MAYBE_AUDIO_FEED = "application/vnd.mozilla.maybe.audio.feed";
@@ -68,11 +71,11 @@ const PREF_AUDIO_FEED_SELECTED_READER = "browser.audioFeeds.handler.default";
 const kActionUsePlugin = 5;
 
 /*
-//@line 76 "c:\builds\moz2_slave\rel-m-esr38-w32_bld-0000000000\build\browser\components\preferences\in-content\applications.js"
+//@line 82 "c:\builds\moz2_slave\rel-m-esr38-w32_bld-0000000000\build\browser\components\preferences\applications.js"
 */
 const ICON_URL_APP      = "chrome://browser/skin/preferences/application.png";
 /*
-//@line 80 "c:\builds\moz2_slave\rel-m-esr38-w32_bld-0000000000\build\browser\components\preferences\in-content\applications.js"
+//@line 86 "c:\builds\moz2_slave\rel-m-esr38-w32_bld-0000000000\build\browser\components\preferences\applications.js"
 */
 
 // For CSS. Can be one of "ask", "save", "plugin" or "feed". If absent, the icon URL
@@ -83,13 +86,13 @@ const APP_ICON_ATTR_NAME = "appHandlerIcon";
 // Utilities
 
 function getFileDisplayName(file) {
-//@line 91 "c:\builds\moz2_slave\rel-m-esr38-w32_bld-0000000000\build\browser\components\preferences\in-content\applications.js"
+//@line 97 "c:\builds\moz2_slave\rel-m-esr38-w32_bld-0000000000\build\browser\components\preferences\applications.js"
   if (file instanceof Ci.nsILocalFileWin) {
     try {
       return file.getVersionInfoField("FileDescription");
     } catch (e) {}
   }
-//@line 104 "c:\builds\moz2_slave\rel-m-esr38-w32_bld-0000000000\build\browser\components\preferences\in-content\applications.js"
+//@line 110 "c:\builds\moz2_slave\rel-m-esr38-w32_bld-0000000000\build\browser\components\preferences\applications.js"
   return file.leafName;
 }
 
@@ -476,9 +479,9 @@ FeedHandlerInfo.prototype = {
     getService(Ci.nsIWebContentConverterService),
 
   _shellSvc:
-//@line 491 "c:\builds\moz2_slave\rel-m-esr38-w32_bld-0000000000\build\browser\components\preferences\in-content\applications.js"
+//@line 497 "c:\builds\moz2_slave\rel-m-esr38-w32_bld-0000000000\build\browser\components\preferences\applications.js"
     getShellService(),
-//@line 495 "c:\builds\moz2_slave\rel-m-esr38-w32_bld-0000000000\build\browser\components\preferences\in-content\applications.js"
+//@line 501 "c:\builds\moz2_slave\rel-m-esr38-w32_bld-0000000000\build\browser\components\preferences\applications.js"
 
 
   //**************************************************************************//
@@ -601,14 +604,14 @@ FeedHandlerInfo.prototype = {
       return this.__defaultApplicationHandler;
 
     var defaultFeedReader = null;
-//@line 618 "c:\builds\moz2_slave\rel-m-esr38-w32_bld-0000000000\build\browser\components\preferences\in-content\applications.js"
+//@line 624 "c:\builds\moz2_slave\rel-m-esr38-w32_bld-0000000000\build\browser\components\preferences\applications.js"
     try {
       defaultFeedReader = this._shellSvc.defaultFeedReader;
     }
     catch(ex) {
       // no default reader or _shellSvc is null
     }
-//@line 625 "c:\builds\moz2_slave\rel-m-esr38-w32_bld-0000000000\build\browser\components\preferences\in-content\applications.js"
+//@line 631 "c:\builds\moz2_slave\rel-m-esr38-w32_bld-0000000000\build\browser\components\preferences\applications.js"
 
     if (defaultFeedReader) {
       let handlerApp = Cc["@mozilla.org/uriloader/local-handler-app;1"].
@@ -627,7 +630,7 @@ FeedHandlerInfo.prototype = {
   },
 
   get hasDefaultHandler() {
-//@line 644 "c:\builds\moz2_slave\rel-m-esr38-w32_bld-0000000000\build\browser\components\preferences\in-content\applications.js"
+//@line 650 "c:\builds\moz2_slave\rel-m-esr38-w32_bld-0000000000\build\browser\components\preferences\applications.js"
     try {
       if (this._shellSvc.defaultFeedReader)
         return true;
@@ -635,7 +638,7 @@ FeedHandlerInfo.prototype = {
     catch(ex) {
       // no default reader or _shellSvc is null
     }
-//@line 652 "c:\builds\moz2_slave\rel-m-esr38-w32_bld-0000000000\build\browser\components\preferences\in-content\applications.js"
+//@line 658 "c:\builds\moz2_slave\rel-m-esr38-w32_bld-0000000000\build\browser\components\preferences\applications.js"
 
     return false;
   },
@@ -893,12 +896,6 @@ var gApplicationsPane = {
   // Initialization & Destruction
 
   init: function() {
-    function setEventListener(aId, aEventType, aCallback)
-    {
-      document.getElementById(aId)
-              .addEventListener(aEventType, aCallback.bind(gApplicationsPane));
-    }
-
     // Initialize shortcuts to some commonly accessed elements & values.
     this._brandShortName =
       document.getElementById("bundleBrand").getString("brandShortName");
@@ -925,14 +922,6 @@ var gApplicationsPane = {
     this._prefSvc.addObserver(PREF_AUDIO_FEED_SELECTED_ACTION, this, false);
     this._prefSvc.addObserver(PREF_AUDIO_FEED_SELECTED_READER, this, false);
 
-
-    setEventListener("focusSearch1", "command", gApplicationsPane.focusFilterBox);
-    setEventListener("focusSearch2", "command", gApplicationsPane.focusFilterBox);
-    setEventListener("filter", "command", gApplicationsPane.filter);
-    setEventListener("handlersView", "select",
-      gApplicationsPane.onSelectionChanged);
-    setEventListener("typeColumn", "click", gApplicationsPane.sort);
-    setEventListener("actionColumn", "click", gApplicationsPane.sort);
 
     // Listen for window unload so we can remove our preference observers.
     window.addEventListener("unload", this, false);
@@ -1352,9 +1341,9 @@ var gApplicationsPane = {
 // XXXben - we need to compare this with the running instance executable
 //          just don't know how to do that via script...
 // XXXmano TBD: can probably add this to nsIShellService
-//@line 1369 "c:\builds\moz2_slave\rel-m-esr38-w32_bld-0000000000\build\browser\components\preferences\in-content\applications.js"
+//@line 1361 "c:\builds\moz2_slave\rel-m-esr38-w32_bld-0000000000\build\browser\components\preferences\applications.js"
    aExecutable.leafName != "firefox.exe";
-//@line 1377 "c:\builds\moz2_slave\rel-m-esr38-w32_bld-0000000000\build\browser\components\preferences\in-content\applications.js"
+//@line 1369 "c:\builds\moz2_slave\rel-m-esr38-w32_bld-0000000000\build\browser\components\preferences\applications.js"
   },
 
   /**
@@ -1487,21 +1476,16 @@ var gApplicationsPane = {
     }
 
     // Create a menu item for selecting a local application.
-    let canOpenWithOtherApp = true;
-//@line 1511 "c:\builds\moz2_slave\rel-m-esr38-w32_bld-0000000000\build\browser\components\preferences\in-content\applications.js"
+//@line 1502 "c:\builds\moz2_slave\rel-m-esr38-w32_bld-0000000000\build\browser\components\preferences\applications.js"
     // On Windows, selecting an application to open another application
     // would be meaningless so we special case executables.
-    let executableType = Cc["@mozilla.org/mime;1"].getService(Ci.nsIMIMEService)
+    var executableType = Cc["@mozilla.org/mime;1"].getService(Ci.nsIMIMEService)
                                                   .getTypeFromExtension("exe");
-    canOpenWithOtherApp = handlerInfo.type != executableType;
-//@line 1517 "c:\builds\moz2_slave\rel-m-esr38-w32_bld-0000000000\build\browser\components\preferences\in-content\applications.js"
-    if (canOpenWithOtherApp)
+    if (handlerInfo.type != executableType)
+//@line 1508 "c:\builds\moz2_slave\rel-m-esr38-w32_bld-0000000000\build\browser\components\preferences\applications.js"
     {
       let menuItem = document.createElement("menuitem");
-      menuItem.className = "choose-app-item";
-      menuItem.addEventListener("command", function(e) {
-        gApplicationsPane.chooseApp(e);
-      });
+      menuItem.setAttribute("oncommand", "gApplicationsPane.chooseApp(event)");
       let label = this._prefsBundle.getString("useOtherApp");
       menuItem.setAttribute("label", label);
       menuItem.setAttribute("tooltiptext", label);
@@ -1513,10 +1497,7 @@ var gApplicationsPane = {
       let menuItem = document.createElement("menuseparator");
       menuPopup.appendChild(menuItem);
       menuItem = document.createElement("menuitem");
-      menuItem.className = "manage-app-item";
-      menuItem.addEventListener("command", function(e) {
-        gApplicationsPane.manageApp(e);
-      });
+      menuItem.setAttribute("oncommand", "gApplicationsPane.manageApp(event)");
       menuItem.setAttribute("label", this._prefsBundle.getString("manageApp"));
       menuPopup.appendChild(menuItem);
     }
@@ -1640,7 +1621,7 @@ var gApplicationsPane = {
     var typeItem = this._list.selectedItem;
     var handlerInfo = this._handledTypes[typeItem.type];
 
-    let action = parseInt(aActionItem.getAttribute("action"));
+    let action = parseInt(aActionItem.getAttribute("action"), 10);
 
     // Set the plugin state if we're enabling or disabling a plugin.
     if (action == kActionUsePlugin)
@@ -1689,23 +1670,20 @@ var gApplicationsPane = {
     var typeItem = this._list.selectedItem;
     var handlerInfo = this._handledTypes[typeItem.type];
 
-    let onComplete = () => {
-      // Rebuild the actions menu so that we revert to the previous selection,
-      // or "Always ask" if the previous default application has been removed
-      this.rebuildActionsMenu();
+    document.documentElement.openSubDialog("chrome://browser/content/preferences/applicationManager.xul",
+                                           "", handlerInfo);
 
-      // update the richlistitem too. Will be visible when selecting another row
-      typeItem.setAttribute("actionDescription",
-                            this._describePreferredAction(handlerInfo));
-      if (!this._setIconClassForPreferredAction(handlerInfo, typeItem)) {
-        typeItem.setAttribute("actionIcon",
-                              this._getIconURLForPreferredAction(handlerInfo));
-      }
-    };
+    // Rebuild the actions menu so that we revert to the previous selection,
+    // or "Always ask" if the previous default application has been removed
+    this.rebuildActionsMenu();
 
-    gSubDialog.open("chrome://browser/content/preferences/applicationManager.xul",
-                    "resizable=no", handlerInfo, onComplete);
-
+    // update the richlistitem too. Will be visible when selecting another row
+    typeItem.setAttribute("actionDescription",
+                          this._describePreferredAction(handlerInfo));
+    if (!this._setIconClassForPreferredAction(handlerInfo, typeItem)) {
+      typeItem.setAttribute("actionIcon",
+                            this._getIconURLForPreferredAction(handlerInfo));
+    }
   },
 
   chooseApp: function(aEvent) {
@@ -1737,7 +1715,7 @@ var gApplicationsPane = {
       }
     }.bind(this);
 
-//@line 1760 "c:\builds\moz2_slave\rel-m-esr38-w32_bld-0000000000\build\browser\components\preferences\in-content\applications.js"
+//@line 1741 "c:\builds\moz2_slave\rel-m-esr38-w32_bld-0000000000\build\browser\components\preferences\applications.js"
     var params = {};
     var handlerInfo = this._handledTypes[this._list.selectedItem.type];
 
@@ -1754,21 +1732,19 @@ var gApplicationsPane = {
     params.filename      = null;
     params.handlerApp    = null;
 
-    let onAppSelected = () => {
-      if (this.isValidHandlerApp(params.handlerApp)) {
-        handlerApp = params.handlerApp;
+    window.openDialog("chrome://global/content/appPicker.xul", null,
+                      "chrome,modal,centerscreen,titlebar,dialog=yes",
+                      params);
 
-        // Add the app to the type's list of possible handlers.
-        handlerInfo.addPossibleApplicationHandler(handlerApp);
-      }
+    if (this.isValidHandlerApp(params.handlerApp)) {
+      handlerApp = params.handlerApp;
 
-      chooseAppCallback(handlerApp);
-    };
+      // Add the app to the type's list of possible handlers.
+      handlerInfo.addPossibleApplicationHandler(handlerApp);
+    }
 
-    gSubDialog.open("chrome://global/content/appPicker.xul",
-                    null, params, onAppSelected);
-
-//@line 1815 "c:\builds\moz2_slave\rel-m-esr38-w32_bld-0000000000\build\browser\components\preferences\in-content\applications.js"
+    chooseAppCallback(handlerApp);
+//@line 1794 "c:\builds\moz2_slave\rel-m-esr38-w32_bld-0000000000\build\browser\components\preferences\applications.js"
   },
 
   // Mark which item in the list was last selected so we can reselect it
@@ -1857,11 +1833,11 @@ var gApplicationsPane = {
     var uri = this._ioSvc.newURI(aWebAppURITemplate, null, null);
 
     // Unfortunately we can't use the favicon service to get the favicon,
-    // because the service looks in the annotations table for a record with
-    // the exact URL we give it, and users won't have such records for URLs
-    // they don't visit, and users won't visit the web app's URL template,
-    // they'll only visit URLs derived from that template (i.e. with %s
-    // in the template replaced by the URL of the content being handled).
+    // because the service looks for a record with the exact URL we give it, and
+    // users won't have such records for URLs they don't visit, and users won't
+    // visit the handler's URL template, they'll only visit URLs derived from
+    // that template (i.e. with %s in the template replaced by the URL of the
+    // content being handled).
 
     if (/^https?$/.test(uri.scheme) && this._prefSvc.getBoolPref("browser.chrome.favicons"))
       return uri.prePath + "/favicon.ico";
