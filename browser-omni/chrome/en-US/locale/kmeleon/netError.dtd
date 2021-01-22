@@ -100,5 +100,5 @@
      Some applications might override netErrorApp.dtd with their specific version,
      this inclusion needs to be intact for that approach to work correctly.
      Please, try to keep this at the end of the file. -->
-<!ENTITY % netErrorAppDTD SYSTEM "chrome://global/locale/netErrorApp.dtd">
+<!ENTITY % netErrorAppDTD SYSTEM "chrome://kmeleon/locale/netErrorApp.dtd">
 %netErrorAppDTD;
