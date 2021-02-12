@@ -94,10 +94,8 @@ NS_IMETHODIMP nsGenericFactory::GetInterfaces(PRUint32 *countp,
     return NS_OK;
 }
 
-NS_IMETHODIMP nsGenericFactory::GetHelperForLanguage(PRUint32 language,
-                                                     nsISupports **helper)
-{
-    *helper = nullptr;
+NS_IMETHODIMP nsGenericFactory::GetScriptableHelper(nsIXPCScriptable** retval){
+	*retval = nullptr;
     return NS_OK;
 }
 
@@ -141,12 +139,6 @@ NS_IMETHODIMP nsGenericFactory::GetClassID(nsCID * *aClassID)
 NS_IMETHODIMP nsGenericFactory::GetClassIDNoAlloc(nsCID *aClassID)
 {
     *aClassID = mInfo->mCID;
-    return NS_OK;
-}
-
-NS_IMETHODIMP nsGenericFactory::GetImplementationLanguage(PRUint32 *langp)
-{
-    *langp = nsIProgrammingLanguage::CPLUSPLUS;
     return NS_OK;
 }
 
