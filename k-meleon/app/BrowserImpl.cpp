@@ -365,7 +365,7 @@ CBrowserImpl::GetPersistence(PRBool* aPersistX, PRBool* aPersistY,
 // CBrowserImpl::nsIWebBrowserChromeFocus
 //*****************************************************************************
 
-NS_IMETHODIMP CBrowserImpl::FocusNextElement()
+NS_IMETHODIMP CBrowserImpl::FocusNextElement(bool aForDocumentNavigation)
 {
 	NS_ENSURE_TRUE(m_pBrowserFrameGlue, NS_ERROR_FAILURE);
 
@@ -374,7 +374,7 @@ NS_IMETHODIMP CBrowserImpl::FocusNextElement()
     return NS_OK;
 }
 
-NS_IMETHODIMP CBrowserImpl::FocusPrevElement()
+NS_IMETHODIMP CBrowserImpl::FocusPrevElement(bool aForDocumentNavigation)
 {
 	NS_ENSURE_TRUE(m_pBrowserFrameGlue, NS_ERROR_FAILURE);
 

@@ -236,12 +236,12 @@ NS_IMETHODIMP WebBrowserChrome::ExitModalEventLoop(nsresult aStatus)
 // WebBrowserChrome::nsIWebBrowserChromeFocus
 //*****************************************************************************
 
-NS_IMETHODIMP WebBrowserChrome::FocusNextElement()
+NS_IMETHODIMP WebBrowserChrome::FocusNextElement(bool aForDocumentNavigation)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP WebBrowserChrome::FocusPrevElement()
+NS_IMETHODIMP WebBrowserChrome::FocusPrevElement(bool aForDocumentNavigation)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }
