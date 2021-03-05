@@ -289,12 +289,6 @@ NS_IMETHODIMP KmAppInfo::GetDistributionID(nsACString & aDistributionID)
     return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP KmAppInfo::GetKeyboardMayHaveIME(bool *ime)
-{
-	*ime = true;
-    return NS_OK;
-}
-
 NS_IMETHODIMP KmAppInfo::GetIsOfficial(bool *)
 {
 	return NS_ERROR_NOT_IMPLEMENTED;
