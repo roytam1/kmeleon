@@ -10,7 +10,7 @@ pref("browser.search.showOneOffButtons", false);
 pref("general.useragent.compatMode", 2);
 
 // Media
-pref("media.mediasource.format-reader", false);
+pref("media.mediasource.format-reader", true);
 pref("media.mediasource.webm.enabled", true);
 
 // workaround
