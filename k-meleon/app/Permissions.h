@@ -98,7 +98,18 @@ public:
 	{
 		nsresult rv;
 
-		rv = m_permissionManager->Remove(permission->m_host, m_type);
+		nsCString nsurl;
+		nsurl = permission->m_host;
+
+		// http is needed to make an nsIURI
+		if (!strstr(permission->m_host.get(), "http://"))
+			nsurl.Insert("http://", 0);
+
+		nsCOMPtr<nsIURI> uri;
+		rv = NewURI(getter_AddRefs(uri), nsurl);
+		NS_ENSURE_SUCCESS(rv, FALSE);
+
+		rv = m_permissionManager->Remove(uri, m_type);
 		NS_ENSURE_SUCCESS(rv, FALSE);
 		return TRUE;
 	}
