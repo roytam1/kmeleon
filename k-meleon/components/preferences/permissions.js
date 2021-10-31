@@ -3,6 +3,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+Components.utils.import("resource://gre/modules/NetUtil.jsm");
+
 const nsIPermissionManager = Components.interfaces.nsIPermissionManager;
 const nsICookiePermission = Components.interfaces.nsICookiePermission;
 
@@ -82,9 +84,7 @@ var gPermissionManager = {
     var textbox = document.getElementById("url");
     var host = textbox.value.replace(/^\s*([-\w]*:\/+)?/, ""); // trim any leading space and scheme
     try {
-      var ioService = Components.classes["@mozilla.org/network/io-service;1"]
-                                .getService(Components.interfaces.nsIIOService);
-      var uri = ioService.newURI("http://"+host, null, null);
+      var uri = NetUtil.newURI("http://" + host);
       host = uri.host;
     } catch(ex) {
       var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
@@ -111,7 +111,7 @@ var gPermissionManager = {
     
     if (!exists) {
       host = (host.charAt(0) == ".") ? host.substring(1,host.length) : host;
-      var uri = ioService.newURI("http://" + host, null, null);
+      var uri = NetUtil.newURI("http://" + host);
       this._pm.add(uri, this._type, aCapability);
     }
     textbox.value = "";
@@ -254,7 +254,8 @@ var gPermissionManager = {
     gTreeUtils.deleteSelectedItems(this._tree, this._view, this._permissions, removedPermissions);
     for (var i = 0; i < removedPermissions.length; ++i) {
       var p = removedPermissions[i];
-      this._pm.remove(p.host, p.type);
+      let uri = NetUtil.newURI("http://" + p.host);
+      this._pm.remove(uri, p.type);
     }    
     document.getElementById("removePermission").disabled = !this._permissions.length;
     document.getElementById("removeAllPermissions").disabled = !this._permissions.length;
