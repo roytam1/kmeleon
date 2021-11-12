@@ -64,8 +64,11 @@
 #define NS_ARRAY_LENGTH(array_) \
   (sizeof(array_)/sizeof(array_[0]))
   
-
 #include <mozilla/Char16.h>
+
+#include <algorithm>
+using std::min; using std::max;
+
 #include <afxwin.h>         // MFC core and standard components
 #include <afxext.h>         // MFC extensions
 #include <afxdisp.h>        // Classes MFC Automation
@@ -79,10 +82,6 @@
 #include <afxole.h>
 #include <afxtoolbar.h>
 #include <afxframewndex.h>
-
-#undef min
-#undef max
-#include <algorithm>
 
 #ifdef _UNICODE
 #if defined _M_IX86
