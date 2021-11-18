@@ -156,7 +156,7 @@ int main(int argc, char *argv[])
     printf("\n\n");
     */
     // Sophisticated command-line parsing in action
-    char *szFirstURL = "http://www.mozilla.org/projects/embedding/";
+    char *szFirstURL = "https://www-archive.mozilla.org/projects/embedding/";
 	int argn;
     for (argn = 1; argn < argc; argn++)
     {
