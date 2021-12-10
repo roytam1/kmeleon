@@ -120,7 +120,7 @@ using std::min; using std::max;
 #include "nsAppDirectoryServiceDefs.h"
 
 #if defined(THERECANBENODEBUG) 
-#define DEBUG
+//#define DEBUG
 #endif
 
 #include "nsIDOMNode.h"
