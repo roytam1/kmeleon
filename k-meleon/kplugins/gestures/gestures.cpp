@@ -38,6 +38,8 @@
 #include "strconv.h"
 #include "mozilla.h"
 
+#include "mozilla/ChaosMode.h" // ChaosMode hack
+
 BOOL APIENTRY DllMain (
         HANDLE hModule,
         DWORD ul_reason_for_call,
@@ -530,3 +532,14 @@ extern "C" {
         return &kPlugin;
     }
 }
+
+#if 1 //ChaosMode hack
+namespace mozilla {
+	namespace detail {
+
+		Atomic<uint32_t> gChaosModeCounter(0);
+		ChaosFeature gChaosFeatures = None;
+
+	} /* namespace detail */
+} /* namespace mozilla */
+#endif

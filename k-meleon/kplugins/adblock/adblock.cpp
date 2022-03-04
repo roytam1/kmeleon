@@ -54,6 +54,7 @@
 #include "nsIThreadManager.h"
 #include "nsIThread.h"
 
+#include "mozilla/ChaosMode.h" // ChaosMode hack
 
 
 #define KMELEON_PLUGIN_EXPORTS
@@ -1234,3 +1235,13 @@ KMELEON_PLUGIN kmeleonPlugin *GetKmeleonPlugin() {
 
 }
 
+#if 1 //ChaosMode hack
+namespace mozilla {
+	namespace detail {
+
+		Atomic<uint32_t> gChaosModeCounter(0);
+		ChaosFeature gChaosFeatures = None;
+
+	} /* namespace detail */
+} /* namespace mozilla */
+#endif

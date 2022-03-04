@@ -38,6 +38,9 @@
 #include "kmeleon_plugin.h"
 #include "LocalesUtils.h"
 #include "mozilla.h"
+
+#include "mozilla/ChaosMode.h" // ChaosMode hack
+
 Locale* gLoc;
 
 int Load();
@@ -471,3 +474,14 @@ KMELEON_PLUGIN kmeleonPlugin *GetKmeleonPlugin() {
 //}
 
 }
+
+#if 1 //ChaosMode hack
+namespace mozilla {
+	namespace detail {
+
+		Atomic<uint32_t> gChaosModeCounter(0);
+		ChaosFeature gChaosFeatures = None;
+
+	} /* namespace detail */
+} /* namespace mozilla */
+#endif

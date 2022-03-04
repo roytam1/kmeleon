@@ -31,6 +31,9 @@
 #include "kmeleon_plugin.h"
 #include "Utils.h"
 #include "LocalesUtils.h"
+
+#include "mozilla/ChaosMode.h" // ChaosMode hack
+
 Locale* gLoc = NULL;
 
 #define PLUGIN_NAME "Privacy Plugin"
@@ -608,3 +611,14 @@ extern "C"
           return 14; // 14 = icon width
    }
 }
+
+#if 1 //ChaosMode hack
+namespace mozilla {
+	namespace detail {
+
+		Atomic<uint32_t> gChaosModeCounter(0);
+		ChaosFeature gChaosFeatures = None;
+
+	} /* namespace detail */
+} /* namespace mozilla */
+#endif

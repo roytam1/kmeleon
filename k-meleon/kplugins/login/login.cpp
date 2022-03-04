@@ -34,6 +34,8 @@
 #include "mozilla.h"
 #include "resource.h"
 
+#include "mozilla/ChaosMode.h" // ChaosMode hack
+
 #define PLUGIN_NAME "Login Manager"
 #define SIDEBARPROPNAME _T("LoginManagerData")
 
@@ -198,3 +200,14 @@ extern "C" {
 		return &kPlugin;
 	}
 }
+
+#if 1 //ChaosMode hack
+namespace mozilla {
+	namespace detail {
+
+		Atomic<uint32_t> gChaosModeCounter(0);
+		ChaosFeature gChaosFeatures = None;
+
+	} /* namespace detail */
+} /* namespace mozilla */
+#endif
