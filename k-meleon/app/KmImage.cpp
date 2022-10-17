@@ -24,6 +24,8 @@
 #include "imgIContainer.h"
 //#include "gfxUtils.h"
 
+using namespace mozilla;
+
 bool IsComCtl6() {
 	static int isv6 = -1;
 	if (isv6 != -1) return isv6;	
@@ -253,14 +255,14 @@ HBITMAP nsImageObserver::CreateDIB(imgIRequest *aRequest)
 #endif
 
 	// Get the image data
-	mozilla::RefPtr<SourceSurface> surface;
+	RefPtr<SourceSurface> surface;
 
 	surface = container->GetFrame(imgIContainer::FRAME_CURRENT,
 		imgIContainer::FLAG_SYNC_DECODE | imgIContainer::FLAG_WANT_DATA_SURFACE );
 	NS_ENSURE_TRUE(surface, NULL);
 	surface->GetFormat(); // call GetType in debug ...
 
-	mozilla::RefPtr<DataSourceSurface> dataSurface;
+	RefPtr<DataSourceSurface> dataSurface;
 	DataSourceSurface::MappedSurface map;
 	bool mappedOK;
 	if (surface->GetFormat() != mozilla::gfx::SurfaceFormat::B8G8R8A8) {
