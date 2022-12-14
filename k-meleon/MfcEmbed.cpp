@@ -583,6 +583,7 @@ BOOL CMfcEmbedApp::InitInstance()
 #endif
 
    CWinApp::InitInstance();
+   afxAmbientActCtx = FALSE; // <<-- Add this line
    AfxOleInit();
 
    // Profile selection
