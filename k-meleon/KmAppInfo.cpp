@@ -25,7 +25,7 @@
 #include "nsAppShellCID.h"
 #include "nsIAppShellService.h"
 
-NS_IMPL_ISUPPORTS(KmAppInfo, nsIXULAppInfo, nsIXULRuntime, nsIAppStartup, nsIAppStartup2)
+NS_IMPL_ISUPPORTS(KmAppInfo, nsIXULAppInfo, nsIXULRuntime, nsIAppStartup)
 
 /* readonly attribute ACString vendor; */
 NS_IMETHODIMP KmAppInfo::GetVendor(nsACString & aVendor)
@@ -378,7 +378,7 @@ NS_IMETHODIMP KmAppInfo::SetInterrupted(bool aInterrupted)
 	return NS_OK;    
 }
 
-NS_IMETHODIMP KmAppInfo::ProcessNativeEvent(void* aMsg)
+/*NS_IMETHODIMP KmAppInfo::ProcessNativeEvent(void* aMsg)
 {
 	_AFX_THREAD_STATE *pState = AfxGetThreadState();
 	MSG* msg = (MSG*)aMsg;
@@ -389,4 +389,4 @@ NS_IMETHODIMP KmAppInfo::ProcessNativeEvent(void* aMsg)
 		::DispatchMessage(msg);
 	}
 	return NS_OK;    
-}
+}*/
