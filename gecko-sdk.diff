@@ -1,0 +1,29 @@
+diff -rU5 ../firefox-31.8.0esr/obj-i686-pc-mingw32/dist/include/nsISupportsImpl.h xulrunner-sdk/include/nsISupportsImpl.h
+--- ../firefox-31.8.0esr/obj-i686-pc-mingw32/dist/include/nsISupportsImpl.h	2015-06-25 05:24:51.000000000 +0800
++++ xulrunner-sdk/include/nsISupportsImpl.h	2022-12-14 16:10:50.926256700 +0800
+@@ -17,11 +17,11 @@
+ #include "prthread.h" /* needed for thread-safety checks */
+ #endif // !XPCOM_GLUE_AVOID_NSPR
+ 
+ #include "nsDebug.h"
+ #include "nsXPCOM.h"
+-#ifndef XPCOM_GLUE
++#if 1//ndef XPCOM_GLUE
+ #include "mozilla/Atomics.h"
+ #endif
+ #include "mozilla/Attributes.h"
+ #include "mozilla/Assertions.h"
+ #include "mozilla/Likely.h"
+@@ -248,11 +248,11 @@
+     nsrefcnt operator++(int) MOZ_DELETE;
+     nsrefcnt operator--(int) MOZ_DELETE;
+     nsrefcnt mValue;
+ };
+ 
+-#ifndef XPCOM_GLUE
++#if 1//ndef XPCOM_GLUE
+ namespace mozilla {
+ class ThreadSafeAutoRefCnt {
+  public:
+     ThreadSafeAutoRefCnt() : mValue(0) {}
+     ThreadSafeAutoRefCnt(nsrefcnt aValue) : mValue(aValue) {}
