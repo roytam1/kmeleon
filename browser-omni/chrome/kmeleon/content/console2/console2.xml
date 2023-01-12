@@ -516,7 +516,7 @@
 						return;
 					}
 					
-					this.selectedItems.push(item);
+					this.selectedItems.append(item);
 					item.selected = true;
 					
 					this._fireOnSelect();

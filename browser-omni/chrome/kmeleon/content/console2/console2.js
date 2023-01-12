@@ -306,7 +306,7 @@ function toggleNoteFocus(aInit)
 
 function ignoreSelectedItems(aDelete)
 {
-	gConsole.selectedItems.forEach(function(aItem) {
+	[... gConsole.selectedItems].forEach(function(aItem) {
 		var label = aItem.label2;
 		if (label && (!aDelete || !gConsole.dupes && aItem.hasAttribute("dupes")))
 		{
@@ -352,7 +352,7 @@ var gIgnoredItems = {
 
 function blacklistSelectedItems()
 {
-	gConsole.selectedItems.forEach(function(aItem) {
+	[... gConsole.selectedItems].forEach(function(aItem) {
 		if (!aItem.getAttribute("hideSource"))
 		{
 			gBlacklist.add(aItem.getAttribute("href"));
@@ -732,10 +732,10 @@ function updateMenuItems()
 	function isSelectable(aItem) { return !aItem.selected && aItem.visible; }
 	function isBlacklistable(aItem) { return !aItem.getAttribute("hideSource") && gBlacklist.isSupported(aItem.getAttribute("href")); }
 	
-	var selectedAndVisible = gConsole.selectedItems.some(isVisible);
+	var selectedAndVisible = [... gConsole.selectedItems].some(isVisible);
 	
 	goSetCommandEnabled("cmd_ignore", selectedAndVisible);
-	goSetCommandEnabled("cmd_blacklist", selectedAndVisible && gConsole.selectedItems.some(isBlacklistable));
+	goSetCommandEnabled("cmd_blacklist", selectedAndVisible && [... gConsole.selectedItems].some(isBlacklistable));
 	
 	goSetCommandEnabled("cmd_select_all", gConsole.children.some(isSelectable));
 	goSetCommandEnabled("cmd_copy", selectedAndVisible);
