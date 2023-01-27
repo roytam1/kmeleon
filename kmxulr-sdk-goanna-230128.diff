@@ -1,6 +1,6 @@
 diff -rU5 ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/FrameMetrics.h xulrunner-sdk/include/FrameMetrics.h
 --- ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/FrameMetrics.h	2022-08-26 09:37:10.821044000 +0800
-+++ xulrunner-sdk/include/FrameMetrics.h	2022-08-26 10:14:19.873539100 +0800
++++ xulrunner-sdk/include/FrameMetrics.h	2023-01-28 00:07:20.274928600 +0800
 @@ -11,11 +11,12 @@
  #include "mozilla/Maybe.h"
  #include "mozilla/gfx/BasePoint.h"      // for BasePoint
@@ -16,8 +16,8 @@ diff -rU5 ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/FrameMetrics
  } // namespace IPC
  
 diff -rU5 ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/js/Debug.h xulrunner-sdk/include/js/Debug.h
---- ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/js/Debug.h	2022-07-27 14:44:48.523665000 +0800
-+++ xulrunner-sdk/include/js/Debug.h	2022-08-26 10:13:25.655438000 +0800
+--- ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/js/Debug.h	2022-11-11 09:51:57.643211000 +0800
++++ xulrunner-sdk/include/js/Debug.h	2023-01-28 00:07:20.274928600 +0800
 @@ -132,11 +132,11 @@
      js::Debugger* debugger;
  
@@ -32,8 +32,8 @@ diff -rU5 ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/js/Debug.h x
  #endif
  
 diff -rU5 ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/mozilla/a11y/Accessible.h xulrunner-sdk/include/mozilla/a11y/Accessible.h
---- ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/mozilla/a11y/Accessible.h	2022-03-10 14:34:21.731781000 +0800
-+++ xulrunner-sdk/include/mozilla/a11y/Accessible.h	2022-08-26 10:13:25.656438100 +0800
+--- ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/mozilla/a11y/Accessible.h	2022-11-11 09:51:57.564206000 +0800
++++ xulrunner-sdk/include/mozilla/a11y/Accessible.h	2023-01-28 00:07:20.274928600 +0800
 @@ -10,11 +10,12 @@
  #include "mozilla/a11y/RelationType.h"
  #include "mozilla/a11y/Role.h"
@@ -48,9 +48,32 @@ diff -rU5 ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/mozilla/a11y
  #include "nsRect.h"
  
  struct nsRoleMapEntry;
+diff -rU5 ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/nsCOMPtr.h xulrunner-sdk/include/nsCOMPtr.h
+--- ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/nsCOMPtr.h	2023-01-27 10:52:48.437255000 +0800
++++ xulrunner-sdk/include/nsCOMPtr.h	2023-01-28 00:18:04.089752700 +0800
+@@ -384,17 +384,17 @@
+ private:
+   T* MOZ_OWNING_REF mRawPtr;
+ #endif
+ 
+   void assert_validity()
+-  {
++  {/*
+     static_assert(1 < sizeof(TestForIID<T>(nullptr)), "nsCOMPtr only works "
+                   "for types with IIDs.  Either use RefPtr; add an IID to "
+                   "your type with NS_DECLARE_STATIC_IID_ACCESSOR/"
+                   "NS_DEFINE_STATIC_IID_ACCESSOR; or make the nsCOMPtr point "
+                   "to a base class with an IID.");
+-  }
++  */}
+ 
+ public:
+   typedef T element_type;
+ 
+ #ifndef NSCAP_FEATURE_USE_BASE
 diff -rU5 ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/nsCoord.h xulrunner-sdk/include/nsCoord.h
 --- ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/nsCoord.h	2020-12-21 14:19:45.637943000 +0800
-+++ xulrunner-sdk/include/nsCoord.h	2022-08-26 10:13:25.656438100 +0800
++++ xulrunner-sdk/include/nsCoord.h	2023-01-28 00:07:20.275928600 +0800
 @@ -161,11 +161,11 @@
      // infinity + anything = anything + infinity = infinity
      return nscoord_MAX;
@@ -79,7 +102,7 @@ diff -rU5 ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/nsCoord.h xu
  
 diff -rU5 ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/nsISupportsImpl.h xulrunner-sdk/include/nsISupportsImpl.h
 --- ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/nsISupportsImpl.h	2022-05-20 09:46:28.578074000 +0800
-+++ xulrunner-sdk/include/nsISupportsImpl.h	2022-08-26 10:13:25.656438100 +0800
++++ xulrunner-sdk/include/nsISupportsImpl.h	2023-01-28 00:07:20.275928600 +0800
 @@ -18,11 +18,11 @@
  #include "prthread.h" /* needed for thread-safety checks */
  #endif // !XPCOM_GLUE_AVOID_NSPR
@@ -107,9 +130,9 @@ diff -rU5 ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/nsISupportsI
  public:
    ThreadSafeAutoRefCnt() : mValue(0) {}
 diff -rU5 ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/nsRect.h xulrunner-sdk/include/nsRect.h
---- ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/nsRect.h	2022-02-04 12:08:33.405969000 +0800
-+++ xulrunner-sdk/include/nsRect.h	2022-08-26 10:13:25.657438200 +0800
-@@ -73,28 +73,28 @@
+--- ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/nsRect.h	2022-12-16 11:13:31.901832000 +0800
++++ xulrunner-sdk/include/nsRect.h	2023-01-28 00:07:20.275928600 +0800
+@@ -71,28 +71,28 @@
    {
  #ifdef NS_COORD_IS_FLOAT
      return UnionEdges(aRect);
@@ -146,7 +169,7 @@ diff -rU5 ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/nsRect.h xul
        }
      }
      result.height = nscoord(h);
-@@ -222,13 +222,13 @@
+@@ -220,13 +220,13 @@
  {
    mozilla::gfx::IntRect rect;
    rect.x = NSToIntRoundUp(NSAppUnitsToDoublePixels(x, aAppUnitsPerPixel) * aXScale);
@@ -162,7 +185,7 @@ diff -rU5 ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/nsRect.h xul
  }
  
  // scale the rect but round to smallest containing rect
-@@ -238,13 +238,13 @@
+@@ -236,13 +236,13 @@
  {
    mozilla::gfx::IntRect rect;
    rect.x = NSToIntFloor(NSAppUnitsToFloatPixels(x, float(aAppUnitsPerPixel)) * aXScale);
@@ -178,7 +201,7 @@ diff -rU5 ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/nsRect.h xul
  }
  
  // scale the rect but round to largest contained rect
-@@ -254,13 +254,13 @@
+@@ -252,13 +252,13 @@
  {
    mozilla::gfx::IntRect rect;
    rect.x = NSToIntCeil(NSAppUnitsToFloatPixels(x, float(aAppUnitsPerPixel)) * aXScale);
