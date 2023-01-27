@@ -27,6 +27,7 @@
 #include "nsIDOMEventTarget.h"
 #include "nsIDOMEventListener.h"
 #include "nsIDOMWindow.h"
+#include "nsPIDOMWindow.h"
 #include "nsEmbedString.h"
 #include "nsIDocShell.h"
 #include "nsIDOMDocument.h"
@@ -112,10 +113,11 @@ protected:
 	{
 		NS_ENSURE_ARG(aWebBrowser);
 		nsCOMPtr<nsIDOMWindow> domWin;
-		aWebBrowser->GetContentDOMWindow (getter_AddRefs(domWin));
+		aWebBrowser->GetContentDOMWindow(getter_AddRefs(domWin));
 		NS_ENSURE_TRUE (domWin, NS_ERROR_FAILURE);
-	
-		return domWin->GetWindowRoot (aTarget);
+		nsCOMPtr<nsPIDOMWindow> pidomWin = do_QueryInterface(domWin);
+
+		return pidomWin->GetWindowRoot(aTarget);
 	}
 
 	HWND mhWnd;
