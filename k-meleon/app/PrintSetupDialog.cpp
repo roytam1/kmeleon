@@ -204,7 +204,7 @@ void CPrintSetupDialog::GetPrintSettings(nsIPrintSettings* aPrintSettings)
     double width;
     double height;
     GetPaperSizeInfo(type, width, height);
-    aPrintSettings->SetPaperSizeType(nsIPrintSettings::kPaperSizeDefined);
+    //aPrintSettings->SetPaperSizeType(nsIPrintSettings::kPaperSizeDefined);
     aPrintSettings->SetPaperSizeUnit(type);
     aPrintSettings->SetPaperWidth(width);
     aPrintSettings->SetPaperHeight(height);
