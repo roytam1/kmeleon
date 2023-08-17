@@ -450,19 +450,19 @@ NS_IMETHODIMP KmAppInfo::ProcessNativeEvent(void* aMsg)
 	}
 	return NS_OK;    
 }
-*/
+
 #include "nsIAccessibilityService.h"
-NS_IMETHODIMP KmAppInfo::GetAccessibilityIsUIA(bool *aAccessibilityIsUIA)
+NS_IMETHODIMP KmAppInfo::GetAccessibilityIsBlacklistedForE10S(bool *aAccessibilityIsUIA)
 {
 	*aAccessibilityIsUIA = false;
 #if defined(ACCESSIBILITY) && defined(XP_WIN)
 	nsCOMPtr<nsIAccessibilityService> serv = do_GetService("@mozilla.org/accessibilityService;1");
 		// This is the same check the a11y service does to identify uia clients.
 	if (serv != nullptr &&
-		(::GetModuleHandleW(L"uiautomation") ||
-		::GetModuleHandleW(L"uiautomationcore"))) {
+		mozilla::a11y::Compatibility::IsBlacklistedForE10S()) {
 		*aAccessibilityIsUIA = true;
 	}
 #endif
 	return NS_OK;
 }
+*/
