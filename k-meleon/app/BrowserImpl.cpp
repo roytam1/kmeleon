@@ -73,6 +73,8 @@
 #include "BrowserWindow.h"
 #include "MozUtils.h"
 
+#include "mozilla/dom/Event.h"
+
 #include "nsIDOMEvent.h"
 #include "nsIDOMMouseEvent.h"
 #include "nsIDOMKeyEvent.h"
@@ -772,7 +774,7 @@ NS_IMETHODIMP CBrowserImpl::HandleEvent(nsIDOMEvent *aEvent)
 			return NS_OK;
 
 		bool defPrevented;
-		keyEvent->GetDefaultPrevented(&defPrevented);
+		keyEvent->AsEvent()->GetDefaultPrevented(&defPrevented);
 		if (defPrevented) return NS_OK;
 
 		bool altKey, shiftKey, ctrlKey;
@@ -791,7 +793,7 @@ NS_IMETHODIMP CBrowserImpl::HandleEvent(nsIDOMEvent *aEvent)
 			return NS_OK;
 
 		nsCOMPtr<nsIDOMEventTarget> targetNode;
-		keyEvent->GetTarget(getter_AddRefs(targetNode));
+		keyEvent->AsEvent()->GetTarget(getter_AddRefs(targetNode));
 		NS_ENSURE_TRUE(targetNode, NS_ERROR_NULL_POINTER);
 		nsCOMPtr<nsIDOMNode> node = do_QueryInterface(targetNode);
 		if (!node) return NS_OK;		
