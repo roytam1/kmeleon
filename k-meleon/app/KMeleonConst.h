@@ -65,10 +65,10 @@
 #define BUILD_DAY_CH1 (__DATE__[ 5])
 /**/
 
-#define KMELEON_VERSION	               0x02030049
+#define KMELEON_VERSION	               0x02030050
 //#define MOZILLA_BUILDID 20140105 // Not used now, use mozilla_buildid[]
-#define KMELEON_BUILDID 7649
-#define KMELEON_UVERSION 76.4.9
+#define KMELEON_BUILDID 7650
+#define KMELEON_UVERSION 76.5.0
 #define KMELEON_UUID {944df56f-c0ec-4d7b-94b6-f625c8cc96ea}
 
 #define WM_DEFERSHOW                   WM_USER + 200
