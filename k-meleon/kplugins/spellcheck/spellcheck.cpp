@@ -100,6 +100,7 @@ kmeleonPlugin kPlugin = {
 char gDictCommand[MAX_DICT_COMMAND][20] = {0};
 
 
+#include "nsIDOMEvent.h"
 #include <nsIDOMEventListener.h>
 #include <nsIDOMMouseEvent.h>
 class CDomEventListener : public nsIDOMEventListener
