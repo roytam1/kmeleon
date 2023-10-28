@@ -1,6 +1,6 @@
 diff -rU5 ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/FrameMetrics.h xulrunner-sdk/include/FrameMetrics.h
 --- ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/FrameMetrics.h	2023-08-17 15:29:44.929384000 +0800
-+++ xulrunner-sdk/include/FrameMetrics.h	2023-08-17 15:45:28.800370700 +0800
++++ xulrunner-sdk/include/FrameMetrics.h	2023-10-29 07:08:40.030207200 +0800
 @@ -12,11 +12,12 @@
  #include "mozilla/gfx/BasePoint.h"      // for BasePoint
  #include "mozilla/gfx/Rect.h"           // for RoundedIn
@@ -17,7 +17,7 @@ diff -rU5 ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/FrameMetrics
  
 diff -rU5 ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/js/Debug.h xulrunner-sdk/include/js/Debug.h
 --- ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/js/Debug.h	2023-08-04 10:48:48.302756000 +0800
-+++ xulrunner-sdk/include/js/Debug.h	2023-08-17 15:44:36.391373100 +0800
++++ xulrunner-sdk/include/js/Debug.h	2023-10-29 07:08:40.030207200 +0800
 @@ -128,11 +128,11 @@
      js::Debugger* debugger;
  
@@ -33,7 +33,7 @@ diff -rU5 ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/js/Debug.h x
  
 diff -rU5 ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/mozilla/a11y/Accessible.h xulrunner-sdk/include/mozilla/a11y/Accessible.h
 --- ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/mozilla/a11y/Accessible.h	2023-08-17 15:29:44.803377000 +0800
-+++ xulrunner-sdk/include/mozilla/a11y/Accessible.h	2023-08-17 15:44:36.391373100 +0800
++++ xulrunner-sdk/include/mozilla/a11y/Accessible.h	2023-10-29 07:08:40.031207300 +0800
 @@ -10,11 +10,12 @@
  #include "mozilla/a11y/RelationType.h"
  #include "mozilla/a11y/Role.h"
@@ -48,9 +48,25 @@ diff -rU5 ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/mozilla/a11y
  #include "nsRect.h"
  
  struct nsRoleMapEntry;
+diff -rU5 ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/mozilla/BasicEvents.h xulrunner-sdk/include/mozilla/BasicEvents.h
+--- ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/mozilla/BasicEvents.h	2023-08-17 15:29:45.022389000 +0800
++++ xulrunner-sdk/include/mozilla/BasicEvents.h	2023-10-29 07:08:40.031207300 +0800
+@@ -13,11 +13,11 @@
+ #include "mozilla/TimeStamp.h"
+ #include "nsCOMPtr.h"
+ #include "nsIAtom.h"
+ #include "nsISupportsImpl.h"
+ #include "nsIWidget.h"
+-#include "nsString.h"
++#include <nsStringAPI.h>
+ #include "Units.h"
+ 
+ namespace IPC {
+ template<typename T>
+ struct ParamTraits;
 diff -rU5 ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/nsCOMPtr.h xulrunner-sdk/include/nsCOMPtr.h
 --- ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/nsCOMPtr.h	2023-01-27 10:52:48.437255000 +0800
-+++ xulrunner-sdk/include/nsCOMPtr.h	2023-08-17 15:44:36.392373200 +0800
++++ xulrunner-sdk/include/nsCOMPtr.h	2023-10-29 07:08:40.032207300 +0800
 @@ -384,17 +384,17 @@
  private:
    T* MOZ_OWNING_REF mRawPtr;
@@ -73,7 +89,7 @@ diff -rU5 ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/nsCOMPtr.h x
  #ifndef NSCAP_FEATURE_USE_BASE
 diff -rU5 ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/nsCoord.h xulrunner-sdk/include/nsCoord.h
 --- ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/nsCoord.h	2023-02-11 00:16:06.743709000 +0800
-+++ xulrunner-sdk/include/nsCoord.h	2023-08-17 15:44:36.392373200 +0800
++++ xulrunner-sdk/include/nsCoord.h	2023-10-29 07:08:40.032207300 +0800
 @@ -178,11 +178,11 @@
      // infinity + anything = anything + infinity = infinity
      return nscoord_MAX;
@@ -101,8 +117,8 @@ diff -rU5 ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/nsCoord.h xu
  }
  
 diff -rU5 ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/nsISupportsImpl.h xulrunner-sdk/include/nsISupportsImpl.h
---- ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/nsISupportsImpl.h	2022-05-20 09:46:28.578074000 +0800
-+++ xulrunner-sdk/include/nsISupportsImpl.h	2023-08-17 15:44:36.392373200 +0800
+--- ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/nsISupportsImpl.h	2023-09-08 08:10:33.123512000 +0800
++++ xulrunner-sdk/include/nsISupportsImpl.h	2023-10-29 07:08:40.032207300 +0800
 @@ -18,11 +18,11 @@
  #include "prthread.h" /* needed for thread-safety checks */
  #endif // !XPCOM_GLUE_AVOID_NSPR
@@ -116,7 +132,7 @@ diff -rU5 ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/nsISupportsI
  #include "mozilla/Attributes.h"
  #include "mozilla/Assertions.h"
  #include "mozilla/Compiler.h"
-@@ -345,11 +345,11 @@
+@@ -338,11 +338,11 @@
    nsrefcnt operator++(int) = delete;
    nsrefcnt operator--(int) = delete;
    nsrefcnt mValue;
@@ -131,7 +147,7 @@ diff -rU5 ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/nsISupportsI
    ThreadSafeAutoRefCnt() : mValue(0) {}
 diff -rU5 ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/nsRect.h xulrunner-sdk/include/nsRect.h
 --- ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/nsRect.h	2023-04-13 09:44:34.431394000 +0800
-+++ xulrunner-sdk/include/nsRect.h	2023-08-17 15:44:36.392373200 +0800
++++ xulrunner-sdk/include/nsRect.h	2023-10-29 07:08:40.033207400 +0800
 @@ -71,28 +71,28 @@
    {
  #ifdef NS_COORD_IS_FLOAT
