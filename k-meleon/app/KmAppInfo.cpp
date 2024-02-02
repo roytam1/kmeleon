@@ -27,7 +27,7 @@
 #include "nsXULAppAPI.h"
 #include "nsIPrefService.h"
 
-NS_IMPL_ISUPPORTS(KmAppInfo, nsIXULAppInfo, nsIXULRuntime, nsIAppStartup, nsIAppStartup)
+NS_IMPL_ISUPPORTS(KmAppInfo, nsIPlatformInfo, nsIXULAppInfo, nsIXULRuntime, nsIAppStartup, nsIAppStartup)
 
 const unsigned char mozilla_buildid[] =
 {
