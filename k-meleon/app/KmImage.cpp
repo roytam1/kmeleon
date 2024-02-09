@@ -284,7 +284,6 @@ HBITMAP nsImageObserver::CreateDIB(imgIRequest *aRequest)
 	}
 
 	uint8_t* data = nullptr;
-	nsAutoArrayPtr<uint8_t> autoDeleteArray;
 	if (map.mStride == BytesPerPixel(dataSurface->GetFormat()) * frameSize.width) {
 		// Mapped data is already packed
 		data = map.mData;
@@ -297,7 +296,7 @@ HBITMAP nsImageObserver::CreateDIB(imgIRequest *aRequest)
 		dataSurface->Unmap();
 		map.mData = nullptr;
 
-		data = autoDeleteArray = SurfaceToPackedBGRA(dataSurface);
+		data = SurfaceToPackedBGRA(dataSurface);
 		NS_ENSURE_TRUE(data, NULL);
 	}
 
