@@ -740,9 +740,8 @@ bool InjectJS(nsIDOMWindow* dom, const wchar_t* userScript, CString& result)
 	JSAutoRequest ar(cx);
 	JSAutoNullableCompartment ac(cx, _globalJSObject);
 	JS::Rooted<JS::Value> asyncStack(cx, JS::NullValue());
-	JS::Rooted<JS::Value> asyncCauseValue(cx, JS::NullValue());
 
-	docShell->NotifyJSRunToCompletionStart("InjectJS", L"InjectJS", L"InjectJS", 1, asyncStack, asyncCauseValue);
+	docShell->NotifyJSRunToCompletionStart("InjectJS", L"InjectJS", L"InjectJS", 1, asyncStack, "");
 	
 	JS::Rooted<JSObject*> globalJSObject(cx, innerGlobal->GetGlobalJSObject());
 	JS::Rooted<JS::Value> v (cx, JS::UndefinedValue());
