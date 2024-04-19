@@ -1,23 +1,70 @@
 diff -rU5 ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/FrameMetrics.h xulrunner-sdk/include/FrameMetrics.h
---- ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/FrameMetrics.h	2023-08-17 15:29:44.929384000 +0800
-+++ xulrunner-sdk/include/FrameMetrics.h	2023-10-29 07:08:40.030207200 +0800
-@@ -12,11 +12,12 @@
- #include "mozilla/gfx/BasePoint.h"      // for BasePoint
+--- ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/FrameMetrics.h	2024-04-19 09:59:03.403999000 +0800
++++ xulrunner-sdk/include/FrameMetrics.h	2024-04-19 11:32:08.893470700 +0800
+@@ -14,11 +14,12 @@
  #include "mozilla/gfx/Rect.h"           // for RoundedIn
  #include "mozilla/gfx/ScaleFactor.h"    // for ScaleFactor
  #include "mozilla/gfx/Logging.h"        // for Log
+ #include "mozilla/StaticPtr.h"          // for StaticAutoPtr
  #include "mozilla/TimeStamp.h"          // for TimeStamp
 -#include "nsString.h"
 +//#include "nsString.h"
 +#include <nsStringAPI.h>
+ #include "nsStyleCoord.h"               // for nsStyleCoord
  
  namespace IPC {
  template <typename T> struct ParamTraits;
  } // namespace IPC
+diff -rU5 ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/gfxFontFamilyList.h xulrunner-sdk/include/gfxFontFamilyList.h
+--- ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/gfxFontFamilyList.h	2024-01-11 15:14:47.059250000 +0800
++++ xulrunner-sdk/include/gfxFontFamilyList.h	2024-04-19 11:50:59.297126100 +0800
+@@ -6,11 +6,12 @@
+ #ifndef GFX_FONT_FAMILY_LIST_H
+ #define GFX_FONT_FAMILY_LIST_H
  
+ #include "nsDebug.h"
+ #include "nsISupportsImpl.h"
+-#include "nsString.h"
++//#include "nsString.h"
++#include <nsStringAPI.h>
+ #include "nsUnicharUtils.h"
+ #include "nsTArray.h"
+ #include "mozilla/MemoryReporting.h"
+ 
+ namespace mozilla {
+@@ -152,11 +153,11 @@
+         return FontFamilyName(genericType);
+     }
+ 
+     // memory reporting
+     size_t SizeOfExcludingThis(mozilla::MallocSizeOf aMallocSizeOf) const {
+-        return mName.SizeOfExcludingThisIfUnshared(aMallocSizeOf);
++        return mName.Length();
+     }
+ 
+     FontFamilyType mType;
+     nsString       mName; // empty if mType != eFamily_named
+ };
+diff -rU5 ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/gfxFontFeatures.h xulrunner-sdk/include/gfxFontFeatures.h
+--- ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/gfxFontFeatures.h	2020-12-21 14:19:45.692946000 +0800
++++ xulrunner-sdk/include/gfxFontFeatures.h	2024-04-19 11:37:27.832713000 +0800
+@@ -7,11 +7,12 @@
+ #ifndef GFX_FONT_FEATURES_H
+ #define GFX_FONT_FEATURES_H
+ 
+ #include "nsTHashtable.h"
+ #include "nsTArray.h"
+-#include "nsString.h"
++//#include "nsString.h"
++#include <nsStringAPI.h>
+ 
+ // An OpenType feature tag and value pair
+ struct gfxFontFeature {
+     uint32_t mTag; // see http://www.microsoft.com/typography/otspec/featuretags.htm
+     uint32_t mValue; // 0 = off, 1 = on, larger values may be used as parameters
 diff -rU5 ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/js/Debug.h xulrunner-sdk/include/js/Debug.h
---- ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/js/Debug.h	2023-08-04 10:48:48.302756000 +0800
-+++ xulrunner-sdk/include/js/Debug.h	2023-10-29 07:08:40.030207200 +0800
+--- ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/js/Debug.h	2024-04-04 12:53:50.351654000 +0800
++++ xulrunner-sdk/include/js/Debug.h	2024-04-19 11:32:08.893470700 +0800
 @@ -128,11 +128,11 @@
      js::Debugger* debugger;
  
@@ -32,8 +79,8 @@ diff -rU5 ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/js/Debug.h x
  #endif
  
 diff -rU5 ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/mozilla/a11y/Accessible.h xulrunner-sdk/include/mozilla/a11y/Accessible.h
---- ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/mozilla/a11y/Accessible.h	2023-08-17 15:29:44.803377000 +0800
-+++ xulrunner-sdk/include/mozilla/a11y/Accessible.h	2023-10-29 07:08:40.031207300 +0800
+--- ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/mozilla/a11y/Accessible.h	2024-03-29 09:42:59.662769000 +0800
++++ xulrunner-sdk/include/mozilla/a11y/Accessible.h	2024-04-19 11:32:08.894470700 +0800
 @@ -10,11 +10,12 @@
  #include "mozilla/a11y/RelationType.h"
  #include "mozilla/a11y/Role.h"
@@ -49,8 +96,8 @@ diff -rU5 ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/mozilla/a11y
  
  struct nsRoleMapEntry;
 diff -rU5 ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/mozilla/BasicEvents.h xulrunner-sdk/include/mozilla/BasicEvents.h
---- ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/mozilla/BasicEvents.h	2023-08-17 15:29:45.022389000 +0800
-+++ xulrunner-sdk/include/mozilla/BasicEvents.h	2023-10-29 07:08:40.031207300 +0800
+--- ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/mozilla/BasicEvents.h	2024-04-19 09:59:03.728017000 +0800
++++ xulrunner-sdk/include/mozilla/BasicEvents.h	2024-04-19 11:32:08.894470700 +0800
 @@ -13,11 +13,11 @@
  #include "mozilla/TimeStamp.h"
  #include "nsCOMPtr.h"
@@ -66,7 +113,7 @@ diff -rU5 ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/mozilla/Basi
  struct ParamTraits;
 diff -rU5 ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/nsCOMPtr.h xulrunner-sdk/include/nsCOMPtr.h
 --- ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/nsCOMPtr.h	2023-01-27 10:52:48.437255000 +0800
-+++ xulrunner-sdk/include/nsCOMPtr.h	2023-10-29 07:08:40.032207300 +0800
++++ xulrunner-sdk/include/nsCOMPtr.h	2024-04-19 11:32:08.894470700 +0800
 @@ -384,17 +384,17 @@
  private:
    T* MOZ_OWNING_REF mRawPtr;
@@ -89,7 +136,7 @@ diff -rU5 ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/nsCOMPtr.h x
  #ifndef NSCAP_FEATURE_USE_BASE
 diff -rU5 ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/nsCoord.h xulrunner-sdk/include/nsCoord.h
 --- ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/nsCoord.h	2023-02-11 00:16:06.743709000 +0800
-+++ xulrunner-sdk/include/nsCoord.h	2023-10-29 07:08:40.032207300 +0800
++++ xulrunner-sdk/include/nsCoord.h	2024-04-19 11:32:08.895470800 +0800
 @@ -178,11 +178,11 @@
      // infinity + anything = anything + infinity = infinity
      return nscoord_MAX;
@@ -116,9 +163,28 @@ diff -rU5 ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/nsCoord.h xu
    }
  }
  
+diff -rU5 ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/nsFont.h xulrunner-sdk/include/nsFont.h
+--- ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/nsFont.h	2023-05-04 10:42:49.750404000 +0800
++++ xulrunner-sdk/include/nsFont.h	2024-04-19 11:45:54.343683700 +0800
+@@ -10,12 +10,13 @@
+ #include <sys/types.h>                  // for int16_t
+ #include "gfxFontFamilyList.h"
+ #include "gfxFontFeatures.h"
+ #include "nsAutoPtr.h"                  // for nsRefPtr
+ #include "nsCoord.h"                    // for nscoord
+-#include "nsStringFwd.h"                // for nsSubstring
+-#include "nsString.h"               // for nsString
++#include <nsStringAPI.h>
++//#include "nsStringFwd.h"                // for nsSubstring
++//#include "nsString.h"               // for nsString
+ #include "nsTArray.h"                   // for nsTArray
+ 
+ struct gfxFontStyle;
+ 
+ // XXX we need a method to enumerate all of the possible fonts on the
 diff -rU5 ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/nsISupportsImpl.h xulrunner-sdk/include/nsISupportsImpl.h
---- ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/nsISupportsImpl.h	2023-09-08 08:10:33.123512000 +0800
-+++ xulrunner-sdk/include/nsISupportsImpl.h	2023-10-29 07:08:40.032207300 +0800
+--- ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/nsISupportsImpl.h	2024-02-16 09:33:13.523942000 +0800
++++ xulrunner-sdk/include/nsISupportsImpl.h	2024-04-19 11:32:08.895470800 +0800
 @@ -18,11 +18,11 @@
  #include "prthread.h" /* needed for thread-safety checks */
  #endif // !XPCOM_GLUE_AVOID_NSPR
@@ -147,7 +213,7 @@ diff -rU5 ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/nsISupportsI
    ThreadSafeAutoRefCnt() : mValue(0) {}
 diff -rU5 ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/nsRect.h xulrunner-sdk/include/nsRect.h
 --- ../KMXULRunner/obj-xulrunner-i686-pc-mingw32/dist/include/nsRect.h	2023-04-13 09:44:34.431394000 +0800
-+++ xulrunner-sdk/include/nsRect.h	2023-10-29 07:08:40.033207400 +0800
++++ xulrunner-sdk/include/nsRect.h	2024-04-19 11:32:08.895470800 +0800
 @@ -71,28 +71,28 @@
    {
  #ifdef NS_COORD_IS_FLOAT
