@@ -437,6 +437,13 @@ NS_IMETHODIMP KmAppInfo::SetInterrupted(bool aInterrupted)
 	mInterrupted = aInterrupted;
 	return NS_OK;    
 }
+
+NS_IMETHODIMP KmAppInfo::GetMultiprocessBlockPolicy(uint32_t* aResult)
+{
+	*aResult = 7; // kE10sDisabledForAddons = 7
+	return NS_OK;
+}
+
 /*
 NS_IMETHODIMP KmAppInfo::ProcessNativeEvent(void* aMsg)
 {
