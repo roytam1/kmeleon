@@ -566,7 +566,7 @@ NS_IMETHODIMP CBrowserImpl::Blur()
 //*****************************************************************************
 
 /* void onShowTooltip (in long aXCoords, in long aYCoords, in wstring aTipText); */
-NS_IMETHODIMP CBrowserImpl::OnShowTooltip(PRInt32 aXCoords, PRInt32 aYCoords, const PRUnichar *aTipText)
+NS_IMETHODIMP CBrowserImpl::OnShowTooltip(PRInt32 aXCoords, PRInt32 aYCoords, const PRUnichar *aTipText, const PRUnichar *aTipDir)
 {
 	NS_ENSURE_ARG_POINTER(aTipText);
 	NS_ENSURE_TRUE(m_pBrowserFrameGlue, NS_ERROR_FAILURE);

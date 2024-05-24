@@ -579,7 +579,7 @@ NS_IMETHODIMP WebBrowserChrome::OnShowContextMenu(PRUint32 aContextFlags, nsIDOM
 //*****************************************************************************   
 
 /* void OnShowTooltip (in long aXCoords, in long aYCoords, in wstring aTipText); */
-NS_IMETHODIMP WebBrowserChrome::OnShowTooltip(PRInt32 aXCoords, PRInt32 aYCoords, const PRUnichar *aTipText)
+NS_IMETHODIMP WebBrowserChrome::OnShowTooltip(PRInt32 aXCoords, PRInt32 aYCoords, const PRUnichar *aTipText, const PRUnichar *aDirection)
 {
     WebBrowserChromeUI::ShowTooltip(this, aXCoords, aYCoords, aTipText);
     return NS_OK;
