@@ -261,10 +261,10 @@ NS_IMETHODIMP KmAppInfo::GetReplacedLockTime(PRTime *aReplacedLockTime)
 }
 
 /* readonly attribute DOMString lastRunCrashID; */
-/*NS_IMETHODIMP KmAppInfo::GetLastRunCrashID(nsAString & aLastRunCrashID)
+NS_IMETHODIMP KmAppInfo::GetLastRunCrashID(nsAString & aLastRunCrashID)
 {
 	return NS_ERROR_NOT_IMPLEMENTED;
-}*/
+}
 
 NS_IMETHODIMP KmAppInfo::GetBrowserTabsRemoteAutostart(bool *aBrowserTabsRemote)
 {
